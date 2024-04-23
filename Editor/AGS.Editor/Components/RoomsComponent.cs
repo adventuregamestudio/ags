@@ -300,8 +300,6 @@ namespace AGS.Editor.Components
             {
                 _guiController.ShowMessage("The room file could not be deleted." + Environment.NewLine + Environment.NewLine + ex.Message, MessageBoxIcon.Warning);
             }
-            RoomListTypeConverter.SetRoomList(_agsEditor.CurrentGame.Rooms);
-            _agsEditor.CurrentGame.FilesAddedOrRemoved = true;
         }
 
 		private void CreateTemplateFromRoom(int roomNumber)
@@ -455,10 +453,16 @@ namespace AGS.Editor.Components
                 }
 
                 UnloadedRoom newRoom = new UnloadedRoom(newRoomNumber);
-                Task.WaitAll(ConvertRoomFromCrmToOpenFormat(newRoom, null).ToArray());
+                CompileMessages errors = new CompileMessages();
+                Task.WaitAll(ConvertRoomFromCrmToOpenFormat(newRoom, errors, null).ToArray());
+                if (errors.HasErrors)
+                {
+                    _guiController.ShowMessage("There was an error importing the room. The error was: " + errors.FirstError.AsString, MessageBoxIcon.Warning);
+                    return;
+                }
+
                 var nodeId = AddSingleItem(newRoom);
 				_agsEditor.CurrentGame.FilesAddedOrRemoved = true;
-
                 RePopulateTreeView(nodeId);
                 RoomListTypeConverter.SetRoomList(_agsEditor.CurrentGame.Rooms);
                 _guiController.ShowMessage("Room file imported successfully as room " + newRoomNumber + ".", MessageBoxIcon.Information);
@@ -553,8 +557,13 @@ namespace AGS.Editor.Components
 					_nativeProxy.ExtractRoomTemplateFiles(template.FileName, newRoom.Number);
 				}
 
-
-                Task.WaitAll(ConvertRoomFromCrmToOpenFormat(newRoom, null, template.FileName == null).ToArray());
+                CompileMessages errors = new CompileMessages();
+                Task.WaitAll(ConvertRoomFromCrmToOpenFormat(newRoom, errors, null, template.FileName == null).ToArray());
+                if (errors.HasErrors)
+                {
+                    _guiController.ShowMessage("There was an error attempting to create the new room. The error was: " + errors.FirstError.AsString, MessageBoxIcon.Warning);
+                    return;
+                }
 
                 string newNodeID = AddSingleItem(newRoom);
                 _agsEditor.CurrentGame.FilesAddedOrRemoved = true;
@@ -2211,6 +2220,7 @@ namespace AGS.Editor.Components
             // Now upgrade
             object progressLock = new object();
             string progressText = "Converting rooms from .crm to open format.";
+            CompileMessages errors = new CompileMessages();
             using (Progress progressForm = new Progress(rooms.Count, progressText))
             {
                 progressForm.Show();
@@ -2223,9 +2233,15 @@ namespace AGS.Editor.Components
 
                 var roomsConvertingTasks = rooms
                     .Cast<UnloadedRoom>()
-                    .SelectMany(r => ConvertRoomFromCrmToOpenFormat(r, progressReporter))
+                    .SelectMany(r => ConvertRoomFromCrmToOpenFormat(r, errors, progressReporter))
                     .ToArray();
                 await Task.WhenAll(roomsConvertingTasks);
+            }
+
+            _guiController.ShowOutputPanel(errors);
+            if (errors.HasErrors)
+            {
+                Factory.GUIController.ShowMessage("There were errors or warnings when converting the rooms to the new format. Please consult the output window for details.", MessageBoxIcon.Warning);
             }
         }
 
@@ -2234,9 +2250,21 @@ namespace AGS.Editor.Components
         /// </summary>
         /// <param name="room">The room to convert to open format</param>
         /// <returns>A collection of tasks that converts the room async.</returns>
-        private IEnumerable<Task> ConvertRoomFromCrmToOpenFormat(UnloadedRoom unloadedRoom, Action report = null, bool isNewRoom=false)
+        private IEnumerable<Task> ConvertRoomFromCrmToOpenFormat(UnloadedRoom unloadedRoom, CompileMessages errors,
+            Action report = null, bool isNewRoom=false)
         {
-            var nativeRoom = new Native.NativeRoom(unloadedRoom.FileName, null);
+            Native.NativeRoom nativeRoom = null;
+            try
+            {
+                nativeRoom = new Native.NativeRoom(unloadedRoom.FileName, null);
+            }
+            catch (Exception e)
+            {
+                errors.Add(new CompileError($"Failed to load a room from {unloadedRoom.FileName}", e));
+                report?.Invoke();
+                yield break;
+            }
+
             Room room = nativeRoom.ConvertToManagedRoom(unloadedRoom.Number, null);
             room.Description = unloadedRoom.Description;
             room.Script = unloadedRoom.Script;

@@ -40,5 +40,20 @@ namespace AGS.Types
 				return errors;
 			}
 		}
+
+        public CompileError FirstError
+        {
+            get
+            {
+                foreach (CompileMessage message in this)
+                {
+                    if (message is CompileError)
+                    {
+                        return message as CompileError;
+                    }
+                }
+                return null;
+            }
+        }
 	}
 }

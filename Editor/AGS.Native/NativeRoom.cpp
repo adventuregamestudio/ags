@@ -50,14 +50,15 @@ NativeRoom::NativeRoom(AGS::Types::Room ^room)
 
 NativeRoom::NativeRoom(System::String ^filename, System::Text::Encoding ^defEncoding)
 {
-    _rs = new RoomStruct();
+    RoomStruct *rs = new RoomStruct();
     AGSString roomFileName = TextHelper::ConvertUTF8(filename);
-    AGSString errorMsg = load_room_file(*_rs, roomFileName);
+    AGSString errorMsg = load_room_file(*rs, roomFileName);
     if (!errorMsg.IsEmpty())
     {
-        delete _rs;
+        delete rs;
         throw gcnew AGSEditorException(TextHelper::ConvertUTF8(errorMsg));
     }
+    _rs = rs;
 }
 
 NativeRoom::~NativeRoom()

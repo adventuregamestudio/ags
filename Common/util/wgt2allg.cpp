@@ -92,9 +92,7 @@ using namespace AGS::Common;
     0xA0A0A0, 0xB0B0B0, 0xC0C0C0, 0xD0D0D0, 0xE0E0E0, 0xF0F0F0
   };
 
-  int __wremap_keep_transparent = 1;
-
-  void wremap(const RGB * pal1, Bitmap *picc, const RGB * pal2)
+  void wremap(const RGB * pal1, Bitmap *picc, const RGB * pal2, bool keep_transparent)
   {
     unsigned char color_mapped_table[256];
 
@@ -110,7 +108,7 @@ using namespace AGS::Common;
       }
     }
 
-    if (__wremap_keep_transparent > 0) {
+    if (keep_transparent) {
       // keep transparency
       color_mapped_table[0] = 0;
       // any other pixels which are being mapped to 0, map to 16 instead
@@ -130,7 +128,5 @@ using namespace AGS::Common;
 
   void wremapall(const RGB * pal1, Bitmap *picc, const RGB * pal2)
   {
-    __wremap_keep_transparent--;
-    wremap(pal1, picc, pal2);
-    __wremap_keep_transparent++;
+    wremap(pal1, picc, pal2, false);
   }

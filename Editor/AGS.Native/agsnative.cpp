@@ -1060,7 +1060,6 @@ void sort_out_palette(Common::Bitmap *toimp, RGB*itspal, bool useBgSlots, int tr
     if (transcol!=0)
       itspal[transcol] = itspal[0];
     wsetrgb(0,0,0,0,itspal); // set index 0 to black
-    __wremap_keep_transparent = 1;
     RGB oldpale[256];
     for (int uu=0;uu<255;uu++) {
       if (useBgSlots)  //  use background scene palette

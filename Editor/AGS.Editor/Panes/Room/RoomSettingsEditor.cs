@@ -536,7 +536,7 @@ namespace AGS.Editor
 				Bitmap bmp = null;
                 try
                 {
-                    bmp = new Bitmap(selectedFile);
+                    bmp = BitmapExtensions.LoadNonLockedBitmap(selectedFile);
                     bmp = ExtendBitmapIfSmallerThanScreen(bmp);
                     bool doImport = true;
                     bool deleteExtraFrames = false;

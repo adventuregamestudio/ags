@@ -73,6 +73,11 @@ namespace AGS.Editor
             _native.PaletteColoursUpdated(game);
         }
 
+        public void ApplyPalette(PaletteEntry[] palette)
+        {
+            _native.ApplyPalette(palette);
+        }
+
         public void SaveGame(Game game)
         {
 			lock (_spriteSetLock)

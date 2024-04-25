@@ -20,9 +20,8 @@ namespace AGS.Editor
             BestFitInit();
         }
 
-        public static void RemapBackground(Bitmap scene, bool exactPal, out int colorsImage, out int colorsLimit)
+        public static void RemapBackground(Bitmap scene, bool exactPal, PaletteEntry[] gamePalette, out int colorsImage, out int colorsLimit)
         {
-            PaletteEntry[] gamePalette = Factory.AGSEditor.CurrentGame.Palette;
             ColorPalette palette = scene.Palette;
             /*
             // Unconditionally copy any Locked colors to the bitmap palette

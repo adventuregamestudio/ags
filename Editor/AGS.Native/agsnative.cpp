@@ -2144,7 +2144,7 @@ System::Drawing::Bitmap^ getSpriteAsBitmap32bit(int spriteNum, int width, int he
   return ConvertBlockToBitmap32(todraw, width, height, false /* keep alpha */);
 }
 
-void PaletteUpdated(cli::array<PaletteEntry^>^ newPalette) 
+void ApplyPalette(cli::array<PaletteEntry^>^ newPalette) 
 {  
 	for each (PaletteEntry ^colour in newPalette) 
 	{
@@ -2153,8 +2153,6 @@ void PaletteUpdated(cli::array<PaletteEntry^>^ newPalette)
 		palette[colour->Index].b = colour->Colour.B / 4;
 	}
 	set_palette(palette);
-	RoomStruct dummy; // FIXME: not working since open room format
-	copy_global_palette_to_room_palette(dummy);
 }
 
 void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui) 

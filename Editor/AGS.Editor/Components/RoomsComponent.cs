@@ -67,7 +67,10 @@ namespace AGS.Editor.Components
         private ContentDocument _roomSettings;
         private Dictionary<int,ContentDocument> _roomScriptEditors = new Dictionary<int,ContentDocument>();
         private Room _loadedRoom;
-		private NativeProxy _nativeProxy;
+        // Current room palette combines game-wide slots from the default game pal,
+        // and background slots from the room background pal
+        private PaletteEntry[] _roomPalette;
+        private NativeProxy _nativeProxy;
         private int _rightClickedRoomNumber;
         private Room.RoomModifiedChangedHandler _modifiedChangedHandler;
 		private object _roomLoadingOrSavingLock = new object();
@@ -953,6 +956,7 @@ namespace AGS.Editor.Components
             }
 
             _loadedRoom = new Room(LoadData(newRoom)) { Script = newRoom.Script };
+            CopyGamePalette();
             LoadImageCache();
             _fileWatchers.Clear();
             _fileWatchers.AddRange(LoadFileWatchers());
@@ -1721,10 +1725,12 @@ namespace AGS.Editor.Components
             if (_loadedRoom.ColorDepth == 8)
             {
                 int colorsImage, colorsLimit;
-                PaletteUtilities.RemapBackground(newBmp, !Factory.AGSEditor.Settings.RemapPalettizedBackgrounds, out colorsImage, out colorsLimit);
+                CopyGamePalette(); // in case they had changes to game colors in the meantime
+                PaletteUtilities.RemapBackground(newBmp, !Factory.AGSEditor.Settings.RemapPalettizedBackgrounds, _roomPalette, out colorsImage, out colorsLimit);
                 if (background == 0)
                 {
-                    newBmp.CopyToAGSBackgroundPalette(Factory.AGSEditor.CurrentGame.Palette);
+                    newBmp.CopyToAGSBackgroundPalette(_roomPalette); // update current room palette
+                    Factory.NativeProxy.ApplyPalette(_roomPalette); // sync native palette
                 }
 
                 // TODO: not sure if it's good to report error here, in the interface impl,
@@ -1878,6 +1884,7 @@ namespace AGS.Editor.Components
                     }
 
                     // Highlight the currently selected area colour
+                    // NOTE: we're using default game palette for displaying masks
                     if (selectedArea > 0)
                     {
                         // if a bright colour, use it, else, draw in red
@@ -1960,6 +1967,12 @@ namespace AGS.Editor.Components
         private string GetItemNodeID(UnloadedRoom room)
         {
             return TREE_PREFIX_ROOM_NODE + room.Number;
+        }
+
+        private void CopyGamePalette()
+        {
+            _roomPalette = new PaletteEntry[Factory.AGSEditor.CurrentGame.Palette.Length];
+            Array.Copy(Factory.AGSEditor.CurrentGame.Palette, _roomPalette, Factory.AGSEditor.CurrentGame.Palette.Length);
         }
 
         private void LoadImageCache()
@@ -2051,10 +2064,12 @@ namespace AGS.Editor.Components
             if (_loadedRoom.ColorDepth == 8)
             {
                 int colorsImage, colorsLimit;
-                PaletteUtilities.RemapBackground(newBmp, !Factory.AGSEditor.Settings.RemapPalettizedBackgrounds, out colorsImage, out colorsLimit);
+                CopyGamePalette(); // in case they had changes to game colors in the meantime
+                PaletteUtilities.RemapBackground(newBmp, !Factory.AGSEditor.Settings.RemapPalettizedBackgrounds, _roomPalette, out colorsImage, out colorsLimit);
                 if (i == 0)
                 {
-                    newBmp.CopyToAGSBackgroundPalette(Factory.AGSEditor.CurrentGame.Palette);
+                    newBmp.CopyToAGSBackgroundPalette(_roomPalette); // update current room palette
+                    Factory.NativeProxy.ApplyPalette(_roomPalette); // sync native palette
                 }
             }
             return newBmp;
@@ -2075,7 +2090,7 @@ namespace AGS.Editor.Components
         {
             double scale = _loadedRoom.GetMaskScale(mask);
             var bitmap = new Bitmap((int)(width * scale), (int)(height * scale), PixelFormat.Format8bppIndexed);
-            bitmap.SetFromAGSPalette(Factory.AGSEditor.CurrentGame.Palette);
+            bitmap.SetFromAGSPalette(Factory.AGSEditor.CurrentGame.Palette); // enforce default mask palette
             return bitmap;
         }
 
@@ -2370,6 +2385,16 @@ namespace AGS.Editor.Components
             if (_loadedRoom == null)
             {
                 throw new InvalidOperationException("No room is currently loaded");
+            }
+
+            // Sync native palette before writing
+            // TODO: revise this later; at the time of writing nativeRoom.SetBackground
+            // did full background remap once more, which seems like a duplicated effort
+            if ((_loadedRoom.ColorDepth == 8) && (_loadedRoom.BackgroundCount > 0))
+            {
+                CopyGamePalette(); // in case they had changes to game colors in the meantime
+                _backgroundCache[0].Image.CopyToAGSBackgroundPalette(_roomPalette); // update current room palette
+                Factory.NativeProxy.ApplyPalette(_roomPalette); // sync native palette
             }
 
             var nativeRoom = new Native.NativeRoom(_loadedRoom);

@@ -1727,7 +1727,7 @@ namespace AGS.Editor.Components
                 }
                 newBmp.Palette = palette;
 
-                newBmp.SetGlobalPaletteFromPalette();
+                newBmp.CopyToAGSBackgroundPalette(Factory.AGSEditor.CurrentGame.Palette);
                 // TODO Implement remap_background from AGS.Native
             }
 
@@ -2055,7 +2055,7 @@ namespace AGS.Editor.Components
         {
             double scale = _loadedRoom.GetMaskScale(mask);
             var bitmap = new Bitmap((int)(width * scale), (int)(height * scale), PixelFormat.Format8bppIndexed);
-            bitmap.SetPaletteFromGlobalPalette();
+            bitmap.SetFromAGSPalette(Factory.AGSEditor.CurrentGame.Palette);
             return bitmap;
         }
 
@@ -2086,7 +2086,7 @@ namespace AGS.Editor.Components
             var temp_bitmap = new Bitmap(1, 1, PixelFormat.Format8bppIndexed); // needed to create a fresh 256 palette, ColorPalette can't be created alone
             newMask.Palette = temp_bitmap.Palette;
             temp_bitmap.Dispose();
-            newMask.SetPaletteFromGlobalPalette(); // enforce default mask palette
+            newMask.SetFromAGSPalette(Factory.AGSEditor.CurrentGame.Palette); // enforce default mask palette
 
             int maxColor = Room.GetMaskMaxColor(type);
             bool invalidPixel = false;

@@ -1722,7 +1722,10 @@ namespace AGS.Editor.Components
             {
                 int colorsImage, colorsLimit;
                 PaletteUtilities.RemapBackground(newBmp, !Factory.AGSEditor.Settings.RemapPalettizedBackgrounds, out colorsImage, out colorsLimit);
-                newBmp.CopyToAGSBackgroundPalette(Factory.AGSEditor.CurrentGame.Palette);
+                if (background == 0)
+                {
+                    newBmp.CopyToAGSBackgroundPalette(Factory.AGSEditor.CurrentGame.Palette);
+                }
 
                 // TODO: not sure if it's good to report error here, in the interface impl,
                 // but the existing method does not provide a "CompileMessages" arg
@@ -2041,7 +2044,21 @@ namespace AGS.Editor.Components
             _guiController.RefreshPropertyGrid();
         }
 
-        private Bitmap LoadBackground(int i) => BitmapExtensions.LoadNonLockedBitmap(_loadedRoom.GetBackgroundFileName(i));
+        private Bitmap LoadBackground(int i)
+        {
+            Bitmap newBmp = BitmapExtensions.LoadNonLockedBitmap(_loadedRoom.GetBackgroundFileName(i));
+            // For 8-bit rooms - remap loaded background images
+            if (_loadedRoom.ColorDepth == 8)
+            {
+                int colorsImage, colorsLimit;
+                PaletteUtilities.RemapBackground(newBmp, !Factory.AGSEditor.Settings.RemapPalettizedBackgrounds, out colorsImage, out colorsLimit);
+                if (i == 0)
+                {
+                    newBmp.CopyToAGSBackgroundPalette(Factory.AGSEditor.CurrentGame.Palette);
+                }
+            }
+            return newBmp;
+        }
 
         private void RefreshBackground(int i)
         {

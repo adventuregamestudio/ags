@@ -31,8 +31,7 @@ extern void convert_room_from_native(const RoomStruct &rs, AGS::Types::Room ^roo
 extern void convert_room_to_native(Room ^room, RoomStruct &rs);
 extern AGSString load_room_file(RoomStruct &rs, const AGSString &filename);
 extern void save_room_file(RoomStruct &rs, const AGSString &path);
-extern void SetNativeRoomBackground(RoomStruct &room, int backgroundNumber,
-    SysBitmap ^bmp, bool useExactPalette, bool sharePalette);
+extern void SetNativeRoomBackground(RoomStruct &room, int backgroundNumber, SysBitmap ^bmp);
 extern void validate_mask(AGSBitmap *toValidate, const char *name, int maxColour);
 
 
@@ -105,9 +104,9 @@ SysBitmap ^NativeRoom::GetAreaMask(AGS::Types::RoomAreaMaskType maskType)
     return managedMask;
 }
 
-void NativeRoom::SetBackground(int bgnum, SysBitmap ^bmp, bool useExactPalette, bool sharePalette)
-{ // NOTE: this operation uses too much from the native code to completely move here 
-    SetNativeRoomBackground(*_rs, bgnum, bmp, useExactPalette, sharePalette);
+void NativeRoom::SetBackground(int bgnum, SysBitmap ^bmp)
+{
+    SetNativeRoomBackground(*_rs, bgnum, bmp);
 }
 
 void NativeRoom::SetAreaMask(AGS::Types::RoomAreaMaskType maskType, SysBitmap ^bmp)

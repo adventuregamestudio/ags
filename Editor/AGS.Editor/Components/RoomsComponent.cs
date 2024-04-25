@@ -2388,8 +2388,6 @@ namespace AGS.Editor.Components
             }
 
             // Sync native palette before writing
-            // TODO: revise this later; at the time of writing nativeRoom.SetBackground
-            // did full background remap once more, which seems like a duplicated effort
             if ((_loadedRoom.ColorDepth == 8) && (_loadedRoom.BackgroundCount > 0))
             {
                 CopyGamePalette(); // in case they had changes to game colors in the meantime
@@ -2400,8 +2398,7 @@ namespace AGS.Editor.Components
             var nativeRoom = new Native.NativeRoom(_loadedRoom);
             for (int i = 0; i < _loadedRoom.BackgroundCount; i++)
             {
-                nativeRoom.SetBackground(
-                    i, _backgroundCache[i].Image, _agsEditor.Settings.RemapPalettizedBackgrounds, sharePalette: false);
+                nativeRoom.SetBackground(i, _backgroundCache[i].Image);
             }
 
             foreach (RoomAreaMaskType mask in Enum.GetValues(typeof(RoomAreaMaskType)))

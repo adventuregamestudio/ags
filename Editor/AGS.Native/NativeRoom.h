@@ -40,7 +40,7 @@ public:
     // Gets respective area mask as a .NET Bitmap
     System::Drawing::Bitmap ^GetAreaMask(AGS::Types::RoomAreaMaskType maskType);
     // Sets/replaces room background, converting from .NET Bitmap
-    void SetBackground(int bgnum, System::Drawing::Bitmap ^bmp, bool useExactPalette, bool sharePalette);
+    void SetBackground(int bgnum, System::Drawing::Bitmap ^bmp);
     // Sets/replaces area mask, converting from .NET Bitmap
     void SetAreaMask(AGS::Types::RoomAreaMaskType maskType, System::Drawing::Bitmap ^bmp);
     // Saves current room object to the file (CRM)

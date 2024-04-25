@@ -159,7 +159,7 @@ namespace AGS.Editor
                 {
                     Color thisColor = game.Palette[i].Colour;
                     e.Graphics.FillRectangle(new SolidBrush(thisColor), x, y, 20, 20);
-/*
+                    /*
                     if (game.Palette[i].ColourType == PaletteColourType.Locked)
                     {
                         Brush textCol = Brushes.White;

@@ -1720,15 +1720,18 @@ namespace AGS.Editor.Components
 
             if (_loadedRoom.ColorDepth == 8)
             {
-                ColorPalette palette = newBmp.Palette;
-                foreach (var color in _agsEditor.CurrentGame.Palette.Where(p => p.ColourType == PaletteColourType.Locked))
-                {
-                    palette.Entries[color.Index] = color.Colour;
-                }
-                newBmp.Palette = palette;
-
+                int colorsImage, colorsLimit;
+                PaletteUtilities.RemapBackground(newBmp, !Factory.AGSEditor.Settings.RemapPalettizedBackgrounds, out colorsImage, out colorsLimit);
                 newBmp.CopyToAGSBackgroundPalette(Factory.AGSEditor.CurrentGame.Palette);
-                // TODO Implement remap_background from AGS.Native
+
+                // TODO: not sure if it's good to report error here, in the interface impl,
+                // but the existing method does not provide a "CompileMessages" arg
+                if (Factory.AGSEditor.Settings.RemapPalettizedBackgrounds &&
+                    (colorsImage > colorsLimit))
+                {
+                    _guiController.ShowMessage($"The image uses more colors ({colorsImage}) than palette slots allocated to backgrounds ({colorsLimit}). Some colours will be lost.",
+                        MessageBoxIconType.Information);
+                }
             }
 
             if (background >= _backgroundCache.Count)

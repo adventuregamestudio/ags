@@ -24,7 +24,6 @@ using AGS::Types::AGSEditorException;
 using SysBitmap = System::Drawing::Bitmap;
 
 
-AGSBitmap *CreateBlockFromBitmap(SysBitmap ^bmp, RGB *imgpal, bool fixColourDepth, bool keepTransparency, int *originalColDepth);
 extern SysBitmap^ ConvertBlockToBitmap32(AGSBitmap *todraw, int width, int height, bool opaque);
 extern SysBitmap^ ConvertBlockToBitmap(AGSBitmap *todraw);
 AGSBitmap *CreateOpaqueNativeBitmap(SysBitmap ^bmp, RGB *imgpal, bool fixColourDepth, bool keepTransparency, int *originalColDepth);

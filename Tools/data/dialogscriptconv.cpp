@@ -90,7 +90,7 @@ String DialogScriptConverter::Convert()
     String ags_script =
         String::FromFormat("function _run_dialog%d(int entryPoint) { \n", _dialog.ID);
 
-    for (String thisLine = sr.ReadLine(); !thisLine.IsEmpty(); thisLine = sr.ReadLine())
+    for (String thisLine = sr.ReadLine(); !sr.EOS(); thisLine = sr.ReadLine())
     {
         _lineNumber++;
         String s = ConvertLine(thisLine);

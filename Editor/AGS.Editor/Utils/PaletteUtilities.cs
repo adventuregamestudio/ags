@@ -34,8 +34,13 @@ namespace AGS.Editor
             // Exact palette: keep any color of Background indexes as-is
             if (exactPal)
             {
-                // CHECKME: should we also clear or copy all the Game-wide slots here?
-                // This was not entirely clear from the original code in AGS.Native
+                // We should still copy all the Game-wide slots over,
+                // otherwise the user will get false picture in the Editor.
+                foreach (var color in gamePalette.Where(p => p.ColourType == PaletteColourType.Gamewide))
+                {
+                    palette.Entries[color.Index] = color.Colour;
+                }
+                scene.Palette = palette;
                 colorsImage = 0; // just reset them, no use in this case
                 colorsLimit = 0;
                 return;

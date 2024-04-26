@@ -536,12 +536,17 @@ namespace AGS.Editor
 				Bitmap bmp = null;
                 try
                 {
-                    bmp = new Bitmap(selectedFile);
+                    bmp = BitmapExtensions.LoadNonLockedBitmap(selectedFile);
                     bmp = ExtendBitmapIfSmallerThanScreen(bmp);
                     bool doImport = true;
                     bool deleteExtraFrames = false;
 
-					if ((bmp.Width != _room.Width) || (bmp.Height != _room.Height))
+                    if ((Factory.AGSEditor.CurrentGame.Settings.ColorDepth == GameColorDepth.Palette) && (bmp.GetColorDepth() > 8))
+                    {
+                        Factory.GUIController.ShowMessage("You cannot import a hi-colour or true-colour image into a 256-colour game.", MessageBoxIcon.Warning);
+                        doImport = false;
+                    }
+					else if ((bmp.Width != _room.Width) || (bmp.Height != _room.Height))
                     {
                         if (bgIndex > 0)
                         {

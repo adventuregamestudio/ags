@@ -1060,7 +1060,6 @@ void sort_out_palette(Common::Bitmap *toimp, RGB*itspal, bool useBgSlots, int tr
     if (transcol!=0)
       itspal[transcol] = itspal[0];
     wsetrgb(0,0,0,0,itspal); // set index 0 to black
-    __wremap_keep_transparent = 1;
     RGB oldpale[256];
     for (int uu=0;uu<255;uu++) {
       if (useBgSlots)  //  use background scene palette
@@ -1184,88 +1183,6 @@ void free_old_game_data()
 
   // free game struct last because it contains object counts
   thisgame.Free();
-}
-
-// remap the scene, from its current palette oldpale to palette
-void remap_background (Common::Bitmap *scene, RGB *oldpale, RGB*palette, int exactPal) {
-  int a;  
-
-  if (exactPal) {
-    // exact palette import (for doing palette effects, don't change)
-    for (a=0;a<256;a++) 
-    {
-      if (thisgame.paluses[a] == PAL_BACKGROUND)
-      {
-        palette[a] = oldpale[a];
-      }
-    }
-    return;
-  }
-
-  // find how many slots there are reserved for backgrounds
-  int numbgslots=0;
-  for (a=0;a<256;a++) { oldpale[a].filler=0;
-    if (thisgame.paluses[a]!=PAL_GAMEWIDE) numbgslots++;
-  }
-  // find which colours from the image palette are actually used
-  int imgpalcnt[256],numimgclr=0;
-  memset(&imgpalcnt[0],0,sizeof(int)*256);
-
-  for (a=0;a<(scene->GetWidth()) * (scene->GetHeight());a++) {
-    imgpalcnt[scene->GetScanLine(0)[a]]++;
-  }
-  for (a=0;a<256;a++) {
-    if (imgpalcnt[a]>0) numimgclr++;
-  }
-  // count up the number of unique colours in the image
-  int numclr=0,bb;
-  RGB tpal[256];
-  for (a=0;a<256;a++) {
-    if (thisgame.paluses[a]==PAL_BACKGROUND)
-      wsetrgb(a,0,0,0,palette);  // black out the bg slots before starting
-    if ((oldpale[a].r==0) & (oldpale[a].g==0) & (oldpale[a].b==0)) {
-      imgpalcnt[a]=0;
-      continue;
-    }
-    for (bb=0;bb<numclr;bb++) {
-      if ((oldpale[a].r==tpal[bb].r) &
-        (oldpale[a].g==tpal[bb].g) &
-        (oldpale[a].b==tpal[bb].b)) bb=1000;
-    }
-    if (bb>300) { 
-      imgpalcnt[a]=0;
-      continue;
-    }
-    if (imgpalcnt[a]==0)
-      continue;
-    tpal[numclr]=oldpale[a];
-    numclr++;
-  }
-  if (numclr>numbgslots) {
-    MessageBox(NULL, "WARNING: This image uses more colours than are allocated to backgrounds. Some colours will be lost.", "Warning", MB_OK);
-  }
-
-  // fill the background slots in the palette with the colours
-  int palslt=255;  // start from end of palette and work backwards
-  for (a=0;a<numclr;a++) {
-    while (thisgame.paluses[palslt]!=PAL_BACKGROUND) {
-      palslt--;
-      if (palslt<0) break;
-    }
-    if (palslt<0) break;
-    palette[palslt]=tpal[a];
-    palslt--;
-    if (palslt<0) break;
-  }
-  // blank out the sprite colours, then remap the picture
-  for (a=0;a<256;a++) {
-    if (thisgame.paluses[a]==PAL_GAMEWIDE) {
-      tpal[a].r=0;
-      tpal[a].g=0; tpal[a].b=0; 
-    }
-    else tpal[a]=palette[a];
-  }
-  wremapall(oldpale,scene,tpal); //palette);
 }
 
 void validate_mask(Common::Bitmap *toValidate, const char *name, int maxColour) {
@@ -1914,47 +1831,22 @@ Common::Bitmap *CreateOpaqueNativeBitmap(System::Drawing::Bitmap^ bmp,
     return newbmp;
 }
 
-void SetNativeRoomBackground(RoomStruct &room, int backgroundNumber,
-    SysBitmap ^bmp, bool useExactPalette, bool sharePalette)
+void SetNativeRoomBackground(RoomStruct &room, int backgroundNumber, SysBitmap ^bmp)
 {
     if (backgroundNumber < 0 || backgroundNumber > MAX_ROOM_BGFRAMES)
     {
         throw gcnew AGSEditorException(String::Format("SetNativeRoomBackground: invalid background number {0}", backgroundNumber));
     }
 
-    RGB oldpale[256];
-    Common::Bitmap *newbg = CreateOpaqueNativeBitmap(bmp, oldpale, true, false, NULL);
-    if (newbg->GetColorDepth() == 8) 
+    RGB bgpal[256];
+    Common::Bitmap *newbg = CreateOpaqueNativeBitmap(bmp, bgpal, true, false, NULL);
+    if (newbg->GetColorDepth() == 8)
     {
-        for (int aa = 0; aa < 256; aa++)
-        {
-            // make sure it maps to locked cols properly
-            if (thisgame.paluses[aa] == PAL_LOCKED)
-                room.BgFrames[backgroundNumber].Palette[aa] = palette[aa];
-        }
-
-        // sharing palette with main background - so copy it across
-        if (sharePalette)
-        {
-            memcpy(&room.BgFrames[backgroundNumber].Palette[0], &palette[0], sizeof(RGB) * 256);
-            room.BgFrames[backgroundNumber].IsPaletteShared = 1;
-            if ((size_t)backgroundNumber >= room.BgFrameCount - 1)
-                room.BgFrames[0].IsPaletteShared = 1;
-
-            if (!useExactPalette)
-                wremapall(oldpale, newbg, palette);
-        }
-        else
-        {
-            room.BgFrames[backgroundNumber].IsPaletteShared = 0;
-            remap_background (newbg, oldpale, room.BgFrames[backgroundNumber].Palette, useExactPalette);
-        }
-
-        copy_room_palette_to_global_palette(room);
+        room.BgFrames[backgroundNumber].IsPaletteShared = 0;
+        memcpy(room.BgFrames[backgroundNumber].Palette, bgpal, sizeof(bgpal));
     }
 
-    if ((size_t)backgroundNumber >= room.BgFrameCount)
-        room.BgFrameCount++;
+    room.BgFrameCount = std::max(room.BgFrameCount, (size_t)backgroundNumber + 1);
     room.BgFrames[backgroundNumber].Graphic.reset(newbg);
 }
 
@@ -2146,7 +2038,7 @@ System::Drawing::Bitmap^ getSpriteAsBitmap32bit(int spriteNum, int width, int he
   return ConvertBlockToBitmap32(todraw, width, height, false /* keep alpha */);
 }
 
-void PaletteUpdated(cli::array<PaletteEntry^>^ newPalette) 
+void ApplyPalette(cli::array<PaletteEntry^>^ newPalette) 
 {  
 	for each (PaletteEntry ^colour in newPalette) 
 	{
@@ -2155,8 +2047,6 @@ void PaletteUpdated(cli::array<PaletteEntry^>^ newPalette)
 		palette[colour->Index].b = colour->Colour.B / 4;
 	}
 	set_palette(palette);
-	RoomStruct dummy; // FIXME: not working since open room format
-	copy_global_palette_to_room_palette(dummy);
 }
 
 void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui) 

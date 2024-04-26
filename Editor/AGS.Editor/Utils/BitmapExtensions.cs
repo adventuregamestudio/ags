@@ -1,4 +1,3 @@
-using AGS.Types;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -7,9 +6,15 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using AGS.Types;
 
 namespace AGS.Editor
 {
+    //
+    // BitmapExtensions module is purposed for various manipulations with Bitmap
+    // and Image objects: their loading, saving, transformation, etc.
+    //
+
     public static class BitmapTransparencyFixUp
     {
         // methods from https://stackoverflow.com/questions/4803935/free-file-locked-by-new-bitmapfilepath/48170549#48170549
@@ -207,7 +212,6 @@ namespace AGS.Editor
             if (height <= 0) throw new ArgumentException("Scale factor must be greater than 0.", nameof(height));
 
             Bitmap res = new Bitmap(width, height, bmp.PixelFormat) { Palette = bmp.Palette };
-            res.SetPaletteFromGlobalPalette();
             int bmpRowPaddedWidth = (int)Math.Floor((bmp.GetColorDepth() * bmp.Width + 31.0) / 32.0) * 4;
             int resRowPaddedWidth = (int)Math.Floor((res.GetColorDepth() * res.Width + 31.0) / 32.0) * 4;
             byte[] resultRawData = new byte[resRowPaddedWidth * height];
@@ -270,36 +274,42 @@ namespace AGS.Editor
         }
 
         /// <summary>
-        /// Sets the raw data from the byte array to the bitmap.
+        /// Assigns Background slots in the AGS palette from this Bitmap.
         /// </summary>
-        /// <param name="bmp">The bitmap to set the raw data to.</param>
-        /// <param name="rawData">The raw data to set into the bitmap.</param>
-        public static void SetRawData(this Bitmap bmp, byte[] rawData) => bmp.SetRawData(rawData, bmp.PixelFormat);
-
-        public static void SetGlobalPaletteFromPalette(this Bitmap bmp)
+        public static void CopyToAGSBackgroundPalette(this Bitmap bmp, PaletteEntry[] dstPalette)
         {
-            PaletteEntry[] palettes = Factory.AGSEditor.CurrentGame.Palette;
-            foreach (PaletteEntry global in palettes.Where(p => p.ColourType == PaletteColourType.Background))
+            var srcPalette = bmp.Palette;
+            foreach (PaletteEntry global in dstPalette.Where(p => p.ColourType == PaletteColourType.Background))
             {
-                palettes[global.Index].Colour = bmp.Palette.Entries[global.Index];
+                dstPalette[global.Index].Colour = srcPalette.Entries[global.Index];
             }
         }
 
         /// <summary>
-        /// Sets the current game's global palette to a bitmap.
+        /// Assigns the AGS palette to a bitmap.
+        /// Note that both Game-wide and Background palette slots are copied.
+        /// This assumes that the game palette has been prepared beforehand, by merging
+        /// game-wide and room palette colors.
         /// </summary>
         /// <param name="bmp">The bitmap to set to global palette to.</param>
-        public static void SetPaletteFromGlobalPalette(this Bitmap bmp)
+        public static void SetFromAGSPalette(this Bitmap bmp, PaletteEntry[] srcPalette)
         {
             ColorPalette palette = bmp.Palette;
 
-            foreach (PaletteEntry global in Factory.AGSEditor.CurrentGame.Palette)
+            foreach (PaletteEntry global in srcPalette)
             {
                 palette.Entries[global.Index] = Color.FromArgb(255, global.Colour);
             }
 
             bmp.Palette = palette; // Get Bitmap.Palette is deep copy so we need to set it back
         }
+
+        /// <summary>
+        /// Sets the raw data from the byte array to the bitmap.
+        /// </summary>
+        /// <param name="bmp">The bitmap to set the raw data to.</param>
+        /// <param name="rawData">The raw data to set into the bitmap.</param>
+        public static void SetRawData(this Bitmap bmp, byte[] rawData) => bmp.SetRawData(rawData, bmp.PixelFormat);
 
         /// <summary>
         /// Check if <see cref="Bitmap"/> is indexed image.

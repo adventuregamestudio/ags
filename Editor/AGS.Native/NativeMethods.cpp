@@ -86,7 +86,7 @@ extern void change_sprite_number(int oldNumber, int newNumber);
 extern void SaveNativeSprites(Settings^ gameSettings);
 extern void ReplaceSpriteFile(const AGSString &new_spritefile, const AGSString &new_indexfile, bool fallback_tempfiles);
 extern HAGSError reset_sprite_file();
-extern void PaletteUpdated(cli::array<PaletteEntry^>^ newPalette);
+extern void ApplyPalette(cli::array<PaletteEntry^>^ newPalette);
 extern void GameDirChanged(String ^workingDir);
 extern void GameUpdated(Game ^game, bool forceUpdate);
 extern void GameFontUpdated(Game ^game, int fontNumber, bool forceUpdate);
@@ -277,15 +277,20 @@ namespace AGS
 		void NativeMethods::NewGameLoaded(Game ^game, CompileMessages ^errors)
 		{
             _gameTextConverter = gcnew TextConverter(game->TextEncoding);
-			this->PaletteColoursUpdated(game);
+			PaletteColoursUpdated(game);
 			GameUpdated(game, true);
 			UpdateNativeSpritesToGame(game, errors);
 		}
 
 		void NativeMethods::PaletteColoursUpdated(Game ^game)
 		{
-			lastPaletteSet = game->Palette;
-			PaletteUpdated(game->Palette);
+            ApplyPalette(game->Palette);
+		}
+
+        void NativeMethods::ApplyPalette(cli::array<PaletteEntry^> ^palette)
+		{
+			lastPaletteSet = palette;
+			::ApplyPalette(palette);
 		}
 
 		void NativeMethods::LoadNewSpriteFile() 

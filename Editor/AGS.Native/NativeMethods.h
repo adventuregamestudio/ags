@@ -47,7 +47,8 @@ namespace Native
 			void NewGameLoaded(Game^ game, CompileMessages ^errors);
 			void SaveGame(Game^ game);
 			void GameSettingsChanged(Game^ game);
-			void PaletteColoursUpdated(Game ^game);
+            void PaletteColoursUpdated(Game ^game);
+			void ApplyPalette(cli::array<PaletteEntry^> ^palette);
 			void DrawGUI(int hDC, int x, int y, GUI^ gui, int resolutionFactor, float scale, int selectedControl);
 			void DrawSprite(int hDC, int x, int y, int width, int height, int spriteNum, bool flipImage);
 			void DrawSprite(int hDC, int x, int y, int spriteNum, bool flipImage);

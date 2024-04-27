@@ -384,9 +384,10 @@ namespace AGS.Editor.Utils
 
             if (string.IsNullOrEmpty(d.Password)) errors.Add("Password can't be empty.");
             if (string.IsNullOrEmpty(d.KeyPassword)) errors.Add("Key Password can't be empty.");
-            if (d.KeyPassword != d.Password) errors.Add("Passwords don't match.");
             if (string.IsNullOrEmpty(d.KeyAlias)) errors.Add("Key alias cannot be empty.");
-
+            if (d.Password.Length < 6) errors.Add("Password must be at least 6 characters.");
+            if (d.KeyPassword.Length < 6) errors.Add("Key password must be at least 6 characters.");
+            if (d.KeyPassword != d.Password) errors.Add("Passwords don't match.");
             if (d.ValidityInYears < 1) errors.Add("Validity cannot be lower than 1 year.");
 
             return errors;

@@ -285,6 +285,8 @@ namespace AGS.Editor.Utils
 
         public static bool IsKeytoolAvailable()
         {
+            if (string.IsNullOrEmpty(GetJavaHome())) 
+                return false;
             return IsExecutableAvailable(GetKeytoolPath());
         }
 

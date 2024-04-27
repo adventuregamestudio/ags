@@ -36,11 +36,13 @@ ScriptOverlay* Overlay_CreateGraphical(int x, int y, int slot, bool clone);
 ScriptOverlay* Overlay_CreateTextual(int x, int y, int width, int font, int colour, const char* text);
 ScreenOverlay *Overlay_CreateGraphicCore(bool room_layer, int x, int y, int slot, bool clone = false);
 ScreenOverlay *Overlay_CreateTextCore(bool room_layer, int x, int y, int width, int font, int text_color,
-    const char *text, int disp_type, int allow_shrink);
+    const char *text, int disp_type, int allow_shrink, int speech_for_char = -1);
 
 ScreenOverlay *get_overlay(int type);
-// Calculates overlay position in its respective layer (screen or room)
-Point get_overlay_position(const ScreenOverlay &over);
+// Gets overlay position for drawing in its respective layer (screen or room)
+Point get_overlay_display_pos(const ScreenOverlay &over);
+// Autopositions overlay, that is linked to a character
+void autoposition_overlay(ScreenOverlay &over);
 size_t add_screen_overlay(bool roomlayer, int x, int y, int type, int sprnum);
 size_t add_screen_overlay(bool roomlayer, int x, int y, int type, Common::Bitmap *piccy);
 size_t add_screen_overlay(bool roomlayer, int x, int y, int type, Common::Bitmap *piccy, int pic_offx, int pic_offy);

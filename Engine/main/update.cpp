@@ -188,20 +188,26 @@ void update_following_exactly_characters(const std::vector<int> &followingAsShee
   }
 }
 
-void update_overlay_timers()
+void update_overlays()
 {
-	// update overlay timers
-  auto &overs = get_overlays();
-  for (auto &over : overs)
-  {
-    if (over.timeout > 0) {
-      over.timeout--;
-      if (over.timeout == 0)
-      {
-        remove_screen_overlay(over.type);
-      }
+    // update overlay timers and positions
+    auto &overs = get_overlays();
+    for (auto &over : overs)
+    {
+        if (over.IsAutoPosition())
+        {
+            autoposition_overlay(over);
+        }
+
+        if (over.timeout > 0)
+        {
+            over.timeout--;
+            if (over.timeout == 0)
+            {
+                remove_screen_overlay(over.type);
+            }
+        }
     }
-  }
 }
 
 void update_speech_and_messages()
@@ -444,7 +450,7 @@ void update_stuff() {
 
   set_our_eip(23);
 
-  update_overlay_timers();
+  update_overlays();
 
   update_speech_and_messages();
 

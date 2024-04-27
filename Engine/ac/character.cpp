@@ -2575,10 +2575,10 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
     int tdxp = xx,tdyp = yy;
     int oldview=-1, oldloop = -1;
     int ovr_type = 0;
+    int autoplace_at_char = -1; // depends on speech style below
     text_lips_offset = 0;
     text_lips_text = texx;
     Bitmap *closeupface = nullptr;
-    bool overlayPositionFixed = false;
     int charFrameWas = 0;
     int viewWasLocked = 0;
     if (speakingChar->flags & CHF_FIXVIEW)
@@ -2851,7 +2851,6 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
             if (facetalkchar->blinktimer < 0)
                 facetalkchar->blinktimer = facetalkchar->blinkinterval;
             textcol=-textcol;
-            overlayPositionFixed = true;
             // Process the first portrait view frame
             const int frame_vol = charextra[facetalkchar->index_id].GetFrameSoundVolume(facetalkchar);
             CheckViewFrame(facetalkview, facetalkloop, facetalkframe, frame_vol);
@@ -2859,6 +2858,9 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
         else if (useview >= 0) {
             // Lucasarts-style speech
             set_our_eip(154);
+
+            // autoplace at character
+            autoplace_at_char = aschar;
 
             oldview = speakingChar->view;
             oldloop = speakingChar->loop;
@@ -2903,8 +2905,9 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
 
         }
     }
-    else
+    else {
         allowShrink = 1;
+    }
 
     // it wants the centred position, so make it so
     if ((xx >= 0) && (tdxp < 0))
@@ -2918,7 +2921,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
         char_thinking = aschar;
 
     set_our_eip(155);
-    display_main(tdxp, tdyp, bwidth, texx, nullptr, DISPLAYTEXT_SPEECH, FONT_SPEECH, textcol, isThought, allowShrink, overlayPositionFixed);
+    display_main(tdxp, tdyp, bwidth, texx, nullptr, DISPLAYTEXT_SPEECH, FONT_SPEECH, textcol, isThought, allowShrink, autoplace_at_char);
     set_our_eip(156);
     if ((play.in_conversation > 0) && (game.options[OPT_SPEECHTYPE] == 3))
         closeupface = nullptr;

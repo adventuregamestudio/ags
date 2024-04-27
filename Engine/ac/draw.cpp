@@ -2800,7 +2800,7 @@ static void construct_overlays()
         // If walk behinds are drawn over the cached object sprite, then check if positions were updated
         if (crop_walkbehinds && over.IsRoomLayer())
         {
-            Point pos = get_overlay_position(over);
+            Point pos = get_overlay_display_pos(over);
             has_changed |= (pos.X != overcache[i].X || pos.Y != overcache[i].Y);
             overcache[i].X = pos.X; overcache[i].Y = pos.Y;
         }
@@ -2830,7 +2830,7 @@ static void construct_overlays()
                         recycle_bitmap(use_cache, use_bmp->GetColorDepth(), use_bmp->GetWidth(), use_bmp->GetHeight(), true);
                         use_cache->Blit(use_bmp);
                     }
-                    Point pos = get_overlay_position(over);
+                    Point pos = get_overlay_display_pos(over);
                     walkbehinds_cropout(use_cache.get(), pos.X, pos.Y, over.zorder);
                     use_bmp = use_cache.get();
                 }

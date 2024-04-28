@@ -145,16 +145,16 @@ ccScript* ccCompileText(const char *texo, const char *scriptName) {
 
             if ((stype == SYM_FUNCTION) || (stype == SYM_GLOBALVAR)) {
                 // unused func/variable
-                cctemp->imports[sym.entries[t].soffs][0] = 0;
+                cctemp->imports[sym.entries[t].soffs] = std::string();
             }
             else if (sym.entries[t].flags & SFLG_PROPERTY) {
                 // unused property -- get rid of the getter and setter
                 int propGet = sym.entries[t].get_propget();
                 int propSet = sym.entries[t].get_propset();
                 if (propGet >= 0)
-                    cctemp->imports[propGet][0] = 0;
+                    cctemp->imports[propGet] = std::string();
                 if (propSet >= 0)
-                    cctemp->imports[propSet][0] = 0;
+                    cctemp->imports[propSet] = std::string();
             }
         }
 

@@ -45,7 +45,12 @@ struct ccCompiledScript: public ccScript {
     void set_line_number(int nlum) { next_line=nlum; }
     void flush_line_numbers();
     int  remove_any_import(const char*, SymbolDef *oldSym);
-    const char* start_new_section(const char *name);
+    void start_new_section(const char *name);
+
+    // Returns current code size as int32 value;
+    // this is meant for use in writing bytecode instructions, for compliance
+    // with the old compiler logic, which works only with int32s.
+    inline int32_t codesize_i32() const { return static_cast<int32_t>(code.size()); }
 
     void write_cmd(int cmdd);
     void write_cmd1(int cmdd,int param);

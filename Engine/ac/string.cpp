@@ -160,51 +160,42 @@ int String_EndsWith(const char *thisString, const char *checkForString, bool cas
 
 const char* String_Replace(const char *thisString, const char *lookForText, const char *replaceWithText, bool caseSensitive)
 {
-    char resultBuffer[STD_BUFFER_SIZE] = "";
-    size_t outputSize = 0; // length in bytes
-    if (caseSensitive)
-    {
-        size_t lookForLen = strlen(lookForText);
-        size_t replaceLen = strlen(replaceWithText);
-        for (const char *ptr = thisString; *ptr; ++ptr)
-        {
-            if (strncmp(ptr, lookForText, lookForLen) == 0)
-            {
-                memcpy(&resultBuffer[outputSize], replaceWithText, replaceLen);
-                outputSize += replaceLen;
-                ptr += lookForLen - 1;
-            }
-            else
-            {
-                resultBuffer[outputSize] = *ptr;
-                outputSize++;
-            }
-        }
-    }
-    else
-    {
-        size_t lookForLen = ustrlen(lookForText);
-        size_t lookForSz = strlen(lookForText); // length in bytes
-        size_t replaceSz = strlen(replaceWithText); // length in bytes
-        const char *p_cur = thisString;
-        for (int c = ugetxc(&thisString); *p_cur; p_cur = thisString, c = ugetxc(&thisString))
-        {
-            if (ustrnicmp(p_cur, lookForText, lookForLen) == 0)
-            {
-                memcpy(&resultBuffer[outputSize], replaceWithText, replaceSz);
-                outputSize += replaceSz;
-                thisString = p_cur + lookForSz;
-            }
-            else
-            {
-                usetc(&resultBuffer[outputSize], c);
-                outputSize += ucwidth(c);
-            }
-        }
-    }
+    const auto &this_header = ScriptString::GetHeader(thisString);
+    // For case-sensitive search select simple ascii "strstr", for strict byte-to-byte comparison;
+    // For case-insensitive search select no-case unicode-compatible variant
+    typedef const char* (*fn_strstr)(const char *, const char *);
+    fn_strstr pfn_strstr = 
+        caseSensitive ? static_cast<fn_strstr>(strstr) : reinterpret_cast<fn_strstr>(ustrcasestr);
+    int match_len, match_ulen;
+    ustrlen2(lookForText, &match_len, &match_ulen);
 
-    resultBuffer[outputSize] = 0; // terminate
-    return CreateNewScriptString(resultBuffer);
+    // Record positions of matches
+    std::vector<size_t> matches; // TODO: use optimized container to avoid extra allocs on heap
+    for (const char *match_ptr = pfn_strstr(thisString, lookForText);
+        match_ptr;
+        matches.push_back(match_ptr - thisString), match_ptr = pfn_strstr(match_ptr + match_len, lookForText));
+
+    if (matches.size() == 0)
+        return thisString; // nothing to replace, return original string
+
+    int replace_len, replace_ulen;
+    ustrlen2(replaceWithText, &replace_len, &replace_ulen);
+    size_t final_len = this_header.Length - match_len * matches.size() + replace_len * matches.size();
+    size_t final_ulen = this_header.ULength - match_ulen * matches.size() + replace_ulen * matches.size();
+    auto buf = ScriptString::CreateBuffer(final_len, final_ulen);
+
+    // For each found match...
+    char *write_ptr = buf.Get();
+    const char *prev_ptr = thisString;
+    for (const auto &m : matches)
+    {
+        write_ptr = std::copy(prev_ptr, thisString + m, write_ptr); // copy unchanged part
+        write_ptr = std::copy(replaceWithText, replaceWithText + replace_len, write_ptr); // copy replacement
+        prev_ptr = thisString + m + match_len;
+    }
+    std::copy(prev_ptr, thisString + this_header.Length, write_ptr); // copy unchanged part (if any left)
+    buf.Get()[final_len] = 0; // terminate
+    return CreateNewScriptString(std::move(buf));
 }
 
 const char* String_LowerCase(const char *thisString) {

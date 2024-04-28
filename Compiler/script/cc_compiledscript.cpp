@@ -58,21 +58,19 @@ ccCompiledScript::~ccCompiledScript() {
     shutdown();
 }
 
-int ccCompiledScript::add_global(int siz,const char*vall) {
-    //  printf("Add global size %d at %d\n",siz,globaldatasize);
-    //  if (remove_any_import (vall)) return -2;
-    globaldata = (char*)realloc(globaldata, globaldatasize + siz);
-    if (vall != NULL)
-        memcpy(&globaldata[globaldatasize],vall,siz);
-    else memset(&globaldata[globaldatasize],0,siz);
-    int toret = globaldatasize;
-    globaldatasize += siz;
-    return toret;
+int ccCompiledScript::add_global(int size, const char*vall) {
+    size_t old_size = globaldata.size();
+    globaldata.resize(old_size + size);
+    if (vall)
+        memcpy(&globaldata[old_size], vall, size);
+    return old_size;
 }
-int ccCompiledScript::add_string(const char*strr) {
+
+int ccCompiledScript::add_string(const char *strr) {
     size_t len = strlen(strr);
-    strings = (char*)realloc(strings, stringssize + len + 1);
-    char *write_ptr = strings + stringssize;
+    size_t old_size = strings.size();
+    strings.resize(old_size + len + 1);
+    char *write_ptr = &strings[0] + old_size;
     for (size_t src = 0; src <= len; ++src) {
         char ch = strr[src];
         if (ch=='\\') {
@@ -88,49 +86,41 @@ int ccCompiledScript::add_string(const char*strr) {
         *write_ptr = ch;
         write_ptr++;
     }
-    int toret = stringssize;
-    stringssize += write_ptr - (strings + stringssize);
-    return toret;
+    return old_size;
 }
+
 void ccCompiledScript::add_fixup(int32_t locc, char ftype) {
-    fixuptypes = (char*)realloc(fixuptypes, numfixups + 5);
-    fixups = (int32_t*)realloc(fixups, (numfixups * sizeof(int32_t)) + 10);
-    fixuptypes[numfixups] = ftype;
-    fixups[numfixups] = locc;
-    numfixups++;
+    fixups.push_back(locc);
+    fixuptypes.push_back(ftype);
 }
+
 void ccCompiledScript::fixup_previous(char ftype) {
-    add_fixup(codesize-1,ftype);
+    add_fixup(code.size() - 1,ftype);
 }
+
 int ccCompiledScript::add_new_function(const char*namm, int *idx) {
     if (numfunctions >= MAX_FUNCTIONS) return -1;
     //  if (remove_any_import (namm)) return -2;
     functions[numfunctions] = (char*)malloc(strlen(namm)+20);
     strcpy(functions[numfunctions],namm);
-    funccodeoffs[numfunctions] = codesize;
+    funccodeoffs[numfunctions] = code.size();
     funcnumparams[numfunctions] = 0;
     //  code = (int32_t*)realloc(code, codesize + 5000);
     if (idx)
         *idx = numfunctions;
     numfunctions++;
-    return codesize;
+    return code.size();
 }
+
 int ccCompiledScript::add_new_import(const char*namm)
 {
-    if (numimports >= importsCapacity)
-    {
-        importsCapacity += 1000;
-        imports = (char**)realloc(imports, sizeof(char*) * importsCapacity);
-    }
-    imports[numimports] = (char*)malloc(strlen(namm)+12);
-    strcpy(imports[numimports],namm);
-    numimports++;
-    return numimports-1;
+    imports.push_back(namm);
+    return imports.size() - 1;
 }
+
 int ccCompiledScript::remove_any_import (const char*namm, SymbolDef *oldSym) {
     // Remove any import with the specified name
-    int i, sidx;
-    sidx = sym.find(namm);
+    int sidx = sym.find(namm);
     if (sidx < 0)
         return 0;
     if ((sym.entries[sidx].flags & SFLG_IMPORTED) == 0)
@@ -162,7 +152,7 @@ int ccCompiledScript::remove_any_import (const char*namm, SymbolDef *oldSym) {
         oldSym->arrsize = sym.entries[sidx].arrsize;
         if (sym.entries[sidx].stype == SYM_FUNCTION) {
             // <= because of return type
-            for (i = 0; i <= sym.entries[sidx].get_num_args(); i++) {
+            for (int i = 0; i <= sym.entries[sidx].get_num_args(); i++) {
                 oldSym->funcparamtypes[i] = sym.entries[sidx].funcparamtypes[i];
                 oldSym->funcParamDefaultValues[i] = sym.entries[sidx].funcParamDefaultValues[i];
                 oldSym->funcParamHasDefaultValues[i] = sym.entries[sidx].funcParamHasDefaultValues[i];
@@ -179,55 +169,46 @@ int ccCompiledScript::remove_any_import (const char*namm, SymbolDef *oldSym) {
     sprintf(appended, "%s^", namm);
     int applen = strlen(appended);
 
-    for (i = 0; i < numimports; i++) {
-        if (strcmp(imports[i], namm) == 0) {
+    for (size_t i = 0; i < imports.size(); i++) {
+        if (strcmp(imports[i].c_str(), namm) == 0) {
             // Just null the name of the import
             // DO NOT remove the import from the list, as some other
             // import indexes might already be referenced by the code
             // compiled so far.
-            imports[i][0] = 0;
+            imports[i] = std::string();
         }
-        else if (strncmp(imports[i], appended, applen) == 0) {
-            imports[i][0] = 0;
+        else if (strncmp(imports[i].c_str(), appended, applen) == 0) {
+            imports[i] = std::string();
         }
-
     }
     return 0;
 }
 
 int ccCompiledScript::add_new_export(const char*namm, int etype, int32_t eoffs, int numArgs)
 {
-    if (numexports >= exportsCapacity)
-    {
-        exportsCapacity += 1000;
-        exports = (char**)realloc(exports, sizeof(char*) * exportsCapacity);
-        export_addr = (int32_t*)realloc(export_addr, sizeof(int32_t) * exportsCapacity);
-    }
     if (eoffs >= 0x00ffffff) {
         cc_error("export offset too high; script data size too large?");
         return -1;
     }
-    char *newName = (char*)malloc(strlen(namm)+20);
-    strcpy(newName, namm);
+
+    std::string newName = namm;
     // mangle the name for functions to record parameters
     if (etype == EXPORT_FUNCTION) {
         char tempAddition[20];
         sprintf(tempAddition, "$%d", numArgs);
-        strcat(newName, tempAddition);
+        newName.append(tempAddition);
     }
     // Check if it's already exported
-    for (int aa = 0; aa < numexports; aa++) {
-        if (strcmp(exports[aa], newName) == 0) {
-            free(newName);
-            return aa;
+    for (size_t i = 0; i < exports.size(); i++) {
+        if (strcmp(exports[i].c_str(), newName.c_str()) == 0) {
+            return i;
         }
     }
-    exports[numexports] = newName;
-
-    export_addr[numexports] = eoffs | ((int32_t)etype << 24L);
-    numexports++;
-    return numexports-1;
+    exports.push_back(newName);
+    export_addr.push_back(eoffs | ((int32_t)etype << 24L));
+    return exports.size() - 1;
 }
+
 void ccCompiledScript::flush_line_numbers() {
     if (next_line) {
         int linum = next_line;
@@ -236,67 +217,32 @@ void ccCompiledScript::flush_line_numbers() {
         write_code(linum);
     }
 }
+
 void ccCompiledScript::write_code(int32_t byy) {
     flush_line_numbers();
-    if (codesize >= codeallocated - 2) {
-        codeallocated += 500;
-        code = (int32_t*)realloc(code,codeallocated*sizeof(int32_t));
-    }
-    code[codesize] = byy;
-    codesize++;
+    code.push_back(byy);
 }
 
-const char* ccCompiledScript::start_new_section(const char *name) {
+void ccCompiledScript::start_new_section(const char *name) {
 
-    if ((numSections == 0) ||
-        (codesize != sectionOffsets[numSections - 1]))
+    if ((sectionNames.size() == 0) ||
+        (code.size() != sectionOffsets.back()))
     {
-        if (numSections >= capacitySections)
-        {
-            capacitySections += 100;
-            sectionNames = (char**)realloc(sectionNames, sizeof(char*) * capacitySections);
-            sectionOffsets = (int32_t*)realloc(sectionOffsets, sizeof(int32_t) * capacitySections);
-        }
-        sectionNames[numSections] = (char*)malloc(strlen(name) + 1);
-        strcpy(sectionNames[numSections], name);
-        sectionOffsets[numSections] = codesize;
-
-        numSections++;
+        sectionNames.push_back(name);
+        sectionOffsets.push_back(code.size());
     }
     else
     {
         // nothing was in the last section, so overwrite it with this new one
-        free(sectionNames[numSections - 1]);
-        sectionNames[numSections - 1] = (char*)malloc(strlen(name) + 1);
-        strcpy(sectionNames[numSections - 1], name);
+        sectionNames.back() = name;
+        sectionOffsets.back() = code.size();
     }
-
-    return sectionNames[numSections - 1];
 }
+
 void ccCompiledScript::init() {
-    globaldata = NULL;
-    globaldatasize = 0;
-    code = NULL;
-    codesize = 0;
     codeallocated = 0;
     numfunctions = 0;
-    strings = NULL;
-    stringssize = 0;
     cur_sp=0;
-    fixups = NULL;
-    fixuptypes = NULL;
-    numfixups = 0;
-    numimports = 0;
-    numexports = 0;
-    numSections = 0;
-    importsCapacity = 0;
-    imports = NULL;
-    exportsCapacity = 0;
-    exports = NULL;
-    export_addr = NULL;
-    capacitySections = 0;
-    sectionNames = NULL;
-    sectionOffsets = NULL;
     next_line = 0;
     ax_val_type = 0;
     ax_val_scope = 0;
@@ -304,6 +250,7 @@ void ccCompiledScript::init() {
     memset(funccodeoffs, 0, sizeof(funccodeoffs));
     memset(funcnumparams, 0, sizeof(funcnumparams));
 }
+
 // free the extra bits that ccScript doesn't have
 void ccCompiledScript::free_extra() {
     int aa;

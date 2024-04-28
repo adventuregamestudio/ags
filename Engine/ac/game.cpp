@@ -148,7 +148,6 @@ String saveGameDirectory = "./";
 String saveGameSuffix;
 
 int game_paused=0;
-char pexbuf[STD_BUFFER_SIZE];
 
 unsigned int load_new_game = 0;
 int load_new_game_restore = -1;

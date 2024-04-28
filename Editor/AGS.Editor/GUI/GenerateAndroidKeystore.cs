@@ -192,6 +192,11 @@ namespace AGS.Editor
 
         private void buttonGenerate_Click(object sender, EventArgs e)
         {
+            if (!AndroidUtilities.IsKeytoolAvailable())
+            {
+                Factory.GUIController.ShowMessage("Failed to find KeyTool. Please verify the JDK path in the Editor Preferences is correct.", MessageBoxIcon.Error);
+            }
+
             string errors = String.Join("\n", AndroidUtilities.GetKeystoreErrors(_ks));
 
             if (!string.IsNullOrEmpty(errors))
@@ -202,7 +207,7 @@ namespace AGS.Editor
                 return;
             }
 
-            if(AndroidUtilities.RunGenerateKeystore(_ks))
+            if (AndroidUtilities.RunGenerateKeystore(_ks))
             {
                 _lastGeneratedKS = _ks.Copy();
                 buttonOK.Enabled = true;

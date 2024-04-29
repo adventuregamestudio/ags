@@ -536,6 +536,10 @@ internalstring autoptr builtin managed struct String {
   import String  Substring(int index, int length);
   /// Truncates the string down to the specified length by removing characters from the end.
   import String  Truncate(int length);
+#ifdef SCRIPT_API_v400
+  /// Returns a new string without any leading or trailing whitespace.
+  import String  Trim();
+#endif
   /// Returns an upper-cased version of this string.
   import String  UpperCase();
 #ifdef SCRIPT_API_v350

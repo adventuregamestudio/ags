@@ -45,7 +45,6 @@ void ccSetSoftwareVersion(const char *versionNumber) {
 
 ccScript* ccCompileText(const char *texo, const char *scriptName) {
     ccCompiledScript *cctemp = new ccCompiledScript();
-    cctemp->init();
 
     sym.reset();
 
@@ -72,7 +71,6 @@ ccScript* ccCompileText(const char *texo, const char *scriptName) {
     }
 
     if (cc_has_error()) {
-        cctemp->shutdown();
         delete cctemp;
         return NULL;
     }
@@ -110,10 +108,9 @@ ccScript* ccCompileText(const char *texo, const char *scriptName) {
 
     if (ccGetOption(SCOPT_EXPORTALL)) {
         // export all functions
-        for (size_t t=0;t<cctemp->numfunctions;t++) {
-            if (cctemp->add_new_export(cctemp->functions[t],EXPORT_FUNCTION,
+        for (size_t t=0; t < cctemp->functions.size(); ++t) {
+            if (cctemp->add_new_export(cctemp->functions[t].c_str(), EXPORT_FUNCTION,
                 cctemp->funccodeoffs[t], cctemp->funcnumparams[t]) == -1) {
-                    cctemp->shutdown();
                     return NULL;
             }
 

@@ -49,15 +49,6 @@ void ccCompiledScript::pop_reg(int regg) {
     cur_sp -= 4;
 }
 
-ccCompiledScript::ccCompiledScript() {
-    init();
-    ax_val_type = 0;
-    ax_val_scope = 0;
-}
-ccCompiledScript::~ccCompiledScript() {
-    shutdown();
-}
-
 int ccCompiledScript::add_global(int size, const char*vall) {
     size_t old_size = globaldata.size();
     globaldata.resize(old_size + size);
@@ -99,16 +90,11 @@ void ccCompiledScript::fixup_previous(char ftype) {
 }
 
 int ccCompiledScript::add_new_function(const char*namm, int *idx) {
-    if (numfunctions >= MAX_FUNCTIONS) return -1;
-    //  if (remove_any_import (namm)) return -2;
-    functions[numfunctions] = (char*)malloc(strlen(namm)+20);
-    strcpy(functions[numfunctions],namm);
-    funccodeoffs[numfunctions] = code.size();
-    funcnumparams[numfunctions] = 0;
-    //  code = (int32_t*)realloc(code, codesize + 5000);
+    functions.push_back(namm);
+    funccodeoffs.push_back(code.size());
+    funcnumparams.push_back(0);
     if (idx)
-        *idx = numfunctions;
-    numfunctions++;
+        *idx = functions.size() - 1;
     return code.size();
 }
 
@@ -239,26 +225,8 @@ void ccCompiledScript::start_new_section(const char *name) {
     }
 }
 
-void ccCompiledScript::init() {
-    codeallocated = 0;
-    numfunctions = 0;
-    cur_sp=0;
-    next_line = 0;
-    ax_val_type = 0;
-    ax_val_scope = 0;
-    memset(functions, 0, sizeof(functions));
-    memset(funccodeoffs, 0, sizeof(funccodeoffs));
-    memset(funcnumparams, 0, sizeof(funcnumparams));
-}
-
-// free the extra bits that ccScript doesn't have
 void ccCompiledScript::free_extra() {
-    int aa;
-	for (aa=0;aa<numfunctions;aa++) {
-        free(functions[aa]);
-	}
-    numfunctions=0;
-}
-void ccCompiledScript::shutdown() {
-    free_extra();
+    functions = {};
+    funccodeoffs = {};
+    funcnumparams = {};
 }

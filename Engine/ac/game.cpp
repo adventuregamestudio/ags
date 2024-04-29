@@ -722,7 +722,7 @@ const char* Game_InputBox(const char *msg) {
 
 const char* Game_GetLocationName(int x, int y) {
     char buffer[STD_BUFFER_SIZE];
-    GetLocationName(x, y, buffer);
+    GetLocationName(x, y, buffer); // fills up to MAX_MAXSTRLEN
     return CreateNewScriptString(buffer);
 }
 
@@ -731,7 +731,6 @@ const char* Game_GetGlobalMessages(int index) {
         return nullptr;
     }
     char buffer[STD_BUFFER_SIZE];
-    buffer[0] = 0;
     replace_tokens(get_translation(get_global_message(index)), buffer, STD_BUFFER_SIZE);
     return CreateNewScriptString(buffer);
 }
@@ -745,7 +744,7 @@ int Game_GetNormalFont() {
 
 const char* Game_GetTranslationFilename() {
     char buffer[STD_BUFFER_SIZE];
-    GetTranslationName(buffer);
+    GetTranslationName(buffer); // fills up to MAX_MAXSTRLEN
     return CreateNewScriptString(buffer);
 }
 
@@ -1339,7 +1338,7 @@ void display_switch_in_resume()
     game_update_suspend = false;
 }
 
-void replace_tokens(const char*srcmes,char*destm, int maxlen) {
+void replace_tokens(const char*srcmes,char*destm, size_t maxlen) {
     int indxdest=0,indxsrc=0;
     const char*srcp;
     char *destp;

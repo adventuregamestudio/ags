@@ -23,6 +23,7 @@
 // you use returned value immediately or save it in another buffer.
 const char *get_translation (const char *text);
 int IsTranslationAvailable ();
-int GetTranslationName (char* buffer);
+// GetTranslationName assumes a string buffer of MAX_MAXSTRLEN
+int GetTranslationName(char *buffer);
 
 #endif // __AGS_EE_AC__GLOBALTRANSLATION_H

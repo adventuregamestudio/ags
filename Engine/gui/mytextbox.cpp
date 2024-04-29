@@ -39,6 +39,7 @@ MyTextBox::MyTextBox(int xx, int yy, int wii, const char *tee)
 
 void MyTextBox::draw(Bitmap *ds)
 {
+    ds->SetClip(RectWH(x, y, wid + 1, hit + 1));
     color_t draw_color = ds->GetCompatibleColor(windowbackgroundcolor);
     ds->FillRect(Rect(x, y, x + wid, y + hit), draw_color);
     draw_color = ds->GetCompatibleColor(0);
@@ -48,6 +49,7 @@ void MyTextBox::draw(Bitmap *ds)
 
     char tbu[2] = "_";
     wouttextxy(ds, x + 2 + get_text_width(text, cbuttfont), y + 1, cbuttfont, text_color, tbu);
+    ds->ResetClip();
 }
 
 int MyTextBox::pressedon(int /*mx*/, int /*my*/)

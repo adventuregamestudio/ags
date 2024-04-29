@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include <algorithm>
+#include <cctype>
 #include <cstdio>
 #include <allegro.h>
 #include "ac/string.h"
@@ -27,6 +28,7 @@
 #include "debug/debug_log.h"
 #include "script/runtimescriptvalue.h"
 #include "util/string_compat.h"
+#include "util/utf8.h"
 
 using namespace AGS::Common;
 
@@ -100,6 +102,49 @@ const char* String_Truncate(const char *thisString, int length) {
     auto buf = ScriptString::CreateBuffer(new_len, length); // arg is a text length
     memcpy(buf.Get(), thisString, new_len);
     buf.Get()[new_len] = 0;
+    return CreateNewScriptString(std::move(buf));
+}
+
+const char* String_Trim(const char *thisString)
+{
+    const auto &this_header = ScriptString::GetHeader(thisString);
+    const char* nonSpaceFront = thisString;
+    const char* end = thisString + this_header.Length;
+    const char* nonSpaceBack = end;
+
+    if (get_uformat() == U_UTF8) {
+        for (int c = ugetc(nonSpaceFront); nonSpaceFront != end && uisspace(c);) {
+            nonSpaceFront += ucwidth(c);
+            c = ugetc(nonSpaceFront);
+        }
+    }
+    else {
+        for (; nonSpaceFront != end && std::isspace(*nonSpaceFront); ++nonSpaceFront);
+    }
+
+    if (*nonSpaceFront == '\0')
+        return CreateNewScriptString("");
+
+    if (get_uformat() == U_UTF8) {
+        const char* prev = Utf8::BackOneChar(nonSpaceBack, thisString);
+        for (int c = ugetc(prev); prev != thisString && uisspace(c); ) {
+            nonSpaceBack = prev;
+            prev = Utf8::BackOneChar(prev, thisString);
+            c = ugetc(prev);
+        }
+    } else {
+        for (--nonSpaceBack; nonSpaceBack != thisString && std::isspace(*nonSpaceBack); --nonSpaceBack);
+        ++nonSpaceBack;
+    }
+
+    size_t copylen = nonSpaceBack - nonSpaceFront;
+    // if no trim happened, we can return the same string as AGS String is immutable
+    if(copylen == this_header.Length)
+        return thisString;
+
+    auto buf = ScriptString::CreateBuffer(copylen, 0);
+    memcpy(buf.Get(), nonSpaceFront, copylen);
+    buf.Get()[copylen] = 0;
     return CreateNewScriptString(std::move(buf));
 }
 
@@ -420,6 +465,11 @@ RuntimeScriptValue Sc_String_Truncate(void *self, const RuntimeScriptValue *para
     API_OBJCALL_OBJ_PINT(const char, const char, myScriptStringImpl, String_Truncate);
 }
 
+RuntimeScriptValue Sc_String_Trim(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ(const char, const char, myScriptStringImpl, String_Trim);
+}
+
 // const char* (const char *thisString)
 RuntimeScriptValue Sc_String_UpperCase(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -483,6 +533,7 @@ void RegisterStringAPI()
         { "String::StartsWith^2",     API_FN_PAIR(String_StartsWith) },
         { "String::Substring^2",      API_FN_PAIR(String_Substring) },
         { "String::Truncate^1",       API_FN_PAIR(String_Truncate) },
+        { "String::Trim^0",           API_FN_PAIR(String_Trim) },
         { "String::UpperCase^0",      API_FN_PAIR(String_UpperCase) },
         { "String::get_AsFloat",      API_FN_PAIR(StringToFloat) },
         { "String::get_AsInt",        API_FN_PAIR(StringToInt) },

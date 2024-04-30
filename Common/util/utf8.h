@@ -107,10 +107,9 @@ inline size_t GetLength(const char *c)
 }
 
 // Takes a utf8 string pointer and rolls it back one char, unless it hits the head of same string
-inline const char* BackOneChar(const char* c, const char* front)
+inline const char *BackOneChar(const char *c, const char *front)
 {
-    if(c <= front) return front;
-    for (--c; c > front && ((*c & 0xC0) == 0x80); --c);
+    for (; c > front && ((*(--c) & 0xC0) == 0x80););
     return c;
 }
 

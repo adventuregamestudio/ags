@@ -58,3 +58,8 @@ char *ags_strdup(const char *s)
     memcpy(result, s, len + 1);
     return result;
 }
+
+char *ags_strstr(const char *haystack, const char *needle)
+{
+    return strstr(haystack, needle);
+}

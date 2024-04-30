@@ -30,10 +30,4 @@ char *ags_strdup(const char *s);
 }
 #endif
 
-#if defined (__MINGW32__)
-typedef char* (*PfnStrStr)(const char *, const char *);
-#else
-typedef const char* (*PfnStrStr)(const char *, const char *);
-#endif
-
 #endif // __AGS_CN_UTIL__STRINGCOMPAT_H

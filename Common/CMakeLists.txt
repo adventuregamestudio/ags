@@ -233,6 +233,7 @@ if(AGS_TESTS)
         test/path_test.cpp
         test/stream_test.cpp
         test/string_test.cpp
+        test/utf8_test.cpp
         test/version_test.cpp
     )
     set_target_properties(common_test PROPERTIES

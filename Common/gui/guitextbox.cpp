@@ -17,6 +17,7 @@
 #include "gui/guitextbox.h"
 #include "util/stream.h"
 #include "util/string_utils.h"
+#include "util/utf8.h"
 
 namespace AGS
 {
@@ -76,9 +77,8 @@ static void Backspace(String &text)
     if (get_uformat() == U_UTF8)
     {// Find where the last utf8 char begins
         const char *ptr_end = text.GetCStr() + text.GetLength();
-        const char *ptr = ptr_end - 1;
-        for (; ptr > text.GetCStr() && ((*ptr & 0xC0) == 0x80); --ptr);
-        text.ClipRight(ptr_end - ptr);
+        const char *ptr_prev = Utf8::BackOneChar(ptr_end, text.GetCStr());
+        text.ClipRight(ptr_end - ptr_prev);
     }
     else
     {

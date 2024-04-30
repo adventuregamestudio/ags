@@ -25,6 +25,7 @@ char *ags_strupr(char *s);
 int ags_stricmp(const char *, const char *);
 int ags_strnicmp(const char *, const char *, size_t);
 char *ags_strdup(const char *s);
+char *ags_strstr(const char *haystack, const char *needle);
 
 #ifdef __cplusplus
 }

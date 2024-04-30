@@ -188,17 +188,12 @@ void update_following_exactly_characters(const std::vector<int> &followingAsShee
   }
 }
 
-void update_overlays()
+void update_overlay_timers()
 {
     // update overlay timers and positions
     auto &overs = get_overlays();
     for (auto &over : overs)
     {
-        if (over.IsAutoPosition())
-        {
-            autoposition_overlay(over);
-        }
-
         if (over.timeout > 0)
         {
             over.timeout--;
@@ -450,7 +445,7 @@ void update_stuff() {
 
   set_our_eip(23);
 
-  update_overlays();
+  update_overlay_timers();
 
   update_speech_and_messages();
 

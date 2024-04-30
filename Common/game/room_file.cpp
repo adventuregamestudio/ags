@@ -34,6 +34,7 @@
 // Reserved room options (each is a byte)
 #define ROOM_OPTIONS_RESERVED 4
 
+
 namespace AGS
 {
 namespace Common

@@ -11,9 +11,10 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-
 #ifndef __AC_AGSFONTRENDERER_H
 #define __AC_AGSFONTRENDERER_H
+
+#include "util/string.h"
 
 struct BITMAP;
 
@@ -73,9 +74,26 @@ struct FontRenderParams
 // Describes loaded font's properties
 struct FontMetrics
 {
-    int Height = 0; // formal font height value
-    int RealHeight = 0; // real graphical height of a font
-    int CompatHeight = 0; // either formal or real height, depending on compat settings
+    // Nominal font's height, equals to the game-requested size of the font.
+    // This may or not be equal to font's face height; sometimes a font cannot
+    // be scaled exactly to particular size, and then nominal height appears different
+    // (usually - smaller) than the real one.
+    int NominalHeight = 0;
+    // Real font's height, equals to reported ascender + descender.
+    // This is what you normally think as a font's height.
+    int RealHeight = 0;
+    // Compatible height, equals to either NominalHeight or RealHeight,
+    // selected depending on the game settings.
+    // This property is used in calculating linespace, etc.
+    int CompatHeight = 0;
+    // Maximal vertical extent of a font (top; bottom), this tells the actual
+    // graphical bounds that may be occupied by font's glyphs.
+    // In a "proper" font this extent is (0; RealHeight-1), but "bad" fonts may
+    // have individual glyphs exceeding these bounds, in both directions.
+    // Note that "top" may be negative!
+    std::pair<int, int> VExtent;
+
+    inline int ExtentHeight() const { return VExtent.second - VExtent.first; }
 };
 
 // The strictly internal font renderer interface, not to use in plugin API.
@@ -86,8 +104,8 @@ public:
     // Tells if this is a bitmap font (otherwise it's a vector font)
     virtual bool IsBitmapFont() = 0;
     // Load font, applying extended font rendering parameters
-    virtual bool LoadFromDiskEx(int fontNumber, int fontSize, const FontRenderParams *params,
-        FontMetrics *metrics) = 0;
+    virtual bool LoadFromDiskEx(int fontNumber, int fontSize, AGS::Common::String *src_filename,
+        const FontRenderParams *params, FontMetrics *metrics) = 0;
     // Fill FontMetrics struct; note that it may be left cleared if this is not supported
     virtual void GetFontMetrics(int fontNumber, FontMetrics *metrics) = 0;
     // Perform any necessary adjustments when the AA mode is toggled

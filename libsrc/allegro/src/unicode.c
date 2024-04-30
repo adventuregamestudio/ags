@@ -2205,7 +2205,29 @@ char *ustrstr(AL_CONST char *s1, AL_CONST char *s2)
    len = ustrlen(s2);
    while (ugetc(s1)) {
       if (ustrncmp(s1, s2, len) == 0)
-	 return (char *)s1;
+         return (char *)s1;
+
+      s1 += uwidth(s1);
+   }
+
+   return NULL;
+}
+
+
+
+/* ustrcasestr:
+ *  Unicode-aware version of the GNU ustrcasestr() function.
+ */
+char *ustrcasestr(AL_CONST char *s1, AL_CONST char *s2)
+{
+   int len;
+   ASSERT(s1);
+   ASSERT(s2);
+
+   len = ustrlen(s2);
+   while (ugetc(s1)) {
+      if (ustrnicmp(s1, s2, len) == 0)
+         return (char *)s1;
 
       s1 += uwidth(s1);
    }

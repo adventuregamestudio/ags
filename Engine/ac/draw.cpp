@@ -690,6 +690,8 @@ void init_game_drawdata()
     guiobjbg.resize(guio_num);
 }
 
+extern void dispose_engine_overlay();
+
 void dispose_game_drawdata()
 {
     clear_drawobj_cache();
@@ -708,6 +710,8 @@ void dispose_game_drawdata()
     gui_render_tex.clear();
     guiobjbg.clear();
     guiobjddbref.clear();
+
+    dispose_engine_overlay();
 }
 
 static void dispose_debug_room_drawdata()
@@ -2374,20 +2378,34 @@ PBitmap draw_room_background(Viewport *view)
 }
 
 
+struct DrawFPS
+{
+    IDriverDependantBitmap* ddb = nullptr;
+    std::unique_ptr<Bitmap> bmp;
+    int font = -1; // in case normal font changes at runtime
+} gl_DrawFPS;
+
+void dispose_engine_overlay()
+{
+    gl_DrawFPS.bmp.reset();
+    if (gl_DrawFPS.ddb)
+        gfxDriver->DestroyDDB(gl_DrawFPS.ddb);
+    gl_DrawFPS.ddb = nullptr;
+    gl_DrawFPS.font = -1;
+}
+
 void draw_fps(const Rect &viewport)
 {
-    // TODO: make allocated "fps struct" instead of using static vars!!
-    static IDriverDependantBitmap* ddb = nullptr;
-    static Bitmap *fpsDisplay = nullptr;
     const int font = FONT_NORMAL;
-    if (fpsDisplay == nullptr)
+    auto &fpsDisplay = gl_DrawFPS.bmp;
+    if (fpsDisplay == nullptr || gl_DrawFPS.font != font)
     {
-        fpsDisplay = CreateCompatBitmap(viewport.GetWidth(), (get_font_surface_height(font) + 5));
+        recycle_bitmap(fpsDisplay, game.GetColorDepth(), viewport.GetWidth(), (get_font_surface_height(font) + 5));
+        gl_DrawFPS.font = font;
     }
-    fpsDisplay->ClearTransparent();
-    
-    color_t text_color = fpsDisplay->GetCompatibleColor(14);
 
+    fpsDisplay->ClearTransparent();
+    const color_t text_color = fpsDisplay->GetCompatibleColor(14);
     char base_buffer[20];
     if (!isTimerFpsMaxed()) {
         snprintf(base_buffer, sizeof(base_buffer), "%d", frames_per_second);
@@ -2403,19 +2421,17 @@ void draw_fps(const Rect &viewport)
     } else {
         snprintf(fps_buffer, sizeof(fps_buffer), "FPS: --.- / %s", base_buffer);
     }
-    wouttext_outline(fpsDisplay, 1, 1, font, text_color, fps_buffer);
-
     char loop_buffer[60];
     snprintf(loop_buffer, sizeof(loop_buffer), "Loop %u", loopcounter);
-    wouttext_outline(fpsDisplay, viewport.GetWidth() / 2, 1, font, text_color, loop_buffer);
 
-    if (ddb)
-        gfxDriver->UpdateDDBFromBitmap(ddb, fpsDisplay);
-    else
-        ddb = gfxDriver->CreateDDBFromBitmap(fpsDisplay);
+    int text_off = get_font_surface_extent(font).first; // TODO: a generic function that accounts for this?
+    wouttext_outline(fpsDisplay.get(), 1, 1 - text_off, font, text_color, fps_buffer);
+    wouttext_outline(fpsDisplay.get(), viewport.GetWidth() / 2, 1 - text_off, font, text_color, loop_buffer);
+
+    gl_DrawFPS.ddb = recycle_ddb_bitmap(gl_DrawFPS.ddb, gl_DrawFPS.bmp.get());
     int yp = viewport.GetHeight() - fpsDisplay->GetHeight();
-    gfxDriver->DrawSprite(1, yp, ddb);
-    invalidate_sprite_glob(1, yp, ddb);
+    gfxDriver->DrawSprite(1, yp, gl_DrawFPS.ddb);
+    invalidate_sprite_glob(1, yp, gl_DrawFPS.ddb);
 }
 
 // Draw GUI controls as separate sprites, each on their own texture

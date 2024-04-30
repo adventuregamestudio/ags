@@ -59,7 +59,7 @@ extern bool measure_font_height(const AGSString &filename, int pixel_height, int
 // may be called with hdc = 0 to get required height without drawing anything
 extern int drawFontAt (int hdc, int fontnum, int x, int y, int width);
 extern Dictionary<int, Sprite^>^ load_sprite_dimensions();
-extern void drawGUI(int hdc, int x,int y, GUI^ gui, int resolutionFactor, float scale, int selectedControl);
+extern void drawGUI(int hdc, int x, int y, GUI^ gui, int resolutionFactor, float scale, int control_transparency, int selectedControl);
 extern void drawSprite(int hdc, int x,int y, int spriteNum, bool flipImage);
 extern void drawSpriteStretch(int hdc, int x,int y, int width, int height, int spriteNum, bool flipImage);
 extern void drawBlockOfColour(int hdc, int x,int y, int width, int height, int colNum);
@@ -319,9 +319,9 @@ namespace AGS
 			GameUpdated(game, false);
 		}
 
-		void NativeMethods::DrawGUI(int hDC, int x, int y, GUI^ gui, int resolutionFactor, float scale, int selectedControl)
+		void NativeMethods::DrawGUI(int hDC, int x, int y, GUI^ gui, int resolutionFactor, float scale, int controlTransparency, int selectedControl)
 		{
-			drawGUI(hDC, x, y, gui, resolutionFactor, scale, selectedControl);
+			drawGUI(hDC, x, y, gui, resolutionFactor, scale, controlTransparency, selectedControl);
 		}
 
 		void NativeMethods::DrawSprite(int hDC, int x, int y, int spriteNum, bool flipImage)

@@ -334,7 +334,7 @@ void preparesavegamelist(int ctrllist, int min_slot, int max_slot)
   CSCISendControlMessage(ctrllist, CLB_SETCURSEL, 0, 0);
 }
 
-void enterstringwindow(const char *prompttext, char *stouse)
+void enterstringwindow(const char *prompttext, char *dst_buf, size_t dst_sz)
 {
   const int wnd_width = 200;
   const int wnd_height = 40;
@@ -371,13 +371,13 @@ void enterstringwindow(const char *prompttext, char *stouse)
   if (wantCancel)
     CSCIDeleteControl(ctrlcancel);
   CSCIEraseWindow(handl);
-  strcpy(stouse, buffer2);
+  snprintf(dst_buf, dst_sz, "%s", buffer2);
 }
 
 int enternumberwindow(char *prompttext)
 {
   char ourbuf[200];
-  enterstringwindow(prompttext, ourbuf);
+  enterstringwindow(prompttext, ourbuf, sizeof(ourbuf));
   if (ourbuf[0] == 0)
     return -9999;
   return atoi(ourbuf);

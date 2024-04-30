@@ -265,7 +265,11 @@ void GUIMain::DrawWithControls(Bitmap *ds)
 {
     ds->ResetClip();
     DrawSelf(ds);
+    DrawControls(ds);
+}
 
+void GUIMain::DrawControls(Bitmap *ds)
+{
     if ((GUI::Context.DisabledState != kGuiDis_Undefined) && (GUI::Options.DisabledStyle == kGuiDis_Blackout))
         return; // don't draw GUI controls
 
@@ -735,12 +739,15 @@ GuiVersion GameGuiVersion = kGuiVersion_Undefined;
 Line CalcFontGraphicalVExtent(int font)
 {
     // Following factors are affecting the graphical vertical metrics:
+    // * font's real graphical extent (top and bottom offsets relative to the "pen")
     // * custom vertical offset set by user (if non-zero),
-    // * font's real graphical height
-    int font_yoffset = get_fontinfo(font).YOffset;
-    int yoff = std::min(0, font_yoffset); // only if yoff is negative
-    int height_off = std::max(0, font_yoffset); // only if yoff is positive
-    return Line(0, yoff, 0, get_font_surface_height(font) + height_off);
+    const auto finfo = get_fontinfo(font);
+    const auto fextent = get_font_surface_extent(font);
+    int top = fextent.first +
+        std::min(0, finfo.YOffset); // apply YOffset only if negative
+    int bottom = fextent.second +
+        std::max(0, finfo.YOffset); // apply YOffset only if positive
+    return Line(0, top, 0, bottom);
 }
 
 Point CalcTextPosition(const char *text, int font, const Rect &frame, FrameAlignment align, Rect *gr_rect)

@@ -338,8 +338,9 @@ static void check_mouse_state(int &was_mouse_on_iface)
         gui_on_mouse_hold(wasongui, wasbutdown);
     }
     else if ((wasbutdown > kMouseNone) && (!ags_misbuttondown(wasbutdown))) {
-        gui_on_mouse_up(wasongui, wasbutdown);
-        wasbutdown = kMouseNone;
+        eAGSMouseButton mouse_btn_up = wasbutdown;
+        wasbutdown = kMouseNone; // reset before event, avoid recursive call of "mouse up"
+        gui_on_mouse_up(wasongui, mouse_btn_up);
     }
 
     int mwheelz = ags_check_mouse_wheel();
@@ -486,18 +487,19 @@ bool run_service_key_controls(KeyInput &out_key)
         return false;
     }
 
+    // FIXME: review this command! - practically inconvenient
     if ((agskey == eAGSKeyCodeCtrlD) && (play.debug_mode > 0)) {
         // ctrl+D - show info
-        char infobuf[900];
-        sprintf(infobuf, "In room %d %s[Player at %d, %d (view %d, loop %d, frame %d)%s%s%s",
+        String buffer = String::FromFormat(
+            "In room %d %s[Player at %d, %d (view %d, loop %d, frame %d)%s%s%s",
             displayed_room, (noWalkBehindsAtAll ? "(has no walk-behinds)" : ""), playerchar->x, playerchar->y,
             playerchar->view + 1, playerchar->loop, playerchar->frame,
             (IsGamePaused() == 0) ? "" : "[Game paused.",
             (play.ground_level_areas_disabled == 0) ? "" : "[Ground areas disabled.",
             (IsInterfaceEnabled() == 0) ? "[Game in Wait state" : "");
         for (uint32_t ff = 0; ff<croom->numobj; ff++) {
-            if (ff >= 8) break; // buffer not big enough for more than 7
-            sprintf(&infobuf[strlen(infobuf)],
+            if (ff >= 8) break; // FIXME: measure graphical size instead?
+            buffer.AppendFmt(
                 "[Object %d: (%d,%d) size (%d x %d) on:%d moving:%s animating:%d slot:%d trnsp:%d clkble:%d",
                 ff, objs[ff].x, objs[ff].y,
                 (spriteset.DoesSpriteExist(objs[ff].num) ? game.SpriteInfos[objs[ff].num].Width : 0),
@@ -507,18 +509,18 @@ bool run_service_key_controls(KeyInput &out_key)
                 objs[ff].num, objs[ff].transparent,
                 ((objs[ff].flags & OBJF_NOINTERACT) != 0) ? 0 : 1);
         }
-        DisplayMB(infobuf);
+        DisplayMB(buffer.GetCStr());
         int chd = game.playercharacter;
-        char bigbuffer[STD_BUFFER_SIZE] = "CHARACTERS IN THIS ROOM:[";
+        buffer = "CHARACTERS IN THIS ROOM:[";
         for (int ff = 0; ff < game.numcharacters; ff++) {
             if (game.chars[ff].room != displayed_room) continue;
-            if (strlen(bigbuffer) > 430) {
-                strcat(bigbuffer, "and more...");
-                DisplayMB(bigbuffer);
-                strcpy(bigbuffer, "CHARACTERS IN THIS ROOM (cont'd):[");
+            if (buffer.GetLength() > 430) { // FIXME: why 430? measure graphical size instead?
+                buffer.Append("and more...");
+                DisplayMB(buffer.GetCStr());
+                buffer = "CHARACTERS IN THIS ROOM (cont'd):[";
             }
             chd = ff;
-            sprintf(&bigbuffer[strlen(bigbuffer)],
+            buffer.AppendFmt(
                 "%s (view/loop/frm:%d,%d,%d  x/y/z:%d,%d,%d  idleview:%d,time:%d,left:%d walk:%d anim:%d follow:%d flags:%X wait:%d zoom:%d)[",
                 game.chars[chd].scrname.GetCStr(), game.chars[chd].view + 1, game.chars[chd].loop, game.chars[chd].frame,
                 game.chars[chd].x, game.chars[chd].y, game.chars[chd].z,
@@ -526,7 +528,7 @@ bool run_service_key_controls(KeyInput &out_key)
                 game.chars[chd].walking, game.chars[chd].animating, game.chars[chd].following,
                 game.chars[chd].flags, game.chars[chd].wait, charextra[chd].zoom);
         }
-        DisplayMB(bigbuffer);
+        DisplayMB(buffer.GetCStr());
         return false;
     }
 

@@ -72,7 +72,7 @@ void TTFFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *desti
 
 bool TTFFontRenderer::LoadFromDisk(int fontNumber, int fontSize)
 {
-  return LoadFromDiskEx(fontNumber, fontSize, nullptr, nullptr);
+  return LoadFromDiskEx(fontNumber, fontSize, nullptr, nullptr, nullptr);
 }
 
 bool TTFFontRenderer::IsBitmapFont()
@@ -86,6 +86,8 @@ static int GetAlfontFlags(int load_mode)
   // Compatibility: font ascender is always adjusted to the formal font's height
   if ((load_mode & FFLG_ASCENDERFIXUP) != 0)
       flags |= ALFONT_FLG_ASCENDER_EQ_HEIGHT;
+  // Precalculate real glyphs extent (will make loading fonts relatively slower)
+  flags |= ALFONT_FLG_PRECALC_MAX_CBOX;
   return flags;
 }
 
@@ -102,9 +104,13 @@ static ALFONT_FONT *LoadTTFFromMem(const uint8_t *data, size_t data_len, int fon
 // Fill the FontMetrics struct from the given ALFONT
 static void FillMetrics(ALFONT_FONT *alfptr, FontMetrics *metrics)
 {
-    metrics->Height = alfont_get_font_height(alfptr);
+    metrics->NominalHeight = alfont_get_font_height(alfptr);
     metrics->RealHeight = alfont_get_font_real_height(alfptr);
-    metrics->CompatHeight = metrics->Height; // just set to default here
+    metrics->CompatHeight = metrics->NominalHeight; // just set to default here
+    alfont_get_font_real_vextent(alfptr, &metrics->VExtent.first, &metrics->VExtent.second);
+    // fixup vextent to be *not less* than realheight
+    metrics->VExtent.first = std::min(0, metrics->VExtent.first);
+    metrics->VExtent.second = std::max(metrics->RealHeight, metrics->VExtent.second);
 }
 
 ALFONT_FONT *TTFFontRenderer::LoadTTF(const AGS::Common::String &filename, int font_size, int alfont_flags)
@@ -121,7 +127,7 @@ ALFONT_FONT *TTFFontRenderer::LoadTTF(const AGS::Common::String &filename, int f
     return LoadTTFFromMem(&buf.front(), lenof, font_size, alfont_flags);
 }
 
-bool TTFFontRenderer::LoadFromDiskEx(int fontNumber, int fontSize,
+bool TTFFontRenderer::LoadFromDiskEx(int fontNumber, int fontSize, String *src_filename,
     const FontRenderParams *params, FontMetrics *metrics)
 {
     String filename = String::FromFormat("agsfnt%d.ttf", fontNumber);
@@ -139,6 +145,8 @@ bool TTFFontRenderer::LoadFromDiskEx(int fontNumber, int fontSize,
 
     _fontData[fontNumber].AlFont = alfptr;
     _fontData[fontNumber].Params = f_params;
+    if (src_filename)
+        *src_filename = filename;
     if (metrics)
         FillMetrics(alfptr, metrics);
     return true;

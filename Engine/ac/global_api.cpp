@@ -535,9 +535,9 @@ RuntimeScriptValue Sc_HasPlayerBeenInRoom(const RuntimeScriptValue *params, int3
 }
 
 // void (const char*msg,char*bufr)
-RuntimeScriptValue Sc_sc_inputbox(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_ShowInputBox(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_POBJ2(sc_inputbox, const char, char);
+    API_SCALL_VOID_POBJ2(ShowInputBox, const char, char);
 }
 
 // void (int ifn)
@@ -1248,7 +1248,7 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "GetDrawingSurfaceForWalkableArea", API_FN_PAIR(GetDrawingSurfaceForWalkableArea) },
         { "GetDrawingSurfaceForWalkbehind", API_FN_PAIR(GetDrawingSurfaceForWalkbehind) },
         { "HasPlayerBeenInRoom",      API_FN_PAIR(HasPlayerBeenInRoom) },
-        { "InputBox",                 API_FN_PAIR(sc_inputbox) },
+        { "InputBox",                 API_FN_PAIR(ShowInputBox) },
         { "InterfaceOff",             API_FN_PAIR(InterfaceOff) },
         { "InterfaceOn",              API_FN_PAIR(InterfaceOn) },
         { "IntToFloat",               API_FN_PAIR(IntToFloat) },

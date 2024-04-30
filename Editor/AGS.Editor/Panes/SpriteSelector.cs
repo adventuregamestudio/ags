@@ -1052,6 +1052,7 @@ namespace AGS.Editor
         {
             string fileName = (string)parameter;
             Process imageEditor = new Process();
+            imageEditor.StartInfo.UseShellExecute = false;
 
             string paintProgramPath = Factory.AGSEditor.Settings.PaintProgramPath;
             if (string.IsNullOrEmpty(paintProgramPath))

@@ -49,7 +49,7 @@ namespace Native
 			void GameSettingsChanged(Game^ game);
             void PaletteColoursUpdated(Game ^game);
 			void ApplyPalette(cli::array<PaletteEntry^> ^palette);
-			void DrawGUI(int hDC, int x, int y, GUI^ gui, int resolutionFactor, float scale, int selectedControl);
+			void DrawGUI(int hDC, int x, int y, GUI^ gui, int resolutionFactor, float scale, int controlTransparency, int selectedControl);
 			void DrawSprite(int hDC, int x, int y, int width, int height, int spriteNum, bool flipImage);
 			void DrawSprite(int hDC, int x, int y, int spriteNum, bool flipImage);
 			// Draws font char sheet on the provided context and returns the height of drawn object;

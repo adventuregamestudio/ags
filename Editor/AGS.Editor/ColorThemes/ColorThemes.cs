@@ -128,6 +128,7 @@ namespace AGS.Editor
 
                 ProcessStartInfo startInfo = new ProcessStartInfo
                 {
+                    UseShellExecute = false,
                     Arguments = DiskDir,
                     FileName = "explorer.exe"
                 };

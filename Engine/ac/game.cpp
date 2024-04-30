@@ -165,7 +165,6 @@ String saveGameDirectory = "./";
 String saveGameSuffix;
 
 int game_paused=0;
-char pexbuf[STD_BUFFER_SIZE];
 
 unsigned int load_new_game = 0;
 int load_new_game_restore = -1;
@@ -706,13 +705,13 @@ int Game_GetColorFromRGB(int red, int grn, int blu) {
 
 const char* Game_InputBox(const char *msg) {
     char buffer[STD_BUFFER_SIZE];
-    sc_inputbox(msg, buffer);
+    ShowInputBoxImpl(msg, buffer, STD_BUFFER_SIZE);
     return CreateNewScriptString(buffer);
 }
 
 const char* Game_GetLocationName(int x, int y) {
     char buffer[STD_BUFFER_SIZE];
-    GetLocationName(x, y, buffer);
+    GetLocationName(x, y, buffer); // fills up to MAX_MAXSTRLEN
     return CreateNewScriptString(buffer);
 }
 
@@ -725,7 +724,7 @@ int Game_GetNormalFont() {
 
 const char* Game_GetTranslationFilename() {
     char buffer[STD_BUFFER_SIZE];
-    GetTranslationName(buffer);
+    GetTranslationName(buffer); // fills up to MAX_MAXSTRLEN
     return CreateNewScriptString(buffer);
 }
 

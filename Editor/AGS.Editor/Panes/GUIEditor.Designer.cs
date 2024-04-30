@@ -29,16 +29,23 @@ namespace AGS.Editor
         private void InitializeComponent()
         {
             this.ctrlPanel = new System.Windows.Forms.Panel();
+            this.lblTransparency = new System.Windows.Forms.Label();
+            this.label2 = new System.Windows.Forms.Label();
+            this.sldTransparency = new System.Windows.Forms.TrackBar();
             this.lblZoomInfo = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.sldZoomLevel = new System.Windows.Forms.TrackBar();
             this.bgPanel = new AGS.Editor.BufferedPanel();
             this.ctrlPanel.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.sldTransparency)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.sldZoomLevel)).BeginInit();
             this.SuspendLayout();
             // 
             // ctrlPanel
             // 
+            this.ctrlPanel.Controls.Add(this.lblTransparency);
+            this.ctrlPanel.Controls.Add(this.label2);
+            this.ctrlPanel.Controls.Add(this.sldTransparency);
             this.ctrlPanel.Controls.Add(this.lblZoomInfo);
             this.ctrlPanel.Controls.Add(this.label3);
             this.ctrlPanel.Controls.Add(this.sldZoomLevel);
@@ -47,6 +54,36 @@ namespace AGS.Editor
             this.ctrlPanel.Name = "ctrlPanel";
             this.ctrlPanel.Size = new System.Drawing.Size(702, 51);
             this.ctrlPanel.TabIndex = 0;
+            // 
+            // lblTransparency
+            // 
+            this.lblTransparency.AutoSize = true;
+            this.lblTransparency.Location = new System.Drawing.Point(560, 15);
+            this.lblTransparency.Name = "lblTransparency";
+            this.lblTransparency.Size = new System.Drawing.Size(33, 13);
+            this.lblTransparency.TabIndex = 5;
+            this.lblTransparency.Text = "100%";
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(282, 15);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(112, 13);
+            this.label2.TabIndex = 3;
+            this.label2.Text = "Controls transparency:";
+            // 
+            // sldTransparency
+            // 
+            this.sldTransparency.LargeChange = 20;
+            this.sldTransparency.Location = new System.Drawing.Point(400, 6);
+            this.sldTransparency.Maximum = 100;
+            this.sldTransparency.Name = "sldTransparency";
+            this.sldTransparency.Size = new System.Drawing.Size(154, 42);
+            this.sldTransparency.SmallChange = 5;
+            this.sldTransparency.TabIndex = 4;
+            this.sldTransparency.TickFrequency = 20;
+            this.sldTransparency.Scroll += new System.EventHandler(this.sldTransparency_Scroll);
             // 
             // lblZoomInfo
             // 
@@ -108,6 +145,7 @@ namespace AGS.Editor
             this.Load += new System.EventHandler(this.GUIEditor_Load);
             this.ctrlPanel.ResumeLayout(false);
             this.ctrlPanel.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.sldTransparency)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.sldZoomLevel)).EndInit();
             this.ResumeLayout(false);
 
@@ -120,5 +158,8 @@ namespace AGS.Editor
         private System.Windows.Forms.Label lblZoomInfo;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.TrackBar sldZoomLevel;
+        private System.Windows.Forms.Label lblTransparency;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.TrackBar sldTransparency;
     }
 }

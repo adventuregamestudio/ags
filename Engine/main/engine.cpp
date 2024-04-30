@@ -86,7 +86,6 @@ extern volatile bool want_exit, abort_engine;
 extern bool justRunSetup;
 extern GameSetupStruct game;
 extern int proper_exit;
-extern char pexbuf[STD_BUFFER_SIZE];
 extern SpriteCache spriteset;
 extern ScriptObject scrObj[MAX_ROOM_OBJECTS];
 extern std::vector<ViewStruct> views;

@@ -1523,7 +1523,10 @@ namespace AGS.Editor
 
 		public bool QueryWhetherToSaveGameBeforeContinuing(string message)
 		{
-			bool proceed = true;
+            if (!_agsEditor.TestIfCanSaveNow())
+                return false;
+
+            bool proceed = true;
 			DialogResult result = MessageBox.Show(message, "Save changes?", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
 			if (result == DialogResult.Cancel)
 			{
@@ -1552,6 +1555,24 @@ namespace AGS.Editor
 			return proceed;
 		}
 
+        /// <summary>
+        /// Tests if the Editor can close the project and shutdown application.
+        /// Is allowed to show error messages in the process.
+        /// Returns the result.
+        /// FIXME: these methods and events are disorganized:
+        /// - QueryEditorShutdown is in GUIController,
+        /// - AttemptToSaveGame is in AGSEditor,
+        /// need to bring this to some consistency.
+        /// </summary>
+        public bool TestIfCanShutdownNow()
+        {
+            if (QueryEditorShutdown != null)
+            {
+                return QueryEditorShutdown();
+            }
+            return true;
+        }
+
         private bool _mainForm_OnEditorShutdown()
         {
             SaveEditorWindowSize();
@@ -1560,25 +1581,19 @@ namespace AGS.Editor
 
 			if (_batchProcessShutdown || _exitFromWelcomeScreen)
 			{
-				if (OnEditorShutdown != null)
-				{
-					OnEditorShutdown();
-				}
-			}
+                OnEditorShutdown?.Invoke();
+            }
 			else
 			{
-				canShutDown = QueryWhetherToSaveGameBeforeContinuing("Do you want to save the game before exiting?");
+                canShutDown = TestIfCanShutdownNow();
+                if (canShutDown)
+                {
+                    canShutDown = QueryWhetherToSaveGameBeforeContinuing("Do you want to save the game before exiting?");
+                }
 				if (canShutDown)
 				{
-					if (QueryEditorShutdown != null)
-					{
-						canShutDown = QueryEditorShutdown();
-					}
-					if ((canShutDown) && (OnEditorShutdown != null))
-					{
-						OnEditorShutdown();
-					}
-				}
+                    OnEditorShutdown?.Invoke();
+                }
 			}
 
 			if (canShutDown)

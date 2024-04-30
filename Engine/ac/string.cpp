@@ -164,7 +164,7 @@ const char* String_Replace(const char *thisString, const char *lookForText, cons
     // For case-insensitive search select no-case unicode-compatible variant
     typedef const char* (*fn_strstr)(const char *, const char *);
     fn_strstr pfn_strstr = 
-        caseSensitive ? static_cast<fn_strstr>(strstr) : reinterpret_cast<fn_strstr>(ustrcasestr);
+        caseSensitive ? reinterpret_cast<fn_strstr>(strstr) : reinterpret_cast<fn_strstr>(ustrcasestr);
     int match_len, match_ulen;
     ustrlen2(lookForText, &match_len, &match_ulen);
 

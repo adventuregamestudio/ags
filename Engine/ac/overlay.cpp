@@ -64,7 +64,7 @@ void Overlay_SetText(ScriptOverlay *scover, int width, int fontid, int text_colo
     // TODO: find a nice way to refactor and share these code pieces
     // from CreateTextOverlay
     // allow DisplaySpeechBackground to be shrunk
-    int allow_shrink = (x == OVR_AUTOPLACE) ? 1 : 0;
+    int allow_shrink = over->IsAutoPosition() ? 1 : 0;
 
     // from Overlay_CreateTextCore
     if (width < 8) width = play.GetUIViewport().GetWidth() / 2;
@@ -89,28 +89,28 @@ int Overlay_GetX(ScriptOverlay *scover) {
     auto *over = get_overlay(scover->overlayId);
     if (!over)
         quit("!invalid overlay ID specified");
-    return get_overlay_position(*over).X;
+    return over->x;
 }
 
 void Overlay_SetX(ScriptOverlay *scover, int newx) {
     auto *over = get_overlay(scover->overlayId);
     if (!over)
         quit("!invalid overlay ID specified");
-    over->x = newx;
+    over->SetFixedPosition(newx, over->y);
 }
 
 int Overlay_GetY(ScriptOverlay *scover) {
     auto *over = get_overlay(scover->overlayId);
     if (!over)
         quit("!invalid overlay ID specified");
-    return get_overlay_position(*over).Y;
+    return over->y;
 }
 
 void Overlay_SetY(ScriptOverlay *scover, int newy) {
     auto *over = get_overlay(scover->overlayId);
     if (!over)
         quit("!invalid overlay ID specified");
-    over->y = newy;
+    over->SetFixedPosition(over->x, newy);
 }
 
 int Overlay_GetGraphic(ScriptOverlay *scover) {
@@ -222,14 +222,14 @@ ScreenOverlay *Overlay_CreateGraphicCore(bool room_layer, int x, int y, int slot
 }
 
 ScreenOverlay *Overlay_CreateTextCore(bool room_layer, int x, int y, int width, int font, int text_color,
-    const char *text, int disp_type, int allow_shrink)
+    const char *text, int disp_type, int allow_shrink, int speech_for_char)
 {
     if (width < 8) width = play.GetUIViewport().GetWidth() / 2;
     if (x < 0) x = play.GetUIViewport().GetWidth() / 2 - width / 2;
     if (text_color == 0) text_color = 16;
     // Skip a voice-over token, if present
     const char *draw_text = skip_voiceover_token(text);
-    return display_main(x, y, width, draw_text, nullptr, disp_type, font, -text_color, 0, allow_shrink, false, room_layer);
+    return display_main(x, y, width, draw_text, nullptr, disp_type, font, -text_color, 0, allow_shrink, speech_for_char, room_layer);
 }
 
 ScriptOverlay* Overlay_CreateGraphicalImpl(bool room_layer, int x, int y, int slot, bool clone)
@@ -408,7 +408,7 @@ void remove_screen_overlay(int type)
         play.speech_face_schandle = 0;
         face_talking = -1;
     }
-    else if (over.bgSpeechForChar >= 0)
+    else if (over.speechForChar >= 0)
     { // release internal ref for bg speech
         invalidate_and_subref(over);
     }
@@ -470,13 +470,13 @@ static size_t add_screen_overlay_impl(bool roomlayer, int x, int y, int type, in
     {
         over.SetSpriteNum(sprnum, pic_offx, pic_offy);
     }
-    over.x=x;
-    over.y=y;
+    over.x = x;
+    over.y = y;
     // by default draw speech and portraits over GUI, and the rest under GUI
     over.zorder = (roomlayer || type == OVER_TEXTMSG || type == OVER_PICTURE || type == OVER_TEXTSPEECH) ?
         INT_MAX : INT_MIN;
-    over.timeout=0;
-    over.bgSpeechForChar = -1;
+    over.timeout = 0;
+    over.speechForChar = -1;
     over.associatedOverlayHandle = 0;
     over.SetRoomLayer(roomlayer);
     // TODO: move these custom settings outside of this function
@@ -518,54 +518,51 @@ size_t add_screen_overlay(bool roomlayer, int x, int y, int type, Common::Bitmap
     return add_screen_overlay_impl(roomlayer, x, y, type, -1, piccy, pic_offx, pic_offy);
 }
 
-Point get_overlay_position(const ScreenOverlay &over)
+Point get_overlay_display_pos(const ScreenOverlay &over)
 {
-    if (over.IsRoomLayer())
-    {
-        return Point(over.x + over.offsetX, over.y + over.offsetY);
+    // Note: the internal offset is only needed when x,y coordinates are specified
+    // and only in the case where the overlay is using a GUI. See issue #1098
+    return Point(over.x + over.offsetX, over.y + over.offsetY);
+}
+
+// Calculates overlay position above linked character
+// TODO: this code assumes that overlay is in the screen layer;
+// perhaps add a branch for room layer as well?
+void autoposition_overlay(ScreenOverlay &over)
+{
+    assert(over.IsAutoPosition());
+    if (!over.IsAutoPosition() || (over.speechForChar < 0))
+        return;
+
+    const Rect &ui_view = play.GetUIViewport();
+    const int charid = over.speechForChar;
+
+    auto view = FindNearestViewport(charid);
+    const int charpic = views[game.chars[charid].view].loops[game.chars[charid].loop].frames[0].pic;
+    const int height = (charextra[charid].height < 1) ? game.SpriteInfos[charpic].Height : charextra[charid].height;
+    const Point screenpt = view->RoomToScreen(
+        game.chars[charid].x,
+        charextra[charid].GetEffectiveY(&game.chars[charid]) - height).first;
+    const Size pic_size = over.GetGraphicSize();
+    int tdxp = std::max(0, screenpt.X - pic_size.Width / 2);
+    int tdyp = screenpt.Y - 5;
+    tdyp -= pic_size.Height;
+    tdyp = std::max(5, tdyp);
+
+    if ((tdxp + pic_size.Width) >= ui_view.GetWidth())
+        tdxp = (ui_view.GetWidth() - pic_size.Width) - 1;
+    if (game.chars[charid].room != displayed_room) {
+        tdxp = ui_view.GetWidth()/2 - pic_size.Width / 2;
+        tdyp = ui_view.GetHeight()/2 - pic_size.Height / 2;
     }
 
-    if (over.x == OVR_AUTOPLACE)
-    {
-        const Rect &ui_view = play.GetUIViewport();
-        // auto place on character
-        int charid = over.y;
-
-        auto view = FindNearestViewport(charid);
-        const int charpic = views[game.chars[charid].view].loops[game.chars[charid].loop].frames[0].pic;
-        const int height = (charextra[charid].height < 1) ? game.SpriteInfos[charpic].Height : charextra[charid].height;
-        const Point screenpt = view->RoomToScreen(
-            game.chars[charid].x,
-            charextra[charid].GetEffectiveY(&game.chars[charid]) - height).first;
-        const Size pic_size = over.GetGraphicSize();
-        int tdxp = std::max(0, screenpt.X - pic_size.Width / 2);
-        int tdyp = screenpt.Y - 5;
-        tdyp -= pic_size.Height;
-        tdyp = std::max(5, tdyp);
-
-        if ((tdxp + pic_size.Width) >= ui_view.GetWidth())
-            tdxp = (ui_view.GetWidth() - pic_size.Width) - 1;
-        if (game.chars[charid].room != displayed_room) {
-            tdxp = ui_view.GetWidth()/2 - pic_size.Width / 2;
-            tdyp = ui_view.GetHeight()/2 - pic_size.Height / 2;
-        }
-        return Point(tdxp, tdyp);
-    }
-    else
-    {
-        // Note: the internal offset is only needed when x,y coordinates are specified
-        // and only in the case where the overlay is using a GUI. See issue #1098
-        int tdxp = over.x + over.offsetX;
-        int tdyp = over.y + over.offsetY;
-        if (over.IsRoomRelative())
-            return play.RoomToScreen(tdxp, tdyp);
-        return Point(tdxp, tdyp);
-    }
+    over.x = tdxp;
+    over.y = tdyp;
 }
 
 Point update_overlay_graphicspace(ScreenOverlay &over)
 {
-    Point pos = get_overlay_position(over);
+    Point pos = get_overlay_display_pos(over);
     Bitmap *pic = over.GetImage();
     over._gs = GraphicSpace(pos.X, pos.Y, pic->GetWidth(), pic->GetHeight(),
         pic->GetWidth(), pic->GetHeight(), over.rotation);

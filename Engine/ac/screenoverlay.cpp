@@ -103,7 +103,7 @@ void ScreenOverlay::ReadFromSavegame(Stream *in, bool &has_bitmap, int32_t cmp_v
     x = in->ReadInt32();
     y = in->ReadInt32();
     timeout = in->ReadInt32();
-    bgSpeechForChar = in->ReadInt32();
+    speechForChar = in->ReadInt32();
     associatedOverlayHandle = in->ReadInt32();
     if (cmp_ver >= kOverSvgVersion_36025)
     {
@@ -112,8 +112,9 @@ void ScreenOverlay::ReadFromSavegame(Stream *in, bool &has_bitmap, int32_t cmp_v
     else
     {
         in->ReadBool(); // [DEPRECATED] has alpha
-        if (!(in->ReadBool())) // screen relative position
-            _flags |= kOver_PositionAtRoomXY;
+        // "is screen relative pos" flag; historically room relative == autopos
+        if (!(in->ReadBool()))
+            _flags |= kOver_AutoPosition;
     }
 
     if (cmp_ver >= kOverSvgVersion_35028)
@@ -172,7 +173,7 @@ void ScreenOverlay::WriteToSavegame(Stream *out) const
     out->WriteInt32(x);
     out->WriteInt32(y);
     out->WriteInt32(timeout);
-    out->WriteInt32(bgSpeechForChar);
+    out->WriteInt32(speechForChar);
     out->WriteInt32(associatedOverlayHandle);
     out->WriteInt16(_flags);
     // since cmp_ver = 1

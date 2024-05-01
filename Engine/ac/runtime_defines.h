@@ -95,8 +95,6 @@ enum LegacyScriptAlignment
 #define OVER_TEXTSPEECH 4
 #define OVER_FIRSTFREE 5
 #define OVER_CUSTOM   -1
-// Overlay parameters
-#define OVR_AUTOPLACE 30000
 
 // These are possibly actions scheduled to run after "wait";
 // but only FOR_EXITLOOP is used currently;

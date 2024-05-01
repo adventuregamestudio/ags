@@ -190,18 +190,19 @@ void update_following_exactly_characters(const std::vector<int> &followingAsShee
 
 void update_overlay_timers()
 {
-	// update overlay timers
-  auto &overs = get_overlays();
-  for (auto &over : overs)
-  {
-    if (over.timeout > 0) {
-      over.timeout--;
-      if (over.timeout == 0)
-      {
-        remove_screen_overlay(over.type);
-      }
+    // update overlay timers and positions
+    auto &overs = get_overlays();
+    for (auto &over : overs)
+    {
+        if (over.timeout > 0)
+        {
+            over.timeout--;
+            if (over.timeout == 0)
+            {
+                remove_screen_overlay(over.type);
+            }
+        }
     }
-  }
 }
 
 void update_speech_and_messages()

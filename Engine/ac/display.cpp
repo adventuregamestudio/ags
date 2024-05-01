@@ -181,9 +181,10 @@ Bitmap *create_textual_image(const char *text, int asspch, int isThought,
     }
 
     const Rect &ui_view = play.GetUIViewport();
-    if (xx == OVR_AUTOPLACE);
     // centre text in middle of screen
-    else if (yy<0) yy = ui_view.GetHeight() / 2 - disp.FullTextHeight / 2 - padding;
+    if (yy < 0) {
+        yy = ui_view.GetHeight() / 2 - disp.FullTextHeight / 2 - padding;
+    }
     // speech, so it wants to be above the character's head
     else if (asspch > 0) {
         yy -= disp.FullTextHeight;
@@ -214,7 +215,9 @@ Bitmap *create_textual_image(const char *text, int asspch, int isThought,
         if (xx + wii >= ui_view.GetWidth())
             xx = (ui_view.GetWidth() - wii) - 5;
     }
-    else if (xx<0) xx = ui_view.GetWidth() / 2 - wii / 2;
+    else if (xx < 0) {
+        xx = ui_view.GetWidth() / 2 - wii / 2;
+    }
 
     const int extraHeight = paddingDoubledScaled;
     color_t text_color = MakeColor(15);
@@ -344,7 +347,7 @@ bool display_check_user_input(int skip)
 // pass blocking=2 to create permanent overlay
 ScreenOverlay *display_main(int xx, int yy, int wii, const char *text,
     const TopBarSettings *topbar, int disp_type, int usingfont,
-    int asspch, int isThought, int allowShrink, bool overlayPositionFixed, bool roomlayer)
+    int asspch, int isThought, int allowShrink, int autoplace_at_char, bool roomlayer)
 {
     //
     // Prepare for the message display
@@ -408,6 +411,11 @@ ScreenOverlay *display_main(int xx, int yy, int wii, const char *text,
     auto *over = get_overlay(nse); // FIXME: optimize return value
     // we should not delete text_window_ds here, because it is now owned by Overlay
 
+    if (autoplace_at_char >= 0) {
+        over->SetAutoPosition(autoplace_at_char);
+        autoposition_overlay(*over);
+    }
+
     // If it's a non-blocking overlay type, then we're done here
     if (disp_type >= DISPLAYTEXT_NORMALOVERLAY) {
         return over;
@@ -427,14 +435,7 @@ ScreenOverlay *display_main(int xx, int yy, int wii, const char *text,
         disp_state.End();
     }
     else { /* DISPLAYTEXT_SPEECH */
-        if (!overlayPositionFixed)
-        {
-            over->SetRoomRelative(true);
-            VpPoint vpt = play.GetRoomViewport(0)->ScreenToRoom(over->x, over->y, false);
-            over->x = vpt.first.X;
-            over->y = vpt.first.Y;
-        }
-
+        // Run full game updates until overlay is removed
         GameLoopUntilNoOverlay();
     }
 
@@ -451,7 +452,8 @@ void display_at(int xx, int yy, int wii, const char *text, const TopBarSettings 
     // Start voice-over, if requested by the tokens in speech text
     try_auto_play_speech(text, text, play.narrator_speech);
 
-    display_main(xx, yy, wii, text, topbar, DISPLAYTEXT_MESSAGEBOX, FONT_NORMAL, 0, 0, 0, false);
+    display_main(xx, yy, wii, text, topbar, DISPLAYTEXT_MESSAGEBOX, FONT_NORMAL,
+        0, 0, 0, -1 /* no autoplace */, false /* screen layer */);
 
     // Stop any blocking voice-over, if was started by this function
     if (play.IsBlockingVoiceSpeech())

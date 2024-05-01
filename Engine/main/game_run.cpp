@@ -860,6 +860,18 @@ static void update_objects_scale()
     }
 }
 
+static void update_overlay_positions()
+{
+    auto &overs = get_overlays();
+    for (auto &over : overs)
+    {
+        if (over.IsAutoPosition())
+        {
+            autoposition_overlay(over);
+        }
+    }
+}
+
 // Updates GUI reaction to the cursor position change
 // TODO: possibly may be merged with gui_on_mouse_move()
 static void update_cursor_over_gui()
@@ -950,6 +962,24 @@ static void update_cursor_over_location(int mwasatx, int mwasaty)
 
     offsetxWas = offsetx;
     offsetyWas = offsety;
+}
+
+static void update_drawable_object_states(bool do_cursor, int mwasatx, int mwasaty)
+{
+    if (displayed_room < 0)
+        return;
+
+    // camera positions may be linked to a player character
+    play.UpdateRoomCameras();
+
+    update_objects_scale();
+    // overlay positions may be linked to a certain character
+    update_overlay_positions();
+    if (do_cursor)
+    {
+        update_cursor_over_location(mwasatx, mwasaty);
+        update_cursor_view();
+    }
 }
 
 static void game_loop_update_events()
@@ -1090,11 +1120,10 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
 
     game_loop_do_late_script_update();
 
-    // historically room object and character scaling was updated
-    // right before the drawing
-    update_objects_scale();
-    update_cursor_over_location(mwasatx, mwasaty);
-    update_cursor_view();
+    // After everything else,
+    // update object states necessary for upcoming rendering;
+    // historically this was done right prior to drawing
+    update_drawable_object_states(true /* cursor-related update */, mwasatx, mwasaty);
 
     update_video_system_on_game_loop();
     update_audio_system_on_game_loop();
@@ -1314,18 +1343,15 @@ void UpdateCursorAndDrawables()
     const int mwasatx = mousex, mwasaty = mousey;
     ags_domouse();
     update_cursor_over_gui();
-    update_cursor_over_location(mwasatx, mwasaty);
-    update_cursor_view();
     // TODO: following does not have to be called every frame while in a
     // fully blocking state (like Display() func), refactor to only call it
     // once the blocking state begins.
-    update_objects_scale();
+    update_drawable_object_states(true /* cursor-related update */, mwasatx, mwasaty);
 }
 
 void SyncDrawablesState()
 {
-    // TODO: there's likely more things that could've be done here
-    update_objects_scale();
+    update_drawable_object_states(false /* NO cursor-related update */, -1, -1);
 }
 
 void update_polled_stuff()

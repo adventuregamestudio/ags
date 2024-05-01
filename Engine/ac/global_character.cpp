@@ -234,13 +234,12 @@ void DisplaySpeechAt (int xx, int yy, int wii, int aschar, const char*spch) {
 }
 
 // [DEPRECATED] left only for use in Display, replace/merge with modern function
-static int CreateTextOverlay(int xx, int yy, int wii, int fontid, int text_color, const char* text, int disp_type) {
+static int CreateTextOverlay(int xx, int yy, int wii, int fontid, int text_color, const char* text, int disp_type, int speech_for_char) {
     int allowShrink = 0;
-
-    if (xx == OVR_AUTOPLACE) // allow DisplaySpeechBackground to be shrunk
+    if (speech_for_char >= 0) // allow DisplaySpeechBackground to be shrunk
         allowShrink = 1;
 
-    auto *over = Overlay_CreateTextCore(false, xx, yy, wii, fontid, text_color, text, disp_type, allowShrink);
+    auto *over = Overlay_CreateTextCore(false, xx, yy, wii, fontid, text_color, text, disp_type, allowShrink, speech_for_char);
     return over ? over->type : 0;
 }
 
@@ -251,18 +250,18 @@ int DisplaySpeechBackground(int charid, const char*speel) {
     const auto &overs = get_overlays();
     for (size_t i = 0; i < overs.size(); ++i)
     {
-        if (overs[i].bgSpeechForChar == charid)
+        if (overs[i].speechForChar == charid)
         {
             remove_screen_overlay(i);
             break;
         }
     }
 
-    int ovrl=CreateTextOverlay(OVR_AUTOPLACE,charid,play.GetUIViewport().GetWidth()/2,FONT_SPEECH,
-        -game.chars[charid].talkcolor, get_translation(speel), DISPLAYTEXT_NORMALOVERLAY);
+    int ovrl = CreateTextOverlay(0, 0, play.GetUIViewport().GetWidth() / 2, FONT_SPEECH,
+        -game.chars[charid].talkcolor, get_translation(speel), DISPLAYTEXT_NORMALOVERLAY, charid);
 
     auto *over = get_overlay(ovrl);
-    over->bgSpeechForChar = charid;
+    over->speechForChar = charid;
     over->timeout = GetTextDisplayTime(speel, 1);
     return ovrl;
 }

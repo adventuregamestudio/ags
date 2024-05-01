@@ -40,7 +40,7 @@ using namespace AGS; // FIXME later
 
 enum OverlayFlags
 {
-    kOver_PositionAtRoomXY = 0x0002, // room-relative position, may be in ui
+    kOver_AutoPosition     = 0x0002, // autoposition over a linked Character (speech)
     kOver_RoomLayer        = 0x0004, // work in room layer (as opposed to UI)
     kOver_SpriteShared     = 0x0008, // reference shared sprite (as opposed to exclusive)
 };
@@ -70,7 +70,8 @@ struct ScreenOverlay
     int offsetX = 0, offsetY = 0;
     // Width and height to stretch the texture to
     int scaleWidth = 0, scaleHeight = 0;
-    int bgSpeechForChar = -1;
+    // Character index, if this overlay serves as a speech (blocking or bg)
+    int speechForChar = -1;
     int associatedOverlayHandle = 0; // script obj handle
     int zorder = INT_MIN;
     float rotation = 0.f;
@@ -87,13 +88,23 @@ struct ScreenOverlay
     // Returns Overlay's graphic space params
     inline const Common::GraphicSpace &GetGraphicSpace() const { return _gs; }
     bool IsSpriteShared() const { return (_flags & kOver_SpriteShared) != 0; }
-    bool IsRoomRelative() const { return (_flags & kOver_PositionAtRoomXY) != 0; }
+    bool IsAutoPosition() const { return (_flags & kOver_AutoPosition) != 0; }
     bool IsRoomLayer() const { return (_flags & kOver_RoomLayer) != 0; }
-    void SetRoomRelative(bool on) { on ? _flags |= kOver_PositionAtRoomXY : _flags &= ~kOver_PositionAtRoomXY; }
+    void SetAutoPosition(int for_character)
+    {
+        _flags |= kOver_AutoPosition;
+        speechForChar = for_character;
+    }
+    void SetFixedPosition(int x_, int y_)
+    {
+        _flags &= ~kOver_AutoPosition;
+        x = x_; y = y_;
+        speechForChar = -1;
+    }
     void SetRoomLayer(bool on)
     {
-        on ? _flags |= (kOver_RoomLayer | kOver_PositionAtRoomXY) :
-             _flags &= ~(kOver_RoomLayer | kOver_PositionAtRoomXY);
+        on ? _flags |= (kOver_RoomLayer) :
+             _flags &= ~(kOver_RoomLayer);
     }
     // Gets actual overlay's image, whether owned by overlay or by a sprite reference
     Common::Bitmap *GetImage() const;

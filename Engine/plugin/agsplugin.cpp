@@ -108,8 +108,8 @@ struct EnginePlugin
     EnginePlugin(const EnginePlugin&) = delete;
     EnginePlugin(EnginePlugin&&) = default;
 
-    AGS::Common::String  filename;
-    AGS::Engine::Library library;
+    String      filename;
+    Library     library;
     bool        available = false;
     std::vector<uint8_t> savedata;
     int         wantHook = 0;
@@ -959,7 +959,8 @@ bool pl_use_builtin_plugin(EnginePlugin* apl)
         apl->builtin = true;
         return true;
     }
-    else if (apl->filename.CompareNoCase("ags_snowrain") == 0)
+    else if (apl->filename.CompareNoCase("ags_snowrain") == 0 ||
+             apl->filename.CompareNoCase("ags_SnowRain20") == 0)
     {
         apl->engineStartup = ags_snowrain::AGS_EngineStartup;
         apl->engineShutdown = ags_snowrain::AGS_EngineShutdown;
@@ -1032,7 +1033,27 @@ bool pl_use_builtin_plugin(EnginePlugin* apl)
     return false;
 }
 
-Engine::GameInitError pl_register_plugins(const std::vector<PluginInfo> &infos)
+HError pl_load_plugin(EnginePlugin *apl, const std::vector<String> lookup_dirs)
+{
+    if (!apl->library.Load(apl->filename, lookup_dirs))
+        return new Error("Failed to load a dynamic library.");
+    
+    if (apl->library.GetFunctionAddress("AGS_PluginV2") == nullptr)
+        return new Error("Not a valid AGS plugin, or is an old incompatible version: no 'AGS_PluginV2' function exported.");
+
+    auto *startup_function = apl->library.GetFunctionAddress("AGS_EngineStartup");
+    if (startup_function == nullptr)
+        return new Error("Not a valid AGS plugin: no engine startup entry point 'AGS_EngineStartup' exported.", apl->filename.GetCStr());
+
+    apl->engineStartup = (void(*)(IAGSEngine*))startup_function;
+    apl->engineShutdown = (void(*)())apl->library.GetFunctionAddress("AGS_EngineShutdown");
+    apl->onEvent = (int(*)(int,int))apl->library.GetFunctionAddress("AGS_EngineOnEvent");
+    apl->debugHook = (int(*)(const char*,int,int))apl->library.GetFunctionAddress("AGS_EngineDebugHook");
+    apl->initGfxHook = (void(*)(const char*, void*))apl->library.GetFunctionAddress("AGS_EngineInitGfx");
+    return HError::None();
+}
+
+GameInitError pl_register_plugins(const std::vector<PluginInfo> &infos)
 {
     std::vector<String> lookup_dirs;
     lookup_dirs.push_back(appDirectory);
@@ -1061,47 +1082,31 @@ Engine::GameInitError pl_register_plugins(const std::vector<PluginInfo> &infos)
         apl->filename = name;
         apl->savedata = info.Data;
 
-        // Compatibility with the old SnowRain module
-        if (apl->filename.CompareNoCase("ags_SnowRain20") == 0) {
-            apl->filename = "ags_snowrain";
-        }
-
-        if (apl->library.Load(apl->filename, lookup_dirs))
+        HError err = pl_load_plugin(apl, lookup_dirs);
+        if (err)
         {
-          AGS::Common::Debug::Printf(kDbgMsg_Info, "Plugin '%s' loaded from '%s', resolving imports...",
-              apl->filename.GetCStr(), apl->library.GetPath().GetCStr());
-
-          if (apl->library.GetFunctionAddress("AGS_PluginV2") == nullptr) {
-              quitprintf("Plugin '%s' is an old incompatible version.", apl->filename.GetCStr());
-          }
-          apl->engineStartup = (void(*)(IAGSEngine*))apl->library.GetFunctionAddress("AGS_EngineStartup");
-          apl->engineShutdown = (void(*)())apl->library.GetFunctionAddress("AGS_EngineShutdown");
-
-          if (apl->engineStartup == nullptr) {
-              quitprintf("Plugin '%s' is not a valid AGS plugin (no engine startup entry point)", apl->filename.GetCStr());
-          }
-          apl->onEvent = (int(*)(int,int))apl->library.GetFunctionAddress("AGS_EngineOnEvent");
-          apl->debugHook = (int(*)(const char*,int,int))apl->library.GetFunctionAddress("AGS_EngineDebugHook");
-          apl->initGfxHook = (void(*)(const char*, void*))apl->library.GetFunctionAddress("AGS_EngineInitGfx");
+            Debug::Printf(kDbgMsg_Info, "Plugin '%s' loaded from '%s', resolving imports...",
+                apl->filename.GetCStr(), apl->library.GetPath().GetCStr());
         }
         else
         {
-          String expect_filename = apl->library.GetFilenameForLib(apl->filename);
-          AGS::Common::Debug::Printf(kDbgMsg_Info, "Plugin '%s' could not be loaded (expected '%s'), trying built-in plugins...",
-              apl->filename.GetCStr(), expect_filename.GetCStr());
-          if (pl_use_builtin_plugin(apl))
-          {
-            AGS::Common::Debug::Printf(kDbgMsg_Info, "Build-in plugin '%s' found and being used.", apl->filename.GetCStr());
-          }
-          else
-          {
-            // Plugin loading has failed at this point, try using built-in plugin function stubs
-            if (RegisterPluginStubs(apl->filename.GetCStr()))
-              AGS::Common::Debug::Printf(kDbgMsg_Info, "Placeholder functions for the plugin '%s' found.", apl->filename.GetCStr());
+            String expect_filename = apl->library.GetFilenameForLib(apl->filename);
+            Debug::Printf(kDbgMsg_Error, "Plugin '%s' could not be loaded (expected '%s'):\n\t%s",
+                apl->filename.GetCStr(), expect_filename.GetCStr(), err->FullMessage().GetCStr());
+
+            // Plugin loading has failed at this point, try using built-in plugins and function stubs
+            if (pl_use_builtin_plugin(apl))
+            {
+                Debug::Printf(kDbgMsg_Info, "Built-in plugin '%s' found and being used.", apl->filename.GetCStr());
+            }
             else
-              AGS::Common::Debug::Printf(kDbgMsg_Info, "No placeholder functions for the plugin '%s' found. The game might fail to load!", apl->filename.GetCStr());
-            continue;
-          }
+            {
+                if (RegisterPluginStubs(apl->filename.GetCStr()))
+                    Debug::Printf(kDbgMsg_Info, "Placeholder functions for the plugin '%s' found.", apl->filename.GetCStr());
+                else
+                    Debug::Printf(kDbgMsg_Warn, "No placeholder functions for the plugin '%s' found. The game might fail to load!", apl->filename.GetCStr());
+                continue; // skip further plugin activation
+            }
         }
 
         apl->eiface.pluginId = plugins.size() - 1;

@@ -606,6 +606,8 @@ void restore_overlays()
         auto &over = screenover[i];
         if (over.type >= 0)
         {
+            if (over.IsAutoPosition())
+                autoposition_overlay(over);
             over.MarkChanged(); // force recreate texture on next draw
         }
         else if (i >= OVER_FIRSTFREE)

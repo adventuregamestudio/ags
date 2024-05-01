@@ -163,6 +163,16 @@ void ScreenOverlay::ReadFromSavegame(Stream *in, bool &has_bitmap, int32_t cmp_v
         in->ReadInt32(); // sprite anchor x
         in->ReadInt32(); // sprite anchor y
     }
+
+    // Convert magic x,y values from the older saves
+    if (cmp_ver < kOverSvgVersion_40005)
+    {
+        const int OVR_AUTOPLACE = 30000;
+        if (!IsRoomLayer() && (x == OVR_AUTOPLACE))
+        {
+            SetAutoPosition(y); // character index was stored in y
+        }
+    }
 }
 
 void ScreenOverlay::WriteToSavegame(Stream *out) const

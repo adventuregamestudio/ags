@@ -1223,7 +1223,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Overlays",
-        kOverSvgVersion_400,
+        kOverSvgVersion_40005,
         kOverSvgVersion_Initial,
         WriteOverlays,
         ReadOverlays

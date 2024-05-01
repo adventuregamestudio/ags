@@ -569,7 +569,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     //
     // 7. Start up plugins
     //
-    pl_register_plugins(ents.PluginInfos);
+    pl_register_plugins(ents.PluginInfos, !usetup.override_noplugins);
     pl_startup_plugins();
 
     //

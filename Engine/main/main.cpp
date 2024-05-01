@@ -157,6 +157,7 @@ void main_print_help() {
            "  --log-file-path=PATH         Define custom path for the log file\n"
           //--------------------------------------------------------------------------------|
            "  --no-message-box             Disable alerts as modal message boxes\n"
+           "  --no-plugins                 Disable plugin loading\n"
            "  --no-translation             Use default game language on start\n"
            "  --noiface                    Don't draw game GUI\n"
            "  --noscript                   Don't run room scripts; *WARNING:* unreliable\n"
@@ -314,6 +315,8 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
             cfg["language"]["translation"] = "";
         else if (ags_stricmp(arg, "--background") == 0)
             cfg["override"]["multitasking"] = "1";
+        else if (ags_stricmp(arg, "--no-plugins") == 0)
+            cfg["override"]["noplugins"] = "1";
         else if (ags_stricmp(arg, "--fps") == 0)
             cfg["misc"]["show_fps"] = "1";
         else if (ags_stricmp(arg, "--test") == 0) debug_flags |= DBG_DEBUGMODE;

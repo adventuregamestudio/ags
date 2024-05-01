@@ -1053,7 +1053,7 @@ HError pl_load_plugin(EnginePlugin *apl, const std::vector<String> lookup_dirs)
     return HError::None();
 }
 
-GameInitError pl_register_plugins(const std::vector<PluginInfo> &infos)
+GameInitError pl_register_plugins(const std::vector<PluginInfo> &infos, bool enable_load)
 {
     std::vector<String> lookup_dirs;
     lookup_dirs.push_back(appDirectory);
@@ -1082,19 +1082,29 @@ GameInitError pl_register_plugins(const std::vector<PluginInfo> &infos)
         apl->filename = name;
         apl->savedata = info.Data;
 
-        HError err = pl_load_plugin(apl, lookup_dirs);
-        if (err)
+        if (enable_load)
         {
-            Debug::Printf(kDbgMsg_Info, "Plugin '%s' loaded from '%s', resolving imports...",
-                apl->filename.GetCStr(), apl->library.GetPath().GetCStr());
+            HError err = pl_load_plugin(apl, lookup_dirs);
+            if (err)
+            {
+                Debug::Printf(kDbgMsg_Info, "Plugin '%s' loaded from '%s', resolving imports...",
+                    apl->filename.GetCStr(), apl->library.GetPath().GetCStr());
+            }
+            else
+            {
+                String expect_filename = apl->library.GetFilenameForLib(apl->filename);
+                Debug::Printf(kDbgMsg_Error, "Plugin '%s' could not be loaded (expected '%s'):\n\t%s",
+                    apl->filename.GetCStr(), expect_filename.GetCStr(), err->FullMessage().GetCStr());
+            }
         }
         else
         {
-            String expect_filename = apl->library.GetFilenameForLib(apl->filename);
-            Debug::Printf(kDbgMsg_Error, "Plugin '%s' could not be loaded (expected '%s'):\n\t%s",
-                apl->filename.GetCStr(), expect_filename.GetCStr(), err->FullMessage().GetCStr());
-
-            // Plugin loading has failed at this point, try using built-in plugins and function stubs
+            Debug::Printf(kDbgMsg_Warn, "Plugin '%s' not loaded: plugins loading is disabled.", apl->filename.GetCStr());
+        }
+        
+        // If plugin loading has failed, or loading is disabled, then try using built-in plugins or stubs
+        if (!apl->engineStartup)
+        {
             if (pl_use_builtin_plugin(apl))
             {
                 Debug::Printf(kDbgMsg_Info, "Built-in plugin '%s' found and being used.", apl->filename.GetCStr());

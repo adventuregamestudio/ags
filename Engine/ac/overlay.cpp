@@ -89,6 +89,8 @@ int Overlay_GetX(ScriptOverlay *scover) {
     auto *over = get_overlay(scover->overlayId);
     if (!over)
         quit("!invalid overlay ID specified");
+    if (over->IsAutoPosition())
+        autoposition_overlay(*over); // in case they moved character in script, etc
     return over->x;
 }
 
@@ -103,6 +105,8 @@ int Overlay_GetY(ScriptOverlay *scover) {
     auto *over = get_overlay(scover->overlayId);
     if (!over)
         quit("!invalid overlay ID specified");
+    if (over->IsAutoPosition())
+        autoposition_overlay(*over); // in case they moved character in script, etc
     return over->y;
 }
 

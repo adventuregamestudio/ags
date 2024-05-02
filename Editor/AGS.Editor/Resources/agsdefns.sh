@@ -539,6 +539,8 @@ internalstring autoptr builtin managed struct String {
 #ifdef SCRIPT_API_v400
   /// Returns a new string without any leading or trailing whitespace.
   import String  Trim();
+  /// Creates a dynamic array made of substrings of the string each time the separator occurred.
+  import String[] Split(const string separator);
 #endif
   /// Returns an upper-cased version of this string.
   import String  UpperCase();

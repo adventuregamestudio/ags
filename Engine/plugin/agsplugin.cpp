@@ -92,7 +92,6 @@ extern RGB palette[256];
 extern int displayed_room;
 extern RoomStruct thisroom;
 extern RoomStatus *croom;
-extern RuntimeScriptValue GlobalReturnValue;
 
 
 // **************** PLUGIN IMPLEMENTATION ****************
@@ -674,7 +673,6 @@ void IAGSEngine::QueueGameScriptFunction(const char *name, int32 globalScript, i
 }
 
 int IAGSEngine::RegisterManagedObject(void *object, IAGSScriptManagedObject *callback) {
-    GlobalReturnValue.SetPluginObject(object, (IScriptObject*)callback);
     return ccRegisterManagedObject(object, (IScriptObject*)callback, kScValPluginObject);
 }
 
@@ -691,7 +689,6 @@ void IAGSEngine::AddManagedObjectReader(const char *typeName, IAGSManagedObjectR
 }
 
 void IAGSEngine::RegisterUnserializedObject(int key, void *object, IAGSScriptManagedObject *callback) {
-    GlobalReturnValue.SetPluginObject((void*)object, (IScriptObject*)callback);
     ccRegisterUnserializedObject(key, object, (IScriptObject*)callback, kScValPluginObject);
 }
 
@@ -700,18 +697,11 @@ int IAGSEngine::GetManagedObjectKeyByAddress(void *address) {
 }
 
 void* IAGSEngine::GetManagedObjectAddressByKey(int key) {
-    void *object;
-    IScriptObject *manager;
-    ScriptValueType obj_type = ccGetObjectAddressAndManagerFromHandle(key, object, manager);
-    GlobalReturnValue.SetScriptObject(obj_type, object, manager);
-    return object;
+    return ccGetObjectAddressFromHandle(key);
 }
 
 const char* IAGSEngine::CreateScriptString(const char *fromText) {
-    const char *string = CreateNewScriptString(fromText);
-    // Should be still standard dynamic object, because not managed by plugin
-    GlobalReturnValue.SetScriptObject((void*)string, &myScriptStringImpl);
-    return string;
+    return CreateNewScriptString(fromText);
 }
 
 int IAGSEngine::IncrementManagedObjectRefCount(void *address) {

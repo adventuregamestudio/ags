@@ -103,6 +103,15 @@ ScriptValueType ManagedObjectPool::HandleToAddressAndManager(int32_t handle, voi
     return o.obj_type;
 }
 
+ScriptValueType ManagedObjectPool::FindManagerForAddress(void *addr, IScriptObject *&manager)
+{
+    if (addr == nullptr) { manager = nullptr; return kScValUndefined; }
+    auto it = handleByAddress.find(addr);
+    if (it == handleByAddress.end()) { manager = nullptr; return kScValUndefined; }
+    manager = objects[it->second].callback;
+    return objects[it->second].obj_type;
+}
+
 int ManagedObjectPool::RemoveObject(void *address) {
     if (address == nullptr) { return 0; }
     auto it = handleByAddress.find(address);

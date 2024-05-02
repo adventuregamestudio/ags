@@ -30,25 +30,28 @@ using namespace AGS; // FIXME later
 
 // register a memory handle for the object and allow script
 // pointers to point to it
-extern int32_t ccRegisterManagedObject(void *object, IScriptObject *, ScriptValueType obj_type = kScValScriptObject);
+int32_t ccRegisterManagedObject(void *object, IScriptObject *, ScriptValueType obj_type = kScValScriptObject);
 // register a de-serialized object
-extern int32_t ccRegisterUnserializedObject(int index, void *object, IScriptObject *, ScriptValueType obj_type = kScValScriptObject);
+int32_t ccRegisterUnserializedObject(int index, void *object, IScriptObject *, ScriptValueType obj_type = kScValScriptObject);
 // unregister a particular object
-extern int   ccUnRegisterManagedObject(void *object);
+int   ccUnRegisterManagedObject(void *object);
 // remove all registered objects
-extern void  ccUnregisterAllObjects();
+void  ccUnregisterAllObjects();
 // serialize all objects to disk
-extern void  ccSerializeAllObjects(Common::Stream *out);
+void  ccSerializeAllObjects(Common::Stream *out);
 // un-serialise all objects (will remove all currently registered ones)
-extern int   ccUnserializeAllObjects(Common::Stream *in, ICCObjectCollectionReader *callback);
+int   ccUnserializeAllObjects(Common::Stream *in, ICCObjectCollectionReader *callback);
 // dispose the object if RefCount==0
-extern void  ccAttemptDisposeObject(int32_t handle);
+void  ccAttemptDisposeObject(int32_t handle);
 // translate between object handles and memory addresses
-extern int32_t ccGetObjectHandleFromAddress(void *address);
-extern void *ccGetObjectAddressFromHandle(int32_t handle);
-extern ScriptValueType ccGetObjectAddressAndManagerFromHandle(int32_t handle, void *&object, IScriptObject *&manager);
+int32_t ccGetObjectHandleFromAddress(void *address);
+void *ccGetObjectAddressFromHandle(int32_t handle);
+ScriptValueType ccGetObjectAddressAndManagerFromHandle(int32_t handle, void *&object, IScriptObject *&manager);
+// Tries to return a dynamic object manager for the given object's address;
+// does not set a script error in case it was not found
+ScriptValueType ccTryGetObjectManagerFromAddress(void *address, IScriptObject *&manager);
 
-extern int ccAddObjectReference(int32_t handle);
-extern int ccReleaseObjectReference(int32_t handle);
+int ccAddObjectReference(int32_t handle);
+int ccReleaseObjectReference(int32_t handle);
 
 #endif // __AGS_EE_DYNOBJ__DYNOBJMANAGER_H

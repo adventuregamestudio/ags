@@ -159,11 +159,6 @@ ccInstance *loadedInstances[MAX_LOADED_INSTANCES] = { nullptr };
 // An example situation is repeatedly_execute_always callback running while
 // another instance is waiting at the blocking action or Wait().
 std::deque<ccInstance*> InstThreads;
-// [IKM] 2012-10-21:
-// NOTE: This is temporary solution (*sigh*, one of many) which allows certain
-// exported functions return value as a RuntimeScriptValue object;
-// Of 2012-12-20: now used only for plugin exports
-RuntimeScriptValue GlobalReturnValue;
 
 
 String cc_get_callstack(int max_lines)
@@ -1328,8 +1323,7 @@ int ccInstance::Run(int32_t curpc)
 
             if (reg1.Type == kScValPluginFunction)
             {
-                GlobalReturnValue.Invalidate();
-                int32_t int_ret_val;
+                intptr_t int_ret_val;
                 if (next_call_needs_object)
                 {
                     RuntimeScriptValue obj_rval = registers[SREG_OP];
@@ -1341,13 +1335,18 @@ int ccInstance::Run(int32_t curpc)
                     int_ret_val = call_function(reg1.Ptr, nullptr, num_args_to_func, func_callstack.GetHead() + 1);
                 }
 
-                if (GlobalReturnValue.IsValid())
+                // We must have a way to cast return value to a RuntimeScriptValue
+                // in case this is a pointer to a dynamic object. In order to do so,
+                // we try to resolve this value in the dynamic memory manager
+                IScriptObject *mgr;
+                ScriptValueType otype = ccTryGetObjectManagerFromAddress(reinterpret_cast<void*>(int_ret_val), mgr);
+                if (otype != kScValUndefined)
                 {
-                    return_value = GlobalReturnValue;
+                    return_value.SetPluginObject(reinterpret_cast<void*>(int_ret_val), mgr);
                 }
                 else
                 {
-                    return_value.SetPluginArgument(int_ret_val);
+                    return_value.SetPluginArgument(static_cast<int32_t>(int_ret_val));
                 }
             }
             else if (next_call_needs_object)

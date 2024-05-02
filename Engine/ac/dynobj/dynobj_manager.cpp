@@ -108,6 +108,15 @@ ScriptValueType ccGetObjectAddressAndManagerFromHandle(int32_t handle, void *&ob
     return obj_type;
 }
 
+ScriptValueType ccTryGetObjectManagerFromAddress(void *address, IScriptObject *&manager)
+{
+    if (address == nullptr) {
+        manager = nullptr;
+        return kScValUndefined;
+    }
+    return pool.FindManagerForAddress(address, manager);
+}
+
 int ccAddObjectReference(int32_t handle) {
     if (handle == 0)
         return 0;

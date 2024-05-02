@@ -112,9 +112,7 @@ void ScreenOverlay::ReadFromSavegame(Stream *in, bool &has_bitmap, int32_t cmp_v
     else
     {
         in->ReadBool(); // [DEPRECATED] has alpha
-        // "is screen relative pos" flag; historically room relative == autopos
-        if (!(in->ReadBool()))
-            _flags |= kOver_AutoPosition;
+        in->ReadBool(); // [DEPRECATED] "is screen relative" (neg for blocking speech, never saved in practice)
     }
 
     if (cmp_ver >= kOverSvgVersion_35028)

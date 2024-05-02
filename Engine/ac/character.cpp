@@ -2572,10 +2572,12 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
         ReleaseCharacterView(aschar);
     }
 
+    // TODO: consider turning certain speech styles into autoplaced overlays
+    // in the future; but that would require a large refactor of all the coordinate
+    // calculations below, and inside display_main.
     int tdxp = xx,tdyp = yy;
     int oldview=-1, oldloop = -1;
     int ovr_type = 0;
-    int autoplace_at_char = -1; // depends on speech style below
     text_lips_offset = 0;
     text_lips_text = texx;
     Bitmap *closeupface = nullptr;
@@ -2859,9 +2861,6 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
             // Lucasarts-style speech
             set_our_eip(154);
 
-            // autoplace at character
-            autoplace_at_char = aschar;
-
             oldview = speakingChar->view;
             oldloop = speakingChar->loop;
 
@@ -2897,12 +2896,8 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
                 if ((relx < ui_view.GetWidth() / 4) || (relx > ui_view.GetWidth() - (ui_view.GetWidth() / 4)))
                     bwidth -= ui_view.GetWidth() / 5;
             }
-            /*   this causes the text to bob up and down as they talk
-            tdxp = OVR_AUTOPLACE;
-            tdyp = aschar;*/
             if (!isThought)  // set up the lip sync if not thinking
                 char_speaking = aschar;
-
         }
     }
     else {
@@ -2921,7 +2916,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
         char_thinking = aschar;
 
     set_our_eip(155);
-    display_main(tdxp, tdyp, bwidth, texx, nullptr, DISPLAYTEXT_SPEECH, FONT_SPEECH, textcol, isThought, allowShrink, autoplace_at_char);
+    display_main(tdxp, tdyp, bwidth, texx, nullptr, DISPLAYTEXT_SPEECH, FONT_SPEECH, textcol, isThought, allowShrink, -1 /* don't autoplace */);
     set_our_eip(156);
     if ((play.in_conversation > 0) && (game.options[OPT_SPEECHTYPE] == 3))
         closeupface = nullptr;

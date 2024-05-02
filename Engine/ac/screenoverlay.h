@@ -38,11 +38,16 @@ namespace AGS { namespace Common { class Bitmap; class Stream; class GraphicSpac
 namespace AGS { namespace Engine { class IDriverDependantBitmap; }}
 using namespace AGS; // FIXME later
 
+// Overlay behavior flags
+// NOTE: currently serialized as uint16
 enum OverlayFlags
 {
-    kOver_AutoPosition     = 0x0002, // autoposition over a linked Character (speech)
+    // kOver_PositionAtRoomXY is now redundant, but is kept for safety and backwards compat;
+    // must be set strictly along with kOver_RoomLayer
+    kOver_PositionAtRoomXY = 0x0002, // room-relative position
     kOver_RoomLayer        = 0x0004, // work in room layer (as opposed to UI)
     kOver_SpriteShared     = 0x0008, // reference shared sprite (as opposed to exclusive)
+    kOver_AutoPosition     = 0x0010, // autoposition over a linked Character (speech)
 };
 
 enum OverlaySvgVersion
@@ -104,8 +109,8 @@ struct ScreenOverlay
     }
     void SetRoomLayer(bool on)
     {
-        on ? _flags |= (kOver_RoomLayer) :
-             _flags &= ~(kOver_RoomLayer);
+        on ? _flags |= (kOver_RoomLayer | kOver_PositionAtRoomXY) :
+             _flags &= ~(kOver_RoomLayer | kOver_PositionAtRoomXY);
     }
     // Gets actual overlay's image, whether owned by overlay or by a sprite reference
     Common::Bitmap *GetImage() const;

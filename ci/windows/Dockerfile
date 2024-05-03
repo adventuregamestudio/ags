@@ -14,7 +14,7 @@ RUN pushd %TEMP% && \
   rd /s /q empty
 
 ARG NUGET_VERSION=5.7.0
-ARG INNO_SETUP_VERSION=6.0.5
+ARG INNO_SETUP_VERSION=6.2.2
 RUN cinst nuget.commandline --version %NUGET_VERSION% -y && \
   cinst innosetup --version %INNO_SETUP_VERSION% -y && \
   mkdir empty && \

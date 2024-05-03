@@ -41,6 +41,8 @@ ChangesAssociations=yes
 DisableProgramGroupPage=yes
 UninstallDisplayIcon={app}\AGSEditor.exe
 ShowComponentSizes=yes
+WizardImageFile=Source\Installer\Wizard.bmp
+WizardSmallImageFile=Source\Installer\WizardSmall.bmp
 
 
 [Languages]

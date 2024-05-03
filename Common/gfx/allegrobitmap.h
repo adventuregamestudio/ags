@@ -125,6 +125,12 @@ public:
         return (GetColorDepth() + 7) / 8;
     }
 
+    // Length of the scanline in bytes
+    inline int  GetPitch() const
+    {
+        return GetBPP() * GetWidth();
+    }
+
     // CHECKME: probably should not be exposed, see comment to GetData()
 	inline int  GetDataSize() const
     {

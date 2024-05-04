@@ -112,6 +112,7 @@ Locations of two latter files differ between running platforms:
   * sdl = LEVEL - setup SDL's own logging level, defined either by name or numeric ID:
     * verbose (1), debug (2), info (3), warn (4), error (5), critical (6).
 * **\[override\]** - special options, overriding game behavior.
+  * noplugins = \[0; 1\] - disable plugin loading. Engine will fallback to built-in plugins or stubs, if they are available.
   * multitasking = \[0; 1\] - lock the game in the "single-tasking" or "multitasking" mode. In the nutshell, "multitasking" here means that the game will continue running when player switched away from game window; otherwise it will freeze until player switches back.
   * os = \[string\] - trick the game to think that it runs on a particular operating system. This may come handy if the game is scripted to play differently depending on OS. Possible choices are:
     * dos - MS DOS;
@@ -171,6 +172,7 @@ Following OPTIONS are supported when running from command line:
     * --log-stdout=+mg:debug
 * --log-file-path=PATH - define custom path for the log file.
 * --no-message-box - disable alerts as modal message boxes (on platforms that support them in the first place).
+* --no-plugins - disable plugin loading.
 * --no-translation - use default game language on start.
 * --noiface - don't draw game GUI (for test purposes).
 * --noscript - don't run room scripts (for test purposes); *WARNING:* unreliable.

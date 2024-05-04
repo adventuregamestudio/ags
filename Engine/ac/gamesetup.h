@@ -113,6 +113,7 @@ struct GameSetup
     // User's overrides and hacks
     int   override_script_os; // pretend engine is running on this eScriptSystemOSID
     char  override_multitasking; // -1 for none, 0 or 1 to lock in the on/off mode
+    bool  override_noplugins = false; // disable loading plugins
     bool  override_upscale; // whether upscale old games that supported that
     // Optional keys for calling built-in save/restore dialogs;
     // primarily meant for the test runs of the games where save functionality

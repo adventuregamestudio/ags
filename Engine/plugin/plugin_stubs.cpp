@@ -65,10 +65,11 @@ bool RegisterPluginStubs(const char* name)
   else if (ags_stricmp(name, "agsappopenurl") == 0)
   {
     // agsappopenurl.dll
-    ccAddExternalStaticFunction("AppOpenURL",                 Sc_PluginStub_Int0);
-   return true;
+    ccAddExternalStaticFunction("AppOpenURL",                   Sc_PluginStub_Int0);
+    return true;
   }
-  else if (ags_stricmp(name, "ags_snowrain") == 0)
+  else if (ags_stricmp(name, "ags_snowrain") == 0 ||
+           ags_stricmp(name, "ags_SnowRain20") == 0)
   {
     // ags_snowrain.dll
     ccAddExternalStaticFunction("srSetSnowDriftRange",          Sc_PluginStub_Void);

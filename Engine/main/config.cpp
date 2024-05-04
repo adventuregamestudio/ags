@@ -382,6 +382,7 @@ void apply_config(const ConfigTree &cfg)
 
         // User's overrides and hacks
         usetup.override_multitasking = CfgReadInt(cfg, "override", "multitasking", -1);
+        usetup.override_noplugins = CfgReadInt(cfg, "override", "noplugins", 0);
         String override_os = CfgReadString(cfg, "override", "os");
         usetup.override_script_os = StrUtil::ParseEnum<eScriptSystemOSID>(override_os,
             CstrArr<eNumOS>{"", "dos", "win", "linux", "mac", "android", "ios", "psp", "web", "freebsd"}, eOS_Unknown);

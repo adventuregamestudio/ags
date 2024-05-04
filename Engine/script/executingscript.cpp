@@ -14,6 +14,7 @@
 #include <string.h>
 #include "executingscript.h"
 #include "debug/debug_log.h"
+#include "ac/game_version.h"
 #include "script/script.h"
 
 using namespace AGS::Common;
@@ -26,6 +27,17 @@ QueuedScript::QueuedScript()
 
 void ExecutingScript::QueueAction(const PostScriptAction &act)
 {
+    // A strange behavior in pre-2.7.0 games allowed to call NewRoom right after
+    // RestartGame, cancelling RestartGame. Probably an unintended effect.
+    // We try to emulate this here, by simply removing all ePSARestartGame.
+    if ((loaded_game_file_version < kGameVersion_270) &&
+        (act.Type == ePSANewRoom))
+    {
+        auto it_end = std::remove_if(PostScriptActions.begin(), PostScriptActions.end(),
+            [](const PostScriptAction &act) { return act.Type == ePSARestartGame; });
+        PostScriptActions.erase(it_end, PostScriptActions.end());
+    }
+
     for (const auto &prev_act : PostScriptActions)
     {
         // if something that will terminate the room has already

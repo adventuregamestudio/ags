@@ -192,7 +192,7 @@ int ags_file_copy(const char *src, const char *dst, int overwrite)
     int fd_src, fd_dst;
     int dst_flags;
     char buf[4096]; // CHECKME: larger buffer? malloc a bigger one on heap?
-    size_t read_num;
+    ssize_t read_num; // read returns -1 if there was an error, so we need a signed type.
 
     fd_src = open(src, O_RDONLY);
     if (fd_src < 0)
@@ -208,7 +208,7 @@ int ags_file_copy(const char *src, const char *dst, int overwrite)
 
     while ((read_num = read(fd_src, buf, sizeof(buf))) > 0) {
         char *out_ptr = buf;
-        size_t wrote_num;
+        ssize_t wrote_num; // write returns -1 if there was an error, so we need a signed type.
         do {
             wrote_num = write(fd_dst, out_ptr, read_num);
             if (wrote_num >= 0) {

@@ -190,7 +190,10 @@ int  find_nearest_walkable_area_within(int *xx, int *yy, int range, int step);
 void find_nearest_walkable_area (int *xx, int *yy);
 void walk_character(int chac,int tox,int toy,int ignwal, bool autoWalkAnims);
 void FindReasonableLoopForCharacter(CharacterInfo *chap);
+// Start character walk or move
 void walk_or_move_character(CharacterInfo *chaa, int x, int y, int blocking, int direct, bool isWalk);
+// Start character walk or move along the straight line without pathfinding, until any non-passable area is met
+void walk_or_move_character_straight(CharacterInfo *chaa, int x, int y, int blocking, int direct, bool isWalk);
 int  wantMoveNow (CharacterInfo *chi, CharacterExtras *chex);
 void setup_player_character(int charid);
 Common::Bitmap *GetCharacterImage(int charid, bool *is_original = nullptr);

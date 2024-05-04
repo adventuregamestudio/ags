@@ -21,7 +21,6 @@
 #include <vector>
 #include "script/cc_instance.h"
 
-#define MAX_QUEUED_SCRIPTS 4
 #define MAX_FUNCTION_NAME_LEN 60
 #define MAX_QUEUED_PARAMS  4
 
@@ -72,16 +71,17 @@ struct PostScriptAction
 
 struct ExecutingScript
 {
-    ccInstance *inst = nullptr;
+    // Instance refers either to one of the global instances,
+    // or a ForkedInst created for this purpose
+    ccInstance *Inst = nullptr;
     // owned fork; CHECKME: this seem unused in the current engine
-    std::unique_ptr<ccInstance> forkedInst{};
+    std::unique_ptr<ccInstance> ForkedInst{};
     std::vector<PostScriptAction> PostScriptActions;
-    QueuedScript ScFnQueue[MAX_QUEUED_SCRIPTS]{};
-    int  numanother = 0;
+    std::vector<QueuedScript> ScFnQueue;
 
     ExecutingScript() = default;
     void QueueAction(const PostScriptAction &act);
-    void run_another(const char *namm, ScriptInstType scinst, size_t param_count, const RuntimeScriptValue *params);
+    void RunAnother(const char *namm, ScriptInstType scinst, size_t param_count, const RuntimeScriptValue *params);
 };
 
 #endif // __AGS_EE_SCRIPT__EXECUTINGSCRIPT_H

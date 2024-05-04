@@ -26,7 +26,6 @@ QueuedScript::QueuedScript()
 
 void ExecutingScript::QueueAction(const PostScriptAction &act)
 {
-
     for (const auto &prev_act : PostScriptActions)
     {
         // if something that will terminate the room has already
@@ -52,19 +51,13 @@ void ExecutingScript::QueueAction(const PostScriptAction &act)
     PostScriptActions.push_back(act_pos);
 }
 
-void ExecutingScript::run_another(const char *namm, ScriptInstType scinst, size_t param_count, const RuntimeScriptValue *params) {
-    if (numanother < MAX_QUEUED_SCRIPTS)
-        numanother++;
-    else {
-        /*debug_script_warn("Warning: too many scripts to run, ignored %s(%d,%d)",
-        script_run_another[numanother - 1], run_another_p1[numanother - 1],
-        run_another_p2[numanother - 1]);*/
-    }
-    int thisslot = numanother - 1;
-    QueuedScript &script = ScFnQueue[thisslot];
+void ExecutingScript::RunAnother(const char *namm, ScriptInstType scinst, size_t param_count, const RuntimeScriptValue *params)
+{
+    QueuedScript script;
     script.FnName.SetString(namm, MAX_FUNCTION_NAME_LEN);
     script.Instance = scinst;
     script.ParamCount = param_count;
     for (size_t p = 0; p < MAX_QUEUED_PARAMS && p < param_count; ++p)
         script.Params[p] = params[p];
+    ScFnQueue.push_back(script);
 }

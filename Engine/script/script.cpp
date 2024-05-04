@@ -290,13 +290,13 @@ void cancel_all_scripts()
     for (int i = 0; i < num_scripts; ++i)
     {
         auto &sc = scripts[i];
-        if (sc.inst)
+        if (sc.Inst)
         {
-            (sc.forkedInst) ?
-                sc.inst->AbortAndDestroy() :
-                sc.inst->Abort();
+            (sc.ForkedInst) ?
+                sc.Inst->AbortAndDestroy() :
+                sc.Inst->Abort();
         }
-        sc.numanother = 0;
+        sc = {}; // FIXME: store in vector and erase?
     }
     num_scripts = 0;
     // in case the script is running on non-blocking thread (rep-exec-always etc)
@@ -318,7 +318,7 @@ void QueueScriptFunction(ScriptInstType sc_inst, const char *fn_name, size_t par
 {
     if (inside_script)
         // queue the script for the run after current script is finished
-        curscript->run_another(fn_name, sc_inst, param_count, params);
+        curscript->RunAnother(fn_name, sc_inst, param_count, params);
     else
         // if no script is currently running, run the requested script right away
         RunScriptFunctionAuto(sc_inst, fn_name, param_count, params);
@@ -349,7 +349,7 @@ static bool DoRunScriptFuncCantBlock(ccInstance *sci, NonBlockingScriptFunction*
     return(hasTheFunc);
 }
 
-char scfunctionname[MAX_FUNCTION_NAME_LEN + 1];
+char scfunctionname[MAX_FUNCTION_NAME_LEN + 1]; // FIXME this!!
 static int PrepareTextScript(ccInstance *sci, const char**tsname)
 {
     cc_clear_error();
@@ -370,10 +370,10 @@ static int PrepareTextScript(ccInstance *sci, const char**tsname)
         auto fork = sci->Fork();
         if (!fork)
             quit("unable to fork instance for secondary script");
-        exscript.forkedInst.reset(fork);
-        exscript.inst = fork;
+        exscript.ForkedInst.reset(fork);
+        exscript.Inst = fork;
     } else {
-        exscript.inst = sci;
+        exscript.Inst = sci;
     }
     scripts[num_scripts] = std::move(exscript);
     curscript = &scripts[num_scripts];
@@ -408,7 +408,7 @@ int RunScriptFunction(ccInstance *sci, const char *tsname, size_t numParam, cons
     }
 
     cc_clear_error();
-    toret = curscript->inst->CallScriptFunction(tsname, numParam, params);
+    toret = curscript->Inst->CallScriptFunction(tsname, numParam, params);
 
     // 100 is if Aborted (eg. because we are LoadAGSGame'ing)
     if ((toret != 0) && (toret != -2) && (toret != 100)) {
@@ -608,8 +608,8 @@ void post_script_cleanup() {
     if (num_scripts > 0)
     { // save until the end of function
         copyof = std::move(scripts[num_scripts - 1]);
-        copyof.forkedInst.reset(); // don't need it further
-        num_scripts--;
+        copyof.ForkedInst.reset(); // don't need it further
+        num_scripts--; // FIXME: store in vector and erase?
     }
     inside_script--;
 
@@ -687,9 +687,8 @@ void post_script_cleanup() {
         sync_audio_playback();
     }
 
-    for (int jj = 0; jj < copyof.numanother; jj++) {
+    for (const auto &script : copyof.ScFnQueue) {
         old_room_number = displayed_room;
-        QueuedScript &script = copyof.ScFnQueue[jj];
         RunScriptFunctionAuto(script.Instance, script.FnName.GetCStr(), script.ParamCount, script.Params);
         if (script.Instance == kScInstRoom && script.ParamCount == 1)
         {

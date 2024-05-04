@@ -49,6 +49,64 @@ int String_IsNullOrEmpty(const char *thisString)
     return 0;
 }
 
+const char * String_Join(void* arrobj, const char *separator)
+{
+    if(arrobj == nullptr)
+        return CreateNewScriptString("");
+
+    std::vector<void*> items{};
+    if (!DynamicArrayHelpers::ResolvePointerArray(arrobj, items))
+    {
+        // somehow this is not a managed array, this would have to be a compiler error
+        return nullptr;
+    }
+
+    const size_t count = items.size();
+    if(count == 0)
+        return CreateNewScriptString("");
+
+    if(separator == nullptr) {
+        // I am not sure this can actually happen or the compiler will prevent this
+        separator = "";
+    }
+
+    int sep_len, sep_ulen;
+    ustrlen2(separator, &sep_len, &sep_ulen);
+
+    int total_len, total_ulen;
+    total_len = 0;
+    total_ulen = 0;
+    for (uint32_t i = 0; i < count; ++i)
+    {
+        auto address = static_cast<const char*>(items[i]);
+        if (address != nullptr) {
+            auto const& sh = ScriptString::GetHeader(address);
+            total_len += sh.Length;
+            total_ulen += sh.ULength;
+        }
+    }
+    total_len += sep_len * (count - 1);
+    total_ulen += sep_ulen * (count - 1);
+    
+    auto buf = ScriptString::CreateBuffer(total_len, total_ulen);
+
+    // concatenate the array elements with a separator between elements: el1+sep+el2+sep...elN
+    char* p = buf.Get();
+    for (uint32_t i = 0; i < count; ++i)
+    {
+        auto address = static_cast<const char*>(items[i]);
+        if (address != nullptr) {
+            auto const& sh = ScriptString::GetHeader(address);
+            p = std::copy(address, address +sh.Length, p);
+        }
+        if (i != count - 1) {
+            p = std::copy(separator, separator + sep_len, p);
+        }
+    }
+    buf.Get()[total_len] = 0; // Null-terminate joint string
+    return CreateNewScriptString(std::move(buf));
+}
+
 const char* String_Copy(const char *srcString) {
     return CreateNewScriptString(srcString);
 }
@@ -425,6 +483,12 @@ RuntimeScriptValue Sc_String_IsNullOrEmpty(const RuntimeScriptValue *params, int
     API_SCALL_INT_POBJ(String_IsNullOrEmpty, const char);
 }
 
+// const char * (void* arrobj, const char *separator)
+RuntimeScriptValue Sc_String_Join(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_POBJ2(const char, myScriptStringImpl, String_Join, void, const char);
+}
+
 // const char* (const char *thisString, const char *extrabit)
 RuntimeScriptValue Sc_String_Append(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -564,6 +628,7 @@ void RegisterStringAPI()
     ScFnRegister string_api[] = {
         { "String::IsNullOrEmpty^1",  API_FN_PAIR(String_IsNullOrEmpty) },
         { "String::Format^101",       Sc_String_Format, ScPl_String_Format },
+        { "String::Join^2",           API_FN_PAIR(String_Join) },
 
         { "String::Append^1",         API_FN_PAIR(String_Append) },
         { "String::AppendChar^1",     API_FN_PAIR(String_AppendChar) },

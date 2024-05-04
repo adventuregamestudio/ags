@@ -16,40 +16,40 @@
 #include "debug/debug_log.h"
 #include "script/script.h"
 
+using namespace AGS::Common;
+
 QueuedScript::QueuedScript()
     : Instance(kScInstGame)
     , ParamCount(0)
 {
 }
 
-int ExecutingScript::queue_action(PostScriptAction act, int data, const char *aname) {
-    if (numPostScriptActions >= MAX_QUEUED_ACTIONS)
-        quitprintf("!%s: Cannot queue action, post-script queue full", aname);
+void ExecutingScript::QueueAction(const PostScriptAction &act)
+{
 
-    if (numPostScriptActions > 0) {
+    for (const auto &prev_act : PostScriptActions)
+    {
         // if something that will terminate the room has already
         // been queued, don't allow a second thing to be queued
-        switch (postScriptActions[numPostScriptActions - 1]) {
-    case ePSANewRoom:
-    case ePSARestoreGame:
-    case ePSARestoreGameDialog:
-    case ePSARunAGSGame:
-    case ePSARestartGame:
-        quitprintf("!%s: Cannot run this command, since there was a %s command already queued to run in \"%s\", line %d",
-            aname, postScriptActionNames[numPostScriptActions - 1],
-            postScriptActionPositions[numPostScriptActions - 1].Section.GetCStr(), postScriptActionPositions[numPostScriptActions - 1].Line);
-        break;
-    default:
-        break;
+        switch (prev_act.Type)
+        {
+        case ePSANewRoom:
+        case ePSARestoreGame:
+        case ePSARestoreGameDialog:
+        case ePSARunAGSGame:
+        case ePSARestartGame:
+            quitprintf("!%s: Cannot run this command, since there was a %s command already queued to run in \"%s\", line %d",
+                act.Name.GetCStr(), prev_act.Name.GetCStr(),
+                prev_act.Position.Section.GetCStr(), prev_act.Position.Line);
+            break;
+        default:
+            break;
         }
     }
 
-    postScriptActions[numPostScriptActions] = act;
-    postScriptActionData[numPostScriptActions] = data;
-    postScriptActionNames[numPostScriptActions] = aname;
-    get_script_position(postScriptActionPositions[numPostScriptActions]);
-    numPostScriptActions++;
-    return numPostScriptActions - 1;
+    PostScriptAction act_pos = act;
+    get_script_position(act_pos.Position);
+    PostScriptActions.push_back(act_pos);
 }
 
 void ExecutingScript::run_another(const char *namm, ScriptInstType scinst, size_t param_count, const RuntimeScriptValue *params) {

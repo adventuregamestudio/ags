@@ -420,7 +420,7 @@ void restore_game_dialog() {
         return;
     }
     if (inside_script) {
-        curscript->queue_action(ePSARestoreGameDialog, 0, "RestoreGameDialog");
+        curscript->QueueAction(PostScriptAction(ePSARestoreGameDialog, 0, "RestoreGameDialog"));
         return;
     }
     do_restore_game_dialog();
@@ -441,7 +441,7 @@ void save_game_dialog() {
         return;
     }
     if (inside_script) {
-        curscript->queue_action(ePSASaveGameDialog, 0, "SaveGameDialog");
+        curscript->QueueAction(PostScriptAction(ePSASaveGameDialog, 0, "SaveGameDialog"));
         return;
     }
     do_save_game_dialog();
@@ -946,8 +946,7 @@ void save_game(int slotn, const char*descript) {
     can_run_delayed_command();
 
     if (inside_script) {
-        snprintf(curscript->postScriptSaveSlotDescription[curscript->queue_action(ePSASaveGame, slotn, "SaveGameSlot")],
-            MAX_QUEUED_ACTION_DESC, "%s", descript);
+        curscript->QueueAction(PostScriptAction(ePSASaveGame, slotn, "SaveGameSlot", descript));
         return;
     }
 

@@ -23,7 +23,7 @@ using namespace AGS::Common;
 extern ExecutingScript*curscript;
 
 void sc_invscreen() {
-    curscript->queue_action(ePSAInvScreen, 0, "InventoryScreen");
+    curscript->QueueAction(PostScriptAction(ePSAInvScreen, 0, "InventoryScreen"));
 }
 
 void SetInvDimensions(int ww,int hh) {

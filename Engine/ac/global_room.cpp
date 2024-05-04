@@ -124,7 +124,7 @@ void NewRoom(int nrnum) {
         return;
     }
     else if (inside_script) {
-        curscript->queue_action(ePSANewRoom, nrnum, "NewRoom");
+        curscript->QueueAction(PostScriptAction(ePSANewRoom, nrnum, "NewRoom"));
         // we might be within a MoveCharacterBlocking -- the room
         // change should abort it
         if (is_char_walking_ndirect(playerchar)) {

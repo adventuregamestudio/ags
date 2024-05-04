@@ -623,56 +623,59 @@ void post_script_cleanup() {
     int old_room_number = displayed_room;
 
     // FIXME: sync audio in case any screen changing or time-consuming post-script actions were scheduled
-    if (copyof.numPostScriptActions > 0) {
+    if (copyof.PostScriptActions.size() > 0) {
         sync_audio_playback();
     }
 
     // run the queued post-script actions
-    for (int ii = 0; ii < copyof.numPostScriptActions; ii++) {
-        int thisData = copyof.postScriptActionData[ii];
+    for (const auto &act : copyof.PostScriptActions)
+    {
+        int thisData = act.Data;
 
-        switch (copyof.postScriptActions[ii]) {
-    case ePSANewRoom:
-        // only change rooms when all scripts are done
-        if (num_scripts == 0) {
-            new_room(thisData, playerchar);
-            // don't allow any pending room scripts from the old room
-            // in run_another to be executed
+        switch (act.Type)
+        {
+        case ePSANewRoom:
+            // only change rooms when all scripts are done
+            if (num_scripts == 0) {
+                new_room(thisData, playerchar);
+                // don't allow any pending room scripts from the old room
+                // in run_another to be executed
+                return;
+            }
+            else
+                curscript->QueueAction(PostScriptAction(ePSANewRoom, thisData, "NewRoom"));
+            break;
+        case ePSAInvScreen:
+            invscreen();
+            break;
+        case ePSARestoreGame:
+            cancel_all_scripts();
+            try_restore_save(thisData);
             return;
+        case ePSARestoreGameDialog:
+            restore_game_dialog();
+            return;
+        case ePSARunAGSGame:
+            cancel_all_scripts();
+            load_new_game = thisData;
+            return;
+        case ePSARunDialog:
+            do_conversation(thisData);
+            break;
+        case ePSARestartGame:
+            cancel_all_scripts();
+            restart_game();
+            return;
+        case ePSASaveGame:
+            save_game(thisData, act.Description.GetCStr());
+            break;
+        case ePSASaveGameDialog:
+            save_game_dialog();
+            break;
+        default:
+            quitprintf("undefined post script action found: %d", act.Type);
         }
-        else
-            curscript->queue_action(ePSANewRoom, thisData, "NewRoom");
-        break;
-    case ePSAInvScreen:
-        invscreen();
-        break;
-    case ePSARestoreGame:
-        cancel_all_scripts();
-        try_restore_save(thisData);
-        return;
-    case ePSARestoreGameDialog:
-        restore_game_dialog();
-        return;
-    case ePSARunAGSGame:
-        cancel_all_scripts();
-        load_new_game = thisData;
-        return;
-    case ePSARunDialog:
-        do_conversation(thisData);
-        break;
-    case ePSARestartGame:
-        cancel_all_scripts();
-        restart_game();
-        return;
-    case ePSASaveGame:
-        save_game(thisData, copyof.postScriptSaveSlotDescription[ii]);
-        break;
-    case ePSASaveGameDialog:
-        save_game_dialog();
-        break;
-    default:
-        quitprintf("undefined post script action found: %d", copyof.postScriptActions[ii]);
-        }
+
         // if the room changed in a conversation, for example, abort
         if (old_room_number != displayed_room) {
             return;
@@ -680,7 +683,7 @@ void post_script_cleanup() {
     }
 
 
-    if (copyof.numPostScriptActions > 0) {
+    if (copyof.PostScriptActions.size() > 0) {
         sync_audio_playback();
     }
 

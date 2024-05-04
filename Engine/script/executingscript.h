@@ -18,23 +18,10 @@
 #ifndef __AGS_EE_SCRIPT__EXECUTINGSCRIPT_H
 #define __AGS_EE_SCRIPT__EXECUTINGSCRIPT_H
 
+#include <vector>
 #include "script/cc_instance.h"
 
-enum PostScriptAction {
-    ePSANewRoom,
-    ePSAInvScreen,
-    ePSARestoreGame,
-    ePSARestoreGameDialog,
-    ePSARunAGSGame,
-    ePSARunDialog,
-    ePSARestartGame,
-    ePSASaveGame,
-    ePSASaveGameDialog
-};
-
 #define MAX_QUEUED_SCRIPTS 4
-#define MAX_QUEUED_ACTIONS 5
-#define MAX_QUEUED_ACTION_DESC 100
 #define MAX_FUNCTION_NAME_LEN 60
 #define MAX_QUEUED_PARAMS  4
 
@@ -54,21 +41,46 @@ struct QueuedScript
     QueuedScript();
 };
 
-struct ExecutingScript {
+enum PostScriptActionType
+{
+    ePSAUndefined,
+    ePSANewRoom,
+    ePSAInvScreen,
+    ePSARestoreGame,
+    ePSARestoreGameDialog,
+    ePSARunAGSGame,
+    ePSARunDialog,
+    ePSARestartGame,
+    ePSASaveGame,
+    ePSASaveGameDialog
+};
+
+struct PostScriptAction
+{
+    PostScriptActionType Type = ePSAUndefined;
+    int Data = 0;
+    Common::String Name;
+    Common::String Description;
+    ScriptPosition Position;
+
+    PostScriptAction() = default;
+    PostScriptAction(PostScriptActionType type, int data, const Common::String &name)
+        : Type(type), Data(data), Name(name) {}
+    PostScriptAction(PostScriptActionType type, int data, const Common::String &name, const Common::String &desc)
+        : Type(type), Data(data), Name(name), Description(desc) {}
+};
+
+struct ExecutingScript
+{
     ccInstance *inst = nullptr;
     // owned fork; CHECKME: this seem unused in the current engine
     std::unique_ptr<ccInstance> forkedInst{};
-    PostScriptAction postScriptActions[MAX_QUEUED_ACTIONS]{};
-    const char *postScriptActionNames[MAX_QUEUED_ACTIONS]{};
-    ScriptPosition  postScriptActionPositions[MAX_QUEUED_ACTIONS]{};
-    char postScriptSaveSlotDescription[MAX_QUEUED_ACTIONS][MAX_QUEUED_ACTION_DESC]{};
-    int  postScriptActionData[MAX_QUEUED_ACTIONS]{};
-    int  numPostScriptActions = 0;
+    std::vector<PostScriptAction> PostScriptActions;
     QueuedScript ScFnQueue[MAX_QUEUED_SCRIPTS]{};
     int  numanother = 0;
 
     ExecutingScript() = default;
-    int queue_action(PostScriptAction act, int data, const char *aname);
+    void QueueAction(const PostScriptAction &act);
     void run_another(const char *namm, ScriptInstType scinst, size_t param_count, const RuntimeScriptValue *params);
 };
 

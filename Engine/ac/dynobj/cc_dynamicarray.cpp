@@ -189,6 +189,21 @@ DynObjectRef DynamicArrayHelpers::CreateStringArrayFromBuffers(std::vector<Scrip
     return arr;
 }
 
+DynObjectRef DynamicArrayHelpers::CreateScriptArray(std::vector<DynObjectRef> &&items)
+{
+    DynObjectRef arr = globalDynamicArray.CreateOld(items.size(), sizeof(int32_t), true);
+    if (!arr.Obj)
+        return arr;
+
+    int32_t *slots = static_cast<int32_t*>(arr.Obj);
+    for (auto const& obj : items)
+    {
+        ccAddObjectReference(obj.Handle);
+        *(slots++) = obj.Handle;
+    }
+    return arr;
+}
+
 bool DynamicArrayHelpers::ResolvePointerArray(const void* arrobj, std::vector<void*> &objects)
 {
     objects.clear();

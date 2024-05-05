@@ -34,6 +34,8 @@ public:
         uint32_t ElemCount = 0u;
         // TODO: refactor and store "elem size" instead
         uint32_t TotalSize = 0u;
+
+        inline bool IsPointerArray() const { return (TypeID & ARRAY_MANAGED_TYPE_FLAG) != 0; }
     };
 
     CCDynamicArray() = default;
@@ -89,6 +91,11 @@ namespace DynamicArrayHelpers
 {
     // Create array of managed strings
     DynObjectRef CreateStringArray(const std::vector<const char*>);
+    // Resolves a dynamic array of managed pointers (handles) to a list of object addresses
+    bool ResolvePointerArray(const void* arrobj, std::vector<void*> &objects);
+    // Resolves a dynamic array of managed pointers (handles) to a list of DynObjectRef structs,
+    // which define object address, manager and handle
+    bool ResolvePointerArray(const void* arrobj, std::vector<DynObjectRef> &objects);
 };
 
 #endif

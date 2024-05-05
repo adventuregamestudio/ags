@@ -172,6 +172,43 @@ DynObjectRef DynamicArrayHelpers::CreateStringArray(const std::vector<const char
 }
 
 
+bool DynamicArrayHelpers::ResolvePointerArray(const void* arrobj, std::vector<void*> &objects)
+{
+    objects.clear();
+    const auto &header = CCDynamicArray::GetHeader(arrobj);
+    assert(header.IsPointerArray());
+    if (!header.IsPointerArray())
+        return false;
+
+    const uint32_t *handles = static_cast<const uint32_t*>(arrobj);
+    objects.reserve(header.ElemCount);
+    for (uint32_t i = 0; i < header.ElemCount; ++i)
+    {
+        objects.push_back(ccGetObjectAddressFromHandle(handles[i]));
+    }
+    return true;
+}
+
+bool DynamicArrayHelpers::ResolvePointerArray(const void* arrobj, std::vector<DynObjectRef> &objects)
+{
+    objects.clear();
+    const auto &header = CCDynamicArray::GetHeader(arrobj);
+    assert(header.IsPointerArray());
+    if (!header.IsPointerArray())
+        return false;
+
+    const uint32_t *handles = static_cast<const uint32_t*>(arrobj);
+    objects.reserve(header.ElemCount);
+    for (uint32_t i = 0; i < header.ElemCount; ++i)
+    {
+        void *obj;
+        IScriptObject *mgr;
+        ccGetObjectAddressAndManagerFromHandle(handles[i], obj, mgr);
+        objects.push_back(DynObjectRef(handles[i], obj, mgr));
+    }
+    return true;
+}
+
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 

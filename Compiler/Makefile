@@ -44,12 +44,12 @@ COMPILER_OBJS = \
 	fmem.cpp \
 	script/cc_compiledscript.cpp \
 	script/cc_internallist.cpp \
-	script/cc_macrotable.cpp \
 	script/cc_symboltable.cpp \
 	script/cc_treemap.cpp \
 	script/cs_compiler.cpp \
 	script/cs_parser.cpp \
 	script/cs_parser_common.cpp \
+	preproc/cc_macrotable.cpp \
 	preproc/preprocessor.cpp
 
 OBJS := main.cpp \

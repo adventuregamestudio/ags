@@ -15,7 +15,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include "script/cs_compiler.h"
-#include "script/cc_macrotable.h"
 #include "script/cc_compiledscript.h"
 #include "script/cc_symboltable.h"
 #include "script/cc_common.h"
@@ -27,8 +26,6 @@ const char *ccCurScriptName = "";
 
 std::vector<const char*> defaultheaders;
 std::vector<const char*> defaultHeaderNames;
-
-MacroTable predefinedMacros;
 
 int ccAddDefaultHeader(const char* nhead, const char *nName)
 {

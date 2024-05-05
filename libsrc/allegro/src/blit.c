@@ -39,7 +39,7 @@ static int get_replacement_mask_color(BITMAP *bmp)
       if (rgb_map)
          return rgb_map->data[31][1][31];
       else
-         return bestfit_color(_current_palette, 63, 1, 63);
+         return bestfit_color(_current_palette, 255, 1, 255);
    }
    else {
       do

@@ -112,9 +112,10 @@ namespace AGS.Editor
          * 4.00.00.00     - Raised for org purposes without project changes
          * 4.00.00.03     - Distinct Character and Object Enabled and Visible properties;
          *                - FaceDirectionRatio
+         * 4.00.00.05     - Settings.ScriptCompiler as a list
          *
         */
-        public const int    LATEST_XML_VERSION_INDEX = 4000003;
+        public const int    LATEST_XML_VERSION_INDEX = 4000005;
         /// <summary>
         /// XML version index on the release of AGS 4.0.0, this constant be used to determine
         /// if upgrade of Rooms/Sprites/etc. to new format have been performed.
@@ -151,6 +152,8 @@ namespace AGS.Editor
         public const string SETUP_ICON_FILE_NAME = "setup.ico";
         public const string SETUP_PROGRAM_SOURCE_FILE = "setup.dat";
         public const string COMPILED_SETUP_FILE_NAME = "winsetup.exe";
+        public const string DEFAULT_SCRIPT_COMPILER = "AGS4 Script Compiler";
+        public const string DEFAULT_LEGACY_SCRIPT_COMPILER = "AGS3 Script Compiler";
 
         public readonly string[] RestrictedGameDirectories = new string[]
         {
@@ -209,12 +212,23 @@ namespace AGS.Editor
                     continue; // don't enlist "Highest" constant
                 _scriptCompatLevelMacros[v] = "SCRIPT_COMPAT_" + v.ToString();
             }
+
+            // Fill the list of build targets
             BuildTargetsInfo.RegisterBuildTarget(new BuildTargetDataFile());
             BuildTargetsInfo.RegisterBuildTarget(new BuildTargetWindows());
             BuildTargetsInfo.RegisterBuildTarget(new BuildTargetDebug());
             BuildTargetsInfo.RegisterBuildTarget(new BuildTargetLinux());
             BuildTargetsInfo.RegisterBuildTarget(new BuildTargetWeb());
             BuildTargetsInfo.RegisterBuildTarget(new BuildTargetAndroid());
+
+            // Fill the list of script compilers.
+            // Hardcode compiler names for now, but perhaps should get them from compilers instead?
+            // This will become more essential if we have standalone compilers, then we'll have to
+            // select them somehow.
+            var compilers = new Dictionary<string, string>();
+            compilers.Add(DEFAULT_SCRIPT_COMPILER, "AGS 4 Script Compiler");
+            compilers.Add(DEFAULT_LEGACY_SCRIPT_COMPILER, "AGS 3 Script Compiler (classic)");
+            ScriptCompilerTypeConverter.SetCompilerList(compilers);
         }
 
         public Game CurrentGame
@@ -930,11 +944,16 @@ namespace AGS.Editor
             compileTasks.Add(new CompileTask(dialogScripts, headers));
             _game.ScriptsToCompile.Add(new ScriptAndHeader(null, dialogScripts));
 
+            // The extended compiler doesn't use static memory, 
+            // so several instances can run in parallel.
+            // TODO: get this as a selected compiler's capability
+            bool compileParallel = _game.Settings.ScriptCompiler == AGSEditor.DEFAULT_SCRIPT_COMPILER
+                // && false // uncomment if debugging script compiler; TODO: add Editor preference?
+                ;
+
             // Compile the scripts
-            if (_game.Settings.ExtendedCompiler)
+            if (compileParallel)
             {
-                // The extended compiler doesn't use static memory, 
-                // so several instances can run in parallel.
                 Parallel.ForEach(compileTasks, (ct, state) =>
                 {
                     CompileMessages messages = new CompileMessages();

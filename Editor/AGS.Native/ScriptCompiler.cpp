@@ -59,7 +59,7 @@ namespace AGS
     }
 
     void NativeMethods::CompileScript(Script ^script, cli::array<String^> ^preProcessedScripts,
-        Game ^game, CompileMessages ^messages)
+        Game ^game, bool new_compiler, CompileMessages ^messages)
     {
         if (script->CompiledData != nullptr)
             script->CompiledData = nullptr; // clear up previous data, if present
@@ -77,7 +77,7 @@ namespace AGS
                 SCOPT_RTTIOPS |
                 false;
 
-        if (game->Settings->ExtendedCompiler)
+        if (new_compiler)
         {
             // Concatenate the whole thing together
             String^ all_the_script = "";

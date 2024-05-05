@@ -17,6 +17,7 @@
 #include <vector>
 #include <unordered_map>
 #include "ac/dynobj/cc_agsdynamicobject.h"
+#include "scriptstring.h"
 
 
 #define ARRAY_MANAGED_TYPE_FLAG    0x80000000
@@ -89,8 +90,10 @@ extern CCDynamicArray globalDynamicArray;
 // Helper functions for setting up dynamic arrays.
 namespace DynamicArrayHelpers
 {
-    // Create array of managed strings
+    // Create array of managed strings from strings that exists somewhere
     DynObjectRef CreateStringArray(const std::vector<const char*>);
+    // Create array of managed strings from script strings
+    DynObjectRef CreateStringArrayFromBuffers(std::vector<ScriptString::Buffer> &&);
     // Resolves a dynamic array of managed pointers (handles) to a list of object addresses
     bool ResolvePointerArray(const void* arrobj, std::vector<void*> &objects);
     // Resolves a dynamic array of managed pointers (handles) to a list of DynObjectRef structs,

@@ -636,24 +636,6 @@ namespace AGS.Editor.Preferences
             }
         }
 
-        [Browsable(true)]
-        [DisplayName("Remap palette of room backgrounds")]
-        [Description("Remap paletter of room background into allocated background palette slots (8-bit games only).")]
-        [Category("Import of 8-bit background")]
-        [UserScopedSettingAttribute()]
-        [DefaultSettingValueAttribute("True")]
-        public bool RemapPalettizedBackgrounds
-        {
-            get
-            {
-                return (bool)(this["RemapPalettizedBackgrounds"]);
-            }
-            set
-            {
-                this["RemapPalettizedBackgrounds"] = value;
-            }
-        }
-
         [Browsable(false)]
         [UserScopedSettingAttribute()]
         [DefaultSettingValueAttribute("")]

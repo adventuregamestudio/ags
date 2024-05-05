@@ -100,8 +100,9 @@ namespace AGS.Types
         private bool _runGameLoopsWhileDialogOptionsDisplayed = false;
         private InventoryHotspotMarker _inventoryHotspotMarker = new InventoryHotspotMarker();
         private int _defRoomMaskResolution = 1;
+        private bool _defRemap8bitBackgrounds = false;
         // Game Description fields
-		private string _description = string.Empty;
+        private string _description = string.Empty;
 		private DateTime _releaseDate = DateTime.Now;
 		private string _genre = DEFAULT_GENRE;
 		private string _version = DEFAULT_VERSION;
@@ -910,6 +911,16 @@ namespace AGS.Types
         {
             get { return _defRoomMaskResolution; }
             set { _defRoomMaskResolution = value; }
+        }
+
+        [DisplayName("Default remap 8-bit room backgrounds")]
+        [Description("Remap palette of room backgrounds into allocated background palette slots (8-bit games only)")]
+        [Category("Rooms")]
+        [DefaultValue(false)]
+        public bool DefaultRemap8bitRoomBackgrounds
+        {
+            get { return _defRemap8bitBackgrounds; }
+            set { _defRemap8bitBackgrounds = value; }
         }
 
         [Obsolete]

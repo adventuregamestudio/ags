@@ -46,6 +46,7 @@ namespace AGS.Types
         private int _backgroundAnimationDelay = 5;
         private bool _backgroundAnimEnabled = true;
         private int _backgroundCount;
+        private bool _remap8bitBackgrounds = false;
         private int _gameId;
         private bool _modified;
         private CustomProperties _properties = new CustomProperties();
@@ -171,7 +172,6 @@ namespace AGS.Types
         }
 
         [Description("Width of the room, in game units")]
-        //[DisplayName("WidthInGameUnits")]
         [Category("Visual")]
         [ReadOnly(true)]
         public int Width
@@ -181,13 +181,22 @@ namespace AGS.Types
         }
 
         [Description("Height of the room, in game units")]
-        //[DisplayName("HeightInGameUnits")]
         [Category("Visual")]
         [ReadOnly(true)]
         public int Height
         {
             get { return _height; }
             set { _height = value; }
+        }
+
+        [Category("Design")]
+        [DisplayName("Remap 8-bit backgrounds palette")]
+        [Description("Remap palette of room backgrounds into allocated background palette slots (8-bit games only)")]
+        [DefaultValue(false)]
+        public bool Remap8bitBackgrounds
+        {
+            get { return _remap8bitBackgrounds; }
+            set { _remap8bitBackgrounds = value; }
         }
 
         [Obsolete]

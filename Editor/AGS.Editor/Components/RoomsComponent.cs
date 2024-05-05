@@ -557,6 +557,7 @@ namespace AGS.Editor.Components
             room.Width = gameSettings.CustomResolution.Width;
             room.Height = gameSettings.CustomResolution.Height;
             room.MaskResolution = gameSettings.DefaultRoomMaskResolution;
+            room.Remap8bitBackgrounds = gameSettings.DefaultRemap8bitRoomBackgrounds;
             room.ColorDepth = (int)gameSettings.ColorDepth * 8; // from bytes to bits per pixel
             room.BackgroundCount = 1;
             room.RightEdgeX = room.Width - 1;
@@ -1726,7 +1727,7 @@ namespace AGS.Editor.Components
             {
                 int colorsImage, colorsLimit;
                 CopyGamePalette(); // in case they had changes to game colors in the meantime
-                PaletteUtilities.RemapBackground(newBmp, !Factory.AGSEditor.Settings.RemapPalettizedBackgrounds, _roomPalette, out colorsImage, out colorsLimit);
+                PaletteUtilities.RemapBackground(newBmp, !_loadedRoom.Remap8bitBackgrounds, _roomPalette, out colorsImage, out colorsLimit);
                 if (background == 0)
                 {
                     newBmp.CopyToAGSBackgroundPalette(_roomPalette); // update current room palette
@@ -1735,8 +1736,7 @@ namespace AGS.Editor.Components
 
                 // TODO: not sure if it's good to report error here, in the interface impl,
                 // but the existing method does not provide a "CompileMessages" arg
-                if (Factory.AGSEditor.Settings.RemapPalettizedBackgrounds &&
-                    (colorsImage > colorsLimit))
+                if (_loadedRoom.Remap8bitBackgrounds && (colorsImage > colorsLimit))
                 {
                     _guiController.ShowMessage($"The image uses more colors ({colorsImage}) than palette slots allocated to backgrounds ({colorsLimit}). Some colours will be lost.",
                         MessageBoxIconType.Information);
@@ -2065,7 +2065,7 @@ namespace AGS.Editor.Components
             {
                 int colorsImage, colorsLimit;
                 CopyGamePalette(); // in case they had changes to game colors in the meantime
-                PaletteUtilities.RemapBackground(newBmp, !Factory.AGSEditor.Settings.RemapPalettizedBackgrounds, _roomPalette, out colorsImage, out colorsLimit);
+                PaletteUtilities.RemapBackground(newBmp, !_loadedRoom.Remap8bitBackgrounds, _roomPalette, out colorsImage, out colorsLimit);
                 if (i == 0)
                 {
                     newBmp.CopyToAGSBackgroundPalette(_roomPalette); // update current room palette
@@ -2337,6 +2337,8 @@ namespace AGS.Editor.Components
             Room room = nativeRoom.ConvertToManagedRoom(unloadedRoom.Number, null);
             room.Description = unloadedRoom.Description;
             room.Script = unloadedRoom.Script;
+            // Force-disable background remap for imported CRMs, because their backgrounds are already remapped.
+            room.Remap8bitBackgrounds = false;
 
             for (int i = 0; i < room.BackgroundCount; i++)
                 yield return SaveAndDisposeBitmapAsync(nativeRoom.GetBackground(i), room.GetBackgroundFileName(i));

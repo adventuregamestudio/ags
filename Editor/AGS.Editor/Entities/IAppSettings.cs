@@ -24,7 +24,6 @@ namespace AGS.Editor.Preferences
         BindingList<RecentGame> RecentGames { get; }
         BindingList<string> RecentSearches { get; }
         ReloadScriptOnExternalChange ReloadScriptOnExternalChange { get; set; }
-        bool RemapPalettizedBackgrounds { get; set; }
         bool SendAnonymousStats { get; set; }
         bool ShowViewPreviewByDefault { get; set; }
         SpriteImportMethod SpriteImportMethod { get; set; }

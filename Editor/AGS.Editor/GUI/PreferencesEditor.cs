@@ -103,7 +103,6 @@ namespace AGS.Editor
             udBackupInterval.Value = (_settings.BackupWarningInterval > 0) ? _settings.BackupWarningInterval : 1;
             chkBackupReminders.Checked = (_settings.BackupWarningInterval != 0);
             udBackupInterval.Enabled = chkBackupReminders.Checked;
-            chkRemapBgImport.Checked = _settings.RemapPalettizedBackgrounds;
             chkKeepHelpOnTop.Checked = _settings.KeepHelpOnTop;
             chkPromptDialogOnTabsClose.Checked = _settings.DialogOnMultipleTabsClose;
             cmbScriptReloadOnExternalChange.SelectedIndex = (int)_settings.ReloadScriptOnExternalChange;
@@ -324,11 +323,6 @@ namespace AGS.Editor
         private void chkUsageInfo_CheckedChanged(object sender, EventArgs e)
         {
             _settings.SendAnonymousStats = chkUsageInfo.Checked;
-        }
-
-        private void chkRemapBgImport_CheckedChanged(object sender, EventArgs e)
-        {
-            _settings.RemapPalettizedBackgrounds = chkRemapBgImport.Checked;
         }
 
         private void chkKeepHelpOnTop_CheckedChanged(object sender, EventArgs e)

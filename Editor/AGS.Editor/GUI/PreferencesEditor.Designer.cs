@@ -34,8 +34,6 @@ namespace AGS.Editor
             this.tabPageLast = new System.Windows.Forms.TabPage();
             this.propertyGridPreferences = new System.Windows.Forms.PropertyGrid();
             this.tabPageFirst = new System.Windows.Forms.TabPage();
-            this.groupBox9 = new System.Windows.Forms.GroupBox();
-            this.chkRemapBgImport = new System.Windows.Forms.CheckBox();
             this.groupBox5 = new System.Windows.Forms.GroupBox();
             this.cmbSpriteImportTransparency = new System.Windows.Forms.ComboBox();
             this.label12 = new System.Windows.Forms.Label();
@@ -95,19 +93,26 @@ namespace AGS.Editor
             this.tabPage3 = new System.Windows.Forms.TabPage();
             this.flowLayoutPanel2 = new System.Windows.Forms.FlowLayoutPanel();
             this.groupBoxAndroidJdkPath = new System.Windows.Forms.GroupBox();
+            this.labelJdkOk = new System.Windows.Forms.Label();
             this.btnAndChooseJavaHomePath = new System.Windows.Forms.Button();
             this.txtAndJavaHomePath = new System.Windows.Forms.TextBox();
             this.label16 = new System.Windows.Forms.Label();
             this.radAndJavaHomePath = new System.Windows.Forms.RadioButton();
             this.radAndJavaHomeEnv = new System.Windows.Forms.RadioButton();
             this.groupBoxAndroidSdkPath = new System.Windows.Forms.GroupBox();
+            this.labelSdkOk = new System.Windows.Forms.Label();
             this.btnAndChooseAndroidHomePath = new System.Windows.Forms.Button();
             this.txtAndAndroidHomePath = new System.Windows.Forms.TextBox();
             this.label15 = new System.Windows.Forms.Label();
             this.radAndAndroidHomePath = new System.Windows.Forms.RadioButton();
             this.radAndAndroidHomeEnv = new System.Windows.Forms.RadioButton();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
+            this.groupBoxKeystore = new System.Windows.Forms.GroupBox();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
+            this.checkBoxAndroidShowPassword = new System.Windows.Forms.CheckBox();
+            this.buttonAndroidGenerateKeystore = new System.Windows.Forms.Button();
+            this.label17 = new System.Windows.Forms.Label();
+            this.buttonAndroidChooseKeystore = new System.Windows.Forms.Button();
             this.labelAndKey_File = new System.Windows.Forms.Label();
             this.textBoxAndKeystoreFile = new System.Windows.Forms.TextBox();
             this.labelAndKey_Pass = new System.Windows.Forms.Label();
@@ -116,16 +121,8 @@ namespace AGS.Editor
             this.textBoxAndKeystoreKeyAlias = new System.Windows.Forms.TextBox();
             this.labelAndKey_KeyPass = new System.Windows.Forms.Label();
             this.textBoxAndKeystoreKeyPassword = new System.Windows.Forms.TextBox();
-            this.checkBoxAndroidShowPassword = new System.Windows.Forms.CheckBox();
-            this.label17 = new System.Windows.Forms.Label();
-            this.buttonAndroidGenerateKeystore = new System.Windows.Forms.Button();
-            this.buttonAndroidChooseKeystore = new System.Windows.Forms.Button();
-            this.groupBoxKeystore = new System.Windows.Forms.GroupBox();
-            this.labelJdkOk = new System.Windows.Forms.Label();
-            this.labelSdkOk = new System.Windows.Forms.Label();
             this.tabPageLast.SuspendLayout();
             this.tabPageFirst.SuspendLayout();
-            this.groupBox9.SuspendLayout();
             this.groupBox5.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.groupBox8.SuspendLayout();
@@ -146,8 +143,8 @@ namespace AGS.Editor
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.SuspendLayout();
-            this.tableLayoutPanel1.SuspendLayout();
             this.groupBoxKeystore.SuspendLayout();
+            this.tableLayoutPanel1.SuspendLayout();
             this.SuspendLayout();
             // 
             // btnApply
@@ -207,7 +204,6 @@ namespace AGS.Editor
             // 
             // tabPageFirst
             // 
-            this.tabPageFirst.Controls.Add(this.groupBox9);
             this.tabPageFirst.Controls.Add(this.groupBox5);
             this.tabPageFirst.Controls.Add(this.groupBox1);
             this.tabPageFirst.Controls.Add(this.groupBox8);
@@ -222,27 +218,6 @@ namespace AGS.Editor
             this.tabPageFirst.TabIndex = 0;
             this.tabPageFirst.Text = "Main Preferences";
             this.tabPageFirst.UseVisualStyleBackColor = true;
-            // 
-            // groupBox9
-            // 
-            this.groupBox9.Controls.Add(this.chkRemapBgImport);
-            this.groupBox9.Location = new System.Drawing.Point(370, 357);
-            this.groupBox9.Name = "groupBox9";
-            this.groupBox9.Size = new System.Drawing.Size(361, 52);
-            this.groupBox9.TabIndex = 10;
-            this.groupBox9.TabStop = false;
-            this.groupBox9.Text = "8-bit background import";
-            // 
-            // chkRemapBgImport
-            // 
-            this.chkRemapBgImport.Location = new System.Drawing.Point(14, 16);
-            this.chkRemapBgImport.Name = "chkRemapBgImport";
-            this.chkRemapBgImport.Size = new System.Drawing.Size(346, 30);
-            this.chkRemapBgImport.TabIndex = 8;
-            this.chkRemapBgImport.Text = "Remap palette of room backgrounds into allocated background palette slots (8-bit " +
-    "games only)";
-            this.chkRemapBgImport.UseVisualStyleBackColor = true;
-            this.chkRemapBgImport.CheckedChanged += new System.EventHandler(this.chkRemapBgImport_CheckedChanged);
             // 
             // groupBox5
             // 
@@ -959,6 +934,17 @@ namespace AGS.Editor
             this.groupBoxAndroidJdkPath.TabStop = false;
             this.groupBoxAndroidJdkPath.Text = "JDK Path";
             // 
+            // labelJdkOk
+            // 
+            this.labelJdkOk.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.labelJdkOk.AutoSize = true;
+            this.labelJdkOk.Location = new System.Drawing.Point(476, 21);
+            this.labelJdkOk.Name = "labelJdkOk";
+            this.labelJdkOk.Size = new System.Drawing.Size(113, 13);
+            this.labelJdkOk.TabIndex = 5;
+            this.labelJdkOk.Text = "JDK Found On Config!";
+            this.labelJdkOk.Visible = false;
+            // 
             // btnAndChooseJavaHomePath
             // 
             this.btnAndChooseJavaHomePath.Location = new System.Drawing.Point(321, 60);
@@ -1026,6 +1012,16 @@ namespace AGS.Editor
             this.groupBoxAndroidSdkPath.TabIndex = 12;
             this.groupBoxAndroidSdkPath.TabStop = false;
             this.groupBoxAndroidSdkPath.Text = "SDK Path";
+            // 
+            // labelSdkOk
+            // 
+            this.labelSdkOk.AutoSize = true;
+            this.labelSdkOk.Location = new System.Drawing.Point(474, 21);
+            this.labelSdkOk.Name = "labelSdkOk";
+            this.labelSdkOk.Size = new System.Drawing.Size(114, 13);
+            this.labelSdkOk.TabIndex = 6;
+            this.labelSdkOk.Text = "SDK Found On Config!";
+            this.labelSdkOk.Visible = false;
             // 
             // btnAndChooseAndroidHomePath
             // 
@@ -1096,6 +1092,18 @@ namespace AGS.Editor
             this.splitContainer1.SplitterWidth = 3;
             this.splitContainer1.TabIndex = 0;
             // 
+            // groupBoxKeystore
+            // 
+            this.groupBoxKeystore.AutoSize = true;
+            this.groupBoxKeystore.Controls.Add(this.tableLayoutPanel1);
+            this.groupBoxKeystore.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.groupBoxKeystore.Location = new System.Drawing.Point(0, 0);
+            this.groupBoxKeystore.Name = "groupBoxKeystore";
+            this.groupBoxKeystore.Size = new System.Drawing.Size(460, 233);
+            this.groupBoxKeystore.TabIndex = 0;
+            this.groupBoxKeystore.TabStop = false;
+            this.groupBoxKeystore.Text = "Keystore";
+            // 
             // tableLayoutPanel1
             // 
             this.tableLayoutPanel1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
@@ -1116,7 +1124,7 @@ namespace AGS.Editor
             this.tableLayoutPanel1.Controls.Add(this.labelAndKey_KeyPass, 0, 3);
             this.tableLayoutPanel1.Controls.Add(this.textBoxAndKeystoreKeyPassword, 1, 3);
             this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tableLayoutPanel1.Location = new System.Drawing.Point(2, 16);
+            this.tableLayoutPanel1.Location = new System.Drawing.Point(3, 17);
             this.tableLayoutPanel1.Margin = new System.Windows.Forms.Padding(2);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
             this.tableLayoutPanel1.RowCount = 7;
@@ -1127,8 +1135,51 @@ namespace AGS.Editor
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 26F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 45F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(456, 215);
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(454, 213);
             this.tableLayoutPanel1.TabIndex = 1;
+            // 
+            // checkBoxAndroidShowPassword
+            // 
+            this.checkBoxAndroidShowPassword.AutoSize = true;
+            this.checkBoxAndroidShowPassword.Location = new System.Drawing.Point(105, 110);
+            this.checkBoxAndroidShowPassword.Name = "checkBoxAndroidShowPassword";
+            this.checkBoxAndroidShowPassword.Size = new System.Drawing.Size(101, 17);
+            this.checkBoxAndroidShowPassword.TabIndex = 0;
+            this.checkBoxAndroidShowPassword.Text = "Show Password";
+            this.checkBoxAndroidShowPassword.UseVisualStyleBackColor = true;
+            this.checkBoxAndroidShowPassword.CheckStateChanged += new System.EventHandler(this.checkBoxAndroidShowPassword_CheckStateChanged);
+            // 
+            // buttonAndroidGenerateKeystore
+            // 
+            this.buttonAndroidGenerateKeystore.Location = new System.Drawing.Point(105, 181);
+            this.buttonAndroidGenerateKeystore.MinimumSize = new System.Drawing.Size(180, 26);
+            this.buttonAndroidGenerateKeystore.Name = "buttonAndroidGenerateKeystore";
+            this.buttonAndroidGenerateKeystore.Size = new System.Drawing.Size(180, 26);
+            this.buttonAndroidGenerateKeystore.TabIndex = 4;
+            this.buttonAndroidGenerateKeystore.Text = "Generate Keystore";
+            this.buttonAndroidGenerateKeystore.UseVisualStyleBackColor = true;
+            this.buttonAndroidGenerateKeystore.Click += new System.EventHandler(this.buttonAndroidGenerateKeystore_Click);
+            // 
+            // label17
+            // 
+            this.label17.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.label17.AutoSize = true;
+            this.label17.Location = new System.Drawing.Point(105, 152);
+            this.label17.Name = "label17";
+            this.label17.Size = new System.Drawing.Size(199, 26);
+            this.label17.TabIndex = 5;
+            this.label17.Text = "If you don\'t have a Keystore, generate one";
+            // 
+            // buttonAndroidChooseKeystore
+            // 
+            this.buttonAndroidChooseKeystore.Location = new System.Drawing.Point(322, 4);
+            this.buttonAndroidChooseKeystore.Margin = new System.Windows.Forms.Padding(4);
+            this.buttonAndroidChooseKeystore.Name = "buttonAndroidChooseKeystore";
+            this.buttonAndroidChooseKeystore.Size = new System.Drawing.Size(34, 24);
+            this.buttonAndroidChooseKeystore.TabIndex = 6;
+            this.buttonAndroidChooseKeystore.Text = "...";
+            this.buttonAndroidChooseKeystore.UseVisualStyleBackColor = true;
+            this.buttonAndroidChooseKeystore.Click += new System.EventHandler(this.buttonAndroidChooseKeystore_Click);
             // 
             // labelAndKey_File
             // 
@@ -1155,7 +1206,7 @@ namespace AGS.Editor
             // 
             this.labelAndKey_Pass.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.labelAndKey_Pass.AutoSize = true;
-            this.labelAndKey_Pass.Location = new System.Drawing.Point(43, 25);
+            this.labelAndKey_Pass.Location = new System.Drawing.Point(43, 32);
             this.labelAndKey_Pass.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.labelAndKey_Pass.Name = "labelAndKey_Pass";
             this.labelAndKey_Pass.Size = new System.Drawing.Size(57, 13);
@@ -1164,11 +1215,11 @@ namespace AGS.Editor
             // 
             // textBoxAndKeystorePassword
             // 
-            this.textBoxAndKeystorePassword.Location = new System.Drawing.Point(104, 27);
+            this.textBoxAndKeystorePassword.Location = new System.Drawing.Point(104, 34);
             this.textBoxAndKeystorePassword.Margin = new System.Windows.Forms.Padding(2);
             this.textBoxAndKeystorePassword.MinimumSize = new System.Drawing.Size(209, 24);
             this.textBoxAndKeystorePassword.Name = "textBoxAndKeystorePassword";
-            this.textBoxAndKeystorePassword.Size = new System.Drawing.Size(209, 24);
+            this.textBoxAndKeystorePassword.Size = new System.Drawing.Size(209, 21);
             this.textBoxAndKeystorePassword.TabIndex = 3;
             this.textBoxAndKeystorePassword.Validated += new System.EventHandler(this.textBoxAndKeystorePassword_Validated);
             // 
@@ -1176,7 +1227,7 @@ namespace AGS.Editor
             // 
             this.labelAndKey_KeyAlias.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.labelAndKey_KeyAlias.AutoSize = true;
-            this.labelAndKey_KeyAlias.Location = new System.Drawing.Point(46, 53);
+            this.labelAndKey_KeyAlias.Location = new System.Drawing.Point(46, 57);
             this.labelAndKey_KeyAlias.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.labelAndKey_KeyAlias.Name = "labelAndKey_KeyAlias";
             this.labelAndKey_KeyAlias.Size = new System.Drawing.Size(54, 13);
@@ -1185,7 +1236,7 @@ namespace AGS.Editor
             // 
             // textBoxAndKeystoreKeyAlias
             // 
-            this.textBoxAndKeystoreKeyAlias.Location = new System.Drawing.Point(104, 55);
+            this.textBoxAndKeystoreKeyAlias.Location = new System.Drawing.Point(104, 59);
             this.textBoxAndKeystoreKeyAlias.Margin = new System.Windows.Forms.Padding(2);
             this.textBoxAndKeystoreKeyAlias.MinimumSize = new System.Drawing.Size(209, 24);
             this.textBoxAndKeystoreKeyAlias.Name = "textBoxAndKeystoreKeyAlias";
@@ -1197,7 +1248,7 @@ namespace AGS.Editor
             // 
             this.labelAndKey_KeyPass.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.labelAndKey_KeyPass.AutoSize = true;
-            this.labelAndKey_KeyPass.Location = new System.Drawing.Point(22, 81);
+            this.labelAndKey_KeyPass.Location = new System.Drawing.Point(22, 82);
             this.labelAndKey_KeyPass.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.labelAndKey_KeyPass.Name = "labelAndKey_KeyPass";
             this.labelAndKey_KeyPass.Size = new System.Drawing.Size(78, 13);
@@ -1206,89 +1257,13 @@ namespace AGS.Editor
             // 
             // textBoxAndKeystoreKeyPassword
             // 
-            this.textBoxAndKeystoreKeyPassword.Location = new System.Drawing.Point(104, 83);
+            this.textBoxAndKeystoreKeyPassword.Location = new System.Drawing.Point(104, 84);
             this.textBoxAndKeystoreKeyPassword.Margin = new System.Windows.Forms.Padding(2);
             this.textBoxAndKeystoreKeyPassword.MinimumSize = new System.Drawing.Size(209, 24);
             this.textBoxAndKeystoreKeyPassword.Name = "textBoxAndKeystoreKeyPassword";
             this.textBoxAndKeystoreKeyPassword.Size = new System.Drawing.Size(209, 24);
             this.textBoxAndKeystoreKeyPassword.TabIndex = 7;
             this.textBoxAndKeystoreKeyPassword.Validated += new System.EventHandler(this.textBoxAndKeystoreKeyPassword_Validated);
-            // 
-            // checkBoxAndroidShowPassword
-            // 
-            this.checkBoxAndroidShowPassword.AutoSize = true;
-            this.checkBoxAndroidShowPassword.Location = new System.Drawing.Point(131, 125);
-            this.checkBoxAndroidShowPassword.Name = "checkBoxAndroidShowPassword";
-            this.checkBoxAndroidShowPassword.Size = new System.Drawing.Size(126, 21);
-            this.checkBoxAndroidShowPassword.TabIndex = 0;
-            this.checkBoxAndroidShowPassword.Text = "Show Password";
-            this.checkBoxAndroidShowPassword.UseVisualStyleBackColor = true;
-            this.checkBoxAndroidShowPassword.CheckStateChanged += new System.EventHandler(this.checkBoxAndroidShowPassword_CheckStateChanged);
-            // 
-            // label17
-            // 
-            this.label17.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.label17.AutoSize = true;
-            this.label17.Location = new System.Drawing.Point(131, 176);
-            this.label17.Name = "label17";
-            this.label17.Size = new System.Drawing.Size(249, 34);
-            this.label17.TabIndex = 5;
-            this.label17.Text = "If you don\'t have a Keystore, generate one";
-            // 
-            // buttonAndroidGenerateKeystore
-            // 
-            this.buttonAndroidGenerateKeystore.Location = new System.Drawing.Point(131, 213);
-            this.buttonAndroidGenerateKeystore.MinimumSize = new System.Drawing.Size(180, 26);
-            this.buttonAndroidGenerateKeystore.Name = "buttonAndroidGenerateKeystore";
-            this.buttonAndroidGenerateKeystore.Size = new System.Drawing.Size(180, 26);
-            this.buttonAndroidGenerateKeystore.TabIndex = 4;
-            this.buttonAndroidGenerateKeystore.Text = "Generate Keystore";
-            this.buttonAndroidGenerateKeystore.UseVisualStyleBackColor = true;
-            this.buttonAndroidGenerateKeystore.Click += new System.EventHandler(this.buttonAndroidGenerateKeystore_Click);
-            // 
-            // buttonAndroidChooseKeystore
-            // 
-            this.buttonAndroidChooseKeystore.Location = new System.Drawing.Point(402, 4);
-            this.buttonAndroidChooseKeystore.Margin = new System.Windows.Forms.Padding(4);
-            this.buttonAndroidChooseKeystore.Name = "buttonAndroidChooseKeystore";
-            this.buttonAndroidChooseKeystore.Size = new System.Drawing.Size(34, 24);
-            this.buttonAndroidChooseKeystore.TabIndex = 6;
-            this.buttonAndroidChooseKeystore.Text = "...";
-            this.buttonAndroidChooseKeystore.UseVisualStyleBackColor = true;
-            this.buttonAndroidChooseKeystore.Click += new System.EventHandler(this.buttonAndroidChooseKeystore_Click);
-            // 
-            // groupBoxKeystore
-            // 
-            this.groupBoxKeystore.AutoSize = true;
-            this.groupBoxKeystore.Controls.Add(this.tableLayoutPanel1);
-            this.groupBoxKeystore.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.groupBoxKeystore.Location = new System.Drawing.Point(0, 0);
-            this.groupBoxKeystore.Name = "groupBoxKeystore";
-            this.groupBoxKeystore.Size = new System.Drawing.Size(460, 291);
-            this.groupBoxKeystore.TabIndex = 0;
-            this.groupBoxKeystore.TabStop = false;
-            this.groupBoxKeystore.Text = "Keystore";
-            // 
-            // labelJdkOk
-            // 
-            this.labelJdkOk.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.labelJdkOk.AutoSize = true;
-            this.labelJdkOk.Location = new System.Drawing.Point(476, 21);
-            this.labelJdkOk.Name = "labelJdkOk";
-            this.labelJdkOk.Size = new System.Drawing.Size(144, 17);
-            this.labelJdkOk.TabIndex = 5;
-            this.labelJdkOk.Text = "JDK Found On Config!";
-            this.labelJdkOk.Visible = false;
-            // 
-            // labelSdkOk
-            // 
-            this.labelSdkOk.AutoSize = true;
-            this.labelSdkOk.Location = new System.Drawing.Point(474, 21);
-            this.labelSdkOk.Name = "labelSdkOk";
-            this.labelSdkOk.Size = new System.Drawing.Size(146, 17);
-            this.labelSdkOk.TabIndex = 6;
-            this.labelSdkOk.Text = "SDK Found On Config!";
-            this.labelSdkOk.Visible = false;
             // 
             // PreferencesEditor
             // 
@@ -1310,7 +1285,6 @@ namespace AGS.Editor
             this.Text = "Preferences";
             this.tabPageLast.ResumeLayout(false);
             this.tabPageFirst.ResumeLayout(false);
-            this.groupBox9.ResumeLayout(false);
             this.groupBox5.ResumeLayout(false);
             this.groupBox5.PerformLayout();
             this.groupBox1.ResumeLayout(false);
@@ -1342,9 +1316,9 @@ namespace AGS.Editor
             this.splitContainer1.Panel1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
             this.splitContainer1.ResumeLayout(false);
+            this.groupBoxKeystore.ResumeLayout(false);
             this.tableLayoutPanel1.ResumeLayout(false);
             this.tableLayoutPanel1.PerformLayout();
-            this.groupBoxKeystore.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -1357,8 +1331,6 @@ namespace AGS.Editor
         private System.Windows.Forms.TabPage tabPageLast;
         private System.Windows.Forms.PropertyGrid propertyGridPreferences;
         private System.Windows.Forms.TabPage tabPageFirst;
-        private System.Windows.Forms.GroupBox groupBox9;
-        private System.Windows.Forms.CheckBox chkRemapBgImport;
         private System.Windows.Forms.GroupBox groupBox5;
         private System.Windows.Forms.ComboBox cmbSpriteImportTransparency;
         private System.Windows.Forms.Label label12;

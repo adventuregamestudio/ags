@@ -28,6 +28,7 @@
 #include "script/runtimescriptvalue.h"
 #include "util/string_compat.h"
 #include "util/utf8.h"
+#include "ac/dynobj/cc_dynamicarray.h"
 
 using namespace AGS::Common;
 
@@ -257,6 +258,45 @@ const char* String_UpperCase(const char *thisString) {
     return CreateNewScriptString(std::move(buf));
 }
 
+void * String_Split(const char *thisString, const char *separator)
+{
+    if (thisString == nullptr)
+        return nullptr;
+
+    auto const &header = ScriptString::GetHeader((void*)thisString);
+
+    if ((thisString[0] == 0) || (separator == nullptr) || (separator[0] == 0) || strlen(separator) > header.Length) {
+        std::vector<DynObjectRef> objs{};
+        objs.push_back(ScriptString::Create(thisString));
+        DynObjectRef arr = DynamicArrayHelpers::CreateScriptArray(std::move(objs));
+        return arr.Obj;
+    }
+
+    std::vector<ScriptString::Buffer> items{};
+    size_t seplen = strlen(separator);
+    const char *ptr = thisString;
+    const char *end = thisString + header.Length;
+    size_t len = 0;
+    while (ptr < end)
+    {
+        const char *found_cstr = strstr(ptr, separator);
+        if (!found_cstr) {
+            found_cstr = end;
+        }
+
+        len = found_cstr - ptr;
+        auto buf = ScriptString::CreateBuffer(len, 0);
+        std::copy(ptr, found_cstr, buf.Get());
+        buf.Get()[len] = 0;
+        items.push_back(std::move(buf));
+
+        ptr = found_cstr + seplen;
+    }
+
+    DynObjectRef arr = DynamicArrayHelpers::CreateStringArrayFromBuffers(std::move(items));
+    return arr.Obj;
+}
+
 int String_GetChars(const char *thisString, int index) {
     auto &header = ScriptString::GetHeader((void*)thisString);
     if ((index < 0) || (static_cast<uint32_t>(index) >= header.ULength))
@@ -475,6 +515,12 @@ RuntimeScriptValue Sc_String_UpperCase(void *self, const RuntimeScriptValue *par
     API_OBJCALL_OBJ(const char, const char, myScriptStringImpl, String_UpperCase);
 }
 
+// const char* [] (const char *thisString, const char* separator)
+RuntimeScriptValue Sc_String_Split(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ_POBJ(const char, void, globalDynamicArray, String_Split, const char);
+}
+
 // FLOAT_RETURN_TYPE (const char *theString);
 RuntimeScriptValue Sc_StringToFloat(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -534,6 +580,7 @@ void RegisterStringAPI()
         { "String::Truncate^1",       API_FN_PAIR(String_Truncate) },
         { "String::Trim^0",           API_FN_PAIR(String_Trim) },
         { "String::UpperCase^0",      API_FN_PAIR(String_UpperCase) },
+        { "String::Split^1",          API_FN_PAIR(String_Split) },
         { "String::get_AsFloat",      API_FN_PAIR(StringToFloat) },
         { "String::get_AsInt",        API_FN_PAIR(StringToInt) },
         { "String::geti_Chars",       API_FN_PAIR(String_GetChars) },

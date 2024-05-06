@@ -1,5 +1,41 @@
 REVISION HISTORY
 ================
+
+VERSION 3.6.2 - in development
+
+Editor:
+ - More panes in the Editor are DPI-aware (rescale well with the system font scaling).
+ - Editor tabs now display icons indicating their contents (may be disabled in Editor Preferences).
+ - Room panel tabs now display room names.
+ - Support reordering folders in Project Explorer with drag & drop.
+ - Support importing plain script files: ash, asc or both, - besides script modules (*.scm).
+ - Added "Controls transparency" slider to GUI edit pane.
+ - Do not alter or clamp palette for 8-bit sprites imported in a 16/32-bit game.
+ - Fixed double warning message when trying to close the Editor while a game test is running.
+
+Script API:
+ - Added Character.MoveStraight() complementing WalkStraight().
+ - Added System.GetEngineInteger() and System.GetEngineString() for returning diagnostic
+   information about engine's runtime state. Possible arguments are defined by
+   EngineValueID enum.
+
+Engine:
+ - Dropped support for pre-3.5.0 game saves.
+ - Implemented video buffering on a separate thread. Allow to drop late video frames.
+ - Added "--no-plugins" command-line argument that denies loading any plugins;
+   also added respective config option.
+
+Compatibility:
+ - Fixed loading of games made in AGS 2.55-56 which include plugins.
+ - Fixed loading of rare games made with AGS 2.5 or higher, which contained deprecated
+   "room animations" (animations themselves are currently not functional).
+ - Fixed old pathfinder imprecision affecting few pre-3.0 games.
+ - Allow pre-2.7 games to have RestartGame() command be followed and overridden by a NewRoom().
+   This is necessary for some older games to be able to proceed.
+
+---------------------------------------------------------------------------------------------------
+
+
 VERSION 3.6.1 - Patch 2, May 2024
 
 Editor:
@@ -260,6 +296,8 @@ WinSetup:
  - Added options for setting texture cache and sound cache size.
  - Added options to disable particular graphic drivers and graphic driver selection,
    and fullscreen mode selection.
+
+---------------------------------------------------------------------------------------------------
 
 
 VERSION 3.6.0 - Patch 11, April 2024
@@ -1289,6 +1327,8 @@ Windows:
 
 WinSetup:
  - Fixed changing fullscreen mode from "use current desktop" to explicit resolution on save.
+
+---------------------------------------------------------------------------------------------------
 
 
 VERSION 3.5.0 - Patch 10, May 2021

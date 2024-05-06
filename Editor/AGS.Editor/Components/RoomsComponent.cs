@@ -2065,7 +2065,9 @@ namespace AGS.Editor.Components
             {
                 int colorsImage, colorsLimit;
                 CopyGamePalette(); // in case they had changes to game colors in the meantime
-                PaletteUtilities.RemapBackground(newBmp, !Factory.AGSEditor.Settings.RemapPalettizedBackgrounds, _roomPalette, out colorsImage, out colorsLimit);
+                // Note we always do exact palette here, assuming that the background
+                // stored in the project files is already in a wanted palette
+                PaletteUtilities.RemapBackground(newBmp, true /* exact palette */, _roomPalette, out colorsImage, out colorsLimit);
                 if (i == 0)
                 {
                     newBmp.CopyToAGSBackgroundPalette(_roomPalette); // update current room palette

@@ -509,7 +509,7 @@ namespace AGS.Editor.Preferences
         [Description("Whether icons from the project explorer also appear in tabs.")]
         [Category("Editor Appearance")]
         [UserScopedSettingAttribute()]
-        [DefaultSettingValueAttribute("False")]
+        [DefaultSettingValueAttribute("True")]
         public bool ShowIconInTab
         {
             get

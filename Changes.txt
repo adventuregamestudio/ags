@@ -124,6 +124,23 @@ Engine:
 
 ===================================================================================================
 
+VERSION 3.6.1 - Patch 2, May 2024
+
+Editor:
+ - Fixed few potential program errors for "Generate Keystore" in Android preferences.
+ - Fixed external processes (such as test game runs) were started using ShellExecute,
+   which could theoretically lead to unintended results.
+
+Engine:
+ - Fixed String.Replace crashing the engine if the resulting string exceeds 3000 bytes.
+ - Fixed releasing a mouse button could cause double "on_event" call (with eEventGUIMouseUp).
+ - Improved rendering of TTF fonts which have glyph sizes surpassing declared font's height.
+   This fixes the look of text on gui controls, and automatic outlining on these fonts.
+ - Fixed a dialog shown with InputBox() function drawing typed text beyond text box'es border.
+ - Fixed custom dialog options in the "old mode" not triggering redraw when the active
+   option changes.
+
+
 VERSION 3.6.1 - Patch 1, April 2024
 
 Editor:

@@ -29,6 +29,13 @@ set(COMPILER_COMMON_SOURCES
         ../Common/util/textstreamreader.cpp
         ../Common/util/version.cpp)
 
+set(PREPROCESSOR_SOURCES
+        preproc/cc_macrotable.cpp
+        preproc/cc_macrotable.h
+        preproc/preprocessor.cpp
+        preproc/preprocessor.h
+)
+
 set(COMPILER_SOURCES
         fmem.cpp
         fmem.h
@@ -36,8 +43,6 @@ set(COMPILER_SOURCES
         script/cc_compiledscript.h
         script/cc_internallist.cpp
         script/cc_internallist.h
-        script/cc_macrotable.cpp
-        script/cc_macrotable.h
         script/cc_symboltable.cpp
         script/cc_symboltable.h
         script/cc_symboldef.h
@@ -50,8 +55,8 @@ set(COMPILER_SOURCES
         script/cs_parser.h
         script/cs_parser_common.cpp
         script/cs_parser_common.h
-        preproc/preprocessor.cpp
-        preproc/preprocessor.h)
+        ${PREPROCESSOR_SOURCES}
+)
 
 target_sources(compiler PRIVATE
         ${COMPILER_SOURCES}

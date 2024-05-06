@@ -1056,24 +1056,15 @@ void Character_WalkStraight(CharacterInfo *chaa, int xx, int yy, int blocking) {
     if (chaa->room != displayed_room)
         quit("!MoveCharacterStraight: specified character not in current room");
 
-    int movetox = xx, movetoy = yy;
+    walk_or_move_character_straight(chaa, xx, yy, blocking, 1 /* use ANYWHERE */, true /* walk */);
+}
 
-    set_walkablearea(prepare_walkable_areas(chaa->index_id));
+void Character_MoveStraight(CharacterInfo *chaa, int xx, int yy, int blocking) {
 
-    // TODO: hide these conversions, maybe make can_see_from() function do them internally in and out?
-    int fromX = room_to_mask_coord(chaa->x);
-    int fromY = room_to_mask_coord(chaa->y);
-    int toX = room_to_mask_coord(xx);
-    int toY = room_to_mask_coord(yy);
+    if (chaa->room != displayed_room)
+        quit("!MoveCharacterStraight: specified character not in current room");
 
-    if (!can_see_from(fromX, fromY, toX, toY)) {
-        int lastcx, lastcy;
-        get_lastcpos(lastcx, lastcy);
-        movetox = mask_to_room_coord(lastcx);
-        movetoy = mask_to_room_coord(lastcy);
-    }
-
-    walk_or_move_character(chaa, movetox, movetoy, blocking, 1 /* use ANYWHERE */, true);
+    walk_or_move_character_straight(chaa, xx, yy, blocking, 1 /* use ANYWHERE */, false /* move */);
 }
 
 void Character_RunInteraction(CharacterInfo *chaa, int mood) {
@@ -2115,7 +2106,27 @@ void walk_or_move_character(CharacterInfo *chaa, int x, int y, int blocking, int
         GameLoopUntilNotMoving(&chaa->walking);
     else if ((blocking != IN_BACKGROUND) && (blocking != 0))
         quit("!Character.Walk: Blocking must be BLOCKING or IN_BACKGROUND");
+}
 
+void walk_or_move_character_straight(CharacterInfo *chaa, int x, int y, int blocking, int direct, bool isWalk)
+{
+    set_walkablearea(prepare_walkable_areas(chaa->index_id));
+
+    // TODO: hide these conversions, maybe make can_see_from() function do them internally in and out?
+    int from_mask_x = room_to_mask_coord(chaa->x);
+    int from_mask_y = room_to_mask_coord(chaa->y);
+    int to_mask_x = room_to_mask_coord(x);
+    int to_mask_y = room_to_mask_coord(y);
+
+    int movetox = x, movetoy = y;
+    if (!can_see_from(from_mask_x, from_mask_y, to_mask_x, to_mask_y)) {
+        int lastcx, lastcy;
+        get_lastcpos(lastcx, lastcy);
+        movetox = mask_to_room_coord(lastcx);
+        movetoy = mask_to_room_coord(lastcy);
+    }
+
+    walk_or_move_character(chaa, movetox, movetoy, blocking, direct, isWalk);
 }
 
 int wantMoveNow (CharacterInfo *chi, CharacterExtras *chex) {
@@ -3286,6 +3297,11 @@ RuntimeScriptValue Sc_Character_Move(void *self, const RuntimeScriptValue *param
     API_OBJCALL_VOID_PINT4(CharacterInfo, Character_Move);
 }
 
+RuntimeScriptValue Sc_Character_MoveStraight(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT3(CharacterInfo, Character_MoveStraight);
+}
+
 // void (CharacterInfo *chap) 
 RuntimeScriptValue Sc_Character_PlaceOnWalkableArea(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -4058,6 +4074,7 @@ void RegisterCharacterAPI(ScriptAPIVersion /*base_api*/, ScriptAPIVersion /*comp
         { "Character::LockViewOffset^4",          API_FN_PAIR(Character_LockViewOffsetEx) },
         { "Character::LoseInventory^1",           API_FN_PAIR(Character_LoseInventory) },
         { "Character::Move^4",                    API_FN_PAIR(Character_Move) },
+        { "Character::MoveStraight^3",            API_FN_PAIR(Character_MoveStraight) },
         { "Character::PlaceOnWalkableArea^0",     API_FN_PAIR(Character_PlaceOnWalkableArea) },
         { "Character::RemoveTint^0",              API_FN_PAIR(Character_RemoveTint) },
         { "Character::RunInteraction^1",          API_FN_PAIR(Character_RunInteraction) },

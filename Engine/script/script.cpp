@@ -257,13 +257,13 @@ void cancel_all_scripts()
     for (int i = 0; i < num_scripts; ++i)
     {
         auto &sc = scripts[i];
-        if (sc.inst)
+        if (sc.Inst)
         {
-            (sc.forkedInst) ?
-                sc.inst->AbortAndDestroy() :
-                sc.inst->Abort();
+            (sc.ForkedInst) ?
+                sc.Inst->AbortAndDestroy() :
+                sc.Inst->Abort();
         }
-        sc.numanother = 0;
+        sc = {}; // FIXME: store in vector and erase?
     }
     num_scripts = 0;
     // in case the script is running on non-blocking thread (rep-exec-always etc)
@@ -285,7 +285,7 @@ void QueueScriptFunction(ScriptInstType sc_inst, const char *fn_name, size_t par
 {
     if (inside_script)
         // queue the script for the run after current script is finished
-        curscript->run_another(fn_name, sc_inst, param_count, params);
+        curscript->RunAnother(fn_name, sc_inst, param_count, params);
     else
         // if no script is currently running, run the requested script right away
         RunScriptFunctionAuto(sc_inst, fn_name, param_count, params);
@@ -316,7 +316,7 @@ static bool DoRunScriptFuncCantBlock(ccInstance *sci, NonBlockingScriptFunction*
     return(hasTheFunc);
 }
 
-char scfunctionname[MAX_FUNCTION_NAME_LEN + 1];
+char scfunctionname[MAX_FUNCTION_NAME_LEN + 1]; // FIXME this!!
 static int PrepareTextScript(ccInstance *sci, const char**tsname)
 {
     cc_clear_error();
@@ -337,10 +337,10 @@ static int PrepareTextScript(ccInstance *sci, const char**tsname)
         auto fork = sci->Fork();
         if (!fork)
             quit("unable to fork instance for secondary script");
-        exscript.forkedInst.reset(fork);
-        exscript.inst = fork;
+        exscript.ForkedInst.reset(fork);
+        exscript.Inst = fork;
     } else {
-        exscript.inst = sci;
+        exscript.Inst = sci;
     }
     scripts[num_scripts] = std::move(exscript);
     curscript = &scripts[num_scripts];
@@ -375,7 +375,7 @@ int RunScriptFunction(ccInstance *sci, const char *tsname, size_t numParam, cons
     }
 
     cc_clear_error();
-    toret = curscript->inst->CallScriptFunction(tsname, numParam, params);
+    toret = curscript->Inst->CallScriptFunction(tsname, numParam, params);
 
     // 100 is if Aborted (eg. because we are LoadAGSGame'ing)
     if ((toret != 0) && (toret != -2) && (toret != 100)) {
@@ -575,8 +575,8 @@ void post_script_cleanup() {
     if (num_scripts > 0)
     { // save until the end of function
         copyof = std::move(scripts[num_scripts - 1]);
-        copyof.forkedInst.reset(); // don't need it further
-        num_scripts--;
+        copyof.ForkedInst.reset(); // don't need it further
+        num_scripts--; // FIXME: store in vector and erase?
     }
     inside_script--;
 
@@ -590,53 +590,56 @@ void post_script_cleanup() {
     int old_room_number = displayed_room;
 
     // FIXME: sync audio in case any screen changing or time-consuming post-script actions were scheduled
-    if (copyof.numPostScriptActions > 0) {
+    if (copyof.PostScriptActions.size() > 0) {
         sync_audio_playback();
     }
 
     // run the queued post-script actions
-    for (int ii = 0; ii < copyof.numPostScriptActions; ii++) {
-        int thisData = copyof.postScriptActionData[ii];
+    for (const auto &act : copyof.PostScriptActions)
+    {
+        int thisData = act.Data;
 
-        switch (copyof.postScriptActions[ii]) {
-    case ePSANewRoom:
-        // only change rooms when all scripts are done
-        if (num_scripts == 0) {
-            new_room(thisData, playerchar);
-            // don't allow any pending room scripts from the old room
-            // in run_another to be executed
+        switch (act.Type)
+        {
+        case ePSANewRoom:
+            // only change rooms when all scripts are done
+            if (num_scripts == 0) {
+                new_room(thisData, playerchar);
+                // don't allow any pending room scripts from the old room
+                // in run_another to be executed
+                return;
+            }
+            else
+                curscript->QueueAction(PostScriptAction(ePSANewRoom, thisData, "NewRoom"));
+            break;
+        case ePSARestoreGame:
+            cancel_all_scripts();
+            try_restore_save(thisData);
             return;
+        case ePSARestoreGameDialog:
+            restore_game_dialog2(thisData & 0xFFFF, (thisData >> 16));
+            return;
+        case ePSARunAGSGame:
+            cancel_all_scripts();
+            load_new_game = thisData;
+            return;
+        case ePSARunDialog:
+            do_conversation(thisData);
+            break;
+        case ePSARestartGame:
+            cancel_all_scripts();
+            restart_game();
+            return;
+        case ePSASaveGame:
+            save_game(thisData, act.Description.GetCStr());
+            break;
+        case ePSASaveGameDialog:
+            save_game_dialog2(thisData & 0xFFFF, (thisData >> 16));
+            break;
+        default:
+            quitprintf("undefined post script action found: %d", act.Type);
         }
-        else
-            curscript->queue_action(ePSANewRoom, thisData, "NewRoom");
-        break;
-    case ePSARestoreGame:
-        cancel_all_scripts();
-        try_restore_save(thisData);
-        return;
-    case ePSARestoreGameDialog:
-        restore_game_dialog2(thisData & 0xFFFF, (thisData >> 16));
-        return;
-    case ePSARunAGSGame:
-        cancel_all_scripts();
-        load_new_game = thisData;
-        return;
-    case ePSARunDialog:
-        do_conversation(thisData);
-        break;
-    case ePSARestartGame:
-        cancel_all_scripts();
-        restart_game();
-        return;
-    case ePSASaveGame:
-        save_game(thisData, copyof.postScriptSaveSlotDescription[ii]);
-        break;
-    case ePSASaveGameDialog:
-        save_game_dialog2(thisData & 0xFFFF, (thisData >> 16));
-        break;
-    default:
-        quitprintf("undefined post script action found: %d", copyof.postScriptActions[ii]);
-        }
+
         // if the room changed in a conversation, for example, abort
         if (old_room_number != displayed_room) {
             return;
@@ -644,13 +647,12 @@ void post_script_cleanup() {
     }
 
 
-    if (copyof.numPostScriptActions > 0) {
+    if (copyof.PostScriptActions.size() > 0) {
         sync_audio_playback();
     }
 
-    for (int jj = 0; jj < copyof.numanother; jj++) {
+    for (const auto &script : copyof.ScFnQueue) {
         old_room_number = displayed_room;
-        QueuedScript &script = copyof.ScFnQueue[jj];
         RunScriptFunctionAuto(script.Instance, script.FnName.GetCStr(), script.ParamCount, script.Params);
         if (script.Instance == kScInstRoom && script.ParamCount == 1)
         {

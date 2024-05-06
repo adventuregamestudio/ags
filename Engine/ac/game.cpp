@@ -418,7 +418,7 @@ void restore_game_dialog() {
 void restore_game_dialog2(int min_slot, int max_slot) {
     can_run_delayed_command();
     if (inside_script) {
-        curscript->queue_action(ePSARestoreGameDialog, (min_slot & 0xFFFF) | (max_slot & 0xFFFF) << 16, "RestoreGameDialog");
+        curscript->QueueAction(PostScriptAction(ePSARestoreGameDialog, (min_slot & 0xFFFF) | (max_slot & 0xFFFF) << 16, "RestoreGameDialog"));
         return;
     }
     do_restore_game_dialog(min_slot, max_slot);
@@ -439,7 +439,7 @@ void save_game_dialog() {
 
 void save_game_dialog2(int min_slot, int max_slot) {
     if (inside_script) {
-        curscript->queue_action(ePSASaveGameDialog, (min_slot & 0xFFFF) | (max_slot & 0xFFFF) << 16, "SaveGameDialog");
+        curscript->QueueAction(PostScriptAction(ePSASaveGameDialog, (min_slot & 0xFFFF) | (max_slot & 0xFFFF) << 16, "SaveGameDialog"));
         return;
     }
     do_save_game_dialog(min_slot, max_slot);
@@ -920,8 +920,7 @@ void save_game(int slotn, const char*descript) {
     can_run_delayed_command();
 
     if (inside_script) {
-        snprintf(curscript->postScriptSaveSlotDescription[curscript->queue_action(ePSASaveGame, slotn, "SaveGameSlot")],
-            MAX_QUEUED_ACTION_DESC, "%s", descript);
+        curscript->QueueAction(PostScriptAction(ePSASaveGame, slotn, "SaveGameSlot", descript));
         return;
     }
 

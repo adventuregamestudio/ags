@@ -92,7 +92,7 @@ void AbortGame()
 void restart_game() {
     can_run_delayed_command();
     if (inside_script) {
-        curscript->queue_action(ePSARestartGame, 0, "RestartGame");
+        curscript->QueueAction(PostScriptAction(ePSARestartGame, 0, "RestartGame"));
         return;
     }
     try_restore_save(RESTART_POINT_SAVE_GAME_NUMBER);
@@ -104,7 +104,7 @@ void RestoreGameSlot(int slnum) {
 
     can_run_delayed_command();
     if (inside_script) {
-        curscript->queue_action(ePSARestoreGame, slnum, "RestoreGameSlot");
+        curscript->QueueAction(PostScriptAction(ePSARestoreGame, slnum, "RestoreGameSlot"));
         return;
     }
     try_restore_save(slnum);
@@ -238,7 +238,7 @@ int RunAGSGame(const String &newgame, unsigned int mode, int data) {
         load_new_game_restore = -1;
 
         if (inside_script) {
-            curscript->queue_action(ePSARunAGSGame, mode | RAGMODE_LOADNOW, "RunAGSGame");
+            curscript->QueueAction(PostScriptAction(ePSARunAGSGame, mode | RAGMODE_LOADNOW, "RunAGSGame"));
             ccInstance::GetCurrentInstance()->Abort();
         }
         else

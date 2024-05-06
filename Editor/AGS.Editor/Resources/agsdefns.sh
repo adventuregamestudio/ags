@@ -2317,6 +2317,10 @@ builtin managed struct Character {
   /// Gets the script name of this character.
   import readonly attribute String ScriptName;
 #endif
+#ifdef SCRIPT_API_v362
+  /// Moves the character in a straight line as far as possible towards the co-ordinates, without walking animation. Useful for keyboard movement.
+  import function MoveStraight(int x, int y, BlockingStyle=eNoBlock);
+#endif
   /// The character's current X-position.
   import attribute int  x;
   /// The character's current Y-position.

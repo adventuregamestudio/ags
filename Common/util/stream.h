@@ -67,8 +67,6 @@ enum StreamSeek
 class IStreamBase
 {
 public:
-    virtual ~IStreamBase() = default;
-
     // Tells which mode the stream is working in, which defines
     // supported io operations, such as reading, writing, seeking, etc.
     // Invalid streams return kStream_None to indicate that they are not functional.
@@ -114,6 +112,9 @@ public:
     // of regular *delete* on stream objects that may have been provided
     // by plugins.
     virtual void   Dispose() = 0;
+
+    // Virtual destructor must be located after the IAGSStream interface
+    virtual ~IStreamBase() = default;
 
 protected:
     IStreamBase() = default;

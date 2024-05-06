@@ -46,7 +46,7 @@ void RunDialog(int tum) {
     get_script_position(last_in_dialog_request_script_pos);
 
     if (inside_script) 
-        curscript->queue_action(ePSARunDialog, tum, "RunDialog");
+        curscript->QueueAction(PostScriptAction(ePSARunDialog, tum, "RunDialog"));
     else
         do_conversation(tum);
 }

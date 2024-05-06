@@ -18,11 +18,17 @@ Editor:
  - Support room backgrounds and masks as PNGs.
  - Translation sources are now saved in PO format.
  - General panel look enhancements.
+ - More panes in the Editor are DPI-aware (rescale well with the system font scaling).
  - Support built-in Base Color Themes that have the custom themes applied over them.
  - Game template selection now displays template's description right in the dialog.
  - F2 is now a hotkey for editing labels in the Project Tree. "Game statistics" are now displayed
    by Ctrl + F2.
- - Editor tabs now display icons indicating their contents.
+ - Editor tabs now display icons indicating their contents (may be disabled in Editor Preferences).
+ - Room panel tabs now display room names.
+ - Support reordering folders in Project Explorer with drag & drop.
+ - Support importing plain script files: ash, asc or both, - besides script modules (*.scm).
+ - Added "Controls transparency" slider to GUI edit pane.
+ - Do not alter or clamp palette for 8-bit sprites imported in a 16/32-bit game.
  - Script editor supports "word wrap" mode.
  - In General Settings added "Use extended compiler" option that lets to choose a new script
    compiler for your game (see list of changes in related section below).
@@ -30,9 +36,8 @@ Editor:
  - Added BlendMode property to Characters, GUI and Room Objects.
  - Added FaceDirectionRatio property to General Settings, Room and Walkable Areas.
  - Added readonly Length property to AudioClips, for the reference.
- - Fixed 8-bit images imported and converted for a 32-bit game to not get their colors clamped
-   to a low-precision palette.
  - Fixed faulty double-click on project items in case user dragged the cursor away.
+ - Fixed double warning message when trying to close the Editor while a game test is running.
 
 Compiler:
  - The new extended script compiler is available. Almost all of the new Scripting features are
@@ -93,21 +98,25 @@ Script API:
    Overlay.Rotation.
  - Added Game.FaceDirectionRatio, Room.FaceDirectionRatio, WalkableArea.FaceDirectionRatio
    and Character.FaceDirectionRatio.
+ - Added Character.MoveStraight() complementing WalkStraight().
  - Added DrawingSurface.BlendImage() and DrawingSurface.BlendSurface() functions.
  - Added File.Rename().
  - ListBox.FillSaveGameList(), RestoreGameDialog() and SaveGameDialog() now let define a range
    of save slots for display.
  - Added String.Join(), String.Split() and String.Trim() functions.
  - Added MoveSaveSlot() which renames a savegame.
+ - Added System.GetEngineInteger() and System.GetEngineString() for returning diagnostic
+   information about engine's runtime state. Possible arguments are defined by
+   EngineValueID enum.
  - Added "walkarea[]" and "walkbehind[]" global arrays.
  - Global arrays of game objects (Characters, GUIs, etc) are now declared as arrays of object
    *pointers*. From the user's perspective this is a mere formality, as working with these
    arrays will be syntactically same, but this makes it easier for the engine to handle them
    and objects internally.
- - Overlay.X and Y properties of special screen overlays, such as blocking speech, now treat
+ - Overlay.X and Y properties of textual screen overlays, such as blocking speech, now treat
    assigned values correctly as screen coordinates and return values set by user consistently.
- - Overlay.X and Y properties now always return the assigned values without any offsets for textual
-   overlays created using a TextWindow (having extra borders and padding).
+   They also return the assigned values without any offsets for textual overlays created using
+   a TextWindow (having extra borders and padding).
  - Removed "hasAlphaChannel" param from DynamicSprite.Create() and CreateFromExistingSprite().
  - Removed HasAlphaChannel property from DialogOptionsRenderingInfo.
  - Removed "transparent" param from Overlay.CreateGraphical() and CreateRoomGraphical().
@@ -121,14 +130,18 @@ Engine:
  - Animated buttons now display flipped frames correctly.
  - AudioChannel.Position and PositionMs no longer return a very large value while skipping
    cutscene.
+ - Both blocking and non-blocking videos are buffered and played on a separate thread.
  - DeleteSaveSlot() no longer causes highest save to be renamed to fill a gap in saves.
  - Added FLAC support for music, speech and sound effects.
+ - Added "--no-plugins" command-line argument that denies loading any plugins;
+   also added respective config option.
  - Added "--print-rtti" command line option which prints script RTTI table to the log.
    (RTTI stands for "runtime type information", and is used for handling of certain advanced
    script features, such as nested managed structs.)
 
 
 ===================================================================================================
+
 
 VERSION 3.6.1 - Patch 2, May 2024
 
@@ -392,6 +405,8 @@ WinSetup:
  - Added options for setting texture cache and sound cache size.
  - Added options to disable particular graphic drivers and graphic driver selection,
    and fullscreen mode selection.
+
+---------------------------------------------------------------------------------------------------
 
 
 VERSION 3.6.0 - Patch 11, April 2024
@@ -1421,6 +1436,8 @@ Windows:
 
 WinSetup:
  - Fixed changing fullscreen mode from "use current desktop" to explicit resolution on save.
+
+---------------------------------------------------------------------------------------------------
 
 
 VERSION 3.5.0 - Patch 10, May 2021

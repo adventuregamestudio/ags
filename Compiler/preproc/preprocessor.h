@@ -13,7 +13,7 @@
 //=============================================================================
 #include <stack>
 #include "script/cs_parser_common.h"
-#include "script/cc_macrotable.h"
+#include "preproc/cc_macrotable.h"
 #include "util/string.h"
 #include "util/version.h"
 

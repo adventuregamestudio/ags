@@ -13,7 +13,7 @@
 //=============================================================================
 #include "util/string.h"
 #include "script/cc_common.h"
-#include "script/cc_macrotable.h"
+#include "preproc/cc_macrotable.h"
 
 using namespace AGS::Common;
 

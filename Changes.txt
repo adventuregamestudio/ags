@@ -1,6 +1,6 @@
 REVISION HISTORY
 ===================================================================================================
-AGS 4 - Early Alpha (3.99.*.*)
+AGS 4 - Early Alpha
 
 Common:
  - Most of the deprecated functionality (game settings and script API) is cut out from both
@@ -22,6 +22,7 @@ Editor:
  - Game template selection now displays template's description right in the dialog.
  - F2 is now a hotkey for editing labels in the Project Tree. "Game statistics" are now displayed
    by Ctrl + F2.
+ - Editor tabs now display icons indicating their contents.
  - Script editor supports "word wrap" mode.
  - In General Settings added "Use extended compiler" option that lets to choose a new script
    compiler for your game (see list of changes in related section below).
@@ -96,12 +97,17 @@ Script API:
  - Added File.Rename().
  - ListBox.FillSaveGameList(), RestoreGameDialog() and SaveGameDialog() now let define a range
    of save slots for display.
+ - Added String.Join(), String.Split() and String.Trim() functions.
  - Added MoveSaveSlot() which renames a savegame.
  - Added "walkarea[]" and "walkbehind[]" global arrays.
  - Global arrays of game objects (Characters, GUIs, etc) are now declared as arrays of object
-   *pointers*. From the user's perspective this is a mere formality, as working with these arrays
-   will be syntactically same, but this makes it easier for the engine to handle these arrays
+   *pointers*. From the user's perspective this is a mere formality, as working with these
+   arrays will be syntactically same, but this makes it easier for the engine to handle them
    and objects internally.
+ - Overlay.X and Y properties of special screen overlays, such as blocking speech, now treat
+   assigned values correctly as screen coordinates and return values set by user consistently.
+ - Overlay.X and Y properties now always return the assigned values without any offsets for textual
+   overlays created using a TextWindow (having extra borders and padding).
  - Removed "hasAlphaChannel" param from DynamicSprite.Create() and CreateFromExistingSprite().
  - Removed HasAlphaChannel property from DialogOptionsRenderingInfo.
  - Removed "transparent" param from Overlay.CreateGraphical() and CreateRoomGraphical().

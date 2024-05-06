@@ -28,6 +28,7 @@
 #include "script/runtimescriptvalue.h"
 #include "util/string_compat.h"
 #include "util/utf8.h"
+#include "ac/dynobj/cc_dynamicarray.h"
 
 using namespace AGS::Common;
 
@@ -46,6 +47,64 @@ int String_IsNullOrEmpty(const char *thisString)
         return 1;
 
     return 0;
+}
+
+const char * String_Join(void* arrobj, const char *separator)
+{
+    if(arrobj == nullptr)
+        return CreateNewScriptString("");
+
+    std::vector<void*> items{};
+    if (!DynamicArrayHelpers::ResolvePointerArray(arrobj, items))
+    {
+        // somehow this is not a managed array, this would have to be a compiler error
+        return nullptr;
+    }
+
+    const size_t count = items.size();
+    if(count == 0)
+        return CreateNewScriptString("");
+
+    if(separator == nullptr) {
+        // I am not sure this can actually happen or the compiler will prevent this
+        separator = "";
+    }
+
+    int sep_len, sep_ulen;
+    ustrlen2(separator, &sep_len, &sep_ulen);
+
+    int total_len, total_ulen;
+    total_len = 0;
+    total_ulen = 0;
+    for (uint32_t i = 0; i < count; ++i)
+    {
+        auto address = static_cast<const char*>(items[i]);
+        if (address != nullptr) {
+            auto const& sh = ScriptString::GetHeader(address);
+            total_len += sh.Length;
+            total_ulen += sh.ULength;
+        }
+    }
+    total_len += sep_len * (count - 1);
+    total_ulen += sep_ulen * (count - 1);
+    
+    auto buf = ScriptString::CreateBuffer(total_len, total_ulen);
+
+    // concatenate the array elements with a separator between elements: el1+sep+el2+sep...elN
+    char* p = buf.Get();
+    for (uint32_t i = 0; i < count; ++i)
+    {
+        auto address = static_cast<const char*>(items[i]);
+        if (address != nullptr) {
+            auto const& sh = ScriptString::GetHeader(address);
+            p = std::copy(address, address +sh.Length, p);
+        }
+        if (i != count - 1) {
+            p = std::copy(separator, separator + sep_len, p);
+        }
+    }
+    buf.Get()[total_len] = 0; // Null-terminate joint string
+    return CreateNewScriptString(std::move(buf));
 }
 
 const char* String_Copy(const char *srcString) {
@@ -257,6 +316,45 @@ const char* String_UpperCase(const char *thisString) {
     return CreateNewScriptString(std::move(buf));
 }
 
+void * String_Split(const char *thisString, const char *separator)
+{
+    if (thisString == nullptr)
+        return nullptr;
+
+    auto const &header = ScriptString::GetHeader((void*)thisString);
+
+    if ((thisString[0] == 0) || (separator == nullptr) || (separator[0] == 0) || strlen(separator) > header.Length) {
+        std::vector<DynObjectRef> objs{};
+        objs.push_back(ScriptString::Create(thisString));
+        DynObjectRef arr = DynamicArrayHelpers::CreateScriptArray(std::move(objs));
+        return arr.Obj;
+    }
+
+    std::vector<ScriptString::Buffer> items{};
+    size_t seplen = strlen(separator);
+    const char *ptr = thisString;
+    const char *end = thisString + header.Length;
+    size_t len = 0;
+    while (ptr < end)
+    {
+        const char *found_cstr = strstr(ptr, separator);
+        if (!found_cstr) {
+            found_cstr = end;
+        }
+
+        len = found_cstr - ptr;
+        auto buf = ScriptString::CreateBuffer(len, 0);
+        std::copy(ptr, found_cstr, buf.Get());
+        buf.Get()[len] = 0;
+        items.push_back(std::move(buf));
+
+        ptr = found_cstr + seplen;
+    }
+
+    DynObjectRef arr = DynamicArrayHelpers::CreateStringArrayFromBuffers(std::move(items));
+    return arr.Obj;
+}
+
 int String_GetChars(const char *thisString, int index) {
     auto &header = ScriptString::GetHeader((void*)thisString);
     if ((index < 0) || (static_cast<uint32_t>(index) >= header.ULength))
@@ -385,6 +483,12 @@ RuntimeScriptValue Sc_String_IsNullOrEmpty(const RuntimeScriptValue *params, int
     API_SCALL_INT_POBJ(String_IsNullOrEmpty, const char);
 }
 
+// const char * (void* arrobj, const char *separator)
+RuntimeScriptValue Sc_String_Join(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_POBJ2(const char, myScriptStringImpl, String_Join, void, const char);
+}
+
 // const char* (const char *thisString, const char *extrabit)
 RuntimeScriptValue Sc_String_Append(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -475,6 +579,12 @@ RuntimeScriptValue Sc_String_UpperCase(void *self, const RuntimeScriptValue *par
     API_OBJCALL_OBJ(const char, const char, myScriptStringImpl, String_UpperCase);
 }
 
+// const char* [] (const char *thisString, const char* separator)
+RuntimeScriptValue Sc_String_Split(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ_POBJ(const char, void, globalDynamicArray, String_Split, const char);
+}
+
 // FLOAT_RETURN_TYPE (const char *theString);
 RuntimeScriptValue Sc_StringToFloat(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -518,6 +628,7 @@ void RegisterStringAPI()
     ScFnRegister string_api[] = {
         { "String::IsNullOrEmpty^1",  API_FN_PAIR(String_IsNullOrEmpty) },
         { "String::Format^101",       Sc_String_Format, ScPl_String_Format },
+        { "String::Join^2",           API_FN_PAIR(String_Join) },
 
         { "String::Append^1",         API_FN_PAIR(String_Append) },
         { "String::AppendChar^1",     API_FN_PAIR(String_AppendChar) },
@@ -534,6 +645,7 @@ void RegisterStringAPI()
         { "String::Truncate^1",       API_FN_PAIR(String_Truncate) },
         { "String::Trim^0",           API_FN_PAIR(String_Trim) },
         { "String::UpperCase^0",      API_FN_PAIR(String_UpperCase) },
+        { "String::Split^1",          API_FN_PAIR(String_Split) },
         { "String::get_AsFloat",      API_FN_PAIR(StringToFloat) },
         { "String::get_AsInt",        API_FN_PAIR(StringToInt) },
         { "String::geti_Chars",       API_FN_PAIR(String_GetChars) },

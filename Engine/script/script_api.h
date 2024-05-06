@@ -322,6 +322,10 @@ inline const char *ScriptVSprintf(char *buffer, size_t buf_length, const char *f
     ASSERT_PARAM_COUNT(FUNCTION, 1); \
     return RuntimeScriptValue().SetScriptObject((void*)(RET_CLASS*)FUNCTION((P1CLASS*)params[0].Ptr), &RET_MGR)
 
+#define API_SCALL_OBJ_POBJ2(RET_CLASS, RET_MGR, FUNCTION, P1CLASS, P2CLASS) \
+    ASSERT_PARAM_COUNT(FUNCTION, 2); \
+    return RuntimeScriptValue().SetScriptObject((void*)(RET_CLASS*)FUNCTION((P1CLASS*)params[0].Ptr, (P2CLASS*)params[1].Ptr), &RET_MGR)
+
 #define API_SCALL_OBJAUTO(RET_CLASS, FUNCTION) \
     (void)params; (void)param_count; \
     RET_CLASS* ret_obj = FUNCTION(); \

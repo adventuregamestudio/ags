@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include <algorithm>
+#include "script/cs_parser_common.h"
 #include "preproc/preprocessor.h"
 #include "script/cc_common.h"
 #include "util/textstreamwriter.h"
@@ -34,6 +35,11 @@ namespace Preprocessor {
 #else
     static const char * li_end = "\n";
 #endif
+
+    bool IsScriptWordChar(int c)
+    {
+        return std::isalnum(c) || c == '_';
+    }
 
     class StringBuilder : TextWriter {
     private:
@@ -167,7 +173,7 @@ namespace Preprocessor {
     String Preprocessor::GetNextWord(String &text, bool trimText, bool includeDots) {
         size_t i = 0;
         while ((i < text.GetLength()) &&
-               (is_alphanum(text[i]) ||
+               (IsScriptWordChar(text[i]) ||
                 (includeDots && (text[i] == '.')))
                 ) {
             i++;
@@ -284,7 +290,7 @@ namespace Preprocessor {
                 LogError(ErrorCode::MacroNameMissing);
                 return String("");
             }
-            else if (is_digit(macroName[0]))
+            else if (std::isdigit(macroName[0]))
             {
                 LogError(ErrorCode::MacroNameInvalid, String::FromFormat("Macro name '%s' cannot start with a digit", macroName.GetCStr()));
             }
@@ -353,7 +359,7 @@ namespace Preprocessor {
         while (line.GetLength() > 0)
         {
             size_t i = 0;
-            while ((i < line.GetLength()) && (!is_alphanum(line[i])))
+            while ((i < line.GetLength()) && (!std::isalnum(line[i])))
             {
                 if ((line[i] == '"') || (line[i] == '\''))
                 {

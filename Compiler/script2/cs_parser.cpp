@@ -6739,13 +6739,13 @@ void AGS::Parser::Parse_CheckFixupSanity()
         if (FIXUP_IMPORT != _scrip.fixuptypes[fixup_idx])
             continue;
         int const code_idx = _scrip.fixups[fixup_idx];
-        if (code_idx < 0 || code_idx >= _scrip.code.size())
+        if (code_idx < 0 || static_cast<size_t>(code_idx) >= _scrip.code.size())
             InternalError(
                 "!Fixup #%d references non-existent code offset #%d",
                 fixup_idx,
                 code_idx);
         int const cv = _scrip.code[code_idx];
-        if (cv < 0 || cv >= _scrip.imports.size() || '\0' == _scrip.imports[cv][0])
+        if (cv < 0 || static_cast<size_t>(cv) >= _scrip.imports.size() || '\0' == _scrip.imports[cv][0])
             InternalError(
                 "Fixup #%d references non-existent import #%d",
                 fixup_idx,

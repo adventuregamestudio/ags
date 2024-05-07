@@ -1308,16 +1308,16 @@ TEST_F(Compile1, FixupMismatch) {
     // Sanity check for import fixups: The corresponding Bytecode must
     // point into the imports[] array, and the corresponding slot must
     // contain a non-empty string.
-    for (size_t fixup_idx = 0; fixup_idx < static_cast<size_t>(scrip.numfixups); fixup_idx++)
+    for (size_t fixup_idx = 0; fixup_idx < scrip.fixups.size(); fixup_idx++)
     {
         if (FIXUP_IMPORT != scrip.fixuptypes[fixup_idx])
             continue;
         int const code_idx = scrip.fixups[fixup_idx];
-        EXPECT_TRUE(code_idx < scrip.codesize);
+        EXPECT_TRUE(code_idx > 0 && static_cast<size_t>(code_idx) < scrip.code.size());
 
         int const cv = scrip.code[code_idx];
         EXPECT_TRUE(cv >= 0);
-        EXPECT_TRUE(cv < scrip.numimports);
+        EXPECT_TRUE(static_cast<size_t>(cv) < scrip.imports.size());
         EXPECT_FALSE('\0' == scrip.imports[cv][0]);
     }
 }

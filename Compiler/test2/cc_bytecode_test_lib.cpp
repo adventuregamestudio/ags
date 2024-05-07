@@ -62,14 +62,14 @@ std::string EscapeString(const char *in)
 
 void WriteOutputCode(std::ofstream &of, AGS::ccCompiledScript const &scrip)
 {
-    of << "size_t const codesize = " << scrip.codesize << ";" << std::endl;
-    of << "EXPECT_EQ(codesize, scrip.codesize);" << std::endl << std::endl;
+    of << "size_t const codesize = " << scrip.code.size() << ";" << std::endl;
+    of << "EXPECT_EQ(codesize, scrip.code.size());" << std::endl << std::endl;
 
-    if (scrip.codesize == 0)
+    if (scrip.code.size() == 0)
         return;
 
     of << "int32_t code[] = {" << std::endl;
-    for (size_t idx = 0; static_cast<int>(idx) < scrip.codesize; idx++)
+    for (size_t idx = 0; idx < scrip.code.size(); idx++)
     {
         of.width(4);
         of << scrip.code[idx] << ", ";
@@ -85,7 +85,7 @@ void CompareCode(AGS::ccCompiledScript *scrip, size_t codesize, int32_t code[])
 {
     for (size_t idx = 0; idx < codesize; idx++)
     {
-         if (static_cast<int>(idx) >= scrip->codesize)
+         if (idx >= scrip->code.size())
              break;
          std::string prefix = "code[" + std::to_string(idx) + "] == ";
          std::string should_be_val = prefix + std::to_string(code[idx]);
@@ -96,14 +96,14 @@ void CompareCode(AGS::ccCompiledScript *scrip, size_t codesize, int32_t code[])
 
 void WriteOutputFixups(std::ofstream &of, AGS::ccCompiledScript const &scrip)
 {
-    of << "size_t const numfixups = " << scrip.numfixups << ";" << std::endl;
-    of << "EXPECT_EQ(numfixups, scrip.numfixups);" << std::endl << std::endl;
+    of << "size_t const numfixups = " << scrip.fixups.size() << ";" << std::endl;
+    of << "EXPECT_EQ(numfixups, scrip.fixups.size());" << std::endl << std::endl;
 
-    if (scrip.numfixups == 0)
+    if (scrip.fixups.size() == 0)
         return;
 
     of << "int32_t fixups[] = {" << std::endl;
-    for (size_t idx = 0; static_cast<int>(idx) < scrip.numfixups; idx++)
+    for (size_t idx = 0; idx < scrip.fixups.size(); idx++)
     {
         of.width(4);
         of << scrip.fixups[idx] << ", ";
@@ -113,7 +113,7 @@ void WriteOutputFixups(std::ofstream &of, AGS::ccCompiledScript const &scrip)
     of << " -999 " << std::endl << "};" << std::endl;
     
     of << "char fixuptypes[] = {" << std::endl;
-    for (size_t idx = 0; static_cast<int>(idx) < scrip.numfixups; idx++)
+    for (size_t idx = 0; idx < scrip.fixups.size(); idx++)
     {
         of.width(3);
         of << static_cast<int>(scrip.fixuptypes[idx]) << ", ";
@@ -129,7 +129,7 @@ void CompareFixups(AGS::ccCompiledScript *scrip, size_t numfixups, int32_t fixup
 {
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-         if (static_cast<int>(idx) >= scrip->numfixups) break;
+         if (idx >= scrip->fixups.size()) break;
          std::string const prefix = "fixups[" + std::to_string(idx) + "] == ";
          std::string const should_be_val = prefix + std::to_string(fixups[idx]);
          std::string const is_val = prefix + std::to_string(scrip->fixups[idx]);
@@ -138,7 +138,7 @@ void CompareFixups(AGS::ccCompiledScript *scrip, size_t numfixups, int32_t fixup
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-         if (static_cast<int>(idx) >= scrip->numfixups) break;
+         if (static_cast<int>(idx) >= scrip->fixups.size()) break;
          std::string const prefix = "fixuptypes[" + std::to_string(idx) + "] == ";
          std::string const should_be_val = prefix + std::to_string(fixuptypes[idx]);
          std::string const is_val = prefix + std::to_string(scrip->fixuptypes[idx]);
@@ -152,8 +152,8 @@ void WriteOutputImports(std::ofstream &of, AGS::ccCompiledScript const &scrip)
     // mustn't be counted. So we can't just believe numimports,
     // and we can't check against scrip.numimports.
     size_t realNumImports = 0;
-    for (size_t idx = 0; static_cast<int>(idx) < scrip.numimports; idx++)
-        if (0 != strcmp(scrip.imports[idx], ""))
+    for (size_t idx = 0; idx < scrip.imports.size(); idx++)
+        if (0 != strcmp(scrip.imports[idx].c_str(), ""))
             ++realNumImports;
 
     of << "int const numimports = " << realNumImports << ";" << std::endl;
@@ -161,12 +161,12 @@ void WriteOutputImports(std::ofstream &of, AGS::ccCompiledScript const &scrip)
     of << "std::string imports[] = {" << std::endl;
 
     size_t linelen = 0;
-    for (size_t idx = 0; static_cast<int>(idx) < scrip.numimports; idx++)
+    for (size_t idx = 0; idx < scrip.imports.size(); idx++)
     {
-        if (!strcmp(scrip.imports[idx], ""))
+        if (!strcmp(scrip.imports[idx].c_str(), ""))
             continue;
 
-        std::string item = EscapeString(scrip.imports[idx]);
+        std::string item = EscapeString(scrip.imports[idx].c_str());
         item += ",";
         item += std::string(15 - (item.length() % 15), ' ');
         of << item;
@@ -185,9 +185,9 @@ void WriteOutputImports(std::ofstream &of, AGS::ccCompiledScript const &scrip)
 void CompareImports(AGS::ccCompiledScript *scrip, size_t numimports, std::string imports[])
 {
     int idx2 = -1;
-    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
+    for (size_t idx = 0; idx < scrip->imports.size(); idx++)
     {
-         if (!strcmp(scrip->imports[idx], ""))
+         if (!strcmp(scrip->imports[idx].c_str(), ""))
              continue;
          idx2++;
          ASSERT_LT(static_cast<size_t>(idx2), numimports); // idx2 is sure to be non-negative here
@@ -200,18 +200,18 @@ void CompareImports(AGS::ccCompiledScript *scrip, size_t numimports, std::string
 
 void WriteOutputExports(std::ofstream &of, AGS::ccCompiledScript const &scrip)
 {
-    of << "size_t const numexports = " << scrip.numexports << ";" << std::endl;
-    of << "EXPECT_EQ(numexports, scrip.numexports);" << std::endl << std::endl;
+    of << "size_t const numexports = " << scrip.exports.size() << ";" << std::endl;
+    of << "EXPECT_EQ(numexports, scrip.exports.size());" << std::endl << std::endl;
 
-    if (scrip.numexports == 0)
+    if (scrip.exports.size() == 0)
         return;
 
     of << "std::string exports[] = {" << std::endl;
 
     size_t linelen = 0;
-    for (size_t idx = 0; static_cast<int>(idx) < scrip.numexports; idx++)
+    for (size_t idx = 0; idx < scrip.exports.size(); idx++)
     {
-        std::string item = EscapeString(scrip.exports[idx]);
+        std::string item = EscapeString(scrip.exports[idx].c_str());
         item += ",";
         item += std::string(6 - (item.length() % 6), ' ');
         of << item;
@@ -226,7 +226,7 @@ void WriteOutputExports(std::ofstream &of, AGS::ccCompiledScript const &scrip)
 
     of << "int32_t export_addr[] = {" << std::endl;
 
-    for (size_t idx = 0; static_cast<int>(idx) < scrip.numexports; idx++)
+    for (size_t idx = 0; idx < scrip.exports.size(); idx++)
     {
         of.setf(std::ios::hex, std::ios::basefield);
         of.setf(std::ios::showbase);
@@ -256,7 +256,7 @@ void CompareExports(AGS::ccCompiledScript *scrip, size_t numexports, std::string
 {
     for (size_t idx = 0; idx < numexports; idx++)
     {
-        if (static_cast<int>(idx) >= scrip->numexports)
+        if (idx >= scrip->exports.size())
             break;
         std::string const prefix = "exports[" + std::to_string(idx) + "] == ";
         std::string const should_be_val = prefix + "\"" + exports[idx] + "\"";
@@ -265,7 +265,7 @@ void CompareExports(AGS::ccCompiledScript *scrip, size_t numexports, std::string
     }
     for (size_t idx = 0; idx < numexports; idx++)
     {
-        if (static_cast<int>(idx) >= scrip->numexports)
+        if (idx >= scrip->exports.size())
             break;
         std::string const prefix = "export_addr[" + std::to_string(idx) + "] == ";
         std::string const should_be_val = prefix + std::to_string(export_addr[idx]);
@@ -277,14 +277,14 @@ void CompareExports(AGS::ccCompiledScript *scrip, size_t numexports, std::string
 
 void WriteOutputStrings(std::ofstream &of, AGS::ccCompiledScript const &scrip)
 {
-    of << "size_t const stringssize = " << scrip.stringssize << ";" << std::endl;
-    of << "EXPECT_EQ(stringssize, scrip.stringssize);" << std::endl << std::endl;
+    of << "size_t const stringssize = " << scrip.strings.size() << ";" << std::endl;
+    of << "EXPECT_EQ(stringssize, scrip.strings.size());" << std::endl << std::endl;
 
-    if (scrip.stringssize == 0)
+    if (scrip.strings.size() == 0)
         return;
 
     of << "char strings[] = {" << std::endl;
-    for (size_t idx = 0; static_cast<int>(idx) < scrip.stringssize; idx++)
+    for (size_t idx = 0; idx < scrip.strings.size(); idx++)
     {
         std::string out = "";
         if (scrip.strings[idx] == 0)
@@ -304,7 +304,7 @@ void CompareStrings(AGS::ccCompiledScript *scrip, size_t stringssize, char strin
 {
     for (size_t idx = 0; idx < stringssize; idx++)
     {
-         if (static_cast<int32_t>(idx) >= scrip->stringssize)
+         if (idx >= scrip->strings.size())
              break;
          std::string const prefix = "strings[" + std::to_string(idx) + "] == ";
          std::string const should_be_val = prefix + std::to_string(strings[idx]);

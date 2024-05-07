@@ -64,7 +64,7 @@ TEST_F(Bytecode1, StringOldstyle01) {
     // WriteOutput("StringOldstyle01", scrip);
 
     size_t const codesize = 34;
-    EXPECT_EQ(codesize, scrip.codesize);
+    EXPECT_EQ(codesize, scrip.code.size());
 
     int32_t code[] = {
       36,    6,   38,    0,           36,    7,   51,    0,    // 7
@@ -76,7 +76,7 @@ TEST_F(Bytecode1, StringOldstyle01) {
     CompareCode(&scrip, codesize, code);
 
     size_t const numfixups = 1;
-    EXPECT_EQ(numfixups, scrip.numfixups);
+    EXPECT_EQ(numfixups, scrip.fixups.size());
 
     int32_t fixups[] = {
       26,  -999
@@ -93,10 +93,10 @@ TEST_F(Bytecode1, StringOldstyle01) {
     CompareImports(&scrip, numimports, imports);
 
     size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.numexports);
+    EXPECT_EQ(numexports, scrip.exports.size());
 
     size_t const stringssize = 0;
-    EXPECT_EQ(stringssize, scrip.stringssize);
+    EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
 TEST_F(Bytecode1, StringOldstyle02) {
@@ -121,7 +121,7 @@ TEST_F(Bytecode1, StringOldstyle02) {
     // WriteOutput("StringOldstyle02", scrip);
 
     size_t const codesize = 35;
-    EXPECT_EQ(codesize, scrip.codesize);
+    EXPECT_EQ(codesize, scrip.code.size());
 
     int32_t code[] = {
       36,    2,   38,    0,           36,    3,    6,    3,    // 7
@@ -133,7 +133,7 @@ TEST_F(Bytecode1, StringOldstyle02) {
     CompareCode(&scrip, codesize, code);
 
     size_t const numfixups = 2;
-    EXPECT_EQ(numfixups, scrip.numfixups);
+    EXPECT_EQ(numfixups, scrip.fixups.size());
 
     int32_t fixups[] = {
       18,   23,  -999
@@ -150,10 +150,10 @@ TEST_F(Bytecode1, StringOldstyle02) {
     CompareImports(&scrip, numimports, imports);
 
     size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.numexports);
+    EXPECT_EQ(numexports, scrip.exports.size());
 
     size_t const stringssize = 4;
-    EXPECT_EQ(stringssize, scrip.stringssize);
+    EXPECT_EQ(stringssize, scrip.strings.size());
 
     char strings[] = {
     'F',  'o',  'o',    0,          '\0'
@@ -187,7 +187,7 @@ TEST_F(Bytecode1, StringOldstyle03) {
     // WriteOutput("StringOldstyle03", scrip);
 
     size_t const codesize = 88;
-    EXPECT_EQ(codesize, scrip.codesize);
+    EXPECT_EQ(codesize, scrip.code.size());
 
     int32_t code[] = {
       36,    6,   38,    0,           36,    7,    6,    3,    // 7
@@ -206,7 +206,7 @@ TEST_F(Bytecode1, StringOldstyle03) {
     CompareCode(&scrip, codesize, code);
 
     size_t const numfixups = 3;
-    EXPECT_EQ(numfixups, scrip.numfixups);
+    EXPECT_EQ(numfixups, scrip.fixups.size());
 
     int32_t fixups[] = {
        8,   68,   76,  -999
@@ -223,10 +223,10 @@ TEST_F(Bytecode1, StringOldstyle03) {
     CompareImports(&scrip, numimports, imports);
 
     size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.numexports);
+    EXPECT_EQ(numexports, scrip.exports.size());
 
     size_t const stringssize = 10;
-    EXPECT_EQ(stringssize, scrip.stringssize);
+    EXPECT_EQ(stringssize, scrip.strings.size());
 
     char strings[] = {
     'P',  'a',  'r',  'a',          'm',  'e',  't',  'e',     // 7
@@ -258,7 +258,7 @@ TEST_F(Bytecode1, StringOldstyle04) {
     // WriteOutput("StringOldstyle04", scrip);
 
     size_t const codesize = 94;
-    EXPECT_EQ(codesize, scrip.codesize);
+    EXPECT_EQ(codesize, scrip.code.size());
 
     int32_t code[] = {
       36,    4,   38,    0,           36,    5,    6,    2,    // 7
@@ -277,7 +277,7 @@ TEST_F(Bytecode1, StringOldstyle04) {
     CompareCode(&scrip, codesize, code);
 
     size_t const numfixups = 2;
-    EXPECT_EQ(numfixups, scrip.numfixups);
+    EXPECT_EQ(numfixups, scrip.fixups.size());
 
     int32_t fixups[] = {
        8,   16,  -999
@@ -294,10 +294,10 @@ TEST_F(Bytecode1, StringOldstyle04) {
     CompareImports(&scrip, numimports, imports);
 
     size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.numexports);
+    EXPECT_EQ(numexports, scrip.exports.size());
 
     size_t const stringssize = 0;
-    EXPECT_EQ(stringssize, scrip.stringssize);
+    EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
 TEST_F(Bytecode1, StringOldstyle05) {
@@ -319,7 +319,7 @@ TEST_F(Bytecode1, StringOldstyle05) {
     // WriteOutput("StringOldstyle05", scrip);
 
     size_t const codesize = 131;
-    EXPECT_EQ(codesize, scrip.codesize);
+    EXPECT_EQ(codesize, scrip.code.size());
 
     int32_t code[] = {
       36,    2,   38,    0,           36,    3,    6,    3,    // 7
@@ -343,7 +343,7 @@ TEST_F(Bytecode1, StringOldstyle05) {
     CompareCode(&scrip, codesize, code);
 
     size_t const numfixups = 2;
-    EXPECT_EQ(numfixups, scrip.numfixups);
+    EXPECT_EQ(numfixups, scrip.fixups.size());
 
     int32_t fixups[] = {
        8,   73,  -999
@@ -360,10 +360,10 @@ TEST_F(Bytecode1, StringOldstyle05) {
     CompareImports(&scrip, numimports, imports);
 
     size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.numexports);
+    EXPECT_EQ(numexports, scrip.exports.size());
 
     size_t const stringssize = 13;
-    EXPECT_EQ(stringssize, scrip.stringssize);
+    EXPECT_EQ(stringssize, scrip.strings.size());
 
     char strings[] = {
     'H',  'o',  'l',  'z',          '-',    0,  '-',  'S',     // 7
@@ -396,7 +396,7 @@ TEST_F(Bytecode1, StringStandard01) {
     // WriteOutput("StringStandard01", scrip);
 
     size_t const codesize = 63;
-    EXPECT_EQ(codesize, scrip.codesize);
+    EXPECT_EQ(codesize, scrip.code.size());
 
     int32_t code[] = {
       36,    2,   38,    0,           36,    3,    6,    3,    // 7
@@ -411,7 +411,7 @@ TEST_F(Bytecode1, StringStandard01) {
     CompareCode(&scrip, codesize, code);
 
     size_t const numfixups = 2;
-    EXPECT_EQ(numfixups, scrip.numfixups);
+    EXPECT_EQ(numfixups, scrip.fixups.size());
 
     int32_t fixups[] = {
        8,   28,  -999
@@ -428,10 +428,10 @@ TEST_F(Bytecode1, StringStandard01) {
     CompareImports(&scrip, numimports, imports);
 
     size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.numexports);
+    EXPECT_EQ(numexports, scrip.exports.size());
 
     size_t const stringssize = 18;
-    EXPECT_EQ(stringssize, scrip.stringssize);
+    EXPECT_EQ(stringssize, scrip.strings.size());
 
     char strings[] = {
     'H',  'e',  'l',  'l',          'o',  ',',  ' ',  'w',     // 7
@@ -477,7 +477,7 @@ TEST_F(Bytecode1, StringStandard02) {
     // WriteOutput("StringStandard02", scrip);
 
     size_t const codesize = 101;
-    EXPECT_EQ(codesize, scrip.codesize);
+    EXPECT_EQ(codesize, scrip.code.size());
 
     int32_t code[] = {
       36,    4,   38,    0,           36,    5,    6,    2,    // 7
@@ -497,7 +497,7 @@ TEST_F(Bytecode1, StringStandard02) {
     CompareCode(&scrip, codesize, code);
 
     size_t const numfixups = 3;
-    EXPECT_EQ(numfixups, scrip.numfixups);
+    EXPECT_EQ(numfixups, scrip.fixups.size());
 
     int32_t fixups[] = {
        8,   53,   97,  -999
@@ -514,10 +514,10 @@ TEST_F(Bytecode1, StringStandard02) {
     CompareImports(&scrip, numimports, imports);
 
     size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.numexports);
+    EXPECT_EQ(numexports, scrip.exports.size());
 
     size_t const stringssize = 14;
-    EXPECT_EQ(stringssize, scrip.stringssize);
+    EXPECT_EQ(stringssize, scrip.strings.size());
 
     char strings[] = {
     'H',  'e',  'l',  'l',          'o',  '!',    0,  'H',     // 7
@@ -562,7 +562,7 @@ TEST_F(Bytecode1, StringStandardOldstyle) {
     // WriteOutput("StringStandardOldstyle", scrip);
 
     size_t const codesize = 120;
-    EXPECT_EQ(codesize, scrip.codesize);
+    EXPECT_EQ(codesize, scrip.code.size());
 
     int32_t code[] = {
       36,    3,   38,    0,           36,    4,    6,    2,    // 7
@@ -585,7 +585,7 @@ TEST_F(Bytecode1, StringStandardOldstyle) {
     CompareCode(&scrip, codesize, code);
 
     size_t const numfixups = 5;
-    EXPECT_EQ(numfixups, scrip.numfixups);
+    EXPECT_EQ(numfixups, scrip.fixups.size());
 
     int32_t fixups[] = {
        8,   56,   63,   83,        105,  -999
@@ -602,10 +602,10 @@ TEST_F(Bytecode1, StringStandardOldstyle) {
     CompareImports(&scrip, numimports, imports);
 
     size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.numexports);
+    EXPECT_EQ(numexports, scrip.exports.size());
 
     size_t const stringssize = 12;
-    EXPECT_EQ(stringssize, scrip.stringssize);
+    EXPECT_EQ(stringssize, scrip.strings.size());
 
     char strings[] = {
     'H',  'e',  'l',  'l',          'o',    0,  'H',  'e',     // 7
@@ -644,7 +644,7 @@ TEST_F(Bytecode1, AccessStructAsPointer01) {
     // WriteOutput("AccessStructAsPointer01", scrip);
 
     size_t const codesize = 45;
-    EXPECT_EQ(codesize, scrip.codesize);
+    EXPECT_EQ(codesize, scrip.code.size());
 
     int32_t code[] = {
       36,   12,   38,    0,           36,   13,    6,    2,    // 7
@@ -657,7 +657,7 @@ TEST_F(Bytecode1, AccessStructAsPointer01) {
     CompareCode(&scrip, codesize, code);
 
     size_t const numfixups = 3;
-    EXPECT_EQ(numfixups, scrip.numfixups);
+    EXPECT_EQ(numfixups, scrip.fixups.size());
 
     int32_t fixups[] = {
        8,   16,   32,  -999
@@ -675,10 +675,10 @@ TEST_F(Bytecode1, AccessStructAsPointer01) {
     CompareImports(&scrip, numimports, imports);
 
     size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.numexports);
+    EXPECT_EQ(numexports, scrip.exports.size());
 
     size_t const stringssize = 0;
-    EXPECT_EQ(stringssize, scrip.stringssize);
+    EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
 TEST_F(Bytecode1, AccessStructAsPointer02) {
@@ -709,7 +709,7 @@ TEST_F(Bytecode1, AccessStructAsPointer02) {
     // WriteOutput("AccessStructAsPointer02", scrip);
 
     size_t const codesize = 64;
-    EXPECT_EQ(codesize, scrip.codesize);
+    EXPECT_EQ(codesize, scrip.code.size());
 
     int32_t code[] = {
       36,   11,   38,    0,           36,   12,    6,    2,    // 7
@@ -725,7 +725,7 @@ TEST_F(Bytecode1, AccessStructAsPointer02) {
     CompareCode(&scrip, codesize, code);
 
     size_t const numfixups = 3;
-    EXPECT_EQ(numfixups, scrip.numfixups);
+    EXPECT_EQ(numfixups, scrip.fixups.size());
 
     int32_t fixups[] = {
        8,   23,   45,  -999
@@ -743,10 +743,10 @@ TEST_F(Bytecode1, AccessStructAsPointer02) {
     CompareImports(&scrip, numimports, imports);
 
     size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.numexports);
+    EXPECT_EQ(numexports, scrip.exports.size());
 
     size_t const stringssize = 0;
-    EXPECT_EQ(stringssize, scrip.stringssize);
+    EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
 TEST_F(Bytecode1, AccessStructAsPointer03) {
@@ -778,7 +778,7 @@ TEST_F(Bytecode1, AccessStructAsPointer03) {
     // WriteOutput("AccessStructAsPointer03", scrip);
 
     size_t const codesize = 34;
-    EXPECT_EQ(codesize, scrip.codesize);
+    EXPECT_EQ(codesize, scrip.code.size());
 
     int32_t code[] = {
       36,   13,   38,    0,           36,   14,    6,    2,    // 7
@@ -790,7 +790,7 @@ TEST_F(Bytecode1, AccessStructAsPointer03) {
     CompareCode(&scrip, codesize, code);
 
     size_t const numfixups = 1;
-    EXPECT_EQ(numfixups, scrip.numfixups);
+    EXPECT_EQ(numfixups, scrip.fixups.size());
 
     int32_t fixups[] = {
        8,  -999
@@ -807,10 +807,10 @@ TEST_F(Bytecode1, AccessStructAsPointer03) {
     CompareImports(&scrip, numimports, imports);
 
     size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.numexports);
+    EXPECT_EQ(numexports, scrip.exports.size());
 
     size_t const stringssize = 0;
-    EXPECT_EQ(stringssize, scrip.stringssize);
+    EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
 TEST_F(Bytecode1, Attributes01) {
@@ -843,7 +843,7 @@ TEST_F(Bytecode1, Attributes01) {
     // WriteOutput("Attributes01", scrip);
 
     size_t const codesize = 170;
-    EXPECT_EQ(codesize, scrip.codesize);
+    EXPECT_EQ(codesize, scrip.code.size());
 
     int32_t code[] = {
       36,    9,   38,    0,           36,   10,   51,    0,    // 7
@@ -872,7 +872,7 @@ TEST_F(Bytecode1, Attributes01) {
     CompareCode(&scrip, codesize, code);
 
     size_t const numfixups = 6;
-    EXPECT_EQ(numfixups, scrip.numfixups);
+    EXPECT_EQ(numfixups, scrip.fixups.size());
 
     int32_t fixups[] = {
       27,   54,   76,   96,        126,  158,  -999
@@ -890,10 +890,10 @@ TEST_F(Bytecode1, Attributes01) {
     CompareImports(&scrip, numimports, imports);
 
     size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.numexports);
+    EXPECT_EQ(numexports, scrip.exports.size());
 
     size_t const stringssize = 0;
-    EXPECT_EQ(stringssize, scrip.stringssize);
+    EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
 TEST_F(Bytecode1, Attributes02_NoRTTI) {
@@ -938,7 +938,7 @@ TEST_F(Bytecode1, Attributes02_NoRTTI) {
     // WriteOutput("Attributes02_NoRtti", scrip);
 
     size_t const codesize = 139;
-    EXPECT_EQ(codesize, scrip.codesize);
+    EXPECT_EQ(codesize, scrip.code.size());
 
     int32_t code[] = {
       36,    8,   38,    0,           36,    9,   73,    3,    // 7
@@ -963,7 +963,7 @@ TEST_F(Bytecode1, Attributes02_NoRTTI) {
     CompareCode(&scrip, codesize, code);
 
     size_t const numfixups = 2;
-    EXPECT_EQ(numfixups, scrip.numfixups);
+    EXPECT_EQ(numfixups, scrip.fixups.size());
 
     int32_t fixups[] = {
       34,   55,  -999
@@ -980,10 +980,10 @@ TEST_F(Bytecode1, Attributes02_NoRTTI) {
     CompareImports(&scrip, numimports, imports);
 
     size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.numexports);
+    EXPECT_EQ(numexports, scrip.exports.size());
 
     size_t const stringssize = 0;
-    EXPECT_EQ(stringssize, scrip.stringssize);
+    EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
 TEST_F(Bytecode1, Attributes02_RTTI) {
@@ -1027,7 +1027,7 @@ TEST_F(Bytecode1, Attributes02_RTTI) {
 
     // WriteOutput("Attributes02_Rtti", scrip);
     size_t const codesize = 140;
-    EXPECT_EQ(codesize, scrip.codesize);
+    EXPECT_EQ(codesize, scrip.code.size());
 
     int32_t code[] = {
       36,    8,   38,    0,           36,    9,   74,    3,    // 7
@@ -1052,7 +1052,7 @@ TEST_F(Bytecode1, Attributes02_RTTI) {
     CompareCode(&scrip, codesize, code);
 
     size_t const numfixups = 2;
-    EXPECT_EQ(numfixups, scrip.numfixups);
+    EXPECT_EQ(numfixups, scrip.fixups.size());
 
     int32_t fixups[] = {
       35,   56,  -999
@@ -1069,10 +1069,10 @@ TEST_F(Bytecode1, Attributes02_RTTI) {
     CompareImports(&scrip, numimports, imports);
 
     size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.numexports);
+    EXPECT_EQ(numexports, scrip.exports.size());
 
     size_t const stringssize = 0;
-    EXPECT_EQ(stringssize, scrip.stringssize);
+    EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
 TEST_F(Bytecode1, Attributes03_NoRTTI) {
@@ -1103,7 +1103,7 @@ TEST_F(Bytecode1, Attributes03_NoRTTI) {
     // WriteOutput("Attributes03_NoRtti", scrip);
 
     size_t const codesize = 83;
-    EXPECT_EQ(codesize, scrip.codesize);
+    EXPECT_EQ(codesize, scrip.code.size());
 
     int32_t code[] = {
       36,    8,   38,    0,           36,    9,   73,    3,    // 7
@@ -1121,7 +1121,7 @@ TEST_F(Bytecode1, Attributes03_NoRTTI) {
     CompareCode(&scrip, codesize, code);
 
     size_t const numfixups = 2;
-    EXPECT_EQ(numfixups, scrip.numfixups);
+    EXPECT_EQ(numfixups, scrip.fixups.size());
 
     int32_t fixups[] = {
       36,   58,  -999
@@ -1138,10 +1138,10 @@ TEST_F(Bytecode1, Attributes03_NoRTTI) {
     CompareImports(&scrip, numimports, imports);
 
     size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.numexports);
+    EXPECT_EQ(numexports, scrip.exports.size());
 
     size_t const stringssize = 0;
-    EXPECT_EQ(stringssize, scrip.stringssize);
+    EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
 TEST_F(Bytecode1, Attributes03_RTTI) {
@@ -1171,7 +1171,7 @@ TEST_F(Bytecode1, Attributes03_RTTI) {
 
     // WriteOutput("Attributes03_Rtti", scrip);
     size_t const codesize = 84;
-    EXPECT_EQ(codesize, scrip.codesize);
+    EXPECT_EQ(codesize, scrip.code.size());
 
     int32_t code[] = {
       36,    8,   38,    0,           36,    9,   74,    3,    // 7
@@ -1189,7 +1189,7 @@ TEST_F(Bytecode1, Attributes03_RTTI) {
     CompareCode(&scrip, codesize, code);
 
     size_t const numfixups = 2;
-    EXPECT_EQ(numfixups, scrip.numfixups);
+    EXPECT_EQ(numfixups, scrip.fixups.size());
 
     int32_t fixups[] = {
       37,   59,  -999
@@ -1206,10 +1206,10 @@ TEST_F(Bytecode1, Attributes03_RTTI) {
     CompareImports(&scrip, numimports, imports);
 
     size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.numexports);
+    EXPECT_EQ(numexports, scrip.exports.size());
 
     size_t const stringssize = 0;
-    EXPECT_EQ(stringssize, scrip.stringssize);
+    EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
 TEST_F(Bytecode1, Attributes04) {
@@ -1234,7 +1234,7 @@ TEST_F(Bytecode1, Attributes04) {
     // WriteOutput("Attributes04", scrip);
 
     size_t const codesize = 64;
-    EXPECT_EQ(codesize, scrip.codesize);
+    EXPECT_EQ(codesize, scrip.code.size());
 
     int32_t code[] = {
       36,    7,   38,    0,           36,    8,    6,    3,    // 7
@@ -1250,7 +1250,7 @@ TEST_F(Bytecode1, Attributes04) {
     CompareCode(&scrip, codesize, code);
 
     size_t const numfixups = 4;
-    EXPECT_EQ(numfixups, scrip.numfixups);
+    EXPECT_EQ(numfixups, scrip.fixups.size());
 
     int32_t fixups[] = {
       13,   25,   37,   51,        -999
@@ -1268,10 +1268,10 @@ TEST_F(Bytecode1, Attributes04) {
     CompareImports(&scrip, numimports, imports);
 
     size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.numexports);
+    EXPECT_EQ(numexports, scrip.exports.size());
 
     size_t const stringssize = 0;
-    EXPECT_EQ(stringssize, scrip.stringssize);
+    EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
 TEST_F(Bytecode1, Attributes05) {
@@ -1306,7 +1306,7 @@ TEST_F(Bytecode1, Attributes05) {
     // WriteOutput("Attributes05", scrip);
 
     size_t const codesize = 30;
-    EXPECT_EQ(codesize, scrip.codesize);
+    EXPECT_EQ(codesize, scrip.code.size());
 
     int32_t code[] = {
       36,   14,   38,    0,           36,   15,   39,    0,    // 7
@@ -1317,7 +1317,7 @@ TEST_F(Bytecode1, Attributes05) {
     CompareCode(&scrip, codesize, code);
 
     size_t const numfixups = 1;
-    EXPECT_EQ(numfixups, scrip.numfixups);
+    EXPECT_EQ(numfixups, scrip.fixups.size());
 
     int32_t fixups[] = {
       10,  -999
@@ -1334,10 +1334,10 @@ TEST_F(Bytecode1, Attributes05) {
     CompareImports(&scrip, numimports, imports);
 
     size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.numexports);
+    EXPECT_EQ(numexports, scrip.exports.size());
 
     size_t const stringssize = 0;
-    EXPECT_EQ(stringssize, scrip.stringssize);
+    EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
 TEST_F(Bytecode1, Attributes06) {
@@ -1363,7 +1363,7 @@ TEST_F(Bytecode1, Attributes06) {
     // WriteOutput("Attributes06", scrip);
 
     size_t const codesize = 28;
-    EXPECT_EQ(codesize, scrip.codesize);
+    EXPECT_EQ(codesize, scrip.code.size());
 
     int32_t code[] = {
       36,    8,   38,    0,           36,    9,    6,    3,    // 7
@@ -1374,7 +1374,7 @@ TEST_F(Bytecode1, Attributes06) {
     CompareCode(&scrip, codesize, code);
 
     size_t const numfixups = 1;
-    EXPECT_EQ(numfixups, scrip.numfixups);
+    EXPECT_EQ(numfixups, scrip.fixups.size());
 
     int32_t fixups[] = {
       15,  -999
@@ -1391,10 +1391,10 @@ TEST_F(Bytecode1, Attributes06) {
     CompareImports(&scrip, numimports, imports);
 
     size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.numexports);
+    EXPECT_EQ(numexports, scrip.exports.size());
 
     size_t const stringssize = 0;
-    EXPECT_EQ(stringssize, scrip.stringssize);
+    EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
 TEST_F(Bytecode1, Attributes07) {
@@ -1422,7 +1422,7 @@ TEST_F(Bytecode1, Attributes07) {
     // WriteOutput("Attributes07", scrip);
 
     size_t const codesize = 34;
-    EXPECT_EQ(codesize, scrip.codesize);
+    EXPECT_EQ(codesize, scrip.code.size());
 
     int32_t code[] = {
       36,    7,   38,    0,           36,    8,    6,    3,    // 7
@@ -1434,7 +1434,7 @@ TEST_F(Bytecode1, Attributes07) {
     CompareCode(&scrip, codesize, code);
 
     size_t const numfixups = 3;
-    EXPECT_EQ(numfixups, scrip.numfixups);
+    EXPECT_EQ(numfixups, scrip.fixups.size());
 
     int32_t fixups[] = {
        8,   11,   24,  -999
@@ -1451,10 +1451,10 @@ TEST_F(Bytecode1, Attributes07) {
     CompareImports(&scrip, numimports, imports);
 
     size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.numexports);
+    EXPECT_EQ(numexports, scrip.exports.size());
 
     size_t const stringssize = 1;
-    EXPECT_EQ(stringssize, scrip.stringssize);
+    EXPECT_EQ(stringssize, scrip.strings.size());
 
     char strings[] = {
       0,  '\0'
@@ -1499,7 +1499,7 @@ TEST_F(Bytecode1, Attributes08) {
     // WriteOutput("Attributes08", scrip);
 
     size_t const codesize = 123;
-    EXPECT_EQ(codesize, scrip.codesize);
+    EXPECT_EQ(codesize, scrip.code.size());
 
     int32_t code[] = {
       36,   12,   38,    0,           51,   12,    7,    3,    // 7
@@ -1522,7 +1522,7 @@ TEST_F(Bytecode1, Attributes08) {
     CompareCode(&scrip, codesize, code);
 
     size_t const numfixups = 2;
-    EXPECT_EQ(numfixups, scrip.numfixups);
+    EXPECT_EQ(numfixups, scrip.fixups.size());
 
     int32_t fixups[] = {
       60,  103,  -999
@@ -1539,10 +1539,10 @@ TEST_F(Bytecode1, Attributes08) {
     CompareImports(&scrip, numimports, imports);
 
     size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.numexports);
+    EXPECT_EQ(numexports, scrip.exports.size());
 
     size_t const stringssize = 0;
-    EXPECT_EQ(stringssize, scrip.stringssize);
+    EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
 TEST_F(Bytecode1, Attributes09) {
@@ -1576,7 +1576,7 @@ TEST_F(Bytecode1, Attributes09) {
     // WriteOutput("Attributes09", scrip);
 
     size_t const codesize = 43;
-    EXPECT_EQ(codesize, scrip.codesize);
+    EXPECT_EQ(codesize, scrip.code.size());
 
     int32_t code[] = {
       36,   14,   38,    0,           36,   15,   39,    0,    // 7
@@ -1589,7 +1589,7 @@ TEST_F(Bytecode1, Attributes09) {
     CompareCode(&scrip, codesize, code);
 
     size_t const numfixups = 2;
-    EXPECT_EQ(numfixups, scrip.numfixups);
+    EXPECT_EQ(numfixups, scrip.fixups.size());
 
     int32_t fixups[] = {
       10,   30,  -999
@@ -1607,10 +1607,10 @@ TEST_F(Bytecode1, Attributes09) {
     CompareImports(&scrip, numimports, imports);
 
     size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.numexports);
+    EXPECT_EQ(numexports, scrip.exports.size());
 
     size_t const stringssize = 0;
-    EXPECT_EQ(stringssize, scrip.stringssize);
+    EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
 TEST_F(Bytecode1, Attributes10) {
@@ -1649,7 +1649,7 @@ TEST_F(Bytecode1, Attributes10) {
     // WriteOutput("Attributes10", scrip);
 
     size_t const codesize = 155;
-    EXPECT_EQ(codesize, scrip.codesize);
+    EXPECT_EQ(codesize, scrip.code.size());
 
     int32_t code[] = {
       36,   10,   38,    0,           36,   11,    6,    2,    // 7
@@ -1676,7 +1676,7 @@ TEST_F(Bytecode1, Attributes10) {
     CompareCode(&scrip, codesize, code);
 
     size_t const numfixups = 9;
-    EXPECT_EQ(numfixups, scrip.numfixups);
+    EXPECT_EQ(numfixups, scrip.fixups.size());
 
     int32_t fixups[] = {
        8,   20,   44,   58,         69,   90,  108,  111,    // 7
@@ -1696,10 +1696,10 @@ TEST_F(Bytecode1, Attributes10) {
     CompareImports(&scrip, numimports, imports);
 
     size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.numexports);
+    EXPECT_EQ(numexports, scrip.exports.size());
 
     size_t const stringssize = 14;
-    EXPECT_EQ(stringssize, scrip.stringssize);
+    EXPECT_EQ(stringssize, scrip.strings.size());
 
     char strings[] = {
     'R',  'o',  't',  't',          'e',  'n',  ' ',  't',     // 7
@@ -1736,7 +1736,7 @@ TEST_F(Bytecode1, Attributes11) {
     // WriteOutput("Attributes11", scrip);
 
     size_t const codesize = 80;
-    EXPECT_EQ(codesize, scrip.codesize);
+    EXPECT_EQ(codesize, scrip.code.size());
 
     int32_t code[] = {
       36,    9,   38,    0,           36,   10,   39,    0,    // 7
@@ -1754,7 +1754,7 @@ TEST_F(Bytecode1, Attributes11) {
     CompareCode(&scrip, codesize, code);
 
     size_t const numfixups = 4;
-    EXPECT_EQ(numfixups, scrip.numfixups);
+    EXPECT_EQ(numfixups, scrip.fixups.size());
 
     int32_t fixups[] = {
       10,   26,   42,   66,        -999
@@ -1772,10 +1772,10 @@ TEST_F(Bytecode1, Attributes11) {
     CompareImports(&scrip, numimports, imports);
 
     size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.numexports);
+    EXPECT_EQ(numexports, scrip.exports.size());
 
     size_t const stringssize = 0;
-    EXPECT_EQ(stringssize, scrip.stringssize);
+    EXPECT_EQ(stringssize, scrip.strings.size());
 }
         
 TEST_F(Bytecode1, ManagedDerefZerocheck) {
@@ -1800,7 +1800,7 @@ TEST_F(Bytecode1, ManagedDerefZerocheck) {
     // WriteOutput("ManagedDerefZerocheck", scrip);
 
     size_t const codesize = 26;
-    EXPECT_EQ(codesize, scrip.codesize);
+    EXPECT_EQ(codesize, scrip.code.size());
 
     int32_t code[] = {
       36,    7,   38,    0,           36,    8,    6,    2,    // 7
@@ -1811,7 +1811,7 @@ TEST_F(Bytecode1, ManagedDerefZerocheck) {
     CompareCode(&scrip, codesize, code);
 
     size_t const numfixups = 1;
-    EXPECT_EQ(numfixups, scrip.numfixups);
+    EXPECT_EQ(numfixups, scrip.fixups.size());
 
     int32_t fixups[] = {
        8,  -999
@@ -1828,10 +1828,10 @@ TEST_F(Bytecode1, ManagedDerefZerocheck) {
     CompareImports(&scrip, numimports, imports);
 
     size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.numexports);
+    EXPECT_EQ(numexports, scrip.exports.size());
 
     size_t const stringssize = 0;
-    EXPECT_EQ(stringssize, scrip.stringssize);
+    EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
 TEST_F(Bytecode1, MemInitPtr1_NoRTTI) {
@@ -1871,7 +1871,7 @@ TEST_F(Bytecode1, MemInitPtr1_NoRTTI) {
     // WriteOutput("MemInitPtr1_NoRTTI", scrip);
 
     size_t const codesize = 123;
-    EXPECT_EQ(codesize, scrip.codesize);
+    EXPECT_EQ(codesize, scrip.code.size());
 
     int32_t code[] = {
       36,   11,   38,    0,           36,   12,   73,    3,    // 7
@@ -1894,7 +1894,7 @@ TEST_F(Bytecode1, MemInitPtr1_NoRTTI) {
     CompareCode(&scrip, codesize, code);
 
     size_t const numfixups = 1;
-    EXPECT_EQ(numfixups, scrip.numfixups);
+    EXPECT_EQ(numfixups, scrip.fixups.size());
 
     int32_t fixups[] = {
       68,  -999
@@ -1911,10 +1911,10 @@ TEST_F(Bytecode1, MemInitPtr1_NoRTTI) {
     CompareImports(&scrip, numimports, imports);
 
     size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.numexports);
+    EXPECT_EQ(numexports, scrip.exports.size());
 
     size_t const stringssize = 0;
-    EXPECT_EQ(stringssize, scrip.stringssize);
+    EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
 TEST_F(Bytecode1, MemInitPtr1_RTTI) {
@@ -1954,7 +1954,7 @@ TEST_F(Bytecode1, MemInitPtr1_RTTI) {
     // WriteOutput("MemInitPtr1_RTTI", scrip);
 
     size_t const codesize = 125;
-    EXPECT_EQ(codesize, scrip.codesize);
+    EXPECT_EQ(codesize, scrip.code.size());
 
     int32_t code[] = {
       36,   11,   38,    0,           36,   12,   74,    3,    // 7
@@ -1977,7 +1977,7 @@ TEST_F(Bytecode1, MemInitPtr1_RTTI) {
     CompareCode(&scrip, codesize, code);
 
     size_t const numfixups = 1;
-    EXPECT_EQ(numfixups, scrip.numfixups);
+    EXPECT_EQ(numfixups, scrip.fixups.size());
 
     int32_t fixups[] = {
       70,  -999
@@ -1994,10 +1994,10 @@ TEST_F(Bytecode1, MemInitPtr1_RTTI) {
     CompareImports(&scrip, numimports, imports);
 
     size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.numexports);
+    EXPECT_EQ(numexports, scrip.exports.size());
 
     size_t const stringssize = 0;
-    EXPECT_EQ(stringssize, scrip.stringssize);
+    EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
 TEST_F(Bytecode1, Ternary1) {
@@ -2027,7 +2027,7 @@ TEST_F(Bytecode1, Ternary1) {
     // WriteOutput("Ternary1", scrip);
 
     size_t const codesize = 46;
-    EXPECT_EQ(codesize, scrip.codesize);
+    EXPECT_EQ(codesize, scrip.code.size());
 
     int32_t code[] = {
       36,    2,   38,    0,           36,    3,   51,    8,    // 7
@@ -2040,7 +2040,7 @@ TEST_F(Bytecode1, Ternary1) {
     CompareCode(&scrip, codesize, code);
 
     size_t const numfixups = 0;
-    EXPECT_EQ(numfixups, scrip.numfixups);
+    EXPECT_EQ(numfixups, scrip.fixups.size());
 
     int const numimports = 0;
     std::string imports[] = {
@@ -2049,10 +2049,10 @@ TEST_F(Bytecode1, Ternary1) {
     CompareImports(&scrip, numimports, imports);
 
     size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.numexports);
+    EXPECT_EQ(numexports, scrip.exports.size());
 
     size_t const stringssize = 0;
-    EXPECT_EQ(stringssize, scrip.stringssize);
+    EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
 TEST_F(Bytecode1, Ternary2_NoRTTI) {
@@ -2083,7 +2083,7 @@ TEST_F(Bytecode1, Ternary2_NoRTTI) {
     // WriteOutput("Ternary2_NoRTTI", scrip);
 
     size_t const codesize = 58;
-    EXPECT_EQ(codesize, scrip.codesize);
+    EXPECT_EQ(codesize, scrip.code.size());
 
     int32_t code[] = {
       36,    7,   38,    0,           36,    8,    6,    3,    // 7
@@ -2098,7 +2098,7 @@ TEST_F(Bytecode1, Ternary2_NoRTTI) {
     CompareCode(&scrip, codesize, code);
 
     size_t const numfixups = 4;
-    EXPECT_EQ(numfixups, scrip.numfixups);
+    EXPECT_EQ(numfixups, scrip.fixups.size());
 
     int32_t fixups[] = {
       11,   21,   28,   37,        -999
@@ -2115,10 +2115,10 @@ TEST_F(Bytecode1, Ternary2_NoRTTI) {
     CompareImports(&scrip, numimports, imports);
 
     size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.numexports);
+    EXPECT_EQ(numexports, scrip.exports.size());
 
     size_t const stringssize = 0;
-    EXPECT_EQ(stringssize, scrip.stringssize);
+    EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
 TEST_F(Bytecode1, Ternary2_RTTI) {
@@ -2149,7 +2149,7 @@ TEST_F(Bytecode1, Ternary2_RTTI) {
     // WriteOutput("Ternary2_RTTI", scrip);
 
     size_t const codesize = 59;
-    EXPECT_EQ(codesize, scrip.codesize);
+    EXPECT_EQ(codesize, scrip.code.size());
 
     int32_t code[] = {
       36,    7,   38,    0,           36,    8,    6,    3,    // 7
@@ -2164,7 +2164,7 @@ TEST_F(Bytecode1, Ternary2_RTTI) {
     CompareCode(&scrip, codesize, code);
 
     size_t const numfixups = 4;
-    EXPECT_EQ(numfixups, scrip.numfixups);
+    EXPECT_EQ(numfixups, scrip.fixups.size());
 
     int32_t fixups[] = {
       11,   22,   29,   38,        -999
@@ -2181,10 +2181,10 @@ TEST_F(Bytecode1, Ternary2_RTTI) {
     CompareImports(&scrip, numimports, imports);
 
     size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.numexports);
+    EXPECT_EQ(numexports, scrip.exports.size());
 
     size_t const stringssize = 0;
-    EXPECT_EQ(stringssize, scrip.stringssize);
+    EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
 TEST_F(Bytecode1, Ternary3) {
@@ -2206,7 +2206,7 @@ TEST_F(Bytecode1, Ternary3) {
     // WriteOutput("Ternary3", scrip);
 
     size_t const codesize = 77;
-    EXPECT_EQ(codesize, scrip.codesize);
+    EXPECT_EQ(codesize, scrip.code.size());
 
     int32_t code[] = {
       36,    2,   38,    0,           36,    3,    6,    3,    // 7
@@ -2223,7 +2223,7 @@ TEST_F(Bytecode1, Ternary3) {
     CompareCode(&scrip, codesize, code);
 
     size_t const numfixups = 0;
-    EXPECT_EQ(numfixups, scrip.numfixups);
+    EXPECT_EQ(numfixups, scrip.fixups.size());
 
     int const numimports = 0;
     std::string imports[] = {
@@ -2232,10 +2232,10 @@ TEST_F(Bytecode1, Ternary3) {
     CompareImports(&scrip, numimports, imports);
 
     size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.numexports);
+    EXPECT_EQ(numexports, scrip.exports.size());
 
     size_t const stringssize = 0;
-    EXPECT_EQ(stringssize, scrip.stringssize);
+    EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
 TEST_F(Bytecode1, Ternary4) {
@@ -2261,7 +2261,7 @@ TEST_F(Bytecode1, Ternary4) {
     // WriteOutput("Ternary4", scrip);
 
     size_t const codesize = 64;
-    EXPECT_EQ(codesize, scrip.codesize);
+    EXPECT_EQ(codesize, scrip.code.size());
 
     int32_t code[] = {
       36,    2,   38,    0,           36,    3,    6,    3,    // 7
@@ -2277,7 +2277,7 @@ TEST_F(Bytecode1, Ternary4) {
     CompareCode(&scrip, codesize, code);
 
     size_t const numfixups = 2;
-    EXPECT_EQ(numfixups, scrip.numfixups);
+    EXPECT_EQ(numfixups, scrip.fixups.size());
 
     int32_t fixups[] = {
        8,   41,  -999
@@ -2294,10 +2294,10 @@ TEST_F(Bytecode1, Ternary4) {
     CompareImports(&scrip, numimports, imports);
 
     size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.numexports);
+    EXPECT_EQ(numexports, scrip.exports.size());
 
     size_t const stringssize = 9;
-    EXPECT_EQ(stringssize, scrip.stringssize);
+    EXPECT_EQ(stringssize, scrip.strings.size());
 
     char strings[] = {
     'T',  'e',  's',  't',            0,  'F',  'o',  'o',     // 7
@@ -2334,7 +2334,7 @@ TEST_F(Bytecode1, Ternary5) {
     // WriteOutput("Ternary5", scrip);
 
     size_t const codesize = 108;
-    EXPECT_EQ(codesize, scrip.codesize);
+    EXPECT_EQ(codesize, scrip.code.size());
 
     int32_t code[] = {
       36,    2,   38,    0,           36,    3,    6,    3,    // 7
@@ -2355,7 +2355,7 @@ TEST_F(Bytecode1, Ternary5) {
     CompareCode(&scrip, codesize, code);
 
     size_t const numfixups = 0;
-    EXPECT_EQ(numfixups, scrip.numfixups);
+    EXPECT_EQ(numfixups, scrip.fixups.size());
 
     int const numimports = 0;
     std::string imports[] = {
@@ -2364,10 +2364,10 @@ TEST_F(Bytecode1, Ternary5) {
     CompareImports(&scrip, numimports, imports);
 
     size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.numexports);
+    EXPECT_EQ(numexports, scrip.exports.size());
 
     size_t const stringssize = 0;
-    EXPECT_EQ(stringssize, scrip.stringssize);
+    EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
 TEST_F(Bytecode1, AssignToString) {
@@ -2397,7 +2397,7 @@ TEST_F(Bytecode1, AssignToString) {
     // WriteOutput("AssignToString", scrip);
 
     size_t const codesize = 95;
-    EXPECT_EQ(codesize, scrip.codesize);
+    EXPECT_EQ(codesize, scrip.code.size());
 
     int32_t code[] = {
       36,    4,   38,    0,           36,    5,    6,    2,    // 7
@@ -2416,7 +2416,7 @@ TEST_F(Bytecode1, AssignToString) {
     CompareCode(&scrip, codesize, code);
 
     size_t const numfixups = 3;
-    EXPECT_EQ(numfixups, scrip.numfixups);
+    EXPECT_EQ(numfixups, scrip.fixups.size());
 
     int32_t fixups[] = {
        8,   25,   69,  -999
@@ -2433,10 +2433,10 @@ TEST_F(Bytecode1, AssignToString) {
     CompareImports(&scrip, numimports, imports);
 
     size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.numexports);
+    EXPECT_EQ(numexports, scrip.exports.size());
 
     size_t const stringssize = 10;
-    EXPECT_EQ(stringssize, scrip.stringssize);
+    EXPECT_EQ(stringssize, scrip.strings.size());
 
     char strings[] = {
     'H',  'o',  'l',  'z',          's',  'c',  'h',  'u',     // 7
@@ -2475,7 +2475,7 @@ TEST_F(Bytecode1, StructWOldstyleString1) {
     // WriteOutput("StructWOldstyleString1", scrip);
 
     size_t const codesize = 139;
-    EXPECT_EQ(codesize, scrip.codesize);
+    EXPECT_EQ(codesize, scrip.code.size());
 
     int32_t code[] = {
       36,   12,   38,    0,           36,   13,    6,    3,    // 7
@@ -2500,7 +2500,7 @@ TEST_F(Bytecode1, StructWOldstyleString1) {
     CompareCode(&scrip, codesize, code);
 
     size_t const numfixups = 5;
-    EXPECT_EQ(numfixups, scrip.numfixups);
+    EXPECT_EQ(numfixups, scrip.fixups.size());
 
     int32_t fixups[] = {
        8,   11,   62,   70,         81,  -999
@@ -2517,10 +2517,10 @@ TEST_F(Bytecode1, StructWOldstyleString1) {
     CompareImports(&scrip, numimports, imports);
 
     size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.numexports);
+    EXPECT_EQ(numexports, scrip.exports.size());
 
     size_t const stringssize = 16;
-    EXPECT_EQ(stringssize, scrip.stringssize);
+    EXPECT_EQ(stringssize, scrip.strings.size());
 
     char strings[] = {
     'H',  'o',  'l',  'z',          's',  'c',  'h',  'u',     // 7
@@ -2560,7 +2560,7 @@ TEST_F(Bytecode1, StructWOldstyleString2) {
 
     // WriteOutput("StructWOldstyleString2", scrip);
     size_t const codesize = 185;
-    EXPECT_EQ(codesize, scrip.codesize);
+    EXPECT_EQ(codesize, scrip.code.size());
 
     int32_t code[] = {
       36,   10,   38,    0,           36,   11,   73,    3,    // 7
@@ -2591,7 +2591,7 @@ TEST_F(Bytecode1, StructWOldstyleString2) {
     CompareCode(&scrip, codesize, code);
 
     size_t const numfixups = 1;
-    EXPECT_EQ(numfixups, scrip.numfixups);
+    EXPECT_EQ(numfixups, scrip.fixups.size());
 
     int32_t fixups[] = {
       36,  -999
@@ -2608,10 +2608,10 @@ TEST_F(Bytecode1, StructWOldstyleString2) {
     CompareImports(&scrip, numimports, imports);
 
     size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.numexports);
+    EXPECT_EQ(numexports, scrip.exports.size());
 
     size_t const stringssize = 7;
-    EXPECT_EQ(stringssize, scrip.stringssize);
+    EXPECT_EQ(stringssize, scrip.strings.size());
 
     char strings[] = {
     '-',  's',  'c',  'h',          'u',  'h',    0,  '\0'
@@ -2644,7 +2644,7 @@ TEST_F(Bytecode1, ThisExpression1) {
     // WriteOutput("ThisExpression1", scrip);
 
     size_t const codesize = 70;
-    EXPECT_EQ(codesize, scrip.codesize);
+    EXPECT_EQ(codesize, scrip.code.size());
 
     int32_t code[] = {
       36,    8,   38,    0,           36,    9,    3,    6,    // 7
@@ -2660,7 +2660,7 @@ TEST_F(Bytecode1, ThisExpression1) {
     CompareCode(&scrip, codesize, code);
 
     size_t const numfixups = 1;
-    EXPECT_EQ(numfixups, scrip.numfixups);
+    EXPECT_EQ(numfixups, scrip.fixups.size());
 
     int32_t fixups[] = {
       33,  -999
@@ -2677,10 +2677,10 @@ TEST_F(Bytecode1, ThisExpression1) {
     CompareImports(&scrip, numimports, imports);
 
     size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.numexports);
+    EXPECT_EQ(numexports, scrip.exports.size());
 
     size_t const stringssize = 0;
-    EXPECT_EQ(stringssize, scrip.stringssize);
+    EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
 TEST_F(Bytecode1, CrementAttribute1) {
@@ -2703,7 +2703,7 @@ TEST_F(Bytecode1, CrementAttribute1) {
     // WriteOutput("CrementAttribute1", scrip);
 
     size_t const codesize = 57;
-    EXPECT_EQ(codesize, scrip.codesize);
+    EXPECT_EQ(codesize, scrip.code.size());
 
     int32_t code[] = {
       36,    7,   38,    0,           36,    8,    6,    2,    // 7
@@ -2718,7 +2718,7 @@ TEST_F(Bytecode1, CrementAttribute1) {
     CompareCode(&scrip, codesize, code);
 
     size_t const numfixups = 4;
-    EXPECT_EQ(numfixups, scrip.numfixups);
+    EXPECT_EQ(numfixups, scrip.fixups.size());
 
     int32_t fixups[] = {
        8,   20,   30,   44,        -999
@@ -2735,10 +2735,10 @@ TEST_F(Bytecode1, CrementAttribute1) {
     CompareImports(&scrip, numimports, imports);
 
     size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.numexports);
+    EXPECT_EQ(numexports, scrip.exports.size());
 
     size_t const stringssize = 0;
-    EXPECT_EQ(stringssize, scrip.stringssize);
+    EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
 TEST_F(Bytecode1, CrementAttribute2) {
@@ -2761,7 +2761,7 @@ TEST_F(Bytecode1, CrementAttribute2) {
     // WriteOutput("CrementAttribute2", scrip);
 
     size_t const codesize = 56;
-    EXPECT_EQ(codesize, scrip.codesize);
+    EXPECT_EQ(codesize, scrip.code.size());
 
     int32_t code[] = {
       36,    7,   38,    0,           36,    8,    6,    2,    // 7
@@ -2776,7 +2776,7 @@ TEST_F(Bytecode1, CrementAttribute2) {
     CompareCode(&scrip, codesize, code);
 
     size_t const numfixups = 4;
-    EXPECT_EQ(numfixups, scrip.numfixups);
+    EXPECT_EQ(numfixups, scrip.fixups.size());
 
     int32_t fixups[] = {
        8,   20,   32,   46,        -999
@@ -2793,10 +2793,10 @@ TEST_F(Bytecode1, CrementAttribute2) {
     CompareImports(&scrip, numimports, imports);
 
     size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.numexports);
+    EXPECT_EQ(numexports, scrip.exports.size());
 
     size_t const stringssize = 0;
-    EXPECT_EQ(stringssize, scrip.stringssize);
+    EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
 TEST_F(Bytecode1, CrementInExpression1) {
@@ -2815,7 +2815,7 @@ TEST_F(Bytecode1, CrementInExpression1) {
     // WriteOutput("CementInExpression1", scrip);
 
     size_t const codesize = 41;
-    EXPECT_EQ(codesize, scrip.codesize);
+    EXPECT_EQ(codesize, scrip.code.size());
 
     int32_t code[] = {
       36,    2,   38,    0,           36,    3,    6,    3,    // 7
@@ -2828,7 +2828,7 @@ TEST_F(Bytecode1, CrementInExpression1) {
     CompareCode(&scrip, codesize, code);
 
     size_t const numfixups = 0;
-    EXPECT_EQ(numfixups, scrip.numfixups);
+    EXPECT_EQ(numfixups, scrip.fixups.size());
 
     int const numimports = 0;
     std::string imports[] = {
@@ -2837,10 +2837,10 @@ TEST_F(Bytecode1, CrementInExpression1) {
     CompareImports(&scrip, numimports, imports);
 
     size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.numexports);
+    EXPECT_EQ(numexports, scrip.exports.size());
 
     size_t const stringssize = 0;
-    EXPECT_EQ(stringssize, scrip.stringssize);
+    EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
 TEST_F(Bytecode1, CrementInExpression2) {
@@ -2859,7 +2859,7 @@ TEST_F(Bytecode1, CrementInExpression2) {
     // WriteOutput("CrementInExpression2", scrip);
 
     size_t const codesize = 44;
-    EXPECT_EQ(codesize, scrip.codesize);
+    EXPECT_EQ(codesize, scrip.code.size());
 
     int32_t code[] = {
       36,    2,   38,    0,           36,    3,   51,    0,    // 7
@@ -2872,7 +2872,7 @@ TEST_F(Bytecode1, CrementInExpression2) {
     CompareCode(&scrip, codesize, code);
 
     size_t const numfixups = 0;
-    EXPECT_EQ(numfixups, scrip.numfixups);
+    EXPECT_EQ(numfixups, scrip.fixups.size());
 
     int const numimports = 0;
     std::string imports[] = {
@@ -2881,10 +2881,10 @@ TEST_F(Bytecode1, CrementInExpression2) {
     CompareImports(&scrip, numimports, imports);
 
     size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.numexports);
+    EXPECT_EQ(numexports, scrip.exports.size());
 
     size_t const stringssize = 0;
-    EXPECT_EQ(stringssize, scrip.stringssize);
+    EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
 TEST_F(Bytecode1, CrementInExpression3) {
@@ -2905,7 +2905,7 @@ TEST_F(Bytecode1, CrementInExpression3) {
     // WriteOutput("CrementInExpression3", scrip);
 
     size_t const codesize = 80;
-    EXPECT_EQ(codesize, scrip.codesize);
+    EXPECT_EQ(codesize, scrip.code.size());
 
     int32_t code[] = {
       36,    2,   38,    0,           36,    3,    6,    3,    // 7
@@ -2923,7 +2923,7 @@ TEST_F(Bytecode1, CrementInExpression3) {
     CompareCode(&scrip, codesize, code);
 
     size_t const numfixups = 0;
-    EXPECT_EQ(numfixups, scrip.numfixups);
+    EXPECT_EQ(numfixups, scrip.fixups.size());
 
     int const numimports = 0;
     std::string imports[] = {
@@ -2932,10 +2932,10 @@ TEST_F(Bytecode1, CrementInExpression3) {
     CompareImports(&scrip, numimports, imports);
 
     size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.numexports);
+    EXPECT_EQ(numexports, scrip.exports.size());
 
     size_t const stringssize = 0;
-    EXPECT_EQ(stringssize, scrip.stringssize);
+    EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
 TEST_F(Bytecode1, CompareStringToNull) {
@@ -2964,7 +2964,7 @@ TEST_F(Bytecode1, CompareStringToNull) {
     // WriteOutput("CompareStringToNull", scrip);
 
     size_t const codesize = 79;
-    EXPECT_EQ(codesize, scrip.codesize);
+    EXPECT_EQ(codesize, scrip.code.size());
 
     int32_t code[] = {
       36,    3,   38,    0,           36,    4,    6,    2,    // 7
@@ -2981,7 +2981,7 @@ TEST_F(Bytecode1, CompareStringToNull) {
     CompareCode(&scrip, codesize, code);
 
     size_t const numfixups = 3;
-    EXPECT_EQ(numfixups, scrip.numfixups);
+    EXPECT_EQ(numfixups, scrip.fixups.size());
 
     int32_t fixups[] = {
        8,   30,   57,  -999
@@ -2998,10 +2998,10 @@ TEST_F(Bytecode1, CompareStringToNull) {
     CompareImports(&scrip, numimports, imports);
 
     size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.numexports);
+    EXPECT_EQ(numexports, scrip.exports.size());
 
     size_t const stringssize = 0;
-    EXPECT_EQ(stringssize, scrip.stringssize);
+    EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
 TEST_F(Bytecode1, DynarrayLength1_NoRTTI) {
@@ -3027,7 +3027,7 @@ TEST_F(Bytecode1, DynarrayLength1_NoRTTI) {
     // WriteOutput("DynarrayLength1_NoRtti", scrip);
 
     size_t const codesize = 38;
-    EXPECT_EQ(codesize, scrip.codesize);
+    EXPECT_EQ(codesize, scrip.code.size());
 
     int32_t code[] = {
       36,    7,   38,    0,           36,    8,    6,    3,    // 7
@@ -3039,7 +3039,7 @@ TEST_F(Bytecode1, DynarrayLength1_NoRTTI) {
     CompareCode(&scrip, codesize, code);
 
     size_t const numfixups = 3;
-    EXPECT_EQ(numfixups, scrip.numfixups);
+    EXPECT_EQ(numfixups, scrip.fixups.size());
 
     int32_t fixups[] = {
       15,   22,   32,  -999
@@ -3056,10 +3056,10 @@ TEST_F(Bytecode1, DynarrayLength1_NoRTTI) {
     CompareImports(&scrip, numimports, imports);
 
     size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.numexports);
+    EXPECT_EQ(numexports, scrip.exports.size());
 
     size_t const stringssize = 0;
-    EXPECT_EQ(stringssize, scrip.stringssize);
+    EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
 TEST_F(Bytecode1, DynarrayLength1_RTTI) {
@@ -3084,7 +3084,7 @@ TEST_F(Bytecode1, DynarrayLength1_RTTI) {
 
     // WriteOutput("DynarrayLength1_Rtti", scrip);
     size_t const codesize = 38;
-    EXPECT_EQ(codesize, scrip.codesize);
+    EXPECT_EQ(codesize, scrip.code.size());
 
     int32_t code[] = {
       36,    7,   38,    0,           36,    8,    6,    3,    // 7
@@ -3096,7 +3096,7 @@ TEST_F(Bytecode1, DynarrayLength1_RTTI) {
     CompareCode(&scrip, codesize, code);
 
     size_t const numfixups = 3;
-    EXPECT_EQ(numfixups, scrip.numfixups);
+    EXPECT_EQ(numfixups, scrip.fixups.size());
 
     int32_t fixups[] = {
       15,   22,   32,  -999
@@ -3113,10 +3113,10 @@ TEST_F(Bytecode1, DynarrayLength1_RTTI) {
     CompareImports(&scrip, numimports, imports);
 
     size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.numexports);
+    EXPECT_EQ(numexports, scrip.exports.size());
 
     size_t const stringssize = 0;
-    EXPECT_EQ(stringssize, scrip.stringssize);
+    EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
 TEST_F(Bytecode1, DynarrayLength2_NoRTTI) {
@@ -3137,7 +3137,7 @@ TEST_F(Bytecode1, DynarrayLength2_NoRTTI) {
     // WriteOutput("DynarrayLength2_NoRtti", scrip);
 
     size_t const codesize = 52;
-    EXPECT_EQ(codesize, scrip.codesize);
+    EXPECT_EQ(codesize, scrip.code.size());
 
     int32_t code[] = {
       36,    2,   38,    0,           36,    3,    6,    3,    // 7
@@ -3151,7 +3151,7 @@ TEST_F(Bytecode1, DynarrayLength2_NoRTTI) {
     CompareCode(&scrip, codesize, code);
 
     size_t const numfixups = 1;
-    EXPECT_EQ(numfixups, scrip.numfixups);
+    EXPECT_EQ(numfixups, scrip.fixups.size());
 
     int32_t fixups[] = {
       33,  -999
@@ -3168,10 +3168,10 @@ TEST_F(Bytecode1, DynarrayLength2_NoRTTI) {
     CompareImports(&scrip, numimports, imports);
 
     size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.numexports);
+    EXPECT_EQ(numexports, scrip.exports.size());
 
     size_t const stringssize = 0;
-    EXPECT_EQ(stringssize, scrip.stringssize);
+    EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
 TEST_F(Bytecode1, DynarrayLength2_RTTI) {
@@ -3191,7 +3191,7 @@ TEST_F(Bytecode1, DynarrayLength2_RTTI) {
 
     // WriteOutput("DynarrayLength2_Rtti", scrip);
     size_t const codesize = 52;
-    EXPECT_EQ(codesize, scrip.codesize);
+    EXPECT_EQ(codesize, scrip.code.size());
 
     int32_t code[] = {
       36,    2,   38,    0,           36,    3,    6,    3,    // 7
@@ -3205,7 +3205,7 @@ TEST_F(Bytecode1, DynarrayLength2_RTTI) {
     CompareCode(&scrip, codesize, code);
 
     size_t const numfixups = 1;
-    EXPECT_EQ(numfixups, scrip.numfixups);
+    EXPECT_EQ(numfixups, scrip.fixups.size());
 
     int32_t fixups[] = {
       33,  -999
@@ -3222,10 +3222,10 @@ TEST_F(Bytecode1, DynarrayLength2_RTTI) {
     CompareImports(&scrip, numimports, imports);
 
     size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.numexports);
+    EXPECT_EQ(numexports, scrip.exports.size());
 
     size_t const stringssize = 0;
-    EXPECT_EQ(stringssize, scrip.stringssize);
+    EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
 TEST_F(Bytecode1, StringLiteral2String) {
@@ -3252,7 +3252,7 @@ TEST_F(Bytecode1, StringLiteral2String) {
     // WriteOutput("StringLiteral2String", scrip);
 
     size_t const codesize = 34;
-    EXPECT_EQ(codesize, scrip.codesize);
+    EXPECT_EQ(codesize, scrip.code.size());
 
     int32_t code[] = {
       36,   10,   38,    0,           36,   11,    6,    3,    // 7
@@ -3264,7 +3264,7 @@ TEST_F(Bytecode1, StringLiteral2String) {
     CompareCode(&scrip, codesize, code);
 
     size_t const numfixups = 1;
-    EXPECT_EQ(numfixups, scrip.numfixups);
+    EXPECT_EQ(numfixups, scrip.fixups.size());
 
     int32_t fixups[] = {
       15,  -999
@@ -3281,10 +3281,10 @@ TEST_F(Bytecode1, StringLiteral2String) {
     CompareImports(&scrip, numimports, imports);
 
     size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.numexports);
+    EXPECT_EQ(numexports, scrip.exports.size());
 
     size_t const stringssize = 11;
-    EXPECT_EQ(stringssize, scrip.stringssize);
+    EXPECT_EQ(stringssize, scrip.strings.size());
 
     char strings[] = {
     'C',  'a',  'u',  's',          'e',  ' ',  'b',  'u',     // 7
@@ -3314,7 +3314,7 @@ TEST_F(Bytecode1, LongMin1) {
     // WriteOutput("LongMin1", scrip);
 
     size_t const codesize = 50;
-    EXPECT_EQ(codesize, scrip.codesize);
+    EXPECT_EQ(codesize, scrip.code.size());
 
     int32_t code[] = {
       36,    4,   38,    0,           36,    5,    6,    3,    // 7
@@ -3328,7 +3328,7 @@ TEST_F(Bytecode1, LongMin1) {
     CompareCode(&scrip, codesize, code);
 
     size_t const numfixups = 1;
-    EXPECT_EQ(numfixups, scrip.numfixups);
+    EXPECT_EQ(numfixups, scrip.fixups.size());
 
     int32_t fixups[] = {
       27,  -999
@@ -3345,10 +3345,10 @@ TEST_F(Bytecode1, LongMin1) {
     CompareImports(&scrip, numimports, imports);
 
     size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.numexports);
+    EXPECT_EQ(numexports, scrip.exports.size());
 
     size_t const stringssize = 0;
-    EXPECT_EQ(stringssize, scrip.stringssize);
+    EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
 TEST_F(Bytecode1, Linenum01)
@@ -3372,7 +3372,7 @@ TEST_F(Bytecode1, Linenum01)
     // WriteOutput("Linenum01", scrip);
 
     size_t const codesize = 27;
-    EXPECT_EQ(codesize, scrip.codesize);
+    EXPECT_EQ(codesize, scrip.code.size());
 
     int32_t code[] = {
       36,    2,   38,    0,           36,    3,    6,    3,    // 7
@@ -3383,7 +3383,7 @@ TEST_F(Bytecode1, Linenum01)
     CompareCode(&scrip, codesize, code);
 
     size_t const numfixups = 0;
-    EXPECT_EQ(numfixups, scrip.numfixups);
+    EXPECT_EQ(numfixups, scrip.fixups.size());
 
     int const numimports = 0;
     std::string imports[] = {
@@ -3392,10 +3392,10 @@ TEST_F(Bytecode1, Linenum01)
     CompareImports(&scrip, numimports, imports);
 
     size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.numexports);
+    EXPECT_EQ(numexports, scrip.exports.size());
 
     size_t const stringssize = 0;
-    EXPECT_EQ(stringssize, scrip.stringssize);
+    EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
 TEST_F(Bytecode1, Linenum02)
@@ -3419,7 +3419,7 @@ TEST_F(Bytecode1, Linenum02)
     // WriteOutput("Linenum02", scrip);
 
     size_t const codesize = 38;
-    EXPECT_EQ(codesize, scrip.codesize);
+    EXPECT_EQ(codesize, scrip.code.size());
 
     int32_t code[] = {
       36,    2,   38,    0,           36,    3,    6,    3,    // 7
@@ -3431,7 +3431,7 @@ TEST_F(Bytecode1, Linenum02)
     CompareCode(&scrip, codesize, code);
 
     size_t const numfixups = 0;
-    EXPECT_EQ(numfixups, scrip.numfixups);
+    EXPECT_EQ(numfixups, scrip.fixups.size());
 
     int const numimports = 0;
     std::string imports[] = {
@@ -3440,9 +3440,9 @@ TEST_F(Bytecode1, Linenum02)
     CompareImports(&scrip, numimports, imports);
 
     size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.numexports);
+    EXPECT_EQ(numexports, scrip.exports.size());
 
     size_t const stringssize = 0;
-    EXPECT_EQ(stringssize, scrip.stringssize);
+    EXPECT_EQ(stringssize, scrip.strings.size());
 }
 

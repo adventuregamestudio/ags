@@ -148,6 +148,12 @@ public:
         _strings.push_back(0); // guarantee zero-len string at index 0
     }
 
+    RTTI(const RTTI &rtti) = default;
+    RTTI(RTTI &&rtti) = default;
+
+    RTTI &operator = (const RTTI &rtti) = default;
+    RTTI &operator = (RTTI &&rtti) = default;
+
     bool IsEmpty() const { return _types.empty(); }
     // Returns list of locations.
     const std::vector<Location> &GetLocations() const { return _locs; }

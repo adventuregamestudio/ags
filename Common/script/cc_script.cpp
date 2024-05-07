@@ -80,6 +80,8 @@ ccScript::ccScript(const ccScript &src)
     sectionNames = src.sectionNames;
     sectionOffsets = src.sectionOffsets;
 
+    rtti.reset(new RTTI(*src.rtti));
+
     instances = 0; // don't copy reference count, since it's a new object
 }
 

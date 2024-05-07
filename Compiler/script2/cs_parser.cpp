@@ -797,7 +797,6 @@ void AGS::Parser::HandleEndOfSwitch()
         if (cases_idx == default_idx)
             continue;
 
-        CodeLoc const codesize = _scrip.codesize;
         // Emit the code for the case expression of the current case. Result will be in AX
         _nest.Snippets().at(cases_idx).Paste(_scrip);
 
@@ -1399,7 +1398,7 @@ void AGS::Parser::ParseFuncdecl_HandleFunctionOrImportIndex(TypeQualifierSet tqs
         char appendage[10];
         
         sprintf(appendage, "^%d", _sym.FuncParamsCount(name_of_func) + 100 * _sym[name_of_func].FunctionD->IsVariadic);
-        strcat(_scrip.imports[imports_idx], appendage);
+        _scrip.imports[imports_idx].append(appendage);
     }
 
     _importLabels.SetLabelValue(name_of_func, imports_idx);
@@ -2755,8 +2754,8 @@ void AGS::Parser::AccessData_GenerateFunctionCall(Symbol name_of_func, size_t ar
         {
             // We don't know the import number of this function yet, so put a label here
             // and keep track of the location in order to patch in the proper import number later on
-            _scrip.code[_scrip.codesize - 1] = _importLabels.Function2Label(name_of_func);
-            _importLabels.TrackLabelLoc(_scrip.codesize - 1);
+            _scrip.code.back() = _importLabels.Function2Label(name_of_func);
+            _importLabels.TrackLabelLoc(_scrip.Codesize_i32() - 1);
         }
 
         WriteCmd(SCMD_CALLEXT, SREG_AX); // Do the call
@@ -2773,8 +2772,8 @@ void AGS::Parser::AccessData_GenerateFunctionCall(Symbol name_of_func, size_t ar
     {
         // We don't know yet at which address the function is going to start, so put a label here
         // and keep track of the location in order to patch in the correct address later on
-        _scrip.code[_scrip.codesize - 1] = _callpointLabels.Function2Label(name_of_func);
-        _callpointLabels.TrackLabelLoc(_scrip.codesize - 1);
+        _scrip.code.back() = _callpointLabels.Function2Label(name_of_func);
+        _callpointLabels.TrackLabelLoc(_scrip.Codesize_i32() - 1);
     }
     WriteCmd(SCMD_CALL, SREG_AX);  // Do the call
     _reg_track.SetAllRegisters();
@@ -2807,7 +2806,7 @@ void AGS::Parser::AccessData_GenerateDynarrayLengthFuncCall(EvaluationResult &er
         _sym[dynarray_len_func].FunctionD->Parameters.push_back({});
         _sym[dynarray_len_func].FunctionD->Parameters[1u].Vartype = eres.Vartype;
         _sym[dynarray_len_func].FunctionD->Offset = _scrip.FindOrAddImport(_sym.GetName(dynarray_len_func));
-        strcat(_scrip.imports[_sym[dynarray_len_func].FunctionD->Offset], "^1");
+        _scrip.imports[_sym[dynarray_len_func].FunctionD->Offset].append("^1");
         _sym.SetDeclared(dynarray_len_func, _src.GetCursor());
     }
     _sym[dynarray_len_func].Accessed = true;
@@ -2906,7 +2905,7 @@ void AGS::Parser::AccessData_FunctionCall(Symbol name_of_func, SrcList &expressi
         if (0u == args_count)
         {   // MAR must still be current, so undo the unneeded PUSH above.
             _scrip.OffsetToLocalVarBlock -= SIZE_OF_STACK_CELL;
-            _scrip.codesize -= 2;
+            _scrip.code.resize(_scrip.code.size() - 2); // pop 2 cells
             mar_pushed = false;
         }
         else
@@ -4397,7 +4396,7 @@ void AGS::Parser::ParseFuncBodyStart(Symbol struct_of_func,Symbol name_of_func)
     _nest.Push(NSType::kFunction);
 
     // write base address of function for any relocation needed later
-    WriteCmd(SCMD_THISBASE, _scrip.codesize);
+    WriteCmd(SCMD_THISBASE, _scrip.Codesize_i32());
     SymbolTableEntry &entry = _sym[name_of_func];
     if (entry.FunctionD->NoLoopCheck)
         WriteCmd(SCMD_LOOPCHECKOFF);
@@ -5877,7 +5876,7 @@ void AGS::Parser::HandleEndOfIf(bool &else_follows)
 void AGS::Parser::ParseWhile()
 {
     // point to the start of the code that evaluates the condition
-    CodeLoc const condition_eval_loc = _scrip.codesize;
+    CodeLoc const condition_eval_loc = _scrip.Codesize_i32();
 
     EvaluationResult eres;
     ParseDelimitedExpression(_src, kKW_OpenParenthesis, eres);
@@ -6168,8 +6167,8 @@ void AGS::Parser::ParseSwitchFallThrough()
 void AGS::Parser::ParseSwitchLabel(Symbol case_or_default)
 {
     RestorePoint switch_label_start(_scrip);
-    CodeLoc const start_of_code_loc = _scrip.codesize;
-    size_t const start_of_fixups = _scrip.numfixups;
+    CodeLoc const start_of_code_loc = _scrip.Codesize_i32();
+    size_t const start_of_fixups = _scrip.fixups.size();
     size_t const start_of_code_lineno = _src.GetLineno();
 
     if (NSType::kSwitch != _nest.Type())
@@ -6735,18 +6734,18 @@ void AGS::Parser::Parse_CheckForUnresolvedStructForwardDecls()
 
 void AGS::Parser::Parse_CheckFixupSanity()
 {
-    for (size_t fixup_idx = 0u; fixup_idx < static_cast<size_t>(_scrip.numfixups); fixup_idx++)
+    for (size_t fixup_idx = 0u; fixup_idx < _scrip.fixups.size(); fixup_idx++)
     {
         if (FIXUP_IMPORT != _scrip.fixuptypes[fixup_idx])
             continue;
         int const code_idx = _scrip.fixups[fixup_idx];
-        if (code_idx < 0 || code_idx >= _scrip.codesize)
+        if (code_idx < 0 || code_idx >= _scrip.code.size())
             InternalError(
                 "!Fixup #%d references non-existent code offset #%d",
                 fixup_idx,
                 code_idx);
         int const cv = _scrip.code[code_idx];
-        if (cv < 0 || cv >= _scrip.numimports || '\0' == _scrip.imports[cv][0])
+        if (cv < 0 || cv >= _scrip.imports.size() || '\0' == _scrip.imports[cv][0])
             InternalError(
                 "Fixup #%d references non-existent import #%d",
                 fixup_idx,

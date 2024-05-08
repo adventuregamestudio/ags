@@ -99,6 +99,22 @@ Bitmap *CreateBitmapFromPixels(int width, int height, int dst_color_depth,
         return bitmap.release();
     }
 
+    // Copy 4-bit indexed image into 8-bit image
+    if (dst_color_depth == 8 && src_col_depth == 4)
+    {
+        uint8_t *data_ptr = bitmap->GetDataForWriting();
+        for (int y = 0; y < height; ++y)
+        {
+            for (int x = 0; x < width / 2; ++x)
+            {
+                uint8_t sp = pixels[y * src_pitch + x];
+                data_ptr[y * width + x * 2]     = ((sp >> 4) & 0xF);
+                data_ptr[y * width + x * 2 + 1] = (sp & 0xF);
+            }
+        }
+        return bitmap.release();
+    }
+
     return nullptr;
 }
 

@@ -86,6 +86,22 @@ Bitmap *CreateBitmapCopy(Bitmap *src, int color_depth)
 	return bitmap;
 }
 
+Bitmap *CreateBitmapFromPixels(int width, int height, int dst_color_depth,
+    const uint8_t *pixels, const int src_col_depth, const int src_pitch)
+{
+    std::unique_ptr<Bitmap> bitmap(new Bitmap(width, height, dst_color_depth));
+    if (!bitmap)
+        return nullptr;
+
+    if (dst_color_depth == src_col_depth)
+    {
+        ReadPixelsFromMemory(bitmap.get(), pixels, src_pitch);
+        return bitmap.release();
+    }
+
+    return nullptr;
+}
+
 Bitmap *LoadFromFile(const char *filename)
 {
     std::unique_ptr<Stream> in (

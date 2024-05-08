@@ -72,6 +72,12 @@ namespace BitmapHelper
     // pass color depth 0 to keep the original one.
     Bitmap *CreateBitmapCopy(Bitmap *src, int color_depth = 0);
 
+    // Creates Bitmap of wanted color depth from a raw pixel array of a (possibly different)
+    // specified color depth.
+    // NOTE: color_depth is in BITS per pixel (i.e. 8, 16, 24, 32...).
+    Bitmap *CreateBitmapFromPixels(int width, int height, int dst_color_depth,
+        const uint8_t *pixels, const int src_col_depth, const int src_pitch);
+
     // Load a bitmap from file; supported formats currently are: BMP, PCX.
 	Bitmap *LoadFromFile(const char *filename);
     inline Bitmap *LoadFromFile(const String &filename) { return LoadFromFile(filename.GetCStr()); }

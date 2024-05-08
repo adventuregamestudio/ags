@@ -291,7 +291,11 @@ void AGS::ForwardJump::Patch(size_t cur_line, bool keep_linenum)
             _scrip.LastEmittedLineno = INT_MAX;
     }
     for (auto loc = _jumpDestParamLocs.cbegin(); loc != _jumpDestParamLocs.cend(); loc++)
+    {
+        if (!(*loc < _scrip.Codesize_i32()))
+            throw std::runtime_error("AGS::ForwardJump::Patch: writing beyond 'code' buffer");
         _scrip.code[*loc] = _scrip.RelativeJumpDist(*loc, _scrip.Codesize_i32());
+    }
     _jumpDestParamLocs.clear();
 }
 
@@ -303,6 +307,10 @@ void AGS::BackwardJumpDest::Set(CodeLoc cl)
 
 void AGS::BackwardJumpDest::WriteJump(CodeCell jump_op, size_t cur_line)
 {
+    if (!(_dest < _scrip.Codesize_i32()))
+    {
+        throw std::runtime_error("AGS::BackwardJumpDest::WriteJump: reading beyond 'code' buffer");
+    }
     if (SCMD_LINENUM != _scrip.code[_dest] &&
         _scrip.LastEmittedLineno != _lastEmittedSrcLineno)
     {

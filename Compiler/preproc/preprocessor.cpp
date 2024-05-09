@@ -28,7 +28,7 @@ extern int currentline; // in script/script_common
 namespace AGS {
 namespace Preprocessor {
 
-    static const size_t NOT_FOUND = -1;
+    static const size_t NOT_FOUND = String::NoIndex;
 
 #if AGS_PLATFORM_OS_WINDOWS
     static const char * li_end = "\r\n";
@@ -39,6 +39,26 @@ namespace Preprocessor {
     bool IsScriptWordChar(int c)
     {
         return std::isalnum(c) || c == '_';
+    }
+
+    size_t FindIndexOfMatchingCharacter(String text, size_t indexOfFirstSpeechMark, int charToMatch)
+    {
+        size_t endOfString = NOT_FOUND;
+        size_t checkFrom = indexOfFirstSpeechMark + 1;
+        for (size_t i = checkFrom; i < text.GetLength(); i++)
+        {
+            if (text[i] == '\\')
+            {
+                i++;  // ignore next char
+            }
+            else if (text[i] == charToMatch)
+            {
+                endOfString = i;
+                break;
+            }
+        }
+
+        return endOfString;
     }
 
     class StringBuilder : TextWriter {
@@ -206,7 +226,7 @@ namespace Preprocessor {
             {
                 if ((text[i] == '"') || (text[i] == '\''))
                 {
-                    size_t endOfString = text.FindChar(text[i],i);
+                    size_t endOfString = FindIndexOfMatchingCharacter(text, i, text[i]);
                     if (endOfString == NOT_FOUND) //size_t is unsigned but it's alright
                     {
                         LogError(ErrorCode::UnterminatedString, "Unterminated string");
@@ -363,7 +383,7 @@ namespace Preprocessor {
             {
                 if ((line[i] == '"') || (line[i] == '\''))
                 {
-                    i = line.FindChar(line[i],i);
+                    i = FindIndexOfMatchingCharacter(line, i, line[i]);
                     if (i == NOT_FOUND)
                     {
                         i = line.GetLength();

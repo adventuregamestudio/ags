@@ -117,6 +117,14 @@
 #define SFLG_HASDYNAMICARRAY  0x100000
 #define TEMP_SYMLIST_LENGTH 100
 
+// Checks for whitespaces with exception for linebreaks
+inline bool IsWhitespaceNoLineBreak(int c)
+{
+    // space, tab, vertical tab, linefeed
+    return c == ' ' || c == '\t' || c == '\v' || c == '\f';
+}
+
+// Tells if this character may be a part of a script symbol
 inline bool IsScriptWordChar(int c)
 {
     return std::isalnum(c) || c == '_';

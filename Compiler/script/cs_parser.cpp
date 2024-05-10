@@ -222,7 +222,7 @@ int cc_tokenize(const char*inpl, ccInternalList*targ, ccCompiledScript*scrip) {
                 break;
             }
             thischar = fmem_getc(iii);
-        } while (std::isspace(thischar));
+        } while (IsWhitespaceNoLineBreak(thischar));
         // if it was the end of file, abort
         if (waseof)
             break;

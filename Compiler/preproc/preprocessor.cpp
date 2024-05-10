@@ -12,6 +12,8 @@
 //
 //=============================================================================
 #include <algorithm>
+#include <cctype>
+#include "script/cs_parser_common.h"
 #include "preproc/preprocessor.h"
 #include "script/cc_common.h"
 #include "util/textstreamwriter.h"
@@ -27,13 +29,33 @@ extern int currentline; // in script/script_common
 namespace AGS {
 namespace Preprocessor {
 
-    static const size_t NOT_FOUND = -1;
+    static const size_t NOT_FOUND = String::NoIndex;
 
 #if AGS_PLATFORM_OS_WINDOWS
     static const char * li_end = "\r\n";
 #else
     static const char * li_end = "\n";
 #endif
+
+    size_t FindIndexOfMatchingCharacter(String text, size_t indexOfFirstSpeechMark, int charToMatch)
+    {
+        size_t endOfString = NOT_FOUND;
+        size_t checkFrom = indexOfFirstSpeechMark + 1;
+        for (size_t i = checkFrom; i < text.GetLength(); i++)
+        {
+            if (text[i] == '\\')
+            {
+                i++;  // ignore next char
+            }
+            else if (text[i] == charToMatch)
+            {
+                endOfString = i;
+                break;
+            }
+        }
+
+        return endOfString;
+    }
 
     class StringBuilder : TextWriter {
     private:
@@ -167,7 +189,7 @@ namespace Preprocessor {
     String Preprocessor::GetNextWord(String &text, bool trimText, bool includeDots) {
         size_t i = 0;
         while ((i < text.GetLength()) &&
-               (is_alphanum(text[i]) ||
+               (IsScriptWordChar(text[i]) ||
                 (includeDots && (text[i] == '.')))
                 ) {
             i++;
@@ -200,7 +222,7 @@ namespace Preprocessor {
             {
                 if ((text[i] == '"') || (text[i] == '\''))
                 {
-                    size_t endOfString = text.FindChar(text[i],i);
+                    size_t endOfString = FindIndexOfMatchingCharacter(text, i, text[i]);
                     if (endOfString == NOT_FOUND) //size_t is unsigned but it's alright
                     {
                         LogError(ErrorCode::UnterminatedString, "Unterminated string");
@@ -284,7 +306,7 @@ namespace Preprocessor {
                 LogError(ErrorCode::MacroNameMissing);
                 return String("");
             }
-            else if (is_digit(macroName[0]))
+            else if (std::isdigit(macroName[0]))
             {
                 LogError(ErrorCode::MacroNameInvalid, String::FromFormat("Macro name '%s' cannot start with a digit", macroName.GetCStr()));
             }
@@ -353,11 +375,11 @@ namespace Preprocessor {
         while (line.GetLength() > 0)
         {
             size_t i = 0;
-            while ((i < line.GetLength()) && (!is_alphanum(line[i])))
+            while ((i < line.GetLength()) && (!std::isalnum(line[i])))
             {
                 if ((line[i] == '"') || (line[i] == '\''))
                 {
-                    i = line.FindChar(line[i],i);
+                    i = FindIndexOfMatchingCharacter(line, i, line[i]);
                     if (i == NOT_FOUND)
                     {
                         i = line.GetLength();

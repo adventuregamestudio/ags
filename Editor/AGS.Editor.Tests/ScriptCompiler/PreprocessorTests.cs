@@ -324,6 +324,51 @@ Display(""This displays!"");
             AssertStringEqual(res, script_res);
         }
 
+
+        [Test]
+        public void IfDefNestedElseIfDef()
+        {
+            IPreprocessor preprocessor = CompilerFactory.CreatePreprocessor(AGS.Types.Version.AGS_EDITOR_VERSION);
+            string script = $@"
+#define FOO
+#define BAR
+#ifdef FOO
+#ifdef BAR
+Display(""FOO and BAR are defined"");
+#else
+Display(""Only FOO is defined"");
+#endif
+#endif
+";
+            string res = preprocessor.Preprocess(script, "IfDefNestedElseIfDef");
+            Assert.That(preprocessor.Results.Count == 0);
+            string script_res = $@"""__NEWSCRIPTSTART_IfDefNestedElseIfDef""
+
+
+
+
+
+Display(""FOO and BAR are defined"");
+
+
+
+
+";
+
+            AssertStringEqual(res, script_res);
+        }
+
+        [Test]
+        public void EscapeCharacters()
+        {
+            IPreprocessor preprocessor = CompilerFactory.CreatePreprocessor(AGS.Types.Version.AGS_EDITOR_VERSION);
+            string script = "#define ESCAPE_SEQUENCE_STRING \"This string has escape characters: \\n\\t\\r\\\\\\\"\"\r\nDisplay(ESCAPE_SEQUENCE_STRING);";
+            string res = preprocessor.Preprocess(script, "EscapeCharacters");
+            Assert.That(preprocessor.Results.Count == 0);
+            string script_res = "\"__NEWSCRIPTSTART_EscapeCharacters\"\r\n\r\nDisplay(\"This string has escape characters: \\n\\t\\r\\\\\\\"\");\r\n";
+            AssertStringEqual(res, script_res);
+        }
+
         [Test]
         public void IfVer()
         {

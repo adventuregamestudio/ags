@@ -14,6 +14,8 @@
 #ifndef __CS_PARSER_COMMON_H
 #define __CS_PARSER_COMMON_H
 
+#include <cctype>
+
 #define NEW_SCRIPT_TOKEN_PREFIX "\"__NEWSCRIPTSTART_"
 #define STRING_LENGTH 200   // how big to make strings
 #define MAX_NESTED_LEVEL 76
@@ -116,9 +118,9 @@
 #define SFLG_HASDYNAMICARRAY  0x100000
 #define TEMP_SYMLIST_LENGTH 100
 
-extern int is_whitespace(char cht);
-extern void skip_whitespace(char**pttt);
-extern int is_digit(int chrac);
-extern int is_alphanum(int chrac);
+inline bool IsScriptWordChar(int c)
+{
+    return std::isalnum(c) || c == '_';
+}
 
 #endif // __CS_PARSER_COMMON_H

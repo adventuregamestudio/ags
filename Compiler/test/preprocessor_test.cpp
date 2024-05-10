@@ -378,6 +378,63 @@ Display("This doesn't");
 }
 
 
+TEST(Preprocess, IfDefNestedElseIfDef) {
+        Preprocessor pp = Preprocessor();
+        const char* inpl = R"EOS(
+#define FOO
+#define BAR
+#ifdef FOO
+#ifdef BAR
+Display("FOO and BAR are defined");
+#else
+Display("Only FOO is defined");
+#endif
+#endif
+)EOS";
+
+    clear_error();
+    String res = pp.Preprocess(inpl, "IfDefNestedElseIfDef");
+
+    EXPECT_STREQ(last_seen_cc_error(), "");
+
+    std::vector<AGSString> lines = SplitLines(res);
+    ASSERT_EQ(lines.size(), 12);
+
+    ASSERT_STREQ(lines[0].GetCStr(), "\"__NEWSCRIPTSTART_IfDefNestedElseIfDef\"");
+    ASSERT_STREQ(lines[1].GetCStr(), "");
+    ASSERT_STREQ(lines[2].GetCStr(), "");
+    ASSERT_STREQ(lines[3].GetCStr(), "");
+    ASSERT_STREQ(lines[4].GetCStr(), "");
+    ASSERT_STREQ(lines[5].GetCStr(), "");
+    ASSERT_STREQ(lines[6].GetCStr(), "Display(\"FOO and BAR are defined\");");
+    ASSERT_STREQ(lines[7].GetCStr(), "");
+    ASSERT_STREQ(lines[8].GetCStr(), "");
+    ASSERT_STREQ(lines[9].GetCStr(), "");
+    ASSERT_STREQ(lines[10].GetCStr(), "");
+}
+
+TEST(Preprocess, EscapeCharacters) {
+    Preprocessor pp = Preprocessor();
+    const char* inpl = R"EOS(
+#define ESCAPE_SEQUENCE_STRING "This string has escape characters: \n\t\r\\\""
+Display(ESCAPE_SEQUENCE_STRING);
+)EOS";
+
+    clear_error();
+    String res = pp.Preprocess(inpl, "EscapeCharacters");
+
+    EXPECT_STREQ(last_seen_cc_error(), "");
+
+    std::vector<AGSString> lines = SplitLines(res);
+    ASSERT_EQ(lines.size(), 5);
+
+    ASSERT_STREQ(lines[0].GetCStr(), "\"__NEWSCRIPTSTART_EscapeCharacters\"");
+    ASSERT_STREQ(lines[1].GetCStr(), "");
+    ASSERT_STREQ(lines[2].GetCStr(), "");
+    ASSERT_STREQ(lines[3].GetCStr(), "Display(\"This string has escape characters: \\n\\t\\r\\\\\\\"\");");
+    ASSERT_STREQ(lines[4].GetCStr(), "");
+}
+
 TEST(Preprocess, IfVer) {
     Preprocessor pp = Preprocessor();
     pp.SetAppVersion("3.6.0.5");

@@ -11,10 +11,10 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include <cerrno>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <cerrno>
 #include <string>
 #include <vector>
 #include "script/cs_parser.h"
@@ -118,7 +118,7 @@ static int is_part_of_symbol(char thischar, char startchar) {
     if (((startchar >= 'a') && (startchar <= 'z')) ||
         ((startchar >= 'A') && (startchar <= 'Z')) ||
         (startchar == '_')) {
-            if (is_alphanum(thischar)) return 1;
+            if (IsScriptWordChar(thischar)) return 1;
             return 0;
     }
     // ==, >=, <=, !=, etc
@@ -222,7 +222,7 @@ int cc_tokenize(const char*inpl, ccInternalList*targ, ccCompiledScript*scrip) {
                 break;
             }
             thischar = fmem_getc(iii);
-        } while (is_whitespace(thischar));
+        } while (std::isspace(thischar));
         // if it was the end of file, abort
         if (waseof)
             break;

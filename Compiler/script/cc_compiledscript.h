@@ -15,25 +15,23 @@
 #define __CC_COMPILEDSCRIPT_H
 
 #include <cstdint>
-#include <string>
 #include "script/cc_script.h"       // ccScript
 #include "cs_parser_common.h"   // macro definitions
 #include "cc_symboldef.h"       // SymbolDef
 
 
 struct ccCompiledScript: public ccScript {
-    int32_t codeallocated;
-    char*functions[MAX_FUNCTIONS];
-    int32_t funccodeoffs[MAX_FUNCTIONS];
-    int16_t funcnumparams[MAX_FUNCTIONS];
-    int32_t numfunctions;
-    int32_t cur_sp;
-    int  next_line;  // line number of next code
-    int  ax_val_type;  // type of value in AX
-    int  ax_val_scope;  // SYM_LOCALVAR or SYM_GLOBALAVR
+    std::vector<std::string> functions;
+    std::vector<int32_t> funccodeoffs;
+    std::vector<int16_t> funcnumparams;
+    int32_t codeallocated = 0;
+    int32_t cur_sp = 0;
+    int  next_line = 0;     // line number of next code
+    int  ax_val_type = 0;   // type of value in AX
+    int  ax_val_scope = 0;  // SYM_LOCALVAR or SYM_GLOBALAVR
 
-    void init();
-    void shutdown();
+    // free the extra bits that ccScript doesn't have
+    // FIXME: refactor this, implement std::move constructor for ccScript?
     void free_extra();
     int  add_global(int,const char*);
     int  add_string(const char*);
@@ -46,7 +44,12 @@ struct ccCompiledScript: public ccScript {
     void set_line_number(int nlum) { next_line=nlum; }
     void flush_line_numbers();
     int  remove_any_import(const char*, SymbolDef *oldSym);
-    const char* start_new_section(const char *name);
+    void start_new_section(const char *name);
+
+    // Returns current code size as int32 value;
+    // this is meant for use in writing bytecode instructions, for compliance
+    // with the old compiler logic, which works only with int32s.
+    inline int32_t codesize_i32() const { return static_cast<int32_t>(code.size()); }
 
     void write_cmd(int cmdd);
     void write_cmd1(int cmdd,int param);
@@ -56,8 +59,8 @@ struct ccCompiledScript: public ccScript {
     void push_reg(int regg);
     void pop_reg(int regg);
 
-    ccCompiledScript();
-    virtual ~ccCompiledScript();
+    ccCompiledScript() = default;
+    virtual ~ccCompiledScript() = default;
 };
 
 #endif // __CC_COMPILEDSCRIPT_H

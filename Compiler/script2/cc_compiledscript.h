@@ -23,28 +23,6 @@
 
 namespace AGS {
 class ccCompiledScript : public ccScript {
-
-    // These track how much space has been allocated for the different memory chunks.
-    size_t _globaldataAllocated = 0u;
-    size_t _codeAllocated = 0u;
-    size_t _stringsAllocated = 0u;
-    size_t _fixupsAllocated = 0u;
-    size_t _fixupTypesAllocated = 0u;
-    size_t _importsAllocated = 0u;
-    size_t _exportsAllocated = 0u;
-    size_t _exportAddrAllocated = 0u;
-    size_t _sectionNamesAllocated = 0u;
-    size_t _sectionOffsetsAllocated = 0u;
-
-    // Resize the memory chunk at 'start' that currently has 'allocated' bytes allocated
-    // so that it has at least 'MAX(needed, min_size)' bytes allocated.
-    // The chunk is allocated 'malloc' style, so it needs to be 'free'd after use.
-    // Returns kERR_InternalError if reallocation fails.
-    ErrorType ResizeMemory(size_t el_size, size_t needed, size_t min_allocated, void *&start, size_t &allocated);
-
-    inline ErrorType ResizeChunk(size_t el_size, size_t needed, size_t min_allocated, void *&start, size_t &allocated)
-        { return allocated >= needed ? kERR_None : ResizeMemory(el_size, needed, min_allocated, start, allocated); }
-
 public:
     struct FuncProps
     {
@@ -68,6 +46,11 @@ public:
 
     void FreeExtra();
 
+    // Returns current code size as CodeLoc (int32) value;
+    // this is meant for use in writing bytecode instructions, for compliance
+    // with the old compiler logic, which works only with int32s.
+    inline CodeLoc Codesize_i32() const { return static_cast<int32_t>(code.size()); }
+
     // Reserve siz bytes of memory for global data;
     // copy the value at vall into this new memory space if given; 
     // return the offset at which the new space begins.
@@ -83,7 +66,7 @@ public:
     int AddFixup(CodeLoc where, FixupType ftype);
 
     // Set a fixup to the last code cell written
-    inline void FixupPrevious(FixupType ftype) { AddFixup(codesize - 1, ftype); };
+    inline void FixupPrevious(FixupType ftype) { AddFixup(Codesize_i32() - 1, ftype); };
 
     // Add a function named 'func_name' to the functions repository
     CodeLoc AddNewFunction(std::string const &func_name, size_t params_count);
@@ -164,7 +147,7 @@ private:
 public:
     RestorePoint(ccCompiledScript &scrip)
         : _scrip(scrip)
-        , _rememberedCodeLocation(scrip.codesize)
+        , _rememberedCodeLocation(scrip.Codesize_i32())
     { }
 
     // Cut the code that has been generated since the object has been created into the snippet
@@ -177,7 +160,7 @@ public:
     // then don't cut out this directive.
     inline void Restore(bool keep_starting_linum = true) { Snippet _dummy; Cut(_dummy, keep_starting_linum); }
 
-    inline bool IsEmpty() const { return _scrip.codesize <= _rememberedCodeLocation; }
+    inline bool IsEmpty() const { return _scrip.Codesize_i32() <= _rememberedCodeLocation; }
     inline CodeLoc CodeLocation() const { return _rememberedCodeLocation; }
 };
 

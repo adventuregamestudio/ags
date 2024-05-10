@@ -300,14 +300,14 @@ TEST_F(Scan, StringCollect)
     EXPECT_EQ(sym.VartypeWithConst(AGS::kKW_String), sym[s1].LiteralD->Vartype);
     int const pos1 = sym[s1].LiteralD->Value;
     ASSERT_LE(0, pos1);
-    text_in_buffer.assign(string_collector.strings + pos1);
+    text_in_buffer.assign(&string_collector.strings[0] + pos1);
     ASSERT_EQ("Zwiebelkuchen", text_in_buffer);
 
     AGS::Symbol const s2 = sym.Find("\"Holz\\7schuh\"");
     ASSERT_LT(0, s2);
     int const pos2 = sym[s2].LiteralD->Value;
     ASSERT_LE(0, pos2);
-    text_in_buffer.assign(string_collector.strings + pos2);
+    text_in_buffer.assign(&string_collector.strings[0] + pos2);
     ASSERT_EQ("Holz\x07schuh", text_in_buffer);
 }
 
@@ -949,7 +949,7 @@ TEST_F(Scan, ConsecutiveStringLiterals1)
 
     EXPECT_EQ(0, scanner.GetNextSymstringT(symstring, sct, value));
     EXPECT_STREQ("\"Supercalifragilisticexpialidocious\"", symstring.c_str());
-    EXPECT_STREQ("Supercalifragilisticexpialidocious", string_collector.strings + value);
+    EXPECT_STREQ("Supercalifragilisticexpialidocious", &string_collector.strings[0] + value);
     EXPECT_EQ(4, scanner.GetLineno());
 
     scanner.GetNextSymstringT(symstring, sct, value);

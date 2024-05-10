@@ -105,7 +105,6 @@ static std::unique_ptr<RTTI> ccCompileRTTI(const symbolTable &sym)
 
 ccScript* ccCompileText(const char *texo, const char *scriptName) {
     ccCompiledScript *cctemp = new ccCompiledScript();
-    cctemp->init();
 
     sym.reset();
 
@@ -132,7 +131,6 @@ ccScript* ccCompileText(const char *texo, const char *scriptName) {
     }
 
     if (cc_has_error()) {
-        cctemp->shutdown();
         delete cctemp;
         return NULL;
     }
@@ -145,16 +143,16 @@ ccScript* ccCompileText(const char *texo, const char *scriptName) {
 
             if ((stype == SYM_FUNCTION) || (stype == SYM_GLOBALVAR)) {
                 // unused func/variable
-                cctemp->imports[sym.entries[t].soffs][0] = 0;
+                cctemp->imports[sym.entries[t].soffs] = std::string();
             }
             else if (sym.entries[t].flags & SFLG_PROPERTY) {
                 // unused property -- get rid of the getter and setter
                 int propGet = sym.entries[t].get_propget();
                 int propSet = sym.entries[t].get_propset();
                 if (propGet >= 0)
-                    cctemp->imports[propGet][0] = 0;
+                    cctemp->imports[propGet] = std::string();
                 if (propSet >= 0)
-                    cctemp->imports[propSet][0] = 0;
+                    cctemp->imports[propSet] = std::string();
             }
         }
 
@@ -170,10 +168,9 @@ ccScript* ccCompileText(const char *texo, const char *scriptName) {
 
     if (ccGetOption(SCOPT_EXPORTALL)) {
         // export all functions
-        for (size_t t=0;t<cctemp->numfunctions;t++) {
-            if (cctemp->add_new_export(cctemp->functions[t],EXPORT_FUNCTION,
+        for (size_t t=0; t < cctemp->functions.size(); ++t) {
+            if (cctemp->add_new_export(cctemp->functions[t].c_str(), EXPORT_FUNCTION,
                 cctemp->funccodeoffs[t], cctemp->funcnumparams[t]) == -1) {
-                    cctemp->shutdown();
                     return NULL;
             }
 

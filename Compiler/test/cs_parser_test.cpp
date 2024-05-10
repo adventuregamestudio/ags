@@ -25,7 +25,6 @@ extern int cc_tokenize(const char*inpl, ccInternalList*targ, ccCompiledScript*sc
 ccCompiledScript *newScriptFixture() {
     // TODO: investigate proper google test fixtures.
     ccCompiledScript *scrip = new ccCompiledScript();
-    scrip->init();
     sym.reset();  // <-- global
     return scrip;
 }

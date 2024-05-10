@@ -1819,7 +1819,7 @@ bool ccInstance::_Create(PScript scri, const ccInstance * joined)
     }
 
     // just use the pointer to the strings since they don't change
-    strings = &scri->strings[0];
+    strings = scri->strings.size() > 0 ? &scri->strings[0] : "";
     stringssize = scri->strings.size();
     // create a stack
     stackdatasize = CC_STACK_DATA_SIZE;
@@ -2134,7 +2134,7 @@ bool ccInstance::CreateRuntimeCodeFixups(const ccScript *scri)
 {
     code_fixups = new char[scri->code.size()];
     memset(code_fixups, 0, scri->code.size());
-    for (int i = 0; i < scri->fixups.size(); ++i)
+    for (size_t i = 0; i < scri->fixups.size(); ++i)
     {
         if (scri->fixuptypes[i] == FIXUP_DATADATA)
         {
@@ -2142,7 +2142,7 @@ bool ccInstance::CreateRuntimeCodeFixups(const ccScript *scri)
         }
 
         const int32_t fixup = scri->fixups[i];
-        if (fixup < 0 || fixup >= scri->code.size())
+        if (fixup < 0 || static_cast<size_t>(fixup) >= scri->code.size())
         {
             cc_error_fixups(scri, SIZE_MAX, "bad fixup at %d (fixup type %d, bytecode pos %d, bytecode range is 0..%d)",
                 i,  scri->fixuptypes[i], fixup, scri->code.size());

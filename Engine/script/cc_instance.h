@@ -130,7 +130,7 @@ public:
     intptr_t *code;
     ccInstance *runningInst;  // might point to another instance if in far call
     int32_t codesize;
-    char *strings;
+    const char *strings;
     int32_t stringssize;
     RuntimeScriptValue *exports;
     RuntimeScriptValue *stack;

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -22,9 +23,29 @@ namespace AGS.Controls
     {
         /// <summary>
         /// DefaultScrollButtonHeight is the default scrolling button's height,
-        /// as learnt from the WinForms source code.
+        /// as learnt from the WinForms source code. Used here as a reference.
         /// </summary>
         private const int DefaultScrollButtonHeight = 9;
+
+        private delegate ToolStripControlHost GetScrollButtonDelegate(ToolStripDropDownMenu m);
+        /// <summary>
+        /// UpScrollButton is a retrieved private property getter of a
+        /// ToolStripDropDownMenu, that returns an instance of a up-scrolling item.
+        /// </summary>
+        private static GetScrollButtonDelegate UpScrollButton
+            = (GetScrollButtonDelegate)Delegate.CreateDelegate(typeof(GetScrollButtonDelegate),
+                typeof(ToolStripDropDownMenu).GetProperty("UpScrollButton",
+                  System.Reflection.BindingFlags.NonPublic
+                | System.Reflection.BindingFlags.Instance).GetMethod);
+        /// <summary>
+        /// UpScrollButton is a retrieved private property getter of a
+        /// ToolStripDropDownMenu, that returns an instance of a down-scrolling item.
+        /// </summary>
+        private static GetScrollButtonDelegate DownScrollButton
+            = (GetScrollButtonDelegate)Delegate.CreateDelegate(typeof(GetScrollButtonDelegate),
+                typeof(ToolStripDropDownMenu).GetProperty("DownScrollButton",
+                  System.Reflection.BindingFlags.NonPublic
+                | System.Reflection.BindingFlags.Instance).GetMethod);
 
         /// <summary>
         /// ScrollInternal is a retrieved private method of a ToolStrip
@@ -37,8 +58,33 @@ namespace AGS.Controls
                 | System.Reflection.BindingFlags.Instance));
 
 
+        /// <summary>
+        /// Gets/sets up/down scroll buttons height.
+        /// </summary>
+        public int ScrollButtonHeight
+        {
+            get; set;
+        }
+
         public ToolStripDropDownMenuEx()
         {
+            ScrollButtonHeight = 24;
+        }
+
+        /// <summary>
+        /// Resets the collection of displayed and overflow items after a layout is done.
+        /// We do our additional customization here.
+        /// </summary>
+        protected override void SetDisplayedItems()
+        {
+            UpScrollButton(this).Control.MinimumSize = new Size(0, ScrollButtonHeight);
+            DownScrollButton(this).Control.MinimumSize = new Size(0, ScrollButtonHeight);
+
+            base.SetDisplayedItems();
+
+            // Update the initial scroll, because the default one seem to rely
+            // on the default scroll button height.
+            DoItemScroll(DefaultScrollButtonHeight - ScrollButtonHeight);
         }
 
         /// <summary>
@@ -67,8 +113,8 @@ namespace AGS.Controls
 
             var firstItem = Items[0];
             var lastItem = Items[Items.Count - 1];
-            var topPosition = DefaultScrollButtonHeight;
-            var bottomPosition = Height - DefaultScrollButtonHeight;
+            var topPosition = ScrollButtonHeight;
+            var bottomPosition = Height - ScrollButtonHeight;
 
             // Note that in the vertical scrolling strip the item positions
             // are surpassing top and bottom parent control borders.
@@ -92,6 +138,9 @@ namespace AGS.Controls
             if (delta != 0)
             {
                 ScrollInternal(this, delta);
+                // Enable/disable up and down scroll buttons depending on scroll pos
+                UpScrollButton(this).Control.Enabled = firstItem.Bounds.Top < topPosition;
+                DownScrollButton(this).Control.Enabled = lastItem.Bounds.Bottom > bottomPosition;
             }
         }
     }

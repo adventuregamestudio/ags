@@ -50,7 +50,6 @@ set(COMPILER_SOURCES
         script/cs_compiler.h
         script/cs_parser.cpp
         script/cs_parser.h
-        script/cs_parser_common.cpp
         script/cs_parser_common.h
         ${PREPROCESSOR_SOURCES}
 )

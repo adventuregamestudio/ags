@@ -48,7 +48,6 @@ COMPILER_OBJS = \
 	script/cc_treemap.cpp \
 	script/cs_compiler.cpp \
 	script/cs_parser.cpp \
-	script/cs_parser_common.cpp \
 	preproc/cc_macrotable.cpp \
 	preproc/preprocessor.cpp
 

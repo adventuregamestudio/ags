@@ -120,6 +120,8 @@ namespace AddressBarExt.Controls
 
         public Color DropDownForeColor { get; set; }
 
+        public int MinDisplayedDropDownItems { get; set; }
+
         /// <summary>
         /// Gets/Sets the currently selected node. Validates upon set and updates the bar
         /// </summary>
@@ -369,6 +371,7 @@ namespace AddressBarExt.Controls
                         //Some variables to let the drawing happen smoothly
                         tsDropDown.LayoutStyle = ToolStripLayoutStyle.VerticalStackWithOverflow;
                         tsDropDown.MaximumSize = new Size(1000, 400);
+                        tsDropDown.MinDisplayedItems = MinDisplayedDropDownItems;
                         tsDropDown.ShowImageMargin = false;
                         tsDropDown.ShowCheckMargin = false;                        
                                                 

@@ -26,6 +26,10 @@ namespace AGS.Controls
         /// as learnt from the WinForms source code. Used here as a reference.
         /// </summary>
         private const int DefaultScrollButtonHeight = 9;
+        /// <summary>
+        /// Default vertical gap between items on a DropDownMenu.
+        /// </summary>
+        private const int DefaultItemSpacing = 3;
 
         private delegate ToolStripControlHost GetScrollButtonDelegate(ToolStripDropDownMenu m);
         /// <summary>
@@ -66,9 +70,19 @@ namespace AGS.Controls
             get; set;
         }
 
+        /// <summary>
+        /// Gets/sets number of items that must be visible at all times.
+        /// May override the MaximalSize values upon showing this DropDownMenu.
+        /// </summary>
+        public int MinDisplayedItems
+        {
+            get; set;
+        }
+
         public ToolStripDropDownMenuEx()
         {
             ScrollButtonHeight = 24;
+            MinDisplayedItems = 0;
         }
 
         /// <summary>
@@ -79,6 +93,20 @@ namespace AGS.Controls
         {
             UpScrollButton(this).Control.MinimumSize = new Size(0, ScrollButtonHeight);
             DownScrollButton(this).Control.MinimumSize = new Size(0, ScrollButtonHeight);
+
+            if (MinDisplayedItems > 0)
+            {
+                int maxItemHeight = 0;
+                foreach (ToolStripItem item in Items)
+                {
+                    maxItemHeight = Math.Max(maxItemHeight, item.Height);
+                }
+                int requiredHeight = MinDisplayedItems * maxItemHeight + DefaultItemSpacing * (maxItemHeight - 1)
+                    + ScrollButtonHeight * 2;
+
+                if (MaximumSize.Height < requiredHeight)
+                    MaximumSize = new Size(MaximumSize.Width, requiredHeight);
+            }
 
             base.SetDisplayedItems();
 

@@ -78,22 +78,19 @@
     <ClInclude Include="..\..\Compiler\preproc\preprocessor.h">
       <Filter>Header Files\preproc</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\Compiler\fmem.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Common\script\cc_error.h">
-      <Filter>Header Files\cs</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Common\script\cc_options.h">
+    <ClInclude Include="..\..\Common\script\cc_internal.h">
       <Filter>Header Files\cs</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\script\cc_script.h">
       <Filter>Header Files\cs</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\script\script_common.h">
+    <ClInclude Include="..\..\Common\script\cc_common.h">
       <Filter>Header Files\cs</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Compiler\fmem.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Compiler\script\cc_compiledscript.h">
       <Filter>Header Files\script</Filter>

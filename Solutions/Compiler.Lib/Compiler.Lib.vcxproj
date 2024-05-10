@@ -302,7 +302,6 @@
     <ClCompile Include="..\..\Compiler\script\cc_treemap.cpp" />
     <ClCompile Include="..\..\Compiler\script\cs_compiler.cpp" />
     <ClCompile Include="..\..\Compiler\script\cs_parser.cpp" />
-    <ClCompile Include="..\..\Compiler\script\cs_parser_common.cpp" />
     <ClCompile Include="..\..\Compiler\preproc\preprocessor.cpp" />
   </ItemGroup>
   <ItemGroup>

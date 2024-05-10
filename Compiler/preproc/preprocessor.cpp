@@ -37,11 +37,6 @@ namespace Preprocessor {
     static const char * li_end = "\n";
 #endif
 
-    bool IsScriptWordChar(int c)
-    {
-        return std::isalnum(c) || c == '_';
-    }
-
     size_t FindIndexOfMatchingCharacter(String text, size_t indexOfFirstSpeechMark, int charToMatch)
     {
         size_t endOfString = NOT_FOUND;

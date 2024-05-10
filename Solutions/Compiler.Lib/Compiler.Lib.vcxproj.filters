@@ -53,9 +53,6 @@
     <ClCompile Include="..\..\Compiler\script\cs_parser.cpp">
       <Filter>Source Files\script</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Compiler\script\cs_parser_common.cpp">
-      <Filter>Source Files\script</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Compiler\preproc\preprocessor.cpp">
       <Filter>Source Files\preproc</Filter>
     </ClCompile>

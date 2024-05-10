@@ -44,35 +44,32 @@ void clear_chunk_list(std::vector<ccChunk> *list);
 int  is_any_type_of_string(int symtype);
 
 void yank_chunk(ccCompiledScript *scrip, std::vector<ccChunk> *list, int codeoffset, int fixupoffset) {
-    ccChunk item;
-    int index;
+    assert(codeoffset >= 0 && static_cast<size_t>(codeoffset) <= scrip->code.size());
+    assert(fixupoffset >= 0 && static_cast<size_t>(fixupoffset) <= scrip->fixups.size());
 
-    for(index = codeoffset; index < scrip->codesize; index++)
+    ccChunk item;
+    for (size_t index = codeoffset; index < scrip->code.size(); index++)
         item.code.push_back(scrip->code[index]);
-    for(index = fixupoffset; index < scrip->numfixups; index++) {
+    for (size_t index = fixupoffset; index < scrip->fixups.size(); index++) {
         item.fixups.push_back(scrip->fixups[index]);
         item.fixuptypes.push_back(scrip->fixuptypes[index]);
     }
     item.codeoffset = codeoffset;
     item.fixupoffset = fixupoffset;
     list->push_back(item);
-    scrip->codesize = codeoffset;
-    scrip->numfixups = fixupoffset;
+    scrip->code.resize(codeoffset);
+    scrip->fixups.resize(fixupoffset);
+    scrip->fixuptypes.resize(fixupoffset);
 }
 
 void write_chunk(ccCompiledScript *scrip, ccChunk item) {
-    int index;
-    int limit;
-    int adjust;
-
     scrip->flush_line_numbers();
-    adjust = scrip->codesize - item.codeoffset;
-    limit = item.code.size();
-    for(index = 0; index < limit; index++) {
+    int adjust = scrip->codesize_i32() - item.codeoffset;
+
+    for(size_t index = 0; index < item.code.size(); index++) {
         scrip->write_code(item.code[index]);
     }
-    limit = item.fixups.size();
-    for(index = 0; index < limit; index++)
+    for(size_t index = 0; index < item.fixups.size(); index++)
         scrip->add_fixup(item.fixups[index] + adjust, item.fixuptypes[index]);
 }
 
@@ -482,11 +479,11 @@ int deal_with_end_of_ifelse (char *nested_type, int32_t *nested_info, int32_t *n
              clear_chunk_list(&nested_chunk[nested_level]);
          }
          // it's a while loop, so write a jump back to the check again
-        scrip->write_cmd1(SCMD_JMP,-((scrip->codesize+2) - nested_start[nested_level]) );
+        scrip->write_cmd1(SCMD_JMP,-((scrip->codesize_i32() + 2) - nested_start[nested_level]) );
      }
      // write the correct relative jump location
      scrip->code[nested_info[nested_level]] =
-         (scrip->codesize - nested_info[nested_level]) - 1;
+         (scrip->codesize_i32() - nested_info[nested_level]) - 1;
      if (is_else) {
          // convert the IF into an ELSE
          if (sym.get_type(targ->peeknext()) == SYM_OPENBRACE) {
@@ -495,7 +492,7 @@ int deal_with_end_of_ifelse (char *nested_type, int32_t *nested_info, int32_t *n
          }
          else
              nested_type[nested_level] = NEST_ELSESINGLE;
-         nested_info[nested_level] = scrip->codesize-1;
+         nested_info[nested_level] = scrip->codesize_i32() - 1;
          return 1;
      }
      else
@@ -540,9 +537,9 @@ int deal_with_end_of_do (int32_t *nested_info, int32_t *nested_start, ccCompiled
     }
     targ->getnext();
     // Jump back to the start of the loop while the condition is true
-    scrip->write_cmd1(SCMD_JNZ, -((scrip->codesize + 2) - nested_start[nested_level]));
+    scrip->write_cmd1(SCMD_JNZ, -((scrip->codesize_i32() + 2) - nested_start[nested_level]));
     // Write the correct location for the end of the loop
-    scrip->code[nested_info[nested_level]] = (scrip->codesize - nested_info[nested_level]) - 1;
+    scrip->code[nested_info[nested_level]] = (scrip->codesize_i32() - nested_info[nested_level]) - 1;
     nestlevel[0]--;
 
     return 0;
@@ -554,27 +551,27 @@ int deal_with_end_of_switch (int32_t *nested_assign_addr, int32_t *nested_start,
     int nested_level = nestlevel[0];
     int skip;
     int operation = is_any_type_of_string(nested_info[nested_level]) ? SCMD_STRINGSNOTEQ : SCMD_NOTEQUAL;
-    if(scrip->code[scrip->codesize - 2] != SCMD_JMP || scrip->code[scrip->codesize - 1] != nested_start[nested_level] - scrip->codesize + 2) {
+    if(scrip->code[scrip->code.size() - 2] != SCMD_JMP || scrip->code[scrip->code.size() - 1] != nested_start[nested_level] - scrip->codesize_i32() + 2) {
         // If there was no terminating break, write a jump at the end of the last case
         scrip->write_cmd1(SCMD_JMP, 0);
     }
-    skip = scrip->codesize;
+    skip = scrip->codesize_i32();
     // Write the location for the jump to this point (the jump table)
-    scrip->code[nested_start[nested_level] + 1] = (scrip->codesize - nested_start[nested_level]) - 2;
+    scrip->code[nested_start[nested_level] + 1] = (scrip->codesize_i32() - nested_start[nested_level]) - 2;
     for(index = 0; index < limit; index++) {
         // Put the result of the expression into AX
         write_chunk(scrip, (*nested_chunk)[index]);
         // Do the comparison
         scrip->write_cmd2(operation, SREG_AX, SREG_BX);
-        scrip->write_cmd1(SCMD_JZ, (*nested_chunk)[index].codeoffset - scrip->codesize - 2);
+        scrip->write_cmd1(SCMD_JZ, (*nested_chunk)[index].codeoffset - scrip->codesize_i32() - 2);
     }
     // Write the default jump if necessary
     if(nested_assign_addr[nested_level] != -1)
-        scrip->write_cmd1(SCMD_JMP, nested_assign_addr[nested_level] - scrip->codesize - 2);
+        scrip->write_cmd1(SCMD_JMP, nested_assign_addr[nested_level] - scrip->codesize_i32() - 2);
     // Write the location for the jump to the end of the switch block (for break statements)
-    scrip->code[nested_start[nested_level] + 3] = scrip->codesize - nested_start[nested_level] - 4;
+    scrip->code[nested_start[nested_level] + 3] = scrip->codesize_i32() - nested_start[nested_level] - 4;
     // Write the jump for the end of the switch block
-    scrip->code[skip - 1] = scrip->codesize - skip;
+    scrip->code[skip - 1] = scrip->codesize_i32() - skip;
     clear_chunk_list(nested_chunk);
     nestlevel[0]--;
 
@@ -696,7 +693,7 @@ int check_for_default_value(ccInternalList &targ, int funcsym, int numparams) {
 
         int defaultValue;
         if (strchr(sym.get_name(defValSym), '.') != NULL) {
-            float fval = atof(sym.get_name(defValSym));
+            float fval = static_cast<float>(atof(sym.get_name(defValSym)));
             isFloat = true;
             if (negateIt)
                 fval = -fval;
@@ -1092,8 +1089,7 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
       // to the name of the import
       char appendage[10];
       sprintf(appendage, "^%d", sym.entries[funcsym].sscope);
-
-      strcat(scrip->imports[in_func], appendage);
+      scrip->imports[in_func].append(appendage);
     }
 
     int nextvar = targ.peeknext();
@@ -2572,7 +2568,7 @@ int parse_sub_expr(int32_t *symlist, int listlen, ccCompiledScript*scrip) {
       // AX will still be 0 so that will do as the result of the
       // calculation
       scrip->write_cmd1(SCMD_JZ, 0);
-      jumpLocationOffset = scrip->codesize;
+      jumpLocationOffset = scrip->codesize_i32();
     }
     else if (vcpuOperator == SCMD_OR) {
       // || operator lazy evaluation ... if AX is non-zero then
@@ -2580,7 +2576,7 @@ int parse_sub_expr(int32_t *symlist, int listlen, ccCompiledScript*scrip) {
       // instruction; AX will still be non-zero so that will do as
       // the result of the calculation
       scrip->write_cmd1(SCMD_JNZ, 0);
-      jumpLocationOffset = scrip->codesize;
+      jumpLocationOffset = scrip->codesize_i32();
     }
 
     int valtypewas = scrip->ax_val_type;
@@ -2600,7 +2596,7 @@ int parse_sub_expr(int32_t *symlist, int listlen, ccCompiledScript*scrip) {
 
     if (jumpLocationOffset > 0) {
       // write the jump offset
-      scrip->code[jumpLocationOffset - 1] = scrip->codesize - jumpLocationOffset;
+      scrip->code[jumpLocationOffset - 1] = scrip->codesize_i32() - jumpLocationOffset;
     }
 
     // Operators like == return a bool (in our case, that's an int);
@@ -3217,17 +3213,14 @@ int parse_variable_declaration(int32_t cursym,int *next_type,int isglobal,
       need_fixup = 1;
     }
     else if (isglobal == 0) {
-      //getsvalue[0] = scrip->cur_sp;
       getsvalue = NULL;
       // save the address of this bit of memory to assign the pointer to it
       // we can't use scrip->cur_sp since we don't know if we'll be in
       // a nested function call at the time
       scrip->write_cmd2(SCMD_REGTOREG, SREG_SP, SREG_CX);
-      //scrip->add_fixup(scrip->codesize-2,FIXUP_STACK);
       scrip->cur_sp += STRING_LENGTH;
       scrip->write_cmd2(SCMD_ADD,SREG_SP,STRING_LENGTH);
       sym.entries[cursym].flags |= SFLG_STRBUFFER;
-      //need_fixup = 1;
     }
   }
 
@@ -3446,7 +3439,7 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
             if (nested_level == 1) {
                 nested_type[nested_level]=NEST_FUNCTION;
                 // write base address of function for any relocation needed later
-                scrip->write_cmd1(SCMD_THISBASE, scrip->codesize);
+                scrip->write_cmd1(SCMD_THISBASE, scrip->codesize_i32());
                 if (next_is_noloopcheck)
                     scrip->write_cmd(SCMD_LOOPCHECKOFF);
 
@@ -4504,7 +4497,7 @@ startvarbit:
                         cc_error("expected '('");
                         return -1;
                     }
-                    int32_t oriaddr = scrip->codesize;
+                    int32_t oriaddr = scrip->codesize_i32();
 
                     if (evaluate_expression(&targ,scrip,1,false))
                         return -1;
@@ -4528,7 +4521,7 @@ startvarbit:
                         nested_type[nested_level] = NEST_IFSINGLE;
 
                     nested_start[nested_level] = 0;
-                    nested_info[nested_level] = scrip->codesize-1;
+                    nested_info[nested_level] = scrip->codesize_i32() - 1;
                     if (iswhile)
                         nested_start[nested_level] = oriaddr;
                     continue;
@@ -4546,8 +4539,8 @@ startvarbit:
                 else
                     nested_type[nested_level] = NEST_DOSINGLE;
 
-                nested_start[nested_level] = scrip->codesize;
-                nested_info[nested_level] = scrip->codesize - 1; // This is where we need to put the real address of the end of the loop
+                nested_start[nested_level] = scrip->codesize_i32();
+                nested_info[nested_level] = scrip->codesize_i32() - 1; // This is where we need to put the real address of the end of the loop
                 continue;
             }
             else if (sym.get_type(cursym) == SYM_FOR) {
@@ -4641,7 +4634,7 @@ startvarbit:
                         if (evaluate_assignment(&targ, scrip, false, cursym, lilen, vnlist, false))
                             return -1;
                 }
-                int32_t oriaddr = scrip->codesize;
+                int32_t oriaddr = scrip->codesize_i32();
                 bool hasLimitCheck;
                 if (sym.get_type(targ.peeknext()) != SYM_SEMICOLON) {
                     if(sym.get_type(targ.peeknext()) == SYM_CLOSEPARENTHESIS) {
@@ -4658,8 +4651,8 @@ startvarbit:
                 }
                 else
                     hasLimitCheck = false; // Allow for loops without limit checks
-                int32_t assignaddr = scrip->codesize;
-                int pre_fixup_count = scrip->numfixups;
+                int32_t assignaddr = scrip->codesize_i32();
+                int pre_fixup_count = scrip->fixups.size();
                 targ.getnext(); // Skip the ;
                 cursym = targ.getnext();
                 if (sym.get_type(cursym) != SYM_CLOSEPARENTHESIS) {
@@ -4684,7 +4677,7 @@ startvarbit:
                 }
                 else
                     nested_type[nested_level] = NEST_ELSESINGLE;
-                nested_info[nested_level] = scrip->codesize-1;
+                nested_info[nested_level] = scrip->codesize_i32() - 1;
                 nested_start[nested_level] = oriaddr;
                 continue;
             }
@@ -4702,7 +4695,7 @@ startvarbit:
                 // Copy the result to the BX register, ready for case statements
                 scrip->write_cmd2(SCMD_REGTOREG, SREG_AX, SREG_BX);
                 scrip->flush_line_numbers();
-                nested_start[nested_level] = scrip->codesize;
+                nested_start[nested_level] = scrip->codesize_i32();
                 scrip->write_cmd1(SCMD_JMP, 0); // Placeholder for a jump to the lookup table
                 scrip->write_cmd1(SCMD_JMP, 0); // Placeholder for a jump to beyond the switch statement (for break)
                 if(sym.get_type(targ.peeknext()) != SYM_OPENBRACE) {
@@ -4732,11 +4725,11 @@ startvarbit:
                         cc_error("Multiple default labels in a switch statement block");
                         return -1;
                     }
-                    nested_assign_addr[nested_level] = scrip->codesize;
+                    nested_assign_addr[nested_level] = scrip->codesize_i32();
                 }
                 else {
-                    int oriaddr = scrip->codesize;
-                    int orifixupcount = scrip->numfixups;
+                    int oriaddr = scrip->codesize_i32();
+                    int orifixupcount = scrip->fixups.size();
                     int vcpuOperator = SCMD_ISEQUAL;
                     // Push the switch variable onto the stack
                     scrip->push_reg(SREG_BX);
@@ -4772,9 +4765,9 @@ startvarbit:
                     scrip->flush_line_numbers();
                     scrip->write_cmd2(SCMD_LITTOREG,SREG_AX,0); // Clear out the AX register so that the jump works correctly
                     if (nested_type[loop_level] == NEST_SWITCH)
-                        scrip->write_cmd1(SCMD_JMP, -(scrip->codesize - nested_start[loop_level])); // Jump to the known break point
+                        scrip->write_cmd1(SCMD_JMP, -((scrip->codesize_i32()) - nested_start[loop_level])); // Jump to the known break point
                     else
-                        scrip->write_cmd1(SCMD_JMP, -(scrip->codesize - nested_info[loop_level] + 3)); // Jump to the known break point
+                        scrip->write_cmd1(SCMD_JMP, -((scrip->codesize_i32()) - nested_info[loop_level] + 3)); // Jump to the known break point
                 }
                 else {
                     cc_error("Break only valid inside a loop or switch statement block");
@@ -4799,7 +4792,7 @@ startvarbit:
                         write_chunk(scrip, nested_chunk[loop_level][0]);
                     scrip->flush_line_numbers();
                     scrip->write_cmd2(SCMD_LITTOREG,SREG_AX,0); // Clear out the AX register so that the jump works correctly
-                    scrip->write_cmd1(SCMD_JMP, -((scrip->codesize+2) - nested_start[loop_level])); // Jump to the start of the loop
+                    scrip->write_cmd1(SCMD_JMP, -((scrip->codesize_i32() + 2) - nested_start[loop_level])); // Jump to the start of the loop
                 }
                 else {
                     cc_error("Continue not valid outside a loop");

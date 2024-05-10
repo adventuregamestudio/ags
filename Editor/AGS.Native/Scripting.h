@@ -22,6 +22,16 @@ namespace AGS
 		{
 		private:
 			PScript* _compiledScript;
+
+            void WriteCStr(System::IO::BinaryWriter ^writer, const std::string &str)
+            {
+                for (auto c : str)
+                {
+                    writer->Write((System::Byte)c);
+                }
+                writer->Write((System::Byte)0);
+            }
+
 		public:
 			CompiledScript(PScript script) 
 			{
@@ -60,58 +70,49 @@ namespace AGS
                     writer->Write((System::Byte)scfilesig[i]);
                 }
                 const ccScript *cs = _compiledScript->get();
-                writer->Write(SCOM_VERSION);
-                writer->Write(cs->globaldatasize);
-                writer->Write(cs->codesize);
-                writer->Write(cs->stringssize);
-                for (int i = 0; i < cs->globaldatasize; ++i)
+                writer->Write((unsigned)SCOM_VERSION_CURRENT);
+                writer->Write((unsigned)cs->globaldata.size());
+                writer->Write((unsigned)cs->code.size());
+                writer->Write((unsigned)cs->strings.size());
+                for (size_t i = 0; i < cs->globaldata.size(); ++i)
                 {
                     writer->Write((System::Byte)cs->globaldata[i]);
                 }
-                for (int i = 0; i < cs->codesize; ++i)
+                for (size_t i = 0; i < cs->code.size(); ++i)
                 {
                     writer->Write((int)cs->code[i]);
                 }
-                for (int i = 0; i < cs->stringssize; ++i)
+                for (size_t i = 0; i < cs->strings.size(); ++i)
                 {
                     writer->Write((System::Byte)cs->strings[i]);
                 }
-                writer->Write(cs->numfixups);
-                for (int i = 0; i < cs->numfixups; ++i)
+                writer->Write((unsigned)cs->fixups.size());
+                for (size_t i = 0; i < cs->fixups.size(); ++i)
                 {
                     writer->Write((System::Byte)cs->fixuptypes[i]);
                 }
-                for (int i = 0; i < cs->numfixups; ++i)
+                for (size_t i = 0; i < cs->fixups.size(); ++i)
                 {
                     writer->Write(cs->fixups[i]);
                 }
-                writer->Write(cs->numimports);
-                for (int i = 0; i < cs->numimports; ++i)
+                writer->Write((unsigned)cs->imports.size());
+                for (size_t i = 0; i < cs->imports.size(); ++i)
                 {
-                    for (int j = 0, len = strlen(cs->imports[i]); j <= len; ++j)
-                    {
-                        writer->Write((System::Byte)cs->imports[i][j]);
-                    }
+                    WriteCStr(writer, cs->imports[i]);
                 }
-                writer->Write(cs->numexports);
-                for (int i = 0; i < cs->numexports; ++i)
+                writer->Write((unsigned)cs->exports.size());
+                for (size_t i = 0; i < cs->exports.size(); ++i)
                 {
-                    for (int j = 0, len = strlen(cs->exports[i]); j <= len; ++j)
-                    {
-                        writer->Write((System::Byte)cs->exports[i][j]);
-                    }
+                    WriteCStr(writer, cs->exports[i]);
                     writer->Write(cs->export_addr[i]);
                 }
-                writer->Write(cs->numSections);
-                for (int i = 0; i < cs->numSections; ++i)
+                writer->Write((unsigned)cs->sectionNames.size());
+                for (size_t i = 0; i < cs->sectionNames.size(); ++i)
                 {
-                    for (int j = 0, len = strlen(cs->sectionNames[i]); j <= len; ++j)
-                    {
-                        writer->Write((System::Byte)cs->sectionNames[i][j]);
-                    }
+                    WriteCStr(writer, cs->sectionNames[i]);
                     writer->Write(cs->sectionOffsets[i]);
                 }
-                writer->Write(ENDFILESIG);
+                writer->Write((unsigned)ENDFILESIG);
             }
         };
 	}

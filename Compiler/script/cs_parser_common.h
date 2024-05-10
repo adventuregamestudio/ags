@@ -30,7 +30,6 @@
 #define NEST_DOSINGLE   9 // Single Do statement
 #define NEST_FOR        10 // For statement
 #define NEST_SWITCH     11 // Case block for a switch statement
-#define MAX_FUNCTIONS 2000
 #define MAX_FUNCTION_PARAMETERS 15
 #define SYM_GLOBALVAR 1
 #define SYM_LOCALVAR  2

@@ -198,14 +198,16 @@ void StrUtil::ReadCStr(char *buf, Stream *in, size_t buf_limit)
     auto last = buf + buf_limit - 1;
     for (;;)
     {
-        if (ptr >= last) {
+        if (ptr >= last)
+        {
             *ptr = 0;
             while (in->ReadByte() > 0); // must still read until 0
             break;
         }
 
         auto ichar = in->ReadByte();
-        if (ichar <= 0) {
+        if (ichar <= 0)
+        {
             *ptr = 0;
             break;
         }
@@ -223,17 +225,15 @@ void StrUtil::ReadCStrCount(char *buf, Stream *in, size_t count)
 char *StrUtil::ReadMallocCStrOrNull(Stream *in)
 {
     char buf[1024];
-    for (auto ptr = buf; (ptr < buf + sizeof(buf)); ++ptr)
-    {
-        auto ichar = in->ReadByte();
-        if (ichar <= 0)
-        {
-            *ptr = 0;
-            break;
-        }
-        *ptr = static_cast<char>(ichar);
-    }
+    ReadCStr(buf, in, sizeof(buf));
     return buf[0] != 0 ? ags_strdup(buf) : nullptr;
+}
+
+std::string StrUtil::ReadCStrAsStdString(Stream *in)
+{
+    char buf[1024];
+    ReadCStr(buf, in, sizeof(buf));
+    return buf;
 }
 
 void StrUtil::SkipCStr(Stream *in)

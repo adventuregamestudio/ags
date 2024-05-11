@@ -43,12 +43,23 @@ namespace AGS.Controls
                   System.Reflection.BindingFlags.NonPublic
                 | System.Reflection.BindingFlags.Instance).GetMethod);
         /// <summary>
-        /// UpScrollButton is a retrieved private property getter of a
+        /// DownScrollButton is a retrieved private property getter of a
         /// ToolStripDropDownMenu, that returns an instance of a down-scrolling item.
         /// </summary>
         private static GetScrollButtonDelegate DownScrollButton
             = (GetScrollButtonDelegate)Delegate.CreateDelegate(typeof(GetScrollButtonDelegate),
                 typeof(ToolStripDropDownMenu).GetProperty("DownScrollButton",
+                  System.Reflection.BindingFlags.NonPublic
+                | System.Reflection.BindingFlags.Instance).GetMethod);
+
+        private delegate bool RequiresScrollButtonDelegate(ToolStripDropDownMenu m);
+        /// <summary>
+        /// RequiresScrollButtons is a retrieved private property getter of a
+        /// ToolStripDropDownMenu, that returns whether scolling buttons will be visible.
+        /// </summary>
+        private static RequiresScrollButtonDelegate RequiresScrollButtons
+            = (RequiresScrollButtonDelegate)Delegate.CreateDelegate(typeof(RequiresScrollButtonDelegate),
+                typeof(ToolStripDropDownMenu).GetProperty("RequiresScrollButtons",
                   System.Reflection.BindingFlags.NonPublic
                 | System.Reflection.BindingFlags.Instance).GetMethod);
 
@@ -76,6 +87,16 @@ namespace AGS.Controls
         /// May override the MaximalSize values upon showing this DropDownMenu.
         /// </summary>
         public int MinDisplayedItems
+        {
+            get; set;
+        }
+
+        private int ItemHeight
+        {
+            get; set;
+        }
+
+        private int DisplayedItemCount
         {
             get; set;
         }
@@ -108,21 +129,29 @@ namespace AGS.Controls
             UpScrollButton(this).Control.MinimumSize = new Size(0, ScrollButtonHeight);
             DownScrollButton(this).Control.MinimumSize = new Size(0, ScrollButtonHeight);
 
-            if (MinDisplayedItems > 0)
+            int maxItemHeight = 0;
+            foreach (ToolStripItem item in Items)
             {
-                int maxItemHeight = 0;
-                foreach (ToolStripItem item in Items)
-                {
-                    maxItemHeight = Math.Max(maxItemHeight, item.Height);
-                }
-                int requiredHeight = MinDisplayedItems * maxItemHeight + DefaultItemSpacing * (maxItemHeight - 1)
-                    + ScrollButtonHeight * 2;
+                maxItemHeight = Math.Max(maxItemHeight, item.Height);
+            }
+            ItemHeight = maxItemHeight;
+
+            if (ItemHeight > 0 && MinDisplayedItems > 0)
+            {
+                int requiredHeight = MinDisplayedItems * ItemHeight + DefaultItemSpacing * (ItemHeight - 1);
 
                 if (MaximumSize.Height < requiredHeight)
                     MaximumSize = new Size(MaximumSize.Width, requiredHeight);
             }
 
             base.SetDisplayedItems();
+
+            if (ItemHeight > 0)
+            {
+                int heightOfItems = Size.Height - (RequiresScrollButtons(this) ? ScrollButtonHeight * 2 : 0);
+                DisplayedItemCount = (int)Math.Round((float)heightOfItems / (float)(ItemHeight + DefaultItemSpacing));
+                DisplayedItemCount = Math.Min(DisplayedItemCount, Items.Count);
+            }
 
             // Update the initial scroll, because the default one seem to rely
             // on the default scroll button height.
@@ -137,7 +166,12 @@ namespace AGS.Controls
         protected override void OnMouseWheel(MouseEventArgs e)
         {
             // Apply "scroll speed" and negate
-            DoItemScroll(-(e.Delta / 4));
+            int linesPerWheelDelta = SystemInformation.MouseWheelScrollLines;
+            if (linesPerWheelDelta < 0 || linesPerWheelDelta > DisplayedItemCount)
+                linesPerWheelDelta = DisplayedItemCount;
+            int heightOfLine = ItemHeight;
+            int scrollAmount = (linesPerWheelDelta * heightOfLine * e.Delta / SystemInformation.MouseWheelScrollDelta);
+            DoItemScroll(-scrollAmount);
             base.OnMouseWheel(e); // base class will fire MouseWheel event
         }
 

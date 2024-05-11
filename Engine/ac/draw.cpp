@@ -2641,6 +2641,7 @@ void draw_gui_and_overlays()
             gui_ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(gui.Transparency));
             gui_ddb->SetBlendMode(gui.BlendMode);
             gui_ddb->SetOrigin(0.f, 0.f);
+            gui_ddb->SetStretch(gui.Width * gui.Scale.X, gui.Height * gui.Scale.Y);
             gui_ddb->SetRotation(gui.Rotation);
             add_to_sprite_list(gui_ddb, gui.X, gui.Y,
                 gui.GetGraphicSpace().AABB(), gui.ZOrder, false, index);

@@ -59,6 +59,7 @@ class GraphicSpace
 {
 public:
     GraphicSpace() {}
+    // TODO: constructor that accepts all floats! - remove loss of precision in redundant conversions
     GraphicSpace(int x, int y, int src_w, int src_h, int dst_w, int dst_h, float rot)
     {
         const float sx = src_w != 0.f ? (float)dst_w / src_w : 1.f;

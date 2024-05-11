@@ -160,6 +160,10 @@ public:
     void    SetConceal(bool on);
     // Attempts to change control's zorder; returns if zorder changed
     bool    SetControlZOrder(int index, int zorder);
+    //
+    Pointf  GetScale() const;
+    //
+    void    SetScale(float sx, float sy);
     // Sets GUI rotation, in degrees
     void    SetRotation(float degrees);
     // Sets GUI size
@@ -209,6 +213,7 @@ public:
     int32_t PopupAtMouseY;  // popup when mousey < this
     int32_t Transparency;   // "incorrect" alpha (in legacy 255-range units)
     Common::BlendMode BlendMode; // render blend mode
+    Pointf  Scale;          // x,y scale
     float Rotation;         // rotation, in degrees
     int32_t ZOrder;
 

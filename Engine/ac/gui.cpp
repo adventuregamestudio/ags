@@ -427,6 +427,34 @@ void GUI_SetRotation(ScriptGUI *gui, float rotation) {
     guis[gui->id].SetRotation(rotation);
 }
 
+float GUI_GetScaleX(ScriptGUI *gui) {
+    return guis[gui->id].GetScale().X;
+}
+
+void GUI_SetScaleX(ScriptGUI *gui, float scalex) {
+    if (scalex == 0.f)
+        scalex = 1.f;
+    guis[gui->id].SetScale(scalex, guis[gui->id].GetScale().Y);
+}
+
+float GUI_GetScaleY(ScriptGUI *gui) {
+    return guis[gui->id].GetScale().Y;
+}
+
+void GUI_SetScaleY(ScriptGUI *gui, float scaley) {
+    if (scaley == 0.f)
+        scaley = 1.f;
+    guis[gui->id].SetScale(guis[gui->id].GetScale().X, scaley);
+}
+
+void GUI_SetScale(ScriptGUI *gui, float scalex, float scaley) {
+    if (scalex == 0.f)
+        scalex = 1.f;
+    if (scaley == 0.f)
+        scaley = scalex; // scaley is optional here
+    guis[gui->id].SetScale(scalex, scaley);
+}
+
 //=============================================================================
 
 void remove_popup_interface(int ifacenum) {
@@ -1065,6 +1093,31 @@ RuntimeScriptValue Sc_GUI_SetRotation(void *self, const RuntimeScriptValue *para
     API_OBJCALL_VOID_PFLOAT(ScriptGUI, GUI_SetRotation);
 }
 
+RuntimeScriptValue Sc_GUI_GetScaleX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_FLOAT(ScriptGUI, GUI_GetScaleX);
+}
+
+RuntimeScriptValue Sc_GUI_SetScaleX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PFLOAT(ScriptGUI, GUI_SetScaleX);
+}
+
+RuntimeScriptValue Sc_GUI_GetScaleY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_FLOAT(ScriptGUI, GUI_GetScaleY);
+}
+
+RuntimeScriptValue Sc_GUI_SetScaleY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PFLOAT(ScriptGUI, GUI_SetScaleY);
+}
+
+RuntimeScriptValue Sc_GUI_SetScale(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PFLOAT2(ScriptGUI, GUI_SetScale);
+}
+
 void RegisterGUIAPI()
 {
     ScFnRegister gui_api[] = {
@@ -1117,6 +1170,11 @@ void RegisterGUIAPI()
         { "GUI::set_BlendMode",           API_FN_PAIR(GUI_SetBlendMode) },
         { "GUI::get_Rotation",            API_FN_PAIR(GUI_GetRotation) },
         { "GUI::set_Rotation",            API_FN_PAIR(GUI_SetRotation) },
+        { "GUI::get_ScaleX",              API_FN_PAIR(GUI_GetScaleX) },
+        { "GUI::set_ScaleX",              API_FN_PAIR(GUI_SetScaleX) },
+        { "GUI::get_ScaleY",              API_FN_PAIR(GUI_GetScaleY) },
+        { "GUI::set_ScaleY",              API_FN_PAIR(GUI_SetScaleY) },
+        { "GUI::SetScale",                API_FN_PAIR(GUI_SetScale) },
     };
 
     ccAddExternalFunctions(gui_api);

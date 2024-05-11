@@ -21,6 +21,7 @@ namespace AGS.Controls
     /// </summary>
     public class ToolStripDropDownMenuEx : ToolStripDropDownMenu
     {
+        private const int WS_EX_COMPOSITED = 0x02000000;
         /// <summary>
         /// DefaultScrollButtonHeight is the default scrolling button's height,
         /// as learnt from the WinForms source code. Used here as a reference.
@@ -83,6 +84,19 @@ namespace AGS.Controls
         {
             ScrollButtonHeight = 24;
             MinDisplayedItems = 0;
+        }
+
+        /// <summary>
+        /// Gets parameters of a new window.
+        /// </summary>
+        protected override CreateParams CreateParams
+        {
+            get
+            {
+                CreateParams cp = base.CreateParams;
+                cp.ExStyle |= WS_EX_COMPOSITED; // for double buffering
+                return cp;
+            }
         }
 
         /// <summary>

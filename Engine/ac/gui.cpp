@@ -825,6 +825,7 @@ void gui_on_mouse_down(const int guin, const int mbut)
 //=============================================================================
 
 #include "ac/dynobj/scriptstring.h"
+#include "ac/dynobj/scriptuserobject.h"
 #include "debug/out.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
@@ -833,6 +834,24 @@ void gui_on_mouse_down(const int guin, const int mbut)
 ScriptGUI *GUI_GetByName(const char *name)
 {
     return static_cast<ScriptGUI*>(ccGetScriptObjectAddress(name, ccDynamicGUI.GetType()));
+}
+
+ScriptUserObject *GUI_ScreenToGUIPoint(ScriptGUI *tehgui, int scrx, int scry, bool clipToGUI)
+{
+    GUIMain &gui = guis[tehgui->id];
+    Point pt = gui.GetGraphicSpace().WorldToLocal(scrx, scry);
+    if (clipToGUI && !RectWH(gui.X, gui.Y, gui.Width, gui.Height).IsInside(pt))
+        return nullptr;
+    return ScriptStructHelpers::CreatePoint(pt.X, pt.Y);
+}
+
+ScriptUserObject *GUI_GUIToScreenPoint(ScriptGUI *tehgui, int guix, int guiy, bool clipToGUI)
+{
+    GUIMain &gui = guis[tehgui->id];
+    if (clipToGUI && !RectWH(gui.X, gui.Y, gui.Width, gui.Height).IsInside(guix, guiy))
+        return nullptr;
+    Point pt = gui.GetGraphicSpace().LocalToWorld(guix, guiy);
+    return ScriptStructHelpers::CreatePoint(pt.X, pt.Y);
 }
 
 
@@ -1118,6 +1137,16 @@ RuntimeScriptValue Sc_GUI_SetScale(void *self, const RuntimeScriptValue *params,
     API_OBJCALL_VOID_PFLOAT2(ScriptGUI, GUI_SetScale);
 }
 
+RuntimeScriptValue Sc_GUI_ScreenToGUIPoint(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJAUTO_PINT2_PBOOL(ScriptGUI, ScriptUserObject, GUI_ScreenToGUIPoint);
+}
+
+RuntimeScriptValue Sc_GUI_GUIToScreenPoint(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJAUTO_PINT2_PBOOL(ScriptGUI, ScriptUserObject, GUI_GUIToScreenPoint);
+}
+
 void RegisterGUIAPI()
 {
     ScFnRegister gui_api[] = {
@@ -1175,6 +1204,9 @@ void RegisterGUIAPI()
         { "GUI::get_ScaleY",              API_FN_PAIR(GUI_GetScaleY) },
         { "GUI::set_ScaleY",              API_FN_PAIR(GUI_SetScaleY) },
         { "GUI::SetScale",                API_FN_PAIR(GUI_SetScale) },
+        { "GUI::SetScale",                API_FN_PAIR(GUI_SetScale) },
+        { "GUI::ScreenToGUIPoint",        API_FN_PAIR(GUI_ScreenToGUIPoint) },
+        { "GUI::GUIToScreenPoint",        API_FN_PAIR(GUI_GUIToScreenPoint) },
     };
 
     ccAddExternalFunctions(gui_api);

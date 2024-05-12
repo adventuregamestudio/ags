@@ -70,7 +70,8 @@ extern CCGUIObject ccDynamicGUIObject;
 
 int ifacepopped=-1;  // currently displayed pop-up GUI (-1 if none)
 int mouse_on_iface=-1;   // mouse cursor is over this interface
-int mouse_ifacebut_xoffs=-1,mouse_ifacebut_yoffs=-1;
+// cursor position relative to a focused gui control
+int mouse_ifacebut_xoffs =- 1, mouse_ifacebut_yoffs =- 1;
 
 int eip_guinum, eip_guiobj;
 
@@ -767,21 +768,23 @@ void gui_on_mouse_hold(const int wasongui, const int wasbutdown)
 
 void gui_on_mouse_up(const int wasongui, const int wasbutdown)
 {
-    guis[wasongui].OnMouseButtonUp();
+    GUIMain &gui = guis[wasongui];
+    gui.OnMouseButtonUp();
 
-    for (int i=0;i<guis[wasongui].GetControlCount();i++) {
-        GUIObject *guio = guis[wasongui].GetControl(i);
+    for (int i=0;i<gui.GetControlCount();i++) {
+        GUIObject *guio = gui.GetControl(i);
         if (!guio->IsActivated) continue;
         guio->IsActivated = false;
         if (!IsInterfaceEnabled()) break;
 
-        int cttype=guis[wasongui].GetControlType(i);
+        int cttype=gui.GetControlType(i);
         if ((cttype == kGUIButton) || (cttype == kGUISlider) || (cttype == kGUIListBox)) {
             force_event(EV_IFACECLICK, wasongui, i, wasbutdown);
         }
         else if (cttype == kGUIInvWindow) {
-            mouse_ifacebut_xoffs=mousex-(guio->X)-guis[wasongui].X;
-            mouse_ifacebut_yoffs=mousey-(guio->Y)-guis[wasongui].Y;
+            Point guipt = gui.GetGraphicSpace().WorldToLocal(mousex, mousey);
+            mouse_ifacebut_xoffs = guipt.X - (guio->X);
+            mouse_ifacebut_yoffs = guipt.Y - (guio->Y);
             int iit=offset_over_inv((GUIInvWindow*)guio);
             if (iit>=0) {
                 play.used_inv_on = iit;
@@ -799,7 +802,7 @@ void gui_on_mouse_up(const int wasongui, const int wasbutdown)
             }
         }
         else quit("clicked on unknown control type");
-        if (guis[wasongui].PopupStyle==kGUIPopupMouseY)
+        if (gui.PopupStyle==kGUIPopupMouseY)
             remove_popup_interface(wasongui);
         break;
     }

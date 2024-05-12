@@ -44,7 +44,6 @@ using namespace AGS::Engine;
 
 extern GameSetupStruct game;
 extern ScriptInvItem scrInv[MAX_INV];
-extern int mouse_ifacebut_xoffs,mouse_ifacebut_yoffs;
 extern SpriteCache spriteset;
 extern CharacterInfo*playerchar;
 extern AGSPlatformDriver *platform;

@@ -46,6 +46,11 @@ protected:
             _script.rtti.reset(new RTTI(std::move(RTTISerializer::Read(in))));
             return HError::None();
         }
+        else if (ext_id.CompareNoCase("sctoc") == 0)
+        {
+            _script.sctoc.reset(new ScriptTOC(std::move(ScriptTOCSerializer::Read(in, _script.rtti.get() /* may be null */))));
+            return HError::None();
+        }
         return new Error(String::FromFormat("Unknown script extension: %s (%d)", ext_id.GetCStr(), block_id));
     }
 
@@ -127,6 +132,12 @@ void ccScript::Write(Stream *out)
     if (rtti && !rtti->IsEmpty())
     {
         WriteExtBlock("rtti", [rtti](Stream *out){ RTTISerializer::Write(*rtti, out); },
+                      kDataExt_NumID8 | kDataExt_File64, out);
+    }
+    const auto *sctoc = ccScript::sctoc.get();
+    if (sctoc && !sctoc->IsEmpty())
+    {
+        WriteExtBlock("sctoc", [sctoc](Stream *out){ ScriptTOCSerializer::Write(*sctoc, out); },
                       kDataExt_NumID8 | kDataExt_File64, out);
     }
     // Write ending

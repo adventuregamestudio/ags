@@ -43,8 +43,9 @@ public:
     // of the code came from header files, and which from the main file
     std::vector<std::string> sectionNames;
     std::vector<int32_t> sectionOffsets;
-    // Extended information
+    // Extended information (optional)
     std::unique_ptr<RTTI> rtti;
+    std::unique_ptr<ScriptTOC> sctoc;
 
     int instances = 0; // reference count for this script object
 

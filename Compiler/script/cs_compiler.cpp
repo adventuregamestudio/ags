@@ -103,6 +103,36 @@ static std::unique_ptr<RTTI> ccCompileRTTI(const symbolTable &sym)
         new RTTI(std::move(rtb.Finalize())));
 }
 
+static std::unique_ptr<ScriptTOC> ccCompileDataTOC(const symbolTable &sym, const RTTI *rtti)
+{
+    ScriptTOCBuilder tocb;
+    std::string buf; // for constructing names
+
+    for (size_t t = 0; t < sym.entries.size(); ++t)
+    {
+        const SymbolTableEntry &ste = sym.entries[t];
+
+        if (ste.flags & SFLG_IMPORTED)
+            continue; // skip import declarations
+
+        if (ste.stype == SYM_GLOBALVAR)
+        {
+            uint32_t v_flags = 0u;
+            uint32_t f_flags = 0u;
+            if ((ste.flags & SFLG_DYNAMICARRAY) || (ste.flags & SFLG_POINTER))
+                f_flags |= RTTI::kField_ManagedPtr;
+            if (ste.flags & SFLG_ARRAY)
+                f_flags |= RTTI::kField_Array;
+
+            tocb.AddGlobalVar(ste.sname, ste.section, ste.soffs, v_flags, ste.vartype, f_flags,
+                static_cast<uint32_t>(ste.arrsize));
+        }
+    }
+
+    return std::unique_ptr<ScriptTOC>(
+        new ScriptTOC(std::move(tocb.Finalize(rtti))));
+}
+
 ccScript* ccCompileText(const char *texo, const char *scriptName) {
     ccCompiledScript *cctemp = new ccCompiledScript();
 
@@ -180,6 +210,11 @@ ccScript* ccCompileText(const char *texo, const char *scriptName) {
     // Construct RTTI
     if (ccGetOption(SCOPT_RTTI)) {
         cctemp->rtti = ccCompileRTTI(sym);
+    }
+
+    // Construct TOC
+    if (ccGetOption(SCOPT_SCRIPT_TOC)) {
+        cctemp->sctoc = ccCompileDataTOC(sym, cctemp->rtti.get() /* may be null */);
     }
 
     cctemp->free_extra();

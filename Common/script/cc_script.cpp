@@ -216,11 +216,11 @@ bool ccScript::Read(Stream *in)
     if (fileVer >= SCOM_VERSION_EXT) {
         ScriptExtReader reader(*this, std::unique_ptr<Stream>(in));
         HError err = reader.Read();
+        reader.ReleaseStream().release(); // FIXME: this double release is ugly
         if (!err) {
             cc_error("!internal error reading script extensions: %s", err->FullMessage().GetCStr());
             return false;
         }
-        reader.ReleaseStream().release(); // FIXME: this double release is ugly
     }
 
     if (static_cast<uint32_t>(in->ReadInt32()) != ENDFILESIG)

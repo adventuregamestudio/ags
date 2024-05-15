@@ -431,6 +431,7 @@ int remove_locals(int from_level, int just_count, ccCompiledScript *scrip) {
 
     for (cc=0; (size_t)cc<sym.entries.size();cc++) {
         if ((sym.entries[cc].sscope > from_level) && (sym.entries[cc].stype == SYM_LOCALVAR)) {
+
             // caller will sort out stack, so ignore parameters
             if ((sym.entries[cc].flags & SFLG_PARAMETER)==0) {
                 if (sym.entries[cc].flags & SFLG_DYNAMICARRAY)
@@ -458,6 +459,12 @@ int remove_locals(int from_level, int just_count, ccCompiledScript *scrip) {
             }
 
             if (just_count == 0) {
+                // Save a symbol copy in case we'll have to generate script data TOC
+                sym.entries[cc].scope_section_end = scrip->codesize_i32()
+                    + 1 // FIXME: dirty hack to mark past to (SCMD_SUB, SREG_SP, N) or SCMD_RET
+                        // rewrite this later!
+                    ;
+                sym.localEntries.push_back(sym.entries[cc]);
                 sym.entries[cc].stype = 0;
                 sym.entries[cc].sscope = 0;
                 sym.entries[cc].flags = 0;
@@ -926,6 +933,8 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
     return -1;
   }
   sym.entries[funcsym].soffs = in_func;  // save code offset of function
+  sym.entries[funcsym].scope_section_begin = scrip->codesize_i32();
+  sym.entries[funcsym].scope_section_end = scrip->codesize_i32();
 
   if (!next_is_import)
     scrip->cur_sp += 4;  // the return address will be pushed
@@ -1034,6 +1043,8 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
         sym.entries[cursym].vartype = vartypesym;
         sym.entries[cursym].ssize = 4; // param is 4 bytes
         sym.entries[cursym].sscope = nested_level + 1;
+        sym.entries[cursym].scope_section_begin = scrip->codesize_i32();
+        sym.entries[cursym].scope_section_end = scrip->codesize_i32();
         sym.entries[cursym].flags |= SFLG_PARAMETER;
         if (isPointerParam)
           sym.entries[cursym].flags |= SFLG_POINTER;
@@ -1109,6 +1120,8 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
       cc_error("';' expected (cannot define body of imported function)");
       return -1;
     }
+
+    assert(scrip->cur_sp == 0); // import declaration, no body, no local data
     in_func=-1;
   }
   else if (sym.get_type(targ.peeknext()) == SYM_OPENBRACE) {
@@ -3323,6 +3336,8 @@ int parse_variable_declaration(int32_t cursym,int *next_type,int isglobal,
   else {
     // local variable
     sym.entries[cursym].soffs = scrip->cur_sp;
+    sym.entries[cursym].scope_section_begin = scrip->codesize_i32();
+    sym.entries[cursym].scope_section_end = scrip->codesize_i32();
     scrip->write_cmd2(SCMD_REGTOREG,SREG_SP,SREG_MAR);
     if (need_fixup == 2) {
       // expression worked out into ax
@@ -3478,6 +3493,8 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                         sym.entries[thisSym].vartype = isMemberFunction;
                         sym.entries[thisSym].ssize = varsize; // pointer to struct
                         sym.entries[thisSym].sscope = nested_level;
+                        sym.entries[cursym].scope_section_begin = scrip->codesize_i32();
+                        sym.entries[cursym].scope_section_end = scrip->codesize_i32();
                         sym.entries[thisSym].flags = SFLG_READONLY | SFLG_ACCESSED | SFLG_POINTER | SFLG_THISPTR;
                         // declare as local variable
                         sym.entries[thisSym].soffs = scrip->cur_sp;
@@ -3528,6 +3545,7 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                 scrip->write_cmd2(SCMD_SUB,SREG_SP,totalsub);
             }
             if (nested_level == 0) {
+                sym.entries[inFuncSym].scope_section_end = scrip->codesize_i32();
                 in_func = -1;
                 inFuncSym = -1;
                 isMemberFunction = 0;

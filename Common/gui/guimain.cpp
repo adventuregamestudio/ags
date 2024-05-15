@@ -514,12 +514,6 @@ Pointf GUIMain::GetScale() const
 
 void GUIMain::SetScale(float sx, float sy)
 {
-    assert(sx != 0.f && sy != 0.f);
-    if (std::fabs(sx) < std::numeric_limits<float>::epsilon())
-        sx = 1.f;
-    if (std::fabs(sy) < std::numeric_limits<float>::epsilon())
-        sy = 1.f;
-
     Scale = Pointf(sx, sy);
     MarkChanged();
     UpdateGraphicSpace();

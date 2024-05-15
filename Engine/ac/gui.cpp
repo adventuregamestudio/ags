@@ -433,8 +433,6 @@ float GUI_GetScaleX(ScriptGUI *gui) {
 }
 
 void GUI_SetScaleX(ScriptGUI *gui, float scalex) {
-    if (scalex == 0.f)
-        scalex = 1.f;
     guis[gui->id].SetScale(scalex, guis[gui->id].GetScale().Y);
 }
 
@@ -443,16 +441,10 @@ float GUI_GetScaleY(ScriptGUI *gui) {
 }
 
 void GUI_SetScaleY(ScriptGUI *gui, float scaley) {
-    if (scaley == 0.f)
-        scaley = 1.f;
     guis[gui->id].SetScale(guis[gui->id].GetScale().X, scaley);
 }
 
 void GUI_SetScale(ScriptGUI *gui, float scalex, float scaley) {
-    if (scalex == 0.f)
-        scalex = 1.f;
-    if (scaley == 0.f)
-        scaley = scalex; // scaley is optional here
     guis[gui->id].SetScale(scalex, scaley);
 }
 

@@ -64,9 +64,12 @@ public:
     {
         const float sx = src_w != 0.f ? (float)dst_w / src_w : 1.f;
         const float sy = src_h != 0.f ? (float)dst_h / src_h : 1.f;
-        assert((sx != 0.f) && (sy != 0.f));
+        const float sx_inv = std::fabs(sx) < std::numeric_limits<float>::epsilon()
+            ? 0.f : 1.f / sx;
+        const float sy_inv = std::fabs(sy) < std::numeric_limits<float>::epsilon()
+            ? 0.f : 1.f / sy;
         // World->local transform
-        W2LTransform = glmex::make_inv_transform2d((float)-x, (float)-y, 1.f / sx, 1.f / sy,
+        W2LTransform = glmex::make_inv_transform2d((float)-x, (float)-y, sx_inv, sy_inv,
             -Math::DegreesToRadians(rot), 0.5f * dst_w, 0.5f * dst_h);
         // Local->world transform + AABB
         L2WTransform = glmex::make_transform2d((float)x, (float)y, sx, sy,

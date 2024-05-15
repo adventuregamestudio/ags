@@ -1560,7 +1560,7 @@ builtin managed struct GUI {
   /// Gets/sets this GUI vertical scaling.
   import attribute float ScaleY;
   /// Sets this GUI horizontal and vertical scaling
-  import void SetScale(float x, float y = 0.0);
+  import void SetScale(float x, float y);
 
   import Point *GUIToScreenPoint(int guix, int guiy, bool clipToGUI = true);
   import Point *ScreenToGUIPoint(int screenx, int screeny, bool clipToGUI = true);

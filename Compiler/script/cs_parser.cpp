@@ -3450,7 +3450,7 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
 
                 // loop through all parameters and check if they are pointers
                 // the first entry is the return value
-                for (int pa = 1; pa <= sym.entries[inFuncSym].sscope; pa++) {
+                for (int pa = 1; pa <= sym.entries[inFuncSym].get_num_args(); pa++) {
                     if (sym.entries[inFuncSym].funcparamtypes[pa] & (STYPE_POINTER | STYPE_DYNARRAY)) {
                         // pointers are passed in on the stack with the real
                         // memory address -- convert this to the mem handle

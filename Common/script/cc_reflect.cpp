@@ -1036,4 +1036,63 @@ String PrintRTTI(const RTTI &rtti)
     return fullstr;
 }
 
+static void FmtField(String &s, const RTTI::Type *t, uint32_t f_flags, const char *f_name)
+{
+    s.AppendFmt("%s%s%s %s", t->name,
+        (f_flags & RTTI::kField_ManagedPtr) ? "*" : "",
+        (f_flags & RTTI::kField_Array) ? "[]" : "",
+        f_name ? f_name : "");
+}
+
+String PrintScriptTOC(const ScriptTOC &toc, const char *scriptname)
+{
+    const auto glvars = toc.GetGlobalVariables();
+    const auto funcs = toc.GetFunctions();
+    const auto locvars = toc.GetLocalVariables();
+
+    const char *hr =   "-------------------------------------------------------------------------------";
+    const char *dbhr = "===============================================================================";
+    String fullstr;
+    fullstr.AppendFmt("%s\nScript '%s' Table of Contents\n%s\n", dbhr, scriptname, dbhr);
+
+    fullstr.AppendFmt("Global variables (%d):\n%s\n", glvars.size(), hr);
+    for (const auto &var : glvars)
+    {
+        fullstr.AppendFmt("%-8u: ", var.offset);
+        FmtField(fullstr, var.type, var.f_flags, var.name);
+        fullstr.AppendChar('\n');
+    }
+
+    fullstr.AppendFmt("%s\nFunctions (%d):\n%s\n", dbhr, funcs.size(), hr);
+    for (const auto &fn : funcs)
+    {
+        FmtField(fullstr, fn.return_type, fn.rv_flags, nullptr);
+        fullstr.AppendFmt("%s ( ", fn.name);
+        for (const auto *p = fn.first_param; p; p = p->next_field)
+        {
+            if (p != fn.first_param)
+                fullstr.Append(", ");
+            FmtField(fullstr, p->type, p->flags, p->name);
+        }
+        if (fn.flags & ScriptTOC::kFunction_Variadic)
+            fullstr.Append(", ...");
+        fullstr.AppendFmt(" )\n    Bytecode scope: %u - %u\n", fn.scope_begin, fn.scope_end);
+
+        if (fn.local_data_num > 0u)
+        {
+            fullstr.AppendFmt("Local data (%d):\n", fn.local_data_num);
+            for (const auto *var = fn.local_data; var; var = var->next_local)
+            {
+                fullstr.AppendFmt("%u - %u:%+4d: ", var->scope_begin, var->scope_end, var->offset);
+                FmtField(fullstr, var->type, var->f_flags, var->name);
+                fullstr.AppendChar('\n');
+            }
+        }
+        fullstr.AppendFmt("%s\n", hr);
+    }
+
+    fullstr.Append(dbhr);
+    return fullstr;
+}
+
 } // namespace AGS

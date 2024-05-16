@@ -24,15 +24,23 @@
 
 #define SYM_TEMPORARYTYPE -99
 
+
+// Contains function parameter description
+struct FuncParamInfo
+{
+    uint32_t Type = 0u;
+    int32_t DefaultValue = 0;
+    bool HasDefaultValue = false;
+};
+
 struct SymbolDef {
-    int16_t stype;
+    int16_t  stype;
     int32_t  flags;
     int32_t  ssize;  // or return type size for function
-    int16_t sscope;  // or num arguments for function
+    int16_t  sscope;  // or num arguments for function
     int32_t  arrsize;
-    uint32_t funcparamtypes[MAX_FUNCTION_PARAMETERS+1];
-    int32_t funcParamDefaultValues[MAX_FUNCTION_PARAMETERS+1];
-    bool funcParamHasDefaultValues[MAX_FUNCTION_PARAMETERS+1];
+    // return value is at index 0, actual args begin with 1
+    FuncParamInfo funcparams[MAX_FUNCTION_PARAMETERS + 1];
 };
 
 #endif // __CC_SYMBOLDEF_H

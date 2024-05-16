@@ -14,16 +14,17 @@
 #ifndef __CC_SYMBOLTABLE_H
 #define __CC_SYMBOLTABLE_H
 
-#include "cs_parser_common.h"   // macro definitions
-#include "script/cc_treemap.h"
-
 #include <cstdint>
 #include <map>
 #include <string>
 #include <vector>
+#include "script/cs_parser_common.h"   // macro definitions
+#include "script/cc_treemap.h"
+#include "script/cc_symboldef.h"
 
 // So there's another symbol definition in cc_symboldef.h
-struct SymbolTableEntry {
+struct SymbolTableEntry
+{
 	std::string sname;
 	int16_t stype;
 	int32_t flags;
@@ -34,9 +35,8 @@ struct SymbolTableEntry {
 	int32_t arrsize;
 	int16_t extends; // inherits another class (classes) / owning class (member vars)
     // functions only, save types of return value and all parameters
-    std::vector<uint32_t> funcparamtypes;
-    std::vector<int32_t> funcParamDefaultValues;
-    std::vector<bool> funcParamHasDefaultValues;
+    // return value is at index 0, actual args begin with 1
+    std::vector<FuncParamInfo> funcparams;
 
 	int get_num_args();
 

@@ -109,6 +109,20 @@ namespace AGS.Editor
             }
         }
 
+        public bool TrySelectFrame(int frameIndex, bool nearest = false)
+        {
+            if (nearest)
+            {
+                frameIndex = Math.Max(0, Math.Min(frameIndex, _loop.Frames.Count - 1));
+            }
+            if (frameIndex >= 0 && frameIndex < _loop.Frames.Count)
+            {
+                ChangeSelectedFrame(frameIndex);
+                return true;
+            }
+            return false;
+        }
+
 		public void FlipSelectedFrames()
 		{
             if (_selectedFrames.Count == 0)
@@ -128,7 +142,8 @@ namespace AGS.Editor
                 return;
 
             _selectedFrames.Sort();
-            int lastSelected = _selectedFrames[_selectedFrames.Count - 1];
+            int lastSelected = _selectedFrames.Last();
+            ViewFrame nextFrame = (lastSelected < _loop.Frames.Count() - 1) ? _loop.Frames[lastSelected + 1] : null;
             int removedCount = 0;
             foreach (int sel in _selectedFrames)
             {
@@ -140,14 +155,13 @@ namespace AGS.Editor
                 }
             }
 
-            _selectedFrames.Clear();
-            if (lastSelected < _loop.Frames.Count)
-                _selectedFrames.Add(lastSelected);
-
-            btnNewFrame.Visible = true;
             UpdateControlWidth();
-            this.Invalidate();
-            OnSelectedFrameChanged(-1, MultiSelectAction.ClearAll);
+            btnNewFrame.Visible = true;
+            // Try to select any frame after deleted range
+            if (_loop.Frames.Count > 0)
+                ChangeSelectedFrame(nextFrame != null ? nextFrame.ID : _loop.Frames.Count - 1, MultiSelectAction.Set);
+            else
+                ChangeSelectedFrame(-1, MultiSelectAction.ClearAll);
         }
 
         private void UpdateControlWidth()

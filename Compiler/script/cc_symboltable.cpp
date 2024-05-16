@@ -43,6 +43,10 @@ int SymbolTableEntry::is_loadable_variable() const {
     return (stype == SYM_GLOBALVAR) || (stype == SYM_LOCALVAR) || (stype == SYM_CONSTANT);
 }
 
+bool SymbolTableEntry::is_variadic_function() const {
+    return (stype == SYM_FUNCTION) && (sscope > 100);
+}
+
 void SymbolTableEntry::set_propfuncs(int propget, int propset) {
     // TODO check ranges and throw exception
     soffs = (propget << 16) | (propset & 0xffff);

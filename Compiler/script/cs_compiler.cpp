@@ -143,6 +143,8 @@ static void ccCompileDataTOC(ScriptTOCBuilder &tocb,
         if (ste.stype == SYM_FUNCTION)
         {
             uint32_t func_flags = 0u;
+            if (entries[t].is_variadic_function())
+                func_flags |= ScriptTOC::kFunction_Variadic;
             // NOTE: old compiler saves function's return value and parameter flags
             // as STYPE_* constants, not SFLG_*
             uint32_t rval_type = entries[t].funcparams[0].Type & STYPE_MASK;
@@ -155,14 +157,15 @@ static void ccCompileDataTOC(ScriptTOCBuilder &tocb,
                     func_flags, rval_type, rval_flags);
 
             // Add function parameters
-            for (int i = 1; i < ste.get_num_args(); ++i)
+            for (int i = 1; i < ste.get_num_args() + 1; ++i)
             {
                 uint32_t param_type = entries[t].funcparams[i].Type & STYPE_MASK;
                 int stype_flags = entries[t].funcparams[i].Type & ~STYPE_MASK;
+                const std::string &name = entries[t].funcparams[i].Name;
                 uint32_t param_flags = 0u;
                 if ((stype_flags & STYPE_DYNARRAY) || (stype_flags & STYPE_POINTER))
                     param_flags |= RTTI::kField_ManagedPtr;
-                tocb.AddFunctionParam(func_id, "" /* TODO: param name */, 0u /* TODO: param offset */,
+                tocb.AddFunctionParam(func_id, name, 0u /* TODO: param offset? */,
                     param_type, param_flags);
             }
         }

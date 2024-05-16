@@ -974,6 +974,7 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
       sym.entries[funcsym].funcparams[numparams % 100].Type = cursym;
       sym.entries[funcsym].funcparams[numparams % 100].DefaultValue = 0;
       sym.entries[funcsym].funcparams[numparams % 100].HasDefaultValue = false;
+      sym.entries[funcsym].funcparams[numparams % 100].Name = {};
 
       if (next_is_const)
         sym.entries[funcsym].funcparams[numparams % 100].Type |= STYPE_CONST;
@@ -1054,6 +1055,10 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
         // stack has the first parameter. The +1 is because the
         // call will push the return address onto the stack as well
         sym.entries[cursym].soffs = scrip->cur_sp - (numparams+1)*4;
+
+        // Also save function parameter name
+        sym.entries[funcsym].funcparams[numparams % 100].Name = sym.get_name(cursym);
+
         createdLocalVar = true;
         numparams++;
       }

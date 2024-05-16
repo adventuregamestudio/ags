@@ -45,6 +45,7 @@ struct SymbolTableEntry
 	int get_num_args() const;
 
 	int is_loadable_variable() const;
+    bool is_variadic_function() const;
 
     // Set indexes of get/set property handlers; 0xffff for no entry
 	void set_propfuncs(int propget, int propset);

@@ -31,6 +31,7 @@ struct FuncParamInfo
     uint32_t Type = 0u;
     int32_t DefaultValue = 0;
     bool HasDefaultValue = false;
+    std::string Name;
 };
 
 struct SymbolDef {

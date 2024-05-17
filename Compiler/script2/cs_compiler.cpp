@@ -81,7 +81,8 @@ static std::unique_ptr<RTTI> ccCompileRTTI(const SymbolTable &symt, const Sectio
             if ((field_type.VartypeD->Type == VTT::kDynpointer) ||
                 (field_type.VartypeD->Type == VTT::kDynarray))
                 flags |= RTTI::kField_ManagedPtr;
-            if (field_type.VartypeD->Type == VTT::kArray)
+            if ((field_type.VartypeD->Type == VTT::kArray) ||
+                (field_type.VartypeD->Type == VTT::kDynarray))
                 flags |= RTTI::kField_Array;
             uint32_t num_elems = 0u;
             for (const auto sz : field_type.VartypeD->Dims)
@@ -93,6 +94,115 @@ static std::unique_ptr<RTTI> ccCompileRTTI(const SymbolTable &symt, const Sectio
 
     return std::unique_ptr<RTTI>(
         new RTTI(std::move(rtb.Finalize())));
+}
+
+static void ccCompileDataTOC(ScriptTOCBuilder &tocb,
+    const SymbolTable &symt, const std::vector<SymbolTableEntry> &entries, const SectionList &seclist,
+    const RTTI *rtti)
+{
+    for (size_t t = 0; t < entries.size(); t++)
+    {
+        const SymbolTableEntry &ste = entries[t];
+
+        // Add global variables, local variables and function parameters
+        if (ste.VariableD && !ste.ComponentD && !ste.VariableD->TypeQualifiers[TQ::kImport])
+        {
+            ScriptTOC::Variable var;
+            const auto &field_type = symt.entries[ste.VariableD->Vartype];
+            if (!field_type.VartypeD)
+                continue; // probably a special "variable" like "this"
+
+            uint32_t f_typeid = symt.GetFirstBaseVartype(ste.VariableD->Vartype);
+            uint32_t f_flags = 0u;
+            if ((field_type.VartypeD->Type == VTT::kDynpointer) ||
+                (field_type.VartypeD->Type == VTT::kDynarray))
+                f_flags |= RTTI::kField_ManagedPtr;
+            if ((field_type.VartypeD->Type == VTT::kArray) ||
+                (field_type.VartypeD->Type == VTT::kDynarray))
+                f_flags |= RTTI::kField_Array;
+
+            uint32_t num_elems = 0u;
+            for (const auto sz : field_type.VartypeD->Dims)
+                num_elems += sz; // CHECKME if correct
+
+            uint32_t section_id = 0u;
+            if (ste.Declared < INT_MAX)
+                section_id = seclist.GetSectionIdAt(ste.Declared);
+
+            // Global variable
+            if (ste.Scope == 0u)
+            {
+                tocb.AddGlobalVar(ste.Name, section_id, ste.VariableD->Offset,
+                    0u /* v_flags */, f_typeid, f_flags, num_elems);
+            }
+            // Scoped variable: local or parameter
+            else
+            {
+                uint32_t v_flags = ScriptTOC::kVariable_Local;
+                if (ste.Scope == SymbolTableConstant::kParameterScope)
+                    v_flags |= ScriptTOC::kVariable_Parameter;
+                tocb.AddLocalVar(ste.Name, section_id, ste.VariableD->Offset,
+                    ste.LifeScope.first, ste.LifeScope.second,
+                    v_flags, f_typeid, f_flags, num_elems);
+            }
+        }
+
+        // Add functions (not import declarations)
+        if (ste.FunctionD && !ste.FunctionD->TypeQualifiers[TQ::kImport])
+        {
+            uint32_t func_flags = 0u;
+            if (ste.FunctionD->IsVariadic)
+                func_flags |= ScriptTOC::kFunction_Variadic;
+
+            const auto &ret_param = ste.FunctionD->Parameters[0];
+            const auto &field_type = symt.entries[ret_param.Vartype];
+            uint32_t rval_type = symt.GetFirstBaseVartype(ret_param.Vartype);
+            uint32_t rval_flags = 0u;
+            if ((field_type.VartypeD->Type == VTT::kDynpointer) ||
+                (field_type.VartypeD->Type == VTT::kDynarray))
+                rval_flags |= RTTI::kField_ManagedPtr;
+            if ((field_type.VartypeD->Type == VTT::kArray) ||
+                (field_type.VartypeD->Type == VTT::kDynarray))
+                rval_flags |= RTTI::kField_Array;
+
+            uint32_t section_id = 0u;
+            if (ste.Declared < INT_MAX)
+                section_id = seclist.GetSectionIdAt(ste.Declared);
+
+            const uint32_t func_id =
+                tocb.AddFunction(ste.Name, section_id, ste.LifeScope.first, ste.LifeScope.second,
+                    func_flags, rval_type, rval_flags);
+
+            // Add function parameters
+            for (size_t i = 1; i < ste.FunctionD->Parameters.size(); ++i)
+            {
+                const auto &param = ste.FunctionD->Parameters[i];
+                const auto &field_type = symt.entries[param.Vartype];
+                uint32_t param_type = symt.GetFirstBaseVartype(param.Vartype);
+                uint32_t param_flags = 0u;
+                if ((field_type.VartypeD->Type == VTT::kDynpointer) ||
+                    (field_type.VartypeD->Type == VTT::kDynarray))
+                    param_flags |= RTTI::kField_ManagedPtr;
+                if ((field_type.VartypeD->Type == VTT::kArray) ||
+                    (field_type.VartypeD->Type == VTT::kDynarray))
+                    param_flags |= RTTI::kField_Array;
+                std::string param_name = symt.entries[param.Name].Name;
+                tocb.AddFunctionParam(func_id, param_name, 0u /* TODO: param offset? */,
+                    param_type, param_flags);
+            }
+        }
+    }
+}
+
+static std::unique_ptr<ScriptTOC> ccCompileDataTOC(const SymbolTable &symt, const SectionList &seclist, const RTTI *rtti)
+{
+    ScriptTOCBuilder tocb;
+
+    ccCompileDataTOC(tocb, symt, symt.entries, seclist, rtti);
+    ccCompileDataTOC(tocb, symt, symt.localEntries, seclist, rtti);
+
+    return std::unique_ptr<ScriptTOC>(
+        new ScriptTOC(std::move(tocb.Finalize(rtti))));
 }
 
 
@@ -140,6 +250,11 @@ ccScript *ccCompileText2(std::string const &script, std::string const &scriptNam
     if (FlagIsSet(options, SCOPT_RTTI))
     {
         compiled_script->rtti = ccCompileRTTI(symt, seclist);
+    }
+
+    if (FlagIsSet(options, SCOPT_SCRIPT_TOC))
+    {
+        compiled_script->sctoc = ccCompileDataTOC(symt, seclist, compiled_script->rtti.get());
     }
 
     ccCurScriptName = nullptr;

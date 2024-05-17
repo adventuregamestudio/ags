@@ -46,6 +46,7 @@ AGS::SymbolTableEntry &AGS::SymbolTableEntry::operator=(const SymbolTableEntry &
     this->Name = orig.Name;
     this->Declared = orig.Declared;
     this->Scope = orig.Scope;
+    this->LifeScope = orig.LifeScope;
     this->Accessed = orig.Accessed;
 
     // Deep copy semantics.
@@ -107,6 +108,7 @@ void AGS::SymbolTableEntry::Clear()
     // Leave the name so that symbols in the main phase equate to symbols in the pre phase.
     Declared = SymbolTableConstant::kNoSrcLocation;
     Scope = 0u;
+    LifeScope = {};
     // Don't clear Accessed so when a function is first used and then declared, this doesn't clobber the use.
 
     delete AttributeD;
@@ -130,28 +132,15 @@ void AGS::SymbolTableEntry::Clear()
 }
 
 AGS::SymbolTableEntry::SymbolTableEntry(SymbolTableEntry const &orig)
-    : Name(orig.Name)
-    , Declared(orig.Declared)
-    , Scope(orig.Scope)
-    , Accessed(orig.Accessed)
 {
-    // Deep copy semantics.
-    this->AttributeD = (orig.AttributeD) ? new SymbolTableEntry::AttributeDesc{ *(orig.AttributeD) } : nullptr;
-    this->ComponentD = (orig.ComponentD) ? new SymbolTableEntry::ComponentDesc{ *(orig.ComponentD) } : nullptr;
-    this->ConstantD = (orig.ConstantD) ? new SymbolTableEntry::ConstantDesc{ *(orig.ConstantD) } : nullptr;
-    this->DelimeterD = (orig.DelimeterD) ? new SymbolTableEntry::DelimeterDesc{ *(orig.DelimeterD) } : nullptr;
-    this->FunctionD = (orig.FunctionD) ? new SymbolTableEntry::FunctionDesc{ *(orig.FunctionD) } : nullptr;
-    this->LiteralD = (orig.LiteralD) ? new SymbolTableEntry::LiteralDesc{ *(orig.LiteralD) } : nullptr;
-    this->OperatorD = (orig.OperatorD) ? new SymbolTableEntry::OperatorDesc{ *(orig.OperatorD) } : nullptr;
-    this->VariableD = (orig.VariableD) ? new SymbolTableEntry::VariableDesc{ *(orig.VariableD) } : nullptr;
-    this->VartypeD = (orig.VartypeD) ? new SymbolTableEntry::VartypeDesc{ *(orig.VartypeD) } : nullptr;
+    *this = orig;
 }
 
 AGS::SymbolTable::SymbolTable()
     : _stringStructSym (kKW_NoSymbol)
     , _stringStructPtrSym(kKW_NoSymbol)
 {
-   _findCache.clear();
+    _findCache.clear();
     _vartypesCache.clear();
 
     entries.clear();

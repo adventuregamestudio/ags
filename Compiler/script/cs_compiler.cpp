@@ -78,11 +78,11 @@ static std::unique_ptr<RTTI> ccCompileRTTI(const symbolTable &sym)
         if ((ste.stype == SYM_VARTYPE) || ((ste.flags & SFLG_STRUCTTYPE) != 0) ||
             ((ste.flags & SFLG_MANAGED) != 0))
         {
-            uint32_t flags = 0u; // TODO
+            uint32_t flags = 0u;
             if ((ste.flags & SFLG_STRUCTTYPE))
-                flags = RTTI::kType_Struct;
+                flags |= RTTI::kType_Struct;
             if ((ste.flags & SFLG_MANAGED))
-                flags = RTTI::kType_Managed;
+                flags |= RTTI::kType_Managed;
             rtb.AddType(ste.sname, t, ste.section, ste.extends, flags, ste.ssize);
         }
         else if ((ste.stype == SYM_STRUCTMEMBER) && ((ste.flags & SFLG_STRUCTMEMBER) != 0) &&

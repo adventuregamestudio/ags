@@ -54,6 +54,33 @@ void ccSetSoftwareVersion(const char *versionNumber) {
     ccSoftwareVersion = versionNumber;
 }
 
+
+// Convert SFLG_* flags to RTTI::TypeFlags
+inline uint32_t SflgToRTTIType(int ste_flags)
+{
+    return 0u
+        | RTTI::kType_Struct * ((ste_flags & SFLG_STRUCTTYPE) != 0)
+        | RTTI::kType_Managed * ((ste_flags & SFLG_MANAGED) != 0);
+}
+
+// Convert SFLG_* flags to RTTI::FieldFlags
+inline uint32_t SflgToRTTIField(int ste_flags)
+{
+    return 0u
+        | RTTI::kField_ManagedPtr * ((ste_flags & SFLG_DYNAMICARRAY) != 0 ||
+            // compiler marks static arrays of pointers as SFLG_POINTER;
+            // but the array itself is not a pointer, so don't mark that as one
+            (((ste_flags & SFLG_POINTER) != 0) && ((ste_flags & SFLG_ARRAY) == 0)))
+        | RTTI::kField_Array * ((ste_flags & SFLG_ARRAY) != 0);
+}
+
+// Convert STYPE_* flags to RTTI::FieldFlags
+inline uint32_t StypeToRTTIField(int stype_flags)
+{
+    return 0u
+        | RTTI::kField_ManagedPtr * ((stype_flags & STYPE_DYNARRAY) != 0 || (stype_flags & STYPE_POINTER) != 0);
+}
+
 // Compiles RTTI table for the given script.
 static std::unique_ptr<RTTI> ccCompileRTTI(const symbolTable &sym)
 {
@@ -78,22 +105,14 @@ static std::unique_ptr<RTTI> ccCompileRTTI(const symbolTable &sym)
         if ((ste.stype == SYM_VARTYPE) || ((ste.flags & SFLG_STRUCTTYPE) != 0) ||
             ((ste.flags & SFLG_MANAGED) != 0))
         {
-            uint32_t flags = 0u;
-            if ((ste.flags & SFLG_STRUCTTYPE))
-                flags |= RTTI::kType_Struct;
-            if ((ste.flags & SFLG_MANAGED))
-                flags |= RTTI::kType_Managed;
+            uint32_t flags = SflgToRTTIType(ste.flags);
             rtb.AddType(ste.sname, t, ste.section, ste.extends, flags, ste.ssize);
         }
         else if ((ste.stype == SYM_STRUCTMEMBER) && ((ste.flags & SFLG_STRUCTMEMBER) != 0) &&
             ((ste.flags & SFLG_PROPERTY) == 0))
         {
             buf = ste.sname.substr(ste.sname.rfind(":") + 1);
-            uint32_t flags = 0u;
-            if ((ste.flags & SFLG_DYNAMICARRAY) || (ste.flags & SFLG_POINTER))
-                flags |= RTTI::kField_ManagedPtr;
-            if (ste.flags & SFLG_ARRAY)
-                flags |= RTTI::kField_Array;
+            uint32_t flags = SflgToRTTIField(ste.flags);
             rtb.AddField(ste.extends, buf, ste.soffs, ste.vartype, flags,
                 static_cast<uint32_t>(ste.arrsize));
         }
@@ -116,12 +135,7 @@ static void ccCompileDataTOC(ScriptTOCBuilder &tocb,
         // Add global variables (SYM_GLOBALVAR), local variables and function parameters (SYM_LOCALVAR)
         if (ste.stype == SYM_GLOBALVAR || ste.stype == SYM_LOCALVAR)
         {
-            uint32_t f_flags = 0u;
-            if ((ste.flags & SFLG_DYNAMICARRAY) || (ste.flags & SFLG_POINTER))
-                f_flags |= RTTI::kField_ManagedPtr;
-            if (ste.flags & SFLG_ARRAY)
-                f_flags |= RTTI::kField_Array;
-
+            uint32_t f_flags = SflgToRTTIField(ste.flags);
             if (ste.stype == SYM_GLOBALVAR)
             {
                 tocb.AddGlobalVar(ste.sname, ste.section, ste.soffs,
@@ -149,9 +163,7 @@ static void ccCompileDataTOC(ScriptTOCBuilder &tocb,
             // as STYPE_* constants, not SFLG_*
             uint32_t rval_type = entries[t].funcparams[0].Type & STYPE_MASK;
             int stype_flags = entries[t].funcparams[0].Type & ~STYPE_MASK;
-            uint32_t rval_flags = 0u;
-            if ((stype_flags & STYPE_DYNARRAY) || (stype_flags & STYPE_POINTER))
-                rval_flags |= RTTI::kField_ManagedPtr;
+            uint32_t rval_flags = StypeToRTTIField(stype_flags);
             const uint32_t func_id =
                 tocb.AddFunction(ste.sname, ste.section, ste.scope_section_begin, ste.scope_section_end,
                     func_flags, rval_type, rval_flags);
@@ -162,9 +174,7 @@ static void ccCompileDataTOC(ScriptTOCBuilder &tocb,
                 uint32_t param_type = entries[t].funcparams[i].Type & STYPE_MASK;
                 int stype_flags = entries[t].funcparams[i].Type & ~STYPE_MASK;
                 const std::string &name = entries[t].funcparams[i].Name;
-                uint32_t param_flags = 0u;
-                if ((stype_flags & STYPE_DYNARRAY) || (stype_flags & STYPE_POINTER))
-                    param_flags |= RTTI::kField_ManagedPtr;
+                uint32_t param_flags = StypeToRTTIField(stype_flags);
                 tocb.AddFunctionParam(func_id, name, 0u /* TODO: param offset? */,
                     param_type, param_flags);
             }

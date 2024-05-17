@@ -35,6 +35,21 @@ void ccGetExtensions2(std::vector<std::string> &exts)
     exts.push_back("NESTEDPOINTERS");
 }
 
+// Convert VartypeFlags to RTTI::TypeFlags
+inline uint32_t VartypeFlagsToRTTIType(const VartypeFlags &vtf_flag)
+{
+    return 0u
+        | RTTI::kType_Managed * (vtf_flag[VTF::kManaged])
+        | RTTI::kType_Struct * (vtf_flag[VTF::kStruct]);
+}
+
+// Convert VartypeType to RTTI::FieldFlags
+inline uint32_t VartypeToRTTIField(VartypeType vtt)
+{
+    return 0u
+        | RTTI::kField_ManagedPtr * (vtt == VTT::kDynpointer || vtt == VTT::kDynarray)
+        | RTTI::kField_Array * (vtt == VTT::kArray || vtt == VTT::kDynarray);
+}
 
 // Compiles RTTI table for the given script.
 static std::unique_ptr<RTTI> ccCompileRTTI(const SymbolTable &symt, const SectionList &seclist)
@@ -65,25 +80,15 @@ static std::unique_ptr<RTTI> ccCompileRTTI(const SymbolTable &symt, const Sectio
             uint32_t section_id = 0u;
             if (ste.Declared < INT_MAX)
                 section_id = seclist.GetSectionIdAt(ste.Declared);
-            uint32_t flags = 0u;
-            if (ste.VartypeD->Flags[VTF::kManaged])
-                flags |= RTTI::kType_Managed;
-            if (ste.VartypeD->Flags[VTF::kStruct])
-                flags |= RTTI::kType_Struct;
+            uint32_t flags = VartypeFlagsToRTTIType(ste.VartypeD->Flags);
             rtb.AddType(ste.Name, t, section_id, ste.VartypeD->Parent, flags, ste.VartypeD->Size);
         }
         // Detect a struct's mem field (not function or attribute, etc)
         else if (ste.ComponentD && ste.VariableD)
         {
             buf = ste.Name.substr(ste.Name.rfind(":") + 1);
-            uint32_t flags = 0u;
             const auto &field_type = symt.entries[ste.VariableD->Vartype];
-            if ((field_type.VartypeD->Type == VTT::kDynpointer) ||
-                (field_type.VartypeD->Type == VTT::kDynarray))
-                flags |= RTTI::kField_ManagedPtr;
-            if ((field_type.VartypeD->Type == VTT::kArray) ||
-                (field_type.VartypeD->Type == VTT::kDynarray))
-                flags |= RTTI::kField_Array;
+            uint32_t flags = VartypeToRTTIField(field_type.VartypeD->Type);
             uint32_t num_elems = 0u;
             for (const auto sz : field_type.VartypeD->Dims)
                 num_elems += sz; // CHECKME if correct
@@ -113,14 +118,7 @@ static void ccCompileDataTOC(ScriptTOCBuilder &tocb,
                 continue; // probably a special "variable" like "this"
 
             uint32_t f_typeid = symt.GetFirstBaseVartype(ste.VariableD->Vartype);
-            uint32_t f_flags = 0u;
-            if ((field_type.VartypeD->Type == VTT::kDynpointer) ||
-                (field_type.VartypeD->Type == VTT::kDynarray))
-                f_flags |= RTTI::kField_ManagedPtr;
-            if ((field_type.VartypeD->Type == VTT::kArray) ||
-                (field_type.VartypeD->Type == VTT::kDynarray))
-                f_flags |= RTTI::kField_Array;
-
+            uint32_t f_flags = VartypeToRTTIField(field_type.VartypeD->Type);
             uint32_t num_elems = 0u;
             for (const auto sz : field_type.VartypeD->Dims)
                 num_elems += sz; // CHECKME if correct
@@ -157,13 +155,7 @@ static void ccCompileDataTOC(ScriptTOCBuilder &tocb,
             const auto &ret_param = ste.FunctionD->Parameters[0];
             const auto &field_type = symt.entries[ret_param.Vartype];
             uint32_t rval_type = symt.GetFirstBaseVartype(ret_param.Vartype);
-            uint32_t rval_flags = 0u;
-            if ((field_type.VartypeD->Type == VTT::kDynpointer) ||
-                (field_type.VartypeD->Type == VTT::kDynarray))
-                rval_flags |= RTTI::kField_ManagedPtr;
-            if ((field_type.VartypeD->Type == VTT::kArray) ||
-                (field_type.VartypeD->Type == VTT::kDynarray))
-                rval_flags |= RTTI::kField_Array;
+            uint32_t rval_flags = VartypeToRTTIField(field_type.VartypeD->Type);
 
             uint32_t section_id = 0u;
             if (ste.Declared < INT_MAX)
@@ -179,13 +171,7 @@ static void ccCompileDataTOC(ScriptTOCBuilder &tocb,
                 const auto &param = ste.FunctionD->Parameters[i];
                 const auto &field_type = symt.entries[param.Vartype];
                 uint32_t param_type = symt.GetFirstBaseVartype(param.Vartype);
-                uint32_t param_flags = 0u;
-                if ((field_type.VartypeD->Type == VTT::kDynpointer) ||
-                    (field_type.VartypeD->Type == VTT::kDynarray))
-                    param_flags |= RTTI::kField_ManagedPtr;
-                if ((field_type.VartypeD->Type == VTT::kArray) ||
-                    (field_type.VartypeD->Type == VTT::kDynarray))
-                    param_flags |= RTTI::kField_Array;
+                uint32_t param_flags = VartypeToRTTIField(field_type.VartypeD->Type);
                 std::string param_name = symt.entries[param.Name].Name;
                 tocb.AddFunctionParam(func_id, param_name, 0u /* TODO: param offset? */,
                     param_type, param_flags);

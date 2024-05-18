@@ -780,6 +780,9 @@
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptvideoplayer.cpp">
       <Filter>Source Files\ac\dynobj</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Engine\debug\memory_inspect.cpp">
+      <Filter>Source Files\debug</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Engine\ac\asset_helper.h">
@@ -1558,6 +1561,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptvideoplayer.h">
       <Filter>Header Files\ac\dynobj</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\debug\memory_inspect.h">
+      <Filter>Header Files\debug</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

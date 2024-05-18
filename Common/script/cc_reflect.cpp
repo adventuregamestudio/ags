@@ -927,24 +927,9 @@ ScriptTOC ScriptTOCBuilder::Finalize(const RTTI *rtti)
     std::sort(_toc._functions.begin(), _toc._functions.end(),
         [](const ScriptTOC::Function &first, const ScriptTOC::Function &second) { return first.scope_begin < second.scope_begin; });
 
-    // Predicate used to sort scoped variables by scope and offset
-    struct ScopedVariableLess
-    {
-        bool operator() (const ScriptTOC::Variable &first, const ScriptTOC::Variable &second) const
-        { return (first.scope_begin < second.scope_begin) ||
-                 (first.scope_begin == second.scope_begin) && (first.offset < second.offset); }
-    };
-
-    // Predicate used to find whether a scoped variable lies inside particular parent scope
-    struct ScopedVariableLessScope
-    {
-        bool operator() (const ScriptTOC::Variable &first, const ScriptTOC::Variable &second) const
-        { return (first.scope_begin < second.scope_begin) && (first.scope_end <= second.scope_begin); }
-    };
-
     // Sort local entries by scope and offset
     auto &local_vars = _toc._locVariables;
-    std::sort(local_vars.begin(), local_vars.end(), ScopedVariableLess());
+    std::sort(local_vars.begin(), local_vars.end(), ScriptTOC::ScopedVariableLess());
 
     // Save complete function data, with params and local vars refs
     for (uint32_t i = 0; i < _toc._functions.size(); ++i)
@@ -963,7 +948,7 @@ ScriptTOC ScriptTOCBuilder::Finalize(const RTTI *rtti)
         }
         // Scan sorted local data for anything that matches this function's scope
         ScriptTOC::Variable test; test.scope_begin = fn.scope_begin; test.scope_end = fn.scope_end;
-        auto lv_range = std::equal_range(local_vars.begin(), local_vars.end(), test, ScopedVariableLessScope());
+        auto lv_range = std::equal_range(local_vars.begin(), local_vars.end(), test, ScriptTOC::ScopedVariableLessScope());
         if (lv_range.first != lv_range.second)
         {
             fn.local_data_index = lv_range.first - local_vars.begin(); // save first entry index

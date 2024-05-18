@@ -267,6 +267,8 @@ target_sources(engine
     debug/filebasedagsdebugger.h
     debug/logfile.cpp
     debug/logfile.h
+    debug/memory_inspect.cpp
+    debug/memory_inspect.h
     device/mousew32.cpp
     device/mousew32.h
     font/fonts_engine.cpp

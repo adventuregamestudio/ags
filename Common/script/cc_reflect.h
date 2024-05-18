@@ -397,6 +397,8 @@ public:
         const RTTI::Type *return_type = nullptr;
         const FunctionParam *first_param = nullptr;
         const Variable *local_data = nullptr;
+
+        inline uint32_t GetLocalDataIndex() const { return local_data_index; }
     private:
         // Internal references
         uint32_t name_stri = 0u; // variable's name (string table offset)
@@ -445,6 +447,23 @@ public:
     const std::vector<Variable> &GetLocalVariables() const { return _locVariables; }
     // Returns list of functions
     const std::vector<Function> &GetFunctions() const { return _functions; }
+
+    //
+    // Various helpers
+    //
+    // Predicate used to sort scoped variables by scope and offset
+    struct ScopedVariableLess
+    {
+        bool operator() (const ScriptTOC::Variable &first, const ScriptTOC::Variable &second) const
+        { return (first.scope_begin < second.scope_begin) ||
+                 (first.scope_begin == second.scope_begin) && (first.offset < second.offset); }
+    };
+    // Predicate used to find whether a scoped variable lies inside particular parent scope
+    struct ScopedVariableLessScope
+    {
+        bool operator() (const ScriptTOC::Variable &first, const ScriptTOC::Variable &second) const
+        { return (first.scope_begin < second.scope_begin) && (first.scope_end <= second.scope_begin); }
+    };
 
 private:
     // Generates quick reference fields, binding table entries between each other;

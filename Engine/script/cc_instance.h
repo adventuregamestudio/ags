@@ -212,6 +212,14 @@ public:
     // Also change CALLEXT op-codes to CALLAS when they pertain to a script instance 
     bool    ResolveImportFixups(const ccScript *scri);
 
+    // Returns a dictionary that maps local script's typeid to global typeid (in joint RTTI)
+    // Requires RTTI
+    const std::unordered_map<uint32_t, uint32_t> &
+        GetLocal2GlobalTypeMap() const { return _typeidLocal2Global; }
+    const std::unordered_map<Common::String, uint32_t> &
+        GetGlobalVariableLookup() const { return _globalVarLookup; }
+
+
 private:
     bool    _Create(PScript scri, const ccInstance * joined);
     // free the memory associated with the instance
@@ -254,6 +262,8 @@ private:
     std::unordered_map<uint32_t, uint32_t> _locidLocal2Global;
     // Map local script's type id to global (program-wide)
     std::unordered_map<uint32_t, uint32_t> _typeidLocal2Global;
+    // Global variables name-to-index lookup (in script's TOC)
+    std::unordered_map<Common::String, uint32_t> _globalVarLookup;
 
     // Minimal timeout: how much time may pass without any engine update
     // before we want to check on the situation and do system poll

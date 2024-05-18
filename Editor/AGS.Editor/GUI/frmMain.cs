@@ -57,7 +57,8 @@ namespace AGS.Editor
                 propertiesPanel,
                 pnlOutput,
                 pnlFindResults,
-                pnlCallStack
+                pnlCallStack,
+                pnlWatchVariables
             };
         }
 

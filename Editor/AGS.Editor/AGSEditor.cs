@@ -372,6 +372,7 @@ namespace AGS.Editor
             Factory.GUIController.HideOutputPanel();
             Factory.GUIController.ShowCallStack(callStack);
             Factory.GUIController.ZoomToFile(callStack.Lines[0].ScriptName, callStack.Lines[0].LineNumber, true, callStack.ErrorMessage);
+            Factory.GUIController.NotifyWatchVariables();
         }
 
         public void RegenerateScriptHeader(Room currentRoom)

@@ -308,19 +308,28 @@ class ScriptTOC
 public:
     enum VariableFlags
     {
+        // Variable is imported from elsewhere (only global variable);
+        // location id tells location of import declaration (not variable),
+        // offset value is unknown until runtime and must be ignored
+        kVariable_Import     = 0x0001,
         // Local variable, allocated on stack;
+        // scope has meaning only for local variables;
         // variable's offset is saved as a positive number,
         // where first non-parameter variable is at 0
-        kVariable_Local      = 0x0001,
+        kVariable_Local      = 0x0002,
         // Is a function's parameter, allocated on stack;
         // variable's offset is saved as a negative number
-        kVariable_Parameter  = 0x0002
+        kVariable_Parameter  = 0x0004
     };
 
     enum FunctionFlags
     {
+        // Function is imported from elsewhere;
+        // location id tells location of import declaration (not function),
+        // scope is unknown until runtime and must be ignored
+        kFunction_Import    = 0x0001,
         // A variadic function; its param_num tells number of fixed params
-        kFunction_Variadic  = 0x0001
+        kFunction_Variadic  = 0x0002
     };
 
     struct Function;

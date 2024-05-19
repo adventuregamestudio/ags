@@ -110,7 +110,12 @@ static void ccCompileDataTOC(ScriptTOCBuilder &tocb,
         const SymbolTableEntry &ste = entries[t];
 
         // Add global variables, local variables and function parameters
-        if (ste.VariableD && !ste.ComponentD && !ste.VariableD->TypeQualifiers[TQ::kImport])
+        // NOTE: we add imported variables, because we need to know their declared  types when
+        // using TOC for debugging purposes. Actual addresses must be resolved at linking stage.
+        // TODO: consider alternate solutions to avoid cluttering each script's TOC with
+        // generated game objects. If a better way found, then imported vars may be easily excluded
+        // from here without breaking TOC serialization format.
+        if (ste.VariableD && !ste.ComponentD)
         {
             ScriptTOC::Variable var;
             const auto &field_type = symt.entries[ste.VariableD->Vartype];
@@ -130,8 +135,11 @@ static void ccCompileDataTOC(ScriptTOCBuilder &tocb,
             // Global variable
             if (ste.Scope == 0u)
             {
+                uint32_t v_flags = 0u;
+                if (ste.VariableD->TypeQualifiers[TQ::kImport])
+                    v_flags |= ScriptTOC::kVariable_Import;
                 tocb.AddGlobalVar(ste.Name, section_id, ste.VariableD->Offset,
-                    0u /* v_flags */, f_typeid, f_flags, num_elems);
+                    v_flags, f_typeid, f_flags, num_elems);
             }
             // Scoped variable: local or parameter
             else
@@ -145,7 +153,9 @@ static void ccCompileDataTOC(ScriptTOCBuilder &tocb,
             }
         }
 
-        // Add functions (not import declarations)
+        // Add functions
+        // NOTE: we skip imported functions, as these are not useful in TOC at the moment;
+        // but if a need arises, we may easily add these as well.
         if (ste.FunctionD && !ste.FunctionD->TypeQualifiers[TQ::kImport])
         {
             uint32_t func_flags = 0u;

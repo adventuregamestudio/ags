@@ -129,17 +129,23 @@ static void ccCompileDataTOC(ScriptTOCBuilder &tocb,
     {
         const SymbolTableEntry &ste = entries[t];
 
-        if (ste.flags & SFLG_IMPORTED)
-            continue; // skip import declarations
-
         // Add global variables (SYM_GLOBALVAR), local variables and function parameters (SYM_LOCALVAR)
+        // NOTE: we add imported variables, because we need to know their declared  types when
+        // using TOC for debugging purposes. Actual addresses must be resolved at linking stage.
+        // TODO: consider alternate solutions to avoid cluttering each script's TOC with
+        // generated game objects. If a better way found, then imported vars may be easily excluded
+        // from here without breaking TOC serialization format.
         if (ste.stype == SYM_GLOBALVAR || ste.stype == SYM_LOCALVAR)
         {
             uint32_t f_flags = SflgToRTTIField(ste.flags);
             if (ste.stype == SYM_GLOBALVAR)
             {
+                uint32_t v_flags = 0u;
+                if (ste.flags & SFLG_IMPORTED)
+                    v_flags = ScriptTOC::kVariable_Import;
+
                 tocb.AddGlobalVar(ste.sname, ste.section, ste.soffs,
-                    0u /* v_flags */, ste.vartype, f_flags, static_cast<uint32_t>(ste.arrsize));
+                    v_flags, ste.vartype, f_flags, static_cast<uint32_t>(ste.arrsize));
             }
             else
             {
@@ -154,8 +160,13 @@ static void ccCompileDataTOC(ScriptTOCBuilder &tocb,
         }
 
         // Add functions
+        // NOTE: we skip imported functions, as these are not useful in TOC at the moment;
+        // but if a need arises, we may easily add these as well.
         if (ste.stype == SYM_FUNCTION)
         {
+            if (ste.flags & SFLG_IMPORTED)
+                continue; // skip function import declarations
+
             uint32_t func_flags = 0u;
             if (entries[t].is_variadic_function())
                 func_flags |= ScriptTOC::kFunction_Variadic;

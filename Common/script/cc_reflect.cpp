@@ -1040,17 +1040,33 @@ String PrintScriptTOC(const ScriptTOC &toc, const char *scriptname)
     String fullstr;
     fullstr.AppendFmt("%s\nScript '%s' Table of Contents\n%s\n", dbhr, scriptname, dbhr);
 
-    fullstr.AppendFmt("Global variables (%d):\n%s\n", glvars.size(), hr);
+    // Exclude imported variables from this list
+    uint32_t own_glvars = 0u;
+    for (const auto &var : glvars)
+        if ((var.v_flags & ScriptTOC::kVariable_Import) == 0)
+            own_glvars++;
+
+    fullstr.AppendFmt("Global variables (%d):\n%s\n", own_glvars, hr);
     for (const auto &var : glvars)
     {
+        if ((var.v_flags & ScriptTOC::kVariable_Import) != 0)
+            continue;
         fullstr.AppendFmt("%-8u: ", var.offset);
         FmtField(fullstr, var.type, var.f_flags, var.name);
         fullstr.AppendChar('\n');
     }
 
-    fullstr.AppendFmt("%s\nFunctions (%d):\n%s\n", dbhr, funcs.size(), hr);
+    // Exclude imported functions from this list
+    uint32_t own_funcs = 0u;
+    for (const auto &fn : funcs)
+        if ((fn.flags & ScriptTOC::kFunction_Import) == 0)
+            own_funcs++;
+
+    fullstr.AppendFmt("%s\nFunctions (%d):\n%s\n", dbhr, own_funcs, hr);
     for (const auto &fn : funcs)
     {
+        if ((fn.flags & ScriptTOC::kFunction_Import) != 0)
+            continue;
         FmtField(fullstr, fn.return_type, fn.rv_flags, nullptr);
         fullstr.AppendFmt("%s ( ", fn.name);
         for (const auto *p = fn.first_param; p; p = p->next_field)

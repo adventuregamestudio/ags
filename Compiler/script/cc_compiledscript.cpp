@@ -127,7 +127,7 @@ int ccCompiledScript::remove_any_import (const char*namm, SymbolDef *oldSym) {
         oldSym->sscope = sym.entries[sidx].sscope;
         // Return size may have been unknown at the time of forward declaration. Check the actual return type for those cases.
         if(sym.entries[sidx].stype == SYM_FUNCTION && sym.entries[sidx].ssize == 0) {
-            oldSym->ssize = sym.entries[sym.entries[sidx].funcparamtypes[0] & ~(STYPE_POINTER | STYPE_DYNARRAY)].ssize;
+            oldSym->ssize = sym.entries[sym.entries[sidx].funcparams[0].Type & ~(STYPE_POINTER | STYPE_DYNARRAY)].ssize;
         } else {
             oldSym->ssize = sym.entries[sidx].ssize;
         }
@@ -135,9 +135,7 @@ int ccCompiledScript::remove_any_import (const char*namm, SymbolDef *oldSym) {
         if (sym.entries[sidx].stype == SYM_FUNCTION) {
             // <= because of return type
             for (int i = 0; i <= sym.entries[sidx].get_num_args(); i++) {
-                oldSym->funcparamtypes[i] = sym.entries[sidx].funcparamtypes[i];
-                oldSym->funcParamDefaultValues[i] = sym.entries[sidx].funcParamDefaultValues[i];
-                oldSym->funcParamHasDefaultValues[i] = sym.entries[sidx].funcParamHasDefaultValues[i];
+                oldSym->funcparams[i] = sym.entries[sidx].funcparams[i];
             }
         }
     }

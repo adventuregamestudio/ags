@@ -2980,21 +2980,22 @@ void debug_draw_room_mask(RoomAreaMask mask)
     default: return;
     }
 
+    const int fin_width = thisroom.Width;
+    const int fin_height = thisroom.Height;
     // Software mode scaling
     // note we don't use transparency in software mode - may be slow in hi-res games
     if (drawstate.SoftwareRender &&
         (mask != kRoomAreaWalkBehind) &&
-        (bmp->GetSize() != Size(thisroom.Width, thisroom.Height)))
+        (bmp->GetSize() != Size(fin_width, fin_height)))
     {
-        recycle_bitmap(debugRoomMaskObj.Bmp,
-            bmp->GetColorDepth(), thisroom.Width, thisroom.Height);
-        debugRoomMaskObj.Bmp->StretchBlt(bmp, RectWH(0, 0, thisroom.Width, thisroom.Height));
+        recycle_bitmap(debugRoomMaskObj.Bmp, bmp->GetColorDepth(), fin_width, fin_height);
+        debugRoomMaskObj.Bmp->StretchBlt(bmp, RectWH(debugRoomMaskObj.Bmp->GetSize()));
         bmp = debugRoomMaskObj.Bmp.get();
     }
 
     debugRoomMaskObj.Ddb = recycle_ddb_bitmap(debugRoomMaskObj.Ddb, bmp, true /*opaque*/);
     debugRoomMaskObj.Ddb->SetAlpha(150);
-    debugRoomMaskObj.Ddb->SetStretch(thisroom.Width, thisroom.Height);
+    debugRoomMaskObj.Ddb->SetStretch(fin_width, fin_height);
 }
 
 void debug_draw_movelist(int charnum)
@@ -3006,18 +3007,7 @@ void update_room_debug()
 {
     if (debugRoomMask == kRoomAreaWalkable)
     {
-        Bitmap *bmp = prepare_walkable_areas(-1);
-        // Software mode scaling
-        if (drawstate.SoftwareRender && (thisroom.MaskResolution > 1))
-        {
-            recycle_bitmap(debugRoomMaskObj.Bmp,
-                bmp->GetColorDepth(), thisroom.Width, thisroom.Height);
-            debugRoomMaskObj.Bmp->StretchBlt(bmp, RectWH(0, 0, thisroom.Width, thisroom.Height));
-            bmp = debugRoomMaskObj.Bmp.get();
-        }
-        debugRoomMaskObj.Ddb = recycle_ddb_bitmap(debugRoomMaskObj.Ddb, bmp, true /*opaque*/);
-        debugRoomMaskObj.Ddb->SetAlpha(150);
-        debugRoomMaskObj.Ddb->SetStretch(thisroom.Width, thisroom.Height);
+        debug_draw_room_mask(debugRoomMask);
     }
     if (debugMoveListChar >= 0)
     {

@@ -1647,70 +1647,60 @@ void drawViewLoop (int hdc, ViewLoop^ loopToDraw, int x, int y, int size, List<i
 
 Common::Bitmap *CreateBlockFromBitmap(System::Drawing::Bitmap ^bmp, RGB *imgpal, bool fixColourDepth, bool keepTransparency, int *originalColDepth)
 {
-	int colDepth;
-	if (bmp->PixelFormat == PixelFormat::Format8bppIndexed)
-	{
-		colDepth = 8;
-	}
-	else if (bmp->PixelFormat == PixelFormat::Format16bppRgb555)
-	{
-		colDepth = 15;
-	}
-	else if (bmp->PixelFormat == PixelFormat::Format16bppRgb565)
-	{
-		colDepth = 16;
-	}
-	else if (bmp->PixelFormat == PixelFormat::Format24bppRgb)
-	{
-		colDepth = 24;
-	}
-	else if (bmp->PixelFormat == PixelFormat::Format32bppRgb)
-	{
-		colDepth = 32;
-	}
-	else if (bmp->PixelFormat == PixelFormat::Format32bppArgb)
-	{
-		colDepth = 32;
-	}
-  else if ((bmp->PixelFormat == PixelFormat::Format48bppRgb) ||
-           (bmp->PixelFormat == PixelFormat::Format64bppArgb) ||
-           (bmp->PixelFormat == PixelFormat::Format64bppPArgb))
-  {
-    throw gcnew AGSEditorException("The source image is 48-bit or 64-bit colour. AGS does not support images with a colour depth higher than 32-bit. Make sure that your paint program is set to produce 32-bit images (8-bit per channel), not 48-bit images (16-bit per channel).");
-  }
-	else
-	{
-		throw gcnew AGSEditorException(gcnew System::String("Unknown pixel format"));
-	}
+    int src_depth, dst_depth;
+    switch (bmp->PixelFormat)
+    {
+    case PixelFormat::Format4bppIndexed:
+        src_depth = 4; dst_depth = 8; // convert 4-bit to 8-bit
+        break;
+    case PixelFormat::Format8bppIndexed:
+        src_depth = dst_depth = 8;
+        break;
+    case PixelFormat::Format16bppRgb555:
+        src_depth = dst_depth = 15; // FIXME: convert to 16-bit instead?
+        break;
+    case PixelFormat::Format16bppRgb565:
+        src_depth = dst_depth = 16;
+        break;
+    case PixelFormat::Format24bppRgb:
+        src_depth = dst_depth = 24; // FIXME: convert to 32-bit instead?
+        break;
+    case PixelFormat::Format32bppRgb:
+    case PixelFormat::Format32bppArgb:
+        src_depth = dst_depth = 32;
+        break;
+    case PixelFormat::Format48bppRgb:
+    case PixelFormat::Format64bppArgb:
+    case PixelFormat::Format64bppPArgb:
+        throw gcnew AGSEditorException("The source image is 48-bit or 64-bit colour. AGS does not support images with a colour depth higher than 32-bit. Make sure that your paint program is set to produce 32-bit images (8-bit per channel), not 48-bit images (16-bit per channel).");
+    default:
+        throw gcnew AGSEditorException(System::String::Format("Unsupported pixel format: \"{0}\"", bmp->PixelFormat.ToString()));
+    }
 
-  if ((thisgame.color_depth == 1) && (colDepth > 8))
-  {
-    throw gcnew AGSEditorException("You cannot import a hi-colour or true-colour image into a 256-colour game.");
-  }
+    if ((thisgame.color_depth == 1) && (src_depth > 8))
+    {
+        throw gcnew AGSEditorException("You cannot import a hi-colour or true-colour image into a 256-colour game.");
+    }
 
-  if (originalColDepth != NULL)
-    *originalColDepth = colDepth;
+    if (originalColDepth)
+        *originalColDepth = src_depth;
 
-  bool needToFixColourDepth = false;
-  if ((colDepth != thisgame.color_depth * 8) && (fixColourDepth))
-  {
-    needToFixColourDepth = true;
-  }
-
-	Common::Bitmap *tempsprite = Common::BitmapHelper::CreateBitmap(bmp->Width, bmp->Height, colDepth);
-    if (!tempsprite)
-        return nullptr; // out of mem?
+    // Test if destination bitmap will be not suitable for the game's color depth
+    const bool needToFixColourDepth = (dst_depth != thisgame.color_depth * 8) && (fixColourDepth);
 
 	System::Drawing::Rectangle rect(0, 0, bmp->Width, bmp->Height);
-	BitmapData ^bmpData = bmp->LockBits(rect, ImageLockMode::ReadWrite, bmp->PixelFormat);
-	unsigned char *address = (unsigned char*)bmpData->Scan0.ToPointer();
-	for (int y = 0; y < tempsprite->GetHeight(); y++) {
-	  memcpy(&tempsprite->GetScanLineForWriting(y)[0], address, bmp->Width * ((colDepth + 1) / 8));
-	  address += bmpData->Stride;
-	}
+	BitmapData ^bmpData = bmp->LockBits(rect, ImageLockMode::ReadOnly, bmp->PixelFormat);
+	const uint8_t *address = static_cast<const uint8_t*>(bmpData->Scan0.ToPointer());
+    AGSBitmap *tempsprite = BitmapHelper::CreateBitmapFromPixels(bmp->Width, bmp->Height, dst_depth,
+        address, src_depth, bmpData->Stride);
 	bmp->UnlockBits(bmpData);
 
-	if (colDepth == 8)
+    if (!tempsprite)
+    {
+        throw gcnew AGSEditorException("Failed to create bitmap of compatible color depth. Could be unsupported image format.");
+    }
+
+	if (src_depth == 8)
 	{
 		cli::array<System::Drawing::Color> ^bmpPalette = bmp->Palette->Entries;
     
@@ -1774,7 +1764,7 @@ Common::Bitmap *CreateBlockFromBitmap(System::Drawing::Bitmap ^bmp, RGB *imgpal,
             return nullptr; // out of mem?
         }
 
-		if (colDepth == 8)
+		if (dst_depth == 8)
 		{
 			select_palette(imgpal);
 		}
@@ -1789,7 +1779,7 @@ Common::Bitmap *CreateBlockFromBitmap(System::Drawing::Bitmap ^bmp, RGB *imgpal,
 			set_color_conversion(oldColorConv & ~COLORCONV_KEEP_TRANS);
 		}
 
-    if (colDepth == 8 && thisgame.color_depth > 1)
+    if (dst_depth == 8 && thisgame.color_depth > 1)
     {
       // manually compose to use the full palette instead of allegro 0-63 restricted one
       const int maskcolor = spriteAtRightDepth->GetMaskColor();
@@ -1818,7 +1808,7 @@ Common::Bitmap *CreateBlockFromBitmap(System::Drawing::Bitmap ^bmp, RGB *imgpal,
     }
 		set_color_conversion(oldColorConv);
 
-		if (colDepth == 8) 
+		if (dst_depth == 8) 
 		{
 			unselect_palette();
 		}
@@ -1826,7 +1816,7 @@ Common::Bitmap *CreateBlockFromBitmap(System::Drawing::Bitmap ^bmp, RGB *imgpal,
 		tempsprite = spriteAtRightDepth;
 	}
 
-	if (colDepth > 8) 
+	if (dst_depth > 8) 
 	{
 		fix_block(tempsprite);
 	}

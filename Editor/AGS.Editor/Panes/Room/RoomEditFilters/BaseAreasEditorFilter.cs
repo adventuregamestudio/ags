@@ -480,7 +480,8 @@ namespace AGS.Editor
                         return;
                     }
 
-                    if (bmp.PixelFormat != PixelFormat.Format8bppIndexed)
+                    if (bmp.PixelFormat != PixelFormat.Format8bppIndexed &&
+                        bmp.PixelFormat != PixelFormat.Format4bppIndexed)
                     {
                         Factory.GUIController.ShowMessage("This is not a valid mask bitmap. Masks must be 256-colour (8-bit) images, using the first colours in the palette to draw the room areas.", MessageBoxIcon.Warning);
                         return;

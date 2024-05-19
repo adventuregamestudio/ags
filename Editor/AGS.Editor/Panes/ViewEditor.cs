@@ -20,8 +20,8 @@ namespace AGS.Editor
         private bool _processingSelection = false;
         // Multiframe selection cache, may contain frames from multiple loops too!
         private List<ViewFrame> _selectedFrames = new List<ViewFrame>();
-        private int _lastSelectedLoop = 0;
-        private int _lastSelectedFrame = 0;
+        private int _lastSelectedLoop = -1;
+        private int _lastSelectedFrame = -1;
 
         public ViewEditor(AGS.Types.View viewToEdit)
         {
@@ -212,7 +212,7 @@ namespace AGS.Editor
                     {
                         // Simplest case: a range within a single loop
                         ViewLoopEditor loopPane = _loopPanes[loop.ID];
-                        int min = Math.Min(_lastSelectedFrame, newSelectedFrame);
+                        int min = Math.Min(Math.Max(0, _lastSelectedFrame), newSelectedFrame);
                         int max = Math.Max(_lastSelectedFrame, newSelectedFrame);
                         for (int i = min; i <= max; ++i)
                         {
@@ -224,9 +224,9 @@ namespace AGS.Editor
                     {
                         // Selection across multiple loops
                         // Select parts of the first and last loops in range
-                        int minLoop = Math.Min(_lastSelectedLoop, loop.ID);
+                        int minLoop = Math.Min(Math.Max(0, _lastSelectedLoop), loop.ID);
                         int maxLoop = Math.Max(_lastSelectedLoop, loop.ID);
-                        int minFrame = Math.Min(_lastSelectedFrame, newSelectedFrame);
+                        int minFrame = Math.Min(Math.Max(0, _lastSelectedFrame), newSelectedFrame);
                         int maxFrame = Math.Max(_lastSelectedFrame, newSelectedFrame);
                         ViewLoop firstLoop = _editingView.Loops[minLoop];
                         ViewLoop lastLoop = _editingView.Loops[maxLoop];
@@ -262,8 +262,8 @@ namespace AGS.Editor
                     break;
             }
 
-            _lastSelectedLoop = loop != null ? loop.ID : 0;
-            _lastSelectedFrame = Math.Max(0, newSelectedFrame);
+            _lastSelectedLoop = loop != null ? loop.ID : -1;
+            _lastSelectedFrame = newSelectedFrame;
 
             // Now refill the Property Grid
             if (_selectedFrames.Count == 1)
@@ -319,15 +319,31 @@ namespace AGS.Editor
             }
         }
 
+        /// <summary>
+        /// Deletes a range of selected frames across multiple loops.
+        /// </summary>
         private void DeleteSelectedFrames()
         {
+            if (_lastSelectedLoop < 0 || _lastSelectedFrame < 0)
+                return; // none selected yet
+
+            ViewLoopEditor lastPane = _loopPanes[_lastSelectedLoop];
+            ViewFrame lastFrame = (_lastSelectedFrame < lastPane.Loop.Frames.Count() - 1)
+                ? lastPane.Loop.Frames[_lastSelectedFrame + 1] : null;
+
             _processingSelection = true;
             foreach (ViewLoopEditor loopPane in _loopPanes)
             {
                 loopPane.DeleteSelectedFrames();
             }
             _processingSelection = false;
-            loopPane_SelectedFrameChanged(null, 0, MultiSelectAction.ClearAll);
+
+            // Try to select any frame after deleted range
+            int trySelect = lastFrame != null ? lastFrame.ID : lastPane.Loop.Frames.Count - 1;
+            if (!lastPane.TrySelectFrame(trySelect, true))
+            {
+                loopPane_SelectedFrameChanged(null, -1, MultiSelectAction.ClearAll);
+            }
         }
 
         private void FlipSelectedFrames()

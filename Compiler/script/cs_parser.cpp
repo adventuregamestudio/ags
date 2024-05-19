@@ -728,8 +728,8 @@ int check_for_default_value(ccInternalList &targ, int funcsym, int numparams) {
             }
         }
 
-        sym.entries[funcsym].funcParamDefaultValues[numparams % 100] = defaultValue;
-        sym.entries[funcsym].funcParamHasDefaultValues[numparams % 100] = true;
+        sym.entries[funcsym].funcparams[numparams % 100].DefaultValue = defaultValue;
+        sym.entries[funcsym].funcparams[numparams % 100].HasDefaultValue = true;
 
     }
 
@@ -879,19 +879,19 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
 
   sym.entries[funcsym].stype = SYM_FUNCTION;
   sym.entries[funcsym].ssize = varsize;  // save return type size
-  sym.entries[funcsym].funcparamtypes[0] = vtwas;  // return type
+  sym.entries[funcsym].funcparams[0].Type = vtwas;  // return type
 
   if (is_const)
   {
-    sym.entries[funcsym].funcparamtypes[0] |= STYPE_CONST;
+    sym.entries[funcsym].funcparams[0].Type |= STYPE_CONST;
   }
   if (returnsPointer)
   {
-    sym.entries[funcsym].funcparamtypes[0] |= STYPE_POINTER;
+    sym.entries[funcsym].funcparams[0].Type |= STYPE_POINTER;
   }
   if (returnsDynArray)
   {
-    sym.entries[funcsym].funcparamtypes[0] |= STYPE_DYNARRAY;
+    sym.entries[funcsym].funcparams[0].Type |= STYPE_DYNARRAY;
   }
 
   if ((!returnsPointer) && (!returnsDynArray) &&
@@ -959,12 +959,12 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
       }
       int isPointerParam = 0;
       // save the parameter type (numparams starts from 1)
-      sym.entries[funcsym].funcparamtypes[numparams % 100] = cursym;
-      sym.entries[funcsym].funcParamDefaultValues[numparams % 100] = 0;
-      sym.entries[funcsym].funcParamHasDefaultValues[numparams % 100] = false;
+      sym.entries[funcsym].funcparams[numparams % 100].Type = cursym;
+      sym.entries[funcsym].funcparams[numparams % 100].DefaultValue = 0;
+      sym.entries[funcsym].funcparams[numparams % 100].HasDefaultValue = false;
 
       if (next_is_const)
-        sym.entries[funcsym].funcparamtypes[numparams % 100] |= STYPE_CONST;
+        sym.entries[funcsym].funcparams[numparams % 100].Type |= STYPE_CONST;
 
       functype[strlen(functype)+1] = 0;
       functype[strlen(functype)] = (char)cursym;  // save variable type
@@ -972,7 +972,7 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
         return -1;
       if (strcmp(sym.get_name(targ.peeknext()), "*") == 0) {
         // pointer
-        sym.entries[funcsym].funcparamtypes[numparams % 100] |= STYPE_POINTER;
+        sym.entries[funcsym].funcparams[numparams % 100].Type |= STYPE_POINTER;
         isPointerParam = 1;
         targ.getnext();
         if ((sym.entries[cursym].flags & SFLG_MANAGED) == 0) {
@@ -987,7 +987,7 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
       }
 
       if (sym.entries[cursym].flags & SFLG_AUTOPTR) {
-        sym.entries[funcsym].funcparamtypes[numparams % 100] |= STYPE_POINTER;
+        sym.entries[funcsym].funcparams[numparams % 100].Type |= STYPE_POINTER;
         isPointerParam = 1;
       }
 
@@ -1051,7 +1051,7 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
       }
       else if (dynArrayStatus > 0)
       {
-        sym.entries[funcsym].funcparamtypes[(numparams - 1) % 100] |= STYPE_DYNARRAY;
+        sym.entries[funcsym].funcparams[(numparams - 1) % 100].Type |= STYPE_DYNARRAY;
         if (createdLocalVar)
         {
           sym.entries[cursym].flags |= SFLG_DYNAMICARRAY | SFLG_ARRAY;
@@ -2759,13 +2759,13 @@ int parse_sub_expr(int32_t *symlist, int listlen, ccCompiledScript*scrip) {
       // not enough arguments -- see if we can supply default values
       for (int ii = func_args; ii > num_supplied_args; ii--) {
 
-        if (!sym.entries[funcsym].funcParamHasDefaultValues[ii]) {
+        if (!sym.entries[funcsym].funcparams[ii].HasDefaultValue) {
           cc_error("Not enough parameters in call to function");
           return -1;
         }
 
         // push the default value onto the stack
-        scrip->write_cmd2(SCMD_LITTOREG, SREG_AX, sym.entries[funcsym].funcParamDefaultValues[ii]);
+        scrip->write_cmd2(SCMD_LITTOREG, SREG_AX, sym.entries[funcsym].funcparams[ii].DefaultValue);
 
         if (sym.entries[funcsym].flags & SFLG_IMPORTED)
           scrip->write_cmd1(SCMD_PUSHREAL, SREG_AX);
@@ -2805,7 +2805,7 @@ int parse_sub_expr(int32_t *symlist, int listlen, ccCompiledScript*scrip) {
 
       if (num_supplied_args - numargs <= func_args) {
         // if non-variable arguments, check types
-        int parameterType = sym.entries[funcsym].funcparamtypes[num_supplied_args - numargs];
+        int parameterType = sym.entries[funcsym].funcparams[num_supplied_args - numargs].Type;
 
         PerformStringConversionInAX(scrip, &scrip->ax_val_type, parameterType);
 
@@ -2876,7 +2876,7 @@ int parse_sub_expr(int32_t *symlist, int listlen, ccCompiledScript*scrip) {
       }
     }
     // function return type
-    scrip->ax_val_type = sym.entries[funcsym].funcparamtypes[0];
+    scrip->ax_val_type = sym.entries[funcsym].funcparams[0].Type;
     scrip->ax_val_scope = SYM_LOCALVAR;
 
     if (using_op)
@@ -3451,8 +3451,8 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
 
                 // loop through all parameters and check if they are pointers
                 // the first entry is the return value
-                for (int pa = 1; pa <= sym.entries[inFuncSym].sscope; pa++) {
-                    if (sym.entries[inFuncSym].funcparamtypes[pa] & (STYPE_POINTER | STYPE_DYNARRAY)) {
+                for (int pa = 1; pa <= sym.entries[inFuncSym].get_num_args(); pa++) {
+                    if (sym.entries[inFuncSym].funcparams[pa].Type & (STYPE_POINTER | STYPE_DYNARRAY)) {
                         // pointers are passed in on the stack with the real
                         // memory address -- convert this to the mem handle
                         // since params are pushed backwards, this works
@@ -4386,12 +4386,12 @@ startvarbit:
                     else {
                         // this is <= because the return type is the first one
                         for (int ii = 0; ii <= sym.entries[cursym].get_num_args(); ii++) {
-                            if (oldDefinition.funcparamtypes[ii] != sym.entries[cursym].funcparamtypes[ii])
+                            if (oldDefinition.funcparams[ii].Type != sym.entries[cursym].funcparams[ii].Type)
                                 cc_error("Parameter type does not match prototype");
 
                             // copy the default values from the function prototype
-                            sym.entries[cursym].funcParamDefaultValues[ii] = oldDefinition.funcParamDefaultValues[ii];
-                            sym.entries[cursym].funcParamHasDefaultValues[ii] = oldDefinition.funcParamHasDefaultValues[ii];
+                            sym.entries[cursym].funcparams[ii].DefaultValue = oldDefinition.funcparams[ii].DefaultValue;
+                            sym.entries[cursym].funcparams[ii].HasDefaultValue = oldDefinition.funcparams[ii].HasDefaultValue;
                         }
                     }
                 }
@@ -4453,7 +4453,7 @@ startvarbit:
             }
             else if (sym.get_type(cursym) == SYM_RETURN) {
 
-                int functionReturnType = sym.entries[inFuncSym].funcparamtypes[0];
+                int functionReturnType = sym.entries[inFuncSym].funcparams[0].Type;
 
                 if (sym.get_type(targ.peeknext()) != SYM_SEMICOLON) {
                     if (functionReturnType == sym.normalVoidSym) {

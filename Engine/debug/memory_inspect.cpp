@@ -15,6 +15,7 @@
 #include <algorithm>
 #include "ac/dynobj/dynobj_manager.h"
 #include "script/cc_instance.h"
+#include "script/systemimports.h"
 
 using namespace AGS::Common;
 
@@ -246,19 +247,41 @@ static bool TryGetGlobalVariable(const String &field_ref, const ccInstance *inst
         return false; // cannot find a global variable
 
     const auto &var = toc.GetGlobalVariables()[var_it->second];
-    // Fixup instance if it's an imported variable
-    // FIXME: following variants may be simplified by recording variable ptr in runtime TOC
-    if (/*(var.v_flags & ScriptTOC::kVariable_Import) != 0*/false)
-    {
-        // TODO
-        return false;
-    }
-    else
+    // If this is a script's own global variable, then simply reference its global memory
+    if ((var.v_flags & ScriptTOC::kVariable_Import) == 0)
     {
         found_var = &var;
         found_mem_ptr = inst->globaldata;
         found_mem_sz = inst->globaldatasize;
         use_var_offset = var.offset;
+        return true;
+    }
+    // If it's an imported variable, then this may be memory from another script,
+    // but also from the engine or plugin!
+    else
+    {
+        // TODO: following may be simplified by recording variable ptr in runtime TOC
+        const ScriptImport *import = simp.getByName(var.name);
+        if (!import)
+            return false;
+
+        found_var = &var;
+        if (import->InstancePtr)
+        {
+            // Import from another script
+            use_var_offset = (static_cast<const uint8_t*>(import->Value.GetDirectPtr()) - reinterpret_cast<const uint8_t*>(import->InstancePtr->globaldata));
+            found_mem_ptr = import->InstancePtr->globaldata;
+            found_mem_sz = import->InstancePtr->globaldatasize;
+        }
+        else
+        {
+            // Import from the engine or plugin
+            // FIXME: we might have to return whole RuntimeScriptValue along,
+            // and then use IScriptObject (if present) for reading type's fields
+            found_mem_ptr = import->Value.GetDirectPtr();
+            found_mem_sz = 0u; // FIXME: get from var type?
+            use_var_offset = 0u;
+        }
         return true;
     }
 }
@@ -349,11 +372,10 @@ static bool ParseScriptVariable(const String &field_ref, const ccInstance *inst,
     // First try local data
     if (!TryGetLocalVariable(field_ref, inst, var_ptr, mem_ptr, mem_sz, use_var_offset))
     {
-        // Then try script's global variable
+        // Then try script's global variable;
+        // this includes imported symbols from other scripts, plugins or engine
         if (!TryGetGlobalVariable(field_ref, inst, var_ptr, mem_ptr, mem_sz, use_var_offset))
         {
-            // Finally, try imported symbol (? or do this in TryGetGlobalVariable?)
-            //
             return false;
         }
     }

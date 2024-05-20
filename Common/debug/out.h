@@ -125,7 +125,9 @@ enum CommonDebugGroup : MessageGroupHandle
     // Group for debugging managed object state (can slow engine down!)
     kDbgGroup_ManObj,
     // SDL backend group
-    kDbgGroup_SDL
+    kDbgGroup_SDL,
+    // Game plugins group
+    kDbgGroup_Plugin
 };
 
 namespace Debug

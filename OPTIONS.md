@@ -102,7 +102,7 @@ Locations of two latter files differ between running platforms:
     - OUTPUTs are:
       * stdout, file, debugger (external debugging program);
     - GROUPs are:
-      * all, main (m), game (g), manobj (o), sdl (l), script(s), sprcache (c);
+      * all, main (m), game (g), manobj (o), plugin (p), script (s), sdl (l), sprcache (c);
     - LEVELs are:
       * all, alert (1), fatal (2), error (3), warn (4), info (5), debug (6);
     - Examples:

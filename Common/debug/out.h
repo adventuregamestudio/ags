@@ -145,6 +145,7 @@ namespace Debug
     void Printf(MessageType mt, const char *fmt, ...);
     // Output formatted message of given group and type
     void Printf(MessageGroupHandle group_id, MessageType mt, const char *fmt, ...);
+    void Printf(MessageGroupHandle group_id, MessageType mt, const char *fmt, va_list argptr);
 
 }   // namespace Debug
 

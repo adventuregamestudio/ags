@@ -31,6 +31,36 @@ DebugManager::DebugOutput::DebugOutput(const String &id,
     SetFilters(def_verbosity, group_filters);
 }
 
+MessageType DebugManager::DebugOutput::GetFilter(const DebugGroupID &group_id) const
+{
+    if (group_id.ID != InvalidMessageGroup)
+    {
+        if (group_id.ID < _groupFilter.size())
+            return _groupFilter[group_id.ID];
+    }
+
+    if (_unresolvedGroups.count(group_id.SID) != 0)
+    {
+        return _unresolvedGroups.at(group_id.SID);
+    }
+
+    return kDbgMsg_None;
+}
+
+void DebugManager::DebugOutput::SetFilter(const DebugGroupID &group_id, MessageType filter)
+{
+    if (group_id.ID != InvalidMessageGroup)
+    {
+        if (_groupFilter.size() <= group_id.ID)
+            _groupFilter.resize(group_id.ID + 1, _defaultVerbosity);
+        _groupFilter[group_id.ID] = filter;
+    }
+    else
+    {
+        _unresolvedGroups.insert(std::make_pair(group_id.SID, filter));
+    }
+}
+
 void DebugManager::DebugOutput::SetFilters(MessageType def_verbosity, const std::vector<std::pair<DebugGroupID, MessageType>> *group_filters)
 {
     _groupFilter.clear();
@@ -41,16 +71,7 @@ void DebugManager::DebugOutput::SetFilters(MessageType def_verbosity, const std:
     {
         for (const auto &gf : *group_filters)
         {
-            if (gf.first.ID != InvalidMessageGroup)
-            {
-                if (_groupFilter.size() <= gf.first.ID)
-                    _groupFilter.resize(gf.first.ID + 1, _defaultVerbosity);
-                _groupFilter[gf.first.ID] = gf.second;
-            }
-            else
-            {
-                _unresolvedGroups.insert(std::make_pair(gf.first.SID, gf.second));
-            }
+            SetFilter(gf.first, gf.second);
         }
     }
 }
@@ -112,7 +133,7 @@ MessageGroupHandle DebugManager::FindFreeGroupID()
     }
     else
     {
-        for (; _freeGroupID < _groups.size() && !_groups[_freeGroupID].UID.IsValid(); ++_freeGroupID) {}
+        for (; _freeGroupID < _groups.size() && _groups[_freeGroupID].UID.IsValid(); ++_freeGroupID) {}
     }
     return _freeGroupID;
 }
@@ -222,17 +243,17 @@ DebugGroup DebugManager::GetGroupImpl(const DebugGroupID &id)
     return DebugGroup();
 }
 
-bool DebugManager::HasOutput(const String &id)
+bool DebugManager::HasOutput(const String &output_id)
 {
     std::lock_guard<std::mutex> lk(_mutex);
-    return _outputs.count(id) > 0;
+    return _outputs.count(output_id) > 0;
 }
 
-void DebugManager::SetOutputFilters(const String &id, MessageType def_verbosity,
+void DebugManager::SetOutputFilters(const String &output_id, MessageType def_verbosity,
     const std::vector<std::pair<DebugGroupID, MessageType>> *group_filters)
 {
     std::lock_guard<std::mutex> lk(_mutex);
-    auto it = _outputs.find(id);
+    auto it = _outputs.find(output_id);
     if (it == _outputs.end())
         return;
 
@@ -240,7 +261,17 @@ void DebugManager::SetOutputFilters(const String &id, MessageType def_verbosity,
     out.SetFilters(def_verbosity, group_filters);
     // Make sure that output allocates filters for all known groups
     for (const auto &group : _groups)
-        _outputs[id].ResolveGroupID(group.UID);
+        _outputs[output_id].ResolveGroupID(group.UID);
+}
+
+void DebugManager::CloneGroupFilters(const DebugGroupID &src_group, const DebugGroupID &dst_group)
+{
+    std::lock_guard<std::mutex> lk(_mutex);
+    for (auto &out_it : _outputs)
+    {
+        auto &out = out_it.second;
+        out.SetFilter(dst_group, out.GetFilter(src_group));
+    }
 }
 
 void DebugManager::UnregisterAll()
@@ -346,6 +377,11 @@ void Printf(MessageGroupHandle group, MessageType mt, const char *fmt, ...)
     va_start(argptr, fmt);
     DbgMgr.Print(group, mt, String::FromFormatV(fmt, argptr));
     va_end(argptr);
+}
+
+void Printf(MessageGroupHandle group, MessageType mt, const char *fmt, va_list argptr)
+{
+    DbgMgr.Print(group, mt, String::FromFormatV(fmt, argptr));
 }
 
 } // namespace Debug

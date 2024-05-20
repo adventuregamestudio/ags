@@ -32,9 +32,9 @@ using namespace AGS::Common;
 extern std::vector<ViewStruct> views;
 extern GameSetupStruct game;
 extern int displayed_room;
-extern int char_speaking;
 extern RoomStruct thisroom;
 extern unsigned int loopcounter;
+extern int char_speaking_anim;
 
 #define Random __Rand
 
@@ -278,7 +278,7 @@ bool CharacterInfo::update_character_animating(int &aa, int &doing_nothing)
         doing_nothing = 1;
 
       if (wait>0) wait--;
-      else if ((char_speaking == aa) && (game.options[OPT_LIPSYNCTEXT] != 0)) {
+      else if ((char_speaking_anim == aa) && (game.options[OPT_LIPSYNCTEXT] != 0)) {
         // currently talking with lip-sync speech
         int fraa = frame;
         wait = update_lip_sync (view, loop, &fraa) - 1;
@@ -300,7 +300,7 @@ bool CharacterInfo::update_character_animating(int &aa, int &doing_nothing)
         const int oldframe = frame;
 
         bool done_anim = false;
-        if ((aa == char_speaking) &&
+        if ((aa == char_speaking_anim) &&
             (play.speech_in_post_state ||
             ((!play.speech_has_voice) &&
                 (play.close_mouth_speech_time > 0) &&

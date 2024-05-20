@@ -88,6 +88,9 @@ CharacterInfo*playerchar;
 int32_t _sc_PlayerCharPtr = 0;
 int char_lowest_yp;
 
+// TODO: move all these to either GamePlayState or some kind of a Speech struct
+// Indexes of currently speaking and thinking character
+int char_speaking = -1, char_speaking_anim = -1, char_thinking = -1;
 // Sierra-style speech settings
 int face_talking=-1,facetalkview=0,facetalkwait=0,facetalkframe=0;
 int facetalkloop=0, facetalkrepeat = 0, facetalkAllowBlink = 1;
@@ -98,8 +101,7 @@ bool facetalk_qfg4_override_placement_x = false;
 bool facetalk_qfg4_override_placement_y = false;
 
 // lip-sync speech settings
-int loops_per_character, text_lips_offset, char_speaking = -1;
-int char_thinking = -1;
+int loops_per_character, text_lips_offset;
 const char *text_lips_text = nullptr;
 std::vector<SpeechLipSyncLine> splipsync;
 int numLipLines = 0, curLipLine = -1, curLipLinePhoneme = 0;
@@ -1688,8 +1690,6 @@ void Character_SetZ(CharacterInfo *chaa, int newval) {
     charextra[chaa->index_id].UpdateGraphicSpace(chaa);
 }
 
-extern int char_speaking;
-
 int Character_GetSpeakingFrame(CharacterInfo *chaa) {
 
     if ((face_talking >= 0) && (facetalkrepeat))
@@ -1699,15 +1699,15 @@ int Character_GetSpeakingFrame(CharacterInfo *chaa) {
             return facetalkframe;
         }
     }
-    else if (char_speaking >= 0)
+    else if (char_speaking_anim >= 0)
     {
-        if (char_speaking == chaa->index_id)
+        if (char_speaking_anim == chaa->index_id)
         {
             return chaa->frame;
         }
     }
 
-    debug_script_warn("Character.SpeakingFrame: character is not currently speaking");
+    debug_script_warn("Character.SpeakingFrame: character is not playing a speech animation");
     return -1;
 }
 
@@ -2596,6 +2596,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
     int viewWasLocked = 0;
     if (speakingChar->flags & CHF_FIXVIEW)
         viewWasLocked = 1;
+    char_speaking = speakingChar->index_id;
 
     // Start voice-over, if requested by the tokens in speech text
     try_auto_play_speech(texx, texx, aschar);
@@ -2908,7 +2909,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
                     bwidth -= ui_view.GetWidth() / 5;
             }
             if (!isThought)  // set up the lip sync if not thinking
-                char_speaking = aschar;
+                char_speaking_anim = aschar;
         }
     }
     else {
@@ -2950,6 +2951,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
         charextra[aschar].process_idle_this_time = 1;
     }
     char_speaking = -1;
+    char_speaking_anim = -1;
     char_thinking = -1;
     // Stop any blocking voice-over, if was started by this function
     if (play.IsBlockingVoiceSpeech())

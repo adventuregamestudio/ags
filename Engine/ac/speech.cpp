@@ -166,6 +166,7 @@ String get_voice_assetpath()
 #include "ac/gamestate.h"
 #include "ac/global_audio.h"
 #include "ac/global_display.h"
+#include "ac/dynobj/cc_character.h"
 #include "ac/dynobj/cc_scriptobject.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "debug/out.h"
@@ -173,6 +174,8 @@ String get_voice_assetpath()
 #include "script/script_runtime.h"
 
 extern GameSetupStruct game;
+extern CCCharacter ccDynamicCharacter;
+extern int char_speaking;
 
 ScriptOverlay* Speech_GetTextOverlay()
 {
@@ -182,6 +185,11 @@ ScriptOverlay* Speech_GetTextOverlay()
 ScriptOverlay* Speech_GetPortraitOverlay()
 {
     return (ScriptOverlay*)ccGetObjectAddressFromHandle(play.speech_face_schandle);
+}
+
+CharacterInfo* Speech_GetSpeakingCharacter()
+{
+    return char_speaking >= 0 ? &game.chars[char_speaking] : nullptr;
 }
 
 int Speech_GetAnimationStopTimeMargin()
@@ -415,6 +423,11 @@ RuntimeScriptValue Sc_Speech_GetPortraitOverlay(const RuntimeScriptValue *params
     API_SCALL_OBJAUTO(ScriptOverlay, Speech_GetPortraitOverlay);
 }
 
+RuntimeScriptValue Sc_Speech_GetSpeakingCharacter(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ(CharacterInfo, ccDynamicCharacter, Speech_GetSpeakingCharacter);
+}
+
 extern RuntimeScriptValue Sc_SetVoiceMode(const RuntimeScriptValue *params, int32_t param_count);
 
 void RegisterSpeechAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*/)
@@ -437,6 +450,7 @@ void RegisterSpeechAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "Speech::set_SkipKey",                API_FN_PAIR(Speech_SetSkipKey) },
         { "Speech::get_SkipStyle",              Sc_Speech_GetSkipStyle, GetSkipSpeech },
         { "Speech::set_SkipStyle",              API_FN_PAIR(SetSkipSpeech) },
+        { "Speech::get_SpeakingCharacter",      API_FN_PAIR(Speech_GetSpeakingCharacter) },
         { "Speech::get_Style",                  API_FN_PAIR(Speech_GetStyle) },
         { "Speech::set_Style",                  API_FN_PAIR(SetSpeechStyle) },
         { "Speech::get_TextAlignment",          API_FN_PAIR(Speech_GetTextAlignment) },

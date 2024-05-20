@@ -3189,6 +3189,10 @@ builtin struct Speech {
   /// Gets the overlay representing displayed portrait, or null if it is not displayed at the moment.
   import static readonly attribute Overlay* PortraitOverlay;
 #endif
+#ifdef SCRIPT_API_v362
+  /// Gets the currently speaking Character (only works for blocking speech).
+  import static readonly attribute Character* SpeakingCharacter;
+#endif;
 };
 #endif
 

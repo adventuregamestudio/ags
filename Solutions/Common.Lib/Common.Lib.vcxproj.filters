@@ -509,6 +509,9 @@
     <ClCompile Include="..\..\libsrc\miniz\miniz.c">
       <Filter>Library Sources\miniz</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Common\gfx\bitmapdata.cpp">
+      <Filter>Source Files\gfx</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Common\ac\audiocliptype.h">

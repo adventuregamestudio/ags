@@ -104,50 +104,11 @@ Bitmap *CreateBitmapFromPixels(int width, int height, int dst_color_depth,
     if (!bitmap)
         return nullptr;
 
-    if (dst_color_depth == src_col_depth)
-    {
-        ReadPixelsFromMemory(bitmap.get(), pixels, src_pitch);
-        return bitmap.release();
-    }
+    if (!PixelOp::CopyConvert(bitmap->GetDataForWriting(), ColorDepthToPixelFormat(dst_color_depth),
+            bitmap->GetLineLength(), height, pixels, ColorDepthToPixelFormat(src_col_depth), src_pitch))
+        return nullptr;
 
-    // Copy 4-bit indexed image into 8-bit image
-    if (dst_color_depth == 8 && src_col_depth == 4)
-    {
-        uint8_t *data_ptr = bitmap->GetDataForWriting();
-        for (int y = 0; y < height; ++y)
-        {
-            for (int x = 0; x < width / 2; ++x)
-            {
-                uint8_t sp = pixels[y * src_pitch + x];
-                data_ptr[y * width + x * 2]     = ((sp >> 4) & 0xF);
-                data_ptr[y * width + x * 2 + 1] = (sp & 0xF);
-            }
-        }
-        return bitmap.release();
-    }
-    // Copy 1-bit monochrome image into 8-bit image
-    else if (dst_color_depth == 8 && src_col_depth == 1)
-    {
-        uint8_t *data_ptr = bitmap->GetDataForWriting();
-        for (int y = 0; y < height; ++y)
-        {
-            for (int x = 0; x < width / 8; ++x)
-            {
-                uint8_t sp = pixels[y * src_pitch + x];
-                data_ptr[y * width + x * 8]     = ((sp >> 7) & 0x1);
-                data_ptr[y * width + x * 8 + 1] = ((sp >> 6) & 0x1);
-                data_ptr[y * width + x * 8 + 2] = ((sp >> 5) & 0x1);
-                data_ptr[y * width + x * 8 + 3] = ((sp >> 4) & 0x1);
-                data_ptr[y * width + x * 8 + 4] = ((sp >> 3) & 0x1);
-                data_ptr[y * width + x * 8 + 5] = ((sp >> 2) & 0x1);
-                data_ptr[y * width + x * 8 + 6] = ((sp >> 1) & 0x1);
-                data_ptr[y * width + x * 8 + 7] = (sp & 0x1);
-            }
-        }
-        return bitmap.release();
-    }
-
-    return nullptr;
+    return bitmap.release();
 }
 
 Bitmap *LoadFromFile(const char *filename)
@@ -318,11 +279,8 @@ void CopyTransparency(Bitmap *dst, const Bitmap *mask, bool dst_has_alpha, bool 
 
 void ReadPixelsFromMemory(Bitmap *dst, const uint8_t *src_buffer, const size_t src_pitch, const size_t src_px_offset)
 {
-    const size_t bpp = dst->GetBPP();
-    const size_t src_px_pitch = src_pitch / bpp;
-    if (src_px_offset >= src_px_pitch)
-        return; // nothing to copy
-    Memory::BlockCopy(dst->GetDataForWriting(), dst->GetLineLength(), 0, src_buffer, src_pitch, src_px_offset * bpp, dst->GetHeight());
+    PixelOp::CopyPixels(dst->GetDataForWriting(), dst->GetLineLength(), 0u,
+        dst->GetBPP(), dst->GetHeight(), src_buffer, src_pitch, src_px_offset);
 }
 
 //=============================================================================

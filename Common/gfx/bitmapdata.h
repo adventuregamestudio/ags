@@ -172,6 +172,30 @@ private:
     std::unique_ptr<uint8_t[]> _data;
 };
 
+
+namespace PixelOp
+{
+    // Copy pixel data from one memory buffer to another. It is required that the
+    // buffers match same format, and have enough size.
+    // Pitches are given in bytes and define the length of the source and dest scan lines.
+    // Offsets are optional and define horizontal dest and source offsets, *in pixels*.
+    void CopyPixels(uint8_t *dst_buffer, const size_t dst_pitch, const size_t dst_px_offset,
+        const int bpp, const int height, const uint8_t *src_buffer, const size_t src_pitch, const size_t src_px_offset);
+    inline void CopyPixels(uint8_t *dst_buffer, const size_t dst_pitch, const size_t dst_px_offset,
+        const PixelFormat fmt, const int height, const uint8_t *src_buffer, const size_t src_pitch, const size_t src_px_offset)
+    {
+        CopyPixels(dst_buffer, dst_pitch, dst_px_offset, PixelFormatToPixelBytes(fmt), height, src_buffer, src_pitch, src_px_offset);
+    }
+    // Copies pixels from source to dest buffer, possibly converting between source
+    // and dest pixel format. The destination buffer must be properly allocated
+    //     (see GetDataSizeForPixelFormat()).
+    // Returns result, fails if conversion not supported.
+    // WARNING: the only conversion supported currently is 4-bit => 8-bit and 1-bit => 8-bit;
+    //          add more common conversions later!
+    bool CopyConvert(uint8_t *dst_buffer, const PixelFormat dst_fmt, const size_t dst_pitch,
+        const int height, const uint8_t *src_buffer, const PixelFormat src_fmt, const size_t src_pitch);
+}
+
 } // namespace Common
 } // namespace AGS
 

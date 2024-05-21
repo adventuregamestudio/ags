@@ -261,16 +261,15 @@ GFX_VTABLE *_get_vtable(int color_depth)
 
 
 
-/* create_bitmap_ex
- *  Creates a new memory bitmap in the specified color_depth
+/* create_bitmap_object
+ *  Allocates a new bitmap object in the specified color_depth;
+ *  does not allocate pixel data itself yet, leaves that for the caller.
  */
-BITMAP *create_bitmap_ex(int color_depth, int width, int height)
+BITMAP *create_bitmap_object(int color_depth, int width, int height)
 {
    GFX_VTABLE *vtable;
    BITMAP *bitmap;
    int nr_pointers;
-   int padding;
-   int i;
 
    ASSERT(width >= 0);
    ASSERT(height > 0);
@@ -288,34 +287,117 @@ BITMAP *create_bitmap_ex(int color_depth, int width, int height)
    if (!bitmap)
       return NULL;
 
-   /* This avoids a crash for assembler code accessing the last pixel, as it
-    * read 4 bytes instead of 3.
-    */
-   padding = (color_depth == 24) ? 1 : 0;
-
-   bitmap->dat = _AL_MALLOC_ATOMIC(width * height * BYTES_PER_PIXEL(color_depth) + padding);
-   if (!bitmap->dat) {
-      _AL_FREE(bitmap);
-      return NULL;
-   }
-
    bitmap->w = bitmap->cr = width;
    bitmap->h = bitmap->cb = height;
    bitmap->clip = TRUE;
    bitmap->cl = bitmap->ct = 0;
    bitmap->vtable = vtable;
+   bitmap->dat = NULL;
    bitmap->id = 0;
    bitmap->extra = NULL;
    bitmap->x_ofs = 0;
    bitmap->y_ofs = 0;
    bitmap->seg = _default_ds();
 
-   if (height > 0) {
-      bitmap->line[0] = bitmap->dat;
-      for (i=1; i<height; i++)
-         bitmap->line[i] = bitmap->line[i-1] + width * BYTES_PER_PIXEL(color_depth);
+   return bitmap;
+}
+
+
+
+void assign_bitmap_lines(BITMAP *bitmap, void *data, int color_depth)
+{
+   int i;
+
+   if (bitmap->h > 0) {
+      bitmap->line[0] = data;
+      for (i=1; i<bitmap->h; i++)
+         bitmap->line[i] = bitmap->line[i-1] + bitmap->w * BYTES_PER_PIXEL(color_depth);
+   }
+}
+
+
+
+size_t get_bitmapdata_size(int color_depth, int width, int height)
+{
+   /* This avoids a crash for assembler code accessing the last pixel, as it
+   * read 4 bytes instead of 3.
+   */
+   int padding = (color_depth == 24) ? 1 : 0;
+   return width * height * BYTES_PER_PIXEL(color_depth) + padding;
+}
+
+
+
+/* create_bitmap_ex
+ *  Creates a new memory bitmap in the specified color_depth
+ */
+BITMAP *create_bitmap_ex(int color_depth, int width, int height)
+{
+   BITMAP *bitmap;
+
+   bitmap = create_bitmap_object(color_depth, width, height);
+   if (!bitmap)
+      return NULL;
+
+   bitmap->dat = _AL_MALLOC_ATOMIC(get_bitmapdata_size(color_depth, width, height));
+   if (!bitmap->dat) {
+      _AL_FREE(bitmap);
+      return NULL;
    }
 
+   assign_bitmap_lines(bitmap, bitmap->dat, color_depth);
+   return bitmap;
+}
+
+
+
+/* create_bitmap_placeholder
+ *  Creates a new memory bitmap in the specified color_depth;
+ *  but does not allocate pixel data itself yet, leaves that for the caller.
+ *  Assigns "need_size" with the minimal required buffer size for this bitmap.
+ */
+BITMAP *create_bitmap_placeholder(int color_depth, int width, int height, size_t *need_size)
+{
+   BITMAP *bitmap = create_bitmap_object(color_depth, width, height);
+   if (!bitmap)
+      return NULL;
+
+   if (need_size)
+   {
+      *need_size = get_bitmapdata_size(color_depth, width, height);
+   }
+
+   return bitmap;
+}
+
+
+
+/* create_bitmap_userdata
+ *  Creates a new memory bitmap in the specified color_depth;
+ *  assigns a pixel data provided by the caller. If "data_sz" is too small for
+ *  this bitmap, then returns failure and assigns "need_size" with the minimal
+ *  required buffer size.
+ */
+BITMAP *create_bitmap_userdata(int color_depth, int width, int height, uint8_t *data, size_t data_sz, size_t *need_size)
+{
+   BITMAP *bitmap;
+   size_t want_size;
+   
+   ASSERT(width >= 0);
+   ASSERT(height > 0);
+   ASSERT(data || need_size);
+
+   want_size = get_bitmapdata_size(color_depth, width, height);
+   if (need_size)
+      *need_size = want_size;
+   if (!data || want_size > data_sz)
+      return NULL;
+
+   bitmap = create_bitmap_object(color_depth, width, height);
+   if (!bitmap)
+      return NULL;
+
+   assign_bitmap_lines(bitmap, data, color_depth);
    return bitmap;
 }
 

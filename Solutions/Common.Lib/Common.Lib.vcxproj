@@ -732,6 +732,7 @@
     <ClInclude Include="..\..\Common\gfx\allegrobitmap.h" />
     <ClInclude Include="..\..\Common\gfx\bitmap.h" />
     <ClInclude Include="..\..\common\gfx\gfx_def.h" />
+    <ClInclude Include="..\..\Common\gfx\bitmapdata.h" />
     <ClInclude Include="..\..\Common\gui\guibutton.h" />
     <ClInclude Include="..\..\Common\gui\guidefines.h" />
     <ClInclude Include="..\..\Common\gui\guiinv.h" />

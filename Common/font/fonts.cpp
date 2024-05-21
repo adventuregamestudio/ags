@@ -56,6 +56,8 @@ struct Font
     Bitmap OutlineStencil, OutlineStencilSub;
 
     Font() = default;
+    Font(Font &&font) = default;
+    Font &operator =(Font &&font) = default;
 };
 
 } // Common

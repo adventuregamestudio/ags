@@ -820,5 +820,8 @@
     <ClInclude Include="..\..\Common\debug\messagebuffer.h">
       <Filter>Header Files\debug</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Common\gfx\bitmapdata.h">
+      <Filter>Header Files\gfx</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

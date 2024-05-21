@@ -27,31 +27,33 @@ namespace AGS
 namespace Common
 {
 
-Bitmap::Bitmap()
-    : _alBitmap(nullptr)
-    , _isDataOwner(false)
-{
-}
-
 Bitmap::Bitmap(int width, int height, int color_depth)
-    : _alBitmap(nullptr)
-    , _isDataOwner(false)
 {
     Create(width, height, color_depth);
 }
 
+Bitmap::Bitmap(PixelBuffer &&pxbuf)
+{
+    Create(std::move(pxbuf));
+}
+
 Bitmap::Bitmap(Bitmap *src, const Rect &rc)
-    : _alBitmap(nullptr)
-    , _isDataOwner(false)
 {
     CreateSubBitmap(src, rc);
 }
 
 Bitmap::Bitmap(BITMAP *al_bmp, bool shared_data)
-    : _alBitmap(nullptr)
-    , _isDataOwner(false)
 {
     WrapAllegroBitmap(al_bmp, shared_data);
+}
+
+Bitmap::Bitmap(Bitmap &&bmp)
+{
+    _pixelData = std::move(bmp._pixelData);
+    _alBitmap = bmp._alBitmap;
+    _isDataOwner = bmp._isDataOwner;
+    bmp._alBitmap = nullptr;
+    bmp._isDataOwner = false;
 }
 
 Bitmap::~Bitmap()
@@ -66,16 +68,21 @@ Bitmap::~Bitmap()
 bool Bitmap::Create(int width, int height, int color_depth)
 {
     Destroy();
-    if (color_depth)
-    {
-        _alBitmap = create_bitmap_ex(color_depth, width, height);
-    }
-    else
-    {
-        _alBitmap = create_bitmap(width, height);
-    }
+
+    if (color_depth == 0)
+        color_depth = get_color_depth();
+
+    size_t need_size;
+    create_bitmap_userdata(color_depth, width, height, nullptr, 0u, 0u, &need_size);
+    std::unique_ptr<uint8_t[]> data(new uint8_t[need_size]);
+    BITMAP *bitmap = create_bitmap_userdata(color_depth, width, height, data.get(), need_size, 0u, nullptr);
+    if (!bitmap)
+        return false;
+
+    _pixelData = std::move(data);
+    _alBitmap = bitmap;
     _isDataOwner = true;
-    return _alBitmap != nullptr;
+    return true;
 }
 
 bool Bitmap::CreateTransparent(int width, int height, int color_depth)
@@ -86,6 +93,36 @@ bool Bitmap::CreateTransparent(int width, int height, int color_depth)
         return true;
     }
     return false;
+}
+
+bool Bitmap::Create(PixelBuffer &&pxbuf)
+{
+    Destroy();
+
+    const int color_depth = PixelFormatToPixelBits(pxbuf.GetFormat());
+    const int width = pxbuf.GetWidth(), height = pxbuf.GetHeight();
+    size_t data_sz = pxbuf.GetDataSize();
+    std::unique_ptr<uint8_t[]> data = pxbuf.ReleaseData();
+    // Do safety check, if provided data buffer is not long enough for Allegro BITMAP,
+    // then create a correct one and copy contents over.
+    size_t need_size;
+    create_bitmap_userdata(color_depth, width, height, nullptr, 0u, 0u, &need_size);
+    if (need_size > data_sz)
+    {
+        std::unique_ptr<uint8_t[]> copy_buf(new uint8_t[need_size]);
+        std::copy(data.get(), data.get() + data_sz, copy_buf.get());
+        data = std::move(copy_buf);
+        data_sz = need_size;
+    }
+    
+    BITMAP *bitmap = create_bitmap_userdata(color_depth, width, height, data.get(), data_sz, 0u, nullptr);
+    if (!bitmap)
+        return false;
+
+    _pixelData = std::move(data);
+    _alBitmap = bitmap;
+    _isDataOwner = true;
+    return true;
 }
 
 bool Bitmap::CreateSubBitmap(Bitmap *src, const Rect &rc)

@@ -36,7 +36,7 @@ Bitmap *CreateBitmap(int width, int height, int color_depth)
 	if (!bitmap->Create(width, height, color_depth))
 	{
 		delete bitmap;
-		bitmap = nullptr;
+		return nullptr;
 	}
 	return bitmap;
 }
@@ -59,9 +59,20 @@ Bitmap *CreateTransparentBitmap(int width, int height, int color_depth)
 	if (!bitmap->CreateTransparent(width, height, color_depth))
 	{
 		delete bitmap;
-		bitmap = nullptr;
+        return nullptr;
 	}
 	return bitmap;
+}
+
+Bitmap *CreateBitmap(PixelBuffer &&pxbuf)
+{
+    Bitmap *bitmap = new Bitmap();
+    if (!bitmap->Create(std::move(pxbuf)))
+    {
+        delete bitmap;
+        return nullptr;
+    }
+    return bitmap;
 }
 
 Bitmap *CreateSubBitmap(Bitmap *src, const Rect &rc)
@@ -70,7 +81,7 @@ Bitmap *CreateSubBitmap(Bitmap *src, const Rect &rc)
 	if (!bitmap->CreateSubBitmap(src, rc))
 	{
 		delete bitmap;
-		bitmap = nullptr;
+		return nullptr;
 	}
 	return bitmap;
 }
@@ -81,7 +92,7 @@ Bitmap *CreateBitmapCopy(Bitmap *src, int color_depth)
 	if (!bitmap->CreateCopy(src, color_depth))
 	{
 		delete bitmap;
-		bitmap = nullptr;
+		return nullptr;
 	}
 	return bitmap;
 }

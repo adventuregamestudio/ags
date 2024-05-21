@@ -12,7 +12,8 @@
 //
 //=============================================================================
 //
-// Base bitmap header
+// Base bitmap header. Bitmap is a class that wraps pixel data and provides
+// methods for blitting other bitmaps on it and drawing primitives.
 //
 //=============================================================================
 #ifndef __AGS_CN_GFX__BITMAP_H
@@ -41,6 +42,7 @@ enum BitmapMaskOption
 
 // Declare the actual bitmap class
 #include "gfx/allegrobitmap.h"
+#include "gfx/bitmapdata.h"
 #include "util/string.h"
 
 namespace AGS
@@ -64,6 +66,8 @@ namespace BitmapHelper
     Bitmap *CreateClearBitmap(int width, int height, int color_depth = 0, int clear_color = 0);
     // Creates a new bitmap and clears it with the transparent color
     Bitmap *CreateTransparentBitmap(int width, int height, int color_depth = 0);
+    // Create Bitmap and attach prepared pixel buffer
+    Bitmap *CreateBitmap(PixelBuffer &&pxbuf);
     // Creates a sub-bitmap of the given bitmap; the sub-bitmap is a reference to
     // particular region inside a parent.
     // WARNING: the parent bitmap MUST be kept in memory for as long as sub-bitmap exists!

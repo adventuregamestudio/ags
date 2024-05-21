@@ -90,6 +90,7 @@ target_sources(common
     gfx/allegrobitmap.h
     gfx/bitmap.cpp
     gfx/bitmap.h
+    gfx/bitmapdata.h
     gfx/gfx_def.h
     gui/guibutton.cpp
     gui/guibutton.h

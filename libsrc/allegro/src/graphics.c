@@ -398,6 +398,9 @@ BITMAP *create_bitmap_userdata(int color_depth, int width, int height,
    if (!bitmap)
       return NULL;
 
+   if (data_pitch == 0)
+      data_pitch = bitmap->w * BYTES_PER_PIXEL(bitmap->vtable->color_depth);
+
    assign_bitmap_lines(bitmap, data, data_pitch);
    return bitmap;
 }
@@ -514,6 +517,9 @@ int attach_bitmap_data(BITMAP *bitmap, void *data, size_t data_sz, size_t data_p
       *need_size = want_size;
    if (!data || want_size > data_sz)
       return FALSE;
+
+   if (data_pitch == 0)
+      data_pitch = bitmap->w * BYTES_PER_PIXEL(bitmap->vtable->color_depth);
 
    assign_bitmap_lines(bitmap, data, data_pitch);
    return TRUE;

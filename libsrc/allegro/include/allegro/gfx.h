@@ -289,8 +289,10 @@ AL_FUNC(int, get_color_conversion, (void));
 AL_FUNC(BITMAP *, create_bitmap, (int width, int height));
 AL_FUNC(BITMAP *, create_bitmap_ex, (int color_depth, int width, int height));
 AL_FUNC(BITMAP *, create_bitmap_placeholder, (int color_depth, int width, int height, size_t *need_size));
-AL_FUNC(BITMAP *, create_bitmap_userdata, (int color_depth, int width, int height, uint8_t *data, size_t data_sz, size_t *need_size));
+AL_FUNC(BITMAP *, create_bitmap_userdata, (int color_depth, int width, int height,
+                                           void *data, size_t data_sz, size_t data_pitch, size_t *need_size));
 AL_FUNC(BITMAP *, create_sub_bitmap, (BITMAP *parent, int x, int y, int width, int height));
+AL_FUNC(int, attach_bitmap_data, (BITMAP *bitmap, void *data, size_t data_sz, size_t data_pitch, size_t *need_size));
 AL_FUNC(void, destroy_bitmap, (BITMAP *bitmap));
 AL_FUNC(void, set_clip_rect, (BITMAP *bitmap, int x1, int y_1, int x2, int y2));
 AL_FUNC(void, add_clip_rect, (BITMAP *bitmap, int x1, int y_1, int x2, int y2));

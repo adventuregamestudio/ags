@@ -304,14 +304,14 @@ BITMAP *create_bitmap_object(int color_depth, int width, int height)
 
 
 
-void assign_bitmap_lines(BITMAP *bitmap, void *data, int color_depth)
+void assign_bitmap_lines(BITMAP *bitmap, void *data, size_t pitch)
 {
    int i;
 
    if (bitmap->h > 0) {
       bitmap->line[0] = data;
       for (i=1; i<bitmap->h; i++)
-         bitmap->line[i] = bitmap->line[i-1] + bitmap->w * BYTES_PER_PIXEL(color_depth);
+         bitmap->line[i] = bitmap->line[i-1] + pitch;
    }
 }
 
@@ -345,7 +345,7 @@ BITMAP *create_bitmap_ex(int color_depth, int width, int height)
       return NULL;
    }
 
-   assign_bitmap_lines(bitmap, bitmap->dat, color_depth);
+   assign_bitmap_lines(bitmap, bitmap->dat, bitmap->w * BYTES_PER_PIXEL(bitmap->vtable->color_depth));
    return bitmap;
 }
 
@@ -378,7 +378,8 @@ BITMAP *create_bitmap_placeholder(int color_depth, int width, int height, size_t
  *  this bitmap, then returns failure and assigns "need_size" with the minimal
  *  required buffer size.
  */
-BITMAP *create_bitmap_userdata(int color_depth, int width, int height, uint8_t *data, size_t data_sz, size_t *need_size)
+BITMAP *create_bitmap_userdata(int color_depth, int width, int height,
+    void *data, size_t data_sz, size_t data_pitch, size_t *need_size)
 {
    BITMAP *bitmap;
    size_t want_size;
@@ -397,7 +398,7 @@ BITMAP *create_bitmap_userdata(int color_depth, int width, int height, uint8_t *
    if (!bitmap)
       return NULL;
 
-   assign_bitmap_lines(bitmap, data, color_depth);
+   assign_bitmap_lines(bitmap, data, data_pitch);
    return bitmap;
 }
 
@@ -493,6 +494,29 @@ BITMAP *create_sub_bitmap(BITMAP *parent, int x, int y, int width, int height)
    release_bitmap(parent);
 
    return bitmap;
+}
+
+
+
+/* attach_bitmap_data
+ *  Assigns user data as this bitmap's pixel data. If "data_sz" is too small
+ *  for this bitmap, then returns failure and assigns "need_size" with the
+ *  minimal required buffer size.
+ */
+int attach_bitmap_data(BITMAP *bitmap, void *data, size_t data_sz, size_t data_pitch, size_t *need_size)
+{
+   size_t want_size;
+
+   ASSERT(bitmap);
+
+   want_size = get_bitmapdata_size(bitmap->vtable->color_depth, bitmap->w, bitmap->h);
+   if (need_size)
+      *need_size = want_size;
+   if (!data || want_size > data_sz)
+      return FALSE;
+
+   assign_bitmap_lines(bitmap, data, data_pitch);
+   return TRUE;
 }
 
 

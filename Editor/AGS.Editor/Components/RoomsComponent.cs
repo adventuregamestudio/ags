@@ -2121,9 +2121,7 @@ namespace AGS.Editor.Components
             }
 
             // normalize palette because a png can have partial palettes
-            var temp_bitmap = new Bitmap(1, 1, PixelFormat.Format8bppIndexed); // needed to create a fresh 256 palette, ColorPalette can't be created alone
-            newMask.Palette = temp_bitmap.Palette;
-            temp_bitmap.Dispose();
+            newMask.Palette = BitmapExtensions.CreateColorPalette();
             newMask.SetFromAGSPalette(Factory.AGSEditor.CurrentGame.Palette); // enforce default mask palette
 
             int maxColor = Room.GetMaskMaxColor(type);

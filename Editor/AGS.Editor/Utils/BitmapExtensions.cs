@@ -199,6 +199,14 @@ namespace AGS.Editor
         public static int GetColorDepth(this Bitmap bmp) => Image.GetPixelFormatSize(bmp.PixelFormat);
 
         /// <summary>
+        /// Gets a pixel data stride corresponding to this bitmap.
+        /// </summary>
+        public static int GetStride(this Bitmap bmp)
+        {
+            return (int)Math.Floor((bmp.GetColorDepth() * bmp.Width + 31.0) / 32.0) * 4;
+        }
+
+        /// <summary>
         /// Gives a scaled deep copy of the input image.
         /// </summary>
         /// <param name="bmp">The image to copy and scale.</param>
@@ -212,8 +220,8 @@ namespace AGS.Editor
             if (height <= 0) throw new ArgumentException("Scale factor must be greater than 0.", nameof(height));
 
             Bitmap res = new Bitmap(width, height, bmp.PixelFormat) { Palette = bmp.Palette };
-            int bmpRowPaddedWidth = (int)Math.Floor((bmp.GetColorDepth() * bmp.Width + 31.0) / 32.0) * 4;
-            int resRowPaddedWidth = (int)Math.Floor((res.GetColorDepth() * res.Width + 31.0) / 32.0) * 4;
+            int bmpRowPaddedWidth = bmp.GetStride();
+            int resRowPaddedWidth = bmp.GetStride();
             byte[] resultRawData = new byte[resRowPaddedWidth * height];
             byte[] bmpRawData = bmp.GetRawData();
 
@@ -366,8 +374,8 @@ namespace AGS.Editor
             Bitmap dstBmp = new Bitmap(srcBmp.Width, srcBmp.Height, PixelFormat.Format8bppIndexed);
             var srcData = srcBmp.GetRawData();
             var dstData = dstBmp.GetRawData();
-            int srcPitch = (int)Math.Floor((srcBmp.GetColorDepth() * srcBmp.Width + 31.0) / 32.0) * 4;
-            int dstPitch = (int)Math.Floor((dstBmp.GetColorDepth() * dstBmp.Width + 31.0) / 32.0) * 4;
+            int srcPitch = srcBmp.GetStride();
+            int dstPitch = dstBmp.GetStride();
 
             if (srcBmp.PixelFormat == PixelFormat.Format4bppIndexed)
             {
@@ -441,7 +449,7 @@ namespace AGS.Editor
 
             _bmp = bmp;
             _pixels = _bmp.GetRawData();
-            _paddedWidth = (int)Math.Floor((_bmp.GetColorDepth() * _bmp.Width + 31.0) / 32.0) * 4;
+            _paddedWidth = _bmp.GetStride();
         }
 
         public static IndexedGraphics FromBitmap(Bitmap bmp) => new IndexedGraphics(bmp);

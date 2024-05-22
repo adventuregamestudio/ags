@@ -379,7 +379,7 @@ namespace AGS.Editor
 
             Bitmap res = new Bitmap(width, height, bmp.PixelFormat) { Palette = bmp.Palette };
             int bmpRowPaddedWidth = bmp.GetStride();
-            int resRowPaddedWidth = bmp.GetStride();
+            int resRowPaddedWidth = res.GetStride();
             byte[] resultRawData = new byte[resRowPaddedWidth * height];
             byte[] bmpRawData = bmp.GetRawData();
 

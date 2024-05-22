@@ -2122,7 +2122,8 @@ void drawViewLoop (int hdc, ViewLoop^ loopToDraw, int x, int y, int size, List<i
     doDrawViewLoop(hdc, frames, x, y, size, selected);
 }
 
-Common::Bitmap *CreateBlockFromBitmap(System::Drawing::Bitmap ^bmp, RGB *imgpal, bool fixColourDepth, bool keepTransparency, int *originalColDepth)
+Common::Bitmap *CreateBlockFromBitmap(System::Drawing::Bitmap ^bmp, RGB *imgpal, int *srcPalLen,
+    bool fixColourDepth, bool keepTransparency, int *originalColDepth)
 {
     int src_depth, dst_depth;
     switch (bmp->PixelFormat)
@@ -2159,6 +2160,8 @@ Common::Bitmap *CreateBlockFromBitmap(System::Drawing::Bitmap ^bmp, RGB *imgpal,
         throw gcnew AGSEditorException("You cannot import a hi-colour or true-colour image into a 256-colour game.");
     }
 
+    if (srcPalLen)
+        *srcPalLen = bmp->Palette ? bmp->Palette->Entries->Length : 0;
     if (originalColDepth)
         *originalColDepth = src_depth;
 
@@ -2177,7 +2180,7 @@ Common::Bitmap *CreateBlockFromBitmap(System::Drawing::Bitmap ^bmp, RGB *imgpal,
         throw gcnew AGSEditorException("Failed to create bitmap of compatible color depth. Could be unsupported image format.");
     }
 
-	if (src_depth == 8)
+	if (src_depth <= 8)
 	{
 		cli::array<System::Drawing::Color> ^bmpPalette = bmp->Palette->Entries;
     
@@ -2318,7 +2321,7 @@ void DeleteBackground(Room ^room, int backgroundNumber)
 void ImportBackground(Room ^room, int backgroundNumber, System::Drawing::Bitmap ^bmp, bool useExactPalette, bool sharePalette) 
 {
     RGB oldpale[256];
-	Common::Bitmap *newbg = CreateBlockFromBitmap(bmp, oldpale, true, false, NULL);
+	Common::Bitmap *newbg = CreateBlockFromBitmap(bmp, oldpale, nullptr, true, false, nullptr);
 	RoomStruct *theRoom = (RoomStruct*)(void*)room->_roomStructPtr;
 	theRoom->Width = room->Width;
 	theRoom->Height = room->Height;
@@ -2379,7 +2382,7 @@ void ImportBackground(Room ^room, int backgroundNumber, System::Drawing::Bitmap 
 void import_area_mask(void *roomptr, int maskType, System::Drawing::Bitmap ^bmp)
 {
     RGB oldpale[256];
-	Common::Bitmap *importedImage = CreateBlockFromBitmap(bmp, oldpale, false, false, NULL);
+	Common::Bitmap *importedImage = CreateBlockFromBitmap(bmp, oldpale, nullptr, false, false, nullptr);
 	Common::Bitmap *mask = ((RoomStruct*)roomptr)->GetMask((RoomAreaMask)maskType);
 
 	if (mask->GetWidth() != importedImage->GetWidth())
@@ -2412,7 +2415,7 @@ Common::Bitmap *CreateNativeBitmap(System::Drawing::Bitmap^ bmp, int spriteImpor
 
     RGB imgPalBuf[256];
     int importedColourDepth;
-    Common::Bitmap *tempsprite = CreateBlockFromBitmap(bmp, imgPalBuf, true, (spriteImportMethod != SIMP_NONE), &importedColourDepth);
+    Common::Bitmap *tempsprite = CreateBlockFromBitmap(bmp, imgPalBuf, nullptr, true, (spriteImportMethod != SIMP_NONE), &importedColourDepth);
 
     if (thisgame.color_depth > 1)
     {

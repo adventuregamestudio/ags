@@ -13,11 +13,43 @@ namespace AGS.Editor
     /// PaletteUtilities is meant to be a group of methods which handle AGS Game Palette,
     /// and perform various operations over it, or between AGS Palette and Image's Palette.
     /// </summary>
-    class PaletteUtilities
+    public static class PaletteUtilities
     {
         static PaletteUtilities()
         {
             BestFitInit();
+        }
+
+        /// <summary>
+        /// Assigns Background slots in the AGS palette from this Bitmap.
+        /// </summary>
+        public static void CopyToAGSBackgroundPalette(this Bitmap bmp, PaletteEntry[] dstPalette)
+        {
+            var srcPalette = bmp.Palette;
+            foreach (PaletteEntry global in dstPalette.Where(
+                p => (p.Index < srcPalette.Entries.Length) && (p.ColourType == PaletteColourType.Background)))
+            {
+                dstPalette[global.Index].Colour = srcPalette.Entries[global.Index];
+            }
+        }
+
+        /// <summary>
+        /// Assigns the AGS palette to a bitmap.
+        /// Note that both Game-wide and Background palette slots are copied.
+        /// This assumes that the game palette has been prepared beforehand, by merging
+        /// game-wide and room palette colors.
+        /// </summary>
+        /// <param name="bmp">The bitmap to set to global palette to.</param>
+        public static void SetFromAGSPalette(this Bitmap bmp, PaletteEntry[] srcPalette)
+        {
+            ColorPalette palette = bmp.Palette;
+
+            foreach (PaletteEntry global in srcPalette)
+            {
+                palette.Entries[global.Index] = Color.FromArgb(255, global.Colour);
+            }
+
+            bmp.Palette = palette; // Get Bitmap.Palette is deep copy so we need to set it back
         }
 
         public static void RemapBackground(Bitmap scene, bool exactPal, PaletteEntry[] gamePalette, out int colorsImage, out int colorsLimit)

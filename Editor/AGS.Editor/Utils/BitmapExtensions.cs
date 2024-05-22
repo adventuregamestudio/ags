@@ -181,22 +181,27 @@ namespace AGS.Editor
         }
     }
 
+    /// <summary>
+    /// BitmapExtensions is a collection of helpers for operations with bitmaps.
+    /// </summary>
     public static class BitmapExtensions
     {
-        /// <summary>
-        /// Loads a <see cref="Bitmap"/> from file that doesn't lock the original file.
-        /// </summary>
-        public static Bitmap LoadNonLockedBitmap(string path)
-        {
-            return BitmapTransparencyFixUp.LoadBitmap(path);
-        }
-
         /// <summary>
         /// Gets an integer with the color depth of the image.
         /// </summary>
         /// <param name="bmp">The image to get the color depth from.</param>
         /// <returns>An integer with the color depth.</returns>
         public static int GetColorDepth(this Bitmap bmp) => Image.GetPixelFormatSize(bmp.PixelFormat);
+
+        /// <summary>
+        /// Check if <see cref="Bitmap"/> is indexed image.
+        /// </summary>
+        /// <param name="bmp">Check if this argument is indexed image.</param>
+        /// <returns>A bool indicating if this image is indexed.</returns>
+        public static bool IsIndexed(this Bitmap bmp) =>
+            bmp.PixelFormat == PixelFormat.Format1bppIndexed ||
+            bmp.PixelFormat == PixelFormat.Format4bppIndexed ||
+            bmp.PixelFormat == PixelFormat.Format8bppIndexed;
 
         /// <summary>
         /// Gets a pixel data stride corresponding to this bitmap.
@@ -207,40 +212,13 @@ namespace AGS.Editor
         }
 
         /// <summary>
-        /// Gives a scaled deep copy of the input image.
+        /// Checks if the x and y coordinate is within the image.
         /// </summary>
-        /// <param name="bmp">The image to copy and scale.</param>
-        /// <param name="width">Scale the image to this width.</param>
-        /// <param name="height">Scale the image to this height.</param>
-        /// <returns>A scaled deep copy of the input image.</returns>
-        public static Bitmap ScaleIndexed(this Bitmap bmp, int width, int height)
+        /// <param name="position">The position to check against.</param>
+        /// <returns>True if the position is inside the image. False if outside.</returns>
+        public static bool Intersects(this Bitmap bmp, Point position)
         {
-            if (!bmp.IsIndexed()) throw new ArgumentException($"{nameof(bmp)} must be a indexed bitmap.");
-            if (width <= 0) throw new ArgumentException("Scale factor must be greater than 0.", nameof(width));
-            if (height <= 0) throw new ArgumentException("Scale factor must be greater than 0.", nameof(height));
-
-            Bitmap res = new Bitmap(width, height, bmp.PixelFormat) { Palette = bmp.Palette };
-            int bmpRowPaddedWidth = bmp.GetStride();
-            int resRowPaddedWidth = bmp.GetStride();
-            byte[] resultRawData = new byte[resRowPaddedWidth * height];
-            byte[] bmpRawData = bmp.GetRawData();
-
-            // Nearest Neighbor Interpolation
-            double ratioWidth = (double)bmp.Width / width;
-            double ratioHeight = (double)bmp.Height / height;
-            int[] rowMap =
-                Enumerable.Range(0, width).Select(i => (int)Math.Floor((double)(i * ratioWidth))).ToArray();
-            int[] columnMap =
-                Enumerable.Range(0, height).Select(i => (int)Math.Floor((double)(i * ratioHeight))).ToArray();
-
-            for (int y = 0; y < height; y++)
-                for (int x = 0; x < resRowPaddedWidth; x++)
-                    resultRawData[(resRowPaddedWidth * y) + x] = x < width
-                        ? bmpRawData[(bmpRowPaddedWidth * columnMap[y]) + rowMap[x]]
-                        : (byte)0; // Padded area 0
-
-            res.SetRawData(resultRawData);
-            return res;
+            return position.X >= 0 && position.X < bmp.Width && position.Y >= 0 && position.Y < bmp.Height;
         }
 
         /// <summary>
@@ -272,6 +250,13 @@ namespace AGS.Editor
         /// </summary>
         /// <param name="bmp">The bitmap to set the raw data to.</param>
         /// <param name="rawData">The raw data to set into the bitmap.</param>
+        public static void SetRawData(this Bitmap bmp, byte[] rawData) => bmp.SetRawData(rawData, bmp.PixelFormat);
+
+        /// <summary>
+        /// Sets the raw data from the byte array to the bitmap.
+        /// </summary>
+        /// <param name="bmp">The bitmap to set the raw data to.</param>
+        /// <param name="rawData">The raw data to set into the bitmap.</param>
         /// <param name="pixelFormat">The pixel format to read the raw data as.</param>
         public static void SetRawData(this Bitmap bmp, byte[] rawData, PixelFormat pixelFormat)
         {
@@ -282,62 +267,16 @@ namespace AGS.Editor
         }
 
         /// <summary>
-        /// Assigns Background slots in the AGS palette from this Bitmap.
+        /// Creates a palette for particular pixel format.
+        /// Because ColorPalette can't be created alone, we have to use this hack,
+        /// where we create a minimal dummy bitmap, and copy palette object from there.
         /// </summary>
-        public static void CopyToAGSBackgroundPalette(this Bitmap bmp, PaletteEntry[] dstPalette)
+        public static ColorPalette CreateColorPalette(PixelFormat fmt = PixelFormat.Format8bppIndexed)
         {
-            var srcPalette = bmp.Palette;
-            foreach (PaletteEntry global in dstPalette.Where(
-                p => (p.Index < srcPalette.Entries.Length) && (p.ColourType == PaletteColourType.Background)))
-            {
-                dstPalette[global.Index].Colour = srcPalette.Entries[global.Index];
-            }
-        }
-
-        /// <summary>
-        /// Assigns the AGS palette to a bitmap.
-        /// Note that both Game-wide and Background palette slots are copied.
-        /// This assumes that the game palette has been prepared beforehand, by merging
-        /// game-wide and room palette colors.
-        /// </summary>
-        /// <param name="bmp">The bitmap to set to global palette to.</param>
-        public static void SetFromAGSPalette(this Bitmap bmp, PaletteEntry[] srcPalette)
-        {
-            ColorPalette palette = bmp.Palette;
-
-            foreach (PaletteEntry global in srcPalette)
-            {
-                palette.Entries[global.Index] = Color.FromArgb(255, global.Colour);
-            }
-
-            bmp.Palette = palette; // Get Bitmap.Palette is deep copy so we need to set it back
-        }
-
-        /// <summary>
-        /// Sets the raw data from the byte array to the bitmap.
-        /// </summary>
-        /// <param name="bmp">The bitmap to set the raw data to.</param>
-        /// <param name="rawData">The raw data to set into the bitmap.</param>
-        public static void SetRawData(this Bitmap bmp, byte[] rawData) => bmp.SetRawData(rawData, bmp.PixelFormat);
-
-        /// <summary>
-        /// Check if <see cref="Bitmap"/> is indexed image.
-        /// </summary>
-        /// <param name="bmp">Check if this argument is indexed image.</param>
-        /// <returns>A bool indicating if this image is indexed.</returns>
-        public static bool IsIndexed(this Bitmap bmp) =>
-            bmp.PixelFormat == PixelFormat.Format1bppIndexed ||
-            bmp.PixelFormat == PixelFormat.Format4bppIndexed ||
-            bmp.PixelFormat == PixelFormat.Format8bppIndexed;
-
-        /// <summary>
-        /// Checks if the x and y coordinate is within the image.
-        /// </summary>
-        /// <param name="position">The position to check against.</param>
-        /// <returns>True if the position is inside the image. False if outside.</returns>
-        public static bool Intersects(this Bitmap bmp, Point position)
-        {
-            return position.X >= 0 && position.X < bmp.Width && position.Y >= 0 && position.Y < bmp.Height;
+            var tempBitmap = new Bitmap(1, 1, fmt);
+            var palette = tempBitmap.Palette;
+            tempBitmap.Dispose();
+            return palette;
         }
 
         /// <summary>
@@ -418,16 +357,48 @@ namespace AGS.Editor
         }
 
         /// <summary>
-        /// Creates a palette for particular pixel format.
-        /// Because ColorPalette can't be created alone, we have to use this hack,
-        /// where we create a minimal dummy bitmap, and copy palette object from there.
+        /// Loads a <see cref="Bitmap"/> from file that doesn't lock the original file.
         /// </summary>
-        public static ColorPalette CreateColorPalette(PixelFormat fmt = PixelFormat.Format8bppIndexed)
+        public static Bitmap LoadNonLockedBitmap(string path)
         {
-            var tempBitmap = new Bitmap(1, 1, fmt);
-            var palette = tempBitmap.Palette;
-            tempBitmap.Dispose();
-            return palette;
+            return BitmapTransparencyFixUp.LoadBitmap(path);
+        }
+
+        /// <summary>
+        /// Gives a scaled deep copy of the input image.
+        /// </summary>
+        /// <param name="bmp">The image to copy and scale.</param>
+        /// <param name="width">Scale the image to this width.</param>
+        /// <param name="height">Scale the image to this height.</param>
+        /// <returns>A scaled deep copy of the input image.</returns>
+        public static Bitmap ScaleIndexed(this Bitmap bmp, int width, int height)
+        {
+            if (!bmp.IsIndexed()) throw new ArgumentException($"{nameof(bmp)} must be a indexed bitmap.");
+            if (width <= 0) throw new ArgumentException("Scale factor must be greater than 0.", nameof(width));
+            if (height <= 0) throw new ArgumentException("Scale factor must be greater than 0.", nameof(height));
+
+            Bitmap res = new Bitmap(width, height, bmp.PixelFormat) { Palette = bmp.Palette };
+            int bmpRowPaddedWidth = bmp.GetStride();
+            int resRowPaddedWidth = bmp.GetStride();
+            byte[] resultRawData = new byte[resRowPaddedWidth * height];
+            byte[] bmpRawData = bmp.GetRawData();
+
+            // Nearest Neighbor Interpolation
+            double ratioWidth = (double)bmp.Width / width;
+            double ratioHeight = (double)bmp.Height / height;
+            int[] rowMap =
+                Enumerable.Range(0, width).Select(i => (int)Math.Floor((double)(i * ratioWidth))).ToArray();
+            int[] columnMap =
+                Enumerable.Range(0, height).Select(i => (int)Math.Floor((double)(i * ratioHeight))).ToArray();
+
+            for (int y = 0; y < height; y++)
+                for (int x = 0; x < resRowPaddedWidth; x++)
+                    resultRawData[(resRowPaddedWidth * y) + x] = x < width
+                        ? bmpRawData[(bmpRowPaddedWidth * columnMap[y]) + rowMap[x]]
+                        : (byte)0; // Padded area 0
+
+            res.SetRawData(resultRawData);
+            return res;
         }
     }
 

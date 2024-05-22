@@ -75,7 +75,7 @@ namespace BitmapHelper
     // Creates Bitmap of wanted color depth from a raw pixel array of a (possibly different)
     // specified color depth.
     // NOTE: color_depth is in BITS per pixel (i.e. 8, 16, 24, 32...).
-    // WARNING: the only conversion supported currently is 4-bit => 8-bit;
+    // WARNING: the only conversion supported currently is 4-bit => 8-bit and 1-bit => 8-bit;
     //          add more common conversions later!
     Bitmap *CreateBitmapFromPixels(int width, int height, int dst_color_depth,
         const uint8_t *pixels, const int src_col_depth, const int src_pitch);

@@ -114,6 +114,27 @@ Bitmap *CreateBitmapFromPixels(int width, int height, int dst_color_depth,
         }
         return bitmap.release();
     }
+    // Copy 1-bit monochrome image into 8-bit image
+    else if (dst_color_depth == 8 && src_col_depth == 1)
+    {
+        uint8_t *data_ptr = bitmap->GetDataForWriting();
+        for (int y = 0; y < height; ++y)
+        {
+            for (int x = 0; x < width / 8; ++x)
+            {
+                uint8_t sp = pixels[y * src_pitch + x];
+                data_ptr[y * width + x * 8]     = ((sp >> 7) & 0x1);
+                data_ptr[y * width + x * 8 + 1] = ((sp >> 6) & 0x1);
+                data_ptr[y * width + x * 8 + 2] = ((sp >> 5) & 0x1);
+                data_ptr[y * width + x * 8 + 3] = ((sp >> 4) & 0x1);
+                data_ptr[y * width + x * 8 + 4] = ((sp >> 3) & 0x1);
+                data_ptr[y * width + x * 8 + 5] = ((sp >> 2) & 0x1);
+                data_ptr[y * width + x * 8 + 6] = ((sp >> 1) & 0x1);
+                data_ptr[y * width + x * 8 + 7] = (sp & 0x1);
+            }
+        }
+        return bitmap.release();
+    }
 
     return nullptr;
 }

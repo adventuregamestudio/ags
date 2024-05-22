@@ -89,6 +89,10 @@ namespace BitmapHelper
     inline Bitmap *LoadFromFile(const String &filename) { return LoadFromFile(filename.GetCStr()); }
     // Write a bitmap into a file; supported formats currently are: BMP, PCX.
     bool SaveToFile(Bitmap* bmp, const char *filename, const RGB *pal = nullptr);
+    // Reads a bitmap from the stream, possibly with palette
+    Bitmap *LoadBitmap(Stream *in, const String& ext, RGB *pal = nullptr);
+    // Write a bitmap to the stream, optionally along with the palette
+    bool SaveBitmap(const Bitmap *bmp, const RGB* pal, Stream *out, const String& ext);
 
     // Stretches bitmap to the requested size. The new bitmap will have same
     // colour depth. Returns original bitmap if no changes are necessary. 
@@ -110,11 +114,6 @@ namespace BitmapHelper
     // Pitch is given in bytes and defines the length of the source scan line.
     // Offset is optional and defines horizontal offset, in pixels.
     void    ReadPixelsFromMemory(Bitmap *dst, const uint8_t *src_buffer, const size_t src_pitch, const size_t src_px_offset = 0);
-
-    // Write to the stream a bitmap, optionally along with the palette
-    void SaveBitmap(const String& ext, Stream *out, const Bitmap *bmp, const RGB* pal = nullptr);
-    // Reads from the stream a bitmap, possibly with palette
-    Bitmap* LoadBitmap(const String& ext, Stream *in, RGB *pal = nullptr);
 
 } // namespace BitmapHelper
 

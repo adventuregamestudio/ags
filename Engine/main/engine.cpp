@@ -537,7 +537,7 @@ void show_preload()
         return;
 
     RGB temppal[256];
-    Bitmap *splashsc = BitmapHelper::LoadBitmap("pcx",stream.get(),temppal);
+    Bitmap *splashsc = BitmapHelper::LoadBitmap(stream.get(), "pcx", temppal);
     if (splashsc != nullptr)
     {
         Debug::Printf("Displaying preload image");

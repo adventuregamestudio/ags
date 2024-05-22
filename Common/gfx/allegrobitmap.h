@@ -131,7 +131,7 @@ public:
         return (GetColorDepth() + 7) / 8;
     }
 
-    // CHECKME: probably should not be exposed, see comment to GetData()
+    // Gets size of Bitmap's pixel data, in bytes
 	inline int  GetDataSize() const
     {
         return GetWidth() * GetHeight() * GetBPP();
@@ -142,9 +142,7 @@ public:
         return GetWidth() * GetBPP();
     }
 
-	// TODO: replace with byte *
 	// Gets a pointer to underlying graphic data
-	// FIXME: actually not a very good idea, since there's no 100% guarantee the scanline positions in memory are sequential
     inline const unsigned char *GetData() const
     {
         return _alBitmap->line[0];
@@ -155,6 +153,17 @@ public:
     {
         assert(index >= 0 && index < GetHeight());
         return _alBitmap->line[index];
+    }
+
+    // Get bitmap data wrapped in a PixelBuffer struct
+    inline const BitmapData GetBitmapData() const
+    {
+        return BitmapData(GetData(), GetDataSize(), GetLineLength(), GetWidth(), GetHeight(), ColorDepthToPixelFormat(GetColorDepth()));
+    }
+
+    inline BitmapData GetBitmapData()
+    {
+        return BitmapData(GetDataForWriting(), GetDataSize(), GetLineLength(), GetWidth(), GetHeight(), ColorDepthToPixelFormat(GetColorDepth()));
     }
 
 	// Get bitmap's mask color (transparent color)

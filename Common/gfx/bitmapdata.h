@@ -77,8 +77,10 @@ inline size_t GetStrideForPixelFormat(PixelFormat fmt, int width)
 {
     switch (fmt)
     {
+    case kPxFmt_Indexed1:
+        return (width + 7) / 8; // ensure rounding up
     case kPxFmt_Indexed4:
-        return (width * 1) / 2; // ensure rounding up
+        return (width + 1) / 2; // ensure rounding up
     default:
         return (width * PixelFormatToPixelBytes(fmt));
     }
@@ -129,6 +131,8 @@ public:
         assert(_stride * i < _dataSize);
         return &_cbuf[_stride * i];
     }
+
+    uint32_t GetPixel(int x, int y) const;
 
 protected:
     PixelFormat _format = kPxFmt_Undefined;

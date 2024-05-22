@@ -37,7 +37,7 @@ int LoadImageFile(const char *filename)
         return 0;
 
     String ext = Path::GetFileExtension(filename);
-    std::unique_ptr<Bitmap> image(BitmapHelper::LoadBitmap(ext, in.get()));
+    std::unique_ptr<Bitmap> image(BitmapHelper::LoadBitmap(in.get(), ext));
     if (!image)
         return 0;
 

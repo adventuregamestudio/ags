@@ -36,7 +36,8 @@ namespace AGS.Editor
             {
                 // We should still copy all the Game-wide slots over,
                 // otherwise the user will get false picture in the Editor.
-                foreach (var color in gamePalette.Where(p => p.ColourType == PaletteColourType.Gamewide))
+                foreach (var color in gamePalette.Where(
+                    p => (p.Index < palette.Entries.Length) && (p.ColourType == PaletteColourType.Gamewide)))
                 {
                     palette.Entries[color.Index] = color.Colour;
                 }
@@ -66,9 +67,14 @@ namespace AGS.Editor
 
             // Nativize RGB, clamp to 64-unit format to match historical engine's palette restriction
             Color[] srcColors = new Color[256];
-            for (int i = 0; i < 256; ++i)
+            for (int i = 0; i < palette.Entries.Length; ++i)
             {
                 srcColors[i] = Color.FromArgb(0xFF, palette.Entries[i].R / 4, palette.Entries[i].G / 4, palette.Entries[i].B / 4);
+            }
+            // Fill any remaining slots with black color
+            for (int i = palette.Entries.Length; i < 256; ++i)
+            {
+                srcColors[i] = Color.FromArgb(0xFF, 0, 0, 0);
             }
 
             // Count and remember the unique colours in the image
@@ -145,12 +151,13 @@ namespace AGS.Editor
 
             // Assign resulting pixel array and new palette to the bitmap;
             // Un-nativize RGB from 64-unit format
+            ColorPalette finalPalette = BitmapExtensions.CreateColorPalette();
             for (int i = 0; i < 256; ++i)
             {
-                palette.Entries[i] = Color.FromArgb(0xFF, finalColors[i].R * 4, finalColors[i].G * 4, finalColors[i].B * 4);
+                finalPalette.Entries[i] = Color.FromArgb(0xFF, finalColors[i].R * 4, finalColors[i].G * 4, finalColors[i].B * 4);
             }
             scene.SetRawData(pixels);
-            scene.Palette = palette;
+            scene.Palette = finalPalette;
             colorsImage = uniqueColorCount;
             colorsLimit = bgSlotCount;
         }

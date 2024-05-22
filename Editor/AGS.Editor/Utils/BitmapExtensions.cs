@@ -279,7 +279,8 @@ namespace AGS.Editor
         public static void CopyToAGSBackgroundPalette(this Bitmap bmp, PaletteEntry[] dstPalette)
         {
             var srcPalette = bmp.Palette;
-            foreach (PaletteEntry global in dstPalette.Where(p => p.ColourType == PaletteColourType.Background))
+            foreach (PaletteEntry global in dstPalette.Where(
+                p => (p.Index < srcPalette.Entries.Length) && (p.ColourType == PaletteColourType.Background)))
             {
                 dstPalette[global.Index].Colour = srcPalette.Entries[global.Index];
             }
@@ -329,6 +330,96 @@ namespace AGS.Editor
         public static bool Intersects(this Bitmap bmp, Point position)
         {
             return position.X >= 0 && position.X < bmp.Width && position.Y >= 0 && position.Y < bmp.Height;
+        }
+
+        /// <summary>
+        /// Clones given bitmap, and ensures that the new one is compatible with AGS,
+        /// that is - has a pixel format among those that AGS can work with.
+        /// Indexed bitmaps have their palette preserved after conversion.
+        /// </summary>
+        public static Bitmap CloneAsAGSCompatible(this Bitmap bmp)
+        {
+            Rectangle rect = new Rectangle(0, 0, bmp.Size.Width, bmp.Size.Height);
+            if (bmp.IsIndexed())
+            {
+                // NOTE: we cannot use simple Clone in case of conversion,
+                // because it will expand palette and remap all pixels to the new one.
+                return ConvertIndexedFormat(bmp);
+            }
+            else if (bmp.GetColorDepth() <= 16)
+            {
+                return bmp.Clone(rect, PixelFormat.Format16bppRgb565);
+            }
+            return bmp.Clone(rect, PixelFormat.Format32bppArgb);
+        }
+
+        /// <summary>
+        /// Creates a new Bitmap of Format8bppIndexed, and copies pixel
+        /// data over from the source, converting index values between formats,
+        /// but preserving palette.
+        /// </summary>
+        public static Bitmap ConvertIndexedFormat(Bitmap srcBmp)
+        {
+            if (srcBmp.PixelFormat == PixelFormat.Format8bppIndexed)
+                return srcBmp.Clone() as Bitmap;
+
+            Bitmap dstBmp = new Bitmap(srcBmp.Width, srcBmp.Height, PixelFormat.Format8bppIndexed);
+            var srcData = srcBmp.GetRawData();
+            var dstData = dstBmp.GetRawData();
+            int srcPitch = (int)Math.Floor((srcBmp.GetColorDepth() * srcBmp.Width + 31.0) / 32.0) * 4;
+            int dstPitch = (int)Math.Floor((dstBmp.GetColorDepth() * dstBmp.Width + 31.0) / 32.0) * 4;
+
+            if (srcBmp.PixelFormat == PixelFormat.Format4bppIndexed)
+            {
+                for (int y = 0; y < srcBmp.Height; ++y)
+                {
+                    for (int x = 0; x < srcBmp.Width / 2; ++x)
+                    {
+                        byte sp = srcData[y * srcPitch + x];
+                        dstData[y * dstPitch + x * 2]     = (byte)((sp >> 4) & 0xF);
+                        dstData[y * dstPitch + x * 2 + 1] = (byte)(sp & 0xF);
+                    }
+                }
+            }
+            else if (srcBmp.PixelFormat == PixelFormat.Format1bppIndexed)
+            {
+                for (int y = 0; y < srcBmp.Height; ++y)
+                {
+                    for (int x = 0; x < srcBmp.Width / 8; ++x)
+                    {
+                        byte sp = srcData[y * srcPitch + x];
+                        dstData[y * dstPitch + x * 8]     = (byte)((sp >> 7) & 0x1);
+                        dstData[y * dstPitch + x * 8 + 1] = (byte)((sp >> 6) & 0x1);
+                        dstData[y * dstPitch + x * 8 + 2] = (byte)((sp >> 5) & 0x1);
+                        dstData[y * dstPitch + x * 8 + 3] = (byte)((sp >> 4) & 0x1);
+                        dstData[y * dstPitch + x * 8 + 4] = (byte)((sp >> 3) & 0x1);
+                        dstData[y * dstPitch + x * 8 + 5] = (byte)((sp >> 2) & 0x1);
+                        dstData[y * dstPitch + x * 8 + 6] = (byte)((sp >> 1) & 0x1);
+                        dstData[y * dstPitch + x * 8 + 7] = (byte)(sp & 0x1);
+                    }
+                }
+            }
+            else
+            {
+                throw new ArgumentException("Unsupported indexed image format.");
+            }
+
+            dstBmp.SetRawData(dstData);
+            dstBmp.Palette = srcBmp.Palette;
+            return dstBmp;
+        }
+
+        /// <summary>
+        /// Creates a palette for particular pixel format.
+        /// Because ColorPalette can't be created alone, we have to use this hack,
+        /// where we create a minimal dummy bitmap, and copy palette object from there.
+        /// </summary>
+        public static ColorPalette CreateColorPalette(PixelFormat fmt = PixelFormat.Format8bppIndexed)
+        {
+            var tempBitmap = new Bitmap(1, 1, fmt);
+            var palette = tempBitmap.Palette;
+            tempBitmap.Dispose();
+            return palette;
         }
     }
 

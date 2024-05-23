@@ -1,3 +1,4 @@
+using AGS.Editor.Utils;
 using AGS.Types;
 using System;
 using System.Collections.Generic;
@@ -465,9 +466,10 @@ namespace AGS.Editor
 
         private void ImportMaskFromFile(string fileName)
         {
+            Bitmap bmp = null;
             try
             {
-                Bitmap bmp = new Bitmap(fileName);
+                bmp = BitmapExtensions.LoadNonLockedBitmap(fileName);
 
                 if (!(((bmp.Width == _room.Width) && (bmp.Height == _room.Height)) ||
                     ((bmp.Width == _room.Width / 2) && (bmp.Height == _room.Height / 2))))
@@ -498,6 +500,11 @@ namespace AGS.Editor
             catch (Exception ex)
             {
                 Factory.GUIController.ShowMessage("There was an error importing the area mask. The error was: " + ex.Message, MessageBoxIcon.Warning);
+            }
+            finally
+            {
+                if (bmp != null)
+                    bmp.Dispose();
             }
         }
 

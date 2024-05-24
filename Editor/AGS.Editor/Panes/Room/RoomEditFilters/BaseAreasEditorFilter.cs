@@ -513,7 +513,7 @@ namespace AGS.Editor
             try
             {
                 Bitmap bmp = Factory.NativeProxy.ExportAreaMask(_room, this.MaskToDraw);
-                bmp.Save(fileName, ImageFormat.Bmp);
+                ImportExport.ExportBitmapToFile(fileName, bmp);
                 bmp.Dispose();
             }
             catch (Exception ex)

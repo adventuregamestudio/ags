@@ -86,7 +86,8 @@ namespace AGS
 			void DrawRoomBackground(int hDC, Room ^room, int x, int y, int backgroundNumber, float scaleFactor, RoomAreaMaskType maskType, int selectedArea, int maskTransparency);
 			void ImportBackground(Room ^room, int backgroundNumber, Bitmap ^bmp, bool useExactPalette, bool sharePalette);
 			void DeleteBackground(Room ^room, int backgroundNumber);
-			Bitmap^ GetBitmapForBackground(Room ^room, int backgroundNumber);
+			Bitmap^ GetRoomBackgroundForPreview(Room ^room, int backgroundNumber);
+            Bitmap^ ExportRoomBackground(Room ^room, int backgroundNumber);
             void AdjustRoomResolution(Room ^room);
             void AdjustRoomMaskResolution(Room ^room);
 			void DrawLineOntoMask(Room ^room, RoomAreaMaskType maskType, int x1, int y1, int x2, int y2, int color);

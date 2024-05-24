@@ -2599,6 +2599,12 @@ System::Drawing::Bitmap^ getSpriteAsBitmap32bit(int spriteNum, int width, int he
 System::Drawing::Bitmap^ getBackgroundAsBitmap(Room ^room, int backgroundNumber) {
 
   RoomStruct *roomptr = (RoomStruct*)(void*)room->_roomStructPtr;
+  return ConvertBlockToBitmap(roomptr->BgFrames[backgroundNumber].Graphic.get(), false);
+}
+
+System::Drawing::Bitmap^ getBackgroundAsBitmap32(Room ^room, int backgroundNumber) {
+
+  RoomStruct *roomptr = (RoomStruct*)(void*)room->_roomStructPtr;
   return ConvertBlockToBitmap32(roomptr->BgFrames[backgroundNumber].Graphic.get(), room->Width, room->Height, false);
 }
 

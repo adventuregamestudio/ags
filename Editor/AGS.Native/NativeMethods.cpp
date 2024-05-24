@@ -66,9 +66,10 @@ extern void drawBlockOfColour(int hdc, int x,int y, int width, int height, int c
 extern void drawViewLoop (int hdc, ViewLoop^ loopToDraw, int x, int y, int size, List<int>^ cursel);
 extern AGS::Types::SpriteImportResolution SetNewSpriteFromBitmap(int slot, Bitmap^ bmp, int spriteImportMethod, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel);
 extern int GetSpriteAsHBitmap(int spriteSlot);
-extern Bitmap^ getSpriteAsBitmap32bit(int spriteNum, int width, int height);
 extern Bitmap^ getSpriteAsBitmap(int spriteNum);
+extern Bitmap^ getSpriteAsBitmap32bit(int spriteNum, int width, int height);
 extern Bitmap^ getBackgroundAsBitmap(Room ^room, int backgroundNumber);
+extern Bitmap^ getBackgroundAsBitmap32(Room ^room, int backgroundNumber);
 extern int find_free_sprite_slot();
 extern int crop_sprite_edges(const std::vector<int> &sprites, bool symmetric, Rect *crop_rect = nullptr);
 extern void deleteSprite(int sprslot);
@@ -576,10 +577,15 @@ namespace AGS
 			::DeleteBackground(room, backgroundNumber);
 		}
 
-		Bitmap^ NativeMethods::GetBitmapForBackground(Room ^room, int backgroundNumber)
+		Bitmap^ NativeMethods::GetRoomBackgroundForPreview(Room ^room, int backgroundNumber)
 		{
-			return getBackgroundAsBitmap(room, backgroundNumber);
+			return getBackgroundAsBitmap32(room, backgroundNumber);
 		}
+
+        Bitmap^ NativeMethods::ExportRoomBackground(Room ^room, int backgroundNumber)
+        {
+            return getBackgroundAsBitmap(room, backgroundNumber);
+        }
 
         void NativeMethods::AdjustRoomResolution(Room ^room)
         {

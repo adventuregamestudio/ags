@@ -637,7 +637,7 @@ namespace AGS.Editor
             string fileName = Factory.GUIController.ShowSaveFileDialog("Export background as...", Constants.IMAGE_FILE_FILTER);
             if (fileName != null)
             {
-                Bitmap bmp = Factory.NativeProxy.GetBitmapForBackground(_room, cmbBackgrounds.SelectedIndex);
+                Bitmap bmp = Factory.NativeProxy.ExportRoomBackground(_room, cmbBackgrounds.SelectedIndex);
                 ImportExport.ExportBitmapToFile(fileName, bmp);
                 bmp.Dispose();
             }

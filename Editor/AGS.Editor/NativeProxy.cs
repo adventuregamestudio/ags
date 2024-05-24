@@ -306,9 +306,21 @@ namespace AGS.Editor
             _native.DeleteBackground(room, backgroundNumber);
         }
 
-        public Bitmap GetBitmapForBackground(Room room, int backgroundNumber)
+        /// <summary>
+        /// Gets current Room's background for preview.
+        /// Bitmap is always returned as a 32-bit image.
+        /// </summary>
+        public Bitmap GetRoomBackgroundForPreview(Room room, int backgroundNumber)
         {
-            return _native.GetBitmapForBackground(room, backgroundNumber);
+            return _native.GetRoomBackgroundForPreview(room, backgroundNumber);
+        }
+
+        /// <summary>
+        /// Gets current Room's background in its native colour depth.
+        /// </summary>
+        public Bitmap ExportRoomBackground(Room room, int backgroundNumber)
+        {
+            return _native.ExportRoomBackground(room, backgroundNumber);
         }
 
         public void AdjustRoomResolution(Room room)

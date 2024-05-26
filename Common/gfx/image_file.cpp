@@ -86,19 +86,17 @@ static void bmp_read_1bit_line(int length, Stream *in, unsigned char* current_li
     unsigned char b[32];
     unsigned int n;
     int i, j, k;
-    int pix;
 
     for (i=0; i<length; i++) {
         j = i % 32;
         if (j == 0) {
-            n = in->ReadInt32(); // has to be motorola byte order
+            n = BBOp::SwapBytesInt32(in->ReadInt32()); // has to be motorola byte order
             for (k=0; k<32; k++) {
                 b[31-k] = (char)(n & 1);
                 n = n >> 1;
             }
         }
-        pix = b[j];
-        current_line[i] = pix;
+        current_line[i] = b[j];
     }
 }
 
@@ -111,12 +109,11 @@ static void bmp_read_4bit_line(int length, Stream *in, unsigned char* current_li
     unsigned int n;
     int i, j, k;
     int temp;
-    int pix;
 
     for (i=0; i<length; i++) {
         j = i % 8;
         if (j == 0) {
-            n = in->ReadInt32();
+            n = BBOp::SwapBytesInt32(in->ReadInt32()); // has to be motorola byte order
             for (k=3; k>=0; k--) {
                 temp = n & 255;
                 b[k*2+1] = temp & 15;
@@ -125,8 +122,7 @@ static void bmp_read_4bit_line(int length, Stream *in, unsigned char* current_li
                 n = n >> 8;
             }
         }
-        pix = b[j];
-        current_line[i] = pix;
+        current_line[i] = b[j];
     }
 }
 
@@ -632,6 +628,12 @@ PixelBuffer LoadBMP(Stream *in, RGB *pal) {
             return {};
         }
     }
+
+    // NOTE: following reading functions assume that 1-bit and 4-bit pixel data
+    // is read and unpacked into 8-bit pixel buffer. So request a minimal 8-bit
+    // bpp, unless we support reading 1- and 4-bit data unpacked.
+    if (bpp < 8)
+        bpp = 8;
 
     PixelBuffer pxdata(w, h, ColorDepthToPixelFormat(bpp));
     if (!pxdata) {

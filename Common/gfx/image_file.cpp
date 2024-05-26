@@ -90,7 +90,7 @@ static void bmp_read_1bit_line(int length, Stream *in, unsigned char* current_li
     for (i=0; i<length; i++) {
         j = i % 32;
         if (j == 0) {
-            n = BBOp::SwapBytesInt32(in->ReadInt32()); // has to be motorola byte order
+            n = in->ReadInt32BE(); // has to be motorola byte order
             for (k=0; k<32; k++) {
                 b[31-k] = (char)(n & 1);
                 n = n >> 1;
@@ -113,7 +113,7 @@ static void bmp_read_4bit_line(int length, Stream *in, unsigned char* current_li
     for (i=0; i<length; i++) {
         j = i % 8;
         if (j == 0) {
-            n = BBOp::SwapBytesInt32(in->ReadInt32()); // has to be motorola byte order
+            n = in->ReadInt32BE(); // has to be motorola byte order
             for (k=3; k>=0; k--) {
                 temp = n & 255;
                 b[k*2+1] = temp & 15;

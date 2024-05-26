@@ -37,7 +37,9 @@ enum PixelFormat
     kPxFmt_Indexed4,    // 4-bit palette index
     kPxFmt_Indexed8,    // 8-bit palette index
     kPxFmt_Indexed      = kPxFmt_Indexed8,
+    kPxFmt_R5G5B5,      // 15-bit R5G5B5
     kPxFmt_R5G6B5,      // 16-bit R5G6B5, historical 16-bit pixel format in AGS
+    kPxFmt_R8G8B8,      // 24-bit RGB (no alpha)
     kPxFmt_A8R8G8B8,    // 32-bit ARGB
 };
 
@@ -49,7 +51,9 @@ inline int PixelFormatToPixelBits(PixelFormat fmt)
     case kPxFmt_Indexed1:   return 1;
     case kPxFmt_Indexed4:   return 4;
     case kPxFmt_Indexed8:   return 8;
+    case kPxFmt_R5G5B5:     return 15;
     case kPxFmt_R5G6B5:     return 16;
+    case kPxFmt_R8G8B8:     return 24;
     case kPxFmt_A8R8G8B8:   return 32;
     default:                return 0;
     }
@@ -67,7 +71,9 @@ inline PixelFormat ColorDepthToPixelFormat(int color_depth)
     case 1: return kPxFmt_Indexed1;
     case 4: return kPxFmt_Indexed4;
     case 8: return kPxFmt_Indexed8;
+    case 15: return kPxFmt_R5G5B5;
     case 16: return kPxFmt_R5G6B5;
+    case 24: return kPxFmt_R8G8B8;
     case 32: return kPxFmt_A8R8G8B8;
     default: return kPxFmt_Undefined;
     }
@@ -103,11 +109,11 @@ public:
     BitmapData(uint8_t *buf, size_t data_sz, size_t stride, int width, int height, PixelFormat fmt)
         : _format(fmt), _bitsPerPixel(PixelFormatToPixelBits(fmt)), _width(width), _height(height)
         , _cbuf(buf), _buf(buf), _dataSize(data_sz), _stride(stride)
-    { }
+    { assert(_buf && _dataSize > 0u && _stride >= 0u && _bitsPerPixel > 0u && _width > 0u && _height >= 0u); }
     BitmapData(const uint8_t *cbuf, size_t data_sz, size_t stride, int width, int height, PixelFormat fmt)
         : _format(fmt), _bitsPerPixel(PixelFormatToPixelBits(fmt)), _width(width), _height(height)
         , _cbuf(cbuf), _buf(nullptr), _dataSize(data_sz), _stride(stride)
-    { }
+    { assert(_cbuf && _dataSize > 0u && _stride >= 0u && _bitsPerPixel > 0u && _width > 0u && _height >= 0u); }
 
     // Tests if BitmapData reference a valid pixel buffer
     operator bool() const { return _cbuf != nullptr; }
@@ -135,6 +141,10 @@ public:
     uint32_t GetPixel(int x, int y) const;
 
 protected:
+    BitmapData(int width, int height, PixelFormat fmt)
+        : _format(fmt), _bitsPerPixel(PixelFormatToPixelBits(fmt)), _width(width), _height(height)
+    { assert(_bitsPerPixel > 0u && _width > 0u && _height >= 0u); }
+
     PixelFormat _format = kPxFmt_Undefined;
     uint32_t _bitsPerPixel = 0u;
     int _width = 0;
@@ -156,10 +166,11 @@ public:
     PixelBuffer() = default;
     // Constructs a pixel buffer for the given image size and pixel format
     PixelBuffer(int width, int height, PixelFormat fmt)
-        : BitmapData(static_cast<uint8_t*>(nullptr), 0u, 0u, width, height, fmt)
+        : BitmapData(width, height, fmt)
     {
         _dataSize = GetDataSizeForPixelFormat(fmt, width, height);
         _stride = GetStrideForPixelFormat(fmt, width);
+        assert(_dataSize > 0u && _stride > 0u);
         _data.reset(new uint8_t[_dataSize]);
         _buf = _data.get();
         _cbuf = _data.get();

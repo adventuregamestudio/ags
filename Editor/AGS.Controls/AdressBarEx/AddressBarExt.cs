@@ -1,15 +1,8 @@
-#region Using Statements
-
-#region .NET Namespace
-
 using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
-
-#endregion
-
-#endregion
+using AGS.Controls;
 
 namespace AddressBarExt.Controls
 {
@@ -102,7 +95,7 @@ namespace AddressBarExt.Controls
         /// <summary>
         /// Drop down menu that contains the overflow menu
         /// </summary>
-        ToolStripDropDownMenu tsddOverflow = null;
+        ToolStripDropDownMenuEx tsddOverflow = null;
 
         #endregion
 
@@ -126,6 +119,8 @@ namespace AddressBarExt.Controls
         public Color DropDownBackColor { get; set; }
 
         public Color DropDownForeColor { get; set; }
+
+        public int MinDisplayedDropDownItems { get; set; }
 
         /// <summary>
         /// Gets/Sets the currently selected node. Validates upon set and updates the bar
@@ -292,35 +287,16 @@ namespace AddressBarExt.Controls
         }
 
         /// <summary>
-        /// Method handler using the middle mouse wheel to scroll the drop down menus
-        /// </summary>
-        /// <param name="sender">Sender of this event</param>
-        /// <param name="e">Event arguments</param>
-        private void ScrollDropDownMenu(Object sender, MouseEventArgs e)
-        {
-            //if we have the right type
-            if (sender.GetType() == typeof(ToolStripDropDownMenu))
-            {
-                //This doesn't work :(
-
-                Point prev = ((ToolStripDropDownMenu)sender).AutoScrollOffset;
-                prev.Y += (e.Delta);
-                ((ToolStripDropDownMenu)sender).AutoScrollOffset = prev;
-
-            }
-        }
-
-        /// <summary>
-        /// Method that puts focus onto a given ToolStripDropDownMenu
+        /// Method that puts focus onto a given ToolStripDropDownMenuEx
         /// </summary>
         /// <param name="sender">Sender of this event</param>
         /// <param name="e">Event Arguments</param>
         private void GiveToolStripDropDownMenuFocus(Object sender, EventArgs e)
         {
-            if (sender.GetType() == typeof(ToolStripDropDownMenu))
+            if (sender.GetType() == typeof(ToolStripDropDownMenuEx))
             {
                 //focus on the item
-                ((ToolStripDropDownMenu)sender).Focus();
+                ((ToolStripDropDownMenuEx)sender).Focus();
             }
         }
 
@@ -338,7 +314,7 @@ namespace AddressBarExt.Controls
             //variables needed for our toolstrip
             ToolStripButton tsButton = null;
             ToolStripDropDownButton tsddButton = null;
-            ToolStripDropDownMenu tsDropDown = null;
+            ToolStripDropDownMenuEx tsDropDown = null;
 
             //update the node
             node.UpdateNode();
@@ -388,13 +364,14 @@ namespace AddressBarExt.Controls
                         IAddressNode curNode = null;
 
                         //create the drop down menu
-                        tsDropDown = new ToolStripDropDownMenu();
+                        tsDropDown = new ToolStripDropDownMenuEx();
                         tsDropDown.BackColor = DropDownBackColor;
                         tsDropDown.ForeColor = DropDownForeColor;
 
                         //Some variables to let the drawing happen smoothly
                         tsDropDown.LayoutStyle = ToolStripLayoutStyle.VerticalStackWithOverflow;
                         tsDropDown.MaximumSize = new Size(1000, 400);
+                        tsDropDown.MinDisplayedItems = MinDisplayedDropDownItems;
                         tsDropDown.ShowImageMargin = false;
                         tsDropDown.ShowCheckMargin = false;                        
                                                 
@@ -436,17 +413,14 @@ namespace AddressBarExt.Controls
                         //assign the parent
                         tsDropDown.Tag = tsddButton;
 
-                        //add the method handler for the mouse wheel scrolling
-                        tsDropDown.MouseWheel += new MouseEventHandler(ScrollDropDownMenu);
-
                         //handle the mouse entering/leaving the control
                         tsDropDown.MouseEnter += new EventHandler(GiveToolStripDropDownMenuFocus);
                     }
                     else
                     {
-                        if(node.Tag.GetType() == typeof(ToolStripDropDownMenu))
+                        if(node.Tag.GetType() == typeof(ToolStripDropDownMenuEx))
                         {
-                            tsDropDown = (ToolStripDropDownMenu)node.Tag;
+                            tsDropDown = (ToolStripDropDownMenuEx)node.Tag;
 
                             foreach (ToolStripItem tsmi in tsDropDown.Items)
                             {
@@ -567,7 +541,7 @@ namespace AddressBarExt.Controls
                 //ensure we have an overflow
                 if (this.tsddOverflow == null)
                 {
-                    tsddOverflow = new ToolStripDropDownMenu();
+                    tsddOverflow = new ToolStripDropDownMenuEx();
                     tsddOverflow.MaximumSize = new Size(1000, 400);
                 }
                 else

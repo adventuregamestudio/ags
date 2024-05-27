@@ -111,6 +111,10 @@ namespace AGS.Editor
             }
             
             RefreshLayersTree();
+
+            // Customize AddressBar to display at minimum 16 items in dropdown menus;
+            // 16 is currently the number of walkable areas, walk-behinds and regions
+            _editAddressBar.MinDisplayedDropDownItems = 16;
             _editAddressBar.SelectionChange += editAddressBar_SelectionChange;
             _startNode = _editAddressBar.CurrentNode.UniqueID;
 

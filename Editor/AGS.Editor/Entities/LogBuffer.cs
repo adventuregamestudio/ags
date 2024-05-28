@@ -162,6 +162,7 @@ namespace AGS.Editor
             SetLogLevel(LogGroup.SprCache, LogLevel.None);
             SetLogLevel(LogGroup.ManObj, LogLevel.None);
             SetLogLevel(LogGroup.SDL, LogLevel.None);
+            SetLogLevel(LogGroup.Plugin, LogLevel.None);
         }
 
         private void elapse(object sender, ElapsedEventArgs e)

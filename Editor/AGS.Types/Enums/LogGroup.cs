@@ -20,6 +20,8 @@ namespace AGS.Types.Enums
         ManObj,
         [Description("SDL")]
         SDL,
+        [Description("Plugins")]
+        Plugin,
         [Browsable(false)]
         NumGroups
     }

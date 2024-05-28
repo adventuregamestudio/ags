@@ -207,6 +207,7 @@ std::vector<String> parse_log_multigroup(const String &group_str)
         case 'c': grplist.emplace_back("sprcache"); break;
         case 'o': grplist.emplace_back("manobj"); break;
         case 'l': grplist.emplace_back("sdl"); break;
+        case 'p': grplist.emplace_back("plugin"); break;
         }
     }
     return grplist;
@@ -307,6 +308,7 @@ void apply_debug_config(const ConfigTree &cfg)
     apply_log_config(cfg, OutputSystemID, /* defaults */ true,
         { DbgGroupOption(kDbgGroup_Main, kDbgMsg_Info),
           DbgGroupOption(kDbgGroup_SDL, kDbgMsg_Info),
+          DbgGroupOption(kDbgGroup_Plugin, kDbgMsg_Info)
         });
     bool legacy_log_enabled = CfgReadBoolInt(cfg, "misc", "log", false);
 
@@ -315,6 +317,7 @@ void apply_debug_config(const ConfigTree &cfg)
         legacy_log_enabled,
         { DbgGroupOption(kDbgGroup_Main, kDbgMsg_All),
           DbgGroupOption(kDbgGroup_SDL, kDbgMsg_Info),
+          DbgGroupOption(kDbgGroup_Plugin, kDbgMsg_Info),
           DbgGroupOption(kDbgGroup_Game, kDbgMsg_Info),
           DbgGroupOption(kDbgGroup_Script, kDbgMsg_All),
 #if DEBUG_SPRITECACHE

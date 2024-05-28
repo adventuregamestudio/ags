@@ -118,6 +118,7 @@ DebugManager::DebugManager(bool buffer_messages)
     RegisterGroup(DebugGroupID(kDbgGroup_SprCache, "sprcache"), "Sprite cache");
     RegisterGroup(DebugGroupID(kDbgGroup_ManObj, "manobj"), "Managed obj");
     RegisterGroup(DebugGroupID(kDbgGroup_SDL, "sdl"), "SDL");
+    RegisterGroup(DebugGroupID(kDbgGroup_Plugin, "plugin"), "Plugin");
 
     if (buffer_messages)
     {

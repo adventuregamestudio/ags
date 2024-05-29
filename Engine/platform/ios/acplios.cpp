@@ -68,7 +68,7 @@ struct AGSIOS : AGSPlatformDriver {
   FSLocation GetUserSavedgamesDirectory() override;
   FSLocation GetUserGlobalConfigDirectory() override;
   FSLocation GetAppOutputDirectory() override;
-  uint64_t GetDiskFreeSpaceMB() override;
+  uint64_t GetDiskFreeSpaceMB(const String &path) override;
   eScriptSystemOSID GetSystemOSID() override;
   int  InitializeCDPlayer() override;
   void ShutdownCDPlayer() override;
@@ -313,7 +313,7 @@ void AGSIOS::Delay(int millis) {
   SDL_Delay(millis);
 }
 
-uint64_t AGSIOS::GetDiskFreeSpaceMB() {
+uint64_t AGSIOS::GetDiskFreeSpaceMB(const String &path) {
   // placeholder
   return 100;
 }

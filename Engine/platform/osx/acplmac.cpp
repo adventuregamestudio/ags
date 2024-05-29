@@ -24,6 +24,8 @@
 #include "ac/common.h"
 #include "main/main.h"
 
+using namespace AGS::Common;
+
 void AGSMacInitPaths(char appdata[PATH_MAX]);
 void AGSMacGetBundleDir(char gamepath[PATH_MAX]);
 //bool PlayMovie(char const *name, int skipType);
@@ -37,7 +39,7 @@ struct AGSMac : AGSPlatformDriver {
   void PreBackendInit() override;
 
   int  CDPlayerCommand(int cmdd, int datt) override;
-  uint64_t GetDiskFreeSpaceMB() override;
+  uint64_t GetDiskFreeSpaceMB(const String &path) override;
   eScriptSystemOSID GetSystemOSID() override;
   int  InitializeCDPlayer() override;
   void ShutdownCDPlayer() override;
@@ -67,7 +69,7 @@ int AGSMac::CDPlayerCommand(int cmdd, int datt) {
   return 0;//cd_player_control(cmdd, datt);
 }
 
-uint64_t AGSMac::GetDiskFreeSpaceMB() {
+uint64_t AGSMac::GetDiskFreeSpaceMB(const String &path) {
   // placeholder
   return 100;
 }

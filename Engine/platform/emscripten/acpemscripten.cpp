@@ -90,7 +90,7 @@ struct AGSEmscripten : AGSPlatformDriver {
   FSLocation GetUserConfigDirectory() override;
   FSLocation GetUserGlobalConfigDirectory() override;
   FSLocation GetAppOutputDirectory() override;
-  uint64_t GetDiskFreeSpaceMB() override;
+  uint64_t GetDiskFreeSpaceMB(const String &path) override;
   const char* GetBackendFailUserHint() override;
   eScriptSystemOSID GetSystemOSID() override;
   int  InitializeCDPlayer() override;
@@ -225,7 +225,7 @@ FSLocation AGSEmscripten::GetAppOutputDirectory()
     return UserDataDirectory;
 }
 
-uint64_t AGSEmscripten::GetDiskFreeSpaceMB() 
+uint64_t AGSEmscripten::GetDiskFreeSpaceMB(const String &path) 
 {
     // placeholder
     return 100;

@@ -16,6 +16,7 @@
 #include "ac/dynobj/dynobj_manager.h"
 #include "script/cc_instance.h"
 #include "script/systemimports.h"
+#include "util/string_utils.h"
 
 using namespace AGS::Common;
 
@@ -176,34 +177,21 @@ static bool ResolveMemory(const uint8_t *mem_ptr, size_t mem_sz,
 }
 
 // Writes (appends) a memory read instruction into the provided string
-// TODO: split the array + element operation into two passes
-static void WriteMemReadInstruction(String &mem_ref, const RTTI::Type &type,
-    uint32_t f_flags, uint32_t f_offset, uint32_t arr_index)
+static void WriteMemReadInstruction(String &mem_ref, const RTTI::Type &type, uint32_t f_flags, uint32_t f_offset)
 {
-    // Handle array field
-    if ((f_flags & RTTI::kField_Array) != 0)
-    {
-        // dynamic array or regular array
-        if ((f_flags & RTTI::kField_ManagedPtr) != 0)
-            mem_ref.AppendFmt("%u,h", f_offset);
-        else
-            mem_ref.AppendFmt("%u,d0", f_offset); // FIXME: pass full array size (in bytes)
-
-        if (arr_index == UINT32_MAX)
-            return; // return array itself... ?
-
-        // new offset is relative to array
-        mem_ref.AppendChar(':');
-        uint32_t arr_elem_size = (type.flags & RTTI::kType_Managed) ?
-            RTTI::PointerSize : type.size;
-        f_offset = arr_index * arr_elem_size;
-    }
-
     // Using hardcoded type names here, is there another way?...
     // TODO: perhaps generate a table of basic types, avoid testing name every time
     char typec;
     uint32_t typesz;
-    if (strcmp(type.name, "char") == 0)
+    if ((f_flags & RTTI::kField_ManagedPtr) != 0)
+    {
+        typec = 'h'; typesz = 4; // managed handle int32, must be resolved
+    }
+    else if ((f_flags & RTTI::kField_Array) != 0)
+    {
+        typec = 'd'; typesz = 0; // plain data; FIXME: full array size!
+    }
+    else if (strcmp(type.name, "char") == 0)
     {
         typec = 'i'; typesz = 1;
     }
@@ -223,16 +211,26 @@ static void WriteMemReadInstruction(String &mem_ref, const RTTI::Type &type,
     {
         typec = 's'; typesz = 200; // old-style string of fixed size
     }
-    else if ((type.flags & RTTI::kType_Managed) != 0)
-    {
-        typec = 'h'; typesz = 4; // managed handle int32, must be resolved
-    }
     else
     {
         typec = 'd'; typesz = type.size; // plain data or unknown type
     }
 
     mem_ref.AppendFmt("%u,%c%u", f_offset, typec, typesz);
+}
+
+// Writes (appends) a memory read instruction for array element into the provided string
+static void WriteMemReadElemInstruction(String &mem_ref, const RTTI::Type &type, uint32_t arr_index)
+{
+    // Array of pointers or array of PODs?
+    if ((type.flags & RTTI::kType_Managed) != 0)
+    {
+        WriteMemReadInstruction(mem_ref, type, RTTI::kField_ManagedPtr, RTTI::PointerSize * arr_index);
+    }
+    else
+    {
+        WriteMemReadInstruction(mem_ref, type, 0u, type.size * arr_index);
+    }
 }
 
 static bool TryGetGlobalVariable(const String &field_ref, const ccInstance *inst,
@@ -358,7 +356,7 @@ static bool TryGetLocalVariable(const String &field_ref, const ccInstance *inst,
 // the import table for its real address.
 // TODO: don't pass array_index, apply separately, outside of this func
 static bool ParseScriptVariable(const String &field_ref, const ccInstance *inst,
-    const RTTI &rtti, uint32_t array_index,
+    const RTTI &rtti,
     String &mem_ref, const uint8_t *&found_mem_ptr, size_t &found_mem_sz,
     const RTTI::Type *&next_field_type)
 {
@@ -390,7 +388,7 @@ static bool ParseScriptVariable(const String &field_ref, const ccInstance *inst,
         return false; // cannot find global type
     uint32_t g_typeid = type_it->second;
     const RTTI::Type &field_type = rtti.GetTypes()[g_typeid];
-    WriteMemReadInstruction(mem_ref, field_type, var.f_flags, use_var_offset, array_index);
+    WriteMemReadInstruction(mem_ref, field_type, var.f_flags, use_var_offset);
     found_mem_ptr = static_cast<const uint8_t*>(mem_ptr);
     found_mem_sz = mem_sz;
     next_field_type = &field_type;
@@ -401,8 +399,7 @@ static bool ParseScriptVariable(const String &field_ref, const ccInstance *inst,
 // assigns the found field's type into provided "field_type".
 // Returns success if field was found, failure otherwise.
 static bool ParseTypeField(const String &field_ref, const RTTI &rtti,
-    const RTTI::Type &type, uint32_t array_index,
-    String &mem_ref, const RTTI::Type *&next_field_type)
+    const RTTI::Type &type, String &mem_ref, const RTTI::Type *&next_field_type)
 {
     // TODO: is it possible to speed this up, making a field lookup,
     // or that would be too costly to do per type?
@@ -423,10 +420,66 @@ static bool ParseTypeField(const String &field_ref, const RTTI &rtti,
     // because we're using joint global RTTI, not local script's one
     const RTTI::Type &field_type = rtti.GetTypes()[found_field->f_typeid];
     mem_ref.AppendChar(':');
-    WriteMemReadInstruction(mem_ref, field_type, found_field->flags,
-        found_field->offset, array_index);
+    WriteMemReadInstruction(mem_ref, field_type, found_field->flags, found_field->offset);
     next_field_type = &field_type;
     return true;
+}
+
+// TODO: support sub-expressions and parse this as VariableRefToMemoryRef?
+static bool ParseArrayIndex(const String &field_ref, const RTTI::Type &arr_type, String &mem_ref)
+{
+    int arr_index = StrUtil::StringToInt(field_ref, -1);
+    if (arr_index < 0)
+        return false;
+    mem_ref.AppendChar(':');
+    WriteMemReadElemInstruction(mem_ref, arr_type, arr_index);
+    return true;
+}
+
+inline bool IsKeywordChar(char c)
+{
+    return std::isalnum(c) || c == '_';
+}
+
+static String GetNextVarSection(const String &var_ref, size_t &index, char &access_type)
+{
+    if (index >= var_ref.GetLength())
+        return {};
+
+    for (; std::isspace(var_ref[index]); ++index); // skip any whitespace
+
+    if (var_ref[index] == '.')
+    {
+        access_type = '.';
+        for (++index; std::isspace(var_ref[index]); ++index); // skip any whitespace
+    }
+    else if (var_ref[index] == '[')
+    {
+        access_type = '[';
+        for (++index; std::isspace(var_ref[index]); ++index); // skip any whitespace
+    }
+    else if (IsKeywordChar(var_ref[index]))
+    {
+        access_type = 0;
+    }
+    else
+    {
+        return {}; // end of string, or bad syntax
+    }
+
+    const size_t keyword_start = index;
+    for (++index; IsKeywordChar(var_ref[index]); ++index); // scan for the keyword (variable/field name)
+    const size_t keyword_end = index;
+
+    if (access_type == '[')
+    {
+        for (; std::isspace(var_ref[index]); ++index); // skip any whitespace
+        if (var_ref[index] != ']')
+            return {}; // bad syntax, no closing bracket
+        index++;
+    }
+    
+    return var_ref.Mid(keyword_start, keyword_end - keyword_start);
 }
 
 // Parses the naming chain item by item, and build mem_ref string,
@@ -434,7 +487,6 @@ static bool ParseTypeField(const String &field_ref, const RTTI &rtti,
 static bool VariableRefToMemoryRef(const String &var_ref, const ccInstance *inst,
     const uint8_t *&found_mem_ptr, size_t &found_mem_sz, String &mem_ref, String &last_type_name)
 {
-    const String &items = var_ref;
     String memory_ref;
     const auto &rtti = ccInstance::GetRTTI()->AsConstRTTI();
     const RTTI::Type *last_type = nullptr;
@@ -442,37 +494,46 @@ static bool VariableRefToMemoryRef(const String &var_ref, const ccInstance *inst
 
     String item;
     size_t index = 0;
-    for (item = items.Section('.', index, index);
-        !item.IsEmpty();
-        ++index, item = items.Section('.', index, index))
+    char access_type = 0;
+    for (item = GetNextVarSection(var_ref, index, access_type);
+        !item.IsEmpty(); item = GetNextVarSection(var_ref, index, access_type))
     {
-        // Separate symbol name from optional array index
-        // TODO: split the array + element operation into two passes
-        // FIXME: make this index parsing more reliable
-        uint32_t array_index = 0u;
-        size_t has_array_at = item.FindChar('[');
-        if (has_array_at != String::NoIndex)
+        if (access_type == 0)
         {
-            array_index = atoi(&item[has_array_at + 1]);
-            item = item.Left(has_array_at);
+            // Try getting a variable in the current script
+            if (!ParseScriptVariable(item, inst, rtti, mem_ref,
+                    found_mem_ptr, found_mem_sz, next_type))
+                return false;
         }
-
-        if (next_type)
+        else if (access_type == '.')
         {
+            if (!last_type)
+                return false; // access member without type
+
             // Try getting a member of the last found type; save field's type into "next_type"
-            if (!ParseTypeField(item, rtti, *next_type, array_index, mem_ref, next_type))
+            if (!ParseTypeField(item, rtti, *last_type, mem_ref, next_type))
+                return false;
+        }
+        else if (access_type == '[')
+        {
+            if (!last_type)
+                return false; // access member without type
+
+            // Try get the array index
+            if (!ParseArrayIndex(item, *last_type, mem_ref))
                 return false;
         }
         else
         {
-            // Try getting a variable in the current script
-            if (!ParseScriptVariable(item, inst, rtti, array_index, mem_ref,
-                found_mem_ptr, found_mem_sz, next_type))
-                return false;
+            return false; // internal mistake? should not happen
         }
 
         last_type = next_type;
     }
+
+    assert(last_type);
+    if (!last_type)
+        return false;
 
     // FIXME: this is a hack, force resolve managed "String" type
     // so that user receives a string value instead of a handle int32;

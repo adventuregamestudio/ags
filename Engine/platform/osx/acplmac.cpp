@@ -28,6 +28,7 @@ using namespace AGS::Common;
 
 void AGSMacInitPaths(char appdata[PATH_MAX]);
 void AGSMacGetBundleDir(char gamepath[PATH_MAX]);
+int AGSMacGetFreeSpaceInMB(const char path[PATH_MAX]);
 //bool PlayMovie(char const *name, int skipType);
 
 static char libraryApplicationSupport[PATH_MAX];
@@ -70,8 +71,7 @@ int AGSMac::CDPlayerCommand(int cmdd, int datt) {
 }
 
 uint64_t AGSMac::GetDiskFreeSpaceMB(const String &path) {
-  // placeholder
-  return 100;
+  return AGSMacGetFreeSpaceInMB(path.GetCStr());
 }
 
 eScriptSystemOSID AGSMac::GetSystemOSID() {

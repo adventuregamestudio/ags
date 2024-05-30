@@ -27,10 +27,8 @@ namespace Engine
 namespace MemoryInspect
 {
 
-// Resolves script memory using a memory pointer, and a instruction list ("mem_ref").
-// Fills in memory value formatted according to its type.
-// Returns whether was successful.
-// NOTE: this function is run recursively, until reaching end of instruction list.
+// MemoryReference is a struct that defines a path to a data in memory,
+// using a starting memory pointer and a list of instructions.
 //
 // Instruction format:
 //   offset[,type[:offset,type[:...]]
@@ -49,27 +47,44 @@ namespace MemoryInspect
 //   new memory ptr.
 //   "mem_sz" argument, as well as data sizes met in the instruction list are
 //   used to prevent reading past valid memory range.
+struct MemoryReference
+{
+    String Instruction;
+    const uint8_t *MemPtr = nullptr;
+    size_t MemSize = 0u;
+
+    MemoryReference() = default;
+    MemoryReference(const String &inst, const uint8_t *mem_ptr, size_t mem_sz)
+        : Instruction(inst), MemPtr(mem_ptr), MemSize(mem_sz) {}
+};
+
+// Resolves script memory using a MemoryReference instruction.
+// Fills in memory value formatted according to its type.
+// Returns whether was successful.
+// NOTE: this function is run recursively, until reaching end of instruction list.
 //
 // TODO: value formatting option?
-static bool ResolveMemory(const uint8_t *mem_ptr, size_t mem_sz,
-    const String &mem_ref, const size_t parse_at, String &value)
+static bool ResolveMemory(const MemoryReference &mem_ref, const size_t parse_at, String &value)
 {
+    const String &mem_inst = mem_ref.Instruction;
+    const uint8_t *mem_ptr = mem_ref.MemPtr;
+    size_t mem_sz = mem_ref.MemSize;
     assert(mem_ptr);
-    assert(!mem_ref.IsEmpty());
-    if (!mem_ptr || mem_ref.IsEmpty())
+    assert(!mem_inst.IsEmpty());
+    if (!mem_ptr || mem_inst.IsEmpty())
         return false;
 
-    int offset = atoi(&mem_ref[parse_at]);
-    const size_t type_at = mem_ref.FindChar(',', parse_at);
-    const size_t next_off_at = mem_ref.FindChar(':', parse_at);
+    int offset = atoi(&mem_inst[parse_at]);
+    const size_t type_at = mem_inst.FindChar(',', parse_at);
+    const size_t next_off_at = mem_inst.FindChar(':', parse_at);
     char type = 0;
     size_t size = 0u;
     
     if ((type_at != String::NoIndex) && (type_at < next_off_at))
     {
-        type = mem_ref[type_at + 1];
-        if (type_at + 2 < mem_ref.GetLength())
-            size = atoi(&mem_ref[type_at + 2]);
+        type = mem_inst[type_at + 1];
+        if (type_at + 2 < mem_inst.GetLength())
+            size = atoi(&mem_inst[type_at + 2]);
     }
     else
     {
@@ -106,7 +121,7 @@ static bool ResolveMemory(const uint8_t *mem_ptr, size_t mem_sz,
             return false;
         }
 
-        return ResolveMemory(mem_ptr, mem_sz, mem_ref, next_off_at + 1, value);
+        return ResolveMemory(MemoryReference(mem_inst, mem_ptr, mem_sz), next_off_at + 1, value);
     }
 
     // Resolve final entry
@@ -177,7 +192,7 @@ static bool ResolveMemory(const uint8_t *mem_ptr, size_t mem_sz,
 }
 
 // Writes (appends) a memory read instruction into the provided string
-static void WriteMemReadInstruction(String &mem_ref, const RTTI::Type &type, uint32_t f_flags, uint32_t f_offset)
+static void WriteMemReadInstruction(String &mem_inst, const RTTI::Type &type, uint32_t f_flags, uint32_t f_offset)
 {
     // Using hardcoded type names here, is there another way?...
     // TODO: perhaps generate a table of basic types, avoid testing name every time
@@ -216,25 +231,40 @@ static void WriteMemReadInstruction(String &mem_ref, const RTTI::Type &type, uin
         typec = 'd'; typesz = type.size; // plain data or unknown type
     }
 
-    mem_ref.AppendFmt("%u,%c%u", f_offset, typec, typesz);
+    mem_inst.AppendFmt("%u,%c%u", f_offset, typec, typesz);
 }
 
 // Writes (appends) a memory read instruction for array element into the provided string
-static void WriteMemReadElemInstruction(String &mem_ref, const RTTI::Type &type, uint32_t arr_index)
+static void WriteMemReadElemInstruction(String &mem_inst, const RTTI::Type &type, uint32_t arr_index)
 {
     // Array of pointers or array of PODs?
     if ((type.flags & RTTI::kType_Managed) != 0)
     {
-        WriteMemReadInstruction(mem_ref, type, RTTI::kField_ManagedPtr, RTTI::PointerSize * arr_index);
+        WriteMemReadInstruction(mem_inst, type, RTTI::kField_ManagedPtr, RTTI::PointerSize * arr_index);
     }
     else
     {
-        WriteMemReadInstruction(mem_ref, type, 0u, type.size * arr_index);
+        WriteMemReadInstruction(mem_inst, type, 0u, type.size * arr_index);
     }
 }
 
+// MemoryVariable is a helper struct for grouping found variable def and memory address.
+struct MemoryVariable
+{
+    const ScriptTOC::Variable *Variable = nullptr;
+    const void *MemoryPtr = nullptr;
+    size_t MemorySize = 0u;
+    // NOTE: we cannot use found variable's offset directly, because some of them
+    // are not stored in script memory, and also the script VM's stack has a special storage.
+    size_t Offset = 0u;
+
+    MemoryVariable() = default;
+    MemoryVariable(const ScriptTOC::Variable *var, const void *mem_ptr, size_t mem_sz, size_t off)
+        : Variable(var), MemoryPtr(mem_ptr), MemorySize(mem_sz), Offset(off) {}
+};
+
 static bool TryGetGlobalVariable(const String &field_ref, const ccInstance *inst,
-    const ScriptTOC::Variable *&found_var, const void *&found_mem_ptr, size_t &found_mem_sz, size_t &use_var_offset)
+    MemoryVariable &found_var)
 {
     const auto &toc = *inst->instanceof->sctoc;
     if (toc.GetGlobalVariables().empty())
@@ -248,10 +278,7 @@ static bool TryGetGlobalVariable(const String &field_ref, const ccInstance *inst
     // If this is a script's own global variable, then simply reference its global memory
     if ((var.v_flags & ScriptTOC::kVariable_Import) == 0)
     {
-        found_var = &var;
-        found_mem_ptr = inst->globaldata;
-        found_mem_sz = inst->globaldatasize;
-        use_var_offset = var.offset;
+        found_var = MemoryVariable(&var, inst->globaldata, inst->globaldatasize, var.offset);
         return true;
     }
     // If it's an imported variable, then this may be memory from another script,
@@ -263,29 +290,29 @@ static bool TryGetGlobalVariable(const String &field_ref, const ccInstance *inst
         if (!import)
             return false;
 
-        found_var = &var;
         if (import->InstancePtr)
         {
             // Import from another script
-            use_var_offset = (static_cast<const uint8_t*>(import->Value.GetDirectPtr()) - reinterpret_cast<const uint8_t*>(import->InstancePtr->globaldata));
-            found_mem_ptr = import->InstancePtr->globaldata;
-            found_mem_sz = import->InstancePtr->globaldatasize;
+            found_var = MemoryVariable(&var,
+                import->InstancePtr->globaldata,
+                import->InstancePtr->globaldatasize,
+                static_cast<const uint8_t*>(import->Value.GetDirectPtr())
+                    - reinterpret_cast<const uint8_t*>(import->InstancePtr->globaldata));
         }
         else
         {
             // Import from the engine or plugin
             // FIXME: we might have to return whole RuntimeScriptValue along,
             // and then use IScriptObject (if present) for reading type's fields
-            found_mem_ptr = import->Value.GetDirectPtr();
-            found_mem_sz = 0u; // FIXME: get from var type?
-            use_var_offset = 0u;
+            // FIXME: get mem size from var type?
+            found_var = MemoryVariable(&var, import->Value.GetDirectPtr(), 0u, 0u);
         }
         return true;
     }
 }
 
 static bool TryGetLocalVariable(const String &field_ref, const ccInstance *inst,
-    const ScriptTOC::Variable *&found_var, const void *&found_mem_ptr, size_t &found_mem_sz, size_t &use_var_offset)
+     MemoryVariable &found_var)
 {
     const auto &toc = *inst->instanceof->sctoc;
     if (toc.GetLocalVariables().empty())
@@ -335,14 +362,11 @@ static bool TryGetLocalVariable(const String &field_ref, const ccInstance *inst,
 
         if (strcmp(var->name, field_ref.GetCStr()) == 0)
         {
-            found_var = var;
             // FIXME: this is horrible...
-            if (stack_ptr->Type < kScValStackPtr)
-                found_mem_ptr = &stack_ptr->IValue;
-            else
-                found_mem_ptr = stack_ptr->GetDirectPtr();
-            found_mem_sz = stack_ptr->Size;
-            use_var_offset = 0u;
+            const void *mem_ptr = (stack_ptr->Type < kScValStackPtr) ?
+                &stack_ptr->IValue :
+                stack_ptr->GetDirectPtr();
+            found_var = MemoryVariable(var, mem_ptr, stack_ptr->Size, 0u);
             return true;
         }
 
@@ -356,30 +380,22 @@ static bool TryGetLocalVariable(const String &field_ref, const ccInstance *inst,
 // the import table for its real address.
 // TODO: don't pass array_index, apply separately, outside of this func
 static bool ParseScriptVariable(const String &field_ref, const ccInstance *inst,
-    const RTTI &rtti,
-    String &mem_ref, const uint8_t *&found_mem_ptr, size_t &found_mem_sz,
-    const RTTI::Type *&next_field_type)
+    const RTTI &rtti, MemoryReference &mem_ref, const RTTI::Type *&next_field_type)
 {
-    const ScriptTOC::Variable *var_ptr = nullptr;
-    const void *mem_ptr = nullptr;
-    size_t mem_sz = 0u;
-    // NOTE: we cannot use found variable's offset directly, because the some
-    // are not stored in script memory, and also the script VM's stack has a special storage.
-    size_t use_var_offset = 0u;
-
+    MemoryVariable memvar;
     // First try local data
-    if (!TryGetLocalVariable(field_ref, inst, var_ptr, mem_ptr, mem_sz, use_var_offset))
+    if (!TryGetLocalVariable(field_ref, inst, memvar))
     {
         // Then try script's global variable;
         // this includes imported symbols from other scripts, plugins or engine
-        if (!TryGetGlobalVariable(field_ref, inst, var_ptr, mem_ptr, mem_sz, use_var_offset))
+        if (!TryGetGlobalVariable(field_ref, inst, memvar))
         {
             return false;
         }
     }
 
     // Add found variable to the instruction list
-    const auto &var = *var_ptr;
+    const auto &var = *memvar.Variable;
     // resolve local script's type to a global type index
     // todo: this should be resolved after loading script, similar to RTTI!
     const auto *l2gtypes = &inst->GetLocal2GlobalTypeMap();
@@ -388,9 +404,9 @@ static bool ParseScriptVariable(const String &field_ref, const ccInstance *inst,
         return false; // cannot find global type
     uint32_t g_typeid = type_it->second;
     const RTTI::Type &field_type = rtti.GetTypes()[g_typeid];
-    WriteMemReadInstruction(mem_ref, field_type, var.f_flags, use_var_offset);
-    found_mem_ptr = static_cast<const uint8_t*>(mem_ptr);
-    found_mem_sz = mem_sz;
+    WriteMemReadInstruction(mem_ref.Instruction, field_type, var.f_flags, memvar.Offset);
+    mem_ref.MemPtr = static_cast<const uint8_t*>(memvar.MemoryPtr);
+    mem_ref.MemSize = memvar.MemorySize;
     next_field_type = &field_type;
     return true;
 }
@@ -399,7 +415,7 @@ static bool ParseScriptVariable(const String &field_ref, const ccInstance *inst,
 // assigns the found field's type into provided "field_type".
 // Returns success if field was found, failure otherwise.
 static bool ParseTypeField(const String &field_ref, const RTTI &rtti,
-    const RTTI::Type &type, String &mem_ref, const RTTI::Type *&next_field_type)
+    const RTTI::Type &type, MemoryReference &mem_ref, const RTTI::Type *&next_field_type)
 {
     // TODO: is it possible to speed this up, making a field lookup,
     // or that would be too costly to do per type?
@@ -419,20 +435,21 @@ static bool ParseTypeField(const String &field_ref, const RTTI &rtti,
     // "f_typeid" here is already resolved to global type id,
     // because we're using joint global RTTI, not local script's one
     const RTTI::Type &field_type = rtti.GetTypes()[found_field->f_typeid];
-    mem_ref.AppendChar(':');
-    WriteMemReadInstruction(mem_ref, field_type, found_field->flags, found_field->offset);
+    mem_ref.Instruction.AppendChar(':');
+    WriteMemReadInstruction(mem_ref.Instruction, field_type, found_field->flags, found_field->offset);
     next_field_type = &field_type;
     return true;
 }
 
 // TODO: support sub-expressions and parse this as VariableRefToMemoryRef?
-static bool ParseArrayIndex(const String &field_ref, const RTTI::Type &arr_type, String &mem_ref)
+static bool ParseArrayIndex(const String &field_ref,
+    const RTTI::Type &arr_type, MemoryReference &mem_ref)
 {
     int arr_index = StrUtil::StringToInt(field_ref, -1);
     if (arr_index < 0)
         return false;
-    mem_ref.AppendChar(':');
-    WriteMemReadElemInstruction(mem_ref, arr_type, arr_index);
+    mem_ref.Instruction.AppendChar(':');
+    WriteMemReadElemInstruction(mem_ref.Instruction, arr_type, arr_index);
     return true;
 }
 
@@ -485,9 +502,8 @@ static String GetNextVarSection(const String &var_ref, size_t &index, char &acce
 // Parses the naming chain item by item, and build mem_ref string,
 // containing set of instructions used to access and resolve actual memory
 static bool VariableRefToMemoryRef(const String &var_ref, const ccInstance *inst,
-    const uint8_t *&found_mem_ptr, size_t &found_mem_sz, String &mem_ref, String &last_type_name)
+    MemoryReference &mem_ref, String &last_type_name)
 {
-    String memory_ref;
     const auto &rtti = ccInstance::GetRTTI()->AsConstRTTI();
     const RTTI::Type *last_type = nullptr;
     const RTTI::Type *next_type = nullptr;
@@ -501,8 +517,7 @@ static bool VariableRefToMemoryRef(const String &var_ref, const ccInstance *inst
         if (access_type == 0)
         {
             // Try getting a variable in the current script
-            if (!ParseScriptVariable(item, inst, rtti, mem_ref,
-                    found_mem_ptr, found_mem_sz, next_type))
+            if (!ParseScriptVariable(item, inst, rtti, mem_ref, next_type))
                 return false;
         }
         else if (access_type == '.')
@@ -541,7 +556,7 @@ static bool VariableRefToMemoryRef(const String &var_ref, const ccInstance *inst
     if (((last_type->flags & RTTI::kType_Managed) != 0) &&
         (strcmp(last_type->name, "String") == 0))
     {
-        mem_ref.Append(":0,s");
+        mem_ref.Instruction.Append(":0,s");
     }
 
     last_type_name = last_type->name;
@@ -557,14 +572,12 @@ bool QueryScriptVariableInContext(const String &var_ref, String &type_str, Strin
     if (!inst)
         return false; // not in running script
     
-    const uint8_t *entry_mem_ptr = nullptr;
-    size_t entry_mem_sz = 0u;
-    String mem_ref;
+    MemoryReference mem_ref;
     String last_type_name;
-    if (!VariableRefToMemoryRef(var_ref, inst, entry_mem_ptr, entry_mem_sz, mem_ref, last_type_name))
+    if (!VariableRefToMemoryRef(var_ref, inst, mem_ref, last_type_name))
         return false; // failed to parse variable name chain
     
-    if (ResolveMemory(entry_mem_ptr, entry_mem_sz, mem_ref, 0u, value_str))
+    if (ResolveMemory(mem_ref, 0u, value_str))
     {
         type_str = last_type_name;
         return true;

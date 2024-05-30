@@ -11,6 +11,7 @@
 		2034CABE2A202B4A00824C80 /* SDL2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2034CABD2A202B4A00824C80 /* SDL2.framework */; };
 		2097967128FA32510065C91B /* ags.iconset in Resources */ = {isa = PBXBuildFile; fileRef = 2097967028FA2F7F0065C91B /* ags.iconset */; };
 		20CB641D2A202F38001BA2C1 /* SDL2.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 2034CABD2A202B4A00824C80 /* SDL2.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		20E1612B2C09495A00538E45 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 20E1612A2C09495A00538E45 /* PrivacyInfo.xcprivacy */; };
 		20E6850228F2202800B95C00 /* acsetup.cfg in Resources */ = {isa = PBXBuildFile; fileRef = 20E684FD28F2202700B95C00 /* acsetup.cfg */; };
 		20E6850328F2202800B95C00 /* game.ags in Resources */ = {isa = PBXBuildFile; fileRef = 20E684FE28F2202700B95C00 /* game.ags */; };
 		20E6850428F2202800B95C00 /* audio.vox in Resources */ = {isa = PBXBuildFile; fileRef = 20E684FF28F2202700B95C00 /* audio.vox */; };
@@ -48,6 +49,7 @@
 		2097967028FA2F7F0065C91B /* ags.iconset */ = {isa = PBXFileReference; lastKnownFileType = folder.iconset; name = ags.iconset; path = ../../ags.iconset; sourceTree = "<group>"; };
 		2097967528FA35940065C91B /* AGSKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = AGSKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		20C76AB428F3488300772CFC /* ags.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ags.entitlements; sourceTree = "<group>"; };
+		20E1612A2C09495A00538E45 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = ../../Resources/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		20E684FD28F2202700B95C00 /* acsetup.cfg */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = acsetup.cfg; path = ../../Resources/acsetup.cfg; sourceTree = "<group>"; };
 		20E684FE28F2202700B95C00 /* game.ags */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = game.ags; path = ../../Resources/game.ags; sourceTree = "<group>"; };
 		20E684FF28F2202700B95C00 /* audio.vox */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = audio.vox; path = ../../Resources/audio.vox; sourceTree = "<group>"; };
@@ -140,6 +142,7 @@
 				20E684FE28F2202700B95C00 /* game.ags */,
 				20E6850128F2202800B95C00 /* speech.vox */,
 				8D1107310486CEB800E47090 /* ags-Info.plist */,
+				20E1612A2C09495A00538E45 /* PrivacyInfo.xcprivacy */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -218,6 +221,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				20E1612B2C09495A00538E45 /* PrivacyInfo.xcprivacy in Resources */,
 				20E6850428F2202800B95C00 /* audio.vox in Resources */,
 				20E6850628F2202800B95C00 /* speech.vox in Resources */,
 				2097967128FA32510065C91B /* ags.iconset in Resources */,

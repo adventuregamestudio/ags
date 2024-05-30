@@ -509,6 +509,12 @@
     <ClCompile Include="..\..\libsrc\miniz\miniz.c">
       <Filter>Library Sources\miniz</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Common\gfx\bitmapdata.cpp">
+      <Filter>Source Files\gfx</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\gfx\image_file.cpp">
+      <Filter>Source Files\gfx</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Common\ac\audiocliptype.h">
@@ -819,6 +825,12 @@
     </ClInclude>
     <ClInclude Include="..\..\Common\debug\messagebuffer.h">
       <Filter>Header Files\debug</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\gfx\bitmapdata.h">
+      <Filter>Header Files\gfx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\gfx\image_file.h">
+      <Filter>Header Files\gfx</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

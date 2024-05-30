@@ -196,23 +196,7 @@ void SDLRendererGraphicsDriver::CreateVirtualScreen()
   _screenTex = SDL_CreateTexture(_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, vscreen_w, vscreen_h);
 
   // Fake bitmap that will wrap over texture pixels for simplier conversion
-  _fakeTexBitmap = reinterpret_cast<BITMAP*>(new char[sizeof(BITMAP) + (sizeof(char *) * vscreen_h)]);
-  _fakeTexBitmap->w = vscreen_w;
-  _fakeTexBitmap->cr = vscreen_w;
-  _fakeTexBitmap->h = vscreen_h;
-  _fakeTexBitmap->cb = vscreen_h;
-  _fakeTexBitmap->clip = true;
-  _fakeTexBitmap->cl = 0;
-  _fakeTexBitmap->ct = 0;
-  _fakeTexBitmap->id = 0;
-  _fakeTexBitmap->extra = nullptr;
-  _fakeTexBitmap->x_ofs = 0;
-  _fakeTexBitmap->y_ofs = 0;
-  _fakeTexBitmap->dat = nullptr;
-
-  auto tmpbitmap = create_bitmap_ex(32, 1, 1);
-  _fakeTexBitmap->vtable = tmpbitmap->vtable;
-  destroy_bitmap(tmpbitmap);
+  _fakeTexBitmap = create_bitmap_placeholder(32, vscreen_w, vscreen_h, nullptr);
 
   _lastTexPixels = nullptr;
   _lastTexPitch = -1;
@@ -220,7 +204,7 @@ void SDLRendererGraphicsDriver::CreateVirtualScreen()
 
 void SDLRendererGraphicsDriver::DestroyVirtualScreen()
 {
-  delete[] _fakeTexBitmap; // don't use destroy_bitmap(), because it's a fake structure
+  destroy_bitmap(_fakeTexBitmap);
   _fakeTexBitmap = nullptr;
   if(_screenTex != nullptr) {
       SDL_DestroyTexture(_screenTex);
@@ -624,12 +608,7 @@ void SDLRendererGraphicsDriver::BlitToTexture()
     const int vwidth = virtualScreen->GetWidth();
     const int vheight = virtualScreen->GetHeight();
     if ((_lastTexPixels != pixels) || (_lastTexPitch != pitch)) {
-        _fakeTexBitmap->dat = pixels;
-        auto p = (unsigned char *)pixels;
-        for (int i = 0; i < vheight; i++) {
-            _fakeTexBitmap->line[i] = p;
-            p += pitch;
-        }
+        attach_bitmap_data(_fakeTexBitmap, pixels, pitch * vheight, pitch, nullptr);
         _lastTexPixels = (unsigned char *)pixels;
         _lastTexPitch = pitch;
     }

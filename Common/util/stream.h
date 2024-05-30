@@ -256,6 +256,8 @@ public:
 
     //-------------------------------------------------------------------------
     // Following are helper methods for reading & writing particular values.
+    // Default functions read assuming LE bytes order, but there are separate
+    // "BE" function variants.
     //-------------------------------------------------------------------------
     int8_t ReadInt8()
     {
@@ -286,6 +288,30 @@ public:
         float val = 0.f;
         Read(&val, sizeof(float));
         return BBOp::Float32FromLE(val);
+    }
+    int16_t ReadInt16BE()
+    {
+        int16_t val = 0;
+        Read(&val, sizeof(int16_t));
+        return BBOp::Int16FromBE(val);
+    }
+    int32_t ReadInt32BE()
+    {
+        int32_t val = 0;
+        Read(&val, sizeof(int32_t));
+        return BBOp::Int32FromBE(val);
+    }
+    int64_t ReadInt64BE()
+    {
+        int64_t val = 0;
+        Read(&val, sizeof(int64_t));
+        return BBOp::Int64FromBE(val);
+    }
+    float ReadFloat32BE()
+    {
+        float val = 0.f;
+        Read(&val, sizeof(float));
+        return BBOp::Float32FromBE(val);
     }
     bool ReadBool()
     {

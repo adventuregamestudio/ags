@@ -75,12 +75,51 @@ namespace AGS.Editor
             string varName;
             if (_varRequests.TryGetValue(requestID, out varName))
             {
+                string typeName = info.Type ?? "";
+                string value = "";
+
+                if (string.IsNullOrEmpty(info.TypeHint) || info.Value == null)
+                {
+                    value = "unknown data";
+                }
+                else if (info.TypeHint == "s")
+                {
+                    value = string.Format("\"{0}\"", info.Value);
+                }
+                else
+                {
+                    // This is a byte array, so decode from base64
+                    byte[] bytes = null;
+                    try
+                    {
+                        bytes = System.Convert.FromBase64String(info.Value);
+                        if (bytes == null || bytes.Length == 0)
+                            value = "unknown data";
+                        else if (info.TypeHint == "i1")
+                            value = string.Format("{0} ('{1}')", bytes[0], (char)bytes[0]);
+                        else if (info.TypeHint == "i2")
+                            value = string.Format("{0}", BitConverter.ToInt16(bytes, 0));
+                        else if (info.TypeHint == "i4")
+                            value = string.Format("{0}", BitConverter.ToInt32(bytes, 0));
+                        else if (info.TypeHint == "f4")
+                            value = string.Format("{0}", BitConverter.ToSingle(bytes, 0));
+                        else if (info.TypeHint == "h")
+                            value = string.Format("{0} (memory handle)", BitConverter.ToInt32(bytes, 0));
+                        else
+                            value = "unknown data";
+                    }
+                    catch (Exception)
+                    {
+                        value = "error";
+                    }
+                }
+
                 for (var item = listView1.FindItemWithText(varName, false, 0, false);
                     item != null;
                     item = item.Index < listView1.Items.Count - 1 ? listView1.FindItemWithText(varName, false, item.Index + 1, false) : null)
                 {
-                    item.SubItems[1].Text = info.Type ?? "";
-                    item.SubItems[2].Text = info.Value ?? "";
+                    item.SubItems[1].Text = typeName;
+                    item.SubItems[2].Text = value;
                 }
                 _varRequests.Remove(requestID);
             }

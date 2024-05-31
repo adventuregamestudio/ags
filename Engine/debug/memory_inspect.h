@@ -29,6 +29,17 @@ using AGS::Common::String;
 
 namespace MemoryInspect
 {
+    struct VariableInfo
+    {
+        String Value;
+        String TypeName;
+        String TypeHint;
+
+        VariableInfo() = default;
+        VariableInfo(const String &value, const String &type, const String &hint)
+            : Value(value), TypeName(type), TypeHint(hint) {}
+    };
+
     // Search a script variable by a *context-dependent* name chain ("foo.bar.baz"),
     // on success returns its type and value as a string, formatted according to its type.
     // Supports name chain of any complexity. Resolves structs, pointers and arrays using RTTI.
@@ -40,7 +51,7 @@ namespace MemoryInspect
     // - imports from other scripts, plugins or engine itself.
     // Requirements: ScriptTOC and RTTI.
     // TODO: value format option?
-    bool QueryScriptVariableInContext(const String &var_ref, String &type_str, String &value_str);
+    bool QueryScriptVariableInContext(const String &var_ref, VariableInfo &var_info);
 }
 
 } // namespace Engine

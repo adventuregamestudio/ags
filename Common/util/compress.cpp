@@ -525,3 +525,68 @@ bool inflate_decompress(uint8_t* data, size_t data_sz, int /*image_bpp*/, Stream
     in->Read(in_buf.data(), in_sz);
     return z_inflate(in_buf.data(), in_sz, data, data_sz);
 }
+
+// References:
+// https://en.wikipedia.org/wiki/Base64
+// https://stackoverflow.com/questions/180947/base64-decode-snippet-in-c
+static const char *Base64Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+String base64_encode(const uint8_t *bytes, size_t input_size)
+{
+    String out;
+    int val = 0, valb = -6;
+    for (size_t i = 0; i < input_size; ++i)
+    {
+        uint8_t c = bytes[i];
+        val = (val << 8) + c;
+        valb += 8;
+        while (valb >= 0)
+        {
+            out.AppendChar(Base64Alphabet[(val >> valb) & 0x3F]);
+            valb -= 6;
+        }
+    }
+    if (valb > -6)
+        out.AppendChar(Base64Alphabet[((val << 8) >> (valb + 8)) & 0x3F]);
+    while (out.GetLength() % 4)
+        out.AppendChar('=');
+    return out;
+}
+
+String base64_encode(const String &input)
+{
+    return base64_encode(reinterpret_cast<const uint8_t*>(input.GetCStr()), input.GetLength());
+}
+
+static bool Base64DecodeInit = false;
+static int Base64DecodeTable[256];
+
+static void base64_init_decode()
+{
+    memset(Base64DecodeTable, -1, sizeof(Base64DecodeTable));
+    for (int i = 0; i < 64; ++i)
+        Base64DecodeTable[Base64Alphabet[i]] = i;
+    Base64DecodeInit = true;
+}
+
+void base64_decode(const String &input, std::vector<uint8_t> &out)
+{
+    if (!Base64DecodeInit)
+        base64_init_decode();
+
+    out.clear();
+    int val = 0, valb = -8;
+    for (size_t i = 0; i < input.GetLength(); ++i)
+    {
+        uint8_t c = input[i];
+        if (Base64DecodeTable[c] == -1)
+            break;
+        val = (val << 6) + Base64DecodeTable[c];
+        valb += 6;
+        if (valb >= 0)
+        {
+            out.push_back(char((val >> valb) & 0xFF));
+            valb -= 8;
+        }
+    }
+}

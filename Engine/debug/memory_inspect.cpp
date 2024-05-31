@@ -16,6 +16,7 @@
 #include "ac/dynobj/dynobj_manager.h"
 #include "script/cc_instance.h"
 #include "script/systemimports.h"
+#include "util/compress.h"
 #include "util/string_utils.h"
 
 using namespace AGS::Common;
@@ -58,13 +59,21 @@ struct MemoryReference
         : Instruction(inst), MemPtr(mem_ptr), MemSize(mem_sz) {}
 };
 
+struct MemoryValue
+{
+    String Value;
+    String TypeHint;
+
+    MemoryValue() = default;
+    MemoryValue(const String &value, const String &hint)
+        : Value(value), TypeHint(hint) {}
+};
+
 // Resolves script memory using a MemoryReference instruction.
-// Fills in memory value formatted according to its type.
+// Fills in memory value and a type hint (for interpreting value).
 // Returns whether was successful.
 // NOTE: this function is run recursively, until reaching end of instruction list.
-//
-// TODO: value formatting option?
-static bool ResolveMemory(const MemoryReference &mem_ref, const size_t parse_at, String &value)
+static bool ResolveMemory(const MemoryReference &mem_ref, const size_t parse_at, MemoryValue &value)
 {
     const String &mem_inst = mem_ref.Instruction;
     const uint8_t *mem_ptr = mem_ref.MemPtr;
@@ -127,46 +136,24 @@ static bool ResolveMemory(const MemoryReference &mem_ref, const size_t parse_at,
     // Resolve final entry
     switch (type)
     {
-    case 'c': // byte printed as a character
-    {
-        const int8_t *value_ptr = reinterpret_cast<const int8_t*>(mem_ptr);
-        value = String::FromFormat("%c", *value_ptr);
-        break;
-    }
-    case 'i': // integer printed as a number
+    case 'i': // integer (8, 16 or 32-bit)
         switch (size)
         {
         case 1:
-        {
-            const int8_t *value_ptr = reinterpret_cast<const int8_t*>(mem_ptr);
-            value = String::FromFormat("%d", *value_ptr);
-            break;
-        }
         case 2:
-        {
-            const int16_t *value_ptr = reinterpret_cast<const int16_t*>(mem_ptr);
-            value = String::FromFormat("%d", *value_ptr);
-            break;
-        }
         case 4:
-        {
-            const int32_t *value_ptr = reinterpret_cast<const int32_t*>(mem_ptr);
-            value = String::FromFormat("%d", *value_ptr);
+            value = MemoryValue(base64_encode(mem_ptr, size), String::FromFormat("i%d", size));
             break;
-        }
         default: // unknown type, fail
             return false;
         }
         break;
-    case 'f': // float printed as a number
+    case 'f': // float (32-bit)
         switch (size)
         {
         case 4:
-        {
-            const float *value_ptr = reinterpret_cast<const float*>(mem_ptr);
-            value = String::FromFormat("%f", *value_ptr);
+            value = MemoryValue(base64_encode(mem_ptr, size), "f4");
             break;
-        }
         default: // unknown type, fail
             return false;
         }
@@ -175,14 +162,13 @@ static bool ResolveMemory(const MemoryReference &mem_ref, const size_t parse_at,
         // TODO: convert requested size to base64?
         break;
     case 's': // string pointer, print as a string
-        value = reinterpret_cast<const char*>(mem_ptr);
+        value = MemoryValue(reinterpret_cast<const char*>(mem_ptr), "s");
         break;
     case 'p': // value of a address, reserved
         break;
     case 'h': // value of a managed handle (int32)
     {
-        const int32_t *value_ptr = reinterpret_cast<const int32_t*>(mem_ptr);
-        value = String::FromFormat("%d", *value_ptr);
+        value = MemoryValue(base64_encode(mem_ptr, 4), "h");
         break;
     }
     default: // unknown type, fail
@@ -563,7 +549,7 @@ static bool VariableRefToMemoryRef(const String &var_ref, const ccInstance *inst
     return true;
 }
 
-bool QueryScriptVariableInContext(const String &var_ref, String &type_str, String &value_str)
+bool QueryScriptVariableInContext(const String &var_ref, VariableInfo &var_info)
 {
     if (var_ref.IsNullOrSpace())
         return false; // no name
@@ -577,9 +563,10 @@ bool QueryScriptVariableInContext(const String &var_ref, String &type_str, Strin
     if (!VariableRefToMemoryRef(var_ref, inst, mem_ref, last_type_name))
         return false; // failed to parse variable name chain
     
-    if (ResolveMemory(mem_ref, 0u, value_str))
+    MemoryValue mem_value;
+    if (ResolveMemory(mem_ref, 0u, mem_value))
     {
-        type_str = last_type_name;
+        var_info = VariableInfo(mem_value.Value, last_type_name, mem_value.TypeHint);
         return true;
     }
     return false;

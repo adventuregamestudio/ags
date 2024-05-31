@@ -89,7 +89,7 @@ FPSDisplayMode display_fps = kFPS_Hide;
 void send_message_to_debugger(IAGSEditorDebugger *ide_debugger,
     const std::vector<std::pair<String, String>>& tag_values, const String& command)
 {
-    String messageToSend = String::FromFormat(R"(<?xml version="1.0" encoding="Windows-1252"?><Debugger Command="%s">)", command.GetCStr());
+    String messageToSend = String::FromFormat(R"(<?xml version="1.0" encoding="UTF-8"?><Debugger Command="%s">)", command.GetCStr());
 #if AGS_PLATFORM_OS_WINDOWS
     messageToSend.Append(String::FromFormat("  <EngineWindow>%" PRIdPTR "</EngineWindow> ", sys_win_get_window()));
 #endif
@@ -592,14 +592,15 @@ int check_for_messages_from_debugger()
 
             String req_id(req_id_str + 1, var_ref_str - req_id_str - 1);
             String var_ref(var_ref_str + 1, end_str - var_ref_str - 1);
-            String mem_type, mem_value;
-            bool success = MemoryInspect::QueryScriptVariableInContext(var_ref, mem_type, mem_value);
+            MemoryInspect::VariableInfo var_info;
+            bool success = MemoryInspect::QueryScriptVariableInContext(var_ref, var_info);
             std::vector<std::pair<String, String>> values;
             values.push_back(std::make_pair("ReqID", req_id));
             if (success)
             {
-                values.push_back(std::make_pair("Type", mem_type));
-                values.push_back(std::make_pair("Value", mem_value));
+                values.push_back(std::make_pair("Type", var_info.TypeName));
+                values.push_back(std::make_pair("Hint", var_info.TypeHint));
+                values.push_back(std::make_pair("Value", var_info.Value));
             }
             send_message_to_debugger(editor_debugger, values, "RECVVAR");
         }

@@ -14,9 +14,10 @@
 #ifndef __AC_COMPRESS_H
 #define __AC_COMPRESS_H
 
-#include "core/types.h"
 #include <memory>
 #include <vector>
+#include "core/types.h"
+#include "util/string.h"
 
 struct RGB;
 
@@ -40,6 +41,11 @@ bool lzw_decompress(uint8_t *data, size_t data_sz, int image_bpp, Common::Stream
 void save_lzw(Common::Stream *out, const Common::Bitmap *bmpp, const RGB (*pal)[256] = nullptr);
 // Loads bitmap decompressing
 std::unique_ptr<Common::Bitmap> load_lzw(Common::Stream *in, int dst_bpp, RGB (*pal)[256] = nullptr);
+
+// Base64 encoding
+Common::String base64_encode(const uint8_t *bytes, size_t input_size);
+Common::String base64_encode(const Common::String &input);
+void base64_decode(const Common::String &input, std::vector<uint8_t> &out);
 
 // Deflate compression
 bool deflate_compress(const uint8_t* data, size_t data_sz, int image_bpp, Common::Stream* out);

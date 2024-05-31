@@ -225,9 +225,10 @@ void process_event(const EventHappened *evp) {
         if (play.fast_forward)
             return;
 
-        const bool ignore_transition = (play.screen_tint > 0);
+        const bool instant_transition = (theTransition == FADE_INSTANT)
+            || (play.screen_tint > 0);
         if (((theTransition == FADE_CROSSFADE) || (theTransition == FADE_DISSOLVE)) &&
-            (saved_viewport_bitmap == nullptr) && !ignore_transition)
+            (saved_viewport_bitmap == nullptr) && !instant_transition)
         {
             // transition type was not crossfade/dissolve when the screen faded out,
             // but it is now when the screen fades in (Eg. a save game was restored
@@ -239,8 +240,10 @@ void process_event(const EventHappened *evp) {
 		// TODO: use normal coordinates instead of "native_size" and multiply_up_*?
         const Rect &viewport = play.GetMainViewport();
 
-        if ((theTransition == FADE_INSTANT) || ignore_transition)
+        if (instant_transition)
+        {
             set_palette_range(palette, 0, 255, 0);
+        }
         else if (theTransition == FADE_NORMAL)
         {
             fadein_impl(palette, 5);
@@ -320,7 +323,8 @@ void process_event(const EventHappened *evp) {
             set_palette_range(palette, 0, 255, 0);
             gfxDriver->DestroyDDB(ddb);
         }
-        else if (theTransition == FADE_DISSOLVE) {
+        else if (theTransition == FADE_DISSOLVE)
+        {
             int pattern[16]={0,4,14,9,5,11,2,8,10,3,12,7,15,6,13,1};
             int aa,bb,cc;
             RGB interpal[256];

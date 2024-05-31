@@ -64,9 +64,12 @@ void current_fade_out_effect () {
     // was a temporary transition selected? if so, use it
     if (play.next_screen_transition >= 0)
         theTransition = play.next_screen_transition;
-    const bool ignore_transition = play.screen_tint > 0;
+    const bool instant_transition = 
+        (theTransition == FADE_INSTANT) ||
+        (play.screen_tint > 0); // for some reason we do not play fade if screen is tinted
 
-    if ((theTransition == FADE_INSTANT) || ignore_transition) {
+    if (instant_transition)
+    {
         if (!play.keep_screen_during_instant_transition)
             set_palette_range(black_palette, 0, 255, 0);
     }
@@ -86,7 +89,8 @@ void current_fade_out_effect () {
             &viewport, false /* use current resolution */, RENDER_SHOT_SKIP_ON_FADE);
     }
 
-    play.screen_is_faded_out = 1;
+    // NOTE: the screen could have been faded out prior to transition out
+    play.screen_is_faded_out |= (!instant_transition);
 }
 
 IDriverDependantBitmap* prepare_screen_for_transition_in(bool opaque)

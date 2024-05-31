@@ -1277,7 +1277,7 @@ ComponentHandler ComponentHandlers[] =
     {
         "Room States",
         kRoomStatSvgVersion_36109,
-        kRoomStatSvgVersion_350, // skip pre-alpha 3.5.0 ver
+        kRoomStatSvgVersion_350_Mismatch, // support mismatching 3.5.0 ver here
         WriteRoomStates,
         ReadRoomStates
     },

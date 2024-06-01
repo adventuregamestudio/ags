@@ -161,9 +161,10 @@ void SDL_Log_Output(void* /*userdata*/, int category, SDL_LogPriority priority, 
 // Log configuration
 // ----------------------------------------------------------------------------
 
-PDebugOutput create_log_output(const String &name, const String &path = "", LogFile::OpenMode open_mode = LogFile::kLogFile_Overwrite)
+// Create a new log output by ID
+PDebugOutput create_log_output(const String &name, const String &dir = "", const String &filename = "",
+    LogFile::OpenMode open_mode = LogFile::kLogFile_Overwrite)
 {
-    // Else create new one, if we know this ID
     if (name.CompareNoCase(OutputSystemID) == 0)
     {
         return DbgMgr.RegisterOutput(OutputSystemID, AGSPlatformDriver::GetDriver(), kDbgMsg_None);
@@ -171,13 +172,21 @@ PDebugOutput create_log_output(const String &name, const String &path = "", LogF
     else if (name.CompareNoCase(OutputFileID) == 0)
     {
         DebugLogFile.reset(new LogFile());
-        String logfile_path = path;
-        if (logfile_path.IsEmpty())
+        String logfile_dir = dir;
+        if (dir.IsEmpty())
         {
             FSLocation fs = platform->GetAppOutputDirectory();
             CreateFSDirs(fs);
-            logfile_path = Path::ConcatPaths(fs.FullDir, "ags.log");
+            logfile_dir = fs.FullDir;
         }
+        else if (Path::IsRelativePath(dir) && platform->IsLocalDirRestricted())
+        {
+            FSLocation fs = GetGameUserDataDir();
+            CreateFSDirs(fs);
+            logfile_dir = fs.FullDir;
+        }
+        String logfilename = filename.IsEmpty() ? "ags.log" : filename;
+        String logfile_path = Path::ConcatPaths(logfile_dir, logfilename);
         if (!DebugLogFile->OpenFile(logfile_path, open_mode))
             return nullptr;
         Debug::Printf(kDbgMsg_Info, "Logging to %s", logfile_path.GetCStr());
@@ -336,7 +345,7 @@ void apply_debug_config(const ConfigTree &cfg)
     // then open "warnings.log" for printing script warnings.
     if (game.options[OPT_DEBUGMODE] != 0 && !DebugLogFile)
     {
-        auto dbgout = create_log_output(OutputFileID, "warnings.log", LogFile::kLogFile_OverwriteAtFirstMessage);
+        auto dbgout = create_log_output(OutputFileID, "./", "warnings.log", LogFile::kLogFile_OverwriteAtFirstMessage);
         if (dbgout)
         {
             dbgout->SetGroupFilter(kDbgGroup_Game, kDbgMsg_Warn);

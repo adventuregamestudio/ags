@@ -42,6 +42,7 @@
 #include "ac/dynobj/scriptsystem.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
+#include "debug/debugmanager.h"
 #include "device/mousew32.h"
 #include "font/fonts.h"
 #include "game/roomstruct.h"
@@ -100,7 +101,7 @@ extern RuntimeScriptValue GlobalReturnValue;
 // **************** PLUGIN IMPLEMENTATION ****************
 
 
-const int PLUGIN_API_VERSION = 28;
+const int PLUGIN_API_VERSION = 29;
 struct EnginePlugin
 {
     EnginePlugin() {
@@ -121,8 +122,11 @@ struct EnginePlugin
     int       (*onEvent) (int, int) = nullptr;
     void      (*initGfxHook) (const char *driverName, void *data) = nullptr;
     int       (*debugHook) (const char * whichscript, int lineNumber, int reserved) = nullptr;
-    IAGSEngine  eiface; // CHECKME: why do we have a separate object per plugin?
+    IAGSEngine  eiface;
     bool        builtin = false;
+
+    // Logging support
+    String      logbuf; // formatting buffer, to reduce extra allocations
 };
 
 std::vector<EnginePlugin> plugins;
@@ -516,7 +520,7 @@ void IAGSEngine::GetTextExtent (int32 font, const char *text, int32 *width, int3
         height[0] = get_font_height_outlined(font);
 }
 void IAGSEngine::PrintDebugConsole (const char *text) {
-    debug_script_log("[PLUGIN] %s", text);
+    Log(AGSLOG_LEVEL_DEBUG, "%s", text);
 }
 int IAGSEngine::IsChannelPlaying (int32 channel) {
     return ::IsChannelPlaying (channel);
@@ -822,6 +826,17 @@ size_t IAGSEngine::ResolveFilePath(const char *script_path, char *buf, size_t bu
 {
     return reinterpret_cast<::IAGSStream*>(
         get_file_stream_iface(fhandle, "IAGSEngine::GetFileStreamByHandle"));
+}
+
+void IAGSEngine::Log(int level, const char *fmt, ...)
+{
+    EnginePlugin &plugin = plugins[pluginId];
+    va_list argptr;
+    va_start(argptr, fmt);
+    plugin.logbuf.Format("%s : ", plugin.filename.GetCStr());
+    plugin.logbuf.AppendFmtv(fmt, argptr);
+    DbgMgr.Print(kDbgGroup_Plugin, static_cast<MessageType>(level), plugin.logbuf);
+    va_end(argptr);
 }
 
 // *********** General plugin implementation **********

@@ -21,9 +21,11 @@
 #ifndef __AGS_CN_GFX__ALLEGROBITMAP_H
 #define __AGS_CN_GFX__ALLEGROBITMAP_H
 
+#include <memory>
 #include <allegro.h> // BITMAP
 #include "core/types.h"
 #include "gfx/bitmap.h"
+#include "gfx/bitmapdata.h"
 #include "util/string.h"
 
 namespace AGS
@@ -34,10 +36,12 @@ namespace Common
 class Bitmap
 {
 public:
-    Bitmap();
+    Bitmap() = default;
     Bitmap(int width, int height, int color_depth = 0);
+    Bitmap(PixelBuffer &&pxbuf);
     Bitmap(Bitmap *src, const Rect &rc);
     Bitmap(BITMAP *al_bmp, bool shared_data);
+    Bitmap(Bitmap &&bmp);
     ~Bitmap();
 
     // Allocate new bitmap.
@@ -50,6 +54,8 @@ public:
     bool    Create(int width, int height, int color_depth = 0);
     // Create Bitmap and clear to transparent color
     bool    CreateTransparent(int width, int height, int color_depth = 0);
+    // Create Bitmap and attach prepared pixel buffer
+    bool    Create(PixelBuffer &&pxbuf);
     // Creates a sub-bitmap of the given bitmap; the sub-bitmap is a reference to
     // particular region inside a parent.
     // WARNING: the parent bitmap MUST be kept in memory for as long as sub-bitmap exists!
@@ -125,7 +131,7 @@ public:
         return (GetColorDepth() + 7) / 8;
     }
 
-    // CHECKME: probably should not be exposed, see comment to GetData()
+    // Gets size of Bitmap's pixel data, in bytes
 	inline int  GetDataSize() const
     {
         return GetWidth() * GetHeight() * GetBPP();
@@ -136,9 +142,7 @@ public:
         return GetWidth() * GetBPP();
     }
 
-	// TODO: replace with byte *
 	// Gets a pointer to underlying graphic data
-	// FIXME: actually not a very good idea, since there's no 100% guarantee the scanline positions in memory are sequential
     inline const unsigned char *GetData() const
     {
         return _alBitmap->line[0];
@@ -149,6 +153,17 @@ public:
     {
         assert(index >= 0 && index < GetHeight());
         return _alBitmap->line[index];
+    }
+
+    // Get bitmap data wrapped in a PixelBuffer struct
+    inline const BitmapData GetBitmapData() const
+    {
+        return BitmapData(GetData(), GetDataSize(), GetLineLength(), GetWidth(), GetHeight(), ColorDepthToPixelFormat(GetColorDepth()));
+    }
+
+    inline BitmapData GetBitmapData()
+    {
+        return BitmapData(GetDataForWriting(), GetDataSize(), GetLineLength(), GetWidth(), GetHeight(), ColorDepthToPixelFormat(GetColorDepth()));
     }
 
 	// Get bitmap's mask color (transparent color)
@@ -244,8 +259,9 @@ public:
     void    SetScanLine(int index, unsigned char *data, int data_size = -1);
 
 private:
-	BITMAP			*_alBitmap;
-	bool			_isDataOwner;
+    std::unique_ptr<uint8_t[]> _pixelData;
+    BITMAP *_alBitmap = nullptr;
+    bool    _isDataOwner = false;
 };
 
 

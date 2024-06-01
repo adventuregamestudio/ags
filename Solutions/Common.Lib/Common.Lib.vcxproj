@@ -552,6 +552,8 @@
     <ClCompile Include="..\..\Common\game\tra_file.cpp" />
     <ClCompile Include="..\..\Common\gfx\allegrobitmap.cpp" />
     <ClCompile Include="..\..\Common\gfx\bitmap.cpp" />
+    <ClCompile Include="..\..\Common\gfx\bitmapdata.cpp" />
+    <ClCompile Include="..\..\Common\gfx\image_file.cpp" />
     <ClCompile Include="..\..\Common\gui\guibutton.cpp" />
     <ClCompile Include="..\..\Common\gui\guiinv.cpp" />
     <ClCompile Include="..\..\Common\gui\guilabel.cpp" />
@@ -729,6 +731,8 @@
     <ClInclude Include="..\..\Common\gfx\allegrobitmap.h" />
     <ClInclude Include="..\..\Common\gfx\bitmap.h" />
     <ClInclude Include="..\..\common\gfx\gfx_def.h" />
+    <ClInclude Include="..\..\Common\gfx\bitmapdata.h" />
+    <ClInclude Include="..\..\Common\gfx\image_file.h" />
     <ClInclude Include="..\..\Common\gui\guibutton.h" />
     <ClInclude Include="..\..\Common\gui\guidefines.h" />
     <ClInclude Include="..\..\Common\gui\guiinv.h" />

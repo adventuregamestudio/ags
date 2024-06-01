@@ -121,10 +121,13 @@ public:
     // Gets a group description; returns an unfilled struct if such group does not exist.
     DebugGroup GetGroup(const DebugGroupID &id);
     // Tells if an output with the given name is already registered
-    bool HasOutput(const String &id);
+    bool HasOutput(const String &output_id);
     // Resets message group filters for the given output
-    void SetOutputFilters(const String &id, MessageType def_verbosity,
+    void SetOutputFilters(const String &output_id, MessageType def_verbosity,
         const std::vector<std::pair<DebugGroupID, MessageType>> *group_filters);
+    // Clones message group filters from the source group to another group, throughout all outputs
+    // This may be useful for sharing same filter settings among multiple groups in a collection
+    void CloneGroupFilters(const DebugGroupID &src_group, const DebugGroupID &dst_group);
 
     // Unregisters all groups and all targets
     void UnregisterAll();
@@ -155,6 +158,8 @@ private:
 
         const String &GetID() const { return _id; }
         IOutputHandler *GetHandler() const { return _handler.get(); }
+        MessageType GetFilter(const DebugGroupID &group_id) const;
+        void SetFilter(const DebugGroupID &group_id, MessageType filter);
         void SetFilters(MessageType def_verbosity, const std::vector<std::pair<DebugGroupID, MessageType>> *group_filters);
         void ResolveGroupID(const DebugGroupID &id);
         void SendMessage(const DebugMessage &msg);

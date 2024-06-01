@@ -24,6 +24,8 @@
 #include "ac/common.h"
 #include "main/main.h"
 
+using namespace AGS::Common;
+
 void AGSMacInitPaths(char appdata[PATH_MAX]);
 void AGSMacGetBundleDir(char gamepath[PATH_MAX]);
 //bool PlayMovie(char const *name, int skipType);
@@ -36,7 +38,7 @@ struct AGSMac : AGSPlatformDriver
   AGSMac();
   void PreBackendInit() override;
 
-  uint64_t GetDiskFreeSpaceMB() override;
+  uint64_t GetDiskFreeSpaceMB(const String &path) override;
   eScriptSystemOSID GetSystemOSID() override;
   
   FSLocation GetUserSavedgamesDirectory() override;
@@ -60,7 +62,7 @@ void AGSMac::PreBackendInit()
   SDL_SetHint(SDL_HINT_MAC_CTRL_CLICK_EMULATE_RIGHT_CLICK, "1");
 }
 
-uint64_t AGSMac::GetDiskFreeSpaceMB() {
+uint64_t AGSMac::GetDiskFreeSpaceMB(const String &path) {
   // placeholder
   return 100;
 }

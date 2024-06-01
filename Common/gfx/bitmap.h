@@ -12,7 +12,8 @@
 //
 //=============================================================================
 //
-// Base bitmap header
+// Base bitmap header. Bitmap is a class that wraps pixel data and provides
+// methods for blitting other bitmaps on it and drawing primitives.
 //
 //=============================================================================
 #ifndef __AGS_CN_GFX__BITMAP_H
@@ -41,6 +42,7 @@ enum BitmapMaskOption
 
 // Declare the actual bitmap class
 #include "gfx/allegrobitmap.h"
+#include "gfx/bitmapdata.h"
 #include "util/string.h"
 
 namespace AGS
@@ -64,6 +66,8 @@ namespace BitmapHelper
     Bitmap *CreateClearBitmap(int width, int height, int color_depth = 0, int clear_color = 0);
     // Creates a new bitmap and clears it with the transparent color
     Bitmap *CreateTransparentBitmap(int width, int height, int color_depth = 0);
+    // Create Bitmap and attach prepared pixel buffer
+    Bitmap *CreateBitmap(PixelBuffer &&pxbuf);
     // Creates a sub-bitmap of the given bitmap; the sub-bitmap is a reference to
     // particular region inside a parent.
     // WARNING: the parent bitmap MUST be kept in memory for as long as sub-bitmap exists!
@@ -75,7 +79,7 @@ namespace BitmapHelper
     // Creates Bitmap of wanted color depth from a raw pixel array of a (possibly different)
     // specified color depth.
     // NOTE: color_depth is in BITS per pixel (i.e. 8, 16, 24, 32...).
-    // WARNING: the only conversion supported currently is 4-bit => 8-bit;
+    // WARNING: the only conversion supported currently is 4-bit => 8-bit and 1-bit => 8-bit;
     //          add more common conversions later!
     Bitmap *CreateBitmapFromPixels(int width, int height, int dst_color_depth,
         const uint8_t *pixels, const int src_col_depth, const int src_pitch);
@@ -85,6 +89,10 @@ namespace BitmapHelper
     inline Bitmap *LoadFromFile(const String &filename) { return LoadFromFile(filename.GetCStr()); }
     // Write a bitmap into a file; supported formats currently are: BMP, PCX.
     bool SaveToFile(Bitmap* bmp, const char *filename, const RGB *pal = nullptr);
+    // Reads a bitmap from the stream, possibly with palette
+    Bitmap *LoadBitmap(Stream *in, const String& ext, RGB *pal = nullptr);
+    // Write a bitmap to the stream, optionally along with the palette
+    bool SaveBitmap(const Bitmap *bmp, const RGB* pal, Stream *out, const String& ext);
 
     // Stretches bitmap to the requested size. The new bitmap will have same
     // colour depth. Returns original bitmap if no changes are necessary. 
@@ -106,11 +114,6 @@ namespace BitmapHelper
     // Pitch is given in bytes and defines the length of the source scan line.
     // Offset is optional and defines horizontal offset, in pixels.
     void    ReadPixelsFromMemory(Bitmap *dst, const uint8_t *src_buffer, const size_t src_pitch, const size_t src_px_offset = 0);
-
-    // Write to the stream a bitmap, optionally along with the palette
-    void SaveBitmap(const String& ext, Stream *out, const Bitmap *bmp, const RGB* pal = nullptr);
-    // Reads from the stream a bitmap, possibly with palette
-    Bitmap* LoadBitmap(const String& ext, Stream *in, RGB *pal = nullptr);
 
 } // namespace BitmapHelper
 

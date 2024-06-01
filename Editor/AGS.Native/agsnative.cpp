@@ -1651,6 +1651,9 @@ Common::Bitmap *CreateBlockFromBitmap(System::Drawing::Bitmap ^bmp, RGB *imgpal,
     int src_depth, dst_depth;
     switch (bmp->PixelFormat)
     {
+    case PixelFormat::Format1bppIndexed:
+        src_depth = 1; dst_depth = 8; // convert 1-bit to 8-bit
+        break;
     case PixelFormat::Format4bppIndexed:
         src_depth = 4; dst_depth = 8; // convert 4-bit to 8-bit
         break;

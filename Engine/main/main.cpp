@@ -149,7 +149,7 @@ void main_print_help() {
            "                               (where \"console\" is internal engine's console)\n"
            "                               GROUPs are:\n"
            "                                 all, main (m), game (g), manobj (o),\n"
-           "                                 script (s), sprcache (c)\n"
+           "                                 plugin (p), script (s), sdl(l), sprcache (c)\n"
            "                               LEVELs are:\n"
            "                                 all, alert (1), fatal (2), error (3), warn (4),\n"
            "                                 info (5), debug (6)\n"

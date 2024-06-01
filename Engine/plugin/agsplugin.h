@@ -270,6 +270,15 @@ protected:
   ~IAGSStream() = default;
 };
 
+// Logging levels
+#define AGSLOG_LEVEL_NONE   0
+#define AGSLOG_LEVEL_ALERT  1
+#define AGSLOG_LEVEL_FATAL  2
+#define AGSLOG_LEVEL_ERROR  3
+#define AGSLOG_LEVEL_WARN   4
+#define AGSLOG_LEVEL_INFO   5
+#define AGSLOG_LEVEL_DEBUG  6
+
 
 // The plugin-to-engine interface
 class IAGSEngine {
@@ -544,6 +553,10 @@ public:
   // this stream should not be closed or disposed, doing so will lead to errors in the engine.
   // Returns null if handle is invalid.
   AGSIFUNC(IAGSStream*) GetFileStreamByHandle(int32 fhandle);
+
+  // *** BELOW ARE INTERFACE VERSION 29 AND ABOVE ONLY
+  // Print message to the engine's log, under one of the log levels AGSLOG_LEVEL_*.
+  AGSIFUNC(void)  Log(int level, const char *fmt, ...);
 };
 
 

@@ -665,12 +665,17 @@ void run_fade_in_effect(ScreenTransitionStyle style, int speed)
     {
         run_screen_transition(style, true, speed);
     }
+
+    play.screen_is_faded_out = 0; // mark screen as clear
 }
 
 void run_fade_out_effect(ScreenTransitionStyle style, int speed)
 {
-    const bool ignore_transition = play.screen_tint > 0;
-    if ((style == kScrTran_Instant) || ignore_transition) {
+    const bool instant_transition =
+        (style == kScrTran_Instant) ||
+        play.screen_tint > 0; // for some reason we do not play fade if screen is tinted
+    if (instant_transition)
+    {
         if (!play.keep_screen_during_instant_transition)
             set_palette_range(black_palette, 0, 255, 0);
     }
@@ -682,6 +687,9 @@ void run_fade_out_effect(ScreenTransitionStyle style, int speed)
     {
         run_screen_transition(style, false, speed);
     }
+
+    // NOTE: the screen could have been faded out prior to transition out
+    play.screen_is_faded_out |= (!instant_transition); // mark screen as faded
 }
 
 void current_fade_in_effect()
@@ -732,8 +740,6 @@ void current_fade_in_effect()
     }
 
     run_fade_in_effect(static_cast<ScreenTransitionStyle>(trans_style), def_speed);
-
-    play.screen_is_faded_out = 0; // mark screen as clear
 }
 
 void current_fade_out_effect()
@@ -759,8 +765,6 @@ void current_fade_out_effect()
     }
 
     run_fade_out_effect(static_cast<ScreenTransitionStyle>(trans_style), def_speed);
-
-    play.screen_is_faded_out = 1; // mark screen as faded
 }
 
 //=============================================================================

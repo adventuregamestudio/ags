@@ -118,6 +118,10 @@ namespace AGS.Editor
             }
             
             RefreshLayersTree();
+
+            // Customize AddressBar to display at minimum 16 items in dropdown menus;
+            // 16 is currently the number of walkable areas, walk-behinds and regions
+            _editAddressBar.MinDisplayedDropDownItems = 16;
             _editAddressBar.SelectionChange += editAddressBar_SelectionChange;
             _startNode = _editAddressBar.CurrentNode.UniqueID;
 
@@ -546,7 +550,7 @@ namespace AGS.Editor
                         Factory.GUIController.ShowMessage("You cannot import a hi-colour or true-colour image into a 256-colour game.", MessageBoxIcon.Warning);
                         doImport = false;
                     }
-					else if ((bmp.Width != _room.Width) || (bmp.Height != _room.Height))
+                    else if ((bmp.Width != _room.Width) || (bmp.Height != _room.Height))
                     {
                         if (bgIndex > 0)
                         {
@@ -572,6 +576,7 @@ namespace AGS.Editor
                             }
                         }
                     }
+
                     if (doImport)
                     {
                         _roomController.SetBackground(bgIndex, bmp);
@@ -593,10 +598,11 @@ namespace AGS.Editor
                 {
                     Factory.GUIController.ShowMessage("The background could not be imported. The error was:" + Environment.NewLine + Environment.NewLine + ex.Message, MessageBoxIcon.Warning);
                 }
-				if (bmp != null)
-				{
-					bmp.Dispose();
-				}
+                finally
+                {
+                    if (bmp != null)
+                        bmp.Dispose();
+                }
             }
         }
 

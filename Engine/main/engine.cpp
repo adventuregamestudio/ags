@@ -478,13 +478,12 @@ void engine_init_user_directories()
 // TODO: remake/remove this nonsense
 int check_write_access() {
 
-  if (platform->GetDiskFreeSpaceMB() < 2)
-    return 0;
-
   set_our_eip(-1895);
 
   // The Save Game Dir is the only place that we should write to
   String svg_dir = get_save_game_directory();
+  if (platform->GetDiskFreeSpaceMB(svg_dir) < 2)
+    return 0;
   String tempPath = String::FromFormat("%s""tmptest.tmp", svg_dir.GetCStr());
   auto temp_s = File::CreateFile(tempPath);
   if (!temp_s)
@@ -536,7 +535,7 @@ void show_preload()
         return;
 
     RGB temppal[256];
-    Bitmap *splashsc = BitmapHelper::LoadBitmap("pcx",stream.get(),temppal);
+    Bitmap *splashsc = BitmapHelper::LoadBitmap(stream.get(), "pcx", temppal);
     if (splashsc != nullptr)
     {
         Debug::Printf("Displaying preload image");

@@ -28,6 +28,8 @@ using AGS::Common::Stream;
 enum RoomStatSvgVersion
 {
     kRoomStatSvgVersion_Initial  = 0, // [UNSUPPORTED] from 3.5.0 pre-alpha
+    // NOTE: in 3.5.0 "Room States" had lower index than "Loaded Room State" by mistake
+    kRoomStatSvgVersion_350_Mismatch = 0, // an incorrect "Room States" version from 3.5.0
     kRoomStatSvgVersion_350      = 1, // new movelist format (along with pathfinder)
     kRoomStatSvgVersion_36016    = 2, // hotspot and object names
     kRoomStatSvgVersion_36025    = 3, // object animation volume

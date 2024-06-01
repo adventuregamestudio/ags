@@ -1,3 +1,4 @@
+using AGS.Editor.Utils;
 using AGS.Types;
 using System;
 using System.Collections.Generic;
@@ -481,7 +482,8 @@ namespace AGS.Editor
                     }
 
                     if (bmp.PixelFormat != PixelFormat.Format8bppIndexed &&
-                        bmp.PixelFormat != PixelFormat.Format4bppIndexed)
+                        bmp.PixelFormat != PixelFormat.Format4bppIndexed &&
+                        bmp.PixelFormat != PixelFormat.Format1bppIndexed)
                     {
                         Factory.GUIController.ShowMessage("This is not a valid mask bitmap. Masks must be 256-colour (8-bit) images, using the first colours in the palette to draw the room areas.", MessageBoxIcon.Warning);
                         return;
@@ -521,21 +523,7 @@ namespace AGS.Editor
                 {
                     using (Bitmap bmp = _roomController.GetMask(MaskToDraw))
                     {
-                        string extension = System.IO.Path.GetExtension(fileName).ToLower();
-                        ImageFormat format = null;
-                        switch (extension)
-                        {
-                            case ".bmp": format = ImageFormat.Bmp; break;
-                            case ".png": format = ImageFormat.Png; break;
-                        }
-                        if (format != null)
-                        {
-                            bmp.Save(fileName, format);
-                        }
-                        else
-                        {
-                            Factory.GUIController.ShowMessage("Invalid file extension '" + extension + "'. Format not recognised.", System.Windows.Forms.MessageBoxIcon.Warning);
-                        }
+                        ImportExport.ExportBitmapToFile(fileName, bmp);
                     }
                 }
             }

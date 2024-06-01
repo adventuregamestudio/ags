@@ -97,9 +97,11 @@ void CCDynamicArray::RemapTypeids(void *address,
     const std::unordered_map<uint32_t, uint32_t> &typeid_map)
 {
     Header &hdr = GetHeaderW(address);
-    const auto it = typeid_map.find(hdr.TypeID);
-    assert(hdr.TypeID == 0u || it != typeid_map.end());
-    hdr.TypeID = (it != typeid_map.end()) ? it->second : 0u;
+    const uint32_t type_id = hdr.TypeID & (~ARRAY_MANAGED_TYPE_FLAG);
+    const bool is_managed = (hdr.TypeID & ARRAY_MANAGED_TYPE_FLAG) != 0;
+    const auto it = typeid_map.find(type_id);
+    assert(type_id == 0u || it != typeid_map.end());
+    hdr.TypeID = ((it != typeid_map.end()) ? it->second : 0u) | (ARRAY_MANAGED_TYPE_FLAG * is_managed);
 }
 
 void CCDynamicArray::TraverseRefs(void *address, PfnTraverseRefOp traverse_op)

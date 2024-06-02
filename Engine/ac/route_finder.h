@@ -15,6 +15,8 @@
 #define __AGS_EN_AC__ROUTEFINDER_H
 
 #include <memory>
+#include <vector>
+#include "util/geometry.h"
 
 struct MoveList;
 
@@ -36,6 +38,12 @@ public:
     // Traces a straight line between two points, returns if it's fully passable;
     // optionally assigns last found passable position.
     virtual bool CanSeeFrom(int srcx, int srcy, int dstx, int dsty, int *lastcx = nullptr, int *lastcy = nullptr) = 0;
+    // Search for a route between (srcx,y) and (destx,y), and returns a vector of Points.
+    // exact_dest - tells to fail if the destination is inside the wall and cannot be reached;
+    //              otherwise pathfinder will try to find the closest possible end point.
+    // ignore_walls - tells to ignore impassable areas (builds a straight line path).
+    virtual bool FindRoute(std::vector<Point> &path, int srcx, int srcy, int dstx, int dsty,
+        bool exact_dest = false, bool ignore_walls = false) = 0;
     // Search for a route between (srcx,y) and (destx,y), and calculate the MoveList using given speeds.
     // exact_dest - tells to fail if the destination is inside the wall and cannot be reached;
     //              otherwise pathfinder will try to find the closest possible end point.

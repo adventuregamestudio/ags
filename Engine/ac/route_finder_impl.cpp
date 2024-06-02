@@ -69,7 +69,7 @@ bool JPSRouteFinder::CanSeeFrom(int srcx, int srcy, int dstx, int dsty, int *las
     return result;
 }
 
-bool JPSRouteFinder::FindRouteJPS(int fromx, int fromy, int destx, int desty)
+bool JPSRouteFinder::FindRouteJPS(std::vector<Point> &nav_path, int fromx, int fromy, int destx, int desty)
 {
     SyncNavWalkablearea();
 
@@ -79,7 +79,7 @@ bool JPSRouteFinder::FindRouteJPS(int fromx, int fromy, int destx, int desty)
     if (nav.NavigateRefined(fromx, fromy, destx, desty, path, cpath) == Navigation::NAV_UNREACHABLE)
         return false;
 
-    num_navpoints = 0;
+    nav_path.clear();
 
     // new behavior: cut path if too complex rather than abort with error message
     int count = std::min<int>((int)cpath.size(), MAXNAVPOINTS);
@@ -88,7 +88,7 @@ bool JPSRouteFinder::FindRouteJPS(int fromx, int fromy, int destx, int desty)
     {
         int x, y;
         nav.UnpackSquare(cpath[i], x, y);
-        navpoints[num_navpoints++] = { x, y };
+        nav_path.emplace_back( x, y );
     }
 
     return true;
@@ -255,48 +255,59 @@ void JPSRouteFinder::RecalculateMoveSpeeds(MoveList &mls, int old_speed_x, int o
     }
 }
 
-bool JPSRouteFinder::FindRoute(MoveList &mls, int srcx, int srcy, int dstx, int dsty,
-    int move_speed_x, int move_speed_y, bool exact_dest, bool ignore_walls)
+bool JPSRouteFinder::FindRoute(std::vector<Point> &nav_path, int srcx, int srcy, int dstx, int dsty,
+    bool exact_dest, bool ignore_walls)
 {
-    num_navpoints = 0;
+    nav_path.clear();
 
     if (ignore_walls || CanSeeFrom(srcx, srcy, dstx, dsty))
     {
-        num_navpoints = 2;
-        navpoints[0] = { srcx, srcy };
-        navpoints[1] = { dstx, dsty };
+        nav_path.emplace_back( srcx, srcy );
+        nav_path.emplace_back( dstx, dsty );
     }
     else
     {
         if ((exact_dest) && (walkablearea->GetPixel(dstx, dsty) == 0))
             return false; // clicked on a wall
 
-        FindRouteJPS(srcx, srcy, dstx, dsty);
+        FindRouteJPS(nav_path, srcx, srcy, dstx, dsty);
     }
 
-    if (!num_navpoints)
+    if (nav_path.size() == 0)
         return false;
 
-    // FIXME: really necessary?
-    if (num_navpoints == 1)
-        navpoints[num_navpoints++] = navpoints[0];
+    assert(nav_path.size() <= MAXNAVPOINTS);
 
-    assert(num_navpoints <= MAXNAVPOINTS);
+    // Ensure it has at least 2 points (start-end), necessary for the move algorithm
+    if (nav_path.size() == 1)
+        nav_path.push_back(nav_path[0]);
 
 #ifdef DEBUG_PATHFINDER
-    AGS::Common::Debug::Printf("Route from %d,%d to %d,%d - %d stages", srcx,srcy,xx,yy,num_navpoints);
+    AGS::Common::Debug::Printf("Route from %d,%d to %d,%d - %d stages", srcx,srcy,xx,yy,(int)nav_path.size());
 #endif
+    return true;
+}
+
+bool JPSRouteFinder::FindRoute(MoveList &mls, int srcx, int srcy, int dstx, int dsty,
+    int move_speed_x, int move_speed_y, bool exact_dest, bool ignore_walls)
+{
+    if (!FindRoute(navpoints, srcx, srcy, dstx, dsty, exact_dest, ignore_walls))
+        return false;
+
+    // Ensure that it does not exceed MoveList limit
+    if (navpoints.size() > MAXNAVPOINTS)
+        navpoints.resize(MAXNAVPOINTS);
 
     MoveList mlist;
-    mlist.numstage = num_navpoints;
-    memcpy(&mlist.pos[0], &navpoints[0], sizeof(Point) * num_navpoints);
+    mlist.numstage = navpoints.size();
+    std::copy(navpoints.begin(), navpoints.end(), &mlist.pos[0]);
 #ifdef DEBUG_PATHFINDER
-    AGS::Common::Debug::Printf("stages: %d\n",num_navpoints);
+    AGS::Common::Debug::Printf("stages: %d\n",mlist.numstage);
 #endif
 
     const float fspeed_x = input_speed_to_move(move_speed_x);
     const float fspeed_y = input_speed_to_move(move_speed_y);
-    for (int i = 0; i < num_navpoints - 1; i++)
+    for (int i = 0; i < mlist.numstage - 1; i++)
         calculate_move_stage(mlist, i, fspeed_x, fspeed_y);
 
     mlist.from = { srcx, srcy };

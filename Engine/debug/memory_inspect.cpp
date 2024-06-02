@@ -252,19 +252,22 @@ struct MemoryVariable
 static bool TryGetGlobalVariable(const String &field_ref, const ccInstance *inst,
     MemoryVariable &found_var)
 {
-    const auto &toc = *inst->instanceof->sctoc;
+    // Select the actual script at the top of the stack
+    // (this could be a different script runnin on this instance, in case of far calls)
+    const ccInstance *top_inst = inst->runningInst;
+    const auto &toc = *top_inst->instanceof->sctoc;
     if (toc.GetGlobalVariables().empty())
         return false; // no global data
 
-    auto var_it = inst->GetGlobalVariableLookup().find(field_ref);
-    if (var_it == inst->GetGlobalVariableLookup().end())
+    auto var_it = top_inst->GetGlobalVariableLookup().find(field_ref);
+    if (var_it == top_inst->GetGlobalVariableLookup().end())
         return false; // cannot find a global variable
 
     const auto &var = toc.GetGlobalVariables()[var_it->second];
     // If this is a script's own global variable, then simply reference its global memory
     if ((var.v_flags & ScriptTOC::kVariable_Import) == 0)
     {
-        found_var = MemoryVariable(&var, inst->globaldata, inst->globaldatasize, var.offset);
+        found_var = MemoryVariable(&var, top_inst->globaldata, top_inst->globaldatasize, var.offset);
         return true;
     }
     // If it's an imported variable, then this may be memory from another script,
@@ -300,7 +303,11 @@ static bool TryGetGlobalVariable(const String &field_ref, const ccInstance *inst
 static bool TryGetLocalVariable(const String &field_ref, const ccInstance *inst,
      MemoryVariable &found_var)
 {
-    const auto &toc = *inst->instanceof->sctoc;
+    // Select the actual script at the top of the stack
+    // (this could be a different script runnin on this instance, in case of far calls)
+    // NOTE: we will still use pc and stack of the current inst, since it's the one running!
+    const ccScript *top_script = inst->runningInst->instanceof.get();
+    const auto &toc = *top_script->sctoc;
     if (toc.GetLocalVariables().empty())
         return false; // no local data
 
@@ -395,8 +402,9 @@ static bool ParseScriptVariable(const String &field_ref, const ccInstance *inst,
     // Add found variable to the instruction list
     const auto &var = *memvar.Variable;
     // resolve local script's type to a global type index
-    // todo: this should be resolved after loading script, similar to RTTI!
-    const auto *l2gtypes = &inst->GetLocal2GlobalTypeMap();
+    // TODO: this should be resolved after loading script, similar to RTTI!
+    const ccInstance *top_inst = inst->runningInst;
+    const auto *l2gtypes = &top_inst->GetLocal2GlobalTypeMap();
     auto type_it = l2gtypes->find(var.f_typeid);
     if (type_it == l2gtypes->end())
         return false; // cannot find global type

@@ -49,6 +49,7 @@
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/dynobj/all_dynamicclasses.h"
 #include "ac/dynobj/managedobjectpool.h"
+#include "ac/dynobj/scriptpathfinder.h"
 #include "gui/guimain.h"
 #include "script/cc_instance.h"
 #include "debug/debug_log.h"
@@ -262,6 +263,11 @@ ScriptWalkbehind* Room_GetiWalkbehinds(int idx)
     if ((idx < 0) || (idx >= MAX_WALK_BEHINDS))
         return nullptr;
     return &scrWalkbehind[idx];
+}
+
+ScriptPathfinder* Room_GetPathFinder()
+{
+    return RoomPathfinder::Create();
 }
 
 //=============================================================================
@@ -1133,6 +1139,11 @@ RuntimeScriptValue Sc_Room_GetiWalkbehinds(void *self, const RuntimeScriptValue 
     API_SCALL_OBJ_PINT(ScriptWalkbehind, ccDynamicWalkbehind, Room_GetiWalkbehinds);
 }
 
+RuntimeScriptValue Sc_Room_GetPathFinder(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO(ScriptPathfinder, Room_GetPathFinder);
+}
+
 void RegisterRoomAPI()
 {
     ScFnRegister room_api[] = {
@@ -1159,6 +1170,7 @@ void RegisterRoomAPI()
         { "Room::geti_Regions",                       API_FN_PAIR(Room_GetiRegions) },
         { "Room::geti_WalkableAreas",                 API_FN_PAIR(Room_GetiWalkableAreas) },
         { "Room::geti_Walkbehinds",                   API_FN_PAIR(Room_GetiWalkbehinds) },
+        { "Room::get_PathFinder",                     API_FN_PAIR(Room_GetPathFinder) },
     };
 
     ccAddExternalFunctions(room_api);

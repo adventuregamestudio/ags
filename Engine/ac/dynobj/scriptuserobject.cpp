@@ -120,9 +120,14 @@ ScriptUserObject globalDynamicStruct;
 // Allocates managed struct containing two ints: X and Y
 ScriptUserObject *ScriptStructHelpers::CreatePoint(int x, int y)
 {
+    return static_cast<ScriptUserObject*>(CreatePointRef(x, y).Obj);
+}
+
+DynObjectRef ScriptStructHelpers::CreatePointRef(int x, int y)
+{
     // FIXME: type id! (is it possible to RTTI?)
     DynObjectRef ref = ScriptUserObject::Create(RTTI::NoType, sizeof(int32_t) * 2);
     ref.Mgr->WriteInt32(ref.Obj, 0, x);
     ref.Mgr->WriteInt32(ref.Obj, sizeof(int32_t), y);
-    return static_cast<ScriptUserObject*>(ref.Obj);
+    return ref;
 }

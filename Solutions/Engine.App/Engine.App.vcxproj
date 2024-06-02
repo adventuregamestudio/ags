@@ -496,6 +496,7 @@
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptmouse.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptjoystick.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptoverlay.cpp" />
+    <ClCompile Include="..\..\Engine\ac\dynobj\scriptpathfinder.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptstring.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptsystem.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptuserobject.cpp" />
@@ -545,6 +546,7 @@
     <ClCompile Include="..\..\Engine\ac\object.cpp" />
     <ClCompile Include="..\..\Engine\ac\overlay.cpp" />
     <ClCompile Include="..\..\Engine\ac\parser.cpp" />
+    <ClCompile Include="..\..\Engine\ac\pathfinder_script.cpp" />
     <ClCompile Include="..\..\Engine\ac\properties.cpp" />
     <ClCompile Include="..\..\Engine\ac\route_finder_impl.cpp" />
     <ClCompile Include="..\..\Engine\ac\scriptcontainers.cpp" />
@@ -742,6 +744,7 @@
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptjoystick.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptmouse.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptoverlay.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\scriptpathfinder.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptset.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptstring.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptsystem.h" />

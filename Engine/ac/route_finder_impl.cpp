@@ -54,6 +54,9 @@ void JPSRouteFinder::SyncNavWalkablearea()
 
 bool JPSRouteFinder::CanSeeFrom(int srcx, int srcy, int dstx, int dsty, int *lastcx, int *lastcy)
 {
+    if (!walkablearea)
+        return false;
+
     int last_valid_x = srcx, last_valid_y = srcy;
     bool result = true;
     if ((srcx != dstx) || (srcy != dsty))
@@ -71,6 +74,9 @@ bool JPSRouteFinder::CanSeeFrom(int srcx, int srcy, int dstx, int dsty, int *las
 
 bool JPSRouteFinder::FindRouteJPS(std::vector<Point> &nav_path, int fromx, int fromy, int destx, int desty)
 {
+    if (!walkablearea)
+        return false;
+
     SyncNavWalkablearea();
 
     path.clear();
@@ -258,6 +264,9 @@ void JPSRouteFinder::RecalculateMoveSpeeds(MoveList &mls, int old_speed_x, int o
 bool JPSRouteFinder::FindRoute(std::vector<Point> &nav_path, int srcx, int srcy, int dstx, int dsty,
     bool exact_dest, bool ignore_walls)
 {
+    if (!walkablearea)
+        return false;
+
     nav_path.clear();
 
     if (ignore_walls || CanSeeFrom(srcx, srcy, dstx, dsty))

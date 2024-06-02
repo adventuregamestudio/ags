@@ -702,8 +702,11 @@ builtin managed struct Viewport;
 builtin managed struct Hotspot;
 builtin managed struct Object;
 builtin managed struct Region;
+#ifdef SCRIPT_API_v400
 builtin managed struct WalkableArea;
 builtin managed struct Walkbehind;
+builtin managed struct Pathfinder;
+#endif
 
 builtin struct Room {
   /// Gets a custom text property associated with this room.
@@ -749,6 +752,8 @@ builtin struct Room {
   import static readonly attribute WalkableArea *WalkableAreas[];   // $AUTOCOMPLETESTATICONLY$
   /// Accesses the Walk-behinds in the current room.
   import static readonly attribute Walkbehind *Walkbehinds[];   // $AUTOCOMPLETESTATICONLY$
+  /// Gets this Room's Pathfinder object that lets find route around walkable areas.
+  import static readonly attribute Pathfinder *PathFinder;   // $AUTOCOMPLETESTATICONLY$
   /// Gets/sets the optional y/x ratio of character's facing directions, determining directional loop selection for each Character in the current room.
   import static attribute float FaceDirectionRatio;
 #endif
@@ -2763,6 +2768,27 @@ builtin managed struct VideoPlayer {
   /// The volume of this video's sound, from 0 to 100.
   import attribute int Volume;
 };
+
+builtin managed struct Pathfinder {
+  /// Tries to find a move path from source to destination, returns an array of navigation points.
+  import Point*[] FindPath(int srcx, int srcy, int dstx, int dsty);
+  /// Traces a straight path from source to destination, returns the furthermost point reached.
+  import Point* Trace(int srcx, int srcy, int dstx, int dsty);
+};
+
+/*
+// FIXME
+// MaskPathfinder is disabled in script API until AGS supports creation of
+// 8-bit dynamic sprites in 32-bit games.
+
+builtin managed struct MaskPathfinder extends Pathfinder {
+  /// Creates a new MaskPathfinder, initialized with the given 8-bit mask sprite
+  import static MaskPathfinder* Create(int mask_sprite);  // $AUTOCOMPLETESTATICONLY$
+  /// Assigns a new mask to this MaskPathfinder
+  import void SetMask(int mask_sprite);
+};
+*/
+
 #endif
 
 

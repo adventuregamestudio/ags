@@ -133,6 +133,7 @@ int is_point_in_rect(int x, int y, int left, int top, int right, int bottom) {
     return 0;
 }
 
+// TODO: possibly optimize this by caching and/or knowing if walkable area changed since the last call?
 Bitmap *prepare_walkable_areas (int sourceChar) {
     // copy the walkable areas to the temp bitmap
     walkable_areas_temp->Blit(thisroom.WalkAreaMask.get(), 0,0,0,0,thisroom.WalkAreaMask->GetWidth(),thisroom.WalkAreaMask->GetHeight());

@@ -45,6 +45,7 @@ extern void RegisterMouseAPI();
 extern void RegisterObjectAPI();
 extern void RegisterOverlayAPI();
 extern void RegisterParserAPI();
+extern void RegisterPathfinderAPI();
 extern void RegisterRegionAPI();
 extern void RegisterRoomAPI();
 extern void RegisterScreenAPI();
@@ -90,6 +91,7 @@ void setup_script_exports(ScriptAPIVersion base_api, ScriptAPIVersion compat_api
     RegisterObjectAPI();
     RegisterOverlayAPI();
     RegisterParserAPI();
+    RegisterPathfinderAPI();
     RegisterRegionAPI();
     RegisterRoomAPI();
     RegisterScreenAPI();

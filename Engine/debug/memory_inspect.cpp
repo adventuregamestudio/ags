@@ -361,12 +361,24 @@ static bool TryGetLocalVariable(const String &field_ref, const ccInstance *inst,
     return false;
 }
 
+// TODO: pick out basic Field in RTTI (which does not have extra fields and quick links)?
+struct FieldInfo
+{
+    const RTTI::Type *Type = nullptr;
+    uint32_t FieldFlags = 0u; // RTTI::FieldFlags
+    uint32_t NumElems = 0u;
+
+    FieldInfo() = default;
+    FieldInfo(const RTTI::Type *type, uint32_t f_flags, uint32_t num_elems)
+        : Type(type), FieldFlags(f_flags), NumElems(num_elems) {}
+};
+
 // Try getting a registered variable from the current script's global memory,
 // or local memory (stack); or, if this is an imported variable, then lookup
 // the import table for its real address.
 // TODO: don't pass array_index, apply separately, outside of this func
 static bool ParseScriptVariable(const String &field_ref, const ccInstance *inst,
-    const RTTI &rtti, MemoryReference &mem_ref, const RTTI::Type *&next_field_type)
+    const RTTI &rtti, MemoryReference &mem_ref, FieldInfo &next_field_info)
 {
     MemoryVariable memvar;
     // First try local data
@@ -393,7 +405,7 @@ static bool ParseScriptVariable(const String &field_ref, const ccInstance *inst,
     WriteMemReadInstruction(mem_ref.Instruction, field_type, var.f_flags, memvar.Offset);
     mem_ref.MemPtr = static_cast<const uint8_t*>(memvar.MemoryPtr);
     mem_ref.MemSize = memvar.MemorySize;
-    next_field_type = &field_type;
+    next_field_info = FieldInfo(&field_type, var.f_flags, var.num_elems);
     return true;
 }
 
@@ -401,10 +413,11 @@ static bool ParseScriptVariable(const String &field_ref, const ccInstance *inst,
 // assigns the found field's type into provided "field_type".
 // Returns success if field was found, failure otherwise.
 static bool ParseTypeField(const String &field_ref, const RTTI &rtti,
-    const RTTI::Type &type, MemoryReference &mem_ref, const RTTI::Type *&next_field_type)
+    const FieldInfo &field_info, MemoryReference &mem_ref, FieldInfo &next_field_info)
 {
     // TODO: is it possible to speed this up, making a field lookup,
     // or that would be too costly to do per type?
+    const RTTI::Type &type = *field_info.Type;
     const RTTI::Field *found_field = nullptr;
     for (const auto *field = type.first_field; field; field = field->next_field)
     {
@@ -423,19 +436,25 @@ static bool ParseTypeField(const String &field_ref, const RTTI &rtti,
     const RTTI::Type &field_type = rtti.GetTypes()[found_field->f_typeid];
     mem_ref.Instruction.AppendChar(':');
     WriteMemReadInstruction(mem_ref.Instruction, field_type, found_field->flags, found_field->offset);
-    next_field_type = &field_type;
+    next_field_info = FieldInfo(&field_type, found_field->flags, found_field->num_elems);
     return true;
 }
 
 // TODO: support sub-expressions and parse this as VariableRefToMemoryRef?
-static bool ParseArrayIndex(const String &field_ref,
-    const RTTI::Type &arr_type, MemoryReference &mem_ref)
+static bool ParseArrayIndex(const String &field_ref, const FieldInfo &field_info,
+    MemoryReference &mem_ref, FieldInfo &next_field_info)
 {
     int arr_index = StrUtil::StringToInt(field_ref, -1);
     if (arr_index < 0)
         return false;
     mem_ref.Instruction.AppendChar(':');
-    WriteMemReadElemInstruction(mem_ref.Instruction, arr_type, arr_index);
+    WriteMemReadElemInstruction(mem_ref.Instruction, *field_info.Type, arr_index);
+    // FIXME: this won't work for multidimensional arrays!
+    // RTTI is missing necessary info for multidimensional arrays too.
+    // FIXME: have a helper function that converts Type params to Field params of array element?
+    uint32_t elem_f_flags =
+        ((field_info.Type->flags & RTTI::kType_Managed) != 0) * RTTI::kField_ManagedPtr;
+    next_field_info = FieldInfo(field_info.Type, elem_f_flags, 0u);
     return true;
 }
 
@@ -488,11 +507,11 @@ static String GetNextVarSection(const String &var_ref, size_t &index, char &acce
 // Parses the naming chain item by item, and build mem_ref string,
 // containing set of instructions used to access and resolve actual memory
 static bool VariableRefToMemoryRef(const String &var_ref, const ccInstance *inst,
-    MemoryReference &mem_ref, String &last_type_name)
+    MemoryReference &mem_ref, FieldInfo &var_field_info)
 {
     const auto &rtti = ccInstance::GetRTTI()->AsConstRTTI();
-    const RTTI::Type *last_type = nullptr;
-    const RTTI::Type *next_type = nullptr;
+    FieldInfo last_field_info;
+    FieldInfo next_field_info;
 
     String item;
     size_t index = 0;
@@ -503,25 +522,25 @@ static bool VariableRefToMemoryRef(const String &var_ref, const ccInstance *inst
         if (access_type == 0)
         {
             // Try getting a variable in the current script
-            if (!ParseScriptVariable(item, inst, rtti, mem_ref, next_type))
+            if (!ParseScriptVariable(item, inst, rtti, mem_ref, next_field_info))
                 return false;
         }
         else if (access_type == '.')
         {
-            if (!last_type)
+            if (!last_field_info.Type)
                 return false; // access member without type
 
             // Try getting a member of the last found type; save field's type into "next_type"
-            if (!ParseTypeField(item, rtti, *last_type, mem_ref, next_type))
+            if (!ParseTypeField(item, rtti, last_field_info, mem_ref, next_field_info))
                 return false;
         }
         else if (access_type == '[')
         {
-            if (!last_type)
+            if (!last_field_info.Type)
                 return false; // access member without type
 
             // Try get the array index
-            if (!ParseArrayIndex(item, *last_type, mem_ref))
+            if (!ParseArrayIndex(item, last_field_info, mem_ref, next_field_info))
                 return false;
         }
         else
@@ -529,23 +548,24 @@ static bool VariableRefToMemoryRef(const String &var_ref, const ccInstance *inst
             return false; // internal mistake? should not happen
         }
 
-        last_type = next_type;
+        last_field_info = next_field_info;
     }
 
-    assert(last_type);
-    if (!last_type)
+    assert(last_field_info.Type);
+    if (!last_field_info.Type)
         return false;
 
     // FIXME: this is a hack, force resolve managed "String" type
     // so that user receives a string value instead of a handle int32;
     // need to think how to deal with this situation in a generic way.
-    if (((last_type->flags & RTTI::kType_Managed) != 0) &&
-        (strcmp(last_type->name, "String") == 0))
+    if (((last_field_info.FieldFlags & RTTI::kField_Array) == 0) &&
+        ((last_field_info.Type->flags & RTTI::kType_Managed) != 0) &&
+        (strcmp(last_field_info.Type->name, "String") == 0))
     {
         mem_ref.Instruction.Append(":0,s");
     }
 
-    last_type_name = last_type->name;
+    var_field_info = last_field_info;
     return true;
 }
 
@@ -559,14 +579,22 @@ bool QueryScriptVariableInContext(const String &var_ref, VariableInfo &var_info)
         return false; // not in running script
     
     MemoryReference mem_ref;
-    String last_type_name;
-    if (!VariableRefToMemoryRef(var_ref, inst, mem_ref, last_type_name))
+    FieldInfo var_field_info;
+    if (!VariableRefToMemoryRef(var_ref, inst, mem_ref, var_field_info))
         return false; // failed to parse variable name chain
     
     MemoryValue mem_value;
     if (ResolveMemory(mem_ref, 0u, mem_value))
     {
-        var_info = VariableInfo(mem_value.Value, last_type_name, mem_value.TypeHint);
+        String type_name = var_field_info.Type->name;
+        if (var_field_info.FieldFlags & RTTI::kField_Array)
+        {
+            if (var_field_info.NumElems > 0)
+                type_name.AppendFmt("[%u]", var_field_info.NumElems);
+            else
+                type_name.Append("[]");
+        }
+        var_info = VariableInfo(mem_value.Value, type_name, mem_value.TypeHint);
         return true;
     }
     return false;

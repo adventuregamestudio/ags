@@ -34,6 +34,9 @@
 //    RTTISerializer, as data has still be packed prior writing it to a file,
 //    and unpacked when reading from a file.
 //    This may also let to get rid of uses of "friend" classes here.
+// EDIT: at the very least, Type, Field etc structs may be split into a
+//    fully public struct with basic fields, and extended structs with extras,
+//    such as "quick reference links".
 // Same refers to ScriptTOC class.
 //
 // 2) Generic "table building" and serialization.
@@ -42,6 +45,14 @@
 //    a series of tables of fixed-sized entries, that have anything of dynamic
 //    size in a separate table or list, and where entries reference each other
 //    by a integer indexes.
+//
+//-----------------------------------------------------------------------------
+//
+// TODOs and FIXMEs:
+//
+// * Because of a design oversight, multi-dimensional arrays are not described
+//   correctly, there's no way to know number of dimensions, and therefore
+//   get an actual type of an element of a jagged array (dyn array of arrs).
 //
 //=============================================================================
 #ifndef __CC_REFLECT_H

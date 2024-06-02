@@ -1578,6 +1578,9 @@
     <None Include="..\..\Engine\resource\tintshaderLegacy.fxo">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="..\..\Engine\ac\route_finder_jps.inl">
+      <Filter>Header Files\ac</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\Engine\resource\version.rc">

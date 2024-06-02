@@ -180,15 +180,15 @@ void Character_AddWaypoint(CharacterInfo *chaa, int x, int y) {
         return;
     }
 
-    MoveList *cmls = &mls[chaa->walking % TURNING_AROUND];
-    if (cmls->numstage >= MAXNEEDSTAGES)
+    MoveList &cmls = mls[chaa->walking % TURNING_AROUND];
+    if (cmls.numstage >= MAXNEEDSTAGES)
     {
         debug_script_warn("Character::AddWaypoint: move is too complex, cannot add any further paths");
         return;
     }
 
     // They're already walking there anyway
-    const Point &last_pos = cmls->GetLastPos();
+    const Point &last_pos = cmls.GetLastPos();
     if (last_pos == Point(x, y))
         return;
 
@@ -203,11 +203,11 @@ void Character_AddWaypoint(CharacterInfo *chaa, int x, int y) {
     // so we do this trick: convert last step to mask resolution, before calling
     // a pathfinder api, and then we'll convert old and new last step back.
     // TODO: figure out a better way of processing this!
-    const int last_stage = cmls->numstage - 1;
-    cmls->pos[last_stage] = { room_to_mask_coord(last_pos.X), room_to_mask_coord(last_pos.Y) };
+    const int last_stage = cmls.numstage - 1;
+    cmls.pos[last_stage] = { room_to_mask_coord(last_pos.X), room_to_mask_coord(last_pos.Y) };
     const int dst_x = room_to_mask_coord(x);
     const int dst_y = room_to_mask_coord(y);
-    if (add_waypoint_direct(cmls, dst_x, dst_y, move_speed_x, move_speed_y))
+    if (get_room_pathfinder()->AddWaypointDirect(cmls, dst_x, dst_y, move_speed_x, move_speed_y))
     {
         convert_move_path_to_room_resolution(cmls, last_stage, last_stage + 1);
     }
@@ -955,7 +955,7 @@ void Character_SetSpeed(CharacterInfo *chaa, int xspeed, int yspeed) {
 
     if (chaa->walking > 0)
     {
-        recalculate_move_speeds(&mls[chaa->walking % TURNING_AROUND], old_speedx, old_speedy, xspeed, yspeed);
+        get_room_pathfinder()->RecalculateMoveSpeeds(mls[chaa->walking % TURNING_AROUND], old_speedx, old_speedy, xspeed, yspeed);
     }
 }
 
@@ -1784,12 +1784,14 @@ void walk_character(int chac,int tox,int toy,int ignwal, bool autoWalkAnims) {
     const int dst_x = room_to_mask_coord(tox);
     const int dst_y = room_to_mask_coord(toy);
 
-    int mslot = find_route(src_x, src_y, dst_x, dst_y, move_speed_x, move_speed_y,
-        prepare_walkable_areas(chac), chac+CHMLSOFFS, 1, ignwal);
-    if (mslot>0) {
+    const int mslot = chac + CHMLSOFFS;
+    MaskRouteFinder *pathfind = get_room_pathfinder();
+    pathfind->SetWalkableArea(prepare_walkable_areas(chac));
+    if (pathfind->FindRoute(mls[mslot], src_x, src_y, dst_x, dst_y, move_speed_x, move_speed_y, false, ignwal))
+    {
         chin->walking = mslot;
         mls[mslot].direct = ignwal;
-        convert_move_path_to_room_resolution(&mls[mslot]);
+        convert_move_path_to_room_resolution(mls[mslot]);
 
         if (wasStepFrac > 0.f)
         {
@@ -2110,7 +2112,8 @@ void walk_or_move_character(CharacterInfo *chaa, int x, int y, int blocking, int
 
 void walk_or_move_character_straight(CharacterInfo *chaa, int x, int y, int blocking, int direct, bool isWalk)
 {
-    set_walkablearea(prepare_walkable_areas(chaa->index_id));
+    MaskRouteFinder *pathfind = get_room_pathfinder();
+    pathfind->SetWalkableArea(prepare_walkable_areas(chaa->index_id));
 
     // TODO: hide these conversions, maybe make can_see_from() function do them internally in and out?
     int from_mask_x = room_to_mask_coord(chaa->x);
@@ -2119,9 +2122,9 @@ void walk_or_move_character_straight(CharacterInfo *chaa, int x, int y, int bloc
     int to_mask_y = room_to_mask_coord(y);
 
     int movetox = x, movetoy = y;
-    if (!can_see_from(from_mask_x, from_mask_y, to_mask_x, to_mask_y)) {
-        int lastcx, lastcy;
-        get_lastcpos(lastcx, lastcy);
+    int lastcx, lastcy;
+    if (!pathfind->CanSeeFrom(from_mask_x, from_mask_y, to_mask_x, to_mask_y, &lastcx, &lastcy))
+    {
         movetox = mask_to_room_coord(lastcx);
         movetoy = mask_to_room_coord(lastcy);
     }

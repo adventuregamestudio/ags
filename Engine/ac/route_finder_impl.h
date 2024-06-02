@@ -11,35 +11,57 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#ifndef __AGS_EN_AC__ROUTEFINDER_IMPL_H
+#define __AGS_EN_AC__ROUTEFINDER_IMPL_H
 
-#ifndef __AC_ROUTE_FINDER_IMPL
-#define __AC_ROUTE_FINDER_IMPL
+#include "ac/movelist.h"
+#include "ac/route_finder.h"
+#include "util/geometry.h"
 
-#include "ac/game_version.h"
+namespace AGS
+{
+namespace Engine
+{
 
-// Forward declaration
-namespace AGS { namespace Common { class Bitmap; }}
-struct MoveList;
+class Navigation;
 
-namespace AGS {
-namespace Engine {
-namespace RouteFinder {
+// JPSRouteFinder: a jump point search (JPS) A* pathfinder by Martin Sedlak.
+class JPSRouteFinder : public MaskRouteFinder
+{
+public:
+    JPSRouteFinder();
+    ~JPSRouteFinder();
 
-void init_pathfinder();
-void shutdown_pathfinder();
+    // Traces a straight line between two points, returns if it's fully passable;
+    // optionally assigns last found passable position.
+    bool CanSeeFrom(int srcx, int srcy, int dstx, int dsty, int *lastcx = nullptr, int *lastcy = nullptr) override;
+    // Search for a route between (srcx,y) and (destx,y), and calculate the MoveList using given speeds.
+    // exact_dest - tells to fail if the destination is inside the wall and cannot be reached;
+    //              otherwise pathfinder will try to find the closest possible end point.
+    // ignore_walls - tells to ignore impassable areas (builds a straight line path).
+    bool FindRoute(MoveList &mls, int srcx, int srcy, int dstx, int dsty, int move_speed_x, int move_speed_y,
+        bool exact_dest = false, bool ignore_walls = false) override;
+    // Append a waypoint to the move list, skip pathfinding
+    bool AddWaypointDirect(MoveList &mls, int x, int y, int move_speed_x, int move_speed_y) override;
+    // Recalculates MoveList's step speeds
+    void RecalculateMoveSpeeds(MoveList &mls, int old_speed_x, int old_speed_y, int new_speed_x, int new_speed_y) override;
+    // Assign a walkable mask;
+    // Note that this may make routefinder to generate additional data, taking more time.
+    void SetWalkableArea(const AGS::Common::Bitmap *walkablearea) override;
 
-void set_walkablearea(AGS::Common::Bitmap *walkablearea);
+private:
+    void SyncNavWalkablearea();
+    bool FindRouteJPS(int fromx, int fromy, int destx, int desty);
 
-int can_see_from(int x1, int y1, int x2, int y2);
-void get_lastcpos(int &lastcx, int &lastcy);
+    static const int MAXNAVPOINTS = MAXNEEDSTAGES;
+    Point navpoints[MAXNAVPOINTS];
+    int num_navpoints = 0;
+    Navigation &nav; // declare as reference, because we must hide real Navigation decl here
+    const Bitmap *walkablearea = nullptr;
+    std::vector<int> path, cpath;
+};
 
-int find_route(short srcx, short srcy, short xx, short yy, int move_speed_x, int move_speed_y,
-    AGS::Common::Bitmap *onscreen, int movlst, int nocross = 0, int ignore_walls = 0);
-bool add_waypoint_direct(MoveList * mlsp, short x, short y, int move_speed_x, int move_speed_y);
-void recalculate_move_speeds(MoveList *mlsp, int old_speed_x, int old_speed_y, int new_speed_x, int new_speed_y);
-
-} // namespace RouteFinder
 } // namespace Engine
 } // namespace AGS
 
-#endif // __AC_ROUTE_FINDER_IMPL
+#endif // __AGS_EN_AC__ROUTEFINDER_IMPL_H

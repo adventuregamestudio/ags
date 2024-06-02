@@ -187,15 +187,10 @@ void quit(const char *quitmsg)
 
     set_our_eip(9900);
 
-
-    set_our_eip(9019);
-
     video_shutdown();
     quit_shutdown_audio();
 
     set_our_eip(9908);
-
-    shutdown_pathfinder();
 
     // Release game data and unregister assets
     quit_check_dynamic_sprites(qreason);

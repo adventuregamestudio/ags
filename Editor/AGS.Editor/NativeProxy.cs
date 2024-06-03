@@ -288,12 +288,12 @@ namespace AGS.Editor
 
         public List<string> GetCompilerExtensions(Game game)
         {
-            return _native.GetCompilerExtensions(game.Settings.ExtendedCompiler);
+            return _native.GetCompilerExtensions(game.Settings.ScriptCompiler == AGSEditor.DEFAULT_SCRIPT_COMPILER);
         }
 
         public void CompileScript(Script script, string[] preProcessedData, Game game, CompileMessages messages)
         {
-            _native.CompileScript(script, preProcessedData, game, messages);
+            _native.CompileScript(script, preProcessedData, game, game.Settings.ScriptCompiler == AGSEditor.DEFAULT_SCRIPT_COMPILER, messages);
         }
 
         public void CreateDebugMiniEXE(string[] fileList, string exeFileName)

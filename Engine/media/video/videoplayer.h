@@ -29,6 +29,9 @@
 //
 // TODO: POTENTIAL OPTIMIZATIONS
 //     - create and buffer textures along the bitmaps.
+//     - store "opaque" flag per sprite, so that updating sprite's texture
+//       is a bit faster. This may be done separately, as a general
+//       improvement, if "buffer texture" path is taken.
 //     - perhaps skip bitmap and decode onto texture right away,
 //       that would require modifying the video decoding lib (or using other).
 //       but then there also has to be a reverse conversion made in case

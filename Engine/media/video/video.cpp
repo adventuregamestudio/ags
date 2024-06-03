@@ -30,7 +30,6 @@
 #include "debug/debug_log.h"
 #include "gfx/graphicsdriver.h"
 #include "main/game_run.h"
-#include "media/video/video_core.h"
 #include "media/audio/audio.h"
 #include "media/video/video_core.h"
 #include "util/memory_compat.h"

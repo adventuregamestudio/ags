@@ -22,7 +22,7 @@
 struct ccInstance;
 
 void init_debug(const AGS::Common::ConfigTree &cfg, bool stderr_only);
-void apply_debug_config(const AGS::Common::ConfigTree &cfg);
+void apply_debug_config(const AGS::Common::ConfigTree &cfg, bool finalize);
 void shutdown_debug();
 
 // prints debug messages of given type tagged with kDbgGroup_Game,

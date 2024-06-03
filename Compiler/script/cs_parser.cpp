@@ -25,6 +25,7 @@
 #include "script/cc_internal.h"
 #include "cc_variablesymlist.h"
 #include "fmem.h"
+#include "util/string_utils.h"
 #include "util/utf8.h"
 
 extern int currentline;
@@ -347,7 +348,9 @@ int cc_tokenize(const char*inpl, ccInternalList*targ, ccCompiledScript*scrip) {
 
             if (strncmp(thissymbol.c_str(), NEW_SCRIPT_TOKEN_PREFIX, 18) == 0)
             {
-                snprintf(scriptNameBuffer, sizeof(scriptNameBuffer), "%s", &thissymbol[18]);
+                // FIXME: ugly, but we must unescape the section name, to avoid reverse path separator duplications
+                AGS::Common::String unesc_name = AGS::Common::StrUtil::Unescape(&thissymbol[18]);
+                snprintf(scriptNameBuffer, sizeof(scriptNameBuffer), "%s", unesc_name.GetCStr());
                 ccCurScriptName = scriptNameBuffer;
 
                 linenum = 0;
@@ -3419,7 +3422,9 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
 
         if (strncmp(sym.get_name(cursym), NEW_SCRIPT_TOKEN_PREFIX, 18) == 0)
         {
-            snprintf(scriptNameBuffer, sizeof(scriptNameBuffer), "%s", &sym.get_name(cursym)[18]);
+            // FIXME: ugly, but we must unescape the section name, to avoid reverse path separator duplications
+            AGS::Common::String unesc_name = AGS::Common::StrUtil::Unescape(&sym.get_name(cursym)[18]);
+            snprintf(scriptNameBuffer, sizeof(scriptNameBuffer), "%s", unesc_name.GetCStr());
             scriptNameBuffer[strlen(scriptNameBuffer) - 1] = 0;  // strip closing speech mark
             ccCurScriptName = scriptNameBuffer;
 

@@ -537,6 +537,7 @@ bool VideoControl::Update()
 
             player->SetVolume(vol_f);
             player->SetSpeed(speed_f);
+            player->SetLooping(_looping);
             _paramsChanged = false;
         }
 

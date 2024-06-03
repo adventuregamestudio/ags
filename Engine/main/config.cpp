@@ -392,7 +392,7 @@ void apply_config(const ConfigTree &cfg)
     }
 
     // Apply logging configuration
-    apply_debug_config(cfg);
+    apply_debug_config(cfg, true);
 }
 
 void post_config()

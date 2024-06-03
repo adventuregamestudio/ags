@@ -300,10 +300,10 @@ void init_debug(const ConfigTree &cfg, bool stderr_only)
     platform->SetOutputToErr(stderr_only);
 
     // Register outputs
-    apply_debug_config(cfg);
+    apply_debug_config(cfg, false);
 }
 
-void apply_debug_config(const ConfigTree &cfg)
+void apply_debug_config(const ConfigTree &cfg, bool finalize)
 {
     apply_log_config(cfg, OutputSystemID, /* defaults */ true,
         { DbgGroupOption(kDbgGroup_Main, kDbgMsg_Info),
@@ -353,7 +353,8 @@ void apply_debug_config(const ConfigTree &cfg)
     }
 
     // We don't need message buffer beyond this point
-    DbgMgr.StopMessageBuffering();
+    if (finalize)
+        DbgMgr.StopMessageBuffering();
 }
 
 void shutdown_debug()

@@ -490,8 +490,8 @@ int check_for_messages_from_debugger()
 
         if (strncmp(msg, "<Engine Command=\"", 17) != 0) 
         {
-            //Debug::Printf("Faulty message received from editor:");
-            //Debug::Printf(msg);
+            Debug::Printf(kDbgMsg_Warn, "Debugger: faulty message received:");
+            Debug::Printf(kDbgMsg_Warn, "Debugger: %s", msg);
             free(msg);
             return 0;
         }
@@ -504,6 +504,7 @@ int check_for_messages_from_debugger()
             const char *windowHandle = strstr(msgPtr, "EditorWindow") + 14;
             editor_window_handle = (HWND)atoi(windowHandle);
 #endif
+            Debug::Printf(kDbgMsg_Info, "Debugger: session start");
         }
         else if (strncmp(msgPtr, "READY", 5) == 0)
         {
@@ -533,6 +534,7 @@ int check_for_messages_from_debugger()
                     if ((breakpoints[i].lineNumber == lineNumber) &&
                         (strcmp(breakpoints[i].scriptName, scriptNameBuf) == 0))
                     {
+                        Debug::Printf("Debugger: breakpoint del at %s : %d", scriptNameBuf, lineNumber);
                         breakpoints.erase(breakpoints.begin() + i);
                         break;
                     }
@@ -544,19 +546,23 @@ int check_for_messages_from_debugger()
                 snprintf(bp.scriptName, sizeof(Breakpoint::scriptName), "%s", scriptNameBuf);
                 bp.lineNumber = lineNumber;
                 breakpoints.push_back(bp);
+                Debug::Printf("Debugger: breakpoint set at %s : %d", scriptNameBuf, lineNumber);
             }
         }
         else if (strncmp(msgPtr, "RESUME", 6) == 0) 
         {
+            Debug::Printf("Debugger: resume engine");
             game_paused_in_debugger = 0;
         }
         else if (strncmp(msgPtr, "STEP", 4) == 0) 
         {
+            Debug::Printf("Debugger: step script");
             game_paused_in_debugger = 0;
             break_on_next_script_step = 1;
         }
         else if (strncmp(msgPtr, "EXIT", 4) == 0) 
         {
+            Debug::Printf(kDbgMsg_Info, "Debugger: shutdown engine");
             want_exit = true;
             abort_engine = true;
             check_dynamic_sprites_at_exit = 0;

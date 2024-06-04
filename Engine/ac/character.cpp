@@ -207,7 +207,7 @@ void Character_AddWaypoint(CharacterInfo *chaa, int x, int y) {
     cmls.pos[last_stage] = { room_to_mask_coord(last_pos.X), room_to_mask_coord(last_pos.Y) };
     const int dst_x = room_to_mask_coord(x);
     const int dst_y = room_to_mask_coord(y);
-    if (get_room_pathfinder()->AddWaypointDirect(cmls, dst_x, dst_y, move_speed_x, move_speed_y))
+    if (Pathfinding::AddWaypointDirect(cmls, dst_x, dst_y, move_speed_x, move_speed_y))
     {
         convert_move_path_to_room_resolution(cmls, last_stage, last_stage + 1);
     }
@@ -955,7 +955,7 @@ void Character_SetSpeed(CharacterInfo *chaa, int xspeed, int yspeed) {
 
     if (chaa->walking > 0)
     {
-        get_room_pathfinder()->RecalculateMoveSpeeds(mls[chaa->walking % TURNING_AROUND], old_speedx, old_speedy, xspeed, yspeed);
+        Pathfinding::RecalculateMoveSpeeds(mls[chaa->walking % TURNING_AROUND], old_speedx, old_speedy, xspeed, yspeed);
     }
 }
 
@@ -1787,7 +1787,7 @@ void walk_character(int chac,int tox,int toy,int ignwal, bool autoWalkAnims) {
     const int mslot = chac + CHMLSOFFS;
     MaskRouteFinder *pathfind = get_room_pathfinder();
     pathfind->SetWalkableArea(prepare_walkable_areas(chac));
-    if (pathfind->FindRoute(mls[mslot], src_x, src_y, dst_x, dst_y, move_speed_x, move_speed_y, false, ignwal))
+    if (Pathfinding::FindRoute(mls[mslot], pathfind, src_x, src_y, dst_x, dst_y, move_speed_x, move_speed_y, false, ignwal))
     {
         chin->walking = mslot;
         mls[mslot].direct = ignwal;

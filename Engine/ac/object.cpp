@@ -467,7 +467,7 @@ void move_object(int objj,int tox,int toy,int spee,int ignwal) {
     const int mslot = objj + 1;
     MaskRouteFinder *pathfind = get_room_pathfinder();
     pathfind->SetWalkableArea(prepare_walkable_areas(-1));
-    if (pathfind->FindRoute(mls[mslot], src_x, src_y, dst_x, dst_y, spee, spee, false, ignwal))
+    if (Pathfinding::FindRoute(mls[mslot], pathfind, src_x, src_y, dst_x, dst_y, spee, spee, false, ignwal))
     {
         objs[objj].moving = mslot;
         mls[mslot].direct = ignwal;

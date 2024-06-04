@@ -44,16 +44,6 @@ public:
     // ignore_walls - tells to ignore impassable areas (builds a straight line path).
     virtual bool FindRoute(std::vector<Point> &path, int srcx, int srcy, int dstx, int dsty,
         bool exact_dest = false, bool ignore_walls = false) = 0;
-    // Search for a route between (srcx,y) and (destx,y), and calculate the MoveList using given speeds.
-    // exact_dest - tells to fail if the destination is inside the wall and cannot be reached;
-    //              otherwise pathfinder will try to find the closest possible end point.
-    // ignore_walls - tells to ignore impassable areas (builds a straight line path).
-    virtual bool FindRoute(MoveList &mls, int srcx, int srcy, int dstx, int dsty, int move_speed_x, int move_speed_y,
-        bool exact_dest = false, bool ignore_walls = false) = 0;
-    // Append a waypoint to the move list, skip pathfinding
-    virtual bool AddWaypointDirect(MoveList &mls, int x, int y, int move_speed_x, int move_speed_y) = 0;
-    // Recalculates MoveList's step speeds
-    virtual void RecalculateMoveSpeeds(MoveList &mls, int old_speed_x, int old_speed_y, int new_speed_x, int new_speed_y) = 0;
 };
 
 // MaskRouteFinder: a mask-based RouteFinder.
@@ -68,8 +58,24 @@ public:
 };
 
 
-// Creates a default engine's MaskRouteFinder implementation
-std::unique_ptr<MaskRouteFinder> CreateDefaultMaskPathfinder();
+//
+// Various additional pathfinding functions and helpers.
+// Manages converting navigation paths into MoveLists.
+namespace Pathfinding
+{
+    // Creates a default engine's MaskRouteFinder implementation
+    std::unique_ptr<MaskRouteFinder> CreateDefaultMaskPathfinder();
+
+    // Find route using a provided IRouteFinder, and calculate the MoveList using move speeds
+    bool FindRoute(MoveList &mls, IRouteFinder *finder, int srcx, int srcy, int dstx, int dsty,
+        int move_speed_x, int move_speed_y, bool exact_dest, bool ignore_walls);
+    // Calculate the MoveList from the given navigation path and move speeds.
+    bool CalculateMoveList(MoveList &mls, const std::vector<Point> path, int move_speed_x, int move_speed_y);
+    // Append a waypoint to the move list, skip pathfinding
+    bool AddWaypointDirect(MoveList &mls, int x, int y, int move_speed_x, int move_speed_y);
+    // Recalculates MoveList's step speeds
+    void RecalculateMoveSpeeds(MoveList &mls, int old_speed_x, int old_speed_y, int new_speed_x, int new_speed_y);
+}
 
 } // namespace Engine
 } // namespace AGS

@@ -959,7 +959,7 @@ void croom_ptr_clear()
 void init_room_pathfinder()
 {
     if (!room_pathfinder)
-        room_pathfinder = CreateDefaultMaskPathfinder();
+        room_pathfinder = Pathfinding::CreateDefaultMaskPathfinder();
 }
 
 void dispose_room_pathfinder()

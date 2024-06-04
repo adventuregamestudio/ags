@@ -41,16 +41,6 @@ public:
     // ignore_walls - tells to ignore impassable areas (builds a straight line path).
     bool FindRoute(std::vector<Point> &nav_path, int srcx, int srcy, int dstx, int dsty,
         bool exact_dest = false, bool ignore_walls = false) override;
-    // Search for a route between (srcx,y) and (destx,y), and calculate the MoveList using given speeds.
-    // exact_dest - tells to fail if the destination is inside the wall and cannot be reached;
-    //              otherwise pathfinder will try to find the closest possible end point.
-    // ignore_walls - tells to ignore impassable areas (builds a straight line path).
-    bool FindRoute(MoveList &mls, int srcx, int srcy, int dstx, int dsty, int move_speed_x, int move_speed_y,
-        bool exact_dest = false, bool ignore_walls = false) override;
-    // Append a waypoint to the move list, skip pathfinding
-    bool AddWaypointDirect(MoveList &mls, int x, int y, int move_speed_x, int move_speed_y) override;
-    // Recalculates MoveList's step speeds
-    void RecalculateMoveSpeeds(MoveList &mls, int old_speed_x, int old_speed_y, int new_speed_x, int new_speed_y) override;
     // Assign a walkable mask;
     // Note that this may make routefinder to generate additional data, taking more time.
     void SetWalkableArea(const AGS::Common::Bitmap *walkablearea) override;
@@ -60,7 +50,6 @@ private:
     bool FindRouteJPS(std::vector<Point> &nav_path, int fromx, int fromy, int destx, int desty);
 
     const size_t MAXNAVPOINTS = MAXNEEDSTAGES;
-    std::vector<Point> navpoints;
     Navigation &nav; // declare as reference, because we must hide real Navigation decl here
     const Bitmap *walkablearea = nullptr;
     std::vector<int> path, cpath;

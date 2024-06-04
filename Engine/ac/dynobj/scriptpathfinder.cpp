@@ -30,7 +30,7 @@ extern SpriteCache spriteset;
 ScriptMaskPathfinder *ScriptMaskPathfinder::CreateFromMaskSprite(int mask_sprite)
 {
     ScriptMaskPathfinder *pathfind = new ScriptMaskPathfinder();
-    pathfind->_finder = CreateDefaultMaskPathfinder();
+    pathfind->_finder = Pathfinding::CreateDefaultMaskPathfinder();
     if (mask_sprite > 0)
         pathfind->_finder->SetWalkableArea(spriteset[mask_sprite]);
     ccRegisterManagedObject(pathfind, pathfind);
@@ -66,7 +66,7 @@ int ScriptMaskPathfinder::Dispose(void *address, bool force)
 void ScriptMaskPathfinder::Unserialize(int index, Stream *in, size_t data_sz)
 {
     _maskSprite = in->ReadInt32();
-    _finder = CreateDefaultMaskPathfinder();
+    _finder = Pathfinding::CreateDefaultMaskPathfinder();
     if (_maskSprite > 0)
         _finder->SetWalkableArea(spriteset[_maskSprite]);
     ccRegisterUnserializedObject(index, this, this);

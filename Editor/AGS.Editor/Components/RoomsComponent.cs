@@ -1369,12 +1369,12 @@ namespace AGS.Editor.Components
             {
                 if (!File.Exists(unloadedRoom.ScriptFileName))
                 {
-                    errors.Add(new CompileError("File not found: " + unloadedRoom.ScriptFileName + "; If you deleted this file, use the Exclude From Game option to remove it from the game."));
+                    errors.Add(new CompileError("File not found: " + unloadedRoom.ScriptFileName + "; If you deleted this file, delete the room in the Project Explorer using a context menu."));
                     success = false;
                 }
                 else if (!File.Exists(unloadedRoom.FileName))
                 {
-                    errors.Add(new CompileError("File not found: " + unloadedRoom.FileName + "; If you deleted this file, use the Exclude From Game option to remove it from the game."));
+                    errors.Add(new CompileError("File not found: " + unloadedRoom.FileName + "; If you deleted this file, delete the room from the Project Explorer using a context menu."));
                     success = false;
                 }
                 else if ((rebuildAll) ||

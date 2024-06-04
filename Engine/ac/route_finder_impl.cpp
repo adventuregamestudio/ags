@@ -251,8 +251,8 @@ void recalculate_move_speeds(MoveList *mlsp, int old_speed_x, int old_speed_y, i
       int destx = mlsp->pos[i + 1].X;
       int desty = mlsp->pos[i + 1].Y;
 
-      float xdist = itofix(abs(ourx - destx));
-      float ydist = itofix(abs(oury - desty));
+      float xdist = abs(ourx - destx);
+      float ydist = abs(oury - desty);
       float old_speed_at_angle = calc_move_speed_at_angle(old_movspeed_x, old_movspeed_y, xdist, ydist);
       float new_speed_at_angle = calc_move_speed_at_angle(new_movspeed_x, new_movspeed_y, xdist, ydist);
 

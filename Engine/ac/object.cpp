@@ -32,6 +32,7 @@
 #include "ac/viewframe.h"
 #include "ac/walkablearea.h"
 #include "ac/dynobj/cc_object.h"
+#include "ac/dynobj/scriptuserobject.h"
 #include "debug/debug_log.h"
 #include "main/game_run.h"
 #include "ac/route_finder.h"
@@ -318,20 +319,41 @@ bool Object_IsInteractionAvailable(ScriptObject *oobj, int mood) {
     return (ciwas == 2);
 }
 
-void Object_Move(ScriptObject *objj, int x, int y, int speed, int blocking, int direct) {
-    if ((direct == ANYWHERE) || (direct == 1))
+void move_object(int objj, const std::vector<Point> *path, int tox, int toy, int speed, int ignwal);
+
+void Object_DoMove(ScriptObject *objj, const std::vector<Point> *path, int x, int y,
+    int speed, int blocking, int direct)
+{
+    if (direct == ANYWHERE)
         direct = 1;
-    else if ((direct == WALKABLE_AREAS) || (direct == 0))
+    else if (direct == WALKABLE_AREAS)
         direct = 0;
-    else
-        quit("Object.Move: invalid DIRECT parameter");
+    if (blocking == BLOCKING)
+        blocking = 1;
+    else if (blocking == IN_BACKGROUND)
+        blocking = 0;
 
-    move_object(objj->id, x, y, speed, direct);
+    if (blocking != 0 && blocking != 1)
+        quit("Object.Move: Blocking must be BLOCKING or IN_BACKGROUND");
+    if (direct != 0 && direct != 1)
+        quit("Object.Move: Direct must be ANYWHERE or WALKABLE_AREAS");
 
-    if ((blocking == BLOCKING) || (blocking == 1))
+    move_object(objj->id, path, x, y, speed, direct);
+
+    if (blocking)
         GameLoopUntilNotMoving(&objs[objj->id].moving);
-    else if ((blocking != IN_BACKGROUND) && (blocking != 0))
-        quit("Object.Move: invalid BLOCKING paramter");
+}
+
+void Object_Move(ScriptObject *objj, int x, int y, int speed, int blocking, int direct) {
+    Object_DoMove(objj, nullptr, x, y, speed, blocking, direct);
+}
+
+void Object_MovePath(ScriptObject *objj, void *path_arr, int speed, int blocking)
+{
+    std::vector<Point> path;
+    if (!ScriptStructHelpers::ResolveArrayOfPoints(path_arr, path))
+        return;
+    Object_DoMove(objj, &path, 0, 0, speed, blocking, 1);
 }
 
 void Object_SetClickable(ScriptObject *objj, int clik) {
@@ -450,29 +472,67 @@ void Object_SetRotation(ScriptObject *objj, float degrees) {
 }
 
 
-void move_object(int objj,int tox,int toy,int spee,int ignwal) {
+void move_object(int objj, const std::vector<Point> *path, int tox, int toy, int speed, int ignwal) {
 
     if (!is_valid_object(objj))
         quit("!MoveObject: invalid object number");
 
+    RoomObject &obj = objs[objj];
+    if (path)
+    {
+        if (path->empty())
+        {
+            debug_script_log("MoveObject: path is empty for object %d, not moving", objj);
+            return;
+        }
+
+        obj.x = path->front().X;
+        obj.y = path->front().Y;
+        tox = path->back().X;
+        toy = path->back().Y;
+        ignwal = 1;
+    }
+    else if ((tox == obj.x) && (toy == obj.y ))
+    {
+        debug_script_log("MoveObject: object %d already at destination, not moving", objj);
+        return;
+    }
+
     debug_script_log("Object %d start move to %d,%d", objj, tox, toy);
 
-    // Convert src and dest coords to the mask resolution, for pathfinder
-    // NOTE: for old games we assume the input coordinates are in the "data" coordinate system
-    const int src_x = room_to_mask_coord(objs[objj].x);
-    const int src_y = room_to_mask_coord(objs[objj].y);
-    const int dst_x = room_to_mask_coord(tox);
-    const int dst_y = room_to_mask_coord(toy);
-
     const int mslot = objj + 1;
-    MaskRouteFinder *pathfind = get_room_pathfinder();
-    pathfind->SetWalkableArea(prepare_walkable_areas(-1));
-    if (Pathfinding::FindRoute(mls[mslot], pathfind, src_x, src_y, dst_x, dst_y, spee, spee, false, ignwal))
+    bool path_result = false;
+    if (path)
+    {
+        path_result = Pathfinding::CalculateMoveList(mls[mslot], *path, speed, speed);
+    }
+    else
+    {
+        // Convert src and dest coords to the mask resolution, for pathfinder
+        // NOTE: for old games we assume the input coordinates are in the "data" coordinate system
+        const int src_x = room_to_mask_coord(obj.x);
+        const int src_y = room_to_mask_coord(obj.y);
+        const int dst_x = room_to_mask_coord(tox);
+        const int dst_y = room_to_mask_coord(toy);
+
+        MaskRouteFinder *pathfind = get_room_pathfinder();
+        pathfind->SetWalkableArea(prepare_walkable_areas(-1));
+        path_result = Pathfinding::FindRoute(mls[mslot], pathfind, src_x, src_y, dst_x, dst_y, speed, speed, false, ignwal);
+        // Convert resulting movelist back to room coordinates
+        convert_move_path_to_room_resolution(mls[mslot]);
+    }
+    
+    // If successful, then start moving
+    if (path_result)
     {
         objs[objj].moving = mslot;
         mls[mslot].direct = ignwal;
-        convert_move_path_to_room_resolution(mls[mslot]);
     }
+}
+
+void move_object(int objj, int tox, int toy, int speed, int ignwal)
+{
+    move_object(objj, nullptr, tox, toy, speed, ignwal);
 }
 
 void Object_RunInteraction(ScriptObject *objj, int mode) {
@@ -881,6 +941,11 @@ RuntimeScriptValue Sc_Object_Move(void *self, const RuntimeScriptValue *params, 
     API_OBJCALL_VOID_PINT5(ScriptObject, Object_Move);
 }
 
+RuntimeScriptValue Sc_Object_MovePath(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_POBJ_PINT2(ScriptObject, Object_MovePath, void);
+}
+
 // void (ScriptObject *objj)
 RuntimeScriptValue Sc_Object_RemoveTint(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -1258,6 +1323,7 @@ void RegisterObjectAPI()
         { "Object::SetTextProperty^2",        API_FN_PAIR(Object_SetTextProperty) },
         { "Object::IsInteractionAvailable^1", API_FN_PAIR(Object_IsInteractionAvailable) },
         { "Object::Move^5",                   API_FN_PAIR(Object_Move) },
+        { "Object::MovePath^3",               API_FN_PAIR(Object_MovePath) },
         { "Object::RemoveTint^0",             API_FN_PAIR(Object_RemoveTint) },
         { "Object::RunInteraction^1",         API_FN_PAIR(Object_RunInteraction) },
         { "Object::SetLightLevel^1",          API_FN_PAIR(Object_SetLightLevel) },

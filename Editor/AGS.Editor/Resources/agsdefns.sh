@@ -2094,6 +2094,8 @@ builtin managed struct Object {
   import attribute bool UseRegionTint;
 #endif
 #ifdef SCRIPT_API_v400
+  /// Moves the object along the path, ignoring walkable areas.
+  import function MovePath(Point*[], int speed, BlockingStyle=eNoBlock);
   /// Gets/sets whether the object will be drawn and updated during the game update.
   import attribute bool Enabled;
 #endif
@@ -2336,6 +2338,12 @@ builtin managed struct Character {
 #ifdef SCRIPT_API_v362
   /// Moves the character in a straight line as far as possible towards the co-ordinates, without walking animation. Useful for keyboard movement.
   import function MoveStraight(int x, int y, BlockingStyle=eNoBlock);
+#endif
+#ifdef SCRIPT_API_v400
+  /// Moves the character along the path, ignoring walkable areas, without playing his walking animation.
+  import function MovePath(Point*[], BlockingStyle=eNoBlock);
+  /// Moves the character along the path, ignoring walkable areas, automatically playing his walking animation.
+  import function WalkPath(Point*[], BlockingStyle=eNoBlock);
 #endif
   /// The character's current X-position.
   import attribute int  x;

@@ -18,6 +18,7 @@
 #ifndef __AGS_EE_AC__CHARACTER_H
 #define __AGS_EE_AC__CHARACTER_H
 
+#include <vector>
 #include "ac/characterinfo.h"
 #include "ac/characterextras.h"
 #include "ac/dynobj/scriptobjects.h"
@@ -170,7 +171,6 @@ void animate_character(CharacterInfo *chap, int loopn, int sppd, int rept,
     int noidleoverride = 0, int direction = 0, int sframe = 0, int volume = 100);
 // Clears up animation parameters
 void stop_character_anim(CharacterInfo *chap);
-void walk_character(int chac,int tox,int toy,int ignwal, bool autoWalkAnims);
 int  find_looporder_index (int curloop);
 // returns 0 to use diagonal, 1 to not
 int  useDiagonal (CharacterInfo *char1);
@@ -185,10 +185,13 @@ int  doNextCharMoveStep (CharacterInfo *chi, int &char_index, CharacterExtras *c
 bool is_char_walking_ndirect(CharacterInfo *chi);
 int  find_nearest_walkable_area_within(int *xx, int *yy, int range, int step);
 void find_nearest_walkable_area (int *xx, int *yy);
-void walk_character(int chac,int tox,int toy,int ignwal, bool autoWalkAnims);
+void walk_character(int chac, int tox, int toy, int ignwal, bool autoWalkAnims);
+void walk_character(int chac, const std::vector<Point> &path, bool autoWalkAnims);
 void FindReasonableLoopForCharacter(CharacterInfo *chap);
-// Start character walk or move
+// Start character walk or move; calculate path using destination and optionally "ignore walls" flag
 void walk_or_move_character(CharacterInfo *chaa, int x, int y, int blocking, int direct, bool isWalk);
+// Start character walk or move, using a predefined path
+void walk_or_move_character(CharacterInfo *chaa, const std::vector<Point> &path, int blocking, bool isWalk);
 // Start character walk or move along the straight line without pathfinding, until any non-passable area is met
 void walk_or_move_character_straight(CharacterInfo *chaa, int x, int y, int blocking, int direct, bool isWalk);
 int  wantMoveNow (CharacterInfo *chi, CharacterExtras *chex);

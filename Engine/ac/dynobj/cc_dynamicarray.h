@@ -88,6 +88,7 @@ extern CCDynamicArray globalDynamicArray;
 
 
 // Helper functions for setting up dynamic arrays.
+// TODO: move to the separate source file and merge with script struct helpers?!
 namespace DynamicArrayHelpers
 {
     // Create array of managed strings from strings that exists somewhere

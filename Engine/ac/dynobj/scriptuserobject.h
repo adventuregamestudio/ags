@@ -19,6 +19,7 @@
 #define __AGS_EE_DYNOBJ__SCRIPTUSERSTRUCT_H
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
+#include "util/geometry.h"
 #include "util/stream.h"
 
 
@@ -84,11 +85,16 @@ extern ScriptUserObject globalDynamicStruct;
 
 
 // Helper functions for setting up custom managed structs based on ScriptUserObject.
+// TODO: move to the separate source file and merge with dynamic array helpers?!
 namespace ScriptStructHelpers
 {
     // Creates a managed Point object, represented as a pair of X and Y coordinates.
     ScriptUserObject *CreatePoint(int x, int y);
     DynObjectRef CreatePointRef(int x, int y);
+    // Resolves a managed Point struct object
+    Point ResolvePoint(void *managed_point);
+    // Resolves a dynamic array of managed Point objects
+    bool ResolveArrayOfPoints(const void *arrobj, std::vector<Point> &points);
 };
 
 #endif // __AGS_EE_DYNOBJ__SCRIPTUSERSTRUCT_H

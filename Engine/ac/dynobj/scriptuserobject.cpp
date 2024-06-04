@@ -15,6 +15,7 @@
 #include "scriptuserobject.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/dynobj/managedobjectpool.h"
+#include "ac/dynobj/cc_dynamicarray.h"
 #include "script/cc_script.h"
 #include "script/cc_instance.h"
 #include "util/memorystream.h"
@@ -130,4 +131,21 @@ DynObjectRef ScriptStructHelpers::CreatePointRef(int x, int y)
     ref.Mgr->WriteInt32(ref.Obj, 0, x);
     ref.Mgr->WriteInt32(ref.Obj, sizeof(int32_t), y);
     return ref;
+}
+
+Point ScriptStructHelpers::ResolvePoint(void *managed_point)
+{
+    auto *obj = reinterpret_cast<ScriptUserObject*>(managed_point);
+    return Point(obj->ReadInt32(managed_point, 0), 
+                 obj->ReadInt32(managed_point, sizeof(int32_t)));
+}
+
+bool ScriptStructHelpers::ResolveArrayOfPoints(const void *arrobj, std::vector<Point> &points)
+{
+    std::vector<void*> mpoints{};
+    if (!DynamicArrayHelpers::ResolvePointerArray(arrobj, mpoints) || mpoints.empty())
+        return false; // failed to resolve or null-size array (?)
+    for (const auto &mpt : mpoints)
+        points.push_back(ScriptStructHelpers::ResolvePoint(mpt));
+    return true;
 }

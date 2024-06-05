@@ -84,12 +84,7 @@ namespace AGS.Editor
             btnDeleteLastLoop.Left = btnNewLoop.Left + btnNewLoop.Width + 10;
             btnNewLoop.Top = 10 + lastPaneY;
             btnDeleteLastLoop.Top = btnNewLoop.Top;
-
-            if (_editingView.Loops.Count == 0)
-            {
-                btnDeleteLastLoop.Visible = false;
-            }
-
+            btnDeleteLastLoop.Visible = _editingView.Loops.Count > 0;
         }
 
         public AGS.Types.View ViewToEdit

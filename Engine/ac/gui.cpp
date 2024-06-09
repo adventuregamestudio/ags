@@ -70,7 +70,8 @@ extern CCGUIObject ccDynamicGUIObject;
 
 int ifacepopped=-1;  // currently displayed pop-up GUI (-1 if none)
 int mouse_on_iface=-1;   // mouse cursor is over this interface
-int mouse_ifacebut_xoffs=-1,mouse_ifacebut_yoffs=-1;
+// cursor position relative to a focused gui control
+int mouse_ifacebut_xoffs =- 1, mouse_ifacebut_yoffs =- 1;
 
 int eip_guinum, eip_guiobj;
 
@@ -427,6 +428,26 @@ void GUI_SetRotation(ScriptGUI *gui, float rotation) {
     guis[gui->id].SetRotation(rotation);
 }
 
+float GUI_GetScaleX(ScriptGUI *gui) {
+    return guis[gui->id].GetScale().X;
+}
+
+void GUI_SetScaleX(ScriptGUI *gui, float scalex) {
+    guis[gui->id].SetScale(scalex, guis[gui->id].GetScale().Y);
+}
+
+float GUI_GetScaleY(ScriptGUI *gui) {
+    return guis[gui->id].GetScale().Y;
+}
+
+void GUI_SetScaleY(ScriptGUI *gui, float scaley) {
+    guis[gui->id].SetScale(guis[gui->id].GetScale().X, scaley);
+}
+
+void GUI_SetScale(ScriptGUI *gui, float scalex, float scaley) {
+    guis[gui->id].SetScale(scalex, scaley);
+}
+
 //=============================================================================
 
 void remove_popup_interface(int ifacenum) {
@@ -739,21 +760,23 @@ void gui_on_mouse_hold(const int wasongui, const int wasbutdown)
 
 void gui_on_mouse_up(const int wasongui, const int wasbutdown)
 {
-    guis[wasongui].OnMouseButtonUp();
+    GUIMain &gui = guis[wasongui];
+    gui.OnMouseButtonUp();
 
-    for (int i=0;i<guis[wasongui].GetControlCount();i++) {
-        GUIObject *guio = guis[wasongui].GetControl(i);
+    for (int i=0;i<gui.GetControlCount();i++) {
+        GUIObject *guio = gui.GetControl(i);
         if (!guio->IsActivated) continue;
         guio->IsActivated = false;
         if (!IsInterfaceEnabled()) break;
 
-        int cttype=guis[wasongui].GetControlType(i);
+        int cttype=gui.GetControlType(i);
         if ((cttype == kGUIButton) || (cttype == kGUISlider) || (cttype == kGUIListBox)) {
             force_event(EV_IFACECLICK, wasongui, i, wasbutdown);
         }
         else if (cttype == kGUIInvWindow) {
-            mouse_ifacebut_xoffs=mousex-(guio->X)-guis[wasongui].X;
-            mouse_ifacebut_yoffs=mousey-(guio->Y)-guis[wasongui].Y;
+            Point guipt = gui.GetGraphicSpace().WorldToLocal(mousex, mousey);
+            mouse_ifacebut_xoffs = guipt.X - (guio->X);
+            mouse_ifacebut_yoffs = guipt.Y - (guio->Y);
             int iit=offset_over_inv((GUIInvWindow*)guio);
             if (iit>=0) {
                 play.used_inv_on = iit;
@@ -771,7 +794,7 @@ void gui_on_mouse_up(const int wasongui, const int wasbutdown)
             }
         }
         else quit("clicked on unknown control type");
-        if (guis[wasongui].PopupStyle==kGUIPopupMouseY)
+        if (gui.PopupStyle==kGUIPopupMouseY)
             remove_popup_interface(wasongui);
         break;
     }
@@ -797,6 +820,7 @@ void gui_on_mouse_down(const int guin, const int mbut)
 //=============================================================================
 
 #include "ac/dynobj/scriptstring.h"
+#include "ac/dynobj/scriptuserobject.h"
 #include "debug/out.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
@@ -805,6 +829,24 @@ void gui_on_mouse_down(const int guin, const int mbut)
 ScriptGUI *GUI_GetByName(const char *name)
 {
     return static_cast<ScriptGUI*>(ccGetScriptObjectAddress(name, ccDynamicGUI.GetType()));
+}
+
+ScriptUserObject *GUI_ScreenToGUIPoint(ScriptGUI *tehgui, int scrx, int scry, bool clipToGUI)
+{
+    GUIMain &gui = guis[tehgui->id];
+    Point pt = gui.GetGraphicSpace().WorldToLocal(scrx, scry);
+    if (clipToGUI && !RectWH(gui.X, gui.Y, gui.Width, gui.Height).IsInside(pt))
+        return nullptr;
+    return ScriptStructHelpers::CreatePoint(pt.X, pt.Y);
+}
+
+ScriptUserObject *GUI_GUIToScreenPoint(ScriptGUI *tehgui, int guix, int guiy, bool clipToGUI)
+{
+    GUIMain &gui = guis[tehgui->id];
+    if (clipToGUI && !RectWH(gui.X, gui.Y, gui.Width, gui.Height).IsInside(guix, guiy))
+        return nullptr;
+    Point pt = gui.GetGraphicSpace().LocalToWorld(guix, guiy);
+    return ScriptStructHelpers::CreatePoint(pt.X, pt.Y);
 }
 
 
@@ -1065,6 +1107,41 @@ RuntimeScriptValue Sc_GUI_SetRotation(void *self, const RuntimeScriptValue *para
     API_OBJCALL_VOID_PFLOAT(ScriptGUI, GUI_SetRotation);
 }
 
+RuntimeScriptValue Sc_GUI_GetScaleX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_FLOAT(ScriptGUI, GUI_GetScaleX);
+}
+
+RuntimeScriptValue Sc_GUI_SetScaleX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PFLOAT(ScriptGUI, GUI_SetScaleX);
+}
+
+RuntimeScriptValue Sc_GUI_GetScaleY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_FLOAT(ScriptGUI, GUI_GetScaleY);
+}
+
+RuntimeScriptValue Sc_GUI_SetScaleY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PFLOAT(ScriptGUI, GUI_SetScaleY);
+}
+
+RuntimeScriptValue Sc_GUI_SetScale(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PFLOAT2(ScriptGUI, GUI_SetScale);
+}
+
+RuntimeScriptValue Sc_GUI_ScreenToGUIPoint(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJAUTO_PINT2_PBOOL(ScriptGUI, ScriptUserObject, GUI_ScreenToGUIPoint);
+}
+
+RuntimeScriptValue Sc_GUI_GUIToScreenPoint(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJAUTO_PINT2_PBOOL(ScriptGUI, ScriptUserObject, GUI_GUIToScreenPoint);
+}
+
 void RegisterGUIAPI()
 {
     ScFnRegister gui_api[] = {
@@ -1117,6 +1194,14 @@ void RegisterGUIAPI()
         { "GUI::set_BlendMode",           API_FN_PAIR(GUI_SetBlendMode) },
         { "GUI::get_Rotation",            API_FN_PAIR(GUI_GetRotation) },
         { "GUI::set_Rotation",            API_FN_PAIR(GUI_SetRotation) },
+        { "GUI::get_ScaleX",              API_FN_PAIR(GUI_GetScaleX) },
+        { "GUI::set_ScaleX",              API_FN_PAIR(GUI_SetScaleX) },
+        { "GUI::get_ScaleY",              API_FN_PAIR(GUI_GetScaleY) },
+        { "GUI::set_ScaleY",              API_FN_PAIR(GUI_SetScaleY) },
+        { "GUI::SetScale",                API_FN_PAIR(GUI_SetScale) },
+        { "GUI::SetScale",                API_FN_PAIR(GUI_SetScale) },
+        { "GUI::ScreenToGUIPoint",        API_FN_PAIR(GUI_ScreenToGUIPoint) },
+        { "GUI::GUIToScreenPoint",        API_FN_PAIR(GUI_GUIToScreenPoint) },
     };
 
     ccAddExternalFunctions(gui_api);

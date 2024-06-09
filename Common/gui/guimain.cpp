@@ -76,6 +76,7 @@ void GUIMain::InitDefaults()
     MouseWasAt.Y  = -1;
 
     BlendMode     = kBlend_Normal;
+    Scale         = Pointf(1.f, 1.f);
     Rotation      = 0.f;
 
     OnClickHandler.Empty();
@@ -345,7 +346,7 @@ void GUIMain::DrawBlob(Bitmap *ds, int x, int y, color_t draw_color)
 
 void GUIMain::UpdateGraphicSpace()
 {
-    _gs = GraphicSpace(X, Y, Width, Height, Width, Height, Rotation);
+    _gs = GraphicSpace(X, Y, Width, Height, Width * Scale.X, Height * Scale.Y, Rotation);
 }
 
 void GUIMain::Poll(int mx, int my)
@@ -504,6 +505,18 @@ bool GUIMain::SetControlZOrder(int index, int zorder)
     ResortZOrder();
     NotifyControlPosition();
     return true;
+}
+
+Pointf GUIMain::GetScale() const
+{
+    return Scale;
+}
+
+void GUIMain::SetScale(float sx, float sy)
+{
+    Scale = Pointf(sx, sy);
+    MarkChanged();
+    UpdateGraphicSpace();
 }
 
 void GUIMain::SetRotation(float degrees)
@@ -674,8 +687,8 @@ void GUIMain::ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_version)
         // Reserved for transform options
         in->ReadInt32(); // sprite transform flags1
         in->ReadInt32(); // sprite transform flags2
-        in->ReadInt32(); // transform scale x
-        in->ReadInt32(); // transform scale y
+        Scale.X = in->ReadFloat32(); // transform scale x
+        Scale.Y = in->ReadFloat32(); // transform scale y
         in->ReadInt32(); // transform skew x
         in->ReadInt32(); // transform skew y
         Rotation = in->ReadFloat32(); // transform rotate
@@ -683,6 +696,11 @@ void GUIMain::ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_version)
         in->ReadInt32(); // sprite pivot y
         in->ReadInt32(); // sprite anchor x
         in->ReadInt32(); // sprite anchor y
+
+        if (Scale.X == 0.f)
+            Scale.X = 1.f;
+        if (Scale.Y == 0.f)
+            Scale.Y = 1.f;
     }
 
     UpdateGraphicSpace();
@@ -719,8 +737,8 @@ void GUIMain::WriteToSavegame(Common::Stream *out) const
     // Reserved for transform options
     out->WriteInt32(0); // sprite transform flags1
     out->WriteInt32(0); // sprite transform flags2
-    out->WriteInt32(0); // transform scale x
-    out->WriteInt32(0); // transform scale y
+    out->WriteFloat32(Scale.X); // transform scale x
+    out->WriteFloat32(Scale.Y); // transform scale y
     out->WriteInt32(0); // transform skew x
     out->WriteInt32(0); // transform skew y
     out->WriteFloat32(Rotation); // transform rotate

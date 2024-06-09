@@ -80,8 +80,13 @@ void    gui_on_mouse_hold(const int wasongui, const int wasbutdown);
 void    gui_on_mouse_up(const int wasongui, const int wasbutdown);
 void    gui_on_mouse_down(const int guin, const int mbut);
 
+// currently displayed pop-up GUI (-1 if none)
 extern int ifacepopped;
+// index of GUI the cursor was on
 extern int mouse_on_iface;
+// cursor position relative to a focused gui control
+extern int mouse_ifacebut_xoffs;
+extern int mouse_ifacebut_yoffs;
 extern std::vector<AGS::Common::GUIMain> guis;
 extern std::vector<AGS::Common::GUIButton> guibuts;
 extern std::vector<AGS::Common::GUIInvWindow> guiinv;

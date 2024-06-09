@@ -1554,6 +1554,17 @@ builtin managed struct GUI {
   /// Gets/sets the GUI's image rotation in degrees.
   import attribute float Rotation;
 #endif
+#ifdef SCRIPT_API_v400
+  /// Gets/sets this GUI horizontal scaling.
+  import attribute float ScaleX;
+  /// Gets/sets this GUI vertical scaling.
+  import attribute float ScaleY;
+  /// Sets this GUI horizontal and vertical scaling
+  import void SetScale(float x, float y);
+
+  import Point *GUIToScreenPoint(int guix, int guiy, bool clipToGUI = true);
+  import Point *ScreenToGUIPoint(int screenx, int screeny, bool clipToGUI = true);
+#endif
   readonly int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };
 

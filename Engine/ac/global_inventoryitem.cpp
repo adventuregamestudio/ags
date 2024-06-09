@@ -31,8 +31,6 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 extern GameSetupStruct game;
-extern int mousex, mousey;
-extern int mouse_ifacebut_xoffs,mouse_ifacebut_yoffs;
 extern CharacterInfo*playerchar;
 extern ScriptInvItem scrInv[MAX_INV];
 extern CCInventory ccDynamicInv;
@@ -65,16 +63,18 @@ void SetInvItemName(int invi, const char *newName) {
     GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
 }
 
-int GetInvAt(int atx, int aty) {
-  int ongui = GetGUIAt(atx, aty);
+int GetInvAt(int scrx, int scry) {
+  int ongui = GetGUIAt(scrx, scry);
   if (ongui >= 0) {
-    int onobj = guis[ongui].FindControlAt(atx, aty);
-    GUIObject *guio = guis[ongui].GetControl(onobj);
+    GUIMain &gui = guis[ongui];
+    int onobj = gui.FindControlAt(scrx, scry);
+    GUIObject *guio = gui.GetControl(onobj);
     if (guio) {
-      mouse_ifacebut_xoffs = atx - guis[ongui].X - guio->X;
-      mouse_ifacebut_yoffs = aty - guis[ongui].Y - guio->Y;
+      Point guipt = gui.GetGraphicSpace().WorldToLocal(scrx, scry);
+      mouse_ifacebut_xoffs = guipt.X - guio->X;
+      mouse_ifacebut_yoffs = guipt.Y - guio->Y;
     }
-    if (guio && (guis[ongui].GetControlType(onobj) == kGUIInvWindow))
+    if (guio && (gui.GetControlType(onobj) == kGUIInvWindow))
       return offset_over_inv((GUIInvWindow*)guio);
   }
   return -1;

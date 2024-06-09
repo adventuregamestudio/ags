@@ -35,6 +35,29 @@ Compatibility:
 
 ---------------------------------------------------------------------------------------------------
 
+VERSION 3.6.1 - Patch 3, June 2024
+
+Editor:
+ - Fixed that after deleting a View's frame editor did not select next frame (regression in 3.6.1).
+ - Fixed "Delete last loop" button not appearing in the View Editor if the view is filled using
+   "Assign sprites to view" command from the Sprite Manager.
+
+Engine:
+ - Implemented an alternate solution for rendering "bad" TTF fonts that does not increase their
+   loading times (after previous patch 2).
+ - Allow scene render during "load room" event if the last room transition was "Instant".
+   This has to be done because number of games used this event for custom transitions.
+ - For games compiled in "Debug" mode "warnings.log" file will be written in "savegame dir"
+   on platforms where modifying game directory is forbidden in principle (OSX, iOS, Android, Web).
+ - Fixed System.Log() was registered for plugins using a wrong argument list.
+
+Compatibility:
+ - Fixed loading of 3.5.0 saves (broken in 3.6.1).
+
+Windows:
+ - Fixed disk space check was testing space in the current directory instead of the
+   save game location.
+
 
 VERSION 3.6.1 - Patch 2, May 2024
 

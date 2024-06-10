@@ -178,6 +178,8 @@ namespace AGS.Editor.Components
                 {
                     _testGameInProgress = true;
                     _guiController.InteractiveTasks.TestGame(withDebugger);
+                    // Depending on which panels are enabled, one of them may end up being shown on top
+                    _guiController.ShowWatchVariablesPanel(true);
                     _guiController.ShowLogPanel(true);
                 }
             }

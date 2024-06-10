@@ -448,6 +448,13 @@ namespace AGS.Editor
             _mainForm.pnlFindResults.Hide();
         }
 
+        public void ShowWatchVariablesPanel(bool ifEnabled)
+        {
+            if (ifEnabled && _mainForm.pnlWatchVariables.IsHidden)
+                return;
+            _mainForm.pnlWatchVariables.Show();
+        }
+
         public void SetLogPanel(LogPanel pnlEngineLog)
         {
             _pnlEngineLog = pnlEngineLog;

@@ -17,8 +17,9 @@ namespace AGS.Editor
 
         // TODO: there should be a working thread for updating items instead,
         // with a list of items to update that may be added and removed async.
-        private Timer _updateItemTimer = new Timer();
-        private ListViewItem _itemToUpdate;
+        private readonly Timer _updateItemTimer = new Timer();
+        private readonly object _updateItemLock = new object();
+        private readonly List<ListViewItem> _itemsToUpdate = new List<ListViewItem>();
 
         public WatchVariablesPanel()
         {
@@ -27,20 +28,59 @@ namespace AGS.Editor
             listView1.AfterLabelEdit += ListView1_AfterLabelEdit;
             _updateItemTimer.Interval = 100;
             _updateItemTimer.Tick += _updateItemTimer_Tick;
+
+            EnsureEmptyItem();
+        }
+
+        private ListViewItem CreateItem(string text)
+        {
+            var item = new ListViewItem();
+            item.Text = text;
+            item.SubItems.Add(new ListViewItem.ListViewSubItem());
+            item.SubItems.Add(new ListViewItem.ListViewSubItem());
+            return item;
+        }
+
+        /// <summary>
+        /// Ensures that there's always a single ready empty item in the end of the list,
+        /// which user may edit right away without calling a context menu.
+        /// </summary>
+        private void EnsureEmptyItem()
+        {
+            // remove trailing empty items, except the last empty item
+            for (int i = listView1.Items.Count - 1;
+                    i > 0 && listView1.Items[i].Text.Length == 0 && listView1.Items[i - 1].Text.Length == 0; --i)
+            {
+                listView1.Items.RemoveAt(i);
+            }
+
+            // add one empty item, if there's none at the end
+            if ((listView1.Items.Count == 0) ||
+                (listView1.Items.Count > 0 && listView1.Items[listView1.Items.Count - 1].Text.Length > 0))
+            {
+                listView1.Items.Add(CreateItem(""));
+            }
         }
 
         private void _updateItemTimer_Tick(object sender, EventArgs e)
         {
             _updateItemTimer.Enabled = false;
-            if (_itemToUpdate != null)
+            lock(_updateItemLock)
             {
-                UpdateSingleWatch(_itemToUpdate);
+                foreach (var item in _itemsToUpdate)
+                {
+                    UpdateSingleWatch(item);
+                }
+                _itemsToUpdate.Clear();
             }
+
+            EnsureEmptyItem();
         }
 
         private void ListView1_AfterLabelEdit(object sender, LabelEditEventArgs e)
         {
-            _itemToUpdate = listView1.Items[e.Item];
+            lock (_updateItemLock)
+                _itemsToUpdate.Add(listView1.Items[e.Item]);
             _updateItemTimer.Start();
         }
 
@@ -150,21 +190,38 @@ namespace AGS.Editor
             }
         }
 
+        private void listView1_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.F2)
+            {
+                if (listView1.SelectedItems.Count > 0)
+                {
+                    listView1.SelectedItems[0].BeginEdit();
+                }
+            }
+        }
+
         private void listView1_MouseUp(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Right)
             {
+                removeToolStripMenuItem.Enabled = listView1.SelectedItems.Count > 0;
+                clearToolStripMenuItem.Enabled = listView1.Items.Count > 0;
                 contextMenuStrip1.Show(listView1, e.Location);
             }
         }
 
         private void addToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            var item = new ListViewItem();
-            item.Text = "VARIABLE NAME";
-            item.SubItems.Add(new ListViewItem.ListViewSubItem());
-            item.SubItems.Add(new ListViewItem.ListViewSubItem());
-            item = listView1.Items.Add(item);
+            ListViewItem item;
+            if (listView1.Items.Count > 0 && listView1.Items[listView1.Items.Count - 1].Text.Length == 0)
+            {
+                item = listView1.Items[listView1.Items.Count - 1];
+            }
+            else
+            {
+                item = listView1.Items.Add(CreateItem("VARIABLE NAME"));
+            }
             item.BeginEdit();
         }
 
@@ -172,11 +229,13 @@ namespace AGS.Editor
         {
             foreach (var item in listView1.SelectedItems)
                 listView1.Items.Remove(item as ListViewItem);
+            EnsureEmptyItem();
         }
 
         private void clearToolStripMenuItem_Click(object sender, EventArgs e)
         {
             listView1.Items.Clear();
+            EnsureEmptyItem();
         }
     }
 }

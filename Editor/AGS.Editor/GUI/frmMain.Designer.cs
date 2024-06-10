@@ -229,7 +229,7 @@ namespace AGS.Editor
             this.pnlWatchVariables.HideOnClose = true;
             this.pnlWatchVariables.Location = new System.Drawing.Point(0, 0);
             this.pnlWatchVariables.Name = "pnlWatchVariables";
-            this.pnlWatchVariables.Text = "Watch variables";
+            this.pnlWatchVariables.Text = "Watch Variables";
             this.pnlWatchVariables.Pane = null;
             this.pnlWatchVariables.PanelPane = null;
             this.pnlWatchVariables.ShowHint = WeifenLuo.WinFormsUI.Docking.DockState.DockBottom;

@@ -17,12 +17,14 @@ namespace AGS.Editor
             public string Type;
             public string Value;
             public string TypeHint;
+            public string ErrorText;
 
-            public VariableInfo(string type, string value, string hint)
+            public VariableInfo(string type, string value, string hint, string errorText)
             {
                 Type = type;
                 Value = value;
                 TypeHint = hint;
+                ErrorText = errorText;
             }
         }
 
@@ -117,16 +119,21 @@ namespace AGS.Editor
                     var typeNode = doc.DocumentElement.SelectSingleNode("Type");
                     var valueNode = doc.DocumentElement.SelectSingleNode("Value");
                     var hintNode = doc.DocumentElement.SelectSingleNode("Hint");
+                    var errorNode = doc.DocumentElement.SelectSingleNode("Error");
                     if (valueNode != null)
                     {
                         ReceiveVariable.Invoke(uint.Parse(reqID), new VariableInfo(
                             typeNode != null ? typeNode.InnerText : "",
                             valueNode.InnerText,
-                            hintNode != null ? hintNode.InnerText : ""));
+                            hintNode != null ? hintNode.InnerText : "",
+                            errorNode != null ? errorNode.InnerText : null));
                     }
                     else
                     {
-                        ReceiveVariable.Invoke(uint.Parse(reqID), new VariableInfo());
+                        ReceiveVariable.Invoke(uint.Parse(reqID), new VariableInfo(
+                            null, null, null,
+                            errorNode != null ? errorNode.InnerText : null
+                            ));
                     }
                 }
             }

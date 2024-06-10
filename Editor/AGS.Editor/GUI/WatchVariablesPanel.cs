@@ -120,7 +120,7 @@ namespace AGS.Editor
 
                 if (string.IsNullOrEmpty(info.TypeHint) || info.Value == null)
                 {
-                    value = "unknown data";
+                    value = info.ErrorText ?? "unknown data";
                 }
                 else if (info.TypeHint == "s")
                 {

@@ -18,6 +18,7 @@
 #ifndef __AGS_EE_DEBUG__MEMORYINSPECT_H
 #define __AGS_EE_DEBUG__MEMORYINSPECT_H
 
+#include "util/error.h"
 #include "util/string.h"
 
 namespace AGS
@@ -25,6 +26,7 @@ namespace AGS
 namespace Engine
 {
 
+using AGS::Common::HError;
 using AGS::Common::String;
 
 namespace MemoryInspect
@@ -51,7 +53,7 @@ namespace MemoryInspect
     // - imports from other scripts, plugins or engine itself.
     // Requirements: ScriptTOC and RTTI.
     // TODO: value format option?
-    bool QueryScriptVariableInContext(const String &var_ref, VariableInfo &var_info);
+    HError QueryScriptVariableInContext(const String &var_ref, VariableInfo &var_info);
 }
 
 } // namespace Engine

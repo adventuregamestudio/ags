@@ -47,10 +47,10 @@ void CCCharacter::Unserialize(int index, Stream *in, size_t /*data_sz*/)
     ccRegisterUnserializedPersistentObject(index, &game.chars[num], this);
 }
 
-uint8_t CCCharacter::ReadInt8(void *address, intptr_t offset)
+uint8_t CCCharacter::ReadInt8(const void *address, intptr_t offset)
 {
     // The only supported variable remaining in 3.4.*
-    const CharacterInfo *ci = static_cast<CharacterInfo*>(address);
+    const CharacterInfo *ci = static_cast<const CharacterInfo*>(address);
     const int on_offset = 28 * sizeof(int32_t) /* first var group */
         + 301 * sizeof(int16_t) /* inventory */ + sizeof(int16_t) * 2 /* two shorts */ + 40 /* name */ + 20 /* scrname */;
     if (offset == on_offset)
@@ -71,7 +71,7 @@ void CCCharacter::WriteInt8(void *address, intptr_t offset, uint8_t val)
         cc_error("ScriptCharacter: unsupported 'char' variable offset %d", offset);
 }
 
-int16_t CCCharacter::ReadInt16(void *address, intptr_t offset)
+int16_t CCCharacter::ReadInt16(const void *address, intptr_t offset)
 {
     cc_error("ScriptCharacter: unsupported 'short' variable offset %d", offset);
     return 0;
@@ -82,7 +82,7 @@ void CCCharacter::WriteInt16(void *address, intptr_t offset, int16_t val)
     cc_error("ScriptCharacter: unsupported 'short' variable offset %d", offset);
 }
 
-int32_t CCCharacter::ReadInt32(void *address, intptr_t offset)
+int32_t CCCharacter::ReadInt32(const void *address, intptr_t offset)
 {
     cc_error("ScriptCharacter: unsupported 'int' variable offset %d", offset);
     return 0;

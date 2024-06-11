@@ -25,7 +25,7 @@ extern GameSetupStruct game;
 CCScriptGame GameStaticManager;
 
 
-int32_t CCScriptGame::ReadInt32(void *address, intptr_t offset)
+int32_t CCScriptGame::ReadInt32(const void *address, intptr_t offset)
 {
     const int index = offset / sizeof(int32_t);
     if (index >= 5 && index < 5 + GamePlayState::LEGACY_MAXGLOBALVARS)

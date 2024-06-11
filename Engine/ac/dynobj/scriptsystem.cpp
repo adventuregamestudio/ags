@@ -15,7 +15,7 @@
 #include "debug/debug_log.h"
 #include "script/cc_common.h"
 
-int32_t ScriptSystem::ReadInt32(void *address, intptr_t offset)
+int32_t ScriptSystem::ReadInt32(const void *address, intptr_t offset)
 {
     const int index = offset / sizeof(int32_t);
     switch (index)

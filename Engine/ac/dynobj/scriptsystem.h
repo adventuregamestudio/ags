@@ -32,7 +32,7 @@ struct ScriptSystem : public AGSCCStaticObject
     int viewport_width = 0; // game viewport width (normal or letterboxed)
     int viewport_height = 0; // game viewport height (normal or letterboxed)
     
-    int32_t ReadInt32(void *address, intptr_t offset) override;
+    int32_t ReadInt32(const void *address, intptr_t offset) override;
     void    WriteInt32(void *address, intptr_t offset, int32_t val) override;
 };
 

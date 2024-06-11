@@ -28,9 +28,9 @@ public:
     const char *GetType() override;
     void Unserialize(int index, AGS::Common::Stream *in, size_t data_sz) override;
 
-    uint8_t ReadInt8(void *address, intptr_t offset) override;
-    int16_t ReadInt16(void *address, intptr_t offset) override;
-    int32_t ReadInt32(void *address, intptr_t offset) override;
+    uint8_t ReadInt8(const void *address, intptr_t offset) override;
+    int16_t ReadInt16(const void *address, intptr_t offset) override;
+    int32_t ReadInt32(const void *address, intptr_t offset) override;
     void WriteInt8(void *address, intptr_t offset, uint8_t val) override;
     void WriteInt16(void *address, intptr_t offset, int16_t val) override;
     void WriteInt32(void *address, intptr_t offset, int32_t val) override;

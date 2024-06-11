@@ -15,7 +15,7 @@
 #include "debug/debug_log.h"
 #include "script/cc_common.h"
 
-int32_t ScriptMouse::ReadInt32(void *address, intptr_t offset)
+int32_t ScriptMouse::ReadInt32(const void *address, intptr_t offset)
 {
     switch (offset)
     {

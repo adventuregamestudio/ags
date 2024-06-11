@@ -531,8 +531,9 @@ bool inflate_decompress(uint8_t* data, size_t data_sz, int /*image_bpp*/, Stream
 // https://stackoverflow.com/questions/180947/base64-decode-snippet-in-c
 static const char *Base64Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-String base64_encode(const uint8_t *bytes, size_t input_size)
+String base64_encode(const void *addr, size_t input_size)
 {
+    const uint8_t *bytes = static_cast<const uint8_t*>(addr);
     String out;
     int val = 0, valb = -6;
     for (size_t i = 0; i < input_size; ++i)

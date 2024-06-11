@@ -43,7 +43,7 @@ void save_lzw(Common::Stream *out, const Common::Bitmap *bmpp, const RGB (*pal)[
 std::unique_ptr<Common::Bitmap> load_lzw(Common::Stream *in, int dst_bpp, RGB (*pal)[256] = nullptr);
 
 // Base64 encoding
-Common::String base64_encode(const uint8_t *bytes, size_t input_size);
+Common::String base64_encode(const void *addr, size_t input_size);
 Common::String base64_encode(const Common::String &input);
 void base64_decode(const Common::String &input, std::vector<uint8_t> &out);
 

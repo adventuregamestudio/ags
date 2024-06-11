@@ -33,29 +33,34 @@ void *CCBasicObject::GetFieldPtr(void *address, intptr_t offset)
     return static_cast<uint8_t*>(address) + offset;
 }
 
-void CCBasicObject::Read(void *address, intptr_t offset, uint8_t *dest, size_t size)
+const void *CCBasicObject::GetFieldPtr(const void *address, intptr_t offset)
 {
-    memcpy(dest, static_cast<uint8_t*>(address) + offset, size);
+    return static_cast<const uint8_t*>(address) + offset;
 }
 
-uint8_t CCBasicObject::ReadInt8(void *address, intptr_t offset)
+void CCBasicObject::Read(const void *address, intptr_t offset, uint8_t *dest, size_t size)
 {
-    return *(uint8_t*)(static_cast<uint8_t*>(address) + offset);
+    memcpy(dest, static_cast<const uint8_t*>(address) + offset, size);
 }
 
-int16_t CCBasicObject::ReadInt16(void *address, intptr_t offset)
+uint8_t CCBasicObject::ReadInt8(const void *address, intptr_t offset)
 {
-    return *(int16_t*)(static_cast<uint8_t*>(address) + offset);
+    return *(const uint8_t*)(static_cast<const uint8_t*>(address) + offset);
 }
 
-int32_t CCBasicObject::ReadInt32(void *address, intptr_t offset)
+int16_t CCBasicObject::ReadInt16(const void *address, intptr_t offset)
 {
-    return *(int32_t*)(static_cast<uint8_t*>(address) + offset);
+    return *(const int16_t*)(static_cast<const uint8_t*>(address) + offset);
 }
 
-float CCBasicObject::ReadFloat(void *address, intptr_t offset)
+int32_t CCBasicObject::ReadInt32(const void *address, intptr_t offset)
 {
-    return *(float*)(static_cast<uint8_t*>(address) + offset);
+    return *(const int32_t*)(static_cast<const uint8_t*>(address) + offset);
+}
+
+float CCBasicObject::ReadFloat(const void *address, intptr_t offset)
+{
+    return *(const float*)(static_cast<const uint8_t*>(address) + offset);
 }
 
 void CCBasicObject::Write(void *address, intptr_t offset, const uint8_t *src, size_t size)

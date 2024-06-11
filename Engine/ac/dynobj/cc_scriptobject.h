@@ -82,11 +82,12 @@ struct IScriptObject
     // The worst thing here is that with the current byte-code structure we can never tell whether
     // offset 0 means getting pointer to whole object or a pointer to its first field.
     virtual void   *GetFieldPtr(void *address, intptr_t offset)               = 0;
-    virtual void    Read(void *address, intptr_t offset, uint8_t *dest, size_t size) = 0;
-    virtual uint8_t ReadInt8(void *address, intptr_t offset)                  = 0;
-    virtual int16_t ReadInt16(void *address, intptr_t offset)                 = 0;
-    virtual int32_t ReadInt32(void *address, intptr_t offset)                 = 0;
-    virtual float   ReadFloat(void *address, intptr_t offset)                 = 0;
+    virtual const void *GetFieldPtr(const void *address, intptr_t offset)     = 0;
+    virtual void    Read(const void *address, intptr_t offset, uint8_t *dest, size_t size) = 0;
+    virtual uint8_t ReadInt8(const void *address, intptr_t offset)            = 0;
+    virtual int16_t ReadInt16(const void *address, intptr_t offset)           = 0;
+    virtual int32_t ReadInt32(const void *address, intptr_t offset)           = 0;
+    virtual float   ReadFloat(const void *address, intptr_t offset)           = 0;
     virtual void    Write(void *address, intptr_t offset, const uint8_t *src, size_t size) = 0;
     virtual void    WriteInt8(void *address, intptr_t offset, uint8_t val)    = 0;
     virtual void    WriteInt16(void *address, intptr_t offset, int16_t val)   = 0;

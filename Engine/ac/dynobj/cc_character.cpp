@@ -46,9 +46,9 @@ void CCCharacter::Unserialize(int index, Stream *in, size_t /*data_sz*/)
     ccRegisterUnserializedObject(index, &game.chars[num], this);
 }
 
-uint8_t CCCharacter::ReadInt8(void *address, intptr_t offset)
+uint8_t CCCharacter::ReadInt8(const void *address, intptr_t offset)
 {
-    const CharacterInfo *ci = static_cast<CharacterInfo*>(address);
+    const CharacterInfo *ci = static_cast<const CharacterInfo*>(address);
     const int on_offset = 28 * sizeof(int32_t) /* first var group */
         + 301 * sizeof(int16_t) /* inventory */ + sizeof(int16_t) * 2 /* two shorts */ + 40 /* name */ + 20 /* scrname */;
     if (offset == on_offset)
@@ -68,9 +68,9 @@ void CCCharacter::WriteInt8(void *address, intptr_t offset, uint8_t val)
         cc_error("ScriptCharacter: unsupported 'char' variable offset %d", offset);
 }
 
-int16_t CCCharacter::ReadInt16(void *address, intptr_t offset)
+int16_t CCCharacter::ReadInt16(const void *address, intptr_t offset)
 {
-    const CharacterInfo *ci = static_cast<CharacterInfo*>(address);
+    const CharacterInfo *ci = static_cast<const CharacterInfo*>(address);
 
     // Handle inventory fields
     const int invoffset = 112;
@@ -177,9 +177,9 @@ void CCCharacter::WriteInt16(void *address, intptr_t offset, int16_t val)
     }
 }
 
-int32_t CCCharacter::ReadInt32(void *address, intptr_t offset)
+int32_t CCCharacter::ReadInt32(const void *address, intptr_t offset)
 {
-    const CharacterInfo *ci = static_cast<CharacterInfo*>(address);
+    const CharacterInfo *ci = static_cast<const CharacterInfo*>(address);
 
     switch (offset)
     {

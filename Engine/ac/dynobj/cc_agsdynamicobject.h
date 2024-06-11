@@ -57,11 +57,12 @@ public:
     // Legacy support for reading and writing object fields by their relative offset
     //
     void *GetFieldPtr(void* address, intptr_t offset) override;
-    void Read(void *address, intptr_t offset, uint8_t *dest, size_t size) override;
-    uint8_t ReadInt8(void *address, intptr_t offset) override;
-    int16_t ReadInt16(void *address, intptr_t offset) override;
-    int32_t ReadInt32(void *address, intptr_t offset) override;
-    float ReadFloat(void *address, intptr_t offset) override;
+    const void *GetFieldPtr(const void* address, intptr_t offset) override;
+    void Read(const void *address, intptr_t offset, uint8_t *dest, size_t size) override;
+    uint8_t ReadInt8(const void *address, intptr_t offset) override;
+    int16_t ReadInt16(const void *address, intptr_t offset) override;
+    int32_t ReadInt32(const void *address, intptr_t offset) override;
+    float ReadFloat(const void *address, intptr_t offset) override;
     void Write(void *address, intptr_t offset, const uint8_t *src, size_t size) override;
     void WriteInt8(void *address, intptr_t offset, uint8_t val) override;
     void WriteInt16(void *address, intptr_t offset, int16_t val) override;

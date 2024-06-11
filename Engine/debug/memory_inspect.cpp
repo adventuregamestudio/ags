@@ -495,6 +495,8 @@ static HError ParseScriptVariable(const String &field_ref, const ccInstance *ins
 static HError ParseTypeField(const String &field_ref, const RTTI &rtti,
     const FieldInfo &field_info, MemoryReference &mem_ref, FieldInfo &next_field_info)
 {
+    if ((field_info.Type->flags & RTTI::kType_Struct) == 0)
+        return new Error("Invalid struct member access");
     // TODO: is it possible to speed this up, making a field lookup,
     // or that would be too costly to do per type?
     const RTTI::Type &type = *field_info.Type;
@@ -524,6 +526,8 @@ static HError ParseTypeField(const String &field_ref, const RTTI &rtti,
 static HError ParseArrayIndex(const String &field_ref, const FieldInfo &field_info,
     MemoryReference &mem_ref, FieldInfo &next_field_info)
 {
+    if ((field_info.FieldFlags & RTTI::kField_Array) == 0)
+        return new Error("Invalid array access");
     int arr_index = StrUtil::StringToInt(field_ref, -1);
     if (arr_index < 0)
         return new Error(String::FromFormat("Invalid array index: '%s'", field_ref.GetCStr()));
@@ -545,8 +549,11 @@ inline bool IsKeywordChar(char c)
 
 static String GetNextVarSection(const String &var_ref, size_t &index, char &access_type)
 {
+    access_type = 0;
     if (index >= var_ref.GetLength())
+    {
         return {};
+    }
 
     for (; std::isspace(var_ref[index]); ++index); // skip any whitespace
 
@@ -560,17 +567,13 @@ static String GetNextVarSection(const String &var_ref, size_t &index, char &acce
         access_type = '[';
         for (++index; std::isspace(var_ref[index]); ++index); // skip any whitespace
     }
-    else if (IsKeywordChar(var_ref[index]))
-    {
-        access_type = 0;
-    }
-    else
+    else if (!IsKeywordChar(var_ref[index]))
     {
         return {}; // end of string, or bad syntax
     }
 
     const size_t keyword_start = index;
-    for (++index; IsKeywordChar(var_ref[index]); ++index); // scan for the keyword (variable/field name)
+    for (; IsKeywordChar(var_ref[index]); ++index); // scan for the keyword (variable/field name)
     const size_t keyword_end = index;
 
     if (access_type == '[')
@@ -633,6 +636,9 @@ static HError VariableRefToMemoryRef(const String &var_ref, const ccInstance *in
 
         last_field_info = next_field_info;
     }
+
+    if (access_type > 0)
+        return new Error("Parse error"); // likely incomplete member/element access
 
     assert(last_field_info.Type);
     if (!last_field_info.Type)

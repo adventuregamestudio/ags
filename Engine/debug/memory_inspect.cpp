@@ -24,6 +24,7 @@
 #include "debug/memory_inspect.h"
 #include <algorithm>
 #include "ac/dynobj/dynobj_manager.h"
+#include "script/cc_common.h"
 #include "script/cc_instance.h"
 #include "script/systemimports.h"
 #include "util/compress.h"
@@ -680,6 +681,7 @@ HError QueryScriptVariableInContext(const String &var_ref, VariableInfo &var_inf
         var_info = VariableInfo(mem_value.Value, type_name, mem_value.TypeHint);
         return HError::None();
     }
+    cc_clear_error(); // reset script error in case resolving memory went wrong
     return new Error("Failed to resolve script memory");
 }
 

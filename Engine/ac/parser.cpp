@@ -244,7 +244,11 @@ int parse_sentence (const char *src_text, int *numwords, short*wordarray, short*
                             thisword[text - textStart] = 0;
                             // forward past any multi-word alternatives
                             if (FindMatchingMultiWordWord(thisword, &text) >= 0)
+                            {
+                                if (text[0] == 0)
+                                    break;
                                 continueSearching = 1;
+                            }
                         }
                     }
 

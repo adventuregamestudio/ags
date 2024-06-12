@@ -324,6 +324,9 @@
     <ClCompile Include="..\..\Engine\ac\parser.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Engine\ac\touch.cpp">
+      <Filter>Source Files\ac</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Engine\ac\properties.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
@@ -945,6 +948,9 @@
       <Filter>Header Files\ac</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\path_helper.h">
+      <Filter>Header Files\ac</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\ac\touch.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\properties.h">

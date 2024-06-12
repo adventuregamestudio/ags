@@ -88,6 +88,7 @@ namespace ScriptStructHelpers
 {
     // Creates a managed Point object, represented as a pair of X and Y coordinates.
     ScriptUserObject *CreatePoint(int x, int y);
+    DynObjectRef CreateTouchPointRef(int id, int x, int y, int down);
 };
 
 #endif // __AGS_EE_DYNOBJ__SCRIPTUSERSTRUCT_H

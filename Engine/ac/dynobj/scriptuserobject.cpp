@@ -126,3 +126,15 @@ ScriptUserObject *ScriptStructHelpers::CreatePoint(int x, int y)
     ref.Mgr->WriteInt32(ref.Obj, sizeof(int32_t), y);
     return static_cast<ScriptUserObject*>(ref.Obj);
 }
+
+// Allocates managed struct containing four ints: ID, X, Y and Up/Down state
+DynObjectRef ScriptStructHelpers::CreateTouchPointRef(int id, int x, int y, int down)
+{
+    // FIXME: type id! (is it possible to RTTI?)
+    DynObjectRef ref = ScriptUserObject::Create(RTTI::NoType, sizeof(int32_t) * 4);
+    ref.Mgr->WriteInt32(ref.Obj, 0, id);
+    ref.Mgr->WriteInt32(ref.Obj, sizeof(int32_t), x);
+    ref.Mgr->WriteInt32(ref.Obj, sizeof(int32_t)*2, y);
+    ref.Mgr->WriteInt32(ref.Obj, sizeof(int32_t)*3, down);
+    return ref;
+}

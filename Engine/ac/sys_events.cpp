@@ -19,11 +19,13 @@
 #include "core/platform.h"
 #include "ac/common.h"
 #include "ac/gamesetup.h"
+#include "ac/gamestate.h"
 #include "ac/joystick.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/keycode.h"
 #include "ac/mouse.h"
 #include "ac/timer.h"
+#include "ac/touch.h"
 #include "device/mousew32.h"
 #include "gfx/graphicsdriver.h"
 #include "platform/base/agsplatformdriver.h"
@@ -561,7 +563,7 @@ int ags_check_mouse_wheel()
 struct Fingers
 {
 public:
-    static const int MAX_FINGERS = 2;
+    static const int MAX_FINGERS = 10;
     static const int NO_INDEX = -1;
 
     // store fingerId, return given finger index
@@ -786,6 +788,29 @@ static void sync_sys_mouse_pos()
     }
 }
 
+// get finger position for pointer
+static Point get_touch_to_pointer_pos(float x, float y) {
+    const int iw = gfxDriver->GetDisplayMode().Width;
+    const int ih = gfxDriver->GetDisplayMode().Height;
+    const float w = static_cast<float>(iw);
+    const float h = static_cast<float>(ih);
+    // Save real touch pos
+
+    const int x_real = AGSMath::Clamp<int>(static_cast<int>(std::roundf(x * w)), 0, iw-1);
+    const int y_real = AGSMath::Clamp<int>(static_cast<int>(std::roundf(y * h)),0, ih-1);
+
+    const Rect bounds = GameScaling.ScaleRange(play.GetMainViewport());
+
+    const int x_real_bounded = Math::Clamp(x_real, bounds.Left, bounds.Right);
+    const int y_real_bounded = Math::Clamp(y_real, bounds.Top, bounds.Bottom);
+
+    // duplicating code from Mouse::WindowToGame
+    const int p_x = GameScaling.X.UnScalePt(x_real_bounded) - play.GetMainViewport().Left;
+    const int p_y = GameScaling.Y.UnScalePt(y_real_bounded) - play.GetMainViewport().Top;
+
+    return Point(p_x, p_y);
+}
+
 static void on_sdl_touch_down(const SDL_TouchFingerEvent &event)
 {
     int finger_index = touch.fingers.push(event.fingerId);
@@ -793,6 +818,8 @@ static void on_sdl_touch_down(const SDL_TouchFingerEvent &event)
 
     touch.fingers_down |= 1 << finger_index;
     detect_double_tap(event, true);
+
+    on_touch_pointer_down(finger_index, get_touch_to_pointer_pos(event.x, event.y));
 
     switch (t2m.mode)
     {
@@ -858,6 +885,8 @@ static void on_sdl_touch_up(const SDL_TouchFingerEvent &event)
     touch.fingers_down &= ~(1 << finger_index);
     detect_double_tap(event, false);
 
+    on_touch_pointer_up(finger_index, get_touch_to_pointer_pos(event.x, event.y));
+
     switch (t2m.mode)
     {
     case kTouchMouse_OneFingerDrag:
@@ -913,6 +942,8 @@ static void on_sdl_touch_motion(const SDL_TouchFingerEvent &event)
 {
     int finger_index = touch.fingers.get_index(event.fingerId);
     if(finger_index == Fingers::NO_INDEX) return;
+
+    on_touch_pointer_motion(finger_index, get_touch_to_pointer_pos(event.x, event.y));
 
     switch (t2m.mode)
     {

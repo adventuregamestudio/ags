@@ -12,6 +12,10 @@
 //
 //=============================================================================
 //
+// TODO: Some helper structs here may be merged or extend each other,
+//       or extend RTTI / ScriptTOC structs (but latter would require
+//       refactoring these structs first, see TODO comments to RTTI).
+//
 // TODO: Rewrite ParseScriptVariable part in VariableRefToMemoryRef.
 //       Make a clear separation of writing instruction string, and
 //       resolving memory: these operations should not be done simultaneously.
@@ -19,6 +23,12 @@
 //       and decide in which memory it is located.
 //       Introduce instructions for retrieving global mem of particular script,
 //       stack memory (with certain backwards offset), or an exported symbol.
+//
+// TODO: revise memory access instruction syntax.
+//       there may be couple of things that it does not let do,
+//       for instance: tell the size of an object resolved from a handle.
+//
+//       e.g. Instruction may contain global typeids of the accessed objects.
 //
 //=============================================================================
 #include "debug/memory_inspect.h"
@@ -198,7 +208,7 @@ static bool ResolveMemory(const MemoryReference &mem_ref, const size_t parse_at,
                 return false; // object not found
             mem_ptr = reinterpret_cast<const uint8_t*>(addr);
             mem_mgr = mgr;
-            mem_sz = 0u; // FIXME... how to get it? use dynamic manager? need to expand iface
+            mem_sz = 0u; // FIXME... how to get it? use typeinfo? but where to get typeinfo from?
             break;
         }
         default: // invalid type for sub-entries, fail
@@ -251,7 +261,7 @@ static bool ResolveMemory(const MemoryReference &mem_ref, const size_t parse_at,
 }
 
 // Writes (appends) a memory read instruction into the provided string
-static void WriteMemReadInstruction(String &mem_inst, const RTTI::Type &type, uint32_t f_flags, bool direct_obj, uint32_t f_offset)
+static void WriteMemReadInstruction(String &mem_inst, const RTTI::Type &type, uint32_t f_flags, uint32_t f_elem_count, bool direct_obj, uint32_t f_offset)
 {
     // Using hardcoded type names here, is there another way?...
     // TODO: perhaps generate a table of basic types, avoid testing name every time
@@ -263,7 +273,7 @@ static void WriteMemReadInstruction(String &mem_inst, const RTTI::Type &type, ui
     }
     else if ((f_flags & RTTI::kField_Array) != 0)
     {
-        typec = 'd'; typesz = 0; // static array; FIXME: full array size!
+        typec = 'd'; typesz = f_elem_count * type.size; // static array
     }
     else if (strcmp(type.name, "char") == 0)
     {
@@ -302,11 +312,11 @@ static void WriteMemReadElemInstruction(String &mem_inst, const RTTI::Type &type
     // Array of pointers or array of PODs?
     if ((type.flags & RTTI::kType_Managed) != 0)
     {
-        WriteMemReadInstruction(mem_inst, type, RTTI::kField_ManagedPtr, false, RTTI::PointerSize * arr_index);
+        WriteMemReadInstruction(mem_inst, type, RTTI::kField_ManagedPtr, 0u, false, RTTI::PointerSize * arr_index);
     }
     else
     {
-        WriteMemReadInstruction(mem_inst, type, 0u, false, type.size * arr_index);
+        WriteMemReadInstruction(mem_inst, type, 0u, 0u, false, type.size * arr_index);
     }
 }
 
@@ -481,7 +491,7 @@ static HError ParseScriptVariable(const String &field_ref, const ccInstance *ins
         return new Error(String::FromFormat("Type info not found for variable: '%s'", field_ref.GetCStr()));
     uint32_t g_typeid = type_it->second;
     const RTTI::Type &field_type = rtti.GetTypes()[g_typeid];
-    WriteMemReadInstruction(mem_ref.Instruction, field_type, var.f_flags, true, 0u);
+    WriteMemReadInstruction(mem_ref.Instruction, field_type, var.f_flags, var.num_elems, true, 0u);
     mem_ref.MemPtr = memvar.MemoryPtr;
     mem_ref.ObjMgr = memvar.ObjMgr;
     mem_ref.MemSize = memvar.MemorySize;
@@ -517,7 +527,7 @@ static HError ParseTypeField(const String &field_ref, const RTTI &rtti,
     // because we're using joint global RTTI, not local script's one
     const RTTI::Type &field_type = rtti.GetTypes()[found_field->f_typeid];
     mem_ref.Instruction.AppendChar(':');
-    WriteMemReadInstruction(mem_ref.Instruction, field_type, found_field->flags, false, found_field->offset);
+    WriteMemReadInstruction(mem_ref.Instruction, field_type, found_field->flags, found_field->num_elems, false, found_field->offset);
     next_field_info = FieldInfo(&field_type, found_field->flags, found_field->num_elems);
     return HError::None();
 }

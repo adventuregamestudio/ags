@@ -5,7 +5,6 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using WeifenLuo.WinFormsUI.Docking;
 
@@ -13,7 +12,11 @@ namespace AGS.Editor
 {
     public partial class WatchVariablesPanel : DockContent
     {
+        private object _requestsLock = new object();
+        private List<string> _varsToSend = new List<string>();
         private Dictionary<uint, string> _varRequests = new Dictionary<uint, string>();
+        private List<Tuple<uint, DebugController.VariableInfo>> _varResults = new List<Tuple<uint, DebugController.VariableInfo>>();
+        private System.Threading.Thread _requestProcThread;
 
         // TODO: there should be a working thread for updating items instead,
         // with a list of items to update that may be added and removed async.
@@ -86,11 +89,13 @@ namespace AGS.Editor
 
         private void WatchVariablesPanel_Shown(object sender, EventArgs e)
         {
+            AGSEditor.Instance.Debugger.DebugStateChanged += Debugger_DebugStateChanged;
             AGSEditor.Instance.Debugger.ReceiveVariable += Debugger_ReceiveVariable;
         }
 
         private void WatchVariablesPanel_FormClosed(object sender, FormClosedEventArgs e)
         {
+            AGSEditor.Instance.Debugger.DebugStateChanged -= Debugger_DebugStateChanged;
             AGSEditor.Instance.Debugger.ReceiveVariable -= Debugger_ReceiveVariable;
         }
 
@@ -102,91 +107,189 @@ namespace AGS.Editor
                 AGSEditor.Instance.Debugger.ReceiveVariable -= Debugger_ReceiveVariable;
         }
 
+        /// <summary>
+        /// The thread that communicates with the Debugger:
+        /// * sends accumulated variable requests;
+        /// * parses accumulated received answers.
+        /// </summary>
+        private void RequestProcThread()
+        {
+            while (AGSEditor.Instance.Debugger.IsActive)
+            {
+                // Make a local copy of all scheduled sends and results
+                List<string> newVarsToSend = null;
+                List<Tuple<uint, DebugController.VariableInfo>> newVarRes = null;
+
+                lock (_requestsLock)
+                {
+                    if (_varsToSend.Count > 0)
+                        newVarsToSend = new List<string>(_varsToSend);
+                    _varsToSend.Clear();
+                    if (_varResults.Count > 0)
+                        newVarRes = new List<Tuple<uint, DebugController.VariableInfo>>(_varResults);
+                    _varResults.Clear();
+                }
+
+                // Process incoming results
+                if (newVarRes != null)
+                {
+                    List<Tuple<string, DebugController.VariableInfo>> infos = new List<Tuple<string, DebugController.VariableInfo>>();
+                    foreach (var res in newVarRes)
+                    {
+                        string varName;
+                        bool requestFound = false;
+                        lock (_requestsLock)
+                        {
+                            requestFound = _varRequests.TryGetValue(res.Item1, out varName);
+                            if (requestFound)
+                                _varRequests.Remove(res.Item1);
+                        }
+
+                        if (requestFound)
+                            infos.Add(new Tuple<string, DebugController.VariableInfo>(varName, res.Item2));
+                    }
+                    this.Invoke(new ParseAndSetVariableValuesHandler(ParseAndSetVariableValues), infos);
+                }
+
+                // Process outcoming requests
+                if (newVarsToSend != null)
+                {
+                    foreach (var varname in newVarsToSend)
+                    {
+                        uint reqKey;
+                        if (AGSEditor.Instance.Debugger.QueryVariable(varname, out reqKey))
+                            _varRequests.Add(reqKey, varname);
+                    }
+                }
+
+                // Sleep
+                System.Threading.Thread.Sleep(10);
+            }
+        }
+
+        private void Debugger_DebugStateChanged(DebugState newState)
+        {
+            if (newState == DebugState.NotRunning)
+            {
+                ClearWatchRequests();
+                _requestProcThread = null; // the thread proc should stop on its own detecting inactive debugger
+            }
+            else if (_requestProcThread == null)
+            {
+                ClearWatchRequests();
+                _requestProcThread = new System.Threading.Thread(new System.Threading.ThreadStart(RequestProcThread));
+                _requestProcThread.Name = "Variable request thread";
+                _requestProcThread.Start();
+            }
+        }
+
         private void Debugger_ReceiveVariable(uint requestID, DebugController.VariableInfo info)
         {
-            if (this.InvokeRequired)
+            lock (_requestsLock)
             {
-                this.Invoke(new DebugController.ReceiveVariableHandler(Debugger_ReceiveVariable), requestID, info);
-                return;
+                _varResults.Add(new Tuple<uint, DebugController.VariableInfo>(requestID, info));
+            }
+        }
+
+        private delegate void ParseAndSetVariableValuesHandler(List<Tuple<string, DebugController.VariableInfo>> infos);
+
+        private void ParseAndSetVariableValues(List<Tuple<string, DebugController.VariableInfo>> infos)
+        {
+            foreach (var item in infos)
+                ParseAndSetVariableValue(item.Item1, item.Item2);
+        }
+
+        private void ParseAndSetVariableValue(string varName, DebugController.VariableInfo info)
+        {
+            string typeName = info.Type ?? "";
+            string value = "";
+
+            if (string.IsNullOrEmpty(info.TypeHint) || info.Value == null)
+            {
+                value = info.ErrorText ?? "unknown data";
+            }
+            else if (info.TypeHint == "s")
+            {
+                value = string.Format("\"{0}\"", info.Value);
+            }
+            else
+            {
+                // This is a byte array, so decode from base64
+                byte[] bytes = null;
+                try
+                {
+                    bytes = System.Convert.FromBase64String(info.Value);
+                    if (bytes == null || bytes.Length == 0)
+                        value = "unknown data";
+                    else if (info.TypeHint == "i1")
+                        value = string.Format("{0} ('{1}')", bytes[0], (char)bytes[0]);
+                    else if (info.TypeHint == "i2")
+                        value = string.Format("{0}", BitConverter.ToInt16(bytes, 0));
+                    else if (info.TypeHint == "i4")
+                        value = string.Format("{0}", BitConverter.ToInt32(bytes, 0));
+                    else if (info.TypeHint == "f4")
+                        value = string.Format("{0}", BitConverter.ToSingle(bytes, 0));
+                    else if (info.TypeHint == "h")
+                        value = string.Format("{0} (memory handle)", BitConverter.ToInt32(bytes, 0));
+                    else
+                        value = "unknown data";
+                }
+                catch (Exception)
+                {
+                    value = "error";
+                }
             }
 
-            // FIXME: protect _varRequests by a mutex
-
-            string varName;
-            if (_varRequests.TryGetValue(requestID, out varName))
+            for (var item = listView1.FindItemWithText(varName, false, 0, false);
+                item != null;
+                item = item.Index < listView1.Items.Count - 1 ? listView1.FindItemWithText(varName, false, item.Index + 1, false) : null)
             {
-                string typeName = info.Type ?? "";
-                string value = "";
-
-                if (string.IsNullOrEmpty(info.TypeHint) || info.Value == null)
-                {
-                    value = info.ErrorText ?? "unknown data";
-                }
-                else if (info.TypeHint == "s")
-                {
-                    value = string.Format("\"{0}\"", info.Value);
-                }
-                else
-                {
-                    // This is a byte array, so decode from base64
-                    byte[] bytes = null;
-                    try
-                    {
-                        bytes = System.Convert.FromBase64String(info.Value);
-                        if (bytes == null || bytes.Length == 0)
-                            value = "unknown data";
-                        else if (info.TypeHint == "i1")
-                            value = string.Format("{0} ('{1}')", bytes[0], (char)bytes[0]);
-                        else if (info.TypeHint == "i2")
-                            value = string.Format("{0}", BitConverter.ToInt16(bytes, 0));
-                        else if (info.TypeHint == "i4")
-                            value = string.Format("{0}", BitConverter.ToInt32(bytes, 0));
-                        else if (info.TypeHint == "f4")
-                            value = string.Format("{0}", BitConverter.ToSingle(bytes, 0));
-                        else if (info.TypeHint == "h")
-                            value = string.Format("{0} (memory handle)", BitConverter.ToInt32(bytes, 0));
-                        else
-                            value = "unknown data";
-                    }
-                    catch (Exception)
-                    {
-                        value = "error";
-                    }
-                }
-
-                for (var item = listView1.FindItemWithText(varName, false, 0, false);
-                    item != null;
-                    item = item.Index < listView1.Items.Count - 1 ? listView1.FindItemWithText(varName, false, item.Index + 1, false) : null)
-                {
-                    item.SubItems[1].Text = typeName;
-                    item.SubItems[2].Text = value;
-                }
-                _varRequests.Remove(requestID);
+                item.SubItems[1].Text = typeName;
+                item.SubItems[2].Text = value;
             }
         }
 
         private void UpdateSingleWatch(ListViewItem item)
         {
-            if (!AGSEditor.Instance.Debugger.CanUseDebugger)
+            if (!AGSEditor.Instance.Debugger.IsActive)
                 return;
 
             string varName = item.Text;
             if (string.IsNullOrEmpty(varName))
                 return;
 
-            // FIXME: it's currently potentially possible that reply comes faster than reqID gets into the _varRequests?!
-            //        maybe block replies until registering of requests is complete?
-            uint reqKey;
-            if (AGSEditor.Instance.Debugger.QueryVariable(varName, out reqKey))
-                _varRequests.Add(reqKey, varName);
+            lock (_requestsLock)
+            {
+                _varsToSend.Add(varName);
+            }
         }
 
         public void UpdateAllWatches()
         {
-            _varRequests.Clear();
-            foreach (ListViewItem item in listView1.Items)
+            if (!AGSEditor.Instance.Debugger.IsActive)
+                return;
+
+            lock (_requestsLock)
             {
-                UpdateSingleWatch(item);
+                // Clear requests, then add new ones
+                _varsToSend.Clear();
+                _varRequests.Clear();
+                _varResults.Clear();
+                foreach (ListViewItem item in listView1.Items)
+                {
+                    if (!string.IsNullOrEmpty(item.Text))
+                        _varsToSend.Add(item.Text);
+                }
+            }
+        }
+
+        private void ClearWatchRequests()
+        {
+            lock (_requestsLock)
+            {
+                _varsToSend.Clear();
+                _varRequests.Clear();
+                _varResults.Clear();
             }
         }
 

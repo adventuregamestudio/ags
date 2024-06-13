@@ -51,6 +51,14 @@ namespace AGS.Editor
 		}
 
         /// <summary>
+        /// Tells whether Debugger is in a active working state.
+        /// </summary>
+        public bool IsActive
+        {
+            get { return _debugState != DebugState.NotRunning; }
+        }
+
+        /// <summary>
         /// Allows more than one instance of the AGS Editor to run simulatenously
         /// </summary>
         public string InstanceIdentifier
@@ -197,8 +205,7 @@ namespace AGS.Editor
 
         public void AddedBreakpoint(Script script, int lineNumber)
         {
-            if ((_debugState == DebugState.Paused) ||
-                (_debugState == DebugState.Running))
+            if (IsActive)
             {
                 SetBreakpoint(script, lineNumber);
             }
@@ -206,8 +213,7 @@ namespace AGS.Editor
 
         public void RemovedBreakpoint(Script script, int lineNumber)
         {
-            if ((_debugState == DebugState.Paused) ||
-                (_debugState == DebugState.Running))
+            if (IsActive)
             {
                 UnsetBreakpoint(script, lineNumber);
             }
@@ -227,7 +233,7 @@ namespace AGS.Editor
 
         public bool QueryVariable(string varId, out uint requestKey)
         {
-            if ((_debugState != DebugState.Paused) && (_debugState != DebugState.Running))
+            if (!IsActive)
             {
                 requestKey = 0;
                 return false;

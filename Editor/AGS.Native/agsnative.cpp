@@ -398,102 +398,82 @@ int crop_sprite_edges(const std::vector<int> &sprites, bool symmetric, Rect *cro
   return 1;
 }
 
+HAGSError extract_template_files_impl(const AGSString &templateFileName, const std::vector<AGSString> &check_list,
+    const AGSString &check_list_error,
+    const std::vector<AGSString> &exclude_list, const AGSString &asset_output_format)
+{
+    const AssetLibInfo *lib = nullptr;
+    std::unique_ptr<AssetManager> templateMgr(new AssetManager());
+    auto err = templateMgr->AddLibrary(templateFileName, &lib);
+    if (err != Common::kAssetNoError) 
+        return new AGSError("Failed to read the template file.", Common::GetAssetErrorText(err));
+
+    // If check_list is provided, then the package must include at least one of the files
+    if (!check_list.empty())
+    {
+        bool at_least_one_check = false;
+        for (auto check = check_list.begin();
+            !at_least_one_check && (check < check_list.end()); ++check)
+        {
+            at_least_one_check |= templateMgr->DoesAssetExist(*check);
+        }
+        if (!at_least_one_check)
+            return new AGSError(check_list_error);
+    }
+
+    for (const auto &asset : lib->AssetInfos)
+    {
+        const AGSString thisFile = asset.FileName;
+        if (thisFile.IsEmpty())
+            continue; // should not normally happen
+
+        // Don't extract excluded files
+        if (std::find_if(exclude_list.begin(), exclude_list.end(), AGS::Common::StrEqNoCasePred(thisFile))
+                != exclude_list.end())
+            continue;
+
+        std::unique_ptr<Stream> readin(templateMgr->OpenAsset(thisFile));
+        if (!readin)
+            return new AGSError(AGSString::FromFormat("Failed to open template asset '%s' for reading.", thisFile.GetCStr()));
+
+        AGSString outputName = thisFile;
+        // If format pattern is provided, then rename the output file
+        if (!asset_output_format.IsEmpty())
+        {
+            AGSString ext = AGSPath::GetFileExtension(thisFile);
+            outputName = AGSString::FromFormat(asset_output_format.GetCStr(), ext.GetCStr());
+        }
+
+        // Make sure to create necessary subfolders
+        AGSDirectory::CreateAllDirectories(".", AGSPath::GetDirectoryPath(outputName));
+        std::unique_ptr<Stream> wrout(AGSFile::CreateFile(outputName));
+        if (!wrout)
+            return new AGSError(AGSString::FromFormat("Failed to open file '%s' for writing.", outputName));
+
+        const soff_t src_len = readin->GetLength();
+        soff_t result = AGS::Common::CopyStream(readin.get(), wrout.get(), src_len);
+        if (result < src_len)
+            return new AGSError(AGSString::FromFormat("Failed to extract file '%s'.", thisFile.GetCStr()));
+    }
+
+    return HAGSError::None();
+}
+
 HAGSError extract_room_template_files(const AGSString &templateFileName, int newRoomNumber)
 {
-  const AssetLibInfo *lib = nullptr;
-  std::unique_ptr<AssetManager> templateMgr(new AssetManager());
-  auto err = templateMgr->AddLibrary(templateFileName, &lib);
-  if (err != Common::kAssetNoError) 
-  {
-    return new AGSError("Failed to read the template file.", Common::GetAssetErrorText(err));
-  }
-  if (!templateMgr->DoesAssetExist(ROOM_TEMPLATE_ID_FILE))
-  {
-    return new AGSError("Template file does not contain necessary metadata.");
-  }
-
-  size_t numFile = lib->AssetInfos.size();
-  for (size_t a = 0; a < numFile; a++) {
-    AGSString thisFile = lib->AssetInfos[a].FileName;
-    if (thisFile.IsEmpty())
-      continue; // should not normally happen
-
-    // don't extract the template metadata file
-    if (thisFile.CompareNoCase(ROOM_TEMPLATE_ID_FILE) == 0)
-      continue;
-
-    auto readin = templateMgr->OpenAsset(thisFile);
-    if (!readin)
-    {
-      return new AGSError(AGSString::FromFormat("Failed to open template asset '%s' for reading.", thisFile.GetCStr()));
-    }
-    char outputName[MAX_PATH];
-    AGSString extension = AGSPath::GetFileExtension(thisFile);
-    sprintf(outputName, "room%d.%s", newRoomNumber, extension.GetCStr());
-    auto wrout = AGSFile::CreateFile(outputName);
-    if (!wrout) 
-    {
-      return new AGSError(AGSString::FromFormat("Failed to open file '%s' for writing.", outputName));
-    }
-    
-    const soff_t src_len = readin->GetLength();
-    soff_t result = AGS::Common::CopyStream(readin.get(), wrout.get(), src_len);
-    if (result < src_len)
-    {
-      return new AGSError(AGSString::FromFormat("Failed to extract file '%s'.", thisFile.GetCStr()));
-    }
-  }
-
-  return HAGSError::None();
+  std::vector<AGSString> check_list = { ROOM_TEMPLATE_ID_FILE };
+  return extract_template_files_impl(templateFileName, check_list,
+      "Template file does not contain necessary metadata.",
+      check_list, AGSString::FromFormat("room%d.%%s", newRoomNumber));
 }
 
 HAGSError extract_template_files(const AGSString &templateFileName)
 {
-  const AssetLibInfo *lib = nullptr;
-  std::unique_ptr<AssetManager> templateMgr(new AssetManager());
-  auto err = templateMgr->AddLibrary(templateFileName, &lib);
-  if (err != Common::kAssetNoError) 
-  {
-    return new AGSError("Failed to read the template file", Common::GetAssetErrorText(err));
-  }
-  if ((!templateMgr->DoesAssetExist(old_editor_data_file)) && (!templateMgr->DoesAssetExist(new_editor_data_file)))
-  {
-    return new AGSError("Template file does not contain main project data.");
-  }
-
-  size_t numFile = lib->AssetInfos.size();
-  for (size_t a = 0; a < numFile; a++) {
-    AGSString thisFile = lib->AssetInfos[a].FileName;
-    if (thisFile.IsEmpty())
-      continue; // should not normally happen
-
-    // don't extract the dummy template lock file
-    if (thisFile.CompareNoCase(TEMPLATE_LOCK_FILE) == 0)
-      continue;
-
-    auto readin = templateMgr->OpenAsset(thisFile);
-    if (!readin)
-    {
-      return new AGSError(AGSString::FromFormat("Failed to open template asset '%s' for reading.", thisFile.GetCStr()));
-    }
-    // Make sure to create necessary subfolders,
-    // e.g. if it's an old template with Music & Sound folders
-    AGSDirectory::CreateAllDirectories(".", AGSPath::GetDirectoryPath(thisFile));
-    auto wrout = AGSFile::CreateFile(thisFile);
-    if (!wrout)
-    {
-      return new AGSError(AGSString::FromFormat("Failed to open file '%s' for writing.", thisFile.GetCStr()));
-    }
-
-    const soff_t src_len = readin->GetLength();
-    soff_t result = AGS::Common::CopyStream(readin.get(), wrout.get(), src_len);
-    if (result < src_len)
-    {
-      return new AGSError(AGSString::FromFormat("Failed to extract file '%s'.", thisFile.GetCStr()));
-    }
-  }
-
-  return HAGSError::None();
+  std::vector<AGSString> check_list = { old_editor_data_file, new_editor_data_file };
+  std::vector<AGSString> exclude_list = { TEMPLATE_LOCK_FILE };
+  return extract_template_files_impl(templateFileName, check_list,
+      "Template file does not contain main project data.",
+      exclude_list, {});
 }
 
 void extract_icon_from_template(AssetManager *templateMgr, char *iconName, char **iconDataBuffer, size_t *bufferSize)

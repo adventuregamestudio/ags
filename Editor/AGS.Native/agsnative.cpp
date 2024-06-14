@@ -436,11 +436,12 @@ HAGSError extract_room_template_files(const AGSString &templateFileName, int new
       return new AGSError(AGSString::FromFormat("Failed to open file '%s' for writing.", outputName));
     }
     
-    const size_t size = readin->GetLength();
-    char *membuff = new char[size];
-    readin->Read(membuff, size);
-    wrout->Write(membuff, size);
-    delete[] membuff;
+    const soff_t src_len = readin->GetLength();
+    soff_t result = AGS::Common::CopyStream(readin.get(), wrout.get(), src_len);
+    if (result < src_len)
+    {
+      return new AGSError(AGSString::FromFormat("Failed to extract file '%s'.", thisFile.GetCStr()));
+    }
   }
 
   return HAGSError::None();
@@ -483,11 +484,13 @@ HAGSError extract_template_files(const AGSString &templateFileName)
     {
       return new AGSError(AGSString::FromFormat("Failed to open file '%s' for writing.", thisFile.GetCStr()));
     }
-    const size_t size = readin->GetLength();
-    char *membuff = new char[size];
-    readin->Read(membuff, size);
-    wrout->Write(membuff, size);
-    delete[] membuff;
+
+    const soff_t src_len = readin->GetLength();
+    soff_t result = AGS::Common::CopyStream(readin.get(), wrout.get(), src_len);
+    if (result < src_len)
+    {
+      return new AGSError(AGSString::FromFormat("Failed to extract file '%s'.", thisFile.GetCStr()));
+    }
   }
 
   return HAGSError::None();

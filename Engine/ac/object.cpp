@@ -508,18 +508,9 @@ void move_object(int objj, const std::vector<Point> *path, int tox, int toy, int
     }
     else
     {
-        // Convert src and dest coords to the mask resolution, for pathfinder
-        // NOTE: for old games we assume the input coordinates are in the "data" coordinate system
-        const int src_x = room_to_mask_coord(obj.x);
-        const int src_y = room_to_mask_coord(obj.y);
-        const int dst_x = room_to_mask_coord(tox);
-        const int dst_y = room_to_mask_coord(toy);
-
         MaskRouteFinder *pathfind = get_room_pathfinder();
-        pathfind->SetWalkableArea(prepare_walkable_areas(-1));
-        path_result = Pathfinding::FindRoute(mls[mslot], pathfind, src_x, src_y, dst_x, dst_y, speed, speed, false, ignwal);
-        // Convert resulting movelist back to room coordinates
-        convert_move_path_to_room_resolution(mls[mslot]);
+        pathfind->SetWalkableArea(prepare_walkable_areas(-1), thisroom.MaskResolution);
+        path_result = Pathfinding::FindRoute(mls[mslot], pathfind, obj.x, obj.y, tox, toy, speed, speed, false, ignwal != 0);
     }
     
     // If successful, then start moving

@@ -200,18 +200,7 @@ void Character_AddWaypoint(CharacterInfo *chaa, int x, int y) {
         debug_script_warn("Character::AddWaypoint: called for '%s' with walk speed 0", chaa->scrname.GetCStr());
     }
 
-    // There's an issue: the existing movelist is converted to room resolution,
-    // so we do this trick: convert last step to mask resolution, before calling
-    // a pathfinder api, and then we'll convert old and new last step back.
-    // TODO: figure out a better way of processing this!
-    const int last_stage = cmls.numstage - 1;
-    cmls.pos[last_stage] = { room_to_mask_coord(last_pos.X), room_to_mask_coord(last_pos.Y) };
-    const int dst_x = room_to_mask_coord(x);
-    const int dst_y = room_to_mask_coord(y);
-    if (Pathfinding::AddWaypointDirect(cmls, dst_x, dst_y, move_speed_x, move_speed_y))
-    {
-        convert_move_path_to_room_resolution(cmls, last_stage, last_stage + 1);
-    }
+    Pathfinding::AddWaypointDirect(cmls, x, y, move_speed_x, move_speed_y);
 }
 
 void Character_Animate(CharacterInfo *chaa, int loop, int delay, int repeat,
@@ -1826,17 +1815,9 @@ void walk_character(int chac, const std::vector<Point> *path, int tox, int toy, 
     }
     else
     {
-        // Convert src and dest coords to the mask resolution, for pathfinder
-        const int src_x = room_to_mask_coord(chin->x);
-        const int src_y = room_to_mask_coord(chin->y);
-        const int dst_x = room_to_mask_coord(tox);
-        const int dst_y = room_to_mask_coord(toy);
-
         MaskRouteFinder *pathfind = get_room_pathfinder();
-        pathfind->SetWalkableArea(prepare_walkable_areas(chac));
-        path_result = Pathfinding::FindRoute(mls[mslot], pathfind, src_x, src_y, dst_x, dst_y, move_speed_x, move_speed_y, false, ignwal);
-        // Convert resulting movelist back to room coordinates
-        convert_move_path_to_room_resolution(mls[mslot]);
+        pathfind->SetWalkableArea(prepare_walkable_areas(chac), thisroom.MaskResolution);
+        path_result = Pathfinding::FindRoute(mls[mslot], pathfind, chin->x, chin->y, tox, toy, move_speed_x, move_speed_y, false, ignwal != 0);
     }
 
     // If successful, then start moving
@@ -2193,20 +2174,14 @@ void walk_or_move_character(CharacterInfo *chaa, const std::vector<Point> &path,
 void walk_or_move_character_straight(CharacterInfo *chaa, int x, int y, int blocking, int direct, bool isWalk)
 {
     MaskRouteFinder *pathfind = get_room_pathfinder();
-    pathfind->SetWalkableArea(prepare_walkable_areas(chaa->index_id));
-
-    // TODO: hide these conversions, maybe make can_see_from() function do them internally in and out?
-    int from_mask_x = room_to_mask_coord(chaa->x);
-    int from_mask_y = room_to_mask_coord(chaa->y);
-    int to_mask_x = room_to_mask_coord(x);
-    int to_mask_y = room_to_mask_coord(y);
+    pathfind->SetWalkableArea(prepare_walkable_areas(chaa->index_id), thisroom.MaskResolution);
 
     int movetox = x, movetoy = y;
     int lastcx, lastcy;
-    if (!pathfind->CanSeeFrom(from_mask_x, from_mask_y, to_mask_x, to_mask_y, &lastcx, &lastcy))
+    if (!pathfind->CanSeeFrom(chaa->x, chaa->y, x, y, &lastcx, &lastcy))
     {
-        movetox = mask_to_room_coord(lastcx);
-        movetoy = mask_to_room_coord(lastcy);
+        movetox = lastcx;
+        movetoy = lastcy;
     }
 
     // CHECKME: there's likely no point in calling routefinder again, so pass a direct path instead?

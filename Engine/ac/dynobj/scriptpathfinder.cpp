@@ -101,7 +101,7 @@ IRouteFinder *RoomPathfinder::GetRouteFinder()
 
 void RoomPathfinder::SyncPathfinder()
 {
-    _finder->SetWalkableArea(prepare_walkable_areas(-1));
+    _finder->SetWalkableArea(prepare_walkable_areas(-1), thisroom.MaskResolution);
 }
 
 const char *RoomPathfinder::GetType()

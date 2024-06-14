@@ -52,9 +52,10 @@ public:
 class MaskRouteFinder : public IRouteFinder
 {
 public:
-    // Assign a walkable mask;
+    // Assign a walkable mask, and an optional coordinate scale factor which will be used
+    // to convert (divide) input coordinates, and resulting path back (multiply).
     // Note that this may make routefinder to generate additional data, taking more time.
-    virtual void SetWalkableArea(const AGS::Common::Bitmap *walkablearea) = 0;
+    virtual void SetWalkableArea(const AGS::Common::Bitmap *walkablearea, uint32_t coord_scale = 1) = 0;
 };
 
 

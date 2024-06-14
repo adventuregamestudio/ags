@@ -43,15 +43,17 @@ public:
         bool exact_dest = false, bool ignore_walls = false) override;
     // Assign a walkable mask;
     // Note that this may make routefinder to generate additional data, taking more time.
-    void SetWalkableArea(const AGS::Common::Bitmap *walkablearea) override;
+    void SetWalkableArea(const AGS::Common::Bitmap *walkablearea, uint32_t coord_scale) override;
 
 private:
     void SyncNavWalkablearea();
+    bool CanSeeFromImpl(int srcx, int srcy, int dstx, int dsty, int *lastcx = nullptr, int *lastcy = nullptr);
     bool FindRouteJPS(std::vector<Point> &nav_path, int fromx, int fromy, int destx, int desty);
 
     const size_t MAXNAVPOINTS = MAXNEEDSTAGES;
     Navigation &nav; // declare as reference, because we must hide real Navigation decl here
-    const Bitmap *walkablearea = nullptr;
+    const Bitmap *_walkablearea = nullptr;
+    uint32_t _coordScale = 1;
     std::vector<int> path, cpath;
 };
 

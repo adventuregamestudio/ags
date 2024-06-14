@@ -59,6 +59,7 @@
 #include "ac/dynobj/cc_character.h"
 #include "ac/dynobj/cc_inventory.h"
 #include "ac/dynobj/dynobj_manager.h"
+#include "ac/dynobj/cc_dynamicarray.h"
 #include "ac/dynobj/scriptuserobject.h"
 #include "script/script_runtime.h"
 #include "gfx/gfx_def.h"
@@ -1118,6 +1119,15 @@ bool Character_SetTextProperty(CharacterInfo *chaa, const char *property, const 
     if (!AssertCharacter("Character.SetTextProperty", chaa->index_id))
         return false;
     return set_text_property(play.charProps[chaa->index_id], property, value);
+}
+
+void *Character_GetPath(CharacterInfo *chaa)
+{
+    const int mslot = chaa->walking % TURNING_AROUND;
+    if (mslot == 0)
+        return nullptr;
+
+    return ScriptStructHelpers::CreateArrayOfPoints(mls[mslot].pos).Obj;
 }
 
 ScriptInvItem* Character_GetActiveInventory(CharacterInfo *chaa) {
@@ -3260,6 +3270,11 @@ RuntimeScriptValue Sc_Character_SetTextProperty(void *self, const RuntimeScriptV
     API_OBJCALL_BOOL_POBJ2(CharacterInfo, Character_SetTextProperty, const char, const char);
 }
 
+RuntimeScriptValue Sc_Character_GetPath(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ(CharacterInfo, void, globalDynamicArray, Character_GetPath);
+}
+
 // int (CharacterInfo *chaa, ScriptInvItem *invi)
 RuntimeScriptValue Sc_Character_HasInventory(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -4126,6 +4141,7 @@ void RegisterCharacterAPI(ScriptAPIVersion /*base_api*/, ScriptAPIVersion /*comp
         { "Character::GetTextProperty^1",         API_FN_PAIR(Character_GetTextProperty) },
         { "Character::SetProperty^2",             API_FN_PAIR(Character_SetProperty) },
         { "Character::SetTextProperty^2",         API_FN_PAIR(Character_SetTextProperty) },
+        { "Character::GetPath^0",                 API_FN_PAIR(Character_GetPath) },
         { "Character::HasInventory^1",            API_FN_PAIR(Character_HasInventory) },
         { "Character::IsCollidingWithChar^1",     API_FN_PAIR(Character_IsCollidingWithChar) },
         { "Character::IsCollidingWithObject^1",   API_FN_PAIR(Character_IsCollidingWithObject) },

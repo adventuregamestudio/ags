@@ -41,14 +41,7 @@ void *Pathfinder_FindPath(ScriptPathfinder *pathfind, int srcx, int srcy, int ds
     if (path.empty())
         return nullptr;
 
-    std::vector<DynObjectRef> objs;
-    for (const auto &pt : path)
-    {
-        objs.push_back(ScriptStructHelpers::CreatePointRef(pt.X, pt.Y));
-    }
-
-    DynObjectRef arr = DynamicArrayHelpers::CreateScriptArray(std::move(objs));
-    return arr.Obj;
+    return ScriptStructHelpers::CreateArrayOfPoints(path).Obj;
 }
 
 ScriptUserObject *Pathfinder_Trace(ScriptPathfinder *pathfind, int srcx, int srcy, int dstx, int dsty)

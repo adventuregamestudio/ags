@@ -95,6 +95,8 @@ namespace ScriptStructHelpers
     Point ResolvePoint(void *managed_point);
     // Resolves a dynamic array of managed Point objects
     bool ResolveArrayOfPoints(const void *arrobj, std::vector<Point> &points);
+    // Creates a dynamic array of managed Point structs
+    DynObjectRef CreateArrayOfPoints(const std::vector<Point> &points);
 };
 
 #endif // __AGS_EE_DYNOBJ__SCRIPTUSERSTRUCT_H

@@ -32,6 +32,7 @@
 #include "ac/viewframe.h"
 #include "ac/walkablearea.h"
 #include "ac/dynobj/cc_object.h"
+#include "ac/dynobj/cc_dynamicarray.h"
 #include "ac/dynobj/scriptuserobject.h"
 #include "debug/debug_log.h"
 #include "main/game_run.h"
@@ -559,6 +560,15 @@ bool Object_SetTextProperty(ScriptObject *objj, const char *property, const char
     return set_text_property(croom->objProps[objj->id], property, value);
 }
 
+void *Object_GetPath(ScriptObject *objj)
+{
+    const int mslot = objs[objj->id].moving;
+    if (mslot == 0)
+        return nullptr;
+
+    return ScriptStructHelpers::CreateArrayOfPoints(mls[mslot].pos).Obj;
+}
+
 bool Object_GetUseRegionTint(ScriptObject *objj)
 {
     return (croom->obj[objj->id].flags & OBJF_USEREGIONTINTS) != 0;
@@ -919,6 +929,11 @@ RuntimeScriptValue Sc_Object_SetProperty(void *self, const RuntimeScriptValue *p
 RuntimeScriptValue Sc_Object_SetTextProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_BOOL_POBJ2(ScriptObject, Object_SetTextProperty, const char, const char);
+}
+
+RuntimeScriptValue Sc_Object_GetPath(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ(ScriptObject, void, globalDynamicArray, Object_GetPath);
 }
 
 RuntimeScriptValue Sc_Object_IsInteractionAvailable(void *self, const RuntimeScriptValue *params, int32_t param_count)
@@ -1312,6 +1327,7 @@ void RegisterObjectAPI()
         { "Object::GetTextProperty^1",        API_FN_PAIR(Object_GetTextProperty) },
         { "Object::SetProperty^2",            API_FN_PAIR(Object_SetProperty) },
         { "Object::SetTextProperty^2",        API_FN_PAIR(Object_SetTextProperty) },
+        { "Object::GetPath^0",                API_FN_PAIR(Object_GetPath) },
         { "Object::IsInteractionAvailable^1", API_FN_PAIR(Object_IsInteractionAvailable) },
         { "Object::Move^5",                   API_FN_PAIR(Object_Move) },
         { "Object::MovePath^3",               API_FN_PAIR(Object_MovePath) },

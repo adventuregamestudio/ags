@@ -149,3 +149,13 @@ bool ScriptStructHelpers::ResolveArrayOfPoints(const void *arrobj, std::vector<P
         points.push_back(ScriptStructHelpers::ResolvePoint(mpt));
     return true;
 }
+
+DynObjectRef ScriptStructHelpers::CreateArrayOfPoints(const std::vector<Point> &points)
+{
+    std::vector<DynObjectRef> objs;
+    for (const auto &pt : points)
+    {
+        objs.push_back(ScriptStructHelpers::CreatePointRef(pt.X, pt.Y));
+    }
+    return DynamicArrayHelpers::CreateScriptArray(std::move(objs));
+}

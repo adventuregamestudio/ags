@@ -2094,6 +2094,8 @@ builtin managed struct Object {
   import attribute bool UseRegionTint;
 #endif
 #ifdef SCRIPT_API_v400
+  /// Returns the moving path of this object, or null if it's not moving
+  import Point*[] GetPath();
   /// Moves the object along the path, ignoring walkable areas.
   import function MovePath(Point*[], int speed, BlockingStyle=eNoBlock);
   /// Gets/sets whether the object will be drawn and updated during the game update.
@@ -2340,6 +2342,8 @@ builtin managed struct Character {
   import function MoveStraight(int x, int y, BlockingStyle=eNoBlock);
 #endif
 #ifdef SCRIPT_API_v400
+  /// Returns the moving path of this character, or null if it's not moving
+  import Point*[] GetPath();
   /// Moves the character along the path, ignoring walkable areas, without playing his walking animation.
   import function MovePath(Point*[], BlockingStyle=eNoBlock);
   /// Moves the character along the path, ignoring walkable areas, automatically playing his walking animation.

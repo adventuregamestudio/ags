@@ -108,10 +108,7 @@ bool JPSRouteFinder::FindRouteJPS(std::vector<Point> &nav_path, int fromx, int f
 
     nav_path.clear();
 
-    // new behavior: cut path if too complex rather than abort with error message
-    int count = std::min<int>((int)cpath.size(), MAXNAVPOINTS);
-
-    for (int i = 0; i < count; i++)
+    for (int i = 0; i < cpath.size(); i++)
     {
         int x, y;
         nav.UnpackSquare(cpath[i], x, y);
@@ -150,8 +147,6 @@ bool JPSRouteFinder::FindRoute(std::vector<Point> &nav_path, int srcx, int srcy,
 
     if (nav_path.size() == 0)
         return false;
-
-    assert(nav_path.size() <= MAXNAVPOINTS);
 
     // Ensure it has at least 2 points (start-end), necessary for the move algorithm
     if (nav_path.size() == 1)

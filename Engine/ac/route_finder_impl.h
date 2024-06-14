@@ -50,7 +50,6 @@ private:
     bool CanSeeFromImpl(int srcx, int srcy, int dstx, int dsty, int *lastcx = nullptr, int *lastcy = nullptr);
     bool FindRouteJPS(std::vector<Point> &nav_path, int fromx, int fromy, int destx, int desty);
 
-    const size_t MAXNAVPOINTS = MAXNEEDSTAGES;
     Navigation &nav; // declare as reference, because we must hide real Navigation decl here
     const Bitmap *_walkablearea = nullptr;
     uint32_t _coordScale = 1;

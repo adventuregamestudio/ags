@@ -182,11 +182,6 @@ void Character_AddWaypoint(CharacterInfo *chaa, int x, int y) {
     }
 
     MoveList &cmls = mls[chaa->walking % TURNING_AROUND];
-    if (cmls.numstage >= MAXNEEDSTAGES)
-    {
-        debug_script_warn("Character::AddWaypoint: move is too complex, cannot add any further paths");
-        return;
-    }
 
     // They're already walking there anyway
     const Point &last_pos = cmls.GetLastPos();
@@ -1412,7 +1407,7 @@ int Character_GetMoving(CharacterInfo *chaa) {
 int Character_GetDestinationX(CharacterInfo *chaa) {
     if (chaa->walking) {
         MoveList *cmls = &mls[chaa->walking % TURNING_AROUND];
-        return cmls->pos[cmls->numstage - 1].X;
+        return cmls->pos.back().X;
     }
     else
         return chaa->x;
@@ -1421,7 +1416,7 @@ int Character_GetDestinationX(CharacterInfo *chaa) {
 int Character_GetDestinationY(CharacterInfo *chaa) {
     if (chaa->walking) {
         MoveList *cmls = &mls[chaa->walking % TURNING_AROUND];
-        return cmls->pos[cmls->numstage - 1].Y;
+        return cmls->pos.back().Y;
     }
     else
         return chaa->y;
@@ -1937,8 +1932,8 @@ void start_character_turning (CharacterInfo *chinf, int useloop, int no_diagonal
 }
 
 void fix_player_sprite(MoveList*cmls,CharacterInfo*chinf) {
-    const float xpmove = cmls->xpermove[cmls->onstage];
-    const float ypmove = cmls->ypermove[cmls->onstage];
+    const float xpmove = cmls->permove[cmls->onstage].X;
+    const float ypmove = cmls->permove[cmls->onstage].Y;
 
     // if not moving, do nothing
     if ((xpmove == 0.f) && (ypmove == 0.f))

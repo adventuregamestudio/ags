@@ -74,8 +74,8 @@ int do_movelist_move(short &mslot, int &pos_x, int &pos_y)
 
     int need_to_fix_sprite = 0; // TODO: find out what this value means and refactor
     MoveList &cmls = mls[mslot];
-    const float xpermove = cmls.xpermove[cmls.onstage];
-    const float ypermove = cmls.ypermove[cmls.onstage];
+    const float xpermove = cmls.permove[cmls.onstage].X;
+    const float ypermove = cmls.permove[cmls.onstage].Y;
     const float onpart = cmls.onpart;
     Point target = cmls.pos[cmls.onstage + 1];
     // the new position that will be assigned to pos_x and pos_y
@@ -104,15 +104,15 @@ int do_movelist_move(short &mslot, int &pos_x, int &pos_y)
         cmls.onstage++;
         cmls.onpart = -1.f;
         cmls.doneflag = 0;
-        if (cmls.onstage < cmls.numstage)
+        if (cmls.onstage < cmls.GetNumStages())
         {
             xps = cmls.from.X;
             yps = cmls.from.Y;
         }
 
-        if (cmls.onstage >= cmls.numstage - 1)
+        if (cmls.onstage >= cmls.GetNumStages() - 1)
         {  // last stage is just dest pos
-            cmls.numstage=0;
+            cmls = {};
             mslot = 0; // movelist 0 means "not moving/walking"
             need_to_fix_sprite = 1; // WARNING: value 1 is not used anywhere, could be a mistake
         }

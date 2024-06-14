@@ -93,13 +93,13 @@ inline float calc_move_speed_at_angle(float speed_x, float speed_y, float xdist,
 }
 
 // Calculates the X and Y per game loop, for this stage of the movelist
-static void calculate_move_stage(MoveList &mls, int index, float move_speed_x, float move_speed_y)
+static void calculate_move_stage(MoveList &mls, uint32_t index, float move_speed_x, float move_speed_y)
 {
     // work out the x & y per move. First, opp/adj=tan, so work out the angle
     if (mls.pos[index] == mls.pos[index + 1])
     {
-        mls.xpermove[index] = 0;
-        mls.ypermove[index] = 0;
+        mls.permove[index].X = 0.f;
+        mls.permove[index].Y = 0.f;
         return;
     }
 
@@ -111,19 +111,19 @@ static void calculate_move_stage(MoveList &mls, int index, float move_speed_x, f
     // Special case for vertical and horizontal movements
     if (ourx == destx)
     {
-        mls.xpermove[index] = 0;
-        mls.ypermove[index] = move_speed_y;
+        mls.permove[index].X = 0.f;
+        mls.permove[index].Y = move_speed_y;
         if (desty < oury)
-            mls.ypermove[index] = -mls.ypermove[index];
+            mls.permove[index].Y = -mls.permove[index].Y;
         return;
     }
 
     if (oury == desty)
     {
-        mls.xpermove[index] = move_speed_x;
-        mls.ypermove[index] = 0;
+        mls.permove[index].X = move_speed_x;
+        mls.permove[index].Y = 0.f;
         if (destx < ourx)
-            mls.xpermove[index] = -mls.xpermove[index];
+            mls.permove[index].X = -mls.permove[index].X;
         return;
     }
 
@@ -147,22 +147,19 @@ static void calculate_move_stage(MoveList &mls, int index, float move_speed_x, f
     if (desty < oury)
         newymove = -newymove;
 
-    mls.xpermove[index] = newxmove;
-    mls.ypermove[index] = newymove;
+    mls.permove[index].X = newxmove;
+    mls.permove[index].Y = newymove;
 }
 
 bool CalculateMoveList(MoveList &mls, const std::vector<Point> path, int move_speed_x, int move_speed_y)
 {
-    // Ensure that it does not exceed MoveList limit
-    const size_t stage_count = std::min((size_t)MAXNEEDSTAGES, path.size());
-
     MoveList mlist;
-    mlist.numstage = path.size();
-    std::copy(path.begin(), path.begin() + stage_count, &mlist.pos[0]);
+    mlist.pos = path;
+    mlist.permove.resize(path.size());
 
     const float fspeed_x = input_speed_to_move(move_speed_x);
     const float fspeed_y = input_speed_to_move(move_speed_y);
-    for (int i = 0; i < mlist.numstage - 1; i++)
+    for (uint32_t i = 0; i < mlist.GetNumStages() - 1; i++)
         calculate_move_stage(mlist, i, fspeed_x, fspeed_y);
 
     mlist.from = mlist.pos[0];
@@ -172,14 +169,10 @@ bool CalculateMoveList(MoveList &mls, const std::vector<Point> path, int move_sp
 
 bool AddWaypointDirect(MoveList &mls, int x, int y, int move_speed_x, int move_speed_y)
 {
-    if (mls.numstage >= MAXNEEDSTAGES)
-        return false;
-
     const float fspeed_x = input_speed_to_move(move_speed_x);
     const float fspeed_y = input_speed_to_move(move_speed_y);
-    mls.pos[mls.numstage] = { x, y };
-    calculate_move_stage(mls, mls.numstage - 1, fspeed_x, fspeed_y);
-    mls.numstage++;
+    mls.pos.emplace_back( x, y );
+    calculate_move_stage(mls, mls.GetNumStages() - 1, fspeed_x, fspeed_y);
     return true;
 }
 
@@ -190,19 +183,19 @@ void RecalculateMoveSpeeds(MoveList &mls, int old_speed_x, int old_speed_y, int 
     const float new_movspeed_x = input_speed_to_move(new_speed_x);
     const float new_movspeed_y = input_speed_to_move(new_speed_y);
     // save current stage's step lengths, for later onpart's update
-    const float old_stage_xpermove = mls.xpermove[mls.onstage];
-    const float old_stage_ypermove = mls.ypermove[mls.onstage];
+    const float old_stage_xpermove = mls.permove[mls.onstage].X;
+    const float old_stage_ypermove = mls.permove[mls.onstage].Y;
 
-    for (int i = 0; (i < mls.numstage) && ((mls.xpermove[i] != 0) || (mls.ypermove[i] != 0)); ++i)
+    for (uint32_t i = 0; (i < mls.GetNumStages()) && ((mls.permove[i].X != 0.f) || (mls.permove[i].Y != 0.f)); ++i)
     {
         // First three cases where the speed is a plain factor, therefore
         // we may simply divide on old one and multiple on a new one
         if ((old_movspeed_x == old_movspeed_y) || // diagonal move at straight 45 degrees
-            (mls.xpermove[i] == 0) || // straight vertical move
-            (mls.ypermove[i] == 0))   // straight horizontal move
+            (mls.permove[i].X == 0) || // straight vertical move
+            (mls.permove[i].Y == 0))   // straight horizontal move
         {
-            mls.xpermove[i] = (mls.xpermove[i] * new_movspeed_x) / old_movspeed_x;
-            mls.ypermove[i] = (mls.ypermove[i] * new_movspeed_y) / old_movspeed_y;
+            mls.permove[i].X = (mls.permove[i].X * new_movspeed_x) / old_movspeed_x;
+            mls.permove[i].Y = (mls.permove[i].Y * new_movspeed_y) / old_movspeed_y;
         }
         else
         {
@@ -217,8 +210,8 @@ void RecalculateMoveSpeeds(MoveList &mls, int old_speed_x, int old_speed_y, int 
             float old_speed_at_angle = calc_move_speed_at_angle(old_movspeed_x, old_movspeed_y, xdist, ydist);
             float new_speed_at_angle = calc_move_speed_at_angle(new_movspeed_x, new_movspeed_y, xdist, ydist);
 
-            mls.xpermove[i] = (mls.xpermove[i] * new_speed_at_angle) / old_speed_at_angle;
-            mls.ypermove[i] = (mls.ypermove[i] * new_speed_at_angle) / old_speed_at_angle;
+            mls.permove[i].X = (mls.permove[i].X * new_speed_at_angle) / old_speed_at_angle;
+            mls.permove[i].Y = (mls.permove[i].Y * new_speed_at_angle) / old_speed_at_angle;
         }
     }
 
@@ -226,9 +219,9 @@ void RecalculateMoveSpeeds(MoveList &mls, int old_speed_x, int old_speed_y, int 
     if (mls.onpart >= 0.f)
     {
         if (old_stage_xpermove != 0)
-            mls.onpart = (mls.onpart * old_stage_xpermove) / mls.xpermove[mls.onstage];
+            mls.onpart = (mls.onpart * old_stage_xpermove) / mls.permove[mls.onstage].X;
         else
-            mls.onpart = (mls.onpart * old_stage_ypermove) / mls.ypermove[mls.onstage];
+            mls.onpart = (mls.onpart * old_stage_ypermove) / mls.permove[mls.onstage].Y;
     }
 }
 

@@ -403,7 +403,7 @@ HAGSError extract_room_template_files(const AGSString &templateFileName, int new
     if (thisFile.CompareNoCase(ROOM_TEMPLATE_ID_FILE) == 0)
       continue;
 
-    Stream *readin = templateMgr->OpenAsset(thisFile);
+    std::unique_ptr<Stream> readin(templateMgr->OpenAsset(thisFile));
     if (!readin)
     {
       return new AGSError(AGSString::FromFormat("Failed to open template asset '%s' for reading.", thisFile.GetCStr()));
@@ -411,20 +411,18 @@ HAGSError extract_room_template_files(const AGSString &templateFileName, int new
     char outputName[MAX_PATH];
     AGSString extension = AGSPath::GetFileExtension(thisFile);
     sprintf(outputName, "room%d.%s", newRoomNumber, extension.GetCStr());
-    Stream *wrout = AGSFile::CreateFile(outputName);
+    std::unique_ptr<Stream> wrout(AGSFile::CreateFile(outputName));
     if (!wrout) 
     {
-      delete readin;
       return new AGSError(AGSString::FromFormat("Failed to open file '%s' for writing.", outputName));
     }
     
-    const size_t size = readin->GetLength();
-    char *membuff = new char[size];
-    readin->Read(membuff, size);
-    wrout->Write(membuff, size);
-    delete readin;
-    delete wrout;
-    delete[] membuff;
+    const soff_t src_len = readin->GetLength();
+    soff_t result = AGS::Common::CopyStream(readin.get(), wrout.get(), src_len);
+    if (result < src_len)
+    {
+      return new AGSError(AGSString::FromFormat("Failed to extract file '%s'.", thisFile.GetCStr()));
+    }
   }
 
   return HAGSError::None();
@@ -454,7 +452,7 @@ HAGSError extract_template_files(const AGSString &templateFileName)
     if (thisFile.CompareNoCase(TEMPLATE_LOCK_FILE) == 0)
       continue;
 
-    Stream *readin = templateMgr->OpenAsset(thisFile);
+    std::unique_ptr<Stream> readin(templateMgr->OpenAsset(thisFile));
     if (!readin)
     {
       return new AGSError(AGSString::FromFormat("Failed to open template asset '%s' for reading.", thisFile.GetCStr()));
@@ -462,19 +460,18 @@ HAGSError extract_template_files(const AGSString &templateFileName)
     // Make sure to create necessary subfolders,
     // e.g. if it's an old template with Music & Sound folders
     AGSDirectory::CreateAllDirectories(".", AGSPath::GetDirectoryPath(thisFile));
-    Stream *wrout = AGSFile::CreateFile(thisFile);
+    std::unique_ptr<Stream> wrout(AGSFile::CreateFile(thisFile));
     if (!wrout)
     {
-      delete readin;
       return new AGSError(AGSString::FromFormat("Failed to open file '%s' for writing.", thisFile.GetCStr()));
     }
-    const size_t size = readin->GetLength();
-    char *membuff = new char[size];
-    readin->Read(membuff, size);
-    wrout->Write(membuff, size);
-    delete readin;
-    delete wrout;
-    delete[] membuff;
+
+    const soff_t src_len = readin->GetLength();
+    soff_t result = AGS::Common::CopyStream(readin.get(), wrout.get(), src_len);
+    if (result < src_len)
+    {
+      return new AGSError(AGSString::FromFormat("Failed to extract file '%s'.", thisFile.GetCStr()));
+    }
   }
 
   return HAGSError::None();

@@ -44,7 +44,7 @@ struct MoveList
     // made a fractional value to let recalculate movelist dynamically
     float   onpart = 0.f;
     uint8_t doneflag = 0u; // currently unused, but reserved
-    uint8_t direct = 0;  // MoveCharDirect was used or not
+    uint8_t direct = 0;  // if ignoring walls
 
     bool IsEmpty() const { return pos.empty(); }
     uint32_t GetNumStages() const { return pos.size(); }

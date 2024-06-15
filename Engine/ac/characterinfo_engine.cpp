@@ -398,7 +398,7 @@ void CharacterInfo::update_character_follower(int &aa, std::vector<int> &followi
             room = -play.follow_change_room_timer;
           }
           if (room >= 0) {
-            walk_character(aa,play.entered_at_x,play.entered_at_y,1, true);
+            move_character(&game.chars[aa], play.entered_at_x, play.entered_at_y, true /* ignwall */, true /* walk anim */);
             doing_nothing = 0;
           }
         }
@@ -415,8 +415,8 @@ void CharacterInfo::update_character_follower(int &aa, std::vector<int> &followi
         // make sure he's not standing on top of the other man
         if (goxoffs < 0) goxoffs-=distaway;
         else goxoffs+=distaway;
-        walk_character(aa,game.chars[following].x + goxoffs,
-          game.chars[following].y + (Random(50)-25),0, true);
+        move_character(&game.chars[aa], game.chars[following].x + goxoffs,
+          game.chars[following].y + (Random(50)-25), false /* ignwall */, true /* walk anim */);
         doing_nothing = 0;
       }
     }

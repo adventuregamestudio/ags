@@ -61,7 +61,7 @@ void    Object_SetY(ScriptObject *objj, int yy);
 void    Object_GetName(ScriptObject *objj, char *buffer);
 const char* Object_GetName_New(ScriptObject *objj);
 bool    Object_IsInteractionAvailable(ScriptObject *oobj, int mood);
-void    Object_Move(ScriptObject *objj, int x, int y, int speed, int blocking, int direct);
+void    Object_Move(ScriptObject *objj, int x, int y, int speed, int blocking, int ignwal);
 void    Object_SetClickable(ScriptObject *objj, int clik);
 int     Object_GetClickable(ScriptObject *objj);
 void    Object_SetSolid(ScriptObject *objj, int solid);
@@ -85,7 +85,8 @@ void    update_object_scale(int objid);
 // Deduces arbitrary object's scale, accounting for both manual scaling and the room region effects
 void    update_object_scale(int &res_zoom, int &res_width, int &res_height,
             int objx, int objy, int sprnum, int own_zoom, bool use_region_scaling);
-void    move_object(int objj,int tox,int toy,int spee,int ignwal);
+// Start moving object to the given destination, calculate path using destination and optionally "ignore walls" flag
+void    move_object(int objj, int tox, int toy, int speed, bool ignwal);
 void    get_object_blocking_rect(int objid, int *x1, int *y1, int *width, int *y2);
 int     isposinbox(int mmx,int mmy,int lf,int tp,int rt,int bt);
 // xx,yy is the position in room co-ordinates that we are checking
@@ -114,5 +115,8 @@ int     SetFirstAnimFrame(int view, int loop, int sframe, int direction);
 // returns whether the animation should continue.
 bool    CycleViewAnim(int view, uint16_t &loop, uint16_t &frame, bool forwards, int repeat);
 
-#endif // __AGS_EE_AC__OBJECT_H
+// Tests if the standard move/walk parameters are in valid range, if not then clamps them and
+// reports a script warning.
+void    ValidateMoveParams(const char *apiname, int &blocking, int &ignwal);
 
+#endif // __AGS_EE_AC__OBJECT_H

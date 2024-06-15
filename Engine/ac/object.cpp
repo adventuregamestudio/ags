@@ -320,41 +320,36 @@ bool Object_IsInteractionAvailable(ScriptObject *oobj, int mood) {
     return (ciwas == 2);
 }
 
-void move_object(int objj, const std::vector<Point> *path, int tox, int toy, int speed, int ignwal);
+void move_object(int objj, const std::vector<Point> *path, int tox, int toy, int speed, bool ignwal);
 
-void Object_DoMove(ScriptObject *objj, const std::vector<Point> *path, int x, int y,
-    int speed, int blocking, int direct)
+void Object_DoMove(ScriptObject *objj, const char *api_name, void *path_arr, int x, int y, int speed, int blocking, int ignwal)
 {
-    if (direct == ANYWHERE)
-        direct = 1;
-    else if (direct == WALKABLE_AREAS)
-        direct = 0;
-    if (blocking == BLOCKING)
-        blocking = 1;
-    else if (blocking == IN_BACKGROUND)
-        blocking = 0;
+    ValidateMoveParams(api_name, blocking, ignwal);
 
-    if (blocking != 0 && blocking != 1)
-        quit("Object.Move: Blocking must be BLOCKING or IN_BACKGROUND");
-    if (direct != 0 && direct != 1)
-        quit("Object.Move: Direct must be ANYWHERE or WALKABLE_AREAS");
-
-    move_object(objj->id, path, x, y, speed, direct);
+    if (path_arr)
+    {
+        std::vector<Point> path;
+        if (!ScriptStructHelpers::ResolveArrayOfPoints(path_arr, path))
+            return;
+        move_object(objj->id, &path, 0, 0, speed, ignwal != 0);
+    }
+    else
+    {
+        move_object(objj->id, nullptr, x, y, speed, ignwal != 0);
+    }
 
     if (blocking)
         GameLoopUntilNotMoving(&objs[objj->id].moving);
 }
 
-void Object_Move(ScriptObject *objj, int x, int y, int speed, int blocking, int direct) {
-    Object_DoMove(objj, nullptr, x, y, speed, blocking, direct);
+void Object_Move(ScriptObject *objj, int x, int y, int speed, int blocking, int ignwal)
+{
+    Object_DoMove(objj, "Object.Move", nullptr, x, y, speed, blocking, ignwal);
 }
 
 void Object_MovePath(ScriptObject *objj, void *path_arr, int speed, int blocking)
 {
-    std::vector<Point> path;
-    if (!ScriptStructHelpers::ResolveArrayOfPoints(path_arr, path))
-        return;
-    Object_DoMove(objj, &path, 0, 0, speed, blocking, 1);
+    Object_DoMove(objj, "Object.MovePath", path_arr, 0, 0, speed, blocking, ANYWHERE);
 }
 
 void Object_SetClickable(ScriptObject *objj, int clik) {
@@ -472,9 +467,8 @@ void Object_SetRotation(ScriptObject *objj, float degrees) {
     objs[objj->id].UpdateGraphicSpace();
 }
 
-
-void move_object(int objj, const std::vector<Point> *path, int tox, int toy, int speed, int ignwal) {
-
+void move_object(int objj, const std::vector<Point> *path, int tox, int toy, int speed, bool ignwal)
+{
     if (!is_valid_object(objj))
         quit("!MoveObject: invalid object number");
 
@@ -491,7 +485,6 @@ void move_object(int objj, const std::vector<Point> *path, int tox, int toy, int
         obj.y = path->front().Y;
         tox = path->back().X;
         toy = path->back().Y;
-        ignwal = 1;
     }
     else if ((tox == obj.x) && (toy == obj.y ))
     {
@@ -511,7 +504,7 @@ void move_object(int objj, const std::vector<Point> *path, int tox, int toy, int
     {
         MaskRouteFinder *pathfind = get_room_pathfinder();
         pathfind->SetWalkableArea(prepare_walkable_areas(-1), thisroom.MaskResolution);
-        path_result = Pathfinding::FindRoute(mls[mslot], pathfind, obj.x, obj.y, tox, toy, speed, speed, false, ignwal != 0);
+        path_result = Pathfinding::FindRoute(mls[mslot], pathfind, obj.x, obj.y, tox, toy, speed, speed, false, ignwal);
     }
     
     // If successful, then start moving
@@ -522,7 +515,7 @@ void move_object(int objj, const std::vector<Point> *path, int tox, int toy, int
     }
 }
 
-void move_object(int objj, int tox, int toy, int speed, int ignwal)
+void move_object(int objj, int tox, int toy, int speed, bool ignwal)
 {
     move_object(objj, nullptr, tox, toy, speed, ignwal);
 }
@@ -722,17 +715,17 @@ void ValidateViewAnimParams(const char *apiname, int &repeat, int &blocking, int
 
     if ((repeat < ANIM_ONCE) || (repeat > ANIM_ONCERESET))
     {
-        debug_script_warn("%s: invalid repeat value %d, will treat as REPEAT (1).", apiname, repeat);
+        debug_script_warn("%s: invalid 'repeat' value %d, will treat as REPEAT (1).", apiname, repeat);
         repeat = ANIM_REPEAT;
     }
     if ((blocking < 0) || (blocking > 1))
     {
-        debug_script_warn("%s: invalid blocking value %d, will treat as BLOCKING (1)", apiname, blocking);
+        debug_script_warn("%s: invalid 'blocking' value %d, will treat as BLOCKING (1)", apiname, blocking);
         blocking = 1;
     }
     if ((direction < 0) || (direction > 1))
     {
-        debug_script_warn("%s: invalid direction value %d, will treat as BACKWARDS (1)", apiname, direction);
+        debug_script_warn("%s: invalid 'direction' value %d, will treat as BACKWARDS (1)", apiname, direction);
         direction = 1;
     }
 }
@@ -850,6 +843,30 @@ bool CycleViewAnim(int view, uint16_t &o_loop, uint16_t &o_frame, bool forwards,
     o_loop = loop;
     o_frame = frame;
     return !done; // have we finished animating?
+}
+
+void ValidateMoveParams(const char *apiname, int &blocking, int &ignwal)
+{
+    if (blocking == BLOCKING)
+        blocking = 1;
+    else if (blocking == IN_BACKGROUND)
+        blocking = 0;
+
+    if (ignwal == ANYWHERE)
+        ignwal = 1;
+    else if (ignwal == WALKABLE_AREAS)
+        ignwal = 0;
+
+    if ((blocking < 0) || (blocking > 1))
+    {
+        debug_script_warn("%s: invalid 'blocking' value %d, will treat as BLOCKING (1)", apiname, blocking);
+        blocking = 1;
+    }
+    if ((ignwal < 0) || (ignwal > 1))
+    {
+        debug_script_warn("%s: invalid 'walk where' value %d, will treat as ANYWHERE (1)", apiname, ignwal);
+        ignwal = 1;
+    }
 }
 
 //=============================================================================

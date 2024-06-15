@@ -1028,53 +1028,84 @@ void Character_UnlockViewEx(CharacterInfo *chaa, int stopMoving) {
 
 }
 
-
-void Character_Walk(CharacterInfo *chaa, int x, int y, int blocking, int direct) 
+// Tests if the given character is permitted to start a move in the room
+bool ValidateCharForMove(CharacterInfo *chaa, const char *api_name)
 {
-    walk_or_move_character(chaa, x, y, blocking, direct, true);
+    if (chaa->room != displayed_room)
+    {
+        debug_script_warn("%s: specified character %s not in current room (is in %d, current room %d)",
+            api_name, chaa->scrname.GetCStr(), chaa->room, displayed_room);
+        return false;
+    }
+    if (!chaa->is_enabled())
+    {
+        debug_script_warn("%s: character %s is turned off and cannot be moved", api_name, chaa->scrname.GetCStr());
+        return false;
+    }
+    return true;
 }
 
-void Character_Move(CharacterInfo *chaa, int x, int y, int blocking, int direct) 
+// Character_DoMove converts and validates script parameters, and calls corresponding internal character move function
+void Character_DoMove(CharacterInfo *chaa, const char *api_name,
+    void *path_arr, int x, int y, bool walk_straight,
+    int blocking, int ignwal, bool walk_anim)
 {
-    walk_or_move_character(chaa, x, y, blocking, direct, false);
-}
-
-void Character_WalkStraight(CharacterInfo *chaa, int xx, int yy, int blocking) {
-
-    if (chaa->room != displayed_room)
-        quit("!MoveCharacterStraight: specified character not in current room");
-
-    walk_or_move_character_straight(chaa, xx, yy, blocking, 1 /* use ANYWHERE */, true /* walk */);
-}
-
-void Character_MoveStraight(CharacterInfo *chaa, int xx, int yy, int blocking) {
-
-    if (chaa->room != displayed_room)
-        quit("!MoveCharacterStraight: specified character not in current room");
-
-    walk_or_move_character_straight(chaa, xx, yy, blocking, 1 /* use ANYWHERE */, false /* move */);
-}
-
-void Character_WalkPath(CharacterInfo *chaa, void *path_arr, int blocking) {
-
-    if (chaa->room != displayed_room)
-        quit("!Character.WalkPath: specified character not in current room");
-
-    std::vector<Point> path;
-    if (!ScriptStructHelpers::ResolveArrayOfPoints(path_arr, path))
+    if (!ValidateCharForMove(chaa, api_name))
         return;
-    walk_or_move_character(chaa, path, blocking, true /* walk */);
+
+    ValidateMoveParams(api_name, blocking, ignwal);
+
+    if (path_arr)
+    {
+        std::vector<Point> path;
+        if (!ScriptStructHelpers::ResolveArrayOfPoints(path_arr, path))
+        {
+            debug_script_warn("%s: failed to resolve array of points", api_name);
+            return;
+        }
+        move_character(chaa, path, walk_anim);
+    }
+    else if (walk_straight)
+    {
+        move_character_straight(chaa, x, y, walk_anim);
+    }
+    else
+    {
+        move_character(chaa, x, y, ignwal != 0, walk_anim);
+    }
+
+    if (blocking)
+        GameLoopUntilNotMoving(&chaa->walking);
 }
 
-void Character_MovePath(CharacterInfo *chaa, void *path_arr, int blocking) {
+void Character_Walk(CharacterInfo *chaa, int x, int y, int blocking, int ignwal) 
+{
+    Character_DoMove(chaa, "Character.Walk", nullptr, x, y, false /* path */, blocking, ignwal, true /* walk anim */);
+}
 
-    if (chaa->room != displayed_room)
-        quit("!Character.MovePath: specified character not in current room");
+void Character_Move(CharacterInfo *chaa, int x, int y, int blocking, int ignwal) 
+{
+    Character_DoMove(chaa, "Character.Move", nullptr, x, y, false /* path */, blocking, ignwal, false /* no anim */);
+}
 
-    std::vector<Point> path;
-    if (!ScriptStructHelpers::ResolveArrayOfPoints(path_arr, path))
-        return;
-    walk_or_move_character(chaa, path, blocking, false /* move */);
+void Character_WalkStraight(CharacterInfo *chaa, int xx, int yy, int blocking)
+{
+    Character_DoMove(chaa, "Character.WalkStraight", nullptr, xx, yy, true /* straight */, blocking, WALKABLE_AREAS, true /* walk anim */);
+}
+
+void Character_MoveStraight(CharacterInfo *chaa, int xx, int yy, int blocking)
+{
+    Character_DoMove(chaa, "Character.MoveStraight", nullptr, xx, yy, true /* straight */, blocking, WALKABLE_AREAS, false /* no anim */);
+}
+
+void Character_WalkPath(CharacterInfo *chaa, void *path_arr, int blocking)
+{
+    Character_DoMove(chaa, "Character.WalkPath", path_arr, 0, 0, false /* path */, blocking, ANYWHERE, true /* walk anim */);
+}
+
+void Character_MovePath(CharacterInfo *chaa, void *path_arr, int blocking)
+{
+    Character_DoMove(chaa, "Character.WalkPath", path_arr, 0, 0, false /* path */, blocking, ANYWHERE, false /* no anim */);
 }
 
 void Character_RunInteraction(CharacterInfo *chaa, int mood) {
@@ -1745,10 +1776,14 @@ void Character_SetUseRegionTint(CharacterInfo *chaa, int yesorno)
 // order of loops to turn character in circle from down to down
 int turnlooporder[8] = {0, 6, 1, 7, 3, 5, 2, 4};
 
-void walk_character(int chac, const std::vector<Point> *path, int tox, int toy, int ignwal, bool autoWalkAnims) {
-    CharacterInfo*chin=&game.chars[chac];
-    if (chin->room!=displayed_room)
-        quit("!MoveCharacter: character not in current room");
+// Core character move implementation:
+// uses a provided path or searches for a path to a given destination;
+// starts a move or walk (with automatic animation).
+void move_character_impl(CharacterInfo *chin, const std::vector<Point> *path, int tox, int toy, bool ignwal, bool walk_anim)
+{
+    const int chac = chin->index_id;
+    if (!ValidateCharForMove(chin, "MoveCharacter"))
+        return;
 
     chin->flags &= ~CHF_MOVENOTWALK;
 
@@ -1766,16 +1801,15 @@ void walk_character(int chac, const std::vector<Point> *path, int tox, int toy, 
         chin->y = path->front().Y;
         tox = path->back().X;
         toy = path->back().Y;
-        ignwal = 1;
     }
     else if ((tox == chin->x) && (toy == chin->y))
     {
-            StopMoving(chac);
-            debug_script_log("MoveCharacter: %s already at destination, not moving", chin->scrname.GetCStr());
-            return;
+        StopMoving(chac);
+        debug_script_log("MoveCharacter: %s already at destination, not moving", chin->scrname.GetCStr());
+        return;
     }
 
-    if ((chin->animating) && (autoWalkAnims))
+    if ((chin->animating) && (walk_anim))
         stop_character_anim(chin);
 
     if (chin->idleleft < 0) {
@@ -1822,7 +1856,7 @@ void walk_character(int chac, const std::vector<Point> *path, int tox, int toy, 
     {
         MaskRouteFinder *pathfind = get_room_pathfinder();
         pathfind->SetWalkableArea(prepare_walkable_areas(chac), thisroom.MaskResolution);
-        path_result = Pathfinding::FindRoute(mls[mslot], pathfind, chin->x, chin->y, tox, toy, move_speed_x, move_speed_y, false, ignwal != 0);
+        path_result = Pathfinding::FindRoute(mls[mslot], pathfind, chin->x, chin->y, tox, toy, move_speed_x, move_speed_y, false, ignwal);
     }
 
     // If successful, then start moving
@@ -1840,7 +1874,7 @@ void walk_character(int chac, const std::vector<Point> *path, int tox, int toy, 
         // or if they were already moving, keep the current wait - 
         // this prevents a glitch if MoveCharacter is called when they
         // are already moving
-        if (autoWalkAnims)
+        if (walk_anim)
         {
             chin->walkwait = waitWas;
             charextra[chac].animwait = animWaitWas;
@@ -1852,18 +1886,8 @@ void walk_character(int chac, const std::vector<Point> *path, int tox, int toy, 
         else
             chin->flags |= CHF_MOVENOTWALK;
     }
-    else if (autoWalkAnims) // pathfinder couldn't get a route, stand them still
+    else if (walk_anim) // pathfinder couldn't get a route, stand them still
         chin->frame = 0;
-}
-
-void walk_character(int chac, int tox, int toy, int ignwal, bool autoWalkAnims)
-{
-    walk_character(chac, nullptr, tox, toy, ignwal, autoWalkAnims);
-}
-
-void walk_character(int chac, const std::vector<Point> &path, bool autoWalkAnims)
-{
-    walk_character(chac, &path, 0, 0, 1, autoWalkAnims);
 }
 
 int find_looporder_index (int curloop) {
@@ -2137,46 +2161,17 @@ void FindReasonableLoopForCharacter(CharacterInfo *chap) {
 
 }
 
-void walk_or_move_character(CharacterInfo *chaa, const std::vector<Point> *path,
-    int x, int y, int blocking, int direct, bool isWalk)
+void move_character(CharacterInfo *chaa, int tox, int toy, bool ignwal, bool walk_anim)
 {
-    if (!chaa->is_enabled())
-    {
-        debug_script_warn("MoveCharacterBlocking: character is turned off and cannot be moved");
-        return;
-    }
-
-    if (blocking == BLOCKING)
-        blocking = 1;
-    else if (blocking == IN_BACKGROUND)
-        blocking = 0;
-    if (direct == ANYWHERE)
-        direct = 1;
-    else if (direct == WALKABLE_AREAS)
-        direct = 0;
-
-    if (blocking != 0 && blocking != 1)
-        quit("!Character.Walk: Blocking must be BLOCKING or IN_BACKGROUND");
-    if (direct != 0 && direct != 1)
-        quit("!Character.Walk: Direct must be ANYWHERE or WALKABLE_AREAS");
-
-    walk_character(chaa->index_id, path, x, y, direct, isWalk);
-
-    if (blocking)
-        GameLoopUntilNotMoving(&chaa->walking);
+    move_character_impl(chaa, nullptr, tox, toy, ignwal, walk_anim);
 }
 
-void walk_or_move_character(CharacterInfo *chaa, int x, int y, int blocking, int direct, bool isWalk)
+void move_character(CharacterInfo *chaa, const std::vector<Point> &path, bool walk_anim)
 {
-    walk_or_move_character(chaa, nullptr, x, y, blocking, direct, isWalk);
+    move_character_impl(chaa, &path, 0, 0, true /* ignore walls */, walk_anim);
 }
 
-void walk_or_move_character(CharacterInfo *chaa, const std::vector<Point> &path, int blocking, bool isWalk)
-{
-    walk_or_move_character(chaa, &path, 0, 0, blocking, 1, isWalk);
-}
-
-void walk_or_move_character_straight(CharacterInfo *chaa, int x, int y, int blocking, int direct, bool isWalk)
+void move_character_straight(CharacterInfo *chaa, int x, int y, bool walk_anim)
 {
     MaskRouteFinder *pathfind = get_room_pathfinder();
     pathfind->SetWalkableArea(prepare_walkable_areas(chaa->index_id), thisroom.MaskResolution);
@@ -2189,8 +2184,8 @@ void walk_or_move_character_straight(CharacterInfo *chaa, int x, int y, int bloc
         movetoy = lastcy;
     }
 
-    // CHECKME: there's likely no point in calling routefinder again, so pass a direct path instead?
-    walk_or_move_character(chaa, nullptr, movetox, movetoy, blocking, direct, isWalk);
+    // FIXME: there's likely no point in calling routefinder again, so pass a direct path instead?
+    move_character_impl(chaa, nullptr, movetox, movetoy, false /* walkable areas */, walk_anim);
 }
 
 int wantMoveNow (CharacterInfo *chi, CharacterExtras *chex) {

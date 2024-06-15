@@ -74,8 +74,8 @@ void    Character_Tint(CharacterInfo *chaa, int red, int green, int blue, int op
 void    Character_Think(CharacterInfo *chaa, const char *text);
 void    Character_UnlockView(CharacterInfo *chaa);
 void    Character_UnlockViewEx(CharacterInfo *chaa, int stopMoving);
-void    Character_Walk(CharacterInfo *chaa, int x, int y, int blocking, int direct);
-void    Character_Move(CharacterInfo *chaa, int x, int y, int blocking, int direct);
+void    Character_Walk(CharacterInfo *chaa, int x, int y, int blocking, int ignwal);
+void    Character_Move(CharacterInfo *chaa, int x, int y, int blocking, int ignwal);
 void    Character_WalkStraight(CharacterInfo *chaa, int xx, int yy, int blocking);
 
 void    Character_RunInteraction(CharacterInfo *chaa, int mood);
@@ -185,15 +185,13 @@ int  doNextCharMoveStep (CharacterInfo *chi, int &char_index, CharacterExtras *c
 bool is_char_walking_ndirect(CharacterInfo *chi);
 int  find_nearest_walkable_area_within(int *xx, int *yy, int range, int step);
 void find_nearest_walkable_area (int *xx, int *yy);
-void walk_character(int chac, int tox, int toy, int ignwal, bool autoWalkAnims);
-void walk_character(int chac, const std::vector<Point> &path, bool autoWalkAnims);
-void FindReasonableLoopForCharacter(CharacterInfo *chap);
-// Start character walk or move; calculate path using destination and optionally "ignore walls" flag
-void walk_or_move_character(CharacterInfo *chaa, int x, int y, int blocking, int direct, bool isWalk);
+// Start character walk or move; calculate path using destination and optionally "ignore walls" flag 
+void move_character(CharacterInfo *chaa, int tox, int toy, bool ignwal, bool walk_anim);
 // Start character walk or move, using a predefined path
-void walk_or_move_character(CharacterInfo *chaa, const std::vector<Point> &path, int blocking, bool isWalk);
+void move_character(CharacterInfo *chaa, const std::vector<Point> &path, bool walk_anim);
 // Start character walk or move along the straight line without pathfinding, until any non-passable area is met
-void walk_or_move_character_straight(CharacterInfo *chaa, int x, int y, int blocking, int direct, bool isWalk);
+void move_character_straight(CharacterInfo *chaa, int x, int y, bool walk_anim);
+void FindReasonableLoopForCharacter(CharacterInfo *chap);
 int  wantMoveNow (CharacterInfo *chi, CharacterExtras *chex);
 void setup_player_character(int charid);
 Common::Bitmap *GetCharacterImage(int charid, bool *is_original = nullptr);

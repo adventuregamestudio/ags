@@ -203,7 +203,7 @@ void Character_Animate(CharacterInfo *chaa, int loop, int delay, int repeat,
     int blocking, int direction, int sframe, int volume)
 {
     ValidateViewAnimVLF("Character.Animate", chaa->view, loop, sframe);
-    ValidateViewAnimParams("Character.Animate", repeat, blocking, direction);
+    ValidateViewAnimParams("Character.Animate", blocking, repeat, direction);
 
     animate_character(chaa, loop, delay, repeat, 0, direction, sframe, volume);
 
@@ -346,9 +346,15 @@ float GetFaceDirRatio(CharacterInfo *chinfo)
     return 1.f;
 }
 
-DirectionalLoop GetDirectionalLoop(CharacterInfo *chinfo, float x_diff, float y_diff)
+DirectionalLoop GetDirectionalLoop(CharacterInfo *chinfo, float x_diff, float y_diff, bool move_dir_fw = true)
 {
     DirectionalLoop next_loop = kDirLoop_Left; // NOTE: default loop was Left for some reason
+
+    if (!move_dir_fw)
+    {
+        x_diff = -x_diff;
+        y_diff = -y_diff;
+    }
 
     // TODO: cache this in CharacterExtras for bit more performance
     float dir_ratio = GetFaceDirRatio(chinfo);
@@ -959,7 +965,7 @@ void Character_StopMoving(CharacterInfo *charp) {
     }
     if ((charp->walking > 0) && (charp->walking < TURNING_AROUND)) {
         // if it's not a MoveCharDirect, make sure they end up on a walkable area
-        if ((mls[charp->walking].direct == 0) && (charp->room == displayed_room))
+        if ((mls[charp->walking].move_direct == 0) && (charp->room == displayed_room))
             Character_PlaceOnWalkableArea(charp);
 
         debug_script_log("%s: stop moving", charp->scrname.GetCStr());
@@ -1048,12 +1054,13 @@ bool ValidateCharForMove(CharacterInfo *chaa, const char *api_name)
 // Character_DoMove converts and validates script parameters, and calls corresponding internal character move function
 void Character_DoMove(CharacterInfo *chaa, const char *api_name,
     void *path_arr, int x, int y, bool walk_straight,
-    int blocking, int ignwal, bool walk_anim)
+    int blocking, int ignwal, bool walk_anim, int repeat = ANIM_ONCE, int direction = FORWARDS)
 {
     if (!ValidateCharForMove(chaa, api_name))
         return;
 
     ValidateMoveParams(api_name, blocking, ignwal);
+    ValidateAnimParams(api_name, repeat, direction);
 
     if (path_arr)
     {
@@ -1063,7 +1070,7 @@ void Character_DoMove(CharacterInfo *chaa, const char *api_name,
             debug_script_warn("%s: failed to resolve array of points", api_name);
             return;
         }
-        move_character(chaa, path, walk_anim);
+        move_character(chaa, path, walk_anim, RunPathParams(repeat, direction == 0));
     }
     else if (walk_straight)
     {
@@ -1098,14 +1105,14 @@ void Character_MoveStraight(CharacterInfo *chaa, int xx, int yy, int blocking)
     Character_DoMove(chaa, "Character.MoveStraight", nullptr, xx, yy, true /* straight */, blocking, WALKABLE_AREAS, false /* no anim */);
 }
 
-void Character_WalkPath(CharacterInfo *chaa, void *path_arr, int blocking)
+void Character_WalkPath(CharacterInfo *chaa, void *path_arr, int blocking, int repeat, int direction)
 {
-    Character_DoMove(chaa, "Character.WalkPath", path_arr, 0, 0, false /* path */, blocking, ANYWHERE, true /* walk anim */);
+    Character_DoMove(chaa, "Character.WalkPath", path_arr, 0, 0, false /* path */, blocking, ANYWHERE, true /* walk anim */, repeat, direction);
 }
 
-void Character_MovePath(CharacterInfo *chaa, void *path_arr, int blocking)
+void Character_MovePath(CharacterInfo *chaa, void *path_arr, int blocking, int repeat, int direction)
 {
-    Character_DoMove(chaa, "Character.WalkPath", path_arr, 0, 0, false /* path */, blocking, ANYWHERE, false /* no anim */);
+    Character_DoMove(chaa, "Character.WalkPath", path_arr, 0, 0, false /* path */, blocking, ANYWHERE, false /* no anim */, repeat, direction);
 }
 
 void Character_RunInteraction(CharacterInfo *chaa, int mood) {
@@ -1779,7 +1786,8 @@ int turnlooporder[8] = {0, 6, 1, 7, 3, 5, 2, 4};
 // Core character move implementation:
 // uses a provided path or searches for a path to a given destination;
 // starts a move or walk (with automatic animation).
-void move_character_impl(CharacterInfo *chin, const std::vector<Point> *path, int tox, int toy, bool ignwal, bool walk_anim)
+void move_character_impl(CharacterInfo *chin, const std::vector<Point> *path, int tox, int toy, bool ignwal, bool walk_anim,
+    const RunPathParams &run_params)
 {
     const int chac = chin->index_id;
     if (!ValidateCharForMove(chin, "MoveCharacter"))
@@ -1797,10 +1805,10 @@ void move_character_impl(CharacterInfo *chin, const std::vector<Point> *path, in
         }
 
         // Jump character to the path start
-        chin->x = path->front().X;
-        chin->y = path->front().Y;
-        tox = path->back().X;
-        toy = path->back().Y;
+        chin->x = run_params.Forward ? path->front().X : path->back().X;
+        chin->y = run_params.Forward ? path->front().Y : path->back().Y;
+        tox = run_params.Forward ? path->back().X : path->front().X;
+        toy = run_params.Forward ? path->back().Y : path->front().Y;
     }
     else if ((tox == chin->x) && (toy == chin->y))
     {
@@ -1850,20 +1858,20 @@ void move_character_impl(CharacterInfo *chin, const std::vector<Point> *path, in
     bool path_result = false;
     if (path)
     {
-        path_result = Pathfinding::CalculateMoveList(mls[mslot], *path, move_speed_x, move_speed_y);
+        path_result = Pathfinding::CalculateMoveList(mls[mslot], *path, move_speed_x, move_speed_y, run_params);
     }
     else
     {
         MaskRouteFinder *pathfind = get_room_pathfinder();
         pathfind->SetWalkableArea(prepare_walkable_areas(chac), thisroom.MaskResolution);
-        path_result = Pathfinding::FindRoute(mls[mslot], pathfind, chin->x, chin->y, tox, toy, move_speed_x, move_speed_y, false, ignwal);
+        path_result = Pathfinding::FindRoute(mls[mslot], pathfind, chin->x, chin->y, tox, toy, move_speed_x, move_speed_y, false, ignwal, run_params);
     }
 
     // If successful, then start moving
     if (path_result)
     {
         chin->walking = mslot;
-        mls[mslot].direct = ignwal;
+        mls[mslot].move_direct = ignwal;
 
         if (wasStepFrac > 0.f)
         {
@@ -1878,10 +1886,7 @@ void move_character_impl(CharacterInfo *chin, const std::vector<Point> *path, in
         {
             chin->walkwait = waitWas;
             charextra[chac].animwait = animWaitWas;
-
-            if (mls[mslot].pos[0] != mls[mslot].pos[1]) {
-                fix_player_sprite(&mls[mslot],chin);
-            }
+            fix_player_sprite(chin, mls[mslot]);
         }
         else
             chin->flags |= CHF_MOVENOTWALK;
@@ -1965,15 +1970,15 @@ void start_character_turning (CharacterInfo *chinf, int useloop, int no_diagonal
 
 }
 
-void fix_player_sprite(MoveList*cmls,CharacterInfo*chinf) {
-    const float xpmove = cmls->permove[cmls->onstage].X;
-    const float ypmove = cmls->permove[cmls->onstage].Y;
+void fix_player_sprite(CharacterInfo *chinf, const MoveList &cmls) {
+    const float xpmove = cmls.permove[cmls.onstage].X;
+    const float ypmove = cmls.permove[cmls.onstage].Y;
 
     // if not moving, do nothing
     if ((xpmove == 0.f) && (ypmove == 0.f))
         return;
 
-    const int useloop = GetDirectionalLoop(chinf, xpmove, ypmove);
+    const int useloop = GetDirectionalLoop(chinf, xpmove, ypmove, cmls.run_params.Forward);
 
     if ((game.options[OPT_ROTATECHARS] == 0) || ((chinf->flags & CHF_NOTURNING) != 0)) {
         chinf->loop = useloop;
@@ -2030,7 +2035,7 @@ int doNextCharMoveStep (CharacterInfo *chi, int &char_index, CharacterExtras *ch
     if (do_movelist_move(chi->walking, chi->x, chi->y) == 2) 
     {
         if ((chi->flags & CHF_MOVENOTWALK) == 0)
-            fix_player_sprite(&mls[chi->walking], chi);
+            fix_player_sprite(chi, mls[chi->walking]);
     }
 
     ntf = has_hit_another_character(char_index);
@@ -2065,7 +2070,7 @@ int doNextCharMoveStep (CharacterInfo *chi, int &char_index, CharacterExtras *ch
 bool is_char_walking_ndirect(CharacterInfo *chi)
 {
     return ((chi->walking > 0) && (chi->walking < TURNING_AROUND)) &&
-        (mls[chi->walking].direct == 0);
+        (mls[chi->walking].move_direct == 0);
 }
 
 int find_nearest_walkable_area_within(int *xx, int *yy, int range, int step)
@@ -2163,12 +2168,12 @@ void FindReasonableLoopForCharacter(CharacterInfo *chap) {
 
 void move_character(CharacterInfo *chaa, int tox, int toy, bool ignwal, bool walk_anim)
 {
-    move_character_impl(chaa, nullptr, tox, toy, ignwal, walk_anim);
+    move_character_impl(chaa, nullptr, tox, toy, ignwal, walk_anim, RunPathParams());
 }
 
-void move_character(CharacterInfo *chaa, const std::vector<Point> &path, bool walk_anim)
+void move_character(CharacterInfo *chaa, const std::vector<Point> &path, bool walk_anim, const RunPathParams &run_params)
 {
-    move_character_impl(chaa, &path, 0, 0, true /* ignore walls */, walk_anim);
+    move_character_impl(chaa, &path, 0, 0, true /* ignore walls */, walk_anim, run_params);
 }
 
 void move_character_straight(CharacterInfo *chaa, int x, int y, bool walk_anim)
@@ -2185,7 +2190,7 @@ void move_character_straight(CharacterInfo *chaa, int x, int y, bool walk_anim)
     }
 
     // FIXME: there's likely no point in calling routefinder again, so pass a direct path instead?
-    move_character_impl(chaa, nullptr, movetox, movetoy, false /* walkable areas */, walk_anim);
+    move_character_impl(chaa, nullptr, movetox, movetoy, false /* walkable areas */, walk_anim, RunPathParams());
 }
 
 int wantMoveNow (CharacterInfo *chi, CharacterExtras *chex) {
@@ -3370,7 +3375,7 @@ RuntimeScriptValue Sc_Character_MoveStraight(void *self, const RuntimeScriptValu
 
 RuntimeScriptValue Sc_Character_MovePath(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_POBJ_PINT(CharacterInfo, Character_MovePath, void);
+    API_OBJCALL_VOID_POBJ_PINT3(CharacterInfo, Character_MovePath, void);
 }
 
 // void (CharacterInfo *chap) 
@@ -3516,7 +3521,7 @@ RuntimeScriptValue Sc_Character_WalkStraight(void *self, const RuntimeScriptValu
 
 RuntimeScriptValue Sc_Character_WalkPath(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_POBJ_PINT(CharacterInfo, Character_WalkPath, void);
+    API_OBJCALL_VOID_POBJ_PINT3(CharacterInfo, Character_WalkPath, void);
 }
 
 RuntimeScriptValue Sc_GetCharacterAtRoom(const RuntimeScriptValue *params, int32_t param_count)
@@ -4151,7 +4156,7 @@ void RegisterCharacterAPI(ScriptAPIVersion /*base_api*/, ScriptAPIVersion /*comp
         { "Character::LockViewOffset^4",          API_FN_PAIR(Character_LockViewOffsetEx) },
         { "Character::LoseInventory^1",           API_FN_PAIR(Character_LoseInventory) },
         { "Character::Move^4",                    API_FN_PAIR(Character_Move) },
-        { "Character::MovePath^2",                API_FN_PAIR(Character_MovePath) },
+        { "Character::MovePath^4",                API_FN_PAIR(Character_MovePath) },
         { "Character::MoveStraight^3",            API_FN_PAIR(Character_MoveStraight) },
         { "Character::PlaceOnWalkableArea^0",     API_FN_PAIR(Character_PlaceOnWalkableArea) },
         { "Character::RemoveTint^0",              API_FN_PAIR(Character_RemoveTint) },
@@ -4173,7 +4178,7 @@ void RegisterCharacterAPI(ScriptAPIVersion /*base_api*/, ScriptAPIVersion /*comp
         { "Character::UnlockView^0",              API_FN_PAIR(Character_UnlockView) },
         { "Character::UnlockView^1",              API_FN_PAIR(Character_UnlockViewEx) },
         { "Character::Walk^4",                    API_FN_PAIR(Character_Walk) },
-        { "Character::WalkPath^2",                API_FN_PAIR(Character_WalkPath) },
+        { "Character::WalkPath^4",                API_FN_PAIR(Character_WalkPath) },
         { "Character::WalkStraight^3",            API_FN_PAIR(Character_WalkStraight) },
         
         { "Character::get_ActiveInventory",       API_FN_PAIR(Character_GetActiveInventory) },

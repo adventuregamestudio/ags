@@ -1258,7 +1258,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Move Lists",
-        kMoveSvgVersion_400,
+        kMoveSvgVersion_40006,
         kMoveSvgVersion_400,
         WriteMoveLists,
         ReadMoveLists

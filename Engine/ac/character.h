@@ -21,6 +21,7 @@
 #include <vector>
 #include "ac/characterinfo.h"
 #include "ac/characterextras.h"
+#include "ac/runtime_defines.h"
 #include "ac/dynobj/scriptobjects.h"
 #include "ac/dynobj/scriptoverlay.h"
 #include "game/viewport.h"
@@ -177,7 +178,7 @@ int  useDiagonal (CharacterInfo *char1);
 // returns 1 normally, or 0 if they only have horizontal animations
 int  hasUpDownLoops(CharacterInfo *char1);
 void start_character_turning (CharacterInfo *chinf, int useloop, int no_diagonal);
-void fix_player_sprite(MoveList*cmls,CharacterInfo*chinf);
+void fix_player_sprite(CharacterInfo *chinf, const MoveList &cmls);
 // Check whether two characters have walked into each other
 int  has_hit_another_character(int sourceChar);
 int  doNextCharMoveStep (CharacterInfo *chi, int &char_index, CharacterExtras *chex);
@@ -188,7 +189,7 @@ void find_nearest_walkable_area (int *xx, int *yy);
 // Start character walk or move; calculate path using destination and optionally "ignore walls" flag 
 void move_character(CharacterInfo *chaa, int tox, int toy, bool ignwal, bool walk_anim);
 // Start character walk or move, using a predefined path
-void move_character(CharacterInfo *chaa, const std::vector<Point> &path, bool walk_anim);
+void move_character(CharacterInfo *chaa, const std::vector<Point> &path, bool walk_anim, const RunPathParams &run_params);
 // Start character walk or move along the straight line without pathfinding, until any non-passable area is met
 void move_character_straight(CharacterInfo *chaa, int x, int y, bool walk_anim);
 void FindReasonableLoopForCharacter(CharacterInfo *chap);

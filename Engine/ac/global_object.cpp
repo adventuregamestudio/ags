@@ -228,7 +228,7 @@ void AnimateObjectImpl(int obn, int loopn, int spdd, int rept, int direction, in
         quit("!AnimateObject: object has not been assigned a view");
 
     ValidateViewAnimVLF("Object.Animate", obj.view, loopn, sframe);
-    ValidateViewAnimParams("Object.Animate", rept, blocking, direction);
+    ValidateViewAnimParams("Object.Animate", blocking, rept, direction);
 
     if (loopn > UINT16_MAX || sframe > UINT16_MAX)
     {

@@ -74,10 +74,13 @@ int do_movelist_move(short &mslot, int &pos_x, int &pos_y)
 
     int need_to_fix_sprite = 0; // TODO: find out what this value means and refactor
     MoveList &cmls = mls[mslot];
-    const float xpermove = cmls.permove[cmls.onstage].X;
-    const float ypermove = cmls.permove[cmls.onstage].Y;
+    const int cur_stage = cmls.onstage;
+    const int tar_pos_stage = cmls.run_params.Forward ? (cmls.onstage + 1) : (cmls.onstage);
+    const float move_dir_factor = cmls.run_params.Forward ? 1.f : -1.f;
+    const float xpermove = cmls.permove[cur_stage].X * move_dir_factor;
+    const float ypermove = cmls.permove[cur_stage].Y * move_dir_factor;
     const float onpart = cmls.onpart;
-    Point target = cmls.pos[cmls.onstage + 1];
+    Point target = cmls.pos[tar_pos_stage];
     // the new position that will be assigned to pos_x and pos_y
     int xps = pos_x, yps = pos_y;
 
@@ -99,26 +102,19 @@ int do_movelist_move(short &mslot, int &pos_x, int &pos_y)
     // Handle end of move stage
     if (xps == target.X && yps == target.Y)
     {
-        // this stage is done, go on to the next stage
-        cmls.from = cmls.pos[cmls.onstage + 1];
-        cmls.onstage++;
-        cmls.onpart = -1.f;
-        cmls.doneflag = 0;
-        if (cmls.onstage < cmls.GetNumStages())
+        // this stage is done, go on to the next stage, or stop
+        if (cmls.NextStage())
         {
             xps = cmls.from.X;
             yps = cmls.from.Y;
-        }
-
-        if (cmls.onstage >= cmls.GetNumStages() - 1)
-        {  // last stage is just dest pos
-            cmls = {};
-            mslot = 0; // movelist 0 means "not moving/walking"
-            need_to_fix_sprite = 1; // WARNING: value 1 is not used anywhere, could be a mistake
+            need_to_fix_sprite = 2; // used to request a sprite direction update
         }
         else
         {
-            need_to_fix_sprite = 2; // used to request a sprite direction update
+            // reset MoveList, and tell moving object to stop
+            cmls = {};
+            mslot = 0; // movelist 0 means "not moving/walking"
+            need_to_fix_sprite = 1; // WARNING: value 1 is not used anywhere, could be a mistake
         }
     }
 

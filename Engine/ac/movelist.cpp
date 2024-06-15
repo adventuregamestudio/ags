@@ -41,6 +41,55 @@ void MoveList::SetPixelUnitFraction(float frac)
     onpart = permove_dist > 0.f ? (1.f / permove_dist) * frac : 0.f;
 }
 
+void MoveList::Complete()
+{
+    doneflag = 1;
+    from = run_params.Forward ? pos[GetNumStages() - 1] : pos[0];
+}
+
+void MoveList::ResetToBegin()
+{
+    if (run_params.Forward)
+    {
+        onstage = 0;
+        from = pos[onstage];
+    }
+    else
+    {
+        // For backwards direction: set stage to the one before last,
+        // because it's the stage which contains move speeds between these two
+        onstage = GetNumStages() - 2;
+        from = pos[onstage + 1];
+    }
+}
+
+bool MoveList::NextStage()
+{
+    run_params.Forward ? onstage++ : onstage--;
+    if (((onstage < 0) || (onstage >= GetNumStages() - 1))
+        && OnPathCompleted())
+    {
+        Complete();
+        return false;
+    }
+    else
+    {
+        onpart = -1.f;
+        doneflag = 0;
+        from = run_params.Forward ? pos[onstage] : pos[onstage + 1];
+        return true;
+    }
+}
+
+bool MoveList::OnPathCompleted()
+{
+    if (run_params.Repeat == ANIM_ONCE)
+        return true;
+
+    ResetToBegin();
+    return false;
+}
+
 HSaveError MoveList::ReadFromSavegame(Stream *in, int32_t cmp_ver)
 {
     *this = MoveList(); // reset struct
@@ -59,7 +108,7 @@ HSaveError MoveList::ReadFromSavegame(Stream *in, int32_t cmp_ver)
     in->ReadInt32(); // UNUSED
     in->ReadInt32(); // UNUSED
     doneflag = in->ReadInt8();
-    direct = in->ReadInt8();
+    move_direct = in->ReadInt8();
 
     for (uint32_t i = 0; i < numstage; ++i)
     {
@@ -74,6 +123,18 @@ HSaveError MoveList::ReadFromSavegame(Stream *in, int32_t cmp_ver)
     {
         permove[i].Y = in->ReadFloat32();
     }
+
+    if (cmp_ver >= kMoveSvgVersion_40006)
+    {
+        run_params.Repeat = in->ReadInt8();
+        run_params.Forward = in->ReadInt8() == 0; // inverse, fw == 0
+        in->ReadInt8();
+        in->ReadInt8();
+        in->ReadInt32(); // reserve up to 4 * int32 total
+        in->ReadInt32(); // potential: from,to (waypoint range)
+        in->ReadInt32();
+    }
+
     return HSaveError::None();
 }
 
@@ -91,7 +152,7 @@ void MoveList::WriteToSavegame(Stream *out) const
     out->WriteInt32(0); // UNUSED
     out->WriteInt32(0); // UNUSED
     out->WriteInt8(doneflag);
-    out->WriteInt8(direct);
+    out->WriteInt8(move_direct);
 
     for (uint32_t i = 0; i < numstage; ++i)
     {
@@ -106,4 +167,13 @@ void MoveList::WriteToSavegame(Stream *out) const
     {
         out->WriteFloat32(permove[i].Y);
     }
+
+    // kMoveSvgVersion_40006
+    out->WriteInt8(run_params.Repeat);
+    out->WriteInt8(!run_params.Forward); // inverse, fw == 0
+    out->WriteInt8(0);
+    out->WriteInt8(0);
+    out->WriteInt32(0); // reserve up to 4 * int32 total
+    out->WriteInt32(0); // potential: from,to (waypoint range)
+    out->WriteInt32(0);
 }

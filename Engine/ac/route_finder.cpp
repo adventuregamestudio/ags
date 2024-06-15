@@ -30,13 +30,14 @@ std::unique_ptr<MaskRouteFinder> CreateDefaultMaskPathfinder()
 
 // Find route using a provided IRouteFinder, and calculate the MoveList using move speeds
 bool FindRoute(MoveList &mls, IRouteFinder *finder, int srcx, int srcy, int dstx, int dsty,
-    int move_speed_x, int move_speed_y, bool exact_dest, bool ignore_walls)
+    int move_speed_x, int move_speed_y, bool exact_dest, bool ignore_walls,
+    const RunPathParams &run_params)
 {
     std::vector<Point> path;
     if (!finder->FindRoute(path, srcx, srcy, dstx, dsty, exact_dest, ignore_walls))
         return false;
 
-    return CalculateMoveList(mls, path, move_speed_x, move_speed_y);
+    return CalculateMoveList(mls, path, move_speed_x, move_speed_y, run_params);
 }
 
 inline float input_speed_to_move(int speed_val)
@@ -151,10 +152,19 @@ static void calculate_move_stage(MoveList &mls, uint32_t index, float move_speed
     mls.permove[index].Y = newymove;
 }
 
-bool CalculateMoveList(MoveList &mls, const std::vector<Point> path, int move_speed_x, int move_speed_y)
+bool CalculateMoveList(MoveList &mls, const std::vector<Point> path, int move_speed_x, int move_speed_y,
+    const RunPathParams &run_params)
 {
+    assert(!path.empty());
+    assert(move_speed_x != 0 || move_speed_y != 0);
+    if (path.empty())
+        return false;
+
     MoveList mlist;
     mlist.pos = path;
+    // Ensure there are at least 2 pos elements (required for the further algorithms)
+    if (mlist.pos.size() == 1)
+        mlist.pos.push_back(mlist.pos[0]);
     mlist.permove.resize(path.size());
 
     const float fspeed_x = input_speed_to_move(move_speed_x);
@@ -162,7 +172,8 @@ bool CalculateMoveList(MoveList &mls, const std::vector<Point> path, int move_sp
     for (uint32_t i = 0; i < mlist.GetNumStages() - 1; i++)
         calculate_move_stage(mlist, i, fspeed_x, fspeed_y);
 
-    mlist.from = mlist.pos[0];
+    mlist.run_params = run_params;
+    mlist.ResetToBegin();
     mls = mlist;
     return true;
 }

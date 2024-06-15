@@ -13,6 +13,8 @@
 //=============================================================================
 #ifndef __AGS_EN_AC__MOVELIST_H
 #define __AGS_EN_AC__MOVELIST_H
+
+#include "ac/runtime_defines.h" // RunPathParams
 #include "game/savegame.h"
 #include "util/geometry.h"
 
@@ -28,10 +30,14 @@ enum MoveListSvgVersion
     kMoveSvgVersion_350     = 1, // new pathfinder, arbitrary number of stages
     kMoveSvgVersion_36109   = 2, // skip empty lists, progress as float
     kMoveSvgVersion_400     = 4000000, // fixed->floats, positions are int32
+    kMoveSvgVersion_40006   = 4000006, // extra running params (repeat, dir)
 };
 
-struct MoveList
+class MoveList
 {
+public:
+    // TODO: protect all these fields!
+
     // Waypoints, per stage
     std::vector<Point> pos;
     // permove contain number of pixels done per a single step
@@ -44,7 +50,8 @@ struct MoveList
     // made a fractional value to let recalculate movelist dynamically
     float   onpart = 0.f;
     uint8_t doneflag = 0u; // currently unused, but reserved
-    uint8_t direct = 0;  // if ignoring walls
+    uint8_t move_direct = false;  // if ignoring walls
+    RunPathParams run_params;
 
     bool IsEmpty() const { return pos.empty(); }
     uint32_t GetNumStages() const { return pos.size(); }
@@ -59,8 +66,20 @@ struct MoveList
     // Sets a step progress to this fraction of a coordinate unit
     void  SetPixelUnitFraction(float frac);
 
+    // Set MoveList to the done state; note this does not free the path itself
+    void Complete();
+    // Reset MoveList to the beginning, account for RunPathParams
+    void ResetToBegin();
+    // Progress to the next stage, account for RunPathParams;
+    // returns if there's a new stage available
+    bool NextStage();
+
     AGS::Engine::HSaveError ReadFromSavegame(Common::Stream *in, int32_t cmp_ver);
     void WriteToSavegame(Common::Stream *out) const;
+
+private:
+    // Handle end of path, either stop or reset to beginning, as per RunPathParams
+    bool OnPathCompleted();
 };
 
 #endif // __AGS_EN_AC__MOVELIST_H

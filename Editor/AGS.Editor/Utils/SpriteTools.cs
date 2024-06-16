@@ -62,6 +62,11 @@ namespace AGS.Editor.Utils
 
                 using (GifDecoder decoder = new GifDecoder(fileName))
                 {
+                    if (start >= decoder.GetFrameCount())
+                    {
+                        throw new Types.InvalidDataException($"'{fileName}' does not contain frame {start}");
+                    }
+
                     for (int i = start; i < decoder.GetFrameCount(); i++)
                     {
                         loadedBmp = (Bitmap)decoder.GetFrame(i).Clone();

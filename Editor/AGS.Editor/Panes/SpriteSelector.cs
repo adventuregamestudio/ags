@@ -922,6 +922,7 @@ namespace AGS.Editor
                     }
                     else
                     {
+                        progress.Dispose();
                         throw;
                     }
                 }

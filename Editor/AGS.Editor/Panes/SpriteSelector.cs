@@ -878,13 +878,13 @@ namespace AGS.Editor
                 Sprite spr = GetSprite(listItem);
                 if (String.IsNullOrEmpty(spr.SourceFile))
                 {
-                    Factory.GUIController.ShowMessage(String.Format("Sprite {0} does not have a source file.", spr.Number), MessageBoxIcon.Error);
-                    return;
+                    errors.Add($"Sprite {spr.Number} does not have a source file.");
+                    continue;
                 }
                 else if (!File.Exists(spr.SourceFile))
                 {
-                    Factory.GUIController.ShowMessage(String.Format("Sprite {0}: source file {1} does not exist.", spr.Number, spr.SourceFile), MessageBoxIcon.Error);
-                    return;
+                    errors.Add($"Sprite {spr.Number}: source file {spr.SourceFile} does not exist.");
+                    continue;
                 }
                 sprites.Add(spr);
             }
@@ -918,7 +918,7 @@ namespace AGS.Editor
                 {
                     if (ex is InvalidOperationException || ex is Types.InvalidDataException)
                     {
-                        errors.Add(ex.Message);
+                        errors.Add($"Sprite {spr.Number}: {ex.Message}");
                     }
                     else
                     {
@@ -940,7 +940,7 @@ namespace AGS.Editor
             else if (errors.Count > 1)
             {
                 Factory.GUIController.ShowOutputPanel(errors.ToArray(), "SpriteIcon");
-                Factory.GUIController.ShowMessage("Sprite replacement complete, with some errors", MessageBoxIcon.Warning);
+                Factory.GUIController.ShowMessage("Sprite replacement complete, with some errors.", MessageBoxIcon.Warning);
             }
         }
 

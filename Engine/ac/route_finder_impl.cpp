@@ -16,136 +16,126 @@
 //
 //=============================================================================
 #include "ac/route_finder_impl.h"
-#include <string.h>
-#include <math.h>
-#include "ac/movelist.h"
-#include "ac/common_defines.h"
-#include "ac/route_finder.h"
 #include "ac/route_finder_jps.inl"
 #include "gfx/bitmap.h"
-#include "debug/out.h"
 
-extern std::vector<MoveList> mls;
-
-using AGS::Common::Bitmap;
+using namespace AGS::Common;
 
 // #define DEBUG_PATHFINDER
 
-namespace AGS {
-namespace Engine {
-namespace RouteFinder {
+namespace AGS
+{
+namespace Engine
+{
 
-static const int MAXNAVPOINTS = MAXNEEDSTAGES;
-static std::vector<Point> navpoints;
-static Navigation nav;
-static Bitmap *wallscreen;
-static int lastcx, lastcy;
-
-void init_pathfinder()
+JPSRouteFinder::JPSRouteFinder()
+    : nav(*new Navigation())
 {
 }
 
-void shutdown_pathfinder()
+JPSRouteFinder::~JPSRouteFinder()
+{
+    delete &nav;
+}
+
+void JPSRouteFinder::Configure(GameDataVersion /*game_ver*/)
 {
 }
 
-void set_wallscreen(Bitmap *wallscreen_) 
+void JPSRouteFinder::SetWalkableArea(const Bitmap *walkablearea) 
 {
-  wallscreen = wallscreen_;
+    this->walkablearea = walkablearea;
 }
 
-static void sync_nav_wallscreen()
+void JPSRouteFinder::SyncNavWalkablearea()
 {
-  // FIXME: this is dumb, but...
-  nav.Resize(wallscreen->GetWidth(), wallscreen->GetHeight());
+    // FIXME: this is dumb, but...
+    nav.Resize(walkablearea->GetWidth(), walkablearea->GetHeight());
 
-  for (int y=0; y<wallscreen->GetHeight(); y++)
-    nav.SetMapRow(y, wallscreen->GetScanLine(y));
+    for (int y=0; y<walkablearea->GetHeight(); y++)
+        nav.SetMapRow(y, walkablearea->GetScanLine(y));
 }
 
-int can_see_from(int x1, int y1, int x2, int y2)
+bool JPSRouteFinder::CanSeeFrom(int srcx, int srcy, int dstx, int dsty, int *lastcx, int *lastcy)
 {
-  lastcx = x1;
-  lastcy = y1;
+    if (!walkablearea)
+        return false;
 
-  if ((x1 == x2) && (y1 == y2))
-    return 1;
+    int last_valid_x = srcx, last_valid_y = srcy;
+    bool result = true;
+    if ((srcx != dstx) || (srcy != dsty))
+    {
+        SyncNavWalkablearea();
+        result = !nav.TraceLine(srcx, srcy, dstx, dsty, last_valid_x, last_valid_y);
+    }
 
-  sync_nav_wallscreen();
-
-  return !nav.TraceLine(x1, y1, x2, y2, lastcx, lastcy);
+    if (lastcx)
+        *lastcx = last_valid_x;
+    if (lastcy)
+        *lastcy = last_valid_y;
+    return result;
 }
 
-void get_lastcpos(int &lastcx_, int &lastcy_) 
+bool JPSRouteFinder::FindRouteJPS(std::vector<Point> &nav_path, int fromx, int fromy, int destx, int desty)
 {
-  lastcx_ = lastcx;
-  lastcy_ = lastcy;
+    SyncNavWalkablearea();
+
+    path.clear();
+    cpath.clear();
+
+    if (nav.NavigateRefined(fromx, fromy, destx, desty, path, cpath) == Navigation::NAV_UNREACHABLE)
+        return false;
+
+    nav_path.clear();
+
+    // new behavior: cut path if too complex rather than abort with error message
+    int count = std::min<int>((int)cpath.size(), MAXNAVPOINTS);
+
+    for (int i = 0; i<count; i++)
+    {
+        int x, y;
+        nav.UnpackSquare(cpath[i], x, y);
+        nav_path.emplace_back( x, y );
+    }
+
+    return true;
 }
 
-// new routing using JPS
-static int find_route_jps(int fromx, int fromy, int destx, int desty)
+bool JPSRouteFinder::FindRoute(std::vector<Point> &nav_path, int srcx, int srcy, int dstx, int dsty,
+    bool exact_dest, bool ignore_walls)
 {
-  sync_nav_wallscreen();
+    if (!walkablearea)
+        return false;
 
-  static std::vector<int> path, cpath;
-  path.clear();
-  cpath.clear();
+    nav_path.clear();
 
-  if (nav.NavigateRefined(fromx, fromy, destx, desty, path, cpath) == Navigation::NAV_UNREACHABLE)
-    return 0;
+    if (ignore_walls || CanSeeFrom(srcx, srcy, dstx, dsty))
+    {
+        nav_path.emplace_back( srcx, srcy );
+        nav_path.emplace_back( dstx, dsty );
+    }
+    else
+    {
+        if ((exact_dest) && (walkablearea->GetPixel(dstx, dsty) == 0))
+            return false; // clicked on a wall
 
-  navpoints.clear();
+        FindRouteJPS(nav_path, srcx, srcy, dstx, dsty);
+    }
 
-  // new behavior: cut path if too complex rather than abort with error message
-  int count = std::min<int>((int)cpath.size(), MAXNAVPOINTS);
+    if (nav_path.empty())
+        return false;
 
-  for (int i = 0; i<count; i++)
-  {
-    int x, y;
-    nav.UnpackSquare(cpath[i], x, y);
-    navpoints.emplace_back( x, y );
-  }
+    // Ensure it has at least 2 points (start-end), necessary for the move algorithm
+    if (nav_path.size() == 1)
+        nav_path.push_back(nav_path[0]);
 
-  return 1;
-}
-
-int find_route(short srcx, short srcy, short xx, short yy, int move_speed_x, int move_speed_y,
-    Bitmap *onscreen, int move_id, int nocross, int ignore_walls)
-{
-  wallscreen = onscreen;
-
-  navpoints.clear();
-
-  if (ignore_walls || can_see_from(srcx, srcy, xx, yy))
-  {
-    navpoints.emplace_back( srcx, srcy );
-    navpoints.emplace_back( xx, yy );
-  } else {
-    if ((nocross == 0) && (wallscreen->GetPixel(xx, yy) == 0))
-      return 0; // clicked on a wall
-
-    find_route_jps(srcx, srcy, xx, yy);
-  }
-
-  if (navpoints.empty())
-    return 0;
-
-  // FIXME: really necessary?
-  if (navpoints.size() == 1)
-    navpoints.push_back(navpoints[0]);
-
-  assert(navpoints.size() <= MAXNAVPOINTS);
+    assert(nav_path.size() <= MAXNAVPOINTS);
 
 #ifdef DEBUG_PATHFINDER
-  AGS::Common::Debug::Printf("Route from %d,%d to %d,%d - %zu stages", srcx,srcy,xx,yy,navpoints.size());
+    AGS::Common::Debug::Printf("Route from %d,%d to %d,%d - %zu stages", srcx,srcy,xx,yy,nav_path.size());
 #endif
-
-  MoveList mlist;
-  Pathfinding::CalculateMoveList(mlist, navpoints, move_speed_x, move_speed_y);
-  mls[move_id] = mlist;
-  return move_id;
+    return true;
 }
 
-} // namespace RouteFinder
 } // namespace Engine
 } // namespace AGS

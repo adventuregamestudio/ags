@@ -449,11 +449,14 @@ void move_object(int objj,int tox,int toy,int spee,int ignwal) {
     const int dst_x = room_to_mask_coord(tox);
     const int dst_y = room_to_mask_coord(toy);
 
-    int mslot = find_route(src_x, src_y, dst_x, dst_y, spee, spee, prepare_walkable_areas(-1), objj+1, 1, ignwal);
-    if (mslot>0) {
+    const int mslot = objj + 1;
+    MaskRouteFinder *pathfind = get_room_pathfinder();
+    pathfind->SetWalkableArea(prepare_walkable_areas(-1));
+    if (Pathfinding::FindRoute(mls[mslot], pathfind, src_x, src_y, dst_x, dst_y, spee, spee, false, ignwal))
+    {
         objs[objj].moving = mslot;
         mls[mslot].direct = ignwal;
-        convert_move_path_to_room_resolution(&mls[mslot]);
+        convert_move_path_to_room_resolution(mls[mslot]);
     }
 }
 

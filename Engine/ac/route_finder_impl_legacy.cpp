@@ -15,8 +15,11 @@
 // PathFinder v2.00 (AC2 customized version)
 // (c) 1998-99 Chris Jones
 //
+// TODO: cleanup the old code.
+// FIXME: move "static" variables into LegacyRouteFinder class.
 // FIXME: remove uses of quit(), return failure/error instead.
 // FIXME: replace uses of goto with loops.
+// FIXME: replace malloc and realloc with std::vector.
 //
 //=============================================================================
 #include "ac/route_finder_impl_legacy.h"
@@ -30,18 +33,14 @@
 #include "game/roomstruct.h"
 #include "gfx/bitmap.h"
 
-extern std::vector<MoveList> mls;
-
-using AGS::Common::Bitmap;
-namespace BitmapHelper = AGS::Common::BitmapHelper;
+using namespace AGS::Common;
 
 // #define DEBUG_PATHFINDER
 
-namespace AGS {
-namespace Engine {
-namespace RouteFinderLegacy {
-
-#define MANOBJNUM 99
+namespace AGS
+{
+namespace Engine
+{
 
 #define MAXPATHBACK 1000
 static int *pathbackx = nullptr;
@@ -49,57 +48,69 @@ static int *pathbacky = nullptr;
 static int waspossible = 1;
 static int suggestx;
 static int suggesty;
+static short **beenhere = nullptr;
 
-// Configuration for the pathfinder
-struct PathfinderConfig
+LegacyRouteFinder::LegacyRouteFinder()
 {
-    const int MaxGranularity = 3;
-
-    // Short sweep is performed in certain radius around requested destination,
-    // when searching for a nearest walkable area in the vicinity
-    const int ShortSweepRadius = 50;
-    int ShortSweepGranularity = 3; // variable, depending on loaded game version
-    // Full sweep is performed over a whole walkable area
-    const int FullSweepGranularity = 5;
-};
-
-void init_pathfinder()
-{
-  pathbackx = (int *)malloc(sizeof(int) * MAXPATHBACK);
-  pathbacky = (int *)malloc(sizeof(int) * MAXPATHBACK);
+    pathbackx = (int *)malloc(sizeof(int) * MAXPATHBACK);
+    pathbacky = (int *)malloc(sizeof(int) * MAXPATHBACK);
 }
 
-static Bitmap *wallscreen;
-
-void set_wallscreen(Bitmap *wallscreen_) 
+LegacyRouteFinder::~LegacyRouteFinder()
 {
-  wallscreen = wallscreen_;
+    if (pathbackx != nullptr) 
+    {
+        free(pathbackx);
+    }
+    if (pathbacky != nullptr) 
+    {
+        free(pathbacky);
+    }
+    if (beenhere != nullptr) 
+    {
+        if (beenhere[0] != nullptr) 
+        {
+            free(beenhere[0]);
+        }
+        free(beenhere);
+    }
+}
+
+void LegacyRouteFinder::Configure(GameDataVersion game_ver)
+{
+    // Setup pathfinder configuration, depending on the loaded game version;
+    // sweep granularity has changed between 3.0.0 and 3.0.1; see issue #663
+    _pfc.ShortSweepGranularity = (game_ver > kGameVersion_300) ? 3 : 1;
+}
+
+// Assign a walkable mask;
+// Note that this may make routefinder to generate additional data, taking more time.
+void LegacyRouteFinder::SetWalkableArea(const Bitmap *walkablearea)
+{
+    wallscreen = walkablearea;
 }
 
 static int line_failed = 0;
-static int lastcx, lastcy;
+static int line_lastcx, line_lastcy;
 
 // TODO: find a way to reimpl this with Bitmap
 static void line_callback(BITMAP *bmpp, int x, int y, int /*d*/)
 {
-/*  if ((x>=320) | (y>=200) | (x<0) | (y<0)) line_failed=1;
-  else */ if (getpixel(bmpp, x, y) < 1)
+  if (getpixel(bmpp, x, y) < 1)
     line_failed = 1;
   else if (line_failed == 0) {
-    lastcx = x;
-    lastcy = y;
+    line_lastcx = x;
+    line_lastcy = y;
   }
 }
 
-
-
-int can_see_from(int x1, int y1, int x2, int y2)
+int can_see_from(const Bitmap *wallscreen, int x1, int y1, int x2, int y2)
 {
   assert(wallscreen != nullptr);
 
   line_failed = 0;
-  lastcx = x1;
-  lastcy = y1;
+  line_lastcx = x1;
+  line_lastcy = y1;
 
   if ((x1 == x2) && (y1 == y2))
     return 1;
@@ -111,12 +122,6 @@ int can_see_from(int x1, int y1, int x2, int y2)
 
   return 0;
 }
-
-void get_lastcpos(int &lastcx_, int &lastcy_) {
-  lastcx_ = lastcx;
-  lastcy_ = lastcy;
-}
-
 
 int find_nearest_walkable_area(Bitmap *tempw, int fromX, int fromY, int toX, int toY, int destX, int destY, int granularity)
 {
@@ -154,13 +159,12 @@ int find_nearest_walkable_area(Bitmap *tempw, int fromX, int fromY, int toX, int
 }
 
 static int walk_area_granularity[MAX_WALK_AREAS];
-static int is_route_possible(int fromx, int fromy, int tox, int toy, Bitmap *wss, const PathfinderConfig &pfc)
+static int is_route_possible(const Bitmap *wallscreen, int fromx, int fromy, int tox, int toy, const LegacyRouteFinder::PathfinderConfig &pfc)
 {
-  wallscreen = wss;
   suggestx = -1;
 
   // ensure it's a memory bitmap, so we can use direct access to line[] array
-  if ((wss == nullptr) || (wss->GetColorDepth() != 8))
+  if ((wallscreen == nullptr) || (wallscreen->GetColorDepth() != 8))
     quit("is_route_possible: invalid walkable areas bitmap supplied");
 
   if (wallscreen->GetPixel(fromx, fromy) < 1)
@@ -263,7 +267,6 @@ static int nesting = 0;
 static int pathbackstage = 0;
 static int finalpartx = 0;
 static int finalparty = 0;
-static short **beenhere = nullptr;     //[200][320];
 static int beenhere_array_size = 0;
 static const int BEENHERE_SIZE = 2;
 
@@ -272,7 +275,7 @@ static const int BEENHERE_SIZE = 2;
 #define DIR_UP    1
 #define DIR_DOWN  3
 
-static int try_this_square(int srcx, int srcy, int tox, int toy)
+static int try_this_square(const Bitmap *wallscreen, int srcx, int srcy, int tox, int toy)
 {
   assert(pathbackx != nullptr);
   assert(pathbacky != nullptr);
@@ -286,7 +289,7 @@ static int try_this_square(int srcx, int srcy, int tox, int toy)
     return 0;
 
   nesting++;
-  if (can_see_from(srcx, srcy, tox, toy)) {
+  if (can_see_from(wallscreen, srcx, srcy, tox, toy)) {
     finalpartx = srcx;
     finalparty = srcy;
     nesting--;
@@ -346,7 +349,7 @@ try_again:
 //  srcx=nextx; srcy=nexty;
   beenhere[srcy][srcx] |= 0x80; // being processed
 
-  int retcod = try_this_square(nextx, nexty, tox, toy);
+  int retcod = try_this_square(wallscreen, nextx, nexty, tox, toy);
   if (retcod == 0)
     goto try_again;
 
@@ -384,7 +387,7 @@ try_again:
 
 // Round down the supplied co-ordinates to the area granularity,
 // and move a bit if this causes them to become non-walkable
-static void round_down_coords(int &tmpx, int &tmpy)
+static void round_down_coords(const Bitmap *wallscreen, int &tmpx, int &tmpy)
 {
   assert(wallscreen != nullptr);
 
@@ -409,7 +412,7 @@ static void round_down_coords(int &tmpx, int &tmpy)
   }
 }
 
-static int find_route_dijkstra(int fromx, int fromy, int destx, int desty, const PathfinderConfig &pfc)
+static int find_route_dijkstra(const Bitmap *wallscreen, int fromx, int fromy, int destx, int desty, const LegacyRouteFinder::PathfinderConfig &pfc)
 {
   int i, j;
 
@@ -425,11 +428,11 @@ static int find_route_dijkstra(int fromx, int fromy, int destx, int desty, const
   for (i = 0; i < wallscreen->GetHeight(); i++)
     memset(&beenhere[i][0], 0xff, wallscreen->GetWidth() * BEENHERE_SIZE);
 
-  round_down_coords(fromx, fromy);
+  round_down_coords(wallscreen, fromx, fromy);
   beenhere[fromy][fromx] = 0;
 
   int temprd = destx, tempry = desty;
-  round_down_coords(temprd, tempry);
+  round_down_coords(wallscreen, temprd, tempry);
   if ((temprd == fromx) && (tempry == fromy)) {
     // already at destination
     pathbackstage = 0;
@@ -533,7 +536,7 @@ static int find_route_dijkstra(int fromx, int fromy, int destx, int desty, const
         //Doesn't work cos it can see the destination from the point that's
         //not nearest
         // every so often, check if we can see the destination
-        if (can_see_from(newx, newy, destx, desty)) {
+        if (can_see_from(wallscreen, newx, newy, destx, desty)) {
           DIRECTION_BONUS -= 50;
           totalfound = 0;
         }
@@ -591,7 +594,7 @@ static int find_route_dijkstra(int fromx, int fromy, int destx, int desty, const
   return 1;
 }
 
-static int __find_route(int srcx, int srcy, short *tox, short *toy, int noredx, const PathfinderConfig &pfc)
+static int __find_route(const Bitmap *wallscreen, int srcx, int srcy, int *tox, int *toy, int noredx, const LegacyRouteFinder::PathfinderConfig &pfc)
 {
   assert(wallscreen != nullptr);
   assert(beenhere != nullptr);
@@ -612,7 +615,7 @@ findroutebk:
       return 1;
     }
 
-    if ((waspossible = is_route_possible(srcx, srcy, tox[0], toy[0], wallscreen, pfc)) == 0) {
+    if ((waspossible = is_route_possible(wallscreen, srcx, srcy, tox[0], toy[0], pfc)) == 0) {
       if (suggestx >= 0) {
         tox[0] = suggestx;
         toy[0] = suggesty;
@@ -628,36 +631,41 @@ findroutebk:
   }
 
   // Try the new pathfinding algorithm
-  if (find_route_dijkstra(srcx, srcy, tox[0], toy[0], pfc)) {
+  if (find_route_dijkstra(wallscreen, srcx, srcy, tox[0], toy[0], pfc)) {
     return 1;
   }
 
   // if the new pathfinder failed, try the old one
   pathbackstage = 0;
   memset(&beenhere[0][0], 0, wallscreen->GetWidth() * wallscreen->GetHeight() * BEENHERE_SIZE);
-  if (try_this_square(srcx, srcy, tox[0], toy[0]) == 0)
+  if (try_this_square(wallscreen, srcx, srcy, tox[0], toy[0]) == 0)
     return 0;
 
   return 1;
 }
 
-int find_route(short srcx, short srcy, short xx, short yy, int move_speed_x, int move_speed_y,
-    Bitmap *onscreen, int move_id, int nocross, int ignore_walls)
+bool LegacyRouteFinder::CanSeeFrom(int srcx, int srcy, int dstx, int dsty, int *lastcx, int *lastcy)
 {
-  assert(onscreen != nullptr);
-  assert((move_id >= 0) && (mls.size() > static_cast<size_t>(move_id)));
+    if (!wallscreen)
+        return false;
+    
+    bool result = can_see_from(wallscreen, srcx, srcy, dstx, dsty) != 0;
+    if (lastcx)
+        *lastcx = line_lastcx;
+    if (lastcy)
+        *lastcy = line_lastcy;
+    return result;
+}
+
+bool LegacyRouteFinder::FindRoute(std::vector<Point> &path, int srcx, int srcy, int dstx, int dsty,
+        bool exact_dest, bool ignore_walls)
+{
+    if (!wallscreen)
+        return false;
+
   assert(pathbackx != nullptr);
   assert(pathbacky != nullptr);
 
-  // Setup pathfinder configuration, depending on the loaded game version;
-  // sweep granularity has changed between 3.0.0 and 3.0.1; see issue #663
-  PathfinderConfig pfc;
-  pfc.ShortSweepGranularity = (loaded_game_file_version > kGameVersion_300) ? 3 : 1;
-
-#ifdef DEBUG_PATHFINDER
-  // __wnormscreen();
-#endif
-  wallscreen = onscreen;
   leftorright = 0;
   int aaa;
 
@@ -681,7 +689,7 @@ int find_route(short srcx, short srcy, short xx, short yy, int move_speed_x, int
   if (ignore_walls) {
     pathbackstage = 0;
   }
-  else if (can_see_from(srcx, srcy, xx, yy)) {
+  else if (can_see_from(wallscreen, srcx, srcy, dstx, dsty)) {
     pathbackstage = 0;
   }
   else {
@@ -690,9 +698,9 @@ int find_route(short srcx, short srcy, short xx, short yy, int move_speed_x, int
     for (aaa = 1; aaa < wallscreen->GetHeight(); aaa++)
       beenhere[aaa] = beenhere[0] + aaa * (wallscreen->GetWidth());
 
-    if (__find_route(srcx, srcy, &xx, &yy, nocross, pfc) == 0) {
+    if (__find_route(wallscreen, srcx, srcy, &dstx, &dsty, !exact_dest, _pfc) == 0) {
       leftorright = 1;
-      if (__find_route(srcx, srcy, &xx, &yy, nocross, pfc) == 0)
+      if (__find_route(wallscreen, srcx, srcy, &dstx, &dsty, !exact_dest, _pfc) == 0)
         pathbackstage = -1;
     }
     free(beenhere[0]);
@@ -703,10 +711,11 @@ int find_route(short srcx, short srcy, short xx, short yy, int move_speed_x, int
     }
   }
 
+  path.clear();
+
   if (pathbackstage >= 0) {
     Point nearestpos;
     int nearestindx;
-    std::vector<Point> path;
     path.emplace_back( srcx,srcy );
     nearestindx = -1;
 
@@ -718,13 +727,13 @@ stage_again:
 #ifdef DEBUG_PATHFINDER
       AGS::Common::Debug::Printf("stage %2d: %2d,%2d\n",aaa,pathbackx[aaa],pathbacky[aaa]);
 #endif
-      if (can_see_from(srcx, srcy, pathbackx[aaa], pathbacky[aaa])) {
+      if (can_see_from(wallscreen, srcx, srcy, pathbackx[aaa], pathbacky[aaa])) {
         nearestpos = {pathbackx[aaa], pathbacky[aaa]};
         nearestindx = aaa;
       }
     }
 
-    if ((nearestpos.Equals(0,0)) && (can_see_from(srcx, srcy, xx, yy) == 0) &&
+    if ((nearestpos.Equals(0,0)) && (can_see_from(wallscreen, srcx, srcy, dstx, dsty) == 0) &&
         (srcx >= 0) && (srcy >= 0) && (srcx < wallscreen->GetWidth()) && (srcy < wallscreen->GetHeight()) && (pathbackstage > 0)) {
       // If we couldn't see anything, we're stuck in a corner so advance
       // to the next square anyway (but only if they're on the screen)
@@ -750,57 +759,21 @@ stage_again:
     }
 
     // Make sure the end co-ord is in there
-    if (path.back() != Point(xx, yy)) {
-      path.emplace_back( xx, yy );
+    if (path.back() != Point(dstx, dsty)) {
+      path.emplace_back( dstx, dsty );
     }
 
-    if ((path.size() == 1) && (xx == orisrcx) && (yy == orisrcy)) {
-      return 0;
+    if ((path.size() == 1) && (dstx == orisrcx) && (dsty == orisrcy)) {
+      return false;
     }
 #ifdef DEBUG_PATHFINDER
-    AGS::Common::Debug::Printf("Route from %d,%d to %d,%d - %d stage, %d stages", orisrcx,orisrcy,xx,yy,pathbackstage,numstages);
+    AGS::Common::Debug::Printf("Route from %d,%d to %d,%d - %d stage, %zu stages", orisrcx,orisrcy,xx,yy,pathbackstage,path.size());
 #endif
-    MoveList mlist;
-    Pathfinding::CalculateMoveList(mlist, path, move_speed_x, move_speed_y);
-    mls[move_id] = mlist;
-#ifdef DEBUG_PATHFINDER
-    // getch();
-#endif
-    return move_id;
+    return true;
   } else {
-    return 0;
+    return false;
   }
-
-#ifdef DEBUG_PATHFINDER
-  // __unnormscreen();
-#endif
 }
 
-void shutdown_pathfinder()
-{
-  if (pathbackx != nullptr) 
-  {
-    free(pathbackx);
-  }
-  if (pathbacky != nullptr) 
-  {
-    free(pathbacky);
-  }
-  if (beenhere != nullptr) 
-  {
-    if (beenhere[0] != nullptr) 
-    {
-      free(beenhere[0]);
-    }
-    free(beenhere);
-  }
-
-  pathbackx = nullptr;
-  pathbacky = nullptr;
-  beenhere = nullptr;
-  beenhere_array_size = 0;
-}
-
-} // namespace RouteFinderLegacy
 } // namespace Engine
 } // namespace AGS

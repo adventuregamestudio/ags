@@ -443,18 +443,6 @@ void engine_init_exit_handler()
     atexit(atexit_handler);
 }
 
-void engine_init_pathfinder()
-{
-    init_pathfinder(loaded_game_file_version);
-}
-
-void engine_pre_init_gfx()
-{
-    //Debug::Printf("Initialize gfx");
-
-    //platform->InitialiseAbufAtStartup();
-}
-
 int engine_load_game_data()
 {
     Debug::Printf("Load game data");
@@ -1275,8 +1263,6 @@ int initialize_engine(const ConfigTree &startup_opts)
     set_our_eip(-10);
 
     engine_init_exit_handler();
-
-    engine_init_pathfinder();
 
     set_game_speed(40);
 

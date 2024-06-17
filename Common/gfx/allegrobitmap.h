@@ -64,7 +64,7 @@ public:
     bool    ResizeSubBitmap(int width, int height);
     // Creates a plain copy of the given bitmap, optionally converting to a different color depth;
     // pass color depth 0 to keep the original one.
-    bool	CreateCopy(Bitmap *src, int color_depth = 0);
+    bool	CreateCopy(const Bitmap *src, int color_depth = 0);
     // TODO: this is a temporary solution for plugin support
     // Wraps a raw allegro BITMAP object, optionally owns it (will delete on disposal)
     bool    WrapAllegroBitmap(BITMAP *al_bmp, bool shared_data);
@@ -82,6 +82,11 @@ public:
     // TODO: This is temporary solution for cases when we cannot replace
 	// use of raw BITMAP struct with Bitmap
     inline BITMAP *GetAllegroBitmap()
+    {
+        return _alBitmap;
+    }
+
+    inline const BITMAP *GetAllegroBitmap() const
     {
         return _alBitmap;
     }

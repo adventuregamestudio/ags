@@ -950,6 +950,7 @@
     <Image Include="..\..\Engine\resource\game-1.ico" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\Engine\ac\route_finder_jps.inl" />
     <None Include="..\..\Engine\resource\tintshader.fxo" />
     <None Include="..\..\Engine\resource\tintshaderLegacy.fxo" />
   </ItemGroup>

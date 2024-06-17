@@ -202,15 +202,10 @@ void quit(const char *quitmsg)
     quit_stop_cd();
     if (use_cdplayer)
         platform->ShutdownCDPlayer();
-
-    set_our_eip(9019);
-
     video_shutdown();
     quit_shutdown_audio();
 
     set_our_eip(9908);
-
-    shutdown_pathfinder();
 
     // Release game data and unregister assets
     quit_check_dynamic_sprites(qreason);

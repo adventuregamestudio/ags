@@ -86,7 +86,7 @@ Bitmap *CreateSubBitmap(Bitmap *src, const Rect &rc)
 	return bitmap;
 }
 
-Bitmap *CreateBitmapCopy(Bitmap *src, int color_depth)
+Bitmap *CreateBitmapCopy(const Bitmap *src, int color_depth)
 {
     Bitmap *bitmap = new Bitmap();
 	if (!bitmap->CreateCopy(src, color_depth))

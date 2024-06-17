@@ -97,6 +97,7 @@ extern RGB palette[256];
 extern CCHotspot ccDynamicHotspot;
 extern CCObject ccDynamicObject;
 
+std::unique_ptr<MaskRouteFinder> room_pathfinder;
 RGB_MAP rgb_table;  // for 256-col antialiasing
 int new_room_flags=0;
 int gs_to_newroom=-1;
@@ -983,6 +984,8 @@ void first_room_initialization() {
     // Reset background frame state
     play.bg_frame = 0;
     play.bg_frame_locked = (thisroom.Options.Flags & kRoomFlag_BkgFrameLocked) != 0;
+
+    init_room_pathfinder();
 }
 
 void check_new_room() {
@@ -1056,6 +1059,21 @@ void croom_ptr_clear()
     objs = nullptr;
 }
 
+void init_room_pathfinder()
+{
+    if (!room_pathfinder)
+        room_pathfinder = Pathfinding::CreateDefaultMaskPathfinder(loaded_game_file_version);
+}
+
+void dispose_room_pathfinder()
+{
+    room_pathfinder.reset();
+}
+
+MaskRouteFinder *get_room_pathfinder()
+{
+    return room_pathfinder.get();
+}
 
 // coordinate conversion (data) ---> game ---> (room mask)
 int room_to_mask_coord(int coord)
@@ -1069,11 +1087,11 @@ int mask_to_room_coord(int coord)
     return coord * thisroom.MaskResolution / game.GetDataUpscaleMult();
 }
 
-void convert_move_path_to_room_resolution(MoveList *ml, int from_step, int to_step)
+void convert_move_path_to_room_resolution(MoveList &mls, int from_step, int to_step)
 {
     if (to_step < 0)
-        to_step = ml->numstage;
-    to_step = Math::Clamp(to_step, 0, ml->numstage - 1);
+        to_step = mls.numstage;
+    to_step = Math::Clamp(to_step, 0, mls.numstage - 1);
     from_step = Math::Clamp(from_step, 0, to_step);
 
     // If speed is independent from MaskResolution...
@@ -1081,8 +1099,8 @@ void convert_move_path_to_room_resolution(MoveList *ml, int from_step, int to_st
     {
         for (int i = from_step; i <= to_step; i++)
         { // ...we still need to convert from game to data coords
-            ml->xpermove[i] = game_to_data_coord(ml->xpermove[i]);
-            ml->ypermove[i] = game_to_data_coord(ml->ypermove[i]);
+            mls.xpermove[i] = game_to_data_coord(mls.xpermove[i]);
+            mls.ypermove[i] = game_to_data_coord(mls.ypermove[i]);
         }
     }
 
@@ -1092,12 +1110,12 @@ void convert_move_path_to_room_resolution(MoveList *ml, int from_step, int to_st
 
     if (from_step == 0)
     {
-        ml->from = { mask_to_room_coord(ml->from.X), mask_to_room_coord(ml->from.Y) };
+        mls.from = { mask_to_room_coord(mls.from.X), mask_to_room_coord(mls.from.Y) };
     }
 
     for (int i = from_step; i <= to_step; i++)
     {
-        ml->pos[i] = { mask_to_room_coord(ml->pos[i].X), mask_to_room_coord(ml->pos[i].Y) };
+        mls.pos[i] = { mask_to_room_coord(mls.pos[i].X), mask_to_room_coord(mls.pos[i].Y) };
     }
 
     // If speed is scaling with MaskResolution...
@@ -1105,8 +1123,8 @@ void convert_move_path_to_room_resolution(MoveList *ml, int from_step, int to_st
     {
         for (int i = from_step; i <= to_step; i++)
         {
-            ml->xpermove[i] = mask_to_room_coord(ml->xpermove[i]);
-            ml->ypermove[i] = mask_to_room_coord(ml->ypermove[i]);
+            mls.xpermove[i] = mask_to_room_coord(mls.xpermove[i]);
+            mls.ypermove[i] = mask_to_room_coord(mls.ypermove[i]);
         }
     }
 }

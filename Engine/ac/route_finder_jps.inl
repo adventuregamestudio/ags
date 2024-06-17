@@ -16,7 +16,8 @@
 // (c) 2018 Martin Sedlak
 //
 //=============================================================================
-
+#ifndef __AGS_EN_AC__ROUTEFINDER_JPS_INL
+#define __AGS_EN_AC__ROUTEFINDER_JPS_INL
 #include <queue>
 #include <vector>
 #include <algorithm>
@@ -24,6 +25,11 @@
 #include <assert.h>
 #include <stddef.h>
 #include <math.h>
+
+namespace AGS
+{
+namespace Engine
+{
 
 // TODO: this could be cleaned up/simplified ...
 
@@ -924,3 +930,8 @@ bool Navigation::TraceLine(int srcx, int srcy, int targx, int targy, std::vector
 
 	return false;
 }
+
+} // namespace Engine
+} // namespace AGS
+
+#endif // __AGS_EN_AC__ROUTEFINDER_JPS_INL

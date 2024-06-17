@@ -75,6 +75,7 @@ namespace AGS
                 SCOPT_UTF8 * (game->UnicodeMode) |
                 SCOPT_RTTI |
                 SCOPT_RTTIOPS |
+                SCOPT_SCRIPT_TOC * (game->Settings->DebugMode) |
                 false;
 
         if (game->Settings->ExtendedCompiler)

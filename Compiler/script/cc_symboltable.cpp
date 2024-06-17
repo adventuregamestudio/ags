@@ -27,7 +27,7 @@ symbolTable::symbolTable() {
     stringStructSym = 0;
 }
 
-int SymbolTableEntry::get_num_args() {
+int SymbolTableEntry::get_num_args() const {
 	// TODO: assert is func?
     return sscope % 100;
 }
@@ -39,22 +39,26 @@ int symbolTable::get_type(int ii) {
     return entries[ii].stype;
 }
 
-int SymbolTableEntry::is_loadable_variable() {
+int SymbolTableEntry::is_loadable_variable() const {
     return (stype == SYM_GLOBALVAR) || (stype == SYM_LOCALVAR) || (stype == SYM_CONSTANT);
+}
+
+bool SymbolTableEntry::is_variadic_function() const {
+    return (stype == SYM_FUNCTION) && (sscope > 100);
 }
 
 void SymbolTableEntry::set_propfuncs(int propget, int propset) {
     // TODO check ranges and throw exception
     soffs = (propget << 16) | (propset & 0xffff);
 }
-int SymbolTableEntry::get_propget() {
+int SymbolTableEntry::get_propget() const {
     int toret = (soffs >> 16) & 0x00ffff;
 	if (toret == 0xffff) {
         return -1;
 	}
     return toret;
 }
-int SymbolTableEntry::get_propset() {
+int SymbolTableEntry::get_propset() const {
     int toret = soffs & 0xffff;
 	if (toret == 0xffff) {
         return -1;
@@ -70,6 +74,7 @@ void symbolTable::reset() {
 
 	entries.clear();
     sections.clear();
+    localEntries.clear();
 
     stringStructSym = 0;
     symbolTree.clear();
@@ -157,7 +162,7 @@ void symbolTable::reset() {
     add_ex("noloopcheck", SYM_LOOPCHECKOFF, 0);
     add_ex("builtin", SYM_BUILTIN, 0);
 }
-int SymbolTableEntry::operatorToVCPUCmd() {
+int SymbolTableEntry::operatorToVCPUCmd() const {
     //return ssize + 8;
     return vartype;
 }

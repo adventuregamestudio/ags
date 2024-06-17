@@ -68,6 +68,7 @@ bool justTellInfo = false;
 bool attachToParentConsole = false;
 bool hideMessageBoxes = false;
 bool logScriptRTTI = false;
+bool logScriptTOC = false;
 std::set<String> tellInfoKeys;
 String loadSaveGameOnStartup;
 
@@ -341,6 +342,7 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
         else if (ags_stricmp(arg, "--console-attach") == 0) attachToParentConsole = true;
         else if (ags_stricmp(arg, "--no-message-box") == 0) hideMessageBoxes = true;
         else if (ags_stricmp(arg, "--print-rtti") == 0) logScriptRTTI = true;
+        else if (ags_stricmp(arg, "--print-scripttoc") == 0) logScriptTOC = true;
         //
         // Special case: data file location
         //

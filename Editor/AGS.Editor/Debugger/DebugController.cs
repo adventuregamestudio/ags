@@ -9,10 +9,31 @@ namespace AGS.Editor
 {
     public class DebugController
     {
+        /// <summary>
+        /// VariableInfo is a struct returned for a variable's value request.
+        /// </summary>
+        public struct VariableInfo
+        {
+            public string Type;
+            public string Value;
+            public string TypeHint;
+            public string ErrorText;
+
+            public VariableInfo(string type, string value, string hint, string errorText)
+            {
+                Type = type;
+                Value = value;
+                TypeHint = hint;
+                ErrorText = errorText;
+            }
+        }
+
         public delegate void DebugStateChangedHandler(DebugState newState);
         public event DebugStateChangedHandler DebugStateChanged;
         public delegate void BreakAtLocationHandler(DebugCallStack callStack);
         public event BreakAtLocationHandler BreakAtLocation;
+        public delegate void ReceiveVariableHandler(uint requestID, VariableInfo info);
+        public event ReceiveVariableHandler ReceiveVariable;
 
         private DebugState _debugState = DebugState.NotRunning;
         private IEngineCommunication _communicator;
@@ -28,6 +49,14 @@ namespace AGS.Editor
 		{
 			get { return _communicator.SupportedOnCurrentSystem; }
 		}
+
+        /// <summary>
+        /// Tells whether Debugger is in a active working state.
+        /// </summary>
+        public bool IsActive
+        {
+            get { return _debugState != DebugState.NotRunning; }
+        }
 
         /// <summary>
         /// Allows more than one instance of the AGS Editor to run simulatenously
@@ -90,6 +119,32 @@ namespace AGS.Editor
                 }
                 LogMessage(logTextNode.InnerText, group, level);
             }
+            else if (command == "RECVVAR")
+            {
+                if (ReceiveVariable != null)
+                {
+                    string reqID = doc.DocumentElement.SelectSingleNode("ReqID").InnerText;
+                    var typeNode = doc.DocumentElement.SelectSingleNode("Type");
+                    var valueNode = doc.DocumentElement.SelectSingleNode("Value");
+                    var hintNode = doc.DocumentElement.SelectSingleNode("Hint");
+                    var errorNode = doc.DocumentElement.SelectSingleNode("Error");
+                    if (valueNode != null)
+                    {
+                        ReceiveVariable.Invoke(uint.Parse(reqID), new VariableInfo(
+                            typeNode != null ? typeNode.InnerText : "",
+                            valueNode.InnerText,
+                            hintNode != null ? hintNode.InnerText : "",
+                            errorNode != null ? errorNode.InnerText : null));
+                    }
+                    else
+                    {
+                        ReceiveVariable.Invoke(uint.Parse(reqID), new VariableInfo(
+                            null, null, null,
+                            errorNode != null ? errorNode.InnerText : null
+                            ));
+                    }
+                }
+            }
         }
 
         private DebugCallStack ParseCallStackIntoObjectForm(string callStackFromEngine, string errorMessage)
@@ -150,8 +205,7 @@ namespace AGS.Editor
 
         public void AddedBreakpoint(Script script, int lineNumber)
         {
-            if ((_debugState == DebugState.Paused) ||
-                (_debugState == DebugState.Running))
+            if (IsActive)
             {
                 SetBreakpoint(script, lineNumber);
             }
@@ -159,8 +213,7 @@ namespace AGS.Editor
 
         public void RemovedBreakpoint(Script script, int lineNumber)
         {
-            if ((_debugState == DebugState.Paused) ||
-                (_debugState == DebugState.Running))
+            if (IsActive)
             {
                 UnsetBreakpoint(script, lineNumber);
             }
@@ -174,6 +227,22 @@ namespace AGS.Editor
         private void UnsetBreakpoint(Script script, int lineNumber)
         {
             _communicator.SendMessage("<Engine Command=\"DELBREAK $" + script.FileName + "$" + lineNumber + "$\"></Engine>");
+        }
+
+        private uint queryVariableCounter = 0; // for "unique" packet ids
+
+        public bool QueryVariable(string varId, out uint requestKey)
+        {
+            if (!IsActive)
+            {
+                requestKey = 0;
+                return false;
+            }
+
+            uint reqId = queryVariableCounter++;
+            _communicator.SendMessage($"<Engine Command=\"GETVAR ${reqId}${varId}$\"></Engine>");
+            requestKey = reqId;
+            return true;
         }
 
         private void ClearCurrentLineMarker()

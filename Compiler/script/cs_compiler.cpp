@@ -54,6 +54,33 @@ void ccSetSoftwareVersion(const char *versionNumber) {
     ccSoftwareVersion = versionNumber;
 }
 
+
+// Convert SFLG_* flags to RTTI::TypeFlags
+inline uint32_t SflgToRTTIType(int ste_flags)
+{
+    return 0u
+        | RTTI::kType_Struct * ((ste_flags & SFLG_STRUCTTYPE) != 0)
+        | RTTI::kType_Managed * ((ste_flags & SFLG_MANAGED) != 0);
+}
+
+// Convert SFLG_* flags to RTTI::FieldFlags
+inline uint32_t SflgToRTTIField(int ste_flags)
+{
+    return 0u
+        | RTTI::kField_ManagedPtr * ((ste_flags & SFLG_DYNAMICARRAY) != 0 ||
+            // compiler marks static arrays of pointers as SFLG_POINTER;
+            // but the array itself is not a pointer, so don't mark that as one
+            (((ste_flags & SFLG_POINTER) != 0) && ((ste_flags & SFLG_ARRAY) == 0)))
+        | RTTI::kField_Array * ((ste_flags & SFLG_ARRAY) != 0);
+}
+
+// Convert STYPE_* flags to RTTI::FieldFlags
+inline uint32_t StypeToRTTIField(int stype_flags)
+{
+    return 0u
+        | RTTI::kField_ManagedPtr * ((stype_flags & STYPE_DYNARRAY) != 0 || (stype_flags & STYPE_POINTER) != 0);
+}
+
 // Compiles RTTI table for the given script.
 static std::unique_ptr<RTTI> ccCompileRTTI(const symbolTable &sym)
 {
@@ -78,22 +105,14 @@ static std::unique_ptr<RTTI> ccCompileRTTI(const symbolTable &sym)
         if ((ste.stype == SYM_VARTYPE) || ((ste.flags & SFLG_STRUCTTYPE) != 0) ||
             ((ste.flags & SFLG_MANAGED) != 0))
         {
-            uint32_t flags = 0u;
-            if ((ste.flags & SFLG_STRUCTTYPE))
-                flags |= RTTI::kType_Struct;
-            if ((ste.flags & SFLG_MANAGED))
-                flags |= RTTI::kType_Managed;
+            uint32_t flags = SflgToRTTIType(ste.flags);
             rtb.AddType(ste.sname, t, ste.section, ste.extends, flags, ste.ssize);
         }
         else if ((ste.stype == SYM_STRUCTMEMBER) && ((ste.flags & SFLG_STRUCTMEMBER) != 0) &&
             ((ste.flags & SFLG_PROPERTY) == 0))
         {
             buf = ste.sname.substr(ste.sname.rfind(":") + 1);
-            uint32_t flags = 0u;
-            if ((ste.flags & SFLG_DYNAMICARRAY) || (ste.flags & SFLG_POINTER))
-                flags |= RTTI::kField_ManagedPtr;
-            if (ste.flags & SFLG_ARRAY)
-                flags |= RTTI::kField_Array;
+            uint32_t flags = SflgToRTTIField(ste.flags);
             rtb.AddField(ste.extends, buf, ste.soffs, ste.vartype, flags,
                 static_cast<uint32_t>(ste.arrsize));
         }
@@ -101,6 +120,88 @@ static std::unique_ptr<RTTI> ccCompileRTTI(const symbolTable &sym)
 
     return std::unique_ptr<RTTI>(
         new RTTI(std::move(rtb.Finalize())));
+}
+
+static void ccCompileDataTOC(ScriptTOCBuilder &tocb,
+    const std::vector<SymbolTableEntry> &entries, const RTTI *rtti)
+{
+    for (size_t t = 0; t < entries.size(); ++t)
+    {
+        const SymbolTableEntry &ste = entries[t];
+
+        // Add global variables (SYM_GLOBALVAR), local variables and function parameters (SYM_LOCALVAR)
+        // NOTE: we add imported variables, because we need to know their declared  types when
+        // using TOC for debugging purposes. Actual addresses must be resolved at linking stage.
+        // TODO: consider alternate solutions to avoid cluttering each script's TOC with
+        // generated game objects. If a better way found, then imported vars may be easily excluded
+        // from here without breaking TOC serialization format.
+        if (ste.stype == SYM_GLOBALVAR || ste.stype == SYM_LOCALVAR)
+        {
+            uint32_t f_flags = SflgToRTTIField(ste.flags);
+            if (ste.stype == SYM_GLOBALVAR)
+            {
+                uint32_t v_flags = 0u;
+                if (ste.flags & SFLG_IMPORTED)
+                    v_flags = ScriptTOC::kVariable_Import;
+
+                tocb.AddGlobalVar(ste.sname, ste.section, ste.soffs,
+                    v_flags, ste.vartype, f_flags, static_cast<uint32_t>(ste.arrsize));
+            }
+            else
+            {
+                uint32_t v_flags = ScriptTOC::kVariable_Local;
+                if (ste.flags & SFLG_PARAMETER)
+                    v_flags |= ScriptTOC::kVariable_Parameter;
+                tocb.AddLocalVar(ste.sname, ste.section, ste.soffs,
+                    ste.scope_section_begin, ste.scope_section_end,
+                    v_flags, ste.vartype, f_flags, static_cast<uint32_t>(ste.arrsize));
+            }
+            
+        }
+
+        // Add functions
+        // NOTE: we skip imported functions, as these are not useful in TOC at the moment;
+        // but if a need arises, we may easily add these as well.
+        if (ste.stype == SYM_FUNCTION)
+        {
+            if (ste.flags & SFLG_IMPORTED)
+                continue; // skip function import declarations
+
+            uint32_t func_flags = 0u;
+            if (entries[t].is_variadic_function())
+                func_flags |= ScriptTOC::kFunction_Variadic;
+            // NOTE: old compiler saves function's return value and parameter flags
+            // as STYPE_* constants, not SFLG_*
+            uint32_t rval_type = entries[t].funcparams[0].Type & STYPE_MASK;
+            int stype_flags = entries[t].funcparams[0].Type & ~STYPE_MASK;
+            uint32_t rval_flags = StypeToRTTIField(stype_flags);
+            const uint32_t func_id =
+                tocb.AddFunction(ste.sname, ste.section, ste.scope_section_begin, ste.scope_section_end,
+                    func_flags, rval_type, rval_flags);
+
+            // Add function parameters
+            for (int i = 1; i < ste.get_num_args() + 1; ++i)
+            {
+                uint32_t param_type = entries[t].funcparams[i].Type & STYPE_MASK;
+                int stype_flags = entries[t].funcparams[i].Type & ~STYPE_MASK;
+                const std::string &name = entries[t].funcparams[i].Name;
+                uint32_t param_flags = StypeToRTTIField(stype_flags);
+                tocb.AddFunctionParam(func_id, name, 0u /* TODO: param offset? */,
+                    param_type, param_flags);
+            }
+        }
+    }
+}
+
+static std::unique_ptr<ScriptTOC> ccCompileDataTOC(const symbolTable &sym, const RTTI *rtti)
+{
+    ScriptTOCBuilder tocb;
+
+    ccCompileDataTOC(tocb, sym.entries, rtti);
+    ccCompileDataTOC(tocb, sym.localEntries, rtti);
+
+    return std::unique_ptr<ScriptTOC>(
+        new ScriptTOC(std::move(tocb.Finalize(rtti))));
 }
 
 ccScript* ccCompileText(const char *texo, const char *scriptName) {
@@ -180,6 +281,11 @@ ccScript* ccCompileText(const char *texo, const char *scriptName) {
     // Construct RTTI
     if (ccGetOption(SCOPT_RTTI)) {
         cctemp->rtti = ccCompileRTTI(sym);
+    }
+
+    // Construct TOC
+    if (ccGetOption(SCOPT_SCRIPT_TOC)) {
+        cctemp->sctoc = ccCompileDataTOC(sym, cctemp->rtti.get() /* may be null */);
     }
 
     cctemp->free_extra();

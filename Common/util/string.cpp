@@ -214,12 +214,13 @@ int String::CompareRightNoCase(const char *cstr, size_t count) const
     return ags_strnicmp(_cstr + _len - off, cstr, count);
 }
 
-size_t String::FindChar(char c, size_t from) const
+size_t String::FindChar(char c, size_t from, size_t to) const
 {
-    if (c && from < _len)
+    if (c && from < _len && from < to)
     {
-        const char * found_cstr = strchr(_cstr + from, c);
-        return found_cstr ? found_cstr - _cstr : NoIndex;
+        const char *end_cstr = _cstr + std::min(_len, to);
+        const char *found_cstr = std::find(static_cast<const char*>(_cstr) + from, end_cstr, c);
+        return found_cstr != end_cstr ? found_cstr - _cstr : NoIndex;
     }
     return NoIndex;
 }

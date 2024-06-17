@@ -88,7 +88,7 @@ static uint32_t StrTableCopy(std::vector<char> &str_table, const char *string)
 //  uint32 | name                   | an offset in a string table
 //  uint32 | location id            | local location's ID
 //  uint32 | parent type (local id) | local type ID; 0? if no parent
-//  uint32 | type flags             |
+//  uint32 | type flags             | see RTTI::TypeFlags
 //  uint32 | type size              | in bytes
 //  uint32 | num fields             |
 //  uint32 | field table index      | an index of a first field
@@ -98,7 +98,7 @@ static uint32_t StrTableCopy(std::vector<char> &str_table, const char *string)
 //  uint32 | offset                 | relative offset, in bytes
 //  uint32 | name                   | an offset in a string table
 //  uint32 | type (local id)        | local type ID of this field
-//  uint32 | flags                  |
+//  uint32 | flags                  | see RTTI::FieldFlags
 //  uint32 | number of elements     | for arrays, 0 = single var
 //
 //*****************************************************************************
@@ -113,8 +113,8 @@ RTTI RTTISerializer::Read(Stream *in)
     const size_t head_sz = (uint32_t)in->ReadInt32();
     const size_t full_sz = (uint32_t)in->ReadInt32();
     const size_t loc_sz = (uint32_t)in->ReadInt32();
-    const size_t loc_table_off = (uint32_t)in->ReadInt32();
-    const size_t loc_table_len = (uint32_t)in->ReadInt32();
+    const uint32_t loc_table_off = (uint32_t)in->ReadInt32();
+    const uint32_t loc_table_len = (uint32_t)in->ReadInt32();
     const size_t typei_sz = (uint32_t)in->ReadInt32();
     const uint32_t typei_table_off = (uint32_t)in->ReadInt32();
     const uint32_t typei_table_len = (uint32_t)in->ReadInt32();
@@ -252,6 +252,22 @@ void RTTISerializer::Write(const RTTI &rtti, Stream *out)
     out->Seek(end_soff, kSeekBegin);
 }
 
+const RTTI::Location *RTTI::FindLocationByLocalID(uint32_t loc_id) const
+{
+    if (loc_id >= _locs.size())
+        return nullptr;
+    return &_locs[loc_id];
+}
+
+const RTTI::Type *RTTI::FindTypeByLocalID(uint32_t type_id) const
+{
+    // TODO: this may be optimized if "typeid_to_type" map is kept after CreateQuickRefs?
+    // TODO: optimize this out for joint collection, as it has typeid = table index
+    auto it = std::find_if(_types.begin(), _types.end(),
+        [type_id](const Type& type) { return type.this_id == type_id; });
+    return it == _types.end() ? nullptr : &*it;
+}
+
 void RTTI::CreateQuickRefs()
 {
     // TODO: keep this map in the RTTI struct, or extended one?
@@ -332,7 +348,7 @@ RTTI RTTIBuilder::Finalize()
         memcpy(&_rtti._strings.front() + s.second, s.first.c_str(), s.first.size() + 1);
     }
 
-    // Save complete field data;
+    // Save complete field data
     for (auto &ti : _rtti._types)
     {
         auto fi_range = _fieldIdx.equal_range(ti.this_id);
@@ -494,6 +510,472 @@ void JointRTTI::Join(const RTTI &rtti,
     CreateQuickRefs();
 }
 
+//*****************************************************************************
+// ScriptTOC serialization
+//
+// TOC header:
+// ----------------
+//  uint32 | format                 | for expanding the format
+//  uint32 | header size            | size in bytes (counting from "format")
+//  uint32 | full data size         | size in bytes (counting from "format")
+//  uint32 | global vars entry size | fixed size of a global var info in bytes
+//  uint32 | global vars table off  | a relative pos of a global vars table
+//  uint32 | num global vars        | number of global vars in table
+//  uint32 | functions entry size   | fixed size of a function info in bytes
+//  uint32 | functions table off    | a relative pos of a functions table
+//  uint32 | num functions          | number of functions in table
+//  uint32 | func param entry size  | fixed size of a func param info in bytes
+//  uint32 | param table offset     | a relative pos of a func param table
+//  uint32 | num param fields       | number of func params in table
+//  uint32 | local vars entry size  | fixed size of a local var info in bytes
+//  uint32 | local vars table off   | a relative pos of a local vars table
+//  uint32 | num local vars         | number of local vars in table
+//  uint32 | string table offset    | a relative pos of a strings table
+//  uint32 | string table size      | size of a string table, in bytes
+//
+// Variable Info:
+// ----------------
+//   int32 | offset                 | offset in script data, in bytes
+//  uint32 | name                   | an offset in a string table
+//  uint32 | location (local id)    | local location's ID (ref to RTTI)
+//  uint32 | scope begin            | valid var's scope start, in bytecode pos
+//  uint32 | scope end              | valid var's scope end, in bytecode pos
+//  uint32 | variable flags         | see VariableFlags
+//  uint32 | type (local id)        | local type ID of this var (ref to RTTI)
+//  uint32 | field flags            | see RTTI::FieldFlags
+//  uint32 | number of elements     | for arrays, 0 = single var
+//
+// Function Info:
+// ----------------
+//  uint32 | name                   | an offset in a string table
+//  uint32 | location (local id)    | local location's ID (ref to RTTI)
+//  uint32 | scope begin            | function's scope start, in bytecode pos
+//  uint32 | scope end              | function's scope end, in bytecode pos
+//  uint32 | type (local id)        | local type ID of this func (ref to RTTI)
+//  uint32 | function flags         | see FunctionFlags
+//  uint32 | ret value type         | local type ID of return value
+//  uint32 | ret value flags        | see RTTI::FieldFlags
+//  uint32 | ret value elem count   | (reserved, unusable atm)
+//  uint32 | num params             | number of function parameters
+//  uint32 | param table index      | an index of a first parameter
+//  uint32 | num local data entries | number of related local data entries
+//  uint32 | param table index      | an index of a first local data entries
+//
+// Func Param Info (corresponds to RTTI's Type Field Info):
+// ----------------
+//  uint32 | offset                 | relative offset, in bytes
+//  uint32 | name                   | an offset in a string table
+//  uint32 | type (local id)        | local type ID of this param
+//  uint32 | flags                  | see RTTI::FieldFlags
+//  uint32 | number of elements     | (reserved, unusable atm)
+//
+//*****************************************************************************
+
+ScriptTOC ScriptTOCSerializer::Read(Stream *in, const RTTI *rtti)
+{
+    ScriptTOC toc;
+
+    // TOC Header
+    const soff_t toc_soff = in->GetPosition();
+    const uint32_t format = in->ReadInt32();
+    const size_t head_sz = (uint32_t)in->ReadInt32();
+    const size_t full_sz = (uint32_t)in->ReadInt32();
+    const uint32_t glvar_sz = (uint32_t)in->ReadInt32();
+    const uint32_t glvar_table_off = (uint32_t)in->ReadInt32();
+    const uint32_t glvar_table_len = (uint32_t)in->ReadInt32();
+    const size_t func_sz = (uint32_t)in->ReadInt32();
+    const uint32_t func_table_off = (uint32_t)in->ReadInt32();
+    const uint32_t func_table_len = (uint32_t)in->ReadInt32();
+    const size_t func_param_sz = (uint32_t)in->ReadInt32();
+    const uint32_t func_param_table_off = (uint32_t)in->ReadInt32();
+    const uint32_t func_param_table_len = (uint32_t)in->ReadInt32();
+    const size_t locvar_sz = (uint32_t)in->ReadInt32();
+    const uint32_t locvar_table_off = (uint32_t)in->ReadInt32();
+    const uint32_t locvar_table_len = (uint32_t)in->ReadInt32();
+    const uint32_t str_table_off = (uint32_t)in->ReadInt32();
+    const size_t str_table_sz = (uint32_t)in->ReadInt32();
+
+    const soff_t glvar_soff = toc_soff + glvar_table_off;
+    const soff_t func_soff = toc_soff + func_table_off;
+    const soff_t func_param_soff = toc_soff + func_param_table_off;;
+    const soff_t locvar_soff = toc_soff + locvar_table_off;
+    const soff_t str_soff = toc_soff + str_table_off;
+    const soff_t end_soff = toc_soff + full_sz;
+
+    // Global variables
+    in->Seek(glvar_soff, kSeekBegin);
+    for (size_t i = 0; i < glvar_table_len; ++i)
+    {
+        ScriptTOC::Variable var;
+        var.offset = in->ReadInt32();
+        var.name_stri = (uint32_t)in->ReadInt32();
+        var.loc_id = (uint32_t)in->ReadInt32();
+        var.scope_begin = (uint32_t)in->ReadInt32();
+        var.scope_end = (uint32_t)in->ReadInt32();
+        var.v_flags = (uint32_t)in->ReadInt32();
+        var.f_typeid = (uint32_t)in->ReadInt32();
+        var.f_flags = (uint32_t)in->ReadInt32();
+        var.num_elems = (uint32_t)in->ReadInt32();
+        toc._glVariables.push_back(var);
+    }
+
+    // Functions
+    in->Seek(func_soff, kSeekBegin);
+    for (size_t i = 0; i < func_table_len; ++i)
+    {
+        ScriptTOC::Function func;
+        func.name_stri = (uint32_t)in->ReadInt32();
+        func.loc_id = (uint32_t)in->ReadInt32();
+        func.scope_begin = (uint32_t)in->ReadInt32();
+        func.scope_end = (uint32_t)in->ReadInt32();
+        func.f_typeid = (uint32_t)in->ReadInt32();
+        func.flags = (uint32_t)in->ReadInt32();
+        func.rv_typeid = (uint32_t)in->ReadInt32();
+        func.rv_flags = (uint32_t)in->ReadInt32();
+        func.rv_num_elems = (uint32_t)in->ReadInt32();
+        func.param_num = (uint32_t)in->ReadInt32();
+        func.param_index = (uint32_t)in->ReadInt32();
+        func.local_data_num = (uint32_t)in->ReadInt32();
+        func.local_data_index = (uint32_t)in->ReadInt32();
+        toc._functions.push_back(func);
+    }
+
+    // Function parameters
+    in->Seek(func_param_soff, kSeekBegin);
+    for (size_t i = 0; i < func_param_table_len; ++i)
+    {
+        ScriptTOC::FunctionParam fp;
+        fp.offset = (uint32_t)in->ReadInt32();
+        fp.name_stri = (uint32_t)in->ReadInt32();
+        fp.f_typeid = (uint32_t)in->ReadInt32();
+        fp.flags = (uint32_t)in->ReadInt32();
+        fp.num_elems = (uint32_t)in->ReadInt32();
+        toc._fparams.push_back(fp);
+    }
+
+    // Local variables
+    in->Seek(locvar_soff, kSeekBegin);
+    for (size_t i = 0; i < locvar_table_len; ++i)
+    {
+        ScriptTOC::Variable var;
+        var.offset = in->ReadInt32();
+        var.name_stri = (uint32_t)in->ReadInt32();
+        var.loc_id = (uint32_t)in->ReadInt32();
+        var.scope_begin = (uint32_t)in->ReadInt32();
+        var.scope_end = (uint32_t)in->ReadInt32();
+        var.v_flags = (uint32_t)in->ReadInt32();
+        var.f_typeid = (uint32_t)in->ReadInt32();
+        var.f_flags = (uint32_t)in->ReadInt32();
+        var.num_elems = (uint32_t)in->ReadInt32();
+        toc._locVariables.push_back(var);
+    }
+
+    // String Table
+    in->Seek(str_soff, kSeekBegin);
+    if (str_table_sz > 0)
+    {
+        toc._strings.resize(str_table_sz);
+        in->Read(&toc._strings.front(), str_table_sz);
+    }
+
+    // Finish
+    in->Seek(end_soff, kSeekBegin);
+
+    toc.CreateQuickRefs(rtti);
+    return std::move(toc);
+}
+
+void ScriptTOCSerializer::Write(const ScriptTOC &toc, Stream *out)
+{
+    // TOC Header placeholder
+    const soff_t toc_soff = out->GetPosition();
+    out->WriteByteCount(0, 17 * sizeof(uint32_t));
+
+    // Global variables
+    uint32_t glvar_count = 0u;
+    const soff_t glvar_soff = out->GetPosition();
+    for (const auto &var : toc._glVariables)
+    {
+        out->WriteInt32(var.offset);
+        out->WriteInt32(var.name_stri);
+        out->WriteInt32(var.loc_id);
+        out->WriteInt32(var.scope_begin);
+        out->WriteInt32(var.scope_end);
+        out->WriteInt32(var.v_flags);
+        out->WriteInt32(var.f_typeid);
+        out->WriteInt32(var.f_flags);
+        out->WriteInt32(var.num_elems);
+        glvar_count++;
+    }
+
+    // Functions
+    const soff_t func_soff = out->GetPosition();
+    for (const auto &func : toc._functions)
+    {
+        out->WriteInt32(func.name_stri);
+        out->WriteInt32(func.loc_id);
+        out->WriteInt32(func.scope_begin);
+        out->WriteInt32(func.scope_end);
+        out->WriteInt32(func.f_typeid);
+        out->WriteInt32(func.flags);
+        out->WriteInt32(func.rv_typeid);
+        out->WriteInt32(func.rv_flags);
+        out->WriteInt32(func.rv_num_elems);
+        out->WriteInt32(func.param_num);
+        out->WriteInt32(func.param_index);
+        out->WriteInt32(func.local_data_num);
+        out->WriteInt32(func.local_data_index);
+    }
+
+    // Function parameters
+    const soff_t func_params_soff = out->GetPosition();
+    for (const auto &fp : toc._fparams)
+    {
+        out->WriteInt32(fp.offset);
+        out->WriteInt32(fp.name_stri);
+        out->WriteInt32(fp.f_typeid);
+        out->WriteInt32(fp.flags);
+        out->WriteInt32(fp.num_elems);
+    }
+
+    // Local variables
+    const soff_t locvar_soff = out->GetPosition();
+    uint32_t locvar_count = 0u;
+    for (const auto &var : toc._locVariables)
+    {
+        out->WriteInt32(var.offset);
+        out->WriteInt32(var.name_stri);
+        out->WriteInt32(var.loc_id);
+        out->WriteInt32(var.scope_begin);
+        out->WriteInt32(var.scope_end);
+        out->WriteInt32(var.v_flags);
+        out->WriteInt32(var.f_typeid);
+        out->WriteInt32(var.f_flags);
+        out->WriteInt32(var.num_elems);
+        locvar_count++;
+    }
+
+    // String Table
+    const soff_t str_soff = out->GetPosition();
+    if (toc._strings.size() > 0)
+    {
+        out->Write(&toc._strings.front(), toc._strings.size());
+    }
+
+    // Finalize, write actual TOC header
+    const soff_t end_soff = out->GetPosition();
+    out->Seek(toc_soff, kSeekBegin);
+    out->WriteInt32(0); // format
+    out->WriteInt32((uint32_t)(glvar_soff - toc_soff)); // header size
+    out->WriteInt32((uint32_t)(end_soff - toc_soff)); // full size
+    out->WriteInt32(ScriptTOC::Variable::FileSize); // global var size
+    out->WriteInt32((uint32_t)(glvar_soff - toc_soff)); // global var table offset
+    out->WriteInt32(glvar_count); // number of global variables
+    out->WriteInt32(ScriptTOC::Function::FileSize); // function size
+    out->WriteInt32((uint32_t)(func_soff - toc_soff)); // function table offset
+    out->WriteInt32(toc._functions.size()); // number of functions
+    out->WriteInt32(ScriptTOC::FunctionParam::FileSize); // function param size
+    out->WriteInt32((uint32_t)(func_params_soff - toc_soff)); // function param table offset
+    out->WriteInt32(toc._fparams.size()); // number of function params
+    out->WriteInt32(ScriptTOC::Variable::FileSize); // local var size
+    out->WriteInt32((uint32_t)(locvar_soff - toc_soff)); // local var table offset
+    out->WriteInt32(locvar_count); // number of local variables
+    out->WriteInt32((uint32_t)(str_soff - toc_soff)); // strings table offset
+    out->WriteInt32(toc._strings.size()); // string table size
+    out->Seek(end_soff, kSeekBegin);
+}
+
+void ScriptTOC::CreateQuickRefs(const RTTI *rtti)
+{
+    for (auto &var : _glVariables)
+    {
+        var.name = &_strings[var.name_stri];
+    }
+
+    for (auto &var : _locVariables)
+    {
+        var.name = &_strings[var.name_stri];
+    }
+
+    for (auto &fn : _functions)
+    {
+        fn.name = &_strings[fn.name_stri];
+        if (fn.param_num > 0u)
+        {
+            fn.first_param = &_fparams[fn.param_index];
+            for (uint32_t index = 0; index < fn.param_num; ++index)
+            {
+                auto &fp = _fparams[fn.param_index + index];
+                fp.name = &_strings[fp.name_stri];
+                fp.owner = &fn;
+                fp.prev_field = (index > 0) ? &_fparams[fn.param_index + index - 1] : nullptr;
+                fp.next_field = (index + 1 < fn.param_num) ? &_fparams[fn.param_index + index + 1] : nullptr;
+            }
+        }
+        if (fn.local_data_num > 0u)
+        {
+            fn.local_data = &_locVariables[fn.local_data_index];
+            for (uint32_t index = 0; index < fn.local_data_num; ++index)
+            {
+                auto &var = _locVariables[fn.local_data_index + index];
+                var.function = &fn;
+                var.prev_local = (index > 0) ? &_locVariables[fn.local_data_index + index - 1] : nullptr;
+                var.next_local = (index + 1 < fn.local_data_num) ? &_locVariables[fn.local_data_index + index + 1] : nullptr;
+            }
+        }
+    }
+
+    _rtti = rtti;
+    if (rtti)
+    {
+        for (auto &var : _glVariables)
+        {
+            var.location = rtti->FindLocationByLocalID(var.loc_id);
+            var.type = rtti->FindTypeByLocalID(var.f_typeid);
+        }
+        for (auto &var : _locVariables)
+        {
+            var.location = rtti->FindLocationByLocalID(var.loc_id);
+            var.type = rtti->FindTypeByLocalID(var.f_typeid);
+        }
+        for (auto &fn : _functions)
+        {
+            fn.location = rtti->FindLocationByLocalID(fn.loc_id);
+            fn.return_type = rtti->FindTypeByLocalID(fn.rv_typeid);
+        }
+        for (auto &fp : _fparams)
+        {
+            fp.type = rtti->FindTypeByLocalID(fp.f_typeid);
+        }
+    }
+}
+
+void ScriptTOCBuilder::AddGlobalVar(const std::string &name, uint32_t loc_id,
+    uint32_t offset, uint32_t v_flags, uint32_t f_type_id, uint32_t f_flags,
+    uint32_t num_elems)
+{
+    ScriptTOC::Variable var;
+    var.name_stri = StrTableAdd(_strtable, name, _strpackedLen);
+    var.loc_id = loc_id;
+    var.offset = offset;
+    var.v_flags = v_flags
+        & ~(ScriptTOC::kVariable_Local | ScriptTOC::kVariable_Parameter);
+    var.f_typeid = f_type_id;
+    var.f_flags = f_flags;
+    var.num_elems = num_elems;
+    _toc._glVariables.push_back(var);
+}
+
+void ScriptTOCBuilder::AddLocalVar(const std::string &name, uint32_t loc_id,
+    uint32_t offset, uint32_t scope_begin, uint32_t scope_end, uint32_t v_flags,
+    uint32_t f_type_id, uint32_t f_flags, uint32_t num_elems)
+{
+    ScriptTOC::Variable var;
+    var.name_stri = StrTableAdd(_strtable, name, _strpackedLen);
+    var.loc_id = loc_id;
+    var.offset = offset;
+    var.scope_begin = scope_begin;
+    var.scope_end = scope_end;
+    var.v_flags = v_flags | (ScriptTOC::kVariable_Local);
+    var.f_typeid = f_type_id;
+    var.f_flags = f_flags;
+    var.num_elems = num_elems;
+    _toc._locVariables.push_back(var);
+}
+
+uint32_t ScriptTOCBuilder::AddFunction(const std::string &name, uint32_t loc_id,
+    uint32_t scope_begin, uint32_t scope_end, uint32_t flags,
+    uint32_t rv_typeid, uint32_t rv_flags)
+{
+    ScriptTOC::Function func;
+    func.name_stri = StrTableAdd(_strtable, name, _strpackedLen);
+    func.loc_id = loc_id;
+    func.scope_begin = scope_begin;
+    func.scope_end = scope_end;
+    func.flags = flags;
+    func.rv_typeid = rv_typeid;
+    func.rv_flags = rv_flags;
+    _toc._functions.push_back(func);
+    return static_cast<uint32_t>(_toc._functions.size() - 1);
+}
+
+void ScriptTOCBuilder::AddFunctionParam(uint32_t func_id, const std::string &name, uint32_t offset,
+    uint32_t f_typeid, uint32_t flags)
+{
+    ScriptTOC::FunctionParam fi;
+    fi.offset = offset;
+    fi.name_stri = StrTableAdd(_strtable, name, _strpackedLen);
+    fi.f_typeid = f_typeid;
+    fi.flags = flags;
+    _paramIdx.insert(std::make_pair(func_id, fi)); // match field to owner type
+}
+
+ScriptTOC ScriptTOCBuilder::Finalize(const RTTI *rtti)
+{
+    // Save complete string data
+    _toc._strings.resize(_strpackedLen);
+    for (const auto &s : _strtable)
+    { // write strings at the precalculated offsets
+        memcpy(&_toc._strings.front() + s.second, s.first.c_str(), s.first.size() + 1);
+    }
+
+    // Sort global vars by offset
+    std::sort(_toc._glVariables.begin(), _toc._glVariables.end(),
+        [](const ScriptTOC::Variable &first, const ScriptTOC::Variable &second) { return first.offset < second.offset; });
+
+    // Sort functions by scope
+    std::sort(_toc._functions.begin(), _toc._functions.end(),
+        [](const ScriptTOC::Function &first, const ScriptTOC::Function &second) { return first.scope_begin < second.scope_begin; });
+
+    // Sort local entries by scope and offset
+    auto &local_vars = _toc._locVariables;
+    std::sort(local_vars.begin(), local_vars.end(), ScriptTOC::ScopedVariableLess());
+
+    // Save complete function data, with params and local vars refs
+    for (uint32_t i = 0; i < _toc._functions.size(); ++i)
+    {
+        auto &fn = _toc._functions[i];
+        // Find prepared parameters for this function
+        auto fi_range = _paramIdx.equal_range(i);
+        if (fi_range.first != _paramIdx.end())
+        {
+            fn.param_index = _toc._fparams.size(); // save first param index
+            fn.param_num = std::distance(fi_range.first, fi_range.second);
+            for (auto fi_it = fi_range.first; fi_it != fi_range.second; ++fi_it)
+            {
+                _toc._fparams.push_back(fi_it->second);
+            }
+        }
+        // Scan sorted local data for anything that matches this function's scope
+        ScriptTOC::Variable test; test.scope_begin = fn.scope_begin; test.scope_end = fn.scope_end;
+        auto lv_range = std::equal_range(local_vars.begin(), local_vars.end(), test, ScriptTOC::ScopedVariableLessScope());
+        if (lv_range.first != lv_range.second)
+        {
+            fn.local_data_index = lv_range.first - local_vars.begin(); // save first entry index
+            fn.local_data_num = lv_range.second - lv_range.first; // local data number
+            // Fixup local entries (CHECKME: perhaps do this upon loading instead? or both?)
+            for (auto it = lv_range.first; it != lv_range.second; ++it)
+            {
+                auto &var = *it;
+                var.loc_id = fn.loc_id;
+                var.scope_begin = std::min(fn.scope_end, std::max(fn.scope_begin, var.scope_begin));
+                var.scope_end = std::min(fn.scope_end, std::max(fn.scope_begin, var.scope_end));
+            }
+        }
+    }
+
+    _toc.CreateQuickRefs(rtti);
+
+    ScriptTOC toc = std::move(_toc);
+    _toc = ScriptTOC(); // reset, in case user will want to create a new collection
+    return toc;
+}
+
+//*****************************************************************************
+//
+// Additional helpers.
+//
+//*****************************************************************************
 
 String PrintRTTI(const RTTI &rtti)
 {
@@ -531,6 +1013,81 @@ String PrintRTTI(const RTTI &rtti)
         else
         {
             fullstr.AppendFmt("%-12snone\n", "Fields:");
+        }
+        fullstr.AppendFmt("%s\n", hr);
+    }
+
+    fullstr.Append(dbhr);
+    return fullstr;
+}
+
+static void FmtField(String &s, const RTTI::Type *t, uint32_t f_flags, const char *f_name)
+{
+    s.AppendFmt("%s%s%s %s", t->name,
+        (f_flags & RTTI::kField_ManagedPtr) ? "*" : "",
+        (f_flags & RTTI::kField_Array) ? "[]" : "",
+        f_name ? f_name : "");
+}
+
+String PrintScriptTOC(const ScriptTOC &toc, const char *scriptname)
+{
+    const auto glvars = toc.GetGlobalVariables();
+    const auto funcs = toc.GetFunctions();
+    const auto locvars = toc.GetLocalVariables();
+
+    const char *hr =   "-------------------------------------------------------------------------------";
+    const char *dbhr = "===============================================================================";
+    String fullstr;
+    fullstr.AppendFmt("%s\nScript '%s' Table of Contents\n%s\n", dbhr, scriptname, dbhr);
+
+    // Exclude imported variables from this list
+    uint32_t own_glvars = 0u;
+    for (const auto &var : glvars)
+        if ((var.v_flags & ScriptTOC::kVariable_Import) == 0)
+            own_glvars++;
+
+    fullstr.AppendFmt("Global variables (%d):\n%s\n", own_glvars, hr);
+    for (const auto &var : glvars)
+    {
+        if ((var.v_flags & ScriptTOC::kVariable_Import) != 0)
+            continue;
+        fullstr.AppendFmt("%-8u: ", var.offset);
+        FmtField(fullstr, var.type, var.f_flags, var.name);
+        fullstr.AppendChar('\n');
+    }
+
+    // Exclude imported functions from this list
+    uint32_t own_funcs = 0u;
+    for (const auto &fn : funcs)
+        if ((fn.flags & ScriptTOC::kFunction_Import) == 0)
+            own_funcs++;
+
+    fullstr.AppendFmt("%s\nFunctions (%d):\n%s\n", dbhr, own_funcs, hr);
+    for (const auto &fn : funcs)
+    {
+        if ((fn.flags & ScriptTOC::kFunction_Import) != 0)
+            continue;
+        FmtField(fullstr, fn.return_type, fn.rv_flags, nullptr);
+        fullstr.AppendFmt("%s ( ", fn.name);
+        for (const auto *p = fn.first_param; p; p = p->next_field)
+        {
+            if (p != fn.first_param)
+                fullstr.Append(", ");
+            FmtField(fullstr, p->type, p->flags, p->name);
+        }
+        if (fn.flags & ScriptTOC::kFunction_Variadic)
+            fullstr.Append(", ...");
+        fullstr.AppendFmt(" )\n    Bytecode scope: %u - %u\n", fn.scope_begin, fn.scope_end);
+
+        if (fn.local_data_num > 0u)
+        {
+            fullstr.AppendFmt("Local data (%d):\n", fn.local_data_num);
+            for (const auto *var = fn.local_data; var; var = var->next_local)
+            {
+                fullstr.AppendFmt("%u - %u:%+4d: ", var->scope_begin, var->scope_end, var->offset);
+                FmtField(fullstr, var->type, var->f_flags, var->name);
+                fullstr.AppendChar('\n');
+            }
         }
         fullstr.AppendFmt("%s\n", hr);
     }

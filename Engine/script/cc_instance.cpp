@@ -250,6 +250,7 @@ ccInstance *ccInstance::CreateEx(PScript scri, const ccInstance *joined)
         ccInstance::_rtti.reset(new JointRTTI());
     if (!ccInstance::_rttiHelper)
         ccInstance::_rttiHelper.reset(new RTTIHelper());
+    // TODO: not related to static members, move this to private _Create, and optimize for forks
     if (scri->rtti && !scri->rtti->IsEmpty())
     {
         JoinRTTI(*scri->rtti, cinst->_locidLocal2Global, cinst->_typeidLocal2Global);
@@ -1973,6 +1974,22 @@ bool ccInstance::_Create(PScript scri, const ccInstance * joined)
                 cc_error("Export table overflow at '%s'", scri->exports[i].c_str());
                 return false;
             }
+        }
+    }
+
+    // Generate lookup tables for script TOC (if available)
+    if (joined)
+    {
+        // FIXME: use shared ptr?
+        _globalVarLookup = joined->_globalVarLookup;
+    }
+    else if (scri->sctoc)
+    {
+        const auto &glvars = scri->sctoc->GetGlobalVariables();
+        for (size_t i = 0; i < glvars.size(); ++i)
+        {
+            _globalVarLookup.insert(
+                std::make_pair(String(glvars[i].name), static_cast<uint32_t>(i)));
         }
     }
     return true;

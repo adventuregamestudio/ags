@@ -372,6 +372,7 @@ namespace AGS.Editor
             Factory.GUIController.HideOutputPanel();
             Factory.GUIController.ShowCallStack(callStack);
             Factory.GUIController.ZoomToFile(callStack.Lines[0].ScriptName, callStack.Lines[0].LineNumber, true, callStack.ErrorMessage);
+            Factory.GUIController.NotifyWatchVariables();
         }
 
         public void RegenerateScriptHeader(Room currentRoom)
@@ -930,11 +931,15 @@ namespace AGS.Editor
             compileTasks.Add(new CompileTask(dialogScripts, headers));
             _game.ScriptsToCompile.Add(new ScriptAndHeader(null, dialogScripts));
 
+            // The extended compiler doesn't use static memory, 
+            // so several instances can run in parallel.
+            bool compileParallel = _game.Settings.ExtendedCompiler
+                //&& false // uncomment if debugging script compiler; TODO: add Editor preference?
+                ;
+
             // Compile the scripts
-            if (_game.Settings.ExtendedCompiler)
+            if (compileParallel)
             {
-                // The extended compiler doesn't use static memory, 
-                // so several instances can run in parallel.
                 Parallel.ForEach(compileTasks, (ct, state) =>
                 {
                     CompileMessages messages = new CompileMessages();

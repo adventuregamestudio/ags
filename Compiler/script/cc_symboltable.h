@@ -25,32 +25,36 @@
 // So there's another symbol definition in cc_symboldef.h
 struct SymbolTableEntry
 {
-	std::string sname;
-        int section; // section index this symbol was declared in
-	int16_t stype;
-	int32_t flags;
-	int16_t vartype;
-	int soffs;
-	int32_t ssize; // or return type size for function
-	int16_t sscope; // or num arguments for function
-	int32_t arrsize;
-	int16_t extends; // inherits another class (classes) / owning class (member vars)
+    std::string sname;
+    int section = 0; // section index this symbol was declared in
+    int16_t stype = 0;
+    int32_t flags = 0;
+    int16_t vartype = 0;
+    int soffs = 0;
+    int32_t ssize = 0; // or return type size for function
+    int16_t sscope = 0; // or num arguments for function
+    // symbol's life scope, in bytecode pos
+    int32_t scope_section_begin = 0;
+    int32_t scope_section_end = 0;
+    int32_t arrsize = 0;
+    int16_t extends = 0; // inherits another class (classes) / owning class (member vars)
     // functions only, save types of return value and all parameters
     // return value is at index 0, actual args begin with 1
     std::vector<FuncParamInfo> funcparams;
 
-	int get_num_args();
+	int get_num_args() const;
 
-	int is_loadable_variable();
+	int is_loadable_variable() const;
+    bool is_variadic_function() const;
 
     // Set indexes of get/set property handlers; 0xffff for no entry
 	void set_propfuncs(int propget, int propset);
     // Returns an index of get property handler; -1 means no entry
-	int get_propget();
+	int get_propget() const;
     // Returns an index of set property handler; -1 means no entry
-	int get_propset();
+	int get_propset() const;
 
-	int operatorToVCPUCmd();
+	int operatorToVCPUCmd() const;
 };
 
 struct symbolTable {
@@ -66,6 +70,8 @@ struct symbolTable {
 	std::vector<SymbolTableEntry> entries;
     // section names filled by tokenizer, required for RTTI
     std::vector<std::string> sections;
+    // saved local symbols, for generating script data TOC (optional)
+    std::vector<SymbolTableEntry> localEntries;
 
     symbolTable();
     void reset();    // clears table

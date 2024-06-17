@@ -38,16 +38,20 @@
 #include "script/cc_common.h"
 #include "debug/debugger.h"
 #include "debug/debug_log.h"
+#include "debug/out.h"
 #include "main/game_run.h"
 #include "script/script_runtime.h"
 #include "util/string_compat.h"
 #include "media/audio/audio_system.h"
+
+using namespace AGS::Common;
 
 extern GameSetupStruct game;
 extern int gameHasBeenRestored, displayed_room;
 extern unsigned int load_new_game;
 extern RoomObject*objs;
 extern CharacterInfo*playerchar;
+extern bool logScriptTOC;
 
 ExecutingScript scripts[MAX_SCRIPT_AT_ONCE];
 ExecutingScript *curscript = nullptr; // non-owning ptr
@@ -249,6 +253,17 @@ int create_global_script() {
         return kscript_create_error;
 
     ccSetOption(SCOPT_AUTOIMPORT, 0);
+
+    // Optionally dump script's TOC into the log
+    if (logScriptTOC)
+    {
+        for (const auto &inst : all_insts)
+        {
+            if (inst->instanceof->sctoc)
+                Debug::Printf(PrintScriptTOC(*inst->instanceof->sctoc, inst->instanceof->sectionNames[0].c_str()));
+        }
+    }
+
     return 0;
 }
 

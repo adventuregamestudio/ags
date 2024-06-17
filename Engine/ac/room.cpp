@@ -92,7 +92,7 @@ extern unsigned int loopcounter;
 extern IDriverDependantBitmap* roomBackgroundBmp;
 extern IGraphicsDriver *gfxDriver;
 extern RGB palette[256];
-extern bool logScriptRTTI;
+extern bool logScriptRTTI, logScriptTOC;
 
 extern CCHotspot ccDynamicHotspot;
 extern CCObject ccDynamicObject;
@@ -454,6 +454,11 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     if (logScriptRTTI && ccInstance::GetRTTI())
     {
         Debug::Printf(PrintRTTI(ccInstance::GetRTTI()->AsConstRTTI()));
+    }
+    // Optionally dump room script's TOC into the log
+    if (logScriptTOC && thisroom.CompiledScript && thisroom.CompiledScript->sctoc)
+    {
+        Debug::Printf(PrintScriptTOC(*thisroom.CompiledScript->sctoc, thisroom.CompiledScript->sectionNames[0].c_str()));
     }
 
     set_our_eip(201);

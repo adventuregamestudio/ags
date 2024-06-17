@@ -205,7 +205,7 @@ void Character_AddWaypoint(CharacterInfo *chaa, int x, int y) {
     cmls->pos[last_stage] = { room_to_mask_coord(last_pos.X), room_to_mask_coord(last_pos.Y) };
     const int dst_x = room_to_mask_coord(x);
     const int dst_y = room_to_mask_coord(y);
-    if (add_waypoint_direct(cmls, dst_x, dst_y, move_speed_x, move_speed_y))
+    if (Pathfinding::AddWaypointDirect(*cmls, dst_x, dst_y, move_speed_x, move_speed_y))
     {
         convert_move_path_to_room_resolution(cmls, last_stage, last_stage + 1);
     }
@@ -952,10 +952,9 @@ void Character_SetSpeed(CharacterInfo *chaa, int xspeed, int yspeed) {
 
     if (chaa->walking > 0)
     {
-        recalculate_move_speeds(&mls[chaa->walking % TURNING_AROUND], old_speedx, old_speedy, xspeed, yspeed);
+        Pathfinding::RecalculateMoveSpeeds(mls[chaa->walking % TURNING_AROUND], old_speedx, old_speedy, xspeed, yspeed);
     }
 }
-
 
 void Character_StopMoving(CharacterInfo *charp) {
 

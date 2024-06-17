@@ -15,19 +15,20 @@
 // PathFinder v2.00 (AC2 customized version)
 // (c) 1998-99 Chris Jones
 //
+// FIXME: remove uses of quit(), return failure/error instead.
+// FIXME: replace uses of goto with loops.
+//
 //=============================================================================
-
 #include "ac/route_finder_impl_legacy.h"
-
 #include <string.h>
 #include <math.h>
-
-#include "ac/common.h"   // quit()
+#include "ac/common.h"   // quit() FIXME: don't use quit here!!
 #include "ac/common_defines.h"
-#include "game/roomstruct.h"
-#include "ac/movelist.h"     // MoveList
-#include "gfx/bitmap.h"
+#include "ac/movelist.h"
+#include "ac/route_finder.h"
 #include "debug/out.h"
+#include "game/roomstruct.h"
+#include "gfx/bitmap.h"
 
 extern std::vector<MoveList> mls;
 
@@ -640,101 +641,6 @@ findroutebk:
   return 1;
 }
 
-inline fixed input_speed_to_fixed(int speed_val)
-{
-  // negative move speeds like -2 get converted to 1/2
-  if (speed_val < 0) {
-    return itofix(1) / (-speed_val);
-  }
-  else {
-    return itofix(speed_val);
-  }
-}
-
-// Calculates the X and Y per game loop, for this stage of the movelist
-void calculate_move_stage(MoveList *mlsp, int aaa, fixed move_speed_x, fixed move_speed_y)
-{
-  assert(mlsp != nullptr);
-  
-  // work out the x & y per move. First, opp/adj=tan, so work out the angle
-  if (mlsp->pos[aaa] == mlsp->pos[aaa + 1]) {
-    mlsp->xpermove[aaa] = 0;
-    mlsp->ypermove[aaa] = 0;
-    return;
-  }
-
-  short ourx = mlsp->pos[aaa].X;
-  short oury = mlsp->pos[aaa].Y;
-  short destx = mlsp->pos[aaa + 1].X;
-  short desty = mlsp->pos[aaa + 1].Y;
-
-  // Special case for vertical and horizontal movements
-  if (ourx == destx) {
-    mlsp->xpermove[aaa] = 0;
-    mlsp->ypermove[aaa] = move_speed_y;
-    if (desty < oury)
-      mlsp->ypermove[aaa] = -mlsp->ypermove[aaa];
-
-    return;
-  }
-
-  if (oury == desty) {
-    mlsp->xpermove[aaa] = move_speed_x;
-    mlsp->ypermove[aaa] = 0;
-    if (destx < ourx)
-      mlsp->xpermove[aaa] = -mlsp->xpermove[aaa];
-
-    return;
-  }
-
-  fixed xdist = itofix(abs(ourx - destx));
-  fixed ydist = itofix(abs(oury - desty));
-
-  fixed useMoveSpeed;
-
-  if (move_speed_x == move_speed_y) {
-    useMoveSpeed = move_speed_x;
-  }
-  else {
-    // different X and Y move speeds
-    // the X proportion of the movement is (x / (x + y))
-    fixed xproportion = fixdiv(xdist, (xdist + ydist));
-
-    if (move_speed_x > move_speed_y) {
-      // speed = y + ((1 - xproportion) * (x - y))
-      useMoveSpeed = move_speed_y + fixmul(xproportion, move_speed_x - move_speed_y);
-    }
-    else {
-      // speed = x + (xproportion * (y - x))
-      useMoveSpeed = move_speed_x + fixmul(itofix(1) - xproportion, move_speed_y - move_speed_x);
-    }
-  }
-
-  fixed angl = fixatan(fixdiv(ydist, xdist));
-
-  // now, since new opp=hyp*sin, work out the Y step size
-  //fixed newymove = useMoveSpeed * fsin(angl);
-  fixed newymove = fixmul(useMoveSpeed, fixsin(angl));
-
-  // since adj=hyp*cos, work out X step size
-  //fixed newxmove = useMoveSpeed * fcos(angl);
-  fixed newxmove = fixmul(useMoveSpeed, fixcos(angl));
-
-  if (destx < ourx)
-    newxmove = -newxmove;
-  if (desty < oury)
-    newymove = -newymove;
-
-  mlsp->xpermove[aaa] = newxmove;
-  mlsp->ypermove[aaa] = newymove;
-
-#ifdef DEBUG_PATHFINDER
-  AGS::Common::Debug::Printf("stage %d from %d,%d to %d,%d Xpermove:%X Ypm:%X", aaa, ourx, oury, destx, desty, newxmove, newymove);
-  // wtextcolor(14);
-  // wgtprintf((reallyneed[aaa] >> 16) & 0x000ffff, reallyneed[aaa] & 0x000ffff, cbuttfont, "%d", aaa);
-#endif
-}
-
 int find_route(short srcx, short srcy, short xx, short yy, int move_speed_x, int move_speed_y,
     Bitmap *onscreen, int move_id, int nocross, int ignore_walls)
 {
@@ -800,10 +706,8 @@ int find_route(short srcx, short srcy, short xx, short yy, int move_speed_x, int
   if (pathbackstage >= 0) {
     Point nearestpos;
     int nearestindx;
-    Point reallyneed[MAXNEEDSTAGES];
-    int numstages = 0;
-    reallyneed[numstages] = { srcx,srcy };
-    numstages++;
+    std::vector<Point> path;
+    path.emplace_back( srcx,srcy );
     nearestindx = -1;
 
 stage_again:
@@ -829,9 +733,8 @@ stage_again:
     }
 
     if ( (nearestpos.X + nearestpos.Y) > 0) { // NOTE: we only deal with positive coordinates here
-      reallyneed[numstages] = nearestpos;
-      numstages++;
-      if (numstages >= MAXNEEDSTAGES - 1)
+      path.push_back(nearestpos);
+      if (path.size() >= MAXNEEDSTAGES - 1)
         quit("too many stages for auto-walk");
       srcx = nearestpos.X;
       srcy = nearestpos.Y;
@@ -843,36 +746,22 @@ stage_again:
     }
 
     if (finalpartx >= 0) {
-      reallyneed[numstages] = {finalpartx, finalparty};
-      numstages++;
+      path.emplace_back(finalpartx, finalparty);
     }
 
     // Make sure the end co-ord is in there
-    if (reallyneed[numstages - 1] != Point(xx, yy)) {
-      reallyneed[numstages] = { xx, yy };
-      numstages++;
+    if (path.back() != Point(xx, yy)) {
+      path.emplace_back( xx, yy );
     }
 
-    if ((numstages == 1) && (xx == orisrcx) && (yy == orisrcy)) {
+    if ((path.size() == 1) && (xx == orisrcx) && (yy == orisrcy)) {
       return 0;
     }
 #ifdef DEBUG_PATHFINDER
     AGS::Common::Debug::Printf("Route from %d,%d to %d,%d - %d stage, %d stages", orisrcx,orisrcy,xx,yy,pathbackstage,numstages);
 #endif
     MoveList mlist;
-    mlist.numstage = numstages;
-    memcpy(&mlist.pos[0], &reallyneed[0], sizeof(Point) * numstages);
-#ifdef DEBUG_PATHFINDER
-    AGS::Common::Debug::Printf("stages: %d\n",numstages);
-#endif
-
-    const fixed fix_speed_x = input_speed_to_fixed(move_speed_x);
-    const fixed fix_speed_y = input_speed_to_fixed(move_speed_y);
-    for (aaa = 0; aaa < numstages - 1; aaa++) {
-      calculate_move_stage(&mlist, aaa, fix_speed_x, fix_speed_y);
-    }
-
-    mlist.from = { orisrcx, orisrcy };
+    Pathfinding::CalculateMoveList(mlist, path, move_speed_x, move_speed_y);
     mls[move_id] = mlist;
 #ifdef DEBUG_PATHFINDER
     // getch();
@@ -885,19 +774,6 @@ stage_again:
 #ifdef DEBUG_PATHFINDER
   // __unnormscreen();
 #endif
-}
-
-bool add_waypoint_direct(MoveList * mlsp, short x, short y, int move_speed_x, int move_speed_y)
-{
-  if (mlsp->numstage >= MAXNEEDSTAGES)
-    return false;
-
-  const fixed fix_speed_x = input_speed_to_fixed(move_speed_x);
-  const fixed fix_speed_y = input_speed_to_fixed(move_speed_y);
-  mlsp->pos[mlsp->numstage] = { x, y };
-  calculate_move_stage(mlsp, mlsp->numstage - 1, fix_speed_x, fix_speed_y);
-  mlsp->numstage++;
-  return true;
 }
 
 void shutdown_pathfinder()
@@ -924,8 +800,6 @@ void shutdown_pathfinder()
   beenhere = nullptr;
   beenhere_array_size = 0;
 }
-
-
 
 } // namespace RouteFinderLegacy
 } // namespace Engine

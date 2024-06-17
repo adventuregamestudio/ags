@@ -35,8 +35,6 @@ void get_lastcpos(int &lastcx, int &lastcy);
 
 int find_route(short srcx, short srcy, short xx, short yy, int move_speed_x, int move_speed_y,
     AGS::Common::Bitmap *onscreen, int movlst, int nocross = 0, int ignore_walls = 0);
-bool add_waypoint_direct(MoveList * mlsp, short x, short y, int move_speed_x, int move_speed_y);
-void recalculate_move_speeds(MoveList *mlsp, int old_speed_x, int old_speed_y, int new_speed_x, int new_speed_y);
 
 } // namespace RouteFinder
 } // namespace Engine

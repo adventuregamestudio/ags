@@ -39,6 +39,7 @@
 #include "ac/overlay.h"
 #include "ac/path_helper.h"
 #include "ac/sys_events.h"
+#include "ac/room.h"
 #include "ac/roomstatus.h"
 #include "ac/sprite.h"
 #include "ac/spritecache.h"
@@ -494,6 +495,8 @@ void unload_game()
     get_overlays().clear();
 
     resetRoomStatuses();
+
+    dispose_room_pathfinder();
 
     // Free game state and game struct
     play = GamePlayState();

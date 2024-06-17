@@ -108,6 +108,8 @@ target_sources(engine
     ac/dynobj/scriptobjects.h
     ac/dynobj/scriptoverlay.cpp
     ac/dynobj/scriptoverlay.h
+    ac/dynobj/scriptpathfinder.cpp
+    ac/dynobj/scriptpathfinder.h
     ac/dynobj/scriptset.cpp
     ac/dynobj/scriptset.h
     ac/dynobj/scriptstring.cpp
@@ -207,6 +209,7 @@ target_sources(engine
     ac/parser.cpp
     ac/parser.h
     ac/path_helper.h
+    ac/pathfinder_script.cpp
     ac/properties.cpp
     ac/properties.h
     ac/region.cpp

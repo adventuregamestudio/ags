@@ -12,112 +12,220 @@
 //
 //=============================================================================
 #include "ac/route_finder.h"
-#include <memory>
 #include "ac/route_finder_impl.h"
-#include "debug/out.h"
+#include "util/memory_compat.h"
 
-using AGS::Common::Bitmap;
-
-class IRouteFinder 
+namespace AGS
 {
-public:
-    virtual ~IRouteFinder() = default;
-
-    virtual void init_pathfinder() = 0;
-    virtual void shutdown_pathfinder() = 0;
-    virtual void set_walkablearea(Bitmap *walkablearea) = 0;
-    virtual int can_see_from(int x1, int y1, int x2, int y2) = 0;
-    virtual void get_lastcpos(int &lastcx, int &lastcy) = 0;
-    virtual int find_route(short srcx, short srcy, short xx, short yy, int move_speed_x, int move_speed_y,
-        Bitmap *onscreen, int movlst, int nocross = 0, int ignore_walls = 0) = 0;
-    // Append a waypoint to the move list, skip pathfinding
-    virtual bool add_waypoint_direct(MoveList * mlsp, short x, short y, int move_speed_x, int move_speed_y) = 0;
-    virtual void recalculate_move_speeds(MoveList *mlsp, int old_speed_x, int old_speed_y, int new_speed_x, int new_speed_y) = 0;
-};
-
-class AGSRouteFinder : public IRouteFinder 
+namespace Engine
 {
-public:
-    void init_pathfinder() override
-    { 
-        AGS::Engine::RouteFinder::init_pathfinder(); 
+
+namespace Pathfinding
+{
+
+std::unique_ptr<MaskRouteFinder> CreateDefaultMaskPathfinder()
+{
+    return std::make_unique<JPSRouteFinder>();
+}
+
+// Find route using a provided IRouteFinder, and calculate the MoveList using move speeds
+bool FindRoute(MoveList &mls, IRouteFinder *finder, int srcx, int srcy, int dstx, int dsty,
+    int move_speed_x, int move_speed_y, bool exact_dest, bool ignore_walls)
+{
+    std::vector<Point> path;
+    if (!finder->FindRoute(path, srcx, srcy, dstx, dsty, exact_dest, ignore_walls))
+        return false;
+
+    return CalculateMoveList(mls, path, move_speed_x, move_speed_y);
+}
+
+inline float input_speed_to_move(int speed_val)
+{
+    // negative move speeds like -2 get converted to 1/2
+    if (speed_val < 0) {
+        return 1.f / (-speed_val);
     }
-    void shutdown_pathfinder() override
-    { 
-        AGS::Engine::RouteFinder::shutdown_pathfinder(); 
-    }
-    void set_walkablearea(Bitmap *walkablearea) override
-    { 
-        AGS::Engine::RouteFinder::set_walkablearea(walkablearea);
-    }
-    int can_see_from(int x1, int y1, int x2, int y2) override
-    { 
-        return AGS::Engine::RouteFinder::can_see_from(x1, y1, x2, y2); 
-    }
-    void get_lastcpos(int &lastcx, int &lastcy) override
-    { 
-        AGS::Engine::RouteFinder::get_lastcpos(lastcx, lastcy); 
-    }
-    int find_route(short srcx, short srcy, short xx, short yy, int move_speed_x, int move_speed_y,
-        Bitmap *onscreen, int movlst, int nocross = 0, int ignore_walls = 0) override
-    { 
-        return AGS::Engine::RouteFinder::find_route(srcx, srcy, xx, yy,
-            move_speed_x, move_speed_y, onscreen, movlst, nocross, ignore_walls); 
-    }
-    bool add_waypoint_direct(MoveList * mlsp, short x, short y, int move_speed_x, int move_speed_y) override
+    else
+        return speed_val;
+}
+
+inline float calc_move_speed_at_angle(float speed_x, float speed_y, float xdist, float ydist)
+{
+    float useMoveSpeed;
+    // short circuit degenerate "simple" cases
+    if (xdist == 0.f || speed_x == 0.f)
     {
-        return AGS::Engine::RouteFinder::add_waypoint_direct(mlsp, x, y, move_speed_x, move_speed_y); 
+        useMoveSpeed = speed_y;
     }
-    void recalculate_move_speeds(MoveList *mlsp, int old_speed_x, int old_speed_y, int new_speed_x, int new_speed_y) override
+    else if (ydist == 0.f || speed_y == 0.f)
     {
-        AGS::Engine::RouteFinder::recalculate_move_speeds(mlsp, old_speed_x, old_speed_y, new_speed_x, new_speed_y);
+        useMoveSpeed = speed_x;
     }
-};
-
-
-std::unique_ptr<IRouteFinder> route_finder_impl;
-
-void init_pathfinder(GameDataVersion game_file_version)
-{
-    AGS::Common::Debug::Printf(AGS::Common::MessageType::kDbgMsg_Info, "Initialize path finder library");
-    route_finder_impl.reset(new AGSRouteFinder());
-    route_finder_impl->init_pathfinder();
+    else if (speed_x == speed_y)
+    {
+        useMoveSpeed = speed_x;
+    }
+    else
+    {
+        // different X and Y move speeds
+        // speed_x and speed_y are the axis of an ellipse, whose border represent the "valid"
+        // movement speeds at each angle. The equation for that is
+        // (x/a)^2 + (y/b)^2 = 1
+        // where
+        // a == speed_x
+        // b == speed_y
+        // ydist and xdist give a straight line for the movement at this stage. Its equation is
+        // y = mx
+        // The slope m is ydist/xdist.
+        // The velocity we want to compute is the length of the segment of that line from the
+        // origin to its intersection with the ellipse. The coordinates of that intersection
+        // can be found by substituting y = mx into the equation of the ellipse to solve for
+        // x, and then solving back for y. The velocity is then computed by Pithagora's theorem.
+        float a_squared = speed_x * speed_x;
+        float b_squared = speed_y * speed_y;
+        float m_squared = (ydist * ydist) / (xdist * xdist);
+        float v_squared = (a_squared * b_squared * (1.f + m_squared)) / (b_squared + a_squared * m_squared);
+        useMoveSpeed = sqrtf(v_squared);
+    }
+    // validate that the computed speed is in a valid range
+    assert(useMoveSpeed >= std::min(speed_x, speed_y) && useMoveSpeed <= std::max(speed_x, speed_y));
+    return useMoveSpeed;
 }
 
-void shutdown_pathfinder()
+// Calculates the X and Y per game loop, for this stage of the movelist
+static void calculate_move_stage(MoveList &mls, uint32_t index, float move_speed_x, float move_speed_y)
 {
-    if (route_finder_impl)
-        route_finder_impl->shutdown_pathfinder();
+    // work out the x & y per move. First, opp/adj=tan, so work out the angle
+    if (mls.pos[index] == mls.pos[index + 1])
+    {
+        mls.permove[index].X = 0.f;
+        mls.permove[index].Y = 0.f;
+        return;
+    }
+
+    int ourx = mls.pos[index].X;
+    int oury = mls.pos[index].Y;
+    int destx = mls.pos[index + 1].X;
+    int desty = mls.pos[index + 1].Y;
+
+    // Special case for vertical and horizontal movements
+    if (ourx == destx)
+    {
+        mls.permove[index].X = 0.f;
+        mls.permove[index].Y = move_speed_y;
+        if (desty < oury)
+            mls.permove[index].Y = -mls.permove[index].Y;
+        return;
+    }
+
+    if (oury == desty)
+    {
+        mls.permove[index].X = move_speed_x;
+        mls.permove[index].Y = 0.f;
+        if (destx < ourx)
+            mls.permove[index].X = -mls.permove[index].X;
+        return;
+    }
+
+    float xdist = abs(ourx - destx);
+    float ydist = abs(oury - desty);
+
+    float useMoveSpeed = calc_move_speed_at_angle(move_speed_x, move_speed_y, xdist, ydist);
+    float angl = atan(ydist / xdist);
+
+    // now, since new opp=hyp*sin, work out the Y step size
+    float newymove = useMoveSpeed * sin(angl);
+
+    // since adj=hyp*cos, work out X step size
+    float newxmove = useMoveSpeed * cos(angl);
+
+    // validate that the computed movement isn't larger than the set maxima
+    assert(newxmove <= move_speed_x && newymove <= move_speed_y);
+
+    if (destx < ourx)
+        newxmove = -newxmove;
+    if (desty < oury)
+        newymove = -newymove;
+
+    mls.permove[index].X = newxmove;
+    mls.permove[index].Y = newymove;
 }
 
-void set_walkablearea(Bitmap *walkablearea)
+bool CalculateMoveList(MoveList &mls, const std::vector<Point> path, int move_speed_x, int move_speed_y)
 {
-    route_finder_impl->set_walkablearea(walkablearea);
+    MoveList mlist;
+    mlist.pos = path;
+    mlist.permove.resize(path.size());
+
+    const float fspeed_x = input_speed_to_move(move_speed_x);
+    const float fspeed_y = input_speed_to_move(move_speed_y);
+    for (uint32_t i = 0; i < mlist.GetNumStages() - 1; i++)
+        calculate_move_stage(mlist, i, fspeed_x, fspeed_y);
+
+    mlist.from = mlist.pos[0];
+    mls = mlist;
+    return true;
 }
 
-int can_see_from(int x1, int y1, int x2, int y2)
+bool AddWaypointDirect(MoveList &mls, int x, int y, int move_speed_x, int move_speed_y)
 {
-    return route_finder_impl->can_see_from(x1, y1, x2, y2);
+    const float fspeed_x = input_speed_to_move(move_speed_x);
+    const float fspeed_y = input_speed_to_move(move_speed_y);
+    mls.pos.emplace_back( x, y );
+    calculate_move_stage(mls, mls.GetNumStages() - 1, fspeed_x, fspeed_y);
+    return true;
 }
 
-void get_lastcpos(int &lastcx, int &lastcy)
+void RecalculateMoveSpeeds(MoveList &mls, int old_speed_x, int old_speed_y, int new_speed_x, int new_speed_y)
 {
-    route_finder_impl->get_lastcpos(lastcx, lastcy);
+    const float old_movspeed_x = input_speed_to_move(old_speed_x);
+    const float old_movspeed_y = input_speed_to_move(old_speed_y);
+    const float new_movspeed_x = input_speed_to_move(new_speed_x);
+    const float new_movspeed_y = input_speed_to_move(new_speed_y);
+    // save current stage's step lengths, for later onpart's update
+    const float old_stage_xpermove = mls.permove[mls.onstage].X;
+    const float old_stage_ypermove = mls.permove[mls.onstage].Y;
+
+    for (uint32_t i = 0; (i < mls.GetNumStages()) && ((mls.permove[i].X != 0.f) || (mls.permove[i].Y != 0.f)); ++i)
+    {
+        // First three cases where the speed is a plain factor, therefore
+        // we may simply divide on old one and multiple on a new one
+        if ((old_movspeed_x == old_movspeed_y) || // diagonal move at straight 45 degrees
+            (mls.permove[i].X == 0) || // straight vertical move
+            (mls.permove[i].Y == 0))   // straight horizontal move
+        {
+            mls.permove[i].X = (mls.permove[i].X * new_movspeed_x) / old_movspeed_x;
+            mls.permove[i].Y = (mls.permove[i].Y * new_movspeed_y) / old_movspeed_y;
+        }
+        else
+        {
+            // Move at angle has adjusted speed factor, which we must recalculate first
+            int ourx = mls.pos[i].X;
+            int oury = mls.pos[i].Y;
+            int destx = mls.pos[i + 1].X;
+            int desty = mls.pos[i + 1].Y;
+
+            float xdist = abs(ourx - destx);
+            float ydist = abs(oury - desty);
+            float old_speed_at_angle = calc_move_speed_at_angle(old_movspeed_x, old_movspeed_y, xdist, ydist);
+            float new_speed_at_angle = calc_move_speed_at_angle(new_movspeed_x, new_movspeed_y, xdist, ydist);
+
+            mls.permove[i].X = (mls.permove[i].X * new_speed_at_angle) / old_speed_at_angle;
+            mls.permove[i].Y = (mls.permove[i].Y * new_speed_at_angle) / old_speed_at_angle;
+        }
+    }
+
+    // now adjust current passed stage fraction
+    if (mls.onpart >= 0.f)
+    {
+        if (old_stage_xpermove != 0)
+            mls.onpart = (mls.onpart * old_stage_xpermove) / mls.permove[mls.onstage].X;
+        else
+            mls.onpart = (mls.onpart * old_stage_ypermove) / mls.permove[mls.onstage].Y;
+    }
 }
 
-int find_route(short srcx, short srcy, short xx, short yy, int move_speed_x, int move_speed_y,
-    Bitmap *onscreen, int movlst, int nocross, int ignore_walls)
-{
-    return route_finder_impl->find_route(srcx, srcy, xx, yy, move_speed_x, move_speed_y,
-        onscreen, movlst, nocross, ignore_walls);
-}
+} // namespace Pathfinding
 
-bool add_waypoint_direct(MoveList * mlsp, short x, short y, int move_speed_x, int move_speed_y)
-{
-    return route_finder_impl->add_waypoint_direct(mlsp, x, y, move_speed_x, move_speed_y);
-}
-
-void recalculate_move_speeds(MoveList *mlsp, int old_speed_x, int old_speed_y, int new_speed_x, int new_speed_y)
-{
-    route_finder_impl->recalculate_move_speeds(mlsp, old_speed_x, old_speed_y, new_speed_x, new_speed_y);
-}
+} // namespace Engine
+} // namespace AGS

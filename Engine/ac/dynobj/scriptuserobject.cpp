@@ -15,6 +15,7 @@
 #include "scriptuserobject.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/dynobj/managedobjectpool.h"
+#include "ac/dynobj/cc_dynamicarray.h"
 #include "script/cc_script.h"
 #include "script/cc_instance.h"
 #include "util/memorystream.h"
@@ -120,9 +121,41 @@ ScriptUserObject globalDynamicStruct;
 // Allocates managed struct containing two ints: X and Y
 ScriptUserObject *ScriptStructHelpers::CreatePoint(int x, int y)
 {
+    return static_cast<ScriptUserObject*>(CreatePointRef(x, y).Obj);
+}
+
+DynObjectRef ScriptStructHelpers::CreatePointRef(int x, int y)
+{
     // FIXME: type id! (is it possible to RTTI?)
     DynObjectRef ref = ScriptUserObject::Create(RTTI::NoType, sizeof(int32_t) * 2);
     ref.Mgr->WriteInt32(ref.Obj, 0, x);
     ref.Mgr->WriteInt32(ref.Obj, sizeof(int32_t), y);
-    return static_cast<ScriptUserObject*>(ref.Obj);
+    return ref;
+}
+
+Point ScriptStructHelpers::ResolvePoint(void *managed_point)
+{
+    auto *obj = reinterpret_cast<ScriptUserObject*>(managed_point);
+    return Point(obj->ReadInt32(managed_point, 0), 
+                 obj->ReadInt32(managed_point, sizeof(int32_t)));
+}
+
+bool ScriptStructHelpers::ResolveArrayOfPoints(const void *arrobj, std::vector<Point> &points)
+{
+    std::vector<void*> mpoints{};
+    if (!DynamicArrayHelpers::ResolvePointerArray(arrobj, mpoints) || mpoints.empty())
+        return false; // failed to resolve or null-size array (?)
+    for (const auto &mpt : mpoints)
+        points.push_back(ScriptStructHelpers::ResolvePoint(mpt));
+    return true;
+}
+
+DynObjectRef ScriptStructHelpers::CreateArrayOfPoints(const std::vector<Point> &points)
+{
+    std::vector<DynObjectRef> objs;
+    for (const auto &pt : points)
+    {
+        objs.push_back(ScriptStructHelpers::CreatePointRef(pt.X, pt.Y));
+    }
+    return DynamicArrayHelpers::CreateScriptArray(std::move(objs));
 }

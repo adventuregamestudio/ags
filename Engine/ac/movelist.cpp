@@ -21,39 +21,35 @@ using namespace AGS::Engine;
 
 float MoveList::GetStepLength() const
 {
-    assert(numstage > 0);
-    float permove_x = xpermove[onstage];
-    float permove_y = ypermove[onstage];
+    assert(GetNumStages() > 0);
+    const float permove_x = permove[onstage].X;
+    const float permove_y = permove[onstage].Y;
     return std::sqrt(permove_x * permove_x + permove_y * permove_y);
 }
 
 float MoveList::GetPixelUnitFraction() const
 {
-    assert(numstage > 0);
-    float distance = GetStepLength() * onpart;
+    assert(GetNumStages() > 0);
+    const float distance = GetStepLength() * onpart;
     return distance - std::floor(distance);
 }
 
 void MoveList::SetPixelUnitFraction(float frac)
 {
-    assert(numstage > 0);
-    float permove_dist = GetStepLength();
+    assert(GetNumStages() > 0);
+    const float permove_dist = GetStepLength();
     onpart = permove_dist > 0.f ? (1.f / permove_dist) * frac : 0.f;
 }
 
 HSaveError MoveList::ReadFromSavegame(Stream *in, int32_t cmp_ver)
 {
     *this = MoveList(); // reset struct
-    numstage = in->ReadInt32();
+    uint32_t numstage = in->ReadInt32();
+    pos.resize(numstage);
+    permove.resize(numstage);
     if (numstage == 0)
     {
         return HSaveError::None();
-    }
-    // TODO: reimplement MoveList stages as vector to avoid these limits
-    if (numstage > MAXNEEDSTAGES)
-    {
-        return new SavegameError(kSvgErr_IncompatibleEngine,
-            String::FromFormat("Incompatible number of movelist steps (count: %d, max : %d).", numstage, MAXNEEDSTAGES));
     }
 
     from.X = in->ReadInt32();
@@ -65,18 +61,25 @@ HSaveError MoveList::ReadFromSavegame(Stream *in, int32_t cmp_ver)
     doneflag = in->ReadInt8();
     direct = in->ReadInt8();
 
-    for (int i = 0; i < numstage; ++i)
+    for (uint32_t i = 0; i < numstage; ++i)
     {
         pos[i].X = in->ReadInt32();
         pos[i].Y = in->ReadInt32();
     }
-    in->ReadArrayOfFloat32(xpermove, numstage);
-    in->ReadArrayOfFloat32(ypermove, numstage);
+    for (uint32_t i = 0; i < numstage; ++i)
+    {
+        permove[i].X = in->ReadFloat32();
+    }
+    for (uint32_t i = 0; i < numstage; ++i)
+    {
+        permove[i].Y = in->ReadFloat32();
+    }
     return HSaveError::None();
 }
 
 void MoveList::WriteToSavegame(Stream *out) const
 {
+    const uint32_t numstage = GetNumStages();
     out->WriteInt32(numstage);
     if (numstage == 0)
         return;
@@ -90,11 +93,17 @@ void MoveList::WriteToSavegame(Stream *out) const
     out->WriteInt8(doneflag);
     out->WriteInt8(direct);
 
-    for (int i = 0; i < numstage; ++i)
+    for (uint32_t i = 0; i < numstage; ++i)
     {
         out->WriteInt32(pos[i].X);
         out->WriteInt32(pos[i].Y);
     }
-    out->WriteArrayOfFloat32(xpermove, numstage);
-    out->WriteArrayOfFloat32(ypermove, numstage);
+    for (uint32_t i = 0; i < numstage; ++i)
+    {
+        out->WriteFloat32(permove[i].X);
+    }
+    for (uint32_t i = 0; i < numstage; ++i)
+    {
+        out->WriteFloat32(permove[i].Y);
+    }
 }

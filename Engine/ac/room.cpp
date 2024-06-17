@@ -49,6 +49,7 @@
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/dynobj/all_dynamicclasses.h"
 #include "ac/dynobj/managedobjectpool.h"
+#include "ac/dynobj/scriptpathfinder.h"
 #include "gui/guimain.h"
 #include "script/cc_instance.h"
 #include "debug/debug_log.h"
@@ -105,6 +106,7 @@ extern ScriptRegion scrRegion[MAX_ROOM_REGIONS];
 extern ScriptWalkableArea scrWalkarea[MAX_WALK_AREAS];
 extern ScriptWalkbehind scrWalkbehind[MAX_WALK_BEHINDS];
 
+std::unique_ptr<MaskRouteFinder> room_pathfinder;
 RGB_MAP rgb_table;  // for 256-col antialiasing
 int new_room_flags=0;
 int gs_to_newroom=-1;
@@ -261,6 +263,11 @@ ScriptWalkbehind* Room_GetiWalkbehinds(int idx)
     if ((idx < 0) || (idx >= MAX_WALK_BEHINDS))
         return nullptr;
     return &scrWalkbehind[idx];
+}
+
+ScriptPathfinder* Room_GetPathFinder()
+{
+    return RoomPathfinder::Create();
 }
 
 //=============================================================================
@@ -874,6 +881,8 @@ void first_room_initialization() {
     // Reset background frame state
     play.bg_frame = 0;
     play.bg_frame_locked = (thisroom.Options.Flags & kRoomFlag_BkgFrameLocked) != 0;
+
+    init_room_pathfinder();
 }
 
 void check_new_room() {
@@ -947,6 +956,21 @@ void croom_ptr_clear()
     objs = nullptr;
 }
 
+void init_room_pathfinder()
+{
+    if (!room_pathfinder)
+        room_pathfinder = Pathfinding::CreateDefaultMaskPathfinder();
+}
+
+void dispose_room_pathfinder()
+{
+    room_pathfinder.reset();
+}
+
+MaskRouteFinder *get_room_pathfinder()
+{
+    return room_pathfinder.get();
+}
 
 // coordinate conversion (data) ---> game ---> (room mask)
 int room_to_mask_coord(int coord)
@@ -958,27 +982,6 @@ int room_to_mask_coord(int coord)
 int mask_to_room_coord(int coord)
 {
     return coord * thisroom.MaskResolution;
-}
-
-void convert_move_path_to_room_resolution(MoveList *ml, int from_step, int to_step)
-{
-    if (thisroom.MaskResolution <= 1)
-        return; // it's 1:1 ratio, no need to convert
-
-    if (to_step < 0)
-        to_step = ml->numstage;
-    to_step = Math::Clamp(to_step, 0, ml->numstage - 1);
-    from_step = Math::Clamp(from_step, 0, to_step);
-
-    if (from_step == 0)
-    {
-        ml->from = { mask_to_room_coord(ml->from.X), mask_to_room_coord(ml->from.Y) };
-    }
-
-    for (int i = from_step; i <= to_step; i++)
-    {
-        ml->pos[i] = { mask_to_room_coord(ml->pos[i].X), mask_to_room_coord(ml->pos[i].Y) };
-    }
 }
 
 //=============================================================================
@@ -1115,6 +1118,11 @@ RuntimeScriptValue Sc_Room_GetiWalkbehinds(void *self, const RuntimeScriptValue 
     API_SCALL_OBJ_PINT(ScriptWalkbehind, ccDynamicWalkbehind, Room_GetiWalkbehinds);
 }
 
+RuntimeScriptValue Sc_Room_GetPathFinder(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO(ScriptPathfinder, Room_GetPathFinder);
+}
+
 void RegisterRoomAPI()
 {
     ScFnRegister room_api[] = {
@@ -1141,6 +1149,7 @@ void RegisterRoomAPI()
         { "Room::geti_Regions",                       API_FN_PAIR(Room_GetiRegions) },
         { "Room::geti_WalkableAreas",                 API_FN_PAIR(Room_GetiWalkableAreas) },
         { "Room::geti_Walkbehinds",                   API_FN_PAIR(Room_GetiWalkbehinds) },
+        { "Room::get_PathFinder",                     API_FN_PAIR(Room_GetPathFinder) },
     };
 
     ccAddExternalFunctions(room_api);

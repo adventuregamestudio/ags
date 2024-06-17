@@ -118,6 +118,30 @@ struct PointT
         return Pt(X - p.X, Y - p.Y);
     }
 
+    inline Pt operator *(T mul) const
+    {
+        return Pt(X * mul, Y * mul);
+    }
+
+    inline Pt operator /(T div) const
+    {
+        return Pt(X / div, Y / div);
+    }
+
+    inline Pt &operator *=(T mul)
+    {
+        X *= mul;
+        Y *= mul;
+        return *this;
+    }
+
+    inline Pt &operator /=(T div)
+    {
+        X /= div;
+        Y /= div;
+        return *this;
+    }
+
     inline bool Equals(const T x, const T y) const
     {
         return X == x && Y == y;

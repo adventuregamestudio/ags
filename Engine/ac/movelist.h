@@ -20,7 +20,7 @@
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
-#define MAXNEEDSTAGES 256
+#define LEGACY_MAXMOVESTAGES 256
 
 enum MoveListSvgVersion
 {
@@ -32,23 +32,23 @@ enum MoveListSvgVersion
 
 struct MoveList
 {
-    int     numstage = 0;
     // Waypoints, per stage
-    Point   pos[MAXNEEDSTAGES];
-    // xpermove and ypermove contain number of pixels done per a single step
+    std::vector<Point> pos;
+    // permove contain number of pixels done per a single step
     // along x and y axes; i.e. this is a movement vector, per path stage
-    float   xpermove[MAXNEEDSTAGES]{};
-    float   ypermove[MAXNEEDSTAGES]{};
-    int     onstage = 0; // current path stage
+    std::vector<Pointf> permove;
+    uint32_t onstage = 0; // current path stage
     Point   from; // current stage's starting position
     // Steps made during current stage;
-    // distance passed is calculated as xpermove[onstage] * onpart;
+    // distance passed is calculated as permove[onstage] * onpart;
     // made a fractional value to let recalculate movelist dynamically
     float   onpart = 0.f;
     uint8_t doneflag = 0u; // currently unused, but reserved
     uint8_t direct = 0;  // MoveCharDirect was used or not
 
-    const Point &GetLastPos() const { return numstage > 0 ? pos[numstage - 1] : pos[0]; }
+    bool IsEmpty() const { return pos.empty(); }
+    uint32_t GetNumStages() const { return pos.size(); }
+    const Point &GetLastPos() const { return pos.back(); }
 
     // Gets a movelist's step length, in coordinate units
     // (normally the coord unit is a game pixel)

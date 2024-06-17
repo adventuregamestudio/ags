@@ -59,6 +59,8 @@
 #include "ac/dynobj/cc_character.h"
 #include "ac/dynobj/cc_inventory.h"
 #include "ac/dynobj/dynobj_manager.h"
+#include "ac/dynobj/cc_dynamicarray.h"
+#include "ac/dynobj/scriptuserobject.h"
 #include "script/script_runtime.h"
 #include "gfx/gfx_def.h"
 #include "media/audio/audio_system.h"
@@ -180,15 +182,10 @@ void Character_AddWaypoint(CharacterInfo *chaa, int x, int y) {
         return;
     }
 
-    MoveList *cmls = &mls[chaa->walking % TURNING_AROUND];
-    if (cmls->numstage >= MAXNEEDSTAGES)
-    {
-        debug_script_warn("Character::AddWaypoint: move is too complex, cannot add any further paths");
-        return;
-    }
+    MoveList &cmls = mls[chaa->walking % TURNING_AROUND];
 
     // They're already walking there anyway
-    const Point &last_pos = cmls->GetLastPos();
+    const Point &last_pos = cmls.GetLastPos();
     if (last_pos == Point(x, y))
         return;
 
@@ -199,18 +196,7 @@ void Character_AddWaypoint(CharacterInfo *chaa, int x, int y) {
         debug_script_warn("Character::AddWaypoint: called for '%s' with walk speed 0", chaa->scrname.GetCStr());
     }
 
-    // There's an issue: the existing movelist is converted to room resolution,
-    // so we do this trick: convert last step to mask resolution, before calling
-    // a pathfinder api, and then we'll convert old and new last step back.
-    // TODO: figure out a better way of processing this!
-    const int last_stage = cmls->numstage - 1;
-    cmls->pos[last_stage] = { room_to_mask_coord(last_pos.X), room_to_mask_coord(last_pos.Y) };
-    const int dst_x = room_to_mask_coord(x);
-    const int dst_y = room_to_mask_coord(y);
-    if (add_waypoint_direct(cmls, dst_x, dst_y, move_speed_x, move_speed_y))
-    {
-        convert_move_path_to_room_resolution(cmls, last_stage, last_stage + 1);
-    }
+    Pathfinding::AddWaypointDirect(cmls, x, y, move_speed_x, move_speed_y);
 }
 
 void Character_Animate(CharacterInfo *chaa, int loop, int delay, int repeat,
@@ -955,7 +941,7 @@ void Character_SetSpeed(CharacterInfo *chaa, int xspeed, int yspeed) {
 
     if (chaa->walking > 0)
     {
-        recalculate_move_speeds(&mls[chaa->walking % TURNING_AROUND], old_speedx, old_speedy, xspeed, yspeed);
+        Pathfinding::RecalculateMoveSpeeds(mls[chaa->walking % TURNING_AROUND], old_speedx, old_speedy, xspeed, yspeed);
     }
 }
 
@@ -1069,6 +1055,28 @@ void Character_MoveStraight(CharacterInfo *chaa, int xx, int yy, int blocking) {
     walk_or_move_character_straight(chaa, xx, yy, blocking, 1 /* use ANYWHERE */, false /* move */);
 }
 
+void Character_WalkPath(CharacterInfo *chaa, void *path_arr, int blocking) {
+
+    if (chaa->room != displayed_room)
+        quit("!Character.WalkPath: specified character not in current room");
+
+    std::vector<Point> path;
+    if (!ScriptStructHelpers::ResolveArrayOfPoints(path_arr, path))
+        return;
+    walk_or_move_character(chaa, path, blocking, true /* walk */);
+}
+
+void Character_MovePath(CharacterInfo *chaa, void *path_arr, int blocking) {
+
+    if (chaa->room != displayed_room)
+        quit("!Character.MovePath: specified character not in current room");
+
+    std::vector<Point> path;
+    if (!ScriptStructHelpers::ResolveArrayOfPoints(path_arr, path))
+        return;
+    walk_or_move_character(chaa, path, blocking, false /* move */);
+}
+
 void Character_RunInteraction(CharacterInfo *chaa, int mood) {
 
     RunCharacterInteraction(chaa->index_id, mood);
@@ -1111,6 +1119,15 @@ bool Character_SetTextProperty(CharacterInfo *chaa, const char *property, const 
     if (!AssertCharacter("Character.SetTextProperty", chaa->index_id))
         return false;
     return set_text_property(play.charProps[chaa->index_id], property, value);
+}
+
+void *Character_GetPath(CharacterInfo *chaa)
+{
+    const int mslot = chaa->walking % TURNING_AROUND;
+    if (mslot == 0)
+        return nullptr;
+
+    return ScriptStructHelpers::CreateArrayOfPoints(mls[mslot].pos).Obj;
 }
 
 ScriptInvItem* Character_GetActiveInventory(CharacterInfo *chaa) {
@@ -1400,7 +1417,7 @@ int Character_GetMoving(CharacterInfo *chaa) {
 int Character_GetDestinationX(CharacterInfo *chaa) {
     if (chaa->walking) {
         MoveList *cmls = &mls[chaa->walking % TURNING_AROUND];
-        return cmls->pos[cmls->numstage - 1].X;
+        return cmls->pos.back().X;
     }
     else
         return chaa->x;
@@ -1409,7 +1426,7 @@ int Character_GetDestinationX(CharacterInfo *chaa) {
 int Character_GetDestinationY(CharacterInfo *chaa) {
     if (chaa->walking) {
         MoveList *cmls = &mls[chaa->walking % TURNING_AROUND];
-        return cmls->pos[cmls->numstage - 1].Y;
+        return cmls->pos.back().Y;
     }
     else
         return chaa->y;
@@ -1728,17 +1745,34 @@ void Character_SetUseRegionTint(CharacterInfo *chaa, int yesorno)
 // order of loops to turn character in circle from down to down
 int turnlooporder[8] = {0, 6, 1, 7, 3, 5, 2, 4};
 
-void walk_character(int chac,int tox,int toy,int ignwal, bool autoWalkAnims) {
+void walk_character(int chac, const std::vector<Point> *path, int tox, int toy, int ignwal, bool autoWalkAnims) {
     CharacterInfo*chin=&game.chars[chac];
     if (chin->room!=displayed_room)
         quit("!MoveCharacter: character not in current room");
 
     chin->flags &= ~CHF_MOVENOTWALK;
 
-    if ((tox == chin->x) && (toy == chin->y)) {
-        StopMoving(chac);
-        debug_script_log("%s already at destination, not moving", chin->scrname.GetCStr());
-        return;
+    if (path)
+    {
+        if (path->empty())
+        {
+            StopMoving(chac);
+            debug_script_log("MoveCharacter: path is empty for %s, not moving", chin->scrname.GetCStr());
+            return;
+        }
+
+        // Jump character to the path start
+        chin->x = path->front().X;
+        chin->y = path->front().Y;
+        tox = path->back().X;
+        toy = path->back().Y;
+        ignwal = 1;
+    }
+    else if ((tox == chin->x) && (toy == chin->y))
+    {
+            StopMoving(chac);
+            debug_script_log("MoveCharacter: %s already at destination, not moving", chin->scrname.GetCStr());
+            return;
     }
 
     if ((chin->animating) && (autoWalkAnims))
@@ -1778,18 +1812,24 @@ void walk_character(int chac,int tox,int toy,int ignwal, bool autoWalkAnims) {
         debug_script_warn("MoveCharacter: called for '%s' with walk speed 0", chin->scrname.GetCStr());
     }
 
-    // Convert src and dest coords to the mask resolution, for pathfinder
-    const int src_x = room_to_mask_coord(chin->x);
-    const int src_y = room_to_mask_coord(chin->y);
-    const int dst_x = room_to_mask_coord(tox);
-    const int dst_y = room_to_mask_coord(toy);
+    const int mslot = chac + CHMLSOFFS;
+    bool path_result = false;
+    if (path)
+    {
+        path_result = Pathfinding::CalculateMoveList(mls[mslot], *path, move_speed_x, move_speed_y);
+    }
+    else
+    {
+        MaskRouteFinder *pathfind = get_room_pathfinder();
+        pathfind->SetWalkableArea(prepare_walkable_areas(chac), thisroom.MaskResolution);
+        path_result = Pathfinding::FindRoute(mls[mslot], pathfind, chin->x, chin->y, tox, toy, move_speed_x, move_speed_y, false, ignwal != 0);
+    }
 
-    int mslot = find_route(src_x, src_y, dst_x, dst_y, move_speed_x, move_speed_y,
-        prepare_walkable_areas(chac), chac+CHMLSOFFS, 1, ignwal);
-    if (mslot>0) {
+    // If successful, then start moving
+    if (path_result)
+    {
         chin->walking = mslot;
         mls[mslot].direct = ignwal;
-        convert_move_path_to_room_resolution(&mls[mslot]);
 
         if (wasStepFrac > 0.f)
         {
@@ -1814,6 +1854,16 @@ void walk_character(int chac,int tox,int toy,int ignwal, bool autoWalkAnims) {
     }
     else if (autoWalkAnims) // pathfinder couldn't get a route, stand them still
         chin->frame = 0;
+}
+
+void walk_character(int chac, int tox, int toy, int ignwal, bool autoWalkAnims)
+{
+    walk_character(chac, nullptr, tox, toy, ignwal, autoWalkAnims);
+}
+
+void walk_character(int chac, const std::vector<Point> &path, bool autoWalkAnims)
+{
+    walk_character(chac, &path, 0, 0, 1, autoWalkAnims);
 }
 
 int find_looporder_index (int curloop) {
@@ -1892,8 +1942,8 @@ void start_character_turning (CharacterInfo *chinf, int useloop, int no_diagonal
 }
 
 void fix_player_sprite(MoveList*cmls,CharacterInfo*chinf) {
-    const float xpmove = cmls->xpermove[cmls->onstage];
-    const float ypmove = cmls->ypermove[cmls->onstage];
+    const float xpmove = cmls->permove[cmls->onstage].X;
+    const float ypmove = cmls->permove[cmls->onstage].Y;
 
     // if not moving, do nothing
     if ((xpmove == 0.f) && (ypmove == 0.f))
@@ -2087,7 +2137,8 @@ void FindReasonableLoopForCharacter(CharacterInfo *chap) {
 
 }
 
-void walk_or_move_character(CharacterInfo *chaa, int x, int y, int blocking, int direct, bool isWalk)
+void walk_or_move_character(CharacterInfo *chaa, const std::vector<Point> *path,
+    int x, int y, int blocking, int direct, bool isWalk)
 {
     if (!chaa->is_enabled())
     {
@@ -2095,38 +2146,51 @@ void walk_or_move_character(CharacterInfo *chaa, int x, int y, int blocking, int
         return;
     }
 
-    if ((direct == ANYWHERE) || (direct == 1))
-        walk_character(chaa->index_id, x, y, 1, isWalk);
-    else if ((direct == WALKABLE_AREAS) || (direct == 0))
-        walk_character(chaa->index_id, x, y, 0, isWalk);
-    else
+    if (blocking == BLOCKING)
+        blocking = 1;
+    else if (blocking == IN_BACKGROUND)
+        blocking = 0;
+    if (direct == ANYWHERE)
+        direct = 1;
+    else if (direct == WALKABLE_AREAS)
+        direct = 0;
+
+    if (blocking != 0 && blocking != 1)
+        quit("!Character.Walk: Blocking must be BLOCKING or IN_BACKGROUND");
+    if (direct != 0 && direct != 1)
         quit("!Character.Walk: Direct must be ANYWHERE or WALKABLE_AREAS");
 
-    if ((blocking == BLOCKING) || (blocking == 1))
+    walk_character(chaa->index_id, path, x, y, direct, isWalk);
+
+    if (blocking)
         GameLoopUntilNotMoving(&chaa->walking);
-    else if ((blocking != IN_BACKGROUND) && (blocking != 0))
-        quit("!Character.Walk: Blocking must be BLOCKING or IN_BACKGROUND");
+}
+
+void walk_or_move_character(CharacterInfo *chaa, int x, int y, int blocking, int direct, bool isWalk)
+{
+    walk_or_move_character(chaa, nullptr, x, y, blocking, direct, isWalk);
+}
+
+void walk_or_move_character(CharacterInfo *chaa, const std::vector<Point> &path, int blocking, bool isWalk)
+{
+    walk_or_move_character(chaa, &path, 0, 0, blocking, 1, isWalk);
 }
 
 void walk_or_move_character_straight(CharacterInfo *chaa, int x, int y, int blocking, int direct, bool isWalk)
 {
-    set_walkablearea(prepare_walkable_areas(chaa->index_id));
-
-    // TODO: hide these conversions, maybe make can_see_from() function do them internally in and out?
-    int from_mask_x = room_to_mask_coord(chaa->x);
-    int from_mask_y = room_to_mask_coord(chaa->y);
-    int to_mask_x = room_to_mask_coord(x);
-    int to_mask_y = room_to_mask_coord(y);
+    MaskRouteFinder *pathfind = get_room_pathfinder();
+    pathfind->SetWalkableArea(prepare_walkable_areas(chaa->index_id), thisroom.MaskResolution);
 
     int movetox = x, movetoy = y;
-    if (!can_see_from(from_mask_x, from_mask_y, to_mask_x, to_mask_y)) {
-        int lastcx, lastcy;
-        get_lastcpos(lastcx, lastcy);
-        movetox = mask_to_room_coord(lastcx);
-        movetoy = mask_to_room_coord(lastcy);
+    int lastcx, lastcy;
+    if (!pathfind->CanSeeFrom(chaa->x, chaa->y, x, y, &lastcx, &lastcy))
+    {
+        movetox = lastcx;
+        movetoy = lastcy;
     }
 
-    walk_or_move_character(chaa, movetox, movetoy, blocking, direct, isWalk);
+    // CHECKME: there's likely no point in calling routefinder again, so pass a direct path instead?
+    walk_or_move_character(chaa, nullptr, movetox, movetoy, blocking, direct, isWalk);
 }
 
 int wantMoveNow (CharacterInfo *chi, CharacterExtras *chex) {
@@ -3206,6 +3270,11 @@ RuntimeScriptValue Sc_Character_SetTextProperty(void *self, const RuntimeScriptV
     API_OBJCALL_BOOL_POBJ2(CharacterInfo, Character_SetTextProperty, const char, const char);
 }
 
+RuntimeScriptValue Sc_Character_GetPath(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ(CharacterInfo, void, globalDynamicArray, Character_GetPath);
+}
+
 // int (CharacterInfo *chaa, ScriptInvItem *invi)
 RuntimeScriptValue Sc_Character_HasInventory(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -3302,6 +3371,11 @@ RuntimeScriptValue Sc_Character_Move(void *self, const RuntimeScriptValue *param
 RuntimeScriptValue Sc_Character_MoveStraight(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT3(CharacterInfo, Character_MoveStraight);
+}
+
+RuntimeScriptValue Sc_Character_MovePath(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_POBJ_PINT(CharacterInfo, Character_MovePath, void);
 }
 
 // void (CharacterInfo *chap) 
@@ -3443,6 +3517,11 @@ RuntimeScriptValue Sc_Character_Walk(void *self, const RuntimeScriptValue *param
 RuntimeScriptValue Sc_Character_WalkStraight(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT3(CharacterInfo, Character_WalkStraight);
+}
+
+RuntimeScriptValue Sc_Character_WalkPath(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_POBJ_PINT(CharacterInfo, Character_WalkPath, void);
 }
 
 RuntimeScriptValue Sc_GetCharacterAtRoom(const RuntimeScriptValue *params, int32_t param_count)
@@ -4062,6 +4141,7 @@ void RegisterCharacterAPI(ScriptAPIVersion /*base_api*/, ScriptAPIVersion /*comp
         { "Character::GetTextProperty^1",         API_FN_PAIR(Character_GetTextProperty) },
         { "Character::SetProperty^2",             API_FN_PAIR(Character_SetProperty) },
         { "Character::SetTextProperty^2",         API_FN_PAIR(Character_SetTextProperty) },
+        { "Character::GetPath^0",                 API_FN_PAIR(Character_GetPath) },
         { "Character::HasInventory^1",            API_FN_PAIR(Character_HasInventory) },
         { "Character::IsCollidingWithChar^1",     API_FN_PAIR(Character_IsCollidingWithChar) },
         { "Character::IsCollidingWithObject^1",   API_FN_PAIR(Character_IsCollidingWithObject) },
@@ -4076,6 +4156,7 @@ void RegisterCharacterAPI(ScriptAPIVersion /*base_api*/, ScriptAPIVersion /*comp
         { "Character::LockViewOffset^4",          API_FN_PAIR(Character_LockViewOffsetEx) },
         { "Character::LoseInventory^1",           API_FN_PAIR(Character_LoseInventory) },
         { "Character::Move^4",                    API_FN_PAIR(Character_Move) },
+        { "Character::MovePath^2",                API_FN_PAIR(Character_MovePath) },
         { "Character::MoveStraight^3",            API_FN_PAIR(Character_MoveStraight) },
         { "Character::PlaceOnWalkableArea^0",     API_FN_PAIR(Character_PlaceOnWalkableArea) },
         { "Character::RemoveTint^0",              API_FN_PAIR(Character_RemoveTint) },
@@ -4097,6 +4178,7 @@ void RegisterCharacterAPI(ScriptAPIVersion /*base_api*/, ScriptAPIVersion /*comp
         { "Character::UnlockView^0",              API_FN_PAIR(Character_UnlockView) },
         { "Character::UnlockView^1",              API_FN_PAIR(Character_UnlockViewEx) },
         { "Character::Walk^4",                    API_FN_PAIR(Character_Walk) },
+        { "Character::WalkPath^2",                API_FN_PAIR(Character_WalkPath) },
         { "Character::WalkStraight^3",            API_FN_PAIR(Character_WalkStraight) },
         
         { "Character::get_ActiveInventory",       API_FN_PAIR(Character_GetActiveInventory) },

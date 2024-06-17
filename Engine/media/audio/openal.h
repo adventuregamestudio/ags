@@ -15,14 +15,10 @@
 #define __AGS_EE_MEDIA_OPENAL_H__
 #include "core/platform.h"
 
-#if AGS_PLATFORM_OS_MACOS
-    #include <OpenAL/OpenAL.h>
-#else
-    #include <AL/al.h>
-    #include <AL/alc.h>
-    // [sonneveld] disabled until I add extension detection
-    // #include "alext.h"
-#endif
+#include <AL/al.h>
+#include <AL/alc.h>
+// [sonneveld] disabled until I add extension detection
+// #include "alext.h"
 
 // Prints any OpenAL errors to the log
 void dump_al_errors();

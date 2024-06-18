@@ -28,7 +28,7 @@ using namespace AGS::Common;
 
 void AGSMacInitPaths(char appdata[PATH_MAX]);
 void AGSMacGetBundleDir(char gamepath[PATH_MAX]);
-int AGSMacGetFreeSpaceInMB(const char path[PATH_MAX]);
+int AGSMacGetFreeSpaceInMB(const char *path);
 //bool PlayMovie(char const *name, int skipType);
 
 static char libraryApplicationSupport[PATH_MAX];

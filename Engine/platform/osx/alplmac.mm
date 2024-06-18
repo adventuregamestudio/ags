@@ -23,11 +23,11 @@ void AGSMacGetBundleDir(char gamepath[PATH_MAX])
   NSString *bundleDir = [bundle bundlePath];
 
   NSString *parentDir = [bundleDir stringByDeletingLastPathComponent];
-  strcpy(gamepath, [parentDir UTF8String]);
+  snprintf(gamepath, PATH_MAX, "%s", [parentDir UTF8String]);
   }
 }
 
-int AGSMacGetFreeSpaceInMB(const char path[PATH_MAX])
+int AGSMacGetFreeSpaceInMB(const char *path)
 {
   @autoreleasepool {
   NSString *dirpath = @(path);

@@ -160,13 +160,13 @@ void RoomStruct::InitDefaults()
 
     _resolution     = kRoomRealRes;
     MaskResolution  = 1;
-    Width           = 320;
-    Height          = 200;
+    Width           = 0;
+    Height          = 0;
 
     Options         = RoomOptions();
-    Edges           = RoomEdges(0, 317, 40, 199);
+    Edges           = RoomEdges(0, 0, 0, 0);
 
-    BgFrameCount    = 1;
+    BgFrameCount    = 0;
     HotspotCount    = 0;
     RegionCount     = 0;
     WalkAreaCount   = 0;
@@ -182,7 +182,7 @@ void RoomStruct::InitDefaults()
     for (size_t i = 0; i < (size_t)MAX_WALK_BEHINDS; ++i)
         WalkBehinds[i] = WalkBehind();
     
-    BackgroundBPP = 1;
+    BackgroundBPP = 0;
     BgAnimSpeed = 5;
 
     memset(Palette, 0, sizeof(Palette));

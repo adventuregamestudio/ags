@@ -297,7 +297,6 @@ HError InitAndRegisterGameEntities(GameSetupStruct &game)
     InitAndRegisterHotspots();
     InitAndRegisterRegions();
     InitAndRegisterRoomObjects();
-    play.CreatePrimaryViewportAndCamera();
 
     RegisterStaticArrays(game);
 
@@ -535,7 +534,6 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
         return new GameInitError(kGameInitErr_EntityInitFail, err);
     LoadFonts(game, data_ver);
     LoadLipsyncData();
-    init_game_drawdata();
 
     //
     // 4. Initialize certain runtime variables
@@ -557,6 +555,9 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     InitGameResolution(game, data_ver);
     prepare_gui_runtime(true /* startup */);
     calculate_reserved_channel_count();
+    // Default viewport and camera, draw data, etc, should be created when resolution is set
+    play.CreatePrimaryViewportAndCamera();
+    init_game_drawdata();
 
     //
     // 6. Register engine API exports

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AGS.Types;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -262,6 +263,75 @@ namespace AGS.Editor
             {
                 _varsToSend.Add(varName);
             }
+        }
+
+        private int PerceivedBrightness(Color c)
+        {
+            return (int)Math.Sqrt(
+            c.R * c.R * .299 +
+            c.G * c.G * .587 +
+            c.B * c.B * .114);            
+        }
+
+        public void SetAutoLocalVariables(DebugCallStack callStack)
+        {
+            if (!AGSEditor.Instance.Debugger.IsActive)
+                return;
+
+            string scriptName = callStack.Lines[0].ScriptName;
+            int lineNumber = callStack.Lines[0].LineNumber;
+            ScintillaWrapper scintilla = Factory.GUIController.GetScriptEditorControl(scriptName, true) as ScintillaWrapper;
+            if (scintilla == null)
+                return;
+
+            if (scintilla.CurrentLine != lineNumber)
+            {
+                scintilla.GoToLine(lineNumber);
+            }
+
+            List<string> varnames = scintilla.GetListOfLocalVariablesForCurrentPosition(false)
+                .Select(v => v.VariableName).Distinct().ToList();
+
+            listView1.BeginUpdate();
+            foreach (ListViewItem itm in listView1.Items)
+            {
+                if(itm.Tag as string == "autolocal")
+                {
+                    itm.Remove();
+                }
+            }
+
+
+            lock (_updateItemLock)
+            {
+                for (int i = _itemsToUpdate.Count - 1; i >= 0; i--)
+                {
+                    ListViewItem itm = _itemsToUpdate[i];
+                    if (itm.Tag as string == "autolocal")
+                    {
+                        _itemsToUpdate.RemoveAt(i);
+                    }
+                }
+
+                Color c = Color.Empty;
+                foreach (var v in varnames)
+                {
+                    var itm = CreateItem(v);
+                    itm.Tag = "autolocal";
+                    itm = listView1.Items.Insert(0, itm);
+
+                    if (c.IsEmpty)
+                    {
+                        int brightness = PerceivedBrightness(itm.ForeColor);
+                        c = brightness > 128 ? Color.LightBlue : Color.DarkBlue;
+                    }
+                    itm.ForeColor = c;
+
+                    _itemsToUpdate.Add(itm);
+                }
+            }
+            listView1.EndUpdate();
+            _updateItemTimer.Start();
         }
 
         public void UpdateAllWatches()

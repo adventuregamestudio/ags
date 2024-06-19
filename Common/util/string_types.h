@@ -79,6 +79,21 @@ struct StrEqNoCase
     }
 };
 
+// Test case-insensitive String equality as a pre-defined unary predicate
+struct StrEqNoCasePred
+{
+    StrEqNoCasePred(const String &look_for)
+        : _lookFor(look_for) {}
+
+    bool operator()(const String &s) const
+    {
+        return _lookFor.CompareNoCase(s) == 0;
+    }
+
+private:
+    String _lookFor;
+};
+
 // Case-insensitive String less
 struct StrLessNoCase
 {

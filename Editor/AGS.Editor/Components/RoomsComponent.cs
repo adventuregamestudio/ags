@@ -1463,22 +1463,22 @@ namespace AGS.Editor.Components
 
                 if (!File.Exists(unloadedRoom.ScriptFileName))
                 {
-                    errors.Add(new CompileError("File not found: " + unloadedRoom.ScriptFileName + "; If you deleted this file, use the Exclude From Game option to remove it from the game."));
+                    errors.Add(new CompileError("File not found: " + unloadedRoom.ScriptFileName + "; If you deleted this file, delete the room in the Project Explorer using a context menu."));
                     success = false;
                 }
                 else if (!File.Exists(unloadedRoom.DataFileName))
                 {
-                    errors.Add(new CompileError("File not found: " + unloadedRoom.DataFileName + "; If you deleted this file, use the Exclude From Game option to remove it from the game."));
+                    errors.Add(new CompileError("File not found: " + unloadedRoom.DataFileName + "; If you deleted this file, delete the room from the Project Explorer using a context menu."));
                     success = false;
                 }
                 else if (!File.Exists(unloadedRoom.GetBackgroundFileName(0)))
                 {
-                    errors.Add(new CompileError("File not found: " + unloadedRoom.GetBackgroundFileName(0) + "; If you deleted this file, use the Exclude From Game option to remove it from the game."));
+                    errors.Add(new CompileError("File not found: " + unloadedRoom.GetBackgroundFileName(0) + "; If you deleted this file, delete the room from the Project Explorer using a context menu."));
                     success = false;
                 }
                 else if (missingMasks.Any())
                 {
-                    errors.AddRange(missingMasks.Select(f => new CompileError("File not found: " + f + "; If you deleted this file, use the Exclude From Game option to remove it from the game.")));
+                    errors.AddRange(missingMasks.Select(f => new CompileError("File not found: " + f + "; If you deleted this file, delete the room from the Project Explorer using a context menu.")));
                     success = false;
                 }
                 else if ((rebuildAll) ||

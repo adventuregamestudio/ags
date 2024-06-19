@@ -80,8 +80,8 @@ extern bool DoesSpriteExist(int slot);
 extern int GetMaxSprites();
 extern bool load_template_file(const AGSString &fileName, AGSString &description,
     std::vector<char> &iconDataBuffer, bool isRoomTemplate);
-extern HAGSError extract_template_files(const AGSString &templateFileName);
-extern HAGSError extract_room_template_files(const AGSString &templateFileName, int newRoomNumber, std::vector<AGSString> &files);
+extern HAGSError extract_template_files(const AGSString &templateFileName, std::vector<AGSString> *out_files = nullptr);
+extern HAGSError extract_room_template_files(const AGSString &templateFileName, int newRoomNumber, std::vector<AGSString> *out_files = nullptr);
 extern void change_sprite_number(int oldNumber, int newNumber);
 extern void SaveNativeSprites(Settings^ gameSettings);
 extern void ReplaceSpriteFile(const AGSString &new_spritefile, const AGSString &new_indexfile, bool fallback_tempfiles);
@@ -611,7 +611,7 @@ namespace AGS
 		{
 			AGSString fileNameAnsi = TextHelper::ConvertUTF8(templateFileName);
             std::vector<AGSString> files;
-            HAGSError err = extract_room_template_files(fileNameAnsi, newRoomNumber, files);
+            HAGSError err = extract_room_template_files(fileNameAnsi, newRoomNumber, &files);
             for (const auto &file : files)
             {
                 extractedFiles->Add(TextHelper::ConvertUTF8(file));

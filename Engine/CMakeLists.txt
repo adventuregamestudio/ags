@@ -660,6 +660,7 @@ if (MACOS)
         ../OSX/Resources/music.vox
         ../OSX/Resources/speech.vox
         ../OSX/Resources/*.vox
+        ../OSX/Resources/PrivacyInfo.xcprivacy
     )
 
     target_sources(ags-app

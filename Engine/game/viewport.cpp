@@ -19,6 +19,8 @@
 
 using namespace AGS::Common;
 
+// FIXME: don't use global variables here, have access to a GameState or some kind of a camera manager etc
+extern int displayed_room;
 extern RoomStruct thisroom;
 
 void Camera::SetID(int id)
@@ -37,8 +39,11 @@ void Camera::SetSize(const Size cam_size)
 {
     // TODO: currently we don't support having camera larger than room background
     // (or rather - looking outside of the room background); look into this later
-    const Size real_room_sz = Size(thisroom.Width, thisroom.Height);
-    Size real_size = Size::Clamp(cam_size, Size(1, 1), real_room_sz);
+    const Size real_room_sz = (displayed_room >= 0 && (thisroom.Width > 0 && thisroom.Height > 0)) ?
+        Size(thisroom.Width, thisroom.Height) :
+        Size(INT32_MAX, INT32_MAX);
+
+    const Size real_size = Size::Clamp(cam_size, Size(1, 1), real_room_sz);
     if (_position.GetWidth() == real_size.Width && _position.GetHeight() == real_size.Height)
         return;
 

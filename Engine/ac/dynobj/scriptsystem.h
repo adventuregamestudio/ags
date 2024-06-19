@@ -14,6 +14,7 @@
 //
 // Wrapper around script "System" struct, managing access to its variables.
 // ScriptSystem is a readable/writeable struct which had been exposed to
+// script in older versions of API (deprecated).
 //
 //=============================================================================
 #ifndef __AGS_EE_DYNOBJ__SCRIPTSYSTEM_H

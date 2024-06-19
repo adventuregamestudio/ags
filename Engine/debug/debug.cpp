@@ -163,11 +163,10 @@ void SDL_Log_Output(void* /*userdata*/, int category, SDL_LogPriority priority, 
 // Log configuration
 // ----------------------------------------------------------------------------
 
-// TODO: return a std::unique_ptr<IOutputHandler>
+// Create a new log output by ID
 static std::unique_ptr<IOutputHandler> create_log_output(const String &name,
-    const String &path = "", LogFile::OpenMode open_mode = LogFile::kLogFile_Overwrite)
+    const String &dir = "", const String &filename = "", LogFile::OpenMode open_mode = LogFile::kLogFile_Overwrite)
 {
-    // Else create new one, if we know this ID
     if (name.CompareNoCase(OutputSystemID) == 0)
     {
         return platform->GetStdOut();
@@ -175,13 +174,21 @@ static std::unique_ptr<IOutputHandler> create_log_output(const String &name,
     else if (name.CompareNoCase(OutputFileID) == 0)
     {
         auto log_file = std::make_unique<LogFile>();
-        String logfile_path = path;
-        if (logfile_path.IsEmpty())
+        String logfile_dir = dir;
+        if (dir.IsEmpty())
         {
             FSLocation fs = platform->GetAppOutputDirectory();
             CreateFSDirs(fs);
-            logfile_path = Path::ConcatPaths(fs.FullDir, "ags.log");
+            logfile_dir = fs.FullDir;
         }
+        else if (Path::IsRelativePath(dir) && platform->IsLocalDirRestricted())
+        {
+            FSLocation fs = GetGameUserDataDir();
+            CreateFSDirs(fs);
+            logfile_dir = fs.FullDir;
+        }
+        String logfilename = filename.IsEmpty() ? "ags.log" : filename;
+        String logfile_path = Path::ConcatPaths(logfile_dir, logfilename);
         if (!log_file->OpenFile(logfile_path, open_mode))
             return nullptr;
         return std::move(log_file);
@@ -337,7 +344,7 @@ void apply_debug_config(const ConfigTree &cfg, bool finalize)
     // then open "warnings.log" for printing script warnings.
     if (game.options[OPT_DEBUGMODE] != 0 && !DbgMgr.HasOutput(OutputFileID))
     {
-        auto dbgout = create_log_output(OutputFileID, "warnings.log", LogFile::kLogFile_OverwriteAtFirstMessage);
+        auto dbgout = create_log_output(OutputFileID, "./", "warnings.log", LogFile::kLogFile_OverwriteAtFirstMessage);
         if (dbgout)
         {
             std::vector<std::pair<DebugGroupID, MessageType>> group_filters;

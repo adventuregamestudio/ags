@@ -233,8 +233,14 @@ int parse_sentence (const char *src_text, int *numwords, short*wordarray, short*
                         const char *textStart = ++text; // begin with next char
 
                         // find where the next word ends
-                        while ((text[0] == ',') || (isalnum((unsigned char)text[0]) != 0))
-                            text++;
+                        while ((text[0] == ',') || is_valid_word_char(text[0]))
+                        {
+                            // shift beginning of potential multi-word each time we see a comma
+                            if(text[0] == ',')
+                                textStart = ++text;
+                            else
+                                text++;
+                        }
 
                         continueSearching = 0;
 
@@ -243,7 +249,11 @@ int parse_sentence (const char *src_text, int *numwords, short*wordarray, short*
                             thisword[text - textStart] = 0;
                             // forward past any multi-word alternatives
                             if (FindMatchingMultiWordWord(thisword, &text) >= 0)
+                            {
+                                if (text[0] == 0)
+                                    break;
                                 continueSearching = 1;
+                            }
                         }
                     }
 

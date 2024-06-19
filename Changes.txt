@@ -30,10 +30,15 @@ Editor:
  - Support reordering folders in Project Explorer with drag & drop.
  - Support importing plain script files: ash, asc or both, - besides script modules (*.scm).
  - Added "Controls transparency" slider to GUI edit pane.
+ - Support importing 1-bit (monochrome) and 4-bit images as sprites, room backgrounds and masks
+   (converted to 8-bit).
  - Do not alter or clamp palette for 8-bit sprites imported in a 16/32-bit game.
+ - Ensure that Editor exports room backgrounds in their actual color depth.
  - Script editor supports "word wrap" mode.
  - In General Settings added "Use extended compiler" option that lets to choose a new script
    compiler for your game (see list of changes in related section below).
+ - Improved scrolling of drop-down lists in the Room's navigation bar: made scroll buttons larger,
+   and support mouse wheel.
  - Added Enabled and Visible properties to Characters, Enabled property to Room Objects.
  - Added BlendMode property to Characters, GUI and Room Objects.
  - Added FaceDirectionRatio property to General Settings, Room and Walkable Areas.
@@ -138,10 +143,12 @@ Engine:
  - Support joystick and gamepad input.
  - Implemented more accurate Character movement. The movement direction is now more precise
    and diagonal movement speed no longer may exceed MovementSpeed setting.
+ - Ensure that Character.Speaking returns true even if character has no speech view.
  - Camera will not follow a disabled player character.
  - Animated buttons now display flipped frames correctly.
  - AudioChannel.Position and PositionMs no longer return a very large value while skipping
    cutscene.
+ - DynamicSprite.CreateFromFile() may now load 1-bit and 4-bit bitmaps, converting to 8-bit.
  - Both blocking and non-blocking videos are buffered and played on a separate thread.
  - DeleteSaveSlot() no longer causes highest save to be renamed to fill a gap in saves.
  - Added FLAC support for music, speech and sound effects.
@@ -150,6 +157,9 @@ Engine:
  - Added "--print-rtti" command line option which prints script RTTI table to the log.
    (RTTI stands for "runtime type information", and is used for handling of certain advanced
    script features, such as nested managed structs.)
+
+Engine Plugin API:
+ - Added IAGSEngine.Log(), which lets plugins to print using engine's log system.
 
 
 ===================================================================================================

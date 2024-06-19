@@ -17,6 +17,8 @@ Editor:
    component has its own separate file (room data, backgrounds, masks and scripts).
  - Support room backgrounds and masks as PNGs.
  - Translation sources are now saved in PO format.
+ - Added "Watch Variables" panel which lets to watch values of the selected script variables
+   while running the game. This feature is working only if game is built in Debug mode.
  - General panel look enhancements.
  - More panes in the Editor are DPI-aware (rescale well with the system font scaling).
  - Support built-in Base Color Themes that have the custom themes applied over them.
@@ -89,6 +91,10 @@ Script API:
  - Added VideoPlayer struct, which provides means of playing non-blocking videos rendered onto
    a sprite that may be displayed on any game object.
  - Added WalkableArea and Walkbehind structs which let work with these region types in OO-style.
+ - Added Pathfinder struct, which lets to search walkable paths in certain two-dimensional
+   "space", and returns them as an array of Points.
+ - Added Room.PathFinder property that returns a Pathfinder object, searching paths over this
+   room's walkable areas.
  - Added BlendMode enum.
  - Added Character.Enabled and Visible properties, added Object.Enabled property,
    Character.on is deprecated.
@@ -98,11 +104,17 @@ Script API:
    Overlay.Rotation.
  - Added Game.FaceDirectionRatio, Room.FaceDirectionRatio, WalkableArea.FaceDirectionRatio
    and Character.FaceDirectionRatio.
+ - Added Character.MovePath() and WalkPath(), which makes character to move along an arbitrary
+   list of coordinates, and Character.GetPath() that returns current character's walking path.
+ - Added Object.MovePath() and Object.GetPath() functions, that work similar to Character's.
  - Added Character.MoveStraight() complementing WalkStraight().
  - Added DrawingSurface.BlendImage() and DrawingSurface.BlendSurface() functions.
+ - Added GUI.ScaleX and ScaleY properties, GUI.SetScale() function.
+ - Added GUI.GUIToScreenPoint() and GUI.ScreenToGUIPoint() functions.
  - Added File.Rename().
  - ListBox.FillSaveGameList(), RestoreGameDialog() and SaveGameDialog() now let define a range
    of save slots for display.
+ - Added Speech.SpeakingCharacter that returns currently speaking character (for blocking speech).
  - Added String.Join(), String.Split() and String.Trim() functions.
  - Added MoveSaveSlot() which renames a savegame.
  - Added System.GetEngineInteger() and System.GetEngineString() for returning diagnostic

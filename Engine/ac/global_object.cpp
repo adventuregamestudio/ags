@@ -228,7 +228,7 @@ void AnimateObjectImpl(int obn, int loopn, int spdd, int rept, int direction, in
         quit("!AnimateObject: object has not been assigned a view");
 
     ValidateViewAnimVLF("Object.Animate", obj.view, loopn, sframe);
-    ValidateViewAnimParams("Object.Animate", rept, blocking, direction);
+    ValidateViewAnimParams("Object.Animate", blocking, rept, direction);
 
     if (loopn > UINT16_MAX || sframe > UINT16_MAX)
     {
@@ -324,11 +324,14 @@ void GetObjectName(int obj, char *buffer) {
     snprintf(buffer, MAX_MAXSTRLEN, "%s", get_translation(croom->obj[obj].name.GetCStr()));
 }
 
-void MoveObject(int objj,int xx,int yy,int spp) {
-    move_object(objj,xx,yy,spp,0);
+void MoveObject(int objj,int xx,int yy,int spp)
+{
+    move_object(objj, xx, yy, spp, false /* use walkable areas */);
 }
-void MoveObjectDirect(int objj,int xx,int yy,int spp) {
-    move_object(objj,xx,yy,spp,1);
+
+void MoveObjectDirect(int objj,int xx,int yy,int spp)
+{
+    move_object(objj, xx, yy, spp, true /* ignore walls */);
 }
 
 void SetObjectClickable (int cha, int clik) {

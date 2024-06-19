@@ -320,41 +320,38 @@ bool Object_IsInteractionAvailable(ScriptObject *oobj, int mood) {
     return (ciwas == 2);
 }
 
-void move_object(int objj, const std::vector<Point> *path, int tox, int toy, int speed, int ignwal);
+void move_object(int objj, const std::vector<Point> *path, int tox, int toy, int speed, bool ignwal, const RunPathParams &run_params);
 
-void Object_DoMove(ScriptObject *objj, const std::vector<Point> *path, int x, int y,
-    int speed, int blocking, int direct)
+void Object_DoMove(ScriptObject *objj, const char *api_name, void *path_arr, int x, int y, int speed, int blocking, int ignwal,
+    int repeat = ANIM_ONCE, int direction = FORWARDS)
 {
-    if (direct == ANYWHERE)
-        direct = 1;
-    else if (direct == WALKABLE_AREAS)
-        direct = 0;
-    if (blocking == BLOCKING)
-        blocking = 1;
-    else if (blocking == IN_BACKGROUND)
-        blocking = 0;
+    ValidateMoveParams(api_name, blocking, ignwal);
+    ValidateAnimParams(api_name, repeat, direction);
 
-    if (blocking != 0 && blocking != 1)
-        quit("Object.Move: Blocking must be BLOCKING or IN_BACKGROUND");
-    if (direct != 0 && direct != 1)
-        quit("Object.Move: Direct must be ANYWHERE or WALKABLE_AREAS");
-
-    move_object(objj->id, path, x, y, speed, direct);
+    if (path_arr)
+    {
+        std::vector<Point> path;
+        if (!ScriptStructHelpers::ResolveArrayOfPoints(path_arr, path))
+            return;
+        move_object(objj->id, &path, 0, 0, speed, ignwal != 0, RunPathParams(repeat, direction == 0));
+    }
+    else
+    {
+        move_object(objj->id, nullptr, x, y, speed, ignwal != 0, RunPathParams());
+    }
 
     if (blocking)
         GameLoopUntilNotMoving(&objs[objj->id].moving);
 }
 
-void Object_Move(ScriptObject *objj, int x, int y, int speed, int blocking, int direct) {
-    Object_DoMove(objj, nullptr, x, y, speed, blocking, direct);
+void Object_Move(ScriptObject *objj, int x, int y, int speed, int blocking, int ignwal)
+{
+    Object_DoMove(objj, "Object.Move", nullptr, x, y, speed, blocking, ignwal);
 }
 
-void Object_MovePath(ScriptObject *objj, void *path_arr, int speed, int blocking)
+void Object_MovePath(ScriptObject *objj, void *path_arr, int speed, int blocking, int repeat, int direction)
 {
-    std::vector<Point> path;
-    if (!ScriptStructHelpers::ResolveArrayOfPoints(path_arr, path))
-        return;
-    Object_DoMove(objj, &path, 0, 0, speed, blocking, 1);
+    Object_DoMove(objj, "Object.MovePath", path_arr, 0, 0, speed, blocking, ANYWHERE, repeat, direction);
 }
 
 void Object_SetClickable(ScriptObject *objj, int clik) {
@@ -472,9 +469,9 @@ void Object_SetRotation(ScriptObject *objj, float degrees) {
     objs[objj->id].UpdateGraphicSpace();
 }
 
-
-void move_object(int objj, const std::vector<Point> *path, int tox, int toy, int speed, int ignwal) {
-
+void move_object(int objj, const std::vector<Point> *path, int tox, int toy, int speed, bool ignwal,
+    const RunPathParams &run_params)
+{
     if (!is_valid_object(objj))
         quit("!MoveObject: invalid object number");
 
@@ -491,7 +488,6 @@ void move_object(int objj, const std::vector<Point> *path, int tox, int toy, int
         obj.y = path->front().Y;
         tox = path->back().X;
         toy = path->back().Y;
-        ignwal = 1;
     }
     else if ((tox == obj.x) && (toy == obj.y ))
     {
@@ -505,26 +501,26 @@ void move_object(int objj, const std::vector<Point> *path, int tox, int toy, int
     bool path_result = false;
     if (path)
     {
-        path_result = Pathfinding::CalculateMoveList(mls[mslot], *path, speed, speed);
+        path_result = Pathfinding::CalculateMoveList(mls[mslot], *path, speed, speed, run_params);
     }
     else
     {
         MaskRouteFinder *pathfind = get_room_pathfinder();
         pathfind->SetWalkableArea(prepare_walkable_areas(-1), thisroom.MaskResolution);
-        path_result = Pathfinding::FindRoute(mls[mslot], pathfind, obj.x, obj.y, tox, toy, speed, speed, false, ignwal != 0);
+        path_result = Pathfinding::FindRoute(mls[mslot], pathfind, obj.x, obj.y, tox, toy, speed, speed, false, ignwal, run_params);
     }
     
     // If successful, then start moving
     if (path_result)
     {
         objs[objj].moving = mslot;
-        mls[mslot].direct = ignwal;
+        mls[mslot].move_direct = ignwal;
     }
 }
 
-void move_object(int objj, int tox, int toy, int speed, int ignwal)
+void move_object(int objj, int tox, int toy, int speed, bool ignwal)
 {
-    move_object(objj, nullptr, tox, toy, speed, ignwal);
+    move_object(objj, nullptr, tox, toy, speed, ignwal, RunPathParams());
 }
 
 void Object_RunInteraction(ScriptObject *objj, int mode) {
@@ -708,13 +704,8 @@ int check_click_on_object(int roomx, int roomy, int mood)
     return 1;
 }
 
-void ValidateViewAnimParams(const char *apiname, int &repeat, int &blocking, int &direction)
+void ValidateAnimParams(const char *apiname, int &repeat, int &direction)
 {
-    if (blocking == BLOCKING)
-        blocking = 1;
-    else if (blocking == IN_BACKGROUND)
-        blocking = 0;
-
     if (direction == FORWARDS)
         direction = 0;
     else if (direction == BACKWARDS)
@@ -722,19 +713,30 @@ void ValidateViewAnimParams(const char *apiname, int &repeat, int &blocking, int
 
     if ((repeat < ANIM_ONCE) || (repeat > ANIM_ONCERESET))
     {
-        debug_script_warn("%s: invalid repeat value %d, will treat as REPEAT (1).", apiname, repeat);
+        debug_script_warn("%s: invalid 'repeat' value %d, will treat as REPEAT (1).", apiname, repeat);
         repeat = ANIM_REPEAT;
-    }
-    if ((blocking < 0) || (blocking > 1))
-    {
-        debug_script_warn("%s: invalid blocking value %d, will treat as BLOCKING (1)", apiname, blocking);
-        blocking = 1;
     }
     if ((direction < 0) || (direction > 1))
     {
-        debug_script_warn("%s: invalid direction value %d, will treat as BACKWARDS (1)", apiname, direction);
+        debug_script_warn("%s: invalid 'direction' value %d, will treat as BACKWARDS (1)", apiname, direction);
         direction = 1;
     }
+}
+
+void ValidateViewAnimParams(const char *apiname, int &blocking, int &repeat, int &direction)
+{
+    if (blocking == BLOCKING)
+        blocking = 1;
+    else if (blocking == IN_BACKGROUND)
+        blocking = 0;
+
+    if ((blocking < 0) || (blocking > 1))
+    {
+        debug_script_warn("%s: invalid 'blocking' value %d, will treat as BLOCKING (1)", apiname, blocking);
+        blocking = 1;
+    }
+
+    ValidateAnimParams(apiname, repeat, direction);
 }
 
 void ValidateViewAnimVLF(const char *apiname, int view, int loop, int &sframe)
@@ -852,6 +854,30 @@ bool CycleViewAnim(int view, uint16_t &o_loop, uint16_t &o_frame, bool forwards,
     return !done; // have we finished animating?
 }
 
+void ValidateMoveParams(const char *apiname, int &blocking, int &ignwal)
+{
+    if (blocking == BLOCKING)
+        blocking = 1;
+    else if (blocking == IN_BACKGROUND)
+        blocking = 0;
+
+    if (ignwal == ANYWHERE)
+        ignwal = 1;
+    else if (ignwal == WALKABLE_AREAS)
+        ignwal = 0;
+
+    if ((blocking < 0) || (blocking > 1))
+    {
+        debug_script_warn("%s: invalid 'blocking' value %d, will treat as BLOCKING (1)", apiname, blocking);
+        blocking = 1;
+    }
+    if ((ignwal < 0) || (ignwal > 1))
+    {
+        debug_script_warn("%s: invalid 'walk where' value %d, will treat as ANYWHERE (1)", apiname, ignwal);
+        ignwal = 1;
+    }
+}
+
 //=============================================================================
 //
 // Script API Functions
@@ -949,7 +975,7 @@ RuntimeScriptValue Sc_Object_Move(void *self, const RuntimeScriptValue *params, 
 
 RuntimeScriptValue Sc_Object_MovePath(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_POBJ_PINT2(ScriptObject, Object_MovePath, void);
+    API_OBJCALL_VOID_POBJ_PINT4(ScriptObject, Object_MovePath, void);
 }
 
 // void (ScriptObject *objj)
@@ -1330,7 +1356,7 @@ void RegisterObjectAPI()
         { "Object::GetPath^0",                API_FN_PAIR(Object_GetPath) },
         { "Object::IsInteractionAvailable^1", API_FN_PAIR(Object_IsInteractionAvailable) },
         { "Object::Move^5",                   API_FN_PAIR(Object_Move) },
-        { "Object::MovePath^3",               API_FN_PAIR(Object_MovePath) },
+        { "Object::MovePath^5",               API_FN_PAIR(Object_MovePath) },
         { "Object::RemoveTint^0",             API_FN_PAIR(Object_RemoveTint) },
         { "Object::RunInteraction^1",         API_FN_PAIR(Object_RunInteraction) },
         { "Object::SetLightLevel^1",          API_FN_PAIR(Object_SetLightLevel) },

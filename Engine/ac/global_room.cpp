@@ -116,7 +116,7 @@ void NewRoom(int nrnum) {
         if (is_char_walking_ndirect(playerchar)) {
             // nasty hack - make sure it doesn't move the character
             // to a walkable area
-            mls[playerchar->walking].direct = 1;
+            mls[playerchar->walking].move_direct = 1;
             StopMoving(game.playercharacter);
         }
     }

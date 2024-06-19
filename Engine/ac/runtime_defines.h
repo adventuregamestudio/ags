@@ -151,4 +151,21 @@ enum LegacyScriptAlignment
 // save slot reserved for the "restart point"
 #define RESTART_POINT_SAVE_GAME_NUMBER 999
 
+
+// Defines animation parameters; where "animation" may be any continuous action.
+// TODO: move to a more common header, should be shared among everything that animates.
+struct AnimateParams
+{
+    // TODO: replace ints and bools with enums
+    int Repeat = ANIM_ONCE; // repeat mode
+    bool Forward = true;
+
+    AnimateParams() = default;
+    AnimateParams(int repeat, bool forward)
+        : Repeat(repeat), Forward(forward) {}
+};
+
+// RunPathParams is an alias used for clarity of purpose
+typedef AnimateParams RunPathParams;
+
 #endif // __AC_RUNTIMEDEFINES_H

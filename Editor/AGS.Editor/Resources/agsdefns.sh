@@ -2097,7 +2097,7 @@ builtin managed struct Object {
   /// Returns the moving path of this object, or null if it's not moving
   import Point*[] GetPath();
   /// Moves the object along the path, ignoring walkable areas.
-  import function MovePath(Point*[], int speed, BlockingStyle=eNoBlock);
+  import function MovePath(Point*[], int speed, BlockingStyle=eNoBlock, RepeatStyle=eOnce, Direction=eForwards);
   /// Gets/sets whether the object will be drawn and updated during the game update.
   import attribute bool Enabled;
 #endif
@@ -2345,9 +2345,9 @@ builtin managed struct Character {
   /// Returns the moving path of this character, or null if it's not moving
   import Point*[] GetPath();
   /// Moves the character along the path, ignoring walkable areas, without playing his walking animation.
-  import function MovePath(Point*[], BlockingStyle=eNoBlock);
+  import function MovePath(Point*[], BlockingStyle=eNoBlock, RepeatStyle=eOnce, Direction=eForwards);
   /// Moves the character along the path, ignoring walkable areas, automatically playing his walking animation.
-  import function WalkPath(Point*[], BlockingStyle=eNoBlock);
+  import function WalkPath(Point*[], BlockingStyle=eNoBlock, RepeatStyle=eOnce, Direction=eForwards);
 #endif
   /// The character's current X-position.
   import attribute int  x;

@@ -121,7 +121,7 @@ void MoveCharacterToHotspot(int chaa,int hotsp) {
     if ((hotsp<0) || (hotsp>=MAX_ROOM_HOTSPOTS))
         quit("!MovecharacterToHotspot: invalid hotspot");
     if (thisroom.Hotspots[hotsp].WalkTo.X<1) return;
-    walk_character(chaa,thisroom.Hotspots[hotsp].WalkTo.X,thisroom.Hotspots[hotsp].WalkTo.Y,0, true);
+    move_character(&game.chars[chaa], thisroom.Hotspots[hotsp].WalkTo.X, thisroom.Hotspots[hotsp].WalkTo.Y, false /* ignwal */, true /* walk anim */);
 
     GameLoopUntilNotMoving(&game.chars[chaa].walking);
 }

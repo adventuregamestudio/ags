@@ -21,6 +21,7 @@
 #include <vector>
 #include "ac/characterinfo.h"
 #include "ac/characterextras.h"
+#include "ac/runtime_defines.h"
 #include "ac/dynobj/scriptobjects.h"
 #include "ac/dynobj/scriptoverlay.h"
 #include "game/viewport.h"
@@ -74,8 +75,8 @@ void    Character_Tint(CharacterInfo *chaa, int red, int green, int blue, int op
 void    Character_Think(CharacterInfo *chaa, const char *text);
 void    Character_UnlockView(CharacterInfo *chaa);
 void    Character_UnlockViewEx(CharacterInfo *chaa, int stopMoving);
-void    Character_Walk(CharacterInfo *chaa, int x, int y, int blocking, int direct);
-void    Character_Move(CharacterInfo *chaa, int x, int y, int blocking, int direct);
+void    Character_Walk(CharacterInfo *chaa, int x, int y, int blocking, int ignwal);
+void    Character_Move(CharacterInfo *chaa, int x, int y, int blocking, int ignwal);
 void    Character_WalkStraight(CharacterInfo *chaa, int xx, int yy, int blocking);
 
 void    Character_RunInteraction(CharacterInfo *chaa, int mood);
@@ -177,7 +178,7 @@ int  useDiagonal (CharacterInfo *char1);
 // returns 1 normally, or 0 if they only have horizontal animations
 int  hasUpDownLoops(CharacterInfo *char1);
 void start_character_turning (CharacterInfo *chinf, int useloop, int no_diagonal);
-void fix_player_sprite(MoveList*cmls,CharacterInfo*chinf);
+void fix_player_sprite(CharacterInfo *chinf, const MoveList &cmls);
 // Check whether two characters have walked into each other
 int  has_hit_another_character(int sourceChar);
 int  doNextCharMoveStep (CharacterInfo *chi, int &char_index, CharacterExtras *chex);
@@ -185,15 +186,13 @@ int  doNextCharMoveStep (CharacterInfo *chi, int &char_index, CharacterExtras *c
 bool is_char_walking_ndirect(CharacterInfo *chi);
 int  find_nearest_walkable_area_within(int *xx, int *yy, int range, int step);
 void find_nearest_walkable_area (int *xx, int *yy);
-void walk_character(int chac, int tox, int toy, int ignwal, bool autoWalkAnims);
-void walk_character(int chac, const std::vector<Point> &path, bool autoWalkAnims);
-void FindReasonableLoopForCharacter(CharacterInfo *chap);
-// Start character walk or move; calculate path using destination and optionally "ignore walls" flag
-void walk_or_move_character(CharacterInfo *chaa, int x, int y, int blocking, int direct, bool isWalk);
+// Start character walk or move; calculate path using destination and optionally "ignore walls" flag 
+void move_character(CharacterInfo *chaa, int tox, int toy, bool ignwal, bool walk_anim);
 // Start character walk or move, using a predefined path
-void walk_or_move_character(CharacterInfo *chaa, const std::vector<Point> &path, int blocking, bool isWalk);
+void move_character(CharacterInfo *chaa, const std::vector<Point> &path, bool walk_anim, const RunPathParams &run_params);
 // Start character walk or move along the straight line without pathfinding, until any non-passable area is met
-void walk_or_move_character_straight(CharacterInfo *chaa, int x, int y, int blocking, int direct, bool isWalk);
+void move_character_straight(CharacterInfo *chaa, int x, int y, bool walk_anim);
+void FindReasonableLoopForCharacter(CharacterInfo *chap);
 int  wantMoveNow (CharacterInfo *chi, CharacterExtras *chex);
 void setup_player_character(int charid);
 Common::Bitmap *GetCharacterImage(int charid, bool *is_original = nullptr);

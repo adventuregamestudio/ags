@@ -16,9 +16,8 @@
 
 #include <memory>
 #include <vector>
+#include "ac/movelist.h"
 #include "util/geometry.h"
-
-struct MoveList;
 
 namespace AGS
 {
@@ -69,9 +68,9 @@ namespace Pathfinding
 
     // Find route using a provided IRouteFinder, and calculate the MoveList using move speeds
     bool FindRoute(MoveList &mls, IRouteFinder *finder, int srcx, int srcy, int dstx, int dsty,
-        int move_speed_x, int move_speed_y, bool exact_dest, bool ignore_walls);
+        int move_speed_x, int move_speed_y, bool exact_dest, bool ignore_walls, const RunPathParams &run_params);
     // Calculate the MoveList from the given navigation path and move speeds.
-    bool CalculateMoveList(MoveList &mls, const std::vector<Point> path, int move_speed_x, int move_speed_y);
+    bool CalculateMoveList(MoveList &mls, const std::vector<Point> path, int move_speed_x, int move_speed_y, const RunPathParams &run_params);
     // Append a waypoint to the move list, skip pathfinding
     bool AddWaypointDirect(MoveList &mls, int x, int y, int move_speed_x, int move_speed_y);
     // Recalculates MoveList's step speeds

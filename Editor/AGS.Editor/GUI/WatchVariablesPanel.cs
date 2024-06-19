@@ -293,43 +293,44 @@ namespace AGS.Editor
                 .Select(v => v.VariableName).Distinct().ToList();
 
             listView1.BeginUpdate();
+
+            // We will avoid blinking of all "autolocal" by removing the ones not in varnames
+            // so we can keep the ones that already were added in a previous cycle
+            // later we will add ONLY the ones that weren't already added
+            // We also need to keep sync in the items to update.
             foreach (ListViewItem itm in listView1.Items)
             {
-                if(itm.Tag as string == "autolocal")
+                if (itm.Tag as string == "autolocal" && !varnames.Contains(itm.Text))
                 {
                     itm.Remove();
                 }
             }
 
-
             lock (_updateItemLock)
             {
-                for (int i = _itemsToUpdate.Count - 1; i >= 0; i--)
-                {
-                    ListViewItem itm = _itemsToUpdate[i];
-                    if (itm.Tag as string == "autolocal")
-                    {
-                        _itemsToUpdate.RemoveAt(i);
-                    }
-                }
+                _itemsToUpdate.RemoveAll(itm => itm.Tag as string == "autolocal" && !varnames.Contains(itm.Text));
 
                 Color c = Color.Empty;
                 foreach (var v in varnames)
                 {
-                    var itm = CreateItem(v);
-                    itm.Tag = "autolocal";
-                    itm = listView1.Items.Insert(0, itm);
-
-                    if (c.IsEmpty)
+                    if (!listView1.Items.Cast<ListViewItem>().Any(itm => itm.Text == v && itm.Tag as string == "autolocal"))
                     {
-                        int brightness = PerceivedBrightness(itm.ForeColor);
-                        c = brightness > 128 ? Color.LightBlue : Color.DarkBlue;
-                    }
-                    itm.ForeColor = c;
+                        var itm = CreateItem(v);
+                        itm.Tag = "autolocal";
+                        listView1.Items.Insert(0, itm);
 
-                    _itemsToUpdate.Add(itm);
+                        if (c == Color.Empty)
+                        {
+                            int brightness = PerceivedBrightness(itm.ForeColor);
+                            c = brightness > 128 ? Color.LightBlue : Color.DarkBlue;
+                        }
+                        itm.ForeColor = c;
+
+                        _itemsToUpdate.Add(itm);
+                    }
                 }
             }
+
             listView1.EndUpdate();
             _updateItemTimer.Start();
         }

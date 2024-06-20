@@ -163,7 +163,7 @@ void    Character_SetBlendMode(CharacterInfo *chaa, int blendMode);
 
 //=============================================================================
 
-struct MoveList;
+class MoveList;
 namespace AGS { namespace Common { class Bitmap; } }
 using namespace AGS; // FIXME later
 

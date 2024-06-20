@@ -380,7 +380,7 @@ namespace AGS.Editor
             if (backgroundNumber < _room.BackgroundCount)
             {
                 e.Graphics.SetClip(new Rectangle(0, 0, bufferedPanel1.ClientSize.Width + SystemInformation.VerticalScrollBarWidth, bufferedPanel1.ClientSize.Height + SystemInformation.HorizontalScrollBarHeight));
-                e.Graphics.Clear(Color.LightGray);
+                e.Graphics.Clear(bufferedPanel1.BackColor);
                 e.Graphics.InterpolationMode = InterpolationMode.NearestNeighbor;
                 e.Graphics.SmoothingMode = SmoothingMode.None;
                 e.Graphics.PixelOffsetMode = PixelOffsetMode.Half;
@@ -1043,8 +1043,8 @@ namespace AGS.Editor
             t.ControlHelper(this, "room-editor");
 
             t.GroupBoxHelper(mainFrame, "room-editor/box");
-            bufferedPanel1.BackColor = mainFrame.BackColor;
-            bufferedPanel1.ForeColor = mainFrame.ForeColor;
+            t.SetColor(new string[] { "room-editor/buffered-panel/background", "room-editor/box/background", "room-editor/background" }, c => bufferedPanel1.BackColor = c);
+            t.SetColor(new string[] { "room-editor/buffered-panel/foreground", "room-editor/box/foreground", "room-editor/foreground" }, c => bufferedPanel1.ForeColor = c);
 
             t.ButtonHelper(btnChangeImage, "room-editor/btn-change-image");
             t.ButtonHelper(btnDelete, "room-editor/btn-delete");

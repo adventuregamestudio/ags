@@ -516,7 +516,6 @@
     <ClCompile Include="..\..\Engine\ac\global_debug.cpp" />
     <ClCompile Include="..\..\Engine\ac\global_dialog.cpp" />
     <ClCompile Include="..\..\Engine\ac\global_display.cpp" />
-    <ClCompile Include="..\..\Engine\ac\global_dynamicsprite.cpp" />
     <ClCompile Include="..\..\Engine\ac\global_file.cpp" />
     <ClCompile Include="..\..\Engine\ac\global_game.cpp" />
     <ClCompile Include="..\..\Engine\ac\global_gui.cpp" />
@@ -764,7 +763,6 @@
     <ClInclude Include="..\..\Engine\ac\global_debug.h" />
     <ClInclude Include="..\..\Engine\ac\global_dialog.h" />
     <ClInclude Include="..\..\Engine\ac\global_display.h" />
-    <ClInclude Include="..\..\Engine\ac\global_dynamicsprite.h" />
     <ClInclude Include="..\..\Engine\ac\global_file.h" />
     <ClInclude Include="..\..\Engine\ac\global_game.h" />
     <ClInclude Include="..\..\Engine\ac\global_gui.h" />

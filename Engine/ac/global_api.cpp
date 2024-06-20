@@ -30,7 +30,6 @@
 #include "ac/global_debug.h"
 #include "ac/global_dialog.h"
 #include "ac/global_display.h"
-#include "ac/global_dynamicsprite.h"
 #include "ac/global_file.h"
 #include "ac/global_game.h"
 #include "ac/global_gui.h"
@@ -624,18 +623,6 @@ RuntimeScriptValue Sc_IsTranslationAvailable(const RuntimeScriptValue *params, i
 RuntimeScriptValue Sc_IsVoxAvailable(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT(IsVoxAvailable);
-}
-
-// int (const char *filename)
-RuntimeScriptValue Sc_LoadImageFile(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_POBJ(LoadImageFile, const char);
-}
-
-// int (int slnum, int width, int height)
-RuntimeScriptValue Sc_LoadSaveSlotScreenshot(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_PINT3(LoadSaveSlotScreenshot);
 }
 
 // void (int chaa,int hotsp)
@@ -1264,8 +1251,6 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "IsTimerExpired",           API_FN_PAIR(IsTimerExpired) },
         { "IsTranslationAvailable",   API_FN_PAIR(IsTranslationAvailable) },
         { "IsVoxAvailable",           API_FN_PAIR(IsVoxAvailable) },
-        { "LoadImageFile",            API_FN_PAIR(LoadImageFile) },
-        { "LoadSaveSlotScreenshot",   API_FN_PAIR(LoadSaveSlotScreenshot) },
         { "MoveCharacterToHotspot",   API_FN_PAIR(MoveCharacterToHotspot) },
         { "MoveObject",               API_FN_PAIR(MoveObject) },
         { "MoveObjectDirect",         API_FN_PAIR(MoveObjectDirect) },

@@ -18,7 +18,6 @@
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
-#include "ac/global_dynamicsprite.h"
 #include "ac/global_game.h"
 #include "ac/math.h"    // M_PI
 #include "ac/path_helper.h"
@@ -239,26 +238,55 @@ int DynamicSprite_SaveToFile(ScriptDynamicSprite *sds, const char* namm)
     return spriteset[sds->slot]->SaveToFile(rp.FullPath, palette) ? 1 : 0;
 }
 
-ScriptDynamicSprite* DynamicSprite_CreateFromSaveGame(int sgslot, int width, int height) {
-    int slotnum = LoadSaveSlotScreenshot(sgslot, width, height);
-    if (slotnum) {
-        ScriptDynamicSprite *new_spr = new ScriptDynamicSprite(slotnum);
-        return new_spr;
+ScriptDynamicSprite* DynamicSprite_CreateFromSaveGame(int sgslot, int width, int height)
+{
+    if (!spriteset.HasFreeSlots())
+        return nullptr;
+
+    auto screenshot = read_savedgame_screenshot(get_save_game_path(sgslot));
+    if (!screenshot)
+        return nullptr;
+
+    // resize the sprite to the requested size
+    if ((screenshot->GetWidth() != width) || (screenshot->GetHeight() != height))
+    {
+        std::unique_ptr<Bitmap> temp(BitmapHelper::CreateBitmap(width, height, screenshot->GetColorDepth()));
+        temp->StretchBlt(screenshot.get(),
+            RectWH(0, 0, screenshot->GetWidth(), screenshot->GetHeight()),
+            RectWH(0, 0, width, height));
+        screenshot = std::move(temp);
     }
-    return nullptr;
+
+    int new_slot = add_dynamic_sprite(std::move(screenshot));
+    if (new_slot <= 0)
+        return nullptr; // something went wrong
+    return new ScriptDynamicSprite(new_slot);
 }
 
-ScriptDynamicSprite* DynamicSprite_CreateFromFile(const char *filename) {
-    int slotnum = LoadImageFile(filename);
-    if (slotnum) {
-        ScriptDynamicSprite *new_spr = new ScriptDynamicSprite(slotnum);
-        return new_spr;
-    }
-    return nullptr;
+ScriptDynamicSprite* DynamicSprite_CreateFromFile(const char *filename)
+{
+    if (!spriteset.HasFreeSlots())
+        return nullptr;
+
+    std::unique_ptr<Stream> in(
+        ResolveScriptPathAndOpen(filename, FileOpenMode::kFile_Open, StreamMode::kStream_Read));
+    if (!in)
+        return nullptr;
+
+    String ext = Path::GetFileExtension(filename);
+    std::unique_ptr<Bitmap> image(BitmapHelper::LoadBitmap(in.get(), ext));
+    if (!image)
+        return nullptr;
+
+    image.reset(PrepareSpriteForUse(image.release(), false));
+    int new_slot = add_dynamic_sprite(std::move(image));
+    if (new_slot <= 0)
+        return nullptr; // something went wrong
+    return new ScriptDynamicSprite(new_slot);
 }
 
-ScriptDynamicSprite* DynamicSprite_CreateFromScreenShot(int width, int height) {
-
+ScriptDynamicSprite* DynamicSprite_CreateFromScreenShot(int width, int height)
+{
     // TODO: refactor and merge with create_savegame_screenshot()
     if (!spriteset.HasFreeSlots())
         return nullptr;

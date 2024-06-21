@@ -68,7 +68,9 @@ public:
     // TODO: this is a temporary solution for plugin support
     // Wraps a raw allegro BITMAP object, optionally owns it (will delete on disposal)
     bool    WrapAllegroBitmap(BITMAP *al_bmp, bool shared_data);
-    // Releases a reference to raw allegro BITMAP object without deleting it
+    // Releases a reference to raw allegro BITMAP object without deleting it;
+    // WARNING: this is meant strictly as a workaround in case third-party lib
+    // have deleted our owned BITMAP object.
     void    ForgetAllegroBitmap();
     // Deallocate bitmap
     void	Destroy();

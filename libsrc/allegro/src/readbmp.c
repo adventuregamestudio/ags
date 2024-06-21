@@ -22,7 +22,7 @@
 #include "allegro/internal/aintern.h"
 
 
-/* _fixup_loaded_bitmap:
+/* fixup_loaded_bitmap:
  *  Helper function for adjusting the color depth of a loaded image.
  *  Converts the bitmap BMP to the color depth BPP. If BMP is a 8-bit
  *  bitmap, PAL must be the palette attached to the bitmap. If BPP is
@@ -31,14 +31,13 @@
  *  filled in with this palette) or by using the current palette if PAL
  *  is NULL. In any other cases, PAL is unused.
  */
-BITMAP *_fixup_loaded_bitmap(BITMAP *bmp, PALETTE pal, int bpp)
+BITMAP *fixup_loaded_bitmap(AL_CONST BITMAP *bmp, PALETTE pal, int bpp)
 {
    BITMAP *b2;
    ASSERT(bmp);
 
    b2 = create_bitmap_ex(bpp, bmp->w, bmp->h);
    if (!b2) {
-      destroy_bitmap(bmp);
       return NULL;
    }
 
@@ -68,8 +67,6 @@ BITMAP *_fixup_loaded_bitmap(BITMAP *bmp, PALETTE pal, int bpp)
    else {
       blit(bmp, b2, 0, 0, 0, 0, bmp->w, bmp->h);
    }
-
-   destroy_bitmap(bmp);
 
    return b2;
 }

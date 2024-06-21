@@ -339,6 +339,9 @@ static bool TryGetGlobalVariable(const String &field_ref, const ccInstance *inst
     // Select the actual script at the top of the stack
     // (this could be a different script runnin on this instance, in case of far calls)
     const ccInstance *top_inst = inst->runningInst;
+    if (!top_inst->instanceof->sctoc)
+        return false; // no TOC
+
     const auto &toc = *top_inst->instanceof->sctoc;
     if (toc.GetGlobalVariables().empty())
         return false; // no global data
@@ -390,6 +393,9 @@ static bool TryGetLocalVariable(const String &field_ref, const ccInstance *inst,
     // (this could be a different script runnin on this instance, in case of far calls)
     // NOTE: we will still use pc and stack of the current inst, since it's the one running!
     const ccScript *top_script = inst->runningInst->instanceof.get();
+    if (!top_script->sctoc)
+        return false; // no TOC
+
     const auto &toc = *top_script->sctoc;
     if (toc.GetLocalVariables().empty())
         return false; // no local data

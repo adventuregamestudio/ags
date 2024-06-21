@@ -340,5 +340,19 @@ namespace AGS.Editor
             listView1.Items.Clear();
             EnsureEmptyItem();
         }
+
+        private void LoadColorTheme(ColorTheme t)
+        {
+            t.SetColor("global/pane/background", c => BackColor = c);
+            t.ListViewHelper(listView1, "watch-variables-panel");
+        }
+
+        private void WatchVariablesPanel_Load(object sender, EventArgs e)
+        {
+            if (!DesignMode)
+            {
+                Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
+            }
+        }
     }
 }

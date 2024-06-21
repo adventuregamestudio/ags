@@ -114,6 +114,7 @@
             this.Name = "WatchVariablesPanel";
             this.Text = "WatchVariablesPanel";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.WatchVariablesPanel_FormClosed);
+            this.Load += new System.EventHandler(this.WatchVariablesPanel_Load);
             this.Shown += new System.EventHandler(this.WatchVariablesPanel_Shown);
             this.VisibleChanged += new System.EventHandler(this.WatchVariablesPanel_VisibleChanged);
             this.contextMenuStrip1.ResumeLayout(false);

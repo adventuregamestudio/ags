@@ -667,7 +667,7 @@ namespace AGS.Editor
             {
                 if (obj.Name.Length > 0)
                 {
-                    sb.AppendLine("import Object " + obj.Name + ";");
+                    sb.AppendLine("import readonly Object *" + obj.Name + ";");
                 }
             }
 
@@ -675,7 +675,7 @@ namespace AGS.Editor
             {
                 if (hotspot.Name.Length > 0)
                 {
-                    sb.AppendLine("import Hotspot " + hotspot.Name + ";");
+                    sb.AppendLine("import readonly Hotspot *" + hotspot.Name + ";");
                 }
             }
         }

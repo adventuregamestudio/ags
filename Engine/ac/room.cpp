@@ -105,6 +105,8 @@ extern ScriptObject scrObj[MAX_ROOM_OBJECTS];
 extern ScriptRegion scrRegion[MAX_ROOM_REGIONS];
 extern ScriptWalkableArea scrWalkarea[MAX_WALK_AREAS];
 extern ScriptWalkbehind scrWalkbehind[MAX_WALK_BEHINDS];
+extern std::vector<int> StaticObjectArray;
+extern std::vector<int> StaticHotspotArray;
 
 std::unique_ptr<MaskRouteFinder> room_pathfinder;
 RGB_MAP rgb_table;  // for 256-col antialiasing
@@ -585,14 +587,14 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         // export the object's script object
         if (thisroom.Objects[cc].ScriptName.IsEmpty())
             continue;
-        ccAddExternalScriptObject(thisroom.Objects[cc].ScriptName, &scrObj[cc], &ccDynamicObject);
+        ccAddExternalScriptObject(thisroom.Objects[cc].ScriptName, &StaticObjectArray[cc], &GlobalStaticManager);
     }
 
     for (int cc = 0; cc < MAX_ROOM_HOTSPOTS; cc++) {
         if (thisroom.Hotspots[cc].ScriptName.IsEmpty())
             continue;
 
-        ccAddExternalScriptObject(thisroom.Hotspots[cc].ScriptName, &scrHotspot[cc], &ccDynamicHotspot);
+        ccAddExternalScriptObject(thisroom.Hotspots[cc].ScriptName, &StaticHotspotArray[cc], &GlobalStaticManager);
     }
 
     set_our_eip(210);

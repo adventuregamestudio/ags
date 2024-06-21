@@ -342,7 +342,9 @@ int color_load_depth(int bmp_depth, int current_depth, bool hasalpha)
     return 0;
 }
 
-static Bitmap *BitmapPaletteFixup(RGB *pal, bool want_palette, Bitmap *bmp)
+// Converts loaded bitmap to the default color depth,
+// optionally fixups color palette
+static Bitmap *BitmapColorDepthFixup(RGB *pal, bool want_palette, Bitmap *bmp)
 {
     int bmp_depth = bmp->GetColorDepth();
     int dest_depth = color_load_depth(bmp_depth, get_color_depth(), false);
@@ -352,15 +354,11 @@ static Bitmap *BitmapPaletteFixup(RGB *pal, bool want_palette, Bitmap *bmp)
         if ((bmp_depth != 8) && (!want_palette))
             pal = nullptr;
 
-        if (bmp)
-        {
-            Bitmap* tmp_bmp = CreateRawBitmapOwner(
-                    _fixup_loaded_bitmap(bmp->GetAllegroBitmap(), pal, dest_depth));
-
-            bmp->ForgetAllegroBitmap();
-            delete bmp;
-            bmp = tmp_bmp;
-        }
+        BITMAP *al_bmp = fixup_loaded_bitmap(bmp->GetAllegroBitmap(), pal, dest_depth);
+        if (!al_bmp)
+            return nullptr;
+        if (al_bmp != bmp->GetAllegroBitmap())
+            bmp->WrapAllegroBitmap(al_bmp, false);
     }
 
     /* construct a fake palette if 8-bit mode is not involved */
@@ -384,8 +382,11 @@ Bitmap* LoadBitmap(Stream *in, const String& ext, RGB *pal)
     Bitmap *bmp = BitmapHelper::CreateBitmap(std::move(pxbuf));
     if (!bmp)
         return nullptr;
-    // Perform a palette fixup, needed for Allegro 4
-    return BitmapPaletteFixup(pal, want_palette, bmp);
+    // Perform color depth and palette fixups
+    Bitmap *fixed_bmp = BitmapColorDepthFixup(pal, want_palette, bmp);
+    if (fixed_bmp != bmp)
+        delete bmp;
+    return fixed_bmp;
 }
 
 bool SaveBitmap(const Bitmap *bmp, const RGB* pal, Stream *out, const String& ext)

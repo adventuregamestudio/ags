@@ -691,7 +691,7 @@ namespace AGS.Editor
                 {
                     if (item.Name.Length > 0)
                     {
-                        sb.AppendLine("import InventoryItem " + item.Name + ";");
+                        sb.AppendLine("import readonly InventoryItem *" + item.Name + ";");
                     }
                 }
             }
@@ -712,7 +712,7 @@ namespace AGS.Editor
                 {
                     if (item.Name.Length > 0)
                     {
-                        sb.AppendLine("import Dialog " + item.Name + ";");
+                        sb.AppendLine("import readonly Dialog *" + item.Name + ";");
                     }
                 }
             }
@@ -752,7 +752,7 @@ namespace AGS.Editor
                         continue;
                     }
 
-                    sb.AppendLine("import GUI " + gui.Name + ";");
+                    sb.AppendLine("import readonly GUI *" + gui.Name + ";");
 
                     if (gui.Name.StartsWith("g"))
                     {
@@ -806,7 +806,7 @@ namespace AGS.Editor
                     }
                     if (character.ScriptName.Length > 0)
                     {
-                        sb.AppendLine("import Character " + character.ScriptName + ";");
+                        sb.AppendLine("import readonly Character *" + character.ScriptName + ";");
                     }
                 }
             }

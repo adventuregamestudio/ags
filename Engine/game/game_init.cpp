@@ -172,7 +172,7 @@ void InitAndRegisterCharacters(GameSetupStruct &game, const LoadedGameEntities &
         StaticCharacterArray[i] = handle;
 
         // export the character's script object
-        ccAddExternalScriptObject(game.chars[i].scrname, &game.chars[i], &ccDynamicCharacter);
+        ccAddExternalScriptObject(game.chars[i].scrname, &StaticCharacterArray[i], &GlobalStaticManager);
     }
 
     // extra character properties (because the characters are split into 2 structs now)
@@ -200,7 +200,7 @@ void InitAndRegisterDialogs(const GameSetupStruct &game)
         StaticDialogArray[i] = handle;
 
         if (!game.dialogScriptNames[i].IsEmpty())
-            ccAddExternalScriptObject(game.dialogScriptNames[i], &scrDialog[i], &ccDynamicDialog);
+            ccAddExternalScriptObject(game.dialogScriptNames[i], &StaticDialogArray[i], &GlobalStaticManager);
     }
 }
 
@@ -239,7 +239,7 @@ HError InitAndRegisterGUI(const GameSetupStruct &game)
         StaticGUIArray[i] = handle;
 
         // export the gui script object
-        ccAddExternalScriptObject(guis[i].Name, &scrGui[i], &ccDynamicGUI);
+        ccAddExternalScriptObject(guis[i].Name, &StaticGUIArray[i], &GlobalStaticManager);
 
         // export all the GUI's controls
         export_gui_controls(i);
@@ -260,7 +260,7 @@ void InitAndRegisterInvItems(const GameSetupStruct &game)
         StaticInventoryArray[i] = handle;
 
         if (!game.invScriptNames[i].IsEmpty())
-            ccAddExternalScriptObject(game.invScriptNames[i], &scrInv[i], &ccDynamicInv);
+            ccAddExternalScriptObject(game.invScriptNames[i], &StaticInventoryArray[i], &GlobalStaticManager);
     }
 }
 

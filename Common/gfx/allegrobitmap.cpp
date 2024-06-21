@@ -127,6 +127,9 @@ bool Bitmap::Create(PixelBuffer &&pxbuf)
 
 bool Bitmap::CreateSubBitmap(Bitmap *src, const Rect &rc)
 {
+    if (src == this || src->_alBitmap == _alBitmap)
+        return false; // cannot create a sub bitmap of yourself
+
     Destroy();
     _alBitmap = create_sub_bitmap(src->_alBitmap, rc.Left, rc.Top, rc.GetWidth(), rc.GetHeight());
     _isDataOwner = true;
@@ -146,6 +149,9 @@ bool Bitmap::ResizeSubBitmap(int width, int height)
 
 bool Bitmap::CreateCopy(Bitmap *src, int color_depth)
 {
+    if (src == this || src->_alBitmap == _alBitmap)
+        return false; // cannot create a copy of yourself
+
     if (Create(src->_alBitmap->w, src->_alBitmap->h, color_depth ? color_depth : bitmap_color_depth(src->_alBitmap)))
     {
         blit(src->_alBitmap, _alBitmap, 0, 0, 0, 0, _alBitmap->w, _alBitmap->h);
@@ -156,6 +162,9 @@ bool Bitmap::CreateCopy(Bitmap *src, int color_depth)
 
 bool Bitmap::WrapAllegroBitmap(BITMAP *al_bmp, bool shared_data)
 {
+    if (al_bmp == _alBitmap)
+        return false; // cannot wrap your own internal BITMAP
+
     Destroy();
     _alBitmap = al_bmp;
     _isDataOwner = !shared_data;
@@ -166,6 +175,7 @@ void Bitmap::ForgetAllegroBitmap()
 {
     _alBitmap = nullptr;
     _isDataOwner = false;
+    _pixelData = {};
 }
 
 void Bitmap::Destroy()
@@ -176,6 +186,7 @@ void Bitmap::Destroy()
     }
     _alBitmap = nullptr;
     _isDataOwner = false;
+    _pixelData = {};
 }
 
 bool Bitmap::SaveToFile(const char *filename, const void *palette)

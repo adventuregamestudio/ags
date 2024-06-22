@@ -63,6 +63,7 @@ public:
     int32_t AddressToHandle(void *addr);
     void* HandleToAddress(int32_t handle);
     ScriptValueType HandleToAddressAndManager(int32_t handle, void *&object, IScriptObject *&manager);
+    ScriptValueType FindManagerForAddress(void *addr, IScriptObject *&manager);
     int RemoveObject(void *address);
     void RunGarbageCollectionIfAppropriate();
     int AddObject(void *address, IScriptObject *callback, ScriptValueType obj_type);

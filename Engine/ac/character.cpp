@@ -2182,7 +2182,7 @@ void move_character_straight(CharacterInfo *chaa, int x, int y, bool walk_anim)
     pathfind->SetWalkableArea(prepare_walkable_areas(chaa->index_id), thisroom.MaskResolution);
 
     int movetox = x, movetoy = y;
-    int lastcx, lastcy;
+    int lastcx = chaa->x, lastcy = chaa->y;
     if (!pathfind->CanSeeFrom(chaa->x, chaa->y, x, y, &lastcx, &lastcy))
     {
         movetox = lastcx;

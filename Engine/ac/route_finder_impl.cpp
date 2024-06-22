@@ -58,7 +58,13 @@ void JPSRouteFinder::SyncNavWalkablearea()
 bool JPSRouteFinder::CanSeeFrom(int srcx, int srcy, int dstx, int dsty, int *lastcx, int *lastcy)
 {
     if (!_walkablearea)
+    {
+        if (lastcx)
+            *lastcx = srcx;
+        if (lastcy)
+            *lastcy = srcy;
         return false;
+    }
 
     // convert input to the mask coords
     srcx /= _coordScale;

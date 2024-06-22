@@ -51,7 +51,7 @@ ScriptUserObject *Pathfinder_Trace(ScriptPathfinder *pathfind, int srcx, int src
 
     pathfind->SyncPathfinder(); // sync with the source
 
-    int lastx, lasty;
+    int lastx = srcx, lasty = srcy;
     pathfind->GetRouteFinder()->CanSeeFrom(srcx, srcy, dstx, dsty, &lastx, &lasty);
     return ScriptStructHelpers::CreatePoint(lastx, lasty);
 }

@@ -91,6 +91,7 @@ CCStaticArray StaticHandlesArray;
 std::vector<int> StaticCharacterArray;
 std::vector<int> StaticObjectArray;
 std::vector<int> StaticGUIArray;
+std::vector<int> StaticGUIControlsArray;
 std::vector<int> StaticHotspotArray;
 std::vector<int> StaticRegionArray;
 std::vector<int> StaticWalkareaArray;
@@ -240,10 +241,10 @@ HError InitAndRegisterGUI(const GameSetupStruct &game)
 
         // export the gui script object
         ccAddExternalScriptObject(guis[i].Name, &StaticGUIArray[i], &GlobalStaticManager);
-
-        // export all the GUI's controls
-        export_gui_controls(i);
     }
+    // export all the GUI's controls
+    export_all_gui_controls();
+
     return HError::None();
 }
 

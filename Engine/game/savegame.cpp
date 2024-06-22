@@ -350,10 +350,7 @@ void DoBeforeRestore(PreservedParams &pp)
     RemoveAllButtonAnimations();
     // unregister gui controls from API exports
     // FIXME: find out why are we doing this here??! why only to gui controls??!
-    for (int i = 0; i < game.numgui; ++i)
-    {
-        unexport_gui_controls(i);
-    }
+    unexport_all_gui_controls();
     // Clear the managed object pool
     ccUnregisterAllObjects();
 
@@ -442,8 +439,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data)
     export_missing_audiochans();
 
     // CHECKME: find out why are we doing this here? why only to gui controls?
-    for (int i = 0; i < game.numgui; ++i)
-        export_gui_controls(i);
+    export_all_gui_controls();
 
     AllocScriptModules();
     if (create_global_script())

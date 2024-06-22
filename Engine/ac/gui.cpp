@@ -60,6 +60,7 @@ using namespace AGS::Engine;
 extern RoomStruct thisroom;
 extern int cur_mode,cur_cursor;
 extern std::vector<ScriptGUI> scrGui;
+extern std::vector<int> StaticGUIControlsArray;
 extern GameSetupStruct game;
 extern CCGUIObject ccDynamicGUIObject;
 extern IGraphicsDriver *gfxDriver;
@@ -611,14 +612,33 @@ void prepare_gui_runtime(bool startup)
     GUIE::MarkAllGUIForUpdate(true, true);
 }
 
-void export_gui_controls(int ee)
+void export_all_gui_controls()
 {
-    for (int ff = 0; ff < guis[ee].GetControlCount(); ff++)
-    {
-        GUIObject *guio = guis[ee].GetControl(ff);
-        if (!guio->Name.IsEmpty())
-            ccAddExternalScriptObject(guio->Name, guio, &ccDynamicGUIObject);
-        ccRegisterPersistentObject(guio, &ccDynamicGUIObject); // add ref for engine
+    size_t guictrlcount = 0;
+    for (int i = 0; i < game.numgui; ++i) {
+        auto const &gui = guis[i];
+        for (int j = 0; j < gui.GetControlCount(); j++) {
+            GUIObject const *guio = gui.GetControl(j);
+            if (!guio->Name.IsEmpty()) {
+                guictrlcount++;
+            }
+        }
+    }
+
+    StaticGUIControlsArray.resize(guictrlcount);
+
+    int gi = 0;
+    for (int i = 0; i < game.numgui; ++i) {
+        auto const &gui = guis[i];
+        for (int j = 0; j < gui.GetControlCount(); j++) {
+            GUIObject *guio = gui.GetControl(j);
+            int handle = ccRegisterPersistentObject(guio, &ccDynamicGUIObject); // add ref for engine
+            if (!guio->Name.IsEmpty()) {
+                StaticGUIControlsArray[gi] = handle;
+                ccAddExternalScriptObject(guio->Name, &StaticGUIControlsArray[gi], &GlobalStaticManager);
+                gi++;
+            }
+        }
     }
 }
 
@@ -632,6 +652,15 @@ void unexport_gui_controls(int ee)
         if (!ccUnRegisterManagedObject(guio))
             quit("unable to unregister guicontrol object");
     }
+}
+
+void unexport_all_gui_controls()
+{
+    for (int i = 0; i < game.numgui; ++i)
+    {
+        unexport_gui_controls(i);
+    }
+    StaticGUIControlsArray.clear();
 }
 
 void update_gui_disabled_status()

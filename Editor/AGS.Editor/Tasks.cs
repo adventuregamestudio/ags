@@ -764,7 +764,7 @@ namespace AGS.Editor
                     {
                         if (control.Name.Length > 0)
                         {
-                            sb.AppendLine("import " + control.ScriptClassType + " " + control.Name + ";");
+                            sb.AppendLine("import readonly " + control.ScriptClassType + " *" + control.Name + ";");
                         }
                     }
                 }

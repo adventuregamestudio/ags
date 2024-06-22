@@ -32,6 +32,8 @@ namespace AGS
 namespace Engine
 {
 
+using AGS::Common::GraphicResolution;
+
 // A base parent for the otherwise opaque texture object;
 // Texture refers to the pixel data itself, with no additional
 // properties. It may be shared between multiple sprites if necessary.

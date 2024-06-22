@@ -17,8 +17,6 @@
 // accumulating index information, and may therefore be suitable for a variety
 // of situations.
 //
-// TODO: store extra Color Depth field per sprite in the sprite index.
-//
 //=============================================================================
 #ifndef __AGS_CN_AC__SPRFILE_H
 #define __AGS_CN_AC__SPRFILE_H
@@ -26,8 +24,8 @@
 #include <memory>
 #include <vector>
 #include "core/types.h"
+#include "gfx/gfx_def.h"
 #include "util/error.h"
-#include "util/geometry.h"
 #include "util/stream.h"
 #include "util/string.h"
 
@@ -58,7 +56,8 @@ enum SpriteIndexFileVersion
     kSpridxfVersion_Last32bit = 2,
     kSpridxfVersion_64bit = 10,
     kSpridxfVersion_HighSpriteLimit = 11,
-    kSpridxfVersion_Current = kSpridxfVersion_HighSpriteLimit
+    kSpridxfVersion_ColorDepths = 12,
+    kSpridxfVersion_Current = kSpridxfVersion_ColorDepths
 };
 
 // Instructions to how the sprites are allowed to be stored
@@ -97,6 +96,7 @@ struct SpriteFileIndex
     int SpriteFileIDCheck = 0; // tag matching sprite file and index file
     std::vector<int16_t> Widths;
     std::vector<int16_t> Heights;
+    std::vector<int8_t>  Depths;
     std::vector<soff_t>  Offsets;
 
     inline size_t GetCount() const { return Offsets.size(); }
@@ -134,7 +134,7 @@ public:
     // Loads sprite reference information and inits sprite stream
     HError      OpenFile(std::unique_ptr<Stream> &&sprite_file,
                          std::unique_ptr<Stream> &&index_file,
-                         std::vector<Size> &metrics);
+                         std::vector<GraphicResolution> &metrics);
     // Closes stream; no reading will be possible unless opened again
     void        Close();
 
@@ -147,7 +147,7 @@ public:
     // Loads sprite index file
     bool        LoadSpriteIndexFile(std::unique_ptr<Stream> &&index_file,
                                     int expectedFileID, soff_t spr_initial_offs,
-                                    sprkey_t topmost, std::vector<Size> &metrics);
+                                    sprkey_t topmost, std::vector<GraphicResolution> &metrics);
 
     // Loads an image data and creates a ready bitmap
     HError      LoadSprite(sprkey_t index, Bitmap *&sprite);
@@ -156,7 +156,7 @@ public:
 
 private:
     // Rebuilds sprite index from the main sprite file
-    HError      RebuildSpriteIndex(Stream *in, sprkey_t topmost, std::vector<Size> &metrics);
+    HError      RebuildSpriteIndex(Stream *in, sprkey_t topmost, std::vector<GraphicResolution> &metrics);
     // Seek stream to sprite
     void        SeekToSprite(sprkey_t index);
 

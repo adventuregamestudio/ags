@@ -166,7 +166,7 @@ SpriteFile::SpriteFile()
 }
 
 HError SpriteFile::OpenFile(std::unique_ptr<Stream> &&sprite_file,
-    std::unique_ptr<Stream> &&index_file, std::vector<Size> &metrics)
+    std::unique_ptr<Stream> &&index_file, std::vector<GraphicResolution> &metrics)
 {
     Close();
 
@@ -273,7 +273,7 @@ sprkey_t SpriteFile::GetTopmostSprite() const
 }
 
 bool SpriteFile::LoadSpriteIndexFile(std::unique_ptr<Stream> &&fidx,
-    int expectedFileID, soff_t spr_initial_offs, sprkey_t topmost, std::vector<Size> &metrics)
+    int expectedFileID, soff_t spr_initial_offs, sprkey_t topmost, std::vector<GraphicResolution> &metrics)
 {
     if (!fidx)
     {
@@ -315,12 +315,13 @@ bool SpriteFile::LoadSpriteIndexFile(std::unique_ptr<Stream> &&fidx,
     }
 
     sprkey_t numsprits = topmost_index + 1;
-    std::vector<int16_t> rspritewidths; rspritewidths.resize(numsprits);
-    std::vector<int16_t> rspriteheights; rspriteheights.resize(numsprits);
+    std::vector<int16_t> spritewidths; spritewidths.resize(numsprits);
+    std::vector<int16_t> spriteheights; spriteheights.resize(numsprits);
+    std::vector<int8_t>  spritedepths; spritedepths.resize(numsprits);
     std::vector<soff_t>  spriteoffs; spriteoffs.resize(numsprits);
 
-    fidx->ReadArrayOfInt16(&rspritewidths[0], numsprits);
-    fidx->ReadArrayOfInt16(&rspriteheights[0], numsprits);
+    fidx->ReadArrayOfInt16(&spritewidths[0], numsprits);
+    fidx->ReadArrayOfInt16(&spriteheights[0], numsprits);
     if (vers <= kSpridxfVersion_Last32bit)
     {
         for (sprkey_t i = 0; i < numsprits; ++i)
@@ -331,13 +332,17 @@ bool SpriteFile::LoadSpriteIndexFile(std::unique_ptr<Stream> &&fidx,
         fidx->ReadArrayOfInt64(&spriteoffs[0], numsprits);
     }
 
+    if (vers >= kSpridxfVersion_ColorDepths)
+    {
+        fidx->ReadArrayOfInt8(&spritedepths[0], numsprits);
+    }
+
     for (sprkey_t i = 0; i <= topmost_index; ++i)
     {
         if (spriteoffs[i] != 0)
         {
             _spriteData[i].Offset = spriteoffs[i] + spr_initial_offs;
-            metrics[i].Width = rspritewidths[i];
-            metrics[i].Height = rspriteheights[i];
+            metrics[i] = GraphicResolution(spritewidths[i], spriteheights[i], spritedepths[i]);
         }
     }
     return true;
@@ -362,7 +367,7 @@ static inline void ReadSprHeader(SpriteDatHeader &hdr, Stream *in,
     hdr = SpriteDatHeader(bpp, sformat, pal_count, compress, w, h);
 }
 
-HError SpriteFile::RebuildSpriteIndex(Stream *in, sprkey_t topmost, std::vector<Size> &metrics)
+HError SpriteFile::RebuildSpriteIndex(Stream *in, sprkey_t topmost, std::vector<GraphicResolution> &metrics)
 {
     topmost = std::min(topmost, (sprkey_t)_spriteData.size() - 1);
     for (sprkey_t i = 0; !in->EOS() && (i <= topmost); ++i)
@@ -377,8 +382,7 @@ HError SpriteFile::RebuildSpriteIndex(Stream *in, sprkey_t topmost, std::vector<
             ((_version >= kSprfVersion_StorageFormats) || _compress != kSprCompress_None) ?
             (uint32_t)in->ReadInt32() : hdr.Width * hdr.Height * hdr.BPP;
         in->Seek(data_sz); // skip image data
-        metrics[i].Width = hdr.Width;
-        metrics[i].Height = hdr.Height;
+        metrics[i] = GraphicResolution(hdr.Width, hdr.Height, hdr.BPP * 8);
     }
     return HError::None();
 }
@@ -626,6 +630,7 @@ int SaveSpriteIndex(const String &filename, const SpriteFileIndex &index)
         out->WriteArrayOfInt16(&index.Heights[0], index.Heights.size());
         out->WriteArrayOfInt64(&index.Offsets[0], index.Offsets.size());
     }
+    out->WriteArrayOfInt8(&index.Depths[0], index.Depths.size());
     return 0;
 }
 
@@ -660,6 +665,7 @@ void SpriteFileWriter::Begin(int store_flags, SpriteCompression compress, sprkey
         _index.Offsets.reserve(numsprits);
         _index.Widths.reserve(numsprits);
         _index.Heights.reserve(numsprits);
+        _index.Depths.reserve(numsprits);
     }
 }
 
@@ -737,6 +743,7 @@ void SpriteFileWriter::WriteSpriteData(const SpriteDatHeader &hdr,
     _index.Offsets.push_back(sproff);
     _index.Widths.push_back(hdr.Width);
     _index.Heights.push_back(hdr.Height);
+    _index.Depths.push_back(hdr.BPP * 8);
     WriteSprHeader(hdr, _out.get());
     // write palette, if available
     int pal_bpp = GetPaletteBPP(hdr.SFormat);
@@ -775,6 +782,7 @@ void SpriteFileWriter::WriteEmptySlot()
     _index.Offsets.push_back(sproff);
     _index.Widths.push_back(0);
     _index.Heights.push_back(0);
+    _index.Depths.push_back(0);
 }
 
 void SpriteFileWriter::WriteRawData(const SpriteDatHeader &hdr, const uint8_t *data, size_t data_sz)
@@ -784,6 +792,7 @@ void SpriteFileWriter::WriteRawData(const SpriteDatHeader &hdr, const uint8_t *d
     _index.Offsets.push_back(sproff);
     _index.Widths.push_back(hdr.Width);
     _index.Heights.push_back(hdr.Height);
+    _index.Depths.push_back(hdr.BPP * 8);
     WriteSprHeader(hdr, _out.get());
     _out->Write(data, data_sz);
 }

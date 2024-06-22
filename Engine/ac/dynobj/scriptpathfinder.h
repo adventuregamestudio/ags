@@ -29,6 +29,7 @@ public:
 class ScriptMaskPathfinder : public ScriptPathfinder
 {
 public:
+    // Creates and registers a MaskPathfinder
     static ScriptMaskPathfinder *CreateFromMaskSprite(int mask_sprite);
 
     AGS::Engine::IRouteFinder *GetRouteFinder() override;
@@ -55,6 +56,7 @@ private:
 class RoomPathfinder : public ScriptPathfinder
 {
 public:
+    // Creates and registers a RoomPathfinder
     static RoomPathfinder *Create();
 
     AGS::Engine::IRouteFinder *GetRouteFinder() override;

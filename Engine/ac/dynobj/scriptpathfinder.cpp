@@ -31,6 +31,7 @@ ScriptMaskPathfinder *ScriptMaskPathfinder::CreateFromMaskSprite(int mask_sprite
 {
     ScriptMaskPathfinder *pathfind = new ScriptMaskPathfinder();
     pathfind->_finder = Pathfinding::CreateDefaultMaskPathfinder();
+    pathfind->_maskSprite = mask_sprite;
     if (mask_sprite > 0)
         pathfind->_finder->SetWalkableArea(spriteset[mask_sprite]);
     ccRegisterManagedObject(pathfind, pathfind);
@@ -49,7 +50,9 @@ void ScriptMaskPathfinder::SyncPathfinder()
 
 void ScriptMaskPathfinder::SetMaskSprite(int mask_sprite)
 {
-    _finder->SetWalkableArea((_maskSprite > 0) ? spriteset[_maskSprite] : nullptr);
+    _maskSprite = mask_sprite;
+    if (mask_sprite > 0)
+        _finder->SetWalkableArea(spriteset[mask_sprite]);
 }
 
 const char *ScriptMaskPathfinder::GetType()

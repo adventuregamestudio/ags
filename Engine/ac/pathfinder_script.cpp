@@ -58,9 +58,7 @@ ScriptUserObject *Pathfinder_Trace(ScriptPathfinder *pathfind, int srcx, int src
 
 ScriptMaskPathfinder *MaskPathfinder_Create(int mask_sprite)
 {
-    ScriptMaskPathfinder *pathfind = ScriptMaskPathfinder::CreateFromMaskSprite(mask_sprite);
-    ccRegisterManagedObject(pathfind, pathfind);
-    return pathfind;
+    return ScriptMaskPathfinder::CreateFromMaskSprite(mask_sprite);
 }
 
 void MaskPathfinder_SetMask(ScriptMaskPathfinder *pathfind, int mask_sprite)

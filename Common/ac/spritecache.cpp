@@ -364,7 +364,7 @@ Bitmap *SpriteCache::LoadSprite(sprkey_t index, bool lock)
 void SpriteCache::RemapSpriteToPlaceholder(sprkey_t index)
 {
     assert((index > 0) && ((size_t)index < _spriteData.size()));
-    _sprInfos[index] = SpriteInfo(_placeholder->GetWidth(), _placeholder->GetHeight(), _placeholder->GetColorDepth());
+    _sprInfos[index] = SpriteInfo(_placeholder->GetWidth(), _placeholder->GetHeight(), 0);
     _spriteData[index].Flags |= SPRCACHEFLAG_ERROR;
     SprCacheLog("RemapSpriteToPlaceholder: %d", index);
 }

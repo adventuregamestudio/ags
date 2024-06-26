@@ -226,6 +226,37 @@ namespace AGS.Editor
                     }
                 }
             }
+            else if (IsContextCommand(command))
+            {
+                if (command == CONTEXT_MENU_GO_TO_DEFINITION ||
+                    command == CONTEXT_MENU_FIND_ALL_USAGES)
+                {
+                    string[] structAndMember = _goToDefinition.Split('.');
+                    string structName = null;
+                    string memberName = structAndMember[0];
+                    if (structAndMember.Length > 1)
+                    {
+                        structName = structAndMember[0];
+                        memberName = structAndMember[1];
+                    }
+
+                    if (command == CONTEXT_MENU_GO_TO_DEFINITION)
+                    {
+                        GoToDefinition(structName, memberName);
+                    }
+                    else
+                    {
+                        FindAllUsages(structName, memberName);
+                    }
+                }
+                else if (command == CONTEXT_MENU_GO_TO_SPRITE)
+                {
+                    if (!Factory.Events.OnShowSpriteManager(_goToSprite.Value))
+                    {
+                        Factory.GUIController.ShowMessage("Unable to display sprite " + _goToSprite + ". Could not find a sprite with that number.", MessageBoxIcon.Warning);
+                    }
+                }
+            }
             else 
             {
                 _scintilla.Focus();
@@ -280,10 +311,14 @@ namespace AGS.Editor
             bool canPaste = _scintilla.CanPaste();
             bool canUndo = _scintilla.CanUndo();
             bool canRedo = _scintilla.CanRedo();
-            if ((_menuCmdCopy.Enabled != canCutAndCopy) ||
+
+            bool changed =
+                (_menuCmdCopy.Enabled != canCutAndCopy) ||
                 (_menuCmdPaste.Enabled != canPaste) ||
                 (_menuCmdUndo.Enabled != canUndo) ||
-                (_menuCmdRedo.Enabled != canRedo))
+                (_menuCmdRedo.Enabled != canRedo);
+
+            if (changed)
             {
                 _menuCmdCopy.Enabled = canCutAndCopy;
                 _menuCmdCut.Enabled = canCutAndCopy;
@@ -298,6 +333,40 @@ namespace AGS.Editor
         protected static bool IsStandardEditCommand(string c)
         {
             return (c == CUT_COMMAND) || (c == COPY_COMMAND) || (c == PASTE_COMMAND) || (c == UNDO_COMMAND) || (c == REDO_COMMAND);
+        }
+
+        protected static bool IsContextCommand(string c)
+        {
+            return (c == CONTEXT_MENU_GO_TO_DEFINITION) || (c == CONTEXT_MENU_FIND_ALL_USAGES) || (c == CONTEXT_MENU_GO_TO_SPRITE);
+        }
+
+        protected void UpdateScriptContext(int clickedPositionInDocument)
+        {
+            _goToSprite = null;
+            _goToDefinition = null;
+
+            if (_scintilla.InsideStringOrComment(clickedPositionInDocument))
+            {
+                return;
+            }
+
+            string clickedOnType = _scintilla.GetFullTypeNameAtPosition(clickedPositionInDocument);
+            
+            // if on nothing, or a number, ignore
+            if (clickedOnType.Length > 0)
+            {
+                int temp;
+                float dummy;
+
+                if (int.TryParse(clickedOnType, out temp))
+                {
+                    _goToSprite = temp;
+                }
+                else if (!float.TryParse(clickedOnType, out dummy))
+                {
+                    _goToDefinition = clickedOnType;
+                }
+            }
         }
 
         protected void EnableStandardEditCommands(bool copy = true, bool cut = true, bool paste = true, bool undo = true, bool redo = true)
@@ -319,51 +388,23 @@ namespace AGS.Editor
         private void scintilla_ConstructContextMenu(ContextMenuStrip menuStrip, int clickedPositionInDocument)
         {
             EventHandler onClick = new EventHandler(ContextMenuChooseOption);
+            ToolStripMenuItem menuItem;
 
-            _goToSprite = null;
-            string clickedOnType = string.Empty;
-            if (!_scintilla.InsideStringOrComment(clickedPositionInDocument))
-            {
-                float dummy;
-                clickedOnType = _scintilla.GetFullTypeNameAtPosition(clickedPositionInDocument);
-                // if on nothing, or a number, ignore
-                if (clickedOnType.Length > 0)
-                {
-                    int temp;
-                    if (int.TryParse(clickedOnType, out temp))
-                    {
-                        _goToSprite = temp;
-                        clickedOnType = string.Empty;
-                    }
-                    else if (!float.TryParse(clickedOnType, out dummy))
-                    {
-                        _goToDefinition = clickedOnType;
-                        clickedOnType = " of " + clickedOnType;
-                    }
-                }
-                else
-                {
-                    clickedOnType = string.Empty;
-                }
-            }
+            UpdateScriptContext(clickedPositionInDocument);
 
-            menuStrip.Items.Add(new ToolStripMenuItem("Go to Definition" + clickedOnType, null, onClick, CONTEXT_MENU_GO_TO_DEFINITION));
-            if (clickedOnType == string.Empty)
-            {
-                menuStrip.Items[menuStrip.Items.Count - 1].Enabled = false;
-            }
+            string typeName = _goToDefinition != null ? (" of " +  _goToDefinition) : string.Empty;
 
-            menuStrip.Items.Add(new ToolStripMenuItem("Find All Usages" + clickedOnType, null, onClick, CONTEXT_MENU_FIND_ALL_USAGES));
-            if (clickedOnType == string.Empty)
-            {
-                menuStrip.Items[menuStrip.Items.Count - 1].Enabled = false;
-            }
+            menuItem = new ToolStripMenuItem("Go To Definition" + typeName, null, onClick, CONTEXT_MENU_GO_TO_DEFINITION);
+            menuItem.Enabled = (_goToDefinition != null);
+            menuStrip.Items.Add(menuItem);
 
-            menuStrip.Items.Add(new ToolStripMenuItem("Go to sprite " + (_goToSprite.HasValue ? _goToSprite.ToString() : ""), null, onClick, CONTEXT_MENU_GO_TO_SPRITE));
-            if (_goToSprite == null)
-            {
-                menuStrip.Items[menuStrip.Items.Count - 1].Enabled = false;
-            }
+            menuItem = new ToolStripMenuItem("Find All Usages" + typeName, null, onClick, CONTEXT_MENU_FIND_ALL_USAGES);
+            menuItem.Enabled = (_goToDefinition != null);
+            menuStrip.Items.Add(menuItem);
+
+            menuItem = new ToolStripMenuItem("Go To Sprite " + (_goToSprite.HasValue ? _goToSprite.ToString() : ""), null, onClick, CONTEXT_MENU_GO_TO_SPRITE);
+            menuItem.Enabled = (_goToSprite != null);
+            menuStrip.Items.Add(menuItem);
 
             AddCtxCommands(menuStrip);
         }
@@ -376,34 +417,7 @@ namespace AGS.Editor
         private void ContextMenuChooseOption(object sender, EventArgs e)
         {
             ToolStripMenuItem item = (ToolStripMenuItem)sender;
-            if (item.Name == CONTEXT_MENU_GO_TO_DEFINITION ||
-                item.Name == CONTEXT_MENU_FIND_ALL_USAGES)
-            {
-                string[] structAndMember = _goToDefinition.Split('.');
-                string structName = null;
-                string memberName = structAndMember[0];
-                if (structAndMember.Length > 1)
-                {
-                    structName = structAndMember[0];
-                    memberName = structAndMember[1];
-                }
-
-                if (item.Name == CONTEXT_MENU_GO_TO_DEFINITION)
-                {
-                    GoToDefinition(structName, memberName);
-                }
-                else
-                {
-                    FindAllUsages(structName, memberName);
-                }
-            }
-            else if (item.Name == CONTEXT_MENU_GO_TO_SPRITE)
-            {
-                if (!Factory.Events.OnShowSpriteManager(_goToSprite.Value))
-                {
-                    Factory.GUIController.ShowMessage("Unable to display sprite " + _goToSprite + ". Could not find a sprite with that number.", MessageBoxIcon.Warning);
-                }
-            }
+            OnCommandClick(item.Name);
         }
 
         #endregion

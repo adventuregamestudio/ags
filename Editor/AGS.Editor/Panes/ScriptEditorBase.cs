@@ -145,16 +145,16 @@ namespace AGS.Editor
             _extraMenu.Commands.Add(_menuCmdCopy);
             _extraMenu.Commands.Add(_menuCmdPaste);
             _extraMenu.Commands.Add(MenuCommand.Separator);
-            _extraMenu.Commands.Add(new MenuCommand(FIND_COMMAND, "Find...", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.F, "FindMenuIcon"));
-            _extraMenu.Commands.Add(new MenuCommand(FIND_NEXT_COMMAND, "Find next", System.Windows.Forms.Keys.F3, "FindNextMenuIcon"));
-            _extraMenu.Commands.Add(new MenuCommand(REPLACE_COMMAND, "Replace...", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.E));
+            _extraMenu.Commands.Add(new MenuCommand(FIND_COMMAND, "Find...", Keys.Control | Keys.F, "FindMenuIcon"));
+            _extraMenu.Commands.Add(new MenuCommand(FIND_NEXT_COMMAND, "Find next", Keys.F3, "FindNextMenuIcon"));
+            _extraMenu.Commands.Add(new MenuCommand(REPLACE_COMMAND, "Replace...", Keys.Control | Keys.E));
             _extraMenu.Commands.Add(MenuCommand.Separator);
-            _extraMenu.Commands.Add(new MenuCommand(FIND_ALL_COMMAND, "Find All...", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift | System.Windows.Forms.Keys.F, "FindMenuIcon"));
-            _extraMenu.Commands.Add(new MenuCommand(REPLACE_ALL_COMMAND, "Replace All...", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift | System.Windows.Forms.Keys.E));
+            _extraMenu.Commands.Add(new MenuCommand(FIND_ALL_COMMAND, "Find All...", Keys.Control | Keys.Shift | Keys.F, "FindMenuIcon"));
+            _extraMenu.Commands.Add(new MenuCommand(REPLACE_ALL_COMMAND, "Replace All...", Keys.Control | Keys.Shift | Keys.E));
             _extraMenu.Commands.Add(MenuCommand.Separator);
-            _extraMenu.Commands.Add(new MenuCommand(SHOW_AUTOCOMPLETE_COMMAND, "Show Autocomplete", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Space, "ShowAutocompleteMenuIcon"));
-            _extraMenu.Commands.Add(new MenuCommand(MATCH_BRACE_COMMAND, "Match Brace", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.B));
-            _extraMenu.Commands.Add(new MenuCommand(GOTO_LINE_COMMAND, "Go to Line...", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.G));
+            _extraMenu.Commands.Add(new MenuCommand(SHOW_AUTOCOMPLETE_COMMAND, "Show Autocomplete", Keys.Control | Keys.Space, "ShowAutocompleteMenuIcon"));
+            _extraMenu.Commands.Add(new MenuCommand(MATCH_BRACE_COMMAND, "Match Brace", Keys.Control | Keys.B));
+            _extraMenu.Commands.Add(new MenuCommand(GOTO_LINE_COMMAND, "Go to Line...", Keys.Control | Keys.G));
             AddEditMenuCommands(_extraMenu);
 
             _toolbarIcons.Add(_menuCmdCut);

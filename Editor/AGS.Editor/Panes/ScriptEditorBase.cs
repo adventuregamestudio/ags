@@ -161,11 +161,11 @@ namespace AGS.Editor
             _extraMenu.Commands.Add(new MenuCommand(MATCH_BRACE_COMMAND, "Match Brace", Keys.Control | Keys.B));
             _extraMenu.Commands.Add(new MenuCommand(GOTO_LINE_COMMAND, "Go to Line...", Keys.Control | Keys.G));
 
-            _menuCmdGoToDefinition = new MenuCommand(GO_TO_DEFINITION_COMMAND, "Go To Definition", Keys.F12);
+            _menuCmdGoToDefinition = new MenuCommand(GO_TO_DEFINITION_COMMAND, "Go to Definition", Keys.F12);
             _menuCmdGoToDefinition.Enabled = false;
             _menuCmdFindAllUsages = new MenuCommand(FIND_ALL_USAGES_COMMAND, "Find All Usages", Keys.Shift | Keys.F12);
             _menuCmdFindAllUsages.Enabled = false;
-            _menuCmdGoToSprite = new MenuCommand(GO_TO_SPRITE_COMMAND, "Go To Sprite", Keys.Shift | Keys.F7);
+            _menuCmdGoToSprite = new MenuCommand(GO_TO_SPRITE_COMMAND, "Go to Sprite", Keys.Shift | Keys.F7);
             _menuCmdGoToSprite.Enabled = false;
 
             _extraMenu.Commands.Add(MenuCommand.Separator);

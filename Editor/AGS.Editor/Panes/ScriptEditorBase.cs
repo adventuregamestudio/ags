@@ -172,7 +172,6 @@ namespace AGS.Editor
             _extraMenu.Commands.Add(_menuCmdGoToDefinition);
             _extraMenu.Commands.Add(_menuCmdFindAllUsages);
             _extraMenu.Commands.Add(_menuCmdGoToSprite);
-            _extraMenu.Commands.Add(MenuCommand.Separator);
 
             AddEditMenuCommands(_extraMenu);
 

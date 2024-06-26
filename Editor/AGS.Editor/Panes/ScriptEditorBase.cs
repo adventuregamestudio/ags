@@ -31,10 +31,9 @@ namespace AGS.Editor
         private const string FIND_ALL_COMMAND = "ScriptFindAll";
         private const string REPLACE_ALL_COMMAND = "ScriptReplaceAll";
         private const string GOTO_LINE_COMMAND = "ScriptGotoLine";
-        // Common Context menu commands
-        private const string CONTEXT_MENU_GO_TO_DEFINITION = "CtxGoToDefiniton";
-        private const string CONTEXT_MENU_FIND_ALL_USAGES = "CtxFindAllUsages";
-        private const string CONTEXT_MENU_GO_TO_SPRITE = "CtxGoToSprite";
+        private const string GO_TO_DEFINITION_COMMAND = "ScriptGoToDefiniton";
+        private const string FIND_ALL_USAGES_COMMAND = "ScriptFindAllUsages";
+        private const string GO_TO_SPRITE_COMMAND = "ScriptGoToSprite";
 
         protected AGSEditor _agsEditor;
         // Loaded script reference, is assigned by the child class.
@@ -49,8 +48,14 @@ namespace AGS.Editor
         private MenuCommands _extraMenu = new MenuCommands("&Edit", GUIController.FILE_MENU_ID);
         private List<MenuCommand> _toolbarIcons = new List<MenuCommand>();
         // Menu item refs, for tracking their state
-        private MenuCommand _menuCmdUndo, _menuCmdRedo,
-            _menuCmdCut, _menuCmdCopy, _menuCmdPaste;
+        private MenuCommand _menuCmdUndo,
+             _menuCmdRedo,
+            _menuCmdCut,
+            _menuCmdCopy,
+            _menuCmdPaste,
+            _menuCmdGoToDefinition,
+            _menuCmdFindAllUsages,
+            _menuCmdGoToSprite;
 
         // Find/replace data
         // TODO: pick this out into a separate Find/Replace class?
@@ -155,6 +160,20 @@ namespace AGS.Editor
             _extraMenu.Commands.Add(new MenuCommand(SHOW_AUTOCOMPLETE_COMMAND, "Show Autocomplete", Keys.Control | Keys.Space, "ShowAutocompleteMenuIcon"));
             _extraMenu.Commands.Add(new MenuCommand(MATCH_BRACE_COMMAND, "Match Brace", Keys.Control | Keys.B));
             _extraMenu.Commands.Add(new MenuCommand(GOTO_LINE_COMMAND, "Go to Line...", Keys.Control | Keys.G));
+
+            _menuCmdGoToDefinition = new MenuCommand(GO_TO_DEFINITION_COMMAND, "Go To Definition", Keys.F12);
+            _menuCmdGoToDefinition.Enabled = false;
+            _menuCmdFindAllUsages = new MenuCommand(FIND_ALL_USAGES_COMMAND, "Find All Usages", Keys.Shift | Keys.F12);
+            _menuCmdFindAllUsages.Enabled = false;
+            _menuCmdGoToSprite = new MenuCommand(GO_TO_SPRITE_COMMAND, "Go To Sprite", Keys.Shift | Keys.F7);
+            _menuCmdGoToSprite.Enabled = false;
+
+            _extraMenu.Commands.Add(MenuCommand.Separator);
+            _extraMenu.Commands.Add(_menuCmdGoToDefinition);
+            _extraMenu.Commands.Add(_menuCmdFindAllUsages);
+            _extraMenu.Commands.Add(_menuCmdGoToSprite);
+            _extraMenu.Commands.Add(MenuCommand.Separator);
+
             AddEditMenuCommands(_extraMenu);
 
             _toolbarIcons.Add(_menuCmdCut);
@@ -228,8 +247,8 @@ namespace AGS.Editor
             }
             else if (IsContextCommand(command))
             {
-                if (command == CONTEXT_MENU_GO_TO_DEFINITION ||
-                    command == CONTEXT_MENU_FIND_ALL_USAGES)
+                if (command == GO_TO_DEFINITION_COMMAND ||
+                    command == FIND_ALL_USAGES_COMMAND)
                 {
                     string[] structAndMember = _goToDefinition.Split('.');
                     string structName = null;
@@ -240,7 +259,7 @@ namespace AGS.Editor
                         memberName = structAndMember[1];
                     }
 
-                    if (command == CONTEXT_MENU_GO_TO_DEFINITION)
+                    if (command == GO_TO_DEFINITION_COMMAND)
                     {
                         GoToDefinition(structName, memberName);
                     }
@@ -249,7 +268,7 @@ namespace AGS.Editor
                         FindAllUsages(structName, memberName);
                     }
                 }
-                else if (command == CONTEXT_MENU_GO_TO_SPRITE)
+                else if (command == GO_TO_SPRITE_COMMAND)
                 {
                     if (!Factory.Events.OnShowSpriteManager(_goToSprite.Value))
                     {
@@ -307,16 +326,23 @@ namespace AGS.Editor
         /// </summary>
         protected virtual void UpdateUICommands()
         {
+            UpdateScriptDocumentContext(_scintilla.CurrentPos);
+
             bool canCutAndCopy = _scintilla.CanCutAndCopy();
             bool canPaste = _scintilla.CanPaste();
             bool canUndo = _scintilla.CanUndo();
             bool canRedo = _scintilla.CanRedo();
+            bool canGoToDefinition = _goToDefinition != null;
+            bool canGoToSprite = _goToSprite != null;
 
             bool changed =
                 (_menuCmdCopy.Enabled != canCutAndCopy) ||
                 (_menuCmdPaste.Enabled != canPaste) ||
                 (_menuCmdUndo.Enabled != canUndo) ||
-                (_menuCmdRedo.Enabled != canRedo);
+                (_menuCmdRedo.Enabled != canRedo) ||
+                (_menuCmdGoToDefinition.Enabled != canGoToDefinition) ||
+                (_menuCmdFindAllUsages.Enabled != canGoToDefinition) ||
+                (_menuCmdGoToSprite.Enabled != canGoToSprite);
 
             if (changed)
             {
@@ -325,6 +351,9 @@ namespace AGS.Editor
                 _menuCmdPaste.Enabled = canPaste;
                 _menuCmdUndo.Enabled = canUndo;
                 _menuCmdRedo.Enabled = canRedo;
+                _menuCmdGoToDefinition.Enabled = _menuCmdFindAllUsages.Enabled = canGoToDefinition;
+                _menuCmdGoToSprite.Enabled = canGoToSprite;
+
                 Factory.ToolBarManager.RefreshCurrentPane();
                 Factory.MenuManager.RefreshCurrentPane();
             }
@@ -337,10 +366,10 @@ namespace AGS.Editor
 
         protected static bool IsContextCommand(string c)
         {
-            return (c == CONTEXT_MENU_GO_TO_DEFINITION) || (c == CONTEXT_MENU_FIND_ALL_USAGES) || (c == CONTEXT_MENU_GO_TO_SPRITE);
+            return (c == GO_TO_DEFINITION_COMMAND) || (c == FIND_ALL_USAGES_COMMAND) || (c == GO_TO_SPRITE_COMMAND);
         }
 
-        protected void UpdateScriptContext(int clickedPositionInDocument)
+        protected void UpdateScriptDocumentContext(int clickedPositionInDocument)
         {
             _goToSprite = null;
             _goToDefinition = null;
@@ -390,19 +419,22 @@ namespace AGS.Editor
             EventHandler onClick = new EventHandler(ContextMenuChooseOption);
             ToolStripMenuItem menuItem;
 
-            UpdateScriptContext(clickedPositionInDocument);
+            UpdateScriptDocumentContext(clickedPositionInDocument);
 
             string typeName = _goToDefinition != null ? (" of " +  _goToDefinition) : string.Empty;
 
-            menuItem = new ToolStripMenuItem("Go To Definition" + typeName, null, onClick, CONTEXT_MENU_GO_TO_DEFINITION);
+            menuItem = new ToolStripMenuItem(_menuCmdGoToDefinition.Name + typeName, null, onClick, GO_TO_DEFINITION_COMMAND);
+            menuItem.ShortcutKeys = _menuCmdGoToDefinition.ShortcutKey;
             menuItem.Enabled = (_goToDefinition != null);
             menuStrip.Items.Add(menuItem);
 
-            menuItem = new ToolStripMenuItem("Find All Usages" + typeName, null, onClick, CONTEXT_MENU_FIND_ALL_USAGES);
+            menuItem = new ToolStripMenuItem(_menuCmdFindAllUsages.Name + typeName, null, onClick, FIND_ALL_USAGES_COMMAND);
+            menuItem.ShortcutKeys = _menuCmdFindAllUsages.ShortcutKey;
             menuItem.Enabled = (_goToDefinition != null);
             menuStrip.Items.Add(menuItem);
 
-            menuItem = new ToolStripMenuItem("Go To Sprite " + (_goToSprite.HasValue ? _goToSprite.ToString() : ""), null, onClick, CONTEXT_MENU_GO_TO_SPRITE);
+            menuItem = new ToolStripMenuItem(_menuCmdGoToSprite.Name + (_goToSprite.HasValue ? " " + _goToSprite.ToString() : ""), null, onClick, GO_TO_SPRITE_COMMAND);
+            menuItem.ShortcutKeys = _menuCmdGoToSprite.ShortcutKey;
             menuItem.Enabled = (_goToSprite != null);
             menuStrip.Items.Add(menuItem);
 

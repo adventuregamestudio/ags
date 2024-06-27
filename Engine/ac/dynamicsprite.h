@@ -41,7 +41,7 @@ void	DynamicSprite_Rotate(ScriptDynamicSprite *sds, int angle, int width, int he
 void	DynamicSprite_Tint(ScriptDynamicSprite *sds, int red, int green, int blue, int saturation, int luminance);
 int		DynamicSprite_SaveToFile(ScriptDynamicSprite *sds, const char* namm);
 ScriptDynamicSprite* DynamicSprite_CreateFromSaveGame(int sgslot, int width, int height);
-ScriptDynamicSprite* DynamicSprite_CreateFromFile(const char *filename);
+ScriptDynamicSprite* DynamicSprite_CreateFromFile(const char *filename, int color_fmt);
 ScriptDynamicSprite* DynamicSprite_CreateFromScreenShot(int width, int height);
 ScriptDynamicSprite* DynamicSprite_CreateFromExistingSprite(int slot, int color_fmt);
 ScriptDynamicSprite* DynamicSprite_CreateFromDrawingSurface(ScriptDrawingSurface *sds, int x, int y, int width, int height, int color_fmt);

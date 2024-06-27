@@ -271,7 +271,7 @@ ScriptDynamicSprite* DynamicSprite_CreateFromSaveGame(int sgslot, int width, int
     return new ScriptDynamicSprite(new_slot);
 }
 
-ScriptDynamicSprite* DynamicSprite_CreateFromFile(const char *filename)
+ScriptDynamicSprite* DynamicSprite_CreateFromFile(const char *filename, int color_fmt)
 {
     if (!spriteset.HasFreeSlots())
         return nullptr;
@@ -282,11 +282,13 @@ ScriptDynamicSprite* DynamicSprite_CreateFromFile(const char *filename)
         return nullptr;
 
     String ext = Path::GetFileExtension(filename);
-    std::unique_ptr<Bitmap> image(BitmapHelper::LoadBitmap(in.get(), ext));
+    int dst_color_depth = ValidateColorFormat("DynamicSprite.Create", static_cast<ScriptColorFormat>(color_fmt));
+    std::unique_ptr<Bitmap> image(BitmapHelper::LoadBitmap(in.get(), ext, dst_color_depth));
     if (!image)
         return nullptr;
 
-    image.reset(PrepareSpriteForUse(image.release(), false));
+    image.reset(PrepareSpriteForUse(image.release(), false /* not force opaque */));
+
     int new_slot = add_dynamic_sprite(std::move(image));
     if (new_slot <= 0)
         return nullptr; // something went wrong
@@ -595,7 +597,7 @@ RuntimeScriptValue Sc_DynamicSprite_CreateFromExistingSprite(const RuntimeScript
 // ScriptDynamicSprite* (const char *filename)
 RuntimeScriptValue Sc_DynamicSprite_CreateFromFile(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_OBJAUTO_POBJ(ScriptDynamicSprite, DynamicSprite_CreateFromFile, const char);
+    API_SCALL_OBJAUTO_POBJ_PINT(ScriptDynamicSprite, DynamicSprite_CreateFromFile, const char);
 }
 
 // ScriptDynamicSprite* (int sgslot, int width, int height)
@@ -619,7 +621,7 @@ void RegisterDynamicSpriteAPI()
         { "DynamicSprite::CreateFromBackground",      API_FN_PAIR(DynamicSprite_CreateFromBackground) },
         { "DynamicSprite::CreateFromDrawingSurface^6", API_FN_PAIR(DynamicSprite_CreateFromDrawingSurface) },
         { "DynamicSprite::CreateFromExistingSprite^2", API_FN_PAIR(DynamicSprite_CreateFromExistingSprite) },
-        { "DynamicSprite::CreateFromFile",            API_FN_PAIR(DynamicSprite_CreateFromFile) },
+        { "DynamicSprite::CreateFromFile^2",          API_FN_PAIR(DynamicSprite_CreateFromFile) },
         { "DynamicSprite::CreateFromSaveGame",        API_FN_PAIR(DynamicSprite_CreateFromSaveGame) },
         { "DynamicSprite::CreateFromScreenShot",      API_FN_PAIR(DynamicSprite_CreateFromScreenShot) },
         { "DynamicSprite::ChangeCanvasSize^4",        API_FN_PAIR(DynamicSprite_ChangeCanvasSize) },

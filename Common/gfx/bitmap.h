@@ -85,12 +85,12 @@ namespace BitmapHelper
         const uint8_t *pixels, const int src_col_depth, const int src_pitch);
 
     // Load a bitmap from file; supported formats currently are: BMP, PCX.
-	Bitmap *LoadFromFile(const char *filename);
-    inline Bitmap *LoadFromFile(const String &filename) { return LoadFromFile(filename.GetCStr()); }
+    Bitmap *LoadFromFile(const char *filename, int dst_color_depth = 0);
+    inline Bitmap *LoadFromFile(const String &filename, int dst_color_depth = 0) { return LoadFromFile(filename.GetCStr(), dst_color_depth); }
     // Write a bitmap into a file; supported formats currently are: BMP, PCX.
     bool SaveToFile(Bitmap* bmp, const char *filename, const RGB *pal = nullptr);
     // Reads a bitmap from the stream, possibly with palette
-    Bitmap *LoadBitmap(Stream *in, const String& ext, RGB *pal = nullptr);
+    Bitmap *LoadBitmap(Stream *in, const String& ext, int dst_color_depth = 0, RGB *pal = nullptr);
     // Write a bitmap to the stream, optionally along with the palette
     bool SaveBitmap(const Bitmap *bmp, const RGB* pal, Stream *out, const String& ext);
 

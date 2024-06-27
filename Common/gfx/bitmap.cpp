@@ -111,14 +111,14 @@ Bitmap *CreateBitmapFromPixels(int width, int height, int dst_color_depth,
     return bitmap.release();
 }
 
-Bitmap *LoadFromFile(const char *filename)
+Bitmap *LoadFromFile(const char *filename, int dst_color_depth)
 {
     std::unique_ptr<Stream> in (
             File::OpenFile(filename, FileOpenMode::kFile_Open, StreamMode::kStream_Read));
     if(!in)
         return nullptr;
 
-    return BitmapHelper::LoadBitmap(in.get(), Path::GetFileExtension(filename), nullptr);
+    return BitmapHelper::LoadBitmap(in.get(), Path::GetFileExtension(filename), dst_color_depth, nullptr);
 }
 
 Bitmap *AdjustBitmapSize(Bitmap *src, int width, int height)
@@ -343,16 +343,16 @@ int color_load_depth(int bmp_depth, int current_depth, bool hasalpha)
     return 0;
 }
 
-// Converts loaded bitmap to the default color depth,
+// Converts loaded bitmap to the requested color depth,
 // optionally fixups color palette
-static Bitmap *BitmapColorDepthFixup(RGB *pal, bool want_palette, Bitmap *bmp)
+static Bitmap *BitmapColorDepthFixup(Bitmap *bmp, int dst_color_depth, RGB *pal)
 {
     int bmp_depth = bmp->GetColorDepth();
-    int dest_depth = color_load_depth(bmp_depth, get_color_depth(), false);
+    int dest_depth = color_load_depth(bmp_depth, dst_color_depth > 0 ? dst_color_depth : bmp->GetColorDepth(), false);
     if (dest_depth != bmp_depth)
     {
         /* restore original palette except if it comes from the bitmap */
-        if ((bmp_depth != 8) && (!want_palette))
+        if (bmp_depth != 8)
             pal = nullptr;
 
         BITMAP *al_bmp = fixup_loaded_bitmap(bmp->GetAllegroBitmap(), pal, dest_depth);
@@ -363,16 +363,15 @@ static Bitmap *BitmapColorDepthFixup(RGB *pal, bool want_palette, Bitmap *bmp)
     }
 
     /* construct a fake palette if 8-bit mode is not involved */
-    if ((bmp_depth != 8) && (dest_depth != 8) && want_palette)
+    if ((bmp_depth != 8) && (dest_depth != 8) && pal)
         generate_332_palette(pal);
 
     return bmp;
 }
 
-Bitmap* LoadBitmap(Stream *in, const String& ext, RGB *pal)
+Bitmap* LoadBitmap(Stream *in, const String& ext, int dst_color_depth, RGB *pal)
 {
     PALETTE tmppal;
-    bool want_palette = pal != nullptr;
     /* we really need a palette */
     if (!pal)
         pal = tmppal;
@@ -384,7 +383,7 @@ Bitmap* LoadBitmap(Stream *in, const String& ext, RGB *pal)
     if (!bmp)
         return nullptr;
     // Perform color depth and palette fixups
-    Bitmap *fixed_bmp = BitmapColorDepthFixup(pal, want_palette, bmp);
+    Bitmap *fixed_bmp = BitmapColorDepthFixup(bmp, dst_color_depth, pal);
     if (fixed_bmp != bmp)
         delete bmp;
     return fixed_bmp;

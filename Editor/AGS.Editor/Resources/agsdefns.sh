@@ -1104,7 +1104,7 @@ builtin managed struct DynamicSprite {
   /// Creates a dynamic sprite as a copy of an existing sprite.
   import static DynamicSprite* CreateFromExistingSprite(int slot, ColorFormat format = eColorFmt_Default); // $AUTOCOMPLETESTATICONLY$
   /// Creates a dynamic sprite from a BMP or PCX file.
-  import static DynamicSprite* CreateFromFile(const string filename);              // $AUTOCOMPLETESTATICONLY$
+  import static DynamicSprite* CreateFromFile(const string filename, ColorFormat format = eColorFmt_Default); // $AUTOCOMPLETESTATICONLY$
   /// Creates a dynamic sprite from a save game screenshot.
   import static DynamicSprite* CreateFromSaveGame(int slot, int width, int height);  // $AUTOCOMPLETESTATICONLY$
   /// Creates a dynamic sprite as a copy of the current screen.

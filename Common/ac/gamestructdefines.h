@@ -218,11 +218,12 @@ struct SpriteInfo
 {
     int      Width = 0;
     int      Height = 0;
+    int      ColorDepth = 0;
     uint32_t Flags = 0u; // SPF_* flags
 
     SpriteInfo() = default;
-    SpriteInfo(int w, int h, uint32_t flags)
-        : Width(w), Height(h), Flags(flags) {}
+    SpriteInfo(int w, int h, int color_depth, uint32_t flags)
+        : Width(w), Height(h), ColorDepth(color_depth), Flags(flags) {}
 
     inline Size GetResolution() const { return Size(Width, Height); }
     // Gets if sprite is created at runtime (by engine, or a script command)

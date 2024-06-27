@@ -2497,6 +2497,8 @@ builtin struct Game {
 #ifdef SCRIPT_API_v400
   /// Gets/sets the default y/x ratio of character's facing directions, determining directional loop selection for all Characters in game.
   import static attribute float FaceDirectionRatio;
+  /// Gets the color depth of the specified sprite.
+  readonly import static attribute int SpriteColorDepth[];
 #endif
 };
 

@@ -103,7 +103,7 @@ bool SpriteCache::SetSprite(sprkey_t index, std::unique_ptr<Bitmap> image, int f
     }
 
     const int spf_flags = flags;
-    _sprInfos[index] = SpriteInfo(image->GetWidth(), image->GetHeight(), spf_flags);
+    _sprInfos[index] = SpriteInfo(image->GetWidth(), image->GetHeight(), image->GetColorDepth(), spf_flags);
     _spriteData[index].Flags = SPRCACHEFLAG_EXTERNAL | SPRCACHEFLAG_LOCKED; // NOT from asset file
     Put(index, std::move(image), kCacheItem_External | kCacheItem_Locked);
     SprCacheLog("SetSprite: (external) %d", index);
@@ -343,6 +343,7 @@ Bitmap *SpriteCache::LoadSprite(sprkey_t index, bool lock)
     // save the stored sprite info
     _sprInfos[index].Width = image->GetWidth();
     _sprInfos[index].Height = image->GetHeight();
+    _sprInfos[index].ColorDepth = image->GetColorDepth();
 
     // Add to the cache, lock if requested or if it's sprite 0
     const bool should_lock = lock || (index == 0);
@@ -362,7 +363,7 @@ Bitmap *SpriteCache::LoadSprite(sprkey_t index, bool lock)
 void SpriteCache::RemapSpriteToPlaceholder(sprkey_t index)
 {
     assert((index > 0) && ((size_t)index < _spriteData.size()));
-    _sprInfos[index] = SpriteInfo(_placeholder->GetWidth(), _placeholder->GetHeight(), _placeholder->GetColorDepth());
+    _sprInfos[index] = SpriteInfo(_placeholder->GetWidth(), _placeholder->GetHeight(), _placeholder->GetColorDepth(), 0);
     _spriteData[index].Flags |= SPRCACHEFLAG_ERROR;
     SprCacheLog("RemapSpriteToPlaceholder: %d", index);
 }

@@ -2799,18 +2799,12 @@ builtin managed struct Pathfinder {
   import Point* Trace(int srcx, int srcy, int dstx, int dsty);
 };
 
-/*
-// FIXME
-// MaskPathfinder is disabled in script API until AGS supports creation of
-// 8-bit dynamic sprites in 32-bit games.
-
 builtin managed struct MaskPathfinder extends Pathfinder {
   /// Creates a new MaskPathfinder, initialized with the given 8-bit mask sprite
   import static MaskPathfinder* Create(int mask_sprite);  // $AUTOCOMPLETESTATICONLY$
   /// Assigns a new mask to this MaskPathfinder
   import void SetMask(int mask_sprite);
 };
-*/
 
 #endif
 

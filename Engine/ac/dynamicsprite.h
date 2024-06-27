@@ -17,6 +17,15 @@
 #include "ac/dynobj/scriptdynamicsprite.h"
 #include "ac/dynobj/scriptdrawingsurface.h"
 
+enum ScriptColorFormat
+{
+    kScColorFmt_Default = 0,
+    kScColorFmt_8bit    = 8
+};
+
+// Validates color format requested by user script, and returns a compatible color depth value
+int     ValidateColorFormat(const char *api_name, ScriptColorFormat color_format);
+
 void	DynamicSprite_Delete(ScriptDynamicSprite *sds);
 ScriptDrawingSurface* DynamicSprite_GetDrawingSurface(ScriptDynamicSprite *dss);
 int		DynamicSprite_GetGraphic(ScriptDynamicSprite *sds);
@@ -34,9 +43,9 @@ int		DynamicSprite_SaveToFile(ScriptDynamicSprite *sds, const char* namm);
 ScriptDynamicSprite* DynamicSprite_CreateFromSaveGame(int sgslot, int width, int height);
 ScriptDynamicSprite* DynamicSprite_CreateFromFile(const char *filename);
 ScriptDynamicSprite* DynamicSprite_CreateFromScreenShot(int width, int height);
-ScriptDynamicSprite* DynamicSprite_CreateFromExistingSprite(int slot, int format = 0);
-ScriptDynamicSprite* DynamicSprite_CreateFromDrawingSurface(ScriptDrawingSurface *sds, int x, int y, int width, int height);
-ScriptDynamicSprite* DynamicSprite_Create(int width, int height, int format = 0);
+ScriptDynamicSprite* DynamicSprite_CreateFromExistingSprite(int slot, int color_fmt);
+ScriptDynamicSprite* DynamicSprite_CreateFromDrawingSurface(ScriptDrawingSurface *sds, int x, int y, int width, int height, int color_fmt);
+ScriptDynamicSprite* DynamicSprite_Create(int width, int height, int color_fmt);
 ScriptDynamicSprite* DynamicSprite_CreateFromBackground(int frame, int x1, int y1, int width, int height);
 
 // Registers a new dynamic sprite, and returns a slot number;

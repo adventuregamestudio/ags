@@ -48,7 +48,7 @@
 #define OPT_NOLOSEINV       15
 #define OPT_HIRES_FONTS     16
 #define OPT_SPLITRESOURCES  17
-#define OPT_ROTATECHARS     18
+#define OPT_CHARTURNWHENWALK 18 // characters turn step-by-step when changing walking direction
 #define OPT_FADETYPE        19
 #define OPT_HANDLEINVCLICKS 20
 #define OPT_MOUSEWHEEL      21
@@ -57,7 +57,7 @@
 #define OPT_CROSSFADEMUSIC  24
 #define OPT_ANTIALIASFONTS  25
 #define OPT_THOUGHTGUI      26
-#define OPT_TURNTOFACELOC   27
+#define OPT_CHARTURNWHENFACE 27  // characters turn step-by-step when facing new standing direction
 #define OPT_RIGHTLEFTWRITE  28  // right-to-left text writing
 #define OPT_DUPLICATEINV    29  // if they have 2 of the item, draw it twice
 #define OPT_SAVESCREENSHOT  30

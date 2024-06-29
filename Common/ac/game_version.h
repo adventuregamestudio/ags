@@ -118,6 +118,8 @@ In RTL mode all text is reversed, not only wrappable (labels etc).
 Disabled automatic SetRestartPoint.
 3.6.1.14:
 Extended game object names, resolving hard length limits.
+3.6.2:
+CHF_TURNWHENFACE flag.
 
 */
 
@@ -159,7 +161,8 @@ enum GameDataVersion
     kGameVersion_361            = 3060100,
     kGameVersion_361_10         = 3060110,
     kGameVersion_361_14         = 3060114,
-    kGameVersion_Current        = kGameVersion_361_14
+    kGameVersion_362            = 3060200,
+    kGameVersion_Current        = kGameVersion_362
 };
 
 // Data format version of the loaded game

@@ -26,13 +26,17 @@ using namespace AGS; // FIXME later
 // Max inventory items in character's inventory
 #define MAX_INV             301
 // Character flags
+// NOTE: flag meaning is inconsistent: some of them have positive (DO) meaning,
+// some older ones have negative (DON'T). TODO: bring them to consistency someday,
+// but remember that this involves updating game file formats and converting
+// after loading game data and restoring older saves.
 #define CHF_MANUALSCALING   1        // Use explicit scaling property rather than area parameters
 #define CHF_FIXVIEW         2        // View locked
 #define CHF_NOINTERACT      4        // Non-interactable (non-clickable)
 #define CHF_NODIAGONAL      8        // Don't use diagonal walking loops
 #define CHF_ALWAYSIDLE      0x10     // [UNUSED] meaning unknown
 #define CHF_NOLIGHTING      0x20     // Ignore Region lighting
-#define CHF_NOTURNING       0x40     // Do not turn step-by-step when walking
+#define CHF_NOTURNWHENWALK  0x40     // Do not turn step-by-step when walking
 #define CHF_NOWALKBEHINDS   0x80     // Ignore walk-behinds (always draw above)
 #define CHF_FLIPSPRITE      0x100    // [UNUSED] meaning unknown
 #define CHF_NOBLOCKING      0x200    // Not solid
@@ -46,6 +50,7 @@ using namespace AGS; // FIXME later
 #define CHF_ANTIGLIDE       0x20000  // Link movement to animation
 #define CHF_HASLIGHT        0x40000  // Use explicit lighting rather than region lighting
 #define CHF_TINTLIGHTMASK   (CHF_NOLIGHTING | CHF_HASTINT | CHF_HASLIGHT)
+#define CHF_TURNWHENFACE    0x80000  // Turn step-by-step when changing standing direction
 // Pre-v2.5 bit mask for when the speechcolor was stored in character flags
 #define OCHF_SPEECHCOL      0xff000000
 #define OCHF_SPEECHCOLSHIFT 24

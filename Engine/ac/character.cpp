@@ -401,7 +401,7 @@ void FaceDirectionalLoop(CharacterInfo *char1, int direction, int blockingStyle)
     // Change facing only if the desired direction is different
     if (direction != char1->loop)
     {
-        if ((game.options[OPT_TURNTOFACELOC] != 0) &&
+        if ((game.options[OPT_CHARTURNWHENFACE] != 0) && ((char1->flags & CHF_TURNWHENFACE) != 0) &&
             (in_enters_screen == 0))
         {
             const int no_diagonal = useDiagonal (char1);
@@ -1618,17 +1618,16 @@ void Character_SetTransparency(CharacterInfo *chaa, int trans) {
 }
 
 int Character_GetTurnBeforeWalking(CharacterInfo *chaa) {
-
-    if (chaa->flags & CHF_NOTURNING)
-        return 0;
-    return 1;  
+    // NOTE: this flag has inverse meaning
+    return ((chaa->flags & CHF_NOTURNWHENWALK) != 0) ? 0 : 1;
 }
 
-void Character_SetTurnBeforeWalking(CharacterInfo *chaa, int yesorno) {
-
-    chaa->flags &= ~CHF_NOTURNING;
-    if (!yesorno)
-        chaa->flags |= CHF_NOTURNING;
+void Character_SetTurnBeforeWalking(CharacterInfo *chaa, int on) {
+    // NOTE: this flag has inverse meaning
+    if (on)
+        chaa->flags &= ~CHF_NOTURNWHENWALK;
+    else
+        chaa->flags |= CHF_NOTURNWHENWALK;
 }
 
 int Character_GetView(CharacterInfo *chaa) {
@@ -1867,7 +1866,7 @@ void fix_player_sprite(MoveList*cmls,CharacterInfo*chinf) {
 
     const int useloop = GetDirectionalLoop(chinf, xpmove, ypmove);
 
-    if ((game.options[OPT_ROTATECHARS] == 0) || ((chinf->flags & CHF_NOTURNING) != 0)) {
+    if ((game.options[OPT_CHARTURNWHENWALK] == 0) || ((chinf->flags & CHF_NOTURNWHENWALK) != 0)) {
         chinf->loop = useloop;
         return;
     }

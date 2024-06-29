@@ -3156,8 +3156,8 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 	game->Settings->SplitResources = thisgame.options[OPT_SPLITRESOURCES];
 	game->Settings->TextWindowGUI = thisgame.options[OPT_TWCUSTOM];
 	game->Settings->ThoughtGUI = thisgame.options[OPT_THOUGHTGUI];
-	game->Settings->TurnBeforeFacing = (thisgame.options[OPT_TURNTOFACELOC] != 0);
-	game->Settings->TurnBeforeWalking = (thisgame.options[OPT_ROTATECHARS] != 0);
+	game->Settings->TurnBeforeFacing = (thisgame.options[OPT_CHARTURNWHENFACE] != 0);
+	game->Settings->TurnBeforeWalking = (thisgame.options[OPT_CHARTURNWHENWALK] != 0);
 	game->Settings->WalkInLookMode = (thisgame.options[OPT_WALKONLOOK] != 0);
 	game->Settings->WhenInterfaceDisabled = (InterfaceDisabledAction)thisgame.options[OPT_DISABLEOFF];
 	game->Settings->UniqueID = thisgame.uniqueid;
@@ -3273,7 +3273,8 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 		character->StartX = thisgame.chars[i].x;
 		character->StartY = thisgame.chars[i].y;
     character->ThinkingView = (thisgame.chars[i].thinkview < 1) ? 0 : (thisgame.chars[i].thinkview + 1);
-		character->TurnBeforeWalking = !(thisgame.chars[i].flags & CHF_NOTURNING);
+		character->TurnBeforeWalking = !(thisgame.chars[i].flags & CHF_NOTURNWHENWALK);
+        character->TurnWhenFacing = (thisgame.chars[i].flags & CHF_TURNWHENFACE) != 0;
 		character->UniformMovementSpeed = (thisgame.chars[i].walkspeed_y == UNIFORM_WALK_SPEED);
 		character->UseRoomAreaLighting = !(thisgame.chars[i].flags & CHF_NOLIGHTING);
 		character->UseRoomAreaScaling = !(thisgame.chars[i].flags & CHF_MANUALSCALING);

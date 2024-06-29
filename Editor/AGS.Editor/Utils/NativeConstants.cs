@@ -22,11 +22,12 @@ namespace AGS.Editor
         public static readonly int CHF_NOINTERACT = (int)Factory.NativeProxy.GetNativeConstant("CHF_NOINTERACT");
         public static readonly int CHF_NODIAGONAL = (int)Factory.NativeProxy.GetNativeConstant("CHF_NODIAGONAL");
         public static readonly int CHF_NOLIGHTING = (int)Factory.NativeProxy.GetNativeConstant("CHF_NOLIGHTING");
-        public static readonly int CHF_NOTURNING = (int)Factory.NativeProxy.GetNativeConstant("CHF_NOTURNING");
+        public static readonly int CHF_NOTURNWHENWALK = (int)Factory.NativeProxy.GetNativeConstant("CHF_NOTURNWHENWALK");
         public static readonly int CHF_NOBLOCKING = (int)Factory.NativeProxy.GetNativeConstant("CHF_NOBLOCKING");
         public static readonly int CHF_SCALEMOVESPEED = (int)Factory.NativeProxy.GetNativeConstant("CHF_SCALEMOVESPEED");
         public static readonly int CHF_SCALEVOLUME = (int)Factory.NativeProxy.GetNativeConstant("CHF_SCALEVOLUME");
         public static readonly int CHF_ANTIGLIDE = (int)Factory.NativeProxy.GetNativeConstant("CHF_ANTIGLIDE");
+        public static readonly int CHF_TURNWHENFACE = (int)Factory.NativeProxy.GetNativeConstant("CHF_TURNWHENFACE");
         public static readonly int DFLG_ON = (int)Factory.NativeProxy.GetNativeConstant("DFLG_ON");
         public static readonly int DFLG_NOREPEAT = (int)Factory.NativeProxy.GetNativeConstant("DFLG_NOREPEAT");
         public static readonly int DTFLG_SHOWPARSER = (int)Factory.NativeProxy.GetNativeConstant("DTFLG_SHOWPARSER");
@@ -100,7 +101,7 @@ namespace AGS.Editor
             public static readonly int OPT_FIXEDINVCURSOR = (int)Factory.NativeProxy.GetNativeConstant("OPT_FIXEDINVCURSOR");
             public static readonly int OPT_HIRES_FONTS = (int)Factory.NativeProxy.GetNativeConstant("OPT_HIRES_FONTS");
             public static readonly int OPT_SPLITRESOURCES = (int)Factory.NativeProxy.GetNativeConstant("OPT_SPLITRESOURCES");
-            public static readonly int OPT_ROTATECHARS = (int)Factory.NativeProxy.GetNativeConstant("OPT_ROTATECHARS");
+            public static readonly int OPT_CHARTURNWHENWALK = (int)Factory.NativeProxy.GetNativeConstant("OPT_CHARTURNWHENWALK");
             public static readonly int OPT_FADETYPE = (int)Factory.NativeProxy.GetNativeConstant("OPT_FADETYPE");
             public static readonly int OPT_HANDLEINVCLICKS = (int)Factory.NativeProxy.GetNativeConstant("OPT_HANDLEINVCLICKS");
             public static readonly int OPT_MOUSEWHEEL = (int)Factory.NativeProxy.GetNativeConstant("OPT_MOUSEWHEEL");
@@ -108,7 +109,7 @@ namespace AGS.Editor
             public static readonly int OPT_DIALOGUPWARDS = (int)Factory.NativeProxy.GetNativeConstant("OPT_DIALOGUPWARDS");
             public static readonly int OPT_ANTIALIASFONTS = (int)Factory.NativeProxy.GetNativeConstant("OPT_ANTIALIASFONTS");
             public static readonly int OPT_THOUGHTGUI = (int)Factory.NativeProxy.GetNativeConstant("OPT_THOUGHTGUI");
-            public static readonly int OPT_TURNTOFACELOC = (int)Factory.NativeProxy.GetNativeConstant("OPT_TURNTOFACELOC");
+            public static readonly int OPT_CHARTURNWHENFACE = (int)Factory.NativeProxy.GetNativeConstant("OPT_CHARTURNWHENFACE");
             public static readonly int OPT_RIGHTLEFTWRITE = (int)Factory.NativeProxy.GetNativeConstant("OPT_RIGHTLEFTWRITE");
             public static readonly int OPT_DUPLICATEINV = (int)Factory.NativeProxy.GetNativeConstant("OPT_DUPLICATEINV");
             public static readonly int OPT_SAVESCREENSHOT = (int)Factory.NativeProxy.GetNativeConstant("OPT_SAVESCREENSHOT");

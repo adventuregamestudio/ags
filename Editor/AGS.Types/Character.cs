@@ -40,6 +40,7 @@ namespace AGS.Types
         private bool _useRoomAreaScaling = true;
         private bool _useRoomAreaLighting = true;
         private bool _turnBeforeWalking = true;
+        private bool _turnWhenFacing = true;
         private bool _diagonalLoops = true;
         private bool _adjustSpeedWithScaling;
         private bool _adjustVolumeWithScaling;
@@ -292,12 +293,20 @@ namespace AGS.Types
             set { _useRoomAreaLighting = value; }
         }
 
-        [Description("Whether the character will turn to face their new direction before walking")]
+        [Description("Whether the character will turn on the spot to face their new direction before walking")]
         [Category("Movement")]
         public bool TurnBeforeWalking
         {
             get { return _turnBeforeWalking; }
             set { _turnBeforeWalking = value; }
+        }
+
+        [Description("Whether the character will turn on the spot to face the new standing direction")]
+        [Category("Movement")]
+        public bool TurnWhenFacing
+        {
+            get { return _turnWhenFacing; }
+            set { _turnWhenFacing = value; }
         }
 
         [Description("Specifies that the walking view is using loops 4-7 for diagonal directions")]

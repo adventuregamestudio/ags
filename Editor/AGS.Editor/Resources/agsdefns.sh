@@ -2808,6 +2808,8 @@ builtin managed struct Character {
 #ifdef SCRIPT_API_v362
   /// Moves the character in a straight line as far as possible towards the co-ordinates, without walking animation. Useful for keyboard movement.
   import function MoveStraight(int x, int y, BlockingStyle=eNoBlock);
+  /// Gets/sets whether the character turns on the spot when ordered to face the new standing direction.
+  import attribute bool TurnWhenFacing;
 #endif
 #ifdef STRICT
   /// The character's current X-position.

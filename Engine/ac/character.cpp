@@ -1629,6 +1629,17 @@ void Character_SetTurnBeforeWalking(CharacterInfo *chaa, int on) {
         chaa->flags |= CHF_NOTURNWHENWALK;
 }
 
+int Character_GetTurnBeforeFacing(CharacterInfo *chaa) {
+    return ((chaa->flags & CHF_TURNWHENSTAND) != 0) ? 1 : 0;
+}
+
+void Character_SetTurnBeforeFacing(CharacterInfo *chaa, int on) {
+    if (on)
+        chaa->flags |= CHF_TURNWHENSTAND;
+    else
+        chaa->flags &= ~CHF_TURNWHENSTAND;
+}
+
 int Character_GetView(CharacterInfo *chaa) {
     return chaa->view + 1;
 }
@@ -3884,6 +3895,16 @@ RuntimeScriptValue Sc_Character_SetTurnBeforeWalking(void *self, const RuntimeSc
     API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetTurnBeforeWalking);
 }
 
+RuntimeScriptValue Sc_Character_GetTurnBeforeFacing (void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(CharacterInfo, Character_GetTurnBeforeFacing );
+}
+
+RuntimeScriptValue Sc_Character_SetTurnBeforeFacing (void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetTurnBeforeFacing);
+}
+
 // int (CharacterInfo *chaa)
 RuntimeScriptValue Sc_Character_GetView(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -4105,6 +4126,8 @@ void RegisterCharacterAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_a
         { "Character::set_Transparency",          API_FN_PAIR(Character_SetTransparency) },
         { "Character::get_TurnBeforeWalking",     API_FN_PAIR(Character_GetTurnBeforeWalking) },
         { "Character::set_TurnBeforeWalking",     API_FN_PAIR(Character_SetTurnBeforeWalking) },
+        { "Character::get_TurnBeforeFacing ",     API_FN_PAIR(Character_GetTurnBeforeFacing ) },
+        { "Character::set_TurnBeforeFacing ",     API_FN_PAIR(Character_SetTurnBeforeFacing ) },
         { "Character::get_View",                  API_FN_PAIR(Character_GetView) },
         { "Character::get_WalkSpeedX",            API_FN_PAIR(Character_GetWalkSpeedX) },
         { "Character::get_WalkSpeedY",            API_FN_PAIR(Character_GetWalkSpeedY) },

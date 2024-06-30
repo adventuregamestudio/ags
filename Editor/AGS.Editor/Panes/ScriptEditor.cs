@@ -136,6 +136,7 @@ namespace AGS.Editor
 
         protected override void AddEditMenuCommands(MenuCommands commands)
         {
+            commands.Commands.Add(MenuCommand.Separator);
             commands.Commands.Add(new MenuCommand(TOGGLE_BREAKPOINT_COMMAND, "Toggle Breakpoint", Keys.F9, "ToggleBreakpointMenuIcon"));
             commands.Commands.Add(new MenuCommand(SHOW_MATCHING_SCRIPT_OR_HEADER_COMMAND, "Switch to Matching Script or Header", Keys.Control | Keys.M));
         }

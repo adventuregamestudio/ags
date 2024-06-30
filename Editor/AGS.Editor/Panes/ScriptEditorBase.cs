@@ -31,10 +31,9 @@ namespace AGS.Editor
         private const string FIND_ALL_COMMAND = "ScriptFindAll";
         private const string REPLACE_ALL_COMMAND = "ScriptReplaceAll";
         private const string GOTO_LINE_COMMAND = "ScriptGotoLine";
-        // Common Context menu commands
-        private const string CONTEXT_MENU_GO_TO_DEFINITION = "CtxGoToDefiniton";
-        private const string CONTEXT_MENU_FIND_ALL_USAGES = "CtxFindAllUsages";
-        private const string CONTEXT_MENU_GO_TO_SPRITE = "CtxGoToSprite";
+        private const string GO_TO_DEFINITION_COMMAND = "ScriptGoToDefiniton";
+        private const string FIND_ALL_USAGES_COMMAND = "ScriptFindAllUsages";
+        private const string GO_TO_SPRITE_COMMAND = "ScriptGoToSprite";
 
         protected AGSEditor _agsEditor;
         // Loaded script reference, is assigned by the child class.
@@ -49,8 +48,14 @@ namespace AGS.Editor
         private MenuCommands _extraMenu = new MenuCommands("&Edit", GUIController.FILE_MENU_ID);
         private List<MenuCommand> _toolbarIcons = new List<MenuCommand>();
         // Menu item refs, for tracking their state
-        private MenuCommand _menuCmdUndo, _menuCmdRedo,
-            _menuCmdCut, _menuCmdCopy, _menuCmdPaste;
+        private MenuCommand _menuCmdUndo,
+             _menuCmdRedo,
+            _menuCmdCut,
+            _menuCmdCopy,
+            _menuCmdPaste,
+            _menuCmdGoToDefinition,
+            _menuCmdFindAllUsages,
+            _menuCmdGoToSprite;
 
         // Find/replace data
         // TODO: pick this out into a separate Find/Replace class?
@@ -145,16 +150,29 @@ namespace AGS.Editor
             _extraMenu.Commands.Add(_menuCmdCopy);
             _extraMenu.Commands.Add(_menuCmdPaste);
             _extraMenu.Commands.Add(MenuCommand.Separator);
-            _extraMenu.Commands.Add(new MenuCommand(FIND_COMMAND, "Find...", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.F, "FindMenuIcon"));
-            _extraMenu.Commands.Add(new MenuCommand(FIND_NEXT_COMMAND, "Find next", System.Windows.Forms.Keys.F3, "FindNextMenuIcon"));
-            _extraMenu.Commands.Add(new MenuCommand(REPLACE_COMMAND, "Replace...", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.E));
+            _extraMenu.Commands.Add(new MenuCommand(FIND_COMMAND, "Find...", Keys.Control | Keys.F, "FindMenuIcon"));
+            _extraMenu.Commands.Add(new MenuCommand(FIND_NEXT_COMMAND, "Find next", Keys.F3, "FindNextMenuIcon"));
+            _extraMenu.Commands.Add(new MenuCommand(REPLACE_COMMAND, "Replace...", Keys.Control | Keys.E));
             _extraMenu.Commands.Add(MenuCommand.Separator);
-            _extraMenu.Commands.Add(new MenuCommand(FIND_ALL_COMMAND, "Find All...", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift | System.Windows.Forms.Keys.F, "FindMenuIcon"));
-            _extraMenu.Commands.Add(new MenuCommand(REPLACE_ALL_COMMAND, "Replace All...", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift | System.Windows.Forms.Keys.E));
+            _extraMenu.Commands.Add(new MenuCommand(FIND_ALL_COMMAND, "Find All...", Keys.Control | Keys.Shift | Keys.F, "FindMenuIcon"));
+            _extraMenu.Commands.Add(new MenuCommand(REPLACE_ALL_COMMAND, "Replace All...", Keys.Control | Keys.Shift | Keys.E));
             _extraMenu.Commands.Add(MenuCommand.Separator);
-            _extraMenu.Commands.Add(new MenuCommand(SHOW_AUTOCOMPLETE_COMMAND, "Show Autocomplete", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Space, "ShowAutocompleteMenuIcon"));
-            _extraMenu.Commands.Add(new MenuCommand(MATCH_BRACE_COMMAND, "Match Brace", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.B));
-            _extraMenu.Commands.Add(new MenuCommand(GOTO_LINE_COMMAND, "Go to Line...", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.G));
+            _extraMenu.Commands.Add(new MenuCommand(SHOW_AUTOCOMPLETE_COMMAND, "Show Autocomplete", Keys.Control | Keys.Space, "ShowAutocompleteMenuIcon"));
+            _extraMenu.Commands.Add(new MenuCommand(MATCH_BRACE_COMMAND, "Match Brace", Keys.Control | Keys.B));
+            _extraMenu.Commands.Add(new MenuCommand(GOTO_LINE_COMMAND, "Go to Line...", Keys.Control | Keys.G));
+
+            _menuCmdGoToDefinition = new MenuCommand(GO_TO_DEFINITION_COMMAND, "Go to Definition", Keys.F12);
+            _menuCmdGoToDefinition.Enabled = false;
+            _menuCmdFindAllUsages = new MenuCommand(FIND_ALL_USAGES_COMMAND, "Find All Usages", Keys.Shift | Keys.F12);
+            _menuCmdFindAllUsages.Enabled = false;
+            _menuCmdGoToSprite = new MenuCommand(GO_TO_SPRITE_COMMAND, "Go to Sprite", Keys.Shift | Keys.F7);
+            _menuCmdGoToSprite.Enabled = false;
+
+            _extraMenu.Commands.Add(MenuCommand.Separator);
+            _extraMenu.Commands.Add(_menuCmdGoToDefinition);
+            _extraMenu.Commands.Add(_menuCmdFindAllUsages);
+            _extraMenu.Commands.Add(_menuCmdGoToSprite);
+
             AddEditMenuCommands(_extraMenu);
 
             _toolbarIcons.Add(_menuCmdCut);
@@ -226,6 +244,37 @@ namespace AGS.Editor
                     }
                 }
             }
+            else if (IsContextCommand(command))
+            {
+                if (command == GO_TO_DEFINITION_COMMAND ||
+                    command == FIND_ALL_USAGES_COMMAND)
+                {
+                    string[] structAndMember = _goToDefinition.Split('.');
+                    string structName = null;
+                    string memberName = structAndMember[0];
+                    if (structAndMember.Length > 1)
+                    {
+                        structName = structAndMember[0];
+                        memberName = structAndMember[1];
+                    }
+
+                    if (command == GO_TO_DEFINITION_COMMAND)
+                    {
+                        GoToDefinition(structName, memberName);
+                    }
+                    else
+                    {
+                        FindAllUsages(structName, memberName);
+                    }
+                }
+                else if (command == GO_TO_SPRITE_COMMAND)
+                {
+                    if (!Factory.Events.OnShowSpriteManager(_goToSprite.Value))
+                    {
+                        Factory.GUIController.ShowMessage("Unable to display sprite " + _goToSprite + ". Could not find a sprite with that number.", MessageBoxIcon.Warning);
+                    }
+                }
+            }
             else 
             {
                 _scintilla.Focus();
@@ -276,20 +325,34 @@ namespace AGS.Editor
         /// </summary>
         protected virtual void UpdateUICommands()
         {
+            UpdateScriptDocumentContext(_scintilla.CurrentPos);
+
             bool canCutAndCopy = _scintilla.CanCutAndCopy();
             bool canPaste = _scintilla.CanPaste();
             bool canUndo = _scintilla.CanUndo();
             bool canRedo = _scintilla.CanRedo();
-            if ((_menuCmdCopy.Enabled != canCutAndCopy) ||
+            bool canGoToDefinition = _goToDefinition != null;
+            bool canGoToSprite = _goToSprite != null;
+
+            bool changed =
+                (_menuCmdCopy.Enabled != canCutAndCopy) ||
                 (_menuCmdPaste.Enabled != canPaste) ||
                 (_menuCmdUndo.Enabled != canUndo) ||
-                (_menuCmdRedo.Enabled != canRedo))
+                (_menuCmdRedo.Enabled != canRedo) ||
+                (_menuCmdGoToDefinition.Enabled != canGoToDefinition) ||
+                (_menuCmdFindAllUsages.Enabled != canGoToDefinition) ||
+                (_menuCmdGoToSprite.Enabled != canGoToSprite);
+
+            if (changed)
             {
                 _menuCmdCopy.Enabled = canCutAndCopy;
                 _menuCmdCut.Enabled = canCutAndCopy;
                 _menuCmdPaste.Enabled = canPaste;
                 _menuCmdUndo.Enabled = canUndo;
                 _menuCmdRedo.Enabled = canRedo;
+                _menuCmdGoToDefinition.Enabled = _menuCmdFindAllUsages.Enabled = canGoToDefinition;
+                _menuCmdGoToSprite.Enabled = canGoToSprite;
+
                 Factory.ToolBarManager.RefreshCurrentPane();
                 Factory.MenuManager.RefreshCurrentPane();
             }
@@ -298,6 +361,40 @@ namespace AGS.Editor
         protected static bool IsStandardEditCommand(string c)
         {
             return (c == CUT_COMMAND) || (c == COPY_COMMAND) || (c == PASTE_COMMAND) || (c == UNDO_COMMAND) || (c == REDO_COMMAND);
+        }
+
+        protected static bool IsContextCommand(string c)
+        {
+            return (c == GO_TO_DEFINITION_COMMAND) || (c == FIND_ALL_USAGES_COMMAND) || (c == GO_TO_SPRITE_COMMAND);
+        }
+
+        protected void UpdateScriptDocumentContext(int clickedPositionInDocument)
+        {
+            _goToSprite = null;
+            _goToDefinition = null;
+
+            if (_scintilla.InsideStringOrComment(clickedPositionInDocument))
+            {
+                return;
+            }
+
+            string clickedOnType = _scintilla.GetFullTypeNameAtPosition(clickedPositionInDocument);
+            
+            // if on nothing, or a number, ignore
+            if (clickedOnType.Length > 0)
+            {
+                int temp;
+                float dummy;
+
+                if (int.TryParse(clickedOnType, out temp))
+                {
+                    _goToSprite = temp;
+                }
+                else if (!float.TryParse(clickedOnType, out dummy))
+                {
+                    _goToDefinition = clickedOnType;
+                }
+            }
         }
 
         protected void EnableStandardEditCommands(bool copy = true, bool cut = true, bool paste = true, bool undo = true, bool redo = true)
@@ -319,51 +416,26 @@ namespace AGS.Editor
         private void scintilla_ConstructContextMenu(ContextMenuStrip menuStrip, int clickedPositionInDocument)
         {
             EventHandler onClick = new EventHandler(ContextMenuChooseOption);
+            ToolStripMenuItem menuItem;
 
-            _goToSprite = null;
-            string clickedOnType = string.Empty;
-            if (!_scintilla.InsideStringOrComment(clickedPositionInDocument))
-            {
-                float dummy;
-                clickedOnType = _scintilla.GetFullTypeNameAtPosition(clickedPositionInDocument);
-                // if on nothing, or a number, ignore
-                if (clickedOnType.Length > 0)
-                {
-                    int temp;
-                    if (int.TryParse(clickedOnType, out temp))
-                    {
-                        _goToSprite = temp;
-                        clickedOnType = string.Empty;
-                    }
-                    else if (!float.TryParse(clickedOnType, out dummy))
-                    {
-                        _goToDefinition = clickedOnType;
-                        clickedOnType = " of " + clickedOnType;
-                    }
-                }
-                else
-                {
-                    clickedOnType = string.Empty;
-                }
-            }
+            UpdateScriptDocumentContext(clickedPositionInDocument);
 
-            menuStrip.Items.Add(new ToolStripMenuItem("Go to Definition" + clickedOnType, null, onClick, CONTEXT_MENU_GO_TO_DEFINITION));
-            if (clickedOnType == string.Empty)
-            {
-                menuStrip.Items[menuStrip.Items.Count - 1].Enabled = false;
-            }
+            string typeName = _goToDefinition != null ? (" of " +  _goToDefinition) : string.Empty;
 
-            menuStrip.Items.Add(new ToolStripMenuItem("Find All Usages" + clickedOnType, null, onClick, CONTEXT_MENU_FIND_ALL_USAGES));
-            if (clickedOnType == string.Empty)
-            {
-                menuStrip.Items[menuStrip.Items.Count - 1].Enabled = false;
-            }
+            menuItem = new ToolStripMenuItem(_menuCmdGoToDefinition.Name + typeName, null, onClick, GO_TO_DEFINITION_COMMAND);
+            menuItem.ShortcutKeys = _menuCmdGoToDefinition.ShortcutKey;
+            menuItem.Enabled = (_goToDefinition != null);
+            menuStrip.Items.Add(menuItem);
 
-            menuStrip.Items.Add(new ToolStripMenuItem("Go to sprite " + (_goToSprite.HasValue ? _goToSprite.ToString() : ""), null, onClick, CONTEXT_MENU_GO_TO_SPRITE));
-            if (_goToSprite == null)
-            {
-                menuStrip.Items[menuStrip.Items.Count - 1].Enabled = false;
-            }
+            menuItem = new ToolStripMenuItem(_menuCmdFindAllUsages.Name + typeName, null, onClick, FIND_ALL_USAGES_COMMAND);
+            menuItem.ShortcutKeys = _menuCmdFindAllUsages.ShortcutKey;
+            menuItem.Enabled = (_goToDefinition != null);
+            menuStrip.Items.Add(menuItem);
+
+            menuItem = new ToolStripMenuItem(_menuCmdGoToSprite.Name + (_goToSprite.HasValue ? " " + _goToSprite.ToString() : ""), null, onClick, GO_TO_SPRITE_COMMAND);
+            menuItem.ShortcutKeys = _menuCmdGoToSprite.ShortcutKey;
+            menuItem.Enabled = (_goToSprite != null);
+            menuStrip.Items.Add(menuItem);
 
             AddCtxCommands(menuStrip);
         }
@@ -376,34 +448,7 @@ namespace AGS.Editor
         private void ContextMenuChooseOption(object sender, EventArgs e)
         {
             ToolStripMenuItem item = (ToolStripMenuItem)sender;
-            if (item.Name == CONTEXT_MENU_GO_TO_DEFINITION ||
-                item.Name == CONTEXT_MENU_FIND_ALL_USAGES)
-            {
-                string[] structAndMember = _goToDefinition.Split('.');
-                string structName = null;
-                string memberName = structAndMember[0];
-                if (structAndMember.Length > 1)
-                {
-                    structName = structAndMember[0];
-                    memberName = structAndMember[1];
-                }
-
-                if (item.Name == CONTEXT_MENU_GO_TO_DEFINITION)
-                {
-                    GoToDefinition(structName, memberName);
-                }
-                else
-                {
-                    FindAllUsages(structName, memberName);
-                }
-            }
-            else if (item.Name == CONTEXT_MENU_GO_TO_SPRITE)
-            {
-                if (!Factory.Events.OnShowSpriteManager(_goToSprite.Value))
-                {
-                    Factory.GUIController.ShowMessage("Unable to display sprite " + _goToSprite + ". Could not find a sprite with that number.", MessageBoxIcon.Warning);
-                }
-            }
+            OnCommandClick(item.Name);
         }
 
         #endregion

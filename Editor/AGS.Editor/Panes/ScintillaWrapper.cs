@@ -32,7 +32,6 @@ namespace AGS.Editor
         private const string CONTEXT_MENU_CUT = "CtxCut";
         private const string CONTEXT_MENU_COPY = "CtxCopy";
         private const string CONTEXT_MENU_PASTE = "CtxPaste";
-        private const string CONTEXT_MENU_GO_TO_DEFINITION = "CtxDefinition";
 
         private const string THIS_STRUCT = "this";
         private const int INVALID_POSITION = -1;
@@ -2450,12 +2449,23 @@ namespace AGS.Editor
                 {
                     menu.Items.Add(new ToolStripSeparator());
                 }
-                menu.Items.Add(new ToolStripMenuItem("Cut", Factory.GUIController.ImageList.Images["CutIcon"], onClick, CONTEXT_MENU_CUT));
-                menu.Items[menu.Items.Count - 1].Enabled = this.CanCutAndCopy();
-                menu.Items.Add(new ToolStripMenuItem("Copy", Factory.GUIController.ImageList.Images["CopyIcon"], onClick, CONTEXT_MENU_COPY));
-                menu.Items[menu.Items.Count - 1].Enabled = this.CanCutAndCopy();
-                menu.Items.Add(new ToolStripMenuItem("Paste", Factory.GUIController.ImageList.Images["PasteIcon"], onClick, CONTEXT_MENU_PASTE));
-                menu.Items[menu.Items.Count - 1].Enabled = this.CanPaste();
+
+                ToolStripMenuItem menuItem;
+
+                menuItem = new ToolStripMenuItem("Cut", Factory.GUIController.ImageList.Images["CutIcon"], onClick, CONTEXT_MENU_CUT);
+                menuItem.ShortcutKeys = Keys.Control | Keys.X;
+                menuItem.Enabled = this.CanCutAndCopy();
+                menu.Items.Add(menuItem);
+
+                menuItem = new ToolStripMenuItem("Copy", Factory.GUIController.ImageList.Images["CopyIcon"], onClick, CONTEXT_MENU_COPY);
+                menuItem.ShortcutKeys = Keys.Control | Keys.C;
+                menuItem.Enabled = this.CanCutAndCopy();
+                menu.Items.Add(menuItem);
+
+                menuItem = new ToolStripMenuItem("Paste", Factory.GUIController.ImageList.Images["PasteIcon"], onClick, CONTEXT_MENU_PASTE);
+                menuItem.ShortcutKeys = Keys.Control | Keys.V;
+                menuItem.Enabled = this.CanPaste();
+                menu.Items.Add(menuItem);
 
                 menu.Show(this.scintillaControl1, e.X, e.Y);
             }

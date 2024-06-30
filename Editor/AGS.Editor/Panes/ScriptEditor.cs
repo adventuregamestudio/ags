@@ -136,15 +136,19 @@ namespace AGS.Editor
 
         protected override void AddEditMenuCommands(MenuCommands commands)
         {
-            commands.Commands.Add(new MenuCommand(TOGGLE_BREAKPOINT_COMMAND, "Toggle Breakpoint", System.Windows.Forms.Keys.F9, "ToggleBreakpointMenuIcon"));
-            commands.Commands.Add(new MenuCommand(SHOW_MATCHING_SCRIPT_OR_HEADER_COMMAND, "Switch to Matching Script or Header", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.M));
+            commands.Commands.Add(MenuCommand.Separator);
+            commands.Commands.Add(new MenuCommand(TOGGLE_BREAKPOINT_COMMAND, "Toggle Breakpoint", Keys.F9, "ToggleBreakpointMenuIcon"));
+            commands.Commands.Add(new MenuCommand(SHOW_MATCHING_SCRIPT_OR_HEADER_COMMAND, "Switch to Matching Script or Header", Keys.Control | Keys.M));
         }
 
         protected override void AddCtxCommands(ContextMenuStrip menuStrip)
         {
             EventHandler onClick = new EventHandler(ContextMenuChooseOption2);
+            ToolStripMenuItem menuItem = new ToolStripMenuItem("Toggle Breakpoint", Factory.GUIController.ImageList.Images["ToggleBreakpointMenuIcon"], onClick, CONTEXT_MENU_TOGGLE_BREAKPOINT);
+            menuItem.ShortcutKeys = Keys.F9;
+
             menuStrip.Items.Add(new ToolStripSeparator());
-            menuStrip.Items.Add(new ToolStripMenuItem("Toggle Breakpoint", Factory.GUIController.ImageList.Images["ToggleBreakpointMenuIcon"], onClick, CONTEXT_MENU_TOGGLE_BREAKPOINT));
+            menuStrip.Items.Add(menuItem);
         }
 
         public void ActivateWindow()
@@ -513,7 +517,7 @@ namespace AGS.Editor
         protected override void OnKeyPressed(System.Windows.Forms.Keys keyData)
         {
             if (keyData.Equals(
-                System.Windows.Forms.Keys.Escape))
+                Keys.Escape))
             {
                 FindReplace.CloseDialogIfNeeded();
             }

@@ -91,7 +91,6 @@ CCStaticArray StaticHandlesArray;
 std::vector<int> StaticCharacterArray;
 std::vector<int> StaticObjectArray;
 std::vector<int> StaticGUIArray;
-std::vector<int> StaticGUIControlsArray;
 std::vector<int> StaticHotspotArray;
 std::vector<int> StaticRegionArray;
 std::vector<int> StaticWalkareaArray;

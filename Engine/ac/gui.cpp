@@ -60,7 +60,7 @@ using namespace AGS::Engine;
 extern RoomStruct thisroom;
 extern int cur_mode,cur_cursor;
 extern std::vector<ScriptGUI> scrGui;
-extern std::vector<int> StaticGUIControlsArray;
+std::vector<std::vector<int>> StaticGUIControlsHandles;
 extern GameSetupStruct game;
 extern CCGUIObject ccDynamicGUIObject;
 extern IGraphicsDriver *gfxDriver;
@@ -228,7 +228,7 @@ void GUI_SetSize(ScriptGUI *sgui, int w, int h) {
 
   if ((tehgui->Width == w) && (tehgui->Height == h))
     return;
-  
+
   tehgui->SetSize(w, h);
   tehgui->MarkChanged();
 }
@@ -543,7 +543,7 @@ void replace_macro_tokens(const char *text, String &fixed_text) {
                 macroname[idd]=curptr[0];
                 curptr++;
             }
-            macroname[idd]=0; 
+            macroname[idd]=0;
             tempo[0]=0;
             if (ags_stricmp(macroname,"gamename")==0)
                 snprintf(tempo, sizeof(tempo), "%s", play.game_name.GetCStr());
@@ -612,31 +612,28 @@ void prepare_gui_runtime(bool startup)
     GUIE::MarkAllGUIForUpdate(true, true);
 }
 
-void export_all_gui_controls()
+void set_array_all_gui_controls_size()
 {
-    size_t guictrlcount = 0;
+    StaticGUIControlsHandles.resize(game.numgui);
     for (int i = 0; i < game.numgui; ++i) {
         auto const &gui = guis[i];
-        for (int j = 0; j < gui.GetControlCount(); j++) {
-            GUIObject const *guio = gui.GetControl(j);
-            if (!guio->Name.IsEmpty()) {
-                guictrlcount++;
-            }
-        }
+        StaticGUIControlsHandles[i] = std::vector<int>();
+        StaticGUIControlsHandles[i].resize(gui.GetControlCount());
     }
+}
 
-    StaticGUIControlsArray.resize(guictrlcount);
+void export_all_gui_controls()
+{
+    set_array_all_gui_controls_size();
 
-    int gi = 0;
     for (int i = 0; i < game.numgui; ++i) {
         auto const &gui = guis[i];
         for (int j = 0; j < gui.GetControlCount(); j++) {
             GUIObject *guio = gui.GetControl(j);
             int handle = ccRegisterPersistentObject(guio, &ccDynamicGUIObject); // add ref for engine
+            StaticGUIControlsHandles[i][j] = handle;
             if (!guio->Name.IsEmpty()) {
-                StaticGUIControlsArray[gi] = handle;
-                ccAddExternalScriptObject(guio->Name, &StaticGUIControlsArray[gi], &GlobalStaticManager);
-                gi++;
+                ccAddExternalScriptObject(guio->Name, &StaticGUIControlsHandles[i][j], &GlobalStaticManager);
             }
         }
     }
@@ -660,7 +657,11 @@ void unexport_all_gui_controls()
     {
         unexport_gui_controls(i);
     }
-    StaticGUIControlsArray.clear();
+    StaticGUIControlsHandles.clear();
+
+    // FIX-ME: for some reason this method is called in DoBeforeRestore
+    // so we must reset arrays sizes below. Remove if removed from DoBeforeRestore
+    set_array_all_gui_controls_size();
 }
 
 void update_gui_disabled_status()

@@ -191,7 +191,11 @@ Common::Bitmap *get_sprite (int spnr) {
 }
 
 void SetNewSprite(int slot, AGSBitmap *sprit, int flags) {
-  spriteset.SetSprite(slot, std::unique_ptr<AGSBitmap>(sprit), flags);
+  // safety check
+  if (sprit)
+    spriteset.SetSprite(slot, std::unique_ptr<AGSBitmap>(sprit), flags);
+  else
+    spriteset.SetEmptySprite(slot, true);
   spritesModified = true;
 }
 
@@ -1634,32 +1638,32 @@ void drawViewLoop (int hdc, ViewLoop^ loopToDraw, int x, int y, int size, List<i
 }
 
 Common::Bitmap *CreateBlockFromBitmap(System::Drawing::Bitmap ^bmp, RGB *imgpal, int *srcPalLen,
-    bool fixColourDepth, bool keepTransparency, int *originalColDepth)
+    bool fixColourDepth, int destColorDepth, bool keepTransparency, int *originalColDepth)
 {
-    int src_depth, dst_depth;
+    int src_depth, res_depth;
     switch (bmp->PixelFormat)
     {
     case PixelFormat::Format1bppIndexed:
-        src_depth = 1; dst_depth = 8; // convert 1-bit to 8-bit
+        src_depth = 1; res_depth = 8; // convert 1-bit to 8-bit
         break;
     case PixelFormat::Format4bppIndexed:
-        src_depth = 4; dst_depth = 8; // convert 4-bit to 8-bit
+        src_depth = 4; res_depth = 8; // convert 4-bit to 8-bit
         break;
     case PixelFormat::Format8bppIndexed:
-        src_depth = dst_depth = 8;
+        src_depth = res_depth = 8;
         break;
     case PixelFormat::Format16bppRgb555:
-        src_depth = dst_depth = 15; // FIXME: convert to 16-bit instead?
+        src_depth = res_depth = 15; // FIXME: convert to 16-bit instead?
         break;
     case PixelFormat::Format16bppRgb565:
-        src_depth = dst_depth = 16;
+        src_depth = res_depth = 16;
         break;
     case PixelFormat::Format24bppRgb:
-        src_depth = dst_depth = 24; // FIXME: convert to 32-bit instead?
+        src_depth = res_depth = 24; // FIXME: convert to 32-bit instead?
         break;
     case PixelFormat::Format32bppRgb:
     case PixelFormat::Format32bppArgb:
-        src_depth = dst_depth = 32;
+        src_depth = res_depth = 32;
         break;
     case PixelFormat::Format48bppRgb:
     case PixelFormat::Format64bppArgb:
@@ -1679,13 +1683,10 @@ Common::Bitmap *CreateBlockFromBitmap(System::Drawing::Bitmap ^bmp, RGB *imgpal,
     if (originalColDepth)
         *originalColDepth = src_depth;
 
-    // Test if destination bitmap will be not suitable for the game's color depth
-    const bool needToFixColourDepth = (dst_depth != thisgame.color_depth * 8) && (fixColourDepth);
-
 	System::Drawing::Rectangle rect(0, 0, bmp->Width, bmp->Height);
 	BitmapData ^bmpData = bmp->LockBits(rect, ImageLockMode::ReadOnly, bmp->PixelFormat);
 	const uint8_t *address = static_cast<const uint8_t*>(bmpData->Scan0.ToPointer());
-    AGSBitmap *tempsprite = BitmapHelper::CreateBitmapFromPixels(bmp->Width, bmp->Height, dst_depth,
+    AGSBitmap *tempsprite = BitmapHelper::CreateBitmapFromPixels(bmp->Width, bmp->Height, res_depth,
         address, src_depth, bmpData->Stride);
 	bmp->UnlockBits(bmpData);
 
@@ -1749,16 +1750,20 @@ Common::Bitmap *CreateBlockFromBitmap(System::Drawing::Bitmap ^bmp, RGB *imgpal,
 		}
 	}
 
+    // Test if destination bitmap will be not suitable for the game's color depth
+    const int final_depth = destColorDepth > 0 ? destColorDepth : thisgame.GetColorDepth();
+    const bool needToFixColourDepth = (res_depth != final_depth) && (fixColourDepth);
+
 	if (needToFixColourDepth)
 	{
-		Common::Bitmap *spriteAtRightDepth = Common::BitmapHelper::CreateBitmap(tempsprite->GetWidth(), tempsprite->GetHeight(), thisgame.color_depth * 8);
+		Common::Bitmap *spriteAtRightDepth = Common::BitmapHelper::CreateBitmap(tempsprite->GetWidth(), tempsprite->GetHeight(), final_depth);
         if (!spriteAtRightDepth)
         {
             delete tempsprite;
             return nullptr; // out of mem?
         }
 
-		if (dst_depth == 8)
+		if (res_depth == 8)
 		{
 			select_palette(imgpal);
 		}
@@ -1773,20 +1778,20 @@ Common::Bitmap *CreateBlockFromBitmap(System::Drawing::Bitmap ^bmp, RGB *imgpal,
 			set_color_conversion(oldColorConv & ~COLORCONV_KEEP_TRANS);
 		}
 
-    if (dst_depth == 8 && thisgame.color_depth > 1)
+    if (res_depth == 8 && final_depth > 8)
     {
       // manually compose to use the full palette instead of allegro 0-63 restricted one
       const int maskcolor = spriteAtRightDepth->GetMaskColor();
       // define a safe magenta color to use to preserve opacity in colors that match maskcolor
-      const int safe_magenta = (thisgame.color_depth == 2)
-        ? makecol_depth(thisgame.color_depth * 8, 255, 4, 255) // 16bit
-        : makecol_depth(thisgame.color_depth * 8, 255, 1, 255); // 24-32 bit
+      const int safe_magenta = (final_depth == 16)
+        ? makecol_depth(final_depth, 255, 4, 255)  // 16bit
+        : makecol_depth(final_depth, 255, 1, 255); // 24-32 bit
 
       for (int ww = 0; ww<tempsprite->GetWidth(); ww++) {
         for (int vv = 0; vv<tempsprite->GetHeight(); vv++) {
           int px = tempsprite->GetPixel(ww, vv);
           RGB pal_color = imgpal[px];
-          int color = makecol_depth(thisgame.color_depth * 8, pal_color.r, pal_color.g, pal_color.b);
+          int color = makecol_depth(final_depth, pal_color.r, pal_color.g, pal_color.b);
           if (keepTransparency && px == 0)
             spriteAtRightDepth->PutPixel(ww, vv, spriteAtRightDepth->GetMaskColor() );
           else if (keepTransparency && color == maskcolor) // replace magenta with close match
@@ -1802,7 +1807,7 @@ Common::Bitmap *CreateBlockFromBitmap(System::Drawing::Bitmap ^bmp, RGB *imgpal,
     }
 		set_color_conversion(oldColorConv);
 
-		if (dst_depth == 8) 
+		if (res_depth == 8)
 		{
 			unselect_palette();
 		}
@@ -1810,12 +1815,18 @@ Common::Bitmap *CreateBlockFromBitmap(System::Drawing::Bitmap ^bmp, RGB *imgpal,
 		tempsprite = spriteAtRightDepth;
 	}
 
-	if (dst_depth > 8) 
+	if (res_depth > 8) 
 	{
 		fix_block(tempsprite);
 	}
 
 	return tempsprite;
+}
+
+Common::Bitmap *CreateBlockFromBitmap(System::Drawing::Bitmap ^bmp, RGB *imgpal, int *srcPalLen,
+    bool fixColourDepth, bool keepTransparency, int *originalColDepth)
+{
+    return CreateBlockFromBitmap(bmp, imgpal, srcPalLen, fixColourDepth, 0, keepTransparency, originalColDepth);
 }
 
 Common::Bitmap *CreateOpaqueNativeBitmap(System::Drawing::Bitmap^ bmp,
@@ -1845,7 +1856,7 @@ void SetNativeRoomBackground(RoomStruct &room, int backgroundNumber, SysBitmap ^
     room.BgFrames[backgroundNumber].Graphic.reset(newbg);
 }
 
-Common::Bitmap *CreateNativeBitmap(System::Drawing::Bitmap^ bmp, int spriteImportMethod, bool remapColours,
+Common::Bitmap *CreateNativeBitmap(System::Drawing::Bitmap^ bmp, int destColorDepth, int spriteImportMethod, bool remapColours,
     bool useRoomBackgroundColours, bool alphaChannel, int *out_flags)
 {
     // If the input format does not have alpha - disable alpha channel flag
@@ -1853,11 +1864,15 @@ Common::Bitmap *CreateNativeBitmap(System::Drawing::Bitmap^ bmp, int spriteImpor
 
     RGB imgPalBuf[256];
     int importedColourDepth;
-    Common::Bitmap *tempsprite = CreateBlockFromBitmap(bmp, imgPalBuf, nullptr, true, (spriteImportMethod != SIMP_NONE), &importedColourDepth);
+    Common::Bitmap *tempsprite = CreateBlockFromBitmap(bmp, imgPalBuf, nullptr, true /* fix color depth */, destColorDepth,
+        (spriteImportMethod != SIMP_NONE), &importedColourDepth);
+
+    if (!tempsprite)
+        return nullptr;
 
     int transcol;
     sort_out_transparency(tempsprite, spriteImportMethod, imgPalBuf, importedColourDepth, transcol);
-    if (thisgame.color_depth == 1)
+    if (tempsprite->GetColorDepth() == 8)
     {
         if (remapColours)
             sort_out_palette(tempsprite, imgPalBuf, useRoomBackgroundColours, transcol);
@@ -1881,11 +1896,18 @@ Common::Bitmap *CreateNativeBitmap(System::Drawing::Bitmap^ bmp, int spriteImpor
     return tempsprite;
 }
 
-AGS::Types::SpriteImportResolution SetNewSpriteFromBitmap(int slot, System::Drawing::Bitmap^ bmp, int spriteImportMethod,
+Common::Bitmap *CreateNativeBitmap(System::Drawing::Bitmap^ bmp, int spriteImportMethod, bool remapColours,
+    bool useRoomBackgroundColours, bool alphaChannel, int *out_flags)
+{
+    return CreateNativeBitmap(bmp, 0, spriteImportMethod, remapColours, useRoomBackgroundColours, alphaChannel, out_flags);
+}
+
+AGS::Types::SpriteImportResolution SetNewSpriteFromBitmap(int slot, System::Drawing::Bitmap^ bmp,
+    int destColorDepth, int spriteImportMethod,
     bool remapColours, bool useRoomBackgroundColours, bool alphaChannel)
 {
     int flags;
-    Common::Bitmap *tempsprite = CreateNativeBitmap(bmp, spriteImportMethod, remapColours,
+    Common::Bitmap *tempsprite = CreateNativeBitmap(bmp, destColorDepth, spriteImportMethod, remapColours,
         useRoomBackgroundColours, alphaChannel, &flags);
 
 	SetNewSprite(slot, tempsprite, flags);

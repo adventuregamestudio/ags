@@ -658,10 +658,6 @@ void unexport_all_gui_controls()
         unexport_gui_controls(i);
     }
     StaticGUIControlsHandles.clear();
-
-    // FIX-ME: for some reason this method is called in DoBeforeRestore
-    // so we must reset arrays sizes below. Remove if removed from DoBeforeRestore
-    set_array_all_gui_controls_size();
 }
 
 void update_gui_disabled_status()

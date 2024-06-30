@@ -348,9 +348,6 @@ void DoBeforeRestore(PreservedParams &pp)
     free_do_once_tokens();
 
     RemoveAllButtonAnimations();
-    // unregister gui controls from API exports
-    // FIXME: find out why are we doing this here??! why only to gui controls??!
-    unexport_all_gui_controls();
     // Clear the managed object pool
     ccUnregisterAllObjects();
 
@@ -437,9 +434,6 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data)
 
     // Re-export any missing audio channel script objects, e.g. if restoring old save
     export_missing_audiochans();
-
-    // CHECKME: find out why are we doing this here? why only to gui controls?
-    export_all_gui_controls();
 
     AllocScriptModules();
     if (create_global_script())

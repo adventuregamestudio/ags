@@ -130,4 +130,22 @@ inline bool IsScriptWordChar(int c)
     return std::isalnum(c) || c == '_';
 }
 
+// Returns a escaped character corresponding to the given character;
+// e.g. 'n'=>'\n', 't'=>'\t', etc.
+// If no such escaped character exists, then returns input character.
+inline char GetEscapedChar(char c)
+{
+    switch (c)
+    {
+    case 'a': return '\a';
+    case 'b': return '\b';
+    case 'f': return '\f';
+    case 'n': return '\n';
+    case 'r': return '\r';
+    case 't': return '\t';
+    case 'v': return '\v';
+    default: return c;
+    }
+}
+
 #endif // __CS_PARSER_COMMON_H

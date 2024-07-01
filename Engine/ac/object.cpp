@@ -322,17 +322,21 @@ bool Object_IsInteractionAvailable(ScriptObject *oobj, int mood) {
 
 void move_object(int objj, const std::vector<Point> *path, int tox, int toy, int speed, bool ignwal, const RunPathParams &run_params);
 
-void Object_DoMove(ScriptObject *objj, const char *api_name, void *path_arr, int x, int y, int speed, int blocking, int ignwal,
+void Object_DoMove(ScriptObject *objj, const char *api_name, void *path_arr, int x, int y, bool use_path,
+    int speed, int blocking, int ignwal,
     int repeat = ANIM_ONCE, int direction = FORWARDS)
 {
     ValidateMoveParams(api_name, blocking, ignwal);
     ValidateAnimParams(api_name, repeat, direction);
 
-    if (path_arr)
+    if (use_path)
     {
         std::vector<Point> path;
-        if (!ScriptStructHelpers::ResolveArrayOfPoints(path_arr, path))
+        if (!path_arr || !ScriptStructHelpers::ResolveArrayOfPoints(path_arr, path))
+        {
+            debug_script_warn("%s: path is null, or failed to resolve array of points", api_name);
             return;
+        }
         move_object(objj->id, &path, 0, 0, speed, ignwal != 0, RunPathParams(repeat, direction == 0));
     }
     else
@@ -346,12 +350,12 @@ void Object_DoMove(ScriptObject *objj, const char *api_name, void *path_arr, int
 
 void Object_Move(ScriptObject *objj, int x, int y, int speed, int blocking, int ignwal)
 {
-    Object_DoMove(objj, "Object.Move", nullptr, x, y, speed, blocking, ignwal);
+    Object_DoMove(objj, "Object.Move", nullptr, x, y, false /* no path */, speed, blocking, ignwal);
 }
 
 void Object_MovePath(ScriptObject *objj, void *path_arr, int speed, int blocking, int repeat, int direction)
 {
-    Object_DoMove(objj, "Object.MovePath", path_arr, 0, 0, speed, blocking, ANYWHERE, repeat, direction);
+    Object_DoMove(objj, "Object.MovePath", path_arr, 0, 0, true /* use path */, speed, blocking, ANYWHERE, repeat, direction);
 }
 
 void Object_SetClickable(ScriptObject *objj, int clik) {

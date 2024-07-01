@@ -1053,7 +1053,7 @@ bool ValidateCharForMove(CharacterInfo *chaa, const char *api_name)
 
 // Character_DoMove converts and validates script parameters, and calls corresponding internal character move function
 void Character_DoMove(CharacterInfo *chaa, const char *api_name,
-    void *path_arr, int x, int y, bool walk_straight,
+    void *path_arr, int x, int y, bool use_path, bool walk_straight,
     int blocking, int ignwal, bool walk_anim, int repeat = ANIM_ONCE, int direction = FORWARDS)
 {
     if (!ValidateCharForMove(chaa, api_name))
@@ -1062,12 +1062,13 @@ void Character_DoMove(CharacterInfo *chaa, const char *api_name,
     ValidateMoveParams(api_name, blocking, ignwal);
     ValidateAnimParams(api_name, repeat, direction);
 
-    if (path_arr)
+    if (use_path)
     {
         std::vector<Point> path;
-        if (!ScriptStructHelpers::ResolveArrayOfPoints(path_arr, path))
+        if (!path_arr || !ScriptStructHelpers::ResolveArrayOfPoints(path_arr, path))
         {
-            debug_script_warn("%s: failed to resolve array of points", api_name);
+            debug_script_warn("%s: path is null, or failed to resolve array of points", api_name);
+            Character_StopMoving(chaa);
             return;
         }
         move_character(chaa, path, walk_anim, RunPathParams(repeat, direction == 0));
@@ -1087,32 +1088,32 @@ void Character_DoMove(CharacterInfo *chaa, const char *api_name,
 
 void Character_Walk(CharacterInfo *chaa, int x, int y, int blocking, int ignwal) 
 {
-    Character_DoMove(chaa, "Character.Walk", nullptr, x, y, false /* path */, blocking, ignwal, true /* walk anim */);
+    Character_DoMove(chaa, "Character.Walk", nullptr, x, y, false /* no path */, false /* not straight */, blocking, ignwal, true /* walk anim */);
 }
 
 void Character_Move(CharacterInfo *chaa, int x, int y, int blocking, int ignwal) 
 {
-    Character_DoMove(chaa, "Character.Move", nullptr, x, y, false /* path */, blocking, ignwal, false /* no anim */);
+    Character_DoMove(chaa, "Character.Move", nullptr, x, y, false /* no path */, false /* not straight */, blocking, ignwal, false /* no anim */);
 }
 
 void Character_WalkStraight(CharacterInfo *chaa, int xx, int yy, int blocking)
 {
-    Character_DoMove(chaa, "Character.WalkStraight", nullptr, xx, yy, true /* straight */, blocking, WALKABLE_AREAS, true /* walk anim */);
+    Character_DoMove(chaa, "Character.WalkStraight", nullptr, xx, yy, false /* no path */, true /* straight */, blocking, WALKABLE_AREAS, true /* walk anim */);
 }
 
 void Character_MoveStraight(CharacterInfo *chaa, int xx, int yy, int blocking)
 {
-    Character_DoMove(chaa, "Character.MoveStraight", nullptr, xx, yy, true /* straight */, blocking, WALKABLE_AREAS, false /* no anim */);
+    Character_DoMove(chaa, "Character.MoveStraight", nullptr, xx, yy, false /* no path */, true /* straight */, blocking, WALKABLE_AREAS, false /* no anim */);
 }
 
 void Character_WalkPath(CharacterInfo *chaa, void *path_arr, int blocking, int repeat, int direction)
 {
-    Character_DoMove(chaa, "Character.WalkPath", path_arr, 0, 0, false /* path */, blocking, ANYWHERE, true /* walk anim */, repeat, direction);
+    Character_DoMove(chaa, "Character.WalkPath", path_arr, 0, 0, true /* use path */, false /* not straight */, blocking, ANYWHERE, true /* walk anim */, repeat, direction);
 }
 
 void Character_MovePath(CharacterInfo *chaa, void *path_arr, int blocking, int repeat, int direction)
 {
-    Character_DoMove(chaa, "Character.WalkPath", path_arr, 0, 0, false /* path */, blocking, ANYWHERE, false /* no anim */, repeat, direction);
+    Character_DoMove(chaa, "Character.WalkPath", path_arr, 0, 0, true /* use path */, false /* not straight */, blocking, ANYWHERE, false /* no anim */, repeat, direction);
 }
 
 void Character_RunInteraction(CharacterInfo *chaa, int mood) {

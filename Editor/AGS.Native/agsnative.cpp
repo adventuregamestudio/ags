@@ -2403,14 +2403,10 @@ Common::Bitmap *CreateNativeBitmap(System::Drawing::Bitmap^ bmp, int spriteImpor
     int importedColourDepth;
     Common::Bitmap *tempsprite = CreateBlockFromBitmap(bmp, imgPalBuf, nullptr, true, (spriteImportMethod != SIMP_NONE), &importedColourDepth);
 
-    if (thisgame.color_depth > 1)
+    int transcol;
+    sort_out_transparency(tempsprite, spriteImportMethod, imgPalBuf, importedColourDepth, transcol);
+    if (thisgame.color_depth == 1)
     {
-        sort_out_transparency(tempsprite, spriteImportMethod, imgPalBuf, useRoomBackgroundColours, importedColourDepth);
-    }
-    else
-    {
-        int transcol;
-        sort_out_transparency(tempsprite, spriteImportMethod, imgPalBuf, importedColourDepth, transcol);
         if (remapColours)
             sort_out_palette(tempsprite, imgPalBuf, useRoomBackgroundColours, transcol);
     }

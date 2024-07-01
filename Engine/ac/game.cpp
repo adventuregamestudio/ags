@@ -534,9 +534,6 @@ int Game_GetViewCount() {
 }
 
 int Game_GetSpriteWidth(int spriteNum) {
-    if (spriteNum < 0)
-        return 0;
-
     if (!spriteset.DoesSpriteExist(spriteNum))
         return 0;
 
@@ -544,13 +541,18 @@ int Game_GetSpriteWidth(int spriteNum) {
 }
 
 int Game_GetSpriteHeight(int spriteNum) {
-    if (spriteNum < 0)
-        return 0;
-
     if (!spriteset.DoesSpriteExist(spriteNum))
         return 0;
 
     return game.SpriteInfos[spriteNum].Height;
+}
+
+int Game_GetSpriteDepth(int spriteNum) {
+    if (!spriteset.DoesSpriteExist(spriteNum))
+        return 0;
+
+    // If a sprite's color depth information is missing, then assume it is eq to a game's color depth
+    return game.SpriteInfos[spriteNum].ColorDepth > 0 ? game.SpriteInfos[spriteNum].ColorDepth : game.GetColorDepth();
 }
 
 void AssertView(const char *apiname, int view)
@@ -1652,6 +1654,11 @@ RuntimeScriptValue Sc_Game_GetSpriteHeight(const RuntimeScriptValue *params, int
     API_SCALL_INT_PINT(Game_GetSpriteHeight);
 }
 
+RuntimeScriptValue Sc_Game_GetSpriteDepth(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_PINT(Game_GetSpriteDepth);
+}
+
 // int ()
 RuntimeScriptValue Sc_Game_GetTextReadingSpeed(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -1792,6 +1799,7 @@ void RegisterGameAPI()
         { "Game::set_SpeechFont",                         API_FN_PAIR(SetSpeechFont) },
         { "Game::geti_SpriteWidth",                       API_FN_PAIR(Game_GetSpriteWidth) },
         { "Game::geti_SpriteHeight",                      API_FN_PAIR(Game_GetSpriteHeight) },
+        { "Game::geti_SpriteColorDepth",                  API_FN_PAIR(Game_GetSpriteDepth) },
         { "Game::get_TextReadingSpeed",                   API_FN_PAIR(Game_GetTextReadingSpeed) },
         { "Game::set_TextReadingSpeed",                   API_FN_PAIR(Game_SetTextReadingSpeed) },
         { "Game::get_TranslationFilename",                API_FN_PAIR(Game_GetTranslationFilename) },

@@ -155,28 +155,6 @@ int GetSaveSlotDescription(int slnum, char *desbuf) {
     return res ? 1 : 0;
 }
 
-int LoadSaveSlotScreenshot(int slnum, int width, int height) {
-    
-    if (!spriteset.HasFreeSlots())
-        return 0;
-
-    auto screenshot = read_savedgame_screenshot(get_save_game_path(slnum));
-    if (!screenshot)
-        return 0;
-
-    // resize the sprite to the requested size
-    if ((screenshot->GetWidth() != width) || (screenshot->GetHeight() != height))
-    {
-        std::unique_ptr<Bitmap> temp(BitmapHelper::CreateBitmap(width, height, screenshot->GetColorDepth()));
-        temp->StretchBlt(screenshot.get(),
-            RectWH(0, 0, screenshot->GetWidth(), screenshot->GetHeight()),
-            RectWH(0, 0, width, height));
-        screenshot = std::move(temp);
-    }
-
-    return add_dynamic_sprite(std::move(screenshot));
-}
-
 void FillSaveList(std::vector<SaveListItem> &saves, unsigned bot_index, unsigned top_index, size_t max_count)
 {
     if (max_count == 0)

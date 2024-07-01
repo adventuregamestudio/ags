@@ -1,7 +1,3 @@
-// CHECKME: what does following commentary mean, and is it still applicable?
-// >>>
-// temporarily removed palette functions cos the compiler
-// doesnt support typedefs
 
 // The available script API is determined by two bounds: upper bound
 // determines which new API parts will be enabled, and lower bound
@@ -692,6 +688,10 @@ builtin managed struct DrawingSurface {
   readonly import attribute int Height;
   /// Gets the width of the surface.
   readonly import attribute int Width;
+#ifdef SCRIPT_API_v400
+  /// Gets the colour depth of this surface.
+  readonly import attribute int ColorDepth;
+#endif
 };
 
 #ifdef SCRIPT_API_v3507
@@ -1085,17 +1085,26 @@ builtin managed struct Overlay {
 #endif
 };
 
+#ifdef SCRIPT_API_v400
+enum ColorFormat
+{
+  /// Tells to use default game color depth
+  eColorFmt_Default = 0,
+  eColorFmt_8bit    = 8
+};
+#endif
+
 builtin managed struct DynamicSprite {
   /// Creates a blank dynamic sprite of the specified size.
-  import static DynamicSprite* Create(int width, int height, int format = -1);    // $AUTOCOMPLETESTATICONLY$
+  import static DynamicSprite* Create(int width, int height, ColorFormat color_format = eColorFmt_Default);    // $AUTOCOMPLETESTATICONLY$
   /// Creates a dynamic sprite as a copy of a room background.
-  import static DynamicSprite* CreateFromBackground(int frame=SCR_NO_VALUE, int x=SCR_NO_VALUE, int y=SCR_NO_VALUE, int width=SCR_NO_VALUE, int height=SCR_NO_VALUE);    // $AUTOCOMPLETESTATICONLY$
+  import static DynamicSprite* CreateFromBackground(int frame=SCR_NO_VALUE, int x=SCR_NO_VALUE, int y=SCR_NO_VALUE, int width=SCR_NO_VALUE, int height=SCR_NO_VALUE);     // $AUTOCOMPLETESTATICONLY$
   /// Creates a dynamic sprite as a copy of a drawing surface.
-  import static DynamicSprite* CreateFromDrawingSurface(DrawingSurface* surface, int x, int y, int width, int height);    // $AUTOCOMPLETESTATICONLY$
+  import static DynamicSprite* CreateFromDrawingSurface(DrawingSurface* surface, int x, int y, int width, int height, ColorFormat format = eColorFmt_Default); // $AUTOCOMPLETESTATICONLY$
   /// Creates a dynamic sprite as a copy of an existing sprite.
-  import static DynamicSprite* CreateFromExistingSprite(int slot, int format = -1);    // $AUTOCOMPLETESTATICONLY$
+  import static DynamicSprite* CreateFromExistingSprite(int slot, ColorFormat format = eColorFmt_Default); // $AUTOCOMPLETESTATICONLY$
   /// Creates a dynamic sprite from a BMP or PCX file.
-  import static DynamicSprite* CreateFromFile(const string filename);              // $AUTOCOMPLETESTATICONLY$
+  import static DynamicSprite* CreateFromFile(const string filename, ColorFormat format = eColorFmt_Default); // $AUTOCOMPLETESTATICONLY$
   /// Creates a dynamic sprite from a save game screenshot.
   import static DynamicSprite* CreateFromSaveGame(int slot, int width, int height);  // $AUTOCOMPLETESTATICONLY$
   /// Creates a dynamic sprite as a copy of the current screen.
@@ -2488,6 +2497,8 @@ builtin struct Game {
 #ifdef SCRIPT_API_v400
   /// Gets/sets the default y/x ratio of character's facing directions, determining directional loop selection for all Characters in game.
   import static attribute float FaceDirectionRatio;
+  /// Gets the color depth of the specified sprite.
+  readonly import static attribute int SpriteColorDepth[];
 #endif
 };
 
@@ -2788,18 +2799,12 @@ builtin managed struct Pathfinder {
   import Point* Trace(int srcx, int srcy, int dstx, int dsty);
 };
 
-/*
-// FIXME
-// MaskPathfinder is disabled in script API until AGS supports creation of
-// 8-bit dynamic sprites in 32-bit games.
-
 builtin managed struct MaskPathfinder extends Pathfinder {
   /// Creates a new MaskPathfinder, initialized with the given 8-bit mask sprite
   import static MaskPathfinder* Create(int mask_sprite);  // $AUTOCOMPLETESTATICONLY$
   /// Assigns a new mask to this MaskPathfinder
   import void SetMask(int mask_sprite);
 };
-*/
 
 #endif
 

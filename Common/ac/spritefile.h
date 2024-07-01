@@ -17,6 +17,8 @@
 // accumulating index information, and may therefore be suitable for a variety
 // of situations.
 //
+// TODO: store extra Color Depth field per sprite in the sprite index.
+//
 //=============================================================================
 #ifndef __AGS_CN_AC__SPRFILE_H
 #define __AGS_CN_AC__SPRFILE_H

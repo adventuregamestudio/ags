@@ -148,8 +148,6 @@ target_sources(engine
     ac/global_dialog.h
     ac/global_display.cpp
     ac/global_display.h
-    ac/global_dynamicsprite.cpp
-    ac/global_dynamicsprite.h
     ac/global_file.cpp
     ac/global_file.h
     ac/global_game.cpp

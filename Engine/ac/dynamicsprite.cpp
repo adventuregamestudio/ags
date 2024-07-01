@@ -18,7 +18,6 @@
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
-#include "ac/global_dynamicsprite.h"
 #include "ac/global_game.h"
 #include "ac/math.h"    // M_PI
 #include "ac/path_helper.h"
@@ -49,6 +48,20 @@ char check_dynamic_sprites_at_exit = 1;
 
 // ** SCRIPT DYNAMIC SPRITE
 
+int ValidateColorFormat(const char *api_name, ScriptColorFormat color_format)
+{
+    switch (color_format)
+    {
+    case kScColorFmt_8bit:
+        return color_format;
+    case kScColorFmt_Default:
+        return game.GetColorDepth();
+    default:
+        debug_script_log("%s: unsupported color depth %d, will fallback to game default %d", api_name, color_format, game.GetColorDepth());
+        return game.GetColorDepth();
+    }
+}
+
 void DynamicSprite_Delete(ScriptDynamicSprite *sds) {
     if (sds->slot) {
         free_dynamic_sprite(sds->slot);
@@ -78,15 +91,9 @@ int DynamicSprite_GetHeight(ScriptDynamicSprite *sds) {
     return game.SpriteInfos[sds->slot].Height;
 }
 
-// CLNUP take a look
 int DynamicSprite_GetColorDepth(ScriptDynamicSprite *sds) {
     // Dynamic sprite ensures the sprite exists always
-    int depth = spriteset[sds->slot]->GetColorDepth();
-    if (depth == 15)
-        depth = 16;
-    if (depth == 24)
-        depth = 32;
-    return depth;
+    return spriteset[sds->slot]->GetColorDepth();
 }
 
 void DynamicSprite_Resize(ScriptDynamicSprite *sds, int width, int height) {
@@ -239,26 +246,57 @@ int DynamicSprite_SaveToFile(ScriptDynamicSprite *sds, const char* namm)
     return spriteset[sds->slot]->SaveToFile(rp.FullPath, palette) ? 1 : 0;
 }
 
-ScriptDynamicSprite* DynamicSprite_CreateFromSaveGame(int sgslot, int width, int height) {
-    int slotnum = LoadSaveSlotScreenshot(sgslot, width, height);
-    if (slotnum) {
-        ScriptDynamicSprite *new_spr = new ScriptDynamicSprite(slotnum);
-        return new_spr;
+ScriptDynamicSprite* DynamicSprite_CreateFromSaveGame(int sgslot, int width, int height)
+{
+    if (!spriteset.HasFreeSlots())
+        return nullptr;
+
+    auto screenshot = read_savedgame_screenshot(get_save_game_path(sgslot));
+    if (!screenshot)
+        return nullptr;
+
+    // resize the sprite to the requested size
+    if ((screenshot->GetWidth() != width) || (screenshot->GetHeight() != height))
+    {
+        std::unique_ptr<Bitmap> temp(BitmapHelper::CreateBitmap(width, height, screenshot->GetColorDepth()));
+        temp->StretchBlt(screenshot.get(),
+            RectWH(0, 0, screenshot->GetWidth(), screenshot->GetHeight()),
+            RectWH(0, 0, width, height));
+        screenshot = std::move(temp);
     }
-    return nullptr;
+
+    int new_slot = add_dynamic_sprite(std::move(screenshot));
+    if (new_slot <= 0)
+        return nullptr; // something went wrong
+    return new ScriptDynamicSprite(new_slot);
 }
 
-ScriptDynamicSprite* DynamicSprite_CreateFromFile(const char *filename) {
-    int slotnum = LoadImageFile(filename);
-    if (slotnum) {
-        ScriptDynamicSprite *new_spr = new ScriptDynamicSprite(slotnum);
-        return new_spr;
-    }
-    return nullptr;
+ScriptDynamicSprite* DynamicSprite_CreateFromFile(const char *filename, int color_fmt)
+{
+    if (!spriteset.HasFreeSlots())
+        return nullptr;
+
+    std::unique_ptr<Stream> in(
+        ResolveScriptPathAndOpen(filename, FileOpenMode::kFile_Open, StreamMode::kStream_Read));
+    if (!in)
+        return nullptr;
+
+    String ext = Path::GetFileExtension(filename);
+    int dst_color_depth = ValidateColorFormat("DynamicSprite.Create", static_cast<ScriptColorFormat>(color_fmt));
+    std::unique_ptr<Bitmap> image(BitmapHelper::LoadBitmap(in.get(), ext, dst_color_depth));
+    if (!image)
+        return nullptr;
+
+    image.reset(PrepareSpriteForUse(image.release(), false /* not force opaque */));
+
+    int new_slot = add_dynamic_sprite(std::move(image));
+    if (new_slot <= 0)
+        return nullptr; // something went wrong
+    return new ScriptDynamicSprite(new_slot);
 }
 
-ScriptDynamicSprite* DynamicSprite_CreateFromScreenShot(int width, int height) {
-
+ScriptDynamicSprite* DynamicSprite_CreateFromScreenShot(int width, int height)
+{
     // TODO: refactor and merge with create_savegame_screenshot()
     if (!spriteset.HasFreeSlots())
         return nullptr;
@@ -279,8 +317,7 @@ ScriptDynamicSprite* DynamicSprite_CreateFromScreenShot(int width, int height) {
     return new ScriptDynamicSprite(new_slot);
 }
 
-// NOTE: format param is a placeholder, also substituting older "has alpha" arg
-ScriptDynamicSprite* DynamicSprite_CreateFromExistingSprite(int slot, int /*format*/)
+ScriptDynamicSprite* DynamicSprite_CreateFromExistingSprite(int slot, int color_fmt)
 {
     if (!spriteset.HasFreeSlots())
         return nullptr;
@@ -288,8 +325,10 @@ ScriptDynamicSprite* DynamicSprite_CreateFromExistingSprite(int slot, int /*form
     if (!spriteset.DoesSpriteExist(slot))
         quitprintf("DynamicSprite.CreateFromExistingSprite: sprite %d does not exist", slot);
 
+    int dst_color_depth = ValidateColorFormat("DynamicSprite.Create", static_cast<ScriptColorFormat>(color_fmt));
+
     // create a new sprite as a copy of the existing one
-    std::unique_ptr<Bitmap> new_pic(BitmapHelper::CreateBitmapCopy(spriteset[slot]));
+    std::unique_ptr<Bitmap> new_pic(BitmapHelper::CreateBitmapCopy(spriteset[slot], dst_color_depth));
     if (!new_pic)
         return nullptr;
 
@@ -299,10 +338,12 @@ ScriptDynamicSprite* DynamicSprite_CreateFromExistingSprite(int slot, int /*form
     return new ScriptDynamicSprite(new_slot);
 }
 
-ScriptDynamicSprite* DynamicSprite_CreateFromDrawingSurface(ScriptDrawingSurface *sds, int x, int y, int width, int height) 
+ScriptDynamicSprite* DynamicSprite_CreateFromDrawingSurface(ScriptDrawingSurface *sds, int x, int y, int width, int height, int color_fmt) 
 {
     if (!spriteset.HasFreeSlots())
         return nullptr;
+
+    int dst_color_depth = ValidateColorFormat("DynamicSprite.Create", static_cast<ScriptColorFormat>(color_fmt));
 
     if (width <= 0 || height <= 0)
     {
@@ -315,7 +356,7 @@ ScriptDynamicSprite* DynamicSprite_CreateFromDrawingSurface(ScriptDrawingSurface
     if ((x < 0) || (y < 0) || (x + width > ds->GetWidth()) || (y + height > ds->GetHeight()))
         quit("!DynamicSprite.CreateFromDrawingSurface: requested area is outside the surface");
 
-    std::unique_ptr<Bitmap> new_pic(BitmapHelper::CreateBitmap(width, height, ds->GetColorDepth()));
+    std::unique_ptr<Bitmap> new_pic(BitmapHelper::CreateBitmap(width, height, dst_color_depth));
     if (!new_pic)
     {
         sds->FinishedDrawingReadOnly();
@@ -331,11 +372,12 @@ ScriptDynamicSprite* DynamicSprite_CreateFromDrawingSurface(ScriptDrawingSurface
     return new ScriptDynamicSprite(new_slot);
 }
 
-// NOTE: format param is a placeholder, also substituting older "has alpha" arg
-ScriptDynamicSprite* DynamicSprite_Create(int width, int height, int /*format*/)
+ScriptDynamicSprite* DynamicSprite_Create(int width, int height, int color_fmt)
 {
     if (!spriteset.HasFreeSlots())
         return nullptr;
+
+    int color_depth = ValidateColorFormat("DynamicSprite.Create", static_cast<ScriptColorFormat>(color_fmt));
 
     if (width <= 0 || height <= 0)
     {
@@ -344,7 +386,7 @@ ScriptDynamicSprite* DynamicSprite_Create(int width, int height, int /*format*/)
         height = std::max(1, height);
     }
 
-    std::unique_ptr<Bitmap> new_pic(CreateCompatBitmap(width, height));
+    std::unique_ptr<Bitmap> new_pic(CreateCompatBitmap(width, height, color_depth));
     if (!new_pic)
         return nullptr;
 
@@ -544,7 +586,7 @@ RuntimeScriptValue Sc_DynamicSprite_CreateFromBackground(const RuntimeScriptValu
 // ScriptDynamicSprite* (ScriptDrawingSurface *sds, int x, int y, int width, int height)
 RuntimeScriptValue Sc_DynamicSprite_CreateFromDrawingSurface(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_OBJAUTO_POBJ_PINT4(ScriptDynamicSprite, DynamicSprite_CreateFromDrawingSurface, ScriptDrawingSurface);
+    API_SCALL_OBJAUTO_POBJ_PINT5(ScriptDynamicSprite, DynamicSprite_CreateFromDrawingSurface, ScriptDrawingSurface);
 }
 
 RuntimeScriptValue Sc_DynamicSprite_CreateFromExistingSprite(const RuntimeScriptValue *params, int32_t param_count)
@@ -555,7 +597,7 @@ RuntimeScriptValue Sc_DynamicSprite_CreateFromExistingSprite(const RuntimeScript
 // ScriptDynamicSprite* (const char *filename)
 RuntimeScriptValue Sc_DynamicSprite_CreateFromFile(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_OBJAUTO_POBJ(ScriptDynamicSprite, DynamicSprite_CreateFromFile, const char);
+    API_SCALL_OBJAUTO_POBJ_PINT(ScriptDynamicSprite, DynamicSprite_CreateFromFile, const char);
 }
 
 // ScriptDynamicSprite* (int sgslot, int width, int height)
@@ -573,13 +615,13 @@ RuntimeScriptValue Sc_DynamicSprite_CreateFromScreenShot(const RuntimeScriptValu
 
 void RegisterDynamicSpriteAPI()
 {
-    // WARNING: DynamicSprite.Create and CreateFromExistingSprite have 1 param REMOVED since ags4
+    // WARNING: DynamicSprite.Create and CreateFromExistingSprite have 1 param REPLACED since ags4
     ScFnRegister dynsprite_api[] = {
         { "DynamicSprite::Create^3",                  API_FN_PAIR(DynamicSprite_Create) },
         { "DynamicSprite::CreateFromBackground",      API_FN_PAIR(DynamicSprite_CreateFromBackground) },
-        { "DynamicSprite::CreateFromDrawingSurface^5", API_FN_PAIR(DynamicSprite_CreateFromDrawingSurface) },
+        { "DynamicSprite::CreateFromDrawingSurface^6", API_FN_PAIR(DynamicSprite_CreateFromDrawingSurface) },
         { "DynamicSprite::CreateFromExistingSprite^2", API_FN_PAIR(DynamicSprite_CreateFromExistingSprite) },
-        { "DynamicSprite::CreateFromFile",            API_FN_PAIR(DynamicSprite_CreateFromFile) },
+        { "DynamicSprite::CreateFromFile^2",          API_FN_PAIR(DynamicSprite_CreateFromFile) },
         { "DynamicSprite::CreateFromSaveGame",        API_FN_PAIR(DynamicSprite_CreateFromSaveGame) },
         { "DynamicSprite::CreateFromScreenShot",      API_FN_PAIR(DynamicSprite_CreateFromScreenShot) },
         { "DynamicSprite::ChangeCanvasSize^4",        API_FN_PAIR(DynamicSprite_ChangeCanvasSize) },

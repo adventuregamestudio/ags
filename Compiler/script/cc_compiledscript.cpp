@@ -78,11 +78,12 @@ int ccCompiledScript::add_string(const char*strr) {
         if (ch=='\\') {
             src++;
             ch = strr[src];
-            if (ch == 'n') {ch = '\n';}
-            else if (ch == 'r') {ch = '\r';}
-            else if (ch == '[') { // pass through as \[
+
+            if (ch == '[') { // pass through as \[
                 *write_ptr = '\\';
                 write_ptr++;
+            } else {
+                ch = get_escaped_char(ch);
             }
         }
         *write_ptr = ch;

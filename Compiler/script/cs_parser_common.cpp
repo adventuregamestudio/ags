@@ -39,3 +39,18 @@ int is_alphanum(int chrac) {
     if (chrac == '\'') return 1;
     return 0;
 }
+
+int get_escaped_char(char c)
+{
+    switch (c)
+    {
+    case 'a': return '\a';
+    case 'b': return '\b';
+    case 'f': return '\f';
+    case 'n': return '\n';
+    case 'r': return '\r';
+    case 't': return '\t';
+    case 'v': return '\v';
+    default: return c;
+    }
+}

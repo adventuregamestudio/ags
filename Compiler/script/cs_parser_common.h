@@ -120,5 +120,6 @@ extern int is_whitespace(char cht);
 extern void skip_whitespace(char**pttt);
 extern int is_digit(int chrac);
 extern int is_alphanum(int chrac);
+extern int get_escaped_char(char c);
 
 #endif // __CS_PARSER_COMMON_H

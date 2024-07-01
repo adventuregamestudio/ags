@@ -984,6 +984,7 @@ void Character_StopMoving(CharacterInfo *charp) {
         charp->walking = 0;
         if ((charp->flags & CHF_MOVENOTWALK) == 0)
             charp->frame = 0;
+        charp->flags &= ~CHF_MOVENOTWALK;
     }
 }
 
@@ -1699,8 +1700,6 @@ void walk_character(int chac,int tox,int toy,int ignwal, bool autoWalkAnims) {
     CharacterInfo*chin=&game.chars[chac];
     if (chin->room!=displayed_room)
         quit("!MoveCharacter: character not in current room");
-
-    chin->flags &= ~CHF_MOVENOTWALK;
 
     if ((tox == chin->x) && (toy == chin->y)) {
         StopMoving(chac);

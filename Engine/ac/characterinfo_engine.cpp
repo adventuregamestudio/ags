@@ -223,8 +223,11 @@ void CharacterInfo::update_character_moving(int &char_index, CharacterExtras *ch
         chex->process_idle_this_time = 1;
         doing_nothing=1;
         walkwait=0;
+        const bool was_walk_anim = (flags & CHF_MOVENOTWALK) == 0;
         Character_StopMoving(this);
-        if ((flags & CHF_MOVENOTWALK) == 0) {
+        // CHECKME: there's possibly a flaw in game logic design here, as StopMoving also resets the frame,
+        // except it does not reset animwait, nor calls CheckViewFrame()
+        if (was_walk_anim) {
             // use standing pic
             chex->animwait = 0;
             frame = 0;

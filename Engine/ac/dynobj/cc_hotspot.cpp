@@ -19,6 +19,7 @@
 #include "util/stream.h"
 
 using namespace AGS::Common;
+extern std::vector<int> StaticHotspotArray;
 
 extern ScriptHotspot scrHotspot[MAX_ROOM_HOTSPOTS];
 
@@ -39,5 +40,5 @@ void CCHotspot::Serialize(const void *address, Stream *out) {
 
 void CCHotspot::Unserialize(int index, Stream *in, size_t /*data_sz*/) {
     int num = in->ReadInt32();
-    ccRegisterUnserializedPersistentObject(index, &scrHotspot[num], this);
+    StaticHotspotArray[num] = ccRegisterUnserializedPersistentObject(index, &scrHotspot[num], this);
 }

@@ -18,6 +18,7 @@
 #include "util/stream.h"
 
 using namespace AGS::Common;
+extern std::vector<int> StaticInventoryArray;
 
 extern ScriptInvItem scrInv[MAX_INV];
 
@@ -38,5 +39,5 @@ void CCInventory::Serialize(const void *address, Stream *out) {
 
 void CCInventory::Unserialize(int index, Stream *in, size_t /*data_sz*/) {
     int num = in->ReadInt32();
-    ccRegisterUnserializedPersistentObject(index, &scrInv[num], this);
+    StaticInventoryArray[num] = ccRegisterUnserializedPersistentObject(index, &scrInv[num], this);
 }

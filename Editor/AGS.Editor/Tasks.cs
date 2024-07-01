@@ -667,7 +667,7 @@ namespace AGS.Editor
             {
                 if (obj.Name.Length > 0)
                 {
-                    sb.AppendLine("import Object " + obj.Name + ";");
+                    sb.AppendLine("import readonly Object *" + obj.Name + ";");
                 }
             }
 
@@ -675,7 +675,7 @@ namespace AGS.Editor
             {
                 if (hotspot.Name.Length > 0)
                 {
-                    sb.AppendLine("import Hotspot " + hotspot.Name + ";");
+                    sb.AppendLine("import readonly Hotspot *" + hotspot.Name + ";");
                 }
             }
         }
@@ -691,7 +691,7 @@ namespace AGS.Editor
                 {
                     if (item.Name.Length > 0)
                     {
-                        sb.AppendLine("import InventoryItem " + item.Name + ";");
+                        sb.AppendLine("import readonly InventoryItem *" + item.Name + ";");
                     }
                 }
             }
@@ -712,7 +712,7 @@ namespace AGS.Editor
                 {
                     if (item.Name.Length > 0)
                     {
-                        sb.AppendLine("import Dialog " + item.Name + ";");
+                        sb.AppendLine("import readonly Dialog *" + item.Name + ";");
                     }
                 }
             }
@@ -752,7 +752,7 @@ namespace AGS.Editor
                         continue;
                     }
 
-                    sb.AppendLine("import GUI " + gui.Name + ";");
+                    sb.AppendLine("import readonly GUI *" + gui.Name + ";");
 
                     if (gui.Name.StartsWith("g"))
                     {
@@ -764,7 +764,7 @@ namespace AGS.Editor
                     {
                         if (control.Name.Length > 0)
                         {
-                            sb.AppendLine("import " + control.ScriptClassType + " " + control.Name + ";");
+                            sb.AppendLine("import readonly " + control.ScriptClassType + " *" + control.Name + ";");
                         }
                     }
                 }
@@ -806,7 +806,7 @@ namespace AGS.Editor
                     }
                     if (character.ScriptName.Length > 0)
                     {
-                        sb.AppendLine("import Character " + character.ScriptName + ";");
+                        sb.AppendLine("import readonly Character *" + character.ScriptName + ";");
                     }
                 }
             }

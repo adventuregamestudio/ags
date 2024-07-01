@@ -60,6 +60,7 @@ using namespace AGS::Engine;
 extern RoomStruct thisroom;
 extern int cur_mode,cur_cursor;
 extern std::vector<ScriptGUI> scrGui;
+std::vector<std::vector<int>> StaticGUIControlsHandles;
 extern GameSetupStruct game;
 extern CCGUIObject ccDynamicGUIObject;
 extern IGraphicsDriver *gfxDriver;
@@ -227,7 +228,7 @@ void GUI_SetSize(ScriptGUI *sgui, int w, int h) {
 
   if ((tehgui->Width == w) && (tehgui->Height == h))
     return;
-  
+
   tehgui->SetSize(w, h);
   tehgui->MarkChanged();
 }
@@ -542,7 +543,7 @@ void replace_macro_tokens(const char *text, String &fixed_text) {
                 macroname[idd]=curptr[0];
                 curptr++;
             }
-            macroname[idd]=0; 
+            macroname[idd]=0;
             tempo[0]=0;
             if (ags_stricmp(macroname,"gamename")==0)
                 snprintf(tempo, sizeof(tempo), "%s", play.game_name.GetCStr());
@@ -611,14 +612,30 @@ void prepare_gui_runtime(bool startup)
     GUIE::MarkAllGUIForUpdate(true, true);
 }
 
-void export_gui_controls(int ee)
+void set_array_all_gui_controls_size()
 {
-    for (int ff = 0; ff < guis[ee].GetControlCount(); ff++)
-    {
-        GUIObject *guio = guis[ee].GetControl(ff);
-        if (!guio->Name.IsEmpty())
-            ccAddExternalScriptObject(guio->Name, guio, &ccDynamicGUIObject);
-        ccRegisterPersistentObject(guio, &ccDynamicGUIObject); // add ref for engine
+    StaticGUIControlsHandles.resize(game.numgui);
+    for (int i = 0; i < game.numgui; ++i) {
+        auto const &gui = guis[i];
+        StaticGUIControlsHandles[i] = std::vector<int>();
+        StaticGUIControlsHandles[i].resize(gui.GetControlCount());
+    }
+}
+
+void export_all_gui_controls()
+{
+    set_array_all_gui_controls_size();
+
+    for (int i = 0; i < game.numgui; ++i) {
+        auto const &gui = guis[i];
+        for (int j = 0; j < gui.GetControlCount(); j++) {
+            GUIObject *guio = gui.GetControl(j);
+            int handle = ccRegisterPersistentObject(guio, &ccDynamicGUIObject); // add ref for engine
+            StaticGUIControlsHandles[i][j] = handle;
+            if (!guio->Name.IsEmpty()) {
+                ccAddExternalScriptObject(guio->Name, &StaticGUIControlsHandles[i][j], &GlobalStaticManager);
+            }
+        }
     }
 }
 
@@ -632,6 +649,15 @@ void unexport_gui_controls(int ee)
         if (!ccUnRegisterManagedObject(guio))
             quit("unable to unregister guicontrol object");
     }
+}
+
+void unexport_all_gui_controls()
+{
+    for (int i = 0; i < game.numgui; ++i)
+    {
+        unexport_gui_controls(i);
+    }
+    StaticGUIControlsHandles.clear();
 }
 
 void update_gui_disabled_status()

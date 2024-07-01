@@ -18,6 +18,7 @@
 #include "util/stream.h"
 
 using namespace AGS::Common;
+extern std::vector<std::vector<int>> StaticGUIControlsHandles;
 
 // return the type name of the object
 const char *CCGUIObject::GetType() {
@@ -38,5 +39,6 @@ void CCGUIObject::Serialize(const void *address, Stream *out) {
 void CCGUIObject::Unserialize(int index, Stream *in, size_t /*data_sz*/) {
     int guinum = in->ReadInt32();
     int objnum = in->ReadInt32();
-    ccRegisterUnserializedPersistentObject(index, guis[guinum].GetControl(objnum), this);
+    int handle = ccRegisterUnserializedPersistentObject(index, guis[guinum].GetControl(objnum), this);
+    (StaticGUIControlsHandles[guinum])[objnum] = handle;
 }

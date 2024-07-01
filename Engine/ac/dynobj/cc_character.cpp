@@ -21,6 +21,7 @@
 #include "util/stream.h"
 
 using namespace AGS::Common;
+extern std::vector<int> StaticCharacterArray;
 
 extern GameSetupStruct game;
 
@@ -44,7 +45,7 @@ void CCCharacter::Serialize(const void *address, Stream *out)
 void CCCharacter::Unserialize(int index, Stream *in, size_t /*data_sz*/)
 {
     int num = in->ReadInt32();
-    ccRegisterUnserializedPersistentObject(index, &game.chars[num], this);
+    StaticCharacterArray[num] = ccRegisterUnserializedPersistentObject(index, &game.chars[num], this);
 }
 
 uint8_t CCCharacter::ReadInt8(const void *address, intptr_t offset)

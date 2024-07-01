@@ -18,6 +18,7 @@
 #include "util/stream.h"
 
 using namespace AGS::Common;
+extern std::vector<int> StaticGUIArray;
 
 extern std::vector<ScriptGUI> scrGui;
 
@@ -38,5 +39,5 @@ void CCGUI::Serialize(const void *address, Stream *out) {
 
 void CCGUI::Unserialize(int index, Stream *in, size_t /*data_sz*/) {
     int num = in->ReadInt32();
-    ccRegisterUnserializedPersistentObject(index, &scrGui[num], this);
+    StaticGUIArray[num] = ccRegisterUnserializedPersistentObject(index, &scrGui[num], this);
 }

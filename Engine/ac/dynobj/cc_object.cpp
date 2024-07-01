@@ -19,6 +19,7 @@
 #include "util/stream.h"
 
 using namespace AGS::Common;
+extern std::vector<int> StaticObjectArray;
 
 extern ScriptObject scrObj[MAX_ROOM_OBJECTS];
 
@@ -39,5 +40,5 @@ void CCObject::Serialize(const void *address, Stream *out) {
 
 void CCObject::Unserialize(int index, Stream *in, size_t /*data_sz*/) {
     int num = in->ReadInt32();
-    ccRegisterUnserializedPersistentObject(index, &scrObj[num], this);
+    StaticObjectArray[num] = ccRegisterUnserializedPersistentObject(index, &scrObj[num], this);
 }

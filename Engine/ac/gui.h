@@ -67,8 +67,8 @@ void	update_gui_zorder();
 // Initializes all GUI and controls for runtime state;
 // this must be done after creating or loading GUIs.
 void    prepare_gui_runtime(bool startup);
-void	export_gui_controls(int ee);
-void	unexport_gui_controls(int ee);
+void	export_all_gui_controls();
+void    unexport_all_gui_controls();
 void	update_gui_disabled_status();
 int		adjust_x_for_guis(int xx, int yy, bool assume_blocking = false);
 int		adjust_y_for_guis(int yy, bool assume_blocking = false);

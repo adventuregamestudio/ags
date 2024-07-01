@@ -19,6 +19,7 @@
 #include "util/stream.h"
 
 using namespace AGS::Common;
+extern std::vector<int> StaticDialogArray;
 
 // return the type name of the object
 const char *CCDialog::GetType() {
@@ -37,5 +38,5 @@ void CCDialog::Serialize(const void *address, Stream *out) {
 
 void CCDialog::Unserialize(int index, Stream *in, size_t /*data_sz*/) {
     int num = in->ReadInt32();
-    ccRegisterUnserializedPersistentObject(index, &scrDialog[num], this);
+    StaticDialogArray[num] = ccRegisterUnserializedPersistentObject(index, &scrDialog[num], this);
 }

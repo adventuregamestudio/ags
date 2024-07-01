@@ -39,10 +39,14 @@ namespace AGS.Types
         v361 = 3060100,
         [Description("3.6.2")]
         v362 = 3060200,
-        [Description("3.99.x")]
+        // TODO: invent better names for 399/400 versions, for user convenience;
+        // maybe hide some of the early alpha values from selection?
+        [Description("3.99.x Alpha")]
         v399 = 3990000,
-        [Description("4.0.0")]
+        [Description("4.0.0 Alpha 8")]
         v400 = 4000003,
+        [Description("4.0.0 Alpha 12")]
+        v400_07 = 4000007,
         // Highest constant is used for automatic upgrade to new API when
         // the game is loaded in the newer version of the Editor
         [Description("Latest version")]

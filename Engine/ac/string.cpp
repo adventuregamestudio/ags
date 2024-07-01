@@ -163,45 +163,55 @@ const char* String_Truncate(const char *thisString, int length) {
     return CreateNewScriptString(std::move(buf));
 }
 
-const char* String_Trim(const char *thisString)
-{
-    const auto &this_header = ScriptString::GetHeader(thisString);
-    const char* nonSpaceFront = thisString;
-    const char* end = thisString + this_header.Length;
-    const char* nonSpaceBack = end;
-
+const char * TrimFront(const char *front, const char *back) {
     if (get_uformat() == U_UTF8) {
-        for (int c = ugetc(nonSpaceFront); nonSpaceFront != end && uisspace(c);) {
-            nonSpaceFront += ucwidth(c);
-            c = ugetc(nonSpaceFront);
+        for (int c = ugetc(front); front != back && uisspace(c);) {
+            front += ucwidth(c);
+            c = ugetc(front);
         }
     }
     else {
-        for (; nonSpaceFront != end && std::isspace(*nonSpaceFront); ++nonSpaceFront);
+        for (; front != back && std::isspace(*front); ++front);
     }
+    return front;
+}
 
-    if (*nonSpaceFront == '\0')
-        return CreateNewScriptString("");
-
+const char * TrimBack(const char *front, const char *back) {
     if (get_uformat() == U_UTF8) {
-        const char* prev = Utf8::BackOneChar(nonSpaceBack, thisString);
-        for (int c = ugetc(prev); prev != thisString && uisspace(c); ) {
-            nonSpaceBack = prev;
-            prev = Utf8::BackOneChar(prev, thisString);
+        const char* prev = Utf8::BackOneChar(back, front);
+        for (int c = ugetc(prev); prev != front && uisspace(c); ) {
+            back = prev;
+            prev = Utf8::BackOneChar(prev, front);
             c = ugetc(prev);
         }
-    } else {
-        for (--nonSpaceBack; nonSpaceBack != thisString && std::isspace(*nonSpaceBack); --nonSpaceBack);
-        ++nonSpaceBack;
     }
+    else {
+        for (--back; back != front && std::isspace(*back); --back);
+        ++back;
+    }
+    return back;
+}
 
-    size_t copylen = nonSpaceBack - nonSpaceFront;
+const char* String_Trim(const char *thisString)
+{
+    const auto &this_header = ScriptString::GetHeader(thisString);
+    const char* front = thisString;
+    const char* back = front + this_header.Length;
+
+    front = TrimFront(front, back);
+
+    if (*front == '\0')
+        return CreateNewScriptString("");
+
+    back = TrimBack(front, back);
+
+    size_t copylen = back - front;
     // if no trim happened, we can return the same string as AGS String is immutable
-    if(copylen == this_header.Length)
+    if (copylen == this_header.Length)
         return thisString;
 
     auto buf = ScriptString::CreateBuffer(copylen, 0);
-    memcpy(buf.Get(), nonSpaceFront, copylen);
+    memcpy(buf.Get(), front, copylen);
     buf.Get()[copylen] = 0;
     return CreateNewScriptString(std::move(buf));
 }
@@ -316,16 +326,34 @@ const char* String_UpperCase(const char *thisString) {
     return CreateNewScriptString(std::move(buf));
 }
 
-void * String_Split(const char *thisString, const char *separator)
+void * String_Split(const char *thisString, const char *separator, int splitOptions)
 {
     if (thisString == nullptr)
         return nullptr;
 
+    bool removeEmpty = (splitOptions & 0x0001) != 0;
+    bool trim = (splitOptions & 0x0002) != 0;
     auto const &header = ScriptString::GetHeader((void*)thisString);
 
-    if ((thisString[0] == 0) || (separator == nullptr) || (separator[0] == 0) || strlen(separator) > header.Length) {
+    if ((thisString[0] == 0) || (separator == nullptr) || (separator[0] == 0) || strlen(separator) > header.Length)
+    {
         std::vector<DynObjectRef> objs{};
-        objs.push_back(ScriptString::Create(thisString));
+        const char* front = thisString;
+        const char* back = thisString + header.Length;
+
+        if (trim) {
+            front = TrimFront(front, back);
+            if (front != back) {
+                back = TrimBack(front, back);
+            }
+        }
+        size_t len = back - front;
+        auto buf = ScriptString::CreateBuffer(len, 0);
+        std::copy(front, back, buf.Get());
+        buf.Get()[len] = 0;
+        if(!(removeEmpty && len == 0)) {
+            objs.push_back(ScriptString::Create(thisString));
+        }
         DynObjectRef arr = DynamicArrayHelpers::CreateScriptArray(std::move(objs));
         return arr.Obj;
     }
@@ -335,20 +363,33 @@ void * String_Split(const char *thisString, const char *separator)
     const char *ptr = thisString;
     const char *end = thisString + header.Length;
     size_t len = 0;
-    while (ptr < end)
+    while (ptr <= end)
     {
         const char *found_cstr = strstr(ptr, separator);
         if (!found_cstr) {
             found_cstr = end;
         }
 
-        len = found_cstr - ptr;
-        auto buf = ScriptString::CreateBuffer(len, 0);
-        std::copy(ptr, found_cstr, buf.Get());
-        buf.Get()[len] = 0;
-        items.push_back(std::move(buf));
+        const char* front = ptr;
+        const char* back = found_cstr;
+
+        if (trim) {
+            front = TrimFront(front, back);
+            if (front != back) {
+                back = TrimBack(front, back);
+            }
+        }
+
+        len = back - front;
 
         ptr = found_cstr + seplen;
+        if (removeEmpty && len == 0)
+            continue;
+
+        auto buf = ScriptString::CreateBuffer(len, 0);
+        std::copy(front, back, buf.Get());
+        buf.Get()[len] = 0;
+        items.push_back(std::move(buf));
     }
 
     DynObjectRef arr = DynamicArrayHelpers::CreateStringArrayFromBuffers(std::move(items));
@@ -582,7 +623,7 @@ RuntimeScriptValue Sc_String_UpperCase(void *self, const RuntimeScriptValue *par
 // const char* [] (const char *thisString, const char* separator)
 RuntimeScriptValue Sc_String_Split(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_OBJ_POBJ(const char, void, globalDynamicArray, String_Split, const char);
+    API_OBJCALL_OBJ_POBJ_PINT(const char, void, globalDynamicArray, String_Split, const char);
 }
 
 // FLOAT_RETURN_TYPE (const char *theString);
@@ -645,7 +686,7 @@ void RegisterStringAPI()
         { "String::Truncate^1",       API_FN_PAIR(String_Truncate) },
         { "String::Trim^0",           API_FN_PAIR(String_Trim) },
         { "String::UpperCase^0",      API_FN_PAIR(String_UpperCase) },
-        { "String::Split^1",          API_FN_PAIR(String_Split) },
+        { "String::Split^2",          API_FN_PAIR(String_Split) },
         { "String::get_AsFloat",      API_FN_PAIR(StringToFloat) },
         { "String::get_AsInt",        API_FN_PAIR(StringToInt) },
         { "String::geti_Chars",       API_FN_PAIR(String_GetChars) },

@@ -979,6 +979,7 @@ void Character_StopMoving(CharacterInfo *charp) {
         charp->walking = 0;
         if ((charp->flags & CHF_MOVENOTWALK) == 0)
             charp->frame = 0;
+        charp->flags &= ~CHF_MOVENOTWALK;
     }
 }
 
@@ -1793,8 +1794,6 @@ void move_character_impl(CharacterInfo *chin, const std::vector<Point> *path, in
     const int chac = chin->index_id;
     if (!ValidateCharForMove(chin, "MoveCharacter"))
         return;
-
-    chin->flags &= ~CHF_MOVENOTWALK;
 
     if (path)
     {

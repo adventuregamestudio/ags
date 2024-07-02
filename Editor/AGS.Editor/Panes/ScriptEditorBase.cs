@@ -92,7 +92,7 @@ namespace AGS.Editor
         /// <summary>
         /// Lets for a child class to assign an actual Scintilla control.
         /// </summary>
-        protected ScintillaWrapper Scintilla
+        public ScintillaWrapper Scintilla
         {
             get { return _scintilla; }
             set

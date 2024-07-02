@@ -913,7 +913,8 @@ namespace AGS.Editor
 
                     // take the alpha channel preference from the specified import option
                     // (instead of using whether the old sprite has an alpha channel)
-                    SpriteTools.ReplaceSprite(spr, spr.SourceFile, spr.Frame, spr.ImportAlphaChannel, spr.RemapToGamePalette, spr.RemapToRoomPalette, spr.TransparentColour, spritesheet);
+                    SpriteTools.ReplaceSprite(spr, new SpriteImportOptions(spr.ImportColorDepth, spr.RemapToGamePalette,
+                        spr.RemapToRoomPalette, spr.TransparentColour, spr.SourceFile, spr.Frame), spritesheet);
                 }
                 catch (Exception ex)
                 {
@@ -1001,7 +1002,7 @@ namespace AGS.Editor
                 }
                 else
                 {
-                    Factory.NativeProxy.ReplaceSpriteWithBitmap(sprite, newBmp, sprite.TransparentColour,
+                    Factory.NativeProxy.ReplaceSpriteWithBitmap(sprite, newBmp, sprite.ImportColorDepth, sprite.TransparentColour,
                         sprite.RemapToGamePalette, sprite.RemapToRoomPalette, sprite.AlphaChannel);
                     RefreshSpriteDisplay();
                 }

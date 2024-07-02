@@ -57,8 +57,8 @@ namespace Native
 			int  DrawFont(int hDC, int x, int y, int width, int fontNum);
 			void DrawBlockOfColour(int hDC, int x, int y, int width, int height, int colourNum);
 			void DrawViewLoop(int hdc, ViewLoop^ loopToDraw, int x, int y, int size, List<int>^ cursel);
-			Sprite^ SetSpriteFromBitmap(int spriteSlot, Bitmap^ bmp, int spriteImportMethod, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel);
-			void ReplaceSpriteWithBitmap(Sprite ^spr, Bitmap^ bmp, int spriteImportMethod, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel);
+			Sprite^ SetSpriteFromBitmap(int spriteSlot, Bitmap^ bmp, int destColorDepth, int spriteImportMethod, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel);
+			void ReplaceSpriteWithBitmap(Sprite ^spr, Bitmap^ bmp, int destColorDepth, int spriteImportMethod, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel);
 			Bitmap^ GetBitmapForSprite(int spriteSlot, int width, int height);
       Bitmap^ GetBitmapForSpritePreserveColDepth(int spriteSlot);
 			void DeleteSprite(int spriteSlot);

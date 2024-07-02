@@ -24,9 +24,9 @@ namespace AGS.Types
         private int _offsetY;
         private int _importWidth;
         private int _importHeight;
+        private SpriteImportColorDepth _importColorDepth = SpriteImportColorDepth.GameDefault;
         private bool _remapToGamePalette;
         private bool _remapToRoomPalette;
-        private bool _importAlphaChannel;
         private bool _importAsTile;
 
         public Sprite(int number, int width, int height, int colorDepth, bool alphaChannel)
@@ -109,12 +109,19 @@ namespace AGS.Types
 			set { _sourceFile = value; }
 		}
 
-        [Description("Import the alpha channel (if one is available)")]
+        [Description("Import converting to this color depth")]
         [Category("Import")]
+        public SpriteImportColorDepth ImportColorDepth
+        {
+            get { return _importColorDepth; }
+            set { _importColorDepth = value; }
+        }
+
+        [Obsolete]
+        [Browsable(false)]
         public bool ImportAlphaChannel
         {
-            get { return _importAlphaChannel; }
-            set { _importAlphaChannel = value; }
+            get; set;
         }
 
 		[Browsable(false)]
@@ -243,16 +250,6 @@ namespace AGS.Types
                     // pass
                 }
 
-                // added with fixup task in XML version 20
-                try
-                {
-                    _importAlphaChannel = Convert.ToBoolean(SerializeUtils.GetElementString(sourceNode, "ImportAlphaChannel"));
-                }
-                catch (InvalidDataException)
-                {
-                    _importAlphaChannel = true;
-                }
-
                 // added with fixup task in XML Version 23
                 try
                 {
@@ -273,6 +270,16 @@ namespace AGS.Types
                 catch (InvalidDataException)
                 {
                     _importAsTile = false;
+                }
+
+                // added in XML version 4.00.00.07
+                try
+                {
+                    _importColorDepth = (SpriteImportColorDepth)Enum.Parse(typeof(SpriteImportColorDepth), SerializeUtils.GetElementString(sourceNode, "ImportColorDepth"));
+                }
+                catch (InvalidDataException)
+                {
+                    _importColorDepth = SpriteImportColorDepth.GameDefault;
                 }
             }
         }
@@ -298,12 +305,12 @@ namespace AGS.Types
             writer.WriteElementString("OffsetY", _offsetY.ToString());
             writer.WriteElementString("ImportHeight", _importHeight.ToString());
             writer.WriteElementString("ImportWidth", _importWidth.ToString());
+            writer.WriteElementString("ImportColorDepth", _importColorDepth.ToString());
             writer.WriteElementString("ImportAsTile", _importAsTile.ToString());
             writer.WriteElementString("Frame", _frame.ToString());
             writer.WriteElementString("RemapToGamePalette", _remapToGamePalette.ToString());
             writer.WriteElementString("RemapToRoomPalette", _remapToRoomPalette.ToString());
             writer.WriteElementString("ImportMethod", _tranparentColour.ToString());
-            writer.WriteElementString("ImportAlphaChannel", _importAlphaChannel.ToString());
             writer.WriteEndElement(); // end source
 
             writer.WriteEndElement();

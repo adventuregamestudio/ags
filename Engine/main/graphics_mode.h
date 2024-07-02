@@ -23,7 +23,7 @@
 #include "util/string.h"
 
 using AGS::Common::String;
-using AGS::Engine::GraphicResolution;
+using AGS::Common::GraphicResolution;
 using AGS::Engine::DisplayMode;
 using AGS::Engine::WindowMode;
 

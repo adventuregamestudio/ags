@@ -75,6 +75,14 @@ namespace AGS.Types
             Assert.That(_sprite.SourceFile, Is.EqualTo(sourceFile));
         }
 
+        [TestCase(SpriteImportColorDepth.GameDefault)]
+        [TestCase(SpriteImportColorDepth.Indexed8Bit)]
+        public void GetsAndSetsImportColorDepth(SpriteImportColorDepth importColorDepth)
+        {
+            _sprite.ImportColorDepth = importColorDepth;
+            Assert.That(_sprite.ImportColorDepth, Is.EqualTo(importColorDepth));
+        }
+
         [TestCase(false)]
         [TestCase(true)]
         public void GetsAndSetsImportAlphaChannel(bool importAlphaChannel)
@@ -180,17 +188,20 @@ namespace AGS.Types
             Assert.That(_sprite.RemapToRoomPalette, Is.EqualTo(remapToRoomPalette));
         }
 
-        [TestCase(1, 25, 75, 8, false, 1, "sprite1.bmp", 1, 1, 1, 1, false, 1, false, false, SpriteImportTransparency.BottomLeft, false)]
-        [TestCase(2, 75, 25, 32, true, 2, "sprite2.bmp", 2, 2, 1, 1, true, 2, true, true, SpriteImportTransparency.BottomRight, true)]
+        [TestCase(1, 25, 75, 8, false, 1, "sprite1.bmp", SpriteImportColorDepth.Indexed8Bit, 1, 1, 1, 1, false, 1, false, false,
+            SpriteImportTransparency.BottomLeft)]
+        [TestCase(2, 75, 25, 32, true, 2, "sprite2.bmp", SpriteImportColorDepth.GameDefault, 2, 2, 1, 1, true, 2, true, true,
+            SpriteImportTransparency.BottomRight)]
         public void DeserializesFromXml(int slot, int width, int height, int colorDepth, bool alphaChannel,
-            int colorsLockedToRoom, string filename, int offsetX, int offsetY, int importHeight,
-            int importWidth, bool importAsTile, int frame, bool remapToGamePalette, bool remapToRoomPalette,
-            SpriteImportTransparency importMethod, bool importAlphaChannel)
+            int colorsLockedToRoom, string filename, SpriteImportColorDepth importColorDepth, int offsetX, int offsetY,
+            int importHeight, int importWidth, bool importAsTile, int frame, bool remapToGamePalette, bool remapToRoomPalette,
+            SpriteImportTransparency importMethod)
         {
             string xml = $@"
             <Sprite Slot=""{slot}"" Width=""{width}"" Height=""{height}"" ColorDepth=""{colorDepth}"" Resolution=""LowRes"" AlphaChannel=""{alphaChannel}"" ColoursLockedToRoom=""{colorsLockedToRoom}"">
                 <Source>
                     <FileName>{filename}</FileName>
+                    <ImportColorDepth>{importColorDepth}</ImportColorDepth>
                     <OffsetX>{offsetX}</OffsetX>
                     <OffsetY>{offsetY}</OffsetY>
                     <ImportHeight>{importHeight}</ImportHeight>
@@ -200,7 +211,6 @@ namespace AGS.Types
                     <RemapToGamePalette>{remapToGamePalette}</RemapToGamePalette>
                     <RemapToRoomPalette>{remapToRoomPalette}</RemapToRoomPalette>
                     <ImportMethod>{importMethod}</ImportMethod>
-                    <ImportAlphaChannel>{importAlphaChannel}</ImportAlphaChannel>
                 </Source>
             </Sprite>";
             XmlDocument doc = new XmlDocument();
@@ -214,6 +224,7 @@ namespace AGS.Types
             Assert.That(_sprite.AlphaChannel, Is.EqualTo(alphaChannel));
             Assert.That(_sprite.ColoursLockedToRoom, Is.EqualTo(colorsLockedToRoom));
             Assert.That(_sprite.SourceFile, Is.EqualTo(filename));
+            Assert.That(_sprite.ImportColorDepth, Is.EqualTo(importColorDepth));
             Assert.That(_sprite.OffsetX, Is.EqualTo(offsetX));
             Assert.That(_sprite.OffsetY, Is.EqualTo(offsetY));
             Assert.That(_sprite.ImportHeight, Is.EqualTo(importHeight));
@@ -223,15 +234,14 @@ namespace AGS.Types
             Assert.That(_sprite.RemapToGamePalette, Is.EqualTo(remapToGamePalette));
             Assert.That(_sprite.RemapToRoomPalette, Is.EqualTo(remapToRoomPalette));
             Assert.That(_sprite.TransparentColour, Is.EqualTo(importMethod));
-            Assert.That(_sprite.ImportAlphaChannel, Is.EqualTo(importAlphaChannel));
         }
 
-        [TestCase(1, 25, 75, 8, false, 1, "sprite1.bmp", 1, 1, 1, 1, false, 1, false, false, SpriteImportTransparency.BottomLeft, false)]
-        [TestCase(2, 75, 25, 32, true, 2, "sprite2.bmp", 2, 2, 1, 1, true, 2, true, true, SpriteImportTransparency.BottomRight, true)]
+        [TestCase(1, 25, 75, 8, false, 1, "sprite1.bmp", SpriteImportColorDepth.Indexed8Bit, 1, 1, 1, 1, false, 1, false, false, SpriteImportTransparency.BottomLeft)]
+        [TestCase(2, 75, 25, 32, true, 2, "sprite2.bmp", SpriteImportColorDepth.GameDefault, 2, 2, 1, 1, true, 2, true, true, SpriteImportTransparency.BottomRight)]
         public void SerializesToXml(int slot, int width, int height, int colorDepth, bool alphaChannel,
-            int colorsLockedToRoom, string filename, int offsetX, int offsetY, int importHeight,
+            int colorsLockedToRoom, string filename, SpriteImportColorDepth importColorDepth, int offsetX, int offsetY, int importHeight,
             int importWidth, bool importAsTile, int frame, bool remapToGamePalette, bool remapToRoomPalette,
-            SpriteImportTransparency importMethod, bool importAlphaChannel)
+            SpriteImportTransparency importMethod)
         {
             _sprite.Number = slot;
             _sprite.Width = width;
@@ -249,7 +259,7 @@ namespace AGS.Types
             _sprite.RemapToGamePalette = remapToGamePalette;
             _sprite.RemapToRoomPalette = remapToRoomPalette;
             _sprite.TransparentColour = importMethod;
-            _sprite.ImportAlphaChannel = importAlphaChannel;
+            _sprite.ImportColorDepth = importColorDepth;
             XmlDocument doc = _sprite.ToXmlDocument();
 
             Assert.That(doc.SelectSingleNode("/Sprite").Attributes["Slot"].InnerText, Is.EqualTo(_sprite.Number.ToString()));
@@ -261,6 +271,7 @@ namespace AGS.Types
             Assert.That(doc.SelectSingleNode("/Sprite").Attributes["ColoursLockedToRoom"].InnerText, Is.EqualTo(_sprite.ColoursLockedToRoom.ToString()));
 
             Assert.That(doc.SelectSingleNode("/Sprite/Source/FileName").InnerText, Is.EqualTo(_sprite.SourceFile.ToString()));
+            Assert.That(doc.SelectSingleNode("/Sprite/Source/ImportColorDepth").InnerText, Is.EqualTo(_sprite.ImportColorDepth.ToString()));
             Assert.That(doc.SelectSingleNode("/Sprite/Source/OffsetX").InnerText, Is.EqualTo(_sprite.OffsetX.ToString()));
             Assert.That(doc.SelectSingleNode("/Sprite/Source/OffsetY").InnerText, Is.EqualTo(_sprite.OffsetY.ToString()));
             Assert.That(doc.SelectSingleNode("/Sprite/Source/ImportHeight").InnerText, Is.EqualTo(_sprite.ImportHeight.ToString()));
@@ -270,7 +281,6 @@ namespace AGS.Types
             Assert.That(doc.SelectSingleNode("/Sprite/Source/RemapToGamePalette").InnerText, Is.EqualTo(_sprite.RemapToGamePalette.ToString()));
             Assert.That(doc.SelectSingleNode("/Sprite/Source/RemapToRoomPalette").InnerText, Is.EqualTo(_sprite.RemapToRoomPalette.ToString()));
             Assert.That(doc.SelectSingleNode("/Sprite/Source/ImportMethod").InnerText, Is.EqualTo(_sprite.TransparentColour.ToString()));
-            Assert.That(doc.SelectSingleNode("/Sprite/Source/ImportAlphaChannel").InnerText, Is.EqualTo(_sprite.ImportAlphaChannel.ToString()));
         }
     }
 }

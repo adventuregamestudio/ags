@@ -14,6 +14,9 @@
 //
 // Graphic definitions and type/unit conversions.
 //
+// TODO: consider reorganizing this header; specifically move GraphicSpace to
+// some other header, as it brings a bunch of matrix headers with itself.
+//
 //=============================================================================
 #ifndef __AGS_CN_GFX__GFXDEF_H
 #define __AGS_CN_GFX__GFXDEF_H
@@ -49,6 +52,23 @@ enum BlendMode
     kBlend_Exclusion,
     kBlend_Dodge,
     kNumBlendModes
+};
+
+// GraphicResolution struct determines image size and color depth
+struct GraphicResolution : Size
+{
+    int32_t ColorDepth; // color depth in bits per pixel
+
+    GraphicResolution()
+        : ColorDepth(0) {}
+
+    GraphicResolution(int32_t width, int32_t height, int32_t color_depth)
+        : Size(width, height), ColorDepth(color_depth) {}
+
+    GraphicResolution(Size size, int32_t color_depth)
+        : Size(size), ColorDepth(color_depth) {}
+
+    inline bool IsValid() const { return Width > 0 && Height > 0 && ColorDepth > 0; }
 };
 
 

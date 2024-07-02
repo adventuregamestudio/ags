@@ -400,7 +400,7 @@ HError SpriteCache::InitFile(std::unique_ptr<Stream> &&sprite_file,
 {
     Reset();
 
-    std::vector<Size> metrics;
+    std::vector<GraphicResolution> metrics;
     HError err = _file.OpenFile(std::move(sprite_file), std::move(index_file), metrics);
     if (!err)
         return err;
@@ -417,6 +417,7 @@ HError SpriteCache::InitFile(std::unique_ptr<Stream> &&sprite_file,
             _spriteData[i].Flags = SPRCACHEFLAG_ISASSET;
             _sprInfos[i].Width = metrics[i].Width;
             _sprInfos[i].Height = metrics[i].Height;
+            _sprInfos[i].ColorDepth = metrics[i].ColorDepth;
             Size newsz = _callbacks.AdjustSize(Size(metrics[i].Width, metrics[i].Height), _sprInfos[i].Flags);
             _sprInfos[i].Width = newsz.Width;
             _sprInfos[i].Height = newsz.Height;

@@ -112,9 +112,10 @@ namespace AGS.Editor
          * 4.00.00.00     - Raised for org purposes without project changes
          * 4.00.00.03     - Distinct Character and Object Enabled and Visible properties;
          *                - FaceDirectionRatio
+         * 4.00.00.07     - Sprite.ImportColorDepth
          *
         */
-        public const int    LATEST_XML_VERSION_INDEX = 4000003;
+        public const int    LATEST_XML_VERSION_INDEX = 4000007;
         /// <summary>
         /// XML version index on the release of AGS 4.0.0, this constant be used to determine
         /// if upgrade of Rooms/Sprites/etc. to new format have been performed.

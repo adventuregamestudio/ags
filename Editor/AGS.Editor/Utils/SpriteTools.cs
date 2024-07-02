@@ -14,6 +14,7 @@ namespace AGS.Editor.Utils
 {
     public struct SpriteImportOptions
     {
+        public SpriteImportColorDepth ImportColorDepth;
         public bool RemapColours;
         public bool UseRoomBackground;
         public SpriteImportTransparency Transparency;
@@ -22,9 +23,10 @@ namespace AGS.Editor.Utils
         public Rectangle Selection;
         public bool Tile;
 
-        public SpriteImportOptions(bool remapColours, bool useRoomBackground,
+        public SpriteImportOptions(SpriteImportColorDepth colorDepth, bool remapColours, bool useRoomBackground,
             SpriteImportTransparency transparency, string filename, int frame, Rectangle selection, bool tile)
         {
+            ImportColorDepth = colorDepth;
             RemapColours = remapColours;
             UseRoomBackground = useRoomBackground;
             Transparency = transparency;
@@ -37,17 +39,17 @@ namespace AGS.Editor.Utils
         /// <summary>
         /// Initializes only most basic options.
         /// </summary>
-        public SpriteImportOptions(bool remapColours, bool useRoomBackground, SpriteImportTransparency transparency)
-            : this(remapColours, useRoomBackground, transparency, "", 0, Rectangle.Empty, false)
+        public SpriteImportOptions(SpriteImportColorDepth colorDepth, bool remapColours, bool useRoomBackground, SpriteImportTransparency transparency)
+            : this(colorDepth, remapColours, useRoomBackground, transparency, "", 0, Rectangle.Empty, false)
         {
         }
 
         /// <summary>
         /// Initializes options with a filename and optional frame (for multi-frame image formats).
         /// </summary>
-        public SpriteImportOptions(bool remapColours, bool useRoomBackground,
+        public SpriteImportOptions(SpriteImportColorDepth colorDepth, bool remapColours, bool useRoomBackground,
             SpriteImportTransparency transparency, string filename, int frame = 0)
-            : this(remapColours, useRoomBackground, transparency, filename, frame, Rectangle.Empty, false)
+            : this(colorDepth, remapColours, useRoomBackground, transparency, filename, frame, Rectangle.Empty, false)
         {
         }
 
@@ -55,7 +57,7 @@ namespace AGS.Editor.Utils
         /// Initializes options by copying existing options and applying new filename and frame.
         /// </summary>
         public SpriteImportOptions(SpriteImportOptions baseOptions, string filename, int frame = 0)
-            : this(baseOptions.RemapColours, baseOptions.UseRoomBackground, baseOptions.Transparency,
+            : this(baseOptions.ImportColorDepth, baseOptions.RemapColours, baseOptions.UseRoomBackground, baseOptions.Transparency,
                   filename, frame, Rectangle.Empty, false)
         {
         }
@@ -64,7 +66,7 @@ namespace AGS.Editor.Utils
         /// Initializes options by copying existing options and applying new tile selection.
         /// </summary>
         public SpriteImportOptions(SpriteImportOptions baseOptions, Rectangle selection, bool tile)
-            : this(baseOptions.RemapColours, baseOptions.UseRoomBackground, baseOptions.Transparency,
+            : this(baseOptions.ImportColorDepth, baseOptions.RemapColours, baseOptions.UseRoomBackground, baseOptions.Transparency,
                   baseOptions.Filename, baseOptions.Frame, selection, tile)
         {
         }
@@ -317,6 +319,7 @@ namespace AGS.Editor.Utils
 
         private static void SetSpriteImportOptions(Sprite sprite, SpriteImportOptions options)
         {
+            sprite.ImportColorDepth = options.ImportColorDepth;
             sprite.TransparentColour = options.Transparency;
             sprite.RemapToGamePalette = options.RemapColours;
             sprite.RemapToRoomPalette = options.UseRoomBackground;
@@ -355,7 +358,7 @@ namespace AGS.Editor.Utils
             AdjustImportParams(bmp, options, out useAlphaChannel, out remapColours, out useRoomBackground);
 
             // do replacement
-            Factory.NativeProxy.ReplaceSpriteWithBitmap(sprite, bmp, options.Transparency, remapColours, useRoomBackground, useAlphaChannel);
+            Factory.NativeProxy.ReplaceSpriteWithBitmap(sprite, bmp, options.ImportColorDepth, options.Transparency, remapColours, useRoomBackground, useAlphaChannel);
             // resave import options
             SetSpriteImportOptions(sprite, options);
         }
@@ -400,7 +403,7 @@ namespace AGS.Editor.Utils
             AdjustImportParams(bmp, options, out useAlphaChannel, out remapColours, out useRoomBackground);
 
             // do import
-            Sprite sprite = Factory.NativeProxy.CreateSpriteFromBitmap(bmp, options.Transparency, remapColours, useRoomBackground, useAlphaChannel);
+            Sprite sprite = Factory.NativeProxy.CreateSpriteFromBitmap(bmp, options.ImportColorDepth, options.Transparency, remapColours, useRoomBackground, useAlphaChannel);
             // save import options
             SetSpriteImportOptions(sprite, options);
             // add sprite to the project

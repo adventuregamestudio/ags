@@ -141,10 +141,10 @@ namespace AGS.Editor
 			}
         }
 
-        public Sprite CreateSpriteFromBitmap(Bitmap bmp, int dstColorDepth, SpriteImportTransparency transparency, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel)
+        public Sprite CreateSpriteFromBitmap(Bitmap bmp, SpriteImportColorDepth dstColorDepth, SpriteImportTransparency transparency, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel)
         {
             int spriteSlot = _native.GetFreeSpriteSlot();
-            return _native.SetSpriteFromBitmap(spriteSlot, bmp, dstColorDepth, (int)transparency, remapColours, useRoomBackgroundColours, alphaChannel);
+            return _native.SetSpriteFromBitmap(spriteSlot, bmp, (int)dstColorDepth, (int)transparency, remapColours, useRoomBackgroundColours, alphaChannel);
         }
 
         public Sprite CreateSpriteFromBitmap(Bitmap bmp, SpriteImportTransparency transparency, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel)
@@ -153,9 +153,9 @@ namespace AGS.Editor
             return _native.SetSpriteFromBitmap(spriteSlot, bmp, 0, (int)transparency, remapColours, useRoomBackgroundColours, alphaChannel);
         }
 
-        public void ReplaceSpriteWithBitmap(Sprite spr, Bitmap bmp, int dstColorDepth, SpriteImportTransparency transparency, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel)
+        public void ReplaceSpriteWithBitmap(Sprite spr, Bitmap bmp, SpriteImportColorDepth dstColorDepth, SpriteImportTransparency transparency, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel)
         {
-            _native.ReplaceSpriteWithBitmap(spr, bmp, dstColorDepth, (int)transparency, remapColours, useRoomBackgroundColours, alphaChannel);
+            _native.ReplaceSpriteWithBitmap(spr, bmp, (int)dstColorDepth, (int)transparency, remapColours, useRoomBackgroundColours, alphaChannel);
         }
 
         public void ReplaceSpriteWithBitmap(Sprite spr, Bitmap bmp, SpriteImportTransparency transparency, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel)

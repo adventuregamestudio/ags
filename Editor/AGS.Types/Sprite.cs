@@ -26,7 +26,6 @@ namespace AGS.Types
         private int _importHeight;
         private bool _remapToGamePalette;
         private bool _remapToRoomPalette;
-        private bool _importAlphaChannel;
         private bool _importAsTile;
 
         public Sprite(int number, int width, int height, int colorDepth, bool alphaChannel)
@@ -109,12 +108,11 @@ namespace AGS.Types
 			set { _sourceFile = value; }
 		}
 
-        [Description("Import the alpha channel (if one is available)")]
-        [Category("Import")]
+        [Obsolete]
+        [Browsable(false)]
         public bool ImportAlphaChannel
         {
-            get { return _importAlphaChannel; }
-            set { _importAlphaChannel = value; }
+            get; set;
         }
 
 		[Browsable(false)]
@@ -243,16 +241,6 @@ namespace AGS.Types
                     // pass
                 }
 
-                // added with fixup task in XML version 20
-                try
-                {
-                    _importAlphaChannel = Convert.ToBoolean(SerializeUtils.GetElementString(sourceNode, "ImportAlphaChannel"));
-                }
-                catch (InvalidDataException)
-                {
-                    _importAlphaChannel = true;
-                }
-
                 // added with fixup task in XML Version 23
                 try
                 {
@@ -303,7 +291,6 @@ namespace AGS.Types
             writer.WriteElementString("RemapToGamePalette", _remapToGamePalette.ToString());
             writer.WriteElementString("RemapToRoomPalette", _remapToRoomPalette.ToString());
             writer.WriteElementString("ImportMethod", _tranparentColour.ToString());
-            writer.WriteElementString("ImportAlphaChannel", _importAlphaChannel.ToString());
             writer.WriteEndElement(); // end source
 
             writer.WriteEndElement();

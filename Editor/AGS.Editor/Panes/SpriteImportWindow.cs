@@ -38,12 +38,6 @@ namespace AGS.Editor
             set { chkRoomBackground.Checked = value; }
         }
 
-        public bool UseAlphaChannel
-        {
-            get { return chkUseAlphaChannel.Checked; }
-            set { chkUseAlphaChannel.Checked = value; }
-        }
-
         public bool TiledImport
         {
             get { return chkTiled.Checked; }
@@ -181,7 +175,6 @@ namespace AGS.Editor
             SpriteImportMethod = replace.TransparentColour;
             SelectionOffset = new Point(replace.OffsetX, replace.OffsetY);
             SelectionSize = new Size(replace.Width, replace.Height);
-            UseAlphaChannel = replace.ImportAlphaChannel;
             RemapToGamePalette = replace.RemapToGamePalette;
             UseBackgroundSlots = replace.RemapToRoomPalette;
 
@@ -216,7 +209,6 @@ namespace AGS.Editor
             SpriteImportMethod = replace.TransparentColour;
             SelectionOffset = new Point(replace.OffsetX, replace.OffsetY);
             SelectionSize = new Size(replace.Width, replace.Height);
-            UseAlphaChannel = replace.ImportAlphaChannel;
             RemapToGamePalette = replace.RemapToGamePalette;
             UseBackgroundSlots = replace.RemapToRoomPalette;
 
@@ -404,7 +396,7 @@ namespace AGS.Editor
 
             try
             {
-                SpriteTools.ReplaceSprite(replace, image, new SpriteImportOptions(UseAlphaChannel, RemapToGamePalette,
+                SpriteTools.ReplaceSprite(replace, image, new SpriteImportOptions(RemapToGamePalette,
                     UseBackgroundSlots, SpriteImportMethod, filename, 0), spritesheet);
             }
             catch (AGSEditorException ex)
@@ -434,12 +426,12 @@ namespace AGS.Editor
                 if (frames == 1)
                 {
                     // in the interest of speed, import the existing bitmap if the file has a single frame
-                    SpriteTools.ImportNewSprites(folder, image, new SpriteImportOptions(UseAlphaChannel, RemapToGamePalette,
+                    SpriteTools.ImportNewSprites(folder, image, new SpriteImportOptions(RemapToGamePalette,
                         UseBackgroundSlots, SpriteImportMethod, filename, 0), spritesheet);
                 }
                 else
                 {
-                    SpriteTools.ImportNewSprites(folder, new SpriteImportOptions(UseAlphaChannel, RemapToGamePalette,
+                    SpriteTools.ImportNewSprites(folder, new SpriteImportOptions(RemapToGamePalette,
                         UseBackgroundSlots, SpriteImportMethod, filename), spritesheet);
                 }
             }

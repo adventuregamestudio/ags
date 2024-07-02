@@ -1878,17 +1878,24 @@ Common::Bitmap *CreateNativeBitmap(System::Drawing::Bitmap^ bmp, int destColorDe
             sort_out_palette(tempsprite, imgPalBuf, useRoomBackgroundColours, transcol);
     }
 
-    int flags = 0;
+    int flags = 0;// assign sprite flags as necessary
+
     if (alphaChannel)
     {
+        // For compatibility with the internal AGS bitmap format:
+        // change pixels with alpha 0 to MASK_COLOR_X
         if (tempsprite->GetColorDepth() == 32)
-        { // change pixels with alpha 0 to MASK_COLOR_32
+        {
             BitmapHelper::ReplaceAlphaWithRGBMask(tempsprite);
         }
     }
-    else if (tempsprite->GetColorDepth() == 32)
-    { // ensure that every pixel has full alpha (0xFF)
-        BitmapHelper::MakeOpaqueSkipMask(tempsprite);
+    else
+    {
+        // Ensure that every pixel has full alpha (0xFF)
+        if (tempsprite->GetColorDepth() == 32)
+        {
+            BitmapHelper::MakeOpaqueSkipMask(tempsprite);
+        }
     }
 
     if (out_flags)

@@ -510,6 +510,14 @@ enum BlendMode {
 };
 #endif
 
+#ifdef SCRIPT_API_v400
+enum StringSplitOptions {
+    eStrSplit_None = 0,
+    eStrSplit_RemoveEmpty = 0x0001,
+    eStrSplit_Trim = 0x0002
+};
+#endif
+
 internalstring autoptr builtin managed struct String {
   /// Creates a formatted string using the supplied parameters.
   import static String Format(const string format, ...);    // $AUTOCOMPLETESTATICONLY$
@@ -521,7 +529,7 @@ internalstring autoptr builtin managed struct String {
   /// Returns a new string without any leading or trailing whitespace.
   import String  Trim();
   /// Creates a dynamic array made of substrings of the string each time the separator occurred.
-  import String[] Split(const string separator);
+  import String[] Split(const string separator, StringSplitOptions options = eStrSplit_None);
 #endif
   /// Returns a new string with the specified string appended to this string.
   import String  Append(const string appendText);

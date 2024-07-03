@@ -780,7 +780,7 @@ namespace AGS.Editor
         {
             foreach (AudioClip clip in clips.AllItemsFlat)
             {
-                sb.AppendLine("import AudioClip " + clip.ScriptName + ";");
+                sb.AppendLine("import AudioClip *" + clip.ScriptName + ";");
             }
         }
 

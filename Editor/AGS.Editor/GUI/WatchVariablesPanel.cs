@@ -385,6 +385,14 @@ namespace AGS.Editor
             }
         }
 
+        public void AddVariableToWatchList(string var_name)
+        {
+            ListViewItem item = listView1.Items.Add(CreateItem(var_name));
+            lock (_updateItemLock)
+                _itemsToUpdate.Add(item);
+            _updateItemTimer.Start();
+        }
+
         private void addToolStripMenuItem_Click(object sender, EventArgs e)
         {
             ListViewItem item;

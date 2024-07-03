@@ -487,6 +487,14 @@ namespace AGS.Editor
             _mainForm.pnlFindResults.Hide();
         }
 
+        public void AddVariableToWatchPanel(string var_name)
+        {
+            _mainForm.pnlWatchVariables.AddVariableToWatchList(var_name);
+            if (_mainForm.pnlWatchVariables.IsHidden)
+                return;
+            _mainForm.pnlWatchVariables.Show();
+        }
+
         public void ShowWatchVariablesPanel(bool ifEnabled)
         {
             if (ifEnabled && _mainForm.pnlWatchVariables.IsHidden)

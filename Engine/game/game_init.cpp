@@ -97,6 +97,7 @@ std::vector<int> StaticWalkareaArray;
 std::vector<int> StaticWalkbehindArray;
 std::vector<int> StaticInventoryArray;
 std::vector<int> StaticDialogArray;
+std::vector<int> StaticAudioClipArray;
 
 
 namespace AGS
@@ -135,14 +136,16 @@ void InitAndRegisterAudioObjects(GameSetupStruct &game)
         ccRegisterPersistentObject(&scrAudioChannel[i], &ccDynamicAudio); // add internal ref
     }
 
+    StaticAudioClipArray.resize(game.audioClips.size());
     for (size_t i = 0; i < game.audioClips.size(); ++i)
     {
         // Note that as of 3.5.0 data format the clip IDs are still restricted
         // to actual item index in array, so we don't make any difference
         // between game versions, for now.
         game.audioClips[i].id = i;
-        ccRegisterPersistentObject(&game.audioClips[i], &ccDynamicAudioClip); // add internal ref
-        ccAddExternalScriptObject(game.audioClips[i].scriptName, &game.audioClips[i], &ccDynamicAudioClip);
+        int handle = ccRegisterPersistentObject(&game.audioClips[i], &ccDynamicAudioClip); // add internal ref
+        StaticAudioClipArray[i] = handle;
+        ccAddExternalScriptObject(game.audioClips[i].scriptName, &StaticAudioClipArray[i], &GlobalStaticManager);
     }
 }
 

@@ -2105,6 +2105,95 @@ void drawViewLoop (int hdc, ViewLoop^ loopToDraw, int x, int y, int size, List<i
     doDrawViewLoop(hdc, frames, x, y, size, selected);
 }
 
+// Forces transparency color to the palette index 0
+// This must be done, because AGS (or rather Allegro 4) hardcodes transparent color index as 0.
+static void NormalizePaletteTransparency(AGSBitmap *dst, cli::array<System::Drawing::Color> ^bmpPalette)
+{
+    // Determine actual transparency index in the palette
+    int transparency_index = -1;
+    for (int i = 0; i < bmpPalette->Length; ++i)
+    {
+        if (bmpPalette[i].A == 0)
+        {
+            transparency_index = i;
+            break; // to avoid blank palette entries
+        }
+    }
+
+    // Find out if the transparency index is actually used in the image:
+    // some BMPs seem to fill unused palette entries with zeroed ARGB.
+    if (transparency_index > 0)
+    {
+        const uint8_t *px_ptr = dst->GetDataForWriting();
+        const uint8_t *px_end = px_ptr + dst->GetDataSize();
+        bool found_transparency_index = false;
+        for (; px_ptr != px_end; ++px_ptr)
+        {
+            if (*px_ptr == static_cast<uint8_t>(transparency_index))
+            {
+                found_transparency_index = true;
+                break;
+            }
+        }
+        if (!found_transparency_index)
+            transparency_index = -1; // reset and ignore
+    }
+    
+    // Swap found transparent color index with index 0
+    if (transparency_index > 0)
+    {
+        System::Drawing::Color toswap = bmpPalette[0];
+        bmpPalette[0] = bmpPalette[transparency_index];
+        bmpPalette[transparency_index] = toswap;
+
+        uint8_t *px_ptr = dst->GetDataForWriting();
+        uint8_t *px_end = px_ptr + dst->GetDataSize();
+        for (; px_ptr != px_end; ++px_ptr)
+        {
+            if (*px_ptr == 0)
+                *px_ptr = static_cast<uint8_t>(transparency_index);
+            else if (*px_ptr == static_cast<uint8_t>(transparency_index))
+                *px_ptr = 0;
+        }
+    }
+}
+
+// Converts imported image's palette to the native AGS format
+static void ConvertPaletteToNativeFormat(AGSBitmap *dst, RGB *imgpal, cli::array<System::Drawing::Color> ^bmpPalette,
+    bool normalizeTrans)
+{
+    if (normalizeTrans)
+    {
+        NormalizePaletteTransparency(dst, bmpPalette);
+    }
+    
+    // Copy palette, fixing colors if necessary
+    for (int i = 0; i < 256; i++)
+    {
+        if (i >= bmpPalette->Length)
+        {
+            // BMP files can have an arbitrary palette size, fill any
+            // missing colours with black
+            imgpal[i].r = 0;
+            imgpal[i].g = 0;
+            imgpal[i].b = 0;
+        }
+        else if (thisgame.color_depth == 1)
+        {
+            // allegro palette is 0-63
+            imgpal[i].r = bmpPalette[i].R / 4;
+            imgpal[i].g = bmpPalette[i].G / 4;
+            imgpal[i].b = bmpPalette[i].B / 4;
+        }
+        else
+        {
+            imgpal[i].r = bmpPalette[i].R;
+            imgpal[i].g = bmpPalette[i].G;
+            imgpal[i].b = bmpPalette[i].B;
+        }
+    }
+}
+
 Common::Bitmap *CreateBlockFromBitmap(System::Drawing::Bitmap ^bmp, RGB *imgpal, int *srcPalLen,
     bool fixColourDepth, bool keepTransparency, int *originalColDepth)
 {
@@ -2168,57 +2257,7 @@ Common::Bitmap *CreateBlockFromBitmap(System::Drawing::Bitmap ^bmp, RGB *imgpal,
 
 	if (src_depth <= 8)
 	{
-		cli::array<System::Drawing::Color> ^bmpPalette = bmp->Palette->Entries;
-    
-    // determine actual transparency index, in case of GIF or other formats that can mark a specific palette entry
-    int transparency_index = 0;
-    for (int i = 0; i < bmpPalette->Length; ++i) {
-      if (bmpPalette[i].A == 0) {
-        transparency_index = i;
-        System::Drawing::Color toswap = bmpPalette[0];
-        bmpPalette[0] = bmpPalette[i];
-        bmpPalette[i] = toswap;
-        break; // to avoid blank palette entries
-      }
-    }
-    
-    // normalize tranparency to palette entry zero
-    if (transparency_index != 0)
-    {
-      for (int tt = 0; tt<tempsprite->GetWidth(); tt++) {
-        for (int uu = 0; uu<tempsprite->GetHeight(); uu++) {
-          const int pixel = tempsprite->GetPixel(tt, uu);
-          if (pixel == 0)
-            tempsprite->PutPixel(tt, uu, transparency_index);
-          else if (pixel == transparency_index)
-            tempsprite->PutPixel(tt, uu, 0);
-        }
-      }
-    }
-    
-		for (int i = 0; i < 256; i++) {
-      if (i >= bmpPalette->Length)
-      {
-        // BMP files can have an arbitrary palette size, fill any
-        // missing colours with black
-			  imgpal[i].r = 0;
-			  imgpal[i].g = 0;
-			  imgpal[i].b = 0;
-      }
-      else if (thisgame.color_depth == 1)
-      {
-        // allegro palette is 0-63
-        imgpal[i].r = bmpPalette[i].R / 4;
-        imgpal[i].g = bmpPalette[i].G / 4;
-        imgpal[i].b = bmpPalette[i].B / 4;
-      }
-      else
-      {
-			  imgpal[i].r = bmpPalette[i].R;
-			  imgpal[i].g = bmpPalette[i].G;
-			  imgpal[i].b = bmpPalette[i].B;
-      }
-		}
+        ConvertPaletteToNativeFormat(tempsprite, imgpal, bmp->Palette->Entries, true);
 	}
 
 	if (needToFixColourDepth)

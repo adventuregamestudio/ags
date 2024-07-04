@@ -822,6 +822,10 @@ namespace AGS.Editor
             {
                 preprocessor.DefineMacro("NEW_KEYINPUT_API", "1");
             }
+            if (_game.UnicodeMode)
+            {
+                preprocessor.DefineMacro("UNICODE", "1");
+            }
             // Define Script API level macros
             foreach (ScriptAPIVersion v in Enum.GetValues(typeof(ScriptAPIVersion)))
             {

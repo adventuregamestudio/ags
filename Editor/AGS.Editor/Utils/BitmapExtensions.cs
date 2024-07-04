@@ -81,6 +81,18 @@ namespace AGS.Editor.Utils
 
         /// <summary>
         /// Loads an image, checks if it is a PNG containing palette transparency, and if so, ensures it loads correctly.
+        /// </summary>
+        /// <param name="stream">Stream to load the image from</param>
+        /// <returns>The loaded image</returns>
+        public static Bitmap LoadBitmap(Stream stream)
+        {
+            Byte[] data = new Byte[stream.Length];
+            stream.Read(data, 0, (int)stream.Length);
+            return LoadBitmap(data);
+        }
+
+        /// <summary>
+        /// Loads an image, checks if it is a PNG containing palette transparency, and if so, ensures it loads correctly.
         /// The theory can be found at http://www.libpng.org/pub/png/book/chapter08.html
         /// </summary>
         /// <param name="data">File data to load</param>
@@ -209,6 +221,15 @@ namespace AGS.Editor.Utils
         public static Bitmap LoadNonLockedBitmap(string path)
         {
             return BitmapTransparencyFixUp.LoadBitmap(path);
+        }
+
+        /// <summary>
+        /// Loads a <see cref="Bitmap"/> from stream, strictly keeping image format.
+        /// Suitable for loading indexed PNGs with varied palette size.
+        /// <returns></returns>
+        public static Bitmap LoadBitmapKeepingFormat(Stream stream)
+        {
+            return BitmapTransparencyFixUp.LoadBitmap(stream);
         }
     }
 }

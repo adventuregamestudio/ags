@@ -33,7 +33,7 @@ namespace AGS.Editor.Utils
 
             try
             {
-                loadedBmp = (Bitmap)Bitmap.FromStream(fileStream);
+                loadedBmp = BitmapExtensions.LoadBitmapKeepingFormat(fileStream);
             }
             catch
             {

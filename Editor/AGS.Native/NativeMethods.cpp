@@ -760,11 +760,12 @@ namespace AGS
             if (name->Equals("CHF_NOINTERACT")) return CHF_NOINTERACT;
             if (name->Equals("CHF_NODIAGONAL")) return CHF_NODIAGONAL;
             if (name->Equals("CHF_NOLIGHTING")) return CHF_NOLIGHTING;
-            if (name->Equals("CHF_NOTURNING")) return CHF_NOTURNING;
+            if (name->Equals("CHF_NOTURNWHENWALK")) return CHF_NOTURNWHENWALK;
             if (name->Equals("CHF_NOBLOCKING")) return CHF_NOBLOCKING;
             if (name->Equals("CHF_SCALEMOVESPEED")) return CHF_SCALEMOVESPEED;
             if (name->Equals("CHF_SCALEVOLUME")) return CHF_SCALEVOLUME;
             if (name->Equals("CHF_ANTIGLIDE")) return CHF_ANTIGLIDE;
+            if (name->Equals("CHF_TURNWHENFACE")) return CHF_TURNWHENFACE;
             if (name->Equals("DFLG_ON")) return DFLG_ON;
             if (name->Equals("DFLG_NOREPEAT")) return DFLG_NOREPEAT;
             if (name->Equals("DTFLG_SHOWPARSER")) return DTFLG_SHOWPARSER;
@@ -832,7 +833,7 @@ namespace AGS
             if (name->Equals("OPT_FIXEDINVCURSOR")) return OPT_FIXEDINVCURSOR;
             if (name->Equals("OPT_HIRES_FONTS")) return OPT_HIRES_FONTS;
             if (name->Equals("OPT_SPLITRESOURCES")) return OPT_SPLITRESOURCES;
-            if (name->Equals("OPT_ROTATECHARS")) return OPT_ROTATECHARS;
+            if (name->Equals("OPT_CHARTURNWHENWALK")) return OPT_CHARTURNWHENWALK;
             if (name->Equals("OPT_FADETYPE")) return OPT_FADETYPE;
             if (name->Equals("OPT_HANDLEINVCLICKS")) return OPT_HANDLEINVCLICKS;
             if (name->Equals("OPT_MOUSEWHEEL")) return OPT_MOUSEWHEEL;
@@ -840,7 +841,7 @@ namespace AGS
             if (name->Equals("OPT_DIALOGUPWARDS")) return OPT_DIALOGUPWARDS;
             if (name->Equals("OPT_ANTIALIASFONTS")) return OPT_ANTIALIASFONTS;
             if (name->Equals("OPT_THOUGHTGUI")) return OPT_THOUGHTGUI;
-            if (name->Equals("OPT_TURNTOFACELOC")) return OPT_TURNTOFACELOC;
+            if (name->Equals("OPT_CHARTURNWHENFACE")) return OPT_CHARTURNWHENFACE;
             if (name->Equals("OPT_RIGHTLEFTWRITE")) return OPT_RIGHTLEFTWRITE;
             if (name->Equals("OPT_DUPLICATEINV")) return OPT_DUPLICATEINV;
             if (name->Equals("OPT_SAVESCREENSHOT")) return OPT_SAVESCREENSHOT;

@@ -401,7 +401,7 @@ void FaceDirectionalLoop(CharacterInfo *char1, int direction, int blockingStyle)
     // Change facing only if the desired direction is different
     if (direction != char1->loop)
     {
-        if ((game.options[OPT_TURNTOFACELOC] != 0) &&
+        if ((game.options[OPT_CHARTURNWHENFACE] != 0) && ((char1->flags & CHF_TURNWHENFACE) != 0) &&
             (in_enters_screen == 0))
         {
             const int no_diagonal = useDiagonal (char1);
@@ -1618,17 +1618,27 @@ void Character_SetTransparency(CharacterInfo *chaa, int trans) {
 }
 
 int Character_GetTurnBeforeWalking(CharacterInfo *chaa) {
-
-    if (chaa->flags & CHF_NOTURNING)
-        return 0;
-    return 1;  
+    // NOTE: this flag has inverse meaning
+    return ((chaa->flags & CHF_NOTURNWHENWALK) != 0) ? 0 : 1;
 }
 
-void Character_SetTurnBeforeWalking(CharacterInfo *chaa, int yesorno) {
+void Character_SetTurnBeforeWalking(CharacterInfo *chaa, int on) {
+    // NOTE: this flag has inverse meaning
+    if (on)
+        chaa->flags &= ~CHF_NOTURNWHENWALK;
+    else
+        chaa->flags |= CHF_NOTURNWHENWALK;
+}
 
-    chaa->flags &= ~CHF_NOTURNING;
-    if (!yesorno)
-        chaa->flags |= CHF_NOTURNING;
+int Character_GetTurnWhenFacing(CharacterInfo *chaa) {
+    return ((chaa->flags & CHF_TURNWHENFACE) != 0) ? 1 : 0;
+}
+
+void Character_SetTurnWhenFacing(CharacterInfo *chaa, int on) {
+    if (on)
+        chaa->flags |= CHF_TURNWHENFACE;
+    else
+        chaa->flags &= ~CHF_TURNWHENFACE;
 }
 
 int Character_GetView(CharacterInfo *chaa) {
@@ -1867,7 +1877,7 @@ void fix_player_sprite(MoveList*cmls,CharacterInfo*chinf) {
 
     const int useloop = GetDirectionalLoop(chinf, xpmove, ypmove);
 
-    if ((game.options[OPT_ROTATECHARS] == 0) || ((chinf->flags & CHF_NOTURNING) != 0)) {
+    if ((game.options[OPT_CHARTURNWHENWALK] == 0) || ((chinf->flags & CHF_NOTURNWHENWALK) != 0)) {
         chinf->loop = useloop;
         return;
     }
@@ -3884,6 +3894,16 @@ RuntimeScriptValue Sc_Character_SetTurnBeforeWalking(void *self, const RuntimeSc
     API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetTurnBeforeWalking);
 }
 
+RuntimeScriptValue Sc_Character_GetTurnWhenFacing (void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(CharacterInfo, Character_GetTurnWhenFacing );
+}
+
+RuntimeScriptValue Sc_Character_SetTurnWhenFacing (void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetTurnWhenFacing);
+}
+
 // int (CharacterInfo *chaa)
 RuntimeScriptValue Sc_Character_GetView(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -4105,6 +4125,8 @@ void RegisterCharacterAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_a
         { "Character::set_Transparency",          API_FN_PAIR(Character_SetTransparency) },
         { "Character::get_TurnBeforeWalking",     API_FN_PAIR(Character_GetTurnBeforeWalking) },
         { "Character::set_TurnBeforeWalking",     API_FN_PAIR(Character_SetTurnBeforeWalking) },
+        { "Character::get_TurnWhenFacing",        API_FN_PAIR(Character_GetTurnWhenFacing ) },
+        { "Character::set_TurnWhenFacing",        API_FN_PAIR(Character_SetTurnWhenFacing ) },
         { "Character::get_View",                  API_FN_PAIR(Character_GetView) },
         { "Character::get_WalkSpeedX",            API_FN_PAIR(Character_GetWalkSpeedX) },
         { "Character::get_WalkSpeedY",            API_FN_PAIR(Character_GetWalkSpeedY) },

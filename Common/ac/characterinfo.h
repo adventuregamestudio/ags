@@ -23,32 +23,40 @@
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
+// Max inventory items in character's inventory
 #define MAX_INV             301
 // Character flags
-#define CHF_MANUALSCALING   1
-#define CHF_FIXVIEW         2     // between SetCharView and ReleaseCharView
-#define CHF_NOINTERACT      4
-#define CHF_NODIAGONAL      8
-#define CHF_ALWAYSIDLE      0x10
-#define CHF_NOLIGHTING      0x20
-#define CHF_NOTURNING       0x40
-#define CHF_NOWALKBEHINDS   0x80
-#define CHF_FLIPSPRITE      0x100  // ?? Is this used??
-#define CHF_NOBLOCKING      0x200
-#define CHF_SCALEMOVESPEED  0x400
-#define CHF_NOBLINKANDTHINK 0x800
-#define CHF_SCALEVOLUME     0x1000
-#define CHF_HASTINT         0x2000   // engine only
-#define CHF_BEHINDSHEPHERD  0x4000   // engine only
-#define CHF_AWAITINGMOVE    0x8000   // engine only
-#define CHF_MOVENOTWALK     0x10000   // engine only - do not do walk anim
-#define CHF_ANTIGLIDE       0x20000
-#define CHF_HASLIGHT        0x40000
+// NOTE: flag meaning is inconsistent: some of them have positive (DO) meaning,
+// some older ones have negative (DON'T). TODO: bring them to consistency someday,
+// but remember that this involves updating game file formats and converting
+// after loading game data and restoring older saves.
+#define CHF_MANUALSCALING   1        // Use explicit scaling property rather than area parameters
+#define CHF_FIXVIEW         2        // View locked
+#define CHF_NOINTERACT      4        // Non-interactable (non-clickable)
+#define CHF_NODIAGONAL      8        // Don't use diagonal walking loops
+#define CHF_ALWAYSIDLE      0x10     // [UNUSED] meaning unknown
+#define CHF_NOLIGHTING      0x20     // Ignore Region lighting
+#define CHF_NOTURNWHENWALK  0x40     // Do not turn step-by-step when walking
+#define CHF_NOWALKBEHINDS   0x80     // Ignore walk-behinds (always draw above)
+#define CHF_FLIPSPRITE      0x100    // [UNUSED] meaning unknown
+#define CHF_NOBLOCKING      0x200    // Not solid
+#define CHF_SCALEMOVESPEED  0x400    // Scale move speed with character scaling
+#define CHF_NOBLINKANDTHINK 0x800    // Don't do blink animation when "thinking"
+#define CHF_SCALEVOLUME     0x1000   // Scale animation volume with character scaling
+#define CHF_HASTINT         0x2000   // Use explicit tint rather than region tint
+#define CHF_BEHINDSHEPHERD  0x4000   // [INTERNAL] z-sort behind leader when following another char
+#define CHF_AWAITINGMOVE    0x8000   // [INTERNAL] (meaning not clear, investigate)
+#define CHF_MOVENOTWALK     0x10000  // [INTERNAL] do not play walking animation while moving
+#define CHF_ANTIGLIDE       0x20000  // Link movement to animation
+#define CHF_HASLIGHT        0x40000  // Use explicit lighting rather than region lighting
 #define CHF_TINTLIGHTMASK   (CHF_NOLIGHTING | CHF_HASTINT | CHF_HASLIGHT)
-// Speechcol is no longer part of the flags as of v2.5
+#define CHF_TURNWHENFACE    0x80000  // Turn step-by-step when changing standing direction
+// Pre-v2.5 bit mask for when the speechcolor was stored in character flags
 #define OCHF_SPEECHCOL      0xff000000
 #define OCHF_SPEECHCOLSHIFT 24
+// Value of CharacterInfo::walkspeed_y that tells to use walkspeed_x
 #define UNIFORM_WALK_SPEED  0
+// Value of CharacterInfo::followinfo that tells to keep follower z-sorted above the leading char
 #define FOLLOW_ALWAYSONTOP  0x7ffe
 
 // Length of deprecated character name field, in bytes

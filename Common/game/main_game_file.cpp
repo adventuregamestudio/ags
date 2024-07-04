@@ -600,6 +600,15 @@ void UpgradeCharacters(GameSetupStruct &game, GameDataVersion data_ver)
     auto &chars2 = game.chars2;
     const int numcharacters = game.numcharacters;
 
+    // Characters can always walk through each other on < 2.54
+    if (data_ver < kGameVersion_254)
+    {
+        for (int i = 0; i < numcharacters; i++)
+        {
+            chars[i].flags |= CHF_NOBLOCKING;
+        }
+    }
+
     // Fixup character script names for 2.x (EGO -> cEgo)
     if (data_ver <= kGameVersion_272)
     {
@@ -625,12 +634,13 @@ void UpgradeCharacters(GameSetupStruct &game, GameDataVersion data_ver)
         }
     }
 
-    // Characters can always walk through each other on < 2.54
-    if (data_ver < kGameVersion_254)
+    // < 3.6.2 characters always followed OPT_CHARTURNWHENFACE,
+    // so they have to have TURNWHENFACE enabled
+    if (data_ver < kGameVersion_362)
     {
         for (int i = 0; i < numcharacters; i++)
         {
-            chars[i].flags |= CHF_NOBLOCKING;
+            chars[i].flags |= CHF_TURNWHENFACE;
         }
     }
 }

@@ -36,7 +36,7 @@ namespace AGS.Editor
 			AddOrInsertMenu(newMenu, insertAfterMenuID);
 		}
 
-        private ToolStripItem AddMenuItem(string menu, MenuCommand command)
+        private ToolStripItem AddMenuItem(MenuCommand command)
         {
             string id = command.ID;
             string name = command.Name;
@@ -44,12 +44,6 @@ namespace AGS.Editor
             string iconKey = command.IconKey;
             bool enabled = command.Enabled;
 
-            ToolStripItem[] results = _mainMenu.Items.Find(menu, false);
-            if (results.Length == 0)
-            {
-                throw new AGSEditorException("Menu " + menu + " not found");
-            }
-            ToolStripMenuItem topMenu = (ToolStripMenuItem)results[0];
             ToolStripItem newItem;
 
             if (name == MenuCommand.MENU_TEXT_SEPARATOR)
@@ -62,21 +56,7 @@ namespace AGS.Editor
                 subMenu.Enabled = enabled;
                 foreach (var subCommand in command.SubCommands)
                 {
-                    string s_id = subCommand.ID;
-                    string s_name = subCommand.Name;
-                    Keys s_shortcutKeys = subCommand.ShortcutKey;
-                    string s_iconKey = subCommand.IconKey;
-                    bool s_enabled = subCommand.Enabled;
-
-                    ToolStripMenuItem s_newItem = new ToolStripMenuItem(s_name, null, _onClick, s_id);
-                    ((ToolStripMenuItem)s_newItem).ShortcutKeys = s_shortcutKeys;
-                    if (s_iconKey != null)
-                    {
-                        s_newItem.Image = Factory.GUIController.ImageList.Images[s_iconKey];
-                    }
-                    s_newItem.Enabled = s_enabled;
-
-                    subMenu.DropDownItems.Add(s_newItem);
+                    subMenu.DropDownItems.Add(AddMenuItem(subCommand));
                 }
                 newItem = subMenu;
             }
@@ -88,10 +68,23 @@ namespace AGS.Editor
                 {
                     newItem.Image = Factory.GUIController.ImageList.Images[iconKey];
                 }
-				newItem.Enabled = enabled;
+                newItem.Enabled = enabled;
             }
+            return newItem;
+        }
+
+        private ToolStripItem AddTopMenuItem(string menu, MenuCommand command)
+        {
+            ToolStripItem[] results = _mainMenu.Items.Find(menu, false);
+            if (results.Length == 0)
+            {
+                throw new AGSEditorException("Menu " + menu + " not found");
+            }
+            ToolStripMenuItem topMenu = (ToolStripMenuItem)results[0];
+            ToolStripItem newItem = AddMenuItem(command);
+
             topMenu.DropDownItems.Add(newItem);
-			return newItem;
+            return newItem;
         }
 
 		private void RefreshMenu(string menuName)
@@ -117,7 +110,7 @@ namespace AGS.Editor
 				}
 				foreach (MenuCommand command in commandGroup.Commands)
 				{
-					ToolStripItem newItem = AddMenuItem(menuName, command);
+					ToolStripItem newItem = AddTopMenuItem(menuName, command);
 					newItem.Tag = command;
 				}
 			}

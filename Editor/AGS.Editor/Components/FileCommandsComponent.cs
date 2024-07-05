@@ -63,13 +63,12 @@ namespace AGS.Editor.Components
             _guiController.AddMenuItems(this, commands);
 
             commands = new MenuCommands(GUIController.FILE_MENU_ID, 110);
-            MenuCommand subMenu = new MenuCommand(string.Empty, "Global Messages");
-            subMenu.SubCommands = new List<MenuCommand>
+            var subCommands = new List<MenuCommand>
             {
                 new MenuCommand(EXPORT_GLOBAL_MESSAGES_TO_SCRIPT_COMMAND, "Export Global Messages to script"),
                 new MenuCommand(REMOVE_GLOBAL_MESSAGES_COMMAND, "Remove Global Messages")
             };
-            commands.Commands.Add(subMenu);
+            commands.Commands.Add(new MenuCommand("Global Messages", subCommands));
             _guiController.AddMenuItems(this, commands);
 
             commands = new MenuCommands(GUIController.FILE_MENU_ID, 800);

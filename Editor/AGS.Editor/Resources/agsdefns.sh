@@ -38,6 +38,9 @@
 #define PALETTE_SIZE   256
 #define FOLLOW_EXACTLY 32766
 #define NARRATOR -1
+
+#define OPT_DEBUGMODE        0
+// OPT_SCORESOUND            1   // [HIDDEN], only read once on startup
 #define OPT_WALKONLOOK       2
 #define OPT_DIALOGOPTIONSGUI 3
 #define OPT_ANTIGLIDE        4   // $AUTOCOMPLETEIGNORE$
@@ -51,7 +54,7 @@
 #define OPT_NOWALKMODE      12
 #define OPT_LETTERBOX       13
 #define OPT_FIXEDINVCURSOR  14
-#define OPT_DONTLOSEINV     15
+#define OPT_DONTLOSEINV     15   // $AUTOCOMPLETEIGNORE$
 // OPT_HIRES_FONTS          16   // [HIDDEN]
 // OPT_SPLITRESOURCES       17   // [HIDDEN]
 #define OPT_TURNBEFOREWALK  18
@@ -90,6 +93,7 @@
 // OPT_CUSTOMENGINETAG        51 // [HIDDEN]
 #define OPT_SCALECHAROFFSETS  52
 #define OPT_LIPSYNCTEXT       99
+
 #define COLOR_TRANSPARENT -1
 #define DIALOG_PARSER_SELECTED -3053
 #define RUN_DIALOG_RETURN        -1

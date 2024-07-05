@@ -31,11 +31,11 @@ namespace AGS.Editor
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(SpriteImportWindow));
             this.groupImportOptions = new System.Windows.Forms.GroupBox();
-            this.chkUseAlphaChannel = new System.Windows.Forms.CheckBox();
             this.chkRoomBackground = new System.Windows.Forms.CheckBox();
             this.chkRemapCols = new System.Windows.Forms.CheckBox();
             this.groupTransColour = new System.Windows.Forms.GroupBox();
             this.panelBottomRight = new System.Windows.Forms.Panel();
+            this.panelTopRight = new System.Windows.Forms.Panel();
             this.panelBottomLeft = new System.Windows.Forms.Panel();
             this.panelIndex0 = new System.Windows.Forms.Panel();
             this.panelTopLeft = new System.Windows.Forms.Panel();
@@ -71,7 +71,7 @@ namespace AGS.Editor
             this.numOffsetY = new System.Windows.Forms.NumericUpDown();
             this.previewPanel = new AGS.Editor.BufferedPanel();
             this.btnImportAll = new System.Windows.Forms.Button();
-            this.panelTopRight = new System.Windows.Forms.Panel();
+            this.cmbImportColorDepth = new System.Windows.Forms.ComboBox();
             this.groupImportOptions.SuspendLayout();
             this.groupTransColour.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.zoomSlider)).BeginInit();
@@ -87,7 +87,7 @@ namespace AGS.Editor
             // 
             // groupImportOptions
             // 
-            this.groupImportOptions.Controls.Add(this.chkUseAlphaChannel);
+            this.groupImportOptions.Controls.Add(this.cmbImportColorDepth);
             this.groupImportOptions.Controls.Add(this.chkRoomBackground);
             this.groupImportOptions.Controls.Add(this.chkRemapCols);
             this.groupImportOptions.Location = new System.Drawing.Point(12, 12);
@@ -96,18 +96,6 @@ namespace AGS.Editor
             this.groupImportOptions.TabIndex = 3;
             this.groupImportOptions.TabStop = false;
             this.groupImportOptions.Text = "Import options";
-            // 
-            // chkUseAlphaChannel
-            // 
-            this.chkUseAlphaChannel.AutoSize = true;
-            this.chkUseAlphaChannel.Checked = true;
-            this.chkUseAlphaChannel.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkUseAlphaChannel.Location = new System.Drawing.Point(6, 20);
-            this.chkUseAlphaChannel.Name = "chkUseAlphaChannel";
-            this.chkUseAlphaChannel.Size = new System.Drawing.Size(189, 17);
-            this.chkUseAlphaChannel.TabIndex = 3;
-            this.chkUseAlphaChannel.Text = "Import alpha channel (if available)";
-            this.chkUseAlphaChannel.UseVisualStyleBackColor = true;
             // 
             // chkRoomBackground
             // 
@@ -159,6 +147,14 @@ namespace AGS.Editor
             this.panelBottomRight.Name = "panelBottomRight";
             this.panelBottomRight.Size = new System.Drawing.Size(78, 17);
             this.panelBottomRight.TabIndex = 12;
+            // 
+            // panelTopRight
+            // 
+            this.panelTopRight.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panelTopRight.Location = new System.Drawing.Point(136, 135);
+            this.panelTopRight.Name = "panelTopRight";
+            this.panelTopRight.Size = new System.Drawing.Size(78, 17);
+            this.panelTopRight.TabIndex = 11;
             // 
             // panelBottomLeft
             // 
@@ -258,6 +254,7 @@ namespace AGS.Editor
             // 
             // btnClose
             // 
+            this.btnClose.DialogResult = System.Windows.Forms.DialogResult.Cancel;
             this.btnClose.Location = new System.Drawing.Point(12, 569);
             this.btnClose.Name = "btnClose";
             this.btnClose.Size = new System.Drawing.Size(70, 30);
@@ -315,7 +312,7 @@ namespace AGS.Editor
             this.zoomSlider.Maximum = 20;
             this.zoomSlider.Minimum = 1;
             this.zoomSlider.Name = "zoomSlider";
-            this.zoomSlider.Size = new System.Drawing.Size(567, 45);
+            this.zoomSlider.Size = new System.Drawing.Size(567, 42);
             this.zoomSlider.TabIndex = 2;
             this.zoomSlider.Value = 1;
             this.zoomSlider.Scroll += new System.EventHandler(this.zoomSlider_Scroll);
@@ -573,20 +570,21 @@ namespace AGS.Editor
             this.btnImportAll.UseVisualStyleBackColor = true;
             this.btnImportAll.Click += new System.EventHandler(this.btnImportAll_Click);
             // 
-            // panelTopRight
+            // cmbImportColorDepth
             // 
-            this.panelTopRight.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panelTopRight.Location = new System.Drawing.Point(136, 135);
-            this.panelTopRight.Name = "panelTopRight";
-            this.panelTopRight.Size = new System.Drawing.Size(78, 17);
-            this.panelTopRight.TabIndex = 11;
+            this.cmbImportColorDepth.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbImportColorDepth.FormattingEnabled = true;
+            this.cmbImportColorDepth.Location = new System.Drawing.Point(5, 17);
+            this.cmbImportColorDepth.Name = "cmbImportColorDepth";
+            this.cmbImportColorDepth.Size = new System.Drawing.Size(210, 21);
+            this.cmbImportColorDepth.TabIndex = 6;
             // 
             // SpriteImportWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.btnClose;
-            this.ClientSize = new System.Drawing.Size(824, 611);
+            this.ClientSize = new System.Drawing.Size(832, 618);
             this.Controls.Add(this.lblZoom);
             this.Controls.Add(this.zoomSlider);
             this.Controls.Add(this.btnImportAll);
@@ -637,7 +635,6 @@ namespace AGS.Editor
         private System.Windows.Forms.Button btnImport;
         private System.Windows.Forms.Button btnClose;
         private System.Windows.Forms.ComboBox cmbFilenames;
-        private System.Windows.Forms.CheckBox chkUseAlphaChannel;
         private System.Windows.Forms.GroupBox groupTransColour;
         private System.Windows.Forms.RadioButton radTransColourNone;
         private System.Windows.Forms.RadioButton radTransColourLeaveAsIs;
@@ -668,5 +665,6 @@ namespace AGS.Editor
         private System.Windows.Forms.Label lblY;
         private System.Windows.Forms.Button btnImportAll;
         private System.Windows.Forms.Panel panelTopRight;
+        private System.Windows.Forms.ComboBox cmbImportColorDepth;
     }
 }

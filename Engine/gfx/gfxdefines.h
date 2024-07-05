@@ -15,29 +15,12 @@
 #define __AGS_EE_GFX__GFXDEFINES_H
 
 #include "core/types.h"
-#include "util/geometry.h"
+#include "gfx/gfx_def.h"
 
 namespace AGS
 {
 namespace Engine
 {
-
-// GraphicResolution struct determines image size and color depth
-struct GraphicResolution : Size
-{
-    int32_t ColorDepth; // color depth in bits per pixel
-
-    GraphicResolution()
-        : ColorDepth(0) {}
-
-    GraphicResolution(int32_t width, int32_t height, int32_t color_depth)
-        : Size(width, height), ColorDepth(color_depth) {}
-
-    GraphicResolution(Size size, int32_t color_depth)
-        : Size(size), ColorDepth(color_depth) {}
-
-    inline bool IsValid() const { return Width > 0 && Height > 0 && ColorDepth > 0; }
-};
 
 enum WindowMode
 {
@@ -47,7 +30,7 @@ enum WindowMode
 };
 
 // DisplayMode struct provides extended description of display mode
-struct DisplayMode : public GraphicResolution
+struct DisplayMode : public AGS::Common::GraphicResolution
 {
     int32_t RefreshRate = 0;
     bool    Vsync = false;

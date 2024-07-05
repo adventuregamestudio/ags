@@ -64,7 +64,7 @@ extern void drawSprite(int hdc, int x,int y, int spriteNum, bool flipImage);
 extern void drawSpriteStretch(int hdc, int x,int y, int width, int height, int spriteNum, bool flipImage);
 extern void drawBlockOfColour(int hdc, int x,int y, int width, int height, int colNum);
 extern void drawViewLoop (int hdc, ViewLoop^ loopToDraw, int x, int y, int size, List<int>^ cursel);
-extern AGS::Types::SpriteImportResolution SetNewSpriteFromBitmap(int slot, Bitmap^ bmp, int spriteImportMethod, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel);
+extern AGS::Types::SpriteImportResolution SetNewSpriteFromBitmap(int slot, Bitmap^ bmp, int destColorDepth, int spriteImportMethod, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel);
 extern int GetSpriteAsHBitmap(int spriteSlot);
 extern Bitmap^ getSpriteAsBitmap(int spriteNum);
 extern Bitmap^ getSpriteAsBitmap32bit(int spriteNum, int width, int height);
@@ -437,9 +437,9 @@ namespace AGS
             return 0; // FIXME: not working after moved to open room format
         }
 
-		Sprite^ NativeMethods::SetSpriteFromBitmap(int spriteSlot, Bitmap^ bmp, int spriteImportMethod, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel)
+		Sprite^ NativeMethods::SetSpriteFromBitmap(int spriteSlot, Bitmap^ bmp, int destColorDepth, int spriteImportMethod, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel)
 		{
-            SetNewSpriteFromBitmap(spriteSlot, bmp, spriteImportMethod, remapColours, useRoomBackgroundColours, alphaChannel);
+            SetNewSpriteFromBitmap(spriteSlot, bmp, destColorDepth, spriteImportMethod, remapColours, useRoomBackgroundColours, alphaChannel);
       int colDepth = GetSpriteColorDepth(spriteSlot);
 			Sprite^ newSprite = gcnew Sprite(spriteSlot, bmp->Width, bmp->Height, colDepth, alphaChannel);
       int roomNumber = GetCurrentlyLoadedRoomNumber();
@@ -450,9 +450,9 @@ namespace AGS
       return newSprite;
 		}
 
-		void NativeMethods::ReplaceSpriteWithBitmap(Sprite ^spr, Bitmap^ bmp, int spriteImportMethod, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel)
+		void NativeMethods::ReplaceSpriteWithBitmap(Sprite ^spr, Bitmap^ bmp, int destColorDepth, int spriteImportMethod, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel)
 		{
-            SetNewSpriteFromBitmap(spr->Number, bmp, spriteImportMethod, remapColours, useRoomBackgroundColours, alphaChannel);
+            SetNewSpriteFromBitmap(spr->Number, bmp, destColorDepth, spriteImportMethod, remapColours, useRoomBackgroundColours, alphaChannel);
 			spr->ColorDepth = GetSpriteColorDepth(spr->Number);
 			spr->Width = bmp->Width;
 			spr->Height = bmp->Height;

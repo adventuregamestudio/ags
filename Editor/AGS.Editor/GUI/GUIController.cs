@@ -261,6 +261,16 @@ namespace AGS.Editor
                     {
                         RegisterMenuCommand(command.ID, plugin);
                     }
+
+                    if(command.SubCommands != null && command.SubCommands.Count > 0)
+                    {
+                        foreach (MenuCommand scommand in command.SubCommands)
+                        {
+                            RegisterMenuCommand(scommand.ID, plugin);
+                            scommand.IDPrefix = plugin.ComponentID + CONTROL_ID_SPLIT;
+                        }
+                    }
+
                     command.IDPrefix = plugin.ComponentID + CONTROL_ID_SPLIT;
                 }
 				_menuManager.AddMenuCommandGroup(commands);

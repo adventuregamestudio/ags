@@ -49,6 +49,7 @@ namespace AGS.Types
 		private bool _checked;
 		private Keys _shortcutKey = Keys.None;
         private string _shortcutKeyDisplayString = string.Empty;
+		public List<MenuCommand> SubCommands { get; set; }
 
 		public bool IsSeparator
 		{

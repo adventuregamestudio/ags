@@ -36,8 +36,14 @@ namespace AGS.Editor
 			AddOrInsertMenu(newMenu, insertAfterMenuID);
 		}
 
-        private ToolStripItem AddMenuItem(string menu, string id, string name, Keys shortcutKeys, string iconKey, bool enabled)
+        private ToolStripItem AddMenuItem(string menu, MenuCommand command)
         {
+            string id = command.ID;
+            string name = command.Name;
+            Keys shortcutKeys = command.ShortcutKey;
+            string iconKey = command.IconKey;
+            bool enabled = command.Enabled;
+
             ToolStripItem[] results = _mainMenu.Items.Find(menu, false);
             if (results.Length == 0)
             {
@@ -49,6 +55,30 @@ namespace AGS.Editor
             if (name == MenuCommand.MENU_TEXT_SEPARATOR)
             {
                 newItem = new ToolStripSeparator();
+            }
+            else if (command.SubCommands != null && command.SubCommands.Count > 0)
+            {
+                ToolStripMenuItem subMenu = new ToolStripMenuItem(command.Name);
+                subMenu.Enabled = enabled;
+                foreach (var subCommand in command.SubCommands)
+                {
+                    string s_id = subCommand.ID;
+                    string s_name = subCommand.Name;
+                    Keys s_shortcutKeys = subCommand.ShortcutKey;
+                    string s_iconKey = subCommand.IconKey;
+                    bool s_enabled = subCommand.Enabled;
+
+                    ToolStripMenuItem s_newItem = new ToolStripMenuItem(s_name, null, _onClick, s_id);
+                    ((ToolStripMenuItem)s_newItem).ShortcutKeys = s_shortcutKeys;
+                    if (s_iconKey != null)
+                    {
+                        s_newItem.Image = Factory.GUIController.ImageList.Images[s_iconKey];
+                    }
+                    s_newItem.Enabled = s_enabled;
+
+                    subMenu.DropDownItems.Add(s_newItem);
+                }
+                newItem = subMenu;
             }
             else
             {
@@ -87,7 +117,7 @@ namespace AGS.Editor
 				}
 				foreach (MenuCommand command in commandGroup.Commands)
 				{
-					ToolStripItem newItem = AddMenuItem(menuName, command.ID, command.Name, command.ShortcutKey, command.IconKey, command.Enabled);
+					ToolStripItem newItem = AddMenuItem(menuName, command);
 					newItem.Tag = command;
 				}
 			}

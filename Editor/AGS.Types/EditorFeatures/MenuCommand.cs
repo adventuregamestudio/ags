@@ -14,7 +14,7 @@ namespace AGS.Types
 			get { return new MenuCommand(null, MenuCommand.MENU_TEXT_SEPARATOR); }
 		}
 
-		public MenuCommand(string itemName, List<MenuCommand> subCommands)
+		public MenuCommand(string itemName, IList<MenuCommand> subCommands)
 		{
 			_id = null;
 			_name = itemName;
@@ -58,7 +58,7 @@ namespace AGS.Types
 		private bool _checked;
 		private Keys _shortcutKey = Keys.None;
         private string _shortcutKeyDisplayString = string.Empty;
-		private List<MenuCommand> _subCommands = null;
+		private IList<MenuCommand> _subCommands = null;
 
 		public bool IsSeparator
 		{
@@ -113,7 +113,8 @@ namespace AGS.Types
 			set { _checked = value; }
 		}
 
-		public List<MenuCommand> SubCommands {
+		public IList<MenuCommand> SubCommands
+		{
 			get { return _subCommands; }
 		}
 	}

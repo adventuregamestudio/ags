@@ -59,11 +59,16 @@ namespace AGS.Editor.Components
 			commands.Commands.Add(new MenuCommand(MAKE_TEMPLATE_COMMAND, "&Make template from this game...", "MenuIconMakeTemplate"));
             commands.Commands.Add(new MenuCommand(AUTO_NUMBER_SPEECH_COMMAND, "&Auto-number speech lines...", "MenuIconAutoNumber"));
 			commands.Commands.Add(new MenuCommand(CREATE_VOICE_ACTING_SCRIPT_COMMAND, "Create &voice acting script...", "MenuIconVoiceActingScript"));
-            // TODO: I do not see any way to schedule sub-menus in this system!?
-            // but if it's supported, maybe put these 2 global messages commands int a submenu
-            commands.Commands.Add(new MenuCommand(EXPORT_GLOBAL_MESSAGES_TO_SCRIPT_COMMAND, "Export Global Messages to script"));
-            commands.Commands.Add(new MenuCommand(REMOVE_GLOBAL_MESSAGES_COMMAND, "Remove Global Messages"));
             commands.Commands.Add(new MenuCommand(RECREATE_SPRITEFILE_COMMAND, "Restore all sprites from sources"));
+            _guiController.AddMenuItems(this, commands);
+
+            commands = new MenuCommands(GUIController.FILE_MENU_ID, 110);
+            var subCommands = new List<MenuCommand>
+            {
+                new MenuCommand(EXPORT_GLOBAL_MESSAGES_TO_SCRIPT_COMMAND, "Export Global Messages to script"),
+                new MenuCommand(REMOVE_GLOBAL_MESSAGES_COMMAND, "Remove Global Messages")
+            };
+            commands.Commands.Add(new MenuCommand("Global Messages", subCommands));
             _guiController.AddMenuItems(this, commands);
 
             commands = new MenuCommands(GUIController.FILE_MENU_ID, 800);

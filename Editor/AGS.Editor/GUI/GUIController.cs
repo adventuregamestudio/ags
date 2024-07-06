@@ -251,19 +251,30 @@ namespace AGS.Editor
 			_menuManager.AddMenu(id, title, insertAfterMenu);
 		}
 
-		public void AddMenuItems(IEditorComponent plugin, MenuCommands commands)
+        private void RegisterMenuItems(IEditorComponent plugin, IList<MenuCommand> commands)
+        {
+            foreach (MenuCommand command in commands)
+            {
+                if (command.ID != null)
+                {
+                    RegisterMenuCommand(command.ID, plugin);
+                }
+
+                command.IDPrefix = plugin.ComponentID + CONTROL_ID_SPLIT;
+
+                if (command.SubCommands != null && command.SubCommands.Count > 0)
+                {
+                    RegisterMenuItems(plugin, command.SubCommands);
+                }
+            }
+        }
+
+        public void AddMenuItems(IEditorComponent plugin, MenuCommands commands)
         {
             if (commands.Commands.Count > 0)
             {
-                foreach (MenuCommand command in commands.Commands)
-                {
-                    if (command.ID != null)
-                    {
-                        RegisterMenuCommand(command.ID, plugin);
-                    }
-                    command.IDPrefix = plugin.ComponentID + CONTROL_ID_SPLIT;
-                }
-				_menuManager.AddMenuCommandGroup(commands);
+                RegisterMenuItems(plugin, commands.Commands);
+                _menuManager.AddMenuCommandGroup(commands);
             }
         }
 

@@ -385,16 +385,8 @@ int get_text_lines_surf_height(size_t fontNumber, size_t numlines)
 namespace AGS { namespace Common { SplitLines Lines; } }
 
 // Break up the text into lines
-size_t split_lines(const char *todis, SplitLines &lines, int wii, int fonnt, size_t max_lines) {
-    // NOTE: following hack accomodates for the legacy math mistake in split_lines.
-    // It's hard to tell how cruicial it is for the game looks, so research may be needed.
-    // TODO: IMHO this should rely not on game format, but script API level, because it
-    // defines necessary adjustments to game scripts. If you want to fix this, find a way to
-    // pass this flag here all the way from game.options[OPT_BASESCRIPTAPI] (or game format).
-    //
-    // if (game.options[OPT_BASESCRIPTAPI] < $Your current version$)
-    wii -= 1;
-
+size_t split_lines(const char *todis, SplitLines &lines, int wii, int fonnt, size_t max_lines)
+{
     lines.Reset();
 
     std::string &test_buf = lines.LineBuf[0];

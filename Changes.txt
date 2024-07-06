@@ -1,5 +1,33 @@
 REVISION HISTORY
 ================
+VERSION 3.6.1 - Patch 4, July 2024
+
+Editor:
+ - Fixed extracting templates with very large files inside would cause "Out of memory" error.
+ - Fixed crash occuring when trying to import a non-existant GIF frame during Sprite Import.
+ - Fixed potential mistake with sprite transparency occuring when importing a 8-bit sprite
+   into 16/32-bit game.
+
+Compiler:
+ - Fixed "\t" (and few other less common escaped chars) not handled properly when they are
+   inside string literals.
+ - Fixed a crash in compiler occuring if user script defined a variadic function.
+   (User-defined variadic functions are not properly usable at the moment, but this at least
+   prevents an unhandled exception.)
+
+Scripting:
+ - Declare "UNICODE" macro for scripts if game is made in unicode mode.
+
+Script API:
+ - Added a number of missing OPT_* constants used with Get/SetGameOption functions.
+
+Engine:
+ - Fixed setting Screen.AutoSizeViewportOnRoomLoad to false in "game_start" could cause primary
+   viewport and camera become initialized with zero width and height.
+ - Fixed setting camera's size in "game_start" would unexpectedly get camera clamped to 320x200.
+ - Fixed number of mistakes in Text Parser occuring when handling "multiwords".
+
+
 VERSION 3.6.1 - Patch 3, June 2024
 
 Editor:

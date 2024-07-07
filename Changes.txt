@@ -4,6 +4,7 @@ REVISION HISTORY
 VERSION 3.6.2 - in development
 
 Editor:
+ - Added TurnWhenFacing property to Characters.
  - More panes in the Editor are DPI-aware (rescale well with the system font scaling).
  - Editor tabs now display icons indicating their contents (may be disabled in Editor Preferences).
  - Room panel tabs now display room names.
@@ -17,12 +18,18 @@ Editor:
  - Do not alter or clamp palette for 8-bit sprites imported in a 16/32-bit game.
  - Improved scrolling of drop-down lists in the Room's navigation bar: made scroll buttons larger,
    and support mouse wheel.
- - Fixed potential program memory corruption in script compiler, happening if user declared
-   a variadic function in script.
+ - Sync script editor's commands in Edit menu with the context menu.
+ - Fixed importing indexed PNG as a sprite would mistakenly treat the source image as 32-bit.
+ - Fixed importing 8-bit BMP sprites with no "Remap palette" and "Leave As Is" as a transparency
+   option would still remap palette index 0 to the first found palette entry with Alpha 0,
+   even if that's a filler entry not used by the image.
+ - Fixed an unhandled exception occuring when rebuilding rooms if any script's header is missing.
  - Fixed double warning message when trying to close the Editor while a game test is running.
 
 Script API:
  - Added Character.MoveStraight() complementing WalkStraight().
+ - Added Character.TurnWhenFacing property.
+ - Added Speech.SpeakingCharacter that returns currently speaking character (for blocking speech).
  - Added System.GetEngineInteger() and System.GetEngineString() for returning diagnostic
    information about engine's runtime state. Possible arguments are defined by
    EngineValueID enum.
@@ -48,6 +55,34 @@ Compatibility:
    This is necessary for some older games to be able to proceed.
 
 ---------------------------------------------------------------------------------------------------
+
+VERSION 3.6.1 - Patch 4, July 2024
+
+Editor:
+ - Fixed extracting templates with very large files inside would cause "Out of memory" error.
+ - Fixed crash occuring when trying to import a non-existant GIF frame during Sprite Import.
+ - Fixed potential mistake with sprite transparency occuring when importing a 8-bit sprite
+   into 16/32-bit game.
+
+Compiler:
+ - Fixed "\t" (and few other less common escaped chars) not handled properly when they are
+   inside string literals.
+ - Fixed a crash in compiler occuring if user script defined a variadic function.
+   (User-defined variadic functions are not properly usable at the moment, but this at least
+   prevents an unhandled exception.)
+
+Scripting:
+ - Declare "UNICODE" macro for scripts if game is made in unicode mode.
+
+Script API:
+ - Added a number of missing OPT_* constants used with Get/SetGameOption functions.
+
+Engine:
+ - Fixed setting Screen.AutoSizeViewportOnRoomLoad to false in "game_start" could cause primary
+   viewport and camera become initialized with zero width and height.
+ - Fixed setting camera's size in "game_start" would unexpectedly get camera clamped to 320x200.
+ - Fixed number of mistakes in Text Parser occuring when handling "multiwords".
+
 
 VERSION 3.6.1 - Patch 3, June 2024
 

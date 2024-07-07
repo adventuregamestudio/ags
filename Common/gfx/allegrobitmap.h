@@ -75,9 +75,9 @@ public:
     // Deallocate bitmap
     void	Destroy();
 
-    bool    SaveToFile(const String &filename, const void *palette)
+    bool    SaveToFile(const String &filename, const RGB *palette)
             { return SaveToFile(filename.GetCStr(), palette); }
-    bool    SaveToFile(const char *filename, const void *palette);
+    bool    SaveToFile(const char *filename, const RGB *palette);
 
     // TODO: This is temporary solution for cases when we cannot replace
 	// use of raw BITMAP struct with Bitmap

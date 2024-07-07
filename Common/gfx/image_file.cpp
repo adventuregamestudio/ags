@@ -904,6 +904,10 @@ static struct ImageExtToFmt
 
 PixelBuffer LoadImage(Stream *in, const String &ext, RGB *pal)
 {
+    PALETTE tmppal;
+    if (!pal) // palette is required by the format load functions
+        pal = tmppal;
+
     String low_ext = ext.Lower(); // FIXME: case-insensitive version of strstr
     for (size_t i = 0; FormatProcs[i].Ext; ++i)
     {
@@ -916,6 +920,13 @@ PixelBuffer LoadImage(Stream *in, const String &ext, RGB *pal)
 
 bool SaveImage(const BitmapData &pxdata, const RGB *pal, Stream *out, const String &ext)
 {
+    PALETTE tmppal;
+    if (!pal) // palette is required by the format save functions
+    {
+        memset(tmppal, 0, sizeof(tmppal));
+        pal = tmppal;
+    }
+
     String low_ext = ext.Lower(); // FIXME: case-insensitive version of strstr
     for (size_t i = 0; FormatProcs[i].Ext; ++i)
     {

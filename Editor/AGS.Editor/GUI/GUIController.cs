@@ -241,13 +241,14 @@ namespace AGS.Editor
             _menuManager.SetMenuItemEnabled(commandID, enabled);
         }
 
-        public void ReplaceMenuItem(IEditorComponent plugin, string oldCommandId, MenuCommand menuCommand)
+        public void ReplaceMenuSubCommands(IEditorComponent plugin, string oldCommandId, IList<MenuCommand> commands)
         {
             string commandID = GetMenuCommandID(oldCommandId, plugin);
-            MenuCommand oldMenuCommand = _menuManager.GetCommandById(commandID);
-            UnregisterMenuItem(oldMenuCommand);
-            RegisterMenuItems(plugin, new List<MenuCommand> { menuCommand }); // fixes command ID prefixes
-            _menuManager.ReplaceMenuItem(commandID, menuCommand);
+            MenuCommand menuCommand = _menuManager.GetCommandById(commandID);
+            UnregisterMenuItems(menuCommand.SubCommands);
+            RegisterMenuItems(plugin, commands); // fixes command ID prefixes
+            menuCommand.SubCommands = commands;
+            _menuManager.ReplaceMenuItemSubcommands(commandID, commands);
         }
 
         public void AddMenu(IEditorComponent plugin, string id, string title)
@@ -294,10 +295,6 @@ namespace AGS.Editor
             }
         }
 
-        private void UnregisterMenuItem(MenuCommand command)
-        {
-            UnregisterMenuItems(new List<MenuCommand> { command });
-        }
 
         public void AddMenuItems(IEditorComponent plugin, MenuCommands commands)
         {

@@ -112,6 +112,7 @@ namespace AGS.Types
 		public IList<MenuCommand> SubCommands
 		{
 			get { return _subCommands; }
+			set { _subCommands = value; }
 		}
 	}
 }

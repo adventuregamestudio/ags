@@ -147,6 +147,7 @@ namespace AGS.Editor
 			}
         }
 
+        // TO-DO: this can't go down in subcommands
         public MenuCommand GetCommandById(string commandId)
         {
             List<string> keyList = new List<string>(_menuCommandGroups.Keys);
@@ -164,25 +165,6 @@ namespace AGS.Editor
                 }
             }
             return null;
-        }
-
-        private void ReplaceCommandInCommandGroup(string commandId, MenuCommand newCommand)
-        {
-            List<string> keyList = new List<string>(_menuCommandGroups.Keys);
-            foreach (string key in keyList)
-            {
-                foreach (MenuCommands menuCommands in _menuCommandGroups[key])
-                {
-                    for(int i=0; i< menuCommands.Commands.Count; i++ )
-                    {
-                        if(menuCommands.Commands[i].ID == commandId)
-                        {
-                            menuCommands.Commands[i] = newCommand;
-                            return;
-                        }
-                    }
-                }
-            }
         }
 
         public void SetMenuItemEnabled(string id, bool enabled)
@@ -269,8 +251,7 @@ namespace AGS.Editor
 			}
 		}
 
-        // TO-DO: this can't replace commands nested in subCommands for now
-        public void ReplaceMenuItem(string commandId, MenuCommand newCommand)
+        public void ReplaceMenuItemSubcommands(string commandId, IList<MenuCommand> commands)
         {
             // Find the existing menu item
             ToolStripItem[] results = _mainMenu.Items.Find(commandId, true);
@@ -282,11 +263,12 @@ namespace AGS.Editor
             ToolStripItem oldItem = results[0];
             ToolStripMenuItem parentMenu = (ToolStripMenuItem)oldItem.OwnerItem;
 
-            ReplaceCommandInCommandGroup(commandId, newCommand);
+            MenuCommand parentCommand = GetCommandById(commandId);
+            parentCommand.SubCommands = commands;
             int oldIndex = parentMenu.DropDownItems.IndexOf(oldItem);
             parentMenu.DropDownItems.Remove(oldItem);
 
-            ToolStripItem newItem = AddMenuItem(newCommand);
+            ToolStripItem newItem = AddMenuItem(parentCommand);
             parentMenu.DropDownItems.Insert(oldIndex, newItem);
         }
 

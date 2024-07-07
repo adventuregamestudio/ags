@@ -141,7 +141,7 @@ namespace AGS.Editor.Components
 
         private void RefreshRecentGamesMenu()
         {
-            _guiController.ReplaceMenuItem(this, OPEN_RECENT_GAME_COMMAND, GetOpenRecentMenuCommand());
+            _guiController.ReplaceMenuSubCommands(this, OPEN_RECENT_GAME_COMMAND, GetRecentGamesSubcommands());
         }
 
         public override string ComponentID

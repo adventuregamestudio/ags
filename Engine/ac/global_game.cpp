@@ -565,7 +565,7 @@ int SaveScreenShot(const char*namm) {
     // of a "main viewport", that may be smaller in legacy "letterbox" mode.
     const Rect &viewport = play.GetMainViewport();
     std::unique_ptr<Bitmap> bmp(CopyScreenIntoBitmap(viewport.GetWidth(), viewport.GetHeight(), &viewport));
-    return BitmapHelper::SaveBitmap(bmp.get(), nullptr, out.get(), ext) ? 1 : 0;
+    return BitmapHelper::SaveBitmap(bmp.get(), palette, out.get(), ext) ? 1 : 0;
 }
 
 void SetMultitasking (int mode) {

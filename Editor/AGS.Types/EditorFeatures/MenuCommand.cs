@@ -14,15 +14,6 @@ namespace AGS.Types
 			get { return new MenuCommand(null, MenuCommand.MENU_TEXT_SEPARATOR); }
 		}
 
-		public MenuCommand(string itemName, IList<MenuCommand> subCommands)
-		{
-			_id = null;
-			_name = itemName;
-			_iconKey = null;
-			_enabled = true;
-			_subCommands = subCommands;
-		}
-
 		public MenuCommand(string itemID, string itemName)
 		{
 			_id = itemID;
@@ -44,10 +35,15 @@ namespace AGS.Types
 		}
 
 		public MenuCommand(string itemID, string itemName, Keys shortcutKey, string iconKey)
-			: this(itemID, itemName)
+			: this(itemID, itemName, shortcutKey)
 		{
-			_shortcutKey = shortcutKey;
 			_iconKey = iconKey;
+		}
+
+		public MenuCommand(string itemID, string itemName, Keys shortcutKey, string iconKey, IList<MenuCommand> subCommands)
+			: this(itemID, itemName, shortcutKey, iconKey)
+		{
+			_subCommands = subCommands;
 		}
 
 		private string _id;
@@ -116,6 +112,7 @@ namespace AGS.Types
 		public IList<MenuCommand> SubCommands
 		{
 			get { return _subCommands; }
+			set { _subCommands = value; }
 		}
 	}
 }

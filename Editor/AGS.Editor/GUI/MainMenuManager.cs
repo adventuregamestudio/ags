@@ -1,6 +1,7 @@
 using AGS.Types;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 
@@ -52,7 +53,7 @@ namespace AGS.Editor
             }
             else if (command.SubCommands != null && command.SubCommands.Count > 0)
             {
-                ToolStripMenuItem subMenu = new ToolStripMenuItem(command.Name);
+                ToolStripMenuItem subMenu = new ToolStripMenuItem(name, null, null, id);
                 subMenu.Enabled = enabled;
                 foreach (var subCommand in command.SubCommands)
                 {
@@ -146,6 +147,26 @@ namespace AGS.Editor
 			}
         }
 
+        // TO-DO: this can't go down in subcommands
+        public MenuCommand GetCommandById(string commandId)
+        {
+            List<string> keyList = new List<string>(_menuCommandGroups.Keys);
+            foreach (string key in keyList)
+            {
+                foreach (MenuCommands menuCommands in _menuCommandGroups[key])
+                {
+                    for (int i = 0; i < menuCommands.Commands.Count; i++)
+                    {
+                        if (menuCommands.Commands[i].ID == commandId)
+                        {
+                            return menuCommands.Commands[i];
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
         public void SetMenuItemEnabled(string id, bool enabled)
         {
             ToolStripItem[] results = _mainMenu.Items.Find(id, true);
@@ -229,6 +250,27 @@ namespace AGS.Editor
 				_mainMenu.Items.Add(newMenu);
 			}
 		}
+
+        public void ReplaceMenuItemSubcommands(string commandId, IList<MenuCommand> commands)
+        {
+            // Find the existing menu item
+            ToolStripItem[] results = _mainMenu.Items.Find(commandId, true);
+            if (results.Length == 0)
+            {
+                throw new AGSEditorException("Menu item does not exist: " + commandId);
+            }
+
+            ToolStripItem oldItem = results[0];
+            ToolStripMenuItem parentMenu = (ToolStripMenuItem)oldItem.OwnerItem;
+
+            MenuCommand parentCommand = GetCommandById(commandId);
+            parentCommand.SubCommands = commands;
+            int oldIndex = parentMenu.DropDownItems.IndexOf(oldItem);
+            parentMenu.DropDownItems.Remove(oldItem);
+
+            ToolStripItem newItem = AddMenuItem(parentCommand);
+            parentMenu.DropDownItems.Insert(oldIndex, newItem);
+        }
 
         private void RemoveItemsFromLastPane()
         {

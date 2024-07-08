@@ -412,6 +412,7 @@
     <Compile Include="Utils\BitmapExtensions.cs" />
     <Compile Include="Utils\CommandLineOptions.cs" />
     <Compile Include="Utils\ConcurrentCircularBuffer.cs" />
+    <Compile Include="Utils\Debounce.cs" />
     <Compile Include="Utils\MathExtra.cs" />
     <Compile Include="Utils\ScriptFileUtilities.cs" />
     <Compile Include="Utils\ScriptGeneration.cs" />

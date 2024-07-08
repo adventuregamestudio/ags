@@ -241,6 +241,16 @@ namespace AGS.Editor
             _menuManager.SetMenuItemEnabled(commandID, enabled);
         }
 
+        public void ReplaceMenuSubCommands(IEditorComponent plugin, string oldCommandId, IList<MenuCommand> commands)
+        {
+            string commandID = GetMenuCommandID(oldCommandId, plugin);
+            MenuCommand menuCommand = _menuManager.GetCommandById(commandID);
+            UnregisterMenuItems(menuCommand.SubCommands);
+            RegisterMenuItems(plugin, commands); // fixes command ID prefixes
+            menuCommand.SubCommands = commands;
+            _menuManager.ReplaceMenuItemSubcommands(commandID, commands);
+        }
+
         public void AddMenu(IEditorComponent plugin, string id, string title)
         {
             _menuManager.AddMenu(id, title);
@@ -268,6 +278,23 @@ namespace AGS.Editor
                 }
             }
         }
+
+        private void UnregisterMenuItems(IList<MenuCommand> commands)
+        {
+            foreach (MenuCommand command in commands)
+            {
+                if (command.ID != null)
+                {
+                    UnregisterMenuCommand(command.ID);
+                }
+
+                if (command.SubCommands != null && command.SubCommands.Count > 0)
+                {
+                    UnregisterMenuItems(command.SubCommands);
+                }
+            }
+        }
+
 
         public void AddMenuItems(IEditorComponent plugin, MenuCommands commands)
         {
@@ -1533,6 +1560,11 @@ namespace AGS.Editor
                 id = component.ComponentID + CONTROL_ID_SPLIT + id;
             }
             return id;
+        }
+
+        private void UnregisterMenuCommand(string id)
+        {
+            _menuItems.Remove(id);
         }
 
         private string RegisterMenuCommand(string id, IEditorComponent component)

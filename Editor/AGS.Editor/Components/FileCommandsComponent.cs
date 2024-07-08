@@ -119,6 +119,14 @@ namespace AGS.Editor.Components
             const int maxPrintSize = 80; // Maximum char length for recent games text
             var subCommands = new List<MenuCommand>();
             
+            if(Factory.AGSEditor.Settings.RecentGames.Count <= 1)
+            {
+                MenuCommand cmd = new MenuCommand(null, "(empty)");
+                cmd.Enabled = false;
+                subCommands.Add(cmd);
+                return subCommands;
+            }
+
             // we start from index 1 because 0 is always currently open game
             for (int i=1; i< Factory.AGSEditor.Settings.RecentGames.Count; i++)  
             {

@@ -718,6 +718,24 @@ namespace AGS.Editor.Preferences
         }
 
         [Browsable(true)]
+        [DisplayName("Add space when using toggle line comments")]
+        [Description("If it should add space between \"//\" line comments and what is commented when toggling.")]
+        [Category("Script Editor")]
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute("False")]
+        public bool ToggleLineCommentAddsSpace
+        {
+            get
+            {
+                return (bool)(this["ToggleLineCommentAddsSpace"]);
+            }
+            set
+            {
+                this["ToggleLineCommentAddsSpace"] = value;
+            }
+        }
+
+        [Browsable(true)]
         [DisplayName("Script Font")]
         [Description("Font used in the script editor (default: Courier New).")]
         [Category("Script Editor")]

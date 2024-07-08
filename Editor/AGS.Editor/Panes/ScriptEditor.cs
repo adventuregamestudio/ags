@@ -22,6 +22,7 @@ namespace AGS.Editor
         // Custom Edit menu commands
         private const string TOGGLE_BREAKPOINT_COMMAND = "ToggleBreakpoint";
         private const string SHOW_MATCHING_SCRIPT_OR_HEADER_COMMAND = "ScriptShowMatchingScript";
+        private const string TOGGLE_LINE_COMMENT_COMMAND = "ToggleLineComment";
         // Custom context menu commands
         private const string CONTEXT_MENU_TOGGLE_BREAKPOINT = "CtxToggleBreakpoint";
 
@@ -139,6 +140,7 @@ namespace AGS.Editor
             commands.Commands.Add(MenuCommand.Separator);
             commands.Commands.Add(new MenuCommand(TOGGLE_BREAKPOINT_COMMAND, "Toggle Breakpoint", Keys.F9, "ToggleBreakpointMenuIcon"));
             commands.Commands.Add(new MenuCommand(SHOW_MATCHING_SCRIPT_OR_HEADER_COMMAND, "Switch to Matching Script or Header", Keys.Control | Keys.M));
+            commands.Commands.Add(new MenuCommand(TOGGLE_LINE_COMMENT_COMMAND, "Toggle Line Comment", Keys.Control | Keys.Shift | Keys.Q));
         }
 
         protected override void AddCtxCommands(ContextMenuStrip menuStrip)
@@ -535,6 +537,10 @@ namespace AGS.Editor
                 {
                     _showMatchingScript(this.Script);
                 }
+            }
+            else if (command == TOGGLE_LINE_COMMENT_COMMAND)
+            {
+                scintilla.ToggleLineComment();
             }
             else
             {

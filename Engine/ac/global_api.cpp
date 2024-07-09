@@ -334,12 +334,6 @@ RuntimeScriptValue Sc_GetGameSpeed(const RuntimeScriptValue *params, int32_t par
     API_SCALL_INT(GetGameSpeed);
 }
 
-// int (int xxx,int yyy)
-RuntimeScriptValue Sc_GetHotspotIDAtScreen(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_PINT2(GetHotspotIDAtScreen);
-}
-
 // void (int hotspot, char *buffer)
 RuntimeScriptValue Sc_GetHotspotName(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -1199,7 +1193,6 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "GetDialogOption",          API_FN_PAIR(GetDialogOption) },
         { "GetGameOption",            API_FN_PAIR(GetGameOption) },
         { "GetGameSpeed",             API_FN_PAIR(GetGameSpeed) },
-        { "GetHotspotAt",             API_FN_PAIR(GetHotspotIDAtScreen) },
         { "GetHotspotName",           API_FN_PAIR(GetHotspotName) },
         { "GetHotspotPointX",         API_FN_PAIR(GetHotspotPointX) },
         { "GetHotspotPointY",         API_FN_PAIR(GetHotspotPointY) },

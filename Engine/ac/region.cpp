@@ -35,16 +35,17 @@ extern RGB palette[256];
 extern CCRegion ccDynamicRegion;
 
 
-ScriptRegion *GetRegionAtRoom(int xx, int yy) {
+ScriptRegion *Region_GetAtRoomXY(int xx, int yy)
+{
     return &scrRegion[GetRegionIDAtRoom(xx, yy)];
 }
 
-ScriptRegion *GetRegionAtScreen(int x, int y)
+ScriptRegion *Region_GetAtScreenXY(int x, int y)
 {
     VpPoint vpt = play.ScreenToRoom(x, y);
     if (vpt.second < 0)
         return nullptr;
-    return GetRegionAtRoom(vpt.first.X, vpt.first.Y);
+    return Region_GetAtRoomXY(vpt.first.X, vpt.first.Y);
 }
 
 void Region_SetLightLevel(ScriptRegion *ssr, int brightness) {
@@ -136,15 +137,14 @@ void generate_light_table()
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 
-// ScriptRegion *(int xx, int yy)
-RuntimeScriptValue Sc_GetRegionAtRoom(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Region_GetAtRoomXY(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_OBJ_PINT2(ScriptRegion, ccDynamicRegion, GetRegionAtRoom);
+    API_SCALL_OBJ_PINT2(ScriptRegion, ccDynamicRegion, Region_GetAtRoomXY);
 }
 
-RuntimeScriptValue Sc_GetRegionAtScreen(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Region_GetAtScreenXY(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_OBJ_PINT2(ScriptRegion, ccDynamicRegion, GetRegionAtScreen);
+    API_SCALL_OBJ_PINT2(ScriptRegion, ccDynamicRegion, Region_GetAtScreenXY);
 }
 
 RuntimeScriptValue Sc_Region_GetDrawingSurface(const RuntimeScriptValue *params, int32_t param_count)
@@ -239,8 +239,8 @@ RuntimeScriptValue Sc_Region_GetTintLuminance(void *self, const RuntimeScriptVal
 void RegisterRegionAPI()
 {
     ScFnRegister region_api[] = {
-        { "Region::GetAtRoomXY^2",        API_FN_PAIR(GetRegionAtRoom) },
-        { "Region::GetAtScreenXY^2",      API_FN_PAIR(GetRegionAtScreen) },
+        { "Region::GetAtRoomXY^2",        API_FN_PAIR(Region_GetAtRoomXY) },
+        { "Region::GetAtScreenXY^2",      API_FN_PAIR(Region_GetAtScreenXY) },
         { "Region::GetDrawingSurface",    API_FN_PAIR(Region_GetDrawingSurface) },
 
         { "Region::Tint^4",               API_FN_PAIR(Region_TintNoLum) },

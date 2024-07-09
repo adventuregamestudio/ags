@@ -76,7 +76,7 @@ void RestoreWalkableArea(int areanum) {
 int GetWalkableAreaAtScreen(int x, int y) {
   VpPoint vpt = play.ScreenToRoom(x, y);
   if (vpt.second < 0)
-    return 0;
+    return -1;
   return GetWalkableAreaAtRoom(vpt.first.X, vpt.first.Y);
 }
 

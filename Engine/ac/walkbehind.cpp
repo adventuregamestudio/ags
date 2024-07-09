@@ -194,19 +194,19 @@ int get_walkbehind_pixel(int x, int y)
     return thisroom.WalkAreaMask->GetPixel(room_to_mask_coord(x), room_to_mask_coord(y));
 }
 
-ScriptWalkbehind *GetWalkbehindAtRoom(int x, int y)
+ScriptWalkbehind *Walkbehind_GetAtRoomXY(int x, int y)
 {
     int area = get_walkbehind_pixel(x, y);
     area = area >= 0 && area < (MAX_WALK_BEHINDS) ? area : 0;
     return &scrWalkbehind[area];
 }
 
-ScriptWalkbehind *GetWalkbehindAtScreen(int x, int y)
+ScriptWalkbehind *Walkbehind_GetAtScreenXY(int x, int y)
 {
     VpPoint vpt = play.ScreenToRoom(x, y);
     if (vpt.second < 0)
         return nullptr;
-    return GetWalkbehindAtRoom(vpt.first.X, vpt.first.Y);
+    return Walkbehind_GetAtRoomXY(vpt.first.X, vpt.first.Y);
 }
 
 int Walkbehind_GetID(ScriptWalkbehind *wb)
@@ -238,14 +238,14 @@ void Walkbehind_SetBaseline(ScriptWalkbehind *wb, int baseline)
 
 extern RuntimeScriptValue Sc_GetDrawingSurfaceForWalkbehind(const RuntimeScriptValue *params, int32_t param_count);
 
-RuntimeScriptValue Sc_GetWalkbehindAtRoom(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Walkbehind_GetAtRoomXY(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_OBJ_PINT2(ScriptWalkableArea, ccDynamicWalkbehind, GetWalkbehindAtRoom);
+    API_SCALL_OBJ_PINT2(ScriptWalkableArea, ccDynamicWalkbehind, Walkbehind_GetAtRoomXY);
 }
 
-RuntimeScriptValue Sc_GetWalkbehindAtScreen(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Walkbehind_GetAtScreenXY(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_OBJ_PINT2(ScriptWalkableArea, ccDynamicWalkbehind, GetWalkbehindAtScreen);
+    API_SCALL_OBJ_PINT2(ScriptWalkableArea, ccDynamicWalkbehind, Walkbehind_GetAtScreenXY);
 }
 
 extern RuntimeScriptValue Sc_GetDrawingSurfaceForWalkableArea(const RuntimeScriptValue *params, int32_t param_count);
@@ -274,8 +274,8 @@ RuntimeScriptValue Sc_Walkbehind_GetID(void *self, const RuntimeScriptValue *par
 void RegisterWalkbehindAPI()
 {
     ScFnRegister walkbehind_api[] = {
-        { "Walkbehind::GetAtRoomXY^2",       API_FN_PAIR(GetWalkbehindAtRoom) },
-        { "Walkbehind::GetAtScreenXY^2",     API_FN_PAIR(GetWalkbehindAtScreen) },
+        { "Walkbehind::GetAtRoomXY^2",       API_FN_PAIR(Walkbehind_GetAtRoomXY) },
+        { "Walkbehind::GetAtScreenXY^2",     API_FN_PAIR(Walkbehind_GetAtScreenXY) },
         { "Walkbehind::GetDrawingSurface",   API_FN_PAIR(GetDrawingSurfaceForWalkbehind) },
 
         { "Walkbehind::get_Baseline",        API_FN_PAIR(Walkbehind_GetBaseline) },

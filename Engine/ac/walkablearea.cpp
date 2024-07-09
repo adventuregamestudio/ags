@@ -229,6 +229,19 @@ int get_walkable_area_at_character (int charnum) {
     return get_walkable_area_at_location(chin->x, chin->y);
 }
 
+ScriptWalkableArea *Walkarea_GetAtRoomXY(int x, int y)
+{
+    return &scrWalkarea[GetWalkableAreaAtRoom(x, y)]; // always a valid index
+}
+
+ScriptWalkableArea *Walkarea_GetAtScreenXY(int x, int y)
+{
+    int area = GetWalkableAreaAtScreen(x, y);
+    if (area < 0 || area >= MAX_WALK_AREAS)
+        return nullptr;
+    return &scrWalkarea[area];
+}
+
 int Walkarea_GetID(ScriptWalkableArea *wa)
 {
     return wa->id;
@@ -286,9 +299,17 @@ void Walkarea_SetFaceDirectionRatio(ScriptWalkableArea *wa, float ratio)
 #include "ac/dynobj/scriptstring.h"
 
 
-extern RuntimeScriptValue Sc_GetWalkableAreaAtRoom(const RuntimeScriptValue *params, int32_t param_count);
-extern RuntimeScriptValue Sc_GetWalkableAreaAtScreen(const RuntimeScriptValue *params, int32_t param_count);
 extern RuntimeScriptValue Sc_GetDrawingSurfaceForWalkableArea(const RuntimeScriptValue *params, int32_t param_count);
+
+RuntimeScriptValue Sc_Walkarea_GetAtRoomXY(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_PINT2(ScriptWalkableArea, ccDynamicWalkarea, Walkarea_GetAtRoomXY);
+}
+
+RuntimeScriptValue Sc_Walkarea_GetAtScreenXY(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_PINT2(ScriptWalkableArea, ccDynamicWalkarea, Walkarea_GetAtScreenXY);
+}
 
 RuntimeScriptValue Sc_Walkarea_GetDrawingSurface(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -339,8 +360,8 @@ RuntimeScriptValue Sc_Walkarea_SetFaceDirectionRatio(void *self, const RuntimeSc
 void RegisterWalkareaAPI()
 {
     ScFnRegister walkarea_api[] = {
-        { "WalkableArea::GetAtRoomXY^2",       API_FN_PAIR(GetWalkableAreaAtRoom) },
-        { "WalkableArea::GetAtScreenXY^2",     API_FN_PAIR(GetWalkableAreaAtScreen) },
+        { "WalkableArea::GetAtRoomXY^2",       API_FN_PAIR(Walkarea_GetAtRoomXY) },
+        { "WalkableArea::GetAtScreenXY^2",     API_FN_PAIR(Walkarea_GetAtScreenXY) },
         { "WalkableArea::GetDrawingSurface",   API_FN_PAIR(GetDrawingSurfaceForWalkableArea) },
 
         { "WalkableArea::SetScaling^2",        API_FN_PAIR(Walkarea_SetScaling) },

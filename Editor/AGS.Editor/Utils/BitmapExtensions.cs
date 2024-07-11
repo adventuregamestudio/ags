@@ -421,6 +421,118 @@ namespace AGS.Editor
             res.SetRawData(resultRawData);
             return res;
         }
+
+        /// <summary>
+        /// Gives a scaled deep copy of the input image.
+        /// </summary>
+        /// <param name="originalBitmap">The image to copy and scale.</param>
+        /// <param name="drawWidth">Scale the image to this width.</param>
+        /// <param name="drawHeight">Scale the image to this height.</param>
+        /// <param name="canvasWidth">Resize the canvas to this width.</param>
+        /// <param name="canvasHeight">Resize the canvas to this height.</param>
+        /// <param name="xOffset">Offset the image in the canvas in the x direction by this much.</param>
+        /// <param name="yOffset">Offset the image in the canvas in the y direction by this much.</param>
+        /// <returns>A resized, scaled, and offset deep copy of the input image.</returns>
+        public static Bitmap ResizeScaleAndOffset(Bitmap originalBitmap, int drawWidth, int drawHeight, int canvasWidth, int canvasHeight, int xOffset, int yOffset)
+        {
+            if (originalBitmap.PixelFormat != PixelFormat.Format8bppIndexed)
+            {
+                throw new ArgumentException("Only bitmaps with PixelFormat.Format8bppIndexed are supported.");
+            }
+
+            // Create a 32bpp resized version of the 8bpp bitmap since we can't run iterpolation directly from 8bpp to 8bpp
+            Bitmap resizedNonIndexed = new Bitmap(canvasWidth, canvasHeight, PixelFormat.Format32bppArgb);
+            using (Graphics graphics = Graphics.FromImage(resizedNonIndexed))
+            {
+                graphics.Clear(Factory.AGSEditor.CurrentGame.Palette[0].Colour); // Clear to the default palette 0 color
+
+                // TODO: It might be better to do bicubic and then adjust the color distance function so that it handles interpolations in alpha better?
+                graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor; 
+                graphics.DrawImage(originalBitmap, xOffset, yOffset, drawWidth, drawHeight);
+            }
+
+            // Convert resized bitmap back to indexed format
+            Bitmap resizedIndexed = new Bitmap(canvasWidth, canvasHeight, PixelFormat.Format8bppIndexed);
+
+            // Copy the palette from the original bitmap to the resized indexed bitmap
+            ColorPalette palette = originalBitmap.Palette;
+            resizedIndexed.Palette = palette;
+
+            // Lock bits for read access to the resized non-indexed bitmap and write access to the resized indexed bitmap
+            BitmapData resizedNonIndexedData = resizedNonIndexed.LockBits(new Rectangle(0, 0, canvasWidth, canvasHeight), ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
+            BitmapData resizedIndexedData = resizedIndexed.LockBits(new Rectangle(0, 0, canvasWidth, canvasHeight), ImageLockMode.WriteOnly, PixelFormat.Format8bppIndexed);
+
+            int nonIndexedStride = resizedNonIndexedData.Stride;
+            int indexedStride = resizedIndexedData.Stride;
+
+            byte[] nonIndexedPixels = new byte[nonIndexedStride * canvasHeight];
+            byte[] indexedPixels = new byte[indexedStride * canvasHeight];
+
+            // Copy our bmp to an array since we're not compiling with unsafe
+            Marshal.Copy(resizedNonIndexedData.Scan0, nonIndexedPixels, 0, nonIndexedPixels.Length);
+
+            for (int y = 0; y < canvasHeight; y++)
+            {
+                for (int x = 0; x < canvasWidth; x++)
+                {
+                    int nonIndexedIndex = y * nonIndexedStride + x * 4;
+                    int indexedIndex = y * indexedStride + x;
+                    Color color = Color.FromArgb(
+                        nonIndexedPixels[nonIndexedIndex + 3],
+                        nonIndexedPixels[nonIndexedIndex + 2],
+                        nonIndexedPixels[nonIndexedIndex + 1],
+                        nonIndexedPixels[nonIndexedIndex]);
+
+                    uint nearestColorIndex = FindNearestColorIndex(color, palette.Entries);
+                    indexedPixels[indexedIndex] = (byte)nearestColorIndex;
+                }
+            }
+
+            Marshal.Copy(indexedPixels, 0, resizedIndexedData.Scan0, indexedPixels.Length);
+
+            resizedNonIndexed.UnlockBits(resizedNonIndexedData);
+            resizedIndexed.UnlockBits(resizedIndexedData);
+
+            return resizedIndexed;
+        }
+
+        /// <summary>
+        /// Maps a 32bpp color to an indexed color.  Used by ResizeMaskBitmap
+        /// </summary>
+        private static uint FindNearestColorIndex(Color color, Color[] palette)
+        {
+            uint bestIndex = 0;
+            uint bestDistance = uint.MaxValue;
+
+            for (uint i = 0; i < palette.Length; i++)
+            {
+                uint distance = ColorDistanceSq(color, palette[i]);
+                if (distance < bestDistance)
+                {
+                    bestDistance = distance;
+                    bestIndex = i;
+
+                    if (distance == 0) // We're likely to have exact matches
+                    {
+                        break;
+                    }
+                }
+            }
+
+            return bestIndex;
+        }
+
+        /// <summary>
+        /// Returns a basic value for how closely two colors match.
+        /// </summary>
+        private static uint ColorDistanceSq(Color c1, Color c2)
+        {
+            int r = c1.R - c2.R;
+            int g = c1.G - c2.G;
+            int b = c1.B - c2.B;
+            int a = c1.A - c2.A;
+            return (uint)(r * r) + (uint)(g * g) + (uint)(b * b) + (uint)(a * a);
+        }
     }
 
     /// <summary>

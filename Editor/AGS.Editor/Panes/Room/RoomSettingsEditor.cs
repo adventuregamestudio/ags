@@ -545,6 +545,9 @@ namespace AGS.Editor
                     bool doImport = true;
                     bool deleteExtraFrames = false;
                     bool roomSizeChanged = false;
+                    AdjustMaskOptions MaskOption = AdjustMaskOptions.ResetMask;
+                    int MaskXOffset = 0;
+                    int MaskYOffset = 0;
 
                     if ((Factory.AGSEditor.CurrentGame.Settings.ColorDepth == GameColorDepth.Palette) && (bmp.GetColorDepth() > 8))
                     {
@@ -566,19 +569,24 @@ namespace AGS.Editor
                             }
                             else
                             {
-                                roomSizeChanged = true;
                                 deleteExtraFrames = true;
                             }
                         }
                         if (doImport)
                         {
-                            if (Factory.GUIController.ShowQuestion("The new background is a different size to the old one. If you import it, all your regions, hotspots and walkable areas will be cleared. Do you want to proceed?") != DialogResult.Yes)
+                            using (AdjustMasksDialog dialog = new AdjustMasksDialog())
                             {
-                                doImport = false;
-                            }
-                            else
-                            {
-                                roomSizeChanged = true;
+                                if (dialog.ShowDialog(this) == DialogResult.OK)
+                                {
+                                    MaskOption = dialog.MaskOption;
+                                    MaskXOffset = dialog.XOffset;
+                                    MaskYOffset = dialog.YOffset;
+                                    roomSizeChanged = true;
+                                }
+                                else
+                                {
+                                    doImport = false;
+                                }
                             }
                         }
                     }
@@ -596,8 +604,19 @@ namespace AGS.Editor
                             RepopulateBackgroundList(0);
                         }
 
+                        // If size or resolution has changed, reset or resize the masks and call OnRoomSizeChanged
                         if (roomSizeChanged)
                         {
+                            if (MaskOption == AdjustMaskOptions.ResetMask)
+                            {
+                                _roomController.ResetMasks();
+                            }
+                            else
+                            {
+                                bool doScale = (MaskOption == AdjustMaskOptions.ScaleMaskImage);
+                                _roomController.ResizeMasks(doScale, bmp.Width, bmp.Height, MaskXOffset, MaskYOffset);
+                            }
+
                             OnRoomSizeChanged();
                         }
 

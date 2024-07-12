@@ -250,7 +250,7 @@ static int wasongui = 0;
 // Runs default handling of mouse movement, button state, and wheel
 static void check_mouse_state(int &was_mouse_on_iface)
 {
-    mouse_on_iface = gui_on_mouse_move();
+    mouse_on_iface = gui_on_mouse_move(mousex, mousey);
     was_mouse_on_iface = mouse_on_iface;
 
     if ((ifacepopped>=0) && (mousey>=guis[ifacepopped].Y+guis[ifacepopped].Height))
@@ -263,7 +263,7 @@ static void check_mouse_state(int &was_mouse_on_iface)
     else if ((wasbutdown > kMouseNone) && (!ags_misbuttondown(wasbutdown))) {
         eAGSMouseButton mouse_btn_up = wasbutdown;
         wasbutdown = kMouseNone; // reset before event, avoid recursive call of "mouse up"
-        gui_on_mouse_up(wasongui, mouse_btn_up);
+        gui_on_mouse_up(wasongui, mouse_btn_up, mousex, mousey);
     }
 
     int mwheelz = ags_check_mouse_wheel();
@@ -298,7 +298,7 @@ static void check_mouse_controls(const int was_mouse_on_iface)
         }
         else if (was_mouse_on_iface >= 0) {
             if (wasbutdown == kMouseNone) {
-                gui_on_mouse_down(was_mouse_on_iface, mbut);
+                gui_on_mouse_down(was_mouse_on_iface, mbut, mousex, mousey);
             }
             wasongui = was_mouse_on_iface;
             wasbutdown = mbut;

@@ -57,7 +57,7 @@ extern std::unique_ptr<Bitmap> saved_viewport_bitmap;
 int in_enters_screen=0,done_es_error = 0;
 int in_leaves_screen = -1;
 
-std::vector<EventHappened> events;
+std::vector<AGSEvent> events;
 
 int inside_processevent=0;
 int eventClaimed = EVENT_NONE;
@@ -119,49 +119,66 @@ void run_room_event(int id) {
 }
 
 // event list functions
-void setevent(int evtyp,int ev1,int ev2,int ev3) {
-    EventHappened evt;
-    evt.type = evtyp;
-    evt.data1 = ev1;
-    evt.data2 = ev2;
-    evt.data3 = ev3;
-    evt.player = game.playercharacter;
+void setevent(const AGSEvent &evt)
+{
     events.push_back(evt);
 }
 
 // TODO: this is kind of a hack, which forces event to be processed even if
 // it was fired from insides of other event processing.
 // The proper solution would be to do the event processing overhaul in AGS.
-void force_event(int evtyp,int ev1,int ev2,int ev3)
+void force_event(const AGSEvent &evt)
 {
     if (inside_processevent)
-        runevent_now(evtyp, ev1, ev2, ev3);
+        runevent_now(evt);
     else
-        setevent(evtyp, ev1, ev2, ev3);
+        setevent(evt);
 }
 
-void process_event(const EventHappened *evp) {
+void runevent_now(const AGSEvent &evt)
+{
+    process_event(&evt);
+}
+
+void process_event(const AGSEvent *evp)
+{
     RuntimeScriptValue rval_null;
-    if (evp->type==EV_TEXTSCRIPT) {
+    if (evp->Type == kAGSEvent_Script)
+    {
         cc_clear_error();
-        RuntimeScriptValue params[2]{ evp->data2, evp->data3 };
-        if (evp->data3 > -1000)
-            QueueScriptFunction(kScInstGame, tsnames[evp->data1], 2, params);
-        else if (evp->data2 > -1000)
-            QueueScriptFunction(kScInstGame, tsnames[evp->data1], 1, params);
-        else
-            QueueScriptFunction(kScInstGame, tsnames[evp->data1]);
+        const auto &ts = evp->Data.Script;
+        RuntimeScriptValue params[2]{ ts.Arg1 , ts.Arg2 };
+        switch (ts.CbType)
+        { // FIXME: use array of "arg count"
+        case kTS_Repeat: // no args
+            QueueScriptFunction(kScInstGame, tsnames[ts.CbType]); break;
+        case kTS_MouseClick: // 1 arg
+        case kTS_TextInput:
+            QueueScriptFunction(kScInstGame, tsnames[ts.CbType], 1, params); break;
+        case kTS_KeyPress: // 2 args
+            QueueScriptFunction(kScInstGame, tsnames[ts.CbType], 2, params); break;
+        default:
+            // invalid type, internal error?
+            quit("process_event: kAGSEvent_Script: unknown callback type");
+            break;
+        }
     }
-    else if (evp->type==EV_NEWROOM) {
-        NewRoom(evp->data1);
+    else if (evp->Type == kAGSEvent_NewRoom)
+    {
+        NewRoom(evp->Data.Newroom.RoomID);
     }
-    else if (evp->type==EV_RUNEVBLOCK) {
+    else if (evp->Type == kAGSEvent_Interaction)
+    {
+        const auto &inter = evp->Data.Inter;
         Interaction*evpt=nullptr;
         PInteractionScripts scriptPtr = nullptr;
         ObjectEvent obj_evt;
 
-        if (evp->data1==EVB_HOTSPOT) {
-            const int hotspot_id = evp->data2;
+        switch (inter.IntEvType)
+        {
+        case kIntEventType_Hotspot:
+        {
+            const int hotspot_id = inter.ObjID;
             if (thisroom.Hotspots[hotspot_id].EventHandlers != nullptr)
                 scriptPtr = thisroom.Hotspots[hotspot_id].EventHandlers;
             else
@@ -170,63 +187,57 @@ void process_event(const EventHappened *evp) {
             obj_evt = ObjectEvent("hotspot%d", hotspot_id,
                 RuntimeScriptValue().SetScriptObject(&scrHotspot[hotspot_id], &ccDynamicHotspot));
             //Debug::Printf("Running hotspot interaction for hotspot %d, event %d", evp->data2, evp->data3);
+            break;
         }
-        else if (evp->data1==EVB_ROOM) {
-
+        case kIntEventType_Room:
+        {
             if (thisroom.EventHandlers != nullptr)
                 scriptPtr = thisroom.EventHandlers;
             else
                 evpt=&croom->intrRoom;
 
             obj_evt = ObjectEvent("room");
-            if (evp->data3 == EVROM_BEFOREFADEIN) {
+            if (inter.ObjEvent == kRoomEvent_BeforeFadein) {
                 in_enters_screen ++;
-                run_on_event (GE_ENTER_ROOM, RuntimeScriptValue().SetInt32(displayed_room));
-            } else if (evp->data3 == EVROM_AFTERFADEIN) {
-                run_on_event(GE_ENTER_ROOM_AFTERFADE, RuntimeScriptValue().SetInt32(displayed_room));
+                run_on_event(kScriptEvent_RoomEnter, RuntimeScriptValue().SetInt32(displayed_room));
+            } else if (inter.ObjEvent == kRoomEvent_AfterFadein) {
+                run_on_event(kScriptEvent_RoomAfterFadein, RuntimeScriptValue().SetInt32(displayed_room));
             }
             //Debug::Printf("Running room interaction, event %d", evp->data3);
+            break;
         }
-        else {
+        default:
+            // invalid type, internal error?
             quit("process_event: RunEvBlock: unknown evb type");
+            break;
         }
 
         assert(scriptPtr || evpt);
         if (scriptPtr != nullptr)
         {
-            run_interaction_script(obj_evt, scriptPtr.get(), evp->data3);
+            run_interaction_script(obj_evt, scriptPtr.get(), inter.ObjEvent);
         }
         else
         {
-            run_interaction_event(obj_evt, evpt, evp->data3);
+            run_interaction_event(obj_evt, evpt, inter.ObjEvent);
         }
 
-        if ((evp->data1 == EVB_ROOM) && (evp->data3 == EVROM_BEFOREFADEIN))
+        if ((inter.IntEvType == kIntEventType_Room) && (inter.ObjEvent == kRoomEvent_BeforeFadein))
             in_enters_screen --;
     }
-    else if (evp->type==EV_FADEIN)
+    else if (evp->Type == kAGSEvent_FadeIn)
     {
         current_fade_in_effect();
     }
-    else if (evp->type == EV_IFACECLICK)
+    else if (evp->Type == kAGSEvent_GUI)
     {
-        process_interface_click(evp->data1, evp->data2, evp->data3);
+        const auto &gui = evp->Data.Gui;
+        process_interface_click(gui.GuiID, gui.GuiObjID, gui.Mbtn);
     }
     else
     {
         quit("process_event: unknown event to process");
     }
-}
-
-
-void runevent_now (int evtyp, int ev1, int ev2, int ev3) {
-    EventHappened evh;
-    evh.type = evtyp;
-    evh.data1 = ev1;
-    evh.data2 = ev2;
-    evh.data3 = ev3;
-    evh.player = game.playercharacter;
-    process_event(&evh);
 }
 
 void processallevents() {
@@ -241,7 +252,7 @@ void processallevents() {
     // and they must NOT be processed here, but instead discarded at the end
     // of this function; otherwise game may glitch.
     // TODO: need to redesign engine events system?
-    std::vector<EventHappened> evtcopy = events;
+    std::vector<AGSEvent> evtcopy = events;
 
     int room_was = play.room_changes;
 

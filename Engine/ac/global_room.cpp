@@ -103,7 +103,7 @@ void NewRoom(int nrnum) {
         in_leaves_screen = nrnum;
     }
     else if (in_enters_screen) {
-        setevent(EV_NEWROOM,nrnum);
+        setevent(AGSEvent_NewRoom(nrnum));
         return;
     }
     else if (in_inv_screen) {

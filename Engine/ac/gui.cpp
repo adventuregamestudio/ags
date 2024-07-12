@@ -728,7 +728,7 @@ void gui_on_mouse_hold(const int wasongui, const int wasbutdown)
         if (guis[wasongui].GetControlType(i)!=kGUISlider) continue;
         // GUI Slider repeatedly activates while being dragged
         guio->IsActivated = false;
-        force_event(EV_IFACECLICK, wasongui, i, wasbutdown);
+        force_event(AGSEvent_GUI(wasongui, i, static_cast<eAGSMouseButton>(wasbutdown)));
         break;
     }
 }
@@ -745,7 +745,7 @@ void gui_on_mouse_up(const int wasongui, const int wasbutdown, const int mx, con
 
         int cttype=guis[wasongui].GetControlType(i);
         if ((cttype == kGUIButton) || (cttype == kGUISlider) || (cttype == kGUIListBox)) {
-            force_event(EV_IFACECLICK, wasongui, i, wasbutdown);
+            force_event(AGSEvent_GUI(wasongui, i, static_cast<eAGSMouseButton>(wasbutdown)));
         }
         else if (cttype == kGUIInvWindow) {
             mouse_ifacebut_xoffs=mx-(guio->X)-guis[wasongui].X;
@@ -756,7 +756,7 @@ void gui_on_mouse_up(const int wasongui, const int wasbutdown, const int mx, con
                 if (game.options[OPT_HANDLEINVCLICKS]) {
                     // Let the script handle the click
                     // LEFTINV is 5, RIGHTINV is 6
-                    force_event(EV_TEXTSCRIPT, kTS_MouseClick, wasbutdown + 4);
+                    force_event(AGSEvent_Script(kTS_MouseClick, wasbutdown + 4));
                 }
                 else if (wasbutdown == kMouseRight) // right-click is always Look
                     RunInventoryInteraction(iit, MODE_LOOK);
@@ -772,7 +772,7 @@ void gui_on_mouse_up(const int wasongui, const int wasbutdown, const int mx, con
         break;
     }
 
-    run_on_event(GE_GUI_MOUSEUP, RuntimeScriptValue().SetInt32(wasongui));
+    run_on_event(kScriptEvent_MouseUp, RuntimeScriptValue().SetInt32(wasongui));
 }
 
 void gui_on_mouse_down(const int guin, const int mbut, const int mx, const int my)
@@ -781,9 +781,9 @@ void gui_on_mouse_down(const int guin, const int mbut, const int mx, const int m
     guis[guin].OnMouseButtonDown(mx, my);
     // run GUI click handler if not on any control
     if ((guis[guin].MouseDownCtrl < 0) && (!guis[guin].OnClickHandler.IsEmpty()))
-        force_event(EV_IFACECLICK, guin, -1, mbut);
+        force_event(AGSEvent_GUI(guin, -1, static_cast<eAGSMouseButton>(mbut)));
 
-    run_on_event(GE_GUI_MOUSEDOWN, RuntimeScriptValue().SetInt32(guin));
+    run_on_event(kScriptEvent_MouseDown, RuntimeScriptValue().SetInt32(guin));
 }
 
 //=============================================================================

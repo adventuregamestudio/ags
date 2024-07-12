@@ -123,11 +123,11 @@ enum AGSScriptEventType
 struct AGSEvent_Script
 {
     ScriptCallbackType CbType = kTS_None;
-    int Arg1 = 0, Arg2 = 0;
+    int Arg1 = 0, Arg2 = 0, Arg3 = 0;
 
     AGSEvent_Script() = default;
-    AGSEvent_Script(ScriptCallbackType cb, int arg1 = 0, int arg2 = 0)
-        : CbType(cb), Arg1(arg1), Arg2(arg2) {}
+    AGSEvent_Script(ScriptCallbackType cb, int arg1 = 0, int arg2 = 0, int arg3 = 0)
+        : CbType(cb), Arg1(arg1), Arg2(arg2), Arg3(arg3) {}
 };
 
 // AGSEvent_Interaction describes a scheduled call to a object interaction event

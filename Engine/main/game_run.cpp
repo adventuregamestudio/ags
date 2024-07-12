@@ -304,9 +304,11 @@ static void toggle_mouse_lock()
     }
 }
 
-bool run_service_mb_controls(eAGSMouseButton &out_mbut)
+bool run_service_mb_controls(eAGSMouseButton &out_mbut, Point *out_mpos)
 {
     out_mbut = kMouseNone; // clear the output
+    if (out_mpos)
+        *out_mpos = {};
     if (ags_inputevent_ready() != kInputMouse)
         return false; // there was no mouse event
 
@@ -314,6 +316,8 @@ bool run_service_mb_controls(eAGSMouseButton &out_mbut)
     if (mb_evt.type == SDL_MOUSEBUTTONDOWN)
     {
         out_mbut = sdl_mbut_to_ags_but(mb_evt.button.button);
+        if (out_mpos)
+            *out_mpos = Mouse::SysToGamePos(mb_evt.button.x, mb_evt.button.y);
         lock_mouse_on_click();
     }
     return out_mbut != kMouseNone;
@@ -343,16 +347,17 @@ static void check_mouse_state(int &was_mouse_on_iface)
 
     int mwheelz = ags_check_mouse_wheel();
     if (mwheelz < 0)
-        setevent(AGSEvent_Script(kTS_MouseClick, 9));
+        setevent(AGSEvent_Script(kTS_MouseClick, 9, mousex, mousey));
     else if (mwheelz > 0)
-        setevent(AGSEvent_Script(kTS_MouseClick, 8));
+        setevent(AGSEvent_Script(kTS_MouseClick, 8, mousex, mousey));
 }
 
 // Runs default mouse button handling
 static void check_mouse_controls(const int was_mouse_on_iface)
 {
     eAGSMouseButton mbut;
-    if (run_service_mb_controls(mbut) && mbut > kMouseNone) {
+    Point mpos;
+    if (run_service_mb_controls(mbut, &mpos) && mbut > kMouseNone) {
         check_skip_cutscene_mclick(mbut);
 
         if (play.fast_forward || play.IsIgnoringInput()) { /* do nothing if skipping cutscene or input disabled */ }
@@ -373,12 +378,14 @@ static void check_mouse_controls(const int was_mouse_on_iface)
         }
         else if (was_mouse_on_iface >= 0) {
             if (wasbutdown == kMouseNone) {
+                // FIXME: logically should pass recorded mpos.X, mpos.Y, but first must investigate
+                // how that will affect other GUI processing (mouse up and motion)
                 gui_on_mouse_down(was_mouse_on_iface, mbut, mousex, mousey);
             }
             wasongui = was_mouse_on_iface;
             wasbutdown = mbut;
         }
-        else setevent(AGSEvent_Script(kTS_MouseClick, mbut));
+        else setevent(AGSEvent_Script(kTS_MouseClick, mbut, mpos.X, mpos.Y));
     }
 }
 

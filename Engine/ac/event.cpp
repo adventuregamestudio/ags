@@ -66,7 +66,7 @@ ScriptEventCallback ScriptEventCb[kTS_Num] = {
     { nullptr, 0u },
     { REP_EXEC_NAME, 0u },
     { "on_key_press", 2u },
-    { "on_mouse_click", 1u },
+    { "on_mouse_click", 3u },
     { "on_text_input", 1u }
 };
 
@@ -158,7 +158,7 @@ void process_event(const AGSEvent *evp)
             quit("process_event: kAGSEvent_Script: unknown callback type");
             return;
         }
-        RuntimeScriptValue params[2]{ ts.Arg1 , ts.Arg2 };
+        RuntimeScriptValue params[3]{ ts.Arg1, ts.Arg2, ts.Arg3 };
         QueueScriptFunction(kScInstGame, ScriptEventCb[ts.CbType].FnName, ScriptEventCb[ts.CbType].ArgCount, params);
     }
     else if (evp->Type == kAGSEvent_NewRoom)

@@ -218,7 +218,14 @@ extern std::vector<AGSEvent> events;
 
 extern int eventClaimed;
 
-extern const char*tsnames[kTS_Num];
+// ScriptEventCallback describes a predefined script function callback
+struct ScriptEventCallback
+{
+    const char *FnName;
+    uint32_t ArgCount;
+};
+
+extern ScriptEventCallback ScriptEventCb[kTS_Num];
 
 #endif // __AGS_EE_AC__EVENT_H
 

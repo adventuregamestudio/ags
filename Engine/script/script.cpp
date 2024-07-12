@@ -496,8 +496,9 @@ int RunScriptFunctionAuto(ScriptInstType sc_inst, const char *tsname, size_t par
     }
     // Claimable event is run in all the script modules and room script,
     // before running in the globalscript instance
-    if ((strcmp(tsname, tsnames[kTS_KeyPress]) == 0) || (strcmp(tsname, tsnames[kTS_MouseClick]) == 0) ||
-        (strcmp(tsname, tsnames[kTS_TextInput]) == 0) || (strcmp(tsname, "on_event") == 0))
+    // FIXME: make this condition a callback parameter?
+    if ((strcmp(tsname, ScriptEventCb[kTS_KeyPress].FnName) == 0) || (strcmp(tsname, ScriptEventCb[kTS_MouseClick].FnName) == 0) ||
+        (strcmp(tsname, ScriptEventCb[kTS_TextInput].FnName) == 0) || (strcmp(tsname, "on_event") == 0))
     {
         return RunClaimableEvent(tsname, param_count, params);
     }

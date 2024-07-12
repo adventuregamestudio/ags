@@ -62,7 +62,13 @@ std::vector<AGSEvent> events;
 int inside_processevent=0;
 int eventClaimed = EVENT_NONE;
 
-const char *tsnames[kTS_Num] = {nullptr, REP_EXEC_NAME, "on_key_press", "on_mouse_click", "on_text_input" };
+ScriptEventCallback ScriptEventCb[kTS_Num] = {
+    { nullptr, 0u },
+    { REP_EXEC_NAME, 0u },
+    { "on_key_press", 2u },
+    { "on_mouse_click", 1u },
+    { "on_text_input", 1u }
+};
 
 
 int run_claimable_event(const char *tsname, bool includeRoom, int numParams, const RuntimeScriptValue *params, bool *eventWasClaimed) {
@@ -147,21 +153,13 @@ void process_event(const AGSEvent *evp)
     {
         cc_clear_error();
         const auto &ts = evp->Data.Script;
-        RuntimeScriptValue params[2]{ ts.Arg1 , ts.Arg2 };
-        switch (ts.CbType)
-        { // FIXME: use array of "arg count"
-        case kTS_Repeat: // no args
-            QueueScriptFunction(kScInstGame, tsnames[ts.CbType]); break;
-        case kTS_MouseClick: // 1 arg
-        case kTS_TextInput:
-            QueueScriptFunction(kScInstGame, tsnames[ts.CbType], 1, params); break;
-        case kTS_KeyPress: // 2 args
-            QueueScriptFunction(kScInstGame, tsnames[ts.CbType], 2, params); break;
-        default:
-            // invalid type, internal error?
+        if (ts.CbType < kTS_None || ts.CbType >= kTS_Num)
+        { // invalid type, internal error?
             quit("process_event: kAGSEvent_Script: unknown callback type");
-            break;
+            return;
         }
+        RuntimeScriptValue params[2]{ ts.Arg1 , ts.Arg2 };
+        QueueScriptFunction(kScInstGame, ScriptEventCb[ts.CbType].FnName, ScriptEventCb[ts.CbType].ArgCount, params);
     }
     else if (evp->Type == kAGSEvent_NewRoom)
     {

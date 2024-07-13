@@ -360,6 +360,21 @@ void engine_assign_assetpaths()
         AssetMgr->AddLibrary(ResPaths.AudioPak.Path, "audio");
     if (!ResPaths.SpeechPak.Path.IsEmpty())
         AssetMgr->AddLibrary(ResPaths.SpeechPak.Path, "voice");
+
+    // Print all the registered asset libraries
+    Debug::Printf("Registered asset libraries:");
+    for (size_t i = 0; i < AssetMgr->GetLibraryCount(); ++i)
+    {
+        const auto lib = AssetMgr->GetLibraryEntry(i);
+        Debug::Printf(String::FromFormat("- %s:\t%s", lib.IsDirectory ? "DIR" : "LIB", lib.Path.GetCStr()));
+        Debug::Printf("\tFilters: %s", lib.Filters.GetCStr());
+        if (lib.LibFiles.size() > 1)
+        {
+            Debug::Printf("\tSub-files:");
+            for (size_t j = 1; j < lib.LibFiles.size(); ++j)
+                Debug::Printf("\t%zu:\t%s", j, lib.LibFiles[j].GetCStr());
+        }
+    }
 }
 
 void engine_init_keyboard()

@@ -98,6 +98,7 @@ AssetError AssetManager::AddLibrary(const String &path, const String &filters, c
         if (Path::ComparePaths(lib->BasePath, path) == 0)
         {
             // already present, only assign new filters
+            lib->FilterString = filters;
             lib->Filters = filters.Split(',');
             if (out_lib)
                 *out_lib = lib.get();
@@ -109,6 +110,7 @@ AssetError AssetManager::AddLibrary(const String &path, const String &filters, c
     AssetError err = RegisterAssetLib(path, lib);
     if (err != kAssetNoError)
         return err;
+    lib->FilterString = filters;
     lib->Filters = filters.Split(',');
     auto place = std::upper_bound(_activeLibs.begin(), _activeLibs.end(), lib, _libsSorter);
     _activeLibs.insert(place, lib);
@@ -140,6 +142,13 @@ void AssetManager::RemoveAllLibraries()
 size_t AssetManager::GetLibraryCount() const
 {
     return _libs.size();
+}
+
+AssetLibEntry AssetManager::GetLibraryEntry(size_t index) const
+{
+    if (index >= _libs.size())
+        return {};
+    return AssetLibEntry(IsAssetLibDir(_libs[index].get()), _libs[index]->BasePath, _libs[index]->RealLibFiles, _libs[index]->FilterString);
 }
 
 const AssetLibInfo *AssetManager::GetLibraryInfo(size_t index) const

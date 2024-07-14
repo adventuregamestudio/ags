@@ -537,6 +537,7 @@ namespace AGS.Editor
 
         public void TestGame(bool withDebugger)
         {
+            string exePath = Path.Combine(AGSEditor.DEBUG_OUTPUT_DIRECTORY, Factory.AGSEditor.BaseGameFileName + ".exe");
             string parameter = string.Empty;
                         
             if (withDebugger)
@@ -562,9 +563,13 @@ namespace AGS.Editor
                 " \"" + AudioClip.AUDIO_CACHE_DIRECTORY + "\"" +
                 " \"" + "Speech" + "\"";
 
+            // Explicit path to the file containing main game data,
+            // this is to ensure that the engine won't try to scan other places
+            parameter += " \"" + exePath + "\"";
+
             Factory.GUIController.ClearEngineLogMessages();
 
-            RunEXEFile(Path.Combine(AGSEditor.DEBUG_OUTPUT_DIRECTORY, Factory.AGSEditor.BaseGameFileName + ".exe"), parameter, true);
+            RunEXEFile(exePath, parameter, true);
 
             if (withDebugger)
             {

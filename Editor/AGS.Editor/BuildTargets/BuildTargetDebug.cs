@@ -66,11 +66,7 @@ namespace AGS.Editor
                     errors.Add(new CompileError("Debug build depends on Windows build target being available! Your AGS installation may be corrupted!"));
                     return false;
                 }
-                string compiledEXE = targetWin.GetCompiledPath(exeFileName);
-                string compiledDat = targetWin.GetCompiledPath(baseGameFileName + ".ags");
                 string sourceEXE = Path.Combine(Factory.AGSEditor.EditorDirectory, AGSEditor.ENGINE_EXE_FILE_NAME);
-                Utilities.TryDeleteFile(compiledEXE);
-                Utilities.TryDeleteFile(compiledDat);
                 File.Copy(sourceEXE, exeFileName, true);
                 BusyDialog.Show("Please wait while we prepare to run the game...", new BusyDialog.ProcessingHandler(CreateDebugFiles), errors);
                 if (errors.HasErrors)

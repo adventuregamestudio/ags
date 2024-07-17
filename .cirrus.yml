@@ -409,7 +409,7 @@ windows_packaging_task:
     curl -fLOJ https://github.com/adventuregamestudio/ags-manual/releases/latest/download/ags-help.chm
   get_templates_script: >
     mkdir Windows\Installer\Source\Templates &&
-    curl -fLSs https://github.com/%TEMPLATES_REPOSITORY%/tarball/master |
+    curl -fLSs https://github.com/%TEMPLATES_REPOSITORY%/tarball/ags4 |
     tar -f - -xvzC Windows\Installer\Source\Templates --strip-components 2
   get_linux_bundle_script: >
     mkdir Windows\Installer\Source\Linux &&

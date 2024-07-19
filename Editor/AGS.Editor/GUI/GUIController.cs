@@ -933,6 +933,26 @@ namespace AGS.Editor
             this.ExitApplication();
         }
 
+        public void SaveAsTemplateAndExit(string projectPath)
+        {
+            bool error = true;
+            if (_interactiveTasks.LoadGameFromDisk(projectPath))
+            {
+                error = false;
+                bool forceRebuild = _agsEditor.NeedsRebuildForDebugMode();
+                _agsEditor.CompileGame(forceRebuild, false);
+                if (forceRebuild)
+                    _agsEditor.SaveUserDataFile(); // in case pending config is applied
+
+                _batchProcessShutdown = true;
+
+                error = !SaveGameAsTemplate(_agsEditor.CurrentGame.Settings.GameFileName + ".agt");
+            }
+            if (error) Program.SetExitCode(1);
+            this.ExitApplication();
+
+        }
+
         public bool ShowWelcomeScreen()
         {
             if (System.Environment.OSVersion.Platform != PlatformID.Win32NT)
@@ -953,7 +973,11 @@ namespace AGS.Editor
             {
                 CompileAndExit(options.ProjectPath);
             }
-            else if(!string.IsNullOrEmpty(options.ProjectPath))
+            else if (options.TemplateSaveAndExit)
+            {
+                SaveAsTemplateAndExit(options.ProjectPath);
+            }
+            else if (!string.IsNullOrEmpty(options.ProjectPath))
             {
                 _interactiveTasks.LoadGameFromDisk(options.ProjectPath);
             }
@@ -1168,25 +1192,35 @@ namespace AGS.Editor
             }
         }
 
+        private bool SaveGameAsTemplate(string filename)
+        {
+            bool success = false;
+            try
+            {
+                _agsEditor.SaveGameFiles();
+                InteractiveTasks.CreateTemplateFromCurrentGame(filename);
+                success = true;
+            }
+            catch (AGSEditorException ex)
+            {
+                Factory.GUIController.ShowMessage("There was an error creating your template:" + Environment.NewLine + ex.Message, MessageBoxIcon.Warning);
+                success = false;
+            }
+            catch (Exception ex)
+            {
+                Factory.GUIController.ShowMessage("There was an error creating your template. The error was: " + ex.Message + Environment.NewLine + Environment.NewLine + "Error details: " + ex.ToString(), MessageBoxIcon.Warning);
+                success = false;
+            }
+            return success;
+        }
+
         public void SaveGameAsTemplate()
         {
             string filename = Factory.GUIController.ShowSaveFileDialog("Save new template as...", Constants.GAME_TEMPLATE_FILE_FILTER, Factory.AGSEditor.UserTemplatesDirectory);
 
             if (filename != null)
             {
-                try
-                {
-                    _agsEditor.SaveGameFiles();
-                    InteractiveTasks.CreateTemplateFromCurrentGame(filename);
-                }
-                catch (AGSEditorException ex)
-                {
-                    Factory.GUIController.ShowMessage("There was an error creating your template:" + Environment.NewLine + ex.Message, MessageBoxIcon.Warning);
-                }
-                catch (Exception ex)
-                {
-                    Factory.GUIController.ShowMessage("There was an error creating your template. The error was: " + ex.Message + Environment.NewLine + Environment.NewLine + "Error details: " + ex.ToString(), MessageBoxIcon.Warning);
-                }
+                SaveGameAsTemplate(filename);
             }
         }
 

@@ -105,6 +105,7 @@ namespace AGS.Editor
         private int _scriptFontSize = Factory.AGSEditor.Settings.ScriptFontSize;
         private string _calltipFont = Factory.AGSEditor.Settings.ScriptTipFont;
         private int _calltipFontSize = Factory.AGSEditor.Settings.ScriptTipFontSize;
+        private bool _toggleLineCommentAddsSpace = Factory.AGSEditor.Settings.ToggleLineCommentAddsSpace;
         private ColorTheme _theme;
 
         private void UpdateColorThemeStyleDefault()
@@ -526,6 +527,105 @@ namespace AGS.Editor
                 else
                     this.scintillaControl1.StyleNeeded -= ScintillaControl1_StyleNeeded;
             }
+        }
+
+        public void ToggleLineComment()
+        {
+            // There are essentially two modes of comment/uncomment here
+            // addsSpace == false:
+            //   comment is inserted as the first character of the line,
+            //   uncommenting will not modify space characters
+            // addsSpace == true:
+            //   comment is inserted as the first indentation character with and additional space after,
+            //   uncommenting will remove one space character after if it exists.
+            const string commentLineSymbol = "//";
+            bool addsSpace = _toggleLineCommentAddsSpace;
+            string comment = commentLineSymbol + (addsSpace ? " " : "");
+            bool setSelectionAtEnd = false;
+            int selStart, selEnd;
+
+            if (string.IsNullOrEmpty(scintillaControl1.SelectedText))
+            {
+                int tmpline = scintillaControl1.LineFromPosition(scintillaControl1.CurrentPosition);
+                selStart = scintillaControl1.Lines[tmpline].Position;
+                selEnd = scintillaControl1.Lines[tmpline].EndPosition;
+            }
+            else
+            {
+                int tmplineStart = scintillaControl1.LineFromPosition(scintillaControl1.SelectionStart);
+                int tmplineEnd = scintillaControl1.LineFromPosition(scintillaControl1.SelectionEnd);
+
+                selStart = scintillaControl1.Lines[tmplineStart].Position;
+                selEnd = scintillaControl1.Lines[tmplineEnd].EndPosition;
+                setSelectionAtEnd = true;
+            }
+
+            int lineSelStart = scintillaControl1.LineFromPosition(selStart);
+            int lineSelEnd = scintillaControl1.LineFromPosition(selEnd);
+
+            string firstLine = scintillaControl1.Lines[lineSelStart].Text;
+            bool isUncomment = firstLine.Trim().StartsWith(commentLineSymbol);
+
+            scintillaControl1.BeginUndoAction();
+
+            for (int i = lineSelStart; i < lineSelEnd; i++)
+            {
+                Line line = scintillaControl1.Lines[i];
+                int lineStartPos = line.Position;
+                int lineEndPos = line.EndPosition;
+                int lineIndentPos = scintillaControl1.GetLineIndentationPosition(i);
+
+                string lineText = scintillaControl1.GetTextRange(lineIndentPos, lineEndPos - lineIndentPos);
+
+                if (isUncomment)
+                {
+                    bool canUncommentLine = lineText.StartsWith(commentLineSymbol);
+                    if (!canUncommentLine) continue;
+
+                    int len = commentLineSymbol.Length;
+                    for (; len < lineText.Length; len++)
+                    {
+                        if (lineText[len] != '/') break;
+                    }
+
+                    if(addsSpace && len < lineText.Length && lineText[len] == ' ')
+                    {
+                        len++;
+                    }
+
+                    scintillaControl1.SetSel(lineIndentPos, lineIndentPos + len);
+                    scintillaControl1.ReplaceSelection("");
+                }
+                else
+                {
+                    if (addsSpace)
+                    {
+                        if (string.IsNullOrEmpty(lineText.Trim()))
+                            this.scintillaControl1.InsertText(lineIndentPos, commentLineSymbol);
+                        else
+                            this.scintillaControl1.InsertText(lineIndentPos, comment);
+                    } 
+                    else
+                    {
+                        this.scintillaControl1.InsertText(lineStartPos, comment);
+                    }
+                }
+            }
+
+            if (setSelectionAtEnd)
+            {
+                selStart = scintillaControl1.Lines[lineSelStart].Position;
+                selEnd = scintillaControl1.Lines[lineSelEnd - 1].EndPosition;
+                scintillaControl1.SetSel(selStart, selEnd - 1);
+            }
+            else
+            {
+                scintillaControl1.GotoPosition(selEnd);
+                scintillaControl1.CurrentPosition = selStart;
+                scintillaControl1.SetEmptySelection(scintillaControl1.CurrentPosition);
+            }
+
+            scintillaControl1.EndUndoAction();
         }
 
         public void GoToPosition(int newPos)
@@ -2498,6 +2598,12 @@ namespace AGS.Editor
         {
             set { _calltipFontSize = value; }
             get { return _calltipFontSize; }
+        }
+
+        public bool ToggleLineCommentAddsSpace
+        {
+            set { _toggleLineCommentAddsSpace = value; }
+            get { return _toggleLineCommentAddsSpace; }
         }
 
         void IScriptEditorControl.ShowLineNumbers()

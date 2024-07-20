@@ -139,18 +139,16 @@ namespace AGS.Editor
         {
             commands.Commands.Add(MenuCommand.Separator);
             commands.Commands.Add(new MenuCommand(TOGGLE_BREAKPOINT_COMMAND, "Toggle Breakpoint", Keys.F9, "ToggleBreakpointMenuIcon"));
-            commands.Commands.Add(new MenuCommand(SHOW_MATCHING_SCRIPT_OR_HEADER_COMMAND, "Switch to Matching Script or Header", Keys.Control | Keys.M));
             commands.Commands.Add(new MenuCommand(TOGGLE_LINE_COMMENT_COMMAND, "Toggle Line Comment", Keys.Control | Keys.Shift | Keys.Q));
+            commands.Commands.Add(new MenuCommand(SHOW_MATCHING_SCRIPT_OR_HEADER_COMMAND, "Switch to Matching Script or Header", Keys.Control | Keys.M));
         }
 
         protected override void AddCtxCommands(ContextMenuStrip menuStrip)
         {
             EventHandler onClick = new EventHandler(ContextMenuChooseOption2);
-            ToolStripMenuItem menuItem = new ToolStripMenuItem("Toggle Breakpoint", Factory.GUIController.ImageList.Images["ToggleBreakpointMenuIcon"], onClick, CONTEXT_MENU_TOGGLE_BREAKPOINT);
-            menuItem.ShortcutKeys = Keys.F9;
-
             menuStrip.Items.Add(new ToolStripSeparator());
-            menuStrip.Items.Add(menuItem);
+            menuStrip.Items.Add(ToolStripExtensions.CreateMenuItem("Toggle Breakpoint", Factory.GUIController.ImageList.Images["ToggleBreakpointMenuIcon"], onClick, CONTEXT_MENU_TOGGLE_BREAKPOINT, Keys.F9));
+            menuStrip.Items.Add(ToolStripExtensions.CreateMenuItem("Toggle Line Comment", null, onClick, TOGGLE_LINE_COMMENT_COMMAND, Keys.Control | Keys.Shift | Keys.Q));
         }
 
         public void ActivateWindow()
@@ -721,6 +719,10 @@ namespace AGS.Editor
             if (item.Name == CONTEXT_MENU_TOGGLE_BREAKPOINT)
             {
                 ToggleBreakpointOnCurrentLine();
+            }
+            else if (item.Name == TOGGLE_LINE_COMMENT_COMMAND)
+            {
+                scintilla.ToggleLineComment();
             }
         }
 

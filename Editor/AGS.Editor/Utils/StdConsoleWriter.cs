@@ -54,7 +54,8 @@ namespace AGS.Editor
 
         private static void ClearPrint(string msg)
         {
-            Console.WriteLine($"\r{msg}{new String(' ', Console.BufferWidth - msg.Length)}");
+            int count = Math.Max(Console.BufferWidth - msg.Length, 0);
+            Console.WriteLine($"\r{msg}{new String(' ', count)}");
         }
 
         [System.Runtime.InteropServices.DllImport("kernel32.dll")]

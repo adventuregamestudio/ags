@@ -52,6 +52,10 @@ namespace Mouse
     // parameter must be in native game coordinates
     void SetMoveLimit(const Rect &r);
 
+    // Translates system mouse position to a position inside a game viewport,
+    // note that this can clamp to game cursor bounds.
+    Point SysToGamePos(int sys_mx, int sys_my);
+
     // Polls the cursor position, updates mousex, mousey
     void Poll();
     // Set actual OS cursor position on screen; in native game coordinates

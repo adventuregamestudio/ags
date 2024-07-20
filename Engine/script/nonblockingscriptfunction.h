@@ -27,7 +27,7 @@ struct NonBlockingScriptFunction
 {
     const char* functionName;
     int numParameters;
-    RuntimeScriptValue params[3];
+    RuntimeScriptValue params[4];
     bool roomHasFunction;
     bool globalScriptHasFunction;
     std::vector<bool> moduleHasFunction;

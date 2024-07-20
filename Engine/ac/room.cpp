@@ -267,9 +267,9 @@ void unload_old_room() {
     current_fade_out_effect();
 
     // room unloaded callback
-    run_room_event(EVROM_AFTERFADEOUT);
+    run_room_event(kRoomEvent_AfterFadeout);
     // global room unloaded event
-    run_on_event(GE_LEAVE_ROOM_AFTERFADE, RuntimeScriptValue().SetInt32(displayed_room));
+    run_on_event(kScriptEvent_RoomAfterFadeout, RuntimeScriptValue().SetInt32(displayed_room));
 
     debug_script_log("Unloading room %d", displayed_room);
 
@@ -918,9 +918,9 @@ void new_room(int newnum,CharacterInfo*forchar) {
     in_leaves_screen = newnum;
 
     // player leaves screen event
-    run_room_event(EVROM_LEAVE);
+    run_room_event(kRoomEvent_BeforeFadeout);
     // Run the global OnRoomLeave event
-    run_on_event (GE_LEAVE_ROOM, RuntimeScriptValue().SetInt32(displayed_room));
+    run_on_event (kScriptEvent_RoomLeave, RuntimeScriptValue().SetInt32(displayed_room));
 
     pl_run_plugin_hooks(AGSE_LEAVEROOM, displayed_room);
 
@@ -988,7 +988,7 @@ void first_room_initialization() {
 void check_new_room() {
     // if they're in a new room, run Player Enters Screen and on_event(ENTER_ROOM)
     if ((in_new_room>0) & (in_new_room!=3)) {
-        EventHappened evh(EV_RUNEVBLOCK, EVB_ROOM, 0, EVROM_BEFOREFADEIN, game.playercharacter);
+        AGSEvent evh(AGSEvent_Interaction(kIntEventType_Room, 0, kRoomEvent_BeforeFadein, game.playercharacter));
         // make sure that any script calls don't re-call enters screen
         int newroom_was = in_new_room;
         in_new_room = 0;

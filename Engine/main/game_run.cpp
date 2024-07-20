@@ -225,8 +225,8 @@ static void game_loop_do_early_script_update()
     if (in_new_room == 0) {
         // Run the room and game script repeatedly_execute
         run_function_on_non_blocking_thread(&repExecAlways);
-        setevent(EV_TEXTSCRIPT, kTS_Repeat);
-        setevent(EV_RUNEVBLOCK, EVB_ROOM, 0, EVROM_REPEXEC);
+        setevent(AGSEvent_Script(kTS_Repeat));
+        setevent(AGSEvent_Interaction(kIntEventType_Room, 0, kRoomEvent_Repexec));
     }
 }
 
@@ -246,7 +246,7 @@ static bool game_loop_check_ground_level_interactions()
         // check if he's standing on a hotspot
         int hotspotThere = get_hotspot_at(playerchar->x, playerchar->y);
         // run Stands on Hotspot event
-        setevent(EV_RUNEVBLOCK, EVB_HOTSPOT, hotspotThere, EVHOT_STANDSON);
+        setevent(AGSEvent_Interaction(kIntEventType_Hotspot, hotspotThere, kHotspotEvent_StandOn));
 
         // check current region
         int onRegion = GetRegionIDAtRoom(playerchar->x, playerchar->y);
@@ -304,9 +304,11 @@ static void toggle_mouse_lock()
     }
 }
 
-bool run_service_mb_controls(eAGSMouseButton &out_mbut)
+bool run_service_mb_controls(eAGSMouseButton &out_mbut, Point *out_mpos)
 {
     out_mbut = kMouseNone; // clear the output
+    if (out_mpos)
+        *out_mpos = {};
     if (ags_inputevent_ready() != kInputMouse)
         return false; // there was no mouse event
 
@@ -314,6 +316,8 @@ bool run_service_mb_controls(eAGSMouseButton &out_mbut)
     if (mb_evt.type == SDL_MOUSEBUTTONDOWN)
     {
         out_mbut = sdl_mbut_to_ags_but(mb_evt.button.button);
+        if (out_mpos)
+            *out_mpos = Mouse::SysToGamePos(mb_evt.button.x, mb_evt.button.y);
         lock_mouse_on_click();
     }
     return out_mbut != kMouseNone;
@@ -343,16 +347,17 @@ static void check_mouse_state(int &was_mouse_on_iface)
 
     int mwheelz = ags_check_mouse_wheel();
     if (mwheelz < 0)
-        setevent (EV_TEXTSCRIPT, kTS_MouseClick, 9);
+        setevent(AGSEvent_Script(kTS_MouseClick, 9, mousex, mousey));
     else if (mwheelz > 0)
-        setevent (EV_TEXTSCRIPT, kTS_MouseClick, 8);
+        setevent(AGSEvent_Script(kTS_MouseClick, 8, mousex, mousey));
 }
 
 // Runs default mouse button handling
 static void check_mouse_controls(const int was_mouse_on_iface)
 {
     eAGSMouseButton mbut;
-    if (run_service_mb_controls(mbut) && mbut > kMouseNone) {
+    Point mpos;
+    if (run_service_mb_controls(mbut, &mpos) && mbut > kMouseNone) {
         check_skip_cutscene_mclick(mbut);
 
         if (play.fast_forward || play.IsIgnoringInput()) { /* do nothing if skipping cutscene or input disabled */ }
@@ -373,12 +378,14 @@ static void check_mouse_controls(const int was_mouse_on_iface)
         }
         else if (was_mouse_on_iface >= 0) {
             if (wasbutdown == kMouseNone) {
+                // FIXME: logically should pass recorded mpos.X, mpos.Y, but first must investigate
+                // how that will affect other GUI processing (mouse up and motion)
                 gui_on_mouse_down(was_mouse_on_iface, mbut, mousex, mousey);
             }
             wasongui = was_mouse_on_iface;
             wasbutdown = mbut;
         }
-        else setevent(EV_TEXTSCRIPT, kTS_MouseClick, mbut);
+        else setevent(AGSEvent_Script(kTS_MouseClick, mbut, mpos.X, mpos.Y));
     }
 }
 
@@ -632,7 +639,8 @@ static void check_keyboard_controls()
 
                 if (guitex->IsActivated) {
                     guitex->IsActivated = false;
-                    setevent(EV_IFACECLICK, guiIndex, controlIndex, 1);
+                    // FIXME: review this, are we abusing "mouse button" arg here in order to pass a different data?
+                    setevent(AGSEvent_GUI(guiIndex, controlIndex, static_cast<eAGSMouseButton>(1)));
                 }
             }
         }
@@ -656,12 +664,12 @@ static void check_keyboard_controls()
     if (old_keyhandle || (ki.UChar == 0))
     {
         debug_script_log("Running on_key_press keycode %d, mod %d", sckey, sckeymod);
-        setevent(EV_TEXTSCRIPT, kTS_KeyPress, sckey, sckeymod);
+        setevent(AGSEvent_Script(kTS_KeyPress, sckey, sckeymod));
     }
     if (!old_keyhandle && (ki.UChar > 0))
     {
         debug_script_log("Running on_text_input char %s (%d)", ki.Text, ki.UChar);
-        setevent(EV_TEXTSCRIPT, kTS_TextInput, ki.UChar);
+        setevent(AGSEvent_Script(kTS_TextInput, ki.UChar));
     }
 }
 
@@ -724,7 +732,7 @@ static void check_room_edges(size_t numevents_was)
 
                     for (int ii = 0; ii < 4; ii++) {
                         if (edgesActivated[ii])
-                            setevent(EV_RUNEVBLOCK, EVB_ROOM, 0, ii);
+                            setevent(AGSEvent_Interaction(kIntEventType_Room, 0, ii));
                     }
             }
     }
@@ -864,7 +872,7 @@ static void update_cursor_over_location(int mwasatx, int mwasaty)
         if (__GetLocationType(game_to_data_coord(mousex), game_to_data_coord(mousey), 1) == LOCTYPE_HOTSPOT) {
             int onhs = getloctype_index;
 
-            setevent(EV_RUNEVBLOCK, EVB_HOTSPOT, onhs, EVHOT_MOUSEOVER);
+            setevent(AGSEvent_Interaction(kIntEventType_Hotspot, onhs, kHotspotEvent_MouseOver));
         }
     }
 
@@ -876,7 +884,7 @@ static void game_loop_update_events()
 {
     new_room_was = in_new_room;
     if (in_new_room>0)
-        setevent(EV_FADEIN,0,0,0);
+        setevent({ kAGSEvent_FadeIn });
     in_new_room=0;
     processallevents();
     if ((new_room_was > 0) && (in_new_room == 0)) {
@@ -884,9 +892,9 @@ static void game_loop_update_events()
         // then queue the Enters Screen scripts
         // run these next time round, when it's faded in
         if (new_room_was==2)  // first time enters screen
-            setevent(EV_RUNEVBLOCK, EVB_ROOM, 0, EVROM_FIRSTENTER);
+            setevent(AGSEvent_Interaction(kIntEventType_Room, 0, kRoomEvent_FirstEnter));
         if (new_room_was!=3)   // enters screen after fadein
-            setevent(EV_RUNEVBLOCK, EVB_ROOM, 0, EVROM_AFTERFADEIN);
+            setevent(AGSEvent_Interaction(kIntEventType_Room, 0, kRoomEvent_AfterFadein));
     }
 }
 

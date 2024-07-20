@@ -71,7 +71,7 @@ NonBlockingScriptFunction lateRepExecAlways(LATE_REP_EXEC_ALWAYS_NAME, 0);
 NonBlockingScriptFunction getDialogOptionsDimensionsFunc("dialog_options_get_dimensions", 1);
 NonBlockingScriptFunction renderDialogOptionsFunc("dialog_options_render", 1);
 NonBlockingScriptFunction getDialogOptionUnderCursorFunc("dialog_options_get_active", 1);
-NonBlockingScriptFunction runDialogOptionMouseClickHandlerFunc("dialog_options_mouse_click", 2);
+NonBlockingScriptFunction runDialogOptionMouseClickHandlerFunc("dialog_options_mouse_click", 4);
 NonBlockingScriptFunction runDialogOptionKeyPressHandlerFunc("dialog_options_key_press", 3);
 NonBlockingScriptFunction runDialogOptionTextInputHandlerFunc("dialog_options_text_input", 2);
 NonBlockingScriptFunction runDialogOptionRepExecFunc("dialog_options_repexec", 1);
@@ -496,8 +496,9 @@ int RunScriptFunctionAuto(ScriptInstType sc_inst, const char *tsname, size_t par
     }
     // Claimable event is run in all the script modules and room script,
     // before running in the globalscript instance
-    if ((strcmp(tsname, tsnames[kTS_KeyPress]) == 0) || (strcmp(tsname, tsnames[kTS_MouseClick]) == 0) ||
-        (strcmp(tsname, tsnames[kTS_TextInput]) == 0) || (strcmp(tsname, "on_event") == 0))
+    // FIXME: make this condition a callback parameter?
+    if ((strcmp(tsname, ScriptEventCb[kTS_KeyPress].FnName) == 0) || (strcmp(tsname, ScriptEventCb[kTS_MouseClick].FnName) == 0) ||
+        (strcmp(tsname, ScriptEventCb[kTS_TextInput].FnName) == 0) || (strcmp(tsname, "on_event") == 0))
     {
         return RunClaimableEvent(tsname, param_count, params);
     }

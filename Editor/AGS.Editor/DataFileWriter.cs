@@ -529,8 +529,8 @@ namespace AGS.Editor
             options[NativeConstants.GameOptions.OPT_SPLITRESOURCES] = game.Settings.SplitResources;
             options[NativeConstants.GameOptions.OPT_TWCUSTOM] = game.Settings.TextWindowGUI;
             options[NativeConstants.GameOptions.OPT_THOUGHTGUI] = game.Settings.ThoughtGUI;
-            options[NativeConstants.GameOptions.OPT_TURNTOFACELOC] = (game.Settings.TurnBeforeFacing ? 1 : 0);
-            options[NativeConstants.GameOptions.OPT_ROTATECHARS] = (game.Settings.TurnBeforeWalking ? 1 : 0);
+            options[NativeConstants.GameOptions.OPT_CHARTURNWHENFACE] = (game.Settings.TurnBeforeFacing ? 1 : 0);
+            options[NativeConstants.GameOptions.OPT_CHARTURNWHENWALK] = (game.Settings.TurnBeforeWalking ? 1 : 0);
             options[NativeConstants.GameOptions.OPT_WALKONLOOK] = (game.Settings.WalkInLookMode ? 1 : 0);
             options[NativeConstants.GameOptions.OPT_DISABLEOFF] = (int)game.Settings.WhenInterfaceDisabled;
             options[NativeConstants.GameOptions.OPT_DIALOGOPTIONSAPI] = 1; // always use new one
@@ -1515,7 +1515,8 @@ namespace AGS.Editor
                 if (!character.DiagonalLoops) flags |= NativeConstants.CHF_NODIAGONAL;
                 if (character.MovementLinkedToAnimation) flags |= NativeConstants.CHF_ANTIGLIDE;
                 if (!character.Solid) flags |= NativeConstants.CHF_NOBLOCKING;
-                if (!character.TurnBeforeWalking) flags |= NativeConstants.CHF_NOTURNING;
+                if (!character.TurnBeforeWalking) flags |= NativeConstants.CHF_NOTURNWHENWALK;
+                if (character.TurnWhenFacing) flags |= NativeConstants.CHF_TURNWHENFACE;
                 if (!character.UseRoomAreaLighting) flags |= NativeConstants.CHF_NOLIGHTING;
                 if (!character.UseRoomAreaScaling) flags |= NativeConstants.CHF_MANUALSCALING;
                 writer.Write(character.NormalView - 1);                // defview

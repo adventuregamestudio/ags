@@ -428,10 +428,12 @@
     <Compile Include="Utils\ArgumentBuilder.cs" />
     <Compile Include="Utils\CommandLineOptions.cs" />
     <Compile Include="Utils\ConcurrentCircularBuffer.cs" />
+    <Compile Include="Utils\Debounce.cs" />
     <Compile Include="Utils\DirectoryInfoExtensions.cs" />
     <Compile Include="Utils\FileWatcher.cs" />
     <Compile Include="Utils\MathExtra.cs" />
     <Compile Include="Utils\PaletteUtilities.cs" />
+    <Compile Include="Utils\ToolStripExtensions.cs" />
     <Compile Include="Utils\ScriptFileUtilities.cs" />
     <Compile Include="Utils\ScriptGeneration.cs" />
     <Compile Include="Utils\StdConsoleWriter.cs" />

@@ -44,7 +44,7 @@ ScriptRegion *Region_GetAtScreenXY(int x, int y)
 {
     VpPoint vpt = play.ScreenToRoom(x, y);
     if (vpt.second < 0)
-        return nullptr;
+        return &scrRegion[0]; // return region[0] for consistency and backwards compatibility
     return Region_GetAtRoomXY(vpt.first.X, vpt.first.Y);
 }
 

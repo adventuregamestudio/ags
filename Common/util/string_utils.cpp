@@ -278,11 +278,16 @@ void StrUtil::WriteStringMap(const StringMap &map, Stream *out)
 
 size_t StrUtil::ConvertUtf8ToAscii(const char *mbstr, const char *loc_name, char *out_cstr, size_t out_sz)
 {
+    if (out_sz == 0)
+        return 0; // no output space
     // TODO: later consider using alternative conversion methods
     // (e.g. see C++11 features), as setlocale is unreliable.
+    char old_locale[64];
+    snprintf(old_locale, sizeof(old_locale), "%s", setlocale(LC_CTYPE, nullptr));
     if (setlocale(LC_CTYPE, loc_name) == nullptr)
-    { // If failed setlocale, then resort to plain copy the mb string
-        return static_cast<size_t>(snprintf(out_cstr, out_sz, "%s", mbstr));
+    {
+        out_cstr[0] = 0;
+        return 0; // failed to set locale
     }
     // First convert utf-8 string into widestring;
     std::vector<wchar_t> wcsbuf; // widechar buffer
@@ -297,7 +302,12 @@ size_t StrUtil::ConvertUtf8ToAscii(const char *mbstr, const char *loc_name, char
     }
     // Then convert widestring to single-byte string using specified locale
     size_t res_sz = wcstombs(out_cstr, &wcsbuf[0], out_sz);
-    setlocale(LC_CTYPE, "");
+    setlocale(LC_CTYPE, old_locale);
+    if (res_sz == static_cast<std::size_t>(-1))
+    {
+        out_cstr[0] = 0;
+        return 0; // conversion failure
+    }
     return res_sz;
 }
 

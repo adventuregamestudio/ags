@@ -48,7 +48,7 @@
 #define OPT_NOLOSEINV       15
 #define OPT_OBSOLETE_HIRES_FONTS    16
 #define OPT_SPLITRESOURCES  17
-#define OPT_ROTATECHARS     18
+#define OPT_CHARTURNWHENWALK 18 // characters turn step-by-step when changing walking direction
 #define OPT_FADETYPE        19
 #define OPT_HANDLEINVCLICKS 20
 #define OPT_OBSOLETE_MOUSEWHEEL     21
@@ -57,22 +57,23 @@
 #define OPT_OBSOLETE_CROSSFADEMUSIC 24 // [DEPRECATED] old-style audio crossfade
 #define OPT_ANTIALIASFONTS  25
 #define OPT_THOUGHTGUI      26
-#define OPT_TURNTOFACELOC   27
+#define OPT_CHARTURNWHENFACE 27  // characters turn step-by-step when facing new standing direction
 #define OPT_RIGHTLEFTWRITE  28  // right-to-left text writing
 #define OPT_DUPLICATEINV    29  // if they have 2 of the item, draw it twice
 #define OPT_SAVESCREENSHOT  30
 #define OPT_PORTRAITSIDE    31
 #define OPT_OBSOLETE_STRICTSCRIPTING   32  // don't allow MoveCharacter-style commands
 #define OPT_OBSOLETE_LEFTTORIGHTEVAL   33  // [DEPRECATED] left-to-right operator evaluation
-#define OPT_COMPRESSSPRITES 34
+#define OPT_COMPRESSSPRITES 34  // sprite compression type (None, RLE, LZW, Deflate)
 #define OPT_OBSOLETE_STRICTSTRINGS     35  // don't allow old-style strings, for reference only
-#define OPT_OBSOLETE_NEWGUIALPHA       36
+#define OPT_OBSOLETE_NEWGUIALPHA       36 fixme
+#define OPT_NEWGUIALPHA     36  // alpha blending method when drawing GUI and controls
 #define OPT_RUNGAMEDLGOPTS  37
 #define OPT_OBSOLETE_NATIVECOORDINATES 38 // [DEPRECATED] defines coordinate relation between game logic and game screen
-#define OPT_GLOBALTALKANIMSPD 39
-#define OPT_HIGHESTOPTION_321 39
-#define OPT_OBSOLETE_SPRITEALPHA       40
-#define OPT_OBSOLETE_SAFEFILEPATHS     41
+#define OPT_GLOBALTALKANIMSPD  39
+#define OPT_HIGHESTOPTION_321  39
+#define OPT_OBSOLETE_SPRITEALPHA   40 // [DEPRECATED] alpha blending method when drawing images on DrawingSurface
+#define OPT_OBSOLETE_SAFEFILEPATHS 41 // [DEPRECATED] restricted file path in script (not writing to the game dir, etc)
 #define OPT_DIALOGOPTIONSAPI   42 // version of dialog options API (-1 for pre-3.4.0 API)
 #define OPT_BASESCRIPTAPI      43 // version of the Script API (ScriptAPIVersion) used to compile game script
 #define OPT_SCRIPTCOMPATLEV    44 // level of API compatibility (ScriptAPIVersion) used to compile game script

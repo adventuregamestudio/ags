@@ -22,6 +22,7 @@ namespace AGS.Editor
         // Custom Edit menu commands
         private const string TOGGLE_BREAKPOINT_COMMAND = "ToggleBreakpoint";
         private const string SHOW_MATCHING_SCRIPT_OR_HEADER_COMMAND = "ScriptShowMatchingScript";
+        private const string TOGGLE_LINE_COMMENT_COMMAND = "ToggleLineComment";
         // Custom context menu commands
         private const string TOGGLE_WORD_WRAP = "ToggleWordWrap";
         private const string CONTEXT_MENU_TOGGLE_BREAKPOINT = "CtxToggleBreakpoint";
@@ -138,10 +139,12 @@ namespace AGS.Editor
 
         protected override void AddEditMenuCommands(MenuCommands commands)
         {
+            commands.Commands.Add(MenuCommand.Separator);
+            commands.Commands.Add(new MenuCommand(TOGGLE_BREAKPOINT_COMMAND, "Toggle Breakpoint", Keys.F9, "ToggleBreakpointMenuIcon"));
+            commands.Commands.Add(new MenuCommand(TOGGLE_LINE_COMMENT_COMMAND, "Toggle Line Comment", Keys.Control | Keys.Shift | Keys.Q));
             _menuCmdWordWrap = new MenuCommand(TOGGLE_WORD_WRAP, "Word Wrap", "WordWrapIcon");
             commands.Commands.Add(_menuCmdWordWrap);
-            commands.Commands.Add(new MenuCommand(TOGGLE_BREAKPOINT_COMMAND, "Toggle Breakpoint", System.Windows.Forms.Keys.F9, "ToggleBreakpointMenuIcon"));
-            commands.Commands.Add(new MenuCommand(SHOW_MATCHING_SCRIPT_OR_HEADER_COMMAND, "Switch to Matching Script or Header", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.M));
+            commands.Commands.Add(new MenuCommand(SHOW_MATCHING_SCRIPT_OR_HEADER_COMMAND, "Switch to Matching Script or Header", Keys.Control | Keys.M));
         }
 
         protected override void AddToolbarCommands(List<MenuCommand> toolbar)
@@ -153,7 +156,8 @@ namespace AGS.Editor
         {
             EventHandler onClick = new EventHandler(ContextMenuChooseOption2);
             menuStrip.Items.Add(new ToolStripSeparator());
-            menuStrip.Items.Add(new ToolStripMenuItem("Toggle Breakpoint", Factory.GUIController.ImageList.Images["ToggleBreakpointMenuIcon"], onClick, CONTEXT_MENU_TOGGLE_BREAKPOINT));
+            menuStrip.Items.Add(ToolStripExtensions.CreateMenuItem("Toggle Breakpoint", Factory.GUIController.ImageList.Images["ToggleBreakpointMenuIcon"], onClick, CONTEXT_MENU_TOGGLE_BREAKPOINT, Keys.F9));
+            menuStrip.Items.Add(ToolStripExtensions.CreateMenuItem("Toggle Line Comment", null, onClick, TOGGLE_LINE_COMMENT_COMMAND, Keys.Control | Keys.Shift | Keys.Q));
         }
 
         public void ActivateWindow()
@@ -486,7 +490,7 @@ namespace AGS.Editor
         protected override void OnKeyPressed(System.Windows.Forms.Keys keyData)
         {
             if (keyData.Equals(
-                System.Windows.Forms.Keys.Escape))
+                Keys.Escape))
             {
                 FindReplace.CloseDialogIfNeeded();
             }
@@ -504,6 +508,10 @@ namespace AGS.Editor
                 {
                     _showMatchingScript(this.Script);
                 }
+            }
+            else if (command == TOGGLE_LINE_COMMENT_COMMAND)
+            {
+                scintilla.ToggleLineComment();
             }
             else if (command == TOGGLE_WORD_WRAP)
             {
@@ -708,6 +716,10 @@ namespace AGS.Editor
             if (item.Name == CONTEXT_MENU_TOGGLE_BREAKPOINT)
             {
                 ToggleBreakpointOnCurrentLine();
+            }
+            else if (item.Name == TOGGLE_LINE_COMMENT_COMMAND)
+            {
+                scintilla.ToggleLineComment();
             }
         }
 

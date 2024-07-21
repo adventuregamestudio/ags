@@ -322,7 +322,7 @@ private:
     // Process single key event; returns if handled
     bool RunKey(const KeyInput &ki);
     // Process single mouse event; returns if handled
-    bool RunMouse(eAGSMouseButton mbut);
+    bool RunMouse(eAGSMouseButton mbut, int mx, int my);
     // Process mouse wheel scroll
     bool RunMouseWheel(int mwheelz);
 
@@ -896,8 +896,9 @@ bool DialogOptions::RunControls()
         else if (type == kInputMouse)
         {
             eAGSMouseButton mbut;
-            if (run_service_mb_controls(mbut) && !play.IsIgnoringInput() &&
-                RunMouse(mbut))
+            Point mpos;
+            if (run_service_mb_controls(mbut, &mpos) && !play.IsIgnoringInput() &&
+                RunMouse(mbut, mpos.X, mpos.Y))
             {
                 return true; // handled
             }
@@ -972,7 +973,7 @@ bool DialogOptions::RunKey(const KeyInput &ki)
     return false; // not handled
 }
 
-bool DialogOptions::RunMouse(eAGSMouseButton mbut)
+bool DialogOptions::RunMouse(eAGSMouseButton mbut, int mx, int my)
 {
     if (mbut > kMouseNone)
     {
@@ -995,6 +996,8 @@ bool DialogOptions::RunMouse(eAGSMouseButton mbut)
         {
             runDialogOptionMouseClickHandlerFunc.params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
             runDialogOptionMouseClickHandlerFunc.params[1].SetInt32(mbut);
+            runDialogOptionMouseClickHandlerFunc.params[2].SetInt32(mx);
+            runDialogOptionMouseClickHandlerFunc.params[3].SetInt32(my);
             run_function_on_non_blocking_thread(&runDialogOptionMouseClickHandlerFunc);
         }
         else if (usingCustomRendering)

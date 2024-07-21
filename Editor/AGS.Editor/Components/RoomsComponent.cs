@@ -1437,6 +1437,11 @@ namespace AGS.Editor.Components
 		{
 			foreach (ScriptAndHeader script in _agsEditor.CurrentGame.RootScriptFolder.AllItemsFlat)
 			{
+                if (!File.Exists(script.Header.FileName))
+                {
+                    continue; // project file is missing, undefined behavior
+                }
+
 				if ((Utilities.DoesFileNeedRecompile(script.Header.FileName, roomFileName)))
 				{
 					return true;

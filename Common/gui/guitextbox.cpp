@@ -102,12 +102,13 @@ bool GUITextBox::OnKeyPress(const KeyInput &ki)
 
     if (ki.UChar == 0)
         return false; // not a textual event, don't handle
-    if ((ki.UChar >= 128) && (!font_supports_extended_characters(Font)))
-        return true; // unsupported letter, but still return as handled
 
-    (get_uformat() == U_UTF8) ?
-        Text.Append(ki.Text) :
-        Text.AppendChar(ki.UChar);
+    if (get_uformat() == U_UTF8)
+        Text.Append(ki.Text); // proper unicode char
+    else if (ki.UChar < 256)
+        Text.AppendChar(static_cast<uint8_t>(ki.UChar)); // ascii/ansi-range char in ascii mode
+    else
+        return true; // char from an unsupported range, don't print but still report as handled
     // if the new string is too long, remove the new character
     if (get_text_width(Text.GetCStr(), Font) > (_width - (6 + 5)))
         Backspace(Text);

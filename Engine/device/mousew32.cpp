@@ -65,9 +65,24 @@ namespace Mouse
     void SetSysPosition(int x, int y);
 }
 
+Point Mouse::SysToGamePos(int sys_mx, int sys_my)
+{
+    // Clamp to control rect, and optionally script bounds
+    int mx = Math::Clamp(sys_mx, Mouse::ControlRect.Left, Mouse::ControlRect.Right);
+    int my = Math::Clamp(sys_my, Mouse::ControlRect.Top, Mouse::ControlRect.Bottom);
+    if (!ignore_bounds)
+    {
+        mx = Math::Clamp(mx, boundx1, boundx2);
+        my = Math::Clamp(my, boundy1, boundy2);
+    }
+    // Convert to virtual coordinates
+    Mouse::WindowToGame(mx, my);
+    return Point(mx, my);
+}
+
 void Mouse::Poll()
 {
-    // TODO: [sonneveld] find out where mgetgraphpos is needed, are events polled before that?
+    // TODO: [sonneveld] find out where Poll is needed, are events polled before that?
     sys_evt_process_pending();
 
     if (switched_away)
@@ -81,9 +96,8 @@ void Mouse::Poll()
     // Set new in-game cursor position, convert to the in-game logic coordinates
     mousex = real_mouse_x;
     mousey = real_mouse_y;
+    // Optionally apply script bounds
     if (!ignore_bounds &&
-        // When applying script bounds we only do so while cursor is inside game viewport
-        Mouse::ControlRect.IsInside(mousex, mousey) &&
         (mousex < boundx1 || mousey < boundy1 || mousex > boundx2 || mousey > boundy2))
     {
         mousex = Math::Clamp(mousex, boundx1, boundx2);

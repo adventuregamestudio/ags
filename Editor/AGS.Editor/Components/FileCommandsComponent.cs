@@ -12,6 +12,7 @@ namespace AGS.Editor.Components
     class FileCommandsComponent : BaseComponent
     {
         private const string OPEN_GAME_COMMAND = "OpenGame";
+        private const string OPEN_RECENT_GAME_COMMAND = "OpenRecentGame";
         private const string SAVE_GAME_COMMAND = "SaveGame";
         private const string GAME_STATS_COMMAND = "GameStatistics";
         private const string JUMP_TO_EVENTS_TAB_COMMAND = "JumpToEventsTab";
@@ -48,6 +49,7 @@ namespace AGS.Editor.Components
 
             MenuCommands commands = new MenuCommands(GUIController.FILE_MENU_ID, 0);
             commands.Commands.Add(new MenuCommand(OPEN_GAME_COMMAND, "&Open...", Keys.Control | Keys.L, "MenuIconOpen"));
+            commands.Commands.Add(GetOpenRecentMenuCommand());
             commands.Commands.Add(new MenuCommand(SAVE_GAME_COMMAND, "&Save", Keys.Control | Keys.S, "MenuIconSave"));
             commands.Commands.Add(new MenuCommand(GAME_STATS_COMMAND, "&Game statistics", Keys.Control | Keys.F2, "MenuIconStatistics"));
             commands.Commands.Add(new MenuCommand(JUMP_TO_EVENTS_TAB_COMMAND, "&Go to Events grid", Keys.F4, "MenuIconGoToEventsGrid"));
@@ -77,6 +79,66 @@ namespace AGS.Editor.Components
             _toolbarCommands.Add(openIcon);
             _toolbarCommands.Add(saveIcon);
             Factory.ToolBarManager.AddGlobalItems(this, _toolbarCommands);
+
+            Factory.AGSEditor.Settings.AfterRecentGamesChanged += FileCommandsComponent_AfterRecentGamesChanged;
+        }
+
+        private void FileCommandsComponent_AfterRecentGamesChanged(object sender)
+        {
+            RefreshRecentGamesMenu();
+        }
+
+        private string GetRecentGameText(string name, string path)
+        {
+            return name + "     (" + path + ")";
+        }
+
+        private string GetRecentGameMenuText(Preferences.RecentGame game, int maxPrintSize)
+        {
+            int maxPrintPathSize = maxPrintSize - GetRecentGameText(game.Name, string.Empty).Length;
+            string printablePath = game.Path.Length > maxPrintPathSize
+                ? "..." + game.Path.Substring(game.Path.Length - maxPrintPathSize)
+                : game.Path;
+
+            return GetRecentGameText(game.Name, printablePath);
+        }
+
+        private List<MenuCommand> GetRecentGamesSubcommands()
+        {
+            const int maxPrintSize = 80; // Maximum char length for recent games text
+            var subCommands = new List<MenuCommand>();
+            
+            if(Factory.AGSEditor.Settings.RecentGames.Count <= 1)
+            {
+                MenuCommand cmd = new MenuCommand(null, "(empty)");
+                cmd.Enabled = false;
+                subCommands.Add(cmd);
+                return subCommands;
+            }
+
+            // we start from index 1 because 0 is always currently open game
+            for (int i=1; i< Factory.AGSEditor.Settings.RecentGames.Count; i++)  
+            {
+                var game = Factory.AGSEditor.Settings.RecentGames[i];
+                string projectPath = Path.Combine(game.Path, AGSEditor.GAME_FILE_NAME);
+                if (Directory.Exists(game.Path) && File.Exists(projectPath))
+                {
+                    string cmdText = GetRecentGameMenuText(game, maxPrintSize);
+                    MenuCommand cmd = new MenuCommand(OPEN_RECENT_GAME_COMMAND + i.ToString(), cmdText);
+                    subCommands.Add(cmd);
+                }
+            }
+            return subCommands;
+        }
+
+        private MenuCommand GetOpenRecentMenuCommand()
+        {
+            return new MenuCommand(OPEN_RECENT_GAME_COMMAND, "Open Recent", Keys.None, null, GetRecentGamesSubcommands());
+        }
+
+        private void RefreshRecentGamesMenu()
+        {
+            _guiController.ReplaceMenuSubCommands(this, OPEN_RECENT_GAME_COMMAND, GetRecentGamesSubcommands());
         }
 
         public override string ComponentID
@@ -84,14 +146,26 @@ namespace AGS.Editor.Components
             get { return ComponentIDs.FileCommands; }
         }
 
+        private void LoadGame(string projectPath = null)
+        {
+            if (_guiController.QueryWhetherToSaveGameBeforeContinuing("Do you want to save the current game before loading a different one?"))
+            {
+                if(string.IsNullOrEmpty(projectPath))
+                {
+                    _guiController.InteractiveTasks.BrowseForAndLoadGame();
+                }
+                else
+                {
+                    _guiController.InteractiveTasks.LoadGame(projectPath);
+                }
+            }
+        }
+
         public override void CommandClick(string controlID)
         {
             if (controlID == OPEN_GAME_COMMAND)
             {
-				if (_guiController.QueryWhetherToSaveGameBeforeContinuing("Do you want to save the current game before loading a different one?"))
-				{
-					_guiController.InteractiveTasks.BrowseForAndLoadGame();
-				}
+                LoadGame();
             }
             else if (controlID == SAVE_GAME_COMMAND)
             {
@@ -165,6 +239,13 @@ namespace AGS.Editor.Components
             {
                 _guiController.ExitApplication();
             }
+            else if (controlID.StartsWith(OPEN_RECENT_GAME_COMMAND) && controlID.Length > OPEN_RECENT_GAME_COMMAND.Length)
+            {
+                int index = int.Parse(controlID.Split(new string[] { OPEN_RECENT_GAME_COMMAND }, StringSplitOptions.None)[1]);
+                var game = Factory.AGSEditor.Settings.RecentGames[index];
+                string projectPath = Path.Combine(game.Path, AGSEditor.GAME_FILE_NAME);                
+                LoadGame(projectPath);
+            }
         }
 
         public override void RefreshDataFromGame()
@@ -223,5 +304,9 @@ namespace AGS.Editor.Components
             _guiController.SetTitleBarPrefix("[Running] ");
         }
 
+        public override void EditorShutdown()
+        {
+            Factory.AGSEditor.Settings.AfterRecentGamesChanged -= FileCommandsComponent_AfterRecentGamesChanged;
+        }
     }
 }

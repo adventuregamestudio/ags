@@ -71,6 +71,20 @@ struct AssetPath
     AssetPath(const String &name = "", const String &filter = "") : Name(name), Filter(filter) {}
 };
 
+// AssetLibEntry describes AssetLibrary registered in the AssetManager,
+// and the filters applied to that library
+struct AssetLibEntry
+{
+    bool IsDirectory = false;
+    String Path; // path to the asset library (either dir or head library file)
+    std::vector<String> LibFiles; // registered library filenames
+    String Filters; // filter string this library is matching
+
+    AssetLibEntry() = default;
+    AssetLibEntry(bool is_dir, const String &path, const std::vector<String> &files, const String filters)
+        : IsDirectory(is_dir), Path(path), LibFiles(files), Filters(filters) {}
+};
+
 
 class AssetManager
 {
@@ -98,7 +112,11 @@ public:
     // Removes all libraries
     void         RemoveAllLibraries();
 
+    // Tells the number of registered Asset libraries
     size_t       GetLibraryCount() const;
+    // Gets a basic info of a registered AssetLibrary, paired with its filters
+    AssetLibEntry GetLibraryEntry(size_t index) const;
+    // Gets full description of a AssetLibrary (including asset TOC)
     const AssetLibInfo *GetLibraryInfo(size_t index) const;
     // Tells whether asset exists in any of the registered search locations
     bool         DoesAssetExist(const String &asset_name, const String &filter = "") const;
@@ -120,6 +138,7 @@ private:
     // AssetLibEx combines library info with extended internal data required for the manager
     struct AssetLibEx : AssetLibInfo
     {
+        String FilterString; // filter string, as received on input (for diagnostic purposes)
         std::vector<String> Filters; // asset filters this library is matching to
         std::vector<String> RealLibFiles; // fixed up library filenames
 

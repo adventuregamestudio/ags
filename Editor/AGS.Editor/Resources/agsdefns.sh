@@ -31,17 +31,27 @@
 #define PALETTE_SIZE      256
 #define FOLLOW_EXACTLY 32766
 #define NARRATOR -1
+
+#define OPT_DEBUGMODE        0
+// OPT_SCORESOUND            1   // [HIDDEN], only read once on startup
 #define OPT_WALKONLOOK       2
 #define OPT_DIALOGOPTIONSGUI 3
 #define OPT_ANTIGLIDE        4   // $AUTOCOMPLETEIGNORE$
+#define OPT_TWCUSTOM         5
 #define OPT_DIALOGOPTIONSGAP 6
+#define OPT_NOSKIPTEXT       7   // $AUTOCOMPLETEIGNORE$
 #define OPT_WHENGUIDISABLED  8
 #define OPT_ALWAYSSPEECH     9
+#define OPT_SPEECHTYPE      10   // $AUTOCOMPLETEIGNORE$
 #define OPT_PIXELPERFECT    11
 #define OPT_NOWALKMODE      12
+#define OPT_LETTERBOX       13
 #define OPT_FIXEDINVCURSOR  14
-#define OPT_DONTLOSEINV     15
+#define OPT_DONTLOSEINV     15   // $AUTOCOMPLETEIGNORE$
+// OPT_HIRES_FONTS          16   // [HIDDEN]
+// OPT_SPLITRESOURCES       17   // [HIDDEN]
 #define OPT_TURNBEFOREWALK  18
+// OPT_FADETYPE             19   // [HIDDEN], only read once on startup
 #define OPT_HANDLEINVCLICKS 20
 #define OPT_MOUSEWHEEL      21
 #define OPT_DIALOGNUMBERED  22
@@ -52,8 +62,30 @@
 #define OPT_RIGHTTOLEFT     28
 #define OPT_MULTIPLEINV     29
 #define OPT_SAVEGAMESCREENSHOTS 30
-#define OPT_PORTRAITPOSITION 31
-#define OPT_LIPSYNCTEXT     99
+#define OPT_PORTRAITPOSITION  31
+// OPT_STRICTSCRIPTING        32 // [HIDDEN]
+// OPT_LEFTTORIGHTEVAL        33 // [HIDDEN]
+// OPT_COMPRESSSPRITES        34 // [HIDDEN]
+// OPT_STRICTSTRINGS          35 // [HIDDEN]
+#define OPT_GUIALPHABLEND     36
+#define OPT_RUNGAMEINDLGOPTS  37
+#define OPT_NATIVECOORDINATES 38
+#define OPT_GLOBALTALKANIMSPD 39 // $AUTOCOMPLETEIGNORE$
+#define OPT_SPRITEALPHABLEND  40
+// OPT_SAFEFILEPATHS          41 // [HIDDEN]
+#define OPT_DIALOGOPTIONSAPI  42
+#define OPT_BASESCRIPTAPI     43
+#define OPT_SCRIPTCOMPATLEV   44
+// OPT_RENDERATSCREENRES      45 // [HIDDEN], only read once on startup
+// OPT_RELATIVEASSETRES       46 // [HIDDEN]
+#define OPT_WALKSPEEDABSOLUTE 47
+#define OPT_CLIPGUICONTROLS   48
+#define OPT_GAMETEXTENCODING  49
+#define OPT_KEYHANDLEAPI      50
+// OPT_CUSTOMENGINETAG        51 // [HIDDEN]
+#define OPT_SCALECHAROFFSETS  52
+#define OPT_LIPSYNCTEXT       99
+
 #define COLOR_TRANSPARENT -1
 #define DIALOG_PARSER_SELECTED -3053
 #define RUN_DIALOG_RETURN        -1
@@ -2357,6 +2389,8 @@ builtin managed struct Character {
 #ifdef SCRIPT_API_v362
   /// Moves the character in a straight line as far as possible towards the co-ordinates, without walking animation. Useful for keyboard movement.
   import function MoveStraight(int x, int y, BlockingStyle=eNoBlock);
+  /// Gets/sets whether the character turns on the spot when ordered to face the new standing direction.
+  import attribute bool TurnWhenFacing;
 #endif
 #ifdef SCRIPT_API_v400
   /// Returns the moving path of this character, or null if it's not moving
@@ -2636,7 +2670,7 @@ builtin struct Speech {
   /// Gets the overlay representing displayed portrait, or null if it is not displayed at the moment.
   import static readonly attribute Overlay* PortraitOverlay;
 #endif
-#ifdef SCRIPT_API_v400
+#ifdef SCRIPT_API_v362
   /// Gets the currently speaking Character (only works for blocking speech).
   import static readonly attribute Character* SpeakingCharacter;
 #endif;

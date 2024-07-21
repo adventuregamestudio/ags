@@ -67,8 +67,7 @@ int ccCompiledScript::add_string(const char *strr) {
         if (ch=='\\') {
             src++;
             ch = strr[src];
-            if (ch == 'n') {ch = '\n';}
-            else if (ch == 'r') {ch = '\r';}
+            ch = GetEscapedChar(ch);
         }
         *write_ptr = ch;
         write_ptr++;

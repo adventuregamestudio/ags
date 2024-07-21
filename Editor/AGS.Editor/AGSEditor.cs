@@ -105,6 +105,7 @@ namespace AGS.Editor
          * 3.6.1.9        - Settings.ScaleCharacterSpriteOffsets
          * 3.6.1.10       - SetRestartPoint() is no longer auto called in the engine,
          *                  add one into the global script when importing older games.
+         * 3.6.2          - Character.TurnWhenFacing
          * 
          * 3.99.99.00     - BlendMode for various objects, Character.Transparency.
          * 3.99.99.01     - Open rooms
@@ -805,6 +806,10 @@ namespace AGS.Editor
             if (!_game.Settings.UseOldKeyboardHandling)
             {
                 preprocessor.DefineMacro("NEW_KEYINPUT_API", "1");
+            }
+            if (_game.UnicodeMode)
+            {
+                preprocessor.DefineMacro("UNICODE", "1");
             }
             // Define Script API level macros
             foreach (ScriptAPIVersion v in Enum.GetValues(typeof(ScriptAPIVersion)))

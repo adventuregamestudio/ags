@@ -55,12 +55,15 @@ KeyInput sdl_keyevt_to_ags_key(const SDL_Event &event, bool old_keyhandle)
     switch (event.type)
     {
     case SDL_TEXTINPUT:
-        char ascii[sizeof(SDL_TextInputEvent::text)];
-        StrUtil::ConvertUtf8ToAscii(event.text.text, "C", &ascii[0], sizeof(ascii));
-        if (old_keyhandle && (ascii[0] >= 32))
+        if (old_keyhandle)
         {
-            ki.Key = static_cast<eAGSKeyCode>(ascii[0]);
-            ki.CompatKey = ki.Key;
+            char ascii[sizeof(SDL_TextInputEvent::text)];
+            StrUtil::ConvertUtf8ToAscii(event.text.text, "C", &ascii[0], sizeof(ascii));
+            if (ascii[0] >= 32)
+            {
+                ki.Key = static_cast<eAGSKeyCode>(ascii[0]);
+                ki.CompatKey = ki.Key;
+            }
         }
         snprintf(ki.Text, KeyInput::UTF8_ARR_SIZE, "%s", event.text.text);
         Utf8::GetChar(event.text.text, sizeof(SDL_TextInputEvent::text), &ki.UChar);

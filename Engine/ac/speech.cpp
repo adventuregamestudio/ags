@@ -462,6 +462,7 @@ RuntimeScriptValue Sc_Speech_GetSpeakingCharacter(const RuntimeScriptValue *para
     API_SCALL_OBJ(CharacterInfo, ccDynamicCharacter, Speech_GetSpeakingCharacter);
 }
 
+
 void RegisterSpeechAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*/)
 {
     ScFnRegister speech_api[] = {

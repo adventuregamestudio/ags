@@ -241,6 +241,16 @@ namespace AGS.Editor
             _menuManager.SetMenuItemEnabled(commandID, enabled);
         }
 
+        public void ReplaceMenuSubCommands(IEditorComponent plugin, string oldCommandId, IList<MenuCommand> commands)
+        {
+            string commandID = GetMenuCommandID(oldCommandId, plugin);
+            MenuCommand menuCommand = _menuManager.GetCommandById(commandID);
+            UnregisterMenuItems(menuCommand.SubCommands);
+            RegisterMenuItems(plugin, commands); // fixes command ID prefixes
+            menuCommand.SubCommands = commands;
+            _menuManager.ReplaceMenuItemSubcommands(commandID, commands);
+        }
+
         public void AddMenu(IEditorComponent plugin, string id, string title)
         {
             _menuManager.AddMenu(id, title);
@@ -251,19 +261,47 @@ namespace AGS.Editor
 			_menuManager.AddMenu(id, title, insertAfterMenu);
 		}
 
-		public void AddMenuItems(IEditorComponent plugin, MenuCommands commands)
+        private void RegisterMenuItems(IEditorComponent plugin, IList<MenuCommand> commands)
+        {
+            foreach (MenuCommand command in commands)
+            {
+                if (command.ID != null)
+                {
+                    RegisterMenuCommand(command.ID, plugin);
+                }
+
+                command.IDPrefix = plugin.ComponentID + CONTROL_ID_SPLIT;
+
+                if (command.SubCommands != null && command.SubCommands.Count > 0)
+                {
+                    RegisterMenuItems(plugin, command.SubCommands);
+                }
+            }
+        }
+
+        private void UnregisterMenuItems(IList<MenuCommand> commands)
+        {
+            foreach (MenuCommand command in commands)
+            {
+                if (command.ID != null)
+                {
+                    UnregisterMenuCommand(command.ID);
+                }
+
+                if (command.SubCommands != null && command.SubCommands.Count > 0)
+                {
+                    UnregisterMenuItems(command.SubCommands);
+                }
+            }
+        }
+
+
+        public void AddMenuItems(IEditorComponent plugin, MenuCommands commands)
         {
             if (commands.Commands.Count > 0)
             {
-                foreach (MenuCommand command in commands.Commands)
-                {
-                    if (command.ID != null)
-                    {
-                        RegisterMenuCommand(command.ID, plugin);
-                    }
-                    command.IDPrefix = plugin.ComponentID + CONTROL_ID_SPLIT;
-                }
-				_menuManager.AddMenuCommandGroup(commands);
+                RegisterMenuItems(plugin, commands.Commands);
+                _menuManager.AddMenuCommandGroup(commands);
             }
         }
 
@@ -1526,6 +1564,11 @@ namespace AGS.Editor
                 id = component.ComponentID + CONTROL_ID_SPLIT + id;
             }
             return id;
+        }
+
+        private void UnregisterMenuCommand(string id)
+        {
+            _menuItems.Remove(id);
         }
 
         private string RegisterMenuCommand(string id, IEditorComponent component)

@@ -366,6 +366,17 @@ void UpgradeAudio(GameSetupStruct &game, LoadedGameEntities &ents, GameDataVersi
 // Convert character data to the current version
 void UpgradeCharacters(GameSetupStruct &game, GameDataVersion data_ver)
 {
+    const int char_count = game.numcharacters;
+    auto &chars = game.chars;
+    // < 3.6.2 characters always followed OPT_CHARTURNWHENFACE,
+    // so they have to have TURNWHENFACE enabled
+    if (data_ver < kGameVersion_362)
+    {
+        for (int i = 0; i < char_count; i++)
+        {
+            chars[i].flags |= CHF_TURNWHENFACE;
+        }
+    }
 }
 
 void UpgradeGUI(GameSetupStruct &game, LoadedGameEntities &ents, GameDataVersion data_ver)

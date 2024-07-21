@@ -55,7 +55,7 @@ float get_real_fps();
 bool run_service_key_controls(KeyInput &kgn);
 // Runs service mouse controls, returns false if mouse input was claimed by the engine,
 // otherwise returns true and provides mouse button code.
-bool run_service_mb_controls(eAGSMouseButton &mbut);
+bool run_service_mb_controls(eAGSMouseButton &mbut, Point *mpos = nullptr);
 // Runs service gamepad controls, returns false if no button was pressed or if button input was claimed by the engine,
 // otherwise returns true and provides the gamepad input.
 bool run_service_gamepad_controls(GamepadInput &out_key);

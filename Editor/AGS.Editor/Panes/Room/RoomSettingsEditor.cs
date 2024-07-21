@@ -544,6 +544,7 @@ namespace AGS.Editor
                     bmp = ExtendBitmapIfSmallerThanScreen(bmp);
                     bool doImport = true;
                     bool deleteExtraFrames = false;
+                    bool roomSizeChanged = false;
 
                     if ((Factory.AGSEditor.CurrentGame.Settings.ColorDepth == GameColorDepth.Palette) && (bmp.GetColorDepth() > 8))
                     {
@@ -565,6 +566,7 @@ namespace AGS.Editor
                             }
                             else
                             {
+                                roomSizeChanged = true;
                                 deleteExtraFrames = true;
                             }
                         }
@@ -573,6 +575,10 @@ namespace AGS.Editor
                             if (Factory.GUIController.ShowQuestion("The new background is a different size to the old one. If you import it, all your regions, hotspots and walkable areas will be cleared. Do you want to proceed?") != DialogResult.Yes)
                             {
                                 doImport = false;
+                            }
+                            else
+                            {
+                                roomSizeChanged = true;
                             }
                         }
                     }
@@ -590,6 +596,11 @@ namespace AGS.Editor
                             RepopulateBackgroundList(0);
                         }
 
+                        if (roomSizeChanged)
+                        {
+                            OnRoomSizeChanged();
+                        }
+
                         // TODO: choose default zoom based on the room size vs window size?
                         SetZoomSliderToMultiplier(_room.Width <= 320 ? 2 : 1);
                     }
@@ -604,6 +615,15 @@ namespace AGS.Editor
                         bmp.Dispose();
                 }
             }
+        }
+
+        private void OnRoomSizeChanged()
+        {
+            // Clamp room edges to the new size
+            _room.LeftEdgeX = MathExtra.Clamp(_room.LeftEdgeX, 0, _room.Width - 2);
+            _room.RightEdgeX = MathExtra.Clamp(_room.RightEdgeX, _room.LeftEdgeX + 1, _room.Width - 1);
+            _room.TopEdgeY = MathExtra.Clamp(_room.TopEdgeY, 0, _room.Height - 2);
+            _room.BottomEdgeY = MathExtra.Clamp(_room.BottomEdgeY, _room.TopEdgeY + 1, _room.Height - 1);
         }
 
         private void btnChangeImage_Click(object sender, EventArgs e)

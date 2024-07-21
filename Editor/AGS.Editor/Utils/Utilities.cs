@@ -248,6 +248,9 @@ namespace AGS.Editor
         /// <summary>
         /// Returns whether the sourceFile is newer than the destinationFile or
         /// if the destinationFile doesn't exist.
+        /// 
+        /// Exceptions:
+        ///  - ArgumentException: if source file does not exist
         /// </summary>
         public static bool DoesFileNeedRecompile(string sourceFile, string destinationFile)
         {

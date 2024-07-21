@@ -951,7 +951,7 @@ void save_game(int slotn, const char*descript)
     // Save dynamic game data
     SaveGameState(out.get());
     // call "After Save" event callback
-    run_on_event(GE_SAVE_GAME, RuntimeScriptValue().SetInt32(slotn));
+    run_on_event(kScriptEvent_GameSaved, RuntimeScriptValue().SetInt32(slotn));
 }
 
 int gameHasBeenRestored = 0;
@@ -1069,7 +1069,7 @@ HSaveError load_game(const String &path, int slotNumber, bool &data_overwritten)
     // ensure input state is reset
     ags_clear_input_state();
     // call "After Restore" event callback
-    run_on_event(GE_RESTORE_GAME, RuntimeScriptValue().SetInt32(slotNumber));
+    run_on_event(kScriptEvent_GameRestored, RuntimeScriptValue().SetInt32(slotNumber));
     return HSaveError::None();
 }
 

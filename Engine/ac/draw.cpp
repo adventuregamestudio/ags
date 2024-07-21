@@ -408,14 +408,12 @@ std::vector<RoomCameraDrawData> CameraDrawData;
 // Describes a texture or node description, for sorting and passing into renderer
 struct SpriteListEntry
 {
-    int id = -1; // user identifier, for any custom purpose
+    // Optional sprite identifier; used as a second factor when sorting
+    int id = -1;
     IDriverDependantBitmap *ddb = nullptr;
     int x = 0, y = 0;
     Rect aabb;
     int zorder = 0;
-    // Tells if this item should take priority during sort if z1 == z2
-    // TODO: this is some compatibility feature - find out if may be omited and done without extra struct?
-    bool takesPriorityIfEqual = false;
     // Mark for the render stage callback (if >= 0 other fields are ignored)
     int renderStage = -1;
 };
@@ -1315,8 +1313,8 @@ static void clear_sprite_list()
     sprlist.clear();
 }
 
-static void add_to_sprite_list(IDriverDependantBitmap* ddb, int x, int y, const Rect &aabb,
-    int zorder, bool isWalkBehind, int id = -1)
+static void add_to_sprite_list(IDriverDependantBitmap* ddb, int x, int y,
+    const Rect &aabb, int zorder, int id = -1)
 {
     assert(ddb);
     // completely invisible, so don't draw it at all
@@ -1330,18 +1328,12 @@ static void add_to_sprite_list(IDriverDependantBitmap* ddb, int x, int y, const 
     sprite.x = x;
     sprite.y = y;
     sprite.aabb = aabb;
-
-    if (drawstate.WalkBehindMethod == DrawAsSeparateSprite)
-        sprite.takesPriorityIfEqual = !isWalkBehind;
-    else
-        sprite.takesPriorityIfEqual = isWalkBehind;
-
     sprlist.push_back(sprite);
 }
 
-static void add_to_sprite_list(IDriverDependantBitmap* spp, int xx, int yy, int zorder, bool isWalkBehind)
+static void add_to_sprite_list(IDriverDependantBitmap* spp, int xx, int yy, int zorder, int id = -1)
 {
-    add_to_sprite_list(spp, xx, yy, RectWH(xx, yy, spp->GetWidth(), spp->GetHeight()), zorder, isWalkBehind);
+    add_to_sprite_list(spp, xx, yy, RectWH(xx, yy, spp->GetWidth(), spp->GetHeight()), zorder);
 }
 
 // Sprite drawing order sorting function,
@@ -1352,24 +1344,10 @@ static bool spritelistentry_less(const SpriteListEntry &e1, const SpriteListEntr
         ((e1.zorder == e2.zorder) && (e1.id < e2.id));
 }
 
-// Room-specialized function to sort the sprites into baseline order;
-// does not account for IDs, but has special handling for walk-behinds.
-static bool spritelistentry_room_less(const SpriteListEntry &e1, const SpriteListEntry &e2)
-{
-    if (e1.zorder == e2.zorder)
-    {
-        if (e1.takesPriorityIfEqual)
-            return false;
-        if (e2.takesPriorityIfEqual)
-            return true;
-    }
-    return e1.zorder < e2.zorder;
-}
-
 // copy the sorted sprites into the Things To Draw list
-static void draw_sprite_list(bool is_room)
+static void draw_sprite_list()
 {
-    std::sort(sprlist.begin(), sprlist.end(), is_room ? spritelistentry_room_less : spritelistentry_less);
+    std::sort(sprlist.begin(), sprlist.end(), spritelistentry_less);
     thingsToDrawList.insert(thingsToDrawList.end(), sprlist.begin(), sprlist.end());
 }
 
@@ -2106,7 +2084,7 @@ void prepare_objects_for_drawing()
             (obj.flags & OBJF_NOWALKBEHINDS) == 0,
             obj.GetOrigin(), obj.transparent, obj.blend_mode, hw_accel);
         // Finally, add the texture to the draw list
-        add_to_sprite_list(actsp.Ddb, obj.x, obj.y, aabb, usebasel, false);
+        add_to_sprite_list(actsp.Ddb, obj.x, obj.y, aabb, usebasel);
     }
 }
 
@@ -2221,7 +2199,7 @@ void prepare_characters_for_drawing()
         // CHECKME: remind why do we have to recalculate charx/y instead of using GS?
         const int charx = chin.x + chin.pic_xoffs * chex.zoom_offs / 100;
         const int chary = chin.y - chin.z + chin.pic_yoffs * chex.zoom_offs / 100;
-        add_to_sprite_list(actsp.Ddb, charx, chary, aabb, usebasel, false);
+        add_to_sprite_list(actsp.Ddb, charx, chary, aabb, usebasel);
     }
 }
 
@@ -2255,7 +2233,7 @@ static void add_roomovers_for_drawing()
         if (!over.IsRoomLayer()) continue; // not a room layer
         if (over.transparency == 255) continue; // skip fully transparent
         const Point pos = update_overlay_graphicspace(over);
-        add_to_sprite_list(overtxs[over.type].Ddb, pos.X, pos.Y, over._gs.AABB(), over.zorder, false, over.creation_id);
+        add_to_sprite_list(overtxs[over.type].Ddb, pos.X, pos.Y, over._gs.AABB(), over.zorder, over.creation_id);
     }
 }
 
@@ -2304,7 +2282,8 @@ void prepare_room_sprites()
                     if (wbobj.Ddb)
                     {
                         add_to_sprite_list(wbobj.Ddb, wbobj.Pos.X, wbobj.Pos.Y,
-                            croom->walkbehind_base[wb], true);
+                            croom->walkbehind_base[wb], INT32_MIN);
+                        // when baselines are equal, walk-behinds must be sorted back, so tag as INT32_MIN
                     }
                 }
             }
@@ -2312,7 +2291,7 @@ void prepare_room_sprites()
             if (pl_any_want_hook(AGSE_PRESCREENDRAW))
                 add_render_stage(AGSE_PRESCREENDRAW);
 
-            draw_sprite_list(true);
+            draw_sprite_list();
         }
     }
     set_our_eip(36);
@@ -2520,7 +2499,7 @@ void draw_gui_and_overlays()
         if (over.IsRoomLayer()) continue; // not a ui layer
         if (over.transparency == 255) continue; // skip fully transparent
         const Point pos = update_overlay_graphicspace(over);
-        add_to_sprite_list(overtxs[over.type].Ddb, pos.X, pos.Y, over._gs.AABB(), over.zorder, false, over.creation_id);
+        add_to_sprite_list(overtxs[over.type].Ddb, pos.X, pos.Y, over._gs.AABB(), over.zorder, over.creation_id);
     }
 
     // Add GUIs
@@ -2644,12 +2623,12 @@ void draw_gui_and_overlays()
             gui_ddb->SetStretch(gui.Width * gui.Scale.X, gui.Height * gui.Scale.Y);
             gui_ddb->SetRotation(gui.Rotation);
             add_to_sprite_list(gui_ddb, gui.X, gui.Y,
-                gui.GetGraphicSpace().AABB(), gui.ZOrder, false, index);
+                gui.GetGraphicSpace().AABB(), gui.ZOrder, index);
         }
     }
 
     // Move the resulting sprlist with guis and overlays to render
-    draw_sprite_list(false);
+    draw_sprite_list();
     put_sprite_list_on_screen(false);
     set_our_eip(1099);
 }

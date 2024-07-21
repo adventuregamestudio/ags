@@ -9,6 +9,7 @@ using Microsoft.Win32;
 using AGS.Types;
 using System.Reflection;
 using System.Linq;
+using AGS.Editor.Utils;
 
 namespace AGS.Editor.Preferences
 {
@@ -127,6 +128,8 @@ namespace AGS.Editor.Preferences
         public string Name { get; set; }
         public string Path { get; set; }
     }
+    
+    public delegate void AfterListChangedEventHandler(object sender);
 
     public sealed class AppSettings : ApplicationSettingsBase, IAppSettings
     {
@@ -136,6 +139,9 @@ namespace AGS.Editor.Preferences
         SettingsLoadedEventHandler eventHandlerLoaded = null;
         ListChangedEventHandler eventHandlerRecentSearches = null;
         ListChangedEventHandler eventHandlerRecentGames = null;
+
+        public event AfterListChangedEventHandler AfterRecentGamesChanged;
+        private readonly Debouncer afterListChangedDebouncer = new Debouncer(150);
 
         public AppSettings()
         {
@@ -164,6 +170,10 @@ namespace AGS.Editor.Preferences
         private void Settings_LimitRecentGames(object sender, ListChangedEventArgs e)
         {
             ApplyLimit(RecentGames, MAX_RECENT_GAMES);
+            afterListChangedDebouncer.Debounce(() =>
+            {
+                AfterRecentGamesChanged.Invoke(sender);
+            });
         }
 
         private void ApplyLimit<T>(BindingList<T> list, int max)
@@ -717,6 +727,24 @@ namespace AGS.Editor.Preferences
             set
             {
                 this["DialogOnMultipleTabsClose"] = value;
+            }
+        }
+
+        [Browsable(true)]
+        [DisplayName("Add space when using toggle line comments")]
+        [Description("If it should add space between \"//\" line comments and what is commented when toggling.")]
+        [Category("Script Editor")]
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute("False")]
+        public bool ToggleLineCommentAddsSpace
+        {
+            get
+            {
+                return (bool)(this["ToggleLineCommentAddsSpace"]);
+            }
+            set
+            {
+                this["ToggleLineCommentAddsSpace"] = value;
             }
         }
 

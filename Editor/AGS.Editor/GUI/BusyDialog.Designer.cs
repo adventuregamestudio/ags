@@ -38,13 +38,17 @@ namespace AGS.Editor
             // 
             // btnImage
             // 
+            this.btnImage.CausesValidation = false;
             this.btnImage.FlatAppearance.BorderSize = 0;
+            this.btnImage.FlatAppearance.MouseDownBackColor = System.Drawing.Color.Transparent;
+            this.btnImage.FlatAppearance.MouseOverBackColor = System.Drawing.Color.Transparent;
             this.btnImage.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnImage.ForeColor = System.Drawing.Color.Transparent;
             this.btnImage.Location = new System.Drawing.Point(24, 37);
             this.btnImage.Name = "btnImage";
             this.btnImage.Size = new System.Drawing.Size(79, 57);
             this.btnImage.TabIndex = 0;
+            this.btnImage.TabStop = false;
             this.btnImage.UseVisualStyleBackColor = true;
             // 
             // lblMessage

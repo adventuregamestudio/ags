@@ -144,7 +144,7 @@ void Character_AddInventory(CharacterInfo *chaa, ScriptInvItem *invi, int addInd
             if (charextra[charid].invorder[ee] == inum) {
                 // They already have the item, so don't add it to the list
                 if (chaa == playerchar)
-                    run_on_event (GE_ADD_INV, RuntimeScriptValue().SetInt32(inum));
+                    run_on_event (kScriptEvent_InventoryAdd, RuntimeScriptValue().SetInt32(inum));
                 return;
             }
         }
@@ -168,7 +168,7 @@ void Character_AddInventory(CharacterInfo *chaa, ScriptInvItem *invi, int addInd
     charextra[charid].invorder_count++;
     GUIE::MarkInventoryForUpdate(charid, charid == game.playercharacter);
     if (chaa == playerchar)
-        run_on_event (GE_ADD_INV, RuntimeScriptValue().SetInt32(inum));
+        run_on_event (kScriptEvent_InventoryAdd, RuntimeScriptValue().SetInt32(inum));
 }
 
 void Character_AddWaypoint(CharacterInfo *chaa, int x, int y) {
@@ -411,7 +411,7 @@ void FaceDirectionalLoop(CharacterInfo *char1, int direction, int blockingStyle)
     // Change facing only if the desired direction is different
     if (direction != char1->loop)
     {
-        if ((game.options[OPT_TURNTOFACELOC] != 0) &&
+        if ((game.options[OPT_CHARTURNWHENFACE] != 0) && ((char1->flags & CHF_TURNWHENFACE) != 0) &&
             (in_enters_screen == 0))
         {
             const int no_diagonal = useDiagonal (char1);
@@ -745,7 +745,7 @@ void Character_LoseInventory(CharacterInfo *chap, ScriptInvItem *invi) {
     GUIE::MarkInventoryForUpdate(charid, charid == game.playercharacter);
 
     if (chap == playerchar)
-        run_on_event (GE_LOSE_INV, RuntimeScriptValue().SetInt32(inum));
+        run_on_event (kScriptEvent_InventoryLose, RuntimeScriptValue().SetInt32(inum));
 }
 
 void Character_PlaceOnWalkableArea(CharacterInfo *chap) 
@@ -1692,17 +1692,27 @@ void Character_SetFaceDirectionRatio(CharacterInfo *chaa, float ratio) {
 }
 
 int Character_GetTurnBeforeWalking(CharacterInfo *chaa) {
-
-    if (chaa->flags & CHF_NOTURNING)
-        return 0;
-    return 1;  
+    // NOTE: this flag has inverse meaning
+    return ((chaa->flags & CHF_NOTURNWHENWALK) != 0) ? 0 : 1;
 }
 
-void Character_SetTurnBeforeWalking(CharacterInfo *chaa, int yesorno) {
+void Character_SetTurnBeforeWalking(CharacterInfo *chaa, int on) {
+    // NOTE: this flag has inverse meaning
+    if (on)
+        chaa->flags &= ~CHF_NOTURNWHENWALK;
+    else
+        chaa->flags |= CHF_NOTURNWHENWALK;
+}
 
-    chaa->flags &= ~CHF_NOTURNING;
-    if (!yesorno)
-        chaa->flags |= CHF_NOTURNING;
+int Character_GetTurnWhenFacing(CharacterInfo *chaa) {
+    return ((chaa->flags & CHF_TURNWHENFACE) != 0) ? 1 : 0;
+}
+
+void Character_SetTurnWhenFacing(CharacterInfo *chaa, int on) {
+    if (on)
+        chaa->flags |= CHF_TURNWHENFACE;
+    else
+        chaa->flags &= ~CHF_TURNWHENFACE;
 }
 
 int Character_GetView(CharacterInfo *chaa) {
@@ -1803,7 +1813,6 @@ void move_character_impl(CharacterInfo *chin, const std::vector<Point> *path, in
             debug_script_log("MoveCharacter: path is empty for %s, not moving", chin->scrname.GetCStr());
             return;
         }
-
         // Jump character to the path start
         chin->x = run_params.Forward ? path->front().X : path->back().X;
         chin->y = run_params.Forward ? path->front().Y : path->back().Y;
@@ -1980,7 +1989,7 @@ void fix_player_sprite(CharacterInfo *chinf, const MoveList &cmls) {
 
     const int useloop = GetDirectionalLoop(chinf, xpmove, ypmove, cmls.run_params.Forward);
 
-    if ((game.options[OPT_ROTATECHARS] == 0) || ((chinf->flags & CHF_NOTURNING) != 0)) {
+    if ((game.options[OPT_CHARTURNWHENWALK] == 0) || ((chinf->flags & CHF_NOTURNWHENWALK) != 0)) {
         chinf->loop = useloop;
         return;
     }
@@ -3979,6 +3988,16 @@ RuntimeScriptValue Sc_Character_SetTurnBeforeWalking(void *self, const RuntimeSc
     API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetTurnBeforeWalking);
 }
 
+RuntimeScriptValue Sc_Character_GetTurnWhenFacing (void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(CharacterInfo, Character_GetTurnWhenFacing );
+}
+
+RuntimeScriptValue Sc_Character_SetTurnWhenFacing (void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetTurnWhenFacing);
+}
+
 // int (CharacterInfo *chaa)
 RuntimeScriptValue Sc_Character_GetView(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -4255,6 +4274,8 @@ void RegisterCharacterAPI(ScriptAPIVersion /*base_api*/, ScriptAPIVersion /*comp
         { "Character::set_Transparency",          API_FN_PAIR(Character_SetTransparency) },
         { "Character::get_TurnBeforeWalking",     API_FN_PAIR(Character_GetTurnBeforeWalking) },
         { "Character::set_TurnBeforeWalking",     API_FN_PAIR(Character_SetTurnBeforeWalking) },
+        { "Character::get_TurnWhenFacing",        API_FN_PAIR(Character_GetTurnWhenFacing ) },
+        { "Character::set_TurnWhenFacing",        API_FN_PAIR(Character_SetTurnWhenFacing ) },
         { "Character::get_View",                  API_FN_PAIR(Character_GetView) },
         { "Character::get_WalkSpeedX",            API_FN_PAIR(Character_GetWalkSpeedX) },
         { "Character::get_WalkSpeedY",            API_FN_PAIR(Character_GetWalkSpeedY) },

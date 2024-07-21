@@ -281,6 +281,8 @@ size_t StrUtil::ConvertUtf8ToAscii(const char *mbstr, const char *loc_name, char
         return 0; // no output space
     // TODO: later consider using alternative conversion methods
     // (e.g. see C++11 features), as setlocale is unreliable.
+    char old_locale[64];
+    snprintf(old_locale, sizeof(old_locale), "%s", setlocale(LC_CTYPE, nullptr));
     if (setlocale(LC_CTYPE, loc_name) == nullptr)
     {
         out_cstr[0] = 0;
@@ -299,7 +301,7 @@ size_t StrUtil::ConvertUtf8ToAscii(const char *mbstr, const char *loc_name, char
     }
     // Then convert widestring to single-byte string using specified locale
     size_t res_sz = wcstombs(out_cstr, &wcsbuf[0], out_sz);
-    setlocale(LC_CTYPE, "");
+    setlocale(LC_CTYPE, old_locale);
     if (res_sz == static_cast<std::size_t>(-1))
     {
         out_cstr[0] = 0;

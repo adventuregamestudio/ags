@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AGS.Types;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -264,6 +265,76 @@ namespace AGS.Editor
             }
         }
 
+        private int PerceivedBrightness(Color c)
+        {
+            return (int)Math.Sqrt(
+            c.R * c.R * .299 +
+            c.G * c.G * .587 +
+            c.B * c.B * .114);            
+        }
+
+        public void SetAutoLocalVariables(DebugCallStack callStack)
+        {
+            if (!AGSEditor.Instance.Debugger.IsActive)
+                return;
+
+            string scriptName = callStack.Lines[0].ScriptName;
+            int lineNumber = callStack.Lines[0].LineNumber;
+            ScintillaWrapper scintilla = Factory.GUIController.GetScriptEditorControl(scriptName, true) as ScintillaWrapper;
+            if (scintilla == null)
+                return;
+
+            if (scintilla.CurrentLine != lineNumber)
+            {
+                scintilla.GoToLine(lineNumber);
+            }
+
+            List<string> varnames = scintilla.GetListOfLocalVariablesForCurrentPosition(false)
+                .Select(v => v.VariableName).Distinct().ToList();
+
+            listView1.BeginUpdate();
+
+            // We will avoid blinking of all "autolocal" by removing the ones not in varnames
+            // so we can keep the ones that already were added in a previous cycle
+            // later we will add ONLY the ones that weren't already added
+            // We also need to keep sync in the items to update.
+            foreach (ListViewItem itm in listView1.Items)
+            {
+                if (itm.Tag as string == "autolocal" && !varnames.Contains(itm.Text))
+                {
+                    itm.Remove();
+                }
+            }
+
+            lock (_updateItemLock)
+            {
+                _itemsToUpdate.RemoveAll(itm => itm.Tag as string == "autolocal" && !varnames.Contains(itm.Text));
+
+                Color c = Color.Empty;
+                foreach (var v in varnames)
+                {
+                    if (!listView1.Items.Cast<ListViewItem>().Any(itm => itm.Text == v && itm.Tag as string == "autolocal"))
+                    {
+                        var itm = CreateItem(v);
+                        itm.Tag = "autolocal";
+                        listView1.Items.Insert(0, itm);
+
+                        if (c == Color.Empty)
+                        {
+                            int brightness = PerceivedBrightness(itm.ForeColor);
+                            c = brightness > 128 ? Color.LightBlue : Color.DarkBlue;
+                        }
+                        itm.ForeColor = c;
+
+                        _itemsToUpdate.Add(itm);
+                    }
+                }
+            }
+
+            listView1.EndUpdate();
+            _updateItemTimer.Start();
+        }
+
         public void UpdateAllWatches()
         {
             if (!AGSEditor.Instance.Debugger.IsActive)
@@ -312,6 +383,14 @@ namespace AGS.Editor
                 clearToolStripMenuItem.Enabled = listView1.Items.Count > 0;
                 contextMenuStrip1.Show(listView1, e.Location);
             }
+        }
+
+        public void AddVariableToWatchList(string var_name)
+        {
+            ListViewItem item = listView1.Items.Add(CreateItem(var_name));
+            lock (_updateItemLock)
+                _itemsToUpdate.Add(item);
+            _updateItemTimer.Start();
         }
 
         private void addToolStripMenuItem_Click(object sender, EventArgs e)

@@ -35,6 +35,7 @@ namespace AGS.Editor
         private const string CONTEXT_MENU_GO_TO_DEFINITION = "CtxGoToDefiniton";
         private const string CONTEXT_MENU_FIND_ALL_USAGES = "CtxFindAllUsages";
         private const string CONTEXT_MENU_GO_TO_SPRITE = "CtxGoToSprite";
+        private const string CONTEXT_MENU_ADD_TO_WATCH_PANE = "CtxAddToWatch";
 
         protected AGSEditor _agsEditor;
         // Loaded script reference, is assigned by the child class.
@@ -92,7 +93,7 @@ namespace AGS.Editor
         /// <summary>
         /// Lets for a child class to assign an actual Scintilla control.
         /// </summary>
-        protected ScintillaWrapper Scintilla
+        public ScintillaWrapper Scintilla
         {
             get { return _scintilla; }
             set
@@ -322,6 +323,7 @@ namespace AGS.Editor
 
             _goToSprite = null;
             string clickedOnType = string.Empty;
+            string varName = string.Empty;
             if (!_scintilla.InsideStringOrComment(clickedPositionInDocument))
             {
                 float dummy;
@@ -338,6 +340,7 @@ namespace AGS.Editor
                     else if (!float.TryParse(clickedOnType, out dummy))
                     {
                         _goToDefinition = clickedOnType;
+                        varName = clickedOnType;
                         clickedOnType = " of " + clickedOnType;
                     }
                 }
@@ -345,6 +348,12 @@ namespace AGS.Editor
                 {
                     clickedOnType = string.Empty;
                 }
+            }
+
+            menuStrip.Items.Add(new ToolStripMenuItem("Add " + varName + " to Watch Panel", null, onClick, CONTEXT_MENU_ADD_TO_WATCH_PANE));
+            if (varName == string.Empty)
+            {
+                menuStrip.Items[menuStrip.Items.Count - 1].Enabled = false;
             }
 
             menuStrip.Items.Add(new ToolStripMenuItem("Go to Definition" + clickedOnType, null, onClick, CONTEXT_MENU_GO_TO_DEFINITION));
@@ -376,7 +385,11 @@ namespace AGS.Editor
         private void ContextMenuChooseOption(object sender, EventArgs e)
         {
             ToolStripMenuItem item = (ToolStripMenuItem)sender;
-            if (item.Name == CONTEXT_MENU_GO_TO_DEFINITION ||
+            if(item.Name == CONTEXT_MENU_ADD_TO_WATCH_PANE)
+            {
+                Factory.GUIController.AddVariableToWatchPanel(_goToDefinition);
+            }
+            else if (item.Name == CONTEXT_MENU_GO_TO_DEFINITION ||
                 item.Name == CONTEXT_MENU_FIND_ALL_USAGES)
             {
                 string[] structAndMember = _goToDefinition.Split('.');

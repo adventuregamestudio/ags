@@ -4,7 +4,8 @@ REVISION HISTORY
 VERSION 3.6.2 - in development
 
 Editor:
- - Added TurnWhenFacing property to Characters.
+ - Added "TurnWhenFacing" property to Characters.
+ - Added "Open Recent" submenu in the File menu.
  - More panes in the Editor are DPI-aware (rescale well with the system font scaling).
  - Editor tabs now display icons indicating their contents (may be disabled in Editor Preferences).
  - Room panel tabs now display room names.
@@ -19,6 +20,9 @@ Editor:
  - Improved scrolling of drop-down lists in the Room's navigation bar: made scroll buttons larger,
    and support mouse wheel.
  - Sync script editor's commands in Edit menu with the context menu.
+ - Added "Toggle Line Comment" command to Edit menu for scripts.
+ - Do not delete previously built game exe from Compiled/Windows folder when testing a game
+   from the editor.
  - Fixed importing indexed PNG as a sprite would mistakenly treat the source image as 32-bit.
  - Fixed importing 8-bit BMP sprites with no "Remap palette" and "Leave As Is" as a transparency
    option would still remap palette index 0 to the first found palette entry with Alpha 0,
@@ -27,6 +31,7 @@ Editor:
  - Fixed double warning message when trying to close the Editor while a game test is running.
 
 Script API:
+ - Expanded `on_mouse_click` callback, now supports two more parameters: click x,y coordinates.
  - Added Character.MoveStraight() complementing WalkStraight().
  - Added Character.TurnWhenFacing property.
  - Added Speech.SpeakingCharacter that returns currently speaking character (for blocking speech).

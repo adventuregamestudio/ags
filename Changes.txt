@@ -30,6 +30,8 @@ Editor:
  - Support reordering folders in Project Explorer with drag & drop.
  - Support importing plain script files: ash, asc or both, - besides script modules (*.scm).
  - Added "Controls transparency" slider to GUI edit pane.
+ - Support to import and keep sprites as explicitly 8-bit images without converting to the game's
+   default color depth. This lets to have chosen sprites used as 8-bit masks in a 16/32-bit game.
  - Support importing 1-bit (monochrome) and 4-bit images as sprites, room backgrounds and masks
    (converted to 8-bit).
  - Do not alter or clamp palette for 8-bit sprites imported in a 16/32-bit game.
@@ -105,8 +107,8 @@ Script API:
  - Added WalkableArea and Walkbehind structs which let work with these region types in OO-style.
  - Added Pathfinder struct, which lets to search walkable paths in certain two-dimensional
    "space", and returns them as an array of Points.
- - Added Room.PathFinder property that returns a Pathfinder object, searching paths over this
-   room's walkable areas.
+ - Added MaskPathfinder struct, which lets to initialize a Pathfinder using a 8-bit sprite
+   serving as a navigation mask.
  - Added BlendMode enum.
  - Added Character.Enabled and Visible properties, added Object.Enabled property,
    Character.on is deprecated.
@@ -121,28 +123,38 @@ Script API:
    list of coordinates, and Character.GetPath() that returns current character's walking path.
  - Added Object.MovePath() and Object.GetPath() functions, that work similar to Character's.
  - Added Character.MoveStraight() complementing WalkStraight().
+ - Added ColorFormat enum, and optional "color_format" parameter to DynamicSprite's functions:
+   Create(), CreateFromBackground(), CreateFromDrawingSurface(), CreateFromExistingSprite()
+   and CreateFromFile().
  - Added DrawingSurface.BlendImage() and DrawingSurface.BlendSurface() functions.
+ - Added readonly DrawingSurface.ColorDepth property.
+ - Added readonly Game.SpriteColorDepth[] indexed property.
  - Added GUI.ScaleX and ScaleY properties, GUI.SetScale() function.
  - Added GUI.GUIToScreenPoint() and GUI.ScreenToGUIPoint() functions.
  - Added File.Rename().
  - ListBox.FillSaveGameList(), RestoreGameDialog() and SaveGameDialog() now let define a range
    of save slots for display.
+ - Added Room.PathFinder property that returns a Pathfinder object, searching paths over this
+   room's walkable areas.
  - Added Speech.SpeakingCharacter that returns currently speaking character (for blocking speech).
- - Added String.Join(), String.Split() and String.Trim() functions.
+ - Added StringSplitOptions enum, String.Join(), String.Split() and String.Trim() functions.
  - Added MoveSaveSlot() which renames a savegame.
  - Added System.GetEngineInteger() and System.GetEngineString() for returning diagnostic
    information about engine's runtime state. Possible arguments are defined by
    EngineValueID enum.
  - Expanded `on_mouse_click` callback, now supports two more parameters: click x,y coordinates.
  - Added "walkarea[]" and "walkbehind[]" global arrays.
- - Global arrays of game objects (Characters, GUIs, etc) are now declared as arrays of object
-   *pointers*. From the user's perspective this is a mere formality, as working with these
-   arrays will be syntactically same, but this makes it easier for the engine to handle them
-   and objects internally.
+ - Global generated game objects (Characters, GUIs, etc), and global arrays of these objects
+   (character[], object[], gui[], etc) are now declared as object *pointers* and arrays of
+   pointers respectively. From the user's perspective this is a mere formality, as working with
+   these variables and arrays will be syntactically same, but this makes it easier for the engine
+   to handle them and objects internally.
  - Overlay.X and Y properties of textual screen overlays, such as blocking speech, now treat
    assigned values correctly as screen coordinates and return values set by user consistently.
    They also return the assigned values without any offsets for textual overlays created using
    a TextWindow (having extra borders and padding).
+ - All the area-related GetAtScreenXY functions (for Hotspot, Region, Walkbehind and WalkableArea)
+   now return a null pointer if no room viewport is found under given coordinates.
  - Removed "hasAlphaChannel" param from DynamicSprite.Create() and CreateFromExistingSprite().
  - Removed HasAlphaChannel property from DialogOptionsRenderingInfo.
  - Removed "transparent" param from Overlay.CreateGraphical() and CreateRoomGraphical().
@@ -159,6 +171,8 @@ Engine:
    cutscene.
  - DynamicSprite.CreateFromFile() may now load 1-bit and 4-bit bitmaps, converting to 8-bit.
  - Both blocking and non-blocking videos are buffered and played on a separate thread.
+ - GetTextHeight() no longer reduces "width" parameter by -1. This was an ancient mistake in
+   the engine kept for many years for backwards compatibility.
  - DeleteSaveSlot() no longer causes highest save to be renamed to fill a gap in saves.
  - Added FLAC support for music, speech and sound effects.
  - Added "--no-plugins" command-line argument that denies loading any plugins;

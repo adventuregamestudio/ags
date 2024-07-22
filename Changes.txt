@@ -33,17 +33,24 @@ Editor:
  - Support importing 1-bit (monochrome) and 4-bit images as sprites, room backgrounds and masks
    (converted to 8-bit).
  - Do not alter or clamp palette for 8-bit sprites imported in a 16/32-bit game.
- - Ensure that Editor exports room backgrounds in their actual color depth.
- - Script editor supports "word wrap" mode.
- - In General Settings added "Use extended compiler" option that lets to choose a new script
-   compiler for your game (see list of changes in related section below).
  - Improved scrolling of drop-down lists in the Room's navigation bar: made scroll buttons larger,
    and support mouse wheel.
+ - Ensure that Editor exports room backgrounds in their actual color depth.
+ - Do not delete previously built game exe from Compiled/Windows folder when testing a game
+   from the editor.
+ - Added "Open Recent" submenu in the File menu.
+ - Sync script editor's commands in Edit menu with the context menu.
+ - Added "Toggle Line Comment" command to Edit menu for scripts.
+ - Added "Word Wrap" command to Edit menu for scripts.
+ - In General Settings added "Use extended compiler" option that lets to choose a new script
+   compiler for your game (see list of changes in related section below).
  - Added Enabled and Visible properties to Characters, Enabled property to Room Objects.
+ - Added TurnWhenFacing property to Characters.
  - Added BlendMode property to Characters, GUI and Room Objects.
  - Added FaceDirectionRatio property to General Settings, Room and Walkable Areas.
  - Added readonly Length property to AudioClips, for the reference.
  - Fixed faulty double-click on project items in case user dragged the cursor away.
+ - Fixed an unhandled exception occuring when rebuilding rooms if any script's header is missing.
  - Fixed double warning message when trying to close the Editor while a game test is running.
 
 Compiler:
@@ -109,6 +116,7 @@ Script API:
    Overlay.Rotation.
  - Added Game.FaceDirectionRatio, Room.FaceDirectionRatio, WalkableArea.FaceDirectionRatio
    and Character.FaceDirectionRatio.
+ - Added Character.TurnWhenFacing property.
  - Added Character.MovePath() and WalkPath(), which makes character to move along an arbitrary
    list of coordinates, and Character.GetPath() that returns current character's walking path.
  - Added Object.MovePath() and Object.GetPath() functions, that work similar to Character's.
@@ -125,6 +133,7 @@ Script API:
  - Added System.GetEngineInteger() and System.GetEngineString() for returning diagnostic
    information about engine's runtime state. Possible arguments are defined by
    EngineValueID enum.
+ - Expanded `on_mouse_click` callback, now supports two more parameters: click x,y coordinates.
  - Added "walkarea[]" and "walkbehind[]" global arrays.
  - Global arrays of game objects (Characters, GUIs, etc) are now declared as arrays of object
    *pointers*. From the user's perspective this is a mere formality, as working with these
@@ -163,6 +172,34 @@ Engine Plugin API:
 
 
 ===================================================================================================
+
+VERSION 3.6.1 - Patch 4, July 2024
+
+Editor:
+ - Fixed extracting templates with very large files inside would cause "Out of memory" error.
+ - Fixed crash occuring when trying to import a non-existant GIF frame during Sprite Import.
+ - Fixed potential mistake with sprite transparency occuring when importing a 8-bit sprite
+   into 16/32-bit game.
+
+Compiler:
+ - Fixed "\t" (and few other less common escaped chars) not handled properly when they are
+   inside string literals.
+ - Fixed a crash in compiler occuring if user script defined a variadic function.
+   (User-defined variadic functions are not properly usable at the moment, but this at least
+   prevents an unhandled exception.)
+
+Scripting:
+ - Declare "UNICODE" macro for scripts if game is made in unicode mode.
+
+Script API:
+ - Added a number of missing OPT_* constants used with Get/SetGameOption functions.
+
+Engine:
+ - Fixed setting Screen.AutoSizeViewportOnRoomLoad to false in "game_start" could cause primary
+   viewport and camera become initialized with zero width and height.
+ - Fixed setting camera's size in "game_start" would unexpectedly get camera clamped to 320x200.
+ - Fixed number of mistakes in Text Parser occuring when handling "multiwords".
+
 
 VERSION 3.6.1 - Patch 3, June 2024
 

@@ -1578,7 +1578,7 @@ namespace AGS.Editor
                 // legacy name and scriptname fields of fixed length
                 WriteString(TextProperty(character.RealName), 40, writer); // name
                 WriteString(character.ScriptName, NativeConstants.MAX_SCRIPT_NAME_LEN, writer); // scrname
-                writer.Write((char)1);                                 // on
+                writer.Write((byte)0);                                 // deprecated "on" flag (replaced by ENABLED and VISIBLE flags)
                 writer.Write((byte)0);                                 // alignment padding
             }
             for (int i = 0; i < NativeConstants.MAXLIPSYNCFRAMES; ++i)

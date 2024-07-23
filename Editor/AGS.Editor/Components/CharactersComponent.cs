@@ -20,8 +20,8 @@ namespace AGS.Editor.Components
         private const string COMMAND_FIND_ALL_USAGES = "FindAllUsages";
         private const string ICON_KEY = "CharactersIcon";
         
-        private const string CHARACTER_EXPORT_FILE_FILTER = "AGS 3.1+ exported characters (*.chr)|*.chr|AGS 2.72/3.0 exported characters (*.cha)|*.cha";
-        private const string CHARACTER_IMPORT_FILE_FILTER = "AGS exported characters (*.chr; *.cha)|*.chr;*.cha|AGS 3.1+ exported characters (*.chr)|*.chr|AGS 2.72/3.0 exported characters (*.cha)|*.cha";
+        private const string CHARACTER_EXPORT_FILE_FILTER = "AGS 3.1+ exported characters (*.chr)|*.chr";
+        private const string CHARACTER_IMPORT_FILE_FILTER = "AGS exported characters (*.chr)|*.chr";
         private const string NEW_CHARACTER_FILE_EXTENSION = ".chr";
 
         private Dictionary<Character, ContentDocument> _documents;
@@ -269,14 +269,7 @@ namespace AGS.Editor.Components
         {
             try
             {
-                if (fileName.ToLower().EndsWith(NEW_CHARACTER_FILE_EXTENSION))
-                {
-                    ImportExport.ExportCharacterNewFormat(character, fileName, _agsEditor.CurrentGame);
-                }
-                else
-                {
-                    ImportExport.ExportCharacter272(character, fileName, _agsEditor.CurrentGame);
-                }
+                ImportExport.ExportCharacterNewFormat(character, fileName, _agsEditor.CurrentGame);
             }
             catch (ApplicationException ex)
             {
@@ -290,14 +283,7 @@ namespace AGS.Editor.Components
             {
                 Character character;
 
-                if (fileName.ToLower().EndsWith(NEW_CHARACTER_FILE_EXTENSION))
-                {
-                    character = ImportExport.ImportCharacterNew(fileName, _agsEditor.CurrentGame);
-                }
-                else
-                {
-                    character = ImportExport.ImportCharacter272(fileName, _agsEditor.CurrentGame);
-                }
+                character = ImportExport.ImportCharacterNew(fileName, _agsEditor.CurrentGame);
 
                 character.ID = _agsEditor.CurrentGame.RootCharacterFolder.GetAllItemsCount();
                 AddSingleItem(character);

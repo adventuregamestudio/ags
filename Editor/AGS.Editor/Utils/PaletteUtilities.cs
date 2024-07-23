@@ -231,7 +231,7 @@ namespace AGS.Editor
             }
         }
 
-        // 1.5k lookup table for color matching
+        // 6k lookup table for color matching
         private static uint[] ColDiffTable = new uint[3 * 512];
 
         /// <summary>
@@ -254,10 +254,6 @@ namespace AGS.Editor
         /// </summary>
         private static byte BestFitColor(Color[] pal, int r, int g, int b)
         {
-            //ASSERT(r >= 0 && r <= 63);
-            //ASSERT(g >= 0 && g <= 63);
-            //ASSERT(b >= 0 && b <= 63);
-
             // only the transparent (pink) color can be mapped to index 0
             uint slot;
             if ((r == 255) && (g == 0) && (b == 255))

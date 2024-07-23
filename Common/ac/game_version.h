@@ -125,6 +125,8 @@ CHF_TURNWHENFACE flag.
 BlendModes
 4.0.0 :
 Raised for org purposes without format changes
+4.0.0.8:
+Palette component range changed from 64 to 256
 */
 
 enum GameDataVersion
@@ -137,8 +139,9 @@ enum GameDataVersion
     kGameVersion_362            = 3060200,
     kGameVersion_399            = 3999999,
     kGameVersion_400            = 4000000,
+    kGameVersion_400_08         = 4000008,
     kGameVersion_LowSupported   = kGameVersion_360_21,
-    kGameVersion_Current        = kGameVersion_400
+    kGameVersion_Current        = kGameVersion_400_08
 };
 
 // Data format version of the loaded game

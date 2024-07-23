@@ -260,7 +260,7 @@ int geta(int c)
 
 
 
-/* 1.5k lookup table for color matching */
+/* 6k lookup table for color matching */
 static unsigned int col_diff[3*512]; 
 
 

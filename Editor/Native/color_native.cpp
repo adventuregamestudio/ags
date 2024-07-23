@@ -32,9 +32,9 @@ void __my_setcolor(int *ctset, int newcol, int wantColDep)
     else if ((newcol >= 32) && (wantColDep > 16)) {
       // true-color
 #ifdef SWAP_RB_HICOL_FOR_32to24_32
-      ctset[0] = makeacol32(getb16(newcol), getg16(newcol), getr16(newcol), 255);
+      ctset[0] = makeacol32(getb24(newcol), getg24(newcol), getr24(newcol), 255);
 #else
-      ctset[0] = makeacol32(getr16(newcol), getg16(newcol), getb16(newcol), 255);
+      ctset[0] = makeacol32(getr24(newcol), getg24(newcol), getb24(newcol), 255);
 #endif
     }
     else if (newcol >= 32) {

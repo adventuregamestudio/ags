@@ -78,10 +78,10 @@ void set_palette_to_hdc(HDC dc, PALETTE pal)
 
    if (current_hpalette) {
       for (i = 0; i < 256; i++) {
-	 palPalEntry[i].peRed = _rgb_scale_6[pal[i].r];
-	 palPalEntry[i].peGreen = _rgb_scale_6[pal[i].g];
-	 palPalEntry[i].peBlue = _rgb_scale_6[pal[i].b];
-	 palPalEntry[i].peFlags = 0;
+        palPalEntry[i].peRed = pal[i].r;
+        palPalEntry[i].peGreen = pal[i].g;
+        palPalEntry[i].peBlue = pal[i].b;
+        palPalEntry[i].peFlags = 0;
       }
 
       SetPaletteEntries(current_hpalette, 0, 256, (LPPALETTEENTRY) & palPalEntry);
@@ -116,9 +116,9 @@ HPALETTE convert_palette_to_hpalette(PALETTE pal)
    lp->palVersion = 0x300;
 
    for (i = 0; i < 256; i++) {
-      lp->palPalEntry[i].peRed = _rgb_scale_6[pal[i].r];
-      lp->palPalEntry[i].peGreen = _rgb_scale_6[pal[i].g];
-      lp->palPalEntry[i].peBlue = _rgb_scale_6[pal[i].b];
+      lp->palPalEntry[i].peRed = pal[i].r;
+      lp->palPalEntry[i].peGreen = pal[i].g;
+      lp->palPalEntry[i].peBlue = pal[i].b;
       lp->palPalEntry[i].peFlags = 0;
    }
 
@@ -177,10 +177,10 @@ static BITMAPINFO *get_bitmap_info(BITMAP *bitmap, PALETTE pal)
 
    if (pal) {
       for (i = 0; i < 256; i++) {
-	 bi->bmiColors[i].rgbRed = _rgb_scale_6[pal[i].r];
-	 bi->bmiColors[i].rgbGreen = _rgb_scale_6[pal[i].g];
-	 bi->bmiColors[i].rgbBlue = _rgb_scale_6[pal[i].b];
-	 bi->bmiColors[i].rgbReserved = 0;
+        bi->bmiColors[i].rgbRed = pal[i].r;
+        bi->bmiColors[i].rgbGreen = pal[i].g;
+        bi->bmiColors[i].rgbBlue = pal[i].b;
+        bi->bmiColors[i].rgbReserved = 0;
       }
    }
 

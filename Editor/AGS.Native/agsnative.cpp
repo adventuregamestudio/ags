@@ -1038,7 +1038,7 @@ void sort_out_transparency(Common::Bitmap *toimp, int sprite_import_method, RGB*
 	  if (toimp->GetColorDepth() > 8)
 	  {
       if (importedColourDepth == 8)
-        replaceWithCol = makecol_depth(toimp->GetColorDepth(), itspal[0].r * 4, itspal[0].g * 4, itspal[0].b * 4);
+        replaceWithCol = makecol_depth(toimp->GetColorDepth(), itspal[0].r, itspal[0].g, itspal[0].b);
       else
 		    replaceWithCol = 0;
 	  }
@@ -1710,13 +1710,6 @@ static void ConvertPaletteToNativeFormat(AGSBitmap *dst, RGB *imgpal, cli::array
             imgpal[i].g = 0;
             imgpal[i].b = 0;
         }
-        else if (thisgame.color_depth == 1)
-        {
-            // allegro palette is 0-63
-            imgpal[i].r = bmpPalette[i].R / 4;
-            imgpal[i].g = bmpPalette[i].G / 4;
-            imgpal[i].b = bmpPalette[i].B / 4;
-        }
         else
         {
             imgpal[i].r = bmpPalette[i].R;
@@ -1967,7 +1960,7 @@ void SetBitmapPaletteFromGlobalPalette(System::Drawing::Bitmap ^bmp)
 	cli::array<System::Drawing::Color> ^bmpPalette = colorPal->Entries;
 	for (int i = 0; i < 256; i++) 
 	{
-		bmpPalette[i] = Color::FromArgb((i == 0) ? i : 255, palette[i].r * 4, palette[i].g * 4, palette[i].b * 4);
+		bmpPalette[i] = Color::FromArgb((i == 0) ? i : 255, palette[i].r, palette[i].g, palette[i].b);
 	}
 
 	// Need to set this back to make it pick up the changes
@@ -2101,9 +2094,9 @@ void ApplyPalette(cli::array<PaletteEntry^>^ newPalette)
 {  
 	for each (PaletteEntry ^colour in newPalette) 
 	{
-		palette[colour->Index].r = colour->Colour.R / 4;
-		palette[colour->Index].g = colour->Colour.G / 4;
-		palette[colour->Index].b = colour->Colour.B / 4;
+		palette[colour->Index].r = colour->Colour.R;
+		palette[colour->Index].g = colour->Colour.G;
+		palette[colour->Index].b = colour->Colour.B;
 	}
 	set_palette(palette);
 }
@@ -2434,7 +2427,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 		{
 			game->Palette[i]->ColourType = PaletteColourType::Gamewide; 
 		}
-		game->Palette[i]->Colour = Color::FromArgb(palette[i].r * 4, palette[i].g * 4, palette[i].b * 4);
+		game->Palette[i]->Colour = Color::FromArgb(palette[i].r, palette[i].g, palette[i].b);
 	}
 
 	for (size_t i = 0; i < thisgamePlugins.size(); ++i) 

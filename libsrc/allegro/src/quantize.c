@@ -303,9 +303,9 @@ static int generate_optimized_palette_ex(BITMAP *image, PALETTE pal, AL_CONST si
       }
    }
    else {
-      pal[0].r = 63;
+      pal[0].r = 255;
       pal[0].g = 0;
-      pal[0].b = 63;
+      pal[0].b = 255;
 
       tmprsvd[0] = 1;
       rsvdcnt++;
@@ -317,12 +317,6 @@ static int generate_optimized_palette_ex(BITMAP *image, PALETTE pal, AL_CONST si
       rsvdcols = tmprsvd;
    }
 
-   /* fix palette */
-   for (i = 0; i < 256; i++) {
-      pal[i].r &= 0x3F;
-      pal[i].g &= 0x3F;
-      pal[i].b &= 0x3F;
-   }
 
    /* fill the 'hash_table' with 4bit per RGB color values */
    bmp_select(image);
@@ -423,10 +417,10 @@ static int generate_optimized_palette_ex(BITMAP *image, PALETTE pal, AL_CONST si
    }
 
    for (i = rsvduse; i < numcols; i++) {
-      int r = (colors[i].color >> rshift) & 0x1F;
-      int g = (colors[i].color >> gshift) & 0x1F;
-      int b = (colors[i].color >> bshift) & 0x1F;
-      colors[i].color = ((r << 1) | (g << 9) | (b << 17));
+      int r = (colors[i].color >> rshift) & 0xFF;
+      int g = (colors[i].color >> gshift) & 0xFF;
+      int b = (colors[i].color >> bshift) & 0xFF;
+      colors[i].color = (r | (g << 8) | (b << 16));
    }
 
    do {

@@ -599,17 +599,6 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
 
     set_our_eip(210);
     if (IS_ANTIALIAS_SPRITES) {
-        // sometimes the palette has corrupt entries, which crash
-        // the create_rgb_table call
-        // so, fix them
-        for (int ff = 0; ff < 256; ff++) {
-            if (palette[ff].r > 63)
-                palette[ff].r = 63;
-            if (palette[ff].g > 63)
-                palette[ff].g = 63;
-            if (palette[ff].b > 63)
-                palette[ff].b = 63;
-        }
         create_rgb_table (&rgb_table, palette, nullptr);
         rgb_map = &rgb_table;
     }

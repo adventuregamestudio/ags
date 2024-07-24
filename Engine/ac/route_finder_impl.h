@@ -33,26 +33,21 @@ public:
     ~JPSRouteFinder();
 
     void Configure(GameDataVersion game_ver) override;
-    // Traces a straight line between two points, returns if it's fully passable;
-    // optionally assigns last found passable position.
-    bool CanSeeFrom(int srcx, int srcy, int dstx, int dsty, int *lastcx = nullptr, int *lastcy = nullptr) override;
-    // Search for a route between (srcx,y) and (destx,y), and calculate the MoveList using given speeds.
-    // exact_dest - tells to fail if the destination is inside the wall and cannot be reached;
-    //              otherwise pathfinder will try to find the closest possible end point.
-    // ignore_walls - tells to ignore impassable areas (builds a straight line path).
-    bool FindRoute(std::vector<Point> &path, int srcx, int srcy, int dstx, int dsty,
-        bool exact_dest = false, bool ignore_walls = false) override;
-    // Assign a walkable mask;
-    // Note that this may make routefinder to generate additional data, taking more time.
-    void SetWalkableArea(const AGS::Common::Bitmap *walkablearea) override;
 
 private:
+    // Update the implementation after a new walkable area is set
+    void OnSetWalkableArea() override;
+    // CanSeeFrom implementation
+    bool CanSeeFromImpl(int srcx, int srcy, int dstx, int dsty, int *lastcx = nullptr, int *lastcy = nullptr)  override;
+    // FindRoute implementation
+    bool FindRouteImpl(std::vector<Point> &path, int srcx, int srcy, int dstx, int dsty,
+        bool exact_dest, bool ignore_walls)  override;
+
     void SyncNavWalkablearea();
     bool FindRouteJPS(std::vector<Point> &nav_path, int fromx, int fromy, int destx, int desty);
 
     static const int MAXNAVPOINTS = MAXNEEDSTAGES;
     Navigation &nav; // declare as reference, because we must hide real Navigation decl here
-    const Bitmap *walkablearea = nullptr;
     std::vector<int> path, cpath;
 };
 

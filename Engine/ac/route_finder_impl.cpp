@@ -15,6 +15,7 @@
 // New jump point search (JPS) A* pathfinder by Martin Sedlak.
 //
 //=============================================================================
+#include <algorithm>
 #include "ac/route_finder_impl.h"
 #include "ac/route_finder_jps.inl"
 #include "gfx/bitmap.h"
@@ -42,33 +43,28 @@ void JPSRouteFinder::Configure(GameDataVersion /*game_ver*/)
 {
 }
 
-void JPSRouteFinder::SetWalkableArea(const Bitmap *walkablearea) 
+void JPSRouteFinder::OnSetWalkableArea()
 {
-    this->walkablearea = walkablearea;
 }
 
 void JPSRouteFinder::SyncNavWalkablearea()
 {
     // FIXME: this is dumb, but...
-    nav.Resize(walkablearea->GetWidth(), walkablearea->GetHeight());
+    nav.Resize(_walkablearea->GetWidth(), _walkablearea->GetHeight());
 
-    for (int y=0; y<walkablearea->GetHeight(); y++)
-        nav.SetMapRow(y, walkablearea->GetScanLine(y));
+    for (int y = 0; y < _walkablearea->GetHeight(); y++)
+        nav.SetMapRow(y, _walkablearea->GetScanLine(y));
 }
 
-bool JPSRouteFinder::CanSeeFrom(int srcx, int srcy, int dstx, int dsty, int *lastcx, int *lastcy)
+bool JPSRouteFinder::CanSeeFromImpl(int srcx, int srcy, int dstx, int dsty, int *lastcx, int *lastcy)
 {
-    if (!walkablearea)
-        return false;
-
+    bool result = false;
     int last_valid_x = srcx, last_valid_y = srcy;
-    bool result = true;
     if ((srcx != dstx) || (srcy != dsty))
     {
         SyncNavWalkablearea();
         result = !nav.TraceLine(srcx, srcy, dstx, dsty, last_valid_x, last_valid_y);
     }
-
     if (lastcx)
         *lastcx = last_valid_x;
     if (lastcy)
@@ -78,6 +74,9 @@ bool JPSRouteFinder::CanSeeFrom(int srcx, int srcy, int dstx, int dsty, int *las
 
 bool JPSRouteFinder::FindRouteJPS(std::vector<Point> &nav_path, int fromx, int fromy, int destx, int desty)
 {
+    if (!_walkablearea)
+        return false;
+
     SyncNavWalkablearea();
 
     path.clear();
@@ -91,7 +90,7 @@ bool JPSRouteFinder::FindRouteJPS(std::vector<Point> &nav_path, int fromx, int f
     // new behavior: cut path if too complex rather than abort with error message
     int count = std::min<int>((int)cpath.size(), MAXNAVPOINTS);
 
-    for (int i = 0; i<count; i++)
+    for (int i = 0; i < count; i++)
     {
         int x, y;
         nav.UnpackSquare(cpath[i], x, y);
@@ -101,22 +100,19 @@ bool JPSRouteFinder::FindRouteJPS(std::vector<Point> &nav_path, int fromx, int f
     return true;
 }
 
-bool JPSRouteFinder::FindRoute(std::vector<Point> &nav_path, int srcx, int srcy, int dstx, int dsty,
+bool JPSRouteFinder::FindRouteImpl(std::vector<Point> &nav_path, int srcx, int srcy, int dstx, int dsty,
     bool exact_dest, bool ignore_walls)
 {
-    if (!walkablearea)
-        return false;
-
     nav_path.clear();
 
-    if (ignore_walls || CanSeeFrom(srcx, srcy, dstx, dsty))
+    if (ignore_walls || CanSeeFromImpl(srcx, srcy, dstx, dsty))
     {
         nav_path.emplace_back( srcx, srcy );
         nav_path.emplace_back( dstx, dsty );
     }
     else
     {
-        if ((exact_dest) && (walkablearea->GetPixel(dstx, dsty) == 0))
+        if ((exact_dest) && (_walkablearea->GetPixel(dstx, dsty) == 0))
             return false; // clicked on a wall
 
         FindRouteJPS(nav_path, srcx, srcy, dstx, dsty);

@@ -55,9 +55,32 @@ public:
 class MaskRouteFinder : public IRouteFinder
 {
 public:
-    // Assign a walkable mask;
+    // Traces a straight line between two points, returns if it's fully passable;
+    // optionally assigns last found passable position.
+    bool CanSeeFrom(int srcx, int srcy, int dstx, int dsty, int *lastcx = nullptr, int *lastcy = nullptr) override;
+    // Search for a route between (srcx,y) and (destx,y), and calculate the MoveList using given speeds.
+    // exact_dest - tells to fail if the destination is inside the wall and cannot be reached;
+    //              otherwise pathfinder will try to find the closest possible end point.
+    // ignore_walls - tells to ignore impassable areas (builds a straight line path).
+    bool FindRoute(std::vector<Point> &path, int srcx, int srcy, int dstx, int dsty,
+        bool exact_dest = false, bool ignore_walls = false) override;
+
+    // Assign a walkable mask, and an optional coordinate scale factor which will be used
+    // to convert (divide) input coordinates, and resulting path back (multiply).
     // Note that this may make routefinder to generate additional data, taking more time.
-    virtual void SetWalkableArea(const AGS::Common::Bitmap *walkablearea) = 0;
+    void SetWalkableArea(const AGS::Common::Bitmap *walkablearea, uint32_t coord_scale = 1);
+
+protected:
+    // Update the implementation after a new walkable area is set
+    virtual void OnSetWalkableArea() = 0;
+    // CanSeeFrom implementation
+    virtual bool CanSeeFromImpl(int srcx, int srcy, int dstx, int dsty, int *lastcx = nullptr, int *lastcy = nullptr) = 0;
+    // FindRoute implementation
+    virtual bool FindRouteImpl(std::vector<Point> &path, int srcx, int srcy, int dstx, int dsty,
+        bool exact_dest, bool ignore_walls) = 0;
+
+    const Common::Bitmap *_walkablearea = nullptr;
+    uint32_t _coordScale = 1;
 };
 
 //

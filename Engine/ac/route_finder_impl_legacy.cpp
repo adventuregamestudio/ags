@@ -83,11 +83,8 @@ void LegacyRouteFinder::Configure(GameDataVersion game_ver)
     _pfc.ShortSweepGranularity = (game_ver > kGameVersion_300) ? 3 : 1;
 }
 
-// Assign a walkable mask;
-// Note that this may make routefinder to generate additional data, taking more time.
-void LegacyRouteFinder::SetWalkableArea(const Bitmap *walkablearea)
+void LegacyRouteFinder::OnSetWalkableArea()
 {
-    wallscreen = walkablearea;
 }
 
 static int line_failed = 0;
@@ -644,12 +641,9 @@ findroutebk:
   return 1;
 }
 
-bool LegacyRouteFinder::CanSeeFrom(int srcx, int srcy, int dstx, int dsty, int *lastcx, int *lastcy)
+bool LegacyRouteFinder::CanSeeFromImpl(int srcx, int srcy, int dstx, int dsty, int *lastcx, int *lastcy)
 {
-    if (!wallscreen)
-        return false;
-    
-    bool result = can_see_from(wallscreen, srcx, srcy, dstx, dsty) != 0;
+    bool result = can_see_from(_walkablearea, srcx, srcy, dstx, dsty) != 0;
     if (lastcx)
         *lastcx = line_lastcx;
     if (lastcy)
@@ -657,17 +651,16 @@ bool LegacyRouteFinder::CanSeeFrom(int srcx, int srcy, int dstx, int dsty, int *
     return result;
 }
 
-bool LegacyRouteFinder::FindRoute(std::vector<Point> &path, int srcx, int srcy, int dstx, int dsty,
+bool LegacyRouteFinder::FindRouteImpl(std::vector<Point> &path, int srcx, int srcy, int dstx, int dsty,
         bool exact_dest, bool ignore_walls)
 {
-    if (!wallscreen)
-        return false;
-
   assert(pathbackx != nullptr);
   assert(pathbacky != nullptr);
 
   leftorright = 0;
   int aaa;
+
+  const auto *wallscreen = _walkablearea;
 
   if (wallscreen->GetHeight() > beenhere_array_size)
   {

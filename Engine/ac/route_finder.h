@@ -19,7 +19,7 @@
 #include "ac/game_version.h"
 #include "util/geometry.h"
 
-struct MoveList;
+class MoveList;
 
 namespace AGS
 {

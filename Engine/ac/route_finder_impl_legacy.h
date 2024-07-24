@@ -18,7 +18,6 @@
 
 // Forward declaration
 namespace AGS { namespace Common { class Bitmap; }}
-struct MoveList;
 
 namespace AGS
 {

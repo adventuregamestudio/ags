@@ -46,7 +46,6 @@ private:
     void SyncNavWalkablearea();
     bool FindRouteJPS(std::vector<Point> &nav_path, int fromx, int fromy, int destx, int desty);
 
-    static const int MAXNAVPOINTS = MAXNEEDSTAGES;
     Navigation &nav; // declare as reference, because we must hide real Navigation decl here
     std::vector<int> path, cpath;
 };

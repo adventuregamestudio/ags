@@ -164,7 +164,7 @@ int     Character_GetSpeakingFrame(CharacterInfo *chaa);
 
 //=============================================================================
 
-struct MoveList;
+class MoveList;
 namespace AGS { namespace Common { class Bitmap; } }
 using namespace AGS; // FIXME later
 

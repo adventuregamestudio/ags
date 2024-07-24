@@ -73,10 +73,10 @@ int room_to_mask_coord(int coord);
 // coordinate conversion (room mask) ---> game ---> (data)
 int mask_to_room_coord(int coord);
 
-struct MoveList;
+class MoveList;
 // Convert move path from room (eq. game) resolution to data resolution;
 // applies move speed factor, according to the game settings
-void convert_move_path_to_data_resolution(MoveList &mls, int from_step = 0, int to_step = -1);
+void convert_move_path_to_data_resolution(MoveList &mls, uint32_t from_step = 0, uint32_t to_step = UINT32_MAX);
 
 // The single global "current room" instance
 extern AGS::Common::RoomStruct thisroom;

@@ -179,11 +179,6 @@ void Character_AddWaypoint(CharacterInfo *chaa, int x, int y) {
     }
 
     MoveList &cmls = mls[chaa->walking % TURNING_AROUND];
-    if (cmls.numstage >= MAXNEEDSTAGES)
-    {
-        debug_script_warn("Character::AddWaypoint: move is too complex, cannot add any further paths");
-        return;
-    }
 
     // They're already walking there anyway
     const Point &last_pos = cmls.GetLastPos();
@@ -201,7 +196,7 @@ void Character_AddWaypoint(CharacterInfo *chaa, int x, int y) {
     // so we do this trick: convert last step to game resolution, before calling
     // a pathfinder api, and then we'll convert old and new last step back.
     // TODO: figure out a better way of processing this!
-    const int last_stage = cmls.numstage - 1;
+    const uint32_t last_stage = cmls.GetNumStages() - 1;
     cmls.pos[last_stage] = { data_to_game_coord(last_pos.X), data_to_game_coord(last_pos.Y) };
     const int dst_x = data_to_game_coord(x);
     const int dst_y = data_to_game_coord(y);
@@ -1414,7 +1409,7 @@ int Character_GetMoving(CharacterInfo *chaa) {
 int Character_GetDestinationX(CharacterInfo *chaa) {
     if (chaa->walking) {
         MoveList *cmls = &mls[chaa->walking % TURNING_AROUND];
-        return cmls->pos[cmls->numstage - 1].X;
+        return cmls->pos.back().X;
     }
     else
         return chaa->x;
@@ -1423,7 +1418,7 @@ int Character_GetDestinationX(CharacterInfo *chaa) {
 int Character_GetDestinationY(CharacterInfo *chaa) {
     if (chaa->walking) {
         MoveList *cmls = &mls[chaa->walking % TURNING_AROUND];
-        return cmls->pos[cmls->numstage - 1].Y;
+        return cmls->pos.back().Y;
     }
     else
         return chaa->y;
@@ -1868,8 +1863,8 @@ void start_character_turning (CharacterInfo *chinf, int useloop, int no_diagonal
 }
 
 void fix_player_sprite(MoveList*cmls,CharacterInfo*chinf) {
-    const fixed xpmove = cmls->xpermove[cmls->onstage];
-    const fixed ypmove = cmls->ypermove[cmls->onstage];
+    const fixed xpmove = cmls->permove[cmls->onstage].X;
+    const fixed ypmove = cmls->permove[cmls->onstage].Y;
 
     // if not moving, do nothing
     if ((xpmove == 0) && (ypmove == 0))

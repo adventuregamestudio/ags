@@ -736,8 +736,6 @@ stage_again:
 
     if ( (nearestpos.X + nearestpos.Y) > 0) { // NOTE: we only deal with positive coordinates here
       path.push_back(nearestpos);
-      if (path.size() >= MAXNEEDSTAGES - 1)
-        quit("too many stages for auto-walk");
       srcx = nearestpos.X;
       srcy = nearestpos.Y;
 #ifdef DEBUG_PATHFINDER

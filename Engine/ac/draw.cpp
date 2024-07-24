@@ -2938,7 +2938,7 @@ void update_room_debug()
             if (game.chars[debugMoveListChar].walking >= TURNING_AROUND)
                 mlsnum %= TURNING_AROUND;
             const MoveList &cmls = mls[mlsnum];
-            for (int i = 0; i < cmls.numstage - 1; i++) {
+            for (uint32_t i = 0; i < cmls.GetNumStages() - 1; i++) {
                 short srcx = cmls.pos[i].X;
                 short srcy = cmls.pos[i].Y;
                 short targetx = cmls.pos[i + 1].X;

@@ -1087,20 +1087,18 @@ int mask_to_room_coord(int coord)
     return coord * thisroom.MaskResolution / game.GetDataUpscaleMult();
 }
 
-void convert_move_path_to_data_resolution(MoveList &mls, int from_step, int to_step)
+void convert_move_path_to_data_resolution(MoveList &mls, uint32_t from_step, uint32_t to_step)
 {
-    if (to_step < 0)
-        to_step = mls.numstage;
-    to_step = Math::Clamp(to_step, 0, mls.numstage - 1);
-    from_step = Math::Clamp(from_step, 0, to_step);
+    to_step = Math::Clamp(to_step, 0u, mls.GetNumStages() - 1);
+    from_step = Math::Clamp(from_step, 0u, to_step);
 
     // If speed is independent from MaskResolution...
     if ((game.options[OPT_WALKSPEEDABSOLUTE] != 0) && game.GetDataUpscaleMult() > 1)
     {
         for (int i = from_step; i <= to_step; i++)
         { // ...we still need to convert from game to data coords
-            mls.xpermove[i] = game_to_data_coord(mls.xpermove[i]);
-            mls.ypermove[i] = game_to_data_coord(mls.ypermove[i]);
+            mls.permove[i].X = game_to_data_coord(mls.permove[i].X);
+            mls.permove[i].Y = game_to_data_coord(mls.permove[i].Y);
         }
     }
     // If speed is scaling with MaskResolution...
@@ -1108,8 +1106,8 @@ void convert_move_path_to_data_resolution(MoveList &mls, int from_step, int to_s
     {
         for (int i = from_step; i <= to_step; i++)
         {
-            mls.xpermove[i] = mask_to_room_coord(mls.xpermove[i]);
-            mls.ypermove[i] = mask_to_room_coord(mls.ypermove[i]);
+            mls.permove[i].X = mask_to_room_coord(mls.permove[i].X);
+            mls.permove[i].Y = mask_to_room_coord(mls.permove[i].Y);
         }
     }
 

@@ -112,9 +112,9 @@ static void movelist_handle_remainer(const fixed xpermove, const fixed ypermove,
 // Handle remaining move fixup, but only if necessary
 static void movelist_handle_remainer(MoveList &m)
 {
-    assert(m.numstage > 0);
-    const fixed xpermove = m.xpermove[m.onstage];
-    const fixed ypermove = m.ypermove[m.onstage];
+    assert(m.GetNumStages() > 0);
+    const fixed xpermove = m.permove[m.onstage].X;
+    const fixed ypermove = m.permove[m.onstage].Y;
     const Point target = m.pos[m.onstage + 1];
     // Apply remainer to movelists where LONGER axis was completed, and SHORTER remains
     if ((xpermove != 0) && (ypermove != 0))
@@ -161,8 +161,8 @@ int do_movelist_move(short &mslot, int &pos_x, int &pos_y)
 
     int need_to_fix_sprite = 0; // TODO: find out what this value means and refactor
     MoveList &cmls = mls[mslot];
-    const fixed xpermove = cmls.xpermove[cmls.onstage];
-    const fixed ypermove = cmls.ypermove[cmls.onstage];
+    const fixed xpermove = cmls.permove[cmls.onstage].X;
+    const fixed ypermove = cmls.permove[cmls.onstage].Y;
     const fixed fin_move = cmls.fin_move;
     const float main_onpart = (cmls.fin_from_part > 0.f) ? cmls.fin_from_part : cmls.onpart;
     const float fin_onpart = cmls.onpart - main_onpart;
@@ -211,15 +211,15 @@ int do_movelist_move(short &mslot, int &pos_x, int &pos_y)
         cmls.fin_from_part = 0.f;
         cmls.fin_move = 0;
         cmls.doneflag = 0;
-        if (cmls.onstage < cmls.numstage)
+        if (cmls.onstage < cmls.GetNumStages())
         {
             xps = cmls.from.X;
             yps = cmls.from.Y;
         }
 
-        if (cmls.onstage >= cmls.numstage - 1)
+        if (cmls.onstage >= cmls.GetNumStages() - 1)
         {  // last stage is just dest pos
-            cmls.numstage=0;
+            cmls = {};
             mslot = 0;
             need_to_fix_sprite = 1; // TODO: find out what this means
         }
@@ -241,7 +241,7 @@ void restore_movelists()
     // Recalculate move remainer fixups, where necessary
     for (auto &m : mls)
     {
-        if (m.numstage > 0)
+        if (m.GetNumStages() > 0)
             movelist_handle_remainer(m);
     }
 }

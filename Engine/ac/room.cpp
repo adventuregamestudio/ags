@@ -97,6 +97,7 @@ extern RGB palette[256];
 extern CCHotspot ccDynamicHotspot;
 extern CCObject ccDynamicObject;
 
+std::unique_ptr<MaskRouteFinder> room_pathfinder;
 RGB_MAP rgb_table;  // for 256-col antialiasing
 int new_room_flags=0;
 int gs_to_newroom=-1;
@@ -983,6 +984,8 @@ void first_room_initialization() {
     // Reset background frame state
     play.bg_frame = 0;
     play.bg_frame_locked = (thisroom.Options.Flags & kRoomFlag_BkgFrameLocked) != 0;
+
+    init_room_pathfinder();
 }
 
 void check_new_room() {
@@ -1056,6 +1059,21 @@ void croom_ptr_clear()
     objs = nullptr;
 }
 
+void init_room_pathfinder()
+{
+    if (!room_pathfinder)
+        room_pathfinder = Pathfinding::CreateDefaultMaskPathfinder(loaded_game_file_version);
+}
+
+void dispose_room_pathfinder()
+{
+    room_pathfinder.reset();
+}
+
+MaskRouteFinder *get_room_pathfinder()
+{
+    return room_pathfinder.get();
+}
 
 // coordinate conversion (data) ---> game ---> (room mask)
 int room_to_mask_coord(int coord)
@@ -1069,45 +1087,41 @@ int mask_to_room_coord(int coord)
     return coord * thisroom.MaskResolution / game.GetDataUpscaleMult();
 }
 
-void convert_move_path_to_room_resolution(MoveList *ml, int from_step, int to_step)
+void convert_move_path_to_data_resolution(MoveList &mls, uint32_t from_step, uint32_t to_step)
 {
-    if (to_step < 0)
-        to_step = ml->numstage;
-    to_step = Math::Clamp(to_step, 0, ml->numstage - 1);
-    from_step = Math::Clamp(from_step, 0, to_step);
+    to_step = Math::Clamp(to_step, 0u, mls.GetNumStages() - 1);
+    from_step = Math::Clamp(from_step, 0u, to_step);
 
     // If speed is independent from MaskResolution...
     if ((game.options[OPT_WALKSPEEDABSOLUTE] != 0) && game.GetDataUpscaleMult() > 1)
     {
         for (int i = from_step; i <= to_step; i++)
         { // ...we still need to convert from game to data coords
-            ml->xpermove[i] = game_to_data_coord(ml->xpermove[i]);
-            ml->ypermove[i] = game_to_data_coord(ml->ypermove[i]);
+            mls.permove[i].X = game_to_data_coord(mls.permove[i].X);
+            mls.permove[i].Y = game_to_data_coord(mls.permove[i].Y);
+        }
+    }
+    // If speed is scaling with MaskResolution...
+    else if (game.options[OPT_WALKSPEEDABSOLUTE] == 0)
+    {
+        for (int i = from_step; i <= to_step; i++)
+        {
+            mls.permove[i].X = mask_to_room_coord(mls.permove[i].X);
+            mls.permove[i].Y = mask_to_room_coord(mls.permove[i].Y);
         }
     }
 
-    // Skip the conversion if these are equal, as they are multiplier and divisor
-    if (thisroom.MaskResolution == game.GetDataUpscaleMult())
+    if (game.GetDataUpscaleMult() == 1)
         return;
 
     if (from_step == 0)
     {
-        ml->from = { mask_to_room_coord(ml->from.X), mask_to_room_coord(ml->from.Y) };
+        mls.from = { game_to_data_coord(mls.from.X), game_to_data_coord(mls.from.Y) };
     }
 
     for (int i = from_step; i <= to_step; i++)
     {
-        ml->pos[i] = { mask_to_room_coord(ml->pos[i].X), mask_to_room_coord(ml->pos[i].Y) };
-    }
-
-    // If speed is scaling with MaskResolution...
-    if (game.options[OPT_WALKSPEEDABSOLUTE] == 0)
-    {
-        for (int i = from_step; i <= to_step; i++)
-        {
-            ml->xpermove[i] = mask_to_room_coord(ml->xpermove[i]);
-            ml->ypermove[i] = mask_to_room_coord(ml->ypermove[i]);
-        }
+        mls.pos[i] = { game_to_data_coord(mls.pos[i].X), game_to_data_coord(mls.pos[i].Y) };
     }
 }
 

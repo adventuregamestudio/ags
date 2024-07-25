@@ -11,31 +11,53 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-
 #ifndef __AC_ROUTE_FINDER_IMPL_LEGACY
 #define __AC_ROUTE_FINDER_IMPL_LEGACY
 
+#include "ac/route_finder.h"
+
 // Forward declaration
 namespace AGS { namespace Common { class Bitmap; }}
-struct MoveList;
 
-namespace AGS {
-namespace Engine {
-namespace RouteFinderLegacy {
+namespace AGS
+{
+namespace Engine
+{
 
-void init_pathfinder();
-void shutdown_pathfinder();
+// LegacyRouteFinder: a flood-fill search pathfinder.
+class LegacyRouteFinder : public MaskRouteFinder
+{
+public:
+    LegacyRouteFinder();
+    ~LegacyRouteFinder();
 
-void set_wallscreen(AGS::Common::Bitmap *wallscreen);
+    void Configure(GameDataVersion game_ver) override;
 
-int can_see_from(int x1, int y1, int x2, int y2);
-void get_lastcpos(int &lastcx, int &lastcy);
+    // Configuration for the pathfinder
+    struct PathfinderConfig
+    {
+        const int MaxGranularity = 3;
 
-int find_route(short srcx, short srcy, short xx, short yy, int move_speed_x, int move_speed_y,
-    AGS::Common::Bitmap *onscreen, int movlst, int nocross = 0, int ignore_walls = 0);
-bool add_waypoint_direct(MoveList * mlsp, short x, short y, int move_speed_x, int move_speed_y);
+        // Short sweep is performed in certain radius around requested destination,
+        // when searching for a nearest walkable area in the vicinity
+        const int ShortSweepRadius = 50;
+        int ShortSweepGranularity = 3; // variable, depending on loaded game version
+        // Full sweep is performed over a whole walkable area
+        const int FullSweepGranularity = 5;
+    };
 
-} // namespace RouteFinderLegacy
+private:
+    // Update the implementation after a new walkable area is set
+    void OnSetWalkableArea() override;
+    // CanSeeFrom implementation
+    bool CanSeeFromImpl(int srcx, int srcy, int dstx, int dsty, int *lastcx = nullptr, int *lastcy = nullptr)  override;
+    // FindRoute implementation
+    bool FindRouteImpl(std::vector<Point> &path, int srcx, int srcy, int dstx, int dsty,
+        bool exact_dest, bool ignore_walls)  override;
+
+    PathfinderConfig _pfc;
+};
+
 } // namespace Engine
 } // namespace AGS
 

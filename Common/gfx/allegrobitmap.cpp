@@ -147,7 +147,7 @@ bool Bitmap::ResizeSubBitmap(int width, int height)
     return true;
 }
 
-bool Bitmap::CreateCopy(Bitmap *src, int color_depth)
+bool Bitmap::CreateCopy(const Bitmap *src, int color_depth)
 {
     if (src == this || src->_alBitmap == _alBitmap)
         return false; // cannot create a copy of yourself

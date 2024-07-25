@@ -119,6 +119,30 @@ struct Point
         return Point(X - p.X, Y - p.Y);
     }
 
+    inline Point operator *(int mul) const
+    {
+        return Point(X * mul, Y * mul);
+    }
+
+    inline Point operator /(int div) const
+    {
+        return Point(X / div, Y / div);
+    }
+
+    inline Point &operator *=(int mul)
+    {
+        X *= mul;
+        Y *= mul;
+        return *this;
+    }
+
+    inline Point &operator /=(int div)
+    {
+        X /= div;
+        Y /= div;
+        return *this;
+    }
+
     inline bool Equals(const int x, const int y) const
     {
         return X == x && Y == y;

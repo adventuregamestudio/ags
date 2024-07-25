@@ -11,15 +11,12 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-//
-//
-//
-//=============================================================================
 #ifndef __AGS_EE_AC__ROOM_H
 #define __AGS_EE_AC__ROOM_H
 
 #include "ac/dynobj/scriptdrawingsurface.h"
 #include "ac/characterinfo.h"
+#include "ac/route_finder.h"
 #include "script/runtimescriptvalue.h"
 #include "game/roomstruct.h"
 
@@ -59,6 +56,10 @@ void  compile_room_script();
 void  on_background_frame_change ();
 // Clear the current room pointer if room status is no longer valid
 void  croom_ptr_clear();
+void  init_room_pathfinder();
+void  dispose_room_pathfinder();
+// Gets current room's pathfinder object
+AGS::Engine::MaskRouteFinder *get_room_pathfinder();
 
 // Following functions convert coordinates between room resolution and region mask.
 // Region masks can be 1:N of the room size: 1:1, 1:2 etc.
@@ -72,10 +73,12 @@ int room_to_mask_coord(int coord);
 // coordinate conversion (room mask) ---> game ---> (data)
 int mask_to_room_coord(int coord);
 
-struct MoveList;
-// Convert move path from room's mask resolution to room resolution
-void convert_move_path_to_room_resolution(MoveList *ml, int from_step = 0, int to_step = -1);
+class MoveList;
+// Convert move path from room (eq. game) resolution to data resolution;
+// applies move speed factor, according to the game settings
+void convert_move_path_to_data_resolution(MoveList &mls, uint32_t from_step = 0, uint32_t to_step = UINT32_MAX);
 
+// The single global "current room" instance
 extern AGS::Common::RoomStruct thisroom;
 
 #endif // __AGS_EE_AC__ROOM_H

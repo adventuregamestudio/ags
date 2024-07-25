@@ -427,33 +427,37 @@ int Object_GetIgnoreWalkbehinds(ScriptObject *chaa) {
     return 0;
 }
 
-void move_object(int objj,int tox,int toy,int spee,int ignwal) {
+void move_object(int objj, int tox, int toy, int speed, int ignwal) {
 
     if (!is_valid_object(objj))
         quit("!MoveObject: invalid object number");
 
+    auto &obj = objs[objj];
     // AGS <= 2.61 uses MoveObject with spp=-1 internally instead of SetObjectPosition
-    if ((loaded_game_file_version <= kGameVersion_261) && (spee == -1))
+    if ((loaded_game_file_version <= kGameVersion_261) && (speed == -1))
     {
-        objs[objj].x = tox;
-        objs[objj].y = toy;
+        obj.x = tox;
+        obj.y = toy;
         return;
     }
 
     debug_script_log("Object %d start move to %d,%d", objj, tox, toy);
 
-    // Convert src and dest coords to the mask resolution, for pathfinder
     // NOTE: for old games we assume the input coordinates are in the "data" coordinate system
-    const int src_x = room_to_mask_coord(objs[objj].x);
-    const int src_y = room_to_mask_coord(objs[objj].y);
-    const int dst_x = room_to_mask_coord(tox);
-    const int dst_y = room_to_mask_coord(toy);
+    const int src_x = data_to_game_coord(objs[objj].x);
+    const int src_y = data_to_game_coord(objs[objj].y);
+    const int dst_x = data_to_game_coord(tox);
+    const int dst_y = data_to_game_coord(toy);
 
-    int mslot = find_route(src_x, src_y, dst_x, dst_y, spee, spee, prepare_walkable_areas(-1), objj+1, 1, ignwal);
-    if (mslot>0) {
+    const int mslot = objj + 1;
+    MaskRouteFinder *pathfind = get_room_pathfinder();
+    pathfind->SetWalkableArea(prepare_walkable_areas(-1), thisroom.MaskResolution);
+    if (Pathfinding::FindRoute(mls[mslot], pathfind, src_x, src_y, dst_x, dst_y,
+        speed, speed, false, ignwal != 0))
+    {
         objs[objj].moving = mslot;
         mls[mslot].direct = ignwal;
-        convert_move_path_to_room_resolution(&mls[mslot]);
+        convert_move_path_to_data_resolution(mls[mslot]);
     }
 }
 

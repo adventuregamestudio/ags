@@ -103,14 +103,18 @@ int GetObjectIDAtRoom(int roomx, int roomy)
 }
 
 void SetObjectTint(int obj, int red, int green, int blue, int opacity, int luminance) {
+    if (!is_valid_object(obj))
+        quit("!SetObjectTint: invalid object number specified");
+
     if ((red < 0) || (green < 0) || (blue < 0) ||
         (red > 255) || (green > 255) || (blue > 255) ||
         (opacity < 0) || (opacity > 100) ||
         (luminance < 0) || (luminance > 100))
-        quit("!SetObjectTint: invalid parameter. R,G,B must be 0-255, opacity & luminance 0-100");
-
-    if (!is_valid_object(obj))
-        quit("!SetObjectTint: invalid object number specified");
+    {
+        debug_script_warn("Object.Tint: invalid parameter(s). R,G,B must be 0-255 (passed: %d,%d,%d), opacity & luminance 0-100 (passed: %d,%d)",
+            red, green, blue, opacity, luminance);
+        return;
+    }
 
     debug_script_log("Set object %d tint RGB(%d,%d,%d) %d%%", obj, red, green, blue, opacity);
 

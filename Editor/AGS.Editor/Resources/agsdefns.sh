@@ -1123,6 +1123,30 @@ builtin managed struct Overlay {
   /// Gets/sets the overlay's image rotation in degrees.
   import attribute float Rotation;
 #endif
+#ifdef SCRIPT_API_v400
+  /// Tints the overlay to the specified colour.
+  import void     Tint(int red, int green, int blue, int saturation, int luminance);
+  /// Sets the light level for this overlay.
+  import function SetLightLevel(int light_level);
+  /// Removes an existing colour tint or light level from this overlay.
+  import void     RemoveTint();
+  /// Gets whether the overlay has a tint set.
+  readonly import attribute bool HasTint;
+  /// Gets whether the overlay has a light level set.
+  readonly import attribute bool HasLightLevel;
+  /// Gets the individual light level for this character.
+  readonly import attribute int  LightLevel;
+  /// Gets the Blue component of this overlay's colour tint.
+  readonly import attribute int  TintBlue;
+  /// Gets the Green component of this overlay's colour tint.
+  readonly import attribute int  TintGreen;
+  /// Gets the Red component of this overlay's colour tint.
+  readonly import attribute int  TintRed;
+  /// Gets the Saturation of this overlay's colour tint.
+  readonly import attribute int  TintSaturation;
+  /// Gets the Luminance of this overlay's colour tint.
+  readonly import attribute int  TintLuminance;
+#endif
 };
 
 #ifdef SCRIPT_API_v400

@@ -1564,6 +1564,32 @@ void get_local_tint(int xpp, int ypp, bool use_region_tint,
 
 
 
+// Applies the specified RGB Tint or Light Level to the ObjTexture
+// for hardware-accelerated renderer
+static void apply_tint_or_light_ddb(ObjTexture &objtx, int light_level,
+                         int tint_amount, int tint_red, int tint_green,
+                         int tint_blue, int tint_light)
+{
+    objtx.Ddb->SetTint(tint_red, tint_green, tint_blue, (tint_amount * 256) / 100);
+
+    if (tint_amount > 0)
+    {
+        if (tint_light == 0)  // luminance of 0 -- pass 1 to enable
+            objtx.Ddb->SetLightLevel(1);
+        else if (tint_light < 250)
+            objtx.Ddb->SetLightLevel(tint_light);
+        else
+            objtx.Ddb->SetLightLevel(0);
+    }
+    else if (light_level != 0)
+    {
+        objtx.Ddb->SetLightLevel(GfxDef::Value100ToValue250(light_level) + 256);
+    }
+    else
+    {
+        objtx.Ddb->SetLightLevel(0);
+    }
+}
 
 // Applies the specified RGB Tint or Light Level to the ObjTexture 'actsp'.
 // Used for software render mode only.
@@ -2007,21 +2033,7 @@ void prepare_and_add_object_gfx(
         actsp.Ddb->SetStretch(scale_size.Width, scale_size.Height);
         actsp.Ddb->SetRotation(objsav.rotation);
         actsp.Ddb->SetFlippedLeftRight(objsav.mirrored);
-        actsp.Ddb->SetTint(objsav.tintr, objsav.tintg, objsav.tintb, (objsav.tintamnt * 256) / 100);
-
-        if (objsav.tintamnt > 0)
-        {
-            if (objsav.tintlight == 0)  // luminance of 0 -- pass 1 to enable
-                actsp.Ddb->SetLightLevel(1);
-            else if (objsav.tintlight < 250)
-                actsp.Ddb->SetLightLevel(objsav.tintlight);
-            else
-                actsp.Ddb->SetLightLevel(0);
-        }
-        else if (objsav.lightlev != 0)
-            actsp.Ddb->SetLightLevel(GfxDef::Value100ToValue250(objsav.lightlev) + 256);
-        else
-            actsp.Ddb->SetLightLevel(0);
+        apply_tint_or_light_ddb(actsp, objsav.lightlev, objsav.tintamnt, objsav.tintr, objsav.tintg, objsav.tintb, objsav.tintlight);
     }
 
     actsp.Ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(transparency));
@@ -2813,6 +2825,11 @@ static void construct_overlays()
                     walkbehinds_cropout(use_cache.get(), pos.X, pos.Y, over.zorder);
                     use_bmp = use_cache.get();
                 }
+                if (over.HasLightLevel() || over.HasTint())
+                {
+                    apply_tint_or_light(overtx, over.tint_light * over.HasLightLevel(), over.tint_level, over.tint_r, over.tint_g, over.tint_b, over.tint_light,
+                        use_bmp->GetColorDepth(), use_bmp);
+                }
             }
 
             sync_object_texture(overtx);
@@ -2825,6 +2842,7 @@ static void construct_overlays()
         overtx.Ddb->SetRotation(over.rotation);
         overtx.Ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(over.transparency));
         overtx.Ddb->SetBlendMode(over.blendMode);
+        apply_tint_or_light_ddb(overtx, over.tint_light * over.HasLightLevel(), over.tint_level, over.tint_r, over.tint_g, over.tint_b, over.tint_light);
     }
 }
 

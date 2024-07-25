@@ -95,7 +95,7 @@ void SetRegionTint (int area, int red, int green, int blue, int amount, int lumi
                                    ((green & 0xFF) << 8) |
                                    ((blue & 0XFF) << 16) |
                                    ((amount & 0xFF) << 24);
-    thisroom.Regions[area].Light = (luminance * 25) / 10;
+    thisroom.Regions[area].Light = GfxDef::Value100ToValue250(luminance);
 }
 
 void DisableRegion(int hsnum) {

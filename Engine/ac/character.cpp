@@ -909,7 +909,7 @@ int Character_GetTintSaturation(CharacterInfo *ch)
 
 int Character_GetTintLuminance(CharacterInfo *ch)
 {
-    return ch->has_explicit_tint() ? ((charextra[ch->index_id].tint_light * 10) / 25) : 0;
+    return ch->has_explicit_tint() ? GfxDef::Value250ToValue100(charextra[ch->index_id].tint_light) : 0;
 }
 
 void Character_SetOption(CharacterInfo *chaa, int flag, int yesorno) {
@@ -996,7 +996,7 @@ void Character_Tint(CharacterInfo *chaa, int red, int green, int blue, int opaci
     charextra[chaa->index_id].tint_g = green;
     charextra[chaa->index_id].tint_b = blue;
     charextra[chaa->index_id].tint_level = opacity;
-    charextra[chaa->index_id].tint_light = (luminance * 25) / 10;
+    charextra[chaa->index_id].tint_light = GfxDef::Value100ToValue250(luminance);
     chaa->flags &= ~CHF_HASLIGHT;
     chaa->flags |= CHF_HASTINT;
 }

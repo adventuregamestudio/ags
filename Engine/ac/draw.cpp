@@ -2019,7 +2019,7 @@ void prepare_and_add_object_gfx(
                 actsp.Ddb->SetLightLevel(0);
         }
         else if (objsav.lightlev != 0)
-            actsp.Ddb->SetLightLevel((objsav.lightlev * 25) / 10 + 256);
+            actsp.Ddb->SetLightLevel(GfxDef::Value100ToValue250(objsav.lightlev) + 256);
         else
             actsp.Ddb->SetLightLevel(0);
     }
@@ -2118,7 +2118,7 @@ void tint_image (Bitmap *ds, Bitmap *srcimg, int red, int grn, int blu, int ligh
     else {
         // light_level is between -100 and 100 normally; 0-100 in
         // this case when it's a RGB tint
-        light_level = (light_level * 25) / 10;
+        light_level = GfxDef::Value100ToValue250(light_level);
 
         // Copy the image to the new bitmap
         ds->Blit(srcimg, 0, 0, 0, 0, srcimg->GetWidth(), srcimg->GetHeight());

@@ -118,7 +118,7 @@ void SetObjectTint(int obj, int red, int green, int blue, int opacity, int lumin
     objs[obj].tint_g = green;
     objs[obj].tint_b = blue;
     objs[obj].tint_level = opacity;
-    objs[obj].tint_light = (luminance * 25) / 10;
+    objs[obj].tint_light = GfxDef::Value100ToValue250(luminance);
     objs[obj].flags &= ~OBJF_HASLIGHT;
     objs[obj].flags |= OBJF_HASTINT;
 }

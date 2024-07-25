@@ -278,7 +278,7 @@ int Object_GetTintSaturation(ScriptObject *obj)
 
 int Object_GetTintLuminance(ScriptObject *obj)
 {
-    return objs[obj->id].has_explicit_tint() ? ((objs[obj->id].tint_light * 10) / 25) : 0;
+    return objs[obj->id].has_explicit_tint() ? GfxDef::Value250ToValue100(objs[obj->id].tint_light) : 0;
 }
 
 void Object_SetPosition(ScriptObject *objj, int xx, int yy) {

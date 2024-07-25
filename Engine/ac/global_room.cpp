@@ -55,7 +55,7 @@ void SetAmbientTint (int red, int green, int blue, int opacity, int luminance) {
     play.rtint_green = green;
     play.rtint_blue = blue;
     play.rtint_level = opacity;
-    play.rtint_light = (luminance * 25) / 10;
+    play.rtint_light = GfxDef::Value100ToValue250(luminance);
 }
 
 void SetAmbientLightLevel(int light_level)

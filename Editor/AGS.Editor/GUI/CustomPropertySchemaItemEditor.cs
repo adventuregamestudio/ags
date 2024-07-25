@@ -67,11 +67,7 @@ namespace AGS.Editor
             _itemToEdit.Description = _copyOfItem.Description;
             _itemToEdit.DefaultValue = _copyOfItem.DefaultValue;
             _itemToEdit.Type = propertyType;
-            _itemToEdit.AppliesToCharacters = _copyOfItem.AppliesToCharacters;
-            _itemToEdit.AppliesToHotspots = _copyOfItem.AppliesToHotspots;
-            _itemToEdit.AppliesToInvItems = _copyOfItem.AppliesToInvItems;
-            _itemToEdit.AppliesToObjects = _copyOfItem.AppliesToObjects;
-            _itemToEdit.AppliesToRooms = _copyOfItem.AppliesToRooms;
+            _itemToEdit.AppliesTo = _copyOfItem.AppliesTo;
             this.DialogResult = DialogResult.OK;
             this.Close();
         }

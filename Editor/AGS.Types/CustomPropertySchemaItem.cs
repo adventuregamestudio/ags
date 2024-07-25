@@ -11,17 +11,14 @@ namespace AGS.Types
         private string _description;
         private string _defaultValue;
         private CustomPropertyType _type;
-        private bool _appliesToCharacters = true;
-        private bool _appliesToHotspots = true;
-        private bool _appliesToObjects = true;
-        private bool _appliesToInvItems = true;
-        private bool _appliesToRooms = true;
+        private CustomPropertyAppliesTo _appliesTo;
 
         public CustomPropertySchemaItem()
         {
             _name = string.Empty;
             _description = string.Empty;
             _defaultValue = string.Empty;
+            _appliesTo = CustomPropertyAppliesTo.Everything;
         }
 
         public string Name
@@ -42,34 +39,41 @@ namespace AGS.Types
             set { _defaultValue = value; }
         }
 
+        [AGSNoSerialize]
+        public CustomPropertyAppliesTo AppliesTo
+        {
+            get { return _appliesTo; }
+            set { _appliesTo = value; }
+        }
+
         public bool AppliesToCharacters
         {
-            get { return _appliesToCharacters; }
-            set { _appliesToCharacters = value; }
+            get { return _appliesTo.HasFlag(CustomPropertyAppliesTo.Characters); }
+            set { _appliesTo = value ? (_appliesTo | CustomPropertyAppliesTo.Characters) : (_appliesTo & ~CustomPropertyAppliesTo.Characters); }
         }
 
         public bool AppliesToHotspots
         {
-            get { return _appliesToHotspots; }
-            set { _appliesToHotspots = value; }
+            get { return _appliesTo.HasFlag(CustomPropertyAppliesTo.Hotspots); }
+            set { _appliesTo = value ? (_appliesTo | CustomPropertyAppliesTo.Hotspots) : (_appliesTo & ~CustomPropertyAppliesTo.Hotspots); }
         }
 
         public bool AppliesToInvItems
         {
-            get { return _appliesToInvItems; }
-            set { _appliesToInvItems = value; }
+            get { return _appliesTo.HasFlag(CustomPropertyAppliesTo.InventoryItems); }
+            set { _appliesTo = value ? (_appliesTo | CustomPropertyAppliesTo.InventoryItems) : (_appliesTo & ~CustomPropertyAppliesTo.InventoryItems); }
         }
 
         public bool AppliesToObjects
         {
-            get { return _appliesToObjects; }
-            set { _appliesToObjects = value; }
+            get { return _appliesTo.HasFlag(CustomPropertyAppliesTo.Objects); }
+            set { _appliesTo = value ? (_appliesTo | CustomPropertyAppliesTo.Objects) : (_appliesTo & ~CustomPropertyAppliesTo.Objects); }
         }
 
         public bool AppliesToRooms
         {
-            get { return _appliesToRooms; }
-            set { _appliesToRooms = value; }
+            get { return _appliesTo.HasFlag(CustomPropertyAppliesTo.Rooms); }
+            set { _appliesTo = value ? (_appliesTo | CustomPropertyAppliesTo.Rooms) : (_appliesTo & ~CustomPropertyAppliesTo.Rooms); }
         }
 
         public CustomPropertyType Type
@@ -84,11 +88,11 @@ namespace AGS.Types
             get
             {
                 string toReturn = string.Empty;
-                toReturn += _appliesToCharacters ? "C" : "  ";
-                toReturn += _appliesToHotspots ? "H" : "  ";
-                toReturn += _appliesToInvItems ? "I" : "  ";
-                toReturn += _appliesToObjects ? "O" : "  ";
-                toReturn += _appliesToRooms ? "R" : "  ";
+                toReturn += AppliesToCharacters ? "C" : "  ";
+                toReturn += AppliesToHotspots ? "H" : "  ";
+                toReturn += AppliesToInvItems ? "I" : "  ";
+                toReturn += AppliesToObjects ? "O" : "  ";
+                toReturn += AppliesToRooms ? "R" : "  ";
                 return toReturn;
             }
         }
@@ -114,6 +118,7 @@ namespace AGS.Types
 
         public CustomPropertySchemaItem(XmlNode node)
         {
+            this.AppliesTo = CustomPropertyAppliesTo.None; // reset before reading back
             SerializeUtils.DeserializeFromXML(this, node);
         }
 
@@ -129,11 +134,7 @@ namespace AGS.Types
             copy.Description = this.Description;
             copy.Name = this.Name;
             copy.Type = this.Type;
-            copy.AppliesToCharacters = this.AppliesToCharacters;
-            copy.AppliesToHotspots = this.AppliesToHotspots;
-            copy.AppliesToInvItems = this.AppliesToInvItems;
-            copy.AppliesToObjects = this.AppliesToObjects;
-            copy.AppliesToRooms = this.AppliesToRooms;
+            copy.AppliesTo = this.AppliesTo;
             return copy;
         }
     }

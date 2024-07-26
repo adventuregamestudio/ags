@@ -150,7 +150,8 @@ enum GuiSvgVersion
     kGuiSvgVersion_36020,
     kGuiSvgVersion_36023,
     kGuiSvgVersion_36025,
-    kGuiSvgVersion_400      = 4000000
+    kGuiSvgVersion_400      = 4000000,
+    kGuiSvgVersion_40008    = 4000008, // custom properties
 };
 
 // Style of GUI drawing in disabled state

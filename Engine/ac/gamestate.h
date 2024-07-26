@@ -246,9 +246,12 @@ struct GamePlayState
     int   default_audio_type_volumes[MAX_AUDIO_TYPES]{};
     float face_dir_ratio = 1.f; // character face direction ratio, defines y/x relation
 
-    // Dynamic custom property values for characters and items
+    // Dynamic custom property values for global game objects
+    std::vector<AGS::Common::StringIMap> audioclipProps;
     std::vector<AGS::Common::StringIMap> charProps;
-    AGS::Common::StringIMap invProps[MAX_INV];
+    std::vector<AGS::Common::StringIMap> dialogProps;
+    std::vector<AGS::Common::StringIMap> guiProps;
+    AGS::Common::StringIMap              invProps[MAX_INV];
 
     // Dynamic speech state
     //

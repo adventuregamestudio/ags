@@ -114,15 +114,14 @@ void Hotspot_RunInteraction (ScriptHotspot *hss, int mood) {
     RunHotspotInteraction(hss->id, mood);
 }
 
-int Hotspot_GetProperty (ScriptHotspot *hss, const char *property)
+int Hotspot_GetProperty(ScriptHotspot *hss, const char *property)
 {
     return get_int_property(thisroom.Hotspots[hss->id].Properties, croom->hsProps[hss->id], property);
 }
 
-void Hotspot_GetPropertyText (ScriptHotspot *hss, const char *property, char *bufer)
+void Hotspot_GetPropertyText(ScriptHotspot *hss, const char *property, char *bufer)
 {
     get_text_property(thisroom.Hotspots[hss->id].Properties, croom->hsProps[hss->id], property, bufer);
-
 }
 
 const char* Hotspot_GetTextProperty(ScriptHotspot *hss, const char *property)

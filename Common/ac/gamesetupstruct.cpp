@@ -49,6 +49,7 @@ void GameSetupStruct::Free()
     audioClips.clear();
     audioClipTypes.clear();
 
+    audioclipProps.clear();
     charProps.clear();
     guiProps.clear();
     dialogProps.clear();

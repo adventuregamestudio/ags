@@ -448,7 +448,10 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     GUIRefCollection guictrl_refs(guibuts, guiinv, guilabels, guilist, guislider, guitext);
     GUI::RebuildGUI(guis, guictrl_refs);
     views = std::move(ents.Views);
+    play.audioclipProps.resize(game.audioClips.size());
     play.charProps.resize(game.numcharacters);
+    play.dialogProps.resize(game.numdialog);
+    play.guiProps.resize(game.numgui);
     dialog = std::move(ents.Dialogs);
     // Set number of game channels corresponding to the loaded game version
     game.numGameChannels = MAX_GAME_CHANNELS;

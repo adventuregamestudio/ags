@@ -1653,6 +1653,15 @@ builtin managed struct GUI {
 
   import Point *GUIToScreenPoint(int guix, int guiy, bool clipToGUI = true);
   import Point *ScreenToGUIPoint(int screenx, int screeny, bool clipToGUI = true);
+
+  /// Gets an integer custom property for this GUI.
+  import int  GetProperty(const string property);
+  /// Gets a text custom property for this GUI.
+  import String GetTextProperty(const string property);
+  /// Sets an integer custom property for this GUI.
+  import bool SetProperty(const string property, int value);
+  /// Sets a text custom property for this GUI.
+  import bool SetTextProperty(const string property, const string value);
 #endif
   readonly int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };
@@ -1743,6 +1752,16 @@ builtin managed struct Region {
   /// Gets the drawing surface for the 8-bit regions mask
   import static DrawingSurface* GetDrawingSurface();  // $AUTOCOMPLETESTATICONLY$
 #endif
+#ifdef SCRIPT_API_v400
+  /// Gets an integer custom property for this region.
+  import int  GetProperty(const string property);
+  /// Gets a text custom property for this region.
+  import String GetTextProperty(const string property);
+  /// Sets an integer custom property for this region.
+  import bool SetProperty(const string property, int value);
+  /// Sets a text custom property for this region.
+  import bool SetTextProperty(const string property, const string value);
+#endif
   int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };
 
@@ -1756,6 +1775,15 @@ builtin managed struct WalkableArea {
   import static DrawingSurface* GetDrawingSurface();  // $AUTOCOMPLETESTATICONLY$
   /// Changes this walkable area's scaling level.
   import void SetScaling(int min, int max);
+  /// Gets an integer custom property for this area.
+  import int  GetProperty(const string property);
+  /// Gets a text custom property for this area.
+  import String GetTextProperty(const string property);
+  /// Sets an integer custom property for this area.
+  import bool SetProperty(const string property, int value);
+  /// Sets a text custom property for this area.
+  import bool SetTextProperty(const string property, const string value);
+
   /// Gets the ID number for this area.
   import readonly attribute int ID;
   /// Gets/sets whether this walkable area is enabled.
@@ -1819,6 +1847,14 @@ builtin managed struct Dialog {
   import static readonly attribute int ExecutedOption; // $AUTOCOMPLETESTATICONLY$
   /// Gets if the dialog options are currently displayed on screen
   import static readonly attribute bool AreOptionsDisplayed; // $AUTOCOMPLETESTATICONLY$
+  /// Gets an integer custom property for this dialog.
+  import int  GetProperty(const string property);
+  /// Gets a text custom property for this dialog.
+  import String GetTextProperty(const string property);
+  /// Sets an integer custom property for this dialog.
+  import bool SetProperty(const string property, int value);
+  /// Sets a text custom property for this dialog.
+  import bool SetTextProperty(const string property, const string value);
 #endif
 
   readonly int reserved[2];   // $AUTOCOMPLETEIGNORE$
@@ -1980,6 +2016,16 @@ builtin managed struct AudioClip {
 #ifdef SCRIPT_API_v361
   /// Gets the script name of this clip.
   import readonly attribute String ScriptName;
+#endif
+#ifdef SCRIPT_API_v400
+  /// Gets an integer custom property for this item.
+  import int  GetProperty(const string property);
+  /// Gets a text custom property for this item.
+  import String GetTextProperty(const string property);
+  /// Sets an integer custom property for this item.
+  import bool SetProperty(const string property, int value);
+  /// Sets a text custom property for this item.
+  import bool SetTextProperty(const string property, const string value);
 #endif
 };
 

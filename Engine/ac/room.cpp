@@ -530,10 +530,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     else croom=&troom;
 
     // Decide what to do if we have been or not in this room before
-    if (croom->beenhere > 0)
-    {
-    }
-    else
+    if (croom->beenhere == 0)
     {
         // If we have not been in this room before, then copy necessary fields from thisroom
         croom->numobj=thisroom.Objects.size();

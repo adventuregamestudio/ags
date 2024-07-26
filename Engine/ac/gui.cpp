@@ -30,6 +30,7 @@
 #include "ac/guicontrol.h"
 #include "ac/invwindow.h"
 #include "ac/mouse.h"
+#include "ac/properties.h"
 #include "ac/runtime_defines.h"
 #include "ac/string.h"
 #include "ac/system.h"
@@ -447,6 +448,26 @@ void GUI_SetScaleY(ScriptGUI *gui, float scaley) {
 
 void GUI_SetScale(ScriptGUI *gui, float scalex, float scaley) {
     guis[gui->id].SetScale(scalex, scaley);
+}
+
+int GUI_GetProperty(ScriptGUI *gui, const char *property)
+{
+    return get_int_property(game.guiProps[gui->id], play.guiProps[gui->id], property);
+}
+
+const char* GUI_GetTextProperty(ScriptGUI *gui, const char *property)
+{
+    return get_text_property_dynamic_string(game.guiProps[gui->id], play.guiProps[gui->id], property);
+}
+
+bool GUI_SetProperty(ScriptGUI *gui, const char *property, int value)
+{
+    return set_int_property(play.guiProps[gui->id], property, value);
+}
+
+bool GUI_SetTextProperty(ScriptGUI *gui, const char *property, const char *value)
+{
+    return set_text_property(play.guiProps[gui->id], property, value);
 }
 
 //=============================================================================
@@ -1168,6 +1189,26 @@ RuntimeScriptValue Sc_GUI_GUIToScreenPoint(void *self, const RuntimeScriptValue 
     API_OBJCALL_OBJAUTO_PINT2_PBOOL(ScriptGUI, ScriptUserObject, GUI_GUIToScreenPoint);
 }
 
+RuntimeScriptValue Sc_GUI_GetProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT_POBJ(ScriptGUI, GUI_GetProperty, const char);
+}
+
+RuntimeScriptValue Sc_GUI_GetTextProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ_POBJ(ScriptGUI, const char, myScriptStringImpl, GUI_GetTextProperty, const char);
+}
+
+RuntimeScriptValue Sc_GUI_SetProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL_POBJ_PINT(ScriptGUI, GUI_SetProperty, const char);
+}
+
+RuntimeScriptValue Sc_GUI_SetTextProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL_POBJ2(ScriptGUI, GUI_SetTextProperty, const char, const char);
+}
+
 void RegisterGUIAPI()
 {
     ScFnRegister gui_api[] = {
@@ -1180,6 +1221,10 @@ void RegisterGUIAPI()
         { "GUI::Click^1",                 API_FN_PAIR(GUI_Click) },
         { "GUI::SetPosition^2",           API_FN_PAIR(GUI_SetPosition) },
         { "GUI::SetSize^2",               API_FN_PAIR(GUI_SetSize) },
+        { "GUI::GetProperty^1",             API_FN_PAIR(GUI_GetProperty) },
+        { "GUI::GetTextProperty^1",         API_FN_PAIR(GUI_GetTextProperty) },
+        { "GUI::SetProperty^2",             API_FN_PAIR(GUI_SetProperty) },
+        { "GUI::SetTextProperty^2",         API_FN_PAIR(GUI_SetTextProperty) },
         { "GUI::get_BackgroundGraphic",   API_FN_PAIR(GUI_GetBackgroundGraphic) },
         { "GUI::set_BackgroundGraphic",   API_FN_PAIR(GUI_SetBackgroundGraphic) },
         { "GUI::get_BackgroundColor",     API_FN_PAIR(GUI_GetBackgroundColor) },

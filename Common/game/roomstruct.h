@@ -205,6 +205,8 @@ struct WalkArea
     // Top and bottom Y of the area
     int32_t     Top;
     int32_t     Bottom;
+    // Custom properties
+    StringIMap  Properties;
 
     WalkArea();
 };

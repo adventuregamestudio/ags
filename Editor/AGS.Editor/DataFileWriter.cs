@@ -1725,6 +1725,7 @@ namespace AGS.Editor
             WriteExtension("v361_objnames", WriteExt_361ObjNames, writer, game, errors);
             WriteExtension("ext_ags399", WriteExt_Ags399, writer, game, errors);
             WriteExtension("v400_gameopts", WriteExt_400GameOpts, writer, game, errors);
+            WriteExtension("v400_customprops", WriteExt_400CustomProps, writer, game, errors);
 
             // End of extensions list
             writer.Write((byte)0xff);
@@ -1829,6 +1830,28 @@ namespace AGS.Editor
             // reserve more 32-bit values for a total of 10
             for (int i = 0; i < 9; ++i)
                 writer.Write((int)0);
+        }
+
+        private static void WriteExt_400CustomProps(BinaryWriter writer, Game game, CompileMessages errors)
+        {
+            // Audio clip properties
+            writer.Write((int)game.AudioClips.Count);
+            for (int i = 0; i < game.AudioClips.Count; ++i)
+            {
+                CustomPropertiesWriter.Write(writer, game.AudioClips[i].Properties);
+            }
+            // Dialog properties
+            writer.Write((int)game.Dialogs.Count);
+            for (int i = 0; i < game.Dialogs.Count; ++i)
+            {
+                CustomPropertiesWriter.Write(writer, game.Dialogs[i].Properties);
+            }
+            // GUI properties
+            writer.Write((int)game.GUIs.Count);
+            for (int i = 0; i < game.GUIs.Count; ++i)
+            {
+                CustomPropertiesWriter.Write(writer, game.GUIs[i].Properties);
+            }
         }
 
         private delegate void WriteExtensionProc(BinaryWriter writer, Game game, CompileMessages errors);

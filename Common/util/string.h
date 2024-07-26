@@ -124,8 +124,8 @@ public:
     void    ReadCount(Stream *in, size_t count);
     // Write() puts the null-terminated string into the stream.
     void    Write(Stream *out) const;
-    // WriteCount() writes N characters to stream, filling the remaining
-    // space with null-terminators when needed.
+    // WriteCount() writes up to N first string's characters to stream,
+    // filling any of the remaining space with zeroes.
     void    WriteCount(Stream *out, size_t count) const;
 
     //-------------------------------------------------------------------------

@@ -29,6 +29,16 @@ using namespace AGS; // FIXME later
 #define DTFLG_SHOWPARSER    1  // show parser in this topic
 #define DCHAR_NARRATOR  999
 #define DCHAR_PLAYER    998
+
+// RoomStatus runtime save format
+// TODO: move to the engine code
+enum DialogSvgVersion
+{
+    kDialogSvgVersion_Initial  = 0,
+    kDialogSvgVersion_40008    = 4000008, // custom properties
+};
+
+
 struct DialogTopic {
     char          optionnames[MAXTOPICOPTIONS][150];
     int           optionflags[MAXTOPICOPTIONS];
@@ -40,7 +50,7 @@ struct DialogTopic {
 
     void ReadFromFile(Common::Stream *in);
 
-    void ReadFromSavegame(Common::Stream *in);
+    void ReadFromSavegame(Common::Stream *in, DialogSvgVersion svg_ver);
     void WriteToSavegame(Common::Stream *out) const;
 };
 

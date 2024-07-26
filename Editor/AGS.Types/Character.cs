@@ -47,7 +47,7 @@ namespace AGS.Types
         private bool _adjustSpeedWithScaling;
         private bool _adjustVolumeWithScaling;
         private bool _movementLinkedToAnimation = true;
-        private CustomProperties _properties;
+        private CustomProperties _properties = new CustomProperties();
         private Interactions _interactions = new Interactions(_interactionSchema);
 
         static Character()
@@ -62,7 +62,6 @@ namespace AGS.Types
 
         public Character()
         {
-            _properties = new CustomProperties();
         }
 
         [Description("The ID number of the character")]

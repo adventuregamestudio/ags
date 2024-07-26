@@ -1442,21 +1442,41 @@ namespace AGS.Editor
             {
                 propertyTypes = CustomPropertyAppliesTo.Characters;
             }
-            else if (objectThatHasProperties is RoomHotspot)
+            else if (objectThatHasProperties is Dialog)
             {
-                propertyTypes = CustomPropertyAppliesTo.Hotspots;
+                propertyTypes = CustomPropertyAppliesTo.Dialogs;
+            }
+            else if (objectThatHasProperties is GUI)
+            {
+                propertyTypes = CustomPropertyAppliesTo.GUIs;
             }
             else if (objectThatHasProperties is InventoryItem)
             {
                 propertyTypes = CustomPropertyAppliesTo.InventoryItems;
             }
-            else if (objectThatHasProperties is RoomObject)
+            else if (objectThatHasProperties is AudioClip)
             {
-                propertyTypes = CustomPropertyAppliesTo.Objects;
+                propertyTypes = CustomPropertyAppliesTo.AudioClips;
             }
             else if (objectThatHasProperties is Room)
             {
                 propertyTypes = CustomPropertyAppliesTo.Rooms;
+            }
+            else if (objectThatHasProperties is RoomObject)
+            {
+                propertyTypes = CustomPropertyAppliesTo.Objects;
+            }
+            else if (objectThatHasProperties is RoomHotspot)
+            {
+                propertyTypes = CustomPropertyAppliesTo.Hotspots;
+            }
+            else if (objectThatHasProperties is RoomRegion)
+            {
+                propertyTypes = CustomPropertyAppliesTo.Regions;
+            }
+            else if (objectThatHasProperties is RoomWalkableArea)
+            {
+                propertyTypes = CustomPropertyAppliesTo.WalkableAreas;
             }
             else
             {

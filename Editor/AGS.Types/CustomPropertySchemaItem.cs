@@ -76,6 +76,36 @@ namespace AGS.Types
             set { _appliesTo = value ? (_appliesTo | CustomPropertyAppliesTo.Rooms) : (_appliesTo & ~CustomPropertyAppliesTo.Rooms); }
         }
 
+        public bool AppliesToAudioClips
+        {
+            get { return _appliesTo.HasFlag(CustomPropertyAppliesTo.AudioClips); }
+            set { _appliesTo = value ? (_appliesTo | CustomPropertyAppliesTo.AudioClips) : (_appliesTo & ~CustomPropertyAppliesTo.AudioClips); }
+        }
+
+        public bool AppliesToDialogs
+        {
+            get { return _appliesTo.HasFlag(CustomPropertyAppliesTo.Dialogs); }
+            set { _appliesTo = value ? (_appliesTo | CustomPropertyAppliesTo.Dialogs) : (_appliesTo & ~CustomPropertyAppliesTo.Dialogs); }
+        }
+
+        public bool AppliesToGUIs
+        {
+            get { return _appliesTo.HasFlag(CustomPropertyAppliesTo.GUIs); }
+            set { _appliesTo = value ? (_appliesTo | CustomPropertyAppliesTo.GUIs) : (_appliesTo & ~CustomPropertyAppliesTo.GUIs); }
+        }
+
+        public bool AppliesToRegions
+        {
+            get { return _appliesTo.HasFlag(CustomPropertyAppliesTo.Regions); }
+            set { _appliesTo = value ? (_appliesTo | CustomPropertyAppliesTo.Regions) : (_appliesTo & ~CustomPropertyAppliesTo.Regions); }
+        }
+
+        public bool AppliesToWalkableAreas
+        {
+            get { return _appliesTo.HasFlag(CustomPropertyAppliesTo.WalkableAreas); }
+            set { _appliesTo = value ? (_appliesTo | CustomPropertyAppliesTo.WalkableAreas) : (_appliesTo & ~CustomPropertyAppliesTo.WalkableAreas); }
+        }
+
         public CustomPropertyType Type
         {
             get { return _type; }
@@ -88,11 +118,16 @@ namespace AGS.Types
             get
             {
                 string toReturn = string.Empty;
+                toReturn += AppliesToAudioClips ? "A" : "  ";
                 toReturn += AppliesToCharacters ? "C" : "  ";
-                toReturn += AppliesToHotspots ? "H" : "  ";
+                toReturn += AppliesToDialogs ? "D" : "  ";
+                toReturn += AppliesToGUIs ? "G" : "  ";
                 toReturn += AppliesToInvItems ? "I" : "  ";
-                toReturn += AppliesToObjects ? "O" : "  ";
                 toReturn += AppliesToRooms ? "R" : "  ";
+                toReturn += AppliesToHotspots ? "H" : "  ";
+                toReturn += AppliesToObjects ? "O" : "  ";
+                toReturn += AppliesToRegions ? "Rg" : "  ";
+                toReturn += AppliesToWalkableAreas ? "W" : "  ";
                 return toReturn;
             }
         }

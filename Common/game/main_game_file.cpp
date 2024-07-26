@@ -545,6 +545,39 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
         // reserve few more 32-bit values (for a total of 10)
         _in->Seek(sizeof(int32_t) * 9);
     }
+    else if (ext_id.CompareNoCase("v400_customprops") == 0)
+    {
+        auto &game = _ents.Game;
+        int errors = 0;
+        game.audioclipProps.resize(game.audioClips.size());
+        game.dialogProps.resize(game.numdialog);
+        game.guiProps.resize(game.numgui);
+
+        size_t num_clips = in->ReadInt32();
+        if (num_clips != game.audioClips.size())
+            return new Error(String::FromFormat("Mismatching number of audio clips: read %zu expected %zu", num_clips, _ents.Game.audioClips.size()));
+        for (size_t i = 0; i < game.audioClips.size(); ++i)
+        {
+            errors += Properties::ReadValues(game.audioclipProps[i], in);
+        }
+        size_t num_dialogs = in->ReadInt32();
+        if (num_dialogs != game.numdialog)
+            return new Error(String::FromFormat("Mismatching number of dialogs: read %zu expected %zu", num_dialogs, game.numdialog));
+        for (size_t i = 0; i < game.numdialog; ++i)
+        {
+            errors += Properties::ReadValues(game.dialogProps[i], in);
+        }
+        size_t num_gui = in->ReadInt32();
+        if (num_gui != game.numgui)
+            return new Error(String::FromFormat("Mismatching number of gui: read %zu expected %zu", num_gui, game.numgui));
+        for (size_t i = 0; i < game.numgui; ++i)
+        {
+            errors += Properties::ReadValues(game.guiProps[i], in);
+        }
+
+        if (errors > 0)
+            return new MainGameFileError(kMGFErr_InvalidPropertyValues);
+    }
     else
     {
         return new MainGameFileError(kMGFErr_ExtUnknown, String::FromFormat("Type: %s", ext_id.GetCStr()));

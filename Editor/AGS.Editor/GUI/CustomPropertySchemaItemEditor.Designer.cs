@@ -39,12 +39,17 @@ namespace AGS.Editor
             this.btnOK = new System.Windows.Forms.Button();
             this.btnCancel = new System.Windows.Forms.Button();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.chkCharacters = new System.Windows.Forms.CheckBox();
-            this.chkObjects = new System.Windows.Forms.CheckBox();
+            this.chkWalkareas = new System.Windows.Forms.CheckBox();
+            this.chkRegions = new System.Windows.Forms.CheckBox();
+            this.chkAudioClips = new System.Windows.Forms.CheckBox();
+            this.chkGUIs = new System.Windows.Forms.CheckBox();
+            this.chkDialogs = new System.Windows.Forms.CheckBox();
+            this.chkRooms = new System.Windows.Forms.CheckBox();
+            this.label5 = new System.Windows.Forms.Label();
             this.chkInventory = new System.Windows.Forms.CheckBox();
             this.chkHotspots = new System.Windows.Forms.CheckBox();
-            this.label5 = new System.Windows.Forms.Label();
-            this.chkRooms = new System.Windows.Forms.CheckBox();
+            this.chkObjects = new System.Windows.Forms.CheckBox();
+            this.chkCharacters = new System.Windows.Forms.CheckBox();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -120,7 +125,8 @@ namespace AGS.Editor
             // 
             // btnOK
             // 
-            this.btnOK.Location = new System.Drawing.Point(15, 211);
+            this.btnOK.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.btnOK.Location = new System.Drawing.Point(15, 249);
             this.btnOK.Name = "btnOK";
             this.btnOK.Size = new System.Drawing.Size(92, 26);
             this.btnOK.TabIndex = 8;
@@ -130,8 +136,9 @@ namespace AGS.Editor
             // 
             // btnCancel
             // 
+            this.btnCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnCancel.Location = new System.Drawing.Point(129, 211);
+            this.btnCancel.Location = new System.Drawing.Point(129, 249);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(92, 26);
             this.btnCancel.TabIndex = 9;
@@ -141,6 +148,14 @@ namespace AGS.Editor
             // 
             // groupBox1
             // 
+            this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBox1.Controls.Add(this.chkWalkareas);
+            this.groupBox1.Controls.Add(this.chkRegions);
+            this.groupBox1.Controls.Add(this.chkAudioClips);
+            this.groupBox1.Controls.Add(this.chkGUIs);
+            this.groupBox1.Controls.Add(this.chkDialogs);
             this.groupBox1.Controls.Add(this.chkRooms);
             this.groupBox1.Controls.Add(this.label5);
             this.groupBox1.Controls.Add(this.chkInventory);
@@ -149,10 +164,109 @@ namespace AGS.Editor
             this.groupBox1.Controls.Add(this.chkCharacters);
             this.groupBox1.Location = new System.Drawing.Point(15, 129);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(461, 66);
+            this.groupBox1.Size = new System.Drawing.Size(461, 104);
             this.groupBox1.TabIndex = 11;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Applies To";
+            // 
+            // chkWalkareas
+            // 
+            this.chkWalkareas.AutoSize = true;
+            this.chkWalkareas.Location = new System.Drawing.Point(316, 68);
+            this.chkWalkareas.Name = "chkWalkareas";
+            this.chkWalkareas.Size = new System.Drawing.Size(100, 17);
+            this.chkWalkareas.TabIndex = 21;
+            this.chkWalkareas.Text = "Walkable Areas";
+            this.chkWalkareas.UseVisualStyleBackColor = true;
+            // 
+            // chkRegions
+            // 
+            this.chkRegions.AutoSize = true;
+            this.chkRegions.Location = new System.Drawing.Point(246, 68);
+            this.chkRegions.Name = "chkRegions";
+            this.chkRegions.Size = new System.Drawing.Size(64, 17);
+            this.chkRegions.TabIndex = 20;
+            this.chkRegions.Text = "Regions";
+            this.chkRegions.UseVisualStyleBackColor = true;
+            // 
+            // chkAudioClips
+            // 
+            this.chkAudioClips.AutoSize = true;
+            this.chkAudioClips.Location = new System.Drawing.Point(358, 41);
+            this.chkAudioClips.Name = "chkAudioClips";
+            this.chkAudioClips.Size = new System.Drawing.Size(78, 17);
+            this.chkAudioClips.TabIndex = 19;
+            this.chkAudioClips.Text = "Audio Clips";
+            this.chkAudioClips.UseVisualStyleBackColor = true;
+            // 
+            // chkGUIs
+            // 
+            this.chkGUIs.AutoSize = true;
+            this.chkGUIs.Location = new System.Drawing.Point(175, 41);
+            this.chkGUIs.Name = "chkGUIs";
+            this.chkGUIs.Size = new System.Drawing.Size(49, 17);
+            this.chkGUIs.TabIndex = 18;
+            this.chkGUIs.Text = "GUIs";
+            this.chkGUIs.UseVisualStyleBackColor = true;
+            // 
+            // chkDialogs
+            // 
+            this.chkDialogs.AutoSize = true;
+            this.chkDialogs.Location = new System.Drawing.Point(98, 41);
+            this.chkDialogs.Name = "chkDialogs";
+            this.chkDialogs.Size = new System.Drawing.Size(60, 17);
+            this.chkDialogs.TabIndex = 17;
+            this.chkDialogs.Text = "Dialogs";
+            this.chkDialogs.UseVisualStyleBackColor = true;
+            // 
+            // chkRooms
+            // 
+            this.chkRooms.AutoSize = true;
+            this.chkRooms.Location = new System.Drawing.Point(13, 68);
+            this.chkRooms.Name = "chkRooms";
+            this.chkRooms.Size = new System.Drawing.Size(58, 17);
+            this.chkRooms.TabIndex = 16;
+            this.chkRooms.Text = "Rooms";
+            this.chkRooms.UseVisualStyleBackColor = true;
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(10, 19);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(294, 13);
+            this.label5.TabIndex = 15;
+            this.label5.Text = "Which types of thing do you want this property to apply to?";
+            // 
+            // chkInventory
+            // 
+            this.chkInventory.AutoSize = true;
+            this.chkInventory.Location = new System.Drawing.Point(246, 41);
+            this.chkInventory.Name = "chkInventory";
+            this.chkInventory.Size = new System.Drawing.Size(104, 17);
+            this.chkInventory.TabIndex = 14;
+            this.chkInventory.Text = "Inventory Items";
+            this.chkInventory.UseVisualStyleBackColor = true;
+            // 
+            // chkHotspots
+            // 
+            this.chkHotspots.AutoSize = true;
+            this.chkHotspots.Location = new System.Drawing.Point(175, 68);
+            this.chkHotspots.Name = "chkHotspots";
+            this.chkHotspots.Size = new System.Drawing.Size(69, 17);
+            this.chkHotspots.TabIndex = 13;
+            this.chkHotspots.Text = "Hotspots";
+            this.chkHotspots.UseVisualStyleBackColor = true;
+            // 
+            // chkObjects
+            // 
+            this.chkObjects.AutoSize = true;
+            this.chkObjects.Location = new System.Drawing.Point(98, 68);
+            this.chkObjects.Name = "chkObjects";
+            this.chkObjects.Size = new System.Drawing.Size(63, 17);
+            this.chkObjects.TabIndex = 12;
+            this.chkObjects.Text = "Objects";
+            this.chkObjects.UseVisualStyleBackColor = true;
             // 
             // chkCharacters
             // 
@@ -164,62 +278,13 @@ namespace AGS.Editor
             this.chkCharacters.Text = "Characters";
             this.chkCharacters.UseVisualStyleBackColor = true;
             // 
-            // chkObjects
-            // 
-            this.chkObjects.AutoSize = true;
-            this.chkObjects.Location = new System.Drawing.Point(313, 41);
-            this.chkObjects.Name = "chkObjects";
-            this.chkObjects.Size = new System.Drawing.Size(63, 17);
-            this.chkObjects.TabIndex = 12;
-            this.chkObjects.Text = "Objects";
-            this.chkObjects.UseVisualStyleBackColor = true;
-            // 
-            // chkInventory
-            // 
-            this.chkInventory.AutoSize = true;
-            this.chkInventory.Location = new System.Drawing.Point(193, 41);
-            this.chkInventory.Name = "chkInventory";
-            this.chkInventory.Size = new System.Drawing.Size(104, 17);
-            this.chkInventory.TabIndex = 14;
-            this.chkInventory.Text = "Inventory Items";
-            this.chkInventory.UseVisualStyleBackColor = true;
-            // 
-            // chkHotspots
-            // 
-            this.chkHotspots.AutoSize = true;
-            this.chkHotspots.Location = new System.Drawing.Point(108, 41);
-            this.chkHotspots.Name = "chkHotspots";
-            this.chkHotspots.Size = new System.Drawing.Size(69, 17);
-            this.chkHotspots.TabIndex = 13;
-            this.chkHotspots.Text = "Hotspots";
-            this.chkHotspots.UseVisualStyleBackColor = true;
-            // 
-            // label5
-            // 
-            this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(10, 19);
-            this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(294, 13);
-            this.label5.TabIndex = 15;
-            this.label5.Text = "Which types of thing do you want this property to apply to?";
-            // 
-            // chkRooms
-            // 
-            this.chkRooms.AutoSize = true;
-            this.chkRooms.Location = new System.Drawing.Point(392, 41);
-            this.chkRooms.Name = "chkRooms";
-            this.chkRooms.Size = new System.Drawing.Size(58, 17);
-            this.chkRooms.TabIndex = 16;
-            this.chkRooms.Text = "Rooms";
-            this.chkRooms.UseVisualStyleBackColor = true;
-            // 
             // CustomPropertySchemaItemEditor
             // 
             this.AcceptButton = this.btnOK;
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.CancelButton = this.btnCancel;
-            this.ClientSize = new System.Drawing.Size(490, 249);
+            this.ClientSize = new System.Drawing.Size(490, 287);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.btnCancel);
             this.Controls.Add(this.btnOK);
@@ -264,5 +329,10 @@ namespace AGS.Editor
         private System.Windows.Forms.CheckBox chkObjects;
         private System.Windows.Forms.CheckBox chkCharacters;
         private System.Windows.Forms.CheckBox chkRooms;
+        private System.Windows.Forms.CheckBox chkGUIs;
+        private System.Windows.Forms.CheckBox chkDialogs;
+        private System.Windows.Forms.CheckBox chkAudioClips;
+        private System.Windows.Forms.CheckBox chkWalkareas;
+        private System.Windows.Forms.CheckBox chkRegions;
     }
 }

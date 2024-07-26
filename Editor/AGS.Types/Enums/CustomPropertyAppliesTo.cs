@@ -13,6 +13,11 @@ namespace AGS.Types
         InventoryItems  = 0x00000004,
         Objects         = 0x00000008,
         Rooms           = 0x00000010,
+        AudioClips      = 0x00000020,
+        Dialogs         = 0x00000040,
+        GUIs            = 0x00000080,
+        Regions         = 0x00000100,
+        WalkableAreas   = 0x00000200,
         Everything      = 0x0FFFFFFF
     }
 }

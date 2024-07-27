@@ -166,6 +166,12 @@
     <Compile Include="Entities\LogBufferEventArgs.cs" />
     <Compile Include="Entities\MultiSelectAction.cs" />
     <Compile Include="Entities\ScriptModuleDef.cs" />
+    <Compile Include="GUI\AdjustMasksDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\AdjustMasksDialog.Designer.cs">
+      <DependentUpon>AdjustMasksDialog.cs</DependentUpon>
+    </Compile>
     <Compile Include="GUI\AssignToView.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -438,6 +444,9 @@
     <Compile Include="Utils\ScriptGeneration.cs" />
     <Compile Include="Utils\StdConsoleWriter.cs" />
     <Compile Include="Utils\Validation.cs" />
+    <EmbeddedResource Include="GUI\AdjustMasksDialog.resx">
+      <DependentUpon>AdjustMasksDialog.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="GUI\frmMain.resx">
       <SubType>Designer</SubType>
       <DependentUpon>frmMain.cs</DependentUpon>

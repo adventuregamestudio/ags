@@ -1760,12 +1760,6 @@ namespace AGS.Editor.Components
                 _backgroundCache[background] = new RoomImage(newBmp, true);
             }
 
-            // If size or resolution has changed, reset masks
-            if (hasResolutionChanged)
-            {
-                ResetMaskCache();
-            }
-
             _loadedRoom.Modified = true;
         }
 
@@ -1842,6 +1836,41 @@ namespace AGS.Editor.Components
             if (x < 0 || y < 0 || x > mask.Width || y > mask.Height) return 0;
 
             return mask.GetRawData()[(y * mask.Width) + x];
+        }
+
+        void IRoomController.ResetMasks()
+        {
+            foreach (RoomAreaMaskType mask in Enum.GetValues(typeof(RoomAreaMaskType)))
+            {
+                if (mask == RoomAreaMaskType.None)
+                    continue;
+
+                if (_maskCache.ContainsKey(mask))
+                {
+                    _maskCache[mask]?.Dispose();
+                    _maskCache[mask] = new RoomImage(CreateMaskBitmap(mask, _loadedRoom.Width, _loadedRoom.Height), true);
+                }
+            }
+        }
+
+        void IRoomController.ResizeMasks(bool doScale, int newWidth, int newHeight, int xOffset, int yOffset)
+        {   
+            if (newWidth <= 0 || newHeight <= 0)
+            {
+                throw new ArgumentException("Negative width or height set for mask resize.");
+            }
+
+            foreach (RoomAreaMaskType mask in Enum.GetValues(typeof(RoomAreaMaskType)))
+            {
+                if (mask == RoomAreaMaskType.None)
+                    continue;
+
+                if (_maskCache.ContainsKey(mask))
+                {
+                    _maskCache[mask].Image = ResizeMaskBitmap(_maskCache[mask].Image, mask, doScale, newWidth, newHeight, xOffset, yOffset);
+                    _maskCache[mask].Modified = true;
+                }
+            }
         }
 
         void IRoomController.DrawRoomBackground(Graphics g, int x, int y, int backgroundNumber, int scaleFactor)
@@ -2102,6 +2131,20 @@ namespace AGS.Editor.Components
             return bitmap;
         }
 
+        /// <summary>
+        /// Resizes a mask bitmap for the given mask type of the requested size.
+        /// </summary>
+        private Bitmap ResizeMaskBitmap(Bitmap originalBitmap, RoomAreaMaskType mask, bool doScale, int newWidth, int newHeight, int xOffset, int yOffset)
+        {
+            // Adjust by the mask scale
+            double scale = _loadedRoom.GetMaskScale(mask);
+
+            int drawWidth = doScale ? newWidth : originalBitmap.Width;
+            int drawHeight = doScale ? newHeight : originalBitmap.Height;
+
+            return BitmapExtensions.ResizeScaleAndOffset(originalBitmap, drawWidth, drawHeight, (int)(newWidth * scale), (int)(newHeight * scale), xOffset, yOffset);
+        }
+
         private Bitmap LoadMask(RoomAreaMaskType mask) => BitmapExtensions.LoadNonLockedBitmap(_loadedRoom.GetMaskFileName(mask));
 
         private void RefreshMask(RoomAreaMaskType mask)
@@ -2183,21 +2226,6 @@ namespace AGS.Editor.Components
                 {
                     _maskCache[mask]?.Dispose();
                     _maskCache[mask] = null;
-                }
-            }
-        }
-
-        private void ResetMaskCache()
-        {
-            foreach (RoomAreaMaskType mask in Enum.GetValues(typeof(RoomAreaMaskType)))
-            {
-                if (mask == RoomAreaMaskType.None)
-                    continue;
-
-                if (_maskCache.ContainsKey(mask))
-                {
-                    _maskCache[mask]?.Dispose();
-                    _maskCache[mask] = new RoomImage(CreateMaskBitmap(mask, _loadedRoom.Width, _loadedRoom.Height), true);
                 }
             }
         }

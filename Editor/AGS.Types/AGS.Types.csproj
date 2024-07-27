@@ -142,6 +142,7 @@
     <Compile Include="EditorFeatures\MenuCommands.cs" />
     <Compile Include="EditorFeatures\MessageBoxIconType.cs" />
     <Compile Include="EditorFeatures\RoomTemplate.cs" />
+    <Compile Include="Enums\AdjustMaskOptions.cs" />
     <Compile Include="Enums\AndroidBuildFormat.cs" />
     <Compile Include="Enums\BlendMode.cs" />
     <Compile Include="Enums\InputMotionMode.cs" />

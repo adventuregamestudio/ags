@@ -51,7 +51,7 @@ static int ascii_getc(AL_CONST char *s)
 /* ascii_getx:
  *  Reads a character from an ASCII string, advancing the pointer position.
  */
-static int ascii_getx(char **s)
+static int ascii_getx(AL_CONST char **s)
 {
    return *((unsigned char *)((*s)++));
 }
@@ -186,7 +186,7 @@ static int ascii_cp_getc(AL_CONST char *s)
 /* ascii_cp_getx:
  *  Reads from an ASCII codepage string, advancing pointer position.
  */
-static int ascii_cp_getx(char **s)
+static int ascii_cp_getx(AL_CONST char **s)
 {
    return codepage_table[*((unsigned char *)((*s)++))];
 }
@@ -259,7 +259,7 @@ static int unicode_getc(AL_CONST char *s)
 /* unicode_getx:
  *  Reads a character from a Unicode string, advancing the pointer position.
  */
-static int unicode_getx(char **s)
+static int unicode_getx(AL_CONST char **s)
 {
    int c = *((unsigned short *)(*s));
    (*s) += sizeof(unsigned short);
@@ -354,7 +354,7 @@ static int utf8_validate(int c)
 /* utf8_getx:
  *  Reads a character from a UTF-8 string, advancing the pointer position.
  */
-/*static*/ int utf8_getx(char **s)
+/*static*/ int utf8_getx(AL_CONST char **s)
 {
    int c = *((unsigned char *)((*s)++));
    int n, t;
@@ -501,9 +501,9 @@ static int utype = U_UTF8;
 /* ugetc: */
 int (*ugetc)(AL_CONST char *s) = utf8_getc;
 /* ugetxc: */
-int (*ugetx)(char **s) = utf8_getx;
+int (*ugetx)(char **s) = (int (*)(char**)) utf8_getx;
 /* ugetxc: */
-int (*ugetxc)(AL_CONST char** s) = (int (*)(AL_CONST char**)) utf8_getx;
+int (*ugetxc)(AL_CONST char** s) = utf8_getx;
 /* usetc: */
 int (*usetc)(char *s, int c) = utf8_setc;
 /* uwidth: */
@@ -569,7 +569,7 @@ int get_uformat(void)
  *  Allows the user to hook in custom routines for supporting a new string
  *  encoding format.
  */
-void register_uformat(int type, int (*ugetc)(AL_CONST char *s), int (*ugetx)(char **s), int (*usetc)(char *s, int c), int (*uwidth)(AL_CONST char *s), int (*ucwidth)(int c), int (*uisok)(int c), int uwidth_max)
+void register_uformat(int type, int (*ugetc)(AL_CONST char *s), int (*ugetx)(AL_CONST char **s), int (*usetc)(char *s, int c), int (*uwidth)(AL_CONST char *s), int (*ucwidth)(int c), int (*uisok)(int c), int uwidth_max)
 {
    UTYPE_INFO *info = _find_utype(type);
 
@@ -655,7 +655,7 @@ int uconvert_size(AL_CONST char *s, int type, int newtype)
 
    size = 0;
 
-   while ((c = info->u_getx((char **)&s)) != 0)
+   while ((c = info->u_getx(&s)) != 0)
       size += outfo->u_cwidth(c);
 
    return size + outfo->u_cwidth(0);
@@ -686,7 +686,7 @@ void do_uconvert(AL_CONST char *s, int type, char *buf, int newtype, int size)
    size -= outfo->u_cwidth(0);
    ASSERT(size >= 0);
 
-   while ((c = info->u_getx((char**)&s)) != 0) {
+   while ((c = info->u_getx(&s)) != 0) {
       if (!outfo->u_isok(c))
 	 c = '^';
 

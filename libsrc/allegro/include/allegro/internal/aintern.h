@@ -86,7 +86,7 @@ typedef struct UTYPE_INFO
 {
    int id;
    AL_METHOD(int, u_getc, (AL_CONST char *s));
-   AL_METHOD(int, u_getx, (char **s));
+   AL_METHOD(int, u_getx, (AL_CONST char **s));
    AL_METHOD(int, u_setc, (char *s, int c));
    AL_METHOD(int, u_width, (AL_CONST char *s));
    AL_METHOD(int, u_cwidth, (int c));

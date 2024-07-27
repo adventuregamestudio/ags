@@ -23,6 +23,7 @@
 
 #include "allegro.h"
 #include "winalleg.h"
+#include <direct.h>
 #include "allegro/internal/aintern.h"
 
 #ifndef ALLEGRO_WINDOWS

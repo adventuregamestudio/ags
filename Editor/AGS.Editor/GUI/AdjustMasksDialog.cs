@@ -1,5 +1,4 @@
-﻿using AGS.Types;
-using System;
+﻿using System;
 using System.Windows.Forms;
 
 namespace AGS.Editor

@@ -574,6 +574,7 @@ Point update_overlay_graphicspace(ScreenOverlay &over)
 }
 
 // For software renderer - apply all supported Overlay transforms
+// FIXME: merge this with transform_sprite
 Bitmap *recreate_overlay_image(ScreenOverlay &over, Bitmap *&scalebmp, Bitmap *&rotbmp)
 {
     Bitmap *pic = over.GetImage();

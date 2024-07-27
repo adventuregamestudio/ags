@@ -2801,10 +2801,9 @@ static void construct_overlays()
                 use_bmp = recreate_overlay_image(over, bmp1, bmp2);
                 overtx.Bmp.reset(bmp1);
                 overtx.Bmp2.reset(bmp2);
-                use_bmp = transform_sprite(over.GetImage(), overtx.Bmp, Size(over.scaleWidth, over.scaleHeight));
                 if (crop_walkbehinds && over.IsRoomLayer())
                 {
-                    auto &use_cache = overtx.Bmp2;
+                    auto &use_cache = overtx.Bmp;
                     if (use_bmp != use_cache.get())
                     {
                         recycle_bitmap(use_cache, use_bmp->GetColorDepth(), use_bmp->GetWidth(), use_bmp->GetHeight(), true);

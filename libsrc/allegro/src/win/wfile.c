@@ -23,6 +23,7 @@
 
 #include "allegro.h"
 #include "winalleg.h"
+#include <direct.h>
 #include "allegro/internal/aintern.h"
 
 #ifndef ALLEGRO_WINDOWS
@@ -35,8 +36,8 @@
 #undef  U_CURRENT
 #define U_CURRENT U_UTF8
 #define ugetc     utf8_getc
-#define ugetx     utf8_getx
-#define ugetxc    utf8_getx
+#define ugetx     ((int (*)(char **))utf8_getx)
+#define ugetxc    ((int (*)(AL_CONST char **))utf8_getx)
 #define usetc     utf8_setc
 #define uwidth    utf8_width
 #define ucwidth   utf8_cwidth

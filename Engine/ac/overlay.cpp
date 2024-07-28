@@ -297,6 +297,28 @@ void Overlay_SetTransparency(ScriptOverlay *scover, int trans)
     over->transparency = GfxDef::Trans100ToLegacyTrans255(trans);
 }
 
+void Overlay_SetPosition(ScriptOverlay *scover, int x, int y, int width, int height)
+{
+    auto *over = GetOverlayValidate("Overlay.SetPosition", scover);
+    over->x = data_to_game_coord(x);
+    over->y = data_to_game_coord(y);
+    // width and height are optional here
+    if (width > 0 || height > 0)
+    {
+        if (width <= 0)
+            width = game_to_data_coord(over->scaleWidth);
+        if (height <= 0)
+            height = game_to_data_coord(over->scaleHeight);
+        Overlay_SetScaledSize(*over, width, height);
+    }
+}
+
+void Overlay_SetSize(ScriptOverlay *scover, int width, int height)
+{
+    auto *over = GetOverlayValidate("Overlay.SetSize", scover);
+    Overlay_SetScaledSize(*over, width, height);
+}
+
 int Overlay_GetZOrder(ScriptOverlay *scover)
 {
     auto *over = GetOverlayValidate("Overlay.ZOrder", scover);
@@ -706,6 +728,16 @@ RuntimeScriptValue Sc_Overlay_SetZOrder(void *self, const RuntimeScriptValue *pa
     API_OBJCALL_VOID_PINT(ScriptOverlay, Overlay_SetZOrder);
 }
 
+RuntimeScriptValue Sc_Overlay_SetPosition(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT4(ScriptOverlay, Overlay_SetPosition);
+}
+
+RuntimeScriptValue Sc_Overlay_SetSize(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT2(ScriptOverlay, Overlay_SetSize);
+}
+
 
 //=============================================================================
 //
@@ -744,6 +776,8 @@ void RegisterOverlayAPI()
 
         { "Overlay::SetText^104",         Sc_Overlay_SetText, ScPl_Overlay_SetText },
         { "Overlay::Remove^0",            API_FN_PAIR(Overlay_Remove) },
+        { "Overlay::SetPosition^4",       API_FN_PAIR(Overlay_SetPosition) },
+        { "Overlay::SetSize^2",           API_FN_PAIR(Overlay_SetSize) },
         { "Overlay::get_Valid",           API_FN_PAIR(Overlay_GetValid) },
         { "Overlay::get_X",               API_FN_PAIR(Overlay_GetX) },
         { "Overlay::set_X",               API_FN_PAIR(Overlay_SetX) },

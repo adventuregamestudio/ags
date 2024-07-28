@@ -1,8 +1,3 @@
-// CHECKME: what does following commentary mean, and is it still applicable?
-// >>>
-// temporarily removed palette functions cos the compiler
-// doesnt support typedefs
-
 // The available script API is determined by two bounds: upper bound
 // determines which new API parts will be enabled, and lower bound
 // determines which obsolete API parts will be disabled.
@@ -1435,6 +1430,12 @@ builtin managed struct Overlay {
   import attribute int Transparency;
   /// Gets/sets the overlay's z-order relative to other overlays and on-screen objects.
   import attribute int ZOrder;
+#endif
+#ifdef SCRIPT_API_v362
+  /// Sets this overlay's position, and optionally its size.
+  import void SetPosition(int x, int y, int width = 0, int height = 0);
+  /// Changes the size of the overlay.
+  import void SetSize(int width, int height);
 #endif
 };
 

@@ -345,6 +345,33 @@ void Overlay_SetZOrder(ScriptOverlay *scover, int zorder) {
     over->zorder = zorder;
 }
 
+void Overlay_SetPosition(ScriptOverlay *scover, int x, int y, int width, int height)
+{
+    auto *over = get_overlay(scover->overlayId);
+    if (!over)
+        quit("!invalid overlay ID specified");
+    over->SetFixedPosition(x, y);
+    // width and height are optional here
+    if (width > 0 || height > 0)
+    {
+        if (width <= 0)
+            width = over->scaleWidth;
+        if (height <= 0)
+            height = over->scaleHeight;
+        over->scaleWidth = width;
+        over->scaleHeight = height;
+        over->MarkChanged();
+    }
+}
+
+void Overlay_SetSize(ScriptOverlay *scover, int width, int height)
+{
+    auto *over = get_overlay(scover->overlayId);
+    if (!over)
+        quit("!invalid overlay ID specified");
+    Overlay_SetScaledSize(*over, width, height);
+}
+
 void Overlay_Tint(ScriptOverlay *scover, int red, int green, int blue, int opacity, int luminance)
 {
     auto *over = get_overlay(scover->overlayId);
@@ -903,6 +930,16 @@ RuntimeScriptValue Sc_Overlay_SetZOrder(void *self, const RuntimeScriptValue *pa
     API_OBJCALL_VOID_PINT(ScriptOverlay, Overlay_SetZOrder);
 }
 
+RuntimeScriptValue Sc_Overlay_SetPosition(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT4(ScriptOverlay, Overlay_SetPosition);
+}
+
+RuntimeScriptValue Sc_Overlay_SetSize(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT2(ScriptOverlay, Overlay_SetSize);
+}
+
 RuntimeScriptValue Sc_Overlay_Tint(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT5(ScriptOverlay, Overlay_Tint);
@@ -997,6 +1034,8 @@ void RegisterOverlayAPI()
         { "Overlay::CreateRoomTextual^106", Sc_Overlay_CreateRoomTextual, ScPl_Overlay_CreateRoomTextual },
         { "Overlay::SetText^104",         Sc_Overlay_SetText, ScPl_Overlay_SetText },
         { "Overlay::Remove^0",            API_FN_PAIR(Overlay_Remove) },
+        { "Overlay::SetPosition^4",       API_FN_PAIR(Overlay_SetPosition) },
+        { "Overlay::SetSize^2",           API_FN_PAIR(Overlay_SetSize) },
         { "Overlay::Tint^5",              API_FN_PAIR(Overlay_Tint) },
         { "Overlay::SetLightLevel^1",     API_FN_PAIR(Overlay_SetLightLevel) },
         { "Overlay::RemoveTint^0",        API_FN_PAIR(Overlay_RemoveTint) },

@@ -1124,6 +1124,10 @@ builtin managed struct Overlay {
   import attribute float Rotation;
 #endif
 #ifdef SCRIPT_API_v400
+  /// Sets this overlay's position, and optionally its size.
+  import void SetPosition(int x, int y, int width = 0, int height = 0);
+  /// Changes the size of the overlay.
+  import void SetSize(int width, int height);
   /// Tints the overlay to the specified colour. RGB values must be in 0-255 range, saturation and luminance in 0-100 range.
   import void Tint(int red, int green, int blue, int saturation, int luminance);
   /// Sets the light level for this overlay, from -100 to 100 (negative values darken the sprite, positive brighten the sprite).

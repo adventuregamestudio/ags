@@ -18,6 +18,7 @@ set(TOOLS_COMMON_SOURCES
         ../Common/game/room_file_base.cpp
         ../Common/game/tra_file.cpp
         ../Common/util/bufferedstream.cpp
+        ../Common/util/cmdlineopts.cpp
         ../Common/util/data_ext.cpp
         ../Common/util/directory.cpp
         ../Common/util/file.cpp

@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <stdio.h>
 #include "data/mfl_utils.h"
+#include "util/cmdlineopts.h"
 #include "util/file.h"
 #include "util/multifilelib.h"
 #include "util/path.h"
@@ -15,6 +16,7 @@
 #include "util/string_utils.h"
 
 using namespace AGS::Common;
+using namespace AGS::Common::CmdLineOpts;
 using namespace AGS::DataUtil;
 
 const char *HELP_STRING = "Usage: agspak <input-dir> <output-pak> [OPTIONS]\n"
@@ -25,39 +27,36 @@ const char *HELP_STRING = "Usage: agspak <input-dir> <output-pak> [OPTIONS]\n"
 int main(int argc, char *argv[])
 {
     printf("agspak v0.1.0 - AGS game packaging tool\n"\
-        "Copyright (c) 2021 AGS Team and contributors\n");
-    for (int i = 1; i < argc; ++i)
+        "Copyright (c) 2024 AGS Team and contributors\n");
+    ParseResult parseResult = Parse(argc,argv,{"-p"});
+    if (parseResult.HelpRequested)
     {
-        const char *arg = argv[i];
-        if (ags_stricmp(arg, "--help") == 0 || ags_stricmp(arg, "/?") == 0 || ags_stricmp(arg, "-?") == 0)
-        {
-            printf("%s\n", HELP_STRING);
-            return 0; // display help and bail out
-        }
+        printf("%s\n", HELP_STRING);
+        return 0; // display help and bail out
     }
-    if (argc < 3)
+    if (parseResult.PosArgs.size() < 2)
     {
         printf("Error: not enough arguments\n");
         printf("%s\n", HELP_STRING);
         return -1;
     }
 
+    bool do_subdirs = parseResult.Opt.count("-r");
     size_t part_size = 0;
-    bool do_subdirs = false;
-    for (int i = 3; i < argc; ++i)
+    for (const auto& opt_with_value : parseResult.OptWithValue)
     {
-        if (ags_stricmp(argv[i], "-p") == 0 && (i < argc - 1))
-            part_size = StrUtil::StringToInt(argv[++i]);
-        else if (ags_stricmp(argv[i], "-r") == 0)
-            do_subdirs = true;
+        if (opt_with_value.first == "-p")
+        {
+            part_size = StrUtil::StringToInt(opt_with_value.second);
+        }
     }
 
-    const char *src = argv[1];
-    const char *dst = argv[2];
-    printf("Input directory: %s\n", src);
-    printf("Output pack file: %s\n", dst);
+    const String src = parseResult.PosArgs[0];
+    const String dst = parseResult.PosArgs[1];
+    printf("Input directory: %s\n", src.GetCStr());
+    printf("Output pack file: %s\n", dst.GetCStr());
 
-    if (!ags_directory_exists(src))
+    if (!ags_directory_exists(src.GetCStr()))
     {
         printf("Error: not a valid input directory.\n");
         return -1;
@@ -66,8 +65,8 @@ int main(int argc, char *argv[])
     //-----------------------------------------------------------------------//
     // Gather list of files and set up library info
     //-----------------------------------------------------------------------//
-    String asset_dir = src;
-    String lib_basefile = dst;
+    const String asset_dir = src;
+    const String lib_basefile = dst;
 
     std::vector<AssetInfo> assets;
     HError err = MakeAssetList(assets, asset_dir, do_subdirs, lib_basefile);

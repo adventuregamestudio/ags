@@ -414,5 +414,93 @@ Display(""test"");
             AssertStringEqual(res, $@"""__NEWSCRIPTSTART_{expected}""
 ");
         }
+
+        [Test]
+        public void NonLatinUnicodeComment()
+        {
+            // Non-latin unicode characters in comments raises no error, as comments are removed
+            IPreprocessor preprocessor = CompilerFactory.CreatePreprocessor(AGS.Types.Version.AGS_EDITOR_VERSION);
+            string script = $@"
+// this is a comment
+// this is a comment with invalid latin characters Иह€한𐍈 <- here
+// 1234
+//#define invalid 5
+// invalid
+int i;
+";
+            string res = preprocessor.Preprocess(script, "ScriptName");
+            Assert.That(preprocessor.Results.Count == 0);
+            string script_res = $@"""__NEWSCRIPTSTART_ScriptName""
+
+
+
+
+
+
+int i;
+";
+
+            AssertStringEqual(res, script_res);
+        }
+
+        [Test]
+        public void NonLatinUnicodeInString()
+        {
+            // Non-latin unicode characters in strings raises no error, as they aren't parsed here
+            IPreprocessor preprocessor = CompilerFactory.CreatePreprocessor(AGS.Types.Version.AGS_EDITOR_VERSION);
+            string script = $@"
+// this is a comment
+// the string below has invalid latin characters
+string st = ""aИह€한𐍈"";
+//#define invalid 5
+// invalid
+int i;
+";
+            string res = preprocessor.Preprocess(script, "ScriptName");
+            Assert.That(preprocessor.Results.Count == 0);
+            string script_res = $@"""__NEWSCRIPTSTART_ScriptName""
+
+
+
+string st = ""aИह€한𐍈"";
+
+
+int i;
+";
+
+            AssertStringEqual(res, script_res);
+        }
+
+        [Test]
+        public void NonLatinUnicodeInScript()
+        {
+            // Non-latin unicode characters in script vars raises error, as they aren't allowed later on the compiler
+            IPreprocessor preprocessor = CompilerFactory.CreatePreprocessor(AGS.Types.Version.AGS_EDITOR_VERSION);
+            string script = $@"
+// the variable below has invalid latin characters
+int aИह€한𐍈 = 15;
+int i;
+";
+            preprocessor.Preprocess(script, "ScriptName");
+            Assert.That(preprocessor.Results.Count, Is.EqualTo(1));
+            Assert.That(preprocessor.Results[0].Code, Is.EqualTo(ErrorCode.InvalidCharacter));
+
+        }
+        
+        [Test]
+        public void NonLatinUnicodeInFunctionName()
+        {
+            // Non-latin unicode characters in function names raises error, as they aren't allowed later on the compiler
+            IPreprocessor preprocessor = CompilerFactory.CreatePreprocessor(AGS.Types.Version.AGS_EDITOR_VERSION);
+            string script = $@"
+// function name has invalid latin characters
+void FuncИह€한𐍈() {{
+    int i = 10;
+}}
+";
+            preprocessor.Preprocess(script, "ScriptName");
+            Assert.That(preprocessor.Results.Count, Is.EqualTo(1));
+            Assert.That(preprocessor.Results[0].Code, Is.EqualTo(ErrorCode.InvalidCharacter));
+        }
     }
 }

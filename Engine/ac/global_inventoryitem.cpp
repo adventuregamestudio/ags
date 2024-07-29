@@ -45,7 +45,8 @@ void set_inv_item_pic(int invi, int piccy) {
     if (game.invinfo[invi].pic == piccy)
         return;
 
-    if (game.invinfo[invi].pic == game.invinfo[invi].cursorPic)
+    if ((loaded_game_file_version < kGameVersion_362) &&
+        game.invinfo[invi].pic == game.invinfo[invi].cursorPic)
     {
         // Backwards compatibility -- there didn't used to be a cursorPic,
         // so if they're the same update both.

@@ -741,9 +741,10 @@ void post_script_cleanup() {
     for (const auto &script : copyof.ScFnQueue) {
         old_room_number = displayed_room;
         RunScriptFunctionAuto(script.ScType, script.Function, script.ParamCount, script.Params);
+        // FIXME: this is some bogus hack for "on_call" event handler
+        // don't use instance + param count, instead find a way to save actual callback name!
         if (script.ScType == kScTypeRoom && script.ParamCount == 1)
         {
-            // some bogus hack for "on_call" event handler
             play.roomscript_finished = 1;
         }
 

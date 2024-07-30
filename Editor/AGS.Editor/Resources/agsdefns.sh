@@ -1720,6 +1720,13 @@ enum EventType {
   eEventLeaveRoomAfterFadeout = 11,
   eEventGameSaved = 12,
 #endif
+#ifdef SCRIPT_API_v362
+  eEventDialogStart = 13,
+  eEventDialogStop = 14,
+  eEventDialogRun = 15,
+  eEventDialogOptionsOpen = 16,
+  eEventDialogOptionsClose = 17,
+#endif
 };
 
 #ifdef SCRIPT_API_v350

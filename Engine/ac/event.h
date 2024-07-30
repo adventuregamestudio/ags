@@ -114,6 +114,11 @@ enum AGSScriptEventType
     kScriptEvent_RoomAfterFadein = 10, // enter after fade-in
     kScriptEvent_RoomAfterFadeout = 11, // after fade-out, right before unloading
     kScriptEvent_GameSaved      = 12,
+    kScriptEvent_DialogStart    = 13, // before game enters a "dialog" state
+    kScriptEvent_DialogStop     = 14, // after game returns from a "dialog" state
+    kScriptEvent_DialogRun      = 15, // a dialog option is run
+    kScriptEvent_DialogOptionsOpen = 16, // before dialog options are displayed on screen
+    kScriptEvent_DialogOptionsClose = 17, // after dialog options are removed from screen
 };
 
 
@@ -200,8 +205,8 @@ struct AGSEvent
 };
 
 void run_claimable_event(const AGS::Common::String &tsname, bool includeRoom, int numParams, const RuntimeScriptValue *params, bool *eventWasClaimed);
-// runs the global script on_event fnuction
-void run_on_event (int evtype, RuntimeScriptValue &wparam);
+// runs the global script on_event function
+void run_on_event(AGSScriptEventType evtype, const RuntimeScriptValue &data1 = RuntimeScriptValue(), const RuntimeScriptValue &data2 = RuntimeScriptValue());
 void run_room_event(int id);
 // event list functions
 void setevent(const AGSEvent &evt);

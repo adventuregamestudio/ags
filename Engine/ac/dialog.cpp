@@ -20,6 +20,7 @@
 #include "ac/dialogtopic.h"
 #include "ac/display.h"
 #include "ac/draw.h"
+#include "ac/event.h"
 #include "ac/gamestate.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/global_character.h"
@@ -1197,7 +1198,8 @@ void DialogOptions::End()
 int run_dialog_entry(int dlgnum)
 {
     DialogTopic *dialog_topic = &dialog[dlgnum];
-    // Run global event kScriptEvent_DialogRun
+    // Run global event kScriptEvent_DialogRun for the startup entry (index 0)
+    run_on_event(kScriptEvent_DialogRun, RuntimeScriptValue().SetInt32(dlgnum), RuntimeScriptValue().SetInt32(0));
     return run_dialog_script(dlgnum, dialog_topic->startupentrypoint, 0);
 }
 
@@ -1207,6 +1209,9 @@ int run_dialog_option(int dlgnum, int dialog_choice, int sayChosenOption, bool r
     DialogTopic *dialog_topic = &dialog[dlgnum];
     int &option_flags = dialog_topic->optionflags[dialog_choice];
     const char *option_name = dialog_topic->optionnames[dialog_choice];
+
+    // Run global event kScriptEvent_DialogRun for the new option
+    run_on_event(kScriptEvent_DialogRun, RuntimeScriptValue().SetInt32(dlgnum), RuntimeScriptValue().SetInt32(dialog_choice + 1));
 
     option_flags |= DFLG_HASBEENCHOSEN;
     bool sayTheOption = false;
@@ -1265,9 +1270,14 @@ int show_dialog_options(int dlgnum, bool runGameLoopsInBackground)
     return last_opt; // only one choice, so select it
   }
 
+  // Run the global DialogOptionsOpen event
+  run_on_event(kScriptEvent_DialogOptionsOpen, RuntimeScriptValue().SetInt32(dlgnum));
+
   DialogOptions dlgopt(dtop, dlgnum, runGameLoopsInBackground);
   dlgopt.Show();
 
+  // Run the global DialogOptionsClose event
+  run_on_event(kScriptEvent_DialogOptionsClose, RuntimeScriptValue().SetInt32(dlgnum), RuntimeScriptValue().SetInt32(dlgopt.GetChosenOption()));
 
   return dlgopt.GetChosenOption();
 }
@@ -1375,6 +1385,9 @@ void do_conversation(int dlgnum)
     if (loaded_game_file_version <= kGameVersion_272)
         play.mouse_cursor_hidden = 0;
 
+    // Run the global DialogStart event
+    run_on_event(kScriptEvent_DialogStart, RuntimeScriptValue().SetInt32(dlgnum));
+
     DialogExec dlgexec(dlgnum);
     dlgexec.Run();
     // CHECKME: find out if this is safe to do always, regardless of number of iterations
@@ -1384,6 +1397,9 @@ void do_conversation(int dlgnum)
         remove_screen_overlay(OVER_COMPLETE);
         play.in_conversation--;
     }
+
+    // Run the global DialogStop event; NOTE: DlgNum may be different in the end
+    run_on_event(kScriptEvent_DialogStop, RuntimeScriptValue().SetInt32(dlgexec.DlgNum));
 }
 
 // end dialog manager

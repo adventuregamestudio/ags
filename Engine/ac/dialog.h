@@ -28,8 +28,12 @@ int  Dialog_HasOptionBeenChosen(ScriptDialog *sd, int option);
 void Dialog_SetOptionState(ScriptDialog *sd, int option, int newState);
 void Dialog_Start(ScriptDialog *sd);
 
+// Starts a dialog
 void do_conversation(int dlgnum);
-int  show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBackground) ;
+// Displays dialog options, and returns the chosen number, or CHOSE_TEXTPARSER if parser input was activated
+int show_dialog_options(int dlgnum, bool runGameLoopsInBackground);
+// Handles a dialog option, optionally "sais" its text, optionally run corresponding dialog script's entry
+int run_dialog_option(int dlgnum, int dialog_choice, int sayChosenOption, bool run_script);
 
 extern std::vector<ScriptDialog> scrDialog;
 extern std::vector<DialogTopic> dialog;

@@ -88,7 +88,13 @@ int Dialog_DisplayOptions(ScriptDialog *sd, int sayChosenOption)
   if ((sayChosenOption < 1) || (sayChosenOption > 3))
     quit("!Dialog.DisplayOptions: invalid parameter passed");
 
-  int chose = show_dialog_options(sd->id, sayChosenOption, (game.options[OPT_RUNGAMEDLGOPTS] != 0));
+  int chose = show_dialog_options(sd->id, (game.options[OPT_RUNGAMEDLGOPTS] != 0));
+
+  if (chose > 0)
+  {
+    run_dialog_option(sd->id, chose, sayChosenOption, false /* don't run script */);
+  }
+
   if (chose != CHOSE_TEXTPARSER)
   {
     chose++;
@@ -185,7 +191,8 @@ void get_dialog_script_parameters(unsigned char* &script, unsigned short* param1
   }
 }
 
-int run_dialog_script(int dialogID, int offse, int optionIndex) {
+int run_dialog_script(int dialogID, int offse, int optionIndex)
+{
   said_speech_line = 0;
   int result = RUN_DIALOG_STAY;
 
@@ -1059,7 +1066,43 @@ void DialogOptions::End()
   remove_screen_overlay(OVER_COMPLETE);
 }
 
-int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBackground) 
+int run_dialog_entry(int dlgnum)
+{
+    DialogTopic *dialog_topic = &dialog[dlgnum];
+    // Run global event kScriptEvent_DialogRun
+    return run_dialog_script(dlgnum, dialog_topic->startupentrypoint, 0);
+}
+
+int run_dialog_option(int dlgnum, int dialog_choice, int sayChosenOption, bool run_script)
+{
+    assert(dialog_choice >= 0 && dialog_choice < MAXTOPICOPTIONS);
+    DialogTopic *dialog_topic = &dialog[dlgnum];
+    int &option_flags = dialog_topic->optionflags[dialog_choice];
+    const char *option_name = dialog_topic->optionnames[dialog_choice];
+
+    option_flags |= DFLG_HASBEENCHOSEN;
+    bool sayTheOption = false;
+    if (sayChosenOption == SAYCHOSEN_YES)
+    {
+        sayTheOption = true;
+    }
+    else if (sayChosenOption == SAYCHOSEN_USEFLAG)
+    {
+        sayTheOption = ((option_flags & DFLG_NOREPEAT) == 0);
+    }
+
+    // Optionally "say" the option's text
+    if (sayTheOption)
+        DisplaySpeech(get_translation(option_name), game.playercharacter);
+
+    // Run the option script
+    if (run_script)
+        return run_dialog_script(dlgnum, dialog_topic->entrypoints[dialog_choice], dialog_choice + 1);
+
+    return 0; // no script, bail out
+}
+
+int show_dialog_options(int dlgnum, bool runGameLoopsInBackground) 
 {
   if ((dlgnum < 0) || (dlgnum >= game.numdialog))
   {
@@ -1097,30 +1140,8 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
   DialogOptions dlgopt(dtop, dlgnum, runGameLoopsInBackground);
   dlgopt.Show();
 
-  int dialog_choice = dlgopt.GetChosenOption();
-  if (dialog_choice >= 0) // NOTE: this condition also excludes CHOSE_TEXTPARSER
-  {
-    assert(dialog_choice >= 0 && dialog_choice < MAXTOPICOPTIONS);
-    DialogTopic *dialog_topic = dlgopt.GetDialog();
-    int &option_flags = dialog_topic->optionflags[dialog_choice];
-    const char *option_name = dialog_topic->optionnames[dialog_choice];
 
-    option_flags |= DFLG_HASBEENCHOSEN;
-    bool sayTheOption = false;
-    if (sayChosenOption == SAYCHOSEN_YES)
-    {
-      sayTheOption = true;
-    }
-    else if (sayChosenOption == SAYCHOSEN_USEFLAG)
-    {
-      sayTheOption = ((option_flags & DFLG_NOREPEAT) == 0);
-    }
-
-    if (sayTheOption)
-      DisplaySpeech(get_translation(option_name), game.playercharacter);
-  }
-
-  return dialog_choice;
+  return dlgopt.GetChosenOption();
 }
 
 // Dialog execution state
@@ -1172,7 +1193,7 @@ void DialogExec::Run()
         // If a new dialog topic: run dialog entry point
         if (DlgNum != DlgWas)
         {
-            res = run_dialog_script(DlgNum, dtop->startupentrypoint, 0);
+            res = run_dialog_entry(DlgNum);
             DlgWas = DlgNum;
 
             // Handle the dialog entry's result
@@ -1185,7 +1206,8 @@ void DialogExec::Run()
         }
 
         // Show current dialog's options
-        int chose = show_dialog_options(DlgNum, SAYCHOSEN_USEFLAG, (game.options[OPT_RUNGAMEDLGOPTS] != 0));
+        int chose = show_dialog_options(DlgNum, (game.options[OPT_RUNGAMEDLGOPTS] != 0));
+
         if (chose == CHOSE_TEXTPARSER)
         {
             said_speech_line = 0;
@@ -1200,8 +1222,9 @@ void DialogExec::Run()
             }
         }
         else if (chose >= 0)
-        { // chose some option - run its script
-            res = run_dialog_script(DlgNum, dtop->entrypoints[chose], chose + 1);
+        {
+            // chose some option - handle it and run its script
+            res = run_dialog_option(DlgNum, chose, SAYCHOSEN_USEFLAG, true /* run script */);
         }
         else
         {

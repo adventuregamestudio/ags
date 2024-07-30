@@ -2193,6 +2193,14 @@ builtin managed struct Dialog {
   /// Gets the script name of this dialog.
   import readonly attribute String ScriptName;
 #endif
+#ifdef SCRIPT_API_v362
+  /// Gets the currently running dialog, returns null if no dialog is run
+  import static readonly attribute Dialog* CurrentDialog; // $AUTOCOMPLETESTATICONLY$
+  /// Gets the currently executed dialog option, or -1 if none is
+  import static readonly attribute int ExecutedOption; // $AUTOCOMPLETESTATICONLY$
+  /// Gets if the dialog options are currently displayed on screen
+  import static readonly attribute bool AreOptionsDisplayed; // $AUTOCOMPLETESTATICONLY$
+#endif
 
   int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };

@@ -66,10 +66,55 @@ enum ViewportSaveFlags
     kSvgViewportVisible = 0x01
 };
 
+// SaveRestorationFlags mark the specifics of a restored save
+enum SaveRestorationFlags
+{
+    kSaveRestore_Default           = 0,
+    // Game data has been cleared to initial state prior to reading a save.
+    // This indicates that if any game entities do not have a match in the
+    // restored save, then they will be presented in their default state
+    // (which they have when the game starts).
+    kSaveRestore_ClearData          = 0x01,
+    // Allow save entries mismatching game contents:
+    // - more entries, less entries, etc
+    kSaveRestore_AllowMismatchExtra = 0x02,
+    kSaveRestore_AllowMismatchLess  = 0x04,
+    // We detected that the save file has less data of certain type
+    // than the game requires.
+    kSaveRestore_MissingDataInSave  = 0x08,
+    // We detected that the save file has more data of certain type
+    // than the game requires.
+    kSaveRestore_ExtraDataInSave    = 0x10,
+};
+
+// SaveRestoredDataCounts contains numbers of different types of data
+// found in the save file. This information may be passed to the game script,
+// letting it detect whether save is applicable to the current game version.
+struct SaveRestoredDataCounts
+{
+    uint32_t Dummy = 0u; // a dummy integer, used to record something that we are not interested in
+    uint32_t AudioClipTypes = 0u;
+    uint32_t Characters = 0u;
+    uint32_t Dialogs = 0u;
+    uint32_t GUIs = 0u;
+    std::vector<uint32_t> GUIControls;
+    uint32_t InventoryItems = 0u;
+    uint32_t Cursors = 0u;
+    uint32_t Views = 0u;
+    std::vector<uint32_t> ViewLoops;
+    std::vector<uint32_t> ViewFrames;
+    uint32_t GlobalScriptDataSz = 0u;
+    uint32_t ScriptModules = 0u;
+    std::vector<uint32_t> ScriptDataSz;
+};
+
 // RestoredData keeps certain temporary data to help with
 // the restoration process
 struct RestoredData
 {
+    SaveRestorationFlags    RestoreFlags = kSaveRestore_Default;
+    SaveRestoredDataCounts  DataCounts;
+
     int                     FPS;
     // Unserialized bitmaps for dynamic surfaces
     std::vector<std::unique_ptr<Bitmap>> DynamicSurfaces;

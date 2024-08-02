@@ -500,11 +500,10 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data)
     setup_player_character(game.playercharacter);
 
     // Save some parameters to restore them after room load
-    int gstimer=play.gscript_timer;
+    const int gstimer = play.gscript_timer;
     const Rect mouse_bounds = play.mbounds;
-
     // disable the queue momentarily
-    int queuedMusicSize = play.music_queue_size;
+    const int queuedMusicSize = play.music_queue_size;
     play.music_queue_size = 0;
 
     // load the room the game was saved in
@@ -513,13 +512,13 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data)
     else
         set_room_placeholder();
 
-    play.gscript_timer=gstimer;
+    // Reapply few parameters after room load
+    play.gscript_timer = gstimer;
     play.mbounds = mouse_bounds;
+
     // restore the correct room volume (they might have modified
     // it with SetMusicVolume)
     thisroom.Options.MusicVolume = r_data.RoomVolume;
-
-    Mouse::SetMoveLimit(mouse_bounds);
 
     set_cursor_mode(r_data.CursorMode);
     set_mouse_cursor(r_data.CursorID, true);
@@ -608,6 +607,16 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data)
     if ((cf_out_chan > 0) && (AudioChans::GetChannel(cf_out_chan) != nullptr))
         play.crossfading_out_channel = cf_out_chan;
 
+    // Test if the old-style audio had playing music and it was properly loaded
+    if (current_music_type > 0)
+    {
+        if ((crossFading > 0 && !AudioChans::GetChannelIfPlaying(crossFading)) ||
+            (crossFading <= 0 && !AudioChans::GetChannelIfPlaying(SCHAN_MUSIC)))
+        {
+            current_music_type = 0; // playback failed, reset flag
+        }
+    }
+
     // If there were synced audio tracks, the time taken to load in the
     // different channels will have thrown them out of sync, so re-time it
     for (int i = 0; i < TOTAL_AUDIO_CHANNELS; ++i)
@@ -636,35 +645,26 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data)
     prepare_gui_runtime(false /* not startup */);
 
     RestoreViewportsAndCameras(r_data);
-
-    play.ClearIgnoreInput(); // don't keep ignored input after save restore
-    update_polled_stuff();
+    set_game_speed(r_data.FPS);
 
     pl_run_plugin_hooks(AGSE_POSTRESTOREGAME, 0);
 
+    // If this is a restart point and no room was loaded, then load startup room
     if (displayed_room < 0)
     {
-        // the restart point, no room was loaded
         load_new_room(playerchar->room, playerchar);
         first_room_initialization();
     }
 
+    // Fill in queued music cache
     if ((play.music_queue_size > 0) && (cachedQueuedMusic == nullptr))
     {
         cachedQueuedMusic = load_music_from_disk(play.music_queue[0], 0);
     }
 
-    // Test if the old-style audio had playing music and it was properly loaded
-    if (current_music_type > 0)
-    {
-        if ((crossFading > 0 && !AudioChans::GetChannelIfPlaying(crossFading)) ||
-            (crossFading <= 0 && !AudioChans::GetChannelIfPlaying(SCHAN_MUSIC)))
-        {
-            current_music_type = 0; // playback failed, reset flag
-        }
-    }
-
-    set_game_speed(r_data.FPS);
+    Mouse::SetMoveLimit(play.mbounds); // apply mouse bounds
+    play.ClearIgnoreInput(); // don't keep ignored input after save restore
+    update_polled_stuff();
 
     // Apply accessibility options, must be done last, because some
     // may override restored game settings

@@ -74,17 +74,24 @@ enum SaveRestorationFlags
     // This indicates that if any game entities do not have a match in the
     // restored save, then they will be presented in their default state
     // (which they have when the game starts).
-    kSaveRestore_ClearData          = 0x01,
+    kSaveRestore_ClearData          = 0x0001,
     // Allow save entries mismatching game contents:
     // - more entries, less entries, etc
-    kSaveRestore_AllowMismatchExtra = 0x02,
-    kSaveRestore_AllowMismatchLess  = 0x04,
+    kSaveRestore_AllowMismatchExtra = 0x0002,
+    kSaveRestore_AllowMismatchLess  = 0x0004,
     // We detected that the save file has less data of certain type
     // than the game requires.
-    kSaveRestore_MissingDataInSave  = 0x08,
+    kSaveRestore_MissingDataInSave  = 0x0008,
     // We detected that the save file has more data of certain type
     // than the game requires.
-    kSaveRestore_ExtraDataInSave    = 0x10,
+    kSaveRestore_ExtraDataInSave    = 0x0010,
+    // Mask for finding out if save has any mismatches
+    kSaveRestore_MismatchMask       = kSaveRestore_MissingDataInSave
+                                    | kSaveRestore_ExtraDataInSave,
+    // Mask for the restoration result flags
+    kSaveRestore_ResultMask         = kSaveRestore_ClearData
+                                    | kSaveRestore_MissingDataInSave
+                                    | kSaveRestore_ExtraDataInSave
 };
 
 // SaveRestoredDataCounts contains numbers of different types of data

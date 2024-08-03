@@ -28,6 +28,11 @@ const char *ScriptUserObject::GetType()
 
 /* static */ DynObjectRef ScriptUserObject::Create(size_t size)
 {
+    return CreateWithManager(&globalDynamicStruct, size);
+}
+
+/* static */ DynObjectRef ScriptUserObject::CreateWithManager(IScriptObject *mgr, size_t size)
+{
     uint8_t *new_data = new uint8_t[size + MemHeaderSz];
     memset(new_data, 0, size + MemHeaderSz);
     Header &hdr = reinterpret_cast<Header&>(*new_data);

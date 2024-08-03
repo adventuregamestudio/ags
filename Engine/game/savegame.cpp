@@ -34,6 +34,8 @@
 #include "ac/system.h"
 #include "ac/timer.h"
 #include "ac/dynobj/dynobj_manager.h"
+#include "ac/dynobj/cc_dynamicarray.h"
+#include "ac/dynobj/scriptuserobject.h"
 #include "debug/debugger.h"
 #include "debug/out.h"
 #include "device/mousew32.h"
@@ -55,6 +57,7 @@
 #include "plugin/plugin_engine.h"
 #include "script/script.h"
 #include "script/cc_common.h"
+#include "script/script_runtime.h"
 #include "util/file.h"
 #include "util/memory_compat.h"
 #include "util/stream.h"
@@ -425,6 +428,43 @@ static void CopyPreservedGameOptions(GameSetupStructBase &gs, const PreservedPar
         gs.options[opt] = pp.GameOptions[opt];
 }
 
+class ScRestoredSaveInfo : protected ScriptUserObject
+{
+public:
+    // Create managed struct object and return a pointer to the beginning of a buffer
+    static DynObjectRef Create(SaveRestorationFlags flags, const SaveRestoredDataCounts &counts,
+        bool default_cancel);
+
+    const char *GetType() override { return "RestoredSaveInfo"; }
+    int Dispose(void *address, bool force) override;
+
+    static bool GetCancel(const void *address);
+    static SaveRestorationFlags GetSaveResult(const void *address);
+    static int GetGUIControlCountArr(const void *address);
+    static int GetViewLoopCountArr(const void *address);
+    static int GetViewFrameCountArr(const void *address);
+    static int GetScriptDataSizeArr(const void *address);
+};
+
+// Call a scripting event to let user validate the restored save
+static HSaveError ValidateRestoredSave(const RestoredData &r_data)
+{
+    auto saveinfo = ScRestoredSaveInfo::Create(r_data.RestoreFlags, r_data.DataCounts,
+        (r_data.RestoreFlags & kSaveRestore_MismatchMask) != 0);
+    ccAddObjectReference(saveinfo.Handle); // add internal ref
+
+    RuntimeScriptValue params[1] = { RuntimeScriptValue().SetScriptObject(saveinfo.Obj, saveinfo.Mgr) };
+    RunScriptFunctionInModules("validate_restored_save", 1, params); // TODO: run in room script too?
+
+    const bool do_cancel = ScRestoredSaveInfo::GetCancel(saveinfo.Obj);
+    ccReleaseObjectReference(saveinfo.Handle); // rem internal ref
+
+    if (do_cancel)
+        return new SavegameError(kSvgErr_GameContentAssertion);
+
+    return HSaveError::None();
+}
+
 // Final processing after successfully restoring from save
 HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data)
 {
@@ -655,6 +695,13 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data)
     RestoreViewportsAndCameras(r_data);
     set_game_speed(r_data.FPS);
 
+    // After all of the game logical state is initialized and reapplied values from save,
+    // call a "validate" script callback, to let user check the restored save
+    // and make final decision: whether to continue with the game, or cancel and quit.
+    HSaveError validate_err = ValidateRestoredSave(r_data);
+    if (!validate_err)
+        return validate_err;
+
     pl_run_plugin_hooks(AGSE_POSTRESTOREGAME, 0);
 
     // If this is a restart point and no room was loaded, then load startup room
@@ -688,7 +735,8 @@ HSaveError RestoreGameState(Stream *in, SavegameVersion svg_version, bool is_gam
     DoBeforeRestore(pp);
 
     // Mark the clear game data state for restoration process
-    r_data.RestoreFlags = (SaveRestorationFlags)(kSaveRestore_ClearData * is_game_clear);
+    r_data.RestoreFlags = (SaveRestorationFlags)((kSaveRestore_ClearData * is_game_clear)
+        | kSaveRestore_AllowMismatchLess); // allow less data in saves
 
     HSaveError err = SavegameComponents::ReadAll(in, svg_version, pp, r_data);
     if (!err)
@@ -852,5 +900,152 @@ void WritePluginSaveData(Stream *out)
     out->Seek(0, kSeekEnd);
 }
 
+//=============================================================================
+//
+// RestoredSaveInfo API
+//
+//=============================================================================
+
+ScRestoredSaveInfo globalScRestoredSaveInfo;
+
+// Create managed struct object and return a pointer to the beginning of a buffer
+DynObjectRef ScRestoredSaveInfo::Create(SaveRestorationFlags flags, const SaveRestoredDataCounts &counts,
+    bool default_cancel)
+{
+    // Construct a SaveInfo object, a managed struct with plain fields
+    // Fill dynamic arrays
+    auto guicount_arr = CCDynamicArray::Create(counts.GUIs, sizeof(int32_t), false);
+    auto viewloopcount_arr = CCDynamicArray::Create(counts.Views, sizeof(int32_t), false);
+    auto viewframecount_arr = CCDynamicArray::Create(counts.Views, sizeof(int32_t), false);
+    auto scriptdata_arr = CCDynamicArray::Create(counts.ScriptModules, sizeof(int32_t), false);
+    for (uint32_t i = 0; i < counts.GUIs; ++i)
+        guicount_arr.Mgr->WriteInt32(guicount_arr.Obj, i * sizeof(int32_t), counts.GUIControls[i]);
+    for (uint32_t i = 0; i < counts.Views; ++i)
+        viewloopcount_arr.Mgr->WriteInt32(viewloopcount_arr.Obj, i * sizeof(int32_t), counts.ViewLoops[i]);
+    for (uint32_t i = 0; i < counts.Views; ++i)
+        viewframecount_arr.Mgr->WriteInt32(viewframecount_arr.Obj, i * sizeof(int32_t), counts.ViewFrames[i]);
+    for (uint32_t i = 0; i < counts.ScriptModules; ++i)
+        scriptdata_arr.Mgr->WriteInt32(scriptdata_arr.Obj, i * sizeof(int32_t), counts.ScriptDataSz[i]);
+    // Create the parent struct
+    auto saveinfo = ScriptUserObject::CreateWithManager(&globalScRestoredSaveInfo,
+          /* public fields */ 12 * sizeof(int32_t)
+        + /* hidden private fields */ 4 * sizeof(int32_t));
+    saveinfo.Mgr->WriteInt32(saveinfo.Obj, 0  * sizeof(int32_t), default_cancel); // Cancel flag
+    saveinfo.Mgr->WriteInt32(saveinfo.Obj, 1  * sizeof(int32_t), flags & kSaveRestore_ResultMask); // RestoredSaveResult
+    saveinfo.Mgr->WriteInt32(saveinfo.Obj, 2  * sizeof(int32_t), counts.AudioClipTypes);
+    saveinfo.Mgr->WriteInt32(saveinfo.Obj, 3  * sizeof(int32_t), counts.Characters);
+    saveinfo.Mgr->WriteInt32(saveinfo.Obj, 4  * sizeof(int32_t), counts.Dialogs);
+    saveinfo.Mgr->WriteInt32(saveinfo.Obj, 5  * sizeof(int32_t), counts.GUIs);
+    saveinfo.Mgr->WriteInt32(saveinfo.Obj, 6  * sizeof(int32_t), counts.InventoryItems);
+    saveinfo.Mgr->WriteInt32(saveinfo.Obj, 7  * sizeof(int32_t), counts.Cursors);
+    saveinfo.Mgr->WriteInt32(saveinfo.Obj, 8  * sizeof(int32_t), counts.Views);
+    saveinfo.Mgr->WriteInt32(saveinfo.Obj, 9  * sizeof(int32_t), counts.GlobalScriptDataSz);
+    saveinfo.Mgr->WriteInt32(saveinfo.Obj, 10  * sizeof(int32_t), counts.ScriptModules);
+    saveinfo.Mgr->WriteInt32(saveinfo.Obj, 11 * sizeof(int32_t), 0 /*TODO: RoomScriptDataSize*/);
+
+    // Assign dynamic array handles to hidden fields
+    saveinfo.Mgr->WriteInt32(saveinfo.Obj, 12 * sizeof(int32_t), guicount_arr.Handle);
+    saveinfo.Mgr->WriteInt32(saveinfo.Obj, 13 * sizeof(int32_t), viewloopcount_arr.Handle);
+    saveinfo.Mgr->WriteInt32(saveinfo.Obj, 14 * sizeof(int32_t), viewframecount_arr.Handle);
+    saveinfo.Mgr->WriteInt32(saveinfo.Obj, 15 * sizeof(int32_t), scriptdata_arr.Handle);
+
+    return saveinfo;
+}
+
+int ScRestoredSaveInfo::Dispose(void *obj, bool force)
+{
+    if (!force)
+    {
+        // Release dynamic arrays stored in hidden fields
+        ccReleaseObjectReference(ReadInt32(obj, 12 * sizeof(int32_t)));
+        ccReleaseObjectReference(ReadInt32(obj, 13 * sizeof(int32_t)));
+        ccReleaseObjectReference(ReadInt32(obj, 14 * sizeof(int32_t)));
+        ccReleaseObjectReference(ReadInt32(obj, 15 * sizeof(int32_t)));
+    }
+    return ScriptUserObject::Dispose(obj, force);
+}
+
 } // namespace Engine
 } // namespace AGS
+
+/* static */ bool ScRestoredSaveInfo::GetCancel(const void *obj)
+{
+    return globalScRestoredSaveInfo.ReadInt32(obj, 0) != 0;
+}
+
+/* static */ SaveRestorationFlags ScRestoredSaveInfo::GetSaveResult(const void *obj)
+{
+    return (SaveRestorationFlags)globalScRestoredSaveInfo.ReadInt32(obj, 1);
+}
+
+/* static */ int ScRestoredSaveInfo::GetGUIControlCountArr(const void *obj)
+{
+    return globalScRestoredSaveInfo.ReadInt32(obj, 12 * sizeof(int32_t));
+}
+
+/* static */ int ScRestoredSaveInfo::GetViewLoopCountArr(const void *obj)
+{
+    return globalScRestoredSaveInfo.ReadInt32(obj, 13 * sizeof(int32_t));
+}
+
+/* static */ int ScRestoredSaveInfo::GetViewFrameCountArr(const void *obj)
+{
+    return globalScRestoredSaveInfo.ReadInt32(obj, 14 * sizeof(int32_t));
+}
+
+/* static */ int ScRestoredSaveInfo::GetScriptDataSizeArr(const void *obj)
+{
+    return globalScRestoredSaveInfo.ReadInt32(obj, 15 * sizeof(int32_t));
+}
+
+void *SaveInfo_GetGUIControlCounts(void *obj)
+{
+    return ccGetObjectAddressFromHandle(ScRestoredSaveInfo::GetGUIControlCountArr(obj));
+}
+
+void *SaveInfo_GetViewLoopCounts(void *obj)
+{
+    return ccGetObjectAddressFromHandle(ScRestoredSaveInfo::GetViewLoopCountArr(obj));
+}
+
+void *SaveInfo_GetViewFrameCounts(void *obj)
+{
+    return ccGetObjectAddressFromHandle(ScRestoredSaveInfo::GetViewFrameCountArr(obj));
+}
+
+void *SaveInfo_GetScriptDataSizes(void *obj)
+{
+    return ccGetObjectAddressFromHandle(ScRestoredSaveInfo::GetScriptDataSizeArr(obj));
+}
+
+RuntimeScriptValue Sc_SaveInfo_GetGUIControlCounts(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ(void, void, globalDynamicStruct, SaveInfo_GetGUIControlCounts);
+}
+
+RuntimeScriptValue Sc_SaveInfo_GetViewLoopCounts(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ(void, void, globalDynamicStruct, SaveInfo_GetViewLoopCounts);
+}
+
+RuntimeScriptValue Sc_SaveInfo_GetViewFrameCounts(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ(void, void, globalDynamicStruct, SaveInfo_GetViewFrameCounts);
+}
+
+RuntimeScriptValue Sc_SaveInfo_GetScriptDataSizes(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ(void, void, globalDynamicStruct, SaveInfo_GetScriptDataSizes);
+}
+
+void RegisterSaveInfoAPI()
+{
+    ScFnRegister saveinfo_api[] = {
+        { "RestoredSaveInfo::GetGUIControlCounts",   API_FN_PAIR(SaveInfo_GetGUIControlCounts) },
+        { "RestoredSaveInfo::GetViewLoopCounts",     API_FN_PAIR(SaveInfo_GetViewLoopCounts) },
+        { "RestoredSaveInfo::GetViewFrameCounts",    API_FN_PAIR(SaveInfo_GetViewFrameCounts) },
+        { "RestoredSaveInfo::GetScriptDataSizes",    API_FN_PAIR(SaveInfo_GetScriptDataSizes) },
+    };
+
+    ccAddExternalFunctions(saveinfo_api);
+}

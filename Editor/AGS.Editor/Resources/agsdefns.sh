@@ -3275,6 +3275,41 @@ builtin struct Screen {
 };
 #endif
 
+#ifdef SCRIPT_API_v362
+enum RestoredSaveResult
+{
+  eRestoredSave_ClearData   = 0x01,
+  eRestoredSave_MissingData = 0x08,
+  eRestoredSave_ExtraData   = 0x10
+};
+
+managed struct RestoredSaveInfo
+{
+  bool         Cancel;
+  readonly RestoredSaveResult Result;
+  readonly int AudioClipTypeCount;
+  readonly int CharacterCount;
+  readonly int DialogCount;
+  readonly int GUICount;
+  readonly int InventoryItemCount;
+  readonly int CursorCount;
+  readonly int ViewCount;
+  readonly int GlobalScriptDataSize;
+  readonly int ScriptModuleCount;
+  readonly int RoomScriptDataSize;
+
+  // readonly int GUIControlCounts[]; // pointer field not supported by AGS 3.*
+  // readonly int ViewLoopCounts[]; // pointer field not supported by AGS 3.*
+  // readonly int ViewFrameCounts[]; // pointer field not supported by AGS 3.*
+  // readonly int ScriptDataSizes[]; // pointer field not supported by AGS 3.*
+
+  import int[] GetGUIControlCounts();
+  import int[] GetViewLoopCounts();
+  import int[] GetViewFrameCounts();
+  import int[] GetScriptDataSizes();
+};
+#endif
+
 
 
 import readonly Character *player;

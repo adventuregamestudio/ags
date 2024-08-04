@@ -641,13 +641,13 @@ void SaveCursorForLocationChange() {
     }
 }
 
-void GetLocationName(int xxx,int yyy,char*tempo) {
-    if (displayed_room < 0)
-        quit("!GetLocationName: no room has been loaded");
-
+void GetLocationName(int xxx,int yyy,char*tempo)
+{
     VALIDATE_STRING(tempo);
-
     tempo[0] = 0;
+
+    if (displayed_room < 0)
+        return; // no room loaded yet
 
     if (GetGUIAt(xxx, yyy) >= 0) {
         int mover = GetInvAt (xxx, yyy);

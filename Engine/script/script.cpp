@@ -427,7 +427,7 @@ int RunScriptFunctionInRoom(const char *tsname, size_t param_count, const Runtim
 {
     // Some room callbacks are considered to be obligatory; for historical reasons these are
     // identified by having no parameters;
-    // TODO: this is a hack, this should be defined either by function type, or as an arg
+    // FIXME: this is a hack, this should be defined either by function type, or as an arg
     const bool strict_room_event = (param_count == 0);
     int toret = RunScriptFunction(roominst.get(), tsname, param_count, params);
     // If it's a obligatory room event, and return code means missing function - error
@@ -670,9 +670,10 @@ void post_script_cleanup() {
     for (const auto &script : copyof.ScFnQueue) {
         old_room_number = displayed_room;
         RunScriptFunctionAuto(script.Instance, script.FnName.GetCStr(), script.ParamCount, script.Params);
+        // FIXME: this is some bogus hack for "on_call" event handler
+        // don't use instance + param count, instead find a way to save actual callback name!
         if (script.Instance == kScInstRoom && script.ParamCount == 1)
         {
-            // some bogus hack for "on_call" event handler
             play.roomscript_finished = 1;
         }
 

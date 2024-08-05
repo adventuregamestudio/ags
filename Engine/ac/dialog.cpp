@@ -20,6 +20,7 @@
 #include "ac/dialogtopic.h"
 #include "ac/display.h"
 #include "ac/draw.h"
+#include "ac/event.h"
 #include "ac/gamestate.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/global_character.h"
@@ -53,6 +54,7 @@
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
+struct DialogExec;
 
 extern GameSetupStruct game;
 extern int in_new_room;
@@ -65,6 +67,7 @@ extern IGraphicsDriver *gfxDriver;
 std::vector<DialogTopic> dialog;
 ScriptDialogOptionsRendering ccDialogOptionsRendering;
 ScriptDrawingSurface* dialogOptionsRenderingSurface;
+std::unique_ptr<DialogExec> dialogExec; // current running dialog
 
 int said_speech_line; // used while in dialog to track whether screen needs updating
 
@@ -1069,7 +1072,8 @@ void DialogOptions::End()
 int run_dialog_entry(int dlgnum)
 {
     DialogTopic *dialog_topic = &dialog[dlgnum];
-    // Run global event kScriptEvent_DialogRun
+    // Run global event kScriptEvent_DialogRun for the startup entry (index 0)
+    run_on_event(kScriptEvent_DialogRun, RuntimeScriptValue().SetInt32(dlgnum), RuntimeScriptValue().SetInt32(0));
     return run_dialog_script(dlgnum, dialog_topic->startupentrypoint, 0);
 }
 
@@ -1079,6 +1083,9 @@ int run_dialog_option(int dlgnum, int dialog_choice, int sayChosenOption, bool r
     DialogTopic *dialog_topic = &dialog[dlgnum];
     int &option_flags = dialog_topic->optionflags[dialog_choice];
     const char *option_name = dialog_topic->optionnames[dialog_choice];
+
+    // Run global event kScriptEvent_DialogRun for the new option
+    run_on_event(kScriptEvent_DialogRun, RuntimeScriptValue().SetInt32(dlgnum), RuntimeScriptValue().SetInt32(dialog_choice + 1));
 
     option_flags |= DFLG_HASBEENCHOSEN;
     bool sayTheOption = false;
@@ -1137,14 +1144,20 @@ int show_dialog_options(int dlgnum, bool runGameLoopsInBackground)
     return last_opt; // only one choice, so select it
   }
 
+  // Run the global DialogOptionsOpen event
+  run_on_event(kScriptEvent_DialogOptionsOpen, RuntimeScriptValue().SetInt32(dlgnum));
+
   DialogOptions dlgopt(dtop, dlgnum, runGameLoopsInBackground);
   dlgopt.Show();
 
+  // Run the global DialogOptionsClose event
+  run_on_event(kScriptEvent_DialogOptionsClose, RuntimeScriptValue().SetInt32(dlgnum), RuntimeScriptValue().SetInt32(dlgopt.GetChosenOption()));
 
   return dlgopt.GetChosenOption();
 }
 
 // Dialog execution state
+// TODO: reform into GameState implementation, similar to DialogOptions!
 struct DialogExec
 {
     int DlgNum = -1;
@@ -1153,6 +1166,8 @@ struct DialogExec
     bool IsFirstEntry = true;
     // nested dialogs "stack"
     std::stack<int> TopicHist;
+    int ExecutedOption = -1; // option which is currently run (or -1)
+    bool AreOptionsDisplayed = false; // if dialog options are displayed on screen
 
     DialogExec(int start_dlgnum) : DlgNum(start_dlgnum) {}
     int HandleDialogResult(int res);
@@ -1193,8 +1208,10 @@ void DialogExec::Run()
         // If a new dialog topic: run dialog entry point
         if (DlgNum != DlgWas)
         {
+            ExecutedOption = 0;
             res = run_dialog_entry(DlgNum);
             DlgWas = DlgNum;
+            ExecutedOption = -1;
 
             // Handle the dialog entry's result
             res = HandleDialogResult(res);
@@ -1206,7 +1223,9 @@ void DialogExec::Run()
         }
 
         // Show current dialog's options
+        AreOptionsDisplayed = true;
         int chose = show_dialog_options(DlgNum, (game.options[OPT_RUNGAMEDLGOPTS] != 0));
+        AreOptionsDisplayed = false;
 
         if (chose == CHOSE_TEXTPARSER)
         {
@@ -1223,8 +1242,10 @@ void DialogExec::Run()
         }
         else if (chose >= 0)
         {
+            ExecutedOption = chose;
             // chose some option - handle it and run its script
             res = run_dialog_option(DlgNum, chose, SAYCHOSEN_USEFLAG, true /* run script */);
+            ExecutedOption = -1;
         }
         else
         {
@@ -1243,15 +1264,22 @@ void do_conversation(int dlgnum)
 {
     EndSkippingUntilCharStops();
 
-    DialogExec dlgexec(dlgnum);
-    dlgexec.Run();
+    // Run the global DialogStart event
+    run_on_event(kScriptEvent_DialogStart, RuntimeScriptValue().SetInt32(dlgnum));
+
+    dialogExec.reset(new DialogExec(dlgnum));
+    dialogExec->Run();
     // CHECKME: find out if this is safe to do always, regardless of number of iterations
-    if (dlgexec.IsFirstEntry)
+    if (dialogExec->IsFirstEntry)
     {
         // bail out from first startup script
         remove_screen_overlay(OVER_COMPLETE);
         play.in_conversation--;
     }
+
+    // Run the global DialogStop event; NOTE: DlgNum may be different in the end
+    run_on_event(kScriptEvent_DialogStop, RuntimeScriptValue().SetInt32(dialogExec->DlgNum));
+    dialogExec = {};
 }
 
 // end dialog manager
@@ -1276,10 +1304,39 @@ ScriptDialog *Dialog_GetByName(const char *name)
     return static_cast<ScriptDialog*>(ccGetScriptObjectAddress(name, ccDynamicDialog.GetType()));
 }
 
+ScriptDialog *Dialog_GetCurrentDialog()
+{
+    return dialogExec ? &scrDialog[dialogExec->DlgNum] : nullptr;
+}
+
+int Dialog_GetExecutedOption()
+{
+    return dialogExec ? dialogExec->ExecutedOption : -1;
+}
+
+bool Dialog_GetAreOptionsDisplayed()
+{
+    return dialogExec ? dialogExec->AreOptionsDisplayed : false;
+}
 
 RuntimeScriptValue Sc_Dialog_GetByName(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_OBJ_POBJ(ScriptDialog, ccDynamicDialog, Dialog_GetByName, const char);
+}
+
+RuntimeScriptValue Sc_Dialog_GetCurrentDialog(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ(ScriptDialog, ccDynamicDialog, Dialog_GetCurrentDialog);
+}
+
+RuntimeScriptValue Sc_Dialog_GetExecutedOption(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Dialog_GetExecutedOption);
+}
+
+RuntimeScriptValue Sc_Dialog_GetAreOptionsDisplayed(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_BOOL(Dialog_GetAreOptionsDisplayed);
 }
 
 // int (ScriptDialog *sd)
@@ -1350,6 +1407,9 @@ void RegisterDialogAPI()
 {
     ScFnRegister dialog_api[] = {
         { "Dialog::GetByName",            API_FN_PAIR(Dialog_GetByName) },
+        { "Dialog::get_CurrentDialog",    API_FN_PAIR(Dialog_GetCurrentDialog) },
+        { "Dialog::get_ExecutedOption",   API_FN_PAIR(Dialog_GetExecutedOption) },
+        { "Dialog::get_AreOptionsDisplayed", API_FN_PAIR(Dialog_GetAreOptionsDisplayed) },
         { "Dialog::get_ID",               API_FN_PAIR(Dialog_GetID) },
         { "Dialog::get_OptionCount",      API_FN_PAIR(Dialog_GetOptionCount) },
         { "Dialog::get_ScriptName",       API_FN_PAIR(Dialog_GetScriptName) },

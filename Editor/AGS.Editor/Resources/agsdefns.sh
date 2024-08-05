@@ -1327,6 +1327,13 @@ enum EventType {
   eEventLeaveRoomAfterFadeout = 11,
   eEventGameSaved = 12,
 #endif
+#ifdef SCRIPT_API_v400
+  eEventDialogStart = 13,
+  eEventDialogStop = 14,
+  eEventDialogRun = 15,
+  eEventDialogOptionsOpen = 16,
+  eEventDialogOptionsClose = 17,
+#endif
 };
 
 #ifdef SCRIPT_API_v350
@@ -1804,6 +1811,14 @@ builtin managed struct Dialog {
 #ifdef SCRIPT_API_v361
   /// Gets the script name of this dialog.
   import readonly attribute String ScriptName;
+#endif
+#ifdef SCRIPT_API_v362
+  /// Gets the currently running dialog, returns null if no dialog is run
+  import static readonly attribute Dialog* CurrentDialog; // $AUTOCOMPLETESTATICONLY$
+  /// Gets the currently executed dialog option, or -1 if none is
+  import static readonly attribute int ExecutedOption; // $AUTOCOMPLETESTATICONLY$
+  /// Gets if the dialog options are currently displayed on screen
+  import static readonly attribute bool AreOptionsDisplayed; // $AUTOCOMPLETESTATICONLY$
 #endif
 
   readonly int reserved[2];   // $AUTOCOMPLETEIGNORE$

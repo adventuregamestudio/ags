@@ -106,10 +106,10 @@ int run_claimable_event(const char *tsname, bool includeRoom, int numParams, con
 }
 
 // runs the global script on_event function
-void run_on_event(int evtype, RuntimeScriptValue &wparam)
+void run_on_event(AGSScriptEventType evtype, const RuntimeScriptValue &data1, const RuntimeScriptValue &data2)
 {
-    RuntimeScriptValue params[]{ evtype , wparam };
-    QueueScriptFunction(kScInstGame, "on_event", 2, params);
+    RuntimeScriptValue params[]{ evtype , data1, data2 };
+    QueueScriptFunction(kScInstGame, "on_event", 3, params);
 }
 
 void run_room_event(int id) {

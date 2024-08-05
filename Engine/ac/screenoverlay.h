@@ -48,6 +48,8 @@ enum OverlayFlags
     kOver_RoomLayer        = 0x0004, // work in room layer (as opposed to UI)
     kOver_SpriteShared     = 0x0008, // reference shared sprite (as opposed to exclusive)
     kOver_AutoPosition     = 0x0010, // autoposition over a linked Character (speech)
+    kOver_HasTint          = 0x0020,
+    kOver_HasLightLevel    = 0x0040,
 };
 
 enum OverlaySvgVersion
@@ -81,6 +83,8 @@ struct ScreenOverlay
     int associatedOverlayHandle = 0; // script obj handle
     int zorder = INT_MIN;
     float rotation = 0.f;
+    uint8_t tint_r = 0u, tint_g = 0u, tint_b = 0u, tint_level = 0u;
+    int tint_light = 0; // -100 to 100 (comply to objects and characters)
     Common::BlendMode blendMode = Common::kBlend_Normal;
     int transparency = 0;
     Common::GraphicSpace _gs;
@@ -96,6 +100,8 @@ struct ScreenOverlay
     bool IsSpriteShared() const { return (_flags & kOver_SpriteShared) != 0; }
     bool IsAutoPosition() const { return (_flags & kOver_AutoPosition) != 0; }
     bool IsRoomLayer() const { return (_flags & kOver_RoomLayer) != 0; }
+    bool HasTint() const { return (_flags & kOver_HasTint) != 0; }
+    bool HasLightLevel() const { return (_flags & kOver_HasLightLevel) != 0; }
     void SetAutoPosition(int for_character)
     {
         _flags |= kOver_AutoPosition;
@@ -122,6 +128,12 @@ struct ScreenOverlay
     void SetImage(std::unique_ptr<Common::Bitmap> pic, int offx = 0, int offy = 0);
     // Assigns a shared sprite to this overlay
     void SetSpriteNum(int sprnum, int offx = 0, int offy = 0);
+    // Assigns tint settings
+    void SetTint(int red, int green, int blue, int opacity, int luminance);
+    // Assigns light level
+    void SetLightLevel(int light_level);
+    // Removes tint and light level
+    void RemoveTint();
     // Tells if Overlay has graphically changed recently
     bool HasChanged() const { return _hasChanged; }
     // Manually marks GUI as graphically changed

@@ -345,6 +345,107 @@ void Overlay_SetZOrder(ScriptOverlay *scover, int zorder) {
     over->zorder = zorder;
 }
 
+void Overlay_Tint(ScriptOverlay *scover, int red, int green, int blue, int opacity, int luminance)
+{
+    auto *over = get_overlay(scover->overlayId);
+    if (!over)
+        quit("!invalid overlay ID specified");
+
+    if ((red < 0) || (green < 0) || (blue < 0) ||
+        (red > 255) || (green > 255) || (blue > 255) ||
+        (opacity < 0) || (opacity > 100) ||
+        (luminance < 0) || (luminance > 100))
+    {
+        debug_script_warn("Overlay.Tint: invalid parameter(s). R,G,B must be 0-255 (passed: %d,%d,%d), opacity & luminance 0-100 (passed: %d,%d)",
+            red, green, blue, opacity, luminance);
+        return;
+    }
+
+    over->SetTint(red, green, blue, opacity, GfxDef::Value100ToValue250(luminance));
+}
+
+void Overlay_SetLightLevel(ScriptOverlay *scover, int light_level)
+{
+    auto *over = get_overlay(scover->overlayId);
+    if (!over)
+        quit("!invalid overlay ID specified");
+
+    over->SetLightLevel(Math::Clamp(light_level, -100, 100));
+}
+
+void Overlay_RemoveTint(ScriptOverlay *scover)
+{
+    auto *over = get_overlay(scover->overlayId);
+    if (!over)
+        quit("!invalid overlay ID specified");
+
+    over->RemoveTint();
+}
+
+bool Overlay_GetHasLight(ScriptOverlay *scover)
+{
+    auto *over = get_overlay(scover->overlayId);
+    if (!over)
+        quit("!invalid overlay ID specified");
+    return over->HasLightLevel();
+}
+
+bool Overlay_GetHasTint(ScriptOverlay *scover)
+{
+    auto *over = get_overlay(scover->overlayId);
+    if (!over)
+        quit("!invalid overlay ID specified");
+    return over->HasTint();
+}
+
+int Overlay_GetLightLevel(ScriptOverlay *scover)
+{
+    auto *over = get_overlay(scover->overlayId);
+    if (!over)
+        quit("!invalid overlay ID specified");
+    return over->HasLightLevel() ? over->tint_light : 0;
+}
+
+int Overlay_GetTintRed(ScriptOverlay *scover)
+{
+    auto *over = get_overlay(scover->overlayId);
+    if (!over)
+        quit("!invalid overlay ID specified");
+    return over->HasTint() ? over->tint_r : 0;
+}
+
+int Overlay_GetTintGreen(ScriptOverlay *scover)
+{
+    auto *over = get_overlay(scover->overlayId);
+    if (!over)
+        quit("!invalid overlay ID specified");
+    return over->HasTint() ? over->tint_g : 0;
+}
+
+int Overlay_GetTintBlue(ScriptOverlay *scover)
+{
+    auto *over = get_overlay(scover->overlayId);
+    if (!over)
+        quit("!invalid overlay ID specified");
+    return over->HasTint() ? over->tint_b : 0;
+}
+
+int Overlay_GetTintSaturation(ScriptOverlay *scover)
+{
+    auto *over = get_overlay(scover->overlayId);
+    if (!over)
+        quit("!invalid overlay ID specified");
+    return over->HasTint() ? over->tint_level : 0;
+}
+
+int Overlay_GetTintLuminance(ScriptOverlay *scover)
+{
+    auto *over = get_overlay(scover->overlayId);
+    if (!over)
+        quit("!invalid overlay ID specified");
+    return over->HasTint() ? GfxDef::Value250ToValue100(over->tint_light) : 0;
+}
+
 //=============================================================================
 
 // Creates and registers a managed script object for existing overlay object;
@@ -792,7 +893,6 @@ RuntimeScriptValue Sc_Overlay_SetTransparency(void *self, const RuntimeScriptVal
     API_OBJCALL_VOID_PINT(ScriptOverlay, Overlay_SetTransparency);
 }
 
-
 RuntimeScriptValue Sc_Overlay_GetZOrder(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptOverlay, Overlay_GetZOrder);
@@ -801,6 +901,61 @@ RuntimeScriptValue Sc_Overlay_GetZOrder(void *self, const RuntimeScriptValue *pa
 RuntimeScriptValue Sc_Overlay_SetZOrder(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(ScriptOverlay, Overlay_SetZOrder);
+}
+
+RuntimeScriptValue Sc_Overlay_Tint(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT5(ScriptOverlay, Overlay_Tint);
+}
+
+RuntimeScriptValue Sc_Overlay_SetLightLevel(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptOverlay, Overlay_SetLightLevel);
+}
+
+RuntimeScriptValue Sc_Overlay_RemoveTint(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID(ScriptOverlay, Overlay_RemoveTint);
+}
+
+RuntimeScriptValue Sc_Overlay_GetHasLight(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL(ScriptOverlay, Overlay_GetHasLight);
+}
+
+RuntimeScriptValue Sc_Overlay_GetHasTint(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL(ScriptOverlay, Overlay_GetHasTint);
+}
+
+RuntimeScriptValue Sc_Overlay_GetLightLevel(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptOverlay, Overlay_GetLightLevel);
+}
+
+RuntimeScriptValue Sc_Overlay_GetTintBlue(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptOverlay, Overlay_GetTintBlue);
+}
+
+RuntimeScriptValue Sc_Overlay_GetTintGreen(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptOverlay, Overlay_GetTintGreen);
+}
+
+RuntimeScriptValue Sc_Overlay_GetTintRed(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptOverlay, Overlay_GetTintRed);
+}
+
+RuntimeScriptValue Sc_Overlay_GetTintSaturation(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptOverlay, Overlay_GetTintSaturation);
+}
+
+RuntimeScriptValue Sc_Overlay_GetTintLuminance(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptOverlay, Overlay_GetTintLuminance);
 }
 
 //=============================================================================
@@ -842,6 +997,9 @@ void RegisterOverlayAPI()
         { "Overlay::CreateRoomTextual^106", Sc_Overlay_CreateRoomTextual, ScPl_Overlay_CreateRoomTextual },
         { "Overlay::SetText^104",         Sc_Overlay_SetText, ScPl_Overlay_SetText },
         { "Overlay::Remove^0",            API_FN_PAIR(Overlay_Remove) },
+        { "Overlay::Tint^5",              API_FN_PAIR(Overlay_Tint) },
+        { "Overlay::SetLightLevel^1",     API_FN_PAIR(Overlay_SetLightLevel) },
+        { "Overlay::RemoveTint^0",        API_FN_PAIR(Overlay_RemoveTint) },
         { "Overlay::get_Valid",           API_FN_PAIR(Overlay_GetValid) },
         { "Overlay::get_X",               API_FN_PAIR(Overlay_GetX) },
         { "Overlay::set_X",               API_FN_PAIR(Overlay_SetX) },
@@ -860,6 +1018,14 @@ void RegisterOverlayAPI()
         { "Overlay::set_Transparency",    API_FN_PAIR(Overlay_SetTransparency) },
         { "Overlay::get_ZOrder",          API_FN_PAIR(Overlay_GetZOrder) },
         { "Overlay::set_ZOrder",          API_FN_PAIR(Overlay_SetZOrder) },
+        { "Overlay::get_HasLight",        API_FN_PAIR(Overlay_GetHasLight) },
+        { "Overlay::get_HasTint",         API_FN_PAIR(Overlay_GetHasTint) },
+        { "Overlay::get_LightLevel",      API_FN_PAIR(Overlay_GetLightLevel) },
+        { "Overlay::get_TintBlue",        API_FN_PAIR(Overlay_GetTintBlue) },
+        { "Overlay::get_TintGreen",       API_FN_PAIR(Overlay_GetTintGreen) },
+        { "Overlay::get_TintRed",         API_FN_PAIR(Overlay_GetTintRed) },
+        { "Overlay::get_TintSaturation",  API_FN_PAIR(Overlay_GetTintSaturation) },
+        { "Overlay::get_TintLuminance",   API_FN_PAIR(Overlay_GetTintLuminance) },
 
         { "Overlay::get_BlendMode",       API_FN_PAIR(Overlay_GetBlendMode) },
         { "Overlay::set_BlendMode",       API_FN_PAIR(Overlay_SetBlendMode) },

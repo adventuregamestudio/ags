@@ -93,6 +93,33 @@ void ScreenOverlay::SetSpriteNum(int sprnum, int offx, int offy)
     MarkChanged();
 }
 
+void ScreenOverlay::SetTint(int red, int green, int blue, int opacity, int luminance)
+{
+    tint_r = red;
+    tint_g = green;
+    tint_b = blue;
+    tint_level = opacity;
+    tint_light = luminance;
+    _flags &= ~kOver_HasLightLevel;
+    _flags |= kOver_HasTint;
+    MarkChanged();
+}
+
+void ScreenOverlay::SetLightLevel(int light_level)
+{
+    tint_level = tint_r = tint_g = tint_b = 0;
+    tint_light = light_level;
+    _flags &= ~kOver_HasTint;
+    _flags |= kOver_HasLightLevel;
+    MarkChanged();
+}
+
+void ScreenOverlay::RemoveTint()
+{
+    _flags &= ~(kOver_HasTint | kOver_HasLightLevel);
+    MarkChanged();
+}
+
 void ScreenOverlay::ReadFromSavegame(Stream *in, bool &has_bitmap, int32_t cmp_ver)
 {
     ResetImage();
@@ -146,8 +173,12 @@ void ScreenOverlay::ReadFromSavegame(Stream *in, bool &has_bitmap, int32_t cmp_v
         blendMode = (BlendMode)in->ReadInt32();
         // Reserved for colour options
         in->ReadInt32(); // colour flags
-        in->ReadInt32(); // tint rgb + s
-        in->ReadInt32(); // tint light (or light level)
+        // tint rgb + s (4 uint8)
+        tint_r = in->ReadInt8();
+        tint_g = in->ReadInt8();
+        tint_b = in->ReadInt8();
+        tint_level = in->ReadInt8();
+        tint_light = in->ReadInt32(); // tint light (or light level)
         // Reserved for transform options
         in->ReadInt32(); // sprite transform flags1
         in->ReadInt32(); // sprite transform flags2
@@ -196,8 +227,12 @@ void ScreenOverlay::WriteToSavegame(Stream *out) const
     out->WriteInt32(blendMode);
     // Reserved for colour options
     out->WriteInt32(0); // colour flags
-    out->WriteInt32(0); // tint rgb + s
-    out->WriteInt32(0); // tint light (or light level)
+    // tint rgb + s (4 uint8)
+    out->WriteInt8(tint_r);
+    out->WriteInt8(tint_g);
+    out->WriteInt8(tint_b);
+    out->WriteInt8(tint_level);
+    out->WriteInt32(tint_light); // tint light (or light level)
     // Reserved for transform options
     out->WriteInt32(0); // sprite transform flags1
     out->WriteInt32(0); // sprite transform flags2

@@ -909,7 +909,7 @@ int Character_GetTintSaturation(CharacterInfo *ch)
 
 int Character_GetTintLuminance(CharacterInfo *ch)
 {
-    return ch->has_explicit_tint() ? ((charextra[ch->index_id].tint_light * 10) / 25) : 0;
+    return ch->has_explicit_tint() ? GfxDef::Value250ToValue100(charextra[ch->index_id].tint_light) : 0;
 }
 
 void Character_SetOption(CharacterInfo *chaa, int flag, int yesorno) {
@@ -988,7 +988,11 @@ void Character_Tint(CharacterInfo *chaa, int red, int green, int blue, int opaci
         (red > 255) || (green > 255) || (blue > 255) ||
         (opacity < 0) || (opacity > 100) ||
         (luminance < 0) || (luminance > 100))
-        quit("!Character.Tint: invalid parameter. R,G,B must be 0-255, opacity & luminance 0-100");
+    {
+        debug_script_warn("Character.Tint: invalid parameter(s). R,G,B must be 0-255 (passed: %d,%d,%d), opacity & luminance 0-100 (passed: %d,%d)",
+            red, green, blue, opacity, luminance);
+        return;
+    }
 
     debug_script_log("Set %s tint RGB(%d,%d,%d) %d%%", chaa->scrname.GetCStr(), red, green, blue, opacity);
 
@@ -996,7 +1000,7 @@ void Character_Tint(CharacterInfo *chaa, int red, int green, int blue, int opaci
     charextra[chaa->index_id].tint_g = green;
     charextra[chaa->index_id].tint_b = blue;
     charextra[chaa->index_id].tint_level = opacity;
-    charextra[chaa->index_id].tint_light = (luminance * 25) / 10;
+    charextra[chaa->index_id].tint_light = GfxDef::Value100ToValue250(luminance);
     chaa->flags &= ~CHF_HASLIGHT;
     chaa->flags |= CHF_HASTINT;
 }

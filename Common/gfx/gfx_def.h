@@ -124,6 +124,20 @@ private:
 
 namespace GfxDef
 {
+    // Converts value from range of 100 to range of 250 (sic!);
+    // uses formula that reduces precision loss and supports flawless forth &
+    // reverse conversion for multiplies of 10%
+    inline int Value100ToValue250(int value100)
+    {
+        return (value100 * 25) / 10;
+    }
+
+    // Converts value from range of 250 to range of 100
+    inline int Value250ToValue100(int value100)
+    {
+        return (value100 * 10) / 25;
+    }
+
     // Converts percentage of transparency into alpha
     inline int Trans100ToAlpha255(int transparency)
     {

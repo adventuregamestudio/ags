@@ -158,9 +158,9 @@ void TintScreen(int red, int grn, int blu) {
         play.screen_tint = -1;
         return;
     }
-    red = (red * 25) / 10;
-    grn = (grn * 25) / 10;
-    blu = (blu * 25) / 10;
+    red = GfxDef::Value100ToValue250(red);
+    grn = GfxDef::Value100ToValue250(grn);
+    blu = GfxDef::Value100ToValue250(blu);
     play.screen_tint = red + (grn << 8) + (blu << 16);
 }
 

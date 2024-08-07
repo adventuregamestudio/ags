@@ -1093,7 +1093,7 @@ HSaveError load_game(const String &path, int slotNumber, bool startup, bool &dat
         // We must detect a case when the save contains less data and requires
         // a clean game reset before trying to restore again
         // FIXME: following is quite a bogus way to do so, review this later
-        HError first_error = err;
+        HError first_error = (PError)err;
         for (; first_error->InnerError(); first_error = first_error->InnerError());
         if (first_error->Code() == kSvgErr_GameContentAssert_RequireClearReload)
         {

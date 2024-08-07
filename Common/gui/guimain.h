@@ -90,9 +90,9 @@ class Bitmap;
 class GUIMain
 {
 public:
-    static String FixupGUIName(const String &name);
+    // ControlRef describes a child control type and its index in an external list
+    typedef std::pair<GUIControlType, int32_t> ControlRef;
 
-public:
     GUIMain();
 
     void    InitDefaults();
@@ -152,6 +152,8 @@ public:
     int32_t GetControlID(int index) const;
     // Gets an array of child control indexes in the z-order, from bottom to top
     const std::vector<int> &GetControlsDrawOrder() const;
+    // Gets an array of child control references (control types and indexes in global control arrays)
+    const std::vector<ControlRef> &GetControlRefs() const;
 
     // Child control management
     // Note that currently GUIMain does not own controls (should not delete them)
@@ -190,9 +192,12 @@ public:
     // Serialization
     void    ReadFromFile(Stream *in, GuiVersion gui_version);
     void    WriteToFile(Stream *out) const;
-    // TODO: move to engine, into gui savegame component unit
-    // (should read/write GUI properties accessing them by interface)
-    void    ReadFromSavegame(Stream *in, GuiSvgVersion svg_version);
+    // Savegame reading and writing
+    // TODO: move to engine, but will require to split GUI into data and runtime classes
+    // NOTE: when reading from a save state, we read control refs into a separate array,
+    // instead of applying directly to GUI right away. This allows the engine to fixup
+    // data read from the older saves. Perhaps review this later (maybe when there's a split runtime GUI class).
+    void    ReadFromSavegame(Stream *in, GuiSvgVersion svg_version, std::vector<ControlRef> &ctrl_refs);
     void    WriteToSavegame(Stream *out) const;
 
 private:
@@ -235,7 +240,6 @@ private:
 
     // Array of types and control indexes in global GUI object arrays;
     // maps GUI child slots to actual controls and used for rebuilding Controls array
-    typedef std::pair<GUIControlType, int32_t> ControlRef;
     std::vector<ControlRef> _ctrlRefs;
     // Array of child control references (not exclusively owned!)
     std::vector<GUIObject*> _controls;
@@ -283,6 +287,9 @@ namespace GUI
         return (GUI::Context.DisabledState == kGuiDis_Undefined) && g->IsEnabled();
     }
 
+    // Fixups a GUI name loaded from v2.72 and earlier games
+    String FixupGUIName272(const String &name);
+
     // Applies current text direction setting (may depend on multiple factors)
     String ApplyTextDirection(const String &text);
     // Calculates the text's draw position, given the alignment
@@ -323,6 +330,7 @@ namespace GUI
     void WriteGUI(const std::vector<GUIMain> &guis, const GUIRefCollection &guiobjs, Stream *out);
     // Converts legacy GUIVisibility into appropriate GUIMain properties
     void ApplyLegacyVisibility(GUIMain &gui, LegacyGUIVisState vis);
+
 
     // Rebuilds GUIs, connecting them to the child controls in memory.
     HError RebuildGUI(std::vector<GUIMain> &guis, GUIRefCollection &guiobjs);

@@ -623,7 +623,7 @@ namespace AGS.Editor
         public void FillArea(int color, Point position, double scale)
         {
             Point positionScaled = new Point((int)(position.X * scale), (int)(position.Y * scale));
-            FloodFillImage(_pixels, positionScaled, _bmp.Size, _pixels[(positionScaled.Y * _bmp.Width) + positionScaled.X], (byte)color);
+            FloodFillImage(_pixels, _paddedWidth, positionScaled, _bmp.Size, _pixels[(positionScaled.Y * _paddedWidth) + positionScaled.X], (byte)color);
         }
 
         private static IEnumerable<Point> CalculatRecanglePixels(Point origin, Size size)
@@ -691,12 +691,16 @@ namespace AGS.Editor
         /// Flood fill algorithm with for-loop instead of recursion to avoid stack overflow issues.
         /// </summary>
         /// <param name="image">The raw byte array of the image.</param>
+        /// <param name="paddedWidth">The padded width of the image.</param>
         /// <param name="position">The starting position for the fill.</param>
         /// <param name="size">The dimensions of the image.</param>
         /// <param name="initial">The color of the starting position.</param>
         /// <param name="replacement">The color to replace the pixels with.</param>
-        private static void FloodFillImage(byte[] image, Point position, Size size, byte initial, byte replacement)
+        private static void FloodFillImage(byte[] image, int paddedWidth, Point position, Size size, byte initial, byte replacement)
         {
+            if  (initial == replacement)
+                return;
+
             Queue<Point> queue = new Queue<Point>();
             queue.Enqueue(position);
 
@@ -706,9 +710,9 @@ namespace AGS.Editor
 
                 if (position.X >= 0 && position.X < size.Width && position.Y >= 0 && position.Y < size.Height)
                 {
-                    int i = (position.Y * size.Width) + position.X;
+                    int i = (position.Y * paddedWidth) + position.X;
 
-                    if (image[i] == initial && image[i] != replacement)
+                    if (image[i] == initial)
                     {
                         image[i] = replacement;
 

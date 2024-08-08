@@ -36,10 +36,10 @@ namespace AGS.Editor
         private Pen _drawSelectedPen = new Pen(Color.Red, 2);
         private Pen _drawSnapPen = new Pen(Color.Yellow, 2);
         private bool fromCombo = true; // Hack to show how the the property object changed, need to change the delegate.
-        private GUIControl _selectedControl = null;
+        private GUIControl _selectedControl = null; // last selected control
+        private List<GUIControl> _selected; // all the selected controls
         private GUIAddType _controlAddMode = GUIAddType.None;
         private List<MenuCommand> _toolbarIcons;
-        private List<GUIControl> _selected;
         private List<GUIControlGroup> _groups;
 
         private int ZOOM_STEP_VALUE = 25;
@@ -418,7 +418,6 @@ namespace AGS.Editor
                     _selectionBoxY = mouseY;
             }
         }
-
         }
 
         private void MoveControlWithMouse(int mouseX, int mouseY)
@@ -436,8 +435,6 @@ namespace AGS.Editor
 
             _selectedControl.Left = mouseX - _mouseXOffset;
             _selectedControl.Top = mouseY - _mouseYOffset;
-
-
 
             if (_selectedControl.Left >= normalGui.Width)
             {
@@ -686,9 +683,7 @@ namespace AGS.Editor
                 _groups[i].Update();
                 if (_groups[i].Count == 0) _groups.RemoveAt(i);
             }
-            
         }
-
       
         private void LockControl(object sender, EventArgs e)
         {
@@ -730,8 +725,6 @@ namespace AGS.Editor
             for (int i = 0; i < _selected.Count; i++)
             {
                 if (!_selected[i].Locked) _selected[i].Top = _selected[0].Top + (spacing * i);
-
-
             }
             RaiseOnControlsChanged();
             bgPanel.Invalidate();
@@ -748,12 +741,9 @@ namespace AGS.Editor
             for (int i = 0; i < _selected.Count; i++)
             {
                 if (!_selected[i].Locked) _selected[i].Left = _selected[0].Left + (spacing * i);
-
-
             }
             RaiseOnControlsChanged();
             bgPanel.Invalidate();
-
         }
 
         private void RemoveLockedFromSelected()
@@ -761,7 +751,6 @@ namespace AGS.Editor
             foreach (GUIControl _gc in _selected)
             {
                 if (_gc.Locked) _selected.Remove(_gc);
-
             }
             RaiseOnControlsChanged();
             bgPanel.Invalidate();
@@ -781,7 +770,6 @@ namespace AGS.Editor
 
             RaiseOnControlsChanged();
             bgPanel.Invalidate();
-
         }
 
         private void AlignLeftClick(object sender, EventArgs e)
@@ -797,21 +785,17 @@ namespace AGS.Editor
 
             RaiseOnControlsChanged();
             bgPanel.Invalidate();
-
         }
 
         private void CopyControlClick(object sender, EventArgs e)
         {
             if (_selectedControl != null)
             {
-
                 GUIControl _copyBuffer;
                 _copyBuffer = (GUIControl)_selectedControl.Clone();
                 _copyBuffer.SaveToClipboard();
             }
         }
-
-
 
         private void PasteControlClick(object sender, EventArgs e)
         {
@@ -831,7 +815,6 @@ namespace AGS.Editor
                 _selectedControl = newControl;
                 _selected.Add(newControl);
 
-
                 RaiseOnControlsChanged();
                 Factory.AGSEditor.CurrentGame.NotifyClientsGUIControlAddedOrRemoved(_gui, newControl);
 
@@ -846,31 +829,45 @@ namespace AGS.Editor
 
         private void DeleteControlClick(object sender, EventArgs e)
         {
-            if (_gui is NormalGUI && _selectedControl != null && !_selectedControl.Locked)
+            if (!(_gui is NormalGUI) || _selectedControl == null)
+                return;
+
+            for (int i = _selected.Count - 1; i >= 0; --i)
             {
-                Factory.AGSEditor.CurrentGame.NotifyClientsGUIControlAddedOrRemoved(_gui, _selectedControl);
-                _selected.Remove(_selectedControl);
-                _gui.DeleteControl(_selectedControl);
-                if (_selectedControl.MemberOf != null)
+                var control = _selected[i];
+                if (control.Locked)
+                    continue;
+
+                Factory.AGSEditor.CurrentGame.NotifyClientsGUIControlAddedOrRemoved(_gui, control);
+                _selected.RemoveAt(i);
+                _gui.DeleteControl(control);
+                if (control.MemberOf != null)
                 {
-                    _selectedControl.MemberOf.RemoveFromGroup(_selectedControl);
+                    control.MemberOf.RemoveFromGroup(control);
                 }
-                if (_selected.Count > 0)
+                if (control == _selectedControl)
                 {
-                    _selectedControl = _selected[_selected.Count - 1];
+                    if (_selected.Count > 0)
+                    {
+                        _selectedControl = _selected[_selected.Count - 1];
+                    }
+                    else
+                    {
+                        _selectedControl = null;
+                    }
                 }
-                else _selectedControl = null;
-                RaiseOnControlsChanged();
-                if (_selectedControl != null)
-                {
-                    Factory.GUIController.SetPropertyGridObject(_selectedControl);
-                }
-                else
-                {
-                    Factory.GUIController.SetPropertyGridObject(_gui);
-                }
-                bgPanel.Invalidate();
             }
+
+            RaiseOnControlsChanged();
+            if (_selectedControl != null)
+            {
+                Factory.GUIController.SetPropertyGridObject(_selectedControl);
+            }
+            else
+            {
+                Factory.GUIController.SetPropertyGridObject(_gui);
+            }
+            bgPanel.Invalidate();
         }
 
         private void ShowContextMenu(int x, int y, GUIControl control)

@@ -1115,56 +1115,98 @@ namespace AGS.Editor
             return ProcessGUIEditControl(keyData);
         }
 
+        /// <summary>
+        /// Handles key commands not related to selected controls.
+        /// </summary>
+        private bool HandleGUIEditOperation(Keys keyData)
+        {
+            if (keyData.HasFlag(Keys.Control))
+            {
+                switch (keyData & ~Keys.Modifiers)
+                {
+                    case Keys.V:
+                        PasteControlClick(null, null);
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Handles key commands over selected control(s).
+        /// </summary>
+        private bool HandleControlEditOperation(Keys keyData)
+        {
+            if (_selectedControl == null)
+                return false;
+
+            // First test combinations with modifiers
+            if (keyData.HasFlag(Keys.Control))
+            {
+                switch (keyData & ~Keys.Modifiers)
+                {
+                    case Keys.C:
+                        CopyControlClick(null, null);
+                        return true;
+                    case Keys.V:
+                        PasteControlClick(null, null);
+                        return true;
+                    default:
+                        break; // continue to general keys
+                }
+            }
+
+            // General keys that work without modifiers
+            switch (keyData)
+            {
+                case Keys.Delete:
+                    DeleteControlClick(null, null);
+                    return true;
+                case Keys.Left:
+                    foreach (GUIControl _gc in _selected)
+                    {
+                        _gc.Left--;
+                    }
+                    return true;
+                case Keys.Right:
+                    foreach (GUIControl _gc in _selected)
+                    {
+                        _gc.Left++;
+                    }
+                    return true;
+                case Keys.Up:
+                    foreach (GUIControl _gc in _selected)
+                    {
+                        _gc.Top--;
+                    }
+                    return true;
+                case Keys.Down:
+                    foreach (GUIControl _gc in _selected)
+                    {
+                        _gc.Top++;
+                    }
+                    return true;
+                default:
+                    return false; // no applicable command
+            }
+        }
+
         protected bool ProcessGUIEditControl(Keys keyData)
         {        
             // TODO: normally this should be done using class/method overriding
             if (_gui is TextWindowGUI)
                 return false; // do not let users move or delete TextWindow elements
 
-            if (_selectedControl != null)
+            if (HandleGUIEditOperation(keyData) ||
+                ((_selectedControl != null) && HandleControlEditOperation(keyData)))
             {
-                switch (keyData)
-            {
-                    case Keys.Delete:
-                DeleteControlClick(null, null);
-                        break;
-
-                    case Keys.Left:
-                        foreach (GUIControl _gc in _selected)
-                        {
-                            _gc.Left--;
-                        }
-                        break;
-
-                    case Keys.Right:
-                        foreach (GUIControl _gc in _selected)
-                        {
-                            _gc.Left++;
-            }
-                        break;
-
-
-                    case Keys.Up:
-                        foreach (GUIControl _gc in _selected)
-                        {
-                            _gc.Top--;
-                        }
-                        break;
-
-
-                    case Keys.Down:
-                        foreach (GUIControl _gc in _selected)
-                        {
-                            _gc.Top++;
-                        }
-                        break;
-                    default:
-                        return false;
-                }
                 bgPanel.Invalidate();
                 RaiseOnControlsChanged();
                 return true;
             }
+
             return false;
         }
 

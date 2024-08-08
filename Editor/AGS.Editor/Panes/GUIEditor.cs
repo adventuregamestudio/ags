@@ -787,44 +787,88 @@ namespace AGS.Editor
             bgPanel.Invalidate();
         }
 
+        private string _guiControlsClipboardFormat = string.Format($"{typeof(GUIControl).FullName}List");
+
+        private void SaveControlsToClipboard(List<GUIControl> controls)
+        {
+            DataFormats.Format format = DataFormats.GetFormat(_guiControlsClipboardFormat);
+
+            IDataObject dataObj = new DataObject();
+            dataObj.SetData(format.Name, false, controls);
+            Clipboard.SetDataObject(dataObj, true);
+        }
+
+        private bool AvailableControlsOnClipboard()
+        {
+            IDataObject dataObj = Clipboard.GetDataObject();
+            if (dataObj != null)
+                return dataObj.GetDataPresent(_guiControlsClipboardFormat);
+            return false;
+        }
+
+        private List<GUIControl> GetControlsFromClipBoard()
+        {
+            List<GUIControl> controls = null;
+            IDataObject dataObj = Clipboard.GetDataObject();
+            if (dataObj.GetDataPresent(_guiControlsClipboardFormat))
+            {
+                controls = dataObj.GetData(_guiControlsClipboardFormat) as List<GUIControl>;
+            }
+            return controls;
+        }
+
         private void CopyControlClick(object sender, EventArgs e)
         {
             if (_selectedControl != null)
             {
-                GUIControl _copyBuffer;
-                _copyBuffer = (GUIControl)_selectedControl.Clone();
-                _copyBuffer.SaveToClipboard();
+                List<GUIControl> _copyBuffer = new List<GUIControl>();
+                foreach (var control in _selected)
+                    _copyBuffer.Add((GUIControl)control.Clone());
+                SaveControlsToClipboard(_copyBuffer);
             }
         }
 
         private void PasteControlClick(object sender, EventArgs e)
         {
-            GUIControl newControl = GUIControl.GetFromClipBoard();
-            if (newControl != null)
-            {
+            List<GUIControl> newControls = GetControlsFromClipBoard();
+            if (newControls == null)
+                return;
 
+            _selected.Clear();
+            _selectedControl = null;
+            // Paste all the new controls, and add them to the selected list.
+            // Relative control positions in the group must be kept.
+            int pasteAtX = _state.WindowXToGUI(_currentMouseX);
+            int pasteAtY = _state.WindowYToGUI(_currentMouseY);
+            int refControlX = 0, refControlY = 0;
+            foreach (var newControl in newControls)
+            {
                 newControl.Name = Factory.AGSEditor.GetFirstAvailableScriptName(newControl.ControlType);
                 newControl.ZOrder = _gui.Controls.Count;
                 newControl.ID = _gui.Controls.Count;
                 newControl.MemberOf = null;
 
-                newControl.Left = _state.WindowXToGUI(_currentMouseX);
-                newControl.Top = _state.WindowYToGUI(_currentMouseY);
+                if (_selectedControl == null)
+                {
+                    refControlX = newControl.Left;
+                    refControlY = newControl.Top;
+                }
+                newControl.Left = pasteAtX + (newControl.Left - refControlX);
+                newControl.Top = pasteAtY + (newControl.Top - refControlY); ;
                 _gui.Controls.Add(newControl);
-                _selected.Clear();
-                _selectedControl = newControl;
                 _selected.Add(newControl);
+                _selectedControl = newControl;
 
-                RaiseOnControlsChanged();
+                // This event is repeated for each control
                 Factory.AGSEditor.CurrentGame.NotifyClientsGUIControlAddedOrRemoved(_gui, newControl);
-
-                Factory.GUIController.SetPropertyGridObject(newControl);
-
-                bgPanel.Invalidate();
-                UpdateCursorImage();
-                // Revert back to Select cursor
-                OnCommandClick(Components.GuiComponent.MODE_SELECT_CONTROLS);
             }
+
+            RaiseOnControlsChanged();
+            Factory.GUIController.SetPropertyGridObject(_selectedControl);
+            bgPanel.Invalidate();
+            UpdateCursorImage();
+            // Revert back to Select cursor
+            OnCommandClick(Components.GuiComponent.MODE_SELECT_CONTROLS);
         }
 
         private void DeleteControlClick(object sender, EventArgs e)
@@ -838,6 +882,7 @@ namespace AGS.Editor
                 if (control.Locked)
                     continue;
 
+                // This event is repeated for each control
                 Factory.AGSEditor.CurrentGame.NotifyClientsGUIControlAddedOrRemoved(_gui, control);
                 _selected.RemoveAt(i);
                 _gui.DeleteControl(control);
@@ -917,7 +962,10 @@ namespace AGS.Editor
                 menu.Items.Add(new ToolStripMenuItem("Delete", null, new EventHandler(DeleteControlClick), Keys.Delete));
                 }
 
-                if (GUIControl.AvailableOnClipboard()) menu.Items.Add(new ToolStripMenuItem("Paste", null, new EventHandler(PasteControlClick), Keys.Control | Keys.V));
+                if (AvailableControlsOnClipboard())
+                {
+                    menu.Items.Add(new ToolStripMenuItem("Paste", null, new EventHandler(PasteControlClick), Keys.Control | Keys.V));
+                }
 
                 if (menu.Items.Count > 0) menu.Show(bgPanel, x, y);
             }

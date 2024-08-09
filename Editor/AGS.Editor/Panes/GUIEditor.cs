@@ -144,6 +144,7 @@ namespace AGS.Editor
 
         protected override void OnPropertyChanged(string propertyName, object oldValue)
         {
+            // FIXME: this does not distinguish GUI and GUIControl properties!
             if (propertyName == "Name")
             {
                 object objectBeingChanged = _gui;
@@ -176,6 +177,8 @@ namespace AGS.Editor
                 {
                     RaiseOnGuiNameChanged();
                 }
+
+                RefreshProperties();
             }
 			else if (propertyName == "Image")
 			{
@@ -864,7 +867,7 @@ namespace AGS.Editor
             }
 
             RaiseOnControlsChanged();
-            Factory.GUIController.SetPropertyGridObject(_selectedControl);
+            RefreshProperties();
             bgPanel.Invalidate();
             UpdateCursorImage();
             // Revert back to Select cursor
@@ -904,14 +907,7 @@ namespace AGS.Editor
             }
 
             RaiseOnControlsChanged();
-            if (_selectedControl != null)
-            {
-                Factory.GUIController.SetPropertyGridObject(_selectedControl);
-            }
-            else
-            {
-                Factory.GUIController.SetPropertyGridObject(_gui);
-            }
+            RefreshProperties();
             bgPanel.Invalidate();
         }
 
@@ -971,17 +967,39 @@ namespace AGS.Editor
             }
         }
 
-        private void refreshProperties()
+        // TODO: this is made public static member of GUIEditor as a quick solution for both GUIEditor
+        // and GuiComponent needing to regenerate this list (GuiComponent needs this when handling
+        // a change of GUI's ID and/or name from the project tree). But I'm not certain if this
+        // is a "elegant" solution. Review this later, and try to devise a uniform and consistent
+        // method for all components and editors.
+        public static Dictionary<string, object> ConstructPropertyObjectList(GUI forGui)
         {
-            if (_selectedControl != null)
+            Dictionary<string, object> list = new Dictionary<string, object>();
+            list.Add(forGui.PropertyGridTitle, forGui);
+            foreach (GUIControl control in forGui.Controls)
             {
+                list.Add(control.Name + " (" + control.ControlType + "; ID " + control.ID + ")", control);
+            }
+            return list;
+        }
+
+        private void RefreshProperties()
+        {
+            if (_selected.Count > 1)
+            {
+                Factory.GUIController.SetPropertyGridObjectList(null);
+                Factory.GUIController.SetPropertyGridObjects(_selected.ToArray());
+            }
+            else if (_selectedControl != null)
+            {
+                Factory.GUIController.SetPropertyGridObjectList(ConstructPropertyObjectList(_gui));
                 Factory.GUIController.SetPropertyGridObject(_selectedControl);
             }
             else
             {
+                Factory.GUIController.SetPropertyGridObjectList(ConstructPropertyObjectList(_gui));
                 Factory.GUIController.SetPropertyGridObject(_gui);
             }
-            bgPanel.Invalidate();
         }
 
         private void bgPanel_MouseUp(object sender, MouseEventArgs e)
@@ -1005,7 +1023,8 @@ namespace AGS.Editor
             else if (_resizingControl)
             {
                 _resizingControl = false;
-                refreshProperties();
+                RefreshProperties();
+                bgPanel.Invalidate();
             }
             else if (_drawingSelectionBox)
             {
@@ -1015,13 +1034,14 @@ namespace AGS.Editor
                    if (_selectionRect.Contains(_gc.GetRectangle()) && !_selected.Contains(_gc)) _selected.Add(_gc);
                }
                if (_selected.Count > 0) _selectedControl = _selected[_selected.Count - 1];
-               bgPanel.Invalidate();
-               refreshProperties();
+                RefreshProperties();
+                bgPanel.Invalidate();
             }
             else
             {
                 _movingControl = false;
-                refreshProperties();
+                RefreshProperties();
+                bgPanel.Invalidate();
 
                 if ((e.Button == MouseButtons.Right))
                 {
@@ -1119,8 +1139,7 @@ namespace AGS.Editor
             RaiseOnControlsChanged();
             Factory.AGSEditor.CurrentGame.NotifyClientsGUIControlAddedOrRemoved(_gui, newControl);
 
-            Factory.GUIController.SetPropertyGridObject(newControl);
-
+            RefreshProperties();
             bgPanel.Invalidate();
             UpdateCursorImage();
             // Revert back to Select cursor

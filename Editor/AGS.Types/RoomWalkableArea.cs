@@ -8,7 +8,7 @@ using System.Xml;
 namespace AGS.Types
 {
     [DefaultProperty("ScalingLevel")]
-    public class RoomWalkableArea : ICustomTypeDescriptor, IToXml
+    public class RoomWalkableArea : IChangeNotification, ICustomTypeDescriptor, IToXml
     {
         private int _id;
         private int _areaSpecificView;
@@ -18,12 +18,14 @@ namespace AGS.Types
         private int _scalingLevelMin = 100;
         private int _scalingLevelMax = 100;
         private CustomProperties _properties = new CustomProperties();
+        private IChangeNotification _notifyOfModification;
 
-        public RoomWalkableArea()
+        public RoomWalkableArea(IChangeNotification changeNotifier)
         {
+            _notifyOfModification = changeNotifier;
         }
 
-        public RoomWalkableArea(XmlNode node) : this()
+        public RoomWalkableArea(IChangeNotification changeNotifier, XmlNode node) : this(changeNotifier)
         {
             SerializeUtils.DeserializeFromXML(this, node);
         }
@@ -199,6 +201,11 @@ namespace AGS.Types
         }
 
         #endregion
+
+        void IChangeNotification.ItemModified()
+        {
+            _notifyOfModification.ItemModified();
+        }
 
         public void ToXml(XmlTextWriter writer) => SerializeUtils.SerializeToXML(this, writer);
     }

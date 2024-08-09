@@ -1,17 +1,20 @@
-﻿using NUnit.Framework;
-using System.Xml;
+﻿using System.Xml;
+using NSubstitute;
+using NUnit.Framework;
 
 namespace AGS.Types
 {
     [TestFixture]
     public class RoomWalkableAreaTests
     {
+        private IChangeNotification _changeNotification;
         private RoomWalkableArea _roomWalkAbleArea;
 
         [SetUp]
         public void SetUp()
         {
-            _roomWalkAbleArea = new RoomWalkableArea();
+            _changeNotification = Substitute.For<IChangeNotification>();
+            _roomWalkAbleArea = new RoomWalkableArea(_changeNotification);
         }
 
         [TestCase(0)]
@@ -90,7 +93,7 @@ namespace AGS.Types
             </RoomWalkableArea>";
             XmlDocument doc = new XmlDocument();
             doc.LoadXml(xml);
-            _roomWalkAbleArea = new RoomWalkableArea(doc.SelectSingleNode("RoomWalkableArea"));
+            _roomWalkAbleArea = new RoomWalkableArea(_changeNotification, doc.SelectSingleNode("RoomWalkableArea"));
 
             Assert.That(_roomWalkAbleArea.AreaSpecificView, Is.EqualTo(areaSpecificView));
             Assert.That(_roomWalkAbleArea.UseContinuousScaling, Is.EqualTo(userContinousScaling));

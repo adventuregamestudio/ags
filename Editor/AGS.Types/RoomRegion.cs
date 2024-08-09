@@ -9,7 +9,7 @@ namespace AGS.Types
 {
     [PropertyTab(typeof(PropertyTabInteractions), PropertyTabScope.Component)]
     [DefaultProperty("LightLevel")]
-    public class RoomRegion : ICustomTypeDescriptor, IToXml
+    public class RoomRegion : IChangeNotification, ICustomTypeDescriptor, IToXml
     {
         private static InteractionSchema _interactionSchema;
 
@@ -23,6 +23,7 @@ namespace AGS.Types
         private int _tintLuminance;
         private Interactions _interactions = new Interactions(_interactionSchema);
         private CustomProperties _properties = new CustomProperties();
+        private IChangeNotification _notifyOfModification;
 
         static RoomRegion()
         {
@@ -34,11 +35,12 @@ namespace AGS.Types
                 "Region *theRegion");
         }
 
-        public RoomRegion()
+        public RoomRegion(IChangeNotification changeNotifier)
         {
+            _notifyOfModification = changeNotifier;
         }
 
-        public RoomRegion(XmlNode node) : this()
+        public RoomRegion(IChangeNotification changeNotifier, XmlNode node) : this(changeNotifier)
         {
             SerializeUtils.DeserializeFromXML(this, node);
             Interactions.FromXml(node);
@@ -234,6 +236,11 @@ namespace AGS.Types
         }
 
         #endregion
+
+        void IChangeNotification.ItemModified()
+        {
+            _notifyOfModification.ItemModified();
+        }
 
         public void ToXml(XmlTextWriter writer)
         {

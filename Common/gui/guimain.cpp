@@ -39,13 +39,6 @@ GuiOptions GUI::Options;
 GuiContext GUI::Context;
 
 
-/* static */ String GUIMain::FixupGUIName(const String &name)
-{
-    if (name.GetLength() > 0 && name[0u] != 'g')
-        return String::FromFormat("g%c%s", name[0u], name.Mid(1).Lower().GetCStr());
-    return name;
-}
-
 GUIMain::GUIMain()
 {
     InitDefaults();
@@ -153,6 +146,11 @@ int32_t GUIMain::GetControlID(int index) const
 const std::vector<int> &GUIMain::GetControlsDrawOrder() const
 {
     return _ctrlDrawOrder;
+}
+
+const std::vector<GUIMain::ControlRef> &GUIMain::GetControlRefs() const
+{
+    return _ctrlRefs;
 }
 
 bool GUIMain::IsInteractableAt(int x, int y) const
@@ -622,9 +620,9 @@ void GUIMain::ReadFromFile(Stream *in, GuiVersion gui_version)
     if (ctrl_count > 0)
     {
         _ctrlRefs.resize(ctrl_count);
-        for (size_t i = 0; i < ctrl_count; ++i)
+        for (uint32_t i = 0; i < ctrl_count; ++i)
         {
-            const int32_t ref_packed = in->ReadInt32();
+            const uint32_t ref_packed = in->ReadInt32();
             _ctrlRefs[i].first = (GUIControlType)((ref_packed >> 16) & 0xFFFF);
             _ctrlRefs[i].second = ref_packed & 0xFFFF;
         }
@@ -653,14 +651,14 @@ void GUIMain::WriteToFile(Stream *out) const
     out->WriteInt32(ZOrder);
     out->WriteInt32(ID);
     out->WriteInt32(Padding);
-    for (size_t i = 0; i < _ctrlRefs.size(); ++i)
+    for (const auto &ref : _ctrlRefs)
     {
-        int32_t ref_packed = ((_ctrlRefs[i].first & 0xFFFF) << 16) | (_ctrlRefs[i].second & 0xFFFF);
+        uint32_t ref_packed = ((ref.first & 0xFFFF) << 16) | (ref.second & 0xFFFF);
         out->WriteInt32(ref_packed);
     }
 }
 
-void GUIMain::ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_version)
+void GUIMain::ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_version, std::vector<ControlRef> &ctrl_refs)
 {
     // Properties
     _flags = in->ReadInt32();
@@ -693,6 +691,19 @@ void GUIMain::ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_version)
     MouseDownCtrl = in->ReadInt32();
     MouseWasAt.X = in->ReadInt32();
     MouseWasAt.Y = in->ReadInt32();
+
+    // Control refs
+    if (svg_version >= kGuiSvgVersion_36200)
+    {
+        uint32_t ctrl_count = in->ReadInt32();
+        ctrl_refs.resize(ctrl_count);
+        for (uint32_t i = 0; i < ctrl_count; ++i)
+        {
+            const uint32_t ref_packed = in->ReadInt32();
+            ctrl_refs[i].first = (GUIControlType)((ref_packed >> 16) & 0xFFFF);
+            ctrl_refs[i].second = ref_packed & 0xFFFF;
+        }
+    }
 }
 
 void GUIMain::WriteToSavegame(Common::Stream *out) const
@@ -717,6 +728,14 @@ void GUIMain::WriteToSavegame(Common::Stream *out) const
     out->WriteInt32(MouseDownCtrl);
     out->WriteInt32(MouseWasAt.X);
     out->WriteInt32(MouseWasAt.Y);
+    // Control refs (for asserting controls data on restoration,
+    // and also in case if we support dynamic creation of controls)
+    out->WriteInt32(_ctrlRefs.size());
+    for (const auto &ref : _ctrlRefs)
+    {
+        uint32_t ref_packed = ((ref.first & 0xFFFF) << 16) | (ref.second & 0xFFFF);
+        out->WriteInt32(ref_packed);
+    }
 }
 
 
@@ -724,6 +743,13 @@ namespace GUI
 {
 
 GuiVersion GameGuiVersion = kGuiVersion_Initial;
+
+String FixupGUIName272(const String &name)
+{
+    if (name.GetLength() > 0 && name[0u] != 'g')
+        return String::FromFormat("g%c%s", name[0u], name.Mid(1).Lower().GetCStr());
+    return name;
+}
 
 Line CalcFontGraphicalVExtent(int font)
 {
@@ -901,7 +927,7 @@ HError ReadGUI(std::vector<GUIMain> &guis, GUIRefCollection &guiobjs, Stream *in
             gui.Padding = TEXTWINDOW_PADDING_DEFAULT;
         // fix names for 2.x: "GUI" -> "gGui"
         if (loaded_game_file_version <= kGameVersion_272)
-            gui.Name = GUIMain::FixupGUIName(gui.Name);
+            gui.Name = GUI::FixupGUIName272(gui.Name);
 
         // GUI popup style and visibility
         if (GameGuiVersion < kGuiVersion_350)

@@ -337,7 +337,7 @@ int RunAGSGame(const String &newgame, unsigned int mode, int data) {
     play.screen_is_faded_out = 1;
 
     if (load_new_game_restore >= 0) {
-        try_restore_save(load_new_game_restore);
+        try_restore_save(load_new_game_restore, true);
         load_new_game_restore = -1;
     }
     else
@@ -605,13 +605,13 @@ void SaveCursorForLocationChange() {
     }
 }
 
-void GetLocationName(int xxx,int yyy,char*tempo) {
-    if (displayed_room < 0)
-        quit("!GetLocationName: no room has been loaded");
-
+void GetLocationName(int xxx,int yyy,char*tempo)
+{
     VALIDATE_STRING(tempo);
-
     tempo[0] = 0;
+
+    if (displayed_room < 0)
+        return; // no room loaded yet
 
     if (GetGUIAt(xxx, yyy) >= 0) {
         int mover = GetInvAt (xxx, yyy);

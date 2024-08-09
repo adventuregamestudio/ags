@@ -217,6 +217,7 @@
             this.MinimizeBox = false;
             this.Name = "AdjustMasksDialog";
             this.ShowIcon = false;
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Adjust Masks to the new Room background";
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();

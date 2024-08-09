@@ -318,6 +318,14 @@ HSaveError ReadGameState(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pre
     return err;
 }
 
+// Savegame data format for Audio system
+enum AudioSvgVersion
+{
+    kAudioSvgVersion_Initial  = 0,
+    kAudioSvgVersion_35026    = 1, // source position settings
+    kAudioSvgVersion_36009    = 2, // up number of channels
+};
+
 HSaveError WriteAudio(Stream *out)
 {
     // Game content assertion
@@ -376,14 +384,6 @@ HSaveError WriteAudio(Stream *out)
     }
     return HSaveError::None();
 }
-
-// Savegame data format for RoomStatus
-enum AudioSvgVersion
-{
-    kAudioSvgVersion_Initial  = 0,
-    kAudioSvgVersion_35026    = 1, // source position settings
-    kAudioSvgVersion_36009    = 2, // up number of channels
-};
 
 HSaveError ReadAudio(Stream *in, int32_t cmp_ver, soff_t cmp_size, const PreservedParams& /*pp*/, RestoredData &r_data)
 {
@@ -492,18 +492,22 @@ HSaveError WriteDialogs(Stream *out)
     for (int i = 0; i < game.numdialog; ++i)
     {
         dialog[i].WriteToSavegame(out);
+        Properties::WriteValues(play.dialogProps[i], out);
     }
     return HSaveError::None();
 }
 
-HSaveError ReadDialogs(Stream *in, int32_t /*cmp_ver*/, soff_t cmp_size, const PreservedParams& /*pp*/, RestoredData& /*r_data*/)
+HSaveError ReadDialogs(Stream *in, int32_t cmp_ver, soff_t cmp_size, const PreservedParams& /*pp*/, RestoredData& /*r_data*/)
 {
     HSaveError err;
     if (!AssertGameContent(err, in->ReadInt32(), game.numdialog, "Dialogs"))
         return err;
+    const DialogSvgVersion svg_ver = (DialogSvgVersion)cmp_ver;
     for (int i = 0; i < game.numdialog; ++i)
     {
-        dialog[i].ReadFromSavegame(in);
+        dialog[i].ReadFromSavegame(in, svg_ver);
+        if (cmp_ver >= kDialogSvgVersion_40008)
+            Properties::ReadValues(play.dialogProps[i], in);
     }
     return err;
 }
@@ -513,8 +517,11 @@ HSaveError WriteGUI(Stream *out)
     // GUI state
     WriteFormatTag(out, "GUIs");
     out->WriteInt32(game.numgui);
-    for (const auto &gui : guis)
-        gui.WriteToSavegame(out);
+    for (int i = 0; i < game.numgui; ++i)
+    {
+        guis[i].WriteToSavegame(out);
+        Properties::WriteValues(play.guiProps[i], out);
+    }
 
     WriteFormatTag(out, "GUIButtons");
     out->WriteInt32(static_cast<int32_t>(guibuts.size()));
@@ -565,7 +572,11 @@ HSaveError ReadGUI(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Preserved
     if (!AssertGameContent(err, static_cast<size_t>(in->ReadInt32()), game.numgui, "GUIs"))
         return err;
     for (int i = 0; i < game.numgui; ++i)
+    {
         guis[i].ReadFromSavegame(in, svg_ver);
+        if (svg_ver >= kGuiSvgVersion_40008)
+            Properties::ReadValues(play.guiProps[i], in);
+    }
 
     if (!AssertFormatTagStrict(err, in, "GUIButtons"))
         return err;
@@ -1181,14 +1192,14 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Dialogs",
-        0,
-        0,
+        kDialogSvgVersion_40008,
+        kDialogSvgVersion_Initial,
         WriteDialogs,
         ReadDialogs
     },
     {
         "GUI",
-        kGuiSvgVersion_400,
+        kGuiSvgVersion_40008,
         kGuiSvgVersion_Initial,
         WriteGUI,
         ReadGUI
@@ -1244,14 +1255,14 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Room States",
-        kRoomStatSvgVersion_40003,
+        kRoomStatSvgVersion_40008,
         kRoomStatSvgVersion_40003,
         WriteRoomStates,
         ReadRoomStates
     },
     {
         "Loaded Room State",
-        kRoomStatSvgVersion_40003, // must correspond to "Room States"
+        kRoomStatSvgVersion_40008, // must correspond to "Room States"
         kRoomStatSvgVersion_40003,
         WriteThisRoom,
         ReadThisRoom

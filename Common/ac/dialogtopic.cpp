@@ -29,7 +29,7 @@ void DialogTopic::ReadFromFile(Stream *in)
     topicFlags = in->ReadInt32();
 }
 
-void DialogTopic::ReadFromSavegame(Common::Stream *in)
+void DialogTopic::ReadFromSavegame(Common::Stream *in, DialogSvgVersion /*svg_ver*/)
 {
     in->ReadArrayOfInt32(optionflags, MAXTOPICOPTIONS);
 }

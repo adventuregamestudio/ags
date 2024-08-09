@@ -22,6 +22,7 @@ namespace AGS.Types
         private int _tintAmount;
         private int _tintLuminance;
         private Interactions _interactions = new Interactions(_interactionSchema);
+        private CustomProperties _properties;
 
         static RoomRegion()
         {
@@ -35,6 +36,7 @@ namespace AGS.Types
 
         public RoomRegion()
         {
+            _properties = new CustomProperties();
         }
 
         public RoomRegion(XmlNode node) : this()
@@ -130,6 +132,16 @@ namespace AGS.Types
         public Interactions Interactions
         {
             get { return _interactions; }
+        }
+
+        [AGSSerializeClass()]
+        [Description("Custom properties for this region")]
+        [Category("Properties")]
+        [EditorAttribute(typeof(CustomPropertiesUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        public CustomProperties Properties
+        {
+            get { return _properties; }
+            protected set { _properties = value; }
         }
 
 

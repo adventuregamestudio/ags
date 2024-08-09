@@ -18,6 +18,7 @@
 #include "ac/gamesetupstruct.h"
 #include "ac/global_walkablearea.h"
 #include "ac/object.h"
+#include "ac/properties.h"
 #include "ac/room.h"
 #include "ac/roomobject.h"
 #include "ac/roomstatus.h"
@@ -287,6 +288,26 @@ void Walkarea_SetFaceDirectionRatio(ScriptWalkableArea *wa, float ratio)
     thisroom.WalkAreas[wa->id].FaceDirectionRatio = ratio;
 }
 
+int Walkarea_GetProperty(ScriptWalkableArea *wa, const char *property)
+{
+    return get_int_property(thisroom.WalkAreas[wa->id].Properties, croom->waProps[wa->id], property);
+}
+
+const char* Walkarea_GetTextProperty(ScriptWalkableArea *wa, const char *property)
+{
+    return get_text_property_dynamic_string(thisroom.WalkAreas[wa->id].Properties, croom->waProps[wa->id], property);
+}
+
+bool Walkarea_SetProperty(ScriptWalkableArea *wa, const char *property, int value)
+{
+    return set_int_property(croom->waProps[wa->id], property, value);
+}
+
+bool Walkarea_SetTextProperty(ScriptWalkableArea *wa, const char *property, const char *value)
+{
+    return set_text_property(croom->waProps[wa->id], property, value);
+}
+
 //=============================================================================
 //
 // Script API Functions
@@ -356,6 +377,26 @@ RuntimeScriptValue Sc_Walkarea_SetFaceDirectionRatio(void *self, const RuntimeSc
     API_OBJCALL_VOID_PFLOAT(ScriptWalkableArea, Walkarea_SetFaceDirectionRatio);
 }
 
+RuntimeScriptValue Sc_Walkarea_GetProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT_POBJ(ScriptWalkableArea, Walkarea_GetProperty, const char);
+}
+
+RuntimeScriptValue Sc_Walkarea_GetTextProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ_POBJ(ScriptWalkableArea, const char, myScriptStringImpl, Walkarea_GetTextProperty, const char);
+}
+
+RuntimeScriptValue Sc_Walkarea_SetProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL_POBJ_PINT(ScriptWalkableArea, Walkarea_SetProperty, const char);
+}
+
+RuntimeScriptValue Sc_Walkarea_SetTextProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL_POBJ2(ScriptWalkableArea, Walkarea_SetTextProperty, const char, const char);
+}
+
 
 void RegisterWalkareaAPI()
 {
@@ -365,6 +406,10 @@ void RegisterWalkareaAPI()
         { "WalkableArea::GetDrawingSurface",   API_FN_PAIR(GetDrawingSurfaceForWalkableArea) },
 
         { "WalkableArea::SetScaling^2",        API_FN_PAIR(Walkarea_SetScaling) },
+        { "WalkableArea::GetProperty^1",             API_FN_PAIR(Walkarea_GetProperty) },
+        { "WalkableArea::GetTextProperty^1",         API_FN_PAIR(Walkarea_GetTextProperty) },
+        { "WalkableArea::SetProperty^2",             API_FN_PAIR(Walkarea_SetProperty) },
+        { "WalkableArea::SetTextProperty^2",         API_FN_PAIR(Walkarea_SetTextProperty) },
         { "WalkableArea::get_Enabled",         API_FN_PAIR(Walkarea_GetEnabled) },
         { "WalkableArea::set_Enabled",         API_FN_PAIR(Walkarea_SetEnabled) },
         { "WalkableArea::get_ID",              API_FN_PAIR(Walkarea_GetID) },

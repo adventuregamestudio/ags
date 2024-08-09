@@ -17,9 +17,11 @@ namespace AGS.Types
         private bool _useContinuousScaling;
         private int _scalingLevelMin = 100;
         private int _scalingLevelMax = 100;
+        private CustomProperties _properties;
 
         public RoomWalkableArea()
         {
+            _properties = new CustomProperties();
         }
 
         public RoomWalkableArea(XmlNode node) : this()
@@ -98,6 +100,16 @@ namespace AGS.Types
         public string PropertyGridTitle
         {
             get { return "Walkable area ID " + _id; }
+        }
+
+        [AGSSerializeClass()]
+        [Description("Custom properties for this area")]
+        [Category("Properties")]
+        [EditorAttribute(typeof(CustomPropertiesUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        public CustomProperties Properties
+        {
+            get { return _properties; }
+            protected set { _properties = value; }
         }
 
 

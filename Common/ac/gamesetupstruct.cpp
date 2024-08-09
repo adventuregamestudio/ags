@@ -49,7 +49,10 @@ void GameSetupStruct::Free()
     audioClips.clear();
     audioClipTypes.clear();
 
+    audioclipProps.clear();
     charProps.clear();
+    guiProps.clear();
+    dialogProps.clear();
     viewNames.clear();
 }
 
@@ -206,11 +209,11 @@ HGameFileError GameSetupStruct::read_customprops(Common::Stream *in, GameDataVer
         errors += Properties::ReadValues(invProps[i], in);
     }
 
-        if (errors > 0)
-            return new MainGameFileError(kMGFErr_InvalidPropertyValues);
+    if (errors > 0)
+        return new MainGameFileError(kMGFErr_InvalidPropertyValues);
 
-        for (int i = 0; i < numviews; ++i)
-            viewNames[i] = String::FromStream(in);
+    for (int i = 0; i < numviews; ++i)
+        viewNames[i] = String::FromStream(in);
 
     for (int i = 0; i < numinvitems; ++i)
         invScriptNames[i] = String::FromStream(in);

@@ -12,17 +12,19 @@ namespace AGS.Types
     [DefaultProperty("BackgroundImage")]
     public abstract class GUI : IToXml, IComparable<GUI>
     {
-        public GUI()
-        {
-            _name = string.Empty;
-            _bgcol = 8;
-        }
-
         protected string _name;
         protected int _id;
         protected int _bgcol;
         protected int _bgimage;
         protected List<GUIControl> _controls = new List<GUIControl>();
+        private CustomProperties _properties;
+
+        public GUI()
+        {
+            _name = string.Empty;
+            _bgcol = 8;
+            _properties = new CustomProperties();
+        }
 
         /// <summary>
         /// Width of the GUI, as displayed in the Editor.
@@ -129,6 +131,16 @@ namespace AGS.Types
         {
             get { return _controls; }
             set { _controls = value; }
+        }
+
+        [AGSSerializeClass()]
+        [Description("Custom properties for this GUI")]
+        [Category("Properties")]
+        [EditorAttribute(typeof(CustomPropertiesUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        public CustomProperties Properties
+        {
+            get { return _properties; }
+            protected set { _properties = value; }
         }
 
         public void SendControlToBack(GUIControl controlToSend)

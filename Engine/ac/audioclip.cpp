@@ -17,6 +17,8 @@
 #include "ac/common.h" // quitprintf
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
+#include "ac/gamestate.h"
+#include "ac/properties.h"
 #include "ac/string.h"
 #include "ac/dynobj/cc_audioclip.h"
 #include "ac/dynobj/cc_audiochannel.h"
@@ -92,6 +94,26 @@ ScriptAudioChannel* AudioClip_PlayOnChannel(ScriptAudioClip *clip, int chan, int
     if (repeat == SCR_NO_VALUE)
         repeat = clip->defaultRepeat;
     return play_audio_clip_on_channel(chan, clip, priority, repeat, 0);
+}
+
+int AudioClip_GetProperty(ScriptAudioClip *clip, const char *property)
+{
+    return get_int_property(game.audioclipProps[clip->id], play.audioclipProps[clip->id], property);
+}
+
+const char* AudioClip_GetTextProperty(ScriptAudioClip *clip, const char *property)
+{
+    return get_text_property_dynamic_string(game.audioclipProps[clip->id], play.audioclipProps[clip->id], property);
+}
+
+bool AudioClip_SetProperty(ScriptAudioClip *clip, const char *property, int value)
+{
+    return set_int_property(play.audioclipProps[clip->id], property, value);
+}
+
+bool AudioClip_SetTextProperty(ScriptAudioClip *clip, const char *property, const char *value)
+{
+    return set_text_property(play.audioclipProps[clip->id], property, value);
 }
 
 //=============================================================================
@@ -173,6 +195,26 @@ RuntimeScriptValue Sc_AudioClip_PlayOnChannel(void *self, const RuntimeScriptVal
     API_OBJCALL_OBJ_PINT3(ScriptAudioClip, ScriptAudioChannel, ccDynamicAudio, AudioClip_PlayOnChannel);
 }
 
+RuntimeScriptValue Sc_AudioClip_GetProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT_POBJ(ScriptAudioClip, AudioClip_GetProperty, const char);
+}
+
+RuntimeScriptValue Sc_AudioClip_GetTextProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ_POBJ(ScriptAudioClip, const char, myScriptStringImpl, AudioClip_GetTextProperty, const char);
+}
+
+RuntimeScriptValue Sc_AudioClip_SetProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL_POBJ_PINT(ScriptAudioClip, AudioClip_SetProperty, const char);
+}
+
+RuntimeScriptValue Sc_AudioClip_SetTextProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL_POBJ2(ScriptAudioClip, AudioClip_SetTextProperty, const char, const char);
+}
+
 void RegisterAudioClipAPI()
 {
     ScFnRegister audioclip_api[] = {
@@ -182,6 +224,10 @@ void RegisterAudioClipAPI()
         { "AudioClip::PlayQueued^2",      API_FN_PAIR(AudioClip_PlayQueued) },
         { "AudioClip::PlayOnChannel^3",   API_FN_PAIR(AudioClip_PlayOnChannel) },
         { "AudioClip::Stop^0",            API_FN_PAIR(AudioClip_Stop) },
+        { "AudioClip::GetProperty^1",     API_FN_PAIR(AudioClip_GetProperty) },
+        { "AudioClip::GetTextProperty^1", API_FN_PAIR(AudioClip_GetTextProperty) },
+        { "AudioClip::SetProperty^2",     API_FN_PAIR(AudioClip_SetProperty) },
+        { "AudioClip::SetTextProperty^2", API_FN_PAIR(AudioClip_SetTextProperty) },
         { "AudioClip::get_ID",            API_FN_PAIR(AudioClip_GetID) },
         { "AudioClip::get_FileType",      API_FN_PAIR(AudioClip_GetFileType) },
         { "AudioClip::get_IsAvailable",   API_FN_PAIR(AudioClip_GetIsAvailable) },

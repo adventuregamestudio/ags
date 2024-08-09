@@ -89,6 +89,14 @@ void RoomStatus::FreeProperties()
         hsProps[i].clear();
     }
     objProps.clear();
+    for (int i = 0; i < MAX_ROOM_REGIONS; ++i)
+    {
+        regProps[i].clear();
+    }
+    for (int i = 0; i < MAX_WALK_AREAS; ++i)
+    {
+        waProps[i].clear();
+    }
 }
 
 void RoomStatus::ReadFromSavegame(Stream *in, RoomStatSvgVersion cmp_ver)
@@ -164,6 +172,17 @@ void RoomStatus::ReadFromSavegame(Stream *in, RoomStatSvgVersion cmp_ver)
         in->ReadInt32();
         in->ReadInt32();
     }
+    if (cmp_ver >= kRoomStatSvgVersion_40008)
+    {
+        for (int i = 0; i < num_regions; ++i)
+        {
+            Properties::ReadValues(regProps[i], in);
+        }
+        for (int i = 0; i < num_walkareas; ++i)
+        {
+            Properties::ReadValues(waProps[i], in);
+        }
+    }
 }
 
 void RoomStatus::WriteToSavegame(Stream *out) const
@@ -219,6 +238,16 @@ void RoomStatus::WriteToSavegame(Stream *out) const
     out->WriteInt32(0);
     out->WriteInt32(0);
     out->WriteInt32(0);
+
+    // -- kRoomStatSvgVersion_40008
+    for (int i = 0; i < MAX_ROOM_REGIONS; ++i)
+    {
+        Properties::WriteValues(regProps[i], out);
+    }
+    for (int i = 0; i < MAX_WALK_AREAS; ++i)
+    {
+        Properties::WriteValues(waProps[i], out);
+    }
 }
 
 std::unique_ptr<RoomStatus> room_statuses[MAX_ROOMS];

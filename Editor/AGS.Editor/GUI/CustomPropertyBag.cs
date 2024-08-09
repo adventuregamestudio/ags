@@ -69,11 +69,7 @@ namespace AGS.Editor
             List<PropertyDescriptor> descriptors = new List<PropertyDescriptor>();
             foreach (CustomPropertySchemaItem item in _schema.PropertyDefinitions) 
             {
-                if (((_showPropertiesThatApplyTo == CustomPropertyAppliesTo.Characters) && (item.AppliesToCharacters)) ||
-                    ((_showPropertiesThatApplyTo == CustomPropertyAppliesTo.Hotspots) && (item.AppliesToHotspots)) ||
-                    ((_showPropertiesThatApplyTo == CustomPropertyAppliesTo.InventoryItems) && (item.AppliesToInvItems)) ||
-                    ((_showPropertiesThatApplyTo == CustomPropertyAppliesTo.Objects) && (item.AppliesToObjects)) ||
-                    ((_showPropertiesThatApplyTo == CustomPropertyAppliesTo.Rooms) && (item.AppliesToRooms)))
+                if ((_showPropertiesThatApplyTo & item.AppliesTo) != 0)
                 {
                     PropertyDescriptor descriptor = new CustomPropertyDescriptor(item, _properties);
                     descriptors.Add(descriptor);

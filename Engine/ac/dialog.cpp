@@ -35,6 +35,7 @@
 #include "ac/overlay.h"
 #include "ac/mouse.h"
 #include "ac/parser.h"
+#include "ac/properties.h"
 #include "ac/sys_events.h"
 #include "ac/string.h"
 #include "ac/dynobj/scriptdialogoptionsrendering.h"
@@ -168,6 +169,26 @@ int Dialog_GetID(ScriptDialog *sd) {
 const char *Dialog_GetScriptName(ScriptDialog *sd)
 {
     return CreateNewScriptString(game.dialogScriptNames[sd->id]);
+}
+
+int Dialog_GetProperty(ScriptDialog *sd, const char *property)
+{
+    return get_int_property(game.dialogProps[sd->id], play.dialogProps[sd->id], property);
+}
+
+const char* Dialog_GetTextProperty(ScriptDialog *sd, const char *property)
+{
+    return get_text_property_dynamic_string(game.dialogProps[sd->id], play.dialogProps[sd->id], property);
+}
+
+bool Dialog_SetProperty(ScriptDialog *sd, const char *property, int value)
+{
+    return set_int_property(play.dialogProps[sd->id], property, value);
+}
+
+bool Dialog_SetTextProperty(ScriptDialog *sd, const char *property, const char *value)
+{
+    return set_text_property(play.dialogProps[sd->id], property, value);
 }
 
 //=============================================================================
@@ -1403,6 +1424,26 @@ RuntimeScriptValue Sc_Dialog_Start(void *self, const RuntimeScriptValue *params,
     API_OBJCALL_VOID(ScriptDialog, Dialog_Start);
 }
 
+RuntimeScriptValue Sc_Dialog_GetProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT_POBJ(ScriptDialog, Dialog_GetProperty, const char);
+}
+
+RuntimeScriptValue Sc_Dialog_GetTextProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ_POBJ(ScriptDialog, const char, myScriptStringImpl, Dialog_GetTextProperty, const char);
+}
+
+RuntimeScriptValue Sc_Dialog_SetProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL_POBJ_PINT(ScriptDialog, Dialog_SetProperty, const char);
+}
+
+RuntimeScriptValue Sc_Dialog_SetTextProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL_POBJ2(ScriptDialog, Dialog_SetTextProperty, const char, const char);
+}
+
 void RegisterDialogAPI()
 {
     ScFnRegister dialog_api[] = {
@@ -1421,6 +1462,10 @@ void RegisterDialogAPI()
         { "Dialog::SetHasOptionBeenChosen^2", API_FN_PAIR(Dialog_SetHasOptionBeenChosen) },
         { "Dialog::SetOptionState^2",     API_FN_PAIR(Dialog_SetOptionState) },
         { "Dialog::Start^0",              API_FN_PAIR(Dialog_Start) },
+        { "Dialog::GetProperty^1",        API_FN_PAIR(Dialog_GetProperty) },
+        { "Dialog::GetTextProperty^1",    API_FN_PAIR(Dialog_GetTextProperty) },
+        { "Dialog::SetProperty^2",        API_FN_PAIR(Dialog_SetProperty) },
+        { "Dialog::SetTextProperty^2",    API_FN_PAIR(Dialog_SetTextProperty) },
     };
 
     ccAddExternalFunctions(dialog_api);

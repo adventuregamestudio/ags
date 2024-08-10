@@ -465,15 +465,15 @@ namespace AGS
       }
 		}
 
-		Bitmap^ NativeMethods::GetBitmapForSprite(int spriteSlot, int width, int height)
+		Bitmap^ NativeMethods::GetSpriteBitmap(int spriteSlot)
+		{
+            return getSpriteAsBitmap(spriteSlot);
+        }
+
+        Bitmap^ NativeMethods::GetSpriteBitmapAs32bit(int spriteSlot, int width, int height)
 		{
 			return getSpriteAsBitmap32bit(spriteSlot, width, height);
 		}
-
-		Bitmap^ NativeMethods::GetBitmapForSpritePreserveColDepth(int spriteSlot)
-		{
-      return getSpriteAsBitmap(spriteSlot);
-    }
 
 		void NativeMethods::DeleteSprite(int spriteSlot)
 		{

@@ -783,7 +783,7 @@ namespace AGS.Editor
             else if (item.Name == MENU_ITEM_COPY_TO_CLIPBOARD)
             {
                 Sprite sprite = FindSpriteByNumber(_spriteNumberOnMenuActivation);
-                Bitmap bmp = Factory.NativeProxy.GetBitmapForSprite(sprite.Number, sprite.Width, sprite.Height);
+                Bitmap bmp = Factory.NativeProxy.GetSpriteBitmapAs32bit(sprite.Number, sprite.Width, sprite.Height);
 
                 if (GetDesktopColourDepth() < 32 &&
                     (bmp.PixelFormat == PixelFormat.Format32bppArgb || bmp.PixelFormat == PixelFormat.Format32bppRgb))
@@ -977,7 +977,7 @@ namespace AGS.Editor
             ImageFormat fileFormat;
             string fileName = GetTempFileNameForSprite(sprite, out fileFormat);
 
-            Bitmap bmp = Factory.NativeProxy.GetBitmapForSprite(sprite.Number);
+            Bitmap bmp = Factory.NativeProxy.GetSpriteBitmap(sprite.Number);
             bmp.Save(fileName, fileFormat);
 
             DateTime fileLastModified = System.IO.File.GetLastWriteTimeUtc(fileName);
@@ -1177,7 +1177,7 @@ namespace AGS.Editor
 
         private void ExportSprite(string fileName, Sprite sprite)
         {
-            Bitmap bmp = Factory.NativeProxy.GetBitmapForSprite(sprite.Number, sprite.Width, sprite.Height);
+            Bitmap bmp = Factory.NativeProxy.GetSpriteBitmapAs32bit(sprite.Number, sprite.Width, sprite.Height);
             ImportExport.ExportBitmapToFile(fileName, bmp);
             bmp.Dispose();
         }

@@ -181,20 +181,20 @@ namespace AGS.Editor
             _native.ChangeSpriteNumber(sprite, newNumber);
         }
 
-        public Bitmap GetBitmapForSprite(int spriteSlot, int width, int height)
+        public Bitmap GetSpriteBitmap(int spriteSlot)
         {
 			lock (_spriteSetLock)
 			{
-				return _native.GetBitmapForSprite(spriteSlot, width, height);
+				return _native.GetSpriteBitmap(spriteSlot);
 			}
         }
 
-        public Bitmap GetBitmapForSprite(int spriteSlot)
+        public Bitmap GetSpriteBitmapAs32bit(int spriteSlot, int width, int height)
         {
-			lock (_spriteSetLock)
-			{
-				return _native.GetBitmapForSpritePreserveColDepth(spriteSlot);
-			}
+            lock (_spriteSetLock)
+            {
+                return _native.GetSpriteBitmapAs32bit(spriteSlot, width, height);
+            }
         }
 
         public void DeleteSprite(Sprite sprite)

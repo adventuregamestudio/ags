@@ -406,7 +406,7 @@ namespace AGS.Editor
                 g.Clear(backgroundColour);
                 int x = 0, y = 0;
 
-                using (Bitmap bitmapToDraw = Factory.NativeProxy.GetBitmapForSprite(sprite.Number, newWidth, newHeight))
+                using (Bitmap bitmapToDraw = Factory.NativeProxy.GetSpriteBitmapAs32bit(sprite.Number, newWidth, newHeight))
                 {
                     Bitmap bmp = bitmapToDraw ?? SpriteTools.GetPlaceHolder();
                     if (centreInNewCanvas)
@@ -469,7 +469,7 @@ namespace AGS.Editor
         public static void DrawSpriteOnGraphics(Graphics graphics, int spriteSlot, int x, int y, int width, int height)
         {
             // TODO: optimize this by caching sprite bitmaps?
-            using (Bitmap sprite = Factory.NativeProxy.GetBitmapForSprite(spriteSlot))
+            using (Bitmap sprite = Factory.NativeProxy.GetSpriteBitmap(spriteSlot))
             {
                 // 32-bit and 8-bit sprites can be drawn directly
                 switch (sprite.PixelFormat)

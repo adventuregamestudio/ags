@@ -57,8 +57,8 @@ namespace AGS
 			void DrawViewLoop(int hdc, ViewLoop^ loopToDraw, int x, int y, int size, List<int>^ cursel);
 			Sprite^ SetSpriteFromBitmap(int spriteSlot, Bitmap^ bmp, int spriteImportMethod, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel);
 			void ReplaceSpriteWithBitmap(Sprite ^spr, Bitmap^ bmp, int spriteImportMethod, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel);
-			Bitmap^ GetBitmapForSprite(int spriteSlot, int width, int height);
-      Bitmap^ GetBitmapForSpritePreserveColDepth(int spriteSlot);
+            Bitmap^ GetSpriteBitmap(int spriteSlot);
+            Bitmap^ GetSpriteBitmapAs32Bit(int spriteSlot, int width, int height);
 			void DeleteSprite(int spriteSlot);
 			int  GetFreeSpriteSlot();
             Types::SpriteInfo^ GetSpriteInfo(int spriteSlot);

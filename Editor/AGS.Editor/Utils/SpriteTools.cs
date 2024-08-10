@@ -463,7 +463,7 @@ namespace AGS.Editor.Utils
             }
 
             ImageFormat format = sprite.ColorDepth < 32 && !sprite.AlphaChannel ? ImageFormat.Bmp : ImageFormat.Png;
-            Bitmap bmp = Factory.NativeProxy.GetSpriteBitmapAs32Bit(sprite.Number, sprite.Width, sprite.Height);
+            Bitmap bmp = Factory.NativeProxy.GetSpriteBitmap(sprite.Number);
             path = string.Format("{0}.{1}", path, format.ToString().ToLower());
             bmp.Save(path, format);
             bmp.Dispose();
@@ -678,7 +678,7 @@ namespace AGS.Editor.Utils
                 var bmp = LoadBitmapFromSource(sprite);
                 // TODO: this is quite suboptimal, find a way to retrieve a native handle instead?
                 if (bmp == null)
-                    bmp = Factory.NativeProxy.GetSpriteBitmapAs32Bit(sprite.Number, sprite.Width, sprite.Height);
+                    bmp = Factory.NativeProxy.GetSpriteBitmap(sprite.Number);
 
                 if (bmp != null)
                 {

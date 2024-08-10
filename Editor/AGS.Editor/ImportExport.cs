@@ -1123,7 +1123,7 @@ namespace AGS.Editor
 
         private static void WriteOldStyleViewFrame(BinaryWriter writer, ViewFrame frame)
         {
-            Bitmap bmp = Factory.NativeProxy.GetBitmapForSprite(frame.Image);
+            Bitmap bmp = Factory.NativeProxy.GetSpriteBitmap(frame.Image);
             int colDepth = GetColorDepthForPixelFormat(bmp.PixelFormat);
             writer.Write(colDepth);
             int spriteFlags = 0;
@@ -1333,7 +1333,7 @@ namespace AGS.Editor
                 writer.WriteStartElement(GUI_XML_SPRITE_NODE);
                 writer.WriteAttributeString(GUI_XML_SPRITE_NUMBER, spriteNumber.ToString());
 
-                Bitmap bmp = Factory.NativeProxy.GetBitmapForSprite(spriteNumber);
+                Bitmap bmp = Factory.NativeProxy.GetSpriteBitmap(spriteNumber);
                 int colDepth = GetColorDepthForPixelFormat(bmp.PixelFormat);
                 writer.WriteAttributeString(GUI_XML_SPRITE_COLOR_DEPTH, colDepth.ToString());
                 writer.WriteAttributeString(GUI_XML_SPRITE_ALPHA_CHANNEL, (bmp.PixelFormat == PixelFormat.Format32bppArgb).ToString());

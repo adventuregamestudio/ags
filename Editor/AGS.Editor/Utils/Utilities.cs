@@ -388,7 +388,7 @@ namespace AGS.Editor
                 g.Clear(backgroundColour);
                 int x = 0, y = 0;
 
-                using (Bitmap bitmapToDraw = Factory.NativeProxy.GetBitmapForSprite(sprite.Number, newWidth, newHeight))
+                using (Bitmap bitmapToDraw = Factory.NativeProxy.GetSpriteBitmapAs32Bit(sprite.Number, newWidth, newHeight))
                 {
                     Bitmap bmp = bitmapToDraw ?? SpriteTools.GetPlaceHolder();
                     if (centreInNewCanvas)

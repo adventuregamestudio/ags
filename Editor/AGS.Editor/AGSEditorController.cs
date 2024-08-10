@@ -71,7 +71,7 @@ namespace AGS.Editor
 
 		Bitmap IAGSEditor.GetSpriteImage(int spriteNumber)
 		{
-			return Factory.NativeProxy.GetBitmapForSprite(spriteNumber);
+			return Factory.NativeProxy.GetSpriteBitmap(spriteNumber);
 		}
 
         void IAGSEditor.ChangeSpriteImage(int spriteNumber, Bitmap newImage, SpriteImportTransparency transparencyType, bool useAlphaChannel)

@@ -2522,6 +2522,10 @@ System::Drawing::Bitmap^ ConvertAreaMaskToBitmap(Common::Bitmap *mask)
 
 System::Drawing::Bitmap^ getSpriteAsBitmap(int spriteNum) {
   Common::Bitmap *todraw = get_sprite(spriteNum);
+  if (todraw == NULL)
+  {
+	  throw gcnew AGSEditorException(String::Format("getSpriteAsBitmap: Unable to find sprite {0}", spriteNum));
+  }
   return ConvertBlockToBitmap(todraw, (thisgame.SpriteInfos[spriteNum].Flags & SPF_ALPHACHANNEL) != 0);
 }
 

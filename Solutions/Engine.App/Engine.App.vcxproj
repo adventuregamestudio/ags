@@ -593,7 +593,6 @@
     <ClCompile Include="..\..\Engine\gfx\ali3dogl.cpp" />
     <ClCompile Include="..\..\Engine\gfx\ali3dsw.cpp" />
     <ClCompile Include="..\..\Engine\gfx\blender.cpp" />
-    <ClCompile Include="..\..\Engine\gfx\color_engine.cpp" />
     <ClCompile Include="..\..\Engine\gfx\gfxdriverbase.cpp" />
     <ClCompile Include="..\..\Engine\gfx\gfxdriverfactory.cpp" />
     <ClCompile Include="..\..\Engine\gfx\gfxfilter_aad3d.cpp" />

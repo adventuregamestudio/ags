@@ -516,9 +516,6 @@
     <ClCompile Include="..\..\Engine\gfx\blender.cpp">
       <Filter>Source Files\gfx</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\gfx\color_engine.cpp">
-      <Filter>Source Files\gfx</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Engine\gfx\gfx_util.cpp">
       <Filter>Source Files\gfx</Filter>
     </ClCompile>

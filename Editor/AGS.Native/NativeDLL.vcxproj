@@ -331,7 +331,6 @@ copy "$(TargetPath)" "$(SolutionDir)..\Editor\References\x64"</Command>
     <ClCompile Include="..\Native\acgui_agsnative.cpp" />
     <ClCompile Include="..\Native\ac\actiontype.cpp" />
     <ClCompile Include="..\Native\ac\scriptmodule.cpp" />
-    <ClCompile Include="..\Native\color_native.cpp" />
     <ClCompile Include="..\scintilla\lexers\LexCPP.cxx" />
     <ClCompile Include="..\scintilla\lexlib\Accessor.cxx" />
     <ClCompile Include="..\scintilla\lexlib\CharacterCategory.cxx" />

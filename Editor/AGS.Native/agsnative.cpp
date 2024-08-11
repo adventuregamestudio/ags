@@ -188,11 +188,6 @@ void deleteSprite (int sprslot) {
   spritesModified = true;
 }
 
-int GetSpriteAsHBitmap(int slot) {
-  // FIXME later
-  return (int)convert_bitmap_to_hbitmap(get_sprite(slot)->GetAllegroBitmap());
-}
-
 bool DoesSpriteExist(int slot) {
     return spriteset.DoesSpriteExist(slot);
 }
@@ -596,7 +591,6 @@ void draw_gui_sprite(Common::Bitmap *g, bool use_alpha, int atxp, int atyp,
 
 void drawBlock (HDC hdc, Common::Bitmap *todraw, int x, int y) {
   set_palette_to_hdc (hdc, palette);
-  // FIXME later
   blit_to_hdc (todraw->GetAllegroBitmap(), hdc, 0,0,x,y,todraw->GetWidth(),todraw->GetHeight());
 }
 
@@ -1090,12 +1084,31 @@ void new_font () {
   thisgame.numfonts++;
 }
 
+void setup_color_conversions()
+{
+    // RGB shifts for Allegro's pixel data
+    _rgb_a_shift_32 = 24;
+    _rgb_r_shift_32 = 16;
+    _rgb_g_shift_32 = 8;
+    _rgb_b_shift_32 = 0;
+    _rgb_r_shift_24 = 16;
+    _rgb_g_shift_24 = 8;
+    _rgb_b_shift_24 = 0;
+    _rgb_r_shift_16 = 11;
+    _rgb_g_shift_16 = 5;
+    _rgb_b_shift_16 = 0;
+    _rgb_r_shift_15 = 10;
+    _rgb_g_shift_15 = 5;
+    _rgb_b_shift_15 = 0;
+}
+
 bool initialize_native()
 {
     // Set text encoding and init allegro
     set_uformat(U_UTF8);
     set_filename_encoding(U_UNICODE);
     install_allegro(SYSTEM_NONE, &errno, atexit);
+    setup_color_conversions();
 
     AssetMgr.reset(new AssetManager());
     AssetMgr->AddLibrary("."); // TODO: this is for search in editor program folder, but maybe don't use implicit cwd?
@@ -1134,7 +1147,6 @@ void drawBlockScaledAt (HDC hdc, Common::Bitmap *todraw ,int x, int y, float sca
   if (todraw->GetColorDepth () == 8)
     set_palette_to_hdc (hdc, palette);
 
-  // FIXME later
   stretch_blit_to_hdc (todraw->GetAllegroBitmap(), hdc, 0,0,todraw->GetWidth(),todraw->GetHeight(),
     x,y,todraw->GetWidth() * scaleFactor, todraw->GetHeight() * scaleFactor);
 }
@@ -1179,7 +1191,6 @@ void drawSpriteStretch(HDC hdc, int x, int y, int width, int height, int spriteN
     stretch_blit_to_hdc(flipped->GetAllegroBitmap(), hdc, 0, 0, flipped->GetWidth(), flipped->GetHeight(), x, y, width, height);
     delete flipped;
   } else {
-    // FIXME later
     stretch_blit_to_hdc(todraw->GetAllegroBitmap(), hdc, 0, 0, todraw->GetWidth(), todraw->GetHeight(), x, y, width, height);
   }
 

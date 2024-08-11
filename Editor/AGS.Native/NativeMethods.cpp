@@ -65,7 +65,6 @@ extern void drawSpriteStretch(HDC hdc, int x,int y, int width, int height, int s
 extern void drawBlockOfColour(HDC hdc, int x,int y, int width, int height, int colNum);
 extern void drawViewLoop (HDC hdc, ViewLoop^ loopToDraw, int x, int y, int size, List<int>^ cursel);
 extern AGS::Types::SpriteImportResolution SetNewSpriteFromBitmap(int slot, Bitmap^ bmp, int spriteImportMethod, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel);
-extern int GetSpriteAsHBitmap(int spriteSlot);
 extern Bitmap^ getSpriteAsBitmap(int spriteNum);
 extern Bitmap^ getSpriteAsBitmap32bit(int spriteNum, int width, int height);
 extern Bitmap^ getBackgroundAsBitmap(Room ^room, int backgroundNumber);

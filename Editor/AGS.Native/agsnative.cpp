@@ -87,7 +87,6 @@ typedef AGS::Common::HError HAGSError;
 void save_room_file(RoomStruct &rs, const AGSString &path);
 
 AGSBitmap *initialize_sprite(AGS::Common::sprkey_t, AGSBitmap*, uint32_t &sprite_flags);
-void pre_save_sprite(AGSBitmap*);
 
 
 std::unique_ptr<AssetManager> AssetMgr;
@@ -101,7 +100,7 @@ AGS::Common::SpriteCache::Callbacks spritecallbacks = {
     nullptr,
     initialize_sprite,
     nullptr,
-    pre_save_sprite
+    nullptr
 };
 AGS::Common::SpriteCache spriteset(thisgame.SpriteInfos, spritecallbacks);
 GUIMain tempgui; // for drawing a GUI preview
@@ -167,47 +166,9 @@ int get_fixed_pixel_size(int coord)
 	return coord * thisgame.GetDataUpscaleMult();
 }
 
-// jibbles the sprite around to fix hi-color problems, by swapping
-// the red and blue elements
-// TODO: find out if this is actually needed. I guess this may have something to do
-// with Allegro keeping 16-bit bitmaps in an unusual format internally.
-void fix_block (Common::Bitmap *todraw) {
-  int a,b,pixval;
-  if (todraw == NULL)
-    return;
-  // TODO: redo this using direct bitmap data access for the sake of speed
-  if (todraw->GetColorDepth() == 16) {
-    for (a = 0; a < todraw->GetWidth(); a++) {
-      for (b = 0; b < todraw->GetHeight(); b++) {
-        pixval = todraw->GetPixel (a, b);
-        todraw->PutPixel (a, b, makecol16 (getb16(pixval),getg16(pixval),getr16(pixval)));
-      }
-    }
-  }
-  else if (todraw->GetColorDepth() == 32) {
-    for (a = 0; a < todraw->GetWidth(); a++) {
-      for (b = 0; b < todraw->GetHeight(); b++) {
-        pixval = todraw->GetPixel (a, b);
-        todraw->PutPixel (a, b, makeacol32 (getb32(pixval),getg32(pixval),getr32(pixval), geta32(pixval)));
-      }
-    }
-  }
-}
-
 AGSBitmap *initialize_sprite(AGS::Common::sprkey_t /*index*/, AGSBitmap *image, uint32_t &/*sprite_flags*/)
 {
-    fix_block(image);
     return image;
-}
-
-void pre_save_sprite(AGSBitmap *image)
-{
-    // NOTE: this is a nasty hack:
-    // because Editor expects slightly different RGB order, it swaps colors
-    // when loading them (call to initialize_sprite), so here we basically
-    // unfix that fix to save the data in a way that engine will expect.
-    // TODO: perhaps adjust the editor to NOT need this?!
-    fix_block(image);
 }
 
 // Safely gets a sprite, if the sprite does not exist then returns a placeholder (sprite 0)
@@ -1652,12 +1613,6 @@ AGSString load_room_file(RoomStruct &rs, const AGSString &filename) {
     if (spriteset[rs.Objects[i].Sprite] == NULL)
       rs.Objects[i].Sprite = 0;
   }
-  // Fix hi-color screens
-  // TODO: find out why this is necessary. Probably has something to do with
-  // Allegro switching color components at certain version update long time ago.
-  // do we need to do this in the engine too?
-  for (size_t i = 0; i < rs.BgFrameCount; ++i)
-    fix_block (rs.BgFrames[i].Graphic.get());
 
   set_palette_range(palette, 0, 255, 0);
   
@@ -2317,11 +2272,6 @@ Common::Bitmap *CreateBlockFromBitmap(System::Drawing::Bitmap ^bmp, RGB *imgpal,
 		tempsprite = spriteAtRightDepth;
 	}
 
-	if (dst_depth > 8) 
-	{
-		fix_block(tempsprite);
-	}
-
 	return tempsprite;
 }
 
@@ -2493,8 +2443,6 @@ void SetBitmapPaletteFromGlobalPalette(System::Drawing::Bitmap ^bmp)
 
 System::Drawing::Bitmap^ ConvertBlockToBitmap(Common::Bitmap *todraw, bool useAlphaChannel) 
 {
-  fix_block(todraw);
-
   PixelFormat pixFormat = PixelFormat::Format32bppRgb;
   if ((todraw->GetColorDepth() == 32) && (useAlphaChannel))
 	  pixFormat = PixelFormat::Format32bppArgb;
@@ -2521,7 +2469,6 @@ System::Drawing::Bitmap^ ConvertBlockToBitmap(Common::Bitmap *todraw, bool useAl
   if (pixFormat == PixelFormat::Format8bppIndexed)
     SetBitmapPaletteFromGlobalPalette(bmp);
 
-  fix_block(todraw);
   return bmp;
 }
 
@@ -2553,8 +2500,6 @@ System::Drawing::Bitmap^ ConvertBlockToBitmap32(Common::Bitmap *todraw, int widt
 	  delete tempBlock;
 	  tempBlock = newBlock;
   }
-
-  fix_block(tempBlock);
 
   PixelFormat pixFormat = PixelFormat::Format32bppRgb;
   if ((todraw->GetColorDepth() == 32) && (useAlphaChannel))
@@ -4024,10 +3969,6 @@ void save_room_file(RoomStruct &rs, const AGSString &path)
     rs.BackgroundBPP = rs.BgFrames[0].Graphic->GetBPP();
     for (int i = 0; i < 256; ++i)
         thisroom.Palette[i] = thisroom.BgFrames[0].Palette[i];
-    // Fix hi-color screens
-    // TODO: find out why this is needed; may be related to the Allegro internal 16-bit bitmaps format
-    for (size_t i = 0; i < (size_t)rs.BgFrameCount; ++i)
-        fix_block(rs.BgFrames[i].Graphic.get());
 
     std::unique_ptr<Stream> out(AGSFile::CreateFile(path));
     if (out == NULL)
@@ -4036,11 +3977,6 @@ void save_room_file(RoomStruct &rs, const AGSString &path)
     AGS::Common::HRoomFileError err = AGS::Common::WriteRoomData(&rs, out.get(), kRoomVersion_Current);
     if (!err)
         quit(AGSString::FromFormat("save_room: unable to write room data, error was:\r\n%s", err->FullMessage()));
-
-    // Fix hi-color screens back again
-    // TODO: find out why this is needed; may be related to the Allegro internal 16-bit bitmaps format
-    for (size_t i = 0; i < rs.BgFrameCount; ++i)
-        fix_block(rs.BgFrames[i].Graphic.get());
 }
 
 

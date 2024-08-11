@@ -139,17 +139,26 @@ namespace AGS.Editor
         public Sprite CreateSpriteFromBitmap(Bitmap bmp, SpriteImportTransparency transparency, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel)
         {
             int spriteSlot = _native.GetFreeSpriteSlot();
-            return _native.SetSpriteFromBitmap(spriteSlot, bmp, (int)transparency, remapColours, useRoomBackgroundColours, alphaChannel);
+            lock (_spriteSetLock)
+            {
+                return _native.SetSpriteFromBitmap(spriteSlot, bmp, (int)transparency, remapColours, useRoomBackgroundColours, alphaChannel);
+            }
         }
 
         public void ReplaceSpriteWithBitmap(Sprite spr, Bitmap bmp, SpriteImportTransparency transparency, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel)
         {
-            _native.ReplaceSpriteWithBitmap(spr, bmp, (int)transparency, remapColours, useRoomBackgroundColours, alphaChannel);
+            lock (_spriteSetLock)
+            {
+                _native.ReplaceSpriteWithBitmap(spr, bmp, (int)transparency, remapColours, useRoomBackgroundColours, alphaChannel);
+            }
         }
 
         public bool CropSpriteEdges(IList<Sprite> sprites, bool symettric)
         {
-            return _native.CropSpriteEdges(sprites, symettric);
+            lock (_spriteSetLock)
+            {
+                return _native.CropSpriteEdges(sprites, symettric);
+            }
         }
 
         public bool DoesSpriteExist(int spriteNumber)
@@ -162,7 +171,10 @@ namespace AGS.Editor
 
         public void ChangeSpriteNumber(Sprite sprite, int newNumber)
         {
-            _native.ChangeSpriteNumber(sprite, newNumber);
+            lock (_spriteSetLock)
+            {
+                _native.ChangeSpriteNumber(sprite, newNumber);
+            }
         }
 
         public void SpriteResolutionsChanged(Sprite[] sprites)

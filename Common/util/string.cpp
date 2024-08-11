@@ -154,7 +154,7 @@ void String::Write(Stream *out) const
 void String::WriteCount(Stream *out, size_t count) const
 {
     assert(out);
-    size_t str_out_len = std::min(count - 1, _len);
+    size_t str_out_len = std::min(count, _len);
     if (str_out_len > 0)
         out->Write(_cstr, str_out_len);
     size_t null_out_len = count - str_out_len;

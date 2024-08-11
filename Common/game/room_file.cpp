@@ -355,6 +355,31 @@ HError ReadExt_400_WalkOpts(RoomStruct *room, Stream *in, RoomFileVersion data_v
     return HError::None();
 }
 
+HError ReadExt_400_CustomProps(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
+{
+    size_t region_count = in->ReadInt32();
+    if (region_count != room->RegionCount)
+        return new Error(String::FromFormat("Mismatching number of regions: read %zu expected %zu", region_count, room->RegionCount));
+    int errors = 0;
+    for (size_t i = 0; i < room->RegionCount; ++i)
+    {
+        errors += Properties::ReadValues(room->Regions[i].Properties, in);
+    }
+    if (errors > 0)
+        return new RoomFileError(kRoomFileErr_InvalidPropertyValues);
+
+    size_t wa_count = in->ReadInt32();
+    if (wa_count != room->WalkAreaCount)
+        return new Error(String::FromFormat("Mismatching number of walkable areas: read %zu expected %zu", wa_count, room->WalkAreaCount));
+    for (size_t i = 0; i < room->WalkAreaCount; ++i)
+    {
+        Properties::ReadValues(room->WalkAreas[i].Properties, in);
+    }
+    if (errors > 0)
+        return new RoomFileError(kRoomFileErr_InvalidPropertyValues);
+    return HError::None();
+}
+
 HError ReadRoomBlock(RoomStruct *room, Stream *in, RoomFileBlock block, const String &ext_id,
     soff_t block_len, RoomFileVersion data_ver)
 {
@@ -403,6 +428,10 @@ HError ReadRoomBlock(RoomStruct *room, Stream *in, RoomFileBlock block, const St
     else if (ext_id.CompareNoCase("v400_walkopts") == 0)
     {
         return ReadExt_400_WalkOpts(room, in, data_ver);
+    }
+    else if (ext_id.CompareNoCase("v400_customprops") == 0)
+    {
+        return ReadExt_400_CustomProps(room, in, data_ver);
     }
 
     return new RoomFileError(kRoomFileErr_UnknownBlockType,
@@ -686,6 +715,21 @@ void WriteExt_400_WalkareaOpts(const RoomStruct *room, Stream *out)
     }
 }
 
+void WriteExt_400_CustomProps(const RoomStruct *room, Stream *out)
+{
+    out->WriteInt32(room->RegionCount);
+    for (size_t i = 0; i < room->RegionCount; ++i)
+    {
+        Properties::WriteValues(room->Regions[i].Properties, out);
+    }
+
+    out->WriteInt32(room->WalkAreaCount);
+    for (size_t i = 0; i < room->WalkAreaCount; ++i)
+    {
+        Properties::WriteValues(room->WalkAreas[i].Properties, out);
+    }
+}
+
 HRoomFileError WriteRoomData(const RoomStruct *room, Stream *out, RoomFileVersion data_ver)
 {
     if (data_ver < kRoomVersion_Current)
@@ -716,6 +760,7 @@ HRoomFileError WriteRoomData(const RoomStruct *room, Stream *out, RoomFileVersio
     // Early development version of "ags4"
     WriteRoomBlock(room, "ext_ags399", WriteExt399, out);
     WriteRoomBlock(room, "v400_walkopts", WriteExt_400_WalkareaOpts, out);
+    WriteRoomBlock(room, "v400_customprops", WriteExt_400_CustomProps, out);
 
     // Write end of room file
     out->WriteByte(kRoomFile_EOF);

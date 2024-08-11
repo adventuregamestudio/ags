@@ -62,6 +62,9 @@ struct GameSetupStruct : public GameSetupStructBase
     AGS::Common::PropertySchema propSchema;
     std::vector<AGS::Common::StringIMap> charProps;
     AGS::Common::StringIMap invProps[MAX_INV];
+    std::vector<AGS::Common::StringIMap> audioclipProps;
+    std::vector<AGS::Common::StringIMap> dialogProps;
+    std::vector<AGS::Common::StringIMap> guiProps;
     // NOTE: although the view names are stored in game data, they are never
     // used, nor registered as script exports; numeric IDs are used to
     // reference views instead.

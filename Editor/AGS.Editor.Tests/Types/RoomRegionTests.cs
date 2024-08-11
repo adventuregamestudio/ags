@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Xml;
+using NSubstitute;
 using NUnit.Framework;
 
 namespace AGS.Types
@@ -7,12 +8,14 @@ namespace AGS.Types
     [TestFixture]
     public class RoomRegionTests
     {
+        private IChangeNotification _changeNotification;
         private RoomRegion _roomRegion;
 
         [SetUp]
         public void SetUp()
         {
-            _roomRegion = new RoomRegion();
+            _changeNotification = Substitute.For<IChangeNotification>();
+            _roomRegion = new RoomRegion(_changeNotification);
         }
 
         [TestCase(0)]
@@ -117,7 +120,7 @@ namespace AGS.Types
             </RoomRegion>";
             XmlDocument doc = new XmlDocument();
             doc.LoadXml(xml);
-            _roomRegion = new RoomRegion(doc.SelectSingleNode("RoomRegion"));
+            _roomRegion = new RoomRegion(_changeNotification, doc.SelectSingleNode("RoomRegion"));
 
             Assert.That(_roomRegion.UseColourTint, Is.EqualTo(useColourTint));
             Assert.That(_roomRegion.LightLevel, Is.EqualTo(lightLevel));

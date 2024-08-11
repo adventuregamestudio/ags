@@ -27,6 +27,7 @@ namespace AGS.Types
         private int _actualVolume;
         private AudioClipPriority _actualPriority;
         private bool _actualRepeat;
+        private CustomProperties _properties = new CustomProperties();
 
         // The value of a "no sound reference"
         public const int FixedIndexNoValue = 0;
@@ -185,6 +186,16 @@ namespace AGS.Types
         {
             get { return _actualRepeat; }
             set { _actualRepeat = value; }
+        }
+
+        [AGSSerializeClass()]
+        [Description("Custom properties for this audio clip")]
+        [Category("Properties")]
+        [EditorAttribute(typeof(CustomPropertiesUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        public CustomProperties Properties
+        {
+            get { return _properties; }
+            protected set { _properties = value; }
         }
 
         public AudioClip(XmlNode node)

@@ -17,10 +17,12 @@
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_region.h"
+#include "ac/properties.h"
 #include "ac/room.h"
 #include "ac/roomstatus.h"
 #include "ac/dynobj/cc_region.h"
 #include "ac/dynobj/scriptdrawingsurface.h"
+#include "ac/dynobj/scriptstring.h"
 #include "game/roomstruct.h"
 #include "script/runtimescriptvalue.h"
 
@@ -114,6 +116,26 @@ int Region_GetID(ScriptRegion *ssr) {
 
 void Region_RunInteraction(ScriptRegion *ssr, int mood) {
     RunRegionInteraction(ssr->id, mood);
+}
+
+int Region_GetProperty(ScriptRegion *ssr, const char *property)
+{
+    return get_int_property(thisroom.Regions[ssr->id].Properties, croom->regProps[ssr->id], property);
+}
+
+const char* Region_GetTextProperty(ScriptRegion *ssr, const char *property)
+{
+    return get_text_property_dynamic_string(thisroom.Regions[ssr->id].Properties, croom->regProps[ssr->id], property);
+}
+
+bool Region_SetProperty(ScriptRegion *ssr, const char *property, int value)
+{
+    return set_int_property(croom->regProps[ssr->id], property, value);
+}
+
+bool Region_SetTextProperty(ScriptRegion *ssr, const char *property, const char *value)
+{
+    return set_text_property(croom->regProps[ssr->id], property, value);
 }
 
 //=============================================================================
@@ -234,6 +256,26 @@ RuntimeScriptValue Sc_Region_GetTintLuminance(void *self, const RuntimeScriptVal
     API_OBJCALL_INT(ScriptRegion, Region_GetTintLuminance);
 }
 
+RuntimeScriptValue Sc_Region_GetProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT_POBJ(ScriptRegion, Region_GetProperty, const char);
+}
+
+RuntimeScriptValue Sc_Region_GetTextProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ_POBJ(ScriptRegion, const char, myScriptStringImpl, Region_GetTextProperty, const char);
+}
+
+RuntimeScriptValue Sc_Region_SetProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL_POBJ_PINT(ScriptRegion, Region_SetProperty, const char);
+}
+
+RuntimeScriptValue Sc_Region_SetTextProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL_POBJ2(ScriptRegion, Region_SetTextProperty, const char, const char);
+}
+
 
 
 void RegisterRegionAPI()
@@ -246,6 +288,10 @@ void RegisterRegionAPI()
         { "Region::Tint^4",               API_FN_PAIR(Region_TintNoLum) },
         { "Region::Tint^5",               API_FN_PAIR(Region_Tint) },
         { "Region::RunInteraction^1",     API_FN_PAIR(Region_RunInteraction) },
+        { "Region::GetProperty^1",             API_FN_PAIR(Region_GetProperty) },
+        { "Region::GetTextProperty^1",         API_FN_PAIR(Region_GetTextProperty) },
+        { "Region::SetProperty^2",             API_FN_PAIR(Region_SetProperty) },
+        { "Region::SetTextProperty^2",         API_FN_PAIR(Region_SetTextProperty) },
         { "Region::get_Enabled",          API_FN_PAIR(Region_GetEnabled) },
         { "Region::set_Enabled",          API_FN_PAIR(Region_SetEnabled) },
         { "Region::get_ID",               API_FN_PAIR(Region_GetID) },

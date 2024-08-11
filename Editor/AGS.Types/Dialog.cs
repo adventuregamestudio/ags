@@ -19,6 +19,7 @@ namespace AGS.Types
         private bool _scriptChangedSinceLastCompile;
         private string _cachedConvertedScript;
         private List<DialogOption> _options = new List<DialogOption>();
+        private CustomProperties _properties = new CustomProperties();
 
         public Dialog()
         {
@@ -102,6 +103,16 @@ namespace AGS.Types
         public string WindowTitle
         {
             get { return string.IsNullOrEmpty(this.Name) ? ("Dialog " + this.ID) : ("Dialog: " + this.Name); }
+        }
+
+        [AGSSerializeClass()]
+        [Description("Custom properties for this dialog")]
+        [Category("Properties")]
+        [EditorAttribute(typeof(CustomPropertiesUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        public CustomProperties Properties
+        {
+            get { return _properties; }
+            protected set { _properties = value; }
         }
 
         public Dialog(XmlNode node)

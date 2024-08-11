@@ -57,13 +57,13 @@ extern bool reload_font(int curFont);
 extern bool measure_font_height(const AGSString &filename, int pixel_height, int &formal_height);
 // Draws font char sheet on the provided context and returns the height of drawn object;
 // may be called with hdc = 0 to get required height without drawing anything
-extern int drawFontAt (int hdc, int fontnum, int x, int y, int width);
+extern int drawFontAt (HDC hdc, int fontnum, int x, int y, int width);
 extern Dictionary<int, Sprite^>^ load_sprite_dimensions();
-extern void drawGUI(int hdc, int x, int y, GUI^ gui, int resolutionFactor, float scale, int control_transparency, int selectedControl);
-extern void drawSprite(int hdc, int x,int y, int spriteNum, bool flipImage);
-extern void drawSpriteStretch(int hdc, int x,int y, int width, int height, int spriteNum, bool flipImage);
-extern void drawBlockOfColour(int hdc, int x,int y, int width, int height, int colNum);
-extern void drawViewLoop (int hdc, ViewLoop^ loopToDraw, int x, int y, int size, List<int>^ cursel);
+extern void drawGUI(HDC hdc, int x, int y, GUI^ gui, int resolutionFactor, float scale, int control_transparency, int selectedControl);
+extern void drawSprite(HDC hdc, int x,int y, int spriteNum, bool flipImage);
+extern void drawSpriteStretch(HDC hdc, int x,int y, int width, int height, int spriteNum, bool flipImage);
+extern void drawBlockOfColour(HDC hdc, int x,int y, int width, int height, int colNum);
+extern void drawViewLoop (HDC hdc, ViewLoop^ loopToDraw, int x, int y, int size, List<int>^ cursel);
 extern AGS::Types::SpriteImportResolution SetNewSpriteFromBitmap(int slot, Bitmap^ bmp, int spriteImportMethod, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel);
 extern int GetSpriteAsHBitmap(int spriteSlot);
 extern Bitmap^ getSpriteAsBitmap(int spriteNum);
@@ -94,11 +94,11 @@ extern void GameDirChanged(String ^workingDir);
 extern void GameUpdated(Game ^game, bool forceUpdate);
 extern void GameFontUpdated(Game ^game, int fontNumber, bool forceUpdate);
 extern void UpdateNativeSpritesToGame(Game ^game, CompileMessages ^errors);
-extern void draw_room_background(void *roomptr, int hdc, int x, int y, int bgnum, float scaleFactor, int maskType, int selectedArea, int maskTransparency);
+extern void draw_room_background(void *roomptr, HDC hdc, int x, int y, int bgnum, float scaleFactor, int maskType, int selectedArea, int maskTransparency);
 extern void ImportBackground(Room ^room, int backgroundNumber, Bitmap ^bmp, bool useExactPalette, bool sharePalette);
 extern void DeleteBackground(Room ^room, int backgroundNumber);
 extern void CreateBuffer(int width, int height);
-extern void RenderBufferToHDC(int hdc);
+extern void RenderBufferToHDC(HDC hdc);
 extern void DrawSpriteToBuffer(int sprNum, int x, int y, float scale);
 extern void draw_line_onto_mask(void *roomptr, int maskType, int x1, int y1, int x2, int y2, int color);
 extern void draw_filled_rect_onto_mask(void *roomptr, int maskType, int x1, int y1, int x2, int y2, int color);
@@ -307,32 +307,32 @@ namespace AGS
 
 		void NativeMethods::DrawGUI(int hDC, int x, int y, GUI^ gui, int resolutionFactor, float scale, int controlTransparency, int selectedControl)
 		{
-			drawGUI(hDC, x, y, gui, resolutionFactor, scale, controlTransparency, selectedControl);
+			drawGUI((HDC)hDC, x, y, gui, resolutionFactor, scale, controlTransparency, selectedControl);
 		}
 
 		void NativeMethods::DrawSprite(int hDC, int x, int y, int spriteNum, bool flipImage)
 		{
-			drawSprite(hDC, x, y, spriteNum, flipImage);
+			drawSprite((HDC)hDC, x, y, spriteNum, flipImage);
 		}
 
 		int NativeMethods::DrawFont(int hDC, int x, int y, int width, int fontNum)
 		{
-			return drawFontAt(hDC, fontNum, x, y, width);
+			return drawFontAt((HDC)hDC, fontNum, x, y, width);
 		}
 
 		void NativeMethods::DrawSprite(int hDC, int x, int y, int width, int height, int spriteNum, bool flipImage)
 		{
-			drawSpriteStretch(hDC, x, y, width, height, spriteNum, flipImage);
+			drawSpriteStretch((HDC)hDC, x, y, width, height, spriteNum, flipImage);
 		}
 
 		void NativeMethods::DrawBlockOfColour(int hDC, int x, int y, int width, int height, int colourNum)
 		{
-			drawBlockOfColour(hDC, x, y, width, height, colourNum);
+			drawBlockOfColour((HDC)hDC, x, y, width, height, colourNum);
 		}
 
 		void NativeMethods::DrawViewLoop(int hdc, ViewLoop^ loopToDraw, int x, int y, int size, List<int>^ cursel)
 		{
-			drawViewLoop(hdc, loopToDraw, x, y, size, cursel);
+			drawViewLoop((HDC)hdc, loopToDraw, x, y, size, cursel);
 		}
 
 		bool NativeMethods::DoesSpriteExist(int spriteNumber)
@@ -558,12 +558,12 @@ namespace AGS
 
 		void NativeMethods::RenderBufferToHDC(int hDC) 
 		{
-			::RenderBufferToHDC(hDC);
+			::RenderBufferToHDC((HDC)hDC);
 		}
 
 		void NativeMethods::DrawRoomBackground(int hDC, Room ^room, int x, int y, int backgroundNumber, float scaleFactor, RoomAreaMaskType maskType, int selectedArea, int maskTransparency)
 		{
-			draw_room_background((void*)room->_roomStructPtr, hDC, x, y, backgroundNumber, scaleFactor, (int)maskType, selectedArea, maskTransparency);
+			draw_room_background((void*)room->_roomStructPtr, (HDC)hDC, x, y, backgroundNumber, scaleFactor, (int)maskType, selectedArea, maskTransparency);
 		}
 
 		void NativeMethods::ImportBackground(Room ^room, int backgroundNumber, Bitmap ^bmp, bool useExactPalette, bool sharePalette)

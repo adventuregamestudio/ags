@@ -152,7 +152,7 @@ std::unique_ptr<NativeRoomTools> RoomTools;
 HAGSError reset_sprite_file();
 HAGSError reset_sprite_file(const AGSString &spritefile, const AGSString &indexfile);
 bool reload_font(int curFont);
-void drawBlockScaledAt(int hdc, Common::Bitmap *todraw ,int x, int y, float scaleFactor);
+void drawBlockScaledAt(HDC hdc, Common::Bitmap *todraw ,int x, int y, float scaleFactor);
 // this is to shut up the linker, it's used by CSRUN.CPP
 void write_log(const char *) { }
 SysBitmap^ ConvertBlockToBitmap(Common::Bitmap *todraw, bool useAlphaChannel);
@@ -561,7 +561,7 @@ int load_template_file(const AGSString &fileName, char **iconDataBuffer, size_t 
   return 0;
 }
 
-void drawBlockDoubleAt (int hdc, Common::Bitmap *todraw ,int x, int y) {
+void drawBlockDoubleAt (HDC hdc, Common::Bitmap *todraw ,int x, int y) {
   drawBlockScaledAt (hdc, todraw, x, y, 2);
 }
 
@@ -805,7 +805,7 @@ void draw_area_mask(RoomStruct *roomptr, Common::Bitmap *ds, RoomAreaMask maskTy
 	}
 }
 
-void draw_room_background(void *roomvoidptr, int hdc, int x, int y, int bgnum, float scaleFactor, int maskType, int selectedArea, int maskTransparency) 
+void draw_room_background(void *roomvoidptr, HDC hdc, int x, int y, int bgnum, float scaleFactor, int maskType, int selectedArea, int maskTransparency) 
 {
 	RoomStruct *roomptr = (RoomStruct*)roomvoidptr;
 
@@ -943,7 +943,7 @@ HAGSError import_sci_font(const AGSString &filename, int fslot)
 }
 
 
-int drawFontAt (int hdc, int fontnum, int x, int y, int width) {
+int drawFontAt (HDC hdc, int fontnum, int x, int y, int width) {
   assert(fontnum < thisgame.numfonts);
   if (fontnum >= thisgame.numfonts)
   {
@@ -998,7 +998,7 @@ int drawFontAt (int hdc, int fontnum, int x, int y, int width) {
   if (doubleSize > 1) 
     drawBlockDoubleAt(hdc, tempblock, x, y);
   else
-    drawBlock((HDC)hdc, tempblock, x, y);
+    drawBlock(hdc, tempblock, x, y);
    
   delete tempblock;
   return height * doubleSize;
@@ -1021,7 +1021,7 @@ void proportionalDraw (int newwid, int sprnum, int*newx, int*newy) {
   newy[0] = newsizy;
 }
 
-static void doDrawViewLoop(int hdc, const std::vector<::ViewFrame> &frames,
+static void doDrawViewLoop(HDC hdc, const std::vector<::ViewFrame> &frames,
     int x, int y, int size, const std::vector<int> &cursel)
 {
     int wtoDraw = size * frames.size();
@@ -1079,7 +1079,7 @@ static void doDrawViewLoop(int hdc, const std::vector<::ViewFrame> &frames,
     }
 
     // Paint result on the final GDI surface
-    drawBlock((HDC)hdc, todraw.get(), x, y);
+    drawBlock(hdc, todraw.get(), x, y);
 }
 
 // TODO: these functions duplicate ones in the engine, because game struct
@@ -1113,7 +1113,7 @@ int get_adjusted_spriteheight(int spr) {
   return ctx_data_to_game_size(retval, thisgame.SpriteInfos[spr].IsLegacyHiRes());
 }
 
-void drawBlockOfColour(int hdc, int x,int y, int width, int height, int colNum)
+void drawBlockOfColour(HDC hdc, int x,int y, int width, int height, int colNum)
 {
 	__my_setcolor(&colNum, colNum, BaseColorDepth);
   Common::Bitmap *palbmp = Common::BitmapHelper::CreateBitmap(width, height, thisgame.color_depth * 8);
@@ -1169,16 +1169,16 @@ void shutdown_native()
     AssetMgr.reset();
 }
 
-void drawBlockScaledAt (int hdc, Common::Bitmap *todraw ,int x, int y, float scaleFactor) {
+void drawBlockScaledAt (HDC hdc, Common::Bitmap *todraw ,int x, int y, float scaleFactor) {
   if (todraw->GetColorDepth () == 8)
-    set_palette_to_hdc ((HDC)hdc, palette);
+    set_palette_to_hdc (hdc, palette);
 
   // FIXME later
-  stretch_blit_to_hdc (todraw->GetAllegroBitmap(), (HDC)hdc, 0,0,todraw->GetWidth(),todraw->GetHeight(),
+  stretch_blit_to_hdc (todraw->GetAllegroBitmap(), hdc, 0,0,todraw->GetWidth(),todraw->GetHeight(),
     x,y,todraw->GetWidth() * scaleFactor, todraw->GetHeight() * scaleFactor);
 }
 
-void drawSprite(int hdc, int x, int y, int spriteNum, bool flipImage) {
+void drawSprite(HDC hdc, int x, int y, int spriteNum, bool flipImage) {
 	Common::Bitmap *theSprite = get_sprite(spriteNum);
 
   if (theSprite == NULL)
@@ -1197,14 +1197,14 @@ void drawSprite(int hdc, int x, int y, int spriteNum, bool flipImage) {
 	}
 }
 
-void drawSpriteStretch(int hdc, int x, int y, int width, int height, int spriteNum, bool flipImage) {
+void drawSpriteStretch(HDC hdc, int x, int y, int width, int height, int spriteNum, bool flipImage) {
   Common::Bitmap *todraw = get_sprite(spriteNum);
   Common::Bitmap *tempBlock = NULL;
 	
   if (todraw->GetColorDepth () == 8)
-    set_palette_to_hdc ((HDC)hdc, palette);
+    set_palette_to_hdc (hdc, palette);
 
-  int hdcBpp = GetDeviceCaps((HDC)hdc, BITSPIXEL);
+  int hdcBpp = GetDeviceCaps(hdc, BITSPIXEL);
   if (hdcBpp != todraw->GetColorDepth())
   {
 	  tempBlock = Common::BitmapHelper::CreateBitmapCopy(todraw, hdcBpp);
@@ -1215,17 +1215,17 @@ void drawSpriteStretch(int hdc, int x, int y, int width, int height, int spriteN
     Common::Bitmap* flipped = Common::BitmapHelper::CreateBitmap(todraw->GetWidth(), todraw->GetHeight(), todraw->GetColorDepth());
     flipped->FillTransparent();
     flipped->FlipBlt(todraw, 0, 0, Common::kFlip_Horizontal);
-    stretch_blit_to_hdc(flipped->GetAllegroBitmap(), (HDC)hdc, 0, 0, flipped->GetWidth(), flipped->GetHeight(), x, y, width, height);
+    stretch_blit_to_hdc(flipped->GetAllegroBitmap(), hdc, 0, 0, flipped->GetWidth(), flipped->GetHeight(), x, y, width, height);
     delete flipped;
   } else {
     // FIXME later
-    stretch_blit_to_hdc(todraw->GetAllegroBitmap(), (HDC)hdc, 0, 0, todraw->GetWidth(), todraw->GetHeight(), x, y, width, height);
+    stretch_blit_to_hdc(todraw->GetAllegroBitmap(), hdc, 0, 0, todraw->GetWidth(), todraw->GetHeight(), x, y, width, height);
   }
 
   delete tempBlock;
 }
 
-void drawGUIAt(int hdc, int x, int y, int x1, int y1,int x2, int y2, int resolutionFactor, float scale, int ctrl_trans)
+void drawGUIAt(HDC hdc, int x, int y, int x1, int y1, int x2, int y2, int resolutionFactor, float scale, int ctrl_trans)
 {
   if ((tempgui.Width < 1) || (tempgui.Height < 1))
     return;
@@ -1768,10 +1768,11 @@ void DrawSpriteToBuffer(int sprNum, int x, int y, float scale) {
 		delete imageToDraw;
 }
 
-void RenderBufferToHDC(int hdc) 
+void RenderBufferToHDC(HDC hdc) 
 {
     auto &drawBuffer = RoomTools->drawBuffer;
-	blit_to_hdc(drawBuffer->GetAllegroBitmap(), (HDC)hdc, 0, 0, 0, 0, drawBuffer->GetWidth(), drawBuffer->GetHeight());
+
+	blit_to_hdc(drawBuffer->GetAllegroBitmap(), hdc, 0, 0, 0, 0, drawBuffer->GetWidth(), drawBuffer->GetHeight());
 }
 
 void UpdateNativeSprites(SpriteFolder ^folder, std::vector<int> &missing)
@@ -2086,7 +2087,7 @@ void GameFontUpdated(Game ^game, int fontNumber, bool forceUpdate)
     font->Height = get_font_surface_height(fontNumber);
 }
 
-void drawViewLoop (int hdc, ViewLoop^ loopToDraw, int x, int y, int size, List<int>^ cursel)
+void drawViewLoop (HDC hdc, ViewLoop^ loopToDraw, int x, int y, int size, List<int>^ cursel)
 {
     std::vector<::ViewFrame> frames(loopToDraw->Frames->Count);
     for (int i = 0; i < loopToDraw->Frames->Count; ++i) 
@@ -2801,7 +2802,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
   gui->RebuildArray(guictrl_refs);
 }
 
-void drawGUI(int hdc, int x, int y, GUI^ guiObj, int resolutionFactor, float scale, int ctrl_trans, int selectedControl) {
+void drawGUI(HDC hdc, int x, int y, GUI^ guiObj, int resolutionFactor, float scale, int ctrl_trans, int selectedControl) {
   guibuts.clear();
   guilabels.clear();
   guitext.clear();

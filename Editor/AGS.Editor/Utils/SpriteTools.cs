@@ -627,6 +627,20 @@ namespace AGS.Editor.Utils
         }
 
         /// <summary>
+        /// Returns a PixelFormat best suiting the given sprite's color depth.
+        /// </summary>
+        public static PixelFormat ColorDepthToPixelFormat(int colorDepth)
+        {
+            switch (colorDepth)
+            {
+                case 1: return PixelFormat.Format8bppIndexed;
+                case 2: return PixelFormat.Format16bppRgb565;
+                case 4: return PixelFormat.Format32bppArgb;
+                default: return PixelFormat.Undefined;
+            }
+        }
+
+        /// <summary>
         /// Writes a dummy sprite file with one 1x1 clear sprite at index 0.
         /// </summary>
         public static void WriteDummySpriteFile(string filename)
@@ -635,10 +649,11 @@ namespace AGS.Editor.Utils
             if (Factory.AGSEditor.CurrentGame.Settings.OptimizeSpriteStorage)
                 storeFlags |= (int)Native.SpriteFileWriter.StorageFlags.OptimizeForSize;
             var compressSprites = Factory.AGSEditor.CurrentGame.Settings.CompressSpritesType;
+            int gameColorDepth = (int)Factory.AGSEditor.CurrentGame.Settings.ColorDepth;
 
             var writer = new Native.SpriteFileWriter(filename);
             writer.Begin(storeFlags, compressSprites);
-            var bmp = new Bitmap(1, 1);
+            var bmp = new Bitmap(1, 1, ColorDepthToPixelFormat(gameColorDepth));
             writer.WriteBitmap(bmp);
             bmp.Dispose();
             writer.End();
@@ -688,7 +703,7 @@ namespace AGS.Editor.Utils
                 }
                 else
                 {
-                    bmp = new Bitmap(sprite.Width, sprite.Height);
+                    bmp = new Bitmap(sprite.Width, sprite.Height, ColorDepthToPixelFormat(sprite.ColorDepth));
                     writer.WriteBitmap(bmp);
                     bmp.Dispose();
                 }

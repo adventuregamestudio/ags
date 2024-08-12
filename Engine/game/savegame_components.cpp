@@ -525,33 +525,51 @@ HSaveError WriteGUI(Stream *out)
 
     WriteFormatTag(out, "GUIButtons");
     out->WriteInt32(static_cast<int32_t>(guibuts.size()));
-    for (const auto &but : guibuts)
-        but.WriteToSavegame(out);
+    for (size_t i = 0; i < guibuts.size(); ++i)
+    {
+        guibuts[i].WriteToSavegame(out);
+        Properties::WriteValues(play.guicontrolProps[kGUIButton][i], out);
+    }
 
     WriteFormatTag(out, "GUILabels");
     out->WriteInt32(static_cast<int32_t>(guilabels.size()));
-    for (const auto &label : guilabels)
-        label.WriteToSavegame(out);
+    for (size_t i = 0; i < guilabels.size(); ++i)
+    {
+        guilabels[i].WriteToSavegame(out);
+        Properties::WriteValues(play.guicontrolProps[kGUILabel][i], out);
+    }
 
     WriteFormatTag(out, "GUIInvWindows");
     out->WriteInt32(static_cast<int32_t>(guiinv.size()));
-    for (const auto &inv : guiinv)
-        inv.WriteToSavegame(out);
+    for (size_t i = 0; i < guiinv.size(); ++i)
+    {
+        guiinv[i].WriteToSavegame(out);
+        Properties::WriteValues(play.guicontrolProps[kGUIInvWindow][i], out);
+    }
 
     WriteFormatTag(out, "GUISliders");
     out->WriteInt32(static_cast<int32_t>(guislider.size()));
-    for (const auto &slider : guislider)
-        slider.WriteToSavegame(out);
+    for (size_t i = 0; i < guislider.size(); ++i)
+    {
+        guislider[i].WriteToSavegame(out);
+        Properties::WriteValues(play.guicontrolProps[kGUISlider][i], out);
+    }
 
     WriteFormatTag(out, "GUITextBoxes");
     out->WriteInt32(static_cast<int32_t>(guitext.size()));
-    for (const auto &tb : guitext)
-        tb.WriteToSavegame(out);
+    for (size_t i = 0; i < guitext.size(); ++i)
+    {
+        guitext[i].WriteToSavegame(out);
+        Properties::WriteValues(play.guicontrolProps[kGUITextBox][i], out);
+    }
 
     WriteFormatTag(out, "GUIListBoxes");
     out->WriteInt32(static_cast<int32_t>(guilist.size()));
-    for (const auto &list : guilist)
-        list.WriteToSavegame(out);
+    for (size_t i = 0; i < guilist.size(); ++i)
+    {
+        guilist[i].WriteToSavegame(out);
+        Properties::WriteValues(play.guicontrolProps[kGUIListBox][i], out);
+    }
 
     // Animated buttons
     WriteFormatTag(out, "AnimatedButtons");
@@ -582,43 +600,67 @@ HSaveError ReadGUI(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Preserved
         return err;
     if (!AssertGameContent(err, static_cast<size_t>(in->ReadInt32()), guibuts.size(), "GUI Buttons"))
         return err;
-    for (auto &but : guibuts)
-        but.ReadFromSavegame(in, svg_ver);
+    for (size_t i = 0; i < guibuts.size(); ++i)
+    {
+        guibuts[i].ReadFromSavegame(in, svg_ver);
+        if (svg_ver >= kGuiSvgVersion_40008)
+            Properties::ReadValues(play.guicontrolProps[kGUIButton][i], in);
+    }
 
     if (!AssertFormatTagStrict(err, in, "GUILabels"))
         return err;
     if (!AssertGameContent(err, static_cast<size_t>(in->ReadInt32()), guilabels.size(), "GUI Labels"))
         return err;
-    for (auto &label : guilabels)
-        label.ReadFromSavegame(in, svg_ver);
+    for (size_t i = 0; i < guilabels.size(); ++i)
+    {
+        guilabels[i].ReadFromSavegame(in, svg_ver);
+        if (svg_ver >= kGuiSvgVersion_40008)
+            Properties::ReadValues(play.guicontrolProps[kGUILabel][i], in);
+    }
 
     if (!AssertFormatTagStrict(err, in, "GUIInvWindows"))
         return err;
     if (!AssertGameContent(err, static_cast<size_t>(in->ReadInt32()), guiinv.size(), "GUI InvWindows"))
         return err;
-    for (auto &inv : guiinv)
-        inv.ReadFromSavegame(in, svg_ver);
+    for (size_t i = 0; i < guiinv.size(); ++i)
+    {
+        guiinv[i].ReadFromSavegame(in, svg_ver);
+        if (svg_ver >= kGuiSvgVersion_40008)
+            Properties::ReadValues(play.guicontrolProps[kGUIInvWindow][i], in);
+    }
 
     if (!AssertFormatTagStrict(err, in, "GUISliders"))
         return err;
     if (!AssertGameContent(err, static_cast<size_t>(in->ReadInt32()), guislider.size(), "GUI Sliders"))
         return err;
-    for (auto &slider : guislider)
-        slider.ReadFromSavegame(in, svg_ver);
+    for (size_t i = 0; i < guislider.size(); ++i)
+    {
+        guislider[i].ReadFromSavegame(in, svg_ver);
+        if (svg_ver >= kGuiSvgVersion_40008)
+            Properties::ReadValues(play.guicontrolProps[kGUISlider][i], in);
+    }
 
     if (!AssertFormatTagStrict(err, in, "GUITextBoxes"))
         return err;
     if (!AssertGameContent(err, static_cast<size_t>(in->ReadInt32()), guitext.size(), "GUI TextBoxes"))
         return err;
-    for (auto &tb : guitext)
-        tb.ReadFromSavegame(in, svg_ver);
+    for (size_t i = 0; i < guitext.size(); ++i)
+    {
+        guitext[i].ReadFromSavegame(in, svg_ver);
+        if (svg_ver >= kGuiSvgVersion_40008)
+            Properties::ReadValues(play.guicontrolProps[kGUITextBox][i], in);
+    }
 
     if (!AssertFormatTagStrict(err, in, "GUIListBoxes"))
         return err;
     if (!AssertGameContent(err, static_cast<size_t>(in->ReadInt32()), guilist.size(), "GUI ListBoxes"))
         return err;
-    for (auto &list : guilist)
-        list.ReadFromSavegame(in, svg_ver);
+    for (size_t i = 0; i < guilist.size(); ++i)
+    {
+        guilist[i].ReadFromSavegame(in, svg_ver);
+        if (svg_ver >= kGuiSvgVersion_40008)
+            Properties::ReadValues(play.guicontrolProps[kGUIListBox][i], in);
+    }
 
     // Animated buttons
     if (!AssertFormatTagStrict(err, in, "AnimatedButtons"))

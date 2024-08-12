@@ -194,7 +194,7 @@ public:
     // optionally hint how many sprites will be written.
     void Begin(int store_flags, SpriteCompression compress, sprkey_t last_slot = -1);
     // Writes a bitmap into file, compressing if necessary
-    void WriteBitmap(Bitmap *image);
+    void WriteBitmap(const Bitmap *image);
     // Writes an empty slot marker
     void WriteEmptySlot();
     // Writes a raw sprite data without any additional processing

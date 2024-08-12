@@ -203,7 +203,10 @@
       <Filter>Scintilla\win32</Filter>
     </ClCompile>
     <ClCompile Include="SpriteFileWriter_NET.cpp">
-      <Filter>Header Files</Filter>
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SpriteFileReader_NET.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -226,6 +229,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SpriteFileWriter_NET.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SpriteFileReader_NET.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

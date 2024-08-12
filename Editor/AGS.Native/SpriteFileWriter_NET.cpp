@@ -38,7 +38,7 @@ SpriteFileWriter::SpriteFileWriter(System::String ^filename)
     _nativeWriter = new AGS::Common::SpriteFileWriter(std::move(out));
 }
 
-SpriteFileWriter::~SpriteFileWriter()
+SpriteFileWriter::!SpriteFileWriter()
 {
     delete _nativeWriter;
 }
@@ -62,6 +62,16 @@ void SpriteFileWriter::WriteBitmap(System::Drawing::Bitmap ^image, AGS::Types::S
     std::unique_ptr<AGSBitmap> native_bmp(CreateNativeBitmap(image, (int)transparency, remapColours,
         useRoomBackgroundColours, alphaChannel, nullptr));
     _nativeWriter->WriteBitmap(native_bmp.get());
+}
+
+void SpriteFileWriter::WriteNativeBitmap(NativeBitmap ^bitmap)
+{
+    _nativeWriter->WriteBitmap(bitmap->GetNativePtr());
+}
+
+void SpriteFileWriter::WriteRawData(RawSpriteData^ data)
+{
+    _nativeWriter->WriteRawData(*data->GetHeader(), &data->GetData()->front(), data->GetData()->size());
 }
 
 void SpriteFileWriter::WriteEmptySlot()

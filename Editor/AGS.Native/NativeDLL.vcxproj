@@ -381,6 +381,7 @@ copy "$(TargetPath)" "$(SolutionDir)..\Editor\References\x64"</Command>
     <ClCompile Include="agsnative.cpp" />
     <ClCompile Include="NativeMethods.cpp" />
     <ClCompile Include="ScriptCompiler.cpp" />
+    <ClCompile Include="SpriteFileReader_NET.cpp" />
     <ClCompile Include="SpriteFileWriter_NET.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -390,6 +391,7 @@ copy "$(TargetPath)" "$(SolutionDir)..\Editor\References\x64"</Command>
     <ClInclude Include="NativeMethods.h" />
     <ClInclude Include="NativeUtils.h" />
     <ClInclude Include="Scripting.h" />
+    <ClInclude Include="SpriteFileReader_NET.h" />
     <ClInclude Include="SpriteFileWriter_NET.h" />
   </ItemGroup>
   <ItemGroup>

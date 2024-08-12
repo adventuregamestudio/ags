@@ -8,7 +8,7 @@ using System.Xml;
 namespace AGS.Types
 {
     [DefaultProperty("ScalingLevel")]
-    public class RoomWalkableArea : ICustomTypeDescriptor, IToXml
+    public class RoomWalkableArea : IChangeNotification, ICustomTypeDescriptor, IToXml
     {
         private int _id;
         private int _areaSpecificView;
@@ -17,12 +17,15 @@ namespace AGS.Types
         private bool _useContinuousScaling;
         private int _scalingLevelMin = 100;
         private int _scalingLevelMax = 100;
+        private CustomProperties _properties = new CustomProperties();
+        private IChangeNotification _notifyOfModification;
 
-        public RoomWalkableArea()
+        public RoomWalkableArea(IChangeNotification changeNotifier)
         {
+            _notifyOfModification = changeNotifier;
         }
 
-        public RoomWalkableArea(XmlNode node) : this()
+        public RoomWalkableArea(IChangeNotification changeNotifier, XmlNode node) : this(changeNotifier)
         {
             SerializeUtils.DeserializeFromXML(this, node);
         }
@@ -98,6 +101,16 @@ namespace AGS.Types
         public string PropertyGridTitle
         {
             get { return "Walkable area ID " + _id; }
+        }
+
+        [AGSSerializeClass()]
+        [Description("Custom properties for this area")]
+        [Category("Properties")]
+        [EditorAttribute(typeof(CustomPropertiesUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        public CustomProperties Properties
+        {
+            get { return _properties; }
+            protected set { _properties = value; }
         }
 
 
@@ -188,6 +201,11 @@ namespace AGS.Types
         }
 
         #endregion
+
+        void IChangeNotification.ItemModified()
+        {
+            _notifyOfModification.ItemModified();
+        }
 
         public void ToXml(XmlTextWriter writer) => SerializeUtils.SerializeToXML(this, writer);
     }

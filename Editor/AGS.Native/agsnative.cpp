@@ -2797,8 +2797,7 @@ void convert_room_from_native(const RoomStruct &rs, Room ^room, System::Text::En
 		obj->UseRoomAreaScaling = ((rs.Objects[i].Flags & OBJF_USEROOMSCALING) != 0);
 		obj->UseRoomAreaLighting = ((rs.Objects[i].Flags & OBJF_USEREGIONTINTS) != 0);
 		ConvertCustomProperties(obj->Properties, &rs.Objects[i].Properties);
-
-			CopyInteractions(obj->Interactions, rs.Objects[i].EventHandlers.get());
+        CopyInteractions(obj->Interactions, rs.Objects[i].EventHandlers.get());
 
 		room->Objects->Add(obj);
 	}
@@ -2810,9 +2809,8 @@ void convert_room_from_native(const RoomStruct &rs, Room ^room, System::Text::En
 		hotspot->Description = tcv->Convert(rs.Hotspots[i].Name);
 		hotspot->Name = TextHelper::ConvertASCII(rs.Hotspots[i].ScriptName);
         hotspot->WalkToPoint = System::Drawing::Point(rs.Hotspots[i].WalkTo.X, rs.Hotspots[i].WalkTo.Y);
-		ConvertCustomProperties(hotspot->Properties, &rs.Hotspots[i].Properties);
-
-			CopyInteractions(hotspot->Interactions, rs.Hotspots[i].EventHandlers.get());
+		CopyInteractions(hotspot->Interactions, rs.Hotspots[i].EventHandlers.get());
+        ConvertCustomProperties(hotspot->Properties, &rs.Hotspots[i].Properties);
 	}
 
 	for (size_t i = 0; i < MAX_WALK_AREAS; ++i) 
@@ -2832,6 +2830,7 @@ void convert_room_from_native(const RoomStruct &rs, Room ^room, System::Text::En
 		{
 			area->MaxScalingLevel = area->MinScalingLevel;
 		}
+        ConvertCustomProperties(area->Properties, &rs.WalkAreas[i].Properties);
 	}
 
 	for (size_t i = 0; i < MAX_WALK_BEHINDS; ++i) 
@@ -2861,11 +2860,11 @@ void convert_room_from_native(const RoomStruct &rs, Room ^room, System::Text::En
 		area->TintLuminance = area->UseColourTint ? luminance :
 			Utilities::GetDefaultValue(area->GetType(), "TintLuminance", 0);
 
-			CopyInteractions(area->Interactions, rs.Regions[i].EventHandlers.get());
+        ConvertCustomProperties(area->Properties, &rs.Regions[i].Properties);
+        CopyInteractions(area->Interactions, rs.Regions[i].EventHandlers.get());
 	}
 
 	ConvertCustomProperties(room->Properties, &rs.Properties);
-
 	CopyInteractions(room->Interactions, rs.EventHandlers.get());
 }
 
@@ -2944,6 +2943,8 @@ void convert_room_to_native(Room ^room, RoomStruct &rs)
 			rs.WalkAreas[i].ScalingFar = area->ScalingLevel - 100;
 			rs.WalkAreas[i].ScalingNear = NOT_VECTOR_SCALED;
 		}
+
+        CompileCustomProperties(area->Properties, &rs.WalkAreas[i].Properties);
 	}
 
 	rs.WalkBehindCount = room->WalkBehinds->Count;
@@ -2970,6 +2971,8 @@ void convert_room_to_native(Room ^room, RoomStruct &rs)
 			// for compatibility with older versions of the editor.
 			rs.Regions[i].Light = area->LightLevel - 100;
 		}
+
+        CompileCustomProperties(area->Properties, &rs.Regions[i].Properties);
 	}
 
 	CompileCustomProperties(room->Properties, &rs.Properties);

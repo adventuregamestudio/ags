@@ -37,6 +37,7 @@ enum RoomStatSvgVersion
     kRoomStatSvgVersion_36109    = 5, // removed movelists, save externally
     kRoomStatSvgVersion_400      = 4000000, // room object blendmodes etc
     kRoomStatSvgVersion_40003    = 4000003, // room object flags as 32-bit, facedirratio
+    kRoomStatSvgVersion_40008    = 4000008, // custom properties for regions and walk-areas
     kRoomStatSvgVersion_Current  = kRoomStatSvgVersion_40003
 };
 
@@ -66,14 +67,17 @@ struct RoomStatus
     uint32_t tsdatasize;
     std::vector<char> tsdata;
 
-    Common::StringIMap roomProps;
-    Common::StringIMap hsProps[MAX_ROOM_HOTSPOTS];
-    std::vector<Common::StringIMap> objProps;
     HotspotState hotspot[MAX_ROOM_HOTSPOTS];
     char  region_enabled[MAX_ROOM_REGIONS];
     short walkbehind_base[MAX_WALK_BEHINDS];
     float face_dir_ratio = 0.f;
     WalkareaState walkareas[MAX_WALK_AREAS];
+
+    Common::StringIMap roomProps;
+    std::vector<Common::StringIMap> objProps;
+    Common::StringIMap hsProps[MAX_ROOM_HOTSPOTS];
+    Common::StringIMap regProps[MAX_ROOM_REGIONS];
+    Common::StringIMap waProps[MAX_WALK_AREAS];
 
     // A version of a save this RoomStatus was restored from.
     // This is used as a hint when merging RoomStatus with the loaded room file (upon room enter).

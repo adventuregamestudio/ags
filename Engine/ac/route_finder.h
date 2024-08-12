@@ -30,7 +30,6 @@ namespace Engine
 {
 
 // IRouteFinder: a basic pathfinding interface.
-// FIXME: separate finding a path and calculating MoveLists! The latter must not depend on a pathfinder impl.
 class IRouteFinder 
 {
 public:

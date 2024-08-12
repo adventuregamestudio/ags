@@ -15,6 +15,7 @@
 
 #include <memory>
 #include "ac/spritefile.h"
+#include "gfx/bitmap.h"
 
 namespace AGS
 {

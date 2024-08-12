@@ -659,6 +659,12 @@ namespace AGS.Editor
                     FilePutString(TextProperty(pair.Value.Value), writer);
                 }
             }
+
+            public static void WriteEmpty(BinaryWriter writer)
+            {
+                writer.Write(NativeConstants.CustomPropertyVersion.Current);
+                writer.Write((int)0);
+            }
         }
 
         private class CompiledCustomProperties
@@ -869,22 +875,30 @@ namespace AGS.Editor
             }
         }
 
-        class GUIsWriter
+        /// <summary>
+        /// GUIControlsCollection stores flat lists of all controls of all GUIs.
+        /// This is necessary because GUI controls (and some of the extended data)
+        /// are saved as flat arrays into the compiled game.
+        /// </summary>
+        class GUIControlsCollection
         {
-            private List<GUIButtonOrTextWindowEdge> GUIButtonsAndTextWindowEdges = new List<GUIButtonOrTextWindowEdge>();
-            private List<GUILabel> GUILabels = new List<GUILabel>();
-            private List<GUIInventory> GUIInvWindows = new List<GUIInventory>();
-            private List<GUISlider> GUISliders = new List<GUISlider>();
-            private List<GUITextBox> GUITextBoxes = new List<GUITextBox>();
-            private List<GUIListBox> GUIListBoxes = new List<GUIListBox>();
-            private BinaryWriter writer;
-            private Game game;
-
-            public GUIsWriter(BinaryWriter writer, Game game)
+            public GUIControlsCollection()
             {
-                this.writer = writer;
-                this.game = game;
             }
+
+            private List<GUIButtonOrTextWindowEdge> _guiButtons = new List<GUIButtonOrTextWindowEdge>();
+            private List<GUILabel> _guiLabels = new List<GUILabel>();
+            private List<GUIInventory> _guiInvWindows = new List<GUIInventory>();
+            private List<GUISlider> _guiSliders = new List<GUISlider>();
+            private List<GUITextBox> _guiTextBoxes = new List<GUITextBox>();
+            private List<GUIListBox> _guiListBoxes = new List<GUIListBox>();
+
+            public List<GUIButtonOrTextWindowEdge> GUIButtons { get { return _guiButtons; } }
+            public List<GUILabel> GUILabels { get { return _guiLabels; } }
+            public List<GUIInventory> GUIInvWindows { get { return _guiInvWindows; } }
+            public List<GUISlider> GUISliders { get { return _guiSliders; } }
+            public List<GUITextBox> GUITextBoxes { get { return _guiTextBoxes; } }
+            public List<GUIListBox> GUIListBoxes { get { return _guiListBoxes; } }
 
             /// <summary>
             /// The engine treats GUITextWindowEdges as GUIButtons, and they
@@ -896,7 +910,7 @@ namespace AGS.Editor
             /// GUIControl that is neither a GUIButton nor a GUITextWindowEdge
             /// is cast to this type then null is returned.
             /// </summary>
-            private class GUIButtonOrTextWindowEdge
+            public class GUIButtonOrTextWindowEdge
             {
                 private GUIControl _ctrl;
 
@@ -1053,6 +1067,18 @@ namespace AGS.Editor
                     }
                 }
             }
+        }
+
+        class GUIsWriter : GUIControlsCollection
+        {
+            private BinaryWriter writer;
+            private Game game;
+
+            public GUIsWriter(BinaryWriter writer, Game game)
+            {
+                this.writer = writer;
+                this.game = game;
+            }
 
             private int MakeCommonGUIControlFlags(GUIControl control)
             {
@@ -1092,8 +1118,8 @@ namespace AGS.Editor
 
             private void WriteAllButtonsAndTextWindowEdges()
             {
-                writer.Write(GUIButtonsAndTextWindowEdges.Count);
-                foreach (GUIButtonOrTextWindowEdge ctrl in GUIButtonsAndTextWindowEdges)
+                writer.Write(GUIButtons.Count);
+                foreach (GUIButtonOrTextWindowEdge ctrl in GUIButtons)
                 {
                     int flags;
                     flags = (ctrl.ClipImage ? NativeConstants.GUIF_CLIP : 0);
@@ -1221,8 +1247,8 @@ namespace AGS.Editor
                         GUITextWindowEdge textWindowEdge = control as GUITextWindowEdge;
                         if ((button != null) || (textWindowEdge != null))
                         {
-                            objrefptrs[gui.ID][numobjs] = (NativeConstants.GOBJ_BUTTON << 16) | GUIButtonsAndTextWindowEdges.Count;
-                            GUIButtonsAndTextWindowEdges.Add(button != null ?
+                            objrefptrs[gui.ID][numobjs] = (NativeConstants.GOBJ_BUTTON << 16) | GUIButtons.Count;
+                            GUIButtons.Add(button != null ?
                                 (GUIButtonOrTextWindowEdge)button :
                                 (GUIButtonOrTextWindowEdge)textWindowEdge);
                         }
@@ -1720,12 +1746,14 @@ namespace AGS.Editor
             writer.Write((uint)ext_off);
             writer.Seek((int)ext_off, SeekOrigin.Begin);
 
-            WriteExtension("v360_fonts", WriteExt_360Fonts, writer, game, errors);
-            WriteExtension("v360_cursors", WriteExt_360Cursors, writer, game, errors);
-            WriteExtension("v361_objnames", WriteExt_361ObjNames, writer, game, errors);
-            WriteExtension("ext_ags399", WriteExt_Ags399, writer, game, errors);
-            WriteExtension("v400_gameopts", WriteExt_400GameOpts, writer, game, errors);
-            WriteExtension("v400_customprops", WriteExt_400CustomProps, writer, game, errors);
+            WriteExtEntities gameEnts = new WriteExtEntities(game, guisWriter);
+
+            WriteExtension("v360_fonts", WriteExt_360Fonts, writer, gameEnts, errors);
+            WriteExtension("v360_cursors", WriteExt_360Cursors, writer, gameEnts, errors);
+            WriteExtension("v361_objnames", WriteExt_361ObjNames, writer, gameEnts, errors);
+            WriteExtension("ext_ags399", WriteExt_Ags399, writer, gameEnts, errors);
+            WriteExtension("v400_gameopts", WriteExt_400GameOpts, writer, gameEnts, errors);
+            WriteExtension("v400_customprops", WriteExt_400CustomProps, writer, gameEnts, errors);
 
             // End of extensions list
             writer.Write((byte)0xff);
@@ -1736,8 +1764,9 @@ namespace AGS.Editor
         }
         
         // >= 3.6.0: font outline properties
-        private static void WriteExt_360Fonts(BinaryWriter writer, Game game, CompileMessages errors)
+        private static void WriteExt_360Fonts(BinaryWriter writer, WriteExtEntities ents, CompileMessages errors)
         {
+            Game game = ents.Game;
             // adjustable font outlines
             for (int i = 0; i < game.Fonts.Count; ++i)
             {
@@ -1752,8 +1781,9 @@ namespace AGS.Editor
         }
 
         // >= 3.6.0: extended cursor properties
-        private static void WriteExt_360Cursors(BinaryWriter writer, Game game, CompileMessages errors)
+        private static void WriteExt_360Cursors(BinaryWriter writer, WriteExtEntities ents, CompileMessages errors)
         {
+            Game game = ents.Game;
             // adjustable font outlines
             for (int i = 0; i < game.Cursors.Count; ++i)
             {
@@ -1767,8 +1797,9 @@ namespace AGS.Editor
         
         // >= 3.6.1: object script names and names of unrestricted length
         // this saves only those properties that were restricted in length previously
-        private static void WriteExt_361ObjNames(BinaryWriter writer, Game game, CompileMessages errors)
+        private static void WriteExt_361ObjNames(BinaryWriter writer, WriteExtEntities ents, CompileMessages errors)
         {
+            Game game = ents.Game;
             FilePutString(game.Settings.GameName, writer);
             FilePutString(game.Settings.SaveGameFolderName, writer);
             // Characters
@@ -1801,8 +1832,9 @@ namespace AGS.Editor
         }
 
         // Early development version of "ags4"
-        private static void WriteExt_Ags399(BinaryWriter writer, Game game, CompileMessages errors)
+        private static void WriteExt_Ags399(BinaryWriter writer, WriteExtEntities ents, CompileMessages errors)
         {
+            Game game = ents.Game;
             // new character properties
             foreach (var ch in game.Characters)
             {
@@ -1824,16 +1856,18 @@ namespace AGS.Editor
             }
         }
 
-        private static void WriteExt_400GameOpts(BinaryWriter writer, Game game, CompileMessages errors)
+        private static void WriteExt_400GameOpts(BinaryWriter writer, WriteExtEntities ents, CompileMessages errors)
         {
+            Game game = ents.Game;
             writer.Write((float)game.Settings.FaceDirectionRatio);
             // reserve more 32-bit values for a total of 10
             for (int i = 0; i < 9; ++i)
                 writer.Write((int)0);
         }
 
-        private static void WriteExt_400CustomProps(BinaryWriter writer, Game game, CompileMessages errors)
+        private static void WriteExt_400CustomProps(BinaryWriter writer, WriteExtEntities ents, CompileMessages errors)
         {
+            Game game = ents.Game;
             // Audio clip properties
             writer.Write((int)game.AudioClips.Count);
             for (int i = 0; i < game.AudioClips.Count; ++i)
@@ -1852,11 +1886,64 @@ namespace AGS.Editor
             {
                 CustomPropertiesWriter.Write(writer, game.GUIs[i].Properties);
             }
+
+            // GUI control properties
+            GUIControlsCollection guiControls = ents.GUIControls;
+            writer.Write((int)guiControls.GUIButtons.Count);
+            for (int i = 0; i < guiControls.GUIButtons.Count; ++i)
+            {
+                GUIButton button = guiControls.GUIButtons[i];
+                GUITextWindowEdge edge = guiControls.GUIButtons[i];
+                if (button != null)
+                    CustomPropertiesWriter.Write(writer, button.Properties);
+                else
+                    CustomPropertiesWriter.WriteEmpty(writer);
+            }
+            writer.Write((int)guiControls.GUILabels.Count);
+            for (int i = 0; i < guiControls.GUILabels.Count; ++i)
+            {
+                CustomPropertiesWriter.Write(writer, guiControls.GUILabels[i].Properties);
+            }
+            writer.Write((int)guiControls.GUIInvWindows.Count);
+            for (int i = 0; i < guiControls.GUIInvWindows.Count; ++i)
+            {
+                CustomPropertiesWriter.Write(writer, guiControls.GUIInvWindows[i].Properties);
+            }
+            writer.Write((int)guiControls.GUISliders.Count);
+            for (int i = 0; i < guiControls.GUISliders.Count; ++i)
+            {
+                CustomPropertiesWriter.Write(writer, guiControls.GUISliders[i].Properties);
+            }
+            writer.Write((int)guiControls.GUITextBoxes.Count);
+            for (int i = 0; i < guiControls.GUITextBoxes.Count; ++i)
+            {
+                CustomPropertiesWriter.Write(writer, guiControls.GUITextBoxes[i].Properties);
+            }
+            writer.Write((int)guiControls.GUIListBoxes.Count);
+            for (int i = 0; i < guiControls.GUIListBoxes.Count; ++i)
+            {
+                CustomPropertiesWriter.Write(writer, guiControls.GUIListBoxes[i].Properties);
+            }
         }
 
-        private delegate void WriteExtensionProc(BinaryWriter writer, Game game, CompileMessages errors);
+        /// <summary>
+        /// Helper struct for gathering objects that may be useful when writing extensions.
+        /// </summary>
+        private struct WriteExtEntities
+        {
+            public readonly Game Game;
+            public readonly GUIControlsCollection GUIControls;
 
-        private static void WriteExtension(string ext_id, WriteExtensionProc proc, BinaryWriter writer, Game game, CompileMessages errors)
+            public WriteExtEntities(Game game, GUIControlsCollection guiControls)
+            {
+                Game = game;
+                GUIControls = guiControls;
+            }
+        }
+
+        private delegate void WriteExtensionProc(BinaryWriter writer, WriteExtEntities ents, CompileMessages errors);
+
+        private static void WriteExtension(string ext_id, WriteExtensionProc proc, BinaryWriter writer, WriteExtEntities ents, CompileMessages errors)
         {
             // The block meta format:
             //    - 1 byte - an old-style unsigned numeric ID, for compatibility with room file format:
@@ -1869,7 +1956,7 @@ namespace AGS.Editor
             var data_len_pos = writer.BaseStream.Position;
             writer.Write((long)0);
             var start_pos = writer.BaseStream.Position;
-            proc(writer, game, errors);
+            proc(writer, ents, errors);
             var end_pos = writer.BaseStream.Position;
             var data_len = end_pos - start_pos;
             writer.Seek((int)data_len_pos, SeekOrigin.Begin);

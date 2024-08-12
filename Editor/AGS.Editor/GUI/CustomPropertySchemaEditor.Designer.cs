@@ -29,17 +29,20 @@ namespace AGS.Editor
         private void InitializeComponent()
         {
             this.schemaList = new System.Windows.Forms.ListView();
-            this.columnHeader1 = new System.Windows.Forms.ColumnHeader();
-            this.columnHeader2 = new System.Windows.Forms.ColumnHeader();
-            this.columnHeader3 = new System.Windows.Forms.ColumnHeader();
-            this.columnHeader4 = new System.Windows.Forms.ColumnHeader();
+            this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeader2 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeader3 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeader4 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeader5 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.btnOK = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
-            this.columnHeader5 = new System.Windows.Forms.ColumnHeader();
             this.SuspendLayout();
             // 
             // schemaList
             // 
+            this.schemaList.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.schemaList.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.columnHeader1,
             this.columnHeader2,
@@ -50,7 +53,7 @@ namespace AGS.Editor
             this.schemaList.Location = new System.Drawing.Point(8, 25);
             this.schemaList.MultiSelect = false;
             this.schemaList.Name = "schemaList";
-            this.schemaList.Size = new System.Drawing.Size(542, 239);
+            this.schemaList.Size = new System.Drawing.Size(593, 269);
             this.schemaList.TabIndex = 0;
             this.schemaList.UseCompatibleStateImageBehavior = false;
             this.schemaList.View = System.Windows.Forms.View.Details;
@@ -76,10 +79,16 @@ namespace AGS.Editor
             this.columnHeader4.Text = "Default value";
             this.columnHeader4.Width = 100;
             // 
+            // columnHeader5
+            // 
+            this.columnHeader5.Text = "Applies to";
+            this.columnHeader5.Width = 100;
+            // 
             // btnOK
             // 
+            this.btnOK.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnOK.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnOK.Location = new System.Drawing.Point(12, 274);
+            this.btnOK.Location = new System.Drawing.Point(12, 304);
             this.btnOK.Name = "btnOK";
             this.btnOK.Size = new System.Drawing.Size(109, 29);
             this.btnOK.TabIndex = 1;
@@ -96,17 +105,13 @@ namespace AGS.Editor
             this.label1.TabIndex = 2;
             this.label1.Text = "Right-click below to add or edit properties";
             // 
-            // columnHeader5
-            // 
-            this.columnHeader5.Text = "Applies to";
-            // 
             // CustomPropertySchemaEditor
             // 
             this.AcceptButton = this.btnOK;
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.CancelButton = this.btnOK;
-            this.ClientSize = new System.Drawing.Size(562, 310);
+            this.ClientSize = new System.Drawing.Size(613, 340);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.btnOK);
             this.Controls.Add(this.schemaList);

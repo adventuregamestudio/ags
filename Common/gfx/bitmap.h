@@ -74,7 +74,7 @@ namespace BitmapHelper
 	Bitmap *CreateSubBitmap(Bitmap *src, const Rect &rc);
     // Creates a plain copy of the given bitmap, optionally converting to a different color depth;
     // pass color depth 0 to keep the original one.
-    Bitmap *CreateBitmapCopy(Bitmap *src, int color_depth = 0);
+    Bitmap *CreateBitmapCopy(const Bitmap *src, int color_depth = 0);
 
     // Creates Bitmap of wanted color depth from a raw pixel array of a (possibly different)
     // specified color depth.

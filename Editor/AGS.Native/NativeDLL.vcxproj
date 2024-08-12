@@ -326,7 +326,6 @@ copy "$(TargetPath)" "$(SolutionDir)..\Editor\References\x64"</Command>
   <ItemGroup>
     <ClCompile Include="..\Native\acfonts_agsnative.cpp" />
     <ClCompile Include="..\Native\acgui_agsnative.cpp" />
-    <ClCompile Include="..\Native\color_native.cpp" />
     <ClCompile Include="..\scintilla\lexers\LexCPP.cxx" />
     <ClCompile Include="..\scintilla\lexlib\Accessor.cxx" />
     <ClCompile Include="..\scintilla\lexlib\CharacterCategory.cxx" />
@@ -378,6 +377,7 @@ copy "$(TargetPath)" "$(SolutionDir)..\Editor\References\x64"</Command>
     <ClCompile Include="NativeMethods.cpp" />
     <ClCompile Include="NativeRoom.cpp" />
     <ClCompile Include="ScriptCompiler.cpp" />
+    <ClCompile Include="SpriteFileReader_NET.cpp" />
     <ClCompile Include="SpriteFileWriter_NET.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -386,6 +386,7 @@ copy "$(TargetPath)" "$(SolutionDir)..\Editor\References\x64"</Command>
     <ClInclude Include="NativeRoom.h" />
     <ClInclude Include="NativeUtils.h" />
     <ClInclude Include="Scripting.h" />
+    <ClInclude Include="SpriteFileReader_NET.h" />
     <ClInclude Include="SpriteFileWriter_NET.h" />
   </ItemGroup>
   <ItemGroup>

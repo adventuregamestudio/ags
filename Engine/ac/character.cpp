@@ -951,7 +951,6 @@ void Character_SetSpeed(CharacterInfo *chaa, int xspeed, int yspeed) {
     }
 }
 
-
 void Character_StopMoving(CharacterInfo *charp) {
 
     int chaa = charp->index_id;

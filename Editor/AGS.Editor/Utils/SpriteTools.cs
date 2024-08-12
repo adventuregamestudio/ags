@@ -678,6 +678,20 @@ namespace AGS.Editor.Utils
         }
 
         /// <summary>
+        /// Returns a PixelFormat best suiting the given sprite's color depth.
+        /// </summary>
+        public static PixelFormat ColorDepthToPixelFormat(int colorDepth)
+        {
+            switch (colorDepth)
+            {
+                case 1: return PixelFormat.Format8bppIndexed;
+                case 2: return PixelFormat.Format16bppRgb565;
+                case 4: return PixelFormat.Format32bppArgb;
+                default: return PixelFormat.Undefined;
+            }
+        }
+
+        /// <summary>
         /// Writes a dummy sprite file with one 1x1 clear sprite at index 0.
         /// </summary>
         public static void WriteDummySpriteFile(string filename)
@@ -686,10 +700,11 @@ namespace AGS.Editor.Utils
             if (Factory.AGSEditor.CurrentGame.Settings.OptimizeSpriteStorage)
                 storeFlags |= (int)Native.SpriteFileWriter.StorageFlags.OptimizeForSize;
             var compressSprites = Factory.AGSEditor.CurrentGame.Settings.CompressSpritesType;
+            int gameColorDepth = (int)Factory.AGSEditor.CurrentGame.Settings.ColorDepth;
 
             var writer = new Native.SpriteFileWriter(filename);
             writer.Begin(storeFlags, compressSprites);
-            var bmp = new Bitmap(1, 1);
+            var bmp = new Bitmap(1, 1, ColorDepthToPixelFormat(gameColorDepth));
             writer.WriteBitmap(bmp);
             bmp.Dispose();
             writer.End();
@@ -697,9 +712,10 @@ namespace AGS.Editor.Utils
 
         /// <summary>
         /// Writes the sprite file, importing all the existing sprites either from the
-        /// their sources, or sprite cache, - whatever is present (in that order).
+        /// their sources, or existing spriteset file, - whatever is present (in that order).
         /// </summary>
-        public static void WriteSpriteFileFromSources(string filename, IWorkProgress progress)
+        public static void WriteSpriteFileFromSources(string destFilename,
+            string srcSetFilename, string srcIndexFilename, IWorkProgress progress)
         {
             int storeFlags = 0;
             if (Factory.AGSEditor.CurrentGame.Settings.OptimizeSpriteStorage)
@@ -713,7 +729,10 @@ namespace AGS.Editor.Utils
             progress.Total = orderedSprites.Count();
             progress.Current = 0;
 
-            var writer = new Native.SpriteFileWriter(filename);
+            // We need reader in case some sprite source are missing:
+            // then we will try reading the sprite from existing sprite file
+            var reader = new Native.SpriteFileReader(srcSetFilename, srcIndexFilename);
+            var writer = new Native.SpriteFileWriter(destFilename);
             writer.Begin(storeFlags, compressSprites);
             int spriteIndex = 0;
             int realSprites = 0;
@@ -725,28 +744,43 @@ namespace AGS.Editor.Utils
                     writer.WriteEmptySlot();
                 }
 
-                // Try get the image, first from source, then from editor's cache
-                var bmp = LoadBitmapFromSource(sprite);
-                // TODO: this is quite suboptimal, find a way to retrieve a native handle instead?
-                if (bmp == null)
-                    bmp = Factory.NativeProxy.GetSpriteBitmap(sprite.Number);
+                WriteSprite(writer, reader, sprite);
 
-                if (bmp != null)
-                {
-                    writer.WriteBitmap(bmp, sprite.TransparentColour, sprite.RemapToGamePalette,
-                        sprite.RemapToRoomPalette, sprite.AlphaChannel);
-                    bmp.Dispose();
-                }
-                else
-                {
-                    bmp = new Bitmap(sprite.Width, sprite.Height);
-                    writer.WriteBitmap(bmp);
-                    bmp.Dispose();
-                }
                 progress.Current = ++realSprites;
                 spriteIndex++;
             }
             writer.End();
+
+            reader.Dispose();
+            writer.Dispose();
+        }
+
+        private static void WriteSprite(Native.SpriteFileWriter writer, Native.SpriteFileReader reader, Sprite sprite)
+        {
+            // Try get the image, first from source, then from editor's cache
+            var bmp = LoadBitmapFromSource(sprite);
+            if (bmp != null)
+            {
+                writer.WriteBitmap(bmp, sprite.TransparentColour, sprite.RemapToGamePalette,
+                    sprite.RemapToRoomPalette, sprite.AlphaChannel);
+                bmp.Dispose();
+                return;
+            }
+            
+            if (reader != null)
+            {
+                var rawdata = reader.LoadSpriteAsRawData(sprite.Number);
+                if (rawdata != null)
+                    writer.WriteRawData(rawdata);
+                rawdata.Dispose();
+                return;
+            }
+
+            // If sprite cannot be found anywhere, then create a dummy empty sprite,
+            // maintaining the size and color depth
+            bmp = new Bitmap(sprite.Width, sprite.Height, ColorDepthToPixelFormat(sprite.ColorDepth));
+            writer.WriteBitmap(bmp);
+            bmp.Dispose();
         }
     }
 }

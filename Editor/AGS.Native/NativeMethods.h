@@ -60,7 +60,7 @@ namespace Native
 			Sprite^ SetSpriteFromBitmap(int spriteSlot, Bitmap^ bmp, int destColorDepth, int spriteImportMethod, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel);
 			void ReplaceSpriteWithBitmap(Sprite ^spr, Bitmap^ bmp, int destColorDepth, int spriteImportMethod, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel);
             Bitmap^ GetSpriteBitmap(int spriteSlot);
-            Bitmap^ GetSpriteBitmapAs32bit(int spriteSlot, int width, int height);
+            Bitmap^ GetSpriteBitmapAs32Bit(int spriteSlot, int width, int height);
 			void DeleteSprite(int spriteSlot);
 			int  GetFreeSpriteSlot();
             Types::SpriteInfo^ GetSpriteInfo(int spriteSlot);

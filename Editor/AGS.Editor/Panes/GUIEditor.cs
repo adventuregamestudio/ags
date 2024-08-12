@@ -36,10 +36,10 @@ namespace AGS.Editor
         private Pen _drawSelectedPen = new Pen(Color.Red, 2);
         private Pen _drawSnapPen = new Pen(Color.Yellow, 2);
         private bool fromCombo = true; // Hack to show how the the property object changed, need to change the delegate.
-        private GUIControl _selectedControl = null;
+        private GUIControl _selectedControl = null; // last selected control
+        private List<GUIControl> _selected; // all the selected controls
         private GUIAddType _controlAddMode = GUIAddType.None;
         private List<MenuCommand> _toolbarIcons;
-        private List<GUIControl> _selected;
         private List<GUIControlGroup> _groups;
 
         private int ZOOM_STEP_VALUE = 25;
@@ -144,6 +144,7 @@ namespace AGS.Editor
 
         protected override void OnPropertyChanged(string propertyName, object oldValue)
         {
+            // FIXME: this does not distinguish GUI and GUIControl properties!
             if (propertyName == "Name")
             {
                 object objectBeingChanged = _gui;
@@ -176,6 +177,8 @@ namespace AGS.Editor
                 {
                     RaiseOnGuiNameChanged();
                 }
+
+                RefreshProperties();
             }
 			else if (propertyName == "Image")
 			{
@@ -418,7 +421,6 @@ namespace AGS.Editor
                     _selectionBoxY = mouseY;
             }
         }
-
         }
 
         private void MoveControlWithMouse(int mouseX, int mouseY)
@@ -436,8 +438,6 @@ namespace AGS.Editor
 
             _selectedControl.Left = mouseX - _mouseXOffset;
             _selectedControl.Top = mouseY - _mouseYOffset;
-
-
 
             if (_selectedControl.Left >= normalGui.Width)
             {
@@ -686,9 +686,7 @@ namespace AGS.Editor
                 _groups[i].Update();
                 if (_groups[i].Count == 0) _groups.RemoveAt(i);
             }
-            
         }
-
       
         private void LockControl(object sender, EventArgs e)
         {
@@ -730,8 +728,6 @@ namespace AGS.Editor
             for (int i = 0; i < _selected.Count; i++)
             {
                 if (!_selected[i].Locked) _selected[i].Top = _selected[0].Top + (spacing * i);
-
-
             }
             RaiseOnControlsChanged();
             bgPanel.Invalidate();
@@ -748,12 +744,9 @@ namespace AGS.Editor
             for (int i = 0; i < _selected.Count; i++)
             {
                 if (!_selected[i].Locked) _selected[i].Left = _selected[0].Left + (spacing * i);
-
-
             }
             RaiseOnControlsChanged();
             bgPanel.Invalidate();
-
         }
 
         private void RemoveLockedFromSelected()
@@ -761,7 +754,6 @@ namespace AGS.Editor
             foreach (GUIControl _gc in _selected)
             {
                 if (_gc.Locked) _selected.Remove(_gc);
-
             }
             RaiseOnControlsChanged();
             bgPanel.Invalidate();
@@ -781,7 +773,6 @@ namespace AGS.Editor
 
             RaiseOnControlsChanged();
             bgPanel.Invalidate();
-
         }
 
         private void AlignLeftClick(object sender, EventArgs e)
@@ -797,80 +788,127 @@ namespace AGS.Editor
 
             RaiseOnControlsChanged();
             bgPanel.Invalidate();
+        }
 
+        private string _guiControlsClipboardFormat = string.Format($"{typeof(GUIControl).FullName}List");
+
+        private void SaveControlsToClipboard(List<GUIControl> controls)
+        {
+            DataFormats.Format format = DataFormats.GetFormat(_guiControlsClipboardFormat);
+
+            IDataObject dataObj = new DataObject();
+            dataObj.SetData(format.Name, false, controls);
+            Clipboard.SetDataObject(dataObj, true);
+        }
+
+        private bool AvailableControlsOnClipboard()
+        {
+            IDataObject dataObj = Clipboard.GetDataObject();
+            if (dataObj != null)
+                return dataObj.GetDataPresent(_guiControlsClipboardFormat);
+            return false;
+        }
+
+        private List<GUIControl> GetControlsFromClipBoard()
+        {
+            List<GUIControl> controls = null;
+            IDataObject dataObj = Clipboard.GetDataObject();
+            if (dataObj.GetDataPresent(_guiControlsClipboardFormat))
+            {
+                controls = dataObj.GetData(_guiControlsClipboardFormat) as List<GUIControl>;
+            }
+            return controls;
         }
 
         private void CopyControlClick(object sender, EventArgs e)
         {
             if (_selectedControl != null)
             {
-
-                GUIControl _copyBuffer;
-                _copyBuffer = (GUIControl)_selectedControl.Clone();
-                _copyBuffer.SaveToClipboard();
+                List<GUIControl> _copyBuffer = new List<GUIControl>();
+                foreach (var control in _selected)
+                    _copyBuffer.Add((GUIControl)control.Clone());
+                SaveControlsToClipboard(_copyBuffer);
             }
         }
 
-
-
         private void PasteControlClick(object sender, EventArgs e)
         {
-            GUIControl newControl = GUIControl.GetFromClipBoard();
-            if (newControl != null)
-            {
+            List<GUIControl> newControls = GetControlsFromClipBoard();
+            if (newControls == null)
+                return;
 
+            _selected.Clear();
+            _selectedControl = null;
+            // Paste all the new controls, and add them to the selected list.
+            // Relative control positions in the group must be kept.
+            int pasteAtX = _state.WindowXToGUI(_currentMouseX);
+            int pasteAtY = _state.WindowYToGUI(_currentMouseY);
+            int refControlX = 0, refControlY = 0;
+            foreach (var newControl in newControls)
+            {
                 newControl.Name = Factory.AGSEditor.GetFirstAvailableScriptName(newControl.ControlType);
                 newControl.ZOrder = _gui.Controls.Count;
                 newControl.ID = _gui.Controls.Count;
                 newControl.MemberOf = null;
 
-                newControl.Left = _state.WindowXToGUI(_currentMouseX);
-                newControl.Top = _state.WindowYToGUI(_currentMouseY);
+                if (_selectedControl == null)
+                {
+                    refControlX = newControl.Left;
+                    refControlY = newControl.Top;
+                }
+                newControl.Left = pasteAtX + (newControl.Left - refControlX);
+                newControl.Top = pasteAtY + (newControl.Top - refControlY); ;
                 _gui.Controls.Add(newControl);
-                _selected.Clear();
-                _selectedControl = newControl;
                 _selected.Add(newControl);
+                _selectedControl = newControl;
 
-
-                RaiseOnControlsChanged();
+                // This event is repeated for each control
                 Factory.AGSEditor.CurrentGame.NotifyClientsGUIControlAddedOrRemoved(_gui, newControl);
-
-                Factory.GUIController.SetPropertyGridObject(newControl);
-
-                bgPanel.Invalidate();
-                UpdateCursorImage();
-                // Revert back to Select cursor
-                OnCommandClick(Components.GuiComponent.MODE_SELECT_CONTROLS);
             }
+
+            RaiseOnControlsChanged();
+            RefreshProperties();
+            bgPanel.Invalidate();
+            UpdateCursorImage();
+            // Revert back to Select cursor
+            OnCommandClick(Components.GuiComponent.MODE_SELECT_CONTROLS);
         }
 
         private void DeleteControlClick(object sender, EventArgs e)
         {
-            if (_gui is NormalGUI && _selectedControl != null && !_selectedControl.Locked)
+            if (!(_gui is NormalGUI) || _selectedControl == null)
+                return;
+
+            for (int i = _selected.Count - 1; i >= 0; --i)
             {
-                Factory.AGSEditor.CurrentGame.NotifyClientsGUIControlAddedOrRemoved(_gui, _selectedControl);
-                _selected.Remove(_selectedControl);
-                _gui.DeleteControl(_selectedControl);
-                if (_selectedControl.MemberOf != null)
+                var control = _selected[i];
+                if (control.Locked)
+                    continue;
+
+                // This event is repeated for each control
+                Factory.AGSEditor.CurrentGame.NotifyClientsGUIControlAddedOrRemoved(_gui, control);
+                _selected.RemoveAt(i);
+                _gui.DeleteControl(control);
+                if (control.MemberOf != null)
                 {
-                    _selectedControl.MemberOf.RemoveFromGroup(_selectedControl);
+                    control.MemberOf.RemoveFromGroup(control);
                 }
-                if (_selected.Count > 0)
+                if (control == _selectedControl)
                 {
-                    _selectedControl = _selected[_selected.Count - 1];
+                    if (_selected.Count > 0)
+                    {
+                        _selectedControl = _selected[_selected.Count - 1];
+                    }
+                    else
+                    {
+                        _selectedControl = null;
+                    }
                 }
-                else _selectedControl = null;
-                RaiseOnControlsChanged();
-                if (_selectedControl != null)
-                {
-                    Factory.GUIController.SetPropertyGridObject(_selectedControl);
-                }
-                else
-                {
-                    Factory.GUIController.SetPropertyGridObject(_gui);
-                }
-                bgPanel.Invalidate();
             }
+
+            RaiseOnControlsChanged();
+            RefreshProperties();
+            bgPanel.Invalidate();
         }
 
         private void ShowContextMenu(int x, int y, GUIControl control)
@@ -920,23 +958,48 @@ namespace AGS.Editor
                 menu.Items.Add(new ToolStripMenuItem("Delete", null, new EventHandler(DeleteControlClick), Keys.Delete));
                 }
 
-                if (GUIControl.AvailableOnClipboard()) menu.Items.Add(new ToolStripMenuItem("Paste", null, new EventHandler(PasteControlClick), Keys.Control | Keys.V));
+                if (AvailableControlsOnClipboard())
+                {
+                    menu.Items.Add(new ToolStripMenuItem("Paste", null, new EventHandler(PasteControlClick), Keys.Control | Keys.V));
+                }
 
                 if (menu.Items.Count > 0) menu.Show(bgPanel, x, y);
             }
         }
 
-        private void refreshProperties()
+        // TODO: this is made public static member of GUIEditor as a quick solution for both GUIEditor
+        // and GuiComponent needing to regenerate this list (GuiComponent needs this when handling
+        // a change of GUI's ID and/or name from the project tree). But I'm not certain if this
+        // is a "elegant" solution. Review this later, and try to devise a uniform and consistent
+        // method for all components and editors.
+        public static Dictionary<string, object> ConstructPropertyObjectList(GUI forGui)
         {
-            if (_selectedControl != null)
+            Dictionary<string, object> list = new Dictionary<string, object>();
+            list.Add(forGui.PropertyGridTitle, forGui);
+            foreach (GUIControl control in forGui.Controls)
             {
+                list.Add(control.Name + " (" + control.ControlType + "; ID " + control.ID + ")", control);
+            }
+            return list;
+        }
+
+        private void RefreshProperties()
+        {
+            if (_selected.Count > 1)
+            {
+                Factory.GUIController.SetPropertyGridObjectList(null);
+                Factory.GUIController.SetPropertyGridObjects(_selected.ToArray());
+            }
+            else if (_selectedControl != null)
+            {
+                Factory.GUIController.SetPropertyGridObjectList(ConstructPropertyObjectList(_gui));
                 Factory.GUIController.SetPropertyGridObject(_selectedControl);
             }
             else
             {
+                Factory.GUIController.SetPropertyGridObjectList(ConstructPropertyObjectList(_gui));
                 Factory.GUIController.SetPropertyGridObject(_gui);
             }
-            bgPanel.Invalidate();
         }
 
         private void bgPanel_MouseUp(object sender, MouseEventArgs e)
@@ -960,7 +1023,8 @@ namespace AGS.Editor
             else if (_resizingControl)
             {
                 _resizingControl = false;
-                refreshProperties();
+                RefreshProperties();
+                bgPanel.Invalidate();
             }
             else if (_drawingSelectionBox)
             {
@@ -970,13 +1034,14 @@ namespace AGS.Editor
                    if (_selectionRect.Contains(_gc.GetRectangle()) && !_selected.Contains(_gc)) _selected.Add(_gc);
                }
                if (_selected.Count > 0) _selectedControl = _selected[_selected.Count - 1];
-               bgPanel.Invalidate();
-               refreshProperties();
+                RefreshProperties();
+                bgPanel.Invalidate();
             }
             else
             {
                 _movingControl = false;
-                refreshProperties();
+                RefreshProperties();
+                bgPanel.Invalidate();
 
                 if ((e.Button == MouseButtons.Right))
                 {
@@ -1074,8 +1139,7 @@ namespace AGS.Editor
             RaiseOnControlsChanged();
             Factory.AGSEditor.CurrentGame.NotifyClientsGUIControlAddedOrRemoved(_gui, newControl);
 
-            Factory.GUIController.SetPropertyGridObject(newControl);
-
+            RefreshProperties();
             bgPanel.Invalidate();
             UpdateCursorImage();
             // Revert back to Select cursor
@@ -1115,56 +1179,98 @@ namespace AGS.Editor
             return ProcessGUIEditControl(keyData);
         }
 
+        /// <summary>
+        /// Handles key commands not related to selected controls.
+        /// </summary>
+        private bool HandleGUIEditOperation(Keys keyData)
+        {
+            if (keyData.HasFlag(Keys.Control))
+            {
+                switch (keyData & ~Keys.Modifiers)
+                {
+                    case Keys.V:
+                        PasteControlClick(null, null);
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Handles key commands over selected control(s).
+        /// </summary>
+        private bool HandleControlEditOperation(Keys keyData)
+        {
+            if (_selectedControl == null)
+                return false;
+
+            // First test combinations with modifiers
+            if (keyData.HasFlag(Keys.Control))
+            {
+                switch (keyData & ~Keys.Modifiers)
+                {
+                    case Keys.C:
+                        CopyControlClick(null, null);
+                        return true;
+                    case Keys.V:
+                        PasteControlClick(null, null);
+                        return true;
+                    default:
+                        break; // continue to general keys
+                }
+            }
+
+            // General keys that work without modifiers
+            switch (keyData)
+            {
+                case Keys.Delete:
+                    DeleteControlClick(null, null);
+                    return true;
+                case Keys.Left:
+                    foreach (GUIControl _gc in _selected)
+                    {
+                        _gc.Left--;
+                    }
+                    return true;
+                case Keys.Right:
+                    foreach (GUIControl _gc in _selected)
+                    {
+                        _gc.Left++;
+                    }
+                    return true;
+                case Keys.Up:
+                    foreach (GUIControl _gc in _selected)
+                    {
+                        _gc.Top--;
+                    }
+                    return true;
+                case Keys.Down:
+                    foreach (GUIControl _gc in _selected)
+                    {
+                        _gc.Top++;
+                    }
+                    return true;
+                default:
+                    return false; // no applicable command
+            }
+        }
+
         protected bool ProcessGUIEditControl(Keys keyData)
         {        
             // TODO: normally this should be done using class/method overriding
             if (_gui is TextWindowGUI)
                 return false; // do not let users move or delete TextWindow elements
 
-            if (_selectedControl != null)
+            if (HandleGUIEditOperation(keyData) ||
+                ((_selectedControl != null) && HandleControlEditOperation(keyData)))
             {
-                switch (keyData)
-            {
-                    case Keys.Delete:
-                DeleteControlClick(null, null);
-                        break;
-
-                    case Keys.Left:
-                        foreach (GUIControl _gc in _selected)
-                        {
-                            _gc.Left--;
-                        }
-                        break;
-
-                    case Keys.Right:
-                        foreach (GUIControl _gc in _selected)
-                        {
-                            _gc.Left++;
-            }
-                        break;
-
-
-                    case Keys.Up:
-                        foreach (GUIControl _gc in _selected)
-                        {
-                            _gc.Top--;
-                        }
-                        break;
-
-
-                    case Keys.Down:
-                        foreach (GUIControl _gc in _selected)
-                        {
-                            _gc.Top++;
-                        }
-                        break;
-                    default:
-                        return false;
-                }
                 bgPanel.Invalidate();
                 RaiseOnControlsChanged();
                 return true;
             }
+
             return false;
         }
 

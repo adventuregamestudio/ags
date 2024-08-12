@@ -66,9 +66,9 @@ AGS::Engine::MaskRouteFinder *get_room_pathfinder();
 // complicated, as first we need to make an additional conversion between data coords
 // and upscale game coordinates.
 //
-// coordinate conversion      (data) ---> game ---> (room mask)
+// coordinate conversion (room) ---> (room mask)
 int room_to_mask_coord(int coord);
-// coordinate conversion (room mask) ---> game ---> (data)
+// coordinate conversion (room mask) ---> (room)
 int mask_to_room_coord(int coord);
 
 // The single global "current room" instance

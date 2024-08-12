@@ -963,13 +963,12 @@ MaskRouteFinder *get_room_pathfinder()
     return room_pathfinder.get();
 }
 
-// coordinate conversion (data) ---> game ---> (room mask)
+// coordinate conversion (room) ---> (room mask)
 int room_to_mask_coord(int coord)
 {
     return coord / thisroom.MaskResolution;
 }
-
-// coordinate conversion (room mask) ---> game ---> (data)
+// coordinate conversion (room mask) ---> (room)
 int mask_to_room_coord(int coord)
 {
     return coord * thisroom.MaskResolution;

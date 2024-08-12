@@ -76,41 +76,21 @@ void engine_pre_gfxmode_driver_cleanup()
 }
 
 // Setup color conversion parameters
-// CLNUP we want only 32 bit for the future, color conversion should be dropped I guess
-void engine_setup_color_conversions(int coldepth)
+void engine_setup_color_conversions(int /* display_color_depth */)
 {
-    // default shifts for how we store the sprite data
+    // RGB shifts for Allegro's pixel data
     _rgb_r_shift_32 = 16;
     _rgb_g_shift_32 = 8;
     _rgb_b_shift_32 = 0;
+    _rgb_r_shift_24 = 16;
+    _rgb_g_shift_24 = 8;
+    _rgb_b_shift_24 = 0;
     _rgb_r_shift_16 = 11;
     _rgb_g_shift_16 = 5;
     _rgb_b_shift_16 = 0;
     _rgb_r_shift_15 = 10;
     _rgb_g_shift_15 = 5;
     _rgb_b_shift_15 = 0;
-
-    // TODO: investigate if this is still necessary, and under which circumstances?
-    // the color conversion should likely be done when preparing textures or
-    // rendering to final output instead, not in the main engine code.
-    if (coldepth < 16)
-    {
-        // ensure that any 32-bit graphics displayed are converted
-        // properly to the current depth
-#if AGS_PLATFORM_OS_WINDOWS
-        _rgb_r_shift_32 = 16;
-        _rgb_g_shift_32 = 8;
-        _rgb_b_shift_32 = 0;
-#else
-        _rgb_r_shift_32 = 0;
-        _rgb_g_shift_32 = 8;
-        _rgb_b_shift_32 = 16;
-
-        _rgb_b_shift_15 = 0;
-        _rgb_g_shift_15 = 5;
-        _rgb_r_shift_15 = 10;
-#endif
-    }
 
     set_color_conversion(COLORCONV_MOST | COLORCONV_EXPAND_256);
 }

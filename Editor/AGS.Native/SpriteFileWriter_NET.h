@@ -15,22 +15,19 @@
 
 #include <memory>
 #include "ac/spritefile.h"
+#include "SpriteFileReader_NET.h"
 
 namespace AGS
 {
 namespace Native
 {
 
-public ref class SpriteFileWriter
+public ref class SpriteFileWriter : public SpriteFile
 {
 public:
-    enum class StorageFlags
-    {
-        OptimizeForSize = 0x01
-    };
-
     SpriteFileWriter(System::String ^filename);
-    ~SpriteFileWriter();
+    ~SpriteFileWriter() { this->!SpriteFileWriter(); }
+    !SpriteFileWriter();
 
     // Initializes new sprite file with the given settings
     void Begin(int store_flags, AGS::Types::SpriteCompression compress);
@@ -39,6 +36,10 @@ public:
     // Converts bitmap according to the sprite's properties, and writes into the file
     void WriteBitmap(System::Drawing::Bitmap ^image, AGS::Types::SpriteImportTransparency transparency,
         bool remapColours, bool useRoomBackgroundColours, bool alphaChannel);
+    // Writes a native bitmap into the file without any additional convertions
+    void WriteNativeBitmap(NativeBitmap ^bitmap);
+    // Writes a raw sprite data presented in internal spritefile format
+    void WriteRawData(RawSpriteData^ data);
     // Writes an empty slot marker
     void WriteEmptySlot();
     // Finalizes current format; no further writing is possible after this

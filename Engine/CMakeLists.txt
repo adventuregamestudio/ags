@@ -289,7 +289,6 @@ target_sources(engine
     gfx/ali3dsw.h
     gfx/blender.cpp
     gfx/blender.h
-    gfx/color_engine.cpp
     gfx/ddb.h
     gfx/gfx_util.cpp
     gfx/gfx_util.h

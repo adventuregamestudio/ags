@@ -46,9 +46,6 @@
     <ClCompile Include="agsnative.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\Native\color_native.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="NativeMethods.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -194,7 +191,10 @@
       <Filter>Scintilla\win32</Filter>
     </ClCompile>
     <ClCompile Include="SpriteFileWriter_NET.cpp">
-      <Filter>Header Files</Filter>
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SpriteFileReader_NET.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="NativeRoom.cpp">
       <Filter>Header Files</Filter>
@@ -215,6 +215,9 @@
     </ClInclude>
     <ClInclude Include="SpriteFileWriter_NET.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SpriteFileReader_NET.h">
+    <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="NativeRoom.h">
       <Filter>Header Files</Filter>

@@ -84,7 +84,6 @@ typedef AGS::Common::HError HAGSError;
 void save_room_file(RoomStruct &rs, const AGSString &path);
 
 AGSBitmap *initialize_sprite(AGS::Common::sprkey_t, AGSBitmap*, uint32_t &sprite_flags);
-void pre_save_sprite(AGSBitmap*);
 
 
 std::unique_ptr<AssetManager> AssetMgr;
@@ -96,7 +95,7 @@ AGS::Common::SpriteCache::Callbacks spritecallbacks = {
     nullptr,
     initialize_sprite,
     nullptr,
-    pre_save_sprite
+    nullptr
 };
 AGS::Common::SpriteCache spriteset(thisgame.SpriteInfos, spritecallbacks);
 GUIMain tempgui; // for drawing a GUI preview
@@ -135,52 +134,14 @@ int BaseColorDepth = 0;
 HAGSError reset_sprite_file();
 HAGSError reset_sprite_file(const AGSString &spritefile, const AGSString &indexfile);
 bool reload_font(int curFont);
-void drawBlockScaledAt(int hdc, Common::Bitmap *todraw ,int x, int y, float scaleFactor);
+void drawBlockScaledAt(HDC hdc, Common::Bitmap *todraw ,int x, int y, float scaleFactor);
 // this is to shut up the linker, it's used by CSRUN.CPP
 void write_log(const char *) { }
 SysBitmap^ ConvertBlockToBitmap(Common::Bitmap *todraw);
 
-// jibbles the sprite around to fix hi-color problems, by swapping
-// the red and blue elements
-// TODO: find out if this is actually needed. I guess this may have something to do
-// with Allegro keeping 16-bit bitmaps in an unusual format internally.
-void fix_block (Common::Bitmap *todraw) {
-  int a,b,pixval;
-  if (todraw == NULL)
-    return;
-  // TODO: redo this using direct bitmap data access for the sake of speed
-  if (todraw->GetColorDepth() == 16) {
-    for (a = 0; a < todraw->GetWidth(); a++) {
-      for (b = 0; b < todraw->GetHeight(); b++) {
-        pixval = todraw->GetPixel (a, b);
-        todraw->PutPixel (a, b, makecol16 (getb16(pixval),getg16(pixval),getr16(pixval)));
-      }
-    }
-  }
-  else if (todraw->GetColorDepth() == 32) {
-    for (a = 0; a < todraw->GetWidth(); a++) {
-      for (b = 0; b < todraw->GetHeight(); b++) {
-        pixval = todraw->GetPixel (a, b);
-        todraw->PutPixel (a, b, makeacol32 (getb32(pixval),getg32(pixval),getr32(pixval), geta32(pixval)));
-      }
-    }
-  }
-}
-
 AGSBitmap *initialize_sprite(AGS::Common::sprkey_t /*index*/, AGSBitmap *image, uint32_t &/*sprite_flags*/)
 {
-    fix_block(image);
     return image;
-}
-
-void pre_save_sprite(AGSBitmap *image)
-{
-    // NOTE: this is a nasty hack:
-    // because Editor expects slightly different RGB order, it swaps colors
-    // when loading them (call to initialize_sprite), so here we basically
-    // unfix that fix to save the data in a way that engine will expect.
-    // TODO: perhaps adjust the editor to NOT need this?!
-    fix_block(image);
 }
 
 // Safely gets a sprite, if the sprite does not exist then returns a placeholder (sprite 0)
@@ -202,11 +163,6 @@ void SetNewSprite(int slot, AGSBitmap *sprit, int flags) {
 void deleteSprite (int sprslot) {
   spriteset.DisposeSprite(sprslot);
   spritesModified = true;
-}
-
-int GetSpriteAsHBitmap(int slot) {
-  // FIXME later
-  return (int)convert_bitmap_to_hbitmap(get_sprite(slot)->GetAllegroBitmap());
 }
 
 bool DoesSpriteExist(int slot) {
@@ -537,7 +493,7 @@ bool load_template_file(const AGSString &fileName, AGSString &description,
   return false;
 }
 
-void drawBlockDoubleAt (int hdc, Common::Bitmap *todraw ,int x, int y) {
+void drawBlockDoubleAt (HDC hdc, Common::Bitmap *todraw ,int x, int y) {
   drawBlockScaledAt (hdc, todraw, x, y, 2);
 }
 
@@ -688,7 +644,7 @@ HAGSError import_sci_font(const AGSString &filename, int fslot)
 }
 
 // CLNUP temporarily forced doubleSize to 2, it will get scaled up in the font preview, but not in the GUIs
-int drawFontAt (int hdc, int fontnum, int x, int y, int width) {
+int drawFontAt (HDC hdc, int fontnum, int x, int y, int width) {
   assert(fontnum < thisgame.numfonts);
   if (fontnum >= thisgame.numfonts)
   {
@@ -743,7 +699,7 @@ int drawFontAt (int hdc, int fontnum, int x, int y, int width) {
   if (doubleSize > 1) 
     drawBlockDoubleAt(hdc, tempblock, x, y);
   else
-    drawBlock((HDC)hdc, tempblock, x, y);
+    drawBlock(hdc, tempblock, x, y);
    
   delete tempblock;
   return height * doubleSize;
@@ -766,7 +722,7 @@ void proportionalDraw (int newwid, int sprnum, int*newx, int*newy) {
   newy[0] = newsizy;
 }
 
-static void doDrawViewLoop(int hdc, const std::vector<::ViewFrame> &frames,
+static void doDrawViewLoop(HDC hdc, const std::vector<::ViewFrame> &frames,
     int x, int y, int size, const std::vector<int> &cursel)
 {
     int wtoDraw = size * frames.size();
@@ -824,7 +780,7 @@ static void doDrawViewLoop(int hdc, const std::vector<::ViewFrame> &frames,
     }
 
     // Paint result on the final GDI surface
-    drawBlock((HDC)hdc, todraw.get(), x, y);
+    drawBlock(hdc, todraw.get(), x, y);
 }
 
 // CLNUP probably to remove, need to check how the flag is involved
@@ -845,7 +801,7 @@ int get_adjusted_spriteheight(int spr) {
   return retval;
 }
 
-void drawBlockOfColour(int hdc, int x,int y, int width, int height, int colNum)
+void drawBlockOfColour(HDC hdc, int x,int y, int width, int height, int colNum)
 {
 	__my_setcolor(&colNum, colNum, BaseColorDepth);
   Common::Bitmap *palbmp = Common::BitmapHelper::CreateBitmap(width, height, thisgame.color_depth * 8);
@@ -861,12 +817,31 @@ void new_font () {
   thisgame.numfonts++;
 }
 
+void setup_color_conversions()
+{
+    // RGB shifts for Allegro's pixel data
+    _rgb_a_shift_32 = 24;
+    _rgb_r_shift_32 = 16;
+    _rgb_g_shift_32 = 8;
+    _rgb_b_shift_32 = 0;
+    _rgb_r_shift_24 = 16;
+    _rgb_g_shift_24 = 8;
+    _rgb_b_shift_24 = 0;
+    _rgb_r_shift_16 = 11;
+    _rgb_g_shift_16 = 5;
+    _rgb_b_shift_16 = 0;
+    _rgb_r_shift_15 = 10;
+    _rgb_g_shift_15 = 5;
+    _rgb_b_shift_15 = 0;
+}
+
 bool initialize_native()
 {
     // Set text encoding and init allegro
     set_uformat(U_UTF8);
     set_filename_encoding(U_UNICODE);
     install_allegro(SYSTEM_NONE, &errno, atexit);
+    setup_color_conversions();
 
     AssetMgr.reset(new AssetManager());
     AssetMgr->AddLibrary("."); // TODO: this is for search in editor program folder, but maybe don't use implicit cwd?
@@ -897,16 +872,15 @@ void shutdown_native()
     AssetMgr.reset();
 }
 
-void drawBlockScaledAt (int hdc, Common::Bitmap *todraw ,int x, int y, float scaleFactor) {
+void drawBlockScaledAt (HDC hdc, Common::Bitmap *todraw ,int x, int y, float scaleFactor) {
   if (todraw->GetColorDepth () == 8)
-    set_palette_to_hdc ((HDC)hdc, palette);
+    set_palette_to_hdc (hdc, palette);
 
-  // FIXME later
-  stretch_blit_to_hdc (todraw->GetAllegroBitmap(), (HDC)hdc, 0,0,todraw->GetWidth(),todraw->GetHeight(),
+  stretch_blit_to_hdc (todraw->GetAllegroBitmap(), hdc, 0,0,todraw->GetWidth(),todraw->GetHeight(),
     x,y,todraw->GetWidth() * scaleFactor, todraw->GetHeight() * scaleFactor);
 }
 
-void drawSprite(int hdc, int x, int y, int spriteNum, bool flipImage) {
+void drawSprite(HDC hdc, int x, int y, int spriteNum, bool flipImage) {
 
 	Common::Bitmap *theSprite = get_sprite(spriteNum);
 
@@ -926,14 +900,14 @@ void drawSprite(int hdc, int x, int y, int spriteNum, bool flipImage) {
 	}
 }
 
-void drawSpriteStretch(int hdc, int x, int y, int width, int height, int spriteNum, bool flipImage) {
+void drawSpriteStretch(HDC hdc, int x, int y, int width, int height, int spriteNum, bool flipImage) {
   Common::Bitmap *todraw = get_sprite(spriteNum);
   Common::Bitmap *tempBlock = NULL;
 	
   if (todraw->GetColorDepth () == 8)
-    set_palette_to_hdc ((HDC)hdc, palette);
+    set_palette_to_hdc (hdc, palette);
 
-  int hdcBpp = GetDeviceCaps((HDC)hdc, BITSPIXEL);
+  int hdcBpp = GetDeviceCaps(hdc, BITSPIXEL);
   if (hdcBpp != todraw->GetColorDepth())
   {
 	  tempBlock = Common::BitmapHelper::CreateBitmapCopy(todraw, hdcBpp);
@@ -944,17 +918,16 @@ void drawSpriteStretch(int hdc, int x, int y, int width, int height, int spriteN
     Common::Bitmap* flipped = Common::BitmapHelper::CreateBitmap(todraw->GetWidth(), todraw->GetHeight(), todraw->GetColorDepth());
     flipped->FillTransparent();
     flipped->FlipBlt(todraw, 0, 0, Common::kFlip_Horizontal);
-    stretch_blit_to_hdc(flipped->GetAllegroBitmap(), (HDC)hdc, 0, 0, flipped->GetWidth(), flipped->GetHeight(), x, y, width, height);
+    stretch_blit_to_hdc(flipped->GetAllegroBitmap(), hdc, 0, 0, flipped->GetWidth(), flipped->GetHeight(), x, y, width, height);
     delete flipped;
   } else {
-    // FIXME later
-    stretch_blit_to_hdc(todraw->GetAllegroBitmap(), (HDC)hdc, 0, 0, todraw->GetWidth(), todraw->GetHeight(), x, y, width, height);
+    stretch_blit_to_hdc(todraw->GetAllegroBitmap(), hdc, 0, 0, todraw->GetWidth(), todraw->GetHeight(), x, y, width, height);
   }
 
   delete tempBlock;
 }
 
-void drawGUIAt(int hdc, int x, int y, int x1, int y1,int x2, int y2, int resolutionFactor, float scale, int ctrl_trans)
+void drawGUIAt(HDC hdc, int x, int y, int x1, int y1, int x2, int y2, int resolutionFactor, float scale, int ctrl_trans)
 {
   if ((tempgui.Width < 1) || (tempgui.Height < 1))
     return;
@@ -1267,12 +1240,6 @@ AGSString load_room_file(RoomStruct &rs, const AGSString &filename) {
     if (spriteset[rs.Objects[i].Sprite] == NULL)
       rs.Objects[i].Sprite = 0;
   }
-  // Fix hi-color screens
-  // TODO: find out why this is necessary. Probably has something to do with
-  // Allegro switching color components at certain version update long time ago.
-  // do we need to do this in the engine too?
-  for (size_t i = 0; i < rs.BgFrameCount; ++i)
-    fix_block (rs.BgFrames[i].Graphic.get());
 
   set_palette_range(palette, 0, 255, 0);
   
@@ -1623,7 +1590,7 @@ void GameFontUpdated(Game ^game, int fontNumber, bool forceUpdate)
     font->Height = get_font_surface_height(fontNumber);
 }
 
-void drawViewLoop (int hdc, ViewLoop^ loopToDraw, int x, int y, int size, List<int>^ cursel)
+void drawViewLoop (HDC hdc, ViewLoop^ loopToDraw, int x, int y, int size, List<int>^ cursel)
 {
     std::vector<::ViewFrame> frames(loopToDraw->Frames->Count);
     for (int i = 0; i < loopToDraw->Frames->Count; ++i) 
@@ -1847,11 +1814,6 @@ Common::Bitmap *CreateBlockFromBitmap(System::Drawing::Bitmap ^bmp, RGB *imgpal,
 		tempsprite = spriteAtRightDepth;
 	}
 
-	if (res_depth > 8) 
-	{
-		fix_block(tempsprite);
-	}
-
 	return tempsprite;
 }
 
@@ -1970,8 +1932,6 @@ void SetBitmapPaletteFromGlobalPalette(System::Drawing::Bitmap ^bmp)
 
 System::Drawing::Bitmap^ ConvertBlockToBitmap(Common::Bitmap *todraw) 
 {
-  fix_block(todraw);
-
   PixelFormat pixFormat = PixelFormat::Format32bppRgb;
   switch (todraw->GetColorDepth())
   {
@@ -1999,7 +1959,6 @@ System::Drawing::Bitmap^ ConvertBlockToBitmap(Common::Bitmap *todraw)
   if (pixFormat == PixelFormat::Format8bppIndexed)
     SetBitmapPaletteFromGlobalPalette(bmp);
 
-  fix_block(todraw);
   return bmp;
 }
 
@@ -2032,10 +1991,8 @@ System::Drawing::Bitmap^ ConvertBlockToBitmap32(Common::Bitmap *todraw, int widt
 	  tempBlock = newBlock;
   }
 
-  fix_block(tempBlock);
   if (opaque)
       BitmapHelper::MakeOpaque(tempBlock);
-
   PixelFormat pixFormat = PixelFormat::Format32bppRgb;
   if (todraw->GetColorDepth() == 32)
 	  pixFormat = PixelFormat::Format32bppArgb;
@@ -2078,6 +2035,10 @@ System::Drawing::Bitmap^ ConvertAreaMaskToBitmap(Common::Bitmap *mask)
 
 System::Drawing::Bitmap^ getSpriteAsBitmap(int spriteNum) {
   Common::Bitmap *todraw = get_sprite(spriteNum);
+  if (todraw == NULL)
+  {
+	  throw gcnew AGSEditorException(String::Format("getSpriteAsBitmap: Unable to find sprite {0}", spriteNum));
+  }
   return ConvertBlockToBitmap(todraw);
 }
 
@@ -2252,7 +2213,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
   gui->RebuildArray(guictrl_refs);
 }
 
-void drawGUI(int hdc, int x, int y, GUI^ guiObj, int resolutionFactor, float scale, int ctrl_trans, int selectedControl) {
+void drawGUI(HDC hdc, int x, int y, GUI^ guiObj, int resolutionFactor, float scale, int ctrl_trans, int selectedControl) {
   guibuts.clear();
   guilabels.clear();
   guitext.clear();
@@ -3078,10 +3039,6 @@ void save_room_file(RoomStruct &rs, const AGSString &path)
     rs.BackgroundBPP = rs.BgFrames[0].Graphic->GetBPP();
     for (int i = 0; i < 256; ++i)
         rs.Palette[i] = rs.BgFrames[0].Palette[i];
-    // Fix hi-color screens
-    // TODO: find out why this is needed; may be related to the Allegro internal 16-bit bitmaps format
-    for (size_t i = 0; i < (size_t)rs.BgFrameCount; ++i)
-        fix_block(rs.BgFrames[i].Graphic.get());
 
     std::unique_ptr<Stream> out(AGSFile::CreateFile(path));
     if (out == NULL)
@@ -3090,11 +3047,6 @@ void save_room_file(RoomStruct &rs, const AGSString &path)
     AGS::Common::HRoomFileError err = AGS::Common::WriteRoomData(&rs, out.get(), kRoomVersion_Current);
     if (!err)
         quit(AGSString::FromFormat("save_room: unable to write room data, error was:\r\n%s", err->FullMessage()));
-
-    // Fix hi-color screens back again
-    // TODO: find out why this is needed; may be related to the Allegro internal 16-bit bitmaps format
-    for (size_t i = 0; i < rs.BgFrameCount; ++i)
-        fix_block(rs.BgFrames[i].Graphic.get());
 }
 
 

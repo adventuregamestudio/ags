@@ -669,7 +669,7 @@ void SpriteFileWriter::Begin(int store_flags, SpriteCompression compress, sprkey
     }
 }
 
-void SpriteFileWriter::WriteBitmap(Bitmap *image)
+void SpriteFileWriter::WriteBitmap(const Bitmap *image)
 {
     if (!_out) return;
     int bpp = image->GetBPP();

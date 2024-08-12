@@ -165,6 +165,15 @@ namespace AGS.CScript.Compiler
 			{
 				i++;
 			}
+
+			if (i < text.Length && text[i] > 127)
+			{
+				RecordError(ErrorCode.InvalidCharacter, "Invalid character detected in script at position " + i.ToString() + " in '" + text + "'");
+				string res = text;
+				text = string.Empty; // need to end line
+				return res;
+			}
+
 			string word = text.Substring(0, i);
 			text = text.Substring(i);
 			if (trimText)

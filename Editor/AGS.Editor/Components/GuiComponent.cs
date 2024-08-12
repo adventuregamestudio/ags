@@ -181,7 +181,7 @@ namespace AGS.Editor.Components
 				editor.OnControlsChanged += new GUIEditor.ControlsChanged(_guiEditor_OnControlsChanged);
 				editor.OnGuiNameChanged += new GUIEditor.GuiNameChanged(_guiEditor_OnGuiNameChanged);
                 document = new ContentDocument(editor, chosenGui.WindowTitle,
-                    this, ICON_KEY, ConstructPropertyObjectList(chosenGui));
+                    this, ICON_KEY, GUIEditor.ConstructPropertyObjectList(chosenGui));
                 _documents[chosenGui] = document;
                 document.SelectedPropertyGridObject = chosenGui;
 				if (chosenGui is NormalGUI)
@@ -235,7 +235,7 @@ namespace AGS.Editor.Components
             {
                 var docItem = ((GUIEditor)doc.Control).GuiToEdit;
                 doc.Name = docItem.WindowTitle;
-                _guiController.SetPropertyGridObjectList(ConstructPropertyObjectList(docItem), doc, docItem);
+                _guiController.SetPropertyGridObjectList(GUIEditor.ConstructPropertyObjectList(docItem), doc, docItem);
             }
         }
 
@@ -245,7 +245,8 @@ namespace AGS.Editor.Components
             GUI itemBeingEdited = editor.GuiToEdit;
             _guiEditor_OnControlsChanged(editor.GuiToEdit);
 
-			if (propertyName == "Name")
+ 			// FIXME: this does not distinguish GUI and GUIControl properties!
+ 			if (propertyName == "Name")
 			{
                 OnItemIDOrNameChanged(itemBeingEdited, true);
 			}
@@ -322,21 +323,9 @@ namespace AGS.Editor.Components
             _guiController.ProjectTree.SelectNode(this, newNodeId);
 			ShowOrAddPane(newGui);
         }
-        
-        private Dictionary<string, object> ConstructPropertyObjectList(GUI forGui)
-        {
-            Dictionary<string, object> list = new Dictionary<string, object>();
-            list.Add(forGui.PropertyGridTitle, forGui);
-            foreach (GUIControl control in forGui.Controls)
-            {
-                list.Add(control.Name + " (" + control.ControlType + "; ID " + control.ID + ")", control);
-            }
-            return list;
-        }
 
         private void _guiEditor_OnControlsChanged(GUI editingGui)
         {
-            _guiController.SetPropertyGridObjectList(ConstructPropertyObjectList(editingGui));
         }
 
         private void _guiEditor_OnGuiNameChanged()

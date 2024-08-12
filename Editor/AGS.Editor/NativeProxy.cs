@@ -207,11 +207,11 @@ namespace AGS.Editor
 			}
         }
 
-        public Bitmap GetSpriteBitmapAs32bit(int spriteSlot, int width, int height)
+        public Bitmap GetSpriteBitmapAs32Bit(int spriteSlot, int width, int height)
         {
             lock (_spriteSetLock)
             {
-                return _native.GetSpriteBitmapAs32bit(spriteSlot, width, height);
+                return _native.GetSpriteBitmapAs32Bit(spriteSlot, width, height);
             }
         }
 

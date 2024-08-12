@@ -186,20 +186,38 @@ namespace AGS.Editor
             File.Delete(tempFilename);
         }
 
+        private class WriteSpriteFileArgs
+        {
+            public string DestFilename;
+            public string SrcSetFilename;
+            public string SrcIndexFilename;
+
+            public WriteSpriteFileArgs(string destFilename, string srcSetFilename, string srcIndexFilename)
+            {
+                DestFilename = destFilename;
+                SrcSetFilename = srcSetFilename;
+                SrcIndexFilename = srcIndexFilename;
+            }
+        }
+
         public static void RecreateSpriteFileFromSources()
         {
             string tempFilename;
             try
             {
                 tempFilename = Path.GetTempFileName();
+                var args = new WriteSpriteFileArgs(tempFilename, AGSEditor.SPRITE_FILE_NAME, AGSEditor.SPRITE_INDEX_FILE_NAME);
                 BusyDialog.Show("Please wait while the sprite file is recreated...",
                     new BusyDialog.ProcessingHandler(
-                        (IWorkProgress progress, object o) => { SpriteTools.WriteSpriteFileFromSources((string)o, progress); return null; }),
-                    tempFilename);
+                        (IWorkProgress progress, object o) => {
+                            WriteSpriteFileArgs writeArgs = (WriteSpriteFileArgs)o;
+                            SpriteTools.WriteSpriteFileFromSources(writeArgs.DestFilename, writeArgs.SrcSetFilename, writeArgs.SrcIndexFilename, progress);
+                            return null; }),
+                    args);
             }
             catch (Exception e)
             {
-                Factory.GUIController.ShowMessage("The recreation of a sprite file was interrupted by error. NO CHANGES were applied to your game.\n\n" + e.Message, MessageBoxIcon.Error);
+                Factory.GUIController.ShowMessage("The recreation of a sprite file was interrupted by error.\nNO CHANGES were applied to your game.\n\n" + e.Message, MessageBoxIcon.Error);
                 return;
             }
 

@@ -20,6 +20,58 @@ namespace AGS
 namespace Engine
 {
 
+bool MaskRouteFinder::CanSeeFrom(int srcx, int srcy, int dstx, int dsty, int *lastcx, int *lastcy)
+{
+    if (!_walkablearea)
+        return false;
+
+    // convert input to the mask coords
+    srcx /= _coordScale;
+    srcy /= _coordScale;
+    dstx /= _coordScale;
+    dsty /= _coordScale;
+
+    int last_valid_x, last_valid_y;
+    bool result = CanSeeFromImpl(srcx, srcy, dstx, dsty, &last_valid_x, &last_valid_y);
+
+    // convert output from the mask coords
+    if (lastcx)
+        *lastcx = last_valid_x * _coordScale;
+    if (lastcy)
+        *lastcy = last_valid_y * _coordScale;
+    return result;
+}
+
+bool MaskRouteFinder::FindRoute(std::vector<Point> &path, int srcx, int srcy, int dstx, int dsty,
+    bool exact_dest, bool ignore_walls)
+{
+    if (!_walkablearea)
+        return false;
+
+    // convert input to the mask coords
+    srcx /= _coordScale;
+    srcy /= _coordScale;
+    dstx /= _coordScale;
+    dsty /= _coordScale;
+
+    if (!FindRouteImpl(path, srcx, srcy, dstx, dsty, exact_dest, ignore_walls))
+        return false;
+    
+    // convert output from the mask coords
+    for (auto &pt : path)
+        pt *= _coordScale;
+    return true;
+}
+
+void MaskRouteFinder::SetWalkableArea(const AGS::Common::Bitmap *walkablearea, uint32_t coord_scale)
+{
+    _walkablearea = walkablearea;
+    assert(coord_scale > 0);
+    _coordScale = std::max(1u, coord_scale);
+    OnSetWalkableArea();
+}
+
+
 namespace Pathfinding
 {
 

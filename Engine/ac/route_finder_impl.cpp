@@ -39,11 +39,8 @@ JPSRouteFinder::~JPSRouteFinder()
     delete &nav;
 }
 
-void JPSRouteFinder::SetWalkableArea(const Bitmap *walkablearea, uint32_t coord_scale) 
+void JPSRouteFinder::OnSetWalkableArea()
 {
-    _walkablearea = walkablearea;
-    assert(coord_scale > 0);
-    _coordScale = std::max(1u, coord_scale);
 }
 
 void JPSRouteFinder::SyncNavWalkablearea()
@@ -53,34 +50,6 @@ void JPSRouteFinder::SyncNavWalkablearea()
 
     for (int y = 0; y < _walkablearea->GetHeight(); y++)
         nav.SetMapRow(y, _walkablearea->GetScanLine(y));
-}
-
-bool JPSRouteFinder::CanSeeFrom(int srcx, int srcy, int dstx, int dsty, int *lastcx, int *lastcy)
-{
-    if (!_walkablearea)
-    {
-        if (lastcx)
-            *lastcx = srcx;
-        if (lastcy)
-            *lastcy = srcy;
-        return false;
-    }
-
-    // convert input to the mask coords
-    srcx /= _coordScale;
-    srcy /= _coordScale;
-    dstx /= _coordScale;
-    dsty /= _coordScale;
-
-    int last_valid_x, last_valid_y;
-    bool result = CanSeeFromImpl(srcx, srcy, dstx, dsty, &last_valid_x, &last_valid_y);
-
-    // convert output from the mask coords
-    if (lastcx)
-        *lastcx = last_valid_x * _coordScale;
-    if (lastcy)
-        *lastcy = last_valid_y * _coordScale;
-    return result;
 }
 
 bool JPSRouteFinder::CanSeeFromImpl(int srcx, int srcy, int dstx, int dsty, int *lastcx, int *lastcy)
@@ -124,18 +93,9 @@ bool JPSRouteFinder::FindRouteJPS(std::vector<Point> &nav_path, int fromx, int f
     return true;
 }
 
-bool JPSRouteFinder::FindRoute(std::vector<Point> &nav_path, int srcx, int srcy, int dstx, int dsty,
+bool JPSRouteFinder::FindRouteImpl(std::vector<Point> &nav_path, int srcx, int srcy, int dstx, int dsty,
     bool exact_dest, bool ignore_walls)
 {
-    if (!_walkablearea)
-        return false;
-
-    // convert input to the mask coords
-    srcx /= _coordScale;
-    srcy /= _coordScale;
-    dstx /= _coordScale;
-    dsty /= _coordScale;
-
     nav_path.clear();
 
     if (ignore_walls || CanSeeFromImpl(srcx, srcy, dstx, dsty))
@@ -151,7 +111,7 @@ bool JPSRouteFinder::FindRoute(std::vector<Point> &nav_path, int srcx, int srcy,
         FindRouteJPS(nav_path, srcx, srcy, dstx, dsty);
     }
 
-    if (nav_path.size() == 0)
+    if (nav_path.empty())
         return false;
 
     // Ensure it has at least 2 points (start-end), necessary for the move algorithm
@@ -161,9 +121,6 @@ bool JPSRouteFinder::FindRoute(std::vector<Point> &nav_path, int srcx, int srcy,
 #ifdef DEBUG_PATHFINDER
     AGS::Common::Debug::Printf("Route from %d,%d to %d,%d - %d stages", srcx,srcy,xx,yy,(int)nav_path.size());
 #endif
-    // convert output from the mask coords
-    for (auto &pt : nav_path)
-        pt *= _coordScale;
     return true;
 }
 

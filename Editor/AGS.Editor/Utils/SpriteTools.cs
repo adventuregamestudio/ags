@@ -710,6 +710,8 @@ namespace AGS.Editor.Utils
             writer.End();
         }
 
+        private delegate void WriteSpriteProc(Native.SpriteFileWriter writer, Native.SpriteFileReader reader, Game game, Sprite sprite);
+
         /// <summary>
         /// Writes the sprite file, importing all the existing sprites either from the
         /// their sources, or existing spriteset file, - whatever is present (in that order).
@@ -717,12 +719,36 @@ namespace AGS.Editor.Utils
         public static void WriteSpriteFileFromSources(string destFilename,
             string srcSetFilename, string srcIndexFilename, IWorkProgress progress)
         {
-            int storeFlags = 0;
-            if (Factory.AGSEditor.CurrentGame.Settings.OptimizeSpriteStorage)
-                storeFlags |= (int)Native.SpriteFileWriter.StorageFlags.OptimizeForSize;
-            var compressSprites = Factory.AGSEditor.CurrentGame.Settings.CompressSpritesType;
+            WriteSpriteFile(destFilename, srcSetFilename, srcIndexFilename, WriteSpriteFromSource, progress);
+        }
 
-            SpriteFolder folder = Factory.AGSEditor.CurrentGame.RootSpriteFolder;
+        /// <summary>
+        /// Writes the sprite file, reading bitmaps from the existing sprite set,
+        /// and converting them to the given default color depth.
+        /// Each sprite that has a ImportColorDepth property set as GameDefault
+        /// is tested for matching image color depth. Those that do not match are
+        /// converted to the new one. If ImportColorDepth is set to an explicit
+        /// depth value, such sprites are written back as-is.
+        /// </summary>
+        public static void WriteSpriteFileWithNewGameColorDepth(string destFilename,
+            string srcSetFilename, string srcIndexFilename, IWorkProgress progress)
+        {
+            WriteSpriteFile(destFilename, srcSetFilename, srcIndexFilename, WriteSpriteInGameDepth, progress);
+        }
+
+        /// <summary>
+        /// Writes the sprite file using the provided WriteSprite delegate.
+        /// </summary>
+        private static void WriteSpriteFile(string destFilename,
+            string srcSetFilename, string srcIndexFilename, WriteSpriteProc writeProc, IWorkProgress progress)
+        {
+            Game game = Factory.AGSEditor.CurrentGame; // TODO: get Game as a function argument?
+            int storeFlags = 0;
+            if (game.Settings.OptimizeSpriteStorage)
+                storeFlags |= (int)Native.SpriteFileWriter.StorageFlags.OptimizeForSize;
+            var compressSprites = game.Settings.CompressSpritesType;
+
+            SpriteFolder folder = game.RootSpriteFolder;
             var sprites = folder.GetAllSpritesFromAllSubFolders();
             var orderedSprites = sprites.Distinct().OrderBy(sprite => sprite.Number);
 
@@ -744,7 +770,7 @@ namespace AGS.Editor.Utils
                     writer.WriteEmptySlot();
                 }
 
-                WriteSprite(writer, reader, sprite);
+                writeProc(writer, reader, game, sprite);
 
                 progress.Current = ++realSprites;
                 spriteIndex++;
@@ -755,7 +781,7 @@ namespace AGS.Editor.Utils
             writer.Dispose();
         }
 
-        private static void WriteSprite(Native.SpriteFileWriter writer, Native.SpriteFileReader reader, Sprite sprite)
+        private static void WriteSpriteFromSource(Native.SpriteFileWriter writer, Native.SpriteFileReader reader, Game game, Sprite sprite)
         {
             // First try to import the image from source
             var bmp = LoadBitmapFromSource(sprite);
@@ -784,6 +810,37 @@ namespace AGS.Editor.Utils
             bmp = new Bitmap(sprite.Width, sprite.Height, ColorDepthToPixelFormat(sprite.ColorDepth));
             writer.WriteBitmap(bmp);
             bmp.Dispose();
+        }
+
+        private static void WriteSpriteInGameDepth(Native.SpriteFileWriter writer, Native.SpriteFileReader reader, Game game, Sprite sprite)
+        {
+            int gameColorDepth = (int)game.Settings.ColorDepth * 8; // to bits per pixel
+            Native.NativeBitmap nativeBmp = null;
+            if (reader != null)
+                nativeBmp = reader.LoadSpriteAsNativeBitmap(sprite.Number);
+
+            // Test the color depth of the loaded sprite, and if it does not match requirements,
+            // then create a copy with a proper color depth
+            if (nativeBmp != null)
+            {
+                if (sprite.ImportColorDepth == SpriteImportColorDepth.GameDefault &&
+                    sprite.ColorDepth != gameColorDepth)
+                {
+                    nativeBmp = Native.NativeBitmap.CreateCopy(nativeBmp, gameColorDepth);
+                    sprite.ColorDepth = gameColorDepth;
+                }
+            }
+
+            // If sprite cannot be loaded, create a dummy sprite of the same size and required color depth
+            if (nativeBmp == null)
+            {
+                nativeBmp = new Native.NativeBitmap(sprite.Width, sprite.Height,
+                    sprite.ImportColorDepth == SpriteImportColorDepth.GameDefault ? gameColorDepth : sprite.ColorDepth);
+            }
+
+            writer.WriteNativeBitmap(nativeBmp);
+
+            nativeBmp.Dispose();
         }
     }
 }

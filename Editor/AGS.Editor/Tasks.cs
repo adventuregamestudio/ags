@@ -129,32 +129,7 @@ namespace AGS.Editor
             SetDefaultValuesForNewFeatures(game);
             Utilities.EnsureStandardSubFoldersExist();
 
-            // Load the sprite file
-            bool isNewSpriteFile = false;
-            if (!File.Exists(Path.Combine(game.DirectoryPath, AGSEditor.SPRITE_FILE_NAME)))
-            {
-                if (Factory.GUIController.ShowQuestion(string.Format("Spriteset file ({0}) was not found. Would you like to try reimport sprites from their sources? Otherwise, we'll generate an empty spritefile.\nNOTE: you may always try reimporting sprites later using respective menu commands.", AGSEditor.SPRITE_FILE_NAME), MessageBoxIcon.Warning)
-                    == DialogResult.Yes)
-                {
-                    RecreateSpriteFileFromSources();
-                }
-                else
-                {
-                    CreateNewSpriteFile();
-                    isNewSpriteFile = true;
-                }
-            }
-
-            try
-            {
-                Factory.NativeProxy.LoadNewSpriteFile();
-            }
-            catch (Exception e)
-            {
-                errors.Add(new CompileError(e.Message));
-                if (!isNewSpriteFile)
-                    CreateNewSpriteFile();
-            }
+            InitSpritesAfterGameLoad(game, errors);
 
             // Process after game load operations
             RecentGame recentGame = new RecentGame(game.Settings.GameName, gameDirectory);
@@ -176,6 +151,62 @@ namespace AGS.Editor
 
             Factory.AGSEditor.ReportGameLoad(errors);
             return true;
+        }
+
+        /// <summary>
+        /// Initializes sprite file after loading a new game.
+        /// Tests if the file exists and suggests to recreate if one is missing.
+        /// </summary>
+        private static void InitSpritesAfterGameLoad(Game game, CompileMessages errors)
+        {
+            // TODO: could not quickly find a more suitable place for this update...
+            // we might do this somewhere in SpriteManagerComponent, for example, but then
+            // there's a chance that spritefile will be recreated twice on game import.
+            // ...revise this later
+            bool colorDepth16bitFixed = false;
+            if (game.Settings.ColorDepth == GameColorDepth.HighColor)
+            {
+                Factory.GUIController.ShowMessage("16-bit games are no longer supported by this version of AGS. Your game will be changed to a 32-bit game.\nAll the sprites and room backgrounds will be converted to match the new color depth.", MessageBoxIconType.Warning);
+                // NOTE: sprite reimport from sources below will be using this new color depth
+                game.Settings.ColorDepth = GameColorDepth.TrueColor;
+                colorDepth16bitFixed = true;
+            }
+
+            // Load the sprite file
+            bool isNewSpriteFile = false;
+            bool isSpriteFileRecreated = false;
+            if (!File.Exists(Path.Combine(game.DirectoryPath, AGSEditor.SPRITE_FILE_NAME)))
+            {
+                if (Factory.GUIController.ShowQuestion(string.Format("Spriteset file ({0}) was not found. Would you like to try reimport sprites from their sources? Otherwise, we'll generate an empty spritefile.\nNOTE: you may always try reimporting sprites later using respective menu commands.", AGSEditor.SPRITE_FILE_NAME), MessageBoxIcon.Warning)
+                    == DialogResult.Yes)
+                {
+                    RecreateSpriteFileFromSources();
+                    isSpriteFileRecreated = true;
+                }
+                else
+                {
+                    CreateNewSpriteFile();
+                    isNewSpriteFile = true;
+                }
+            }
+
+            if (colorDepth16bitFixed && !isNewSpriteFile && !isSpriteFileRecreated)
+            {
+                RecreateSpriteFileWithNewGameColorDepth();
+            }
+
+            try
+            {
+                Factory.NativeProxy.LoadNewSpriteFile();
+            }
+            catch (Exception e)
+            {
+                errors.Add(new CompileError(e.Message));
+                if (!isNewSpriteFile)
+                {
+                    CreateNewSpriteFile();
+                }
+            }
         }
 
         public static void CreateNewSpriteFile()
@@ -200,7 +231,10 @@ namespace AGS.Editor
             }
         }
 
-        public static void RecreateSpriteFileFromSources()
+        private delegate void WriteSpriteFileWithProgress(string destFilename,
+            string srcSetFilename, string srcIndexFilename, IWorkProgress progress);
+
+        private static void RecreateSpriteFile(WriteSpriteFileWithProgress taskProc)
         {
             string tempFilename;
             try
@@ -211,8 +245,9 @@ namespace AGS.Editor
                     new BusyDialog.ProcessingHandler(
                         (IWorkProgress progress, object o) => {
                             WriteSpriteFileArgs writeArgs = (WriteSpriteFileArgs)o;
-                            SpriteTools.WriteSpriteFileFromSources(writeArgs.DestFilename, writeArgs.SrcSetFilename, writeArgs.SrcIndexFilename, progress);
-                            return null; }),
+                            taskProc(writeArgs.DestFilename, writeArgs.SrcSetFilename, writeArgs.SrcIndexFilename, progress);
+                            return null;
+                        }),
                     args);
             }
             catch (Exception e)
@@ -225,6 +260,16 @@ namespace AGS.Editor
             File.Delete(tempFilename);
 
             Factory.Events.OnSpritesImported(null);
+        }
+
+        public static void RecreateSpriteFileFromSources()
+        {
+            RecreateSpriteFile(SpriteTools.WriteSpriteFileFromSources);
+        }
+
+        public static void RecreateSpriteFileWithNewGameColorDepth()
+        {
+            RecreateSpriteFile(SpriteTools.WriteSpriteFileWithNewGameColorDepth);
         }
 
         public static void ExportSprites(SpriteFolder folder, SpriteTools.ExportSpritesOptions options)

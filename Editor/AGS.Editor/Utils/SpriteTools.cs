@@ -627,15 +627,15 @@ namespace AGS.Editor.Utils
         }
 
         /// <summary>
-        /// Returns a PixelFormat best suiting the given sprite's color depth.
+        /// Returns a PixelFormat best suiting the given sprite's color depth in bits per pixel.
         /// </summary>
         public static PixelFormat ColorDepthToPixelFormat(int colorDepth)
         {
             switch (colorDepth)
             {
-                case 1: return PixelFormat.Format8bppIndexed;
-                case 2: return PixelFormat.Format16bppRgb565;
-                case 4: return PixelFormat.Format32bppArgb;
+                case 8: return PixelFormat.Format8bppIndexed;
+                case 16: return PixelFormat.Format16bppRgb565;
+                case 32: return PixelFormat.Format32bppArgb;
                 default: return PixelFormat.Undefined;
             }
         }
@@ -649,7 +649,7 @@ namespace AGS.Editor.Utils
             if (Factory.AGSEditor.CurrentGame.Settings.OptimizeSpriteStorage)
                 storeFlags |= (int)Native.SpriteFileWriter.StorageFlags.OptimizeForSize;
             var compressSprites = Factory.AGSEditor.CurrentGame.Settings.CompressSpritesType;
-            int gameColorDepth = (int)Factory.AGSEditor.CurrentGame.Settings.ColorDepth;
+            int gameColorDepth = (int)Factory.AGSEditor.CurrentGame.Settings.ColorDepth * 8; // to bits per pixel
 
             var writer = new Native.SpriteFileWriter(filename);
             writer.Begin(storeFlags, compressSprites);

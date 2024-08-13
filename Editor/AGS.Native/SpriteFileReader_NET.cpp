@@ -60,7 +60,9 @@ System::Drawing::Bitmap ^SpriteFileReader::LoadSprite(int spriteIndex, bool useA
     if (!_nativeReader->LoadSprite(spriteIndex, sprite))
         return nullptr;
 
-    return ConvertBlockToBitmap(sprite, useAlphaChannel);
+    System::Drawing::Bitmap ^bmp = ConvertBlockToBitmap(sprite, useAlphaChannel);
+    delete sprite;
+    return bmp;
 }
 
 NativeBitmap ^SpriteFileReader::LoadSpriteAsNativeBitmap(int spriteIndex)

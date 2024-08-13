@@ -757,7 +757,7 @@ namespace AGS.Editor.Utils
 
         private static void WriteSprite(Native.SpriteFileWriter writer, Native.SpriteFileReader reader, Sprite sprite)
         {
-            // Try get the image, first from source, then from editor's cache
+            // First try to import the image from source
             var bmp = LoadBitmapFromSource(sprite);
             if (bmp != null)
             {
@@ -766,14 +766,17 @@ namespace AGS.Editor.Utils
                 bmp.Dispose();
                 return;
             }
-            
+
+            // If sprite reader is available, try to read the compiled sprite's raw data
             if (reader != null)
             {
                 var rawdata = reader.LoadSpriteAsRawData(sprite.Number);
                 if (rawdata != null)
+                {
                     writer.WriteRawData(rawdata);
-                rawdata.Dispose();
-                return;
+                    rawdata.Dispose();
+                    return;
+                }
             }
 
             // If sprite cannot be found anywhere, then create a dummy empty sprite,

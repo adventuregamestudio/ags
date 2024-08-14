@@ -287,7 +287,7 @@ ScriptDynamicSprite* DynamicSprite_CreateFromFile(const char *filename, int colo
     if (!image)
         return nullptr;
 
-    image.reset(PrepareSpriteForUse(image.release(), false /* not force opaque */));
+    image.reset(PrepareSpriteForUse(image.release(), false /* no depth conv */, false /* not force opaque */));
 
     int new_slot = add_dynamic_sprite(std::move(image));
     if (new_slot <= 0)

@@ -183,16 +183,16 @@ void setpal();
 // Creates bitmap of a format compatible with the gfxdriver;
 // if col_depth is 0, uses game's native color depth.
 Common::Bitmap *CreateCompatBitmap(int width, int height, int col_depth = 0);
-// Checks if the bitmap is compatible with the gfxdriver;
-// returns same bitmap or its copy of a compatible format.
-Common::Bitmap *ReplaceBitmapWithSupportedFormat(Common::Bitmap *bitmap);
-// Checks if the bitmap needs any kind of adjustments before it may be used
-// in AGS sprite operations. Also handles number of certain special cases
-// (old systems or uncommon gfx modes, and similar stuff).
+// Peforms any kind of conversions over bitmap if they are necessary for it
+// to be be used in AGS sprite operations. Returns either old or new bitmap.
 // Original bitmap **gets deleted** if a new bitmap had to be created.
-Common::Bitmap *PrepareSpriteForUse(Common::Bitmap *bitmap, bool make_opaque = false);
-// Same as above, but compatible for std::shared_ptr.
-Common::PBitmap PrepareSpriteForUse(Common::PBitmap bitmap, bool make_opaque = false);
+// * conv_to_gamedepth - tells whether the sprite has to be matching game's
+//   default color depth; otherwise its color depth is to be kept (if possible).
+// * make_opaque - for sprites with alpha channel (ARGB) tells to make their
+//   alpha fully opaque, if that's necessary for the sprite's use.
+Common::Bitmap *PrepareSpriteForUse(Common::Bitmap *bitmap, bool conv_to_gamedepth, bool make_opaque = false);
+// Same as above, but compatible with std::shared_ptr.
+Common::PBitmap PrepareSpriteForUse(Common::PBitmap bitmap, bool conv_to_gamedepth, bool make_opaque = false);
 // Makes a screenshot corresponding to the last screen render and returns it as a bitmap
 // of the requested width and height and game's native color depth.
 Common::Bitmap *CopyScreenIntoBitmap(int width, int height, const Rect *src_rect = nullptr,

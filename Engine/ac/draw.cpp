@@ -428,30 +428,6 @@ void setpal() {
     set_palette_range(palette, 0, 255, 0);
 }
 
-// PSP: convert 32 bit RGB to BGR.
-Bitmap *convert_32_to_32bgr(Bitmap *tempbl) {
-
-    int i = 0;
-    int j = 0;
-    unsigned char* current;
-    while (i < tempbl->GetHeight())
-    {
-        current = tempbl->GetScanLineForWriting(i);
-        while (j < tempbl->GetWidth())
-        {
-            current[0] ^= current[2];
-            current[2] ^= current[0];
-            current[0] ^= current[2];
-            current += 4;
-            j++;
-        }
-        i++;
-        j = 0;
-    }
-
-    return tempbl;
-}
-
 // NOTE: Some of these conversions are required even when using
 // D3D and OpenGL rendering, for two reasons:
 // 1) certain raw drawing operations are still performed by software

@@ -607,6 +607,8 @@ namespace AGS.Editor
             {
                 mostTopmost = Math.Max(sprite.Number, mostTopmost);
                 flags[sprite.Number] = 0;
+                if (sprite.ImportColorDepth != SpriteImportColorDepth.GameDefault)
+                    flags[sprite.Number] |= NativeConstants.SPF_KEEPDEPTH;
             }
             foreach (SpriteFolder subfolder in folder.SubFolders)
             {

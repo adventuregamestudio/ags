@@ -120,8 +120,11 @@ namespace AGS.Editor.Components
             for (int i=1; i< Factory.AGSEditor.Settings.RecentGames.Count; i++)  
             {
                 var game = Factory.AGSEditor.Settings.RecentGames[i];
+                if (string.IsNullOrEmpty(game.Path) || !Directory.Exists(game.Path))
+                    continue;
+
                 string projectPath = Path.Combine(game.Path, AGSEditor.GAME_FILE_NAME);
-                if (Directory.Exists(game.Path) && File.Exists(projectPath))
+                if (File.Exists(projectPath))
                 {
                     string cmdText = GetRecentGameMenuText(game, maxPrintSize);
                     MenuCommand cmd = new MenuCommand(OPEN_RECENT_GAME_COMMAND + i.ToString(), cmdText);

@@ -99,11 +99,11 @@ Bitmap *initialize_sprite(sprkey_t index, Bitmap *image, uint32_t &sprite_flags)
     int oldeip = get_our_eip();
     set_our_eip(4300);
 
+    // If SPF_HADALPHACHANNEL is set that means that we have stripped alpha
+    // channel from this sprite last time it was loaded. Add SPF_ALPHACHANNEL
+    // so that we can remove it properly again (see PrepareSpriteForUse).
     if (sprite_flags & SPF_HADALPHACHANNEL)
     {
-        // we stripped the alpha channel out last time, put
-        // it back so that we can remove it properly again
-        // CHECKME: find out what does this mean, and explain properly
         sprite_flags |= SPF_ALPHACHANNEL;
     }
         
@@ -121,12 +121,13 @@ Bitmap *initialize_sprite(sprkey_t index, Bitmap *image, uint32_t &sprite_flags)
         delete image;
     }
 
-    use_bmp = PrepareSpriteForUse(use_bmp, (sprite_flags & SPF_ALPHACHANNEL) != 0);
-    if (game.GetColorDepth() < 32)
+    const bool has_alpha = (sprite_flags & SPF_ALPHACHANNEL) != 0;
+    use_bmp = PrepareSpriteForUse(use_bmp, has_alpha);
+    // For non-32 bit games, strip SPF_ALPHACHANNEL flag, but add SPF_HADALPHACHANNEL
+    // in order to record the fact that the asset on disk has alpha channel.
+    if (has_alpha && (game.GetColorDepth() < 32))
     {
         sprite_flags &= ~SPF_ALPHACHANNEL;
-        // save the fact that it had one for the next time this is re-loaded from disk
-        // CHECKME: find out what does this mean, and explain properly
         sprite_flags |= SPF_HADALPHACHANNEL;
     }
 

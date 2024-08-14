@@ -235,8 +235,10 @@ enum GameGuiAlphaRenderingStyle
 #define SPF_TRUECOLOR       0x08  // is 32-bit (UNUSED)
 #define SPF_ALPHACHANNEL    0x10  // has alpha-channel
 #define SPF_VAR_RESOLUTION  0x20  // variable resolution (refer to SPF_HIRES)
-#define SPF_HADALPHACHANNEL 0x80  // the saved sprite on disk has one
+// Runtime sprite flags follow
 #define SPF_OBJECTOWNED     0x0100 // owned by a game object (not created in user script)
+#define SPF_HADALPHACHANNEL 0x0200 // sprite in spritefile has alpha channel
+                                   // (marked in case we remove alpha when loading a sprite)
 
 // General information about sprite (properties, size)
 struct SpriteInfo

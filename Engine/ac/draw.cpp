@@ -476,22 +476,7 @@ Bitmap *AdjustBitmapForUseWithDisplayMode(Bitmap* bitmap, bool has_alpha)
     Bitmap *new_bitmap = bitmap;
 
     //
-    // The only special case when bitmap needs to be prepared for graphics driver
-    //
-    // In 32-bit display mode, 32-bit bitmaps may require component conversion
-    // to match graphics driver expectation about pixel format.
-    // TODO: make GetCompatibleBitmapFormat tell this somehow
-#if defined (AGS_INVERTED_COLOR_ORDER)
-    const int sys_col_depth = gfxDriver->GetDisplayMode().ColorDepth;
-    if (sys_col_depth > 16 && bmp_col_depth == 32)
-    {
-        // Convert RGB to BGR.
-        new_bitmap = convert_32_to_32bgr(bitmap);
-    }
-#endif
-
-    //
-    // The rest is about bringing bitmaps to the native game's format
+    // The following code brings bitmaps to the native game's format
     // (has no dependency on display mode).
     //
     // In 32-bit game 32-bit bitmaps should have transparent pixels marked

@@ -1880,7 +1880,7 @@ Common::Bitmap *CreateNativeBitmap(System::Drawing::Bitmap^ bmp, int destColorDe
         // change pixels with alpha 0 to MASK_COLOR_X
         if (tempsprite->GetColorDepth() == 32)
         {
-            BitmapHelper::ReplaceAlphaWithRGBMask(tempsprite);
+            BitmapHelper::ReplaceZeroAlphaWithRGBMask(tempsprite);
         }
     }
     else

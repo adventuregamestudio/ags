@@ -286,6 +286,7 @@ AL_FUNC(void, set_color_depth, (int depth));
 AL_FUNC(int, get_color_depth, (void));
 AL_FUNC(void, set_color_conversion, (int mode));
 AL_FUNC(int, get_color_conversion, (void));
+AL_FUNC(int, get_color_load_depth, (int depth, int hasalpha));
 AL_FUNC(BITMAP *, create_bitmap, (int width, int height));
 AL_FUNC(BITMAP *, create_bitmap_ex, (int color_depth, int width, int height));
 AL_FUNC(BITMAP *, create_bitmap_placeholder, (int color_depth, int width, int height, size_t *need_size));

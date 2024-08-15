@@ -1012,6 +1012,7 @@ bool D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination,
     else
     {
       // TODO: pick this out as a separate utility function
+      // NOTE: this is currently hardcoded to read from a 32-bit offscreen surface
       const int bpp = destination->GetBPP();
       uint8_t* src_ptr = static_cast<uint8_t*>(lockedRect.pBits);
       for (int y = 0; y < destination->GetHeight(); ++y)

@@ -21,11 +21,10 @@
 extern GameSetupStruct game;
 extern RGB palette[256];
 
-// CLNUP remove everything and all references to palettes ?
-
 void CyclePalette(int strt,int eend) {
-    // hi-color game must invalidate screen since the palette changes
+    // Any non-8-bit game must invalidate screen since the palette changes
     // the effect of the drawing operations
+    // FIXME: this is likely wrong, it should also/instead test the graphic driver capabilities?
     if (game.color_depth > 1)
         invalidate_screen();
 

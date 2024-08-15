@@ -18,55 +18,8 @@
 extern "C" {
     // Fallback routine for when we don't have anything better to do.
     uint32_t _blender_black(uint32_t x, uint32_t y, uint32_t n);
-    // Standard Allegro 4 trans blenders for 16 and 15-bit color modes
-    uint32_t _blender_trans15(uint32_t x, uint32_t y, uint32_t n);
-    uint32_t _blender_trans16(uint32_t x, uint32_t y, uint32_t n);
-    // Standard Allegro 4 alpha blenders for 16 and 15-bit color modes
-    uint32_t _blender_alpha15(uint32_t x, uint32_t y, uint32_t n);
-    uint32_t _blender_alpha16(uint32_t x, uint32_t y, uint32_t n);
-    uint32_t _blender_alpha24(uint32_t x, uint32_t y, uint32_t n);
 }
 
-
-
-// Take hue and saturation of blend colour, luminance of image
-uint32_t _myblender_color15_light(uint32_t x, uint32_t y, uint32_t n)
-{
-    float xh, xs, xv;
-    float yh, ys, yv;
-    int r, g, b;
-
-    rgb_to_hsv(getr15(x), getg15(x), getb15(x), &xh, &xs, &xv);
-    rgb_to_hsv(getr15(y), getg15(y), getb15(y), &yh, &ys, &yv);
-
-    // adjust luminance
-    yv -= (1.0 - ((float)n / 250.0));
-    if (yv < 0.0) yv = 0.0;
-
-    hsv_to_rgb(xh, xs, yv, &r, &g, &b);
-
-    return makecol15(r, g, b);
-}
-
-// Take hue and saturation of blend colour, luminance of image
-// n is the last parameter passed to draw_lit_sprite
-uint32_t _myblender_color16_light(uint32_t x, uint32_t y, uint32_t n)
-{
-    float xh, xs, xv;
-    float yh, ys, yv;
-    int r, g, b;
-
-    rgb_to_hsv(getr16(x), getg16(x), getb16(x), &xh, &xs, &xv);
-    rgb_to_hsv(getr16(y), getg16(y), getb16(y), &yh, &ys, &yv);
-
-    // adjust luminance
-    yv -= (1.0 - ((float)n / 250.0));
-    if (yv < 0.0) yv = 0.0;
-
-    hsv_to_rgb(xh, xs, yv, &r, &g, &b);
-
-    return makecol16(r, g, b);
-}
 
 // Take hue and saturation of blend colour, luminance of image
 uint32_t _myblender_color32_light(uint32_t x, uint32_t y, uint32_t n)
@@ -85,36 +38,6 @@ uint32_t _myblender_color32_light(uint32_t x, uint32_t y, uint32_t n)
     hsv_to_rgb(xh, xs, yv, &r, &g, &b);
 
     return makeacol32(r, g, b, geta32(y));
-}
-
-// Take hue and saturation of blend colour, luminance of image
-uint32_t _myblender_color15(uint32_t x, uint32_t y, uint32_t /*n*/)
-{
-    float xh, xs, xv;
-    float yh, ys, yv;
-    int r, g, b;
-
-    rgb_to_hsv(getr15(x), getg15(x), getb15(x), &xh, &xs, &xv);
-    rgb_to_hsv(getr15(y), getg15(y), getb15(y), &yh, &ys, &yv);
-
-    hsv_to_rgb(xh, xs, yv, &r, &g, &b);
-
-    return makecol15(r, g, b);
-}
-
-// Take hue and saturation of blend colour, luminance of image
-uint32_t _myblender_color16(uint32_t x, uint32_t y, uint32_t /*n*/)
-{
-    float xh, xs, xv;
-    float yh, ys, yv;
-    int r, g, b;
-
-    rgb_to_hsv(getr16(x), getg16(x), getb16(x), &xh, &xs, &xv);
-    rgb_to_hsv(getr16(y), getg16(y), getb16(y), &yh, &ys, &yv);
-
-    hsv_to_rgb(xh, xs, yv, &r, &g, &b);
-
-    return makecol16(r, g, b);
 }
 
 // Take hue and saturation of blend colour, luminance of image
@@ -156,20 +79,8 @@ uint32_t _myblender_alpha_trans24(uint32_t x, uint32_t y, uint32_t n)
 
 void set_my_trans_blender(int r, int g, int b, int a)
 {
-    // use standard allegro 15 and 16 bit blenders, but customize
-    // the 32-bit one to preserve the alpha channel
-    set_blender_mode(_blender_trans15, _blender_trans16, _myblender_alpha_trans24, r, g, b, a);
-}
-
-// plain copy source to destination
-// assign new alpha value as a summ of alphas.
-uint32_t _additive_alpha_copysrc_blender(uint32_t x, uint32_t y, uint32_t /*n*/)
-{
-    uint32_t newAlpha = ((x & 0xff000000) >> 24) + ((y & 0xff000000) >> 24);
-
-    if (newAlpha > 0xff) newAlpha = 0xff;
-
-    return (newAlpha << 24) | (x & 0x00ffffff);
+    // customize the 32-bit blender to preserve the alpha channel
+    set_blender_mode(nullptr, nullptr, _myblender_alpha_trans24, r, g, b, a);
 }
 
 FORCEINLINE uint32_t argb2argb_blend_core(uint32_t src_col, uint32_t dst_col, uint32_t src_alpha)
@@ -248,27 +159,6 @@ uint32_t _argb2rgb_blender(uint32_t src_col, uint32_t dst_col, uint32_t src_alph
    return res | g;
 }
 
-// Based on _blender_alpha16, but keep source pixel if dest is transparent
-uint32_t skiptranspixels_blender_alpha16(uint32_t x, uint32_t y, uint32_t n)
-{
-    uint32_t result;
-    if ((y & 0xFFFF) == 0xF81F)
-        return x;
-    n = geta32(x);
-    if (n)
-        n = (n + 1) / 8;
-    x = makecol16(getr32(x), getg32(x), getb32(x));
-    x = (x | (x << 16)) & 0x7E0F81F;
-    y = ((y & 0xFFFF) | (y << 16)) & 0x7E0F81F;
-    result = ((x - y) * n / 32 + y) & 0x7E0F81F;
-    return ((result & 0xFFFF) | (result >> 16));
-}
-
-void set_additive_alpha_blender()
-{
-    set_blender_mode(nullptr, nullptr, _additive_alpha_copysrc_blender, 0, 0, 0, 0);
-}
-
 void set_argb2argb_blender(int alpha)
 {
     set_blender_mode(nullptr, nullptr, _argb2argb_blender, 0, 0, 0, alpha);
@@ -288,8 +178,8 @@ void set_opaque_alpha_blender()
 void set_argb2any_blender()
 {
     set_blender_mode_ex(_blender_black, _blender_black, _blender_black, _argb2argb_blender,
-        _blender_alpha15, skiptranspixels_blender_alpha16, _blender_alpha24,
-        0, 0, 0, 0xff); // TODO: do we need to support proper 15- and 24-bit here?
+        nullptr, nullptr, nullptr,
+        0, 0, 0, 0xff);
 }
 
 // ===============================

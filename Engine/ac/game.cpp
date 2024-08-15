@@ -41,7 +41,6 @@
 #include "ac/sys_events.h"
 #include "ac/room.h"
 #include "ac/roomstatus.h"
-#include "ac/sprite.h"
 #include "ac/spritecache.h"
 #include "ac/string.h"
 #include "ac/translation.h"

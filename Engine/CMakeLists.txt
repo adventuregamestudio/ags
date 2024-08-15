@@ -233,8 +233,6 @@ target_sources(engine
     ac/slider.h
     ac/speech.cpp
     ac/speech.h
-    ac/sprite.cpp
-    ac/sprite.h
     ac/dynobj/scriptgame.cpp
     ac/dynobj/scriptgame.h
     ac/dynobj/cc_staticarray.cpp

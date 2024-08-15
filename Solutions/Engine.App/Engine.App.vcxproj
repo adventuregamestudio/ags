@@ -559,7 +559,6 @@
     <ClCompile Include="..\..\Engine\ac\screenoverlay.cpp" />
     <ClCompile Include="..\..\Engine\ac\slider.cpp" />
     <ClCompile Include="..\..\Engine\ac\speech.cpp" />
-    <ClCompile Include="..\..\Engine\ac\sprite.cpp" />
     <ClCompile Include="..\..\Engine\ac\string.cpp" />
     <ClCompile Include="..\..\Engine\ac\system.cpp" />
     <ClCompile Include="..\..\Engine\ac\textbox.cpp" />
@@ -805,7 +804,6 @@
     <ClInclude Include="..\..\Engine\ac\screenoverlay.h" />
     <ClInclude Include="..\..\Engine\ac\slider.h" />
     <ClInclude Include="..\..\Engine\ac\speech.h" />
-    <ClInclude Include="..\..\Engine\ac\sprite.h" />
     <ClInclude Include="..\..\Engine\ac\string.h" />
     <ClInclude Include="..\..\Engine\ac\system.h" />
     <ClInclude Include="..\..\Engine\ac\textbox.h" />

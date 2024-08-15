@@ -40,7 +40,6 @@
 #include "ac/roomstatus.h"
 #include "ac/runtime_defines.h"
 #include "ac/screenoverlay.h"
-#include "ac/sprite.h"
 #include "ac/string.h"
 #include "ac/system.h"
 #include "ac/viewframe.h"
@@ -989,6 +988,16 @@ void clear_shared_texture(uint32_t sprite_id)
 void texturecache_precache(uint32_t sprite_id)
 {
     texturecache.GetOrLoad(sprite_id, nullptr, false);
+}
+
+Bitmap *initialize_sprite(sprkey_t index, Bitmap *image, uint32_t &sprite_flags)
+{
+    return PrepareSpriteForUse(image, (sprite_flags & SPF_KEEPDEPTH) == 0);
+}
+
+void post_init_sprite(sprkey_t index)
+{
+    pl_run_plugin_hooks(AGSE_SPRITELOAD, index);
 }
 
 void mark_screen_dirty()

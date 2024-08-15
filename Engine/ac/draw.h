@@ -18,6 +18,7 @@
 #include "core/types.h"
 #include "ac/common_defines.h"
 #include "ac/runtime_defines.h"
+#include "ac/spritecache.h"
 #include "gfx/bitmap.h"
 #include "gfx/gfx_def.h"
 #include "game/roomstruct.h"
@@ -98,6 +99,14 @@ void update_shared_texture(uint32_t sprite_id);
 void clear_shared_texture(uint32_t sprite_id);
 // Prepares a texture for the given sprite and stores in the cache
 void texturecache_precache(uint32_t sprite_id);
+
+// Initializes a loaded sprite for use in the game, adjusts the sprite flags.
+// Returns a resulting bitmap, which may be a new or old bitmap; or null on failure.
+// Original bitmap **gets deleted** if a new bitmap had to be created,
+// or if failed to properly initialize one.
+Common::Bitmap *initialize_sprite(Common::sprkey_t index, Common::Bitmap *image, uint32_t &sprite_flags);
+// Run after a sprite was loaded and adjusted for the game
+void post_init_sprite(Common::sprkey_t index);
 
 // whether there are currently remnants of a DisplaySpeech
 void mark_screen_dirty();

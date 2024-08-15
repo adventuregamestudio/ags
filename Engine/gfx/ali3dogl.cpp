@@ -907,17 +907,10 @@ bool OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination,
   Rect copy_from = src_rect ? *src_rect : _srcRect;
   if (!at_native_res)
     copy_from = _scaling.ScaleRange(copy_from);
-
-  // TODO: following implementation currently only reads GL pixels in 32-bit RGBA.
-  // this **should** work regardless of actual display mode because OpenGL is
-  // responsible to convert and fill pixel buffer correctly.
-  // If you like to support writing directly into 16-bit bitmap, please take
-  // care of ammending the pixel reading code below.
-  const int read_in_colordepth = 32;
-  if (destination->GetColorDepth() != read_in_colordepth || destination->GetSize() != copy_from.GetSize())
+  if (destination->GetColorDepth() != _mode.ColorDepth || destination->GetSize() != copy_from.GetSize())
   {
     if (want_fmt)
-      *want_fmt = GraphicResolution(copy_from.GetWidth(), copy_from.GetHeight(), read_in_colordepth);
+      *want_fmt = GraphicResolution(copy_from.GetWidth(), copy_from.GetHeight(), _mode.ColorDepth);
     return false;
   }
 
@@ -946,7 +939,8 @@ bool OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination,
   }
 
   // Retrieve the backbuffer pixels
-  const int bpp = read_in_colordepth / 8;
+  // NOTE: this is currently hardcoded to read from a 32-bit display mode
+  const int bpp = 32 / 8;
   const int buf_sz = copy_from.GetWidth() * copy_from.GetHeight() * bpp;
   std::vector<uint8_t> buffer(buf_sz);
   glReadPixels(copy_from.Left, copy_from.Top, copy_from.GetWidth(), copy_from.GetHeight(), GL_RGBA, GL_UNSIGNED_BYTE, &buffer.front());

@@ -2034,7 +2034,7 @@ void tint_image (Bitmap *ds, Bitmap *srcimg, int red, int grn, int blu, int ligh
 
     if ((srcimg->GetColorDepth() != ds->GetColorDepth()) ||
         (srcimg->GetColorDepth() <= 8)) {
-            debug_script_warn("Image tint failed - images must both be hi-color");
+            debug_script_warn("Image tint failed - images must both be same color depth and not 8-bit");
             // the caller expects something to have been copied
             ds->Blit(srcimg, 0, 0, 0, 0, srcimg->GetWidth(), srcimg->GetHeight());
             return;
@@ -2261,10 +2261,9 @@ PBitmap draw_room_background(Viewport *view)
 
     // For the sake of software renderer, if there is any kind of camera transform required
     // except screen offset, we tell it to draw on separate bitmap first with zero transformation.
-    // There are few reasons for this, primary is that Allegro does not support StretchBlt
-    // between different colour depths (i.e. it won't correctly stretch blit 16-bit rooms to
-    // 32-bit virtual screen).
-    // Also see comment to ALSoftwareGraphicsDriver::RenderToBackBuffer().
+    // There have been few reasons for this in the past, primary being that Allegro does not support
+    // StretchBlt between different colour depths, but that one may be not relevant now.
+    // See Also: comment inside ALSoftwareGraphicsDriver::RenderToBackBuffer().
     const int view_index = view->GetID();
     Bitmap *ds = gfxDriver->GetMemoryBackBuffer();
     // If separate bitmap was prepared for this view/camera pair then use it, draw untransformed

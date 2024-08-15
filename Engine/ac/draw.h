@@ -201,13 +201,11 @@ void defgame_to_finalgame_coords(int &x, int &y);
 // Creates bitmap of a format compatible with the gfxdriver;
 // if col_depth is 0, uses game's native color depth.
 Common::Bitmap *CreateCompatBitmap(int width, int height, int col_depth = 0);
-// Checks if the bitmap is compatible with the gfxdriver;
-// returns same bitmap or its copy of a compatible format.
-Common::Bitmap *ReplaceBitmapWithSupportedFormat(Common::Bitmap *bitmap);
-// Checks if the bitmap needs any kind of adjustments before it may be used
-// in AGS sprite operations. Also handles number of certain special cases
-// (old systems or uncommon gfx modes, and similar stuff).
+// Peforms any kind of conversions over bitmap if they are necessary for it
+// to be be used in AGS sprite operations. Returns either old or new bitmap.
 // Original bitmap **gets deleted** if a new bitmap had to be created.
+// * has_alpha - for sprites with alpha channel (ARGB) tells whether their
+//   alpha channel should be kept, otherwise it's filled with opaqueness.
 Common::Bitmap *PrepareSpriteForUse(Common::Bitmap *bitmap, bool has_alpha);
 // Same as above, but compatible for std::shared_ptr.
 Common::PBitmap PrepareSpriteForUse(Common::PBitmap bitmap, bool has_alpha);

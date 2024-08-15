@@ -428,55 +428,67 @@ void setpal() {
     set_palette_range(palette, 0, 255, 0);
 }
 
-// NOTE: Some of these conversions are required even when using
-// D3D and OpenGL rendering, for two reasons:
-// 1) certain raw drawing operations are still performed by software
-// Allegro methods, hence bitmaps should be kept compatible to any native
-// software operations, such as blitting two bitmaps of different formats.
-// 2) OpenGL renderer assumes native bitmaps are in OpenGL-compatible format,
-// so that it could copy them to texture without additional changes.
-//
-// TODO: make gfxDriver->GetCompatibleBitmapFormat describe all necessary
-// conversions, so that we did not have to guess.
-//
-Bitmap *AdjustBitmapForUseWithDisplayMode(Bitmap* bitmap, bool has_alpha)
+Bitmap *CreateCompatBitmap(int width, int height, int col_depth)
 {
+    return new Bitmap(width, height,
+        gfxDriver->GetCompatibleBitmapFormat(col_depth == 0 ? game.GetColorDepth() : col_depth));
+}
+
+// PrepareSpriteForUseImpl converts input bitmap to format which may be used
+// in AGS sprite operations, including raw drawing operations.
+// In addition, in rare cases, it may require a conversion to a format
+// compatible with the graphics driver (which may be converted to a texture).
+// * conv_to_gamedepth - tells whether the sprite has to be matching game's
+//   default color depth; otherwise its color depth is to be kept (if possible).
+// * has_alpha - for sprites with alpha channel (ARGB) tells whether their
+//   alpha channel should be kept, otherwise it's filled with opaqueness
+Bitmap *PrepareSpriteForUseImpl(Bitmap* bitmap, bool has_alpha)
+{
+    // sprite must be converted to game's color depth;
+    // this behavior is hardcoded in the current engine version
+    const bool conv_to_gamedepth = true;
     const int bmp_col_depth = bitmap->GetColorDepth();
     const int game_col_depth = game.GetColorDepth();
-    const int compat_col_depth = gfxDriver->GetCompatibleBitmapFormat(game_col_depth);
 
-    const bool must_switch_palette = bitmap->GetColorDepth() == 8 && game_col_depth > 8;
+    // Palette must be selected if we convert a 8-bit bitmap for a 32-bit game
+    const bool must_switch_palette = conv_to_gamedepth && (bitmap->GetColorDepth() == 8) && (game_col_depth > 8);
     if (must_switch_palette)
         select_palette(palette);
 
     Bitmap *new_bitmap = bitmap;
 
-    //
-    // The following code brings bitmaps to the native game's format
-    // (has no dependency on display mode).
-    //
-    // In 32-bit game 32-bit bitmaps should have transparent pixels marked
-    // (this adjustment is probably needed for DrawingSurface ops)
-    if (game_col_depth == 32 && bmp_col_depth == 32)
+    // If it was requested to convert bitmap to the game's default color depth,
+    // the do so if bitmap is not matching the game.
+    bool was_conv_to_gamedepth = false;
+    if (conv_to_gamedepth && (bmp_col_depth != game_col_depth))
+    {
+        // Prior to downgrading a 32-bit sprite with valid alpha channel,
+        // replace its alpha channel to a regular transparency mask.
+        if ((bmp_col_depth == 32) && has_alpha)
+        {
+            BitmapHelper::ReplaceHalfAlphaWithRGBMask(bitmap);
+        }
+
+        new_bitmap = GfxUtil::ConvertBitmap(bitmap, gfxDriver->GetCompatibleBitmapFormat(game_col_depth));
+        was_conv_to_gamedepth = true;
+    }
+
+    // Handle alpha channel values for 32-bit bitmaps in 32-bit games.
+    // * If alpha channel is requested, then mark fully transparent pixels as
+    // MASK_COLOR. This adjustment is currently required for DrawingSurface
+    // operations in script.
+    // * Else this is either a 32-bit sprite with ignored alpha channel or
+    // it was converted from another color depth, then make a fully-opaque
+    // alpha channel, except for the existing MASK_COLOR pixels.
+    if ((game_col_depth == 32) && (new_bitmap->GetColorDepth() == 32))
     {
         if (has_alpha)
-            BitmapHelper::ReplaceAlphaWithRGBMask(new_bitmap);
-    }
-    // In 32-bit game hicolor bitmaps must be converted to the true color
-    else if (game_col_depth == 32 && (bmp_col_depth > 8 && bmp_col_depth <= 16))
-    {
-        new_bitmap = BitmapHelper::CreateBitmapCopy(bitmap, compat_col_depth);
-    }
-    // In non-32-bit game truecolor bitmaps must be downgraded
-    else if (game_col_depth <= 16 && bmp_col_depth > 16)
-    {
-        if (has_alpha) // if has valid alpha channel, convert it to regular transparency mask
-            new_bitmap = remove_alpha_channel(bitmap);
-        else // else simply convert bitmap
-            new_bitmap = BitmapHelper::CreateBitmapCopy(bitmap, compat_col_depth);
+            BitmapHelper::ReplaceZeroAlphaWithRGBMask(new_bitmap);
+        else
+            BitmapHelper::MakeOpaqueSkipMask(new_bitmap);
     }
     
-    // Finally, if we did not create a new copy already, - convert to driver compatible format
+    // Finally, if we did not create a new copy already, - ensure gfxdriver compatible format
     if (new_bitmap == bitmap)
         new_bitmap = GfxUtil::ConvertBitmap(bitmap, gfxDriver->GetCompatibleBitmapFormat(bitmap->GetColorDepth()));
 
@@ -486,20 +498,9 @@ Bitmap *AdjustBitmapForUseWithDisplayMode(Bitmap* bitmap, bool has_alpha)
     return new_bitmap;
 }
 
-Bitmap *CreateCompatBitmap(int width, int height, int col_depth)
-{
-    return new Bitmap(width, height,
-        gfxDriver->GetCompatibleBitmapFormat(col_depth == 0 ? game.GetColorDepth() : col_depth));
-}
-
-Bitmap *ReplaceBitmapWithSupportedFormat(Bitmap *bitmap)
-{
-    return GfxUtil::ConvertBitmap(bitmap, gfxDriver->GetCompatibleBitmapFormat(bitmap->GetColorDepth()));
-}
-
 Bitmap *PrepareSpriteForUse(Bitmap* bitmap, bool has_alpha)
 {
-    Bitmap *new_bitmap = AdjustBitmapForUseWithDisplayMode(bitmap, has_alpha);
+    Bitmap *new_bitmap = PrepareSpriteForUseImpl(bitmap, has_alpha);
     if (new_bitmap != bitmap)
         delete bitmap;
     return new_bitmap;
@@ -507,7 +508,7 @@ Bitmap *PrepareSpriteForUse(Bitmap* bitmap, bool has_alpha)
 
 PBitmap PrepareSpriteForUse(PBitmap bitmap, bool has_alpha)
 {
-    Bitmap *new_bitmap = AdjustBitmapForUseWithDisplayMode(bitmap.get(), has_alpha);
+    Bitmap *new_bitmap = PrepareSpriteForUseImpl(bitmap.get(), has_alpha);
     return new_bitmap == bitmap.get() ? bitmap : PBitmap(new_bitmap); // if bitmap is same, don't create new smart ptr!
 }
 

@@ -160,7 +160,7 @@ void MakeOpaqueSkipMask(Bitmap *bmp)
     }
 }
 
-void ReplaceAlphaWithRGBMask(Bitmap *bmp)
+void ReplaceAlphaWithRGBMask(Bitmap *bmp, int alpha_threshold)
 {
     if (bmp->GetColorDepth() < 32)
         return; // no alpha channel
@@ -170,7 +170,7 @@ void ReplaceAlphaWithRGBMask(Bitmap *bmp)
         uint32_t *line = reinterpret_cast<uint32_t*>(bmp->GetScanLineForWriting(i));
         uint32_t *line_end = line + bmp->GetWidth();
         for (uint32_t *px = line; px != line_end; ++px)
-            if (geta32(*px) == 0)
+            if (geta32(*px) <= alpha_threshold)
                 *px = MASK_COLOR_32;
     }
 }

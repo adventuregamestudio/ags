@@ -286,11 +286,10 @@ void DrawingSurface_DrawTriangle(ScriptDrawingSurface *sds, int x1, int y1, int 
 void DrawingSurface_DrawString(ScriptDrawingSurface *sds, int xx, int yy, int font, const char* text)
 {
     Bitmap *ds = sds->StartDrawing();
-    // don't use wtextcolor because it will do a 16->32 conversion
     color_t text_color = sds->currentColour;
-    if ((ds->GetColorDepth() <= 8) && (play.raw_color > 255)) {
+    if ((ds->GetColorDepth() <= 8) && (text_color > 255)) {
         text_color = ds->GetCompatibleColor(1);
-        debug_script_warn ("RawPrint: Attempted to use hi-color on 256-col background");
+        debug_script_warn ("DrawingSurface.DrawString: Attempted to use color %d on 256-col surface", text_color);
     }
     String res_str = GUI::ApplyTextDirection(text);
     wouttext_outline(ds, xx, yy, font, text_color, res_str.GetCStr());

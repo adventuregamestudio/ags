@@ -29,14 +29,14 @@ namespace AGS.Editor
                 return FindNearestColourInGamePalette(rgbColor);
             }
 
-            return rgbColor.B + (rgbColor.G << 8) + (rgbColor.R << 16);
+            return (rgbColor.B / 8) + ((green / 4) << 5) + ((rgbColor.R / 8) << 11);
         }
 
         public Color MapAgsColourNumberToRgbColor(int agsColorNumber)
         {
-            int red = (agsColorNumber >> 16) & 255;
-            int green = (agsColorNumber >> 8) & 255;
-            int blue = agsColorNumber & 255;
+            int red = ((agsColorNumber >> 11) * 8) & 255;
+            int green = ((agsColorNumber >> 5) * 4) & 255;
+            int blue = ((agsColorNumber) * 8) & 255;
             if (((agsColorNumber > 0) && (agsColorNumber < 32)) ||
                 (_editor.CurrentGame.Settings.ColorDepth == GameColorDepth.Palette))
             {

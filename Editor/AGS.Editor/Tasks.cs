@@ -545,6 +545,12 @@ namespace AGS.Editor
                 game.Settings.ScaleCharacterSpriteOffsets = false;
             }
 
+            // Update all the ColourNumber property values in game
+            if (xmlVersionIndex < 4000009)
+            {
+                RemapColourNumberProperties(game);
+            }
+
             System.Version editorVersion = new System.Version(AGS.Types.Version.AGS_EDITOR_VERSION);
             System.Version projectVersion = game.SavedXmlEditorVersion != null ? Types.Utilities.TryParseVersion(game.SavedXmlEditorVersion) : null;
             if (projectVersion == null || projectVersion < editorVersion)
@@ -574,6 +580,65 @@ namespace AGS.Editor
             sr.Close();
             sw.Close();
             return returnValue;
+        }
+
+        /// <summary>
+        /// Remaps historical 16-bit R6G5B6 values to proper 32-bit ARGB.
+        /// </summary>
+        private static void RemapColourNumberProperties(Game game)
+        {
+            Func<int, int> RemapColor = (color) => { return ColorMapper.RemapFromLegacyColourNumber(color, game.Palette, game.Settings.ColorDepth); };
+
+            var settings = game.Settings;
+            settings.InventoryHotspotMarkerCrosshairColor = RemapColor(settings.InventoryHotspotMarkerCrosshairColor);
+            settings.InventoryHotspotMarkerDotColor = RemapColor(settings.InventoryHotspotMarkerDotColor);
+
+            foreach (var c in game.Characters)
+            {
+                c.SpeechColor = RemapColor(c.SpeechColor);
+            }
+
+            foreach (var gui in game.GUIs)
+            {
+                gui.BackgroundColor = RemapColor(gui.BackgroundColor);
+                if (gui is NormalGUI)
+                {
+                    var ngui = gui as NormalGUI;
+                    ngui.BorderColor = RemapColor(ngui.BorderColor);
+                }
+                else if (gui is TextWindowGUI)
+                {
+                    var tw = gui as TextWindowGUI;
+                    tw.TextColor = RemapColor(tw.TextColor);
+                    // NOTE: TextWindowGUI.BorderColor currently internally maps to TextColor
+                }
+
+                foreach (var ctrl in gui.Controls)
+                {
+                    if (ctrl is GUIButton)
+                    {
+                        GUIButton but = ctrl as GUIButton;
+                        but.TextColor = RemapColor(but.TextColor);
+                    }
+                    else if (ctrl is GUILabel)
+                    {
+                        GUILabel lab = ctrl as GUILabel;
+                        lab.TextColor = RemapColor(lab.TextColor);
+                    }
+                    else if (ctrl is GUIListBox)
+                    {
+                        GUIListBox list = ctrl as GUIListBox;
+                        list.TextColor = RemapColor(list.TextColor);
+                        list.SelectedTextColor = RemapColor(list.SelectedTextColor);
+                        list.SelectedBackgroundColor = RemapColor(list.SelectedBackgroundColor);
+                    }
+                    else if (ctrl is GUITextBox)
+                    {
+                        GUITextBox textbox = ctrl as GUITextBox;
+                        textbox.TextColor = RemapColor(textbox.TextColor);
+                    }
+                }
+            }
         }
 
         private void AddFontIfNotAlreadyThere(int fontNumber)

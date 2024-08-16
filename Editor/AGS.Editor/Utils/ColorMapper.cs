@@ -15,35 +15,6 @@ namespace AGS.Editor
             _editor = editor;
         }
 
-        /// <summary>
-        /// Lookup table for scaling 5 bit colors up to 8 bits,
-        /// copied from Allegro 4 library in order to match Editor and Engine.
-        /// </summary>
-        private readonly static int[] RGBScale5 = new int[32]
-        {
-           0,   8,   16,  24,  33,  41,  49,  57,
-           66,  74,  82,  90,  99,  107, 115, 123,
-           132, 140, 148, 156, 165, 173, 181, 189,
-           198, 206, 214, 222, 231, 239, 247, 255
-        };
-
-
-        /// <summary>
-        /// Lookup table for scaling 6 bit colors up to 8 bits,
-        /// copied from Allegro 4 library in order to match Editor and Engine.
-        /// </summary>
-        private readonly static int[] RGBScale6 = new int[64]
-        {
-           0,   4,   8,   12,  16,  20,  24,  28,
-           32,  36,  40,  44,  48,  52,  56,  60,
-           65,  69,  73,  77,  81,  85,  89,  93,
-           97,  101, 105, 109, 113, 117, 121, 125,
-           130, 134, 138, 142, 146, 150, 154, 158,
-           162, 166, 170, 174, 178, 182, 186, 190,
-           195, 199, 203, 207, 211, 215, 219, 223,
-           227, 231, 235, 239, 243, 247, 251, 255
-        };
-
         #region IColorMapper
 
         public int MapRgbColorToAgsColourNumber(Color rgbColor)
@@ -113,6 +84,60 @@ namespace AGS.Editor
             }
 
             return nearestIndex;
+        }
+
+        /// <summary>
+        /// (LEGACY) Lookup table for scaling 5 bit colors up to 8 bits,
+        /// copied from Allegro 4 library in order to match Editor and Engine.
+        /// </summary>
+        private readonly static byte[] RGBScale5 = new byte[32]
+        {
+           0,   8,   16,  24,  33,  41,  49,  57,
+           66,  74,  82,  90,  99,  107, 115, 123,
+           132, 140, 148, 156, 165, 173, 181, 189,
+           198, 206, 214, 222, 231, 239, 247, 255
+        };
+
+        /// <summary>
+        /// (LEGACY) Lookup table for scaling 6 bit colors up to 8 bits,
+        /// copied from Allegro 4 library in order to match Editor and Engine.
+        /// </summary>
+        private readonly static byte[] RGBScale6 = new byte[64]
+        {
+           0,   4,   8,   12,  16,  20,  24,  28,
+           32,  36,  40,  44,  48,  52,  56,  60,
+           65,  69,  73,  77,  81,  85,  89,  93,
+           97,  101, 105, 109, 113, 117, 121, 125,
+           130, 134, 138, 142, 146, 150, 154, 158,
+           162, 166, 170, 174, 178, 182, 186, 190,
+           195, 199, 203, 207, 211, 215, 219, 223,
+           227, 231, 235, 239, 243, 247, 251, 255
+        };
+
+        /// <summary>
+        /// Generates a new colour number value from a legacy number.
+        /// </summary>
+        public static int RemapFromLegacyColourNumber(int legacyColourNumber, PaletteEntry[] palette, GameColorDepth gameColorDepth)
+        {
+            // For 8-bit games simply treat the color number as a palette index
+            if (gameColorDepth == GameColorDepth.Palette)
+            {
+                return legacyColourNumber;
+            }
+
+            // Special 0-31 color numbers were always interpreted as palette indexes;
+            // for them we compose a 32-bit xRGB from the palette entry
+            if ((legacyColourNumber >= 0) && (legacyColourNumber < 32))
+            {
+                var rgbColor = palette[legacyColourNumber].Colour;
+                return rgbColor.B | (rgbColor.G << 8) | (rgbColor.R << 16);
+            }
+
+            // The rest is a R5G6B5 color; we convert it to a proper 32-bit xRGB
+            byte red = RGBScale5[(legacyColourNumber >> 11) & 0x1f];
+            byte green = RGBScale6[(legacyColourNumber >> 5) & 0x3f];
+            byte blue = RGBScale5[(legacyColourNumber) & 0x1f];
+            return blue | (green << 8) | (red << 16);
         }
     }
 }

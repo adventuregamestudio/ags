@@ -116,9 +116,10 @@ namespace AGS.Editor
          * 4.00.00.07     - Sprite.ImportColorDepth
          * 4.00.00.08     - Custom properties supported by AudioClips, Dialogs, GUI,
          *                  Regions, Walkable Areas
+         * 4.00.00.09     - True 32-bit color properties
          *
         */
-        public const int    LATEST_XML_VERSION_INDEX = 4000008;
+        public const int    LATEST_XML_VERSION_INDEX = 4000009;
         /// <summary>
         /// XML version index on the release of AGS 4.0.0, this constant be used to determine
         /// if upgrade of Rooms/Sprites/etc. to new format have been performed.

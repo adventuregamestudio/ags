@@ -99,9 +99,10 @@ namespace AGS.Editor
                     newVal = 0;
                 }
 
-                trackBarRed.Value = (newVal >> 11) * 8;
-                trackBarGreen.Value = ((newVal >> 5) & 0x003f) * 4;
-                trackBarBlue.Value = (newVal & 0x001f) * 8;
+                Color newColor = AGSEditor.Instance.ColorMapper.AgsColourNumberToColorDirect(newVal);
+                trackBarRed.Value = newColor.R;
+                trackBarGreen.Value = newColor.G;
+                trackBarBlue.Value = newColor.B;
 				lblFixedColorsWarning.Visible = ((newVal >= 1) && (newVal <= 31));
 				ColourSlidersUpdated();
             }
@@ -118,8 +119,8 @@ namespace AGS.Editor
         private void UpdateNumberFromScrollBars()
         {
             _noUpdates = true;
-			int greenValue = trackBarGreen.Value / 4;
-            int newValue = (trackBarBlue.Value / 8) + (greenValue << 5) + ((trackBarRed.Value / 8) << 11);
+            var newColor = Color.FromArgb(trackBarRed.Value, trackBarGreen.Value, trackBarBlue.Value);
+            int newValue = AGSEditor.Instance.ColorMapper.ColorToAgsColourNumberDirect(newColor);
             txtColourNumber.Text = newValue.ToString();
             _noUpdates = false;
             lblFixedColorsWarning.Visible = ((newValue >= 1) && (newValue <= 31));

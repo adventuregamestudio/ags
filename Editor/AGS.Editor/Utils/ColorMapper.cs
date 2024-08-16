@@ -15,6 +15,8 @@ namespace AGS.Editor
             _editor = editor;
         }
 
+        #region IColorMapper
+
         public int MapRgbColorToAgsColourNumber(Color rgbColor)
         {
             int green = rgbColor.G;
@@ -51,9 +53,30 @@ namespace AGS.Editor
             return Color.FromArgb(red, green, blue);
         }
 
+        #endregion
+
+        /// <summary>
+        /// Converts RGB Color to a AGS color number directly, without use of palette or "special" entries.
+        /// </summary>
+        public int ColorToAgsColourNumberDirect(Color color)
+        {
+            return (color.B / 8) + ((color.G / 4) << 5) + ((color.R / 8) << 11);
+        }
+
+        /// <summary>
+        /// Converts AGS color number to RGB Color directly, without use of palette or "special" entries.
+        /// </summary>
+        public Color AgsColourNumberToColorDirect(int agsColorNumber)
+        {
+            return Color.FromArgb(
+                (agsColorNumber >> 11) * 8,
+                ((agsColorNumber >> 5) & 0x3f) * 4,
+                (agsColorNumber & 0x1f) * 8);
+        }
+
         private int FindNearestColourInGamePalette(Color rgbColor)
         {
-            int nearestDistance = 999999;
+            int nearestDistance = int.MaxValue;
             int nearestIndex = 0;
 
             foreach (PaletteEntry entry in _editor.CurrentGame.Palette)

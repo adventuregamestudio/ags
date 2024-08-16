@@ -337,5 +337,21 @@ size_t StrUtil::ConvertWstrToUtf8(const wchar_t *wcstr, char *out_mbstr, size_t 
     return len;
 }
 
+std::unique_ptr<char[]> StrUtil::Duplicate(const char *cstr)
+{
+    size_t len = strlen(cstr);
+    std::unique_ptr<char[]> buf(new char[len + 1]);
+    memcpy(buf.get(), cstr, len + 1);
+    return std::move(buf);
+}
+
+std::unique_ptr<char[]> StrUtil::Substring(const char *cstr, size_t start, size_t length)
+{
+    std::unique_ptr<char[]> buf(new char[length + 1]);
+    memcpy(buf.get(), cstr + start, length);
+    buf[length] = 0;
+    return std::move(buf);
+}
+
 } // namespace Common
 } // namespace AGS

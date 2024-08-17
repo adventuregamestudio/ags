@@ -705,10 +705,7 @@ int Game_GetColorFromRGB(int red, int grn, int blu) {
         return makecol8(red, grn, blu);
     }
 
-    int agscolor = ((blu >> 3) & 0x1f);
-    agscolor += ((grn >> 2) & 0x3f) << 5;
-    agscolor += ((red >> 3) & 0x1f) << 11;
-    return agscolor;
+    return makecol32(red, grn, blu);
 }
 
 const char* Game_InputBox(const char *msg) {

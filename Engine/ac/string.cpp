@@ -441,7 +441,7 @@ int StringToInt(const char*stino) {
     return atoi(stino);
 }
 
-int String_IndexOf (const char *thisString, const char *lookForText, int startIndex, int count, bool caseSensitive) {
+int String_IndexOf (const char *thisString, const char *lookForText, bool caseSensitive, int startIndex, int count) {
     VALIDATE_STRING(thisString);
     VALIDATE_STRING(lookForText);
 

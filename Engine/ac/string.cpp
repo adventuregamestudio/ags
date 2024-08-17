@@ -41,6 +41,37 @@ const char *CreateNewScriptString(const char *text)
     return static_cast<const char*>(ScriptString::Create(text).Obj);
 }
 
+// Gets a offset corresponding to a character index in a script String;
+// tries to speed up utf-8 offset calculation by using recorded previous result
+// of a offset search from the header. Updates header on success.
+size_t GetStringCharOff(const char *thisString, int index)
+{
+    auto &header = ScriptString::GetHeader((void*)thisString);
+    assert((index >= 0) && (static_cast<uint32_t>(index) < header.ULength));
+    // No need to calculate anything or save last results in ASCII mode
+    if (get_uformat() == U_ASCII)
+    {
+        return index;
+    }
+
+    int off;
+    if (header.LastCharIdx <= index)
+    {
+        off = uoffset(thisString + header.LastCharOff, index - header.LastCharIdx) + header.LastCharOff;
+    }
+    // TODO: support faster reverse iteration too? that would require reverse-dir uoffset
+    else
+    {
+        off = uoffset(thisString, index);
+    }
+    // NOTE: works up to 64k chars/bytes, then stops; this is intentional to save a bit of mem
+    if (off <= UINT16_MAX)
+    {
+        header.LastCharIdx = static_cast<uint16_t>(index);
+        header.LastCharOff = static_cast<uint16_t>(off);
+    }
+    return off;
+}
 
 int String_IsNullOrEmpty(const char *thisString) 
 {
@@ -401,26 +432,8 @@ int String_GetChars(const char *thisString, int index) {
     auto &header = ScriptString::GetHeader((void*)thisString);
     if ((index < 0) || (static_cast<uint32_t>(index) >= header.ULength))
         return 0;
-    int off;
-    if (get_uformat() == U_ASCII)
-    {
-        return thisString[index];
-    }
-    else if (header.LastCharIdx <= index)
-    {
-        off = uoffset(thisString + header.LastCharOff, index - header.LastCharIdx) + header.LastCharOff;
-    }
-    // TODO: support faster reverse iteration too? that would require reverse-dir uoffset
-    else
-    {
-        off = uoffset(thisString, index);
-    }
-    // NOTE: works up to 64k chars/bytes, then stops; this is intentional to save a bit of mem
-    if (off <= UINT16_MAX)
-    {
-        header.LastCharIdx = static_cast<uint16_t>(index);
-        header.LastCharOff = static_cast<uint16_t>(off);
-    }
+
+    int off = GetStringCharOff(thisString, index);
     return ugetc(thisString + off);
 }
 
@@ -433,8 +446,8 @@ int String_IndexOf (const char *thisString, const char *lookForText, int startIn
     VALIDATE_STRING(lookForText);
 
     const auto &header = ScriptString::GetHeader(thisString);
-    if ((startIndex < 0) || ((size_t) startIndex > header.ULength)) {
-        debug_script_warn("String.IndexOf: invalid start index %d.", startIndex);
+    if ((startIndex < 0) || ((size_t) startIndex >= header.ULength)) {
+        debug_script_warn("String.IndexOf: invalid start index %d, string length is %u.", startIndex, header.ULength);
         return -1;
     }
 
@@ -442,12 +455,15 @@ int String_IndexOf (const char *thisString, const char *lookForText, int startIn
         count = header.ULength - startIndex;
 
     if (count < 0) {
-        debug_script_warn("String.IndexOf: invalid count %d. Did you meant to use 0 for until string end?", count);
+        debug_script_warn("String.IndexOf: invalid count %d. Did you meant to use '0' for until string end?", count);
         return -1;
     }
 
-    size_t start = uoffset(thisString, startIndex);
-    size_t end = uoffset(thisString, startIndex + count);
+    // Use GetStringCharOff to possibly speed up start offset search in utf-8
+    size_t start = GetStringCharOff(thisString, startIndex);
+    size_t end   = (startIndex + count == header.ULength) ?
+        header.Length :
+        uoffset(thisString + start, count); // end offset searched from the found start
 
     auto thistmpbuf = StrUtil::Substring(thisString, start, end - start);
     auto looktmpbuf = StrUtil::Duplicate(lookForText);
@@ -465,8 +481,7 @@ int String_IndexOf (const char *thisString, const char *lookForText, int startIn
         return -1;
 
     *offs = 0;
-    int at = startIndex + ustrlen(thistmpbuf.get());
-    return at;
+    return startIndex + ustrlen(thistmpbuf.get());
 }
 
 int StrContains (const char *s1, const char *s2) {

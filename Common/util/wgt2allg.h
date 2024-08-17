@@ -24,8 +24,6 @@ namespace AGS { namespace Common { class Bitmap; }}
 using namespace AGS; // FIXME later
 
 //=============================================================================
-
-    extern void __my_setcolor(int *ctset, int newcol, int wantColDep);
     
     extern void wsetrgb(int coll, int r, int g, int b, RGB * pall);
     extern void wcolrotate(unsigned char start, unsigned char finish, int dir, RGB * pall);

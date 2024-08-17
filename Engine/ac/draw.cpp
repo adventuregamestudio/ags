@@ -585,9 +585,7 @@ void destroy_blank_image()
 
 int MakeColor(int color_index)
 {
-    color_t real_color = 0;
-    __my_setcolor(&real_color, color_index, game.GetColorDepth());
-    return real_color;
+    return BitmapHelper::AGSColorToBitmapColor(color_index, game.GetColorDepth());
 }
 
 void init_draw_method()

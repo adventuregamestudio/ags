@@ -275,6 +275,10 @@ private:
 
 namespace BitmapHelper
 {
+    // Remaps AGS color number to a color value compatible to a bitmap of certain color depth
+    int AGSColorToBitmapColor(int color, int color_depth);
+    // Remaps AGS color number in certain color depth mode to a actual RGB
+    void AGSColorToRGB(int color, int color_depth, RGB &rgb);
     // TODO: revise those functions later (currently needed in a few very specific cases)
 	// NOTE: the resulting object __owns__ bitmap data from now on
 	Bitmap *CreateRawBitmapOwner(BITMAP *al_bmp);

@@ -94,7 +94,7 @@ namespace AGS.Editor
             {
                 int newVal = 0;
                 Int32.TryParse(txtColourNumber.Text, out newVal);
-                if ((newVal < 0) || (newVal > 65535))
+                if ((newVal < 0) || (newVal > int.MaxValue))
                 {
                     newVal = 0;
                 }
@@ -103,7 +103,6 @@ namespace AGS.Editor
                 trackBarRed.Value = newColor.R;
                 trackBarGreen.Value = newColor.G;
                 trackBarBlue.Value = newColor.B;
-				lblFixedColorsWarning.Visible = ((newVal >= 1) && (newVal <= 31));
 				ColourSlidersUpdated();
             }
         }
@@ -132,7 +131,6 @@ namespace AGS.Editor
             int newValue = AGSEditor.Instance.ColorMapper.ColorToAgsColourNumberDirect(newColor);
             txtColourNumber.Text = newValue.ToString();
             _noUpdates = false;
-            lblFixedColorsWarning.Visible = ((newValue >= 1) && (newValue <= 31));
             blockOfColour.Invalidate();
         }
 
@@ -141,9 +139,11 @@ namespace AGS.Editor
             int colourVal = 0;
             Int32.TryParse(txtColourNumber.Text, out colourVal);
 
-            IntPtr hdc = e.Graphics.GetHdc();
-            Factory.NativeProxy.DrawBlockOfColour(hdc, 0, 0, blockOfColour.Width, blockOfColour.Height, colourVal);
-            e.Graphics.ReleaseHdc();
+            Color color = Factory.AGSEditor.ColorMapper.MapAgsColourNumberToRgbColor(colourVal);
+            using (Brush brush = new SolidBrush(color))
+            {
+                e.Graphics.FillRectangle(brush, 0, 0, blockOfColour.Width, blockOfColour.Height);
+            }
         }
 
         private void palettePanel_Paint(object sender, PaintEventArgs e)
@@ -169,16 +169,6 @@ namespace AGS.Editor
                 {
                     Color thisColor = game.Palette[i].Colour;
                     e.Graphics.FillRectangle(new SolidBrush(thisColor), x, y, 20, 20);
-                    /*
-                    if (game.Palette[i].ColourType == PaletteColourType.Locked)
-                    {
-                        Brush textCol = Brushes.White;
-                        if ((thisColor.R > 200) || (thisColor.G > 200) || (thisColor.B > 200))
-                        {
-                            textCol = Brushes.Black;
-                        }
-                        e.Graphics.DrawString("L", boldFont, textCol, x + 5, y + 3);
-                    }*/
                 }
                 if (_selectedIndexes.Contains(i))
                 {

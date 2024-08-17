@@ -27,6 +27,7 @@
 #include "debug/debug_log.h"
 #include "script/runtimescriptvalue.h"
 #include "util/string_compat.h"
+#include "util/string_utils.h"
 #include "util/utf8.h"
 #include "ac/dynobj/cc_dynamicarray.h"
 
@@ -427,28 +428,49 @@ int StringToInt(const char*stino) {
     return atoi(stino);
 }
 
-int StrContains (const char *s1, const char *s2) {
-    VALIDATE_STRING (s1);
-    VALIDATE_STRING (s2);
-    char *tempbuf1 = ags_strdup(s1);
-    char *tempbuf2 = ags_strdup(s2);
-    ustrlwr(tempbuf1);
-    ustrlwr(tempbuf2);
+int String_IndexOf (const char *thisString, const char *lookForText, int startIndex, int count, bool caseSensitive) {
+    VALIDATE_STRING(thisString);
+    VALIDATE_STRING(lookForText);
 
-    char *offs = ustrstr(tempbuf1, tempbuf2);
-
-    if (offs == nullptr)
-    {
-        free(tempbuf1);
-        free(tempbuf2);
+    const auto &header = ScriptString::GetHeader(thisString);
+    if ((startIndex < 0) || ((size_t) startIndex > header.ULength)) {
+        debug_script_warn("String.IndexOf: invalid start index %d.", startIndex);
         return -1;
     }
 
+    if (count == 0 || count >= header.ULength - startIndex)
+        count = header.ULength - startIndex;
+
+    if (count < 0) {
+        debug_script_warn("String.IndexOf: invalid count %d. Did you meant to use 0 for until string end?", count);
+        return -1;
+    }
+
+    size_t start = uoffset(thisString, startIndex);
+    size_t end = uoffset(thisString, startIndex + count);
+
+    auto thistmpbuf = StrUtil::Substring(thisString, start, end - start);
+    auto looktmpbuf = StrUtil::Duplicate(lookForText);
+
+    if (!caseSensitive)
+    {
+        ustrlwr(thistmpbuf.get());
+        ustrlwr(looktmpbuf.get());
+    }
+
+    char *offs = ustrstr(thistmpbuf.get(), looktmpbuf.get());
+
+    // return -1 if it can't find it
+    if (offs == nullptr)
+        return -1;
+
     *offs = 0;
-    int at = ustrlen(tempbuf1);
-    free(tempbuf1);
-    free(tempbuf2);
+    int at = startIndex + ustrlen(thistmpbuf.get());
     return at;
+}
+
+int StrContains (const char *s1, const char *s2) {
+    return String_IndexOf(s1, s2, 0, 0, false);
 }
 
 int String_GetLength(const char *thisString) {
@@ -552,6 +574,12 @@ RuntimeScriptValue Sc_String_CompareTo(void *self, const RuntimeScriptValue *par
 RuntimeScriptValue Sc_StrContains(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT_POBJ(const char, StrContains, const char);
+}
+
+// int  (const char *s1, const char *s2)
+RuntimeScriptValue Sc_String_IndexOf(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT_POBJ_PINT2_PBOOL(const char, String_IndexOf, const char);
 }
 
 // const char* (const char *srcString)
@@ -678,6 +706,7 @@ void RegisterStringAPI()
         { "String::Copy^0",           API_FN_PAIR(String_Copy) },
         { "String::EndsWith^2",       API_FN_PAIR(String_EndsWith) },
         { "String::IndexOf^1",        API_FN_PAIR(StrContains) },
+        { "String::IndexOf^4",        API_FN_PAIR(String_IndexOf) },
         { "String::LowerCase^0",      API_FN_PAIR(String_LowerCase) },
         { "String::Replace^3",        API_FN_PAIR(String_Replace) },
         { "String::ReplaceCharAt^2",  API_FN_PAIR(String_ReplaceCharAt) },

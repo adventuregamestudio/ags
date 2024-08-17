@@ -18,6 +18,7 @@
 #ifndef __AGS_CN_UTIL__STRINGUTILS_H
 #define __AGS_CN_UTIL__STRINGUTILS_H
 
+#include <memory>
 #include "util/string_types.h"
 
 namespace AGS
@@ -126,6 +127,10 @@ namespace StrUtil
     // Convert wide-string to utf-8 string;
     // writes into out_mbstr buffer limited by out_sz *bytes*; returns *bytes* written.
     size_t ConvertWstrToUtf8(const wchar_t *wcstr, char *out_mbstr, size_t out_sz);
+    // Creates a copy of a c string similar to strdup
+    std::unique_ptr<char[]> Duplicate(const char *cstr);
+    // Creates a substring with a partial copy of a c string
+    std::unique_ptr<char[]> Substring(const char *cstr, size_t start, size_t length);
 }
 } // namespace Common
 } // namespace AGS

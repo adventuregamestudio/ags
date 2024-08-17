@@ -48,35 +48,28 @@ namespace AGS.Editor
 
         public int MapRgbColorToAgsColourNumber(Color rgbColor)
         {
-            int green = rgbColor.G;
-
-            if (rgbColor.R == 0 && rgbColor.G == 0 && rgbColor.B > 0)
-            {
-                // make sure the colour number doesn't end up being a special EGA colour
-                green = 4;
-            }
-            else if (_editor.CurrentGame.Settings.ColorDepth == GameColorDepth.Palette)
+            // For 8-bit games find the nearest matching palette index
+            if (_editor.CurrentGame.Settings.ColorDepth == GameColorDepth.Palette)
             {
                 return FindNearestColourInGamePalette(rgbColor);
             }
-
+            // Otherwise compose a 32-bit xRGB
             return ColorToAgsColourNumberDirect(rgbColor);
         }
 
         public Color MapAgsColourNumberToRgbColor(int agsColorNumber)
         {
-            if (((agsColorNumber > 0) && (agsColorNumber < 32)) ||
-                (_editor.CurrentGame.Settings.ColorDepth == GameColorDepth.Palette))
+            // For 8-bit games treat the color number as a palette index
+            if (_editor.CurrentGame.Settings.ColorDepth == GameColorDepth.Palette)
             {
                 if (agsColorNumber >= _editor.CurrentGame.Palette.Length)
                 {
                     // don't attempt to map invalid 8-bit colour numbers >255
                     return Color.Black;
                 }
-                // Special Color Number that translates to one of the EGA colours
                 return _editor.CurrentGame.Palette[agsColorNumber].Colour;
             }
-
+            // Otherwise treat number as a 32-bit xRGB
             return AgsColourNumberToColorDirect(agsColorNumber);
         }
 
@@ -87,7 +80,7 @@ namespace AGS.Editor
         /// </summary>
         public int ColorToAgsColourNumberDirect(Color color)
         {
-            return (color.B >> 3) + ((color.G >> 2) << 5) + ((color.R >> 3) << 11);
+            return color.B | (color.G << 8) | (color.R << 16);
         }
 
         /// <summary>
@@ -96,9 +89,9 @@ namespace AGS.Editor
         public Color AgsColourNumberToColorDirect(int agsColorNumber)
         {
             return Color.FromArgb(
-                RGBScale5[(agsColorNumber >> 11) & 0x1f],
-                RGBScale6[(agsColorNumber >> 5) & 0x3f],
-                RGBScale5[agsColorNumber & 0x1f]);
+                (agsColorNumber >> 16) & 0xff,
+                (agsColorNumber >> 8) & 0xff,
+                agsColorNumber & 0xff);
         }
 
         private int FindNearestColourInGamePalette(Color rgbColor)

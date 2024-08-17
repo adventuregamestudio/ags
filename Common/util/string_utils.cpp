@@ -347,6 +347,9 @@ std::unique_ptr<char[]> StrUtil::Duplicate(const char *cstr)
 
 std::unique_ptr<char[]> StrUtil::Substring(const char *cstr, size_t start, size_t length)
 {
+    size_t src_len = strlen(cstr);
+    start = std::min(start, src_len);
+    length = std::min(length, src_len - start);
     std::unique_ptr<char[]> buf(new char[length + 1]);
     memcpy(buf.get(), cstr + start, length);
     buf[length] = 0;

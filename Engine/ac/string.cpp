@@ -485,7 +485,7 @@ int String_IndexOf (const char *thisString, const char *lookForText, bool caseSe
 }
 
 int StrContains (const char *s1, const char *s2) {
-    return String_IndexOf(s1, s2, 0, 0, false);
+    return String_IndexOf(s1, s2, false, 0, 0);
 }
 
 int String_GetLength(const char *thisString) {
@@ -594,7 +594,7 @@ RuntimeScriptValue Sc_StrContains(void *self, const RuntimeScriptValue *params, 
 // int  (const char *s1, const char *s2)
 RuntimeScriptValue Sc_String_IndexOf(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT_POBJ_PINT2_PBOOL(const char, String_IndexOf, const char);
+    API_OBJCALL_INT_POBJ_PBOOL_PINT2(const char, String_IndexOf, const char);
 }
 
 // const char* (const char *srcString)

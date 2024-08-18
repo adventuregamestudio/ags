@@ -267,7 +267,7 @@ int write_dialog_options(Bitmap *ds, int dlgxp, int curyp, int numdisp, int mous
 
     if (mouseison==ww) {
       if (text_color == ds->GetCompatibleColor(utextcol))
-        text_color = ds->GetCompatibleColor(13); // the normal colour is the same as highlight col
+        text_color = GUI::GetStandardColorForBitmap(13); // the normal colour is the same as highlight col
       else text_color = ds->GetCompatibleColor(utextcol);
     }
 
@@ -664,7 +664,7 @@ void DialogOptions::Draw()
         // redraw the black background so that anti-alias
         // fonts don't re-alias themselves
         if (game.options[OPT_DIALOGIFACE] == 0) {
-          color_t draw_color = ds->GetCompatibleColor(16);
+          color_t draw_color = GUI::GetStandardColorForBitmap(16);
           ds->FillRect(Rect(0,dlgyp-1, ui_view.GetWidth()-1, ui_view.GetHeight()-1), draw_color);
         }
         else {

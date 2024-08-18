@@ -33,7 +33,6 @@ using namespace AGS; // FIXME later
     extern void wputblock(Common::Bitmap *ds, int xx, int yy, Common::Bitmap *bll, int xray);
 	// CHECKME: temporary solution for plugin system
 	extern void wputblock_raw(Common::Bitmap *ds, int xx, int yy, BITMAP *bll, int xray);
-    extern const int col_lookups[32];
 
     // TODO: these are used only in the Editor's agsnative.cpp
     extern void wremap(const RGB * pal1, Common::Bitmap *picc, const RGB * pal2, bool keep_transparent = true);

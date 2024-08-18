@@ -20,6 +20,7 @@
 #include "gfx/bitmap.h"
 #include "gui/guidialog.h"
 #include "gui/guidialogdefines.h"
+#include "gui/guimain.h"
 
 using namespace AGS::Common;
 
@@ -57,9 +58,9 @@ extern int smcode;
 
   void MyListBox::draw(Bitmap *ds)
   {
-    color_t draw_color = ds->GetCompatibleColor(windowbackgroundcolor);
+    color_t draw_color = GUI::GetStandardColorForBitmap(windowbackgroundcolor);
     ds->FillRect(Rect(x, y, x + wid, y + hit), draw_color);
-    draw_color = ds->GetCompatibleColor(0);
+    draw_color = GUI::GetStandardColorForBitmap(0);
     ds->DrawRect(Rect(x, y, x + wid, y + hit), draw_color);
   
     int widwas = wid;
@@ -69,19 +70,19 @@ extern int smcode;
 
     int xmidd = x + wid + (widwas - wid) / 2;
     if (topitem < 1)
-      draw_color = ds->GetCompatibleColor(7);
+      draw_color = GUI::GetStandardColorForBitmap(7);
 
     ds->DrawLine(Line(xmidd, y + 2, xmidd, y + 10), draw_color); // up arrow
     ds->DrawLine(Line(xmidd - 1, y + 3, xmidd + 1, y + 3), draw_color);
     ds->DrawLine(Line(xmidd - 2, y + 4, xmidd + 2, y + 4), draw_color);
-    draw_color = ds->GetCompatibleColor(0);
+    draw_color = GUI::GetStandardColorForBitmap(0);
     if (topitem + numonscreen >= items)
-      draw_color = ds->GetCompatibleColor(7);
+      draw_color = GUI::GetStandardColorForBitmap(7);
 
     ds->DrawLine(Line(xmidd, y + hit - 10, xmidd, y + hit - 3), draw_color);     // down arrow
     ds->DrawLine(Line(xmidd - 1, y + hit - 4, xmidd + 1, y + hit - 4), draw_color);
     ds->DrawLine(Line(xmidd - 2, y + hit - 5, xmidd + 2, y + hit - 5), draw_color);
-    draw_color = ds->GetCompatibleColor(0);
+    draw_color = GUI::GetStandardColorForBitmap(0);
 
     for (int tt = 0; tt < numonscreen; tt++) {
       int inum = tt + topitem;
@@ -91,11 +92,11 @@ extern int smcode;
       int thisypos = y + 2 + tt * TEXT_HT;
       color_t text_color;
       if (inum == selected) {
-        draw_color = ds->GetCompatibleColor(0);
+        draw_color = GUI::GetStandardColorForBitmap(0);
         ds->FillRect(Rect(x, thisypos, x + wid, thisypos + TEXT_HT - 1), draw_color);
-        text_color = ds->GetCompatibleColor(7);
+        text_color = GUI::GetStandardColorForBitmap(7);
       }
-      else text_color = ds->GetCompatibleColor(0);
+      else text_color = GUI::GetStandardColorForBitmap(0);
 
       wouttextxy(ds, x + 2, thisypos, cbuttfont, text_color, itemnames[inum]);
     }

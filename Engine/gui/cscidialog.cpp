@@ -63,9 +63,9 @@ int controlid = 0;
 
 void __my_wbutt(Bitmap *ds, int x1, int y1, int x2, int y2)
 {
-    color_t draw_color = ds->GetCompatibleColor(COL254);            //wsetcolor(15);
+    color_t draw_color = GUI::GetStandardColorForBitmap(COL254);
     ds->FillRect(Rect(x1, y1, x2, y2), draw_color);
-    draw_color = ds->GetCompatibleColor(0);
+    draw_color = GUI::GetStandardColorForBitmap(0);
     ds->DrawRect(Rect(x1, y1, x2, y2), draw_color);
 }
 

@@ -2361,7 +2361,7 @@ void draw_fps(const Rect &viewport)
     }
 
     fpsDisplay->ClearTransparent();
-    const color_t text_color = fpsDisplay->GetCompatibleColor(14);
+    const color_t text_color = GUI::GetStandardColorForBitmap(14);
     char base_buffer[20];
     if (!isTimerFpsMaxed()) {
         snprintf(base_buffer, sizeof(base_buffer), "%d", frames_per_second);

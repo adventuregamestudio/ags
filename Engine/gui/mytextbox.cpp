@@ -18,6 +18,7 @@
 #include "font/fonts.h"
 #include "gfx/bitmap.h"
 #include "gui/guidialogdefines.h"
+#include "gui/guimain.h"
 
 using namespace AGS::Common;
 
@@ -40,11 +41,11 @@ MyTextBox::MyTextBox(int xx, int yy, int wii, const char *tee)
 void MyTextBox::draw(Bitmap *ds)
 {
     ds->SetClip(RectWH(x, y, wid + 1, hit + 1));
-    color_t draw_color = ds->GetCompatibleColor(windowbackgroundcolor);
+    color_t draw_color = GUI::GetStandardColorForBitmap(windowbackgroundcolor);
     ds->FillRect(Rect(x, y, x + wid, y + hit), draw_color);
-    draw_color = ds->GetCompatibleColor(0);
+    draw_color = GUI::GetStandardColorForBitmap(0);
     ds->DrawRect(Rect(x, y, x + wid, y + hit), draw_color);
-    color_t text_color = ds->GetCompatibleColor(0);
+    color_t text_color = GUI::GetStandardColorForBitmap(0);
     wouttextxy(ds, x + 2, y + 1, cbuttfont, text_color, text);
 
     char tbu[2] = "_";

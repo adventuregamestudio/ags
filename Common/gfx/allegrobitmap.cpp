@@ -192,7 +192,7 @@ bool Bitmap::SaveToFile(const char *filename, const RGB *palette)
 	return BitmapHelper::SaveToFile(this, filename, palette);
 }
 
-color_t Bitmap::GetCompatibleColor(color_t color)
+color_t Bitmap::GetCompatibleColor(int color)
 {
     return BitmapHelper::AGSColorToBitmapColor(color, bitmap_color_depth(_alBitmap));
 }

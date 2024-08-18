@@ -84,14 +84,6 @@ using namespace AGS::Common;
       ds->Blit(&wputblock_wrapper, 0, 0, xx, yy, wputblock_wrapper.GetWidth(), wputblock_wrapper.GetHeight());
   }
 
-  const int col_lookups[32] = {
-    0x000000, 0x0000A0, 0x00A000, 0x00A0A0, 0xA00000,   // 4
-    0xA000A0, 0xA05000, 0xA0A0A0, 0x505050, 0x5050FF, 0x50FF50, 0x50FFFF,       // 11
-    0xFF5050, 0xFF50FF, 0xFFFF50, 0xFFFFFF, 0x000000, 0x101010, 0x202020,       // 18
-    0x303030, 0x404040, 0x505050, 0x606060, 0x707070, 0x808080, 0x909090,       // 25
-    0xA0A0A0, 0xB0B0B0, 0xC0C0C0, 0xD0D0D0, 0xE0E0E0, 0xF0F0F0
-  };
-
   void wremap(const RGB * pal1, Bitmap *picc, const RGB * pal2, bool keep_transparent)
   {
     unsigned char color_mapped_table[256];

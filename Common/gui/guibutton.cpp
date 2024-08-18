@@ -475,7 +475,7 @@ void GUIButton::DrawText(Bitmap *ds, int x, int y, bool draw_disabled)
     }
     color_t text_color = ds->GetCompatibleColor(TextColor);
     if (draw_disabled)
-        text_color = ds->GetCompatibleColor(8);
+        text_color = GUI::GetStandardColorForBitmap(8);
     GUI::DrawTextAligned(ds, _textToDraw.GetCStr(), Font, text_color, frame, TextAlignment);
 }
 
@@ -484,27 +484,27 @@ void GUIButton::DrawTextButton(Bitmap *ds, int x, int y, bool draw_disabled)
     if (draw_disabled && GUI::Options.DisabledStyle == kGuiDis_Blackout)
         return; // button should not be shown at all
 
-    color_t draw_color = ds->GetCompatibleColor(7);
+    color_t draw_color = GUI::GetStandardColorForBitmap(7);
     ds->FillRect(Rect(x, y, x + _width - 1, y + _height - 1), draw_color);
     if (Flags & kGUICtrl_Default)
     {
-        draw_color = ds->GetCompatibleColor(16);
+        draw_color = GUI::GetStandardColorForBitmap(16);
         ds->DrawRect(Rect(x - 1, y - 1, x + _width, y + _height), draw_color);
     }
 
     // TODO: use color constants instead of literal numbers
     if (!draw_disabled && IsMouseOver && IsPushed)
-        draw_color = ds->GetCompatibleColor(15);
+        draw_color = GUI::GetStandardColorForBitmap(15);
     else
-        draw_color = ds->GetCompatibleColor(8);
+        draw_color = GUI::GetStandardColorForBitmap(8);
 
     ds->DrawLine(Line(x, y + _height - 1, x + _width - 1, y + _height - 1), draw_color);
     ds->DrawLine(Line(x + _width - 1, y, x + _width - 1, y + _height - 1), draw_color);
 
     if (draw_disabled || (IsMouseOver && IsPushed))
-        draw_color = ds->GetCompatibleColor(8);
+        draw_color = GUI::GetStandardColorForBitmap(8);
     else
-        draw_color = ds->GetCompatibleColor(15);
+        draw_color = GUI::GetStandardColorForBitmap(15);
 
     ds->DrawLine(Line(x, y, x + _width - 1, y), draw_color);
     ds->DrawLine(Line(x, y, x, y + _height - 1), draw_color);

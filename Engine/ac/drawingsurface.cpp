@@ -284,7 +284,7 @@ void DrawingSurface_DrawString(ScriptDrawingSurface *sds, int xx, int yy, int fo
     Bitmap *ds = sds->StartDrawing();
     color_t text_color = sds->currentColour;
     if ((ds->GetColorDepth() <= 8) && (text_color > 255)) {
-        text_color = ds->GetCompatibleColor(1);
+        text_color = GUI::GetStandardColorForBitmap(1);
         debug_script_warn ("DrawingSurface.DrawString: Attempted to use color %d on 256-col surface", text_color);
     }
     String res_str = GUI::ApplyTextDirection(text);

@@ -97,6 +97,8 @@ struct GameSetupStructBase
     // player or system, which will not affect native coordinates in any way.
     void SetGameResolution(Size game_res);
     const Size &GetGameRes() const { return _gameResolution; }
+    // Get game's native color depth (bits per pixel)
+    inline int GetColorDepth() const { return color_depth * 8; }
 
     // Returns the expected filename of a digital audio package
     inline AGS::Common::String GetAudioVOXName() const
@@ -122,7 +124,7 @@ private:
     // Determines game's actual resolution.
     Size _gameResolution;
     // Multiplier for various UI drawin sizes, meant to keep UI elements readable
-    int _relativeUIMult;
+    int _relativeUIMult = 1;
 };
 
 #endif // __AGS_CN_AC__GAMESETUPSTRUCTBASE_H

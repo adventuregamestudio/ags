@@ -39,7 +39,6 @@ namespace AGS
     }
 }
 
-//using AGS::Common::Interaction;// CLNUP stuff for old interactions
 using AGS::Common::PInteractionScripts;
 using AGS::Common::HGameFileError;
 
@@ -102,9 +101,6 @@ struct GameSetupStruct : public GameSetupStructBase
     // we could use a kind of hash map containing fixed-sized arrays, where size of
     // array is calculated based on key spread factor.
     std::vector<SpriteInfo> SpriteInfos;
-
-    // Get game's native color depth (bits per pixel)
-    inline int GetColorDepth() const { return color_depth * 8; }
 
 
     GameSetupStruct();

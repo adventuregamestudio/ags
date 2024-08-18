@@ -493,7 +493,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     }
 
     for (size_t i = 0; i < thisroom.BgFrameCount; ++i) {
-        thisroom.BgFrames[i].Graphic = PrepareSpriteForUse(thisroom.BgFrames[i].Graphic, true /* force opaque */);
+        thisroom.BgFrames[i].Graphic = PrepareSpriteForUse(thisroom.BgFrames[i].Graphic, true /* to game depth */, true /* force opaque */);
     }
 
     set_our_eip(202);

@@ -83,8 +83,8 @@ void VideoPlayer::SetTargetFrame(const Size &target_sz)
         _vframeBuf.reset();
     }
 
-    // If we are decoding a 8-bit frame in a hi-color game, and stretching,
-    // then create a hi-color buffer, as bitmap lib cannot stretch with depth change
+    // If we are decoding a 8-bit frame in a true-color game, and stretching,
+    // then create a true-color buffer, as bitmap lib cannot stretch with depth change
     if ((_targetSize != _frameSize) && (_frameDepth == 8) && (_targetDepth > 8))
     {
         _hicolBuf.reset(BitmapHelper::CreateBitmap(_frameSize.Width, _frameSize.Height, _targetDepth));
@@ -344,7 +344,7 @@ void VideoPlayer::BufferVideo()
     // Convert frame if necessary
     if (must_conv)
     {
-        // Use intermediate hi-color buffer if necessary
+        // Use intermediate true-color buffer if necessary
         if (_hicolBuf)
         {
             _hicolBuf->Blit(usebuf);

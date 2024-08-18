@@ -213,6 +213,7 @@ enum GameGuiAlphaRenderingStyle
 // should not reuse these bits unless explicitly set a new game data format version!
 #define SPF_OBSOLETEMASK    0x3B
 #define SPF_DYNAMICALLOC    0x04  // created by runtime script
+#define SPF_KEEPDEPTH       0x40  // sprite must explicitly retain its original color depth
 #define SPF_OBJECTOWNED     0x0100 // owned by a game object (not created in user script)
 
 // General information about sprite (properties, size)

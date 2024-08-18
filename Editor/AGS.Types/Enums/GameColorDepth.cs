@@ -9,6 +9,8 @@ namespace AGS.Types
     {
         [Description("8-bit colour")]
         Palette = 1,
+        [Obsolete]
+        [Browsable(false)]
         [Description("16-bit (hi-colour)")]
         HighColor = 2,
         [Description("32-bit (true-colour)")]

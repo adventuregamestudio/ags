@@ -41,7 +41,6 @@
 #include "ac/sys_events.h"
 #include "ac/room.h"
 #include "ac/roomstatus.h"
-#include "ac/sprite.h"
 #include "ac/spritecache.h"
 #include "ac/string.h"
 #include "ac/translation.h"
@@ -981,7 +980,7 @@ std::unique_ptr<Bitmap> read_savedgame_screenshot(const String &savedgame)
     }
     if (desc.UserImage)
     {
-        desc.UserImage.reset(PrepareSpriteForUse(desc.UserImage.release(), true /* force opaque */));
+        desc.UserImage.reset(PrepareSpriteForUse(desc.UserImage.release(), true /* to game depth */, true /* force opaque */));
         return std::move(desc.UserImage);
     }
     return {};

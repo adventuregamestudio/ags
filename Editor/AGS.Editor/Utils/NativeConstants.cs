@@ -42,6 +42,7 @@ namespace AGS.Editor
         public static readonly short UNIFORM_WALK_SPEED = (short)(int)Factory.NativeProxy.GetNativeConstant("UNIFORM_WALK_SPEED");
         public static readonly int GAME_RESOLUTION_CUSTOM = (int)Factory.NativeProxy.GetNativeConstant("GAME_RESOLUTION_CUSTOM");
         public static readonly string SPRSET_NAME = (string)Factory.NativeProxy.GetNativeConstant("SPRSET_NAME");
+        public static readonly byte SPF_KEEPDEPTH = (byte)(int)Factory.NativeProxy.GetNativeConstant("SPF_KEEPDEPTH");
         public static readonly byte[] PASSWORD_ENC_STRING = (byte[])Factory.NativeProxy.GetNativeConstant("PASSWORD_ENC_STRING");
         public static readonly int LOOPFLAG_RUNNEXTLOOP = (int)Factory.NativeProxy.GetNativeConstant("LOOPFLAG_RUNNEXTLOOP");
         public static readonly int VFLG_FLIPSPRITE = (int)Factory.NativeProxy.GetNativeConstant("VFLG_FLIPSPRITE");

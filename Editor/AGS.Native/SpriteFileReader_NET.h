@@ -22,6 +22,8 @@ namespace AGS
 namespace Native
 {
 
+typedef AGS::Common::Bitmap AGSBitmap;
+
 public ref class SpriteFile
 {
 public:
@@ -70,8 +72,12 @@ public ref class NativeBitmap
 {
 public:
     NativeBitmap() {}
-    NativeBitmap(AGS::Common::Bitmap *bitmap)
+    NativeBitmap(AGSBitmap *bitmap)
         : _bitmap(bitmap) {}
+    NativeBitmap(int width, int height, int colorDepth)
+    {
+        _bitmap = new AGSBitmap(width, height, colorDepth);
+    }
 
     ~NativeBitmap()
     {
@@ -83,13 +89,23 @@ public:
         delete _bitmap;
     }
 
-    AGS::Common::Bitmap *GetNativePtr()
+    static NativeBitmap ^CreateCopy(NativeBitmap ^src, int colorDepth)
+    {
+        AGSBitmap *copy = AGS::Common::BitmapHelper::CreateBitmapCopy(src->GetNativePtr(), colorDepth);
+        // FIXME: I suppose this should be done by the graphic library,
+        // unconditionally when blitting low-depth to 32-bit dest!!
+        if (colorDepth == 32 && src->GetNativePtr()->GetColorDepth() < 32)
+            AGS::Common::BitmapHelper::MakeOpaque(copy);
+        return gcnew NativeBitmap(copy); // NativeBitmap will own a copy
+    }
+
+    AGSBitmap *GetNativePtr()
     {
         return _bitmap;
     }
 
 private:
-    AGS::Common::Bitmap *_bitmap = nullptr;
+    AGSBitmap *_bitmap = nullptr;
 };
 
 public ref class SpriteFileReader : public SpriteFile

@@ -579,13 +579,13 @@ void wouttextxy_AutoOutline(Bitmap *ds, size_t font, int32_t color, const char *
     if (thickness <= 0)
         return;
 
-    // 16-bit games should use 32-bit stencils to keep anti-aliasing working
-    // because 16-bit blending works correctly if there's an actual color
+    // We use 32-bit stencils in any case when anti-aliasing is required
+    // because blending works correctly if there's an actual color
     // on the destination bitmap (and our intermediate bitmaps are transparent).
     int const  ds_cd = ds->GetColorDepth();
-    bool const antialias = ds_cd >= 16 && game.options[OPT_ANTIALIASFONTS] != 0 && !is_bitmap_font(font);
+    bool const antialias = (ds_cd == 32) && (game.options[OPT_ANTIALIASFONTS] != 0) && !is_bitmap_font(font);
     int const  stencil_cd = antialias ? 32 : ds_cd;
-    if (antialias) // This is to make sure TTFs render proper alpha channel in 16-bit games too
+    if (antialias) // This is to make sure TTF renderer will use a fully opaque color
         color |= makeacol32(0, 0, 0, 0xff);
 
     const int t_width = get_text_width(texx, font);

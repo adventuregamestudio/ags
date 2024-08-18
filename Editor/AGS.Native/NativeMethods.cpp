@@ -671,6 +671,7 @@ namespace AGS
             if (name->Equals("UNIFORM_WALK_SPEED")) return safe_cast<Object^>(UNIFORM_WALK_SPEED);
             if (name->Equals("GAME_RESOLUTION_CUSTOM")) return (int)kGameResolution_Custom;
             if (name->Equals("SPRSET_NAME")) return gcnew String(sprsetname);
+            if (name->Equals("SPF_KEEPDEPTH")) return SPF_KEEPDEPTH;
             if (name->Equals("PASSWORD_ENC_STRING"))
             {
                 int len = (int)strlen(passwencstring);

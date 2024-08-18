@@ -37,7 +37,7 @@ struct GameSetupStructBase
 {
     static const int  LEGACY_GAME_NAME_LENGTH = 50;
     static const int  MAX_OPTIONS = 100;
-    static const int  NUM_INTS_RESERVED = 16;
+    static const int  NUM_INTS_RESERVED = 14;
     // TODO: this is left purely to load older format version, revise later
     static const int  NUM_LEGACY_GLOBALMES = 500;
 
@@ -52,11 +52,11 @@ struct GameSetupStructBase
     int               numdialog;
     int               numdlgmessage; // [DEPRECATED]
     int               numfonts;
-    int               color_depth;          // in bytes per pixel (ie. 1 or 2)
+    int               color_depth;          // in bytes per pixel (ie. 1, 2, 4)
     int               target_win;
     int               dialog_bullet;        // 0 for none, otherwise slot num of bullet point
-    int               hotdot; // inv cursor hotspot dot color
-    int               hotdotouter;
+    int               hotdot;      // inv cursor hotspot dot color
+    int               hotdotouter; // inv cursor hotspot cross color
     int               uniqueid;    // random key identifying the game
     int               numgui;
     int               numcursors;

@@ -129,6 +129,36 @@ namespace AGS.Editor
             SetDefaultValuesForNewFeatures(game);
             Utilities.EnsureStandardSubFoldersExist();
 
+            InitSpritesAfterGameLoad(game, errors);
+
+            // Process after game load operations
+            RecentGame recentGame = new RecentGame(game.Settings.GameName, gameDirectory);
+            if (Factory.AGSEditor.Settings.RecentGames.Contains(recentGame))
+            {
+                Factory.AGSEditor.Settings.RecentGames.Remove(recentGame);
+            }
+            Factory.AGSEditor.Settings.RecentGames.Insert(0, recentGame);
+
+            Factory.Events.OnGamePostLoad(game);
+
+            // WARNING: this is where the "global" Factory.AGSEditor.CurrentGame is set;
+            // any tasks and events that expect to reference it must be called after!
+            Factory.AGSEditor.RefreshEditorAfterGameLoad(game, errors);
+            if (needToSave)
+            {
+                Factory.AGSEditor.SaveGameFiles();
+            }
+
+            Factory.AGSEditor.ReportGameLoad(errors);
+            return true;
+        }
+
+        /// <summary>
+        /// Initializes sprite file after loading a new game.
+        /// Tests if the file exists and suggests to recreate if one is missing.
+        /// </summary>
+        private static void InitSpritesAfterGameLoad(Game game, CompileMessages errors)
+        {
             // Load the sprite file
             bool isNewSpriteFile = false;
             if (!File.Exists(Path.Combine(game.DirectoryPath, AGSEditor.SPRITE_FILE_NAME)))
@@ -155,27 +185,6 @@ namespace AGS.Editor
                 if (!isNewSpriteFile)
                     CreateNewSpriteFile();
             }
-
-            // Process after game load operations
-            RecentGame recentGame = new RecentGame(game.Settings.GameName, gameDirectory);
-            if (Factory.AGSEditor.Settings.RecentGames.Contains(recentGame))
-            {
-                Factory.AGSEditor.Settings.RecentGames.Remove(recentGame);
-            }
-            Factory.AGSEditor.Settings.RecentGames.Insert(0, recentGame);
-
-            Factory.Events.OnGamePostLoad(game);
-
-            // WARNING: this is where the "global" Factory.AGSEditor.CurrentGame is set;
-            // any tasks and events that expect to reference it must be called after!
-            Factory.AGSEditor.RefreshEditorAfterGameLoad(game, errors);
-            if (needToSave)
-            {
-                Factory.AGSEditor.SaveGameFiles();
-            }
-
-            Factory.AGSEditor.ReportGameLoad(errors);
-            return true;
         }
 
         public static void CreateNewSpriteFile()

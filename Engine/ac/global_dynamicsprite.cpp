@@ -42,5 +42,5 @@ int LoadImageFile(const char *filename)
         return 0;
 
     return add_dynamic_sprite(std::unique_ptr<Bitmap>(
-        PrepareSpriteForUse(image.release(), false)));
+        PrepareSpriteForUse(image.release(), false /* no alpha */)));
 }

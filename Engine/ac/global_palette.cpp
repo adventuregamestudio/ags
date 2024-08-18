@@ -25,6 +25,7 @@ extern RGB palette[256];
 void CyclePalette(int strt,int eend) {
     // hi-color game must invalidate screen since the palette changes
     // the effect of the drawing operations
+    // FIXME: this is likely wrong, it should also/instead test the graphic driver capabilities?
     if (game.color_depth > 1)
         invalidate_screen();
 

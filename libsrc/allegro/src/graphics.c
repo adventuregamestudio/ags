@@ -174,11 +174,11 @@ int get_color_conversion(void)
 
 
 
-/* _color_load_depth:
+/* get_color_load_depth:
  *  Works out which color depth an image should be loaded as, given the
  *  current conversion mode.
  */
-int _color_load_depth(int depth, int hasalpha)
+int get_color_load_depth(int depth, int hasalpha)
 {
    typedef struct CONVERSION_FLAGS
    {

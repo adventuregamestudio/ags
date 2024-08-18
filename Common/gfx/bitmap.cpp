@@ -160,7 +160,7 @@ void MakeOpaqueSkipMask(Bitmap *bmp)
     }
 }
 
-void ReplaceAlphaWithRGBMask(Bitmap *bmp)
+void ReplaceAlphaWithRGBMask(Bitmap *bmp, int alpha_threshold)
 {
     if (bmp->GetColorDepth() < 32)
         return; // no alpha channel
@@ -170,7 +170,7 @@ void ReplaceAlphaWithRGBMask(Bitmap *bmp)
         uint32_t *line = reinterpret_cast<uint32_t*>(bmp->GetScanLineForWriting(i));
         uint32_t *line_end = line + bmp->GetWidth();
         for (uint32_t *px = line; px != line_end; ++px)
-            if (geta32(*px) == 0)
+            if (geta32(*px) <= alpha_threshold)
                 *px = MASK_COLOR_32;
     }
 }
@@ -281,73 +281,12 @@ void ReadPixelsFromMemory(Bitmap *dst, const uint8_t *src_buffer, const size_t s
         dst->GetBPP(), dst->GetHeight(), src_buffer, src_pitch, src_px_offset);
 }
 
-/* color_load_depth:
- *  Works out which color depth an image should be loaded as, given the
- *  current conversion mode.
- */
-struct BitmapConversionFlag {
-    int flag;
-    int in_depth;
-    int out_depth;
-    bool hasalpha;
-};
-
-int color_load_depth(int bmp_depth, int current_depth, bool hasalpha)
-{
-    static BitmapConversionFlag conversion_flags[] =
-    {
-        { COLORCONV_8_TO_15,   8,  15, false },
-        { COLORCONV_8_TO_16,   8,  16, false },
-        { COLORCONV_8_TO_24,   8,  24, false },
-        { COLORCONV_8_TO_32,   8,  32, false },
-        { COLORCONV_15_TO_8,   15, 8,  false },
-        { COLORCONV_15_TO_16,  15, 16, false },
-        { COLORCONV_15_TO_24,  15, 24, false },
-        { COLORCONV_15_TO_32,  15, 32, false },
-        { COLORCONV_16_TO_8,   16, 8,  false },
-        { COLORCONV_16_TO_15,  16, 15, false },
-        { COLORCONV_16_TO_24,  16, 24, false },
-        { COLORCONV_16_TO_32,  16, 32, false },
-        { COLORCONV_24_TO_8,   24, 8,  false },
-        { COLORCONV_24_TO_15,  24, 15, false },
-        { COLORCONV_24_TO_16,  24, 16, false },
-        { COLORCONV_24_TO_32,  24, 32, false },
-        { COLORCONV_32_TO_8,   32, 8,  false },
-        { COLORCONV_32_TO_15,  32, 15, false },
-        { COLORCONV_32_TO_16,  32, 16, false },
-        { COLORCONV_32_TO_24,  32, 24, false },
-        { COLORCONV_32A_TO_8,  32, 8 , true  },
-        { COLORCONV_32A_TO_15, 32, 15, true  },
-        { COLORCONV_32A_TO_16, 32, 16, true  },
-        { COLORCONV_32A_TO_24, 32, 24, true  }
-    };
-
-    if (bmp_depth == current_depth)
-        return bmp_depth;
-
-    int color_conv = get_color_conversion();
-
-    for (BitmapConversionFlag & conversion_flag : conversion_flags) {
-        if ((conversion_flag.in_depth == bmp_depth) &&
-            (conversion_flag.out_depth == current_depth) &&
-            (conversion_flag.hasalpha == hasalpha)) {
-            if (color_conv & conversion_flag.flag)
-                return current_depth;
-            else
-                return bmp_depth;
-        }
-    }
-
-    assert(false); // should never reach here
-    return 0;
-}
-
 // Converts loaded bitmap to the default color depth,
 // optionally fixups color palette
 static Bitmap *BitmapColorDepthFixup(RGB *pal, bool want_palette, Bitmap *bmp)
 {
     int bmp_depth = bmp->GetColorDepth();
-    int dest_depth = color_load_depth(bmp_depth, get_color_depth(), false);
+    int dest_depth = get_color_load_depth(bmp_depth, false);
     if (dest_depth != bmp_depth)
     {
         /* restore original palette except if it comes from the bitmap */

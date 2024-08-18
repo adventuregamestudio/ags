@@ -2413,7 +2413,7 @@ Common::Bitmap *CreateNativeBitmap(System::Drawing::Bitmap^ bmp, int spriteImpor
         flags |= SPF_ALPHACHANNEL;
         if (tempsprite->GetColorDepth() == 32)
         {
-            BitmapHelper::ReplaceAlphaWithRGBMask(tempsprite);
+            BitmapHelper::ReplaceZeroAlphaWithRGBMask(tempsprite);
         }
     }
     else if (tempsprite->GetColorDepth() == 32)

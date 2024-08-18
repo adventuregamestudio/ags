@@ -1484,6 +1484,10 @@ namespace AGS.Editor
             {
                 propertyTypes = CustomPropertyAppliesTo.GUIs;
             }
+            else if (objectThatHasProperties is GUIControl)
+            {
+                propertyTypes = CustomPropertyAppliesTo.GUIControls;
+            }
             else if (objectThatHasProperties is InventoryItem)
             {
                 propertyTypes = CustomPropertyAppliesTo.InventoryItems;

@@ -452,6 +452,12 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     play.charProps.resize(game.numcharacters);
     play.dialogProps.resize(game.numdialog);
     play.guiProps.resize(game.numgui);
+    play.guicontrolProps[kGUIButton].resize(guibuts.size());
+    play.guicontrolProps[kGUILabel].resize(guilabels.size());
+    play.guicontrolProps[kGUIInvWindow].resize(guiinv.size());
+    play.guicontrolProps[kGUISlider].resize(guislider.size());
+    play.guicontrolProps[kGUITextBox].resize(guitext.size());
+    play.guicontrolProps[kGUIListBox].resize(guilist.size());
     dialog = std::move(ents.Dialogs);
     // Set number of game channels corresponding to the loaded game version
     game.numGameChannels = MAX_GAME_CHANNELS;

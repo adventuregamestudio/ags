@@ -13,10 +13,13 @@
 //=============================================================================
 #include <vector>
 #include "ac/common.h"
+#include "ac/gamesetupstruct.h"
+#include "ac/gamestate.h"
 #include "ac/global_gui.h"
 #include "ac/gui.h"
 #include "ac/guicontrol.h"
 #include "ac/mouse.h"
+#include "ac/properties.h"
 #include "ac/string.h"
 #include "debug/debug_log.h"
 #include "script/runtimescriptvalue.h"
@@ -25,6 +28,7 @@
 
 using namespace AGS::Common;
 
+extern GameSetupStruct game;
 extern std::vector<ScriptGUI> scrGui;
 extern CCGUI ccDynamicGUI;
 extern CCGUIObject ccDynamicGUIObject;
@@ -211,6 +215,34 @@ void GUIControl_SetTransparency(GUIObject *guio, int trans) {
     if ((trans < 0) | (trans > 100))
         quit("!SetGUITransparency: transparency value must be between 0 and 100");
     guio->SetTransparency(GfxDef::Trans100ToLegacyTrans255(trans));
+}
+
+int GUIControl_GetProperty(GUIObject *guio, const char *property)
+{
+    int ctrl_type = guis[guio->ParentId].GetControlType(guio->Id);
+    int ctrl_id = guis[guio->ParentId].GetControlID(guio->Id);
+    return get_int_property(game.guicontrolProps[ctrl_type][ctrl_id], play.guicontrolProps[ctrl_type][ctrl_id], property);
+}
+
+const char* GUIControl_GetTextProperty(GUIObject *guio, const char *property)
+{
+    int ctrl_type = guis[guio->ParentId].GetControlType(guio->Id);
+    int ctrl_id = guis[guio->ParentId].GetControlID(guio->Id);
+    return get_text_property_dynamic_string(game.guicontrolProps[ctrl_type][ctrl_id], play.guicontrolProps[ctrl_type][ctrl_id], property);
+}
+
+bool GUIControl_SetProperty(GUIObject *guio, const char *property, int value)
+{
+    int ctrl_type = guis[guio->ParentId].GetControlType(guio->Id);
+    int ctrl_id = guis[guio->ParentId].GetControlID(guio->Id);
+    return set_int_property(play.guicontrolProps[ctrl_type][ctrl_id], property, value);
+}
+
+bool GUIControl_SetTextProperty(GUIObject *guio, const char *property, const char *value)
+{
+    int ctrl_type = guis[guio->ParentId].GetControlType(guio->Id);
+    int ctrl_id = guis[guio->ParentId].GetControlID(guio->Id);
+    return set_text_property(play.guicontrolProps[ctrl_type][ctrl_id], property, value);
 }
 
 //=============================================================================
@@ -423,6 +455,25 @@ RuntimeScriptValue Sc_GUIControl_SetTransparency(void *self, const RuntimeScript
     API_OBJCALL_VOID_PINT(GUIObject, GUIControl_SetTransparency);
 }
 
+RuntimeScriptValue Sc_GUIControl_GetProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT_POBJ(GUIObject, GUIControl_GetProperty, const char);
+}
+
+RuntimeScriptValue Sc_GUIControl_GetTextProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ_POBJ(GUIObject, const char, myScriptStringImpl, GUIControl_GetTextProperty, const char);
+}
+
+RuntimeScriptValue Sc_GUIControl_SetProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL_POBJ_PINT(GUIObject, GUIControl_SetProperty, const char);
+}
+
+RuntimeScriptValue Sc_GUIControl_SetTextProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL_POBJ2(GUIObject, GUIControl_SetTextProperty, const char, const char);
+}
 
 
 void RegisterGUIControlAPI()
@@ -435,6 +486,10 @@ void RegisterGUIControlAPI()
         { "GUIControl::SendToBack^0",     API_FN_PAIR(GUIControl_SendToBack) },
         { "GUIControl::SetPosition^2",    API_FN_PAIR(GUIControl_SetPosition) },
         { "GUIControl::SetSize^2",        API_FN_PAIR(GUIControl_SetSize) },
+        { "GUIControl::GetProperty^1",    API_FN_PAIR(GUIControl_GetProperty) },
+        { "GUIControl::GetTextProperty^1", API_FN_PAIR(GUIControl_GetTextProperty) },
+        { "GUIControl::SetProperty^2",    API_FN_PAIR(GUIControl_SetProperty) },
+        { "GUIControl::SetTextProperty^2", API_FN_PAIR(GUIControl_SetTextProperty) },
         { "GUIControl::get_AsButton",     API_FN_PAIR(GUIControl_GetAsButton) },
         { "GUIControl::get_AsInvWindow",  API_FN_PAIR(GUIControl_GetAsInvWindow) },
         { "GUIControl::get_AsLabel",      API_FN_PAIR(GUIControl_GetAsLabel) },

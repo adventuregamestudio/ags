@@ -41,6 +41,7 @@ namespace AGS.Types
         private bool _enabled = true;
         private bool _visible = true;
         private bool _translated = true;
+        private CustomProperties _properties = new CustomProperties();
 
         [AGSNoSerialize]
         private GUIControlGroup _memberOf;
@@ -166,6 +167,16 @@ namespace AGS.Types
         {
             get { return _translated; }
             set { _translated = value; }
+        }
+
+        [AGSSerializeClass()]
+        [Description("Custom properties for this Control")]
+        [Category("Properties")]
+        [EditorAttribute(typeof(CustomPropertiesUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        public CustomProperties Properties
+        {
+            get { return _properties; }
+            protected set { _properties = value; }
         }
 
         [Browsable(false)]

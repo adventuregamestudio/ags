@@ -28,6 +28,7 @@
 #include "game/customproperties.h"
 #include "game/interactions.h"
 #include "game/main_game_file.h" // TODO: constants to separate header or split out reading functions
+#include "gui/guidefines.h"
 
 namespace AGS
 {
@@ -65,6 +66,7 @@ struct GameSetupStruct : public GameSetupStructBase
     std::vector<AGS::Common::StringIMap> audioclipProps;
     std::vector<AGS::Common::StringIMap> dialogProps;
     std::vector<AGS::Common::StringIMap> guiProps;
+    std::vector<AGS::Common::StringIMap> guicontrolProps[AGS::Common::kGUIControlTypeNum];
     // NOTE: although the view names are stored in game data, they are never
     // used, nor registered as script exports; numeric IDs are used to
     // reference views instead.

@@ -18,6 +18,7 @@ namespace AGS.Types
         GUIs            = 0x00000080,
         Regions         = 0x00000100,
         WalkableAreas   = 0x00000200,
+        GUIControls     = 0x00000400,
         Everything      = 0x0FFFFFFF
     }
 }

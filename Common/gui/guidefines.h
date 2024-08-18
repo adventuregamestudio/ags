@@ -93,7 +93,8 @@ enum GUIControlType
     kGUIInvWindow   = 3,
     kGUISlider      = 4,
     kGUITextBox     = 5,
-    kGUIListBox     = 6
+    kGUIListBox     = 6,
+    kGUIControlTypeNum
 };
 
 // GUIControl general style and behavior flags

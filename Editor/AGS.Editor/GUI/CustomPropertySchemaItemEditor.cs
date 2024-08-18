@@ -31,6 +31,7 @@ namespace AGS.Editor
             chkAudioClips.DataBindings.Add("Checked", _copyOfItem, "AppliesToAudioClips", true, DataSourceUpdateMode.OnPropertyChanged);
             chkDialogs.DataBindings.Add("Checked", _copyOfItem, "AppliesToDialogs", true, DataSourceUpdateMode.OnPropertyChanged);
             chkGUIs.DataBindings.Add("Checked", _copyOfItem, "AppliesToGUIs", true, DataSourceUpdateMode.OnPropertyChanged);
+            chkGUIControls.DataBindings.Add("Checked", _copyOfItem, "AppliesToGUIControls", true, DataSourceUpdateMode.OnPropertyChanged);
             chkRegions.DataBindings.Add("Checked", _copyOfItem, "AppliesToRegions", true, DataSourceUpdateMode.OnPropertyChanged);
             chkWalkareas.DataBindings.Add("Checked", _copyOfItem, "AppliesToWalkableAreas", true, DataSourceUpdateMode.OnPropertyChanged);
             cmbType.SelectedIndex = ((int)_copyOfItem.Type) - 1;

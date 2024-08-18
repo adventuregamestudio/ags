@@ -94,6 +94,12 @@ namespace AGS.Types
             set { _appliesTo = value ? (_appliesTo | CustomPropertyAppliesTo.GUIs) : (_appliesTo & ~CustomPropertyAppliesTo.GUIs); }
         }
 
+        public bool AppliesToGUIControls
+        {
+            get { return _appliesTo.HasFlag(CustomPropertyAppliesTo.GUIControls); }
+            set { _appliesTo = value ? (_appliesTo | CustomPropertyAppliesTo.GUIControls) : (_appliesTo & ~CustomPropertyAppliesTo.GUIControls); }
+        }
+
         public bool AppliesToRegions
         {
             get { return _appliesTo.HasFlag(CustomPropertyAppliesTo.Regions); }
@@ -122,6 +128,7 @@ namespace AGS.Types
                 toReturn += AppliesToCharacters ? "C" : "  ";
                 toReturn += AppliesToDialogs ? "D" : "  ";
                 toReturn += AppliesToGUIs ? "G" : "  ";
+                toReturn += AppliesToGUIControls ? "Gc" : "  ";
                 toReturn += AppliesToInvItems ? "I" : "  ";
                 toReturn += AppliesToRooms ? "R" : "  ";
                 toReturn += AppliesToHotspots ? "H" : "  ";

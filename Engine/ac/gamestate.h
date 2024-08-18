@@ -27,6 +27,7 @@
 #include "game/roomstruct.h"
 #include "game/viewport.h"
 #include "gfx/graphicsdriver.h"
+#include "gui/guidefines.h"
 #include "media/audio/queuedaudioitem.h"
 #include "util/geometry.h"
 #include "util/string_types.h"
@@ -250,6 +251,7 @@ struct GamePlayState
     std::vector<AGS::Common::StringIMap> charProps;
     std::vector<AGS::Common::StringIMap> dialogProps;
     std::vector<AGS::Common::StringIMap> guiProps;
+    std::vector<AGS::Common::StringIMap> guicontrolProps[AGS::Common::kGUIControlTypeNum];
     AGS::Common::StringIMap              invProps[MAX_INV];
     // NOTE: audioclip custom properties are not written into game saves;
     // this is done on purpose, as audio clips are resources and not a part of a game state.

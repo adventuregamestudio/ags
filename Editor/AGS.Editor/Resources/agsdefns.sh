@@ -1425,6 +1425,16 @@ builtin managed struct GUIControl {
   /// Gets the script name of this control.
   import readonly attribute String ScriptName;
 #endif
+#ifdef SCRIPT_API_v400
+  /// Gets an integer custom property for this GUI.
+  import int  GetProperty(const string property);
+  /// Gets a text custom property for this GUI.
+  import String GetTextProperty(const string property);
+  /// Sets an integer custom property for this GUI.
+  import bool SetProperty(const string property, int value);
+  /// Sets a text custom property for this GUI.
+  import bool SetTextProperty(const string property, const string value);
+#endif
 };
 
 builtin managed struct Label extends GUIControl {

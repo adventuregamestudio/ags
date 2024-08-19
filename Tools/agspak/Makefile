@@ -25,6 +25,7 @@ CFLAGS   += -Werror=implicit-function-declaration
 COMMON_OBJS = \
 	../../Common/core/asset.cpp \
 	../../Common/util/bufferedstream.cpp \
+	../../Common/util/cmdlineopts.cpp \
 	../../Common/util/directory.cpp \
 	../../Common/util/file.cpp \
 	../../Common/util/filestream.cpp \
@@ -34,9 +35,11 @@ COMMON_OBJS = \
 	../../Common/util/stream.cpp \
 	../../Common/util/string.cpp \
 	../../Common/util/string_compat.c \
-	../../Common/util/string_utils.cpp
+	../../Common/util/string_utils.cpp \
+	../../Common/util/textstreamreader.cpp
 
 TOOL_OBJS = \
+	../../Tools/data/ignore_utils.cpp \
 	../../Tools/data/mfl_utils.cpp
 
 OBJS := main.cpp \

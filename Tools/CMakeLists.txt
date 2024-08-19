@@ -40,6 +40,8 @@ target_sources(libtools
         data/dialogscriptconv.cpp
         data/dialogscriptconv.h
         data/game_utils.h
+        data/include_utils.cpp
+        data/include_utils.h
         data/mfl_utils.cpp
         data/mfl_utils.h
         data/room_utils.cpp

@@ -152,6 +152,7 @@ namespace AGS.Editor
         private Tasks _tasks = new Tasks();
         private IEngineCommunication _engineComms = new NamedPipesEngineCommunication();
         private DebugController _debugger;
+        private ColorMapper _colorMapper;
 		private bool _applicationStarted = false;
         private FileSystemWatcher _fileWatcher = null;
         private FileStream _lockFile = null;
@@ -275,6 +276,11 @@ namespace AGS.Editor
             get { return _debugger; }
         }
 
+        public ColorMapper ColorMapper
+        {
+            get { return _colorMapper; }
+        }
+
 		public bool ApplicationStarted
 		{
             get { return _applicationStarted; }
@@ -295,6 +301,9 @@ namespace AGS.Editor
                 // this is an optional folder that might have user data in
                 // the parent folder, so don't try too hard to force this
             }
+
+            _colorMapper = new ColorMapper(this);
+            AGSColor.ColorMapper = _colorMapper;
 
             _game = new Game();
             _debugger = new DebugController(_engineComms);

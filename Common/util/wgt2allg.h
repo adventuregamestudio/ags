@@ -25,8 +25,7 @@ using namespace AGS; // FIXME later
 
 //=============================================================================
 
-// [IKM] 2012-09-13: this function is now defined in engine and editor separately
-extern void __my_setcolor(int *ctset, int newcol, int wantColDep);
+    extern void __my_setcolor(int *ctset, int newcol, int wantColDep);
     
     extern void wsetrgb(int coll, int r, int g, int b, RGB * pall);
     extern void wcolrotate(unsigned char start, unsigned char finish, int dir, RGB * pall);

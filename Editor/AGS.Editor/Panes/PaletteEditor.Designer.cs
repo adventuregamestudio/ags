@@ -36,6 +36,9 @@ namespace AGS.Editor
             this.lblPaletteIntro = new System.Windows.Forms.Label();
             this.colourFinderPage = new System.Windows.Forms.TabPage();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.lblBlueFinal = new System.Windows.Forms.Label();
+            this.lblGreenFinal = new System.Windows.Forms.Label();
+            this.lblRedFinal = new System.Windows.Forms.Label();
             this.btnColorDialog = new System.Windows.Forms.Button();
             this.lblFixedColorsWarning = new System.Windows.Forms.Label();
             this.blockOfColour = new AGS.Editor.BufferedPanel();
@@ -138,6 +141,9 @@ namespace AGS.Editor
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.lblBlueFinal);
+            this.groupBox1.Controls.Add(this.lblGreenFinal);
+            this.groupBox1.Controls.Add(this.lblRedFinal);
             this.groupBox1.Controls.Add(this.btnColorDialog);
             this.groupBox1.Controls.Add(this.lblFixedColorsWarning);
             this.groupBox1.Controls.Add(this.blockOfColour);
@@ -159,6 +165,33 @@ namespace AGS.Editor
             this.groupBox1.TabIndex = 1;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Colour Finder";
+            // 
+            // lblBlueFinal
+            // 
+            this.lblBlueFinal.AutoSize = true;
+            this.lblBlueFinal.Location = new System.Drawing.Point(315, 192);
+            this.lblBlueFinal.Name = "lblBlueFinal";
+            this.lblBlueFinal.Size = new System.Drawing.Size(21, 13);
+            this.lblBlueFinal.TabIndex = 17;
+            this.lblBlueFinal.Text = "(0)";
+            // 
+            // lblGreenFinal
+            // 
+            this.lblGreenFinal.AutoSize = true;
+            this.lblGreenFinal.Location = new System.Drawing.Point(315, 153);
+            this.lblGreenFinal.Name = "lblGreenFinal";
+            this.lblGreenFinal.Size = new System.Drawing.Size(21, 13);
+            this.lblGreenFinal.TabIndex = 16;
+            this.lblGreenFinal.Text = "(0)";
+            // 
+            // lblRedFinal
+            // 
+            this.lblRedFinal.AutoSize = true;
+            this.lblRedFinal.Location = new System.Drawing.Point(315, 115);
+            this.lblRedFinal.Name = "lblRedFinal";
+            this.lblRedFinal.Size = new System.Drawing.Size(21, 13);
+            this.lblRedFinal.TabIndex = 15;
+            this.lblRedFinal.Text = "(0)";
             // 
             // btnColorDialog
             // 
@@ -358,6 +391,8 @@ namespace AGS.Editor
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.Label lblFixedColorsWarning;
 		private System.Windows.Forms.Button btnColorDialog;
-
+        private System.Windows.Forms.Label lblBlueFinal;
+        private System.Windows.Forms.Label lblGreenFinal;
+        private System.Windows.Forms.Label lblRedFinal;
     }
 }

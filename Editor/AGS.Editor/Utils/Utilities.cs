@@ -221,6 +221,40 @@ namespace AGS.Editor
         }
 
         /// <summary>
+        /// Wraps Directory.GetDirectories to deal with IO exceptions.
+        /// </summary>
+        public static string[] GetDirectoryDirList(string directory, string dirMask)
+        {
+            return GetDirectoryDirList(directory, dirMask, SearchOption.TopDirectoryOnly);
+        }
+
+        /// <summary>
+        /// Returns results of Directory.GetDirectories, but cut to have only relative path.
+        /// </summary>
+        public static string[] GetDirectoryRelativeDirList(string directory, string dirMask)
+        {
+            var dirs = GetDirectoryDirList(directory, dirMask, SearchOption.TopDirectoryOnly);
+            for (int i = 0; i< dirs.Length; ++i)
+                dirs[i] = dirs[i].Substring(directory.Length + 1); // +1 is for separator
+            return dirs;
+        }
+
+        /// <summary>
+        /// Wraps Directory.GetDirectories to deal with IO exceptions.
+        /// </summary>
+        public static string[] GetDirectoryDirList(string directory, string dirMask, SearchOption searchOption)
+        {
+            try
+            {
+                return Directory.GetDirectories(directory, dirMask, searchOption);
+            }
+            catch (IOException)
+            {
+                return new string[] { };
+            }
+        }
+
+        /// <summary>
         /// Wraps Directory.GetFiles in a handler to deal with an exception
         /// erroneously being thrown on Linux network shares if no files match.
         /// </summary>

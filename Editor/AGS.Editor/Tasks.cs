@@ -51,13 +51,27 @@ namespace AGS.Editor
             Utilities.AddAllMatchingFiles(filesToInclude, "flic*.fl?");
             Utilities.AddAllMatchingFiles(filesToInclude, "agsfnt*.ttf");
             Utilities.AddAllMatchingFiles(filesToInclude, "agsfnt*.wfn");
-            Utilities.AddAllMatchingFiles(filesToInclude, "*.crm");
             Utilities.AddAllMatchingFiles(filesToInclude, "*.asc");
             Utilities.AddAllMatchingFiles(filesToInclude, "*.ash");
             Utilities.AddAllMatchingFiles(filesToInclude, "*.txt");
             Utilities.AddAllMatchingFiles(filesToInclude, "*.trs");
             Utilities.AddAllMatchingFiles(filesToInclude, "*.pdf");
             Utilities.AddAllMatchingFiles(filesToInclude, "*.ogv");
+
+            // TODO: unfortunately current subfolder pattern is just a room's number,
+            // which is impossible to narrow using just wildcards (is it?);
+            // figure this problem out later.
+            var roomDirs = Utilities.GetDirectoryRelativeDirList(Directory.GetCurrentDirectory(), @"Rooms\*");
+            foreach (var dir in roomDirs)
+            {
+                Utilities.AddAllMatchingFiles(filesToInclude, dir, "data.xml", true);
+                Utilities.AddAllMatchingFiles(filesToInclude, dir, "room*.asc", true);
+                Utilities.AddAllMatchingFiles(filesToInclude, dir, "background*.png", true);
+                Utilities.AddAllMatchingFiles(filesToInclude, dir, "hotspots.png", true);
+                Utilities.AddAllMatchingFiles(filesToInclude, dir, "regions.png", true);
+                Utilities.AddAllMatchingFiles(filesToInclude, dir, "walkableareas.png", true);
+                Utilities.AddAllMatchingFiles(filesToInclude, dir, "walkbehinds.png", true);
+            }
 
             if (GetFilesForInclusionInTemplate != null)
             {

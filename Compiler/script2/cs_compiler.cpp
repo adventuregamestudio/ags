@@ -23,6 +23,7 @@
 #include "script/cc_internal.h"
 
 #include "cs_parser.h"
+#include "util/string_compat.h"
 
 
 void ccGetExtensions2(std::vector<std::string> &exts)
@@ -201,13 +202,6 @@ static std::unique_ptr<ScriptTOC> ccCompileDataTOC(const SymbolTable &symt, cons
         new ScriptTOC(std::move(tocb.Finalize(rtti))));
 }
 
-#ifdef __GNUC__
-inline int strncpy_s(char* dest, size_t destsz, const char* src, size_t count)
-{
-    strncpy(dest, src, std::min(destsz, count)); return 0;
-}
-#endif
-
 ccScript *ccCompileText2(std::string const &script, std::string const &scriptName, uint64_t const options, MessageHandler &mh)
 {
     ccCompiledScript *compiled_script =
@@ -224,14 +218,14 @@ ccScript *ccCompileText2(std::string const &script, std::string const &scriptNam
         constexpr size_t buffer_size = 256;
         static char message_buffer[buffer_size];
         message_buffer[0] = '!';
-        strncpy_s(
+        ags_strncpy_s(
             message_buffer + 1,
             buffer_size - 1,
             err.Message.c_str(),
             err.Message.length() + 1);
 
         static char section_buffer[buffer_size];
-        strncpy_s(
+        ags_strncpy_s(
             section_buffer,
             buffer_size,
             err.Section.c_str(),

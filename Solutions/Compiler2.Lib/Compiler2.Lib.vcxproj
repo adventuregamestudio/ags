@@ -164,6 +164,7 @@
     <ClCompile Include="..\..\Common\script\cc_reflect.cpp" />
     <ClCompile Include="..\..\Common\script\cc_script.cpp" />
     <ClCompile Include="..\..\Common\util\string.cpp" />
+    <ClCompile Include="..\..\Common\util\string_compat.c" />
     <ClCompile Include="..\..\Compiler\script2\cc_compiledscript.cpp" />
     <ClCompile Include="..\..\Compiler\script2\cc_internallist.cpp" />
     <ClCompile Include="..\..\Compiler\script2\cc_symboltable.cpp" />
@@ -180,6 +181,7 @@
     <ClInclude Include="..\..\Common\script\cc_script.h" />
     <ClInclude Include="..\..\Common\script\script_common.h" />
     <ClInclude Include="..\..\Common\util\string.h" />
+    <ClInclude Include="..\..\Common\util\string_compat.h" />
     <ClInclude Include="..\..\Compiler\script2\cc_compiledscript.h" />
     <ClInclude Include="..\..\Compiler\script2\cc_internallist.h" />
     <ClInclude Include="..\..\Compiler\script2\cc_symboltable.h" />

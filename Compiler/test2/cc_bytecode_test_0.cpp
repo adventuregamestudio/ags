@@ -5221,7 +5221,7 @@ TEST_F(Bytecode0, DynarrayOfDynarray1) {
     // Accept a dynamic array of a dynamic array of a non-managed type
     // RTTI ENABLED
 
-    char *inpl = "\
+    const char *inpl = "\
         struct Foo                      \n\
         {                               \n\
             int FooI;                   \n\
@@ -5250,7 +5250,7 @@ TEST_F(Bytecode0, DynarrayOfDynarray2) {
     // Accept a dynamic array of a dynamic array of a non-managed type
     // RTTI ENABLED
 
-    char *inpl = "\
+    const char *inpl = "\
         short Test[][];                 \n\
                                         \n\
         int game_start()                \n\
@@ -5316,7 +5316,7 @@ TEST_F(Bytecode0, DynarrayOfDynarray3) {
     // Accept a dynamic array of a dynamic array of a managed type
     // RTTI ENABLED
 
-    char *inpl = "\
+    const char *inpl = "\
         managed struct Foo              \n\
         {                               \n\
             int FooI;                   \n\
@@ -5396,7 +5396,7 @@ TEST_F(Bytecode0, ArrayOfDynarray) {
     // Accept a dynamic array of a dynamic array
     // RTTI ENABLED
 
-    char *inpl = "\
+    const char *inpl = "\
         int game_start()                \n\
         {                               \n\
             int i = 2;                  \n\
@@ -5453,7 +5453,7 @@ TEST_F(Bytecode0, ArrayOfManagedStruct) {
 
     // Accept a classic array of a managed struct
 
-    char *inpl = "\
+    const char *inpl = "\
         struct Foo                      \n\
         {                               \n\
             int FooI;                   \n\
@@ -5524,7 +5524,7 @@ TEST_F(Bytecode0, DynarrayOfNonManaged_NoRtti) {
     // (Elsewhere there's a googletest checking that structs are not accepted that do
     // contain managed variable components.)
 
-    char *inpl = "\
+    const char *inpl = "\
         struct Foo                      \n\
         {                               \n\
             int FooI;                   \n\
@@ -5592,7 +5592,7 @@ TEST_F(Bytecode0, DynarrayOfNonManaged_Rtti) {
     // Accept a dynarray of a non-managed struct.
     // RTTI is enabled, and so the non-managed struct may contain dynamic components.
 
-    char *inpl = "\
+    const char *inpl = "\
         struct Foo                      \n\
         {                               \n\
             int FooI;                   \n\

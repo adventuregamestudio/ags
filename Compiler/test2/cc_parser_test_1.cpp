@@ -2685,7 +2685,7 @@ TEST_F(Compile1, DynarrayOfArray) {
 
     // Refuse a dynarray of an array
 
-    char *inpl = "\
+    const char *inpl = "\
         int game_start()                \n\
         {                               \n\
             float Test[][5, 7];         \n\

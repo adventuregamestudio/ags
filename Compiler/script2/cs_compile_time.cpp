@@ -216,7 +216,7 @@ void AGS::CTF_IntModulo::Evaluate(Symbol arg1, Symbol arg2, Symbol &result)
 
     if (0 == i2)
         UserError(
-            "Modulo zero encountered when calculating '%s %% %s'",
+            "Modulo zero encountered when calculating '%s per %s'",
             std::to_string(i1).c_str(),
             std::to_string(i2).c_str());
 

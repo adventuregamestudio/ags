@@ -199,7 +199,7 @@ Pointers are exclusively used for managed memory. If managed structs are manipul
 #include <string>
 #include <fstream>
 #include <cmath>
-#include <climits>
+#include <limits>
 #include <memory>
 
 #include "util/string.h"
@@ -1402,7 +1402,7 @@ void AGS::Parser::ParseFuncdecl_HandleFunctionOrImportIndex(TypeQualifierSet tqs
     {
         char appendage[10];
         
-        sprintf(appendage, "^%d", _sym.FuncParamsCount(name_of_func) + 100 * _sym[name_of_func].FunctionD->IsVariadic);
+        sprintf(appendage, "^%zu", _sym.FuncParamsCount(name_of_func) + 100 * _sym[name_of_func].FunctionD->IsVariadic);
         _scrip.imports[imports_idx].append(appendage);
     }
 
@@ -1826,11 +1826,11 @@ void AGS::Parser::EvaluationResultToAx(EvaluationResult &eres)
     default:
         InternalError("Expression result has type %d, cannot move to AX", eres.Type);
 
-    case eres.kTY_FunctionName:
+    case EvaluationResult::kTY_FunctionName:
         // Cannot convert a naked function symbol; assume that the coder has forgotten '('
         UserError("Expected '(' after '%s'", _sym.GetName(eres.Symbol).c_str());
 
-    case eres.kTY_Literal:
+    case EvaluationResult::kTY_Literal:
         // Convert to runtime value in AX
         WriteCmd(SCMD_LITTOREG, SREG_AX, _sym[eres.Symbol].LiteralD->Value);
         _reg_track.SetRegister(SREG_AX);
@@ -1841,10 +1841,10 @@ void AGS::Parser::EvaluationResultToAx(EvaluationResult &eres)
         eres.Symbol = kKW_NoSymbol;
         break;
 
-    case eres.kTY_RunTimeValue:
+    case EvaluationResult::kTY_RunTimeValue:
         break;
 
-    case eres.kTY_StructName:
+    case EvaluationResult::kTY_StructName:
         // Cannot convert naked typename; coder has probably forgotten '.'
         UserError("Expected '.' after '%s'", _sym.GetName(eres.Symbol).c_str());
     }
@@ -1854,10 +1854,10 @@ void AGS::Parser::EvaluationResultToAx(EvaluationResult &eres)
     default:
         return InternalError("Cannot move expression result location to AX");
 
-    case eres.kLOC_AX:
+    case EvaluationResult::kLOC_AX:
         return; // Already done
 
-    case eres.kLOC_MemoryAtMAR:
+    case EvaluationResult::kLOC_MemoryAtMAR:
         _marMgr.UpdateMAR(_src.GetLineno(), _scrip);
         if (kKW_String == _sym.VartypeWithout(VTT::kConst, eres.Vartype))
             WriteCmd(SCMD_REGTOREG, SREG_MAR, SREG_AX);
@@ -2016,7 +2016,7 @@ void AGS::Parser::ParseExpression_PrefixPlus(SrcList &expression, EvaluationResu
     if (_sym.IsAnyIntegerVartype(eres.Vartype) || kKW_Float == eres.Vartype)
         return;
 
-    UserError("Cannot apply unary '+' to an expression of type '%s'", _sym.GetName(eres.Vartype));
+    UserError("Cannot apply unary '+' to an expression of type '%s'", _sym.GetName(eres.Vartype).c_str());
 }
 
 // We're parsing an expression that starts with '!' (boolean NOT) or '~' (bitwise Negate)
@@ -3991,7 +3991,7 @@ void AGS::Parser::ParseVardecl_InitialValAssignment_IntOrFloatVartype(Vartype co
     switch (wanted_size)
     {
     default:
-        UserError("Cannot give an initial value to a variable of type '%s' here", _sym.GetName(wanted_vartype));
+        UserError("Cannot give an initial value to a variable of type '%s' here", _sym.GetName(wanted_vartype).c_str());
         return;
     case 1u:
         initial_val[0] = litval;
@@ -4011,7 +4011,7 @@ void AGS::Parser::ParseVardecl_InitialValAssignment_OldString(std::vector<char> 
     if (_sym.IsConstant(string_lit))
         string_lit = _sym[string_lit].ConstantD->ValueSym;
     
-	if (!_sym.IsLiteral(string_lit) ||
+    if (!_sym.IsLiteral(string_lit) ||
         _sym.VartypeWithConst(kKW_String) != _sym[string_lit].LiteralD->Vartype)
         UserError("Expected a string literal after '=', found '%s' instead", _sym.GetName(_src.PeekNext()).c_str());
 
@@ -4368,7 +4368,7 @@ void AGS::Parser::ParseVardecl_CheckAndStashOldDefn(Symbol var_name)
         }
 
         if (_sym.IsPredefined(var_name))
-            UserError("Cannot redefine the predefined '%s'", _sym.GetName(var_name));
+            UserError("Cannot redefine the predefined '%s'", _sym.GetName(var_name).c_str());
 
         if (_sym.IsVariable(var_name))
             break;

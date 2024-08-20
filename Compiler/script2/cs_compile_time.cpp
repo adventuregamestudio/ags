@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include <cassert>
+#include <cmath>
 #include <cstdarg>
 #include <limits>
 
@@ -238,7 +239,7 @@ void AGS::CTF_FloatToFloat::Evaluate(Symbol arg1, Symbol arg2, Symbol &result)
     if (HUGE_VAL == res || -HUGE_VAL == res || NAN == res)
         UserError(
             "Overflow on calculating '%s %s %s'",
-            FloatToString(f1), _sym.GetName(_name).c_str(),  FloatToString(f2));
+            FloatToString(f1).c_str(), _sym.GetName(_name).c_str(),  FloatToString(f2).c_str());
 
     result = FindOrMakeLiteral(res);
 }
@@ -263,7 +264,7 @@ void AGS::CTF_FloatDivide::Evaluate(Symbol arg1, Symbol arg2, Symbol &result)
     if (0.0 == f2)
         UserError(
             "Division by zero when calculating '%s / %s'",
-            FloatToString(f1), FloatToString(f2));
+            FloatToString(f1).c_str(), FloatToString(f2).c_str());
 
     CTF_FloatToFloat::Evaluate(arg1, arg2, result);
 }

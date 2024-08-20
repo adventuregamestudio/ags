@@ -13,7 +13,7 @@
 //=============================================================================
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include <cstring>
 
 #include "cs_compiler.h"
 #include "cc_compiledscript.h"
@@ -201,6 +201,12 @@ static std::unique_ptr<ScriptTOC> ccCompileDataTOC(const SymbolTable &symt, cons
         new ScriptTOC(std::move(tocb.Finalize(rtti))));
 }
 
+#ifdef __GNUC__
+inline int strncpy_s(char* dest, size_t destsz, const char* src, size_t count)
+{
+    strncpy(dest, src, std::min(destsz, count)); return 0;
+}
+#endif
 
 ccScript *ccCompileText2(std::string const &script, std::string const &scriptName, uint64_t const options, MessageHandler &mh)
 {

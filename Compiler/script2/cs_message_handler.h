@@ -34,7 +34,7 @@ public:
 
     struct Entry
     {
-        Severity Severity = kSV_UserError;
+        MessageHandler::Severity Severity = kSV_UserError;
         std::string Section = "";
         size_t Lineno = 0u;
         std::string Message = "";

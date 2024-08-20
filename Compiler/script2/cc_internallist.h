@@ -101,7 +101,7 @@ public:
 class SrcList
 {
 public:
-    static Symbol const kEOF = 0;
+    static const Symbol kEOF;
 
 private:
     std::vector<Symbol> &_script;

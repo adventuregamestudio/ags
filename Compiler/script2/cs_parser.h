@@ -296,7 +296,7 @@ private:
     class RegisterTracking
     {
     public:
-        typedef unsigned long TickT;
+        typedef uint32_t TickT;
 
     private:
         ccCompiledScript &_scrip;

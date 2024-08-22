@@ -352,7 +352,7 @@ TEST_F(Scan, LiteralInt3)
     AGS::Scanner scanner(inp, token_list, string_collector, sym, mh);
     scanner.Scan();
     ASSERT_FALSE(mh.HasError());
-    long const res = 0XFF000000L;
+    int32_t const res = 0XFF000000L;
     AGS::Symbol token = token_list[0];
     EXPECT_EQ(res, sym[token].LiteralD->Value);
 }
@@ -366,7 +366,7 @@ TEST_F(Scan, LiteralInt4)
     scanner.Scan();
     ASSERT_FALSE(mh.HasError());
     AGS::Symbol token = token_list[0];
-    EXPECT_EQ(LONG_MIN, sym[token].LiteralD->Value);
+    EXPECT_EQ(INT32_MIN, sym[token].LiteralD->Value);
 }
 
 TEST_F(Scan, LiteralInt5)

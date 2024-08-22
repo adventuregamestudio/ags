@@ -420,8 +420,8 @@ void AGS::Parser::RegisterTracking::SetAllRegisters(void)
 
 size_t AGS::Parser::RegisterTracking::GetGeneralPurposeRegister() const
 {
-    size_t oldest_reg = INT_MAX;
-    TickT oldest_tick = ULONG_MAX;
+    size_t oldest_reg = INT32_MAX;
+    TickT oldest_tick = UINT32_MAX;
     for (auto it = _register_list.begin(); it != _register_list.end(); ++it)
     {
         if (*it == SREG_MAR)
@@ -3457,7 +3457,7 @@ void AGS::Parser::AccessData_FirstClause(VariableAccess access_type, SrcList &ex
     }
 
     if (kKW_OnePastLongMax == first_sym)
-        UserError("Integer literal is out of bounds (maximum is %d)", LONG_MAX);
+        UserError("Integer literal is out of bounds (maximum is %d)", INT32_MAX);
 
     UserError("Unexpected '%s' in expression", _sym.GetName(first_sym).c_str());
 }

@@ -101,7 +101,7 @@ void AGS::CTF_IntMinus::Evaluate(Symbol arg1, Symbol arg2, Symbol &result)
     CodeCell const i1 = _sym[arg1].LiteralD->Value;
     CodeCell const i2 = _sym[arg2].LiteralD->Value;
 
-    if (i1 >= 0 && i2 == LONG_MIN)
+    if (i1 >= 0 && i2 == INT32_MIN)
         UserError(
             "Overflow when calculating '%s - %s'",
             _sym[arg1].Name.c_str(),

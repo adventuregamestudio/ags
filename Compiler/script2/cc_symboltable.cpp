@@ -373,7 +373,7 @@ AGS::SymbolTable::SymbolTable()
     {
         Symbol const long_min_sym = Add("-2147483648");
         MakeEntryLiteral(long_min_sym);
-        entries[long_min_sym].LiteralD->Value = LONG_MIN;
+        entries[long_min_sym].LiteralD->Value = INT32_MIN;
         entries[long_min_sym].LiteralD->Vartype = kKW_Int;
     }
     {

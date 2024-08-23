@@ -2346,12 +2346,13 @@ TEST_F(Compile0, Ternary01) {
 TEST_F(Compile0, Ternary02) {
 
     // Values of ternary must have compatible vartypes
+    // Note: the 'break;' is wrong. The compiler should stop before it.
 
     char const *inpl = "\
         int main()                      \n\
         {                               \n\
             return 2 < 1 ? 1 : 2.0;     \n\
-                    break;              \n\
+            break;                      \n\
         }                               \n\
         ";
   

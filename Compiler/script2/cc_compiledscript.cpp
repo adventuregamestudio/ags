@@ -303,7 +303,10 @@ void AGS::BackwardJumpDest::Set(CodeLoc cl)
 
 void AGS::BackwardJumpDest::WriteJump(CodeCell jump_op, size_t cur_line)
 {
-    if (SCMD_LINENUM != _scrip.code[_dest] &&
+    // In degenerate cases such as empty 'while (1)' loops,
+    // _no_ code has been generated at '_dest' yet.
+    // So in particular, there isn't a 'LINENUM' statement at '_dest'.
+    if ((_dest >= _scrip.Codesize_i32() || SCMD_LINENUM != _scrip.code[_dest]) &&
         _scrip.LastEmittedLineno != _lastEmittedSrcLineno)
     {
         _scrip.WriteLineno(cur_line);

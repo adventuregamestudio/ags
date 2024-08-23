@@ -287,6 +287,10 @@ void set_game_speed(int new_fps) {
         setTimerFps(new_fps);
 }
 
+float get_game_speed() {
+    return frames_per_second;
+}
+
 extern int cbuttfont;
 extern int acdialog_font;
 

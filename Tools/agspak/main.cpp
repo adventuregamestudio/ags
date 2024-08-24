@@ -52,23 +52,24 @@ int main(int argc, char *argv[])
     bool verbose = parseResult.Opt.count("-v") || parseResult.Opt.count("--verbose");
     bool do_subdirs = parseResult.Opt.count("-r");
     size_t part_size = 0;
-    for (const auto& opt_with_value : parseResult.OptWithValue)
+    for (const auto &opt_with_value : parseResult.OptWithValue)
     {
         if (opt_with_value.first == "-p")
         {
             part_size = StrUtil::StringToInt(opt_with_value.second);
         }
-        else if (opt_with_value.first == "-f" || opt_with_value.first == "--pattern-file") {
+        else if (opt_with_value.first == "-f" || opt_with_value.first == "--pattern-file")
+        {
             has_include_pattern_file = true;
             include_pattern_file_name = opt_with_value.second;
         }
     }
 
-    const String src = parseResult.PosArgs[0];
-    const String dst = parseResult.PosArgs[1];
+    const String &src = parseResult.PosArgs[0];
+    const String &dst = parseResult.PosArgs[1];
     printf("Input directory: %s\n", src.GetCStr());
     printf("Output pack file: %s\n", dst.GetCStr());
-    if(has_include_pattern_file)
+    if (has_include_pattern_file)
         printf("Pattern file name: %s\n", include_pattern_file_name.GetCStr());
 
     if (!ags_directory_exists(src.GetCStr()))
@@ -80,8 +81,8 @@ int main(int argc, char *argv[])
     //-----------------------------------------------------------------------//
     // Gather list of files and set up library info
     //-----------------------------------------------------------------------//
-    const String asset_dir = src;
-    const String lib_basefile = dst;
+    const String &asset_dir = src;
+    const String &lib_basefile = dst;
 
     std::vector<String> files;
     HError err = MakeListOfFiles(files, asset_dir, do_subdirs);
@@ -92,7 +93,7 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    if(has_include_pattern_file)
+    if (has_include_pattern_file)
     {
         std::vector<String> output_files;
         err = IncludeFiles(files, output_files, asset_dir, include_pattern_file_name, verbose);
@@ -103,7 +104,7 @@ int main(int argc, char *argv[])
             return -1;
         }
 
-        files = output_files;
+        files = std::move(output_files);
     }
 
     std::vector<AssetInfo> assets;

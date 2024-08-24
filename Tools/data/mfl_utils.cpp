@@ -72,7 +72,7 @@ HError UnpackLibrary(const AssetLibInfo &lib, const String &lib_dir, const Strin
 
 HError MakeListOfFiles(std::vector<String> &files, const String &asset_dir, bool do_subdirs)
 {
-    String parent = asset_dir;
+    const String &parent = asset_dir;
 
     for (FindFile ff = FindFile::Open(parent, "*", true, false, do_subdirs ? -1 : 0);
          !ff.AtEnd(); ff.Next())
@@ -83,11 +83,11 @@ HError MakeListOfFiles(std::vector<String> &files, const String &asset_dir, bool
     return HError::None();
 }
 
-HError MakeAssetListFromFileList(std::vector<String> files, std::vector<AssetInfo> &assets, const String &asset_dir)
+HError MakeAssetListFromFileList(const std::vector<String> &files, std::vector<AssetInfo> &assets, const String &asset_dir)
 {
     String fpath;
-    String parent = asset_dir;
-    for(const auto &file : files)
+    const String &parent = asset_dir;
+    for (const auto &file : files)
     {
         AssetInfo asset;
         asset.FileName = file;
@@ -103,8 +103,8 @@ HError MakeAssetList(std::vector<AssetInfo> &assets, const String &asset_dir,
 {
     String dpath;
     String fpath;
-    String base = asset_dir;
-    String parent = asset_dir;
+    const String &base = asset_dir;
+    const String &parent = asset_dir;
 
     for (FindFile ff = FindFile::Open(parent, "*", true, false, do_subdirs ? -1 : 0);
         !ff.AtEnd(); ff.Next())

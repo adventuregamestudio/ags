@@ -26,12 +26,14 @@ namespace DataUtil
 
 using AGS::Common::Stream;
 
-enum PatternType {
+enum PatternType
+{
     eInclude = 0,
     eExclude
 };
 
-struct Pattern {
+struct Pattern
+{
     PatternType Type;
     std::regex Regex;
     String TextualTranslatedPattern; // for debug purposes
@@ -118,10 +120,10 @@ String normalize_separators_in_string(const String &path)
     return result;
 }
 
-std::vector<Pattern> description_to_patterns(const std::vector<String>& description)
+std::vector<Pattern> description_to_patterns(const std::vector<String> &description)
 {
     std::vector<Pattern> patterns;
-    for(String line : description)
+    for (String line : description)
     {
         line.Trim();
 
@@ -130,15 +132,14 @@ std::vector<Pattern> description_to_patterns(const std::vector<String>& descript
             continue;
 
         Pattern p;
-        String l = line;
         p.Type = eInclude;
-        if(line[0] == '!')
+        if (line[0] == '!')
         {
             p.Type = eExclude;
-            l.ClipLeft(1);
+            line.ClipLeft(1);
         }
-        l.MakeLowerUTF8(); // for case insensitivity
-        String shell_regex_txt = normalize_separators_in_text(l); // for unix paths
+        line.MakeLowerUTF8(); // for case insensitivity
+        String shell_regex_txt = normalize_separators_in_text(line); // for unix paths
 
         String regex_txt = translate_to_regex_string(shell_regex_txt);
         p.TextualOriginalPattern = shell_regex_txt;
@@ -146,10 +147,10 @@ std::vector<Pattern> description_to_patterns(const std::vector<String>& descript
         p.Regex = regex_txt.GetCStr();
         patterns.emplace_back(p);
     }
-    return  patterns;
+    return patterns;
 }
 
-std::vector<String> match_files(const std::vector<String>& files, const std::vector<Pattern>& patterns)
+std::vector<String> match_files(const std::vector<String>& files, const std::vector<Pattern> &patterns)
 {
     std::vector<String> matches;
     // if a file entry matches no pattern of the include type it should not be included in the list
@@ -181,7 +182,7 @@ std::vector<String> match_files(const std::vector<String>& files, const std::vec
     return matches;
 }
 
-std::vector<String> read_file(const String& filename, bool verbose)
+std::vector<String> read_file(const String &filename, bool verbose)
 {
     std::vector<String> lines;
     std::unique_ptr<Stream> in (File::OpenFileRead(filename));
@@ -197,7 +198,7 @@ std::vector<String> read_file(const String& filename, bool verbose)
 
     TextStreamReader sr(std::move(in));
 
-    if(sr.EOS())
+    if (sr.EOS())
         return lines;
 
     do {
@@ -209,7 +210,8 @@ std::vector<String> read_file(const String& filename, bool verbose)
     return lines;
 }
 
-HError IncludeFiles(std::vector<String> &input_files, std::vector<String> &output_files, const String& parent, const String& include_pattern_file, bool verbose)
+HError IncludeFiles(const std::vector<String> &input_files, std::vector<String> &output_files,
+    const String &parent, const String &include_pattern_file, bool verbose)
 {
     String ignore_filename = Path::ConcatPaths(parent, include_pattern_file);
     std::vector<String> patterns_description = read_file(ignore_filename, verbose);

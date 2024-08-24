@@ -38,7 +38,7 @@ namespace DataUtil
     // Gather a list of files from a given directory as a vector of strings
     HError MakeListOfFiles(std::vector<String> &files, const String &asset_dir, bool do_subdirs);
     // Prepare list of assets from a list of filenames
-    HError MakeAssetListFromFileList(std::vector<String> files, std::vector<AssetInfo> &assets, const String &asset_dir);
+    HError MakeAssetListFromFileList(const std::vector<String> &files, std::vector<AssetInfo> &assets, const String &asset_dir);
     // Gather a list of files from a given directory
     HError MakeAssetList(std::vector<AssetInfo> &assets, const String &asset_dir,
         bool do_subdirs, const String &lib_basefile);

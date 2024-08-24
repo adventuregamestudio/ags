@@ -27,7 +27,8 @@ using AGS::Common::HError;
 using AGS::Common::String;
 
 // Pass a list of files that is filtered in place by include-like patterns in a file
-HError IncludeFiles(std::vector<String> &input_files, std::vector<String> &output_files, const String& parent, const String& include_pattern_file, bool verbose);
+HError IncludeFiles(const std::vector<String> &input_files, std::vector<String> &output_files,
+    const String &parent, const String &include_pattern_file, bool verbose);
 
 } // namespace DataUtil
 } // namespace AGS

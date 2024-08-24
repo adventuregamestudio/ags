@@ -367,7 +367,7 @@ DirectoryRecursiveIterator DirectoryRecursiveIterator::Open(const String &path,
 
 void DirectoryRecursiveIterator::Close()
 {
-    while (!_dirStack.empty()) _dirStack.pop();
+    while (!_subdirStack.empty()) _subdirStack.pop();
     _dir.Close();
     _subSearch.Close();
     _fullDir = "";
@@ -404,7 +404,7 @@ bool DirectoryRecursiveIterator::Next()
 
 bool DirectoryRecursiveIterator::PushDir()
 {
-    if (_dirStack.size() == _maxLevel)
+    if (_subdirStack.size() == _maxLevel)
         return false; // no more nesting allowed
 
     const FileEntry entry = _subSearch.GetEntry();
@@ -416,7 +416,7 @@ bool DirectoryRecursiveIterator::PushDir()
     if (dir.AtEnd())
         return false; // dir is empty, or error
     DirectoryIterator dir_sub = DirectoryIterator::Open(path);
-    _dirStack.push(std::move(_dir)); // save previous dir iterator
+    _subdirStack.push(std::move(_subSearch)); // save previous subsearch iterator
     _dir = std::move(dir);
     _subSearch = std::move(dir_sub);
     _fullDir = path;
@@ -426,11 +426,11 @@ bool DirectoryRecursiveIterator::PushDir()
 
 bool DirectoryRecursiveIterator::PopDir()
 {
-    if (_dirStack.empty())
+    if (_subdirStack.empty())
         return false; // no more parent levels
     // restore parent level
-    _subSearch = std::move(_dirStack.top());
-    _dirStack.pop();
+    _subSearch = std::move(_subdirStack.top());
+    _subdirStack.pop();
     _fullDir = Path::GetParent(_fullDir);
     _curDir = Path::GetParent(_curDir);
     if (_curDir.Compare(".") == 0)

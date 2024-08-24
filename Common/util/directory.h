@@ -69,6 +69,9 @@ struct FileEntry
 //
 // DirectoryIterator iterates entries in the directory.
 // The order of iteration is undefined.
+// These entries may be files or subdirectories, they are iterated through
+// altogether. If you require only certain type, check current FileEntry's
+// properties using GetEntry() method.
 //
 class DirectoryIterator
 {
@@ -106,6 +109,9 @@ private:
 // and all the subdirectories. The order of iteration among subitems
 // is undefined, but each subdirectory is passed in one go before
 // going to others.
+// These entries may be files or subdirectories, they are iterated through
+// altogether. If you require only certain type, check current FileEntry's
+// properties using GetEntry() method.
 //
 class DirectoryRecursiveIterator
 {
@@ -130,10 +136,13 @@ private:
     bool PushDir();
     bool PopDir();
 
-    // A stack of directory iteration positions
-    std::stack<DirectoryIterator> _dirStack;
-    DirectoryIterator _dir; // current dir iterator
-    DirectoryIterator _subSearch; // current subdirectories searcher
+    DirectoryIterator _dir; // current dir iterator (used to iterate all entries)
+    DirectoryIterator _subSearch; // current subdirectories searcher (on this level)
+    // A stack of subdirectories iterators saved for upper nesting levels.
+    // Whenever we go one level down, we save current subSearch iterator;
+    // whenever we return one level up, we restore a saved subSearch iterator;
+    // this lets us continue iterating subdirs from the position we were at last time.
+    std::stack<DirectoryIterator> _subdirStack;
     // max nesting level, SIZE_MAX for unrestricted
     size_t _maxLevel = SIZE_MAX;
     String _fullDir; // full directory path

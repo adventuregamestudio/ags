@@ -70,6 +70,34 @@ HError UnpackLibrary(const AssetLibInfo &lib, const String &lib_dir, const Strin
     return HError::None();
 }
 
+HError MakeListOfFiles(std::vector<String> &files, const String &asset_dir, bool do_subdirs)
+{
+    String parent = asset_dir;
+
+    for (FindFile ff = FindFile::Open(parent, "*", true, false, do_subdirs ? -1 : 0);
+         !ff.AtEnd(); ff.Next())
+    {
+        String filename = ff.Current();
+        files.push_back(filename);
+    }
+    return HError::None();
+}
+
+HError MakeAssetListFromFileList(std::vector<String> files, std::vector<AssetInfo> &assets, const String &asset_dir)
+{
+    String fpath;
+    String parent = asset_dir;
+    for(const auto &file : files)
+    {
+        AssetInfo asset;
+        asset.FileName = file;
+        Path::ConcatPaths(fpath, parent, asset.FileName);
+        asset.Size = File::GetFileSize(fpath);
+        assets.push_back(asset);
+    }
+    return HError::None();
+}
+
 HError MakeAssetList(std::vector<AssetInfo> &assets, const String &asset_dir,
     bool do_subdirs, const String &lib_basefile)
 {
@@ -139,8 +167,8 @@ HError MakeAssetLib(AssetLibInfo &lib, const String &lib_basefile,
     return HError::None();
 }
 
-HError WriteLibraryFile(AssetLibInfo &lib, const String &asset_dir,
-    const String &lib_filename, MFLUtil::MFLVersion lib_version, int lib_index)
+HError WriteLibraryFile(AssetLibInfo &lib, const String &asset_dir, const String &lib_filename,
+                        MFLUtil::MFLVersion lib_version, int lib_index, bool verbose)
 {
     std::unique_ptr<Stream> out(File::CreateFile(lib_filename));
     if (!out)
@@ -159,6 +187,8 @@ HError WriteLibraryFile(AssetLibInfo &lib, const String &asset_dir,
                 return new Error("Failed to open the file for reading.");
             if (CopyStream(in.get(), out.get(), asset.Size) < asset.Size)
                 return new Error(String::FromFormat("Failed to write the asset '%s'.", asset.FileName.GetCStr()));
+            if (verbose)
+                printf("Info: wrote asset '%s'\n", asset.FileName.GetCStr());
         }
     }
     out->Seek(s_offset, kSeekBegin);
@@ -168,15 +198,23 @@ HError WriteLibraryFile(AssetLibInfo &lib, const String &asset_dir,
     return HError::None();
 }
 
-HError WriteLibrary(AssetLibInfo &lib, const String &asset_dir,
-    const String &dst_dir, MFLUtil::MFLVersion lib_version)
+HError WriteLibrary(AssetLibInfo &lib, const String &asset_dir, const String &dst_dir, MFLUtil::MFLVersion lib_version,
+                    bool verbose)
 {
     for (size_t id = 0; id < lib.LibFileNames.size(); ++id)
     {
         String dst_file = Path::ConcatPaths(dst_dir, lib.LibFileNames[id]);
-        HError err = WriteLibraryFile(lib, asset_dir, dst_file, lib_version, id);
-        if (!err)
+        if(verbose)
+            printf("Info: writing pack file '%s' ...\n", dst_file.GetCStr());
+
+        HError err = WriteLibraryFile(lib, asset_dir, dst_file, lib_version, id, verbose);
+
+        if (!err) {
+            if(verbose) {
+                printf("Error: failed to write pack file '%s'.\n", dst_file.GetCStr());
+            }
             return err;
+        }
     }
     return HError::None();
 }

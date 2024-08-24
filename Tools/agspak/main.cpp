@@ -7,6 +7,8 @@
 #include <algorithm>
 #include <stdio.h>
 #include "data/mfl_utils.h"
+#include "data/include_utils.h"
+#include "util/cmdlineopts.h"
 #include "util/file.h"
 #include "util/multifilelib.h"
 #include "util/path.h"
@@ -15,49 +17,61 @@
 #include "util/string_utils.h"
 
 using namespace AGS::Common;
+using namespace AGS::Common::CmdLineOpts;
 using namespace AGS::DataUtil;
 
 const char *HELP_STRING = "Usage: agspak <input-dir> <output-pak> [OPTIONS]\n"
 "Options:\n"
-"  -p <MB>        split game assets between partitions of this size max\n"
-"  -r             recursive mode: include all subdirectories too";
+"  -f, --pattern-file <F> set the name F of the file with the include patterns\n"
+"  -p <MB>                split game assets between partitions of this size max\n"
+"  -r                     recursive mode: include all subdirectories too\n"
+"  -v, --verbose          prints packaged files";
 
 int main(int argc, char *argv[])
 {
-    printf("agspak v0.1.0 - AGS game packaging tool\n"\
-        "Copyright (c) 2021 AGS Team and contributors\n");
-    for (int i = 1; i < argc; ++i)
+    printf("agspak v0.2.0 - AGS game packaging tool\n"\
+        "Copyright (c) 2024 AGS Team and contributors\n");
+    ParseResult parseResult = Parse(argc,argv,{"-p", "-f", "--pattern-file"});
+    if (parseResult.HelpRequested)
     {
-        const char *arg = argv[i];
-        if (ags_stricmp(arg, "--help") == 0 || ags_stricmp(arg, "/?") == 0 || ags_stricmp(arg, "-?") == 0)
-        {
-            printf("%s\n", HELP_STRING);
-            return 0; // display help and bail out
-        }
+        printf("%s\n", HELP_STRING);
+        return 0; // display help and bail out
     }
-    if (argc < 3)
+    if (parseResult.PosArgs.size() < 2)
     {
         printf("Error: not enough arguments\n");
         printf("%s\n", HELP_STRING);
         return -1;
     }
 
+    // a include pattern file that should be inside the input-dir
+    // TO-DO: support nested include pattern files in input-dir
+    bool has_include_pattern_file = false;
+    String include_pattern_file_name;
+
+    bool verbose = parseResult.Opt.count("-v") || parseResult.Opt.count("--verbose");
+    bool do_subdirs = parseResult.Opt.count("-r");
     size_t part_size = 0;
-    bool do_subdirs = false;
-    for (int i = 3; i < argc; ++i)
+    for (const auto& opt_with_value : parseResult.OptWithValue)
     {
-        if (ags_stricmp(argv[i], "-p") == 0 && (i < argc - 1))
-            part_size = StrUtil::StringToInt(argv[++i]);
-        else if (ags_stricmp(argv[i], "-r") == 0)
-            do_subdirs = true;
+        if (opt_with_value.first == "-p")
+        {
+            part_size = StrUtil::StringToInt(opt_with_value.second);
+        }
+        else if (opt_with_value.first == "-f" || opt_with_value.first == "--pattern-file") {
+            has_include_pattern_file = true;
+            include_pattern_file_name = opt_with_value.second;
+        }
     }
 
-    const char *src = argv[1];
-    const char *dst = argv[2];
-    printf("Input directory: %s\n", src);
-    printf("Output pack file: %s\n", dst);
+    const String src = parseResult.PosArgs[0];
+    const String dst = parseResult.PosArgs[1];
+    printf("Input directory: %s\n", src.GetCStr());
+    printf("Output pack file: %s\n", dst.GetCStr());
+    if(has_include_pattern_file)
+        printf("Pattern file name: %s\n", include_pattern_file_name.GetCStr());
 
-    if (!ags_directory_exists(src))
+    if (!ags_directory_exists(src.GetCStr()))
     {
         printf("Error: not a valid input directory.\n");
         return -1;
@@ -66,14 +80,37 @@ int main(int argc, char *argv[])
     //-----------------------------------------------------------------------//
     // Gather list of files and set up library info
     //-----------------------------------------------------------------------//
-    String asset_dir = src;
-    String lib_basefile = dst;
+    const String asset_dir = src;
+    const String lib_basefile = dst;
 
-    std::vector<AssetInfo> assets;
-    HError err = MakeAssetList(assets, asset_dir, do_subdirs, lib_basefile);
+    std::vector<String> files;
+    HError err = MakeListOfFiles(files, asset_dir, do_subdirs);
     if (!err)
     {
-        printf("Error: failed to gather list of assets:\n");
+        printf("Error: failed to gather list of files:\n");
+        printf("%s\n", err->FullMessage().GetCStr());
+        return -1;
+    }
+
+    if(has_include_pattern_file)
+    {
+        std::vector<String> output_files;
+        err = IncludeFiles(files, output_files, asset_dir, include_pattern_file_name, verbose);
+        if (!err)
+        {
+            printf("Error: failed to processes %s file:\n", include_pattern_file_name.GetCStr());
+            printf("%s\n", err->FullMessage().GetCStr());
+            return -1;
+        }
+
+        files = output_files;
+    }
+
+    std::vector<AssetInfo> assets;
+    err = MakeAssetListFromFileList(files, assets, asset_dir);
+    if (!err)
+    {
+        printf("Error: failed to prepare list of assets:\n");
         printf("%s\n", err->FullMessage().GetCStr());
         return -1;
     }
@@ -97,7 +134,7 @@ int main(int argc, char *argv[])
     // Write pack file
     //-----------------------------------------------------------------------//
     String lib_dir = Path::GetParent(lib_basefile);
-    err = WriteLibrary(lib, asset_dir, lib_dir, MFLUtil::kMFLVersion_MultiV30);
+    err = WriteLibrary(lib, asset_dir, lib_dir, MFLUtil::kMFLVersion_MultiV30, verbose);
     if (!err)
     {
         printf("Error: failed to write pack file:\n");

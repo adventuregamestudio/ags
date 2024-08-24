@@ -35,6 +35,10 @@ namespace DataUtil
     // if the asset name contains directories, they will be created as sub-
     // directories inside dst_dir.
     HError UnpackLibrary(const AssetLibInfo &lib, const String &lib_dir, const String &dst_dir);
+    // Gather a list of files from a given directory as a vector of strings
+    HError MakeListOfFiles(std::vector<String> &files, const String &asset_dir, bool do_subdirs);
+    // Prepare list of assets from a list of filenames
+    HError MakeAssetListFromFileList(std::vector<String> files, std::vector<AssetInfo> &assets, const String &asset_dir);
     // Gather a list of files from a given directory
     HError MakeAssetList(std::vector<AssetInfo> &assets, const String &asset_dir,
         bool do_subdirs, const String &lib_basefile);
@@ -44,12 +48,13 @@ namespace DataUtil
         std::vector<AssetInfo> &assets, soff_t part_size = 0);
     // Writes the library partition into the file lib_filename;
     // recalculates asset offsets and stores in lib as it goes.
-    HError WriteLibraryFile(AssetLibInfo &lib, const String &src_dir,
-        const String &lib_filename, AGS::Common::MFLUtil::MFLVersion lib_version, int lib_index);
+    HError WriteLibraryFile(AssetLibInfo &lib, const String &src_dir, const String &lib_filename,
+                            Common::MFLUtil::MFLVersion lib_version, int lib_index, bool verbose);
     // Writes the potentially multi-file library into the dst_dir directory;
     // recalculates asset offsets and stores in lib as it goes.
-    HError WriteLibrary(AssetLibInfo &lib, const String &asset_dir,
-        const String &dst_dir, AGS::Common::MFLUtil::MFLVersion lib_version);
+    HError WriteLibrary(AssetLibInfo &lib, const String &asset_dir, const String &dst_dir,
+                        Common::MFLUtil::MFLVersion lib_version,
+                        bool verbose);
 
 } // namespace DataUtil
 } // namespace AGS

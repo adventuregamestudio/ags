@@ -18,6 +18,7 @@ set(TOOLS_COMMON_SOURCES
         ../Common/game/room_file_base.cpp
         ../Common/game/tra_file.cpp
         ../Common/util/bufferedstream.cpp
+        ../Common/util/cmdlineopts.cpp
         ../Common/util/data_ext.cpp
         ../Common/util/directory.cpp
         ../Common/util/file.cpp
@@ -39,6 +40,8 @@ target_sources(libtools
         data/dialogscriptconv.cpp
         data/dialogscriptconv.h
         data/game_utils.h
+        data/include_utils.cpp
+        data/include_utils.h
         data/mfl_utils.cpp
         data/mfl_utils.h
         data/room_utils.cpp

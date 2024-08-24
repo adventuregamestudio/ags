@@ -562,8 +562,9 @@ void AGS::Scanner::ReadInStringLit(std::string &symstring, std::string &valstrin
 
         if (EOFReached() && _inputStream.eof())
         {
-            _eofReached = true;
             break; // to error msg
+        } else {
+            _eofReached = false;
         }
 
         if ('\\' == ch)

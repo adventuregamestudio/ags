@@ -981,3 +981,66 @@ TEST_F(Scan, ConsecutiveStringLiterals2)
     EXPECT_EQ(Scanner::kSct_SectionChange, sct);
 }
 
+TEST_F(Scan, ConsecutiveStringLiterals3)
+{
+    // Handling string literals with escaped characters
+
+    std::string Input = "\"Escape\\nSequence\" \"Another\\tOne\"; ";
+    AGS::Scanner scanner(Input, token_list, string_collector, sym, mh);
+
+    EXPECT_EQ(0, scanner.GetNextSymstringT(symstring, sct, value));
+    EXPECT_STREQ("\"Escape\\nSequenceAnother\\tOne\"", symstring.c_str());
+    EXPECT_STREQ("Escape\nSequenceAnother\tOne", &string_collector.strings[0] + value);
+    EXPECT_EQ(1, scanner.GetLineno());
+}
+
+TEST_F(Scan, EmptyStringLiteral)
+{
+    // Handling empty string literal
+
+    std::string Input = "\"\"";
+    AGS::Scanner scanner(Input, token_list, string_collector, sym, mh);
+
+    EXPECT_EQ(0, scanner.GetNextSymstringT(symstring, sct, value));
+    EXPECT_STREQ("\"\"", symstring.c_str());
+    EXPECT_STREQ("", &string_collector.strings[0] + value);
+    EXPECT_EQ(1, scanner.GetLineno());
+
+    scanner.GetNextSymstringT(symstring, sct, value);
+
+    EXPECT_EQ(1, scanner.GetLineno());
+}
+
+TEST_F(Scan, SmallStringLiteral)
+{
+    // A small string literal
+
+    std::string Input = "\"small\";";
+    AGS::Scanner scanner(Input, token_list, string_collector, sym, mh);
+
+    EXPECT_EQ(0, scanner.GetNextSymstringT(symstring, sct, value));
+    EXPECT_STREQ("\"small\"", symstring.c_str());
+    EXPECT_STREQ("small", &string_collector.strings[0] + value);
+    EXPECT_EQ(1, scanner.GetLineno());
+
+    scanner.GetNextSymstringT(symstring, sct, value);
+
+    EXPECT_EQ(1, scanner.GetLineno());
+}
+
+TEST_F(Scan, SmallConsecutiveStringLiterals)
+{
+    // A small string literal
+
+    std::string Input = "\"sm\" \"al\"  \"l\";";
+    AGS::Scanner scanner(Input, token_list, string_collector, sym, mh);
+
+    EXPECT_EQ(0, scanner.GetNextSymstringT(symstring, sct, value));
+    EXPECT_STREQ("\"small\"", symstring.c_str());
+    EXPECT_STREQ("small", &string_collector.strings[0] + value);
+    EXPECT_EQ(1, scanner.GetLineno());
+
+    scanner.GetNextSymstringT(symstring, sct, value);
+
+    EXPECT_EQ(1, scanner.GetLineno());
+}

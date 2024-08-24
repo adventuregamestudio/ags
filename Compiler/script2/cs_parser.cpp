@@ -2199,7 +2199,7 @@ void AGS::Parser::ParseExpression_PostfixCrement(Symbol const op_sym, SrcList &e
     eres.SideEffects = true;
 }
 
-void AGS::Parser::ParseExpression_Postfix(SrcList &expression, EvaluationResult &eres, bool result_used)
+void AGS::Parser::ParseExpression_Postfix(SrcList &expression, EvaluationResult &eres, bool const result_used)
 {
     size_t const len = expression.Length();
 
@@ -2224,7 +2224,7 @@ void AGS::Parser::ParseExpression_Postfix(SrcList &expression, EvaluationResult 
     UserError("Expected a term following the '%s', didn't find it", _sym.GetName(op_sym).c_str());
 }
 
-void AGS::Parser::ParseExpression_Ternary_Term2(EvaluationResult &eres_term1, bool term1_has_been_ripped_out, SrcList &term2, EvaluationResult &eres, bool result_used)
+void AGS::Parser::ParseExpression_Ternary_Term2(EvaluationResult &eres_term1, bool term1_has_been_ripped_out, SrcList &term2, EvaluationResult &eres, bool const result_used)
 {
     bool const second_term_exists = (term2.Length() > 0);
     if (second_term_exists)
@@ -2255,7 +2255,7 @@ void AGS::Parser::ParseExpression_Ternary_Term2(EvaluationResult &eres_term1, bo
     ConvertAXStringToStringObject(_sym.GetStringStructPtrSym(), eres.Vartype);
 }
 
-void AGS::Parser::ParseExpression_Ternary(size_t tern_idx, SrcList &expression, EvaluationResult &eres, bool result_used)
+void AGS::Parser::ParseExpression_Ternary(size_t tern_idx, SrcList &expression, EvaluationResult &eres, bool const result_used)
 {
     // First term ends before the '?'
     SrcList term1 = SrcList(expression, 0, tern_idx);
@@ -2274,7 +2274,7 @@ void AGS::Parser::ParseExpression_Ternary(size_t tern_idx, SrcList &expression, 
     size_t const term3_start = after_term1.GetCursor() + 1u;
     SrcList term3 = SrcList(after_term1, term3_start, after_term1.Length() - term3_start);
     SrcList term2 = SrcList(after_term1, 0u, after_term1.GetCursor());
-    if (0 == term3.Length())
+    if (!term3.Length())
     {
         expression.SetCursor(tern_idx);
         UserError("The third expression of this ternary is empty");
@@ -2298,33 +2298,45 @@ void AGS::Parser::ParseExpression_Ternary(size_t tern_idx, SrcList &expression, 
 
 
     // First term of ternary (i.e, the test of the ternary)
-    // Result is used, that's the point of the ternary
+    // We basically let through anything that can be compared to
+    // some kind of zero or null so that 'a ?: whatever' can be evaluated
     ParseExpression_Term(term1, eres_term1);
     
-    bool const term1_known =
-        eres.kTY_Literal ==  eres_term1.Type &&
-        (eres_term1.Vartype == kKW_Float || _sym.IsAnyIntegerVartype(eres_term1.Vartype));
+    bool const term1_known = eres.kTY_Literal == eres_term1.Type;
     CodeCell const term1_value = term1_known ? _sym[eres_term1.Symbol].LiteralD->Value : false;
+    // Put the result into AX, but don't clobber 'vloc_term1'
+    // So we can use results at compile time that are known at compile time
+    // and also be sure that all the other results can be found in AX.
     EvaluationResult eres_dummy = eres_term1;
-    EvaluationResultToAx(eres_dummy); // Don't clobber vloc_term1
+    EvaluationResultToAx(eres_dummy);
    
     if (!term1.ReachedEOF())
         InternalError("Unexpected '%s' after 1st term of ternary", _sym.GetName(term1.GetNext()).c_str());
-
-    // Jump either to the start of the third term or to the end of the ternary expression.
-    WriteCmd(
-        second_term_exists ? SCMD_JZ : SCMD_JNZ,
-        kDestinationPlaceholder);
-    if (second_term_exists)
-        jumpdest_to_term3.AddParam();
-    else
-        jumpdest_out_of_ternary.AddParam();
 
     bool term1_has_been_ripped_out = false;
     if (term1_known)
     {   // Don't need to do the test at runtime
         start_of_term1.Restore();
         term1_has_been_ripped_out = true;
+    }
+    else 
+    {
+        // Note, here we generate a conditional jump and add its destination to a
+        // ForwardJump object. Once we have done that, we mustn't rip out this
+        // conditional jump afterwards because when we rip the code out, the jump
+        // destination still stays in the ForwardJump object and will be patched when
+        // the ForwardJump object is resolved although the corresponding code isn't
+        // there any longer.
+        // This means that it is wrong to generate this conditional jump as
+        // part of the code of the first term of the ternary and then decide whether
+        // this code should be kept or ripped out.
+        WriteCmd(
+            second_term_exists ? SCMD_JZ : SCMD_JNZ,
+            kDestinationPlaceholder);
+        if (second_term_exists)
+            jumpdest_to_term3.AddParam();
+        else
+            jumpdest_out_of_ternary.AddParam();
     }
 
     // Second term of the ternary
@@ -2351,17 +2363,22 @@ void AGS::Parser::ParseExpression_Ternary(size_t tern_idx, SrcList &expression, 
     }
 
     // Third term of ternary
+    // All jumps to the start of the third term should go to _here_.
     jumpdest_to_term3.Patch(_src.GetLineno());
 
     ParseExpression_Term(term3, eres_term3, result_used);
+    // Put the result into AX, but don't clobber 'vloc_term3'
+    // So we can use results at compile time that are known at compile time
+    // and also be sure that all the other results can be found in AX.
     eres_dummy = eres_term3;
-    EvaluationResultToAx(eres_dummy); // don't clobber vloc_term3
+    EvaluationResultToAx(eres_dummy);
     ConvertAXStringToStringObject(_sym.GetStringStructPtrSym(), eres_term3.Vartype);
 
     bool term3_has_been_ripped_out = false;
     if (term1_known && term1_value)
     {
-        start_of_term3.Restore(); // Don't need term3, will never be evaluated
+        // Don't need term3, will never be evaluated
+        start_of_term3.Restore(); 
         term3_has_been_ripped_out = true;
     }
 
@@ -2529,7 +2546,7 @@ void AGS::Parser::ParseExpression_CheckUsedUp(SrcList &expression)
         _sym.GetName(expression.GetNext()).c_str());
 }
 
-void AGS::Parser::ParseExpression_InParens(SrcList &expression, EvaluationResult &eres, bool result_used)
+void AGS::Parser::ParseExpression_InParens(SrcList &expression, EvaluationResult &eres, bool const result_used)
 {
     // Check for spurious symbols after the closing paren.
     expression.SetCursor(1u);
@@ -2977,7 +2994,7 @@ bool AGS::Parser::ParseExpression_CompileTime(Symbol const op_sym, EvaluationRes
     return true;
 }
 
-void AGS::Parser::ParseExpression_NoOps(SrcList &expression, EvaluationResult &eres, bool result_used)
+void AGS::Parser::ParseExpression_NoOps(SrcList &expression, EvaluationResult &eres, bool const result_used)
 {
     if (kKW_OpenParenthesis == expression[0u])
         return ParseExpression_InParens(expression, eres, result_used);
@@ -2986,7 +3003,7 @@ void AGS::Parser::ParseExpression_NoOps(SrcList &expression, EvaluationResult &e
     return ParseExpression_CheckUsedUp(expression);
 }
 
-void AGS::Parser::ParseExpression_Term(SrcList &expression, EvaluationResult &eres, bool result_used)
+void AGS::Parser::ParseExpression_Term(SrcList &expression, EvaluationResult &eres, bool const result_used)
 {
     if (expression.Length() == 0u)
         InternalError("Cannot parse empty subexpression");

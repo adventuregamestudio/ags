@@ -291,7 +291,10 @@ void AGS::ForwardJump::Patch(size_t cur_line, bool keep_linenum)
             _scrip.LastEmittedLineno = INT_MAX;
     }
     for (auto loc = _jumpDestParamLocs.cbegin(); loc != _jumpDestParamLocs.cend(); loc++)
+    {
+        assert(*loc < _scrip.Codesize_i32());
         _scrip.code[*loc] = _scrip.RelativeJumpDist(*loc, _scrip.Codesize_i32());
+    }
     _jumpDestParamLocs.clear();
 }
 

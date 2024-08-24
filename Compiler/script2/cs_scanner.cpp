@@ -143,7 +143,7 @@ void AGS::Scanner::GetNextSymstring(std::string &symstring, ScanType &scan_type,
         }
 
         scan_type = kSct_StringLiteral;
-        value = _stringCollector.AddString(valstring.c_str());
+        value = _stringCollector.AddString(valstring);
         return;
     }
 
@@ -151,7 +151,6 @@ void AGS::Scanner::GetNextSymstring(std::string &symstring, ScanType &scan_type,
     scan_type = kSct_NonAlphanum;
     switch (next_char)
     {
-    default:  break;
     case '!': return ReadIn1or2Char("=", symstring);
     case '%': return ReadIn1or2Char("=", symstring);
     case '&': return ReadIn1or2Char("&=", symstring);
@@ -179,6 +178,7 @@ void AGS::Scanner::GetNextSymstring(std::string &symstring, ScanType &scan_type,
     case '|': return ReadIn1or2Char("=|", symstring);
     case '}': return ReadIn1Char(symstring);
     case '~': return ReadIn1Char(symstring);
+    default:  break;
     }
 
     // Here when we don't know how to process the next char to be read
@@ -557,8 +557,14 @@ void AGS::Scanner::ReadInStringLit(std::string &symstring, std::string &valstrin
     {
         int ch = Get();
         symstring.push_back(ch);
-        if (EOFReached() || Failed() || '\n' == ch || '\r' == ch)
+        if (Failed() || '\n' == ch || '\r' == ch)
             break; // to error msg
+
+        if (EOFReached() && _inputStream.eof())
+        {
+            _eofReached = true;
+            break; // to error msg
+        }
 
         if ('\\' == ch)
         {

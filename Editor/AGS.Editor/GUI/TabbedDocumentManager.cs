@@ -233,15 +233,25 @@ namespace AGS.Editor
             else panel.DockingContainer.Refresh();
         }
 
+        public void RemoveAllDocuments(bool canCancel)
+        {
+            RemoveAllDocuments(null, canCancel);
+        }
+
         public void RemoveAllDocuments(ContentDocument except)
+        {
+            RemoveAllDocuments(except, true);
+        }
+
+        public void RemoveAllDocuments(ContentDocument except, bool canCancel)
         {
             ContentDocument[] copyOfPanesList = _panes.ToArray();
             foreach (ContentDocument pane in copyOfPanesList)
             {
-                if(pane != except)
+                if (pane != except)
                 {
                     bool cancelled = false;
-                    pane.Control.PanelClosing(true, ref cancelled);
+                    pane.Control.PanelClosing(canCancel, ref cancelled);
                     if(!cancelled)
                     {
                         pane.Control.DockingContainer.Hide();
@@ -252,7 +262,7 @@ namespace AGS.Editor
                 }
             }
 
-            if(except != null)
+            if (except != null)
             {
                 SetActiveDocument(except);
             }

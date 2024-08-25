@@ -22,6 +22,7 @@ namespace AGS {
 namespace Preprocessor {
 
     enum class ErrorCode {
+        None = 0,
         MacroNameMissing = 1,
         MacroDoesNotExist,
         MacroAlreadyExists,
@@ -32,7 +33,13 @@ namespace Preprocessor {
         IfWithoutEndIf,
         ElseIfWithoutIf,
         InvalidVersionNumber,
-        UnterminatedString
+        UnterminatedString,
+        InvalidCharacter
+    };
+
+    struct Error {
+        ErrorCode Type = ErrorCode::None;
+        String Message = nullptr;
     };
 
     class Preprocessor {
@@ -43,14 +50,15 @@ namespace Preprocessor {
         String _scriptName;
         Version _applicationVersion;
         std::stack<bool> _conditionalStatements;
+        std::vector<Error> _errors;
 
-        static void LogError(ErrorCode error, const String &message = nullptr);
+        void LogError(ErrorCode error, const String &message = nullptr);
 
         void ProcessConditionalDirective(String &directive, String &line);
 
         bool DeletingCurrentLine();
 
-        static String GetNextWord(String &text, bool trimText = true, bool includeDots = false);
+        String GetNextWord(String &text, bool trimText = true, bool includeDots = false);
 
         String RemoveComments(String text);
 
@@ -59,6 +67,8 @@ namespace Preprocessor {
         String PreProcessLine(const String& lineToProcess);
 
     public:
+        static const Error NoError;
+        Error GetLastError() const;
         void SetAppVersion(const String& version);
         void MergeMacros(MacroTable &macros);
         void DefineMacro(const String &name, const String &value);

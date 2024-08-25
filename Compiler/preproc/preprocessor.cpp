@@ -37,6 +37,8 @@ namespace Preprocessor {
     static const char * li_end = "\n";
 #endif
 
+    const Error Preprocessor::NoError = Error();
+
     size_t FindIndexOfMatchingCharacter(String text, size_t indexOfFirstSpeechMark, int charToMatch)
     {
         size_t endOfString = NOT_FOUND;
@@ -111,19 +113,20 @@ namespace Preprocessor {
 
 
     void Preprocessor::LogError(ErrorCode error, const String& message) {
+        String msg;
         if(message == nullptr) {
             switch (error) {
                 case ErrorCode::MacroNameMissing:
-                    cc_error("Macro name expected");
+                    msg = "Macro name expected";
                     break;
                 case ErrorCode::EndIfWithoutIf:
-                    cc_error("#endif has no matching #if");
+                    msg = "#endif has no matching #if";
                     break;
                 case ErrorCode::IfWithoutEndIf:
-                    cc_error("Missing #endif");
+                    msg = "Missing #endif";
                     break;
                 case ErrorCode::ElseIfWithoutIf:
-                    cc_error("#else has no matching #if");
+                    msg = "#else has no matching #if";
                     break;
                 case ErrorCode::MacroDoesNotExist:
                 case ErrorCode::MacroAlreadyExists:
@@ -133,12 +136,19 @@ namespace Preprocessor {
                 case ErrorCode::InvalidVersionNumber:
                     break;
                 default:
-                    cc_error("Unknown preprocessor error"); // should never be reached
+                    msg = "Unknown preprocessor error"; // should never be reached
                     break;
             }
         } else {
-            cc_error(message.GetCStr());
+            msg = message;
         }
+
+        Error err;
+        err.Type = error;
+        err.Message = msg;
+        _errors.push_back(err);
+
+        cc_error(msg.GetCStr());
     }
 
     void Preprocessor::ProcessConditionalDirective(String &directive, String &line)
@@ -193,6 +203,14 @@ namespace Preprocessor {
                 (includeDots && (text[i] == '.')))
                 ) {
             i++;
+        }
+
+        if (i < text.GetLength() && (static_cast<unsigned char>(text[i]) > 127))
+        {
+            LogError(ErrorCode::InvalidCharacter, String::FromFormat("Invalid character detected in script at position %d in '%s'", i, text.GetCStr()));
+            String res = text;
+            text.SetString(""); // need to end line
+            return res;
         }
         String word = text.Left(i);
         text.ClipLeft(i);
@@ -435,9 +453,12 @@ namespace Preprocessor {
 
     String Preprocessor::Preprocess(const String& script, const String& scriptName)
     {
+        _errors.clear();
         StringBuilder output = StringBuilder(script.GetLength());
         currentline = _lineNumber = 0;
-        output.WriteLine(String::FromFormat("%s%s\"", NEW_SCRIPT_TOKEN_PREFIX, scriptName.GetCStr()));
+        String escapedScriptName = scriptName;
+        escapedScriptName.Replace("\\", "\\\\");
+        output.WriteLine(String::FromFormat("%s%s\"", NEW_SCRIPT_TOKEN_PREFIX, escapedScriptName.GetCStr()));
         StringReader reader = StringReader(script);
         _scriptName = scriptName;
         while (reader.IsValid())
@@ -474,6 +495,10 @@ namespace Preprocessor {
 
     void Preprocessor::SetAppVersion(const String &version) {
         _applicationVersion = Version(version);
+    }
+
+    Error Preprocessor::GetLastError() const {
+        return _errors.empty() ? NoError : _errors.back();
     }
 
     } // Preprocessor

@@ -40,10 +40,7 @@ namespace AGS.Editor
             if (!DesignMode)
             {
                 var config = GUIController.Instance.WindowConfig;
-                config.SetInt("SpriteChooser/Left", Left);
-                config.SetInt("SpriteChooser/Top", Top);
-                config.SetInt("SpriteChooser/Width", Width);
-                config.SetInt("SpriteChooser/Height", Height);
+                ConfigUtils.WriteControlPosition(config, "SpriteChooser", this);
                 spriteSelector1.WriteConfig(config.GetOrAddObject("SpriteChooser/spriteSelector"));
             }
 
@@ -152,10 +149,7 @@ namespace AGS.Editor
             if (!DesignMode)
             {
                 var config = GUIController.Instance.WindowConfig;
-                Left = config.GetInt("SpriteChooser/Left", Left);
-                Top = config.GetInt("SpriteChooser/Top", Top);
-                Width = config.GetInt("SpriteChooser/Width", Width);
-                Height = config.GetInt("SpriteChooser/Height", Height);
+                ConfigUtils.ReadFormPosition(config, "SpriteChooser", this);
                 spriteSelector1.ReadConfig(config.GetObject("SpriteChooser/spriteSelector"));
             }
 		}

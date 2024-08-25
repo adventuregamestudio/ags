@@ -2685,118 +2685,6 @@ TEST_F(Bytecode0, Struct08) {
     EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
-TEST_F(Bytecode0, Struct09_NoRTTI) {
-
-    // Should be able to find SetCharacter as a component of
-    // VehicleBase as an extension of Vehicle Cars[5];
-    // should generate call of VehicleBase::SetCharacter()
-
-    char const *inpl = "\
-        enum CharacterDirection                                     \n\
-        {                                                           \n\
-            eDirectionUp = 3                                        \n\
-        };                                                          \n\
-                                                                    \n\
-        builtin managed struct Character                            \n\
-        {                                                           \n\
-            readonly import attribute int ID;                       \n\
-        };                                                          \n\
-        import Character character[7];                              \n\
-        import Character cAICar1;                                   \n\
-                                                                    \n\
-        struct VehicleBase                                          \n\
-        {                                                           \n\
-            import void SetCharacter(Character *c,                  \n\
-                                int carSprite,                      \n\
-                                CharacterDirection carSpriteDir,    \n\
-                                int view = 0,                       \n\
-                                int loop = 0,                       \n\
-                                int frame = 0);                     \n\
-        };                                                          \n\
-                                                                    \n\
-        struct Vehicle extends VehicleBase                          \n\
-        {                                                           \n\
-            float bodyMass;                                         \n\
-        };                                                          \n\
-        import Vehicle Cars[6];                                     \n\
-                                                                    \n\
-        int main()                                                  \n\
-        {                                                           \n\
-            int drivers[] = new int[6];                             \n\
-            int i = 5;                                              \n\
-            Cars[i].SetCharacter(                                   \n\
-                character[cAICar1.ID + i],                          \n\
-                7 + drivers[i],                                     \n\
-                eDirectionUp,                                       \n\
-                3 + i, 0, 0);                                       \n\
-        }                                                           \n\
-    ";
-
-    ccSetOption(SCOPT_RTTIOPS, false);
-
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
-
-    // WriteOutput("Struct09_NoRtti", scrip);
-
-    size_t const codesize = 205;
-    EXPECT_EQ(codesize, scrip.code.size());
-
-    int32_t code[] = {
-      36,   30,   38,    0,           36,   31,    6,    3,    // 7
-       6,   72,    3,    4,            0,   51,    0,   47,    // 15
-       3,    1,    1,    4,           36,   32,    6,    3,    // 23
-       5,   29,    3,   36,           33,   51,    4,    7,    // 31
-       3,   46,    3,    6,           32,    3,    4,    6,    // 39
-       2,    4,   11,    2,            3,   29,    2,   36,    // 47
-      37,    6,    3,    0,           34,    3,    6,    3,    // 55
-       0,   34,    3,    6,            3,    3,   29,    3,    // 63
-      51,   12,    7,    3,           30,    4,   11,    4,    // 71
-       3,    3,    4,    3,           34,    3,   36,   36,    // 79
-       6,    3,    3,   34,            3,   36,   35,    6,    // 87
-       3,    7,   29,    3,           51,   16,   48,    2,    // 95
-      52,   29,    2,   51,           16,    7,    3,   30,    // 103
-       2,   32,    3,    4,           71,    3,   11,    2,    // 111
-       3,    7,    3,   30,            4,   11,    4,    3,    // 119
-       3,    4,    3,   34,            3,   36,   34,    6,    // 127
-       2,    2,   29,    6,           45,    2,   39,    0,    // 135
-       6,    3,    0,   33,            3,   30,    6,   29,    // 143
-       3,   51,   12,    7,            3,   30,    4,   11,    // 151
-       4,    3,    3,    4,            3,   46,    3,    7,    // 159
-      32,    3,    0,    6,            2,    1,   11,    2,    // 167
-       3,    3,    2,    3,           34,    3,   36,   37,    // 175
-      51,    4,    7,    2,           45,    2,   39,    6,    // 183
-       6,    3,    3,   33,            3,   35,    6,   30,    // 191
-       2,   36,   38,   51,            8,   49,    2,    1,    // 199
-       8,    6,    3,    0,            5,  -999
-    };
-    CompareCode(&scrip, codesize, code);
-
-    size_t const numfixups = 5;
-    EXPECT_EQ(numfixups, scrip.fixups.size());
-
-    int32_t fixups[] = {
-      41,  129,  138,  165,        186,  -999
-    };
-    char fixuptypes[] = {
-      4,   4,   4,   4,      4,  '\0'
-    };
-    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
-
-    int const numimports = 5;
-    std::string imports[] = {
-    "Character::get_ID^0",        "character",   "cAICar1",     "VehicleBase::SetCharacter^6",               // 3
-    "Cars",         "[[SENTINEL]]"
-    };
-    CompareImports(&scrip, numimports, imports);
-
-    size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.exports.size());
-
-    size_t const stringssize = 0;
-    EXPECT_EQ(stringssize, scrip.strings.size());
-}
-
 TEST_F(Bytecode0, Struct09_RTTI) {
 
     // Should be able to find SetCharacter as a component of
@@ -2845,6 +2733,7 @@ TEST_F(Bytecode0, Struct09_RTTI) {
     ";
 
     ccSetOption(SCOPT_RTTIOPS, true);
+    ccSetOption(SCOPT_NOAUTOPTRIMPORT, true);
 
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());

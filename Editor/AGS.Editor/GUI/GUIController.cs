@@ -146,6 +146,7 @@ namespace AGS.Editor
         }
 
         public ColorThemes ColorThemes { get; private set; }
+        public IObjectConfig WindowConfig { get; private set; }
 
         public Dictionary<string, string> InstalledFonts { get; private set; }
 
@@ -849,6 +850,7 @@ namespace AGS.Editor
                 _agsEditor = agsEditor;
                 _interactiveTasks = new InteractiveTasks(_agsEditor.Tasks);
                 ColorThemes = new ColorThemes();
+                WindowConfig = new ObjectConfigJson();
                 _mainForm = new frmMain();
                 SetEditorWindowSize();
                 _treeManager = new ProjectTree(_mainForm.projectPanel.projectTree);

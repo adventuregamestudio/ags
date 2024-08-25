@@ -28,5 +28,15 @@ namespace AGS.Editor
 
         int  GetInt(string id, int defValue);
         void SetInt(string id, int value);
+
+        /// <summary>
+        /// Loads this config from the file, overwriting all contents.
+        /// </summary>
+        bool LoadFromFile(string filepath);
+
+        /// <summary>
+        /// Saves this config to the file.
+        /// </summary>
+        void SaveToFile(string filepath);
     }
 }

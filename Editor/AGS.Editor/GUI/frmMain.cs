@@ -87,6 +87,7 @@ namespace AGS.Editor
             if (!DesignMode)
             {
                 LoadLayout();
+                Factory.GUIController.LoadWindowConfig();
                 Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
             }
         }
@@ -396,6 +397,7 @@ namespace AGS.Editor
             }
             if (!e.Cancel)
             {
+                Factory.GUIController.SaveWindowConfig();
                 _layoutManager.SaveLayout();
             }
         }

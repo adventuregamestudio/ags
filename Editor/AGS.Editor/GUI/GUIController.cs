@@ -26,6 +26,7 @@ namespace AGS.Editor
         private const string TEMPLATE_INTRO_FILE = "template.txt";
 		private const string ROOM_TEMPLATE_ID_FILE = "rtemplate.dat";
 		private const int ROOM_TEMPLATE_ID_FILE_SIGNATURE = 0x74673812;
+        private const string WINDOW_CONFIG_FILENAME = "WindowConfig.json";
 
         public delegate void PropertyObjectChangedHandler(object newPropertyObject);
         public event PropertyObjectChangedHandler OnPropertyObjectChanged;
@@ -908,6 +909,26 @@ namespace AGS.Editor
         public void ExitApplication()
         {
             _mainForm.Close();
+        }
+
+        /// <summary>
+        /// Loads Window configuration from the given file.
+        /// NOTE: this does not apply configuration to windows immediately,
+        /// this only loads configuration into the memory, where it may be accessed
+        /// by any window on demand. For this reason this config should be loaded
+        /// as early in Editor's session as possible.
+        /// </summary>
+        public bool LoadWindowConfig()
+        {
+            return WindowConfig.LoadFromFile(Path.Combine(Factory.AGSEditor.LocalAppData, WINDOW_CONFIG_FILENAME));
+        }
+
+        /// <summary>
+        /// Saves Window configuration into the given file. 
+        /// </summary>
+        public void SaveWindowConfig()
+        {
+            WindowConfig.SaveToFile(Path.Combine(Factory.AGSEditor.LocalAppData, WINDOW_CONFIG_FILENAME));
         }
 
         public void CompileAndExit(string projectPath)

@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.IO;
 
 namespace AGS.Editor
 {
@@ -87,6 +89,41 @@ namespace AGS.Editor
             // For the final part: assign a new property value
             token[tokens.Last()] = value;
             return value;
+        }
+
+        /// <summary>
+        /// Loads this config from the file, overwriting all contents.
+        /// </summary>
+        public bool LoadFromFile(string filepath)
+        {
+            bool result = false;
+            string data = "{}";
+            try
+            {
+                data = File.ReadAllText(filepath);
+                result = true;
+            }
+            catch (Exception)
+            {
+            }
+            finally
+            {
+                _root = JObject.Parse(data);
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Saves this config to the file.
+        /// </summary>
+        public void SaveToFile(string filepath)
+        {
+            using (StreamWriter file = File.CreateText(filepath))
+            using (JsonTextWriter writer = new JsonTextWriter(file))
+            {
+                writer.Formatting = Formatting.Indented;
+                _root.WriteTo(writer);
+            }
         }
     }
 }

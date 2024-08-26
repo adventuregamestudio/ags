@@ -2321,7 +2321,120 @@ TEST_F(Compile0, Readonly01) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
-TEST_F(Compile0, Ternary01) {    
+TEST_F(Compile0, Ternary01) {
+
+    // a trivial ternary operation
+
+    char const *inpl = "\
+        void main()                     \n\
+        {                               \n\
+            int a = 10;                 \n\
+            int b = a == 5 ? 1 : 2;     \n\
+        }                               \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+}
+
+TEST_F(Compile0, Ternary02) {
+
+    // ternary operations where condition and assignment have different types
+
+    char const *inpl = "\
+        void main()                         \n\
+        {                                   \n\
+            int a = 10;                     \n\
+            float f = a == 5 ? 0.5 : 0.75;  \n\
+            int b = f < 0.7 ? 1 : 2;        \n\
+        }                                   \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+}
+
+TEST_F(Compile0, Ternary03) {
+
+    // Values of ternary must have compatible vartypes
+    // Note: the 'break;' is wrong. The compiler should stop before it.
+
+    char const *inpl = "\
+        int main()                      \n\
+        {                               \n\
+            return 2 < 1 ? 1 : 2.0;     \n\
+            break;                      \n\
+        }                               \n\
+        ";
+  
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    std::string res(last_seen_cc_error());
+    EXPECT_NE(std::string::npos, res.find("int"));
+    EXPECT_NE(std::string::npos, res.find("float"));
+}
+
+TEST_F(Compile0, Ternary04) {
+
+    // ternary operations with constexpr arithmetical expressions in them
+    // supposedly will be precalculated at compilation time
+
+    char const *inpl = "\
+        void main()                                    \n\
+        {                                              \n\
+            const int a = 10;                          \n\
+            const int b = a == 5 ? 1 + 2 : 2 + 3;      \n\
+            const int c = b < 7 + 11 ? a - 3 : a + 3;  \n\
+        }                                              \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+}
+
+TEST_F(Compile0, Ternary05) {
+
+    // ternary operations with variable arithmetical expressions in them
+
+    char const *inpl = "\
+        void main(int param)                             \n\
+        {                                                \n\
+            const int a = 10;                            \n\
+            int b = a == param ? 1 + param : 2 - param;  \n\
+            int c = b - param < b + a ? a - b : a + b;   \n\
+        }                                                \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+}
+
+TEST_F(Compile0, Ternary06) {
+
+    // ternary operations with nested bracketed expressions in them
+
+    char const *inpl = "\
+        void main()                                            \n\
+        {                                                      \n\
+            int a = 10;                                        \n\
+            int b0 = (a < 5 ? 1 : 2);                          \n\
+            int b1 = (a < 5) ? 1 : 2;                          \n\
+            int b2 = (a + 1) < 5 ? 1 : 2;                      \n\
+            int b3 = (a + (a + 1)) < 5 ? 1 : 2;                \n\
+            int b4 = (a + (a + 1)) < (5 - a) ? 1 : 2;          \n\
+            int b5 = (a + (a + 1)) < (5 - (5 - a)) ? 1 : 2;    \n\
+            int c1 = a < 5 ? (a + 1) : a;                      \n\
+            int c2 = a < 5 ? (a + (a + 1)) : a;                \n\
+            int d1 = a < 5 ? a : (a + 1);                      \n\
+            int d2 = a < 5 ? a : (a + (a + 1));                \n\
+        }                                                      \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+}
+
+TEST_F(Compile0, Ternary07) {
 
     // case labels accept expressions in AGS, so ternary expressions should work, too.
 
@@ -2341,26 +2454,6 @@ TEST_F(Compile0, Ternary01) {
 
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
-}
-
-TEST_F(Compile0, Ternary02) {
-
-    // Values of ternary must have compatible vartypes
-    // Note: the 'break;' is wrong. The compiler should stop before it.
-
-    char const *inpl = "\
-        int main()                      \n\
-        {                               \n\
-            return 2 < 1 ? 1 : 2.0;     \n\
-            break;                      \n\
-        }                               \n\
-        ";
-  
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
-    std::string res(last_seen_cc_error());
-    EXPECT_NE(std::string::npos, res.find("int"));
-    EXPECT_NE(std::string::npos, res.find("float"));
 }
 
 TEST_F(Compile0, FlowPointerExpressions1) {

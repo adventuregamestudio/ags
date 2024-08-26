@@ -49,13 +49,31 @@ ScriptMouse scmouse;
 int cur_mode,cur_cursor;
 int mouse_frame=0,mouse_delay=0;
 int lastmx=-1,lastmy=-1;
-std::unique_ptr<Bitmap> dotted_mouse_cursor;
-std::unique_ptr<Bitmap> blank_mouse_cursor;
-// Current mouse cursor, may be a sprite or a generated bitmap
-// TODO: refactor, replace these with ObjTexture, and move to draw.cpp
-int mouse_cur_pic = 0;
-bool alpha_blend_cursor = false;
-IDriverDependantBitmap *mouse_cur_ddb = nullptr;
+
+CursorGraphicState cursor_gstate;
+
+
+Bitmap *CursorGraphicState::GetImage() const
+{
+    return _genImage != nullptr ? _genImage.get() : spriteset[_sprnum];
+}
+
+void CursorGraphicState::SetImage(std::unique_ptr<Common::Bitmap> pic, bool has_alpha)
+{
+    _genImage = std::move(pic);
+    _hasAlpha = has_alpha;
+    _sprnum = -1;
+    MarkChanged();
+}
+
+void CursorGraphicState::SetSpriteNum(int sprnum)
+{
+    _sprnum = sprnum;
+    _genImage.reset();
+    _hasAlpha = (game.SpriteInfos[sprnum].Flags & SPF_ALPHACHANNEL) != 0;
+    MarkChanged();
+}
+
 
 // The Mouse:: functions are static so the script doesn't pass
 // in an object parameter
@@ -103,12 +121,6 @@ void SetMouseBounds(int x1, int y1, int x2, int y2)
     Mouse::SetMoveLimit(Rect(x1, y1, x2, y2));
 }
 
-// mouse cursor functions:
-void update_cached_mouse_cursor(Bitmap *use_bmp) 
-{
-    mouse_cur_ddb = recycle_ddb_bitmap(mouse_cur_ddb, use_bmp, alpha_blend_cursor);
-}
-
 // set_mouse_cursor: changes visual appearance to specified cursor
 void set_mouse_cursor(int newcurs, bool force_update)
 {
@@ -132,37 +144,41 @@ void set_mouse_cursor(int newcurs, bool force_update)
     }
 
     // Assign new pic
-    set_new_cursor_graphic(game.mcurs[newcurs].pic);
-    dotted_mouse_cursor = nullptr;
+    const int cur_pic = game.mcurs[newcurs].pic;
+    set_new_cursor_graphic(cur_pic);
 
     // If it's inventory cursor, draw hotspot crosshair sprite upon it
-    if ((newcurs == MODE_USE) && (game.mcurs[newcurs].pic > 0) &&
-        ((game.hotdot > 0) || (game.invhotdotsprite > 0)) ) {
-            // If necessary, create a copy of the cursor and put the hotspot dot onto it
-            Bitmap *mouse_cur_bmp = (mouse_cur_pic >= 0) ? spriteset[mouse_cur_pic] : blank_mouse_cursor.get();
-            dotted_mouse_cursor.reset(BitmapHelper::CreateBitmapCopy(mouse_cur_bmp));
+    if ((newcurs == MODE_USE) && (cur_pic > 0) &&
+        ((game.hotdot > 0) || (game.invhotdotsprite > 0)) )
+    {
+        const bool has_alpha = (game.SpriteInfos[cur_pic].Flags & SPF_ALPHACHANNEL) != 0;
+        // If necessary, create a copy of the cursor and put the hotspot dot onto it
+        std::unique_ptr<Bitmap> gen_cursor(BitmapHelper::CreateBitmapCopy(spriteset[cur_pic]));
 
-            if (game.invhotdotsprite > 0) {
-                draw_sprite_slot_support_alpha(dotted_mouse_cursor.get(),
-                    (game.SpriteInfos[game.mcurs[newcurs].pic].Flags & SPF_ALPHACHANNEL) != 0,
-                    hotspotx - game.SpriteInfos[game.invhotdotsprite].Width / 2,
-                    hotspoty - game.SpriteInfos[game.invhotdotsprite].Height / 2,
-                    game.invhotdotsprite);
+        if (game.invhotdotsprite > 0)
+        {
+            draw_sprite_slot_support_alpha(gen_cursor.get(),
+                has_alpha,
+                hotspotx - game.SpriteInfos[game.invhotdotsprite].Width / 2,
+                hotspoty - game.SpriteInfos[game.invhotdotsprite].Height / 2,
+                game.invhotdotsprite);
+        }
+        else
+        {
+            putpixel_compensate(gen_cursor.get(), hotspotx, hotspoty, MakeColor(game.hotdot));
+
+            if (game.hotdotouter > 0)
+            {
+                int outercol = MakeColor(game.hotdotouter);
+
+                putpixel_compensate(gen_cursor.get(), hotspotx + get_fixed_pixel_size(1), hotspoty, outercol);
+                putpixel_compensate(gen_cursor.get(), hotspotx, hotspoty + get_fixed_pixel_size(1), outercol);
+                putpixel_compensate(gen_cursor.get(), hotspotx - get_fixed_pixel_size(1), hotspoty, outercol);
+                putpixel_compensate(gen_cursor.get(), hotspotx, hotspoty - get_fixed_pixel_size(1), outercol);
             }
-            else {
-                putpixel_compensate (dotted_mouse_cursor.get(), hotspotx, hotspoty, MakeColor(game.hotdot));
+        }
 
-                if (game.hotdotouter > 0) {
-                    int outercol = MakeColor(game.hotdotouter);
-
-                    putpixel_compensate (dotted_mouse_cursor.get(), hotspotx + get_fixed_pixel_size(1), hotspoty, outercol);
-                    putpixel_compensate (dotted_mouse_cursor.get(), hotspotx, hotspoty + get_fixed_pixel_size(1), outercol);
-                    putpixel_compensate (dotted_mouse_cursor.get(), hotspotx - get_fixed_pixel_size(1), hotspoty, outercol);
-                    putpixel_compensate (dotted_mouse_cursor.get(), hotspotx, hotspoty - get_fixed_pixel_size(1), outercol);
-                }
-            }
-
-            update_cached_mouse_cursor(dotted_mouse_cursor.get());
+        cursor_gstate.SetImage(std::move(gen_cursor), has_alpha);
     }
 }
 
@@ -391,27 +407,18 @@ void update_inv_cursor(int invnum) {
     }
 }
 
-void set_new_cursor_graphic (int spriteslot)
+void set_new_cursor_graphic(int spriteslot)
 {
     // It looks like spriteslot 0 can be used in games with version 2.72 and lower.
     // The NULL check should ensure that the sprite is valid anyway.
-    Bitmap *mouse_cur_bmp;
     if ((spriteslot < 1) && (loaded_game_file_version > kGameVersion_272))
     {
-        spriteslot = -1;
-        if (blank_mouse_cursor == nullptr)
-            blank_mouse_cursor.reset(BitmapHelper::CreateTransparentBitmap(1, 1, game.GetColorDepth()));
-        mouse_cur_bmp = blank_mouse_cursor.get();
+        cursor_gstate.SetImage(std::unique_ptr<Bitmap>(BitmapHelper::CreateTransparentBitmap(1, 1, game.GetColorDepth())), false);
     }
     else
     {
-        mouse_cur_bmp = spriteset[spriteslot];
+        cursor_gstate.SetSpriteNum(spriteslot);
     }
-
-    mouse_cur_pic = spriteslot;
-    alpha_blend_cursor = (spriteslot >= 0) ?
-        ((game.SpriteInfos[spriteslot].Flags & SPF_ALPHACHANNEL) != 0) : false;
-    update_cached_mouse_cursor(mouse_cur_bmp);
 }
 
 bool is_standard_cursor_enabled(int curs) {

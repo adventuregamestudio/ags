@@ -82,7 +82,6 @@ extern int displayed_room;
 extern CharacterInfo*playerchar;
 extern int eip_guinum;
 extern int cur_mode,cur_cursor;
-extern IDriverDependantBitmap *mouse_cur_ddb;
 extern int hotx,hoty;
 extern int bg_just_changed;
 
@@ -138,7 +137,7 @@ struct ObjTexture
     // Corresponding texture, created by renderer
     IDriverDependantBitmap *Ddb = nullptr;
     // Sprite notification block: becomes invalid to notify an updated
-    // or deleted sprtie
+    // or deleted sprite
     std::shared_ptr<uint32_t> SpriteNotify;
     // Sprite's position
     Point Pos;
@@ -372,6 +371,8 @@ RoomAreaMask debugRoomMask = kRoomAreaNone;
 ObjTexture debugRoomMaskObj;
 int debugMoveListChar = -1;
 ObjTexture debugMoveListObj;
+// Mouse cursor texture
+ObjTexture cursor_tx;
 
 // Draw cache: keep record of all kinds of things related to the previous drawing state
 //
@@ -792,11 +793,6 @@ void dispose_game_drawdata()
 {
     clear_drawobj_cache();
 
-    // mouse cursor texture
-    if (mouse_cur_ddb)
-        gfxDriver->DestroyDDB(mouse_cur_ddb);
-    mouse_cur_ddb = nullptr;
-
     charcache.clear();
     actsps.clear();
     walkbehindobj.clear();
@@ -850,6 +846,8 @@ void clear_drawobj_cache()
     }
     for (auto &o : guiobjbg) o = ObjTexture();
     overtxs.clear();
+    // Mouse cursor texture
+    cursor_tx = ObjTexture();
 
     // Clear sprite update notification blocks
     drawstate.SpriteNotifyMap.clear();
@@ -2834,14 +2832,26 @@ void construct_game_screen_overlay(bool draw_mouse)
     }
 
     // Mouse cursor
-    if (play.screen_is_faded_out == 0)
+    if ((play.screen_is_faded_out == 0) &&
+        draw_mouse && !play.mouse_cursor_hidden)
     {
-        if (draw_mouse && !play.mouse_cursor_hidden)
+        if (cursor_gstate.HasChanged() || cursor_tx.IsChangeNotified())
+        {
+            cursor_tx.SpriteID = cursor_gstate.GetSpriteNum();
+            if (cursor_tx.SpriteID != UINT32_MAX)
+                sync_object_texture(cursor_tx, cursor_gstate.HasAlphaChannel());
+            else
+                cursor_tx.Ddb = recycle_ddb_bitmap(cursor_tx.Ddb, cursor_gstate.GetImage(), cursor_gstate.HasAlphaChannel());
+            cursor_gstate.ClearChanged();
+        }
+
+        assert(cursor_tx.Ddb); // Test for missing texture, might happen if not marked for update
+        if (cursor_tx.Ddb)
         {
             // Exclusive sub-batch for mouse cursor, to let filter it out (CHECKME later?)
             gfxDriver->BeginSpriteBatch(Rect(), SpriteTransform(), kFlip_None, nullptr, RENDER_BATCH_MOUSE_CURSOR);
-            gfxDriver->DrawSprite(mousex - hotx, mousey - hoty, mouse_cur_ddb);
-            invalidate_sprite(mousex - hotx, mousey - hoty, mouse_cur_ddb, false);
+            gfxDriver->DrawSprite(mousex - hotx, mousey - hoty, cursor_tx.Ddb);
+            invalidate_sprite(mousex - hotx, mousey - hoty, cursor_tx.Ddb, false);
             gfxDriver->EndSpriteBatch();
         }
     }

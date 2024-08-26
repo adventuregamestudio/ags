@@ -125,9 +125,12 @@ inline bool IsWhitespaceNoLineBreak(int c)
 }
 
 // Tells if this character may be a part of a script symbol
-inline bool IsScriptWordChar(int c)
+inline bool IsScriptWordChar(char c)
 {
-    return std::isalnum(c) || c == '_';
+    return ((c >= 'A') && (c <= 'Z')) ||
+           ((c >= 'a') && (c <= 'z')) ||
+           ((c >= '0') && (c <= '9')) ||
+           (c == '_');
 }
 
 // Returns a escaped character corresponding to the given character;

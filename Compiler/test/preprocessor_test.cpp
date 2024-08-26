@@ -537,6 +537,107 @@ Display("test");
     EXPECT_STREQ(last_seen_cc_error(), "#else has no matching #if");
 }
 
+TEST(Preprocess, FormatsScriptName) {
+    Preprocessor pp = Preprocessor();
+
+    String res = pp.Preprocess("", "room2.asc");
+    std::vector<AGSString> lines = SplitLines(res);
+    ASSERT_EQ(lines.size(), 2);
+    ASSERT_STREQ(lines[0].GetCStr(), "\"__NEWSCRIPTSTART_room2.asc\"");
+    clear_error();
+
+    String res2 = pp.Preprocess("", "Rooms\\2\\room2.asc");
+    std::vector<AGSString> lines2 = SplitLines(res2);
+    ASSERT_EQ(lines2.size(), 2);
+    ASSERT_STREQ(lines2[0].GetCStr(), "\"__NEWSCRIPTSTART_Rooms\\\\2\\\\room2.asc\"");
+}
+
+TEST(Preprocess, NonLatinUnicodeComment) {
+    Preprocessor pp = Preprocessor();
+    const char* inpl = R"EOS(
+// this is a comment
+// this is a comment with invalid latin characters Иह€한𐍈 <- here
+// 1234
+//#define invalid 5
+// invalid
+int i;
+)EOS";
+
+    clear_error();
+    String res = pp.Preprocess(inpl, "ScriptNonLatinUnicodeComment");
+
+    EXPECT_STREQ(last_seen_cc_error(), "");
+    std::vector<AGSString> lines = SplitLines(res);
+    ASSERT_EQ(lines.size(), 9);
+
+    ASSERT_STREQ(lines[0].GetCStr(), "\"__NEWSCRIPTSTART_ScriptNonLatinUnicodeComment\"");
+    ASSERT_STREQ(lines[1].GetCStr(), "");
+    ASSERT_STREQ(lines[2].GetCStr(), "");
+    ASSERT_STREQ(lines[3].GetCStr(), "");
+    ASSERT_STREQ(lines[4].GetCStr(), "");
+    ASSERT_STREQ(lines[5].GetCStr(), "");
+    ASSERT_STREQ(lines[6].GetCStr(), "");
+    ASSERT_STREQ(lines[7].GetCStr(), "int i;");
+}
+
+TEST(Preprocess, NonLatinUnicodeInString) {
+    Preprocessor pp = Preprocessor();
+    const char* inpl = R"EOS(
+// this is a comment
+// the string below has invalid latin characters
+string st = "aИह€한𐍈";
+//#define invalid 5
+// invalid
+int i;
+)EOS";
+
+    clear_error();
+    String res = pp.Preprocess(inpl, "ScriptNonLatinUnicodeInString");
+
+    EXPECT_STREQ(last_seen_cc_error(), "");
+    std::vector<AGSString> lines = SplitLines(res);
+    ASSERT_EQ(lines.size(), 9);
+
+    ASSERT_STREQ(lines[0].GetCStr(), "\"__NEWSCRIPTSTART_ScriptNonLatinUnicodeInString\"");
+    ASSERT_STREQ(lines[1].GetCStr(), "");
+    ASSERT_STREQ(lines[2].GetCStr(), "");
+    ASSERT_STREQ(lines[3].GetCStr(), "");
+    ASSERT_STREQ(lines[4].GetCStr(), "string st = \"aИह€한𐍈\";");
+    ASSERT_STREQ(lines[5].GetCStr(), "");
+    ASSERT_STREQ(lines[6].GetCStr(), "");
+    ASSERT_STREQ(lines[7].GetCStr(), "int i;");
+}
+
+TEST(Preprocess, NonLatinUnicodeInScript) {
+    Preprocessor pp = Preprocessor();
+    const char* inpl = R"EOS(
+// the variable below has invalid latin characters
+int aИह€한𐍈 = 15;
+int i;
+)EOS";
+
+    clear_error();
+    pp.Preprocess(inpl, "ScriptName");
+
+    ASSERT_NE(pp.GetLastError().Type, ErrorCode::None);
+    ASSERT_EQ(pp.GetLastError().Type, ErrorCode::InvalidCharacter);
+}
+
+TEST(Preprocess, NonLatinUnicodeInFunctionName) {
+    Preprocessor pp = Preprocessor();
+    const char* inpl = R"EOS(
+// function name has invalid latin characters
+void FuncИह€한𐍈() {
+    int i = 10;
+}
+)EOS";
+
+    clear_error();
+    pp.Preprocess(inpl, "ScriptName");
+
+    ASSERT_NE(pp.GetLastError().Type, ErrorCode::None);
+    ASSERT_EQ(pp.GetLastError().Type, ErrorCode::InvalidCharacter);
+}
 
 } // Preprocessor
 } // AGS

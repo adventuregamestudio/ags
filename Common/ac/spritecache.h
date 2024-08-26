@@ -123,6 +123,11 @@ public:
     bool        IsAssetSprite(sprkey_t index) const;
     // Tells if the sprite is loaded into the memory (either from asset file, or assigned directly)
     bool        IsSpriteLoaded(sprkey_t index) const;
+    // Tells if the given slot represents an "asset sprite", which is currently unloaded.
+    // This is a helper method that lets distinguish an asset missing from memory,
+    // because IsSpriteLoaded() also reports true for external sprites, and false for
+    // any non-occupied sprite slots.
+    bool        IsAssetUnloaded(sprkey_t index) const;
     // Loads sprite using SpriteFile if such index is known,
     // frees the space if cache size reaches the limit
     void        PrecacheSprite(sprkey_t index);

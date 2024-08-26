@@ -2681,6 +2681,9 @@ static void construct_overlays()
             overcache[i].X = pos.X; overcache[i].Y = pos.Y;
         }
 
+        // Test if must recache the unloaded sprite in software mode
+        has_changed |= (is_software_mode && spriteset.IsAssetUnloaded(over.GetSpriteNum()));
+
         if (has_changed || overtx.IsChangeNotified())
         {
             overtx.SpriteID = over.GetSpriteNum();
@@ -2783,10 +2786,11 @@ void construct_game_screen_overlay(bool draw_mouse)
     }
 
     // Mouse cursor
-    if ((play.screen_is_faded_out == 0) &&
-        draw_mouse && !play.mouse_cursor_hidden)
+    if ((play.screen_is_faded_out == 0) && draw_mouse && !play.mouse_cursor_hidden)
     {
-        if (cursor_gstate.HasChanged() || cursor_tx.IsChangeNotified())
+        if (cursor_gstate.HasChanged() || cursor_tx.IsChangeNotified() ||
+            // Test if must recache the unloaded sprite in software mode
+            (drawstate.SoftwareRender && (cursor_gstate.GetSpriteNum() >= 0) && spriteset.IsAssetUnloaded(cursor_gstate.GetSpriteNum())))
         {
             cursor_tx.SpriteID = cursor_gstate.GetSpriteNum();
             if (cursor_tx.SpriteID != UINT32_MAX)

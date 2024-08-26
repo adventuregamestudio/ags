@@ -93,8 +93,8 @@ struct ScreenOverlay
     }
     // Gets actual overlay's image, whether owned by overlay or by a sprite reference
     Common::Bitmap *GetImage() const;
-    // Get sprite id, or 0 if none set
-    int GetSpriteNum() const { return _sprnum; }
+    // Get this overlay's sprite id
+    int  GetSpriteNum() const { return _sprnum; }
     Size GetGraphicSize() const;
     // Assigns an exclusive image to this overlay; the image will be stored as a dynamic sprite
     // in a sprite cache, but owned by this overlay and therefore disposed at its disposal

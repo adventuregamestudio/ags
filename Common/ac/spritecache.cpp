@@ -78,6 +78,13 @@ bool SpriteCache::IsSpriteLoaded(sprkey_t index) const
     return ResourceCache::Exists(index);
 }
 
+bool SpriteCache::IsAssetUnloaded(sprkey_t index) const
+{
+    return index >= 0 && (size_t)index < _spriteData.size() && // in the valid range
+        _spriteData[index].IsAssetSprite() && // found in the game resources
+        !ResourceCache::Exists(index);
+}
+
 void SpriteCache::Reset()
 {
     _file.Close();

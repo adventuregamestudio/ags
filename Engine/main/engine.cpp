@@ -57,6 +57,7 @@
 #include "device/mousew32.h"
 #include "font/agsfontrenderer.h"
 #include "font/fonts.h"
+#include "game/game_init.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/gfxdriverfactory.h"
 #include "gfx/ddb.h"
@@ -766,7 +767,7 @@ void engine_init_game_settings()
     play.swap_portrait_lastchar = -1;
     play.swap_portrait_lastlastchar = -1;
     play.in_conversation = 0;
-    play.skip_display = 3;
+    play.skip_display = kSkipSpeechKeyMouse;
     play.no_multiloop_repeat = 0;
     play.in_cutscene = 0;
     play.fast_forward = 0;
@@ -859,6 +860,10 @@ void engine_init_game_settings()
     usetup.RenderAtScreenRes = 
         (game.options[OPT_RENDERATSCREENRES] == kRenderAtScreenRes_UserDefined && usetup.RenderAtScreenRes) ||
          game.options[OPT_RENDERATSCREENRES] == kRenderAtScreenRes_Enabled;
+
+    // FIXME: this should be done once in InitGameState, but the code for default game settings
+    // is spread across 2 or more functions; keep this extra call here until this nonsense is fixed.
+    ApplyAccessibilityOptions();
 }
 
 void engine_setup_scsystem_auxiliary()

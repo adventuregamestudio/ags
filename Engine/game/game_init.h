@@ -49,7 +49,9 @@ typedef TypedCodeError<GameInitErrorType, GetGameInitErrorText> GameInitError;
 typedef ErrorHandle<GameInitError> HGameInitError;
 
 // Sets up game state for play using preloaded data
-HGameInitError  InitGameState(const LoadedGameEntities &ents, GameDataVersion data_ver);
+HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion data_ver);
+// Applies accessibility options, some of them may override game settings
+void ApplyAccessibilityOptions();
 
 } // namespace Engine
 } // namespace AGS

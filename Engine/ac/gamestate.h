@@ -118,7 +118,7 @@ struct GamePlayState
     int  speech_textwindow_gui = 0;      // textwindow used for sierra-style speech
     int  follow_change_room_timer = 0;   // delay before moving following characters into new room
     int  totalscore = 0;        // maximum possible score
-    int  skip_display = 0;      // how the user can skip normal Display windows
+    SkipSpeechStyle skip_display = kSkipSpeechKeyMouse; // how the user can skip normal Display windows
     int  no_multiloop_repeat = 0; // for backwards compatibility
     int  roomscript_finished = 0; // on_call finished in room
     int  used_inv_on = 0;       // inv item they clicked on
@@ -193,6 +193,7 @@ struct GamePlayState
     short wait_counter = 0;
     char  wait_skipped_by = 0; // tells how last blocking wait was skipped [not serialized]
     int   wait_skipped_by_data = 0; // extended data telling how last blocking wait was skipped [not serialized]
+    SkipSpeechStyle skip_timed_display = kSkipSpeechKeyMouseTime; // how the timed room messages may be skipped (see MSG_TIMELIMIT) [not serialized]
     short mboundx1 = 0;
     short mboundx2 = 0;
     short mboundy1 = 0;
@@ -211,7 +212,7 @@ struct GamePlayState
     int   entered_edge = 0;
     bool  voice_avail = false; // whether voice-over is available
     SpeechMode speech_mode = kSpeech_TextOnly; // speech mode (text, voice, or both)
-    int   speech_skip_style = 0;
+    int   speech_skip_style = 0; // stores SKIP_* flags
     int   script_timers[MAX_TIMERS]{};
     int   sound_volume = 0;
     int   speech_volume = 0;

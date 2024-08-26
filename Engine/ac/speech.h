@@ -27,8 +27,13 @@ enum SkipSpeechStyle
     kSkipSpeechKey          =  5,
     kSkipSpeechMouse        =  6,
 
+    // Aliases for the most useful styles (used in accessibility options)
+    kSkipSpeech_AnyInput    = kSkipSpeechKeyMouse,
+    kSkipSpeech_AnyInputOrTime = kSkipSpeechKeyMouseTime,
+
     kSkipSpeechFirst        = kSkipSpeechNone,
-    kSkipSpeechLast         = kSkipSpeechMouse
+    kSkipSpeechLast         = kSkipSpeechMouse,
+    kNumSpeechSkipOptions   = kSkipSpeechLast - kSkipSpeechFirst
 };
 
 enum SpeechMode

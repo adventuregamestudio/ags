@@ -389,6 +389,14 @@ void apply_config(const ConfigTree &cfg)
         usetup.override_upscale = CfgReadBoolInt(cfg, "override", "upscale", usetup.override_upscale);
         usetup.key_save_game = CfgReadInt(cfg, "override", "save_game_key", 0);
         usetup.key_restore_game = CfgReadInt(cfg, "override", "restore_game_key", 0);
+
+        // Accessibility settings
+        std::array<std::pair<const char*, SkipSpeechStyle>, 4> skip_speech_arr{
+                { { "none", kSkipSpeechNone }, { "input", kSkipSpeech_AnyInput }, { "any", kSkipSpeech_AnyInputOrTime }, { "time", kSkipSpeechTime } } };
+        usetup.access_speechskip = StrUtil::ParseEnumOptions<SkipSpeechStyle>(
+            CfgReadString(cfg, "access", "speechskip"), skip_speech_arr, kSkipSpeechNone);
+        usetup.access_textskip = StrUtil::ParseEnumOptions<SkipSpeechStyle>(
+            CfgReadString(cfg, "access", "textskip"), skip_speech_arr, kSkipSpeechNone);
     }
 
     // Apply logging configuration

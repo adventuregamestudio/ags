@@ -588,7 +588,24 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     if (create_global_script())
         return new GameInitError(kGameInitErr_ScriptLinkFailed, cc_get_error().ErrorString);
 
+    // Apply accessibility options, must be done last, because some
+    // may override startup game settings.
+    ApplyAccessibilityOptions();
+
     return HGameInitError::None();
+}
+
+void ApplyAccessibilityOptions()
+{
+    if (usetup.access_speechskip != kSkipSpeechNone)
+    {
+        play.speech_skip_style = user_to_internal_skip_speech(usetup.access_speechskip);
+    }
+    if (usetup.access_textskip != kSkipSpeechNone)
+    {
+        play.skip_display = usetup.access_textskip;
+        play.skip_timed_display = usetup.access_textskip;
+    }
 }
 
 } // namespace Engine

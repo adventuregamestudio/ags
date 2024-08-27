@@ -49,7 +49,7 @@ namespace AGS.Editor
         /// <summary>
         /// Converts RGB Color to a AGS color number directly, without use of palette or "special" entries.
         /// </summary>
-        public int ColorToAgsColourNumberDirect(Color color)
+        public static int ColorToAgsColourNumberDirect(Color color)
         {
             return color.B | (color.G << 8) | (color.R << 16);
         }
@@ -57,7 +57,7 @@ namespace AGS.Editor
         /// <summary>
         /// Converts AGS color number to RGB Color directly, without use of palette or "special" entries.
         /// </summary>
-        public Color AgsColourNumberToColorDirect(int agsColorNumber)
+        public static Color AgsColourNumberToColorDirect(int agsColorNumber)
         {
             return Color.FromArgb(
                 (agsColorNumber >> 16) & 0xff,
@@ -67,10 +67,15 @@ namespace AGS.Editor
 
         private int FindNearestColourInGamePalette(Color rgbColor)
         {
+            return FindNearestColourInGamePalette(rgbColor, _editor.CurrentGame.Palette);
+        }
+
+        public static int FindNearestColourInGamePalette(Color rgbColor, PaletteEntry[] palette)
+        {
             int nearestDistance = int.MaxValue;
             int nearestIndex = 0;
 
-            foreach (PaletteEntry entry in _editor.CurrentGame.Palette)
+            foreach (PaletteEntry entry in palette)
             {
                 int thisDistance = Math.Abs(entry.Colour.R - rgbColor.R) +
                                    Math.Abs(entry.Colour.G - rgbColor.G) +
@@ -84,6 +89,38 @@ namespace AGS.Editor
             }
 
             return nearestIndex;
+        }
+
+        /// <summary>
+        /// Remaps a color number between two game depths.
+        /// </summary>
+        public static int RemapColourNumberToDepth(int colourNumber, PaletteEntry[] palette,
+            GameColorDepth gameColorDepth, GameColorDepth oldColorDepth)
+        {
+            // If depth settings are identical, then simply return same color
+            if (gameColorDepth == oldColorDepth)
+                return colourNumber;
+
+            // First get a rgb Color from the old color number
+            Color rgbColor;
+            if (oldColorDepth == GameColorDepth.Palette)
+            {
+                rgbColor = palette[colourNumber].Colour;
+            }
+            else
+            {
+                rgbColor = AgsColourNumberToColorDirect(colourNumber);
+            }
+
+            // Then generate a new color number for the new depth setting
+            if (gameColorDepth == GameColorDepth.Palette)
+            {
+                return FindNearestColourInGamePalette(rgbColor, palette);
+            }
+            else
+            {
+                return ColorToAgsColourNumberDirect(rgbColor);
+            }
         }
 
         /// <summary>

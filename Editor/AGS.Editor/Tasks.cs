@@ -548,7 +548,7 @@ namespace AGS.Editor
             // Update all the ColourNumber property values in game
             if (xmlVersionIndex < 4000009)
             {
-                RemapColourNumberProperties(game);
+                RemapLegacyColourProperties(game);
             }
 
             System.Version editorVersion = new System.Version(AGS.Types.Version.AGS_EDITOR_VERSION);
@@ -582,34 +582,47 @@ namespace AGS.Editor
             return returnValue;
         }
 
+        public static void RemapColourPropertiesOnDepthChange(Game game, GameColorDepth oldColorDepth)
+        {
+            Func<int, int> remapColor = (color) => { return ColorMapper.RemapColourNumberToDepth(color, game.Palette, game.Settings.ColorDepth, oldColorDepth); };
+            RemapColourProperties(game, remapColor);
+        }
+
         /// <summary>
         /// Remaps historical 16-bit R6G5B6 values to proper 32-bit ARGB.
         /// </summary>
-        private static void RemapColourNumberProperties(Game game)
+        private static void RemapLegacyColourProperties(Game game)
         {
-            Func<int, int> RemapColor = (color) => { return ColorMapper.RemapFromLegacyColourNumber(color, game.Palette, game.Settings.ColorDepth); };
+            Func<int, int> remapColor = (color) => { return ColorMapper.RemapFromLegacyColourNumber(color, game.Palette, game.Settings.ColorDepth); };
+            RemapColourProperties(game, remapColor);
+        }
 
+        /// <summary>
+        /// Remaps all color properties in game using provided delegate.
+        /// </summary>
+        private static void RemapColourProperties(Game game, Func<int, int> remapColor)
+        {
             var settings = game.Settings;
-            settings.InventoryHotspotMarkerCrosshairColor = RemapColor(settings.InventoryHotspotMarkerCrosshairColor);
-            settings.InventoryHotspotMarkerDotColor = RemapColor(settings.InventoryHotspotMarkerDotColor);
+            settings.InventoryHotspotMarkerCrosshairColor = remapColor(settings.InventoryHotspotMarkerCrosshairColor);
+            settings.InventoryHotspotMarkerDotColor = remapColor(settings.InventoryHotspotMarkerDotColor);
 
             foreach (var c in game.Characters)
             {
-                c.SpeechColor = RemapColor(c.SpeechColor);
+                c.SpeechColor = remapColor(c.SpeechColor);
             }
 
             foreach (var gui in game.GUIs)
             {
-                gui.BackgroundColor = RemapColor(gui.BackgroundColor);
+                gui.BackgroundColor = remapColor(gui.BackgroundColor);
                 if (gui is NormalGUI)
                 {
                     var ngui = gui as NormalGUI;
-                    ngui.BorderColor = RemapColor(ngui.BorderColor);
+                    ngui.BorderColor = remapColor(ngui.BorderColor);
                 }
                 else if (gui is TextWindowGUI)
                 {
                     var tw = gui as TextWindowGUI;
-                    tw.TextColor = RemapColor(tw.TextColor);
+                    tw.TextColor = remapColor(tw.TextColor);
                     // NOTE: TextWindowGUI.BorderColor currently internally maps to TextColor
                 }
 
@@ -618,24 +631,24 @@ namespace AGS.Editor
                     if (ctrl is GUIButton)
                     {
                         GUIButton but = ctrl as GUIButton;
-                        but.TextColor = RemapColor(but.TextColor);
+                        but.TextColor = remapColor(but.TextColor);
                     }
                     else if (ctrl is GUILabel)
                     {
                         GUILabel lab = ctrl as GUILabel;
-                        lab.TextColor = RemapColor(lab.TextColor);
+                        lab.TextColor = remapColor(lab.TextColor);
                     }
                     else if (ctrl is GUIListBox)
                     {
                         GUIListBox list = ctrl as GUIListBox;
-                        list.TextColor = RemapColor(list.TextColor);
-                        list.SelectedTextColor = RemapColor(list.SelectedTextColor);
-                        list.SelectedBackgroundColor = RemapColor(list.SelectedBackgroundColor);
+                        list.TextColor = remapColor(list.TextColor);
+                        list.SelectedTextColor = remapColor(list.SelectedTextColor);
+                        list.SelectedBackgroundColor = remapColor(list.SelectedBackgroundColor);
                     }
                     else if (ctrl is GUITextBox)
                     {
                         GUITextBox textbox = ctrl as GUITextBox;
-                        textbox.TextColor = RemapColor(textbox.TextColor);
+                        textbox.TextColor = remapColor(textbox.TextColor);
                     }
                 }
             }

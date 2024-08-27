@@ -99,7 +99,7 @@ namespace AGS.Editor
                     newVal = 0;
                 }
 
-                Color newColor = AGSEditor.Instance.ColorMapper.AgsColourNumberToColorDirect(newVal);
+                Color newColor = ColorMapper.AgsColourNumberToColorDirect(newVal);
                 trackBarRed.Value = newColor.R;
                 trackBarGreen.Value = newColor.G;
                 trackBarBlue.Value = newColor.B;
@@ -116,8 +116,8 @@ namespace AGS.Editor
             // we'd rather have users see an exact RGB which will be used in game,
             // than to display a desired RGB that is going to be "secretly" clamped at runtime.
             Color rgb = Color.FromArgb(trackBarRed.Value, trackBarGreen.Value, trackBarBlue.Value);
-            rgb = AGSEditor.Instance.ColorMapper.AgsColourNumberToColorDirect(
-                AGSEditor.Instance.ColorMapper.ColorToAgsColourNumberDirect(rgb));
+            rgb = ColorMapper.AgsColourNumberToColorDirect(
+                ColorMapper.ColorToAgsColourNumberDirect(rgb));
             lblRedFinal.Text = string.Format($"({rgb.R})");
             lblGreenFinal.Text = string.Format($"({rgb.G})");
             lblBlueFinal.Text = string.Format($"({rgb.B})");
@@ -128,7 +128,7 @@ namespace AGS.Editor
         {
             _noUpdates = true;
             var newColor = Color.FromArgb(trackBarRed.Value, trackBarGreen.Value, trackBarBlue.Value);
-            int newValue = AGSEditor.Instance.ColorMapper.ColorToAgsColourNumberDirect(newColor);
+            int newValue = ColorMapper.ColorToAgsColourNumberDirect(newColor);
             txtColourNumber.Text = newValue.ToString();
             _noUpdates = false;
             blockOfColour.Invalidate();

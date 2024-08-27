@@ -54,6 +54,8 @@ namespace AGS.Editor.Components
                 newItem.ScriptName = _agsEditor.GetFirstAvailableScriptName("cChar");
                 newItem.RealName = "New character";
                 newItem.StartingRoom = -1;
+                // Default Character colors are set as palette indexes, remap them to proper colors
+                Tasks.RemapCharacterColours(newItem, _agsEditor.CurrentGame, GameColorDepth.Palette);
                 string newNodeID = AddSingleItem(newItem);
                 _guiController.ProjectTree.SelectNode(this, newNodeID);
 				ShowOrAddPane(newItem);

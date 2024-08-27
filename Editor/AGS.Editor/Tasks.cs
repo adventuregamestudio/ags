@@ -582,10 +582,34 @@ namespace AGS.Editor
             return returnValue;
         }
 
+        /// <summary>
+        /// Remaps all color properties in game from old color depth to a new color depth;
+        /// for example: from palette mode to 32-bit mode, or other way.
+        /// </summary>
         public static void RemapColourPropertiesOnDepthChange(Game game, GameColorDepth oldColorDepth)
         {
             Func<int, int> remapColor = (color) => { return ColorMapper.RemapColourNumberToDepth(color, game.Palette, game.Settings.ColorDepth, oldColorDepth); };
             RemapColourProperties(game, remapColor);
+        }
+
+        /// <summary>
+        /// Remaps color properties in particular Character from old color depth to a new color depth;
+        /// for example: from palette mode to 32-bit mode, or other way.
+        /// </summary>
+        public static void RemapCharacterColours(Character character, Game game, GameColorDepth oldColorDepth)
+        {
+            Func<int, int> remapColor = (color) => { return ColorMapper.RemapColourNumberToDepth(color, game.Palette, game.Settings.ColorDepth, oldColorDepth); };
+            RemapColourProperties(character, remapColor);
+        }
+
+        /// <summary>
+        /// Remaps color properties in particular GUI from old color depth to a new color depth;
+        /// for example: from palette mode to 32-bit mode, or other way.
+        /// </summary>
+        public static void RemapGUIColours(GUI gui, Game game, GameColorDepth oldColorDepth)
+        {
+            Func<int, int> remapColor = (color) => { return ColorMapper.RemapColourNumberToDepth(color, game.Palette, game.Settings.ColorDepth, oldColorDepth); };
+            RemapColourProperties(gui, remapColor);
         }
 
         /// <summary>
@@ -608,48 +632,58 @@ namespace AGS.Editor
 
             foreach (var c in game.Characters)
             {
-                c.SpeechColor = remapColor(c.SpeechColor);
+                RemapColourProperties(c, remapColor);
             }
 
             foreach (var gui in game.GUIs)
             {
-                gui.BackgroundColor = remapColor(gui.BackgroundColor);
-                if (gui is NormalGUI)
-                {
-                    var ngui = gui as NormalGUI;
-                    ngui.BorderColor = remapColor(ngui.BorderColor);
-                }
-                else if (gui is TextWindowGUI)
-                {
-                    var tw = gui as TextWindowGUI;
-                    tw.TextColor = remapColor(tw.TextColor);
-                    // NOTE: TextWindowGUI.BorderColor currently internally maps to TextColor
-                }
+                RemapColourProperties(gui, remapColor);
+            }
+        }
 
-                foreach (var ctrl in gui.Controls)
+        private static void RemapColourProperties(Character character, Func<int, int> remapColor)
+        {
+            character.SpeechColor = remapColor(character.SpeechColor);
+        }
+
+        private static void RemapColourProperties(GUI gui, Func<int, int> remapColor)
+        {
+            gui.BackgroundColor = remapColor(gui.BackgroundColor);
+            if (gui is NormalGUI)
+            {
+                var ngui = gui as NormalGUI;
+                ngui.BorderColor = remapColor(ngui.BorderColor);
+            }
+            else if (gui is TextWindowGUI)
+            {
+                var tw = gui as TextWindowGUI;
+                tw.TextColor = remapColor(tw.TextColor);
+                // NOTE: TextWindowGUI.BorderColor currently internally maps to TextColor
+            }
+
+            foreach (var ctrl in gui.Controls)
+            {
+                if (ctrl is GUIButton)
                 {
-                    if (ctrl is GUIButton)
-                    {
-                        GUIButton but = ctrl as GUIButton;
-                        but.TextColor = remapColor(but.TextColor);
-                    }
-                    else if (ctrl is GUILabel)
-                    {
-                        GUILabel lab = ctrl as GUILabel;
-                        lab.TextColor = remapColor(lab.TextColor);
-                    }
-                    else if (ctrl is GUIListBox)
-                    {
-                        GUIListBox list = ctrl as GUIListBox;
-                        list.TextColor = remapColor(list.TextColor);
-                        list.SelectedTextColor = remapColor(list.SelectedTextColor);
-                        list.SelectedBackgroundColor = remapColor(list.SelectedBackgroundColor);
-                    }
-                    else if (ctrl is GUITextBox)
-                    {
-                        GUITextBox textbox = ctrl as GUITextBox;
-                        textbox.TextColor = remapColor(textbox.TextColor);
-                    }
+                    GUIButton but = ctrl as GUIButton;
+                    but.TextColor = remapColor(but.TextColor);
+                }
+                else if (ctrl is GUILabel)
+                {
+                    GUILabel lab = ctrl as GUILabel;
+                    lab.TextColor = remapColor(lab.TextColor);
+                }
+                else if (ctrl is GUIListBox)
+                {
+                    GUIListBox list = ctrl as GUIListBox;
+                    list.TextColor = remapColor(list.TextColor);
+                    list.SelectedTextColor = remapColor(list.SelectedTextColor);
+                    list.SelectedBackgroundColor = remapColor(list.SelectedBackgroundColor);
+                }
+                else if (ctrl is GUITextBox)
+                {
+                    GUITextBox textbox = ctrl as GUITextBox;
+                    textbox.TextColor = remapColor(textbox.TextColor);
                 }
             }
         }

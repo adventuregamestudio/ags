@@ -1227,7 +1227,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Characters",
-        kCharSvgVersion_400_03,
+        kCharSvgVersion_400_09,
         kCharSvgVersion_400,
         WriteCharacters,
         ReadCharacters
@@ -1241,7 +1241,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "GUI",
-        kGuiSvgVersion_40008,
+        kGuiSvgVersion_40009,
         kGuiSvgVersion_Initial,
         WriteGUI,
         ReadGUI

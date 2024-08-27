@@ -153,6 +153,7 @@ enum GuiSvgVersion
     kGuiSvgVersion_36025,
     kGuiSvgVersion_400      = 4000000,
     kGuiSvgVersion_40008    = 4000008, // custom properties
+    kGuiSvgVersion_40009    = 4000009, // 32-bit color properties
 };
 
 // Style of GUI drawing in disabled state

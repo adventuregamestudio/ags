@@ -96,6 +96,7 @@ enum CharacterSvgVersion
     kCharSvgVersion_36115   = 4, // no limit on character name's length
     kCharSvgVersion_400     = 4000000, // extended graphic effects (blend, rotate,...)
     kCharSvgVersion_400_03  = 4000003, // compat with kCharSvgVersion_36115
+    kCharSvgVersion_400_09  = 4000009, // 32-bit color properties
 };
 
 struct CharacterExtras;

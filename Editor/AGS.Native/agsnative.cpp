@@ -147,6 +147,15 @@ struct NativeRoomTools
 };
 std::unique_ptr<NativeRoomTools> RoomTools;
 
+struct NativeDrawState
+{
+    std::unique_ptr<AGSBitmap> guiSurf32;
+    std::unique_ptr<AGSBitmap> guiCtrl32;
+    std::unique_ptr<AGSBitmap> guiMainBmp;
+    std::unique_ptr<AGSBitmap> guiCtrlBmp;
+};
+std::unique_ptr<NativeDrawState> NDrawState;
+
 
 HAGSError reset_sprite_file();
 HAGSError reset_sprite_file(const AGSString &spritefile, const AGSString &indexfile);
@@ -1129,12 +1138,14 @@ bool initialize_native()
     new_font();
 
 	RoomTools.reset(new NativeRoomTools());
+    NDrawState.reset(new NativeDrawState());
 	return true;
 }
 
 void shutdown_native()
 {
     RoomTools.reset();
+    NDrawState.reset();
     // We must dispose all native bitmaps before shutting down the library
     thisroom.Free();
     shutdown_font_renderer();
@@ -1199,37 +1210,68 @@ void drawSpriteStretch(HDC hdc, int x, int y, int width, int height, int spriteN
 
 void drawGUIAt(HDC hdc, int x, int y, int x1, int y1, int x2, int y2, int resolutionFactor, float scale, int ctrl_trans)
 {
-  if ((tempgui.Width < 1) || (tempgui.Height < 1))
-    return;
+    if ((tempgui.Width < 1) || (tempgui.Height < 1))
+        return;
 
-  if (resolutionFactor == 1) {
-    dsc_want_hires = 1;
-  }
+    if (resolutionFactor == 1)
+        dsc_want_hires = 1;
 
-  std::unique_ptr<AGSBitmap> tempblock(new AGSBitmap(tempgui.Width, tempgui.Height, thisgame.color_depth * 8));
-  tempblock->Clear(tempblock->GetMaskColor());
+    // Prepare bitmaps
+    const ::Size gui_size = ::Size(tempgui.Width, tempgui.Height);
+    if (NDrawState->guiSurf32 == nullptr || (NDrawState->guiSurf32->GetSize() != gui_size))
+    {
+        NDrawState->guiSurf32.reset(new AGSBitmap(gui_size.Width, gui_size.Height, 32));
+        NDrawState->guiCtrl32.reset(new AGSBitmap(gui_size.Width, gui_size.Height, 32));
+    }
+    if (thisgame.color_depth != 4 && ((NDrawState->guiMainBmp == nullptr) || (NDrawState->guiMainBmp->GetSize() != gui_size)))
+    {
+        NDrawState->guiMainBmp.reset(new AGSBitmap(gui_size.Width, gui_size.Height, thisgame.color_depth * 8));
+        NDrawState->guiCtrlBmp.reset(new AGSBitmap(gui_size.Width, gui_size.Height, thisgame.color_depth * 8));
+    }
 
-  tempgui.DrawSelf(tempblock.get());
-  if (ctrl_trans == 0)
-  {
-      tempgui.DrawControls(tempblock.get());
-  }
-  else if (ctrl_trans < 100)
-  {
-      std::unique_ptr<AGSBitmap> ctrl_bmp(new AGSBitmap(tempgui.Width, tempgui.Height, thisgame.color_depth * 8));
-      ctrl_bmp->Clear(ctrl_bmp->GetMaskColor());
-      tempgui.DrawControls(ctrl_bmp.get());
-      set_trans_blender(0, 0, 0, AGS::Common::GfxDef::Trans100ToAlpha255(ctrl_trans));
-      tempblock->TransBlendBlt(ctrl_bmp.get(), 0, 0);
-  }
+    if (thisgame.color_depth == 1)
+        set_palette(palette);
 
-  dsc_want_hires = 0;
+    // Draw parent GUI
+    AGSBitmap *guimain_bmp = (thisgame.color_depth == 4) ? NDrawState->guiSurf32.get() : NDrawState->guiMainBmp.get();
+    guimain_bmp->ResetClip();
+    guimain_bmp->Clear(guimain_bmp->GetMaskColor());
+    tempgui.DrawSelf(guimain_bmp);
+    // Draw controls
+    AGSBitmap *guictrl_bmp = (thisgame.color_depth == 4) ? NDrawState->guiCtrl32.get() : NDrawState->guiCtrlBmp.get();
+    guictrl_bmp->ResetClip();
+    guictrl_bmp->Clear(guictrl_bmp->GetMaskColor());
+    tempgui.DrawControls(guictrl_bmp);
 
-  if (x1 >= 0) {
-    tempblock->DrawRect(Rect (x1, y1, x2, y2), 14);
-  }
+    // Merge drawn parts
+    AGSBitmap *final_gui = NDrawState->guiSurf32.get();
+    AGSBitmap *final_ctrl = NDrawState->guiCtrl32.get();
+    if (thisgame.color_depth != 4)
+    {
+        const int old_conv = get_color_conversion();
+        set_color_conversion(old_conv | COLORCONV_KEEP_TRANS);
+        final_gui->Blit(NDrawState->guiMainBmp.get());
+        final_ctrl->Blit(NDrawState->guiCtrlBmp.get());
+        set_color_conversion(old_conv);
+    }
+    if (ctrl_trans == 0)
+    {
+        final_gui->MaskedBlit(final_ctrl);
+    }
+    else if (ctrl_trans < 100)
+    {
+        set_trans_blender(0, 0, 0, AGS::Common::GfxDef::Trans100ToAlpha255(ctrl_trans));
+        final_gui->TransBlendBlt(final_ctrl);
+    }
 
-  drawBlockScaledAt(hdc, tempblock.get(), x, y, scale);
+    dsc_want_hires = 0;
+
+    if (x1 >= 0)
+    {
+        final_gui->DrawRect(Rect (x1, y1, x2, y2), 14);
+    }
+
+    drawBlockScaledAt(hdc, final_gui, x, y, scale);
 }
 
 #define SIMP_INDEX0  0

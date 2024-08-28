@@ -252,32 +252,16 @@ namespace AGS.Types
             set { _speechAnimationDelay = value; }
         }
 
-        [Description("The AGS Colour Number of character's speech text")]
+        [Description("Color of character's speech text")]
         [Category("Appearance")]
-        [DisplayName("SpeechColorNumber")]
+        [DisplayName("SpeechColor")]
         [RefreshProperties(RefreshProperties.All)]
+        [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [TypeConverter(typeof(CustomColorConverter))]
         public int SpeechColor
         {
             get { return _speechColor; }
             set { _speechColor = value; }
-        }
-
-        [Description("Character's Speech Color in RGB")]
-        [Category("Appearance")]
-        [DisplayName("SpeechColor")]
-        [RefreshProperties(RefreshProperties.All)]
-        [AGSNoSerialize]
-        [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
-        public Color SpeechColorRGB
-        {
-            get
-            {
-                return new AGSColor(_speechColor).ToRgb();
-            }
-            set
-            {
-                _speechColor = new AGSColor(value).ColorNumber;
-            }
         }
 
         [Description("If true, this character cannot walk through any other characters marked as Solid")]

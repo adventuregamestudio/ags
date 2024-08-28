@@ -41,32 +41,16 @@ namespace AGS.Types
             set { _textAlign = value; }
         }
 
-        [Description("AGS Colour Number of the label text")]
-        [Category("Appearance")]
-        [DisplayName("TextColourNumber")]
-        [RefreshProperties(RefreshProperties.All)]
-        public int TextColor
-        {
-            get { return _textColor; }
-            set { _textColor = value; }
-        }
-
         [Description("Colour of the label text")]
         [Category("Appearance")]
         [DisplayName("TextColor")]
         [RefreshProperties(RefreshProperties.All)]
-        [AGSNoSerialize]
         [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
-        public Color TextColorRGB
+        [TypeConverter(typeof(CustomColorConverter))]
+        public int TextColor
         {
-            get
-            {
-                return new AGSColor(_textColor).ToRgb();
-            }
-            set
-            {
-                _textColor = new AGSColor(value).ColorNumber;
-            }
+            get { return _textColor; }
+            set { _textColor = value; }
         }
 
         [Description("Font to use for the text on this label")]

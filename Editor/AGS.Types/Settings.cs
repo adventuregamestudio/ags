@@ -488,8 +488,10 @@ namespace AGS.Types
         }
 
         [DisplayName("Inventory item cursor hotspot marker dot colour")]
-        [Description("The AGS Colour Number of the colour of the central dot of the crosshair")]
+        [Description("The colour of the central dot of the crosshair")]
         [Category("Inventory")]
+        [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [TypeConverter(typeof(CustomColorConverter))]
         public int InventoryHotspotMarkerDotColor
         {
             get { return _inventoryHotspotMarker.DotColor; }
@@ -497,8 +499,10 @@ namespace AGS.Types
         }
 
         [DisplayName("Inventory item cursor hotspot marker crosshair colour")]
-        [Description("The AGS Colour Number of the colour of the crosshair bars")]
+        [Description("The colour of the crosshair bars")]
         [Category("Inventory")]
+        [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [TypeConverter(typeof(CustomColorConverter))]
         public int InventoryHotspotMarkerCrosshairColor
         {
             get { return _inventoryHotspotMarker.CrosshairColor; }

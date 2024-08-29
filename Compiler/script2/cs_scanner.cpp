@@ -560,10 +560,17 @@ void AGS::Scanner::ReadInStringLit(std::string &symstring, std::string &valstrin
         if (Failed() || '\n' == ch || '\r' == ch)
             break; // to error msg
 
+        // CHECKME: a problem was found where _eofReached is set while testing for the
+        // new section marker, but not unset, which leads to unexpected errors
+        // (look for the relevant code further below). Additionally, this mistake seems
+        // to only happen when using a GCC compiler; a difference in stdlibs suspected.
+        // See comments in PR #2508 for details.
         if (EOFReached() && _inputStream.eof())
         {
             break; // to error msg
-        } else {
+        }
+        else
+        {
             _eofReached = false;
         }
 

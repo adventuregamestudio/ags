@@ -994,6 +994,38 @@ TEST_F(Scan, ConsecutiveStringLiterals3)
     EXPECT_EQ(1, scanner.GetLineno());
 }
 
+TEST_F(Scan, ConsecutiveStringLiterals4)
+{
+    // Consecutive string literals where one in the middle was not closed
+    // Scanner will think that first part is a string literal, second is an identifier,
+    // and there's an unclosed empty string literal in the end.
+
+    std::string Input = "\"Supercalifragilistic  \"expialidocious\"; ";
+    AGS::Scanner scanner(Input, token_list, string_collector, sym, mh);
+
+    EXPECT_EQ(0, scanner.GetNextSymstringT(symstring, sct, value));
+    EXPECT_STREQ("\"Supercalifragilistic  \"", symstring.c_str());
+    EXPECT_EQ(0, scanner.GetNextSymstringT(symstring, sct, value));
+    EXPECT_STREQ("expialidocious", symstring.c_str());
+    EXPECT_GT(0, scanner.GetNextSymstringT(symstring, sct, value));
+    ASSERT_TRUE(scanner.EOFReached());
+    std::string errmsg = mh.GetError().Message;
+    EXPECT_NE(std::string::npos, errmsg.find("nput ended"));
+}
+
+TEST_F(Scan, ConsecutiveStringLiterals5)
+{
+    // Consecutive string literals where the trailing one was not closed
+
+    std::string Input = "\"Supercalifragilistic\"\n   \n   \n  \"expialidocious";
+    AGS::Scanner scanner(Input, token_list, string_collector, sym, mh);
+
+    EXPECT_GT(0, scanner.GetNextSymstringT(symstring, sct, value));
+    ASSERT_TRUE(scanner.EOFReached());
+    std::string errmsg = mh.GetError().Message;
+    EXPECT_NE(std::string::npos, errmsg.find("nput ended"));
+}
+
 TEST_F(Scan, EmptyStringLiteral)
 {
     // Handling empty string literal

@@ -38,6 +38,7 @@ using Common::Bitmap;
 namespace GfxUtil
 {
     // Creates a COPY of the source bitmap, converted to the given format.
+    // Keeps mask pixels intact, only converting mask color value if necessary.
     Bitmap *ConvertBitmap(Bitmap *src, int dst_color_depth);
 
     // Considers the given information about source and destination surfaces,
@@ -50,7 +51,7 @@ namespace GfxUtil
     // Draws a bitmap over another one with given alpha level (0 - 255),
     // takes account of the bitmap's mask color,
     // ignores image's alpha channel, even if there's one;
-    // does proper conversion depending on respected color depths.
+    // does a conversion if sprite and destination color depths do not match.
     void DrawSpriteWithTransparency(Bitmap *ds, Bitmap *sprite, int x, int y, int alpha = 0xFF);
 } // namespace GfxUtil
 

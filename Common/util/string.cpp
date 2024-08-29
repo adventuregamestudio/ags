@@ -19,6 +19,7 @@
 #include "util/stream.h"
 #include "util/string.h"
 #include "util/string_compat.h"
+#include "utf8.h"
 
 namespace AGS
 {
@@ -369,6 +370,20 @@ String String::Upper() const
     return str;
 }
 
+String String::LowerUTF8() const
+{
+    String str = *this;
+    str.MakeLowerUTF8();
+    return str;
+}
+
+String String::UpperUTF8() const
+{
+    String str = *this;
+    str.MakeUpperUTF8();
+    return str;
+}
+
 String String::Left(size_t count) const
 {
     count = std::min(count, _len);
@@ -713,6 +728,24 @@ void String::MakeUpper()
     {
         BecomeUnique();
         ags_strupr(_cstr);
+    }
+}
+
+void String::MakeLowerUTF8()
+{
+    if (_len != 0)
+    {
+        BecomeUnique();
+        Utf8::CStrToLower(_cstr);
+    }
+}
+
+void String::MakeUpperUTF8()
+{
+    if (_len != 0)
+    {
+        BecomeUnique();
+        Utf8::CStrToUpper(_cstr);
     }
 }
 

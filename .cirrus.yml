@@ -178,8 +178,7 @@ build_macos_task:
   skip: "!changesInclude('OSX/**')"
   only_if: $CIRRUS_RELEASE == ''
   macos_instance:
-    matrix:
-      - image: ghcr.io/cirruslabs/macos-ventura-xcode:latest # newest release of current version
+    image: ghcr.io/cirruslabs/macos-runner:sonoma # newest release of current version
   env:
     CMAKE_VERSION: 3.22.3
     NINJA_VERSION: 1.11.1
@@ -216,12 +215,13 @@ build_macos_task:
   setup_destdir_script: |
     mkdir destdir_debug
     mkdir destdir_release
-    xcode=$(xcodebuild -version | awk '{ print $2; exit }')
-    ln -s destdir_debug/bin bin_${xcode}_debug
-    ln -s destdir_release/bin bin_${xcode}_release
+    xcodebuild -version > xcodeversion
+    xcode=$(awk '{ print $2; exit }' xcodeversion)
+    echo ${xcode}
+    ln -s destdir_debug/bin bin_debug
+    ln -s destdir_release/bin bin_release
   build_debug_script: |
-    xcode=$(xcodebuild -version | awk '{ print $2; exit }')
-    mkdir build_${xcode}_debug && cd build_${xcode}_debug
+    mkdir build_debug && cd build_debug
     /Applications/CMake.app/Contents/bin/cmake -S .. -B . -G "Ninja" \
       -DCMAKE_BUILD_TYPE=Debug \
       -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" \
@@ -230,12 +230,10 @@ build_macos_task:
       -DCMAKE_INSTALL_PREFIX="$(cd ../destdir_debug && pwd)"
     ninja install
   test_macos_debug_script: |
-    xcode=$(xcodebuild -version | awk '{ print $2; exit }')
-    cd build_${xcode}_debug
+    cd build_debug
     ctest --output-on-failure
   build_release_script: |
-    xcode=$(xcodebuild -version | awk '{ print $2; exit }')
-    mkdir build_${xcode}_release && cd build_${xcode}_release
+    mkdir build_release && cd build_release
     /Applications/CMake.app/Contents/bin/cmake -S .. -B . -G "Ninja" \
       -DCMAKE_BUILD_TYPE=Release \
       -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" \
@@ -244,8 +242,7 @@ build_macos_task:
       -DCMAKE_INSTALL_PREFIX="$(cd ../destdir_release && pwd)"
     ninja install
   test_macos_release_script: |
-    xcode=$(xcodebuild -version | awk '{ print $2; exit }')
-    cd build_${xcode}_release
+    cd build_release
     ctest --output-on-failure
   binaries_artifacts:
     path: bin_*/*

@@ -229,6 +229,11 @@ public:
     // Creates an uppercased copy of the string
     String  Upper() const;
 
+    // Creates a lowercased copy of the utf-8 string
+    String  LowerUTF8() const;
+    // Creates an uppercased copy of the utf-8 string
+    String  UpperUTF8() const;
+
     // Extract N leftmost characters as a new string
     String  Left(size_t count) const;
     // Extract up to N characters starting from given index
@@ -304,6 +309,10 @@ public:
     void    MakeLower();
     // Convert string to uppercase equivalent
     void    MakeUpper();
+    // Convert utf-8 string to lowercase equivalent
+    void    MakeLowerUTF8();
+    // Convert utf-8 string to uppercase equivalent
+    void    MakeUpperUTF8();
     // Merges sequences of same characters into one
     void    MergeSequences(char c = 0);
     // Prepend* methods add content before the string's head, increasing its length
@@ -435,6 +444,7 @@ private:
         char      *_buf;     // reference-counted data (raw ptr)
         BufHeader *_bufHead; // the header of a reference-counted data
     };
+
 };
 
 } // namespace Common

@@ -21,6 +21,9 @@
     <ClCompile Include="..\..\Common\util\multifilelib.cpp">
       <Filter>Common</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Common\util\cmdlineopts.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Common\util\file.cpp">
       <Filter>Common</Filter>
     </ClCompile>
@@ -31,6 +34,9 @@
       <Filter>Common</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Common\util\filestream.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\textstreamreader.cpp">
       <Filter>Common</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Common\util\string_utils.cpp">
@@ -55,6 +61,9 @@
       <Filter>Common</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Tools\data\mfl_utils.cpp">
+      <Filter>data</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Tools\data\include_utils.cpp">
       <Filter>data</Filter>
     </ClCompile>
   </ItemGroup>

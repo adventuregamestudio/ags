@@ -7,6 +7,9 @@
     <ClCompile Include="..\..\Common\util\string.cpp">
       <Filter>Source Files\cs</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Common\util\string_compat.c">
+      <Filter>Source Files\cs</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Compiler\script2\cc_compiledscript.cpp">
       <Filter>Source Files\script</Filter>
     </ClCompile>
@@ -49,6 +52,9 @@
       <Filter>Header Files\cs</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\util\string.h">
+      <Filter>Header Files\cs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\util\string_compat.h">
       <Filter>Header Files\cs</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Compiler\script2\cc_compiledscript.h">

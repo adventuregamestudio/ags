@@ -16,6 +16,8 @@
 #include <stdlib.h>
 #include "cc_internallist.h"
 
+const AGS::Symbol AGS::SrcList::kEOF = 0;
+
 static int currentline;  
 
 AGS::LineHandler::LineHandler()

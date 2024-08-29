@@ -6,6 +6,7 @@ CFLAGS := -O2 -g \
 	-Wunused-result \
 	-Wno-unused-value  \
 	-Werror=write-strings -Werror=format -Werror=format-security \
+	-DLEGACY_COMPILER \
 	-DNDEBUG \
 	-D_FILE_OFFSET_BITS=64 -DRTLD_NEXT \
 	$(CFLAGS)

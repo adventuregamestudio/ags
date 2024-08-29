@@ -122,7 +122,7 @@ private:
     void NewSection(std::string const &section);
 
     // Convert 'valstring' to a long long (!)
-    long long StringToLongLong(std::string const &valstring, bool &conversion_successful) const;
+    int64_t StringToLongLong(std::string const &valstring, bool &conversion_successful) const;
 
     // Read in either an int literal or a float literal
     // Note: appends to symstring, doesn't clear it first.

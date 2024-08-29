@@ -15,6 +15,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 #include "core/platform.h"
 
 char *ags_strlwr(char *s)
@@ -62,4 +63,29 @@ char *ags_strdup(const char *s)
 char *ags_strstr(const char *haystack, const char *needle)
 {
     return strstr(haystack, needle);
+}
+
+int ags_strncpy_s(char* strDest, size_t numberOfElements, const char* strSource, size_t count)
+{
+    size_t copyLength;
+    int written;
+    if (!strDest || !strSource || numberOfElements == 0)
+    {
+        return 22; // EINVAL - Invalid argument error
+    }
+
+    copyLength = (count < numberOfElements - 1) ? count : numberOfElements - 1;
+
+    // snprintf ensures null-termination, we are using precision here to force the string limit
+    written = snprintf(strDest, numberOfElements, "%.*s", (int)copyLength /*string width*/, strSource);
+
+    // ...if all goes wrong (snprintf fails (encoding?) or doesn't fit the buffer (major error??))
+    if (written < 0 || (size_t)written >= numberOfElements)
+    {
+        if (numberOfElements > 0)
+            strDest[0] = '\0';  // Null-terminate the destination buffer
+        return 34; // ERANGE - buffer is too small
+    }
+
+    return 0; // Success
 }

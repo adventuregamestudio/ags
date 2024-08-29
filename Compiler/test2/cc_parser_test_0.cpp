@@ -24,6 +24,7 @@
 #include "script2/cs_parser.h"
 
 #include "cc_parser_test_lib.h"
+#include "util/string_compat.h"
 
 int cc_compile(std::string const &inpl, AGS::ccCompiledScript &scrip)
 {
@@ -57,8 +58,9 @@ int cc_compile(std::string const &inpl, AGS::ccCompiledScript &scrip)
     AGS::MessageHandler::Entry const &err = mh.GetError();
     static char buffer[256];
     ccCurScriptName = buffer;
-    strncpy_s(
+    ags_strncpy_s(
         buffer,
+        sizeof(buffer),
         err.Section.c_str(),
         sizeof(buffer) / sizeof(char) - 1);
     currentline = err.Lineno;

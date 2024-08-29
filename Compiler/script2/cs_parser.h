@@ -283,8 +283,8 @@ private:
             kLOC_SymbolTable, // in the entry _sym[this->Symbol]
         } Location = kLOC_None;
 
-        Symbol Symbol = kKW_NoSymbol; 
-        Vartype Vartype = kKW_NoSymbol;
+        ::Symbol Symbol = kKW_NoSymbol;
+        ::Vartype Vartype = kKW_NoSymbol;
         bool LocalNonParameter = true;
         bool SideEffects = false;
         bool Modifiable = false;
@@ -296,7 +296,7 @@ private:
     class RegisterTracking
     {
     public:
-        typedef unsigned long TickT;
+        typedef uint32_t TickT;
 
     private:
         ccCompiledScript &_scrip;
@@ -341,7 +341,7 @@ private:
 
     public:
         MarMgr(Parser &parser);
-        MarMgr& MarMgr::operator=(const MarMgr &other);
+        MarMgr& operator=(const MarMgr &other);
 
         // Set the type and the start offset of the MAR register
         void SetStart(ScopeType type, size_t offset);
@@ -697,7 +697,7 @@ private:
     
     void AccessData_Variable(VariableAccess access_type, SrcList &expression, EvaluationResult &eres);
 
-    void AGS::Parser::AccessData_This(EvaluationResult &eres);
+    void AccessData_This(EvaluationResult &eres);
 
     // We're getting a variable, literal, constant, func call or the first element
     // of a STRUCT.STRUCT.STRUCT... cascade.

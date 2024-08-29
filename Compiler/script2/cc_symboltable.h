@@ -11,12 +11,13 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __CC_SYMBOLTABLE_H
-#define __CC_SYMBOLTABLE_H
+#ifndef __AGS_COMPILER_SCRIPT2_CC_SYMBOLTABLE_H
+#define __AGS_COMPILER_SCRIPT2_CC_SYMBOLTABLE_H
 
 #include "cs_parser_common.h"   
 #include "cs_compile_time.h"
 
+#include <climits>
 #include <unordered_map>
 #include <map>
 #include <bitset>
@@ -107,8 +108,11 @@ public:
 
     // For iterating over type qualifiers; use it->first to get the qualifier
     // for (auto it = tqs.begin(); it != tqs.end(); it++)
-    inline auto begin() const { return TQToSymbolMap().begin(); }
-    inline auto end() const { return TQToSymbolMap().end(); }
+    // auto in return type is C++14 feature but we are still in C+11
+    inline std::map<AGS::TQ, int, std::less<AGS::TQ>, std::allocator<std::pair<const AGS::TQ, int> > >::const_iterator
+        begin() const { return TQToSymbolMap().begin(); }
+    inline std::map<AGS::TQ, int, std::less<AGS::TQ>, std::allocator<std::pair<const AGS::TQ, int> > >::const_iterator
+        end() const { return TQToSymbolMap().end(); }
 
     inline bool empty() { return _flags == std::bitset<16u>{}; }
 
@@ -231,14 +235,12 @@ struct SymbolTableEntry;
 class SymbolTableConstant
 {
 public:
-    static size_t const kParameterScope = 1u;
-    static size_t const kFunctionScope = 2u;
-
-    static size_t const kNoSrcLocation = INT_MAX;
-
-    static int const kNoPrio = -1;
-    static int const kNoOpcode = -1;
-    static int const kSpecialLogic = -2;
+    static const size_t kParameterScope;
+    static const size_t kFunctionScope;
+    static const size_t kNoSrcLocation;
+    static const int kNoPrio;
+    static const int kNoOpcode;
+    static const int kSpecialLogic;
 };
 
 struct SymbolTableEntry : public SymbolTableConstant
@@ -343,7 +345,7 @@ struct SymbolTableEntry : public SymbolTableConstant
     SymbolTableEntry(SymbolTableEntry const &orig);
     ~SymbolTableEntry();
     // Deep copy semantics for the pointers
-    SymbolTableEntry &SymbolTableEntry::operator=(const SymbolTableEntry &);
+    SymbolTableEntry &operator=(const SymbolTableEntry &);
     // Note, does not clear the Name field
     void Clear();
 };
@@ -443,7 +445,7 @@ public:
     inline bool IsPredefined(Symbol s) const { return s <= kKW_LastPredefined; }
     
     // The name to the symbol. Will also print vartype designations, e.g. ArrayFoo[5]
-    std::string const SymbolTable::GetName(Symbol symbl) const;
+    std::string const GetName(Symbol symbl) const;
 
     // Whether the symbol can be part of an expression.
     // Note: Whatever is within delimeters will be skipped completely
@@ -547,4 +549,4 @@ public:
     inline int GetDeclared(int idx) { return entries[idx].Declared; };
     };
 } // namespace AGS
-#endif //__CC_SYMBOLTABLE_H
+#endif //__AGS_COMPILER_SCRIPT2_CC_SYMBOLTABLE_H

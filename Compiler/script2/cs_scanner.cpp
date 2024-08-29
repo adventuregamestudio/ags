@@ -143,7 +143,7 @@ void AGS::Scanner::GetNextSymstring(std::string &symstring, ScanType &scan_type,
         }
 
         scan_type = kSct_StringLiteral;
-        value = _stringCollector.AddString(valstring.c_str());
+        value = _stringCollector.AddString(valstring);
         return;
     }
 
@@ -151,7 +151,6 @@ void AGS::Scanner::GetNextSymstring(std::string &symstring, ScanType &scan_type,
     scan_type = kSct_NonAlphanum;
     switch (next_char)
     {
-    default:  break;
     case '!': return ReadIn1or2Char("=", symstring);
     case '%': return ReadIn1or2Char("=", symstring);
     case '&': return ReadIn1or2Char("&=", symstring);
@@ -179,6 +178,7 @@ void AGS::Scanner::GetNextSymstring(std::string &symstring, ScanType &scan_type,
     case '|': return ReadIn1or2Char("=|", symstring);
     case '}': return ReadIn1Char(symstring);
     case '~': return ReadIn1Char(symstring);
+    default:  break;
     }
 
     // Here when we don't know how to process the next char to be read
@@ -254,7 +254,7 @@ void AGS::Scanner::SkipWhitespace()
     }
 }
 
-long long AGS::Scanner::StringToLongLong(std::string const &valstring, bool &conversion_successful) const
+int64_t AGS::Scanner::StringToLongLong(std::string const &valstring, bool &conversion_successful) const
 {
     errno = 0;
     char *endptr;
@@ -266,7 +266,7 @@ long long AGS::Scanner::StringToLongLong(std::string const &valstring, bool &con
         // Force interpreting the integer as decimal instead of octal
         base = 10;
     }
-    long long retval = std::strtoll(valstring.c_str(), &endptr, base);
+    int64_t retval = std::strtoll(valstring.c_str(), &endptr, base);
     conversion_successful =
         (errno == 0 || errno == ERANGE) &&                  // ignore range error here
         valstring.length() == endptr - valstring.c_str();   // ensure that all chars were used up in the conversion
@@ -351,18 +351,18 @@ void AGS::Scanner::ReadInNumberLit(std::string &symstring, ScanType &scan_type, 
 
     bool can_be_an_integer;
     // Convert to a long long (!) so that -LONG_MIN is still within the range that we must allow.
-    long long longlong_value = StringToLongLong(valstring.c_str(), can_be_an_integer);
+    int64_t longlong_value = StringToLongLong(valstring.c_str(), can_be_an_integer);
     if (can_be_an_integer)
     {
         if (valstring.length() > 1u && '0' == valstring[0] && IsDigit(valstring[1]))
             Warning("'%s' is interpreted as a number in decimal notation", symstring.c_str());
 
-        if (longlong_value > LONG_MAX)
+        if (longlong_value > INT32_MAX)
         {
             if (valstring.length() > 2u &&
                 IsDigit(valstring[0]) &&
                 IsDigit(valstring[1]) &&
-                longlong_value == -static_cast<long long>(LONG_MIN))
+                longlong_value == -static_cast<int64_t>(INT32_MIN))
             {
                 // Special case. This is out-of-range for integers,
                 // but might still be allowed when preceded by a _unary_ minus.
@@ -394,12 +394,12 @@ void AGS::Scanner::ReadInNumberLit(std::string &symstring, ScanType &scan_type, 
                 UserError(
                     "Literal integer '%s' is out of bounds (maximum is '%d')",
                     symstring.length() <= 20u ? symstring.c_str() : (symstring.substr(0u, 20u) + "...").c_str(),
-                    LONG_MAX);
+                    INT32_MAX);
             }
         }
 
         scan_type = kSct_IntLiteral;
-        value = static_cast<long>(longlong_value);
+        value = static_cast<int32_t>(longlong_value);
         return;
     }
 
@@ -557,8 +557,15 @@ void AGS::Scanner::ReadInStringLit(std::string &symstring, std::string &valstrin
     {
         int ch = Get();
         symstring.push_back(ch);
-        if (EOFReached() || Failed() || '\n' == ch || '\r' == ch)
+        if (Failed() || '\n' == ch || '\r' == ch)
             break; // to error msg
+
+        if (EOFReached() && _inputStream.eof())
+        {
+            break; // to error msg
+        } else {
+            _eofReached = false;
+        }
 
         if ('\\' == ch)
         {

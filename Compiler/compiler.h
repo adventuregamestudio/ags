@@ -37,6 +37,7 @@ class CompilerOptions{
         bool EnforceNewStrings = true;        // do not allow old-style strings
         bool EnforceNewAudio = true;
         bool UseOldCustomDialogOptionsAPI = false;
+        bool UnicodeMode = true;
     };
 
     struct ScriptAPI {

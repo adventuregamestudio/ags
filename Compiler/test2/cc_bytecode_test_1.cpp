@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include <string>
+#include <cstdint>
 
 #include "gtest/gtest.h"
 #include "cc_bytecode_test_lib.h"
@@ -1620,7 +1621,7 @@ TEST_F(Bytecode1, Attributes08) {
 TEST_F(Bytecode1, Attributes09) {
 
     // Function call to 'set_Visible()' mustn't go awry
-    // After loading 'true' to AX´, must protect AX from being clobbered (push it)
+    // After loading 'true' to AX, must protect AX from being clobbered (push it)
 
     char const *inpl = "\
         enum bool { false = 0, true };                  \n\
@@ -3390,8 +3391,8 @@ TEST_F(Bytecode1, LongMin1) {
 
     int32_t code[] = {
       36,    4,   38,    0,           36,    5,    6,    3,    // 7
-    LONG_MIN,   29,    3,   36,            6,    6,    3, 2147483647,    // 15
-      29,    3,   36,    7,            6,    3, LONG_MIN,   29,    // 23
+      INT32_MIN,   29,    3,   36,            6,    6,    3, 2147483647,    // 15
+      29,    3,   36,    7,            6,    3, INT32_MIN,   29,    // 23
        3,    6,    3,    0,           23,    3,    2,    1,    // 31
        4,   29,    3,    6,            3, -2147483646,   30,    4,    // 39
       11,    4,    3,    3,            4,    3,    2,    1,    // 47

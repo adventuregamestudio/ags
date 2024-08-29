@@ -18,6 +18,13 @@
 #include "cc_symboltable.h"
 #include "script/cc_internal.h"
 
+const size_t AGS::SymbolTableConstant::kParameterScope = 1u;
+const size_t AGS::SymbolTableConstant::kFunctionScope = 2u;
+const size_t AGS::SymbolTableConstant::kNoSrcLocation = INT_MAX;
+const int AGS::SymbolTableConstant::kNoPrio = -1;
+const int AGS::SymbolTableConstant::kNoOpcode = -1;
+const int AGS::SymbolTableConstant::kSpecialLogic = -2;
+
 AGS::SymbolTableEntry::~SymbolTableEntry()
 {
     // (note that null pointers may be safely 'delete'd, in contrast to 'free'd)
@@ -366,7 +373,7 @@ AGS::SymbolTable::SymbolTable()
     {
         Symbol const long_min_sym = Add("-2147483648");
         MakeEntryLiteral(long_min_sym);
-        entries[long_min_sym].LiteralD->Value = LONG_MIN;
+        entries[long_min_sym].LiteralD->Value = INT32_MIN;
         entries[long_min_sym].LiteralD->Vartype = kKW_Int;
     }
     {
@@ -564,7 +571,7 @@ AGS::Vartype AGS::SymbolTable::VartypeWithArray(std::vector<size_t> const &dims,
         aoa_dims.reserve(old_dims.size() + dims.size());
         aoa_dims = dims;
         aoa_dims.insert(aoa_dims.end(), old_dims.begin(), old_dims.end());
-        // Cut off the first '[…]', it will be replaced by the index of the joint array
+        // Cut off the first '[...]', it will be replaced by the index of the joint array
         first_bracket_pos = post.find_first_of('[', 1u);
         if (std::string::npos == first_bracket_pos)
             first_bracket_pos = post.length();

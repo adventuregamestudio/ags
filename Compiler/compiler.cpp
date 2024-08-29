@@ -15,9 +15,15 @@
 #include <iostream>
 
 #include "compiler.h"
+
+#ifdef LEGACY_COMPILER
 #include "script/cs_compiler.h"
 #include "script/cc_common.h"
 #include "script/cc_internal.h"
+#else
+#include "script2/cs_compiler.h"
+#include "script/cc_common.h"
+#endif
 #include "util/filestream.h"
 #include "util/file.h"
 #include "util/path.h"
@@ -166,6 +172,7 @@ int Compile(const CompilerOptions& comp_opts)
     //-----------------------------------------------------------------------//
     // Configure compiler
     //-----------------------------------------------------------------------//
+#ifdef LEGACY_COMPILER
     ccSetSoftwareVersion(comp_opts.Version.c_str());
 
     ccSetOption(SCOPT_SHOWWARNINGS, comp_opts.Flags.ShowWarnings);
@@ -178,6 +185,16 @@ int Compile(const CompilerOptions& comp_opts)
     ccSetOption(SCOPT_OLDSTRINGS, !comp_opts.Flags.EnforceNewStrings);
 
     ccRemoveDefaultHeaders();
+#else
+    uint64_t const cc_options =
+            (comp_opts.Flags.ExportAll ? SCOPT_EXPORTALL : 0) |
+            (comp_opts.Flags.LineNumbers ? SCOPT_LINENUMBERS : 0) |
+            (comp_opts.Flags.EnforceNewStrings ? 0 : SCOPT_OLDSTRINGS) |
+            (comp_opts.Flags.UnicodeMode ? SCOPT_UTF8 : 0) |
+            SCOPT_RTTI |
+            SCOPT_RTTIOPS |
+            0;
+#endif
 
     //-----------------------------------------------------------------------//
     // Read input files
@@ -232,8 +249,9 @@ int Compile(const CompilerOptions& comp_opts)
     {
         String preprocessed_header = pp.Preprocess(head.first,head.second);
         preprocessed_heads.emplace_back(preprocessed_header.GetCStr(),head.second);
-
+#ifdef LEGACY_COMPILER
         ccAddDefaultHeader((char *) preprocessed_heads.back().first.GetCStr(), (char *) preprocessed_heads.back().second.GetCStr());
+#endif
     }
     heads.clear();
 
@@ -267,6 +285,7 @@ int Compile(const CompilerOptions& comp_opts)
     //-----------------------------------------------------------------------//
     // Compile script
     //-----------------------------------------------------------------------//
+#ifdef LEGACY_COMPILER
     ccScript* script = ccCompileText(script_pp.GetCStr(), script_name.GetCStr());
     if ((script == nullptr) || (cc_has_error()))
     {
@@ -274,6 +293,24 @@ int Compile(const CompilerOptions& comp_opts)
         std::cerr << "Error: compile failed at " << ccCurScriptName << ", line " << error.Line << " : " << error.ErrorString.GetCStr() << std::endl;
         return -1;
     }
+#else
+    AGS::MessageHandler mh;
+    ccScript* script = ccCompileText2(script_pp.GetCStr(), script_name.GetCStr(), cc_options, mh);
+    auto compiler_messages = mh.GetMessages();
+    bool error = false;
+    for(const auto &msg : compiler_messages)
+    {
+        bool err = msg.Severity == AGS::MessageHandler::kSV_InternalError ||
+                   msg.Severity == AGS::MessageHandler::kSV_UserError;
+        bool wrn = msg.Severity == AGS::MessageHandler::kSV_Warning;
+        error |= err;
+        (err ? std::cerr : std::cout) <<
+            (err ? "Error: compile failed at " : (wrn ? "Warning: issue at " : "Info: at ")) <<
+            msg.Section << ", line " << msg.Lineno << " : " << msg.Message << std::endl;
+    }
+    if(error)
+        return -1;
+#endif
 
     //-----------------------------------------------------------------------//
     // Write script object

@@ -18,7 +18,7 @@
 #include "script2/cc_compiledscript.h"
 
 // Should contain a path to which the tests can write copies of their checking code
-constexpr char *WRITE_PATH = "C:/TEMP/";
+constexpr const char *WRITE_PATH = "C:/TEMP/";
 
 extern void WriteOutput(const char *fname, AGS::ccCompiledScript const &scrip);
 

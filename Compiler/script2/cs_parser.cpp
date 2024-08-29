@@ -5719,32 +5719,18 @@ void AGS::Parser::ParseVartypeClause(TypeQualifierSet tqs, Symbol &struct_of_cur
     _src.BackUp();
     Vartype vartype = ParseVartype(false);
 
-    // Imply a pointer for managed vartypes. However, do NOT do this in 'import' statements.
-    // (Reason: automatically generated code does things like "import Object oFoo;" and
-    // then it really does mean "Object", not "Object *".
-    // This can only happen in automatically generated code:
-    // Users are never allowed to define unpointered managed entities.
-    if (kKW_Dynpointer == _src.PeekNext() ||
-        _sym.IsAutoptrVartype(vartype) ||
-        (ScT::kImport != scope_type && _sym.IsManagedVartype(vartype)))
-    {
-        vartype = _sym.VartypeWithDynpointer(vartype);
-    }
-    EatDynpointerSymbolIfPresent(vartype);
-    
-    // Imply a pointer for managed vartypes. However, do NOT
-    // do this in import statements. (Reason: automatically
-    // generated code does things like "import Object oFoo;" and
-    // then it really does mean "Object", not "Object *".
-    // This can only happen in automatically generated code:
-    // Users are never allowed to define unpointered managed entities.
-    if (kKW_Dynpointer == _src.PeekNext() ||
-        _sym.IsAutoptrVartype(vartype) ||
-        (ScT::kImport != scope_type && _sym.IsManagedVartype(vartype)))
-    {
-        vartype = _sym.VartypeWithDynpointer(vartype);
-    }
+    // A pointer symbol is generally implied for managed vartypes
+    bool managed_vartype_has_implied_pointer = _sym.IsManagedVartype(vartype);
+    // However, when the option is set then don't do this in import statements
+    if (ScT::kImport == scope_type && FlagIsSet(_options, SCOPT_NOAUTOPTRIMPORT))
+        managed_vartype_has_implied_pointer = false;        
 
+    if (kKW_Dynpointer == _src.PeekNext() ||
+        _sym.IsAutoptrVartype(vartype) ||
+        managed_vartype_has_implied_pointer)
+    {
+        vartype = _sym.VartypeWithDynpointer(vartype);
+    }
     EatDynpointerSymbolIfPresent(vartype);
     
     // "int [] func(...)"

@@ -638,6 +638,7 @@ TEST_F(Bytecode1, AccessStructAsPointer01) {
         }                                               \n\
     ";
 
+    ccSetOption(SCOPT_NOAUTOPTRIMPORT, true);
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
@@ -1397,7 +1398,7 @@ TEST_F(Bytecode1, Attributes06) {
     EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
-TEST_F(Bytecode1, Attributes07) {
+TEST_F(Bytecode1, Attributes07a) {
     
     // Assignment to attribute -- should not generate null dereference error
 
@@ -1415,11 +1416,12 @@ TEST_F(Bytecode1, Attributes07) {
         }                                   \n\
     ";
 
+    ccSetOption(SCOPT_NOAUTOPTRIMPORT, true);
     int compileResult = cc_compile(input, scrip);
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    // WriteOutput("Attributes07", scrip);
+    // WriteOutput("Attributes07a", scrip);
 
     size_t const codesize = 34;
     EXPECT_EQ(codesize, scrip.code.size());
@@ -1438,6 +1440,72 @@ TEST_F(Bytecode1, Attributes07) {
 
     int32_t fixups[] = {
        8,   11,   24,  -999
+    };
+    char fixuptypes[] = {
+      3,   4,   4,  '\0'
+    };
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
+
+    int const numimports = 2;
+    std::string imports[] = {
+    "Label::set_Text^1",          "lbl",          "[[SENTINEL]]"
+    };
+    CompareImports(&scrip, numimports, imports);
+
+    size_t const numexports = 0;
+    EXPECT_EQ(numexports, scrip.exports.size());
+
+    size_t const stringssize = 1;
+    EXPECT_EQ(stringssize, scrip.strings.size());
+
+    char strings[] = {
+      0,  '\0'
+    };
+    CompareStrings(&scrip, stringssize, strings);
+}
+
+TEST_F(Bytecode1, Attributes07b) {
+
+    // Assignment to attribute -- should not generate null dereference error
+    // Assume that builtin managed objects are not autopointered.
+
+    std::string input = g_Input_Bool;
+    input += g_Input_String;
+    input += "\
+        builtin managed struct Label {      \n\
+            attribute String Text;          \n\
+        };                                  \n\
+        import Label lbl;                   \n\
+                                            \n\
+        void main()                         \n\
+        {                                   \n\
+            lbl.Text = \"\";                \n\
+        }                                   \n\
+    ";
+
+    ccSetOption(SCOPT_NOAUTOPTRIMPORT, false);
+    int compileResult = cc_compile(input, scrip);
+
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    // WriteOutput("Attributes07b", scrip);
+    size_t const codesize = 37;
+    EXPECT_EQ(codesize, scrip.code.size());
+
+    int32_t code[] = {
+      36,    7,   38,    0,           36,    8,    6,    3,    // 7
+       0,    6,    2,   22,           48,    2,   52,   64,    // 15
+       3,   29,    6,   34,            3,   45,    2,   39,    // 23
+       1,    6,    3,   21,           33,    3,   35,    1,    // 31
+      30,    6,   36,    9,            5,  -999
+    };
+    CompareCode(&scrip, codesize, code);
+
+    size_t const numfixups = 3;
+    EXPECT_EQ(numfixups, scrip.fixups.size());
+
+    int32_t fixups[] = {
+       8,   11,   27,  -999
     };
     char fixuptypes[] = {
       3,   4,   4,  '\0'

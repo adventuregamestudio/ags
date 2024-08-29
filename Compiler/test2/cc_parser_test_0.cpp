@@ -37,6 +37,7 @@ int cc_compile(std::string const &inpl, AGS::ccCompiledScript &scrip)
         (0 != ccGetOption(SCOPT_NOIMPORTOVERRIDE)) * SCOPT_NOIMPORTOVERRIDE |
         (0 != ccGetOption(SCOPT_OLDSTRINGS)) * SCOPT_OLDSTRINGS |
         (0 != ccGetOption(SCOPT_RTTIOPS)) * SCOPT_RTTIOPS |
+        (0 != ccGetOption(SCOPT_NOAUTOPTRIMPORT)) * SCOPT_NOAUTOPTRIMPORT |
         false;
 
     int const error_code = cc_compile(inpl, options, scrip, mh);

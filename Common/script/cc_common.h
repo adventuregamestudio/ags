@@ -33,7 +33,8 @@
 #define SCOPT_RTTI          0x0200   // generate and export RTTI
 #define SCOPT_RTTIOPS       0x0400   // enable syntax & opcodes that require RTTI to work
 #define SCOPT_SCRIPT_TOC    0x0800   // generate and export ScriptTOC
-#define SCOPT_HIGHEST       SCOPT_SCRIPT_TOC
+#define SCOPT_NOAUTOPTRIMPORT 0x1000 // object pointers in imports must be declared explicitly
+#define SCOPT_HIGHEST       SCOPT_NOAUTOPTRIMPORT
 
 extern void ccSetOption(int, int);
 extern int ccGetOption(int);

@@ -2690,6 +2690,9 @@ TEST_F(Bytecode0, Struct09_RTTI) {
     // Should be able to find SetCharacter as a component of
     // VehicleBase as an extension of Vehicle Cars[5];
     // should generate call of VehicleBase::SetCharacter()
+    //
+    // LEGACY MODE: Assume that builtin managed objects are NOT autopointered
+    // TODO: make an alternative bytecode test for the default mode
 
     char const *inpl = "\
         enum CharacterDirection                                     \n\

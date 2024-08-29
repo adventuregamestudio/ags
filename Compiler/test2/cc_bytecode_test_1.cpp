@@ -620,6 +620,9 @@ TEST_F(Bytecode1, AccessStructAsPointer01) {
     // - they are "import" globals
     // - the struct is "builtin" as well as "managed".
     // Such structs can be used as a parameter of a function that expects a pointered struct
+    //
+    // LEGACY MODE: Assume that builtin managed objects are NOT autopointered
+    // TODO: make an alternative bytecode test for the default mode
 
     char const *inpl = "\
         builtin managed struct Object {                 \n\
@@ -1401,6 +1404,8 @@ TEST_F(Bytecode1, Attributes06) {
 TEST_F(Bytecode1, Attributes07a) {
     
     // Assignment to attribute -- should not generate null dereference error
+    // LEGACY MODE: Assume that builtin managed objects are NOT autopointered,
+    // and `import Label lbl` is recognized as an object, not pointer to object.
 
     std::string input = g_Input_Bool;
     input += g_Input_String;
@@ -1467,7 +1472,6 @@ TEST_F(Bytecode1, Attributes07a) {
 TEST_F(Bytecode1, Attributes07b) {
 
     // Assignment to attribute -- should not generate null dereference error
-    // Assume that builtin managed objects are not autopointered.
 
     std::string input = g_Input_Bool;
     input += g_Input_String;

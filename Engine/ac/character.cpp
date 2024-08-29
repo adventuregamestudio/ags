@@ -1921,7 +1921,7 @@ int has_hit_another_character(int sourceChar) {
 // Does the next move from the character's movelist.
 // Returns 1 if they are now waiting for another char to move,
 // otherwise returns 0
-int doNextCharMoveStep (CharacterInfo *chi, int &char_index, CharacterExtras *chex) {
+int doNextCharMoveStep(CharacterInfo *chi, CharacterExtras *chex) {
     int ntf=0, xwas = chi->x, ywas = chi->y;
 
     if (do_movelist_move(chi->walking, chi->x, chi->y) == 2) 
@@ -1930,7 +1930,7 @@ int doNextCharMoveStep (CharacterInfo *chi, int &char_index, CharacterExtras *ch
             fix_player_sprite(&mls[chi->walking], chi);
     }
 
-    ntf = has_hit_another_character(char_index);
+    ntf = has_hit_another_character(chi->index_id);
     if (ntf >= 0) {
         chi->walkwait = 30;
         if (game.chars[ntf].walkspeed < 5)

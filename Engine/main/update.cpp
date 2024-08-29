@@ -291,7 +291,7 @@ void update_character_move_and_anim(std::vector<int> &followingAsSheep)
     CharacterInfo*chi    = &game.chars[aa];
 	CharacterExtras*chex = &charextra[aa];
 
-	chi->UpdateMoveAndAnim(aa, chex, followingAsSheep);
+	UpdateCharacterMoveAndAnim(chi, chex, followingAsSheep);
   }
 }
 
@@ -301,7 +301,7 @@ void update_following_exactly_characters(const std::vector<int> &followingAsShee
   for (size_t i = 0; i < followingAsSheep.size(); ++i) {
     CharacterInfo *chi = &game.chars[followingAsSheep[i]];
 
-	chi->UpdateFollowingExactlyCharacter();
+	UpdateFollowingExactlyCharacter(chi);
   }
 }
 

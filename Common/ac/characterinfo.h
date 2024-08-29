@@ -97,8 +97,6 @@ enum CharacterSvgVersion
 
 // Predeclare a design-time Character extension
 struct CharacterInfo2;
-// Predeclare a runtime Character extension (TODO: refactor and remove this from here)
-struct CharacterExtras;
 
 
 // CharacterInfo is a design-time Character data.
@@ -175,22 +173,6 @@ struct CharacterInfo
             (CHANIM_BACKWARDS * !forwards) |
             ((delay & 0xFF) << 8);
     }
-
-	// [IKM] 2012-06-28: I still have to pass char_index to some of those functions
-	// either because they use it to set some variables with it,
-	// or because they pass it further to other functions, that are called from various places
-	// and it would be too much to change them all simultaneously
-    //
-    // [IKM] 2016-08-26: these methods should NOT be in CharacterInfo class,
-    // bit in distinct runtime character class!
-	void UpdateMoveAndAnim(int &char_index, CharacterExtras *chex, std::vector<int> &followingAsSheep);
-	void UpdateFollowingExactlyCharacter();
-
-    bool update_character_turning(CharacterExtras *chex);
-	void update_character_moving(int &char_index, CharacterExtras *chex, int &doing_nothing);
-	bool update_character_animating(int &char_index, int &doing_nothing);
-	void update_character_idle(CharacterExtras *chex, int &doing_nothing);
-	void update_character_follower(int &char_index, std::vector<int> &followingAsSheep, int &doing_nothing);
 
     void ReadFromFile(Common::Stream *in, CharacterInfo2 &chinfo2, GameDataVersion data_ver);
     void WriteToFile(Common::Stream *out) const;

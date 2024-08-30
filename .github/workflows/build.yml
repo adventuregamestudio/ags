@@ -34,7 +34,7 @@ jobs:
 
     - name: Test
       working-directory: ${{github.workspace}}/build
-      run: ctest -C ${{env.BUILD_TYPE}}
+      run: ctest -C ${{env.BUILD_TYPE}} --output-on-failure
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
@@ -50,5 +50,9 @@ jobs:
       run: |
         pip install tap.py
         curl -sLo auto-test.ags https://github.com/adventuregamestudio/ags-test-games/releases/latest/download/ags3-auto-test.ags
-        ${{matrix.platform.runbin}} --no-message-box --log-stdout=script:info,main:info --user-data-dir . auto-test.ags        
+        ${{matrix.platform.runbin}} --no-message-box --log-stdout=script:info,main:info --user-data-dir . auto-test.ags
+
+    - name: Check auto-test  # we are using tap.py so that the pipeline fails if a test fails
+      working-directory: ${{github.workspace}}/build/${{matrix.platform.bindir}}
+      run: |
         tappy agstest.tap

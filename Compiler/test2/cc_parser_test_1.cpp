@@ -35,7 +35,7 @@ protected:
     Compile1()
     {
         // Initializations, will be done at the start of each test
-        ccSetOption(SCOPT_NOIMPORTOVERRIDE, false);
+        ccResetOptions(0);
         ccSetOption(SCOPT_LINENUMBERS, true);
         clear_error();
     }

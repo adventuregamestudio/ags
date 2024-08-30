@@ -22,6 +22,10 @@ int ccCompOptions = 0;
 int currentline = 0;
 const char *ccCurScriptName = "";
 
+void ccResetOptions(int optbit)
+{
+    ccCompOptions = optbit;
+}
 
 void ccSetOption(int optbit, int onoroff)
 {

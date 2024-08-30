@@ -38,7 +38,7 @@ protected:
     {
         // Initializations, will be done at the start of each test
         // Note, the parser doesn't react to SCOPT_LINENUMBERS, that's on ccCompiledScript
-        ccSetOption(SCOPT_NOIMPORTOVERRIDE, false);
+        ccResetOptions(0);
         clear_error();
     }
 };
@@ -690,6 +690,9 @@ TEST_F(Bytecode1, AccessStructAsPointer02) {
     
     // Managed structs can be declared without (implicit) pointer in certain circumstances.
     // Such structs can be assigned to a variable that is a pointered struct
+    //
+    // LEGACY MODE: Assume that builtin managed objects are NOT autopointered
+    // TODO: make an alternative bytecode test for the default mode
 
     char const *inpl = "\
         builtin managed struct Object { };              \n\
@@ -708,6 +711,7 @@ TEST_F(Bytecode1, AccessStructAsPointer02) {
         }                                               \n\
     ";
 
+    ccSetOption(SCOPT_NOAUTOPTRIMPORT, true);
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
@@ -758,6 +762,9 @@ TEST_F(Bytecode1, AccessStructAsPointer03) {
     
     // Managed structs can be declared without (implicit) pointer in certain circumstances.
     // Such structs can be assigned to a variable that is a pointered struct
+    //
+    // LEGACY MODE: Assume that builtin managed objects are NOT autopointered
+    // TODO: make an alternative bytecode test for the default mode
 
     char const *inpl = "\
         builtin managed struct Object {                 \n\
@@ -777,6 +784,7 @@ TEST_F(Bytecode1, AccessStructAsPointer03) {
         }                                               \n\
     ";
 
+    ccSetOption(SCOPT_NOAUTOPTRIMPORT, true);
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 

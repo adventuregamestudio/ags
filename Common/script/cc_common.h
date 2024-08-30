@@ -36,8 +36,9 @@
 #define SCOPT_NOAUTOPTRIMPORT 0x1000 // object pointers in imports must be declared explicitly
 #define SCOPT_HIGHEST       SCOPT_NOAUTOPTRIMPORT
 
-extern void ccSetOption(int, int);
-extern int ccGetOption(int);
+extern void ccResetOptions(int optbit);
+extern void ccSetOption(int optbit, int on);
+extern int ccGetOption(int optbit);
 
 // error reporting
 

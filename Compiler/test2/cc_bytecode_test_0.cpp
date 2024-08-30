@@ -84,7 +84,7 @@ protected:
     {
         // Initializations, will be done at the start of each test
         // Note, the parser doesn't react to SCOPT_LINENUMBERS, that's on ccCompiledScript
-        ccSetOption(SCOPT_NOIMPORTOVERRIDE, false);
+        ccResetOptions(0);
         clear_error();
     }
 };

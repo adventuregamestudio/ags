@@ -9,6 +9,7 @@ namespace AGS.Types
 	{
         IDockingContainer _dockingContainer;
         ContentDocument _contentDocument;
+        bool _firstTimeShown;
 
         public EditorContentPanel()
 			: base()
@@ -36,6 +37,38 @@ namespace AGS.Types
 		{
 		}
 
+        /// <summary>
+        /// This method override is used to perform an unfortunate hack:
+        /// we need the derived classes to be able to tell when the panel
+        /// is shown in its full size. OnLoad does not guarantee this, because
+        /// its happening prior to panel resized on a docking site. Therefore
+        /// we do this instead...
+        /// </summary>
+        protected override void OnSizeChanged(EventArgs e)
+        {
+            base.OnSizeChanged(e);
+
+            if (Created && !_firstTimeShown)
+            {
+                OnPanelFirstTimeShown();
+                _firstTimeShown = true;
+            }
+        }
+
+        /// <summary>
+        /// The panel is about to be shown for the first time.
+        /// This method is called after the panel is created, and resized
+        /// to fill its docking container.
+        /// </summary>
+        protected virtual void OnPanelFirstTimeShown()
+        {
+        }
+
+        /// <summary>
+        /// Notifies the panel that it is about to close. If canCancel is true, then
+        /// the user is attempting to close and it can be aborted. If it's
+        /// false, then the editor is exiting and you can't abort the close.
+        /// </summary>
 		public void PanelClosing(bool canCancel, ref bool cancelClose)
 		{
 			OnPanelClosing(canCancel, ref cancelClose);

@@ -109,8 +109,7 @@ void Button_SetText(GUIButton *butt, const char *newtx) {
 }
 
 void Button_SetFont(GUIButton *butt, int newFont) {
-    if ((newFont < 0) || (newFont >= game.numfonts))
-        quit("!Button.Font: invalid font number.");
+    newFont = ValidateFontNumber("Button.Font", newFont);
 
     if (butt->Font != newFont) {
         butt->Font = newFont;

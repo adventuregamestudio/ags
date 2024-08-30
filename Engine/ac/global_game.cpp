@@ -837,14 +837,12 @@ void GetMessageText (int msg, char *buffer) {
 }
 
 void SetSpeechFont (int fontnum) {
-    if ((fontnum < 0) || (fontnum >= game.numfonts))
-        quit("!SetSpeechFont: invalid font number.");
+    fontnum = ValidateFontNumber("SetSpeechFont", fontnum);
     play.speech_font = fontnum;
 }
 
 void SetNormalFont (int fontnum) {
-    if ((fontnum < 0) || (fontnum >= game.numfonts))
-        quit("!SetNormalFont: invalid font number.");
+    fontnum = ValidateFontNumber("SetNormalFont", fontnum);
     play.normal_font = fontnum;
 }
 

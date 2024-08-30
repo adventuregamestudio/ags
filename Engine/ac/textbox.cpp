@@ -56,8 +56,7 @@ int TextBox_GetFont(GUITextBox *guit) {
 }
 
 void TextBox_SetFont(GUITextBox *guit, int fontnum) {
-    if ((fontnum < 0) || (fontnum >= game.numfonts))
-        quit("!SetTextBoxFont: invalid font number.");
+    fontnum = ValidateFontNumber("TextBox.Font", fontnum);
 
     if (guit->Font != fontnum) {
         guit->Font = fontnum;

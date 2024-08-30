@@ -32,6 +32,7 @@ namespace AGS.Types
             }
 
             _possibleValues.Clear();
+            _possibleValues.Add(-1, "Null Font");
             foreach (Font font in _Fonts)
             {
                 _possibleValues.Add(font.ID, font.ScriptID);

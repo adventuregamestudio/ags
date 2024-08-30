@@ -3920,6 +3920,14 @@ void AGS::Parser::ParseExpression(SrcList &src, EvaluationResult &eres)
     size_t const expr_start = src.GetCursor();
     SkipToEndOfExpression(src);
     SrcList expression = SrcList(src, expr_start, src.GetCursor() - expr_start);
+    Symbol potential_ident = src.PeekNext();
+    if (_sym.IsIdentifier(potential_ident) &&
+        !_sym.IsPredefined(potential_ident) &&
+        _sym.kNoSrcLocation == _sym.GetDeclared(potential_ident))
+    {
+        UserError("Identifier '%s' is undeclared", _sym.GetName(potential_ident).c_str());
+    }
+
     if (0u == expression.Length())
         UserError("Expected an expression, found '%s' instead", _sym.GetName(src.GetNext()).c_str());
 

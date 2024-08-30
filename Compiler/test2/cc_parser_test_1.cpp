@@ -2696,3 +2696,66 @@ TEST_F(Compile1, DynarrayOfArray) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
+
+TEST_F(Compile1, IdentUnknownMessage1)
+{
+    // When an unknown identifier comes up after an expression,
+    // complain about that with a specific error message.
+
+    char const *inpl = "\
+        int foo ()                          \n\
+        {                                   \n\
+            int i;                          \n\
+            while (i < Holzschuh)           \n\
+            {}                              \n\
+        }                                   \n\
+        ";
+
+    int compile_result = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("'Holzschuh'"));
+    EXPECT_NE(std::string::npos, msg.find("undeclared"));
+}
+
+TEST_F(Compile1, IdentUnknownMessage2)
+{
+    // When an unknown identifier comes up when an expression is expected,
+    // complain about that with a specific error message.
+
+    char const *inpl = "\
+        int foo ()                          \n\
+        {                                   \n\
+            int i;                          \n\
+            if (Holzschuh)                  \n\
+            {}                              \n\
+        }                                   \n\
+        ";
+
+    int compile_result = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("'Holzschuh'"));
+    EXPECT_NE(std::string::npos, msg.find("undeclared"));
+}
+
+TEST_F(Compile1, ExpressionNotFoundMessage2)
+{
+    // When others come up when an expression is expected,
+    // complain about that
+
+    char const *inpl = "\
+        int foo ()                          \n\
+        {                                   \n\
+            int i;                          \n\
+            if (do)                         \n\
+            {}                              \n\
+        }                                   \n\
+        ";
+
+    int compile_result = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("an expression"));
+    EXPECT_NE(std::string::npos, msg.find("'do'"));
+}

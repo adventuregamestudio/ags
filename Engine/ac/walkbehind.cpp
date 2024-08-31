@@ -37,7 +37,7 @@ struct WalkBehindColumn
 
 std::vector<WalkBehindColumn> walkBehindCols; // precalculated WB positions
 Rect walkBehindAABB[MAX_WALK_BEHINDS]; // WB bounding box
-int walkBehindsCachedForBgNum = 0; // WB textures are for this background
+int walkBehindsCachedForBgNum = -1; // WB textures are for this background
 bool noWalkBehindsAtAll = false; // quick report that no WBs in this room
 bool walk_behind_baselines_changed = false;
 
@@ -183,4 +183,6 @@ void walkbehinds_recalc()
             }
         }
     }
+
+    walkBehindsCachedForBgNum = -1;
 }

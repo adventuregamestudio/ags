@@ -406,6 +406,21 @@ void ReadScriptList(std::vector<String> &script_list, DocElem root)
     }
 }
 
+void ReadScriptHeaderList(std::vector<String> &headers_list, DocElem root)
+{
+    AGF::ScriptModules scmodules;
+    AGF::ScriptWithHeader scmodule;
+    AGF::ScriptElem scelem;
+    std::vector<DocElem> modules;
+    scmodules.GetAll(root, modules);
+    for (const auto &m : modules)
+    {
+        DocElem header = scmodule.GetHeader(m);
+        if (!header) continue;
+        headers_list.push_back(scelem.ReadFilename(header));
+    }
+}
+
 void ReadRoomList(std::vector<std::pair<int, String>> &room_list, DocElem root)
 {
     AGF::Rooms rooms;

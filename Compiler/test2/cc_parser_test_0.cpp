@@ -2416,28 +2416,22 @@ TEST_F(Compile0, Ternary06) {
 
     // ternary operations with nested bracketed expressions in them
 
-    // FIXME: in the following script input some parts are removed temporarily
-    // to let full build run on CI. Enable them back after ternary parsing is fixed.
     char const *inpl = "\
-        void main()                                            \n\
-        {                                                      \n\
-            int a = 10;                                        \n\
-            int b0 = (a < 5 ? 1 : 2);                          \n\
-            int b1 = (a < 5) ? 1 : 2;                          \n\
-            int b2 = (a + 1) < 5 ? 1 : 2;                      \n\
-            int b3 = (a + (a + 1)) < 5 ? 1 : 2;                \n\
-                                                               \n\
-            int c1 = a < 5 ? (a + 1) : a;                      \n\
-                                                               \n\
-            int d1 = a < 5 ? a : (a + 1);                      \n\
-            int d2 = a < 5 ? a : (a + (a + 1));                \n\
-        }                                                      \n\
+		void main()                                            \n\
+		{                                                      \n\
+			int a = 10;                                        \n\
+			int b0 = (a < 5 ? 1 : 2);                          \n\
+			int b1 = (a < 5) ? 1 : 2;                          \n\
+			int b2 = (a + 1) < 5 ? 1 : 2;                      \n\
+			int b3 = (a + (a + 1)) < 5 ? 1 : 2;                \n\
+			int b4 = (a + (a + 1)) < (5 - a) ? 1 : 2;          \n\
+			int b5 = (a + (a + 1)) < (5 - (5 - a)) ? 1 : 2;    \n\
+			int c1 = a < 5 ? (a + 1) : a;                      \n\
+			int c2 = a < 5 ? (a + (a + 1)) : a;                \n\
+			int d1 = a < 5 ? a : (a + 1);                      \n\
+			int d2 = a < 5 ? a : (a + (a + 1));                \n\
+		}                                                      \n\
         ";
-    /*
-            int b4 = (a + (a + 1)) < (5 - a) ? 1 : 2;          \n\
-            int b5 = (a + (a + 1)) < (5 - (5 - a)) ? 1 : 2;    \n\
-            int c2 = a < 5 ? (a + (a + 1)) : a;                \n\
-    */
 
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());

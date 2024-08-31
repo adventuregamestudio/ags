@@ -579,37 +579,31 @@ private:
     bool ParseExpression_CompileTime(Symbol op_sym, EvaluationResult const &eres_lhs, EvaluationResult const &eres_rhs, EvaluationResult &eres);
 
     // Parse the term given in 'expression'. The lowest-binding operator is unary 'new'
-    // 'expression' is parsed from the beginning. The term must use up 'expression' completely.
+    // Parsing must use up 'expression' completely; if there are trailing symbols, throw 'UserError'.
     void ParseExpression_New(SrcList &expression, EvaluationResult &eres);
 
-    // Parse the term given in 'expression'. The lowest-binding operator is unary '-'
-    // 'expression' is parsed from the beginning. The term must use up 'expression' completely.
-    void ParseExpression_PrefixMinus(SrcList &expression, EvaluationResult &eres);
+    // Apply '-' to the expression 'eres'
+    void ParseExpression_PrefixMinus(EvaluationResult &eres);
 
-    // Parse the term given in 'expression'. The lowest-binding operator is unary '+'
-    // 'expression' is parsed from the beginning. The term must use up 'expression' completely.
-    void ParseExpression_PrefixPlus(SrcList &expression, EvaluationResult &eres);
+    // Apply '+' to the expression 'eres'
+    void ParseExpression_PrefixPlus(EvaluationResult &eres);
 
-    // Parse the term given in 'expression'. The lowest-binding operator is a boolean or bitwise negation
-    // 'expression' is parsed from the beginning. The term must use up 'expression' completely.
-    void ParseExpression_PrefixNegate(Symbol operation, SrcList &expression, EvaluationResult &eres);
+    // Apply boolean or bitwise negation to the expression 'eres'
+    void ParseExpression_PrefixNegate(Symbol operation, EvaluationResult &eres);
 
-    // Parse the term given in 'expression'. The lowest-binding operator is '++' or '--'.
-    // 'expression' is parsed from the beginning. The term must use up 'expression' completely.
+    // Parse the term given in 'expression'.
+    // The lowest-binding operator is a prefix '++' or '--' that is _not_ included in the expression
+    // Parsing must use up 'expression' completely; trailing symbols cause a UserError
     void ParseExpression_PrefixCrement(Symbol op_sym, SrcList &expression, EvaluationResult &eres);
     // Parse the term given in 'expression'. The lowest-binding operator is '++' or '--'.
-    // 'expression' is parsed from the beginning. The term must use up 'expression' completely.
+    // Parsing must use up 'expression' completely; if there are trailing symbols, throw 'UserError'.
     void ParseExpression_PostfixCrement(Symbol op_sym, SrcList &expression, EvaluationResult &eres);
 
-    // Parse literal int with the lowest possible value
-    // This will arrive at the parser as '-' '2147483648'
-    void ParseExpression_LongMin(EvaluationResult &eres);
-
-    // If consecutive parentheses surround the expression, strip them.
+    // If 'expression' starts with '(', then strip all fully enclosing pairs of parentheses
     void StripOutermostParens(SrcList &expression);
 
     // Parse the term given in 'expression'. The lowest-binding operator is a unary operator
-    // 'expression' is parsed from the beginning. The term must use up 'expression' completely.
+    // Parsing must use up 'expression' completely; if there are trailing symbols, throw 'UserError'.
     void ParseExpression_Prefix(SrcList &expression, EvaluationResult &eres);
 
     // Parse the term given in 'expression'. The lowest-binding operator is a unary operator
@@ -622,23 +616,23 @@ private:
         SrcList &term2, EvaluationResult &eres_term2, bool result_used);
 
     // Parse the term given in 'expression'. Expression is a ternary 'a ? b : c'
-    // 'expression' is parsed from the beginning. The term must use up 'expression' completely.
+    // Parsing must use up 'expression' completely; if there are trailing symbols, throw 'UserError'.
     // If result_used == false then the calling function doesn't use the term result for calculating
     // This happens when a term is called for side effect only, e.g. in the statement 'i ? --foo : ++foo;'
-    void ParseExpression_Ternary(size_t tern_idx, SrcList &expression, EvaluationResult &eres, bool result_used);
+    void ParseExpression_Ternary(size_t tern_idx, SrcList &expression, bool result_used, EvaluationResult &eres);
 
     // Parse the term given in 'expression'. The lowest-binding operator a binary operator.
-    // 'expression' is parsed from the beginning. The term must use up 'expression' completely.
+    // Parsing must use up 'expression' completely; trailing symbols cause a UserError
     void ParseExpression_Binary(size_t op_idx, SrcList &expression, EvaluationResult &eres);
 
     // Parse the term given in 'expression'. Expression begins with '('
-    // 'expression' is parsed from the beginning. The term must use up 'expression' completely.
+    // Parsing must use up 'expression' completely; if there are trailing symbols, throw 'UserError'.
     // If result_used == false then the calling function doesn't use the term result for calculating
     // This happens when a term is called for side effect only, e.g. in the statement '(--foo);'
     void ParseExpression_InParens(SrcList &expression, EvaluationResult &eres, bool result_used);
 
     // Parse the term given in 'expression'. Expression does not contain operators
-    // 'expression' is parsed from the beginning. The term must use up 'expression' completely.
+    // Parsing must use up 'expression' completely; if there are trailing symbols, throw 'UserError'.
     // If result_used == false then the calling function doesn't use the term result for calculating
     // This happens when a term is called for side effect only, e.g. in the statement '--foo;'
     void ParseExpression_NoOps(SrcList &expression, EvaluationResult &eres, bool result_used);
@@ -646,9 +640,8 @@ private:
     // Check whether spurious symbols exist after a subterm is processed
     void ParseExpression_CheckUsedUp(AGS::SrcList &expression);
 
-    // Parse the term given in 'expression'.
-    // 'expression' is parsed from the beginning. The term must use up 'expression' completely.
-    // If result_used == false then the calling function doesn't use the term result for calculating
+    // Parse the expression. If there are trailing symbols after the expression, throw UserError.
+    // If 'result_used' is 'false' then the calling function doesn't use the term result for calculating
     // This happens when a term is called for side effect only, e.g. in the statement '--foo;'
     void ParseExpression_Term(SrcList &expression, EvaluationResult &eres, bool result_used = true);
 

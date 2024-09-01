@@ -1021,6 +1021,11 @@ void run_unhandled_event(const ObjectEvent &obj_evt, int evnt) {
     }
 }
 
+ExecutingScript *get_executingscript()
+{
+    return curscript;
+}
+
 bool get_script_position(ScriptPosition &script_pos)
 {
     ccInstance *cur_instance = ccInstance::GetCurrentInstance();

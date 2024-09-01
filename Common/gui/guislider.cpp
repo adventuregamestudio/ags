@@ -178,12 +178,12 @@ void GUISlider::Draw(Bitmap *ds, int x, int y)
     else
     {
         // normal grey background
-        draw_color = ds->GetCompatibleColor(16);
+        draw_color = GUI::GetStandardColorForBitmap(16);
         ds->FillRect(bar, draw_color);
-        draw_color = ds->GetCompatibleColor(8);
+        draw_color = GUI::GetStandardColorForBitmap(8);
         ds->DrawLine(Line(bar.Left, bar.Top, bar.Left, bar.Bottom), draw_color);
         ds->DrawLine(Line(bar.Left, bar.Top, bar.Right, bar.Top), draw_color);
-        draw_color = ds->GetCompatibleColor(15);
+        draw_color = GUI::GetStandardColorForBitmap(15);
         ds->DrawLine(Line(bar.Right, bar.Top + 1, bar.Right, bar.Bottom), draw_color);
         ds->DrawLine(Line(bar.Left, bar.Bottom, bar.Right, bar.Bottom), draw_color);
     }
@@ -197,12 +197,12 @@ void GUISlider::Draw(Bitmap *ds, int x, int y)
     else // handle is a drawn rectangle
     {
         // normal grey tracker handle
-        draw_color = ds->GetCompatibleColor(7);
+        draw_color = GUI::GetStandardColorForBitmap(7);
         ds->FillRect(handle, draw_color);
-        draw_color = ds->GetCompatibleColor(15);
+        draw_color = GUI::GetStandardColorForBitmap(15);
         ds->DrawLine(Line(handle.Left, handle.Top, handle.Right, handle.Top), draw_color);
         ds->DrawLine(Line(handle.Left, handle.Top, handle.Left, handle.Bottom), draw_color);
-        draw_color = ds->GetCompatibleColor(16);
+        draw_color = GUI::GetStandardColorForBitmap(16);
         ds->DrawLine(Line(handle.Right, handle.Top + 1, handle.Right, handle.Bottom), draw_color);
         ds->DrawLine(Line(handle.Left + 1, handle.Bottom, handle.Right, handle.Bottom), draw_color);
     }

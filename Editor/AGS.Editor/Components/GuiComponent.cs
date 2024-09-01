@@ -65,6 +65,8 @@ namespace AGS.Editor.Components
             {
                 Size gameRes = _agsEditor.CurrentGame.Settings.CustomResolution;
                 GUI newGUI = new NormalGUI(Math.Min(gameRes.Width, GUI_DEFAULT_WIDTH_MAX), Math.Min(gameRes.Height, GUI_DEFAULT_HEIGHT_MAX));
+                // Default GUI colors are set as palette indexes, remap them to proper colors
+                Tasks.RemapGUIColours(newGUI, _agsEditor.CurrentGame, GameColorDepth.Palette);
                 AddNewGUI(newGUI);
                 _agsEditor.CurrentGame.NotifyClientsGUIAddedOrRemoved(newGUI);
             }

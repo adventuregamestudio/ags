@@ -24,8 +24,6 @@ namespace AGS { namespace Common { class Bitmap; }}
 using namespace AGS; // FIXME later
 
 //=============================================================================
-
-    extern void __my_setcolor(int *ctset, int newcol, int wantColDep);
     
     extern void wsetrgb(int coll, int r, int g, int b, RGB * pall);
     extern void wcolrotate(unsigned char start, unsigned char finish, int dir, RGB * pall);
@@ -35,7 +33,6 @@ using namespace AGS; // FIXME later
     extern void wputblock(Common::Bitmap *ds, int xx, int yy, Common::Bitmap *bll, int xray);
 	// CHECKME: temporary solution for plugin system
 	extern void wputblock_raw(Common::Bitmap *ds, int xx, int yy, BITMAP *bll, int xray);
-    extern const int col_lookups[32];
 
     // TODO: these are used only in the Editor's agsnative.cpp
     extern void wremap(const RGB * pal1, Common::Bitmap *picc, const RGB * pal2, bool keep_transparent = true);

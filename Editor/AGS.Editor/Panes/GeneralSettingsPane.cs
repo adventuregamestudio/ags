@@ -96,6 +96,7 @@ namespace AGS.Editor
                 }
                 else
                 {
+                    Tasks.RemapColourPropertiesOnDepthChange(Factory.AGSEditor.CurrentGame, (GameColorDepth)e.OldValue);
                     Factory.Events.OnGameSettingsChanged();
                 }
             }

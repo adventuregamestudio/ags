@@ -40,7 +40,6 @@ namespace AGS.Editor
             this.lblGreenFinal = new System.Windows.Forms.Label();
             this.lblRedFinal = new System.Windows.Forms.Label();
             this.btnColorDialog = new System.Windows.Forms.Button();
-            this.lblFixedColorsWarning = new System.Windows.Forms.Label();
             this.blockOfColour = new AGS.Editor.BufferedPanel();
             this.lblBlueVal = new System.Windows.Forms.Label();
             this.lblGreenVal = new System.Windows.Forms.Label();
@@ -145,7 +144,6 @@ namespace AGS.Editor
             this.groupBox1.Controls.Add(this.lblGreenFinal);
             this.groupBox1.Controls.Add(this.lblRedFinal);
             this.groupBox1.Controls.Add(this.btnColorDialog);
-            this.groupBox1.Controls.Add(this.lblFixedColorsWarning);
             this.groupBox1.Controls.Add(this.blockOfColour);
             this.groupBox1.Controls.Add(this.lblBlueVal);
             this.groupBox1.Controls.Add(this.lblGreenVal);
@@ -202,18 +200,6 @@ namespace AGS.Editor
             this.btnColorDialog.Text = "Find Colour...";
             this.btnColorDialog.UseVisualStyleBackColor = true;
             this.btnColorDialog.Click += new System.EventHandler(this.btnColorDialog_Click);
-            // 
-            // lblFixedColorsWarning
-            // 
-            this.lblFixedColorsWarning.AutoSize = true;
-            this.lblFixedColorsWarning.Location = new System.Drawing.Point(16, 300);
-            this.lblFixedColorsWarning.MaximumSize = new System.Drawing.Size(350, 0);
-            this.lblFixedColorsWarning.Name = "lblFixedColorsWarning";
-            this.lblFixedColorsWarning.Size = new System.Drawing.Size(331, 26);
-            this.lblFixedColorsWarning.TabIndex = 13;
-            this.lblFixedColorsWarning.Text = "NOTE: Colours 1-31 are locked to reflect special colours in the 8-bit palette. Fo" +
-    "r shades of blue, set the Green slider to 4.";
-            this.lblFixedColorsWarning.Visible = false;
             // 
             // blockOfColour
             // 
@@ -316,7 +302,7 @@ namespace AGS.Editor
             // txtColourNumber
             // 
             this.txtColourNumber.Location = new System.Drawing.Point(110, 74);
-            this.txtColourNumber.MaxLength = 5;
+            this.txtColourNumber.MaxLength = 10;
             this.txtColourNumber.Name = "txtColourNumber";
             this.txtColourNumber.Size = new System.Drawing.Size(85, 21);
             this.txtColourNumber.TabIndex = 2;
@@ -389,7 +375,6 @@ namespace AGS.Editor
         private System.Windows.Forms.Label label1;
         private BufferedPanel palettePanel;
         private System.Windows.Forms.Label label6;
-        private System.Windows.Forms.Label lblFixedColorsWarning;
 		private System.Windows.Forms.Button btnColorDialog;
         private System.Windows.Forms.Label lblBlueFinal;
         private System.Windows.Forms.Label lblGreenFinal;

@@ -306,13 +306,10 @@ void GUIMain::DrawControls(Bitmap *ds)
                 GfxDef::LegacyTrans255ToAlpha255(objToDraw->GetTransparency()));
         }
 
-        int selectedColour = 14;
-
-        if (HighlightCtrl == _ctrlDrawOrder[ctrl_index])
+        const bool is_highlighted = HighlightCtrl == _ctrlDrawOrder[ctrl_index];
+        if (is_highlighted)
         {
-            if (GUI::Options.OutlineControls)
-                selectedColour = 13;
-            color_t draw_color = ds->GetCompatibleColor(selectedColour);
+            color_t draw_color = GUI::GetStandardColorForBitmap(13);
             DrawBlob(ds, objToDraw->X + obj_size.Width - 1 - 1, objToDraw->Y, draw_color);
             DrawBlob(ds, objToDraw->X, objToDraw->Y + obj_size.Height - 1 - 1, draw_color);
             DrawBlob(ds, objToDraw->X, objToDraw->Y, draw_color);
@@ -322,7 +319,7 @@ void GUIMain::DrawControls(Bitmap *ds)
         if (GUI::Options.OutlineControls)
         {
             // draw a dotted outline round all objects
-            color_t draw_color = ds->GetCompatibleColor(selectedColour);
+            color_t draw_color = GUI::GetStandardColorForBitmap(is_highlighted ? 13 : 14);
             for (int i = 0; i < obj_size.Width; i += 2)
             {
                 ds->PutPixel(i + objToDraw->X, objToDraw->Y, draw_color);
@@ -749,10 +746,36 @@ void GUIMain::WriteToSavegame(Common::Stream *out) const
 }
 
 
+const int GuiContext::StandardColors[MaxStandardColors] =
+{
+    0x000000, 0x0000A0, 0x00A000, 0x00A0A0, 0xA00000, 0xA000A0, 0xA05000, 0xA0A0A0, // 0  - 7
+    0x505050, 0x5050FF, 0x50FF50, 0x50FFFF, 0xFF5050, 0xFF50FF, 0xFFFF50, 0xFFFFFF, // 8  - 15
+    0x000000, 0x101010, 0x202020, 0x303030, 0x404040, 0x505050, 0x606060, 0x707070, // 16 - 23
+    0x808080, 0x909090, 0xA0A0A0, 0xB0B0B0, 0xC0C0C0, 0xD0D0D0, 0xE0E0E0, 0xF0F0F0  // 24 - 31
+};
+
+
 namespace GUI
 {
 
 GuiVersion GameGuiVersion = kGuiVersion_Undefined;
+
+int GetStandardColor(int index)
+{
+    assert(Context.GameColorDepth > 0);
+    assert(index >= 0 && index < GuiContext::MaxStandardColors);
+    if (index < 0 || index >= GuiContext::MaxStandardColors)
+        index = 0;
+    if (Context.GameColorDepth == 8)
+        return index;
+    return GuiContext::StandardColors[index];
+}
+
+int GetStandardColorForBitmap(int index)
+{
+    assert(Context.GameColorDepth > 0);
+    return BitmapHelper::AGSColorToBitmapColor(GetStandardColor(index), Context.GameColorDepth);
+}
 
 Line CalcFontGraphicalVExtent(int font)
 {
@@ -806,7 +829,7 @@ Rect CalcTextGraphicalRect(const char *text, int font, const Rect &frame, FrameA
 
 void DrawDisabledEffect(Bitmap *ds, const Rect &rc)
 {
-    color_t draw_color = ds->GetCompatibleColor(8);
+    color_t draw_color = GUI::GetStandardColorForBitmap(8);
     for (int at_x = rc.Left; at_x <= rc.Right; ++at_x)
     {
         for (int at_y = rc.Top + at_x % 2; at_y <= rc.Bottom; at_y += 2)

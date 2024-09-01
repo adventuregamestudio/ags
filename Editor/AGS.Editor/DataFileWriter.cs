@@ -573,9 +573,8 @@ namespace AGS.Editor
             writer.Write((int)game.Settings.ColorDepth);
             writer.Write(0); // target_win
             writer.Write(game.Settings.DialogOptionsBullet);
-            writer.Write(game.Settings.InventoryHotspotMarker.Style != InventoryHotspotMarkerStyle.None ?
-                (short)game.Settings.InventoryHotspotMarker.DotColor : (short)0);
-            writer.Write((short)game.Settings.InventoryHotspotMarker.CrosshairColor);
+            writer.Write((short)0); // [DEPRECATED]
+            writer.Write((short)0); // [DEPRECATED]
             writer.Write(game.Settings.UniqueID);
             writer.Write(game.GUIs.Count);
             writer.Write(game.Cursors.Count);
@@ -585,7 +584,10 @@ namespace AGS.Editor
             writer.Write(game.LipSync.DefaultFrame);
             writer.Write(game.Settings.InventoryHotspotMarker.Style == InventoryHotspotMarkerStyle.Sprite ?
                 game.Settings.InventoryHotspotMarker.Image : 0);
-            writer.Write(new byte[16 * sizeof(int)]); // reserved; 16 ints
+            writer.Write(game.Settings.InventoryHotspotMarker.Style != InventoryHotspotMarkerStyle.None ?
+                game.Settings.InventoryHotspotMarker.DotColor : (int)0);
+            writer.Write(game.Settings.InventoryHotspotMarker.CrosshairColor);
+            writer.Write(new byte[14 * sizeof(int)]); // reserved; 14 ints
             // reserve a 32-bit position for extension offset
             ext_off_pos = writer.BaseStream.Position;
             writer.Write((uint)0);

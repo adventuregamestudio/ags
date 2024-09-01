@@ -179,11 +179,8 @@ public:
         return bitmap_mask_color(_alBitmap);
     }
 
-    // Converts AGS color-index into RGB color according to the bitmap format.
-    // TODO: this method was added to the Bitmap class during large refactoring,
-    // but that's a mistake, because in retrospect is has nothing to do with
-    // bitmap itself and should rather be a part of the game data logic.
-    color_t GetCompatibleColor(color_t color);
+    // Converts AGS color-index into RGB color compatible with the bitmap format.
+    color_t GetCompatibleColor(int color);
 
     //=========================================================================
     // Clipping
@@ -275,6 +272,10 @@ private:
 
 namespace BitmapHelper
 {
+    // Remaps AGS color number to a color value compatible to a bitmap of certain color depth
+    int AGSColorToBitmapColor(int color, int color_depth);
+    // Remaps AGS color number in certain color depth mode to a actual RGB
+    void AGSColorToRGB(int color, int color_depth, RGB &rgb);
     // TODO: revise those functions later (currently needed in a few very specific cases)
 	// NOTE: the resulting object __owns__ bitmap data from now on
 	Bitmap *CreateRawBitmapOwner(BITMAP *al_bmp);

@@ -810,15 +810,6 @@ int get_adjusted_spriteheight(int spr) {
   return retval;
 }
 
-void drawBlockOfColour(HDC hdc, int x,int y, int width, int height, int colNum)
-{
-	__my_setcolor(&colNum, colNum, BaseColorDepth);
-  Common::Bitmap *palbmp = Common::BitmapHelper::CreateBitmap(width, height, thisgame.color_depth * 8);
-  palbmp->Clear (colNum);
-  drawBlockScaledAt(hdc, palbmp, x, y, 1);
-  delete palbmp;
-}
-
 void new_font () {
   FontInfo fi;
   load_font_size(thisgame.numfonts, fi);

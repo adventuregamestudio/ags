@@ -292,6 +292,63 @@ void ApplySpriteData(GameSetupStruct &game, const LoadedGameEntities &ents, Game
     }
 }
 
+// Lookup table for scaling 5 bit colors up to 8 bits,
+// copied from Allegro 4 library, preventing an extra dependency.
+static const uint8_t RGBScale5[32]
+{
+    0,   8,   16,  24,  33,  41,  49,  57,
+    66,  74,  82,  90,  99,  107, 115, 123,
+    132, 140, 148, 156, 165, 173, 181, 189,
+    198, 206, 214, 222, 231, 239, 247, 255
+};
+
+// Lookup table for scaling 6 bit colors up to 8 bits,
+// copied from Allegro 4 library, preventing an extra dependency.
+static const uint8_t RGBScale6[64]
+{
+    0,   4,   8,   12,  16,  20,  24,  28,
+    32,  36,  40,  44,  48,  52,  56,  60,
+    65,  69,  73,  77,  81,  85,  89,  93,
+    97,  101, 105, 109, 113, 117, 121, 125,
+    130, 134, 138, 142, 146, 150, 154, 158,
+    162, 166, 170, 174, 178, 182, 186, 190,
+    195, 199, 203, 207, 211, 215, 219, 223,
+    227, 231, 235, 239, 243, 247, 251, 255
+};
+
+// Remaps color number from legacy to new format:
+// * palette index in 8-bit game,
+// * encoded 32-bit A8R8G8B8 in 32-bit game.
+static int RemapFromLegacyColourNumber(const GameSetupStruct &game, int color)
+{
+    if (game.color_depth == 1)
+        return color; // keep palette index
+
+    // Special 0-31 color numbers were always interpreted as palette indexes;
+    // for them we compose a 32-bit xRGB from the palette entry
+    if (color >= 0 && color < 32)
+    {
+        const RGB &rgb = game.defpal[color];
+        return rgb.b | (rgb.g << 8) | (rgb.r << 16);
+    }
+
+    // The rest is a R5G6B5 color; we convert it to a proper 32-bit xRGB
+    uint8_t red = RGBScale5[(color >> 11) & 0x1f];
+    uint8_t green = RGBScale6[(color >> 5) & 0x3f];
+    uint8_t blue = RGBScale5[(color) & 0x1f];
+    return blue | (green << 8) | (red << 16);
+}
+
+void UpgradeGame(GameSetupStruct &game, GameDataVersion data_ver)
+{
+    // 32-bit color properties
+    if (data_ver < kGameVersion_400_09)
+    {
+        game.hotdot = RemapFromLegacyColourNumber(game, game.hotdot);
+        game.hotdotouter = RemapFromLegacyColourNumber(game, game.hotdotouter);
+    }
+}
+
 void UpgradeFonts(GameSetupStruct &game, GameDataVersion data_ver)
 {
 }
@@ -315,6 +372,15 @@ void UpgradeCharacters(GameSetupStruct &game, GameDataVersion data_ver)
             chars[i].flags |= CHF_TURNWHENFACE;
         }
     }
+
+    // 32-bit color properties
+    if (data_ver < kGameVersion_400_09)
+    {
+        for (int i = 0; i < char_count; i++)
+        {
+            chars[i].talkcolor = RemapFromLegacyColourNumber(game, chars[i].talkcolor);
+        }
+    }
 }
 
 void UpgradeGUI(GameSetupStruct &game, LoadedGameEntities &ents, GameDataVersion data_ver)
@@ -326,6 +392,38 @@ void UpgradeGUI(GameSetupStruct &game, LoadedGameEntities &ents, GameDataVersion
             btn.SetTranslated(true); // always translated
         for (auto &lbl : ents.GuiControls.Labels)
             lbl.SetTranslated(true); // always translated
+    }
+
+    // 32-bit color properties
+    if (data_ver < kGameVersion_400_09)
+    {
+        for (auto &gui : ents.Guis)
+        {
+            gui.BgColor = RemapFromLegacyColourNumber(game, gui.BgColor);
+            gui.FgColor = RemapFromLegacyColourNumber(game, gui.FgColor);
+        }
+
+        for (auto &btn : ents.GuiControls.Buttons)
+        {
+            btn.TextColor = RemapFromLegacyColourNumber(game, btn.TextColor);
+        }
+
+        for (auto &lbl : ents.GuiControls.Labels)
+        {
+            lbl.TextColor = RemapFromLegacyColourNumber(game, lbl.TextColor);
+        }
+
+        for (auto &list : ents.GuiControls.ListBoxes)
+        {
+            list.TextColor = RemapFromLegacyColourNumber(game, list.TextColor);
+            list.SelectedBgColor = RemapFromLegacyColourNumber(game, list.SelectedBgColor);
+            list.SelectedTextColor = RemapFromLegacyColourNumber(game, list.SelectedTextColor);
+        }
+
+        for (auto &tbox : ents.GuiControls.TextBoxes)
+        {
+            tbox.TextColor = RemapFromLegacyColourNumber(game, tbox.TextColor);
+        }
     }
 }
 
@@ -645,6 +743,7 @@ HGameFileError UpdateGameData(LoadedGameEntities &ents, GameDataVersion data_ver
 {
     GameSetupStruct &game = ents.Game;
     ApplySpriteData(game, ents, data_ver);
+    UpgradeGame(game, data_ver);
     UpgradeFonts(game, data_ver);
     UpgradeAudio(game, ents, data_ver);
     UpgradeCharacters(game, data_ver);

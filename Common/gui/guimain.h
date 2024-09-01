@@ -259,12 +259,18 @@ class SpriteCache;
 // Global GUI context, affects controls behavior (drawing, updating)
 struct GuiContext
 {
+public:
+    // Game's native color depth, in bits per pixel, saved for the GUI reference
+    int GameColorDepth = 0;
     // Sprite cache, for GUI drawing in software mode
     SpriteCache *Spriteset = nullptr;
     // Current disabled state
     GuiDisableStyle DisabledState = kGuiDis_Undefined;
     // Last selected inventory item's pic
     int InventoryPic = -1;
+
+    const static int MaxStandardColors = 32;
+    const static int StandardColors[MaxStandardColors];
 };
 
 namespace GUI
@@ -281,6 +287,19 @@ namespace GUI
     {
         return (GUI::Context.DisabledState == kGuiDis_Undefined) && g->IsEnabled();
     }
+
+    // Gets a default hardcoded color value for the given index.
+    // The valid index range is 0-31.
+    // Returns AGS color property value suiting the game's color depth setting,
+    // that is - a palette index in 8-bit games, else encoded RGB value.
+    int GetStandardColor(int index);
+    // Same as above, but also guarantees that the color is already converted
+    // for the bitmap, which color depth matches the game's.
+    // The principle here is that the bitmap *MAY* (in theory) require the
+    // color value to be encoded differently from the common property value.
+    // This function is equivalent to a sequence of calls:
+    //     bitmap->GetCompatibleColor(GUI::GetStandardColor(index));
+    int GetStandardColorForBitmap(int index);
 
     // Applies current text direction setting (may depend on multiple factors)
     String ApplyTextDirection(const String &text);

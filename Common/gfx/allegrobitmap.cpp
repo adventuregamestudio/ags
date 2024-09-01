@@ -20,8 +20,6 @@
 #include "util/filestream.h"
 #include "debug/assert.h"
 
-extern void __my_setcolor(int *ctset, int newcol, int wantColDep);
-
 namespace AGS
 {
 namespace Common
@@ -194,11 +192,9 @@ bool Bitmap::SaveToFile(const char *filename, const RGB *palette)
 	return BitmapHelper::SaveToFile(this, filename, palette);
 }
 
-color_t Bitmap::GetCompatibleColor(color_t color)
+color_t Bitmap::GetCompatibleColor(int color)
 {
-    color_t compat_color = 0;
-    __my_setcolor(&compat_color, color, bitmap_color_depth(_alBitmap));
-    return compat_color;
+    return BitmapHelper::AGSColorToBitmapColor(color, bitmap_color_depth(_alBitmap));
 }
 
 //=============================================================================
@@ -525,6 +521,39 @@ void Bitmap::SetScanLine(int index, unsigned char *data, int data_size)
 
 namespace BitmapHelper
 {
+
+int AGSColorToBitmapColor(int color, int color_depth)
+{
+    // no conversion necessary, we assume that "ags color" is matching
+    // palette index in 8-bit mode and 32-bit A8R8G8B8 in 32-bit mode
+    if (color_depth == 8)
+    {
+        return color;
+    }
+    else
+    {
+        return color | 0xFF000000; // temporary fix for missing alpha in color values
+    }
+}
+
+void AGSColorToRGB(int color, int color_depth, RGB &rgb)
+{
+    if (color_depth == 8)
+    {
+        if (color < 0 || color > 255)
+            color = 0;
+        get_color(color, &rgb);
+        rgb.filler = 0xFF; // pseudo-alpha
+    }
+    else
+    {
+        // assume is always A8R8G8B8
+        rgb.r = getr32(color);
+        rgb.g = getg32(color);
+        rgb.b = getb32(color);
+        rgb.filler = 0xFF; // pseudo-alpha
+    }
+}
 
 Bitmap *CreateRawBitmapOwner(BITMAP *al_bmp)
 {

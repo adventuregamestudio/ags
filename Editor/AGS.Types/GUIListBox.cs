@@ -77,88 +77,40 @@ namespace AGS.Types
             set { _textAlignment = value; }
         }
 
-        [Description("AGS Colour Number of the text")]
+        [Description("Colour of the text")]
         [Category("Appearance")]
-        [DisplayName("TextColourNumber")]
+        [DisplayName("TextColor")]
         [RefreshProperties(RefreshProperties.All)]
+        [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [TypeConverter(typeof(CustomColorConverter))]
         public int TextColor
         {
             get { return _textColor; }
             set { _textColor = value; }
         }
 
-        [Description("Colour of the text")]
+        [Description("Selected item's text colour")]
         [Category("Appearance")]
-        [DisplayNameAttribute("TextColor")]
+        [DisplayName("SelectedTextColor")]
         [RefreshProperties(RefreshProperties.All)]
-        [AGSNoSerialize]
         [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
-        public Color TextColorRGB
-        {
-            get
-            {
-                return new AGSColor(_textColor).ToRgb();
-            }
-            set
-            {
-                _textColor = new AGSColor(value).ColorNumber;
-            }
-        }
-
-        [Description("AGS Colour Number of the selected item's text")]
-        [Category("Appearance")]
-        [DisplayName("SelectedTextColourNumber")]
-        [RefreshProperties(RefreshProperties.All)]
+        [TypeConverter(typeof(CustomColorConverter))]
         public int SelectedTextColor
         {
             get { return _selectedTextColor; }
             set { _selectedTextColor = value; }
         }
 
-        [Description("Selected item's text colour")]
-        [Category("Appearance")]
-        [DisplayName("SelectedTextColor")]
-        [RefreshProperties(RefreshProperties.All)]
-        [AGSNoSerialize]
-        [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
-        public Color SelectedTextColorRGB
-        {
-            get
-            {
-                return new AGSColor(_selectedTextColor).ToRgb();
-            }
-            set
-            {
-                _selectedTextColor = new AGSColor(value).ColorNumber;
-            }
-        }
-
-        [Description("Background colour for the selected item")]
-        [Category("Appearance")]
-        [DisplayName("SelectedBackgroundColorNumber")]
-        [RefreshProperties(RefreshProperties.All)]
-        public int SelectedBackgroundColor
-        {
-            get { return _selectedBackgroundColor; }
-            set { _selectedBackgroundColor = value; }
-        }
-
         [Description("Selected item's background colour")]
         [Category("Appearance")]
         [DisplayName("SelectedBackgroundColor")]
         [RefreshProperties(RefreshProperties.All)]
-        [AGSNoSerialize]
         [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
-        public Color SelectedBackgroundColorRGB
+        [TypeConverter(typeof(CustomColorConverter))]
+        public int SelectedBackgroundColor
         {
-            get
-            {
-                return new AGSColor(_selectedBackgroundColor).ToRgb();
-            }
-            set
-            {
-                _selectedBackgroundColor = new AGSColor(value).ColorNumber;
-            }
+            get { return _selectedBackgroundColor; }
+            set { _selectedBackgroundColor = value; }
         }
 
         [Description("Font to use for the text")]

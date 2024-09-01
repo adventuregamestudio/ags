@@ -127,6 +127,8 @@ BlendModes
 Raised for org purposes without format changes
 4.0.0.8:
 Palette component range changed from 64 to 256
+4.0.0.9:
+32-bit color properties
 */
 
 enum GameDataVersion
@@ -140,8 +142,9 @@ enum GameDataVersion
     kGameVersion_399            = 3999999,
     kGameVersion_400            = 4000000,
     kGameVersion_400_08         = 4000008,
+    kGameVersion_400_09         = 4000009,
     kGameVersion_LowSupported   = kGameVersion_360_21,
-    kGameVersion_Current        = kGameVersion_400_08
+    kGameVersion_Current        = kGameVersion_400_09
 };
 
 // Data format version of the loaded game

@@ -444,6 +444,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     guilist = std::move(ents.GuiControls.ListBoxes);
     guislider = std::move(ents.GuiControls.Sliders);
     guitext = std::move(ents.GuiControls.TextBoxes);
+    GUI::Context.GameColorDepth = game.GetColorDepth();
     GUI::Context.Spriteset = &spriteset;
     GUIRefCollection guictrl_refs(guibuts, guiinv, guilabels, guilist, guislider, guitext);
     GUI::RebuildGUI(guis, guictrl_refs);

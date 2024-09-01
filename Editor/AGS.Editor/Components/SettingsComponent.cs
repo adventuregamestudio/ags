@@ -21,6 +21,9 @@ namespace AGS.Editor.Components
             RecreateDocument();
             _guiController.RegisterIcon(ICON_KEY, Resources.ResourceManager.GetIcon("iconsett.ico"));
             _guiController.ProjectTree.AddTreeRoot(this, "GeneralSettings", "General Settings", ICON_KEY);
+
+            Factory.Events.GamePostLoad += Events_GamePostLoad;
+            Factory.Events.GameSettingsChanged += Events_GameSettingsChanged;
         }
 
         private void RecreateDocument()
@@ -53,6 +56,18 @@ namespace AGS.Editor.Components
 			{
 				_guiController.AddOrShowPane(_document);
 			}
+        }
+
+        private void Events_GamePostLoad(Game game)
+        {
+            ColorUIEditor.ColorMode = game.Settings.ColorDepth;
+            CustomColorConverter.ColorMode = game.Settings.ColorDepth;
+        }
+
+        private void Events_GameSettingsChanged()
+        {
+            ColorUIEditor.ColorMode = _agsEditor.CurrentGame.Settings.ColorDepth;
+            CustomColorConverter.ColorMode = _agsEditor.CurrentGame.Settings.ColorDepth;
         }
     }
 }

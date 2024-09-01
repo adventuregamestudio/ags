@@ -545,6 +545,12 @@ namespace AGS.Editor
                 game.Settings.ScaleCharacterSpriteOffsets = false;
             }
 
+            // Update all the ColourNumber property values in game
+            if (xmlVersionIndex < 4000009)
+            {
+                RemapLegacyColourProperties(game);
+            }
+
             System.Version editorVersion = new System.Version(AGS.Types.Version.AGS_EDITOR_VERSION);
             System.Version projectVersion = game.SavedXmlEditorVersion != null ? Types.Utilities.TryParseVersion(game.SavedXmlEditorVersion) : null;
             if (projectVersion == null || projectVersion < editorVersion)
@@ -574,6 +580,112 @@ namespace AGS.Editor
             sr.Close();
             sw.Close();
             return returnValue;
+        }
+
+        /// <summary>
+        /// Remaps all color properties in game from old color depth to a new color depth;
+        /// for example: from palette mode to 32-bit mode, or other way.
+        /// </summary>
+        public static void RemapColourPropertiesOnDepthChange(Game game, GameColorDepth oldColorDepth)
+        {
+            Func<int, int> remapColor = (color) => { return ColorMapper.RemapColourNumberToDepth(color, game.Palette, game.Settings.ColorDepth, oldColorDepth); };
+            RemapColourProperties(game, remapColor);
+        }
+
+        /// <summary>
+        /// Remaps color properties in particular Character from old color depth to a new color depth;
+        /// for example: from palette mode to 32-bit mode, or other way.
+        /// </summary>
+        public static void RemapCharacterColours(Character character, Game game, GameColorDepth oldColorDepth)
+        {
+            Func<int, int> remapColor = (color) => { return ColorMapper.RemapColourNumberToDepth(color, game.Palette, game.Settings.ColorDepth, oldColorDepth); };
+            RemapColourProperties(character, remapColor);
+        }
+
+        /// <summary>
+        /// Remaps color properties in particular GUI from old color depth to a new color depth;
+        /// for example: from palette mode to 32-bit mode, or other way.
+        /// </summary>
+        public static void RemapGUIColours(GUI gui, Game game, GameColorDepth oldColorDepth)
+        {
+            Func<int, int> remapColor = (color) => { return ColorMapper.RemapColourNumberToDepth(color, game.Palette, game.Settings.ColorDepth, oldColorDepth); };
+            RemapColourProperties(gui, remapColor);
+        }
+
+        /// <summary>
+        /// Remaps historical 16-bit R6G5B6 values to proper 32-bit ARGB.
+        /// </summary>
+        private static void RemapLegacyColourProperties(Game game)
+        {
+            Func<int, int> remapColor = (color) => { return ColorMapper.RemapFromLegacyColourNumber(color, game.Palette, game.Settings.ColorDepth); };
+            RemapColourProperties(game, remapColor);
+        }
+
+        /// <summary>
+        /// Remaps all color properties in game using provided delegate.
+        /// </summary>
+        private static void RemapColourProperties(Game game, Func<int, int> remapColor)
+        {
+            var settings = game.Settings;
+            settings.InventoryHotspotMarkerCrosshairColor = remapColor(settings.InventoryHotspotMarkerCrosshairColor);
+            settings.InventoryHotspotMarkerDotColor = remapColor(settings.InventoryHotspotMarkerDotColor);
+
+            foreach (var c in game.Characters)
+            {
+                RemapColourProperties(c, remapColor);
+            }
+
+            foreach (var gui in game.GUIs)
+            {
+                RemapColourProperties(gui, remapColor);
+            }
+        }
+
+        private static void RemapColourProperties(Character character, Func<int, int> remapColor)
+        {
+            character.SpeechColor = remapColor(character.SpeechColor);
+        }
+
+        private static void RemapColourProperties(GUI gui, Func<int, int> remapColor)
+        {
+            gui.BackgroundColor = remapColor(gui.BackgroundColor);
+            if (gui is NormalGUI)
+            {
+                var ngui = gui as NormalGUI;
+                ngui.BorderColor = remapColor(ngui.BorderColor);
+            }
+            else if (gui is TextWindowGUI)
+            {
+                var tw = gui as TextWindowGUI;
+                tw.TextColor = remapColor(tw.TextColor);
+                // NOTE: TextWindowGUI.BorderColor currently internally maps to TextColor
+            }
+
+            foreach (var ctrl in gui.Controls)
+            {
+                if (ctrl is GUIButton)
+                {
+                    GUIButton but = ctrl as GUIButton;
+                    but.TextColor = remapColor(but.TextColor);
+                }
+                else if (ctrl is GUILabel)
+                {
+                    GUILabel lab = ctrl as GUILabel;
+                    lab.TextColor = remapColor(lab.TextColor);
+                }
+                else if (ctrl is GUIListBox)
+                {
+                    GUIListBox list = ctrl as GUIListBox;
+                    list.TextColor = remapColor(list.TextColor);
+                    list.SelectedTextColor = remapColor(list.SelectedTextColor);
+                    list.SelectedBackgroundColor = remapColor(list.SelectedBackgroundColor);
+                }
+                else if (ctrl is GUITextBox)
+                {
+                    GUITextBox textbox = ctrl as GUITextBox;
+                    textbox.TextColor = remapColor(textbox.TextColor);
+                }
+            }
         }
 
         private void AddFontIfNotAlreadyThere(int fontNumber)

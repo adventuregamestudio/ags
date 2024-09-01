@@ -238,7 +238,7 @@ Bitmap *create_textual_image(const char *text, int asspch, int isThought,
 
     if ((strlen(todis) < 1) || (strcmp(todis, "  ") == 0) || (wii == 0));
     // if it's an empty speech line, don't draw anything
-    else if (asspch) { //text_color = ds->GetCompatibleColor(12);
+    else if (asspch) { //text_color = GUI::GetStandardColorForBitmap(12);
         int ttxleft = 0, ttxtop = paddingScaled, oriwid = wii - padding * 2;
         int drawBackground = 0;
 
@@ -710,14 +710,14 @@ int get_but_pic(GUIMain*guo,int indx)
 void draw_button_background(Bitmap *ds, int xx1,int yy1,int xx2,int yy2,GUIMain*iep) {
     color_t draw_color;
     if (iep==nullptr) {  // standard window
-        draw_color = ds->GetCompatibleColor(15);
+        draw_color = GUI::GetStandardColorForBitmap(15);
         ds->FillRect(Rect(xx1,yy1,xx2,yy2), draw_color);
-        draw_color = ds->GetCompatibleColor(16);
+        draw_color = GUI::GetStandardColorForBitmap(16);
         ds->DrawRect(Rect(xx1,yy1,xx2,yy2), draw_color);
     }
     else {
         if (iep->BgColor >= 0) draw_color = ds->GetCompatibleColor(iep->BgColor);
-        else draw_color = ds->GetCompatibleColor(0); // black backrgnd behind picture
+        else draw_color = GUI::GetStandardColorForBitmap(0); // black backrgnd behind picture
 
         if (iep->BgColor > 0)
             ds->FillRect(Rect(xx1,yy1,xx2,yy2), draw_color);
@@ -824,7 +824,7 @@ void draw_text_window(Bitmap **text_window_ds, bool should_free_ds,
             quit("!Cannot use QFG4 style options without custom text window");
         draw_button_background(ds, 0,0,ds->GetWidth() - 1,ds->GetHeight() - 1,nullptr);
         if (set_text_color)
-            *set_text_color = ds->GetCompatibleColor(16);
+            *set_text_color = GUI::GetStandardColorForBitmap(16);
         xins[0]=3;
         yins[0]=3;
     }

@@ -35,7 +35,7 @@ MyLabel::MyLabel(int xx, int yy, int wii, const char *tee)
 void MyLabel::draw(Bitmap *ds)
 {
     int cyp = y;
-    color_t text_color = ds->GetCompatibleColor(0);
+    color_t text_color = GUI::GetStandardColorForBitmap(0);
 
     const char *draw_text = skip_voiceover_token(text);
     if (break_up_text_into_lines(draw_text, Lines, wid, acdialog_font) == 0)

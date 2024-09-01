@@ -168,33 +168,17 @@ namespace AGS.Types
             set { _zorder = value; }
         }
 
-		[Description("AGS Colour Number of the GUI border")]
+		[Description("Colour of the GUI border")]
 		[Category("Appearance")]
-        [DisplayName("BorderColourNumber")]
+        [DisplayName("BorderColor")]
         [RefreshProperties(RefreshProperties.All)]
+        [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [TypeConverter(typeof(CustomColorConverter))]
         public int BorderColor
 		{
 			get { return _bordercol; }
 			set { _bordercol = value; }
 		}
-
- 		[Description("Colour of the GUI border")]
-		[Category("Appearance")]
-        [DisplayName("BorderColor")]
-        [RefreshProperties(RefreshProperties.All)]
-        [AGSNoSerialize]
-        [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
-        public Color BorderColorRGB
-        {
-            get
-            {
-                return new AGSColor(_bordercol).ToRgb();
-            }
-            set
-            {
-                _bordercol = new AGSColor(value).ColorNumber;
-            }
-        }
 
         [Description("Transparency of the GUI, from 0% (solid) to 100% (invisible). Does not work with 8-bit colour games.")]
         [Category("Appearance")]

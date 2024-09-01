@@ -93,8 +93,8 @@ void GameSetupStructBase::ReadFromFile(Stream *in, GameDataVersion game_ver, Ser
     color_depth = in->ReadInt32();
     target_win = in->ReadInt32();
     dialog_bullet = in->ReadInt32();
-    hotdot = static_cast<uint16_t>(in->ReadInt16());
-    hotdotouter = static_cast<uint16_t>(in->ReadInt16());
+    in->ReadInt16(); // [DEPRECATED] uint16 value of a inv cursor hotdot color
+    in->ReadInt16(); // [DEPRECATED] uint16 value of a inv cursor hot cross color
     uniqueid = in->ReadInt32();
     numgui = in->ReadInt32();
     numcursors = in->ReadInt32();
@@ -107,6 +107,8 @@ void GameSetupStructBase::ReadFromFile(Stream *in, GameDataVersion game_ver, Ser
 
     default_lipsync_frame = in->ReadInt32();
     invhotdotsprite = in->ReadInt32();
+    hotdot = in->ReadInt32();
+    hotdotouter = in->ReadInt32();
     in->ReadArrayOfInt32(reserved, NUM_INTS_RESERVED);
     info.ExtensionOffset = static_cast<uint32_t>(in->ReadInt32());
 
@@ -140,8 +142,8 @@ void GameSetupStructBase::WriteToFile(Stream *out, const SerializeInfo &info) co
     out->WriteInt32(color_depth);
     out->WriteInt32(target_win);
     out->WriteInt32(dialog_bullet);
-    out->WriteInt16(static_cast<uint16_t>(hotdot));
-    out->WriteInt16(static_cast<uint16_t>(hotdotouter));
+    out->WriteInt16(0); // [DEPRECATED] uint16 value of a inv cursor hotdot color
+    out->WriteInt16(0); // [DEPRECATED] uint16 value of a inv cursor hot cross color
     out->WriteInt32(uniqueid);
     out->WriteInt32(numgui);
     out->WriteInt32(numcursors);
@@ -150,6 +152,8 @@ void GameSetupStructBase::WriteToFile(Stream *out, const SerializeInfo &info) co
     out->WriteInt32(_gameResolution.Height);
     out->WriteInt32(default_lipsync_frame);
     out->WriteInt32(invhotdotsprite);
+    out->WriteInt32(hotdot);
+    out->WriteInt32(hotdotouter);
     out->WriteArrayOfInt32(reserved, NUM_INTS_RESERVED);
     out->WriteByteCount(0, sizeof(int32_t) * NUM_LEGACY_GLOBALMES);
     out->WriteInt32(dict ? 1 : 0);

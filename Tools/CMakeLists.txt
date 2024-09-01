@@ -68,6 +68,19 @@ set_target_properties(agf2dlgasc PROPERTIES
         )
 target_link_libraries(agf2dlgasc PUBLIC libtools)
 
+#----- agfbuildgen -----------------------------------------------
+add_executable(agfbuildgen agfbuildgen/main.cpp agfbuildgen/text_writer.cpp agfbuildgen/text_writer.h
+        agfbuildgen/makefile_generator.h agfbuildgen/makefile_generator.cpp
+        agfbuildgen/makefile_writer.cpp agfbuildgen/makefile_writer.h
+        agfbuildgen/ninja_generator.h agfbuildgen/ninja_generator.cpp
+        agfbuildgen/ninja_writer.cpp agfbuildgen/ninja_writer.h
+        agfbuildgen/generator_common.h)
+set_target_properties(agfbuildgen PROPERTIES
+        CXX_STANDARD 11
+        CXX_EXTENSIONS NO
+)
+target_link_libraries(agfbuildgen PUBLIC libtools)
+
 #----- agfexport -----------------------------------------------
 add_executable(agfexport agfexport/main.cpp)
 set_target_properties(agfexport PROPERTIES
@@ -113,6 +126,7 @@ target_link_libraries(trac PUBLIC libtools)
 
 list(APPEND TOOLS_TARGETS
         agf2dlgasc
+        agfbuildgen
         agfexport
         agspak
         crm2ash

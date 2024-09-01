@@ -12,9 +12,9 @@
 //
 //=============================================================================
 #include <string.h>
-#include "executingscript.h"
-#include "debug/debug_log.h"
 #include "ac/game_version.h"
+#include "debug/debug_log.h"
+#include "script/executingscript.h"
 #include "script/script.h"
 
 using namespace AGS::Common;
@@ -25,7 +25,7 @@ QueuedScript::QueuedScript()
 {
 }
 
-void ExecutingScript::QueueAction(const PostScriptAction &act)
+void ExecutingScript::QueueAction(PostScriptAction &&act)
 {
     // A strange behavior in pre-2.7.0 games allowed to call NewRoom right after
     // RestartGame, cancelling RestartGame. Probably an unintended effect.
@@ -58,9 +58,9 @@ void ExecutingScript::QueueAction(const PostScriptAction &act)
         }
     }
 
-    PostScriptAction act_pos = act;
+    PostScriptAction act_pos = std::move(act);
     get_script_position(act_pos.Position);
-    PostScriptActions.push_back(act_pos);
+    PostScriptActions.push_back(std::move(act_pos));
 }
 
 void ExecutingScript::RunAnother(const char *namm, ScriptInstType scinst, size_t param_count, const RuntimeScriptValue *params)

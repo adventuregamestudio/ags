@@ -946,30 +946,13 @@ Bitmap *create_savegame_screenshot()
     return CopyScreenIntoBitmap(usewid, usehit, &viewport);
 }
 
-void save_game(int slotn, const char*descript)
+void save_game(int slotn, const String &descript, std::unique_ptr<Bitmap> &&image)
 {
-    VALIDATE_STRING(descript);
-
-    // dont allow save in rep_exec_always, because we dont save
-    // the state of blocked scripts
-    can_run_delayed_command();
-
-    if (inside_script) {
-        get_executingscript()->QueueAction(PostScriptAction(ePSASaveGame, slotn, "SaveGameSlot", descript));
-        return;
-    }
-
-    if (platform->GetDiskFreeSpaceMB(get_save_game_directory()) < 2) {
-        Display("ERROR: There is not enough disk space free to save the game. Clear some disk space and try again.");
-        return;
-    }
-
     String nametouse = get_save_game_path(slotn);
-    std::unique_ptr<Bitmap> screenShot;
-    if (game.options[OPT_SAVESCREENSHOT] != 0)
-        screenShot.reset(create_savegame_screenshot());
+    if (!image && (game.options[OPT_SAVESCREENSHOT] != 0))
+        image.reset(create_savegame_screenshot());
 
-    std::unique_ptr<Stream> out(StartSavegame(nametouse, descript, screenShot.get()));
+    std::unique_ptr<Stream> out(StartSavegame(nametouse, descript, image.get()));
     if (out == nullptr)
     {
         Display("ERROR: Unable to open savegame file for writing!");

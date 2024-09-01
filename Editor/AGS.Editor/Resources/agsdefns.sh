@@ -810,7 +810,7 @@ import void SaveGameDialog();
 /// Restarts the game from the restart point.
 import void RestartGame();
 /// Saves the current game position to the specified slot.
-import void SaveGameSlot(int slot, const string description);
+import void SaveGameSlot(int slot, const string description, int sprite = -1);
 /// Restores the game saved to the specified game slot.
 import void RestoreGameSlot(int slot);
 /// Deletes the specified save game.

@@ -20,6 +20,7 @@
 
 #include <vector>
 #include "script/cc_instance.h"
+#include "gfx/bitmap.h"
 
 #define MAX_FUNCTION_NAME_LEN 60
 #define MAX_QUEUED_PARAMS  4
@@ -60,6 +61,7 @@ struct PostScriptAction
     int Data = 0;
     Common::String Name;
     Common::String Description;
+    mutable std::unique_ptr<Common::Bitmap> Image;
     ScriptPosition Position;
 
     PostScriptAction() = default;
@@ -67,6 +69,9 @@ struct PostScriptAction
         : Type(type), Data(data), Name(name) {}
     PostScriptAction(PostScriptActionType type, int data, const Common::String &name, const Common::String &desc)
         : Type(type), Data(data), Name(name), Description(desc) {}
+    PostScriptAction(PostScriptActionType type, int data, const Common::String &name, const Common::String &desc,
+        std::unique_ptr<Common::Bitmap> &&image)
+        : Type(type), Data(data), Name(name), Description(desc), Image(std::move(image)) {}
 };
 
 struct ExecutingScript
@@ -80,7 +85,7 @@ struct ExecutingScript
     std::vector<QueuedScript> ScFnQueue;
 
     ExecutingScript() = default;
-    void QueueAction(const PostScriptAction &act);
+    void QueueAction(PostScriptAction &&act);
     void RunAnother(const char *namm, ScriptInstType scinst, size_t param_count, const RuntimeScriptValue *params);
 };
 

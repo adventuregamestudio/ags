@@ -668,7 +668,7 @@ void post_script_cleanup() {
             restart_game();
             return;
         case ePSASaveGame:
-            save_game(thisData, act.Description.GetCStr());
+            save_game(thisData, act.Description.GetCStr(), std::move(act.Image));
             break;
         case ePSASaveGameDialog:
             save_game_dialog();

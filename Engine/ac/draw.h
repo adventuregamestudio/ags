@@ -42,6 +42,7 @@ using namespace AGS; // FIXME later
 #define RENDER_BATCH_MOUSE_CURSOR    0x00000002
 #define RENDER_BATCH_UI_LAYER        0x00000004
 #define RENDER_BATCH_ROOM_LAYER      0x00000008
+#define RENDER_BATCH_ALL             0xFFFFFFFF
 #define RENDER_SHOT_SKIP_ON_FADE     (RENDER_BATCH_ENGINE_OVERLAY | RENDER_BATCH_MOUSE_CURSOR)
 
 // Converts AGS color index to the actual bitmap color using game's color depth

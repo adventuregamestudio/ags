@@ -503,6 +503,19 @@ enum InputType
 };
 #endif
 
+#ifdef SCRIPT_API_v362
+enum RenderLayer
+{
+  eRenderLayerNone      = 0x00000000,
+  eRenderLayerEngine    = 0x00000001,
+  eRenderLayerCursor    = 0x00000002,
+  eRenderLayerUI        = 0x00000004,
+  eRenderLayerRoom      = 0x00000008,
+  eRenderLayerAll       = 0xFFFFFFFF
+};
+#endif
+
+
 internalstring autoptr builtin managed struct String {
   /// Creates a formatted string using the supplied parameters.
   import static String Format(const string format, ...);    // $AUTOCOMPLETESTATICONLY$
@@ -1411,7 +1424,7 @@ builtin managed struct DynamicSprite {
   /// Creates a dynamic sprite from a save game screenshot.
   import static DynamicSprite* CreateFromSaveGame(int slot, int width, int height);  // $AUTOCOMPLETESTATICONLY$
   /// Creates a dynamic sprite as a copy of the current screen.
-  import static DynamicSprite* CreateFromScreenShot(int width=0, int height=0);  // $AUTOCOMPLETESTATICONLY$
+  import static DynamicSprite* CreateFromScreenShot(int width=0, int height=0, int layer=eRenderLayerAll);  // $AUTOCOMPLETESTATICONLY$
   /// Enlarges the size of the sprite, but does not resize the image.
   import void ChangeCanvasSize(int width, int height, int x, int y);
   /// Copies the transparency mask and/or alpha channel from the specified sprite onto this dynamic sprite.

@@ -36,9 +36,12 @@ using namespace AGS; // FIXME later
 
 // Render stage flags, for filtering out certain elements
 // during room transitions, capturing screenshots, etc.
-// NOTE: these values are internal and purely arbitrary atm.
-#define RENDER_BATCH_ENGINE_OVERLAY  0x0001
-#define RENDER_BATCH_MOUSE_CURSOR    0x0002
+// NOTE: these values are matched by ones in a script API,
+// if you require a change, make sure the script parameters are converted on function call.
+#define RENDER_BATCH_ENGINE_OVERLAY  0x00000001
+#define RENDER_BATCH_MOUSE_CURSOR    0x00000002
+#define RENDER_BATCH_UI_LAYER        0x00000004
+#define RENDER_BATCH_ROOM_LAYER      0x00000008
 #define RENDER_SHOT_SKIP_ON_FADE     (RENDER_BATCH_ENGINE_OVERLAY | RENDER_BATCH_MOUSE_CURSOR)
 
 // Converts AGS color index to the actual bitmap color using game's color depth

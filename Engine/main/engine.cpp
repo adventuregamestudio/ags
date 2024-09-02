@@ -560,7 +560,7 @@ void show_preload()
         IDriverDependantBitmap *ddb = gfxDriver->CreateDDBFromBitmap(tsc, false, true);
         ddb->SetStretch(view.GetWidth(), view.GetHeight());
         gfxDriver->ClearDrawLists();
-        gfxDriver->BeginSpriteBatch(view);
+        gfxDriver->BeginSpriteBatch(view, SpriteTransform());
         gfxDriver->DrawSprite(0, 0, ddb);
         gfxDriver->EndSpriteBatch();
         render_to_screen();

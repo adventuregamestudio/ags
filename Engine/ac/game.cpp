@@ -943,7 +943,8 @@ Bitmap *create_savegame_screenshot()
     usewid = std::min(usewid, viewport.GetWidth());
     usehit = std::min(usehit, viewport.GetHeight());
 
-    return CopyScreenIntoBitmap(usewid, usehit, &viewport);
+    const uint32_t layers = game.options[OPT_SAVESCREENSHOTLAYER];
+    return CopyScreenIntoBitmap(usewid, usehit, &viewport, false, ~layers);
 }
 
 void save_game(int slotn, const String &descript, std::unique_ptr<Bitmap> &&image)

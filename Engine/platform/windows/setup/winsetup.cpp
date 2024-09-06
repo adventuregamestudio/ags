@@ -21,7 +21,6 @@
 #include <vector>
 #include "platform/windows/windows.h"
 #include <shlwapi.h>
-#include "platform/windows/setup/winapihelpers.h"
 #include "ac/gamestructdefines.h"
 #include "gfx/gfxdriverfactory.h"
 #include "gfx/gfxfilter.h"
@@ -30,6 +29,8 @@
 #include "main/graphics_mode.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/sys_main.h"
+#include "platform/windows/setup/winapihelpers.h"
+#include "platform/windows/setup/windialog.h"
 #include "resource/resource.h"
 #include "util/directory.h"
 #include "util/file.h"
@@ -214,7 +215,7 @@ void WinConfig::Save(ConfigTree &cfg, const Size &desktop_res)
 // WinSetupDialog, handles the dialog UI.
 //
 //=============================================================================
-class WinSetupDialog
+class WinSetupDialog : public WinDialog
 {
 public:
     enum GfxModeSpecial
@@ -229,17 +230,21 @@ public:
 
 public:
     WinSetupDialog(const ConfigTree &cfg_in, ConfigTree &cfg_out, const String &data_dir, const String &version_str);
-    ~WinSetupDialog();
+    ~WinSetupDialog() override;
+
     static SetupReturnValue ShowModal(const ConfigTree &cfg_in, ConfigTree &cfg_out,
                                       const String &data_dir, const String &version_str);
 
-private:
-    static INT_PTR CALLBACK DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
+protected:
+    UINT GetTemplateID() const override { return IDD_SETUP; }
 
+private:
     // Event handlers
-    INT_PTR OnInitDialog(HWND hwnd);
-    INT_PTR OnCommand(WORD id);
-    INT_PTR OnListSelection(WORD id);
+    INT_PTR OnDialogEvent(UINT uMsg, WPARAM wParam, LPARAM lParam) override;
+    INT_PTR OnInitDialog() override;
+    INT_PTR OnCommand(WORD id) override;
+    INT_PTR OnListSelection(WORD id) override;
+
     void OnCustomSaveDirBtn();
     void OnCustomSaveDirCheck();
     void OnCustomAppDataDirBtn();
@@ -288,9 +293,7 @@ private:
     void SelectNearestGfxMode(const WindowSetup &ws);
     void UpdateMouseSpeedText();
 
-    // Dialog singleton and properties
-    static WinSetupDialog *_dlg;
-    HWND _hwnd;
+    // Dialog properties
     WinConfig _winCfg;
     const ConfigTree &_cfgIn;
     ConfigTree &_cfgOut;
@@ -340,11 +343,8 @@ private:
     HWND _hMouseSpeedText = NULL;
 };
 
-WinSetupDialog *WinSetupDialog::_dlg = NULL;
-
 WinSetupDialog::WinSetupDialog(const ConfigTree &cfg_in, ConfigTree &cfg_out, const String &data_dir, const String &version_str)
-    : _hwnd(NULL)
-    , _cfgIn(cfg_in)
+    : _cfgIn(cfg_in)
     , _cfgOut(cfg_out)
 {
     _winCfg.DataDirectory = data_dir;
@@ -358,11 +358,9 @@ WinSetupDialog::~WinSetupDialog()
 SetupReturnValue WinSetupDialog::ShowModal(const ConfigTree &cfg_in, ConfigTree &cfg_out,
                                            const String &data_dir, const String &version_str)
 {
-    _dlg = new WinSetupDialog(cfg_in, cfg_out, data_dir, version_str);
-    INT_PTR dlg_res = DialogBoxParamW(GetModuleHandleW(NULL), (LPCWSTR)IDD_SETUP, (HWND)sys_win_get_window(),
-        (DLGPROC)WinSetupDialog::DialogProc, 0L);
-    delete _dlg;
-    _dlg = NULL;
+    std::unique_ptr<WinSetupDialog> dlg(new WinSetupDialog(cfg_in, cfg_out, data_dir, version_str));
+    INT_PTR dlg_res = WinDialog::ShowModal(dlg.get(), (HWND)sys_win_get_window());
+    dlg.reset();
 
     switch (dlg_res)
     {
@@ -387,9 +385,8 @@ static void SetupCustomDirCtrl(const String &save_dir_opt, const String &def_dir
     EnableWindow(dir_btn, has_save_dir ? TRUE : FALSE);
 }
 
-INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
+INT_PTR WinSetupDialog::OnInitDialog()
 {
-    _hwnd                   = hwnd;
     _hVersionText           = GetDlgItem(_hwnd, IDC_VERSION);
     _hCustomSaveDir         = GetDlgItem(_hwnd, IDC_CUSTOMSAVEDIR);
     _hCustomSaveDirBtn      = GetDlgItem(_hwnd, IDC_CUSTOMSAVEDIRBTN);
@@ -741,21 +738,18 @@ void WinSetupDialog::ShowAdvancedOptions()
     }
 }
 
-INT_PTR CALLBACK WinSetupDialog::DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM /*lParam*/)
+INT_PTR WinSetupDialog::OnDialogEvent(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+    // First try the generic handlers in the base class
+    if (WinDialog::OnDialogEvent(uMsg, wParam, lParam) == TRUE)
+        return TRUE;
+
+    // Handle any uncommon messages that do not have corresponding
+    // methods in the WinDialog class
     switch (uMsg)
     {
-    case WM_INITDIALOG:
-        _ASSERT(_dlg != NULL && _dlg->_hwnd == NULL);
-        return _dlg->OnInitDialog(hwndDlg);
-    case WM_COMMAND:
-        _ASSERT(_dlg != NULL && _dlg->_hwnd != NULL);
-        if (HIWORD(wParam) == CBN_SELCHANGE)
-            return _dlg->OnListSelection(LOWORD(wParam));
-        return _dlg->OnCommand(LOWORD(wParam));
     case WM_HSCROLL:
-        _ASSERT(_dlg != NULL && _dlg->_hwnd != NULL);
-        _dlg->UpdateMouseSpeedText();
+        UpdateMouseSpeedText();
         return TRUE;
     default:
         return FALSE;

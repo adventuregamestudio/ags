@@ -810,6 +810,9 @@
     <ClCompile Include="..\..\Engine\media\video\theora_player.cpp">
       <Filter>Source Files\media\video</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Engine\platform\windows\setup\windialog.cpp">
+      <Filter>Source Files\setup</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Engine\platform\windows\setup\winapihelpers.cpp">
       <Filter>Source Files\setup</Filter>
     </ClCompile>
@@ -1633,6 +1636,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Engine\media\video\theora_player.h">
       <Filter>Header Files\media\video</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\platform\windows\setup\windialog.h">
+      <Filter>Header Files\setup</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\platform\windows\setup\winapihelpers.h">
       <Filter>Header Files\setup</Filter>

@@ -111,7 +111,14 @@ Locations of two latter files differ between running platforms:
   * file-path = \[string\] - custom path to the log file.
   * sdl = LEVEL - setup SDL's own logging level, defined either by name or numeric ID:
     * verbose (1), debug (2), info (3), warn (4), error (5), critical (6).
-* **\[override\]** - special options, overriding game behavior.
+* **\[access\]** - accessibility options. These may override programmed game behavior for the purpose of making playing the game easier.
+  * speechskip = \[string\] - assigns the speech skip style to a fixed value:
+    * none - do not override, use game's scripted option;
+	* input - skip speech by player's input only;
+	* time - skip speech by time-out only;
+	* any - skip speech either by player's input or time-out.
+  * textskip = \[string\] - assigns the text message skip style to a fixed value; values are the same as for "speechskip" option.
+* **\[override\]** - special options, overriding game behavior. These are purposed rather for emergency "hacks", in case something was not done "right" in a game, or when you like to enable certain compatibility mode.
   * noplugins = \[0; 1\] - disable plugin loading. Engine will fallback to built-in plugins or stubs, if they are available.
   * multitasking = \[0; 1\] - lock the game in the "single-tasking" or "multitasking" mode. In the nutshell, "multitasking" here means that the game will continue running when player switched away from game window; otherwise it will freeze until player switches back.
   * os = \[string\] - trick the game to think that it runs on a particular operating system. This may come handy if the game is scripted to play differently depending on OS. Possible choices are:

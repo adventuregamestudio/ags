@@ -60,14 +60,15 @@ public:
     PageControl(HWND control_hwnd);
     ~PageControl() = default;
 
-    void AddPage(std::unique_ptr<WinPageDialog> &&dlg, const String &title);
+    void AddPage(std::shared_ptr<WinPageDialog> dlg, const String &title);
     size_t GetPageCount() const { return _pages.size(); }
+    std::shared_ptr<WinPageDialog> GetPage(size_t index) const { return index < _pages.size() ? _pages[index] : nullptr; }
     void SelectPage(size_t index);
 
 private:
     HWND _hwnd = NULL;
     Rect _parentRect;
-    std::vector<std::unique_ptr<WinPageDialog>> _pages;
+    std::vector<std::shared_ptr<WinPageDialog>> _pages;
     WinPageDialog *_curPage = nullptr;
 };
 

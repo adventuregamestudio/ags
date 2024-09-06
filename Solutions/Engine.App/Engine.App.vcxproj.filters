@@ -819,6 +819,12 @@
     <ClCompile Include="..\..\Engine\platform\windows\setup\winpagedialog.cpp">
       <Filter>Source Files\setup</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Engine\platform\windows\setup\basicpagedialog.cpp">
+      <Filter>Source Files\setup</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Engine\platform\windows\setup\advancedpagedialog.cpp">
+      <Filter>Source Files\setup</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Engine\ac\asset_helper.h">
@@ -1647,6 +1653,12 @@
       <Filter>Header Files\setup</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\platform\windows\setup\winpagedialog.h">
+      <Filter>Header Files\setup</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\platform\windows\setup\basicpagedialog.h">
+      <Filter>Header Files\setup</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\platform\windows\setup\advancedpagedialog.h">
       <Filter>Header Files\setup</Filter>
     </ClInclude>
   </ItemGroup>

@@ -30,9 +30,9 @@ PageControl::PageControl(HWND control_hwnd)
     _parentRect = GetTabControlDisplayRect(_hwnd);
 }
 
-void PageControl::AddPage(std::unique_ptr<WinPageDialog> &&dlg, const String &title)
+void PageControl::AddPage(std::shared_ptr<WinPageDialog> dlg, const String &title)
 {
-    _pages.push_back(std::move(dlg));
+    _pages.push_back(dlg);
     InsertTabButton(_hwnd, _pages.size() - 1, title);
     _parentRect = GetTabControlDisplayRect(_hwnd);
 }

@@ -121,4 +121,7 @@
 // Animates once and stops, resetting to the very first frame
 #define ANIM_ONCERESET         2
 
+// An identifier of a "null font", a pseudo font used when you don't want a text to be drawn
+#define FONT_NULL (-1)
+
 #endif // __AC_DEFINES_H

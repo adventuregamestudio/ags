@@ -871,24 +871,15 @@ namespace AGS.Editor
         private void AppendFontsToHeader(StringBuilder sb, IList<AGS.Types.Font> fonts)
         {
             sb.AppendLine("enum FontType {");
-            bool firstFont = true;
+            sb.Append("  eNullFont = -1");
             foreach (AGS.Types.Font font in fonts)
             {
                 string fontName = font.ScriptID;
                 if (fontName.Length > 0)
                 {
-                    if (!firstFont)
-                    {
-                        sb.AppendLine(",");
-                    }
+                    sb.AppendLine(",");
                     sb.Append("  " + fontName + " = " + font.ID);
-                    firstFont = false;
                 }
-            }
-            if (firstFont)
-            {
-                // no cursors, make sure the enum has something in it
-                sb.Append("eDummyFont__ = 99  // $AUTOCOMPLETEIGNORE$ ");
             }
             sb.AppendLine();
             sb.AppendLine("};");

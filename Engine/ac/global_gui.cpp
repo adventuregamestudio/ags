@@ -155,16 +155,14 @@ void CentreGUI (int ifn) {
 
 int GetTextWidth(const char *text, int fontnum) {
   VALIDATE_STRING(text);
-  if ((fontnum < 0) || (fontnum >= game.numfonts))
-    quit("!GetTextWidth: invalid font number.");
+  fontnum = ValidateFontNumber("GetTextWidth", fontnum);
 
   return game_to_data_coord(get_text_width_outlined(text, fontnum));
 }
 
 int GetTextHeight(const char *text, int fontnum, int width) {
   VALIDATE_STRING(text);
-  if ((fontnum < 0) || (fontnum >= game.numfonts))
-    quit("!GetTextHeight: invalid font number.");
+  fontnum = ValidateFontNumber("GetTextHeight", fontnum);
 
   const char *draw_text = skip_voiceover_token(text);
   if (break_up_text_into_lines(draw_text, Lines, data_to_game_coord(width), fontnum) == 0)
@@ -174,15 +172,13 @@ int GetTextHeight(const char *text, int fontnum, int width) {
 
 int GetFontHeight(int fontnum)
 {
-  if ((fontnum < 0) || (fontnum >= game.numfonts))
-    quit("!GetFontHeight: invalid font number.");
+  fontnum = ValidateFontNumber("GetFontHeight", fontnum);
   return game_to_data_coord(get_font_height_outlined(fontnum));
 }
 
 int GetFontLineSpacing(int fontnum)
 {
-  if ((fontnum < 0) || (fontnum >= game.numfonts))
-    quit("!GetFontLineSpacing: invalid font number.");
+  fontnum = ValidateFontNumber("GetFontLineSpacing", fontnum);
   return game_to_data_coord(get_font_linespacing(fontnum));
 }
 

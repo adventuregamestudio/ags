@@ -666,6 +666,10 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data)
 
     set_game_speed(r_data.FPS);
 
+    // Apply accessibility options, must be done last, because some
+    // may override restored game settings
+    ApplyAccessibilityOptions();
+
     return HSaveError::None();
 }
 

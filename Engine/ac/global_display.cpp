@@ -18,6 +18,7 @@
 #include "ac/display.h"
 #include "ac/draw.h"
 #include "ac/game.h"
+#include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_character.h"
@@ -122,13 +123,13 @@ void DisplayMessageImpl(int msnum, int aschar, int ypos) {
         }
         else {
             // time out automatically if they have set that
-            int oldGameSkipDisp = play.skip_display;
+            const SkipSpeechStyle old_skip_display = play.skip_display;
             if (thisroom.MessageInfos[msnum].Flags & MSG_TIMELIMIT)
-                play.skip_display = 0;
+                play.skip_display = play.skip_timed_display;
 
             DisplayAtY(ypos, msgbufr);
 
-            play.skip_display = oldGameSkipDisp;
+            play.skip_display = old_skip_display;
         }
         if (thisroom.MessageInfos[msnum].Flags & MSG_DISPLAYNEXT) {
             msnum++;
@@ -204,7 +205,8 @@ void SetSkipSpeech (SkipSpeechStyle newval) {
         quit("!SetSkipSpeech: invalid skip mode specified");
 
     debug_script_log("SkipSpeech style set to %d", newval);
-    play.speech_skip_style = user_to_internal_skip_speech((SkipSpeechStyle)newval);
+    if (usetup.access_speechskip == kSkipSpeechNone)
+        play.speech_skip_style = user_to_internal_skip_speech((SkipSpeechStyle)newval);
 }
 
 SkipSpeechStyle GetSkipSpeech()

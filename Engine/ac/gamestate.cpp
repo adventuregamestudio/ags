@@ -473,7 +473,7 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
     speech_textwindow_gui = in->ReadInt32();
     follow_change_room_timer = in->ReadInt32();
     totalscore = in->ReadInt32();
-    skip_display = in->ReadInt32();
+    skip_display = static_cast<SkipSpeechStyle>(in->ReadInt32());
     no_multiloop_repeat = in->ReadInt32();
     roomscript_finished = in->ReadInt32();
     used_inv_on = in->ReadInt32();

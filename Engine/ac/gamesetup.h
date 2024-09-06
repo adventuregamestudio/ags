@@ -15,6 +15,7 @@
 #define __AC_GAMESETUP_H
 
 #include "ac/game_version.h"
+#include "ac/speech.h"
 #include "ac/sys_events.h"
 #include "main/graphics_mode.h"
 #include "util/string.h"
@@ -120,6 +121,12 @@ struct GameSetup
     // is not implemented (or does not work correctly).
     int   key_save_game = 0;
     int   key_restore_game = 0;
+
+    // Accessibility settings and overrides;
+    // these are meant to make playing the game easier, by modifying certain
+    // game properties which are non-critical for the game progression.
+    SkipSpeechStyle access_speechskip = kSkipSpeechNone; // speech skip style
+    SkipSpeechStyle access_textskip = kSkipSpeechNone; // display box skip style
 
     GameSetup();
 };

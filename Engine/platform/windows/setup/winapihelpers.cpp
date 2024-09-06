@@ -198,6 +198,34 @@ void SetSliderPos(HWND hwnd, int pos)
 
 //=============================================================================
 //
+// Tab controls
+//
+//=============================================================================
+
+Rect GetTabControlDisplayRect(HWND hwnd)
+{
+    RECT rc;
+    GetClientRect(hwnd, &rc);
+    SendMessage(hwnd, TCM_ADJUSTRECT, FALSE, (LPARAM)&rc);
+    return Rect(rc.left, rc.top, rc.right - 1, rc.bottom - 1);
+}
+
+void InsertTabButton(HWND hwnd, int index, const String &text)
+{
+    TC_ITEM tie;
+    tie.mask = TCIF_TEXT | TCIF_IMAGE;
+    tie.iImage = -1;
+    tie.pszText = (LPSTR)text.GetCStr();
+    SendMessage(hwnd, TCM_INSERTITEM, (WPARAM)index, (LPARAM)&tie);
+}
+
+int GetSelectedTab(HWND hwnd)
+{
+    return SendMessage(hwnd, TCM_GETCURSEL, 0, 0);   
+}
+
+//=============================================================================
+//
 // Browse-for-folder dialog
 //
 //=============================================================================

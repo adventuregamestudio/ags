@@ -30,8 +30,49 @@ WinDialog::~WinDialog()
 
 INT_PTR WinDialog::ShowModal(WinDialog *dialog, HWND parent_hwnd)
 {
+    assert(dialog->_hwnd == NULL);
+    if (dialog->_hwnd != NULL)
+        return FALSE;
     return DialogBoxParamW(GetModuleHandleW(NULL), (LPCWSTR)dialog->GetTemplateID(), parent_hwnd,
         (DLGPROC)WinDialog::DialogProc, (LONG_PTR)dialog);
+}
+
+// DoLockDlgRes - loads and locks a dialog template resource.
+// Returns a pointer to the locked resource.
+// lpszResName - name of the resource
+DLGTEMPLATE *DoLockDlgRes(HINSTANCE hinstance, LPCWSTR lpszResName)
+{
+    HRSRC hrsrc = FindResourceW(NULL, lpszResName, (LPCWSTR)RT_DIALOG);
+    HGLOBAL hglb = LoadResource(hinstance, hrsrc);
+    return (DLGTEMPLATE *)LockResource(hglb);
+}
+
+void WinDialog::CreateModeless(HWND parent_hwnd)
+{
+    assert(_hwnd == NULL);
+    if (_hwnd != NULL)
+        return;
+
+    HINSTANCE hinst = GetModuleHandleW(NULL);
+    DLGTEMPLATE *dlgtempl = DoLockDlgRes(hinst, (LPCWSTR)GetTemplateID());
+    CreateDialogIndirectParamW(hinst, dlgtempl, parent_hwnd,
+        (DLGPROC)WinDialog::DialogProc, (LONG_PTR)this);
+}
+
+void WinDialog::Show()
+{
+    ShowWindow(_hwnd, SW_SHOW);
+}
+
+void WinDialog::Show(HWND insert_after, const Rect &pos)
+{
+    ShowWindow(_hwnd, SW_SHOW);
+    SetWindowPos(_hwnd, insert_after, pos.Left, pos.Top, 0, 0, SWP_NOSIZE);
+}
+
+void WinDialog::Hide()
+{
+    ShowWindow(_hwnd, SW_HIDE);
 }
 
 INT_PTR CALLBACK WinDialog::DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)

@@ -654,6 +654,7 @@
     <ClCompile Include="..\..\Engine\platform\windows\acplwin.cpp" />
     <ClCompile Include="..\..\Engine\platform\windows\setup\winapihelpers.cpp" />
     <ClCompile Include="..\..\Engine\platform\windows\setup\windialog.cpp" />
+    <ClCompile Include="..\..\Engine\platform\windows\setup\winpagedialog.cpp" />
     <ClCompile Include="..\..\Engine\platform\windows\win_ex_handling.cpp" />
     <ClCompile Include="..\..\Engine\platform\windows\debug\namedpipesagsdebugger.cpp" />
     <ClCompile Include="..\..\Engine\platform\windows\gfx\ali3dd3d.cpp" />
@@ -925,6 +926,7 @@
     <ClInclude Include="..\..\Engine\platform\windows\debug\namedpipesagsdebugger.h" />
     <ClInclude Include="..\..\Engine\platform\windows\setup\winapihelpers.h" />
     <ClInclude Include="..\..\Engine\platform\windows\setup\windialog.h" />
+    <ClInclude Include="..\..\Engine\platform\windows\setup\winpagedialog.h" />
     <ClInclude Include="..\..\Engine\platform\windows\win_ex_handling.h" />
     <ClInclude Include="..\..\Engine\platform\windows\gfx\ali3dd3d.h" />
     <ClInclude Include="..\..\Engine\platform\windows\setup\winsetup.h" />

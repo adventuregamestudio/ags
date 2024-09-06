@@ -816,6 +816,9 @@
     <ClCompile Include="..\..\Engine\platform\windows\setup\winapihelpers.cpp">
       <Filter>Source Files\setup</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Engine\platform\windows\setup\winpagedialog.cpp">
+      <Filter>Source Files\setup</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Engine\ac\asset_helper.h">
@@ -1641,6 +1644,9 @@
       <Filter>Header Files\setup</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\platform\windows\setup\winapihelpers.h">
+      <Filter>Header Files\setup</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\platform\windows\setup\winpagedialog.h">
       <Filter>Header Files\setup</Filter>
     </ClInclude>
   </ItemGroup>

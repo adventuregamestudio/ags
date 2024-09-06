@@ -23,11 +23,14 @@
 #if AGS_PLATFORM_OS_WINDOWS
 
 #include "platform/windows/windows.h"
+#include "util/geometry.h"
 
 namespace AGS
 {
 namespace Engine
 {
+
+using namespace AGS::Common;
 
 class WinDialog
 {
@@ -36,6 +39,13 @@ public:
     virtual ~WinDialog();
 
     static INT_PTR ShowModal(WinDialog *dialog, HWND parent_hwnd);
+    void CreateModeless(HWND parent_hwnd);
+
+    bool IsCreated() const { return _hwnd != NULL; }
+    HWND GetHandle() const { return _hwnd; }
+    void Show();
+    void Show(HWND insert_after, const Rect &pos);
+    void Hide();
 
 protected:
     virtual UINT GetTemplateID() const { return -1; }

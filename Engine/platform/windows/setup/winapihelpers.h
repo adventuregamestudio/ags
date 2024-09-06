@@ -23,6 +23,7 @@
 #if AGS_PLATFORM_OS_WINDOWS
 
 #include "platform/windows/windows.h"
+#include "util/geometry.h"
 #include "util/string.h"
 
 namespace AGS
@@ -67,6 +68,12 @@ void ResetContent(HWND hwnd);
 void SetSliderRange(HWND hwnd, int min, int max);
 int GetSliderPos(HWND hwnd);
 void SetSliderPos(HWND hwnd, int pos);
+//
+// Tab controls
+//
+Rect GetTabControlDisplayRect(HWND hwnd);
+void InsertTabButton(HWND hwnd, int index, const String &text);
+int GetSelectedTab(HWND hwnd);
 //
 // Standard Dialogs
 //

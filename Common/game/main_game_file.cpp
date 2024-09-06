@@ -499,6 +499,35 @@ void ApplySpriteData(GameSetupStruct &game, const LoadedGameEntities &ents, Game
     }
 }
 
+void UpgradeGame(GameSetupStruct &game, GameDataVersion data_ver)
+{
+    // Global talking animation speed
+    if (data_ver < kGameVersion_312)
+    {
+        // Fix animation speed for old formats
+        game.options[OPT_GLOBALTALKANIMSPD] = 5;
+    }
+    else if (data_ver < kGameVersion_330)
+    {
+        // Convert game option for 3.1.2 - 3.2 games
+        game.options[OPT_GLOBALTALKANIMSPD] = game.options[OPT_GLOBALTALKANIMSPD] != 0 ? 5 : (-5 - 1);
+    }
+    // Old dialog options API for pre-3.4.0.2 games
+    if (data_ver < kGameVersion_340_2)
+    {
+        game.options[OPT_DIALOGOPTIONSAPI] = -1;
+    }
+    // Relative asset resolution in pre-3.5.0.8 (always enabled)
+    if (data_ver < kGameVersion_350)
+    {
+        game.options[OPT_RELATIVEASSETRES] = 1;
+    }
+    if (data_ver < kGameVersion_362)
+    {
+        game.options[OPT_SAVESCREENSHOTLAYER] = UINT32_MAX; // all possible layers
+    }
+}
+
 void UpgradeFonts(GameSetupStruct &game, GameDataVersion data_ver)
 {
     if (data_ver < kGameVersion_350)
@@ -988,33 +1017,13 @@ HGameFileError UpdateGameData(LoadedGameEntities &ents, GameDataVersion data_ver
 {
     GameSetupStruct &game = ents.Game;
     ApplySpriteData(game, ents, data_ver);
+    UpgradeGame(game, data_ver);
     UpgradeFonts(game, data_ver);
     UpgradeAudio(game, ents, data_ver);
     UpgradeCharacters(game, data_ver);
     UpgradeGUI(game, ents, data_ver);
     UpgradeMouseCursors(game, data_ver);
     SetDefaultGlobalMessages(game);
-    // Global talking animation speed
-    if (data_ver < kGameVersion_312)
-    {
-        // Fix animation speed for old formats
-        game.options[OPT_GLOBALTALKANIMSPD] = 5;
-    }
-    else if (data_ver < kGameVersion_330)
-    {
-        // Convert game option for 3.1.2 - 3.2 games
-        game.options[OPT_GLOBALTALKANIMSPD] = game.options[OPT_GLOBALTALKANIMSPD] != 0 ? 5 : (-5 - 1);
-    }
-    // Old dialog options API for pre-3.4.0.2 games
-    if (data_ver < kGameVersion_340_2)
-    {
-        game.options[OPT_DIALOGOPTIONSAPI] = -1;
-    }
-    // Relative asset resolution in pre-3.5.0.8 (always enabled)
-    if (data_ver < kGameVersion_350)
-    {
-        game.options[OPT_RELATIVEASSETRES] = 1;
-    }
     FixupSaveDirectory(game);
     return HGameFileError::None();
 }

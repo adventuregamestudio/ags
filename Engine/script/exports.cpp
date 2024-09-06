@@ -30,7 +30,7 @@ extern void RegisterDrawingSurfaceAPI(ScriptAPIVersion base_api, ScriptAPIVersio
 extern void RegisterDynamicSpriteAPI();
 extern void RegisterFileAPI();
 extern void RegisterGameAPI();
-extern void RegisterGlobalAPI();
+extern void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion compat_api);
 extern void RegisterGUIAPI();
 extern void RegisterGUIControlAPI();
 extern void RegisterHotspotAPI();
@@ -70,7 +70,7 @@ void setup_script_exports(ScriptAPIVersion base_api, ScriptAPIVersion compat_api
     RegisterDynamicSpriteAPI();
     RegisterFileAPI();
     RegisterGameAPI();
-    RegisterGlobalAPI();
+    RegisterGlobalAPI(base_api, compat_api);
     RegisterGUIAPI();
     RegisterGUIControlAPI();
     RegisterHotspotAPI();

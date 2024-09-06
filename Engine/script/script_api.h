@@ -160,6 +160,11 @@ inline const char *ScriptVSprintf(char *buffer, size_t buf_length, const char *f
     FUNCTION(params[0].IValue, (P1CLASS*)params[1].Ptr); \
     return RuntimeScriptValue((int32_t)0)
 
+#define API_SCALL_VOID_PINT_POBJ_PINT(FUNCTION, P1CLASS) \
+    ASSERT_PARAM_COUNT(FUNCTION, 3); \
+    FUNCTION(params[0].IValue, (P1CLASS*)params[1].Ptr, params[2].IValue); \
+    return RuntimeScriptValue((int32_t)0)
+
 #define API_SCALL_VOID_PINT_POBJ2(FUNCTION, P1CLASS, P2CLASS) \
     ASSERT_PARAM_COUNT(FUNCTION, 3); \
     FUNCTION(params[0].IValue, (P1CLASS*)params[1].Ptr, (P2CLASS*)params[2].Ptr); \

@@ -43,6 +43,8 @@ void AbortGame();
 void GiveScore(int amnt);
 void restart_game();
 void RestoreGameSlot(int slnum);
+void SaveGameSlot(int slnum, const char *descript, int spritenum);
+void SaveGameSlot2(int slnum, const char *descript);
 void DeleteSaveSlot (int slnum);
 int  GetSaveSlotDescription(int slnum,char*desbuf);
 int  LoadSaveSlotScreenshot(int slnum, int width, int height);

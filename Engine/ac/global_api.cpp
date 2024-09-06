@@ -25,6 +25,7 @@
 #include "ac/dynamicsprite.h"
 #include "ac/event.h"
 #include "ac/game.h"
+#include "ac/gamestructdefines.h"
 #include "ac/global_audio.h"
 #include "ac/global_button.h"
 #include "ac/global_character.h"
@@ -1473,10 +1474,14 @@ RuntimeScriptValue Sc_save_game_dialog(const RuntimeScriptValue *params, int32_t
     API_SCALL_VOID(save_game_dialog);
 }
 
-// void (int slotn, const char*descript)
-RuntimeScriptValue Sc_save_game(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_SaveGameSlot(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT_POBJ(save_game, const char);
+    API_SCALL_VOID_PINT_POBJ_PINT(SaveGameSlot, const char);
+}
+
+RuntimeScriptValue Sc_SaveGameSlot2(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT_POBJ(SaveGameSlot2, const char);
 }
 
 // int (char*namm)
@@ -2304,7 +2309,7 @@ void ScPl_sc_sprintf(char *destt, const char *texx, ...)
 }
 
 
-void RegisterGlobalAPI()
+void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*/)
 {
     ScFnRegister global_api[] = {
         { "AbortGame",                Sc_sc_AbortGame, ScPl_sc_AbortGame },
@@ -2551,7 +2556,6 @@ void RegisterGlobalAPI()
         { "SaidUnknownWord",          API_FN_PAIR(SaidUnknownWord) },
         { "SaveCursorForLocationChange", API_FN_PAIR(SaveCursorForLocationChange) },
         { "SaveGameDialog",           API_FN_PAIR(save_game_dialog) },
-        { "SaveGameSlot",             API_FN_PAIR(save_game) },
         { "SaveScreenShot",           API_FN_PAIR(SaveScreenShot) },
         { "SeekMIDIPosition",         API_FN_PAIR(SeekMIDIPosition) },
         { "SeekMODPattern",           API_FN_PAIR(SeekMODPattern) },
@@ -2681,6 +2685,13 @@ void RegisterGlobalAPI()
         { "WaitInput",                API_FN_PAIR(WaitInput) },
         { "SkipWait",                 API_FN_PAIR(SkipWait) },
     };
+
+    // Few functions have to be selected based on API level,
+    // because historically AGS compiler did not generate "number of args" in the import name.
+    if (base_api < kScriptAPI_v362)
+        ccAddExternalStaticFunction("SaveGameSlot", API_FN_PAIR(SaveGameSlot2));
+    else
+        ccAddExternalStaticFunction("SaveGameSlot", API_FN_PAIR(SaveGameSlot));
 
     ccAddExternalFunctions(global_api);
 }

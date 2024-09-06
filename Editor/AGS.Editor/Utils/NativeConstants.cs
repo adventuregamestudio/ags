@@ -113,6 +113,7 @@ namespace AGS.Editor
             public static readonly int OPT_RIGHTLEFTWRITE = (int)Factory.NativeProxy.GetNativeConstant("OPT_RIGHTLEFTWRITE");
             public static readonly int OPT_DUPLICATEINV = (int)Factory.NativeProxy.GetNativeConstant("OPT_DUPLICATEINV");
             public static readonly int OPT_SAVESCREENSHOT = (int)Factory.NativeProxy.GetNativeConstant("OPT_SAVESCREENSHOT");
+            public static readonly int OPT_SAVESCREENSHOTLAYER = (int)Factory.NativeProxy.GetNativeConstant("OPT_SAVESCREENSHOTLAYER");
             public static readonly int OPT_PORTRAITSIDE = (int)Factory.NativeProxy.GetNativeConstant("OPT_PORTRAITSIDE");
             public static readonly int OPT_STRICTSCRIPTING = (int)Factory.NativeProxy.GetNativeConstant("OPT_STRICTSCRIPTING");
             public static readonly int OPT_LEFTTORIGHTEVAL = (int)Factory.NativeProxy.GetNativeConstant("OPT_LEFTTORIGHTEVAL");

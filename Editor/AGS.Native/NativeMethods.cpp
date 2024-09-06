@@ -838,6 +838,7 @@ namespace AGS
             if (name->Equals("OPT_RIGHTLEFTWRITE")) return OPT_RIGHTLEFTWRITE;
             if (name->Equals("OPT_DUPLICATEINV")) return OPT_DUPLICATEINV;
             if (name->Equals("OPT_SAVESCREENSHOT")) return OPT_SAVESCREENSHOT;
+            if (name->Equals("OPT_SAVESCREENSHOTLAYER")) return OPT_SAVESCREENSHOTLAYER;
             if (name->Equals("OPT_PORTRAITSIDE")) return OPT_PORTRAITSIDE;
             if (name->Equals("OPT_STRICTSCRIPTING")) return OPT_STRICTSCRIPTING;
             if (name->Equals("OPT_LEFTTORIGHTEVAL")) return OPT_LEFTTORIGHTEVAL;

@@ -290,7 +290,7 @@ ScriptDynamicSprite* DynamicSprite_CreateFromFile(const char *filename) {
     return nullptr;
 }
 
-ScriptDynamicSprite* DynamicSprite_CreateFromScreenShot(int width, int height) {
+ScriptDynamicSprite* DynamicSprite_CreateFromScreenShot(int width, int height, int layers) {
 
     // TODO: refactor and merge with create_savegame_screenshot()
     if (!spriteset.HasFreeSlots())
@@ -309,11 +309,22 @@ ScriptDynamicSprite* DynamicSprite_CreateFromScreenShot(int width, int height) {
     else
         height = data_to_game_coord(height);
 
-    std::unique_ptr<Bitmap> new_pic(CopyScreenIntoBitmap(width, height, &viewport));
+    // NOTE: if there will be a difference between script constants and internal
+    // constants of Render Layers, or any necessity to adjust these, then convert flags here.
+    std::unique_ptr<Bitmap> new_pic;
+    if (layers != 0)
+        new_pic.reset(CopyScreenIntoBitmap(width, height, &viewport, false, ~layers));
+    else
+        new_pic.reset(new Bitmap(width, height));
+
     int new_slot = add_dynamic_sprite(std::move(new_pic));
     if (new_slot <= 0)
         return nullptr; // something went wrong
     return new ScriptDynamicSprite(new_slot);
+}
+
+ScriptDynamicSprite* DynamicSprite_CreateFromScreenShot2(int width, int height) {
+    return DynamicSprite_CreateFromScreenShot(width, height, RENDER_BATCH_ALL);
 }
 
 ScriptDynamicSprite* DynamicSprite_CreateFromExistingSprite(int slot, int preserveAlphaChannel) {
@@ -622,10 +633,14 @@ RuntimeScriptValue Sc_DynamicSprite_CreateFromSaveGame(const RuntimeScriptValue 
     API_SCALL_OBJAUTO_PINT3(ScriptDynamicSprite, DynamicSprite_CreateFromSaveGame);
 }
 
-// ScriptDynamicSprite* (int width, int height)
 RuntimeScriptValue Sc_DynamicSprite_CreateFromScreenShot(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_OBJAUTO_PINT2(ScriptDynamicSprite, DynamicSprite_CreateFromScreenShot);
+    API_SCALL_OBJAUTO_PINT3(ScriptDynamicSprite, DynamicSprite_CreateFromScreenShot);
+}
+
+RuntimeScriptValue Sc_DynamicSprite_CreateFromScreenShot2(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO_PINT2(ScriptDynamicSprite, DynamicSprite_CreateFromScreenShot2);
 }
 
 
@@ -639,7 +654,8 @@ void RegisterDynamicSpriteAPI()
         { "DynamicSprite::CreateFromExistingSprite^2", API_FN_PAIR(DynamicSprite_CreateFromExistingSprite) },
         { "DynamicSprite::CreateFromFile",            API_FN_PAIR(DynamicSprite_CreateFromFile) },
         { "DynamicSprite::CreateFromSaveGame",        API_FN_PAIR(DynamicSprite_CreateFromSaveGame) },
-        { "DynamicSprite::CreateFromScreenShot",      API_FN_PAIR(DynamicSprite_CreateFromScreenShot) },
+        { "DynamicSprite::CreateFromScreenShot^2",    API_FN_PAIR(DynamicSprite_CreateFromScreenShot2) },
+        { "DynamicSprite::CreateFromScreenShot^3",    API_FN_PAIR(DynamicSprite_CreateFromScreenShot) },
 
         { "DynamicSprite::ChangeCanvasSize^4",        API_FN_PAIR(DynamicSprite_ChangeCanvasSize) },
         { "DynamicSprite::CopyTransparencyMask^1",    API_FN_PAIR(DynamicSprite_CopyTransparencyMask) },

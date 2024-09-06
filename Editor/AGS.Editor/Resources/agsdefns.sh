@@ -92,6 +92,7 @@
 #define OPT_KEYHANDLEAPI      50
 // OPT_CUSTOMENGINETAG        51 // [HIDDEN]
 #define OPT_SCALECHAROFFSETS  52
+#define OPT_SAVEGAMESCREENSHOTLAYER 53
 #define OPT_LIPSYNCTEXT       99
 
 #define COLOR_TRANSPARENT -1
@@ -503,6 +504,19 @@ enum InputType
 };
 #endif
 
+#ifdef SCRIPT_API_v362
+enum RenderLayer
+{
+  eRenderLayerNone      = 0x00000000,
+  eRenderLayerEngine    = 0x00000001,
+  eRenderLayerCursor    = 0x00000002,
+  eRenderLayerUI        = 0x00000004,
+  eRenderLayerRoom      = 0x00000008,
+  eRenderLayerAll       = 0xFFFFFFFF
+};
+#endif
+
+
 internalstring autoptr builtin managed struct String {
   /// Creates a formatted string using the supplied parameters.
   import static String Format(const string format, ...);    // $AUTOCOMPLETESTATICONLY$
@@ -810,7 +824,7 @@ import void SaveGameDialog();
 /// Restarts the game from the restart point.
 import void RestartGame();
 /// Saves the current game position to the specified slot.
-import void SaveGameSlot(int slot, const string description);
+import void SaveGameSlot(int slot, const string description, int sprite = -1);
 /// Restores the game saved to the specified game slot.
 import void RestoreGameSlot(int slot);
 /// Deletes the specified save game.
@@ -1411,7 +1425,7 @@ builtin managed struct DynamicSprite {
   /// Creates a dynamic sprite from a save game screenshot.
   import static DynamicSprite* CreateFromSaveGame(int slot, int width, int height);  // $AUTOCOMPLETESTATICONLY$
   /// Creates a dynamic sprite as a copy of the current screen.
-  import static DynamicSprite* CreateFromScreenShot(int width=0, int height=0);  // $AUTOCOMPLETESTATICONLY$
+  import static DynamicSprite* CreateFromScreenShot(int width=0, int height=0, int layer=eRenderLayerAll);  // $AUTOCOMPLETESTATICONLY$
   /// Enlarges the size of the sprite, but does not resize the image.
   import void ChangeCanvasSize(int width, int height, int x, int y);
   /// Copies the transparency mask and/or alpha channel from the specified sprite onto this dynamic sprite.

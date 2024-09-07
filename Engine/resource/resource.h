@@ -17,7 +17,6 @@
 #define IDC_SPRITECACHE3                1015
 #define IDC_SOUNDCACHE                  1015
 #define IDC_VOICEPACK                   1016
-#define IDC_REFRESH_85HZ                1017
 #define IDC_ANTIALIAS                   1021
 #define IDC_GFXFILTER                   1023
 #define IDC_GFXDRIVER                   1024

@@ -46,7 +46,7 @@ Locations of two latter files differ between running platforms:
   * filter = \[string\] - id of the scaling filter to use when required. Supported filter names are:
     * stdscale - nearest-neighbour scaling;
     * linear - anti-aliased scaling; not usable with software renderer.
-  * refresh = \[integer\] - refresh rate for the display mode.
+  * refresh = \[integer\] - refresh rate for the fullscreen display mode. WARNING: ignored by the engine as of v3.6.0.
   * render_at_screenres = \[0; 1\] - whether the sprites are transformed and rendered in native game's or current display resolution;
   * vsync = \[0; 1\] - enable or disable vertical sync.
   * rotation = \[string | integer\] - screen rotation. Possible values are:

@@ -538,7 +538,6 @@ private:
     HWND _hWindowed = NULL;
     HWND _hVSync = NULL;
     HWND _hRenderAtScreenRes = NULL;
-    HWND _hRefresh85Hz = NULL;
     HWND _hAntialiasSprites = NULL;
     HWND _hUseVoicePack = NULL;
     HWND _hAdvanced = NULL;
@@ -619,7 +618,6 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
     _hWindowed              = GetDlgItem(_hwnd, IDC_WINDOWED);
     _hVSync                 = GetDlgItem(_hwnd, IDC_VSYNC);
     _hRenderAtScreenRes     = GetDlgItem(_hwnd, IDC_RENDERATSCREENRES);
-    _hRefresh85Hz           = GetDlgItem(_hwnd, IDC_REFRESH_85HZ);
     _hAntialiasSprites      = GetDlgItem(_hwnd, IDC_ANTIALIAS);
     _hUseVoicePack          = GetDlgItem(_hwnd, IDC_VOICEPACK);
     _hAdvanced              = GetDlgItem(_hwnd, IDC_ADVANCED);
@@ -712,7 +710,6 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
         AddString(_hSoundCacheList, val.first, val.second);
     SetCurSelToItemData(_hSoundCacheList, _winCfg.SoundCacheSize / 1024, NULL, 2);
 
-    SetCheck(_hRefresh85Hz, _winCfg.RefreshRate == 85);
     SetCheck(_hAntialiasSprites, _winCfg.AntialiasSprites);
 
     FillAudioDriverList();
@@ -1257,7 +1254,6 @@ void WinSetupDialog::SaveSetup()
     _winCfg.VSync = GetCheck(_hVSync);
     _winCfg.RenderAtScreenRes = GetCheck(_hRenderAtScreenRes);
     _winCfg.AntialiasSprites = GetCheck(_hAntialiasSprites);
-    _winCfg.RefreshRate = GetCheck(_hRefresh85Hz) ? 85 : 0;
     _winCfg.GfxFilterId = (LPCSTR)GetCurItemData(_hGfxFilterList);
 
     _winCfg.MouseAutoLock = GetCheck(_hMouseLock);

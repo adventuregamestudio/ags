@@ -5,13 +5,16 @@
 #define IDOKRUN                         3
 #define IDI_ICON                        101
 #define IDD_SETUP                       102
+#define IDD_PAGE_BASIC                  109
+#define IDD_PAGE_ADVANCED               110
+#define IDD_PAGE_PATHS                  111
+#define IDC_TABPANEL                    1000
 #define IDC_DIGISOUND                   1003
 #define IDC_WINDOWED                    1007
 #define IDC_VERSION                     1008
 #define IDC_LANGUAGE                    1009
 #define IDC_SPRITECACHE                 1010
 #define IDC_RENDERATSCREENRES           1011
-#define IDC_ADVANCED                    1012
 #define IDC_FULLSCREENDESKTOP           1013
 #define IDC_TEXTURECACHE                1014
 #define IDC_SPRITECACHE3                1015
@@ -40,9 +43,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        109
+#define _APS_NEXT_RESOURCE_VALUE        112
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1039
+#define _APS_NEXT_CONTROL_VALUE         1048
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

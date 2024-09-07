@@ -446,6 +446,17 @@ target_sources(engine
     platform/windows/debug/namedpipesagsdebugger.cpp
     platform/windows/gfx/ali3dd3d.cpp
     platform/windows/setup/winsetup.cpp
+    platform/windows/setup/winsetup.h
+    platform/windows/setup/winapihelpers.cpp
+    platform/windows/setup/winapihelpers.h
+    platform/windows/setup/windialog.cpp
+    platform/windows/setup/windialog.h
+    platform/windows/setup/winpagedialog.cpp
+    platform/windows/setup/winpagedialog.h
+    platform/windows/setup/basicpagedialog.cpp
+    platform/windows/setup/basicpagedialog.h
+    platform/windows/setup/advancedpagedialog.cpp
+    platform/windows/setup/advancedpagedialog.h
     platform/windows/minidump.cpp
     platform/windows/win_ex_handling.cpp
 

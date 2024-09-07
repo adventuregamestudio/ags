@@ -76,9 +76,7 @@ private:
     HWND _hTabber = NULL;
     HWND _hVersionText = NULL;
     std::unique_ptr<PageControl> _pager;
-    std::shared_ptr<BasicPageDialog> _pageBasic;
-    std::shared_ptr<AdvancedPageDialog> _pageAdvanced;
-    std::shared_ptr<CustomPathsPageDialog> _pagePaths;
+    std::vector<std::shared_ptr<WinSetupPageDialog>> _pages;
 };
 
 WinSetupDialog::WinSetupDialog(const ConfigTree &cfg_in, ConfigTree &cfg_out, const String &data_dir, const String &version_str)
@@ -127,13 +125,13 @@ INT_PTR WinSetupDialog::OnInitDialog()
     SetText((HWND)sys_win_get_window(), STR(_winCfg.Title));
     SetText(_hVersionText, STR(_winCfg.VersionString));
 
-    _pageBasic.reset(new BasicPageDialog(_winCfg, _cfgIn));
-    _pageAdvanced.reset(new AdvancedPageDialog(_winCfg, _cfgIn));
-    _pagePaths.reset(new CustomPathsPageDialog(_winCfg, _cfgIn));
+    _pages.emplace_back(new BasicPageDialog(_winCfg, _cfgIn));
+    _pages.emplace_back(new AdvancedPageDialog(_winCfg, _cfgIn));
+    _pages.emplace_back(new CustomPathsPageDialog(_winCfg, _cfgIn));
+    _pages.emplace_back(new AccessibilityPageDialog(_winCfg, _cfgIn));
     _pager.reset(new PageControl(_hTabber));
-    _pager->AddPage(_pageBasic, "Basic");
-    _pager->AddPage(_pageAdvanced, "Advanced");
-    _pager->AddPage(_pagePaths, "Custom paths");
+    for (auto &p : _pages)
+        _pager->AddPage(p);
     _pager->SelectPage(0);
 
     SetFocus(GetDlgItem(_hwnd, IDOK));
@@ -185,9 +183,8 @@ INT_PTR WinSetupDialog::OnCommand(WORD id)
 void WinSetupDialog::SaveSetup()
 {
     // Save all the setup pages
-    _pageBasic->SaveSetup();
-    _pageAdvanced->SaveSetup();
-    _pagePaths->SaveSetup();
+    for (auto &p : _pages)
+        p->SaveSetup();
 
     _winCfg.Save(_cfgOut, _desktopSize);
 }

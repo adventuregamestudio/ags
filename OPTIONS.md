@@ -113,7 +113,7 @@ Locations of two latter files differ between running platforms:
     * verbose (1), debug (2), info (3), warn (4), error (5), critical (6).
 * **\[access\]** - accessibility options. These may override programmed game behavior for the purpose of making playing the game easier.
   * speechskip = \[string\] - assigns the speech skip style to a fixed value:
-    * none - do not override, use game's scripted option;
+    * default - do not override, use game's scripted option;
 	* input - skip speech by player's input only;
 	* time - skip speech by time-out only;
 	* any - skip speech either by player's input or time-out.

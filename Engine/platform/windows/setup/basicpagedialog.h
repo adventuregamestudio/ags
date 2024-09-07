@@ -22,6 +22,7 @@
 #include <memory>
 #include <vector>
 #include "ac/gamestructdefines.h"
+#include "ac/speech.h"
 #include "gfx/gfxfilter.h"
 #include "gfx/gfxmodelist.h"
 #include "main/graphics_mode.h"
@@ -39,6 +40,9 @@ using namespace AGS::Common;
 //=============================================================================
 //
 // WinConfig struct, keeps all configurable data.
+//
+// FIXME: can't remember why is this a separate struct, should merge
+// with the GameSetup struct in the engine, and merge config reading/saving.
 //
 //=============================================================================
 struct WinConfig
@@ -79,6 +83,10 @@ struct WinConfig
     String DefaultLanguageName;
     String Language;
 
+    // Accessibility settings
+    SkipSpeechStyle SpeechSkipStyle = kSkipSpeechNone; // none here means "use defaults"
+    SkipSpeechStyle TextSkipStyle = kSkipSpeechNone;
+
     WinConfig();
     void SetDefaults();
     void Load(const ConfigTree &cfg);
@@ -116,6 +124,8 @@ class BasicPageDialog : public WinSetupPageDialog
 public:
     BasicPageDialog(WinConfig &win_cfg, const ConfigTree &cfg_in)
         : WinSetupPageDialog(win_cfg, cfg_in) {}
+
+    String GetTitle() const override { return "Basic"; }
 
     void SaveSetup() override;
 

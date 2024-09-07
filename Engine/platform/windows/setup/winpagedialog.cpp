@@ -30,6 +30,11 @@ PageControl::PageControl(HWND control_hwnd)
     _parentRect = GetTabControlDisplayRect(_hwnd);
 }
 
+void PageControl::AddPage(std::shared_ptr<WinPageDialog> dlg)
+{
+    AddPage(dlg, dlg->GetTitle());
+}
+
 void PageControl::AddPage(std::shared_ptr<WinPageDialog> dlg, const String &title)
 {
     _pages.push_back(dlg);

@@ -60,6 +60,7 @@ public:
     PageControl(HWND control_hwnd);
     ~PageControl() = default;
 
+    void AddPage(std::shared_ptr<WinPageDialog> dlg);
     void AddPage(std::shared_ptr<WinPageDialog> dlg, const String &title);
     size_t GetPageCount() const { return _pages.size(); }
     std::shared_ptr<WinPageDialog> GetPage(size_t index) const { return index < _pages.size() ? _pages[index] : nullptr; }

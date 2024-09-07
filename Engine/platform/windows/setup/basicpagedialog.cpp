@@ -123,6 +123,10 @@ void WinConfig::Load(const ConfigTree &cfg)
     Language = CfgReadString(cfg, "language", "translation", Language);
     DefaultLanguageName = CfgReadString(cfg, "language", "default_translation_name", DefaultLanguageName);
 
+    // Accessibility settings
+    SpeechSkipStyle = parse_speechskip_style(CfgReadString(cfg, "access", "speechskip"), SpeechSkipStyle);
+    TextSkipStyle = parse_speechskip_style(CfgReadString(cfg, "access", "textskip"), TextSkipStyle);
+
     Title = CfgReadString(cfg, "misc", "titletext", Title);
 }
 
@@ -154,6 +158,9 @@ void WinConfig::Save(ConfigTree &cfg, const Size &desktop_res)
     CfgWriteInt(cfg, "graphics", "texture_cache_size", TextureCacheSize);
     CfgWriteInt(cfg, "sound", "cache_size", SoundCacheSize);
     CfgWriteString(cfg, "language", "translation", Language);
+
+    CfgWriteString(cfg, "access", "speechskip", make_speechskip_option(SpeechSkipStyle));
+    CfgWriteString(cfg, "access", "textskip", make_speechskip_option(TextSkipStyle));
 }
 
 //=============================================================================

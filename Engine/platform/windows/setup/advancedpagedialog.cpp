@@ -17,6 +17,7 @@
 
 #include <array>
 #include <shlwapi.h>
+#include "ac/speech.h"
 #include "platform/windows/setup/advancedpagedialog.h"
 #include "platform/windows/setup/winapihelpers.h"
 #include "resource/resource.h"
@@ -225,8 +226,6 @@ INT_PTR CustomPathsPageDialog::OnInitDialog()
     _hCustomAppDataDirBtn   = GetDlgItem(_hwnd, IDC_CUSTOMAPPDATADIRBTN);
     _hCustomAppDataDirCheck = GetDlgItem(_hwnd, IDC_CUSTOMAPPDATADIRCHECK);
 
-    _winCfg.Load(_cfgIn);
-
     // Custom save dir controls
     SetupCustomDirCtrl(_winCfg.UserSaveDir, _winCfg.DataDirectory,
         _hCustomSaveDirCheck, _hCustomSaveDir, _hCustomSaveDirBtn);
@@ -311,6 +310,38 @@ void CustomPathsPageDialog::SaveSetup()
 {
     _winCfg.UserSaveDir = SaveCustomDirSetup(_winCfg.DataDirectory, _hCustomSaveDirCheck, _hCustomSaveDir);
     _winCfg.AppDataDir = SaveCustomDirSetup(_winCfg.DataDirectory, _hCustomAppDataDirCheck, _hCustomAppDataDir);
+}
+
+//=============================================================================
+//
+// AccessibilityPageDialog
+//
+//=============================================================================
+
+INT_PTR AccessibilityPageDialog::OnInitDialog()
+{
+    _hSpeechSkipStyle       = GetDlgItem(_hwnd, IDC_SPEECHSKIPSTYLE);
+    _hTextSkipStyle         = GetDlgItem(_hwnd, IDC_TEXTSKIPSTYLE);
+
+    const std::array<std::pair<const char*, SkipSpeechStyle>, 4> skip_vals = { {
+        { "Game Default", kSkipSpeechNone }, { "Player Input", kSkipSpeech_AnyInput }, { "Auto (by time)", kSkipSpeechTime }, { "Any", kSkipSpeech_AnyInputOrTime }
+    }};
+    for (const auto &val : skip_vals)
+    {
+        AddString(_hSpeechSkipStyle, val.first, val.second);
+        AddString(_hTextSkipStyle, val.first, val.second);
+    }
+
+    SetCurSelToItemData(_hSpeechSkipStyle, _winCfg.SpeechSkipStyle);
+    SetCurSelToItemData(_hTextSkipStyle, _winCfg.TextSkipStyle);
+
+    return FALSE; // notify WinAPI that we set focus ourselves
+}
+
+void AccessibilityPageDialog::SaveSetup()
+{
+    _winCfg.SpeechSkipStyle = (SkipSpeechStyle)GetCurItemData(_hSpeechSkipStyle, kSkipSpeechNone);
+    _winCfg.TextSkipStyle = (SkipSpeechStyle)GetCurItemData(_hTextSkipStyle, kSkipSpeechNone);
 }
 
 } // namespace Engine

@@ -24,6 +24,7 @@
 
 #include "platform/windows/windows.h"
 #include "util/geometry.h"
+#include "util/string.h"
 
 namespace AGS
 {
@@ -40,6 +41,8 @@ public:
 
     static INT_PTR ShowModal(WinDialog *dialog, HWND parent_hwnd);
     void CreateModeless(HWND parent_hwnd);
+
+    virtual String GetTitle() const { return ""; /* TODO? */ }
 
     bool IsCreated() const { return _hwnd != NULL; }
     HWND GetHandle() const { return _hwnd; }

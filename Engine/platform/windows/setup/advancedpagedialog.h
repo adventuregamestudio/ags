@@ -38,6 +38,8 @@ public:
     AdvancedPageDialog(WinConfig &win_cfg, const ConfigTree &cfg_in)
         : WinSetupPageDialog(win_cfg, cfg_in) {}
 
+    String GetTitle() const override { return "Advanced"; }
+
     void SaveSetup() override;
 
 protected:
@@ -84,6 +86,8 @@ public:
     CustomPathsPageDialog(WinConfig &win_cfg, const ConfigTree &cfg_in)
         : WinSetupPageDialog(win_cfg, cfg_in) {}
 
+    String GetTitle() const override { return "Custom Paths"; }
+
     void SaveSetup() override;
 
 protected:
@@ -107,6 +111,35 @@ private:
     HWND _hCustomAppDataDir = NULL;
     HWND _hCustomAppDataDirBtn = NULL;
     HWND _hCustomAppDataDirCheck = NULL;
+};
+
+//=============================================================================
+//
+// AccessibilityPageDialog
+//
+//=============================================================================
+class AccessibilityPageDialog : public WinSetupPageDialog
+{
+public:
+    AccessibilityPageDialog(WinConfig &win_cfg, const ConfigTree &cfg_in)
+        : WinSetupPageDialog(win_cfg, cfg_in) {}
+
+    String GetTitle() const override { return "Accessibility"; }
+
+    void SaveSetup() override;
+
+protected:
+    UINT GetTemplateID() const override { return IDD_PAGE_ACCESS; }
+
+    // Event handlers
+    INT_PTR OnInitDialog() override;
+
+private:
+    // Event handlers
+
+    // Dialog controls
+    HWND _hSpeechSkipStyle = NULL;
+    HWND _hTextSkipStyle = NULL;
 };
 
 } // namespace Engine

@@ -101,6 +101,13 @@ FrameScaleDef parse_scaling_option(const String &option, FrameScaleDef def_value
         CstrArr<kNumFrameScaleDef>{"round", "stretch", "proportional"}, def_value);
 }
 
+SkipSpeechStyle parse_speechskip_style(const String &option, SkipSpeechStyle def_value)
+{
+    const std::array<std::pair<const char*, SkipSpeechStyle>, 4> skip_speech_arr{
+        { { "default", kSkipSpeechNone }, { "input", kSkipSpeech_AnyInput }, { "any", kSkipSpeech_AnyInputOrTime }, { "time", kSkipSpeechTime } } };
+    return StrUtil::ParseEnumOptions<SkipSpeechStyle>(option, skip_speech_arr, def_value);
+}
+
 static FrameScaleDef parse_legacy_scaling_option(const String &option, int &scale)
 {
     FrameScaleDef frame = parse_scaling_option(option, kFrame_Undefined);
@@ -163,6 +170,17 @@ String make_scaling_option(FrameScaleDef scale_def)
         return "proportional";
     default:
         return "round";
+    }
+}
+
+String make_speechskip_option(SkipSpeechStyle style)
+{
+    switch (style)
+    {
+    case kSkipSpeech_AnyInput: return "input";
+    case kSkipSpeech_AnyInputOrTime: return "any";
+    case kSkipSpeechTime: return "time";
+    default: return "default";
     }
 }
 
@@ -391,12 +409,8 @@ void apply_config(const ConfigTree &cfg)
         usetup.key_restore_game = CfgReadInt(cfg, "override", "restore_game_key", 0);
 
         // Accessibility settings
-        std::array<std::pair<const char*, SkipSpeechStyle>, 4> skip_speech_arr{
-                { { "none", kSkipSpeechNone }, { "input", kSkipSpeech_AnyInput }, { "any", kSkipSpeech_AnyInputOrTime }, { "time", kSkipSpeechTime } } };
-        usetup.access_speechskip = StrUtil::ParseEnumOptions<SkipSpeechStyle>(
-            CfgReadString(cfg, "access", "speechskip"), skip_speech_arr, kSkipSpeechNone);
-        usetup.access_textskip = StrUtil::ParseEnumOptions<SkipSpeechStyle>(
-            CfgReadString(cfg, "access", "textskip"), skip_speech_arr, kSkipSpeechNone);
+        usetup.access_speechskip = parse_speechskip_style(CfgReadString(cfg, "access", "speechskip"));
+        usetup.access_textskip = parse_speechskip_style(CfgReadString(cfg, "access", "textskip"));
     }
 
     // Apply logging configuration

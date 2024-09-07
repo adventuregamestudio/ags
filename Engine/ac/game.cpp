@@ -818,7 +818,7 @@ ScriptCamera* Game_GetAnyCamera(int index)
 
 void Game_SimulateKeyPress(int key)
 {
-    ags_simulate_keypress(static_cast<eAGSKeyCode>(key));
+    ags_simulate_keypress(static_cast<eAGSKeyCode>(key), (game.options[OPT_KEYHANDLEAPI] == 0));
 }
 
 int Game_BlockingWaitSkipped()

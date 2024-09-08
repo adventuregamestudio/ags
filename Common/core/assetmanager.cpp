@@ -171,11 +171,7 @@ bool AssetManager::DoesAssetExist(const String &asset_name, const String &filter
         }
         else
         {
-            for (const auto &a : lib->AssetInfos)
-            {
-                if (a.FileName.CompareNoCase(asset_name) == 0)
-                    return true;
-            }
+            return lib->Lookup.count(asset_name) > 0;
         }
     }
     return false;
@@ -251,6 +247,12 @@ AssetError AssetManager::RegisterAssetLib(const String &path, AssetLibEx *&out_l
         {
             lib->RealLibFiles.push_back(File::FindFileCI(lib->BaseDir, lib->LibFileNames[i]));
         }
+
+        // Create lookup table
+        for (size_t i = 0; i < lib->AssetInfos.size(); ++i)
+        {
+            lib->Lookup[lib->AssetInfos[i].FileName] = i;
+        }
     }
 
     out_lib = lib.get();
@@ -277,17 +279,15 @@ std::unique_ptr<Stream> AssetManager::OpenAsset(const String &asset_name, const 
 
 std::unique_ptr<Stream> AssetManager::OpenAssetFromLib(const AssetLibEx *lib, const String &asset_name) const
 {
-    for (const auto &a : lib->AssetInfos)
-    {
-        if (a.FileName.CompareNoCase(asset_name) == 0)
-        {
-            String libfile = lib->RealLibFiles[a.LibUid];
-            if (libfile.IsEmpty())
-                return nullptr;
-            return File::OpenFile(libfile, a.Offset, a.Offset + a.Size);
-        }
-    }
-    return nullptr;
+    auto it_found = lib->Lookup.find(asset_name);
+    if (it_found == lib->Lookup.end())
+        return nullptr;
+
+    const AssetInfo &a = lib->AssetInfos[it_found->second];
+    String libfile = lib->RealLibFiles[a.LibUid];
+    if (libfile.IsEmpty())
+        return nullptr;
+    return File::OpenFile(libfile, a.Offset, a.Offset + a.Size);
 }
 
 std::unique_ptr<Stream> AssetManager::OpenAssetFromDir(const AssetLibEx *lib, const String &file_name) const

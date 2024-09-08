@@ -44,7 +44,7 @@ AGSString cc_get_callstack(int max_lines)
     return "";
 }
 
-char g_Input_String[] = "\
+char kAgsHeaderString[] = "\
 \"__NEWSCRIPTSTART_StringDefn\"                             \n\
 internalstring autoptr builtin managed struct String        \n\
 {                                                           \n\
@@ -77,7 +77,7 @@ internalstring autoptr builtin managed struct String        \n\
 \"__NEWSCRIPTSTART_TestCode\"                               \n\
 ";
 
-char g_Input_Bool[] = "\
+char kAgsHeaderBool[] = "\
 \"__NEWSCRIPTSTART_BoolDefn\"             \n\
     enum bool { false = 0, true = 1 };    \n\
 \"__NEWSCRIPTSTART_TestCode\"             \n\

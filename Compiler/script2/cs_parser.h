@@ -1045,9 +1045,10 @@ public:
 // Compile the input, return any messages in mh, cc_error() does not get called
 extern int cc_compile(
     std::string const &source,  // preprocessed text to be compiled
-    AGS::FlagSet options,            // as defined in cc_options 
+    AGS::FlagSet options,            // as defined in cc_options
     AGS::ccCompiledScript &scrip,    // store for the compiled text
-    AGS::MessageHandler &mh);        // warnings and the error   
+    AGS::MessageHandler &mh);        // warnings and the error
+
 // Compile the input, additionally return gathered symbols and other source info
 extern int cc_compile(
     std::string const &source,  // preprocessed text to be compiled

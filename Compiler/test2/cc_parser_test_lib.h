@@ -23,9 +23,9 @@ extern void clear_error(void);
 
 extern const char *last_seen_cc_error(void);
 
-extern char g_Input_String[];
+extern char kAgsHeaderString[];
 
-extern char g_Input_Bool[];
+extern char kAgsHeaderBool[];
 
 // Only use this function for googletests. Scan and tokenize the input.
 extern int cc_scan(
@@ -43,8 +43,5 @@ extern int cc_parse(
     AGS::SymbolTable &symt,         // symbol table
     AGS::MessageHandler &mh);       // warnings and the error 
 
-// Compile the input; in case of error cc_error() gets called
-extern int cc_compile(
-    std::string const &source,      // preprocessed text to be compiled
-    AGS::ccCompiledScript &scrip);  // store for the compiled text
+
 #endif

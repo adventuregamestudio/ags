@@ -24,7 +24,7 @@
 
 /* This file is for Bytecode tests ONLY.
    Testing for programs that won't compile should be done elsewhere IMHO.
-   
+
    If a test generates wrong code, often a good way to debug it is as follows:
    - Uncomment the "WriteOutput(" line and run the test; now you have the bytes
      that the _new_ compiler emits in the file. Compare it by hand to the code
@@ -55,7 +55,7 @@
 /*    PROTOTYPE
 
 TEST_F(Bytecode0, P_r_o_t_o_t_y_p_e) {
-    
+
 
     char const *inpl = "\
         int Foo(int a)      \n\
@@ -77,14 +77,18 @@ TEST_F(Bytecode0, P_r_o_t_o_t_y_p_e) {
 // The vars defined here are provided in each test that is in category "Bytecode0"
 class Bytecode0 : public ::testing::Test
 {
+public:
+    FlagSet const kNoOptions = 0u;
+    MessageHandler mh;
+
 protected:
-    AGS::ccCompiledScript scrip{ true };    // enable emitting line numbers
+    ccCompiledScript scrip{ true };    // enable emitting line numbers
 
     Bytecode0()
     {
         // Initializations, will be done at the start of each test
-        // Note, the parser doesn't react to SCOPT_LINENUMBERS, that's on ccCompiledScript
-        ccResetOptions(0);
+        // Note: Don't use 'ccSetOption()', 'ccResetOptions()' etc.
+        // googletests are often called in parallel, and these functions clobber each other
         clear_error();
     }
 };
@@ -100,10 +104,10 @@ TEST_F(Bytecode0, UnaryMinus1) {
             int baz = -(-bar);  \n\
         }";
 
-    
-    int compileResult = cc_compile(inpl, scrip);
 
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("UnaryMinus1", scrip);
     size_t const codesize = 43;
@@ -135,7 +139,7 @@ TEST_F(Bytecode0, UnaryMinus1) {
     EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
-TEST_F(Bytecode0, UnaryMinus2) {    
+TEST_F(Bytecode0, UnaryMinus2) {
 
     // Unary minus binds more than multiply
 
@@ -147,9 +151,10 @@ TEST_F(Bytecode0, UnaryMinus2) {
             return -five * -seven;      \n\
         }";
 
-    
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("UnaryMinus2", scrip);
     size_t const codesize = 60;
@@ -194,8 +199,9 @@ TEST_F(Bytecode0, NotNot) {
             return !!(!five);       \n\
         }";
 
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Notnot", scrip);
 
@@ -226,7 +232,7 @@ TEST_F(Bytecode0, NotNot) {
     EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
-TEST_F(Bytecode0, Float01) {   
+TEST_F(Bytecode0, Float01) {
 
     // Float values
     // Note that the code behind the 'return' statement is unreachable.
@@ -251,8 +257,8 @@ TEST_F(Bytecode0, Float01) {
         ";
 
     MessageHandler mh;
-    int compileResult = cc_compile(inpl, 0, scrip, mh);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : mh.GetError().Message.c_str());
+    int compile_result = cc_compile(inpl, 0, scrip, mh);
+    ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : mh.GetError().Message.c_str());
     ASSERT_LE(1u, mh.GetMessages().size());
     EXPECT_NE(std::string::npos, mh.GetMessages().at(0).Message.find("reach this point"));
 
@@ -305,7 +311,7 @@ TEST_F(Bytecode0, Float01) {
     EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
-TEST_F(Bytecode0, Float02) {   
+TEST_F(Bytecode0, Float02) {
 
     // Positive and negative float parameter defaults
 
@@ -321,8 +327,9 @@ TEST_F(Bytecode0, Float02) {
         }                                   \n\
         ";
 
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Float02", scrip);
 
@@ -365,7 +372,7 @@ TEST_F(Bytecode0, Float02) {
     EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
-TEST_F(Bytecode0, Float03) { 
+TEST_F(Bytecode0, Float03) {
 
     char const *inpl = "\
         float a = 15.0;     \n\
@@ -375,9 +382,10 @@ TEST_F(Bytecode0, Float03) {
             return a + f;   \n\
         }                   \n\
         ";
-    
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Float03", scrip);
 
@@ -417,7 +425,7 @@ TEST_F(Bytecode0, Float03) {
     EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
-TEST_F(Bytecode0, Float04) {    
+TEST_F(Bytecode0, Float04) {
 
     char const *inpl = "\
         float a = 15.0;                             \n\
@@ -431,9 +439,10 @@ TEST_F(Bytecode0, Float04) {
             int E5 = (((a == b) || (a != b)));      \n\
             return a - b * (a / b);                 \n\
         }";
-   
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Float04", scrip);
 
@@ -502,9 +511,10 @@ TEST_F(Bytecode0, FlowIfThenElse1) {
             a <<= 3;        \n\
         return a;           \n\
     }";
-    
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("FlowIfThenElse1", scrip);
 
@@ -559,9 +569,10 @@ TEST_F(Bytecode0, FlowIfThenElse2) {
             a += 3;         \n\
         return a;           \n\
     }";
-   
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("FlowIfThenElse2", scrip);
 
@@ -620,8 +631,9 @@ TEST_F(Bytecode0, FlowWhile) {
             return sum;           \n\
         }";
 
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("FlowWhile", scrip);
 
@@ -687,8 +699,9 @@ TEST_F(Bytecode0, FlowWhileTrue)
         }                   \n\
         ";
 
-    int compileResult = cc_compile(inpl, scrip);
-    EXPECT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    EXPECT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("FlowWhileTrue", scrip);
 
@@ -736,8 +749,9 @@ TEST_F(Bytecode0, FlowDoWhileFalse)
         }                       \n\
         ";
 
-    int compileResult = cc_compile(inpl, scrip);
-    EXPECT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    EXPECT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("FlowDoWhileFalse", scrip);
 
@@ -789,9 +803,10 @@ TEST_F(Bytecode0, FlowDoNCall) {
             return Foo(x^x);      \n\
         }                         \n\
         ";
-    
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("FlowDoNCall", scrip);
 
@@ -842,7 +857,7 @@ TEST_F(Bytecode0, FlowDoNCall) {
     EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
-TEST_F(Bytecode0, FlowDoUnbracedIf) {    
+TEST_F(Bytecode0, FlowDoUnbracedIf) {
 
     char const *inpl = "\
     void noloopcheck main()   \n\
@@ -856,9 +871,10 @@ TEST_F(Bytecode0, FlowDoUnbracedIf) {
         while (sum >= -1);    \n\
     }                         \n\
     ";
-    
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("FlowDoUnbracedIf", scrip);
 
@@ -897,7 +913,7 @@ TEST_F(Bytecode0, FlowDoUnbracedIf) {
 }
 
 
-TEST_F(Bytecode0, FlowFor1) {  
+TEST_F(Bytecode0, FlowFor1) {
 
     char const *inpl = "\
         int loop;                       \n\
@@ -911,9 +927,10 @@ TEST_F(Bytecode0, FlowFor1) {
             }                           \n\
             return 0;                   \n\
         }";
-    
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("FlowFor1", scrip);
     size_t const codesize = 134;
@@ -986,9 +1003,10 @@ TEST_F(Bytecode0, FlowFor2) {
             sum |= loop;            \n\
         return 0;                   \n\
     }";
-    
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("FlowFor2", scrip);
 
@@ -1074,9 +1092,10 @@ TEST_F(Bytecode0, FlowFor3) {
         return -7;                  \n\
     }                               \n\
     ";
-   
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("FlowFor3", scrip);
     size_t const codesize = 56;
@@ -1129,9 +1148,10 @@ TEST_F(Bytecode0, FlowFor4) {
                 continue;           \n\
     }                               \n\
     ";
-   
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("FlowFor4", scrip);
 
@@ -1191,10 +1211,11 @@ TEST_F(Bytecode0, FlowFor5) {
                     continue;           \n\
         }                               \n\
         ";
-    
-    int compileResult = cc_compile(inpl, scrip);
 
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("FlowFor5", scrip);
 
@@ -1270,10 +1291,11 @@ TEST_F(Bytecode0, FlowFor6) {
             return x + 1;               \n\
         }                               \n\
         ";
-    
-    int compileResult = cc_compile(inpl, scrip);
 
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("FlowFor6", scrip);
 
@@ -1355,10 +1377,11 @@ TEST_F(Bytecode0, FlowFor7) {
             i++;                        \n\
         }                               \n\
         ";
-   
-    int compileResult = cc_compile(inpl, scrip);
 
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("FlowFor7", scrip);
 
@@ -1414,7 +1437,7 @@ TEST_F(Bytecode0, FlowFor7) {
     EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
-TEST_F(Bytecode0, FlowContinue1) {   
+TEST_F(Bytecode0, FlowContinue1) {
 
     // Locals only become invalid at the end of their nesting; below a "continue",
     // they remain valid, and so the offset to start of the local block
@@ -1435,10 +1458,11 @@ TEST_F(Bytecode0, FlowContinue1) {
             return I;                   \n\
         }                               \n\
         ";
-    
-    int compileResult = cc_compile(inpl, scrip);
 
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("FlowContinue1", scrip);
 
@@ -1497,9 +1521,10 @@ TEST_F(Bytecode0, FlowIfDoWhile) {
             do { loop += 1; } while (loop < 100);   \n\
         return 0;                                \n\
     }";
-   
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("FlowIfDoWhile", scrip);
 
@@ -1550,7 +1575,7 @@ TEST_F(Bytecode0, FlowIfDoWhile) {
     EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
-TEST_F(Bytecode0, FlowSwitch01) {    
+TEST_F(Bytecode0, FlowSwitch01) {
 
     // The "break;" in line 6 is unreachable code
 
@@ -1570,9 +1595,9 @@ TEST_F(Bytecode0, FlowSwitch01) {
         return 0;                   \n\
     }";
 
-    MessageHandler mh;
-    int compileResult = cc_compile(inpl, AGS::FlagSet{ 0 }, scrip, mh);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : mh.GetError().Message.c_str());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     // Line 6: Can't reach this point.
     ASSERT_LE(2u, mh.GetMessages().size());
     EXPECT_EQ(6u, mh.GetMessages().at(0).Lineno);
@@ -1644,8 +1669,9 @@ TEST_F(Bytecode0, FlowSwitch02) {
         }                               \n\
         ";
 
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("FlowSwitch02", scrip);
 
@@ -1695,8 +1721,9 @@ TEST_F(Bytecode0, FlowSwitch03) {
         }                   \n\
         ";
 
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("FlowSwitch03", scrip);
 
@@ -1746,8 +1773,9 @@ TEST_F(Bytecode0, FlowSwitch04) {
         }                   \n\
         ";
 
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("FlowSwitch04", scrip);
 
@@ -1793,8 +1821,9 @@ TEST_F(Bytecode0, FlowSwitch05) {
         }                   \n\
         ";
 
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("FlowSwitch05", scrip);
 
@@ -1846,8 +1875,8 @@ TEST_F(Bytecode0, FlowSwitch06) {
         ";
 
     MessageHandler mh;
-    int compileResult = cc_compile(inpl, 0u, scrip, mh);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : mh.GetError().Message.c_str());
+    int compile_result = cc_compile(inpl, 0u, scrip, mh);
+    ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : mh.GetError().Message.c_str());
     ASSERT_LE(1u, mh.GetMessages().size());
     EXPECT_NE(std::string::npos, mh.GetMessages().at(0u).Message.find("execution"));
     EXPECT_EQ(11u, mh.GetMessages().at(0u).Lineno);
@@ -1908,8 +1937,9 @@ TEST_F(Bytecode0, FlowSwitch07) {
         }                       \n\
         ";
 
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("FlowSwitch07", scrip);
 
@@ -1956,7 +1986,7 @@ TEST_F(Bytecode0, FlowSwitch07) {
     EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
-TEST_F(Bytecode0, FreeLocalPtr_NoRTTI) {   
+TEST_F(Bytecode0, FreeLocalPtr_NoRTTI) {
 
     char const *inpl = "\
     managed struct S                  \n\
@@ -1972,11 +2002,10 @@ TEST_F(Bytecode0, FreeLocalPtr_NoRTTI) {
             sptr = new S;             \n\
     }                                 \n\
     ";
-    
-    ccSetOption(SCOPT_RTTIOPS, false);
 
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("FreeLocalPtr_NoRtti", scrip);
     size_t const codesize = 83;
@@ -2030,10 +2059,11 @@ TEST_F(Bytecode0, FreeLocalPtr_RTTI) {
     }                                 \n\
     ";
 
-    ccSetOption(SCOPT_RTTIOPS, true);
+    FlagSet const options = SCOPT_RTTIOPS;
 
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, options, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("FreeLocalPtr_Rtti", scrip);
     size_t const codesize = 85;
@@ -2096,10 +2126,11 @@ TEST_F(Bytecode0, Struct01) {
 		}                                   \n\
     ";
 
-    ccSetOption(SCOPT_RTTIOPS, true);
+    FlagSet const options = SCOPT_RTTIOPS;
 
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, options, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Struct01", scrip);
     size_t const codesize = 155;
@@ -2153,7 +2184,7 @@ TEST_F(Bytecode0, Struct01) {
     EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
-TEST_F(Bytecode0, Struct02) {   
+TEST_F(Bytecode0, Struct02) {
 
     // test arrays; arrays in structs;
     // whether the namespace in structs is independent of the global namespace
@@ -2176,8 +2207,9 @@ TEST_F(Bytecode0, Struct02) {
         return;                     \n\
     }";
 
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Struct02", scrip);
 
@@ -2222,7 +2254,7 @@ TEST_F(Bytecode0, Struct02) {
     EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
-TEST_F(Bytecode0, Struct03) {    
+TEST_F(Bytecode0, Struct03) {
 
     // test arrays; arrays in structs;
     // whether the namespace in structs is independent of the global namespace
@@ -2242,9 +2274,10 @@ TEST_F(Bytecode0, Struct03) {
         S.Array[S.Ix] = 19;         \n\
         return;                     \n\
     }";
-    
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Struct03", scrip);
 
@@ -2313,10 +2346,9 @@ TEST_F(Bytecode0, Struct04_NoRTTI) {
         }                                                    \n\
     ";
 
-    ccSetOption(SCOPT_RTTIOPS, false);
-
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Struct04_NoRtti", scrip);
 
@@ -2381,10 +2413,11 @@ TEST_F(Bytecode0, Struct04_RTTI) {
         }                                                    \n\
     ";
 
-    ccSetOption(SCOPT_RTTIOPS, true);
+    FlagSet const options = SCOPT_RTTIOPS;
 
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, options, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Struct04_Rtti", scrip);
     size_t const codesize = 108;
@@ -2444,10 +2477,10 @@ TEST_F(Bytecode0, Struct05) {
              return S1.StInt(S2.StInt(7));                   \n\
         }                                                    \n\
     ";
-   
+
     MessageHandler mh;
-    int compileResult = cc_compile(inpl, 0u, scrip, mh);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : mh.GetError().Message.c_str());
+    int compile_result = cc_compile(inpl, 0u, scrip, mh);
+    ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : mh.GetError().Message.c_str());
     EXPECT_LE(2u, mh.GetMessages().size());
     EXPECT_NE(std::string::npos, mh.GetMessages().at(0u).Message.find("zero"));
     EXPECT_NE(std::string::npos, mh.GetMessages().at(1u).Message.find("zero"));
@@ -2516,10 +2549,11 @@ TEST_F(Bytecode0, Struct06) {
         }                                                   \n\
     ";
 
-    ccSetOption(SCOPT_RTTIOPS, true);
+    FlagSet const options = SCOPT_RTTIOPS;
 
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, options, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Struct06", scrip);
     size_t const codesize = 59;
@@ -2553,7 +2587,7 @@ TEST_F(Bytecode0, Struct06) {
     EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
-TEST_F(Bytecode0, Struct07) {    
+TEST_F(Bytecode0, Struct07) {
 
     char const *inpl = "\
         struct Struct1                                       \n\
@@ -2573,9 +2607,10 @@ TEST_F(Bytecode0, Struct07) {
             return 0;                                        \n\
         }                                                    \n\
     ";
-    
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Struct07", scrip);
 
@@ -2619,7 +2654,7 @@ TEST_F(Bytecode0, Struct07) {
     EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
-TEST_F(Bytecode0, Struct08) {   
+TEST_F(Bytecode0, Struct08) {
 
     char const *inpl = "\
         struct Struct                           \n\
@@ -2647,9 +2682,10 @@ TEST_F(Bytecode0, Struct08) {
                    ;                            \n\
         }                                       \n\
         ";
-   
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Struct08", scrip);
 
@@ -2735,11 +2771,11 @@ TEST_F(Bytecode0, Struct09_RTTI) {
         }                                                           \n\
     ";
 
-    ccSetOption(SCOPT_RTTIOPS, true);
-    ccSetOption(SCOPT_NOAUTOPTRIMPORT, true);
+    FlagSet const options = SCOPT_RTTIOPS | SCOPT_NOAUTOPTRIMPORT;
 
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, options, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Struct09_Rtti", scrip);
     size_t const codesize = 205;
@@ -2819,8 +2855,9 @@ TEST_F(Bytecode0, Struct10) {
         }                                                    \n\
     ";
 
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Struct10", scrip);
 
@@ -2889,10 +2926,9 @@ TEST_F(Bytecode0, Struct11_NoRTTI) {
         }                                                   \n\
     ";
 
-    ccSetOption(SCOPT_RTTIOPS, false);
-
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Struct11_NoRtti", scrip);
 
@@ -2969,10 +3005,11 @@ TEST_F(Bytecode0, Struct11_RTTI) {
         }                                                   \n\
     ";
 
-    ccSetOption(SCOPT_RTTIOPS, true);
+    FlagSet const options = SCOPT_RTTIOPS;
 
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, options, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Struct11_NoRtti", scrip);
     size_t const codesize = 76;
@@ -3065,11 +3102,10 @@ TEST_F(Bytecode0, Struct12) {
         }                               \n\
         ";
 
-    ccSetOption(SCOPT_RTTIOPS, false);
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
 
-    int compileResult = cc_compile(inpl, scrip);
-
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Struct12", scrip);
     size_t const codesize = 147;
@@ -3137,10 +3173,9 @@ TEST_F(Bytecode0, Struct13_NoRTTI) {
     }                                    \n\
     ";
 
-    ccSetOption(SCOPT_RTTIOPS, false);
-
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Struct13_NoRtti", scrip);
 
@@ -3188,10 +3223,11 @@ TEST_F(Bytecode0, Struct13_RTTI) {
     }                                    \n\
     ";
 
-    ccSetOption(SCOPT_RTTIOPS, true);
+    FlagSet const options = SCOPT_RTTIOPS;
 
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, options, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Struct13_Rtti", scrip);
     size_t const codesize = 44;
@@ -3242,10 +3278,9 @@ TEST_F(Bytecode0, Struct14_NoRTTI) {
     }                                    \n\
     ";
 
-    ccSetOption(SCOPT_RTTIOPS, false);
-
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Struct14_NoRtti", scrip);
 
@@ -3300,10 +3335,11 @@ TEST_F(Bytecode0, Struct14_RTTI) {
     }                                    \n\
     ";
 
-    ccSetOption(SCOPT_RTTIOPS, true);
+    FlagSet const options = SCOPT_RTTIOPS;
 
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, options, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Struct14_Rtti", scrip);
     size_t const codesize = 66;
@@ -3347,8 +3383,9 @@ TEST_F(Bytecode0, Func01) {
         }               \n\
         ";
 
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Func01", scrip);
 
@@ -3399,9 +3436,10 @@ TEST_F(Bytecode0, Func02) {
             return Ret;                 \n\
         }                               \n\
         ";
-    
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Func02", scrip);
 
@@ -3444,7 +3482,7 @@ TEST_F(Bytecode0, Func02) {
     EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
-TEST_F(Bytecode0, Func03) {   
+TEST_F(Bytecode0, Func03) {
 
     char const *inpl = "\
     managed struct Struct1          \n\
@@ -3466,9 +3504,10 @@ TEST_F(Bytecode0, Func03) {
                                     \n\
     import int Func(Struct1 *S1, Struct2 *S2);  \n\
     ";
-    
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Func03", scrip);
 
@@ -3511,7 +3550,7 @@ TEST_F(Bytecode0, Func03) {
     EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
-TEST_F(Bytecode0, Func04) {    
+TEST_F(Bytecode0, Func04) {
 
     char const *inpl = "\
     managed struct Struct1          \n\
@@ -3538,9 +3577,10 @@ TEST_F(Bytecode0, Func04) {
         return Ret;                 \n\
     }                               \n\
    ";
-    
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Func04", scrip);
 
@@ -3588,7 +3628,7 @@ TEST_F(Bytecode0, Func04) {
 }
 
 TEST_F(Bytecode0, Func05_NoRTTI) {
-    
+
     char const *inpl = "\
     managed struct Struct1          \n\
     {                               \n\
@@ -3607,10 +3647,9 @@ TEST_F(Bytecode0, Func05_NoRTTI) {
     }                               \n\
     ";
 
-    ccSetOption(SCOPT_RTTIOPS, false);
-
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Func05_NoRtti", scrip);
 
@@ -3653,7 +3692,7 @@ TEST_F(Bytecode0, Func05_NoRTTI) {
 }
 
 TEST_F(Bytecode0, Func05_RTTI) {
-    
+
     char const *inpl = "\
     managed struct Struct1          \n\
     {                               \n\
@@ -3672,10 +3711,11 @@ TEST_F(Bytecode0, Func05_RTTI) {
     }                               \n\
     ";
 
-    ccSetOption(SCOPT_RTTIOPS, true);
+    FlagSet const options = SCOPT_RTTIOPS;
 
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, options, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Func05_Rtti", scrip);
     size_t const codesize = 49;
@@ -3717,7 +3757,7 @@ TEST_F(Bytecode0, Func05_RTTI) {
 }
 
 TEST_F(Bytecode0, Func06) {
-   
+
     char const *inpl = "\
         import int Func(int, int = 5); \n\
                                      \n\
@@ -3732,9 +3772,10 @@ TEST_F(Bytecode0, Func06) {
         }                            \n\
     ";
 
-    int compileResult = cc_compile(inpl, scrip);
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
 
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Func06", scrip);
 
@@ -3777,7 +3818,7 @@ TEST_F(Bytecode0, Func06) {
     EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
-TEST_F(Bytecode0, Func07) {  
+TEST_F(Bytecode0, Func07) {
 
     char const *inpl = "\
         import int Func(int, int = 5); \n\
@@ -3788,10 +3829,11 @@ TEST_F(Bytecode0, Func07) {
             int Int2 = Func(4, 1);   \n\
         }                            \n\
     ";
-    
-    int compileResult = cc_compile(inpl, scrip);
 
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Func07", scrip);
 
@@ -3834,7 +3876,7 @@ TEST_F(Bytecode0, Func07) {
     EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
-TEST_F(Bytecode0, Func08) {   
+TEST_F(Bytecode0, Func08) {
 
     char const *inpl = "\
         void main()                  \n\
@@ -3845,10 +3887,11 @@ TEST_F(Bytecode0, Func08) {
                                      \n\
         import int Func(int, int = 5); \n\
     ";
-    
-    int compileResult = cc_compile(inpl, scrip);
 
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Func08", scrip);
 
@@ -3891,7 +3934,7 @@ TEST_F(Bytecode0, Func08) {
     EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
-TEST_F(Bytecode0, Func09) {    
+TEST_F(Bytecode0, Func09) {
 
     char const *inpl = "\
         import int Func(int f, int = 5); \n\
@@ -3903,10 +3946,11 @@ TEST_F(Bytecode0, Func09) {
             int Int2 = Func(4, 1);   \n\
         }                            \n\
     ";
-    
-    int compileResult = cc_compile(inpl, scrip);
 
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Func09", scrip);
 
@@ -3950,7 +3994,7 @@ TEST_F(Bytecode0, Func09) {
 }
 
 TEST_F(Bytecode0, Func10) {
-    
+
     char const *inpl = "\
         import int Func(int, int = 5); \n\
                                      \n\
@@ -3964,10 +4008,11 @@ TEST_F(Bytecode0, Func10) {
             int Int = Func(4,-99);   \n\
         }                            \n\
     ";
-    
-    int compileResult = cc_compile(inpl, scrip);
 
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Func10", scrip);
 
@@ -4010,7 +4055,7 @@ TEST_F(Bytecode0, Func10) {
     EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
-TEST_F(Bytecode0, Func11) {   
+TEST_F(Bytecode0, Func11) {
 
     char const *inpl = "\
     struct Struct                   \n\
@@ -4031,9 +4076,10 @@ TEST_F(Bytecode0, Func11) {
         return Int;                 \n\
     }                               \n\
     ";
-    
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Func11", scrip);
 
@@ -4099,8 +4145,8 @@ TEST_F(Bytecode0, Func12) {
     ";
 
     MessageHandler mh;
-    int compileResult = cc_compile(inpl, 0u, scrip, mh);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : mh.GetError().Message.c_str());
+    int compile_result = cc_compile(inpl, 0u, scrip, mh);
+    ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : mh.GetError().Message.c_str());
     ASSERT_LE(1u, mh.GetMessages().size());
     EXPECT_NE(std::string::npos, mh.GetMessages().at(0u).Message.find("'0'"));
 
@@ -4174,8 +4220,8 @@ TEST_F(Bytecode0, Func13) {
     ";
 
     MessageHandler mh;
-    int compileResult = cc_compile(inpl, 0u, scrip, mh);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : mh.GetError().Message.c_str());
+    int compile_result = cc_compile(inpl, 0u, scrip, mh);
+    ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : mh.GetError().Message.c_str());
     ASSERT_LE(1u, mh.GetMessages().size());
     EXPECT_NE(std::string::npos, mh.GetMessages().at(0u).Message.find("'0'"));
 
@@ -4259,10 +4305,9 @@ TEST_F(Bytecode0, Func14_NoRTTI) {
         }                           \n\
         ";
 
-    ccSetOption(SCOPT_RTTIOPS, false);
-
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Func14_NoRtti", scrip);
 
@@ -4350,10 +4395,11 @@ TEST_F(Bytecode0, Func14_RTTI) {
         }                           \n\
         ";
 
-    ccSetOption(SCOPT_RTTIOPS, true);
+    FlagSet const options = SCOPT_RTTIOPS;
 
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, options, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Func14_Rtti", scrip);
 
@@ -4418,9 +4464,10 @@ TEST_F(Bytecode0, Func15) {
             return;         \n\
         }";
 
-    int compileResult = cc_compile(inpl, scrip);
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
 
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Func15", scrip);
 
@@ -4469,8 +4516,9 @@ TEST_F(Bytecode0, Func16) {
         }               \n\
         ";
 
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Func16", scrip);
 
@@ -4526,10 +4574,9 @@ TEST_F(Bytecode0, Func17_NoRTTI) {
         }                                       \n\
         ";
 
-    ccSetOption(SCOPT_RTTIOPS, false);
-
-    int compileResult = cc_compile(inpl, scrip);
-    EXPECT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    EXPECT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Func17_NoRtti", scrip);
 
@@ -4586,10 +4633,11 @@ TEST_F(Bytecode0, Func17_RTTI) {
         }                                       \n\
         ";
 
-    ccSetOption(SCOPT_RTTIOPS, true);
+    FlagSet const options = SCOPT_RTTIOPS;
 
-    int compileResult = cc_compile(inpl, scrip);
-    EXPECT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, options, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    EXPECT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Func17_Rtti", scrip);
 
@@ -4652,8 +4700,9 @@ TEST_F(Bytecode0, Func18) {
         }                               \n\
         ";
 
-    int compileResult = cc_compile(inpl, scrip);
-    EXPECT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    EXPECT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Func18", scrip);
 
@@ -4722,9 +4771,10 @@ TEST_F(Bytecode0, Func19) {
             return Foo(Arr[t][1, t]);   \n\
         }";
 
-    int compileResult = cc_compile(inpl, scrip);
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
 
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Func19", scrip);
     size_t const codesize = 66;
@@ -4768,7 +4818,7 @@ TEST_F(Bytecode0, Func19) {
 }
 
 TEST_F(Bytecode0, Export) {
-    
+
     char const *inpl = "\
     struct Struct                   \n\
     {                               \n\
@@ -4791,9 +4841,10 @@ TEST_F(Bytecode0, Export) {
     }                               \n\
     export main;                    \n\
     ";
-   
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Export", scrip);
 
@@ -4837,7 +4888,7 @@ TEST_F(Bytecode0, Export) {
 }
 
 TEST_F(Bytecode0, ArrayOfPointers1_NoRTTI) {
-   
+
     char const *inpl = "\
     managed struct Struct                \n\
     {                                    \n\
@@ -4855,10 +4906,9 @@ TEST_F(Bytecode0, ArrayOfPointers1_NoRTTI) {
     }                                    \n\
     ";
 
-    ccSetOption(SCOPT_RTTIOPS, false);
-
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("ArrayOfPointers1_NoRtti", scrip);
     size_t const codesize = 108;
@@ -4925,10 +4975,11 @@ TEST_F(Bytecode0, ArrayOfPointers1_RTTI) {
     }                                    \n\
     ";
 
-    ccSetOption(SCOPT_RTTIOPS, true);
+    FlagSet const options = SCOPT_RTTIOPS;
 
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, options, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("ArrayOfPointers1_Rtti", scrip);
     size_t const codesize = 109;
@@ -4976,7 +5027,7 @@ TEST_F(Bytecode0, ArrayOfPointers1_RTTI) {
     EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
-TEST_F(Bytecode0, ArrayOfPointers2_NoRTTI) {    
+TEST_F(Bytecode0, ArrayOfPointers2_NoRTTI) {
 
     char const *inpl = "\
     managed struct Struct                \n\
@@ -4996,10 +5047,9 @@ TEST_F(Bytecode0, ArrayOfPointers2_NoRTTI) {
     }                                    \n\
     ";
 
-    ccSetOption(SCOPT_RTTIOPS, false);
-    
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("ArrayOfPointers2_NoRTTI", scrip);
     size_t const codesize = 131;
@@ -5062,10 +5112,11 @@ TEST_F(Bytecode0, ArrayOfPointers2_RTTI) {
     }                                    \n\
     ";
 
-    ccSetOption(SCOPT_RTTIOPS, true);
+    FlagSet const options = SCOPT_RTTIOPS;
 
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, options, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("ArrayOfPointers2_RTTI", scrip);
     size_t const codesize = 132;
@@ -5130,9 +5181,10 @@ TEST_F(Bytecode0, DynarrayOfDynarray1) {
         }                               \n\
         ";
 
-    ccSetOption(SCOPT_RTTIOPS, true);
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    FlagSet const options = SCOPT_RTTIOPS;
+    int compile_result = cc_compile(inpl, options, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     WriteOutput("DynarrayOfDynarray1", scrip);
 }
@@ -5154,9 +5206,10 @@ TEST_F(Bytecode0, DynarrayOfDynarray2) {
         }                               \n\
         ";
 
-    ccSetOption(SCOPT_RTTIOPS, true);
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    FlagSet const options = SCOPT_RTTIOPS;
+    int compile_result = cc_compile(inpl, options, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("DynarrayOfDynarray2", scrip);
     size_t const codesize = 103;
@@ -5226,9 +5279,10 @@ TEST_F(Bytecode0, DynarrayOfDynarray3) {
         }                               \n\
         ";
 
-    ccSetOption(SCOPT_RTTIOPS, true);
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    FlagSet const options = SCOPT_RTTIOPS;
+    int compile_result = cc_compile(inpl, options, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("DynarrayOfDynarray3", scrip);
     size_t const codesize = 156;
@@ -5298,9 +5352,10 @@ TEST_F(Bytecode0, ArrayOfDynarray) {
         }                               \n\
         ";
 
-    ccSetOption(SCOPT_RTTIOPS, true);
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    FlagSet const options = SCOPT_RTTIOPS;
+    int compile_result = cc_compile(inpl, options, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("ArrayOfDynarray", scrip);
     size_t const codesize = 115;
@@ -5368,8 +5423,9 @@ TEST_F(Bytecode0, ArrayOfManagedStruct) {
         }                               \n\
         ";
 
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("ArrayOfManaged", scrip);
     size_t const codesize = 106;
@@ -5439,9 +5495,10 @@ TEST_F(Bytecode0, DynarrayOfNonManaged_NoRtti) {
         }                               \n\
         ";
 
-    ccSetOption(SCOPT_RTTIOPS, false);
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("DynarrayOfNonManaged_NoRtti", scrip);
     size_t const codesize = 72;
@@ -5508,9 +5565,10 @@ TEST_F(Bytecode0, DynarrayOfNonManaged_Rtti) {
         }                               \n\
         ";
 
-    ccSetOption(SCOPT_RTTIOPS, true);
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    FlagSet const options = SCOPT_RTTIOPS;
+    int compile_result = cc_compile(inpl, options, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("DynarrayOfNonManaged_Rtti", scrip);
     size_t const codesize = 101;
@@ -5562,10 +5620,11 @@ TEST_F(Bytecode0, DynarrayOfPrimitives) {
         }                                       \n\
     ";
 
-    ccSetOption(SCOPT_RTTIOPS, true);
+    FlagSet const options = SCOPT_RTTIOPS;
 
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, options, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("DynarrayOfPrimitives_Rtti", scrip);
     size_t const codesize = 88;
@@ -5604,7 +5663,7 @@ TEST_F(Bytecode0, DynarrayOfPrimitives) {
 }
 
 TEST_F(Bytecode0, Writeprotected) {
-    
+
     // Directly taken from the doc on writeprotected, simplified.
 
     char const *inpl = "\
@@ -5625,9 +5684,10 @@ TEST_F(Bytecode0, Writeprotected) {
             return wp.Damage;                   \n\
         }                                       \n\
         ";
- 
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Writeprotected", scrip);
 
@@ -5685,9 +5745,10 @@ TEST_F(Bytecode0, Protected1) {
             return 0;                          \n\
         }                                      \n\
         ";
-    
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Protected1", scrip);
 
@@ -5737,8 +5798,9 @@ TEST_F(Bytecode0, Protected2) {
         }                                      \n\
         ";
 
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Protected2", scrip);
 
@@ -5788,8 +5850,9 @@ TEST_F(Bytecode0, Static1) {
         }                                           \n\
         ";
 
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Static1", scrip);
 
@@ -5856,8 +5919,9 @@ TEST_F(Bytecode0, Static2) {
         }                                      \n\
         ";
 
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Static2", scrip);
 
@@ -5899,7 +5963,7 @@ TEST_F(Bytecode0, Static2) {
     EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
-TEST_F(Bytecode0, Import) {    
+TEST_F(Bytecode0, Import) {
 
     char const *inpl = "\
         import int Weapon;                      \n\
@@ -5915,8 +5979,9 @@ TEST_F(Bytecode0, Import) {
         }                                       \n\
         ";
 
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Import", scrip);
 

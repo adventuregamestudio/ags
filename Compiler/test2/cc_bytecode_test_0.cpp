@@ -63,8 +63,9 @@ TEST_F(Bytecode0, P_r_o_t_o_t_y_p_e) {
             return a*a;     \n\
         }";
 
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, options, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("P_r_o_t_o_t_y_p_e", scrip);
     // run the test, comment out the previous line
@@ -256,9 +257,9 @@ TEST_F(Bytecode0, Float01) {
         }                                   \n\
         ";
 
-    MessageHandler mh;
-    int compile_result = cc_compile(inpl, 0, scrip, mh);
-    ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : mh.GetError().Message.c_str());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     ASSERT_LE(1u, mh.GetMessages().size());
     EXPECT_NE(std::string::npos, mh.GetMessages().at(0).Message.find("reach this point"));
 
@@ -1874,9 +1875,9 @@ TEST_F(Bytecode0, FlowSwitch06) {
         }                       \n\
         ";
 
-    MessageHandler mh;
-    int compile_result = cc_compile(inpl, 0u, scrip, mh);
-    ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : mh.GetError().Message.c_str());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     ASSERT_LE(1u, mh.GetMessages().size());
     EXPECT_NE(std::string::npos, mh.GetMessages().at(0u).Message.find("execution"));
     EXPECT_EQ(11u, mh.GetMessages().at(0u).Lineno);
@@ -2478,9 +2479,9 @@ TEST_F(Bytecode0, Struct05) {
         }                                                    \n\
     ";
 
-    MessageHandler mh;
-    int compile_result = cc_compile(inpl, 0u, scrip, mh);
-    ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : mh.GetError().Message.c_str());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_LE(2u, mh.GetMessages().size());
     EXPECT_NE(std::string::npos, mh.GetMessages().at(0u).Message.find("zero"));
     EXPECT_NE(std::string::npos, mh.GetMessages().at(1u).Message.find("zero"));
@@ -4144,9 +4145,9 @@ TEST_F(Bytecode0, Func12) {
     }                                   \n\
     ";
 
-    MessageHandler mh;
-    int compile_result = cc_compile(inpl, 0u, scrip, mh);
-    ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : mh.GetError().Message.c_str());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     ASSERT_LE(1u, mh.GetMessages().size());
     EXPECT_NE(std::string::npos, mh.GetMessages().at(0u).Message.find("'0'"));
 
@@ -4219,9 +4220,9 @@ TEST_F(Bytecode0, Func13) {
     }                                   \n\
     ";
 
-    MessageHandler mh;
-    int compile_result = cc_compile(inpl, 0u, scrip, mh);
-    ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : mh.GetError().Message.c_str());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     ASSERT_LE(1u, mh.GetMessages().size());
     EXPECT_NE(std::string::npos, mh.GetMessages().at(0u).Message.find("'0'"));
 

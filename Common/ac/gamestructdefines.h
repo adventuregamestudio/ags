@@ -85,6 +85,7 @@
 #define OPT_CUSTOMENGINETAG 51 // custom engine tag (for overriding behavior)
 #define OPT_SCALECHAROFFSETS 52 // apply character scaling to the sprite offsets (z, locked offs)
 #define OPT_SAVESCREENSHOTLAYER 53 // which render layers to include into savegame screenshot
+#define OPT_VOICECLIPNAMERULE 54 // which rule to use for a voice clip name based on character's name (old/new)
 #define OPT_HIGHESTOPTION   OPT_SAVESCREENSHOTLAYER
 #define OPT_NOMODMUSIC      98 // [DEPRECATED]
 #define OPT_LIPSYNCTEXT     99

@@ -5187,7 +5187,45 @@ TEST_F(Bytecode0, DynarrayOfDynarray1) {
     std::string err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
-    WriteOutput("DynarrayOfDynarray1", scrip);
+    // WriteOutput("DynarrayOfDynarray1", scrip);
+
+    size_t const codesize = 114;
+    EXPECT_EQ(codesize, scrip.code.size());
+
+    int32_t code[] = {
+      36,    8,   38,    0,           36,    9,    6,    3,    // 7
+       2,   29,    3,   36,           10,   51,    0,   49,    // 15
+       1,    1,    4,   36,           11,    6,    3,    3,    // 23
+      75,    3,   91,    4,           51,    4,   47,    3,    // 31
+      36,   12,    6,    3,            5,   75,    3,   91,    // 39
+      24,   29,    3,   51,            8,   48,    2,   52,    // 47
+       6,    3,   11,   71,            3,   30,    3,    1,    // 55
+       2,    8,   47,    3,           36,   13,   51,    4,    // 63
+      48,    2,   52,    6,            3,   11,   71,    3,    // 71
+       1,    2,    8,   48,            2,   52,   29,    2,    // 79
+      51,   12,    7,    3,           30,    2,   32,    3,    // 87
+      24,   71,    3,   11,            2,    3,    6,    3,    // 95
+      99,    1,    2,   15,           26,    3,   36,   14,    // 103
+      51,    4,   49,    2,            1,    8,    6,    3,    // 111
+       0,    5,  -999
+    };
+    CompareCode(&scrip, codesize, code);
+
+    size_t const numfixups = 0;
+    EXPECT_EQ(numfixups, scrip.fixups.size());
+
+    int const numimports = 0;
+    std::string imports[] = {
+     "[[SENTINEL]]"
+    };
+    CompareImports(&scrip, numimports, imports);
+
+    size_t const numexports = 0;
+    EXPECT_EQ(numexports, scrip.exports.size());
+
+    size_t const stringssize = 0;
+    EXPECT_EQ(stringssize, scrip.strings.size());
+
 }
 
 TEST_F(Bytecode0, DynarrayOfDynarray2) {

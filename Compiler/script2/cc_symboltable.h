@@ -475,11 +475,9 @@ public:
     // Fills compo_list with the symbols of all the strct components. Includes the ancestors' components
     void GetComponentsOfStruct(Symbol strct, std::vector<Symbol> &compo_list) const;
     // Find the description of a component.
-    // Return nullptr if not found. Otherwise, caller must 'delete' the result after being done with it
-    // Start search with the components of ancestor.
     Symbol FindStructComponent(Symbol strct, Symbol component, Symbol ancestor) const;
-    inline Symbol *FindStructComponent(Symbol strct, Symbol component) const { FindStructComponent(strct, component, strct); }
-
+    inline Symbol FindStructComponent(Symbol strct, Symbol component) const { return FindStructComponent(strct, component, strct); }
+    
     // Arrays and variables that are arrays
     // The "Array[...] of vartype" vartype
     Vartype VartypeWithArray(std::vector<size_t> const &dims, AGS::Vartype vartype);

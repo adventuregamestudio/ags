@@ -1594,7 +1594,6 @@ TEST_F(Bytecode1, Attributes08) {
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
     std::string err_msg = mh.GetError().Message;
-    std::string msg = last_seen_cc_error();
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Attributes08", scrip);
@@ -1672,7 +1671,6 @@ TEST_F(Bytecode1, Attributes09) {
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
     std::string err_msg = mh.GetError().Message;
-    std::string msg = last_seen_cc_error();
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Attributes09", scrip);
@@ -1746,7 +1744,6 @@ TEST_F(Bytecode1, Attributes10) {
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
     std::string err_msg = mh.GetError().Message;
-    std::string msg = last_seen_cc_error();
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Attributes10", scrip);
@@ -1834,7 +1831,6 @@ TEST_F(Bytecode1, Attributes11) {
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
     std::string err_msg = mh.GetError().Message;
-    std::string msg = last_seen_cc_error();
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Attributes11", scrip);
@@ -2122,9 +2118,9 @@ TEST_F(Bytecode1, Ternary1) {
     }                           \n\
     ";
 
-    MessageHandler mh;
-    int compileResult = cc_compile(inpl, 0, scrip, mh);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : mh.GetError().Message.c_str());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     ASSERT_LE(1u, mh.GetMessages().size());
     EXPECT_EQ(8, mh.GetMessages().at(0).Lineno);
     EXPECT_NE(std::string::npos, mh.GetMessages().at(0).Message.find("reach"));
@@ -3483,10 +3479,9 @@ TEST_F(Bytecode1, Linenum01)
     ";
 
 
-    MessageHandler mh;
-    AGS::ccCompiledScript scrip{ true };
-    int compileResult = cc_compile(inpl, 0, scrip, mh);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : mh.GetError().Message.c_str());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Linenum01", scrip);
 
@@ -3530,10 +3525,9 @@ TEST_F(Bytecode1, Linenum02)
     }                           \n\
     ";
 
-    MessageHandler mh;
-    AGS::ccCompiledScript scrip{ true };
-    int compileResult = cc_compile(inpl, 0, scrip, mh);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : mh.GetError().Message.c_str());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Linenum02", scrip);
 

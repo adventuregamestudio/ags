@@ -545,7 +545,8 @@ void SkipUntilCharacterStops(int cc) {
     if (!is_valid_character(cc))
         quit("!SkipUntilCharacterStops: invalid character specified");
     if (game.chars[cc].room!=displayed_room)
-        quit("!SkipUntilCharacterStops: specified character not in current room");
+        quitprintf("!SkipUntilCharacterStops: character %s is not in current room %d (it is in room %d)",
+            game.chars[cc].scrname, displayed_room, game.chars[cc].room);
 
     // if they are not currently moving, do nothing
     if (!game.chars[cc].walking)

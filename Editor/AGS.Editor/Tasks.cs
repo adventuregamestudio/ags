@@ -517,6 +517,11 @@ namespace AGS.Editor
                 game.Settings.ScaleCharacterSpriteOffsets = false;
             }
 
+            if (xmlVersionIndex < 3060200)
+            {
+                game.Settings.UseOldVoiceClipNaming = true;
+            }
+
             System.Version editorVersion = new System.Version(AGS.Types.Version.AGS_EDITOR_VERSION);
             System.Version projectVersion = game.SavedXmlEditorVersion != null ? Types.Utilities.TryParseVersion(game.SavedXmlEditorVersion) : null;
             if (projectVersion == null || projectVersion < editorVersion)

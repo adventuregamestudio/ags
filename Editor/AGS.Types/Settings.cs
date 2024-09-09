@@ -82,6 +82,7 @@ namespace AGS.Types
         private bool _enforceNewAudio = true;
         private bool _oldCustomDlgOptsAPI = false;
         private bool _oldKeyHandling = false;
+        private bool _oldVoiceClipNaming = false;
         private bool _scaleCharacterSpriteOffsets = true;
         private int _playSoundOnScore = -1;
         private int _dialogOptionsGUI = 0;
@@ -727,6 +728,16 @@ namespace AGS.Types
             get { return _scriptCompatLevelReal; }
         }
 
+        [DisplayName("Left-to-right operator precedence")]
+        [Description("Expressions like (5 - 3 - 2) will equal 0 rather than 4")]
+        [DefaultValue(true)]
+        [Category("Backwards Compatibility")]
+        public bool LeftToRightPrecedence
+        {
+            get { return _leftToRightPrecedence; }
+            set { _leftToRightPrecedence = value; }
+        }
+
         [DisplayName("Enforce post-2.62 scripting")]
         [Description("Disable old-style AGS 2.62 script commands")]
         [DefaultValue(true)]
@@ -777,14 +788,14 @@ namespace AGS.Types
             set { _oldKeyHandling = value; }
         }
 
-        [DisplayName("Left-to-right operator precedence")]
-        [Description("Expressions like (5 - 3 - 2) will equal 0 rather than 4")]
-        [DefaultValue(true)]
+        [DisplayName("Use old-style voice clip naming rule")]
+        [Description("Define voice clip name using only the first 4 letters from a Character's script name.")]
+        [DefaultValue(false)]
         [Category("Backwards Compatibility")]
-        public bool LeftToRightPrecedence
+        public bool UseOldVoiceClipNaming
         {
-            get { return _leftToRightPrecedence; }
-            set { _leftToRightPrecedence = value; }
+            get { return _oldVoiceClipNaming; }
+            set { _oldVoiceClipNaming = value; }
         }
 
         [DisplayName("Play sound when the player gets points")]

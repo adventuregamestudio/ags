@@ -3559,3 +3559,33 @@ TEST_F(Bytecode1, Linenum02)
     EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
+TEST_F(Bytecode1, ParensAfterNew) {
+
+    char const *inpl = "\
+        managed struct Ancester             \n\
+        {                                   \n\
+            import int initialize(float);   \n\
+            int Payload1;                   \n\
+        };                                  \n\
+                                            \n\
+        managed struct Struct               \n\
+            extends Ancester                \n\
+        {                                   \n\
+            int Payload2;                   \n\
+        };                                  \n\
+                                            \n\
+        int game_start()                    \n\
+        {                                   \n\
+            Struct s = new Struct(7.0);     \n\
+            return s.Payload2 + s.Payload1; \n\
+        }                                   \n\
+        ";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    EXPECT_EQ(0u, mh.WarningsCount());
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+
+    // WriteOutput("ParensAfterNew", scrip);
+}
+

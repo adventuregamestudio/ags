@@ -1890,6 +1890,67 @@ void AGS::Parser::StripOutermostParens(SrcList &expression)
     }
 }
 
+void AGS::Parser::ParseExpression_New_InitFuncCall(Symbol argument_vartype, SrcList &expression)
+{
+    if (kKW_OpenParenthesis != expression.PeekNext())
+    {
+        Symbol const init_sym = _sym.Find("initialize");
+        if (kKW_NoSymbol == init_sym || !_sym.IsStructVartype(argument_vartype))
+            return; // nothing to do
+
+        Symbol const init_function =
+            _sym.FindStructComponent(argument_vartype, init_sym);
+        if (!_sym.IsFunction(init_function))
+            return;
+
+        UserError(
+            ReferenceMsgSym(
+                "Expected the parameter list for function '%s'",
+                init_function).c_str(),
+            _sym.GetName(init_function).c_str()
+        );
+    }
+
+    do // exactly 1 times
+    {
+        Symbol const init_sym = _sym.Find("initialize");
+        if (kKW_NoSymbol == init_sym || !_sym.IsStructVartype(argument_vartype))
+            break;
+        if (!_sym.IsStructVartype(argument_vartype))
+            break;
+        Symbol const init_function =
+            _sym.FindStructComponent(argument_vartype, init_sym);
+        if (kKW_NoSymbol == init_function)
+            break;
+        if (!_sym.IsFunction(init_function))
+            break;
+        Symbol const frv = _sym.FuncReturnVartype(init_function);
+        // 'int' is a special accomodation for functions that are declared with the
+        // 'function' keyword. This is why we check for exactly 'int' here;
+        // the compiler is not fine with any other integer vartypes
+        if (kKW_Void != frv && kKW_Int != frv)
+            UserError(
+                ReferenceMsgSym(
+                    "The return type of function '%s' must be 'void' but is '%s'",
+                    init_function).c_str(),
+                _sym.GetName(init_function).c_str(),
+                _sym.GetName(frv).c_str());
+
+        PushReg(SREG_AX);
+        // Address of the new object is expected in MAR
+        WriteCmd(SCMD_REGTOREG, SREG_AX, SREG_MAR);
+        _reg_track.SetRegister(SREG_MAR);
+        EvaluationResult eres_dummy;
+        AccessData_FunctionCall(init_function, expression, eres_dummy);
+        PopReg(SREG_AX);
+        return;
+    } while (false);
+
+    // Here when there isn't any init function: must have '()' following
+    SkipNextSymbol(expression, kKW_OpenParenthesis);
+    Expect(kKW_CloseParenthesis, expression.GetNext());
+}
+
 void AGS::Parser::ParseExpression_New(SrcList &expression, EvaluationResult &eres)
 {
     expression.StartRead();
@@ -1945,14 +2006,6 @@ void AGS::Parser::ParseExpression_New(SrcList &expression, EvaluationResult &ere
         if (!is_managed)
             UserError("Expected '[' after the non-managed type '%s'", _sym.GetName(argument_vartype).c_str());
 
-        if (kKW_OpenParenthesis == expression.PeekNext())
-        {
-            Warning("'()' after 'new' isn't implemented, is currently ignored");
-            expression.GetNext();
-            expression.SkipToCloser();
-            SkipNextSymbol(_src, kKW_CloseParenthesis);
-        }
-
         // Only do this check for new, not for new[]. 
         if (0u == _sym.GetSize(argument_vartype))
             UserError(
@@ -1988,6 +2041,9 @@ void AGS::Parser::ParseExpression_New(SrcList &expression, EvaluationResult &ere
     }
 
     _reg_track.SetRegister(SREG_AX);
+
+    if (!with_bracket_expr)
+        ParseExpression_New_InitFuncCall(argument_vartype, expression);
 
     ParseExpression_CheckUsedUp(expression);
 
@@ -2594,7 +2650,12 @@ void AGS::Parser::AccessData_FunctionCall_ProvideDefaults(int func_args_count, s
     {
         Symbol const param_default = _sym[func_symbol].FunctionD->Parameters[arg_idx].Default;
         if (kKW_NoSymbol == param_default)
-            UserError("Function call parameter #%d isn't provided and doesn't have any default value", arg_idx);
+            UserError(
+                ReferenceMsgSym(
+                    "Function call parameter #%d for function '%s' isn't provided and doesn't have any default value",
+                    func_symbol).c_str(),
+                    arg_idx,
+                    _sym.GetName(func_symbol).c_str());
         if (!_sym.IsLiteral(param_default))
             InternalError("Parameter default symbol isn't literal");
 

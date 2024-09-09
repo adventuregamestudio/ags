@@ -93,6 +93,7 @@ set(NEW_COMPILER_TEST_SOURCES
         test2/cc_internallist_test.cpp
         test2/cc_parser_test_0.cpp
         test2/cc_parser_test_1.cpp
+        test2/cc_parser_test_2.cpp
         test2/cc_parser_test_lib.cpp
         test2/cc_parser_test_lib.h
         test2/cc_scanner_test.cpp

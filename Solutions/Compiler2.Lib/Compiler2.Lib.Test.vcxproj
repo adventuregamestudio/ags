@@ -104,6 +104,7 @@
     <ClCompile Include="..\..\Compiler\test2\cc_bytecode_test_0.cpp" />
     <ClCompile Include="..\..\Compiler\test2\cc_bytecode_test_1.cpp" />
     <ClCompile Include="..\..\Compiler\test2\cc_internallist_test.cpp" />
+    <ClCompile Include="..\..\Compiler\test2\cc_parser_test_2.cpp" />
     <ClCompile Include="..\..\Compiler\test2\cc_symboltable_test.cpp" />
     <ClCompile Include="..\..\Compiler\test2\cc_bytecode_test_lib.cpp" />
     <ClCompile Include="..\..\Compiler\test2\cc_parser_test_0.cpp" />

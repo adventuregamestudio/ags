@@ -66,6 +66,9 @@
     <ClCompile Include="..\..\Common\debug\debugmanager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Compiler\test2\cc_parser_test_2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Compiler\test2\cc_bytecode_test_lib.h">

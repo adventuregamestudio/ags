@@ -55,6 +55,7 @@ public:
     inline MessagesType GetMessages() const { return _entries; }
     inline void Clear() { _entries.clear(); }
     bool HasError() const;
+    size_t WarningsCount() const;
     Entry const &GetError() const { return HasError() ? _entries.back() : _noError; }
 };
 

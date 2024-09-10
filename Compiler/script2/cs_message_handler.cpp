@@ -30,3 +30,18 @@ bool AGS::MessageHandler::HasError() const
     Severity const sev = _entries.back().Severity;
     return kSV_UserError == sev || kSV_InternalError == sev;
 }
+
+size_t AGS::MessageHandler::WarningsCount() const
+{
+    if (_entries.empty())
+        return 0u;
+    size_t count = _entries.size();
+    if (count)
+    {
+        // Last entry might be more severe than a warning
+        Severity const sev = _entries.back().Severity;
+        if (kSV_UserError == sev || kSV_InternalError == sev)
+            count--;
+    }
+    return count;
+}

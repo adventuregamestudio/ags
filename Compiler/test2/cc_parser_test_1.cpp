@@ -12,8 +12,6 @@
 //
 //=============================================================================
 #include <string>
-#include <fstream>
-#include <streambuf>
 
 #include "gtest/gtest.h"
 
@@ -29,14 +27,17 @@
 // The vars defined here are provided in each test that is in category "Compile1"
 class Compile1 : public ::testing::Test
 {
+public:
+    FlagSet const kNoOptions = 0u;
+
 protected:
-    AGS::ccCompiledScript scrip = AGS::ccCompiledScript(); // Note: calls Init();
+    ccCompiledScript scrip = AGS::ccCompiledScript(); // Note: calls Init();
+    MessageHandler mh;
 
     Compile1()
     {
-        // Initializations, will be done at the start of each test
-        ccResetOptions(0);
-        ccSetOption(SCOPT_LINENUMBERS, true);
+        // Note: Don't use 'ccSetOption()', 'ccResetOptions()' etc.
+        // googletests are often called in parallel, and these clobber each other
         clear_error();
     }
 };
@@ -56,11 +57,15 @@ TEST_F(Compile1, Sections) {
                     break;                      \n\
         }                                       \n\
         ";
-    
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
-    EXPECT_EQ(3, currentline);
-    ASSERT_STREQ("globalscript.ash", ccCurScriptName);
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_EQ(3, err_line);
+    ASSERT_STREQ("globalscript.ash", mh.GetError().Section.c_str());
 }
 
 TEST_F(Compile1, Autoptr) {
@@ -75,15 +80,19 @@ TEST_F(Compile1, Autoptr) {
             String var = 15;                    \n\
         }                                       \n\
         ";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
     
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    ASSERT_EQ(std::string::npos, msg.find("String *"));
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    ASSERT_EQ(std::string::npos, err_msg.find("String *"));
 }
 
 TEST_F(Compile1, BinaryNot)
-{    
+{
 
     // '!' can't be binary
 
@@ -93,14 +102,17 @@ TEST_F(Compile1, BinaryNot)
             int Var = 15 ! 2;                   \n\
         }                                       \n\
         ";
-    
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("inary or postfix op"));
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("inary or postfix op"));
 }
 
-TEST_F(Compile1, UnaryDivideBy) { 
+TEST_F(Compile1, UnaryDivideBy) {
 
     // '/' can't be unary
 
@@ -110,11 +122,14 @@ TEST_F(Compile1, UnaryDivideBy) {
             int Var = (/ 2);                    \n\
         }                                       \n\
         ";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
     
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("refix operator"));
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("refix operator"));
 }
 
 TEST_F(Compile1, UnaryPlus) {
@@ -128,12 +143,16 @@ TEST_F(Compile1, UnaryPlus) {
         }                                       \n\
         ";
 
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile1, FloatInt1) {  
+TEST_F(Compile1, FloatInt1) {
 
     // Can't mix float and int
 
@@ -143,11 +162,15 @@ TEST_F(Compile1, FloatInt1) {
             int Var = 4 / 2.0;                  \n\
         }                                       \n\
         ";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
     
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("'/'"));
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("'/'"));
 }
 
 TEST_F(Compile1, FloatInt2) {
@@ -160,14 +183,18 @@ TEST_F(Compile1, FloatInt2) {
             int Var = !2.0;                     \n\
         }                                       \n\
         ";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
     
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("convert"));
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("convert"));
 }
 
-TEST_F(Compile1, StringInt1) {    
+TEST_F(Compile1, StringInt1) {
 
     // Can't mix string and int
 
@@ -177,14 +204,17 @@ TEST_F(Compile1, StringInt1) {
             int Var = (\"Holzschuh\" == 2);     \n\
         }                                       \n\
         ";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
     
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("compare"));
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("compare"));
 }
 
-TEST_F(Compile1, ExpressionVoid) {  
+TEST_F(Compile1, ExpressionVoid) {
 
     // Can't mix void
 
@@ -195,14 +225,17 @@ TEST_F(Compile1, ExpressionVoid) {
             int Var = 1 + Func() * 3;           \n\
         }                                       \n\
         ";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
     
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("convert"));
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("convert"));
 }
 
-TEST_F(Compile1, ExpressionLoneUnary1) { 
+TEST_F(Compile1, ExpressionLoneUnary1) {
 
     // Unary -, nothing following
 
@@ -214,11 +247,15 @@ TEST_F(Compile1, ExpressionLoneUnary1) {
             Var = -;                            \n\
         }                                       \n\
         ";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
     
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("xpected a term"));
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("xpected a term"));
 }
 
 TEST_F(Compile1, ExpressionLoneUnary2) {
@@ -233,11 +270,14 @@ TEST_F(Compile1, ExpressionLoneUnary2) {
             Var = ~;                            \n\
         }                                       \n\
         ";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
     
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("xpected a term"));
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("xpected a term"));
 }
 
 TEST_F(Compile1, ExpressionBinaryWithoutRHS) {
@@ -252,11 +292,15 @@ TEST_F(Compile1, ExpressionBinaryWithoutRHS) {
             Var = 5 %;                          \n\
         }                                       \n\
         ";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
     
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("ollowing"));
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("ollowing"));
 }
 
 TEST_F(Compile1, LocalTypes1)
@@ -271,10 +315,14 @@ TEST_F(Compile1, LocalTypes1)
         }                       \n\
         ";
 
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("struct type"));
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("struct type"));
 }
 
 TEST_F(Compile1, LocalTypes2)
@@ -289,10 +337,14 @@ TEST_F(Compile1, LocalTypes2)
         }                       \n\
         ";
 
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("enum type"));
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("enum type"));
 }
 
 TEST_F(Compile1, StaticArrayIndex1) {
@@ -310,11 +362,14 @@ TEST_F(Compile1, StaticArrayIndex1) {
             Var[-MinusFive];            \n\
         }                               \n\
         ";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
     
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("oo high"));
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("oo high"));
 }
 
 TEST_F(Compile1, StaticArrayIndex2) {
@@ -332,14 +387,18 @@ TEST_F(Compile1, StaticArrayIndex2) {
             Var[MinusFive];             \n\
         }                               \n\
         ";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
     
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("oo low"));
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("oo low"));
 }
 
-TEST_F(Compile1, ExpressionArray1) {    
+TEST_F(Compile1, ExpressionArray1) {
 
     // Can't mix void
 
@@ -351,11 +410,15 @@ TEST_F(Compile1, ExpressionArray1) {
             Var++;                              \n\
         }                                       \n\
         ";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
     
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("convert"));
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("convert"));
 }
 
 TEST_F(Compile1, FuncTypeClash1) {
@@ -372,11 +435,14 @@ TEST_F(Compile1, FuncTypeClash1) {
             int Var = Func;                     \n\
         }                                       \n\
         ";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
     
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("'('"));
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("'('"));
 }
 
 TEST_F(Compile1, FloatOutOfBounds) {
@@ -393,14 +459,17 @@ TEST_F(Compile1, FloatOutOfBounds) {
             int Var = -77E7777;                 \n\
         }                                       \n\
         ";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
     
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("ut of bounds"));
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("ut of bounds"));
 }
 
-TEST_F(Compile1, DoWhileSemicolon) { 
+TEST_F(Compile1, DoWhileSemicolon) {
 
     // ';' missing
 
@@ -413,14 +482,18 @@ TEST_F(Compile1, DoWhileSemicolon) {
             } while (I < 10)                    \n\
         }                                       \n\
         ";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
     
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("';'"));
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("';'"));
 }
 
-TEST_F(Compile1, ExtenderExtender1) {    
+TEST_F(Compile1, ExtenderExtender1) {
 
     // No extending a struct with a compound function
 
@@ -436,14 +509,18 @@ TEST_F(Compile1, ExtenderExtender1) {
         {                                   \n\
         }                                   \n\
         ";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
     
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("'::'"));
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("'::'"));
 }
 
-TEST_F(Compile1, ExtenderExtender2) {    
+TEST_F(Compile1, ExtenderExtender2) {
 
     // No extending a struct with a compound function
 
@@ -457,10 +534,13 @@ TEST_F(Compile1, ExtenderExtender2) {
         };                                  \n\
     ";
 
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("'::'"));
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+    
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("'::'"));
 }
 
 TEST_F(Compile1, NonManagedStructParameter) {
@@ -475,14 +555,18 @@ TEST_F(Compile1, NonManagedStructParameter) {
         {                                       \n\
         }                                       \n\
         ";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
     
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("non-managed"));
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("non-managed"));
 }
 
-TEST_F(Compile1, StrangeParameterName) {   
+TEST_F(Compile1, StrangeParameterName) {
 
     // Can't use keyword as parameter name
 
@@ -491,14 +575,17 @@ TEST_F(Compile1, StrangeParameterName) {
         {                                       \n\
         }                                       \n\
         ";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
     
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("while"));
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("while"));
 }
 
-TEST_F(Compile1, DoubleParameterName) { 
+TEST_F(Compile1, DoubleParameterName) {
 
     // Can't use keyword as parameter name
 
@@ -507,11 +594,15 @@ TEST_F(Compile1, DoubleParameterName) {
         {                                       \n\
         }                                       \n\
         ";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
     
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("PI"));
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("PI"));
 }
 
 TEST_F(Compile1, FuncParamDefaults1) {
@@ -524,11 +615,15 @@ TEST_F(Compile1, FuncParamDefaults1) {
         {                                       \n\
         }                                       \n\
         ";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
     
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("#2"));
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("#2"));
 }
 
 TEST_F(Compile1, FuncParamDefaults2) {
@@ -538,11 +633,14 @@ TEST_F(Compile1, FuncParamDefaults2) {
     char const *inpl = "\
         import void Func(int i = 5, float j);   \n\
         ";
-    
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("#2"));
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("#2"));
 }
 
 TEST_F(Compile1, FuncParamDefaults3) {
@@ -555,14 +653,18 @@ TEST_F(Compile1, FuncParamDefaults3) {
         {                                       \n\
         }                                       \n\
         ";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
     
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("#2"));
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("#2"));
 }
 
-TEST_F(Compile1, FuncParamDefaults4) {   
+TEST_F(Compile1, FuncParamDefaults4) {
 
     // Can't give a parameter differing defaults
 
@@ -572,14 +674,17 @@ TEST_F(Compile1, FuncParamDefaults4) {
         {                                       \n\
         }                                       \n\
         ";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
     
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("#1"));
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("#1"));
 }
 
-TEST_F(Compile1, FuncParamNumber1) {  
+TEST_F(Compile1, FuncParamNumber1) {
 
     // Differing number of parameters
 
@@ -589,14 +694,18 @@ TEST_F(Compile1, FuncParamNumber1) {
         {                                       \n\
         }                                       \n\
         ";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
     
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("parameters"));
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("parameters"));
 }
 
-TEST_F(Compile1, FuncParamNumber2) {  
+TEST_F(Compile1, FuncParamNumber2) {
 
     // Instantiation has number of parameters than is different from declaration
 
@@ -611,13 +720,17 @@ TEST_F(Compile1, FuncParamNumber2) {
         }                                                   \n\
         ";
 
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
     
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile1, FuncVariadicCollision) {    
+TEST_F(Compile1, FuncVariadicCollision) {
 
     // Variadic / non-variadic
 
@@ -627,14 +740,17 @@ TEST_F(Compile1, FuncVariadicCollision) {
         {                                       \n\
         }                                       \n\
         ";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
     
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("additional"));
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("additional"));
 }
 
-TEST_F(Compile1, FuncReturnVartypes) {   
+TEST_F(Compile1, FuncReturnVartypes) {
 
     // Return vartypes
 
@@ -644,14 +760,18 @@ TEST_F(Compile1, FuncReturnVartypes) {
         {                                       \n\
         }                                       \n\
         ";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
     
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("eturn"));
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("eturn"));
 }
 
-TEST_F(Compile1, FuncReturnStruct1) {  
+TEST_F(Compile1, FuncReturnStruct1) {
 
     // Return vartype must be managed when it is a struct
 
@@ -661,14 +781,18 @@ TEST_F(Compile1, FuncReturnStruct1) {
         {                                       \n\
         }                                       \n\
         ";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
     
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("managed"));
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("managed"));
 }
 
-TEST_F(Compile1, FuncReturnStruct2) { 
+TEST_F(Compile1, FuncReturnStruct2) {
 
     // Compiler will imply the '*'
     // but should be slightly unhappy about the missing return statement
@@ -681,8 +805,8 @@ TEST_F(Compile1, FuncReturnStruct2) {
         ";
 
     MessageHandler mh;
-    int compileResult = cc_compile(inpl, 0u, scrip, mh);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : mh.GetError().Message.c_str());
+    int compile_result = cc_compile(inpl, 0u, scrip, mh);
+    ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : mh.GetError().Message.c_str());
     ASSERT_LE(1u, mh.GetMessages().size());
     EXPECT_NE(std::string::npos, mh.GetMessages().at(0).Message.find("return"));
 }
@@ -697,10 +821,10 @@ TEST_F(Compile1, FuncReturnStruct3) {
         {                                       \n\
         }                                       \n\
         ";
-    
+
     MessageHandler mh;
-    int compileResult = cc_compile(inpl, 0u, scrip, mh);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : mh.GetError().Message.c_str());
+    int compile_result = cc_compile(inpl, 0u, scrip, mh);
+    ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : mh.GetError().Message.c_str());
     ASSERT_LE(1u, mh.GetMessages().size());
     EXPECT_NE(std::string::npos, mh.GetMessages().at(0).Message.find("return"));
 }
@@ -721,10 +845,10 @@ TEST_F(Compile1, FuncReturn1) {
             int I = 0;          \n\
         }                       \n\
         ";
-    
+
     MessageHandler mh;
-    int compileResult = cc_compile(inpl, 0u, scrip, mh);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : mh.GetError().Message.c_str());
+    int compile_result = cc_compile(inpl, 0u, scrip, mh);
+    ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : mh.GetError().Message.c_str());
     ASSERT_LE(1u, mh.GetMessages().size());
     EXPECT_NE(std::string::npos, mh.GetMessages().at(0).Message.find("Code execution"));
 }
@@ -748,10 +872,10 @@ TEST_F(Compile1, FuncReturn2) {
                 I = 0;          \n\
         }                       \n\
         ";
-    
+
     MessageHandler mh;
-    int compileResult = cc_compile(inpl, 0u, scrip, mh);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : mh.GetError().Message.c_str());
+    int compile_result = cc_compile(inpl, 0u, scrip, mh);
+    ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : mh.GetError().Message.c_str());
     ASSERT_LE(1u, mh.GetMessages().size());
     EXPECT_NE(std::string::npos, mh.GetMessages().at(0).Message.find("Code execution"));
 }
@@ -768,11 +892,15 @@ TEST_F(Compile1, FuncDouble) {
         {                                       \n\
         }                                       \n\
         ";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
     
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("with body"));
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("with body"));
 }
 
 TEST_F(Compile1, FuncProtected) {
@@ -784,11 +912,15 @@ TEST_F(Compile1, FuncProtected) {
         {                                       \n\
         }                                       \n\
         ";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
     
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("protected"));
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("protected"));
 }
 
 TEST_F(Compile1, FuncNameClash1) {
@@ -801,11 +933,14 @@ TEST_F(Compile1, FuncNameClash1) {
         {                                       \n\
         }                                       \n\
         ";
-    
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("declared as a function"));
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("declared as a function"));
 }
 
 TEST_F(Compile1, FuncDeclWrong1) {
@@ -833,10 +968,14 @@ TEST_F(Compile1, FuncDeclWrong1) {
     }                               \n\
    ";
 
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     // Offer some leeway in the error message
-    std::string res(last_seen_cc_error());
+    std::string res(err_msg);
     EXPECT_NE(std::string::npos, res.find("parameter"));
 }
 
@@ -866,10 +1005,14 @@ TEST_F(Compile1, FuncDeclWrong2) {
     int Func(Struct1 *S1, Struct2 *S2);  \n\
    ";
 
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     // Offer some leeway in the error message
-    std::string res(last_seen_cc_error());
+    std::string res(err_msg);
     EXPECT_NE(std::string::npos, res.find("parameter"));
 }
 
@@ -895,8 +1038,12 @@ TEST_F(Compile1, FuncDeclReturnVartype) {
     }                                                               \n\
    ";
 
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
 TEST_F(Compile1, FuncHeader1) {
@@ -910,9 +1057,13 @@ TEST_F(Compile1, FuncHeader1) {
         }                                      \n\
         ";
 
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
-    std::string err = last_seen_cc_error();
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    std::string err = err_msg;
     EXPECT_NE(std::string::npos, err.find("'15'"));
 }
 
@@ -927,9 +1078,13 @@ TEST_F(Compile1, FuncHeader2) {
         }                                      \n\
         ";
 
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
-    std::string err = last_seen_cc_error();
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    std::string err = err_msg;
     EXPECT_NE(std::string::npos, err.find("loat expression"));
 }
 
@@ -948,9 +1103,13 @@ TEST_F(Compile1, FuncHeader3) {
         }                                       \n\
         ";
 
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
-    std::string err = last_seen_cc_error();
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    std::string err = err_msg;
     EXPECT_NE(std::string::npos, err.find("rameter default"));
 }
 
@@ -967,9 +1126,13 @@ TEST_F(Compile1, FuncExtenderHeaderFault1a) {
         }                                      \n\
         ";
 
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
-    std::string err = last_seen_cc_error();
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    std::string err = err_msg;
     EXPECT_NE(std::string::npos, err.find("Holzschuh"));
 }
 
@@ -988,9 +1151,13 @@ TEST_F(Compile1, FuncExtenderHeaderFault1b) {
         }                                      \n\
         ";
 
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
-    std::string err = last_seen_cc_error();
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    std::string err = err_msg;
     EXPECT_NE(std::string::npos, err.find("'Of'"));
 }
 
@@ -1007,9 +1174,13 @@ TEST_F(Compile1, FuncExtenderHeaderFault1c) {
         }                                      \n\
         ";
 
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
-    std::string err = last_seen_cc_error();
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    std::string err = err_msg;
     EXPECT_NE(std::string::npos, err.find("tatic extender function"));
 }
 
@@ -1027,9 +1198,13 @@ TEST_F(Compile1, FuncExtenderHeaderFault2) {
         ";
 
 
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
-    std::string err = last_seen_cc_error();
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    std::string err = err_msg;
     EXPECT_NE(std::string::npos, err.find("struct"));
 }
 
@@ -1053,9 +1228,13 @@ TEST_F(Compile1, FuncDoubleExtender) {
         }                                       \n\
         ";
 
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
-    std::string err = last_seen_cc_error();
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    std::string err = err_msg;
     EXPECT_NE(std::string::npos, err.find("defined"));
 }
 
@@ -1072,9 +1251,13 @@ TEST_F(Compile1, FuncDoubleNonExtender) {
         }                                      \n\
         ";
 
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
-    std::string err = last_seen_cc_error();
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    std::string err = err_msg;
     EXPECT_NE(std::string::npos, err.find("defined"));
 }
 
@@ -1093,9 +1276,13 @@ TEST_F(Compile1, FuncUndeclaredStruct1) {
         }                                           \n\
         ";
 
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
-    std::string message = last_seen_cc_error();
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    std::string message = err_msg;
     EXPECT_NE(std::string::npos, message.find("Func"));
 }
 
@@ -1114,8 +1301,12 @@ TEST_F(Compile1, FuncUndeclaredStruct2) {
         };                                          \n\
         ";
 
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
 TEST_F(Compile1, FuncCall_MultidimensionalArray) {
@@ -1133,9 +1324,13 @@ TEST_F(Compile1, FuncCall_MultidimensionalArray) {
         }                           \n\
         ";
 
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
 TEST_F(Compile1, TypeEqComponent) {
@@ -1152,10 +1347,14 @@ TEST_F(Compile1, TypeEqComponent) {
             readonly import attribute int Room; \n\
         };                                      \n\
         ";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
     
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
 TEST_F(Compile1, ExtenderFuncClash) {
@@ -1169,10 +1368,14 @@ TEST_F(Compile1, ExtenderFuncClash) {
         import int Abs(static Maths, int value);		\n\
         import int Max(static Maths, int a, int b);		\n\
         ";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
     
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
 TEST_F(Compile1, MissingSemicolonAfterStruct1) {
@@ -1192,13 +1395,17 @@ TEST_F(Compile1, MissingSemicolonAfterStruct1) {
         }                                       \n\
         ";
 
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("orget a"));
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("orget a"));
 }
 
-TEST_F(Compile1, NewBuiltin1) {    
+TEST_F(Compile1, NewBuiltin1) {
 
     // Cannot do "new X;" when X is a builtin type
 
@@ -1218,14 +1425,17 @@ TEST_F(Compile1, NewBuiltin1) {
             this.Glyph = new DynamicSprite;             \n\
         }                                               \n\
         ";
-   
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("built-in"));
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+    
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("built-in"));
 }
 
-TEST_F(Compile1, NewArrayBuiltin1) { 
+TEST_F(Compile1, NewArrayBuiltin1) {
 
     // Can do "new X[77];" when X is a builtin type because this will only
     // allocate a dynarray of pointers, not of X chunks
@@ -1246,13 +1456,17 @@ TEST_F(Compile1, NewArrayBuiltin1) {
             this.Glyphs = new DynamicSprite[77];        \n\
         }                                               \n\
         ";
- 
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile1, MissingFunc) {   
+TEST_F(Compile1, MissingFunc) {
 
     // Must either import or define a function with body if you want to call it.
     // Also, check that the section is set correctly.
@@ -1266,14 +1480,17 @@ TEST_F(Compile1, MissingFunc) {
                                                         \n\
         int GhostFunc(float f = 0.0);                   \n\
         ";
-    
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_STREQ("HauntedHouse", ccCurScriptName);
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_STREQ("HauntedHouse", mh.GetError().Section.c_str());
 }
 
-TEST_F(Compile1, FixupMismatch) {  
+TEST_F(Compile1, FixupMismatch) {
 
     // Code cells that have an "import" fixup must point to the corresponding imports.
     // (This used to fail in combination with linenumbers turned on)
@@ -1301,9 +1518,13 @@ TEST_F(Compile1, FixupMismatch) {
 
     ccSetOption(SCOPT_LINENUMBERS, true);
 
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // Sanity check for import fixups: The corresponding Bytecode must
     // point into the imports[] array, and the corresponding slot must
@@ -1340,10 +1561,14 @@ TEST_F(Compile1, ComponentOfNonStruct1) {
         }                           \n\
         ";
 
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("'.'"));
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("'.'"));
 }
 
 TEST_F(Compile1, ComponentOfNonStruct2) {
@@ -1359,10 +1584,13 @@ TEST_F(Compile1, ComponentOfNonStruct2) {
         }               \n\
         ";
 
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("'.'"));
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+    
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("'.'"));
 }
 
 TEST_F(Compile1, EmptySection) {
@@ -1374,9 +1602,11 @@ TEST_F(Compile1, EmptySection) {
 \"__NEWSCRIPTSTART_BAR\"      \n\
         ";
 
-    int compile_result = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
 TEST_F(Compile1, AutoptrDisplay) {
@@ -1392,10 +1622,13 @@ TEST_F(Compile1, AutoptrDisplay) {
         }                                   \n\
         ";
 
-    int compile_result = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
-    ASSERT_EQ(std::string::npos, msg.find("'String '"));
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    ASSERT_EQ(std::string::npos, err_msg.find("'String '"));
 }
 
 TEST_F(Compile1, ReadonlyObjectWritableAttribute)
@@ -1416,9 +1649,12 @@ TEST_F(Compile1, ReadonlyObjectWritableAttribute)
         }                                               \n\
         ";
 
-    int compile_result = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
 TEST_F(Compile1, ImportAutoptr1) {
@@ -1439,9 +1675,12 @@ TEST_F(Compile1, ImportAutoptr1) {
         }                                   \n\
         ";
 
-    int compile_result = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
 TEST_F(Compile1, ImportAutoptr2) {
@@ -1458,9 +1697,12 @@ TEST_F(Compile1, ImportAutoptr2) {
         String foo;                         \n\
         ";
 
-    int compile_result = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
 TEST_F(Compile1, DynptrDynarrayMismatch1)
@@ -1479,10 +1721,13 @@ TEST_F(Compile1, DynptrDynarrayMismatch1)
         }                                   \n\
         ";
 
-    int compile_result = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("assign"));
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("assign"));
 }
 
 TEST_F(Compile1, DynptrDynarrayMismatch1a)
@@ -1502,10 +1747,13 @@ TEST_F(Compile1, DynptrDynarrayMismatch1a)
         }                                   \n\
         ";
 
-    int compile_result = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("assign"));
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("assign"));
 }
 
 TEST_F(Compile1, DynptrDynarrayMismatch2)
@@ -1524,10 +1772,13 @@ TEST_F(Compile1, DynptrDynarrayMismatch2)
         }                                   \n\
         ";
 
-    int compile_result = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("assign"));
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("assign"));
 }
 
 TEST_F(Compile1, ZeroMemoryAllocation1)
@@ -1548,9 +1799,12 @@ TEST_F(Compile1, ZeroMemoryAllocation1)
         }                                   \n\
         ";
 
-    int compile_result = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
 TEST_F(Compile1, ZeroMemoryAllocation2)
@@ -1569,13 +1823,16 @@ TEST_F(Compile1, ZeroMemoryAllocation2)
         }                                   \n\
         ";
 
-    int compile_result = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("'Strct'"));
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("'Strct'"));
 }
 
-TEST_F(Compile1,ForwardStructManaged)
+TEST_F(Compile1, ForwardStructManaged)
 {
     // Forward-declared structs must be 'managed', so the
     // actual declaration must have the 'managed' keyword
@@ -1588,10 +1845,34 @@ TEST_F(Compile1,ForwardStructManaged)
         } obj;                              \n\
         ";
 
-    int compile_result = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("'managed'"));
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("'managed'"));
+}
+
+TEST_F(Compile1, ForwardStructBuiltin1)
+{
+    // Either the forward decl and the actual decl must both be 'builtin'
+    // or both be non-'builtin'.
+
+    char const *inpl = "\
+        managed struct Object;              \n\
+        managed builtin struct Object       \n\
+        {                                   \n\
+        };                                  \n\
+        ";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("'builtin'"));
 }
 
 TEST_F(Compile1, ForwardStructBuiltin)
@@ -1599,59 +1880,62 @@ TEST_F(Compile1, ForwardStructBuiltin)
     // Either the forward decl and the actual decl must both be 'builtin'
     // or both be non-'builtin'.
 
-    char const *inpl1 = "\
-        managed struct Object;              \n\
-        managed builtin struct Object       \n\
-        {                                   \n\
-        };                                  \n\
-        ";
-
-    int compile_result1 = cc_compile(inpl1, scrip);
-    std::string msg1 = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compile_result1 >= 0) ? "Ok" : msg1.c_str());
-    EXPECT_NE(std::string::npos, msg1.find("'builtin'"));
-
-    char const *inpl2 = "\
+    char const *inpl = "\
         builtin managed struct Object;      \n\
         managed struct Object               \n\
         {                                   \n\
         };                                  \n\
         ";
 
-    int compile_result2 = cc_compile(inpl2, scrip);
-    std::string msg2 = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compile_result2 >= 0) ? "Ok" : msg2.c_str());
-    EXPECT_NE(std::string::npos, msg2.find("'builtin'"));
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("'builtin'"));
 }
 
-TEST_F(Compile1, ForwardStructAutoptr)
+TEST_F(Compile1, ForwardStructAutoptr1)
 {
     // Either the forward decl and the actual decl must both be 'autoptr'
     // or both be non-'autoptr'.
 
-    char const *inpl1 = "\
+    char const *inpl = "\
         managed struct Object;              \n\
         managed builtin struct Object       \n\
         {                                   \n\
         };                                  \n\
         ";
 
-    int compile_result1 = cc_compile(inpl1, scrip);
-    std::string msg1 = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compile_result1 >= 0) ? "Ok" : msg1.c_str());
-    EXPECT_NE(std::string::npos, msg1.find("'builtin'"));
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
 
-    char const *inpl2 = "\
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("'builtin'"));
+}
+
+TEST_F(Compile1, ForwardStructAutoptr2)
+{
+    // Either the forward decl and the actual decl must both be 'autoptr'
+    // or both be non-'autoptr'.
+
+    char const *inpl = "\
         builtin managed struct Object;      \n\
         managed struct Object               \n\
         {                                   \n\
         };                                  \n\
         ";
 
-    int compile_result2 = cc_compile(inpl2, scrip);
-    std::string msg2 = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compile_result2 >= 0) ? "Ok" : msg2.c_str());
-    EXPECT_NE(std::string::npos, msg2.find("'builtin'"));
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("'builtin'"));
 }
 
 TEST_F(Compile1, FuncThenAssign)
@@ -1659,7 +1943,7 @@ TEST_F(Compile1, FuncThenAssign)
     // A function symbol in front of an assignment
     // The compiler should complain about a missing '('  
 
-    char const *inpl2 = "\
+    char const *inpl = "\
         import int GetTextHeight                    \n\
             (const string text, int, int width);    \n\
                                                     \n\
@@ -1677,10 +1961,13 @@ TEST_F(Compile1, FuncThenAssign)
         }                                           \n\
         ";
 
-    int compile_result2 = cc_compile(inpl2, scrip);
-    std::string msg2 = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compile_result2 >= 0) ? "Ok" : msg2.c_str());
-    EXPECT_NE(std::string::npos, msg2.find("'player'"));
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("'player'"));
 }
 
 TEST_F(Compile1, BuiltinForbidden)
@@ -1694,10 +1981,13 @@ TEST_F(Compile1, BuiltinForbidden)
         }                           \n\
         ";
 
-    int compile_result = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("__Builtin_"));
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("__Builtin_"));
 }
 
 TEST_F(Compile1, ReadonlyParameters1) {
@@ -1718,11 +2008,14 @@ TEST_F(Compile1, ReadonlyParameters1) {
         }                                   \n\
         ";
 
-    int compile_result = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
-    EXPECT_EQ(std::string::npos, msg.find("parameter list"));
-    EXPECT_NE(std::string::npos, msg.find("readonly"));
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_EQ(std::string::npos, err_msg.find("parameter list"));
+    EXPECT_NE(std::string::npos, err_msg.find("readonly"));
 }
 
 TEST_F(Compile1, ReadonlyParameters2) {
@@ -1746,426 +2039,12 @@ TEST_F(Compile1, ReadonlyParameters2) {
         }                                   \n\
         ";
 
-    int compile_result = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
-}
-
-TEST_F(Compile1, BinaryCompileTimeEval1) {
-
-    // Checks binary compile time evaluations for integers.
-
-    char const *inpl = "\
-        int main()                              \n\
-        {                                       \n\
-            return (4 + 3) / 0;                 \n\
-        }                                       \n\
-        ";
-
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("'7 /"));
-
-    inpl = "\
-        int main()                              \n\
-        {                                       \n\
-            return (1073741824 + 1073741824);   \n\
-        }                                       \n\
-        ";
-
-    compileResult = cc_compile(inpl, scrip);
-    msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("Overflow"));
-
-    inpl = "\
-        int main()                              \n\
-        {                                       \n\
-            return (1073741824 + 1073741823);   \n\
-        }                                       \n\
-        ";
-
-    compileResult = cc_compile(inpl, scrip);
-    msg = last_seen_cc_error();
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-}
-
-TEST_F(Compile1, CTEvalIntPlus) {
-
-
-    char const *inpl = "\
-        int main()                              \n\
-        {                                       \n\
-            return (4 + 3) / 0;                 \n\
-        }                                       \n\
-        ";
-
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok1", (compileResult >= 0) ? "Ok1" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("'7 /"));
-
-    inpl = "\
-        int main()                              \n\
-        {                                       \n\
-            return (1073741824 + 1073741824);   \n\
-        }                                       \n\
-        ";
-
-    compileResult = cc_compile(inpl, scrip);
-    msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok2", (compileResult >= 0) ? "Ok2" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("Overflow"));
-
-    inpl = "\
-        int main()                              \n\
-        {                                       \n\
-            return (-1073741824 + -1073741823); \n\
-        }                                       \n\
-        ";
-
-    compileResult = cc_compile(inpl, scrip);
-    msg = last_seen_cc_error();
-    ASSERT_STREQ("Ok3", (compileResult >= 0) ? "Ok3" : msg.c_str());
-}
-
-TEST_F(Compile1, CTEvalIntMinus) {
-
-
-    char const *inpl = "\
-        int main()                              \n\
-        {                                       \n\
-            return (83 - 95) / 0;               \n\
-        }                                       \n\
-        ";
-
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok1", (compileResult >= 0) ? "Ok1" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("'-12 /"));
-
-    inpl = "\
-        int main()                              \n\
-        {                                       \n\
-            return (-1073741824 - 1073741824);  \n\
-        }                                       \n\
-        ";
-
-    compileResult = cc_compile(inpl, scrip);
-    msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok2", (compileResult >= 0) ? "Ok2" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("Overflow"));
-
-    inpl = "\
-        int main()                              \n\
-        {                                       \n\
-            return (-1073741824 - 1073741823);  \n\
-        }                                       \n\
-        ";
-
-    compileResult = cc_compile(inpl, scrip);
-    msg = last_seen_cc_error();
-    ASSERT_STREQ("Ok3", (compileResult >= 0) ? "Ok3" : msg.c_str());
-}
-
-TEST_F(Compile1, CTEvalIntMultiply) {
-
-
-    char const *inpl = "\
-        int main()                              \n\
-        {                                       \n\
-            return (33 * -39) / 0;              \n\
-        }                                       \n\
-        ";
-
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok1", (compileResult >= 0) ? "Ok1" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("'-1287 /"));
-
-    inpl = "\
-        int main()                              \n\
-        {                                       \n\
-            return (46341 * 46341);             \n\
-        }                                       \n\
-        ";
-
-    compileResult = cc_compile(inpl, scrip);
-    msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok2", (compileResult >= 0) ? "Ok2" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("Overflow"));
-
-    inpl = "\
-        int main()                              \n\
-        {                                       \n\
-            return (46341 * 46340);             \n\
-        }                                       \n\
-        ";
-
-    compileResult = cc_compile(inpl, scrip);
-    msg = last_seen_cc_error();
-    ASSERT_STREQ("Ok3", (compileResult >= 0) ? "Ok3" : msg.c_str());
-}
-
-TEST_F(Compile1, CTEvalIntDivide) {
-
-
-    char const *inpl = "\
-        int main()                              \n\
-        {                                       \n\
-            return (52 / 8) / 0;                \n\
-        }                                       \n\
-        ";
-
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok1", (compileResult >= 0) ? "Ok1" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("'6 /"));
-}
-
-TEST_F(Compile1, CTEvalIntModulo) {
-
-
-    char const *inpl = "\
-        int main()                              \n\
-        {                                       \n\
-            return (95 % 17) / 0;               \n\
-        }                                       \n\
-        ";
-
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok1", (compileResult >= 0) ? "Ok1" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("'10 /"));
-
-    inpl = "\
-        int main()                              \n\
-        {                                       \n\
-            return (46341 % -0);                \n\
-        }                                       \n\
-        ";
-
-    compileResult = cc_compile(inpl, scrip);
-    msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok2", (compileResult >= 0) ? "Ok2" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("Modulo zero"));
-}
-
-TEST_F(Compile1, CTEvalIntShiftLeft) {
-
-
-    char const *inpl = "\
-        int main()                              \n\
-        {                                       \n\
-            return (60 << 3) / 0;               \n\
-        }                                       \n\
-        ";
-
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok1", (compileResult >= 0) ? "Ok1" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("'480 /"));
-
-    inpl = "\
-        int main()                              \n\
-        {                                       \n\
-            return 536870912 << 2;              \n\
-        }                                       \n\
-        ";
-
-    compileResult = cc_compile(inpl, scrip);
-    msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok2", (compileResult >= 0) ? "Ok2" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("Overflow"));
-
-    inpl = "\
-        int main()                              \n\
-        {                                       \n\
-            return (-1073 << 4) / 0; \n\
-        }                                       \n\
-        ";
-
-    compileResult = cc_compile(inpl, scrip);
-    msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok3", (compileResult >= 0) ? "Ok3" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("'-17168 /"));
-    
-    inpl = "\
-        int main()                              \n\
-        {                                       \n\
-            return (1073 << 0) / 0; \n\
-        }                                       \n\
-        ";
-
-    compileResult = cc_compile(inpl, scrip);
-    msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok4", (compileResult >= 0) ? "Ok4" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("'1073 /"));
-
-    inpl = "\
-        int main()                              \n\
-        {                                       \n\
-            return 1073 << -5;                  \n\
-        }                                       \n\
-        ";
-
-    compileResult = cc_compile(inpl, scrip);
-    msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok5", (compileResult >= 0) ? "Ok5" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("egative shift"));
-}
-
-TEST_F(Compile1, CTEvalIntShiftRight) {
-
-
-    char const *inpl = "\
-        int main()                              \n\
-        {                                       \n\
-            return (60 >> 3) / 0;               \n\
-        }                                       \n\
-        ";
-
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok1", (compileResult >= 0) ? "Ok1" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("'7 /"));
-
-    inpl = "\
-        int main()                              \n\
-        {                                       \n\
-            return (-10730 >> 4) / 0; \n\
-        }                                       \n\
-        ";
-
-    compileResult = cc_compile(inpl, scrip);
-    msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok3", (compileResult >= 0) ? "Ok3" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("'-671 /"));
-    
-    inpl = "\
-        int main()                              \n\
-        {                                       \n\
-            return (1073 >> 0) / 0; \n\
-        }                                       \n\
-        ";
-
-    compileResult = cc_compile(inpl, scrip);
-    msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok4", (compileResult >= 0) ? "Ok4" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("'1073 /"));
-
-    inpl = "\
-        int main()                              \n\
-        {                                       \n\
-            return 1073 >> -5;                  \n\
-        }                                       \n\
-        ";
-
-    compileResult = cc_compile(inpl, scrip);
-    msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok5", (compileResult >= 0) ? "Ok5" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("egative shift"));
-}
-
-TEST_F(Compile1, CTEvalIntComparisons) {
-
-    // Will fail as soon as any one of those comparisons go awry
-
-    char const *inpl = "\
-        int main()                          \n\
-        {                                   \n\
-            return                          \n\
-                (          (7 == 77)        \n\
-                + 2 *      (7 >= 77)        \n\
-                + 4 *      (7 >  77)        \n\
-                + 8 *      (7 <= 77)        \n\
-                + 16 *     (7 <  77)        \n\
-                + 32 *     (7 != 77)        \n\
-                + 64 *     (77 == 7)        \n\
-                + 128 *    (77 >= 7)        \n\
-                + 256 *    (77 >  7)        \n\
-                + 512 *    (77 <= 7)        \n\
-                + 1024 *   (77 <  7)        \n\
-                + 2048 *   (77 != 7)        \n\
-                + 4096 *   (77 == 77)       \n\
-                + 81928 *  (77 >= 77)       \n\
-                + 16384 *  (77 >  77)       \n\
-                + 32768 *  (77 <= 77)       \n\
-                + 65536 *  (77 <  77)       \n\
-                + 131072 * (77 != 77)) / 0; \n\
-        }                                   \n\
-        ";
-
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok1", (compileResult >= 0) ? "Ok1" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("'121280 /"));
-}
-
-TEST_F(Compile1, CTEvalBitOps) {
-
-    char const *inpl = "\
-        int main()                        \n\
-        {                                 \n\
-            return                        \n\
-                (          (0 & 0)        \n\
-                + 2 *      (0 | 0)        \n\
-                + 4 *      (0 ^ 0)        \n\
-                + 8 *      (0 & 3)        \n\
-                + 16 *     (0 | 3)        \n\
-                + 32 *     (0 ^ 3)        \n\
-                + 64 *     (3 & 0)        \n\
-                + 128 *    (3 | 0)        \n\
-                + 256 *    (3 ^ 0)        \n\
-                + 512 *    (3 & 3)        \n\
-                + 1024 *   (3 | 3)        \n\
-                + 2048 *   (3 ^ 3)) / 0;  \n\
-        }                                 \n\
-        ";
-
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok1", (compileResult >= 0) ? "Ok1" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("'5904 /"));
-}
-
-TEST_F(Compile1, CTEvalBitNeg) {
-
-    char const *inpl = "\
-        int main()                        \n\
-        {                                 \n\
-            return (~660753869) / 0;      \n\
-        }                                 \n\
-        ";
-
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok1", (compileResult >= 0) ? "Ok1" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("'-660753870 /"));
-}
-
-TEST_F(Compile1, CTEvalLogicalOps) {
-
-    char const *inpl = "\
-        int main()                              \n\
-        {                                       \n\
-            return (  100000000 *   (!!7) +     \n\
-                      10000000 *    (! 7) +     \n\
-                      1000000 *     (! 0) +     \n\
-                      100000 *      (5 || 7) +  \n\
-                      10000 *       (7 || 0) +  \n\
-                      1000 *        (0 || 7) +  \n\
-                      100 *         (5 && 7) +  \n\
-                      10 *          (7 && 0) +  \n\
-                                    (0 && 7) ) / 0;   \n\
-        }                                       \n\
-        ";
-
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok1", (compileResult >= 0) ? "Ok1" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("'101577700 /"));
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
 TEST_F(Compile1, EnumConstantExpressions)
@@ -2185,10 +2064,13 @@ TEST_F(Compile1, EnumConstantExpressions)
         }                       \n\
         ";
 
-    int compile_result = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("'4 /"));
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("'4 /"));
 }
 
 TEST_F(Compile1, IncrementReadonly)
@@ -2203,10 +2085,13 @@ TEST_F(Compile1, IncrementReadonly)
         }                       \n\
         ";
 
-    int compile_result = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("eadonly"));
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+  
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("eadonly"));
 }
 
 TEST_F(Compile1, SpuriousExpression)
@@ -2221,131 +2106,11 @@ TEST_F(Compile1, SpuriousExpression)
 
     MessageHandler mh;
     int compile_result = cc_compile(inpl, 0, scrip, mh);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
-    ASSERT_EQ(1, mh.GetMessages().size());
-}
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
 
-TEST_F(Compile1, CompileTimeConstant1)
-{
-    char const *inpl = "\
-        const int CI = 4711;                    \n\
-        const float Euler = 2.718281828459045;  \n\
-        const float AroundOne = Euler / Euler;  \n\
-        float Array[CI];                        \n\
-        ";
-
-    int compile_result = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
-}
-
-TEST_F(Compile1, CompileTimeConstant2)
-{
-    char const *inpl = "\
-        int main() {                            \n\
-            while (1)                           \n\
-            {                                   \n\
-                const int CI2 = 4712;           \n\
-            }                                   \n\
-            float CI2;                          \n\
-        }                                       \n\
-        ";
-
-    int compile_result = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
-}
-
-TEST_F(Compile1, CompileTimeConstant3)
-{
-    char const *inpl = "\
-        struct Str                          \n\
-        {                                   \n\
-            int stuff;                      \n\
-            const int foo = 17;             \n\
-            static const int foo_squared =  \n\
-                Str.foo * Str.foo;          \n\
-        } s;                                \n\
-                                            \n\
-        int main() {                        \n\
-            return s.foo;                   \n\
-        }                                   \n\
-        ";
-
-    int compile_result = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
-}
-
-TEST_F(Compile1, CompileTimeConstant4)
-{
-    char const *inpl = "\
-        import const int C = 42; \n\
-        ";
-
-    int compile_result = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("import"));
-
-    char const *inpl2 = "\
-        readonly const int C = 42; \n\
-        ";
-
-    compile_result = cc_compile(inpl2, scrip);
-    msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("readonly"));
-}
-
-TEST_F(Compile1, CompileTimeConstant5)
-{
-    // Cannot define a compile-time constant of type 'short'
-
-    char const *inpl = "\
-        const short S = 42; \n\
-        ";
-
-    int compile_result = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("'short'"));
-
-    // Cannot define a compile-time constant array
-    char const *inpl2 = "\
-        const int C[]; \n\
-        ";
-
-    compile_result = cc_compile(inpl2, scrip);
-    msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("array"));
-
-    // Misplaced '[]'
-    char const *inpl3 = "\
-        const int[] C; \n\
-        ";
-
-    compile_result = cc_compile(inpl3, scrip);
-    msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("'['"));
-}
-
-TEST_F(Compile1, CompileTimeConstant6)
-{
-    char const *inpl = "\
-            const float pi = 3.14;  \n\
-        int main() {                \n\
-            float pi = 3.141;       \n\
-        }                           \n\
-        ";
-
-    int compile_result = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("in use"));
+    EXPECT_EQ(1u, mh.WarningsCount());
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
 TEST_F(Compile1, StaticThisExtender)
@@ -2362,10 +2127,13 @@ TEST_F(Compile1, StaticThisExtender)
         import static int Foo(this Struct *);   \n\
         ";
 
-    int compile_result = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("'static'"));
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("'static'"));
 }
 
 TEST_F(Compile1, ReachabilityAndSwitch1)
@@ -2388,11 +2156,12 @@ TEST_F(Compile1, ReachabilityAndSwitch1)
         }                   \n\
         ";
 
-    AGS::MessageHandler mh;
     int const compile_result = cc_compile(inpl, 0, scrip, mh);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
-    ASSERT_EQ(0, mh.GetMessages().size());
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
 TEST_F(Compile1, IfClauseFloat)
@@ -2412,10 +2181,13 @@ TEST_F(Compile1, IfClauseFloat)
         }                                   \n\
         ";
 
-    int compile_result = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("'float'"));
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("'float'"));
 }
 
 TEST_F(Compile1, SideEffectExpression1)
@@ -2518,10 +2290,13 @@ TEST_F(Compile1, DisallowStaticVariables)
         };                  \n\
         ";
 
-    int compile_result = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("tatic "));
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("tatic "));
 
 }
 
@@ -2536,10 +2311,13 @@ TEST_F(Compile1, LongMin01) {
         }                                       \n\
         ";
 
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("ut of bounds"));
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("ut of bounds"));
 }
 
 TEST_F(Compile1, LongMin02) {
@@ -2553,10 +2331,13 @@ TEST_F(Compile1, LongMin02) {
         }                                       \n\
         ";
 
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("ut of bounds"));
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("ut of bounds"));
 }
 
 TEST_F(Compile1, LongMin03) {
@@ -2570,9 +2351,12 @@ TEST_F(Compile1, LongMin03) {
         }                                           \n\
         ";
 
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
 TEST_F(Compile1, AssignmentInParameterList1)
@@ -2588,10 +2372,13 @@ TEST_F(Compile1, AssignmentInParameterList1)
         }                   \n\
         ";
 
-    int compile_result = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("'='"));
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("'='"));
 }
 
 TEST_F(Compile1, CallUndefinedFunc) {
@@ -2611,11 +2398,15 @@ TEST_F(Compile1, CallUndefinedFunc) {
         }                       \n\
         ";
 
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
-    EXPECT_NE(std::string::npos, msg.find("'Test::F'"));
-    EXPECT_NE(std::string::npos, msg.find("never defined"));
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("'Test::F'"));
+    EXPECT_NE(std::string::npos, err_msg.find("never defined"));
 }
 
 TEST_F(Compile1, CrementAsBinary1) {
@@ -2630,11 +2421,15 @@ TEST_F(Compile1, CrementAsBinary1) {
         }                       \n\
         ";
 
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
-    EXPECT_NE(std::string::npos, msg.find("'++'"));
-    EXPECT_NE(std::string::npos, msg.find("binary"));
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("'++'"));
+    EXPECT_NE(std::string::npos, err_msg.find("binary"));
 }
 
 TEST_F(Compile1, ReportMissingFunction) {
@@ -2651,10 +2446,14 @@ TEST_F(Compile1, ReportMissingFunction) {
         }                       \n\
         ";
 
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
-    EXPECT_NE(std::string::npos, msg.find("pNZaFLjz3ajd"));
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("pNZaFLjz3ajd"));
 }
 
 TEST_F(Compile1, ParensAfterNew) {
@@ -2676,8 +2475,8 @@ TEST_F(Compile1, ParensAfterNew) {
 
 
     AGS::MessageHandler mh;
-    int compileResult = cc_compile(inpl, 0u, scrip, mh);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : mh.GetError().Message.c_str());
+    int compile_result = cc_compile(inpl, 0u, scrip, mh);
+    ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : mh.GetError().Message.c_str());
     ASSERT_EQ(1u, mh.GetMessages().size());
 }
 
@@ -2693,8 +2492,12 @@ TEST_F(Compile1, DynarrayOfArray) {
         ";
 
     ccSetOption(SCOPT_RTTIOPS, false);
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
 TEST_F(Compile1, IdentUnknownMessage1)
@@ -2711,11 +2514,14 @@ TEST_F(Compile1, IdentUnknownMessage1)
         }                                   \n\
         ";
 
-    int compile_result = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("'Holzschuh'"));
-    EXPECT_NE(std::string::npos, msg.find("undeclared"));
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("'Holzschuh'"));
+    EXPECT_NE(std::string::npos, err_msg.find("undeclared"));
 }
 
 TEST_F(Compile1, IdentUnknownMessage2)
@@ -2732,11 +2538,14 @@ TEST_F(Compile1, IdentUnknownMessage2)
         }                                   \n\
         ";
 
-    int compile_result = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("'Holzschuh'"));
-    EXPECT_NE(std::string::npos, msg.find("undeclared"));
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("'Holzschuh'"));
+    EXPECT_NE(std::string::npos, err_msg.find("undeclared"));
 }
 
 TEST_F(Compile1, ExpressionNotFoundMessage2)
@@ -2753,9 +2562,12 @@ TEST_F(Compile1, ExpressionNotFoundMessage2)
         }                                   \n\
         ";
 
-    int compile_result = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("an expression"));
-    EXPECT_NE(std::string::npos, msg.find("'do'"));
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("an expression"));
+    EXPECT_NE(std::string::npos, err_msg.find("'do'"));
 }

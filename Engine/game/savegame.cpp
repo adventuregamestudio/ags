@@ -501,8 +501,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data)
 
     // Save some parameters to restore them after room load
     int gstimer=play.gscript_timer;
-    int oldx1 = play.mboundx1, oldx2 = play.mboundx2;
-    int oldy1 = play.mboundy1, oldy2 = play.mboundy2;
+    const Rect mouse_bounds = play.mbounds;
 
     // disable the queue momentarily
     int queuedMusicSize = play.music_queue_size;
@@ -515,11 +514,12 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data)
         set_room_placeholder();
 
     play.gscript_timer=gstimer;
+    play.mbounds = mouse_bounds;
     // restore the correct room volume (they might have modified
     // it with SetMusicVolume)
     thisroom.Options.MusicVolume = r_data.RoomVolume;
 
-    Mouse::SetMoveLimit(Rect(oldx1, oldy1, oldx2, oldy2));
+    Mouse::SetMoveLimit(mouse_bounds);
 
     set_cursor_mode(r_data.CursorMode);
     set_mouse_cursor(r_data.CursorID, true);

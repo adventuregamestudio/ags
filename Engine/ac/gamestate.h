@@ -194,10 +194,7 @@ struct GamePlayState
     char  wait_skipped_by = 0; // tells how last blocking wait was skipped [not serialized]
     int   wait_skipped_by_data = 0; // extended data telling how last blocking wait was skipped [not serialized]
     SkipSpeechStyle skip_timed_display = kSkipSpeechKeyMouseTime; // how the timed room messages may be skipped (see MSG_TIMELIMIT) [not serialized]
-    short mboundx1 = 0;
-    short mboundx2 = 0;
-    short mboundy1 = 0;
-    short mboundy2 = 0;
+    Rect  mbounds; // mouse cursor bounds
     int   fade_effect = 0;
     int   bg_frame_locked = 0;
     int   globalscriptvars[MAXGSVALUES]{};

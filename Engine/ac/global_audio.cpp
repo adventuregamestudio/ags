@@ -464,18 +464,11 @@ static String get_cue_filename(int charid, int sndid, bool old_style)
     // Old-style: use only first 4 characters (past the prefix).
     //            clip number (X) is not separated:
     //            "CHARX"
-    const String &charname = game.chars2[charid].scrname_new;
-    String charname_fix;
-    if (charid >= 0)
-    {
-        size_t from = (charname[0] == 'c') ? 1 : 0u;
-        size_t len = old_style ? 4 : SIZE_MAX;
-        charname_fix.SetString(charname.GetCStr() + from, len);
-    }
-    else
-    {
-        charname_fix = "NARR";
-    }
+    const char *charname = (charid >= 0) ? game.chars2[charid].scrname_new.GetCStr()
+        : "narrator";
+    size_t from = (charname[0] == 'c') ? 1 : 0u;
+    size_t len = old_style ? 4 : SIZE_MAX;
+    String charname_fix(charname + from, len);
     
     const char *fmt_str = old_style ? "%s%d" : "%s.%d";
     String asset_filename = String::FromFormat(fmt_str, charname_fix.GetCStr(), sndid);

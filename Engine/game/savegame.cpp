@@ -921,15 +921,15 @@ DynObjectRef ScRestoredSaveInfo::Create(SaveRestorationFlags flags, const SaveRe
     auto guicount_arr = CCDynamicArray::Create(counts.GUIs, sizeof(int32_t), false);
     auto viewloopcount_arr = CCDynamicArray::Create(counts.Views, sizeof(int32_t), false);
     auto viewframecount_arr = CCDynamicArray::Create(counts.Views, sizeof(int32_t), false);
-    auto scriptdata_arr = CCDynamicArray::Create(counts.ScriptModules, sizeof(int32_t), false);
+    auto scriptdata_arr = CCDynamicArray::Create(counts.ScriptModuleDataSz.size(), sizeof(int32_t), false);
     for (uint32_t i = 0; i < counts.GUIs; ++i)
         guicount_arr.Mgr->WriteInt32(guicount_arr.Obj, i * sizeof(int32_t), counts.GUIControls[i]);
     for (uint32_t i = 0; i < counts.Views; ++i)
         viewloopcount_arr.Mgr->WriteInt32(viewloopcount_arr.Obj, i * sizeof(int32_t), counts.ViewLoops[i]);
     for (uint32_t i = 0; i < counts.Views; ++i)
         viewframecount_arr.Mgr->WriteInt32(viewframecount_arr.Obj, i * sizeof(int32_t), counts.ViewFrames[i]);
-    for (uint32_t i = 0; i < counts.ScriptModules; ++i)
-        scriptdata_arr.Mgr->WriteInt32(scriptdata_arr.Obj, i * sizeof(int32_t), counts.ScriptDataSz[i]);
+    for (uint32_t i = 0; i < counts.ScriptModuleDataSz.size(); ++i)
+        scriptdata_arr.Mgr->WriteInt32(scriptdata_arr.Obj, i * sizeof(int32_t), counts.ScriptModuleDataSz[i]);
     // Create the parent struct
     auto saveinfo = ScriptUserObject::CreateWithManager(&globalScRestoredSaveInfo,
           /* public fields */ 12 * sizeof(int32_t)
@@ -944,8 +944,8 @@ DynObjectRef ScRestoredSaveInfo::Create(SaveRestorationFlags flags, const SaveRe
     saveinfo.Mgr->WriteInt32(saveinfo.Obj, 7  * sizeof(int32_t), counts.Cursors);
     saveinfo.Mgr->WriteInt32(saveinfo.Obj, 8  * sizeof(int32_t), counts.Views);
     saveinfo.Mgr->WriteInt32(saveinfo.Obj, 9  * sizeof(int32_t), counts.GlobalScriptDataSz);
-    saveinfo.Mgr->WriteInt32(saveinfo.Obj, 10  * sizeof(int32_t), counts.ScriptModules);
-    saveinfo.Mgr->WriteInt32(saveinfo.Obj, 11 * sizeof(int32_t), 0 /*TODO: RoomScriptDataSize*/);
+    saveinfo.Mgr->WriteInt32(saveinfo.Obj, 10  * sizeof(int32_t),counts.ScriptModuleDataSz.size());
+    saveinfo.Mgr->WriteInt32(saveinfo.Obj, 11 * sizeof(int32_t), counts.RoomScriptDataSz);
 
     // Assign dynamic array handles to hidden fields
     saveinfo.Mgr->WriteInt32(saveinfo.Obj, 12 * sizeof(int32_t), guicount_arr.Handle);

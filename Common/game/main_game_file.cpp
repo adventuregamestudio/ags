@@ -928,10 +928,11 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, std::unique_ptr<Stream> &&
     Stream *in = s_in.get(); // for convenience
 
     //-------------------------------------------------------------------------
-    // The classic data section.
+    // The standard data section.
     //-------------------------------------------------------------------------
     GameSetupStruct::SerializeInfo sinfo;
     game.GameSetupStructBase::ReadFromFile(in, data_ver, sinfo);
+    game.read_savegame_info(in, data_ver); // here we also read GUID in v3.* games
 
     Debug::Printf(kDbgMsg_Info, "Game title: '%s'", game.gamename.GetCStr());
     Debug::Printf(kDbgMsg_Info, "Game uid (old format): `%d`", game.uniqueid);
@@ -940,7 +941,6 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, std::unique_ptr<Stream> &&
     if (game.GetGameRes().IsNull())
         return new MainGameFileError(kMGFErr_InvalidNativeResolution);
 
-    game.read_savegame_info(in, data_ver);
     game.read_font_infos(in, data_ver);
     HGameFileError err = ReadSpriteFlags(ents, in, data_ver);
     if (!err)
@@ -1032,8 +1032,8 @@ void PreReadGameData(GameSetupStruct &game, std::unique_ptr<Stream> &&s_in, Game
 {
     Stream *in = s_in.get(); // for convenience
     GameSetupStruct::SerializeInfo sinfo;
-    game.ReadFromFile(in, data_ver, sinfo);
-    game.read_savegame_info(in, data_ver);
+    game.GameSetupStructBase::ReadFromFile(in, data_ver, sinfo);
+    game.read_savegame_info(in, data_ver); // here we also read GUID in v3.* games
 
     // Check for particular expansions that might have data necessary
     // for "preload" purposes

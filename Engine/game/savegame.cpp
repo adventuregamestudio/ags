@@ -449,8 +449,8 @@ public:
 // Call a scripting event to let user validate the restored save
 static HSaveError ValidateRestoredSave(const RestoredData &r_data)
 {
-    auto saveinfo = ScRestoredSaveInfo::Create(r_data.RestoreFlags, r_data.DataCounts,
-        (r_data.RestoreFlags & kSaveRestore_MismatchMask) != 0);
+    auto saveinfo = ScRestoredSaveInfo::Create(r_data.Result.RestoreFlags, r_data.DataCounts,
+        (r_data.Result.RestoreFlags & kSaveRestore_MismatchMask) != 0);
     ccAddObjectReference(saveinfo.Handle); // add internal ref
 
     RuntimeScriptValue params[1] = { RuntimeScriptValue().SetScriptObject(saveinfo.Obj, saveinfo.Mgr) };
@@ -460,7 +460,7 @@ static HSaveError ValidateRestoredSave(const RestoredData &r_data)
     ccReleaseObjectReference(saveinfo.Handle); // rem internal ref
 
     if (do_cancel)
-        return new SavegameError(kSvgErr_GameContentAssertion);
+        return new SavegameError(kSvgErr_GameContentAssertion, r_data.Result.FirstMismatchError);
 
     return HSaveError::None();
 }
@@ -739,7 +739,7 @@ HSaveError RestoreGameState(Stream *in, SavegameVersion svg_version, bool is_gam
     DoBeforeRestore(pp);
 
     // Mark the clear game data state for restoration process
-    r_data.RestoreFlags = (SaveRestorationFlags)((kSaveRestore_ClearData * is_game_clear)
+    r_data.Result.RestoreFlags = (SaveRestorationFlags)((kSaveRestore_ClearData * is_game_clear)
         | kSaveRestore_AllowMismatchLess); // allow less data in saves
 
     HSaveError err = SavegameComponents::ReadAll(in, svg_version, pp, r_data);

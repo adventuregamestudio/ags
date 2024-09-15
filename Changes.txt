@@ -21,6 +21,12 @@ Engine:
    if used colors exceeded walkable area number limit.
  - Fixed walk-behinds not drawn over characters and objects anymore (regardless of their baselines)
    after walk-behind mask was changed using drawing operations in script.
+ - Fixed Game.SimulateKeyPress() not working in "old key-handling mode" (regression since 3.6.0).
+ - Fixed script location is not reported in case of logical errors in engine's functions
+   (regression since 3.6.0).
+
+WinSetup:
+ - Removed an obscure "Use 85 Hz display" option.
 
 
 VERSION 3.6.1 - Patch 5, August 2024

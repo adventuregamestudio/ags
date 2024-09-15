@@ -61,6 +61,61 @@ Compatibility:
 
 ---------------------------------------------------------------------------------------------------
 
+VERSION 3.6.1 - Patch 6, September 2024
+
+Editor:
+ - Fixed Ctrl+C and Ctrl+V not working in GUI editor.
+ - Fixed sprite export and copying a sprite to clipboard operations were always exporting
+   a 32-bit image, regardless of the actual sprite's color depth.
+ - Fixed "Recreate spritefile" command was unintentionally converting any sprite to 32-bit if its
+   source was not found, and it was taking existing image from the old spritefile.
+
+Engine:
+ - Fixed Software renderer could crash the game under some circumstances when the sprite cache's
+   limit is exceeded (this is a regression in 3.6.1).
+ - Fixed text-based lipsync's frame delay calculation: the existing formula was causing the delay
+   value to "jump" back and forth with the slightest difference of speech text length, resulting
+   in the speech lines of close length to be played with the notably different animation speeds.
+ - Fixed drawing a 32-bit sprites on a 8-bit surface (e.g. a room mask), it was done wrong and
+   was causing a memory corruption too.
+ - Fixed drawing a room's walkable mask in script could cause errors during character walking
+   if used colors exceeded walkable area number limit.
+ - Fixed walk-behinds not drawn over characters and objects anymore (regardless of their baselines)
+   after walk-behind mask was changed using drawing operations in script.
+ - Fixed Game.SimulateKeyPress() not working in "old key-handling mode" (regression since 3.6.0).
+ - Fixed script location is not reported in case of logical errors in engine's functions
+   (regression since 3.6.0).
+
+WinSetup:
+ - Removed an obscure "Use 85 Hz display" option.
+
+
+VERSION 3.6.1 - Patch 5, August 2024
+
+Editor:
+ - When the room background size changes, clamp Room Edges to the new size.
+ - Fixed Editor refusing to load a project if its folder name exceeds 40 characters.
+   (An obsolete historical limitation which we forgot to cut from the program.)
+
+Compiler:
+ - Fixed script compilation hanging forever if a non-latin unicode character is met in script
+   (outside of comments).
+
+Engine:
+ - Fixed GUI.ProcessClick() using mouse position when detecting a GUI control, instead of
+   the position passed in the argument list.
+ - Fixed Region.GetAtScreenXY() was returning null for offscreen coordinates. Made it return
+   region[0] for consistency with other room areas, and backwards compatibility.
+ - Fixed room Overlays not sorted in the order of their creation, like screen Overlays.
+ - Fixed a potential mistake in Lucas-Arts speech position when there are multiple room
+   viewports and speaking character is not directly visible in any of them.
+ - Fixed Engine could switch program's locale to the current system locale by mistake
+   when player is typing text. This could potentially lead to random glitches in text input
+   in games which are run in ASCII mode and are handling extended characters.
+ - Fixed TextBox was trying to display unsupported characters (in ASCII mode), resulting in
+   random garbage.
+
+
 VERSION 3.6.1 - Patch 4, July 2024
 
 Editor:

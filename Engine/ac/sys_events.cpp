@@ -368,7 +368,7 @@ void ags_simulate_keypress(eAGSKeyCode ags_key, bool old_keyhandle)
     SDL_PushEvent(&sdlevent);
     // Push a text input event for ascii printable characters;
     // in case of "old key handling mode" this instead will trigger on_key_press for them.
-    if (/*old_keyhandle &&*/ (key_sym >= SDLK_SPACE && key_sym <= SDLK_z))
+    if (old_keyhandle && (key_sym >= SDLK_SPACE && key_sym <= SDLK_z))
     {
         sdlevent.type = SDL_TEXTINPUT;
         sdlevent.text.text[0] = static_cast<char>(key_sym);

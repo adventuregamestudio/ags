@@ -537,7 +537,6 @@ void ApplyAccessibilityOptions()
     if (usetup.access_textskip != kSkipSpeechNone)
     {
         play.skip_display = usetup.access_textskip;
-        play.skip_timed_display = usetup.access_textskip;
     }
 }
 

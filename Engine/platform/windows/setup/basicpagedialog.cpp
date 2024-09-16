@@ -46,9 +46,7 @@ WinConfig::WinConfig()
 void WinConfig::SetDefaults()
 {
     DataDirectory = ".";
-    GameResType = kGameResolution_Undefined;
     GameColourDepth = 0;
-    LetterboxByDesign = false;
 
     GfxFilterId = "StdScale";
     GfxDriverId = "D3D9";
@@ -81,15 +79,9 @@ void WinConfig::Load(const ConfigTree &cfg)
     DataDirectory = CfgReadString(cfg, "misc", "datadir", DataDirectory);
     UserSaveDir = CfgReadString(cfg, "misc", "user_data_dir");
     AppDataDir = CfgReadString(cfg, "misc", "shared_data_dir");
-    // Backward-compatible resolution type
-    // FIXME: remove this, obsolete feature!
-    GameResType = (GameResolutionType)CfgReadInt(cfg, "gameproperties", "legacy_resolution", GameResType);
-    if (GameResType != kGameResolution_Custom)
-        GameResType = kGameResolution_Undefined;
     GameResolution.Width = CfgReadInt(cfg, "gameproperties", "resolution_width", GameResolution.Width);
     GameResolution.Height = CfgReadInt(cfg, "gameproperties", "resolution_height", GameResolution.Height);
     GameColourDepth = CfgReadInt(cfg, "gameproperties", "resolution_bpp", GameColourDepth);
-    LetterboxByDesign = CfgReadBoolInt(cfg, "gameproperties", "legacy_letterbox", false);
 
     GfxDriverId = CfgReadString(cfg, "graphics", "driver", GfxDriverId);
     GfxFilterId = CfgReadString(cfg, "graphics", "filter", GfxFilterId);
@@ -184,10 +176,6 @@ INT_PTR BasicPageDialog::OnInitDialog()
 
     _desktopSize = get_desktop_size();
     _maxWindowSize = AGSPlatformDriver::GetDriver()->ValidateWindowSize(_desktopSize, false);
-
-    // Resolution controls
-    //if (_winCfg.GameResolution.IsNull())
-       // _winCfg.GameResolution = ResolutionTypeToSize(_winCfg.GameResType, _winCfg.LetterboxByDesign);
 
     SetText(_hGameResolutionText, STR(String::FromFormat("Native game resolution: %d x %d x %d",
         _winCfg.GameResolution.Width, _winCfg.GameResolution.Height, _winCfg.GameColourDepth)));

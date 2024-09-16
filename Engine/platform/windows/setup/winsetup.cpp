@@ -115,10 +115,8 @@ INT_PTR WinSetupDialog::OnInitDialog()
 
     _winCfg.Load(_cfgIn);
 
-    // Resolution controls
-    if (_winCfg.GameResolution.IsNull() &&
-          (_winCfg.GameResType == kGameResolution_Undefined || _winCfg.GameResType == kGameResolution_Custom) ||
-          _winCfg.GameColourDepth == 0)
+    // Native resolution test
+    if (_winCfg.GameResolution.IsNull() || _winCfg.GameColourDepth == 0)
         MessageBox(_hwnd, "Essential information about the game is missing in the configuration file. Setup program may be unable to deduce graphic modes properly.", "Initialization error", MB_OK | MB_ICONWARNING);
 
     SetText(_hwnd, STR(_winCfg.Title));

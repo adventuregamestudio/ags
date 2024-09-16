@@ -53,10 +53,8 @@ struct WinConfig
     String DataDirectory;
     String UserSaveDir;
     String AppDataDir;
-    GameResolutionType GameResType;
     Size   GameResolution;
     int    GameColourDepth;
-    bool   LetterboxByDesign;
 
     String GfxDriverId;
     String GfxFilterId;

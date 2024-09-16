@@ -495,7 +495,7 @@ void Character_FaceCharacter(CharacterInfo *char1, CharacterInfo *char2, int blo
 
     if (char1->room != char2->room)
         quitprintf("!FaceCharacter: characters %s and %s are in different rooms (room %d and room %d respectively)",
-            char1->scrname, char2->scrname, char1->room, char2->room);
+            char1->scrname.GetCStr(), char2->scrname.GetCStr(), char1->room, char2->room);
 
     FaceLocationXY(char1, char2->x, char2->y, blockingStyle);
 }
@@ -508,7 +508,7 @@ void Character_FollowCharacter(CharacterInfo *chaa, CharacterInfo *tofollow, int
     if ((chaa->index_id == game.playercharacter) && (tofollow != nullptr) && 
         (tofollow->room != chaa->room))
         quitprintf("!FollowCharacterEx: you cannot tell the player character %s, who is in room %d, to follow a character %s who is in another room %d",
-            chaa->scrname, chaa->room, tofollow->scrname, tofollow->room);
+            chaa->scrname.GetCStr(), chaa->room, tofollow->scrname.GetCStr(), tofollow->room);
 
     if (tofollow != nullptr) {
         debug_script_log("%s: Start following %s (dist %d, eager %d)", chaa->scrname.GetCStr(), tofollow->scrname.GetCStr(), distaway, eagerness);

@@ -110,7 +110,7 @@ void NewRoom(int nrnum) {
         return;
     }
     else if (inside_script) {
-        curscript->QueueAction(PostScriptAction(ePSANewRoom, nrnum, "NewRoom"));
+        get_executingscript()->QueueAction(PostScriptAction(ePSANewRoom, nrnum, "NewRoom"));
         // we might be within a MoveCharacterBlocking -- the room
         // change should abort it
         if (is_char_walking_ndirect(playerchar)) {
@@ -158,7 +158,7 @@ void CallRoomScript (int value) {
 
     play.roomscript_finished = 0;
     RuntimeScriptValue params[]{ value , RuntimeScriptValue() };
-    curscript->RunAnother("on_call", kScInstRoom, 1, params);
+    get_executingscript()->RunAnother("on_call", kScInstRoom, 1, params);
 }
 
 int HasBeenToRoom (int roomnum) {

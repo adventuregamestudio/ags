@@ -14,6 +14,7 @@
 #include "ac/dynobj/scriptgame.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/game.h"
+#include "ac/gamesetup.h"
 #include "ac/gamestate.h"
 #include "ac/gui.h"
 #include "debug/debug_log.h"
@@ -149,7 +150,10 @@ void CCScriptGame::WriteInt32(void *address, intptr_t offset, int32_t val)
     case 68:  play.speech_textwindow_gui = val; break;
     case 69:  play.follow_change_room_timer = val; break;
     case 70:  break; // [DEPRECATED]
-    case 71:  play.skip_display = val; break;
+    case 71:
+        if (usetup.access_textskip == kSkipSpeechNone)
+            play.skip_display = static_cast<SkipSpeechStyle>(val);
+        break;
     case 72:  play.no_multiloop_repeat = val; break;
     case 73:  play.roomscript_finished = val; break;
     case 74:  play.used_inv_on = val; break;

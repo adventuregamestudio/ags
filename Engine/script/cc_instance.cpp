@@ -11,16 +11,18 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include "script/cc_instance.h"
 #include <cstdio>
 #include <deque>
 #include <string.h>
 #include "ac/common.h"
-#include "ac/dynobj/cc_dynamicarray.h"
-#include "ac/dynobj/managedobjectpool.h"
-#include "ac/dynobj/dynobj_manager.h"
 #include "ac/sys_events.h"
+#include "ac/dynobj/cc_dynamicarray.h"
+#include "ac/dynobj/dynobj_manager.h"
+#include "ac/dynobj/managedobjectpool.h"
+#include "ac/dynobj/scriptstring.h"
+#include "ac/dynobj/scriptuserobject.h"
 #include "gui/guidefines.h"
-#include "script/cc_instance.h"
 #include "debug/debug_log.h"
 #include "debug/out.h"
 #include "script/cc_common.h"
@@ -30,8 +32,6 @@
 #include "util/bbop.h"
 #include "util/stream.h"
 #include "util/textstreamwriter.h"
-#include "ac/dynobj/scriptstring.h"
-#include "ac/dynobj/scriptuserobject.h"
 #include "util/file.h"
 #include "util/memory.h"
 #include "util/string_utils.h" // linux strnicmp definition

@@ -181,7 +181,7 @@ void start_character_turning (CharacterInfo *chinf, int useloop, int no_diagonal
 void fix_player_sprite(CharacterInfo *chinf, const MoveList &cmls);
 // Check whether two characters have walked into each other
 int  has_hit_another_character(int sourceChar);
-int  doNextCharMoveStep (CharacterInfo *chi, int &char_index, CharacterExtras *chex);
+int  doNextCharMoveStep(CharacterInfo *chi, CharacterExtras *chex);
 // Tells if character is currently moving, in eWalkableAreas mode
 bool is_char_walking_ndirect(CharacterInfo *chi);
 int  find_nearest_walkable_area_within(int *xx, int *yy, int range, int step);
@@ -227,6 +227,19 @@ Rect GetCharacterRoomBBox(int charid, bool use_frame_0 = false);
 // and returns either first viewport character's bounding box intersects with (or rather with its camera),
 // or the one that is least far away from its camera; calculated as a perpendicular distance between two AABBs.
 PViewport FindNearestViewport(int charid);
+
+//
+// Character update functions
+// TODO: move these into a runtime Character class, when there will be a proper one,
+// merging CharacterInfo and CharacterExtras.
+//
+void UpdateCharacterMoveAndAnim(CharacterInfo *chi, CharacterExtras *chex, std::vector<int> &followingAsSheep);
+void UpdateFollowingExactlyCharacter(CharacterInfo *chi);
+bool UpdateCharacterTurning(CharacterInfo *chi, CharacterExtras *chex);
+void UpdateCharacterMoving(CharacterInfo *chi, CharacterExtras *chex, int &doing_nothing);
+bool UpdateCharacterAnimating(CharacterInfo *chi, CharacterExtras *chex, int &doing_nothing);
+void UpdateCharacterIdle(CharacterInfo *chi, CharacterExtras *chex, int &doing_nothing);
+void UpdateCharacterFollower(CharacterInfo *chi, std::vector<int> &followingAsSheep, int &doing_nothing);
 
 extern CharacterInfo*playerchar;
 extern int32_t _sc_PlayerCharPtr;

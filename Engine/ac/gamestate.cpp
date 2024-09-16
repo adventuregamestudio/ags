@@ -464,7 +464,7 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
     speech_textwindow_gui = in->ReadInt32();
     follow_change_room_timer = in->ReadInt32();
     in->ReadInt32(); // [DEPRECATED]
-    skip_display = in->ReadInt32();
+    skip_display = static_cast<SkipSpeechStyle>(in->ReadInt32());
     no_multiloop_repeat = in->ReadInt32();
     roomscript_finished = in->ReadInt32();
     used_inv_on = in->ReadInt32();
@@ -535,10 +535,10 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
     bg_anim_delay = in->ReadInt32();  // for animating backgrounds
     in->ReadInt32(); // [DEPRECATED]
     wait_counter = in->ReadInt16();
-    mboundx1 = in->ReadInt16();
-    mboundx2 = in->ReadInt16();
-    mboundy1 = in->ReadInt16();
-    mboundy2 = in->ReadInt16();
+    mbounds.Left = in->ReadInt16();
+    mbounds.Right = in->ReadInt16();
+    mbounds.Top = in->ReadInt16();
+    mbounds.Bottom = in->ReadInt16();
     fade_effect = in->ReadInt32();
     bg_frame_locked = in->ReadInt32();
     in->Seek(sizeof(int32_t) * LEGACY_MAXGSVALUES);
@@ -740,10 +740,10 @@ void GamePlayState::WriteForSavegame(Stream *out) const
     out->WriteInt32( bg_anim_delay);  // for animating backgrounds
     out->WriteInt32( 0);// [DEPRECATED]
     out->WriteInt16(wait_counter);
-    out->WriteInt16(mboundx1);
-    out->WriteInt16(mboundx2);
-    out->WriteInt16(mboundy1);
-    out->WriteInt16(mboundy2);
+    out->WriteInt16(mbounds.Left);
+    out->WriteInt16(mbounds.Right);
+    out->WriteInt16(mbounds.Top);
+    out->WriteInt16(mbounds.Bottom);
     out->WriteInt32( fade_effect);
     out->WriteInt32( bg_frame_locked);
     out->WriteByteCount(0, sizeof(int32_t) * LEGACY_MAXGSVALUES);

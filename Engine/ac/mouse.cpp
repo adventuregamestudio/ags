@@ -109,11 +109,8 @@ void SetMouseBounds(int x1, int y1, int x2, int y2)
 
     debug_script_log("Mouse bounds constrained to (%d,%d)-(%d,%d)", x1, y1, x2, y2);
 
-    play.mboundx1 = x1;
-    play.mboundx2 = x2;
-    play.mboundy1 = y1;
-    play.mboundy2 = y2;
-    Mouse::SetMoveLimit(Rect(x1, y1, x2, y2));
+    play.mbounds = Rect(x1, y1, x2, y2);
+    Mouse::SetMoveLimit(play.mbounds);
 }
 
 // set_mouse_cursor: changes visual appearance to specified cursor

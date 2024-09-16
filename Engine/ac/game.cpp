@@ -422,7 +422,7 @@ void restore_game_dialog() {
 void restore_game_dialog2(int min_slot, int max_slot) {
     can_run_delayed_command();
     if (inside_script) {
-        curscript->QueueAction(PostScriptAction(ePSARestoreGameDialog, (min_slot & 0xFFFF) | (max_slot & 0xFFFF) << 16, "RestoreGameDialog"));
+        get_executingscript()->QueueAction(PostScriptAction(ePSARestoreGameDialog, (min_slot & 0xFFFF) | (max_slot & 0xFFFF) << 16, "RestoreGameDialog"));
         return;
     }
     do_restore_game_dialog(min_slot, max_slot);
@@ -443,7 +443,7 @@ void save_game_dialog() {
 
 void save_game_dialog2(int min_slot, int max_slot) {
     if (inside_script) {
-        curscript->QueueAction(PostScriptAction(ePSASaveGameDialog, (min_slot & 0xFFFF) | (max_slot & 0xFFFF) << 16, "SaveGameDialog"));
+        get_executingscript()->QueueAction(PostScriptAction(ePSASaveGameDialog, (min_slot & 0xFFFF) | (max_slot & 0xFFFF) << 16, "SaveGameDialog"));
         return;
     }
     do_save_game_dialog(min_slot, max_slot);
@@ -799,7 +799,7 @@ ScriptCamera* Game_GetAnyCamera(int index)
 
 void Game_SimulateKeyPress(int key)
 {
-    ags_simulate_keypress(static_cast<eAGSKeyCode>(key));
+    ags_simulate_keypress(static_cast<eAGSKeyCode>(key), (game.options[OPT_KEYHANDLEAPI] == 0));
 }
 
 int Game_BlockingWaitSkipped()
@@ -915,33 +915,17 @@ Bitmap *create_savegame_screenshot()
     const Rect &viewport = play.GetMainViewport();
     int usewid = std::min(play.screenshot_width, viewport.GetWidth());
     int usehit = std::min(play.screenshot_height, viewport.GetHeight());
-    return CopyScreenIntoBitmap(usewid, usehit, &viewport);
+    const uint32_t layers = game.options[OPT_SAVESCREENSHOTLAYER];
+    return CopyScreenIntoBitmap(usewid, usehit, &viewport, false, ~layers);
 }
 
-void save_game(int slotn, const char*descript)
+void save_game(int slotn, const String &descript, std::unique_ptr<Bitmap> &&image)
 {
-    VALIDATE_STRING(descript);
-
-    // dont allow save in rep_exec_always, because we dont save
-    // the state of blocked scripts
-    can_run_delayed_command();
-
-    if (inside_script) {
-        curscript->QueueAction(PostScriptAction(ePSASaveGame, slotn, "SaveGameSlot", descript));
-        return;
-    }
-
-    if (platform->GetDiskFreeSpaceMB(get_save_game_directory()) < 2) {
-        Display("ERROR: There is not enough disk space free to save the game. Clear some disk space and try again.");
-        return;
-    }
-
     String nametouse = get_save_game_path(slotn);
-    std::unique_ptr<Bitmap> screenShot;
-    if (game.options[OPT_SAVESCREENSHOT] != 0)
-        screenShot.reset(create_savegame_screenshot());
+    if (!image && (game.options[OPT_SAVESCREENSHOT] != 0))
+        image.reset(create_savegame_screenshot());
 
-    std::unique_ptr<Stream> out(StartSavegame(nametouse, descript, screenShot.get()));
+    std::unique_ptr<Stream> out(StartSavegame(nametouse, descript, image.get()));
     if (out == nullptr)
     {
         Display("ERROR: Unable to open savegame file for writing!");

@@ -279,8 +279,11 @@ void Speech_SetSkipStyle(SkipSpeechStyle newval)
     if ((newval < kSkipSpeechFirst) || (newval > kSkipSpeechLast))
         quit("!SetSkipSpeech: invalid skip mode specified");
 
-    debug_script_log("SkipSpeech style set to %d", newval);
-    play.speech_skip_style = user_to_internal_skip_speech((SkipSpeechStyle)newval);
+    if (usetup.access_speechskip == kSkipSpeechNone)
+    {
+        debug_script_log("SkipSpeech style set to %d", newval);
+        play.speech_skip_style = user_to_internal_skip_speech((SkipSpeechStyle)newval);
+    }
 }
 
 int Speech_GetSkipKey()

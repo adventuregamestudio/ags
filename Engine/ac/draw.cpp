@@ -530,7 +530,7 @@ Bitmap *CopyScreenIntoBitmap(int width, int height, const Rect *src_rect,
     // Otherwise we might need to copy between few bitmaps...
     // Get screenshot in the suitable format
     std::unique_ptr<Bitmap> buf_screenfmt(new Bitmap(want_fmt.Width, want_fmt.Height, want_fmt.ColorDepth));
-    gfxDriver->GetCopyOfScreenIntoBitmap(buf_screenfmt.get(), src_rect, at_native_res);
+    gfxDriver->GetCopyOfScreenIntoBitmap(buf_screenfmt.get(), src_rect, at_native_res, nullptr, batch_skip_filter);
     // If color depth does not match, and we must stretch-blit, then we need another helper bmp,
     // because Allegro does not support stretching with mismatching color depths
     std::unique_ptr<Bitmap> buf_fixdepth;
@@ -2681,7 +2681,7 @@ static void construct_room_view()
             // viewport-camera pair is done as 2 nested scene nodes,
             // where first defines how camera's image translates into the viewport on screen,
             // and second - how room's image translates into the camera.
-            gfxDriver->BeginSpriteBatch(view_rc, view_trans);
+            gfxDriver->BeginSpriteBatch(view_rc, view_trans, RENDER_BATCH_ROOM_LAYER);
             gfxDriver->BeginSpriteBatch(Rect(), cam_trans);
             gfxDriver->SetStageScreen(cam_rc.GetSize(), cam_rc.Left, cam_rc.Top);
             put_sprite_list_on_screen(true);
@@ -2693,7 +2693,7 @@ static void construct_room_view()
             // For software renderer - combine viewport and camera in one batch,
             // due to how the room drawing is implemented currently in the software mode.
             // TODO: review this later?
-            gfxDriver->BeginSpriteBatch(view_rc, view_trans);
+            gfxDriver->BeginSpriteBatch(view_rc, view_trans, RENDER_BATCH_ROOM_LAYER);
 
             if (CameraDrawData[viewport->GetID()].Frame == nullptr && CameraDrawData[viewport->GetID()].IsOverlap)
             { // room background is prepended to the sprite stack
@@ -2725,7 +2725,7 @@ static void construct_room_view()
 // Schedule ui rendering
 static void construct_ui_view()
 {
-    gfxDriver->BeginSpriteBatch(play.GetUIViewport());
+    gfxDriver->BeginSpriteBatch(play.GetUIViewport(), SpriteTransform(), RENDER_BATCH_UI_LAYER);
     draw_gui_and_overlays();
     gfxDriver->EndSpriteBatch();
     clear_draw_list();

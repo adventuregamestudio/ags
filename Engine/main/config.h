@@ -18,6 +18,7 @@
 #ifndef __AGS_EE_MAIN__CONFIG_H
 #define __AGS_EE_MAIN__CONFIG_H
 
+#include "ac/speech.h"
 #include "main/graphics_mode.h"
 #include "util/ini_util.h"
 
@@ -43,8 +44,10 @@ void save_config_file();
 
 WindowSetup parse_window_mode(const String &option, bool as_windowed, WindowSetup def_value = WindowSetup());
 FrameScaleDef parse_scaling_option(const String &option, FrameScaleDef def_value = kFrame_Undefined);
+SkipSpeechStyle parse_speechskip_style(const String &option, SkipSpeechStyle def_value = kSkipSpeechNone);
 String make_window_mode_option(const WindowSetup &ws, const Size &game_res, const Size &desktop_res);
 String make_scaling_option(FrameScaleDef scale_def);
+String make_speechskip_option(SkipSpeechStyle style);
 uint32_t convert_scaling_to_fp(int scale_factor);
 int convert_fp_to_scaling(uint32_t scaling);
 

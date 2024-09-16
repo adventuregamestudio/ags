@@ -523,6 +523,7 @@ namespace AGS.Editor
             options[NativeConstants.GameOptions.OPT_FADETYPE] = (int)game.Settings.RoomTransition;
             options[NativeConstants.GameOptions.OPT_RUNGAMEDLGOPTS] = (game.Settings.RunGameLoopsWhileDialogOptionsDisplayed ? 1 : 0);
             options[NativeConstants.GameOptions.OPT_SAVESCREENSHOT] = (game.Settings.SaveScreenshots ? 1 : 0);
+            options[NativeConstants.GameOptions.OPT_SAVESCREENSHOTLAYER] = -1; // all layers by default
             options[NativeConstants.GameOptions.OPT_NOSKIPTEXT] = (int)game.Settings.SkipSpeech;
             options[NativeConstants.GameOptions.OPT_PORTRAITSIDE] = (int)game.Settings.SpeechPortraitSide;
             options[NativeConstants.GameOptions.OPT_SPEECHTYPE] = (int)game.Settings.SpeechStyle;

@@ -357,7 +357,7 @@ int ags_iskeydown(eAGSKeyCode ags_key)
     return (state[scan[0]] || state[scan[1]] || state[scan[2]]);
 }
 
-void ags_simulate_keypress(eAGSKeyCode ags_key)
+void ags_simulate_keypress(eAGSKeyCode ags_key, bool old_keyhandle)
 {
     SDL_Scancode scan[3];
     if (!ags_key_to_sdl_scan(ags_key, scan))
@@ -365,9 +365,18 @@ void ags_simulate_keypress(eAGSKeyCode ags_key)
     // Push a key event to the event queue; note that this won't affect the key states array
     SDL_Event sdlevent = {};
     sdlevent.type = SDL_KEYDOWN;
-    sdlevent.key.keysym.sym = SDL_GetKeyFromScancode(scan[0]);
+    const SDL_Keycode key_sym = SDL_GetKeyFromScancode(scan[0]);
+    sdlevent.key.keysym.sym = key_sym;
     sdlevent.key.keysym.scancode = scan[0];
     SDL_PushEvent(&sdlevent);
+    // Push a text input event for ascii printable characters;
+    // in case of "old key handling mode" this instead will trigger on_key_press for them.
+    if (old_keyhandle && (key_sym >= SDLK_SPACE && key_sym <= SDLK_z))
+    {
+        sdlevent.type = SDL_TEXTINPUT;
+        sdlevent.text.text[0] = static_cast<char>(key_sym);
+        SDL_PushEvent(&sdlevent);
+    }
     sdlevent.type = SDL_KEYUP;
     SDL_PushEvent(&sdlevent);
 }

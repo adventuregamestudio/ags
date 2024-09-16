@@ -192,8 +192,8 @@ void on_coordinates_scaling_changed()
     // Reset mouse graphic area and bounds
     Mouse::UpdateGraphicArea();
     // If mouse bounds do not have valid values yet, then limit cursor to viewport
-    if (play.mboundx1 == 0 && play.mboundy1 == 0 && play.mboundx2 == 0 && play.mboundy2 == 0)
+    if (play.mbounds.IsEmpty())
         Mouse::SetMoveLimit(play.GetMainViewport());
     else
-        Mouse::SetMoveLimit(Rect(play.mboundx1, play.mboundy1, play.mboundx2, play.mboundy2));
+        Mouse::SetMoveLimit(play.mbounds);
 }

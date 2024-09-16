@@ -42,7 +42,7 @@ void	DynamicSprite_Tint(ScriptDynamicSprite *sds, int red, int green, int blue, 
 int		DynamicSprite_SaveToFile(ScriptDynamicSprite *sds, const char* namm);
 ScriptDynamicSprite* DynamicSprite_CreateFromSaveGame(int sgslot, int width, int height);
 ScriptDynamicSprite* DynamicSprite_CreateFromFile(const char *filename, int color_fmt);
-ScriptDynamicSprite* DynamicSprite_CreateFromScreenShot(int width, int height);
+ScriptDynamicSprite* DynamicSprite_CreateFromScreenShot(int width, int height, int layers);
 ScriptDynamicSprite* DynamicSprite_CreateFromExistingSprite(int slot, int color_fmt);
 ScriptDynamicSprite* DynamicSprite_CreateFromDrawingSurface(ScriptDrawingSurface *sds, int x, int y, int width, int height, int color_fmt);
 ScriptDynamicSprite* DynamicSprite_Create(int width, int height, int color_fmt);

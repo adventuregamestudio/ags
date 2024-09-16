@@ -48,16 +48,24 @@ extern IGraphicsDriver *gfxDriver;
 std::vector<ScreenOverlay> screenover;
 std::queue<int32_t> over_free_ids;
 
+// Gets an actual ScreenOverlay object from its ScriptOverlay reference,
+// validate object, throw an error on failure
+static ScreenOverlay *GetOverlayValidate(const char *apiname, ScriptOverlay *scover)
+{
+    auto *over = get_overlay(scover->overlayId);
+    if (!over)
+        quitprintf("!%s: invalid overlay specified", apiname);
+    return over;
+}
 
-void Overlay_Remove(ScriptOverlay *sco) {
+void Overlay_Remove(ScriptOverlay *sco)
+{
     sco->Remove();
 }
 
 void Overlay_SetText(ScriptOverlay *scover, int width, int fontid, int text_color, const char *text)
 {
-    auto *over = get_overlay(scover->overlayId);
-    if (!over)
-        quit("!Overlay.SetText: invalid overlay ID specified");
+    auto *over = GetOverlayValidate("Overlay.SetText", scover);
     const int x = over->x;
     const int y = over->y;
 
@@ -85,93 +93,83 @@ void Overlay_SetText(ScriptOverlay *scover, int width, int fontid, int text_colo
     over->SetImage(std::unique_ptr<Bitmap>(image), adj_x - dummy_x, adj_y - dummy_y);
 }
 
-int Overlay_GetX(ScriptOverlay *scover) {
-    auto *over = get_overlay(scover->overlayId);
-    if (!over)
-        quit("!invalid overlay ID specified");
+int Overlay_GetX(ScriptOverlay *scover)
+{
+    auto *over = GetOverlayValidate("Overlay.X", scover);
     if (over->IsAutoPosition())
         autoposition_overlay(*over); // in case they moved character in script, etc
     return over->x;
 }
 
-void Overlay_SetX(ScriptOverlay *scover, int newx) {
-    auto *over = get_overlay(scover->overlayId);
-    if (!over)
-        quit("!invalid overlay ID specified");
+void Overlay_SetX(ScriptOverlay *scover, int newx)
+{
+    auto *over = GetOverlayValidate("Overlay.X", scover);
     over->SetFixedPosition(newx, over->y);
 }
 
-int Overlay_GetY(ScriptOverlay *scover) {
-    auto *over = get_overlay(scover->overlayId);
-    if (!over)
-        quit("!invalid overlay ID specified");
+int Overlay_GetY(ScriptOverlay *scover)
+{
+    auto *over = GetOverlayValidate("Overlay.Y", scover);
     if (over->IsAutoPosition())
         autoposition_overlay(*over); // in case they moved character in script, etc
     return over->y;
 }
 
-void Overlay_SetY(ScriptOverlay *scover, int newy) {
-    auto *over = get_overlay(scover->overlayId);
-    if (!over)
-        quit("!invalid overlay ID specified");
+void Overlay_SetY(ScriptOverlay *scover, int newy)
+{
+    auto *over = GetOverlayValidate("Overlay.Y", scover);
     over->SetFixedPosition(over->x, newy);
 }
 
-int Overlay_GetGraphic(ScriptOverlay *scover) {
-    auto *over = get_overlay(scover->overlayId);
-    if (!over)
-        quit("!invalid overlay ID specified");
+int Overlay_GetGraphic(ScriptOverlay *scover)
+{
+    auto *over = GetOverlayValidate("Overlay.Graphic", scover);
     return over->GetSpriteNum();
 }
 
-void Overlay_SetGraphic(ScriptOverlay *scover, int slot) {
+void Overlay_SetGraphic(ScriptOverlay *scover, int slot)
+{
+    auto *over = GetOverlayValidate("Overlay.Graphic", scover);
     if (!spriteset.DoesSpriteExist(slot))
     {
         debug_script_warn("Overlay.SetGraphic: sprite %d is invalid", slot);
         slot = 0;
     }
-    auto *over = get_overlay(scover->overlayId);
-    if (!over)
-        quit("!invalid overlay ID specified");
     over->SetSpriteNum(slot);
 }
 
-bool Overlay_InRoom(ScriptOverlay *scover) {
-    auto *over = get_overlay(scover->overlayId);
-    if (!over)
-        quit("!invalid overlay ID specified");
+bool Overlay_InRoom(ScriptOverlay *scover)
+{
+    auto *over = GetOverlayValidate("Overlay.InRoom", scover);
     return over->IsRoomLayer();
 }
 
-int Overlay_GetWidth(ScriptOverlay *scover) {
-    auto *over = get_overlay(scover->overlayId);
-    if (!over)
-        quit("!invalid overlay ID specified");
+int Overlay_GetWidth(ScriptOverlay *scover)
+{
+    auto *over = GetOverlayValidate("Overlay.Width", scover);
     return over->scaleWidth;
 }
 
-int Overlay_GetHeight(ScriptOverlay *scover) {
-    auto *over = get_overlay(scover->overlayId);
-    if (!over)
-        quit("!invalid overlay ID specified");
+int Overlay_GetHeight(ScriptOverlay *scover)
+{
+    auto *over = GetOverlayValidate("Overlay.Height", scover);
     return over->scaleHeight;
 }
 
-int Overlay_GetGraphicWidth(ScriptOverlay *scover) {
-    auto *over = get_overlay(scover->overlayId);
-    if (!over)
-        quit("!invalid overlay ID specified");
+int Overlay_GetGraphicWidth(ScriptOverlay *scover)
+{
+    auto *over = GetOverlayValidate("Overlay.GraphicWidth", scover);
     return over->GetGraphicSize().Width;
 }
 
-int Overlay_GetGraphicHeight(ScriptOverlay *scover) {
-    auto *over = get_overlay(scover->overlayId);
-    if (!over)
-        quit("!invalid overlay ID specified");
+int Overlay_GetGraphicHeight(ScriptOverlay *scover)
+{
+    auto *over = GetOverlayValidate("Overlay.GraphicHeight", scover);
     return over->GetGraphicSize().Height;
 }
 
-void Overlay_SetScaledSize(ScreenOverlay &over, int width, int height) {
+void Overlay_SetScaledSize(ScreenOverlay &over, int width, int height)
+{
     if (width < 1 || height < 1)
     {
         debug_script_warn("Overlay.SetSize: invalid dimensions: %d x %d", width, height);
@@ -184,21 +182,19 @@ void Overlay_SetScaledSize(ScreenOverlay &over, int width, int height) {
     over.MarkChanged();
 }
 
-void Overlay_SetWidth(ScriptOverlay *scover, int width) {
-    auto *over = get_overlay(scover->overlayId);
-    if (!over)
-        quit("!invalid overlay ID specified");
+void Overlay_SetWidth(ScriptOverlay *scover, int width)
+{
+    auto *over = GetOverlayValidate("Overlay.Width", scover);
     Overlay_SetScaledSize(*over, width, over->scaleHeight);
 }
 
 void Overlay_SetHeight(ScriptOverlay *scover, int height) {
-    auto *over = get_overlay(scover->overlayId);
-    if (!over)
-        quit("!invalid overlay ID specified");
+    auto *over = GetOverlayValidate("Overlay.Height", scover);
     Overlay_SetScaledSize(*over, over->scaleWidth, height);
 }
 
-int Overlay_GetValid(ScriptOverlay *scover) {
+int Overlay_GetValid(ScriptOverlay *scover)
+{
     return get_overlay(scover->overlayId) != nullptr;
 }
 
@@ -297,18 +293,15 @@ void Overlay_SetBlendMode(ScriptOverlay *scover, int blendMode) {
     over->blendMode = (BlendMode)blendMode;
 }
 
-int Overlay_GetTransparency(ScriptOverlay *scover) {
-    auto *over = get_overlay(scover->overlayId);
-    if (!over)
-        quit("!invalid overlay ID specified");
-
+int Overlay_GetTransparency(ScriptOverlay *scover)
+{
+    auto *over = GetOverlayValidate("Overlay.Transparency", scover);
     return GfxDef::LegacyTrans255ToTrans100(over->transparency);
 }
 
-void Overlay_SetTransparency(ScriptOverlay *scover, int trans) {
-    auto *over = get_overlay(scover->overlayId);
-    if (!over)
-        quit("!invalid overlay ID specified");
+void Overlay_SetTransparency(ScriptOverlay *scover, int trans)
+{
+    auto *over = GetOverlayValidate("Overlay.Transparency", scover);
     if ((trans < 0) | (trans > 100))
         quit("!SetTransparency: transparency value must be between 0 and 100");
 
@@ -329,19 +322,15 @@ void Overlay_SetRotation(ScriptOverlay *scover, float degrees) {
     over->rotation = Math::ClampAngle360(degrees);
 }
 
-int Overlay_GetZOrder(ScriptOverlay *scover) {
-    auto *over = get_overlay(scover->overlayId);
-    if (!over)
-        quit("!invalid overlay ID specified");
-
+int Overlay_GetZOrder(ScriptOverlay *scover)
+{
+    auto *over = GetOverlayValidate("Overlay.ZOrder", scover);
     return over->zorder;
 }
 
-void Overlay_SetZOrder(ScriptOverlay *scover, int zorder) {
-    auto *over = get_overlay(scover->overlayId);
-    if (!over)
-        quit("!invalid overlay ID specified");
-
+void Overlay_SetZOrder(ScriptOverlay *scover, int zorder)
+{
+    auto *over = GetOverlayValidate("Overlay.ZOrder", scover);
     over->zorder = zorder;
 }
 

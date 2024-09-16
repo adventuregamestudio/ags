@@ -772,10 +772,14 @@ RuntimeScriptValue Sc_save_game_dialog2(const RuntimeScriptValue *params, int32_
     API_SCALL_VOID_PINT2(save_game_dialog2);
 }
 
-// void (int slotn, const char*descript)
-RuntimeScriptValue Sc_save_game(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_SaveGameSlot(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT_POBJ(save_game, const char);
+    API_SCALL_VOID_PINT_POBJ_PINT(SaveGameSlot, const char);
+}
+
+RuntimeScriptValue Sc_SaveGameSlot2(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT_POBJ(SaveGameSlot2, const char);
 }
 
 // int (char*namm)
@@ -1268,7 +1272,6 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "RunRegionInteraction",     API_FN_PAIR(RunRegionInteraction) },
         { "Said",                     API_FN_PAIR(Said) },
         { "SaveCursorForLocationChange", API_FN_PAIR(SaveCursorForLocationChange) },
-        { "SaveGameSlot",             API_FN_PAIR(save_game) },
         { "SaveScreenShot",           API_FN_PAIR(SaveScreenShot) },
         { "SetAmbientTint",           API_FN_PAIR(SetAmbientTint) },
         { "SetAmbientLightLevel",     API_FN_PAIR(SetAmbientLightLevel) },
@@ -1330,6 +1333,13 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "WaitInput",                API_FN_PAIR(WaitInput) },
         { "SkipWait",                 API_FN_PAIR(SkipWait) },
     };
+
+    // Few functions have to be selected based on API level,
+    // because historically AGS compiler did not generate "number of args" in the import name.
+    if (base_api < kScriptAPI_v362)
+        ccAddExternalStaticFunction("SaveGameSlot", API_FN_PAIR(SaveGameSlot2));
+    else
+        ccAddExternalStaticFunction("SaveGameSlot", API_FN_PAIR(SaveGameSlot));
 
     ccAddExternalFunctions(global_api);
 

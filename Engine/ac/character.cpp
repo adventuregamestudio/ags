@@ -174,7 +174,8 @@ void Character_AddInventory(CharacterInfo *chaa, ScriptInvItem *invi, int addInd
 void Character_AddWaypoint(CharacterInfo *chaa, int x, int y) {
 
     if (chaa->room != displayed_room)
-        quit("!MoveCharacterPath: specified character not in current room");
+        quitprintf("!MoveCharacterPath: character %s is not in current room %d (it is in room %d)",
+            chaa->scrname.GetCStr(), displayed_room, chaa->room);
 
     // not already walking, so just do a normal move
     if (chaa->walking <= 0) {
@@ -493,7 +494,8 @@ void Character_FaceCharacter(CharacterInfo *char1, CharacterInfo *char2, int blo
         quit("!FaceCharacter: invalid character specified");
 
     if (char1->room != char2->room)
-        quit("!FaceCharacter: characters are in different rooms");
+        quitprintf("!FaceCharacter: characters %s and %s are in different rooms (room %d and room %d respectively)",
+            char1->scrname, char2->scrname, char1->room, char2->room);
 
     FaceLocationXY(char1, char2->x, char2->y, blockingStyle);
 }
@@ -505,7 +507,8 @@ void Character_FollowCharacter(CharacterInfo *chaa, CharacterInfo *tofollow, int
 
     if ((chaa->index_id == game.playercharacter) && (tofollow != nullptr) && 
         (tofollow->room != chaa->room))
-        quit("!FollowCharacterEx: you cannot tell the player character to follow a character in another room");
+        quitprintf("!FollowCharacterEx: you cannot tell the player character %s, who is in room %d, to follow a character %s who is in another room %d",
+            chaa->scrname, chaa->room, tofollow->scrname, tofollow->room);
 
     if (tofollow != nullptr) {
         debug_script_log("%s: Start following %s (dist %d, eager %d)", chaa->scrname.GetCStr(), tofollow->scrname.GetCStr(), distaway, eagerness);
@@ -2041,7 +2044,7 @@ int has_hit_another_character(int sourceChar) {
 // Does the next move from the character's movelist.
 // Returns 1 if they are now waiting for another char to move,
 // otherwise returns 0
-int doNextCharMoveStep (CharacterInfo *chi, int &char_index, CharacterExtras *chex) {
+int doNextCharMoveStep(CharacterInfo *chi, CharacterExtras *chex) {
     int ntf=0, xwas = chi->x, ywas = chi->y;
 
     if (do_movelist_move(chi->walking, chi->x, chi->y) == 2) 
@@ -2050,7 +2053,7 @@ int doNextCharMoveStep (CharacterInfo *chi, int &char_index, CharacterExtras *ch
             fix_player_sprite(chi, mls[chi->walking]);
     }
 
-    ntf = has_hit_another_character(char_index);
+    ntf = has_hit_another_character(chi->index_id);
     if (ntf >= 0) {
         chi->walkwait = 30;
         if (game.chars[ntf].walkspeed < 5)

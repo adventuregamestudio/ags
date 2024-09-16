@@ -110,9 +110,8 @@ void    can_run_delayed_command();
 bool    get_script_position(ScriptPosition &script_pos);
 String  cc_get_callstack(int max_lines = INT_MAX);
 
-
-extern ExecutingScript scripts[MAX_SCRIPT_AT_ONCE];
-extern ExecutingScript *curscript;
+// Gets current ExecutingScript object
+ExecutingScript *get_executingscript();
 
 extern PScript gamescript;
 extern PScript dialogScriptsScript;

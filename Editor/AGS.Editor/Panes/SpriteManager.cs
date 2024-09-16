@@ -40,7 +40,23 @@ namespace AGS.Editor
 			}
 		}
 
-		private void RefreshSprites()
+        protected override void OnPanelFirstTimeShown()
+        {
+            if (!DesignMode)
+            {
+                spriteSelector.ReadConfig(GUIController.Instance.WindowConfig.GetObject("SpriteManager/spriteSelector"));
+            }
+        }
+
+        protected override void OnPanelClosing(bool canCancel, ref bool cancelClose)
+        {
+            if (!DesignMode)
+            {
+                spriteSelector.WriteConfig(GUIController.Instance.WindowConfig.GetOrAddObject("SpriteManager/spriteSelector"));
+            }
+        }
+
+        private void RefreshSprites()
 		{
 			spriteSelector.SetDataSource(_attachedToFolder);
 		}

@@ -85,6 +85,13 @@ FrameScaleDef parse_scaling_option(const String &option, FrameScaleDef def_value
         CstrArr<kNumFrameScaleDef>{"round", "stretch", "proportional"}, def_value);
 }
 
+SkipSpeechStyle parse_speechskip_style(const String &option, SkipSpeechStyle def_value)
+{
+    const std::array<std::pair<const char*, SkipSpeechStyle>, 4> skip_speech_arr{
+        { { "default", kSkipSpeechNone }, { "input", kSkipSpeech_AnyInput }, { "any", kSkipSpeech_AnyInputOrTime }, { "time", kSkipSpeechTime } } };
+    return StrUtil::ParseEnumOptions<SkipSpeechStyle>(option, skip_speech_arr, def_value);
+}
+
 String make_window_mode_option(const WindowSetup &ws, const Size &game_res, const Size &desktop_res)
 {
     if (ws.Mode == kWnd_FullDesktop)
@@ -110,6 +117,17 @@ String make_scaling_option(FrameScaleDef scale_def)
         return "proportional";
     default:
         return "round";
+    }
+}
+
+String make_speechskip_option(SkipSpeechStyle style)
+{
+    switch (style)
+    {
+    case kSkipSpeech_AnyInput: return "input";
+    case kSkipSpeech_AnyInputOrTime: return "any";
+    case kSkipSpeechTime: return "time";
+    default: return "default";
     }
 }
 
@@ -242,6 +260,10 @@ void apply_config(const ConfigTree &cfg)
             CstrArr<eNumOS>{"", "dos", "win", "linux", "mac", "android", "ios", "psp", "web", "freebsd"}, eOS_Unknown);
         usetup.key_save_game = CfgReadInt(cfg, "override", "save_game_key", 0);
         usetup.key_restore_game = CfgReadInt(cfg, "override", "restore_game_key", 0);
+
+        // Accessibility settings
+        usetup.access_speechskip = parse_speechskip_style(CfgReadString(cfg, "access", "speechskip"));
+        usetup.access_textskip = parse_speechskip_style(CfgReadString(cfg, "access", "textskip"));
     }
 
     // Apply logging configuration

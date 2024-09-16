@@ -36,6 +36,18 @@ using namespace AGS::Common;
 extern GameSetupStruct game;
 extern int longestline;
 
+// Tests if a font number is valid, if not then prints a warning and returns a substitution
+int ValidateFontNumber(const char *apiname, int font_num)
+{
+    if (((font_num < 0) || (font_num >= game.numfonts)) && (font_num != FONT_NULL))
+    {
+        debug_script_warn("%s: invalid font number %d, valid range is %d-%d.", font_num, 0, game.numfonts);
+        return FONT_NULL;
+    }
+    return font_num;
+}
+
+
 const char *CreateNewScriptString(const char *text)
 {
     return static_cast<const char*>(ScriptString::Create(text).Obj);

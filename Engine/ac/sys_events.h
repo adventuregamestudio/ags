@@ -91,7 +91,7 @@ SDL_Event ags_get_next_inputevent();
 // NOTE: for particular script codes this function returns positive if either of two keys are down.
 int ags_iskeydown(eAGSKeyCode ags_key);
 // Simulates key press with the given AGS key
-void ags_simulate_keypress(eAGSKeyCode ags_key);
+void ags_simulate_keypress(eAGSKeyCode ags_key, bool old_keyhandle);
 
 // TODO: hide these later? (bad design with run_service_key_controls,
 // but also need to clear them in ags_clear_input_buffer())

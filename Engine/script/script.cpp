@@ -647,7 +647,7 @@ void post_script_cleanup() {
             restart_game();
             return;
         case ePSASaveGame:
-            save_game(thisData, act.Description.GetCStr());
+            save_game(thisData, act.Description.GetCStr(), std::move(act.Image));
             break;
         case ePSASaveGameDialog:
             save_game_dialog2(thisData & 0xFFFF, (thisData >> 16));
@@ -741,6 +741,11 @@ void run_unhandled_event(const ObjectEvent &obj_evt, int evnt) {
         RuntimeScriptValue params[] = { evtype, evnt };
         QueueScriptFunction(kScInstGame, "unhandled_event", 2, params);
     }
+}
+
+ExecutingScript *get_executingscript()
+{
+    return curscript;
 }
 
 bool get_script_position(ScriptPosition &script_pos)

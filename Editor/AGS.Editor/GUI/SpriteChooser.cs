@@ -37,6 +37,13 @@ namespace AGS.Editor
 
         protected override void OnClosed(EventArgs e)
         {
+            if (!DesignMode)
+            {
+                var config = GUIController.Instance.WindowConfig;
+                ConfigUtils.WriteControlPosition(config, "SpriteChooser", this);
+                spriteSelector1.WriteConfig(config.GetOrAddObject("SpriteChooser/spriteSelector"));
+            }
+
             //If a sprite or a folder was added, we need to refresh the sprite manager component
             ISpriteController spriteController = (ISpriteController)
                 Factory.ComponentController.FindComponentThatImplementsInterface(typeof(ISpriteController));
@@ -138,6 +145,13 @@ namespace AGS.Editor
             spriteSelector1.SelectSprite(_startingSpriteNumber);
 
 			Cursor.Current = Cursors.Default;
+
+            if (!DesignMode)
+            {
+                var config = GUIController.Instance.WindowConfig;
+                ConfigUtils.ReadFormPosition(config, "SpriteChooser", this);
+                spriteSelector1.ReadConfig(config.GetObject("SpriteChooser/spriteSelector"));
+            }
 		}
 
 		private void btnUseNoSprite_Click(object sender, EventArgs e)

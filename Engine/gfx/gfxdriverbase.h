@@ -122,8 +122,9 @@ public:
     bool        SetVsync(bool enabled) override;
     bool        GetVsync() const override;
 
+    void        BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform, uint32_t filter_flags = 0) override;
     void        BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform,
-                    Common::GraphicFlip flip = Common::kFlip_None, PBitmap surface = nullptr, uint32_t filter_flags = 0) override;
+                    Common::GraphicFlip flip, PBitmap surface = nullptr, uint32_t filter_flags = 0) override;
     void        BeginSpriteBatch(IDriverDependantBitmap *render_target, const Rect &viewport, const SpriteTransform &transform,
                     Common::GraphicFlip flip = Common::kFlip_None, uint32_t filter_flags = 0) override;
     void        EndSpriteBatch() override;

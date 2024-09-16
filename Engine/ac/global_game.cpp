@@ -18,7 +18,6 @@
 #include "core/platform.h"
 #include "ac/audiocliptype.h"
 #include "ac/common.h"
-#include "ac/view.h"
 #include "ac/character.h"
 #include "ac/draw.h"
 #include "ac/dynamicsprite.h"
@@ -28,6 +27,7 @@
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_character.h"
+#include "ac/global_display.h"
 #include "ac/global_gui.h"
 #include "ac/global_hotspot.h"
 #include "ac/global_inventoryitem.h"
@@ -43,6 +43,7 @@
 #include "ac/roomstatus.h"
 #include "ac/string.h"
 #include "ac/system.h"
+#include "ac/view.h"
 #include "debug/debugger.h"
 #include "debug/debug_log.h"
 #include "font/fonts.h"
@@ -63,6 +64,7 @@
 #include "util/path.h"
 #include "util/string_utils.h"
 #include "media/audio/audio_system.h"
+#include "platform/base/agsplatformdriver.h"
 #include "platform/base/sys_main.h"
 
 using namespace AGS::Common;
@@ -114,6 +116,39 @@ void MoveSaveSlot(int old_save, int new_save) {
     String old_filename = get_save_game_path(old_save);
     String new_filename = get_save_game_path(new_save);
     File::RenameFile(old_filename, new_filename);
+}
+
+void SaveGameSlot(int slotn, const char *descript, int spritenum)
+{
+    VALIDATE_STRING(descript);
+
+    if (platform->GetDiskFreeSpaceMB(get_save_game_directory()) < 2)
+    {
+        Display("ERROR: There is not enough disk space free to save the game. Clear some disk space and try again.");
+        return;
+    }
+
+    // dont allow save in rep_exec_always, because we dont save
+    // the state of blocked scripts
+    can_run_delayed_command();
+
+    // Make a sprite copy, as save process may be scheduled and asynchronous (in theory)
+    std::unique_ptr<Bitmap> image;
+    if (spritenum >= 0)
+        image.reset(BitmapHelper::CreateBitmapCopy(spriteset[spritenum]));
+
+    if (inside_script)
+    {
+        curscript->QueueAction(PostScriptAction(ePSASaveGame, slotn, "SaveGameSlot", descript, std::move(image)));
+        return;
+    }
+
+    save_game(slotn, descript, std::move(image));
+}
+
+void SaveGameSlot2(int slnum, const char *descript)
+{
+    SaveGameSlot(slnum, descript, -1);
 }
 
 void DeleteSaveSlot (int slnum) {
@@ -376,7 +411,8 @@ void SkipUntilCharacterStops(int cc) {
     if (!is_valid_character(cc))
         quit("!SkipUntilCharacterStops: invalid character specified");
     if (game.chars[cc].room!=displayed_room)
-        quit("!SkipUntilCharacterStops: specified character not in current room");
+        quitprintf("!SkipUntilCharacterStops: character %s is not in current room %d (it is in room %d)",
+            game.chars[cc].scrname.GetCStr(), displayed_room, game.chars[cc].room);
 
     // if they are not currently moving, do nothing
     if (!game.chars[cc].walking)
@@ -471,13 +507,13 @@ void SaveCursorForLocationChange() {
     }
 }
 
-void GetLocationName(int xxx,int yyy,char*tempo) {
-    if (displayed_room < 0)
-        quit("!GetLocationName: no room has been loaded");
-
+void GetLocationName(int xxx,int yyy,char*tempo)
+{
     VALIDATE_STRING(tempo);
-
     tempo[0] = 0;
+
+    if (displayed_room < 0)
+        return; // no room loaded yet
 
     if (GetGUIAt(xxx, yyy) >= 0) {
         int mover = GetInvAt (xxx, yyy);
@@ -692,14 +728,12 @@ int IsInteractionAvailable (int xx,int yy,int mood) {
 }
 
 void SetSpeechFont (int fontnum) {
-    if ((fontnum < 0) || (fontnum >= game.numfonts))
-        quit("!SetSpeechFont: invalid font number.");
+    fontnum = ValidateFontNumber("SetSpeechFont", fontnum);
     play.speech_font = fontnum;
 }
 
 void SetNormalFont (int fontnum) {
-    if ((fontnum < 0) || (fontnum >= game.numfonts))
-        quit("!SetNormalFont: invalid font number.");
+    fontnum = ValidateFontNumber("SetNormalFont", fontnum);
     play.normal_font = fontnum;
 }
 

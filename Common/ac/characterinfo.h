@@ -99,7 +99,6 @@ enum CharacterSvgVersion
     kCharSvgVersion_400_09  = 4000009, // 32-bit color properties
 };
 
-struct CharacterExtras;
 
 // Design-time Character data.
 // TODO: must refactor, some parts of it should be in a runtime Character class.
@@ -171,21 +170,6 @@ struct CharacterInfo
             (CHANIM_BACKWARDS * !forwards) |
             ((delay & 0xFF) << 8);
     }
-
-	// TODO: these methods should NOT be in CharacterInfo class,
-    // bit in distinct runtime character class! were moved to CharacterInfo by mistake.
-    // NOTE: char_index had still be passed to some of those functions
-	// either because they use it to set some variables with it,
-	// or because they pass it further to other functions, that are called from various places
-	// and it would be too much to change them all simultaneously.
-	void UpdateMoveAndAnim(int &char_index, CharacterExtras *chex, std::vector<int> &followingAsSheep);
-	void UpdateFollowingExactlyCharacter();
-
-    bool update_character_turning(CharacterExtras *chex);
-	void update_character_moving(int &char_index, CharacterExtras *chex, int &doing_nothing);
-	bool update_character_animating(int &char_index, int &doing_nothing);
-	void update_character_idle(CharacterExtras *chex, int &doing_nothing);
-	void update_character_follower(int &char_index, std::vector<int> &followingAsSheep, int &doing_nothing);
 
     void ReadFromFile(Common::Stream *in, GameDataVersion data_ver);
     void WriteToFile(Common::Stream *out) const;

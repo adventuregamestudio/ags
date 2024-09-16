@@ -89,6 +89,11 @@ bool GraphicsDriverBase::GetVsync() const
     return _mode.Vsync;
 }
 
+void GraphicsDriverBase::BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform, uint32_t filter_flags)
+{
+    BeginSpriteBatch(SpriteBatchDesc(_actSpriteBatch, viewport, transform, kFlip_None, nullptr, filter_flags));
+}
+
 void GraphicsDriverBase::BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform,
     GraphicFlip flip, PBitmap surface, uint32_t filter_flags)
 {

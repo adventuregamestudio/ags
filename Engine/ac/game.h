@@ -20,11 +20,12 @@
 
 #include <memory>
 #include "ac/dynobj/scriptviewframe.h"
+#include "gfx/bitmap.h"
 #include "main/game_file.h"
 #include "util/string.h"
 
 // Forward declaration
-namespace AGS { namespace Common { class AssetManager; class Bitmap; class Stream; } }
+namespace AGS { namespace Common { class AssetManager; class Stream; } }
 using namespace AGS; // FIXME later
 
 #define RAGMODE_LOADNOW 0x8000000  // just to make sure it's non-zero
@@ -140,7 +141,7 @@ bool do_save_game_dialog(int min_slot, int max_slot);
 void free_do_once_tokens();
 // Free all the memory associated with the game
 void unload_game();
-void save_game(int slotn, const char*descript);
+void save_game(int slotn, const Common::String &descript, std::unique_ptr<Common::Bitmap> &&image = nullptr);
 bool read_savedgame_description(const Common::String &savedgame, Common::String &description);
 std::unique_ptr<Common::Bitmap> read_savedgame_screenshot(const Common::String &savedgame);
 // Tries to restore saved game and displays an error on failure; if the error occured

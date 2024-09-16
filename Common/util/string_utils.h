@@ -96,25 +96,47 @@ namespace StrUtil
 
 
     // Parses enum value by name, using provided C-string array,
-    // where strings are compared as case-insensitive; returns def_val if failed;
+    // where strings are compared as case-insensitive; returns def_val if failed
     template<typename T, std::size_t SIZE>
-    T ParseEnum(const String &option, const CstrArr<SIZE>& arr, const T def_val = static_cast<T>(-1))
+    T ParseEnum(const String &option, const CstrArr<SIZE> &arr, const T &def_val)
     {
         for (auto it = arr.cbegin(); it < arr.cend(); ++it)
             if ((*it && *it[0] != 0) && (option.CompareNoCase(*it) == 0))
                 return static_cast<T>(it - arr.begin());
         return def_val;
     }
+    // Parses enum value by name, using provided C-string array and a base value (e.g. 0, -1, +1, etc),
+    // where strings are compared as case-insensitive; returns def_val if failed
+    template<typename T, std::size_t SIZE>
+    T ParseEnumWithBase(const String &option, const CstrArr<SIZE> &arr, const T &base_val, const T &def_val)
+    {
+        for (auto it = arr.cbegin(); it < arr.cend(); ++it)
+            if ((*it && *it[0] != 0) && (option.CompareNoCase(*it) == 0))
+                return static_cast<T>(it - arr.begin() + base_val);
+        return def_val;
+    }
     // Parses enum value either as a number, or searching withing the C-string array,
     // where strings are compared as case-insensitive; returns def_val if failed to do both
     template<typename T, std::size_t SIZE>
-    T ParseEnumAllowNum(const String &option, const CstrArr<SIZE>& arr, const T def_val = static_cast<T>(-1))
+    T ParseEnumAllowNum(const String &option, const CstrArr<SIZE> &arr, const T &def_val)
     {
         int num = StrUtil::StringToInt(option, -1);
         if (num >= 0) return static_cast<T>(num);
         for (auto it = arr.cbegin(); it < arr.cend(); ++it)
             if ((*it && *it[0] != 0) && (option.CompareNoCase(*it) == 0))
                 return static_cast<T>(it - arr.begin());
+        return def_val;
+    }
+    // Parses enum value by name, using provided map of correspondence between
+    // C-strings and enum constants, where strings are compared as case-insensitive;
+    // returns def_val if failed
+    template<typename T, std::size_t SIZE>
+    T ParseEnumOptions(const String &option, const std::array<std::pair<const char*, T>, SIZE> &arr,
+        const T &def_val)
+    {
+        for (auto it = arr.cbegin(); it < arr.cend(); ++it)
+            if ((it->first && it->first[0] != 0) && (option.CompareNoCase(it->first) == 0))
+                return static_cast<T>(it->second);
         return def_val;
     }
 

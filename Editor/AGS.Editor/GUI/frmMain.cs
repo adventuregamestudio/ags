@@ -88,6 +88,7 @@ namespace AGS.Editor
             if (!DesignMode)
             {
                 LoadLayout();
+                Factory.GUIController.LoadWindowConfig();
                 Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
             }
         }
@@ -397,6 +398,10 @@ namespace AGS.Editor
             }
             if (!e.Cancel)
             {
+                // Explicitly remove all document panes in order to trigger their OnPanelClosing,
+                // where they possibly save their states to a WindowConfig.
+                tabbedDocumentContainer1.RemoveAllDocuments(false);
+                Factory.GUIController.SaveWindowConfig();
                 _layoutManager.SaveLayout();
             }
         }

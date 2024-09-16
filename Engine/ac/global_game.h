@@ -43,6 +43,8 @@ void AbortGame();
 void restart_game();
 void RestoreGameSlot(int slnum);
 void MoveSaveSlot (int old_slot, int new_slot);
+void SaveGameSlot(int slnum, const char *descript, int spritenum);
+void SaveGameSlot2(int slnum, const char *descript);
 void DeleteSaveSlot (int slnum);
 int  GetSaveSlotDescription(int slnum,char*desbuf);// [DEPRECATED] ?
 void FillSaveList(std::vector<SaveListItem> &saves, unsigned bot_index, unsigned top_index, size_t max_count = -1);

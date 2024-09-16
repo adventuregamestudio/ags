@@ -285,7 +285,8 @@ void save_room_data_segment () {
 
 }
 
-void unload_old_room() {
+void unload_old_room()
+{
     // if switching games on restore, don't do this
     if (displayed_room < 0)
         return;
@@ -362,6 +363,9 @@ void unload_old_room() {
         play.temporarily_turned_off_character = -1;
     }
 
+
+    displayed_room = -10;
+   
     pool.PrintStats();
 }
 

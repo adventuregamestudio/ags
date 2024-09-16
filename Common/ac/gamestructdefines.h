@@ -60,7 +60,7 @@
 #define OPT_CHARTURNWHENFACE 27  // characters turn step-by-step when facing new standing direction
 #define OPT_RIGHTLEFTWRITE  28  // right-to-left text writing
 #define OPT_DUPLICATEINV    29  // if they have 2 of the item, draw it twice
-#define OPT_SAVESCREENSHOT  30
+#define OPT_SAVESCREENSHOT  30  // write screenshots into savegame (on/off)
 #define OPT_PORTRAITSIDE    31
 #define OPT_OBSOLETE_STRICTSCRIPTING   32  // don't allow MoveCharacter-style commands
 #define OPT_OBSOLETE_LEFTTORIGHTEVAL   33  // [DEPRECATED] left-to-right operator evaluation
@@ -85,8 +85,8 @@
 #define OPT_KEYHANDLEAPI       50 // key handling mode (old/new)
 #define OPT_CUSTOMENGINETAG    51 // custom engine tag (for overriding behavior)
 #define OPT_SCALECHAROFFSETS   52 // apply character scaling to the sprite offsets (z, locked offs)
-#define OPT_HIGHESTOPTION      OPT_SCALECHAROFFSETS
-#define OPT_OBSOLETE_NOMODMUSIC 98 // [DEPRECATED]
+#define OPT_SAVESCREENSHOTLAYER 53 // which render layers to include into savegame screenshot
+#define OPT_HIGHESTOPTION      OPT_SAVESCREENSHOTLAYER
 #define OPT_LIPSYNCTEXT        99
 
 // Compatibility engine modes (hacks)

@@ -13,7 +13,7 @@ using AGS.Editor.Utils;
 
 namespace AGS.Editor
 {
-    public partial class SpriteSelector : UserControl
+    public partial class SpriteSelector : UserControl, IObjectConfigurable
     {
         public delegate void SelectionChangedHandler(Sprite[] newSelection);
         [Description("Occurs when the selected sprite changes")]
@@ -1802,6 +1802,20 @@ namespace AGS.Editor
         {
             splitContainer1.SplitterDistance = 2 * (button_importNew.Font.Height) + button_importNew.Margin.Top + button_importNew.Margin.Bottom - 4;
         }
+
+        #region IObjectConfigurable
+
+        public void ReadConfig(IObjectConfig config)
+        {
+            splitWindow.SplitterDistance = config.GetInt("splitWindow/SplitterDistance", splitWindow.SplitterDistance);
+        }
+
+        public void WriteConfig(IObjectConfig config)
+        {
+            config.SetInt("splitWindow/SplitterDistance", splitWindow.SplitterDistance);
+        }
+
+        #endregion
     }
 
     internal class SpriteManagerDragDropData

@@ -459,10 +459,8 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data)
     setup_player_character(game.playercharacter);
 
     // Save some parameters to restore them after room load
-    int gstimer=play.gscript_timer;
-    int oldx1 = play.mboundx1, oldx2 = play.mboundx2;
-    int oldy1 = play.mboundy1, oldy2 = play.mboundy2;
-
+    const int gstimer = play.gscript_timer;
+    const Rect mouse_bounds = play.mbounds;
     // load the room the game was saved in
     if (displayed_room >= 0)
         load_new_room(displayed_room, nullptr);
@@ -475,9 +473,10 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data)
     ccInstance::JoinRTTI(r_data.GenRTTI, loc_l2g, type_l2g);
     pool.RemapTypeids(type_l2g);
 
-    play.gscript_timer=gstimer;
+    // Reapply few parameters after room load
+    play.gscript_timer = gstimer;
+    play.mbounds = mouse_bounds;
 
-    Mouse::SetMoveLimit(Rect(oldx1, oldy1, oldx2, oldy2));
 
     set_cursor_mode(r_data.CursorMode);
     set_mouse_cursor(r_data.CursorID, true);
@@ -585,20 +584,24 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data)
     prepare_gui_runtime(false /* not startup */);
 
     RestoreViewportsAndCameras(r_data);
-
-    play.ClearIgnoreInput(); // don't keep ignored input after save restore
-    update_polled_stuff();
+    set_game_speed(r_data.FPS);
 
     pl_run_plugin_hooks(AGSE_POSTRESTOREGAME, 0);
 
+    // If this is a restart point and no room was loaded, then load startup room
     if (displayed_room < 0)
     {
-        // the restart point, no room was loaded
         load_new_room(playerchar->room, playerchar);
         first_room_initialization();
     }
 
-    set_game_speed(r_data.FPS);
+    Mouse::SetMoveLimit(play.mbounds); // apply mouse bounds
+    play.ClearIgnoreInput(); // don't keep ignored input after save restore
+    update_polled_stuff();
+    
+    // Apply accessibility options, must be done last, because some
+    // may override restored game settings
+    ApplyAccessibilityOptions();
 
     return HSaveError::None();
 }

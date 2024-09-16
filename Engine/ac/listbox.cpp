@@ -180,9 +180,7 @@ int ListBox_GetFont(GUIListBox *listbox) {
 }
 
 void ListBox_SetFont(GUIListBox *listbox, int newfont) {
-
-  if ((newfont < 0) || (newfont >= game.numfonts))
-    quit("!ListBox.Font: invalid font number.");
+  newfont = ValidateFontNumber("ListBox.Font", newfont);
 
   if (newfont != listbox->Font) {
     listbox->SetFont(newfont);

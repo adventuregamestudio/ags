@@ -36,10 +36,12 @@
 #ifndef __AGS_CN_CORE__ASSETMANAGER_H
 #define __AGS_CN_CORE__ASSETMANAGER_H
 
-#include <memory>
 #include <functional>
+#include <memory>
+#include <unordered_map>
 #include "core/asset.h"
 #include "util/stream.h"
+#include "util/string_types.h"
 
 namespace AGS
 {
@@ -141,6 +143,7 @@ private:
         String FilterString; // filter string, as received on input (for diagnostic purposes)
         std::vector<String> Filters; // asset filters this library is matching to
         std::vector<String> RealLibFiles; // fixed up library filenames
+        std::unordered_map<String, size_t, HashStrNoCase, StrEqNoCase> Lookup; // name to index asset lookup
 
         bool TestFilter(const String &filter) const;
     };

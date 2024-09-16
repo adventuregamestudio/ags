@@ -161,8 +161,12 @@
     <Compile Include="Components\TextParserComponent.cs" />
     <Compile Include="Components\ViewsComponent.cs" />
     <Compile Include="Entities\IAppSettings.cs" />
+    <Compile Include="Config\ConfigUtils.cs" />
     <Compile Include="Entities\ExistingScriptHeaderToAdd.cs" />
     <Compile Include="Entities\ExistingFileToAdd.cs" />
+    <Compile Include="Config\IObjectConfig.cs" />
+    <Compile Include="Config\IObjectConfigurable.cs" />
+    <Compile Include="Config\ObjectConfigJson.cs" />
     <Compile Include="Entities\LogBufferEventArgs.cs" />
     <Compile Include="Entities\MultiSelectAction.cs" />
     <Compile Include="Entities\ScriptModuleDef.cs" />

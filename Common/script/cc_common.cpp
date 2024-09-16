@@ -63,6 +63,11 @@ const ScriptError &cc_get_error()
     return ccError;
 }
 
+String cc_get_err_callstack(int max_lines)
+{
+    return cc_has_error() ? ccError.CallStack : cc_get_callstack(max_lines);
+}
+
 void cc_error(const char *descr, ...)
 {
     ccError.IsUserError = false;

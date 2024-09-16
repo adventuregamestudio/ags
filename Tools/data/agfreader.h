@@ -428,6 +428,8 @@ void ReadGameSettings(DataUtil::GameSettings &opt, DocElem root);
 void ReadGameRef(DataUtil::GameRef &game, AGFReader &reader);
 // Reads an ordered list of script module names (their order determines dependency).
 void ReadScriptList(std::vector<String> &script_list, DocElem root);
+// Reads an ordered list of script header module names (their order determines dependency).
+void ReadScriptHeaderList(std::vector<String> &script_list, DocElem root);
 // Reads a list of room ID and descriptions found in the game document.
 void ReadRoomList(std::vector<std::pair<int, String>> &room_list, DocElem root);
 

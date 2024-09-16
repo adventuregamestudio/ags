@@ -30,6 +30,9 @@ inline void VALIDATE_STRING(const char *strin)
         quit("!String argument was null: make sure you pass a valid string as a buffer.");
 }
 
+// Tests if a font number is valid, if not then prints a warning and returns a substitution
+int ValidateFontNumber(const char *apiname, int font_num);
+
 const char *CreateNewScriptString(const char *text);
 inline const char *CreateNewScriptString(const AGS::Common::String &text)
     { return CreateNewScriptString(text.GetCStr()); }

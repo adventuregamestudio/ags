@@ -27,19 +27,28 @@ Editor:
    by Ctrl + F2.
  - Editor tabs now display icons indicating their contents (may be disabled in Editor Preferences).
  - Room panel tabs now display room names.
+ - Editor will now remember certain window states: "Sprite selector" window and splitter position,
+   splitter position in "Sprite manager".
  - Support reordering folders in Project Explorer with drag & drop.
  - Support importing plain script files: ash, asc or both, - besides script modules (*.scm).
  - Added "Controls transparency" slider to GUI edit pane.
+ - Copy, paste and delete commands now apply to all the selected GUI controls in GUI editor.
+ - Support editing group properties for selected GUI controls.
+ - Textual GUI controls can now select "Null Font" as their font: this will prevent any text to be
+   drawn even if one is assigned, and make it have zero size (when it matters).
  - Support to import and keep sprites as explicitly 8-bit images without converting to the game's
    default color depth. This lets to have chosen sprites used as 8-bit masks in a 16/32-bit game.
  - Support importing 1-bit (monochrome) and 4-bit images as sprites, room backgrounds and masks
    (converted to 8-bit).
  - Do not alter or clamp palette for 8-bit sprites imported in a 16/32-bit game.
+ - Removed obsolete "Copy walkable area mask to regions" command from the Room editor.
  - Improved scrolling of drop-down lists in the Room's navigation bar: made scroll buttons larger,
    and support mouse wheel.
  - Ensure that Editor exports room backgrounds in their actual color depth.
  - Do not delete previously built game exe from Compiled/Windows folder when testing a game
    from the editor.
+ - Added "/maketemplate" command-line option that tells Editor to run, make template out of the
+   said game, and quit.
  - Added "Open Recent" submenu in the File menu.
  - Sync script editor's commands in Edit menu with the context menu.
  - Added "Toggle Line Comment" command to Edit menu for scripts.
@@ -109,6 +118,9 @@ Script API:
    "space", and returns them as an array of Points.
  - Added MaskPathfinder struct, which lets to initialize a Pathfinder using a 8-bit sprite
    serving as a navigation mask.
+ - Added eNullFont constant that lets assign or pass a "null font" to any property or function
+   parameter which expects a font's ID. This "null font" will simply make any text not drawn
+   and have no actual measurements (size, spacing, etc).
  - Added BlendMode enum.
  - Added Character.Enabled and Visible properties, added Object.Enabled property,
    Character.on is deprecated.
@@ -126,6 +138,8 @@ Script API:
  - Added ColorFormat enum, and optional "color_format" parameter to DynamicSprite's functions:
    Create(), CreateFromBackground(), CreateFromDrawingSurface(), CreateFromExistingSprite()
    and CreateFromFile().
+ - Added RenderLayer enum, and optional "layers" parameter to DynamicSprite.CreateFromScreenShot(),
+   that tells which of the game's render layers to capture when making a screenshot.
  - Added DrawingSurface.BlendImage() and DrawingSurface.BlendSurface() functions.
  - Added readonly DrawingSurface.ColorDepth property.
  - Added readonly Game.SpriteColorDepth[] indexed property.
@@ -139,9 +153,13 @@ Script API:
  - Added Speech.SpeakingCharacter that returns currently speaking character (for blocking speech).
  - Added StringSplitOptions enum, String.Join(), String.Split() and String.Trim() functions.
  - Added MoveSaveSlot() which renames a savegame.
+ - Added optional "sprite" parameter to SaveGameSlot(), that lets to pass a number of an arbitrary
+   sprite to write into this save instead of a standard "screenshot".
  - Added System.GetEngineInteger() and System.GetEngineString() for returning diagnostic
    information about engine's runtime state. Possible arguments are defined by
    EngineValueID enum.
+ - Added new game-wide option OPT_SAVEGAMESCREENSHOTLAYER that lets to define which of the game's
+   render layers will be captured when making a standard screenshot for the save game.
  - Expanded `on_mouse_click` callback, now supports two more parameters: click x,y coordinates.
  - Added "walkarea[]" and "walkbehind[]" global arrays.
  - Global generated game objects (Characters, GUIs, etc), and global arrays of these objects
@@ -170,19 +188,30 @@ Engine:
  - AudioChannel.Position and PositionMs no longer return a very large value while skipping
    cutscene.
  - DynamicSprite.CreateFromFile() may now load 1-bit and 4-bit bitmaps, converting to 8-bit.
+ - Assigning InventoryItem.Graphic will no longer reassign CursorGraphic too even if they were
+   identical previously.
  - Both blocking and non-blocking videos are buffered and played on a separate thread.
  - GetTextHeight() no longer reduces "width" parameter by -1. This was an ancient mistake in
    the engine kept for many years for backwards compatibility.
  - DeleteSaveSlot() no longer causes highest save to be renamed to fill a gap in saves.
  - Added FLAC support for music, speech and sound effects.
+ - Added new accessibility config settings in "access" section: "speechskip" and "textskip".
+   These let player to override game's skipping style for character speech and text messages
+   respectively.
  - Added "--no-plugins" command-line argument that denies loading any plugins;
    also added respective config option.
  - Added "--print-rtti" command line option which prints script RTTI table to the log.
    (RTTI stands for "runtime type information", and is used for handling of certain advanced
    script features, such as nested managed structs.)
+ - Fixed a issue where the single enabled dialog option that is run automatically would not
+   cause the automatic Say of the option text.
 
 Engine Plugin API:
  - Added IAGSEngine.Log(), which lets plugins to print using engine's log system.
+
+WinSetup:
+ - Redesigned winsetup into a tabbed dialog.
+ - Added "Accessibility" settings for skipping speech and text messages.
 
 
 ===================================================================================================

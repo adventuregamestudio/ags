@@ -203,8 +203,6 @@ Engine:
  - Added "--print-rtti" command line option which prints script RTTI table to the log.
    (RTTI stands for "runtime type information", and is used for handling of certain advanced
    script features, such as nested managed structs.)
- - Fixed a issue where the single enabled dialog option that is run automatically would not
-   cause the automatic Say of the option text.
 
 Engine Plugin API:
  - Added IAGSEngine.Log(), which lets plugins to print using engine's log system.

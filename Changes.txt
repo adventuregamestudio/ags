@@ -73,11 +73,8 @@ Engine:
  - Added new accessibility config settings in "access" section: "speechskip" and "textskip".
    These let player to override game's skipping style for character speech and text messages
    respectively.
- - Implemented couple of "accessibility" options in the game config:
  - Added "--no-plugins" command-line argument that denies loading any plugins;
    also added respective config option.
- - Fixed a issue where the single enabled dialog option that is run automatically would not
-   cause the automatic Say of the option text.
  - Fixed displaying room masks with Debug command in legacy "upscale" mode.
 
 Engine Plugin API:

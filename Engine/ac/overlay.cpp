@@ -276,18 +276,15 @@ ScriptOverlay* Overlay_CreateRoomTextual(int x, int y, int width, int font, int 
     return Overlay_CreateTextualImpl(true, x, y, width, font, colour, text);
 }
 
-int Overlay_GetBlendMode(ScriptOverlay *scover) {
-    auto *over = get_overlay(scover->overlayId);
-    if (!over)
-        quit("!invalid overlay ID specified");
-
+int Overlay_GetBlendMode(ScriptOverlay *scover)
+{
+    auto *over = GetOverlayValidate("Overlay.BlendMode", scover);
     return over->blendMode;
 }
 
-void Overlay_SetBlendMode(ScriptOverlay *scover, int blendMode) {
-    auto *over = get_overlay(scover->overlayId);
-    if (!over)
-        quit("!invalid overlay ID specified");
+void Overlay_SetBlendMode(ScriptOverlay *scover, int blendMode)
+{
+    auto *over = GetOverlayValidate("Overlay.BlendMode", scover);
     if ((blendMode < 0) || (blendMode >= kNumBlendModes))
         quitprintf("!SetBlendMode: invalid blend mode %d, supported modes are %d - %d", blendMode, 0, kNumBlendModes - 1);
     over->blendMode = (BlendMode)blendMode;
@@ -309,16 +306,12 @@ void Overlay_SetTransparency(ScriptOverlay *scover, int trans)
 }
 
 float Overlay_GetRotation(ScriptOverlay *scover) {
-    auto *over = get_overlay(scover->overlayId);
-    if (!over)
-        quit("!invalid overlay ID specified");
+    auto *over = GetOverlayValidate("Overlay.Rotation", scover);
     return over->rotation;
 }
 
 void Overlay_SetRotation(ScriptOverlay *scover, float degrees) {
-    auto *over = get_overlay(scover->overlayId);
-    if (!over)
-        quit("!invalid overlay ID specified");
+    auto *over = GetOverlayValidate("Overlay.Rotation", scover);
     over->rotation = Math::ClampAngle360(degrees);
 }
 
@@ -336,9 +329,7 @@ void Overlay_SetZOrder(ScriptOverlay *scover, int zorder)
 
 void Overlay_SetPosition(ScriptOverlay *scover, int x, int y, int width, int height)
 {
-    auto *over = get_overlay(scover->overlayId);
-    if (!over)
-        quit("!invalid overlay ID specified");
+    auto *over = GetOverlayValidate("Overlay.SetPosition", scover);
     over->SetFixedPosition(x, y);
     // width and height are optional here
     if (width > 0 || height > 0)
@@ -355,17 +346,13 @@ void Overlay_SetPosition(ScriptOverlay *scover, int x, int y, int width, int hei
 
 void Overlay_SetSize(ScriptOverlay *scover, int width, int height)
 {
-    auto *over = get_overlay(scover->overlayId);
-    if (!over)
-        quit("!invalid overlay ID specified");
+    auto *over = GetOverlayValidate("Overlay.SetSize", scover);
     Overlay_SetScaledSize(*over, width, height);
 }
 
 void Overlay_Tint(ScriptOverlay *scover, int red, int green, int blue, int opacity, int luminance)
 {
-    auto *over = get_overlay(scover->overlayId);
-    if (!over)
-        quit("!invalid overlay ID specified");
+    auto *over = GetOverlayValidate("Overlay.Tint", scover);
 
     if ((red < 0) || (green < 0) || (blue < 0) ||
         (red > 255) || (green > 255) || (blue > 255) ||
@@ -382,83 +369,63 @@ void Overlay_Tint(ScriptOverlay *scover, int red, int green, int blue, int opaci
 
 void Overlay_SetLightLevel(ScriptOverlay *scover, int light_level)
 {
-    auto *over = get_overlay(scover->overlayId);
-    if (!over)
-        quit("!invalid overlay ID specified");
+    auto *over = GetOverlayValidate("Overlay.SetLightLevel", scover);
 
     over->SetLightLevel(Math::Clamp(light_level, -100, 100));
 }
 
 void Overlay_RemoveTint(ScriptOverlay *scover)
 {
-    auto *over = get_overlay(scover->overlayId);
-    if (!over)
-        quit("!invalid overlay ID specified");
+    auto *over = GetOverlayValidate("Overlay.RemoveTint", scover);
 
     over->RemoveTint();
 }
 
 bool Overlay_GetHasLight(ScriptOverlay *scover)
 {
-    auto *over = get_overlay(scover->overlayId);
-    if (!over)
-        quit("!invalid overlay ID specified");
+    auto *over = GetOverlayValidate("Overlay.HasLight", scover);
     return over->HasLightLevel();
 }
 
 bool Overlay_GetHasTint(ScriptOverlay *scover)
 {
-    auto *over = get_overlay(scover->overlayId);
-    if (!over)
-        quit("!invalid overlay ID specified");
+    auto *over = GetOverlayValidate("Overlay.HasTint", scover);
     return over->HasTint();
 }
 
 int Overlay_GetLightLevel(ScriptOverlay *scover)
 {
-    auto *over = get_overlay(scover->overlayId);
-    if (!over)
-        quit("!invalid overlay ID specified");
+    auto *over = GetOverlayValidate("Overlay.LightLevel", scover);
     return over->HasLightLevel() ? over->tint_light : 0;
 }
 
 int Overlay_GetTintRed(ScriptOverlay *scover)
 {
-    auto *over = get_overlay(scover->overlayId);
-    if (!over)
-        quit("!invalid overlay ID specified");
+    auto *over = GetOverlayValidate("Overlay.TintRed", scover);
     return over->HasTint() ? over->tint_r : 0;
 }
 
 int Overlay_GetTintGreen(ScriptOverlay *scover)
 {
-    auto *over = get_overlay(scover->overlayId);
-    if (!over)
-        quit("!invalid overlay ID specified");
+    auto *over = GetOverlayValidate("Overlay.TintGreen", scover);
     return over->HasTint() ? over->tint_g : 0;
 }
 
 int Overlay_GetTintBlue(ScriptOverlay *scover)
 {
-    auto *over = get_overlay(scover->overlayId);
-    if (!over)
-        quit("!invalid overlay ID specified");
+    auto *over = GetOverlayValidate("Overlay.TintBlue", scover);
     return over->HasTint() ? over->tint_b : 0;
 }
 
 int Overlay_GetTintSaturation(ScriptOverlay *scover)
 {
-    auto *over = get_overlay(scover->overlayId);
-    if (!over)
-        quit("!invalid overlay ID specified");
+    auto *over = GetOverlayValidate("Overlay.TintSaturation", scover);
     return over->HasTint() ? over->tint_level : 0;
 }
 
 int Overlay_GetTintLuminance(ScriptOverlay *scover)
 {
-    auto *over = get_overlay(scover->overlayId);
-    if (!over)
-        quit("!invalid overlay ID specified");
+    auto *over = GetOverlayValidate("Overlay.TintLuminance", scover);
     return over->HasTint() ? GfxDef::Value250ToValue100(over->tint_light) : 0;
 }
 

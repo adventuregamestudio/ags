@@ -112,15 +112,6 @@ namespace AGS.Editor
             lblRedVal.Text = trackBarRed.Value.ToString();
             lblGreenVal.Text = trackBarGreen.Value.ToString();
             lblBlueVal.Text = trackBarBlue.Value.ToString();
-            // Ensure that we also display an honest clamped RGB values;
-            // we'd rather have users see an exact RGB which will be used in game,
-            // than to display a desired RGB that is going to be "secretly" clamped at runtime.
-            Color rgb = Color.FromArgb(trackBarRed.Value, trackBarGreen.Value, trackBarBlue.Value);
-            rgb = ColorMapper.AgsColourNumberToColorDirect(
-                ColorMapper.ColorToAgsColourNumberDirect(rgb));
-            lblRedFinal.Text = string.Format($"({rgb.R})");
-            lblGreenFinal.Text = string.Format($"({rgb.G})");
-            lblBlueFinal.Text = string.Format($"({rgb.B})");
             blockOfColour.Invalidate();
         }
 

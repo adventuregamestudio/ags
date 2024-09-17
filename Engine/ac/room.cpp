@@ -896,6 +896,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     set_our_eip(220);
     update_polled_stuff();
     debug_script_log("Now in room %d", displayed_room);
+    cursor_gstate.MarkChanged();
     GUI::MarkAllGUIForUpdate(true, true);
     pl_run_plugin_hooks(AGSE_ENTERROOM, displayed_room);
 }

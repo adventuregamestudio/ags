@@ -7,10 +7,14 @@ Common:
    Editor and Engine, and is no longer supported. The Editor guarantees to import the projects
    saved by AGS 3.6.0 and later. The Engine may run games compiled in 3.6.0, but only so long
    as they don't use any deprecated settings or script commands.
+ - Removed support for 16-bit games. Any older 16-bit project will be converted to 32-bit
+   on import by the Editor.
  - Completely removed Global Messages and Room Messages.
  - Removed built-in support for Game Score, including related game settings and GiveScore
    script command. Users are advised to script their own score counter if they need one.
  - Removed support for '[' as a linebreak character in text.
+ - Support true 32-bit colors in GUI, text messages and drawing commands in script.
+   Color number properties now correspond to the encoded 32-bit RGB (R8G8B8 format).
 
 Editor:
  - Open room project format: rooms are now saved as subfolders in "Rooms" folder, where each
@@ -41,10 +45,12 @@ Editor:
  - Support importing 1-bit (monochrome) and 4-bit images as sprites, room backgrounds and masks
    (converted to 8-bit).
  - Do not alter or clamp palette for 8-bit sprites imported in a 16/32-bit game.
+ - When importing room backgrounds of a different size Editor will now let user decide whether
+   to reset, keep or rescale room masks.
+ - Ensure that Editor exports room backgrounds in their actual color depth.
  - Removed obsolete "Copy walkable area mask to regions" command from the Room editor.
  - Improved scrolling of drop-down lists in the Room's navigation bar: made scroll buttons larger,
    and support mouse wheel.
- - Ensure that Editor exports room backgrounds in their actual color depth.
  - Do not delete previously built game exe from Compiled/Windows folder when testing a game
    from the editor.
  - Added "/maketemplate" command-line option that tells Editor to run, make template out of the
@@ -55,6 +61,7 @@ Editor:
  - Added "Word Wrap" command to Edit menu for scripts.
  - In General Settings added "Use extended compiler" option that lets to choose a new script
    compiler for your game (see list of changes in related section below).
+ - Added Custom Properties for: Audio Clips, Dialogs, GUI, GUI Controls, Regions, Walkable Areas.
  - Added Enabled and Visible properties to Characters, Enabled property to Room Objects.
  - Added TurnWhenFacing property to Characters.
  - Added BlendMode property to Characters, GUI and Room Objects.
@@ -121,6 +128,11 @@ Script API:
  - Added eNullFont constant that lets assign or pass a "null font" to any property or function
    parameter which expects a font's ID. This "null font" will simply make any text not drawn
    and have no actual measurements (size, spacing, etc).
+ - Added global events: eEventDialogStart, eEventDialogStop, eEventDialogRun,
+   eEventDialogOptionsOpen, eEventDialogOptionsClose (these are handled in "on_event").
+ - Added Custom Properties interface to types: AudioClip, Dialog, GUI, GUIControl, Region,
+   WalkableArea. This includes functions: GetProperty(), GetTextProperty(), SetProperty() and
+   SetTextProperty().
  - Added BlendMode enum.
  - Added Character.Enabled and Visible properties, added Object.Enabled property,
    Character.on is deprecated.
@@ -135,6 +147,8 @@ Script API:
    list of coordinates, and Character.GetPath() that returns current character's walking path.
  - Added Object.MovePath() and Object.GetPath() functions, that work similar to Character's.
  - Added Character.MoveStraight() complementing WalkStraight().
+ - Added static Dialog.CurrentDialog property and non-static ExecutedOption and AreOptionsDisplayed
+   properties.
  - Added ColorFormat enum, and optional "color_format" parameter to DynamicSprite's functions:
    Create(), CreateFromBackground(), CreateFromDrawingSurface(), CreateFromExistingSprite()
    and CreateFromFile().
@@ -148,10 +162,15 @@ Script API:
  - Added File.Rename().
  - ListBox.FillSaveGameList(), RestoreGameDialog() and SaveGameDialog() now let define a range
    of save slots for display.
+ - Added Overlay.SetPosition() and SetSize() functions for convenience.
+ - Added Overlay.Tint(), SetLightLevel() and RemoveTint() functions, Overlay.HasTint,
+   HasLightLevel, LightLevel, TintBlue, TintGreen, TintRed, TintSaturation, TintLuminance
+   properties, matching Character and Object tinting functionality.
  - Added Room.PathFinder property that returns a Pathfinder object, searching paths over this
    room's walkable areas.
  - Added Speech.SpeakingCharacter that returns currently speaking character (for blocking speech).
  - Added StringSplitOptions enum, String.Join(), String.Split() and String.Trim() functions.
+ - Expanded String.IndexOf() with new parameters: "StringCompareStyle", "index" and "count".
  - Added MoveSaveSlot() which renames a savegame.
  - Added optional "sprite" parameter to SaveGameSlot(), that lets to pass a number of an arbitrary
    sprite to write into this save instead of a standard "screenshot".
@@ -188,6 +207,7 @@ Engine:
  - AudioChannel.Position and PositionMs no longer return a very large value while skipping
    cutscene.
  - DynamicSprite.CreateFromFile() may now load 1-bit and 4-bit bitmaps, converting to 8-bit.
+ - Do not alter or clamp palette for 8-bit sprites loaded into a 16/32-bit game at runtime.
  - Assigning InventoryItem.Graphic will no longer reassign CursorGraphic too even if they were
    identical previously.
  - Both blocking and non-blocking videos are buffered and played on a separate thread.

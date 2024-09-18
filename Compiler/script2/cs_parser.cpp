@@ -2990,10 +2990,8 @@ void AGS::Parser::AccessData_PushFunctionCallParams(Symbol name_of_func, bool fu
 
 void AGS::Parser::AccessData_FunctionCall(Symbol name_of_func, SrcList &expression, EvaluationResult &eres)
 {
-    if (kKW_OpenParenthesis != expression[1u])
+    if (kKW_OpenParenthesis != expression[0u])
         UserError("Expected '('");
-
-    expression.EatFirstSymbol();
 
     auto const function_tqs = _sym[name_of_func].FunctionD->TypeQualifiers;
     bool const func_is_import = function_tqs[TQ::kImport];
@@ -3506,7 +3504,8 @@ void AGS::Parser::AccessData_FirstClause(VariableAccess access_type, SrcList &ex
             return;
         }
 
-        AccessData_FunctionCall(first_sym, expression, eres);
+        SrcList call_expr = SrcList(expression, 1u, expression.Length() - 1u);
+        AccessData_FunctionCall(first_sym, call_expr, eres);
         if (_sym.IsDynarrayVartype(eres.Vartype))
             AccessData_ProcessArrayIndexes(expression, eres);
         return;
@@ -3651,7 +3650,6 @@ void AGS::Parser::AccessData_SubsequentClause(VariableAccess access_type, bool a
             return;
         }
 
-        expression.BackUp();
         SrcList start_of_funccall = SrcList(expression, expression.GetCursor(), expression.Length());
         AccessData_FunctionCall(qualified_component, start_of_funccall, eres);
         if (_sym.IsDynarrayVartype(vartype))

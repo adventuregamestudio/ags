@@ -852,7 +852,8 @@ Symbol AGS::Parser::ParseParamlist_Param_DefaultValue(size_t idx, Vartype const 
         return kKW_NoSymbol; // No default value given
 
     // For giving specifics in error messages
-    std::string msg = string_replace("In parameter #<idx>: ", "<idx>", std::to_string(idx));
+    std::string msg = "In parameter #<idx>: ";
+    msg = string_replace(msg, "<idx>", std::to_string(idx));
 
     SkipNextSymbol(_src, kKW_Assign);
 

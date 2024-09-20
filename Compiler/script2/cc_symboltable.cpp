@@ -396,14 +396,22 @@ bool AGS::SymbolTable::IsVTT(Symbol s, VartypeType vtt) const
     return vtt == entries.at(s).VartypeD->Type;
 }
 
+AGS::Vartype AGS::SymbolTable::CoreVartype(Vartype s) const
+{
+    if (!IsVartype(s))
+        return false;
+
+    // Get to the innermost symbol
+    while (VTT::kAtomic != entries.at(s).VartypeD->Type)
+        s = entries.at(s).VartypeD->BaseVartype;
+    return s;
+}
+
 bool AGS::SymbolTable::IsVTF(Symbol s, VartypeFlag flag) const
 {
     if (!IsVartype(s))
         return false;
 
-    // Get to the innermost symbol; read that symbol's flags
-    while (VTT::kAtomic != entries.at(s).VartypeD->Type)
-        s = entries.at(s).VartypeD->BaseVartype;
     return entries.at(s).VartypeD->Flags[flag];
 }
 
@@ -529,7 +537,8 @@ std::string const AGS::SymbolTable::GetName(AGS::Symbol symbl) const
         return std::string("(end of input)");
     if (static_cast<size_t>(symbl) >= entries.size())
         return std::string("(invalid symbol)");
-    if (IsAutoptrVartype(symbl))
+    if (IsDynpointerVartype(symbl) &&
+        IsAutoptrVartype(VartypeWithout(VTT::kDynpointer, symbl)))
     {
         std::string name = entries[symbl].Name;
         int const pos_of_last_ch = name.length() - 1u;

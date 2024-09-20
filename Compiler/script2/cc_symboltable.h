@@ -455,15 +455,18 @@ public:
     // so it can be part of an expression no matter what is determined here
     bool CanBePartOfAnExpression(Symbol s);
 
-    // Whether the operator is boolean. "Boolean" operators return an 'int' no matter what vartype their arguments
+    // Whether the operator is boolean.
+    // Boolean operators return an 'int' no matter what vartype their arguments are
     inline bool IsBooleanOperator(Symbol s) { return IsOperator(s) && entries.at(s).OperatorD->Boolean; }
 
     // Variables or vartypes
     // Size of a variable or vartype
     size_t GetSize(Symbol s) const;
+    // The core vartype of a possibly composite vartype
+    Vartype CoreVartype(Vartype s) const; 
 
     inline bool IsAtomicVartype(Symbol s) const { return IsVTT(s, VTT::kAtomic); }
-    inline bool IsBuiltinVartype(Symbol s) const { return IsVTF(s, VTF::kBuiltin); }
+    inline bool IsBuiltinVartype(Symbol s) const { return IsVTF(CoreVartype(s), VTF::kBuiltin); }
     // Don't confuse with IsConstant() == is a constant that signifies a literal
     inline bool IsConstVartype(Symbol s) const { return IsVTT(s, VTT::kConst); }
 
@@ -478,6 +481,7 @@ public:
     // Fills compo_list with the symbols of all the strct components. Includes the ancestors' components
     void GetComponentsOfStruct(Symbol strct, std::vector<Symbol> &compo_list) const;
     // Find the description of a component.
+    // Start search with the components of ancestor.
     Symbol FindStructComponent(Symbol strct, Symbol component, Symbol ancestor) const;
     inline Symbol FindStructComponent(Symbol strct, Symbol component) const { return FindStructComponent(strct, component, strct); }
     // Finds the first constructor declared either in this struct or in any of its parent types (going up the hierarchy)

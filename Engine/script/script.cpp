@@ -456,23 +456,46 @@ void RunScriptFunctionInRoom(const String &tsname, size_t param_count, const Run
             res, cc_get_error().ErrorString.GetCStr(), tsname.GetCStr(), displayed_room);
 }
 
-// Run non-claimable event in all script modules, except room, break if certain events occured
-static void RunUnclaimableEvent(const String &tsname)
+// Run non-claimable event in all script modules, *excluding* room;
+// break if certain changes occured to the game state
+static void RunEventInModules(const String &tsname, size_t param_count, const RuntimeScriptValue *params,
+    bool break_after_first)
 {
     const int room_changes_was = play.room_changes;
     const int restore_game_count_was = gameHasBeenRestored;
     for (size_t i = 0; i < numScriptModules; ++i)
     {
-        if (!moduleRepExecAddr[i].IsNull())
-            RunScriptFunction(moduleInst[i].get(), tsname);
-        // Break on room change or save restoration
-        if ((room_changes_was != play.room_changes) ||
-            (restore_game_count_was != gameHasBeenRestored))
-            return;
+        const RunScFuncResult ret = RunScriptFunction(moduleInst[i].get(), tsname, param_count, params);
+        if (ret != kScFnRes_NotFound)
+        {
+            // Break on room change or save restoration,
+            // or if was told to break after the first found callback
+            if (break_after_first ||
+                (room_changes_was != play.room_changes) ||
+                (restore_game_count_was != gameHasBeenRestored))
+                return;
+        }
     }
-    RunScriptFunction(gameinst.get(), tsname);
+    RunScriptFunction(gameinst.get(), tsname, param_count, params);
 }
 
+// Run non-claimable event in all script modules, *excluding* room;
+// break if certain changes occured to the game state
+static void RunUnclaimableEvent(const String &tsname)
+{
+    RunEventInModules(tsname, 0, nullptr, false);
+}
+
+// Run a single event callback, look for it in all script modules, *excluding* room;
+// break after the first run callback, or in case of certain changes to the game state
+static void RunSingleEvent(const String &tsname, size_t param_count, const RuntimeScriptValue *params)
+{
+    RunEventInModules(tsname, param_count, params, true);
+}
+
+// Run claimable event in all script modules, *including* room;
+// break if event was claimed by any of the run callbacks.
+// CHECKME: should not this also break on room change / save restore, like RunUnclaimableEvent?
 static void RunClaimableEvent(const String &tsname, size_t param_count, const RuntimeScriptValue *params)
 {
     // Run claimable event chain in script modules and room script
@@ -508,11 +531,9 @@ void RunScriptFunctionAuto(ScriptType sc_type, const String &tsname, size_t para
         RunClaimableEvent(tsname, param_count, params);
         return;
     }
-    // Else run on the single chosen script instance
-    ccInstance *sci = GetScriptInstanceByType(sc_type);
-    if (!sci)
-        return;
-    RunScriptFunction(sci, tsname, param_count, params);
+
+    // Else run first found event in script modules (except room)
+    return RunSingleEvent(tsname, param_count, params);
 }
 
 void AllocScriptModules()

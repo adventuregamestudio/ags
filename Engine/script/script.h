@@ -80,21 +80,21 @@ void    cancel_all_scripts();
 
 ccInstance *GetScriptInstanceByType(ScriptType sc_type);
 // Queues a script function to be run either called by the engine or from another script
-void    QueueScriptFunction(ScriptType sc_type, const char *fn_name, size_t param_count = 0,
+void    QueueScriptFunction(ScriptType sc_type, const String &fn_name, size_t param_count = 0,
     const RuntimeScriptValue *params = nullptr);
 // Try to run a script function on a given script instance
-int     RunScriptFunction(ccInstance *sci, const char *tsname, size_t param_count = 0,
+int     RunScriptFunction(ccInstance *sci, const String &tsname, size_t param_count = 0,
     const RuntimeScriptValue *params = nullptr);
 // Run a script function in all the regular script modules, in order, where available
 // includes globalscript, but not the current room script.
-void    RunScriptFunctionInModules(const char *tsname, size_t param_count = 0,
+void    RunScriptFunctionInModules(const String &tsname, size_t param_count = 0,
     const RuntimeScriptValue *params = nullptr);
 // Run an obligatory script function in the current room script
-int     RunScriptFunctionInRoom(const char *tsname, size_t param_count = 0,
+int     RunScriptFunctionInRoom(const String &tsname, size_t param_count = 0,
     const RuntimeScriptValue *params = nullptr);
 // Try to run a script function, guessing the behavior by its name and script instance type;
 // depending on the type may run a claimable callback chain
-int     RunScriptFunctionAuto(ScriptType sc_type, const char *fn_name, size_t param_count = 0,
+int     RunScriptFunctionAuto(ScriptType sc_type, const String &fn_name, size_t param_count = 0,
     const RuntimeScriptValue *params = nullptr);
 
 // Preallocates script module instances
@@ -112,12 +112,13 @@ String  GetScriptName(ccInstance *sci);
 
 //=============================================================================
 
-char*   make_ts_func_name(const char*base,int iii,int subd);
+// Makes a old-style interaction function name (for interaction list "run script" command)
+String  make_interact_func_name(const String &base, int param, int subd);
 // Performs various updates to the game after script interpreter returns control to the engine.
 // Executes actions and does changes that are not executed immediately at script command, for
 // optimisation and other reasons.
 void    post_script_cleanup();
-void    quit_with_script_error(const char *functionName);
+void    quit_with_script_error(const String &fn_name);
 int     get_nivalue (InteractionCommandList *nic, int idx, int parm);
 InteractionVariable *get_interaction_variable (int varindx);
 InteractionVariable *FindGraphicalVariable(const char *varName);

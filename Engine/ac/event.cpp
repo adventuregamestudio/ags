@@ -71,7 +71,7 @@ ScriptEventCallback ScriptEventCb[kTS_Num] = {
 };
 
 
-int run_claimable_event(const char *tsname, bool includeRoom, int numParams, const RuntimeScriptValue *params, bool *eventWasClaimed) {
+int run_claimable_event(const String &tsname, bool includeRoom, int numParams, const RuntimeScriptValue *params, bool *eventWasClaimed) {
     *eventWasClaimed = true;
     // Run the room script function, and if it is not claimed,
     // then run the main one

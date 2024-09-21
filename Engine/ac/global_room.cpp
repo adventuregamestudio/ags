@@ -186,7 +186,7 @@ void CallRoomScript (int value) {
 
     play.roomscript_finished = 0;
     RuntimeScriptValue params[]{ value , RuntimeScriptValue() };
-    get_executingscript()->RunAnother("on_call", kScTypeRoom, 1, params);
+    get_executingscript()->RunAnother(kScTypeRoom, "on_call", 1, params);
 }
 
 int HasBeenToRoom (int roomnum) {

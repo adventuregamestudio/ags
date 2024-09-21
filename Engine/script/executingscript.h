@@ -22,7 +22,6 @@
 #include "script/cc_instance.h"
 #include "gfx/bitmap.h"
 
-#define MAX_FUNCTION_NAME_LEN 60
 #define MAX_QUEUED_PARAMS  4
 
 // A general script type, used to search for or run a function.
@@ -89,7 +88,7 @@ struct ExecutingScript
 
     ExecutingScript() = default;
     void QueueAction(PostScriptAction &&act);
-    void RunAnother(const char *namm, ScriptType scinst, size_t param_count, const RuntimeScriptValue *params);
+    void RunAnother(ScriptType scinst, const Common::String &fnname, size_t param_count, const RuntimeScriptValue *params);
 };
 
 #endif // __AGS_EE_SCRIPT__EXECUTINGSCRIPT_H

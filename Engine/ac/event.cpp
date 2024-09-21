@@ -71,7 +71,8 @@ ScriptEventCallback ScriptEventCb[kTS_Num] = {
 };
 
 
-int run_claimable_event(const String &tsname, bool includeRoom, int numParams, const RuntimeScriptValue *params, bool *eventWasClaimed) {
+void run_claimable_event(const String &tsname, bool includeRoom, int numParams, const RuntimeScriptValue *params, bool *eventWasClaimed)
+{
     *eventWasClaimed = true;
     // Run the room script function, and if it is not claimed,
     // then run the main one
@@ -79,30 +80,28 @@ int run_claimable_event(const String &tsname, bool includeRoom, int numParams, c
     // this is a nested event
     int eventClaimedOldValue = eventClaimed;
     eventClaimed = EVENT_INPROGRESS;
-    int toret;
 
-    if (includeRoom && roominst) {
-        toret = RunScriptFunction(roominst.get(), tsname, numParams, params);
-
-        if (eventClaimed == EVENT_CLAIMED) {
+    if (includeRoom && roominst)
+    {
+        RunScriptFunction(roominst.get(), tsname, numParams, params);
+        if (eventClaimed == EVENT_CLAIMED)
+        {
             eventClaimed = eventClaimedOldValue;
-            return toret;
         }
     }
 
     // run script modules
-    for (auto &module_inst : moduleInst) {
-        toret = RunScriptFunction(module_inst.get(), tsname, numParams, params);
-
-        if (eventClaimed == EVENT_CLAIMED) {
+    for (auto &module_inst : moduleInst)
+    {
+        RunScriptFunction(module_inst.get(), tsname, numParams, params);
+        if (eventClaimed == EVENT_CLAIMED)
+        {
             eventClaimed = eventClaimedOldValue;
-            return toret;
         }
     }
 
     eventClaimed = eventClaimedOldValue;
     *eventWasClaimed = false;
-    return 0;
 }
 
 // runs the global script on_event function

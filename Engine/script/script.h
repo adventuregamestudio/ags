@@ -95,23 +95,31 @@ void    run_unhandled_event(const ObjectEvent &obj_evt, int evnt);
 int     create_global_script();
 void    cancel_all_scripts();
 
+enum RunScFuncResult
+{
+    kScFnRes_Done = 0,
+    kScFnRes_GenericInstError = -1, // running instance generic failure
+    kScFnRes_NotFound = -2,         // function not found
+    kScFnRes_ScriptBusy = -3,       // script is already being executed
+};
+
 ccInstance *GetScriptInstanceByType(ScriptType sc_type);
 // Queues a script function to be run either called by the engine or from another script
 void    QueueScriptFunction(ScriptType sc_type, const String &fn_name, size_t param_count = 0,
     const RuntimeScriptValue *params = nullptr);
 // Try to run a script function on a given script instance
-int     RunScriptFunction(ccInstance *sci, const String &tsname, size_t param_count = 0,
+RunScFuncResult RunScriptFunction(ccInstance *sci, const String &tsname, size_t param_count = 0,
     const RuntimeScriptValue *params = nullptr);
 // Run a script function in all the regular script modules, in order, where available
 // includes globalscript, but not the current room script.
 void    RunScriptFunctionInModules(const String &tsname, size_t param_count = 0,
     const RuntimeScriptValue *params = nullptr);
 // Run an obligatory script function in the current room script
-int     RunScriptFunctionInRoom(const String &tsname, size_t param_count = 0,
+void    RunScriptFunctionInRoom(const String &tsname, size_t param_count = 0,
     const RuntimeScriptValue *params = nullptr);
 // Try to run a script function, guessing the behavior by its name and script instance type;
 // depending on the type may run a claimable callback chain
-int     RunScriptFunctionAuto(ScriptType sc_type, const String &fn_name, size_t param_count = 0,
+void   RunScriptFunctionAuto(ScriptType sc_type, const String &fn_name, size_t param_count = 0,
     const RuntimeScriptValue *params = nullptr);
 
 // Preallocates script module instances

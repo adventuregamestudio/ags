@@ -199,7 +199,7 @@ struct AGSEvent
         : Type(kAGSEvent_NewRoom), Data(evt) {}
 };
 
-int run_claimable_event(const AGS::Common::String &tsname, bool includeRoom, int numParams, const RuntimeScriptValue *params, bool *eventWasClaimed);
+void run_claimable_event(const AGS::Common::String &tsname, bool includeRoom, int numParams, const RuntimeScriptValue *params, bool *eventWasClaimed);
 // runs the global script on_event fnuction
 void run_on_event (int evtype, RuntimeScriptValue &wparam);
 void run_room_event(int id);

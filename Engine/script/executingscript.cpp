@@ -19,12 +19,6 @@
 
 using namespace AGS::Common;
 
-QueuedScript::QueuedScript()
-    : ScType(kScTypeGame)
-    , ParamCount(0)
-{
-}
-
 void ExecutingScript::QueueAction(PostScriptAction &&act)
 {
     // A strange behavior in pre-2.7.0 games allowed to call NewRoom right after
@@ -69,7 +63,7 @@ void ExecutingScript::RunAnother(ScriptType sctype, const String &fnname, size_t
     script.ScType = sctype;
     script.FnName = fnname;
     script.ParamCount = param_count;
-    for (size_t p = 0; p < MAX_QUEUED_PARAMS && p < param_count; ++p)
+    for (size_t p = 0; p < MAX_SCRIPT_EVT_PARAMS && p < param_count; ++p)
         script.Params[p] = params[p];
     ScFnQueue.push_back(script);
 }

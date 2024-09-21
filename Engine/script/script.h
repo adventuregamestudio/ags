@@ -37,22 +37,39 @@ using AGS::Common::InteractionVariable;
 // such as object's reference and accompanying parameters
 struct ObjectEvent
 {
+    // Script type (i.e. game or room);
+    // NOTE: kScTypeGame also may refer to "all modules", not only "globalscript"
+    ScriptType ScType = kScTypeNone;
     // Name of the script block to run, may be used as a formatting string;
     // has a form of "objecttype%d"
     String BlockName;
     // Script block's ID, commonly corresponds to the object's ID
     int BlockID = 0;
-    // Dynamic object this event was called for (if applicable)
-    RuntimeScriptValue DynObj;
-    // Interaction mode that triggered this event (if applicable)
-    int Mode = MODE_NONE;
+    // Event parameters
+    size_t ParamCount = 0u;
+    RuntimeScriptValue Params[MAX_SCRIPT_EVT_PARAMS];
 
     ObjectEvent() = default;
-    ObjectEvent(const String &block_name, int block_id = 0)
-        : BlockName(block_name), BlockID(block_id) {}
-    ObjectEvent(const String &block_name, int block_id,
-                const RuntimeScriptValue &dyn_obj, int mode = MODE_NONE)
-        : BlockName(block_name), BlockID(block_id), DynObj(dyn_obj), Mode(mode) {}
+    // An event without additional parameters
+    ObjectEvent(ScriptType sc_type, const String &block_name, int block_id = 0)
+        : ScType(sc_type), BlockName(block_name), BlockID(block_id) {}
+    // An event with a dynamic object reference
+    ObjectEvent(ScriptType sc_type, const String &block_name, int block_id,
+        const RuntimeScriptValue &dyn_obj)
+        : ScType(sc_type), BlockName(block_name), BlockID(block_id)
+    {
+        ParamCount = 1u;
+        Params[0] = dyn_obj;
+    }
+    // An event with a dynamic object reference and interaction mode
+    ObjectEvent(ScriptType sc_type, const String &block_name, int block_id,
+        const RuntimeScriptValue &dyn_obj, int mode)
+        : ScType(sc_type), BlockName(block_name), BlockID(block_id)
+    {
+        ParamCount = 2u;
+        Params[0] = dyn_obj;
+        Params[1] = RuntimeScriptValue().SetInt32(mode);
+    }
 };
 
 int     run_dialog_request (int parmtr);

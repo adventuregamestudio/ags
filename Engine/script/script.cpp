@@ -197,28 +197,9 @@ int run_interaction_script(const ObjectEvent &obj_evt, InteractionScripts *nint,
 
     const int room_was = play.room_changes;
 
-    // TODO: find a way to generalize all the following hard-coded behavior
-
-    // Character or Inventory require a global script call
-    const ScriptType sc_type =
-        (strstr(obj_evt.BlockName.GetCStr(), "character") != nullptr) ||
-        (strstr(obj_evt.BlockName.GetCStr(), "inventory") != nullptr) ?
-        kScTypeGame : kScTypeRoom;
-    
-    // Room events do not require additional params
-    if ((strstr(obj_evt.BlockName.GetCStr(), "room") != nullptr)) {
-        QueueScriptFunction(sc_type, nint->ScriptFuncNames[evnt].GetCStr());
-    }
-    // Regions only require 1 param - dynobj ref
-    else if ((strstr(obj_evt.BlockName.GetCStr(), "region") != nullptr)) {
-        QueueScriptFunction(sc_type, nint->ScriptFuncNames[evnt].GetCStr(), 1, &obj_evt.DynObj);
-    }
-    // Other types (characters, objects, invitems, hotspots) require
-    // 2 params - dynobj ref and the interaction mode (aka verb)
-    else {
-        RuntimeScriptValue params[]{ obj_evt.DynObj, RuntimeScriptValue().SetInt32(obj_evt.Mode) };
-        QueueScriptFunction(sc_type, nint->ScriptFuncNames[evnt].GetCStr(), 2, params);
-    }
+    // Which script do we call: global script or room script?
+    const ScriptType sc_type = obj_evt.ScType;
+    QueueScriptFunction(sc_type, nint->ScriptFuncNames[evnt].GetCStr(), obj_evt.ParamCount, obj_evt.Params);
 
     // if the room changed within the action
     if (room_was != play.room_changes)

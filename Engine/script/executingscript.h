@@ -22,13 +22,14 @@
 #include "script/cc_instance.h"
 #include "gfx/bitmap.h"
 
-#define MAX_QUEUED_PARAMS  4
+#define MAX_SCRIPT_EVT_PARAMS  4
 
 // A general script type, used to search for or run a function.
 // NOTE: "game" type may mean either "global script" or any script module,
 // depending on other circumstances.
 enum ScriptType
 {
+    kScTypeNone,
     kScTypeGame,    // game script modules
     kScTypeRoom     // room script
 };
@@ -36,11 +37,11 @@ enum ScriptType
 struct QueuedScript
 {
     Common::String     FnName;
-    ScriptType         ScType;
-    size_t             ParamCount;
-    RuntimeScriptValue Params[MAX_QUEUED_PARAMS];
+    ScriptType         ScType = kScTypeNone;
+    size_t             ParamCount = 0u;
+    RuntimeScriptValue Params[MAX_SCRIPT_EVT_PARAMS];
 
-    QueuedScript();
+    QueuedScript() = default;
 };
 
 enum PostScriptActionType

@@ -113,7 +113,7 @@ void run_on_event(int evtype, RuntimeScriptValue &wparam)
 }
 
 void run_room_event(int id) {
-    auto obj_evt = ObjectEvent("room");
+    auto obj_evt = ObjectEvent(kScTypeRoom, "room");
     if (thisroom.EventHandlers != nullptr)
     {
         run_interaction_script(obj_evt, thisroom.EventHandlers.get(), id);
@@ -182,7 +182,7 @@ void process_event(const AGSEvent *evp)
             else
                 evpt=&croom->intrHotspot[hotspot_id];
 
-            obj_evt = ObjectEvent("hotspot%d", hotspot_id,
+            obj_evt = ObjectEvent(kScTypeRoom, "hotspot%d", hotspot_id,
                 RuntimeScriptValue().SetScriptObject(&scrHotspot[hotspot_id], &ccDynamicHotspot));
             //Debug::Printf("Running hotspot interaction for hotspot %d, event %d", evp->data2, evp->data3);
             break;
@@ -194,7 +194,7 @@ void process_event(const AGSEvent *evp)
             else
                 evpt=&croom->intrRoom;
 
-            obj_evt = ObjectEvent("room");
+            obj_evt = ObjectEvent(kScTypeRoom, "room");
             if (inter.ObjEvent == kRoomEvent_BeforeFadein) {
                 in_enters_screen ++;
                 run_on_event(kScriptEvent_RoomEnter, RuntimeScriptValue().SetInt32(displayed_room));

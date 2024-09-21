@@ -439,7 +439,7 @@ void process_interface_click(int ifce, int btn, int mbut) {
         // click on GUI background
         RuntimeScriptValue params[]{ RuntimeScriptValue().SetScriptObject(&scrGui[ifce], &ccDynamicGUI),
             RuntimeScriptValue().SetInt32(mbut) };
-        QueueScriptFunction(kScInstGame, guis[ifce].OnClickHandler.GetCStr(), 2, params);
+        QueueScriptFunction(kScTypeGame, guis[ifce].OnClickHandler.GetCStr(), 2, params);
         return;
     }
 
@@ -469,18 +469,18 @@ void process_interface_click(int ifce, int btn, int mbut) {
                 {
                     RuntimeScriptValue params[]{ RuntimeScriptValue().SetScriptObject(theObj, &ccDynamicGUIObject),
                         RuntimeScriptValue().SetInt32(mbut) };
-                    QueueScriptFunction(kScInstGame, theObj->EventHandlers[0].GetCStr(), 2, params);
+                    QueueScriptFunction(kScTypeGame, theObj->EventHandlers[0].GetCStr(), 2, params);
                 }
                 else
                 {
                     RuntimeScriptValue params[]{ RuntimeScriptValue().SetScriptObject(theObj, &ccDynamicGUIObject) };
-                    QueueScriptFunction(kScInstGame, theObj->EventHandlers[0].GetCStr(), 1, params);
+                    QueueScriptFunction(kScTypeGame, theObj->EventHandlers[0].GetCStr(), 1, params);
                 }
         }
         else
         {
             RuntimeScriptValue params[]{ ifce , btn };
-            QueueScriptFunction(kScInstGame, "interface_click", 2, params);
+            QueueScriptFunction(kScTypeGame, "interface_click", 2, params);
         }
     }
 }

@@ -200,24 +200,24 @@ int run_interaction_script(const ObjectEvent &obj_evt, InteractionScripts *nint,
     // TODO: find a way to generalize all the following hard-coded behavior
 
     // Character or Inventory require a global script call
-    const ScriptInstType inst_type =
+    const ScriptType sc_type =
         (strstr(obj_evt.BlockName.GetCStr(), "character") != nullptr) ||
         (strstr(obj_evt.BlockName.GetCStr(), "inventory") != nullptr) ?
-        kScInstGame : kScInstRoom;
+        kScTypeGame : kScTypeRoom;
     
     // Room events do not require additional params
     if ((strstr(obj_evt.BlockName.GetCStr(), "room") != nullptr)) {
-        QueueScriptFunction(inst_type, nint->ScriptFuncNames[evnt].GetCStr());
+        QueueScriptFunction(sc_type, nint->ScriptFuncNames[evnt].GetCStr());
     }
     // Regions only require 1 param - dynobj ref
     else if ((strstr(obj_evt.BlockName.GetCStr(), "region") != nullptr)) {
-        QueueScriptFunction(inst_type, nint->ScriptFuncNames[evnt].GetCStr(), 1, &obj_evt.DynObj);
+        QueueScriptFunction(sc_type, nint->ScriptFuncNames[evnt].GetCStr(), 1, &obj_evt.DynObj);
     }
     // Other types (characters, objects, invitems, hotspots) require
     // 2 params - dynobj ref and the interaction mode (aka verb)
     else {
         RuntimeScriptValue params[]{ obj_evt.DynObj, RuntimeScriptValue().SetInt32(obj_evt.Mode) };
-        QueueScriptFunction(inst_type, nint->ScriptFuncNames[evnt].GetCStr(), 2, params);
+        QueueScriptFunction(sc_type, nint->ScriptFuncNames[evnt].GetCStr(), 2, params);
     }
 
     // if the room changed within the action
@@ -305,23 +305,23 @@ void cancel_all_scripts()
         inst->Abort();
 }
 
-ccInstance *GetScriptInstanceByType(ScriptInstType sc_inst)
+ccInstance *GetScriptInstanceByType(ScriptType sc_type)
 {
-    if (sc_inst == kScInstGame)
+    if (sc_type == kScTypeGame)
         return gameinst.get();
-    else if (sc_inst == kScInstRoom)
+    else if (sc_type == kScTypeRoom)
         return roominst.get();
     return nullptr;
 }
 
-void QueueScriptFunction(ScriptInstType sc_inst, const char *fn_name, size_t param_count, const RuntimeScriptValue *params)
+void QueueScriptFunction(ScriptType sc_type, const char *fn_name, size_t param_count, const RuntimeScriptValue *params)
 {
     if (inside_script)
         // queue the script for the run after current script is finished
-        curscript->RunAnother(fn_name, sc_inst, param_count, params);
+        curscript->RunAnother(fn_name, sc_type, param_count, params);
     else
         // if no script is currently running, run the requested script right away
-        RunScriptFunctionAuto(sc_inst, fn_name, param_count, params);
+        RunScriptFunctionAuto(sc_type, fn_name, param_count, params);
 }
 
 static bool DoRunScriptFuncCantBlock(ccInstance *sci, NonBlockingScriptFunction* funcToRun, bool hasTheFunc)
@@ -483,10 +483,10 @@ static int RunClaimableEvent(const char *tsname, size_t param_count, const Runti
     return RunScriptFunction(gameinst.get(), tsname, param_count, params);
 }
 
-int RunScriptFunctionAuto(ScriptInstType sc_inst, const char *tsname, size_t param_count, const RuntimeScriptValue *params)
+int RunScriptFunctionAuto(ScriptType sc_type, const char *tsname, size_t param_count, const RuntimeScriptValue *params)
 {
     // If told to use a room instance, then run only there
-    if (sc_inst == kScInstRoom)
+    if (sc_type == kScTypeRoom)
         return RunScriptFunctionInRoom(tsname, param_count, params);
     // Rep-exec is only run in script modules, but not room script
     // (because room script has its own callback, attached to event slot)
@@ -503,7 +503,7 @@ int RunScriptFunctionAuto(ScriptInstType sc_inst, const char *tsname, size_t par
         return RunClaimableEvent(tsname, param_count, params);
     }
     // Else run on the single chosen script instance
-    ccInstance *sci = GetScriptInstanceByType(sc_inst);
+    ccInstance *sci = GetScriptInstanceByType(sc_type);
     if (!sci)
         return 0;
     return RunScriptFunction(sci, tsname, param_count, params);
@@ -690,8 +690,8 @@ void post_script_cleanup() {
 
     for (const auto &script : copyof.ScFnQueue) {
         old_room_number = displayed_room;
-        RunScriptFunctionAuto(script.Instance, script.FnName.GetCStr(), script.ParamCount, script.Params);
-        if (script.Instance == kScInstRoom && script.ParamCount == 1)
+        RunScriptFunctionAuto(script.ScType, script.FnName.GetCStr(), script.ParamCount, script.Params);
+        if (script.ScType == kScTypeRoom && script.ParamCount == 1)
         {
             // some bogus hack for "on_call" event handler
             play.roomscript_finished = 1;
@@ -787,12 +787,12 @@ int run_interaction_commandlist(const ObjectEvent &obj_evt, InteractionCommandLi
                       // Character or Inventory (global script)
                       const char *torun = make_ts_func_name(evblockbasename,evblocknum,nicl->Cmds[i].Data[0].Value);
                       // we are already inside the mouseclick event of the script, can't nest calls
-                      QueueScriptFunction(kScInstGame, torun);
+                      QueueScriptFunction(kScTypeGame, torun);
                   }
                   else {
                       // Other (room script)
                       const char *torun = make_ts_func_name(evblockbasename,evblocknum,nicl->Cmds[i].Data[0].Value);
-                      QueueScriptFunction(kScInstRoom, torun);
+                      QueueScriptFunction(kScTypeRoom, torun);
                   }
                       break;
           }
@@ -1017,7 +1017,7 @@ void run_unhandled_event(const ObjectEvent &obj_evt, int evnt) {
     else if (evtype > 0) {
         can_run_delayed_command();
         RuntimeScriptValue params[] = { evtype, evnt };
-        QueueScriptFunction(kScInstGame, "unhandled_event", 2, params);
+        QueueScriptFunction(kScTypeGame, "unhandled_event", 2, params);
     }
 }
 

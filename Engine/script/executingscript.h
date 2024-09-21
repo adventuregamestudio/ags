@@ -25,16 +25,19 @@
 #define MAX_FUNCTION_NAME_LEN 60
 #define MAX_QUEUED_PARAMS  4
 
-enum ScriptInstType
+// A general script type, used to search for or run a function.
+// NOTE: "game" type may mean either "global script" or any script module,
+// depending on other circumstances.
+enum ScriptType
 {
-    kScInstGame,
-    kScInstRoom
+    kScTypeGame,    // game script modules
+    kScTypeRoom     // room script
 };
 
 struct QueuedScript
 {
     Common::String     FnName;
-    ScriptInstType     Instance;
+    ScriptType         ScType;
     size_t             ParamCount;
     RuntimeScriptValue Params[MAX_QUEUED_PARAMS];
 
@@ -86,7 +89,7 @@ struct ExecutingScript
 
     ExecutingScript() = default;
     void QueueAction(PostScriptAction &&act);
-    void RunAnother(const char *namm, ScriptInstType scinst, size_t param_count, const RuntimeScriptValue *params);
+    void RunAnother(const char *namm, ScriptType scinst, size_t param_count, const RuntimeScriptValue *params);
 };
 
 #endif // __AGS_EE_SCRIPT__EXECUTINGSCRIPT_H

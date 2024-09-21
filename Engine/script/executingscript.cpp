@@ -20,7 +20,7 @@
 using namespace AGS::Common;
 
 QueuedScript::QueuedScript()
-    : Instance(kScInstGame)
+    : ScType(kScTypeGame)
     , ParamCount(0)
 {
 }
@@ -63,11 +63,11 @@ void ExecutingScript::QueueAction(PostScriptAction &&act)
     PostScriptActions.push_back(std::move(act_pos));
 }
 
-void ExecutingScript::RunAnother(const char *namm, ScriptInstType scinst, size_t param_count, const RuntimeScriptValue *params)
+void ExecutingScript::RunAnother(const char *namm, ScriptType sctype, size_t param_count, const RuntimeScriptValue *params)
 {
     QueuedScript script;
     script.FnName.SetString(namm, MAX_FUNCTION_NAME_LEN);
-    script.Instance = scinst;
+    script.ScType = sctype;
     script.ParamCount = param_count;
     for (size_t p = 0; p < MAX_QUEUED_PARAMS && p < param_count; ++p)
         script.Params[p] = params[p];

@@ -463,7 +463,7 @@ void process_interface_click(int ifce, int btn, int mbut) {
         // otherwise, run interface_click
         if ((theObj->GetEventCount() > 0) &&
             (!theObj->EventHandlers[0].IsEmpty()) &&
-            (!gameinst->GetSymbolAddress(theObj->EventHandlers[0].GetCStr()).IsNull())) {
+            DoesScriptFunctionExist(gameinst.get(), theObj->EventHandlers[0])) {
                 // control-specific event handler
                 if (theObj->GetEventArgs(0).FindChar(',') != String::NoIndex)
                 {

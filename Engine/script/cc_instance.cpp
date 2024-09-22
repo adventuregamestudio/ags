@@ -376,7 +376,7 @@ void ccInstance::AbortAndDestroy()
     }
 
 
-ccInstError ccInstance::CallScriptFunction(const char *funcname, int32_t numargs, const RuntimeScriptValue *params)
+ccInstError ccInstance::CallScriptFunction(const String &funcname, int32_t numargs, const RuntimeScriptValue *params)
 {
     cc_clear_error();
     currentline = 0;
@@ -405,7 +405,7 @@ ccInstError ccInstance::CallScriptFunction(const char *funcname, int32_t numargs
     // using negative offsets, and does not care about any preceding entries.
     int32_t startat = -1;
     char mangledName[200];
-    const size_t mangled_len = snprintf(mangledName, sizeof(mangledName), "%s$", funcname);
+    const size_t mangled_len = snprintf(mangledName, sizeof(mangledName), "%s$", funcname.GetCStr());
     int export_args = numargs;
 
     for (size_t k = 0; k < instanceof->exports.size(); k++) {
@@ -418,16 +418,16 @@ ccInstError ccInstance::CallScriptFunction(const char *funcname, int32_t numargs
             export_args = atoi(thisExportName + mangled_len);
             if (export_args > numargs) {
                 cc_error("Not enough parameters to exported function '%s' (expected %d, supplied %d)",
-                    funcname, export_args, numargs);
+                    funcname.GetCStr(), export_args, numargs);
                 return kInstErr_Generic;
             }
             match = true;
         }
         // check for an exact match (if the script was compiled with an older version)
-        if (match || (strcmp(thisExportName, funcname) == 0)) {
+        if (match || (strcmp(thisExportName, funcname.GetCStr()) == 0)) {
             const int32_t etype = (instanceof->export_addr[k] >> 24L) & 0x000ff;
             if (etype != EXPORT_FUNCTION) {
-                cc_error("symbol '%s' is not a function", funcname);
+                cc_error("symbol '%s' is not a function", funcname.GetCStr());
                 return kInstErr_FuncNotFound;
             }
             startat = (instanceof->export_addr[k] & 0x00ffffff);
@@ -437,7 +437,7 @@ ccInstError ccInstance::CallScriptFunction(const char *funcname, int32_t numargs
 
     if (startat < 0)
     {
-        cc_error("function '%s' not found", funcname);
+        cc_error("function '%s' not found", funcname.GetCStr());
         return kInstErr_FuncNotFound;
     }
 
@@ -1669,14 +1669,14 @@ void ccInstance::GetScriptPosition(ScriptPosition &script_pos) const
 }
 
 // get a pointer to a variable or function exported by the script
-RuntimeScriptValue ccInstance::GetSymbolAddress(const char *symname) const
+RuntimeScriptValue ccInstance::GetSymbolAddress(const String &symname) const
 {
     char altName[200];
-    snprintf(altName, sizeof(altName), "%s$", symname);
+    snprintf(altName, sizeof(altName), "%s$", symname.GetCStr());
     RuntimeScriptValue rval_null;
     const size_t len_altName = strlen(altName);
     for (size_t k = 0; k < instanceof->exports.size(); k++) {
-        if (strcmp(instanceof->exports[k].c_str(), symname) == 0)
+        if (strcmp(instanceof->exports[k].c_str(), symname.GetCStr()) == 0)
             return exports[k];
         // mangled function name
         if (strncmp(instanceof->exports[k].c_str(), altName, len_altName) == 0)

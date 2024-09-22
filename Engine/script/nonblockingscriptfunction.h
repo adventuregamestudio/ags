@@ -20,12 +20,13 @@
 
 #include "ac/runtime_defines.h"
 #include "script/runtimescriptvalue.h"
+#include "util/string.h"
 
 #include <vector>
 
 struct NonBlockingScriptFunction
 {
-    const char* functionName;
+    AGS::Common::String functionName;
     int numParameters;
     RuntimeScriptValue params[4];
     bool roomHasFunction;
@@ -33,10 +34,10 @@ struct NonBlockingScriptFunction
     std::vector<bool> moduleHasFunction;
     bool atLeastOneImplementationExists;
 
-    NonBlockingScriptFunction(const char*funcName, int numParams)
+    NonBlockingScriptFunction(const AGS::Common::String &funcName, int numParams)
     {
-        this->functionName = funcName;
-        this->numParameters = numParams;
+        functionName = funcName;
+        numParameters = numParams;
         atLeastOneImplementationExists = false;
         roomHasFunction = true;
         globalScriptHasFunction = true;

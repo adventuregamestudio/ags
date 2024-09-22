@@ -104,6 +104,10 @@ enum RunScFuncResult
 };
 
 ccInstance *GetScriptInstanceByType(ScriptType sc_type);
+// Tests if a function exists in the given script module
+bool    DoesScriptFunctionExist(ccInstance *sci, const String &fn_name);
+// Tests if a function exists in any of the regular script module, *except* room script
+bool    DoesScriptFunctionExistInModules(const String &fn_name);
 // Queues a script function to be run either called by the engine or from another script
 void    QueueScriptFunction(ScriptType sc_type, const String &fn_name, size_t param_count = 0,
     const RuntimeScriptValue *params = nullptr);

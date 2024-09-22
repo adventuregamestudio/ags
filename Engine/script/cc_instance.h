@@ -190,14 +190,14 @@ public:
     void    AbortAndDestroy();
     
     // Call an exported function in the script
-    ccInstError CallScriptFunction(const char *funcname, int32_t num_params, const RuntimeScriptValue *params);
+    ccInstError CallScriptFunction(const Common::String &funcname, int32_t num_params, const RuntimeScriptValue *params);
     
     // Get the script's execution position and callstack as human-readable text
     Common::String GetCallStack(int max_lines = INT_MAX) const;
     // Get the script's execution position
     void    GetScriptPosition(ScriptPosition &script_pos) const;
     // Get the address of an exported symbol (function or variable) in the script
-    RuntimeScriptValue GetSymbolAddress(const char *symname) const;
+    RuntimeScriptValue GetSymbolAddress(const Common::String &symname) const;
     void    DumpInstruction(const ScriptOperation &op) const;
     // Tells whether this instance is in the process of executing the byte-code
     bool    IsBeingRun() const;

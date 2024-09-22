@@ -295,6 +295,21 @@ ccInstance *GetScriptInstanceByType(ScriptType sc_type)
     return nullptr;
 }
 
+bool DoesScriptFunctionExist(ccInstance *sci, const String &fn_name)
+{
+    return sci->GetSymbolAddress(fn_name).Type == kScValCodePtr;
+}
+
+bool DoesScriptFunctionExistInModules(const String &fn_name)
+{
+    for (size_t i = 0; i < numScriptModules; ++i)
+    {
+        if (DoesScriptFunctionExist(moduleInst[i].get(), fn_name))
+            return true;
+    }
+    return DoesScriptFunctionExist(gameinst.get(), fn_name);
+}
+
 void QueueScriptFunction(ScriptType sc_type, const String &fn_name, size_t param_count, const RuntimeScriptValue *params)
 {
     if (inside_script)
@@ -334,7 +349,7 @@ static RunScFuncResult PrepareTextScript(ccInstance *sci, const String &tsname)
 {
     assert(sci);
     cc_clear_error();
-    if (sci->GetSymbolAddress(tsname.GetCStr()).IsNull())
+    if (!DoesScriptFunctionExist(sci, tsname))
     {
         cc_error("no such function in script");
         return kScFnRes_NotFound;
@@ -391,7 +406,7 @@ RunScFuncResult RunScriptFunction(ccInstance *sci, const String &tsname, size_t 
     }
 
     cc_clear_error();
-    const ccInstError inst_ret = curscript->Inst->CallScriptFunction(tsname.GetCStr(), numParam, params);
+    const ccInstError inst_ret = curscript->Inst->CallScriptFunction(tsname, numParam, params);
 
     if ((inst_ret != kInstErr_None) && (inst_ret != kInstErr_FuncNotFound) && (inst_ret != kInstErr_Aborted))
     {

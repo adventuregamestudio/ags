@@ -24,7 +24,7 @@
 #include "ac/timer.h"
 #include "script/cc_script.h"  // ccScript
 #include "script/cc_internal.h"  // bytecode constants
-#include "script/nonblockingscriptfunction.h"
+#include "script/runtimescriptvalue.h"
 #include "util/string.h"
 
 using namespace AGS;

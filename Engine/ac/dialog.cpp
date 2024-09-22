@@ -408,7 +408,7 @@ bool get_custom_dialog_options_dimensions(int dlgnum)
   ccDialogOptionsRendering.Reset();
   ccDialogOptionsRendering.dialogID = dlgnum;
 
-  getDialogOptionsDimensionsFunc.params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
+  getDialogOptionsDimensionsFunc.Params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
   run_function_on_non_blocking_thread(&getDialogOptionsDimensionsFunc);
 
   if ((ccDialogOptionsRendering.width > 0) &&
@@ -689,7 +689,7 @@ void DialogOptions::Draw()
       dialogOptionsRenderingSurface->hasAlphaChannel = ccDialogOptionsRendering.hasAlphaChannel;
       options_surface_has_alpha = dialogOptionsRenderingSurface->hasAlphaChannel != 0;
 
-      renderDialogOptionsFunc.params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
+      renderDialogOptionsFunc.Params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
       run_function_on_non_blocking_thread(&renderDialogOptionsFunc);
 
       if (!ccDialogOptionsRendering.surfaceAccessed)
@@ -891,7 +891,7 @@ bool DialogOptions::Run()
     // For >= 3.4.0 custom options rendering: run "dialog_options_repexec"
     if (newCustomRender)
     {
-        runDialogOptionRepExecFunc.params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
+        runDialogOptionRepExecFunc.Params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
         run_function_on_non_blocking_thread(&runDialogOptionRepExecFunc);
     }
 
@@ -910,10 +910,10 @@ bool DialogOptions::Run()
             (mousey < dirtyy + tempScrn->GetHeight()))
         {
             // Run "dialog_options_get_active"
-            getDialogOptionUnderCursorFunc.params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
+            getDialogOptionUnderCursorFunc.Params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
             run_function_on_non_blocking_thread(&getDialogOptionUnderCursorFunc);
 
-            if (!getDialogOptionUnderCursorFunc.atLeastOneImplementationExists)
+            if (!getDialogOptionUnderCursorFunc.AtLeastOneImplementationExists)
             quit("!The script function dialog_options_get_active is not implemented. It must be present to use a custom dialogue system.");
 
             mouseison = ccDialogOptionsRendering.activeOptionID;
@@ -1081,15 +1081,15 @@ bool DialogOptions::RunKey(const KeyInput &ki)
     {
         if (old_keyhandle || (ki.UChar == 0))
         { // "dialog_options_key_press"
-            runDialogOptionKeyPressHandlerFunc.params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
-            runDialogOptionKeyPressHandlerFunc.params[1].SetInt32(AGSKeyToScriptKey(ki.Key));
-            runDialogOptionKeyPressHandlerFunc.params[2].SetInt32(ki.Mod);
+            runDialogOptionKeyPressHandlerFunc.Params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
+            runDialogOptionKeyPressHandlerFunc.Params[1].SetInt32(AGSKeyToScriptKey(ki.Key));
+            runDialogOptionKeyPressHandlerFunc.Params[2].SetInt32(ki.Mod);
             run_function_on_non_blocking_thread(&runDialogOptionKeyPressHandlerFunc);
         }
         if (!old_keyhandle && (ki.UChar > 0))
         { // "dialog_options_text_input"
-            runDialogOptionTextInputHandlerFunc.params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
-            runDialogOptionTextInputHandlerFunc.params[1].SetInt32(ki.UChar);
+            runDialogOptionTextInputHandlerFunc.Params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
+            runDialogOptionTextInputHandlerFunc.Params[1].SetInt32(ki.UChar);
             run_function_on_non_blocking_thread(&runDialogOptionKeyPressHandlerFunc);
         }
         return (old_keyhandle || (ki.UChar == 0)) || (!old_keyhandle && (ki.UChar > 0));
@@ -1116,10 +1116,10 @@ bool DialogOptions::RunMouse(eAGSMouseButton mbut, int mx, int my)
         {
             if (usingCustomRendering)
             {
-                runDialogOptionMouseClickHandlerFunc.params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
-                runDialogOptionMouseClickHandlerFunc.params[1].SetInt32(mbut);
+                runDialogOptionMouseClickHandlerFunc.Params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
+                runDialogOptionMouseClickHandlerFunc.Params[1].SetInt32(mbut);
                 run_function_on_non_blocking_thread(&runDialogOptionMouseClickHandlerFunc);
-                needRedraw = runDialogOptionMouseClickHandlerFunc.atLeastOneImplementationExists;
+                needRedraw = runDialogOptionMouseClickHandlerFunc.AtLeastOneImplementationExists;
             }
         }
         else if (mouseison == DLG_OPTION_PARSER)
@@ -1129,10 +1129,10 @@ bool DialogOptions::RunMouse(eAGSMouseButton mbut, int mx, int my)
         }
         else if (newCustomRender)
         {
-            runDialogOptionMouseClickHandlerFunc.params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
-            runDialogOptionMouseClickHandlerFunc.params[1].SetInt32(mbut);
-            runDialogOptionMouseClickHandlerFunc.params[2].SetInt32(mx);
-            runDialogOptionMouseClickHandlerFunc.params[3].SetInt32(my);
+            runDialogOptionMouseClickHandlerFunc.Params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
+            runDialogOptionMouseClickHandlerFunc.Params[1].SetInt32(mbut);
+            runDialogOptionMouseClickHandlerFunc.Params[2].SetInt32(mx);
+            runDialogOptionMouseClickHandlerFunc.Params[3].SetInt32(my);
             run_function_on_non_blocking_thread(&runDialogOptionMouseClickHandlerFunc);
         }
         else if (usingCustomRendering)
@@ -1152,10 +1152,10 @@ bool DialogOptions::RunMouseWheel(int mwheelz)
 {
     if ((mwheelz != 0) && usingCustomRendering)
     {
-        runDialogOptionMouseClickHandlerFunc.params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
-        runDialogOptionMouseClickHandlerFunc.params[1].SetInt32((mwheelz < 0) ? 9 : 8);
+        runDialogOptionMouseClickHandlerFunc.Params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
+        runDialogOptionMouseClickHandlerFunc.Params[1].SetInt32((mwheelz < 0) ? 9 : 8);
         run_function_on_non_blocking_thread(&runDialogOptionMouseClickHandlerFunc);
-        needRedraw = !newCustomRender && runDialogOptionMouseClickHandlerFunc.atLeastOneImplementationExists;
+        needRedraw = !newCustomRender && runDialogOptionMouseClickHandlerFunc.AtLeastOneImplementationExists;
         return true; // handled
     }
     return false; // not handled
@@ -1166,7 +1166,7 @@ void DialogOptions::End()
     // Close custom dialog options
     if (usingCustomRendering)
     {
-        runDialogOptionCloseFunc.params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
+        runDialogOptionCloseFunc.Params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
         run_function_on_non_blocking_thread(&runDialogOptionCloseFunc);
     }
 

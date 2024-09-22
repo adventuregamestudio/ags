@@ -942,7 +942,6 @@
     <ClInclude Include="..\..\Engine\script\cc_instance.h" />
     <ClInclude Include="..\..\Engine\script\executingscript.h" />
     <ClInclude Include="..\..\Engine\script\exports.h" />
-    <ClInclude Include="..\..\Engine\script\nonblockingscriptfunction.h" />
     <ClInclude Include="..\..\Engine\script\runtimescriptvalue.h" />
     <ClInclude Include="..\..\Engine\script\script.h" />
     <ClInclude Include="..\..\Engine\script\script_api.h" />

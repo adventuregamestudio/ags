@@ -1023,9 +1023,9 @@ void compile_room_script() {
     if (roominstFork == nullptr)
         quitprintf("Unable to create forked room instance:\n%s", cc_get_error().ErrorString.GetCStr());
 
-    repExecAlways.roomHasFunction = true;
-    lateRepExecAlways.roomHasFunction = true;
-    getDialogOptionsDimensionsFunc.roomHasFunction = true;
+    repExecAlways.RoomHasFunction = true;
+    lateRepExecAlways.RoomHasFunction = true;
+    getDialogOptionsDimensionsFunc.RoomHasFunction = true;
 }
 
 int bg_just_changed = 0;

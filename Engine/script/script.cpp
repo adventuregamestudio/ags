@@ -118,23 +118,23 @@ void run_function_on_non_blocking_thread(NonBlockingScriptFunction* funcToRun) {
     update_script_mouse_coords();
 
     int room_changes_was = play.room_changes;
-    funcToRun->atLeastOneImplementationExists = false;
+    funcToRun->AtLeastOneImplementationExists = false;
 
     // run modules
     // modules need a forkedinst for this to work
     for (size_t i = 0; i < numScriptModules; ++i) {
-        funcToRun->moduleHasFunction[i] = DoRunScriptFuncCantBlock(moduleInstFork[i].get(), funcToRun, funcToRun->moduleHasFunction[i]);
+        funcToRun->ModuleHasFunction[i] = DoRunScriptFuncCantBlock(moduleInstFork[i].get(), funcToRun, funcToRun->ModuleHasFunction[i]);
 
         if (room_changes_was != play.room_changes)
             return;
     }
 
-    funcToRun->globalScriptHasFunction = DoRunScriptFuncCantBlock(gameinstFork.get(), funcToRun, funcToRun->globalScriptHasFunction);
+    funcToRun->GlobalScriptHasFunction = DoRunScriptFuncCantBlock(gameinstFork.get(), funcToRun, funcToRun->GlobalScriptHasFunction);
 
     if (room_changes_was != play.room_changes)
         return;
 
-    funcToRun->roomHasFunction = DoRunScriptFuncCantBlock(roominstFork.get(), funcToRun, funcToRun->roomHasFunction);
+    funcToRun->RoomHasFunction = DoRunScriptFuncCantBlock(roominstFork.get(), funcToRun, funcToRun->RoomHasFunction);
 }
 
 int run_interaction_event(const ObjectEvent &obj_evt, Interaction *nint, int evnt, int chkAny, bool isInv) {
@@ -326,18 +326,18 @@ static bool DoRunScriptFuncCantBlock(ccInstance *sci, NonBlockingScriptFunction*
         return(false);
 
     no_blocking_functions++;
-    int result = sci->CallScriptFunction(funcToRun->functionName, funcToRun->numParameters, funcToRun->params);
+    int result = sci->CallScriptFunction(funcToRun->FunctionName, funcToRun->ParamCount, funcToRun->Params);
 
     if (result == -2) {
         // the function doens't exist, so don't try and run it again
         hasTheFunc = false;
     }
     else if ((result != 0) && (result != 100)) {
-        quit_with_script_error(funcToRun->functionName);
+        quit_with_script_error(funcToRun->FunctionName);
     }
     else
     {
-        funcToRun->atLeastOneImplementationExists = true;
+        funcToRun->AtLeastOneImplementationExists = true;
     }
     // this might be nested, so don't disrupt blocked scripts
     cc_clear_error();
@@ -521,16 +521,16 @@ void AllocScriptModules()
     moduleInst.resize(numScriptModules);
     moduleInstFork.resize(numScriptModules);
     moduleRepExecAddr.resize(numScriptModules);
-    repExecAlways.moduleHasFunction.resize(numScriptModules, true);
-    lateRepExecAlways.moduleHasFunction.resize(numScriptModules, true);
-    getDialogOptionsDimensionsFunc.moduleHasFunction.resize(numScriptModules, true);
-    renderDialogOptionsFunc.moduleHasFunction.resize(numScriptModules, true);
-    getDialogOptionUnderCursorFunc.moduleHasFunction.resize(numScriptModules, true);
-    runDialogOptionMouseClickHandlerFunc.moduleHasFunction.resize(numScriptModules, true);
-    runDialogOptionKeyPressHandlerFunc.moduleHasFunction.resize(numScriptModules, true);
-    runDialogOptionTextInputHandlerFunc.moduleHasFunction.resize(numScriptModules, true);
-    runDialogOptionRepExecFunc.moduleHasFunction.resize(numScriptModules, true);
-    runDialogOptionCloseFunc.moduleHasFunction.resize(numScriptModules, true);
+    repExecAlways.ModuleHasFunction.resize(numScriptModules, true);
+    lateRepExecAlways.ModuleHasFunction.resize(numScriptModules, true);
+    getDialogOptionsDimensionsFunc.ModuleHasFunction.resize(numScriptModules, true);
+    renderDialogOptionsFunc.ModuleHasFunction.resize(numScriptModules, true);
+    getDialogOptionUnderCursorFunc.ModuleHasFunction.resize(numScriptModules, true);
+    runDialogOptionMouseClickHandlerFunc.ModuleHasFunction.resize(numScriptModules, true);
+    runDialogOptionKeyPressHandlerFunc.ModuleHasFunction.resize(numScriptModules, true);
+    runDialogOptionTextInputHandlerFunc.ModuleHasFunction.resize(numScriptModules, true);
+    runDialogOptionRepExecFunc.ModuleHasFunction.resize(numScriptModules, true);
+    runDialogOptionCloseFunc.ModuleHasFunction.resize(numScriptModules, true);
     for (auto &val : moduleRepExecAddr)
     {
         val.Invalidate();
@@ -567,16 +567,16 @@ void FreeGlobalScripts()
     scriptModules.clear();
     dialogScriptsScript.reset();
 
-    repExecAlways.moduleHasFunction.clear();
-    lateRepExecAlways.moduleHasFunction.clear();
-    getDialogOptionsDimensionsFunc.moduleHasFunction.clear();
-    renderDialogOptionsFunc.moduleHasFunction.clear();
-    getDialogOptionUnderCursorFunc.moduleHasFunction.clear();
-    runDialogOptionMouseClickHandlerFunc.moduleHasFunction.clear();
-    runDialogOptionKeyPressHandlerFunc.moduleHasFunction.clear();
-    runDialogOptionTextInputHandlerFunc.moduleHasFunction.clear();
-    runDialogOptionRepExecFunc.moduleHasFunction.clear();
-    runDialogOptionCloseFunc.moduleHasFunction.clear();
+    repExecAlways.ModuleHasFunction.clear();
+    lateRepExecAlways.ModuleHasFunction.clear();
+    getDialogOptionsDimensionsFunc.ModuleHasFunction.clear();
+    renderDialogOptionsFunc.ModuleHasFunction.clear();
+    getDialogOptionUnderCursorFunc.ModuleHasFunction.clear();
+    runDialogOptionMouseClickHandlerFunc.ModuleHasFunction.clear();
+    runDialogOptionKeyPressHandlerFunc.ModuleHasFunction.clear();
+    runDialogOptionTextInputHandlerFunc.ModuleHasFunction.clear();
+    runDialogOptionRepExecFunc.ModuleHasFunction.clear();
+    runDialogOptionCloseFunc.ModuleHasFunction.clear();
 }
 
 String GetScriptName(ccInstance *sci)

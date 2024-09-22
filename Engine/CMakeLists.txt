@@ -425,7 +425,6 @@ target_sources(engine
     script/executingscript.h
     script/exports.cpp
     script/exports.h
-    script/nonblockingscriptfunction.h
     script/runtimescriptvalue.cpp
     script/runtimescriptvalue.h
     script/script.cpp

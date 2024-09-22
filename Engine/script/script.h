@@ -18,7 +18,6 @@
 #include <vector>
 #include "script/cc_instance.h"
 #include "script/executingscript.h"
-#include "script/nonblockingscriptfunction.h"
 #include "ac/dynobj/scriptsystem.h"
 #include "game/interactions.h"
 #include "util/string.h"
@@ -69,6 +68,28 @@ struct ObjectEvent
         ParamCount = 2u;
         Params[0] = dyn_obj;
         Params[1] = RuntimeScriptValue().SetInt32(mode);
+    }
+};
+
+// NonBlockingScriptFunction struct contains a cached information about
+// a non-blocking script callback, which script modules is this callback present in.
+struct NonBlockingScriptFunction
+{
+    String FunctionName;
+    size_t ParamCount = 0u;
+    RuntimeScriptValue Params[MAX_SCRIPT_EVT_PARAMS];
+    bool RoomHasFunction;
+    bool GlobalScriptHasFunction;
+    std::vector<bool> ModuleHasFunction;
+    bool AtLeastOneImplementationExists;
+
+    NonBlockingScriptFunction(const String &fn_name, int param_count)
+    {
+        FunctionName = fn_name;
+        ParamCount = param_count;
+        AtLeastOneImplementationExists = false;
+        RoomHasFunction = true;
+        GlobalScriptHasFunction = true;
     }
 };
 

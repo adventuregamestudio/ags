@@ -1325,7 +1325,7 @@ namespace AGS.Editor
 			object[] paramsAttribute = property.GetCustomAttributes(typeof(ScriptFunctionParametersAttribute), true);
 			if (paramsAttribute.Length > 0)
 			{
-				property.SetValue(objectToCheck, ScriptFunctionUIEditor.CreateOrOpenScriptFunction(eventHandler, itemName, property.Name, (ScriptFunctionParametersAttribute)paramsAttribute[0], true, 0), null);
+				property.SetValue(objectToCheck, ScriptFunctionUIEditor.CreateOrOpenScriptFunction(eventHandler, itemName, property.Name, (ScriptFunctionParametersAttribute)paramsAttribute[0], Script.GLOBAL_SCRIPT_FILE_NAME), null);
 			}
 		}
 

@@ -1319,8 +1319,11 @@ namespace AGS.Editor.Components
 
         private void GUIController_OnGetScript(string fileName, ref Script script)
         {
-            if ((fileName == Script.CURRENT_ROOM_SCRIPT_FILE_NAME) &&
-                (_loadedRoom != null))
+            if (_loadedRoom == null)
+                return;
+
+            if ((fileName == Script.CURRENT_ROOM_SCRIPT_FILE_NAME) ||
+                (fileName == _loadedRoom.ScriptFileName))
             {
                 ContentDocument document;
                 if (_roomScriptEditors.TryGetValue(_loadedRoom.Number, out document))

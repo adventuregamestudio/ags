@@ -1405,18 +1405,12 @@ namespace AGS.Editor
             prefsEditor.Dispose();
         }
 
-        private void ScriptFunctionUIEditor_CreateScriptFunction(bool isGlobalScript, string functionName, string parameters)
+        private void ScriptFunctionUIEditor_CreateScriptFunction(string scriptModule, string functionName, string parameters)
         {
-            string scriptToRetrieve = Script.GLOBAL_SCRIPT_FILE_NAME;
-            if (!isGlobalScript)
-            {
-                scriptToRetrieve = Script.CURRENT_ROOM_SCRIPT_FILE_NAME;
-            }
-
             if (OnGetScript != null)
             {
                 Script script = null;
-                OnGetScript(scriptToRetrieve, ref script);
+                OnGetScript(scriptModule, ref script);
                 if (script != null)
                 {
                     if (_agsEditor.AttemptToGetWriteAccess(script.FileName))
@@ -1429,15 +1423,14 @@ namespace AGS.Editor
             }
         }
 
-        private void ScriptFunctionUIEditor_OpenScriptEditor(bool isGlobalScript, string functionName)
+        private void ScriptFunctionUIEditor_OpenScriptEditor(string scriptModule, string functionName)
         {
             if (OnZoomToFile != null)
             {
                 // We need to start a timer, because we are within the
                 // property grid processing at the moment
-                string scriptName = (isGlobalScript) ? Script.GLOBAL_SCRIPT_FILE_NAME : Script.CURRENT_ROOM_SCRIPT_FILE_NAME;
                 string searchForText = "function " + functionName + "(";
-                TickOnceTimer.CreateAndStart(100, new EventHandler((sender, e) => ZoomFile_Tick(scriptName, searchForText)));
+                TickOnceTimer.CreateAndStart(100, new EventHandler((sender, e) => ZoomFile_Tick(scriptModule, searchForText)));
             }
         }
 

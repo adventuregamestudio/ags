@@ -31,7 +31,8 @@ namespace AGS.Types
 
         static RoomObject()
         {
-            _interactionSchema = new InteractionSchema(new string[] {"$$01 object",
+            _interactionSchema = new InteractionSchema(string.Empty, true,
+                new string[] {"$$01 object",
                 "$$02 object", "$$03 object",  "Use inventory on object", 
                 "Any click on object", 
                 "$$05 object", "$$08 object", "$$09 object"},

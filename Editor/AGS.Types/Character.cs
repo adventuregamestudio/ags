@@ -50,7 +50,8 @@ namespace AGS.Types
 
         static Character()
         {
-            _interactionSchema = new InteractionSchema(new string[] {"$$01 character",
+            _interactionSchema = new InteractionSchema(Script.GLOBAL_SCRIPT_FILE_NAME, false,
+                new string[] {"$$01 character",
                 "$$02 character","$$03 character","Use inventory on character",
                 "Any click on character", "$$05 character","$$08 character", 
                 "$$09 character"}, 

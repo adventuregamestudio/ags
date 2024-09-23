@@ -3646,6 +3646,8 @@ void convert_room_from_native(const RoomStruct &rs, Room ^room, System::Text::En
     }
     catch (...) {}
 
+    String ^roomScriptName = String::Format("room{0}.asc", room->Number);
+
     room->GameID = rs.GameID;
     room->BottomEdgeY = rs.Edges.Bottom;
     room->LeftEdgeX = rs.Edges.Left;
@@ -3709,6 +3711,7 @@ void convert_room_from_native(const RoomStruct &rs, Room ^room, System::Text::En
 		{
 			CopyInteractions(obj->Interactions, rs.Objects[i].EventHandlers.get());
 		}
+        obj->Interactions->ScriptModule = roomScriptName;
 
 		room->Objects->Add(obj);
 	}
@@ -3732,6 +3735,7 @@ void convert_room_from_native(const RoomStruct &rs, Room ^room, System::Text::En
 		{
 			CopyInteractions(hotspot->Interactions, rs.Hotspots[i].EventHandlers.get());
 		}
+        hotspot->Interactions->ScriptModule = roomScriptName;
 	}
 
 	for (size_t i = 0; i < MAX_WALK_AREAS; ++i) 
@@ -3789,6 +3793,7 @@ void convert_room_from_native(const RoomStruct &rs, Room ^room, System::Text::En
 		{
 			CopyInteractions(area->Interactions, rs.Regions[i].EventHandlers.get());
 		}
+        area->Interactions->ScriptModule = roomScriptName;
 	}
 
 	ConvertCustomProperties(room->Properties, &rs.Properties);
@@ -3801,6 +3806,7 @@ void convert_room_from_native(const RoomStruct &rs, Room ^room, System::Text::En
 	{
 		CopyInteractions(room->Interactions, rs.EventHandlers.get());
 	}
+    room->Interactions->ScriptModule = roomScriptName;
 }
 
 AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad, System::Text::Encoding ^defEncoding)

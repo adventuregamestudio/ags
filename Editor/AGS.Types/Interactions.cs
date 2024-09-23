@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 using System.Collections.Generic;
 using System.Text;
 using System.Xml;
@@ -8,12 +9,14 @@ namespace AGS.Types
     public class Interactions
     {
         private InteractionSchema _schema;
+        private string _scriptModule = string.Empty;
         private string[] _scriptFunctionNames;
         private string[] _importedScripts;
 
         public Interactions(InteractionSchema schema)
         {
             _schema = schema;
+            _scriptModule = schema.DefaultScriptModule;
             _scriptFunctionNames = new string[schema.EventNames.Length];
             _importedScripts = new string[schema.EventNames.Length];
             Reset();
@@ -52,6 +55,20 @@ namespace AGS.Types
             }
         }
 
+        public InteractionSchema Schema
+        {
+            get { return _schema; }
+        }
+
+        //[Category("(Basic)")]
+        //[DefaultValue(Script.GLOBAL_SCRIPT_FILE_NAME)]
+        //[TypeConverter(typeof(ScriptListTypeConverter))]
+        public string ScriptModule
+        {
+            get { return _scriptModule; }
+            set { _scriptModule = value; }
+        }
+
         public string[] ScriptFunctionNames
         {
             get { return _scriptFunctionNames; }
@@ -82,6 +99,13 @@ namespace AGS.Types
             Reset();
             foreach (XmlNode child in SerializeUtils.GetChildNodes(node, "Interactions"))
             {
+                if (child.Name != "Event")
+                {
+                    if (child.Name == "ScriptModule")
+                        ScriptModule = child.InnerText;
+                    continue;
+                } 
+
                 int index = SerializeUtils.GetAttributeInt(child, "Index");
                 _scriptFunctionNames[index] = child.InnerText;
                 if (_scriptFunctionNames[index] == string.Empty)
@@ -94,6 +118,7 @@ namespace AGS.Types
         public void ToXml(XmlTextWriter writer)
         {
             writer.WriteStartElement("Interactions");
+            writer.WriteElementString("ScriptModule", ScriptModule);
             for (int i = 0; i < _scriptFunctionNames.Length; i++)
             {
                 writer.WriteStartElement("Event");

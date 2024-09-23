@@ -6,24 +6,42 @@ namespace AGS.Types
 {
     public class InteractionSchema
     {
+        private string _defaultScriptModule = string.Empty;
+        private bool _scriptModuleFixed = false;
         private string[] _eventNames;
         private string[] _functionSuffixes;
         private string[] _functionParameterLists;
 
-        public InteractionSchema(string[] eventNames, string[] functionSuffixes, string functionParameterList)
+        public InteractionSchema(string defaultScriptModule, bool scriptModuleFixed,
+            string[] eventNames, string[] functionSuffixes, string functionParameterList)
         {
             _eventNames = eventNames;
             _functionSuffixes = functionSuffixes;
             _functionParameterLists = new string[eventNames.Length];
             for (int i = 0; i < eventNames.Length; ++i)
                 _functionParameterLists[i] = functionParameterList;
+            _defaultScriptModule = defaultScriptModule;
+            _scriptModuleFixed = scriptModuleFixed;
         }
 
-        public InteractionSchema(string[] eventNames, string[] functionSuffixes, string[] functionParameterLists)
+        public InteractionSchema(string defaultScriptModule, bool scriptModuleFixed,
+            string[] eventNames, string[] functionSuffixes, string[] functionParameterLists)
         {
             _eventNames = eventNames;
             _functionSuffixes = functionSuffixes;
             _functionParameterLists = functionParameterLists;
+            _defaultScriptModule = defaultScriptModule;
+            _scriptModuleFixed = scriptModuleFixed;
+        }
+
+        public string DefaultScriptModule
+        {
+            get { return _defaultScriptModule; }
+        }
+
+        public bool ScriptModuleFixed
+        {
+            get { return _scriptModuleFixed; }
         }
 
         public string[] EventNames

@@ -103,6 +103,7 @@ namespace AGS.Editor.Components
                 {
                     ScriptAndHeader chosenItem = _agsEditor.CurrentGame.RootScriptFolder.GetScriptAndHeaderByName(_rightClickedScript, true);
                     DeleteSingleItem(chosenItem);
+                    ScriptListTypeConverter.SetScriptList(Factory.AGSEditor.CurrentGame.ScriptsAndHeaders);
                 }
             }
             else if (controlID == MENU_COMMAND_IMPORT)
@@ -138,6 +139,7 @@ namespace AGS.Editor.Components
             {
                 var scripts = AddNewScript("NewScript", "// new module header\r\n", "// new module script\r\n");
                 AddSingleItem(scripts);
+                ScriptListTypeConverter.SetScriptList(Factory.AGSEditor.CurrentGame.ScriptsAndHeaders);
                 _guiController.ProjectTree.BeginLabelEdit(this, ITEM_COMMAND_PREFIX + scripts.Script.NameForLabelEdit);
             }
 			else if (controlID == COMMAND_OPEN_GLOBAL_HEADER)
@@ -501,6 +503,7 @@ namespace AGS.Editor.Components
             if (!string.IsNullOrEmpty(lastAddedScriptNodeID))
             {
                 RePopulateTreeView(lastAddedScriptNodeID);
+                ScriptListTypeConverter.SetScriptList(Factory.AGSEditor.CurrentGame.ScriptsAndHeaders);
             }
 
             if (errors.Count > 0)
@@ -520,6 +523,7 @@ namespace AGS.Editor.Components
             newScripts[1].SaveToDisk();
             ScriptAndHeader scripts = new ScriptAndHeader(newScripts[0], newScripts[1]);
             AddSingleItem(scripts);
+            ScriptListTypeConverter.SetScriptList(Factory.AGSEditor.CurrentGame.ScriptsAndHeaders);
             _agsEditor.CurrentGame.FilesAddedOrRemoved = true;
             foreach (Script script in newScripts)
                 AutoComplete.ConstructCache(script, _agsEditor.GetImportedScriptHeaders(script));
@@ -739,6 +743,7 @@ namespace AGS.Editor.Components
             _editors.Clear();
 
             RePopulateTreeView(null);
+            ScriptListTypeConverter.SetScriptList(Factory.AGSEditor.CurrentGame.ScriptsAndHeaders);
         }
 
         public override void GameSettingsChanged()
@@ -845,7 +850,7 @@ namespace AGS.Editor.Components
             {
                 _agsEditor.RenameFileOnDisk(oldScriptName, renamedScript.FileName);
 				_agsEditor.RenameFileOnDisk(associatedScript.FileName, newNameForAssociatedScript);
-				_agsEditor.CurrentGame.FilesAddedOrRemoved = true;
+                _agsEditor.CurrentGame.FilesAddedOrRemoved = true;
                 associatedScript.FileName = newNameForAssociatedScript;
             }
 
@@ -860,6 +865,7 @@ namespace AGS.Editor.Components
             }
 
             RePopulateTreeView(GetNodeID(renamedScript));
+            ScriptListTypeConverter.SetScriptList(Factory.AGSEditor.CurrentGame.ScriptsAndHeaders);
         }
 
         protected override ProjectTreeItem CreateTreeItemForItem(ScriptAndHeader item)

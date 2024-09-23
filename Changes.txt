@@ -1,5 +1,11 @@
 REVISION HISTORY
 ================
+VERSION 3.6.1 - Patch 7, September 2024
+
+Engine:
+ - Hotfix mouse cursor not being drawn sometimes after changing rooms (regression in 3.6.1 P6).
+
+
 VERSION 3.6.1 - Patch 6, September 2024
 
 Editor:

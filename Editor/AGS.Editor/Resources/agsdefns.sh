@@ -1491,7 +1491,7 @@ import void SetWalkBehindBase(int area, int baseline);
 import int  CDAudio(eCDAudioFunction, int data);
 /// Plays a FLI/FLC animation.
 import void PlayFlic(int flcNumber, int options);
-/// Plays an AVI/MPG video.
+/// Plays a video file of any supported format.
 import void PlayVideo(const string filename, VideoSkipStyle, int flags);
 #ifdef SCRIPT_API_v340
 /// Sets an ambient light level that affects all objects and characters in the room.

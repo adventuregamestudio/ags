@@ -794,6 +794,10 @@ namespace AGS.Editor
 
         private void SaveControlsToClipboard(List<GUIControl> controls)
         {
+            // TODO: consider copy/paste using our own XML serialization
+            // this may make future additions much easier, and it will be also consistent:
+            // if it's serializable in our system, then it is serializable for clipboard.
+
             DataFormats.Format format = DataFormats.GetFormat(_guiControlsClipboardFormat);
 
             IDataObject dataObj = new DataObject();

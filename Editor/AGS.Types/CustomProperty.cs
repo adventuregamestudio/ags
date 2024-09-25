@@ -5,13 +5,20 @@ using System.Xml;
 
 namespace AGS.Types
 {
-    public class CustomProperty
+    [Serializable]
+    public class CustomProperty : ICloneable
     {
         private string _name;
         private string _value;
 
         public CustomProperty()
         {
+        }
+
+        public CustomProperty(string name, string value)
+        {
+            _name = name;
+            _value = value;
         }
 
         public string Name
@@ -36,5 +43,9 @@ namespace AGS.Types
             SerializeUtils.SerializeToXML(this, writer);
         }
 
+        public object Clone()
+        {
+            return new CustomProperty(_name, _value);
+        }
     }
 }

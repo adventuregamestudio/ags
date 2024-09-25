@@ -1,13 +1,15 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Xml;
 
 namespace AGS.Types
 {
-    public class CustomProperties
+    [Serializable]
+    public class CustomProperties : ICloneable
     {
-        private Dictionary<string,CustomProperty> _properties = new Dictionary<string,CustomProperty>();
+        private Dictionary<string, CustomProperty> _properties = new Dictionary<string, CustomProperty>();
 
         public CustomProperties()
         {
@@ -45,6 +47,15 @@ namespace AGS.Types
         public override string ToString()
         {
             return "(Properties)";
+        }
+
+        public object Clone()
+        {
+            CustomProperties props = new CustomProperties();
+            props._properties =
+                _properties.ToDictionary(entry => entry.Key,
+                                          entry => (CustomProperty)entry.Value.Clone());
+            return props;
         }
     }
 }

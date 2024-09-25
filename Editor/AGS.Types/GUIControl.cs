@@ -43,7 +43,7 @@ namespace AGS.Types
         private bool _translated = true;
         private CustomProperties _properties = new CustomProperties();
 
-        [AGSNoSerialize]
+        [NonSerialized]
         private GUIControlGroup _memberOf;
         
         [Browsable(false)]
@@ -252,7 +252,9 @@ namespace AGS.Types
 
         public object Clone()
         {
-            return this.MemberwiseClone();
+            GUIControl control = (GUIControl)this.MemberwiseClone();
+            control._properties = (CustomProperties)this._properties.Clone();
+            return control;
         }
 
         public static int CompareByTop(GUIControl x, GUIControl y)

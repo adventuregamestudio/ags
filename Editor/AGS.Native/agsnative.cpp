@@ -2255,6 +2255,7 @@ void drawGUI(HDC hdc, int x, int y, GUI^ guiObj, int resolutionFactor, float sca
   guiinv.clear();
 
   // Setup GuiContext
+  AGS::Common::GUI::Context.GameColorDepth = thisgame.GetColorDepth();
   AGS::Common::GUI::Context.Spriteset = &spriteset;
 
   ConvertGUIToBinaryFormat(guiObj, &tempgui);

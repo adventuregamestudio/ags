@@ -850,6 +850,7 @@ namespace AGS.Editor
                 newControl.ZOrder = _gui.Controls.Count;
                 newControl.ID = _gui.Controls.Count;
                 newControl.MemberOf = null;
+                newControl.Locked = false;
 
                 if (_selectedControl == null)
                 {

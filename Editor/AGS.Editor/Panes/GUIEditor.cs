@@ -1293,12 +1293,12 @@ namespace AGS.Editor
 
             foreach (PropertyInfo property in objectToCheck.GetType().GetProperties())
             {
-                if (property.GetCustomAttributes(typeof(AGSEventPropertyAttribute), true).Length > 0)
+                if (property.GetCustomAttributes(typeof(AGSDefaultEventPropertyAttribute), true).Length > 0)
                 {
                     string eventHandler = (string)property.GetValue(objectToCheck, null);
 					if (eventHandler.Length > 0)
 					{
-						Factory.GUIController.ZoomToFile(Script.GLOBAL_SCRIPT_FILE_NAME, eventHandler);
+						Factory.GUIController.ZoomToFile(_gui.ScriptModule, eventHandler);
 					}
 					else 
 					{
@@ -1326,7 +1326,8 @@ namespace AGS.Editor
 			object[] paramsAttribute = property.GetCustomAttributes(typeof(ScriptFunctionParametersAttribute), true);
 			if (paramsAttribute.Length > 0)
 			{
-				property.SetValue(objectToCheck, ScriptFunctionUIEditor.CreateOrOpenScriptFunction(eventHandler, itemName, property.Name, (ScriptFunctionParametersAttribute)paramsAttribute[0], Script.GLOBAL_SCRIPT_FILE_NAME), null);
+				property.SetValue(objectToCheck, ScriptFunctionUIEditor.CreateOrOpenScriptFunction(
+                    eventHandler, itemName, property.Name, (ScriptFunctionParametersAttribute)paramsAttribute[0], _gui.ScriptModule), null);
 			}
 		}
 

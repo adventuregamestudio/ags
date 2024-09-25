@@ -29,4 +29,13 @@ namespace AGS.Types
         {
         }
     }
+
+    /// <summary>
+    /// AGSDefaultEventProperty marks a event property that is assigned
+    /// when the GUI or control is double-clicked in the GUI Editor.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Property)]
+    public class AGSDefaultEventPropertyAttribute : AGSEventPropertyAttribute
+    {
+    }
 }

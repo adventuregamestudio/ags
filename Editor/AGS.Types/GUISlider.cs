@@ -39,7 +39,7 @@ namespace AGS.Types
         [Description("Script function to run when the slider is moved")]
         [Category("Events")]
         [Browsable(false)]
-        [AGSEventsTabProperty(), AGSEventProperty()]
+        [AGSEventsTabProperty(), AGSEventProperty(), AGSDefaultEventProperty()]
         [ScriptFunctionParameters("GUIControl *control")]
         [EditorAttribute(typeof(ScriptFunctionUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         public string OnChange

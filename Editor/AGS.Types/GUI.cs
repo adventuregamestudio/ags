@@ -23,6 +23,7 @@ namespace AGS.Types
         protected int _bgcol;
         protected int _bgimage;
         protected List<GUIControl> _controls = new List<GUIControl>();
+        private string _scriptModule = Script.GLOBAL_SCRIPT_FILE_NAME;
 
         /// <summary>
         /// Width of the GUI, as displayed in the Editor.
@@ -101,6 +102,17 @@ namespace AGS.Types
             }
         }
 
+        [Description("Script module which contains this GUI's event functions")]
+        [Category("(Basic)")]
+        [Browsable(false)]
+        [AGSEventsTabProperty()]
+        [TypeConverter(typeof(ScriptListTypeConverter))]
+        public string ScriptModule
+        {
+            get { return _scriptModule; }
+            set { _scriptModule = value; }
+        }
+
         [Browsable(false)]
         public string WindowTitle
         {
@@ -172,38 +184,41 @@ namespace AGS.Types
 
             foreach (XmlNode node in SerializeUtils.GetChildNodes(rootGuiNode, "Controls"))
             {
+                GUIControl control = null;
                 if (node.Name == "GUIButton")
                 {
-                    _controls.Add(new GUIButton(node));
+                    control = new GUIButton(node);
                 }
                 else if (node.Name == "GUIInventory")
                 {
-                    _controls.Add(new GUIInventory(node));
+                    control = new GUIInventory(node);
                 }
                 else if (node.Name == "GUILabel")
                 {
-                    _controls.Add(new GUILabel(node));
+                    control = new GUILabel(node);
                 }
                 else if (node.Name == "GUIListBox")
                 {
-                    _controls.Add(new GUIListBox(node));
+                    control = new GUIListBox(node);
                 }
                 else if (node.Name == "GUISlider")
                 {
-                    _controls.Add(new GUISlider(node));
+                    control = new GUISlider(node);
                 }
                 else if (node.Name == "GUITextBox")
                 {
-                    _controls.Add(new GUITextBox(node));
+                    control = new GUITextBox(node);
                 }
                 else if (node.Name == "GUITextWindowEdge")
                 {
-                    _controls.Add(new GUITextWindowEdge(node));
+                    control = new GUITextWindowEdge(node);
                 }
                 else
                 {
                     throw new InvalidDataException("Unknown control type: " + node.Name);
                 }
+                control.Parent = this;
+                _controls.Add(control);
             }
         }
 

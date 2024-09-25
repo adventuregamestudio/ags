@@ -32,10 +32,14 @@ namespace AGS.Types
             if (context.Instance is GUI)
             {
                 itemName = ((GUI)context.Instance).Name;
+                scriptModule = ((GUI)context.Instance).ScriptModule;
             }
             else if (context.Instance is GUIControl)
             {
                 itemName = ((GUIControl)context.Instance).Name;
+                GUI gui = ((GUIControl)context.Instance).Parent;
+                if (gui != null)
+                    scriptModule = gui.ScriptModule;
             }
             else if (context.Instance is InventoryItem)
             {

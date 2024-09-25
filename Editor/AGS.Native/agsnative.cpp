@@ -3598,6 +3598,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
             newControl->Clickable = curObj->IsClickable();
             newControl->Enabled = curObj->IsEnabled();
             newControl->Visible = curObj->IsVisible();
+            newControl->Parent = newGui;
 			newControl->ID = j;
 			newControl->Name = TextHelper::ConvertASCII(curObj->Name);
 			newGui->Controls->Add(newControl);

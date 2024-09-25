@@ -1130,6 +1130,7 @@ namespace AGS.Editor
 
             newControl.Name = Factory.AGSEditor.GetFirstAvailableScriptName(newControl.ControlType);
             newControl.ZOrder = _gui.Controls.Count;
+            newControl.Parent = _gui;
             newControl.ID = _gui.Controls.Count;
             _gui.Controls.Add(newControl);
             _selectedControl = newControl;

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Windows.Forms.Design;
@@ -43,7 +44,7 @@ namespace AGS.Types
 
         public override PropertyDescriptorCollection GetProperties(ITypeDescriptorContext context, object component, Attribute[] attrs)
         {
-            return TypeDescriptor.GetProperties(component, new Attribute[]{new AGSEventPropertyAttribute()});
+            return TypeDescriptor.GetProperties(component, new Attribute[] { new AGSEventsTabPropertyAttribute() });
         }
 
     }

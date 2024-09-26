@@ -49,6 +49,7 @@
 
 #include <memory>
 #include <vector>
+#include "util/error.h"
 #include "util/string.h"
 
 namespace AGS
@@ -66,6 +67,12 @@ class Stream;
 //
 //-----------------------------------------------------------------------------
 
+enum InteractionEventsVersion
+{
+    kInterEvents_Initial = 0,
+    kInterEvents_v362    = 3060200,
+};
+
 // A indexed list of function links for all the supported events.
 struct InteractionEvents
 {
@@ -73,8 +80,14 @@ struct InteractionEvents
     String ScriptModule;
     std::vector<String> Events;
 
-    static std::unique_ptr<InteractionEvents> CreateFromStream(Stream *in);
-    void Write(Stream *out) const;
+    // Read and create pre-3.6.2 version of the InteractionEvents
+    static std::unique_ptr<InteractionEvents> CreateFromStream_v361(Stream *in);
+    // Read and create 3.6.2+ version of the InteractionEvents
+    static std::unique_ptr<InteractionEvents> CreateFromStream_v362(Stream *in);
+    void Read_v361(Stream *in);
+    HError Read_v362(Stream *in);
+    void Write_v361(Stream *out) const;
+    void Write_v362(Stream *out) const;
 };
 
 typedef std::unique_ptr<InteractionEvents> UInteractionEvents;

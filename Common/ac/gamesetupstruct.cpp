@@ -173,10 +173,10 @@ void GameSetupStruct::read_interaction_scripts(Common::Stream *in, GameDataVersi
         charScripts.resize(numcharacters);
         invScripts.resize(numinvitems);
         for (size_t i = 0; i < (size_t)numcharacters; ++i)
-            charScripts[i] = InteractionEvents::CreateFromStream(in);
+            charScripts[i] = InteractionEvents::CreateFromStream_v361(in);
         // NOTE: new inventory items' events are loaded starting from 1 for some reason
         for (size_t i = 1; i < (size_t)numinvitems; ++i)
-            invScripts[i] = InteractionEvents::CreateFromStream(in);
+            invScripts[i] = InteractionEvents::CreateFromStream_v361(in);
     }
     else // 2.x
     {

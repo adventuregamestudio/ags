@@ -129,8 +129,14 @@ ccInstance *GetScriptInstanceByType(ScriptType sc_type);
 bool    DoesScriptFunctionExist(ccInstance *sci, const String &fn_name);
 // Tests if a function exists in any of the regular script module, *except* room script
 bool    DoesScriptFunctionExistInModules(const String &fn_name);
-// Queues a script function to be run either called by the engine or from another script
+// Queues a script function to be run either called by the engine or from another script;
+// the function is identified by its name, and will be run in time, by RunScriptFunctionAuto().
 void    QueueScriptFunction(ScriptType sc_type, const String &fn_name, size_t param_count = 0,
+    const RuntimeScriptValue *params = nullptr);
+// Queues a script function to be run either called by the engine or from another script;
+// the function is identified by its name and script module, and will be run in time,
+// by RunScriptFunctionAuto().
+void    QueueScriptFunction(ScriptType sc_type, const ScriptFunctionRef &fn_ref, size_t param_count = 0,
     const RuntimeScriptValue *params = nullptr);
 // Try to run a script function on a given script instance
 RunScFuncResult RunScriptFunction(ccInstance *sci, const String &tsname, size_t param_count = 0,
@@ -144,7 +150,7 @@ void    RunScriptFunctionInRoom(const String &tsname, size_t param_count = 0,
     const RuntimeScriptValue *params = nullptr);
 // Try to run a script function, guessing the behavior by its name and script instance type;
 // depending on the type may run a claimable callback chain
-void   RunScriptFunctionAuto(ScriptType sc_type, const String &fn_name, size_t param_count = 0,
+void   RunScriptFunctionAuto(ScriptType sc_type, const ScriptFunctionRef &fn_ref, size_t param_count = 0,
     const RuntimeScriptValue *params = nullptr);
 
 // Preallocates script module instances

@@ -69,6 +69,8 @@ class Stream;
 // A indexed list of function links for all the supported events.
 struct InteractionEvents
 {
+    // An optional name of a script module to run functions in
+    String ScriptModule;
     std::vector<String> Events;
 
     static std::unique_ptr<InteractionEvents> CreateFromStream(Stream *in);

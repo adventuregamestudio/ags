@@ -174,15 +174,15 @@ int run_interaction_event(const ObjectEvent &obj_evt, Interaction *nint, int evn
 // Returns 0 normally, or -1 to indicate that the NewInteraction has
 // become invalid and don't run another interaction on it
 // (eg. a room change occured)
-int run_interaction_script(const ObjectEvent &obj_evt, InteractionScripts *nint, int evnt, int chkAny) {
-
-    if (evnt < 0 || static_cast<size_t>(evnt) >= nint->ScriptFuncNames.size() ||
-            nint->ScriptFuncNames[evnt].IsEmpty()) {
+int run_interaction_script(const ObjectEvent &obj_evt, const InteractionEvents *nint, int evnt, int chkAny)
+{
+    if (evnt < 0 || static_cast<size_t>(evnt) >= nint->Events.size() ||
+            nint->Events[evnt].IsEmpty()) {
         // no response defined for this event
         // If there is a response for "Any Click", then abort now so as to
         // run that instead
         if (chkAny < 0) ;
-        else if (!nint->ScriptFuncNames[chkAny].IsEmpty())
+        else if (!nint->Events[chkAny].IsEmpty())
             return 0;
 
         // Otherwise, run unhandled_event
@@ -199,7 +199,7 @@ int run_interaction_script(const ObjectEvent &obj_evt, InteractionScripts *nint,
 
     // Which script do we call: global script or room script?
     const ScriptType sc_type = obj_evt.ScType;
-    QueueScriptFunction(sc_type, nint->ScriptFuncNames[evnt].GetCStr(), obj_evt.ParamCount, obj_evt.Params);
+    QueueScriptFunction(sc_type, nint->Events[evnt], obj_evt.ParamCount, obj_evt.Params);
 
     // if the room changed within the action
     if (room_was != play.room_changes)

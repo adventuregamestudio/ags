@@ -25,7 +25,7 @@
 using AGS::Common::String;
 using AGS::Common::Interaction;
 using AGS::Common::InteractionCommandList;
-using AGS::Common::InteractionScripts;
+using AGS::Common::InteractionEvents;
 using AGS::Common::InteractionVariable;
 
 #define LATE_REP_EXEC_ALWAYS_NAME "late_repeatedly_execute_always"
@@ -109,7 +109,7 @@ int     run_interaction_event(const ObjectEvent &obj_evt, Interaction *nint, int
 // Runs the ObjectEvent using a script callback of 'evnt' index,
 // or alternatively of 'chkAny' index, if previous does not exist
 // Returns 0 normally, or -1 telling of a game state change (eg. a room change occured).
-int     run_interaction_script(const ObjectEvent &obj_evt, InteractionScripts *nint, int evnt, int chkAny = -1);
+int     run_interaction_script(const ObjectEvent &obj_evt, const InteractionEvents *nint, int evnt, int chkAny = -1);
 int     run_interaction_commandlist(const ObjectEvent &obj_evt, InteractionCommandList *nicl, int *timesrun, int*cmdsrun);
 void    run_unhandled_event(const ObjectEvent &obj_evt, int evnt);
 

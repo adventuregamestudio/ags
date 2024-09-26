@@ -22,6 +22,39 @@ namespace AGS
 namespace Common
 {
 
+//-----------------------------------------------------------------------------
+//
+// InteractionEvents (modern interaction system).
+//
+//-----------------------------------------------------------------------------
+
+std::unique_ptr<InteractionEvents> InteractionEvents::CreateFromStream(Stream *in)
+{
+    std::unique_ptr<InteractionEvents> inter(new InteractionEvents());
+    const size_t evt_count = in->ReadInt32();
+    for (size_t i = 0; i < evt_count; ++i)
+    {
+        String fn = String::FromStream(in);
+        inter->Events.push_back(fn);
+    }
+    return inter;
+}
+
+void InteractionEvents::Write(Stream *out) const
+{
+    out->WriteInt32(Events.size());
+    for (const auto &fn : Events)
+    {
+        fn.Write(out);
+    }
+}
+
+//-----------------------------------------------------------------------------
+//
+// Interactions (legacy interaction system).
+//
+//-----------------------------------------------------------------------------
+
 InteractionValue::InteractionValue()
 {
     Type = kInterValLiteralInt;
@@ -255,21 +288,21 @@ void Interaction::Reset()
     Events.clear();
 }
 
-Interaction *Interaction::CreateFromStream(Stream *in)
+std::unique_ptr<Interaction> Interaction::CreateFromStream(Stream *in)
 {
     if (in->ReadInt32() != kInteractionVersion_Initial)
         return nullptr; // unsupported format
 
     const size_t evt_count = in->ReadInt32();
     if (evt_count > MAX_NEWINTERACTION_EVENTS)
-        quit("Can't deserialize interaction: too many events");
+        quit("Can't deserialize interaction: too many events"); // FIXME: dont quit, report HError
 
     int types[MAX_NEWINTERACTION_EVENTS];
     int load_response[MAX_NEWINTERACTION_EVENTS];
     in->ReadArrayOfInt32(types, evt_count);
     in->ReadArrayOfInt32(load_response, evt_count);
 
-    Interaction *inter = new Interaction();
+    std::unique_ptr<Interaction> inter(new Interaction());
     inter->Events.resize(evt_count);
     for (size_t i = 0; i < evt_count; ++i)
     {
@@ -336,26 +369,6 @@ void InteractionVariable::Write(Common::Stream *out) const
     out->Write(Name.GetCStr(), INTER_VAR_NAME_LENGTH);
     out->WriteInt8(Type);
     out->WriteInt32(Value);
-}
-
-//-----------------------------------------------------------------------------
-
-InteractionScripts *InteractionScripts::CreateFromStream(Stream *in)
-{
-    const size_t evt_count = in->ReadInt32();
-    if (evt_count > MAX_NEWINTERACTION_EVENTS)
-    {
-        quit("Can't deserialize interaction scripts: too many events");
-        return nullptr;
-    }
-
-    InteractionScripts *scripts = new InteractionScripts();
-    for (size_t i = 0; i < evt_count; ++i)
-    {
-        String name = String::FromStream(in);
-        scripts->ScriptFuncNames.push_back(name);
-    }
-    return scripts;
 }
 
 } // namespace Common

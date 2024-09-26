@@ -167,8 +167,8 @@ void process_event(const AGSEvent *evp)
     else if (evp->Type == kAGSEvent_Interaction)
     {
         const auto &inter = evp->Data.Inter;
-        Interaction*evpt=nullptr;
-        PInteractionScripts scriptPtr = nullptr;
+        Interaction *obj_inter = nullptr;
+        InteractionEvents *obj_events = nullptr;
         ObjectEvent obj_evt;
 
         switch (inter.IntEvType)
@@ -177,9 +177,9 @@ void process_event(const AGSEvent *evp)
         {
             const int hotspot_id = inter.ObjID;
             if (thisroom.Hotspots[hotspot_id].EventHandlers != nullptr)
-                scriptPtr = thisroom.Hotspots[hotspot_id].EventHandlers;
+                obj_events = thisroom.Hotspots[hotspot_id].EventHandlers.get();
             else
-                evpt=&croom->intrHotspot[hotspot_id];
+                obj_inter = &croom->intrHotspot[hotspot_id];
 
             obj_evt = ObjectEvent(kScTypeRoom, "hotspot%d", hotspot_id,
                 RuntimeScriptValue().SetScriptObject(&scrHotspot[hotspot_id], &ccDynamicHotspot));
@@ -189,9 +189,9 @@ void process_event(const AGSEvent *evp)
         case kIntEventType_Room:
         {
             if (thisroom.EventHandlers != nullptr)
-                scriptPtr = thisroom.EventHandlers;
+                obj_events = thisroom.EventHandlers.get();
             else
-                evpt=&croom->intrRoom;
+                obj_inter = &croom->intrRoom;
 
             obj_evt = ObjectEvent(kScTypeRoom, "room");
             if (inter.ObjEvent == kRoomEvent_BeforeFadein) {
@@ -209,14 +209,14 @@ void process_event(const AGSEvent *evp)
             break;
         }
 
-        assert(scriptPtr || evpt);
-        if (scriptPtr != nullptr)
+        assert(obj_inter || obj_events);
+        if (obj_events)
         {
-            run_interaction_script(obj_evt, scriptPtr.get(), inter.ObjEvent);
+            run_interaction_script(obj_evt, obj_events, inter.ObjEvent);
         }
         else
         {
-            run_interaction_event(obj_evt, evpt, inter.ObjEvent);
+            run_interaction_event(obj_evt, obj_inter, inter.ObjEvent);
         }
 
         if ((inter.IntEvType == kIntEventType_Room) && (inter.ObjEvent == kRoomEvent_BeforeFadein))

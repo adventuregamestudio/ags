@@ -35,6 +35,9 @@ namespace AGS.Editor
                 }
             }
 
+            cmbArray.SelectedIndex = (int)variable.ArrayType;
+            udArraySize.Value = MathExtra.Clamp(variable.ArraySize, 1, Int32.MaxValue);
+
             Utilities.CheckLabelWidthsOnForm(this);
         }
 
@@ -91,6 +94,8 @@ namespace AGS.Editor
                 _variable.Name = txtName.Text;
                 _variable.DefaultValue = txtDefaultValue.Text;
                 _variable.Type = cmbType.SelectedItem.ToString();
+                _variable.ArrayType = (VariableArrayType)cmbArray.SelectedIndex;
+                _variable.ArraySize = _variable.ArrayType == VariableArrayType.Array ? (int)udArraySize.Value : 0;
                 this.DialogResult = DialogResult.OK;
                 this.Close();
             }
@@ -104,6 +109,25 @@ namespace AGS.Editor
             txtDefaultValue.Enabled = defaultValid;
             if (!defaultValid)
             {
+                txtDefaultValue.Text = string.Empty;
+            }
+        }
+
+        private void cmbArray_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            VariableArrayType arrType = (VariableArrayType)cmbArray.SelectedIndex;
+            if (arrType == VariableArrayType.None)
+            {
+                label5.Enabled = false;
+                udArraySize.Enabled = false;
+                txtDefaultValue.Enabled = ((GlobalVariableType)cmbType.SelectedItem).CanHaveDefaultValue;
+            }
+            else
+            {
+                label5.Enabled = arrType == VariableArrayType.Array;
+                udArraySize.Enabled = arrType == VariableArrayType.Array;
+                // TODO: maybe support array initialization? although it's not convenient to do with a single textbox
+                txtDefaultValue.Enabled = false;
                 txtDefaultValue.Text = string.Empty;
             }
         }

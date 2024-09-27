@@ -60,7 +60,17 @@ namespace AGS.Editor.Components
 
             foreach (GlobalVariable variable in variables)
             {
-                string declaration = variable.Type + " " + variable.Name;
+                string declaration = $"{variable.Type} {variable.Name}";
+                switch (variable.ArrayType)
+                {
+                    case VariableArrayType.Array:
+                        declaration = declaration + $"[{variable.ArraySize}]";
+                        break;
+                    case VariableArrayType.DynamicArray:
+                        declaration = declaration + $"[]";
+                        break;
+                }
+
                 if (((variable.Type == "int") ||
                      (variable.Type == "bool") || 
                      (variable.Type == "float")) &&
@@ -91,7 +101,18 @@ namespace AGS.Editor.Components
             StringBuilder sb = new StringBuilder();
             foreach (GlobalVariable variable in _agsEditor.CurrentGame.GlobalVariables.ToList())
             {
-                sb.AppendLine("import " + variable.Type + " " + variable.Name + ";");
+                switch (variable.ArrayType)
+                {
+                    case VariableArrayType.None:
+                        sb.AppendLine($"import {variable.Type} {variable.Name};");
+                        break;
+                    case VariableArrayType.Array:
+                        sb.AppendLine($"import {variable.Type} {variable.Name}[{variable.ArraySize}];");
+                        break;
+                    case VariableArrayType.DynamicArray:
+                        sb.AppendLine($"import {variable.Type} {variable.Name}[];");
+                        break;
+                }
             }
             _scriptHeader.Text = sb.ToString();
             AutoComplete.ConstructCache(_scriptHeader, null);

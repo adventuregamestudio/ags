@@ -93,8 +93,8 @@ struct WinConfig
 
     WinConfig();
     void SetDefaults();
-    void Load(const ConfigTree &cfg);
-    void Save(ConfigTree &cfg, const Size &desktop_res);
+    void Load(const ConfigTree &cfg, const Size &desktop_res);
+    void Save(ConfigTree &cfg, const Size &desktop_res) const;
 };
 
 WinConfig::WinConfig()
@@ -135,7 +135,7 @@ void WinConfig::SetDefaults()
     Title = "Game Setup";
 }
 
-void WinConfig::Load(const ConfigTree &cfg)
+void WinConfig::Load(const ConfigTree &cfg, const Size &desktop_res)
 {
     DataDirectory = CfgReadString(cfg, "misc", "datadir", DataDirectory);
     UserSaveDir = CfgReadString(cfg, "misc", "user_data_dir");
@@ -151,8 +151,10 @@ void WinConfig::Load(const ConfigTree &cfg)
 
     GfxDriverId = CfgReadString(cfg, "graphics", "driver", GfxDriverId);
     GfxFilterId = CfgReadString(cfg, "graphics", "filter", GfxFilterId);
-    FsSetup = parse_window_mode(CfgReadString(cfg, "graphics", "fullscreen", "default"), false);
-    WinSetup = parse_window_mode(CfgReadString(cfg, "graphics", "window", "default"), true);
+    FsSetup = parse_window_mode(CfgReadString(cfg, "graphics", "fullscreen", "default"), false,
+        GameResolution, desktop_res);
+    WinSetup = parse_window_mode(CfgReadString(cfg, "graphics", "window", "default"), true,
+        GameResolution, desktop_res);
 
     FsGameFrame = parse_scaling_option(CfgReadString(cfg, "graphics", "game_scale_fs"), FsGameFrame);
     WinGameFrame = parse_scaling_option(CfgReadString(cfg, "graphics", "game_scale_win"), WinGameFrame);
@@ -185,7 +187,7 @@ void WinConfig::Load(const ConfigTree &cfg)
     Title = CfgReadString(cfg, "misc", "titletext", Title);
 }
 
-void WinConfig::Save(ConfigTree &cfg, const Size &desktop_res)
+void WinConfig::Save(ConfigTree &cfg, const Size &desktop_res) const
 {
     CfgWriteString(cfg, "misc", "user_data_dir", UserSaveDir);
     CfgWriteString(cfg, "misc", "shared_data_dir", AppDataDir);
@@ -629,7 +631,7 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
     _desktopSize = get_desktop_size();
     _maxWindowSize = AGSPlatformDriver::GetDriver()->ValidateWindowSize(_desktopSize, false);
 
-    _winCfg.Load(_cfgIn);
+    _winCfg.Load(_cfgIn, _desktopSize);
 
     // Custom save dir controls
     SetupCustomDirCtrl(_winCfg.UserSaveDir, _winCfg.DataDirectory,
@@ -874,9 +876,9 @@ void WinSetupDialog::OnGfxModeUpdate()
     switch (sel)
     {
     case static_cast<DWORD_PTR>(kGfxMode_Desktop):
-        _winCfg.FsSetup = WindowSetup(_desktopSize, kWnd_Fullscreen); break;
+        _winCfg.FsSetup = WindowSetup(kWndSizeHint_Desktop, _desktopSize, kWnd_Fullscreen); break;
     case static_cast<DWORD_PTR>(kGfxMode_GameRes):
-        _winCfg.FsSetup = WindowSetup(_winCfg.GameResolution, kWnd_Fullscreen); break;
+        _winCfg.FsSetup = WindowSetup(kWndSizeHint_GameNative, _winCfg.GameResolution, kWnd_Fullscreen); break;
     default:
         {
             const DisplayMode &mode = _drvDesc->GfxModeList.Modes[sel];
@@ -1273,11 +1275,11 @@ void WinSetupDialog::SelectNearestGfxMode(const WindowSetup &ws)
 
     // First check two special modes
     int res = -1;
-    if (ws.IsDefaultSize() || ws.Size == _desktopSize)
+    if (ws.IsDefaultSize() || ws.SizeHint == kWndSizeHint_Desktop)
     {
         res = SetCurSelToItemData(_hGfxModeList, static_cast<DWORD_PTR>(kGfxMode_Desktop));
     }
-    else if (ws.Size == _winCfg.GameResolution || ws.Scale == 1)
+    else if (ws.SizeHint == kWndSizeHint_GameNative || ws.Scale == 1)
     {
         res = SetCurSelToItemData(_hGfxModeList, static_cast<DWORD_PTR>(kGfxMode_GameRes));
     }
@@ -1294,7 +1296,9 @@ void WinSetupDialog::SelectNearestGfxMode(const WindowSetup &ws)
             SetCurSelToItemData(_hGfxModeList, index, NULL, kGfxMode_Desktop);
         }
         else
+        {
             SetCurSelToItemData(_hGfxModeList, static_cast<DWORD_PTR>(kGfxMode_Desktop));
+        }
     }
 
     OnGfxModeUpdate();

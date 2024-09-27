@@ -45,7 +45,8 @@ extern SpriteCache spriteset;
 const String DefaultConfigFileName = "acsetup.cfg";
 
 
-WindowSetup parse_window_mode(const String &option, bool as_windowed, WindowSetup def_value)
+WindowSetup parse_window_mode(const String &option, bool as_windowed,
+    const Size &game_res, const Size &desktop_res, const WindowSetup &def_value)
 {
     // "full_window" option means pseudo fullscreen ("borderless fullscreen window")
     if (!as_windowed && (option.CompareNoCase("full_window") == 0))
@@ -54,24 +55,26 @@ WindowSetup parse_window_mode(const String &option, bool as_windowed, WindowSetu
     // in which case we'll use either a resizing window or a REAL fullscreen mode
     const WindowMode exp_wmode = as_windowed ? kWnd_Windowed : kWnd_Fullscreen;
     // Note that for "desktop" we return "default" for windowed, this will result
-    // in refering to the  desktop size but resizing in accordance to the scaling style
+    // in refering to the desktop size but resizing in accordance to the scaling style
     if (option.CompareNoCase("desktop") == 0)
-        return as_windowed ? WindowSetup(exp_wmode) : WindowSetup(get_desktop_size(), exp_wmode);
+        return as_windowed ? WindowSetup(exp_wmode) : WindowSetup(kWndSizeHint_Desktop, desktop_res, exp_wmode);
     // "Native" means using game resolution as a window size
     if (option.CompareNoCase("native") == 0)
-        return WindowSetup(game.GetGameRes(), exp_wmode);
+        return WindowSetup(kWndSizeHint_GameNative, game_res, exp_wmode);
     // Try parse an explicit resolution type or game scale factor --
     size_t at = option.FindChar('x');
     if (at == 0)
     { // try parse as a scale (xN)
         int scale = StrUtil::StringToInt(option.Mid(1));
-        if (scale > 0) return WindowSetup(scale, exp_wmode);
+        if (scale > 0)
+            return WindowSetup(scale, exp_wmode);
     }
     else if (at != String::NoIndex)
     { // else try parse as a "width x height"
         Size sz = Size(StrUtil::StringToInt(option.Mid(0, at)),
             StrUtil::StringToInt(option.Mid(at + 1)));
-        if (!sz.IsNull()) return WindowSetup(sz, exp_wmode);
+        if (!sz.IsNull())
+            return WindowSetup(sz, exp_wmode);
     }
     // In case of "default" option, or any format mistake, return the default
     return def_value;
@@ -142,14 +145,14 @@ String make_window_mode_option(const WindowSetup &ws, const Size &game_res, cons
 {
     if (ws.Mode == kWnd_FullDesktop)
         return "full_window";
+    else if (ws.SizeHint == kWndSizeHint_Desktop)
+        return "desktop";
+    else if (ws.SizeHint == kWndSizeHint_GameNative)
+        return "native";
     else if (ws.IsDefaultSize())
         return "default";
     else if (ws.Size.IsNull())
         return String::FromFormat("x%d", ws.Scale);
-    else if (ws.Size == desktop_res)
-        return "desktop";
-    else if (ws.Size == game_res)
-        return "native";
     return String::FromFormat("%dx%d", ws.Size.Width, ws.Size.Height);
 }
 
@@ -319,9 +322,11 @@ void apply_config(const ConfigTree &cfg)
         usetup.Screen.DriverID = CfgReadString(cfg, "graphics", "driver", usetup.Screen.DriverID);
         usetup.Screen.Windowed = CfgReadBoolInt(cfg, "graphics", "windowed", usetup.Screen.Windowed);
         usetup.Screen.FsSetup =
-            parse_window_mode(CfgReadString(cfg, "graphics", "fullscreen", "default"), false, usetup.Screen.FsSetup);
+            parse_window_mode(CfgReadString(cfg, "graphics", "fullscreen", "default"), false,
+                game.GetGameRes(), get_desktop_size(), usetup.Screen.FsSetup);
         usetup.Screen.WinSetup =
-            parse_window_mode(CfgReadString(cfg, "graphics", "window", "default"), true, usetup.Screen.WinSetup);
+            parse_window_mode(CfgReadString(cfg, "graphics", "window", "default"), true,
+                game.GetGameRes(), get_desktop_size(), usetup.Screen.WinSetup);
 
         usetup.Screen.Filter.ID = CfgReadString(cfg, "graphics", "filter", "StdScale");
         usetup.Screen.FsGameFrame =

@@ -155,21 +155,28 @@ void SaveGameSlot2(int slnum, const char *descript)
     SaveGameSlot(slnum, descript, -1);
 }
 
-void DeleteSaveSlot (int slnum) {
-    String nametouse;
-    nametouse = get_save_game_path(slnum);
-    File::DeleteFile(nametouse);
-    if ((slnum >= 1) && (slnum <= MAXSAVEGAMES)) {
-        String thisname;
-        for (int i = MAXSAVEGAMES; i > slnum; i--) {
-            thisname = get_save_game_path(i);
-            if (Common::File::IsFile(thisname)) {
-                // Rename the highest save game to fill in the gap
-                File::RenameFile(thisname, nametouse);
-                break;
+void DeleteSaveSlot(int slnum)
+{
+    String save_filename = get_save_game_path(slnum);
+    File::DeleteFile(save_filename);
+
+    // Pre-3.6.2 engine behavior: if the deleted save slot was from within
+    // MAXSAVEGAMES range, then move the topmost found save file from the same
+    // range to the freed slot index.
+    if (loaded_game_file_version < kGameVersion_362)
+    {
+        if ((slnum >= 1) && (slnum <= MAXSAVEGAMES))
+        {
+            for (int i = MAXSAVEGAMES; i > slnum; i--)
+            {
+                String top_filename = get_save_game_path(i);
+                if (File::IsFile(top_filename))
+                {
+                    File::RenameFile(top_filename, save_filename);
+                    break;
+                }
             }
         }
-
     }
 }
 

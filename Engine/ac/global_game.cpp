@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "ac/global_game.h"
+#include <algorithm>
 #include <math.h>
 #include <stdio.h>
 #include "core/platform.h"
@@ -173,9 +174,9 @@ void DeleteSaveSlot(int slnum)
     // range to the freed slot index.
     if (loaded_game_file_version < kGameVersion_362)
     {
-        if ((slnum >= 1) && (slnum <= MAXSAVEGAMES))
+        if ((slnum >= 1) && (slnum <= LEGACY_MAXSAVEGAMES))
         {
-            for (int i = MAXSAVEGAMES; i > slnum; i--)
+            for (int i = LEGACY_MAXSAVEGAMES; i > slnum; i--)
             {
                 String top_filename = get_save_game_path(i);
                 if (File::IsFile(top_filename))
@@ -244,7 +245,7 @@ int LoadSaveSlotScreenshot(int slnum, int width, int height) {
     return add_dynamic_sprite(std::move(screenshot));
 }
 
-void FillSaveList(std::vector<SaveListItem> &saves, unsigned top_index, size_t max_count)
+void FillSaveList(std::vector<SaveListItem> &saves, unsigned bot_index, unsigned top_index, size_t max_count)
 {
     if (max_count == 0)
         return; // duh
@@ -252,6 +253,8 @@ void FillSaveList(std::vector<SaveListItem> &saves, unsigned top_index, size_t m
     String svg_dir = get_save_game_directory();
     String svg_suff = get_save_game_suffix();
     String pattern = String::FromFormat("agssave.???%s", svg_suff.GetCStr());
+    bot_index = std::min(999u, bot_index); // NOTE: slots are limited by 0..999 range
+    top_index = std::min(999u, top_index);
 
     for (FindFile ff = FindFile::OpenFiles(svg_dir, pattern); !ff.AtEnd(); ff.Next())
     {
@@ -259,8 +262,9 @@ void FillSaveList(std::vector<SaveListItem> &saves, unsigned top_index, size_t m
         if (!svg_suff.IsEmpty())
             slotname.ClipRight(svg_suff.GetLength());
         int saveGameSlot = Path::GetFileExtension(slotname).ToInt();
-        // only list games .000 to .XXX (to allow higher slots for other perposes)
-        if (saveGameSlot < 0 || static_cast<unsigned>(saveGameSlot) > top_index)
+        // only list games between .XXX to .YYY (to allow hidden slots for special perposes)
+        if (saveGameSlot < 0 || static_cast<unsigned>(saveGameSlot) < bot_index
+            || static_cast<unsigned>(saveGameSlot) > top_index)
             continue;
         String description;
         GetSaveSlotDescription(saveGameSlot, description);
@@ -273,7 +277,7 @@ void FillSaveList(std::vector<SaveListItem> &saves, unsigned top_index, size_t m
 int GetLastSaveSlot()
 {
     std::vector<SaveListItem> saves;
-    FillSaveList(saves, RESTART_POINT_SAVE_GAME_NUMBER - 1);
+    FillSaveList(saves, 0, RESTART_POINT_SAVE_GAME_NUMBER - 1);
     if (saves.size() == 0)
         return -1;
     std::sort(saves.rbegin(), saves.rend());

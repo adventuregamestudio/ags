@@ -34,7 +34,7 @@
   #define AGS_MAX_CONTROLS_PER_GUI 30
 #endif
 #define MAX_LEGACY_GLOBAL_VARS  50
-#define MAX_LISTBOX_SAVED_GAMES 50
+#define MAX_LEGACY_SAVED_GAMES  50
 #define PALETTE_SIZE   256
 #define FOLLOW_EXACTLY 32766
 #define NARRATOR -1
@@ -1920,8 +1920,8 @@ builtin managed struct ListBox extends GUIControl {
 	import void Clear();
 	/// Fills the list box with all the filenames that match the specified file mask.
 	import void FillDirList(const string fileMask);
-	/// Fills the list box with all the current user's saved games.
-	import int  FillSaveGameList();
+	/// Fills the list box with the current user's saved games in the given range of slots.
+	import int  FillSaveGameList(int min_slot = 1, int max_slot = 100);
 	/// Gets the item index at the specified screen co-ordinates, if they lie within the list box.
 	import int  GetItemAtLocation(int x, int y);
 #ifndef STRICT_STRINGS
@@ -3308,12 +3308,13 @@ import Hotspot hotspot[AGS_MAX_HOTSPOTS];
 import Region region[AGS_MAX_REGIONS];
 
 import int   gs_globals[MAX_LEGACY_GLOBAL_VARS];
-import short savegameindex[MAX_LISTBOX_SAVED_GAMES];
+import short savegameindex[MAX_LEGACY_SAVED_GAMES];
 import ColorType palette[PALETTE_SIZE];
 
-#ifndef SCRIPT_API_v330
 #undef MAX_LEGACY_GLOBAL_VARS
-#undef MAX_LISTBOX_SAVED_GAMES
+#undef MAX_LEGACY_SAVED_GAMES
+
+#ifndef SCRIPT_API_v330
 #undef PALETTE_SIZE
 #endif
 

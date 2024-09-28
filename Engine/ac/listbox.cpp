@@ -96,11 +96,14 @@ int ListBox_GetSaveGameSlots(GUIListBox *listbox, int index) {
   return listbox->SavedGameIndex[index];
 }
 
-int ListBox_FillSaveGameList(GUIListBox *listbox) {
-  // TODO: find out if limiting to MAXSAVEGAMES is still necessary here
+int ListBox_FillSaveGameList2(GUIListBox *listbox, int min_slot, int max_slot)
+{
+  max_slot = std::min(max_slot, TOP_SAVESLOT);
+  min_slot = std::min(max_slot, std::max(0, min_slot));
+
   std::vector<SaveListItem> saves;
-  FillSaveList(saves, TOP_LISTEDSAVESLOT, MAXSAVEGAMES);
-  std::sort(saves.rbegin(), saves.rend());
+  FillSaveList(saves, min_slot, max_slot);
+  std::sort(saves.rbegin(), saves.rend()); // sort by modified time in reverse
 
   // fill in the list box
   listbox->Clear();
@@ -112,16 +115,20 @@ int ListBox_FillSaveGameList(GUIListBox *listbox) {
   }
 
   // update the global savegameindex[] array for backward compatibilty
-  for (size_t n = 0; n < saves.size(); ++n)
+  for (size_t n = 0; n < LEGACY_MAXSAVEGAMES && n < saves.size(); ++n)
   {
     play.filenumbers[n] = saves[n].Slot;
   }
 
   listbox->SetSvgIndex(true);
 
-  if (saves.size() >= MAXSAVEGAMES)
-    return 1;
-  return 0;
+  // Returns TRUE if the whole range of slots is occupied
+  return saves.size() > static_cast<uint32_t>(max_slot - min_slot);
+}
+
+int ListBox_FillSaveGameList(GUIListBox *listbox)
+{
+  return ListBox_FillSaveGameList2(listbox, 1, LEGACY_TOP_LISTEDSAVESLOT);
 }
 
 int ListBox_GetItemAtLocation(GUIListBox *listbox, int x, int y) {
@@ -366,10 +373,14 @@ RuntimeScriptValue Sc_ListBox_FillDirList(void *self, const RuntimeScriptValue *
     API_OBJCALL_VOID_POBJ(GUIListBox, ListBox_FillDirList, const char);
 }
 
-// int (GUIListBox *listbox)
 RuntimeScriptValue Sc_ListBox_FillSaveGameList(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(GUIListBox, ListBox_FillSaveGameList);
+}
+
+RuntimeScriptValue Sc_ListBox_FillSaveGameList2(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT_PINT2(GUIListBox, ListBox_FillSaveGameList2);
 }
 
 // int (GUIListBox *listbox, int x, int y)
@@ -571,6 +582,7 @@ void RegisterListBoxAPI()
         { "ListBox::Clear^0",             API_FN_PAIR(ListBox_Clear) },
         { "ListBox::FillDirList^1",       API_FN_PAIR(ListBox_FillDirList) },
         { "ListBox::FillSaveGameList^0",  API_FN_PAIR(ListBox_FillSaveGameList) },
+        { "ListBox::FillSaveGameList^2",  API_FN_PAIR(ListBox_FillSaveGameList2) },
         { "ListBox::GetItemAtLocation^2", API_FN_PAIR(ListBox_GetItemAtLocation) },
         { "ListBox::GetItemText^2",       API_FN_PAIR(ListBox_GetItemText) },
         { "ListBox::InsertItemAt^2",      API_FN_PAIR(ListBox_InsertItemAt) },

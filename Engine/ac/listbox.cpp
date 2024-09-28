@@ -78,7 +78,7 @@ void ListBox_FillDirList(GUIListBox *listbox, const char *filemask) {
     if (alt_rp)
       FillDirList(files, alt_rp.Loc, Path::GetFilename(alt_rp.FullPath));
     // Sort and remove duplicates
-    std::sort(files.begin(), files.end());
+    std::sort(files.begin(), files.end(), StrLessNoCase());
     files.erase(std::unique(files.begin(), files.end(), StrEqNoCase()), files.end());
   }
 

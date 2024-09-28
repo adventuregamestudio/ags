@@ -110,7 +110,15 @@ void restart_game() {
     try_restore_save(RESTART_POINT_SAVE_GAME_NUMBER);
 }
 
-void RestoreGameSlot(int slnum) {
+void MoveSaveSlot(int old_save, int new_save)
+{
+    String old_filename = get_save_game_path(old_save);
+    String new_filename = get_save_game_path(new_save);
+    File::RenameFile(old_filename, new_filename);
+}
+
+void RestoreGameSlot(int slnum)
+{
     if (displayed_room < 0)
         quit("!RestoreGameSlot: a game cannot be restored from within game_start");
 

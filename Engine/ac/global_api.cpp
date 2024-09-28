@@ -1140,6 +1140,11 @@ RuntimeScriptValue Sc_MoveOverlay(const RuntimeScriptValue *params, int32_t para
     API_SCALL_VOID_PINT3(MoveOverlay);
 }
 
+RuntimeScriptValue Sc_MoveSaveSlot(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT2(MoveSaveSlot);
+}
+
 // void (int charid)
 RuntimeScriptValue Sc_MoveToWalkableArea(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -2498,6 +2503,7 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "MoveObject",               API_FN_PAIR(MoveObject) },
         { "MoveObjectDirect",         API_FN_PAIR(MoveObjectDirect) },
         { "MoveOverlay",              API_FN_PAIR(MoveOverlay) },
+        { "MoveSaveSlot",             API_FN_PAIR(MoveSaveSlot) },
         { "MoveToWalkableArea",       API_FN_PAIR(MoveToWalkableArea) },
         { "NewRoom",                  API_FN_PAIR(NewRoom) },
         { "NewRoomEx",                API_FN_PAIR(NewRoomEx) },

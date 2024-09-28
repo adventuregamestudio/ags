@@ -42,6 +42,7 @@ struct SaveListItem
 void AbortGame();
 void GiveScore(int amnt);
 void restart_game();
+void MoveSaveSlot(int old_slot, int new_slot);
 void RestoreGameSlot(int slnum);
 void SaveGameSlot(int slnum, const char *descript, int spritenum);
 void SaveGameSlot2(int slnum, const char *descript);

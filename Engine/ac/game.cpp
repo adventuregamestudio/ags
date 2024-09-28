@@ -417,23 +417,26 @@ const char* Game_GetSaveSlotDescription(int slnum) {
     return nullptr;
 }
 
-
 void restore_game_dialog() {
+    restore_game_dialog2(1, LEGACY_TOP_BUILTINDIALOGSAVESLOT);
+}
+
+void restore_game_dialog2(int min_slot, int max_slot) {
     can_run_delayed_command();
     if (thisroom.Options.SaveLoadDisabled == 1) {
         DisplayMessage(983);
         return;
     }
     if (inside_script) {
-        get_executingscript()->QueueAction(PostScriptAction(ePSARestoreGameDialog, 0, "RestoreGameDialog"));
+        get_executingscript()->QueueAction(PostScriptAction(ePSARestoreGameDialog, (min_slot & 0xFFFF) | (max_slot & 0xFFFF) << 16, "RestoreGameDialog"));
         return;
     }
-    do_restore_game_dialog();
+    do_restore_game_dialog(min_slot, max_slot);
 }
 
-bool do_restore_game_dialog() {
+bool do_restore_game_dialog(int min_slot, int max_slot) {
     setup_for_dialog();
-    int toload = loadgamedialog();
+    int toload = loadgamedialog(min_slot, max_slot);
     restore_after_dialog();
     if (toload >= 0)
         try_restore_save(toload);
@@ -441,24 +444,28 @@ bool do_restore_game_dialog() {
 }
 
 void save_game_dialog() {
+    save_game_dialog2(1, LEGACY_TOP_BUILTINDIALOGSAVESLOT);
+}
+
+void save_game_dialog2(int min_slot, int max_slot) {
     if (thisroom.Options.SaveLoadDisabled == 1) {
         DisplayMessage(983);
         return;
     }
     if (inside_script) {
-        get_executingscript()->QueueAction(PostScriptAction(ePSASaveGameDialog, 0, "SaveGameDialog"));
+        get_executingscript()->QueueAction(PostScriptAction(ePSASaveGameDialog, (min_slot & 0xFFFF) | (max_slot & 0xFFFF) << 16, "SaveGameDialog"));
         return;
     }
-    do_save_game_dialog();
+    do_save_game_dialog(min_slot, max_slot);
 }
 
-bool do_save_game_dialog() {
+bool do_save_game_dialog(int min_slot, int max_slot) {
     setup_for_dialog();
-    int toload = savegamedialog();
+    int tosave = savegamedialog(min_slot, max_slot);
     restore_after_dialog();
-    if (toload >= 0)
-        save_game(toload, get_gui_dialog_buffer());
-    return toload >= 0;
+    if (tosave >= 0)
+        save_game(tosave, get_gui_dialog_buffer());
+    return tosave >= 0;
 }
 
 void free_do_once_tokens()

@@ -1409,6 +1409,11 @@ RuntimeScriptValue Sc_restore_game_dialog(const RuntimeScriptValue *params, int3
     API_SCALL_VOID(restore_game_dialog);
 }
 
+RuntimeScriptValue Sc_restore_game_dialog2(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT2(restore_game_dialog2);
+}
+
 // void (int slnum)
 RuntimeScriptValue Sc_RestoreGameSlot(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -1477,6 +1482,11 @@ extern RuntimeScriptValue Sc_SaveCursorForLocationChange(const RuntimeScriptValu
 RuntimeScriptValue Sc_save_game_dialog(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID(save_game_dialog);
+}
+
+RuntimeScriptValue Sc_save_game_dialog2(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT2(save_game_dialog2);
 }
 
 RuntimeScriptValue Sc_SaveGameSlot(const RuntimeScriptValue *params, int32_t param_count)
@@ -2548,7 +2558,6 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "RemoveWalkableArea",       API_FN_PAIR(RemoveWalkableArea) },
         { "ResetRoom",                API_FN_PAIR(ResetRoom) },
         { "RestartGame",              API_FN_PAIR(restart_game) },
-        { "RestoreGameDialog",        API_FN_PAIR(restore_game_dialog) },
         { "RestoreGameSlot",          API_FN_PAIR(RestoreGameSlot) },
         { "RestoreWalkableArea",      API_FN_PAIR(RestoreWalkableArea) },
         { "RunAGSGame",               API_FN_PAIR(RunAGSGame) },
@@ -2561,7 +2570,6 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "Said",                     API_FN_PAIR(Said) },
         { "SaidUnknownWord",          API_FN_PAIR(SaidUnknownWord) },
         { "SaveCursorForLocationChange", API_FN_PAIR(SaveCursorForLocationChange) },
-        { "SaveGameDialog",           API_FN_PAIR(save_game_dialog) },
         { "SaveScreenShot",           API_FN_PAIR(SaveScreenShot) },
         { "SeekMIDIPosition",         API_FN_PAIR(SeekMIDIPosition) },
         { "SeekMODPattern",           API_FN_PAIR(SeekMODPattern) },
@@ -2692,12 +2700,27 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "SkipWait",                 API_FN_PAIR(SkipWait) },
     };
 
-    // Few functions have to be selected based on API level,
-    // because historically AGS compiler did not generate "number of args" in the import name.
-    if (base_api < kScriptAPI_v362)
-        ccAddExternalStaticFunction("SaveGameSlot", API_FN_PAIR(SaveGameSlot2));
-    else
-        ccAddExternalStaticFunction("SaveGameSlot", API_FN_PAIR(SaveGameSlot));
-
     ccAddExternalFunctions(global_api);
+
+    // Few functions have to be selected based on API level,
+    // We have to do this because AGS compiler did not generate
+    // "name^argnum" symbol id for non-member functions for some reason....
+    if (base_api < kScriptAPI_v362)
+    {
+        ScFnRegister global_api_dlgs[] = {
+            { "SaveGameSlot",           API_FN_PAIR(SaveGameSlot2) },
+            { "RestoreGameDialog",      API_FN_PAIR(restore_game_dialog) },
+            { "SaveGameDialog",         API_FN_PAIR(save_game_dialog) },
+        };
+        ccAddExternalFunctions(global_api_dlgs);
+    }
+    else
+    {
+        ScFnRegister global_api_dlgs[] = {
+            { "SaveGameSlot",           API_FN_PAIR(SaveGameSlot) },
+            { "RestoreGameDialog",      API_FN_PAIR(restore_game_dialog2) },
+            { "SaveGameDialog",         API_FN_PAIR(save_game_dialog2) },
+        };
+        ccAddExternalFunctions(global_api_dlgs);
+    }
 }

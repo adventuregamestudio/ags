@@ -158,6 +158,8 @@ const int LegacyRoomVolumeFactor            = 30;
 #define LEGACY_MAXSAVEGAMES 50
 // topmost save index to be listed with a FillSaveGameList command
 #define LEGACY_TOP_LISTEDSAVESLOT 50
+// topmost save index to be listed with a Save/RestoreGameDialog command
+#define LEGACY_TOP_BUILTINDIALOGSAVESLOT 20
 // topmost supported save slot index
 #define TOP_SAVESLOT 999
 // save slot reserved for the "restart point"

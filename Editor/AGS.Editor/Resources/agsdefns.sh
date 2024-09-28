@@ -819,9 +819,9 @@ import const string GetTranslation (const string originalText);
 /// Checks if a translation is currently in use.
 import int  IsTranslationAvailable ();
 /// Displays the default built-in Restore Game dialog.
-import void RestoreGameDialog();
+import void RestoreGameDialog(int min_slot = 1, int max_slot = 100);
 /// Displays the default built-in Save Game dialog.
-import void SaveGameDialog();
+import void SaveGameDialog(int min_slot = 1, int max_slot = 100);
 /// Restarts the game from the restart point.
 import void RestartGame();
 /// Saves the current game position to the specified slot.

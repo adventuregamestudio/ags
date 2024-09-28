@@ -56,8 +56,7 @@ void FillDirList(std::vector<String> &files, const FSLocation &loc, const String
     String path = File::FindFileCI(loc.BaseDir, loc.SubDir, true);
     if (path.IsEmpty())
         return;
-    for (FindFile ff = FindFile::OpenFiles(path, pattern); !ff.AtEnd(); ff.Next())
-        files.push_back(ff.Current());
+    Directory::GetFiles(path, files, pattern);
 }
 
 void ListBox_FillDirList(GUIListBox *listbox, const char *filemask) {

@@ -129,6 +129,17 @@ void GetFiles(const String &dir_path, std::vector<String> &files)
     }
 }
 
+void GetFiles(const String &dir_path, std::vector<String> &files, const String &wildcard)
+{
+    for (FindFile ff = FindFile::OpenFiles(dir_path, wildcard); !ff.AtEnd(); ff.Next())
+        files.push_back(ff.Current());
+}
+
+bool HasAnyFiles(const String &dir_path)
+{
+    return !FindFile::OpenFiles(dir_path).AtEnd();
+}
+
 } // namespace Directory
 
 

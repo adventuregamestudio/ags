@@ -47,6 +47,10 @@ namespace Directory
     void   GetDirs(const String &dir_path, std::vector<String> &dirs);
     // Get list of files found in the given directory
     void   GetFiles(const String &dir_path, std::vector<String> &files);
+    // Get list of files found in the given directory using wildcard pattern
+    void   GetFiles(const String &dir_path, std::vector<String> &files, const String &wildcard);
+    // Tells whether there are any files in the given directory
+    bool   HasAnyFiles(const String &dir_path);
 } // namespace Directory
 
 

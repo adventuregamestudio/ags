@@ -123,6 +123,9 @@ public:
     // Tells whether asset exists in any of the registered search locations
     bool         DoesAssetExist(const String &asset_name, const String &filter = "") const;
     inline bool  DoesAssetExist(const AssetPath &apath) const { return DoesAssetExist(apath.Name, apath.Filter); }
+    // Tries to get asset's "file time" (last modification time).
+    // Note that for the assets packed within a CLIB format this will return library's time instead.
+    bool         GetAssetTime(const String &asset_name, time_t &ft, const String &filter = "") const;
     // Searches in all the registered locations and collects a list of
     // assets using given wildcard pattern
     // TODO: variant accepting std::regex instead of wildcard, and replace uses where convenient

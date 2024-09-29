@@ -177,6 +177,30 @@ bool AssetManager::DoesAssetExist(const String &asset_name, const String &filter
     return false;
 }
 
+bool AssetManager::GetAssetTime(const String &asset_name, time_t &ft, const String &filter) const
+{
+    for (const auto *lib : _activeLibs)
+    {
+        if (!lib->TestFilter(filter)) continue; // filter does not match
+
+        if (IsAssetLibDir(lib))
+        {
+            String filename = File::FindFileCI(lib->BaseDir, asset_name);
+            if (!filename.IsEmpty())
+            {
+                ft = File::GetFileTime(filename);
+                return true;
+            }
+        }
+        else
+        {
+            ft = File::GetFileTime(lib->RealLibFiles[0]);
+            return true;
+        }
+    }
+    return false;
+}
+
 void AssetManager::FindAssets(std::vector<String> &assets, const String &wildcard,
     const String &filter) const
 {

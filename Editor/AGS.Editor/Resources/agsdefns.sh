@@ -1278,6 +1278,8 @@ enum FileSeek {
 };
 #endif
 
+builtin managed struct DateTime;
+
 builtin managed struct File {
   /// Delets the specified file from the disk.
   import static bool Delete(const string filename);   // $AUTOCOMPLETESTATICONLY$
@@ -1328,6 +1330,10 @@ builtin managed struct File {
   import static String ResolvePath(const string filename);   // $AUTOCOMPLETESTATICONLY$
   /// Gets the path to opened file.
   readonly import attribute String Path;
+#endif
+#ifdef SCRIPT_API_v362
+  /// Retrieves specified file's last write time; returns null if file does not exist
+  import static DateTime* GetFileTime(const string filename); // $AUTOCOMPLETESTATICONLY$
 #endif
   int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };
@@ -3044,6 +3050,10 @@ builtin struct Game {
   import static void   PrecacheSprite(int sprnum);
   /// Preloads and caches sprites and linked sounds for a view, within a selected range of loops.
   import static void   PrecacheView(int view, int first_loop, int last_loop);
+#endif
+#ifdef SCRIPT_API_v362
+  /// Gets the write time of the specified save game slot.
+  import static DateTime* GetSaveSlotTime(int saveSlot);
 #endif
 };
 

@@ -27,6 +27,20 @@ const char *ScriptDateTime::GetType() {
     return "DateTime";
 }
 
+void ScriptDateTime::SetFromStdTime(time_t time)
+{
+    // NOTE: subject to year 2038 problem due to shoving time_t in an integer
+    rawUnixTime = static_cast<int>(time);
+
+    struct tm *newtime = localtime(&time);
+    hour = newtime->tm_hour;
+    minute = newtime->tm_min;
+    second = newtime->tm_sec;
+    day = newtime->tm_mday;
+    month = newtime->tm_mon + 1;
+    year = newtime->tm_year + 1900;
+}
+
 size_t ScriptDateTime::CalcSerializeSize(const void* /*address*/)
 {
     return sizeof(int32_t) * 7;

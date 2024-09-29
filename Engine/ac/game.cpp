@@ -417,6 +417,15 @@ const char* Game_GetSaveSlotDescription(int slnum) {
     return nullptr;
 }
 
+ScriptDateTime* Game_GetSaveSlotTime(int slnum)
+{
+    time_t ft = File::GetFileTime(get_save_game_path(slnum));
+    ScriptDateTime *sdt = new ScriptDateTime();
+    sdt->SetFromStdTime(ft);
+    ccRegisterManagedObject(sdt, sdt);
+    return sdt;
+}
+
 void restore_game_dialog() {
     restore_game_dialog2(1, LEGACY_TOP_BUILTINDIALOGSAVESLOT);
 }
@@ -1608,6 +1617,11 @@ RuntimeScriptValue Sc_Game_GetSaveSlotDescription(const RuntimeScriptValue *para
     API_SCALL_OBJ_PINT(const char, myScriptStringImpl, Game_GetSaveSlotDescription);
 }
 
+RuntimeScriptValue Sc_Game_GetSaveSlotTime(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO_PINT(ScriptDateTime, Game_GetSaveSlotTime);
+}
+
 // ScriptViewFrame* (int viewNumber, int loopNumber, int frame)
 RuntimeScriptValue Sc_Game_GetViewFrame(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -1882,6 +1896,7 @@ void RegisterGameAPI()
         { "Game::GetMODPattern^0",                        API_FN_PAIR(Game_GetMODPattern) },
         { "Game::GetRunNextSettingForLoop^2",             API_FN_PAIR(Game_GetRunNextSettingForLoop) },
         { "Game::GetSaveSlotDescription^1",               API_FN_PAIR(Game_GetSaveSlotDescription) },
+        { "Game::GetSaveSlotTime^1",                      API_FN_PAIR(Game_GetSaveSlotTime) },
         { "Game::GetViewFrame^3",                         API_FN_PAIR(Game_GetViewFrame) },
         { "Game::InputBox^1",                             API_FN_PAIR(Game_InputBox) },
         { "Game::SetSaveGameDirectory^1",                 API_FN_PAIR(Game_SetSaveGameDirectory) },

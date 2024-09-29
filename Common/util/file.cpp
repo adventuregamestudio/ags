@@ -73,6 +73,12 @@ soff_t File::GetFileSize(const String &filename)
     return size;
 }
 
+time_t File::GetFileTime(const String &filename)
+{
+    return ags_file_time(filename.GetCStr());
+    // NOTE: ANDROID's AAsset storage seems to be unapplicable here
+}
+
 bool File::TestReadFile(const String &filename)
 {
     FILE *test_file = ags_fopen(filename.GetCStr(), "rb");

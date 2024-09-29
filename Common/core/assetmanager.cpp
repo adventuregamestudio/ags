@@ -14,7 +14,6 @@
 #include "core/assetmanager.h"
 #include <algorithm>
 #include <regex>
-#include "util/directory.h"
 #include "util/file.h"
 #include "util/multifilelib.h"
 #include "util/path.h"
@@ -233,6 +232,58 @@ void AssetManager::FindAssets(std::vector<String> &assets, const String &wildcar
     // Sort and remove duplicates
     std::sort(assets.begin(), assets.end(), StrLessNoCase());
     assets.erase(std::unique(assets.begin(), assets.end(), StrEqNoCase()), assets.end());
+}
+
+void AssetManager::FindAssets(std::vector<FileEntry> &assets, const String &wildcard,
+    const String &filter) const
+{
+    // TODO: consider refactoring and merging this with FindAssets(std::vector<String> &assets);
+    // there are two separate methods now, because retrieving filename only is faster than
+    // full FileEntry (may require extra system calls on certain platforms).
+
+    String pattern = StrUtil::WildcardToRegex(wildcard);
+    const std::regex regex(pattern.GetCStr(), std::regex_constants::icase);
+    std::cmatch mr;
+
+    std::vector<FileEntry> lib_fileents;
+    for (const auto *lib : _activeLibs)
+    {
+        if (!lib->TestFilter(filter)) continue; // filter does not match
+
+        lib_fileents.clear();
+        if (IsAssetLibDir(lib))
+        {
+            // FIXME: do basedir/getparent(wildcard), getfilename(wildcard) instead?
+            // because FindFile does not support subdirs in wildcard!!
+            for (FindFile ff = FindFile::OpenFiles(lib->BaseDir, wildcard);
+                 !ff.AtEnd(); ff.Next())
+                lib_fileents.push_back(ff.GetEntry());
+        }
+        else
+        {
+            time_t lib_time = File::GetFileTime(lib->RealLibFiles[0]);
+            for (const auto &a : lib->AssetInfos)
+            {
+                if (std::regex_match(a.FileName.GetCStr(), mr, regex))
+                    lib_fileents.push_back(FileEntry(a.FileName, true, false, lib_time));
+            }
+        }
+
+        // We have to filter out matching entries and keep only ones that were found first by lib priority
+        if (assets.empty())
+        {
+            assets = std::move(lib_fileents);
+        }
+        else
+        {
+            for (const auto &fe : lib_fileents)
+            {
+                auto it_place = std::upper_bound(assets.begin(), assets.end(), fe, FileEntryCmpByNameCI());
+                if (it_place != assets.begin() && (it_place - 1)->Name.CompareNoCase(fe.Name) != 0)
+                    assets.insert(it_place, fe);
+            }
+        }
+    }
 }
 
 AssetError AssetManager::RegisterAssetLib(const String &path, AssetLibEx *&out_lib)

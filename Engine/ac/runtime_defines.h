@@ -165,4 +165,20 @@ const int LegacyRoomVolumeFactor            = 30;
 // save slot reserved for the "restart point"
 #define RESTART_POINT_SAVE_GAME_NUMBER 999
 
+// Script API SortDirection
+enum ScriptSortDirection
+{
+    kScSortNone       = 0,
+    kScSortAscending  = 1,
+    kScSortDescending = 2,
+};
+
+// Script API FileSortStyle
+enum ScriptFileSortStyle
+{
+    kScFileSort_None = 0, // undefined order
+    kScFileSort_Name = 1, // by file name
+    kScFileSort_Time = 2, // by last write time
+};
+
 #endif // __AC_RUNTIMEDEFINES_H

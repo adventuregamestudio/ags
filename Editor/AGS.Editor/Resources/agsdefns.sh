@@ -515,6 +515,20 @@ enum RenderLayer
   eRenderLayerRoom      = 0x00000008,
   eRenderLayerAll       = 0xFFFFFFFF
 };
+
+enum FileSortStyle
+{
+  eFileSort_None = 0,
+  eFileSort_Name = 1,
+  eFileSort_Time = 2
+};
+
+enum SortDirection
+{
+  eSortNoDirection = 0,
+  eSortAscending   = 1,
+  eSortDescending  = 2
+};
 #endif
 
 
@@ -1925,7 +1939,7 @@ builtin managed struct ListBox extends GUIControl {
 	/// Removes all the items from the list.
 	import void Clear();
 	/// Fills the list box with all the filenames that match the specified file mask.
-	import void FillDirList(const string fileMask);
+	import void FillDirList(const string fileMask, FileSortStyle fileSortStyle = eFileSort_Name, SortDirection sortDirection = eSortAscending);
 	/// Fills the list box with the current user's saved games in the given range of slots.
 	import int  FillSaveGameList(int min_slot = 1, int max_slot = 100);
 	/// Gets the item index at the specified screen co-ordinates, if they lie within the list box.

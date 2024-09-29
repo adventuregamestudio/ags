@@ -31,6 +31,22 @@ namespace AGS
 namespace Common
 {
 
+// FileEntry describes a single entry in the filesystem.
+struct FileEntry
+{
+    String Name;
+    // TODO: make flags instead?
+    bool IsFile = false;
+    bool IsDir = false;
+    time_t Time{};
+
+    FileEntry() = default;
+    FileEntry(const String &name, bool is_file, bool is_dir, const time_t &time)
+        : Name(name), IsFile(is_file), IsDir(is_dir), Time(time) {}
+
+    operator bool() const { return !Name.IsEmpty(); }
+};
+
 namespace Directory
 {
     // Creates new directory (if it does not exist)
@@ -49,26 +65,12 @@ namespace Directory
     void   GetFiles(const String &dir_path, std::vector<String> &files);
     // Get list of files found in the given directory using wildcard pattern
     void   GetFiles(const String &dir_path, std::vector<String> &files, const String &wildcard);
+    // Get list of file entries in the given directory using wildcard pattern
+    void   GetFiles(const String &dir_path, std::vector<FileEntry> &files, const String &wildcard);
     // Tells whether there are any files in the given directory
     bool   HasAnyFiles(const String &dir_path);
 } // namespace Directory
 
-
-// FileEntry describes a single entry in the filesystem.
-struct FileEntry
-{
-    String Name;
-    // TODO: make flags instead?
-    bool IsFile = false;
-    bool IsDir = false;
-    time_t Time{};
-
-    FileEntry() = default;
-    FileEntry(const String &name, bool is_file, bool is_dir, const time_t &time)
-        : Name(name), IsFile(is_file), IsDir(is_dir), Time(time) {}
-
-    operator bool() const { return !Name.IsEmpty(); }
-};
 
 //
 // DirectoryIterator iterates entries in the directory.
@@ -204,6 +206,74 @@ private:
     // TODO: make flags instead?
     bool _doFiles = false;
     bool _doDirs = false;
+};
+
+
+//
+// FileEntry comparators
+//
+struct FileEntryEqByName
+{
+     bool operator()(const FileEntry &fe1, const FileEntry &fe2) const
+    {
+        return fe1.Name == fe2.Name;
+    }
+};
+
+struct FileEntryEqByNameCI
+{
+     bool operator()(const FileEntry &fe1, const FileEntry &fe2) const
+    {
+        return fe1.Name.CompareNoCase(fe2.Name) == 0;
+    }
+};
+
+struct FileEntryCmpByName
+{
+    bool operator()(const FileEntry &fe1, const FileEntry &fe2) const
+    {
+        return fe1.Name.Compare(fe2.Name) < 0;
+    }
+};
+
+struct FileEntryCmpByNameDsc
+{
+    bool operator()(const FileEntry &fe1, const FileEntry &fe2) const
+    {
+        return fe2.Name.Compare(fe1.Name) < 0;
+    }
+};
+
+struct FileEntryCmpByNameCI
+{
+    bool operator()(const FileEntry &fe1, const FileEntry &fe2) const
+    {
+        return fe1.Name.CompareNoCase(fe2.Name) < 0;
+    }
+};
+
+struct FileEntryCmpByNameDscCI
+{
+    bool operator()(const FileEntry &fe1, const FileEntry &fe2) const
+    {
+        return fe2.Name.CompareNoCase(fe1.Name) < 0;
+    }
+};
+
+struct FileEntryCmpByTime
+{
+    bool operator()(const FileEntry &fe1, const FileEntry &fe2) const
+    {
+        return fe1.Time < fe2.Time;
+    }
+};
+
+struct FileEntryCmpByTimeDsc
+{
+    bool operator()(const FileEntry &fe1, const FileEntry &fe2) const
+    {
+        return fe2.Time < fe1.Time;
+    }
 };
 
 } // namespace Common

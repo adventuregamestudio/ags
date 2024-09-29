@@ -40,6 +40,7 @@
 #include <memory>
 #include <unordered_map>
 #include "core/asset.h"
+#include "util/directory.h"
 #include "util/stream.h"
 #include "util/string_types.h"
 
@@ -130,6 +131,11 @@ public:
     // assets using given wildcard pattern
     // TODO: variant accepting std::regex instead of wildcard, and replace uses where convenient
     void         FindAssets(std::vector<String> &assets, const String &wildcard,
+                                   const String &filter = "") const;
+    // Searches in all the registered locations and collects a list of
+    // FileEntry objects corresponding to assets, using given wildcard pattern.
+    // NOTE: lib file assets will have their time property equal to lib's time.
+    void         FindAssets(std::vector<FileEntry> &assets, const String &wildcard,
                                    const String &filter = "") const;
     // Open asset stream in the given work mode; returns null if asset is not found or cannot be opened
     // This method only searches in libraries that do not have any defined filters

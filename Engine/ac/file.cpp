@@ -344,10 +344,8 @@ bool CreateFSDirs(const FSLocation &fs)
     return Directory::CreateAllDirectories(fs.BaseDir, fs.SubDir);
 }
 
-bool ResolveScriptPath(const String &orig_sc_path, bool read_only, ResolvedPath &rp, ResolvedPath &alt_rp)
+ResolvedPath ResolveScriptPath(const String &orig_sc_path, bool read_only)
 {
-    rp = ResolvedPath();
-
     // Make sure that the script path has a system-portable form;
     String sc_path = orig_sc_path;
     sc_path.Replace('\\', '/');
@@ -362,8 +360,7 @@ bool ResolveScriptPath(const String &orig_sc_path, bool read_only, ResolvedPath 
     if (sc_path.Compare(UserConfigFileToken) == 0)
     {
         auto loc = GetGameUserConfigDir();
-        rp = ResolvedPath(loc, DefaultConfigFileName);
-        return true;
+        return ResolvedPath(loc, DefaultConfigFileName);
     }
 
     // Test absolute paths
@@ -372,10 +369,9 @@ bool ResolveScriptPath(const String &orig_sc_path, bool read_only, ResolvedPath 
         if (!read_only)
         {
             debug_script_warn("Attempt to access file '%s' denied (cannot write to absolute path)", sc_path.GetCStr());
-            return false;
+            return {};
         }
-        rp = ResolvedPath(sc_path);
-        return true;
+        return ResolvedPath(sc_path);
     }
 
     // Resolve location tokens
@@ -384,25 +380,20 @@ bool ResolveScriptPath(const String &orig_sc_path, bool read_only, ResolvedPath 
         if (!read_only)
         {
             debug_script_warn("Attempt to access file '%s' denied (cannot write to game assets)", sc_path.GetCStr());
-            return false;
+            return {};
         }
-        rp = ResolvedPath(sc_path.Mid(GameAssetToken.GetLength() + 1), true);
-        return true;
+        return ResolvedPath(sc_path.Mid(GameAssetToken.GetLength() + 1), true);
     }
 
     FSLocation parent_dir;
     String child_path;
-    FSLocation alt_parent_dir;
-    String alt_path;
-    // IMPORTANT: for compatibility reasons we support both cases:
-    // when token is followed by the path separator and when it is not, in which case it's assumed.
     if (sc_path.CompareLeft(GameInstallRootToken) == 0)
     {
         if (!read_only)
         {
             debug_script_warn("Attempt to access file '%s' denied (cannot write to game installation directory)",
                 sc_path.GetCStr());
-            return false;
+            return {};
         }
         parent_dir = FSLocation(ResPaths.DataDir);
         child_path = sc_path.Mid(GameInstallRootToken.GetLength());
@@ -417,34 +408,18 @@ bool ResolveScriptPath(const String &orig_sc_path, bool read_only, ResolvedPath 
         parent_dir = GetGameAppDataDir();
         child_path = sc_path.Mid(GameDataDirToken.GetLength());
     }
+    // FIXME: invalid token case; parse token prefix between $$ first
     else
     {
-        child_path = sc_path;
-
-        // For games which were made without having safe paths in mind,
-        // provide two paths: a path to the local directory and a path to
-        // AppData directory.
-        // This is done in case game writes a file by local path, and would
-        // like to read it back later. Since AppData path has higher priority,
-        // game will first check the AppData location and find a previously
-        // written file.
-        // If no file was written yet, but game is trying to read a pre-created
-        // file in the installation directory, then such file will be found
-        // following the 'alt_path'.
-        parent_dir = GetGameAppDataDir();
-        // Set alternate non-remapped "unsafe" path for read-only operations
-        if (read_only)
-        {
-            alt_parent_dir = FSLocation(ResPaths.DataDir);
-            alt_path = sc_path;
-        }
-
-        // Report a warning if the unsafe path is used for write operation
+        // If no token found -- assume game installation directory
         if (!read_only)
         {
-            debug_script_warn("Attempt to access file '%s' denied (cannot write to game installation directory);\nPath will be remapped to the app data directory: '%s'",
-                sc_path.GetCStr(), parent_dir.FullDir.GetCStr());
+            debug_script_warn("Attempt to access file '%s' denied (cannot write to game installation directory)",
+                sc_path.GetCStr());
+            return {};
         }
+        parent_dir = FSLocation(ResPaths.DataDir);
+        child_path = sc_path;
     }
 
     child_path.TrimLeft('/'); // remove any preceding slash, or this will be abs path
@@ -460,19 +435,16 @@ bool ResolveScriptPath(const String &orig_sc_path, bool read_only, ResolvedPath 
         if (!Path::IsSameOrSubDir(test_rp.Loc.FullDir, test_rp.FullPath))
         {
             debug_script_warn("Attempt to access file '%s' denied (outside of game directory)", sc_path.GetCStr());
-            return false;
+            return {};
         }
     }
-    rp = test_rp;
-    if (!alt_parent_dir.FullDir.IsEmpty() && alt_parent_dir.FullDir.Compare(rp.Loc.FullDir) != 0)
-        alt_rp = ResolvedPath(alt_parent_dir, alt_path);
-    return true;
+    return test_rp;
 }
 
 ResolvedPath ResolveScriptPathAndFindFile(const String &sc_path, bool read_only, bool ignore_find_result)
 {
-    ResolvedPath rp, alt_rp;
-    if (!ResolveScriptPath(sc_path, read_only, rp, alt_rp))
+    ResolvedPath rp = ResolveScriptPath(sc_path, read_only);
+    if (!rp)
     {
         debug_script_warn("ResolveScriptPath: failed to resolve path: %s", sc_path.GetCStr());
         return {}; // cannot be resolved
@@ -484,11 +456,6 @@ ResolvedPath ResolveScriptPathAndFindFile(const String &sc_path, bool read_only,
     ResolvedPath final_rp = rp;
     String most_found, missing_path;
     String found_file = File::FindFileCI(rp.Loc.BaseDir, rp.SubPath, false, &most_found, &missing_path);
-    if (found_file.IsEmpty() && alt_rp)
-    {
-        final_rp = alt_rp;
-        found_file = File::FindFileCI(alt_rp.Loc.BaseDir, alt_rp.SubPath, false, &most_found, &missing_path);
-    }
     if (found_file.IsEmpty())
     {
         if (ignore_find_result)
@@ -500,8 +467,8 @@ ResolvedPath ResolveScriptPathAndFindFile(const String &sc_path, bool read_only,
 #endif
         }
 
-        debug_script_warn("ResolveScriptPath: failed to find a match for: %s\n\ttried: %s\n\talt try: %s",
-            sc_path.GetCStr(), rp.FullPath.GetCStr(), alt_rp.FullPath.GetCStr());
+        debug_script_warn("ResolveScriptPath: failed to find a match for: %s\n\ttried: %s",
+            sc_path.GetCStr(), rp.FullPath.GetCStr());
         return {}; // nothing matching found
     }
     return ResolvedPath(found_file);
@@ -509,8 +476,8 @@ ResolvedPath ResolveScriptPathAndFindFile(const String &sc_path, bool read_only,
 
 ResolvedPath ResolveWritePathAndCreateDirs(const String &sc_path)
 {
-    ResolvedPath rp, alt_rp;
-    if (!ResolveScriptPath(sc_path, false, rp, alt_rp))
+    ResolvedPath rp = ResolveScriptPath(sc_path, false);
+    if (!rp)
         return {}; // cannot be resolved
 
     String most_found, missing_path, res_path;

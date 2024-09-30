@@ -105,11 +105,10 @@ struct ResolvedPath
 };
 // Resolves a file path provided by user (e.g. script) into actual file path,
 // by substituting special keywords with actual platform-specific directory names.
-// Fills in ResolvedPath object on success. For read-only access may also fill
-// a backwards-compatible fallback path (alt_rp), if one is available.
+// Fills in ResolvedPath object on success.
 // Returns 'true' on success, and 'false' if either path is impossible to resolve
 // or if the file path is forbidden to be accessed in current situation.
-bool ResolveScriptPath(const String &sc_path, bool read_only, ResolvedPath &rp, ResolvedPath &alt_rp);
+ResolvedPath ResolveScriptPath(const String &sc_path, bool read_only);
 // Resolves the script file path, and seeks for an actual file
 // using case-insensitive search. Looks up for both standard and alt path,
 // if necessary. Fills in the successful ResolvedPath variant.

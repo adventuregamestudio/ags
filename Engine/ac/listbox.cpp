@@ -63,8 +63,8 @@ void FillDirList(std::vector<String> &files, const FSLocation &loc, const String
 void ListBox_FillDirList(GUIListBox *listbox, const char *filemask) {
   listbox->Clear();
 
-  ResolvedPath rp, alt_rp;
-  if (!ResolveScriptPath(filemask, true, rp, alt_rp))
+  ResolvedPath rp = ResolveScriptPath(filemask, true);
+  if (!rp)
     return;
 
   std::vector<String> files;
@@ -75,11 +75,7 @@ void ListBox_FillDirList(GUIListBox *listbox, const char *filemask) {
   else
   {
     FillDirList(files, rp.Loc, Path::GetFilename(rp.FullPath));
-    if (alt_rp)
-      FillDirList(files, alt_rp.Loc, Path::GetFilename(alt_rp.FullPath));
-    // Sort and remove duplicates
-    std::sort(files.begin(), files.end());
-    files.erase(std::unique(files.begin(), files.end(), StrEqNoCase()), files.end());
+    std::sort(files.begin(), files.end(), StrLessNoCase());
   }
 
   // TODO: method for adding item batch to speed up update

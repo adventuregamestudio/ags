@@ -90,7 +90,9 @@ class Bitmap;
 class GUIMain
 {
 public:
+    // ControlRef describes a child control type and its index in an external list
     typedef std::pair<GUIControlType, int32_t> ControlRef;
+
     GUIMain();
 
     void    InitDefaults();

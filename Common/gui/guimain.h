@@ -90,9 +90,6 @@ class Bitmap;
 class GUIMain
 {
 public:
-    static String FixupGUIName(const String &name);
-
-public:
     GUIMain();
 
     void    InitDefaults();
@@ -284,6 +281,9 @@ namespace GUI
     {
         return (GUI::Context.DisabledState == kGuiDis_Undefined) && g->IsEnabled();
     }
+
+    // Fixups a GUI name loaded from v2.72 and earlier games
+    String FixupGUIName272(const String &name);
 
     // Applies current text direction setting (may depend on multiple factors)
     String ApplyTextDirection(const String &text);

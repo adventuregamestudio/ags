@@ -39,13 +39,6 @@ GuiOptions GUI::Options;
 GuiContext GUI::Context;
 
 
-/* static */ String GUIMain::FixupGUIName(const String &name)
-{
-    if (name.GetLength() > 0 && name[0u] != 'g')
-        return String::FromFormat("g%c%s", name[0u], name.Mid(1).Lower().GetCStr());
-    return name;
-}
-
 GUIMain::GUIMain()
 {
     InitDefaults();
@@ -725,6 +718,13 @@ namespace GUI
 
 GuiVersion GameGuiVersion = kGuiVersion_Initial;
 
+String FixupGUIName272(const String &name)
+{
+    if (name.GetLength() > 0 && name[0u] != 'g')
+        return String::FromFormat("g%c%s", name[0u], name.Mid(1).Lower().GetCStr());
+    return name;
+}
+
 Line CalcFontGraphicalVExtent(int font)
 {
     // Following factors are affecting the graphical vertical metrics:
@@ -901,7 +901,7 @@ HError ReadGUI(std::vector<GUIMain> &guis, GUIRefCollection &guiobjs, Stream *in
             gui.Padding = TEXTWINDOW_PADDING_DEFAULT;
         // fix names for 2.x: "GUI" -> "gGui"
         if (loaded_game_file_version <= kGameVersion_272)
-            gui.Name = GUIMain::FixupGUIName(gui.Name);
+            gui.Name = GUI::FixupGUIName272(gui.Name);
 
         // GUI popup style and visibility
         if (GameGuiVersion < kGuiVersion_350)

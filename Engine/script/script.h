@@ -25,7 +25,7 @@
 using AGS::Common::String;
 using AGS::Common::Interaction;
 using AGS::Common::InteractionCommandList;
-using AGS::Common::InteractionScripts;
+using AGS::Common::InteractionEvents;
 using AGS::Common::InteractionVariable;
 
 #define LATE_REP_EXEC_ALWAYS_NAME "late_repeatedly_execute_always"
@@ -109,7 +109,7 @@ int     run_interaction_event(const ObjectEvent &obj_evt, Interaction *nint, int
 // Runs the ObjectEvent using a script callback of 'evnt' index,
 // or alternatively of 'chkAny' index, if previous does not exist
 // Returns 0 normally, or -1 telling of a game state change (eg. a room change occured).
-int     run_interaction_script(const ObjectEvent &obj_evt, InteractionScripts *nint, int evnt, int chkAny = -1);
+int     run_interaction_script(const ObjectEvent &obj_evt, const InteractionEvents *nint, int evnt, int chkAny = -1);
 int     run_interaction_commandlist(const ObjectEvent &obj_evt, InteractionCommandList *nicl, int *timesrun, int*cmdsrun);
 void    run_unhandled_event(const ObjectEvent &obj_evt, int evnt);
 
@@ -129,8 +129,14 @@ ccInstance *GetScriptInstanceByType(ScriptType sc_type);
 bool    DoesScriptFunctionExist(ccInstance *sci, const String &fn_name);
 // Tests if a function exists in any of the regular script module, *except* room script
 bool    DoesScriptFunctionExistInModules(const String &fn_name);
-// Queues a script function to be run either called by the engine or from another script
+// Queues a script function to be run either called by the engine or from another script;
+// the function is identified by its name, and will be run in time, by RunScriptFunctionAuto().
 void    QueueScriptFunction(ScriptType sc_type, const String &fn_name, size_t param_count = 0,
+    const RuntimeScriptValue *params = nullptr);
+// Queues a script function to be run either called by the engine or from another script;
+// the function is identified by its name and script module, and will be run in time,
+// by RunScriptFunctionAuto().
+void    QueueScriptFunction(ScriptType sc_type, const ScriptFunctionRef &fn_ref, size_t param_count = 0,
     const RuntimeScriptValue *params = nullptr);
 // Try to run a script function on a given script instance
 RunScFuncResult RunScriptFunction(ccInstance *sci, const String &tsname, size_t param_count = 0,
@@ -144,7 +150,7 @@ void    RunScriptFunctionInRoom(const String &tsname, size_t param_count = 0,
     const RuntimeScriptValue *params = nullptr);
 // Try to run a script function, guessing the behavior by its name and script instance type;
 // depending on the type may run a claimable callback chain
-void   RunScriptFunctionAuto(ScriptType sc_type, const String &fn_name, size_t param_count = 0,
+void   RunScriptFunctionAuto(ScriptType sc_type, const ScriptFunctionRef &fn_ref, size_t param_count = 0,
     const RuntimeScriptValue *params = nullptr);
 
 // Preallocates script module instances

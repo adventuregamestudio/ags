@@ -42,9 +42,19 @@ namespace AGS.Types
         private bool _visible = true;
         private bool _translated = true;
 
-        [AGSNoSerialize]
+        [NonSerialized]
+        private GUI _parent;
+        [NonSerialized]
         private GUIControlGroup _memberOf;
-        
+
+        [Browsable(false)]
+        [AGSNoSerialize]
+        public GUI Parent
+        {
+            get { return _parent; }
+            set { _parent = value; }
+        }
+
         [Browsable(false)]
         [AGSNoSerialize]
         public GUIControlGroup MemberOf

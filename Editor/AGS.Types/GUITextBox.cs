@@ -38,7 +38,7 @@ namespace AGS.Types
         [Description("Script function to run when return is pressed in the text box")]
         [Category("Events")]
         [Browsable(false)]
-        [AGSEventProperty()]
+        [AGSEventsTabProperty(), AGSEventProperty(), AGSDefaultEventProperty()]
         [ScriptFunctionParameters("GUIControl *control")]
         [EditorAttribute(typeof(ScriptFunctionUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         public string OnActivate

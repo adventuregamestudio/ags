@@ -56,7 +56,7 @@ namespace AGS.Types
         [Description("Script function to run when the GUI is clicked")]
         [Category("Events")]
         [Browsable(false)]
-        [AGSEventProperty()]
+        [AGSEventsTabProperty(), AGSEventProperty(), AGSDefaultEventProperty()]
         [ScriptFunctionParameters("GUI *theGui, MouseButton button")]
         [EditorAttribute(typeof(ScriptFunctionUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         public string OnClick

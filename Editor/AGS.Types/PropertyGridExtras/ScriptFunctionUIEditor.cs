@@ -11,9 +11,9 @@ namespace AGS.Types
 {
     public class ScriptFunctionUIEditor : UITypeEditor
     {
-        public delegate void OpenScriptEditorHandler(bool isGlobalScript, string functionName);
+        public delegate void OpenScriptEditorHandler(string scriptModule, string functionName);
         public static OpenScriptEditorHandler OpenScriptEditor;
-        public delegate void CreateScriptFunctionHandler(bool isGlobalScript, string functionName, string parameters);
+        public delegate void CreateScriptFunctionHandler(string scriptModule, string functionName, string parameters);
         public static CreateScriptFunctionHandler CreateScriptFunction;
 
         public ScriptFunctionUIEditor()
@@ -27,52 +27,64 @@ namespace AGS.Types
 
         public override object EditValue(ITypeDescriptorContext context, IServiceProvider provider, object value)
         {
-            bool isGlobalScript = false;
-			int maxLength = 50; // TODO: why even 50?
             string itemName = string.Empty;
+            string scriptModule = Script.GLOBAL_SCRIPT_FILE_NAME;
             if (context.Instance is GUI)
             {
                 itemName = ((GUI)context.Instance).Name;
-                isGlobalScript = true;
+                scriptModule = ((GUI)context.Instance).ScriptModule;
             }
             else if (context.Instance is GUIControl)
             {
                 itemName = ((GUIControl)context.Instance).Name;
-                isGlobalScript = true;
+                GUI gui = ((GUIControl)context.Instance).Parent;
+                if (gui != null)
+                    scriptModule = gui.ScriptModule;
             }
             else if (context.Instance is InventoryItem)
             {
                 itemName = ((InventoryItem)context.Instance).Name;
-                isGlobalScript = true;
+                scriptModule = ((InventoryItem)context.Instance).Interactions.ScriptModule;
             }
             else if (context.Instance is Character)
             {
                 itemName = ((Character)context.Instance).ScriptName;
-                isGlobalScript = true;
+                scriptModule = ((Character)context.Instance).Interactions.ScriptModule;
             }
             else if (context.Instance is Room)
             {
                 itemName = "room";
+                scriptModule = ((Room)context.Instance).Interactions.ScriptModule;
             }
             else if (context.Instance is RoomHotspot)
             {
                 itemName = ((RoomHotspot)context.Instance).Name;
+                scriptModule = ((RoomHotspot)context.Instance).Interactions.ScriptModule;
             }
             else if (context.Instance is RoomObject)
             {
                 itemName = ((RoomObject)context.Instance).Name;
+                scriptModule = ((RoomObject)context.Instance).Interactions.ScriptModule;
             }
             else if (context.Instance is RoomRegion)
             {
                 itemName = "region" + ((RoomRegion)context.Instance).ID;
+                scriptModule = ((RoomRegion)context.Instance).Interactions.ScriptModule;
+            }
+            else
+            {
+                throw new AGSEditorException($"Invalid object type for editing: {context.Instance.GetType().Name}");
             }
 
-			ScriptFunctionParametersAttribute parametersAttribute = ((ScriptFunctionParametersAttribute)context.PropertyDescriptor.Attributes[typeof(ScriptFunctionParametersAttribute)]);
+            if (!scriptModule.EndsWith(".asc"))
+                scriptModule = scriptModule + ".asc";
 
-			return CreateOrOpenScriptFunction((string)value, itemName, context.PropertyDescriptor.Name, parametersAttribute, isGlobalScript, maxLength);
+            ScriptFunctionParametersAttribute parametersAttribute = ((ScriptFunctionParametersAttribute)context.PropertyDescriptor.Attributes[typeof(ScriptFunctionParametersAttribute)]);
+
+			return CreateOrOpenScriptFunction((string)value, itemName, context.PropertyDescriptor.Name, parametersAttribute, scriptModule);
         }
 
-		public static string CreateOrOpenScriptFunction(string stringValue, string itemName, string functionSuffix, ScriptFunctionParametersAttribute parametersAttribute, bool isGlobalScript, int maxLength)
+		public static string CreateOrOpenScriptFunction(string stringValue, string itemName, string functionSuffix, ScriptFunctionParametersAttribute parametersAttribute, string scriptModule)
 		{
 			if (string.IsNullOrEmpty(stringValue))
 			{
@@ -84,20 +96,15 @@ namespace AGS.Types
 
 				stringValue = itemName + "_" + functionSuffix;
 
-				if (maxLength > 0 && stringValue.Length > maxLength)
-				{
-					stringValue = stringValue.Substring(0, maxLength);
-				}
-
 				if (CreateScriptFunction != null)
 				{
 					string parameters = parametersAttribute.Parameters;
-					CreateScriptFunction(isGlobalScript, stringValue, parameters);
+					CreateScriptFunction(scriptModule, stringValue, parameters);
 				}
 			}
 			if (OpenScriptEditor != null)
 			{
-				OpenScriptEditor(isGlobalScript, stringValue);
+				OpenScriptEditor(scriptModule, stringValue);
 			}
 			return stringValue;
 		}

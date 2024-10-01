@@ -27,7 +27,6 @@ int currentline;
 // script file format signature
 const char scfilesig[5] = "SCOM";
 
-
 ccScript *ccScript::CreateFromStream(Stream *in)
 {
     ccScript *scri = new ccScript();
@@ -39,22 +38,42 @@ ccScript *ccScript::CreateFromStream(Stream *in)
     return scri;
 }
 
+ccScript *ccScript::CreateFromStream(const std::string &name, Common::Stream *in)
+{
+    ccScript *scri = new ccScript(name);
+    if (!scri->Read(in))
+    {
+        delete scri;
+        return nullptr;
+    }
+    return scri;
+}
+
+ccScript::ccScript(const std::string &name)
+{
+    scriptname = name;
+}
+
 ccScript::ccScript(const ccScript &src)
 {
+    *this = src;
+}
+
+ccScript &ccScript::operator =(const ccScript &src)
+{
+    scriptname = src.scriptname;
     globaldata = src.globaldata;
     code = src.code;
     strings = src.strings;
     fixuptypes = src.fixuptypes;
     fixups = src.fixups;
-
     imports = src.imports;
     exports = src.exports;
     export_addr = src.export_addr;
-
     sectionNames = src.sectionNames;
     sectionOffsets = src.sectionOffsets;
-
     instances = 0; // don't copy reference count, since it's a new object
+    return *this;
 }
 
 void ccScript::Write(Stream *out)
@@ -175,6 +194,15 @@ bool ccScript::Read(Stream *in)
         return false;
     }
     return true;
+}
+
+const char *ccScript::GetScriptName() const
+{
+    if (!scriptname.empty())
+        return scriptname.c_str();
+    if (sectionNames.size() > 0)
+        return sectionNames[0].c_str();
+    return "";
 }
 
 const char* ccScript::GetSectionName(int32_t offs) const

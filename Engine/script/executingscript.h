@@ -27,6 +27,7 @@
 // A general script type, used to search for or run a function.
 // NOTE: "game" type may mean either "global script" or any script module,
 // depending on other circumstances.
+// TODO: get rid of this later, remains of old event function logic
 enum ScriptType
 {
     kScTypeNone,
@@ -34,10 +35,27 @@ enum ScriptType
     kScTypeRoom     // room script
 };
 
+// ScriptFunctionRef - represents a *unresolved* reference to the script function.
+// This means that it has only script and function names, but not the actual
+// pointer to a loaded bytecode.
+struct ScriptFunctionRef
+{
+    AGS::Common::String ModuleName;
+    AGS::Common::String FuncName;
+ 
+    ScriptFunctionRef() = default;
+    ScriptFunctionRef(const AGS::Common::String &fn_name)
+        : FuncName(fn_name) {}
+    ScriptFunctionRef(const AGS::Common::String &module_name, const AGS::Common::String &fn_name)
+        : ModuleName(module_name), FuncName(fn_name) {}
+    bool IsEmpty() const { return FuncName.IsEmpty(); }
+    operator bool() const { return FuncName.IsEmpty(); }
+};
+
 struct QueuedScript
 {
-    Common::String     FnName;
     ScriptType         ScType = kScTypeNone;
+    ScriptFunctionRef  Function;
     size_t             ParamCount = 0u;
     RuntimeScriptValue Params[MAX_SCRIPT_EVT_PARAMS];
 
@@ -89,7 +107,10 @@ struct ExecutingScript
 
     ExecutingScript() = default;
     void QueueAction(PostScriptAction &&act);
-    void RunAnother(ScriptType scinst, const Common::String &fnname, size_t param_count, const RuntimeScriptValue *params);
+    void RunAnother(ScriptType scinst, const AGS::Common::String &fn_name,
+        size_t param_count, const RuntimeScriptValue *params);
+    void RunAnother(ScriptType scinst, const ScriptFunctionRef &fn_ref,
+        size_t param_count, const RuntimeScriptValue *params);
 };
 
 #endif // __AGS_EE_SCRIPT__EXECUTINGSCRIPT_H

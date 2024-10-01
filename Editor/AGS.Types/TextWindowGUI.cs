@@ -68,6 +68,8 @@ namespace AGS.Types
             _controls.Add(new GUITextWindowEdge(90, 40, 5));
             _controls.Add(new GUITextWindowEdge(40, 0, 6));
             _controls.Add(new GUITextWindowEdge(40, 90, 7));
+            foreach (var control in _controls)
+                control.Parent = this;
         }
         
         public TextWindowGUI(XmlNode rootGuiNode) : base(rootGuiNode)

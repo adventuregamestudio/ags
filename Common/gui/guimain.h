@@ -225,6 +225,8 @@ public:
     int32_t MouseDownCtrl;  // which control has the mouse button pressed on it
     Point   MouseWasAt;     // last mouse cursor position
 
+    String  ScriptModule;   // (optional) script module which contains callbacks
+                            // for this GUI and its controls
     String  OnClickHandler; // script function name
 
 private:

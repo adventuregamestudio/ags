@@ -12,15 +12,24 @@
 //
 //=============================================================================
 //
-// Interaction structs.
+// Interaction structs: they define engine's reaction to player interaction
+// with various game objects.
+//
+// There are two kinds of interaction systems: the modern and legacy ones.
+// The new one, represented by InteractionEvents struct, is very simple:
+// it is defined as a indexed list of script function names, where index is a
+// internal index of a interaction type or event (object-specific),
+// and function name tells which function to run, either in a global script
+// or room script (again, object-specific).
 //
 //-----------------------------------------------------------------------------
 //
-// Most of the interaction types here were used before the script and have
-// very limited capabilities. They were removed from AGS completely in
-// generation 3.0. The code is left for backwards compatibility.
+// Legacy system was used prior the proper scripting was introduced in AGS.
+// This sytem was removed from AGS Editor completely in generation 3.0,
+// so it's here strictly for backwards compatibility.
 //
-//-----------------------------------------------------------------------------
+// Legacy system is represented by Interaction struct, and is defined by a
+// tree-like collection of events, conditions and actions.
 //
 /* THE WAY THIS WORKS:
 *
@@ -39,16 +48,60 @@
 #define __AGS_CN_GAME__INTEREACTIONS_H
 
 #include <memory>
-#include "util/string_types.h"
-
-#define MAX_ACTION_ARGS             5
-#define MAX_NEWINTERACTION_EVENTS   30
-#define MAX_COMMANDS_PER_LIST       40
+#include <vector>
+#include "util/error.h"
+#include "util/string.h"
 
 namespace AGS
 {
 namespace Common
 {
+
+class Stream;
+
+//-----------------------------------------------------------------------------
+//
+// InteractionEvents (modern interaction system).
+// A indexed list of script functions for all the supported events.
+// Indexes are object-specific.
+//
+//-----------------------------------------------------------------------------
+
+enum InteractionEventsVersion
+{
+    kInterEvents_Initial = 0,
+    kInterEvents_v362    = 3060200,
+};
+
+// A indexed list of function links for all the supported events.
+struct InteractionEvents
+{
+    // An optional name of a script module to run functions in
+    String ScriptModule;
+    std::vector<String> Events;
+
+    // Read and create pre-3.6.2 version of the InteractionEvents
+    static std::unique_ptr<InteractionEvents> CreateFromStream_v361(Stream *in);
+    // Read and create 3.6.2+ version of the InteractionEvents
+    static std::unique_ptr<InteractionEvents> CreateFromStream_v362(Stream *in);
+    void Read_v361(Stream *in);
+    HError Read_v362(Stream *in);
+    void Write_v361(Stream *out) const;
+    void Write_v362(Stream *out) const;
+};
+
+typedef std::unique_ptr<InteractionEvents> UInteractionEvents;
+
+
+//-----------------------------------------------------------------------------
+//
+// Interactions (legacy interaction system).
+//
+//-----------------------------------------------------------------------------
+
+#define MAX_ACTION_ARGS             5
+#define MAX_NEWINTERACTION_EVENTS   30
+#define MAX_COMMANDS_PER_LIST       40
 
 enum InterValType : int8_t
 {
@@ -156,13 +209,11 @@ struct Interaction
     void Reset();
 
     // Game static data (de)serialization
-    static Interaction *CreateFromStream(Stream *in);
-    void                Write(Stream *out) const;
+    static std::unique_ptr<Interaction> CreateFromStream(Stream *in);
+    void Write(Stream *out) const;
 
     Interaction &operator =(const Interaction &inter);
 };
-
-typedef std::shared_ptr<Interaction> PInteraction;
 
 
 // Legacy pre-3.0 kind of global and local room variables
@@ -180,15 +231,7 @@ struct InteractionVariable
 };
 
 
-// A list of script function names for all supported events
-struct InteractionScripts
-{
-    StringV ScriptFuncNames;
-
-    static InteractionScripts *CreateFromStream(Stream *in);
-};
-
-typedef std::shared_ptr<InteractionScripts> PInteractionScripts;
+typedef std::unique_ptr<Interaction> UInteraction;
 
 } // namespace Common
 } // namespace AGS

@@ -124,7 +124,8 @@ enum GUIControlType
     kGUIInvWindow   = 3,
     kGUISlider      = 4,
     kGUITextBox     = 5,
-    kGUIListBox     = 6
+    kGUIListBox     = 6,
+    kGUICtrlTypeNum
 };
 
 // GUIControl general style and behavior flags
@@ -190,7 +191,8 @@ enum GuiSvgVersion
     kGuiSvgVersion_350,
     kGuiSvgVersion_36020,
     kGuiSvgVersion_36023,
-    kGuiSvgVersion_36025
+    kGuiSvgVersion_36025,
+    kGuiSvgVersion_36200    = 3060200 // re-added control refs
 };
 
 // Style of GUI drawing in disabled state

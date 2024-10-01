@@ -651,8 +651,11 @@ HSaveError ReadGUI(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Preserved
         return err;
     if (!AssertGameContent(err, static_cast<size_t>(in->ReadInt32()), game.numgui, "GUIs"))
         return err;
+    // NOTE: although we read ctrl refs here, this data is discarded.
+    // We'd need a proper support for reading old mismatching control arrays into new ones for this data to matter.
+    std::vector<std::vector<GUIMain::ControlRef>> guictrl_refs(game.numgui);
     for (int i = 0; i < game.numgui; ++i)
-        guis[i].ReadFromSavegame(in, svg_ver);
+        guis[i].ReadFromSavegame(in, svg_ver, guictrl_refs[i]);
 
     if (!AssertFormatTagStrict(err, in, "GUIButtons"))
         return err;
@@ -1220,7 +1223,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "GUI",
-        kGuiSvgVersion_36025,
+        kGuiSvgVersion_36200,
         kGuiSvgVersion_Initial,
         WriteGUI,
         ReadGUI

@@ -113,7 +113,7 @@ INT_PTR WinSetupDialog::OnInitDialog()
 
     _desktopSize = get_desktop_size();
 
-    _winCfg.Load(_cfgIn);
+    _winCfg.Load(_cfgIn, _desktopSize);
 
     // Resolution controls
     if (_winCfg.GameResolution.IsNull() &&

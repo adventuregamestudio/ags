@@ -41,6 +41,17 @@ bool find_nearest_supported_mode(const AGS::Engine::IGfxModeList &modes, const S
 extern AGS::Common::PlaneScaling GameScaling;
 
 
+// WindowSizeHint is an auxiliary value telling which kind of size was requested
+// by configuration. This is primarily meant for precise parsing and writing
+// of a config file, and for the setup application.
+enum WindowSizeHint
+{
+    kWndSizeHint_Desktop,       // use current desktop resolution
+    kWndSizeHint_GameNative,    // use native game resolution
+    kWndSizeHint_Explicit,      // explicit size (WxH)
+    kWndSizeHint_GameScale      // as a scale factor of native game res
+};
+
 // Filter configuration
 struct GfxFilterSetup
 {
@@ -61,6 +72,7 @@ enum FrameScaleDef
 // Configuration that is used to determine the size and style of the window
 struct WindowSetup
 {
+    WindowSizeHint       SizeHint = kWndSizeHint_Explicit;
     ::Size               Size;      // explicit screen metrics
     int                  Scale = 0; // explicit game scale factor
     WindowMode           Mode = AGS::Engine::kWnd_Windowed; // window mode
@@ -68,11 +80,14 @@ struct WindowSetup
     inline bool IsDefaultSize() const { return Size.IsNull() && Scale == 0; }
 
     WindowSetup() = default;
+    WindowSetup(WindowSizeHint hint, const ::Size &sz, WindowMode mode = AGS::Engine::kWnd_Windowed)
+        : SizeHint(hint), Size(sz), Mode(mode) {}
     WindowSetup(const ::Size &sz, WindowMode mode = AGS::Engine::kWnd_Windowed)
-        : Size(sz), Scale(0), Mode(mode) {}
+        : SizeHint(kWndSizeHint_Explicit), Size(sz), Mode(mode) {}
     WindowSetup(int scale, WindowMode mode = AGS::Engine::kWnd_Windowed)
-        : Scale(scale), Mode(mode) {}
-    WindowSetup(WindowMode mode) : Scale(0), Mode(mode) {}
+        : SizeHint(kWndSizeHint_GameScale), Scale(scale), Mode(mode) {}
+    WindowSetup(WindowMode mode) // Init with mode type only assumes using "desktop resolution"
+        : SizeHint(kWndSizeHint_Desktop), Mode(mode) {}
 };
 
 // Additional parameters for the display mode setup

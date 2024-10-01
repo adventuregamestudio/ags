@@ -104,7 +104,7 @@ namespace AGS.Editor
          * 3.6.1.9        - Settings.ScaleCharacterSpriteOffsets
          * 3.6.1.10       - SetRestartPoint() is no longer auto called in the engine,
          *                  add one into the global script when importing older games.
-         * 3.6.2          - Character.TurnWhenFacing
+         * 3.6.2          - Character.TurnWhenFacing, Settings.UseOldVoiceClipNaming.
         */
         public const int    LATEST_XML_VERSION_INDEX = 3060200;
         /*

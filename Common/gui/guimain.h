@@ -292,9 +292,6 @@ namespace GUI
     // Fixups a GUI name loaded from v2.72 and earlier games
     String FixupGUIName272(const String &name);
 
-    // Fixups a GUI name loaded from v2.72 and earlier games
-    String FixupGUIName272(const String &name);
-
     // Applies current text direction setting (may depend on multiple factors)
     String ApplyTextDirection(const String &text);
     // Calculates the text's draw position, given the alignment

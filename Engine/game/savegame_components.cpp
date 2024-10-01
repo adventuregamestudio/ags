@@ -45,11 +45,12 @@
 #include "gui/guimain.h"
 #include "gui/guislider.h"
 #include "gui/guitextbox.h"
+#include "media/audio/audio_system.h"
 #include "plugin/plugin_engine.h"
 #include "script/cc_common.h"
 #include "script/script.h"
 #include "util/filestream.h" // TODO: needed only because plugins expect file handle
-#include "media/audio/audio_system.h"
+#include "util/string_utils.h"
 
 using namespace Common;
 
@@ -138,6 +139,22 @@ inline bool AssertCompatRange(HSaveError &err, int value, int min_value, int max
         return false;
     }
     return true;
+}
+
+// Handles save-game mismatch where save has an extra object that the game does not
+inline bool HandleExtraGameComponent(HSaveError &err, const char *content_name, const String &obj_name)
+{
+    err = new SavegameError(kSvgErr_GameContentAssertion,
+        String::FromFormat("Extra %s found in save that does not exist in the game: %s.", content_name, obj_name.GetCStr()));
+    return false;
+}
+
+// Handles save-game mismatch where save is missing an object that the game has
+inline bool HandleMissingGameComponent(HSaveError &err, const char *content_name, const String &obj_name)
+{
+    err = new SavegameError(kSvgErr_GameContentAssertion,
+        String::FromFormat("Save is missing a %s that exists in the game: %s.", content_name, obj_name.GetCStr()));
+    return false;
 }
 
 inline bool AssertGameContent(HSaveError &err, int new_val, int original_val, const char *content_name)
@@ -928,6 +945,12 @@ HSaveError ReadDynamicSurfaces(Stream *in, int32_t /*cmp_ver*/, soff_t cmp_size,
     return err;
 }
 
+enum ScriptModulesSvgVersion
+{
+    kScriptModulesSvgVersion_Initial    = 0,
+    kScriptModulesSvgVersion_36200      = 3060200, // module names
+};
+
 HSaveError WriteScriptModules(Stream *out)
 {
     // write the data segment of the global script
@@ -939,6 +962,7 @@ HSaveError WriteScriptModules(Stream *out)
     out->WriteInt32(numScriptModules);
     for (size_t i = 0; i < numScriptModules; ++i)
     {
+        StrUtil::WriteString(moduleInst[i]->instanceof->GetScriptName(), out);
         data_len = moduleInst[i]->globaldatasize;
         out->WriteInt32(data_len);
         if (data_len > 0)
@@ -947,31 +971,66 @@ HSaveError WriteScriptModules(Stream *out)
     return HSaveError::None();
 }
 
-HSaveError ReadScriptModules(Stream *in, int32_t /*cmp_ver*/, soff_t cmp_size, const PreservedParams &pp, RestoredData &r_data)
+HSaveError ReadScriptModules(Stream *in, int32_t cmp_ver, soff_t cmp_size, const PreservedParams &pp, RestoredData &r_data)
 {
     HSaveError err;
     // read the global script data segment
     int data_len = in->ReadInt32();
     if (!AssertGameContent(err, data_len, pp.GlScDataSize, "global script data"))
         return err;
-    r_data.GlobalScript.Len = data_len;
     r_data.GlobalScript.Data.resize(data_len);
     if (data_len > 0)
         in->Read(&r_data.GlobalScript.Data.front(), data_len);
 
     if (!AssertGameContent(err, in->ReadInt32(), numScriptModules, "Script Modules"))
         return err;
-    r_data.ScriptModules.resize(numScriptModules);
+    std::vector<bool> modules_match(pp.ScriptModuleNames.size());
     for (size_t i = 0; i < numScriptModules; ++i)
     {
+        const String module_name = (cmp_ver < kScriptModulesSvgVersion_36200) ?
+            pp.ScriptModuleNames[i] :
+            StrUtil::ReadString(in);
         data_len = in->ReadInt32();
-        if (!AssertGameObjectContent(err, data_len, pp.ScMdDataSize[i], "script module data", "module", i))
-            return err;
-        r_data.ScriptModules[i].Len = data_len;
-        r_data.ScriptModules[i].Data.resize(data_len);
-        if (data_len > 0)
-            in->Read(&r_data.ScriptModules[i].Data.front(), data_len);
+        // Try to find existing module name and assert its presence and matching size
+        uint32_t game_module_index = UINT32_MAX;
+        for (size_t i = 0; i < pp.ScriptModuleNames.size(); ++i)
+        {
+            if (module_name.Compare(pp.ScriptModuleNames[i]) == 0)
+            {
+                game_module_index = i;
+                break;
+            }
+        }
+
+        if (game_module_index < UINT32_MAX)
+        {
+            // Found matching module in the game
+            if (!AssertGameObjectContent(err, data_len, pp.ScMdDataSize[i], "script module data", "module", i))
+                return err;
+            modules_match[game_module_index] = true;
+        }
+        else
+        {
+            // No such module in the game
+            if (!HandleExtraGameComponent(err, "script module", module_name))
+                return err;
+        }
+
+        RestoredData::ScriptData scdata;
+        scdata.Data.resize(data_len);
+        if (data_len > 0u)
+            in->Read(&scdata.Data.front(), data_len);
+        r_data.ScriptModules[module_name] = std::move(scdata);
     }
+
+    // Assert that all game's script modules were read from the save
+    for (size_t i = 0; i < modules_match.size(); ++i)
+    {
+        if (!modules_match[i] &&
+            !HandleMissingGameComponent(err, "script module", pp.ScriptModuleNames[i]))
+            return err;
+    }
+
     return err;
 }
 
@@ -1272,8 +1331,8 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Script Modules",
-        0,
-        0,
+        kScriptModulesSvgVersion_36200,
+        kScriptModulesSvgVersion_Initial,
         WriteScriptModules,
         ReadScriptModules
     },

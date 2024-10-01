@@ -45,6 +45,7 @@ struct PreservedParams
     int GameOptions[GameSetupStructBase::MAX_OPTIONS]{};
     // Script global data sizes
     size_t GlScDataSize = 0u;
+    std::vector<String> ScriptModuleNames;
     std::vector<size_t> ScMdDataSize;
 
     PreservedParams();
@@ -78,12 +79,9 @@ struct RestoredData
     struct ScriptData
     {
         std::vector<char>   Data;
-        size_t              Len;
-
-        ScriptData();
     };
     ScriptData              GlobalScript;
-    std::vector<ScriptData> ScriptModules;
+    std::unordered_map<String, ScriptData> ScriptModules;
     // Game state data (loaded ahead)
     uint32_t                DoOnceCount;
     // Room data (has to be be preserved until room is loaded)

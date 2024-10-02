@@ -610,6 +610,7 @@ HSaveError ReadGUI(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Preserved
     std::vector<std::vector<GUIMain::ControlRef>> guictrl_refs(game.numgui);
     for (int i = 0; i < game.numgui; ++i)
     {
+        guis[i].ReadFromSavegame(in, svg_ver, guictrl_refs[i]);
         if (svg_ver >= kGuiSvgVersion_40008)
             Properties::ReadValues(play.guiProps[i], in);
     }

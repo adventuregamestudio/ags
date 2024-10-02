@@ -679,7 +679,7 @@ void GUIMain::ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_version, st
     MouseWasAt.Y = in->ReadInt32();
 
     // Control refs
-    if (svg_version >= kGuiSvgVersion_36200)
+    if (svg_version >= kGuiSvgVersion_36200 && (svg_version < kGuiSvgVersion_400 || svg_version >= kGuiSvgVersion_40010))
     {
         uint32_t ctrl_count = in->ReadInt32();
         ctrl_refs.resize(ctrl_count);

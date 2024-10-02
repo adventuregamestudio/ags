@@ -1243,6 +1243,7 @@ struct ComponentHandler
     String             Name;    // internal component's ID
     int32_t            Version; // current version to write and the highest supported version
     int32_t            LowestVersion; // lowest supported version that the engine can read
+    SaveCmpSelection   Selection; // flag mask corresponding to this component
     HSaveError       (*Serialize)  (Stream*);
     HSaveError       (*Unserialize)(Stream*, int32_t cmp_ver, soff_t cmp_size, const PreservedParams&, RestoredData&);
 };
@@ -1256,6 +1257,7 @@ ComponentHandler ComponentHandlers[] =
         "Game State",
         kGSSvgVersion_361_14,
         kGSSvgVersion_Initial,
+        kSaveCmp_GameState,
         WriteGameState,
         ReadGameState
     },
@@ -1263,6 +1265,7 @@ ComponentHandler ComponentHandlers[] =
         "Audio",
         kAudioSvgVersion_36009,
         kAudioSvgVersion_Initial,
+        kSaveCmp_Audio,
         WriteAudio,
         ReadAudio
     },
@@ -1270,6 +1273,7 @@ ComponentHandler ComponentHandlers[] =
         "Characters",
         kCharSvgVersion_36115,
         kCharSvgVersion_350, // skip pre-alpha 3.5.0 ver
+        kSaveCmp_Characters,
         WriteCharacters,
         ReadCharacters
     },
@@ -1277,6 +1281,7 @@ ComponentHandler ComponentHandlers[] =
         "Dialogs",
         0,
         0,
+        kSaveCmp_Dialogs,
         WriteDialogs,
         ReadDialogs
     },
@@ -1284,6 +1289,7 @@ ComponentHandler ComponentHandlers[] =
         "GUI",
         kGuiSvgVersion_36202,
         kGuiSvgVersion_Initial,
+        kSaveCmp_GUI,
         WriteGUI,
         ReadGUI
     },
@@ -1291,6 +1297,7 @@ ComponentHandler ComponentHandlers[] =
         "Inventory Items",
         0,
         0,
+        kSaveCmp_InvItems,
         WriteInventory,
         ReadInventory
     },
@@ -1298,6 +1305,7 @@ ComponentHandler ComponentHandlers[] =
         "Mouse Cursors",
         kCursorSvgVersion_36016,
         kCursorSvgVersion_Initial,
+        kSaveCmp_Cursors,
         WriteMouseCursors,
         ReadMouseCursors
     },
@@ -1305,6 +1313,7 @@ ComponentHandler ComponentHandlers[] =
         "Views",
         0,
         0,
+        kSaveCmp_Views,
         WriteViews,
         ReadViews
     },
@@ -1312,6 +1321,7 @@ ComponentHandler ComponentHandlers[] =
         "Dynamic Sprites",
         0,
         0,
+        kSaveCmp_DynamicSprites,
         WriteDynamicSprites,
         ReadDynamicSprites
     },
@@ -1319,6 +1329,7 @@ ComponentHandler ComponentHandlers[] =
         "Overlays",
         kOverSvgVersion_36108,
         kOverSvgVersion_Initial,
+        kSaveCmp_Overlays,
         WriteOverlays,
         ReadOverlays
     },
@@ -1326,6 +1337,7 @@ ComponentHandler ComponentHandlers[] =
         "Dynamic Surfaces",
         0,
         0,
+        kSaveCmp_DynamicSurfaces,
         WriteDynamicSurfaces,
         ReadDynamicSurfaces
     },
@@ -1333,6 +1345,7 @@ ComponentHandler ComponentHandlers[] =
         "Script Modules",
         kScriptModulesSvgVersion_36200,
         kScriptModulesSvgVersion_Initial,
+        kSaveCmp_Scripts,
         WriteScriptModules,
         ReadScriptModules
     },
@@ -1340,6 +1353,7 @@ ComponentHandler ComponentHandlers[] =
         "Room States",
         kRoomStatSvgVersion_36109,
         kRoomStatSvgVersion_350_Mismatch, // support mismatching 3.5.0 ver here
+        kSaveCmp_Rooms,
         WriteRoomStates,
         ReadRoomStates
     },
@@ -1347,6 +1361,7 @@ ComponentHandler ComponentHandlers[] =
         "Loaded Room State",
         kRoomStatSvgVersion_36109, // must correspond to "Room States"
         kRoomStatSvgVersion_350, // skip pre-alpha 3.5.0 ver
+        kSaveCmp_ThisRoom,
         WriteThisRoom,
         ReadThisRoom
     },
@@ -1354,6 +1369,7 @@ ComponentHandler ComponentHandlers[] =
         "Move Lists",
         kMoveSvgVersion_36109,
         kMoveSvgVersion_350, // skip pre-alpha 3.5.0 ver
+        (SaveCmpSelection)(kSaveCmp_Characters | kSaveCmp_ThisRoom), // must go along with characters and room objects
         WriteMoveLists,
         ReadMoveLists
     },
@@ -1361,6 +1377,7 @@ ComponentHandler ComponentHandlers[] =
         "Managed Pool",
         0,
         0,
+        kSaveCmp_Scripts, // must go along with scripts
         WriteManagedPool,
         ReadManagedPool
     },
@@ -1368,10 +1385,11 @@ ComponentHandler ComponentHandlers[] =
         "Plugin Data",
         kPluginSvgVersion_36115,
         kPluginSvgVersion_Initial,
+        kSaveCmp_Plugins,
         WritePluginData,
         ReadPluginData
     },
-    { nullptr, 0, 0, nullptr, nullptr } // end of array
+    { nullptr, 0, 0, kSaveCmp_None, nullptr, nullptr } // end of array
 };
 
 
@@ -1386,15 +1404,19 @@ void GenerateHandlersMap(HandlersMap &map)
 // A helper struct to pass to (de)serialization handlers
 struct SvgCmpReadHelper
 {
-    SavegameVersion       Version;  // general savegame version
+    SavegameVersion        Version; // general savegame version
+    // Flag mask, instructing which components to read (others shall be skipped)
+    SaveCmpSelection       ComponentSelection = kSaveCmp_All;
     const PreservedParams &PP;      // previous game state kept for reference
     RestoredData          &RData;   // temporary storage for loaded data, that
                                     // will be applied after loading is done
     // The map of serialization handlers, one per supported component type ID
     HandlersMap            Handlers;
 
-    SvgCmpReadHelper(SavegameVersion svg_version, const PreservedParams &pp, RestoredData &r_data)
+    SvgCmpReadHelper(SavegameVersion svg_version, SaveCmpSelection select_cmp,
+        const PreservedParams &pp, RestoredData &r_data)
         : Version(svg_version)
+        , ComponentSelection(select_cmp)
         , PP(pp)
         , RData(r_data)
     {
@@ -1415,7 +1437,8 @@ struct ComponentInfo
 
 HSaveError ReadComponent(Stream *in, SvgCmpReadHelper &hlp, ComponentInfo &info)
 {
-    info = ComponentInfo(); // reset in case of early error
+    // Read component info
+    info = ComponentInfo();
     info.Offset = in->GetPosition();
     if (!ReadFormatTag(in, info.Name, true))
         return new SavegameError(kSvgErr_ComponentOpeningTagFormat);
@@ -1423,18 +1446,29 @@ HSaveError ReadComponent(Stream *in, SvgCmpReadHelper &hlp, ComponentInfo &info)
     info.DataSize = hlp.Version >= kSvgVersion_Cmp_64bit ? in->ReadInt64() : in->ReadInt32();
     info.DataOffset = in->GetPosition();
 
+    // Find component's handler
     const ComponentHandler *handler = nullptr;
     std::map<String, ComponentHandler>::const_iterator it_hdr = hlp.Handlers.find(info.Name);
     if (it_hdr != hlp.Handlers.end())
         handler = &it_hdr->second;
-
     if (!handler || !handler->Unserialize)
         return new SavegameError(kSvgErr_UnsupportedComponent);
-    if (info.Version > handler->Version || info.Version < handler->LowestVersion)
-        return new SavegameError(kSvgErr_UnsupportedComponentVersion, String::FromFormat("Saved version: %d, supported: %d - %d", info.Version, handler->LowestVersion, handler->Version));
-    HSaveError err = handler->Unserialize(in, info.Version, info.DataSize, hlp.PP, hlp.RData);
-    if (!err)
-        return err;
+
+    // Test if component is required to be read
+    if ((handler->Selection & hlp.ComponentSelection) != 0)
+    {
+        if (info.Version > handler->Version || info.Version < handler->LowestVersion)
+            return new SavegameError(kSvgErr_UnsupportedComponentVersion, String::FromFormat("Saved version: %d, supported: %d - %d", info.Version, handler->LowestVersion, handler->Version));
+        HSaveError err = handler->Unserialize(in, info.Version, info.DataSize, hlp.PP, hlp.RData);
+        if (!err)
+            return err;
+    }
+    else
+    {
+        in->Seek(info.DataSize);
+    }
+
+    // Test that we have reached an expected position in stream
     if (in->GetPosition() - info.DataOffset != info.DataSize)
         return new SavegameError(kSvgErr_ComponentSizeMismatch, String::FromFormat("Expected: %jd, actual: %jd",
             static_cast<intmax_t>(info.DataSize), static_cast<intmax_t>(in->GetPosition() - info.DataOffset)));
@@ -1443,10 +1477,11 @@ HSaveError ReadComponent(Stream *in, SvgCmpReadHelper &hlp, ComponentInfo &info)
     return HSaveError::None();
 }
 
-HSaveError ReadAll(Stream *in, SavegameVersion svg_version, const PreservedParams &pp, RestoredData &r_data)
+HSaveError ReadAll(Stream *in, SavegameVersion svg_version, SaveCmpSelection select_cmp,
+    const PreservedParams &pp, RestoredData &r_data)
 {
     // Prepare a helper struct we will be passing to the block reading proc
-    SvgCmpReadHelper hlp(svg_version, pp, r_data);
+    SvgCmpReadHelper hlp(svg_version, select_cmp, pp, r_data);
     GenerateHandlersMap(hlp.Handlers);
 
     size_t idx = 0;
@@ -1493,11 +1528,14 @@ HSaveError WriteComponent(Stream *out, ComponentHandler &hdlr)
     return err;
 }
 
-HSaveError WriteAllCommon(Stream *out)
+HSaveError WriteAllCommon(Stream *out, SaveCmpSelection select_cmp)
 {
     WriteFormatTag(out, ComponentListTag, true);
     for (int type = 0; !ComponentHandlers[type].Name.IsEmpty(); ++type)
     {
+        if ((ComponentHandlers[type].Selection & select_cmp) == 0)
+            continue; // skip this component
+
         HSaveError err = WriteComponent(out, ComponentHandlers[type]);
         if (!err)
         {

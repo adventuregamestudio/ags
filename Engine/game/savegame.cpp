@@ -685,7 +685,7 @@ HSaveError RestoreGameState(Stream *in, SavegameVersion svg_version)
     PreservedParams pp;
     RestoredData r_data;
     DoBeforeRestore(pp);
-    HSaveError err = SavegameComponents::ReadAll(in, svg_version, pp, r_data);
+    HSaveError err = SavegameComponents::ReadAll(in, svg_version, SavegameComponents::kSaveCmp_All, pp, r_data);
     if (!err)
         return err;
     return DoAfterRestore(pp, r_data);
@@ -765,7 +765,7 @@ void DoBeforeSave()
 void SaveGameState(Stream *out)
 {
     DoBeforeSave();
-    SavegameComponents::WriteAllCommon(out);
+    SavegameComponents::WriteAllCommon(out, SavegameComponents::kSaveCmp_All);
 }
 
 void ReadPluginSaveData(Stream *in, PluginSvgVersion svg_ver, soff_t max_size)

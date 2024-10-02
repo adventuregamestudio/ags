@@ -140,7 +140,7 @@ void RunRegionInteraction (int regnum, int mood) {
 
     // NOTE: for Regions the mode has specific meanings (NOT verbs):
     // 0 - stands on region, 1 - walks onto region, 2 - walks off region
-    const auto obj_evt = ObjectEvent("region%d", regnum,
+    const auto obj_evt = ObjectEvent(kScTypeRoom, "region%d", regnum,
         RuntimeScriptValue().SetScriptObject(&scrRegion[regnum], &ccDynamicRegion), mood);
     run_interaction_script(obj_evt, thisroom.Regions[regnum].EventHandlers.get(), mood);
 }

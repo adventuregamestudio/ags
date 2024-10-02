@@ -31,6 +31,7 @@ using namespace AGS; // FIXME later
 struct ccScript
 {
 public:
+    std::string scriptname;
     std::vector<char> globaldata;
     std::vector<int32_t> code;    // executable byte-code, 32-bit per op or arg
     std::vector<char> strings;
@@ -50,16 +51,22 @@ public:
     int instances = 0; // reference count for this script object
 
     static ccScript *CreateFromStream(Common::Stream *in);
+    static ccScript *CreateFromStream(const std::string &name, Common::Stream *in);
 
     ccScript() = default;
+    ccScript(const std::string &name);
     ccScript(const ccScript &src);
     virtual ~ccScript() = default; // there are few derived classes, so dtor should be virtual
+
+    ccScript &operator =(const ccScript&);
+
+    const char *GetScriptName() const;
+    const char *GetSectionName(int32_t offset) const;
 
     // write the script to disk (after compiling)
     void        Write(Common::Stream *out);
     // read back a script written with Write
     bool        Read(Common::Stream *in);
-    const char* GetSectionName(int32_t offset) const;
 };
 
 typedef std::shared_ptr<ccScript> PScript;

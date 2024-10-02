@@ -71,7 +71,8 @@ ScriptEventCallback ScriptEventCb[kTS_Num] = {
 };
 
 
-int run_claimable_event(const char *tsname, bool includeRoom, int numParams, const RuntimeScriptValue *params, bool *eventWasClaimed) {
+void run_claimable_event(const String &tsname, bool includeRoom, int numParams, const RuntimeScriptValue *params, bool *eventWasClaimed)
+{
     *eventWasClaimed = true;
     // Run the room script function, and if it is not claimed,
     // then run the main one
@@ -79,41 +80,39 @@ int run_claimable_event(const char *tsname, bool includeRoom, int numParams, con
     // this is a nested event
     int eventClaimedOldValue = eventClaimed;
     eventClaimed = EVENT_INPROGRESS;
-    int toret;
 
-    if (includeRoom && roominst) {
-        toret = RunScriptFunction(roominst.get(), tsname, numParams, params);
-
-        if (eventClaimed == EVENT_CLAIMED) {
+    if (includeRoom && roominst)
+    {
+        RunScriptFunction(roominst.get(), tsname, numParams, params);
+        if (eventClaimed == EVENT_CLAIMED)
+        {
             eventClaimed = eventClaimedOldValue;
-            return toret;
         }
     }
 
     // run script modules
-    for (auto &module_inst : moduleInst) {
-        toret = RunScriptFunction(module_inst.get(), tsname, numParams, params);
-
-        if (eventClaimed == EVENT_CLAIMED) {
+    for (auto &module_inst : moduleInst)
+    {
+        RunScriptFunction(module_inst.get(), tsname, numParams, params);
+        if (eventClaimed == EVENT_CLAIMED)
+        {
             eventClaimed = eventClaimedOldValue;
-            return toret;
         }
     }
 
     eventClaimed = eventClaimedOldValue;
     *eventWasClaimed = false;
-    return 0;
 }
 
 // runs the global script on_event function
 void run_on_event(AGSScriptEventType evtype, const RuntimeScriptValue &data1, const RuntimeScriptValue &data2)
 {
     RuntimeScriptValue params[]{ evtype , data1, data2 };
-    QueueScriptFunction(kScInstGame, "on_event", 3, params);
+    QueueScriptFunction(kScTypeGame, "on_event", 3, params);
 }
 
 void run_room_event(int id) {
-    auto obj_evt = ObjectEvent("room");
+    auto obj_evt = ObjectEvent(kScTypeRoom, "room");
     assert(thisroom.EventHandlers);
     run_interaction_script(obj_evt, thisroom.EventHandlers.get(), id);
 }
@@ -153,7 +152,7 @@ void process_event(const AGSEvent *evp)
             return;
         }
         RuntimeScriptValue params[3]{ ts.Arg1, ts.Arg2, ts.Arg3 };
-        QueueScriptFunction(kScInstGame, ScriptEventCb[ts.CbType].FnName, ScriptEventCb[ts.CbType].ArgCount, params);
+        QueueScriptFunction(kScTypeGame, ScriptEventCb[ts.CbType].FnName, ScriptEventCb[ts.CbType].ArgCount, params);
     }
     else if (evp->Type == kAGSEvent_NewRoom)
     {
@@ -162,7 +161,7 @@ void process_event(const AGSEvent *evp)
     else if (evp->Type == kAGSEvent_Interaction)
     {
         const auto &inter = evp->Data.Inter;
-        PInteractionScripts scriptPtr = nullptr;
+        InteractionEvents *obj_events = nullptr;
         ObjectEvent obj_evt;
 
         switch (inter.IntEvType)
@@ -171,9 +170,9 @@ void process_event(const AGSEvent *evp)
         {
             const int hotspot_id = inter.ObjID;
             if (thisroom.Hotspots[hotspot_id].EventHandlers != nullptr)
-                scriptPtr = thisroom.Hotspots[hotspot_id].EventHandlers;
+                obj_events = thisroom.Hotspots[hotspot_id].EventHandlers.get();
 
-            obj_evt = ObjectEvent("hotspot%d", hotspot_id,
+            obj_evt = ObjectEvent(kScTypeRoom, "hotspot%d", hotspot_id,
                 RuntimeScriptValue().SetScriptObject(&scrHotspot[hotspot_id], &ccDynamicHotspot));
             //Debug::Printf("Running hotspot interaction for hotspot %d, event %d", evp->data2, evp->data3);
             break;
@@ -181,9 +180,9 @@ void process_event(const AGSEvent *evp)
         case kIntEventType_Room:
         {
             if (thisroom.EventHandlers != nullptr)
-                scriptPtr = thisroom.EventHandlers;
+                obj_events = thisroom.EventHandlers.get();
 
-            obj_evt = ObjectEvent("room");
+            obj_evt = ObjectEvent(kScTypeRoom, "room");
             if (inter.ObjEvent == kRoomEvent_BeforeFadein) {
                 in_enters_screen ++;
                 run_on_event(kScriptEvent_RoomEnter, RuntimeScriptValue().SetInt32(displayed_room));
@@ -199,10 +198,10 @@ void process_event(const AGSEvent *evp)
             break;
         }
 
-        assert(scriptPtr);
-        if (scriptPtr != nullptr)
+        assert(obj_events);
+        if (obj_events)
         {
-            run_interaction_script(obj_evt, scriptPtr.get(), inter.ObjEvent);
+            run_interaction_script(obj_evt, obj_events, inter.ObjEvent);
         }
 
         if ((inter.IntEvType == kIntEventType_Room) && (inter.ObjEvent == kRoomEvent_BeforeFadein))

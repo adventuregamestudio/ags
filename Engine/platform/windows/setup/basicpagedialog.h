@@ -87,8 +87,8 @@ struct WinConfig
 
     WinConfig();
     void SetDefaults();
-    void Load(const ConfigTree &cfg);
-    void Save(ConfigTree &cfg, const Size &desktop_res);
+    void Load(const ConfigTree &cfg, const Size &desktop_res);
+    void Save(ConfigTree &cfg, const Size &desktop_res) const;
 };
 
 //=============================================================================

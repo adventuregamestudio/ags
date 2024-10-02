@@ -68,7 +68,7 @@ using AGS::Common::GUIListBox;
 using AGS::Common::GUISlider;
 using AGS::Common::GUITextBox;
 using AGS::Common::RoomStruct;
-using AGS::Common::PInteractionScripts;
+using AGS::Common::InteractionEvents;
 typedef AGS::Common::String AGSString;
 namespace AGSDirectory = AGS::Common::Directory;
 namespace AGSFile = AGS::Common::File;
@@ -2330,14 +2330,14 @@ const char *GetCharacterScriptName(int charid, AGS::Types::Game ^game)
 	return charScriptNameBuf;
 }
 
-void CopyInteractions(AGS::Types::Interactions ^destination, AGS::Common::InteractionScripts *source)
+void CopyInteractions(AGS::Types::Interactions ^destination, const AGS::Common::InteractionEvents *source)
 {
-    size_t evt_count = std::min(source->ScriptFuncNames.size(), (size_t)destination->ScriptFunctionNames->Length);
+    destination->ScriptModule = TextHelper::ConvertASCII(source->ScriptModule);
+    size_t evt_count = std::min(source->Events.size(), (size_t)destination->ScriptFunctionNames->Length);
     // TODO: add a warning? if warning list would be passed in here
-
 	for (size_t i = 0; i < evt_count; i++)
 	{
-		destination->ScriptFunctionNames[i] = TextHelper::ConvertASCII(source->ScriptFuncNames[i]);
+		destination->ScriptFunctionNames[i] = TextHelper::ConvertASCII(source->Events[i]);
 	}
 }
 
@@ -2391,8 +2391,9 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 	game->Settings->UniqueID = thisgame.uniqueid;
     game->Settings->SaveGameFolderName = gcnew String(thisgame.gamename.GetCStr());
     game->Settings->RenderAtScreenResolution = (RenderAtScreenResolution)thisgame.options[OPT_RENDERATSCREENRES];
-    game->Settings->UseOldKeyboardHandling = (thisgame.options[OPT_KEYHANDLEAPI] == 0);
+    game->Settings->UseOldKeyboardHandling = (thisgame.options[OPT_KEYHANDLEAPI] == 0); // inverted, 0 for old
     game->Settings->ScaleCharacterSpriteOffsets = (thisgame.options[OPT_SCALECHAROFFSETS] != 0);
+    game->Settings->UseOldVoiceClipNaming = (thisgame.options[OPT_VOICECLIPNAMERULE] == 0); // inverted, 0 for old
 
     TextConverter^ tcv = gcnew TextConverter(game->TextEncoding);
 
@@ -2756,6 +2757,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
             newControl->Clickable = curObj->IsClickable();
             newControl->Enabled = curObj->IsEnabled();
             newControl->Visible = curObj->IsVisible();
+            newControl->Parent = newGui;
 			newControl->ID = j;
 			newControl->Name = TextHelper::ConvertASCII(curObj->Name);
 			newGui->Controls->Add(newControl);
@@ -2799,6 +2801,8 @@ void convert_room_from_native(const RoomStruct &rs, Room ^room, System::Text::En
     }
     catch (...) {}
 
+    String ^roomScriptName = String::Format("room{0}.asc", room->Number);
+
     room->GameID = rs.GameID;
     room->BottomEdgeY = rs.Edges.Bottom;
     room->LeftEdgeX = rs.Edges.Left;
@@ -2832,6 +2836,7 @@ void convert_room_from_native(const RoomStruct &rs, Room ^room, System::Text::En
 		obj->UseRoomAreaLighting = ((rs.Objects[i].Flags & OBJF_USEREGIONTINTS) != 0);
 		ConvertCustomProperties(obj->Properties, &rs.Objects[i].Properties);
         CopyInteractions(obj->Interactions, rs.Objects[i].EventHandlers.get());
+        obj->Interactions->ScriptModule = roomScriptName;
 
 		room->Objects->Add(obj);
 	}
@@ -2845,6 +2850,7 @@ void convert_room_from_native(const RoomStruct &rs, Room ^room, System::Text::En
         hotspot->WalkToPoint = System::Drawing::Point(rs.Hotspots[i].WalkTo.X, rs.Hotspots[i].WalkTo.Y);
 		CopyInteractions(hotspot->Interactions, rs.Hotspots[i].EventHandlers.get());
         ConvertCustomProperties(hotspot->Properties, &rs.Hotspots[i].Properties);
+        hotspot->Interactions->ScriptModule = roomScriptName;
 	}
 
 	for (size_t i = 0; i < MAX_WALK_AREAS; ++i) 
@@ -2896,10 +2902,12 @@ void convert_room_from_native(const RoomStruct &rs, Room ^room, System::Text::En
 
         ConvertCustomProperties(area->Properties, &rs.Regions[i].Properties);
         CopyInteractions(area->Interactions, rs.Regions[i].EventHandlers.get());
+        area->Interactions->ScriptModule = roomScriptName;
 	}
 
 	ConvertCustomProperties(room->Properties, &rs.Properties);
 	CopyInteractions(room->Interactions, rs.EventHandlers.get());
+    room->Interactions->ScriptModule = roomScriptName;
 }
 
 void convert_room_interactions_to_native(Room ^room, RoomStruct &rs);
@@ -3036,14 +3044,15 @@ void save_default_crm_file(Room ^room)
     save_room_file(rs, roomFileName);
 }
 
-PInteractionScripts convert_interaction_scripts(Interactions ^interactions)
+std::unique_ptr<InteractionEvents> convert_interaction_scripts(Interactions ^interactions)
 {
-    AGS::Common::InteractionScripts *native_scripts = new AGS::Common::InteractionScripts();
+    std::unique_ptr<InteractionEvents> native_inter(new InteractionEvents());
+    native_inter->ScriptModule = TextHelper::ConvertASCII(interactions->ScriptModule);
 	for each (String^ funcName in interactions->ScriptFunctionNames)
 	{
-        native_scripts->ScriptFuncNames.push_back(TextHelper::ConvertASCII(funcName));
+        native_inter->Events.push_back(TextHelper::ConvertASCII(funcName));
 	}
-    return PInteractionScripts(native_scripts);
+    return native_inter;
 }
 
 void convert_room_interactions_to_native(Room ^room, RoomStruct &rs)

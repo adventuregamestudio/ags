@@ -30,16 +30,8 @@
 #include "game/main_game_file.h" // TODO: constants to separate header or split out reading functions
 #include "gui/guidefines.h"
 
-namespace AGS
-{
-    namespace Common
-    {
-        struct AssetLibInfo;
-        typedef std::shared_ptr<InteractionScripts> PInteractionScripts;
-    }
-}
 
-using AGS::Common::PInteractionScripts;
+using AGS::Common::UInteractionEvents;
 using AGS::Common::HGameFileError;
 
 
@@ -52,8 +44,8 @@ struct GameSetupStruct : public GameSetupStructBase
     std::vector<FontInfo> fonts;
     InventoryItemInfo invinfo[MAX_INV]{};
     std::vector<MouseCursor> mcurs;
-    std::vector<PInteractionScripts> charScripts;
-    std::vector<PInteractionScripts> invScripts;
+    std::vector<UInteractionEvents> charScripts;
+    std::vector<UInteractionEvents> invScripts;
     // TODO: why we do not use this in the engine instead of
     // loaded_game_file_version?
     int               filever;  // just used by editor

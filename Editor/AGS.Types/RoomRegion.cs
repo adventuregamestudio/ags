@@ -27,7 +27,8 @@ namespace AGS.Types
 
         static RoomRegion()
         {
-            _interactionSchema = new InteractionSchema(new string[] {
+            _interactionSchema = new InteractionSchema(string.Empty, true,
+                new string[] {
                 "While standing on region",
                 "Walks onto region", 
                 "Walks off region"},

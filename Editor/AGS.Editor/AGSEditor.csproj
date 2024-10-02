@@ -444,6 +444,9 @@
     <Compile Include="Utils\FileWatcher.cs" />
     <Compile Include="Utils\MathExtra.cs" />
     <Compile Include="Utils\PaletteUtilities.cs" />
+    <Compile Include="Utils\TickOnceTimer.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Utils\ToolStripExtensions.cs" />
     <Compile Include="Utils\ScriptFileUtilities.cs" />
     <Compile Include="Utils\ScriptGeneration.cs" />

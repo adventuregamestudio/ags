@@ -25,7 +25,7 @@
 #include "script/cc_reflecthelper.h"
 #include "script/cc_script.h"  // ccScript
 #include "script/cc_internal.h"  // bytecode constants
-#include "script/nonblockingscriptfunction.h"
+#include "script/runtimescriptvalue.h"
 #include "util/string.h"
 
 using namespace AGS;
@@ -113,6 +113,15 @@ struct ScriptPosition
     int32_t         Line;
 };
 
+enum ccInstError
+{
+    kInstErr_None = 0, // ok
+    kInstErr_Aborted = 100, // aborted by request
+    kInstErr_Generic = -1, // any generic exec error; use cc_get_error()
+    kInstErr_FuncNotFound = -2, // requested function is not found in script
+    kInstErr_InvalidArgNum = -3, // invalid number of args (not in supported range)
+    kInstErr_Busy = -4, // instance is busy executing script
+};
 
 // Running instance of the script
 struct ccInstance
@@ -191,14 +200,14 @@ public:
     void    AbortAndDestroy();
     
     // Call an exported function in the script
-    int     CallScriptFunction(const char *funcname, int32_t num_params, const RuntimeScriptValue *params);
+    ccInstError CallScriptFunction(const Common::String &funcname, int32_t num_params, const RuntimeScriptValue *params);
     
     // Get the script's execution position and callstack as human-readable text
     Common::String GetCallStack(int max_lines = INT_MAX) const;
     // Get the script's execution position
     void    GetScriptPosition(ScriptPosition &script_pos) const;
     // Get the address of an exported symbol (function or variable) in the script
-    RuntimeScriptValue GetSymbolAddress(const char *symname) const;
+    RuntimeScriptValue GetSymbolAddress(const Common::String &symname) const;
     void    DumpInstruction(const ScriptOperation &op) const;
     // Tells whether this instance is in the process of executing the byte-code
     bool    IsBeingRun() const;
@@ -231,7 +240,7 @@ private:
     bool    CreateRuntimeCodeFixups(const ccScript *scri);
 
     // Begin executing script starting from the given bytecode index
-    int     Run(int32_t curpc);
+    ccInstError Run(int32_t curpc);
 
     // Stack processing
     // Push writes new value and increments stack ptr;

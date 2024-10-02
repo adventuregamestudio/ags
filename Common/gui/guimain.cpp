@@ -141,6 +141,11 @@ const std::vector<int> &GUIMain::GetControlsDrawOrder() const
     return _ctrlDrawOrder;
 }
 
+const std::vector<GUIMain::ControlRef> &GUIMain::GetControlRefs() const
+{
+    return _ctrlRefs;
+}
+
 bool GUIMain::IsInteractableAt(int x, int y) const
 {
     if (!IsDisplayed())
@@ -608,9 +613,9 @@ void GUIMain::ReadFromFile(Stream *in, GuiVersion gui_version)
     if (ctrl_count > 0)
     {
         _ctrlRefs.resize(ctrl_count);
-        for (size_t i = 0; i < ctrl_count; ++i)
+        for (uint32_t i = 0; i < ctrl_count; ++i)
         {
-            const int32_t ref_packed = in->ReadInt32();
+            const uint32_t ref_packed = in->ReadInt32();
             _ctrlRefs[i].first = (GUIControlType)((ref_packed >> 16) & 0xFFFF);
             _ctrlRefs[i].second = ref_packed & 0xFFFF;
         }
@@ -638,14 +643,14 @@ void GUIMain::WriteToFile(Stream *out) const
     out->WriteInt32(ZOrder);
     out->WriteInt32(ID);
     out->WriteInt32(Padding);
-    for (size_t i = 0; i < _ctrlRefs.size(); ++i)
+    for (const auto &ref : _ctrlRefs)
     {
-        int32_t ref_packed = ((_ctrlRefs[i].first & 0xFFFF) << 16) | (_ctrlRefs[i].second & 0xFFFF);
+        uint32_t ref_packed = ((ref.first & 0xFFFF) << 16) | (ref.second & 0xFFFF);
         out->WriteInt32(ref_packed);
     }
 }
 
-void GUIMain::ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_version)
+void GUIMain::ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_version, std::vector<ControlRef> &ctrl_refs)
 {
     // Properties
     _flags = in->ReadInt32();
@@ -672,6 +677,19 @@ void GUIMain::ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_version)
     MouseDownCtrl = in->ReadInt32();
     MouseWasAt.X = in->ReadInt32();
     MouseWasAt.Y = in->ReadInt32();
+
+    // Control refs
+    if (svg_version >= kGuiSvgVersion_36200)
+    {
+        uint32_t ctrl_count = in->ReadInt32();
+        ctrl_refs.resize(ctrl_count);
+        for (uint32_t i = 0; i < ctrl_count; ++i)
+        {
+            const uint32_t ref_packed = in->ReadInt32();
+            ctrl_refs[i].first = (GUIControlType)((ref_packed >> 16) & 0xFFFF);
+            ctrl_refs[i].second = ref_packed & 0xFFFF;
+        }
+    }
 
     if (svg_version >= kGuiSvgVersion_400)
     {
@@ -725,6 +743,14 @@ void GUIMain::WriteToSavegame(Common::Stream *out) const
     out->WriteInt32(MouseDownCtrl);
     out->WriteInt32(MouseWasAt.X);
     out->WriteInt32(MouseWasAt.Y);
+    // Control refs (for asserting controls data on restoration,
+    // and also in case if we support dynamic creation of controls)
+    out->WriteInt32(_ctrlRefs.size());
+    for (const auto &ref : _ctrlRefs)
+    {
+        uint32_t ref_packed = ((ref.first & 0xFFFF) << 16) | (ref.second & 0xFFFF);
+        out->WriteInt32(ref_packed);
+    }
     // since version 10 (kGuiSvgVersion_399)
     out->WriteInt32(BlendMode);
     // Reserved for colour options

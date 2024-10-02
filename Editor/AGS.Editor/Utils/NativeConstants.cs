@@ -121,6 +121,7 @@ namespace AGS.Editor
             public static readonly int OPT_GAMETEXTENCODING = (int)Factory.NativeProxy.GetNativeConstant("OPT_GAMETEXTENCODING");
             public static readonly int OPT_KEYHANDLEAPI = (int)Factory.NativeProxy.GetNativeConstant("OPT_KEYHANDLEAPI");
             public static readonly int OPT_SCALECHAROFFSETS = (int)Factory.NativeProxy.GetNativeConstant("OPT_SCALECHAROFFSETS");
+            public static readonly int OPT_VOICECLIPNAMERULE = (int)Factory.NativeProxy.GetNativeConstant("OPT_VOICECLIPNAMERULE");
             public static readonly int OPT_LIPSYNCTEXT = (int)Factory.NativeProxy.GetNativeConstant("OPT_LIPSYNCTEXT");
         }
     }

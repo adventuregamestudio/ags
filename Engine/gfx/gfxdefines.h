@@ -32,9 +32,9 @@ enum WindowMode
 // DisplayMode struct provides extended description of display mode
 struct DisplayMode : public AGS::Common::GraphicResolution
 {
+    WindowMode Mode = kWnd_Windowed;
     int32_t RefreshRate = 0;
     bool    Vsync = false;
-    WindowMode Mode = kWnd_Windowed;
 
     // Tells if this is logically a normal windowed mode
     inline bool IsWindowed() const { return Mode == kWnd_Windowed; }
@@ -44,9 +44,9 @@ struct DisplayMode : public AGS::Common::GraphicResolution
     DisplayMode() = default;
     DisplayMode(const GraphicResolution &res, WindowMode mode = kWnd_Windowed, int32_t refresh = 0, bool vsync = false)
         : GraphicResolution(res)
+        , Mode(mode)
         , RefreshRate(refresh)
         , Vsync(vsync)
-        , Mode(mode)
     {}
 };
 

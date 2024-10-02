@@ -777,6 +777,8 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         update_all_viewcams_with_newroom();
         play.UpdateRoomCameras(); // update auto tracking
     }
+
+    init_room_pathfinder();
     init_room_drawdata();
 
     set_our_eip(212);
@@ -874,8 +876,6 @@ void first_room_initialization() {
     // Reset background frame state
     play.bg_frame = 0;
     play.bg_frame_locked = (thisroom.Options.Flags & kRoomFlag_BkgFrameLocked) != 0;
-
-    init_room_pathfinder();
 }
 
 void check_new_room() {
@@ -910,9 +910,9 @@ void compile_room_script() {
     if (roominstFork == nullptr)
         quitprintf("Unable to create forked room instance:\n%s", cc_get_error().ErrorString.GetCStr());
 
-    repExecAlways.roomHasFunction = true;
-    lateRepExecAlways.roomHasFunction = true;
-    getDialogOptionsDimensionsFunc.roomHasFunction = true;
+    repExecAlways.RoomHasFunction = true;
+    lateRepExecAlways.RoomHasFunction = true;
+    getDialogOptionsDimensionsFunc.RoomHasFunction = true;
 }
 
 int bg_just_changed = 0;

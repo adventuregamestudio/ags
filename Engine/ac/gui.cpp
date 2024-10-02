@@ -492,7 +492,7 @@ void process_interface_click(int ifce, int btn, int mbut) {
         // click on GUI background
         RuntimeScriptValue params[]{ RuntimeScriptValue().SetScriptObject(&scrGui[ifce], &ccDynamicGUI),
             RuntimeScriptValue().SetInt32(mbut) };
-        QueueScriptFunction(kScInstGame, guis[ifce].OnClickHandler.GetCStr(), 2, params);
+        QueueScriptFunction(kScTypeGame, ScriptFunctionRef(guis[ifce].ScriptModule, guis[ifce].OnClickHandler), 2, params);
         return;
     }
 
@@ -516,24 +516,26 @@ void process_interface_click(int ifce, int btn, int mbut) {
         // otherwise, run interface_click
         if ((theObj->GetEventCount() > 0) &&
             (!theObj->EventHandlers[0].IsEmpty()) &&
-            (!gameinst->GetSymbolAddress(theObj->EventHandlers[0].GetCStr()).IsNull())) {
-                // control-specific event handler
-                if (theObj->GetEventArgs(0).FindChar(',') != String::NoIndex)
-                {
-                    RuntimeScriptValue params[]{ RuntimeScriptValue().SetScriptObject(theObj, &ccDynamicGUIObject),
-                        RuntimeScriptValue().SetInt32(mbut) };
-                    QueueScriptFunction(kScInstGame, theObj->EventHandlers[0].GetCStr(), 2, params);
-                }
-                else
-                {
-                    RuntimeScriptValue params[]{ RuntimeScriptValue().SetScriptObject(theObj, &ccDynamicGUIObject) };
-                    QueueScriptFunction(kScInstGame, theObj->EventHandlers[0].GetCStr(), 1, params);
-                }
+            DoesScriptFunctionExistInModules(theObj->EventHandlers[0]))
+        {
+            // control-specific event handler
+            const ScriptFunctionRef fn_ref(guis[ifce].ScriptModule, theObj->EventHandlers[0]);
+            if (theObj->GetEventArgs(0).FindChar(',') != String::NoIndex)
+            {
+                RuntimeScriptValue params[]{ RuntimeScriptValue().SetScriptObject(theObj, &ccDynamicGUIObject),
+                    RuntimeScriptValue().SetInt32(mbut) };
+                QueueScriptFunction(kScTypeGame, fn_ref, 2, params);
+            }
+            else
+            {
+                RuntimeScriptValue params[]{ RuntimeScriptValue().SetScriptObject(theObj, &ccDynamicGUIObject) };
+                QueueScriptFunction(kScTypeGame, fn_ref, 1, params);
+            }
         }
         else
         {
             RuntimeScriptValue params[]{ ifce , btn };
-            QueueScriptFunction(kScInstGame, "interface_click", 2, params);
+            QueueScriptFunction(kScTypeGame, "interface_click", 2, params);
         }
     }
 }

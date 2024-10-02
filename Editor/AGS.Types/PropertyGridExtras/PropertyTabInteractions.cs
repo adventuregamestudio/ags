@@ -52,6 +52,25 @@ namespace AGS.Types
             if (interactionsProperty != null)
             {
                 Interactions interactions = (Interactions)interactionsProperty.GetValue(component, null);
+                if (interactions.Schema.ScriptModuleFixed)
+                {
+                    propList.Add(new InteractionPropertyDescriptor(component, "ScriptModule",
+                        new Attribute[] {
+                            new CategoryAttribute("(Basic)"),
+                            new DefaultValueAttribute(interactions.Schema.DefaultScriptModule),
+                            new ReadOnlyAttribute(true)
+                        }, true));
+                }
+                else
+                {
+                    propList.Add(new InteractionPropertyDescriptor(component, "ScriptModule",
+                        new Attribute[] {
+                            new CategoryAttribute("(Basic)"),
+                            new DefaultValueAttribute(interactions.Schema.DefaultScriptModule),
+                            new TypeConverterAttribute(typeof(ScriptListTypeConverter))
+                        }, false));
+                }
+                
                 for (int i = 0; i < interactions.FunctionSuffixes.Length; i++)
                 {
                     string eventName = interactions.DisplayNames[i];
@@ -62,7 +81,7 @@ namespace AGS.Types
 					if (eventName.IndexOf("$$") < 0)
 					{
 						// Only add the event if the cursor mode exists
-						propList.Add(new InteractionPropertyDescriptor(component, i,
+						propList.Add(new InteractionEventPropertyDescriptor(component, i,
                             interactions.FunctionSuffixes[i], eventName, interactions.FunctionParameterLists[i]));
 					}
                 }

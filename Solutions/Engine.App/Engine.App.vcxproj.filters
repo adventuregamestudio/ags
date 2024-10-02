@@ -1175,9 +1175,6 @@
     <ClInclude Include="..\..\Engine\script\exports.h">
       <Filter>Header Files\script</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\script\nonblockingscriptfunction.h">
-      <Filter>Header Files\script</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Engine\script\runtimescriptvalue.h">
       <Filter>Header Files\script</Filter>
     </ClInclude>

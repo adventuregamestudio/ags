@@ -74,6 +74,7 @@ namespace AGS.Types
         private ScriptAPIVersion _scriptAPIVersionReal = Utilities.GetActualAPI(ScriptAPIVersion.Highest);
         private ScriptAPIVersion _scriptCompatLevelReal = Utilities.GetActualAPI(ScriptAPIVersion.Highest);
         private bool _oldKeyHandling = false;
+        private bool _oldVoiceClipNaming = false;
         private bool _scaleCharacterSpriteOffsets = true;
         private float _faceDirectionRatio = 1.0f;
         private int _dialogOptionsGUI = 0;
@@ -651,10 +652,6 @@ namespace AGS.Types
 
         [Obsolete]
         [Browsable(false)]
-        public bool EnforceObjectBasedScript { get { return true; } }
-
-        [Obsolete]
-        [Browsable(false)]
         public bool EnforceNewStrings { get { return true; } }
 
         [Obsolete]
@@ -673,6 +670,16 @@ namespace AGS.Types
         {
             get { return _oldKeyHandling; }
             set { _oldKeyHandling = value; }
+        }
+        
+        [DisplayName("Use old-style voice clip naming rule")]
+        [Description("Define voice clip name using only the first 4 letters from a Character's script name.")]
+        [DefaultValue(false)]
+        [Category("Backwards Compatibility")]
+        public bool UseOldVoiceClipNaming
+        {
+            get { return _oldVoiceClipNaming; }
+            set { _oldVoiceClipNaming = value; }
         }
 
         [Obsolete]

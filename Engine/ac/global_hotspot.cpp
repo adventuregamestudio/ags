@@ -114,7 +114,7 @@ void RunHotspotInteraction (int hotspothere, int mood) {
     else if ((mood!=MODE_WALK) && (play.check_interaction_only == 0))
         MoveCharacterToHotspot(game.playercharacter,hotspothere);
 
-    const auto obj_evt = ObjectEvent("hotspot%d", hotspothere,
+    const auto obj_evt = ObjectEvent(kScTypeRoom, "hotspot%d", hotspothere,
         RuntimeScriptValue().SetScriptObject(&scrHotspot[hotspothere], &ccDynamicHotspot), mood);
     if ((evnt >= 0) && run_interaction_script(obj_evt, thisroom.Hotspots[hotspothere].EventHandlers.get(), evnt, anyclick_evt) < 0)
         return; // game state changed, don't do "any click"

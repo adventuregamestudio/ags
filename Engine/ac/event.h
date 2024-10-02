@@ -21,6 +21,7 @@
 #include "ac/keycode.h" // eAGSMouseButton
 #include "ac/runtime_defines.h"
 #include "script/runtimescriptvalue.h"
+#include "util/string.h"
 
 
 // AGS Game event types,
@@ -203,7 +204,7 @@ struct AGSEvent
         : Type(kAGSEvent_NewRoom), Data(evt) {}
 };
 
-int run_claimable_event(const char *tsname, bool includeRoom, int numParams, const RuntimeScriptValue *params, bool *eventWasClaimed);
+void run_claimable_event(const AGS::Common::String &tsname, bool includeRoom, int numParams, const RuntimeScriptValue *params, bool *eventWasClaimed);
 // runs the global script on_event function
 void run_on_event(AGSScriptEventType evtype, const RuntimeScriptValue &data1 = RuntimeScriptValue(), const RuntimeScriptValue &data2 = RuntimeScriptValue());
 void run_room_event(int id);

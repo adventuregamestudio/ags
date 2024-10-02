@@ -101,11 +101,6 @@ PreservedParams::PreservedParams()
 {
 }
 
-RestoredData::ScriptData::ScriptData()
-    : Len(0)
-{
-}
-
 RestoredData::RestoredData()
     : FPS(0)
     , CursorID(0)
@@ -329,9 +324,11 @@ void DoBeforeRestore(PreservedParams &pp)
 
     // preserve script data sizes and cleanup scripts
     pp.GlScDataSize = gameinst->globaldatasize;
+    pp.ScriptModuleNames.resize(numScriptModules);
     pp.ScMdDataSize.resize(numScriptModules);
     for (size_t i = 0; i < numScriptModules; ++i)
     {
+        pp.ScriptModuleNames[i] = moduleInst[i]->instanceof->GetScriptName();
         pp.ScMdDataSize[i] = moduleInst[i]->globaldatasize;
     }
 
@@ -446,14 +443,24 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data)
     // read the global data into the newly created script
     if (!r_data.GlobalScript.Data.empty())
         memcpy(gameinst->globaldata, &r_data.GlobalScript.Data.front(),
-                std::min((size_t)gameinst->globaldatasize, r_data.GlobalScript.Len));
+                std::min((size_t)gameinst->globaldatasize, r_data.GlobalScript.Data.size()));
 
     // restore the script module data
-    for (size_t i = 0; i < numScriptModules; ++i)
+    for (auto &sc_entry : r_data.ScriptModules)
     {
-        if (!r_data.ScriptModules[i].Data.empty())
-            memcpy(moduleInst[i]->globaldata, &r_data.ScriptModules[i].Data.front(),
-                    std::min((size_t)moduleInst[i]->globaldatasize, r_data.ScriptModules[i].Len));
+        const String &name = sc_entry.first;
+        auto &scdata = sc_entry.second;
+        if (scdata.Data.empty())
+            continue;
+        for (auto &scmoduleinst : moduleInst)
+        {
+            if (name.Compare(scmoduleinst->instanceof->GetScriptName()) == 0)
+            {
+                memcpy(scmoduleinst->globaldata, &scdata.Data.front(),
+                    std::min((size_t)scmoduleinst->globaldatasize, scdata.Data.size()));
+                break;
+            }
+        }
     }
 
     setup_player_character(game.playercharacter);

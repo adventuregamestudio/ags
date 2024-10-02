@@ -160,7 +160,7 @@ void RunCharacterInteraction (int cc, int mood) {
         play.usedinv = playerchar->activeinv;
     }
 
-    const auto obj_evt = ObjectEvent("character%d", cc,
+    const auto obj_evt = ObjectEvent(kScTypeGame, "character%d", cc,
         RuntimeScriptValue().SetScriptObject(&game.chars[cc], &ccDynamicCharacter), mood);
         if ((evnt >= 0) &&
                 run_interaction_script(obj_evt, game.charScripts[cc].get(), evnt, anyclick_evt) < 0)

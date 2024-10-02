@@ -44,7 +44,7 @@ namespace AGS.Types
         [Description("Script function to run when the selection is changed")]
         [Category("Events")]
         [Browsable(false)]
-        [AGSEventProperty()]
+        [AGSEventsTabProperty(), AGSEventProperty(), AGSDefaultEventProperty()]
         [ScriptFunctionParameters("GUIControl *control")]
         [EditorAttribute(typeof(ScriptFunctionUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         public string OnSelectionChanged

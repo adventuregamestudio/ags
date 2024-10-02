@@ -44,8 +44,18 @@ namespace AGS.Types
         private CustomProperties _properties = new CustomProperties();
 
         [NonSerialized]
+        private GUI _parent;
+        [NonSerialized]
         private GUIControlGroup _memberOf;
-        
+
+        [Browsable(false)]
+        [AGSNoSerialize]
+        public GUI Parent
+        {
+            get { return _parent; }
+            set { _parent = value; }
+        }
+
         [Browsable(false)]
         [AGSNoSerialize]
         public GUIControlGroup MemberOf

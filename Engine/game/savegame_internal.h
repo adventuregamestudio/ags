@@ -46,6 +46,7 @@ struct PreservedParams
     int GameOptions[GameSetupStructBase::MAX_OPTIONS]{};
     // Script global data sizes
     size_t GlScDataSize = 0u;
+    std::vector<String> ScriptModuleNames;
     std::vector<size_t> ScMdDataSize;
 
     PreservedParams();
@@ -79,12 +80,9 @@ struct RestoredData
     struct ScriptData
     {
         std::vector<char>   Data;
-        size_t              Len;
-
-        ScriptData();
     };
     ScriptData              GlobalScript;
-    std::vector<ScriptData> ScriptModules;
+    std::unordered_map<String, ScriptData> ScriptModules;
     // Generated RTTI is meant for remapping typeids
     // (in case they were changed in game), and provides placeholders
     // for types that were declared in unloaded (room) scripts

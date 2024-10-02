@@ -12,21 +12,79 @@
 //
 //=============================================================================
 #include "game/interactions.h"
+#include <algorithm>
+#include <string.h>
+#include "ac/common.h" // quit
+#include "util/stream.h"
+#include "util/string_utils.h"
+
 namespace AGS
 {
 namespace Common
 {
 
-InteractionScripts *InteractionScripts::CreateFromStream(Stream *in)
+//-----------------------------------------------------------------------------
+//
+// InteractionEvents (modern interaction system).
+//
+//-----------------------------------------------------------------------------
+
+std::unique_ptr<InteractionEvents> InteractionEvents::CreateFromStream_v361(Stream *in)
+{
+    std::unique_ptr<InteractionEvents> inter(new InteractionEvents());
+    inter->Read_v361(in);
+    return inter;
+}
+
+std::unique_ptr<InteractionEvents> InteractionEvents::CreateFromStream_v362(Stream *in)
+{
+    std::unique_ptr<InteractionEvents> inter(new InteractionEvents());
+    inter->Read_v362(in);
+    return inter;
+}
+
+void InteractionEvents::Read_v361(Stream *in)
 {
     const size_t evt_count = in->ReadInt32();
-    InteractionScripts *scripts = new InteractionScripts();
     for (size_t i = 0; i < evt_count; ++i)
     {
-        String name = String::FromStream(in);
-        scripts->ScriptFuncNames.push_back(name);
+        Events.push_back(String::FromStream(in));
     }
-    return scripts;
+}
+
+HError InteractionEvents::Read_v362(Stream *in)
+{
+    InteractionEventsVersion ver = (InteractionEventsVersion)in->ReadInt32();
+    if (ver != kInterEvents_v362)
+        return new Error(String::FromFormat("InteractionEvents version not supported: %d", ver));
+
+    ScriptModule = StrUtil::ReadString(in);
+    const size_t evt_count = in->ReadInt32();
+    for (size_t i = 0; i < evt_count; ++i)
+    {
+        Events.push_back(StrUtil::ReadString(in));
+    }
+    return HError::None();
+}
+
+void InteractionEvents::Write_v361(Stream *out) const
+{
+    out->WriteInt32(Events.size());
+    for (const auto &fn : Events)
+    {
+        fn.Write(out);
+    }
+}
+
+void InteractionEvents::Write_v362(Stream *out) const
+{
+    out->WriteInt32(kInterEvents_v362);
+    StrUtil::WriteString(ScriptModule, out);
+    out->WriteInt32(Events.size());
+    for (const auto &fn : Events)
+    {
+        StrUtil::WriteString(fn, out);
+    }
 }
 
 } // namespace Common

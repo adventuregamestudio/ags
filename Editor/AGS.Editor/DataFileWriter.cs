@@ -540,8 +540,9 @@ namespace AGS.Editor
             options[NativeConstants.GameOptions.OPT_RENDERATSCREENRES] = (int)game.Settings.RenderAtScreenResolution;
             options[NativeConstants.GameOptions.OPT_CLIPGUICONTROLS] = (game.Settings.ClipGUIControls ? 1 : 0);
             options[NativeConstants.GameOptions.OPT_GAMETEXTENCODING] = game.TextEncoding.CodePage;
-            options[NativeConstants.GameOptions.OPT_KEYHANDLEAPI] = (game.Settings.UseOldKeyboardHandling ? 0 : 1);
+            options[NativeConstants.GameOptions.OPT_KEYHANDLEAPI] = (game.Settings.UseOldKeyboardHandling ? 0 : 1); // inverted, 0 for old
             options[NativeConstants.GameOptions.OPT_SCALECHAROFFSETS] = (game.Settings.ScaleCharacterSpriteOffsets ? 1 : 0);
+            options[NativeConstants.GameOptions.OPT_VOICECLIPNAMERULE] = (game.Settings.UseOldVoiceClipNaming ? 0 : 1); // inverted, 0 for old
             options[NativeConstants.GameOptions.OPT_LIPSYNCTEXT] = (game.LipSync.Type == LipSyncType.Text ? 1 : 0);
             for (int i = 0; i < options.Length; ++i)
             {
@@ -775,19 +776,20 @@ namespace AGS.Editor
 
         static void SerializeInteractionScripts(Interactions interactions, BinaryWriter writer)
         {
+            writer.Write((int)3060200); // kInterEvents_v362 version
+            FilePutString(interactions.ScriptModule, writer);
             writer.Write(interactions.ScriptFunctionNames.Length);
             foreach (string funcName in interactions.ScriptFunctionNames)
             {
-                if (funcName == null)
-                {
-                    writer.Write((byte)0);
-                }
-                else
-                {
-                    WriteString(funcName, funcName.Length, writer);
-                    writer.Write((byte)0);
-                }
+                FilePutString(funcName, writer);
             }
+        }
+
+        static void SerializeEmptyInteractionScripts(BinaryWriter writer)
+        {
+            writer.Write((int)3060200); // kInterEvents_v362 version
+            writer.Write((int)0); // empty ScriptModule string
+            writer.Write((int)0); // zero list length
         }
 
         // Encrypts an ANSI string
@@ -1488,13 +1490,15 @@ namespace AGS.Editor
                 writer.Write(flags);
                 writer.Write(new byte[3]); // 3 bytes padding
             }
+            // Pre-3.6.2 InteractionEvents: write zero-sized dummy lists here,
+            // proper events will be written in the "v362_eventscmod" extension
             for (int i = 0; i < game.Characters.Count; ++i)
             {
-                SerializeInteractionScripts(game.Characters[i].Interactions, writer);
+                writer.Write((int)0);
             }
-            for (int i = 1; i <= game.InventoryItems.Count; ++i)
+            for (int i = 1; i <= game.InventoryItems.Count; ++i) // NOTE: we write inv interactions from 1th here
             {
-                SerializeInteractionScripts(game.InventoryItems[i - 1].Interactions, writer);
+                writer.Write((int)0);
             }
             writer.Write(game.TextParser.Words.Count);
             for (int i = 0; i < game.TextParser.Words.Count; ++i)
@@ -1756,6 +1760,7 @@ namespace AGS.Editor
             WriteExtension("v360_fonts", WriteExt_360Fonts, writer, gameEnts, errors);
             WriteExtension("v360_cursors", WriteExt_360Cursors, writer, gameEnts, errors);
             WriteExtension("v361_objnames", WriteExt_361ObjNames, writer, gameEnts, errors);
+            WriteExtension("v362_interevents", WriteExt_362InteractionEvents, writer, gameEnts, errors);
             WriteExtension("ext_ags399", WriteExt_Ags399, writer, gameEnts, errors);
             WriteExtension("v400_gameopts", WriteExt_400GameOpts, writer, gameEnts, errors);
             WriteExtension("v400_customprops", WriteExt_400CustomProps, writer, gameEnts, errors);
@@ -1833,6 +1838,31 @@ namespace AGS.Editor
             {
                 FilePutString(game.AudioClips[i].ScriptName, writer);
                 FilePutString(game.AudioClips[i].CacheFileNameWithoutPath, writer);
+            }
+        }
+
+        // >= 3.6.1: object script names and names of unrestricted length
+        // this saves only those properties that were restricted in length previously
+        private static void WriteExt_362InteractionEvents(BinaryWriter writer, WriteExtEntities ents, CompileMessages errors)
+        {
+            Game game = ents.Game;
+            writer.Write(game.Characters.Count);
+            for (int i = 0; i < game.Characters.Count; ++i)
+            {
+                SerializeInteractionScripts(game.Characters[i].Interactions, writer);
+            }
+            writer.Write((int)game.InventoryItems.Count + 1); // +1 for a dummy item at id 0
+            // inventory slot 0 is unused, so write a dummy interactions struct
+            SerializeEmptyInteractionScripts(writer);
+            for (int i = 0; i < game.InventoryItems.Count; ++i)
+            {
+                SerializeInteractionScripts(game.InventoryItems[i].Interactions, writer);
+            }
+
+            writer.Write(game.GUIs.Count);
+            foreach (GUI gui in game.GUIs)
+            {
+                FilePutString(gui.ScriptModule, writer);
             }
         }
 

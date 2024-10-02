@@ -137,7 +137,7 @@ bool init_voicepak(const String &name)
 
     // Save new resource locations and register asset libraries
     VoicePakName = name;
-    VoiceAssetPath = name.IsEmpty() ? "" : String::FromFormat("%s/", name.GetCStr());
+    VoiceAssetPath = name;
     ResPaths.SpeechPak.Name = speech_file;
     ResPaths.SpeechPak.Path = speech_filepath;
     ResPaths.VoiceDirSub = speech_subdir;

@@ -629,7 +629,7 @@ int IAGSEngine::CallGameScriptFunction(const char *name, int32 globalScript, int
     if (inside_script)
         return -300;
 
-    ccInstance *toRun = GetScriptInstanceByType(globalScript ? kScInstGame : kScInstRoom);
+    ccInstance *toRun = GetScriptInstanceByType(globalScript ? kScTypeGame : kScTypeRoom);
 
     RuntimeScriptValue params[]{
         RuntimeScriptValue().SetPluginArgument(arg1),
@@ -659,7 +659,7 @@ void IAGSEngine::QueueGameScriptFunction(const char *name, int32 globalScript, i
         quit("IAGSEngine::QueueGameScriptFunction: invalid number of arguments");
     RuntimeScriptValue params[] { RuntimeScriptValue().SetPluginArgument(arg1),
         RuntimeScriptValue().SetPluginArgument(arg2) };
-    get_executingscript()->RunAnother(name, globalScript ? kScInstGame : kScInstRoom, numArgs, params);
+    get_executingscript()->RunAnother(globalScript ? kScTypeGame : kScTypeRoom, name, numArgs, params);
 }
 
 int IAGSEngine::RegisterManagedObject(void *object, IAGSScriptManagedObject *callback) {

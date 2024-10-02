@@ -107,14 +107,14 @@ struct GameSetupStructBase
     }
 
     // Returns a list of game options that are forbidden to change at runtime
-    inline static std::array<int, 17> GetRestrictedOptions()
+    inline static std::array<int, 18> GetRestrictedOptions()
     {
-        return std::array<int,17> {{
+        return std::array<int, 18> {{
             OPT_DEBUGMODE, OPT_OBSOLETE_LETTERBOX, OPT_OBSOLETE_HIRES_FONTS, OPT_SPLITRESOURCES,
             OPT_OBSOLETE_STRICTSCRIPTING, OPT_OBSOLETE_LEFTTORIGHTEVAL, OPT_COMPRESSSPRITES, OPT_OBSOLETE_STRICTSTRINGS,
             OPT_OBSOLETE_NATIVECOORDINATES, OPT_OBSOLETE_SAFEFILEPATHS, OPT_DIALOGOPTIONSAPI, OPT_BASESCRIPTAPI,
             OPT_SCRIPTCOMPATLEV, OPT_OBSOLETE_RELATIVEASSETRES, OPT_GAMETEXTENCODING, OPT_KEYHANDLEAPI,
-            OPT_CUSTOMENGINETAG
+            OPT_CUSTOMENGINETAG, OPT_VOICECLIPNAMERULE
         }};
     }
 

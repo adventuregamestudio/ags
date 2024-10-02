@@ -19,12 +19,6 @@
 
 using namespace AGS::Common;
 
-QueuedScript::QueuedScript()
-    : Instance(kScInstGame)
-    , ParamCount(0)
-{
-}
-
 void ExecutingScript::QueueAction(PostScriptAction &&act)
 {
     for (const auto &prev_act : PostScriptActions)
@@ -52,13 +46,18 @@ void ExecutingScript::QueueAction(PostScriptAction &&act)
     PostScriptActions.push_back(std::move(act_pos));
 }
 
-void ExecutingScript::RunAnother(const char *namm, ScriptInstType scinst, size_t param_count, const RuntimeScriptValue *params)
+void ExecutingScript::RunAnother(ScriptType sctype, const String &fn_name, size_t param_count, const RuntimeScriptValue *params)
+{
+    RunAnother(sctype, ScriptFunctionRef(fn_name), param_count, params);
+}
+
+void ExecutingScript::RunAnother(ScriptType sctype, const ScriptFunctionRef &fn_ref, size_t param_count, const RuntimeScriptValue *params)
 {
     QueuedScript script;
-    script.FnName.SetString(namm, MAX_FUNCTION_NAME_LEN);
-    script.Instance = scinst;
+    script.ScType = sctype;
+    script.Function = fn_ref;
     script.ParamCount = param_count;
-    for (size_t p = 0; p < MAX_QUEUED_PARAMS && p < param_count; ++p)
+    for (size_t p = 0; p < MAX_SCRIPT_EVT_PARAMS && p < param_count; ++p)
         script.Params[p] = params[p];
     ScFnQueue.push_back(script);
 }

@@ -146,7 +146,7 @@ struct RoomHotspot
     // Custom properties
     StringIMap  Properties;
     // Event script links
-    PInteractionScripts EventHandlers;
+    UInteractionEvents EventHandlers;
 
     // Player will automatically walk here when interacting with hotspot
     Point       WalkTo;
@@ -168,7 +168,7 @@ struct RoomObjectInfo
     // Custom properties
     StringIMap      Properties;
     // Event script links
-    PInteractionScripts EventHandlers;
+    UInteractionEvents EventHandlers;
 
     RoomObjectInfo();
 };
@@ -183,7 +183,7 @@ struct RoomRegion
     // Custom properties
     StringIMap      Properties;
     // Event script links
-    PInteractionScripts EventHandlers;
+    UInteractionEvents EventHandlers;
 
     RoomRegion();
 };
@@ -314,7 +314,7 @@ public:
     // Custom properties
     StringIMap              Properties;
     // Event script links
-    PInteractionScripts     EventHandlers;
+    UInteractionEvents      EventHandlers;
     // Compiled room script
     PScript                 CompiledScript;
     // Various extended options with string values, meta-data etc

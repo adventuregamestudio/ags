@@ -71,8 +71,6 @@ namespace AGS.Editor
 		private bool _messageLoopStarted = false;
         private int _systemDpi = 0;
 
-        private string _timerScriptName;
-        private string _timerSearchForText;
         // Custom color table for the ColorDialog
         private int[] _customColors = null;
 
@@ -1416,18 +1414,12 @@ namespace AGS.Editor
             prefsEditor.Dispose();
         }
 
-        private void ScriptFunctionUIEditor_CreateScriptFunction(bool isGlobalScript, string functionName, string parameters)
+        private void ScriptFunctionUIEditor_CreateScriptFunction(string scriptModule, string functionName, string parameters)
         {
-            string scriptToRetrieve = Script.GLOBAL_SCRIPT_FILE_NAME;
-            if (!isGlobalScript)
-            {
-                scriptToRetrieve = Script.CURRENT_ROOM_SCRIPT_FILE_NAME;
-            }
-
             if (OnGetScript != null)
             {
                 Script script = null;
-                OnGetScript(scriptToRetrieve, ref script);
+                OnGetScript(scriptModule, ref script);
                 if (script != null)
                 {
                     if (_agsEditor.AttemptToGetWriteAccess(script.FileName))
@@ -1440,26 +1432,20 @@ namespace AGS.Editor
             }
         }
 
-        private void ScriptFunctionUIEditor_OpenScriptEditor(bool isGlobalScript, string functionName)
+        private void ScriptFunctionUIEditor_OpenScriptEditor(string scriptModule, string functionName)
         {
             if (OnZoomToFile != null)
             {
                 // We need to start a timer, because we are within the
                 // property grid processing at the moment
-                _timerScriptName = (isGlobalScript) ? Script.GLOBAL_SCRIPT_FILE_NAME : Script.CURRENT_ROOM_SCRIPT_FILE_NAME;
-                _timerSearchForText = "function " + functionName + "(";
-                Timer timer = new Timer();
-                timer.Interval = 100;
-                timer.Tick += new EventHandler(timer_Tick);
-                timer.Start();
+                string searchForText = "function " + functionName + "(";
+                TickOnceTimer.CreateAndStart(100, new EventHandler((sender, e) => ZoomFile_Tick(scriptModule, searchForText)));
             }
         }
 
-        private void timer_Tick(object sender, EventArgs e)
+        private void ZoomFile_Tick(string scriptName, string searchForText)
         {
-            ((Timer)sender).Stop();
-            ((Timer)sender).Dispose();
-            ZoomToFileEventArgs evArgs = new ZoomToFileEventArgs(_timerScriptName, ZoomToFileZoomType.ZoomToText, 0, _timerSearchForText, false, null, true);
+            ZoomToFileEventArgs evArgs = new ZoomToFileEventArgs(scriptName, ZoomToFileZoomType.ZoomToText, 0, searchForText, false, null, true);
 			evArgs.SelectLine = false;
             evArgs.ZoomToLineAfterOpeningBrace = true;
 			OnZoomToFile(evArgs);

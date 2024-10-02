@@ -342,7 +342,7 @@ void ccInstance::AbortAndDestroy()
     if (COND) \
     { \
         cc_error(ERROR, ##__VA_ARGS__); \
-        return -1; \
+        return kInstErr_Generic; \
     }
 
 #define CC_ERROR_IF_RETVAL(COND, T, ERROR, ...) \
@@ -355,7 +355,7 @@ void ccInstance::AbortAndDestroy()
 #define ASSERT_CC_ERROR() \
     if (cc_has_error()) \
     { \
-        return -1; \
+        return kInstErr_Generic; \
     }
 
 #else
@@ -375,7 +375,7 @@ void ccInstance::AbortAndDestroy()
         (stackdata_ptr + N_BYTES - stackdata) >= CC_STACK_DATA_SIZE) \
     { \
         cc_error("stack overflow, attempted to grow from %d by %d bytes", (stackdata_ptr - stackdata), N_BYTES); \
-        return -1; \
+        return kInstErr_Generic; \
     }
 
 // ASSERT_STACK_SPACE_BYTES tests that we do not exceed stack limit
@@ -391,7 +391,7 @@ void ccInstance::AbortAndDestroy()
     if (registers[SREG_SP].RValue - N < &stack[0]) \
     { \
         cc_error("stack underflow"); \
-        return -1; \
+        return kInstErr_Generic; \
     }
 
 // ASSERT_STACK_UNWINDED tests that the stack pointer is at the expected position
@@ -400,11 +400,11 @@ void ccInstance::AbortAndDestroy()
         (stackdata_ptr > DATA_PTR)) \
     { \
         cc_error("stack is not unwinded after function call, %d bytes remain", (stackdata_ptr - DATA_PTR)); \
-        return -1; \
+        return kInstErr_Generic; \
     }
 
 
-int ccInstance::CallScriptFunction(const char *funcname, int32_t numargs, const RuntimeScriptValue *params)
+ccInstError ccInstance::CallScriptFunction(const String &funcname, int32_t numargs, const RuntimeScriptValue *params)
 {
     cc_clear_error();
     currentline = 0;
@@ -412,17 +412,19 @@ int ccInstance::CallScriptFunction(const char *funcname, int32_t numargs, const 
     if (numargs > 0 && !params)
     {
         cc_error("internal error in ccInstance::CallScriptFunction");
-        return -1; // TODO: correct error value
+        return kInstErr_Generic;
     }
 
-    if ((numargs >= MAX_FUNCTION_PARAMS) || (numargs < 0)) {
-        cc_error("too many arguments to function");
-        return -3;
+    if ((numargs >= MAX_FUNCTION_PARAMS) || (numargs < 0))
+    {
+        cc_error("invalid number of function arguments %d, supported range is %d - %d", numargs, 0, MAX_FUNCTION_PARAMS - 1);
+        return kInstErr_InvalidArgNum;
     }
 
-    if (pc != 0) {
+    if (pc != 0)
+    {
         cc_error("instance already being executed");
-        return -4;
+        return kInstErr_Busy;
     }
 
     // NOTE: passing more parameters than expected by the function is fine:
@@ -431,7 +433,7 @@ int ccInstance::CallScriptFunction(const char *funcname, int32_t numargs, const 
     // using negative offsets, and does not care about any preceding entries.
     int32_t startat = -1;
     char mangledName[200];
-    const size_t mangled_len = snprintf(mangledName, sizeof(mangledName), "%s$", funcname);
+    const size_t mangled_len = snprintf(mangledName, sizeof(mangledName), "%s$", funcname.GetCStr());
     int export_args = numargs;
 
     for (size_t k = 0; k < instanceof->exports.size(); k++) {
@@ -444,26 +446,27 @@ int ccInstance::CallScriptFunction(const char *funcname, int32_t numargs, const 
             export_args = atoi(thisExportName + mangled_len);
             if (export_args > numargs) {
                 cc_error("Not enough parameters to exported function '%s' (expected %d, supplied %d)",
-                    funcname, export_args, numargs);
-                return -1;
+                    funcname.GetCStr(), export_args, numargs);
+                return kInstErr_Generic;
             }
             match = true;
         }
         // check for an exact match (if the script was compiled with an older version)
-        if (match || (strcmp(thisExportName, funcname) == 0)) {
+        if (match || (strcmp(thisExportName, funcname.GetCStr()) == 0)) {
             const int32_t etype = (instanceof->export_addr[k] >> 24L) & 0x000ff;
             if (etype != EXPORT_FUNCTION) {
-                cc_error("symbol is not a function");
-                return -1;
+                cc_error("symbol '%s' is not a function", funcname.GetCStr());
+                return kInstErr_FuncNotFound;
             }
             startat = (instanceof->export_addr[k] & 0x00ffffff);
             break;
         }
     }
 
-    if (startat < 0) {
-        cc_error("function '%s' not found", funcname);
-        return -2;
+    if (startat < 0)
+    {
+        cc_error("function '%s' not found", funcname.GetCStr());
+        return kInstErr_FuncNotFound;
     }
 
     // Prepare instance for run
@@ -485,14 +488,14 @@ int ccInstance::CallScriptFunction(const char *funcname, int32_t numargs, const 
 
     InstThreads.push_back(this); // push instance thread
     runningInst = this;
-    const int reterr = Run(startat);
+    const ccInstError reterr = Run(startat);
     // Cleanup before returning, even if error
     ASSERT_STACK_SIZE(numargs);
     PopValuesFromStack(numargs);
     pc = 0;
     currentline = 0;
     InstThreads.pop_back(); // pop instance thread
-    if (reterr != 0)
+    if (reterr != kInstErr_None)
         return reterr;
 
     // NOTE that if proper multithreading is added this will need
@@ -509,18 +512,18 @@ int ccInstance::CallScriptFunction(const char *funcname, int32_t numargs, const 
 
         if (flags & INSTF_FREE)
             Free();
-        return 100;
+        return kInstErr_Aborted;
     }
 
     ASSERT_STACK_UNWINDED(registers[SREG_SP], stackdata);
-    return cc_has_error();
+    return cc_has_error() ? kInstErr_Generic : kInstErr_None;
 }
 
 // Macros to maintain the call stack
 #define PUSH_CALL_STACK \
     if (callStackSize >= MAX_CALL_STACK) { \
         cc_error("CallScriptFunction stack overflow (recursive call error?)"); \
-        return -1; \
+        return kInstErr_Generic; \
     } \
     callStackLineNumber[callStackSize] = line_number;  \
     callStackCodeInst[callStackSize] = runningInst;  \
@@ -530,7 +533,7 @@ int ccInstance::CallScriptFunction(const char *funcname, int32_t numargs, const 
 #define POP_CALL_STACK \
     if (callStackSize < 1) { \
         cc_error("CallScriptFunction stack underflow -- internal error"); \
-        return -1; \
+        return kInstErr_Generic; \
     } \
     callStackSize--;\
     line_number = callStackLineNumber[callStackSize];\
@@ -608,7 +611,7 @@ inline bool FixupArgument(RuntimeScriptValue &arg, const int fixup, const uintpt
 
 
 #define MAXNEST 50  // number of recursive function calls allowed
-int ccInstance::Run(int32_t curpc)
+ccInstError ccInstance::Run(int32_t curpc)
 {
     pc = curpc;
     returnValue = -1;
@@ -616,7 +619,7 @@ int ccInstance::Run(int32_t curpc)
     if ((curpc < 0) || (curpc >= runningInst->codesize))
     {
         cc_error("specified code offset is not valid");
-        return -1;
+        return kInstErr_Generic;
     }
 
     int32_t thisbase[MAXNEST], funcstart[MAXNEST];
@@ -810,7 +813,7 @@ int ccInstance::Run(int32_t curpc)
             if (pc == 0)
             {
                 returnValue = registers[SREG_AX].IValue;
-                return 0;
+                return kInstErr_None;
             }
             POP_CALL_STACK;
             continue; // continue so that the PC doesn't get overwritten
@@ -859,7 +862,7 @@ int ccInstance::Run(int32_t curpc)
             if (reg2.IValue == 0)
             {
                 cc_error("!Integer divide by zero");
-                return -1;
+                return kInstErr_Generic;
             }
             reg1.SetInt32(reg1.IValue / reg2.IValue);
             break;
@@ -964,7 +967,7 @@ int ccInstance::Run(int32_t curpc)
             if (reg2.IValue == 0)
             {
                 cc_error("!Integer divide by zero");
-                return -1;
+                return kInstErr_Generic;
             }
             reg1.SetInt32(reg1.IValue % reg2.IValue);
             break;
@@ -982,7 +985,7 @@ int ccInstance::Run(int32_t curpc)
             if (curnest >= MAXNEST - 1)
             {
                 cc_error("!call stack overflow, recursive call problem?");
-                return -1;
+                return kInstErr_Generic;
             }
 
             PUSH_CALL_STACK;
@@ -1084,7 +1087,7 @@ int ccInstance::Run(int32_t curpc)
                     (++loopCheckIterations > _maxWhileLoops))
                 {
                     cc_error("!Script appears to be hung (a while loop ran %d times). The problem may be in a calling function; check the call stack.", loopCheckIterations);
-                    return -1;
+                    return kInstErr_Generic;
                 }
                 else if ((loopIterations & 0x3FF) == 0 && // test each 1024 loops (arbitrary)
                     (std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -1113,7 +1116,7 @@ int ccInstance::Run(int32_t curpc)
                 (reg1.IValue >= arg_lit))
             {
                 cc_error("!Array index out of bounds (index: %d, bounds: 0..%d)", reg1.IValue, arg_lit - 1);
-                return -1;
+                return kInstErr_Generic;
             }
             break;
         }
@@ -1137,7 +1140,7 @@ int ccInstance::Run(int32_t curpc)
                     int elementSize = (hdr.TotalSize / hdr.ElemCount);
                     cc_error("!Array index out of bounds (index: %d, bounds: 0..%d)", reg1.IValue / elementSize, hdr.ElemCount - 1);
                 }
-                return -1;
+                return kInstErr_Generic;
             }
             break;
         }
@@ -1184,7 +1187,7 @@ int ccInstance::Run(int32_t curpc)
 
             int32_t newHandle = ccGetObjectHandleFromAddress(address);
             if (newHandle == -1)
-                return -1;
+                return kInstErr_Generic;
 
             if (handle != newHandle)
             {
@@ -1225,7 +1228,7 @@ int ccInstance::Run(int32_t curpc)
             // like memwriteptr, but doesn't attempt to free the old one
             int32_t newHandle = ccGetObjectHandleFromAddress(address);
             if (newHandle == -1)
-                return -1;
+                return kInstErr_Generic;
 
             ccAddObjectReference(newHandle);
             registers[SREG_MAR].WriteInt32(newHandle);
@@ -1257,7 +1260,7 @@ int ccInstance::Run(int32_t curpc)
             if (registers[SREG_MAR].IsNull())
             {
                 cc_error("!Null pointer referenced");
-                return -1;
+                return kInstErr_Generic;
             }
             break;
         case SCMD_CHECKNULLREG:
@@ -1266,7 +1269,7 @@ int ccInstance::Run(int32_t curpc)
             if (reg1.IsNull())
             {
                 cc_error("!Null string referenced");
-                return -1;
+                return kInstErr_Generic;
             }
             break;
         }
@@ -1313,12 +1316,12 @@ int ccInstance::Run(int32_t curpc)
             if (callAddr % sizeof(uintptr_t) != 0)
             {
                 cc_error("call address not aligned");
-                return -1;
+                return kInstErr_Generic;
             }
             callAddr /= sizeof(uintptr_t); // size of ccScript::code elements
 
             if (Run(static_cast<int32_t>(callAddr)))
-                return -1;
+                return kInstErr_Generic;
 
             runningInst = wasRunning;
 
@@ -1406,7 +1409,7 @@ int ccInstance::Run(int32_t curpc)
 
             if (cc_has_error())
             {
-                return -1;
+                return kInstErr_Generic;
             }
 
             registers[SREG_AX] = return_value;
@@ -1439,7 +1442,7 @@ int ccInstance::Run(int32_t curpc)
             if (reg1.IsNull())
             {
                 cc_error("!Null pointer referenced");
-                return -1;
+                return kInstErr_Generic;
             }
             switch (reg1.Type)
             {
@@ -1463,7 +1466,7 @@ int ccInstance::Run(int32_t curpc)
                 break;
             default:
                 cc_error("internal error: SCMD_CALLOBJ argument is not an object of built-in or user-defined type");
-                return -1;
+                return kInstErr_Generic;
             }
             next_call_needs_object = 1;
             break;
@@ -1497,7 +1500,7 @@ int ccInstance::Run(int32_t curpc)
             if (arg_elnum < 1)
             {
                 cc_error("invalid size for dynamic array; requested: %d, range: 1..%d", arg_elnum, INT32_MAX);
-                return -1;
+                return kInstErr_Generic;
             }
             DynObjectRef ref = CCDynamicArray::CreateOld(static_cast<uint32_t>(arg_elnum), arg_elsize, arg_managed);
             reg1.SetScriptObject(ref.Obj, ref.Mgr);
@@ -1512,7 +1515,7 @@ int ccInstance::Run(int32_t curpc)
             if (arg_elnum < 1)
             {
                 cc_error("invalid size for dynamic array; requested: %d, range: 1..%d", arg_elnum, INT32_MAX);
-                return -1;
+                return kInstErr_Generic;
             }
             // TODO: this likely may be optimized by doing a fixup,
             // which would replace a local typeid with a global one once the script is loaded;
@@ -1530,7 +1533,7 @@ int ccInstance::Run(int32_t curpc)
             if (arg_size > INT32_MAX)
             {
                 cc_error("Invalid size for user object; requested: %u, range: 0..%d", arg_size, INT32_MAX);
-                return -1;
+                return kInstErr_Generic;
             }
             DynObjectRef ref = ScriptUserObject::Create(RTTI::NoType, arg_size);
             reg1.SetScriptObject(ref.Obj, ref.Mgr);
@@ -1544,7 +1547,7 @@ int ccInstance::Run(int32_t curpc)
             if (arg_size > INT32_MAX)
             {
                 cc_error("Invalid size for user object; requested: %u, range: 0..%d", arg_size, INT32_MAX);
-                return -1;
+                return kInstErr_Generic;
             }
             // TODO: this likely may be optimized by doing a fixup,
             // which would replace a local typeid with a global one once the script is loaded;
@@ -1583,7 +1586,7 @@ int ccInstance::Run(int32_t curpc)
             if (reg2.FValue == 0.0)
             {
                 cc_error("!Floating point divide by zero");
-                return -1;
+                return kInstErr_Generic;
             }
             reg1.SetFloat(reg1.FValue / reg2.FValue);
             break;
@@ -1647,7 +1650,7 @@ int ccInstance::Run(int32_t curpc)
             {
                 cc_error("internal error: stack tail address expected on SCMD_ZEROMEMORY instruction, reg[MAR] type is %d",
                     registers[SREG_MAR].Type);
-                return -1;
+                return kInstErr_Generic;
             }
             break;
         }
@@ -1666,7 +1669,7 @@ int ccInstance::Run(int32_t curpc)
             if ((reg1.IsNull()) || (reg2.IsNull()))
             {
                 cc_error("!Null pointer referenced");
-                return -1;
+                return kInstErr_Generic;
             }
             else
             {
@@ -1683,7 +1686,7 @@ int ccInstance::Run(int32_t curpc)
             if ((reg1.IsNull()) || (reg2.IsNull()))
             {
                 cc_error("!Null pointer referenced");
-                return -1;
+                return kInstErr_Generic;
             }
             else
             {
@@ -1699,14 +1702,14 @@ int ccInstance::Run(int32_t curpc)
             break;
         default:
             cc_error("instruction %d is not implemented", codeOp.Instruction.Code);
-            return -1;
+            return kInstErr_Generic;
         }
         /* End perform operation */
         //=====================================================================
 
         pc += codeOp.ArgCount + 1;
     }
-    return 0;
+    return kInstErr_None;
 }
 
 String ccInstance::GetCallStack(const int maxLines) const
@@ -1732,14 +1735,14 @@ void ccInstance::GetScriptPosition(ScriptPosition &script_pos) const
 }
 
 // get a pointer to a variable or function exported by the script
-RuntimeScriptValue ccInstance::GetSymbolAddress(const char *symname) const
+RuntimeScriptValue ccInstance::GetSymbolAddress(const String &symname) const
 {
     char altName[200];
-    snprintf(altName, sizeof(altName), "%s$", symname);
+    snprintf(altName, sizeof(altName), "%s$", symname.GetCStr());
     RuntimeScriptValue rval_null;
     const size_t len_altName = strlen(altName);
     for (size_t k = 0; k < instanceof->exports.size(); k++) {
-        if (strcmp(instanceof->exports[k].c_str(), symname) == 0)
+        if (strcmp(instanceof->exports[k].c_str(), symname.GetCStr()) == 0)
             return exports[k];
         // mangled function name
         if (strncmp(instanceof->exports[k].c_str(), altName, len_altName) == 0)

@@ -545,6 +545,11 @@ namespace AGS.Editor
                 game.Settings.ScaleCharacterSpriteOffsets = false;
             }
 
+            if (xmlVersionIndex < 3060200)
+            {
+                game.Settings.UseOldVoiceClipNaming = true;
+            }
+
             // Update all the ColourNumber property values in game
             if (xmlVersionIndex < 4000009)
             {

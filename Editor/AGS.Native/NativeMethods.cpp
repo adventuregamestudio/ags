@@ -738,6 +738,7 @@ namespace AGS
             if (name->Equals("OPT_GAMETEXTENCODING")) return OPT_GAMETEXTENCODING;
             if (name->Equals("OPT_KEYHANDLEAPI")) return OPT_KEYHANDLEAPI;
             if (name->Equals("OPT_SCALECHAROFFSETS")) return OPT_SCALECHAROFFSETS;
+            if (name->Equals("OPT_VOICECLIPNAMERULE")) return OPT_VOICECLIPNAMERULE;
             if (name->Equals("OPT_LIPSYNCTEXT")) return OPT_LIPSYNCTEXT;
             return nullptr;
         }

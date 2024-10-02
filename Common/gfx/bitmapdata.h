@@ -180,7 +180,7 @@ public:
     {
         auto data = std::move(_data);
         *this = {};
-        return std::move(data);
+        return data;
     }
 
 private:

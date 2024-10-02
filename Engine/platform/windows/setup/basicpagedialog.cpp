@@ -74,7 +74,7 @@ void WinConfig::SetDefaults()
     Title = "Game Setup";
 }
 
-void WinConfig::Load(const ConfigTree &cfg)
+void WinConfig::Load(const ConfigTree &cfg, const Size &desktop_res)
 {
     DataDirectory = CfgReadString(cfg, "misc", "datadir", DataDirectory);
     UserSaveDir = CfgReadString(cfg, "misc", "user_data_dir");
@@ -85,8 +85,10 @@ void WinConfig::Load(const ConfigTree &cfg)
 
     GfxDriverId = CfgReadString(cfg, "graphics", "driver", GfxDriverId);
     GfxFilterId = CfgReadString(cfg, "graphics", "filter", GfxFilterId);
-    FsSetup = parse_window_mode(CfgReadString(cfg, "graphics", "fullscreen", "default"), false);
-    WinSetup = parse_window_mode(CfgReadString(cfg, "graphics", "window", "default"), true);
+    FsSetup = parse_window_mode(CfgReadString(cfg, "graphics", "fullscreen", "default"), false,
+        GameResolution, desktop_res);
+    WinSetup = parse_window_mode(CfgReadString(cfg, "graphics", "window", "default"), true,
+        GameResolution, desktop_res);
 
     FsGameFrame = parse_scaling_option(CfgReadString(cfg, "graphics", "game_scale_fs"), FsGameFrame);
     WinGameFrame = parse_scaling_option(CfgReadString(cfg, "graphics", "game_scale_win"), WinGameFrame);
@@ -123,7 +125,7 @@ void WinConfig::Load(const ConfigTree &cfg)
     Title = CfgReadString(cfg, "misc", "titletext", Title);
 }
 
-void WinConfig::Save(ConfigTree &cfg, const Size &desktop_res)
+void WinConfig::Save(ConfigTree &cfg, const Size &desktop_res) const
 {
     CfgWriteString(cfg, "misc", "user_data_dir", UserSaveDir);
     CfgWriteString(cfg, "misc", "shared_data_dir", AppDataDir);
@@ -274,9 +276,9 @@ void BasicPageDialog::OnGfxModeUpdate()
     switch (sel)
     {
     case static_cast<DWORD_PTR>(kGfxMode_Desktop):
-        _winCfg.FsSetup = WindowSetup(_desktopSize, kWnd_Fullscreen); break;
+        _winCfg.FsSetup = WindowSetup(kWndSizeHint_Desktop, _desktopSize, kWnd_Fullscreen); break;
     case static_cast<DWORD_PTR>(kGfxMode_GameRes):
-        _winCfg.FsSetup = WindowSetup(_winCfg.GameResolution, kWnd_Fullscreen); break;
+        _winCfg.FsSetup = WindowSetup(kWndSizeHint_GameNative, _winCfg.GameResolution, kWnd_Fullscreen); break;
     default:
         {
             const DisplayMode &mode = _drvDesc->GfxModeList.Modes[sel];
@@ -406,9 +408,9 @@ void BasicPageDialog::FillGfxModeList()
     String buf;
     for (VDispModes::const_iterator mode = modes.begin(); mode != modes.end(); ++mode)
     {
-        if (mode->Width == _desktopSize.Width && mode->Height == _desktopSize.Height)
+        if (*mode == _desktopSize)
             has_desktop_mode = true;
-        else if (mode->Width == _winCfg.GameResolution.Width && mode->Height == _winCfg.GameResolution.Height)
+        if (*mode == _winCfg.GameResolution)
             has_native_mode = true;
         buf.Format("%d x %d", mode->Width, mode->Height);
         AddString(_hGfxModeList, STR(buf), (DWORD_PTR)(mode - modes.begin()));
@@ -542,17 +544,19 @@ void BasicPageDialog::SelectNearestGfxMode(const WindowSetup &ws)
     }
 
     // First check two special modes
-    if (ws.IsDefaultSize())
+    int res = -1;
+    if (ws.IsDefaultSize() || ws.SizeHint == kWndSizeHint_Desktop)
     {
-        SetCurSelToItemData(_hGfxModeList, static_cast<DWORD_PTR>(kGfxMode_Desktop));
+        res = SetCurSelToItemData(_hGfxModeList, static_cast<DWORD_PTR>(kGfxMode_Desktop));
     }
-    else if (ws.Size == _winCfg.GameResolution || ws.Scale == 1)
+    else if (ws.SizeHint == kWndSizeHint_GameNative || ws.Scale == 1)
     {
-        SetCurSelToItemData(_hGfxModeList, static_cast<DWORD_PTR>(kGfxMode_GameRes));
+        res = SetCurSelToItemData(_hGfxModeList, static_cast<DWORD_PTR>(kGfxMode_GameRes));
     }
-    else
+
+    // If above failed, then look up for the nearest supported mode
+    if (res < 0)
     {
-        // Look up for the nearest supported mode
         const Size screen_size = !ws.Size.IsNull() ? ws.Size : (_winCfg.GameResolution * ws.Scale);
         int index = -1;
         DisplayMode dm;
@@ -562,8 +566,11 @@ void BasicPageDialog::SelectNearestGfxMode(const WindowSetup &ws)
             SetCurSelToItemData(_hGfxModeList, index, NULL, kGfxMode_Desktop);
         }
         else
+        {
             SetCurSelToItemData(_hGfxModeList, static_cast<DWORD_PTR>(kGfxMode_Desktop));
+        }
     }
+
     OnGfxModeUpdate();
 }
 

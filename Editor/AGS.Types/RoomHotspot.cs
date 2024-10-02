@@ -25,7 +25,8 @@ namespace AGS.Types
 
         static RoomHotspot()
         {
-            _interactionSchema = new InteractionSchema(new string[] {"Stands on hotspot",
+            _interactionSchema = new InteractionSchema(string.Empty, true,
+                new string[] {"Stands on hotspot",
                 "$$01 hotspot","$$02 hotspot","Use inventory on hotspot",
                 "$$03 hotspot", "Any click on hotspot","Mouse moves over hotspot", 
                 "$$05 hotspot", "$$08 hotspot", "$$09 hotspot"},

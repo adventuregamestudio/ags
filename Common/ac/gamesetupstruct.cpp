@@ -15,7 +15,6 @@
 #include "ac/gamesetupstruct.h"
 #include "ac/wordsdictionary.h"
 #include "ac/dynobj/scriptaudioclip.h"
-#include "game/interactions.h"
 #include "util/string_utils.h"
 
 using namespace AGS::Common;
@@ -118,10 +117,10 @@ void GameSetupStruct::read_interaction_scripts(Common::Stream *in, GameDataVersi
     charScripts.resize(numcharacters);
     invScripts.resize(numinvitems);
     for (size_t i = 0; i < (size_t)numcharacters; ++i)
-        charScripts[i].reset(InteractionScripts::CreateFromStream(in));
+        charScripts[i] = InteractionEvents::CreateFromStream_v361(in);
     // NOTE: new inventory items' events are loaded starting from 1 for some reason
     for (size_t i = 1; i < (size_t)numinvitems; ++i)
-        invScripts[i].reset(InteractionScripts::CreateFromStream(in));
+        invScripts[i] = InteractionEvents::CreateFromStream_v361(in);
 }
 
 void GameSetupStruct::read_words_dictionary(Common::Stream *in)

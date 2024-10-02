@@ -85,6 +85,7 @@
 // OPT_CUSTOMENGINETAG        51 // [HIDDEN]
 #define OPT_SCALECHAROFFSETS  52
 #define OPT_SAVEGAMESCREENSHOTLAYER 53
+#define OPT_VOICECLIPNAMERULE 54
 #define OPT_LIPSYNCTEXT       99
 
 #define COLOR_TRANSPARENT -1
@@ -1259,7 +1260,7 @@ import void DisableGroundLevelAreas(int disableTints);
 import void EnableGroundLevelAreas();
 /// Plays a FLI/FLC animation.
 import void PlayFlic(int flcNumber, int options);
-/// Plays an AVI/MPG video.
+/// Plays a video file of any supported format.
 import void PlayVideo(const string filename, VideoSkipStyle, int flags);
 /// Sets an ambient light level that affects all objects and characters in the room.
 import void SetAmbientLightLevel(int light_level);

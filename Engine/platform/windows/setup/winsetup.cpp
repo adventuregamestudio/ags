@@ -113,7 +113,7 @@ INT_PTR WinSetupDialog::OnInitDialog()
 
     _desktopSize = get_desktop_size();
 
-    _winCfg.Load(_cfgIn);
+    _winCfg.Load(_cfgIn, _desktopSize);
 
     // Native resolution test
     if (_winCfg.GameResolution.IsNull() || _winCfg.GameColourDepth == 0)

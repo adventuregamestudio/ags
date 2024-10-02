@@ -59,7 +59,9 @@ namespace AGS.Types
 
         static Room()
         {
-            _interactionSchema = new InteractionSchema(new string[] {
+            _interactionSchema = new InteractionSchema(
+                string.Empty, true,
+                new string[] {
                 "Walks off left edge",
                 "Walks off right edge",
                 "Walks off bottom edge",

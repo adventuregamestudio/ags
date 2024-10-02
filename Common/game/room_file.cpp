@@ -144,19 +144,20 @@ HError ReadMainBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
         return new RoomFileError(kRoomFileErr_IncompatibleEngine, String::FromFormat("Too many regions (in room: %d, max: %d).", room->RegionCount, MAX_ROOM_REGIONS));
 
     // Interaction script links
-    room->EventHandlers.reset(InteractionScripts::CreateFromStream(in));
+    // NOTE: we keep pre-3.6.2 interaction format for now, room interactions don't need module selection
+    room->EventHandlers = InteractionEvents::CreateFromStream_v361(in);
 
     for (size_t i = 0; i < room->HotspotCount; ++i)
     {
-        room->Hotspots[i].EventHandlers.reset(InteractionScripts::CreateFromStream(in));
+        room->Hotspots[i].EventHandlers = InteractionEvents::CreateFromStream_v361(in);
     }
     for (auto &obj : room->Objects)
     {
-        obj.EventHandlers.reset(InteractionScripts::CreateFromStream(in));
+        obj.EventHandlers = InteractionEvents::CreateFromStream_v361(in);
     }
     for (size_t i = 0; i < room->RegionCount; ++i)
     {
-        room->Regions[i].EventHandlers.reset(InteractionScripts::CreateFromStream(in));
+        room->Regions[i].EventHandlers = InteractionEvents::CreateFromStream_v361(in);
     }
 
     // Room object baselines
@@ -529,13 +530,6 @@ HRoomFileError ExtractScriptText(String &script, std::unique_ptr<Stream> &&in, R
     return HRoomFileError::None();
 }
 
-void WriteInteractionScripts(const InteractionScripts *interactions, Stream *out)
-{
-    out->WriteInt32(interactions->ScriptFuncNames.size());
-    for (size_t i = 0; i < interactions->ScriptFuncNames.size(); ++i)
-        interactions->ScriptFuncNames[i].Write(out);
-}
-
 void WriteMainBlock(const RoomStruct *room, Stream *out)
 {
     out->WriteInt32(room->BackgroundBPP);
@@ -575,14 +569,14 @@ void WriteMainBlock(const RoomStruct *room, Stream *out)
     out->WriteInt32(0); // legacy interaction vars
     out->WriteInt32(MAX_ROOM_REGIONS);
 
-    // Interaction script links
-    WriteInteractionScripts(room->EventHandlers.get(), out);
+    // NOTE: we keep pre-3.6.2 interaction format for now, room interactions don't need module selection
+    room->EventHandlers->Write_v361(out);
     for (size_t i = 0; i < room->HotspotCount; ++i)
-        WriteInteractionScripts(room->Hotspots[i].EventHandlers.get(), out);
+        room->Hotspots[i].EventHandlers->Write_v361(out);
     for (const auto &obj : room->Objects)
-        WriteInteractionScripts(obj.EventHandlers.get(), out);
+        obj.EventHandlers->Write_v361(out);
     for (size_t i = 0; i < room->RegionCount; ++i)
-        WriteInteractionScripts(room->Regions[i].EventHandlers.get(), out);
+        room->Regions[i].EventHandlers->Write_v361(out);
 
     // Room object baselines
     for (const auto &obj : room->Objects)

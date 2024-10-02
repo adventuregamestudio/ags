@@ -25,7 +25,8 @@ namespace AGS.Types
 
         static InventoryItem()
         {
-            _interactionSchema = new InteractionSchema(new string[] { "$$01 inventory item", 
+            _interactionSchema = new InteractionSchema(Script.GLOBAL_SCRIPT_FILE_NAME, false,
+                new string[] { "$$01 inventory item", 
                 "$$02 inventory item", "$$03 inventory item", "Use inventory on this item", 
                 "Other click on inventory item" },
                 new string[] { "Look", "Interact", "Talk", "UseInv", "OtherClick" },

@@ -111,7 +111,7 @@ void RunInventoryInteraction (int iit, int mood) {
     if (evnt < 0) // on any non-supported mode - use "other-click"
         evnt = otherclick_evt;
 
-    const auto obj_evt = ObjectEvent("inventory%d", iit,
+    const auto obj_evt = ObjectEvent(kScTypeGame, "inventory%d", iit,
         RuntimeScriptValue().SetScriptObject(&scrInv[iit], &ccDynamicInv), mood);
     run_interaction_script(obj_evt, game.invScripts[iit].get(), evnt);
 }

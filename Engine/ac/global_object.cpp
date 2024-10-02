@@ -383,7 +383,7 @@ void RunObjectInteraction (int aa, int mood) {
         play.usedinv = playerchar->activeinv;
     }
 
-    const auto obj_evt = ObjectEvent("object%d", aa,
+    const auto obj_evt = ObjectEvent(kScTypeRoom, "object%d", aa,
         RuntimeScriptValue().SetScriptObject(&scrObj[aa], &ccDynamicObject), mood);
     if ((evnt >= 0) && run_interaction_script(obj_evt, thisroom.Objects[aa].EventHandlers.get(), evnt, anyclick_evt) < 0)
         return; // game state changed, don't do "any click"

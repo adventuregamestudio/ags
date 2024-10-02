@@ -450,6 +450,8 @@ void RunScriptFunctionInModules(const String &tsname, size_t param_count, const 
 
 void RunScriptFunctionInRoom(const String &tsname, size_t param_count, const RuntimeScriptValue *params)
 {
+    if (!roominst)
+        return; // room is not loaded yet
     // Some room callbacks are considered to be obligatory; for historical reasons these are
     // identified by having no parameters;
     // FIXME: this is a hack, this should be defined either by function type, or as an arg

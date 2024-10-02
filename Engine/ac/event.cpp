@@ -87,6 +87,7 @@ void run_claimable_event(const String &tsname, bool includeRoom, int numParams, 
         if (eventClaimed == EVENT_CLAIMED)
         {
             eventClaimed = eventClaimedOldValue;
+            return;
         }
     }
 
@@ -97,6 +98,7 @@ void run_claimable_event(const String &tsname, bool includeRoom, int numParams, 
         if (eventClaimed == EVENT_CLAIMED)
         {
             eventClaimed = eventClaimedOldValue;
+            return;
         }
     }
 

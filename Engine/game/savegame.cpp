@@ -422,6 +422,9 @@ static void CopyPreservedGameOptions(GameSetupStructBase &gs, const PreservedPar
     const auto restricted_opts = GameSetupStructBase::GetRestrictedOptions();
     for (auto opt : restricted_opts)
         gs.options[opt] = pp.GameOptions[opt];
+    const auto preserved_opts = GameSetupStructBase::GetPreservedOptions();
+    for (auto opt : preserved_opts)
+        gs.options[opt] = pp.GameOptions[opt];
 }
 
 // Final processing after successfully restoring from save
@@ -680,12 +683,12 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data)
     return HSaveError::None();
 }
 
-HSaveError RestoreGameState(Stream *in, SavegameVersion svg_version)
+HSaveError RestoreGameState(Stream *in, SavegameVersion svg_version, SaveCmpSelection select_cmp)
 {
     PreservedParams pp;
     RestoredData r_data;
     DoBeforeRestore(pp);
-    HSaveError err = SavegameComponents::ReadAll(in, svg_version, SavegameComponents::kSaveCmp_All, pp, r_data);
+    HSaveError err = SavegameComponents::ReadAll(in, svg_version, select_cmp, pp, r_data);
     if (!err)
         return err;
     return DoAfterRestore(pp, r_data);
@@ -762,10 +765,10 @@ void DoBeforeSave()
     }
 }
 
-void SaveGameState(Stream *out)
+void SaveGameState(Stream *out, SaveCmpSelection select_cmp)
 {
     DoBeforeSave();
-    SavegameComponents::WriteAllCommon(out, SavegameComponents::kSaveCmp_All);
+    SavegameComponents::WriteAllCommon(out, select_cmp);
 }
 
 void ReadPluginSaveData(Stream *in, PluginSvgVersion svg_ver, soff_t max_size)

@@ -153,6 +153,37 @@ struct SavegameDescription
     SavegameDescription();
 };
 
+// SaveCmpSelection flags tell which save components to restore, and which to skip
+enum SaveCmpSelection
+{
+    kSaveCmp_None           = 0,
+    kSaveCmp_GameState      = 0x00000001,
+    kSaveCmp_Audio          = 0x00000002,
+    kSaveCmp_Characters     = 0x00000004,
+    kSaveCmp_Dialogs        = 0x00000008,
+    kSaveCmp_GUI            = 0x00000010,
+    kSaveCmp_InvItems       = 0x00000020,
+    kSaveCmp_Cursors        = 0x00000040,
+    kSaveCmp_Views          = 0x00000080,
+    kSaveCmp_DynamicSprites = 0x00000100,
+    kSaveCmp_Overlays       = 0x00000200,
+    kSaveCmp_Scripts        = 0x00000400,
+    kSaveCmp_Rooms          = 0x00000800,
+    kSaveCmp_ThisRoom       = 0x00001000,
+    kSaveCmp_Plugins        = 0x00002000,
+    kSaveCmp_All            = 0xFFFFFFFF,
+
+    // Components, allowed to be ignored by script's request
+    kSaveCmp_ScriptIgnoreMask =
+          kSaveCmp_Audio
+        | kSaveCmp_Dialogs
+        | kSaveCmp_GUI
+        | kSaveCmp_Cursors
+        | kSaveCmp_Views
+        | kSaveCmp_DynamicSprites
+        | kSaveCmp_Plugins
+};
+
 
 // Opens savegame for reading; optionally reads description, if any is provided
 HSaveError     OpenSavegame(const String &filename, SavegameSource &src,
@@ -160,11 +191,11 @@ HSaveError     OpenSavegame(const String &filename, SavegameSource &src,
 // Opens savegame and reads the savegame description
 HSaveError     OpenSavegame(const String &filename, SavegameDescription &desc, SavegameDescElem elems = kSvgDesc_All);
 // Reads the game data from the save stream and reinitializes game state
-HSaveError     RestoreGameState(Stream *in, SavegameVersion svg_version);
+HSaveError     RestoreGameState(Stream *in, SavegameVersion svg_version, SaveCmpSelection select_cmp);
 // Opens savegame for writing and puts in savegame description
 std::unique_ptr<Stream> StartSavegame(const String &filename, const String &user_text, const Bitmap *user_image);
 // Prepares game for saving state and writes game data into the save stream
-void           SaveGameState(Stream *out);
+void           SaveGameState(Stream *out, SaveCmpSelection select_cmp);
 
 } // namespace Engine
 } // namespace AGS

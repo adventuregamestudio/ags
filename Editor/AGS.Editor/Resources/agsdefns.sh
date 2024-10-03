@@ -89,6 +89,7 @@
 #define OPT_SCALECHAROFFSETS  52
 #define OPT_SAVEGAMESCREENSHOTLAYER 53
 #define OPT_VOICECLIPNAMERULE 54
+#define OPT_SAVECOMPONENTSIGNORE 55
 #define OPT_LIPSYNCTEXT       99
 
 #define COLOR_TRANSPARENT -1
@@ -3335,6 +3336,18 @@ builtin struct Screen {
   import static Point *RoomToScreenPoint(int rx, int ry);
 };
 #endif // SCRIPT_API_v3507
+
+enum SaveComponentSelection
+{
+    eSaveCmp_None           = 0,
+    eSaveCmp_Audio          = 0x00000002,
+    eSaveCmp_Dialogs        = 0x00000008,
+    eSaveCmp_GUI            = 0x00000010,
+    eSaveCmp_Cursors        = 0x00000040,
+    eSaveCmp_Views          = 0x00000080,
+    eSaveCmp_DynamicSprites = 0x00000100,
+    eSaveCmp_Plugins        = 0x00002000
+};
 
 
 

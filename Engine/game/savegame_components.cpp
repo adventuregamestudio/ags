@@ -1337,7 +1337,7 @@ ComponentHandler ComponentHandlers[] =
         "Dynamic Surfaces",
         0,
         0,
-        kSaveCmp_DynamicSurfaces,
+        kSaveCmp_DynamicSprites, // share flag with "Dynamic Sprites"
         WriteDynamicSurfaces,
         ReadDynamicSurfaces
     },

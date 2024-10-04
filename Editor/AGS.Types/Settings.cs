@@ -652,6 +652,10 @@ namespace AGS.Types
 
         [Obsolete]
         [Browsable(false)]
+        public bool EnforceObjectBasedScript { get { return true; } }
+
+        [Obsolete]
+        [Browsable(false)]
         public bool EnforceNewStrings { get { return true; } }
 
         [Obsolete]

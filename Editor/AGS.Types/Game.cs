@@ -37,6 +37,7 @@ namespace AGS.Types
         private CharacterFolders _characters;
         private List<MouseCursor> _cursors;
         private List<Font> _fonts;
+        private List<FontFile> _fontFiles;
         private DialogFolders _dialogs;
         private List<Plugin> _plugins;
         private List<Translation> _translations;
@@ -73,6 +74,7 @@ namespace AGS.Types
             _cursors = new List<MouseCursor>();
             _dialogs = new DialogFolders(DialogFolder.MAIN_DIALOG_FOLDER_NAME);
             _fonts = new List<Font>();
+            _fontFiles = new List<FontFile>();
             _characters = new CharacterFolders(CharacterFolder.MAIN_CHARACTER_FOLDER_NAME);
             _plugins = new List<Plugin>();
             _translations = new List<Translation>();
@@ -139,6 +141,11 @@ namespace AGS.Types
         public IList<Font> Fonts
         {
             get { return _fonts; }
+        }
+
+        public IList<FontFile> FontFiles
+        {
+            get { return _fontFiles; }
         }
 
         public IList<Translation> Translations
@@ -654,6 +661,13 @@ namespace AGS.Types
             }
             writer.WriteEndElement();
 
+            writer.WriteStartElement("FontFiles");
+            foreach (FontFile ff in _fontFiles)
+            {
+                ff.ToXml(writer);
+            }
+            writer.WriteEndElement();
+
             writer.WriteStartElement("Fonts");
             foreach (Font font in _fonts)
             {
@@ -773,6 +787,12 @@ namespace AGS.Types
             foreach (XmlNode cursNode in SerializeUtils.GetChildNodesOrEmpty(node, "Cursors"))
             {
                 _cursors.Add(new MouseCursor(cursNode));
+            }
+
+            _fontFiles.Clear();
+            foreach (XmlNode ffNode in SerializeUtils.GetChildNodesOrEmpty(node, "FontFiles"))
+            {
+                _fontFiles.Add(new FontFile(ffNode));
             }
 
             _fonts.Clear();

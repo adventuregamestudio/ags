@@ -522,9 +522,6 @@
     <EmbeddedResource Include="Resources\statprop.xpm" />
     <EmbeddedResource Include="Resources\struct.xpm" />
     <EmbeddedResource Include="Resources\agsdefns.sh" />
-    <EmbeddedResource Include="Resources\AGSFNT0.WFN" />
-    <EmbeddedResource Include="Resources\AGSFNT1.WFN" />
-    <EmbeddedResource Include="Resources\AGSFNT2.WFN" />
     <Compile Include="Resources\ResourceManager.cs" />
     <Compile Include="TextProcessing\APITypeDef.cs" />
     <Compile Include="Utils\AlternateStreams.cs" />

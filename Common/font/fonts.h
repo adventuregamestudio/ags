@@ -34,17 +34,17 @@ struct FontMetrics;
 void init_font_renderer(AGS::Common::AssetManager *amgr);
 void shutdown_font_renderer();
 void adjust_y_coordinate_for_text(int* ypos, size_t fontnum);
-IAGSFontRenderer* font_replace_renderer(size_t fontNumber, IAGSFontRenderer* renderer);
-IAGSFontRenderer* font_replace_renderer(size_t fontNumber, IAGSFontRenderer2* renderer);
-void font_recalc_metrics(size_t fontNumber);
+IAGSFontRenderer* font_replace_renderer(size_t font_number, IAGSFontRenderer* renderer);
+IAGSFontRenderer* font_replace_renderer(size_t font_number, IAGSFontRenderer2* renderer);
+void font_recalc_metrics(size_t font_number);
 bool font_first_renderer_loaded();
-bool is_font_loaded(size_t fontNumber);
-bool is_bitmap_font(size_t fontNumber);
-bool font_supports_extended_characters(size_t fontNumber);
+bool is_font_loaded(size_t font_number);
+bool is_bitmap_font(size_t font_number);
+bool font_supports_extended_characters(size_t font_number);
 // Get font's name, if it's available, otherwise returns empty string
-const char *get_font_name(size_t fontNumber);
+const char *get_font_name(size_t font_number);
 // Get a collection of FFLG_* flags corresponding to this font
-int get_font_flags(size_t fontNumber);
+int get_font_flags(size_t font_number);
 // TODO: with changes to WFN font renderer that implemented safe rendering of
 // strings containing invalid chars (since 3.3.1) this function is not
 // important, except for (maybe) few particular cases.
@@ -53,53 +53,54 @@ int get_font_flags(size_t fontNumber);
 // Need to check whether it is safe to completely remove it.
 void ensure_text_valid_for_font(char *text, size_t fontnum);
 // Get font's scaling multiplier
-int get_font_scaling_mul(size_t fontNumber);
+int get_font_scaling_mul(size_t font_number);
 // Calculate actual width of a line of text
-int get_text_width(const char *texx, size_t fontNumber);
+int get_text_width(const char *texx, size_t font_number);
 // Get the maximal width of the given font, with corresponding outlining
 int get_text_width_outlined(const char *text, size_t font_number);
 // Get font's height; this value is used for logical arrangement of UI elements;
 // note that this is a "formal" font height, that may have different value
 // depending on compatibility mode (used when running old games);
-int get_font_height(size_t fontNumber);
+int get_font_height(size_t font_number);
 // Get the maximal height of the given font, with corresponding outlining
-int get_font_height_outlined(size_t fontNumber);
+int get_font_height_outlined(size_t font_number);
 // Get font's surface height: this always returns the height enough to accomodate
 // font letters on a bitmap or a texture; the distinction is needed for compatibility reasons
-int get_font_surface_height(size_t fontNumber);
+int get_font_surface_height(size_t font_number);
 // Get font's maximal graphical extent: this means the farthest vertical positions of glyphs,
 // relative to the "pen" position. Besides letting to calculate the surface height,
 // this information also lets to detect if some of the glyphs may appear above y0.
-std::pair<int, int> get_font_surface_extent(size_t fontNumber);
+std::pair<int, int> get_font_surface_extent(size_t font_number);
 // Get font's line spacing
-int get_font_linespacing(size_t fontNumber);
+int get_font_linespacing(size_t font_number);
 // Set font's line spacing
-void set_font_linespacing(size_t fontNumber, int spacing);
+void set_font_linespacing(size_t font_number, int spacing);
 // Get font's outline type
 int  get_font_outline(size_t font_number);
 // Get font's automatic outline thickness (if set)
 int  get_font_outline_thickness(size_t font_number);
 // Gets the total maximal height of the given number of lines printed with the given font;
 // note that this uses formal font height, for compatibility purposes
-int get_text_lines_height(size_t fontNumber, size_t numlines);
+int get_text_lines_height(size_t font_number, size_t numlines);
 // Gets the height of a graphic surface enough to accomodate this number of text lines;
 // note this accounts for the real pixel font height
-int get_text_lines_surf_height(size_t fontNumber, size_t numlines);
+int get_text_lines_surf_height(size_t font_number, size_t numlines);
 // Set font's outline type
 void set_font_outline(size_t font_number, int outline_type,
     enum FontInfo::AutoOutlineStyle style = FontInfo::kSquared, int thickness = 1);
 bool is_font_antialiased(size_t font_number);
 // Outputs a single line of text on the defined position on bitmap, using defined font, color and parameters
-void wouttextxy(AGS::Common::Bitmap *ds, int xxx, int yyy, size_t fontNumber, color_t text_color, const char *texx);
+void wouttextxy(AGS::Common::Bitmap *ds, int xxx, int yyy, size_t font_number, color_t text_color, const char *texx);
 // Assigns FontInfo to the font
-void set_fontinfo(size_t fontNumber, const FontInfo &finfo);
+void set_fontinfo(size_t font_number, const FontInfo &finfo);
 // Gets full information about the font
 FontInfo get_fontinfo(size_t font_number);
 // Loads a font from disk
-bool load_font_size(size_t fontNumber, const FontInfo &font_info);
+bool load_font_size(size_t font_number, const FontInfo &font_info);
 // Loads a font from disk, reads metrics, and disposes a font
 bool load_font_metrics(const AGS::Common::String &filename, int pixel_size, FontMetrics &metrics);
-void wgtprintf(AGS::Common::Bitmap *ds, int xxx, int yyy, size_t fontNumber, color_t text_color, char *fmt, ...);
+// FIXME: review this function, used only in AGS.Native (editor)
+void wgtprintf(AGS::Common::Bitmap *ds, int xxx, int yyy, size_t font_number, color_t text_color, char *fmt, ...);
 // Allocates two outline stencil buffers, or returns previously creates ones;
 // these buffers are owned by the font, they should not be deleted by the caller.
 void alloc_font_outline_buffers(size_t font_number,
@@ -108,7 +109,7 @@ void alloc_font_outline_buffers(size_t font_number,
 // Perform necessary adjustments on all fonts in case the text render mode changed (anti-aliasing etc)
 void adjust_fonts_for_render_mode(bool aa_mode);
 // Free particular font's data
-void wfreefont(size_t fontNumber);
+void freefont(size_t font_number);
 // Free all fonts data
 void free_all_fonts();
 
@@ -144,7 +145,7 @@ private:
 
 // Break up the text into lines restricted by the given width;
 // returns number of lines, or 0 if text cannot be split well to fit in this width
-size_t split_lines(const char *texx, SplitLines &lines, int width, int fontNumber, size_t max_lines = -1);
+size_t split_lines(const char *texx, SplitLines &lines, int width, int font_number, size_t max_lines = -1);
 
 namespace AGS { namespace Common { extern SplitLines Lines; } }
 

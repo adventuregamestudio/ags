@@ -73,18 +73,6 @@ namespace AGS.Editor
             pictureBox.Image = bmp;
         }
 
-
-        private void btnImportFont_Click(object sender, EventArgs e)
-        {
-            if (_item != null && ImportOverFont != null)
-            {
-                if (Factory.GUIController.ShowQuestion("Importing a font will replace the current font. Are you sure you want to do this?") == DialogResult.Yes)
-                {
-                    ImportOverFont(_item);
-                }
-            }
-        }
-
         private void imagePanel_SizeChanged(object sender, EventArgs e)
         {
             PaintFont();
@@ -94,7 +82,6 @@ namespace AGS.Editor
         {
             t.ControlHelper(this, "font-editor");
             t.GroupBoxHelper(currentItemGroupBox, "font-editor/box");
-            t.ButtonHelper(btnImportFont, "font-editor/btn-import");
         }
 
         private void FontEditor_Load(object sender, EventArgs e)

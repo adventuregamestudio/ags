@@ -122,7 +122,8 @@ namespace AGS.Editor
          * 4.00.00.08     - Custom properties supported by AudioClips, Dialogs, GUI,
          *                  Regions, Walkable Areas
          * 4.00.00.09     - True 32-bit color properties
-         * 4.00.00.10     - Settings.ScriptCompiler as a selection of script compiler IDs,
+         * 4.00.00.10     - Font and FontFile separation;
+         *                  Settings.ScriptCompiler as a selection of script compiler IDs,
          *                  ExtendedCompiler is deprecated.
          *
         */
@@ -133,6 +134,7 @@ namespace AGS.Editor
         /// </summary>
         public const int    AGS_4_0_0_XML_VERSION_INDEX_OPEN_ROOMS = 3999901;
         public const int    AGS_4_0_0_XML_VERSION_INDEX_PO_TRANSLATIONS = 3999907;
+        public const int    AGS_4_0_0_XML_VERSION_INDEX_FONT_SOURCES = 4000010;
         /*
          * LATEST_USER_DATA_VERSION is the last version of the user data file that used a
          * 4-point-4-number string to identify the version of AGS that saved the file.

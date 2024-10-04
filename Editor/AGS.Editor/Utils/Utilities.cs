@@ -389,29 +389,6 @@ namespace AGS.Editor
             return wroteTotal;
         }
 
-        public static void CopyFont(int fromSlot, int toSlot)
-        {
-            if (fromSlot == toSlot)
-            {
-                return;
-            }
-            if (File.Exists("agsfnt" + fromSlot + ".wfn"))
-            {
-                File.Copy("agsfnt" + fromSlot + ".wfn", "agsfnt" + toSlot + ".wfn", true);
-                // if a read-only file was copied, make the new one normal
-                File.SetAttributes("agsfnt" + toSlot + ".wfn", FileAttributes.Archive);
-            }
-            else if (File.Exists("agsfnt" + fromSlot + ".ttf"))
-            {
-                File.Copy("agsfnt" + fromSlot + ".ttf", "agsfnt" + toSlot + ".ttf", true);
-                File.SetAttributes("agsfnt" + toSlot + ".ttf", FileAttributes.Archive);
-            }
-            else
-            {
-                Factory.GUIController.ShowMessage("Unable to create new font: Font " + fromSlot + " not found.", System.Windows.Forms.MessageBoxIcon.Warning);
-            }
-        }
-
         public static Bitmap GetBitmapForSpriteResizedKeepingAspectRatio(Sprite sprite, int width, int height, bool centreInNewCanvas, bool drawOutline, Color backgroundColour)
         {
             float targetWidthHeightRatio = (float)width / (float)height;

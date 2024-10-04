@@ -311,7 +311,8 @@ namespace AGS.Editor
         /// </summary>
         private void SetDefaultGameContentIfMissing(Game game)
         {
-            // Current version of the Editor requires at least 3 fonts present,
+            // CHECKME: do we really need this?
+            // Make certain that at least 3 fonts are present,
             // copy them from the resources if these are not present in game data
             AddFontIfNotAlreadyThere(0);
             AddFontIfNotAlreadyThere(1);
@@ -729,6 +730,7 @@ namespace AGS.Editor
             }
         }
 
+        // FIXME: this should be done differently!
         private void AddFontIfNotAlreadyThere(int fontNumber)
         {
             if ((!File.Exists("agsfnt" + fontNumber + ".wfn")) &&

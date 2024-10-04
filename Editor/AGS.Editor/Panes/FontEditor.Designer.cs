@@ -29,7 +29,6 @@ namespace AGS.Editor
         private void InitializeComponent()
         {
             this.currentItemGroupBox = new System.Windows.Forms.GroupBox();
-            this.btnImportFont = new System.Windows.Forms.Button();
             this.imagePanel = new System.Windows.Forms.Panel();
             this.pictureBox = new System.Windows.Forms.PictureBox();
             this.label1 = new System.Windows.Forms.Label();
@@ -44,7 +43,6 @@ namespace AGS.Editor
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.currentItemGroupBox.BackColor = System.Drawing.SystemColors.Control;
-            this.currentItemGroupBox.Controls.Add(this.btnImportFont);
             this.currentItemGroupBox.Controls.Add(this.imagePanel);
             this.currentItemGroupBox.Controls.Add(this.label1);
             this.currentItemGroupBox.Location = new System.Drawing.Point(13, 13);
@@ -54,16 +52,6 @@ namespace AGS.Editor
             this.currentItemGroupBox.TabStop = false;
             this.currentItemGroupBox.Text = "Selected font settings";
             // 
-            // btnImportFont
-            // 
-            this.btnImportFont.Location = new System.Drawing.Point(13, 40);
-            this.btnImportFont.Name = "btnImportFont";
-            this.btnImportFont.Size = new System.Drawing.Size(132, 26);
-            this.btnImportFont.TabIndex = 4;
-            this.btnImportFont.Text = "Import over this font...";
-            this.btnImportFont.UseVisualStyleBackColor = true;
-            this.btnImportFont.Click += new System.EventHandler(this.btnImportFont_Click);
-            // 
             // imagePanel
             // 
             this.imagePanel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
@@ -71,9 +59,9 @@ namespace AGS.Editor
             | System.Windows.Forms.AnchorStyles.Right)));
             this.imagePanel.AutoScroll = true;
             this.imagePanel.Controls.Add(this.pictureBox);
-            this.imagePanel.Location = new System.Drawing.Point(13, 80);
+            this.imagePanel.Location = new System.Drawing.Point(13, 48);
             this.imagePanel.Name = "imagePanel";
-            this.imagePanel.Size = new System.Drawing.Size(477, 370);
+            this.imagePanel.Size = new System.Drawing.Size(477, 402);
             this.imagePanel.TabIndex = 3;
             this.imagePanel.SizeChanged += new System.EventHandler(this.imagePanel_SizeChanged);
             // 
@@ -116,7 +104,6 @@ namespace AGS.Editor
 
         private System.Windows.Forms.GroupBox currentItemGroupBox;
         private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.Button btnImportFont;
         private System.Windows.Forms.Panel imagePanel;
         private System.Windows.Forms.PictureBox pictureBox;
     }

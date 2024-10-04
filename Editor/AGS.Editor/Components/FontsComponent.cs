@@ -14,7 +14,6 @@ namespace AGS.Editor.Components
         private const string TOP_LEVEL_COMMAND_ID = "Fonts";
         private const string COMMAND_NEW_ITEM = "NewFont";
         private const string COMMAND_DELETE_ITEM = "DeleteFont";
-        private const int BUILT_IN_FONTS = 3;
         private const string ICON_KEY = "FontsIcon";
 
         private const int DEFAULT_IMPORTED_FONT_SIZE = 10;
@@ -179,11 +178,6 @@ namespace AGS.Editor.Components
                 int fontID = Convert.ToInt32(controlID.Substring(3));
                 _itemRightClicked = _agsEditor.CurrentGame.Fonts[fontID];
                 menu.Add(new MenuCommand(COMMAND_DELETE_ITEM, "Delete this font", null));
-                if (fontID < BUILT_IN_FONTS)
-                {
-                    // can't delete built-in fonts
-                    menu[menu.Count - 1].Enabled = false;
-                }
             }
             return menu;
         }

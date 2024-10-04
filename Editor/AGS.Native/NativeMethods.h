@@ -76,6 +76,8 @@ namespace Native
             // Measures the TTF font from the given file, and tries to find a point size corresponding
             // to the closest pixel height match, returns the found point size, or 0 in case of error.
             int FindTTFSizeForHeight(String ^fileName, int size);
+            void OnGameFontAdded(Game^ game, int fontSlot);
+            void OnGameFontDeleted(Game^ game, int fontSlot);
             void OnGameFontUpdated(Game^ game, int fontSlot, bool forceUpdate);
 			Dictionary<int,Sprite^>^ LoadAllSpriteDimensions();
 			void LoadNewSpriteFile();

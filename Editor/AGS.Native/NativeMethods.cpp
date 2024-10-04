@@ -87,6 +87,8 @@ extern HAGSError reset_sprite_file();
 extern void ApplyPalette(cli::array<PaletteEntry^>^ newPalette);
 extern void GameDirChanged(String ^workingDir);
 extern void GameUpdated(Game ^game, bool forceUpdate);
+extern void GameFontAdded(Game ^game, int fontNumber);
+extern void GameFontDeleted(Game ^game, int fontNumber);
 extern void GameFontUpdated(Game ^game, int fontNumber, bool forceUpdate);
 extern void UpdateNativeSpritesToGame(Game ^game, CompileMessages ^errors);
 extern System::String ^load_room_script(System::String ^fileName);
@@ -380,9 +382,19 @@ namespace AGS
         return height;
     }
 
+    void NativeMethods::OnGameFontAdded(Game^ game, int fontSlot)
+    {
+        ::GameFontAdded(game, fontSlot);
+    }
+
+    void NativeMethods::OnGameFontDeleted(Game^ game, int fontSlot)
+    {
+        ::GameFontDeleted(game, fontSlot);
+    }
+
     void NativeMethods::OnGameFontUpdated(Game^ game, int fontSlot, bool forceUpdate)
     {
-        GameFontUpdated(game, fontSlot, forceUpdate);
+        ::GameFontUpdated(game, fontSlot, forceUpdate);
     }
 
         AGS::Types::SpriteInfo^ NativeMethods::GetSpriteInfo(int spriteSlot)

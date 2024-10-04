@@ -230,6 +230,16 @@ namespace AGS.Editor
             return _native.FindTTFSizeForHeight(fileName, size);
         }
 
+        public void OnFontAdded(Game game, int fontSlot)
+        {
+            _native.OnGameFontAdded(game, fontSlot);
+        }
+
+        public void OnFontDeleted(Game game, int fontSlot)
+        {
+            _native.OnGameFontDeleted(game, fontSlot);
+        }
+
         public void OnFontUpdated(Game game, int fontSlot, bool forceUpdate)
         {
             _native.OnGameFontUpdated(game, fontSlot, forceUpdate);

@@ -47,6 +47,11 @@ Bitmap::Bitmap(BITMAP *al_bmp, bool shared_data)
     WrapAllegroBitmap(al_bmp, shared_data);
 }
 
+Bitmap::Bitmap(const Bitmap &bmp)
+{
+    CreateCopy(&bmp);
+}
+
 Bitmap::Bitmap(Bitmap &&bmp)
 {
     _pixelData = std::move(bmp._pixelData);
@@ -59,6 +64,12 @@ Bitmap::Bitmap(Bitmap &&bmp)
 Bitmap::~Bitmap()
 {
     Destroy();
+}
+
+Bitmap &Bitmap::operator =(const Bitmap &bmp)
+{
+    CreateCopy(&bmp);
+    return *this;
 }
 
 //=============================================================================
@@ -151,6 +162,13 @@ bool Bitmap::CreateCopy(const Bitmap *src, int color_depth)
 {
     if (src == this || src->_alBitmap == _alBitmap)
         return false; // cannot create a copy of yourself
+
+    // Handle uninitialized bitmap case
+    if (!src->_alBitmap)
+    {
+        Destroy();
+        return true;
+    }
 
     if (Create(src->_alBitmap->w, src->_alBitmap->h, color_depth ? color_depth : bitmap_color_depth(src->_alBitmap)))
     {

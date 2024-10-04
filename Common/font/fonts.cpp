@@ -54,7 +54,9 @@ struct Font
     Bitmap OutlineStencil, OutlineStencilSub;
 
     Font() = default;
+    Font(const Font &font) = default;
     Font(Font &&font) = default;
+    Font &operator =(const Font &font) = default;
     Font &operator =(Font &&font) = default;
 };
 
@@ -547,6 +549,7 @@ bool load_font_size(size_t font_number, const FontInfo &font_info)
         fonts.resize(font_number + 1);
     else
         freefont(font_number);
+
     FontRenderParams params;
     params.SizeMultiplier = font_info.SizeMultiplier;
     params.LoadMode = (font_info.Flags & FFLG_LOADMODEMASK);
@@ -651,21 +654,25 @@ void freefont(size_t font_number)
     if (font_number >= fonts.size())
         return;
 
-    fonts[font_number].TextStencilSub.Destroy();
-    fonts[font_number].OutlineStencilSub.Destroy();
-    fonts[font_number].TextStencil.Destroy();
-    fonts[font_number].OutlineStencil.Destroy();
-    if (fonts[font_number].Renderer != nullptr)
+    if (fonts[font_number].Renderer)
         fonts[font_number].Renderer->FreeMemory(font_number);
+    fonts[font_number] = Font();
+}
 
-    fonts[font_number].Renderer = nullptr;
+void movefont(size_t old_number, size_t new_number)
+{
+    if (old_number == new_number)
+        return; // same number
+
+    fonts[new_number] = std::move(fonts[old_number]);
+    fonts[old_number] = Font();
 }
 
 void free_all_fonts()
 {
     for (size_t i = 0; i < fonts.size(); ++i)
     {
-        if (fonts[i].Renderer != nullptr)
+        if (fonts[i].Renderer)
             fonts[i].Renderer->FreeMemory(i);
     }
     fonts.clear();

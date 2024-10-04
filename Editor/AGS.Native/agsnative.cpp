@@ -2057,8 +2057,33 @@ void GameUpdated(Game ^game, bool forceUpdate) {
   }
 }
 
+void GameFontAdded(Game ^game, int fontNumber)
+{
+    thisgame.numfonts = game->Fonts->Count;
+    thisgame.fonts.resize(thisgame.numfonts);
+    for (int i = fontNumber; i < thisgame.numfonts; i++) 
+    {
+        GameFontUpdated(game, i, true);
+    }
+}
+
+void GameFontDeleted(Game ^game, int fontNumber)
+{
+    thisgame.numfonts = game->Fonts->Count;
+    thisgame.fonts.resize(thisgame.numfonts);
+    freefont(fontNumber);
+    for (int i = fontNumber; i < thisgame.numfonts; i++) 
+    {
+        GameFontUpdated(game, i, true);
+    }
+}
+
 void GameFontUpdated(Game ^game, int fontNumber, bool forceUpdate)
 {
+    assert(fontNumber >= 0 && fontNumber < thisgame.numfonts);
+    if (fontNumber < 0 || fontNumber >= thisgame.numfonts)
+        return;
+
     FontInfo &font_info = thisgame.fonts[fontNumber];
     AGS::Types::Font ^font = game->Fonts[fontNumber];
 

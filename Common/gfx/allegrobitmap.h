@@ -39,10 +39,18 @@ public:
     Bitmap() = default;
     Bitmap(int width, int height, int color_depth = 0);
     Bitmap(PixelBuffer &&pxbuf);
+    // Constructs a sub-bitmap, referencing parent
     Bitmap(Bitmap *src, const Rect &rc);
+    // Wraps Allegro BITMAP object, optionally owning it
     Bitmap(BITMAP *al_bmp, bool shared_data);
+    // Copy-constructor: constructs a full Bitmap copy
+    Bitmap(const Bitmap &bmp);
+    // Move-constructor: moves pixel data from another bitmap
     Bitmap(Bitmap &&bmp);
     ~Bitmap();
+
+    Bitmap &operator =(const Bitmap &bmp);
+    Bitmap &operator =(Bitmap &&bmp) = default;
 
     // Allocate new bitmap.
     // NOTE: color_depth is in BITS per pixel (i.e. 8, 16, 24, 32...).

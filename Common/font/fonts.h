@@ -110,6 +110,8 @@ void alloc_font_outline_buffers(size_t font_number,
 void adjust_fonts_for_render_mode(bool aa_mode);
 // Free particular font's data
 void freefont(size_t font_number);
+// Moves font data from one index to another; previous index becomes empty
+void movefont(size_t old_number, size_t new_number);
 // Free all fonts data
 void free_all_fonts();
 

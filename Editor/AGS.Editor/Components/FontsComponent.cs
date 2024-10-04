@@ -49,7 +49,7 @@ namespace AGS.Editor.Components
                 newItem.TTFMetricsFixup = _agsEditor.CurrentGame.Settings.TTFMetricsFixup; // use defaults
                 items.Add(newItem);
                 Utilities.CopyFont(0, newItem.ID);
-                Factory.NativeProxy.GameSettingsChanged(_agsEditor.CurrentGame);
+                Factory.NativeProxy.OnFontAdded(_agsEditor.CurrentGame, newItem.ID);
                 _guiController.ProjectTree.StartFromNode(this, TOP_LEVEL_COMMAND_ID);
                 _guiController.ProjectTree.AddTreeLeaf(this, GetNodeID(newItem), newItem.ID.ToString() + ": " + newItem.Name, "FontIcon");
                 _guiController.ProjectTree.SelectNode(this, GetNodeID(newItem));
@@ -86,6 +86,7 @@ namespace AGS.Editor.Components
                     }
                     _agsEditor.CurrentGame.Fonts.Remove(_itemRightClicked);
                     _agsEditor.CurrentGame.FilesAddedOrRemoved = true;
+                    Factory.NativeProxy.OnFontDeleted(_agsEditor.CurrentGame, removingID);
                     Factory.NativeProxy.GameSettingsChanged(_agsEditor.CurrentGame);
                     RePopulateTreeView();
                     FontTypeConverter.SetFontList(_agsEditor.CurrentGame.Fonts);

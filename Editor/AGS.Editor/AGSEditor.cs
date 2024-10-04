@@ -119,15 +119,17 @@ namespace AGS.Editor
          * 4.00.00.08     - Custom properties supported by AudioClips, Dialogs, GUI,
          *                  Regions, Walkable Areas
          * 4.00.00.09     - True 32-bit color properties
+         * 4.00.00.10     - Font and FontFile separation
          *
         */
-        public const int    LATEST_XML_VERSION_INDEX = 4000009;
+        public const int    LATEST_XML_VERSION_INDEX = 4000010;
         /// <summary>
         /// XML version index on the release of AGS 4.0.0, this constant be used to determine
         /// if upgrade of Rooms/Sprites/etc. to new format have been performed.
         /// </summary>
         public const int    AGS_4_0_0_XML_VERSION_INDEX_OPEN_ROOMS = 3999901;
         public const int    AGS_4_0_0_XML_VERSION_INDEX_PO_TRANSLATIONS = 3999907;
+        public const int    AGS_4_0_0_XML_VERSION_INDEX_FONT_SOURCES = 4000010;
         /*
          * LATEST_USER_DATA_VERSION is the last version of the user data file that used a
          * 4-point-4-number string to identify the version of AGS that saved the file.

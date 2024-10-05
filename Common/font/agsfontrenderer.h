@@ -104,7 +104,7 @@ public:
     // Tells if this is a bitmap font (otherwise it's a vector font)
     virtual bool IsBitmapFont() = 0;
     // Load font, applying extended font rendering parameters
-    virtual bool LoadFromDiskEx(int fontNumber, int fontSize, AGS::Common::String *src_filename,
+    virtual bool LoadFromDiskEx(int fontNumber, int fontSize, const AGS::Common::String &filename,
         const FontRenderParams *params, FontMetrics *metrics) = 0;
     // Fill FontMetrics struct; note that it may be left cleared if this is not supported
     virtual void GetFontMetrics(int fontNumber, FontMetrics *metrics) = 0;

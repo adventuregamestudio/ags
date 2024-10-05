@@ -810,13 +810,6 @@ int get_adjusted_spriteheight(int spr) {
   return retval;
 }
 
-void new_font () {
-  FontInfo fi;
-  load_font_size(thisgame.numfonts, fi);
-  thisgame.fonts.push_back(FontInfo());
-  thisgame.numfonts++;
-}
-
 void setup_color_conversions()
 {
     // RGB shifts for Allegro's pixel data
@@ -859,7 +852,6 @@ bool initialize_native()
       return false;
 
 	init_font_renderer(AssetMgr.get());
-    new_font();
     NDrawState.reset(new NativeDrawState());
 	return true;
 }
@@ -1615,10 +1607,12 @@ void GameFontUpdated(Game ^game, int fontNumber, bool forceUpdate)
     FontInfo &font_info = thisgame.fonts[fontNumber];
     AGS::Types::Font ^font = game->Fonts[fontNumber];
 
+    AGSString old_filename = font_info.Filename;
     int old_size = font_info.Size;
     int old_scaling = font_info.SizeMultiplier;
     int old_flags = font_info.Flags;
 
+    font_info.Filename = TextHelper::ConvertUTF8(font->SourceFilename);
     font_info.Size = font->PointSize;
     font_info.SizeMultiplier = font->SizeMultiplier;
     font_info.YOffset = font->VerticalOffset;
@@ -1632,10 +1626,13 @@ void GameFontUpdated(Game ^game, int fontNumber, bool forceUpdate)
     else
         font_info.Flags |= FFLG_ASCENDERFIXUP;
 
-    if (forceUpdate ||
+    forceUpdate |=
+        font_info.Filename != old_filename ||
         font_info.Size != old_size ||
         font_info.SizeMultiplier != old_scaling ||
-        font_info.Flags != old_flags)
+        font_info.Flags != old_flags;
+
+    if (forceUpdate)
     {
         reload_font(fontNumber);
     }

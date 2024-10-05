@@ -17,10 +17,12 @@ namespace AGS.Editor.Components
         private const string FONTS_FOLDER_NODE_ID = "FontsFolderNode";
         private const string FONT_FILE_ITEM_PREFIX = "FntFile:";
         private const string FONT_ITEM_PREFIX = "Fnt:";
+        private const string FONT_ITEM_REF_PREFIX = "Fntref:";
 
         private const string COMMAND_NEW_FONTFILE = "NewFontFile";
         private const string COMMAND_DELETE_FONTFILE = "DeleteFontFile";
         private const string COMMAND_NEW_FONT = "NewFont";
+        private const string COMMAND_NEW_FONT_FOR_FILE = "NewFontForFile";
         private const string COMMAND_DELETE_FONT = "DeleteFont";
         private const string ICON_KEY = "FontsIcon";
 
@@ -58,6 +60,10 @@ namespace AGS.Editor.Components
             {
                 AddNewFont(_agsEditor.CurrentGame);
             }
+            else if (controlID == COMMAND_NEW_FONT_FOR_FILE)
+            {
+                AddNewFont(_agsEditor.CurrentGame, _itemRightClicked as AGS.Types.FontFile, true);
+            }
             else if (controlID == COMMAND_DELETE_FONTFILE)
             {
                 if (MessageBox.Show("Are you sure you want to remove this font file from the project? Doing so will also remove a SourceFile from all the Fonts that were using it.", "Confirm delete", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
@@ -83,6 +89,11 @@ namespace AGS.Editor.Components
                 else if (controlID.StartsWith(FONT_ITEM_PREFIX))
                 {
                     AGS.Types.Font chosenFont = _agsEditor.CurrentGame.Fonts[Convert.ToInt32(controlID.Substring(FONT_ITEM_PREFIX.Length))];
+                    ShowOrAddPane(chosenFont);
+                }
+                else if (controlID.StartsWith(FONT_ITEM_REF_PREFIX))
+                {
+                    AGS.Types.Font chosenFont = _agsEditor.CurrentGame.Fonts[Convert.ToInt32(controlID.Substring(FONT_ITEM_REF_PREFIX.Length))];
                     ShowOrAddPane(chosenFont);
                 }
             }
@@ -143,7 +154,7 @@ namespace AGS.Editor.Components
 
             if (propertyName == "Name")
             {
-                RePopulateTreeView();
+                RePopulateTreeView(GetNodeID(itemBeingEdited));
 
                 foreach (ContentDocument doc in _documents.Values)
                 {
@@ -156,6 +167,8 @@ namespace AGS.Editor.Components
 
             if (propertyName == "Source FontFile")
             {
+                RePopulateTreeView(GetNodeID(itemBeingEdited));
+
                 FontFile ff = FindFontFileByName(itemBeingEdited.SourceFilename);
                 if (ff != null)
                 {
@@ -191,11 +204,18 @@ namespace AGS.Editor.Components
             {
                 string fontFileName = controlID.Substring(FONT_FILE_ITEM_PREFIX.Length);
                 _itemRightClicked = FindFontFileByName(fontFileName);
+                menu.Add(new MenuCommand(COMMAND_NEW_FONT_FOR_FILE, "New Font Style", null));
                 menu.Add(new MenuCommand(COMMAND_DELETE_FONTFILE, "Delete this font file", null));
             }
             else if (controlID.StartsWith(FONT_ITEM_PREFIX))
             {
                 int fontID = Convert.ToInt32(controlID.Substring(FONT_ITEM_PREFIX.Length));
+                _itemRightClicked = _agsEditor.CurrentGame.Fonts[fontID];
+                menu.Add(new MenuCommand(COMMAND_DELETE_FONT, "Delete this font", null));
+            }
+            else if (controlID.StartsWith(FONT_ITEM_REF_PREFIX))
+            {
+                int fontID = Convert.ToInt32(controlID.Substring(FONT_ITEM_REF_PREFIX.Length));
                 _itemRightClicked = _agsEditor.CurrentGame.Fonts[fontID];
                 menu.Add(new MenuCommand(COMMAND_DELETE_FONT, "Delete this font", null));
             }
@@ -221,13 +241,39 @@ namespace AGS.Editor.Components
             return FONT_FILE_ITEM_PREFIX + item.FileName;
         }
 
-        private string GetNodeID(AGS.Types.Font item)
+        private string GetNodeID(AGS.Types.Font item, bool isRefNode = false)
         {
-            return FONT_ITEM_PREFIX + item.ID;
+            return isRefNode ?
+                FONT_ITEM_REF_PREFIX + item.ID :
+                FONT_ITEM_PREFIX + item.ID;
         }
 
-        private void RePopulateTreeView()
+        private void AddFontNode(AGS.Types.Font item)
         {
+            // Add font node in the dedicated folder
+            _guiController.ProjectTree.StartFromNode(this, FONTS_FOLDER_NODE_ID);
+            _guiController.ProjectTree.AddTreeLeaf(this, GetNodeID(item), item.ID.ToString() + ": " + item.Name, "FontIcon");
+
+            // Add font node as a sub-node to the FontFile
+            // NOTE: this meant as an UI experiment, review later
+            if (item.SourceFilename != null)
+            {
+                FontFile ff = FindFontFileByName(item.SourceFilename);
+                if (ff != null)
+                {
+                    _guiController.ProjectTree.StartFromNode(this, GetNodeID(ff));
+                    _guiController.ProjectTree.AddTreeLeaf(this, GetNodeID(item, true), item.ID.ToString() + ": " + item.Name, "FontIcon");
+                }
+            }
+        }
+
+        private void RePopulateTreeView(string selectedNodeID = null)
+        {
+            bool restoreNodeStates = !string.IsNullOrEmpty(selectedNodeID);
+            List<string> savedExpansionState = null;
+            if (restoreNodeStates)
+                savedExpansionState = _guiController.ProjectTree.GetExpansionState();
+
             _guiController.ProjectTree.BeginUpdate();
             _guiController.ProjectTree.RemoveAllChildNodes(this, TOP_LEVEL_COMMAND_ID);
             _guiController.ProjectTree.StartFromNode(this, TOP_LEVEL_COMMAND_ID);
@@ -242,20 +288,15 @@ namespace AGS.Editor.Components
             _guiController.ProjectTree.AddTreeBranch(this, FONTS_FOLDER_NODE_ID, "Fonts", "GenericFolderIcon");
             foreach (AGS.Types.Font item in _agsEditor.CurrentGame.Fonts)
             {
-                _guiController.ProjectTree.AddTreeLeaf(this, GetNodeID(item), item.ID.ToString() + ": " + item.Name, "FontIcon");
+                AddFontNode(item);
             }
 
-            if (_documents.ContainsValue(_guiController.ActivePane))
-            {
-                FontEditor editor = (FontEditor)_guiController.ActivePane.Control;
-                _guiController.ProjectTree.SelectNode(this, GetNodeID(editor.ItemToEdit));
-            }
-            else if (_agsEditor.CurrentGame.Fonts.Count > 0)
-            {
-                _guiController.ProjectTree.SelectNode(this, "Fnt0");
-            }
-
+            if (restoreNodeStates)
+                _guiController.ProjectTree.SetExpansionState(savedExpansionState);
             _guiController.ProjectTree.EndUpdate();
+
+            if (!string.IsNullOrEmpty(selectedNodeID))
+                _guiController.ProjectTree.SelectNode(this, selectedNodeID);
         }
 
         private void AddNewFontFile(Game game)
@@ -297,21 +338,31 @@ namespace AGS.Editor.Components
             FontFileTypeConverter.SetFontFileList(game.FontFiles);
         }
 
-        private void AddNewFont(Game game)
+        private void AddNewFont(Game game, FontFile sourceFontFile = null, bool selectRefNode = false)
         {
             IList<AGS.Types.Font> items = game.Fonts;
             AGS.Types.Font newItem = new AGS.Types.Font();
             newItem.ID = items.Count;
             newItem.Name = "Font " + newItem.ID;
             newItem.OutlineStyle = FontOutlineStyle.None;
-            newItem.PointSize = items[0].PointSize;
-            newItem.SourceFilename = Utilities.GetRelativeToProjectPath(items[0].SourceFilename);
+            if (items.Count > 0)
+            {
+                newItem.SourceFilename = Utilities.GetRelativeToProjectPath(items[0].SourceFilename);
+                newItem.PointSize = items[0].PointSize;
+            }
+            if (sourceFontFile != null)
+            {
+                newItem.SourceFilename = sourceFontFile.FileName;
+            }
+            if (newItem.PointSize == 0)
+            {
+                newItem.PointSize = DEFAULT_IMPORTED_FONT_SIZE;
+            }
             newItem.TTFMetricsFixup = game.Settings.TTFMetricsFixup; // use defaults
             items.Add(newItem);
             Factory.NativeProxy.OnFontAdded(game, newItem.ID);
-            _guiController.ProjectTree.StartFromNode(this, FONTS_FOLDER_NODE_ID);
-            _guiController.ProjectTree.AddTreeLeaf(this, GetNodeID(newItem), newItem.ID.ToString() + ": " + newItem.Name, "FontIcon");
-            _guiController.ProjectTree.SelectNode(this, GetNodeID(newItem));
+            AddFontNode(newItem);
+            _guiController.ProjectTree.SelectNode(this, GetNodeID(newItem, selectRefNode));
             ShowOrAddPane(newItem);
             FontTypeConverter.SetFontList(game.Fonts);
         }
@@ -330,7 +381,7 @@ namespace AGS.Editor.Components
             _agsEditor.DeleteFileOnDisk(removedFile.FileName);
             game.FontFiles.Remove(removedFile);
             game.FilesAddedOrRemoved = true;
-            RePopulateTreeView();
+            RePopulateTreeView(FONT_FILES_FOLDER_NODE_ID);
             FontFileTypeConverter.SetFontFileList(game.FontFiles);
         }
 
@@ -351,7 +402,7 @@ namespace AGS.Editor.Components
             }
             game.Fonts.Remove(removedFont);
             Factory.NativeProxy.OnFontDeleted(game, removingID);
-            RePopulateTreeView();
+            RePopulateTreeView(FONTS_FOLDER_NODE_ID);
             FontTypeConverter.SetFontList(game.Fonts);
         }
 

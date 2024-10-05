@@ -509,14 +509,13 @@ bool load_font_size(size_t font_number, const FontInfo &font_info)
     FontMetrics metrics;
 
     Font &font = fonts[font_number];
-    String src_filename;
-    if (ttfRenderer->LoadFromDiskEx(font_number, font_info.Size, &src_filename, &params, &metrics))
+    if (ttfRenderer->LoadFromDiskEx(font_number, font_info.Size, font_info.Filename, &params, &metrics))
     {
         font.Renderer    = ttfRenderer.get();
         font.Renderer2   = ttfRenderer.get();
         font.RendererInt = ttfRenderer.get();
     }
-    else if (wfnRenderer->LoadFromDiskEx(font_number, font_info.Size, &src_filename, &params, &metrics))
+    else if (wfnRenderer->LoadFromDiskEx(font_number, font_info.Size, font_info.Filename, &params, &metrics))
     {
         font.Renderer    = wfnRenderer.get();
         font.Renderer2   = wfnRenderer.get();
@@ -531,7 +530,7 @@ bool load_font_size(size_t font_number, const FontInfo &font_info)
     font_post_init(font_number);
 
     Debug::Printf("Loaded font %d: %s, req size: %d; nominal h: %d, real h: %d, extent: %d,%d",
-        font_number, src_filename.GetCStr(), font_info.Size, font.Metrics.NominalHeight, font.Metrics.RealHeight,
+        font_number, font_info.Filename.GetCStr(), font_info.Size, font.Metrics.NominalHeight, font.Metrics.RealHeight,
     font.Metrics.VExtent.first, font.Metrics.VExtent.second);
     return true;
 }

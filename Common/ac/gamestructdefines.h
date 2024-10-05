@@ -18,8 +18,9 @@
 #ifndef __AGS_CN_AC__GAMESTRUCTDEFINES_H
 #define __AGS_CN_AC__GAMESTRUCTDEFINES_H
 
-#include "util/geometry.h"
 #include "core/types.h"
+#include "util/geometry.h"
+#include "util/string.h"
 
 // CLNUP check what's actually needed
 // Palette sections
@@ -248,6 +249,8 @@ struct FontInfo
         kRounded = 1,
     };
 
+    // Font's source filename
+    AGS::Common::String Filename;
     // General font's loading and rendering flags
     uint32_t      Flags;
     // Nominal font import size (in pixels)

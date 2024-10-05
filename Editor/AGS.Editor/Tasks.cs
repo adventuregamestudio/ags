@@ -50,8 +50,8 @@ namespace AGS.Editor
             Utilities.AddAllMatchingFiles(filesToInclude, AudioClip.AUDIO_CACHE_DIRECTORY + @"\*.*");
             Utilities.AddAllMatchingFiles(filesToInclude, @"Speech\*.*");
             Utilities.AddAllMatchingFiles(filesToInclude, "flic*.fl?");
-            Utilities.AddAllMatchingFiles(filesToInclude, "agsfnt*.ttf");
-            Utilities.AddAllMatchingFiles(filesToInclude, "agsfnt*.wfn");
+            Utilities.AddAllMatchingFiles(filesToInclude, "*.ttf");
+            Utilities.AddAllMatchingFiles(filesToInclude, "*.wfn");
             Utilities.AddAllMatchingFiles(filesToInclude, "*.asc");
             Utilities.AddAllMatchingFiles(filesToInclude, "*.ash");
             Utilities.AddAllMatchingFiles(filesToInclude, "*.txt");

@@ -45,8 +45,10 @@ namespace AGS.Editor
             }
             Utilities.AddAllMatchingFiles(files, "flic*.fl?");
             Utilities.AddAllMatchingFiles(files, AGSEditor.COMPILED_DTA_FILE_NAME);
-            Utilities.AddAllMatchingFiles(files, "agsfnt*.ttf");
-            Utilities.AddAllMatchingFiles(files, "agsfnt*.wfn");
+            foreach (FontFile ff in Factory.AGSEditor.CurrentGame.FontFiles)
+            {
+                files.Add(ff.FileName);
+            }
             Utilities.AddAllMatchingFiles(files, AGSEditor.SPRITE_FILE_NAME);
             foreach (UnloadedRoom room in Factory.AGSEditor.CurrentGame.RootRoomFolder.AllItemsFlat)
             {

@@ -1282,34 +1282,6 @@ namespace AGS.Editor
             }
         }
 
-        private string[] ConstructFileListForEXE()
-        {
-            List<string> files = new List<string>();
-            Utilities.AddAllMatchingFiles(files, "preload.pcx");
-            Utilities.AddAllMatchingFiles(files, SPRITE_INDEX_FILE_NAME);
-            foreach (AudioClip clip in _game.RootAudioClipFolder.GetAllAudioClipsFromAllSubFolders())
-            {
-                if (clip.BundlingType == AudioFileBundlingType.InGameEXE)
-                {
-                    files.Add(clip.CacheFileName);
-                }
-            }
-            Utilities.AddAllMatchingFiles(files, "flic*.fl?");
-            Utilities.AddAllMatchingFiles(files, COMPILED_DTA_FILE_NAME);
-            Utilities.AddAllMatchingFiles(files, "agsfnt*.ttf");
-            Utilities.AddAllMatchingFiles(files, "agsfnt*.wfn");
-            Utilities.AddAllMatchingFiles(files, SPRITE_FILE_NAME);
-            foreach (UnloadedRoom room in _game.RootRoomFolder.AllItemsFlat)
-            {
-                if (File.Exists(room.FileName))
-                {
-                    files.Add(room.FileName);
-                }
-            }
-            Utilities.AddAllMatchingFiles(files, "*.ogv");
-            return files.ToArray();
-        }
-
 		public bool AboutToDeleteSprite(int spriteNumber)
 		{
 			PreDeleteSpriteEventArgs evArgs = new PreDeleteSpriteEventArgs(spriteNumber);

@@ -21,8 +21,22 @@ Editor:
    component has its own separate file (room data, backgrounds, masks and scripts).
  - Support room backgrounds and masks as PNGs.
  - Translation sources are now saved in PO format.
- - Added "Watch Variables" panel which lets to watch values of the selected script variables
+ - In General Settings added "Use extended compiler" option that lets to choose a new script
+   compiler for your game (see list of changes in related section below).
+ - Added Custom Properties for: Audio Clips, Dialogs, GUI, GUI Controls, Regions, Walkable Areas.
+ - Added Enabled and Visible properties to Characters, Enabled property to Room Objects.
+ - Added TurnWhenFacing property to Characters.
+ - Added BlendMode property to Characters, GUI and Room Objects.
+ - Added FaceDirectionRatio property to General Settings, Room and Walkable Areas.
+ - Added readonly Length property to AudioClips, for the reference.
+ - Textual GUI controls can now select "Null Font" as their font: this will prevent any text to be
+   drawn even if one is assigned, and make it have zero size (when it matters).
+ - Implemented "Watch Variables" panel which lets to watch values of the selected script variables
    while running the game. This feature is working only if game is built in Debug mode.
+ - Added "Open Recent" submenu in the File menu.
+ - Sync script editor's commands in Edit menu with the context menu.
+ - Added "Toggle Line Comment" command to Edit menu for scripts.
+ - Added "Word Wrap" command to Edit menu for scripts.
  - General panel look enhancements.
  - More panes in the Editor are DPI-aware (rescale well with the system font scaling).
  - Support built-in Base Color Themes that have the custom themes applied over them.
@@ -38,8 +52,6 @@ Editor:
  - Added "Controls transparency" slider to GUI edit pane.
  - Copy, paste and delete commands now apply to all the selected GUI controls in GUI editor.
  - Support editing group properties for selected GUI controls.
- - Textual GUI controls can now select "Null Font" as their font: this will prevent any text to be
-   drawn even if one is assigned, and make it have zero size (when it matters).
  - Support to import and keep sprites as explicitly 8-bit images without converting to the game's
    default color depth. This lets to have chosen sprites used as 8-bit masks in a 16/32-bit game.
  - Support importing 1-bit (monochrome) and 4-bit images as sprites, room backgrounds and masks
@@ -47,7 +59,6 @@ Editor:
  - Do not alter or clamp palette for 8-bit sprites imported in a 16/32-bit game.
  - When importing room backgrounds of a different size Editor will now let user decide whether
    to reset, keep or rescale room masks.
- - Ensure that Editor exports room backgrounds in their actual color depth.
  - Removed obsolete "Copy walkable area mask to regions" command from the Room editor.
  - Improved scrolling of drop-down lists in the Room's navigation bar: made scroll buttons larger,
    and support mouse wheel.
@@ -55,18 +66,13 @@ Editor:
    from the editor.
  - Added "/maketemplate" command-line option that tells Editor to run, make template out of the
    said game, and quit.
- - Added "Open Recent" submenu in the File menu.
- - Sync script editor's commands in Edit menu with the context menu.
- - Added "Toggle Line Comment" command to Edit menu for scripts.
- - Added "Word Wrap" command to Edit menu for scripts.
- - In General Settings added "Use extended compiler" option that lets to choose a new script
-   compiler for your game (see list of changes in related section below).
- - Added Custom Properties for: Audio Clips, Dialogs, GUI, GUI Controls, Regions, Walkable Areas.
- - Added Enabled and Visible properties to Characters, Enabled property to Room Objects.
- - Added TurnWhenFacing property to Characters.
- - Added BlendMode property to Characters, GUI and Room Objects.
- - Added FaceDirectionRatio property to General Settings, Room and Walkable Areas.
- - Added readonly Length property to AudioClips, for the reference.
+ - Fixed Editor refusing to open a project if one or more of the sections are missing in the file.
+ - Fixed importing indexed PNG as a sprite would mistakenly treat the source image as 32-bit.
+ - Fixed importing 8-bit BMP sprites with no "Remap palette" and "Leave As Is" as a transparency
+   option would still remap palette index 0 to the first found palette entry with Alpha 0,
+   even if that's a filler entry not used by the image.
+ - Fixed exporting room backgrounds was always writing a 32-bit image rather than using actual
+   background's color depth.
  - Fixed faulty double-click on project items in case user dragged the cursor away.
  - Fixed an unhandled exception occuring when rebuilding rooms if any script's header is missing.
  - Fixed double warning message when trying to close the Editor while a game test is running.
@@ -233,6 +239,12 @@ WinSetup:
 
 
 ===================================================================================================
+
+VERSION 3.6.1 - Patch 7, September 2024
+
+Engine:
+ - Hotfix mouse cursor not being drawn sometimes after changing rooms (regression in 3.6.1 P6).
+
 
 VERSION 3.6.1 - Patch 6, September 2024
 

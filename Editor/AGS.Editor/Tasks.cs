@@ -105,9 +105,6 @@ namespace AGS.Editor
 
             Directory.SetCurrentDirectory(gameDirectory);
             Factory.NativeProxy.NewWorkingDirSet(gameDirectory);
-            AddFontIfNotAlreadyThere(0);
-            AddFontIfNotAlreadyThere(1);
-            AddFontIfNotAlreadyThere(2);
             Game game = null;
 
             // Load or import the game itself
@@ -126,6 +123,7 @@ namespace AGS.Editor
                 return false;
 
             game.DirectoryPath = gameDirectory;
+            SetDefaultGameContentIfMissing(game);
             SetDefaultValuesForNewFeatures(game);
             Utilities.EnsureStandardSubFoldersExist();
 
@@ -254,6 +252,26 @@ namespace AGS.Editor
         public static void ExportSprites(SpriteTools.ExportSpritesOptions options)
         {
             ExportSprites(Factory.AGSEditor.CurrentGame.RootSpriteFolder, options);
+        }
+
+        /// <summary>
+        /// Ensures that any obligatory content is created,
+        /// if it's missing after the game was loaded from project file.
+        /// </summary>
+        private void SetDefaultGameContentIfMissing(Game game)
+        {
+            // Current version of the Editor requires at least 3 fonts present,
+            // copy them from the resources if these are not present in game data
+            AddFontIfNotAlreadyThere(0);
+            AddFontIfNotAlreadyThere(1);
+            AddFontIfNotAlreadyThere(2);
+            while (game.Fonts.Count < 3)
+            {
+                Font font = new Font();
+                font.ID = game.Fonts.Count;
+                font.Name = string.Format($"Font{game.Fonts.Count}");
+                game.Fonts.Add(font);
+            }
         }
 
         private void SetDefaultValuesForNewFeatures(Game game)

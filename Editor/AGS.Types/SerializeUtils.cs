@@ -6,11 +6,34 @@ using System.Text;
 using System.Xml;
 using System.Globalization;
 using System.Linq;
+using System.Collections;
 
 namespace AGS.Types
 {
     public class SerializeUtils
     {
+        /// <summary>
+        /// FakeXmlNodeList implements an empty XmlNodeList that may be returned
+        /// by SerializeUtils in place of a missing parent node's children.
+        /// </summary>
+        internal class FakeXmlNodeList : XmlNodeList
+        {
+            public override int Count
+            {
+                get { return 0; }
+            }
+
+            public override IEnumerator GetEnumerator()
+            {
+                return new FakeEnumerator();
+            }
+
+            public override XmlNode Item(int index)
+            {
+                return null;
+            }
+        }
+
         /// <summary>
         /// Wrapper function for SelectSingleNode that throws an exception
         /// mentioning the node name if it is not found. Returns the node text
@@ -56,6 +79,20 @@ namespace AGS.Types
         }
 
         /// <summary>
+        /// Wrapper function for SelectSingleNode that returns the node's
+        /// children if successful, or empty fake node list if the node was not found.
+        /// </summary>
+        public static XmlNodeList GetChildNodesOrEmpty(XmlNode parent, string elementName)
+        {
+            XmlNode foundNode = parent.SelectSingleNode(elementName);
+            if (foundNode == null)
+            {
+                return new FakeXmlNodeList();
+            }
+            return foundNode.ChildNodes;
+        }
+
+        /// <summary>
         /// Wrapper function for SelectSingleNode that throws an exception
         /// mentioning the node name if it is not found. Returns the node's
         /// first child if successful.
@@ -66,6 +103,20 @@ namespace AGS.Types
             if (foundNode == null)
             {
                 throw new InvalidDataException("Missing XML element: " + elementName);
+            }
+            return foundNode.FirstChild;
+        }
+
+        /// <summary>
+        /// Wrapper function for SelectSingleNode that returns the node's
+        /// first child if successful, or null if the node was not found.
+        /// <returns></returns>
+        public static XmlNode GetFirstChildOrNull(XmlNode parent, string elementName)
+        {
+            XmlNode foundNode = parent.SelectSingleNode(elementName);
+            if (foundNode == null)
+            {
+                return null;
             }
             return foundNode.FirstChild;
         }

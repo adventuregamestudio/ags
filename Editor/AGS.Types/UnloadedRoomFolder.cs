@@ -46,9 +46,9 @@ namespace AGS.Types
         protected override void FromXmlBackwardsCompatability(System.Xml.XmlNode parentNodeForBackwardsCompatability)
         {
             Init(MAIN_UNLOADED_ROOM_FOLDER_NAME);
-            foreach (XmlNode unloadedRoomNode in SerializeUtils.GetChildNodes(parentNodeForBackwardsCompatability, "Rooms"))
+            foreach (XmlNode unloadedRoomNode in SerializeUtils.GetChildNodesOrEmpty(parentNodeForBackwardsCompatability, "Rooms"))
             {
-                _items.Add(new UnloadedRoom(unloadedRoomNode));                
+                _items.Add(new UnloadedRoom(unloadedRoomNode));
             }
         }
 

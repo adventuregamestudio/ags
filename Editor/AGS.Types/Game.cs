@@ -384,7 +384,9 @@ namespace AGS.Types
             set { _savedXmlEncodingCP = value; }
         }
 
-		/// <summary>		/// Full path to the directory where the game is located		/// </summary>
+		/// <summary>
+		/// Full path to the directory where the game is located
+		/// </summary>
 		public string DirectoryPath
 		{
 			get { return _directoryPath; }
@@ -818,38 +820,32 @@ namespace AGS.Types
                 _settings.InventoryHotspotMarker = marker;
             }
 
-            if (node.SelectSingleNode("GlobalMessages") != null)
+            foreach (XmlNode msgNode in SerializeUtils.GetChildNodesOrEmpty(node, "GlobalMessages"))
             {
-                foreach (XmlNode msgNode in SerializeUtils.GetChildNodes(node, "GlobalMessages"))
-                {
-                    _globalMessages[Convert.ToInt32(msgNode.Attributes["ID"].InnerText) - GLOBAL_MESSAGE_ID_START] = msgNode.InnerText;
-                }
+                _globalMessages[Convert.ToInt32(msgNode.Attributes["ID"].InnerText) - GLOBAL_MESSAGE_ID_START] = msgNode.InnerText;
             }
 
             _plugins.Clear();
-            if (node.SelectSingleNode("Plugins") != null)
+            foreach (XmlNode pluginNode in SerializeUtils.GetChildNodesOrEmpty(node, "Plugins"))
             {
-                foreach (XmlNode pluginNode in SerializeUtils.GetChildNodes(node, "Plugins"))
-                {
-                    _plugins.Add(new Plugin(pluginNode));
-                }
+                _plugins.Add(new Plugin(pluginNode));
             }
 
-            _rooms = new UnloadedRoomFolders(SerializeUtils.GetFirstChild(node, "Rooms"), node);
+            _rooms = new UnloadedRoomFolders(SerializeUtils.GetFirstChildOrNull(node, "Rooms"), node);
             
-            _guis = new GUIFolders(SerializeUtils.GetFirstChild(node, "GUIs"), node);            
+            _guis = new GUIFolders(SerializeUtils.GetFirstChildOrNull(node, "GUIs"), node);
 
-            _inventoryItems = new InventoryItemFolders(SerializeUtils.GetFirstChild(node, "InventoryItems"), node);
+            _inventoryItems = new InventoryItemFolders(SerializeUtils.GetFirstChildOrNull(node, "InventoryItems"), node);
 
             if (node.SelectSingleNode("TextParser") != null)
                 _textParser = new TextParser(node.SelectSingleNode("TextParser"));
             else
                 _textParser = new TextParser();
 
-            _characters = new CharacterFolders(SerializeUtils.GetFirstChild(node, "Characters"), node);            
+            _characters = new CharacterFolders(SerializeUtils.GetFirstChildOrNull(node, "Characters"), node);            
 
             _playerCharacter = null;
-            string playerCharText = SerializeUtils.GetElementString(node, "PlayerCharacter");
+            string playerCharText = SerializeUtils.GetElementStringOrDefault(node, "PlayerCharacter", "-1");
             if (playerCharText.Length > 0)
             {
                 int playerCharID = Convert.ToInt32(playerCharText);
@@ -863,44 +859,41 @@ namespace AGS.Types
                 }
             }
 
-            _dialogs = new DialogFolders(SerializeUtils.GetFirstChild(node, "Dialogs"), node);                                    
+            _dialogs = new DialogFolders(SerializeUtils.GetFirstChildOrNull(node, "Dialogs"), node);                                    
 
             _cursors.Clear();
-            foreach (XmlNode cursNode in SerializeUtils.GetChildNodes(node, "Cursors"))
+            foreach (XmlNode cursNode in SerializeUtils.GetChildNodesOrEmpty(node, "Cursors"))
             {
                 _cursors.Add(new MouseCursor(cursNode));
             }
 
             _fonts.Clear();
-            foreach (XmlNode fontNode in SerializeUtils.GetChildNodes(node, "Fonts"))
+            foreach (XmlNode fontNode in SerializeUtils.GetChildNodesOrEmpty(node, "Fonts"))
             {
                 _fonts.Add(new Font(fontNode));
             }
 
             _palette = ReadPaletteFromXML(node);
 
-            var spriteNode = SerializeUtils.GetFirstChild(node, "Sprites");
+            var spriteNode = SerializeUtils.GetFirstChildOrNull(node, "Sprites");
             if (spriteNode != null)
                 _sprites = new SpriteFolder(spriteNode);
             else
                 _sprites = new SpriteFolder("Main");
 
-            var viewNode = SerializeUtils.GetFirstChild(node, "Views");
+            var viewNode = SerializeUtils.GetFirstChildOrNull(node, "Views");
             if (viewNode != null)
                 _views = new ViewFolders(viewNode);
             else
                 _views = new ViewFolders("Main");
 
             _deletedViewIDs.Clear();
-			if (node.SelectSingleNode("DeletedViews") != null)
-			{
-				foreach (XmlNode transNode in SerializeUtils.GetChildNodes(node, "DeletedViews"))
-				{
-					_deletedViewIDs.Add(Convert.ToInt32(transNode.InnerText), null);
-				}
-			}
+            foreach (XmlNode transNode in SerializeUtils.GetChildNodesOrEmpty(node, "DeletedViews"))
+            {
+                _deletedViewIDs.Add(Convert.ToInt32(transNode.InnerText), null);
+            }
 
-            _scripts = new ScriptFolders(SerializeUtils.GetFirstChild(node, "Scripts"), node);
+            _scripts = new ScriptFolders(SerializeUtils.GetFirstChildOrNull(node, "Scripts"), node);
 
             if (node.SelectSingleNode("AudioClips") != null)
             {
@@ -915,21 +908,15 @@ namespace AGS.Types
             }
 
             _audioClipTypes.Clear();
-            if (node.SelectSingleNode("AudioClipTypes") != null)
+            foreach (XmlNode clipTypeNode in SerializeUtils.GetChildNodesOrEmpty(node, "AudioClipTypes"))
             {
-                foreach (XmlNode clipTypeNode in SerializeUtils.GetChildNodes(node, "AudioClipTypes"))
-                {
-                    _audioClipTypes.Add(new AudioClipType(clipTypeNode));
-                }
+                _audioClipTypes.Add(new AudioClipType(clipTypeNode));
             }
 
             _translations.Clear();
-            if (node.SelectSingleNode("Translations") != null)
+            foreach (XmlNode transNode in SerializeUtils.GetChildNodesOrEmpty(node, "Translations"))
             {
-                foreach (XmlNode transNode in SerializeUtils.GetChildNodes(node, "Translations"))
-                {
-                    _translations.Add(new Translation(transNode));
-                }
+                _translations.Add(new Translation(transNode));
             }
 
             if (node.SelectSingleNode("GlobalVariables") != null)
@@ -942,13 +929,10 @@ namespace AGS.Types
             }
 
 			_oldInteractionVariables.Clear();
-			if (node.SelectSingleNode("OldInteractionVariables") != null)
-			{
-				foreach (XmlNode varNode in SerializeUtils.GetChildNodes(node, "OldInteractionVariables"))
-				{
-					_oldInteractionVariables.Add(new OldInteractionVariable(SerializeUtils.GetAttributeString(varNode, "Name"), SerializeUtils.GetAttributeInt(varNode, "Value")));
-				}
-			}
+            foreach (XmlNode varNode in SerializeUtils.GetChildNodesOrEmpty(node, "OldInteractionVariables"))
+            {
+                _oldInteractionVariables.Add(new OldInteractionVariable(SerializeUtils.GetAttributeString(varNode, "Name"), SerializeUtils.GetAttributeInt(varNode, "Value")));
+            }
 
             if (_savedXmlVersionIndex == null)
             {

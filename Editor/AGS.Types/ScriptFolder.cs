@@ -127,7 +127,7 @@ namespace AGS.Types
             Init(MAIN_SCRIPT_FOLDER_NAME);
             Script header = null;
             Script script = null;
-            foreach (XmlNode node in SerializeUtils.GetChildNodes(parentNodeForBackwardsCompatability, "Scripts"))
+            foreach (XmlNode node in SerializeUtils.GetChildNodesOrEmpty(parentNodeForBackwardsCompatability, "Scripts"))
             {
                 if (header == null)
                 {

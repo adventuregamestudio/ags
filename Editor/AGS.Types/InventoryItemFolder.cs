@@ -46,7 +46,7 @@ namespace AGS.Types
         protected override void FromXmlBackwardsCompatability(System.Xml.XmlNode parentNodeForBackwardsCompatability)
         {
             Init(MAIN_INVENTORY_ITEM_FOLDER_NAME);
-            foreach (XmlNode inventoryItemNode in SerializeUtils.GetChildNodes(parentNodeForBackwardsCompatability, "InventoryItems"))
+            foreach (XmlNode inventoryItemNode in SerializeUtils.GetChildNodesOrEmpty(parentNodeForBackwardsCompatability, "InventoryItems"))
             {
                 _items.Add(new InventoryItem(inventoryItemNode));
             }

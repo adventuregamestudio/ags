@@ -41,7 +41,7 @@ namespace AGS.Types
         protected override void FromXmlBackwardsCompatability(XmlNode parentNodeForBackwardsCompatability)
         {
             Init(MAIN_CHARACTER_FOLDER_NAME);
-            foreach (XmlNode invNode in SerializeUtils.GetChildNodes(parentNodeForBackwardsCompatability, "Characters"))
+            foreach (XmlNode invNode in SerializeUtils.GetChildNodesOrEmpty(parentNodeForBackwardsCompatability, "Characters"))
             {
                 _items.Add(CreateItem(invNode));
             }           

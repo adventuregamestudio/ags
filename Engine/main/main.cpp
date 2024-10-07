@@ -155,6 +155,7 @@ void main_print_help() {
            "                                 --log-stdout=+mgs:debug\n"
            "                                 --log-file=all:warn\n"
            "  --log-file-path=PATH         Define custom path for the log file\n"
+           "  --mouse-hardware-cursor      Draw game cursor using hardware accelerated method\n"
           //--------------------------------------------------------------------------------|
            "  --no-message-box             Disable alerts as modal message boxes\n"
            "  --no-plugins                 Disable plugin loading\n"
@@ -317,6 +318,8 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
             cfg["override"]["multitasking"] = "1";
         else if (ags_stricmp(arg, "--no-plugins") == 0)
             cfg["override"]["noplugins"] = "1";
+        else if (ags_stricmp(arg, "--mouse-hardware-cursor") == 0)
+            cfg["mouse"]["hardware_cursor"] = "1";
         else if (ags_stricmp(arg, "--fps") == 0)
             cfg["misc"]["show_fps"] = "1";
         else if (ags_stricmp(arg, "--test") == 0) debug_flags |= DBG_DEBUGMODE;

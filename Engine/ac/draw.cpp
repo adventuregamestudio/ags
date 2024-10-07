@@ -1670,8 +1670,8 @@ static void apply_tint_or_light(ObjTexture &actsp, int light_level,
 // * if transformation is necessary - writes into dst and returns dst;
 // * if no transformation is necessary - simply returns src;
 // Used for software render mode only.
-static Bitmap *transform_sprite(Bitmap *src, bool src_has_alpha, std::unique_ptr<Bitmap> &dst,
-    const Size dst_sz, GraphicFlip flip = Common::kFlip_None)
+Common::Bitmap *transform_sprite(Common::Bitmap *src, bool src_has_alpha, std::unique_ptr<Common::Bitmap> &dst,
+                                 Size dst_sz, Common::GraphicFlip flip)
 {
     if ((src->GetSize() == dst_sz) && (flip == kFlip_None))
         return src; // No transform: return source image
@@ -1725,7 +1725,7 @@ static Bitmap *transform_sprite(Bitmap *src, bool src_has_alpha, std::unique_ptr
 static bool scale_and_flip_sprite(ObjTexture &actsp, int sppic, int width, int height, bool hmirror)
 {
     Bitmap *src = spriteset[sppic];
-    Bitmap *result = transform_sprite(src, (game.SpriteInfos[sppic].Flags & SPF_ALPHACHANNEL) != 0,
+    Bitmap const *result = transform_sprite(src, (game.SpriteInfos[sppic].Flags & SPF_ALPHACHANNEL) != 0,
         actsp.Bmp, Size(width, height), hmirror ? kFlip_Horizontal : kFlip_None);
     return result != src;
 }
@@ -2811,6 +2811,8 @@ void construct_game_screen_overlay(bool draw_mouse)
         }
     }
 
+    if(usetup.mouse_hardware_cursor) update_hardware_cursor_graphic();
+
     // Full screen tint fx, covers everything except for fade fx(?) and engine overlay
     if ((play.screen_tint >= 1) && (play.screen_is_faded_out == 0))
         gfxDriver->SetScreenTint(play.screen_tint & 0xff, (play.screen_tint >> 8) & 0xff, (play.screen_tint >> 16) & 0xff);
@@ -2954,7 +2956,7 @@ void render_graphics(IDriverDependantBitmap *extraBitmap, int extraX, int extraY
         gfxDriver->DrawSprite(extraX, extraY, extraBitmap);
         gfxDriver->EndSpriteBatch();
     }
-    construct_game_screen_overlay(true);
+    construct_game_screen_overlay(!usetup.mouse_hardware_cursor);
     render_to_screen();
 
     if (!play.screen_is_faded_out) {

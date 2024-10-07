@@ -117,6 +117,10 @@ void invalidate_rect(int x1, int y1, int x2, int y2, bool in_room);
 
 void mark_current_background_dirty();
 
+// Generates a transformed sprite, using src image and parameters
+Common::Bitmap *transform_sprite(Common::Bitmap *src, bool src_has_alpha, std::unique_ptr<Common::Bitmap> &dst,
+                                        Size dst_sz, Common::GraphicFlip flip = Common::kFlip_None);
+
 // Avoid freeing and reallocating the memory if possible
 Common::Bitmap *recycle_bitmap(Common::Bitmap *bimp, int coldep, int wid, int hit, bool make_transparent = false);
 void recycle_bitmap(std::unique_ptr<Common::Bitmap> &bimp, int coldep, int wid, int hit, bool make_transparent = false);

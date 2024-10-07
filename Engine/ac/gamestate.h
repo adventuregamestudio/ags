@@ -227,7 +227,7 @@ struct GamePlayState
     int   raw_color = 0;
     int   raw_modified[MAX_ROOM_BGFRAMES]{};
     Common::PBitmap raw_drawing_surface;
-    short filenumbers[MAXSAVEGAMES]{};
+    int16_t filenumbers[LEGACY_MAXSAVEGAMES]{};
     int   room_changes = 0;
     int   mouse_cursor_hidden = 0;
     int   silent_midi = 0;

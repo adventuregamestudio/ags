@@ -582,7 +582,7 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
     in->ReadArrayOfInt16( parsed_words, MAX_PARSED_WORDS);
     in->Read( bad_parsed_word, 100);
     raw_color = in->ReadInt32();
-    in->ReadArrayOfInt16( filenumbers, MAXSAVEGAMES);
+    in->ReadArrayOfInt16( filenumbers, LEGACY_MAXSAVEGAMES);
     mouse_cursor_hidden = in->ReadInt32();
     silent_midi = in->ReadInt32();
     silent_midi_channel = in->ReadInt32();
@@ -772,7 +772,7 @@ void GamePlayState::WriteForSavegame(Stream *out) const
     out->WriteArrayOfInt16( parsed_words, MAX_PARSED_WORDS);
     out->Write( bad_parsed_word, 100);
     out->WriteInt32( raw_color);
-    out->WriteArrayOfInt16( filenumbers, MAXSAVEGAMES);
+    out->WriteArrayOfInt16( filenumbers, LEGACY_MAXSAVEGAMES);
     out->WriteInt32( mouse_cursor_hidden);
     out->WriteInt32( silent_midi);
     out->WriteInt32( silent_midi_channel);

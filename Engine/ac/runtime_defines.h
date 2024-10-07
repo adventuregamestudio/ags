@@ -37,12 +37,7 @@
 #define DIALOG_NEWTOPIC  12000
 #define MAX_TIMERS       21
 #define MAX_PARSED_WORDS 15
-// how many saves may be listed at once
-#define MAXSAVEGAMES     50
-// topmost save index to be listed with a FillSaveGameList command
-// NOTE: changing this may theoretically affect older games which
-// use slots > 99 for special purposes!
-#define TOP_LISTEDSAVESLOT 99
+
 #define MAX_QUEUED_MUSIC 10
 #define GLED_INTERACTION 1
 #define GLED_EFFECTS     2 
@@ -159,6 +154,31 @@ const int LegacyRoomVolumeFactor            = 30;
 
 #define MAX_DYNAMIC_SURFACES 20
 
+// legacy max number of saves which may be filled into the ListBox
+#define LEGACY_MAXSAVEGAMES 50
+// topmost save index to be listed with a FillSaveGameList command
+#define LEGACY_TOP_LISTEDSAVESLOT 50
+// topmost save index to be listed with a Save/RestoreGameDialog command
+#define LEGACY_TOP_BUILTINDIALOGSAVESLOT 20
+// topmost supported save slot index
+#define TOP_SAVESLOT 999
+// save slot reserved for the "restart point"
 #define RESTART_POINT_SAVE_GAME_NUMBER 999
+
+// Script API SortDirection
+enum ScriptSortDirection
+{
+    kScSortNone       = 0,
+    kScSortAscending  = 1,
+    kScSortDescending = 2,
+};
+
+// Script API FileSortStyle
+enum ScriptFileSortStyle
+{
+    kScFileSort_None = 0, // undefined order
+    kScFileSort_Name = 1, // by file name
+    kScFileSort_Time = 2, // by last write time
+};
 
 #endif // __AC_RUNTIMEDEFINES_H

@@ -32,9 +32,8 @@ void clear_gui_screen();
 // Draws virtual screen contents on the GUI bitmaps and assignes them to
 // the renderer's draw chain
 void refresh_gui_screen();
-int  loadgamedialog();
-int  savegamedialog();
-void preparesavegamelist(int ctrllist);
+int  loadgamedialog(int min_slot, int max_slot);
+int  savegamedialog(int min_slot, int max_slot);
 void enterstringwindow(const char *prompttext, char *dst_buf, size_t dst_sz);
 int  enternumberwindow(char *prompttext);
 int  roomSelectorWindow(int currentRoom, int numRooms,

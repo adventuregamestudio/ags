@@ -28,6 +28,7 @@ void		ListBox_Clear(GUIListBox *listbox);
 void		ListBox_FillDirList(GUIListBox *listbox, const char *filemask);
 int			ListBox_GetSaveGameSlots(GUIListBox *listbox, int index);
 int			ListBox_FillSaveGameList(GUIListBox *listbox);
+int			ListBox_FillSaveGameList2(GUIListBox *listbox, int min_slot, int max_slot);
 int			ListBox_GetItemAtLocation(GUIListBox *listbox, int x, int y);
 char		*ListBox_GetItemText(GUIListBox *listbox, int index, char *buffer);
 const char* ListBox_GetItems(GUIListBox *listbox, int index);

@@ -58,6 +58,8 @@ namespace File
     bool        IsFileOrDir(const String &filename);
     // Returns size of a file, or -1 if no such file found
     soff_t      GetFileSize(const String &filename);
+    // Returns file's last writing time, or time_t() if no such file found
+    time_t      GetFileTime(const String &filename);
     // Tests if file could be opened for reading
     bool        TestReadFile(const String &filename);
     // Opens a file for writing or creates new one if it does not exist; deletes file if it was created during test

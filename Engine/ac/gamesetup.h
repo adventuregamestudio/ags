@@ -121,6 +121,8 @@ struct GameSetup
     // is not implemented (or does not work correctly).
     int   key_save_game = 0;
     int   key_restore_game = 0;
+    // Optional override for the max save slot
+    int   max_save_slot = 0;
 
     // Accessibility settings and overrides;
     // these are meant to make playing the game easier, by modifying certain

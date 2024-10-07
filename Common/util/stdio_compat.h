@@ -16,6 +16,7 @@
 
 #include <stdio.h>
 #include <stdint.h>
+#include <time.h>
 
 typedef int64_t file_off_t;
 
@@ -38,6 +39,7 @@ int ags_file_exists(const char *path);
 int ags_directory_exists(const char *path);
 int ags_path_exists(const char *path);
 file_off_t ags_file_size(const char *path);
+time_t ags_file_time(const char *path);
 
 int ags_file_remove(const char *path);
 int ags_file_rename(const char *src, const char *dst);

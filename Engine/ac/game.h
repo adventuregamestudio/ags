@@ -152,13 +152,15 @@ bool get_save_slotnum(const Common::String &filename, int &slot);
 // Try calling built-in restore game dialog;
 // NOTE: this is a script command; may be aborted according to the game & room settings
 void restore_game_dialog();
+void restore_game_dialog2(int min_slot, int max_slot);
 // Unconditionally display a built-in restore game dialog
-bool do_restore_game_dialog();
+bool do_restore_game_dialog(int min_slot, int max_slot);
 // Try calling built-in save game dialog;
 // NOTE: this is a script command; may be aborted according to the game & room settings
 void save_game_dialog();
+void save_game_dialog2(int min_slot, int max_slot);
 // Unconditionally display a built-in save game dialog
-bool do_save_game_dialog();
+bool do_save_game_dialog(int min_slot, int max_slot);
 void free_do_once_tokens();
 // Free all the memory associated with the game
 void unload_game();

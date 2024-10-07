@@ -1,10 +1,10 @@
 {
-    "version": "3.6.2.0",
+    "version": "3.6.2.1",
     "versionFriendly": "3.6.2",
-    "versionSp": "dev",
+    "versionSp": "Beta1",
     "versionYear": "2024",
-    "versionMonth": "May",
-    "versionIsBeta": "false",
+    "versionMonth": "October",
+    "versionIsBeta": "true",
     "appID": "7a604530-45b6-4e95-a729-22d212601256",
     "licenseLink": "https://opensource.org/license/artistic-2-0/",
   

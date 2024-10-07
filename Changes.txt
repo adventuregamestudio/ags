@@ -1,12 +1,24 @@
 REVISION HISTORY
 ================
 
-VERSION 3.6.2 - in development
+VERSION 3.6.2 - Beta
+
+Common:
+ - Event handler function are now allowed to be located in any script module.
+ - New naming rule for the voice clips: full char name, followed by a number, separated by a dot,
+   e.g. "RogerTheGreat.1234.ogg". The old rule may be enabled again by a switch in "Backwards
+   Compatibility" settings.
 
 Editor:
+ - In General Settings added "Use old-style voice clip naming rule" which lets to select whether
+   the game should expect old-style voice clip filenames (4-letter char name followed by number)
+   or the new one (full char name, followed by a number, separated by a dot).
  - Added "TurnWhenFacing" property to Characters.
  - Textual GUI controls can now select "Null Font" as their font: this will prevent any text to be
    drawn even if one is assigned, and make it have zero size (when it matters).
+ - "Events" tab on the Properties Grid now has "ScriptModule" selection, which lets define in which
+   module should the related script functions be generated and looked for. The GUI Controls use
+   a ScriptModule set in their parent GUI, and Room events always has a fixed room script selected.
  - Added "Open Recent" submenu in the File menu.
  - Sync script editor's commands in Edit menu with the context menu.
  - Added "Toggle Line Comment" command to Edit menu for scripts.
@@ -20,8 +32,13 @@ Editor:
  - On "Color Finder" pane also display actual RGB values that the engine will use. They may be
    different from requested RGB, because historically engine limits drawing color's RGB precision
    to 16-bit.
+ - Font's "SourceFilename" and "Font Size" properties now have buttons that let import another font
+   file, or reimport same font with different size respectively, instead of clicking on a button on
+   the preview window.
+ - Global Variables panel now allows to declare arrays.
  - Added "Controls transparency" slider to GUI edit pane.
  - Copy, paste and delete commands now apply to all the selected GUI controls in GUI editor.
+ - When pasting a copied GUI control, Locked property of a new control will be turned off.
  - Support editing group properties for selected GUI controls.
  - Support importing 1-bit (monochrome) and 4-bit images as sprites, room backgrounds and masks
    (converted to 8-bit).
@@ -54,7 +71,15 @@ Script API:
  - Added Character.MoveStraight() complementing WalkStraight().
  - Added RenderLayer enum, and optional "layers" parameter to DynamicSprite.CreateFromScreenShot(),
    that tells which of the game's render layers to capture when making a screenshot.
+ - Added File.GetFileTime() that returns file's modification time.
+ - Added Game.GetSaveSlotTime() that returns a time this save slot was last written.
+ - Added FileSortStyle and SortDirection enum, and optional "fileSortStyle" and "sortDirection"
+   parameters to ListBox.FillDirList(). This lets to sort resulting list by name or time,
+   in ascending or descending order.
+ - ListBox.FillSaveGameList(), RestoreGameDialog() and SaveGameDialog() now let define a range
+   of save slots for display.
  - Added Speech.SpeakingCharacter that returns currently speaking character (for blocking speech).
+ - Added MoveSaveSlot() which renames a savegame.
  - Added optional "sprite" parameter to SaveGameSlot(), that lets to pass a number of an arbitrary
    sprite to write into this save instead of a standard "screenshot".
  - Added System.GetEngineInteger() and System.GetEngineString() for returning diagnostic

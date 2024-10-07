@@ -52,7 +52,8 @@ Editor:
  - Added "/maketemplate" command-line option that tells Editor to run, make template out of the
    said game, and quit.
  - Fixed Editor refusing to open a project if one or more of the sections are missing in the file.
- - Fixed importing indexed PNG as a sprite would mistakenly treat the source image as 32-bit.
+ - Fixed importing indexed PNG as a sprite, previously Editor would mistakenly treat the source
+   image as 32-bit.
  - Fixed importing 8-bit BMP sprites with no "Remap palette" and "Leave As Is" as a transparency
    option would still remap palette index 0 to the first found palette entry with Alpha 0,
    even if that's a filler entry not used by the image.
@@ -91,16 +92,22 @@ Script API:
 
 Engine:
  - Dropped support for pre-3.5.0 game saves.
- - Ensure that Character.Speaking returns true even if character has no speech view.
+ - Ensure that Character.Speaking returns true when a speech is playing even if the character
+   has no speech view.
  - DynamicSprite.CreateFromFile() may now load 1-bit and 4-bit bitmaps, converting to 8-bit.
  - Assigning InventoryItem.Graphic will no longer reassign CursorGraphic too even if they were
    identical previously.
+ - Calling DeleteSaveSlot() on a slot within 0-50 range will no longer secretly move a save with
+   the topmost number (within the same range) to fill the emptied slot. If you still like to
+   recreate this behavior, then use MoveSaveSlot() command.
  - Implemented video buffering on a separate thread. Allow to drop late video frames.
  - Added new accessibility config settings in "access" section: "speechskip" and "textskip".
    These let player to override game's skipping style for character speech and text messages
    respectively.
+ - Added "max_save" config option in "override" section: this lets to enforce an arbitrary number
+   of saves displayed in a standard save/restore dialogs in game.
  - Added "--no-plugins" command-line argument that denies loading any plugins;
-   also added respective config option.
+   also added respective config option "noplugins" in "override" section.
  - Fixed displaying room masks with Debug command in legacy "upscale" mode.
 
 Engine Plugin API:

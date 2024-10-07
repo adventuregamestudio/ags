@@ -70,11 +70,11 @@ bool MaskRouteFinder::FindRoute(std::vector<Point> &path, int srcx, int srcy, in
     return true;
 }
 
-void MaskRouteFinder::SetWalkableArea(const AGS::Common::Bitmap *walkablearea, uint32_t coord_scale)
+void MaskRouteFinder::SetWalkableArea(const AGS::Common::Bitmap *walkablearea, int coord_scale)
 {
     _walkablearea = walkablearea;
     assert(coord_scale > 0);
-    _coordScale = std::max(1u, coord_scale);
+    _coordScale = std::max(1, coord_scale);
     OnSetWalkableArea();
 }
 

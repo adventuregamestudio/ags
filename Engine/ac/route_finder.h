@@ -63,7 +63,7 @@ public:
     // Assign a walkable mask, and an optional coordinate scale factor which will be used
     // to convert (divide) input coordinates, and resulting path back (multiply).
     // Note that this may make routefinder to generate additional data, taking more time.
-    void SetWalkableArea(const AGS::Common::Bitmap *walkablearea, uint32_t coord_scale = 1);
+    void SetWalkableArea(const AGS::Common::Bitmap *walkablearea, int coord_scale = 1);
 
 protected:
     // Update the implementation after a new walkable area is set
@@ -75,7 +75,7 @@ protected:
         bool exact_dest, bool ignore_walls) = 0;
 
     const Common::Bitmap *_walkablearea = nullptr;
-    uint32_t _coordScale = 1;
+    int _coordScale = 1;
 };
 
 

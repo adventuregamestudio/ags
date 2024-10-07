@@ -468,6 +468,7 @@ void save_game_dialog2(int min_slot, int max_slot)
     // Optionally override the max slot
     max_slot = usetup.max_save_slot > 0 ? usetup.max_save_slot : max_slot;
 
+    can_run_delayed_command();
     if (thisroom.Options.SaveLoadDisabled == 1) {
         DisplayMessage(983);
         return;

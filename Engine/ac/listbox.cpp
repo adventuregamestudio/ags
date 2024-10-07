@@ -17,6 +17,7 @@
 #include <allegro.h> // find files
 #include "ac/common.h"
 #include "ac/game.h"
+#include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_game.h"
@@ -163,6 +164,9 @@ int ListBox_GetSaveGameSlots(GUIListBox *listbox, int index) {
 
 int ListBox_FillSaveGameList2(GUIListBox *listbox, int min_slot, int max_slot)
 {
+  // Optionally override the max slot
+  max_slot = usetup.max_save_slot > 0 ? usetup.max_save_slot : max_slot;
+
   max_slot = std::min(max_slot, TOP_SAVESLOT);
   min_slot = std::min(max_slot, std::max(0, min_slot));
 

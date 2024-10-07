@@ -426,11 +426,16 @@ ScriptDateTime* Game_GetSaveSlotTime(int slnum)
     return sdt;
 }
 
-void restore_game_dialog() {
+void restore_game_dialog()
+{
     restore_game_dialog2(1, LEGACY_TOP_BUILTINDIALOGSAVESLOT);
 }
 
-void restore_game_dialog2(int min_slot, int max_slot) {
+void restore_game_dialog2(int min_slot, int max_slot)
+{
+    // Optionally override the max slot
+    max_slot = usetup.max_save_slot > 0 ? usetup.max_save_slot : max_slot;
+
     can_run_delayed_command();
     if (thisroom.Options.SaveLoadDisabled == 1) {
         DisplayMessage(983);
@@ -443,7 +448,8 @@ void restore_game_dialog2(int min_slot, int max_slot) {
     do_restore_game_dialog(min_slot, max_slot);
 }
 
-bool do_restore_game_dialog(int min_slot, int max_slot) {
+bool do_restore_game_dialog(int min_slot, int max_slot)
+{
     setup_for_dialog();
     int toload = loadgamedialog(min_slot, max_slot);
     restore_after_dialog();
@@ -452,11 +458,16 @@ bool do_restore_game_dialog(int min_slot, int max_slot) {
     return toload >= 0;
 }
 
-void save_game_dialog() {
+void save_game_dialog()
+{
     save_game_dialog2(1, LEGACY_TOP_BUILTINDIALOGSAVESLOT);
 }
 
-void save_game_dialog2(int min_slot, int max_slot) {
+void save_game_dialog2(int min_slot, int max_slot)
+{
+    // Optionally override the max slot
+    max_slot = usetup.max_save_slot > 0 ? usetup.max_save_slot : max_slot;
+
     if (thisroom.Options.SaveLoadDisabled == 1) {
         DisplayMessage(983);
         return;

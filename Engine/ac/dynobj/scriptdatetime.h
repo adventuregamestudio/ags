@@ -18,6 +18,7 @@
 #ifndef __AGS_EE_DYNOBJ__SCRIPTDATETIME_H
 #define __AGS_EE_DYNOBJ__SCRIPTDATETIME_H
 
+#include <time.h>
 #include "ac/dynobj/cc_agsdynamicobject.h"
 
 struct ScriptDateTime final : AGSCCDynamicObject
@@ -30,6 +31,8 @@ public:
     int Dispose(void *address, bool force) override;
     const char *GetType() override;
     void Unserialize(int index, AGS::Common::Stream *in, size_t data_sz) override;
+
+    void SetFromStdTime(time_t time);
 
     ScriptDateTime();
 

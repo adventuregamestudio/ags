@@ -60,14 +60,6 @@ if (WIN32)
     target_link_libraries(libtools PUBLIC shlwapi)
 endif()
 
-#----- agf2autoash --------------------------------------------
-add_executable(agf2autoash agf2autoash/main.cpp)
-set_target_properties(agf2autoash PROPERTIES
-        CXX_STANDARD 11
-        CXX_EXTENSIONS NO
-        )
-target_link_libraries(agf2autoash PUBLIC libtools)
-
 #----- agf2dlgasc ---------------------------------------------
 add_executable(agf2dlgasc agf2dlgasc/main.cpp)
 set_target_properties(agf2dlgasc PROPERTIES
@@ -75,14 +67,6 @@ set_target_properties(agf2dlgasc PROPERTIES
         CXX_EXTENSIONS NO
         )
 target_link_libraries(agf2dlgasc PUBLIC libtools)
-
-#----- agf2glvar -----------------------------------------------
-add_executable(agf2glvar agf2glvar/main.cpp)
-set_target_properties(agf2glvar PROPERTIES
-        CXX_STANDARD 11
-        CXX_EXTENSIONS NO
-        )
-target_link_libraries(agf2glvar PUBLIC libtools)
 
 #----- agfexport -----------------------------------------------
 add_executable(agfexport agfexport/main.cpp)
@@ -132,7 +116,7 @@ set_target_properties(trac PROPERTIES
         )
 target_link_libraries(trac PUBLIC libtools)
 
-list(APPEND TOOLS_TARGETS agf2autoash agf2dlgasc agf2glvar agfexport agspak agsunpak crm2ash crmpak trac)
+list(APPEND TOOLS_TARGETS agf2dlgasc agfexport agspak agsunpak crm2ash crmpak trac)
 
 # Bundle-like target to build all tools
 add_custom_target(Tools)

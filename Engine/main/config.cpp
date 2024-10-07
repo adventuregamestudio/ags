@@ -265,6 +265,7 @@ void apply_config(const ConfigTree &cfg)
             CstrArr<eNumOS>{"", "dos", "win", "linux", "mac", "android", "ios", "psp", "web", "freebsd"}, eOS_Unknown);
         usetup.key_save_game = CfgReadInt(cfg, "override", "save_game_key", 0);
         usetup.key_restore_game = CfgReadInt(cfg, "override", "restore_game_key", 0);
+        usetup.max_save_slot = CfgReadInt(cfg, "override", "max_save", 0);
 
         // Accessibility settings
         usetup.access_speechskip = parse_speechskip_style(CfgReadString(cfg, "access", "speechskip"));

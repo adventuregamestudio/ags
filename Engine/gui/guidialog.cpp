@@ -315,6 +315,9 @@ int savegamedialog(int min_slot, int max_slot)
 
 void preparesavegamelist(int ctrllist, int min_slot, int max_slot)
 {
+  max_slot = std::min(max_slot, TOP_SAVESLOT);
+  min_slot = std::min(max_slot, std::max(0, min_slot));
+
   std::vector<SaveListItem> saves;
   FillSaveList(saves, min_slot, max_slot);
   std::sort(saves.rbegin(), saves.rend());

@@ -41,6 +41,7 @@ struct SaveListItem
 // Notify the running game that the engine requested immediate stop
 void AbortGame();
 void restart_game();
+void MoveSaveSlot(int old_slot, int new_slot);
 void RestoreGameSlot(int slnum);
 void MoveSaveSlot (int old_slot, int new_slot);
 void SaveGameSlot(int slnum, const char *descript, int spritenum);

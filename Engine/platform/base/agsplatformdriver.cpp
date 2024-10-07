@@ -74,19 +74,10 @@ const char *AGSPlatformDriver::GetDiskWriteAccessTroubleshootingText()
     return "Make sure you have write permissions, and also check the disk's free space.";
 }
 
-void AGSPlatformDriver::GetSystemTime(ScriptDateTime *sdt) {
+void AGSPlatformDriver::GetSystemTime(ScriptDateTime *sdt)
+{
     time_t t = time(nullptr);
-
-    //note: subject to year 2038 problem due to shoving time_t in an integer
-    sdt->rawUnixTime = static_cast<int>(t);
-
-    struct tm *newtime = localtime(&t);
-    sdt->hour = newtime->tm_hour;
-    sdt->minute = newtime->tm_min;
-    sdt->second = newtime->tm_sec;
-    sdt->day = newtime->tm_mday;
-    sdt->month = newtime->tm_mon + 1;
-    sdt->year = newtime->tm_year + 1900;
+    sdt->SetFromStdTime(t);
 }
 
 void AGSPlatformDriver::DisplayAlert(const char *text, ...)

@@ -41,7 +41,7 @@ namespace AGS.Types
         protected override void FromXmlBackwardsCompatability(System.Xml.XmlNode parentNodeForBackwardsCompatability)
         {
             Init(MAIN_DIALOG_FOLDER_NAME);
-            foreach (XmlNode dialogNode in SerializeUtils.GetChildNodes(parentNodeForBackwardsCompatability, "Dialogs"))
+            foreach (XmlNode dialogNode in SerializeUtils.GetChildNodesOrEmpty(parentNodeForBackwardsCompatability, "Dialogs"))
             {
                 _items.Add(new Dialog(dialogNode));
             }

@@ -40,6 +40,7 @@
 #include <memory>
 #include <unordered_map>
 #include "core/asset.h"
+#include "util/directory.h"
 #include "util/stream.h"
 #include "util/string_types.h"
 
@@ -123,10 +124,18 @@ public:
     // Tells whether asset exists in any of the registered search locations
     bool         DoesAssetExist(const String &asset_name, const String &filter = "") const;
     inline bool  DoesAssetExist(const AssetPath &apath) const { return DoesAssetExist(apath.Name, apath.Filter); }
+    // Tries to get asset's "file time" (last modification time).
+    // Note that for the assets packed within a CLIB format this will return library's time instead.
+    bool         GetAssetTime(const String &asset_name, time_t &ft, const String &filter = "") const;
     // Searches in all the registered locations and collects a list of
     // assets using given wildcard pattern
     // TODO: variant accepting std::regex instead of wildcard, and replace uses where convenient
     void         FindAssets(std::vector<String> &assets, const String &wildcard,
+                                   const String &filter = "") const;
+    // Searches in all the registered locations and collects a list of
+    // FileEntry objects corresponding to assets, using given wildcard pattern.
+    // NOTE: lib file assets will have their time property equal to lib's time.
+    void         FindAssets(std::vector<FileEntry> &assets, const String &wildcard,
                                    const String &filter = "") const;
     // Open asset stream in the given work mode; returns null if asset is not found or cannot be opened
     // This method only searches in libraries that do not have any defined filters

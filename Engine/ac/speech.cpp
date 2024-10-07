@@ -128,7 +128,7 @@ bool init_voicepak(const String &name)
     {
         // If we have custom voice directory set, we will enable voice-over even if speech.vox does not exist
         speech_subdir = name.IsEmpty() ? ResPaths.VoiceDir2 : Path::ConcatPaths(ResPaths.VoiceDir2, name);
-        if (File::IsDirectory(speech_subdir) && !FindFile::OpenFiles(speech_subdir).AtEnd())
+        if (File::IsDirectory(speech_subdir) && Directory::HasAnyFiles(speech_subdir))
         {
             Debug::Printf(kDbgMsg_Info, "Optional voice directory is defined: %s", speech_subdir.GetCStr());
             ResPaths.VoiceAvail = true;

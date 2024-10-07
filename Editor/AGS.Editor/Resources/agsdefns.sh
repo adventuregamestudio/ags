@@ -27,7 +27,7 @@
 // MAX_ROOM_OBJECTS is a duplicate and was added by an oversight
 #define MAX_ROOM_OBJECTS  40
 #define MAX_LEGACY_GLOBAL_VARS  50
-#define MAX_LISTBOX_SAVED_GAMES 50
+#define MAX_LEGACY_SAVED_GAMES  50
 #define PALETTE_SIZE      256
 #define FOLLOW_EXACTLY 32766
 #define NARRATOR -1
@@ -490,6 +490,20 @@ enum RenderLayer
   eRenderLayerRoom      = 0x00000008,
   eRenderLayerAll       = 0xFFFFFFFF
 };
+
+enum FileSortStyle
+{
+  eFileSort_None = 0,
+  eFileSort_Name = 1,
+  eFileSort_Time = 2
+};
+
+enum SortDirection
+{
+  eSortNoDirection = 0,
+  eSortAscending   = 1,
+  eSortDescending  = 2
+};
 #endif
 
 #ifdef SCRIPT_API_v399
@@ -866,16 +880,16 @@ import const string GetTranslation (const string originalText);
 /// Checks if a translation is currently in use.
 import int  IsTranslationAvailable ();
 /// Displays the default built-in Restore Game dialog.
-import void RestoreGameDialog(int min_slot = 0, int max_slot = 50);
+import void RestoreGameDialog(int min_slot = 1, int max_slot = 100);
 /// Displays the default built-in Save Game dialog.
-import void SaveGameDialog(int min_slot = 0, int max_slot = 50);
+import void SaveGameDialog(int min_slot = 1, int max_slot = 100);
 /// Restarts the game from the restart point.
 import void RestartGame();
 /// Saves the current game position to the specified slot.
 import void SaveGameSlot(int slot, const string description, int sprite = -1);
 /// Restores the game saved to the specified game slot.
 import void RestoreGameSlot(int slot);
-#ifdef SCRIPT_API_v400
+#ifdef SCRIPT_API_v362
 /// Moves the save game from one slot to another, overwriting a save if one was already present at a new slot.
 import void MoveSaveSlot(int old_slot, int new_slot);
 #endif
@@ -1004,6 +1018,8 @@ enum FileSeek {
   eSeekEnd = 2
 };
 
+builtin managed struct DateTime;
+
 builtin managed struct File {
   /// Delets the specified file from the disk.
   import static bool Delete(const string filename);   // $AUTOCOMPLETESTATICONLY$
@@ -1048,6 +1064,10 @@ builtin managed struct File {
   import static String ResolvePath(const string filename);   // $AUTOCOMPLETESTATICONLY$
   /// Gets the path to opened file.
   readonly import attribute String Path;
+#endif
+#ifdef SCRIPT_API_v362
+  /// Retrieves specified file's last write time; returns null if file does not exist
+  import static DateTime* GetFileTime(const string filename); // $AUTOCOMPLETESTATICONLY$
 #endif
 #ifdef SCRIPT_API_v399
   /// Renames an existing file; if there's already a file with the new name then it will be overwritten
@@ -1558,9 +1578,9 @@ builtin managed struct ListBox extends GUIControl {
 	/// Removes all the items from the list.
 	import void Clear();
 	/// Fills the list box with all the filenames that match the specified file mask.
-	import void FillDirList(const string fileMask);
+	import void FillDirList(const string fileMask, FileSortStyle fileSortStyle = eFileSort_Name, SortDirection sortDirection = eSortAscending);
 	/// Fills the list box with the current user's saved games in the given range of slots.
-	import int  FillSaveGameList(int min_slot = 0, int max_slot = 50);
+	import int  FillSaveGameList(int min_slot = 1, int max_slot = 100);
 	/// Gets the item index at the specified screen co-ordinates, if they lie within the list box.
 	import int  GetItemAtLocation(int x, int y);
 	/// Inserts a new item before the specified index.
@@ -2648,6 +2668,10 @@ builtin struct Game {
   import static void   PrecacheSprite(int sprnum);
   /// Preloads and caches sprites and linked sounds for a view, within a selected range of loops.
   import static void   PrecacheView(int view, int first_loop, int last_loop);
+#endif
+#ifdef SCRIPT_API_v362
+  /// Gets the write time of the specified save game slot.
+  import static DateTime* GetSaveSlotTime(int saveSlot);
 #endif
 #ifdef SCRIPT_API_v400
   /// Gets/sets the default y/x ratio of character's facing directions, determining directional loop selection for all Characters in game.

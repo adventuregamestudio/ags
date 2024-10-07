@@ -139,7 +139,7 @@ namespace AGS.Types
         {
             //Either override this method in your Folder class to support backwards compatability,
             //or use the constructor with the backwards support.
-            throw new InvalidDataException("Backwards compatabilty not supported on this type!");
+            throw new InvalidDataException("Backwards compatability not supported on this type!");
         }
 
         protected void Init(string name)

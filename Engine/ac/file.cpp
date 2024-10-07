@@ -54,6 +54,28 @@ int File_Exists(const char *fnmm) {
   return 1; // was found in fs
 }
 
+ScriptDateTime* File_GetFileTime(const char *fnmm) {
+  const auto rp = ResolveScriptPathAndFindFile(fnmm, true);
+  if (!rp)
+    return nullptr;
+
+  time_t ft;
+  if (rp.AssetMgr)
+  {
+    if (!AssetMgr->GetAssetTime(rp.FullPath, ft, "*"))
+      return nullptr;
+  }
+  else
+  {
+    ft = File::GetFileTime(rp.FullPath);
+  }
+
+  ScriptDateTime *sdt = new ScriptDateTime();
+  sdt->SetFromStdTime(ft);
+  ccRegisterManagedObject(sdt, sdt);
+  return sdt;
+}
+
 int File_Delete(const char *fnmm) {
   const auto rp = ResolveScriptPathAndFindFile(fnmm, false);
   if (!rp)
@@ -739,6 +761,11 @@ RuntimeScriptValue Sc_File_Exists(const RuntimeScriptValue *params, int32_t para
     API_SCALL_INT_POBJ(File_Exists, const char);
 }
 
+RuntimeScriptValue Sc_File_GetFileTime(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO_POBJ(ScriptDateTime, File_GetFileTime, const char);
+}
+
 RuntimeScriptValue Sc_File_Rename(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT_POBJ2(File_Rename, const char, const char);
@@ -865,6 +892,7 @@ void RegisterFileAPI()
     ScFnRegister file_api[] = {
         { "File::Delete^1",           API_FN_PAIR(File_Delete) },
         { "File::Exists^1",           API_FN_PAIR(File_Exists) },
+        { "File::GetFileTime^1",      API_FN_PAIR(File_GetFileTime) },
         { "File::Rename^2",           API_FN_PAIR(File_Rename) },
         { "File::Open^2",             API_FN_PAIR(sc_OpenFile) },
         { "File::ResolvePath^1",      API_FN_PAIR(File_ResolvePath) },

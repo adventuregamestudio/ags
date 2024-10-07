@@ -12,8 +12,6 @@ namespace AGS.Editor
 {
     public partial class FontEditor : EditorContentPanel
     {
-        private const int DEFAULT_IMPORTED_FONT_SIZE = 10;
-
         public FontEditor()
         {
             InitializeComponent();
@@ -24,6 +22,8 @@ namespace AGS.Editor
             _item = selectedFont;
             PaintFont();
         }
+
+        public delegate void ImportFont(AGS.Types.Font font);
 
         private AGS.Types.Font _item;
 
@@ -36,6 +36,8 @@ namespace AGS.Editor
                 PaintFont();
             }
         }
+
+        public ImportFont ImportOverFont { get; set; }
 
         public void OnFontUpdated()
         {
@@ -71,111 +73,14 @@ namespace AGS.Editor
             pictureBox.Image = bmp;
         }
 
-        private void ImportTTFFont(string fileName, string newTTFName, string newWFNName)
-        {
-            FontHeightDefinition sizeType;
-            int sizeValue;
-            if (!ImportTTFDialog.Show(out sizeType, out sizeValue, 
-                    _item.PointSize > 0 ? _item.PointSize : DEFAULT_IMPORTED_FONT_SIZE, Int32.MaxValue))
-                return;
-            File.Copy(fileName, newTTFName, true);
-            try
-            {
-                if (File.Exists(newWFNName))
-                {
-                    Factory.AGSEditor.DeleteFileOnDisk(newWFNName);
-                }
-                Factory.NativeProxy.ReloadFont(_item.ID);
-                // If user asked to get a certain pixel height, then try to change the font's
-                // point size, until found the closest result
-                if (sizeType == FontHeightDefinition.PixelHeight)
-                {
-                    sizeValue = Factory.NativeProxy.FindTTFSizeForHeight(newTTFName, sizeValue);
-                }
-            }
-            catch (AGSEditorException ex)
-            {
-                Factory.GUIController.ShowMessage("Unable to import the font.\n\n" + ex.Message, MessageBoxIcon.Warning);
-                Utilities.TryDeleteFile(newTTFName);
-            }
-
-            _item.PointSize = sizeValue;
-            _item.SizeMultiplier = 1;
-            _item.SourceFilename = Utilities.GetRelativeToProjectPath(fileName);
-        }
-
-        private void ImportWFNFont(string fileName, string newTTFName, string newWFNName)
-        {
-            try
-            {
-                if (File.Exists(newTTFName))
-                {
-                    Factory.AGSEditor.DeleteFileOnDisk(newTTFName);
-                }
-
-                if (fileName.ToLower().EndsWith(".wfn"))
-                {
-                    File.Copy(fileName, newWFNName, true);
-                }
-                else
-                {
-                    Factory.NativeProxy.ImportSCIFont(fileName, _item.ID);
-                }
-                Factory.NativeProxy.ReloadFont(_item.ID);
-                _item.PointSize = 0;
-                _item.SizeMultiplier = 1;
-                _item.SourceFilename = Utilities.GetRelativeToProjectPath(fileName);
-            }
-            catch (AGSEditorException ex)
-            {
-                Factory.GUIController.ShowMessage("Unable to import the font.\n\n" + ex.Message, MessageBoxIcon.Warning);
-            }
-        }
-
-        private void ImportFont(string fileName)
-        {
-            try
-            {
-                string newTTFName = "agsfnt" + _item.ID + ".ttf";
-                string newWFNName = "agsfnt" + _item.ID + ".wfn";
-
-                List<string> filesToCheck = new List<string>();
-                filesToCheck.Add(newTTFName);
-                filesToCheck.Add(newWFNName);
-                if (!Factory.AGSEditor.AttemptToGetWriteAccess(filesToCheck))
-                {
-                    return;
-                }
-
-                if (fileName.ToLower().EndsWith(".ttf"))
-                {
-                    ImportTTFFont(fileName, newTTFName, newWFNName);
-                }
-                else
-                {
-                    ImportWFNFont(fileName, newTTFName, newWFNName);
-                }
-                Factory.NativeProxy.GameSettingsChanged(Factory.AGSEditor.CurrentGame);
-                Factory.GUIController.SetPropertyGridObject(_item);
-                PaintFont();
-            }
-            catch (Exception ex)
-            {
-                Factory.GUIController.ShowMessage("There was a problem importing the font. The error was: " + ex.Message, MessageBoxIcon.Warning);
-            }
-        }
 
         private void btnImportFont_Click(object sender, EventArgs e)
         {
-            if (_item != null)
+            if (_item != null && ImportOverFont != null)
             {
                 if (Factory.GUIController.ShowQuestion("Importing a font will replace the current font. Are you sure you want to do this?") == DialogResult.Yes)
                 {
-                    string fileName = Factory.GUIController.ShowOpenFileDialog("Select font to import...", Constants.FONT_FILE_FILTER);
-                    if (fileName != null)
-                    {
-                        ImportFont(fileName);
-                    }
+                    ImportOverFont(_item);
                 }
             }
         }

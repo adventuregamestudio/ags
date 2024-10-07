@@ -96,9 +96,25 @@ namespace AGS.Editor
 
         private ListViewItem CreateListItemFromVariable(GlobalVariable variable)
         {
-            ListViewItem newItem = new ListViewItem(new string[] { variable.Name, variable.Type, variable.DefaultValue });
-            newItem.Tag = variable;
+            ListViewItem newItem = new ListViewItem(new string[] { string.Empty, string.Empty, string.Empty });
+            FillListItemFromVariable(newItem, variable);
             return newItem;
+        }
+
+        private void FillListItemFromVariable(ListViewItem item, GlobalVariable variable)
+        {
+            string varType;
+            switch (variable.ArrayType)
+            {
+                case VariableArrayType.Array: varType = $"{variable.Type}[{variable.ArraySize}]"; break;
+                case VariableArrayType.DynamicArray: varType = $"{variable.Type}[]"; break;
+                default: varType = variable.Type; break;
+            }
+
+            item.SubItems[0].Text = variable.Name;
+            item.SubItems[1].Text = varType;
+            item.SubItems[2].Text = variable.DefaultValue;
+            item.Tag = variable;
         }
 
         private void UpdateListItemFromVariableObject(ListViewItem listItem)
@@ -169,9 +185,7 @@ namespace AGS.Editor
                     _variables.VariableRenamed(variable, nameWas);
                 }
 
-                lvwWords.SelectedItems[0].SubItems[0].Text = variable.Name;
-                lvwWords.SelectedItems[0].SubItems[1].Text = variable.Type;
-                lvwWords.SelectedItems[0].SubItems[2].Text = variable.DefaultValue;
+                FillListItemFromVariable(lvwWords.SelectedItems[0], variable);
                 OnGlobalVariableChanged();
             }
         }

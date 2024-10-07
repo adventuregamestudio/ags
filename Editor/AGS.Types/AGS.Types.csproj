@@ -189,6 +189,7 @@
     <Compile Include="GlobalVariable.cs" />
     <Compile Include="GlobalVariables.cs" />
     <Compile Include="GUIControlGroup.cs" />
+    <Compile Include="HelperTypes\FakeEnumerator.cs" />
     <Compile Include="HelperTypes\SpriteInfo.cs" />
     <Compile Include="Interfaces\IRePopulatableComponent.cs" />
     <Compile Include="Interfaces\ILoadedRoom.cs" />
@@ -220,6 +221,9 @@
     <Compile Include="PropertyGridExtras\ColorUIEditor.cs" />
     <Compile Include="PropertyGridExtras\CustomColorConverter.cs" />
     <Compile Include="PropertyGridExtras\CustomPropertiesUIEditor.cs" />
+    <Compile Include="PropertyGridExtras\FontFileUIEditor.cs" />
+    <Compile Include="PropertyGridExtras\FontSizeTypeConverter.cs" />
+    <Compile Include="PropertyGridExtras\FontSizeUIEditor.cs" />
     <Compile Include="PropertyGridExtras\InteractionPropertyDescriptor.cs" />
     <Compile Include="PropertyGridExtras\InteractionEventPropertyDescriptor.cs" />
     <Compile Include="PropertyGridExtras\PropertyTabInteractions.cs" />

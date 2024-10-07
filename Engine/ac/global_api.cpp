@@ -1252,6 +1252,7 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "MoveObject",               API_FN_PAIR(MoveObject) },
         { "MoveObjectDirect",         API_FN_PAIR(MoveObjectDirect) },
         { "MoveSaveSlot",             API_FN_PAIR(MoveSaveSlot) },
+        { "MoveSaveSlot",             API_FN_PAIR(MoveSaveSlot) },
         { "PauseGame",                API_FN_PAIR(PauseGame) },
         { "PlayFlic",                 API_FN_PAIR(PlayFlic) },
         { "PlayVideo",                API_FN_PAIR(PlayVideo) },
@@ -1334,20 +1335,15 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "SkipWait",                 API_FN_PAIR(SkipWait) },
     };
 
-    // Few functions have to be selected based on API level,
-    // because historically AGS compiler did not generate "number of args" in the import name.
-    if (base_api < kScriptAPI_v362)
-        ccAddExternalStaticFunction("SaveGameSlot", API_FN_PAIR(SaveGameSlot2));
-    else
-        ccAddExternalStaticFunction("SaveGameSlot", API_FN_PAIR(SaveGameSlot));
-
     ccAddExternalFunctions(global_api);
 
-    // NOTE: We have to do this because AGS compiler did not produce
+    // Few functions have to be selected based on API level,
+    // We have to do this because AGS compiler did not generate
     // "name^argnum" symbol id for non-member functions for some reason....
-    if (base_api < kScriptAPI_v400)
+    if (base_api < kScriptAPI_v362)
     {
         ScFnRegister global_api_dlgs[] = {
+            { "SaveGameSlot",           API_FN_PAIR(SaveGameSlot2) },
             { "RestoreGameDialog",      API_FN_PAIR(restore_game_dialog) },
             { "SaveGameDialog",         API_FN_PAIR(save_game_dialog) },
         };
@@ -1356,6 +1352,7 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
     else
     {
         ScFnRegister global_api_dlgs[] = {
+            { "SaveGameSlot",           API_FN_PAIR(SaveGameSlot) },
             { "RestoreGameDialog",      API_FN_PAIR(restore_game_dialog2) },
             { "SaveGameDialog",         API_FN_PAIR(save_game_dialog2) },
         };

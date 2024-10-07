@@ -41,7 +41,7 @@ namespace AGS.Types
         protected override void FromXmlBackwardsCompatability(System.Xml.XmlNode parentNodeForBackwardsCompatability)
         {
             Init(MAIN_GUI_FOLDER_NAME);
-            foreach (XmlNode guiNode in SerializeUtils.GetChildNodes(parentNodeForBackwardsCompatability, "GUIs"))
+            foreach (XmlNode guiNode in SerializeUtils.GetChildNodesOrEmpty(parentNodeForBackwardsCompatability, "GUIs"))
             {
                 if (guiNode.FirstChild.Name == NormalGUI.XML_ELEMENT_NAME)
                 {

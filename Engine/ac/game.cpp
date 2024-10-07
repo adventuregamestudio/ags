@@ -415,11 +415,25 @@ const char* Game_GetSaveSlotDescription(int slnum) {
     return nullptr;
 }
 
-void restore_game_dialog() {
-    restore_game_dialog2(0, LEGACY_TOP_BUILTINDIALOGSAVESLOT);
+ScriptDateTime* Game_GetSaveSlotTime(int slnum)
+{
+    time_t ft = File::GetFileTime(get_save_game_path(slnum));
+    ScriptDateTime *sdt = new ScriptDateTime();
+    sdt->SetFromStdTime(ft);
+    ccRegisterManagedObject(sdt, sdt);
+    return sdt;
 }
 
-void restore_game_dialog2(int min_slot, int max_slot) {
+void restore_game_dialog()
+{
+    restore_game_dialog2(1, LEGACY_TOP_BUILTINDIALOGSAVESLOT);
+}
+
+void restore_game_dialog2(int min_slot, int max_slot)
+{
+    // Optionally override the max slot
+    max_slot = usetup.max_save_slot > 0 ? usetup.max_save_slot : max_slot;
+
     can_run_delayed_command();
     if (inside_script) {
         get_executingscript()->QueueAction(PostScriptAction(ePSARestoreGameDialog, (min_slot & 0xFFFF) | (max_slot & 0xFFFF) << 16, "RestoreGameDialog"));
@@ -428,7 +442,8 @@ void restore_game_dialog2(int min_slot, int max_slot) {
     do_restore_game_dialog(min_slot, max_slot);
 }
 
-bool do_restore_game_dialog(int min_slot, int max_slot) {
+bool do_restore_game_dialog(int min_slot, int max_slot)
+{
     setup_for_dialog();
     int toload = loadgamedialog(min_slot, max_slot);
     restore_after_dialog();
@@ -437,11 +452,17 @@ bool do_restore_game_dialog(int min_slot, int max_slot) {
     return toload >= 0;
 }
 
-void save_game_dialog() {
-    save_game_dialog2(0, LEGACY_TOP_BUILTINDIALOGSAVESLOT);
+void save_game_dialog()
+{
+    save_game_dialog2(1, LEGACY_TOP_BUILTINDIALOGSAVESLOT);
 }
 
-void save_game_dialog2(int min_slot, int max_slot) {
+void save_game_dialog2(int min_slot, int max_slot)
+{
+    // Optionally override the max slot
+    max_slot = usetup.max_save_slot > 0 ? usetup.max_save_slot : max_slot;
+
+    can_run_delayed_command();
     if (inside_script) {
         get_executingscript()->QueueAction(PostScriptAction(ePSASaveGameDialog, (min_slot & 0xFFFF) | (max_slot & 0xFFFF) << 16, "SaveGameDialog"));
         return;
@@ -451,11 +472,11 @@ void save_game_dialog2(int min_slot, int max_slot) {
 
 bool do_save_game_dialog(int min_slot, int max_slot) {
     setup_for_dialog();
-    int toload = savegamedialog(min_slot, max_slot);
+    int tosave = savegamedialog(min_slot, max_slot);
     restore_after_dialog();
-    if (toload >= 0)
-        save_game(toload, get_gui_dialog_buffer());
-    return toload >= 0;
+    if (tosave >= 0)
+        save_game(tosave, get_gui_dialog_buffer());
+    return tosave >= 0;
 }
 
 void free_do_once_tokens()
@@ -1494,6 +1515,11 @@ RuntimeScriptValue Sc_Game_GetSaveSlotDescription(const RuntimeScriptValue *para
     API_SCALL_OBJ_PINT(const char, myScriptStringImpl, Game_GetSaveSlotDescription);
 }
 
+RuntimeScriptValue Sc_Game_GetSaveSlotTime(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO_PINT(ScriptDateTime, Game_GetSaveSlotTime);
+}
+
 // ScriptViewFrame* (int viewNumber, int loopNumber, int frame)
 RuntimeScriptValue Sc_Game_GetViewFrame(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -1752,6 +1778,7 @@ void RegisterGameAPI()
         { "Game::GetLoopCountForView^1",                  API_FN_PAIR(Game_GetLoopCountForView) },
         { "Game::GetRunNextSettingForLoop^2",             API_FN_PAIR(Game_GetRunNextSettingForLoop) },
         { "Game::GetSaveSlotDescription^1",               API_FN_PAIR(Game_GetSaveSlotDescription) },
+        { "Game::GetSaveSlotTime^1",                      API_FN_PAIR(Game_GetSaveSlotTime) },
         { "Game::GetViewFrame^3",                         API_FN_PAIR(Game_GetViewFrame) },
         { "Game::InputBox^1",                             API_FN_PAIR(Game_InputBox) },
         { "Game::SetSaveGameDirectory^1",                 API_FN_PAIR(Game_SetSaveGameDirectory) },

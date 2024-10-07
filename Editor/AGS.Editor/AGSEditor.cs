@@ -105,7 +105,9 @@ namespace AGS.Editor
          * 3.6.1.9        - Settings.ScaleCharacterSpriteOffsets
          * 3.6.1.10       - SetRestartPoint() is no longer auto called in the engine,
          *                  add one into the global script when importing older games.
-         * 3.6.2          - Character.TurnWhenFacing, Settings.UseOldVoiceClipNaming.
+         * 3.6.2          - Character.TurnWhenFacing, Settings.UseOldVoiceClipNaming,
+         *                  ScriptModules for interaction/event lists,
+         *                  GlobalVariable may be of array type.
          * 
          * 3.99.99.00     - BlendMode for various objects, Character.Transparency.
          * 3.99.99.01     - Open rooms
@@ -1327,34 +1329,6 @@ namespace AGS.Editor
             {
                 errors.Add(new CompileError("Unexpected error: " + ex.Message));
             }
-        }
-
-        private string[] ConstructFileListForEXE()
-        {
-            List<string> files = new List<string>();
-            Utilities.AddAllMatchingFiles(files, "preload.pcx");
-            Utilities.AddAllMatchingFiles(files, SPRITE_INDEX_FILE_NAME);
-            foreach (AudioClip clip in _game.RootAudioClipFolder.GetAllAudioClipsFromAllSubFolders())
-            {
-                if (clip.BundlingType == AudioFileBundlingType.InGameEXE)
-                {
-                    files.Add(clip.CacheFileName);
-                }
-            }
-            Utilities.AddAllMatchingFiles(files, "flic*.fl?");
-            Utilities.AddAllMatchingFiles(files, COMPILED_DTA_FILE_NAME);
-            Utilities.AddAllMatchingFiles(files, "agsfnt*.ttf");
-            Utilities.AddAllMatchingFiles(files, "agsfnt*.wfn");
-            Utilities.AddAllMatchingFiles(files, SPRITE_FILE_NAME);
-            foreach (UnloadedRoom room in _game.RootRoomFolder.AllItemsFlat)
-            {
-                if (File.Exists(room.FileName))
-                {
-                    files.Add(room.FileName);
-                }
-            }
-            Utilities.AddAllMatchingFiles(files, "*.ogv");
-            return files.ToArray();
         }
 
 		public bool AboutToDeleteSprite(int spriteNumber)

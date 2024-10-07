@@ -70,6 +70,15 @@ namespace Common
 // Various comparison functors
 //
 
+// Test case-sensitive String equality
+struct StrEq
+{
+    bool operator()(const String &s1, const String &s2) const
+    {
+        return s1 == s2;
+    }
+};
+
 // Test case-insensitive String equality
 struct StrEqNoCase
 {

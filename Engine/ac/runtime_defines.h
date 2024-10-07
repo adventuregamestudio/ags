@@ -149,8 +149,25 @@ enum LegacyScriptAlignment
 // topmost supported save slot index
 #define TOP_SAVESLOT 999
 // save slot reserved for the "restart point"
+#define TOP_SAVESLOT 999
+// save slot reserved for the "restart point"
 #define RESTART_POINT_SAVE_GAME_NUMBER 999
 
+// Script API SortDirection
+enum ScriptSortDirection
+{
+    kScSortNone       = 0,
+    kScSortAscending  = 1,
+    kScSortDescending = 2,
+};
+
+// Script API FileSortStyle
+enum ScriptFileSortStyle
+{
+    kScFileSort_None = 0, // undefined order
+    kScFileSort_Name = 1, // by file name
+    kScFileSort_Time = 2, // by last write time
+};
 
 // Defines animation parameters; where "animation" may be any continuous action.
 // TODO: move to a more common header, should be shared among everything that animates.

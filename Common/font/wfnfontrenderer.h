@@ -41,7 +41,7 @@ public:
 
   // IAGSFontRendererInternal implementation
   bool IsBitmapFont() override;
-  bool LoadFromDiskEx(int fontNumber, int fontSize, AGS::Common::String *src_filename,
+  bool LoadFromDiskEx(int fontNumber, int fontSize, const AGS::Common::String &filename,
       const FontRenderParams *params, FontMetrics *metrics) override;
   void GetFontMetrics(int fontNumber, FontMetrics *metrics) override { *metrics = FontMetrics(); }
   void AdjustFontForAntiAlias(int /*fontNumber*/, bool /*aa_mode*/) override { /* do nothing */}

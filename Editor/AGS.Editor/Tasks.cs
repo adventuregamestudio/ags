@@ -49,8 +49,8 @@ namespace AGS.Editor
             Utilities.AddAllMatchingFiles(filesToInclude, AudioClip.AUDIO_CACHE_DIRECTORY + @"\*.*");
             Utilities.AddAllMatchingFiles(filesToInclude, @"Speech\*.*");
             Utilities.AddAllMatchingFiles(filesToInclude, "flic*.fl?");
-            Utilities.AddAllMatchingFiles(filesToInclude, "agsfnt*.ttf");
-            Utilities.AddAllMatchingFiles(filesToInclude, "agsfnt*.wfn");
+            Utilities.AddAllMatchingFiles(filesToInclude, "*.ttf");
+            Utilities.AddAllMatchingFiles(filesToInclude, "*.wfn");
             Utilities.AddAllMatchingFiles(filesToInclude, "*.asc");
             Utilities.AddAllMatchingFiles(filesToInclude, "*.ash");
             Utilities.AddAllMatchingFiles(filesToInclude, "*.txt");
@@ -310,7 +310,8 @@ namespace AGS.Editor
         /// </summary>
         private void SetDefaultGameContentIfMissing(Game game)
         {
-            // Current version of the Editor requires at least 3 fonts present,
+            // CHECKME: do we really need this?
+            // Make certain that at least 3 fonts are present,
             // copy them from the resources if these are not present in game data
             AddFontIfNotAlreadyThere(0);
             AddFontIfNotAlreadyThere(1);
@@ -326,7 +327,7 @@ namespace AGS.Editor
 
         private void SetDefaultValuesForNewFeatures(Game game)
         {
-#pragma warning disable 0618
+#pragma warning disable 0612, 0618
             // TODO: this may be noticably if upgrading lots of items. Display some kind of
             // progress window to notify user.
 
@@ -578,7 +579,7 @@ namespace AGS.Editor
             System.Version projectVersion = game.SavedXmlEditorVersion != null ? Types.Utilities.TryParseVersion(game.SavedXmlEditorVersion) : null;
             if (projectVersion == null || projectVersion < editorVersion)
                 game.SetScriptAPIForOldProject();
-#pragma warning restore 0618
+#pragma warning restore 0612, 0618
         }
 
         private static int RemapAudioClipIDToFixedIndex(int id, Dictionary<int, int> audioIDToIndex)
@@ -711,6 +712,7 @@ namespace AGS.Editor
             }
         }
 
+        // FIXME: this should be done differently!
         private void AddFontIfNotAlreadyThere(int fontNumber)
         {
             if ((!File.Exists("agsfnt" + fontNumber + ".wfn")) &&

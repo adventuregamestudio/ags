@@ -516,11 +516,6 @@ namespace AGS.Editor.Components
                 menu.Add(new MenuCommand(COMMAND_DELETE_ITEM, "Delete", null));
                 menu.Add(MenuCommand.Separator);
                 menu.Add(new MenuCommand(COMMAND_MAKE_DEFAULT, "Make default language", null));
-/*                if (fontID < BUILT_IN_FONTS)
-                {
-                    // can't delete built-in fonts
-                    menu[menu.Count - 1].Enabled = false;
-                }*/
             }
             return menu;
         }

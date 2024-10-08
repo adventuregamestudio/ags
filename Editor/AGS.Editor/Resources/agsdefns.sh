@@ -1348,6 +1348,8 @@ builtin managed struct File {
 #ifdef SCRIPT_API_v362
   /// Retrieves specified file's last write time; returns null if file does not exist
   import static DateTime* GetFileTime(const string filename); // $AUTOCOMPLETESTATICONLY$
+  /// Renames an existing file; if there's already a file with the new name then it will be overwritten
+  import static bool Rename(const string old_filename, const string new_filename);   // $AUTOCOMPLETESTATICONLY$
 #endif
   int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };

@@ -74,7 +74,7 @@ Rect GUILabel::CalcGraphicRect(bool clipped)
         i < Lines.Count() && (!limit_by_label_frame || at_y <= _height);
         ++i, at_y += linespacing)
     {
-        Line lpos = GUI::CalcTextPositionHor(Lines[i].GetCStr(), Font, 0, 0 + _width - 1, at_y,
+        Line lpos = GUI::CalcTextPositionHor(Lines[i], Font, 0, 0 + _width - 1, at_y,
             (FrameAlignment)TextAlignment);
         max_line.X2 = std::max(max_line.X2, lpos.X2);
     }
@@ -105,7 +105,7 @@ void GUILabel::Draw(Bitmap *ds, int x, int y)
         i < Lines.Count() && (!limit_by_label_frame || at_y <= y + _height);
         ++i, at_y += linespacing)
     {
-        GUI::DrawTextAlignedHor(ds, Lines[i].GetCStr(), Font, text_color, x, x + _width - 1, at_y,
+        GUI::DrawTextAlignedHor(ds, Lines[i], Font, text_color, x, x + _width - 1, at_y,
             (FrameAlignment)TextAlignment);
     }
 }

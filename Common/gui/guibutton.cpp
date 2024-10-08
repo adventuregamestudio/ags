@@ -168,7 +168,7 @@ Rect GUIButton::CalcGraphicRect(bool clipped)
             frame.Left++;
             frame.Top++;
         }
-        rc = SumRects(rc, GUI::CalcTextGraphicalRect(_textToDraw.GetCStr(), Font, frame, TextAlignment));
+        rc = SumRects(rc, GUI::CalcTextGraphicalRect(_textToDraw, Font, frame, TextAlignment));
     }
     return rc;
 }
@@ -502,7 +502,7 @@ void GUIButton::DrawText(Bitmap *ds, int x, int y, bool draw_disabled)
     color_t text_color = ds->GetCompatibleColor(TextColor);
     if (draw_disabled)
         text_color = ds->GetCompatibleColor(8);
-    GUI::DrawTextAligned(ds, _textToDraw.GetCStr(), Font, text_color, frame, TextAlignment);
+    GUI::DrawTextAligned(ds, _textToDraw, Font, text_color, frame, TextAlignment);
 }
 
 void GUIButton::DrawTextButton(Bitmap *ds, int x, int y, bool draw_disabled)

@@ -765,14 +765,14 @@ Line CalcFontGraphicalVExtent(int font)
     return Line(0, top, 0, bottom);
 }
 
-Point CalcTextPosition(const char *text, int font, const Rect &frame, FrameAlignment align, Rect *gr_rect)
+Point CalcTextPosition(const String &text, int font, const Rect &frame, FrameAlignment align, Rect *gr_rect)
 {
     // When aligning we use the formal font's height, which in practice may not be
     // its real graphical height (this is because of historical AGS's font behavior)
     int use_height = (loaded_game_file_version < kGameVersion_360_21) ?
         get_font_height(font) + ((align & kMAlignVCenter) ? 1 : 0) :
         get_font_height_outlined(font);
-    Rect rc = AlignInRect(frame, RectWH(0, 0, get_text_width_outlined(text, font), use_height), align);
+    Rect rc = AlignInRect(frame, RectWH(0, 0, get_text_width_outlined(text.GetCStr(), font), use_height), align);
     if (gr_rect)
     {
         Line vextent = CalcFontGraphicalVExtent(font);
@@ -781,22 +781,22 @@ Point CalcTextPosition(const char *text, int font, const Rect &frame, FrameAlign
     return rc.GetLT();
 }
 
-Line CalcTextPositionHor(const char *text, int font, int x1, int x2, int y, FrameAlignment align)
+Line CalcTextPositionHor(const String &text, int font, int x1, int x2, int y, FrameAlignment align)
 {
-    int w = get_text_width_outlined(text, font);
+    int w = get_text_width_outlined(text.GetCStr(), font);
     int x = AlignInHRange(x1, x2, 0, w, align);
     return Line(x, y, x + w - 1, y);
 }
 
-Rect CalcTextGraphicalRect(const char *text, int font, const Point &at)
+Rect CalcTextGraphicalRect(const String &text, int font, const Point &at)
 {
     // Calc only width, and let CalcFontGraphicalVExtent() calc height
-    int w = get_text_width_outlined(text, font);
+    int w = get_text_width_outlined(text.GetCStr(), font);
     Line vextent = CalcFontGraphicalVExtent(font);
     return RectWH(at.X, at.Y + vextent.Y1, w, vextent.Y2 - vextent.Y1);
 }
 
-Rect CalcTextGraphicalRect(const char *text, int font, const Rect &frame, FrameAlignment align)
+Rect CalcTextGraphicalRect(const String &text, int font, const Rect &frame, FrameAlignment align)
 {
     Rect gr_rect;
     CalcTextPosition(text, font, frame, align, &gr_rect);
@@ -815,16 +815,16 @@ void DrawDisabledEffect(Bitmap *ds, const Rect &rc)
     }
 }
 
-void DrawTextAligned(Bitmap *ds, const char *text, int font, color_t text_color, const Rect &frame, FrameAlignment align)
+void DrawTextAligned(Bitmap *ds, const String &text, int font, color_t text_color, const Rect &frame, FrameAlignment align)
 {
     Point pos = CalcTextPosition(text, font, frame, align);
-    wouttext_outline(ds, pos.X, pos.Y, font, text_color, text);
+    wouttext_outline(ds, pos.X, pos.Y, font, text_color, text.GetCStr());
 }
 
-void DrawTextAlignedHor(Bitmap *ds, const char *text, int font, color_t text_color, int x1, int x2, int y, FrameAlignment align)
+void DrawTextAlignedHor(Bitmap *ds, const String &text, int font, color_t text_color, int x1, int x2, int y, FrameAlignment align)
 {
     Line line = CalcTextPositionHor(text, font, x1, x2, y, align);
-    wouttext_outline(ds, line.X1, y, font, text_color, text);
+    wouttext_outline(ds, line.X1, y, font, text_color, text.GetCStr());
 }
 
 GUILabelMacro FindLabelMacros(const String &text)

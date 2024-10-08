@@ -95,6 +95,7 @@ Engine:
  - Ensure that Character.Speaking returns true when a speech is playing even if the character
    has no speech view.
  - DynamicSprite.CreateFromFile() may now load 1-bit and 4-bit bitmaps, converting to 8-bit.
+ - Do not alter or clamp palette for 8-bit sprites loaded into a 16/32-bit game at runtime.
  - Assigning InventoryItem.Graphic will no longer reassign CursorGraphic too even if they were
    identical previously.
  - Calling DeleteSaveSlot() on a slot within 0-50 range will no longer secretly move a save with

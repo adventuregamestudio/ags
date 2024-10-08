@@ -793,6 +793,11 @@ RuntimeScriptValue Sc_sc_GetTime(const RuntimeScriptValue *params, int32_t param
     API_SCALL_INT_PINT(sc_GetTime);
 }
 
+RuntimeScriptValue Sc_GetTimerPos(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_PINT(GetTimerPos);
+}
+
 // char * (const char *text)
 RuntimeScriptValue Sc_get_translation(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -1999,9 +2004,9 @@ RuntimeScriptValue Sc_SetTextWindowGUI(const RuntimeScriptValue *params, int32_t
 }
 
 // void (int tnum,int timeout)
-RuntimeScriptValue Sc_script_SetTimer(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_SetTimer(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT2(script_SetTimer);
+    API_SCALL_VOID_PINT2(SetTimer);
 }
 
 // void (int offsx,int offsy)
@@ -2453,6 +2458,7 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "GetFontHeight",            API_FN_PAIR(GetFontHeight) },
         { "GetFontLineSpacing",       API_FN_PAIR(GetFontLineSpacing) },
         { "GetTime",                  API_FN_PAIR(sc_GetTime) },
+        { "GetTimerPos",              API_FN_PAIR(GetTimerPos) },
         { "GetTranslation",           API_FN_PAIR(get_translation) },
         { "GetTranslationName",       API_FN_PAIR(GetTranslationName) },
         { "GetViewportX",             API_FN_PAIR(GetViewportX) },
@@ -2659,7 +2665,7 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "SetTextBoxText",           API_FN_PAIR(SetTextBoxText) },
         { "SetTextOverlay",           Sc_SetTextOverlay, ScPl_SetTextOverlay },
         { "SetTextWindowGUI",         API_FN_PAIR(SetTextWindowGUI) },
-        { "SetTimer",                 API_FN_PAIR(script_SetTimer) },
+        { "SetTimer",                 API_FN_PAIR(SetTimer) },
         { "SetViewport",              API_FN_PAIR(SetViewport) },
         { "SetVoiceMode",             API_FN_PAIR(SetVoiceMode) },
         { "SetWalkBehindBase",        API_FN_PAIR(SetWalkBehindBase) },

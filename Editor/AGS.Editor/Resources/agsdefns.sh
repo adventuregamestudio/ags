@@ -1265,6 +1265,10 @@ import void SetSpeechStyle(eSpeechStyle);
 import void SetTimer(int timerID, int timeout);
 /// Returns true the first time this is called after the timer expires.
 import bool IsTimerExpired(int timerID);
+#ifdef SCRIPT_API_v362
+/// Returns the specified timer's time value; returns 0 if timer is not running, and 1 if it's expiring.
+import int  GetTimerPos(int timerID);
+#endif
 /// Sets whether the game can continue to run in the background if the player switches to another application.
 import void SetMultitaskingMode (int mode);
 /// Converts a floating point value to an integer.

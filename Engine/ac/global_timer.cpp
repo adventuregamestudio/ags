@@ -17,13 +17,22 @@
 #include "ac/gamestate.h"
 
 
-void script_SetTimer(int tnum,int timeout) {
+void SetTimer(int tnum,int timeout)
+{
     if ((tnum < 1) || (tnum >= MAX_TIMERS))
         quit("!StartTimer: invalid timer number");
     play.script_timers[tnum] = timeout;
 }
 
-int IsTimerExpired(int tnum) {
+int GetTimerPos(int tnum)
+{
+    if ((tnum < 1) || (tnum >= MAX_TIMERS))
+        quit("!IsTimerExpired: invalid timer number");
+    return play.script_timers[tnum];
+}
+
+int IsTimerExpired(int tnum)
+{
     if ((tnum < 1) || (tnum >= MAX_TIMERS))
         quit("!IsTimerExpired: invalid timer number");
     if (play.script_timers[tnum] == 1) {

@@ -41,7 +41,6 @@ namespace AGS.Types
         private List<Plugin> _plugins;
         private List<Translation> _translations;
         private UnloadedRoomFolders _rooms;
-        private List<OldInteractionVariable> _oldInteractionVariables;
         private Character _playerCharacter;
         private Settings _settings;
         private RuntimeSetup _defaultSetup;
@@ -78,7 +77,6 @@ namespace AGS.Types
             _plugins = new List<Plugin>();
             _translations = new List<Translation>();
             _rooms = new UnloadedRoomFolders(UnloadedRoomFolder.MAIN_UNLOADED_ROOM_FOLDER_NAME);
-            _oldInteractionVariables = new List<OldInteractionVariable>();
             _settings = new Settings();
             _defaultSetup = new RuntimeSetup(_settings);
             _workspaceState = new WorkspaceState();
@@ -156,11 +154,6 @@ namespace AGS.Types
         public IList<IRoom> Rooms
         {
             get { return _rooms; }
-        }
-
-        public List<OldInteractionVariable> OldInteractionVariables
-        {
-            get { return _oldInteractionVariables; }
         }
 
         public CustomPropertySchema PropertySchema
@@ -621,19 +614,6 @@ namespace AGS.Types
 
             _propertySchema.ToXml(writer);
 
-			// We need to serialize the interaction variables in case
-			// they don't upgrade a room until later, and it might
-			// use the global interaction variables
-			writer.WriteStartElement("OldInteractionVariables");
-			foreach (OldInteractionVariable var in _oldInteractionVariables)
-			{
-				writer.WriteStartElement("Variable");
-				writer.WriteAttributeString("Name", var.Name);
-				writer.WriteAttributeString("Value", var.Value.ToString());
-				writer.WriteEndElement();
-			}
-			writer.WriteEndElement();
-
 			writer.WriteStartElement("Plugins");
             foreach (Plugin plugin in _plugins)
             {
@@ -855,13 +835,6 @@ namespace AGS.Types
             {
                 _globalVariables = new GlobalVariables();
             }
-
-			_oldInteractionVariables.Clear();
-            foreach (XmlNode varNode in SerializeUtils.GetChildNodesOrEmpty(node, "OldInteractionVariables"))
-            {
-                _oldInteractionVariables.Add(new OldInteractionVariable(SerializeUtils.GetAttributeString(varNode, "Name"), SerializeUtils.GetAttributeInt(varNode, "Value")));
-            }
-
         }
 
         public bool IsScriptNameAlreadyUsed(string tryName, object ignoreObject)

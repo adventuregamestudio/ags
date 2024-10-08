@@ -963,7 +963,6 @@ namespace AGS.Editor.Components
 
             // TODO: group these in some UpdateRoomToNewVersion method
             _loadedRoom.Modified |= ImportExport.CreateInteractionScripts(_loadedRoom, errors);
-            _loadedRoom.Modified |= HookUpInteractionVariables(_loadedRoom);
             _loadedRoom.Modified |= HandleObsoleteSettings(_loadedRoom, errors);
 			if (_loadedRoom.Script.Modified)
 			{
@@ -993,57 +992,6 @@ namespace AGS.Editor.Components
                 return true;
             }
             return false;
-        }
-
-        private bool HookUpInteractionVariables(Room room)
-        {
-            bool changedScript = false;
-            int index;
-            while ((index = room.Script.Text.IndexOf("__INTRVAL$")) > 0)
-            {
-                int endIndex = room.Script.Text.IndexOf('$', index + 10) + 1;
-                string intrVariableNumber = room.Script.Text.Substring(index + 10, (endIndex - index) - 11);
-                int variableNumber = Convert.ToInt32(intrVariableNumber);
-                string replacementText;
-
-                if (variableNumber >= OldInteractionVariable.LOCAL_VARIABLE_INDEX_OFFSET)
-                {
-                    variableNumber -= OldInteractionVariable.LOCAL_VARIABLE_INDEX_OFFSET;
-                    if (variableNumber >= room.OldInteractionVariables.Count)
-                    {
-                        replacementText = "UNKNOWN_ROOM_VARIABLE_" + variableNumber;
-                    }
-                    else
-                    {
-                        replacementText = room.OldInteractionVariables[variableNumber].ScriptName;
-                    }
-                }
-                else
-                {
-                    if (variableNumber >= _agsEditor.CurrentGame.OldInteractionVariables.Count)
-                    {
-                        replacementText = "UNKNOWN_INTERACTION_VARIABLE_" + variableNumber;
-                    }
-                    else
-                    {
-                        replacementText = _agsEditor.CurrentGame.OldInteractionVariables[variableNumber].ScriptName;
-                    }
-                }
-
-                room.Script.Text = room.Script.Text.Replace(room.Script.Text.Substring(index, (endIndex - index)), replacementText);
-                changedScript = true;
-            }
-
-			if ((changedScript) && (room.OldInteractionVariables.Count > 0))
-			{
-				foreach (OldInteractionVariable var in room.OldInteractionVariables)
-				{
-					room.Script.Text = string.Format("int {0} = {1};{2}", var.ScriptName, var.Value, Environment.NewLine) + room.Script.Text;
-				}
-				room.Script.Text = "// Automatically converted interaction variables" + Environment.NewLine + room.Script.Text;
-			}
-
-			return changedScript;
         }
 
         private bool LoadDifferentRoom(UnloadedRoom newRoom)

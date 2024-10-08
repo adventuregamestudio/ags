@@ -430,23 +430,11 @@ namespace AGS.Editor
             // NOTE: old game format: texts are always ANSI/ASCII
             int scriptHeaderLength = reader.ReadInt32() - 1;
             string scriptHeaderText = Encoding.Default.GetString(reader.ReadBytes(scriptHeaderLength));
-            string extraScript = "// Automatically converted interaction variables" + Environment.NewLine;
-            foreach (OldInteractionVariable var in game.OldInteractionVariables)
-            {
-                extraScript += "import int " + var.ScriptName + ";" + Environment.NewLine;
-            }
-            scriptHeaderText += extraScript;
             scriptHeader = new Script(Script.GLOBAL_HEADER_FILE_NAME, scriptHeaderText, true);
             reader.ReadByte(); // skip the null terminator
 
             int globalScriptLength = reader.ReadInt32() - 1;
             string globalScriptText = Encoding.Default.GetString(reader.ReadBytes(globalScriptLength));
-            extraScript = "// Automatically converted interaction variables" + Environment.NewLine;
-            foreach (OldInteractionVariable var in game.OldInteractionVariables)
-            {
-                extraScript += string.Format("int {0} = {1};{2}export {0};{2}", var.ScriptName, var.Value, Environment.NewLine);
-            }
-            globalScriptText = extraScript + globalScriptText;
             globalScript = new Script(Script.GLOBAL_SCRIPT_FILE_NAME, globalScriptText, false);
             reader.ReadByte(); // skip the null terminator
         }

@@ -55,7 +55,6 @@ namespace AGS.Types
         private readonly List<RoomWalkableArea> _walkableAreas = new List<RoomWalkableArea>();
         private readonly List<RoomWalkBehind> _walkBehinds = new List<RoomWalkBehind>();
         private readonly List<RoomRegion> _regions = new List<RoomRegion>();
-        private IList<OldInteractionVariable> _oldInteractionVariables = new List<OldInteractionVariable>();
 
         static Room()
         {
@@ -256,12 +255,6 @@ namespace AGS.Types
         public int RegionCount
         {
             get { return _regions.Count; }
-        }
-       
-        [Browsable(false)]
-        public IList<OldInteractionVariable> OldInteractionVariables
-        {
-            get { return _oldInteractionVariables; }
         }
 
         [Browsable(false)]

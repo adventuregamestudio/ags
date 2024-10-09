@@ -2730,6 +2730,8 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
           nbut.SetMouseOverImage(button->MouseoverImage);
           nbut.SetPushedImage(button->PushedImage);
           nbut.TextAlignment = (::FrameAlignment)button->TextAlignment;
+          nbut.TextHorPadding = button->TextHorizontalPadding;
+          nbut.TextVerPadding = button->TextVerticalPadding;
           nbut.SetWrapText(button->WrapText);
           nbut.ClickAction[Common::kGUIClickLeft] = (Common::GUIClickAction)button->ClickAction;
           nbut.ClickData[Common::kGUIClickLeft] = button->NewModeNumber;
@@ -3542,6 +3544,9 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 					newButton->MouseoverImage = copyFrom->GetMouseOverImage();
 					newButton->PushedImage = copyFrom->GetPushedImage();
 					newButton->TextAlignment = (AGS::Types::FrameAlignment)copyFrom->TextAlignment;
+                    newButton->TextHorizontalPadding = copyFrom->TextHorPadding;
+                    newButton->TextVerticalPadding = copyFrom->TextVerPadding;
+                    newButton->WrapText = copyFrom->IsWrapText();
                     newButton->ClickAction = (GUIClickAction)copyFrom->ClickAction[Common::kGUIClickLeft];
 					newButton->NewModeNumber = copyFrom->ClickData[Common::kGUIClickLeft];
                     newButton->ClipImage = copyFrom->IsClippingImage();

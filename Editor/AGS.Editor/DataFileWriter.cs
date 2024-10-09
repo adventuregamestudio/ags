@@ -1067,6 +1067,26 @@ namespace AGS.Editor
                     }
                 }
 
+                public int TextHorizontalPadding
+                {
+                    get
+                    {
+                        GUIButton button = (GUIButton)this;
+                        if (button != null) return button.TextHorizontalPadding;
+                        return 0;
+                    }
+                }
+
+                public int TextVerticalPadding
+                {
+                    get
+                    {
+                        GUIButton button = (GUIButton)this;
+                        if (button != null) return button.TextVerticalPadding;
+                        return 0;
+                    }
+                }
+
                 public bool WrapText
                 {
                     get
@@ -1788,6 +1808,7 @@ namespace AGS.Editor
             WriteExtension("v360_cursors", WriteExt_360Cursors, writer, gameEnts, errors);
             WriteExtension("v361_objnames", WriteExt_361ObjNames, writer, gameEnts, errors);
             WriteExtension("v362_interevents", WriteExt_362InteractionEvents, writer, gameEnts, errors);
+            WriteExtension("v362_guictrls", WriteExt_362GUIControls, writer, gameEnts, errors);
 
             // End of extensions list
             writer.Write((byte)0xff);
@@ -1887,6 +1908,18 @@ namespace AGS.Editor
             foreach (GUI gui in game.GUIs)
             {
                 FilePutString(gui.ScriptModule, writer);
+            }
+        }
+
+        private static void WriteExt_362GUIControls(BinaryWriter writer, WriteExtEntities ents, CompileMessages errors)
+        {
+            writer.Write(ents.GUIControls.GUIButtons.Count);
+            foreach (var button in ents.GUIControls.GUIButtons)
+            {
+                writer.Write(button.TextHorizontalPadding);
+                writer.Write(button.TextVerticalPadding);
+                writer.Write((int)0);
+                writer.Write((int)0);
             }
         }
 

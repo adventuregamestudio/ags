@@ -190,7 +190,7 @@ void GUIButton::PrepareTextToDraw()
     if (IsWrapText())
     {
         _textToDraw = _text;
-        GUI::SplitLinesForDrawing(_text, (Flags & kGUICtrl_Translated) != 0, Lines, Font, _width);
+        GUI::SplitLinesForDrawing(_text, (Flags & kGUICtrl_Translated) != 0, Lines, Font, _width - TextPaddingHor * 2);
     }
     else
     {

@@ -66,6 +66,10 @@ enum GUIButtonPlaceholder
 class GUIButton : public GUIObject
 {
 public:
+    // Default text padding
+    static const int DefaultHorPadding = 2;
+    static const int DefaultVerPadding = 2;
+
     GUIButton();
 
     bool HasAlphaChannel() const override;
@@ -107,10 +111,12 @@ public:
     int32_t     Font;
     color_t     TextColor;
     FrameAlignment TextAlignment;
+    int32_t     TextPaddingHor;
+    int32_t     TextPaddingVer;
     // Click actions for left and right mouse buttons
     // NOTE: only left click is currently in use
     GUIClickAction ClickAction[kNumGUIClicks];
-    int32_t        ClickData[kNumGUIClicks];
+    int32_t     ClickData[kNumGUIClicks];
 
     bool        IsPushed;
     bool        IsMouseOver;

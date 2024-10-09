@@ -193,7 +193,8 @@ enum GuiSvgVersion
     kGuiSvgVersion_36020,
     kGuiSvgVersion_36023,
     kGuiSvgVersion_36025,
-    kGuiSvgVersion_36200    = 3060200 // re-added control refs
+    kGuiSvgVersion_36200    = 3060200, // re-added control refs
+    kGuiSvgVersion_36202    = 3060202
 };
 
 // Style of GUI drawing in disabled state

@@ -149,7 +149,7 @@ void GUIButton::PrepareTextToDraw()
     if (IsWrapText())
     {
         _textToDraw = _text;
-        GUI::SplitLinesForDrawing(_text, false, Lines, Font, _width);
+        GUI::SplitLinesForDrawing(_text, false, Lines, Font, _width - TextPaddingHor * 2);
     }
     else
     {

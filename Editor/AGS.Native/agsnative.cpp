@@ -2747,7 +2747,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
           Common::GUILabel nlabel;
           nlabel.TextColor = label->TextColor;
           nlabel.Font = label->Font;
-          nlabel.TextAlignment = (::HorAlignment)label->TextAlignment;
+          nlabel.TextAlignment = (::FrameAlignment)label->TextAlignment;
           Common::String text = tcv->ConvertTextProperty(label->Text);
           nlabel.SetText(text);
           guilabels.push_back(nlabel);
@@ -3562,7 +3562,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 				newControl = newLabel;
 				newLabel->TextColor = copyFrom->TextColor;
 				newLabel->Font = copyFrom->Font;
-				newLabel->TextAlignment = (AGS::Types::HorizontalAlignment)copyFrom->TextAlignment;
+				newLabel->TextAlignment = (AGS::Types::FrameAlignment)copyFrom->TextAlignment;
 				newLabel->Text = tcv->Convert(copyFrom->GetText());
 				break;
 				}

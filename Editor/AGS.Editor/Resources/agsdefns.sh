@@ -1839,7 +1839,7 @@ builtin managed struct Label extends GUIControl {
   import attribute int  TextColor;
 #ifdef SCRIPT_API_v350
   /// Gets/sets label's text alignment.
-  import attribute HorizontalAlignment TextAlignment;
+  import attribute Alignment TextAlignment;
 #endif
 };
 

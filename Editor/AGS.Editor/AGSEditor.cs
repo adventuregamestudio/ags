@@ -107,8 +107,9 @@ namespace AGS.Editor
          * 3.6.2          - Character.TurnWhenFacing, Settings.UseOldVoiceClipNaming,
          *                  ScriptModules for interaction/event lists,
          *                  GlobalVariable may be of array type.
+         * 3.6.2.2        - Button.WrapText
         */
-        public const int    LATEST_XML_VERSION_INDEX = 3060200;
+        public const int    LATEST_XML_VERSION_INDEX = 3060202;
         /*
          * LATEST_USER_DATA_VERSION is the last version of the user data file that used a
          * 4-point-4-number string to identify the version of AGS that saved the file.

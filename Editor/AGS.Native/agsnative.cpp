@@ -2730,6 +2730,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
           nbut.SetMouseOverImage(button->MouseoverImage);
           nbut.SetPushedImage(button->PushedImage);
           nbut.TextAlignment = (::FrameAlignment)button->TextAlignment;
+          nbut.SetWrapText(button->WrapText);
           nbut.ClickAction[Common::kGUIClickLeft] = (Common::GUIClickAction)button->ClickAction;
           nbut.ClickData[Common::kGUIClickLeft] = button->NewModeNumber;
           nbut.SetClipImage(button->ClipImage);

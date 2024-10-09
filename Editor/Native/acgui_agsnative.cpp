@@ -146,7 +146,15 @@ void GUIInvWindow::Draw(Bitmap *ds, int x, int y)
 
 void GUIButton::PrepareTextToDraw()
 {
-    _textToDraw = _text;
+    if (IsWrapText())
+    {
+        _textToDraw = _text;
+        GUI::SplitLinesForDrawing(_text, false, Lines, Font, _width);
+    }
+    else
+    {
+        _textToDraw = _text;
+    }
 }
 
 } // namespace Common

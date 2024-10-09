@@ -1059,6 +1059,16 @@ namespace AGS.Editor
                     }
                 }
 
+                public bool WrapText
+                {
+                    get
+                    {
+                        GUIButton button = (GUIButton)this;
+                        if (button != null) return button.WrapText;
+                        return false;
+                    }
+                }
+
                 public string OnClick
                 {
                     get
@@ -1122,7 +1132,8 @@ namespace AGS.Editor
                 foreach (GUIButtonOrTextWindowEdge ctrl in GUIButtonsAndTextWindowEdges)
                 {
                     int flags;
-                    flags = (ctrl.ClipImage ? NativeConstants.GUIF_CLIP : 0);
+                    flags = (ctrl.ClipImage ? NativeConstants.GUIF_CLIP : 0) |
+                            (ctrl.WrapText ? NativeConstants.GUIF_WRAPTEXT : 0);
                     WriteGUIControl(ctrl, flags, new string[] { ctrl.OnClick });
                     writer.Write(ctrl.Image); // pic
                     writer.Write(ctrl.MouseoverImage); // overpic

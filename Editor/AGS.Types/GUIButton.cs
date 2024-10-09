@@ -37,6 +37,7 @@ namespace AGS.Types
         private int _font;
         private int _textColor;
         private FrameAlignment _textAlign;
+        private bool _wrapText;
         private bool _clipImage;
         private GUIClickAction _clickAction;
         private int _newModeNumber;
@@ -84,6 +85,14 @@ namespace AGS.Types
         {
             get { return _textAlign; }
             set { _textAlign = value; }
+        }
+
+        [Description("Whether button will wrap text when it exceeds button's width or has new line characters")]
+        [Category("Appearance")]
+        public bool WrapText
+        {
+            get { return _wrapText; }
+            set { _wrapText = value; }
         }
 
         [Description("AGS Colour Number of the button text")]

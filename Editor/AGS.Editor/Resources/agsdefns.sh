@@ -1890,6 +1890,14 @@ builtin managed struct Button extends GUIControl {
   /// Gets/sets text alignment inside the button.
   import attribute Alignment TextAlignment;
 #endif
+#ifdef SCRIPT_API_v362
+  /// Gets/sets whether the button will wrap its text.
+  import attribute bool WrapText;
+  /// Gets/sets amount of padding, restricting the text from left and right
+  import attribute int TextPaddingHorizontal;
+  /// Gets/sets amount of padding, restricting the text from top and bottom
+  import attribute int TextPaddingVertical;
+#endif
 };
 
 builtin managed struct Slider extends GUIControl {

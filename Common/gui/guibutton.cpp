@@ -168,7 +168,11 @@ Rect GUIButton::CalcGraphicRect(bool clipped)
             frame.Left++;
             frame.Top++;
         }
-        rc = SumRects(rc, GUI::CalcTextGraphicalRect(_textToDraw, Font, frame, TextAlignment));
+
+        Rect text_rc = IsWrapText() ?
+            GUI::CalcTextGraphicalRect(Lines.GetVector(), Lines.Count(), Font, get_font_linespacing(Font), frame, TextAlignment) :
+            GUI::CalcTextGraphicalRect(_textToDraw, Font, frame, TextAlignment);
+        rc = SumRects(rc, text_rc);
     }
     return rc;
 }
@@ -273,6 +277,15 @@ void GUIButton::SetText(const String &text)
     // TODO: find a way to remove this bogus limitation ("New Button" is a valid Text too)
     _unnamed = _text.IsEmpty() || _text.Compare("New Button") == 0;
     MarkChanged();
+}
+
+void GUIButton::SetWrapText(bool on)
+{
+    if (on != ((Flags & kGUICtrl_WrapText) != 0))
+    {
+        Flags = (Flags & ~kGUICtrl_WrapText) | kGUICtrl_WrapText * on;
+        MarkChanged();
+    }
 }
 
 bool GUIButton::OnMouseDown()
@@ -502,7 +515,12 @@ void GUIButton::DrawText(Bitmap *ds, int x, int y, bool draw_disabled)
     color_t text_color = ds->GetCompatibleColor(TextColor);
     if (draw_disabled)
         text_color = ds->GetCompatibleColor(8);
-    GUI::DrawTextAligned(ds, _textToDraw, Font, text_color, frame, TextAlignment);
+
+    if (IsWrapText())
+        GUI::DrawTextLinesAligned(ds, Lines.GetVector(), Lines.Count(), Font, get_font_linespacing(Font), text_color,
+            frame, TextAlignment);
+    else
+        GUI::DrawTextAligned(ds, _textToDraw, Font, text_color, frame, TextAlignment);
 }
 
 void GUIButton::DrawTextButton(Bitmap *ds, int x, int y, bool draw_disabled)

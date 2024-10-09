@@ -88,6 +88,7 @@ public:
     void SetPushedImage(int32_t image);
     void SetImages(int32_t normal, int32_t over, int32_t pushed);
     void SetText(const String &text);
+    void SetWrapText(bool on);
 
     // Events
     bool OnMouseDown() override;

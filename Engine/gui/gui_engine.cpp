@@ -187,8 +187,16 @@ void GUIListBox::PrepareTextToDraw(const String &text)
 
 void GUIButton::PrepareTextToDraw()
 {
-    _textToDraw = GUI::TransformTextForDrawing(_text, (Flags & kGUICtrl_Translated) != 0,
-        (loaded_game_file_version >= kGameVersion_361));
+    if (IsWrapText())
+    {
+        _textToDraw = _text;
+        GUI::SplitLinesForDrawing(_text, (Flags & kGUICtrl_Translated) != 0, Lines, Font, _width);
+    }
+    else
+    {
+        _textToDraw = GUI::TransformTextForDrawing(_text, (Flags & kGUICtrl_Translated) != 0,
+            (loaded_game_file_version >= kGameVersion_361));
+    }
 }
 
 } // namespace Common

@@ -139,6 +139,7 @@ enum GUIControlFlags
     kGUICtrl_Clip       = 0x0020, // only button
     kGUICtrl_Clickable  = 0x0040,
     kGUICtrl_Translated = 0x0080, // 3.3.0.1132
+    kGUICtrl_WrapText   = 0x0100, // 3.6.2
     kGUICtrl_Deleted    = 0x8000, // unused (probably remains from the old editor?)
 
     kGUICtrl_DefFlags   = kGUICtrl_Enabled | kGUICtrl_Visible | kGUICtrl_Clickable |

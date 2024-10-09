@@ -9,6 +9,10 @@ namespace AGS.Types
     [DeserializeConvertValue("Left", "TopLeft")]
     [DeserializeConvertValue("Right", "TopRight")]
     [DeserializeConvertValue("TopMiddle", "TopCenter")]
+    /* convert from HorizontalAlignment */
+    [DeserializeConvertValue("Left", "TopLeft")]
+    [DeserializeConvertValue("Center", "TopCenter")]
+    [DeserializeConvertValue("Right", "TopRight")]
     [Flags]
     public enum FrameAlignment
     {

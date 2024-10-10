@@ -3471,7 +3471,7 @@ TEST_F(Bytecode0, Func02) {
 
     int const numimports = 1;
     std::string imports[] = {
-    "Func",         "[[SENTINEL]]"
+    "Func^2",       "[[SENTINEL]]"
     };
     CompareImports(&scrip, numimports, imports);
 
@@ -3539,7 +3539,7 @@ TEST_F(Bytecode0, Func03) {
 
     int const numimports = 1;
     std::string imports[] = {
-    "Func",         "[[SENTINEL]]"
+    "Func^2",       "[[SENTINEL]]"
     };
     CompareImports(&scrip, numimports, imports);
 
@@ -3865,7 +3865,7 @@ TEST_F(Bytecode0, Func07) {
 
     int const numimports = 1;
     std::string imports[] = {
-    "Func",         "[[SENTINEL]]"
+    "Func^2",       "[[SENTINEL]]"
     };
     CompareImports(&scrip, numimports, imports);
 
@@ -3923,7 +3923,7 @@ TEST_F(Bytecode0, Func08) {
 
     int const numimports = 1;
     std::string imports[] = {
-    "Func",         "[[SENTINEL]]"
+    "Func^2",       "[[SENTINEL]]"
     };
     CompareImports(&scrip, numimports, imports);
 
@@ -3982,7 +3982,7 @@ TEST_F(Bytecode0, Func09) {
 
     int const numimports = 1;
     std::string imports[] = {
-    "Func",         "[[SENTINEL]]"
+    "Func^2",       "[[SENTINEL]]"
     };
     CompareImports(&scrip, numimports, imports);
 

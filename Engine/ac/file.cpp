@@ -93,7 +93,15 @@ int File_Copy(const char *old_name, const char *new_name) {
   if (!new_rp)
     return 0;
 
-  return File::CopyFile(old_rp.FullPath, new_rp.FullPath, true) ? 1 : 0;
+  if (!old_rp.AssetMgr)
+    return File::CopyFile(old_rp.FullPath, new_rp.FullPath, true) ? 1 : 0;
+
+  auto in = AssetMgr->OpenAsset(old_rp.FullPath, "*");
+  auto out = File::CreateFile(new_rp.FullPath);
+  if (!in || !out)
+    return 0;
+
+  return (CopyStream(in.get(), out.get(), in->GetLength()) == in->GetLength()) ? 1 : 0;
 }
 
 int File_Rename(const char *old_name, const char *new_name) {

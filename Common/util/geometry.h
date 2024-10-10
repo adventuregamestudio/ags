@@ -451,8 +451,11 @@ bool IsRectInsideRect(const Rect &place, const Rect &item);
 // Calculates a distance between two axis-aligned rectangles, returns 0 if they intersect
 float DistanceBetween(const Rect &r1, const Rect &r2);
 
-int AlignInHRange(int x1, int x2, int off_x, int width, FrameAlignment align);
-int AlignInVRange(int y1, int y2, int off_y, int height, FrameAlignment align);
+// Align an item of certain width in the given horizontal frame; returns item's X position
+int AlignInHRange(int frame_x1, int frame_x2, int item_offx, int item_width, FrameAlignment align);
+// Align an item of certain height in the given vertical frame; returns item's Y position
+int AlignInVRange(int frame_y1, int frame_y2, int item_offy, int item_height, FrameAlignment align);
+// Align an item in the given frame, returns item's position as rectangle
 Rect AlignInRect(const Rect &frame, const Rect &item, FrameAlignment align);
 
 Size ProportionalStretch(int dest_w, int dest_h, int item_w, int item_h);

@@ -351,7 +351,7 @@ void DrawingSurface_DrawStringWrapped(ScriptDrawingSurface *sds, int xx, int yy,
 
     for (size_t i = 0; i < Lines.Count(); i++)
     {
-        GUI::DrawTextAlignedHor(ds, Lines[i].GetCStr(), font, text_color,
+        GUI::DrawTextAlignedHor(ds, Lines[i], font, text_color,
             xx, xx + wid - 1, yy + linespacing*i, (FrameAlignment)alignment);
     }
 

@@ -63,22 +63,22 @@ Size ProportionalStretch(const Size &dest, const Size &item)
     return ProportionalStretch(dest.Width, dest.Height, item.Width, item.Height);
 }
 
-int AlignInHRange(int x1, int x2, int off_x, int width, FrameAlignment align)
+int AlignInHRange(int frame_x1, int frame_x2, int item_offx, int item_width, FrameAlignment align)
 {
     if (align & kMAlignRight)
-        return off_x + x2 - width;
+        return item_offx + frame_x2 - item_width;
     else if (align & kMAlignHCenter)
-        return off_x + x1 + ((x2 - x1 + 1) >> 1) - (width >> 1);
-    return off_x + x1; // kAlignLeft is default
+        return item_offx + frame_x1 + ((frame_x2 - frame_x1 + 1) >> 1) - (item_width >> 1);
+    return item_offx + frame_x1; // kAlignLeft is default
 }
 
-int AlignInVRange(int y1, int y2, int off_y, int height, FrameAlignment align)
+int AlignInVRange(int frame_y1, int frame_y2, int item_offy, int item_height, FrameAlignment align)
 {
     if (align & kMAlignBottom)
-        return off_y + y2 - height;
+        return item_offy + frame_y2 - item_height;
     else if (align & kMAlignVCenter)
-        return off_y + y1 + ((y2 - y1 + 1) >> 1) - (height >> 1);
-    return off_y + y1; // kAlignTop is default
+        return item_offy + frame_y1 + ((frame_y2 - frame_y1 + 1) >> 1) - (item_height >> 1);
+    return item_offy + frame_y1; // kAlignTop is default
 }
 
 Rect AlignInRect(const Rect &frame, const Rect &item, FrameAlignment align)

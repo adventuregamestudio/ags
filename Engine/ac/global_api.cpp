@@ -180,6 +180,11 @@ RuntimeScriptValue Sc_ClaimEvent(const RuntimeScriptValue *params, int32_t param
     API_SCALL_VOID(ClaimEvent);
 }
 
+RuntimeScriptValue Sc_CopySaveSlot(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT2(CopySaveSlot);
+}
+
 // int (int xx,int yy,int slott,int trans)
 RuntimeScriptValue Sc_CreateGraphicOverlay(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -2351,6 +2356,7 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "ChangeCursorGraphic",      API_FN_PAIR(ChangeCursorGraphic) },
         { "ChangeCursorHotspot",      API_FN_PAIR(ChangeCursorHotspot) },
         { "ClaimEvent",               API_FN_PAIR(ClaimEvent) },
+        { "CopySaveSlot",             API_FN_PAIR(CopySaveSlot) },
         { "CreateGraphicOverlay",     API_FN_PAIR(CreateGraphicOverlay) },
         { "CreateTextOverlay",        Sc_CreateTextOverlay, ScPl_CreateTextOverlay },
         { "CyclePalette",             API_FN_PAIR(CyclePalette) },

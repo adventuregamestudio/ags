@@ -838,6 +838,8 @@ import void SaveGameSlot(int slot, const string description, int sprite = -1);
 /// Restores the game saved to the specified game slot.
 import void RestoreGameSlot(int slot);
 #ifdef SCRIPT_API_v362
+/// Copies the save game from one slot to another, overwriting a save if one was already present at a new slot.
+import void CopySaveSlot(int old_slot, int new_slot);
 /// Moves the save game from one slot to another, overwriting a save if one was already present at a new slot.
 import void MoveSaveSlot(int old_slot, int new_slot);
 #endif
@@ -1345,6 +1347,8 @@ builtin managed struct File {
   readonly import attribute String Path;
 #endif
 #ifdef SCRIPT_API_v362
+  /// Creates a copy of an existing file; if there's already a file with the new name then it will be overwritten
+  import static bool Copy(const string old_filename, const string new_filename);   // $AUTOCOMPLETESTATICONLY$
   /// Retrieves specified file's last write time; returns null if file does not exist
   import static DateTime* GetFileTime(const string filename); // $AUTOCOMPLETESTATICONLY$
   /// Renames an existing file; if there's already a file with the new name then it will be overwritten

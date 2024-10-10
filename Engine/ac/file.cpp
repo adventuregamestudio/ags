@@ -84,6 +84,18 @@ int File_Delete(const char *fnmm) {
   return File::DeleteFile(rp.FullPath) ? 1 : 0;
 }
 
+int File_Copy(const char *old_name, const char *new_name) {
+  // first path is readonly, second must be writeable and create dirs
+  const auto old_rp = ResolveScriptPathAndFindFile(old_name, true);
+  if (!old_rp)
+    return 0;
+  const auto new_rp = ResolveWritePathAndCreateDirs(new_name);
+  if (!new_rp)
+    return 0;
+
+  return File::CopyFile(old_rp.FullPath, new_rp.FullPath, true) ? 1 : 0;
+}
+
 int File_Rename(const char *old_name, const char *new_name) {
   // both paths must be writeable, but should also create dirs for the second
   const auto old_rp = ResolveScriptPathAndFindFile(old_name, false);
@@ -785,6 +797,11 @@ void close_all_file_streams()
 #include "ac/dynobj/scriptstring.h"
 
 
+RuntimeScriptValue Sc_File_Copy(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_POBJ2(File_Copy, const char, const char);
+}
+
 // int (const char *fnmm)
 RuntimeScriptValue Sc_File_Delete(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -926,6 +943,7 @@ RuntimeScriptValue Sc_File_GetPath(void *self, const RuntimeScriptValue *params,
 void RegisterFileAPI()
 {
     ScFnRegister file_api[] = {
+        { "File::Copy^2",             API_FN_PAIR(File_Copy) },
         { "File::Delete^1",           API_FN_PAIR(File_Delete) },
         { "File::Exists^1",           API_FN_PAIR(File_Exists) },
         { "File::GetFileTime^1",      API_FN_PAIR(File_GetFileTime) },

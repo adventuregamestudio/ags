@@ -17,6 +17,7 @@
 //=============================================================================
 #include "util/lzw.h"
 #include <stdlib.h>
+#include <string.h>
 #include "util/bbop.h"
 #include "util/stream.h"
 
@@ -213,7 +214,8 @@ bool lzwexpand(const uint8_t *src, size_t src_sz, uint8_t *dst, size_t dst_sz)
           break;
 
         short jshort = 0;
-        jshort = BBOp::Int16FromLE(*(reinterpret_cast<const int16_t*>(src_ptr)));
+        memcpy(&jshort, src_ptr, sizeof(int16_t));
+        jshort = BBOp::Int16FromLE(jshort);
         src_ptr += sizeof(int16_t);
         j = jshort;
 

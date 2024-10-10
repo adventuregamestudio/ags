@@ -83,7 +83,7 @@ public:
 
         // Get the label of a function, in order to insert it into the code,
         // this label will be replaced by its value later on
-        inline CodeCell Function2Label(Symbol func) { return func * _size + _kind; }
+        inline CodeCell Function2Label(Symbol func) const { return func * _size + _kind; }
 
         // Keep track of the location of a label that needs to be replaced later on
         inline void TrackLabelLoc(CodeLoc loc) { _scrip.Labels.push_back(loc); }
@@ -577,6 +577,9 @@ private:
     // Evaluate 'vloc_lhs op_sym vloc_rhs' at compile time, return the result in 'vloc'.
     // Return whether this is possible.
     bool ParseExpression_CompileTime(Symbol op_sym, EvaluationResult const &eres_lhs, EvaluationResult const &eres_rhs, EvaluationResult &eres);
+
+    // Process a parenthesised list following a 'new'
+    void ParseExpression_New_InitFuncCall(Symbol arg_vartype, SrcList &expression);
 
     // Parse the term given in 'expression'. The lowest-binding operator is unary 'new'
     // Parsing must use up 'expression' completely; if there are trailing symbols, throw 'UserError'.

@@ -1069,13 +1069,13 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
   if (next_is_import) {
     sym.entries[funcsym].flags |= SFLG_IMPORTED;
 
-    if (isMemberFunction) {
-      // for imported member functions, append the number of parameters
-      // to the name of the import
-      char appendage[10];
-      sprintf(appendage, "^%d", sym.entries[funcsym].sscope);
-      scrip->imports[in_func].append(appendage);
-    }
+    // Append the number of parameters to the name of the import:
+    // this lets the engine to link different implementations depending on API
+    // which was used when compiling the script.
+    // (Sort of a limited "function overloading")
+    char appendage[10];
+    snprintf(appendage, sizeof(appendage), "^%d", sym.entries[funcsym].sscope);
+    scrip->imports[in_func].append(appendage);
 
     int nextvar = targ.peeknext();
     // member function expects the ; to still be there whereas

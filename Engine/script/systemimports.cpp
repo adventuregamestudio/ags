@@ -82,27 +82,37 @@ const ScriptImport *SystemImports::getByIndex(uint32_t index)
 
 uint32_t SystemImports::get_index_of(const String &name)
 {
+    // Import names may be commonly formed as "name^N" or "type::name^N",
+    // where "type" is a name of a type, "name" is a name of a function,
+    // and "N" is a number of arguments.
+    
+    // First look for the identical name match: this may be the case if:
+    // * compiler did not bother to append number of arguments;
+    // * we registered a function with exact matching arg number;
+    // * we called get_index_of() recursively with arg num cut off (see below).
     IndexMap::const_iterator it = btree.find(name);
     if (it != btree.end())
         return it->second;
 
-    // CHECKME: what are "mangled names" and where do they come from?
-    String mangled_name = String::FromFormat("%s$", name.GetCStr());
-    // if it's a function with a mangled name, allow it
-    it = btree.lower_bound(mangled_name);
-    if (it != btree.end() && it->first.CompareLeft(mangled_name) == 0)
-        return it->second;
-
+    // Next try if the given name contains '^' separator,
+    // in which case cut the leftmost section and try it alone.
     if (name.GetLength() > 3)
     {
         size_t c = name.FindCharReverse('^');
-        if (c != String::NoIndex && (c == name.GetLength() - 2 || c == name.GetLength() - 3))
+        if (c != String::NoIndex && (c >= name.GetLength() - 4))
         {
-            // Function with number of prametrs on the end
-            // attempt to find it without the param count
             return get_index_of(name.Left(c));
         }
     }
+
+    // Finally look for the exported script functions, these commonly are registered
+    // as "name$N", where N is a number of arguments.
+    String export_name = String::FromFormat("%s$", name.GetCStr());
+    it = btree.lower_bound(export_name);
+    if (it != btree.end() && it->first.CompareLeft(export_name) == 0)
+        return it->second;
+
+    // Not found...
     return UINT32_MAX;
 }
 

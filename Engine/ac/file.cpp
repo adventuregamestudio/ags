@@ -93,6 +93,9 @@ int File_Copy(const char *old_name, const char *new_name) {
   if (!new_rp)
     return 0;
 
+  if (Path::ComparePaths(old_rp.FullPath, new_rp.FullPath) == 0)
+    return 0; // cannot copy into itself
+
   if (!old_rp.AssetMgr)
     return File::CopyFile(old_rp.FullPath, new_rp.FullPath, true) ? 1 : 0;
 
@@ -112,6 +115,9 @@ int File_Rename(const char *old_name, const char *new_name) {
   const auto new_rp = ResolveWritePathAndCreateDirs(new_name);
   if (!new_rp)
     return 0;
+
+  if (Path::ComparePaths(old_rp.FullPath, new_rp.FullPath) == 0)
+    return 0; // cannot rename into itself
 
   return File::RenameFile(old_rp.FullPath, new_rp.FullPath) ? 1 : 0;
 }

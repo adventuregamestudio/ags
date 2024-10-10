@@ -1096,9 +1096,12 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
     // this lets the engine to link different implementations depending on API
     // which was used when compiling the script.
     // (Sort of a limited "function overloading")
-    char appendage[10];
-    snprintf(appendage, sizeof(appendage), "^%d", sym.entries[funcsym].sscope);
-    scrip->imports[in_func].append(appendage);
+    if (scrip->imports[in_func].find('^') == std::string::npos)
+    {
+        char appendage[10];
+        snprintf(appendage, sizeof(appendage), "^%d", sym.entries[funcsym].sscope);
+        scrip->imports[in_func].append(appendage);
+    }
 
     int nextvar = targ.peeknext();
     // member function expects the ; to still be there whereas

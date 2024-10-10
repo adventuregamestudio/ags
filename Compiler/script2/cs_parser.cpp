@@ -1402,9 +1402,12 @@ void AGS::Parser::ParseFuncdecl_HandleFunctionOrImportIndex(TypeQualifierSet tqs
     // this lets the engine to link different implementations depending on API
     // which was used when compiling the script.
     // (Sort of a limited "function overloading")
-    char appendage[10];
-    snprintf(appendage, sizeof(appendage), "^%zu", _sym.FuncParamsCount(name_of_func) + 100 * _sym[name_of_func].FunctionD->IsVariadic);
-    _scrip.imports[imports_idx].append(appendage);
+    if (_scrip.imports[imports_idx].find('^') == std::string::npos)
+    {
+        char appendage[10];
+        snprintf(appendage, sizeof(appendage), "^%zu", _sym.FuncParamsCount(name_of_func) + 100 * _sym[name_of_func].FunctionD->IsVariadic);
+        _scrip.imports[imports_idx].append(appendage);
+    }
 
     _importLabels.SetLabelValue(name_of_func, imports_idx);
 }

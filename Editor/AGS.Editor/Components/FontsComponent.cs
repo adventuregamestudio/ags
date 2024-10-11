@@ -41,7 +41,7 @@ namespace AGS.Editor.Components
             _guiController.RegisterIcon(ICON_KEY, Resources.ResourceManager.GetIcon("font.ico"));
             _guiController.RegisterIcon("FontIcon", Resources.ResourceManager.GetIcon("font-item.ico"));
             _guiController.ProjectTree.AddTreeRoot(this, TOP_LEVEL_COMMAND_ID, "Fonts", ICON_KEY);
-            Factory.Events.GamePostLoad += ConvertAllFontsToFontAndFilePairs;
+            Factory.Events.GamePostLoad += PostGameLoadInit;
             FontSizeUIEditor.FontSizeGUI = FontImportSize;
             RePopulateTreeView();
         }
@@ -300,6 +300,18 @@ namespace AGS.Editor.Components
                 _guiController.ProjectTree.SelectNode(this, selectedNodeID);
         }
 
+        private FontFile NewFontFile(string filename)
+        {
+            FontFile newItem = new FontFile();
+            newItem.FileName = Path.GetFileName(filename);
+            newItem.SourceFilename = filename;
+            if (newItem.FileName.EndsWith(".wfn"))
+                newItem.FileFormat = FontFileFormat.WFN;
+            else if (newItem.FileName.EndsWith(".ttf"))
+                newItem.FileFormat = FontFileFormat.TTF;
+            return newItem;
+        }
+
         private void AddNewFontFile(Game game)
         {
             string selectedFile = _guiController.ShowOpenFileDialog("Select font file to add", FONT_FILES_FILTER);
@@ -324,13 +336,7 @@ namespace AGS.Editor.Components
             }
 
             IList<FontFile> items = game.FontFiles;
-            FontFile newItem = new FontFile();
-            newItem.FileName = Path.GetFileName(selectedFile);
-            newItem.SourceFilename = selectedFile;
-            if (newItem.FileName.EndsWith(".wfn"))
-                newItem.FileFormat = FontFileFormat.WFN;
-            else if(newItem.FileName.EndsWith(".ttf"))
-                newItem.FileFormat = FontFileFormat.TTF;
+            FontFile newItem = NewFontFile(selectedFile);
             items.Add(newItem);
             _guiController.ProjectTree.StartFromNode(this, FONT_FILES_FOLDER_NODE_ID);
             _guiController.ProjectTree.AddTreeLeaf(this, GetNodeID(newItem), newItem.FileName, "FontFileIcon");
@@ -339,27 +345,27 @@ namespace AGS.Editor.Components
             FontFileTypeConverter.SetFontFileList(game.FontFiles);
         }
 
+        private AGS.Types.Font NewFont(Game game, int id, string fontName, FontFile sourceFontFile)
+        {
+            AGS.Types.Font newItem = new AGS.Types.Font();
+            newItem.ID = id;
+            newItem.Name = fontName;
+            newItem.OutlineStyle = FontOutlineStyle.None;
+            if (sourceFontFile != null)
+            {
+                newItem.FontFile = sourceFontFile;
+                newItem.SourceFilename = sourceFontFile.FileName;
+                newItem.FamilyName = sourceFontFile.FamilyName;
+            }
+            newItem.PointSize = DEFAULT_IMPORTED_FONT_SIZE;
+            newItem.TTFMetricsFixup = game.Settings.TTFMetricsFixup; // use defaults
+            return newItem;
+        }
+
         private void AddNewFont(Game game, FontFile sourceFontFile = null, bool selectRefNode = false)
         {
             IList<AGS.Types.Font> items = game.Fonts;
-            AGS.Types.Font newItem = new AGS.Types.Font();
-            newItem.ID = items.Count;
-            newItem.Name = "Font " + newItem.ID;
-            newItem.OutlineStyle = FontOutlineStyle.None;
-            if (items.Count > 0)
-            {
-                newItem.SourceFilename = Utilities.GetRelativeToProjectPath(items[0].SourceFilename);
-                newItem.PointSize = items[0].PointSize;
-            }
-            if (sourceFontFile != null)
-            {
-                newItem.SourceFilename = sourceFontFile.FileName;
-            }
-            if (newItem.PointSize == 0)
-            {
-                newItem.PointSize = DEFAULT_IMPORTED_FONT_SIZE;
-            }
-            newItem.TTFMetricsFixup = game.Settings.TTFMetricsFixup; // use defaults
+            AGS.Types.Font newItem = NewFont(game, items.Count, "Font " + items.Count, sourceFontFile);
             items.Add(newItem);
             Factory.NativeProxy.OnFontAdded(game, newItem.ID);
             AddFontNode(newItem);
@@ -433,12 +439,39 @@ namespace AGS.Editor.Components
             return sizeValue;
         }
 
+        private void PostGameLoadInit(Game game)
+        {
+            if (_agsEditor.CurrentGame.SavedXmlVersionIndex < AGSEditor.AGS_4_0_0_XML_VERSION_INDEX_FONT_SOURCES)
+            {
+                ConvertAllFontsToFontAndFilePairs(game);
+            }
+
+            AddDefaultFontsIfMissing(game);
+        }
+
+        /// <summary>
+        /// Ensures that the game has at least a single fontfile and font,
+        /// so that it could display text.
+        /// </summary>
+        private void AddDefaultFontsIfMissing(Game game)
+        {
+            if (game.FontFiles.Count == 0)
+            {
+                if (!File.Exists("AGSFNT0.WFN"))
+                    Resources.ResourceManager.CopyFileFromResourcesToDisk("AGSFNT0.WFN");
+                FontFile fontfile = NewFontFile("AGSFNT0.WFN");
+                game.FontFiles.Add(fontfile);
+            }
+            if (game.Fonts.Count == 0)
+            {
+                AGS.Types.Font font = NewFont(game, 0, "Default", game.FontFiles[0]);
+                game.Fonts.Add(font);
+            }
+        }
+
         private void ConvertAllFontsToFontAndFilePairs(Game game)
         {
 #pragma warning disable 0612, 0618
-            if (_agsEditor.CurrentGame.SavedXmlVersionIndex >= AGSEditor.AGS_4_0_0_XML_VERSION_INDEX_FONT_SOURCES)
-                return; // Upgrade already completed
-
             foreach (AGS.Types.Font font in game.Fonts)
             {
                 FontFile ff = new FontFile();

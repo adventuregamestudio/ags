@@ -12,33 +12,48 @@
 //
 //=============================================================================
 #include "ac/dynobj/scriptdatetime.h"
+#include <ctime>
 #include "ac/dynobj/dynobj_manager.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;
 
-int ScriptDateTime::Dispose(void* /*address*/, bool /*force*/) {
+int ScriptDateTime::Dispose(void* /*address*/, bool /*force*/)
+{
     // always dispose a DateTime
     delete this;
     return 1;
 }
 
-const char *ScriptDateTime::GetType() {
+const char *ScriptDateTime::GetType()
+{
     return "DateTime";
 }
 
-void ScriptDateTime::SetFromStdTime(time_t time)
+ScriptDateTime::ScriptDateTime(const time_t &time)
 {
-    // NOTE: subject to year 2038 problem due to shoving time_t in an integer
-    rawUnixTime = static_cast<int>(time);
+    SetTime(SystemClock::from_time_t(time));
+}
 
-    struct tm *newtime = localtime(&time);
-    hour = newtime->tm_hour;
-    minute = newtime->tm_min;
-    second = newtime->tm_sec;
-    day = newtime->tm_mday;
-    month = newtime->tm_mon + 1;
-    year = newtime->tm_year + 1900;
+ScriptDateTime::ScriptDateTime(const ClockTimePoint &time)
+{
+    SetTime(time);
+}
+
+void ScriptDateTime::SetTime(const ClockTimePoint &time)
+{
+    // NOTE: subject to year 2038 problem due to shoving seconds since epoch into an int32
+    _rawtime = static_cast<int32_t>(
+        std::chrono::duration_cast<std::chrono::seconds>(time.time_since_epoch()).count());
+
+    std::time_t ttime = SystemClock::to_time_t(time);
+    std::tm *newtime = std::localtime(&ttime);
+    _hour = newtime->tm_hour;
+    _minute = newtime->tm_min;
+    _second = newtime->tm_sec;
+    _day = newtime->tm_mday;
+    _month = newtime->tm_mon + 1;
+    _year = newtime->tm_year + 1900;
 }
 
 size_t ScriptDateTime::CalcSerializeSize(const void* /*address*/)
@@ -46,29 +61,25 @@ size_t ScriptDateTime::CalcSerializeSize(const void* /*address*/)
     return sizeof(int32_t) * 7;
 }
 
-void ScriptDateTime::Serialize(const void* /*address*/, Stream *out) {
-    out->WriteInt32(year);
-    out->WriteInt32(month);
-    out->WriteInt32(day);
-    out->WriteInt32(hour);
-    out->WriteInt32(minute);
-    out->WriteInt32(second);
-    out->WriteInt32(rawUnixTime);
+void ScriptDateTime::Serialize(const void* /*address*/, Stream *out)
+{
+    out->WriteInt32(_year);
+    out->WriteInt32(_month);
+    out->WriteInt32(_day);
+    out->WriteInt32(_hour);
+    out->WriteInt32(_minute);
+    out->WriteInt32(_second);
+    out->WriteInt32(_rawtime);
 }
 
-void ScriptDateTime::Unserialize(int index, Stream *in, size_t /*data_sz*/) {
-    year = in->ReadInt32();
-    month = in->ReadInt32();
-    day = in->ReadInt32();
-    hour = in->ReadInt32();
-    minute = in->ReadInt32();
-    second = in->ReadInt32();
-    rawUnixTime = in->ReadInt32();
+void ScriptDateTime::Unserialize(int index, Stream *in, size_t /*data_sz*/)
+{
+    _year = in->ReadInt32();
+    _month = in->ReadInt32();
+    _day = in->ReadInt32();
+    _hour = in->ReadInt32();
+    _minute = in->ReadInt32();
+    _second = in->ReadInt32();
+    _rawtime = in->ReadInt32();
     ccRegisterUnserializedObject(index, this, this);
-}
-
-ScriptDateTime::ScriptDateTime() {
-    year = month = day = 0;
-    hour = minute = second = 0;
-    rawUnixTime = 0;
 }

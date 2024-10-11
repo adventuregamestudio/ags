@@ -104,7 +104,6 @@ public:
     virtual uint64_t GetDiskFreeSpaceMB(const Common::String &path) = 0;
     virtual const char* GetBackendFailUserHint();
     virtual eScriptSystemOSID GetSystemOSID() = 0;
-    virtual void GetSystemTime(ScriptDateTime*);
     virtual SetupReturnValue RunSetup(const Common::ConfigTree &cfg_in, Common::ConfigTree &cfg_out);
     // Formats message and writes to standard platform's output;
     // Always adds trailing '\n' after formatted string

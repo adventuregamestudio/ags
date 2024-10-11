@@ -16,46 +16,40 @@
 #include "ac/dynobj/dynobj_manager.h"
 #include "platform/base/agsplatformdriver.h"
 
-ScriptDateTime* DateTime_Now_Core() {
-    ScriptDateTime *sdt = new ScriptDateTime();
-
-    platform->GetSystemTime(sdt);
-
-    return sdt;
-}
 
 ScriptDateTime* DateTime_Now() {
-    ScriptDateTime *sdt = DateTime_Now_Core();
+    ScriptDateTime *sdt = new ScriptDateTime(ScriptDateTime::SystemClock::now());
     ccRegisterManagedObject(sdt, sdt);
     return sdt;
 }
 
+
 int DateTime_GetYear(ScriptDateTime *sdt) {
-    return sdt->year;
+    return sdt->Year();
 }
 
 int DateTime_GetMonth(ScriptDateTime *sdt) {
-    return sdt->month;
+    return sdt->Month();
 }
 
 int DateTime_GetDayOfMonth(ScriptDateTime *sdt) {
-    return sdt->day;
+    return sdt->Day();
 }
 
 int DateTime_GetHour(ScriptDateTime *sdt) {
-    return sdt->hour;
+    return sdt->Hour();
 }
 
 int DateTime_GetMinute(ScriptDateTime *sdt) {
-    return sdt->minute;
+    return sdt->Minute();
 }
 
 int DateTime_GetSecond(ScriptDateTime *sdt) {
-    return sdt->second;
+    return sdt->Second();
 }
 
 int DateTime_GetRawTime(ScriptDateTime *sdt) {
-    return sdt->rawUnixTime;
+    return sdt->RawTime();
 }
 
 //=============================================================================

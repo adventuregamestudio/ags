@@ -70,8 +70,7 @@ ScriptDateTime* File_GetFileTime(const char *fnmm) {
     ft = File::GetFileTime(rp.FullPath);
   }
 
-  ScriptDateTime *sdt = new ScriptDateTime();
-  sdt->SetFromStdTime(ft);
+  ScriptDateTime *sdt = new ScriptDateTime(ft);
   ccRegisterManagedObject(sdt, sdt);
   return sdt;
 }

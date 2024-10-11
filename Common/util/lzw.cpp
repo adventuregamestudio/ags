@@ -18,6 +18,7 @@
 #include "util/lzw.h"
 #include <stdlib.h>
 #include "util/bbop.h"
+#include "util/memory.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;
@@ -213,7 +214,7 @@ bool lzwexpand(const uint8_t *src, size_t src_sz, uint8_t *dst, size_t dst_sz)
           break;
 
         short jshort = 0;
-        jshort = BBOp::Int16FromLE(*(reinterpret_cast<const int16_t*>(src_ptr)));
+        jshort = Memory::ReadInt16LE(src_ptr);
         src_ptr += sizeof(int16_t);
         j = jshort;
 

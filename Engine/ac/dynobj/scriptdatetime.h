@@ -33,6 +33,10 @@ public:
     ScriptDateTime(const time_t &time);
     // Constructs DateTime initialized using chrono::time_point
     ScriptDateTime(const ClockTimePoint &time);
+    // Constructs DateTime initialized with raw time (unix time)
+    ScriptDateTime(int raw_time);
+    // Constructs DateTime initialized with all the date/time components
+    ScriptDateTime(int year, int month, int day, int hour, int minute, int second);
 
     int Dispose(void *address, bool force) override;
     const char *GetType() override;
@@ -49,7 +53,7 @@ public:
 private:
     int _year = 0, _month = 0, _day = 0;
     int _hour = 0, _minute = 0, _second = 0;
-    int _rawtime = 0;
+    int _rawtime = -1;
 
     void SetTime(const ClockTimePoint &time);
 

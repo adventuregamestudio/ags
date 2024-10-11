@@ -37,6 +37,7 @@ namespace AGS.Editor.Components
             : base(guiController, agsEditor)
         {
             _documents = new Dictionary<AGS.Types.Font, ContentDocument>();
+            _guiController.RegisterIcon("FontFileIcon", Resources.ResourceManager.GetIcon("font-file.ico"));
             _guiController.RegisterIcon(ICON_KEY, Resources.ResourceManager.GetIcon("font.ico"));
             _guiController.RegisterIcon("FontIcon", Resources.ResourceManager.GetIcon("font-item.ico"));
             _guiController.ProjectTree.AddTreeRoot(this, TOP_LEVEL_COMMAND_ID, "Fonts", ICON_KEY);
@@ -278,14 +279,14 @@ namespace AGS.Editor.Components
             _guiController.ProjectTree.RemoveAllChildNodes(this, TOP_LEVEL_COMMAND_ID);
             _guiController.ProjectTree.StartFromNode(this, TOP_LEVEL_COMMAND_ID);
 
-            _guiController.ProjectTree.AddTreeBranch(this, FONT_FILES_FOLDER_NODE_ID, "Font Files", "GenericFolderIcon");
+            _guiController.ProjectTree.AddTreeBranch(this, FONT_FILES_FOLDER_NODE_ID, "Font Files", "FixedFolderIcon");
             foreach (AGS.Types.FontFile item in _agsEditor.CurrentGame.FontFiles)
             {
-                _guiController.ProjectTree.AddTreeLeaf(this, GetNodeID(item), item.FileName.ToString(), "FontIcon");
+                _guiController.ProjectTree.AddTreeLeaf(this, GetNodeID(item), item.FileName.ToString(), "FontFileIcon");
             }
 
             _guiController.ProjectTree.StartFromNode(this, TOP_LEVEL_COMMAND_ID);
-            _guiController.ProjectTree.AddTreeBranch(this, FONTS_FOLDER_NODE_ID, "Fonts", "GenericFolderIcon");
+            _guiController.ProjectTree.AddTreeBranch(this, FONTS_FOLDER_NODE_ID, "Fonts", "FixedFolderIcon");
             foreach (AGS.Types.Font item in _agsEditor.CurrentGame.Fonts)
             {
                 AddFontNode(item);
@@ -332,7 +333,7 @@ namespace AGS.Editor.Components
                 newItem.FileFormat = FontFileFormat.TTF;
             items.Add(newItem);
             _guiController.ProjectTree.StartFromNode(this, FONT_FILES_FOLDER_NODE_ID);
-            _guiController.ProjectTree.AddTreeLeaf(this, GetNodeID(newItem), newItem.FileName, "FontIcon");
+            _guiController.ProjectTree.AddTreeLeaf(this, GetNodeID(newItem), newItem.FileName, "FontFileIcon");
             _guiController.ProjectTree.SelectNode(this, GetNodeID(newItem));
             ShowOrAddPane(newItem);
             FontFileTypeConverter.SetFontFileList(game.FontFiles);

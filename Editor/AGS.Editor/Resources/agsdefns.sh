@@ -1843,7 +1843,7 @@ builtin managed struct Label extends GUIControl {
   import attribute int  TextColor;
 #ifdef SCRIPT_API_v350
   /// Gets/sets label's text alignment.
-  import attribute HorizontalAlignment TextAlignment;
+  import attribute Alignment TextAlignment;
 #endif
 };
 
@@ -1893,6 +1893,14 @@ builtin managed struct Button extends GUIControl {
 #ifdef SCRIPT_API_v350
   /// Gets/sets text alignment inside the button.
   import attribute Alignment TextAlignment;
+#endif
+#ifdef SCRIPT_API_v362
+  /// Gets/sets whether the button will wrap its text.
+  import attribute bool WrapText;
+  /// Gets/sets amount of padding, restricting the text from left and right
+  import attribute int TextPaddingHorizontal;
+  /// Gets/sets amount of padding, restricting the text from top and bottom
+  import attribute int TextPaddingVertical;
 #endif
 };
 

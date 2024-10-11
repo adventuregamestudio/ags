@@ -2730,6 +2730,9 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
           nbut.SetMouseOverImage(button->MouseoverImage);
           nbut.SetPushedImage(button->PushedImage);
           nbut.TextAlignment = (::FrameAlignment)button->TextAlignment;
+          nbut.TextPaddingHor = button->TextPaddingHorizontal;
+          nbut.TextPaddingVer = button->TextPaddingVertical;
+          nbut.SetWrapText(button->WrapText);
           nbut.ClickAction[Common::kGUIClickLeft] = (Common::GUIClickAction)button->ClickAction;
           nbut.ClickData[Common::kGUIClickLeft] = button->NewModeNumber;
           nbut.SetClipImage(button->ClipImage);
@@ -2744,7 +2747,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
           Common::GUILabel nlabel;
           nlabel.TextColor = label->TextColor;
           nlabel.Font = label->Font;
-          nlabel.TextAlignment = (::HorAlignment)label->TextAlignment;
+          nlabel.TextAlignment = (::FrameAlignment)label->TextAlignment;
           Common::String text = tcv->ConvertTextProperty(label->Text);
           nlabel.SetText(text);
           guilabels.push_back(nlabel);
@@ -3541,6 +3544,9 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 					newButton->MouseoverImage = copyFrom->GetMouseOverImage();
 					newButton->PushedImage = copyFrom->GetPushedImage();
 					newButton->TextAlignment = (AGS::Types::FrameAlignment)copyFrom->TextAlignment;
+                    newButton->TextPaddingHorizontal = copyFrom->TextPaddingHor;
+                    newButton->TextPaddingVertical = copyFrom->TextPaddingVer;
+                    newButton->WrapText = copyFrom->IsWrapText();
                     newButton->ClickAction = (GUIClickAction)copyFrom->ClickAction[Common::kGUIClickLeft];
 					newButton->NewModeNumber = copyFrom->ClickData[Common::kGUIClickLeft];
                     newButton->ClipImage = copyFrom->IsClippingImage();
@@ -3556,7 +3562,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 				newControl = newLabel;
 				newLabel->TextColor = copyFrom->TextColor;
 				newLabel->Font = copyFrom->Font;
-				newLabel->TextAlignment = (AGS::Types::HorizontalAlignment)copyFrom->TextAlignment;
+				newLabel->TextAlignment = (AGS::Types::FrameAlignment)copyFrom->TextAlignment;
 				newLabel->Text = tcv->Convert(copyFrom->GetText());
 				break;
 				}

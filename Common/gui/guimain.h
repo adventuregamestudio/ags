@@ -298,16 +298,20 @@ namespace GUI
     String ApplyTextDirection(const String &text);
     // Calculates the text's draw position, given the alignment
     // optionally returns the real graphical rect that the text would occupy
-    Point CalcTextPosition(const char *text, int font, const Rect &frame, FrameAlignment align, Rect *gr_rect = nullptr);
+    Point CalcTextPosition(const String &text, int font, const Rect &frame, FrameAlignment align, Rect *gr_rect = nullptr);
     // Calculates the text's draw position and horizontal extent,
     // using strictly horizontal alignment
-    Line CalcTextPositionHor(const char *text, int font, int x1, int x2, int y, FrameAlignment align);
+    Line CalcTextPositionHor(const String &text, int font, int x1, int x2, int y, FrameAlignment align);
     // Calculates the graphical rect that the text would occupy
     // if drawn at the given coordinates
-    Rect CalcTextGraphicalRect(const char *text, int font, const Point &at);
+    Rect CalcTextGraphicalRect(const String &text, int font, const Point &at);
     // Calculates the graphical rect that the text would occupy
     // if drawn aligned to the given frame
-    Rect CalcTextGraphicalRect(const char *text, int font, const Rect &frame, FrameAlignment align);
+    Rect CalcTextGraphicalRect(const String &text, int font, const Rect &frame, FrameAlignment align);
+    // Calculates the graphical rect that the multiline text would occupy
+    // if drawn aligned to the given frame
+    Rect CalcTextGraphicalRect(const std::vector<String> &text, size_t item_count, int font, int linespace, 
+        const Rect &frame, FrameAlignment align, bool limit_by_frame = true);
     // Calculates a vertical graphical extent for a given font,
     // which is a top and bottom offsets in zero-based coordinates.
     // NOTE: this applies font size fixups.
@@ -315,9 +319,14 @@ namespace GUI
     // Draw standart "shading" effect over rectangle
     void DrawDisabledEffect(Bitmap *ds, const Rect &rc);
     // Draw text aligned inside rectangle
-    void DrawTextAligned(Bitmap *ds, const char *text, int font, color_t text_color, const Rect &frame, FrameAlignment align);
+    void DrawTextAligned(Bitmap *ds, const String &text, int font, color_t text_color, const Rect &frame, FrameAlignment align);
     // Draw text aligned horizontally inside given bounds
-    void DrawTextAlignedHor(Bitmap *ds, const char *text, int font, color_t text_color, int x1, int x2, int y, FrameAlignment align);
+    void DrawTextAlignedHor(Bitmap *ds, const String &text, int font, color_t text_color, int x1, int x2, int y, FrameAlignment align);
+    // Draw wrapped text aligned inside rectangle:
+    // a block of text is aligned vertically, while each line is aligned horizontally.
+    void DrawTextLinesAligned(Bitmap *ds, const std::vector<String> &text, size_t item_count,
+        int font, int linespace, color_t text_color, const Rect &frame, FrameAlignment align,
+        bool limit_by_frame = true);
 
     // Parses the string and returns combination of label macro flags
     GUILabelMacro FindLabelMacros(const String &text);
@@ -326,7 +335,7 @@ namespace GUI
     String TransformTextForDrawing(const String &text, bool translate, bool apply_direction);
     // Wraps given text to make it fit into width, stores it in the lines;
     // apply_direction param tells whether text direction setting should be applied
-    size_t SplitLinesForDrawing(const char *text, bool apply_direction, SplitLines &lines, int font, int width, size_t max_lines = -1);
+    size_t SplitLinesForDrawing(const String &text, bool apply_direction, SplitLines &lines, int font, int width, size_t max_lines = -1);
 
     // Reads all GUIs and their controls.
     HError ReadGUI(std::vector<GUIMain> &guis, GUIRefCollection &guiobjs, Stream *in);

@@ -37,6 +37,9 @@ namespace AGS.Types
         private int _font;
         private int _textColor;
         private FrameAlignment _textAlign;
+        private bool _wrapText;
+        private int _paddingHor = 2;
+        private int _paddingVer = 2;
         private bool _clipImage;
         private GUIClickAction _clickAction;
         private int _newModeNumber;
@@ -84,6 +87,32 @@ namespace AGS.Types
         {
             get { return _textAlign; }
             set { _textAlign = value; }
+        }
+
+        [Description("Whether button will wrap text when it exceeds button's width or has new line characters")]
+        [Category("Appearance")]
+        public bool WrapText
+        {
+            get { return _wrapText; }
+            set { _wrapText = value; }
+        }
+
+        [Description("The amount of padding, in pixels, restricting the text's alignment from left and right")]
+        [Category("Appearance")]
+        [DefaultValue(2)]
+        public int TextPaddingHorizontal
+        {
+            get { return _paddingHor; }
+            set { _paddingHor = value; }
+        }
+
+        [Description("The amount of padding, in pixels, restricting the text's alignment from top and bottom")]
+        [Category("Appearance")]
+        [DefaultValue(2)]
+        public int TextPaddingVertical
+        {
+            get { return _paddingVer; }
+            set { _paddingVer = value; }
         }
 
         [Description("AGS Colour Number of the button text")]

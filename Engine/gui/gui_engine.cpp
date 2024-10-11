@@ -106,10 +106,10 @@ String GUI::TransformTextForDrawing(const String &text, bool translate, bool app
     return res_text;
 }
 
-size_t GUI::SplitLinesForDrawing(const char *text, bool is_translated, SplitLines &lines, int font, int width, size_t max_lines)
+size_t GUI::SplitLinesForDrawing(const String &text, bool is_translated, SplitLines &lines, int font, int width, size_t max_lines)
 {
     // Use the engine's word wrap tool, to have RTL writing and other features
-    const char *draw_text = skip_voiceover_token(text);
+    const char *draw_text = skip_voiceover_token(text.GetCStr());
     return break_up_text_into_lines(draw_text, is_translated, lines, width, font);
 }
 
@@ -149,7 +149,7 @@ int GUILabel::PrepareTextToDraw()
 {
     const bool is_translated = (Flags & kGUICtrl_Translated) != 0;
     replace_macro_tokens(is_translated ? get_translation(Text.GetCStr()) : Text.GetCStr(), _textToDraw);
-    return GUI::SplitLinesForDrawing(_textToDraw.GetCStr(), is_translated, Lines, Font, _width);
+    return GUI::SplitLinesForDrawing(_textToDraw, is_translated, Lines, Font, _width);
 }
 
 void GUITextBox::DrawTextBoxContents(Bitmap *ds, int x, int y, color_t text_color)
@@ -164,7 +164,7 @@ void GUITextBox::DrawTextBoxContents(Bitmap *ds, int x, int y, color_t text_colo
         reverse = game.options[OPT_RIGHTLEFTWRITE] != 0;
     }
 
-    Line tpos = GUI::CalcTextPositionHor(_textToDraw.GetCStr(), Font,
+    Line tpos = GUI::CalcTextPositionHor(_textToDraw, Font,
         x + 1 + get_fixed_pixel_size(1), x + _width - 1, y + 1 + get_fixed_pixel_size(1),
         reverse ? kAlignTopRight : kAlignTopLeft);
     wouttext_outline(ds, tpos.X1, tpos.Y1, Font, text_color, _textToDraw.GetCStr());
@@ -187,8 +187,16 @@ void GUIListBox::PrepareTextToDraw(const String &text)
 
 void GUIButton::PrepareTextToDraw()
 {
-    _textToDraw = GUI::TransformTextForDrawing(_text, (Flags & kGUICtrl_Translated) != 0,
-        (loaded_game_file_version >= kGameVersion_361));
+    if (IsWrapText())
+    {
+        _textToDraw = _text;
+        GUI::SplitLinesForDrawing(_text, (Flags & kGUICtrl_Translated) != 0, Lines, Font, _width - TextPaddingHor * 2);
+    }
+    else
+    {
+        _textToDraw = GUI::TransformTextForDrawing(_text, (Flags & kGUICtrl_Translated) != 0,
+            (loaded_game_file_version >= kGameVersion_361));
+    }
 }
 
 } // namespace Common

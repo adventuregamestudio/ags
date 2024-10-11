@@ -909,6 +909,20 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
         for (size_t i = 0; i < (size_t)_ents.Game.numgui; ++i)
             _ents.Guis[i].ScriptModule = StrUtil::ReadString(in);
     }
+    else if (ext_id.CompareNoCase("v362_guictrls") == 0)
+    {
+        size_t num_guibut = in->ReadInt32();
+        if (num_guibut != _ents.GuiControls.Buttons.size())
+            return new Error(String::FromFormat("Mismatching number of GUI buttons: read %zu expected %zu", num_guibut, _ents.GuiControls.Buttons.size()));
+        for (GUIButton &but : _ents.GuiControls.Buttons)
+        {
+            // button padding
+            but.TextPaddingHor = in->ReadInt32();
+            but.TextPaddingVer = in->ReadInt32();
+            in->ReadInt32(); // reserve 2 ints
+            in->ReadInt32();
+        }
+    }
     else
     {
         return new MainGameFileError(kMGFErr_ExtUnknown, String::FromFormat("Type: %s", ext_id.GetCStr()));

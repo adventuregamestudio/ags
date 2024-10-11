@@ -91,9 +91,9 @@ String GUI::TransformTextForDrawing(const String &text, bool /*translate*/, bool
     return text;
 }
 
-size_t GUI::SplitLinesForDrawing(const char *text, bool /*apply_direction*/, SplitLines &lines, int font, int width, size_t max_lines)
+size_t GUI::SplitLinesForDrawing(const String &text, bool /*apply_direction*/, SplitLines &lines, int font, int width, size_t max_lines)
 {
-    return split_lines(text, lines, width, font, max_lines);
+    return split_lines(text.GetCStr(), lines, width, font, max_lines);
 }
 
 void GUIObject::MarkChanged()
@@ -119,7 +119,7 @@ void GUIObject::MarkStateChanged(bool, bool)
 int GUILabel::PrepareTextToDraw()
 {
     _textToDraw = Text;
-    return GUI::SplitLinesForDrawing(_textToDraw.GetCStr(), false, Lines, Font, _width);
+    return GUI::SplitLinesForDrawing(_textToDraw, false, Lines, Font, _width);
 }
 
 void GUITextBox::DrawTextBoxContents(Bitmap *ds, int x, int y, color_t text_color)
@@ -146,7 +146,15 @@ void GUIInvWindow::Draw(Bitmap *ds, int x, int y)
 
 void GUIButton::PrepareTextToDraw()
 {
-    _textToDraw = _text;
+    if (IsWrapText())
+    {
+        _textToDraw = _text;
+        GUI::SplitLinesForDrawing(_text, false, Lines, Font, _width - TextPaddingHor * 2);
+    }
+    else
+    {
+        _textToDraw = _text;
+    }
 }
 
 } // namespace Common

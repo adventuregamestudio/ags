@@ -138,7 +138,6 @@ namespace AGS.Editor
                 return false;
 
             game.DirectoryPath = gameDirectory;
-            SetDefaultGameContentIfMissing(game);
             SetDefaultValuesForNewFeatures(game);
             Utilities.EnsureStandardSubFoldersExist();
 
@@ -303,27 +302,6 @@ namespace AGS.Editor
         public static void ExportSprites(SpriteTools.ExportSpritesOptions options)
         {
             ExportSprites(Factory.AGSEditor.CurrentGame.RootSpriteFolder, options);
-        }
-
-        /// <summary>
-        /// Ensures that any obligatory content is created,
-        /// if it's missing after the game was loaded from project file.
-        /// </summary>
-        private void SetDefaultGameContentIfMissing(Game game)
-        {
-            // CHECKME: do we really need this?
-            // Make certain that at least 3 fonts are present,
-            // copy them from the resources if these are not present in game data
-            AddFontIfNotAlreadyThere(0);
-            AddFontIfNotAlreadyThere(1);
-            AddFontIfNotAlreadyThere(2);
-            while (game.Fonts.Count < 3)
-            {
-                Font font = new Font();
-                font.ID = game.Fonts.Count;
-                font.Name = string.Format($"Font{game.Fonts.Count}");
-                game.Fonts.Add(font);
-            }
         }
 
         private void SetDefaultValuesForNewFeatures(Game game)
@@ -727,16 +705,6 @@ namespace AGS.Editor
                     GUITextBox textbox = ctrl as GUITextBox;
                     textbox.TextColor = remapColor(textbox.TextColor);
                 }
-            }
-        }
-
-        // FIXME: this should be done differently!
-        private void AddFontIfNotAlreadyThere(int fontNumber)
-        {
-            if ((!File.Exists("agsfnt" + fontNumber + ".wfn")) &&
-                (!File.Exists("agsfnt" + fontNumber + ".ttf")))
-            {
-                Resources.ResourceManager.CopyFileFromResourcesToDisk("AGSFNT" + fontNumber + ".WFN");
             }
         }
 

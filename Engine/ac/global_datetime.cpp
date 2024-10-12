@@ -18,18 +18,16 @@
 #include "ac/common.h"
 
 int sc_GetTime(int whatti) {
-    ScriptDateTime *sdt = DateTime_Now_Core();
+    ScriptDateTime sdt(ScriptDateTime::SystemClock::now());
     int returnVal = 0;
 
-    if (whatti == 1) returnVal = sdt->hour;
-    else if (whatti == 2) returnVal = sdt->minute;
-    else if (whatti == 3) returnVal = sdt->second;
-    else if (whatti == 4) returnVal = sdt->day;
-    else if (whatti == 5) returnVal = sdt->month;
-    else if (whatti == 6) returnVal = sdt->year;
+    if (whatti == 1) returnVal = sdt.Hour();
+    else if (whatti == 2) returnVal = sdt.Minute();
+    else if (whatti == 3) returnVal = sdt.Second();
+    else if (whatti == 4) returnVal = sdt.Day();
+    else if (whatti == 5) returnVal = sdt.Month();
+    else if (whatti == 6) returnVal = sdt.Year();
     else quit("!GetTime: invalid parameter passed");
-
-    delete sdt;
 
     return returnVal;
 }

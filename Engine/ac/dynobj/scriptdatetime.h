@@ -12,29 +12,51 @@
 //
 //=============================================================================
 //
-//
+// ScriptDateTime is a script object that contains date/time definition.
 //
 //=============================================================================
 #ifndef __AGS_EE_DYNOBJ__SCRIPTDATETIME_H
 #define __AGS_EE_DYNOBJ__SCRIPTDATETIME_H
 
-#include <time.h>
+#include <chrono>
 #include "ac/dynobj/cc_agsdynamicobject.h"
 
-struct ScriptDateTime final : AGSCCDynamicObject {
-    int year, month, day;
-    int hour, minute, second;
-    int rawUnixTime;
+struct ScriptDateTime final : AGSCCDynamicObject
+{
+public:
+    typedef std::chrono::system_clock SystemClock;
+    typedef std::chrono::time_point<SystemClock> ClockTimePoint;
+
+    // Constructs DateTime initialized with zero time
+    ScriptDateTime() = default;
+    // Constructs DateTime initialized using C time_t
+    ScriptDateTime(const time_t &time);
+    // Constructs DateTime initialized using chrono::time_point
+    ScriptDateTime(const ClockTimePoint &time);
+    // Constructs DateTime initialized with raw time (unix time)
+    ScriptDateTime(int raw_time);
+    // Constructs DateTime initialized with all the date/time components
+    ScriptDateTime(int year, int month, int day, int hour, int minute, int second);
 
     int Dispose(void *address, bool force) override;
     const char *GetType() override;
     void Unserialize(int index, AGS::Common::Stream *in, size_t data_sz) override;
 
-    void SetFromStdTime(time_t time);
+    inline int RawTime() const { return _rawtime; }
+    inline int Year() const { return _year; }
+    inline int Month() const { return _month; }
+    inline int Day() const { return _day; }
+    inline int Hour() const { return _hour; }
+    inline int Minute() const { return _minute; }
+    inline int Second() const { return _second; }
 
-    ScriptDateTime();
+private:
+    int _year = 0, _month = 0, _day = 0;
+    int _hour = 0, _minute = 0, _second = 0;
+    int _rawtime = -1;
 
-protected:
+    void SetTime(const ClockTimePoint &time);
+
     // Calculate and return required space for serialization, in bytes
     size_t CalcSerializeSize(const void *address) override;
     // Write object data into the provided stream

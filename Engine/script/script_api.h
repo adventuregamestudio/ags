@@ -352,6 +352,11 @@ inline const char *ScriptVSprintf(char *buffer, size_t buf_length, const char *f
     RET_CLASS* ret_obj = FUNCTION(params[0].IValue, params[1].IValue, params[2].IValue, params[3].IValue, params[4].IValue); \
     return RuntimeScriptValue().SetScriptObject(ret_obj, ret_obj)
 
+#define API_SCALL_OBJAUTO_PINT6(RET_CLASS, FUNCTION) \
+    ASSERT_PARAM_COUNT(FUNCTION, 6); \
+    RET_CLASS* ret_obj = FUNCTION(params[0].IValue, params[1].IValue, params[2].IValue, params[3].IValue, params[4].IValue, params[5].IValue); \
+    return RuntimeScriptValue().SetScriptObject(ret_obj, ret_obj)
+
 #define API_SCALL_OBJAUTO_PINT2_PBOOL(RET_CLASS, FUNCTION) \
     ASSERT_PARAM_COUNT(FUNCTION, 3); \
     RET_CLASS* ret_obj = FUNCTION(params[0].IValue, params[1].IValue, params[2].GetAsBool()); \

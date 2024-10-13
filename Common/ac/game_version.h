@@ -119,7 +119,9 @@ Disabled automatic SetRestartPoint.
 3.6.1.14:
 Extended game object names, resolving hard length limits.
 3.6.2:
-CHF_TURNWHENFACE flag.
+Object Interactions specify script module where functions are located.
+OPT_SAVESCREENSHOTLAYER, CHF_TURNWHENFACE. Button's WrapText and padding.
+Few minor behavior changes.
 
 */
 

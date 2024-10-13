@@ -13,6 +13,8 @@ Editor:
  - In General Settings added "Use old-style voice clip naming rule" which lets to select whether
    the game should expect old-style voice clip filenames (4-letter char name followed by number)
    or the new one (full char name, followed by a number, separated by a dot).
+ - Added "WrapText", "TextPaddingHorizontal", "TextPaddingVertical" properties to GUI Button.
+ - GUI Labels can select full range of Alignment values in their TextAlignment property.
  - Added "TurnWhenFacing" property to Characters.
  - Textual GUI controls can now select "Null Font" as their font: this will prevent any text to be
    drawn even if one is assigned, and make it have zero size (when it matters).
@@ -68,19 +70,30 @@ Script API:
  - Added eNullFont constant that lets assign or pass a "null font" to any property or function
    parameter which expects a font's ID. This "null font" will simply make any text not drawn
    and have no actual measurements (size, spacing, etc).
+ - Added global events: eEventDialogStart, eEventDialogStop, eEventDialogRun,
+   eEventDialogOptionsOpen, eEventDialogOptionsClose (these are handled in "on_event").
+ - Added Button.WrapText, TextPaddingHorizontal, TextPaddingVertical.
  - Added Character.TurnWhenFacing property.
  - Added Character.MoveStraight() complementing WalkStraight().
+ - Added DateTime.CreateFromDate() and CreateFromRawTime().
+ - Added static Dialog.CurrentDialog property and non-static ExecutedOption and AreOptionsDisplayed
+   properties.
  - Added RenderLayer enum, and optional "layers" parameter to DynamicSprite.CreateFromScreenShot(),
    that tells which of the game's render layers to capture when making a screenshot.
+ - Added File.Copy() and File.Rename().
  - Added File.GetFileTime() that returns file's modification time.
  - Added Game.GetSaveSlotTime() that returns a time this save slot was last written.
+ - Label.TextAlignment has now type Alignment, rather than HorizontalAlignment, and has
+   full alignment range (both horizontal and vertical).
  - Added FileSortStyle and SortDirection enum, and optional "fileSortStyle" and "sortDirection"
    parameters to ListBox.FillDirList(). This lets to sort resulting list by name or time,
    in ascending or descending order.
  - ListBox.FillSaveGameList(), RestoreGameDialog() and SaveGameDialog() now let define a range
    of save slots for display.
+ - Added Overlay.SetPosition() and SetSize() functions for convenience.
  - Added Speech.SpeakingCharacter that returns currently speaking character (for blocking speech).
- - Added MoveSaveSlot() which renames a savegame.
+ - Added GetTimerPos() that returns timer's position (remaining time), in ticks.
+ - Added CopySaveSlot() and MoveSaveSlot(), which moves existing save to another slot.
  - Added optional "sprite" parameter to SaveGameSlot(), that lets to pass a number of an arbitrary
    sprite to write into this save instead of a standard "screenshot".
  - Added System.GetEngineInteger() and System.GetEngineString() for returning diagnostic

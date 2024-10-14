@@ -320,6 +320,7 @@ void CustomPathsPageDialog::SaveSetup()
 
 INT_PTR AccessibilityPageDialog::OnInitDialog()
 {
+    _hEnableAccess          = GetDlgItem(_hwnd, IDC_ACCESSENABLECHECK);
     _hSpeechSkipStyle       = GetDlgItem(_hwnd, IDC_SPEECHSKIPSTYLE);
     _hTextSkipStyle         = GetDlgItem(_hwnd, IDC_TEXTSKIPSTYLE);
 
@@ -335,13 +336,45 @@ INT_PTR AccessibilityPageDialog::OnInitDialog()
     SetCurSelToItemData(_hSpeechSkipStyle, _winCfg.SpeechSkipStyle);
     SetCurSelToItemData(_hTextSkipStyle, _winCfg.TextSkipStyle);
 
+    SetCheck(_hEnableAccess, CfgReadBoolInt(_cfgIn, "winsetup", "access_page_on") ? TRUE : FALSE);
+    OnEnableAccessCheck();
+
     return FALSE; // notify WinAPI that we set focus ourselves
+}
+
+INT_PTR AccessibilityPageDialog::OnCommand(WORD id)
+{
+    switch (id)
+    {
+    case IDC_ACCESSENABLECHECK: OnEnableAccessCheck(); break;
+    default:
+        return FALSE;
+    }
+    return TRUE;
+}
+
+void AccessibilityPageDialog::OnEnableAccessCheck()
+{
+    const bool enable = GetCheck(_hEnableAccess);
+    EnableWindow(_hSpeechSkipStyle, enable ? TRUE : FALSE);
+    EnableWindow(_hTextSkipStyle, enable ? TRUE : FALSE);
 }
 
 void AccessibilityPageDialog::SaveSetup()
 {
-    _winCfg.SpeechSkipStyle = (SkipSpeechStyle)GetCurItemData(_hSpeechSkipStyle, kSkipSpeechNone);
-    _winCfg.TextSkipStyle = (SkipSpeechStyle)GetCurItemData(_hTextSkipStyle, kSkipSpeechNone);
+    const bool enable = GetCheck(_hEnableAccess);
+    CfgWriteBoolInt(_cfgOut, "winsetup", "access_page_on", enable);
+    
+    if (enable)
+    {
+        _winCfg.SpeechSkipStyle = (SkipSpeechStyle)GetCurItemData(_hSpeechSkipStyle, kSkipSpeechNone);
+        _winCfg.TextSkipStyle = (SkipSpeechStyle)GetCurItemData(_hTextSkipStyle, kSkipSpeechNone);   
+    }
+    else
+    {
+        _winCfg.SpeechSkipStyle = kSkipSpeechNone;
+        _winCfg.TextSkipStyle = kSkipSpeechNone;
+    }
 }
 
 } // namespace Engine

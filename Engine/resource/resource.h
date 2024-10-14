@@ -41,6 +41,7 @@
 #define IDC_CUSTOMAPPDATADIRBTN         1047
 #define IDC_SPEECHSKIPSTYLE             1048
 #define IDC_TEXTSKIPSTYLE               1049
+#define IDC_ACCESSENABLECHECK           1050
 
 // Next default values for new objects
 // 
@@ -48,7 +49,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        112
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1050
+#define _APS_NEXT_CONTROL_VALUE         1051
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -121,8 +121,10 @@ private:
 class AccessibilityPageDialog : public WinSetupPageDialog
 {
 public:
-    AccessibilityPageDialog(WinConfig &win_cfg, const ConfigTree &cfg_in)
-        : WinSetupPageDialog(win_cfg, cfg_in) {}
+    AccessibilityPageDialog(WinConfig &win_cfg, const ConfigTree &cfg_in, ConfigTree &cfg_out)
+        : WinSetupPageDialog(win_cfg, cfg_in)
+        , _cfgOut(cfg_out)
+    {}
 
     String GetTitle() const override { return "Accessibility"; }
 
@@ -133,13 +135,18 @@ protected:
 
     // Event handlers
     INT_PTR OnInitDialog() override;
+    INT_PTR OnCommand(WORD id) override;
 
 private:
     // Event handlers
+    void OnEnableAccessCheck();
 
     // Dialog controls
+    HWND _hEnableAccess = NULL;
     HWND _hSpeechSkipStyle = NULL;
     HWND _hTextSkipStyle = NULL;
+
+    ConfigTree &_cfgOut;
 };
 
 } // namespace Engine

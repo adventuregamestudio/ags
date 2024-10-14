@@ -178,7 +178,7 @@ struct CharacterInfo
 	void UpdateMoveAndAnim(int &char_index, CharacterExtras *chex, std::vector<int> &followingAsSheep);
 	void UpdateFollowingExactlyCharacter();
 
-	int  update_character_walking(CharacterExtras *chex);
+	int  update_character_walkturning(CharacterExtras *chex);
 	void update_character_moving(int &char_index, CharacterExtras *chex, int &doing_nothing);
 	int  update_character_animating(int &char_index, int &doing_nothing);
 	void update_character_idle(CharacterExtras *chex, int &doing_nothing);
@@ -191,6 +191,9 @@ struct CharacterInfo
     void WriteToSavegame(Common::Stream *out, const CharacterInfo2 &chinfo2) const;
 
 private:
+    // Fixups loop value, in case it's set to an invalid loop which cannot be used with the current view
+    void FixupCurrentLoop();
+
     // Helper functions that read and write first data fields,
     // common for both game file and save.
     void ReadBaseFields(Common::Stream *in);

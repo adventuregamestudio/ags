@@ -3,6 +3,7 @@
 // Used by version.rc
 //
 #define IDOKRUN                         3
+#define IDRESETTODEFAULTS               4
 #define IDI_ICON                        101
 #define IDD_SETUP                       102
 #define IDD_PAGE_BASIC                  109

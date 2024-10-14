@@ -28,8 +28,8 @@ namespace Engine
 
 using namespace Common;
 
-SetupReturnValue WinSetup(const ConfigTree &cfg_in, ConfigTree &cfg_out,
-                          const String &game_data_dir, const String &version_str);
+SetupReturnValue WinSetup(const ConfigTree &cfg_in, const ConfigTree &def_cfg_in,
+    ConfigTree &cfg_out, const String &game_data_dir, const String &version_str);
 
 } // namespace Engine
 } // namespace AGS

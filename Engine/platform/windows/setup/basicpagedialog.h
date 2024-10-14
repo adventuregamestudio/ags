@@ -47,17 +47,17 @@ using namespace AGS::Common;
 //=============================================================================
 struct WinConfig
 {
+    // Meta properties
     String Title;
     String VersionString;
 
     String DataDirectory;
-    String UserSaveDir;
-    String AppDataDir;
     GameResolutionType GameResType;
     Size   GameResolution;
     int    GameColourDepth;
     bool   LetterboxByDesign;
 
+    // Graphic options
     String GfxDriverId;
     String GfxFilterId;
     WindowSetup FsSetup;
@@ -70,18 +70,25 @@ struct WinConfig
     bool   RenderAtScreenRes;
     bool   AntialiasSprites;
 
+    // Audio options
     bool   AudioEnabled;
     String AudioDriverId;
     bool   UseVoicePack;
 
+    // Control options
     bool   MouseAutoLock;
     float  MouseSpeed;
 
+    // Misc options
     int    SpriteCacheSize;
     int    TextureCacheSize;
     int    SoundCacheSize;
-    String DefaultLanguageName;
+    String DefaultLanguageName; // this is a human-readable title for the "default language" selection
     String Language;
+
+    // Custom paths
+    String UserSaveDir;
+    String AppDataDir;
 
     // Accessibility settings
     SkipSpeechStyle SpeechSkipStyle = kSkipSpeechNone; // none here means "use defaults"
@@ -107,6 +114,7 @@ public:
         , _cfgIn(cfg_in)
     {}
 
+    virtual void ResetSetup() { /* do nothing */ };
     virtual void SaveSetup() { /* do nothing */ };
 
 protected:
@@ -127,6 +135,7 @@ public:
 
     String GetTitle() const override { return "Basic"; }
 
+    void ResetSetup() override;
     void SaveSetup() override;
 
 protected:
@@ -182,7 +191,8 @@ private:
     void FillGfxFilterList();
     void FillGfxModeList();
     void FillLanguageList();
-    void FillScalingList(HWND hlist, const WindowSetup &ws, const FrameScaleDef frame, bool windowed);
+    void FillScalingList(HWND hlist, bool windowed);
+    void SetScalingSelection();
     void InitDriverDescFromFactory(const String &id);
     void SelectNearestGfxMode(const WindowSetup &ws);
 

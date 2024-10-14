@@ -45,8 +45,12 @@ WinConfig::WinConfig()
 
 void WinConfig::SetDefaults()
 {
+    Title = "Game Setup";
+    VersionString = "";
+
     DataDirectory = ".";
     GameResType = kGameResolution_Undefined;
+    GameResolution = Size();
     GameColourDepth = 0;
     LetterboxByDesign = false;
 
@@ -62,18 +66,24 @@ void WinConfig::SetDefaults()
     RenderAtScreenRes = false;
     AntialiasSprites = false;
 
+    AudioEnabled = true;
+    AudioDriverId = "";
+    UseVoicePack = true;
+
     MouseAutoLock = false;
     MouseSpeed = 1.f;
-
-    AudioEnabled = true;
-    UseVoicePack = true;
 
     SpriteCacheSize = 1024 * 128;
     TextureCacheSize = 1024 * 128;
     SoundCacheSize = 1024 * 32;
     DefaultLanguageName = "Game Default";
+    Language = "";
 
-    Title = "Game Setup";
+    UserSaveDir = ".";
+    AppDataDir = ".";
+
+    SpeechSkipStyle = kSkipSpeechNone;
+    TextSkipStyle = kSkipSpeechNone;
 }
 
 void WinConfig::Load(const ConfigTree &cfg, const Size &desktop_res)
@@ -194,16 +204,8 @@ INT_PTR BasicPageDialog::OnInitDialog()
         _winCfg.GameResolution.Width, _winCfg.GameResolution.Height, _winCfg.GameColourDepth)));
 
     FillGfxDriverList();
-    SetCheck(_hFullscreenDesktop, _winCfg.FsSetup.Mode == kWnd_FullDesktop);
-    EnableWindow(_hGfxModeList, _winCfg.FsSetup.Mode == kWnd_Fullscreen);
-    OnGfxDriverUpdate();
-
-    SetCheck(_hWindowed, _winCfg.Windowed);
-
-    FillScalingList(_hFsScalingList, _winCfg.FsSetup, _winCfg.FsGameFrame, false);
-    FillScalingList(_hWinScalingList, _winCfg.WinSetup, _winCfg.WinGameFrame, true);
-    OnFullScalingUpdate();
-    OnWinScalingUpdate();
+    FillScalingList(_hFsScalingList, false);
+    FillScalingList(_hWinScalingList, true);
 
     FillLanguageList();
 
@@ -218,6 +220,8 @@ INT_PTR BasicPageDialog::OnInitDialog()
         EnableWindow(_hFullscreenDesktop, FALSE);
         EnableWindow(_hGfxModeList, FALSE);
     }
+
+    ResetSetup();
 
     return FALSE; // notify WinAPI that we set focus ourselves
 }
@@ -376,9 +380,9 @@ void BasicPageDialog::FillGfxDriverList()
     if (_drvDescMap.size() == 0)
         MessageBox(_hwnd, "Unable to detect any supported graphic drivers!", "Initialization error", MB_OK | MB_ICONERROR);
 
+    ResetContent(_hGfxDriverList);
     for (DriverDescMap::const_iterator it = _drvDescMap.begin(); it != _drvDescMap.end(); ++it)
         AddString(_hGfxDriverList, STR(it->second->UserName), (DWORD_PTR)it->second->Id.GetCStr());
-    SetCurSelToItemDataStr(_hGfxDriverList, _winCfg.GfxDriverId.GetCStr(), 0);
 }
 
 void BasicPageDialog::FillGfxFilterList()
@@ -442,23 +446,18 @@ void BasicPageDialog::FillLanguageList()
 {
     ResetContent(_hLanguageList);
     AddString(_hLanguageList, _winCfg.DefaultLanguageName.GetCStr());
-    SetCurSel(_hLanguageList, 0);
 
-    bool found_sel = false;
     for (FindFile ff = FindFile::OpenFiles(_winCfg.DataDirectory, "*.tra"); !ff.AtEnd(); ff.Next())
     {
         String filename = Path::RemoveExtension(Path::GetFilename(ff.Current()));
         filename.SetAt(0, toupper(filename[0]));
         int index = AddString(_hLanguageList, STR(filename));
-        if (!found_sel && _winCfg.Language.CompareNoCase(filename) == 0)
-        {
-            SetCurSel(_hLanguageList, index);
-            found_sel = true;
-        }
     }
+
+    SetCurSel(_hLanguageList, 0);
 }
 
-void BasicPageDialog::FillScalingList(HWND hlist, const WindowSetup &ws, const FrameScaleDef frame, bool windowed)
+void BasicPageDialog::FillScalingList(HWND hlist, bool windowed)
 {
     ResetContent(hlist);
 
@@ -479,13 +478,19 @@ void BasicPageDialog::FillScalingList(HWND hlist, const WindowSetup &ws, const F
         for (int scale = 2; scale <= max_scale; ++scale)
             AddScalingString(hlist, scale);
     }
+}
 
-    if (windowed && ws.Scale > 0)
-        SetCurSelToItemData(hlist, ws.Scale + kNumFrameScaleDef, NULL, 0);
+void BasicPageDialog::SetScalingSelection()
+{
+    SetCurSelToItemData(_hFsScalingList, _winCfg.FsGameFrame, NULL, 0);
+
+    if (_winCfg.WinSetup.Scale > 0)
+        SetCurSelToItemData(_hWinScalingList, _winCfg.WinSetup.Scale + kNumFrameScaleDef, NULL, 0);
     else
-        SetCurSelToItemData(hlist, frame, NULL, 0);
+        SetCurSelToItemData(_hWinScalingList, _winCfg.WinGameFrame, NULL, 0);
 
-    EnableWindow(hlist, SendMessage(hlist, CB_GETCOUNT, 0, 0) > 1 ? TRUE : FALSE);
+    OnFullScalingUpdate();
+    OnWinScalingUpdate();
 }
 
 // "Less" predicate that compares two display modes only by their screen metrics
@@ -583,6 +588,17 @@ void BasicPageDialog::SelectNearestGfxMode(const WindowSetup &ws)
     }
 
     OnGfxModeUpdate();
+}
+
+void BasicPageDialog::ResetSetup()
+{
+    SetCurSelToItemDataStr(_hGfxDriverList, _winCfg.GfxDriverId.GetCStr(), 0);
+    SetCheck(_hFullscreenDesktop, _winCfg.FsSetup.Mode == kWnd_FullDesktop);
+    EnableWindow(_hGfxModeList, _winCfg.FsSetup.Mode == kWnd_Fullscreen);
+    OnGfxDriverUpdate();
+    SetCheck(_hWindowed, _winCfg.Windowed);
+    SetScalingSelection();
+    SetCurSelToItemDataStr(_hLanguageList, STR(_winCfg.Language), 0);
 }
 
 void BasicPageDialog::SaveSetup()

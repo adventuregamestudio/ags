@@ -167,17 +167,16 @@ static void fill_game_properties(StringOrderMap &map)
 
 // Starts up setup application, if capable.
 // Returns TRUE if should continue running the game, otherwise FALSE.
-bool engine_run_setup(const ConfigTree &cfg, int &app_res)
+bool engine_run_setup(const ConfigTree &cfg, const ConfigTree &def_cfg)
 {
-    app_res = EXIT_NORMAL;
 #if AGS_PLATFORM_OS_WINDOWS
     {
             Debug::Printf(kDbgMsg_Info, "Running Setup");
 
-            ConfigTree cfg_with_meta = cfg;
-            fill_game_properties(cfg_with_meta["gameproperties"]);
+            ConfigTree def_cfg_with_meta = def_cfg;
+            fill_game_properties(def_cfg_with_meta["gameproperties"]);
             ConfigTree cfg_out;
-            SetupReturnValue res = platform->RunSetup(cfg_with_meta, cfg_out);
+            SetupReturnValue res = platform->RunSetup(cfg, def_cfg_with_meta, cfg_out);
             if (res != kSetup_Cancel)
             {
                 String cfg_file = PreparePathForWriting(GetGameUserConfigDir(), DefaultConfigFileName);
@@ -206,6 +205,7 @@ bool engine_run_setup(const ConfigTree &cfg, int &app_res)
     }
 #else
     (void)cfg;
+    (void)def_cfg;
 #endif
     return true;
 }
@@ -1007,20 +1007,22 @@ bool engine_init_gamedata()
     return true;
 }
 
-void engine_read_config(ConfigTree &cfg)
+void engine_read_config(ConfigTree &cfg, ConfigTree *def_cfg)
 {
     if (!usetup.conf_path.IsEmpty())
     {
         IniUtil::Read(usetup.conf_path, cfg);
+        if (def_cfg)
+            *def_cfg = cfg;
         return;
     }
 
     // Read default configuration file
     String def_cfg_file = find_default_cfg_file();
     IniUtil::Read(def_cfg_file, cfg);
+    if (def_cfg)
+        *def_cfg = cfg;
 
-    // Disabled on Windows because people were afraid that this config could be mistakenly
-    // created by some installer and screw up their games. Until any kind of solution is found.
     String user_global_cfg_file;
     // Read user global configuration file
     user_global_cfg_file = find_user_global_cfg_file();
@@ -1062,11 +1064,11 @@ void engine_read_config(ConfigTree &cfg)
 }
 
 // Gathers settings from all available sources into single ConfigTree
-void engine_prepare_config(ConfigTree &cfg, const ConfigTree &startup_opts)
+void engine_prepare_config(ConfigTree &cfg, ConfigTree *def_cfg, const ConfigTree &startup_opts)
 {
     Debug::Printf(kDbgMsg_Info, "Setting up game configuration");
     // Read configuration files
-    engine_read_config(cfg);
+    engine_read_config(cfg, def_cfg);
     // Merge startup options in
     for (const auto &sectn : startup_opts)
         for (const auto &opt : sectn.second)
@@ -1207,16 +1209,19 @@ int initialize_engine(const ConfigTree &startup_opts)
 
     if (!engine_init_gamedata())
         return EXIT_ERROR;
-    ConfigTree cfg;
-    engine_prepare_config(cfg, startup_opts);
+
     // Test if need to run built-in setup program (where available)
     if (!justTellInfo && justRunSetup)
     {
-        int res;
-        if (!engine_run_setup(cfg, res))
-            return res;
+        ConfigTree cfg, def_cfg;
+        engine_prepare_config(cfg, &def_cfg, startup_opts);
+        if (!engine_run_setup(cfg, def_cfg))
+            return EXIT_NORMAL;
     }
+
     // Set up game options from user config
+    ConfigTree cfg;
+    engine_prepare_config(cfg, nullptr, startup_opts);
     engine_set_config(cfg);
     if (justTellInfo)
     {

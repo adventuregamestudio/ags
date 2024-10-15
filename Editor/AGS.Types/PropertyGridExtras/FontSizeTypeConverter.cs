@@ -37,10 +37,9 @@ namespace AGS.Types
             if (value is int && destinationType == typeof(string))
             {
                 int fontSize = (int)value;
-                // TODO: find a better solution for the font format check, perhaps store font type as Font's property,
-                // or add a direct (unserialized) reference to related FontFile
+                Font font = context.Instance as Font;
                 if (fontSize == 0 ||
-                    (context.Instance is Font && !((Font)context.Instance).SourceFilename.EndsWith(".ttf")))
+                    (font != null && !(font.FontFile != null && font.FontFile.FileFormat == FontFileFormat.TTF)))
                 {
                     return "N/A";
                 }

@@ -170,12 +170,7 @@ namespace AGS.Editor.Components
             {
                 RePopulateTreeView(GetNodeID(itemBeingEdited));
 
-                FontFile ff = FindFontFileByName(itemBeingEdited.SourceFilename);
-                if (ff != null)
-                {
-                    if (ff.FileFormat == FontFileFormat.TTF && itemBeingEdited.PointSize == 0)
-                        itemBeingEdited.PointSize = DEFAULT_IMPORTED_FONT_SIZE;
-                }
+                UpdateFont(itemBeingEdited); // update font which has a new source file
             }
 
             bool shouldRepaint = (propertyName == "Source FontFile" || propertyName == "Font Size" || propertyName == "SizeMultiplier");
@@ -305,9 +300,9 @@ namespace AGS.Editor.Components
             FontFile newItem = new FontFile();
             newItem.FileName = Path.GetFileName(filename);
             newItem.SourceFilename = filename;
-            if (newItem.FileName.EndsWith(".wfn"))
+            if (newItem.FileName.EndsWith(".wfn", StringComparison.OrdinalIgnoreCase))
                 newItem.FileFormat = FontFileFormat.WFN;
-            else if (newItem.FileName.EndsWith(".ttf"))
+            else if (newItem.FileName.EndsWith(".ttf", StringComparison.OrdinalIgnoreCase))
                 newItem.FileFormat = FontFileFormat.TTF;
             return newItem;
         }
@@ -345,6 +340,16 @@ namespace AGS.Editor.Components
             FontFileTypeConverter.SetFontFileList(game.FontFiles);
         }
 
+        private void UpdateFontFile(FontFile fontFile)
+        {
+            // NOTE: if we decide to get format by loading and testing actual file contents,
+            // then this may be a good place to do that.
+            if (fontFile.FileName.EndsWith(".wfn", StringComparison.OrdinalIgnoreCase))
+                fontFile.FileFormat = FontFileFormat.WFN;
+            else if (fontFile.FileName.EndsWith(".ttf", StringComparison.OrdinalIgnoreCase))
+                fontFile.FileFormat = FontFileFormat.TTF;
+        }
+
         private AGS.Types.Font NewFont(Game game, int id, string fontName, FontFile sourceFontFile)
         {
             AGS.Types.Font newItem = new AGS.Types.Font();
@@ -353,13 +358,36 @@ namespace AGS.Editor.Components
             newItem.OutlineStyle = FontOutlineStyle.None;
             if (sourceFontFile != null)
             {
-                newItem.FontFile = sourceFontFile;
-                newItem.SourceFilename = sourceFontFile.FileName;
-                newItem.FamilyName = sourceFontFile.FamilyName;
+                AssignFontFileToFont(newItem, sourceFontFile);
             }
             newItem.PointSize = DEFAULT_IMPORTED_FONT_SIZE;
             newItem.TTFMetricsFixup = game.Settings.TTFMetricsFixup; // use defaults
             return newItem;
+        }
+
+        private void AssignFontFileToFont(AGS.Types.Font font, FontFile fontFile)
+        {
+            font.FontFile = fontFile;
+            if (fontFile != null)
+            {
+                font.SourceFilename = fontFile.FileName;
+                font.FamilyName = fontFile.FamilyName;
+                if (fontFile.FileFormat == FontFileFormat.TTF && font.PointSize == 0)
+                    font.PointSize = DEFAULT_IMPORTED_FONT_SIZE;
+                else if (fontFile.FileFormat == FontFileFormat.WFN)
+                    font.PointSize = 0; // CHECKME: should keep PointSize instead, just in case they switch back to TTF?
+            }
+            else
+            {
+                font.SourceFilename = string.Empty;
+                font.FamilyName = string.Empty;
+                font.PointSize = 0;
+            }
+        }
+
+        private void UpdateFont(AGS.Types.Font font)
+        {
+            AssignFontFileToFont(font, FindFontFileByName(font.SourceFilename));
         }
 
         private void AddNewFont(Game game, FontFile sourceFontFile = null, bool selectRefNode = false)
@@ -415,9 +443,7 @@ namespace AGS.Editor.Components
 
         private int FontImportSize(AGS.Types.Font font)
         {
-            // TODO: find a better solution for the font format check, perhaps store font type as Font's property,
-            // or add a direct (unserialized) reference to related FontFile
-            if (!font.SourceFilename.EndsWith(".ttf"))
+            if (!(font.FontFile != null && font.FontFile.FileFormat == FontFileFormat.TTF))
             {
                 _guiController.ShowMessage("You can only directly modify Font Size for TTF fonts. For bitmap fonts try adjusting Size Multiplier instead.", MessageBoxIconType.Information);
                 return font.PointSize;
@@ -447,6 +473,18 @@ namespace AGS.Editor.Components
             }
 
             AddDefaultFontsIfMissing(game);
+
+            // Update deserialized FontFiles, setup non-serialized properties, sync with assets on disk etc
+            foreach (FontFile ff in game.FontFiles)
+            {
+                UpdateFontFile(ff);
+            }
+
+            // Bind all deserialized Fonts to their FontFiles
+            foreach (AGS.Types.Font font in game.Fonts)
+            {
+                UpdateFont(font);
+            }
         }
 
         /// <summary>
@@ -474,22 +512,23 @@ namespace AGS.Editor.Components
 #pragma warning disable 0612, 0618
             foreach (AGS.Types.Font font in game.Fonts)
             {
-                FontFile ff = new FontFile();
+                FontFile ff;
                 if (File.Exists(font.TTFFileName))
                 {
-                    ff.FileName = font.TTFFileName;
-                    ff.FileFormat = FontFileFormat.TTF;
+                    ff = NewFontFile(font.TTFFileName);
                 }
                 else if (File.Exists(font.WFNFileName))
                 {
-                    ff.FileName = font.WFNFileName;
-                    ff.FileFormat = FontFileFormat.TTF;
+                    ff = NewFontFile(font.WFNFileName);
+                }
+                else
+                {
+                    continue;
                 }
 
-                ff.SourceFilename = font.SourceFilename;
                 game.FontFiles.Add(ff);
 
-                font.SourceFilename = ff.FileName;
+                AssignFontFileToFont(font, ff);
             }
 #pragma warning restore 0612, 0618
         }

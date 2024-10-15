@@ -17,6 +17,7 @@ namespace AGS.Types
         private int _outlineFont;
         private FontOutlineStyle _outlineStyle;
 		private string _sourceFilename = string.Empty;
+        private FontFile _fontFile;
         private int _sizeMultiplier = 1;
         private int _verticalOffset;
         private int _lineSpacing;
@@ -160,6 +161,14 @@ namespace AGS.Types
         {
             get { return _sourceFilename; }
             set { _sourceFilename = value; }
+        }
+
+        [AGSNoSerialize]
+        [Browsable(false)]
+        public FontFile FontFile
+        {
+            get { return _fontFile; }
+            set { _fontFile = value; }
         }
 
         [Description("Font's size multiplier; primarily for bitmap fonts that don't scale on their own")]

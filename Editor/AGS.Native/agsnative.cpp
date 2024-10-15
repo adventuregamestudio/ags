@@ -672,7 +672,7 @@ int drawFontAt (HDC hdc, int fontnum, int x, int y, int width) {
   int blockSize = 1;
   antiAliasFonts = thisgame.options[OPT_ANTIALIASFONTS];
 
-  int char_height = thisgame.fonts[fontnum].Size * thisgame.fonts[fontnum].SizeMultiplier;
+  int char_height = get_font_height(fontnum) * thisgame.fonts[fontnum].SizeMultiplier;
   int grid_size   = std::max(10, char_height);
   int grid_margin = std::max(4, grid_size / 4);
   grid_size += grid_margin * 2;

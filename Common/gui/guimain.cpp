@@ -817,12 +817,12 @@ Line CalcFontGraphicalVExtent(int font)
     return Line(0, top, 0, bottom);
 }
 
-Point CalcTextPosition(const char *text, int font, const Rect &frame, FrameAlignment align, Rect *gr_rect)
+Point CalcTextPosition(const String &text, int font, const Rect &frame, FrameAlignment align, Rect *gr_rect)
 {
     // When aligning we use the formal font's height, which in practice may not be
     // its real graphical height (this is because of historical AGS's font behavior)
     int use_height = get_font_height_outlined(font);
-    Rect rc = AlignInRect(frame, RectWH(0, 0, get_text_width_outlined(text, font), use_height), align);
+    Rect rc = AlignInRect(frame, RectWH(0, 0, get_text_width_outlined(text.GetCStr(), font), use_height), align);
     if (gr_rect)
     {
         Line vextent = CalcFontGraphicalVExtent(font);
@@ -831,26 +831,57 @@ Point CalcTextPosition(const char *text, int font, const Rect &frame, FrameAlign
     return rc.GetLT();
 }
 
-Line CalcTextPositionHor(const char *text, int font, int x1, int x2, int y, FrameAlignment align)
+Line CalcTextPositionHor(const String &text, int font, int x1, int x2, int y, FrameAlignment align)
 {
-    int w = get_text_width_outlined(text, font);
+    int w = get_text_width_outlined(text.GetCStr(), font);
     int x = AlignInHRange(x1, x2, 0, w, align);
     return Line(x, y, x + w - 1, y);
 }
 
-Rect CalcTextGraphicalRect(const char *text, int font, const Point &at)
+Rect CalcTextGraphicalRect(const String &text, int font, const Point &at)
 {
     // Calc only width, and let CalcFontGraphicalVExtent() calc height
-    int w = get_text_width_outlined(text, font);
+    int w = get_text_width_outlined(text.GetCStr(), font);
     Line vextent = CalcFontGraphicalVExtent(font);
     return RectWH(at.X, at.Y + vextent.Y1, w, vextent.Y2 - vextent.Y1);
 }
 
-Rect CalcTextGraphicalRect(const char *text, int font, const Rect &frame, FrameAlignment align)
+Rect CalcTextGraphicalRect(const String &text, int font, const Rect &frame, FrameAlignment align)
 {
     Rect gr_rect;
     CalcTextPosition(text, font, frame, align, &gr_rect);
     return gr_rect;
+}
+
+Rect CalcTextGraphicalRect(const std::vector<String> &text, size_t item_count, int font, int linespace,
+    const Rect &frame, FrameAlignment align, bool limit_by_frame)
+{
+    item_count = std::min(item_count, text.size()); // safety check
+    if (item_count <= 0)
+        return {};
+
+    int at_y = 0;
+    size_t line_idx = 0u;
+    if (limit_by_frame && at_y < frame.Top)
+    {
+        int skip_lines = (frame.Top - at_y) / linespace + 1;
+        at_y += linespace * skip_lines;
+        line_idx += skip_lines;
+    }
+
+    Line max_line;
+    for (; line_idx < item_count && (!limit_by_frame || at_y <= frame.Bottom);
+        ++line_idx, at_y += linespace)
+    {
+        Line lpos = GUI::CalcTextPositionHor(text[line_idx], font, frame.Left, frame.Right, at_y, align);
+        max_line.X2 = std::max(max_line.X2, lpos.X2);
+    }
+    // Include font fixes for the first and last text line,
+    // in case graphical height is different, and there's a VerticalOffset
+    Line vextent = GUI::CalcFontGraphicalVExtent(font);
+    Rect text_rc = RectWH(0, vextent.Y1, max_line.X2 - max_line.X1 + 1,
+        at_y - linespace + (vextent.Y2 - vextent.Y1));
+    return text_rc;
 }
 
 void DrawDisabledEffect(Bitmap *ds, const Rect &rc)
@@ -865,16 +896,42 @@ void DrawDisabledEffect(Bitmap *ds, const Rect &rc)
     }
 }
 
-void DrawTextAligned(Bitmap *ds, const char *text, int font, color_t text_color, const Rect &frame, FrameAlignment align)
+void DrawTextAligned(Bitmap *ds, const String &text, int font, color_t text_color, const Rect &frame, FrameAlignment align)
 {
     Point pos = CalcTextPosition(text, font, frame, align);
-    wouttext_outline(ds, pos.X, pos.Y, font, text_color, text);
+    wouttext_outline(ds, pos.X, pos.Y, font, text_color, text.GetCStr());
 }
 
-void DrawTextAlignedHor(Bitmap *ds, const char *text, int font, color_t text_color, int x1, int x2, int y, FrameAlignment align)
+void DrawTextAlignedHor(Bitmap *ds, const String &text, int font, color_t text_color, int x1, int x2, int y, FrameAlignment align)
 {
     Line line = CalcTextPositionHor(text, font, x1, x2, y, align);
-    wouttext_outline(ds, line.X1, y, font, text_color, text);
+    wouttext_outline(ds, line.X1, y, font, text_color, text.GetCStr());
+}
+
+void DrawTextLinesAligned(Bitmap *ds, const std::vector<String> &text, size_t item_count,
+    int font, int linespace, color_t text_color, const Rect &frame, FrameAlignment align,
+    bool limit_by_frame)
+{
+    item_count = std::min(item_count, text.size()); // safety check
+    if (item_count <= 0)
+        return;
+
+    int total_height = (item_count - 1) * linespace + get_font_height(font);
+    int at_y = AlignInVRange(frame.Top, frame.Bottom, 0, total_height, align);
+    size_t line_idx = 0u;
+
+    if (limit_by_frame && at_y < frame.Top)
+    {
+        int skip_lines = (frame.Top - at_y) / linespace + 1;
+        at_y += linespace * skip_lines;
+        line_idx += skip_lines;
+    }
+
+    for (; (line_idx < item_count) && (!limit_by_frame || at_y < frame.Bottom);
+        ++line_idx, at_y += linespace)
+    {
+        GUI::DrawTextAlignedHor(ds, text[line_idx], font, text_color, frame.Left, frame.Right, at_y, align);
+    }
 }
 
 GUILabelMacro FindLabelMacros(const String &text)

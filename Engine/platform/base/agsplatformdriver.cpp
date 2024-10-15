@@ -74,12 +74,6 @@ const char *AGSPlatformDriver::GetDiskWriteAccessTroubleshootingText()
     return "Make sure you have write permissions, and also check the disk's free space.";
 }
 
-void AGSPlatformDriver::GetSystemTime(ScriptDateTime *sdt)
-{
-    time_t t = time(nullptr);
-    sdt->SetFromStdTime(t);
-}
-
 void AGSPlatformDriver::DisplayAlert(const char *text, ...)
 {
     char displbuf[2048];
@@ -135,7 +129,7 @@ void AGSPlatformDriver::YieldCPU() {
     //std::this_thread::yield();
 }
 
-SetupReturnValue AGSPlatformDriver::RunSetup(const ConfigTree &/*cfg_in*/, ConfigTree &/*cfg_out*/)
+SetupReturnValue AGSPlatformDriver::RunSetup(const ConfigTree &/*cfg_in*/, const ConfigTree &/*def_cfg_in*/, ConfigTree &/*cfg_out*/)
 {
     return kSetup_Cancel;
 }

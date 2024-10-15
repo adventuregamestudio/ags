@@ -51,6 +51,10 @@ enum GUIButtonPlaceholder
 class GUIButton : public GUIObject
 {
 public:
+    // Default text padding
+    static const int DefaultHorPadding = 2;
+    static const int DefaultVerPadding = 2;
+
     GUIButton();
 
     int32_t GetCurrentImage() const;
@@ -73,6 +77,7 @@ public:
     void SetPushedImage(int32_t image);
     void SetImages(int32_t normal, int32_t over, int32_t pushed, uint32_t flags = 0);
     void SetText(const String &text);
+    void SetWrapText(bool on);
 
     // Events
     bool OnMouseDown() override;
@@ -91,10 +96,12 @@ public:
     int32_t     Font;
     color_t     TextColor;
     FrameAlignment TextAlignment;
+    int32_t     TextPaddingHor;
+    int32_t     TextPaddingVer;
     // Click actions for left and right mouse buttons
     // NOTE: only left click is currently in use
     GUIClickAction ClickAction[kNumGUIClicks];
-    int32_t        ClickData[kNumGUIClicks];
+    int32_t     ClickData[kNumGUIClicks];
 
     bool        IsPushed;
     bool        IsMouseOver;

@@ -50,14 +50,7 @@ INT_PTR AdvancedPageDialog::OnInitDialog()
     _hMouseSpeed            = GetDlgItem(_hwnd, IDC_MOUSESPEED);
     _hMouseSpeedText        = GetDlgItem(_hwnd, IDC_MOUSESPEED_TEXT);
 
-    SetCheck(_hVSync, _winCfg.VSync);
-    SetCheck(_hRenderAtScreenRes, _winCfg.RenderAtScreenRes);
-
-    SetCheck(_hMouseLock, _winCfg.MouseAutoLock);
     SetSliderRange(_hMouseSpeed, MouseSpeedMin, MouseSpeedMax);
-    int slider_pos = (int)(_winCfg.MouseSpeed * 10.f + .5f);
-    SetSliderPos(_hMouseSpeed, slider_pos);
-    UpdateMouseSpeedText();
 
     // Init sprite cache and texture cache lists
     // 32-bit programs have accessible RAM limit of 2-3 GB (may be less in practice),
@@ -80,8 +73,6 @@ INT_PTR AdvancedPageDialog::OnInitDialog()
     for (const auto &val : spr_cache_vals64)
         AddString(_hTextureCacheList, val.first, val.second);
 #endif
-    SetCurSelToItemData(_hSpriteCacheList, _winCfg.SpriteCacheSize / 1024, NULL, 3);
-    SetCurSelToItemData(_hTextureCacheList, _winCfg.TextureCacheSize / 1024, NULL, 4);
 
     // Init sound cache list (keep in mind: currently meant only for small sounds)
     const std::array<std::pair<const char*, int>, 5> sound_cache_vals = { {
@@ -89,23 +80,8 @@ INT_PTR AdvancedPageDialog::OnInitDialog()
     }};
     for (const auto &val : sound_cache_vals)
         AddString(_hSoundCacheList, val.first, val.second);
-    SetCurSelToItemData(_hSoundCacheList, _winCfg.SoundCacheSize / 1024, NULL, 2);
-
-    SetCheck(_hAntialiasSprites, _winCfg.AntialiasSprites);
 
     FillAudioDriverList();
-    if (_winCfg.AudioEnabled)
-    {
-        if (_winCfg.AudioDriverId.IsEmpty())
-            SetCurSelToItemDataStr(_hAudioDriverList, "default");
-        else
-            SetCurSelToItemDataStr(_hAudioDriverList, _winCfg.AudioDriverId.GetCStr());
-    }
-    else
-    {
-        SetCurSelToItemDataStr(_hAudioDriverList, "none");
-    }
-    SetCheck(_hUseVoicePack, _winCfg.UseVoicePack);
     if (!File::IsFile("speech.vox"))
         EnableWindow(_hUseVoicePack, FALSE);
 
@@ -116,6 +92,8 @@ INT_PTR AdvancedPageDialog::OnInitDialog()
     if (CfgReadBoolInt(_cfgIn, "disabled", "render_at_screenres") ||
         CfgReadInt(_cfgIn, "gameproperties", "render_at_screenres", -1) >= 0)
         EnableWindow(_hRenderAtScreenRes, FALSE);
+
+    ResetSetup();
 
     return FALSE; // notify WinAPI that we set focus ourselves
 }
@@ -166,6 +144,35 @@ void AdvancedPageDialog::UpdateMouseSpeedText()
     float mouse_speed = (float)slider_pos / 10.f;
     String text = mouse_speed == 1.f ? "Mouse speed: x 1.0 (Default)" : String::FromFormat("Mouse speed: x %0.1f", mouse_speed);
     SetText(_hMouseSpeedText, STR(text));
+}
+
+void AdvancedPageDialog::ResetSetup()
+{
+    SetCheck(_hVSync, _winCfg.VSync);
+    SetCheck(_hRenderAtScreenRes, _winCfg.RenderAtScreenRes);
+    SetCheck(_hAntialiasSprites, _winCfg.AntialiasSprites);
+
+    SetCheck(_hMouseLock, _winCfg.MouseAutoLock);
+    int slider_pos = (int)(_winCfg.MouseSpeed * 10.f + .5f);
+    SetSliderPos(_hMouseSpeed, slider_pos);
+    UpdateMouseSpeedText();
+    
+    SetCurSelToItemData(_hSpriteCacheList, _winCfg.SpriteCacheSize / 1024, NULL, 3);
+    SetCurSelToItemData(_hTextureCacheList, _winCfg.TextureCacheSize / 1024, NULL, 4);
+    SetCurSelToItemData(_hSoundCacheList, _winCfg.SoundCacheSize / 1024, NULL, 2);
+
+    if (_winCfg.AudioEnabled)
+    {
+        if (_winCfg.AudioDriverId.IsEmpty())
+            SetCurSelToItemDataStr(_hAudioDriverList, "default");
+        else
+            SetCurSelToItemDataStr(_hAudioDriverList, _winCfg.AudioDriverId.GetCStr());
+    }
+    else
+    {
+        SetCurSelToItemDataStr(_hAudioDriverList, "none");
+    }
+    SetCheck(_hUseVoicePack, _winCfg.UseVoicePack);
 }
 
 void AdvancedPageDialog::SaveSetup()
@@ -226,11 +233,7 @@ INT_PTR CustomPathsPageDialog::OnInitDialog()
     _hCustomAppDataDirBtn   = GetDlgItem(_hwnd, IDC_CUSTOMAPPDATADIRBTN);
     _hCustomAppDataDirCheck = GetDlgItem(_hwnd, IDC_CUSTOMAPPDATADIRCHECK);
 
-    // Custom save dir controls
-    SetupCustomDirCtrl(_winCfg.UserSaveDir, _winCfg.DataDirectory,
-        _hCustomSaveDirCheck, _hCustomSaveDir, _hCustomSaveDirBtn);
-    SetupCustomDirCtrl(_winCfg.AppDataDir, _winCfg.DataDirectory,
-        _hCustomAppDataDirCheck, _hCustomAppDataDir, _hCustomAppDataDirBtn);
+    ResetSetup();
 
     return FALSE; // notify WinAPI that we set focus ourselves
 }
@@ -306,6 +309,15 @@ static String SaveCustomDirSetup(const String &def_dir, HWND dir_check, HWND dir
     }
 }
 
+void CustomPathsPageDialog::ResetSetup()
+{
+    // Custom save dir controls
+    SetupCustomDirCtrl(_winCfg.UserSaveDir, _winCfg.DataDirectory,
+        _hCustomSaveDirCheck, _hCustomSaveDir, _hCustomSaveDirBtn);
+    SetupCustomDirCtrl(_winCfg.AppDataDir, _winCfg.DataDirectory,
+        _hCustomAppDataDirCheck, _hCustomAppDataDir, _hCustomAppDataDirBtn);
+}
+
 void CustomPathsPageDialog::SaveSetup()
 {
     _winCfg.UserSaveDir = SaveCustomDirSetup(_winCfg.DataDirectory, _hCustomSaveDirCheck, _hCustomSaveDir);
@@ -320,6 +332,7 @@ void CustomPathsPageDialog::SaveSetup()
 
 INT_PTR AccessibilityPageDialog::OnInitDialog()
 {
+    _hEnableAccess          = GetDlgItem(_hwnd, IDC_ACCESSENABLECHECK);
     _hSpeechSkipStyle       = GetDlgItem(_hwnd, IDC_SPEECHSKIPSTYLE);
     _hTextSkipStyle         = GetDlgItem(_hwnd, IDC_TEXTSKIPSTYLE);
 
@@ -332,16 +345,53 @@ INT_PTR AccessibilityPageDialog::OnInitDialog()
         AddString(_hTextSkipStyle, val.first, val.second);
     }
 
-    SetCurSelToItemData(_hSpeechSkipStyle, _winCfg.SpeechSkipStyle);
-    SetCurSelToItemData(_hTextSkipStyle, _winCfg.TextSkipStyle);
+    ResetSetup();
 
     return FALSE; // notify WinAPI that we set focus ourselves
 }
 
+INT_PTR AccessibilityPageDialog::OnCommand(WORD id)
+{
+    switch (id)
+    {
+    case IDC_ACCESSENABLECHECK: OnEnableAccessCheck(); break;
+    default:
+        return FALSE;
+    }
+    return TRUE;
+}
+
+void AccessibilityPageDialog::OnEnableAccessCheck()
+{
+    const bool enable = GetCheck(_hEnableAccess);
+    EnableWindow(_hSpeechSkipStyle, enable ? TRUE : FALSE);
+    EnableWindow(_hTextSkipStyle, enable ? TRUE : FALSE);
+}
+
+void AccessibilityPageDialog::ResetSetup()
+{
+    SetCheck(_hEnableAccess, CfgReadBoolInt(_cfgIn, "winsetup", "access_page_on") ? TRUE : FALSE);
+    OnEnableAccessCheck();
+
+    SetCurSelToItemData(_hSpeechSkipStyle, _winCfg.SpeechSkipStyle);
+    SetCurSelToItemData(_hTextSkipStyle, _winCfg.TextSkipStyle);
+}
+
 void AccessibilityPageDialog::SaveSetup()
 {
-    _winCfg.SpeechSkipStyle = (SkipSpeechStyle)GetCurItemData(_hSpeechSkipStyle, kSkipSpeechNone);
-    _winCfg.TextSkipStyle = (SkipSpeechStyle)GetCurItemData(_hTextSkipStyle, kSkipSpeechNone);
+    const bool enable = GetCheck(_hEnableAccess);
+    CfgWriteBoolInt(_cfgOut, "winsetup", "access_page_on", enable);
+    
+    if (enable)
+    {
+        _winCfg.SpeechSkipStyle = (SkipSpeechStyle)GetCurItemData(_hSpeechSkipStyle, kSkipSpeechNone);
+        _winCfg.TextSkipStyle = (SkipSpeechStyle)GetCurItemData(_hTextSkipStyle, kSkipSpeechNone);   
+    }
+    else
+    {
+        _winCfg.SpeechSkipStyle = kSkipSpeechNone;
+        _winCfg.TextSkipStyle = kSkipSpeechNone;
+    }
 }
 
 } // namespace Engine

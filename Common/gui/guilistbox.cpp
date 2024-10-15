@@ -99,7 +99,7 @@ Rect GUIListBox::CalcGraphicRect(bool clipped)
         int at_y = pixel_size + item * RowHeight;
         int item_index = item + TopItem;
         PrepareTextToDraw(Items[item_index]);
-        Line lpos = GUI::CalcTextPositionHor(_textToDraw.GetCStr(), Font, 1 + pixel_size, right_hand_edge, at_y + 1,
+        Line lpos = GUI::CalcTextPositionHor(_textToDraw, Font, 1 + pixel_size, right_hand_edge, at_y + 1,
             (FrameAlignment)TextAlignment);
         max_line.X2 = std::max(max_line.X2, lpos.X2);
     }
@@ -204,7 +204,7 @@ void GUIListBox::Draw(Bitmap *ds, int x, int y)
         int item_index = item + TopItem;
         PrepareTextToDraw(Items[item_index]);
 
-        GUI::DrawTextAlignedHor(ds, _textToDraw.GetCStr(), Font, text_color, x + 1 + pixel_size, right_hand_edge, at_y + 1,
+        GUI::DrawTextAlignedHor(ds, _textToDraw, Font, text_color, x + 1 + pixel_size, right_hand_edge, at_y + 1,
             (FrameAlignment)TextAlignment);
     }
     ds->SetClip(old_clip);

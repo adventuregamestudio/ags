@@ -136,6 +136,7 @@ public:
         if (_pool.size() == _count) _pool.resize(_count + 1);
         _pool[_count++].SetString(cstr);
     }
+    inline const std::vector<AGS::Common::String> &GetVector() const { return _pool; }
 
     // Auxiliary line processing buffers
     std::string LineBuf[2];

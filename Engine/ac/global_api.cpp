@@ -86,6 +86,11 @@ RuntimeScriptValue Sc_ClaimEvent(const RuntimeScriptValue *params, int32_t param
     API_SCALL_VOID(ClaimEvent);
 }
 
+RuntimeScriptValue Sc_CopySaveSlot(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT2(CopySaveSlot);
+}
+
 // void (int strt,int eend)
 RuntimeScriptValue Sc_CyclePalette(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -486,6 +491,11 @@ RuntimeScriptValue Sc_GetFontHeight(const RuntimeScriptValue *params, int32_t pa
 RuntimeScriptValue Sc_GetFontLineSpacing(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT_PINT(GetFontLineSpacing);
+}
+
+RuntimeScriptValue Sc_GetTimerPos(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_PINT(GetTimerPos);
 }
 
 // char * (const char *text)
@@ -969,9 +979,9 @@ RuntimeScriptValue Sc_SetTextWindowGUI(const RuntimeScriptValue *params, int32_t
 }
 
 // void (int tnum,int timeout)
-RuntimeScriptValue Sc_script_SetTimer(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_SetTimer(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT2(script_SetTimer);
+    API_SCALL_VOID_PINT2(SetTimer);
 }
 
 // void (int wa,int bl)
@@ -1151,6 +1161,7 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "ChangeCursorGraphic",      API_FN_PAIR(ChangeCursorGraphic) },
         { "ChangeCursorHotspot",      API_FN_PAIR(ChangeCursorHotspot) },
         { "ClaimEvent",               API_FN_PAIR(ClaimEvent) },
+        { "CopySaveSlot",             API_FN_PAIR(CopySaveSlot) },
         { "CyclePalette",             API_FN_PAIR(CyclePalette) },
         { "Debug",                    API_FN_PAIR(script_debug) },
         { "DeleteSaveSlot",           API_FN_PAIR(DeleteSaveSlot) },
@@ -1224,6 +1235,7 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "GetTextWidth",             API_FN_PAIR(GetTextWidth) },
         { "GetFontHeight",            API_FN_PAIR(GetFontHeight) },
         { "GetFontLineSpacing",       API_FN_PAIR(GetFontLineSpacing) },
+        { "GetTimerPos",              API_FN_PAIR(GetTimerPos) },
         { "GetTranslation",           API_FN_PAIR(get_translation) },
         { "GetTranslationName",       API_FN_PAIR(GetTranslationName) },
         { "GetWalkableAreaAtRoom",    API_FN_PAIR(GetWalkableAreaAtRoom) },
@@ -1310,7 +1322,7 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "SetSpeechFont",            API_FN_PAIR(SetSpeechFont) },
         { "SetSpeechVolume",          API_FN_PAIR(SetSpeechVolume) },
         { "SetTextWindowGUI",         API_FN_PAIR(SetTextWindowGUI) },
-        { "SetTimer",                 API_FN_PAIR(script_SetTimer) },
+        { "SetTimer",                 API_FN_PAIR(SetTimer) },
         { "SetWalkBehindBase",        API_FN_PAIR(SetWalkBehindBase) },
         { "ShakeScreen",              API_FN_PAIR(ShakeScreen) },
         { "ShakeScreenBackground",    API_FN_PAIR(ShakeScreenBackground) },

@@ -48,7 +48,7 @@ Rect GUITextBox::CalcGraphicRect(bool clipped)
     // TODO: need to find a way to cache text position, or there'll be some repetition
     Rect rc = RectWH(0, 0, _width, _height);
     Point text_at(1 + 1, 1 + 1);
-    Rect text_rc = GUI::CalcTextGraphicalRect(Text.GetCStr(), Font, text_at);
+    Rect text_rc = GUI::CalcTextGraphicalRect(Text, Font, text_at);
     if (GUI::IsGUIEnabled(this))
     {
         // add a cursor

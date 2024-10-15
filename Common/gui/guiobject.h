@@ -44,6 +44,7 @@ public:
     bool            IsEnabled() const { return (Flags & kGUICtrl_Enabled) != 0; }
     bool            IsTranslated() const { return (Flags & kGUICtrl_Translated) != 0; }
     bool            IsVisible() const { return (Flags & kGUICtrl_Visible) != 0; }
+    bool            IsWrapText() const { return (Flags & kGUICtrl_WrapText) != 0; }
     // overridable routine to determine whether the mouse is over the control
     virtual bool    IsOverControl(int x, int y, int leeway) const;
     Size            GetSize() const { return Size(_width, _height); }

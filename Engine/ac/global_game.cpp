@@ -100,8 +100,21 @@ void restart_game() {
     try_restore_save(RESTART_POINT_SAVE_GAME_NUMBER);
 }
 
+void CopySaveSlot(int old_save, int new_save)
+{
+    if (old_save == new_save)
+        return; // cannot copy into itself
+
+    String old_filename = get_save_game_path(old_save);
+    String new_filename = get_save_game_path(new_save);
+    File::CopyFile(old_filename, new_filename, true);
+}
+
 void MoveSaveSlot(int old_save, int new_save)
 {
+    if (old_save == new_save)
+        return; // cannot move into itself
+
     String old_filename = get_save_game_path(old_save);
     String new_filename = get_save_game_path(new_save);
     File::RenameFile(old_filename, new_filename);

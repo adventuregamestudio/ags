@@ -310,6 +310,48 @@ void Button_SetTextAlignment(GUIButton *butt, int align)
     }
 }
 
+bool Button_GetWrapText(GUIButton *butt)
+{
+    return butt->IsWrapText();
+}
+
+void Button_SetWrapText(GUIButton *butt, bool wrap)
+{
+    if (butt->IsWrapText() != wrap)
+    {
+        butt->SetWrapText(wrap);
+        butt->MarkChanged();
+    }
+}
+
+int Button_GetTextPaddingHorizontal(GUIButton *butt)
+{
+    return butt->TextPaddingHor;
+}
+
+void Button_SetTextPaddingHorizontal(GUIButton *butt, int pad)
+{
+    if (butt->TextPaddingHor != pad)
+    {
+        butt->TextPaddingHor = pad;
+        butt->MarkChanged();
+    }
+}
+
+int Button_GetTextPaddingVertical(GUIButton *butt)
+{
+    return butt->TextPaddingVer;
+}
+
+void Button_SetTextPaddingVertical(GUIButton *butt, int pad)
+{
+    if (butt->TextPaddingVer != pad)
+    {
+        butt->TextPaddingVer = pad;
+        butt->MarkChanged();
+    }
+}
+
 //=============================================================================
 //
 // Script API Functions
@@ -453,6 +495,36 @@ RuntimeScriptValue Sc_Button_SetTextAlignment(void *self, const RuntimeScriptVal
     API_OBJCALL_VOID_PINT(GUIButton, Button_SetTextAlignment);
 }
 
+RuntimeScriptValue Sc_Button_GetWrapText(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL(GUIButton, Button_GetWrapText);
+}
+
+RuntimeScriptValue Sc_Button_SetWrapText(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PBOOL(GUIButton, Button_SetWrapText);
+}
+
+RuntimeScriptValue Sc_Button_GetTextPaddingHorizontal(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(GUIButton, Button_GetTextPaddingHorizontal);
+}
+
+RuntimeScriptValue Sc_Button_SetTextPaddingHorizontal(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(GUIButton, Button_SetTextPaddingHorizontal);
+}
+
+RuntimeScriptValue Sc_Button_GetTextPaddingVertical(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(GUIButton, Button_GetTextPaddingVertical);
+}
+
+RuntimeScriptValue Sc_Button_SetTextPaddingVertical(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(GUIButton, Button_SetTextPaddingVertical);
+}
+
 RuntimeScriptValue Sc_Button_GetAnimFrame(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(GUIButton, Button_GetAnimFrame);
@@ -479,6 +551,12 @@ void RegisterButtonAPI()
         { "Button::SetText^1",            API_FN_PAIR(Button_SetText) },
         { "Button::get_TextAlignment",    API_FN_PAIR(Button_GetTextAlignment) },
         { "Button::set_TextAlignment",    API_FN_PAIR(Button_SetTextAlignment) },
+        { "Button::get_TextPaddingHorizontal", API_FN_PAIR(Button_GetTextPaddingHorizontal) },
+        { "Button::set_TextPaddingHorizontal", API_FN_PAIR(Button_SetTextPaddingHorizontal) },
+        { "Button::get_TextPaddingVertical", API_FN_PAIR(Button_GetTextPaddingVertical) },
+        { "Button::set_TextPaddingVertical", API_FN_PAIR(Button_SetTextPaddingVertical) },
+        { "Button::get_WrapText",         API_FN_PAIR(Button_GetWrapText) },
+        { "Button::set_WrapText",         API_FN_PAIR(Button_SetWrapText) },
         { "Button::get_Animating",        API_FN_PAIR(Button_IsAnimating) },
         { "Button::get_ClipImage",        API_FN_PAIR(Button_GetClipImage) },
         { "Button::set_ClipImage",        API_FN_PAIR(Button_SetClipImage) },

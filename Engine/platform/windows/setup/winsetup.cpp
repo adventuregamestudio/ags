@@ -49,11 +49,11 @@ namespace Engine
 class WinSetupDialog : public WinDialog
 {
 public:
-    WinSetupDialog(const ConfigTree &cfg_in, ConfigTree &cfg_out, const String &data_dir, const String &version_str);
+    WinSetupDialog(const ConfigTree &cfg_in, const ConfigTree &def_cfg_in, ConfigTree &cfg_out, const String &data_dir, const String &version_str);
     ~WinSetupDialog() override;
 
-    static SetupReturnValue ShowModal(const ConfigTree &cfg_in, ConfigTree &cfg_out,
-                                      const String &data_dir, const String &version_str);
+    static SetupReturnValue ShowModal(const ConfigTree &cfg_in, const ConfigTree &def_cfg_in,
+        ConfigTree &cfg_out, const String &data_dir, const String &version_str);
 
 protected:
     UINT GetTemplateID() const override { return IDD_SETUP; }
@@ -64,11 +64,15 @@ protected:
     INT_PTR OnCommand(WORD id) override;
 
 private:
+    // Event handlers
+    void OnResetToDefaults();
+
     void SaveSetup();
 
     // Dialog properties
     WinConfig _winCfg;
     const ConfigTree &_cfgIn;
+    const ConfigTree &_defCfgIn; // game defaults, not including player's setup
     ConfigTree &_cfgOut;
     Size _desktopSize;
 
@@ -79,8 +83,10 @@ private:
     std::vector<std::shared_ptr<WinSetupPageDialog>> _pages;
 };
 
-WinSetupDialog::WinSetupDialog(const ConfigTree &cfg_in, ConfigTree &cfg_out, const String &data_dir, const String &version_str)
+WinSetupDialog::WinSetupDialog(const ConfigTree &cfg_in, const ConfigTree &def_cfg_in,
+        ConfigTree &cfg_out, const String &data_dir, const String &version_str)
     : _cfgIn(cfg_in)
+    , _defCfgIn(def_cfg_in)
     , _cfgOut(cfg_out)
 {
     _winCfg.DataDirectory = data_dir;
@@ -91,10 +97,10 @@ WinSetupDialog::~WinSetupDialog()
 {
 }
 
-SetupReturnValue WinSetupDialog::ShowModal(const ConfigTree &cfg_in, ConfigTree &cfg_out,
+SetupReturnValue WinSetupDialog::ShowModal(const ConfigTree &cfg_in, const ConfigTree &def_cfg_in, ConfigTree &cfg_out,
                                            const String &data_dir, const String &version_str)
 {
-    std::unique_ptr<WinSetupDialog> dlg(new WinSetupDialog(cfg_in, cfg_out, data_dir, version_str));
+    std::unique_ptr<WinSetupDialog> dlg(new WinSetupDialog(cfg_in, def_cfg_in, cfg_out, data_dir, version_str));
     INT_PTR dlg_res = WinDialog::ShowModal(dlg.get(), (HWND)sys_win_get_window());
     dlg.reset();
 
@@ -113,6 +119,7 @@ INT_PTR WinSetupDialog::OnInitDialog()
 
     _desktopSize = get_desktop_size();
 
+    _winCfg.Load(_defCfgIn, _desktopSize);
     _winCfg.Load(_cfgIn, _desktopSize);
 
     // Native resolution test
@@ -126,7 +133,7 @@ INT_PTR WinSetupDialog::OnInitDialog()
     _pages.emplace_back(new BasicPageDialog(_winCfg, _cfgIn));
     _pages.emplace_back(new AdvancedPageDialog(_winCfg, _cfgIn));
     _pages.emplace_back(new CustomPathsPageDialog(_winCfg, _cfgIn));
-    _pages.emplace_back(new AccessibilityPageDialog(_winCfg, _cfgIn));
+    _pages.emplace_back(new AccessibilityPageDialog(_winCfg, _cfgIn, _cfgOut));
     _pager.reset(new PageControl(_hTabber));
     for (auto &p : _pages)
         _pager->AddPage(p);
@@ -172,10 +179,25 @@ INT_PTR WinSetupDialog::OnCommand(WORD id)
     case IDCANCEL:
         EndDialog(_hwnd, id);
         return TRUE;
+    case IDRESETTODEFAULTS:
+        OnResetToDefaults();
+        return TRUE;
     default:
         return FALSE;
     }
     return TRUE;
+}
+
+void WinSetupDialog::OnResetToDefaults()
+{
+    if (MessageBox(_hwnd, "This will reset ALL the game configuration to defaults.\nWould you like to continue?", "Confirmation", MB_OKCANCEL | MB_ICONWARNING)
+            == IDCANCEL)
+        return;
+
+    _winCfg.SetDefaults();
+    _winCfg.Load(_defCfgIn, _desktopSize);
+    for (auto &p : _pages)
+        p->ResetSetup();
 }
 
 void WinSetupDialog::SaveSetup()
@@ -192,10 +214,10 @@ void WinSetupDialog::SaveSetup()
 // Windows setup entry point.
 //
 //=============================================================================
-SetupReturnValue WinSetup(const ConfigTree &cfg_in, ConfigTree &cfg_out,
-                          const String &game_data_dir, const String &version_str)
+SetupReturnValue WinSetup(const ConfigTree &cfg_in, const ConfigTree &def_cfg_in,
+    ConfigTree &cfg_out, const String &game_data_dir, const String &version_str)
 {
-    return WinSetupDialog::ShowModal(cfg_in, cfg_out, game_data_dir, version_str);
+    return WinSetupDialog::ShowModal(cfg_in, def_cfg_in, cfg_out, game_data_dir, version_str);
 }
 
 } // namespace Engine

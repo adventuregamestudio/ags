@@ -118,13 +118,13 @@ namespace AGS.Types
             set { _idleView = Math.Max(0, value); }
         }
 
-        [Description("Delay before the idle view activates, in seconds")]
+        [Description("Delay before the idle view activates, in seconds. Setting this to 0 causes the idle view to be looped continuously when the character is not moving.")]
         [Category("Appearance")]
         [DefaultValue(20)]
         public int IdleDelay
         {
             get { return _idleDelay; }
-            set { _idleDelay = value; }
+            set { _idleDelay = Math.Max(0, value); }
         }
 
         [Description("Delay between changing frames whilst idle animation")]

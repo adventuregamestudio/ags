@@ -20,7 +20,6 @@
 
 #include "ac/dynobj/scriptdatetime.h"
 
-ScriptDateTime* DateTime_Now_Core();
 ScriptDateTime* DateTime_Now();
 int             DateTime_GetYear(ScriptDateTime *sdt);
 int             DateTime_GetMonth(ScriptDateTime *sdt);

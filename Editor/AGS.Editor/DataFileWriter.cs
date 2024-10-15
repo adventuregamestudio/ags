@@ -1054,6 +1054,36 @@ namespace AGS.Editor
                     }
                 }
 
+                public int TextPaddingHorizontal
+                {
+                    get
+                    {
+                        GUIButton button = (GUIButton)this;
+                        if (button != null) return button.TextPaddingHorizontal;
+                        return 0;
+                    }
+                }
+
+                public int TextPaddingVertical
+                {
+                    get
+                    {
+                        GUIButton button = (GUIButton)this;
+                        if (button != null) return button.TextPaddingVertical;
+                        return 0;
+                    }
+                }
+
+                public bool WrapText
+                {
+                    get
+                    {
+                        GUIButton button = (GUIButton)this;
+                        if (button != null) return button.WrapText;
+                        return false;
+                    }
+                }
+
                 public string OnClick
                 {
                     get
@@ -1129,7 +1159,8 @@ namespace AGS.Editor
                 foreach (GUIButtonOrTextWindowEdge ctrl in GUIButtons)
                 {
                     int flags;
-                    flags = (ctrl.ClipImage ? NativeConstants.GUIF_CLIP : 0);
+                    flags = (ctrl.ClipImage ? NativeConstants.GUIF_CLIP : 0) |
+                            (ctrl.WrapText ? NativeConstants.GUIF_WRAPTEXT : 0);
                     WriteGUIControl(ctrl, flags, new string[] { ctrl.OnClick });
                     writer.Write(ctrl.Image); // pic
                     writer.Write(ctrl.MouseoverImage); // overpic
@@ -1761,6 +1792,7 @@ namespace AGS.Editor
             WriteExtension("v360_cursors", WriteExt_360Cursors, writer, gameEnts, errors);
             WriteExtension("v361_objnames", WriteExt_361ObjNames, writer, gameEnts, errors);
             WriteExtension("v362_interevents", WriteExt_362InteractionEvents, writer, gameEnts, errors);
+            WriteExtension("v362_guictrls", WriteExt_362GUIControls, writer, gameEnts, errors);
             WriteExtension("ext_ags399", WriteExt_Ags399, writer, gameEnts, errors);
             WriteExtension("v400_gameopts", WriteExt_400GameOpts, writer, gameEnts, errors);
             WriteExtension("v400_customprops", WriteExt_400CustomProps, writer, gameEnts, errors);
@@ -1863,6 +1895,18 @@ namespace AGS.Editor
             foreach (GUI gui in game.GUIs)
             {
                 FilePutString(gui.ScriptModule, writer);
+            }
+        }
+        
+        private static void WriteExt_362GUIControls(BinaryWriter writer, WriteExtEntities ents, CompileMessages errors)
+        {
+            writer.Write(ents.GUIControls.GUIButtons.Count);
+            foreach (var button in ents.GUIControls.GUIButtons)
+            {
+                writer.Write(button.TextPaddingHorizontal);
+                writer.Write(button.TextPaddingVertical);
+                writer.Write((int)0);
+                writer.Write((int)0);
             }
         }
 

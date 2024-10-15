@@ -126,8 +126,6 @@ Locations of two latter files differ between running platforms:
     * win - Windows;
     * linux - Linux;
     * mac - MacOS.
-  * legacysave_assume_dataver = \[integer\] - when restoring a save of a legacy format, lets engine assume certain game data version ID. This may be necessary because of a mistake in pre-3.5.0 save formats, where contents depended on a game data version rather than a save version.
-  * legacysave_let_gui_diff = \[0; 1\] - when restoring a save of a legacy format, lets engine read less gui elements than are registered by the current game. This was a (possibly unintended) effect in pre-3.5.0 save format.
   * max_save = \[integer\] - topmost save slot that may be used in a standard save/restore dialog in game. This affects only built-in dialogs and listboxes filled by FillSaveGameList() script command. This does not and cannot affect any other custom scripted save systems.
   * restore_game_key = \[integer\] - key for calling built-in restore game dialog. Key value corresponds to the [AGS script keycode](https://github.com/adventuregamestudio/ags-manual/wiki/Keycodes).
   * save_game_key = \[integer\] - key for calling built-in save game dialog.

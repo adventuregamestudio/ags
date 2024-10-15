@@ -58,16 +58,25 @@ int CharacterInfo::get_blocking_bottom() const {
     return y + 3;
 }
 
-void UpdateCharacterMoveAndAnim(CharacterInfo *chi, CharacterExtras *chex, std::vector<int> &followingAsSheep)
+// Tests if frame reached or exceeded the loop, and resets frame back
+// to either 1st walking frame if character is walking, or frame 0 otherwise
+// (or if there's less than 2 frames in the current loop).
+static void ResetFrameIfAtEnd(CharacterInfo *chi)
 {
-    if (!chi->is_enabled())
-        return;
-    
-    // check turning
-    if (UpdateCharacterTurning(chi, chex))
-        return; // still turning, break
-    
-    // Fixup character's view when possible
+    const int frames_in_loop = views[chi->view].loops[chi->loop].numFrames;
+    if (chi->frame >= frames_in_loop)
+    {
+        chi->frame = (chi->walking > 0 && frames_in_loop > 1) ? 1 : 0;
+    }
+}
+
+// Fixups loop and frame values, in case any of them are set to a value out of the valid range
+static void FixupCharacterLoopAndFrame(CharacterInfo *chi)
+{
+    // If current loop property exceeds number of loops,
+    // or if selected loop has no frames, then try select any first loop that has frames.
+    // NOTE: although this may seem like a weird solution to a problem,
+    // we do so for backwards compatibility; this approximately emulates older games behavior.
     const int view = chi->view;
     if (view >= 0 &&
         (chi->loop >= views[view].numLoops || views[view].loops[chi->loop].numFrames == 0))
@@ -84,8 +93,22 @@ void UpdateCharacterMoveAndAnim(CharacterInfo *chi, CharacterExtras *chex, std::
         chi->loop = loop;
     }
 
-    int doing_nothing = 1;
+    ResetFrameIfAtEnd(chi); // test, in case new loop has less frames
+}
 
+void UpdateCharacterMoveAndAnim(CharacterInfo *chi, CharacterExtras *chex, std::vector<int> &followingAsSheep)
+{
+	if (!chi->is_enabled())
+        return;
+    
+	// Update turning
+    bool is_turning = UpdateCharacterTurning(chi, chex);
+    // Fixup character's loop prior to any further logic updates
+    FixupCharacterLoopAndFrame(chi);
+    if (is_turning)
+		return; // still turning, break
+
+    int doing_nothing = 1;
 	UpdateCharacterMoving(chi, chex, doing_nothing);
 
 	// Update animating
@@ -148,8 +171,6 @@ bool UpdateCharacterTurning(CharacterInfo *chi, CharacterExtras *chex)
           }
         }
         chi->loop = turnlooporder[wantloop];
-        if (chi->frame >= views[chi->view].loops[chi->loop].numFrames)
-            chi->frame = 0; // AVD: make sure the loop always has a valid frame
         chi->walking -= TURNING_AROUND;
         // if still turning, wait for next frame
         if (chi->walking % TURNING_BACKWARDS >= TURNING_AROUND)
@@ -212,27 +233,12 @@ void UpdateCharacterMoving(CharacterInfo *chi, CharacterExtras *chex, int &doing
           chi->walkwaitcounter++;
       }
 
-      const int view = chi->view, loop = chi->loop;
-      if (loop >= views[view].numLoops)
-        quitprintf("Unable to render character %d (%s) because loop %d does not exist in view %d",
-            chi->index_id, chi->scrname.GetCStr(), loop, view + 1);
-
-      // check don't overflow loop
-      int framesInLoop = views[view].loops[loop].numFrames;
-      if (chi->frame > framesInLoop)
-      {
-        chi->frame = 1;
-
-        if (framesInLoop < 2)
-          chi->frame = 0;
-
-        if (framesInLoop < 1)
-          quitprintf("Unable to render character %d (%s) because there are no frames in loop %d",
-              chi->index_id, chi->scrname.GetCStr(), loop);
-      }
+      // Fixup character's loop, it may be changed when making a walk-move
+      FixupCharacterLoopAndFrame(chi);
 
       doing_nothing = 0; // still walking?
 
+      const int view = chi->view, loop = chi->loop;
       if (chi->walking < 1) {
         // Finished walking, stop and reset state
         chex->process_idle_this_time = 1;
@@ -258,14 +264,7 @@ void UpdateCharacterMoving(CharacterInfo *chi, CharacterExtras *chex, int &doing
         if ((chi->flags & CHF_MOVENOTWALK) == 0)
         {
           chi->frame++;
-          if (chi->frame >= views[view].loops[loop].numFrames)
-          {
-            // end of loop, so loop back round skipping the standing frame
-            chi->frame = 1;
-
-            if (views[view].loops[loop].numFrames < 2)
-              chi->frame = 0;
-          }
+          ResetFrameIfAtEnd(chi); // roll back if exceeded loop
 
           chex->animwait = views[view].loops[loop].frames[chi->frame].speed + chi->animspeed;
 

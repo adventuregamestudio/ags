@@ -68,7 +68,7 @@ struct AGSWin32 : AGSPlatformDriver {
   eScriptSystemOSID GetSystemOSID() override;
   void PostBackendInit() override;
   void PostBackendExit() override;
-  SetupReturnValue RunSetup(const ConfigTree &cfg_in, ConfigTree &cfg_out) override;
+  SetupReturnValue RunSetup(const ConfigTree &cfg_in, const ConfigTree &def_cfg_in, ConfigTree &cfg_out) override;
   void WriteStdOut(const char *fmt, ...) override;
   void WriteStdErr(const char *fmt, ...) override;
   void DisplayMessageBox(const char *text) override;
@@ -334,10 +334,10 @@ void AGSWin32::PostBackendExit() {
   timeEndPeriod(win32TimerPeriod);
 }
 
-SetupReturnValue AGSWin32::RunSetup(const ConfigTree &cfg_in, ConfigTree &cfg_out)
+SetupReturnValue AGSWin32::RunSetup(const ConfigTree &cfg_in, const ConfigTree &def_cfg_in, ConfigTree &cfg_out)
 {
   String version_str = String::FromFormat("Adventure Game Studio v%s setup", get_engine_version());
-  return AGS::Engine::WinSetup(cfg_in, cfg_out, usetup.main_data_dir, version_str);
+  return AGS::Engine::WinSetup(cfg_in, def_cfg_in, cfg_out, usetup.main_data_dir, version_str);
 }
 
 void AGSWin32::WriteStdOut(const char *fmt, ...)

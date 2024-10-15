@@ -1,4 +1,3 @@
-
 // The available script API is determined by two bounds: upper bound
 // determines which new API parts will be enabled, and lower bound
 // determines which obsolete API parts will be disabled.
@@ -890,6 +889,8 @@ import void SaveGameSlot(int slot, const string description, int sprite = -1);
 /// Restores the game saved to the specified game slot.
 import void RestoreGameSlot(int slot);
 #ifdef SCRIPT_API_v362
+/// Copies the save game from one slot to another, overwriting a save if one was already present at a new slot.
+import void CopySaveSlot(int old_slot, int new_slot);
 /// Moves the save game from one slot to another, overwriting a save if one was already present at a new slot.
 import void MoveSaveSlot(int old_slot, int new_slot);
 #endif
@@ -998,6 +999,10 @@ import int  AreThingsOverlapping(int thing1, int thing2);
 import void SetTimer(int timerID, int timeout);
 /// Returns true the first time this is called after the timer expires.
 import bool IsTimerExpired(int timerID);
+#ifdef SCRIPT_API_v362
+/// Returns the specified timer's time value; returns 0 if timer is not running, and 1 if it's expiring.
+import int  GetTimerPos(int timerID);
+#endif
 /// Sets whether the game can continue to run in the background if the player switches to another application.
 import void SetMultitaskingMode (int mode);
 /// Converts a floating point value to an integer.
@@ -1066,8 +1071,12 @@ builtin managed struct File {
   readonly import attribute String Path;
 #endif
 #ifdef SCRIPT_API_v362
+  /// Creates a copy of an existing file; if there's already a file with the new name then it will be overwritten
+  import static bool Copy(const string old_filename, const string new_filename);   // $AUTOCOMPLETESTATICONLY$
   /// Retrieves specified file's last write time; returns null if file does not exist
   import static DateTime* GetFileTime(const string filename); // $AUTOCOMPLETESTATICONLY$
+  /// Renames an existing file; if there's already a file with the new name then it will be overwritten
+  import static bool Rename(const string old_filename, const string new_filename);   // $AUTOCOMPLETESTATICONLY$
 #endif
 #ifdef SCRIPT_API_v399
   /// Renames an existing file; if there's already a file with the new name then it will be overwritten
@@ -1151,6 +1160,12 @@ builtin managed struct Overlay {
   /// Gets/sets the overlay's z-order relative to other overlays and on-screen objects.
   import attribute int ZOrder;
 #endif
+#ifdef SCRIPT_API_v362
+  /// Sets this overlay's position, and optionally its size.
+  import void SetPosition(int x, int y, int width = 0, int height = 0);
+  /// Changes the size of the overlay.
+  import void SetSize(int width, int height);
+#endif
 #ifdef SCRIPT_API_v399
   /// Gets/sets the blending mode of this overlay.
   import attribute BlendMode BlendMode;
@@ -1158,10 +1173,6 @@ builtin managed struct Overlay {
   import attribute float Rotation;
 #endif
 #ifdef SCRIPT_API_v400
-  /// Sets this overlay's position, and optionally its size.
-  import void SetPosition(int x, int y, int width = 0, int height = 0);
-  /// Changes the size of the overlay.
-  import void SetSize(int width, int height);
   /// Tints the overlay to the specified colour. RGB values must be in 0-255 range, saturation and luminance in 0-100 range.
   import void Tint(int red, int green, int blue, int saturation, int luminance);
   /// Sets the light level for this overlay, from -100 to 100 (negative values darken the sprite, positive brighten the sprite).
@@ -1361,7 +1372,7 @@ enum EventType {
   eEventLeaveRoomAfterFadeout = 11,
   eEventGameSaved = 12,
 #endif
-#ifdef SCRIPT_API_v400
+#ifdef SCRIPT_API_v362
   eEventDialogStart = 13,
   eEventDialogStop = 14,
   eEventDialogRun = 15,
@@ -1480,7 +1491,7 @@ builtin managed struct Label extends GUIControl {
   import attribute int  TextColor;
 #ifdef SCRIPT_API_v350
   /// Gets/sets label's text alignment.
-  import attribute HorizontalAlignment TextAlignment;
+  import attribute Alignment TextAlignment;
 #endif
 };
 
@@ -1518,6 +1529,14 @@ builtin managed struct Button extends GUIControl {
 #ifdef SCRIPT_API_v350
   /// Gets/sets text alignment inside the button.
   import attribute Alignment TextAlignment;
+#endif
+#ifdef SCRIPT_API_v362
+  /// Gets/sets whether the button will wrap its text.
+  import attribute bool WrapText;
+  /// Gets/sets amount of padding, restricting the text from left and right
+  import attribute int TextPaddingHorizontal;
+  /// Gets/sets amount of padding, restricting the text from top and bottom
+  import attribute int TextPaddingVertical;
 #endif
 };
 
@@ -1884,13 +1903,15 @@ builtin managed struct Dialog {
   /// Gets the script name of this dialog.
   import readonly attribute String ScriptName;
 #endif
-#ifdef SCRIPT_API_v400
+#ifdef SCRIPT_API_v362
   /// Gets the currently running dialog, returns null if no dialog is run
   import static readonly attribute Dialog* CurrentDialog; // $AUTOCOMPLETESTATICONLY$
   /// Gets the currently executed dialog option, or -1 if none is
   import static readonly attribute int ExecutedOption; // $AUTOCOMPLETESTATICONLY$
   /// Gets if the dialog options are currently displayed on screen
   import static readonly attribute bool AreOptionsDisplayed; // $AUTOCOMPLETESTATICONLY$
+#endif
+#ifdef SCRIPT_API_v400
   /// Gets an integer custom property for this dialog.
   import int  GetProperty(const string property);
   /// Gets a text custom property for this dialog.
@@ -1949,6 +1970,10 @@ builtin struct Maths {
 builtin managed struct DateTime {
   /// Gets the current date and time on the player's system.
   readonly import static attribute DateTime* Now;   // $AUTOCOMPLETESTATICONLY$
+  /// Creates DateTime object from the provided date and time; returns invalid object if year is below 1970 or above 2038, or any other value is invalid
+  import static DateTime* CreateFromDate(int year, int month, int day, int hour = 0, int minute = 0, int second = 0);   // $AUTOCOMPLETESTATICONLY$
+  /// Creates DateTime object from the provided raw time value (in seconds); returns invalid object if rawTime is negative
+  import static DateTime* CreateFromRawTime(int rawTime);   // $AUTOCOMPLETESTATICONLY$
   /// Gets the Year component of the date.
   readonly import attribute int Year;
   /// Gets the Month (1-12) component of the date.

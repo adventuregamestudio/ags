@@ -48,9 +48,7 @@ int Label_GetTextAlignment(GUILabel *labl)
 
 void Label_SetTextAlignment(GUILabel *labl, int align)
 {
-    // NOTE: some custom engines supported Label.TextAlignment
-    // before 3.5.0 got this added officially
-    HorAlignment use_align = (HorAlignment)align;
+    FrameAlignment use_align = (FrameAlignment)align;
     if (labl->TextAlignment != use_align)
     {
         labl->TextAlignment = use_align;

@@ -118,7 +118,7 @@ int Dialog_HasOptionBeenChosen(ScriptDialog *sd, int option)
 {
   if ((option < 1) || (option > dialog[sd->id].numoptions))
     quit("!Dialog.HasOptionBeenChosen: Invalid option number specified");
-  option--;
+  option--;  // option id is 1-based in script, and 0 is entry point
 
   if (dialog[sd->id].optionflags[option] & DFLG_HASBEENCHOSEN)
     return 1;
@@ -131,7 +131,7 @@ void Dialog_SetHasOptionBeenChosen(ScriptDialog *sd, int option, bool chosen)
     {
         quit("!Dialog.HasOptionBeenChosen: Invalid option number specified");
     }
-    option--;
+    option--; // option id is 1-based in script, and 0 is entry point
     if (chosen)
     {
         dialog[sd->id].optionflags[option] |= DFLG_HASBEENCHOSEN;
@@ -157,7 +157,7 @@ const char* Dialog_GetOptionText(ScriptDialog *sd, int option)
   if ((option < 1) || (option > dialog[sd->id].numoptions))
     quit("!Dialog.GetOptionText: Invalid option number specified");
 
-  option--;
+  option--; // option id is 1-based in script, and 0 is entry point
 
   return CreateNewScriptString(get_translation(dialog[sd->id].optionnames[option]));
 }
@@ -1263,7 +1263,7 @@ void DialogExec::Run()
         }
         else if (chose >= 0)
         {
-            ExecutedOption = chose;
+            ExecutedOption = chose + 1; // option id is 1-based in script, and 0 is entry point
             // chose some option - handle it and run its script
             res = run_dialog_option(DlgNum, chose, SAYCHOSEN_USEFLAG, true /* run script */);
             ExecutedOption = -1;

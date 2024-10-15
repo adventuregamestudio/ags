@@ -70,8 +70,7 @@ ScriptDateTime* File_GetFileTime(const char *fnmm) {
     ft = File::GetFileTime(rp.FullPath);
   }
 
-  ScriptDateTime *sdt = new ScriptDateTime();
-  sdt->SetFromStdTime(ft);
+  ScriptDateTime *sdt = new ScriptDateTime(ft);
   ccRegisterManagedObject(sdt, sdt);
   return sdt;
 }
@@ -84,6 +83,29 @@ int File_Delete(const char *fnmm) {
   return File::DeleteFile(rp.FullPath) ? 1 : 0;
 }
 
+int File_Copy(const char *old_name, const char *new_name) {
+  // first path is readonly, second must be writeable and create dirs
+  const auto old_rp = ResolveScriptPathAndFindFile(old_name, true);
+  if (!old_rp)
+    return 0;
+  const auto new_rp = ResolveWritePathAndCreateDirs(new_name);
+  if (!new_rp)
+    return 0;
+
+  if (Path::ComparePaths(old_rp.FullPath, new_rp.FullPath) == 0)
+    return 0; // cannot copy into itself
+
+  if (!old_rp.AssetMgr)
+    return File::CopyFile(old_rp.FullPath, new_rp.FullPath, true) ? 1 : 0;
+
+  auto in = AssetMgr->OpenAsset(old_rp.FullPath, "*");
+  auto out = File::CreateFile(new_rp.FullPath);
+  if (!in || !out)
+    return 0;
+
+  return (CopyStream(in.get(), out.get(), in->GetLength()) == in->GetLength()) ? 1 : 0;
+}
+
 int File_Rename(const char *old_name, const char *new_name) {
   // both paths must be writeable, but should also create dirs for the second
   const auto old_rp = ResolveScriptPathAndFindFile(old_name, false);
@@ -92,6 +114,9 @@ int File_Rename(const char *old_name, const char *new_name) {
   const auto new_rp = ResolveWritePathAndCreateDirs(new_name);
   if (!new_rp)
     return 0;
+
+  if (Path::ComparePaths(old_rp.FullPath, new_rp.FullPath) == 0)
+    return 0; // cannot rename into itself
 
   return File::RenameFile(old_rp.FullPath, new_rp.FullPath) ? 1 : 0;
 }
@@ -749,6 +774,11 @@ void close_all_file_streams()
 #include "ac/dynobj/scriptstring.h"
 
 
+RuntimeScriptValue Sc_File_Copy(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_POBJ2(File_Copy, const char, const char);
+}
+
 // int (const char *fnmm)
 RuntimeScriptValue Sc_File_Delete(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -890,6 +920,7 @@ RuntimeScriptValue Sc_File_GetPath(void *self, const RuntimeScriptValue *params,
 void RegisterFileAPI()
 {
     ScFnRegister file_api[] = {
+        { "File::Copy^2",             API_FN_PAIR(File_Copy) },
         { "File::Delete^1",           API_FN_PAIR(File_Delete) },
         { "File::Exists^1",           API_FN_PAIR(File_Exists) },
         { "File::GetFileTime^1",      API_FN_PAIR(File_GetFileTime) },

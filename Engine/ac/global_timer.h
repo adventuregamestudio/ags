@@ -12,13 +12,14 @@
 //
 //=============================================================================
 //
-//
+// Timer script API.
 //
 //=============================================================================
 #ifndef __AGS_EE_AC__GLOBALTIMER_H
 #define __AGS_EE_AC__GLOBALTIMER_H
 
-void script_SetTimer(int tnum,int timeout);
+void SetTimer(int tnum, int timeout);
+int  GetTimerPos(int tnum);
 int  IsTimerExpired(int tnum);
 
 #endif // __AGS_EE_AC__GLOBALTIMER_H

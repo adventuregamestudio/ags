@@ -6,18 +6,6 @@ using System.Xml;
 namespace AGS.Types
 {
     /// <summary>
-    /// VariableTypeQualifier define declaration qualifiers for the variable,
-    /// such as const, readonly, and so forth.
-    /// </summary>
-    [Flags]
-    public enum VariableTypeQualifier
-    {
-        None     = 0,
-        Const    = 0x0001,
-        ReadOnly = 0x0002
-    }
-
-    /// <summary>
     /// VariableArrayType provides variable's qualification as an array.
     /// </summary>
     public enum VariableArrayType
@@ -34,10 +22,6 @@ namespace AGS.Types
         private string _defaultValue = string.Empty;
         private VariableArrayType _arrayType = VariableArrayType.None;
         private int _arraySize = 0;
-        // NOTE: this is reserved, but currently unused, because "const" and "readonly"
-        // are barely used with the old AGS compiler (they may have more uses with the
-        // new compiler in AGS 4.
-        private VariableTypeQualifier _qualifiers = VariableTypeQualifier.None;
 
         public GlobalVariable() { }
 

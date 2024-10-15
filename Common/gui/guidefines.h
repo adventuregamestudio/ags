@@ -108,6 +108,7 @@ enum GUIControlFlags
     kGUICtrl_Clip       = 0x0020, // only button
     kGUICtrl_Clickable  = 0x0040,
     kGUICtrl_Translated = 0x0080, // 3.3.0.1132
+    kGUICtrl_WrapText   = 0x0100, // 3.6.2
     kGUICtrl_Deleted    = 0x8000, // unused (probably remains from the old editor?)
 
     kGUICtrl_DefFlags   = kGUICtrl_Enabled | kGUICtrl_Visible | kGUICtrl_Clickable |
@@ -152,10 +153,11 @@ enum GuiSvgVersion
     kGuiSvgVersion_36023,
     kGuiSvgVersion_36025,
     kGuiSvgVersion_36200    = 3060200, // re-added control refs
+    kGuiSvgVersion_36202    = 3060202,
     kGuiSvgVersion_400      = 4000000,
     kGuiSvgVersion_40008    = 4000008, // custom properties
     kGuiSvgVersion_40009    = 4000009, // 32-bit color properties
-    kGuiSvgVersion_40010    = 4000010, // compat with kGuiSvgVersion_36200
+    kGuiSvgVersion_40010    = 4000010, // compat with kGuiSvgVersion_36200-36202
 
 };
 

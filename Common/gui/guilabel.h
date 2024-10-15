@@ -49,7 +49,7 @@ public:
     String  Text;
     int32_t Font;
     color_t TextColor;
-    HorAlignment TextAlignment;
+    FrameAlignment TextAlignment;
 
 private:
     // Transforms the Text property to a drawn text, applies translation,

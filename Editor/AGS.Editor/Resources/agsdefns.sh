@@ -1078,10 +1078,6 @@ builtin managed struct File {
   /// Renames an existing file; if there's already a file with the new name then it will be overwritten
   import static bool Rename(const string old_filename, const string new_filename);   // $AUTOCOMPLETESTATICONLY$
 #endif
-#ifdef SCRIPT_API_v399
-  /// Renames an existing file; if there's already a file with the new name then it will be overwritten
-  import static bool Rename(const string old_filename, const string new_filename);   // $AUTOCOMPLETESTATICONLY$
-#endif
   int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };
 

@@ -278,6 +278,9 @@ namespace AGS
 		{
             _gameTextConverter = gcnew TextConverter(game->TextEncoding);
 			PaletteColoursUpdated(game);
+            // Update asset library in case there were new asset directories created
+            GameDirChanged(game->DirectoryPath);
+            // Update native data from the loaded game
 			GameUpdated(game, true);
 			UpdateNativeSpritesToGame(game, errors);
 		}

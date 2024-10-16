@@ -107,7 +107,7 @@ namespace AGS.Editor.Components
 
         private void ShowOrAddPane(FontFile chosenFontFile)
         {
-
+            // TODO: add a FontFile preview pane
         }
 
         private void ShowOrAddPane(AGS.Types.Font chosenFont)
@@ -200,7 +200,7 @@ namespace AGS.Editor.Components
             {
                 string fontFileName = controlID.Substring(FONT_FILE_ITEM_PREFIX.Length);
                 _itemRightClicked = FindFontFileByName(fontFileName);
-                menu.Add(new MenuCommand(COMMAND_NEW_FONT_FOR_FILE, "New Font Style", null));
+                menu.Add(new MenuCommand(COMMAND_NEW_FONT_FOR_FILE, "New Font", null));
                 menu.Add(new MenuCommand(COMMAND_DELETE_FONTFILE, "Delete this font file", null));
             }
             else if (controlID.StartsWith(FONT_ITEM_PREFIX))

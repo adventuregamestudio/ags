@@ -2259,16 +2259,8 @@ namespace AGS.Editor.Components
             // If the room directory we want to write to already exists then backup
             if (Directory.Exists(UnloadedRoom.ROOM_DIRECTORY))
             {
-                string backupRootDir = Enumerable
-                    .Range(0, int.MaxValue)
-                    .Select(i => $"{UnloadedRoom.ROOM_DIRECTORY}Backup-{i}")
-                    .First(dir => !Directory.Exists(dir));
-
-                DirectoryInfo roomDir = new DirectoryInfo(UnloadedRoom.ROOM_DIRECTORY);
-                DirectoryInfo backupDir = new DirectoryInfo(backupRootDir);
-                roomDir.CopyAll(backupDir);
-                // Don't crash the upgrade if a file can't be deleted
-                roomDir.DeleteWithoutException(recursive: true);
+                string backupRootDir = Utilities.MakeUniqueDirectory(_agsEditor.CurrentGame.DirectoryPath, UnloadedRoom.ROOM_DIRECTORY, "Backup-");
+                Utilities.SafeMoveDirectoryFiles(UnloadedRoom.ROOM_DIRECTORY, backupRootDir);
             }
 
             // Now upgrade

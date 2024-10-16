@@ -193,6 +193,16 @@ namespace AGS.Editor
         }
 
         /// <summary>
+        /// Tells if the filepath is nested within parentpath.
+        /// </summary>
+        public static bool PathIsParentOf(string parentpath, string filepath)
+        {
+            Uri parentUri = new Uri(parentpath + Path.DirectorySeparatorChar);
+            Uri fileUri = new Uri(filepath);
+            return parentUri.IsBaseOf(fileUri);
+        }
+
+        /// <summary>
         /// Tells if the given path equals to or subdirectory of a basepath.
         /// </summary>
         public static bool PathsAreSameOrNested(string path, string basepath)
@@ -277,6 +287,43 @@ namespace AGS.Editor
             {
                 return new string[] { };
             }
+        }
+
+        /// <summary>
+        /// Finds a subdirectory variant that is not already present in the given base directory.
+        /// Variants are formed by adding an optional string postfix and a number, i.e. "[name][postfix]X".
+        /// </summary>
+        public static string MakeUniqueDirectory(string baseDirectory, string subDirectory, string postfix = null, int minNumber = 0)
+        {
+            if (postfix == null)
+                postfix = string.Empty;
+            if (minNumber < 0)
+                minNumber = 0;
+
+            return Enumerable
+                    .Range(minNumber, int.MaxValue - minNumber)
+                    .Select(i => $"{subDirectory}{postfix}{i}")
+                    .First(dir => !Directory.Exists(Path.Combine(baseDirectory, dir)));
+        }
+
+        /// <summary>
+        /// Finds a filename variant that is not already present in the given directory.
+        /// Variants are formed by adding an optional string postfix and a number, i.e. "[name][postfix]-X".
+        /// </summary>
+        public static string MakeUniqueFileName(string directory, string filename, string postfix = null, int minNumber = 0)
+        {
+            if (postfix == null)
+                postfix = string.Empty;
+            if (minNumber < 0)
+                minNumber = 0;
+
+            string fileNoExt = Path.GetFileNameWithoutExtension(filename);
+            string fileExt = Path.GetExtension(filename);
+
+            return Enumerable
+                    .Range(minNumber, int.MaxValue - minNumber)
+                    .Select(i => $"{fileNoExt}{postfix}{i}{fileExt}")
+                    .First(testFilename => !File.Exists(Path.Combine(directory, testFilename)));
         }
 
         /// <summary>
@@ -366,6 +413,19 @@ namespace AGS.Editor
                 }
             }
             return true;
+        }
+
+        /// <summary>
+        /// Safely copies all files from srcDirectory to dstDirectory and deletes them
+        /// in the srcDirectory, ensuring that i/o exceptions are handled in the process.
+        /// If any file in srcDir cannot be deleted, such file will be left in place.
+        /// </summary>
+        public static void SafeMoveDirectoryFiles(string srcDirectory, string dstDirectory)
+        {
+            DirectoryInfo roomDir = new DirectoryInfo(srcDirectory);
+            DirectoryInfo backupDir = new DirectoryInfo(dstDirectory);
+            roomDir.CopyAll(backupDir);
+            roomDir.DeleteWithoutException(recursive: true);
         }
 
         /// <summary>

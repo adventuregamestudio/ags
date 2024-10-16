@@ -12,6 +12,8 @@ namespace AGS.Editor.Components
 {
     class FontsComponent : BaseComponent
     {
+        public const string FONT_FILES_DIRECTORY = "Fonts";
+
         private const string TOP_LEVEL_COMMAND_ID = "Fonts";
         private const string FONT_FILES_FOLDER_NODE_ID = "FontFilesFolderNode";
         private const string FONTS_FOLDER_NODE_ID = "FontsFolderNode";
@@ -295,8 +297,10 @@ namespace AGS.Editor.Components
                 _guiController.ProjectTree.SelectNode(this, selectedNodeID);
         }
 
-        private FontFile NewFontFile(string filename)
+        private FontFile NewFontFile(string filename, string sourceFilename = null)
         {
+            if (sourceFilename == null)
+                sourceFilename = filename;
             FontFile newItem = new FontFile();
             newItem.FileName = Path.GetFileName(filename);
             newItem.SourceFilename = filename;
@@ -313,25 +317,43 @@ namespace AGS.Editor.Components
             if (string.IsNullOrEmpty(selectedFile))
                 return;
 
-            // FIXME: store fonts in project in their own subfolder
-            selectedFile = Utilities.GetRelativeToProjectPath(selectedFile);
-            string destFile = selectedFile;
-            if (Path.IsPathRooted(selectedFile))
+            string fontsDirectory = Path.Combine(game.DirectoryPath, FONT_FILES_DIRECTORY);
+            string fontFileName = Path.GetFileName(selectedFile);
+            string destFilePath = Path.Combine(game.DirectoryPath, FONT_FILES_DIRECTORY, fontFileName);
+
+            if (!Directory.Exists(FONT_FILES_DIRECTORY))
             {
-                destFile = Path.Combine(game.DirectoryPath, Path.GetFileName(selectedFile));
+                Directory.CreateDirectory(FONT_FILES_DIRECTORY);
             }
-            if (File.Exists(destFile))
+
+            // Test if they selected a file which is already registered
+            if (Utilities.PathIsParentOf(fontsDirectory, selectedFile))
             {
-                _guiController.ShowMessage("The file of this name already exists in the project folder.", MessageBoxIconType.Warning);
-                return; // TODO: suggest copy renamed?
+                if (FindFontFileByName(fontFileName) != null)
+                {
+                    _guiController.ShowMessage("Selected font file is already added to the project.", MessageBoxIconType.Warning);
+                    return;
+                }
             }
-            if (destFile != selectedFile)
+            // Test if a file of such name already exists
+            else if (File.Exists(destFilePath))
             {
-                File.Copy(selectedFile, destFile);
+                if (_guiController.ShowQuestion("The font file of the same name already exists in the project folder. Would you like to still add this file (the name will be changed)?", MessageBoxIcon.Warning)
+                    == System.Windows.Forms.DialogResult.No)
+                {
+                    return;
+                }
+                fontFileName = Utilities.MakeUniqueFileName(fontsDirectory, fontFileName, "-", 2);
+                destFilePath = Path.Combine(game.DirectoryPath, FONT_FILES_DIRECTORY, fontFileName);
+            }
+
+            if (!Utilities.PathsAreEqual(selectedFile, destFilePath))
+            {
+                File.Copy(selectedFile, destFilePath);
             }
 
             IList<FontFile> items = game.FontFiles;
-            FontFile newItem = NewFontFile(selectedFile);
+            FontFile newItem = NewFontFile(fontFileName, Utilities.GetRelativeToProjectPath(selectedFile));
             items.Add(newItem);
             _guiController.ProjectTree.StartFromNode(this, FONT_FILES_FOLDER_NODE_ID);
             _guiController.ProjectTree.AddTreeLeaf(this, GetNodeID(newItem), newItem.FileName, "FontFileIcon");
@@ -413,7 +435,7 @@ namespace AGS.Editor.Components
                 }
             }
 
-            _agsEditor.DeleteFileOnDisk(removedFile.FileName);
+            _agsEditor.DeleteFileOnDisk(Path.Combine(FONT_FILES_DIRECTORY, removedFile.FileName));
             game.FontFiles.Remove(removedFile);
             game.FilesAddedOrRemoved = true;
             RePopulateTreeView(FONT_FILES_FOLDER_NODE_ID);
@@ -493,10 +515,16 @@ namespace AGS.Editor.Components
         /// </summary>
         private void AddDefaultFontsIfMissing(Game game)
         {
+            if (!Directory.Exists(FONT_FILES_DIRECTORY))
+            {
+                Directory.CreateDirectory(FONT_FILES_DIRECTORY);
+            }
+
             if (game.FontFiles.Count == 0)
             {
-                if (!File.Exists("AGSFNT0.WFN"))
-                    Resources.ResourceManager.CopyFileFromResourcesToDisk("AGSFNT0.WFN");
+                string destFilepath = Path.Combine(FONT_FILES_DIRECTORY, "AGSFNT0.WFN");
+                if (!File.Exists(destFilepath))
+                    Resources.ResourceManager.CopyFileFromResourcesToDisk("AGSFNT0.WFN", destFilepath);
                 FontFile fontfile = NewFontFile("AGSFNT0.WFN");
                 game.FontFiles.Add(fontfile);
             }
@@ -509,20 +537,32 @@ namespace AGS.Editor.Components
 
         private void ConvertAllFontsToFontAndFilePairs(Game game)
         {
+            // If the fonts directory we want to write to already exists then backup
+            if (Directory.Exists(FONT_FILES_DIRECTORY))
+            {
+                string backupRootDir = Utilities.MakeUniqueDirectory(_agsEditor.CurrentGame.DirectoryPath, FONT_FILES_DIRECTORY, "Backup-");
+                Utilities.SafeMoveDirectoryFiles(FONT_FILES_DIRECTORY, backupRootDir);
+            }
+
+            Directory.CreateDirectory(FONT_FILES_DIRECTORY);
+
 #pragma warning disable 0612, 0618
             foreach (AGS.Types.Font font in game.Fonts)
             {
                 FontFile ff;
                 if (File.Exists(font.TTFFileName))
                 {
+                    File.Move(font.TTFFileName, Path.Combine(FONT_FILES_DIRECTORY, font.TTFFileName));
                     ff = NewFontFile(font.TTFFileName);
                 }
                 else if (File.Exists(font.WFNFileName))
                 {
+                    File.Move(font.WFNFileName, Path.Combine(FONT_FILES_DIRECTORY, font.WFNFileName));
                     ff = NewFontFile(font.WFNFileName);
                 }
                 else
                 {
+                    // TODO: add a warning? perhaps will have to pass a list of warnings/errors to this method, or invent another way
                     continue;
                 }
 

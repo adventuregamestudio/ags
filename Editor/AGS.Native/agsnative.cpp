@@ -1535,12 +1535,15 @@ void SetGameResolution(Game ^game)
 void GameDirChanged(String ^workingDir)
 {
     AssetMgr->RemoveAllLibraries();
-    AssetMgr->AddLibrary(TextHelper::ConvertUTF8(workingDir));
+    AGSString work_dir = TextHelper::ConvertUTF8(workingDir);
+    AssetMgr->AddLibrary(work_dir);
+    AssetMgr->AddLibrary(AGSPath::ConcatPaths(work_dir, "Fonts")); // fonts directory
 }
 
 void GameFontUpdated(Game ^game, int fontNumber, bool forceUpdate);
 
-void GameUpdated(Game ^game, bool forceUpdate) {
+void GameUpdated(Game ^game, bool forceUpdate)
+{
   set_uformat(game->UnicodeMode ? U_UTF8 : U_ASCII);
   // TODO: this function may get called when only one item is added/removed or edited;
   // probably it would be best to split it up into several callbacks at some point.

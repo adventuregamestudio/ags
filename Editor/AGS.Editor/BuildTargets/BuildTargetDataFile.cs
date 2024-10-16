@@ -1,4 +1,5 @@
 using AGS.Types;
+using AGS.Editor.Components;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -47,7 +48,8 @@ namespace AGS.Editor
             Utilities.AddAllMatchingFiles(files, AGSEditor.COMPILED_DTA_FILE_NAME);
             foreach (FontFile ff in Factory.AGSEditor.CurrentGame.FontFiles)
             {
-                files.Add(ff.FileName);
+                // TODO: maybe let components provide files instead?..
+                files.Add(Path.Combine(FontsComponent.FONT_FILES_DIRECTORY, ff.FileName));
             }
             Utilities.AddAllMatchingFiles(files, AGSEditor.SPRITE_FILE_NAME);
             foreach (UnloadedRoom room in Factory.AGSEditor.CurrentGame.RootRoomFolder.AllItemsFlat)

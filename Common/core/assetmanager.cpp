@@ -48,6 +48,11 @@ bool SortLibsPriorityLib(const AssetLibInfo *lib1, const AssetLibInfo *lib2)
     return !IsAssetLibDir(lib1) && IsAssetLibDir(lib2);
 }
 
+AssetManager::AssetManager()
+{
+    SetSearchPriority(kAssetPriorityDir); // ensure lib sorter is initialized
+}
+
 /* static */ bool AssetManager::IsDataFile(const String &data_file)
 {
     std::unique_ptr<Stream> in = File::OpenFileCI(data_file, kFile_Open, kStream_Read);

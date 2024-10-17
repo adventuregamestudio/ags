@@ -733,13 +733,18 @@ namespace AGS.Editor
                 parameter = "--fullscreen";
             }
             _runningGameWithDebugger = withDebugger;
-            // custom game install directory (points to where all supplemental data files are)
-            // TODO: get audio and speech paths from a kind of shared config
+            // Pass both compiled dir and custom game data directories (point to where all supplemental data files are);
+            // Command syntax is:
+            //    --runfromide <INSTALLDIR> [OPT_PATH1:FILTER[,OPT_PATH2:FILTER[, ...]]]
+            //
+            // NOTE: OPT_PATHs and FILTERs must be encased in doublequotes, and separated by a single comma (no spaces).
+            //
             parameter += " --runfromide" +
-                " \"" + Path.Combine(AGSEditor.OUTPUT_DIRECTORY, BuildTargetWindows.WINDOWS_DIRECTORY) + "\"" +
-                " \"" + Factory.AGSEditor.GameDirectory + "\"" +
-                " \"" + AudioClip.AUDIO_CACHE_DIRECTORY + "\"" +
-                " \"" + "Speech" + "\"";
+                " \"" + Path.Combine(AGSEditor.OUTPUT_DIRECTORY, BuildTargetWindows.WINDOWS_DIRECTORY) + "\" " +
+                "\"" + Factory.AGSEditor.GameDirectory + "\":\"\"" + "," +
+                "\"" + Path.Combine(Factory.AGSEditor.GameDirectory, FontsComponent.FONT_FILES_DIRECTORY) + "\":\"\"" + "," +
+                "\"" + AudioClip.AUDIO_CACHE_DIRECTORY + "\":\"audio\"" + "," +
+                "\"" + "Speech" + "\":\"voice\"";
 
             // Explicit path to the file containing main game data,
             // this is to ensure that the engine won't try to scan other places

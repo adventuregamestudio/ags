@@ -54,6 +54,7 @@ private:
     std::unique_ptr<Common::Bitmap> _theoraFullFrame;
     // Wrapper over portion of theora frame which we want to use
     std::unique_ptr<Common::Bitmap> _theoraSrcFrame;
+    uint64_t _videoFramesDecoded = 0u; // how many frames loaded and decoded
 };
 
 } // namespace Engine

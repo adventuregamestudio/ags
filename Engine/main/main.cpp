@@ -254,13 +254,12 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
         {
             usetup.user_conf_dir = argv[++ee];
         }
-        else if (ags_stricmp(arg, "--runfromide") == 0 && (argc > ee + 4))
+        else if (ags_stricmp(arg, "--runfromide") == 0 && (argc > ee + 2))
         {
             usetup.install_dir = argv[ee + 1];
-            usetup.opt_data_dir = argv[ee + 2];
-            usetup.opt_audio_dir = argv[ee + 3];
-            usetup.opt_voice_dir = argv[ee + 4];
-            ee += 4;
+            String opt_dirs    = argv[ee + 2];
+            parse_asset_dirs(opt_dirs, usetup.opt_data_dirs);
+            ee += 2;
         }
         else if (ags_stricmp(arg, "--clear-cache-on-room-change") == 0)
             cfg["misc"]["clear_cache_on_room_change"] = "1";

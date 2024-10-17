@@ -202,6 +202,28 @@ TEST(String, Section) {
     ASSERT_TRUE(from == 0 && to == 5);
 }
 
+
+TEST(String, FindSection) {
+    String s1 = "";
+    ASSERT_TRUE(s1.FindSection("", ',') == 0);
+    ASSERT_TRUE(s1.FindSection("value", ',') == String::NoIndex);
+
+    String s2 = ",abc,def";
+    ASSERT_TRUE(s2.FindSection("", ',') == 0);
+    ASSERT_TRUE(s2.FindSection("abc", ',') == 1);
+    ASSERT_TRUE(s2.FindSection("def", ',') == 5);
+    ASSERT_TRUE(s1.FindSection("value", ',') == String::NoIndex);
+
+    String s3 = "abc,def,";
+    ASSERT_TRUE(s3.FindSection("abc", ',') == 0);
+    ASSERT_TRUE(s3.FindSection("def", ',') == 4);
+    ASSERT_TRUE(s3.FindSection("", ',') == 8);
+    ASSERT_TRUE(s1.FindSection("value", ',') == String::NoIndex);
+
+    String s4 = "abc,def,xyz";
+    ASSERT_TRUE(s4.FindSection("", ',') == String::NoIndex);
+}
+
 TEST(String, Append) {
     String s1 = "a string to enlarge - ";
     s1.Append("make it bigger");

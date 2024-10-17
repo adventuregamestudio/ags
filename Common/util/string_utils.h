@@ -56,6 +56,9 @@ namespace StrUtil
     // Converts a classic wildcard search pattern into C++11 compatible regex pattern
     String          WildcardToRegex(const String &wildcard);
 
+    // Remove double quotes from the string
+    inline String   Undoublequote(const String &s) { String und = s; und.Trim('\"'); return und; }
+
     // Serialize and unserialize unterminated string prefixed with 32-bit length;
     // length is presented as 32-bit integer integer
     String          ReadString(Stream *in);

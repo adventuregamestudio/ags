@@ -255,6 +255,7 @@ private:
 
     PACKFILE *_pf = nullptr;
     RGB _oldpal[256]{};
+    uint64_t _videoFramesDecoded = 0u;
 };
 
 FlicPlayer::~FlicPlayer()
@@ -286,12 +287,15 @@ HError FlicPlayer::OpenImpl(const AGS::Common::String &name, int& /*flags*/)
     }
     _pf = pf;
 
+    Debug::Printf("FlicPlayer: opened video: %dx%d 8-bit, fps: %d", fliwidth, fliheight, 1000 / fli_speed);
+
     get_palette_range(_oldpal, 0, 255);
 
     _videoFrame.reset(BitmapHelper::CreateClearBitmap(fliwidth, fliheight, 8));
     _frameDepth = 8;
     _frameSize = Size(fliwidth, fliheight);
     _frameRate = 1000 / fli_speed;
+    _videoFramesDecoded = 0u;
     return HError::None();
 }
 
@@ -301,6 +305,8 @@ void FlicPlayer::CloseImpl()
     if (_pf)
         pack_fclose(_pf);
     _pf = nullptr;
+
+    Debug::Printf("FlicPlayer: closed, total video frames decoded: %" PRIu64 "", _videoFramesDecoded);
 
     set_palette_range(_oldpal, 0, 255, 0);
 }
@@ -323,6 +329,7 @@ bool FlicPlayer::NextFrame()
             fli_bitmap->w, 1 + fli_bmp_dirty_to - fli_bmp_dirty_from);
     }
 
+    _videoFramesDecoded++;
     reset_fli_variables();
     return true;
 }
@@ -406,6 +413,11 @@ HError TheoraPlayer::OpenImpl(const AGS::Common::String &name, int &flags)
         return new Error(String::FromFormat("Failed to run theora video '%s': invalid frame dimensions (%d x %d)", name.GetCStr(), video_w, video_h));
     }
 
+    const char *pixelfmt_str[] = { "APEG_420", "APEG_422", "APEG_444" };
+    Debug::Printf("TheoraPlayer: opened video: %dx%d fmt: %s, fps: %.4f", apeg_stream->w, apeg_stream->h,
+        (apeg_stream->pixel_format >= APEG_STREAM::APEG_420 && apeg_stream->pixel_format <= APEG_STREAM::APEG_444) ? pixelfmt_str[apeg_stream->pixel_format] : "unknown",
+        static_cast<float>(apeg_stream->frame_rate));
+
     _apegStream = apeg_stream;
 
     if (gfxDriver->UsesMemoryBackBuffer())
@@ -445,7 +457,7 @@ void TheoraPlayer::CloseImpl()
 {
     apeg_close_stream(_apegStream);
     _apegStream = nullptr;
-    Debug::Printf("TheoraPlayer: video frames decoded: %" PRIu64 "", _videoFramesDecoded);
+    Debug::Printf("TheoraPlayer: closed, total video frames decoded: %" PRIu64 "", _videoFramesDecoded);
 }
 
 bool TheoraPlayer::NextFrame()

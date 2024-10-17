@@ -141,6 +141,7 @@ Locations of two latter files differ between running platforms:
   * render_at_screenres = \[0; 1\] - tells to lock "Render sprites in screen resolution" in a default state;
   * speechvox = \[0; 1\] - tells to lock "Use digital speech pack" in a default state;
   * translation = \[0; 1\] - tells to lock "Game language" in a default state;
+  * access_skipstyle = \[0; 1\] - tells to lock speech and text skip settings on "Accessibility" tab;
   
 
 ## Command line

@@ -150,6 +150,7 @@ private:
     HWND _hTextSkipStyle = NULL;
 
     ConfigTree &_cfgOut;
+    bool _disabledSkipStyle = false;
 };
 
 } // namespace Engine

@@ -345,6 +345,13 @@ INT_PTR AccessibilityPageDialog::OnInitDialog()
         AddString(_hTextSkipStyle, val.first, val.second);
     }
 
+    _disabledSkipStyle = CfgReadBoolInt(_cfgIn, "disabled", "access_skipstyle");
+    // If all Accessibility options are disabled, then disable the "enable" checkbox too
+    if (_disabledSkipStyle)
+    {
+        EnableWindow(_hEnableAccess, FALSE);
+    }
+
     ResetSetup();
 
     return FALSE; // notify WinAPI that we set focus ourselves
@@ -364,8 +371,11 @@ INT_PTR AccessibilityPageDialog::OnCommand(WORD id)
 void AccessibilityPageDialog::OnEnableAccessCheck()
 {
     const bool enable = GetCheck(_hEnableAccess);
-    EnableWindow(_hSpeechSkipStyle, enable ? TRUE : FALSE);
-    EnableWindow(_hTextSkipStyle, enable ? TRUE : FALSE);
+    const bool enable_skipstyles = !_disabledSkipStyle && enable;
+    EnableWindow(GetDlgItem(_hwnd, IDC_LABEL_SPEECHSKIPSTYLE), enable_skipstyles ? TRUE : FALSE);
+    EnableWindow(GetDlgItem(_hwnd, IDC_LABEL_TEXTSKIPSTYLE), enable_skipstyles ? TRUE : FALSE);
+    EnableWindow(_hSpeechSkipStyle, enable_skipstyles ? TRUE : FALSE);
+    EnableWindow(_hTextSkipStyle, enable_skipstyles ? TRUE : FALSE);
 }
 
 void AccessibilityPageDialog::ResetSetup()

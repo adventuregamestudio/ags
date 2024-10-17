@@ -1796,6 +1796,7 @@ namespace AGS.Editor
             WriteExtension("ext_ags399", WriteExt_Ags399, writer, gameEnts, errors);
             WriteExtension("v400_gameopts", WriteExt_400GameOpts, writer, gameEnts, errors);
             WriteExtension("v400_customprops", WriteExt_400CustomProps, writer, gameEnts, errors);
+            WriteExtension("v400_fontfiles", WriteExt_400FontFiles, writer, gameEnts, errors);
 
             // End of extensions list
             writer.Write((byte)0xff);
@@ -2002,6 +2003,17 @@ namespace AGS.Editor
             for (int i = 0; i < guiControls.GUIListBoxes.Count; ++i)
             {
                 CustomPropertiesWriter.Write(writer, guiControls.GUIListBoxes[i].Properties);
+            }
+        }
+
+        // Explicit font filenames
+        private static void WriteExt_400FontFiles(BinaryWriter writer, WriteExtEntities ents, CompileMessages errors)
+        {
+            Game game = ents.Game;
+            writer.Write((int)game.Fonts.Count);
+            for (int i = 0; i < game.Fonts.Count; ++i)
+            {
+                FilePutString(game.Fonts[i].SourceFilename, writer);
             }
         }
 

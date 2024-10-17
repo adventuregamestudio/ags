@@ -49,8 +49,8 @@ namespace AGS.Editor
             Utilities.AddAllMatchingFiles(filesToInclude, AudioClip.AUDIO_CACHE_DIRECTORY + @"\*.*");
             Utilities.AddAllMatchingFiles(filesToInclude, @"Speech\*.*");
             Utilities.AddAllMatchingFiles(filesToInclude, "flic*.fl?");
-            Utilities.AddAllMatchingFiles(filesToInclude, "agsfnt*.ttf");
-            Utilities.AddAllMatchingFiles(filesToInclude, "agsfnt*.wfn");
+            Utilities.AddAllMatchingFiles(filesToInclude, "*.ttf");
+            Utilities.AddAllMatchingFiles(filesToInclude, "*.wfn");
             Utilities.AddAllMatchingFiles(filesToInclude, "*.asc");
             Utilities.AddAllMatchingFiles(filesToInclude, "*.ash");
             Utilities.AddAllMatchingFiles(filesToInclude, "*.txt");
@@ -137,7 +137,6 @@ namespace AGS.Editor
                 return false;
 
             game.DirectoryPath = gameDirectory;
-            SetDefaultGameContentIfMissing(game);
             SetDefaultValuesForNewFeatures(game);
             Utilities.EnsureStandardSubFoldersExist();
 
@@ -304,29 +303,9 @@ namespace AGS.Editor
             ExportSprites(Factory.AGSEditor.CurrentGame.RootSpriteFolder, options);
         }
 
-        /// <summary>
-        /// Ensures that any obligatory content is created,
-        /// if it's missing after the game was loaded from project file.
-        /// </summary>
-        private void SetDefaultGameContentIfMissing(Game game)
-        {
-            // Current version of the Editor requires at least 3 fonts present,
-            // copy them from the resources if these are not present in game data
-            AddFontIfNotAlreadyThere(0);
-            AddFontIfNotAlreadyThere(1);
-            AddFontIfNotAlreadyThere(2);
-            while (game.Fonts.Count < 3)
-            {
-                Font font = new Font();
-                font.ID = game.Fonts.Count;
-                font.Name = string.Format($"Font{game.Fonts.Count}");
-                game.Fonts.Add(font);
-            }
-        }
-
         private void SetDefaultValuesForNewFeatures(Game game)
         {
-#pragma warning disable 0618
+#pragma warning disable 0612, 0618
             // TODO: this may be noticably if upgrading lots of items. Display some kind of
             // progress window to notify user.
 
@@ -578,7 +557,7 @@ namespace AGS.Editor
             System.Version projectVersion = game.SavedXmlEditorVersion != null ? Types.Utilities.TryParseVersion(game.SavedXmlEditorVersion) : null;
             if (projectVersion == null || projectVersion < editorVersion)
                 game.SetScriptAPIForOldProject();
-#pragma warning restore 0618
+#pragma warning restore 0612, 0618
         }
 
         private static int RemapAudioClipIDToFixedIndex(int id, Dictionary<int, int> audioIDToIndex)
@@ -711,15 +690,6 @@ namespace AGS.Editor
             }
         }
 
-        private void AddFontIfNotAlreadyThere(int fontNumber)
-        {
-            if ((!File.Exists("agsfnt" + fontNumber + ".wfn")) &&
-                (!File.Exists("agsfnt" + fontNumber + ".ttf")))
-            {
-                Resources.ResourceManager.CopyFileFromResourcesToDisk("AGSFNT" + fontNumber + ".WFN");
-            }
-        }
-
         public void RunGameSetup()
         {
             RunGameEXE("--setup", false);
@@ -745,13 +715,18 @@ namespace AGS.Editor
                 parameter = "--fullscreen";
             }
             _runningGameWithDebugger = withDebugger;
-            // custom game install directory (points to where all supplemental data files are)
-            // TODO: get audio and speech paths from a kind of shared config
+            // Pass both compiled dir and custom game data directories (point to where all supplemental data files are);
+            // Command syntax is:
+            //    --runfromide <INSTALLDIR> [OPT_PATH1:FILTER[,OPT_PATH2:FILTER[, ...]]]
+            //
+            // NOTE: OPT_PATHs and FILTERs must be encased in doublequotes, and separated by a single comma (no spaces).
+            //
             parameter += " --runfromide" +
-                " \"" + Path.Combine(AGSEditor.OUTPUT_DIRECTORY, BuildTargetWindows.WINDOWS_DIRECTORY) + "\"" +
-                " \"" + Factory.AGSEditor.GameDirectory + "\"" +
-                " \"" + AudioClip.AUDIO_CACHE_DIRECTORY + "\"" +
-                " \"" + "Speech" + "\"";
+                " \"" + Path.Combine(AGSEditor.OUTPUT_DIRECTORY, BuildTargetWindows.WINDOWS_DIRECTORY) + "\" " +
+                "\"" + Factory.AGSEditor.GameDirectory + "\":\"\"" + "," +
+                "\"" + Path.Combine(Factory.AGSEditor.GameDirectory, FontsComponent.FONT_FILES_DIRECTORY) + "\":\"\"" + "," +
+                "\"" + AudioClip.AUDIO_CACHE_DIRECTORY + "\":\"audio\"" + "," +
+                "\"" + "Speech" + "\":\"voice\"";
 
             // Explicit path to the file containing main game data,
             // this is to ensure that the engine won't try to scan other places

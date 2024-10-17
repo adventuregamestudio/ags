@@ -187,6 +187,9 @@ public:
     // even if there are no separating chars.
     bool    FindSection(char separator, size_t first, size_t last, bool exclude_first_sep, bool exclude_last_sep,
                         size_t &from, size_t &to) const;
+    // Search for a first section containing given text.
+    // Returns first character index, or NoIndex is failed.
+    size_t  FindSection(const String &section_text, char separator, bool case_insensitive = false) const;
 
     // Get Nth character with bounds check (as opposed to subscript operator)
     inline char GetAt(size_t index) const

@@ -355,6 +355,18 @@ void UpgradeGame(GameSetupStruct &game, GameDataVersion data_ver)
 
 void UpgradeFonts(GameSetupStruct &game, GameDataVersion data_ver)
 {
+    if (data_ver < kGameVersion_400_10)
+    {
+        for (size_t i = 0; i < game.fonts.size(); ++i)
+        {
+            // TODO: find a better way than relying on valid size?
+            auto &fi = game.fonts[i];
+            if (fi.Size > 0)
+                fi.Filename.Format("agsfnt%d.ttf", i);
+            else
+                fi.Filename.Format("agsfnt%d.wfn", i);
+        }
+    }
 }
 
 // Convert audio data to the current version
@@ -663,6 +675,16 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
             err = ReadCustomProperties(in, guictrl_names[i], guictrl_counts[i], game.guicontrolProps[i]);
             if (!err)
                 return err;
+        }
+    }
+    else if (ext_id.CompareNoCase("v400_fontfiles") == 0)
+    {
+        size_t font_count = in->ReadInt32();
+        if (font_count != _ents.Game.numfonts)
+            return new Error(String::FromFormat("Mismatching number of fonts: read %zu expected %zu", font_count, (size_t)_ents.Game.numfonts));
+        for (FontInfo &finfo : _ents.Game.fonts)
+        {
+            finfo.Filename = StrUtil::ReadString(in);
         }
     }
     else

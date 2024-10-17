@@ -46,6 +46,7 @@ WindowSetup parse_window_mode(const String &option, bool as_windowed,
     const Size &game_res, const Size &desktop_res, const WindowSetup &def_value = WindowSetup());
 FrameScaleDef parse_scaling_option(const String &option, FrameScaleDef def_value = kFrame_Undefined);
 SkipSpeechStyle parse_speechskip_style(const String &option, SkipSpeechStyle def_value = kSkipSpeechNone);
+void   parse_asset_dirs(const String &option, std::vector<std::pair<String, String>> &opt_dirs);
 String make_window_mode_option(const WindowSetup &ws, const Size &game_res, const Size &desktop_res);
 String make_scaling_option(FrameScaleDef scale_def);
 String make_speechskip_option(SkipSpeechStyle style);

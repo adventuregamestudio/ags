@@ -92,7 +92,7 @@ struct AssetLibEntry
 class AssetManager
 {
 public:
-    AssetManager() = default;
+    AssetManager();
     ~AssetManager() = default;
 
     // Test if given file is main data file

@@ -14,6 +14,7 @@
 #include "media/video/video.h"
 
 #ifndef AGS_NO_VIDEO_PLAYER
+#include <inttypes.h>
 #include <SDL.h>
 #include "apeg.h"
 #include "core/platform.h"
@@ -347,6 +348,7 @@ private:
     APEG_STREAM *_apegStream = nullptr;
     // Optional wrapper around original buffer frame (in case we want to extract a portion of it)
     std::unique_ptr<Bitmap> _theoraFrame;
+    uint64_t _videoFramesDecoded = 0u;
 };
 
 TheoraPlayer::~TheoraPlayer()
@@ -435,6 +437,7 @@ HError TheoraPlayer::OpenImpl(const AGS::Common::String &name, int &flags)
     _audioFreq = _apegStream->audio.freq;
     _audioFormat = AUDIO_S16SYS;
     apeg_set_error(_apegStream, NULL);
+    _videoFramesDecoded = 0u;
     return HError::None();
 }
 
@@ -442,6 +445,7 @@ void TheoraPlayer::CloseImpl()
 {
     apeg_close_stream(_apegStream);
     _apegStream = nullptr;
+    Debug::Printf("TheoraPlayer: video frames decoded: %" PRIu64 "", _videoFramesDecoded);
 }
 
 bool TheoraPlayer::NextFrame()
@@ -449,7 +453,6 @@ bool TheoraPlayer::NextFrame()
     assert(_apegStream);
     // reset some data
     bool has_audio = false, has_video = false;
-    _apegStream->frame_updated = -1;
     _apegStream->audio.flushed = FALSE;
 
     if ((_apegStream->flags & APEG_HAS_AUDIO) && _wantAudio)
@@ -469,13 +472,13 @@ bool TheoraPlayer::NextFrame()
         if (ret == APEG_ERROR)
             return false;
 
-        // Update frame count
-        ++(_apegStream->frame);
-
-        // Update the display frame
-        _apegStream->frame_updated = 0;
         ret = apeg_display_video_frame(_apegStream);
-        has_video = ret != APEG_EOF;
+        has_video = ret != APEG_EOF; // apeg_display_video_frame returns EOF when picture is NULL
+
+        if (has_video)
+        {
+            _videoFramesDecoded++;
+        }
     }
 
     return has_audio || has_video;

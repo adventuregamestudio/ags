@@ -22,7 +22,7 @@
 #include "util/stream.h"
 
 
-struct ScriptUserObject final : AGSCCDynamicObject
+struct ScriptUserObject : AGSCCDynamicObject
 {
 public:
     static const char *TypeName;
@@ -53,6 +53,10 @@ public:
     const char *GetType() override;
     int Dispose(void *address, bool force) override;
     void Unserialize(int index, AGS::Common::Stream *in, size_t data_sz) override;
+
+protected:
+    // Create a specialized struct object, associated with a custom manager
+    static DynObjectRef CreateWithManager(IScriptObject *mgr, size_t size);
 
 private:
     // The size of the array's header in memory, prepended to the element data

@@ -124,14 +124,18 @@ bool init_voicepak(const String &name)
     }
 
     String speech_subdir = "";
-    if (!ResPaths.VoiceDir2.IsEmpty() && Path::ComparePaths(ResPaths.DataDir, ResPaths.VoiceDir2) != 0)
+    // Look up in the alternative locations that include "voice" filter
+    for (const auto &opt_dir : ResPaths.OptDataDirs)
     {
-        // If we have custom voice directory set, we will enable voice-over even if speech.vox does not exist
-        speech_subdir = name.IsEmpty() ? ResPaths.VoiceDir2 : Path::ConcatPaths(ResPaths.VoiceDir2, name);
-        if (File::IsDirectory(speech_subdir) && Directory::HasAnyFiles(speech_subdir))
+        if (opt_dir.second.FindSection("voice", ',') != String::NoIndex)
         {
-            Debug::Printf(kDbgMsg_Info, "Optional voice directory is defined: %s", speech_subdir.GetCStr());
-            ResPaths.VoiceAvail = true;
+            // If we have custom voice directory set, we will enable voice-over even if speech.vox does not exist
+            speech_subdir = Path::ConcatPaths(opt_dir.first, name);
+            if (File::IsDirectory(speech_subdir) && Directory::HasAnyFiles(speech_subdir))
+            {
+                Debug::Printf(kDbgMsg_Info, "Optional voice directory is defined: %s", speech_subdir.GetCStr());
+                ResPaths.VoiceAvail = true;
+            }
         }
     }
 

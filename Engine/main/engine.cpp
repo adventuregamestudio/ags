@@ -330,11 +330,16 @@ void engine_locate_audio_pak()
             platform->DisplayAlert("Unable to initialize digital audio pack '%s', file could be corrupt or of unsupported format.",
                 music_file.GetCStr());
         }
+        return;
     }
-    else if (!ResPaths.AudioDir2.IsEmpty() &&
-        Path::ComparePaths(ResPaths.DataDir, ResPaths.AudioDir2) != 0)
+
+    for (const auto &opt_dir : ResPaths.OptDataDirs)
     {
-        Debug::Printf(kDbgMsg_Info, "Audio pack was not found, but explicit audio directory is defined.");
+        if (opt_dir.second.FindSection("audio", ',') != String::NoIndex)
+        {
+            Debug::Printf(kDbgMsg_Info, "Audio pack was not found, but explicit audio directory is defined.");
+            return;
+        }
     }
 }
 
@@ -349,12 +354,11 @@ void engine_assign_assetpaths()
     // voice - voice-over clips
     // NOTE: we add extra optional directories first because they should have higher priority
     // TODO: maybe change AssetManager library order to stack-like later (last added = top priority)?
-    if (!ResPaths.DataDir2.IsEmpty() && Path::ComparePaths(ResPaths.DataDir2, ResPaths.DataDir) != 0)
-        AssetMgr->AddLibrary(ResPaths.DataDir2, ",audio,voice"); // dir may have anything
-    if (!ResPaths.AudioDir2.IsEmpty() && Path::ComparePaths(ResPaths.AudioDir2, ResPaths.DataDir) != 0)
-        AssetMgr->AddLibrary(ResPaths.AudioDir2, "audio");
-    if (!ResPaths.VoiceDir2.IsEmpty() && Path::ComparePaths(ResPaths.VoiceDir2, ResPaths.DataDir) != 0)
-        AssetMgr->AddLibrary(ResPaths.VoiceDir2, "voice");
+    for (const auto &opt_dir : ResPaths.OptDataDirs)
+    {
+        if (Path::ComparePaths(opt_dir.first, ResPaths.DataDir) != 0)
+            AssetMgr->AddLibrary(opt_dir.first, opt_dir.second);
+    }
 
     AssetMgr->AddLibrary(ResPaths.DataDir, ",audio,voice"); // dir may have anything
     if (!ResPaths.AudioPak.Path.IsEmpty())
@@ -992,18 +996,20 @@ bool engine_init_gamedata()
     ResPaths.GamePak.Path = usetup.main_data_file;
     ResPaths.GamePak.Name = Path::GetFilename(usetup.main_data_file);
     ResPaths.DataDir = usetup.install_dir.IsEmpty() ? usetup.main_data_dir : Path::MakeAbsolutePath(usetup.install_dir);
-    ResPaths.DataDir2 = Path::MakeAbsolutePath(usetup.opt_data_dir);
-    ResPaths.AudioDir2 = Path::MakeAbsolutePath(usetup.opt_audio_dir);
-    ResPaths.VoiceDir2 = Path::MakeAbsolutePath(usetup.opt_voice_dir);
+    for (const auto &opt_dir : usetup.opt_data_dirs)
+    {
+        ResPaths.OptDataDirs.push_back(std::make_pair(
+            Path::MakeAbsolutePath(opt_dir.first),
+            opt_dir.second
+            ));
+    }
 
     Debug::Printf(kDbgMsg_Info, "Startup directory: %s", usetup.startup_dir.GetCStr());
     Debug::Printf(kDbgMsg_Info, "Data directory: %s", ResPaths.DataDir.GetCStr());
-    if (!ResPaths.DataDir2.IsEmpty())
-        Debug::Printf(kDbgMsg_Info, "Opt data directory: %s", ResPaths.DataDir2.GetCStr());
-    if (!ResPaths.AudioDir2.IsEmpty())
-        Debug::Printf(kDbgMsg_Info, "Opt audio directory: %s", ResPaths.AudioDir2.GetCStr());
-    if (!ResPaths.VoiceDir2.IsEmpty())
-        Debug::Printf(kDbgMsg_Info, "Opt voice-over directory: %s", ResPaths.VoiceDir2.GetCStr());
+    for (const auto &opt_dir : ResPaths.OptDataDirs)
+    {
+        Debug::Printf(kDbgMsg_Info, "Opt data directory: %s\n\tasset filter: %s", opt_dir.first.GetCStr(), opt_dir.second.GetCStr());
+    }
     return true;
 }
 
@@ -1145,11 +1151,10 @@ static void engine_print_info(const std::set<String> &keys, ConfigTree *user_cfg
         data["filepath"]["exe"] = appPath;
         data["filepath"]["cwd"] = Directory::GetCurrentDirectory();
         data["filepath"]["datadir"] = Path::MakePathNoSlash(ResPaths.DataDir);
-        if (!ResPaths.DataDir2.IsEmpty())
+        for (size_t i = 0; i < ResPaths.OptDataDirs.size(); ++i)
         {
-            data["filepath"]["datadir2"] = Path::MakePathNoSlash(ResPaths.DataDir2);
-            data["filepath"]["audiodir2"] = Path::MakePathNoSlash(ResPaths.AudioDir2);
-            data["filepath"]["voicedir2"] = Path::MakePathNoSlash(ResPaths.VoiceDir2);
+            data["filepath"][String::FromFormat("datadir%d", i)] = ResPaths.OptDataDirs[i].first;
+            data["filepath"][String::FromFormat("datadir%d_filter", i)] = ResPaths.OptDataDirs[i].second;
         }
         data["filepath"]["savegamedir"] = Path::MakePathNoSlash(GetGameUserDataDir().FullDir);
         data["filepath"]["appdatadir"] = Path::MakePathNoSlash(GetGameAppDataDir().FullDir);

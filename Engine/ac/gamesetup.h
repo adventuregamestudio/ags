@@ -75,12 +75,10 @@ struct GameSetup
     String startup_dir; // directory where the default game config is located (usually same as main_data_dir)
     String main_data_dir; // main data directory
     String main_data_file; // full path to main data file
-    // Following 4 optional dirs are currently for compatibility with Editor only (debug runs)
-    // This is bit ugly, but remain so until more flexible configuration is designed
+    // Optional dirs are currently for compatibility with Editor only (debug runs);
+    // but could be used for something else in theory.
     String install_dir; // optional custom install dir path (also used as extra data dir)
-    String opt_data_dir; // optional data dir number 2
-    String opt_audio_dir; // optional custom install audio dir path
-    String opt_voice_dir; // optional custom install voice-over dir path
+    std::vector<std::pair<String, String>> opt_data_dirs; // optional data dirs with asset filters
     //
     String conf_path; // a read-only config path (if set the regular config is ignored)
     String user_conf_dir; // directory to read and write user config in

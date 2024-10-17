@@ -148,6 +148,22 @@ bool parse_legacy_frame_config(const String &scaling_option, String &filter_id,
     return false;
 }
 
+void parse_asset_dirs(const String &option, std::vector<std::pair<String, String>> &opt_dirs)
+{
+    const auto asset_dirs = option.Split(',');
+    for (const auto &adir : asset_dirs)
+    {
+        String filters;
+        size_t sep_at = adir.FindCharReverse(':'); // cut from right, as the dir path may contain ':' separator
+        if (sep_at != String::NoIndex)
+            filters = adir.Mid(sep_at + 1);
+        String dir_path = adir.Left(sep_at);
+        dir_path = StrUtil::Undoublequote(dir_path);
+        filters = StrUtil::Undoublequote(filters);
+        opt_dirs.push_back(std::make_pair(dir_path, filters));
+    }
+}
+
 String make_window_mode_option(const WindowSetup &ws, const Size &game_res, const Size &desktop_res)
 {
     if (ws.Mode == kWnd_FullDesktop)

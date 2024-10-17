@@ -731,6 +731,7 @@ AGS::Symbol AGS::SymbolTable::FindStructComponent(Symbol strct, Symbol const com
         for (auto components_it = components.begin(); components_it != components.end(); components_it++)
             if (component == components_it->first)
                 return components_it->second;
+        strct = entries.at(strct).VartypeD->Parent;
     }
     return kKW_NoSymbol;
 }

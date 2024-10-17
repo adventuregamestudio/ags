@@ -804,10 +804,12 @@ TEST_F(Compile1, FuncReturnStruct2) {
         }                           \n\
         ";
 
-    MessageHandler mh;
-    int compile_result = cc_compile(inpl, 0u, scrip, mh);
-    ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : mh.GetError().Message.c_str());
-    ASSERT_LE(1u, mh.GetMessages().size());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_LE(1u, mh.WarningsCount());
+
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, mh.GetMessages().at(0).Message.find("return"));
 }
 
@@ -822,10 +824,12 @@ TEST_F(Compile1, FuncReturnStruct3) {
         }                                       \n\
         ";
 
-    MessageHandler mh;
-    int compile_result = cc_compile(inpl, 0u, scrip, mh);
-    ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : mh.GetError().Message.c_str());
-    ASSERT_LE(1u, mh.GetMessages().size());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_LE(1u, mh.WarningsCount());
+
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, mh.GetMessages().at(0).Message.find("return"));
 }
 
@@ -846,10 +850,12 @@ TEST_F(Compile1, FuncReturn1) {
         }                       \n\
         ";
 
-    MessageHandler mh;
-    int compile_result = cc_compile(inpl, 0u, scrip, mh);
-    ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : mh.GetError().Message.c_str());
-    ASSERT_LE(1u, mh.GetMessages().size());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_LE(1u, mh.WarningsCount());
+
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, mh.GetMessages().at(0).Message.find("Code execution"));
 }
 
@@ -873,10 +879,12 @@ TEST_F(Compile1, FuncReturn2) {
         }                       \n\
         ";
 
-    MessageHandler mh;
-    int compile_result = cc_compile(inpl, 0u, scrip, mh);
-    ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : mh.GetError().Message.c_str());
-    ASSERT_LE(1u, mh.GetMessages().size());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_LE(1u, mh.WarningsCount());
+
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, mh.GetMessages().at(0).Message.find("Code execution"));
 }
 
@@ -1282,8 +1290,7 @@ TEST_F(Compile1, FuncUndeclaredStruct1) {
     EXPECT_EQ(0u, mh.WarningsCount());
 
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
-    std::string message = err_msg;
-    EXPECT_NE(std::string::npos, message.find("Func"));
+    EXPECT_NE(std::string::npos, err_msg.find("Func"));
 }
 
 TEST_F(Compile1, FuncUndeclaredStruct2) {
@@ -2104,8 +2111,7 @@ TEST_F(Compile1, SpuriousExpression)
         }                       \n\
         ";
 
-    MessageHandler mh;
-    int compile_result = cc_compile(inpl, 0, scrip, mh);
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
     std::string err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
 
@@ -2209,10 +2215,12 @@ TEST_F(Compile1, SideEffectExpression1)
         }                                               \n\
         ";
 
-    AGS::MessageHandler mh;
-    int const compile_result = cc_compile(inpl, 0, scrip, mh);
-    ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : mh.GetError().Message.c_str());
-    ASSERT_EQ(0u, mh.GetMessages().size());
+    int const compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
 TEST_F(Compile1, SideEffectExpression2)
@@ -2230,10 +2238,13 @@ TEST_F(Compile1, SideEffectExpression2)
         }                               \n\
         ";
 
-    AGS::MessageHandler mh;
-    int const compile_result = cc_compile(inpl, 0, scrip, mh);
-    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : mh.GetError().Message.c_str());
-    EXPECT_NE(std::string::npos, mh.GetError().Message.find("'('"));
+    int const compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("'('"));
 }
 
 TEST_F(Compile1, SideEffectExpression3)
@@ -2252,10 +2263,13 @@ TEST_F(Compile1, SideEffectExpression3)
         }                               \n\
         ";
 
-    AGS::MessageHandler mh;
-    int const compile_result = cc_compile(inpl, 0, scrip, mh);
-    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : mh.GetError().Message.c_str());
-    EXPECT_NE(std::string::npos, mh.GetError().Message.find("'('"));
+    int const compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("'('"));
 }
 
 TEST_F(Compile1, SideEffectExpression4)
@@ -2274,9 +2288,13 @@ TEST_F(Compile1, SideEffectExpression4)
         }                               \n\
         ";
 
-    AGS::MessageHandler mh;
-    int const compile_result = cc_compile(inpl, 0, scrip, mh);
-    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : mh.GetError().Message.c_str());
+ 
+    int const compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
 TEST_F(Compile1, DisallowStaticVariables)
@@ -2456,35 +2474,175 @@ TEST_F(Compile1, ReportMissingFunction) {
     EXPECT_NE(std::string::npos, err_msg.find("pNZaFLjz3ajd"));
 }
 
-TEST_F(Compile1, ParensAfterNew) {
+TEST_F(Compile1, ParensAfterNew1) {
 
-    // Function is called, but not defined with body or external
-    // This should be flagged naming the function
+    // Parentheses after 'new' are okay
+    // even when there isn't any initializer
 
     char const *inpl = "\
-        managed struct Struct       \n\
-        {                           \n\
-            int Payload;            \n\
-        };                          \n\
-                                    \n\
-        int game_start()            \n\
-        {                           \n\
+        managed struct Struct           \n\
+        {                               \n\
+            int Payload;                \n\
+        };                              \n\
+                                        \n\
+        int game_start()                \n\
+        {                               \n\
             Struct *s = new Struct();   \n\
-        }                           \n\
+        }                               \n\
+        ";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+}
+
+TEST_F(Compile1, ParensAfterNew2) {
+
+    // When there is an initializer, then it must be called
+
+    char const *inpl = "\
+        managed struct Struct           \n\
+        {                               \n\
+            import int initialize();    \n\
+            int Payload;                \n\
+        };                              \n\
+                                        \n\
+        int game_start()                \n\
+        {                               \n\
+            Struct *s = new Struct;     \n\
+        }                               \n\
+        ";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    ASSERT_NE(std::string::npos, err_msg.find("parameter list"));
+}
+
+TEST_F(Compile1, ParensAfterNew3) {
+
+    // When there is an initializer, then it must be called
+
+    char const *inpl = "\
+        managed struct Ancester         \n\
+        {                               \n\
+            import int initialize();    \n\
+            int Payload;                \n\
+        };                              \n\
+                                        \n\
+        managed struct Struct           \n\
+            extends Ancester            \n\
+        {                               \n\
+        };                              \n\
+                                        \n\
+        int game_start()                \n\
+        {                               \n\
+            Struct *s = new Struct;     \n\
+        }                               \n\
+        ";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    ASSERT_NE(std::string::npos, err_msg.find("Ancester::initialize"));
+}
+
+TEST_F(Compile1, ParensAfterNew4) {
+
+    // When there is an initializer,
+    // then it must be called with the proper arguments
+
+    char const *inpl = "\
+        managed struct Struct               \n\
+        {                                   \n\
+            int Payload;                    \n\
+            import void initialize(float);  \n\
+        };                                  \n\
+                                            \n\
+        int game_start()                    \n\
+        {                                   \n\
+            Struct *s = new Struct();       \n\
+        }                                   \n\
         ";
 
 
-    AGS::MessageHandler mh;
-    int compile_result = cc_compile(inpl, 0u, scrip, mh);
-    ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : mh.GetError().Message.c_str());
-    ASSERT_EQ(1u, mh.GetMessages().size());
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("parameter"));
+}
+
+TEST_F(Compile1, ParensAfterNew5) {
+
+    // When there is an initializer,
+    // it must have return type 'void' or 'int'
+
+    char const *inpl = "\
+        managed struct Struct           \n\
+        {                               \n\
+            import float initialize();  \n\
+            int Payload;                \n\
+        };                              \n\
+                                        \n\
+        int game_start()                \n\
+        {                               \n\
+            Struct *s = new Struct();   \n\
+        }                               \n\
+        ";
+
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+}
+
+TEST_F(Compile1, ParensAfterNew6) {
+
+    // A non-function component 'initialize' is fine
+    // and isn't treated as an initializer function
+
+    char const *inpl = "\
+        managed struct Struct           \n\
+        {                               \n\
+            float initialize;           \n\
+            int Payload;                \n\
+        };                              \n\
+                                        \n\
+        int game_start()                \n\
+        {                               \n\
+            Struct *s = new Struct();   \n\
+        }                               \n\
+        ";
+
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
 TEST_F(Compile1, DynarrayOfArray) {
 
     // Refuse a dynarray of an array
 
-    const char *inpl = "\
+    char const *inpl = "\
         int game_start()                \n\
         {                               \n\
             float Test[][5, 7];         \n\

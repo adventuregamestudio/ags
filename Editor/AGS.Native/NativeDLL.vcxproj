@@ -382,10 +382,11 @@ copy "$(TargetPath)" "$(SolutionDir)..\Editor\References\x64"</Command>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="agsnative.h" />
+    <ClInclude Include="IScriptCompiler.h" />
     <ClInclude Include="NativeMethods.h" />
     <ClInclude Include="NativeRoom.h" />
     <ClInclude Include="NativeUtils.h" />
-    <ClInclude Include="Scripting.h" />
+    <ClInclude Include="CompiledScript.h" />
     <ClInclude Include="SpriteFileReader_NET.h" />
     <ClInclude Include="SpriteFileWriter_NET.h" />
   </ItemGroup>

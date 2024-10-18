@@ -14,6 +14,7 @@
 #pragma once
 #include <string.h>
 #include "NativeUtils.h"
+#include "IScriptCompiler.h"
 
 using namespace AGS::Types;
 using namespace System;
@@ -84,8 +85,8 @@ namespace Native
             void ReplaceSpriteFile(String ^srcFileName);
             void SaveDefaultRoomFile(Room ^roomToSave);
 			String ^LoadRoomScript(String ^roomFileName);
-            List<String^>^ GetCompilerExtensions(bool new_compiler);
-			void CompileScript(Script ^script, cli::array<String^> ^preProcessedScripts, Game ^game, CompileMessages ^errors);
+            // Returns a list of IScriptCompiler implementations embedded in AGS.Native
+            List<IScriptCompiler^>^ GetEmbeddedScriptCompilers();
 			GameTemplate^ LoadTemplateFile(String ^fileName);
       RoomTemplate^ LoadRoomTemplateFile(String ^fileName);
 			void ExtractTemplateFiles(String ^templateFileName);

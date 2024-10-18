@@ -261,10 +261,9 @@ ccScript* ccCompileText(const char *texo, const char *scriptName) {
             (sym.get_type(t) != SYM_LOCALVAR)) continue;
 
         if (sym.entries[t].flags & SFLG_IMPORTED) continue;
-        if (ccGetOption(SCOPT_SHOWWARNINGS)==0) ;
-        else if ((sym.entries[t].flags & SFLG_ACCESSED)==0) {
-            printf("warning: variable '%s' is never used\n",sym.get_friendly_name(t).c_str());
-        }
+        //if ((sym.entries[t].flags & SFLG_ACCESSED)==0) {
+        //    printf("warning: variable '%s' is never used\n",sym.get_friendly_name(t).c_str());
+        //}
     }
 
     if (ccGetOption(SCOPT_EXPORTALL)) {

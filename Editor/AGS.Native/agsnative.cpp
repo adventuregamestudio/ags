@@ -1319,7 +1319,7 @@ using namespace System::Collections::Generic;
 using namespace System::Drawing;
 using namespace System::Drawing::Imaging;
 using namespace System::Runtime::InteropServices;
-#include "scripting.h"
+#include "CompiledScript.h"
 
 void ThrowManagedException(const char *message) 
 {

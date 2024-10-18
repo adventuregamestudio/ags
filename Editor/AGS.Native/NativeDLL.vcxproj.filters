@@ -197,7 +197,7 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="NativeRoom.cpp">
-      <Filter>Header Files</Filter>
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -207,9 +207,6 @@
     <ClInclude Include="NativeMethods.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Scripting.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="NativeUtils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -217,9 +214,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SpriteFileReader_NET.h">
-    <Filter>Header Files</Filter>
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="NativeRoom.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CompiledScript.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IScriptCompiler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

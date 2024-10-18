@@ -65,7 +65,7 @@ namespace AGS.Types
         private bool _saveScreenshots = false;
         private SpriteCompression _compressSprites = SpriteCompression.None;
         private bool _optimizeSpriteStorage = true;
-        private bool _experimentalCompiler = false;
+        private string _scriptCompiler = string.Empty;
         private bool _inventoryCursors = true;
         private bool _handleInvInScript = false;
         private bool _displayMultipleInv = false;
@@ -316,14 +316,21 @@ namespace AGS.Types
             set { _optimizeSpriteStorage = value; }
         }
 
-        [DisplayName("Use extended script compiler")]
-        [Description("The extended script compiler has more features but may still have some bugs, too")]
-        [DefaultValue(false)]
-        [Category("Compiler")]
+        [Obsolete]
+        [Browsable(false)]
         public bool ExtendedCompiler
         {
-            get { return _experimentalCompiler; }
-            set { _experimentalCompiler = value; }
+            get; set; // need setter to load old value and upgrade the older projects
+        }
+
+        [DisplayName("Script compiler")]
+        [Description("Select the script compiler that will be used when compiling your game scripts")]
+        [Category("Compiler")]
+        [TypeConverter(typeof(ScriptCompilerTypeConverter))]
+        public string ScriptCompiler
+        {
+            get { return _scriptCompiler; }
+            set { _scriptCompiler = value; }
         }
 
         [DisplayName("Save screenshots in save games")]

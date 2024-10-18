@@ -19,6 +19,8 @@ using System.Net;
 
 namespace AGS.Editor
 {
+    using ScriptCompilerOptions = AGS.Native.ScriptCompilerOptions;
+
     public class AGSEditor : IAGSEditorDirectories
     {
         public event GetScriptHeaderListHandler GetScriptHeaderList;
@@ -120,9 +122,11 @@ namespace AGS.Editor
          * 4.00.00.08     - Custom properties supported by AudioClips, Dialogs, GUI,
          *                  Regions, Walkable Areas
          * 4.00.00.09     - True 32-bit color properties
+         * 4.00.00.10     - Settings.ScriptCompiler as a selection of script compiler IDs,
+         *                  ExtendedCompiler is deprecated.
          *
         */
-        public const int    LATEST_XML_VERSION_INDEX = 4000009;
+        public const int    LATEST_XML_VERSION_INDEX = 4000010;
         /// <summary>
         /// XML version index on the release of AGS 4.0.0, this constant be used to determine
         /// if upgrade of Rooms/Sprites/etc. to new format have been performed.
@@ -159,6 +163,8 @@ namespace AGS.Editor
         public const string SETUP_ICON_FILE_NAME = "setup.ico";
         public const string SETUP_PROGRAM_SOURCE_FILE = "setup.dat";
         public const string COMPILED_SETUP_FILE_NAME = "winsetup.exe";
+        public const string DEFAULT_SCRIPT_COMPILER = "AGS SCOM 4";
+        public const string DEFAULT_LEGACY_SCRIPT_COMPILER = "AGS SCOM 3 EXT";
 
         public readonly string[] RestrictedGameDirectories = new string[]
         {
@@ -218,12 +224,23 @@ namespace AGS.Editor
                     continue; // don't enlist "Highest" constant
                 _scriptCompatLevelMacros[v] = "SCRIPT_COMPAT_" + v.ToString();
             }
+
+            // Fill the list of build targets
             BuildTargetsInfo.RegisterBuildTarget(new BuildTargetDataFile());
             BuildTargetsInfo.RegisterBuildTarget(new BuildTargetWindows());
             BuildTargetsInfo.RegisterBuildTarget(new BuildTargetDebug());
             BuildTargetsInfo.RegisterBuildTarget(new BuildTargetLinux());
             BuildTargetsInfo.RegisterBuildTarget(new BuildTargetWeb());
             BuildTargetsInfo.RegisterBuildTarget(new BuildTargetAndroid());
+
+            // Fill the list of script compilers.
+            var compilerDic = new Dictionary<string, string>();
+            List<AGS.Native.IScriptCompiler> compilers = Factory.NativeProxy.GetEmbeddedScriptCompilers();
+            foreach (AGS.Native.IScriptCompiler compiler in compilers)
+            {
+                compilerDic.Add(compiler.GetName(), compiler.GetDescription());
+            }
+            ScriptCompilerTypeConverter.SetCompilerList(compilerDic);
         }
 
         public Game CurrentGame
@@ -845,34 +862,91 @@ namespace AGS.Editor
             }
         }
 
+        AGS.Native.IScriptCompiler GetScriptCompilerByName(string name)
+        {
+            return Factory.NativeProxy.GetEmbeddedScriptCompilers()
+                .FirstOrDefault(c => c.GetName() == name);
+        }
+
         private void DefineMacrosFromCompiler(IPreprocessor preprocessor)
         {
-            var exts = Factory.NativeProxy.GetCompilerExtensions(_game);
+            var compiler = GetScriptCompilerByName(_game.Settings.ScriptCompiler);
+            if (compiler == null)
+                return;
+
+            var exts = compiler.GetExtensions();
             foreach (var ext in exts)
             {
                 preprocessor.DefineMacro("SCRIPT_EXT_" + ext, "1");
             }
         }
 
+        private ScriptCompilerOptions GetScriptCompileOptions(Game game)
+        {
+            // Set up compiler options
+            ScriptCompilerOptions options =
+                ScriptCompilerOptions.AutoExportFunctions |
+                ScriptCompilerOptions.LineNumbers |
+                ScriptCompilerOptions.RTTI |
+                ScriptCompilerOptions.RTTIOps;
+
+            if ((!game.Settings.EnforceNewStrings))
+                options = options | ScriptCompilerOptions.OldStrings;
+            if (game.UnicodeMode)
+                options = options | ScriptCompilerOptions.UTF8;
+            if (game.Settings.DebugMode)
+                options = options | ScriptCompilerOptions.ScriptTOC;
+
+            return options;
+        }
+
         /// <summary>
-        /// Preprocesses and then compiles the script using the supplied headers.
+        /// Preprocesses and then compiles the script prepended with the supplied headers.
         /// Warnings and errors are collected in 'messages'.
         /// Will _not_ throw whenever compiling results in an error.
         /// </summary>
-        public void CompileScript(Script script, List<Script> headers, CompileMessages messages)
-		{
-			messages = messages ?? new CompileMessages();
+        public void CompileScript(AGS.Native.IScriptCompiler compiler, Script script, List<Script> headers, CompileMessages messages)
+        {
+            // Clear up previous data, if present
+            if (script.CompiledData != null)
+            {
+                script.CompiledData.Dispose();
+                script.CompiledData = null;
+            }
+
+            messages = messages ?? new CompileMessages();
+
             List<string> preProcessedCode;
             CompileMessages preProcessingResults;
             PreprocessScript(script, headers, out preProcessedCode, out preProcessingResults);
             messages.AddRange(preProcessingResults);
 
             // If the preprocessor has found any errors then don't attempt compiling proper
-            if (preProcessingResults.Count > 0)
+            if (preProcessingResults.HasErrors)
                 return;
 
-            Factory.NativeProxy.CompileScript(script, preProcessedCode.ToArray(), _game, messages);
+            script.CompiledData =
+                compiler.CompileScript(script.FileName, preProcessedCode.ToArray(), GetScriptCompileOptions(_game), messages);
 		}
+
+        /// <summary>
+        /// Preprocesses and then compiles the script prepended the supplied headers.
+        /// Retrieves script compiler using current game settings. If compiler is not found,
+        /// reports error and bails out early.
+        /// Warnings and errors are collected in 'messages'.
+        /// Will _not_ throw whenever compiling results in an error.
+        /// </summary>
+        public void CompileScript(Script script, List<Script> headers, CompileMessages messages)
+        {
+            var compiler = GetScriptCompilerByName(_game.Settings.ScriptCompiler);
+            if (compiler == null)
+            {
+                messages.Add(new CompileError($"Script compiler \"{_game.Settings.ScriptCompiler}\" is not available. Please check the compiler selection in General Settings."));
+                return;
+            }
+
+            CompileScript(compiler, script, headers, messages);
+        }
 
         private void PreprocessScript(Script script, List<Script> headers, out List<string> preProcessedCode, out CompileMessages results)
         {
@@ -927,9 +1001,16 @@ namespace AGS.Editor
 
         private object CompileScripts(IWorkProgress progress, object parameter)
         {
+            CompileMessages messagesToReturn = new CompileMessages();
+            var compiler = GetScriptCompilerByName(_game.Settings.ScriptCompiler);
+            if (compiler == null)
+            {
+                messagesToReturn.Add(new CompileError($"Script compiler \"{_game.Settings.ScriptCompiler}\" is not available. Please check the compiler selection in General Settings."));
+                return messagesToReturn;
+            }
+
             CompileScriptsParameters parameters = (CompileScriptsParameters)parameter;
             CompileMessages errors = parameters.Errors;
-            CompileMessages messagesToReturn = new CompileMessages();
             RegenerateScriptHeader(null);
             List<Script> headers = GetInternalScriptHeaders();
 
@@ -952,10 +1033,9 @@ namespace AGS.Editor
             compileTasks.Add(new CompileTask(dialogScripts, headers));
             _game.ScriptsToCompile.Add(new ScriptAndHeader(null, dialogScripts));
 
-            // The extended compiler doesn't use static memory, 
-            // so several instances can run in parallel.
-            bool compileParallel = _game.Settings.ExtendedCompiler
-                //&& false // uncomment if debugging script compiler; TODO: add Editor preference?
+
+            bool compileParallel = compiler.DoesSupportParallelBuilds()
+                // && false // uncomment if debugging script compiler; TODO: add Editor preference?
                 ;
 
             // Compile the scripts
@@ -965,7 +1045,7 @@ namespace AGS.Editor
                 {
                     CompileMessages messages = new CompileMessages();
 
-                    CompileScript(ct.Script, ct.Headers, messages);
+                    CompileScript(compiler, ct.Script, ct.Headers, messages);
                     lock (messagesToReturn)
                     {
                         if (!messagesToReturn.HasErrors)
@@ -980,7 +1060,7 @@ namespace AGS.Editor
                 foreach (CompileTask ct in compileTasks)
                 {
                     CompileMessages messages = new CompileMessages();
-                    CompileScript(ct.Script, ct.Headers, messages);
+                    CompileScript(compiler, ct.Script, ct.Headers, messages);
                     messagesToReturn.AddRange(messages);
                     if (messages.HasErrors)
                         break;

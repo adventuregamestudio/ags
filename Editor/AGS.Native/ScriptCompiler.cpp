@@ -236,53 +236,6 @@ namespace Native
         return compilers;
     }
 
-    List<String^>^ NativeMethods::GetCompilerExtensions(bool new_compiler)
-    {
-        std::vector<std::string> cc_exts;
-        if (new_compiler)
-        {
-            ccGetExtensions2(cc_exts);
-        }
-        else
-        {
-            ccGetExtensions(cc_exts);
-        }
-
-        List<String^>^ exts = gcnew List<String^>();
-        for (const auto &s : cc_exts)
-            exts->Add(gcnew String(s.c_str()));
-        return exts;
-    }
-
-    void NativeMethods::CompileScript(Script ^script, cli::array<String^> ^preProcessedScripts,
-        Game ^game, CompileMessages ^messages)
-    {
-        if (script->CompiledData != nullptr)
-            script->CompiledData = nullptr; // clear up previous data, if present
-
-        IScriptCompiler^ compiler =
-            (game->Settings->ExtendedCompiler) ?
-            (IScriptCompiler^)gcnew AGS4ScriptCompiler() :
-            (IScriptCompiler^)gcnew AGS3ScriptCompiler();
-
-        // Set up compiler options
-        ScriptCompilerOptions options =
-            ScriptCompilerOptions::AutoExportFunctions |
-            ScriptCompilerOptions::LineNumbers |
-            ScriptCompilerOptions::RTTI |
-            ScriptCompilerOptions::RTTIOps;
-
-        if ((!game->Settings->EnforceNewStrings))
-            options = options | ScriptCompilerOptions::OldStrings;
-        if (game->UnicodeMode)
-            options = options | ScriptCompilerOptions::UTF8;
-        if (game->Settings->DebugMode)
-            options = options | ScriptCompilerOptions::ScriptTOC;
-
-        script->CompiledData =
-            compiler->CompileScript(script->FileName, preProcessedScripts, options, messages);
-    }
-
 		void NativeMethods::UpdateFileIcon(String ^fileToUpdate, String ^iconName)
 		{
 			if (System::Environment::OSVersion->Platform == System::PlatformID::Win32NT) 

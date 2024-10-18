@@ -232,7 +232,8 @@ const char* File_ReadStringBack(sc_File *fil) {
     return CreateNewScriptString("");;
   }
 
-  auto buf = ScriptString::CreateBuffer(data_sz - 1); // stored len + 1
+  // NOTE: support both deserialized with and without null terminator for varied use cases
+  auto buf = ScriptString::CreateBuffer(data_sz);
   in->Read(buf.Get(), data_sz);
   return CreateNewScriptString(std::move(buf));
 }

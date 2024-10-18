@@ -100,8 +100,15 @@ DynObjectRef ScriptString::Create(Buffer &&strbuf)
     uint8_t *buf = strbuf._buf.release();
     auto *header = reinterpret_cast<Header*>(buf);
     char *text_ptr = reinterpret_cast<char*>(buf + MemHeaderSz);
+    text_ptr[header->Length] = 0; // fixup in case buffer did not have one added
     if ((header->Length > 0) && (header->ULength == 0u))
-        header->ULength = ustrlen(text_ptr);
-    text_ptr[header->Length] = 0; // for safety
+    {
+        // NOTE: we use this as an opportunity to recalc Length too, as this
+        // costs us no extra time, but lets fixup in case there's a '0' in the middle
+        int len, ulen;
+        ustrlen2(text_ptr, &len, &ulen);
+        header->Length = len;
+        header->ULength = ulen;
+    }
     return CreateObject(buf);
 }

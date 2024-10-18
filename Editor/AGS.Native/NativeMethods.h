@@ -87,8 +87,6 @@ namespace Native
 			String ^LoadRoomScript(String ^roomFileName);
             // Returns a list of IScriptCompiler implementations embedded in AGS.Native
             List<IScriptCompiler^>^ GetEmbeddedScriptCompilers();
-            List<String^>^ GetCompilerExtensions(bool new_compiler);
-			void CompileScript(Script ^script, cli::array<String^> ^preProcessedScripts, Game ^game, CompileMessages ^errors);
 			GameTemplate^ LoadTemplateFile(String ^fileName);
       RoomTemplate^ LoadRoomTemplateFile(String ^fileName);
 			void ExtractTemplateFiles(String ^templateFileName);

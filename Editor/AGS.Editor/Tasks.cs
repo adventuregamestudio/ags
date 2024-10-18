@@ -326,7 +326,7 @@ namespace AGS.Editor
 
         private void SetDefaultValuesForNewFeatures(Game game)
         {
-#pragma warning disable 0618
+#pragma warning disable 0612, 0618
             // TODO: this may be noticably if upgrading lots of items. Display some kind of
             // progress window to notify user.
 
@@ -574,11 +574,17 @@ namespace AGS.Editor
                 RemapLegacyColourProperties(game);
             }
 
+            if (xmlVersionIndex < 4000010)
+            {
+                game.Settings.ScriptCompiler = game.Settings.ExtendedCompiler ?
+                    AGSEditor.DEFAULT_SCRIPT_COMPILER : AGSEditor.DEFAULT_LEGACY_SCRIPT_COMPILER;
+            }
+
             System.Version editorVersion = new System.Version(AGS.Types.Version.AGS_EDITOR_VERSION);
             System.Version projectVersion = game.SavedXmlEditorVersion != null ? Types.Utilities.TryParseVersion(game.SavedXmlEditorVersion) : null;
             if (projectVersion == null || projectVersion < editorVersion)
                 game.SetScriptAPIForOldProject();
-#pragma warning restore 0618
+#pragma warning restore 0612, 0618
         }
 
         private static int RemapAudioClipIDToFixedIndex(int id, Dictionary<int, int> audioIDToIndex)

@@ -126,3 +126,8 @@ int ccReleaseObjectReference(int32_t handle) {
 
     return pool.SubRef(handle);
 }
+
+void ccTraverseManagedObjects(const String &type, PfnProcessManagedObject callback)
+{
+    pool.TraverseManagedObjects(type, callback);
+}

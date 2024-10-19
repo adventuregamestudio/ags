@@ -18,6 +18,8 @@
 
 using namespace AGS::Common;
 
+const char *ScriptDynamicSprite::TypeID = "DynamicSprite";
+
 int ScriptDynamicSprite::Dispose(void* /*address*/, bool force) {
     // always dispose
     if ((slot) && (!force))
@@ -28,7 +30,7 @@ int ScriptDynamicSprite::Dispose(void* /*address*/, bool force) {
 }
 
 const char *ScriptDynamicSprite::GetType() {
-    return "DynamicSprite";
+    return ScriptDynamicSprite::TypeID;
 }
 
 size_t ScriptDynamicSprite::CalcSerializeSize(const void* /*address*/)
@@ -48,8 +50,4 @@ void ScriptDynamicSprite::Unserialize(int index, Stream *in, size_t /*data_sz*/)
 ScriptDynamicSprite::ScriptDynamicSprite(int theSlot) {
     slot = theSlot;
     ccRegisterManagedObject(this, this);
-}
-
-ScriptDynamicSprite::ScriptDynamicSprite() {
-    slot = 0;
 }

@@ -427,8 +427,18 @@ static void CopyPreservedGameOptions(GameSetupStructBase &gs, const PreservedPar
         gs.options[opt] = pp.GameOptions[opt];
 }
 
+static void ValidateDynamicSprite(int handle, IScriptObject *obj)
+{
+    ScriptDynamicSprite *dspr = static_cast<ScriptDynamicSprite*>(obj);
+    if (dspr->slot < 0 || dspr->slot >= game.SpriteInfos.size() ||
+        !game.SpriteInfos[dspr->slot].IsDynamicSprite())
+    {
+        dspr->slot = -1;
+    }
+}
+
 // Final processing after successfully restoring from save
-HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data)
+HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveCmpSelection select_cmp)
 {
     // Use a yellow dialog highlight for older game versions
     // CHECKME: it is dubious that this should be right here
@@ -657,8 +667,18 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data)
     RestoreViewportsAndCameras(r_data);
     set_game_speed(r_data.FPS);
 
+    // Run fixups over managed objects if necessary
+    if ((select_cmp & kSaveCmp_DynamicSprites) == 0)
+    {
+        // If dynamic sprite images were not restored from this save, then invalidate all
+        // DynamicSprite objects in the managed pool
+        ccTraverseManagedObjects(ScriptDynamicSprite::TypeID, ValidateDynamicSprite);
+    }
+
+    // Run optional plugin event, reporting game restored
     pl_run_plugin_hooks(AGSE_POSTRESTOREGAME, 0);
 
+    // Next load up any immediately required resources
     // If this is a restart point and no room was loaded, then load startup room
     if (displayed_room < 0)
     {
@@ -673,12 +693,13 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data)
     }
 
     Mouse::SetMoveLimit(play.mbounds); // apply mouse bounds
-    play.ClearIgnoreInput(); // don't keep ignored input after save restore
-    update_polled_stuff();
 
     // Apply accessibility options, must be done last, because some
     // may override restored game settings
     ApplyAccessibilityOptions();
+
+    play.ClearIgnoreInput(); // don't keep ignored input after save restore
+    update_polled_stuff();
 
     return HSaveError::None();
 }
@@ -691,7 +712,7 @@ HSaveError RestoreGameState(Stream *in, SavegameVersion svg_version, SaveCmpSele
     HSaveError err = SavegameComponents::ReadAll(in, svg_version, select_cmp, pp, r_data);
     if (!err)
         return err;
-    return DoAfterRestore(pp, r_data);
+    return DoAfterRestore(pp, r_data, select_cmp);
 }
 
 

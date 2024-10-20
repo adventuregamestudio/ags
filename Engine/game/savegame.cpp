@@ -427,6 +427,8 @@ static void CopyPreservedGameOptions(GameSetupStructBase &gs, const PreservedPar
         gs.options[opt] = pp.GameOptions[opt];
 }
 
+// A callback that tests if DynamicSprite refers a valid sprite in cache.
+// Used in a call to ccTraverseManagedObjects.
 static void ValidateDynamicSprite(int handle, IScriptObject *obj)
 {
     ScriptDynamicSprite *dspr = static_cast<ScriptDynamicSprite*>(obj);
@@ -704,8 +706,20 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
     return HSaveError::None();
 }
 
+// Fixes up a requested component selection, in case we must override or
+// substitute something internally.
+static SaveCmpSelection FixupCmpSelection(SaveCmpSelection select_cmp)
+{
+    // If kSaveCmp_DynamicSprites is not set, then set kSaveCmp_ObjectSprites
+    //     ensure that object-owned images are still serialized.
+    return (SaveCmpSelection)(select_cmp | 
+        kSaveCmp_ObjectSprites * ((select_cmp & kSaveCmp_DynamicSprites) == 0));
+}
+
 HSaveError RestoreGameState(Stream *in, SavegameVersion svg_version, SaveCmpSelection select_cmp)
 {
+    select_cmp = FixupCmpSelection(select_cmp);
+
     PreservedParams pp;
     RestoredData r_data;
     DoBeforeRestore(pp);
@@ -788,6 +802,8 @@ void DoBeforeSave()
 
 void SaveGameState(Stream *out, SaveCmpSelection select_cmp)
 {
+    select_cmp = FixupCmpSelection(select_cmp);
+
     DoBeforeSave();
     SavegameComponents::WriteAllCommon(out, select_cmp);
 }

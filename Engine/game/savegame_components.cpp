@@ -823,7 +823,7 @@ HSaveError ReadViews(Stream *in, int32_t /*cmp_ver*/, soff_t cmp_size, const Pre
     return err;
 }
 
-HSaveError WriteDynamicSprites(Stream *out)
+HSaveError WriteDynamicSpritesImpl(Stream *out, int match_flags)
 {
     const soff_t ref_pos = out->GetPosition();
     out->WriteInt32(0); // number of dynamic sprites
@@ -832,7 +832,7 @@ HSaveError WriteDynamicSprites(Stream *out)
     int top_index = 1;
     for (size_t i = 1; i < spriteset.GetSpriteSlotCount(); ++i)
     {
-        if (game.SpriteInfos[i].Flags & SPF_DYNAMICALLOC)
+        if ((game.SpriteInfos[i].Flags & match_flags) == match_flags)
         {
             count++;
             top_index = i;
@@ -849,7 +849,7 @@ HSaveError WriteDynamicSprites(Stream *out)
     return HSaveError::None();
 }
 
-HSaveError ReadDynamicSprites(Stream *in, int32_t /*cmp_ver*/, soff_t cmp_size, const PreservedParams& /*pp*/, RestoredData& /*r_data*/)
+HSaveError ReadDynamicSpritesImpl(Stream *in, int match_flags)
 {
     HSaveError err;
     const int spr_count = in->ReadInt32();
@@ -861,10 +861,37 @@ HSaveError ReadDynamicSprites(Stream *in, int32_t /*cmp_ver*/, soff_t cmp_size, 
     {
         int id = in->ReadInt32();
         int flags = in->ReadInt32();
-        std::unique_ptr<Bitmap> image(read_serialized_bitmap(in));
-        add_dynamic_sprite(id, std::move(image), (flags & SPF_ALPHACHANNEL) != 0, flags);
+        if ((flags & match_flags) == match_flags)
+        {
+            std::unique_ptr<Bitmap> image(read_serialized_bitmap(in));
+            add_dynamic_sprite(id, std::move(image), (flags & SPF_ALPHACHANNEL) != 0, flags);
+        }
+        else
+        {
+            skip_serialized_bitmap(in);
+        }
     }
     return err;
+}
+
+HSaveError WriteDynamicSprites(Stream *out)
+{
+    return WriteDynamicSpritesImpl(out, SPF_DYNAMICALLOC);
+}
+
+HSaveError WriteObjectSprites(Stream *out)
+{
+    return WriteDynamicSpritesImpl(out, SPF_DYNAMICALLOC | SPF_OBJECTOWNED);
+}
+
+HSaveError ReadDynamicSprites(Stream *in, int32_t /*cmp_ver*/, soff_t /*cmp_size*/, const PreservedParams& /*pp*/, RestoredData& /*r_data*/)
+{
+    return ReadDynamicSpritesImpl(in, SPF_DYNAMICALLOC);
+}
+
+HSaveError ReadObjectSprites(Stream *in, int32_t /*cmp_ver*/, soff_t /*cmp_size*/, const PreservedParams& /*pp*/, RestoredData& /*r_data*/)
+{
+    return ReadDynamicSpritesImpl(in, SPF_DYNAMICALLOC | SPF_OBJECTOWNED);
 }
 
 HSaveError WriteOverlays(Stream *out)
@@ -1325,6 +1352,15 @@ ComponentHandler ComponentHandlers[] =
         WriteDynamicSprites,
         ReadDynamicSprites
     },
+    // Alternate "Dynamic Sprites" handler in case only object-owned sprites are serialized
+    {
+        "Dynamic Sprites",
+        0,
+        0,
+        kSaveCmp_ObjectSprites,
+        WriteObjectSprites,
+        ReadObjectSprites
+    },
     {
         "Overlays",
         kOverSvgVersion_36108,
@@ -1393,12 +1429,12 @@ ComponentHandler ComponentHandlers[] =
 };
 
 
-typedef std::map<String, ComponentHandler> HandlersMap;
+typedef std::multimap<String, ComponentHandler> HandlersMap;
 void GenerateHandlersMap(HandlersMap &map)
 {
     map.clear();
     for (int i = 0; !ComponentHandlers[i].Name.IsEmpty(); ++i)
-        map[ComponentHandlers[i].Name] = ComponentHandlers[i];
+        map.insert(std::make_pair(ComponentHandlers[i].Name, ComponentHandlers[i]));
 }
 
 // A helper struct to pass to (de)serialization handlers
@@ -1446,16 +1482,24 @@ HSaveError ReadComponent(Stream *in, SvgCmpReadHelper &hlp, ComponentInfo &info)
     info.DataSize = hlp.Version >= kSvgVersion_Cmp_64bit ? in->ReadInt64() : in->ReadInt32();
     info.DataOffset = in->GetPosition();
 
-    // Find component's handler
+    // Find component's handler(s)
     const ComponentHandler *handler = nullptr;
-    std::map<String, ComponentHandler>::const_iterator it_hdr = hlp.Handlers.find(info.Name);
-    if (it_hdr != hlp.Handlers.end())
-        handler = &it_hdr->second;
-    if (!handler || !handler->Unserialize)
+    auto it_hdr = hlp.Handlers.equal_range(info.Name);
+    const bool found_any = it_hdr.first != it_hdr.second;
+    if (!found_any)
         return new SavegameError(kSvgErr_UnsupportedComponent);
 
-    // Test if component is required to be read
-    if ((handler->Selection & hlp.ComponentSelection) != 0)
+    // Find any first handler, that is not disabled by ComponentSelection
+    for (auto it = it_hdr.first; handler == nullptr && it != it_hdr.second; ++it)
+    {
+        if ((it->second.Selection & hlp.ComponentSelection) != 0)
+        {
+            handler = &it->second;
+        }
+    }
+
+    // If a handler is chosen, and has Unserialize method, then try reading the data
+    if (handler && handler->Unserialize)
     {
         if (info.Version > handler->Version || info.Version < handler->LowestVersion)
             return new SavegameError(kSvgErr_UnsupportedComponentVersion, String::FromFormat("Saved version: %d, supported: %d - %d", info.Version, handler->LowestVersion, handler->Version));
@@ -1463,6 +1507,7 @@ HSaveError ReadComponent(Stream *in, SvgCmpReadHelper &hlp, ComponentInfo &info)
         if (!err)
             return err;
     }
+    // Else, skip the data
     else
     {
         in->Seek(info.DataSize);

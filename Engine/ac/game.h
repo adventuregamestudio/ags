@@ -169,8 +169,8 @@ bool read_savedgame_description(const Common::String &savedgame, Common::String 
 std::unique_ptr<Common::Bitmap> read_savedgame_screenshot(const Common::String &savedgame);
 // Tries to restore saved game and displays an error on failure; if the error occured
 // too late, when the game data was already overwritten, shuts engine down.
-bool try_restore_save(int slot);
-bool try_restore_save(const Common::String &path, int slot);
+bool try_restore_save(int slot, bool startup = false);
+bool try_restore_save(const Common::String &path, int slot, bool startup = false);
 void serialize_bitmap(const Common::Bitmap *thispic, Common::Stream *out);
 Common::Bitmap *read_serialized_bitmap(Common::Stream *in);
 void skip_serialized_bitmap(Common::Stream *in);

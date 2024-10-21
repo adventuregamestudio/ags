@@ -158,6 +158,11 @@ void File_WriteRawChar(sc_File *fil, int towrite) {
   FileWriteRawChar(fil->handle, towrite);
 }
 
+void File_WriteRawFloat(sc_File *fil, float towrite) {
+  Stream *out = get_file_stream(fil->handle, "FileWriteRawFloat");
+  out->WriteFloat32(towrite);
+}
+
 void File_WriteRawInt(sc_File *fil, int towrite) {
   Stream *out = get_file_stream(fil->handle, "FileWriteRawInt");
   out->WriteInt32(towrite);
@@ -244,6 +249,11 @@ int File_ReadInt(sc_File *fil) {
 
 int File_ReadRawChar(sc_File *fil) {
   return FileReadRawChar(fil->handle);
+}
+
+float File_ReadRawFloat(sc_File *fil) {
+  Stream *out = get_file_stream(fil->handle, "File.ReadRawFloat");
+  return out->ReadFloat32();
 }
 
 int File_ReadRawInt(sc_File *fil) {
@@ -867,6 +877,11 @@ RuntimeScriptValue Sc_File_ReadRawChar(void *self, const RuntimeScriptValue *par
     API_OBJCALL_INT(sc_File, File_ReadRawChar);
 }
 
+RuntimeScriptValue Sc_File_ReadRawFloat(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_FLOAT(sc_File, File_ReadRawFloat);
+}
+
 // int (sc_File *fil)
 RuntimeScriptValue Sc_File_ReadRawInt(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -907,6 +922,11 @@ RuntimeScriptValue Sc_File_WriteInt(void *self, const RuntimeScriptValue *params
 RuntimeScriptValue Sc_File_WriteRawChar(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(sc_File, File_WriteRawChar);
+}
+
+RuntimeScriptValue Sc_File_WriteRawFloat(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PFLOAT(sc_File, File_WriteRawFloat);
 }
 
 RuntimeScriptValue Sc_File_WriteRawInt(void *self, const RuntimeScriptValue *params, int32_t param_count)
@@ -969,12 +989,14 @@ void RegisterFileAPI()
         { "File::ReadInt^0",          API_FN_PAIR(File_ReadInt) },
         { "File::ReadRawChar^0",      API_FN_PAIR(File_ReadRawChar) },
         { "File::ReadRawInt^0",       API_FN_PAIR(File_ReadRawInt) },
+        { "File::ReadRawFloat^0",     API_FN_PAIR(File_ReadRawFloat) },
         { "File::ReadRawLine^1",      API_FN_PAIR(File_ReadRawLine) },
         { "File::ReadRawLineBack^0",  API_FN_PAIR(File_ReadRawLineBack) },
         { "File::ReadString^1",       API_FN_PAIR(File_ReadString) },
         { "File::ReadStringBack^0",   API_FN_PAIR(File_ReadStringBack) },
         { "File::WriteInt^1",         API_FN_PAIR(File_WriteInt) },
         { "File::WriteRawChar^1",     API_FN_PAIR(File_WriteRawChar) },
+        { "File::WriteRawFloat^1",    API_FN_PAIR(File_WriteRawFloat) },
         { "File::WriteRawInt^1",      API_FN_PAIR(File_WriteRawInt) },
         { "File::WriteRawLine^1",     API_FN_PAIR(File_WriteRawLine) },
         { "File::WriteString^1",      API_FN_PAIR(File_WriteString) },

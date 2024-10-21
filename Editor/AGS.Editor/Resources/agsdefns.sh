@@ -1353,6 +1353,10 @@ builtin managed struct File {
   import static DateTime* GetFileTime(const string filename); // $AUTOCOMPLETESTATICONLY$
   /// Renames an existing file; if there's already a file with the new name then it will be overwritten
   import static bool Rename(const string old_filename, const string new_filename);   // $AUTOCOMPLETESTATICONLY$
+  /// Reads the next raw 32-bit float from the file.
+  import float  ReadRawFloat();
+  /// Writes a raw 32-bit float to the file.
+  import void   WriteRawFloat(float value);
 #endif
   int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };

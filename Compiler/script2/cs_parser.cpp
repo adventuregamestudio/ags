@@ -349,7 +349,7 @@ void AGS::Parser::MarMgr::SetStart(ScopeType type, size_t offset)
 
     _scType = type;
     _startOffs = offset;
-    _componentOffs = 0;
+    _componentOffs = 0u;
 }
 
 void AGS::Parser::MarMgr::UpdateMAR(size_t lineno, ccCompiledScript &scrip)
@@ -452,8 +452,8 @@ AGS::Parser::Parser(SrcList &src, FlagSet options, ccCompiledScript &scrip, Symb
     , _structRefs({})
 {
     _givm.clear();
-    _lastEmittedSectionId = 0;
-    _lastEmittedLineno = 0;
+    _lastEmittedSectionId = 0u;
+    _lastEmittedLineno = 0u;
 }
 
 void AGS::Parser::SetDynpointerInManagedVartype(Vartype &vartype)
@@ -464,7 +464,7 @@ void AGS::Parser::SetDynpointerInManagedVartype(Vartype &vartype)
 
 size_t AGS::Parser::StacksizeOfLocals(size_t from_level)
 {
-    size_t total_size = 0;
+    size_t total_size = 0u;
     for (size_t level = from_level; level <= _nest.TopLevel(); level++)
     {
         // We only skim through the old definitions to get their indexes in _sym.
@@ -492,7 +492,7 @@ bool AGS::Parser::ContainsReleasableDynpointers(Vartype vartype)
 
     SymbolList compo_list;
     _sym.GetComponentsOfStruct(vartype, compo_list);
-    for (size_t cl_idx = 0; cl_idx < compo_list.size(); cl_idx++)
+    for (size_t cl_idx = 0u; cl_idx < compo_list.size(); cl_idx++)
     {
         Symbol const &var = compo_list[cl_idx];
         if (!_sym.IsVariable(var))
@@ -798,7 +798,7 @@ void AGS::Parser::HandleEndOfSwitch()
 
     const size_t number_of_cases = _nest.Snippets().size();
     const size_t default_idx = _nest.SwitchDefaultIdx();
-    for (size_t cases_idx = 0; cases_idx < number_of_cases; ++cases_idx)
+    for (size_t cases_idx = 0u; cases_idx < number_of_cases; ++cases_idx)
     {
         if (cases_idx == default_idx)
             continue;
@@ -1112,7 +1112,7 @@ void AGS::Parser::ParseFuncdecl_Paramlist(Symbol funcsym, bool body_follows)
 
     TypeQualifierSet tqs = {};
 
-    size_t param_idx = 0;
+    size_t param_idx = 0u;
     while (!_src.ReachedEOF())
     {
         ParseQualifiers(tqs);
@@ -1126,7 +1126,7 @@ void AGS::Parser::ParseFuncdecl_Paramlist(Symbol funcsym, bool body_follows)
         }
         
         Symbol const leading_sym = _src.PeekNext();
-        if (param_idx == 0 && kKW_Void == leading_sym)
+        if (param_idx == 0u && kKW_Void == leading_sym)
         {
             SkipNextSymbol(_src, kKW_Void);
             return Expect(kKW_CloseParenthesis, _src.GetNext());
@@ -1491,7 +1491,7 @@ void AGS::Parser::ParseFuncdecl(TypeQualifierSet tqs, Vartype return_vartype, Sy
     {
         auto &func_parameters = _sym[name_of_func].FunctionD->Parameters;
         auto const &known_parameters = known_info->Parameters;
-        for (size_t parameters_idx = 0; parameters_idx < func_parameters.size(); ++parameters_idx)
+        for (size_t parameters_idx = 0u; parameters_idx < func_parameters.size(); ++parameters_idx)
             func_parameters[parameters_idx].Default = known_parameters[parameters_idx].Default;
     }
 
@@ -1500,7 +1500,7 @@ void AGS::Parser::ParseFuncdecl(TypeQualifierSet tqs, Vartype return_vartype, Sy
 
 int AGS::Parser::IndexOfLeastBondingOperator(SrcList &expression)
 {
-    size_t nesting_depth = 0;
+    size_t nesting_depth = 0u;
 
     int largest_prio_found = INT_MIN; // note: largest number == lowest priority
     bool largest_is_prefix = false;
@@ -6920,7 +6920,7 @@ void AGS::Parser::Parse_CheckFixupSanity()
 
 void AGS::Parser::Parse_ExportAllFunctions()
 {
-    for (size_t func_idx = 0; func_idx < _scrip.Functions.size(); func_idx++)
+    for (size_t func_idx = 0u; func_idx < _scrip.Functions.size(); func_idx++)
     {
         if (0 > _scrip.AddExport(
             _scrip.Functions[func_idx].Name,

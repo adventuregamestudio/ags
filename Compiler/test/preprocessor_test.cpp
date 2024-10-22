@@ -316,6 +316,98 @@ Display("This does");
 }
 
 
+TEST(Preprocess, IfDefNested) {
+    Preprocessor pp = Preprocessor();
+    const char* inpl = R"EOS(
+#define DEFINEME
+#ifdef DEFINEME
+Display("This displays!");
+#endif // DEFINEME
+#ifndef DEFINEME
+#ifdef DEFINEME_NESTED
+Display("This doesn't");
+#endif // DEFINEME_NESTED
+#ifndef DEFINEME_NESTED
+Display("This doesn't");
+#endif // !DEFINEME_NESTED
+#endif // !DEFINEME
+
+#undef DEFINEME
+#ifdef DEFINEME
+Display("This doesn't");
+#endif // DEFINEME
+#ifndef DEFINEME
+#ifdef DEFINEME_NESTED
+Display("This doesn't");
+#endif // DEFINEME_NESTED
+#ifndef DEFINEME_NESTED
+Display("This displays!");
+#endif // !DEFINEME_NESTED
+#endif // !DEFINEME
+
+#define DEFINEME_NESTED
+#ifdef DEFINEME
+Display("This doesn't");
+#endif // DEFINEME
+#ifndef DEFINEME
+#ifdef DEFINEME_NESTED
+Display("This displays!");
+#endif // DEFINEME_NESTED
+#ifndef DEFINEME_NESTED
+Display("This doesn't");
+#endif // !DEFINEME_NESTED
+#endif // !DEFINEME
+)EOS";
+
+    clear_error();
+    String res = pp.Preprocess(inpl, "ScriptIfDefElseNested");
+
+    EXPECT_STREQ(last_seen_cc_error(), "");
+
+    std::vector<AGSString> lines = SplitLines(res);
+    ASSERT_EQ(lines.size(), 41);
+
+    ASSERT_STREQ(lines[0].GetCStr(), "\"__NEWSCRIPTSTART_ScriptIfDefElseNested\"");
+    ASSERT_STREQ(lines[1].GetCStr(), "");
+    ASSERT_STREQ(lines[2].GetCStr(), "");
+    ASSERT_STREQ(lines[3].GetCStr(), "");
+    ASSERT_STREQ(lines[4].GetCStr(), "Display(\"This displays!\");");
+    ASSERT_STREQ(lines[5].GetCStr(), "");
+    ASSERT_STREQ(lines[6].GetCStr(), "");
+    ASSERT_STREQ(lines[7].GetCStr(), "");
+    ASSERT_STREQ(lines[8].GetCStr(), "");
+    ASSERT_STREQ(lines[9].GetCStr(), "");
+    ASSERT_STREQ(lines[10].GetCStr(), "");
+    ASSERT_STREQ(lines[11].GetCStr(), "");
+    ASSERT_STREQ(lines[12].GetCStr(), "");
+    ASSERT_STREQ(lines[13].GetCStr(), "");
+    ASSERT_STREQ(lines[14].GetCStr(), "");
+    ASSERT_STREQ(lines[15].GetCStr(), "");
+    ASSERT_STREQ(lines[16].GetCStr(), "");
+    ASSERT_STREQ(lines[17].GetCStr(), "");
+    ASSERT_STREQ(lines[18].GetCStr(), "");
+    ASSERT_STREQ(lines[19].GetCStr(), "");
+    ASSERT_STREQ(lines[20].GetCStr(), "");
+    ASSERT_STREQ(lines[21].GetCStr(), "");
+    ASSERT_STREQ(lines[22].GetCStr(), "");
+    ASSERT_STREQ(lines[23].GetCStr(), "");
+    ASSERT_STREQ(lines[24].GetCStr(), "Display(\"This displays!\");");
+    ASSERT_STREQ(lines[25].GetCStr(), "");
+    ASSERT_STREQ(lines[26].GetCStr(), "");
+    ASSERT_STREQ(lines[27].GetCStr(), "");
+    ASSERT_STREQ(lines[28].GetCStr(), "");
+    ASSERT_STREQ(lines[29].GetCStr(), "");
+    ASSERT_STREQ(lines[30].GetCStr(), "");
+    ASSERT_STREQ(lines[31].GetCStr(), "");
+    ASSERT_STREQ(lines[32].GetCStr(), "");
+    ASSERT_STREQ(lines[33].GetCStr(), "");
+    ASSERT_STREQ(lines[34].GetCStr(), "Display(\"This displays!\");");
+    ASSERT_STREQ(lines[35].GetCStr(), "");
+    ASSERT_STREQ(lines[36].GetCStr(), "");
+    ASSERT_STREQ(lines[37].GetCStr(), "");
+}
+
+
 TEST(Preprocess, IfDefElse) {
     Preprocessor pp = Preprocessor();
     const char* inpl = R"EOS(
@@ -375,6 +467,87 @@ Display("This doesn't");
     ASSERT_STREQ(lines[21].GetCStr(), "");
     ASSERT_STREQ(lines[22].GetCStr(), "");
     ASSERT_STREQ(lines[23].GetCStr(), "");
+}
+
+
+TEST(Preprocess, IfDefElseNested) {
+    Preprocessor pp = Preprocessor();
+    const char* inpl = R"EOS(
+#define DEFINEME
+#ifdef DEFINEME
+Display("This displays!");
+#else
+#ifdef DEFINEME_NESTED
+Display("This doesn't");
+#else
+Display("This doesn't either");
+#endif // DEFINEME_NESTED
+#endif // DEFINEME
+
+#undef DEFINEME
+#ifdef DEFINEME
+Display("This doesn't");
+#else
+#ifdef DEFINEME_NESTED
+Display("This doesn't either");
+#else
+Display("This displays!");
+#endif // DEFINEME_NESTED
+#endif // DEFINEME
+
+#define DEFINEME_NESTED
+#ifdef DEFINEME
+Display("This doesn't");
+#else
+#ifdef DEFINEME_NESTED
+Display("This displays!");
+#else
+Display("This doesn't");
+#endif // DEFINEME_NESTED
+#endif // DEFINEME
+)EOS";
+
+    clear_error();
+    String res = pp.Preprocess(inpl, "ScriptIfDefElseNested");
+
+    EXPECT_STREQ(last_seen_cc_error(), "");
+
+    std::vector<AGSString> lines = SplitLines(res);
+    ASSERT_EQ(lines.size(), 35);
+
+    ASSERT_STREQ(lines[0].GetCStr(), "\"__NEWSCRIPTSTART_ScriptIfDefElseNested\"");
+    ASSERT_STREQ(lines[1].GetCStr(), "");
+    ASSERT_STREQ(lines[2].GetCStr(), "");
+    ASSERT_STREQ(lines[3].GetCStr(), "");
+    ASSERT_STREQ(lines[4].GetCStr(), "Display(\"This displays!\");");
+    ASSERT_STREQ(lines[5].GetCStr(), "");
+    ASSERT_STREQ(lines[6].GetCStr(), "");
+    ASSERT_STREQ(lines[7].GetCStr(), "");
+    ASSERT_STREQ(lines[8].GetCStr(), "");
+    ASSERT_STREQ(lines[9].GetCStr(), "");
+    ASSERT_STREQ(lines[10].GetCStr(), "");
+    ASSERT_STREQ(lines[11].GetCStr(), "");
+    ASSERT_STREQ(lines[12].GetCStr(), "");
+    ASSERT_STREQ(lines[13].GetCStr(), "");
+    ASSERT_STREQ(lines[14].GetCStr(), "");
+    ASSERT_STREQ(lines[15].GetCStr(), "");
+    ASSERT_STREQ(lines[16].GetCStr(), "");
+    ASSERT_STREQ(lines[17].GetCStr(), "");
+    ASSERT_STREQ(lines[18].GetCStr(), "");
+    ASSERT_STREQ(lines[19].GetCStr(), "");
+    ASSERT_STREQ(lines[20].GetCStr(), "Display(\"This displays!\");");
+    ASSERT_STREQ(lines[21].GetCStr(), "");
+    ASSERT_STREQ(lines[22].GetCStr(), "");
+    ASSERT_STREQ(lines[23].GetCStr(), "");
+    ASSERT_STREQ(lines[24].GetCStr(), "");
+    ASSERT_STREQ(lines[25].GetCStr(), "");
+    ASSERT_STREQ(lines[26].GetCStr(), "");
+    ASSERT_STREQ(lines[27].GetCStr(), "");
+    ASSERT_STREQ(lines[28].GetCStr(), "");
+    ASSERT_STREQ(lines[29].GetCStr(), "Display(\"This displays!\");");
+    ASSERT_STREQ(lines[30].GetCStr(), "");
+    ASSERT_STREQ(lines[31].GetCStr(), "");
+    ASSERT_STREQ(lines[32].GetCStr(), "");
 }
 
 

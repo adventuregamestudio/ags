@@ -11,7 +11,12 @@ namespace AGS.CScript.Compiler
 	{
 		private bool _inMultiLineComment = false;
 		private PreprocessorState _state = new PreprocessorState();
+		// Conditional statement stack remembers the results of all the nested conditions
+		// that we have entered.
 		private Stack<bool> _conditionalStatements = new Stack<bool>();
+		// Negative counter: it is incremented each time we enter a FALSE condition,
+		// and decremented each time we exit a previous FALSE condition.
+		private uint _negativeCounter = 0;
 		private CompileResults _results = new CompileResults();
 		private int _lineNumber;
 		private string _scriptName;
@@ -194,8 +199,7 @@ namespace AGS.CScript.Compiler
 
 			bool includeCodeBlock = true;
 
-			if ((_conditionalStatements.Count > 0) &&
-				(_conditionalStatements.Peek() == false))
+			if (_negativeCounter > 0)
 			{
 				includeCodeBlock = false;
 			}
@@ -232,12 +236,13 @@ namespace AGS.CScript.Compiler
 			}
 
 			_conditionalStatements.Push(includeCodeBlock);
+			if (!includeCodeBlock)
+				_negativeCounter++; // more negative conditions
 		}
 
 		private bool DeletingCurrentLine()
 		{
-			return ((_conditionalStatements.Count > 0) &&
-					(_conditionalStatements.Peek() == false));
+			return _negativeCounter > 0;
 		}
 
 		private string PreProcessDirective(string line)
@@ -255,7 +260,12 @@ namespace AGS.CScript.Compiler
 				if (_conditionalStatements.Count > 0)
 				{
 					// Negate previous condition
-					_conditionalStatements.Push(!_conditionalStatements.Pop());
+					bool prevCondition = _conditionalStatements.Pop();
+					_conditionalStatements.Push(!prevCondition);
+					if (prevCondition)
+						_negativeCounter++; // it was positive before, but is negative now
+					else
+						_negativeCounter--; // it was negative before, but no more
 				}
 				else
 				{
@@ -266,7 +276,8 @@ namespace AGS.CScript.Compiler
 			{
 				if (_conditionalStatements.Count > 0)
 				{
-					_conditionalStatements.Pop();
+					if (!_conditionalStatements.Pop())
+						_negativeCounter--; // less negative conditions
 				}
 				else
 				{

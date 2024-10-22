@@ -840,8 +840,6 @@ import int  GetViewportY();
 #endif // SCRIPT_COMPAT_v350
 /// Returns whether the game is currently paused.
 import int  IsGamePaused();
-import int  GetGraphicalVariable (const string variableName);
-import void SetGraphicalVariable (const string variableName, int value);
 /// Disables the player interface and activates the Wait cursor.
 import void DisableInterface();
 /// Re-enables the player interface.
@@ -977,6 +975,11 @@ import int  Said (const string text);
 #define RIGHTINV 6
 #define WHEELNORTH  8
 #define WHEELSOUTH  9
+
+import void SetGlobalInt(int globalInt, int value);
+import int  GetGlobalInt(int globalInt);
+import int  GetGraphicalVariable (const string variableName);
+import void SetGraphicalVariable (const string variableName, int value);
 
 import int  GetHotspotAt(int x, int y);
 import int  GetObjectAt(int x,int y);
@@ -1564,8 +1567,6 @@ import int  WaitInput(InputType inputs, int waitLoops = -1);
 #endif // SCRIPT_API_v36026
 /// Checks whether the specified key is currently held down.
 import bool IsKeyPressed(eKeyCode);
-import void SetGlobalInt(int globalInt, int value);
-import int  GetGlobalInt(int globalInt);
 import void FlipScreen(int way);
 /// Fast-forwards the game until the specified character finishes moving.
 import void SkipUntilCharacterStops(CHARID);

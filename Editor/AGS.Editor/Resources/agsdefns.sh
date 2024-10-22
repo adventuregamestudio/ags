@@ -183,11 +183,14 @@ enum HorizontalAlignment {
   eAlignRight = 4
 };
 #else // !SCRIPT_API_v350
+// Pre-3.5.0 Alignment enum was horizontal-only
 enum Alignment {
   eAlignLeft = 1,
   eAlignCentre = 2,
   eAlignRight = 3
 };
+
+#define HorizontalAlignment Alignment
 #endif // !SCRIPT_API_v350
 
 enum LocationType {
@@ -688,13 +691,8 @@ builtin managed struct DrawingSurface {
   /// Draws the text to the surface, wrapping it at the specified width.
   import void DrawStringWrapped(int x, int y, int width, FontType, HorizontalAlignment, const string text, ...);
 #else // !SCRIPT_API_v361
-#ifdef SCRIPT_API_v350
   /// Draws the text to the surface, wrapping it at the specified width.
   import void DrawStringWrapped(int x, int y, int width, FontType, HorizontalAlignment, const string text);
-#else // !SCRIPT_API_v350
-  /// Draws the text to the surface, wrapping it at the specified width.
-  import void DrawStringWrapped(int x, int y, int width, FontType, Alignment, const string text);
-#endif // !SCRIPT_API_v350
 #endif // !SCRIPT_API_v361
   /// Draws a filled triangle onto the surface.
   import void DrawTriangle(int x1, int y1, int x2, int y2, int x3, int y3);
@@ -1110,11 +1108,7 @@ import void MoveToWalkableArea(CHARID);
 import void FaceCharacter(CHARID, CHARID toFace);
 import void FaceLocation(CHARID, int x, int y);
 import void SetCharacterView(CHARID, int view);
-#ifdef SCRIPT_API_v350
 import void SetCharacterViewEx(CHARID, int view, int loop, HorizontalAlignment align);
-#else // !SCRIPT_API_v350
-import void SetCharacterViewEx(CHARID, int view, int loop, Alignment align);
-#endif // !SCRIPT_API_v350
 import void SetCharacterViewOffset(CHARID, int view, int x_offset, int y_offset);
 import void SetCharacterFrame(CHARID, int view, int loop, int frame);
 import void ReleaseCharacterView(CHARID);
@@ -2707,13 +2701,8 @@ builtin managed struct Character {
 #ifdef SCRIPT_API_v341
   /// Locks the character to this view, ready for doing animations.
   import function LockView(int view, StopMovementStyle=eStopMoving);
-#ifdef SCRIPT_API_v350
   /// Locks the character to this view, and aligns it against one side of the existing sprite.
   import function LockViewAligned(int view, int loop, HorizontalAlignment, StopMovementStyle=eStopMoving);
-#else // !SCRIPT_API_v350
-  /// Locks the character to this view, and aligns it against one side of the existing sprite.
-  import function LockViewAligned(int view, int loop, Alignment, StopMovementStyle=eStopMoving);
-#endif // !SCRIPT_API_v350
   /// Locks the character to the specified view frame
   import function LockViewFrame(int view, int loop, int frame, StopMovementStyle=eStopMoving);
   /// Locks the character to is view, with high-resolution position adjustment.
@@ -3243,13 +3232,8 @@ builtin struct Speech {
   import static attribute SkipSpeechStyle SkipStyle;
   /// Gets/sets the style in which speech is displayed.
   import static attribute eSpeechStyle    Style;
-#ifdef SCRIPT_API_v350
   /// Gets/sets how text in message boxes and Sierra-style speech is aligned.
   import static attribute HorizontalAlignment TextAlignment;
-#else // !SCRIPT_API_v350
-  /// Gets/sets how text in message boxes and Sierra-style speech is aligned.
-  import static attribute Alignment       TextAlignment;
-#endif // !SCRIPT_API_v350
   /// Gets/sets whether speech animation delay should use global setting (or Character setting).
   import static attribute bool            UseGlobalSpeechAnimationDelay;
   /// Gets/sets whether voice and/or text are used in the game.
@@ -3364,12 +3348,16 @@ import int   gs_globals[MAX_LEGACY_GLOBAL_VARS];
 import short savegameindex[MAX_LEGACY_SAVED_GAMES];
 import ColorType palette[PALETTE_SIZE];
 
+// Undef temporary macros which are meant to be used only when generating standard declarations
 #undef MAX_LEGACY_GLOBAL_VARS
 #undef MAX_LEGACY_SAVED_GAMES
 
 #ifndef SCRIPT_API_v330
 #undef PALETTE_SIZE
-#endif // SCRIPT_API_v330
+#endif // !SCRIPT_API_v330
+#ifndef SCRIPT_API_v350
+#undef HorizontalAlignment
+#endif // !SCRIPT_API_v350
 
 #undef CursorMode
 #undef FontType

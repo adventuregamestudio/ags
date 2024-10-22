@@ -227,6 +227,7 @@ struct FuncParameterDesc
     AGS::Vartype Vartype = kKW_NoSymbol;
     Symbol Name = kKW_NoSymbol;
     Symbol Default = kKW_NoSymbol;
+    size_t Declared;
 };
 
 struct SymbolTable;
@@ -293,6 +294,13 @@ struct SymbolTableEntry : public SymbolTableConstant
         TypeQualifierSet TypeQualifiers = {};
         // [0] describes the return type of the function
         std::vector<FuncParameterDesc> Parameters = {};
+        struct ParamNamingInconsistencyDesc
+        {
+            bool Exists = false; // true when param #'ParamIdx' is inconsistently named
+            size_t ParamIdx = 0u;
+            Symbol Name1 = kKW_NoSymbol, Name2 = kKW_NoSymbol;
+            size_t Declared1 = 0u, Declared2 = 0u;
+        } ParamNamingInconsistency;
         CodeLoc Offset = 0;
         bool IsConstructor = false;
         bool IsVariadic = false;

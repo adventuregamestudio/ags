@@ -3335,12 +3335,13 @@ builtin struct Screen {
   /// Gets the number of viewports.
   import static readonly attribute int ViewportCount;
 
-  /// Returns the point in room which is displayed at the given screen coordinates.
-  import static Point *ScreenToRoomPoint(int sx, int sy
 #ifdef SCRIPT_API_v36026
-	, bool restrictToViewport = false
-#endif
-  );
+  /// Returns the point in room which is displayed at the given screen coordinates.
+  import static Point *ScreenToRoomPoint(int sx, int sy, bool restrictToViewport = false);
+#else // !SCRIPT_API_v36026
+  /// Returns the point in room which is displayed at the given screen coordinates.
+  import static Point *ScreenToRoomPoint(int sx, int sy);
+#endif // !SCRIPT_API_v36026
   /// Returns the point on screen corresponding to the given room coordinates relative to the main viewport.
   import static Point *RoomToScreenPoint(int rx, int ry);
 };

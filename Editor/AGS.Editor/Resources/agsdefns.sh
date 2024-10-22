@@ -1458,7 +1458,11 @@ builtin managed struct DynamicSprite {
   /// Creates a dynamic sprite from a save game screenshot.
   import static DynamicSprite* CreateFromSaveGame(int slot, int width, int height);  // $AUTOCOMPLETESTATICONLY$
   /// Creates a dynamic sprite as a copy of the current screen.
+#ifdef SCRIPT_API_v362
   import static DynamicSprite* CreateFromScreenShot(int width=0, int height=0, int layer=eRenderLayerAll);  // $AUTOCOMPLETESTATICONLY$
+#else // !SCRIPT_API_v362
+  import static DynamicSprite* CreateFromScreenShot(int width=0, int height=0);  // $AUTOCOMPLETESTATICONLY$
+#endif // !SCRIPT_API_v362
   /// Enlarges the size of the sprite, but does not resize the image.
   import void ChangeCanvasSize(int width, int height, int x, int y);
   /// Copies the transparency mask and/or alpha channel from the specified sprite onto this dynamic sprite.
@@ -1960,10 +1964,17 @@ builtin managed struct ListBox extends GUIControl {
 	import bool AddItem(const string text);
 	/// Removes all the items from the list.
 	import void Clear();
+#ifdef SCRIPT_API_v362
 	/// Fills the list box with all the filenames that match the specified file mask.
 	import void FillDirList(const string fileMask, FileSortStyle fileSortStyle = eFileSort_Name, SortDirection sortDirection = eSortAscending);
 	/// Fills the list box with the current user's saved games in the given range of slots.
 	import int  FillSaveGameList(int min_slot = 1, int max_slot = 100);
+#else // !SCRIPT_API_v362
+    /// Fills the list box with all the filenames that match the specified file mask.
+	import void FillDirList(const string fileMask);
+	/// Fills the list box with the current user's saved games in the given range of slots.
+	import int  FillSaveGameList();
+#endif // !SCRIPT_API_v362
 	/// Gets the item index at the specified screen co-ordinates, if they lie within the list box.
 	import int  GetItemAtLocation(int x, int y);
 #ifndef STRICT_STRINGS

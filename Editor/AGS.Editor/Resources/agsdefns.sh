@@ -185,8 +185,7 @@ enum HorizontalAlignment {
   // eq eAlignTopRight
   eAlignRight = 4
 };
-#endif // SCRIPT_API_v350
-#ifndef SCRIPT_API_v350
+#else // !SCRIPT_API_v350
 enum Alignment {
   eAlignLeft = 1,
   eAlignCentre = 2,
@@ -536,8 +535,7 @@ internalstring autoptr builtin managed struct String {
   import String  Replace(const string lookForText, const string replaceWithText, StringCompareStyle style = eCaseInsensitive);
   /// Checks whether this string starts with the specified text.
   import bool    StartsWith(const string startsWithText, StringCompareStyle style = eCaseInsensitive);
-#endif // SCRIPT_API_v350
-#ifndef SCRIPT_API_v350
+#else // !SCRIPT_API_v350
   /// Compares this string to the other string.
   import int     CompareTo(const string otherString, bool caseSensitive = false);
   /// Checks whether this string ends with the specified text.
@@ -646,8 +644,7 @@ builtin managed struct DrawingSurface {
   /// Draws the specified surface onto this surface.
   import void DrawSurface(DrawingSurface *surfaceToDraw, int transparency=0, int x=0, int y=0, int width=SCR_NO_VALUE, int height=SCR_NO_VALUE,
 						int cut_x=0, int cut_y=0, int cut_width=SCR_NO_VALUE, int cut_height=SCR_NO_VALUE);
-#endif // SCRIPT_API_v360
-#ifndef SCRIPT_API_v360
+#else // !SCRIPT_API_v360
   /// Draws a sprite onto the surface with its top-left corner at (x,y).
   import void DrawImage(int x, int y, int spriteSlot, int transparency=0, int width=SCR_NO_VALUE, int height=SCR_NO_VALUE);
   /// Draws the specified surface onto this surface.
@@ -666,13 +663,11 @@ builtin managed struct DrawingSurface {
 #ifdef SCRIPT_API_v361
   /// Draws the text to the surface, wrapping it at the specified width.
   import void DrawStringWrapped(int x, int y, int width, FontType, HorizontalAlignment, const string text, ...);
-#endif // SCRIPT_API_v361
-#ifndef SCRIPT_API_v361
+#else // !SCRIPT_API_v361
 #ifdef SCRIPT_API_v350
   /// Draws the text to the surface, wrapping it at the specified width.
   import void DrawStringWrapped(int x, int y, int width, FontType, HorizontalAlignment, const string text);
-#endif // SCRIPT_API_v350
-#ifndef SCRIPT_API_v350
+#else // !SCRIPT_API_v350
   /// Draws the text to the surface, wrapping it at the specified width.
   import void DrawStringWrapped(int x, int y, int width, FontType, Alignment, const string text);
 #endif // !SCRIPT_API_v350
@@ -760,8 +755,7 @@ import void DisplayAt(int x, int y, int width, const string message, ...);
 #ifdef SCRIPT_API_v361
 /// Displays the text in a standard text window at the specified y-coordinate.
 import void DisplayAtY (int y, const string message, ...);
-#endif // SCRIPT_API_v361
-#ifndef SCRIPT_API_v361
+#else // !SCRIPT_API_v361
 /// Displays the text in a standard text window at the specified y-coordinate.
 import void DisplayAtY (int y, const string message);
 #endif // !SCRIPT_API_v361
@@ -1088,8 +1082,7 @@ import void FaceLocation(CHARID, int x, int y);
 import void SetCharacterView(CHARID, int view);
 #ifdef SCRIPT_API_v350
 import void SetCharacterViewEx(CHARID, int view, int loop, HorizontalAlignment align);
-#endif // SCRIPT_API_v350
-#ifndef SCRIPT_API_v350
+#else // !SCRIPT_API_v350
 import void SetCharacterViewEx(CHARID, int view, int loop, Alignment align);
 #endif // !SCRIPT_API_v350
 import void SetCharacterViewOffset(CHARID, int view, int x_offset, int y_offset);
@@ -1794,8 +1787,7 @@ builtin managed struct Button extends GUIControl {
 #ifdef SCRIPT_API_v360
   /// Animates the button graphic using the specified view loop.
   import void Animate(int view, int loop, int delay, RepeatStyle=eOnce, BlockingStyle=eNoBlock, Direction=eForwards, int frame=0, int volume=100);
-#endif // SCRIPT_API_v360
-#ifndef SCRIPT_API_v360
+#else // !SCRIPT_API_v360
   /// Animates the button graphic using the specified view loop.
   import void Animate(int view, int loop, int delay, RepeatStyle);
 #endif // SCRIPT_API_v360
@@ -2427,8 +2419,7 @@ builtin managed struct Object {
 #ifdef SCRIPT_API_v360
   /// Sets the object to use the specified view, ahead of doing an animation.
   import function SetView(int view, int loop=0, int frame=0);
-#endif // SCRIPT_API_v360
-#ifndef SCRIPT_API_v360
+#else // !SCRIPT_API_v360
   /// Sets the object to use the specified view, ahead of doing an animation.
   import function SetView(int view, int loop=-1, int frame=-1);
 #endif // !SCRIPT_API_v360
@@ -2553,8 +2544,7 @@ builtin managed struct Character {
 #ifdef SCRIPT_API_v340
   /// Moves the character to another room. If this is the player character, the game will also switch to that room.
   import function ChangeRoom(int room, int x=SCR_NO_VALUE, int y=SCR_NO_VALUE, CharacterDirection direction=eDirectionNone);
-#endif // SCRIPT_API_v340
-#ifndef SCRIPT_API_v340
+#else // !SCRIPT_API_v340
   /// Moves the character to another room. If this is the player character, the game will also switch to that room.
   import function ChangeRoom(int room, int x=SCR_NO_VALUE, int y=SCR_NO_VALUE);
 #endif // !SCRIPT_API_v340
@@ -2594,8 +2584,7 @@ builtin managed struct Character {
 #ifdef SCRIPT_API_v350
   /// Locks the character to this view, and aligns it against one side of the existing sprite.
   import function LockViewAligned(int view, int loop, HorizontalAlignment, StopMovementStyle=eStopMoving);
-#endif // SCRIPT_API_v350
-#ifndef SCRIPT_API_v350
+#else // !SCRIPT_API_v350
   /// Locks the character to this view, and aligns it against one side of the existing sprite.
   import function LockViewAligned(int view, int loop, Alignment, StopMovementStyle=eStopMoving);
 #endif // !SCRIPT_API_v350
@@ -2603,8 +2592,7 @@ builtin managed struct Character {
   import function LockViewFrame(int view, int loop, int frame, StopMovementStyle=eStopMoving);
   /// Locks the character to is view, with high-resolution position adjustment.
   import function LockViewOffset(int view, int xOffset, int yOffset, StopMovementStyle=eStopMoving);
-#endif // SCRIPT_API_v341
-#ifndef SCRIPT_API_v341
+#else // !SCRIPT_API_v341
   /// Locks the character to this view, ready for doing animations.
   import function LockView(int view);
   /// Locks the character to this view, and aligns it against one side of the existing sprite.
@@ -2631,8 +2619,7 @@ builtin managed struct Character {
   import function SayAt(int x, int y, int width, const string message, ...);
   /// Displays the text as lucasarts-style speech but does not block the game.
   import Overlay* SayBackground(const string message, ...);
-#endif // SCRIPT_API_v361
-#ifndef SCRIPT_API_v361
+#else // !SCRIPT_API_v361
   /// Says the specified text at the specified position on the screen using the character's speech settings.
   import function SayAt(int x, int y, int width, const string message);
   /// Displays the text as lucasarts-style speech but does not block the game.
@@ -2653,8 +2640,7 @@ builtin managed struct Character {
 #ifdef SCRIPT_API_v341
   /// Unlocks the view after an animation has finished.
   import function UnlockView(StopMovementStyle=eStopMoving);
-#endif // SCRIPT_API_v341
-#ifndef SCRIPT_API_v341
+#else // !SCRIPT_API_v341
   /// Unlocks the view after an animation has finished.
   import function UnlockView();
 #endif // !SCRIPT_API_v341
@@ -2812,8 +2798,7 @@ builtin managed struct Character {
   char  reserved_g[40];   // $AUTOCOMPLETEIGNORE$
   readonly char  scrname[20];
   char  on;  // $AUTOCOMPLETEIGNORE$
-#endif // STRICT
-#ifndef STRICT
+#else // !STRICT
   int   defview;
   int   talkview;
   int   view;
@@ -2995,8 +2980,7 @@ builtin struct GameState {
   int  usedinv;
 #ifdef STRICT
   readonly int  reserved__[4];   // $AUTOCOMPLETEIGNORE$
-#endif // STRICT
-#ifndef STRICT
+#else // !STRICT
   int  top_inv_item;
   readonly int  num_inv_displayed;
   readonly int  num_inv_items;
@@ -3033,8 +3017,7 @@ builtin struct GameState {
   int  previous_game_data;
 #ifdef SCRIPT_COMPAT_v341
   int  replay_hotkey;
-#endif // SCRIPT_COMPAT_v341
-#ifndef SCRIPT_COMPAT_v341
+#else // !SCRIPT_COMPAT_v341
   readonly readonly int unused__041; // $AUTOCOMPLETEIGNORE$
 #endif // !SCRIPT_COMPAT_v341
   int  dialog_options_x;
@@ -3044,8 +3027,7 @@ builtin struct GameState {
   int  lipsync_speed;
 #ifdef SCRIPT_COMPAT_v321
   int  close_mouth_end_speech_time;
-#endif // SCRIPT_COMPAT_v321
-#ifndef SCRIPT_COMPAT_v321
+#else // !SCRIPT_COMPAT_v321
   readonly int  reserved__4;   // $AUTOCOMPLETEIGNORE$
 #endif // !SCRIPT_COMPAT_v321
   int  disable_antialiasing;
@@ -3065,16 +3047,14 @@ builtin struct GameState {
   int  top_bar_font;
 #ifdef SCRIPT_COMPAT_v321
   int  speech_text_align;
-#endif // SCRIPT_COMPAT_v321
-#ifndef SCRIPT_COMPAT_v321
+#else // !SCRIPT_COMPAT_v321
   readonly int  reserved__2;   // $AUTOCOMPLETEIGNORE$
 #endif // !SCRIPT_COMPAT_v321
   int  auto_use_walkto_points;
   int  inventory_greys_out;
 #ifdef SCRIPT_COMPAT_v321
   int  skip_speech_specific_key;
-#endif // SCRIPT_COMPAT_v321
-#ifndef SCRIPT_COMPAT_v321
+#else // !SCRIPT_COMPAT_v321
   readonly int  reserved__3;   // $AUTOCOMPLETEIGNORE$
 #endif // !SCRIPT_COMPAT_v321
   int  abort_key;
@@ -3130,8 +3110,7 @@ builtin struct Speech {
 #ifdef SCRIPT_API_v350
   /// Gets/sets how text in message boxes and Sierra-style speech is aligned.
   import static attribute HorizontalAlignment TextAlignment;
-#endif // SCRIPT_API_v350
-#ifndef SCRIPT_API_v350
+#else // !SCRIPT_API_v350
   /// Gets/sets how text in message boxes and Sierra-style speech is aligned.
   import static attribute Alignment       TextAlignment;
 #endif // !SCRIPT_API_v350

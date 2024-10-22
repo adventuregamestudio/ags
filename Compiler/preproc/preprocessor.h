@@ -43,7 +43,12 @@ namespace Preprocessor {
         int _lineNumber;
         String _scriptName;
         Version _applicationVersion;
+        // Conditional statement stack remembers the results of all the nested conditions
+        // that we have entered.
         std::stack<bool> _conditionalStatements;
+        // Negative counter: it is incremented each time we enter a FALSE condition,
+        // and decremented each time we exit a previous FALSE condition.
+        uint32_t _negativeCounter = 0u;
 
         static void LogError(ErrorCode error, const String &message = nullptr);
 

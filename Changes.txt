@@ -82,6 +82,7 @@ Script API:
    that tells which of the game's render layers to capture when making a screenshot.
  - Added File.Copy() and File.Rename().
  - Added File.GetFileTime() that returns file's modification time.
+ - Added File.ReadBytes(), File.WriteBytes(), File.ReadRawFloat(), File.WriteRawFloat().
  - Added Game.GetSaveSlotTime() that returns a time this save slot was last written.
  - Label.TextAlignment has now type Alignment, rather than HorizontalAlignment, and has
    full alignment range (both horizontal and vertical).
@@ -137,6 +138,8 @@ Compatibility:
 
 WinSetup:
  - Redesigned winsetup into a tabbed dialog.
+ - Added "Reset To Defaults" button that resets all options to values from the game's default
+   config file.
  - Added "Accessibility" settings for skipping speech and text messages.
 
 ---------------------------------------------------------------------------------------------------

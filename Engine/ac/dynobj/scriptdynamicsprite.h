@@ -17,15 +17,19 @@
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
 
-struct ScriptDynamicSprite final  : AGSCCDynamicObject {
-    int slot;
+struct ScriptDynamicSprite final  : AGSCCDynamicObject
+{
+public:
+    static const char *TypeID;
+
+    int slot = -1;
 
     int Dispose(void *address, bool force) override;
     const char *GetType() override;
     void Unserialize(int index, AGS::Common::Stream *in, size_t data_sz) override;
 
+    ScriptDynamicSprite() = default;
     ScriptDynamicSprite(int slot);
-    ScriptDynamicSprite();
 
 protected:
     // Calculate and return required space for serialization, in bytes

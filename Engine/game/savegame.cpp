@@ -422,10 +422,25 @@ static void CopyPreservedGameOptions(GameSetupStructBase &gs, const PreservedPar
     const auto restricted_opts = GameSetupStructBase::GetRestrictedOptions();
     for (auto opt : restricted_opts)
         gs.options[opt] = pp.GameOptions[opt];
+    const auto preserved_opts = GameSetupStructBase::GetPreservedOptions();
+    for (auto opt : preserved_opts)
+        gs.options[opt] = pp.GameOptions[opt];
+}
+
+// A callback that tests if DynamicSprite refers a valid sprite in cache.
+// Used in a call to ccTraverseManagedObjects.
+static void ValidateDynamicSprite(int handle, IScriptObject *obj)
+{
+    ScriptDynamicSprite *dspr = static_cast<ScriptDynamicSprite*>(obj);
+    if (dspr->slot < 0 || dspr->slot >= game.SpriteInfos.size() ||
+        !game.SpriteInfos[dspr->slot].IsDynamicSprite())
+    {
+        dspr->slot = -1;
+    }
 }
 
 // Final processing after successfully restoring from save
-HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data)
+HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveCmpSelection select_cmp)
 {
     // Use a yellow dialog highlight for older game versions
     // CHECKME: it is dubious that this should be right here
@@ -654,8 +669,18 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data)
     RestoreViewportsAndCameras(r_data);
     set_game_speed(r_data.FPS);
 
+    // Run fixups over managed objects if necessary
+    if ((select_cmp & kSaveCmp_DynamicSprites) == 0)
+    {
+        // If dynamic sprite images were not restored from this save, then invalidate all
+        // DynamicSprite objects in the managed pool
+        ccTraverseManagedObjects(ScriptDynamicSprite::TypeID, ValidateDynamicSprite);
+    }
+
+    // Run optional plugin event, reporting game restored
     pl_run_plugin_hooks(AGSE_POSTRESTOREGAME, 0);
 
+    // Next load up any immediately required resources
     // If this is a restart point and no room was loaded, then load startup room
     if (displayed_room < 0)
     {
@@ -670,25 +695,38 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data)
     }
 
     Mouse::SetMoveLimit(play.mbounds); // apply mouse bounds
-    play.ClearIgnoreInput(); // don't keep ignored input after save restore
-    update_polled_stuff();
 
     // Apply accessibility options, must be done last, because some
     // may override restored game settings
     ApplyAccessibilityOptions();
 
+    play.ClearIgnoreInput(); // don't keep ignored input after save restore
+    update_polled_stuff();
+
     return HSaveError::None();
 }
 
-HSaveError RestoreGameState(Stream *in, SavegameVersion svg_version)
+// Fixes up a requested component selection, in case we must override or
+// substitute something internally.
+static SaveCmpSelection FixupCmpSelection(SaveCmpSelection select_cmp)
 {
+    // If kSaveCmp_DynamicSprites is not set, then set kSaveCmp_ObjectSprites
+    //     ensure that object-owned images are still serialized.
+    return (SaveCmpSelection)(select_cmp | 
+        kSaveCmp_ObjectSprites * ((select_cmp & kSaveCmp_DynamicSprites) == 0));
+}
+
+HSaveError RestoreGameState(Stream *in, SavegameVersion svg_version, SaveCmpSelection select_cmp)
+{
+    select_cmp = FixupCmpSelection(select_cmp);
+
     PreservedParams pp;
     RestoredData r_data;
     DoBeforeRestore(pp);
-    HSaveError err = SavegameComponents::ReadAll(in, svg_version, pp, r_data);
+    HSaveError err = SavegameComponents::ReadAll(in, svg_version, select_cmp, pp, r_data);
     if (!err)
         return err;
-    return DoAfterRestore(pp, r_data);
+    return DoAfterRestore(pp, r_data, select_cmp);
 }
 
 
@@ -762,10 +800,12 @@ void DoBeforeSave()
     }
 }
 
-void SaveGameState(Stream *out)
+void SaveGameState(Stream *out, SaveCmpSelection select_cmp)
 {
+    select_cmp = FixupCmpSelection(select_cmp);
+
     DoBeforeSave();
-    SavegameComponents::WriteAllCommon(out);
+    SavegameComponents::WriteAllCommon(out, select_cmp);
 }
 
 void ReadPluginSaveData(Stream *in, PluginSvgVersion svg_ver, soff_t max_size)

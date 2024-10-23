@@ -97,7 +97,7 @@
 
 #ifdef SCRIPT_API_v399
   #define AXIS_DEFAULT_DEADZONE 0.125
-#endif
+#endif // SCRIPT_API_v399
 
 enum bool {
   false = 0,
@@ -550,7 +550,7 @@ enum eJoystick_Hat
     eJoystick_HatLeftUp = 0x09,
     eJoystick_HatLeftDown = 0x0C,
 };
-#endif
+#endif // SCRIPT_API_v399
 
 #ifdef SCRIPT_API_v399
 enum BlendMode {
@@ -565,7 +565,7 @@ enum BlendMode {
     eBlendExclusion,
     eBlendDodge
 };
-#endif
+#endif // SCRIPT_API_v399
 
 #ifdef SCRIPT_API_v400
 enum StringSplitOptions {
@@ -573,7 +573,7 @@ enum StringSplitOptions {
     eStrSplit_RemoveEmpty = 0x0001,
     eStrSplit_Trim = 0x0002
 };
-#endif
+#endif // SCRIPT_API_v400
 
 internalstring autoptr builtin managed struct String {
   /// Creates a formatted string using the supplied parameters.
@@ -587,7 +587,7 @@ internalstring autoptr builtin managed struct String {
   import String  Trim();
   /// Creates a dynamic array made of substrings of the string each time the separator occurred.
   import String[] Split(const string separator, StringSplitOptions options = eStrSplit_None);
-#endif
+#endif // SCRIPT_API_v400
   /// Returns a new string with the specified string appended to this string.
   import String  Append(const string appendText);
   /// Returns a new string that has the extra character appended.
@@ -722,7 +722,7 @@ builtin managed struct DrawingSurface {
   /// Blends the specified surface onto this surface.
   import void BlendSurface(DrawingSurface *surfaceToDraw, BlendMode mode, int transparency=0, int x=0, int y=0, int width=SCR_NO_VALUE, int height=SCR_NO_VALUE,
 						int part_x=0, int part_y=0, int part_width=SCR_NO_VALUE, int part_height=SCR_NO_VALUE);
-#endif
+#endif // SCRIPT_API_v399
   /// Draws a straight line between the two points on the surface.
   import void DrawLine(int x1, int y1, int x2, int y2, int thickness=1);
   /// Changes the colour of a single pixel on the surface.
@@ -753,7 +753,7 @@ builtin managed struct DrawingSurface {
 #ifdef SCRIPT_API_v400
   /// Gets the colour depth of this surface.
   readonly import attribute int ColorDepth;
-#endif
+#endif // SCRIPT_API_v400
 };
 
 #ifdef SCRIPT_API_v3507
@@ -768,7 +768,7 @@ builtin managed struct Region;
 builtin managed struct WalkableArea;
 builtin managed struct Walkbehind;
 builtin managed struct Pathfinder;
-#endif
+#endif // SCRIPT_API_v400
 
 builtin struct Room {
   /// Gets a custom text property associated with this room.
@@ -818,7 +818,7 @@ builtin struct Room {
   import static readonly attribute Pathfinder *PathFinder;   // $AUTOCOMPLETESTATICONLY$
   /// Gets/sets the optional y/x ratio of character's facing directions, determining directional loop selection for each Character in the current room.
   import static attribute float FaceDirectionRatio;
-#endif
+#endif // SCRIPT_API_v400
 };
 
 builtin struct Parser {
@@ -1116,12 +1116,13 @@ builtin managed struct InventoryItem {
 };
 
 builtin managed struct Overlay {
-  /// Creates an overlay that displays a sprite.
-  import static Overlay* CreateGraphical(int x, int y, int slot
 #ifdef SCRIPT_API_v360
-	, bool clone = false
-#endif
-  );  // $AUTOCOMPLETESTATICONLY$
+  /// Creates an overlay that displays a sprite.
+  import static Overlay* CreateGraphical(int x, int y, int slot, bool clone = false);  // $AUTOCOMPLETESTATICONLY$
+#else // !SCRIPT_API_v360
+  /// Creates an overlay that displays a sprite.
+  import static Overlay* CreateGraphical(int x, int y, int slot);  // $AUTOCOMPLETESTATICONLY$
+#endif // !SCRIPT_API_v360
   /// Creates an overlay that displays some text.
   import static Overlay* CreateTextual(int x, int y, int width, FontType, int colour, const string text, ...);  // $AUTOCOMPLETESTATICONLY$
   /// Changes the text on the overlay.
@@ -1167,7 +1168,7 @@ builtin managed struct Overlay {
   import attribute BlendMode BlendMode;
   /// Gets/sets the overlay's image rotation in degrees.
   import attribute float Rotation;
-#endif
+#endif // SCRIPT_API_v399
 #ifdef SCRIPT_API_v400
   /// Tints the overlay to the specified colour. RGB values must be in 0-255 range, saturation and luminance in 0-100 range.
   import void Tint(int red, int green, int blue, int saturation, int luminance);
@@ -1191,7 +1192,7 @@ builtin managed struct Overlay {
   readonly import attribute int  TintSaturation;
   /// Gets the Luminance of this overlay's colour tint.
   readonly import attribute int  TintLuminance;
-#endif
+#endif // SCRIPT_API_v400
 };
 
 #ifdef SCRIPT_API_v400
@@ -1201,7 +1202,7 @@ enum ColorFormat
   eColorFmt_Default = 0,
   eColorFmt_8bit    = 8
 };
-#endif
+#endif // SCRIPT_API_v400
 
 builtin managed struct DynamicSprite {
   /// Creates a blank dynamic sprite of the specified size.
@@ -1479,7 +1480,7 @@ builtin managed struct GUIControl {
   import bool SetProperty(const string property, int value);
   /// Sets a text custom property for this GUI.
   import bool SetTextProperty(const string property, const string value);
-#endif
+#endif // SCRIPT_API_v400
 };
 
 builtin managed struct Label extends GUIControl {
@@ -1712,7 +1713,7 @@ builtin managed struct GUI {
   import attribute BlendMode BlendMode;
   /// Gets/sets the GUI's image rotation in degrees.
   import attribute float Rotation;
-#endif
+#endif // SCRIPT_API_v399
 #ifdef SCRIPT_API_v400
   /// Gets/sets this GUI horizontal scaling.
   import attribute float ScaleX;
@@ -1732,7 +1733,7 @@ builtin managed struct GUI {
   import bool SetProperty(const string property, int value);
   /// Sets a text custom property for this GUI.
   import bool SetTextProperty(const string property, const string value);
-#endif
+#endif // SCRIPT_API_v400
   readonly int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };
 
@@ -1831,7 +1832,7 @@ builtin managed struct Region {
   import bool SetProperty(const string property, int value);
   /// Sets a text custom property for this region.
   import bool SetTextProperty(const string property, const string value);
-#endif
+#endif // SCRIPT_API_v400
   int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };
 
@@ -1865,7 +1866,7 @@ builtin managed struct WalkableArea {
   /// Gets/sets the optional y/x ratio of character's facing directions, determining directional loop selection for each Character while on this area.
   import static attribute float FaceDirectionRatio;
 };
-#endif
+#endif // SCRIPT_API_v400
 
 #ifdef SCRIPT_API_v400
 builtin managed struct Walkbehind {
@@ -1880,7 +1881,7 @@ builtin managed struct Walkbehind {
   /// Gets/sets this walk-behind's baseline.
   import attribute int Baseline;
 };
-#endif
+#endif // SCRIPT_API_v400
 
 builtin managed struct Dialog {
 #ifdef SCRIPT_API_v361
@@ -1927,7 +1928,7 @@ builtin managed struct Dialog {
   import bool SetProperty(const string property, int value);
   /// Sets a text custom property for this dialog.
   import bool SetTextProperty(const string property, const string value);
-#endif
+#endif // SCRIPT_API_v400
 
   readonly int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };
@@ -2102,7 +2103,7 @@ builtin managed struct AudioClip {
   import bool SetProperty(const string property, int value);
   /// Sets a text custom property for this item.
   import bool SetTextProperty(const string property, const string value);
-#endif
+#endif // SCRIPT_API_v400
 };
 
 
@@ -2314,7 +2315,7 @@ builtin managed struct Object {
   import function MovePath(Point*[], int speed, BlockingStyle=eNoBlock, RepeatStyle=eOnce, Direction=eForwards);
   /// Gets/sets whether the object will be drawn and updated during the game update.
   import attribute bool Enabled;
-#endif
+#endif // SCRIPT_API_v400
   readonly int reserved[2];  // $AUTOCOMPLETEIGNORE$
 };
 
@@ -2557,7 +2558,7 @@ builtin managed struct Character {
   import function MovePath(Point*[], BlockingStyle=eNoBlock, RepeatStyle=eOnce, Direction=eForwards);
   /// Moves the character along the path, ignoring walkable areas, automatically playing his walking animation.
   import function WalkPath(Point*[], BlockingStyle=eNoBlock, RepeatStyle=eOnce, Direction=eForwards);
-#endif
+#endif // SCRIPT_API_v400
   /// The character's current X-position.
   import attribute int  x;
   /// The character's current Y-position.
@@ -2571,7 +2572,7 @@ builtin managed struct Character {
   import attribute float GraphicRotation;
   /// Gets/sets whether the character uses region tinting.
   import attribute bool UseRegionTint;
-#endif
+#endif // SCRIPT_API_v399
 #ifdef SCRIPT_API_v400
   /// Gets/sets whether the character will be drawn and updated during the game update.
   import attribute bool Enabled;
@@ -2579,7 +2580,7 @@ builtin managed struct Character {
   import attribute bool Visible;
   /// Gets/sets the optional y/x ratio of character's facing directions, determining directional loop selection while Character moves and turns.
   import attribute float FaceDirectionRatio;
-#endif
+#endif // SCRIPT_API_v400
 #ifdef SCRIPT_COMPAT_v399
   char  on;
 #endif // SCRIPT_COMPAT_v399
@@ -2703,7 +2704,7 @@ builtin struct Game {
   import static attribute float FaceDirectionRatio;
   /// Gets the color depth of the specified sprite.
   readonly import static attribute int SpriteColorDepth[];
-#endif
+#endif // SCRIPT_API_v400
 };
 
 builtin struct GameState {
@@ -2849,7 +2850,7 @@ builtin managed struct Camera {
 #ifdef SCRIPT_API_v399
   /// Gets/sets the camera rotation in degrees.
   import attribute float Rotation;
-#endif
+#endif // SCRIPT_API_v399
 
   /// Gets/sets whether this camera will follow the player character automatically.
   import attribute bool AutoTracking;
@@ -2949,7 +2950,7 @@ builtin managed struct Joystick {
   /// get hat count from the joystick
   import readonly attribute int HatCount;
 };
-#endif
+#endif // SCRIPT_API_v399
 
 #ifdef SCRIPT_API_v400
 enum PlaybackState {

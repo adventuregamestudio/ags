@@ -94,7 +94,7 @@ void CompilerOptions::PrintToStdout() const {
     printf("ScriptCompatLevel: %s\n", ScriptAPI.ScriptCompatLevel.c_str());
     printf("Flags: ");
     if (Flags.ExportAll) printf("ExportAll; ");
-    if (Flags.ShowWarnings) printf("ShowWarnings; ");
+    //if (Flags.ShowWarnings) printf("ShowWarnings; ");
     if (Flags.LineNumbers) printf("LineNumbers; ");
     if (Flags.AutoImport) printf("AutoImport; ");
     if (Flags.DebugRun) printf("DebugRun; ");
@@ -174,8 +174,6 @@ int Compile(const CompilerOptions& comp_opts)
     //-----------------------------------------------------------------------//
 #ifdef LEGACY_COMPILER
     ccSetSoftwareVersion(comp_opts.Version.c_str());
-
-    ccSetOption(SCOPT_SHOWWARNINGS, comp_opts.Flags.ShowWarnings);
 
     ccSetOption(SCOPT_EXPORTALL, comp_opts.Flags.ExportAll);
     ccSetOption(SCOPT_LINENUMBERS, comp_opts.Flags.LineNumbers);

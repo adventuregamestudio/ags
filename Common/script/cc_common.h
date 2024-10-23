@@ -20,8 +20,12 @@
 
 #include "util/string.h"
 
+// FIXME: SCOPT_AUTOIMPORT and SCOPT_DEBUGRUN are runtime only options
+// remove them from this list of flags, and use a different way of assigning,
+// not using ccSetOption.
+
 #define SCOPT_EXPORTALL     0x0001   // export all functions automatically
-#define SCOPT_SHOWWARNINGS  0x0002   // printf warnings to console
+// 0x0002 [UNUSED]
 #define SCOPT_LINENUMBERS   0x0004   // include line numbers in compiled code
 #define SCOPT_AUTOIMPORT    0x0008   // when creating instance, export funcs to other scripts
 #define SCOPT_DEBUGRUN      0x0010   // write instructions as they are procssed to log file

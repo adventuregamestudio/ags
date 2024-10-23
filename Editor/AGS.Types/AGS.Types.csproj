@@ -228,6 +228,7 @@
     <Compile Include="PropertyGridExtras\PropertyTabInteractions.cs" />
     <Compile Include="PropertyGridExtras\ReadOnlyConverter .cs" />
     <Compile Include="PropertyGridExtras\RoomMaskResolutionTypeConverter.cs" />
+    <Compile Include="PropertyGridExtras\ScriptCompilerTypeConverter.cs" />
     <Compile Include="PropertyGridExtras\ScriptListTypeConverter.cs" />
     <Compile Include="PropertyGridExtras\SpriteFileNameEditor.cs" />
     <Compile Include="PropertyGridExtras\SpriteSelectUIEditor.cs" />

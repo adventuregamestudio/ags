@@ -503,6 +503,7 @@ FontInfo get_fontinfo(size_t font_number)
 // Loads a font from disk
 bool load_font_size(size_t font_number, const FontInfo &font_info)
 {
+    freefont(font_number);
     if (font_info.Filename.IsEmpty())
     {
         Debug::Printf(kDbgMsg_Error, "Font %d does not have any source filename assigned, can't be loaded.", font_number);

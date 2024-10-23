@@ -22,6 +22,7 @@
 #include "ac/path_helper.h"
 #include "ac/runtime_defines.h"
 #include "ac/string.h"
+#include "ac/dynobj/cc_dynamicarray.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
@@ -258,6 +259,58 @@ float File_ReadRawFloat(sc_File *fil) {
 
 int File_ReadRawInt(sc_File *fil) {
   return FileReadRawInt(fil->handle);
+}
+
+int File_ReadBytes(sc_File *fil, void *arr_obj, int index, int count)
+{
+    Stream *in = get_file_stream(fil->handle, "File.ReadBytes");
+    const auto &hdr = CCDynamicArray::GetHeader(arr_obj);
+    if (hdr.GetElemCount() == 0)
+    {
+        debug_script_warn("File.ReadBytes: dynamic array has zero length");
+        return 0;
+    }
+    if (index < 0 || static_cast<uint32_t>(index) >= hdr.GetElemCount())
+    {
+        debug_script_warn("File.ReadBytes: starting index out of bounds: %d, range is %u..%u", index, 0u, hdr.GetElemCount() - 1);
+        return 0;
+    }
+    if (count < 0 || static_cast<uint32_t>(index) > hdr.GetElemCount() - index)
+    {
+        debug_script_warn("File.ReadBytes: invalid count: %d, valid range is %u..%u", count, 0u, hdr.GetElemCount() - index);
+        return 0;
+    }
+
+    uint32_t elem_size = hdr.TotalSize / hdr.GetElemCount();
+    uint32_t read_at = index * elem_size;
+    uint32_t read_count = std::min(static_cast<uint32_t>(count), hdr.TotalSize - read_at);
+    return static_cast<int>(in->Read(static_cast<uint8_t*>(arr_obj) + read_at, read_count));
+}
+
+int File_WriteBytes(sc_File *fil, void *arr_obj, int index, int count)
+{
+    Stream *out = get_file_stream(fil->handle, "File.WriteBytes");
+    const auto &hdr = CCDynamicArray::GetHeader(arr_obj);
+    if (hdr.GetElemCount() == 0)
+    {
+        debug_script_warn("File.WriteBytes: dynamic array has zero length");
+        return 0;
+    }
+    if (index < 0 || static_cast<uint32_t>(index) >= hdr.GetElemCount())
+    {
+        debug_script_warn("File.WriteBytes: starting index out of bounds: %d, range is %u..%u", index, 0u, hdr.GetElemCount() - 1);
+        return 0;
+    }
+    if (count < 0 || static_cast<uint32_t>(index) > hdr.GetElemCount() - index)
+    {
+        debug_script_warn("File.WriteBytes: invalid count: %d, valid range is %u..%u", count, 0u, hdr.GetElemCount() - index);
+        return 0;
+    }
+
+    uint32_t elem_size = hdr.TotalSize / hdr.GetElemCount();
+    uint32_t write_at = index * elem_size;
+    uint32_t write_count = std::min(static_cast<uint32_t>(count), hdr.TotalSize - write_at);
+    return static_cast<int>(out->Write(static_cast<uint8_t*>(arr_obj) + write_at, write_count));
 }
 
 int File_Seek(sc_File *fil, int offset, int origin)
@@ -946,6 +999,16 @@ RuntimeScriptValue Sc_File_WriteString(void *self, const RuntimeScriptValue *par
     API_OBJCALL_VOID_POBJ(sc_File, File_WriteString, const char);
 }
 
+RuntimeScriptValue Sc_File_ReadBytes(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT_POBJ_PINT2(sc_File, File_ReadBytes, void);
+}
+
+RuntimeScriptValue Sc_File_WriteBytes(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT_POBJ_PINT2(sc_File, File_WriteBytes, void);
+}
+
 RuntimeScriptValue Sc_File_Seek(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT_PINT2(sc_File, File_Seek);
@@ -1000,6 +1063,8 @@ void RegisterFileAPI()
         { "File::WriteRawInt^1",      API_FN_PAIR(File_WriteRawInt) },
         { "File::WriteRawLine^1",     API_FN_PAIR(File_WriteRawLine) },
         { "File::WriteString^1",      API_FN_PAIR(File_WriteString) },
+        { "File::ReadBytes^3",        API_FN_PAIR(File_ReadBytes) },
+        { "File::WriteBytes^3",       API_FN_PAIR(File_WriteBytes) },
         { "File::Seek^2",             API_FN_PAIR(File_Seek) },
         { "File::get_EOF",            API_FN_PAIR(File_GetEOF) },
         { "File::get_Error",          API_FN_PAIR(File_GetError) },

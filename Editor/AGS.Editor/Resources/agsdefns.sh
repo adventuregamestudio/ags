@@ -1347,6 +1347,10 @@ builtin managed struct File {
   import float  ReadRawFloat();
   /// Writes a raw 32-bit float to the file.
   import void   WriteRawFloat(float value);
+  /// Reads up to "count" number of bytes and stores them in a provided dynamic array, starting with certain index. Returns actual number of read bytes.
+  import int    ReadBytes(char bytes[], int index, int count);
+  /// Writes up to "count" number of bytes from the provided dynamic array, starting with certain index. Returns actual number of written bytes.
+  import int    WriteBytes(char bytes[], int index, int count);
 #endif // SCRIPT_API_v362
   int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };

@@ -8,6 +8,8 @@ namespace AGS.Types
     [DefaultProperty("BundlingType")]
     public class AudioClip : IToXml, IComparable<AudioClip>
     {
+        // FIXME: this must not be in AudioClip or AGS.Types, it's up for the application to determine a cache folder!!
+        //        move to AudioComponent?
         public const string AUDIO_CACHE_DIRECTORY = "AudioCache";
 
         private int _id;

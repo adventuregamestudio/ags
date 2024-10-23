@@ -55,11 +55,10 @@ struct ResourcePaths
     PackLocation SpeechPak;  // voice-over package
     String       DataDir;    // path to the data directory
     bool         VoiceAvail = false; // tells whether voice files available in either location
-    // NOTE: optional directories are currently only for compatibility with Editor (game test runs)
-    // This is bit ugly, but remain so until more flexible configuration is designed
-    String       DataDir2;   // optional data directory
-    String       AudioDir2;  // optional audio directory
-    String       VoiceDir2;  // optional voice-over directory (base)
+    // Optional directories are represented by pairs of "path" and "filter".
+    // Currently are only set for compatibility with Editor (game test runs from IDE),
+    // see "--runfromide" command line arg.
+    std::vector<std::pair<String, String>> OptDataDirs; // optional data directories
     String       VoiceDirSub;// full voice-over directory with optional sub-dir
 };
 extern ResourcePaths ResPaths;

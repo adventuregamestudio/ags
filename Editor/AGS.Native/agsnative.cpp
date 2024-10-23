@@ -672,7 +672,7 @@ int drawFontAt (HDC hdc, int fontnum, int x, int y, int width) {
   int blockSize = 1;
   antiAliasFonts = thisgame.options[OPT_ANTIALIASFONTS];
 
-  int char_height = thisgame.fonts[fontnum].Size * thisgame.fonts[fontnum].SizeMultiplier;
+  int char_height = get_font_height(fontnum) * thisgame.fonts[fontnum].SizeMultiplier;
   int grid_size   = std::max(10, char_height);
   int grid_margin = std::max(4, grid_size / 4);
   grid_size += grid_margin * 2;
@@ -810,13 +810,6 @@ int get_adjusted_spriteheight(int spr) {
   return retval;
 }
 
-void new_font () {
-  FontInfo fi;
-  load_font_size(thisgame.numfonts, fi);
-  thisgame.fonts.push_back(FontInfo());
-  thisgame.numfonts++;
-}
-
 void setup_color_conversions()
 {
     // RGB shifts for Allegro's pixel data
@@ -859,7 +852,6 @@ bool initialize_native()
       return false;
 
 	init_font_renderer(AssetMgr.get());
-    new_font();
     NDrawState.reset(new NativeDrawState());
 	return true;
 }
@@ -1543,12 +1535,15 @@ void SetGameResolution(Game ^game)
 void GameDirChanged(String ^workingDir)
 {
     AssetMgr->RemoveAllLibraries();
-    AssetMgr->AddLibrary(TextHelper::ConvertUTF8(workingDir));
+    AGSString work_dir = TextHelper::ConvertUTF8(workingDir);
+    AssetMgr->AddLibrary(work_dir);
+    AssetMgr->AddLibrary(AGSPath::ConcatPaths(work_dir, "Fonts")); // fonts directory
 }
 
 void GameFontUpdated(Game ^game, int fontNumber, bool forceUpdate);
 
-void GameUpdated(Game ^game, bool forceUpdate) {
+void GameUpdated(Game ^game, bool forceUpdate)
+{
   set_uformat(game->UnicodeMode ? U_UTF8 : U_ASCII);
   // TODO: this function may get called when only one item is added/removed or edited;
   // probably it would be best to split it up into several callbacks at some point.
@@ -1615,10 +1610,12 @@ void GameFontUpdated(Game ^game, int fontNumber, bool forceUpdate)
     FontInfo &font_info = thisgame.fonts[fontNumber];
     AGS::Types::Font ^font = game->Fonts[fontNumber];
 
+    AGSString old_filename = font_info.Filename;
     int old_size = font_info.Size;
     int old_scaling = font_info.SizeMultiplier;
     int old_flags = font_info.Flags;
 
+    font_info.Filename = TextHelper::ConvertUTF8(font->SourceFilename);
     font_info.Size = font->PointSize;
     font_info.SizeMultiplier = font->SizeMultiplier;
     font_info.YOffset = font->VerticalOffset;
@@ -1632,10 +1629,13 @@ void GameFontUpdated(Game ^game, int fontNumber, bool forceUpdate)
     else
         font_info.Flags |= FFLG_ASCENDERFIXUP;
 
-    if (forceUpdate ||
+    forceUpdate |=
+        font_info.Filename != old_filename ||
         font_info.Size != old_size ||
         font_info.SizeMultiplier != old_scaling ||
-        font_info.Flags != old_flags)
+        font_info.Flags != old_flags;
+
+    if (forceUpdate)
     {
         reload_font(fontNumber);
     }

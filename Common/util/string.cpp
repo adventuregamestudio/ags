@@ -309,6 +309,32 @@ bool String::FindSection(char separator, size_t first, size_t last, bool exclude
     return false;
 }
 
+size_t String::FindSection(const String &section_text, char separator, bool case_insensitive) const
+{
+    if (!separator)
+    {
+        return NoIndex;
+    }
+
+    for (size_t prev_sep = 0u, sec_at = 0u, next_sep = FindChar(separator);
+        prev_sep != NoIndex;
+        prev_sep = next_sep,
+            sec_at = prev_sep != NoIndex ? prev_sep + 1 : NoIndex,
+            next_sep = prev_sep != NoIndex ? FindChar(separator, prev_sep + 1) : NoIndex)
+    {
+        // TODO: CompareMid (and similar methods) logic results in success if substring matches arg's beginning, while being shorter;
+        // perhaps introduce Equals() that compares with a substring and is strict about both lengths
+        const size_t sec_len = next_sep != String::NoIndex ? next_sep - sec_at : _len - sec_at;
+        if (section_text.GetLength() != sec_len)
+            continue;
+        if ((case_insensitive && CompareMidNoCase(section_text, sec_at, sec_len) == 0) ||
+            (!case_insensitive && CompareMid(section_text, sec_at, sec_len) == 0))
+            return sec_at;
+    }
+
+    return NoIndex; // was not found
+}
+
 int String::ToInt() const
 {
     return atoi(_cstr);

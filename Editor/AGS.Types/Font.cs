@@ -10,13 +10,14 @@ namespace AGS.Types
     public class Font : ICustomTypeDescriptor
 	{
         private int _id;
-        private string _name;
-        private string _familyName;
+        private string _name = string.Empty;
+        private string _familyName = string.Empty;
         private int _fontSize;
         private int _fontHeight;
         private int _outlineFont;
         private FontOutlineStyle _outlineStyle;
 		private string _sourceFilename = string.Empty;
+        private FontFile _fontFile;
         private int _sizeMultiplier = 1;
         private int _verticalOffset;
         private int _lineSpacing;
@@ -26,7 +27,6 @@ namespace AGS.Types
 
         public Font()
         {
-            _name = string.Empty;
             _fontSize = 0;
             _outlineFont = 0;
             _outlineStyle = FontOutlineStyle.None;
@@ -153,15 +153,23 @@ namespace AGS.Types
             set { _autoOutlineStyle = value; }
         }
 
-		[Description("The file path that this font was imported from")]
-		[Category("Design")]
-        [EditorAttribute(typeof(FontFileUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
-        [TypeConverter(typeof(ReadOnlyConverter))]
+        [DisplayName("Source FontFile")]
+        [Description("The associated font's filename")]
+        [Category("Design")]
+        [TypeConverter(typeof(FontFileTypeConverter))]
         public string SourceFilename
-		{
-			get { return _sourceFilename; }
-			set { _sourceFilename = value; }
-		}
+        {
+            get { return _sourceFilename; }
+            set { _sourceFilename = value; }
+        }
+
+        [AGSNoSerialize]
+        [Browsable(false)]
+        public FontFile FontFile
+        {
+            get { return _fontFile; }
+            set { _fontFile = value; }
+        }
 
         [Description("Font's size multiplier; primarily for bitmap fonts that don't scale on their own")]
         [Category("Appearance")]
@@ -204,13 +212,15 @@ namespace AGS.Types
             set { _lineSpacing = value; }
         }
 
+        [Obsolete]
 		[Browsable(false)]
 		public string WFNFileName
 		{
 			get { return "agsfnt" + _id + ".wfn"; }
 		}
 
-		[Browsable(false)]
+        [Obsolete]
+        [Browsable(false)]
 		public string TTFFileName
 		{
 			get { return "agsfnt" + _id + ".ttf"; }

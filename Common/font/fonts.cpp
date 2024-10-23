@@ -101,9 +101,14 @@ void adjust_y_coordinate_for_text(int* ypos, size_t fontnum)
     fonts[fontnum].Renderer->AdjustYCoordinateForFont(ypos, fontnum);
 }
 
-bool font_first_renderer_loaded()
+bool is_any_font_loaded()
 {
-    return fonts.size() > 0 && fonts[0].Renderer != nullptr;
+    for (const auto &f : fonts)
+    {
+        if (f.Renderer)
+            return true;
+    }
+    return false;
 }
 
 bool is_font_loaded(size_t font_number)
@@ -498,6 +503,12 @@ FontInfo get_fontinfo(size_t font_number)
 // Loads a font from disk
 bool load_font_size(size_t font_number, const FontInfo &font_info)
 {
+    if (font_info.Filename.IsEmpty())
+    {
+        Debug::Printf(kDbgMsg_Error, "Font %d does not have any source filename assigned, can't be loaded.", font_number);
+        return false;
+    }
+
     if (fonts.size() <= font_number)
         fonts.resize(font_number + 1);
     else
@@ -509,14 +520,15 @@ bool load_font_size(size_t font_number, const FontInfo &font_info)
     FontMetrics metrics;
 
     Font &font = fonts[font_number];
-    String src_filename;
-    if (ttfRenderer->LoadFromDiskEx(font_number, font_info.Size, &src_filename, &params, &metrics))
+    // TODO: make a font renderer factory which can iterate over a list of font renderers,
+    // trying them in a sequnce, prioritizing one that matches file extension.
+    if (ttfRenderer->LoadFromDiskEx(font_number, font_info.Size, font_info.Filename, &params, &metrics))
     {
         font.Renderer    = ttfRenderer.get();
         font.Renderer2   = ttfRenderer.get();
         font.RendererInt = ttfRenderer.get();
     }
-    else if (wfnRenderer->LoadFromDiskEx(font_number, font_info.Size, &src_filename, &params, &metrics))
+    else if (wfnRenderer->LoadFromDiskEx(font_number, font_info.Size, font_info.Filename, &params, &metrics))
     {
         font.Renderer    = wfnRenderer.get();
         font.Renderer2   = wfnRenderer.get();
@@ -524,15 +536,19 @@ bool load_font_size(size_t font_number, const FontInfo &font_info)
     }
 
     if (!font.Renderer)
+    {
+        Debug::Printf(kDbgMsg_Error, "Failed to load font %d with source filename %s: no font renderer was able to load or recognize font data.",
+            font_number, font_info.Filename.GetCStr());
         return false;
+    }
 
     font.Info = font_info;
     font.Metrics = metrics;
     font_post_init(font_number);
 
     Debug::Printf("Loaded font %d: %s, req size: %d; nominal h: %d, real h: %d, extent: %d,%d",
-        font_number, src_filename.GetCStr(), font_info.Size, font.Metrics.NominalHeight, font.Metrics.RealHeight,
-    font.Metrics.VExtent.first, font.Metrics.VExtent.second);
+        font_number, font_info.Filename.GetCStr(), font_info.Size, font.Metrics.NominalHeight, font.Metrics.RealHeight,
+        font.Metrics.VExtent.first, font.Metrics.VExtent.second);
     return true;
 }
 

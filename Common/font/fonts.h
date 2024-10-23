@@ -37,7 +37,7 @@ void adjust_y_coordinate_for_text(int* ypos, size_t fontnum);
 IAGSFontRenderer* font_replace_renderer(size_t font_number, IAGSFontRenderer* renderer);
 IAGSFontRenderer* font_replace_renderer(size_t font_number, IAGSFontRenderer2* renderer);
 void font_recalc_metrics(size_t font_number);
-bool font_first_renderer_loaded();
+bool is_any_font_loaded();
 bool is_font_loaded(size_t font_number);
 bool is_bitmap_font(size_t font_number);
 bool font_supports_extended_characters(size_t font_number);

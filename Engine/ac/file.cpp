@@ -731,13 +731,17 @@ String find_assetlib(const String &filename)
     String libname = File::FindFileCI(ResPaths.DataDir, filename);
     if (!libname.IsEmpty() && AssetManager::IsDataFile(libname))
         return libname;
-    if (!ResPaths.DataDir2.IsEmpty() &&
-        Path::ComparePaths(ResPaths.DataDir, ResPaths.DataDir2) != 0)
+
+    // Look up in the alternative locations;
+    // Test only locations that include "general data" filter (= empty filter)
+    for (const auto &opt_dir : ResPaths.OptDataDirs)
     {
-        // Hack for running in Debugger
-        libname = File::FindFileCI(ResPaths.DataDir2, filename);
-        if (!libname.IsEmpty() && AssetManager::IsDataFile(libname))
-            return libname;
+        if (opt_dir.second.FindSection("", ',') != String::NoIndex)
+        {
+            libname = File::FindFileCI(opt_dir.first, filename);
+            if (!libname.IsEmpty() && AssetManager::IsDataFile(libname))
+                return libname;
+        }
     }
     return "";
 }

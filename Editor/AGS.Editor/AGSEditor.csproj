@@ -522,9 +522,6 @@
     <EmbeddedResource Include="Resources\statprop.xpm" />
     <EmbeddedResource Include="Resources\struct.xpm" />
     <EmbeddedResource Include="Resources\agsdefns.sh" />
-    <EmbeddedResource Include="Resources\AGSFNT0.WFN" />
-    <EmbeddedResource Include="Resources\AGSFNT1.WFN" />
-    <EmbeddedResource Include="Resources\AGSFNT2.WFN" />
     <Compile Include="Resources\ResourceManager.cs" />
     <Compile Include="TextProcessing\APITypeDef.cs" />
     <Compile Include="Utils\AlternateStreams.cs" />
@@ -870,6 +867,7 @@
     <None Include="acsprset.spr">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <EmbeddedResource Include="Resources\AGSFNT0.WFN" />
     <None Include="Resources\error.ico" />
     <EmbeddedResource Include="Resources\__DialogScripts.asc" />
     <EmbeddedResource Include="Resources\eventlogError.ico" />
@@ -894,6 +892,8 @@
     <None Include="Resources\eye.png" />
     <None Include="Resources\eye closed.png" />
     <EmbeddedResource Include="Resources\exportmask.png" />
+    <EmbeddedResource Include="Resources\folder_locked.ico" />
+    <EmbeddedResource Include="Resources\font-file.ico" />
     <Content Include="Resources\keyword.ico" />
     <Content Include="Resources\define.ico" />
     <None Include="Resources\lock open.png" />

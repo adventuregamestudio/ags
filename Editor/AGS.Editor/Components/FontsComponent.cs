@@ -566,8 +566,11 @@ namespace AGS.Editor.Components
                     continue;
                 }
 
-                game.FontFiles.Add(ff);
+                // Copy SourceFilename over to FontFile, this may be still used as a reference to original asset
+                // when upgrading an older project, where font files are renamed to agsfntN.ext.
+                ff.SourceFilename = font.SourceFilename;
 
+                game.FontFiles.Add(ff);
                 AssignFontFileToFont(font, ff);
             }
 #pragma warning restore 0612, 0618

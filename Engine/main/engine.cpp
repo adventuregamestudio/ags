@@ -458,6 +458,12 @@ int engine_load_game_data()
         display_game_file_error(err);
         return EXIT_ERROR;
     }
+
+    // Checks and warnings
+    if (!is_any_font_loaded())
+    {
+        Debug::Printf(kDbgMsg_Warn, "WARNING: No game fonts were loaded on startup. The game won't be able to display any text unless fonts are initialized at runtime later (e.g. by a plugin).");
+    }
     return 0;
 }
 
@@ -518,18 +524,6 @@ int engine_check_disk_space()
         platform->DisplayAlert("Unable to write in the savegame directory.\n%s", platform->GetDiskWriteAccessTroubleshootingText());
         proper_exit = 1;
         return EXIT_ERROR; 
-    }
-
-    return 0;
-}
-
-int engine_check_font_was_loaded()
-{
-    if (!font_first_renderer_loaded())
-    {
-        platform->DisplayAlert("No game fonts found. At least one font is required to run the game.");
-        proper_exit = 1;
-        return EXIT_ERROR;
     }
 
     return 0;
@@ -1273,13 +1267,6 @@ int initialize_engine(const ConfigTree &startup_opts)
     set_our_eip(-189);
 
     res = engine_check_disk_space();
-    if (res != 0)
-        return res;
-
-    // Make sure that at least one font was loaded in the process of loading
-    // the game data.
-    // TODO: Fold this check into engine_load_game_data()
-    res = engine_check_font_was_loaded();
     if (res != 0)
         return res;
 

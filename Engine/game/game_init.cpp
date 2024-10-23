@@ -335,9 +335,14 @@ void LoadFonts(GameSetupStruct &game, GameDataVersion data_ver)
 {
     for (int i = 0; i < game.numfonts; ++i) 
     {
-        FontInfo &finfo = game.fonts[i];
-        if (!load_font_size(i, finfo))
-            quitprintf("Unable to load font %d, no renderer could load a matching file", i);
+        if (!game.fonts[i].Filename.IsEmpty())
+        {
+            load_font_size(i, game.fonts[i]);
+        }
+        else
+        {
+            Debug::Printf(kDbgMsg_Warn, "Font %d does not have any source filename assigned, won't be loaded on startup.", i);
+        }
     }
 
     // Additional fixups - after all the fonts are registered

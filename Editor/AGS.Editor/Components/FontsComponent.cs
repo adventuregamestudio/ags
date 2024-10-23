@@ -303,7 +303,7 @@ namespace AGS.Editor.Components
                 sourceFilename = filename;
             FontFile newItem = new FontFile();
             newItem.FileName = Path.GetFileName(filename);
-            newItem.SourceFilename = filename;
+            newItem.SourceFilename = sourceFilename;
             if (newItem.FileName.EndsWith(".wfn", StringComparison.OrdinalIgnoreCase))
                 newItem.FileFormat = FontFileFormat.WFN;
             else if (newItem.FileName.EndsWith(".ttf", StringComparison.OrdinalIgnoreCase))

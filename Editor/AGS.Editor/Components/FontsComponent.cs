@@ -254,9 +254,9 @@ namespace AGS.Editor.Components
 
             // Add font node as a sub-node to the FontFile
             // NOTE: this meant as an UI experiment, review later
-            if (item.SourceFilename != null)
+            if (item.FontFileName != null)
             {
-                FontFile ff = FindFontFileByName(item.SourceFilename);
+                FontFile ff = FindFontFileByName(item.FontFileName);
                 if (ff != null)
                 {
                     _guiController.ProjectTree.StartFromNode(this, GetNodeID(ff));
@@ -392,7 +392,8 @@ namespace AGS.Editor.Components
             font.FontFile = fontFile;
             if (fontFile != null)
             {
-                font.SourceFilename = fontFile.FileName;
+                font.FontFileName = fontFile.FileName;
+                font.SourceFilename = fontFile.SourceFilename;
                 font.FamilyName = fontFile.FamilyName;
                 if (fontFile.FileFormat == FontFileFormat.TTF && font.PointSize == 0)
                     font.PointSize = DEFAULT_IMPORTED_FONT_SIZE;
@@ -401,6 +402,7 @@ namespace AGS.Editor.Components
             }
             else
             {
+                font.FontFileName = string.Empty;
                 font.SourceFilename = string.Empty;
                 font.FamilyName = string.Empty;
                 font.PointSize = 0;
@@ -409,7 +411,7 @@ namespace AGS.Editor.Components
 
         private void UpdateFont(AGS.Types.Font font)
         {
-            AssignFontFileToFont(font, FindFontFileByName(font.SourceFilename));
+            AssignFontFileToFont(font, FindFontFileByName(font.FontFileName));
         }
 
         private void AddNewFont(Game game, FontFile sourceFontFile = null, bool selectRefNode = false)
@@ -428,9 +430,9 @@ namespace AGS.Editor.Components
         {
             foreach (AGS.Types.Font font in game.Fonts)
             {
-                if (font.SourceFilename == removedFile.FileName)
+                if (font.FontFileName == removedFile.FileName)
                 {
-                    font.SourceFilename = string.Empty;
+                    AssignFontFileToFont(font, null);
                     Factory.NativeProxy.OnFontUpdated(game, font.ID, true);
                 }
             }
@@ -481,7 +483,7 @@ namespace AGS.Editor.Components
             // point size, until found the closest result
             if (sizeType == FontHeightDefinition.PixelHeight)
             {
-                sizeValue = Factory.NativeProxy.FindTTFSizeForHeight(font.SourceFilename, sizeValue);
+                sizeValue = Factory.NativeProxy.FindTTFSizeForHeight(font.FontFileName, sizeValue);
             }
 
             return sizeValue;

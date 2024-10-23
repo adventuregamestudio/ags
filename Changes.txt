@@ -24,7 +24,8 @@ Editor:
    component has its own separate file (room data, backgrounds, masks and scripts).
  - Support room backgrounds and masks as PNGs.
  - "Fonts" node in the Project Explorer now contains separate "Font Files" and "Fonts" sublists.
-   Font files are now stored in "Fonts" subfolder in the project when imported.
+ - Actual font files on disk are now stored in "Fonts" subfolder in the project when imported,
+   and keep their original names (no longer renamed to "agsfntN.*").
  - Translation sources are now saved in PO format.
  - In General Settings added "Script Compiler" option that lets to choose between old and new
    script compilers for your game (see "Scripting" section below for the new compiler's details).

@@ -2013,7 +2013,7 @@ namespace AGS.Editor
             writer.Write((int)game.Fonts.Count);
             for (int i = 0; i < game.Fonts.Count; ++i)
             {
-                FilePutString(game.Fonts[i].SourceFilename, writer);
+                FilePutString(game.Fonts[i].FontFileName, writer);
             }
         }
 

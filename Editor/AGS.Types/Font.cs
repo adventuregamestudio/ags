@@ -17,6 +17,7 @@ namespace AGS.Types
         private int _outlineFont;
         private FontOutlineStyle _outlineStyle;
 		private string _sourceFilename = string.Empty;
+        private string _fontFileName = string.Empty;
         private FontFile _fontFile;
         private int _sizeMultiplier = 1;
         private int _verticalOffset;
@@ -153,14 +154,24 @@ namespace AGS.Types
             set { _autoOutlineStyle = value; }
         }
 
-        [DisplayName("Source FontFile")]
-        [Description("The associated font's filename")]
+        [AGSNoSerialize]
+        [ReadOnly(true)]
+        [Description("The file path that the associated FontFile was imported from")]
         [Category("Design")]
-        [TypeConverter(typeof(FontFileTypeConverter))]
         public string SourceFilename
         {
             get { return _sourceFilename; }
             set { _sourceFilename = value; }
+        }
+
+        [DisplayName("Source FontFile")]
+        [Description("The associated FontFile's name")]
+        [Category("Design")]
+        [TypeConverter(typeof(FontFileTypeConverter))]
+        public string FontFileName
+        {
+            get { return _fontFileName; }
+            set { _fontFileName = value; }
         }
 
         [AGSNoSerialize]

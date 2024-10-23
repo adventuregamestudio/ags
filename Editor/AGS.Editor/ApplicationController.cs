@@ -98,9 +98,9 @@ namespace AGS.Editor
             {
                 sprite.SourceFile = Utilities.GetRelativeToProjectPath(sprite.SourceFile);
             }
-            foreach (Types.Font font in game.Fonts)
+            foreach (Types.FontFile ff in game.FontFiles)
             {
-                font.SourceFilename = Utilities.GetRelativeToProjectPath(font.SourceFilename);
+                ff.SourceFilename = Utilities.GetRelativeToProjectPath(ff.SourceFilename);
             }
             foreach (AudioClip audio in game.RootAudioClipFolder.GetAllAudioClipsFromAllSubFolders())
             {

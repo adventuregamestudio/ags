@@ -1615,7 +1615,7 @@ void GameFontUpdated(Game ^game, int fontNumber, bool forceUpdate)
     int old_scaling = font_info.SizeMultiplier;
     int old_flags = font_info.Flags;
 
-    font_info.Filename = TextHelper::ConvertUTF8(font->SourceFilename);
+    font_info.Filename = TextHelper::ConvertUTF8(font->FontFileName);
     font_info.Size = font->PointSize;
     font_info.SizeMultiplier = font->SizeMultiplier;
     font_info.YOffset = font->VerticalOffset;

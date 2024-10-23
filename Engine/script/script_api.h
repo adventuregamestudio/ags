@@ -558,6 +558,10 @@ inline const char *ScriptVSprintf(char *buffer, size_t buf_length, const char *f
     ASSERT_OBJ_PARAM_COUNT(METHOD, 2); \
     return RuntimeScriptValue().SetInt32(METHOD((CLASS*)self, (P1CLASS*)params[0].Ptr, params[1].IValue))
 
+#define API_OBJCALL_INT_POBJ_PINT2(CLASS, METHOD, P1CLASS) \
+    ASSERT_OBJ_PARAM_COUNT(METHOD, 3); \
+    return RuntimeScriptValue().SetInt32(METHOD((CLASS*)self, (P1CLASS*)params[0].Ptr, params[1].IValue, params[2].IValue))
+
 #define API_OBJCALL_INT_POBJ_PBOOL(CLASS, METHOD, P1CLASS) \
     ASSERT_OBJ_PARAM_COUNT(METHOD, 2); \
     return RuntimeScriptValue().SetInt32(METHOD((CLASS*)self, (P1CLASS*)params[0].Ptr, params[1].GetAsBool()))

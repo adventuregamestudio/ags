@@ -2183,25 +2183,8 @@ namespace AGS.Editor
                 if (v.HasValue && v < gameSettings.ScriptCompatLevelReal)
                     return false;
             }
-            // TODO: AutoComplete feature in AGS is implemented in confusing and messy way. Thus, it does not
-            // use same technique for knowing which parts of the script should be disabled (by ifdef/ifndef)
-            // as precompiler. Instead it makes its own parsing, and somewhat limits performance and capabilities.
-            // This is (one) reason why all those checks are made here explicitly, instead of relying on some
-            // prefetched macro list.
             // Some settings have become obsolete and now have default values
             // EnforceObjectBasedScript => true
-            if (token.IfNDefOnly != null && token.IfNDefOnly.StartsWith("STRICT_IN_"))
-            {
-                ScriptAPIVersion? v = GetAPIVersionFromString(token.IfNDefOnly.Substring("STRICT_IN_".Length));
-                if (v.HasValue && (v <= gameSettings.ScriptCompatLevelReal))
-                    return false;
-            }
-            if (token.IfDefOnly != null && token.IfDefOnly.StartsWith("STRICT_IN_"))
-            {
-                ScriptAPIVersion? v = GetAPIVersionFromString(token.IfDefOnly.Substring("STRICT_IN_".Length));
-                if (v.HasValue && !(v <= gameSettings.ScriptCompatLevelReal))
-                    return false;
-            }
             return true;
         }
 

@@ -15,6 +15,9 @@
 
 #ifndef AGS_NO_VIDEO_PLAYER
 
+#include <inttypes.h>
+#include "debug/out.h"
+
 namespace AGS
 {
 namespace Engine
@@ -95,6 +98,11 @@ HError TheoraPlayer::OpenAPEGStream(Stream *data_stream, const Common::String &n
         return new Error(String::FromFormat("Failed to run theora video '%s': invalid frame dimensions (%d x %d)", name.GetCStr(), video_w, video_h));
     }
 
+    const char *pixelfmt_str[] = { "APEG_420", "APEG_422", "APEG_444" };
+    Debug::Printf("TheoraPlayer: opened video: %dx%d fmt: %s, fps: %.4f", apeg_stream->w, apeg_stream->h,
+        (apeg_stream->pixel_format >= APEG_STREAM::APEG_420 && apeg_stream->pixel_format <= APEG_STREAM::APEG_444) ? pixelfmt_str[apeg_stream->pixel_format] : "unknown",
+        static_cast<float>(apeg_stream->frame_rate));
+
     _apegStream = apeg_stream;
     _usedFlags = flags;
     _usedDepth = target_depth;
@@ -103,7 +111,7 @@ HError TheoraPlayer::OpenAPEGStream(Stream *data_stream, const Common::String &n
     _frameSize = Size(video_w, video_h);
     _frameRate = _apegStream->frame_rate;
     _frameTime = 1000.f / _apegStream->frame_rate;
-    _frameCount = _apegStream->length / _frameTime;
+    _frameCount = static_cast<uint32_t>(_apegStream->length / _frameTime);
     _durationMs = _apegStream->length;
     // According to the documentation:
     // encoded theora frames must be a multiple of 16 in width and height.
@@ -125,13 +133,19 @@ HError TheoraPlayer::OpenAPEGStream(Stream *data_stream, const Common::String &n
     _audioFreq = _apegStream->audio.freq;
     _audioFormat = AUDIO_S16SYS;
     apeg_set_error(_apegStream, NULL);
+    _videoFramesDecoded = 0u;
     return HError::None();
 }
 
 void TheoraPlayer::CloseImpl()
 {
-    apeg_close_stream(_apegStream);
-    _apegStream = nullptr;
+    if (_apegStream)
+    {
+        apeg_close_stream(_apegStream);
+        _apegStream = nullptr;
+        Debug::Printf("TheoraPlayer: closed, total video frames decoded: %" PRIu64 "", _videoFramesDecoded);
+        _videoFramesDecoded = 0u;
+    }
 }
 
 bool TheoraPlayer::RewindImpl()
@@ -150,23 +164,17 @@ bool TheoraPlayer::NextVideoFrame(Bitmap *dst)
     if ((_apegStream->flags & APEG_HAS_VIDEO) == 0)
         return false;
 
-    // reset some data
-    _apegStream->frame_updated = -1;
-
     // Read video frame (encoded)
     int ret = apeg_get_video_frame(_apegStream);
     if (ret == APEG_ERROR)
         return false;
 
-    // Update frame count
-    ++(_apegStream->frame);
-
     // Update the display frame (decode to RGB)
-    _apegStream->frame_updated = 0;
     ret = apeg_display_video_frame(_apegStream);
     if (ret == APEG_ERROR || ret == APEG_EOF)
-        return false;
+        return false; // NOTE: apeg_display_video_frame returns EOF when picture is NULL
 
+    _videoFramesDecoded++;
     // TODO: find a way to optimize Theora decoder by providing our own src bitmap directly
     dst->Blit(_theoraSrcFrame.get());
     return true;

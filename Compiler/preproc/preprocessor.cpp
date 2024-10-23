@@ -162,7 +162,7 @@ namespace Preprocessor {
 
         bool includeCodeBlock = true;
 
-        if ((!_conditionalStatements.empty()) && !_conditionalStatements.top())
+        if (_negativeCounter > 0)
         {
             includeCodeBlock = false;
         }
@@ -189,11 +189,13 @@ namespace Preprocessor {
         }
 
         _conditionalStatements.push(includeCodeBlock);
+        if (!includeCodeBlock)
+            _negativeCounter++; // more negative conditions
     }
 
     bool Preprocessor::DeletingCurrentLine()
     {
-        return ((!_conditionalStatements.empty()) && !_conditionalStatements.top());
+        return _negativeCounter > 0;
     }
 
     String Preprocessor::GetNextWord(String &text, bool trimText, bool includeDots) {
@@ -295,6 +297,10 @@ namespace Preprocessor {
                 bool prev_value = _conditionalStatements.top();
                 _conditionalStatements.pop();
                 _conditionalStatements.push(!prev_value);
+                if (prev_value)
+                    _negativeCounter++; // it was positive before, but is negative now
+                else
+                    _negativeCounter--; // it was negative before, but no more
             }
             else
             {
@@ -305,6 +311,8 @@ namespace Preprocessor {
         {
             if (!_conditionalStatements.empty())
             {
+                if (!_conditionalStatements.top())
+                    _negativeCounter--; // less negative conditions
                 _conditionalStatements.pop();
             }
             else

@@ -32,11 +32,12 @@ public:
         // Type id of elements, refering the RTTI
         // May contain ARRAY_MANAGED_TYPE_FLAG
         uint32_t TypeID = 0u;
-        uint32_t ElemCount = 0u;
+        uint32_t ElemCount = 0u; // number of elements, up to INT32_MAX !
         // TODO: refactor and store "elem size" instead
-        uint32_t TotalSize = 0u;
+        uint32_t TotalSize = 0u; // total size in bytes
 
         inline bool IsPointerArray() const { return (TypeID & ARRAY_MANAGED_TYPE_FLAG) != 0; }
+        inline uint32_t GetElemCount() const { return ElemCount; }
     };
 
     CCDynamicArray() = default;

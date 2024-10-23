@@ -12,9 +12,12 @@
 //
 //=============================================================================
 #include "media/video/flic_player.h"
-#include "ac/asset_helper.h"
 
 #ifndef AGS_NO_VIDEO_PLAYER
+
+#include <inttypes.h>
+#include "ac/asset_helper.h"
+#include "debug/out.h"
 
 namespace AGS
 {
@@ -44,21 +47,30 @@ HError FlicPlayer::OpenImpl(std::unique_ptr<Common::Stream> data_stream,
     }
     _pf = pf;
 
+    Debug::Printf("FlicPlayer: opened video: %dx%d 8-bit, fps: %d", fliwidth, fliheight, 1000 / fli_speed);
+
     get_palette_range(_oldpal, 0, 255);
 
     _frameDepth = 8;
     _frameSize = Size(fliwidth, fliheight);
     _frameRate = 1000.f / fli_speed;
     _frameTime = fli_speed;
-    _frameCount = fli_frame_count;
+    _frameCount = static_cast<uint32_t>(fli_frame_count);
     _durationMs = fli_frame_count * fli_speed;
     // FLIC must accumulate frame image because its frames contain diff since the last frame
     flags |= kVideo_AccumFrame;
+    _videoFramesDecoded = 0u;
     return HError::None();
 }
 
 void FlicPlayer::CloseImpl()
 {
+    if (fli_bitmap) // just a way to test that FLI was opened
+    {
+        Debug::Printf("FlicPlayer: closed, total video frames decoded: %" PRIu64 "", _videoFramesDecoded);
+        _videoFramesDecoded = 0u;
+    }
+
     close_fli();
     if (_pf)
         pack_fclose(_pf);
@@ -85,6 +97,7 @@ bool FlicPlayer::NextVideoFrame(Bitmap *dst)
             fli_bitmap->w, 1 + fli_bmp_dirty_to - fli_bmp_dirty_from);
     }
 
+    _videoFramesDecoded++;
     reset_fli_variables();
     return true;
 }

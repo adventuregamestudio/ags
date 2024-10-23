@@ -42,6 +42,7 @@ private:
 
     PACKFILE *_pf = nullptr;
     RGB _oldpal[256]{};
+    uint64_t _videoFramesDecoded = 0u; // how many frames loaded and decoded
 };
 
 } // namespace Engine

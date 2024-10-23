@@ -166,7 +166,7 @@ protected:
     Size _frameSize{};
     float _frameRate = 0.f;
     float _frameTime = 0.f;
-    uint32_t _frameCount = 0;
+    uint32_t _frameCount = 0; // total number of frames in video (if available)
     float _durationMs = 0.f;
 
 private:

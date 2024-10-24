@@ -866,11 +866,21 @@ namespace AGS.Editor
         /// <summary>
         /// Search for the exact text match in the script, and returns
         /// the corresponding line number. Returns 0 if no such text was found.
+        /// plainCodeOnly tells if comments and string literals should be ignored.
         /// </summary>
-        public int FindLineNumberForText(string text)
+        public int FindLineNumberForText(string text, bool plainCodeOnly)
         {
+            // Here's a problem: InsideStringOrComment relies on scintilla styling;
+            // but styling is not necessarily present at the time if we just loaded a document.
+            // So we force the styling in case it was not done here yet.
             string currentText = this.scintillaControl1.Text;
-            int pos = currentText.IndexOf(text);
+            int pos;
+            for (pos = currentText.IndexOf(text);
+                pos >= 0 && plainCodeOnly && InsideStringOrCommentForceStyling(pos, text.Length);
+                pos = currentText.IndexOf(text, pos + text.Length))
+            {
+            }
+
             if (pos >= 0)
             {
                 return FindLineNumberForCharacterIndex(pos);
@@ -881,11 +891,22 @@ namespace AGS.Editor
         /// <summary>
         /// Search the script for the regex pattern, and returns
         /// the corresponding line number. Returns 0 if no such text was found.
+        /// plainCodeOnly tells if comments and string literals should be ignored.
         /// </summary>
-        public int FindLineNumberForPattern(string pattern)
+        public int FindLineNumberForPattern(string pattern, bool plainCodeOnly)
         {
+            // Here's a problem: InsideStringOrComment relies on scintilla styling;
+            // but styling is not necessarily present at the time if we just loaded a document.
+            // So we force the styling in case it was not done here yet.
             string currentText = this.scintillaControl1.Text;
-            Match match = Regex.Match(currentText, pattern);
+            Regex regex = new Regex(pattern);
+            Match match;
+            for (match = regex.Match(currentText);
+                match.Success && plainCodeOnly && InsideStringOrCommentForceStyling(match.Index, match.Length);
+                match = regex.Match(currentText, match.Index + match.Length))
+            {
+            }
+
             if (match.Success)
             {
                 return FindLineNumberForCharacterIndex(match.Index);
@@ -1825,6 +1846,22 @@ namespace AGS.Editor
             return ((style == Style.Cpp.CommentLine) || (style == Style.Cpp.Comment) ||
                 (style == Style.Cpp.CommentDoc) || (style == Style.Cpp.CommentLineDoc) ||
                 (style == Style.Cpp.String));
+        }
+
+        /// <summary>
+        /// Forces styling prior to testing whether this is inside comment or string literal.
+        /// WARNING: may take a long time, use with care only when strictly required for the
+        /// operation to work.
+        /// </summary>
+        public bool InsideStringOrCommentForceStyling(int position, int length)
+        {
+            int styledUpTo = scintillaControl1.GetEndStyled();
+            if (position > styledUpTo)
+            {
+                scintillaControl1.Colorize(styledUpTo, position + length);
+            }
+
+            return InsideStringOrCommentStyleOnly(position);
         }
 
         private bool IgnoringCurrentLine()

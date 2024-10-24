@@ -29,7 +29,7 @@ namespace AGS.Editor
         private const string WINDOW_CONFIG_FILENAME = "WindowConfig.json";
 
         // Regex pattern for searching for event handlers in script (typeless functions)
-        private const string SCRIPT_EVENT_FUNCTION_PATTERN = @"(^|\s)(void|function)\s+{0}\s*\(";
+        private const string SCRIPT_EVENT_FUNCTION_PATTERN = @"(?<=^|\s)(void|function)\s+{0}\s*\(";
 
         public delegate void PropertyObjectChangedHandler(object newPropertyObject);
         public event PropertyObjectChangedHandler OnPropertyObjectChanged;

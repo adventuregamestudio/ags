@@ -33,10 +33,10 @@ namespace AGS.Editor.Components
                     switch (evArgs.MatchStyle)
                     {
                         case ZoomToFileMatchStyle.MatchExact:
-                            evArgs.ZoomPosition = editor.GetLineNumberForText(evArgs.ZoomToText);
+                            evArgs.ZoomPosition = editor.GetLineNumberForText(evArgs.ZoomToText, true);
                             break;
                         case ZoomToFileMatchStyle.MatchRegex:
-                            evArgs.ZoomPosition = editor.GetLineNumberForPattern(evArgs.ZoomToText);
+                            evArgs.ZoomPosition = editor.GetLineNumberForPattern(evArgs.ZoomToText, true);
                             break;
                         default:
                             evArgs.ZoomPosition = 0;

@@ -1,13 +1,14 @@
 using AGS.Types;
 using AGS.Types.AutoComplete;
 using AGS.Types.Interfaces;
-using ScintillaNET;
 using AGS.Controls;
+using ScintillaNET;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
 namespace AGS.Editor
@@ -862,12 +863,32 @@ namespace AGS.Editor
             get { return this.scintillaControl1.Modified; }
         }
 
+        /// <summary>
+        /// Search for the exact text match in the script, and returns
+        /// the corresponding line number. Returns 0 if no such text was found.
+        /// </summary>
         public int FindLineNumberForText(string text)
         {
             string currentText = this.scintillaControl1.Text;
-            if (currentText.IndexOf(text) >= 0)
+            int pos = currentText.IndexOf(text);
+            if (pos >= 0)
             {
-                return FindLineNumberForCharacterIndex(currentText.IndexOf(text));
+                return FindLineNumberForCharacterIndex(pos);
+            }
+            return 0;
+        }
+
+        /// <summary>
+        /// Search the script for the regex pattern, and returns
+        /// the corresponding line number. Returns 0 if no such text was found.
+        /// </summary>
+        public int FindLineNumberForPattern(string pattern)
+        {
+            string currentText = this.scintillaControl1.Text;
+            Match match = Regex.Match(currentText, pattern);
+            if (match.Success)
+            {
+                return FindLineNumberForCharacterIndex(match.Index);
             }
             return 0;
         }

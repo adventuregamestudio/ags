@@ -30,7 +30,19 @@ namespace AGS.Editor.Components
             {
                 if (evArgs.ZoomToText != null)
                 {
-                    evArgs.ZoomPosition = editor.GetLineNumberForText(evArgs.ZoomToText);
+                    switch (evArgs.MatchStyle)
+                    {
+                        case ZoomToFileMatchStyle.MatchExact:
+                            evArgs.ZoomPosition = editor.GetLineNumberForText(evArgs.ZoomToText);
+                            break;
+                        case ZoomToFileMatchStyle.MatchRegex:
+                            evArgs.ZoomPosition = editor.GetLineNumberForPattern(evArgs.ZoomToText);
+                            break;
+                        default:
+                            evArgs.ZoomPosition = 0;
+                            break;
+                    }
+                    
                 }
                 editor.GoToLine(evArgs.ZoomPosition, evArgs.SelectLine, evArgs.ZoomToLineAfterOpeningBrace);
 

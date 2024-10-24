@@ -481,9 +481,22 @@ namespace AGS.Editor
             scintilla.ShowErrorMessagePopup(errorMessage);
         }
 
+        /// <summary>
+        /// Tries to find exact text in script, and returns a corresponding line number,
+        /// or 0 if no such text was found.
+        /// </summary>
         public int GetLineNumberForText(string text)
         {
             return scintilla.FindLineNumberForText(text);
+        }
+
+        /// <summary>
+        /// Searches the script for the regex pattern, and returns a corresponding line number,
+        /// or 0 if pattern search failed.
+        /// </summary>
+        public int GetLineNumberForPattern(string pattern)
+        {
+            return scintilla.FindLineNumberForPattern(pattern);
         }
 
         public void RemoveExecutionPointMarker()

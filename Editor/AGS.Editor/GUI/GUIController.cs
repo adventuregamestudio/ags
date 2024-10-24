@@ -28,6 +28,9 @@ namespace AGS.Editor
 		private const int ROOM_TEMPLATE_ID_FILE_SIGNATURE = 0x74673812;
         private const string WINDOW_CONFIG_FILENAME = "WindowConfig.json";
 
+        // Regex pattern for searching for event handlers in script (typeless functions)
+        private const string SCRIPT_EVENT_FUNCTION_PATTERN = @"(^|\s)(void|function)\s+{0}\s*\(";
+
         public delegate void PropertyObjectChangedHandler(object newPropertyObject);
         public event PropertyObjectChangedHandler OnPropertyObjectChanged;
         public delegate bool QueryEditorShutdownHandler();
@@ -566,18 +569,24 @@ namespace AGS.Editor
                 }
                 else
                 {
-					ZoomToFileEventArgs evArgs = new ZoomToFileEventArgs(fileName, zoomType, zoomPosition, null, isDebugExecutionPoint, errorMessage, activateEditor);
+					ZoomToFileEventArgs evArgs = new ZoomToFileEventArgs(fileName, zoomType, ZoomToFileMatchStyle.MatchExact, zoomPosition, null, isDebugExecutionPoint, errorMessage, activateEditor);
 					evArgs.SelectLine = selectWholeLine;
 					OnZoomToFile(evArgs);
                 }
             }
         }
 
+        /// <summary>
+        /// Zooms to a function definition in the given script file.
+        /// Function is expected to be either of "void" or "function" type.
+        /// NOTE: this method is intended for event callbacks which do not normally have a return value (so no return type).
+        /// </summary>
         public void ZoomToFile(string fileName, string function)
         {
             if (OnZoomToFile != null)
             {
-				ZoomToFileEventArgs evArgs = new ZoomToFileEventArgs(fileName, ZoomToFileZoomType.ZoomToText, 0, "function " + function + "(", false, null, true);
+                string pattern = string.Format(SCRIPT_EVENT_FUNCTION_PATTERN, function);
+				ZoomToFileEventArgs evArgs = new ZoomToFileEventArgs(fileName, ZoomToFileZoomType.ZoomToText, ZoomToFileMatchStyle.MatchRegex, pattern);
 				evArgs.SelectLine = false;
                 evArgs.ZoomToLineAfterOpeningBrace = true;
                 OnZoomToFile(evArgs);
@@ -1429,14 +1438,14 @@ namespace AGS.Editor
             {
                 // We need to start a timer, because we are within the
                 // property grid processing at the moment
-                string searchForText = "function " + functionName + "(";
-                TickOnceTimer.CreateAndStart(100, new EventHandler((sender, e) => ZoomFile_Tick(scriptModule, searchForText)));
+                string searchForText = string.Format(SCRIPT_EVENT_FUNCTION_PATTERN, functionName);
+                TickOnceTimer.CreateAndStart(100, new EventHandler((sender, e) => ZoomFile_Tick(scriptModule, searchForText, ZoomToFileMatchStyle.MatchRegex)));
             }
         }
 
-        private void ZoomFile_Tick(string scriptName, string searchForText)
+        private void ZoomFile_Tick(string scriptName, string searchForText, ZoomToFileMatchStyle matchStyle)
         {
-            ZoomToFileEventArgs evArgs = new ZoomToFileEventArgs(scriptName, ZoomToFileZoomType.ZoomToText, 0, searchForText, false, null, true);
+            ZoomToFileEventArgs evArgs = new ZoomToFileEventArgs(scriptName, ZoomToFileZoomType.ZoomToText, matchStyle, searchForText);
 			evArgs.SelectLine = false;
             evArgs.ZoomToLineAfterOpeningBrace = true;
 			OnZoomToFile(evArgs);

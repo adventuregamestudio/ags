@@ -1042,7 +1042,6 @@
     <Compile Include="Enums\DebugState.cs" />
     <Compile Include="Enums\FunctionCallType.cs" />
     <Compile Include="Entities\RecentlyEditedGame.cs" />
-    <Compile Include="Enums\ZoomToFileZoomType.cs" />
     <Compile Include="Factory.cs" />
     <Compile Include="GIFLoader\GifDecoder.cs" />
     <Compile Include="GUI\AboutDialog.cs">

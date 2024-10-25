@@ -865,7 +865,7 @@ namespace AGS.Editor
 
         /// <summary>
         /// Search for the exact text match in the script, and returns
-        /// the corresponding line number. Returns 0 if no such text was found.
+        /// the corresponding line number. Returns -1 if no such text was found.
         /// plainCodeOnly tells if comments and string literals should be ignored.
         /// </summary>
         public int FindLineNumberForText(string text, bool plainCodeOnly)
@@ -885,12 +885,12 @@ namespace AGS.Editor
             {
                 return FindLineNumberForCharacterIndex(pos);
             }
-            return 0;
+            return -1;
         }
 
         /// <summary>
         /// Search the script for the regex pattern, and returns
-        /// the corresponding line number. Returns 0 if no such text was found.
+        /// the corresponding line number. Returns -1 if no such text was found.
         /// plainCodeOnly tells if comments and string literals should be ignored.
         /// </summary>
         public int FindLineNumberForPattern(string pattern, bool plainCodeOnly)
@@ -911,7 +911,7 @@ namespace AGS.Editor
             {
                 return FindLineNumberForCharacterIndex(match.Index);
             }
-            return 0;
+            return -1;
         }
 
         public int FindLineNumberForCharacterIndex(int pos)
@@ -2610,6 +2610,11 @@ namespace AGS.Editor
 
                 menu.Show(this.scintillaControl1, e.X, e.Y);
             }
+        }
+
+        public int TextLength
+        {
+            get { return scintillaControl1.TextLength; }
         }
 
         public int LineCount

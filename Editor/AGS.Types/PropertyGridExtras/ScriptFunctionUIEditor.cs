@@ -5,15 +5,16 @@ using System.Drawing;
 using System.Drawing.Design;
 using System.Reflection;
 using System.Text;
+using System.Windows.Forms;
 using System.Windows.Forms.Design;
 
 namespace AGS.Types
 {
     public class ScriptFunctionUIEditor : UITypeEditor
     {
-        public delegate void OpenScriptEditorHandler(string scriptModule, string functionName);
-        public static OpenScriptEditorHandler OpenScriptEditor;
-        public delegate void CreateScriptFunctionHandler(string scriptModule, string functionName, string parameters);
+        public delegate void OpenScriptFunctionHandler(OpenScriptFunctionArgs args);
+        public static OpenScriptFunctionHandler OpenScriptFunction;
+        public delegate void CreateScriptFunctionHandler(CreateScriptFunctionArgs args);
         public static CreateScriptFunctionHandler CreateScriptFunction;
 
         public ScriptFunctionUIEditor()
@@ -86,27 +87,20 @@ namespace AGS.Types
 
 		public static string CreateOrOpenScriptFunction(string stringValue, string itemName, string functionSuffix, ScriptFunctionParametersAttribute parametersAttribute, string scriptModule)
 		{
-			if (string.IsNullOrEmpty(stringValue))
-			{
-				if (string.IsNullOrEmpty(itemName))
-				{
-					System.Windows.Forms.MessageBox.Show("You must give this a name before creating scripts for it. Set the Name property on the main properties page.", "Name needed", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Warning);
-					return stringValue;
-				}
+            if (string.IsNullOrEmpty(stringValue))
+            {
+                if (string.IsNullOrEmpty(itemName))
+                {
+                    MessageBox.Show("You must give this object a name before creating scripts for it. Set the Name property on the main properties page.", "Name needed", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return stringValue;
+                }
 
-				stringValue = itemName + "_" + functionSuffix;
+                stringValue = itemName + "_" + functionSuffix;
+                CreateScriptFunction?.Invoke(new CreateScriptFunctionArgs(scriptModule, stringValue, parametersAttribute.Parameters));
+            }
 
-				if (CreateScriptFunction != null)
-				{
-					string parameters = parametersAttribute.Parameters;
-					CreateScriptFunction(scriptModule, stringValue, parameters);
-				}
-			}
-			if (OpenScriptEditor != null)
-			{
-				OpenScriptEditor(scriptModule, stringValue);
-			}
-			return stringValue;
+            OpenScriptFunction?.Invoke(new OpenScriptFunctionArgs(scriptModule, stringValue, parametersAttribute.Parameters, true));
+            return stringValue;
 		}
     }
 }

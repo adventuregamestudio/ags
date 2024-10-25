@@ -11,6 +11,15 @@ namespace AGS.Editor
     /// </summary>
     public class ScriptGeneration
     {
+        // Regex pattern for searching for event handlers in script (typeless functions)
+        // NOTE: the selection of return types is following:
+        // * "void" is allowed because none of these functions are historically expected to return anything;
+        // * "function" is a classic keyword used to define a function;
+        // * "int" is a real type that "function" translates to, it may be found in preprocessed scripts.
+        // NOTE: we must find a function with opening brace, because there may also
+        // be a function prototype somewhere.
+        public const string SCRIPT_EVENT_FUNCTION_PATTERN = @"(?<=^|\s)(void|function|int)\s+{0}\s*\(.*\)\s*{{";
+
         /// <summary>
         /// Counts braces starting with the startIndex, and finds the matching closing one.
         /// Returns an index of a closing brace.
@@ -51,9 +60,8 @@ namespace AGS.Editor
         {
             // TODO: support matching indentation for the new code?
 
-            // NOTE: we must find a function with opening brace, because there may also
-            // be a function prototype somewhere.
-            var match = Regex.Match(text, string.Format(@"function\s+{0}\s*\(.*\)\s*{{", functionName));
+            
+            var match = Regex.Match(text, string.Format(SCRIPT_EVENT_FUNCTION_PATTERN, functionName));
             if (match.Success && (!amendExisting || string.IsNullOrWhiteSpace(functionCode)))
                 return text; // function already exists and don't have to amend
             if (match.Success)

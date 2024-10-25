@@ -633,14 +633,26 @@ namespace AGS.Editor.Components
                 RemoveExecutionPointFromAllScripts();
             }
 
-			if (evArgs.FileName == Tasks.AUTO_GENERATED_HEADER_NAME)
+            if (evArgs.Handled)
+            {
+                return; // operation has been completed by another handler
+            }
+
+            if (evArgs.FileName == Tasks.AUTO_GENERATED_HEADER_NAME)
 			{
-				_guiController.ShowMessage("The error was within an automatically generated script file, so you cannot edit the script. The most likely cause of errors here is that two things in your game have the same name. For example, two characters or two fonts with the same script name could cause this error. Please consult the error message for more clues.", MessageBoxIcon.Warning);
+                evArgs.Result = ZoomToFileResult.ScriptNotFound;
+                _guiController.ShowMessage("The error was within an automatically generated script file, so you cannot edit the script. The most likely cause of errors here is that two things in your game have the same name. For example, two characters or two fonts with the same script name could cause this error. Please consult the error message for more clues.", MessageBoxIcon.Warning);
 				return;
 			}
 
             ScriptEditor editor = CreateOrShowEditorForScript(evArgs.FileName, evArgs.ActivateEditor);
-            ZoomToCorrectPositionInScript(editor, evArgs);
+            if (editor != null)
+            {
+                ZoomToCorrectPositionInScript(editor, evArgs);
+                return;
+            }
+
+            evArgs.Result = ZoomToFileResult.ScriptNotFound;
         }
 
         private void GUIController_OnGetScript(string fileName, ref Script script)

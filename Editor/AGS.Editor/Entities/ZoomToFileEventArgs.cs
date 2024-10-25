@@ -1,3 +1,4 @@
+using AGS.Types;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -24,7 +25,25 @@ namespace AGS.Editor
         MatchRegex
     }
 
-	public class ZoomToFileEventArgs
+    public enum ZoomToFileResult
+    {
+        // Operation was not performed yet
+        None,
+        // Operation successful
+        Success,
+        // Script was not found or could not be opened
+        ScriptNotFound,
+        // Requested location was not found within the script
+        LocationNotFound
+    }
+
+    /// <summary>
+    /// ZoomToFileEventArgs object describes the location that has to be opened
+    /// in a script editor, and result of this operation. This object may be passed
+    /// through multiple event handlers, and they have to check its Handled property
+    /// to know if any of the previous ones have already claimed this request.
+    /// </summary>
+    public class ZoomToFileEventArgs
 	{
         public ZoomToFileEventArgs(string fileName, ZoomToFileZoomType zoomType, ZoomToFileMatchStyle matchStyle,
                                    string zoomToText)
@@ -46,6 +65,19 @@ namespace AGS.Editor
             ActivateEditor = activateEditor;
 		}
 
+        /// <summary>
+        /// Tells if operation was claimed by one of the handlers, either
+        /// successfully or unsuccessfully. In principle this means that
+        /// at least the requested script was found.
+        /// </summary>
+        public bool Handled
+        {
+            get
+            {
+                return Result != ZoomToFileResult.None && Result != ZoomToFileResult.ScriptNotFound;
+            }
+        }
+
 		public string FileName;
 		public ZoomToFileZoomType ZoomType;
         public ZoomToFileMatchStyle MatchStyle;
@@ -56,5 +88,6 @@ namespace AGS.Editor
         public string ErrorMessage;
         public bool ZoomToLineAfterOpeningBrace = false;
         public bool ActivateEditor = true;
-	}
+        public ZoomToFileResult Result = ZoomToFileResult.None;
+    }
 }

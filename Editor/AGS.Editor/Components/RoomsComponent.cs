@@ -1307,14 +1307,25 @@ namespace AGS.Editor.Components
 
         private void GUIController_OnZoomToFile(ZoomToFileEventArgs evArgs)
         {
+            if (evArgs.Handled)
+            {
+                return; // operation has been completed by another handler
+            }
+
             int roomNumberToEdit = GetRoomNumberForFileName(evArgs.FileName, evArgs.IsDebugExecutionPoint);
             
             if (roomNumberToEdit >= 0)
             {
                 UnloadedRoom roomToGetScriptFor = GetUnloadedRoom(roomNumberToEdit);                
                 ScriptEditor editor = (ScriptEditor)CreateOrShowScript(roomToGetScriptFor).Control;
-				ZoomToCorrectPositionInScript(editor, evArgs);
+                if (editor != null)
+                {
+                    ZoomToCorrectPositionInScript(editor, evArgs);
+                    return;
+                }
             }
+
+            evArgs.Result = ZoomToFileResult.ScriptNotFound;
         }
 
         private void GUIController_OnGetScript(string fileName, ref Script script)

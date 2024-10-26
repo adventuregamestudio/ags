@@ -798,9 +798,7 @@ void Character_SetAsPlayer(CharacterInfo *chaa) {
         return;
 
     setup_player_character(chaa->index_id);
-
-    //update_invorder();
-
+    GUI::MarkInventoryForUpdate(game.playercharacter, true);
     debug_script_log("%s is new player character", playerchar->scrname);
 
     // Within game_start, return now

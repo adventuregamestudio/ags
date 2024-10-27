@@ -626,7 +626,8 @@ String make_interact_func_name(const String &base, int param, int subd)
     return fname;
 }
 
-void post_script_cleanup() {
+void post_script_cleanup()
+{
     // should do any post-script stuff here, like go to new room
     if (cc_has_error())
         quit(cc_get_error().ErrorString);
@@ -645,7 +646,6 @@ void post_script_cleanup() {
     else {
         curscript = nullptr;
     }
-    //  if (abort_executor) user_disabled_data2=aborted_ip;
 
     int old_room_number = displayed_room;
 
@@ -687,7 +687,14 @@ void post_script_cleanup() {
             load_new_game = thisData;
             return;
         case ePSARunDialog:
-            do_conversation(thisData);
+            if (is_in_dialog())
+            {
+                set_dialog_option_result(thisData);
+            }
+            else
+            {
+                do_conversation(thisData);
+            }
             break;
         case ePSARestartGame:
             cancel_all_scripts();

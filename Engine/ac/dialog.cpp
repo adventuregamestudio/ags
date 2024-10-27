@@ -1425,6 +1425,13 @@ void DialogExec::Run()
 
 void do_conversation(int dlgnum)
 {
+    assert(dialogExec == nullptr);
+    if (dialogExec)
+    {
+        Debug::Printf(kDbgMsg_Error, "ERROR: tried to start a new dialog state while a dialog state is running.");
+        return;
+    }
+
     EndSkippingUntilCharStops();
 
     // AGS 2.x always makes the mouse cursor visible when displaying a dialog.
@@ -1447,6 +1454,21 @@ void do_conversation(int dlgnum)
     // Run the global DialogStop event; NOTE: DlgNum may be different in the end
     run_on_event(kScriptEvent_DialogStop, RuntimeScriptValue().SetInt32(dialogExec->DlgNum));
     dialogExec = {};
+}
+
+bool is_in_dialog()
+{
+    return dialogExec != nullptr;
+}
+
+// NOTE: this is ugly, but I could not come to a better solution at the time...
+void set_dialog_option_result(int dlgopt_result)
+{
+    assert(dialogExec && dialogScriptsInst);
+    if (!dialogExec || !dialogScriptsInst)
+        return;
+
+    dialogScriptsInst->returnValue = dlgopt_result;
 }
 
 bool handle_state_change_in_dialog_request(const char *apiname, int dlgreq_retval, bool expect_dialog_request)

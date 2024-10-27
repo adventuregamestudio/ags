@@ -30,6 +30,10 @@ void Dialog_Start(ScriptDialog *sd);
 
 // Starts a dialog
 void do_conversation(int dlgnum);
+// Tells if the game is currently running a dialog
+bool is_in_dialog();
+// Assigns a return value to pass to the dialog state after current option's script have finished executing
+void set_dialog_option_result(int dlgopt_result);
 // Displays dialog options, and returns the chosen number, or CHOSE_TEXTPARSER if parser input was activated
 int show_dialog_options(int dlgnum, bool runGameLoopsInBackground);
 // Handles a dialog option, optionally "sais" its text, optionally run corresponding dialog script's entry

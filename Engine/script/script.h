@@ -170,8 +170,8 @@ String  GetScriptName(ccInstance *sci);
 // Makes a old-style interaction function name (for interaction list "run script" command)
 String  make_interact_func_name(const String &base, int param, int subd);
 // Performs various updates to the game after script interpreter returns control to the engine.
-// Executes actions and does changes that are not executed immediately at script command, for
-// optimisation and other reasons.
+// Executes scheduled commands and does changes that are not executed immediately during script
+// (either for logical reasons, and for optimization).
 void    post_script_cleanup();
 void    quit_with_script_error(const String &fn_name);
 int     get_nivalue (InteractionCommandList *nic, int idx, int parm);

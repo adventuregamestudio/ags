@@ -15,6 +15,7 @@
 #include "ac/common.h"
 #include "ac/character.h"
 #include "ac/characterinfo.h"
+#include "ac/dialog.h"
 #include "ac/draw.h"
 #include "ac/event.h"
 #include "ac/gamesetupstruct.h"
@@ -68,7 +69,6 @@ void SetAmbientLightLevel(int light_level)
     play.rtint_light = light_level;
 }
 
-extern ScriptPosition last_in_dialog_request_script_pos;
 void NewRoom(int nrnum) {
     if (nrnum < 0)
         quitprintf("!NewRoom: room change requested to invalid room number %d.", nrnum);
@@ -85,17 +85,8 @@ void NewRoom(int nrnum) {
 
     can_run_delayed_command();
 
-    if (play.stop_dialog_at_end != DIALOG_NONE) {
-        if (play.stop_dialog_at_end == DIALOG_RUNNING)
-            play.stop_dialog_at_end = DIALOG_NEWROOM + nrnum;
-        else {
-            quitprintf("!NewRoom: two NewRoom/RunDialog/StopDialog requests within dialog; last was called in \"%s\", line %d",
-                last_in_dialog_request_script_pos.Section.GetCStr(), last_in_dialog_request_script_pos.Line);
-        }
-        return;
-    }
-
-    get_script_position(last_in_dialog_request_script_pos);
+    if (handle_state_change_in_dialog_request("NewRoom", DIALOG_NEWROOM + nrnum))
+        return; // handled
 
     if (in_leaves_screen >= 0) {
         // NewRoom called from the Player Leaves Screen event -- just

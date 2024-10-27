@@ -173,6 +173,10 @@ struct GamePlayState
     int  show_single_dialog_option = 0;
     int  keep_screen_during_instant_transition = 0;
     int  read_dialog_option_colour = 0;
+    // stop_dialog_at_end - special value that is not supposed to be used in user script,
+    // but used in a generated dialogscript (when converted from dialog script slang)
+    // to tell how to proceed after "run-script" command ("dialog_request" callback).
+    // if non-0 - means that we are inside "dialog_request" callback.
     int  stop_dialog_at_end = 0;
     int  speech_portrait_placement = 0; // speech portrait placement mode (automatic/custom)
     int  speech_portrait_x = 0; // a speech portrait x offset from corresponding screen side

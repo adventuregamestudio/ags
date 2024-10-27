@@ -93,7 +93,6 @@ struct NonBlockingScriptFunction
     }
 };
 
-int     run_dialog_request (int parmtr);
 void    run_function_on_non_blocking_thread(NonBlockingScriptFunction* funcToRun);
 
 // TODO: run_interaction_event() and run_interaction_script()

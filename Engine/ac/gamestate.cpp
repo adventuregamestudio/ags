@@ -531,7 +531,7 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
     show_single_dialog_option = in->ReadInt32();
     keep_screen_during_instant_transition = in->ReadInt32();
     read_dialog_option_colour = in->ReadInt32();
-    stop_dialog_at_end = in->ReadInt32();
+    in->ReadInt32(); // was stop_dialog_at_end, which should not serialize
     speech_portrait_placement = in->ReadInt32();
     speech_portrait_x = in->ReadInt32();
     speech_portrait_y = in->ReadInt32();
@@ -726,7 +726,7 @@ void GamePlayState::WriteForSavegame(Stream *out) const
     out->WriteInt32(show_single_dialog_option);
     out->WriteInt32(keep_screen_during_instant_transition);
     out->WriteInt32(read_dialog_option_colour);
-    out->WriteInt32(stop_dialog_at_end);
+    out->WriteInt32(0); // was stop_dialog_at_end, which should not serialize
     out->WriteInt32(speech_portrait_placement);
     out->WriteInt32(speech_portrait_x);
     out->WriteInt32(speech_portrait_y);

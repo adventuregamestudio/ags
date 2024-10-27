@@ -175,11 +175,39 @@ const char *Dialog_GetScriptName(ScriptDialog *sd)
 }
 
 //=============================================================================
+// dialog manager stuff
 
 #define RUN_DIALOG_STAY          -1
 #define RUN_DIALOG_STOP_DIALOG   -2
 #define RUN_DIALOG_GOTO_PREVIOUS -4
-// dialog manager stuff
+
+static int run_dialog_request(int parmtr)
+{
+    play.stop_dialog_at_end = DIALOG_RUNNING;
+    RuntimeScriptValue params[]{ parmtr };
+    RunScriptFunction(gameinst.get(), "dialog_request", 1, params);
+
+    if (play.stop_dialog_at_end == DIALOG_STOP)
+    {
+        play.stop_dialog_at_end = DIALOG_NONE;
+        return -2;
+    }
+    if (play.stop_dialog_at_end >= DIALOG_NEWTOPIC)
+    {
+        int tval = play.stop_dialog_at_end - DIALOG_NEWTOPIC;
+        play.stop_dialog_at_end = DIALOG_NONE;
+        return tval;
+    }
+    if (play.stop_dialog_at_end >= DIALOG_NEWROOM)
+    {
+        int roomnum = play.stop_dialog_at_end - DIALOG_NEWROOM;
+        play.stop_dialog_at_end = DIALOG_NONE;
+        NewRoom(roomnum);
+        return -2;
+    }
+    play.stop_dialog_at_end = DIALOG_NONE;
+    return -1;
+}
 
 void get_dialog_script_parameters(unsigned char* &script, unsigned short* param1, unsigned short* param2)
 {
@@ -1292,10 +1320,17 @@ struct DialogExec
     int DlgWas = -1;
     // CHECKME: this may be unnecessary, investigate later
     bool IsFirstEntry = true;
-    // nested dialogs "stack"
+    // Dialog topics history, used by "goto-previous" command
     std::stack<int> TopicHist;
     int ExecutedOption = -1; // option which is currently run (or -1)
     bool AreOptionsDisplayed = false; // if dialog options are displayed on screen
+
+    // A position in script saved by certain API function calls in "dialog_request" callback;
+    // used purely for error reporting when the script has 2+ calls to gamestate-changing
+    // functions such as StartDialog or ChangeRoom.
+    // FIXME: this is horrible, review this and make consistent with error reporting
+    // for regular calls in normal script.
+    ScriptPosition SavedDialogRequestScriptPos;
 
     DialogExec(int start_dlgnum) : DlgNum(start_dlgnum) {}
     int HandleDialogResult(int res);
@@ -1412,6 +1447,32 @@ void do_conversation(int dlgnum)
     // Run the global DialogStop event; NOTE: DlgNum may be different in the end
     run_on_event(kScriptEvent_DialogStop, RuntimeScriptValue().SetInt32(dialogExec->DlgNum));
     dialogExec = {};
+}
+
+bool handle_state_change_in_dialog_request(const char *apiname, int dlgreq_retval, bool expect_dialog_request)
+{
+    // Test if we are inside a dialog state AND dialog_request callback
+    if ((dialogExec == nullptr) || (play.stop_dialog_at_end == DIALOG_NONE))
+    {
+        // Some command may only work inside dialog_request (?)
+        if (expect_dialog_request)
+            debug_script_warn("%s: not in a dialog_request(), ignored", apiname);
+        return false; // not handled, process command as normal
+    }
+
+    // Test if dialog result was not set yet
+    if (play.stop_dialog_at_end == DIALOG_RUNNING)
+    {
+        play.stop_dialog_at_end = dlgreq_retval;
+        get_script_position(dialogExec->SavedDialogRequestScriptPos);
+    }
+    else
+    {
+        debug_script_warn("!%s: more than one NewRoom/RunDialog/StopDialog requests within a dialog '%s' (%d), following one(s) will be ignored\n\tfirst was made in \"%s\", line %d",
+            apiname, game.dialogScriptNames[dialogExec->DlgNum].GetCStr(), dialogExec->DlgNum,
+            dialogExec->SavedDialogRequestScriptPos.Section.GetCStr(), dialogExec->SavedDialogRequestScriptPos.Line);
+    }
+    return true; // handled, state change will be taken care of by a dialog script
 }
 
 // end dialog manager

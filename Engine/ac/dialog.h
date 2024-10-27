@@ -34,6 +34,10 @@ void do_conversation(int dlgnum);
 int show_dialog_options(int dlgnum, bool runGameLoopsInBackground);
 // Handles a dialog option, optionally "sais" its text, optionally run corresponding dialog script's entry
 int run_dialog_option(int dlgnum, int dialog_choice, int sayChosenOption, bool run_script);
+// Handles a game-state changing command (such as StartDialog) inside "dialog_request" callback.
+// Returns whether the change was handled in "dialog's way", and further processing is not necessary.
+// Otherwise should process the command as normal.
+bool handle_state_change_in_dialog_request(const char *apiname, int dlgreq_retval, bool expect_dialog_request = false);
 
 extern std::vector<ScriptDialog> scrDialog;
 extern std::vector<DialogTopic> dialog;

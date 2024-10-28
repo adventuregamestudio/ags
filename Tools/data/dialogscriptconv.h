@@ -48,11 +48,7 @@ private:
     String ConvertLine(const String &line);
     String ConvertRealScript(const String &line);
     String ConvertDialogScript(const String &line);
-    String ProcessCmdArgInt(const String &line, const char *command, const char *replacement);
-    String ProcessCmdRunScript(const String &line);
     String ProcessCmdGotoDialog(const String &line);
-    String ProcessCmdSetGlobalInt(const String &line);
-    String ProcessCmdSpeechView(const String &line);
     String ProcessOptionOnOff(const String &line, const char *option_state);
     String MakeCharacterSpeech(const String &name, const String &say_text);
     String ProcessCharacterSpeech(const String &line);

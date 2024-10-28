@@ -26,39 +26,7 @@ namespace AGS
 namespace DataUtil
 {
 
-const char *DialogScriptDefault = "\
-#define DIALOG_NONE      0\n\
-#define DIALOG_RUNNING   1\n\
-#define DIALOG_STOP      2\n\
-#define DIALOG_NEWROOM   100\n\
-#define DIALOG_NEWTOPIC  12000\n\
-\n\
-_tryimport function dialog_request(int);\n\
-int __dlgscript_tempval;\n\
-\n\
-function _run_dialog_request(int parmtr) {\n\
-  game.stop_dialog_at_end = DIALOG_RUNNING;\n\
-  dialog_request(parmtr);\n\
-\n\
-  if (game.stop_dialog_at_end == DIALOG_STOP) {\n\
-    game.stop_dialog_at_end = DIALOG_NONE;\n\
-    return -2;\n\
-  }\n\
-  if (game.stop_dialog_at_end >= DIALOG_NEWTOPIC) {\n\
-    int tval = game.stop_dialog_at_end - DIALOG_NEWTOPIC;\n\
-    game.stop_dialog_at_end = DIALOG_NONE;\n\
-    return tval;\n\
-  }\n\
-  if (game.stop_dialog_at_end >= DIALOG_NEWROOM) {\n\
-    int roomnum = game.stop_dialog_at_end - DIALOG_NEWROOM;\n\
-    game.stop_dialog_at_end = DIALOG_NONE;\n\
-    player.ChangeRoom(roomnum);\n\
-    return -2;\n\
-  }\n\
-  game.stop_dialog_at_end = DIALOG_NONE;\n\
-  return -1;\n\
-}\n\
-";
+const char *DialogScriptDefault = "";
 
 
 DialogScriptConverter::DialogScriptConverter(const String &dlg_script, const GameRef &game, const DialogRef &dialog)
@@ -241,44 +209,10 @@ String DialogScriptConverter::ConvertDialogScript(const String &src_line)
             script_line = "return RUN_DIALOG_GOTO_PREVIOUS; }";
             _currentlyInsideCodeArea = false;
         }
-        else if (line.StartsWith("set-speech-view"))
-        {
-            script_line = ProcessCmdSpeechView(line);
-        }
-        else if (line.StartsWith("set-globalint"))
-        {
-            script_line = ProcessCmdSetGlobalInt(line);
-        }
         else if (line.StartsWith("goto-dialog"))
         {
             script_line = ProcessCmdGotoDialog(line);
             _currentlyInsideCodeArea = false;
-        }
-        else if (line.StartsWith("run-script"))
-        {
-            script_line = ProcessCmdRunScript(line);
-        }
-        else if (line.StartsWith("play-sound"))
-        {
-            script_line = ProcessCmdArgInt(line, "play-sound", "PlaySound(%s);");
-        }
-        else if (line.StartsWith("add-inv"))
-        {
-            script_line = ProcessCmdArgInt(line, "add-inv", "player.AddInventory(inventory[%s]);");
-        }
-        else if (line.StartsWith("lose-inv"))
-        {
-            script_line = ProcessCmdArgInt(line, "lose-inv", "player.LoseInventory(inventory[%s]);");
-        }
-        else if (line.StartsWith("new-room"))
-        {
-            script_line = ProcessCmdArgInt(line, "new-room", "player.ChangeRoom(%s);");
-            script_line.Append(" return RUN_DIALOG_STOP_DIALOG; }");
-            _currentlyInsideCodeArea = false;
-        }
-        else if (line.StartsWith("give-score"))
-        {
-            script_line = ProcessCmdArgInt(line, "give-score", "GiveScore(%s);");
         }
         else
         {
@@ -287,35 +221,6 @@ String DialogScriptConverter::ConvertDialogScript(const String &src_line)
         }
         return script_line;
     }
-}
-
-String DialogScriptConverter::ProcessCmdArgInt(const String &line, const char *command, const char *replacement)
-{
-    //Match result = Regex.Match(dlgScriptLine, string.Format(@"^{0}\s*(\d+)$", command), RegexOptions.IgnoreCase);
-    String pattern = String::FromFormat("^%s\\s*(\\d+)$", command);
-    const std::regex regex(pattern.GetCStr(), std::regex_constants::icase);
-    std::cmatch mr;
-    if (!std::regex_match(line.GetCStr(), mr, regex))
-    {
-        CompileError(String::FromFormat("Invalid/missing parameter for %s", command));
-        return "";
-    }
-    return String::FromFormat(replacement, mr[1].str().c_str());
-}
-
-String DialogScriptConverter::ProcessCmdRunScript(const String &line)
-{
-    //Match result = Regex.Match(dlgScriptCommand, @"^run-script\s*(\d+)$", RegexOptions.IgnoreCase);
-    const std::regex regex("^run-script\\s*(\\d+)$", std::regex_constants::icase);
-    std::cmatch mr;
-    if (!std::regex_match(line.GetCStr(), mr, regex))
-    {
-        CompileError("run-script must supply dialog request ID");
-        return "";
-    }
-    return String::FromFormat(
-        "__dlgscript_tempval=_run_dialog_request(%s); if(__dlgscript_tempval!=-1) return __dlgscript_tempval;",
-        mr[1].str().c_str());
 }
 
 String DialogScriptConverter::ProcessCmdGotoDialog(const String &line)
@@ -346,37 +251,6 @@ String DialogScriptConverter::ProcessCmdGotoDialog(const String &line)
 
     CompileError(String::FromFormat("Dialog not found: %s", dialog_name.GetCStr()));
     return "";
-}
-
-String DialogScriptConverter::ProcessCmdSetGlobalInt(const String &line)
-{
-    //Match result = Regex.Match(dlgScriptCommand, @"^set-globalint\s*(\d+),?\s*(\d+)$", RegexOptions.IgnoreCase);
-    const std::regex regex("^set-globalint\\s*(\\d+),?\\s*(\\d+)$", std::regex_constants::icase);
-    std::cmatch mr;
-    if (!std::regex_match(line.GetCStr(), mr, regex))
-    {
-        CompileError("set-globalint must supply global int number and new value");
-        return "";
-    }
-    return String::FromFormat("SetGlobalInt(%s,%s);", mr[1].str().c_str(), mr[2].str().c_str());
-}
-
-String DialogScriptConverter::ProcessCmdSpeechView(const String &line)
-{
-    //Match result = Regex.Match(dlgScriptCommand, @"^set-speech-view\s*(\w+),?\s*(\d+)$", RegexOptions.IgnoreCase);
-    const std::regex regex("^set-speech-view\\s*(\\w+),?\\s*(\\d+)$", std::regex_constants::icase);
-    std::cmatch mr;
-    if (!std::regex_match(line.GetCStr(), mr, regex))
-    {
-        CompileError("set-speech-view must supply character name and view number");
-        return "";
-    }
-    String char_name = mr[1].str().c_str();
-    // = result.Groups[2].Captures[0].Value;
-    const auto *character = FindCharacterByScriptName(char_name);
-    if (!character)
-        return "";
-    return String::FromFormat("%s.SpeechView = %s;", character->ScriptName.GetCStr(), mr[2].str().c_str());
 }
 
 String DialogScriptConverter::ProcessOptionOnOff(const String &line, const char *option_state)

@@ -2779,7 +2779,7 @@ builtin struct GameState {
   int  show_single_dialog_option;
   int  keep_screen_during_instant_transition;
   int  read_dialog_option_color;
-  int  stop_dialog_at_end;   // $AUTOCOMPLETEIGNORE$
+  readonly int  reserved__9;   // $AUTOCOMPLETEIGNORE$
   readonly int  reserved__5;   // $AUTOCOMPLETEIGNORE$
   readonly int  reserved__6;   // $AUTOCOMPLETEIGNORE$
   readonly int  reserved__7;   // $AUTOCOMPLETEIGNORE$

@@ -5,6 +5,7 @@ using System.Text;
 
 namespace AGS.Types
 {
+    [Obsolete]
     public enum GUIAlphaStyle
     {
         [Description("Classic")]

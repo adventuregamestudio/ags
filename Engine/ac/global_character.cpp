@@ -112,11 +112,6 @@ int GetPlayerCharacter() {
     return game.playercharacter;
 }
 
-void SetCharacterFrame(int chaa, int view, int loop, int frame) {
-
-    Character_LockViewFrame(&game.chars[chaa], view, loop, frame);
-}
-
 void MoveCharacterToHotspot(int chaa,int hotsp) {
     if ((hotsp<0) || (hotsp>=MAX_ROOM_HOTSPOTS))
         quit("!MovecharacterToHotspot: invalid hotspot");

@@ -305,11 +305,6 @@ int Speech_GetTextAlignment()
     return play.speech_text_align;
 }
 
-void Speech_SetTextAlignment_Old(int alignment)
-{
-    play.speech_text_align = ReadScriptAlignment(alignment);
-}
-
 void Speech_SetTextAlignment(int alignment)
 {
     play.speech_text_align = (HorAlignment)alignment;
@@ -424,11 +419,6 @@ RuntimeScriptValue Sc_Speech_GetTextAlignment(const RuntimeScriptValue *params, 
     API_SCALL_INT(Speech_GetTextAlignment);
 }
 
-RuntimeScriptValue Sc_Speech_SetTextAlignment_Old(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(Speech_SetTextAlignment_Old);
-}
-
 RuntimeScriptValue Sc_Speech_SetTextAlignment(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT(Speech_SetTextAlignment);
@@ -494,6 +484,7 @@ void RegisterSpeechAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "Speech::get_Style",                  API_FN_PAIR(Speech_GetStyle) },
         { "Speech::set_Style",                  API_FN_PAIR(Speech_SetStyle) },
         { "Speech::get_TextAlignment",          API_FN_PAIR(Speech_GetTextAlignment) },
+        { "Speech::set_TextAlignment",          API_FN_PAIR(Speech_SetTextAlignment) },
         { "Speech::get_TextOverlay",            API_FN_PAIR(Speech_GetTextOverlay) },
         { "Speech::get_UseGlobalSpeechAnimationDelay", API_FN_PAIR(Speech_GetUseGlobalSpeechAnimationDelay) },
         { "Speech::set_UseGlobalSpeechAnimationDelay", API_FN_PAIR(Speech_SetUseGlobalSpeechAnimationDelay) },
@@ -502,10 +493,4 @@ void RegisterSpeechAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
     };
 
     ccAddExternalFunctions(speech_api);
-
-    // Few functions have to be selected based on API level
-    if (base_api < kScriptAPI_v350)
-        ccAddExternalStaticFunction("Speech::set_TextAlignment", API_FN_PAIR(Speech_SetTextAlignment_Old));
-    else
-        ccAddExternalStaticFunction("Speech::set_TextAlignment", API_FN_PAIR(Speech_SetTextAlignment));
 }

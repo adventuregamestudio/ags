@@ -492,10 +492,7 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
     close_mouth_speech_time = in->ReadInt32();
     disable_antialiasing = in->ReadInt32();
     text_speed_modifier = in->ReadInt32();
-    if (svg_ver < kGSSvgVersion_350)
-        text_align = ConvertLegacyScriptAlignment((LegacyScriptAlignment)in->ReadInt32());
-    else
-        text_align = (HorAlignment)in->ReadInt32();
+    text_align = (HorAlignment)in->ReadInt32();
     speech_bubble_width = in->ReadInt32();
     min_dialogoption_width = in->ReadInt32();
     disable_dialog_parser = in->ReadInt32();
@@ -508,10 +505,7 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
     screenshot_width = in->ReadInt32();
     screenshot_height = in->ReadInt32();
     top_bar_font = in->ReadInt32();
-    if (svg_ver < kGSSvgVersion_350)
-        speech_text_align = ConvertLegacyScriptAlignment((LegacyScriptAlignment)in->ReadInt32());
-    else
-        speech_text_align = (HorAlignment)in->ReadInt32();
+    speech_text_align = (HorAlignment)in->ReadInt32();
     auto_use_walkto_points = in->ReadInt32();
     inventory_greys_out = in->ReadInt32();
     skip_speech_specific_key = in->ReadInt32();
@@ -876,26 +870,4 @@ void GamePlayState::FreeViewportsAndCameras()
         }
     }
     _scCameraHandles.clear();
-}
-
-// Converts legacy alignment type used in script API
-HorAlignment ConvertLegacyScriptAlignment(LegacyScriptAlignment align)
-{
-    switch (align)
-    {
-    case kLegacyScAlignLeft: return kHAlignLeft;
-    case kLegacyScAlignCentre: return kHAlignCenter;
-    case kLegacyScAlignRight: return kHAlignRight;
-    }
-    return kHAlignNone;
-}
-
-// Reads legacy alignment type from the value set in script depending on the
-// current Script API level. This is made to make it possible to change
-// Alignment constants in the Script API and still support old version.
-HorAlignment ReadScriptAlignment(int32_t align)
-{
-    return game.options[OPT_BASESCRIPTAPI] < kScriptAPI_v350 ?
-        ConvertLegacyScriptAlignment((LegacyScriptAlignment)align) :
-        (HorAlignment)align;
 }

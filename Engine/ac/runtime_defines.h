@@ -40,14 +40,6 @@
 #define GLED_EFFECTS     2 
 #define MAX_AUDIO_TYPES  30
 
-// Legacy (pre 3.5.0) alignment types used in the script API
-enum LegacyScriptAlignment
-{
-    kLegacyScAlignLeft      = 1,
-    kLegacyScAlignCentre    = 2,
-    kLegacyScAlignRight     = 3
-};
-
 // Common command arguments
 // HISTORICAL NOTE: These numbers were chosen arbitrarily -- the idea is
 // to make sure that the user gets the parameters the right way round
@@ -69,7 +61,6 @@ enum LegacyScriptAlignment
 
 #define FONT_STATUSBAR  0
 #define FONT_NORMAL     play.normal_font
-//#define FONT_SPEECHBACK 1
 #define FONT_SPEECH     play.speech_font
 
 // Standard interaction verbs (aka cursor modes)
@@ -124,10 +115,6 @@ enum LegacyScriptAlignment
 #define SKIP_RESULT_TYPE_SHIFT 24
 // Bit mask for packing skip key/button data into result
 #define SKIP_RESULT_DATA_MASK  0x00FFFFFF
-
-// The index base for characters, used in legacy AnimateObject script function;
-// if passed ID is eq or gt than this, then a Character is animated instead
-#define LEGACY_ANIMATE_CHARIDBASE 100
 
 #define STD_BUFFER_SIZE 2048
 

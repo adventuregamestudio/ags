@@ -445,13 +445,6 @@ private:
     AGS_Clock::time_point _ignoreUserInputUntilTime{};
 };
 
-// Converts legacy alignment type used in script API
-HorAlignment ConvertLegacyScriptAlignment(LegacyScriptAlignment align);
-// Reads legacy alignment type from the value set in script depending on the
-// current Script API level. This is made to make it possible to change
-// Alignment constants in the Script API and still support old version.
-HorAlignment ReadScriptAlignment(int32_t align);
-
 extern GamePlayState play;
 extern std::vector<CharacterExtras> charextra;
 extern std::vector<MoveList> mls;

@@ -53,11 +53,8 @@ int     Character_IsCollidingWithObject(CharacterInfo *chin, ScriptObject *objid
 bool    Character_IsInteractionAvailable(CharacterInfo *cchar, int mood);
 void    Character_LockView(CharacterInfo *chap, int vii);
 void    Character_LockViewEx(CharacterInfo *chap, int vii, int stopMoving);
-void    Character_LockViewAligned(CharacterInfo *chap, int vii, int loop, int align);
 void    Character_LockViewAlignedEx(CharacterInfo *chap, int vii, int loop, int align, int stopMoving);
-void    Character_LockViewFrame(CharacterInfo *chaa, int view, int loop, int frame);
 void    Character_LockViewFrameEx(CharacterInfo *chaa, int view, int loop, int frame, int stopMoving);
-void    Character_LockViewOffset(CharacterInfo *chap, int vii, int xoffs, int yoffs);
 void    Character_LockViewOffsetEx(CharacterInfo *chap, int vii, int xoffs, int yoffs, int stopMoving);
 void    Character_LoseInventory(CharacterInfo *chap, ScriptInvItem *invi);
 void    Character_PlaceOnWalkableArea(CharacterInfo *chap);

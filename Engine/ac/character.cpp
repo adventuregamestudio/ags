@@ -653,28 +653,16 @@ void Character_LockViewEx(CharacterInfo *chap, int vii, int stopMoving) {
     chap->pic_yoffs = 0;
 }
 
-void Character_LockViewAligned_Old(CharacterInfo *chap, int vii, int loop, int align) {
-    Character_LockViewAlignedEx(chap, vii, loop, ConvertLegacyScriptAlignment((LegacyScriptAlignment)align), STOP_MOVING);
-}
-
-void Character_LockViewAlignedEx_Old(CharacterInfo *chap, int vii, int loop, int align, int stopMoving) {
-    Character_LockViewAlignedEx(chap, vii, loop, ConvertLegacyScriptAlignment((LegacyScriptAlignment)align), stopMoving);
-}
-
-void Character_LockViewAligned(CharacterInfo *chap, int vii, int loop, int align) {
-    Character_LockViewAlignedEx(chap, vii, loop, align, STOP_MOVING);
-}
-
 void Character_LockViewAlignedEx(CharacterInfo *chap, int vii, int loop, int align, int stopMoving) {
     if (chap->view < 0)
-        quit("!SetCharacterLoop: character has invalid old view number");
+        quit("!Character.LockViewAligned: character has invalid old view number");
 
     int sppic = views[chap->view].loops[chap->loop].frames[chap->frame].pic;
     int leftSide = chap->x - game.SpriteInfos[sppic].Width / 2;
 
     Character_LockViewEx(chap, vii, stopMoving);
 
-    AssertLoop("SetCharacterViewEx", chap->view, loop);
+    AssertLoop("Character.LockViewAligned", chap->view, loop);
 
     chap->loop = loop;
     chap->frame = 0;
@@ -689,25 +677,17 @@ void Character_LockViewAlignedEx(CharacterInfo *chap, int vii, int loop, int ali
     else if (align & kMAlignRight)
         xdiff = (leftSide + game.SpriteInfos[sppic].Width) - (newLeft + game.SpriteInfos[newpic].Width);
     else
-        quit("!SetCharacterViewEx: invalid alignment type specified");
+        quit("!Character.LockViewAligned: invalid alignment type specified");
 
     chap->pic_xoffs = xdiff;
     chap->pic_yoffs = 0;
 }
 
-void Character_LockViewFrame(CharacterInfo *chaa, int view, int loop, int frame) {
-    Character_LockViewFrameEx(chaa, view, loop, frame, STOP_MOVING);
-}
-
 void Character_LockViewFrameEx(CharacterInfo *chaa, int view, int loop, int frame, int stopMoving) {
     Character_LockViewEx(chaa, view, stopMoving);
-    AssertFrame("SetCharacterFrame", view - 1, loop, frame);
+    AssertFrame("Character.LockViewFrame", view - 1, loop, frame);
     chaa->loop = loop;
     chaa->frame = frame;
-}
-
-void Character_LockViewOffset(CharacterInfo *chap, int vii, int xoffs, int yoffs) {
-    Character_LockViewOffsetEx(chap, vii, xoffs, yoffs, STOP_MOVING);
 }
 
 void Character_LockViewOffsetEx(CharacterInfo *chap, int vii, int xoffs, int yoffs, int stopMoving) {
@@ -3325,44 +3305,15 @@ RuntimeScriptValue Sc_Character_LockViewEx(void *self, const RuntimeScriptValue 
     API_OBJCALL_VOID_PINT2(CharacterInfo, Character_LockViewEx);
 }
 
-// void (CharacterInfo *chap, int vii, int loop, int align)
-RuntimeScriptValue Sc_Character_LockViewAligned_Old(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT3(CharacterInfo, Character_LockViewAligned_Old);
-}
-
-// void (CharacterInfo *chap, int vii, int loop, int align, int stopMoving)
-RuntimeScriptValue Sc_Character_LockViewAlignedEx_Old(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT4(CharacterInfo, Character_LockViewAlignedEx_Old);
-}
-
-RuntimeScriptValue Sc_Character_LockViewAligned(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT3(CharacterInfo, Character_LockViewAligned);
-}
-
 RuntimeScriptValue Sc_Character_LockViewAlignedEx(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT4(CharacterInfo, Character_LockViewAlignedEx);
-}
-
-// void (CharacterInfo *chaa, int view, int loop, int frame)
-RuntimeScriptValue Sc_Character_LockViewFrame(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT3(CharacterInfo, Character_LockViewFrame);
 }
 
 // void (CharacterInfo *chaa, int view, int loop, int frame, int stopMoving)
 RuntimeScriptValue Sc_Character_LockViewFrameEx(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT4(CharacterInfo, Character_LockViewFrameEx);
-}
-
-// void (CharacterInfo *chap, int vii, int xoffs, int yoffs)
-RuntimeScriptValue Sc_Character_LockViewOffset(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT3(CharacterInfo, Character_LockViewOffset);
 }
 
 // void (CharacterInfo *chap, int vii, int xoffs, int yoffs, int stopMoving)
@@ -4173,11 +4124,8 @@ void RegisterCharacterAPI(ScriptAPIVersion /*base_api*/, ScriptAPIVersion /*comp
         { "Character::IsInteractionAvailable^1",  API_FN_PAIR(Character_IsInteractionAvailable) },
         { "Character::LockView^1",                API_FN_PAIR(Character_LockView) },
         { "Character::LockView^2",                API_FN_PAIR(Character_LockViewEx) },
-        { "Character::LockViewAligned^3",         API_FN_PAIR(Character_LockViewAligned) },
         { "Character::LockViewAligned^4",         API_FN_PAIR(Character_LockViewAlignedEx) },
-        { "Character::LockViewFrame^3",           API_FN_PAIR(Character_LockViewFrame) },
         { "Character::LockViewFrame^4",           API_FN_PAIR(Character_LockViewFrameEx) },
-        { "Character::LockViewOffset^3",          API_FN_PAIR(Character_LockViewOffset) },
         { "Character::LockViewOffset^4",          API_FN_PAIR(Character_LockViewOffsetEx) },
         { "Character::LoseInventory^1",           API_FN_PAIR(Character_LoseInventory) },
         { "Character::Move^4",                    API_FN_PAIR(Character_Move) },

@@ -108,7 +108,7 @@ int32_t CCScriptGame::ReadInt32(const void *address, intptr_t offset)
     case 120: return play.show_single_dialog_option;
     case 121: return play.keep_screen_during_instant_transition;
     case 122: return play.read_dialog_option_colour;
-    case 123: return play.stop_dialog_at_end;
+    case 123: return 0;// [DEPRECATED]
     case 124: return play.speech_portrait_placement;
     case 125: return play.speech_portrait_x;
     case 126: return play.speech_portrait_y;
@@ -209,7 +209,7 @@ void CCScriptGame::WriteInt32(void *address, intptr_t offset, int32_t val)
     case 120:  play.show_single_dialog_option = val; break;
     case 121:  play.keep_screen_during_instant_transition = val; break;
     case 122:  play.read_dialog_option_colour = val; break;
-    case 123:  play.stop_dialog_at_end = val; break;
+    case 123:  break; // [DEPRECATED]
     case 124:  play.speech_portrait_placement = val; break;
     case 125:  play.speech_portrait_x = val; break;
     case 126:  play.speech_portrait_y = val; break;

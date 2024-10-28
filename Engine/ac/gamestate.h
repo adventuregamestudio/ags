@@ -163,7 +163,8 @@ struct GamePlayState
     int  show_single_dialog_option = 0;
     int  keep_screen_during_instant_transition = 0;
     int  read_dialog_option_colour = 0;
-    int  stop_dialog_at_end = 0;
+    int  stop_dialog_at_end = 0;    // used to record state-changing commands inside "dialog_request" callback
+                                    // FIXME: find another solution, possibly merge with handling of scheduled RunDialog/NewRoom etc commands
     int  speech_portrait_placement = 0; // speech portrait placement mode (automatic/custom)
     int  speech_portrait_x = 0;     // a speech portrait x offset from corresponding screen side
     int  speech_portrait_y = 0;     // a speech portrait y offset 

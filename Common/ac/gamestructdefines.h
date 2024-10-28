@@ -192,21 +192,6 @@ enum RenderAtScreenRes
     kRenderAtScreenRes_Disabled     = 2,
 };
 
-// Method to use when blending two sprites with alpha channel
-enum GameSpriteAlphaRenderingStyle
-{
-    kSpriteAlphaRender_Legacy = 0,
-    kSpriteAlphaRender_Proper
-};
-
-// Method to use when blending two GUI elements with alpha channel
-enum GameGuiAlphaRenderingStyle
-{
-    kGuiAlphaRender_Legacy = 0,
-    kGuiAlphaRender_AdditiveAlpha,
-    kGuiAlphaRender_Proper
-};
-
 
 // Sprite flags
 // SERIALIZATION NOTE: serialized as 8-bit in game data and legacy saves

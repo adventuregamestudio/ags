@@ -935,6 +935,43 @@ namespace AGS.Editor
         }
 
         /// <summary>
+        /// Scans corresponding script module looking for the linked event functions.
+        /// Returns a list of indexes for those events which functions were NOT found,
+        /// or null on any error.
+        /// NOTE: events that do not have an assigned function are ignored.
+        /// </summary>
+        public List<int> TestMissingInteractionHandlers(Interactions interactions)
+        {
+            if (string.IsNullOrEmpty(interactions.ScriptModule))
+                return null;
+
+            return TestMissingEventHandlers(interactions.ScriptModule, interactions.ScriptFunctionNames);
+        }
+
+        public List<int> TestMissingEventHandlers(string scriptModule, string[] functionNames)
+        {
+            Script script = Factory.AGSEditor.CurrentGame.ScriptsAndHeaders.GetScriptByFilename(scriptModule);
+            if (script == null || script.AutoCompleteData == null || !script.AutoCompleteData.Populated)
+                return null;
+
+            return TestMissingEventHandlers(script.AutoCompleteData, functionNames);
+        }
+
+        public List<int> TestMissingEventHandlers(ScriptAutoCompleteData scriptData, string[] functionNames)
+        {
+            List<int> missing = new List<int>();
+            for (int i = 0; i < functionNames.Length; ++i)
+            {
+                if (string.IsNullOrEmpty(functionNames[i]))
+                    continue;
+
+                if (scriptData.FindFunction(functionNames[i]) == null)
+                    missing.Add(i);
+            }
+            return missing;
+        }
+
+        /// <summary>
         /// Converts all separate game files which may contain text from one encoding
         /// to another. This is done by loading and resaving them, and may take time
         /// depending on the size of the project.

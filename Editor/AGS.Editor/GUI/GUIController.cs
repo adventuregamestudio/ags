@@ -583,8 +583,8 @@ namespace AGS.Editor
             if (OnZoomToFile != null)
             {
                 string pattern = string.Format(ScriptGeneration.SCRIPT_EVENT_FUNCTION_PATTERN, function);
-				ZoomToFileEventArgs evArgs = new ZoomToFileEventArgs(fileName, ZoomToFileZoomType.ZoomToText, ZoomToFileMatchStyle.MatchRegex, pattern);
-				evArgs.SelectLine = false;
+                ZoomToFileEventArgs evArgs = new ZoomToFileEventArgs(fileName, ZoomToFileZoomType.ZoomToText, ZoomToFileMatchStyle.MatchRegex, pattern);
+                evArgs.SelectLine = false;
                 evArgs.ZoomToLineAfterOpeningBrace = true;
                 OnZoomToFile(evArgs);
             }

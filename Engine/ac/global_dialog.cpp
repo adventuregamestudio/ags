@@ -45,7 +45,11 @@ void RunDialog(int tum)
 
 void StopDialog()
 {
-    handle_state_change_in_dialog_request("StopDialog", DIALOG_STOP, true);
+    if (handle_state_change_in_dialog_request("StopDialog", DIALOG_STOP))
+        return; // handled
+
+    if (inside_script) 
+        get_executingscript()->QueueAction(PostScriptAction(ePSAStopDialog, 0, "StopDialog"));
 }
 
 void SetDialogOption(int dlg, int opt, int onoroff, bool dlg_script)

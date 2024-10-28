@@ -1462,23 +1462,25 @@ bool is_in_dialog()
 }
 
 // NOTE: this is ugly, but I could not come to a better solution at the time...
-void set_dialog_option_result(int dlgopt_result)
+void set_dialog_result_goto(int dlgnum)
 {
     assert(dialogExec && dialogScriptsInst);
-    if (!dialogExec || !dialogScriptsInst)
-        return;
-
-    dialogScriptsInst->returnValue = dlgopt_result;
+    if (dialogScriptsInst)
+        dialogScriptsInst->returnValue = dlgnum;
 }
 
-bool handle_state_change_in_dialog_request(const char *apiname, int dlgreq_retval, bool expect_dialog_request)
+void set_dialog_result_stop()
+{
+    assert(dialogExec && dialogScriptsInst);
+    if (dialogScriptsInst)
+        dialogScriptsInst->returnValue = RUN_DIALOG_STOP_DIALOG;
+}
+
+bool handle_state_change_in_dialog_request(const char *apiname, int dlgreq_retval)
 {
     // Test if we are inside a dialog state AND dialog_request callback
     if ((dialogExec == nullptr) || (play.stop_dialog_at_end == DIALOG_NONE))
     {
-        // Some command may only work inside dialog_request (?)
-        if (expect_dialog_request)
-            debug_script_warn("%s: not in a dialog_request(), ignored", apiname);
         return false; // not handled, process command as normal
     }
 

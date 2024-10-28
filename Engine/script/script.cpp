@@ -689,12 +689,15 @@ void post_script_cleanup()
         case ePSARunDialog:
             if (is_in_dialog())
             {
-                set_dialog_option_result(thisData);
+                set_dialog_result_goto(thisData);
             }
             else
             {
                 do_conversation(thisData);
             }
+            break;
+        case ePSAStopDialog:
+            set_dialog_result_stop();
             break;
         case ePSARestartGame:
             cancel_all_scripts();

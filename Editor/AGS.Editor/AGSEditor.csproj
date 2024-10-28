@@ -869,7 +869,6 @@
     </None>
     <EmbeddedResource Include="Resources\AGSFNT0.WFN" />
     <None Include="Resources\error.ico" />
-    <EmbeddedResource Include="Resources\__DialogScripts.asc" />
     <EmbeddedResource Include="Resources\eventlogError.ico" />
     <EmbeddedResource Include="Resources\eventlogWarn.ico" />
     <EmbeddedResource Include="Resources\globalvars.ico" />

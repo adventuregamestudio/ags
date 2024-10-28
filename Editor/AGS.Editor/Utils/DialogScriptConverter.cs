@@ -22,7 +22,7 @@ namespace AGS.Editor
 
         static DialogScriptConverter()
         {
-            _DefaultDialogScriptsScript = Resources.ResourceManager.GetResourceAsString("__DialogScripts.asc");
+            _DefaultDialogScriptsScript = "";
         }
 
         public string ConvertGameDialogScripts(Game game, CompileMessages errors, bool rebuildAll)
@@ -216,38 +216,9 @@ namespace AGS.Editor
                     convertedScriptLine = "return RUN_DIALOG_GOTO_PREVIOUS; }";
                     _currentlyInsideCodeArea = false;
                 }
-                else if (dlgScriptCommand.StartsWith("set-speech-view"))
-                {
-                    convertedScriptLine = ProcessSetSpeechViewCommand(dlgScriptCommand);
-                }
-                else if (dlgScriptCommand.StartsWith("set-globalint"))
-                {
-                    convertedScriptLine = ProcessSetGlobalIntCommand(dlgScriptCommand);
-                }
                 else if (dlgScriptCommand.StartsWith("goto-dialog"))
                 {
                     convertedScriptLine = ProcessGotoDialogCommand(dlgScriptCommand);
-                    _currentlyInsideCodeArea = false;
-                }
-                else if (dlgScriptCommand.StartsWith("run-script"))
-                {
-                    convertedScriptLine = ProcessRunScriptCommand(dlgScriptCommand);
-                }
-                else if (dlgScriptCommand.StartsWith("play-sound"))
-                {
-                    convertedScriptLine = ProcessSingleIntParameterCommand(dlgScriptCommand, "play-sound", "PlaySound({0});");
-                }
-                else if (dlgScriptCommand.StartsWith("add-inv"))
-                {
-                    convertedScriptLine = ProcessSingleIntParameterCommand(dlgScriptCommand, "add-inv", "player.AddInventory(inventory[{0}]);");
-                }
-                else if (dlgScriptCommand.StartsWith("lose-inv"))
-                {
-                    convertedScriptLine = ProcessSingleIntParameterCommand(dlgScriptCommand, "lose-inv", "player.LoseInventory(inventory[{0}]);");
-                }
-                else if (dlgScriptCommand.StartsWith("new-room"))
-                {
-                    convertedScriptLine = ProcessSingleIntParameterCommand(dlgScriptCommand, "new-room", "player.ChangeRoom({0}); return RUN_DIALOG_STOP_DIALOG;") + "}";
                     _currentlyInsideCodeArea = false;
                 }
                 else
@@ -256,28 +227,6 @@ namespace AGS.Editor
                 }
             }
             sw.WriteLine(convertedScriptLine);
-        }
-
-        private string ProcessSingleIntParameterCommand(string dlgScriptLine, string command, string scriptReplacement)
-        {
-            Match result = Regex.Match(dlgScriptLine, string.Format(@"^{0}\s*(\d+)$", command), RegexOptions.IgnoreCase);
-            if (!result.Success)
-            {
-                RaiseDialogScriptCompileError("Invalid/missing parameter for " + command);
-            }
-            string parameterValue = result.Groups[1].Captures[0].Value;
-            return string.Format(scriptReplacement, parameterValue);
-        }
-
-        private string ProcessRunScriptCommand(string dlgScriptCommand)
-        {
-            Match result = Regex.Match(dlgScriptCommand, @"^run-script\s*(\d+)$", RegexOptions.IgnoreCase);
-            if (!result.Success)
-            {
-                RaiseDialogScriptCompileError("run-script must supply dialog request ID");
-            }
-            string dialogRequestID = result.Groups[1].Captures[0].Value;
-            return string.Format("__dlgscript_tempval=_run_dialog_request({0}); if(__dlgscript_tempval!=-1) return __dlgscript_tempval;", dialogRequestID);
         }
 
         private string ProcessGotoDialogCommand(string dlgScriptCommand)
@@ -304,31 +253,6 @@ namespace AGS.Editor
 
             RaiseDialogScriptCompileError("Dialog not found: " + newDialogName);
             return null;
-        }
-
-        private string ProcessSetGlobalIntCommand(string dlgScriptCommand)
-        {
-            Match result = Regex.Match(dlgScriptCommand, @"^set-globalint\s*(\d+),?\s*(\d+)$", RegexOptions.IgnoreCase);
-            if (!result.Success)
-            {
-                RaiseDialogScriptCompileError("set-globalint must supply global int number and new value");
-            }
-            string globalIntNumber = result.Groups[1].Captures[0].Value;
-            string newValue = result.Groups[2].Captures[0].Value;
-            return string.Format("SetGlobalInt({0},{1});", globalIntNumber, newValue);
-        }
-
-        private string ProcessSetSpeechViewCommand(string dlgScriptCommand)
-        {
-            Match result = Regex.Match(dlgScriptCommand, @"^set-speech-view\s*(\w+),?\s*(\d+)$", RegexOptions.IgnoreCase);
-            if (!result.Success)
-            {
-                RaiseDialogScriptCompileError("set-speech-view must supply character name and view number");
-            }
-            string charName = result.Groups[1].Captures[0].Value;
-            string viewNumber = result.Groups[2].Captures[0].Value;
-            Character character = FindCharacterByScriptName(charName.ToLower());
-            return string.Format("{0}.SpeechView = {1};", character.ScriptName, viewNumber);
         }
 
         private string ProcessOptionOnOrOff(string dlgScriptCommand, string optionStateEnum)

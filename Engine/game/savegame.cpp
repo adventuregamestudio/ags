@@ -308,7 +308,7 @@ HSaveError OpenSavegame(const String &filename, SavegameDescription &desc, Saveg
 }
 
 // Prepares engine for actual save restore (stops processes, cleans up memory)
-void DoBeforeRestore(PreservedParams &pp)
+void DoBeforeRestore(PreservedParams &pp, SaveCmpSelection select_cmp)
 {
     pp.SpeechVOX = play.voice_avail;
     pp.MusicVOX = play.separate_music_lib;
@@ -365,15 +365,103 @@ void DoBeforeRestore(PreservedParams &pp)
     // Clear the managed object pool
     ccUnregisterAllObjects();
 
-    for (int i = 0; i < TOTAL_AUDIO_CHANNELS; ++i)
+    if ((select_cmp & kSaveCmp_Audio) != 0)
     {
-        stop_and_destroy_channel_ex(i, false);
+        for (int i = 0; i < TOTAL_AUDIO_CHANNELS; ++i)
+        {
+            stop_and_destroy_channel_ex(i, false);
+        }
+        clear_music_cache();
     }
-
-    clear_music_cache();
 }
 
-void RestoreViewportsAndCameras(const RestoredData &r_data)
+static HSaveError RestoreAudio(const RestoredData &r_data)
+{
+    // recache queued clips
+    // FIXME: this looks wrong, investigate if these
+    // a) have to be deleted instead of resetting to null (store in unique_ptr!)
+    // b) perhaps this should be done in DoBeforeRestore instead
+    for (int i = 0; i < play.new_music_queue_size; ++i)
+    {
+        play.new_music_queue[i].cachedClip = nullptr;
+    }
+
+    if (play.digital_master_volume >= 0)
+    {
+        int temp_vol = play.digital_master_volume;
+        play.digital_master_volume = -1; // reset to invalid state before re-applying
+        System_SetVolume(temp_vol);
+    }
+
+    // Run audio clips on channels
+    // these two crossfading parameters have to be temporarily reset
+    const int cf_in_chan = play.crossfading_in_channel;
+    const int cf_out_chan = play.crossfading_out_channel;
+    play.crossfading_in_channel = 0;
+    play.crossfading_out_channel = 0;
+    
+    for (int i = 0; i < TOTAL_AUDIO_CHANNELS; ++i)
+    {
+        const RestoredData::ChannelInfo &chan_info = r_data.AudioChans[i];
+        if (chan_info.ClipID < 0)
+            continue;
+        if ((size_t)chan_info.ClipID >= game.audioClips.size())
+        {
+            return new SavegameError(kSvgErr_GameObjectInitFailed,
+                String::FromFormat("Invalid audio clip index: %d (clip count: %zu).", chan_info.ClipID, game.audioClips.size()));
+        }
+        play_audio_clip_on_channel(i, &game.audioClips[chan_info.ClipID],
+            chan_info.Priority, chan_info.Repeat, chan_info.Pos);
+
+        auto* ch = AudioChans::GetChannel(i);
+        if (ch != nullptr)
+        {
+            ch->set_volume_direct(chan_info.VolAsPercent, chan_info.Vol);
+            ch->set_speed(chan_info.Speed);
+            ch->set_panning(chan_info.Pan);
+            ch->xSource = chan_info.XSource;
+            ch->ySource = chan_info.YSource;
+            ch->maximumPossibleDistanceAway = chan_info.MaxDist;
+        }
+    }
+    if ((cf_in_chan > 0) && (AudioChans::GetChannel(cf_in_chan) != nullptr))
+        play.crossfading_in_channel = cf_in_chan;
+    if ((cf_out_chan > 0) && (AudioChans::GetChannel(cf_out_chan) != nullptr))
+        play.crossfading_out_channel = cf_out_chan;
+
+    // Test if the old-style audio had playing music and it was properly loaded
+    if (current_music_type > 0)
+    {
+        if ((crossFading > 0 && !AudioChans::GetChannelIfPlaying(crossFading)) ||
+            (crossFading <= 0 && !AudioChans::GetChannelIfPlaying(SCHAN_MUSIC)))
+        {
+            current_music_type = 0; // playback failed, reset flag
+        }
+    }
+
+    // If there were synced audio tracks, the time taken to load in the
+    // different channels will have thrown them out of sync, so re-time it
+    for (int i = 0; i < TOTAL_AUDIO_CHANNELS; ++i)
+    {
+        auto* ch = AudioChans::GetChannelIfPlaying(i);
+        int pos = r_data.AudioChans[i].Pos;
+        if ((pos > 0) && (ch != nullptr))
+        {
+            ch->seek(pos);
+        }
+    }
+
+    for (int i = NUM_SPEECH_CHANS; i < game.numGameChannels; ++i)
+    {
+        if (r_data.DoAmbient[i])
+            PlayAmbientSound(i, r_data.DoAmbient[i], ambient[i].vol, ambient[i].x, ambient[i].y);
+    }
+
+    update_directional_sound_vol();
+    return HSaveError::None();
+}
+
+static void RestoreViewportsAndCameras(const RestoredData &r_data)
 {
     // If restored from older saves, we have to adjust
     // cam and view sizes to a main viewport, which is init later
@@ -458,12 +546,6 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
     if (debug_flags & DBG_DEBUGMODE)
         play.debug_mode = 1;
 
-    // recache queued clips
-    for (int i = 0; i < play.new_music_queue_size; ++i)
-    {
-        play.new_music_queue[i].cachedClip = nullptr;
-    }
-
     // Remap old sound nums in case we restored a save having a different list of audio clips
     RemapLegacySoundNums(game, views, loaded_game_file_version);
 
@@ -524,9 +606,6 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
     // Save some parameters to restore them after room load
     const int gstimer = play.gscript_timer;
     const Rect mouse_bounds = play.mbounds;
-    // disable the queue momentarily
-    const int queuedMusicSize = play.music_queue_size;
-    play.music_queue_size = 0;
 
     // load the room the game was saved in
     if (displayed_room >= 0)
@@ -583,80 +662,12 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
         on_background_frame_change();
     }
 
-    // restore the queue now that the music is playing
-    play.music_queue_size = queuedMusicSize;
-
-    if (play.digital_master_volume >= 0)
+    if ((select_cmp & kSaveCmp_Audio) != 0)
     {
-        int temp_vol = play.digital_master_volume;
-        play.digital_master_volume = -1; // reset to invalid state before re-applying
-        System_SetVolume(temp_vol);
+        HSaveError err = RestoreAudio(r_data);
+        if (!err)
+            return err;
     }
-
-    // Run audio clips on channels
-    // these two crossfading parameters have to be temporarily reset
-    const int cf_in_chan = play.crossfading_in_channel;
-    const int cf_out_chan = play.crossfading_out_channel;
-    play.crossfading_in_channel = 0;
-    play.crossfading_out_channel = 0;
-    
-    for (int i = 0; i < TOTAL_AUDIO_CHANNELS; ++i)
-    {
-        const RestoredData::ChannelInfo &chan_info = r_data.AudioChans[i];
-        if (chan_info.ClipID < 0)
-            continue;
-        if ((size_t)chan_info.ClipID >= game.audioClips.size())
-        {
-            return new SavegameError(kSvgErr_GameObjectInitFailed,
-                String::FromFormat("Invalid audio clip index: %d (clip count: %zu).", chan_info.ClipID, game.audioClips.size()));
-        }
-        play_audio_clip_on_channel(i, &game.audioClips[chan_info.ClipID],
-            chan_info.Priority, chan_info.Repeat, chan_info.Pos);
-
-        auto* ch = AudioChans::GetChannel(i);
-        if (ch != nullptr)
-        {
-            ch->set_volume_direct(chan_info.VolAsPercent, chan_info.Vol);
-            ch->set_speed(chan_info.Speed);
-            ch->set_panning(chan_info.Pan);
-            ch->xSource = chan_info.XSource;
-            ch->ySource = chan_info.YSource;
-            ch->maximumPossibleDistanceAway = chan_info.MaxDist;
-        }
-    }
-    if ((cf_in_chan > 0) && (AudioChans::GetChannel(cf_in_chan) != nullptr))
-        play.crossfading_in_channel = cf_in_chan;
-    if ((cf_out_chan > 0) && (AudioChans::GetChannel(cf_out_chan) != nullptr))
-        play.crossfading_out_channel = cf_out_chan;
-
-    // Test if the old-style audio had playing music and it was properly loaded
-    if (current_music_type > 0)
-    {
-        if ((crossFading > 0 && !AudioChans::GetChannelIfPlaying(crossFading)) ||
-            (crossFading <= 0 && !AudioChans::GetChannelIfPlaying(SCHAN_MUSIC)))
-        {
-            current_music_type = 0; // playback failed, reset flag
-        }
-    }
-
-    // If there were synced audio tracks, the time taken to load in the
-    // different channels will have thrown them out of sync, so re-time it
-    for (int i = 0; i < TOTAL_AUDIO_CHANNELS; ++i)
-    {
-        auto* ch = AudioChans::GetChannelIfPlaying(i);
-        int pos = r_data.AudioChans[i].Pos;
-        if ((pos > 0) && (ch != nullptr))
-        {
-            ch->seek(pos);
-        }
-    }
-
-    for (int i = NUM_SPEECH_CHANS; i < game.numGameChannels; ++i)
-    {
-        if (r_data.DoAmbient[i])
-            PlayAmbientSound(i, r_data.DoAmbient[i], ambient[i].vol, ambient[i].x, ambient[i].y);
-    }
-    update_directional_sound_vol();
 
     adjust_fonts_for_render_mode(game.options[OPT_ANTIALIASFONTS] != 0);
 
@@ -722,7 +733,7 @@ HSaveError RestoreGameState(Stream *in, SavegameVersion svg_version, SaveCmpSele
 
     PreservedParams pp;
     RestoredData r_data;
-    DoBeforeRestore(pp);
+    DoBeforeRestore(pp, select_cmp);
     HSaveError err = SavegameComponents::ReadAll(in, svg_version, select_cmp, pp, r_data);
     if (!err)
         return err;

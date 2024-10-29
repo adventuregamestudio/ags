@@ -308,7 +308,7 @@ HSaveError OpenSavegame(const String &filename, SavegameDescription &desc, Saveg
 }
 
 // Prepares engine for actual save restore (stops processes, cleans up memory)
-void DoBeforeRestore(PreservedParams &pp)
+void DoBeforeRestore(PreservedParams &pp, SaveCmpSelection select_cmp)
 {
     pp.SpeechVOX = play.voice_avail;
     pp.MusicVOX = play.separate_music_lib;
@@ -365,211 +365,26 @@ void DoBeforeRestore(PreservedParams &pp)
     // Clear the managed object pool
     ccUnregisterAllObjects();
 
-    for (int i = 0; i < TOTAL_AUDIO_CHANNELS; ++i)
+    if ((select_cmp & kSaveCmp_Audio) != 0)
     {
-        stop_and_destroy_channel_ex(i, false);
+        for (int i = 0; i < TOTAL_AUDIO_CHANNELS; ++i)
+        {
+            stop_and_destroy_channel_ex(i, false);
+        }
+        clear_music_cache();
     }
-
-    clear_music_cache();
 }
 
-void RestoreViewportsAndCameras(const RestoredData &r_data)
+static HSaveError RestoreAudio(const RestoredData &r_data)
 {
-    // If restored from older saves, we have to adjust
-    // cam and view sizes to a main viewport, which is init later
-    const auto &main_view = play.GetMainViewport();
-
-    for (size_t i = 0; i < r_data.Cameras.size(); ++i)
-    {
-        const auto &cam_dat = r_data.Cameras[i];
-        auto cam = play.GetRoomCamera(i);
-        cam->SetID(cam_dat.ID);
-        if ((cam_dat.Flags & kSvgCamPosLocked) != 0)
-            cam->Lock();
-        else
-            cam->Release();
-        // Set size first, or offset position may clamp to the room
-        if (r_data.LegacyViewCamera)
-            cam->SetSize(main_view.GetSize());
-        else
-            cam->SetSize(Size(cam_dat.Width, cam_dat.Height));
-        cam->SetAt(cam_dat.Left, cam_dat.Top);
-    }
-    for (size_t i = 0; i < r_data.Viewports.size(); ++i)
-    {
-        const auto &view_dat = r_data.Viewports[i];
-        auto view = play.GetRoomViewport(i);
-        view->SetID(view_dat.ID);
-        view->SetVisible((view_dat.Flags & kSvgViewportVisible) != 0);
-        if (r_data.LegacyViewCamera)
-            view->SetRect(RectWH(view_dat.Left, view_dat.Top, main_view.GetWidth(), main_view.GetHeight()));
-        else
-            view->SetRect(RectWH(view_dat.Left, view_dat.Top, view_dat.Width, view_dat.Height));
-        view->SetZOrder(view_dat.ZOrder);
-        // Restore camera link
-        int cam_index = view_dat.CamID;
-        if (cam_index < 0) continue;
-        auto cam = play.GetRoomCamera(cam_index);
-        view->LinkCamera(cam);
-        cam->LinkToViewport(view);
-    }
-    play.InvalidateViewportZOrder();
-}
-
-// Resets a number of options that are not supposed to be changed at runtime
-static void CopyPreservedGameOptions(GameSetupStructBase &gs, const PreservedParams &pp)
-{
-    const auto restricted_opts = GameSetupStructBase::GetRestrictedOptions();
-    for (auto opt : restricted_opts)
-        gs.options[opt] = pp.GameOptions[opt];
-}
-
-// Final processing after successfully restoring from save
-HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data)
-{
-    // Use a yellow dialog highlight for older game versions
-    // CHECKME: it is dubious that this should be right here
-    if(loaded_game_file_version < kGameVersion_331)
-        play.dialog_options_highlight_color = DIALOG_OPTIONS_HIGHLIGHT_COLOR_DEFAULT;
-
-    // Preserve whether the music vox is available
-    play.voice_avail = pp.SpeechVOX;
-    play.separate_music_lib = pp.MusicVOX;
-
-    // Restore particular game options that must not change at runtime
-    CopyPreservedGameOptions(game, pp);
-
-    // Restore debug flags
-    if (debug_flags & DBG_DEBUGMODE)
-        play.debug_mode = 1;
-
     // recache queued clips
+    // FIXME: this looks wrong, investigate if these
+    // a) have to be deleted instead of resetting to null (store in unique_ptr!)
+    // b) perhaps this should be done in DoBeforeRestore instead
     for (int i = 0; i < play.new_music_queue_size; ++i)
     {
         play.new_music_queue[i].cachedClip = nullptr;
     }
-
-    // Remap old sound nums in case we restored a save having a different list of audio clips
-    RemapLegacySoundNums(game, views, loaded_game_file_version);
-
-    // Restore Overlay bitmaps (older save format, which stored them along with overlays)
-    auto &overs = get_overlays();
-    for (auto &over_im : r_data.OverlayImages)
-    {
-        auto &over = overs[over_im.first];
-        over.SetImage(std::move(over_im.second), over.HasAlphaChannel(), over.offsetX, over.offsetY);
-    }
-    // Restore dynamic surfaces
-    const size_t dynsurf_num = std::min((size_t)MAX_DYNAMIC_SURFACES, r_data.DynamicSurfaces.size());
-    for (size_t i = 0; i < dynsurf_num; ++i)
-    {
-        dynamicallyCreatedSurfaces[i] = std::move(r_data.DynamicSurfaces[i]);
-    }
-
-    // Re-export any missing audio channel script objects, e.g. if restoring old save
-    export_missing_audiochans();
-
-    // CHECKME: find out why are we doing this here? why only to gui controls?
-    for (int i = 0; i < game.numgui; ++i)
-        export_gui_controls(i);
-
-    AllocScriptModules();
-    if (create_global_script())
-    {
-        return new SavegameError(kSvgErr_GameObjectInitFailed,
-            String::FromFormat("Unable to recreate global script: %s",
-                cc_get_error().ErrorString.GetCStr()));
-    }
-
-    // read the global data into the newly created script
-    if (!r_data.GlobalScript.Data.empty())
-        memcpy(gameinst->globaldata, &r_data.GlobalScript.Data.front(),
-                std::min((size_t)gameinst->globaldatasize, r_data.GlobalScript.Data.size()));
-
-    // restore the script module data
-    for (auto &sc_entry : r_data.ScriptModules)
-    {
-        const String &name = sc_entry.first;
-        auto &scdata = sc_entry.second;
-        if (scdata.Data.empty())
-            continue;
-        for (auto &scmoduleinst : moduleInst)
-        {
-            if (name.Compare(scmoduleinst->instanceof->GetScriptName()) == 0)
-            {
-                memcpy(scmoduleinst->globaldata, &scdata.Data.front(),
-                    std::min((size_t)scmoduleinst->globaldatasize, scdata.Data.size()));
-                break;
-            }
-        }
-    }
-
-    setup_player_character(game.playercharacter);
-
-    // Save some parameters to restore them after room load
-    const int gstimer = play.gscript_timer;
-    const Rect mouse_bounds = play.mbounds;
-    // disable the queue momentarily
-    const int queuedMusicSize = play.music_queue_size;
-    play.music_queue_size = 0;
-
-    // load the room the game was saved in
-    if (displayed_room >= 0)
-        load_new_room(displayed_room, nullptr);
-    else
-        set_room_placeholder();
-
-    // Reapply few parameters after room load
-    play.gscript_timer = gstimer;
-    play.mbounds = mouse_bounds;
-
-    // restore the correct room volume (they might have modified
-    // it with SetMusicVolume)
-    thisroom.Options.MusicVolume = r_data.RoomVolume;
-
-    set_cursor_mode(r_data.CursorMode);
-    set_mouse_cursor(r_data.CursorID, true);
-    if (r_data.CursorMode == MODE_USE)
-        SetActiveInventory(playerchar->activeinv);
-    // precache current cursor
-    spriteset.PrecacheSprite(game.mcurs[r_data.CursorID].pic);
-
-    sys_window_set_title(play.game_name.GetCStr());
-
-    if (displayed_room >= 0)
-    {
-        // Fixup the frame index, in case the restored room does not have enough background frames
-        if (play.bg_frame < 0 || static_cast<size_t>(play.bg_frame) >= thisroom.BgFrameCount)
-            play.bg_frame = 0;
-
-        for (int i = 0; i < MAX_ROOM_BGFRAMES; ++i)
-        {
-            if (r_data.RoomBkgScene[i])
-            {
-                thisroom.BgFrames[i].Graphic = r_data.RoomBkgScene[i];
-            }
-        }
-
-        in_new_room=3;  // don't run "enters screen" events
-        // now that room has loaded, copy saved light levels in
-        for (size_t i = 0; i < MAX_ROOM_REGIONS; ++i)
-        {
-            thisroom.Regions[i].Light = r_data.RoomLightLevels[i];
-            thisroom.Regions[i].Tint = r_data.RoomTintLevels[i];
-        }
-        generate_light_table();
-
-        for (size_t i = 0; i < MAX_WALK_AREAS; ++i)
-        {
-            thisroom.WalkAreas[i].ScalingFar = r_data.RoomZoomLevels1[i];
-            thisroom.WalkAreas[i].ScalingNear = r_data.RoomZoomLevels2[i];
-        }
-
-        on_background_frame_change();
-    }
-
-    // restore the queue now that the music is playing
-    play.music_queue_size = queuedMusicSize;
 
     if (play.digital_master_volume >= 0)
     {
@@ -641,7 +456,218 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data)
         if (r_data.DoAmbient[i])
             PlayAmbientSound(i, r_data.DoAmbient[i], ambient[i].vol, ambient[i].x, ambient[i].y);
     }
+
     update_directional_sound_vol();
+    return HSaveError::None();
+}
+
+static void RestoreViewportsAndCameras(const RestoredData &r_data)
+{
+    // If restored from older saves, we have to adjust
+    // cam and view sizes to a main viewport, which is init later
+    const auto &main_view = play.GetMainViewport();
+
+    for (size_t i = 0; i < r_data.Cameras.size(); ++i)
+    {
+        const auto &cam_dat = r_data.Cameras[i];
+        auto cam = play.GetRoomCamera(i);
+        cam->SetID(cam_dat.ID);
+        if ((cam_dat.Flags & kSvgCamPosLocked) != 0)
+            cam->Lock();
+        else
+            cam->Release();
+        // Set size first, or offset position may clamp to the room
+        if (r_data.LegacyViewCamera)
+            cam->SetSize(main_view.GetSize());
+        else
+            cam->SetSize(Size(cam_dat.Width, cam_dat.Height));
+        cam->SetAt(cam_dat.Left, cam_dat.Top);
+    }
+    for (size_t i = 0; i < r_data.Viewports.size(); ++i)
+    {
+        const auto &view_dat = r_data.Viewports[i];
+        auto view = play.GetRoomViewport(i);
+        view->SetID(view_dat.ID);
+        view->SetVisible((view_dat.Flags & kSvgViewportVisible) != 0);
+        if (r_data.LegacyViewCamera)
+            view->SetRect(RectWH(view_dat.Left, view_dat.Top, main_view.GetWidth(), main_view.GetHeight()));
+        else
+            view->SetRect(RectWH(view_dat.Left, view_dat.Top, view_dat.Width, view_dat.Height));
+        view->SetZOrder(view_dat.ZOrder);
+        // Restore camera link
+        int cam_index = view_dat.CamID;
+        if (cam_index < 0) continue;
+        auto cam = play.GetRoomCamera(cam_index);
+        view->LinkCamera(cam);
+        cam->LinkToViewport(view);
+    }
+    play.InvalidateViewportZOrder();
+}
+
+// Resets a number of options that are not supposed to be changed at runtime
+static void CopyPreservedGameOptions(GameSetupStructBase &gs, const PreservedParams &pp)
+{
+    const auto restricted_opts = GameSetupStructBase::GetRestrictedOptions();
+    for (auto opt : restricted_opts)
+        gs.options[opt] = pp.GameOptions[opt];
+    const auto preserved_opts = GameSetupStructBase::GetPreservedOptions();
+    for (auto opt : preserved_opts)
+        gs.options[opt] = pp.GameOptions[opt];
+}
+
+// A callback that tests if DynamicSprite refers a valid sprite in cache.
+// Used in a call to ccTraverseManagedObjects.
+static void ValidateDynamicSprite(int handle, IScriptObject *obj)
+{
+    ScriptDynamicSprite *dspr = static_cast<ScriptDynamicSprite*>(obj);
+    if (dspr->slot < 0 || dspr->slot >= game.SpriteInfos.size() ||
+        !game.SpriteInfos[dspr->slot].IsDynamicSprite())
+    {
+        dspr->slot = -1;
+    }
+}
+
+// Final processing after successfully restoring from save
+HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveCmpSelection select_cmp)
+{
+    // Use a yellow dialog highlight for older game versions
+    // CHECKME: it is dubious that this should be right here
+    if(loaded_game_file_version < kGameVersion_331)
+        play.dialog_options_highlight_color = DIALOG_OPTIONS_HIGHLIGHT_COLOR_DEFAULT;
+
+    // Preserve whether the music vox is available
+    play.voice_avail = pp.SpeechVOX;
+    play.separate_music_lib = pp.MusicVOX;
+
+    // Restore particular game options that must not change at runtime
+    CopyPreservedGameOptions(game, pp);
+
+    // Restore debug flags
+    if (debug_flags & DBG_DEBUGMODE)
+        play.debug_mode = 1;
+
+    // Remap old sound nums in case we restored a save having a different list of audio clips
+    RemapLegacySoundNums(game, views, loaded_game_file_version);
+
+    // Restore Overlay bitmaps (older save format, which stored them along with overlays)
+    auto &overs = get_overlays();
+    for (auto &over_im : r_data.OverlayImages)
+    {
+        auto &over = overs[over_im.first];
+        over.SetImage(std::move(over_im.second), over.HasAlphaChannel(), over.offsetX, over.offsetY);
+    }
+    // Restore dynamic surfaces
+    const size_t dynsurf_num = std::min((size_t)MAX_DYNAMIC_SURFACES, r_data.DynamicSurfaces.size());
+    for (size_t i = 0; i < dynsurf_num; ++i)
+    {
+        dynamicallyCreatedSurfaces[i] = std::move(r_data.DynamicSurfaces[i]);
+    }
+
+    // Re-export any missing audio channel script objects, e.g. if restoring old save
+    export_missing_audiochans();
+
+    // CHECKME: find out why are we doing this here? why only to gui controls?
+    for (int i = 0; i < game.numgui; ++i)
+        export_gui_controls(i);
+
+    AllocScriptModules();
+    if (create_global_script())
+    {
+        return new SavegameError(kSvgErr_GameObjectInitFailed,
+            String::FromFormat("Unable to recreate global script: %s",
+                cc_get_error().ErrorString.GetCStr()));
+    }
+
+    // read the global data into the newly created script
+    if (!r_data.GlobalScript.Data.empty())
+        memcpy(gameinst->globaldata, &r_data.GlobalScript.Data.front(),
+                std::min((size_t)gameinst->globaldatasize, r_data.GlobalScript.Data.size()));
+
+    // restore the script module data
+    for (auto &sc_entry : r_data.ScriptModules)
+    {
+        const String &name = sc_entry.first;
+        auto &scdata = sc_entry.second;
+        if (scdata.Data.empty())
+            continue;
+        for (auto &scmoduleinst : moduleInst)
+        {
+            if (name.Compare(scmoduleinst->instanceof->GetScriptName()) == 0)
+            {
+                memcpy(scmoduleinst->globaldata, &scdata.Data.front(),
+                    std::min((size_t)scmoduleinst->globaldatasize, scdata.Data.size()));
+                break;
+            }
+        }
+    }
+
+    setup_player_character(game.playercharacter);
+
+    // Save some parameters to restore them after room load
+    const int gstimer = play.gscript_timer;
+    const Rect mouse_bounds = play.mbounds;
+
+    // load the room the game was saved in
+    if (displayed_room >= 0)
+        load_new_room(displayed_room, nullptr);
+    else
+        set_room_placeholder();
+
+    // Reapply few parameters after room load
+    play.gscript_timer = gstimer;
+    play.mbounds = mouse_bounds;
+
+    // restore the correct room volume (they might have modified
+    // it with SetMusicVolume)
+    thisroom.Options.MusicVolume = r_data.RoomVolume;
+
+    set_cursor_mode(r_data.CursorMode);
+    set_mouse_cursor(r_data.CursorID, true);
+    if (r_data.CursorMode == MODE_USE)
+        SetActiveInventory(playerchar->activeinv);
+    // precache current cursor
+    spriteset.PrecacheSprite(game.mcurs[r_data.CursorID].pic);
+
+    sys_window_set_title(play.game_name.GetCStr());
+
+    if (displayed_room >= 0)
+    {
+        // Fixup the frame index, in case the restored room does not have enough background frames
+        if (play.bg_frame < 0 || static_cast<size_t>(play.bg_frame) >= thisroom.BgFrameCount)
+            play.bg_frame = 0;
+
+        for (int i = 0; i < MAX_ROOM_BGFRAMES; ++i)
+        {
+            if (r_data.RoomBkgScene[i])
+            {
+                thisroom.BgFrames[i].Graphic = r_data.RoomBkgScene[i];
+            }
+        }
+
+        in_new_room=3;  // don't run "enters screen" events
+        // now that room has loaded, copy saved light levels in
+        for (size_t i = 0; i < MAX_ROOM_REGIONS; ++i)
+        {
+            thisroom.Regions[i].Light = r_data.RoomLightLevels[i];
+            thisroom.Regions[i].Tint = r_data.RoomTintLevels[i];
+        }
+        generate_light_table();
+
+        for (size_t i = 0; i < MAX_WALK_AREAS; ++i)
+        {
+            thisroom.WalkAreas[i].ScalingFar = r_data.RoomZoomLevels1[i];
+            thisroom.WalkAreas[i].ScalingNear = r_data.RoomZoomLevels2[i];
+        }
+
+        on_background_frame_change();
+    }
+
+    if ((select_cmp & kSaveCmp_Audio) != 0)
+    {
+        HSaveError err = RestoreAudio(r_data);
+        if (!err)
+            return err;
+    }
 
     adjust_fonts_for_render_mode(game.options[OPT_ANTIALIASFONTS] != 0);
 
@@ -654,8 +680,18 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data)
     RestoreViewportsAndCameras(r_data);
     set_game_speed(r_data.FPS);
 
+    // Run fixups over managed objects if necessary
+    if ((select_cmp & kSaveCmp_DynamicSprites) == 0)
+    {
+        // If dynamic sprite images were not restored from this save, then invalidate all
+        // DynamicSprite objects in the managed pool
+        ccTraverseManagedObjects(ScriptDynamicSprite::TypeID, ValidateDynamicSprite);
+    }
+
+    // Run optional plugin event, reporting game restored
     pl_run_plugin_hooks(AGSE_POSTRESTOREGAME, 0);
 
+    // Next load up any immediately required resources
     // If this is a restart point and no room was loaded, then load startup room
     if (displayed_room < 0)
     {
@@ -670,25 +706,38 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data)
     }
 
     Mouse::SetMoveLimit(play.mbounds); // apply mouse bounds
-    play.ClearIgnoreInput(); // don't keep ignored input after save restore
-    update_polled_stuff();
 
     // Apply accessibility options, must be done last, because some
     // may override restored game settings
     ApplyAccessibilityOptions();
 
+    play.ClearIgnoreInput(); // don't keep ignored input after save restore
+    update_polled_stuff();
+
     return HSaveError::None();
 }
 
-HSaveError RestoreGameState(Stream *in, SavegameVersion svg_version)
+// Fixes up a requested component selection, in case we must override or
+// substitute something internally.
+static SaveCmpSelection FixupCmpSelection(SaveCmpSelection select_cmp)
 {
+    // If kSaveCmp_DynamicSprites is not set, then set kSaveCmp_ObjectSprites
+    //     ensure that object-owned images are still serialized.
+    return (SaveCmpSelection)(select_cmp | 
+        kSaveCmp_ObjectSprites * ((select_cmp & kSaveCmp_DynamicSprites) == 0));
+}
+
+HSaveError RestoreGameState(Stream *in, SavegameVersion svg_version, SaveCmpSelection select_cmp)
+{
+    select_cmp = FixupCmpSelection(select_cmp);
+
     PreservedParams pp;
     RestoredData r_data;
-    DoBeforeRestore(pp);
-    HSaveError err = SavegameComponents::ReadAll(in, svg_version, pp, r_data);
+    DoBeforeRestore(pp, select_cmp);
+    HSaveError err = SavegameComponents::ReadAll(in, svg_version, select_cmp, pp, r_data);
     if (!err)
         return err;
-    return DoAfterRestore(pp, r_data);
+    return DoAfterRestore(pp, r_data, select_cmp);
 }
 
 
@@ -762,10 +811,12 @@ void DoBeforeSave()
     }
 }
 
-void SaveGameState(Stream *out)
+void SaveGameState(Stream *out, SaveCmpSelection select_cmp)
 {
+    select_cmp = FixupCmpSelection(select_cmp);
+
     DoBeforeSave();
-    SavegameComponents::WriteAllCommon(out);
+    SavegameComponents::WriteAllCommon(out, select_cmp);
 }
 
 void ReadPluginSaveData(Stream *in, PluginSvgVersion svg_ver, soff_t max_size)

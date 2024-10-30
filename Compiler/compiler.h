@@ -28,7 +28,7 @@
 class CompilerOptions{
     struct Flags {
         bool ExportAll = true;               // export all functions automatically
-        bool ShowWarnings = true;             // printf warnings to console
+        //bool ShowWarnings = true;          // printf warnings to console; [DEPRECATED], impl proper output verbosity instead?
         bool LineNumbers = true;             // include line numbers in compiled code
         bool AutoImport = false;              // when creating instance, export funcs to other scripts
         bool DebugRun = false;                // write instructions as they are processed to log file

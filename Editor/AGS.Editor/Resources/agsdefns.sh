@@ -2708,7 +2708,7 @@ builtin struct Game {
 };
 
 builtin struct GameState {
-  readonly int  reserved__11; // $AUTOCOMPLETEIGNORE$
+  readonly int  unused__1; // $AUTOCOMPLETEIGNORE$
   int  used_mode;
   int  disabled_user_interface;
   int  gscript_timer;
@@ -2716,7 +2716,7 @@ builtin struct GameState {
   int  globalvars[MAX_LEGACY_GLOBAL_VARS];
   int  messagetime;   // for auto-remove messages
   int  usedinv;
-  readonly int  reserved__[4];   // $AUTOCOMPLETEIGNORE$
+  readonly int  unused__2[4];   // $AUTOCOMPLETEIGNORE$
   int  text_speed;
   int  sierra_inv_color;
   int  talkanim_speed;  // $AUTOCOMPLETEIGNORE$
@@ -2726,7 +2726,7 @@ builtin struct GameState {
   int  swap_portrait;
   int  speech_text_gui;
   int  following_room_timer;
-  int  reserved__12;  // $AUTOCOMPLETEIGNORE$
+  readonly int  unused__3;  // $AUTOCOMPLETEIGNORE$
   int  skip_display;
   int  no_multiloop_repeat;
   int  roomscript_finished;
@@ -2737,22 +2737,22 @@ builtin struct GameState {
   int  bgspeech_game_speed;
   int  bgspeech_stay_on_display;
   int  unfactor_speech_from_textlength;
-  readonly int  reserved__9;   // $AUTOCOMPLETEIGNORE$
+  readonly int  unused__4;   // $AUTOCOMPLETEIGNORE$
   int  speech_music_drop;
   readonly int  in_cutscene;
   readonly int  skipping_cutscene;
   readonly int  room_width;
   readonly int  room_height;
   int  game_speed_modifier;  // $AUTOCOMPLETEIGNORE$
-  int  reserved__13;  // $AUTOCOMPLETEIGNORE$
+  readonly int  unused__5;  // $AUTOCOMPLETEIGNORE$
   int  previous_game_data;
-  readonly readonly int unused__041; // $AUTOCOMPLETEIGNORE$
+  readonly int  unused__6; // $AUTOCOMPLETEIGNORE$
   int  dialog_options_x;
   int  dialog_options_y;
   int  narrator_speech;
-  readonly int  reserved__10;   // $AUTOCOMPLETEIGNORE$
+  readonly int  unused__7;   // $AUTOCOMPLETEIGNORE$
   int  lipsync_speed;
-  readonly int  reserved__4;   // $AUTOCOMPLETEIGNORE$
+  readonly int  unused__8;   // $AUTOCOMPLETEIGNORE$
   int  disable_antialiasing;
   int  text_speed_modifier;
   int  text_align;
@@ -2768,10 +2768,10 @@ builtin struct GameState {
   int  screenshot_width;
   int  screenshot_height;
   int  top_bar_font;
-  readonly int  reserved__2;   // $AUTOCOMPLETEIGNORE$
+  readonly int  unused__9;   // $AUTOCOMPLETEIGNORE$
   int  auto_use_walkto_points;
   int  inventory_greys_out;
-  readonly int  reserved__3;   // $AUTOCOMPLETEIGNORE$
+  readonly int  unused__10;   // $AUTOCOMPLETEIGNORE$
   int  abort_key;
   readonly int fade_color_red;
   readonly int fade_color_green;
@@ -2779,11 +2779,11 @@ builtin struct GameState {
   int  show_single_dialog_option;
   int  keep_screen_during_instant_transition;
   int  read_dialog_option_color;
-  readonly int  reserved__9;   // $AUTOCOMPLETEIGNORE$
-  readonly int  reserved__5;   // $AUTOCOMPLETEIGNORE$
-  readonly int  reserved__6;   // $AUTOCOMPLETEIGNORE$
-  readonly int  reserved__7;   // $AUTOCOMPLETEIGNORE$
-  readonly int  reserved__8;   // $AUTOCOMPLETEIGNORE$
+  readonly int  unused__11;   // $AUTOCOMPLETEIGNORE$
+  readonly int  unused__12;   // $AUTOCOMPLETEIGNORE$
+  readonly int  unused__13;   // $AUTOCOMPLETEIGNORE$
+  readonly int  unused__14;   // $AUTOCOMPLETEIGNORE$
+  readonly int  unused__15;   // $AUTOCOMPLETEIGNORE$
   int  dialog_options_highlight_color;
   };
   

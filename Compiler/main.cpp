@@ -192,10 +192,11 @@ ParsedOptions parser_to_compiler_opts(const ParseResult& parseResult)
                 flag_value = !(flag_val_str == "0");
             }
 
+            /* [DEPRECATED], impl proper output verbosity instead?
             if(flag_name == "showwarnings") {
                 compilerOptions.Flags.ShowWarnings = flag_value;
                 continue;
-            }
+            } */
             if(flag_name == "exportall") {
                 compilerOptions.Flags.ExportAll = flag_value;
                 continue;

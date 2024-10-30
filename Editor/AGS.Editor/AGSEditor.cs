@@ -17,6 +17,8 @@ using System.Net;
 
 namespace AGS.Editor
 {
+    using ScriptCompilerOptions = AGS.Native.ScriptCompilerOptions;
+
     public class AGSEditor
     {
         public event GetScriptHeaderListHandler GetScriptHeaderList;
@@ -858,15 +860,53 @@ namespace AGS.Editor
             }
         }
 
-		/// <summary>
-		/// Preprocesses and then compiles the script using the supplied headers.
-		/// </summary>
-		public void CompileScript(Script script, List<Script> headers, CompileMessages errors)
-		{
-			IPreprocessor preprocessor = CompilerFactory.CreatePreprocessor(AGS.Types.Version.AGS_EDITOR_VERSION);
-			DefineMacrosAccordingToGameSettings(preprocessor);
+        private void DefineMacrosFromCompiler(IPreprocessor preprocessor, AGS.Native.IScriptCompiler compiler)
+        {
+            var exts = compiler.GetExtensions();
+            foreach (var ext in exts)
+            {
+                preprocessor.DefineMacro("SCRIPT_EXT_" + ext, "1");
+            }
+        }
 
-			List<string> preProcessedCode = new List<string>();
+        private ScriptCompilerOptions GetScriptCompileOptions(Game game)
+        {
+            // Set up compiler options
+            ScriptCompilerOptions options =
+                ScriptCompilerOptions.AutoExportFunctions |
+                ScriptCompilerOptions.LineNumbers;
+
+            if (game.Settings.LeftToRightPrecedence)
+                options = options | ScriptCompilerOptions.LeftToRightPrecendence;
+            if ((!game.Settings.EnforceNewStrings))
+                options = options | ScriptCompilerOptions.OldStrings;
+            if (game.UnicodeMode)
+                options = options | ScriptCompilerOptions.UTF8;
+
+            return options;
+        }
+
+        /// <summary>
+        /// Preprocesses and then compiles the script prepended with the supplied headers.
+        /// Warnings and errors are collected in 'messages'.
+        /// Will _not_ throw whenever compiling results in an error.
+        /// </summary>
+        public void CompileScript(AGS.Native.IScriptCompiler compiler, Script script, List<Script> headers, CompileMessages messages)
+		{
+            // Clear up previous data, if present
+            if (script.CompiledData != null)
+            {
+                script.CompiledData.Dispose();
+                script.CompiledData = null;
+            }
+
+            messages = messages ?? new CompileMessages();
+
+            IPreprocessor preprocessor = CompilerFactory.CreatePreprocessor(AGS.Types.Version.AGS_EDITOR_VERSION);
+			DefineMacrosAccordingToGameSettings(preprocessor);
+            DefineMacrosFromCompiler(preprocessor, compiler);
+
+            List<string> preProcessedCode = new List<string>();
 			foreach (Script header in headers)
 			{
 				preProcessedCode.Add(preprocessor.Preprocess(header.Text, header.FileName));
@@ -878,19 +918,36 @@ namespace AGS.Editor
 			{
 				foreach (AGS.CScript.Compiler.Error error in preprocessor.Results)
 				{
-					CompileError newError = new CompileError(error.Message, error.ScriptName, error.LineNumber);
-					if (errors == null)
-					{
-						throw newError;
-					}
-					errors.Add(newError);
+                    messages.Add(new CompileError(error.Message, error.ScriptName, error.LineNumber));
 				}
-			}
-			else
-			{
-				Factory.NativeProxy.CompileScript(script, preProcessedCode.ToArray(), _game);
-			}
-		}
+
+                // If the preprocessor has found any errors then don't attempt compiling proper
+                if (messages.HasErrors)
+                    return;
+            }
+
+            script.CompiledData =
+                compiler.CompileScript(script.FileName, preProcessedCode.ToArray(), GetScriptCompileOptions(_game), messages);
+        }
+
+        /// <summary>
+        /// Preprocesses and then compiles the script prepended the supplied headers.
+        /// Retrieves script compiler from AGS.Native. If compiler is not found,
+        /// reports error and bails out early.
+        /// Warnings and errors are collected in 'messages'.
+        /// Will _not_ throw whenever compiling results in an error.
+        /// </summary>
+        public void CompileScript(Script script, List<Script> headers, CompileMessages messages)
+        {
+            var compiler = Factory.NativeProxy.GetEmbeddedScriptCompilers().FirstOrDefault();
+            if (compiler == null)
+            {
+                messages.Add(new CompileError($"Script compiler is not available. Incomplete AGS Editor installation?"));
+                return;
+            }
+
+            CompileScript(compiler, script, headers, messages);
+        }
 
         private Script CompileDialogs(CompileMessages errors, bool rebuildAll)
         {

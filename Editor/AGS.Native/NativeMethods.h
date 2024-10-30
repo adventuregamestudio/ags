@@ -14,6 +14,7 @@
 #pragma once
 #include <string.h>
 #include "NativeUtils.h"
+#include "IScriptCompiler.h"
 
 using namespace AGS::Types;
 using namespace System;
@@ -107,7 +108,8 @@ namespace AGS
 			void DrawSpriteToBuffer(int sprNum, int x, int y, float scale) ;
 			void RenderBufferToHDC(int hDC) ;
 			String ^LoadRoomScript(String ^roomFileName);
-			void CompileScript(Script ^script, cli::array<String^> ^preProcessedScripts, Game ^game);
+            // Returns a list of IScriptCompiler implementations embedded in AGS.Native
+            List<IScriptCompiler^>^ GetEmbeddedScriptCompilers();
 			GameTemplate^ LoadTemplateFile(String ^fileName);
       RoomTemplate^ LoadRoomTemplateFile(String ^fileName);
 			void ExtractTemplateFiles(String ^templateFileName);

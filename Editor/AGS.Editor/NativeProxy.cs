@@ -436,9 +436,9 @@ namespace AGS.Editor
             return _native.LoadRoomScript(roomFileName);
         }
 
-        public void CompileScript(Script script, string[] preProcessedData, Game game)
+        public List<IScriptCompiler> GetEmbeddedScriptCompilers()
         {
-            _native.CompileScript(script, preProcessedData, game);
+            return _native.GetEmbeddedScriptCompilers();
         }
 
         public void CreateDebugMiniEXE(string[] fileList, string exeFileName)

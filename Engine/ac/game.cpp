@@ -163,6 +163,7 @@ int game_paused=0;
 
 unsigned int load_new_game = 0;
 int load_new_game_restore = -1;
+SaveCmpSelection load_new_game_restore_cmp = kSaveCmp_All;
 
 // TODO: refactor these global vars into function arguments
 int getloctype_index = 0, getloctype_throughgui = 0;
@@ -1098,9 +1099,11 @@ HSaveError load_game(const String &path, int slotNumber, bool startup, bool &dat
     }
 
     // Do the actual game state restore
-    err = RestoreGameState(src.InputStream.get(), src.Version, desc.EngineVersion.LongString,
-        (SaveCmpSelection)(kSaveCmp_All & ~(game.options[OPT_SAVECOMPONENTSIGNORE] & kSaveCmp_ScriptIgnoreMask)),
-        startup);
+    SaveRestoreFeedback feedback;
+    err = RestoreGameState(src.InputStream.get(),
+        RestoreGameStateOptions(src.Version, desc.EngineVersion.LongString,
+            (SaveCmpSelection)(kSaveCmp_All & ~(game.options[OPT_SAVECOMPONENTSIGNORE] & kSaveCmp_ScriptIgnoreMask)),
+            startup), feedback);
     src.InputStream.reset();
     data_overwritten = true;
 
@@ -1109,14 +1112,12 @@ HSaveError load_game(const String &path, int slotNumber, bool startup, bool &dat
     {
         // We must detect a case when the save contains less data and requires
         // a clean game reset before trying to restore again
-        // FIXME: following is quite a bogus way to do so, review this later
-        HError first_error = (PError)err;
-        for (; first_error->InnerError(); first_error = first_error->InnerError());
-        if (first_error->Code() == kSvgErr_GameContentAssert_RequireClearReload)
+        if (feedback.RetryWithClearGame)
         {
             // Schedule same game file re-run and save restore
             RunAGSGame(ResPaths.GamePak.Path, 0, 0);
             load_new_game_restore = slotNumber;
+            load_new_game_restore_cmp = feedback.RetryWithoutComponents;
             return HSaveError::None();
         }
         // Else bail out with error

@@ -178,7 +178,9 @@ inline bool HandleGameContentMismatch(HSaveError &err, const uint32_t new_val, c
         restore_flags = (SaveRestorationFlags)(restore_flags | kSaveRestore_MissingDataInSave);
         if ((restore_flags & kSaveRestore_ClearData) == 0)
         {
-            err = new SavegameError(kSvgErr_GameContentAssert_RequireClearReload);
+            result.Feedback.RetryWithClearGame = true;
+            result.Feedback.RetryWithoutComponents = kSaveCmp_All;
+            err = new SavegameError(kSvgErr_GameContentAssertion);
             return false; // mismatch is allowed, but we require a clear game data to proceed
         }
     }

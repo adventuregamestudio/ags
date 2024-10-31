@@ -156,7 +156,6 @@ String GetSavegameErrorText(SavegameErrorType err)
     case kSvgErr_UnsupportedComponentVersion:
         return "Component data version not supported.";
     case kSvgErr_GameContentAssertion:
-    case kSvgErr_GameContentAssert_RequireClearReload:
         return "Saved content does not match current game.";
     case kSvgErr_InconsistentData:
         return "Inconsistent save data, or file is corrupted.";
@@ -534,7 +533,7 @@ static void ValidateDynamicSprite(int handle, IScriptObject *obj)
 }
 
 // Call a scripting event to let user validate the restored save
-static HSaveError ValidateRestoredSave(const RestoredData &r_data)
+static HSaveError ValidateRestoredSave(const RestoredData &r_data, SaveRestoreFeedback &feedback)
 {
     auto *saveinfo = new ScriptRestoredSaveInfo(r_data.Result.RestoreFlags, r_data.DataCounts,
         (r_data.Result.RestoreFlags & kSaveRestore_MismatchMask) != 0);
@@ -545,10 +544,20 @@ static HSaveError ValidateRestoredSave(const RestoredData &r_data)
     RunScriptFunctionInModules("validate_restored_save", 1, params); // TODO: run in room script too?
 
     const bool do_cancel = saveinfo->GetCancel();
+    const SaveCmpSelection retry_ignore_cmp = saveinfo->GetRetryWithoutComponents();
     ccReleaseObjectReference(handle); // rem internal ref
 
     if (do_cancel)
+    {
         return new SavegameError(kSvgErr_GameContentAssertion, r_data.Result.FirstMismatchError);
+    }
+
+    if (retry_ignore_cmp != 0)
+    {
+        feedback.RetryWithClearGame = true;
+        feedback.RetryWithoutComponents = retry_ignore_cmp;
+        return new SavegameError(kSvgErr_GameContentAssertion);
+    }
 
     return HSaveError::None();
 }
@@ -721,7 +730,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
     // After all of the game logical state is initialized and reapplied values from save,
     // call a "validate" script callback, to let user check the restored save
     // and make final decision: whether to continue with the game, or cancel and quit.
-    HSaveError validate_err = ValidateRestoredSave(r_data);
+    HSaveError validate_err = ValidateRestoredSave(r_data, r_data.Result.Feedback);
     if (!validate_err)
         return validate_err;
 
@@ -764,9 +773,9 @@ static SaveCmpSelection FixupCmpSelection(SaveCmpSelection select_cmp)
         kSaveCmp_ObjectSprites * ((select_cmp & kSaveCmp_DynamicSprites) == 0));
 }
 
-HSaveError RestoreGameState(Stream *in, SavegameVersion svg_version, const String &engine_ver, SaveCmpSelection select_cmp, bool is_game_clear)
+HSaveError RestoreGameState(Stream *in, const RestoreGameStateOptions &options, SaveRestoreFeedback &feedback)
 {
-    select_cmp = FixupCmpSelection(select_cmp);
+    SaveCmpSelection select_cmp = FixupCmpSelection(options.SelectedComponents);
     const bool has_validate_cb = DoesScriptFunctionExistInModules("validate_restored_save");
 
     PreservedParams pp;
@@ -775,12 +784,13 @@ HSaveError RestoreGameState(Stream *in, SavegameVersion svg_version, const Strin
 
     // Mark the clear game data state for restoration process
     r_data.Result.RestoreFlags = (SaveRestorationFlags)(
-          (kSaveRestore_ClearData * is_game_clear) // tell that the game data is reset
+          (kSaveRestore_ClearData * options.IsGameClear) // tell that the game data is reset
         | (kSaveRestore_AllowMismatchLess * has_validate_cb) // allow less data in saves
         );
-    r_data.DataCounts.EngineVersion = engine_ver;
+    r_data.DataCounts.EngineVersion = options.EngineVersion;
 
-    HSaveError err = SavegameComponents::ReadAll(in, svg_version, select_cmp, pp, r_data);
+    HSaveError err = SavegameComponents::ReadAll(in, options.SaveVersion, select_cmp, pp, r_data);
+    feedback = r_data.Result.Feedback;
     if (!err)
         return err;
     return DoAfterRestore(pp, r_data, select_cmp);
@@ -954,7 +964,7 @@ void WritePluginSaveData(Stream *out)
 
 #include "debug/debug_log.h"
 
-int SaveInfo_GetCancel(ScriptRestoredSaveInfo *info)
+bool SaveInfo_GetCancel(ScriptRestoredSaveInfo *info)
 {
     return info->GetCancel();
 }
@@ -962,6 +972,16 @@ int SaveInfo_GetCancel(ScriptRestoredSaveInfo *info)
 void SaveInfo_SetCancel(ScriptRestoredSaveInfo *info, bool cancel)
 {
     info->SetCancel(cancel);
+}
+
+int SaveInfo_GetRetryWithoutComponents(ScriptRestoredSaveInfo *info)
+{
+    return info->GetRetryWithoutComponents();
+}
+
+void SaveInfo_SetRetryWithoutComponents(ScriptRestoredSaveInfo *info, int cmp_selection)
+{
+    info->SetRetryWithoutComponents(static_cast<SaveCmpSelection>(cmp_selection));
 }
 
 int SaveInfo_GetResult(ScriptRestoredSaveInfo *info)
@@ -1066,12 +1086,22 @@ int SaveInfo_GetRoomScriptDataSize(ScriptRestoredSaveInfo *info)
 
 RuntimeScriptValue Sc_SaveInfo_GetCancel(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptRestoredSaveInfo, SaveInfo_GetCancel);
+    API_OBJCALL_BOOL(ScriptRestoredSaveInfo, SaveInfo_GetCancel);
 }
 
 RuntimeScriptValue Sc_SaveInfo_SetCancel(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PBOOL(ScriptRestoredSaveInfo, SaveInfo_SetCancel);
+}
+
+RuntimeScriptValue Sc_SaveInfo_GetRetryWithoutComponents(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptRestoredSaveInfo, SaveInfo_GetRetryWithoutComponents);
+}
+
+RuntimeScriptValue Sc_SaveInfo_SetRetryWithoutComponents(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptRestoredSaveInfo, SaveInfo_SetRetryWithoutComponents);
 }
 
 RuntimeScriptValue Sc_SaveInfo_GetResult(void *self, const RuntimeScriptValue *params, int32_t param_count)
@@ -1159,6 +1189,8 @@ void RegisterSaveInfoAPI()
     ScFnRegister saveinfo_api[] = {
         { "RestoredSaveInfo::get_Cancel",               API_FN_PAIR(SaveInfo_GetCancel) },
         { "RestoredSaveInfo::set_Cancel",               API_FN_PAIR(SaveInfo_SetCancel) },
+        { "RestoredSaveInfo::get_RetryWithoutComponents", API_FN_PAIR(SaveInfo_GetRetryWithoutComponents) },
+        { "RestoredSaveInfo::set_RetryWithoutComponents", API_FN_PAIR(SaveInfo_SetRetryWithoutComponents) },
         { "RestoredSaveInfo::get_Result",               API_FN_PAIR(SaveInfo_GetResult) },
         { "RestoredSaveInfo::get_EngineVersion",        API_FN_PAIR(SaveInfo_GetEngineVersion) },
         { "RestoredSaveInfo::get_AudioClipTypeCount",   API_FN_PAIR(SaveInfo_GetAudioClipTypeCount) },

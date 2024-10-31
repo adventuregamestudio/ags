@@ -3360,6 +3360,7 @@ enum RestoredSaveResult
 managed struct RestoredSaveInfo
 {
   import attribute bool Cancel;
+  import attribute SaveComponentSelection RetryWithoutComponents;
   import readonly attribute RestoredSaveResult Result;
   import readonly attribute String EngineVersion;
   import readonly attribute int AudioClipTypeCount;

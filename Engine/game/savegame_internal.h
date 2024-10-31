@@ -103,6 +103,7 @@ struct SaveRestoreResult
     // save validation fails after restoring full save
     // NOTE: may expand this to a vector if desired to record ALL mismatches.
     String FirstMismatchError;
+    SaveRestoreFeedback Feedback;
 };
 
 // SaveRestoredDataCounts contains numbers of different types of data

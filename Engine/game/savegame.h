@@ -82,9 +82,6 @@ enum SavegameErrorType
     kSvgErr_InconsistentFormat,
     kSvgErr_UnsupportedComponentVersion,
     kSvgErr_GameContentAssertion,
-    // Game content assertion failed, but we're allowed to retry
-    // after clearing game data to defaults
-    kSvgErr_GameContentAssert_RequireClearReload,
     kSvgErr_InconsistentData,
     kSvgErr_InconsistentPlugin,
     kSvgErr_DifferentColorDepth,
@@ -206,6 +203,26 @@ enum SaveCmpSelection
         | kSaveCmp_Plugins
 };
 
+struct RestoreGameStateOptions
+{
+    SavegameVersion SaveVersion = kSvgVersion_Undefined;
+    String          EngineVersion;
+    SaveCmpSelection SelectedComponents = kSaveCmp_All;
+    bool            IsGameClear = false;
+
+    RestoreGameStateOptions() = default;
+    RestoreGameStateOptions(SavegameVersion svg_ver, const String &eng_ver, SaveCmpSelection select_cmp, bool game_clear)
+        : SaveVersion(svg_ver), EngineVersion(eng_ver), SelectedComponents(select_cmp), IsGameClear(game_clear) {}
+};
+
+// SaveRestoreFeedback - provide an optional instruction to the engine
+// after trying to restore a save.
+struct SaveRestoreFeedback
+{
+    bool             RetryWithClearGame = false;
+    SaveCmpSelection RetryWithoutComponents = kSaveCmp_None;
+};
+
 
 // Opens savegame for reading; optionally reads description, if any is provided
 HSaveError     OpenSavegame(const String &filename, SavegameSource &src,
@@ -214,7 +231,7 @@ HSaveError     OpenSavegame(const String &filename, SavegameSource &src,
 HSaveError     OpenSavegame(const String &filename, SavegameDescription &desc, SavegameDescElem elems = kSvgDesc_All);
 // Reads the game data from the save stream and reinitializes game state;
 // is_game_clear - tells whether the game is in clean default state
-HSaveError     RestoreGameState(Stream *in, SavegameVersion svg_version, const String &engine_ver, SaveCmpSelection select_cmp, bool is_game_clear);
+HSaveError     RestoreGameState(Stream *in, const RestoreGameStateOptions &options, SaveRestoreFeedback &feedback);
 // Opens savegame for writing and puts in savegame description
 std::unique_ptr<Stream> StartSavegame(const String &filename, const String &user_text, const Bitmap *user_image);
 // Prepares game for saving state and writes game data into the save stream

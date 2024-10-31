@@ -20,21 +20,20 @@
 #include "ac/dynobj/scriptaudioclip.h"
 #include "ac/dynobj/scriptaudiochannel.h"
 #include "media/audio/ambientsound.h"
+#include "media/audio/soundclip.h"
 #include "ac/timer.h"
-
-class SOUNDCLIP;
 
 class AudioChans
 {
 public:
     // Gets a clip from the channel
-    static SOUNDCLIP *GetChannel(int index);
+    static SoundClip *GetChannel(int index);
     // Gets a clip from the channel but only if it's in playback state
-    static SOUNDCLIP *GetChannelIfPlaying(int index);
+    static SoundClip *GetChannelIfPlaying(int index);
     // Assign new clip to the channel
-    static SOUNDCLIP *SetChannel(int index, std::unique_ptr<SOUNDCLIP> clip);
+    static SoundClip *SetChannel(int index, std::unique_ptr<SoundClip> &&clip);
     // Move clip from one channel to another, clearing the first channel
-    static SOUNDCLIP *MoveChannel(int to, int from);
+    static SoundClip *MoveChannel(int to, int from);
     // Deletes any clip and frees the channel
     static void       DeleteClipOnChannel(int index);
 
@@ -53,8 +52,8 @@ void        calculate_reserved_channel_count();
 void        update_clip_default_volume(ScriptAudioClip *audioClip);
 void        start_fading_in_new_track_if_applicable(int fadeInChannel, ScriptAudioClip *newSound);
 void        stop_or_fade_out_channel(int fadeOutChannel, int fadeInChannel = -1, ScriptAudioClip *newSound = nullptr);
-SOUNDCLIP*  load_sound_clip(ScriptAudioClip *audioClip, bool repeat);
-ScriptAudioChannel* play_audio_clip_on_channel(int channel, ScriptAudioClip *clip, int priority, int repeat, int fromOffset, SOUNDCLIP *cachedClip = nullptr);
+std::unique_ptr<SoundClip> load_sound_clip(ScriptAudioClip *audioClip, bool repeat);
+ScriptAudioChannel* play_audio_clip_on_channel(int channel, ScriptAudioClip *clip, int priority, int repeat, int fromOffset, std::unique_ptr<SoundClip> &&cachedClip = nullptr);
 void        remove_clips_of_type_from_queue(int audioType);
 void        update_queued_clips_volume(int audioType, int new_vol);
 // Checks if speech voice-over is currently playing, and reapply volume drop to all other active clips
@@ -68,7 +67,7 @@ void        export_missing_audiochans();
 
 // ***** BACKWARDS COMPATIBILITY WITH OLD AUDIO SYSTEM ***** //
 int         get_old_style_number_for_sound(int sound_number);
-SOUNDCLIP * load_sound_clip_from_old_style_number(bool isMusic, int indexNumber, bool repeat);
+std::unique_ptr<SoundClip> load_sound_clip_from_old_style_number(bool isMusic, int indexNumber, bool repeat);
 
 //=============================================================================
 
@@ -79,7 +78,7 @@ void        update_ambient_sound_vol ();
 bool        is_audiotype_allowed_to_play(AudioFileType type);
 // Loads sound data referenced by audio clip item, and starts playback;
 // returns NULL on failure
-SOUNDCLIP * load_sound_and_play(ScriptAudioClip *aclip, bool repeat);
+std::unique_ptr<SoundClip> load_sound_and_play(ScriptAudioClip *aclip, bool repeat);
 void        stop_all_sound_and_music();
 void        shutdown_sound();
 int         play_sound(int val1);
@@ -110,7 +109,7 @@ void        post_new_music_check();
 int         prepare_for_new_music ();
 // Gets audio clip from legacy music number, which also may contain queue flag
 ScriptAudioClip *get_audio_clip_for_music(int mnum);
-SOUNDCLIP * load_music_from_disk(int mnum, bool doRepeat);
+std::unique_ptr<SoundClip> load_music_from_disk(int mnum, bool doRepeat);
 void        newmusic(int mnum);
 
 extern void cancel_scheduled_music_update();
@@ -122,7 +121,7 @@ extern void postpone_scheduled_music_update_by(std::chrono::milliseconds);
 extern int crossFading, crossFadeVolumePerStep, crossFadeStep;
 extern int crossFadeVolumeAtStart;
 
-extern SOUNDCLIP *cachedQueuedMusic;
+extern std::unique_ptr<SoundClip> cachedQueuedMusic;
 
 extern std::array<AmbientSound, MAX_GAME_CHANNELS> ambient;
 

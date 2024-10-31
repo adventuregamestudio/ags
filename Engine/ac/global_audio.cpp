@@ -68,7 +68,7 @@ void PlayAmbientSound (int channel, int sndnum, int vol, int x, int y) {
             // in case a normal non-ambient sound was playing, stop it too
             stop_and_destroy_channel(channel);
 
-            SOUNDCLIP *asound = aclip ? load_sound_and_play(aclip, true) : nullptr;
+            std::unique_ptr<SoundClip> asound = aclip ? load_sound_and_play(aclip, true) : nullptr;
             if (asound == nullptr) {
                 debug_script_warn ("Cannot load ambient sound %d", sndnum);
                 debug_script_log("FAILED to load ambient sound %d", sndnum);
@@ -78,7 +78,7 @@ void PlayAmbientSound (int channel, int sndnum, int vol, int x, int y) {
             debug_script_log("Playing ambient sound %d on channel %d", sndnum, channel);
             ambient[channel].channel = channel;
             asound->priority = 15;  // ambient sound higher priority than normal sfx
-            AudioChans::SetChannel(channel, std::unique_ptr<SOUNDCLIP>(asound));
+            AudioChans::SetChannel(channel, std::move(asound));
     }
     // calculate the maximum distance away the player can be, using X
     // only (since X centred is still more-or-less total Y)
@@ -144,7 +144,7 @@ int PlaySoundEx(int val1, int channel) {
     stop_and_destroy_channel (channel);
     debug_script_log("Playing sound %d on channel %d", val1, channel);
 
-    SOUNDCLIP *soundfx = aclip ? load_sound_and_play(aclip, false) : nullptr;
+    std::unique_ptr<SoundClip> soundfx = aclip ? load_sound_and_play(aclip, false) : nullptr;
     if (soundfx == nullptr) {
         debug_script_warn("Sound sample load failure: cannot load sound %d", val1);
         debug_script_log("FAILED to load sound %d", val1);
@@ -153,7 +153,7 @@ int PlaySoundEx(int val1, int channel) {
 
     soundfx->priority = 10;
     soundfx->set_volume255(play.sound_volume);
-    AudioChans::SetChannel(channel, std::unique_ptr<SOUNDCLIP>(soundfx));
+    AudioChans::SetChannel(channel, std::move(soundfx));
     return channel;
 }
 
@@ -368,7 +368,7 @@ void PlayMP3File (const char *filename)
 
     AssetPath asset_name(filename, "audio");
     const bool do_loop = (play.music_repeat > 0);
-    std::unique_ptr<SOUNDCLIP> clip(load_sound_clip(asset_name, "", do_loop));
+    std::unique_ptr<SoundClip> clip(load_sound_clip(asset_name, "", do_loop));
     if (!clip)
     {
         debug_script_warn("PlayMP3File: music file '%s' not found or cannot be read", filename);
@@ -398,16 +398,18 @@ void PlaySilentMIDI (int mnum) {
     if (play.IsNonBlockingVoiceSpeech())
         stop_voice_nonblocking();
 
-    SOUNDCLIP *clip = load_sound_clip_from_old_style_number(true, mnum, false);
+    std::unique_ptr<SoundClip> clip = load_sound_clip_from_old_style_number(true, mnum, false);
     if (clip == nullptr)
     {
         quitprintf("!PlaySilentMIDI: failed to load aMusic%d", mnum);
     }
-    if (clip->play()) {
-        AudioChans::SetChannel(play.silent_midi_channel, std::unique_ptr<SOUNDCLIP>(clip));
+    if (clip->play())
+    {
         clip->set_volume100(0);
-    } else {
-        delete clip;
+        AudioChans::SetChannel(play.silent_midi_channel, std::move(clip));
+    }
+    else
+    {
         quitprintf("!PlaySilentMIDI: failed to play aMusic%d", mnum);
     }
 }
@@ -499,7 +501,7 @@ static bool play_voice_clip_on_channel(const String &voice_name)
         return false;
     }
 
-    std::unique_ptr<SOUNDCLIP> voice_clip(load_sound_clip(apath, "", false));
+    std::unique_ptr<SoundClip> voice_clip(load_sound_clip(apath, "", false));
     if (voice_clip != nullptr) {
         voice_clip->set_volume255(play.speech_volume);
         if (!voice_clip->play())

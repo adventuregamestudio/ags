@@ -11,20 +11,20 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-
 #ifndef __AC_QUEUEDAUDIOITEM_H
 #define __AC_QUEUEDAUDIOITEM_H
-
-class SOUNDCLIP;
+#include <memory>
+#include "media/audio/soundclip.h"
 
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
-struct QueuedAudioItem {
+struct QueuedAudioItem
+{
     short audioClipIndex;
     short priority;
     bool  repeat;
-    SOUNDCLIP *cachedClip;
+    std::unique_ptr<SoundClip> cachedClip;
 
     void ReadFromSavegame(Common::Stream *in);
     void WriteToSavegame(Common::Stream *out) const;

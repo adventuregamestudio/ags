@@ -48,20 +48,20 @@ using namespace AGS::Engine;
 //-----------------------
 //sound channel management
 
-static std::array<std::unique_ptr<SOUNDCLIP>, TOTAL_AUDIO_CHANNELS> _channels;
+static std::array<std::unique_ptr<SoundClip>, TOTAL_AUDIO_CHANNELS> _channels;
 
-SOUNDCLIP *AudioChans::GetChannel(int index)
+SoundClip *AudioChans::GetChannel(int index)
 {
     return _channels[index].get();
 }
 
-SOUNDCLIP *AudioChans::GetChannelIfPlaying(int index)
+SoundClip *AudioChans::GetChannelIfPlaying(int index)
 {
     auto *ch = _channels[index].get();
     return (ch != nullptr && ch->is_ready()) ? ch : nullptr;
 }
 
-SOUNDCLIP *AudioChans::SetChannel(int index, std::unique_ptr<SOUNDCLIP> ch)
+SoundClip *AudioChans::SetChannel(int index, std::unique_ptr<SoundClip> &&ch)
 {
     if ((ch != nullptr) && (_channels[index] != nullptr))
         Debug::Printf(kDbgMsg_Warn, "WARNING: channel %d - clip overwritten", index);
@@ -69,7 +69,7 @@ SOUNDCLIP *AudioChans::SetChannel(int index, std::unique_ptr<SOUNDCLIP> ch)
     return _channels[index].get();
 }
 
-SOUNDCLIP *AudioChans::MoveChannel(int to, int from)
+SoundClip *AudioChans::MoveChannel(int to, int from)
 {
     return SetChannel(to, std::move(_channels[from]));
 }
@@ -229,7 +229,7 @@ bool is_audiotype_allowed_to_play(AudioFileType /*type*/)
     return usetup.audio_enabled;
 }
 
-SOUNDCLIP *load_sound_clip(ScriptAudioClip *audioClip, bool repeat)
+std::unique_ptr<SoundClip> load_sound_clip(ScriptAudioClip *audioClip, bool repeat)
 {
     if (!is_audiotype_allowed_to_play((AudioFileType)audioClip->fileType))
     {
@@ -238,7 +238,6 @@ SOUNDCLIP *load_sound_clip(ScriptAudioClip *audioClip, bool repeat)
 
     update_clip_default_volume(audioClip);
 
-    SOUNDCLIP *soundClip = nullptr;
     AssetPath asset_name = get_audio_clip_assetpath(audioClip->bundlingType, audioClip->fileName);
     const char *ext = "";
     switch (audioClip->fileType)
@@ -258,7 +257,7 @@ SOUNDCLIP *load_sound_clip(ScriptAudioClip *audioClip, bool repeat)
         quitprintf("AudioClip.Play: invalid audio file type encountered: %d", audioClip->fileType);
     }
 
-    soundClip = load_sound_clip(asset_name, ext, repeat);
+    std::unique_ptr<SoundClip> soundClip = load_sound_clip(asset_name, ext, repeat);
     if (soundClip != nullptr)
     {
         soundClip->set_volume100(audioClip->defaultVolume);
@@ -279,7 +278,7 @@ static void audio_update_polled_stuff()
 
     if (play.crossfading_out_channel > 0)
     {
-        SOUNDCLIP* ch = AudioChans::GetChannel(play.crossfading_out_channel);
+        SoundClip* ch = AudioChans::GetChannel(play.crossfading_out_channel);
         int newVolume = ch ? ch->get_volume100() - play.crossfade_out_volume_per_step : 0;
         if (newVolume > 0)
         {
@@ -297,7 +296,7 @@ static void audio_update_polled_stuff()
 
     if (play.crossfading_in_channel > 0)
     {
-        SOUNDCLIP* ch = AudioChans::GetChannel(play.crossfading_in_channel);
+        SoundClip* ch = AudioChans::GetChannel(play.crossfading_in_channel);
         int newVolume = ch ? ch->get_volume100() + play.crossfade_in_volume_per_step : 0;
         if (newVolume > play.crossfade_final_volume_in)
         {
@@ -322,15 +321,15 @@ static void audio_update_polled_stuff()
             int channel = find_free_audio_channel(clip, clip->defaultPriority, false, true);
             if (channel >= 0)
             {
-                QueuedAudioItem itemToPlay = play.new_music_queue[i];
+                QueuedAudioItem itemToPlay = std::move(play.new_music_queue[i]);
 
                 play.new_music_queue_size--;
                 for (int j = i; j < play.new_music_queue_size; j++)
                 {
-                    play.new_music_queue[j] = play.new_music_queue[j + 1];
+                    play.new_music_queue[j] = std::move(play.new_music_queue[j + 1]);
                 }
 
-                play_audio_clip_on_channel(channel, clip, itemToPlay.priority, itemToPlay.repeat, 0, itemToPlay.cachedClip);
+                play_audio_clip_on_channel(channel, clip, itemToPlay.priority, itemToPlay.repeat, 0, std::move(itemToPlay.cachedClip));
                 i--;
             }
         }
@@ -351,7 +350,7 @@ static void audio_update_polled_stuff()
 }
 
 // Applies a volume drop modifier to the clip, in accordance to its audio type
-static void apply_volume_drop_to_clip(SOUNDCLIP *clip)
+static void apply_volume_drop_to_clip(SoundClip *clip)
 {
     int audiotype = clip->sourceClipType;
     clip->apply_volume_modifier(-(game.audioClipTypes[audiotype].volume_reduction_while_speech_playing * 255 / 100));
@@ -364,18 +363,18 @@ static void queue_audio_clip_to_play(ScriptAudioClip *clip, int priority, int re
         return;
     }
 
-    SOUNDCLIP *cachedClip = load_sound_clip(clip, (repeat != 0));
+    std::unique_ptr<SoundClip> cachedClip = load_sound_clip(clip, (repeat != 0));
     if (cachedClip != nullptr) 
     {
         play.new_music_queue[play.new_music_queue_size].audioClipIndex = clip->id;
         play.new_music_queue[play.new_music_queue_size].priority = priority;
         play.new_music_queue[play.new_music_queue_size].repeat = (repeat != 0);
-        play.new_music_queue[play.new_music_queue_size].cachedClip = cachedClip;
+        play.new_music_queue[play.new_music_queue_size].cachedClip = std::move(cachedClip);
         play.new_music_queue_size++;
     }
 }
 
-ScriptAudioChannel* play_audio_clip_on_channel(int channel, ScriptAudioClip *clip, int priority, int repeat, int fromOffset, SOUNDCLIP *soundfx)
+ScriptAudioChannel* play_audio_clip_on_channel(int channel, ScriptAudioClip *clip, int priority, int repeat, int fromOffset, std::unique_ptr<SoundClip> &&soundfx)
 {
     if (soundfx == nullptr)
     {
@@ -415,7 +414,6 @@ ScriptAudioChannel* play_audio_clip_on_channel(int channel, ScriptAudioClip *cli
 
     if (soundfx->play_from(fromOffset) == 0)
     {
-        delete soundfx;
         debug_script_log("AudioClip.Play: failed to play sound file");
         return nullptr;
     }
@@ -425,9 +423,9 @@ ScriptAudioChannel* play_audio_clip_on_channel(int channel, ScriptAudioClip *cli
     // any modifiers when begin playing, therefore we must apply this only after
     // playback was started.
     if (!play.fast_forward && play.speech_has_voice)
-        apply_volume_drop_to_clip(soundfx);
+        apply_volume_drop_to_clip(soundfx.get());
 
-    AudioChans::SetChannel(channel, std::unique_ptr<SOUNDCLIP>(soundfx));
+    AudioChans::SetChannel(channel, std::move(soundfx));
     return &scrAudioChannel[channel];
 }
 
@@ -441,7 +439,7 @@ void remove_clips_of_type_from_queue(int audioType)
         {
             play.new_music_queue_size--;
             for (int bb = aa; bb < play.new_music_queue_size; bb++)
-                play.new_music_queue[bb] = play.new_music_queue[bb + 1];
+                play.new_music_queue[bb] = std::move(play.new_music_queue[bb + 1]);
             aa--;
         }
     }
@@ -452,7 +450,7 @@ void update_queued_clips_volume(int audioType, int new_vol)
     for (int i = 0; i < play.new_music_queue_size; ++i)
     {
         // NOTE: if clip is uncached, the volume will be set from defaults when it is loaded
-        SOUNDCLIP *sndclip = play.new_music_queue[i].cachedClip;
+        SoundClip *sndclip = play.new_music_queue[i].cachedClip.get();
         if (sndclip)
         {
             ScriptAudioClip *clip = &game.audioClips[play.new_music_queue[i].audioClipIndex];
@@ -558,7 +556,7 @@ int get_old_style_number_for_sound(int sound_number)
     return 0;
 }
 
-SOUNDCLIP *load_sound_clip_from_old_style_number(bool isMusic, int indexNumber, bool repeat)
+std::unique_ptr<SoundClip> load_sound_clip_from_old_style_number(bool isMusic, int indexNumber, bool repeat)
 {
     ScriptAudioClip* audioClip = GetAudioClipForOldStyleNumber(game, isMusic, indexNumber);
 
@@ -654,13 +652,14 @@ void update_ambient_sound_vol ()
     }
 }
 
-SOUNDCLIP *load_sound_and_play(ScriptAudioClip *aclip, bool repeat)
+std::unique_ptr<SoundClip> load_sound_and_play(ScriptAudioClip *aclip, bool repeat)
 {
-    SOUNDCLIP *soundfx = load_sound_clip(aclip, repeat);
-    if (!soundfx) { return nullptr; }
+    std::unique_ptr<SoundClip> soundfx = load_sound_clip(aclip, repeat);
+    if (!soundfx)
+        return nullptr;
 
-    if (soundfx->play() == 0) {
-        delete soundfx;
+    if (soundfx->play() == 0)
+    {
         return nullptr;
     }
 
@@ -752,7 +751,7 @@ int current_music_type = 0;
 // track fading out, no new track)
 int crossFading = 0, crossFadeVolumePerStep = 0, crossFadeStep = 0;
 int crossFadeVolumeAtStart = 0;
-SOUNDCLIP *cachedQueuedMusic = nullptr;
+std::unique_ptr<SoundClip> cachedQueuedMusic;
 
 //=============================================================================
 // Music update is scheduled when the voice speech stops;
@@ -785,16 +784,12 @@ void process_scheduled_music_update() {
 // end scheduled music update functions
 //=============================================================================
 
-void clear_music_cache() {
-
-    if (cachedQueuedMusic != nullptr) {
-        delete cachedQueuedMusic;
-        cachedQueuedMusic = nullptr;
-    }
-
+void clear_music_cache()
+{
+    cachedQueuedMusic = nullptr;
 }
 
-static void play_new_music(int mnum, SOUNDCLIP *music);
+static void play_new_music(int mnum, std::unique_ptr<SoundClip> &&music);
 
 void play_next_queued() {
     // check if there's a queued one to play
@@ -805,20 +800,16 @@ void play_next_queued() {
         if (tuneToPlay >= QUEUED_MUSIC_REPEAT) {
             // Loop it!
             play.music_repeat++;
-            play_new_music(tuneToPlay - QUEUED_MUSIC_REPEAT, cachedQueuedMusic);
+            play_new_music(tuneToPlay - QUEUED_MUSIC_REPEAT, std::move(cachedQueuedMusic));
             play.music_repeat--;
         }
         else {
             // Don't loop it!
             int repeatWas = play.music_repeat;
             play.music_repeat = 0;
-            play_new_music(tuneToPlay, cachedQueuedMusic);
+            play_new_music(tuneToPlay, std::move(cachedQueuedMusic));
             play.music_repeat = repeatWas;
         }
-
-        // don't free the memory, as it has been transferred onto the
-        // main music channel
-        cachedQueuedMusic = nullptr;
 
         play.music_queue_size--;
         for (int i = 0; i < play.music_queue_size; i++)
@@ -1085,14 +1076,14 @@ ScriptAudioClip *get_audio_clip_for_music(int mnum)
     return GetAudioClipForOldStyleNumber(game, true, mnum);
 }
 
-SOUNDCLIP *load_music_from_disk(int mnum, bool doRepeat) {
-
+std::unique_ptr<SoundClip> load_music_from_disk(int mnum, bool doRepeat)
+{
     if (mnum >= QUEUED_MUSIC_REPEAT) {
         mnum -= QUEUED_MUSIC_REPEAT;
         doRepeat = true;
     }
 
-    SOUNDCLIP *loaded = load_sound_clip_from_old_style_number(true, mnum, doRepeat);
+    std::unique_ptr<SoundClip> loaded = load_sound_clip_from_old_style_number(true, mnum, doRepeat);
 
     if ((loaded == nullptr) && (mnum > 0)) 
     {
@@ -1102,7 +1093,7 @@ SOUNDCLIP *load_music_from_disk(int mnum, bool doRepeat) {
     return loaded;
 }
 
-static void play_new_music(int mnum, SOUNDCLIP *music)
+static void play_new_music(int mnum, std::unique_ptr<SoundClip> &&music)
 {
     if (debug_flags & DBG_NOMUSIC)
         return;
@@ -1137,16 +1128,16 @@ static void play_new_music(int mnum, SOUNDCLIP *music)
     play.current_music_repeating = play.music_repeat;
     // now that all the previous music is unloaded, load in the new one
 
-    SOUNDCLIP *new_clip;
+    std::unique_ptr<SoundClip> new_clip;
     if (music != nullptr)
-        new_clip = music;
+        new_clip = std::move(music);
     else
         new_clip = load_music_from_disk(mnum, (play.music_repeat > 0));
 
     if (new_clip && new_clip->play())
     {
-        AudioChans::SetChannel(useChannel, std::unique_ptr<SOUNDCLIP>(new_clip));
         current_music_type = new_clip->get_sound_type();
+        AudioChans::SetChannel(useChannel, std::move(new_clip));
     }
     else
     { // previous behavior was to set channel[] to null on error, so continue to do that here.

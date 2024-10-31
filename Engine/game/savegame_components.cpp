@@ -181,19 +181,17 @@ inline bool HandleGameContentMismatch(HSaveError &err, const uint32_t new_val, c
 }
 
 // Handles save-game mismatch where save has an extra object that the game does not
-inline bool HandleExtraGameComponent(HSaveError &err, const char *content_name, const String &obj_name)
+inline bool HandleExtraGameComponent(HSaveError &err, const char *content_name, const String &obj_name, SaveRestorationFlags &restore_flags)
 {
-    err = new SavegameError(kSvgErr_GameContentAssertion,
-        String::FromFormat("Extra %s found in save that does not exist in the game: %s.", content_name, obj_name.GetCStr()));
-    return false;
+    const String error_text = String::FromFormat("Extra %s found in save that does not exist in the game: %s.", content_name, obj_name.GetCStr());
+    return HandleGameContentMismatch(err, 1, 0, error_text, restore_flags);
 }
 
 // Handles save-game mismatch where save is missing an object that the game has
-inline bool HandleMissingGameComponent(HSaveError &err, const char *content_name, const String &obj_name)
+inline bool HandleMissingGameComponent(HSaveError &err, const char *content_name, const String &obj_name, SaveRestorationFlags &restore_flags)
 {
-    err = new SavegameError(kSvgErr_GameContentAssertion,
-        String::FromFormat("Save is missing a %s that exists in the game: %s.", content_name, obj_name.GetCStr()));
-    return false;
+    const String error_text = String::FromFormat("Missing %s in save that exists in the game: %s.", content_name, obj_name.GetCStr());
+    return HandleGameContentMismatch(err, 0, 1, error_text, restore_flags);
 }
 
 // Tests a match between game's and save's data count, handles mismatch using SaveRestorationFlags
@@ -1165,8 +1163,8 @@ HSaveError ReadScriptModules(Stream *in, int32_t cmp_ver, soff_t cmp_size, const
         in->Read(&r_data.GlobalScript.Data.front(), data_len);
 
     const uint32_t modules_read = in->ReadInt32();
-    if (!AssertGameContent(err, modules_read, numScriptModules, "Script Modules", r_data.RestoreFlags, r_data.DataCounts.ScriptModules))
-        return err;
+    r_data.DataCounts.ScriptModuleDataSz.resize(pp.ScriptModuleNames.size());
+
     std::vector<bool> modules_match(pp.ScriptModuleNames.size());
     r_data.DataCounts.ScriptModules = modules_read;
     r_data.DataCounts.ScriptModuleDataSz.resize(modules_read);
@@ -1176,7 +1174,8 @@ HSaveError ReadScriptModules(Stream *in, int32_t cmp_ver, soff_t cmp_size, const
             pp.ScriptModuleNames[i] :
             StrUtil::ReadString(in);
         data_len = in->ReadInt32();
-        // Try to find existing module name and assert its presence and matching size
+
+        // Try to find existing module length and assert its presence and matching size
         uint32_t game_module_index = UINT32_MAX;
         for (size_t i = 0; i < pp.ScriptModuleNames.size(); ++i)
         {
@@ -1190,14 +1189,15 @@ HSaveError ReadScriptModules(Stream *in, int32_t cmp_ver, soff_t cmp_size, const
         if (game_module_index < UINT32_MAX)
         {
             // Found matching module in the game
-            if (!AssertGameObjectContent(err, data_len, pp.ScMdDataSize[i], "script module data", "module", i, r_data.RestoreFlags, r_data.DataCounts.ScriptModuleDataSz[i]))
+            if (!AssertGameObjectContent(err, data_len, pp.ScMdDataSize[game_module_index],
+                "script module data", module_name.GetCStr(), game_module_index, r_data.RestoreFlags, r_data.DataCounts.ScriptModuleDataSz[game_module_index]))
                 return err;
             modules_match[game_module_index] = true;
         }
         else
         {
-            // No such module in the game
-            if (!HandleExtraGameComponent(err, "script module", module_name))
+            // No such module in the game: treat this as "more data"
+            if (!HandleExtraGameComponent(err, "script module", module_name, r_data.RestoreFlags))
                 return err;
         }
 
@@ -1212,7 +1212,7 @@ HSaveError ReadScriptModules(Stream *in, int32_t cmp_ver, soff_t cmp_size, const
     for (size_t i = 0; i < modules_match.size(); ++i)
     {
         if (!modules_match[i] &&
-            !HandleMissingGameComponent(err, "script module", pp.ScriptModuleNames[i]))
+            !HandleMissingGameComponent(err, "script module", pp.ScriptModuleNames[i], r_data.RestoreFlags))
             return err;
     }
 

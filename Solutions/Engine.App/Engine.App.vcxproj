@@ -762,6 +762,7 @@
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptobject.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptoverlay.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptregion.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\scriptrestoredsaveinfo.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptset.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptstring.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptsystem.h" />

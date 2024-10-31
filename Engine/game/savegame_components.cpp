@@ -734,7 +734,7 @@ HSaveError ReadGUI(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Preserved
     // NOTE: although we read ctrl refs here, this data is discarded.
     // We'd need a proper support for reading old mismatching control arrays into new ones for this data to matter.
     std::vector<std::vector<GUIMain::ControlRef>> guictrl_refs(guis_read);
-    for (int i = 0; i < guis_read; ++i)
+    for (uint32_t i = 0; i < guis_read; ++i)
         guis[i].ReadFromSavegame(in, svg_ver, guictrl_refs[i]);
 
     r_data.DataCounts.GUIControls.resize(guis_read);
@@ -1095,7 +1095,8 @@ HSaveError ReadScriptModules(Stream *in, int32_t cmp_ver, soff_t cmp_size, const
     if (!AssertGameContent(err, modules_read, numScriptModules, "Script Modules", r_data.RestoreFlags, r_data.DataCounts.ScriptModules))
         return err;
     std::vector<bool> modules_match(pp.ScriptModuleNames.size());
-    r_data.DataCounts.ScriptDataSz.resize(modules_read);
+    r_data.DataCounts.ScriptModules = modules_read;
+    r_data.DataCounts.ScriptModuleDataSz.resize(modules_read);
     for (size_t i = 0; i < modules_read; ++i)
     {
         const String module_name = (cmp_ver < kScriptModulesSvgVersion_36200) ?
@@ -1116,7 +1117,7 @@ HSaveError ReadScriptModules(Stream *in, int32_t cmp_ver, soff_t cmp_size, const
         if (game_module_index < UINT32_MAX)
         {
             // Found matching module in the game
-            if (!AssertGameObjectContent(err, data_len, pp.ScMdDataSize[i], "script module data", "module", i, r_data.RestoreFlags, r_data.DataCounts.ScriptDataSz[i]))
+            if (!AssertGameObjectContent(err, data_len, pp.ScMdDataSize[i], "script module data", "module", i, r_data.RestoreFlags, r_data.DataCounts.ScriptModuleDataSz[i]))
                 return err;
             modules_match[game_module_index] = true;
         }
@@ -1285,6 +1286,8 @@ HSaveError ReadThisRoom(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pres
     // read the current troom state, in case they saved in temporary room
     if (!in->ReadBool())
         troom.ReadFromSavegame(in, loaded_game_file_version, (RoomStatSvgVersion)cmp_ver);
+
+    r_data.DataCounts.RoomScriptDataSz = troom.tsdatasize;
 
     return HSaveError::None();
 }

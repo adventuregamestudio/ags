@@ -3349,6 +3349,35 @@ enum SaveComponentSelection
     eSaveCmp_Plugins        = 0x00002000
 };
 
+#ifdef SCRIPT_API_v362
+enum RestoredSaveResult
+{
+  eRestoredSave_ClearData   = 0x01,
+  eRestoredSave_MissingData = 0x08,
+  eRestoredSave_ExtraData   = 0x10
+};
+
+managed struct RestoredSaveInfo
+{
+  import attribute bool Cancel;
+  import readonly attribute RestoredSaveResult Result;
+  import readonly attribute int AudioClipTypeCount;
+  import readonly attribute int CharacterCount;
+  import readonly attribute int DialogCount;
+  import readonly attribute int GUICount;
+  import readonly attribute int GUIControlCount[];
+  import readonly attribute int InventoryItemCount;
+  import readonly attribute int CursorCount;
+  import readonly attribute int ViewCount;
+  import readonly attribute int ViewLoopCount[];
+  import readonly attribute int ViewFrameCount[];
+  import readonly attribute int GlobalScriptDataSize;
+  import readonly attribute int ScriptModuleCount;
+  import readonly attribute int ScriptModuleDataSize[];
+  import readonly attribute int RoomScriptDataSize;
+};
+#endif
+
 
 
 import readonly Character *player;

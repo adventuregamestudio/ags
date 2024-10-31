@@ -34,6 +34,9 @@
 #include "ac/system.h"
 #include "ac/timer.h"
 #include "ac/dynobj/dynobj_manager.h"
+#include "ac/dynobj/cc_dynamicarray.h"
+#include "ac/dynobj/scriptuserobject.h"
+#include "ac/dynobj/scriptrestoredsaveinfo.h"
 #include "debug/debugger.h"
 #include "debug/out.h"
 #include "device/mousew32.h"
@@ -55,6 +58,7 @@
 #include "plugin/plugin_engine.h"
 #include "script/script.h"
 #include "script/cc_common.h"
+#include "script/script_runtime.h"
 #include "util/file.h"
 #include "util/memory_compat.h"
 #include "util/stream.h"
@@ -521,11 +525,31 @@ static void CopyPreservedGameOptions(GameSetupStructBase &gs, const PreservedPar
 static void ValidateDynamicSprite(int handle, IScriptObject *obj)
 {
     ScriptDynamicSprite *dspr = static_cast<ScriptDynamicSprite*>(obj);
-    if (dspr->slot < 0 || dspr->slot >= game.SpriteInfos.size() ||
+    if (dspr->slot < 0 || static_cast<uint32_t>(dspr->slot) >= game.SpriteInfos.size() ||
         !game.SpriteInfos[dspr->slot].IsDynamicSprite())
     {
         dspr->slot = -1;
     }
+}
+
+// Call a scripting event to let user validate the restored save
+static HSaveError ValidateRestoredSave(const RestoredData &r_data)
+{
+    auto *saveinfo = new ScriptRestoredSaveInfo(r_data.RestoreFlags, r_data.DataCounts,
+        (r_data.RestoreFlags & kSaveRestore_MismatchMask) != 0);
+    int handle = ccRegisterManagedObject(saveinfo, saveinfo);
+    ccAddObjectReference(handle); // add internal ref
+
+    RuntimeScriptValue params[1] = { RuntimeScriptValue().SetScriptObject(saveinfo, saveinfo) };
+    RunScriptFunctionInModules("validate_restored_save", 1, params); // TODO: run in room script too?
+
+    const bool do_cancel = saveinfo->GetCancel();
+    ccReleaseObjectReference(handle); // rem internal ref
+
+    if (do_cancel)
+        return new SavegameError(kSvgErr_GameContentAssertion);
+
+    return HSaveError::None();
 }
 
 // Final processing after successfully restoring from save
@@ -689,6 +713,13 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
         ccTraverseManagedObjects(ScriptDynamicSprite::TypeID, ValidateDynamicSprite);
     }
 
+    // After all of the game logical state is initialized and reapplied values from save,
+    // call a "validate" script callback, to let user check the restored save
+    // and make final decision: whether to continue with the game, or cancel and quit.
+    HSaveError validate_err = ValidateRestoredSave(r_data);
+    if (!validate_err)
+        return validate_err;
+
     // Run optional plugin event, reporting game restored
     pl_run_plugin_hooks(AGSE_POSTRESTOREGAME, 0);
 
@@ -737,7 +768,8 @@ HSaveError RestoreGameState(Stream *in, SavegameVersion svg_version, SaveCmpSele
     DoBeforeRestore(pp, select_cmp);
 
     // Mark the clear game data state for restoration process
-    r_data.RestoreFlags = (SaveRestorationFlags)(kSaveRestore_ClearData * is_game_clear);
+    r_data.RestoreFlags = (SaveRestorationFlags)((kSaveRestore_ClearData * is_game_clear)
+        | kSaveRestore_AllowMismatchLess); // allow less data in saves
 
     HSaveError err = SavegameComponents::ReadAll(in, svg_version, select_cmp, pp, r_data);
     if (!err)
@@ -903,5 +935,228 @@ void WritePluginSaveData(Stream *out)
     out->Seek(0, kSeekEnd);
 }
 
+//=============================================================================
+//
+// RestoredSaveInfo API
+//
+//=============================================================================
+
 } // namespace Engine
 } // namespace AGS
+
+#include "debug/debug_log.h"
+
+int SaveInfo_GetCancel(ScriptRestoredSaveInfo *info)
+{
+    return info->GetCancel();
+}
+
+void SaveInfo_SetCancel(ScriptRestoredSaveInfo *info, bool cancel)
+{
+    info->SetCancel(cancel);
+}
+
+int SaveInfo_GetResult(ScriptRestoredSaveInfo *info)
+{
+    return info->GetResult();
+}
+
+int SaveInfo_GetAudioClipTypeCount(ScriptRestoredSaveInfo *info)
+{
+    return info->GetCounts().AudioClipTypes;
+}
+
+int SaveInfo_GetCharacterCount(ScriptRestoredSaveInfo *info)
+{
+    return info->GetCounts().Characters;
+}
+
+int SaveInfo_GetDialogCount(ScriptRestoredSaveInfo *info)
+{
+    return info->GetCounts().Dialogs;
+}
+
+int SaveInfo_GetGUICount(ScriptRestoredSaveInfo *info)
+{
+    return info->GetCounts().GUIs;
+}
+
+int SaveInfo_GetGUIControlCount(ScriptRestoredSaveInfo *info, int index)
+{
+    if (index < 0 || static_cast<uint32_t>(index) >= info->GetCounts().GUIControls.size())
+    {
+        debug_script_warn("RestoredSaveInfo::GUIControlCount: index %d out of bounds (%d..%d)", index, 0, info->GetCounts().GUIs);
+        return 0;
+    }
+    return info->GetCounts().GUIControls[index];
+}
+
+int SaveInfo_GetInventoryItemCount(ScriptRestoredSaveInfo *info)
+{
+    return info->GetCounts().InventoryItems;
+}
+
+int SaveInfo_GetCursorCount(ScriptRestoredSaveInfo *info)
+{
+    return info->GetCounts().Cursors;
+}
+
+int SaveInfo_GetViewCount(ScriptRestoredSaveInfo *info)
+{
+    return info->GetCounts().Views;
+}
+
+int SaveInfo_GetViewLoopCount(ScriptRestoredSaveInfo *info, int index)
+{
+    if (index < 0 || static_cast<uint32_t>(index) >= info->GetCounts().ViewLoops.size())
+    {
+        debug_script_warn("RestoredSaveInfo::ViewLoopCount: index %d out of bounds (%d..%d)", index, 0, info->GetCounts().Views);
+        return 0;
+    }
+    return info->GetCounts().ViewLoops[index];
+}
+
+int SaveInfo_GetViewFrameCount(ScriptRestoredSaveInfo *info, int index)
+{
+    if (index < 0 || static_cast<uint32_t>(index) >= info->GetCounts().ViewFrames.size())
+    {
+        debug_script_warn("RestoredSaveInfo::ViewFrameCount: index %d out of bounds (%d..%d)", index, 0, info->GetCounts().Views);
+        return 0;
+    }
+    return info->GetCounts().ViewFrames[index];
+}
+
+int SaveInfo_GetGlobalScriptDataSize(ScriptRestoredSaveInfo *info)
+{
+    return info->GetCounts().GlobalScriptDataSz;
+}
+
+int SaveInfo_GetScriptModuleCount(ScriptRestoredSaveInfo *info)
+{
+    return info->GetCounts().ScriptModules;
+}
+
+int SaveInfo_GetScriptModuleDataSize(ScriptRestoredSaveInfo *info, int index)
+{
+    if (index < 0 || static_cast<uint32_t>(index) >= info->GetCounts().ScriptModuleDataSz.size())
+    {
+        debug_script_warn("RestoredSaveInfo::ScriptModuleDataSize: index %d out of bounds (%d..%d)", index, 0, info->GetCounts().ScriptModules);
+        return 0;
+    }
+    return info->GetCounts().ScriptModuleDataSz[index];
+}
+
+int SaveInfo_GetRoomScriptDataSize(ScriptRestoredSaveInfo *info)
+{
+    return info->GetCounts().RoomScriptDataSz;
+}
+
+RuntimeScriptValue Sc_SaveInfo_GetCancel(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptRestoredSaveInfo, SaveInfo_GetCancel);
+}
+
+RuntimeScriptValue Sc_SaveInfo_SetCancel(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PBOOL(ScriptRestoredSaveInfo, SaveInfo_SetCancel);
+}
+
+RuntimeScriptValue Sc_SaveInfo_GetResult(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptRestoredSaveInfo, SaveInfo_GetResult);
+}
+
+RuntimeScriptValue Sc_SaveInfo_GetAudioClipTypeCount(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptRestoredSaveInfo, SaveInfo_GetAudioClipTypeCount);
+}
+
+RuntimeScriptValue Sc_SaveInfo_GetCharacterCount(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptRestoredSaveInfo, SaveInfo_GetCharacterCount);
+}
+
+RuntimeScriptValue Sc_SaveInfo_GetDialogCount(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptRestoredSaveInfo, SaveInfo_GetDialogCount);
+}
+
+RuntimeScriptValue Sc_SaveInfo_GetGUICount(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptRestoredSaveInfo, SaveInfo_GetGUICount);
+}
+
+RuntimeScriptValue Sc_SaveInfo_GetGUIControlCount(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT_PINT(ScriptRestoredSaveInfo, SaveInfo_GetGUIControlCount);
+}
+
+RuntimeScriptValue Sc_SaveInfo_GetInventoryItemCount(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptRestoredSaveInfo, SaveInfo_GetInventoryItemCount);
+}
+
+RuntimeScriptValue Sc_SaveInfo_GetCursorCount(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptRestoredSaveInfo, SaveInfo_GetCursorCount);
+}
+
+RuntimeScriptValue Sc_SaveInfo_GetViewCount(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptRestoredSaveInfo, SaveInfo_GetViewCount);
+}
+
+RuntimeScriptValue Sc_SaveInfo_GetViewLoopCount(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT_PINT(ScriptRestoredSaveInfo, SaveInfo_GetViewLoopCount);
+}
+
+RuntimeScriptValue Sc_SaveInfo_GetViewFrameCount(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT_PINT(ScriptRestoredSaveInfo, SaveInfo_GetViewFrameCount);
+}
+
+RuntimeScriptValue Sc_SaveInfo_GetGlobalScriptDataSize(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptRestoredSaveInfo, SaveInfo_GetGlobalScriptDataSize);
+}
+
+RuntimeScriptValue Sc_SaveInfo_GetScriptModuleCount(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptRestoredSaveInfo, SaveInfo_GetScriptModuleCount);
+}
+
+RuntimeScriptValue Sc_SaveInfo_GetScriptModuleDataSize(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT_PINT(ScriptRestoredSaveInfo, SaveInfo_GetScriptModuleDataSize);
+}
+
+RuntimeScriptValue Sc_SaveInfo_GetRoomScriptDataSize(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptRestoredSaveInfo, SaveInfo_GetRoomScriptDataSize);
+}
+
+void RegisterSaveInfoAPI()
+{
+    ScFnRegister saveinfo_api[] = {
+        { "RestoredSaveInfo::get_Cancel",               API_FN_PAIR(SaveInfo_GetCancel) },
+        { "RestoredSaveInfo::set_Cancel",               API_FN_PAIR(SaveInfo_SetCancel) },
+        { "RestoredSaveInfo::get_Result",               API_FN_PAIR(SaveInfo_GetResult) },
+        { "RestoredSaveInfo::get_AudioClipTypeCount",   API_FN_PAIR(SaveInfo_GetAudioClipTypeCount) },
+        { "RestoredSaveInfo::get_CharacterCount",       API_FN_PAIR(SaveInfo_GetCharacterCount) },
+        { "RestoredSaveInfo::get_DialogCount",          API_FN_PAIR(SaveInfo_GetDialogCount) },
+        { "RestoredSaveInfo::get_GUICount",             API_FN_PAIR(SaveInfo_GetGUICount) },
+        { "RestoredSaveInfo::geti_GUIControlCount",     API_FN_PAIR(SaveInfo_GetGUIControlCount) },
+        { "RestoredSaveInfo::get_InventoryItemCount",   API_FN_PAIR(SaveInfo_GetInventoryItemCount) },
+        { "RestoredSaveInfo::get_CursorCount",          API_FN_PAIR(SaveInfo_GetCursorCount) },
+        { "RestoredSaveInfo::get_ViewCount",            API_FN_PAIR(SaveInfo_GetViewCount) },
+        { "RestoredSaveInfo::geti_ViewLoopCount",       API_FN_PAIR(SaveInfo_GetViewLoopCount) },
+        { "RestoredSaveInfo::geti_ViewFrameCount",      API_FN_PAIR(SaveInfo_GetViewFrameCount) },
+        { "RestoredSaveInfo::get_GlobalScriptDataSize", API_FN_PAIR(SaveInfo_GetGlobalScriptDataSize) },
+        { "RestoredSaveInfo::get_ScriptModuleCount",    API_FN_PAIR(SaveInfo_GetScriptModuleCount) },
+        { "RestoredSaveInfo::geti_ScriptModuleDataSize",API_FN_PAIR(SaveInfo_GetScriptModuleDataSize) },
+        { "RestoredSaveInfo::get_RoomScriptDataSize",   API_FN_PAIR(SaveInfo_GetRoomScriptDataSize) },
+    };
+
+    ccAddExternalFunctions(saveinfo_api);
+}

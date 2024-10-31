@@ -766,14 +766,17 @@ static SaveCmpSelection FixupCmpSelection(SaveCmpSelection select_cmp)
 HSaveError RestoreGameState(Stream *in, SavegameVersion svg_version, SaveCmpSelection select_cmp, bool is_game_clear)
 {
     select_cmp = FixupCmpSelection(select_cmp);
+    const bool has_validate_cb = DoesScriptFunctionExistInModules("validate_restored_save");
 
     PreservedParams pp;
     RestoredData r_data;
-    DoBeforeRestore(pp, select_cmp);
+    DoBeforeRestore(pp, select_cmp); // WARNING: this frees scripts and some other data
 
     // Mark the clear game data state for restoration process
-    r_data.Result.RestoreFlags = (SaveRestorationFlags)((kSaveRestore_ClearData * is_game_clear)
-        | kSaveRestore_AllowMismatchLess); // allow less data in saves
+    r_data.Result.RestoreFlags = (SaveRestorationFlags)(
+          (kSaveRestore_ClearData * is_game_clear) // tell that the game data is reset
+        | (kSaveRestore_AllowMismatchLess * has_validate_cb) // allow less data in saves
+        ); 
 
     HSaveError err = SavegameComponents::ReadAll(in, svg_version, select_cmp, pp, r_data);
     if (!err)

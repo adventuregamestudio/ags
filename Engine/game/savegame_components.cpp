@@ -721,6 +721,94 @@ HSaveError WriteGUI(Stream *out)
     return HSaveError::None();
 }
 
+// Builds a list of ranges of control indexes per type per each GUI;
+// this lets to know which ranges in global flat control arrays belong to which GUI.
+//
+// As input this takes a list of control references from GUIMain,
+//   where for each GUIMain it lists pairs of ControlType : index in its type's global array.
+//
+// As output this gives an array of per-Control-Type vectors,
+//   where each vector holds a series of ranges [first; last),
+//   telling which controls in global array belong to 0th, 1st, 2nd etc GUIMains.
+void BuildGUIControlRangeReference(const std::vector<std::vector<GUIMain::ControlRef>> &gui_ctrl_refs,
+    std::array<std::vector<std::pair<uint32_t, uint32_t>>, kGUICtrlTypeNum> &ctrlidx_per_gui)
+{
+    // Prepare index arrays for each control type
+    for (int type = kGUIButton; type < kGUICtrlTypeNum; ++type)
+    {
+        ctrlidx_per_gui[type].resize(gui_ctrl_refs.size());
+    }
+
+    // For each GUI...
+    for (size_t gui_index = 0; gui_index < gui_ctrl_refs.size(); ++gui_index)
+    {
+        // Assign the "empty" index range starting at the previous GUI controls range
+        if (gui_index > 0)
+        {
+            for (int type = kGUIButton; type < kGUICtrlTypeNum; ++type)
+                ctrlidx_per_gui[type][gui_index] = std::make_pair(
+                    ctrlidx_per_gui[type][gui_index - 1].second,
+                    ctrlidx_per_gui[type][gui_index - 1].second);
+        }
+        
+        // For each child control reference of this GUI...
+        for (const auto &ctrl_ref : gui_ctrl_refs[gui_index])
+        {
+            GUIControlType type = ctrl_ref.first;
+            uint32_t index = static_cast<uint32_t>(ctrl_ref.second);
+            ctrlidx_per_gui[type][gui_index].second = std::max(index + 1, ctrlidx_per_gui[type][gui_index].second);
+        }
+    }
+}
+
+// Moves gui controls from source array to dest array, in portions, belonging to matching GUIMains,
+// using their ranges per GUI as a reference. The copied amount per GUI is min of controls in old GUI and new GUI.
+template <typename TGUIControl>
+void MoveGUIControlArray(const std::vector<TGUIControl> &src_arr, std::vector<TGUIControl> &dest_arr,
+    const std::vector<std::pair<uint32_t, uint32_t>> &ctrlidx_per_gui_src,
+    const std::vector<std::pair<uint32_t, uint32_t>> &ctrlidx_per_gui_dst)
+{
+    for (size_t cur_gui = 0; cur_gui < ctrlidx_per_gui_src.size() && cur_gui < ctrlidx_per_gui_dst.size(); ++cur_gui)
+    {
+        for (size_t src_idx = ctrlidx_per_gui_src[cur_gui].first, dst_idx = ctrlidx_per_gui_dst[cur_gui].first;
+                src_idx < ctrlidx_per_gui_src[cur_gui].second &&
+                src_idx < src_arr.size() &&
+                dst_idx < ctrlidx_per_gui_dst[cur_gui].second &&
+                dst_idx < dest_arr.size();
+            ++src_idx, ++dst_idx)
+        {
+            dest_arr[dst_idx] = std::move(src_arr[src_idx]);
+        }
+    }
+}
+
+template <typename TGUIControl>
+bool ReadGUIControlArray(std::vector<TGUIControl> &obj_arr, Stream *in, GuiSvgVersion svg_ver,
+    HSaveError &err, const char *tag, const char *friendly_name, RestoredData& r_data,
+    const std::vector<std::pair<uint32_t, uint32_t>> &ctrlidx_per_gui_old,
+    const std::vector<std::pair<uint32_t, uint32_t>> &ctrlidx_per_gui_new)
+{
+    if (!AssertFormatTagStrict(err, in, tag))
+        return false;
+    const uint32_t guiobj_read_count = in->ReadInt32();
+    if (!AssertGameContent(err, guiobj_read_count, obj_arr.size(), friendly_name, r_data.RestoreFlags, r_data.DataCounts.Dummy))
+        return false;
+
+    // We read and apply controls in a 3-step way:
+    // 1. Copy game's controls into the temporary array, size equal to number of elements in save.
+    // 2. Read save data into controls in temporary array.
+    // 3. Copy controls from temporary array back to game's array.
+    //
+    // Why: because not all fields are written in saves, so we first copy full fields to temp array,
+    // then read dynamic fields only from a save into temp array; keep persistent fields this way.
+    std::vector<TGUIControl> guiobj_read(guiobj_read_count);
+    MoveGUIControlArray<TGUIControl>(obj_arr, guiobj_read, ctrlidx_per_gui_new, ctrlidx_per_gui_old);
+    for (uint32_t i = 0; i < guiobj_read_count; ++i)
+        guiobj_read[i].ReadFromSavegame(in, svg_ver);
+    MoveGUIControlArray<TGUIControl>(guiobj_read, obj_arr, ctrlidx_per_gui_old, ctrlidx_per_gui_new);
+    return true;
+}
+
 HSaveError ReadGUI(Stream *in, int32_t cmp_ver, soff_t cmp_size, const PreservedParams& /*pp*/, RestoredData& r_data)
 {
     HSaveError err;
@@ -731,61 +819,46 @@ HSaveError ReadGUI(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Preserved
     const uint32_t guis_read = in->ReadInt32();
     if (!AssertGameContent(err, guis_read, game.numgui, "GUIs", r_data.RestoreFlags, r_data.DataCounts.GUIs))
         return err;
-    // NOTE: although we read ctrl refs here, this data is discarded.
-    // We'd need a proper support for reading old mismatching control arrays into new ones for this data to matter.
-    std::vector<std::vector<GUIMain::ControlRef>> guictrl_refs(guis_read);
+    std::vector<std::vector<GUIMain::ControlRef>> guictrl_refs_old(guis_read);
     for (uint32_t i = 0; i < guis_read; ++i)
-        guis[i].ReadFromSavegame(in, svg_ver, guictrl_refs[i]);
+        guis[i].ReadFromSavegame(in, svg_ver, guictrl_refs_old[i]);
 
     r_data.DataCounts.GUIControls.resize(guis_read);
 
-    if (!AssertFormatTagStrict(err, in, "GUIButtons"))
-        return err;
-    const uint32_t guibuts_read = in->ReadInt32();
-    if (!AssertGameContent(err, guibuts_read, guibuts.size(), "GUI Buttons", r_data.RestoreFlags, r_data.DataCounts.Dummy))
-        return err;
-    for (uint32_t i = 0; i < guibuts_read; ++i)
-        guibuts[i].ReadFromSavegame(in, svg_ver);
+    // Build a reference of the range of control indexes per type per each GUI;
+    // this lets us know which range of elements in control arrays belong to which GUI.
+    // old refs are read from the save, new refs are from the current game data
+    std::vector<std::vector<GUIMain::ControlRef>> guictrl_refs_new;
+    for (const auto &gui : guis)
+        guictrl_refs_new.push_back(gui.GetControlRefs());
+    std::array<std::vector<std::pair<uint32_t, uint32_t>>, kGUICtrlTypeNum> ctrlidx_per_gui_new;
+    std::array<std::vector<std::pair<uint32_t, uint32_t>>, kGUICtrlTypeNum> ctrlidx_per_gui_old;
+    BuildGUIControlRangeReference(guictrl_refs_new, ctrlidx_per_gui_new);
+    BuildGUIControlRangeReference(guictrl_refs_old, ctrlidx_per_gui_old);
 
-    if (!AssertFormatTagStrict(err, in, "GUILabels"))
+    if (!ReadGUIControlArray(guibuts, in, svg_ver, err, "GUIButtons", "GUI Buttons", r_data,
+            ctrlidx_per_gui_old[kGUIButton], ctrlidx_per_gui_new[kGUIButton]))
         return err;
-    const uint32_t guilabels_read = in->ReadInt32();
-    if (!AssertGameContent(err, guilabels_read, guilabels.size(), "GUI Labels", r_data.RestoreFlags, r_data.DataCounts.Dummy))
-        return err;
-    for (uint32_t i = 0; i < guilabels_read; ++i)
-        guilabels[i].ReadFromSavegame(in, svg_ver);
 
-    if (!AssertFormatTagStrict(err, in, "GUIInvWindows"))
+    if (!ReadGUIControlArray(guilabels, in, svg_ver, err, "GUILabels", "GUI Labels", r_data,
+            ctrlidx_per_gui_old[kGUILabel], ctrlidx_per_gui_new[kGUILabel]))
         return err;
-    const uint32_t guiinv_read = in->ReadInt32();
-    if (!AssertGameContent(err, guiinv_read, guiinv.size(), "GUI InvWindows", r_data.RestoreFlags, r_data.DataCounts.Dummy))
-        return err;
-    for (uint32_t i = 0; i < guiinv_read; ++i)
-        guiinv[i].ReadFromSavegame(in, svg_ver);
 
-    if (!AssertFormatTagStrict(err, in, "GUISliders"))
+    if (!ReadGUIControlArray(guiinv, in, svg_ver, err, "GUIInvWindows", "GUI InvWindows", r_data,
+            ctrlidx_per_gui_old[kGUIInvWindow], ctrlidx_per_gui_new[kGUIInvWindow]))
         return err;
-    const uint32_t guisliders_read = in->ReadInt32();
-    if (!AssertGameContent(err, guisliders_read, guislider.size(), "GUI Sliders", r_data.RestoreFlags, r_data.DataCounts.Dummy))
-        return err;
-    for (uint32_t i = 0; i < guisliders_read; ++i)
-        guislider[i].ReadFromSavegame(in, svg_ver);
 
-    if (!AssertFormatTagStrict(err, in, "GUITextBoxes"))
+    if (!ReadGUIControlArray(guislider, in, svg_ver, err, "GUISliders", "GUI Sliders", r_data,
+            ctrlidx_per_gui_old[kGUISlider], ctrlidx_per_gui_new[kGUISlider]))
         return err;
-    const uint32_t guitextboxes_read = in->ReadInt32();
-    if (!AssertGameContent(err, guitextboxes_read, guitext.size(), "GUI TextBoxes", r_data.RestoreFlags, r_data.DataCounts.Dummy))
-        return err;
-    for (uint32_t i = 0; i < guitextboxes_read; ++i)
-        guitext[i].ReadFromSavegame(in, svg_ver);
 
-    if (!AssertFormatTagStrict(err, in, "GUIListBoxes"))
+    if (!ReadGUIControlArray(guitext, in, svg_ver, err, "GUITextBoxes", "GUI TextBoxes", r_data,
+            ctrlidx_per_gui_old[kGUITextBox], ctrlidx_per_gui_new[kGUITextBox]))
         return err;
-    const uint32_t guilistboxes_read = in->ReadInt32();
-    if (!AssertGameContent(err, guilistboxes_read, guilist.size(), "GUI ListBoxes", r_data.RestoreFlags, r_data.DataCounts.Dummy))
+
+    if (!ReadGUIControlArray(guilist, in, svg_ver, err, "GUIListBoxes", "GUI ListBoxes", r_data,
+            ctrlidx_per_gui_old[kGUIListBox], ctrlidx_per_gui_new[kGUIListBox]))
         return err;
-    for (uint32_t i = 0; i < guilistboxes_read; ++i)
-        guilist[i].ReadFromSavegame(in, svg_ver);
 
     // Animated buttons
     if (!AssertFormatTagStrict(err, in, "AnimatedButtons"))

@@ -588,6 +588,10 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
         dynamicallyCreatedSurfaces[i] = std::move(r_data.DynamicSurfaces[i]);
     }
 
+    // Rebuild GUI links to child controls
+    GUIRefCollection guictrl_refs(guibuts, guiinv, guilabels, guilist, guislider, guitext);
+    GUI::RebuildGUI(guis, guictrl_refs);
+
     // Re-export any missing audio channel script objects, e.g. if restoring old save
     export_missing_audiochans();
 

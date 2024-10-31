@@ -94,6 +94,17 @@ enum SaveRestorationFlags
                                     | kSaveRestore_ExtraDataInSave
 };
 
+// SaveRestoreResult records allowances for the save restoration
+// and the general result of the restoration process
+struct SaveRestoreResult
+{
+    SaveRestorationFlags RestoreFlags = kSaveRestore_Default;
+    // Recorded first data mismatch error, this will be reported if
+    // save validation fails after restoring full save
+    // NOTE: may expand this to a vector if desired to record ALL mismatches.
+    String FirstMismatchError;
+};
+
 // SaveRestoredDataCounts contains numbers of different types of data
 // found in the save file. This information may be passed to the game script,
 // letting it detect whether save is applicable to the current game version.
@@ -120,7 +131,7 @@ struct SaveRestoredDataCounts
 // the restoration process
 struct RestoredData
 {
-    SaveRestorationFlags    RestoreFlags = kSaveRestore_Default;
+    SaveRestoreResult       Result;
     SaveRestoredDataCounts  DataCounts;
 
     int                     FPS;

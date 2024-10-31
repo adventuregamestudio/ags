@@ -535,8 +535,8 @@ static void ValidateDynamicSprite(int handle, IScriptObject *obj)
 // Call a scripting event to let user validate the restored save
 static HSaveError ValidateRestoredSave(const RestoredData &r_data)
 {
-    auto *saveinfo = new ScriptRestoredSaveInfo(r_data.RestoreFlags, r_data.DataCounts,
-        (r_data.RestoreFlags & kSaveRestore_MismatchMask) != 0);
+    auto *saveinfo = new ScriptRestoredSaveInfo(r_data.Result.RestoreFlags, r_data.DataCounts,
+        (r_data.Result.RestoreFlags & kSaveRestore_MismatchMask) != 0);
     int handle = ccRegisterManagedObject(saveinfo, saveinfo);
     ccAddObjectReference(handle); // add internal ref
 
@@ -547,7 +547,7 @@ static HSaveError ValidateRestoredSave(const RestoredData &r_data)
     ccReleaseObjectReference(handle); // rem internal ref
 
     if (do_cancel)
-        return new SavegameError(kSvgErr_GameContentAssertion);
+        return new SavegameError(kSvgErr_GameContentAssertion, r_data.Result.FirstMismatchError);
 
     return HSaveError::None();
 }
@@ -772,7 +772,7 @@ HSaveError RestoreGameState(Stream *in, SavegameVersion svg_version, SaveCmpSele
     DoBeforeRestore(pp, select_cmp);
 
     // Mark the clear game data state for restoration process
-    r_data.RestoreFlags = (SaveRestorationFlags)((kSaveRestore_ClearData * is_game_clear)
+    r_data.Result.RestoreFlags = (SaveRestorationFlags)((kSaveRestore_ClearData * is_game_clear)
         | kSaveRestore_AllowMismatchLess); // allow less data in saves
 
     HSaveError err = SavegameComponents::ReadAll(in, svg_version, select_cmp, pp, r_data);

@@ -1043,7 +1043,7 @@ bool test_game_guid(const String &filepath, const String &guid, int legacy_id)
     return legacy_id == g.uniqueid;
 }
 
-HSaveError load_game(const String &path, int slotNumber, bool &data_overwritten)
+HSaveError load_game(const String &path, int slotNumber, bool startup, bool &data_overwritten)
 {
     data_overwritten = false;
     gameHasBeenRestored++;
@@ -1097,15 +1097,33 @@ HSaveError load_game(const String &path, int slotNumber, bool &data_overwritten)
             path.GetCStr(), desc.MainDataFilename.GetCStr(), desc.GameTitle.GetCStr());
     }
 
-    // do the actual restore
+    // Do the actual game state restore
     err = RestoreGameState(src.InputStream.get(), src.Version,
-        (SaveCmpSelection)(kSaveCmp_All & ~(game.options[OPT_SAVECOMPONENTSIGNORE] & kSaveCmp_ScriptIgnoreMask)));
-    data_overwritten = true;
-    if (!err)
-        return err;
+        (SaveCmpSelection)(kSaveCmp_All & ~(game.options[OPT_SAVECOMPONENTSIGNORE] & kSaveCmp_ScriptIgnoreMask)),
+        startup);
     src.InputStream.reset();
-    set_our_eip(oldeip);
+    data_overwritten = true;
 
+    // Handle restoration error
+    if (!err)
+    {
+        // We must detect a case when the save contains less data and requires
+        // a clean game reset before trying to restore again
+        // FIXME: following is quite a bogus way to do so, review this later
+        HError first_error = (PError)err;
+        for (; first_error->InnerError(); first_error = first_error->InnerError());
+        if (first_error->Code() == kSvgErr_GameContentAssert_RequireClearReload)
+        {
+            // Schedule same game file re-run and save restore
+            RunAGSGame(ResPaths.GamePak.Path, 0, 0);
+            load_new_game_restore = slotNumber;
+            return HSaveError::None();
+        }
+        // Else bail out with error
+        return err;
+    }
+
+    set_our_eip(oldeip);
     // ensure input state is reset
     ags_clear_input_state();
     // call "After Restore" event callback
@@ -1113,16 +1131,16 @@ HSaveError load_game(const String &path, int slotNumber, bool &data_overwritten)
     return HSaveError::None();
 }
 
-bool try_restore_save(int slot)
+bool try_restore_save(int slot, bool startup)
 {
-    return try_restore_save(get_save_game_path(slot), slot);
+    return try_restore_save(get_save_game_path(slot), slot, startup);
 }
 
-bool try_restore_save(const Common::String &path, int slot)
+bool try_restore_save(const Common::String &path, int slot, bool startup)
 {
     bool data_overwritten;
     Debug::Printf(kDbgMsg_Info, "Restoring saved game '%s'", path.GetCStr());
-    HSaveError err = load_game(path, slot, data_overwritten);
+    HSaveError err = load_game(path, slot, startup, data_overwritten);
     if (!err)
     {
         String error = String::FromFormat("Unable to restore the saved game.\n%s",

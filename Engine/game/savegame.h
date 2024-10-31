@@ -82,6 +82,9 @@ enum SavegameErrorType
     kSvgErr_InconsistentFormat,
     kSvgErr_UnsupportedComponentVersion,
     kSvgErr_GameContentAssertion,
+    // Game content assertion failed, but we're allowed to retry
+    // after clearing game data to defaults
+    kSvgErr_GameContentAssert_RequireClearReload,
     kSvgErr_InconsistentData,
     kSvgErr_InconsistentPlugin,
     kSvgErr_DifferentColorDepth,
@@ -209,8 +212,9 @@ HSaveError     OpenSavegame(const String &filename, SavegameSource &src,
                             SavegameDescription &desc, SavegameDescElem elems = kSvgDesc_All);
 // Opens savegame and reads the savegame description
 HSaveError     OpenSavegame(const String &filename, SavegameDescription &desc, SavegameDescElem elems = kSvgDesc_All);
-// Reads the game data from the save stream and reinitializes game state
-HSaveError     RestoreGameState(Stream *in, SavegameVersion svg_version, SaveCmpSelection select_cmp);
+// Reads the game data from the save stream and reinitializes game state;
+// is_game_clear - tells whether the game is in clean default state
+HSaveError     RestoreGameState(Stream *in, SavegameVersion svg_version, SaveCmpSelection select_cmp, bool is_game_clear);
 // Opens savegame for writing and puts in savegame description
 std::unique_ptr<Stream> StartSavegame(const String &filename, const String &user_text, const Bitmap *user_image);
 // Prepares game for saving state and writes game data into the save stream

@@ -71,14 +71,23 @@ namespace Engine
 namespace SavegameComponents
 {
 
+//-----------------------------------------------------------------------------
+//
+// Helper assertion functions.
+//
+//-----------------------------------------------------------------------------
+
+// Tag used to mark the beginning of a save component list
 const String ComponentListTag = "Components";
 
+// Writes a opening or closing tag for a save component
 void WriteFormatTag(Stream *out, const String &tag, bool open = true)
 {
     String full_tag = String::FromFormat(open ? "<%s>" : "</%s>", tag.GetCStr());
     out->Write(full_tag.GetCStr(), full_tag.GetLength());
 }
 
+// Reads a opening or closing save component tag and asserts its format
 bool ReadFormatTag(Stream *in, String &tag, bool open = true)
 {
     if (in->ReadByte() != '<')
@@ -96,6 +105,7 @@ bool ReadFormatTag(Stream *in, String &tag, bool open = true)
     return false; // reached EOS before closing symbol
 }
 
+// Reads a component tag and asserts that it matches expected name
 bool AssertFormatTag(Stream *in, const String &tag, bool open = true)
 {
     String read_tag;
@@ -104,9 +114,9 @@ bool AssertFormatTag(Stream *in, const String &tag, bool open = true)
     return read_tag.Compare(tag) == 0;
 }
 
+// Reads a component tag and asserts that it matches expected name; formats error message on failure
 bool AssertFormatTagStrict(HSaveError &err, Stream *in, const String &tag, bool open = true)
 {
-    
     String read_tag;
     if (!ReadFormatTag(in, read_tag, open) || read_tag.Compare(tag) != 0)
     {
@@ -117,6 +127,7 @@ bool AssertFormatTagStrict(HSaveError &err, Stream *in, const String &tag, bool 
     return true;
 }
 
+// Asserts that the read data count does not exceed engine capabilities
 inline bool AssertCompatLimit(HSaveError &err, int count, int max_count, const char *content_name)
 {
     if (count > max_count)
@@ -129,6 +140,7 @@ inline bool AssertCompatLimit(HSaveError &err, int count, int max_count, const c
     return true;
 }
 
+// Asserts that the read data range does not exceed engine capabilities
 inline bool AssertCompatRange(HSaveError &err, int value, int min_value, int max_value, const char *content_name)
 {
     if (value < min_value || value > max_value)
@@ -137,6 +149,33 @@ inline bool AssertCompatRange(HSaveError &err, int value, int min_value, int max
             String::FromFormat("Restore game error: incompatible %s (id: %d, range: %d - %d).",
             content_name, value, min_value, max_value));
         return false;
+    }
+    return true;
+}
+
+// Handles save-game mismatch; chosen action depends on SaveRestorationFlags
+inline bool HandleGameContentMismatch(HSaveError &err, const uint32_t new_val, const uint32_t original_val,
+    const String &error_text, SaveRestorationFlags &restore_flags)
+{
+    if (((new_val > original_val) && (restore_flags & kSaveRestore_AllowMismatchExtra) == 0) ||
+        ((new_val < original_val) && (restore_flags & kSaveRestore_AllowMismatchLess) == 0))
+    {
+        err = new SavegameError(kSvgErr_GameContentAssertion, error_text);
+        return false; // numbers mismatch, and not allowed to, fail
+    }
+    Debug::Printf(kDbgMsg_Warn, "Restored save mismatches game: %s", error_text.GetCStr());
+    if (new_val > original_val)
+    {
+        restore_flags = (SaveRestorationFlags)(restore_flags | kSaveRestore_ExtraDataInSave);
+    }
+    else
+    {
+        restore_flags = (SaveRestorationFlags)(restore_flags | kSaveRestore_MissingDataInSave);
+        if ((restore_flags & kSaveRestore_ClearData) == 0)
+        {
+            err = new SavegameError(kSvgErr_GameContentAssert_RequireClearReload);
+            return false; // mismatch is allowed, but we require a clear game data to proceed
+        }
     }
     return true;
 }
@@ -157,44 +196,60 @@ inline bool HandleMissingGameComponent(HSaveError &err, const char *content_name
     return false;
 }
 
-inline bool AssertGameContent(HSaveError &err, int new_val, int original_val, const char *content_name)
+// Tests a match between game's and save's data count, handles mismatch using SaveRestorationFlags
+inline bool AssertGameContent(HSaveError &err, const uint32_t new_val, const uint32_t original_val, const char *content_name,
+    SaveRestorationFlags &restore_flags, uint32_t &record_count)
 {
-    if (new_val != original_val)
-    {
-        err = new SavegameError(kSvgErr_GameContentAssertion,
-            String::FromFormat("Mismatching number of %s (game: %d, save: %d).",
-            content_name, original_val, new_val));
-        return false;
-    }
-    return true;
+    record_count = new_val;
+    if (new_val == original_val)
+        return true; // numbers match, success
+
+    const String error_text = String::FromFormat("Mismatching number of %s (game: %u, save: %u).",
+        content_name, original_val, new_val);
+    return HandleGameContentMismatch(err, new_val, original_val, error_text, restore_flags);
 }
 
-inline bool AssertGameObjectContent(HSaveError &err, int new_val, int original_val, const char *content_name,
-                                    const char *obj_type, int obj_id)
+// Tests a match between game's and save's data count, uses default mismatch handling (always error)
+inline bool AssertGameContent(HSaveError &err, const uint32_t new_val, const uint32_t original_val, const char *content_name)
 {
-    if (new_val != original_val)
-    {
-        err = new SavegameError(kSvgErr_GameContentAssertion,
-            String::FromFormat("Mismatching number of %s, %s #%d (game: %d, save: %d).",
-            content_name, obj_type, obj_id, original_val, new_val));
-        return false;
-    }
-    return true;
+    SaveRestorationFlags dummy_flags;
+    uint32_t dummy_count;
+    return AssertGameContent(err, new_val, original_val, content_name, dummy_flags, dummy_count);
 }
 
-inline bool AssertGameObjectContent2(HSaveError &err, int new_val, int original_val, const char *content_name,
-                                    const char *obj1_type, int obj1_id, const char *obj2_type, int obj2_id)
+// Tests a match between game's and save's data count, handles mismatch using SaveRestorationFlags
+inline bool AssertGameObjectContent(HSaveError &err, const uint32_t new_val, const uint32_t original_val, const char *content_name,
+                                    const char *obj_type, const uint32_t obj_id,
+                                    SaveRestorationFlags &restore_flags, uint32_t &record_count)
 {
-    if (new_val != original_val)
-    {
-        err = new SavegameError(kSvgErr_GameContentAssertion,
-            String::FromFormat("Mismatching number of %s, %s #%d, %s #%d (game: %d, save: %d).",
-            content_name, obj1_type, obj1_id, obj2_type, obj2_id, original_val, new_val));
-        return false;
-    }
-    return true;
+    record_count = new_val;
+    if (new_val == original_val)
+        return true; // numbers match, success
+
+    const String error_text = String::FromFormat("Mismatching number of %s, %s #%u (game: %u, save: %u).",
+        content_name, obj_type, obj_id, original_val, new_val);
+    return HandleGameContentMismatch(err, new_val, original_val, error_text, restore_flags);
 }
 
+// Tests a match between game's and save's data count, handles mismatch using SaveRestorationFlags
+inline bool AssertGameObjectContent2(HSaveError &err, const uint32_t new_val, const uint32_t original_val, const char *content_name,
+                                    const char *obj1_type, const uint32_t obj1_id, const char *obj2_type, const uint32_t obj2_id,
+                                    SaveRestorationFlags &restore_flags, uint32_t &record_count)
+{
+    record_count = new_val;
+    if (new_val == original_val)
+        return true; // numbers match, success
+
+    const String error_text = String::FromFormat("Mismatching number of %s, %s #%u, %s #%u (game: %u, save: %u).",
+        content_name, obj1_type, obj1_id, obj2_type, obj2_id, original_val, new_val);
+    return HandleGameContentMismatch(err, new_val, original_val, error_text, restore_flags);
+}
+
+//-----------------------------------------------------------------------------
+//
+// Save components writers and readers.
+//
+//-----------------------------------------------------------------------------
 
 void WriteCameraState(const Camera &cam, Stream *out)
 {
@@ -326,7 +381,8 @@ HSaveError ReadGameState(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pre
 
     if (loaded_game_file_version <= kGameVersion_272)
     {
-        // Legacy interaction global variables
+        // Legacy interaction global variables;
+        // NOTE: we do not support save mismatch for 2.72 content
         if (!AssertGameContent(err, in->ReadInt32(), game.numIntrVars, "Global Variables"))
             return err;
         for (int i = 0; i < game.numIntrVars; ++i)
@@ -441,8 +497,10 @@ HSaveError ReadAudio(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Preserv
 {
     HSaveError err;
     // Game content assertion
-    if (!AssertGameContent(err, in->ReadInt32(), game.audioClipTypes.size(), "Audio Clip Types"))
+    const uint32_t audiocliptype_read = in->ReadInt32();
+    if (!AssertGameContent(err, audiocliptype_read, game.audioClipTypes.size(), "Audio Clip Types", r_data.RestoreFlags, r_data.DataCounts.AudioClipTypes))
         return err;
+
     int total_channels, max_game_channels;
     if (cmp_ver >= kAudioSvgVersion_36009)
     {
@@ -461,13 +519,13 @@ HSaveError ReadAudio(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Preserv
     }
 
     // Audio types
-    for (size_t i = 0; i < game.audioClipTypes.size(); ++i)
+    for (uint32_t i = 0; i < audiocliptype_read; ++i)
     {
         game.audioClipTypes[i].ReadFromSavegame(in);
         play.default_audio_type_volumes[i] = in->ReadInt32();
     }
 
-    // Audio clips and crossfade
+    // Active playbacks and crossfade
     for (int i = 0; i < total_channels; ++i)
     {
         RestoredData::ChannelInfo &chan_info = r_data.AudioChans[i];
@@ -501,7 +559,7 @@ HSaveError ReadAudio(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Preserv
     // preserve legacy music type setting
     current_music_type = in->ReadInt32();
     
-    // Ambient sound
+    // Ambient sound (legacy feature)
     for (int i = 0; i < max_game_channels; ++i)
         ambient[i].ReadFromFile(in);
     for (int i = NUM_SPEECH_CHANS; i < max_game_channels; ++i)
@@ -567,12 +625,14 @@ HSaveError WriteCharacters(Stream *out)
     return HSaveError::None();
 }
 
-HSaveError ReadCharacters(Stream *in, int32_t cmp_ver, soff_t cmp_size, const PreservedParams& /*pp*/, RestoredData& /*r_data*/)
+HSaveError ReadCharacters(Stream *in, int32_t cmp_ver, soff_t cmp_size, const PreservedParams& /*pp*/, RestoredData& r_data)
 {
     HSaveError err;
-    if (!AssertGameContent(err, in->ReadInt32(), game.numcharacters, "Characters"))
+    const uint32_t characters_read = in->ReadInt32();
+    if (!AssertGameContent(err, characters_read, game.numcharacters, "Characters", r_data.RestoreFlags, r_data.DataCounts.Characters))
         return err;
-    for (int i = 0; i < game.numcharacters; ++i)
+
+    for (uint32_t i = 0; i < characters_read; ++i)
     {
         game.chars[i].ReadFromSavegame(in, game.chars2[i], static_cast<CharacterSvgVersion>(cmp_ver));
         charextra[i].ReadFromSavegame(in, static_cast<CharacterSvgVersion>(cmp_ver));
@@ -600,12 +660,14 @@ HSaveError WriteDialogs(Stream *out)
     return HSaveError::None();
 }
 
-HSaveError ReadDialogs(Stream *in, int32_t /*cmp_ver*/, soff_t cmp_size, const PreservedParams& /*pp*/, RestoredData& /*r_data*/)
+HSaveError ReadDialogs(Stream *in, int32_t /*cmp_ver*/, soff_t cmp_size, const PreservedParams& /*pp*/, RestoredData& r_data)
 {
     HSaveError err;
-    if (!AssertGameContent(err, in->ReadInt32(), game.numdialog, "Dialogs"))
+    const uint32_t dialogs_read = in->ReadInt32();
+    if (!AssertGameContent(err, dialogs_read, game.numdialog, "Dialogs", r_data.RestoreFlags, r_data.DataCounts.Dialogs))
         return err;
-    for (int i = 0; i < game.numdialog; ++i)
+
+    for (uint32_t i = 0; i < dialogs_read; ++i)
     {
         dialog[i].ReadFromSavegame(in);
     }
@@ -659,62 +721,71 @@ HSaveError WriteGUI(Stream *out)
     return HSaveError::None();
 }
 
-HSaveError ReadGUI(Stream *in, int32_t cmp_ver, soff_t cmp_size, const PreservedParams& /*pp*/, RestoredData& /*r_data*/)
+HSaveError ReadGUI(Stream *in, int32_t cmp_ver, soff_t cmp_size, const PreservedParams& /*pp*/, RestoredData& r_data)
 {
     HSaveError err;
     const GuiSvgVersion svg_ver = (GuiSvgVersion)cmp_ver;
     // GUI state
     if (!AssertFormatTagStrict(err, in, "GUIs"))
         return err;
-    if (!AssertGameContent(err, static_cast<size_t>(in->ReadInt32()), game.numgui, "GUIs"))
+    const uint32_t guis_read = in->ReadInt32();
+    if (!AssertGameContent(err, guis_read, game.numgui, "GUIs", r_data.RestoreFlags, r_data.DataCounts.GUIs))
         return err;
     // NOTE: although we read ctrl refs here, this data is discarded.
     // We'd need a proper support for reading old mismatching control arrays into new ones for this data to matter.
-    std::vector<std::vector<GUIMain::ControlRef>> guictrl_refs(game.numgui);
-    for (int i = 0; i < game.numgui; ++i)
+    std::vector<std::vector<GUIMain::ControlRef>> guictrl_refs(guis_read);
+    for (int i = 0; i < guis_read; ++i)
         guis[i].ReadFromSavegame(in, svg_ver, guictrl_refs[i]);
+
+    r_data.DataCounts.GUIControls.resize(guis_read);
 
     if (!AssertFormatTagStrict(err, in, "GUIButtons"))
         return err;
-    if (!AssertGameContent(err, static_cast<size_t>(in->ReadInt32()), guibuts.size(), "GUI Buttons"))
+    const uint32_t guibuts_read = in->ReadInt32();
+    if (!AssertGameContent(err, guibuts_read, guibuts.size(), "GUI Buttons", r_data.RestoreFlags, r_data.DataCounts.Dummy))
         return err;
-    for (auto &but : guibuts)
-        but.ReadFromSavegame(in, svg_ver);
+    for (uint32_t i = 0; i < guibuts_read; ++i)
+        guibuts[i].ReadFromSavegame(in, svg_ver);
 
     if (!AssertFormatTagStrict(err, in, "GUILabels"))
         return err;
-    if (!AssertGameContent(err, static_cast<size_t>(in->ReadInt32()), guilabels.size(), "GUI Labels"))
+    const uint32_t guilabels_read = in->ReadInt32();
+    if (!AssertGameContent(err, guilabels_read, guilabels.size(), "GUI Labels", r_data.RestoreFlags, r_data.DataCounts.Dummy))
         return err;
-    for (auto &label : guilabels)
-        label.ReadFromSavegame(in, svg_ver);
+    for (uint32_t i = 0; i < guilabels_read; ++i)
+        guilabels[i].ReadFromSavegame(in, svg_ver);
 
     if (!AssertFormatTagStrict(err, in, "GUIInvWindows"))
         return err;
-    if (!AssertGameContent(err, static_cast<size_t>(in->ReadInt32()), guiinv.size(), "GUI InvWindows"))
+    const uint32_t guiinv_read = in->ReadInt32();
+    if (!AssertGameContent(err, guiinv_read, guiinv.size(), "GUI InvWindows", r_data.RestoreFlags, r_data.DataCounts.Dummy))
         return err;
-    for (auto &inv : guiinv)
-        inv.ReadFromSavegame(in, svg_ver);
+    for (uint32_t i = 0; i < guiinv_read; ++i)
+        guiinv[i].ReadFromSavegame(in, svg_ver);
 
     if (!AssertFormatTagStrict(err, in, "GUISliders"))
         return err;
-    if (!AssertGameContent(err, static_cast<size_t>(in->ReadInt32()), guislider.size(), "GUI Sliders"))
+    const uint32_t guisliders_read = in->ReadInt32();
+    if (!AssertGameContent(err, guisliders_read, guislider.size(), "GUI Sliders", r_data.RestoreFlags, r_data.DataCounts.Dummy))
         return err;
-    for (auto &slider : guislider)
-        slider.ReadFromSavegame(in, svg_ver);
+    for (uint32_t i = 0; i < guisliders_read; ++i)
+        guislider[i].ReadFromSavegame(in, svg_ver);
 
     if (!AssertFormatTagStrict(err, in, "GUITextBoxes"))
         return err;
-    if (!AssertGameContent(err, static_cast<size_t>(in->ReadInt32()), guitext.size(), "GUI TextBoxes"))
+    const uint32_t guitextboxes_read = in->ReadInt32();
+    if (!AssertGameContent(err, guitextboxes_read, guitext.size(), "GUI TextBoxes", r_data.RestoreFlags, r_data.DataCounts.Dummy))
         return err;
-    for (auto &tb : guitext)
-        tb.ReadFromSavegame(in, svg_ver);
+    for (uint32_t i = 0; i < guitextboxes_read; ++i)
+        guitext[i].ReadFromSavegame(in, svg_ver);
 
     if (!AssertFormatTagStrict(err, in, "GUIListBoxes"))
         return err;
-    if (!AssertGameContent(err, static_cast<size_t>(in->ReadInt32()), guilist.size(), "GUI ListBoxes"))
+    const uint32_t guilistboxes_read = in->ReadInt32();
+    if (!AssertGameContent(err, guilistboxes_read, guilist.size(), "GUI ListBoxes", r_data.RestoreFlags, r_data.DataCounts.Dummy))
         return err;
-    for (auto &list : guilist)
-        list.ReadFromSavegame(in, svg_ver);
+    for (uint32_t i = 0; i < guilistboxes_read; ++i)
+        guilist[i].ReadFromSavegame(in, svg_ver);
 
     // Animated buttons
     if (!AssertFormatTagStrict(err, in, "AnimatedButtons"))
@@ -742,12 +813,13 @@ HSaveError WriteInventory(Stream *out)
     return HSaveError::None();
 }
 
-HSaveError ReadInventory(Stream *in, int32_t /*cmp_ver*/, soff_t cmp_size, const PreservedParams& /*pp*/, RestoredData& /*r_data*/)
+HSaveError ReadInventory(Stream *in, int32_t /*cmp_ver*/, soff_t cmp_size, const PreservedParams& /*pp*/, RestoredData& r_data)
 {
     HSaveError err;
-    if (!AssertGameContent(err, in->ReadInt32(), game.numinvitems, "Inventory Items"))
+    const uint32_t invitems_read = in->ReadInt32();
+    if (!AssertGameContent(err, invitems_read, game.numinvitems, "Inventory Items", r_data.RestoreFlags, r_data.DataCounts.InventoryItems))
         return err;
-    for (int i = 0; i < game.numinvitems; ++i)
+    for (uint32_t i = 0; i < invitems_read; ++i)
     {
         game.invinfo[i].ReadFromSavegame(in);
         Properties::ReadValues(play.invProps[i], in);
@@ -767,12 +839,13 @@ HSaveError WriteMouseCursors(Stream *out)
     return HSaveError::None();
 }
 
-HSaveError ReadMouseCursors(Stream *in, int32_t cmp_ver, soff_t cmp_size, const PreservedParams& /*pp*/, RestoredData& /*r_data*/)
+HSaveError ReadMouseCursors(Stream *in, int32_t cmp_ver, soff_t cmp_size, const PreservedParams& /*pp*/, RestoredData& r_data)
 {
     HSaveError err;
-    if (!AssertGameContent(err, in->ReadInt32(), game.numcursors, "Mouse Cursors"))
+    const uint32_t cursors_read = in->ReadInt32();
+    if (!AssertGameContent(err, cursors_read, game.numcursors, "Mouse Cursors", r_data.RestoreFlags, r_data.DataCounts.Cursors))
         return err;
-    for (int i = 0; i < game.numcursors; ++i)
+    for (uint32_t i = 0; i < cursors_read; ++i)
     {
         game.mcurs[i].ReadFromSavegame(in, cmp_ver);
     }
@@ -798,22 +871,31 @@ HSaveError WriteViews(Stream *out)
     return HSaveError::None();
 }
 
-HSaveError ReadViews(Stream *in, int32_t /*cmp_ver*/, soff_t cmp_size, const PreservedParams& /*pp*/, RestoredData& /*r_data*/)
+HSaveError ReadViews(Stream *in, int32_t /*cmp_ver*/, soff_t cmp_size, const PreservedParams& /*pp*/, RestoredData& r_data)
 {
     HSaveError err;
-    if (!AssertGameContent(err, in->ReadInt32(), game.numviews, "Views"))
+    const uint32_t views_read = in->ReadInt32();
+    if (!AssertGameContent(err, views_read, game.numviews, "Views", r_data.RestoreFlags, r_data.DataCounts.Views))
         return err;
-    for (int view = 0; view < game.numviews; ++view)
+
+    r_data.DataCounts.ViewLoops.resize(views_read);
+    r_data.DataCounts.ViewFrames.resize(views_read);
+    for (uint32_t view = 0; view < views_read; ++view)
     {
-        if (!AssertGameObjectContent(err, in->ReadInt32(), views[view].numLoops,
-            "Loops", "View", view))
+        const uint32_t loops_read = in->ReadInt32();
+        if (!AssertGameObjectContent(err, loops_read, views[view].numLoops,
+            "Loops", "View", view, r_data.RestoreFlags, r_data.DataCounts.ViewLoops[view]))
             return err;
-        for (int loop = 0; loop < views[view].numLoops; ++loop)
+
+        for (uint32_t loop = 0; loop < loops_read; ++loop)
         {
-            if (!AssertGameObjectContent2(err, in->ReadInt32(), views[view].loops[loop].numFrames,
-                "Frame", "View", view, "Loop", loop))
+            const uint32_t frames_read = in->ReadInt32();
+            if (!AssertGameObjectContent2(err, frames_read, views[view].loops[loop].numFrames,
+                "Frame", "View", view, "Loop", loop, r_data.RestoreFlags, r_data.DataCounts.Dummy))
                 return err;
-            for (int frame = 0; frame < views[view].loops[loop].numFrames; ++frame)
+
+            r_data.DataCounts.ViewFrames[view] += frames_read;
+            for (uint32_t frame = 0; frame < frames_read; ++frame)
             {
                 views[view].loops[loop].frames[frame].sound = in->ReadInt32();
                 views[view].loops[loop].frames[frame].pic = in->ReadInt32();
@@ -1002,17 +1084,19 @@ HSaveError ReadScriptModules(Stream *in, int32_t cmp_ver, soff_t cmp_size, const
 {
     HSaveError err;
     // read the global script data segment
-    int data_len = in->ReadInt32();
-    if (!AssertGameContent(err, data_len, pp.GlScDataSize, "global script data"))
+    uint32_t data_len = in->ReadInt32();
+    if (!AssertGameContent(err, data_len, pp.GlScDataSize, "global script data", r_data.RestoreFlags, r_data.DataCounts.GlobalScriptDataSz))
         return err;
     r_data.GlobalScript.Data.resize(data_len);
-    if (data_len > 0)
+    if (data_len > 0u)
         in->Read(&r_data.GlobalScript.Data.front(), data_len);
 
-    if (!AssertGameContent(err, in->ReadInt32(), numScriptModules, "Script Modules"))
+    const uint32_t modules_read = in->ReadInt32();
+    if (!AssertGameContent(err, modules_read, numScriptModules, "Script Modules", r_data.RestoreFlags, r_data.DataCounts.ScriptModules))
         return err;
     std::vector<bool> modules_match(pp.ScriptModuleNames.size());
-    for (size_t i = 0; i < numScriptModules; ++i)
+    r_data.DataCounts.ScriptDataSz.resize(modules_read);
+    for (size_t i = 0; i < modules_read; ++i)
     {
         const String module_name = (cmp_ver < kScriptModulesSvgVersion_36200) ?
             pp.ScriptModuleNames[i] :
@@ -1032,7 +1116,7 @@ HSaveError ReadScriptModules(Stream *in, int32_t cmp_ver, soff_t cmp_size, const
         if (game_module_index < UINT32_MAX)
         {
             // Found matching module in the game
-            if (!AssertGameObjectContent(err, data_len, pp.ScMdDataSize[i], "script module data", "module", i))
+            if (!AssertGameObjectContent(err, data_len, pp.ScMdDataSize[i], "script module data", "module", i, r_data.RestoreFlags, r_data.DataCounts.ScriptDataSz[i]))
                 return err;
             modules_match[game_module_index] = true;
         }
@@ -1215,16 +1299,17 @@ HSaveError WriteMoveLists(Stream *out)
     return HSaveError::None();
 }
 
-HSaveError ReadMoveLists(Stream *in, int32_t cmp_ver, soff_t cmp_size, const PreservedParams& /*pp*/, RestoredData& /*r_data*/)
+HSaveError ReadMoveLists(Stream *in, int32_t cmp_ver, soff_t cmp_size, const PreservedParams& /*pp*/, RestoredData& r_data)
 {
     HSaveError err;
-    size_t movelist_count = in->ReadInt32();
+    uint32_t movelist_count = in->ReadInt32();
     // TODO: this assertion is needed only because mls size is fixed to the
     // number of characters + max number of objects, where each game object
     // has a fixed movelist index. It may be removed if movelists will be
     // allocated on demand with an arbitrary index instead.
-    if (!AssertGameContent(err, movelist_count, mls.size(), "Move Lists"))
+    if (!AssertGameContent(err, movelist_count, mls.size(), "Move Lists", r_data.RestoreFlags, r_data.DataCounts.Dummy))
         return err;
+
     for (size_t i = 0; i < movelist_count; ++i)
     {
         err = mls[i].ReadFromSavegame(in, cmp_ver);

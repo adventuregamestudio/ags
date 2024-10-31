@@ -151,6 +151,7 @@ String GetSavegameErrorText(SavegameErrorType err)
     case kSvgErr_UnsupportedComponentVersion:
         return "Component data version not supported.";
     case kSvgErr_GameContentAssertion:
+    case kSvgErr_GameContentAssert_RequireClearReload:
         return "Saved content does not match current game.";
     case kSvgErr_InconsistentData:
         return "Inconsistent save data, or file is corrupted.";
@@ -727,13 +728,17 @@ static SaveCmpSelection FixupCmpSelection(SaveCmpSelection select_cmp)
         kSaveCmp_ObjectSprites * ((select_cmp & kSaveCmp_DynamicSprites) == 0));
 }
 
-HSaveError RestoreGameState(Stream *in, SavegameVersion svg_version, SaveCmpSelection select_cmp)
+HSaveError RestoreGameState(Stream *in, SavegameVersion svg_version, SaveCmpSelection select_cmp, bool is_game_clear)
 {
     select_cmp = FixupCmpSelection(select_cmp);
 
     PreservedParams pp;
     RestoredData r_data;
     DoBeforeRestore(pp, select_cmp);
+
+    // Mark the clear game data state for restoration process
+    r_data.RestoreFlags = (SaveRestorationFlags)(kSaveRestore_ClearData * is_game_clear);
+
     HSaveError err = SavegameComponents::ReadAll(in, svg_version, select_cmp, pp, r_data);
     if (!err)
         return err;

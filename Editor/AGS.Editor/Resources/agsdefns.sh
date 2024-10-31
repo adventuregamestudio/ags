@@ -3361,6 +3361,7 @@ managed struct RestoredSaveInfo
 {
   import attribute bool Cancel;
   import readonly attribute RestoredSaveResult Result;
+  import readonly attribute String EngineVersion;
   import readonly attribute int AudioClipTypeCount;
   import readonly attribute int CharacterCount;
   import readonly attribute int DialogCount;

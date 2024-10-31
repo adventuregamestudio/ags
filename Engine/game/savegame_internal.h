@@ -125,6 +125,8 @@ struct SaveRestoredDataCounts
     uint32_t ScriptModules = 0u;
     std::vector<uint32_t> ScriptModuleDataSz;
     uint32_t RoomScriptDataSz = 0u; // current room's script data size
+
+    String   EngineVersion; // engine this save was written by
 };
 
 // RestoredData keeps certain temporary data to help with

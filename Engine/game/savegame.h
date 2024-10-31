@@ -214,7 +214,7 @@ HSaveError     OpenSavegame(const String &filename, SavegameSource &src,
 HSaveError     OpenSavegame(const String &filename, SavegameDescription &desc, SavegameDescElem elems = kSvgDesc_All);
 // Reads the game data from the save stream and reinitializes game state;
 // is_game_clear - tells whether the game is in clean default state
-HSaveError     RestoreGameState(Stream *in, SavegameVersion svg_version, SaveCmpSelection select_cmp, bool is_game_clear);
+HSaveError     RestoreGameState(Stream *in, SavegameVersion svg_version, const String &engine_ver, SaveCmpSelection select_cmp, bool is_game_clear);
 // Opens savegame for writing and puts in savegame description
 std::unique_ptr<Stream> StartSavegame(const String &filename, const String &user_text, const Bitmap *user_image);
 // Prepares game for saving state and writes game data into the save stream

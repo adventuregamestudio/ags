@@ -31,6 +31,7 @@
 #include "ac/room.h"
 #include "ac/roomstatus.h"
 #include "ac/spritecache.h"
+#include "ac/string.h"
 #include "ac/system.h"
 #include "ac/timer.h"
 #include "ac/dynobj/dynobj_manager.h"
@@ -763,7 +764,7 @@ static SaveCmpSelection FixupCmpSelection(SaveCmpSelection select_cmp)
         kSaveCmp_ObjectSprites * ((select_cmp & kSaveCmp_DynamicSprites) == 0));
 }
 
-HSaveError RestoreGameState(Stream *in, SavegameVersion svg_version, SaveCmpSelection select_cmp, bool is_game_clear)
+HSaveError RestoreGameState(Stream *in, SavegameVersion svg_version, const String &engine_ver, SaveCmpSelection select_cmp, bool is_game_clear)
 {
     select_cmp = FixupCmpSelection(select_cmp);
     const bool has_validate_cb = DoesScriptFunctionExistInModules("validate_restored_save");
@@ -776,14 +777,14 @@ HSaveError RestoreGameState(Stream *in, SavegameVersion svg_version, SaveCmpSele
     r_data.Result.RestoreFlags = (SaveRestorationFlags)(
           (kSaveRestore_ClearData * is_game_clear) // tell that the game data is reset
         | (kSaveRestore_AllowMismatchLess * has_validate_cb) // allow less data in saves
-        ); 
+        );
+    r_data.DataCounts.EngineVersion = engine_ver;
 
     HSaveError err = SavegameComponents::ReadAll(in, svg_version, select_cmp, pp, r_data);
     if (!err)
         return err;
     return DoAfterRestore(pp, r_data, select_cmp);
 }
-
 
 void WriteSaveImage(Stream *out, const Bitmap *screenshot)
 {
@@ -968,6 +969,11 @@ int SaveInfo_GetResult(ScriptRestoredSaveInfo *info)
     return info->GetResult();
 }
 
+const char* SaveInfo_GetEngineVersion(ScriptRestoredSaveInfo *info)
+{
+    return CreateNewScriptString(info->GetCounts().EngineVersion.GetCStr());
+}
+
 int SaveInfo_GetAudioClipTypeCount(ScriptRestoredSaveInfo *info)
 {
     return info->GetCounts().AudioClipTypes;
@@ -1073,6 +1079,11 @@ RuntimeScriptValue Sc_SaveInfo_GetResult(void *self, const RuntimeScriptValue *p
     API_OBJCALL_INT(ScriptRestoredSaveInfo, SaveInfo_GetResult);
 }
 
+RuntimeScriptValue Sc_SaveInfo_GetEngineVersion(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ(ScriptRestoredSaveInfo, const char, myScriptStringImpl, SaveInfo_GetEngineVersion);
+}
+
 RuntimeScriptValue Sc_SaveInfo_GetAudioClipTypeCount(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptRestoredSaveInfo, SaveInfo_GetAudioClipTypeCount);
@@ -1149,6 +1160,7 @@ void RegisterSaveInfoAPI()
         { "RestoredSaveInfo::get_Cancel",               API_FN_PAIR(SaveInfo_GetCancel) },
         { "RestoredSaveInfo::set_Cancel",               API_FN_PAIR(SaveInfo_SetCancel) },
         { "RestoredSaveInfo::get_Result",               API_FN_PAIR(SaveInfo_GetResult) },
+        { "RestoredSaveInfo::get_EngineVersion",        API_FN_PAIR(SaveInfo_GetEngineVersion) },
         { "RestoredSaveInfo::get_AudioClipTypeCount",   API_FN_PAIR(SaveInfo_GetAudioClipTypeCount) },
         { "RestoredSaveInfo::get_CharacterCount",       API_FN_PAIR(SaveInfo_GetCharacterCount) },
         { "RestoredSaveInfo::get_DialogCount",          API_FN_PAIR(SaveInfo_GetDialogCount) },

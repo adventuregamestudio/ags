@@ -1098,7 +1098,7 @@ HSaveError load_game(const String &path, int slotNumber, bool startup, bool &dat
     }
 
     // Do the actual game state restore
-    err = RestoreGameState(src.InputStream.get(), src.Version,
+    err = RestoreGameState(src.InputStream.get(), src.Version, desc.EngineVersion.LongString,
         (SaveCmpSelection)(kSaveCmp_All & ~(game.options[OPT_SAVECOMPONENTSIGNORE] & kSaveCmp_ScriptIgnoreMask)),
         startup);
     src.InputStream.reset();

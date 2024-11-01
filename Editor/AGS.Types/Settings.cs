@@ -183,11 +183,6 @@ namespace AGS.Types
             get { return _gameFileName; }
             set
             {
-                if (string.IsNullOrEmpty(value))
-                {
-                    throw new ArgumentException("Game file name cannot be empty");
-                }
-
                 if (value.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
                 {
                     throw new ArgumentException("Game file name contains invalid characters");

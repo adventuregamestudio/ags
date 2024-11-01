@@ -258,22 +258,24 @@ namespace AGS.Editor.Components
             DeleteRoom(item);
         }
 
-        private void DeleteRoom(IRoom roomToDelete)
+        private bool DeleteRoom(IRoom roomToDelete)
         {
             UnloadRoom(roomToDelete);
 
             CloseRoomScriptEditorIfOpen(roomToDelete.Number);
 
-            DeleteRoomFiles(roomToDelete);
+            if (!DeleteRoomFiles(roomToDelete))
+                return false;
 
             RoomListTypeConverter.SetRoomList(_agsEditor.CurrentGame.Rooms);
             _agsEditor.CurrentGame.FilesAddedOrRemoved = true;
+            return true;
         }
 
         /// <summary>
         /// Deletes any files, both source and compiled ones, related to the given Room.
         /// </summary>
-        private void DeleteRoomFiles(IRoom roomToDelete)
+        private bool DeleteRoomFiles(IRoom roomToDelete)
         {
             List<string> filesToDelete = new List<string>();
 
@@ -309,10 +311,12 @@ namespace AGS.Editor.Components
             try
             {
                 _agsEditor.DeleteFileOnDisk(filesToDelete.ToArray());
+                return true;
             }
             catch (CannotDeleteFileException ex)
             {
-                _guiController.ShowMessage("The room file could not be deleted." + Environment.NewLine + Environment.NewLine + ex.Message, MessageBoxIcon.Warning);
+                _guiController.ShowMessage("The room file(s) could not be deleted." + Environment.NewLine + Environment.NewLine + ex.Message, MessageBoxIcon.Warning);
+                return false;
             }
         }
 
@@ -525,23 +529,16 @@ namespace AGS.Editor.Components
             }
         }
 
-        private bool PromptForAndDeleteAnyExistingRoomFile(string fileName)
+        private bool PromptForAndDeleteAnyExistingRoom(UnloadedRoom room)
         {
-            if (File.Exists(fileName))
+            if (Directory.Exists(room.Directory))
             {
-                if (_guiController.ShowQuestion("A file called '" + fileName + "' already exists. Do you want to overwrite it?") == DialogResult.No)
+                if (_guiController.ShowQuestion($"A \"{room.Directory}\" subdirectory already exists inside this game project. Do you want to overwrite it?", MessageBoxIcon.Warning) == DialogResult.No)
                 {
                     return false;
                 }
-                try
-                {
-                    Utilities.TryDeleteFile(fileName);
-                }
-                catch (Exception ex)
-                {
-                    _guiController.ShowMessage("The existing file could not be deleted." + Environment.NewLine + Environment.NewLine + ex.Message, MessageBoxIcon.Warning);
-                    return false;
-                }
+
+                return DeleteRoom(room);
             }
             return true;
         }
@@ -568,7 +565,7 @@ namespace AGS.Editor.Components
         {
             UnloadedRoom newRoom = new UnloadedRoom(roomNumber);
 
-            if (!PromptForAndDeleteAnyExistingRoomFile(newRoom.FileName))
+            if (!PromptForAndDeleteAnyExistingRoom(newRoom))
             {
                 return;
             }
@@ -576,6 +573,7 @@ namespace AGS.Editor.Components
             List<string> newFiles = new List<string>();
             try
             {
+                Directory.CreateDirectory(newRoom.Directory);
 				if (template.FileName == null)
 				{
                     // Create a default room and save it, generating clear backgrounds and masks

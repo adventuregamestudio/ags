@@ -310,11 +310,6 @@ namespace AGS.Editor
             }
         }
 
-        public void SaveDefaultRoom(Room roomToSave)
-        {
-            _native.SaveDefaultRoomFile(roomToSave);
-        }
-
         public string LoadRoomScript(string roomFileName)
         {
             return _native.LoadRoomScript(roomFileName);

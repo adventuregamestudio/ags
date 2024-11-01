@@ -51,7 +51,6 @@ extern bool initialize_native();
 extern void shutdown_native();
 extern AGS::Types::Game^ import_compiled_game_dta(const AGSString &filename);
 extern void free_old_game_data();
-extern void save_default_crm_file(Room ^roomToSave);
 extern HAGSError import_sci_font(const AGSString &filename, int fslot);
 extern bool reload_font(int curFont);
 extern bool measure_font_height(const AGSString &filename, int pixel_height, int &formal_height);
@@ -543,11 +542,6 @@ namespace AGS
 		{
 			return load_sprite_dimensions();
 		}
-
-        void NativeMethods::SaveDefaultRoomFile(AGS::Types::Room ^roomToSave)
-        {
-            save_default_crm_file(roomToSave);
-        }
 
 		String ^NativeMethods::LoadRoomScript(String ^roomFileName) 
 		{

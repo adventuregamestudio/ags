@@ -311,13 +311,23 @@ namespace AGS.Editor.Components
             try
             {
                 _agsEditor.DeleteFileOnDisk(filesToDelete.ToArray());
-                return true;
             }
             catch (CannotDeleteFileException ex)
             {
                 _guiController.ShowMessage("The room file(s) could not be deleted." + Environment.NewLine + Environment.NewLine + ex.Message, MessageBoxIcon.Warning);
                 return false;
             }
+
+            try
+            {
+                if (Directory.Exists(roomToDelete.Directory))
+                    Directory.Delete(roomToDelete.Directory);
+            }
+            catch (Exception ex)
+            {
+                _guiController.ShowMessage("The room file(s) have been deleted, but could not delete the room directory." + Environment.NewLine + Environment.NewLine + ex.Message, MessageBoxIcon.Warning);
+            }
+            return true;
         }
 
 		private void CreateTemplateFromRoom(int roomNumber)
@@ -546,7 +556,7 @@ namespace AGS.Editor.Components
         /// <summary>
         /// Creates empty room definition, not attached to any actual resources yet.
         /// </summary>
-        private Room CreateEmptyRoom(int roomNumber)
+        private Room CreateEmptyRoom(int roomNumber, bool genScript, List<Bitmap> backgrounds, List<Bitmap> masks)
         {
             Room room = new Room(roomNumber);
             var gameSettings = _agsEditor.CurrentGame.Settings;
@@ -558,6 +568,27 @@ namespace AGS.Editor.Components
             room.BackgroundCount = 1;
             room.RightEdgeX = room.Width - 1;
             room.BottomEdgeY = room.Height - 1;
+
+            if (genScript)
+            {
+                room.Script = new Script(room.ScriptFileName, "// room script file", false);
+            }
+
+            if (backgrounds != null)
+            {
+                backgrounds.Add(BitmapExtensions.CreateClearBitmap(room.Width, room.Height,
+                    Utils.SpriteTools.ColorDepthToPixelFormat(room.ColorDepth), Color.Black));
+            }
+
+            if (masks != null)
+            {
+                Bitmap maskBm = new Bitmap(room.Width, room.Height, PixelFormat.Format8bppIndexed);
+                foreach (var m in Enum.GetValues(typeof(RoomAreaMaskType)).Cast<RoomAreaMaskType>())
+                {
+                    masks.Add(maskBm);
+                }
+            }
+
             return room;
         }
 
@@ -570,32 +601,37 @@ namespace AGS.Editor.Components
                 return;
             }
 
-            List<string> newFiles = new List<string>();
+            List<string> newFiles = new List<string>(); // these are extra files outside of room dir
             try
             {
+                CompileMessages errors = new CompileMessages();
                 Directory.CreateDirectory(newRoom.Directory);
 				if (template.FileName == null)
 				{
                     // Create a default room and save it, generating clear backgrounds and masks
-					Room room = CreateEmptyRoom(roomNumber);
-					Factory.NativeProxy.SaveDefaultRoom(room);
-					StreamWriter sw = new StreamWriter(newRoom.ScriptFileName);
-					sw.WriteLine("// room script file");
-					sw.Close();
-                    newFiles.Add(room.FileName);
-                    newFiles.Add(newRoom.ScriptFileName);
+                    List<Bitmap> backgrounds = new List<Bitmap>();
+                    List<Bitmap> masks = new List<Bitmap>();
+                    Room room = CreateEmptyRoom(roomNumber, true, backgrounds, masks);
+                    try
+                    {
+                        SaveUnloadedRoom(room, backgrounds, masks, errors);
+                    }
+                    catch (Exception ex)
+                    {
+                        errors.Add(new CompileError($"Failed to save a new room: {ex.Message}"));
+                    }
 				}
 				else
 				{
 					_nativeProxy.ExtractRoomTemplateFiles(template.FileName, newRoom.Number, newFiles);
-				}
+                    Task.WaitAll(ConvertRoomFromCrmToOpenFormat(newRoom, errors, null, template.FileName == null).ToArray());
+                }
 
-                CompileMessages errors = new CompileMessages();
-                Task.WaitAll(ConvertRoomFromCrmToOpenFormat(newRoom, errors, null, template.FileName == null).ToArray());
                 if (errors.HasErrors)
                 {
-                    _guiController.ShowMessage("There was an error attempting to create the new room. The error was: " + errors.FirstError.AsString, MessageBoxIcon.Warning);
+                    _guiController.ShowMessage($"There was an error attempting to create the new room. The error was:{Environment.NewLine}{Environment.NewLine}{errors.FirstError.AsString}", MessageBoxIcon.Warning);
                     _agsEditor.DeleteFileOnDisk(newFiles.ToArray());
+                    DeleteRoomFiles(newRoom);
                     return;
                 }
 
@@ -2213,6 +2249,50 @@ namespace AGS.Editor.Components
                     string fileName = _loadedRoom.GetMaskFileName(mask);
                     maskObj.Image.Save(fileName, ImageFormat.Png);
                     maskObj.Modified = false;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Saves room files without loading a room into the editor.
+        /// Does no validity checks, and does not compile any data.
+        /// NOTE: this is necessary to have at the moment, because RoomComponent
+        /// works with only 1 loaded room at a time. Should be revisited in case
+        /// we support multiple simultaneous edited rooms.
+        /// </summary>
+        private void SaveUnloadedRoom(Room room, List<Bitmap> backgrounds, List<Bitmap> masks,
+            CompileMessages errors)
+        {
+            // Save room's data.xml
+            using (var writer = new XmlTextWriter(room.DataFileName, Types.Utilities.UTF8))
+            {
+                writer.Formatting = Formatting.Indented;
+                room.ToXmlDocument().Save(writer);
+            }
+
+            // Save room's script
+            if (room.Script != null)
+            {
+                room.Script.SaveToDisk(true);
+            }
+
+            // Save room's backgrounds and mask images
+            if (backgrounds != null)
+            {
+                foreach (var bg in backgrounds.Select((bm, i) => new { i, bm }))
+                {
+                    bg.bm.Save(room.GetBackgroundFileName(bg.i));
+                }
+            }
+
+            if (masks != null)
+            {
+                foreach (var m in 
+                    Enum.GetValues(typeof(RoomAreaMaskType))
+                        .Cast<RoomAreaMaskType>()
+                        .Where(m => m != RoomAreaMaskType.None && (int)m < masks.Count))
+                {
+                    masks[(int)m].Save(room.GetMaskFileName(m));
                 }
             }
         }

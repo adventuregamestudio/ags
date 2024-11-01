@@ -83,7 +83,6 @@ namespace Native
 			Dictionary<int,Sprite^>^ LoadAllSpriteDimensions();
 			void LoadNewSpriteFile();
             void ReplaceSpriteFile(String ^srcFileName);
-            void SaveDefaultRoomFile(Room ^roomToSave);
 			String ^LoadRoomScript(String ^roomFileName);
             // Returns a list of IScriptCompiler implementations embedded in AGS.Native
             List<IScriptCompiler^>^ GetEmbeddedScriptCompilers();

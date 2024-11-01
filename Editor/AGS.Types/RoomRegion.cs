@@ -15,12 +15,12 @@ namespace AGS.Types
 
         private int _id;
         private int _lightLevel = 100;
-        private bool _useTint;
-        private int _redTint;
-        private int _greenTint;
-        private int _blueTint;
-        private int _tintAmount;
-        private int _tintLuminance;
+        private bool _useTint = false;
+        private int _redTint = 0;
+        private int _greenTint = 0;
+        private int _blueTint = 0;
+        private int _tintAmount = 50;
+        private int _tintLuminance = 100;
         private Interactions _interactions = new Interactions(_interactionSchema);
         private CustomProperties _properties = new CustomProperties();
         private IChangeNotification _notifyOfModification;

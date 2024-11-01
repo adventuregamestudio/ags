@@ -291,6 +291,16 @@ namespace AGS.Editor
             return palette;
         }
 
+        public static Bitmap CreateClearBitmap(int width, int height, PixelFormat fmt, Color clearColor)
+        {
+            var bmp = new Bitmap(width, height, fmt);
+            using (Graphics g = Graphics.FromImage(bmp))
+            {
+                g.Clear(clearColor);
+            }
+            return bmp;
+        }
+
         /// <summary>
         /// Clones given bitmap, and ensures that the new one is compatible with AGS,
         /// that is - has a pixel format among those that AGS can work with.

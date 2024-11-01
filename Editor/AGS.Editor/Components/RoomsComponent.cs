@@ -956,6 +956,7 @@ namespace AGS.Editor.Components
             }
 
             _loadedRoom = new Room(LoadData(newRoom)) { Script = newRoom.Script };
+            SyncInteractionScriptModules(_loadedRoom); // in case it was broken
             CopyGamePalette();
             LoadImageCache();
             _fileWatchers.Clear();
@@ -2315,6 +2316,9 @@ namespace AGS.Editor.Components
             room.Description = unloadedRoom.Description;
             room.Script = unloadedRoom.Script;
 
+            // Adjust all Interactions to have a new script module name
+            SyncInteractionScriptModules(room);
+
             for (int i = 0; i < room.BackgroundCount; i++)
                 yield return SaveAndDisposeBitmapAsync(nativeRoom.GetBackground(i), room.GetBackgroundFileName(i));
 
@@ -2335,6 +2339,21 @@ namespace AGS.Editor.Components
             }
 
             report?.Invoke();
+        }
+
+        /// <summary>
+        /// Synchronizes ScriptModule property in all the Interaction elements
+        /// within a Room and room objects.
+        /// </summary>
+        private void SyncInteractionScriptModules(Room room)
+        {
+            room.Interactions.ScriptModule = room.ScriptFileName;
+            foreach (var obj in room.Objects)
+                obj.Interactions.ScriptModule = room.ScriptFileName;
+            foreach (var hot in room.Hotspots)
+                hot.Interactions.ScriptModule = room.ScriptFileName;
+            foreach (var reg in room.Regions)
+                reg.Interactions.ScriptModule = room.ScriptFileName;
         }
 
         private Task SaveXmlAsync(XmlDocument document, string filename) => Task.Run(() =>

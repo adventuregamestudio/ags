@@ -240,6 +240,9 @@ namespace AGS.Editor
 
             AreaDrawMode drawMode = Enabled ? _drawMode : AreaDrawMode.Select;
 
+            if ((e.Button == MouseButtons.Left) && (Control.ModifierKeys == Keys.Alt))
+                drawMode = AreaDrawMode.Select;
+
             if (IsLocked(_selectedArea) && drawMode != AreaDrawMode.Select) return false;
 
             if (drawMode == AreaDrawMode.Freehand)
@@ -590,6 +593,8 @@ namespace AGS.Editor
         public virtual Cursor GetCursor(int x, int y, RoomEditorState state)
         {
             if (_drawMode == AreaDrawMode.Select)
+                return _selectCursor;
+            if (Control.ModifierKeys == Keys.Alt)
                 return _selectCursor;
             if (!IsLocked(_selectedArea))
                 return Cursors.Cross;

@@ -25,14 +25,14 @@ namespace AGS.Types
 
         public override object EditValue(ITypeDescriptorContext context, IServiceProvider provider, object value)
         {
-            int spriteNumber = (int)value;
+            int spriteNumber = (int)(value ?? -1);
 
             if (SpriteSelectionGUI != null)
             {
                 spriteNumber = SpriteSelectionGUI(spriteNumber);
             }
 
-            return spriteNumber;
+            return spriteNumber >= 0 ? spriteNumber : value;
         }
     }
 }

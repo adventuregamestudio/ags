@@ -1428,7 +1428,7 @@ namespace AGS.Editor
         private int ShowSpriteChooserFromPropertyGrid(int currentSprite)
         {
 			int defaultSpriteInDialog = currentSprite;
-			if (defaultSpriteInDialog == 0)
+			if (defaultSpriteInDialog <= 0)
 			{
 				defaultSpriteInDialog = _lastSelectedSprite;
 			}

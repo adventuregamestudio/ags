@@ -1367,8 +1367,6 @@ HSaveError ReadThisRoom(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pres
     if (!in->ReadBool())
         troom.ReadFromSavegame(in, loaded_game_file_version, (RoomStatSvgVersion)cmp_ver);
 
-    r_data.DataCounts.RoomScriptDataSz = troom.tsdatasize;
-
     return HSaveError::None();
 }
 

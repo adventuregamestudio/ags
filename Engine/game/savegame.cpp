@@ -648,9 +648,14 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
 
     // load the room the game was saved in
     if (displayed_room >= 0)
+    {
         load_new_room(displayed_room, nullptr);
+        r_data.DataCounts.RoomScriptDataSz = croom->tsdatasize;
+    }
     else
+    {
         set_room_placeholder();
+    }
 
     // Reapply few parameters after room load
     play.gscript_timer = gstimer;

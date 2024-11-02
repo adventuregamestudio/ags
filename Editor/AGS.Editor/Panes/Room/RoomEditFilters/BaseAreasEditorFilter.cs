@@ -50,7 +50,11 @@ namespace AGS.Editor
         private int _mouseDownX, _mouseDownY;
         private int _currentMouseX, _currentMouseY;
 
+        // FIXME: why these are "static"? investigate, and change what's possible to to regular (except icons?)
+        // Active draw mode, may be modified by temporary states or actions
         private static AreaDrawMode _drawMode = AreaDrawMode.Select;
+        // Base draw mode, set by a mode toggle command
+        private static AreaDrawMode _baseDrawMode = AreaDrawMode.Select;
         private static List<MenuCommand> _toolbarIcons = null;
         private static bool _registeredIcons = false;
         private static Cursor _selectCursor;
@@ -84,7 +88,7 @@ namespace AGS.Editor
 			_toolbarIcons.Add(new MenuCommand(IMPORT_MASK_COMMAND, "Import mask from file", "ImportMaskIcon"));
             _toolbarIcons.Add(new MenuCommand(EXPORT_MASK_COMMAND, "Export mask to file", "ExportMaskIcon"));
 			_toolbarIcons.Add(new MenuCommand(GREYED_OUT_MASKS_COMMAND, "Show non-selected masks greyed out", "GreyedOutMasksIcon"));
-			_toolbarIcons[(int)_drawMode].Checked = true;
+			_toolbarIcons[(int)_baseDrawMode].Checked = true;
 			_toolbarIcons[TOOLBAR_INDEX_GREY_OUT_MASKS].Checked = _greyedOutMasks;
 
             _room = room;
@@ -232,6 +236,8 @@ namespace AGS.Editor
 
         public virtual bool MouseDown(MouseEventArgs e, RoomEditorState state)
         {
+            UpdateModKeyState();
+
             if (e.Button == MouseButtons.Middle) return false;
             if (e.Button == MouseButtons.Right && Control.ModifierKeys != Keys.None) return false;
             
@@ -239,9 +245,6 @@ namespace AGS.Editor
             int y = state.WindowYToRoom(e.Y);
 
             AreaDrawMode drawMode = Enabled ? _drawMode : AreaDrawMode.Select;
-
-            if ((e.Button == MouseButtons.Left) && (Control.ModifierKeys == Keys.Alt))
-                drawMode = AreaDrawMode.Select;
 
             if (IsLocked(_selectedArea) && drawMode != AreaDrawMode.Select) return false;
 
@@ -301,6 +304,8 @@ namespace AGS.Editor
 
         public virtual bool MouseUp(MouseEventArgs e, RoomEditorState state)
         {
+            UpdateModKeyState();
+
             if (e.Button == MouseButtons.Middle) return false;
             if (!_mouseDown) return false; // drawing was not triggered
 
@@ -334,6 +339,8 @@ namespace AGS.Editor
 
         public virtual bool MouseMove(int x, int y, RoomEditorState state)
         {
+            UpdateModKeyState();
+
             _currentMouseX = state.WindowXToRoom(x);
             _currentMouseY = state.WindowYToRoom(y);
 
@@ -357,6 +364,8 @@ namespace AGS.Editor
 
 		public bool KeyPressed(Keys key)
 		{
+            UpdateModKeyState();
+
 			if ((key == (Keys.Control | Keys.Z)) && (_toolbarIcons[TOOLBAR_INDEX_UNDO].Enabled))
 			{
 				CommandClick(UNDO_COMMAND);
@@ -381,12 +390,33 @@ namespace AGS.Editor
 			{
 				CommandClick(SELECT_AREA_COMMAND);
 			}
-            return false;
+            else
+            {
+                return false; // not handled
+            }
+            return true; // handled
 		}
 
         public bool KeyReleased(Keys key)
         {
-            return false;
+            UpdateModKeyState();
+            return false; // not handled
+        }
+
+        private void UpdateModKeyState()
+        {
+            // Don't change anything while drawing
+            if (_mouseDown)
+                return;
+
+            if ((Control.ModifierKeys & Keys.Control) != 0)
+            {
+                _drawMode = AreaDrawMode.Select;
+            }
+            else
+            {
+                _drawMode = _baseDrawMode;
+            }
         }
 
         public virtual void CommandClick(string command)
@@ -401,23 +431,23 @@ namespace AGS.Editor
 
             if (command == SELECT_AREA_COMMAND)
             {
-                _drawMode = AreaDrawMode.Select;
+                _baseDrawMode = AreaDrawMode.Select;
             }
             else if (command == DRAW_LINE_COMMAND)
             {
-                _drawMode = AreaDrawMode.Line;
+                _baseDrawMode = AreaDrawMode.Line;
             }
             else if (command == DRAW_FREEHAND_COMMAND)
             {
-                _drawMode = AreaDrawMode.Freehand;
+                _baseDrawMode = AreaDrawMode.Freehand;
             }
 			else if (command == DRAW_RECTANGLE_COMMAND)
 			{
-				_drawMode = AreaDrawMode.Rectangle;
+                _baseDrawMode = AreaDrawMode.Rectangle;
 			}
 			else if (command == DRAW_FILL_COMMAND)
 			{
-				_drawMode = AreaDrawMode.Fill;
+                _baseDrawMode = AreaDrawMode.Fill;
 			}
 			else if (command == UNDO_COMMAND)
 			{
@@ -451,7 +481,9 @@ namespace AGS.Editor
 				_panel.Invalidate();
 			}
 
-            _toolbarIcons[(int)_drawMode].Checked = true;
+            _drawMode = _baseDrawMode;
+
+            _toolbarIcons[(int)_baseDrawMode].Checked = true;
             Factory.ToolBarManager.RefreshCurrentPane();
         }
 
@@ -540,14 +572,16 @@ namespace AGS.Editor
             if (!hasSelectedCommand) CommandClick(SELECT_AREA_COMMAND);
             else Factory.ToolBarManager.RefreshCurrentPane();
 
+            _drawMode = _baseDrawMode;
+            _mouseDown = false;
             if (_selectedArea >= ItemCount)
             {
                 DeselectArea();
             }
             SelectedAreaChanged(_selectedArea);
             Factory.GUIController.OnPropertyObjectChanged += _propertyObjectChangedDelegate;
-            
-			FilterActivated();
+
+            FilterActivated();
             _isOn = true;
         }
 
@@ -558,6 +592,7 @@ namespace AGS.Editor
                 _tooltip.Hide(_panel);
             }
 
+            _drawMode = _baseDrawMode;
             _mouseDown = false;
             Factory.GUIController.OnPropertyObjectChanged -= _propertyObjectChangedDelegate;
             _editor.ContentDocument.ToolbarCommands = null;
@@ -593,8 +628,6 @@ namespace AGS.Editor
         public virtual Cursor GetCursor(int x, int y, RoomEditorState state)
         {
             if (_drawMode == AreaDrawMode.Select)
-                return _selectCursor;
-            if (Control.ModifierKeys == Keys.Alt)
                 return _selectCursor;
             if (!IsLocked(_selectedArea))
                 return Cursors.Cross;

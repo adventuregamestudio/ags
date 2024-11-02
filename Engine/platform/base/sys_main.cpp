@@ -73,8 +73,6 @@ void sys_set_background_mode(bool /*on*/) {
 // ----------------------------------------------------------------------------
 const int DEFAULT_DISPLAY_INDEX = 0; // TODO: is this always right?
 
-// Gets the display index on which the window is currently positioned.
-// Returns default display index in case window does not exist yet, or on any error.
 int sys_get_window_display_index() {
     int index = -1;
     SDL_Window *window = sys_get_window();

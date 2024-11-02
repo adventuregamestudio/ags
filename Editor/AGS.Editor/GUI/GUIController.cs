@@ -1457,16 +1457,16 @@ namespace AGS.Editor
             return CustomResolutionDialog.Show(currentSize);
         }
 
-        private Color ShowColorDialog(Color color)
+        private Color? ShowColorDialog(Color? color)
         {
             ColorDialog dialog = new ColorDialog();
-            dialog.Color = color;
+            dialog.Color = color ?? Color.White;
             dialog.FullOpen = true;
             dialog.SolidColorOnly = true;
             dialog.CustomColors = _customColors;
-            dialog.ShowDialog();
+            bool res = dialog.ShowDialog() == DialogResult.OK;
             _customColors = (int[])dialog.CustomColors.Clone();
-            return dialog.Color;
+            return res ? dialog.Color : (Color?)null;
         }
 
         private void ShowPropertiesEditorFromPropertyGrid(CustomProperties props, object objectThatHasProperties)
@@ -1511,13 +1511,9 @@ namespace AGS.Editor
             return audioClip;
         }
 
-        private int ShowSpriteChooserFromPropertyGrid(int currentSprite)
+        private int? ShowSpriteChooserFromPropertyGrid(int? currentSprite)
         {
-			int defaultSpriteInDialog = currentSprite;
-			if (defaultSpriteInDialog == 0)
-			{
-				defaultSpriteInDialog = _lastSelectedSprite;
-			}
+            int defaultSpriteInDialog = currentSprite ?? _lastSelectedSprite;
             Sprite chosenSprite = SpriteChooser.ShowSpriteChooser(defaultSpriteInDialog);
             if (chosenSprite == null)
             {

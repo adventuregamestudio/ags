@@ -11,7 +11,7 @@ namespace AGS.Types
 {
     public class SpriteSelectUIEditor : UITypeEditor
     {
-        public delegate int SpriteSelectionGUIType(int currentSprite);
+        public delegate int? SpriteSelectionGUIType(int? currentSprite);
         public static SpriteSelectionGUIType SpriteSelectionGUI;
 
         public SpriteSelectUIEditor()
@@ -25,14 +25,14 @@ namespace AGS.Types
 
         public override object EditValue(ITypeDescriptorContext context, IServiceProvider provider, object value)
         {
-            int spriteNumber = (int)value;
+            int? spriteNumber = (int?)value;
 
             if (SpriteSelectionGUI != null)
             {
                 spriteNumber = SpriteSelectionGUI(spriteNumber);
             }
 
-            return spriteNumber;
+            return spriteNumber ?? value; // must return strictly original value if no change
         }
     }
 }

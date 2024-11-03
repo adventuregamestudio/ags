@@ -2641,6 +2641,12 @@ builtin managed struct Object {
   /// Gets the script name of this object.
   import readonly attribute String ScriptName;
 #endif // SCRIPT_API_v361
+#ifdef SCRIPT_API_v362
+  /// Gets the X coordinate of the object's final moving destination; or current position if object is not moving.
+  readonly import attribute int DestinationX;
+  /// Gets the Y coordinate of the object's final moving destination; or current position if object is not moving.
+  readonly import attribute int DestinationY;
+#endif
 
   int reserved[2];  // $AUTOCOMPLETEIGNORE$
 };
@@ -2871,9 +2877,9 @@ builtin managed struct Character {
   import bool     IsInteractionAvailable(CursorMode);
   /// Sets the individual light level for this character.
   import function SetLightLevel(int light_level);
-  /// Gets the X position this character is currently moving towards.
+  /// Gets the X coordinate of the character's final moving destination; or current position if character is not moving.
   readonly import attribute int DestinationX;
-  /// Gets the Y position this character is currently moving towards.
+  /// Gets the Y coordinate of the character's final moving destination; or current position if character is not moving.
   readonly import attribute int DestinationY;
 #endif // SCRIPT_API_v340
 #ifdef SCRIPT_API_v341

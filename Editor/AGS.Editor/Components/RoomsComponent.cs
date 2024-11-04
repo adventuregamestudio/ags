@@ -2397,6 +2397,9 @@ namespace AGS.Editor.Components
             // Adjust all Interactions to have a new script module name
             SyncInteractionScriptModules(room);
 
+            // Create a directory for this room
+            Directory.CreateDirectory(room.Directory);
+
             for (int i = 0; i < room.BackgroundCount; i++)
                 yield return SaveAndDisposeBitmapAsync(nativeRoom.GetBackground(i), room.GetBackgroundFileName(i));
 

@@ -342,6 +342,7 @@ bool display_check_user_input(int skip)
             ags_drop_next_inputevent();
         }
     }
+    ags_check_mouse_wheel(); // poll always, otherwise it accumulates
     return state_handled;
 }
 

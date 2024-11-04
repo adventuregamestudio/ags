@@ -687,7 +687,7 @@ static void check_controls() {
     // during which some global vars like mouse_on_iface may change...
     // need to rewrite all this interface interaction ugliness!
     int was_mouse_on_iface;
-    check_mouse_state(was_mouse_on_iface);
+    check_mouse_state(was_mouse_on_iface); // NOTE: this also polls mousewheel
 
     // Handle all the buffered input events
     for (InputType type = ags_inputevent_ready(); type != kInputNone; type = ags_inputevent_ready())

@@ -980,7 +980,6 @@ bool DialogOptions::Run()
 
     // Handle player's input
     RunControls();
-    ags_clear_input_buffer();
 
     // Post user input, processing changes
     if (newCustomRender)
@@ -1048,30 +1047,39 @@ bool DialogOptions::Run()
 
 bool DialogOptions::RunControls()
 {
+    bool state_handled = false;
     for (InputType type = ags_inputevent_ready(); type != kInputNone; type = ags_inputevent_ready())
     {
         if (type == kInputKeyboard)
         {
             KeyInput ki;
-            if (run_service_key_controls(ki) && !play.IsIgnoringInput() &&
-                RunKey(ki))
+            if (!run_service_key_controls(ki) || state_handled)
+                continue; // handled by engine layer, or resolved
+            if (!play.IsIgnoringInput() && RunKey(ki))
             {
-                return true; // handled
+                state_handled = true; // handled
             }
         }
         else if (type == kInputMouse)
         {
             eAGSMouseButton mbut;
             Point mpos;
-            if (run_service_mb_controls(mbut, &mpos) && !play.IsIgnoringInput() &&
-                RunMouse(mbut, mpos.X, mpos.Y))
+            if (!run_service_mb_controls(mbut, &mpos) || state_handled)
+                continue; // handled by engine layer, or resolved
+            if (!play.IsIgnoringInput() && RunMouse(mbut, mpos.X, mpos.Y))
             {
-                return true; // handled
+                state_handled = true; // handled
             }
+        }
+        else
+        {
+            ags_drop_next_inputevent();
         }
     }
     // Finally handle mouse wheel
-    return RunMouseWheel(ags_check_mouse_wheel());
+    if (!state_handled)
+        state_handled = RunMouseWheel(ags_check_mouse_wheel());
+    return state_handled;
 }
 
 bool DialogOptions::RunKey(const KeyInput &ki)
@@ -1201,7 +1209,6 @@ void DialogOptions::End()
         run_function_on_non_blocking_thread(&runDialogOptionCloseFunc);
     }
 
-  ags_clear_input_buffer();
   invalidate_screen();
 
   if (parserActivated) 

@@ -900,8 +900,8 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     play.gscript_timer=-1;  // avoid screw-ups with changing screens
     play.player_on_region = 0;
 
-    // trash any input which they might have done while it was loading
-    ags_clear_input_buffer();
+    // drop any input which they might have done while it was loading
+    ags_clear_input_state();
     // no fade in, so set the palette immediately in case of 256-col sprites
     if (game.color_depth > 1)
         setpal();

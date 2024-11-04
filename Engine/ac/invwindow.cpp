@@ -402,7 +402,6 @@ bool InventoryScreen::Run()
     is_done = false;
     // Handle player's input
     RunControls(mx, my, isonitem);
-    ags_clear_input_buffer();
 
     // Test if need to break the loop
     if (is_done)
@@ -429,29 +428,36 @@ bool InventoryScreen::Run()
 
 bool InventoryScreen::RunControls(int mx, int my, int isonitem)
 {
+    bool state_handled = false;
     for (InputType type = ags_inputevent_ready(); type != kInputNone; type = ags_inputevent_ready())
     {
         if (type == kInputKeyboard)
         {
             KeyInput ki;
-            if (run_service_key_controls(ki) && !play.IsIgnoringInput() &&
-                !IsAGSServiceKey(ki.Key))
+            if (!run_service_key_controls(ki) || state_handled)
+                continue; // handled by engine layer, or resolved
+            if (!play.IsIgnoringInput() && !IsAGSServiceKey(ki.Key))
             {
                 is_done = true;
-                return true; // always handle for any key
+                state_handled = true; // always handle for any key
             }
         }
         else if (type == kInputMouse)
         {
             eAGSMouseButton mbut;
-            if (run_service_mb_controls(mbut) && !play.IsIgnoringInput() &&
-                RunMouse(mbut, mx, my, isonitem))
+            if (!run_service_mb_controls(mbut) || state_handled)
+                continue; // handled by engine layer, or resolved
+            if (!play.IsIgnoringInput() && RunMouse(mbut, mx, my, isonitem))
             {
-                return true; // handled
+                state_handled = true; // handled
             }
         }
+        else
+        {
+            ags_drop_next_inputevent();
+        }
     }
-    return false; // not handled
+    return state_handled;
 }
 
 bool InventoryScreen::RunMouse(eAGSMouseButton mbut, int mx, int my, int isonitem)
@@ -578,7 +584,6 @@ void InventoryScreen::End()
     set_default_cursor();
     invalidate_screen();
     in_inv_screen--;
-    ags_clear_input_buffer();
 }
 
 int __actual_invscreen()

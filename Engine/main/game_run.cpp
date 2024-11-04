@@ -696,9 +696,9 @@ static void check_controls() {
             check_keyboard_controls();
         else if (type == kInputMouse)
             check_mouse_controls(was_mouse_on_iface);
+        else
+            ags_drop_next_inputevent();
     }
-
-    ags_clear_input_buffer();
 }
 
 static void check_room_edges(size_t numevents_was)

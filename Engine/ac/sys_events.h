@@ -143,9 +143,6 @@ void ags_touch_set_mouse_emulation(TouchMouseEmulation mode,
 // Clears buffered keypresses and mouse clicks;
 // resets current key/mb states
 void ags_clear_input_state();
-// Clears buffered keypresses and mouse clicks, if any;
-// does NOT reset current key/mb states
-void ags_clear_input_buffer();
 // Clears buffered mouse movement
 void ags_clear_mouse_movement();
 

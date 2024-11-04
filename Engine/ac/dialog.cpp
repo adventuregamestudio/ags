@@ -1040,8 +1040,9 @@ bool DialogOptions::RunControls()
         }
     }
     // Finally handle mouse wheel
+    const int wheel = ags_check_mouse_wheel(); // poll always, otherwise it accumulates
     if (!state_handled)
-        state_handled = RunMouseWheel(ags_check_mouse_wheel());
+        state_handled = RunMouseWheel(wheel);
     return state_handled;
 }
 

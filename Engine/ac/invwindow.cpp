@@ -429,6 +429,7 @@ bool InventoryScreen::RunControls(int mx, int my, int isonitem)
             }
         }
     }
+    ags_check_mouse_wheel(); // poll always, otherwise it accumulates
     return state_handled;
 }
 

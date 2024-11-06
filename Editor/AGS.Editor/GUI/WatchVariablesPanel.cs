@@ -24,6 +24,7 @@ namespace AGS.Editor
         private readonly Timer _updateItemTimer = new Timer();
         private readonly object _updateItemLock = new object();
         private readonly List<ListViewItem> _itemsToUpdate = new List<ListViewItem>();
+        private bool _autoWatchLocalVars = true;
 
         public WatchVariablesPanel()
         {
@@ -69,7 +70,7 @@ namespace AGS.Editor
         private void _updateItemTimer_Tick(object sender, EventArgs e)
         {
             _updateItemTimer.Enabled = false;
-            lock(_updateItemLock)
+            lock (_updateItemLock)
             {
                 foreach (var item in _itemsToUpdate)
                 {
@@ -270,12 +271,22 @@ namespace AGS.Editor
             return (int)Math.Sqrt(
             c.R * c.R * .299 +
             c.G * c.G * .587 +
-            c.B * c.B * .114);            
+            c.B * c.B * .114);
+        }
+
+        private void ClearAllAutoLocalVariables()
+        {
+            foreach (ListViewItem itm in listView1.Items)
+            {
+                if (itm.Tag as string == "autolocal")
+                    itm.Remove();
+            }
+            _itemsToUpdate.RemoveAll(itm => itm.Tag as string == "autolocal");
         }
 
         public void SetAutoLocalVariables(DebugCallStack callStack)
         {
-            if (!AGSEditor.Instance.Debugger.IsActive)
+            if (!AGSEditor.Instance.Debugger.IsActive || !_autoWatchLocalVars)
                 return;
 
             string scriptName = callStack.Lines[0].ScriptName;
@@ -333,6 +344,16 @@ namespace AGS.Editor
 
             listView1.EndUpdate();
             _updateItemTimer.Start();
+        }
+
+        private bool AutoWatchLocalVariables
+        {
+            get { return _autoWatchLocalVars; }
+            set {
+                    _autoWatchLocalVars = value;
+                    if(!_autoWatchLocalVars)
+                        ClearAllAutoLocalVariables();
+                }
         }
 
         public void UpdateAllWatches()
@@ -418,6 +439,12 @@ namespace AGS.Editor
         {
             listView1.Items.Clear();
             EnsureEmptyItem();
+        }
+
+        private void localVarToggleToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            localVarToggleToolStripMenuItem.Checked = !localVarToggleToolStripMenuItem.Checked;
+            AutoWatchLocalVariables = localVarToggleToolStripMenuItem.Checked;
         }
 
         private void LoadColorTheme(ColorTheme t)

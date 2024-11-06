@@ -3362,6 +3362,9 @@ managed struct RestoredSaveInfo
   import attribute bool Cancel;
   import attribute SaveComponentSelection RetryWithoutComponents;
   import readonly attribute RestoredSaveResult Result;
+
+  import readonly attribute int Slot;
+  import readonly attribute String Description;
   import readonly attribute String EngineVersion;
   import readonly attribute int AudioClipTypeCount;
   import readonly attribute int CharacterCount;

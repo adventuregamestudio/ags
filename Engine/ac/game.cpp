@@ -1055,7 +1055,8 @@ HSaveError load_game(const String &path, int slotNumber, bool startup, bool &dat
     HSaveError err;
     SavegameSource src;
     SavegameDescription desc;
-    err = OpenSavegame(path, src, desc, kSvgDesc_EnvInfo);
+    desc.Slot = slotNumber;
+    err = OpenSavegame(path, src, desc, (SavegameDescElem)(kSvgDesc_EnvInfo | kSvgDesc_UserText));
 
     // saved in incompatible enviroment
     if (!err)
@@ -1100,8 +1101,8 @@ HSaveError load_game(const String &path, int slotNumber, bool startup, bool &dat
 
     // Do the actual game state restore
     SaveRestoreFeedback feedback;
-    err = RestoreGameState(src.InputStream.get(),
-        RestoreGameStateOptions(src.Version, desc.EngineVersion.LongString,
+    err = RestoreGameState(src.InputStream.get(), desc,
+        RestoreGameStateOptions(src.Version,
             (SaveCmpSelection)(kSaveCmp_All & ~(game.options[OPT_SAVECOMPONENTSIGNORE] & kSaveCmp_ScriptIgnoreMask)),
             startup), feedback);
     src.InputStream.reset();

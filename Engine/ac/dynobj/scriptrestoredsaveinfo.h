@@ -22,12 +22,14 @@ class ScriptRestoredSaveInfo final : public CCBasicObject
 {
 public:
     using SaveRestorationFlags = AGS::Engine::SaveRestorationFlags;
+    using SavegameDescription = AGS::Engine::SavegameDescription;
     using SaveRestoredDataCounts = AGS::Engine::SaveRestoredDataCounts;
     using SaveCmpSelection = AGS::Engine::SaveCmpSelection;
 
-    ScriptRestoredSaveInfo(SaveRestorationFlags result,
-        const SaveRestoredDataCounts &counts, bool default_cancel)
+    ScriptRestoredSaveInfo(SaveRestorationFlags result, const SavegameDescription &save_desc,
+            const SaveRestoredDataCounts &counts, bool default_cancel)
         : _result(result)
+        , _desc(save_desc)
         , _counts(counts)
         , _cancel(default_cancel)
     {}
@@ -44,9 +46,11 @@ public:
     SaveCmpSelection GetRetryWithoutComponents() const { return _retryWithoutComponents; }
     void SetRetryWithoutComponents(SaveCmpSelection cmp) { _retryWithoutComponents = cmp; }
     SaveRestorationFlags GetResult() const { return _result; }
+    const SavegameDescription &GetDesc() const { return _desc; }
     const SaveRestoredDataCounts &GetCounts() const { return _counts; }
 
 private:
+    SavegameDescription _desc;
     SaveRestorationFlags _result;
     SaveRestoredDataCounts _counts;
     bool _cancel = false;

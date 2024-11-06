@@ -38,6 +38,8 @@ typedef std::shared_ptr<Bitmap> PBitmap;
 // loading save data
 struct PreservedParams
 {
+    SavegameDescription Desc;
+
     // Whether speech and audio packages available
     bool SpeechVOX = false;
     bool MusicVOX = false;
@@ -48,7 +50,9 @@ struct PreservedParams
     std::vector<String> ScriptModuleNames;
     std::vector<size_t> ScMdDataSize;
 
-    PreservedParams();
+    PreservedParams() = default;
+    PreservedParams(const SavegameDescription &desc)
+        : Desc(desc) {}
 };
 
 enum GameViewCamFlags
@@ -126,8 +130,6 @@ struct SaveRestoredDataCounts
     uint32_t ScriptModules = 0u;
     std::vector<uint32_t> ScriptModuleDataSz;
     uint32_t RoomScriptDataSz = 0u; // current room's script data size
-
-    String   EngineVersion; // engine this save was written by
 };
 
 // RestoredData keeps certain temporary data to help with

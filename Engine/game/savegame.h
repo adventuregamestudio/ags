@@ -127,6 +127,8 @@ enum SavegameDescElem
 // it was created in, and custom data provided by user
 struct SavegameDescription
 {
+    // Savegame's slot number
+    int                 Slot = -1;
     // Name of the engine that saved the game
     String              EngineName;
     // Version of the engine that saved the game
@@ -134,7 +136,7 @@ struct SavegameDescription
     // Guid of the game which made this save
     String              GameGuid;
     // Legacy uniqueid of the game, for use in older games with no GUID
-    int                 LegacyID;
+    int                 LegacyID = 0;
     // Title of the game which made this save
     String              GameTitle;
     // Name of the main data file used; this is needed to properly
@@ -142,15 +144,17 @@ struct SavegameDescription
     String              MainDataFilename;
     // Game's main data version; should be checked early to know
     // if the save was made for the supported game format
-    GameDataVersion     MainDataVersion;
+    GameDataVersion     MainDataVersion = kGameVersion_Undefined;
     // Native color depth of the game; this is required to
     // properly restore dynamic graphics from the save
-    int                 ColorDepth;
-    
+    int                 ColorDepth = 0;
+
     String              UserText;
     std::unique_ptr<Bitmap> UserImage;
 
-    SavegameDescription();
+    SavegameDescription() = default;
+    SavegameDescription(SavegameDescription &&desc) = default;
+    SavegameDescription(const SavegameDescription &desc);
 };
 
 // SaveCmpSelection flags tell which save components to restore, and which to skip.
@@ -206,13 +210,13 @@ enum SaveCmpSelection
 struct RestoreGameStateOptions
 {
     SavegameVersion SaveVersion = kSvgVersion_Undefined;
-    String          EngineVersion;
     SaveCmpSelection SelectedComponents = kSaveCmp_All;
     bool            IsGameClear = false;
 
     RestoreGameStateOptions() = default;
-    RestoreGameStateOptions(SavegameVersion svg_ver, const String &eng_ver, SaveCmpSelection select_cmp, bool game_clear)
-        : SaveVersion(svg_ver), EngineVersion(eng_ver), SelectedComponents(select_cmp), IsGameClear(game_clear) {}
+    RestoreGameStateOptions(SavegameVersion svg_ver, SaveCmpSelection select_cmp, bool game_clear)
+        : SaveVersion(svg_ver), SelectedComponents(select_cmp), IsGameClear(game_clear)
+    {}
 };
 
 // SaveRestoreFeedback - provide an optional instruction to the engine
@@ -231,7 +235,7 @@ HSaveError     OpenSavegame(const String &filename, SavegameSource &src,
 HSaveError     OpenSavegame(const String &filename, SavegameDescription &desc, SavegameDescElem elems = kSvgDesc_All);
 // Reads the game data from the save stream and reinitializes game state;
 // is_game_clear - tells whether the game is in clean default state
-HSaveError     RestoreGameState(Stream *in, const RestoreGameStateOptions &options, SaveRestoreFeedback &feedback);
+HSaveError     RestoreGameState(Stream *in, const SavegameDescription &desc, const RestoreGameStateOptions &options, SaveRestoreFeedback &feedback);
 // Opens savegame for writing and puts in savegame description
 std::unique_ptr<Stream> StartSavegame(const String &filename, const String &user_text, const Bitmap *user_image);
 // Prepares game for saving state and writes game data into the save stream

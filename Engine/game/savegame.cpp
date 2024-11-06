@@ -91,18 +91,20 @@ SavegameSource::SavegameSource()
 {
 }
 
-SavegameDescription::SavegameDescription()
-    : LegacyID(0)
-    , MainDataVersion(kGameVersion_Undefined)
-    , ColorDepth(0)
+SavegameDescription::SavegameDescription(const SavegameDescription &desc)
 {
-}
-
-PreservedParams::PreservedParams()
-    : SpeechVOX(0)
-    , MusicVOX(0)
-    , GlScDataSize(0)
-{
+    Slot = desc.Slot;
+    EngineName = (desc.EngineName);
+    EngineVersion = desc.EngineVersion;
+    GameGuid = desc.GameGuid;
+    LegacyID = desc.LegacyID;
+    GameTitle = desc.GameTitle;
+    MainDataFilename = desc.MainDataFilename;
+    MainDataVersion = desc.MainDataVersion;
+    ColorDepth = desc.ColorDepth;
+    UserText = desc.UserText;
+    if (desc.UserImage)
+        UserImage.reset(BitmapHelper::CreateBitmapCopy(desc.UserImage.get()));
 }
 
 RestoredData::RestoredData()
@@ -533,9 +535,9 @@ static void ValidateDynamicSprite(int handle, IScriptObject *obj)
 }
 
 // Call a scripting event to let user validate the restored save
-static HSaveError ValidateRestoredSave(const RestoredData &r_data, SaveRestoreFeedback &feedback)
+static HSaveError ValidateRestoredSave(const SavegameDescription &save_desc, const RestoredData &r_data, SaveRestoreFeedback &feedback)
 {
-    auto *saveinfo = new ScriptRestoredSaveInfo(r_data.Result.RestoreFlags, r_data.DataCounts,
+    auto *saveinfo = new ScriptRestoredSaveInfo(r_data.Result.RestoreFlags, save_desc, r_data.DataCounts,
         (r_data.Result.RestoreFlags & kSaveRestore_MismatchMask) != 0);
     int handle = ccRegisterManagedObject(saveinfo, saveinfo);
     ccAddObjectReference(handle); // add internal ref
@@ -735,7 +737,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
     // After all of the game logical state is initialized and reapplied values from save,
     // call a "validate" script callback, to let user check the restored save
     // and make final decision: whether to continue with the game, or cancel and quit.
-    HSaveError validate_err = ValidateRestoredSave(r_data, r_data.Result.Feedback);
+    HSaveError validate_err = ValidateRestoredSave(pp.Desc, r_data, r_data.Result.Feedback);
     if (!validate_err)
         return validate_err;
 
@@ -778,12 +780,12 @@ static SaveCmpSelection FixupCmpSelection(SaveCmpSelection select_cmp)
         kSaveCmp_ObjectSprites * ((select_cmp & kSaveCmp_DynamicSprites) == 0));
 }
 
-HSaveError RestoreGameState(Stream *in, const RestoreGameStateOptions &options, SaveRestoreFeedback &feedback)
+HSaveError RestoreGameState(Stream *in, const SavegameDescription &desc, const RestoreGameStateOptions &options, SaveRestoreFeedback &feedback)
 {
     SaveCmpSelection select_cmp = FixupCmpSelection(options.SelectedComponents);
     const bool has_validate_cb = DoesScriptFunctionExistInModules("validate_restored_save");
 
-    PreservedParams pp;
+    PreservedParams pp(desc);
     RestoredData r_data;
     DoBeforeRestore(pp, select_cmp); // WARNING: this frees scripts and some other data
 
@@ -792,7 +794,6 @@ HSaveError RestoreGameState(Stream *in, const RestoreGameStateOptions &options, 
           (kSaveRestore_ClearData * options.IsGameClear) // tell that the game data is reset
         | (kSaveRestore_AllowMismatchLess * has_validate_cb) // allow less data in saves
         );
-    r_data.DataCounts.EngineVersion = options.EngineVersion;
 
     HSaveError err = SavegameComponents::ReadAll(in, options.SaveVersion, select_cmp, pp, r_data);
     feedback = r_data.Result.Feedback;
@@ -994,9 +995,19 @@ int SaveInfo_GetResult(ScriptRestoredSaveInfo *info)
     return info->GetResult();
 }
 
+int SaveInfo_GetSlot(ScriptRestoredSaveInfo *info)
+{
+    return info->GetDesc().Slot;
+}
+
+const char* SaveInfo_GetDescription(ScriptRestoredSaveInfo *info)
+{
+    return CreateNewScriptString(info->GetDesc().UserText.GetCStr());
+}
+
 const char* SaveInfo_GetEngineVersion(ScriptRestoredSaveInfo *info)
 {
-    return CreateNewScriptString(info->GetCounts().EngineVersion.GetCStr());
+    return CreateNewScriptString(info->GetDesc().EngineVersion.LongString.GetCStr());
 }
 
 int SaveInfo_GetAudioClipTypeCount(ScriptRestoredSaveInfo *info)
@@ -1114,6 +1125,16 @@ RuntimeScriptValue Sc_SaveInfo_GetResult(void *self, const RuntimeScriptValue *p
     API_OBJCALL_INT(ScriptRestoredSaveInfo, SaveInfo_GetResult);
 }
 
+RuntimeScriptValue Sc_SaveInfo_GetSlot(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptRestoredSaveInfo, SaveInfo_GetSlot);
+}
+
+RuntimeScriptValue Sc_SaveInfo_GetDescription(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ(ScriptRestoredSaveInfo, const char, myScriptStringImpl, SaveInfo_GetDescription);
+}
+
 RuntimeScriptValue Sc_SaveInfo_GetEngineVersion(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_OBJ(ScriptRestoredSaveInfo, const char, myScriptStringImpl, SaveInfo_GetEngineVersion);
@@ -1197,6 +1218,8 @@ void RegisterSaveInfoAPI()
         { "RestoredSaveInfo::get_RetryWithoutComponents", API_FN_PAIR(SaveInfo_GetRetryWithoutComponents) },
         { "RestoredSaveInfo::set_RetryWithoutComponents", API_FN_PAIR(SaveInfo_SetRetryWithoutComponents) },
         { "RestoredSaveInfo::get_Result",               API_FN_PAIR(SaveInfo_GetResult) },
+        { "RestoredSaveInfo::get_Slot",                 API_FN_PAIR(SaveInfo_GetSlot) },
+        { "RestoredSaveInfo::get_Description",          API_FN_PAIR(SaveInfo_GetDescription) },
         { "RestoredSaveInfo::get_EngineVersion",        API_FN_PAIR(SaveInfo_GetEngineVersion) },
         { "RestoredSaveInfo::get_AudioClipTypeCount",   API_FN_PAIR(SaveInfo_GetAudioClipTypeCount) },
         { "RestoredSaveInfo::get_CharacterCount",       API_FN_PAIR(SaveInfo_GetCharacterCount) },

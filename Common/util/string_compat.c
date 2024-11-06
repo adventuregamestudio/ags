@@ -13,9 +13,11 @@
 //=============================================================================
 #include "util/string_compat.h"
 #include <ctype.h>
+#include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 #include "core/platform.h"
+#include "debug/assert.h"
 
 char *ags_strlwr(char *s)
 {
@@ -62,4 +64,30 @@ char *ags_strdup(const char *s)
 char *ags_strstr(const char *haystack, const char *needle)
 {
     return strstr(haystack, needle);
+}
+
+int ags_strncpy_s(char *dest, size_t dest_sz, const char *src, size_t count)
+{
+    // NOTE: implementation approximately mimics explanation for "strncpy_s":
+    // https://en.cppreference.com/w/c/string/byte/strncpy
+    assert(dest && dest_sz > 0 && ((dest + dest_sz - 1 < src) || (dest > src + count)));
+    if (!dest || dest_sz == 0 || ((dest <= src) && (dest + dest_sz - 1 >= src)) || ((src <= dest) && (src + count - 1 >= dest)))
+        return EINVAL; // null buffer, or dest and src overlap
+    if (!src)
+    {
+        dest[0] = 0; // ensure null terminator
+        return EINVAL;
+    }
+
+    const size_t copy_len = (count < dest_sz - 1) ? count : dest_sz - 1; // reserve null-terminator
+    const char *psrc = src;
+    const char *src_end = src + copy_len;
+    char *pdst = dest;
+    for (; *psrc && (psrc != src_end); ++psrc, ++pdst)
+        *pdst = *psrc;
+    *pdst = 0; // ensure null terminator
+    assert((*psrc == 0) || ((psrc - src) == count)); // assert that no *unintended* truncation occured
+    if ((*psrc != 0) && ((psrc - src) < count))
+        return ERANGE; // not enough dest buffer - error
+    return 0; // success
 }

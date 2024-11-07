@@ -39,6 +39,7 @@ struct ccCompiledScript: public ccScript {
     void fixup_previous(char);
     int  add_new_function(const char*, int *idx);
     int  add_new_import(const char*);
+    int  find_or_add_import(const char*);
     int  add_new_export(const char*, int, int32_t, int);
     void write_code(int32_t);
     void set_line_number(int nlum) { next_line=nlum; }

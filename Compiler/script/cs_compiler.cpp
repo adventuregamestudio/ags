@@ -35,6 +35,8 @@ void ccGetExtensions(std::vector<std::string> &exts)
 
     // Managed ptr in managed structs
     exts.push_back("NESTEDPOINTERS");
+    // DynamicArray.Length pseudo-property
+    exts.push_back("DYNARRAY_LENGTH");
     return;
 }
 

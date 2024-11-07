@@ -252,6 +252,12 @@ int symbolTable::add_ex(const char*nta,int typo,char sizee) {
     symbolTree.addEntry(nta, p_value);
     return p_value;
 }
+int symbolTable::find_or_add(const char *name) {
+    int index = find(name);
+    if (index >= 0)
+        return index;
+    return add(name);
+}
 int symbolTable::add_operator(const char *nta, int priority, int vcpucmd) {
     int nss = add_ex(nta, SYM_OPERATOR, priority);
 	if (nss >= 0) {

@@ -45,15 +45,17 @@ std::unique_ptr<InteractionEvents> InteractionEvents::CreateFromStream_v362(Stre
 
 void InteractionEvents::Read_v361(Stream *in)
 {
+    Events.clear();
     const size_t evt_count = in->ReadInt32();
     for (size_t i = 0; i < evt_count; ++i)
     {
-        Events.push_back(String::FromStream(in));
+        Events.push_back( { String::FromStream(in) } );
     }
 }
 
 HError InteractionEvents::Read_v362(Stream *in)
 {
+    Events.clear();
     InteractionEventsVersion ver = (InteractionEventsVersion)in->ReadInt32();
     if (ver != kInterEvents_v362)
         return new Error(String::FromFormat("InteractionEvents version not supported: %d", ver));
@@ -62,7 +64,7 @@ HError InteractionEvents::Read_v362(Stream *in)
     const size_t evt_count = in->ReadInt32();
     for (size_t i = 0; i < evt_count; ++i)
     {
-        Events.push_back(StrUtil::ReadString(in));
+        Events.push_back( { StrUtil::ReadString(in) } );
     }
     return HError::None();
 }
@@ -70,9 +72,9 @@ HError InteractionEvents::Read_v362(Stream *in)
 void InteractionEvents::Write_v361(Stream *out) const
 {
     out->WriteInt32(Events.size());
-    for (const auto &fn : Events)
+    for (const auto &evt : Events)
     {
-        fn.Write(out);
+        evt.FunctionName.Write(out);
     }
 }
 
@@ -81,9 +83,9 @@ void InteractionEvents::Write_v362(Stream *out) const
     out->WriteInt32(kInterEvents_v362);
     StrUtil::WriteString(ScriptModule, out);
     out->WriteInt32(Events.size());
-    for (const auto &fn : Events)
+    for (const auto &evt : Events)
     {
-        StrUtil::WriteString(fn, out);
+        StrUtil::WriteString(evt.FunctionName, out);
     }
 }
 

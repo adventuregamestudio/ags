@@ -131,25 +131,26 @@ bool    DoesScriptFunctionExistInModules(const String &fn_name);
 // Queues a script function to be run either called by the engine or from another script;
 // the function is identified by its name, and will be run in time, by RunScriptFunctionAuto().
 void    QueueScriptFunction(ScriptType sc_type, const String &fn_name, size_t param_count = 0,
-    const RuntimeScriptValue *params = nullptr);
+    const RuntimeScriptValue *params = nullptr, std::weak_ptr<bool> result = {});
 // Queues a script function to be run either called by the engine or from another script;
 // the function is identified by its name and script module, and will be run in time,
 // by RunScriptFunctionAuto().
 void    QueueScriptFunction(ScriptType sc_type, const ScriptFunctionRef &fn_ref, size_t param_count = 0,
-    const RuntimeScriptValue *params = nullptr);
+    const RuntimeScriptValue *params = nullptr, std::weak_ptr<bool> result = {});
 // Try to run a script function on a given script instance
 RunScFuncResult RunScriptFunction(ccInstance *sci, const String &tsname, size_t param_count = 0,
     const RuntimeScriptValue *params = nullptr);
 // Run a script function in all the regular script modules, in order, where available
 // includes globalscript, but not the current room script.
-void    RunScriptFunctionInModules(const String &tsname, size_t param_count = 0,
+// returns if at least one instance of a function was run successfully.
+bool    RunScriptFunctionInModules(const String &tsname, size_t param_count = 0,
     const RuntimeScriptValue *params = nullptr);
-// Run an obligatory script function in the current room script
-void    RunScriptFunctionInRoom(const String &tsname, size_t param_count = 0,
-    const RuntimeScriptValue *params = nullptr);
+// Run a script function in the current room script; returns if a function was run successfully.
+bool    RunScriptFunctionInRoom(const String &tsname, size_t param_count = 0, const RuntimeScriptValue *params = nullptr);
 // Try to run a script function, guessing the behavior by its name and script instance type;
-// depending on the type may run a claimable callback chain
-void   RunScriptFunctionAuto(ScriptType sc_type, const ScriptFunctionRef &fn_ref, size_t param_count = 0,
+// depending on the type may run a claimable callback chain;
+// returns if at least one instance of a function was run successfully.
+bool   RunScriptFunctionAuto(ScriptType sc_type, const ScriptFunctionRef &fn_ref, size_t param_count = 0,
     const RuntimeScriptValue *params = nullptr);
 
 // Preallocates script module instances

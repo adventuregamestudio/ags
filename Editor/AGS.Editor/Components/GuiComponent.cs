@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using System.Xml;
@@ -50,6 +51,7 @@ namespace AGS.Editor.Components
             _guiController.RegisterIcon("GUISliderIcon", Resources.ResourceManager.GetIcon("guis_slider.ico"));
             _guiController.RegisterIcon("GUITextBoxIcon", Resources.ResourceManager.GetIcon("guis_textbox.ico"));
             _guiController.ProjectTree.AddTreeRoot(this, TOP_LEVEL_COMMAND_ID, "GUIs", ICON_KEY);
+            _agsEditor.TestGameScripts += ScanAndReportMissingEventHandlers;
 
             RePopulateTreeView();
         }
@@ -371,5 +373,92 @@ namespace AGS.Editor.Components
             return _agsEditor.CurrentGame.GUIFlatList;
         }
 
+        /// <summary>
+        /// Helper class for use when scanning for event handlers
+        /// </summary>
+        private class GUIObjectWithEvents
+        {
+            public NormalGUI GUI;
+            public GUIControl Control;
+
+            public GUIObjectWithEvents(NormalGUI gui) { GUI = gui; }
+            public GUIObjectWithEvents(GUIControl control) { Control = control; }
+        }
+
+        private class GUIEventReference
+        {
+            public GUIObjectWithEvents GUIObject;
+            public string EventName;
+            public string FunctionName;
+
+            public GUIEventReference(GUIObjectWithEvents obj, string evtName, string fnName)
+            {
+                GUIObject = obj;
+                EventName = evtName;
+                FunctionName = fnName;
+            }
+        }
+
+        private void ScanAndReportMissingEventHandlers(GenericMessagesArgs args)
+        {
+            var errors = args.Messages;
+            foreach (GUI gui in _agsEditor.CurrentGame.GUIs)
+            {
+                NormalGUI ngui = gui as NormalGUI;
+                if (ngui == null)
+                    continue;
+
+                // Gather function names from the GUI and all of their controls,
+                // in order to test missing functions in a single batch.
+                // TODO: the following code would be simpler if there was an indexed Events table in each GUI and control class;
+                // see also: how Interactions class is done for Characters etc.
+                List<GUIEventReference> objectEvents = new List<GUIEventReference>();
+                objectEvents.Add(new GUIEventReference(new GUIObjectWithEvents(ngui), "OnClick", ngui.OnClick));
+
+                foreach (var control in ngui.Controls)
+                {
+                    GUIObjectWithEvents obj = new GUIObjectWithEvents(control);
+                    if (control is GUIButton)
+                    {
+                        objectEvents.Add(new GUIEventReference(obj, "OnClick", (control as GUIButton).OnClick));
+                    }
+                    else if (control is GUIListBox)
+                    {
+                        objectEvents.Add(new GUIEventReference(obj, "OnSelectionChanged", (control as GUIListBox).OnSelectionChanged));
+                    }
+                    else if (control is GUISlider)
+                    {
+                        objectEvents.Add(new GUIEventReference(obj, "OnChange", (control as GUISlider).OnChange));
+                    }
+                    else if (control is GUITextBox)
+                    {
+                        objectEvents.Add(new GUIEventReference(obj, "OnActivate", (control as GUITextBox).OnActivate));
+                    }
+                }
+
+                var functionNames = objectEvents.Select(evt => evt.FunctionName);
+                var missing = _agsEditor.Tasks.TestMissingEventHandlers(ngui.ScriptModule, functionNames.ToArray());
+                if (missing == null || missing.Count == 0)
+                    continue;
+
+                foreach (var miss in missing)
+                {
+                    GUIEventReference evtRef = objectEvents[miss];
+                    GUIObjectWithEvents guiObject = evtRef.GUIObject;
+                    if (guiObject.GUI != null)
+                    {
+                        errors.Add(new CompileWarning($"GUI ({ngui.ID}) {ngui.Name}'s event {evtRef.EventName} function \"{evtRef.FunctionName}\" not found in script {ngui.ScriptModule}."));
+                    }
+                    else if (guiObject.Control != null)
+                    {
+                        string typeName = guiObject.Control.ControlType;
+                        int objid = guiObject.Control.ID;
+                        string scriptName = guiObject.Control.Name;
+
+                        errors.Add(new CompileWarning($"GUI ({ngui.ID}) {ngui.Name}: {typeName} #{objid} {scriptName}'s event {evtRef.EventName} function \"{evtRef.FunctionName}\" not found in script {ngui.ScriptModule}."));
+                    }
+                }
+            }
+        }
     }
 }

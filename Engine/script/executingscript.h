@@ -58,6 +58,11 @@ struct QueuedScript
     ScriptFunctionRef  Function;
     size_t             ParamCount = 0u;
     RuntimeScriptValue Params[MAX_SCRIPT_EVT_PARAMS];
+    // An optional shared pointer to the boolean variable which must receive
+    // a result of a function call (success or failure).
+    // (we have to use a shared ptr here in case the object which requested
+    // this call gets disposed before the result is received, so for safety).
+    std::weak_ptr<bool> Result;
 
     QueuedScript() = default;
 };
@@ -110,9 +115,9 @@ struct ExecutingScript
     ExecutingScript() = default;
     void QueueAction(PostScriptAction &&act);
     void RunAnother(ScriptType scinst, const AGS::Common::String &fn_name,
-        size_t param_count, const RuntimeScriptValue *params);
+        size_t param_count, const RuntimeScriptValue *params, std::weak_ptr<bool> result = {});
     void RunAnother(ScriptType scinst, const ScriptFunctionRef &fn_ref,
-        size_t param_count, const RuntimeScriptValue *params);
+        size_t param_count, const RuntimeScriptValue *params, std::weak_ptr<bool> result = {});
 };
 
 #endif // __AGS_EE_SCRIPT__EXECUTINGSCRIPT_H

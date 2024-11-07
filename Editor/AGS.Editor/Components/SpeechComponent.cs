@@ -37,8 +37,9 @@ namespace AGS.Editor.Components
             _agsEditor.ExtraOutputCreationStep += new AGSEditor.ExtraOutputCreationStepHandler(_agsEditor_ExtraOutputCreationStep);
         }
 
-        private void _agsEditor_ExtraCompilationStep(CompileMessages errors)
+        private void _agsEditor_ExtraCompilationStep(CompilationStepArgs args)
         {
+            var errors = args.Messages;
             MakeOneLipSyncDat(SPEECH_DIRECTORY, LIP_SYNC_DATA_OUTPUT, errors);
             // Also try compile corresponding lipsync dat for each top-level subfolder
             // inside the main Speech folder.
@@ -48,9 +49,9 @@ namespace AGS.Editor.Components
             }
         }
 
-        private void _agsEditor_ExtraOutputCreationStep(bool miniExeForDebug)
+        private void _agsEditor_ExtraOutputCreationStep(OutputCreationStepArgs args)
         {
-            if (miniExeForDebug)
+            if (args.MiniExeForDebug)
                 return;
             MakeOneVOX(SPEECH_DIRECTORY, SPEECH_VOX_FILE_NAME);
             // For each top-level subfolder inside the main Speech folder,

@@ -33,16 +33,17 @@ namespace AGS.Editor
 		public event PreDeleteSpriteHandler PreDeleteSprite;
 		public delegate void ProcessAllGameTextsHandler(IGameTextProcessor processor, CompileMessages errors);
         public event ProcessAllGameTextsHandler ProcessAllGameTexts;
-        public delegate void ExtraCompilationStepHandler(CompileMessages errors);
+        public delegate void ExtraCompilationStepHandler(CompilationStepArgs args);
         public event ExtraCompilationStepHandler ExtraCompilationStep;
-        public delegate void ExtraOutputCreationStepHandler(bool miniExeForDebug);
+        public delegate void ExtraOutputCreationStepHandler(OutputCreationStepArgs args);
         public event ExtraOutputCreationStepHandler ExtraOutputCreationStep;
+        public delegate void TestGameScriptsHandler(GenericMessagesArgs args);
+        public event TestGameScriptsHandler TestGameScripts;
 
 		public const string BUILT_IN_HEADER_FILE_NAME = "_BuiltInScriptHeader.ash";
         public const string OUTPUT_DIRECTORY = "Compiled";
         public const string DATA_OUTPUT_DIRECTORY = "Data"; // subfolder in OUTPUT_DIRECTORY for data file outputs
         public const string DEBUG_OUTPUT_DIRECTORY = "_Debug";
-        //public const string DEBUG_EXE_FILE_NAME = "_debug.exe";
         public const string GAME_FILE_NAME = "Game.agf";
 		public const string BACKUP_EXTENSION = "bak";
         public const string OLD_GAME_FILE_NAME = "ac2game.dta";
@@ -991,7 +992,7 @@ namespace AGS.Editor
                 {
                     headers.Add(scripts.Header);
                     CompileScript(scripts.Script, headers, errors);
-                    _game.ScriptsToCompile.Add(scripts);					
+                    _game.ScriptsToCompile.Add(scripts);
                 }
 
                 CompileScript(dialogScripts, headers, errors);
@@ -1002,12 +1003,28 @@ namespace AGS.Editor
                 errorToReturn = ex;
             }
 
-            if (ExtraCompilationStep != null)
-            {
-                ExtraCompilationStep(errors);
-            }
+            ExtraCompilationStep?.Invoke(new CompilationStepArgs(_game.ScriptsToCompile, errors));
+
+            RunGameScriptTests(errors);
 
             return errorToReturn;
+        }
+
+        /// <summary>
+        /// Runs few optional script checks.
+        /// </summary>
+        private void RunGameScriptTests(CompileMessages errors)
+        {
+            // Update autocomplete for all the script modules, if necessary
+            // TODO: this is not a ideal solution, as it's likely duplicating script parsing by the script compiler
+            // if done right after the compilation. Search for a better way later?
+            foreach (ScriptAndHeader scripts in _game.RootScriptFolder.AllItemsFlat)
+            {
+                if (!scripts.Script.AutoCompleteData.Populated)
+                    AutoComplete.ConstructCache(scripts.Script, null);
+            }
+
+            TestGameScripts.Invoke(new GenericMessagesArgs(errors));
         }
 
         private void CreateAudioVOXFile(bool forceRebuild)
@@ -1067,7 +1084,7 @@ namespace AGS.Editor
             targetDataFile.Build(errors, forceRebuild); // ensure that data file is built first
             if (ExtraOutputCreationStep != null)
             {
-                ExtraOutputCreationStep(false);
+                ExtraOutputCreationStep(new OutputCreationStepArgs(false));
             }
 
             // TODO: As of now the build targets other than DataFile and Debug do DEPLOYMENT rather than BUILDING
@@ -1323,7 +1340,7 @@ namespace AGS.Editor
             target.Build(errors, false);
             if (ExtraOutputCreationStep != null)
             {
-                ExtraOutputCreationStep(true);
+                ExtraOutputCreationStep(new OutputCreationStepArgs(true));
             }
 
             buildNames[target.Name] = Factory.AGSEditor.BaseGameFileName;

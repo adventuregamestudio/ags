@@ -17,22 +17,32 @@ namespace AGS.Editor.Components
 
         protected void ZoomToCorrectPositionInScript(ScriptEditor editor, ZoomToFileEventArgs evArgs)
         {
-            if (editor == null)
-            {
-                return;
-            }
-
+            bool result = true;
             if (evArgs.ZoomType == ZoomToFileZoomType.ZoomToCharacterPosition)
             {
-                editor.GoToLineOfCharacterPosition(evArgs.ZoomPosition, evArgs.SelectLine);
+                result = editor.GoToLineOfCharacterPosition(evArgs.ZoomPosition, evArgs.SelectLine);
             }
             else if (evArgs.ZoomType != ZoomToFileZoomType.DoNotMoveCursor)
             {
                 if (evArgs.ZoomToText != null)
                 {
-                    evArgs.ZoomPosition = editor.GetLineNumberForText(evArgs.ZoomToText);
+                    switch (evArgs.MatchStyle)
+                    {
+                        case ZoomToFileMatchStyle.MatchExact:
+                            evArgs.ZoomPosition = editor.GetLineNumberForText(evArgs.ZoomToText, true);
+                            break;
+                        case ZoomToFileMatchStyle.MatchRegex:
+                            evArgs.ZoomPosition = editor.GetLineNumberForPattern(evArgs.ZoomToText, true);
+                            break;
+                        default:
+                            evArgs.ZoomPosition = -1;
+                            break;
+                    }
                 }
-                editor.GoToLine(evArgs.ZoomPosition, evArgs.SelectLine, evArgs.ZoomToLineAfterOpeningBrace);
+
+                result =
+                    (evArgs.ZoomPosition >= 0 &&
+                    editor.GoToLine(evArgs.ZoomPosition, evArgs.SelectLine, evArgs.ZoomToLineAfterOpeningBrace));
 
                 if (evArgs.IsDebugExecutionPoint)
                 {
@@ -43,6 +53,8 @@ namespace AGS.Editor.Components
                     }
                 }
             }
+
+            evArgs.Result = result ? ZoomToFileResult.Success : ZoomToFileResult.LocationNotFound;
         }
 
         protected abstract ContentDocument GetDocument(ScriptEditor editor);

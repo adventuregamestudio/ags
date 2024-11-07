@@ -37,6 +37,7 @@ namespace AGS.Editor.Components
             _guiController.RegisterIcon(ICON_KEY, Resources.ResourceManager.GetIcon("charactr.ico"));
             _guiController.RegisterIcon("CharacterIcon", Resources.ResourceManager.GetIcon("charactr-item.ico"));
             _guiController.ProjectTree.AddTreeRoot(this, TOP_LEVEL_COMMAND_ID, "Characters", ICON_KEY);
+            _agsEditor.TestGameScripts += ScanAndReportMissingInteractionHandlers;
             RePopulateTreeView();
         }
 
@@ -368,6 +369,22 @@ namespace AGS.Editor.Components
         protected override string GetFolderDeleteConfirmationText()
         {
             return "Are you sure you want to delete this folder and all its characters?" + Environment.NewLine + Environment.NewLine + "If any of the characters are referenced in code by their number it could cause crashes in the game.";
+        }
+
+        private void ScanAndReportMissingInteractionHandlers(GenericMessagesArgs args)
+        {
+            var errors = args.Messages;
+            foreach (Character c in _agsEditor.CurrentGame.Characters)
+            {
+                var missing = _agsEditor.Tasks.TestMissingInteractionHandlers(c.Interactions);
+                if (missing == null || missing.Count == 0)
+                    continue;
+
+                foreach (var miss in missing)
+                {
+                    errors.Add(new CompileWarning($"Character ({c.ID}) {c.ScriptName}'s event {c.Interactions.Schema.FunctionSuffixes[miss]} function \"{c.Interactions.ScriptFunctionNames[miss]}\" not found in script {c.Interactions.ScriptModule}."));
+                }
+            }
         }
     }
 }

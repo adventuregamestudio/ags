@@ -28,6 +28,7 @@ namespace AGS.Editor.Components
             _guiController.RegisterIcon("InventoryIcon", Resources.ResourceManager.GetIcon("iconinv-item.ico"));
             _guiController.RegisterIcon(ICON_KEY, Resources.ResourceManager.GetIcon("iconinv.ico"));
             _guiController.ProjectTree.AddTreeRoot(this, TOP_LEVEL_COMMAND_ID, "Inventory items", ICON_KEY);
+            _agsEditor.TestGameScripts += ScanAndReportMissingInteractionHandlers;
             RePopulateTreeView();
         }
 
@@ -265,6 +266,22 @@ namespace AGS.Editor.Components
         protected override IList<InventoryItem> GetFlatList()
         {
             return _agsEditor.CurrentGame.InventoryFlatList;
+        }
+
+        private void ScanAndReportMissingInteractionHandlers(GenericMessagesArgs args)
+        {
+            var errors = args.Messages;
+            foreach (InventoryItem inv in _agsEditor.CurrentGame.InventoryItems)
+            {
+                var missing = _agsEditor.Tasks.TestMissingInteractionHandlers(inv.Interactions);
+                if (missing == null || missing.Count == 0)
+                    continue;
+
+                foreach (var miss in missing)
+                {
+                    errors.Add(new CompileWarning($"Inventory ({inv.ID}) {inv.Name}'s event {inv.Interactions.Schema.FunctionSuffixes[miss]} function \"{inv.Interactions.ScriptFunctionNames[miss]}\" not found in script {inv.Interactions.ScriptModule}."));
+                }
+            }
         }
     }
 }

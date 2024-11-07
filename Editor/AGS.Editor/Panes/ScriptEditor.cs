@@ -462,13 +462,17 @@ namespace AGS.Editor
             GoToLineOfCharacterPosition(position, true);
         }
 
-        public void GoToLineOfCharacterPosition(int position, bool selectLine)
+        public bool GoToLineOfCharacterPosition(int position, bool selectLine)
         {
+            if (position < 0 || position >= scintilla.TextLength)
+                return false;
+
             scintilla.GoToPosition(position);
             if (selectLine)
             {
                 scintilla.SelectCurrentLine();
             }
+            return true;
         }
 
         public void SetExecutionPointMarker(int lineNumber)
@@ -481,9 +485,24 @@ namespace AGS.Editor
             scintilla.ShowErrorMessagePopup(errorMessage);
         }
 
-        public int GetLineNumberForText(string text)
+        /// <summary>
+        /// Tries to find exact text in script, and returns a corresponding line number,
+        /// or -1 if no such text was found.
+        /// plainCodeOnly tells if comments and string literals should be ignored.
+        /// </summary>
+        public int GetLineNumberForText(string text, bool plainCodeOnly)
         {
-            return scintilla.FindLineNumberForText(text);
+            return scintilla.FindLineNumberForText(text, plainCodeOnly);
+        }
+
+        /// <summary>
+        /// Searches the script for the regex pattern, and returns a corresponding line number,
+        /// or -1 if pattern search failed.
+        /// plainCodeOnly tells if comments and string literals should be ignored.
+        /// </summary>
+        public int GetLineNumberForPattern(string pattern, bool plainCodeOnly)
+        {
+            return scintilla.FindLineNumberForPattern(pattern, plainCodeOnly);
         }
 
         public void RemoveExecutionPointMarker()

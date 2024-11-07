@@ -1,13 +1,14 @@
 using AGS.Types;
 using AGS.Types.AutoComplete;
 using AGS.Types.Interfaces;
-using ScintillaNET;
 using AGS.Controls;
+using ScintillaNET;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
 namespace AGS.Editor
@@ -862,14 +863,55 @@ namespace AGS.Editor
             get { return this.scintillaControl1.Modified; }
         }
 
-        public int FindLineNumberForText(string text)
+        /// <summary>
+        /// Search for the exact text match in the script, and returns
+        /// the corresponding line number. Returns -1 if no such text was found.
+        /// plainCodeOnly tells if comments and string literals should be ignored.
+        /// </summary>
+        public int FindLineNumberForText(string text, bool plainCodeOnly)
         {
+            // Here's a problem: InsideStringOrComment relies on scintilla styling;
+            // but styling is not necessarily present at the time if we just loaded a document.
+            // So we force the styling in case it was not done here yet.
             string currentText = this.scintillaControl1.Text;
-            if (currentText.IndexOf(text) >= 0)
+            int pos;
+            for (pos = currentText.IndexOf(text);
+                pos >= 0 && plainCodeOnly && InsideStringOrCommentForceStyling(pos, text.Length);
+                pos = currentText.IndexOf(text, pos + text.Length))
             {
-                return FindLineNumberForCharacterIndex(currentText.IndexOf(text));
             }
-            return 0;
+
+            if (pos >= 0)
+            {
+                return FindLineNumberForCharacterIndex(pos);
+            }
+            return -1;
+        }
+
+        /// <summary>
+        /// Search the script for the regex pattern, and returns
+        /// the corresponding line number. Returns -1 if no such text was found.
+        /// plainCodeOnly tells if comments and string literals should be ignored.
+        /// </summary>
+        public int FindLineNumberForPattern(string pattern, bool plainCodeOnly)
+        {
+            // Here's a problem: InsideStringOrComment relies on scintilla styling;
+            // but styling is not necessarily present at the time if we just loaded a document.
+            // So we force the styling in case it was not done here yet.
+            string currentText = this.scintillaControl1.Text;
+            Regex regex = new Regex(pattern);
+            Match match;
+            for (match = regex.Match(currentText);
+                match.Success && plainCodeOnly && InsideStringOrCommentForceStyling(match.Index, match.Length);
+                match = regex.Match(currentText, match.Index + match.Length))
+            {
+            }
+
+            if (match.Success)
+            {
+                return FindLineNumberForCharacterIndex(match.Index);
+            }
+            return -1;
         }
 
         public int FindLineNumberForCharacterIndex(int pos)
@@ -1806,6 +1848,22 @@ namespace AGS.Editor
                 (style == Style.Cpp.String));
         }
 
+        /// <summary>
+        /// Forces styling prior to testing whether this is inside comment or string literal.
+        /// WARNING: may take a long time, use with care only when strictly required for the
+        /// operation to work.
+        /// </summary>
+        public bool InsideStringOrCommentForceStyling(int position, int length)
+        {
+            int styledUpTo = scintillaControl1.GetEndStyled();
+            if (position > styledUpTo)
+            {
+                scintillaControl1.Colorize(styledUpTo, position + length);
+            }
+
+            return InsideStringOrCommentStyleOnly(position);
+        }
+
         private bool IgnoringCurrentLine()
         {
             if (_ignoreLinesWithoutIndent)
@@ -2552,6 +2610,11 @@ namespace AGS.Editor
 
                 menu.Show(this.scintillaControl1, e.X, e.Y);
             }
+        }
+
+        public int TextLength
+        {
+            get { return scintillaControl1.TextLength; }
         }
 
         public int LineCount

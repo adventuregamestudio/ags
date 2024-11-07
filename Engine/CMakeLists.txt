@@ -108,6 +108,7 @@ target_sources(engine
     ac/dynobj/scriptoverlay.cpp
     ac/dynobj/scriptoverlay.h
     ac/dynobj/scriptregion.h
+    ac/dynobj/scriptrestoredsaveinfo.h
     ac/dynobj/scriptset.cpp
     ac/dynobj/scriptset.h
     ac/dynobj/scriptstring.cpp

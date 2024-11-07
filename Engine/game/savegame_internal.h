@@ -38,6 +38,8 @@ typedef std::shared_ptr<Bitmap> PBitmap;
 // loading save data
 struct PreservedParams
 {
+    SavegameDescription Desc;
+
     // Whether speech and audio packages available
     bool SpeechVOX = false;
     bool MusicVOX = false;
@@ -48,7 +50,9 @@ struct PreservedParams
     std::vector<String> ScriptModuleNames;
     std::vector<size_t> ScMdDataSize;
 
-    PreservedParams();
+    PreservedParams() = default;
+    PreservedParams(const SavegameDescription &desc)
+        : Desc(desc) {}
 };
 
 enum GameViewCamFlags
@@ -66,10 +70,75 @@ enum ViewportSaveFlags
     kSvgViewportVisible = 0x01
 };
 
+// SaveRestorationFlags mark the specifics of a restored save
+enum SaveRestorationFlags
+{
+    kSaveRestore_Default           = 0,
+    // Game data has been cleared to initial state prior to reading a save.
+    // This indicates that if any game entities do not have a match in the
+    // restored save, then they will be presented in their default state
+    // (which they have when the game starts).
+    kSaveRestore_ClearData          = 0x0001,
+    // Allow save entries mismatching game contents:
+    // - more entries, less entries, etc
+    kSaveRestore_AllowMismatchExtra = 0x0002,
+    kSaveRestore_AllowMismatchLess  = 0x0004,
+    // We detected that the save file has less data of certain type
+    // than the game requires.
+    kSaveRestore_MissingDataInSave  = 0x0008,
+    // We detected that the save file has more data of certain type
+    // than the game requires.
+    kSaveRestore_ExtraDataInSave    = 0x0010,
+    // Mask for finding out if save has any mismatches
+    kSaveRestore_MismatchMask       = kSaveRestore_MissingDataInSave
+                                    | kSaveRestore_ExtraDataInSave,
+    // Mask for the restoration result flags
+    kSaveRestore_ResultMask         = kSaveRestore_ClearData
+                                    | kSaveRestore_MissingDataInSave
+                                    | kSaveRestore_ExtraDataInSave
+};
+
+// SaveRestoreResult records allowances for the save restoration
+// and the general result of the restoration process
+struct SaveRestoreResult
+{
+    SaveRestorationFlags RestoreFlags = kSaveRestore_Default;
+    // Recorded first data mismatch error, this will be reported if
+    // save validation fails after restoring full save
+    // NOTE: may expand this to a vector if desired to record ALL mismatches.
+    String FirstMismatchError;
+    SaveRestoreFeedback Feedback;
+};
+
+// SaveRestoredDataCounts contains numbers of different types of data
+// found in the save file. This information may be passed to the game script,
+// letting it detect whether save is applicable to the current game version.
+struct SaveRestoredDataCounts
+{
+    uint32_t Dummy = 0u; // a dummy integer, used to record something that we are not interested in
+    uint32_t AudioClipTypes = 0u;
+    uint32_t Characters = 0u;
+    uint32_t Dialogs = 0u;
+    uint32_t GUIs = 0u;
+    std::vector<uint32_t> GUIControls;
+    uint32_t InventoryItems = 0u;
+    uint32_t Cursors = 0u;
+    uint32_t Views = 0u;
+    std::vector<uint32_t> ViewLoops;
+    std::vector<uint32_t> ViewFrames;
+    uint32_t GlobalScriptDataSz = 0u;
+    uint32_t ScriptModules = 0u;
+    std::vector<uint32_t> ScriptModuleDataSz;
+    uint32_t RoomScriptDataSz = 0u; // current room's script data size
+};
+
 // RestoredData keeps certain temporary data to help with
 // the restoration process
 struct RestoredData
 {
+    SaveRestoreResult       Result;
+    SaveRestoredDataCounts  DataCounts;
+
     int                     FPS;
     // Unserialized bitmaps for dynamic surfaces
     std::vector<std::unique_ptr<Bitmap>> DynamicSurfaces;

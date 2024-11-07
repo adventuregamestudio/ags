@@ -3142,15 +3142,15 @@ TEST_F(Bytecode1, DynarrayLength1_NoRTTI) {
 
     // WriteOutput("DynarrayLength1_NoRtti", scrip);
 
-    size_t const codesize = 38;
+    size_t const codesize = 40;
     EXPECT_EQ(codesize, scrip.code.size());
 
     int32_t code[] = {
       36,    7,   38,    0,           36,    8,    6,    3,    // 7
        5,   72,    3,    4,            1,    6,    2,    0,    // 15
       47,    3,   36,    9,            6,    2,    0,   48,    // 23
-       2,   52,   34,    2,           39,    1,    6,    3,    // 31
-       0,   33,    3,   35,            1,    5,  -999
+       2,   52,   29,    6,           45,    2,    39,   0,    // 31
+       6,    3,    0,   33,            3,    30,   6,    5,  -999
     };
     CompareCode(&scrip, codesize, code);
 
@@ -3158,7 +3158,7 @@ TEST_F(Bytecode1, DynarrayLength1_NoRTTI) {
     EXPECT_EQ(numfixups, scrip.fixups.size());
 
     int32_t fixups[] = {
-      15,   22,   32,  -999
+      15,   22,   34,  -999
     };
     char fixuptypes[] = {
       1,   1,   4,  '\0'
@@ -3167,7 +3167,7 @@ TEST_F(Bytecode1, DynarrayLength1_NoRTTI) {
 
     int const numimports = 1;
     std::string imports[] = {
-    "__Builtin_DynamicArrayLength^1",             "[[SENTINEL]]"
+    BUILTIN_DYNAMIC_ARRAY_LENGTH,             "[[SENTINEL]]"
     };
     CompareImports(&scrip, numimports, imports);
 
@@ -3200,15 +3200,15 @@ TEST_F(Bytecode1, DynarrayLength1_RTTI) {
     EXPECT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("DynarrayLength1_Rtti", scrip);
-    size_t const codesize = 38;
+    size_t const codesize = 40;
     EXPECT_EQ(codesize, scrip.code.size());
 
     int32_t code[] = {
       36,    7,   38,    0,           36,    8,    6,    3,    // 7
        5,   75,    3,   91,            4,    6,    2,    0,    // 15
       47,    3,   36,    9,            6,    2,    0,   48,    // 23
-       2,   52,   34,    2,           39,    1,    6,    3,    // 31
-       0,   33,    3,   35,            1,    5,  -999
+       2,   52,   29,    6,           45,    2,   39,    0,    // 31
+       6,    3,    0,   33,            3,   30,    6,    5,  -999
     };
     CompareCode(&scrip, codesize, code);
 
@@ -3216,7 +3216,7 @@ TEST_F(Bytecode1, DynarrayLength1_RTTI) {
     EXPECT_EQ(numfixups, scrip.fixups.size());
 
     int32_t fixups[] = {
-      15,   22,   32,  -999
+      15,   22,   34,  -999
     };
     char fixuptypes[] = {
       1,   1,   4,  '\0'
@@ -3225,7 +3225,7 @@ TEST_F(Bytecode1, DynarrayLength1_RTTI) {
 
     int const numimports = 1;
     std::string imports[] = {
-    "__Builtin_DynamicArrayLength^1",             "[[SENTINEL]]"
+    BUILTIN_DYNAMIC_ARRAY_LENGTH,             "[[SENTINEL]]"
     };
     CompareImports(&scrip, numimports, imports);
 
@@ -3252,17 +3252,17 @@ TEST_F(Bytecode1, DynarrayLength2_NoRTTI) {
 
     // WriteOutput("DynarrayLength2_NoRtti", scrip);
 
-    size_t const codesize = 52;
+    size_t const codesize = 54;
     EXPECT_EQ(codesize, scrip.code.size());
 
     int32_t code[] = {
       36,    2,   38,    0,           36,    3,    6,    3,    // 7
        7,   72,    3,    4,            0,   51,    0,   47,    // 15
        3,    1,    1,    4,           36,    4,   51,    4,    // 23
-      48,    2,   52,   34,            2,   39,    1,    6,    // 31
-       3,    0,   33,    3,           35,    1,   29,    3,    // 39
-      36,    5,   51,    8,           49,    2,    1,    8,    // 47
-       6,    3,    0,    5,          -999
+      48,    2,   52,   29,            6,   45,    2,   39,    // 31
+       0,    6,    3,    0,           33,    3,   30,    6,    // 39
+       29,   3,   36,    5,           51,    8,   49,    2,    // 47
+       1,    8,    6,    3,            0,    5,   -999
     };
     CompareCode(&scrip, codesize, code);
 
@@ -3270,7 +3270,7 @@ TEST_F(Bytecode1, DynarrayLength2_NoRTTI) {
     EXPECT_EQ(numfixups, scrip.fixups.size());
 
     int32_t fixups[] = {
-      33,  -999
+      35,  -999
     };
     char fixuptypes[] = {
       4,  '\0'
@@ -3279,7 +3279,7 @@ TEST_F(Bytecode1, DynarrayLength2_NoRTTI) {
 
     int const numimports = 1;
     std::string imports[] = {
-    "__Builtin_DynamicArrayLength^1",             "[[SENTINEL]]"
+    BUILTIN_DYNAMIC_ARRAY_LENGTH,             "[[SENTINEL]]"
     };
     CompareImports(&scrip, numimports, imports);
 
@@ -3307,17 +3307,17 @@ TEST_F(Bytecode1, DynarrayLength2_RTTI) {
     EXPECT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("DynarrayLength2_Rtti", scrip);
-    size_t const codesize = 52;
+    size_t const codesize = 54;
     EXPECT_EQ(codesize, scrip.code.size());
 
     int32_t code[] = {
       36,    2,   38,    0,           36,    3,    6,    3,    // 7
        7,   75,    3,    3,            4,   51,    0,   47,    // 15
        3,    1,    1,    4,           36,    4,   51,    4,    // 23
-      48,    2,   52,   34,            2,   39,    1,    6,    // 31
-       3,    0,   33,    3,           35,    1,   29,    3,    // 39
-      36,    5,   51,    8,           49,    2,    1,    8,    // 47
-       6,    3,    0,    5,          -999
+      48,    2,   52,   29,            6,   45,    2,   39,    // 31
+       0,    6,    3,    0,           33,    3,   30,    6,    // 39
+       29,   3,   36,    5,           51,    8,   49,    2,    // 47
+       1,    8,    6,    3,            0,    5,   -999
     };
     CompareCode(&scrip, codesize, code);
 
@@ -3325,7 +3325,7 @@ TEST_F(Bytecode1, DynarrayLength2_RTTI) {
     EXPECT_EQ(numfixups, scrip.fixups.size());
 
     int32_t fixups[] = {
-      33,  -999
+      35,  -999
     };
     char fixuptypes[] = {
       4,  '\0'
@@ -3334,7 +3334,7 @@ TEST_F(Bytecode1, DynarrayLength2_RTTI) {
 
     int const numimports = 1;
     std::string imports[] = {
-    "__Builtin_DynamicArrayLength^1",             "[[SENTINEL]]"
+    BUILTIN_DYNAMIC_ARRAY_LENGTH,             "[[SENTINEL]]"
     };
     CompareImports(&scrip, numimports, imports);
 

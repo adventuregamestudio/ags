@@ -81,21 +81,21 @@
             // addToolStripMenuItem
             // 
             this.addToolStripMenuItem.Name = "addToolStripMenuItem";
-            this.addToolStripMenuItem.Size = new System.Drawing.Size(284, 32);
+            this.addToolStripMenuItem.Size = new System.Drawing.Size(292, 32);
             this.addToolStripMenuItem.Text = "Add";
             this.addToolStripMenuItem.Click += new System.EventHandler(this.addToolStripMenuItem_Click);
             // 
             // removeToolStripMenuItem
             // 
             this.removeToolStripMenuItem.Name = "removeToolStripMenuItem";
-            this.removeToolStripMenuItem.Size = new System.Drawing.Size(284, 32);
+            this.removeToolStripMenuItem.Size = new System.Drawing.Size(292, 32);
             this.removeToolStripMenuItem.Text = "Remove";
             this.removeToolStripMenuItem.Click += new System.EventHandler(this.removeToolStripMenuItem_Click);
             // 
             // clearToolStripMenuItem
             // 
             this.clearToolStripMenuItem.Name = "clearToolStripMenuItem";
-            this.clearToolStripMenuItem.Size = new System.Drawing.Size(284, 32);
+            this.clearToolStripMenuItem.Size = new System.Drawing.Size(292, 32);
             this.clearToolStripMenuItem.Text = "Clear";
             this.clearToolStripMenuItem.Click += new System.EventHandler(this.clearToolStripMenuItem_Click);
             // 
@@ -108,14 +108,13 @@
             this.clearToolStripMenuItem,
             this.localVarToggleToolStripMenuItem});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(285, 165);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(293, 132);
             // 
             // localVarToggleToolStripMenuItem
             // 
-            this.localVarToggleToolStripMenuItem.Checked = true;
-            this.localVarToggleToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.localVarToggleToolStripMenuItem.Image = global::AGS.Editor.Properties.Resources.checkbox_checked;
             this.localVarToggleToolStripMenuItem.Name = "localVarToggleToolStripMenuItem";
-            this.localVarToggleToolStripMenuItem.Size = new System.Drawing.Size(284, 32);
+            this.localVarToggleToolStripMenuItem.Size = new System.Drawing.Size(292, 32);
             this.localVarToggleToolStripMenuItem.Text = "Autowatch local variables";
             this.localVarToggleToolStripMenuItem.Click += new System.EventHandler(this.localVarToggleToolStripMenuItem_Click);
             // 

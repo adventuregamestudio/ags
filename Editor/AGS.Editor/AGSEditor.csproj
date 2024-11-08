@@ -887,6 +887,8 @@
     <Content Include="Resources\audio_player-pause.ico" />
     <Content Include="Resources\audio_player-play.ico" />
     <Content Include="Resources\audio_player-stop.ico" />
+    <None Include="Resources\checkbox_checked.png" />
+    <None Include="Resources\checkbox_unchecked.png" />
     <Content Include="Resources\editor.ico" />
     <None Include="Resources\eye.png" />
     <None Include="Resources\eye closed.png" />

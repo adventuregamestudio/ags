@@ -443,8 +443,11 @@ namespace AGS.Editor
 
         private void localVarToggleToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            localVarToggleToolStripMenuItem.Checked = !localVarToggleToolStripMenuItem.Checked;
-            AutoWatchLocalVariables = localVarToggleToolStripMenuItem.Checked;
+            AutoWatchLocalVariables = !AutoWatchLocalVariables;
+            if(AutoWatchLocalVariables)
+                localVarToggleToolStripMenuItem.Image = Properties.Resources.checkbox_checked;
+            else
+                localVarToggleToolStripMenuItem.Image = Properties.Resources.checkbox_unchecked;
         }
 
         private void LoadColorTheme(ColorTheme t)

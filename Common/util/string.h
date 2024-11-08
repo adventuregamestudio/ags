@@ -63,6 +63,8 @@ public:
     String(const String&);
     // Move constructor
     String(String&&);
+    // Initialize with std::string
+    String(const std::string &str);
     // Initialize with C-string
     String(const char *cstr);
     // Initialize by copying up to N chars from C-string
@@ -379,8 +381,11 @@ public:
     String &operator=(const String &str);
     // Move operator
     String &operator=(String &&str);
+    // Assign std::string by copying contents
+    String &operator=(const std::string &str);
     // Assign C-string by copying contents
     String &operator=(const char *cstr);
+
     inline const char &operator[](size_t index) const
     {
         assert(index < _len);
@@ -426,6 +431,9 @@ private:
     // Ensure this string is independent, and there's enough space before
     // or after the current string data
     void    ReserveAndShift(bool left, size_t more_length);
+
+    // Makes a new string by copying up to N chars from a buffer
+    void    SetStringImpl(const char *cstr, size_t length);
 
     // Internal String data
     char    *_cstr;  // pointer to actual string data; always valid, never null

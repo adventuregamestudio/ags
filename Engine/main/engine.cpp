@@ -762,7 +762,7 @@ void engine_init_game_settings()
     play.speech_font = 1;
     play.speech_text_shadow = 16;
     play.screen_tint = -1;
-    play.bad_parsed_word[0] = 0;
+    play.bad_parsed_word.Empty();
     play.swap_portrait_side = 0;
     play.swap_portrait_lastchar = -1;
     play.swap_portrait_lastlastchar = -1;

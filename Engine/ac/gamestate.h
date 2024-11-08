@@ -227,7 +227,7 @@ struct GamePlayState
     int   screen_tint = 0;
     int   num_parsed_words = 0;
     short parsed_words[MAX_PARSED_WORDS]{};
-    char  bad_parsed_word[100]{};
+    Common::String bad_parsed_word;
     int   raw_color = 0;
     int   raw_modified[MAX_ROOM_BGFRAMES]{};
     Common::PBitmap raw_drawing_surface;

@@ -19,8 +19,8 @@
 
 int SaidUnknownWord (char*buffer) {
     VALIDATE_STRING(buffer);
-    snprintf(buffer, MAX_MAXSTRLEN, "%s", play.bad_parsed_word);
-    if (play.bad_parsed_word[0] == 0)
+    snprintf(buffer, MAX_MAXSTRLEN, "%s", play.bad_parsed_word.GetCStr());
+    if (play.bad_parsed_word.IsEmpty())
         return 0;
     return 1;
 }

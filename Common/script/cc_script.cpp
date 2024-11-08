@@ -227,3 +227,8 @@ const std::string &ccScript::GetSectionName(int32_t offs) const
 
     return sectionNames[sect_idx - 1];
 }
+
+void ccScript::SetScriptName(const std::string &name)
+{
+    scriptname = name;
+}

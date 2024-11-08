@@ -63,6 +63,8 @@ public:
     const std::string &GetScriptName() const;
     const std::string &GetSectionName(int32_t offset) const;
 
+    void        SetScriptName(const std::string &name);
+
     // write the script to disk (after compiling)
     void        Write(Common::Stream *out);
     // read back a script written with Write

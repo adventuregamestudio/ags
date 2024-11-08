@@ -1434,6 +1434,24 @@ namespace AGS.Editor
             return true;
         }
 
+        private static List<Script> GetScriptModuleList(Game game)
+        {
+            var scriptModules = new List<Script>();
+            foreach (ScriptAndHeader scriptAndHeader in game.ScriptsToCompile)
+            {
+                Script script = scriptAndHeader.Script;
+                if (script != null)
+                {
+                    if ((!script.FileName.Equals(Script.GLOBAL_SCRIPT_FILE_NAME)) &&
+                        (!script.FileName.Equals(Script.DIALOG_SCRIPTS_FILE_NAME)))
+                    {
+                        scriptModules.Add(script);
+                    }
+                }
+            }
+            return scriptModules;
+        }
+
         public static bool SaveThisGameToFile(string fileName, Game game, CompileMessages errors)
         {
             FileStream ostream = File.Create(fileName);
@@ -1557,19 +1575,7 @@ namespace AGS.Editor
             }
             // Extract all the scripts we want to persist (all the non-headers, except
             // the global script which was already written)
-            List<Script> scriptsToWrite = new List<Script>();
-            foreach (ScriptAndHeader scriptAndHeader in game.ScriptsToCompile)
-            {
-                Script script = scriptAndHeader.Script;
-                if (script != null)
-                {
-                    if ((!script.FileName.Equals(Script.GLOBAL_SCRIPT_FILE_NAME)) &&
-                        (!script.FileName.Equals(Script.DIALOG_SCRIPTS_FILE_NAME)))
-                    {
-                        scriptsToWrite.Add(script);
-                    }
-                }
-            }
+            List<Script> scriptsToWrite = GetScriptModuleList(game);
             writer.Write(scriptsToWrite.Count);
             foreach (Script script in scriptsToWrite)
             {
@@ -1807,7 +1813,7 @@ namespace AGS.Editor
             WriteExtension("v360_fonts", WriteExt_360Fonts, writer, gameEnts, errors);
             WriteExtension("v360_cursors", WriteExt_360Cursors, writer, gameEnts, errors);
             WriteExtension("v361_objnames", WriteExt_361ObjNames, writer, gameEnts, errors);
-            WriteExtension("v362_interevents", WriteExt_362InteractionEvents, writer, gameEnts, errors);
+            WriteExtension("v362_interevent2", WriteExt_362InteractionEvents, writer, gameEnts, errors);
             WriteExtension("v362_guictrls", WriteExt_362GUIControls, writer, gameEnts, errors);
 
             // End of extensions list
@@ -1891,6 +1897,17 @@ namespace AGS.Editor
         private static void WriteExt_362InteractionEvents(BinaryWriter writer, WriteExtEntities ents, CompileMessages errors)
         {
             Game game = ents.Game;
+            var globalScript = game.ScriptsToCompile.GetScriptByFilename(Script.GLOBAL_SCRIPT_FILE_NAME);
+            var dialogScript = game.ScriptsToCompile.GetScriptByFilename(Script.DIALOG_SCRIPTS_FILE_NAME);
+            List<Script> scriptModules = GetScriptModuleList(game);
+            FilePutString(globalScript != null ? Script.GLOBAL_SCRIPT_FILE_NAME : string.Empty, writer);
+            FilePutString(dialogScript != null ? Script.DIALOG_SCRIPTS_FILE_NAME : string.Empty, writer);
+            writer.Write(scriptModules.Count);
+            foreach (var scriptModule in scriptModules)
+            {
+                FilePutString(scriptModule.FileName, writer);
+            }
+
             writer.Write(game.Characters.Count);
             for (int i = 0; i < game.Characters.Count; ++i)
             {

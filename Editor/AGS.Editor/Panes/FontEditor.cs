@@ -81,6 +81,7 @@ namespace AGS.Editor
                 if (Factory.GUIController.ShowQuestion("Importing a font will replace the current font. Are you sure you want to do this?") == DialogResult.Yes)
                 {
                     ImportOverFont(_item);
+                    OnFontUpdated();
                 }
             }
         }

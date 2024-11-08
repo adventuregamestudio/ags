@@ -162,7 +162,7 @@ namespace AGS.Editor.Components
             }
 
             bool shouldRepaint = (propertyName == "SourceFilename" || propertyName == "Font Size" || propertyName == "SizeMultiplier");
-            Factory.NativeProxy.OnFontUpdated(Factory.AGSEditor.CurrentGame, itemBeingEdited.ID, false);
+            Factory.NativeProxy.OnFontUpdated(Factory.AGSEditor.CurrentGame, itemBeingEdited.ID, (propertyName == "SourceFilename"));
             if (shouldRepaint)
                 editor.OnFontUpdated();
         }
@@ -336,7 +336,7 @@ namespace AGS.Editor.Components
                 {
                     ImportWFNFont(item, fileName, newTTFName, newWFNName);
                 }
-                Factory.NativeProxy.GameSettingsChanged(Factory.AGSEditor.CurrentGame);
+                Factory.NativeProxy.OnFontUpdated(Factory.AGSEditor.CurrentGame, item.ID, true);
             }
             catch (Exception ex)
             {

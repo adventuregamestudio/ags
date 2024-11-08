@@ -200,8 +200,10 @@ const char *ccScript::GetScriptName() const
 {
     if (!scriptname.empty())
         return scriptname.c_str();
+    // In a regular script sections contain an optional list of headers in an order
+    // they were included, and the script body's own name as the last element.
     if (sectionNames.size() > 0)
-        return sectionNames[0].c_str();
+        return sectionNames.back().c_str();
     return "";
 }
 

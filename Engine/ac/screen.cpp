@@ -68,6 +68,12 @@ void current_fade_out_effect () {
         (theTransition == FADE_INSTANT) ||
         (play.screen_tint > 0); // for some reason we do not play fade if screen is tinted
 
+    if (play.fast_forward)
+    {
+        play.screen_is_faded_out |= (!instant_transition);
+        return;
+    }
+
     if (instant_transition)
     {
         if (!play.keep_screen_during_instant_transition)

@@ -30,6 +30,8 @@ std::vector<const char*> defaultHeaderNames;
 void ccGetExtensions(std::vector<std::string> &exts)
 {
     // Add extensions here as necessary
+    // DynamicArray.Length pseudo-property
+    exts.push_back("DYNARRAY_LENGTH");
     return;
 }
 

@@ -29,7 +29,7 @@ struct SymbolTableEntry
 	int16_t stype;
 	int32_t flags;
 	int16_t vartype;
-	int soffs;
+	int32_t soffs; // or property getter/setter import indexes, packed as two int16 
 	int32_t ssize; // or return type size for function
 	int16_t sscope; // or num arguments for function
 	int32_t arrsize;
@@ -69,6 +69,7 @@ struct symbolTable {
     int  find(const char*);  // returns ID of symbol, or -1
     int  add_ex(const char*,int,char);  // adds new symbol of type and size
     int  add(const char*);   // adds new symbol, returns -1 if already exists
+    int  find_or_add(const char*);
 
     // TODO: why is there "friendly name" and "name", and what's the difference?
     std::string get_friendly_name(int idx);  // inclue ptr

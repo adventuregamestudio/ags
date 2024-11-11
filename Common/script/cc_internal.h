@@ -122,7 +122,9 @@
 #define FIXUP_DATADATA    5     // globaldata[fixup] += &globaldata[0]
 #define FIXUP_STACK       6     // code[fixup] += &stack[0]
 
-
+#define BUILTIN_SYMBOL_PREFIX        "__Builtin_"
+// Built-in pseudo property DynamicArray.Length
+#define BUILTIN_DYNAMIC_ARRAY_LENGTH "__Builtin_DynamicArray::get_Length"
 
 // Script file signature
 extern const char scfilesig[5];

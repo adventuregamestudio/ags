@@ -13,6 +13,7 @@ namespace AGS.Editor
 {
     public partial class WatchVariablesPanel : DockContent
     {
+        private const string AUTOLOCALTAG = "autolocal";
         private object _requestsLock = new object();
         private List<string> _varsToSend = new List<string>();
         private Dictionary<uint, string> _varRequests = new Dictionary<uint, string>();
@@ -274,14 +275,16 @@ namespace AGS.Editor
             c.B * c.B * .114);
         }
 
+        static bool IsAutoLocal(ListViewItem itm) => itm.Tag as string == AUTOLOCALTAG;
+
         private void ClearAllAutoLocalVariables()
         {
             foreach (ListViewItem itm in listView1.Items)
             {
-                if (itm.Tag as string == "autolocal")
+                if (IsAutoLocal(itm))
                     itm.Remove();
             }
-            _itemsToUpdate.RemoveAll(itm => itm.Tag as string == "autolocal");
+            _itemsToUpdate.RemoveAll(itm => IsAutoLocal(itm));
         }
 
         public void SetAutoLocalVariables(DebugCallStack callStack)
@@ -311,7 +314,7 @@ namespace AGS.Editor
             // We also need to keep sync in the items to update.
             foreach (ListViewItem itm in listView1.Items)
             {
-                if (itm.Tag as string == "autolocal" && !varnames.Contains(itm.Text))
+                if (IsAutoLocal(itm) && !varnames.Contains(itm.Text))
                 {
                     itm.Remove();
                 }
@@ -319,7 +322,7 @@ namespace AGS.Editor
 
             lock (_updateItemLock)
             {
-                _itemsToUpdate.RemoveAll(itm => itm.Tag as string == "autolocal" && !varnames.Contains(itm.Text));
+                _itemsToUpdate.RemoveAll(itm => IsAutoLocal(itm) && !varnames.Contains(itm.Text));
 
                 Color c = Color.Empty;
                 foreach (var v in varnames)
@@ -327,7 +330,7 @@ namespace AGS.Editor
                     if (!listView1.Items.Cast<ListViewItem>().Any(itm => itm.Text == v && itm.Tag as string == "autolocal"))
                     {
                         var itm = CreateItem(v);
-                        itm.Tag = "autolocal";
+                        itm.Tag = AUTOLOCALTAG;
                         listView1.Items.Insert(0, itm);
 
                         if (c == Color.Empty)

@@ -17,6 +17,10 @@ namespace AGS.Editor
         private DebugState _debugState = DebugState.NotRunning;
         private IEngineCommunication _communicator;
         private IntPtr _engineWindowHandle = IntPtr.Zero;
+        private System.Threading.Thread _messageProcThread;
+        private object _commLock = new object();
+        private object _messageQueueLock = new object();
+        private List<string> _messageQueue = new List<string>();
 
         public DebugController(IEngineCommunication communicator)
         {
@@ -30,6 +34,14 @@ namespace AGS.Editor
 		}
 
         /// <summary>
+        /// Tells whether Debugger is in a active working state.
+        /// </summary>
+        public bool IsActive
+        {
+            get { return _debugState != DebugState.NotRunning; }
+        }
+
+        /// <summary>
         /// Allows more than one instance of the AGS Editor to run simulatenously
         /// </summary>
         public string InstanceIdentifier
@@ -41,9 +53,102 @@ namespace AGS.Editor
         {
             _debugState = newState;
 
+            if (newState == DebugState.NotRunning)
+            {
+                StopMessageThread();
+            }
+            else if (_messageProcThread == null)
+            {
+                StartMessageThread();
+            }
+
             if (DebugStateChanged != null)
             {
                 DebugStateChanged(_debugState);
+            }
+        }
+
+        private void StopMessageThread()
+        {
+            ClearMessageQueue();
+            if (_messageProcThread != null)
+            {
+                _messageProcThread.Join();
+                _messageProcThread = null;
+            }
+        }
+
+        private void StartMessageThread()
+        {
+            ClearMessageQueue();
+            if (_messageProcThread == null)
+            {
+                _messageProcThread = new System.Threading.Thread(new System.Threading.ThreadStart(MessageProcThread));
+                _messageProcThread.Name = "DebugController message thread";
+                _messageProcThread.Start();
+            }
+        }
+
+        private void ClearMessageQueue()
+        {
+            lock (_messageQueueLock)
+            {
+                _messageQueue.Clear();
+            }
+        }
+
+        /// <summary>
+        /// Put a message into queue.
+        /// This method is suitable when you do not require an instant response.
+        /// </summary>
+        private void QueueMessage(string message)
+        {
+            lock (_messageQueueLock)
+            {
+                _messageQueue.Add(message);
+            }
+        }
+
+        /// <summary>
+        /// Send message directly, surpassing the queue.
+        /// This method is suitable when you must have a synchronous reaction from the engine.
+        /// </summary>
+        private void SendMessageDirect(string message)
+        {
+            lock (_commLock)
+            {
+                _communicator.SendMessage(message);
+            }
+        }
+
+        private void MessageProcThread()
+        {
+            while (IsActive)
+            {
+                // Make a local copy of messages to send
+                List<string> newMessagesToSend = null;
+
+                lock (_messageQueueLock)
+                {
+                    if (_messageQueue.Count > 0)
+                        newMessagesToSend = new List<string>(_messageQueue);
+                    _messageQueue.Clear();
+                }
+
+                // Process messages
+                if (newMessagesToSend != null)
+                {
+                    foreach (var msg in newMessagesToSend)
+                    {
+                        lock (_commLock)
+                        {
+                            _communicator.SendMessage(msg);
+                        }
+                    }
+                }
+
+                // Sleep
+                System.Threading.Thread.Sleep(10);
             }
         }
 
@@ -122,7 +227,7 @@ namespace AGS.Editor
         public void InitializeEngine(Game game, IntPtr editorHwnd)
         {
             _communicator.NewClient();
-            _communicator.SendMessage("<Engine Command=\"START\" EditorWindow=\"" + editorHwnd + "\" />");
+            SendMessageDirect("<Engine Command=\"START\" EditorWindow=\"" + editorHwnd + "\" />");
             ChangeDebugState(DebugState.Running);
 
             foreach (Script script in game.GetAllGameAndLoadedRoomScripts())
@@ -133,7 +238,7 @@ namespace AGS.Editor
                 }
             }
 
-            _communicator.SendMessage("<Engine Command=\"READY\" EditorWindow=\"" + editorHwnd + "\" />");
+            SendMessageDirect("<Engine Command=\"READY\" EditorWindow=\"" + editorHwnd + "\" />");
         }
 
         public void LogMessage(string message, LogGroup group, LogLevel level)
@@ -168,12 +273,12 @@ namespace AGS.Editor
 
         private void SetBreakpoint(Script script, int lineNumber)
         {
-            _communicator.SendMessage("<Engine Command=\"SETBREAK $" + script.FileName + "$" + lineNumber + "$\"></Engine>");
+            SendMessageDirect("<Engine Command=\"SETBREAK $" + script.FileName + "$" + lineNumber + "$\"></Engine>");
         }
 
         private void UnsetBreakpoint(Script script, int lineNumber)
         {
-            _communicator.SendMessage("<Engine Command=\"DELBREAK $" + script.FileName + "$" + lineNumber + "$\"></Engine>");
+            SendMessageDirect("<Engine Command=\"DELBREAK $" + script.FileName + "$" + lineNumber + "$\"></Engine>");
         }
 
         private void ClearCurrentLineMarker()
@@ -198,7 +303,7 @@ namespace AGS.Editor
                     NativeProxy.SetForegroundWindow(_engineWindowHandle);
                 }
             }
-            _communicator.SendMessage("<Engine Command=\"" + command + "\" />");
+            SendMessageDirect("<Engine Command=\"" + command + "\" />");
         }
 
         public void Resume()
@@ -224,6 +329,7 @@ namespace AGS.Editor
 
         public void EditorShutdown()
         {
+            StopMessageThread();
             _communicator.Dispose();
         }
     }

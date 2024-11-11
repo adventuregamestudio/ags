@@ -135,6 +135,7 @@ struct ActiveDisplaySetting
 {
     DisplayMode     Dm;
     FrameScaleDef   Frame = kFrame_Undefined;
+    int             DisplayIndex = -1;
 };
 
 // Initializes any possible gfx mode, using user config as a recommendation;

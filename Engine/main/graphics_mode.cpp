@@ -238,8 +238,8 @@ bool try_init_compatible_mode(const DisplayMode &dm)
 {
     const Size &screen_size = Size(dm.Width, dm.Height);
     // Find nearest compatible mode and init that
-    Debug::Printf("Attempting to find nearest supported resolution for screen size %d x %d (%d-bit) %s",
-        dm.Width, dm.Height, dm.ColorDepth, dm.IsWindowed() ? "windowed" : "fullscreen");
+    Debug::Printf("Attempt to find nearest supported resolution for screen size %d x %d (%d-bit) %s, on display %d",
+        dm.Width, dm.Height, dm.ColorDepth, dm.IsWindowed() ? "windowed" : "fullscreen", sys_get_window_display_index());
     const Size device_size = get_max_display_size(dm.IsWindowed());
     if (dm.IsWindowed())
         Debug::Printf("Maximal allowed window size: %d x %d", device_size.Width, device_size.Height);
@@ -501,8 +501,8 @@ bool graphics_mode_set_dm_any(const Size &game_size, const WindowSetup &ws,
 
 bool graphics_mode_set_dm(const DisplayMode &dm)
 {
-    Debug::Printf("Attempt to switch gfx mode to %d x %d (%d-bit) %s",
-        dm.Width, dm.Height, dm.ColorDepth, dm.IsWindowed() ? "windowed" : "fullscreen");
+    Debug::Printf("Attempt to switch gfx mode to %d x %d (%d-bit) %s, on display %d",
+        dm.Width, dm.Height, dm.ColorDepth, dm.IsWindowed() ? "windowed" : "fullscreen", sys_get_window_display_index());
 
     // Tell Allegro new default bitmap color depth (must be done before set_gfx_mode)
     // TODO: this is also done inside ALSoftwareGraphicsDriver implementation; can remove one?
@@ -515,14 +515,14 @@ bool graphics_mode_set_dm(const DisplayMode &dm)
     }
 
     DisplayMode rdm = gfxDriver->GetDisplayMode();
-    if (rdm.IsWindowed())
-        SavedWindowedSetting.Dm = rdm;
-    else
-        SavedFullscreenSetting.Dm = rdm;
+    ActiveDisplaySetting &setting = rdm.IsWindowed() ? SavedWindowedSetting : SavedFullscreenSetting;
+    setting.Dm = rdm;
+    setting.DisplayIndex = sys_get_window_display_index();
     Debug::Printf(kDbgMsg_Info, "Graphics driver set: %s", gfxDriver->GetDriverName());
-    Debug::Printf(kDbgMsg_Info, "Graphics mode set: %d x %d (%d-bit) %s",
+    Debug::Printf(kDbgMsg_Info, "Graphics mode set: %d x %d (%d-bit) %s, on display %d",
         rdm.Width, rdm.Height, rdm.ColorDepth,
-        rdm.IsWindowed() ? "windowed" : (rdm.IsRealFullscreen() ? "fullscreen" : "fullscreen desktop"));
+        rdm.IsWindowed() ? "windowed" : (rdm.IsRealFullscreen() ? "fullscreen" : "fullscreen desktop"),
+        setting.DisplayIndex);
     Debug::Printf(kDbgMsg_Info, "Graphics mode set: refresh rate (optional): %d, vsync: %d", rdm.RefreshRate, rdm.Vsync);
     uint64_t tex_mem = gfxDriver->GetAvailableTextureMemory();
     if (tex_mem > 0u)

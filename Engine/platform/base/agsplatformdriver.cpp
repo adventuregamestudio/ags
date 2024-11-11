@@ -64,7 +64,7 @@ Size AGSPlatformDriver::ValidateWindowSize(const Size &sz, bool borderless) cons
     // without creating a window first. But this potentially may be
     // acquired, at least on some platforms (e.g. Windows).
     SDL_Rect rc;
-    SDL_GetDisplayUsableBounds(0, &rc);
+    SDL_GetDisplayUsableBounds(sys_get_window_display_index(), &rc);
     return Size::Clamp(sz, Size(1, 1), Size(rc.w, rc.h));
 }
 

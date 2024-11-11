@@ -396,6 +396,10 @@ private:
     // Buffer for ccCurScriptName
     std::string _scriptNameBuffer;
 
+    // Various builtin symbols
+    static const std::string _builtinSymbolPrefix;
+    static const std::string _builtinDynArrayLength;
+
     // Augment the message with a "See ..." indication
     // 'declared' is the point in _src where the thing is declared
     std::string const ReferenceMsgLoc(std::string const &msg, size_t declared);
@@ -564,7 +568,7 @@ private:
 
     // Generate the function call for the function that returns the number of elements
     // of a dynarray.
-    void AccessData_GenerateDynarrayLengthFuncCall(EvaluationResult &eres);
+    void AccessData_GenerateDynarrayLengthAttrib(EvaluationResult &eres);
 
     // We are processing a function call.
     // Get the parameters of the call and push them onto the stack.
@@ -813,6 +817,9 @@ private:
     void ParseStruct_Attribute_DeclareFunc(TypeQualifierSet tqs, Symbol strct, Symbol qualified_name, Symbol unqualified_name, bool is_setter, bool is_indexed, Vartype vartype);
 
     void ParseStruct_Attribute2SymbolTable(TypeQualifierSet tqs, Vartype const vartype, Symbol const name_of_struct, Symbol const unqualified_attribute, bool const is_indexed);
+
+    void ParseStruct_MasterAttribute2SymbolTable(TypeQualifierSet tqs, Vartype const vartype, Symbol const name_of_struct, Symbol const unqualified_attribute, bool const is_indexed,
+        Symbol getter_func = kKW_NoSymbol, Symbol setter_func = kKW_NoSymbol);
 
     // We're in a struct declaration. Parse an attribute declaration.
     void ParseStruct_Attribute(TypeQualifierSet tqs, Symbol stname);

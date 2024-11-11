@@ -36,7 +36,7 @@ static char scriptNameBuffer[256];
 int  evaluate_expression(ccInternalList*,ccCompiledScript*,int,bool insideBracketedDeclaration);
 int  evaluate_assignment(ccInternalList *targ, ccCompiledScript *scrip, bool expectCloseBracket, int cursym, int32_t lilen, int32_t *vnlist, bool insideBracketedDeclaration);
 int  parse_sub_expr(int32_t*, int, ccCompiledScript*);
-int32_t extract_variable_name(int, ccInternalList*, int32_t*, int*);
+int32_t extract_variable_name(int, ccCompiledScript*, ccInternalList*, int32_t*, int*);
 int  check_type_mismatch(int typeIs, int typeWantsToBe, int orderMatters);
 int  check_operator_valid_for_type(int *vcpuOp, int type1, int type2);
 void yank_chunk(ccCompiledScript *scrip, std::vector<ccChunk> *list, int codeoffset, int fixupoffset);
@@ -1392,7 +1392,40 @@ int isVCPUOperatorBoolean(int scmdtype) {
     return 0;
 }
 
-int32_t extract_variable_name(int fsym, ccInternalList*targ,int32_t*slist, int *funcAtOffs) {
+bool generate_dynarray_length(ccCompiledScript *scrip, int32_t &type_sym_index, int32_t mem_sym_index)
+{
+    const char *member_name = sym.get_name(mem_sym_index);
+    if (strcmp(member_name, ".Length") != 0)
+        return false; // not a supported pseudo-property
+
+    const char *type_name = sym.get_name(type_sym_index);
+    std::string arr_type_name = std::string(type_name) + "[]";
+    std::string property_name = arr_type_name + "::Length";
+    if (sym.find(property_name.c_str()) >= 0)
+    {
+        type_sym_index = sym.find(arr_type_name.c_str());
+        return true; // has already generated for this arr type
+    }
+    
+    sym.add("Length"); // Length keyword probably already exists, but try adding just in case
+    // generate "dynamic array of T" pseudo type
+    int struct_sym = sym.add(arr_type_name.c_str());
+    // generate "T::Length" pseudo attribute
+    int sym_index = sym.add(property_name.c_str());
+    auto &syment = sym.entries[sym_index];
+    syment.stype = SYM_STRUCTMEMBER;
+    syment.flags = SFLG_IMPORTED | SFLG_READONLY | SFLG_STRUCTMEMBER | SFLG_PROPERTY;
+    syment.vartype = sym.find("int");
+    // Getter is universal for all array.Length
+    int prop_get = scrip->find_or_add_import(BUILTIN_DYNAMIC_ARRAY_LENGTH);
+    syment.set_propfuncs(prop_get, 0xffff);
+    syment.ssize = 4; // sizeof int
+    syment.extends = struct_sym;
+    type_sym_index = struct_sym;
+    return true;
+}
+
+int32_t extract_variable_name(int fsym, ccCompiledScript *scrip, ccInternalList*targ, int32_t*slist, int *funcAtOffs) {
   *funcAtOffs = -1;
 
   int mustBeStaticMember = 0;
@@ -1454,9 +1487,15 @@ int32_t extract_variable_name(int fsym, ccInternalList*targ,int32_t*slist, int *
         }
       }
 
+      // A dot after array name (not after brackets)
       if (((sym.entries[fsym].flags & SFLG_ARRAY) != 0) && (justHadBrackets == 0)) {
-        cc_error("'[' expected");
-        return -1;
+        if ((sym.entries[fsym].flags & SFLG_DYNAMICARRAY) != 0 &&
+                generate_dynarray_length(scrip, reallywant, slist[sslen])) {
+          // handle pseudo-property type[].Length, let it through
+        } else {
+          cc_error("'[' expected");
+          return -1;
+        }
       }
       justHadBrackets = 0;
 
@@ -2632,7 +2671,7 @@ int parse_sub_expr(int32_t *symlist, int listlen, ccCompiledScript*scrip) {
   tlist.length=listlen;
   tlist.script=symlist;
   tlist.cancelCurrentLine = 0;
-  lilen=extract_variable_name(tlist.getnext(),&tlist,&vnlist[0], &funcAtOffs);
+  lilen=extract_variable_name(tlist.getnext(), scrip, &tlist, &vnlist[0], &funcAtOffs);
   // stop it trying to free the memory
   tlist.script=NULL;
   tlist.length=0;
@@ -4434,7 +4473,7 @@ startvarbit:
             int32_t vnlist[TEMP_SYMLIST_LENGTH],lilen;
             int funcAtOffs;
             int targPosWas = targ.pos;
-            lilen = extract_variable_name(cursym, &targ, &vnlist[0], &funcAtOffs);
+            lilen = extract_variable_name(cursym, scrip, &targ, &vnlist[0], &funcAtOffs);
             if (lilen < 0)
                 return -1;
 
@@ -4582,7 +4621,7 @@ startvarbit:
                         cc_error("Missing ';' inside for loop declaration");
                         return -1;
                     }
-                    lilen = extract_variable_name(cursym, &targ, &vnlist[0], &funcAtOffs);
+                    lilen = extract_variable_name(cursym, scrip, &targ, &vnlist[0], &funcAtOffs);
                     if (lilen < 0)
                         return -1;
                     if (sym.get_type(cursym) == SYM_VARTYPE) {
@@ -4680,7 +4719,7 @@ startvarbit:
                 targ.getnext(); // Skip the ;
                 cursym = targ.getnext();
                 if (sym.get_type(cursym) != SYM_CLOSEPARENTHESIS) {
-                    lilen = extract_variable_name(cursym, &targ, &vnlist[0], &funcAtOffs);
+                    lilen = extract_variable_name(cursym, scrip, &targ, &vnlist[0], &funcAtOffs);
                     if (lilen < 0)
                         return -1;
                     if (evaluate_assignment(&targ, scrip, true, cursym, lilen, vnlist, true))

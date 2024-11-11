@@ -219,6 +219,9 @@ extern int currentline;
 
 char ccCopyright2[] = "ScriptCompiler32 v" SCOM_VERSIONSTR " (c) 2000-2007 Chris Jones and 2011-2024 others";
 
+const std::string  AGS::Parser::_builtinSymbolPrefix = BUILTIN_SYMBOL_PREFIX;
+const std::string  AGS::Parser::_builtinDynArrayLength = BUILTIN_DYNAMIC_ARRAY_LENGTH;
+
 // Used when generating Bytecode jump statements where the destination of
 // the jump is not yet known. There's nothing special with that number other
 // than that it is easy to spot in listings. Don't build logic on that number
@@ -1414,8 +1417,7 @@ void AGS::Parser::ParseFuncdecl_HandleFunctionOrImportIndex(TypeQualifierSet tqs
 
 void AGS::Parser::ParseFuncdecl(TypeQualifierSet tqs, Vartype return_vartype, Symbol struct_of_func, Symbol name_of_func, bool no_loop_check, bool body_follows)
 {
-    //                                                           123456789a
-    if (0 == _sym.GetName(name_of_func).substr(0u, 10u).compare("__Builtin_"))
+    if (0 == _sym.GetName(name_of_func).compare(0u, _builtinSymbolPrefix.length(), _builtinSymbolPrefix))
         UserError("Function names may not begin with '__Builtin_'");
 
     // If the parameter list begins with an extender parameter then this has already been resolved at this point
@@ -2840,15 +2842,19 @@ void AGS::Parser::AccessData_GenerateFunctionCall(Symbol name_of_func, size_t ar
     }
 }
 
-void AGS::Parser::AccessData_GenerateDynarrayLengthFuncCall(EvaluationResult &eres)
+void AGS::Parser::AccessData_GenerateDynarrayLengthAttrib(EvaluationResult &eres)
 {
-    // Load MAR with the address of the dynarray. Will provoke a runtime error when NULL
-    AccessData_Dereference(eres);
+    // eres.Vartype should be a "dynamic array of T"
+    Symbol const array_struct = eres.Vartype;
+    std::string const &struct_name = _sym[array_struct].Name;
+    std::string const unqualified_attrib_name = "Length"; // fixme, use global constant
+    std::string const qualified_attrib_name = struct_name + "::" + unqualified_attrib_name;
+    if (_sym.Find(qualified_attrib_name))
+        return; // pseudo-attribute exists
 
-    // We calculate the length of the dynarray by calling an external function.
-    // Ensure that this function is declared as an import function
-    std::string const dynarray_len_func_name = "__Builtin_DynamicArrayLength";
-    Symbol const dynarray_len_func = _sym.FindOrAdd(dynarray_len_func_name);
+    // Get or generate the universal function that would substitute getters
+    // for each dynamic array of T's Length attribute
+    Symbol const dynarray_len_func = _sym.FindOrAdd(_builtinDynArrayLength);
     if (!_sym.IsFunction(dynarray_len_func))
     {
         TypeQualifierSet tqs;
@@ -2859,19 +2865,16 @@ void AGS::Parser::AccessData_GenerateDynarrayLengthFuncCall(EvaluationResult &er
         _sym[dynarray_len_func].FunctionD->Parameters.push_back({});
         _sym[dynarray_len_func].FunctionD->Parameters[1u].Vartype = eres.Vartype;
         _sym[dynarray_len_func].FunctionD->Offset = _scrip.FindOrAddImport(_sym.GetName(dynarray_len_func));
-        _scrip.imports[_sym[dynarray_len_func].FunctionD->Offset].append("^1");
         _sym.SetDeclared(dynarray_len_func, _src.GetCursor());
     }
-    _sym[dynarray_len_func].Accessed = true;
 
-    WriteCmd(SCMD_PUSHREAL, SREG_MAR); // Load the dynarray address onto the far stack
-    AccessData_GenerateFunctionCall(dynarray_len_func, 1u, true);
-
-    eres.Type = eres.kTY_RunTimeValue;
-    eres.Location = eres.kLOC_AX;
-    eres.Symbol = kKW_NoSymbol;
-    eres.Vartype = kKW_Int;
-    eres.Modifiable = false;
+    // Generate pseudo-attribute beloging to this type
+    Symbol const sym_attrib = _sym.FindOrAdd(unqualified_attrib_name);
+    TypeQualifierSet tqs;
+    tqs[TQ::kImport] = true;
+    tqs[TQ::kReadonly] = true;
+    // Cheat and replace getter's symbol with our universal array length getter
+    ParseStruct_MasterAttribute2SymbolTable(tqs, kKW_Int, array_struct, sym_attrib, false, dynarray_len_func);
 }
 
 // We are processing a function call.
@@ -3669,22 +3672,27 @@ void AGS::Parser::AccessData(VariableAccess access_type, SrcList &expression, Ev
                 eres.Vartype = _sym.VartypeWithout(VTT::kDynpointer, eres.Vartype);
             }
 
+            bool array_attribute_handled = false;
             if (_sym.IsDynarrayVartype(eres.Vartype) && _sym.FindOrAdd("Length") == expression.PeekNext())
             {
                 // Pseudo attribute 'Length' will get the length of the dynarray
-                expression.GetNext(); // eat 'Length'
+                AccessData_Dereference(eres);
 
-                AccessData_GenerateDynarrayLengthFuncCall(eres);
-                implied_this_dot = false;
-                continue;
+                AccessData_GenerateDynarrayLengthAttrib(eres);
+                array_attribute_handled = true;
             }
 
             if (_sym.IsAnyArrayVartype(eres.Vartype))
-                UserError("Expected a struct in front of '.' but found an array instead");
+            {
+                if (!array_attribute_handled)
+                    UserError("Expected a struct in front of '.' but found an array instead");
+            }
             else if (!_sym.IsStructVartype(eres.Vartype))
+            {
                 UserError(
                     "Expected a struct in front of '.' but found an expression of type '%s' instead",
                     _sym.GetName(outer_vartype).c_str());
+            }
         }
         if (expression.ReachedEOF())
             UserError("Expected struct component after '.' but did not find it");
@@ -4849,6 +4857,12 @@ void AGS::Parser::ParseStruct_Attribute_DeclareFunc(TypeQualifierSet tqs, Symbol
 
 void AGS::Parser::ParseStruct_Attribute2SymbolTable(TypeQualifierSet tqs, Vartype const vartype, Symbol const name_of_struct, Symbol const unqualified_attribute, bool const is_indexed)
 {
+    ParseStruct_MasterAttribute2SymbolTable(tqs, vartype, name_of_struct, unqualified_attribute, is_indexed);
+}
+
+void AGS::Parser::ParseStruct_MasterAttribute2SymbolTable(TypeQualifierSet tqs, Vartype const vartype, Symbol const name_of_struct, Symbol const unqualified_attribute, bool const is_indexed,
+        Symbol getter_func, Symbol setter_func)
+{
     Symbol const qualified_attribute = MangleStructAndComponent(name_of_struct, unqualified_attribute);
     size_t const declaration_start = _src.GetCursor();
 
@@ -4886,20 +4900,36 @@ void AGS::Parser::ParseStruct_Attribute2SymbolTable(TypeQualifierSet tqs, Vartyp
     // Declare attribute getter, e.g. get_ATTRIB()
     Symbol const unqualified_getter =
         ConstructAttributeFuncName(qualified_attribute, false, is_indexed);
-    Symbol const qualified_getter = MangleStructAndComponent(name_of_struct, unqualified_getter);
-    _sym[qualified_attribute].AttributeD->Getter = qualified_getter;
-    ParseStruct_Attribute_DeclareFunc(tqs, name_of_struct, qualified_getter, unqualified_getter, false, is_indexed, vartype);
-    _sym.SetDeclared(qualified_getter, declaration_start);
+    if (getter_func == kKW_NoSymbol)
+    {
+        Symbol const qualified_getter = MangleStructAndComponent(name_of_struct, unqualified_getter);
+        _sym[qualified_attribute].AttributeD->Getter = qualified_getter;
+        ParseStruct_Attribute_DeclareFunc(tqs, name_of_struct, qualified_getter, unqualified_getter, false, is_indexed, vartype);
+        _sym.SetDeclared(qualified_getter, declaration_start);
+    }
+    else
+    {
+        _sym[qualified_attribute].AttributeD->Getter = getter_func;
+        _sym[name_of_struct].VartypeD->Components[unqualified_getter] = getter_func;
+    }
 
     if (!is_readonly)
     {
         // Declare attribute setter, e.g. set_ATTRIB(value)
         Symbol const unqualified_setter =
             ConstructAttributeFuncName(qualified_attribute, true, is_indexed);
-        Symbol const qualified_setter = MangleStructAndComponent(name_of_struct, unqualified_setter);
-        _sym[qualified_attribute].AttributeD->Setter = qualified_setter;
-        ParseStruct_Attribute_DeclareFunc(tqs, name_of_struct, qualified_setter, unqualified_setter, true, is_indexed, vartype);
-        _sym.SetDeclared(qualified_setter, declaration_start);
+        if (setter_func == kKW_NoSymbol)
+        {
+            Symbol const qualified_setter = MangleStructAndComponent(name_of_struct, unqualified_setter);
+            _sym[qualified_attribute].AttributeD->Setter = qualified_setter;
+            ParseStruct_Attribute_DeclareFunc(tqs, name_of_struct, qualified_setter, unqualified_setter, true, is_indexed, vartype);
+            _sym.SetDeclared(qualified_setter, declaration_start);
+        }
+        else
+        {
+            _sym[qualified_attribute].AttributeD->Setter = setter_func;
+            _sym[name_of_struct].VartypeD->Components[unqualified_setter] = setter_func;
+        }
     }
 }
 

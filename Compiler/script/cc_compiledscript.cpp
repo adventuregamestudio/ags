@@ -99,6 +99,19 @@ int ccCompiledScript::add_new_import(const char*namm)
     return imports.size() - 1;
 }
 
+int ccCompiledScript::find_or_add_import(const char *namm)
+{
+    for (size_t i = 0; i < imports.size(); i++)
+    {
+        if (strcmp(imports[i].c_str(), namm) == 0)
+        {
+            return i;
+        }
+    }
+    
+    return add_new_import(namm);
+}
+
 int ccCompiledScript::remove_any_import (const char*namm, SymbolDef *oldSym) {
     // Remove any import with the specified name
     int sidx = sym.find(namm);

@@ -252,13 +252,20 @@ int32_t DynamicArray_Length(void *untyped_dynarray)
     return hdr.ElemCount;
 }
 
-RuntimeScriptValue Sc_DynamicArray_Length(const RuntimeScriptValue *params, int32_t param_count)
+// Deprecated variant of DynamicArray.Length, which emulates a static function;
+// was replaced in script compilers around Editor v4.0.0.11, but is kept for backwards compat.
+RuntimeScriptValue Sc_DynamicArray_Static_Length(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT_POBJ(DynamicArray_Length, void);
 }
 
-void RegisterDynamicArrayAPI()
+RuntimeScriptValue Sc_DynamicArray_Length(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    ccAddExternalStaticFunction("__Builtin_DynamicArrayLength^1", Sc_DynamicArray_Length);
+    API_OBJCALL_INT(void, DynamicArray_Length);
 }
 
+void RegisterDynamicArrayAPI()
+{
+    ccAddExternalStaticFunction("__Builtin_DynamicArrayLength^1", Sc_DynamicArray_Static_Length);
+    ccAddExternalObjectFunction("__Builtin_DynamicArray::get_Length", Sc_DynamicArray_Length);
+}

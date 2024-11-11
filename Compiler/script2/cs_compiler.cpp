@@ -34,6 +34,8 @@ void ccGetExtensions2(std::vector<std::string> &exts)
     exts.push_back("AGS4");
     // Managed ptr in managed structs
     exts.push_back("NESTEDPOINTERS");
+    // DynamicArray.Length pseudo-property
+    exts.push_back("DYNARRAY_LENGTH");
 }
 
 // Convert VartypeFlags to RTTI::TypeFlags

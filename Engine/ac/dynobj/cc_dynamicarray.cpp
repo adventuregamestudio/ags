@@ -115,3 +115,23 @@ DynObjectRef DynamicArrayHelpers::CreateStringArray(const std::vector<const char
     }
     return arr;
 }
+
+
+#include "script/script_api.h"
+#include "script/script_runtime.h"
+
+int32_t DynamicArray_Length(void *untyped_dynarray)
+{
+    const CCDynamicArray::Header &hdr = CCDynamicArray::GetHeader(untyped_dynarray);
+    return hdr.ElemCount;
+}
+
+RuntimeScriptValue Sc_DynamicArray_Length(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(void, DynamicArray_Length);
+}
+
+void RegisterDynamicArrayAPI()
+{
+    ccAddExternalObjectFunction("__Builtin_DynamicArray::get_Length", Sc_DynamicArray_Length);
+}

@@ -1277,8 +1277,8 @@ IDriverDependantBitmap* recycle_ddb_bitmap(IDriverDependantBitmap *ddb,
     assert(source);
     if (ddb && // already has an allocated DDB,
         (drawstate.SoftwareRender || // is software renderer, or...
-        ((ddb->GetColorDepth() == source->GetColorDepth()) && // existing DDB format matches
-            (ddb->GetWidth() == source->GetWidth()) && (ddb->GetHeight() == source->GetHeight()))))
+        ((ddb->GetRefID() == UINT32_MAX) && // the texture is *not identified*, and...
+            (ddb->MatchesFormat(source))))) // existing DDB format matches
         gfxDriver->UpdateDDBFromBitmap(ddb, source, has_alpha);
     else if (ddb) // if existing texture format does not match, then create a new texture
         ddb->AttachData(std::shared_ptr<Texture>(gfxDriver->CreateTexture(source, has_alpha, opaque)), opaque);

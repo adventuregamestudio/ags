@@ -204,6 +204,10 @@ public:
     int GetWidth() const override { return _width; }
     int GetHeight() const override { return _height; }
     int GetColorDepth() const override { return _colDepth; }
+    bool MatchesFormat(AGS::Common::Bitmap *other) const
+    {
+        return _width == other->GetWidth() && _height == other->GetHeight() && _colDepth == other->GetColorDepth();
+    }
 
     int _width = 0, _height = 0;
     int _colDepth = 0;

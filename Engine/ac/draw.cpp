@@ -1322,8 +1322,8 @@ IDriverDependantBitmap* recycle_ddb_bitmap(IDriverDependantBitmap *ddb,
     Common::Bitmap *source, bool has_alpha, bool opaque)
 {
     assert(source);
-    if (ddb && (drawstate.SoftwareRender || (ddb->GetColorDepth() == source->GetColorDepth()) &&
-            (ddb->GetWidth() == source->GetWidth()) && (ddb->GetHeight() == source->GetHeight())))
+    // NOTE: for texture-based renderers we must prevent updating over an *identified* texture
+    if (ddb && (drawstate.SoftwareRender || (ddb->GetRefID() == UINT32_MAX && ddb->MatchesFormat(source))))
         gfxDriver->UpdateDDBFromBitmap(ddb, source, has_alpha);
     else if (ddb)
         ddb->AttachData(std::shared_ptr<Texture>(gfxDriver->CreateTexture(source, has_alpha, opaque)), opaque);

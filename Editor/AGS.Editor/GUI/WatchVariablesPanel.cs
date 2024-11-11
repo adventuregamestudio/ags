@@ -1,5 +1,6 @@
 ﻿using AGS.Types;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -394,17 +395,34 @@ namespace AGS.Editor
             {
                 if (listView1.SelectedItems.Count > 0)
                 {
-                    listView1.SelectedItems[0].BeginEdit();
+                    if (!IsAutoLocal(listView1.SelectedItems[0]))
+                        listView1.SelectedItems[0].BeginEdit();
                 }
             }
+        }
+
+        private static bool AllAutoLocal(IEnumerable items)
+        {
+            foreach (ListViewItem itm in items)
+            {
+                if(itm.Text.Length > 0 && !IsAutoLocal(itm))
+                    return false;
+            }
+            return true;
+        }
+
+        private bool WatchPaneIsEmpty()
+        {
+            return (listView1.Items.Count == 0) ||
+                (listView1.Items.Count == 1 && listView1.Items[listView1.Items.Count - 1].Text.Length == 0);
         }
 
         private void listView1_MouseUp(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Right)
             {
-                removeToolStripMenuItem.Enabled = listView1.SelectedItems.Count > 0;
-                clearToolStripMenuItem.Enabled = listView1.Items.Count > 0;
+                removeToolStripMenuItem.Enabled = !WatchPaneIsEmpty() && !AllAutoLocal(listView1.SelectedItems);
+                clearToolStripMenuItem.Enabled = !WatchPaneIsEmpty() && !AllAutoLocal(listView1.Items);
                 contextMenuStrip1.Show(listView1, e.Location);
             }
         }
@@ -433,14 +451,21 @@ namespace AGS.Editor
 
         private void removeToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            foreach (var item in listView1.SelectedItems)
-                listView1.Items.Remove(item as ListViewItem);
+            foreach (ListViewItem itm in listView1.SelectedItems)
+            {
+                if (!IsAutoLocal(itm))
+                    listView1.Items.Remove(itm);
+            }
             EnsureEmptyItem();
         }
 
         private void clearToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            listView1.Items.Clear();
+            foreach (ListViewItem itm in listView1.Items)
+            {
+                if (!IsAutoLocal(itm))
+                    listView1.Items.Remove(itm);
+            }
             EnsureEmptyItem();
         }
 

@@ -37,9 +37,6 @@ void sys_set_background_mode(bool on);
 
 // Display utilities.
 //
-// Queries the display index on which the window is currently positioned.
-// Returns default display index in case window does not exist yet, or on any error.
-int sys_get_window_display_index();
 // Queries current desktop resolution.
 int sys_get_desktop_resolution(int &width, int &height);
 // Queries supported desktop modes.

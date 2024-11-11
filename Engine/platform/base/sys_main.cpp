@@ -73,17 +73,9 @@ void sys_set_background_mode(bool /*on*/) {
 // ----------------------------------------------------------------------------
 const int DEFAULT_DISPLAY_INDEX = 0; // TODO: is this always right?
 
-int sys_get_window_display_index() {
-    int index = -1;
-    SDL_Window *window = sys_get_window();
-    if (window)
-        index = SDL_GetWindowDisplayIndex(window);
-    return index >= 0 ? index : DEFAULT_DISPLAY_INDEX;
-}
-
 int sys_get_desktop_resolution(int &width, int &height) {
     SDL_Rect r;
-    if (SDL_GetDisplayBounds(sys_get_window_display_index(), &r) != 0) {
+    if (SDL_GetDisplayBounds(DEFAULT_DISPLAY_INDEX, &r) != 0) {
         Debug::Printf(kDbgMsg_Error, "SDL_GetDisplayBounds failed: %s", SDL_GetError());
         return -1;
     }
@@ -94,7 +86,7 @@ int sys_get_desktop_resolution(int &width, int &height) {
 
 void sys_get_desktop_modes(std::vector<AGS::Engine::DisplayMode> &dms, int color_depth) {
     SDL_DisplayMode mode;
-    const int display_id = sys_get_window_display_index();
+    const int display_id = DEFAULT_DISPLAY_INDEX;
     const int count = SDL_GetNumDisplayModes(display_id);
     dms.clear();
     for (int i = 0; i < count; ++i) {

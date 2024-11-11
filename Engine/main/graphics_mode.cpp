@@ -515,14 +515,14 @@ bool graphics_mode_set_dm(const DisplayMode &dm)
     }
 
     DisplayMode rdm = gfxDriver->GetDisplayMode();
-    ActiveDisplaySetting &setting = rdm.IsWindowed() ? SavedWindowedSetting : SavedFullscreenSetting;
-    setting.Dm = rdm;
-    setting.DisplayIndex = sys_get_window_display_index();
+    if (rdm.IsWindowed())
+        SavedWindowedSetting.Dm = rdm;
+    else
+        SavedFullscreenSetting.Dm = rdm;
     Debug::Printf(kDbgMsg_Info, "Graphics driver set: %s", gfxDriver->GetDriverName());
-    Debug::Printf(kDbgMsg_Info, "Graphics mode set: %d x %d (%d-bit) %s, on display %d",
+    Debug::Printf(kDbgMsg_Info, "Graphics mode set: %d x %d (%d-bit) %s",
         rdm.Width, rdm.Height, rdm.ColorDepth,
-        rdm.IsWindowed() ? "windowed" : (rdm.IsRealFullscreen() ? "fullscreen" : "fullscreen desktop"),
-        setting.DisplayIndex);
+        rdm.IsWindowed() ? "windowed" : (rdm.IsRealFullscreen() ? "fullscreen" : "fullscreen desktop"));
     Debug::Printf(kDbgMsg_Info, "Graphics mode set: refresh rate (optional): %d, vsync: %d", rdm.RefreshRate, rdm.Vsync);
     uint64_t tex_mem = gfxDriver->GetAvailableTextureMemory();
     if (tex_mem > 0u)

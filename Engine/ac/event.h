@@ -104,10 +104,10 @@ enum AGSScriptEventType
 {
     kScriptEvent_RoomLeave      = 1, // before fade-in
     kScriptEvent_RoomEnter      = 2, // before fade-out, right after loaded
-    // kScriptEvent_PlayerDies = 3 // ancient obsolete event
+    // kScriptEvent_PlayerDies  = 3, // ancient obsolete event
     kScriptEvent_Score          = 4,
-    kScriptEvent_MouseDown      = 5,
-    kScriptEvent_MouseUp        = 6,
+    kScriptEvent_GUIMouseDown   = 5, // mouse button down over gui
+    kScriptEvent_GUIMouseUp     = 6, // mouse button up over gui
     kScriptEvent_InventoryAdd   = 7,
     kScriptEvent_InventoryLose  = 8,
     kScriptEvent_GameRestored   = 9,
@@ -206,7 +206,7 @@ struct AGSEvent
 
 void run_claimable_event(const AGS::Common::String &tsname, bool includeRoom, int numParams, const RuntimeScriptValue *params, bool *eventWasClaimed);
 // runs the global script on_event function, passing up to 2 integer parameters
-void run_on_event(AGSScriptEventType evtype, int data1 = 0, int data2 = 0);
+void run_on_event(AGSScriptEventType evtype, int data1 = 0, int data2 = 0, int data3 = 0, int data4 = 0);
 void run_room_event(int id);
 // event list functions
 void setevent(const AGSEvent &evt);

@@ -107,10 +107,10 @@ void run_claimable_event(const String &tsname, bool includeRoom, int numParams, 
 }
 
 // runs the global script on_event function
-void run_on_event(AGSScriptEventType evtype, int data1, int data2)
+void run_on_event(AGSScriptEventType evtype, int data1, int data2, int data3, int data4)
 {
-    RuntimeScriptValue params[]{ evtype , data1, data2 };
-    QueueScriptFunction(kScTypeGame, "on_event", 3, params);
+    RuntimeScriptValue params[]{ evtype , data1, data2, data3, data4 };
+    QueueScriptFunction(kScTypeGame, "on_event", 5, params);
 }
 
 void run_room_event(int id)

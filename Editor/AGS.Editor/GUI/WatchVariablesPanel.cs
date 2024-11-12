@@ -27,6 +27,8 @@ namespace AGS.Editor
         private readonly object _updateItemLock = new object();
         private readonly List<ListViewItem> _itemsToUpdate = new List<ListViewItem>();
         private bool _autoWatchLocalVars = true;
+        private string _currentScriptName;
+        private int _currentLineNumber;
 
         public WatchVariablesPanel()
         {
@@ -290,11 +292,21 @@ namespace AGS.Editor
 
         public void SetAutoLocalVariables(DebugCallStack callStack)
         {
-            if (!AGSEditor.Instance.Debugger.IsActive || !_autoWatchLocalVars)
+            if (callStack.Lines.Count == 0)
                 return;
 
             string scriptName = callStack.Lines[0].ScriptName;
             int lineNumber = callStack.Lines[0].LineNumber;
+            _currentScriptName = scriptName;
+            _currentLineNumber = lineNumber;
+            SetAutoLocalVariables(scriptName, lineNumber);
+        }
+
+        private void SetAutoLocalVariables(string scriptName, int lineNumber)
+        {
+            if (!AGSEditor.Instance.Debugger.IsActive || !_autoWatchLocalVars)
+                return;
+
             ScintillaWrapper scintilla = Factory.GUIController.GetScriptEditorControl(scriptName, true) as ScintillaWrapper;
             if (scintilla == null)
                 return;
@@ -352,12 +364,19 @@ namespace AGS.Editor
 
         private bool AutoWatchLocalVariables
         {
-            get { return _autoWatchLocalVars; }
-            set {
-                    _autoWatchLocalVars = value;
-                    if(!_autoWatchLocalVars)
-                        ClearAllAutoLocalVariables();
-                }
+            get
+            {
+                return _autoWatchLocalVars;
+            }
+
+            set
+            {
+                _autoWatchLocalVars = value;
+                if (_autoWatchLocalVars)
+                    SetAutoLocalVariables(_currentScriptName, _currentLineNumber);
+                else
+                    ClearAllAutoLocalVariables();
+            }
         }
 
         public void UpdateAllWatches()

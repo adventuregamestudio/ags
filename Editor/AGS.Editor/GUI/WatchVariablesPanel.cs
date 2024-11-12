@@ -427,9 +427,21 @@ namespace AGS.Editor
             }
         }
 
+        private ListViewItem AddToListView(ListViewItem item)
+        {
+            if (listView1.Items.Count > 0 && listView1.Items[listView1.Items.Count - 1].Text.Length == 0)
+            {
+                listView1.Items[listView1.Items.Count - 1].Remove();
+            }
+
+            item = listView1.Items.Add(item);
+            EnsureEmptyItem();
+            return item;
+        }
+
         public void AddVariableToWatchList(string var_name)
         {
-            ListViewItem item = listView1.Items.Add(CreateItem(var_name));
+            ListViewItem item = AddToListView(CreateItem(var_name));
             lock (_updateItemLock)
                 _itemsToUpdate.Add(item);
             _updateItemTimer.Start();

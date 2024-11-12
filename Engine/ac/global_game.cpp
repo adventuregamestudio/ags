@@ -99,7 +99,7 @@ void GiveScore(int amnt)
     if ((amnt > 0) && (play.score_sound >= 0))
         play_audio_clip_by_index(play.score_sound);
 
-    run_on_event (kScriptEvent_Score, RuntimeScriptValue().SetInt32(amnt));
+    run_on_event(kScriptEvent_Score, amnt);
 }
 
 void restart_game() {

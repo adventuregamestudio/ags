@@ -271,7 +271,7 @@ void unload_old_room()
     // room unloaded callback
     run_room_event(kRoomEvent_AfterFadeout);
     // global room unloaded event
-    run_on_event(kScriptEvent_RoomAfterFadeout, RuntimeScriptValue().SetInt32(displayed_room));
+    run_on_event(kScriptEvent_RoomAfterFadeout, displayed_room);
 
     debug_script_log("Unloading room %d", displayed_room);
 
@@ -937,7 +937,7 @@ void new_room(int newnum,CharacterInfo*forchar) {
     // player leaves screen event
     run_room_event(kRoomEvent_BeforeFadeout);
     // Run the global OnRoomLeave event
-    run_on_event (kScriptEvent_RoomLeave, RuntimeScriptValue().SetInt32(displayed_room));
+    run_on_event(kScriptEvent_RoomLeave, displayed_room);
 
     pl_run_plugin_hooks(AGSE_LEAVEROOM, displayed_room);
 

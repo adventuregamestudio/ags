@@ -140,7 +140,7 @@ void Character_AddInventory(CharacterInfo *chaa, ScriptInvItem *invi, int addInd
             if (charextra[charid].invorder[ee] == inum) {
                 // They already have the item, so don't add it to the list
                 if (chaa == playerchar)
-                    run_on_event (kScriptEvent_InventoryAdd, RuntimeScriptValue().SetInt32(inum));
+                    run_on_event(kScriptEvent_InventoryAdd, inum);
                 return;
             }
         }
@@ -164,7 +164,7 @@ void Character_AddInventory(CharacterInfo *chaa, ScriptInvItem *invi, int addInd
     charextra[charid].invorder_count++;
     GUIE::MarkInventoryForUpdate(charid, charid == game.playercharacter);
     if (chaa == playerchar)
-        run_on_event (kScriptEvent_InventoryAdd, RuntimeScriptValue().SetInt32(inum));
+        run_on_event(kScriptEvent_InventoryAdd, inum);
 }
 
 void Character_AddWaypoint(CharacterInfo *chaa, int x, int y) {
@@ -732,7 +732,7 @@ void Character_LoseInventory(CharacterInfo *chap, ScriptInvItem *invi) {
     GUIE::MarkInventoryForUpdate(charid, charid == game.playercharacter);
 
     if (chap == playerchar)
-        run_on_event (kScriptEvent_InventoryLose, RuntimeScriptValue().SetInt32(inum));
+        run_on_event(kScriptEvent_InventoryLose, inum);
 }
 
 void Character_PlaceOnWalkableArea(CharacterInfo *chap) 

@@ -774,7 +774,7 @@ void gui_on_mouse_up(const int wasongui, const int wasbutdown, const int mx, con
         break;
     }
 
-    run_on_event(kScriptEvent_MouseUp, RuntimeScriptValue().SetInt32(wasongui));
+    run_on_event(kScriptEvent_MouseUp, wasongui);
 }
 
 void gui_on_mouse_down(const int guin, const int mbut, const int mx, const int my)
@@ -785,7 +785,7 @@ void gui_on_mouse_down(const int guin, const int mbut, const int mx, const int m
     if ((guis[guin].MouseDownCtrl < 0) && (!guis[guin].OnClickHandler.IsEmpty()))
         force_event(AGSEvent_GUI(guin, -1, static_cast<eAGSMouseButton>(mbut)));
 
-    run_on_event(kScriptEvent_MouseDown, RuntimeScriptValue().SetInt32(guin));
+    run_on_event(kScriptEvent_MouseDown, guin);
 }
 
 //=============================================================================

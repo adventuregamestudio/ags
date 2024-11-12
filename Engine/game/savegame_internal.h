@@ -95,6 +95,8 @@ enum SaveRestorationFlags
     // We detected that the save file has more data of certain type
     // than the game requires.
     kSaveRestore_ExtraDataInSave    = 0x0010,
+    // Run a save scan only, gather data counts and assert matches
+    kSaveRestore_Prescan            = 0x0020,
     // Mask for finding out if save has any mismatches
     kSaveRestore_MismatchMask       = kSaveRestore_MissingDataInSave
                                     | kSaveRestore_ExtraDataInSave,

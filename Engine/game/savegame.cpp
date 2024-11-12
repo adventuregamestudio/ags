@@ -382,6 +382,19 @@ void DoBeforeRestore(PreservedParams &pp, SaveCmpSelection select_cmp)
     }
 }
 
+void FillPreservedParams(PreservedParams &pp)
+{
+    // preserve script data sizes
+    pp.GlScDataSize = gameinst->globaldatasize;
+    pp.ScriptModuleNames.resize(numScriptModules);
+    pp.ScMdDataSize.resize(numScriptModules);
+    for (size_t i = 0; i < numScriptModules; ++i)
+    {
+        pp.ScriptModuleNames[i] = moduleInst[i]->instanceof->GetScriptName();
+        pp.ScMdDataSize[i] = moduleInst[i]->globaldatasize;
+    }
+}
+
 static HSaveError RestoreAudio(const RestoredData &r_data)
 {
     // recache queued clips
@@ -803,6 +816,38 @@ HSaveError RestoreGameState(Stream *in, const SavegameDescription &desc, const R
     if (!err)
         return err;
     return DoAfterRestore(pp, r_data, select_cmp);
+}
+
+HSaveError PrescanSaveState(Stream *in, const SavegameDescription &desc,
+    const RestoreGameStateOptions &options)
+{
+    SaveCmpSelection select_cmp = FixupCmpSelection(options.SelectedComponents);
+    const bool has_validate_cb = DoesScriptFunctionExistInModules("validate_restored_save");
+
+    PreservedParams pp(desc);
+    RestoredData r_data;
+    FillPreservedParams(pp);
+
+    // Mark the clear game data state for restoration process
+    r_data.Result.RestoreFlags = (SaveRestorationFlags)(
+          (kSaveRestore_ClearData) // always tell that the game data is reset for prescanning
+        | (kSaveRestore_AllowMismatchLess * has_validate_cb) // allow less data in saves
+        );
+
+    HSaveError err = SavegameComponents::PrescanAll(in, options.SaveVersion, select_cmp, pp, r_data);
+    if (!err)
+    {
+        return err;
+    }
+
+    if (has_validate_cb)
+    {
+        // After we have prescanned and gathered save info,
+        // call a "validate" script callback, to let user check the restored save
+        // and make final decision: whether it is considered compatible or not.
+        err = ValidateRestoredSave(pp.Desc, r_data, r_data.Result.Feedback);
+    }
+    return err;
 }
 
 void WriteSaveImage(Stream *out, const Bitmap *screenshot)

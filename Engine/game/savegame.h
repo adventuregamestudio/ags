@@ -235,8 +235,10 @@ HSaveError     OpenSavegame(const String &filename, SavegameSource &src,
 // Opens savegame and reads the savegame description
 HSaveError     OpenSavegame(const String &filename, SavegameDescription &desc, SavegameDescElem elems = kSvgDesc_All);
 // Reads the game data from the save stream and reinitializes game state;
-// is_game_clear - tells whether the game is in clean default state
+// fills in SaveRestoreFeedback struct.
 HSaveError     RestoreGameState(Stream *in, const SavegameDescription &desc, const RestoreGameStateOptions &options, SaveRestoreFeedback &feedback);
+// Prescans the game data from the save stream without affecting current runtime data
+HSaveError     PrescanSaveState(Stream *in, const SavegameDescription &desc, const RestoreGameStateOptions &options);
 // Opens savegame for writing and puts in savegame description
 std::unique_ptr<Stream> StartSavegame(const String &filename, const String &user_text, const Bitmap *user_image);
 // Prepares game for saving state and writes game data into the save stream

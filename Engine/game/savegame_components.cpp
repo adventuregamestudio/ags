@@ -598,6 +598,25 @@ HSaveError ReadAudio(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Preserv
     return err;
 }
 
+HSaveError PrescanAudio(Stream *in, int32_t cmp_ver, soff_t /*cmp_size*/, const PreservedParams& /*pp*/, RestoredData &r_data)
+{
+    HSaveError err;
+    const uint32_t audiocliptype_read = in->ReadInt32();
+    if (!AssertGameContent(err, audiocliptype_read, game.audioClipTypes.size(), "Audio Clip Types", r_data.Result, r_data.DataCounts.AudioClipTypes))
+        return err;
+
+    int total_channels, max_game_channels;
+    if (cmp_ver >= kAudioSvgVersion_36009)
+    {
+        total_channels = in->ReadInt8();
+        max_game_channels = in->ReadInt8();
+        if (!AssertCompatLimit(err, total_channels, TOTAL_AUDIO_CHANNELS, "System Audio Channels") ||
+            !AssertCompatLimit(err, max_game_channels, MAX_GAME_CHANNELS, "Game Audio Channels"))
+            return err;
+    }
+    return HSaveError::None();
+}
+
 void WriteTimesRun272(const Interaction &intr, Stream *out)
 {
     for (size_t i = 0; i < intr.Events.size(); ++i)
@@ -671,6 +690,15 @@ HSaveError ReadCharacters(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pr
     return err;
 }
 
+HSaveError PrescanCharacters(Stream *in, int32_t /*cmp_ver*/, soff_t /*cmp_size*/, const PreservedParams& /*pp*/, RestoredData &r_data)
+{
+    HSaveError err;
+    const uint32_t characters_read = in->ReadInt32();
+    if (!AssertGameContent(err, characters_read, game.numcharacters, "Characters", r_data.Result, r_data.DataCounts.Characters))
+        return err;
+    return HSaveError::None();
+}
+
 HSaveError WriteDialogs(Stream *out)
 {
     out->WriteInt32(game.numdialog);
@@ -681,7 +709,7 @@ HSaveError WriteDialogs(Stream *out)
     return HSaveError::None();
 }
 
-HSaveError ReadDialogs(Stream *in, int32_t /*cmp_ver*/, soff_t cmp_size, const PreservedParams& /*pp*/, RestoredData& r_data)
+HSaveError ReadDialogs(Stream *in, int32_t /*cmp_ver*/, soff_t cmp_size, const PreservedParams& /*pp*/, RestoredData &r_data)
 {
     HSaveError err;
     const uint32_t dialogs_read = in->ReadInt32();
@@ -693,6 +721,15 @@ HSaveError ReadDialogs(Stream *in, int32_t /*cmp_ver*/, soff_t cmp_size, const P
         dialog[i].ReadFromSavegame(in);
     }
     return err;
+}
+
+HSaveError PrescanDialogs(Stream *in, int32_t /*cmp_ver*/, soff_t /*cmp_size*/, const PreservedParams& /*pp*/, RestoredData &r_data)
+{
+    HSaveError err;
+    const uint32_t dialogs_read = in->ReadInt32();
+    if (!AssertGameContent(err, dialogs_read, game.numdialog, "Dialogs", r_data.Result, r_data.DataCounts.Dialogs))
+        return err;
+    return HSaveError::None();
 }
 
 HSaveError WriteGUI(Stream *out)
@@ -894,6 +931,51 @@ HSaveError ReadGUI(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Preserved
     return err;
 }
 
+HSaveError PrescanGUI(Stream *in, int32_t cmp_ver, soff_t /*cmp_size*/, const PreservedParams& /*pp*/, RestoredData &r_data)
+{
+    HSaveError err;
+    // GUI state
+    if (!AssertFormatTagStrict(err, in, "GUIs"))
+        return err;
+    const uint32_t guis_read = in->ReadInt32();
+    if (!AssertGameContent(err, guis_read, game.numgui, "GUIs", r_data.Result, r_data.DataCounts.GUIs))
+        return err;
+
+    r_data.DataCounts.GUIControls.resize(guis_read);
+
+    const GuiSvgVersion svg_ver = (GuiSvgVersion)cmp_ver;
+    std::vector<std::vector<GUIMain::ControlRef>> guictrl_refs_old(guis_read);
+    String assert_buf;
+    for (uint32_t i = 0; i < guis_read; ++i)
+    {
+        GUIMain::SkipSavestate(in, svg_ver, &guictrl_refs_old[i]);
+        assert_buf.Format("GUI %u Controls", i);
+        if (i < guis.size() &&
+                !AssertGameContent(err, guictrl_refs_old[i].size(), guis[i].GetControlCount(), assert_buf.GetCStr(), r_data.Result, r_data.DataCounts.GUIControls[i]))
+            return err;
+    }
+
+    std::array<size_t, kGUICtrlTypeNum> ctrl_counts_old{}, ctrl_counts_new{};
+    for (const auto &refs_arr : guictrl_refs_old)
+        for (const auto &ref : refs_arr)
+            ctrl_counts_old[ref.first]++;
+    for (const auto &gui : guis)
+        for (const auto &ref : gui.GetControlRefs())
+            ctrl_counts_new[ref.first]++;
+
+    // Overall control objects check
+    std::array<const char *, kGUICtrlTypeNum> ctrl_name = {{
+        "", "GUI Buttons", "GUI Labels", "GUI InvWindows", "GUI Sliders", "GUI TextBoxes", "GUI ListBoxes"
+    }};
+    for (int type = kGUIButton; type < kGUICtrlTypeNum; ++type)
+    {
+        if (!AssertGameContent(err, ctrl_counts_old[type], ctrl_counts_new[type], ctrl_name[type], r_data.Result, r_data.DataCounts.Dummy))
+            return err;
+    }
+
+    return HSaveError::None();
+}
+
 HSaveError WriteInventory(Stream *out)
 {
     out->WriteInt32(game.numinvitems);
@@ -923,6 +1005,15 @@ HSaveError ReadInventory(Stream *in, int32_t /*cmp_ver*/, soff_t cmp_size, const
     return err;
 }
 
+HSaveError PrescanInventory(Stream *in, int32_t /*cmp_ver*/, soff_t /*cmp_size*/, const PreservedParams& /*pp*/, RestoredData &r_data)
+{
+    HSaveError err;
+    const uint32_t invitems_read = in->ReadInt32();
+    if (!AssertGameContent(err, invitems_read, game.numinvitems, "Inventory Items", r_data.Result, r_data.DataCounts.InventoryItems))
+        return err;
+    return HSaveError::None();
+}
+
 HSaveError WriteMouseCursors(Stream *out)
 {
     out->WriteInt32(game.numcursors);
@@ -944,6 +1035,15 @@ HSaveError ReadMouseCursors(Stream *in, int32_t cmp_ver, soff_t cmp_size, const 
         game.mcurs[i].ReadFromSavegame(in, cmp_ver);
     }
     return err;
+}
+
+HSaveError PrescanMouseCursors(Stream *in, int32_t /*cmp_ver*/, soff_t /*cmp_size*/, const PreservedParams& /*pp*/, RestoredData &r_data)
+{
+    HSaveError err;
+    const uint32_t cursors_read = in->ReadInt32();
+    if (!AssertGameContent(err, cursors_read, game.numcursors, "Mouse Cursors", r_data.Result, r_data.DataCounts.Cursors))
+        return err;
+    return HSaveError::None();
 }
 
 HSaveError WriteViews(Stream *out)
@@ -997,6 +1097,36 @@ HSaveError ReadViews(Stream *in, int32_t /*cmp_ver*/, soff_t cmp_size, const Pre
         }
     }
     return err;
+}
+
+HSaveError PrescanViews(Stream *in, int32_t /*cmp_ver*/, soff_t /*cmp_size*/, const PreservedParams& /*pp*/, RestoredData &r_data)
+{
+    HSaveError err;
+    const uint32_t views_read = in->ReadInt32();
+    if (!AssertGameContent(err, views_read, game.numviews, "Views", r_data.Result, r_data.DataCounts.Views))
+        return err;
+
+    r_data.DataCounts.ViewLoops.resize(views_read);
+    r_data.DataCounts.ViewFrames.resize(views_read);
+    for (uint32_t view = 0; view < views_read; ++view)
+    {
+        const uint32_t loops_read = in->ReadInt32();
+        if (!AssertGameObjectContent(err, loops_read, views[view].numLoops,
+            "Loops", "View", view, r_data.Result, r_data.DataCounts.ViewLoops[view]))
+            return err;
+
+        for (uint32_t loop = 0; loop < loops_read; ++loop)
+        {
+            const uint32_t frames_read = in->ReadInt32();
+            if (!AssertGameObjectContent2(err, frames_read, views[view].loops[loop].numFrames,
+                "Frame", "View", view, "Loop", loop, r_data.Result, r_data.DataCounts.Dummy))
+                return err;
+
+            r_data.DataCounts.ViewFrames[view] += frames_read;
+            in->Seek(frames_read * sizeof(int32_t) * 2);
+        }
+    }
+    return HSaveError::None();
 }
 
 HSaveError WriteDynamicSpritesImpl(Stream *out, int match_flags)
@@ -1185,16 +1315,14 @@ HSaveError ReadScriptModules(Stream *in, int32_t cmp_ver, soff_t cmp_size, const
     if (data_len > 0u)
         in->Read(&r_data.GlobalScript.Data.front(), data_len);
 
-    const uint32_t modules_read = in->ReadInt32();
-    r_data.DataCounts.ScriptModuleDataSz.resize(pp.ScriptModuleNames.size());
-
     std::vector<bool> modules_match(pp.ScriptModuleNames.size());
+    const uint32_t modules_read = in->ReadInt32();
     r_data.DataCounts.ScriptModules = modules_read;
     r_data.DataCounts.ScriptModuleDataSz.resize(modules_read);
-    for (size_t i = 0; i < modules_read; ++i)
+    for (size_t read_module_index = 0; read_module_index < modules_read; ++read_module_index)
     {
         const String module_name = (cmp_ver < kScriptModulesSvgVersion_36200) ?
-            pp.ScriptModuleNames[i] :
+            (read_module_index < pp.ScriptModuleNames.size() ? pp.ScriptModuleNames[read_module_index] : "") :
             StrUtil::ReadString(in);
         data_len = in->ReadInt32();
 
@@ -1213,7 +1341,8 @@ HSaveError ReadScriptModules(Stream *in, int32_t cmp_ver, soff_t cmp_size, const
         {
             // Found matching module in the game
             if (!AssertGameObjectContent(err, data_len, pp.ScMdDataSize[game_module_index],
-                "script module data", module_name.GetCStr(), game_module_index, r_data.Result, r_data.DataCounts.ScriptModuleDataSz[game_module_index]))
+                "script module data", module_name.GetCStr(), game_module_index, r_data.Result,
+                r_data.DataCounts.ScriptModuleDataSz[read_module_index]))
                 return err;
             modules_match[game_module_index] = true;
         }
@@ -1239,7 +1368,67 @@ HSaveError ReadScriptModules(Stream *in, int32_t cmp_ver, soff_t cmp_size, const
             return err;
     }
 
-    return err;
+    return HSaveError::None();
+}
+
+HSaveError PrescanScriptModules(Stream *in, int32_t cmp_ver, soff_t /*cmp_size*/, const PreservedParams &pp, RestoredData &r_data)
+{
+    HSaveError err;
+    uint32_t data_len = in->ReadInt32();
+    if (!AssertGameContent(err, data_len, pp.GlScDataSize, "global script data", r_data.Result, r_data.DataCounts.GlobalScriptDataSz))
+        return err;
+    in->Seek(data_len);
+
+    std::vector<bool> modules_match(pp.ScriptModuleNames.size());
+    const uint32_t modules_read = in->ReadInt32();
+    r_data.DataCounts.ScriptModules = modules_read;
+    r_data.DataCounts.ScriptModuleDataSz.resize(modules_read);
+    for (size_t read_module_index = 0; read_module_index < modules_read; ++read_module_index)
+    {
+        const String module_name = (cmp_ver < kScriptModulesSvgVersion_36200) ?
+            (read_module_index < pp.ScriptModuleNames.size() ? pp.ScriptModuleNames[read_module_index] : "") :
+            StrUtil::ReadString(in);
+        data_len = in->ReadInt32();
+
+        // Try to find existing module length and assert its presence and matching size
+        uint32_t game_module_index = UINT32_MAX;
+        for (size_t i = 0; i < pp.ScriptModuleNames.size(); ++i)
+        {
+            if (module_name.Compare(pp.ScriptModuleNames[i]) == 0)
+            {
+                game_module_index = i;
+                break;
+            }
+        }
+
+        if (game_module_index < UINT32_MAX)
+        {
+            // Found matching module in the game
+            if (!AssertGameObjectContent(err, data_len, pp.ScMdDataSize[game_module_index],
+                "script module data", module_name.GetCStr(), game_module_index, r_data.Result,
+                r_data.DataCounts.ScriptModuleDataSz[read_module_index]))
+                return err;
+            modules_match[game_module_index] = true;
+        }
+        else
+        {
+            // No such module in the game: treat this as "more data"
+            if (!HandleExtraGameComponent(err, "script module", module_name, r_data.Result))
+                return err;
+        }
+
+        in->Seek(data_len);
+    }
+
+    // Assert that all game's script modules were read from the save
+    for (size_t i = 0; i < modules_match.size(); ++i)
+    {
+        if (!modules_match[i] &&
+            !HandleMissingGameComponent(err, "script module", pp.ScriptModuleNames[i], r_data.Result))
+            return err;
+    }
+
+    return HSaveError::None();
 }
 
 HSaveError WriteRoomStates(Stream *out)
@@ -1416,6 +1605,16 @@ HSaveError ReadMoveLists(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pre
     return err;
 }
 
+HSaveError PrescanMoveLists(Stream *in, int32_t /*cmp_ver*/, soff_t /*cmp_size*/, const PreservedParams& /*pp*/, RestoredData &r_data)
+{
+    HSaveError err;
+    uint32_t movelist_count = in->ReadInt32();
+    // NOTE: see comment to ReadMoveLists() on why do we have this assertion here
+    if (!AssertGameContent(err, movelist_count, mls.size(), "Move Lists", r_data.Result, r_data.DataCounts.Dummy))
+        return err;
+    return HSaveError::None();
+}
+
 HSaveError WriteManagedPool(Stream *out)
 {
     ccSerializeAllObjects(out);
@@ -1455,6 +1654,7 @@ struct ComponentHandler
     SaveCmpSelection   Selection; // flag mask corresponding to this component
     HSaveError       (*Serialize)  (Stream*);
     HSaveError       (*Unserialize)(Stream*, int32_t cmp_ver, soff_t cmp_size, const PreservedParams&, RestoredData&);
+    HSaveError       (*Prescan)    (Stream*, int32_t cmp_ver, soff_t cmp_size, const PreservedParams&, RestoredData&);
 };
 
 // Array of supported components
@@ -1468,7 +1668,8 @@ ComponentHandler ComponentHandlers[] =
         kGSSvgVersion_Initial,
         kSaveCmp_GameState,
         WriteGameState,
-        ReadGameState
+        ReadGameState,
+        nullptr
     },
     {
         "Audio",
@@ -1476,7 +1677,8 @@ ComponentHandler ComponentHandlers[] =
         kAudioSvgVersion_Initial,
         kSaveCmp_Audio,
         WriteAudio,
-        ReadAudio
+        ReadAudio,
+        PrescanAudio
     },
     {
         "Characters",
@@ -1484,7 +1686,8 @@ ComponentHandler ComponentHandlers[] =
         kCharSvgVersion_350, // skip pre-alpha 3.5.0 ver
         kSaveCmp_Characters,
         WriteCharacters,
-        ReadCharacters
+        ReadCharacters,
+        PrescanCharacters
     },
     {
         "Dialogs",
@@ -1492,7 +1695,8 @@ ComponentHandler ComponentHandlers[] =
         0,
         kSaveCmp_Dialogs,
         WriteDialogs,
-        ReadDialogs
+        ReadDialogs,
+        PrescanDialogs
     },
     {
         "GUI",
@@ -1500,7 +1704,8 @@ ComponentHandler ComponentHandlers[] =
         kGuiSvgVersion_Initial,
         kSaveCmp_GUI,
         WriteGUI,
-        ReadGUI
+        ReadGUI,
+        PrescanGUI
     },
     {
         "Inventory Items",
@@ -1508,7 +1713,8 @@ ComponentHandler ComponentHandlers[] =
         0,
         kSaveCmp_InvItems,
         WriteInventory,
-        ReadInventory
+        ReadInventory,
+        PrescanInventory
     },
     {
         "Mouse Cursors",
@@ -1516,7 +1722,8 @@ ComponentHandler ComponentHandlers[] =
         kCursorSvgVersion_Initial,
         kSaveCmp_Cursors,
         WriteMouseCursors,
-        ReadMouseCursors
+        ReadMouseCursors,
+        PrescanMouseCursors
     },
     {
         "Views",
@@ -1524,7 +1731,8 @@ ComponentHandler ComponentHandlers[] =
         0,
         kSaveCmp_Views,
         WriteViews,
-        ReadViews
+        ReadViews,
+        PrescanViews
     },
     {
         "Dynamic Sprites",
@@ -1532,7 +1740,8 @@ ComponentHandler ComponentHandlers[] =
         0,
         kSaveCmp_DynamicSprites,
         WriteDynamicSprites,
-        ReadDynamicSprites
+        ReadDynamicSprites,
+        nullptr
     },
     // Alternate "Dynamic Sprites" handler in case only object-owned sprites are serialized
     {
@@ -1541,7 +1750,8 @@ ComponentHandler ComponentHandlers[] =
         0,
         kSaveCmp_ObjectSprites,
         WriteObjectSprites,
-        ReadObjectSprites
+        ReadObjectSprites,
+        nullptr
     },
     {
         "Overlays",
@@ -1549,7 +1759,8 @@ ComponentHandler ComponentHandlers[] =
         kOverSvgVersion_Initial,
         kSaveCmp_Overlays,
         WriteOverlays,
-        ReadOverlays
+        ReadOverlays,
+        nullptr
     },
     {
         "Dynamic Surfaces",
@@ -1557,7 +1768,8 @@ ComponentHandler ComponentHandlers[] =
         0,
         kSaveCmp_DynamicSprites, // share flag with "Dynamic Sprites"
         WriteDynamicSurfaces,
-        ReadDynamicSurfaces
+        ReadDynamicSurfaces,
+        nullptr
     },
     {
         "Script Modules",
@@ -1565,7 +1777,8 @@ ComponentHandler ComponentHandlers[] =
         kScriptModulesSvgVersion_Initial,
         kSaveCmp_Scripts,
         WriteScriptModules,
-        ReadScriptModules
+        ReadScriptModules,
+        PrescanScriptModules
     },
     {
         "Room States",
@@ -1573,7 +1786,8 @@ ComponentHandler ComponentHandlers[] =
         kRoomStatSvgVersion_350_Mismatch, // support mismatching 3.5.0 ver here
         kSaveCmp_Rooms,
         WriteRoomStates,
-        ReadRoomStates
+        ReadRoomStates,
+        nullptr
     },
     {
         "Loaded Room State",
@@ -1581,7 +1795,8 @@ ComponentHandler ComponentHandlers[] =
         kRoomStatSvgVersion_350, // skip pre-alpha 3.5.0 ver
         kSaveCmp_ThisRoom,
         WriteThisRoom,
-        ReadThisRoom
+        ReadThisRoom,
+        nullptr
     },
     {
         "Move Lists",
@@ -1589,7 +1804,8 @@ ComponentHandler ComponentHandlers[] =
         kMoveSvgVersion_350, // skip pre-alpha 3.5.0 ver
         (SaveCmpSelection)(kSaveCmp_Characters | kSaveCmp_ThisRoom), // must go along with characters and room objects
         WriteMoveLists,
-        ReadMoveLists
+        ReadMoveLists,
+        PrescanMoveLists
     },
     {
         "Managed Pool",
@@ -1597,7 +1813,8 @@ ComponentHandler ComponentHandlers[] =
         0,
         kSaveCmp_Scripts, // must go along with scripts
         WriteManagedPool,
-        ReadManagedPool
+        ReadManagedPool,
+        nullptr
     },
     {
         "Plugin Data",
@@ -1605,9 +1822,10 @@ ComponentHandler ComponentHandlers[] =
         kPluginSvgVersion_Initial,
         kSaveCmp_Plugins,
         WritePluginData,
-        ReadPluginData
+        ReadPluginData,
+        nullptr
     },
-    { nullptr, 0, 0, kSaveCmp_None, nullptr, nullptr } // end of array
+    { nullptr, 0, 0, kSaveCmp_None, nullptr, nullptr, nullptr } // end of array
 };
 
 
@@ -1680,14 +1898,19 @@ HSaveError ReadComponent(Stream *in, SvgCmpReadHelper &hlp, ComponentInfo &info)
         }
     }
 
+    const bool prescan = (hlp.RData.Result.RestoreFlags & kSaveRestore_Prescan) != 0;
+    auto pfn_read = prescan ? handler->Prescan : handler->Unserialize;
+
     // If a handler is chosen, and has Unserialize method, then try reading the data
-    if (handler && handler->Unserialize)
+    if (handler && pfn_read)
     {
         if (info.Version > handler->Version || info.Version < handler->LowestVersion)
             return new SavegameError(kSvgErr_UnsupportedComponentVersion, String::FromFormat("Saved version: %d, supported: %d - %d", info.Version, handler->LowestVersion, handler->Version));
-        HSaveError err = handler->Unserialize(in, info.Version, info.DataSize, hlp.PP, hlp.RData);
+        HSaveError err = pfn_read(in, info.Version, info.DataSize, hlp.PP, hlp.RData);
         if (!err)
             return err;
+        if (prescan)
+            in->Seek(info.DataOffset + info.DataSize, kSeekBegin);
     }
     // Else, skip the data
     else
@@ -1704,7 +1927,7 @@ HSaveError ReadComponent(Stream *in, SvgCmpReadHelper &hlp, ComponentInfo &info)
     return HSaveError::None();
 }
 
-HSaveError ReadAll(Stream *in, SavegameVersion svg_version, SaveCmpSelection select_cmp,
+HSaveError ReadAllImpl(Stream *in, SavegameVersion svg_version, SaveCmpSelection select_cmp,
     const PreservedParams &pp, RestoredData &r_data)
 {
     // Prepare a helper struct we will be passing to the block reading proc
@@ -1737,6 +1960,20 @@ HSaveError ReadAll(Stream *in, SavegameVersion svg_version, SaveCmpSelection sel
     }
     while (!in->EOS());
     return new SavegameError(kSvgErr_ComponentListClosingTagMissing);
+}
+
+HSaveError ReadAll(Stream *in, SavegameVersion svg_version, SaveCmpSelection select_cmp,
+    const PreservedParams &pp, RestoredData &r_data)
+{
+    return ReadAllImpl(in, svg_version, select_cmp, pp, r_data);
+}
+
+HSaveError PrescanAll(Stream *in, SavegameVersion svg_version, SaveCmpSelection select_cmp,
+    const PreservedParams &pp, RestoredData &r_data)
+{
+    r_data.Result.RestoreFlags = (SaveRestorationFlags)(r_data.Result.RestoreFlags
+        | kSaveRestore_Prescan);
+    return ReadAllImpl(in, svg_version, select_cmp, pp, r_data);
 }
 
 HSaveError WriteComponent(Stream *out, ComponentHandler &hdlr)

@@ -22,6 +22,8 @@
 #define MUS_OGG  5
 
 // Media playback status
+// FIXME: the PlayStateInitial may be a problem, because it does not let know
+// what is the future player state is, after data finishes loading. Review this!
 enum PlaybackState
 {
     PlayStateInvalid,   // was not initialized

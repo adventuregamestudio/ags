@@ -972,13 +972,15 @@ void Character_StopMoving(CharacterInfo *charp) {
         // restart the idle animation straight away
         charextra[chaa].process_idle_this_time = 1;
     }
-    if (charp->walking) {
-        // If the character is currently moving, stop them and reset their frame
+    if (charp->walking)
+    {
+        // If the character is *currently* moving, stop them and reset their frame
         charp->walking = 0;
         if ((charp->flags & CHF_MOVENOTWALK) == 0)
             charp->frame = 0;
-        charp->flags &= ~CHF_MOVENOTWALK;
     }
+    // Reset any moving-related flags
+    charp->flags &= ~CHF_MOVENOTWALK;
 }
 
 void Character_Tint(CharacterInfo *chaa, int red, int green, int blue, int opacity, int luminance) {
@@ -1736,7 +1738,7 @@ void walk_character(int chac,int tox,int toy,int ignwal, bool autoWalkAnims) {
             wasStepFrac = movelist.GetPixelUnitFraction() + movelist.GetStepLength();
     }
 
-    StopMoving (chac);
+    StopMoving(chac);
     chin->frame = oldframe;
     // use toxPassedIn cached variable so the hi-res co-ordinates
     // are still displayed as such
@@ -1779,15 +1781,21 @@ void walk_character(int chac,int tox,int toy,int ignwal, bool autoWalkAnims) {
             chin->walkwait = waitWas;
             charextra[chac].animwait = animWaitWas;
 
-            if (mls[mslot].pos[0] != mls[mslot].pos[1]) {
+            if (mls[mslot].pos[0] != mls[mslot].pos[1])
+            {
                 fix_player_sprite(&mls[mslot],chin);
             }
         }
         else
+        {
             chin->flags |= CHF_MOVENOTWALK;
+        }
     }
-    else if (autoWalkAnims) // pathfinder couldn't get a route, stand them still
+    else if (autoWalkAnims)
+    {
+        // pathfinder couldn't get a route, stand them still
         chin->frame = 0;
+    }
 }
 
 int find_looporder_index (int curloop) {

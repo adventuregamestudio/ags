@@ -522,5 +522,52 @@ namespace AGS.Editor
                 Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
             }
         }
+
+        private static string GetDraggedVar(DragEventArgs e)
+        {
+            string droppedWord = string.Empty;
+
+            try
+            {
+                // must be a text we got from somewhere, probably script editor
+                if (e.Data.GetDataPresent(DataFormats.Text))
+                {
+                    // Retrieve the text from the drag-and-drop data
+                    string droppedText = (string)e.Data.GetData(DataFormats.Text);
+
+                    if (!string.IsNullOrWhiteSpace(droppedText) && droppedText.IndexOfAny(new[] { ' ', '\n' }) == -1)
+                    {
+                        droppedWord = droppedText;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // do nothing
+            }
+
+            // TO-DO: make it actually select a valid variable somehow
+            return droppedWord;
+        }
+
+        private void listView1_DragDrop(object sender, DragEventArgs e)
+        {
+            string droppedVar = GetDraggedVar(e);
+            if (String.IsNullOrEmpty(droppedVar))
+                return;
+            AddVariableToWatchList(droppedVar);
+        }
+
+        private void listView1_DragEnter(object sender, DragEventArgs e)
+        {
+            string droppedVar = GetDraggedVar(e);
+            if (String.IsNullOrEmpty(droppedVar))
+            {
+                e.Effect = DragDropEffects.None;
+                return;
+            }
+
+            e.Effect = DragDropEffects.Copy; // Allow copy operation
+        }
     }
 }

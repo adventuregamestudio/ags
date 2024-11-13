@@ -225,6 +225,7 @@
     <Compile Include="PropertyGridExtras\FontSizeUIEditor.cs" />
     <Compile Include="PropertyGridExtras\InteractionPropertyDescriptor.cs" />
     <Compile Include="PropertyGridExtras\InteractionEventPropertyDescriptor.cs" />
+    <Compile Include="PropertyGridExtras\MultilineStringUIEditor.cs" />
     <Compile Include="PropertyGridExtras\PropertyTabInteractions.cs" />
     <Compile Include="PropertyGridExtras\ReadOnlyConverter .cs" />
     <Compile Include="PropertyGridExtras\RoomMaskResolutionTypeConverter.cs" />

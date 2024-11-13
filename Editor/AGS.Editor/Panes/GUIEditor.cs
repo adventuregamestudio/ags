@@ -698,6 +698,31 @@ namespace AGS.Editor
             bgPanel.Invalidate();
         }
 
+        private bool HasTextProperty(GUIControl control)
+        {
+            return control.ControlType == GUILabel.CONTROL_DISPLAY_NAME ||
+                control.ControlType == GUIButton.CONTROL_DISPLAY_NAME;
+        }
+
+        private void EditTextClick(object sender, EventArgs e)
+        {
+            if (_selectedControl == null || !HasTextProperty(_selectedControl))
+                return;
+
+            Type controlType = _selectedControl.GetType();
+            var textProperty = controlType.GetProperty("Text");
+
+            String currentText = (String)textProperty.GetValue(_selectedControl);
+            String newText = MultilineStringEditorDialog.ShowEditor(currentText);
+
+            if (newText == null)
+                return;
+            
+            textProperty.SetValue(_selectedControl, newText);
+            Factory.GUIController.RefreshPropertyGrid();
+            bgPanel.Invalidate();
+        }
+
         private void SendToBackClick(object sender, EventArgs e)
         {
             _gui.SendControlToBack(_selectedControl);
@@ -920,8 +945,10 @@ namespace AGS.Editor
                 ContextMenuStrip menu = new ContextMenuStrip();
                 if (control != null)
                 {
-                menu.Items.Add(new ToolStripMenuItem("Bring to Front", null, new EventHandler(BringToFrontClick), "BringToFront"));
-                menu.Items.Add(new ToolStripMenuItem("Send to Back", null, new EventHandler(SendToBackClick), "SendToBack"));
+                    if (HasTextProperty(control))
+                        menu.Items.Add(new ToolStripMenuItem("Edit text...", null, new EventHandler(EditTextClick), Keys.Control | Keys.E));
+                    menu.Items.Add(new ToolStripMenuItem("Bring to Front", null, new EventHandler(BringToFrontClick), "BringToFront"));
+                    menu.Items.Add(new ToolStripMenuItem("Send to Back", null, new EventHandler(SendToBackClick), "SendToBack"));
 
 
 
@@ -1254,6 +1281,13 @@ namespace AGS.Editor
                         _gc.Top++;
                     }
                     return true;
+                case Keys.E | Keys.Control:
+                    if (_selected.Count == 1)
+                    {
+                        EditTextClick(null, null);
+                        return true;
+                    }
+                    return false;
                 default:
                     return false; // no applicable command
             }

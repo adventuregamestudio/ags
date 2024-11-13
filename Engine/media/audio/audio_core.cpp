@@ -40,6 +40,9 @@ public:
 
     // Gets current playback state
     PlaybackState GetPlayState() const { return _playState; }
+    // Gets current playback state, *excluding* temporary states such as Initial
+    // FIXME: rework this! -- a quick hack to let external user know the future player state on init stage
+    PlaybackState GetPlayStateNormal() const { return _playState == PlayStateInitial ? _onLoadPlayState : _playState; }
     // Gets duration, in ms
     float GetDurationMs() const { return _decoder->GetDurationMs(); }
     // Gets playback position, in ms
@@ -337,7 +340,7 @@ PlaybackState audio_core_slot_play(int slot_handle)
 {
     std::lock_guard<std::mutex> lk(g_acore.mixer_mutex_m);
     g_acore.slots_[slot_handle]->Play();
-    auto state = g_acore.slots_[slot_handle]->GetPlayState();
+    auto state = g_acore.slots_[slot_handle]->GetPlayStateNormal();
     g_acore.mixer_cv.notify_all();
     return state;
 }
@@ -346,7 +349,7 @@ PlaybackState audio_core_slot_pause(int slot_handle)
 {
     std::lock_guard<std::mutex> lk(g_acore.mixer_mutex_m);
     g_acore.slots_[slot_handle]->Pause();
-    auto state = g_acore.slots_[slot_handle]->GetPlayState();
+    auto state = g_acore.slots_[slot_handle]->GetPlayStateNormal();
     g_acore.mixer_cv.notify_all();
     return state;
 }
@@ -417,7 +420,7 @@ int audio_core_slot_get_freq(int slot_handle)
 PlaybackState audio_core_slot_get_play_state(int slot_handle)
 {
     std::lock_guard<std::mutex> lk(g_acore.mixer_mutex_m);
-    auto state = g_acore.slots_[slot_handle]->GetPlayState();
+    auto state = g_acore.slots_[slot_handle]->GetPlayStateNormal();
     g_acore.mixer_cv.notify_all();
     return state;
 }
@@ -425,7 +428,7 @@ PlaybackState audio_core_slot_get_play_state(int slot_handle)
 PlaybackState audio_core_slot_get_play_state(int slot_handle, float &pos_ms)
 {
     std::lock_guard<std::mutex> lk(g_acore.mixer_mutex_m);
-    auto state = g_acore.slots_[slot_handle]->GetPlayState();
+    auto state = g_acore.slots_[slot_handle]->GetPlayStateNormal();
     pos_ms = g_acore.slots_[slot_handle]->GetAlSource().GetPositionMs();
     g_acore.mixer_cv.notify_all();
     return state;

@@ -1,4 +1,6 @@
-﻿using System;
+﻿using AGS.Types;
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -12,6 +14,7 @@ namespace AGS.Editor
 {
     public partial class WatchVariablesPanel : DockContent
     {
+        private const string AUTOLOCALTAG = "autolocal";
         private object _requestsLock = new object();
         private List<string> _varsToSend = new List<string>();
         private Dictionary<uint, string> _varRequests = new Dictionary<uint, string>();
@@ -23,6 +26,9 @@ namespace AGS.Editor
         private readonly Timer _updateItemTimer = new Timer();
         private readonly object _updateItemLock = new object();
         private readonly List<ListViewItem> _itemsToUpdate = new List<ListViewItem>();
+        private bool _autoWatchLocalVars = true;
+        private string _currentScriptName;
+        private int _currentLineNumber;
 
         public WatchVariablesPanel()
         {
@@ -68,7 +74,7 @@ namespace AGS.Editor
         private void _updateItemTimer_Tick(object sender, EventArgs e)
         {
             _updateItemTimer.Enabled = false;
-            lock(_updateItemLock)
+            lock (_updateItemLock)
             {
                 foreach (var item in _itemsToUpdate)
                 {
@@ -264,6 +270,115 @@ namespace AGS.Editor
             }
         }
 
+        private int PerceivedBrightness(Color c)
+        {
+            return (int)Math.Sqrt(
+            c.R * c.R * .299 +
+            c.G * c.G * .587 +
+            c.B * c.B * .114);
+        }
+
+        static bool IsAutoLocal(ListViewItem itm) => itm.Tag as string == AUTOLOCALTAG;
+
+        private void ClearAllAutoLocalVariables()
+        {
+            foreach (ListViewItem itm in listView1.Items)
+            {
+                if (IsAutoLocal(itm))
+                    itm.Remove();
+            }
+            _itemsToUpdate.RemoveAll(itm => IsAutoLocal(itm));
+        }
+
+        public void SetAutoLocalVariables(DebugCallStack callStack)
+        {
+            if (callStack.Lines.Count == 0)
+                return;
+
+            string scriptName = callStack.Lines[0].ScriptName;
+            int lineNumber = callStack.Lines[0].LineNumber;
+            _currentScriptName = scriptName;
+            _currentLineNumber = lineNumber;
+            SetAutoLocalVariables(scriptName, lineNumber);
+        }
+
+        private void SetAutoLocalVariables(string scriptName, int lineNumber)
+        {
+            if (!AGSEditor.Instance.Debugger.IsActive || !_autoWatchLocalVars)
+                return;
+
+            ScintillaWrapper scintilla = Factory.GUIController.GetScriptEditorControl(scriptName, true) as ScintillaWrapper;
+            if (scintilla == null)
+                return;
+
+            if (scintilla.CurrentLine != lineNumber)
+            {
+                scintilla.GoToLine(lineNumber);
+            }
+
+            List<string> varnames = scintilla.GetListOfLocalVariablesForCurrentPosition(false)
+                .Select(v => v.VariableName).Distinct().ToList();
+
+            listView1.BeginUpdate();
+
+            // We will avoid blinking of all "autolocal" by removing the ones not in varnames
+            // so we can keep the ones that already were added in a previous cycle
+            // later we will add ONLY the ones that weren't already added
+            // We also need to keep sync in the items to update.
+            foreach (ListViewItem itm in listView1.Items)
+            {
+                if (IsAutoLocal(itm) && !varnames.Contains(itm.Text))
+                {
+                    itm.Remove();
+                }
+            }
+
+            lock (_updateItemLock)
+            {
+                _itemsToUpdate.RemoveAll(itm => IsAutoLocal(itm) && !varnames.Contains(itm.Text));
+
+                Color c = Color.Empty;
+                foreach (var v in varnames)
+                {
+                    if (!listView1.Items.Cast<ListViewItem>().Any(itm => itm.Text == v && itm.Tag as string == "autolocal"))
+                    {
+                        var itm = CreateItem(v);
+                        itm.Tag = AUTOLOCALTAG;
+                        listView1.Items.Insert(0, itm);
+
+                        if (c == Color.Empty)
+                        {
+                            int brightness = PerceivedBrightness(itm.ForeColor);
+                            c = brightness > 128 ? Color.LightBlue : Color.DarkBlue;
+                        }
+                        itm.ForeColor = c;
+
+                        _itemsToUpdate.Add(itm);
+                    }
+                }
+            }
+
+            listView1.EndUpdate();
+            _updateItemTimer.Start();
+        }
+
+        private bool AutoWatchLocalVariables
+        {
+            get
+            {
+                return _autoWatchLocalVars;
+            }
+
+            set
+            {
+                _autoWatchLocalVars = value;
+                if (_autoWatchLocalVars)
+                    SetAutoLocalVariables(_currentScriptName, _currentLineNumber);
+                else
+                    ClearAllAutoLocalVariables();
+            }
+        }
+
         public void UpdateAllWatches()
         {
             if (!AGSEditor.Instance.Debugger.IsActive)
@@ -299,19 +414,56 @@ namespace AGS.Editor
             {
                 if (listView1.SelectedItems.Count > 0)
                 {
-                    listView1.SelectedItems[0].BeginEdit();
+                    if (!IsAutoLocal(listView1.SelectedItems[0]))
+                        listView1.SelectedItems[0].BeginEdit();
                 }
             }
+        }
+
+        private static bool AllAutoLocal(IEnumerable items)
+        {
+            foreach (ListViewItem itm in items)
+            {
+                if(itm.Text.Length > 0 && !IsAutoLocal(itm))
+                    return false;
+            }
+            return true;
+        }
+
+        private bool WatchPaneIsEmpty()
+        {
+            return (listView1.Items.Count == 0) ||
+                (listView1.Items.Count == 1 && listView1.Items[listView1.Items.Count - 1].Text.Length == 0);
         }
 
         private void listView1_MouseUp(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Right)
             {
-                removeToolStripMenuItem.Enabled = listView1.SelectedItems.Count > 0;
-                clearToolStripMenuItem.Enabled = listView1.Items.Count > 0;
+                removeToolStripMenuItem.Enabled = !WatchPaneIsEmpty() && !AllAutoLocal(listView1.SelectedItems);
+                clearToolStripMenuItem.Enabled = !WatchPaneIsEmpty() && !AllAutoLocal(listView1.Items);
                 contextMenuStrip1.Show(listView1, e.Location);
             }
+        }
+
+        private ListViewItem AddToListView(ListViewItem item)
+        {
+            if (listView1.Items.Count > 0 && listView1.Items[listView1.Items.Count - 1].Text.Length == 0)
+            {
+                listView1.Items[listView1.Items.Count - 1].Remove();
+            }
+
+            item = listView1.Items.Add(item);
+            EnsureEmptyItem();
+            return item;
+        }
+
+        public void AddVariableToWatchList(string var_name)
+        {
+            ListViewItem item = AddToListView(CreateItem(var_name));
+            lock (_updateItemLock)
+                _itemsToUpdate.Add(item);
+            _updateItemTimer.Start();
         }
 
         private void addToolStripMenuItem_Click(object sender, EventArgs e)
@@ -330,15 +482,31 @@ namespace AGS.Editor
 
         private void removeToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            foreach (var item in listView1.SelectedItems)
-                listView1.Items.Remove(item as ListViewItem);
+            foreach (ListViewItem itm in listView1.SelectedItems)
+            {
+                if (!IsAutoLocal(itm))
+                    listView1.Items.Remove(itm);
+            }
             EnsureEmptyItem();
         }
 
         private void clearToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            listView1.Items.Clear();
+            foreach (ListViewItem itm in listView1.Items)
+            {
+                if (!IsAutoLocal(itm))
+                    listView1.Items.Remove(itm);
+            }
             EnsureEmptyItem();
+        }
+
+        private void localVarToggleToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            AutoWatchLocalVariables = !AutoWatchLocalVariables;
+            if(AutoWatchLocalVariables)
+                localVarToggleToolStripMenuItem.Image = Properties.Resources.checkbox_checked;
+            else
+                localVarToggleToolStripMenuItem.Image = Properties.Resources.checkbox_unchecked;
         }
 
         private void LoadColorTheme(ColorTheme t)
@@ -353,6 +521,53 @@ namespace AGS.Editor
             {
                 Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
             }
+        }
+
+        private static string GetDraggedVar(DragEventArgs e)
+        {
+            string droppedWord = string.Empty;
+
+            try
+            {
+                // must be a text we got from somewhere, probably script editor
+                if (e.Data.GetDataPresent(DataFormats.Text))
+                {
+                    // Retrieve the text from the drag-and-drop data
+                    string droppedText = (string)e.Data.GetData(DataFormats.Text);
+
+                    if (!string.IsNullOrWhiteSpace(droppedText) && droppedText.IndexOfAny(new[] { ' ', '\n' }) == -1)
+                    {
+                        droppedWord = droppedText;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // do nothing
+            }
+
+            // TO-DO: make it actually select a valid variable somehow
+            return droppedWord;
+        }
+
+        private void listView1_DragDrop(object sender, DragEventArgs e)
+        {
+            string droppedVar = GetDraggedVar(e);
+            if (String.IsNullOrEmpty(droppedVar))
+                return;
+            AddVariableToWatchList(droppedVar);
+        }
+
+        private void listView1_DragEnter(object sender, DragEventArgs e)
+        {
+            string droppedVar = GetDraggedVar(e);
+            if (String.IsNullOrEmpty(droppedVar))
+            {
+                e.Effect = DragDropEffects.None;
+                return;
+            }
+
+            e.Effect = DragDropEffects.Copy; // Allow copy operation
         }
     }
 }

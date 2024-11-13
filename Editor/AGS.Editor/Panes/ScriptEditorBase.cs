@@ -34,6 +34,7 @@ namespace AGS.Editor
         private const string GO_TO_DEFINITION_COMMAND = "ScriptGoToDefiniton";
         private const string FIND_ALL_USAGES_COMMAND = "ScriptFindAllUsages";
         private const string GO_TO_SPRITE_COMMAND = "ScriptGoToSprite";
+        private const string ADD_TO_WATCH_PANE_COMMAND = "ScriptAddToWatch";
 
         protected AGSEditor _agsEditor;
         // Loaded script reference, is assigned by the child class.
@@ -54,6 +55,7 @@ namespace AGS.Editor
             _menuCmdCopy,
             _menuCmdPaste,
             _menuCmdGoToDefinition,
+            _menuCmdAddToWatchPane,
             _menuCmdFindAllUsages,
             _menuCmdGoToSprite;
 
@@ -163,6 +165,8 @@ namespace AGS.Editor
 
             _menuCmdGoToDefinition = new MenuCommand(GO_TO_DEFINITION_COMMAND, "Go to Definition", Keys.F12);
             _menuCmdGoToDefinition.Enabled = false;
+            _menuCmdAddToWatchPane = new MenuCommand(ADD_TO_WATCH_PANE_COMMAND, "Add to Watch", null);
+            _menuCmdAddToWatchPane.Enabled = false;
             _menuCmdFindAllUsages = new MenuCommand(FIND_ALL_USAGES_COMMAND, "Find All Usages", Keys.Shift | Keys.F12);
             _menuCmdFindAllUsages.Enabled = false;
             _menuCmdGoToSprite = new MenuCommand(GO_TO_SPRITE_COMMAND, "Go to Sprite", Keys.Shift | Keys.F7);
@@ -170,6 +174,7 @@ namespace AGS.Editor
 
             _extraMenu.Commands.Add(MenuCommand.Separator);
             _extraMenu.Commands.Add(_menuCmdGoToDefinition);
+            _extraMenu.Commands.Add(_menuCmdAddToWatchPane);
             _extraMenu.Commands.Add(_menuCmdFindAllUsages);
             _extraMenu.Commands.Add(_menuCmdGoToSprite);
 
@@ -246,7 +251,11 @@ namespace AGS.Editor
             }
             else if (IsContextCommand(command))
             {
-                if (command == GO_TO_DEFINITION_COMMAND ||
+                if (command == ADD_TO_WATCH_PANE_COMMAND)
+                {
+                    Factory.GUIController.AddVariableToWatchPanel(_goToDefinition);
+                }
+                else if (command == GO_TO_DEFINITION_COMMAND ||
                     command == FIND_ALL_USAGES_COMMAND)
                 {
                     string[] structAndMember = _goToDefinition.Split('.');
@@ -340,6 +349,7 @@ namespace AGS.Editor
                 (_menuCmdUndo.Enabled != canUndo) ||
                 (_menuCmdRedo.Enabled != canRedo) ||
                 (_menuCmdGoToDefinition.Enabled != canGoToDefinition) ||
+                (_menuCmdAddToWatchPane.Enabled != canGoToDefinition) ||
                 (_menuCmdFindAllUsages.Enabled != canGoToDefinition) ||
                 (_menuCmdGoToSprite.Enabled != canGoToSprite);
 
@@ -350,7 +360,9 @@ namespace AGS.Editor
                 _menuCmdPaste.Enabled = canPaste;
                 _menuCmdUndo.Enabled = canUndo;
                 _menuCmdRedo.Enabled = canRedo;
-                _menuCmdGoToDefinition.Enabled = _menuCmdFindAllUsages.Enabled = canGoToDefinition;
+                _menuCmdGoToDefinition.Enabled = canGoToDefinition;
+                _menuCmdAddToWatchPane.Enabled = canGoToDefinition;
+                _menuCmdFindAllUsages.Enabled = canGoToDefinition;
                 _menuCmdGoToSprite.Enabled = canGoToSprite;
 
                 Factory.ToolBarManager.RefreshCurrentPane();
@@ -365,7 +377,10 @@ namespace AGS.Editor
 
         protected static bool IsContextCommand(string c)
         {
-            return (c == GO_TO_DEFINITION_COMMAND) || (c == FIND_ALL_USAGES_COMMAND) || (c == GO_TO_SPRITE_COMMAND);
+            return (c == GO_TO_DEFINITION_COMMAND) ||
+                (c == FIND_ALL_USAGES_COMMAND) ||
+                (c == GO_TO_SPRITE_COMMAND) ||
+                (c == ADD_TO_WATCH_PANE_COMMAND);
         }
 
         protected void UpdateScriptDocumentContext(int clickedPositionInDocument)
@@ -421,6 +436,7 @@ namespace AGS.Editor
             UpdateScriptDocumentContext(clickedPositionInDocument);
 
             string typeName = _goToDefinition != null ? (" of " +  _goToDefinition) : string.Empty;
+            string varName = _goToDefinition != null ? _goToDefinition : string.Empty;
 
             menuItem = new ToolStripMenuItem(_menuCmdGoToDefinition.Name + typeName, null, onClick, GO_TO_DEFINITION_COMMAND);
             menuItem.ShortcutKeys = _menuCmdGoToDefinition.ShortcutKey;
@@ -429,6 +445,11 @@ namespace AGS.Editor
 
             menuItem = new ToolStripMenuItem(_menuCmdFindAllUsages.Name + typeName, null, onClick, FIND_ALL_USAGES_COMMAND);
             menuItem.ShortcutKeys = _menuCmdFindAllUsages.ShortcutKey;
+            menuItem.Enabled = (_goToDefinition != null);
+            menuStrip.Items.Add(menuItem);
+
+            menuItem = new ToolStripMenuItem("Add " + varName + " to Watch Panel", null, onClick, ADD_TO_WATCH_PANE_COMMAND);
+            menuItem.ShortcutKeys = _menuCmdAddToWatchPane.ShortcutKey;
             menuItem.Enabled = (_goToDefinition != null);
             menuStrip.Items.Add(menuItem);
 

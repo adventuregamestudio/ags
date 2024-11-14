@@ -21,9 +21,9 @@ using namespace AGS; // FIXME later
 
 struct QueuedAudioItem
 {
-    short audioClipIndex;
-    short priority;
-    bool  repeat;
+    short audioClipIndex = -1;
+    short priority = 0;
+    bool  repeat = false;
     std::unique_ptr<SoundClip> cachedClip;
 
     void ReadFromSavegame(Common::Stream *in);

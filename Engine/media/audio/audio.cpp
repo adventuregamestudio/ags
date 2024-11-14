@@ -675,6 +675,10 @@ void stop_all_sound_and_music()
     // any ambient sound will be aborted
     for (int i = 0; i < TOTAL_AUDIO_CHANNELS; ++i)
         stop_and_destroy_channel(i);
+    // Sound queues
+    cachedQueuedMusic.reset();
+    for (int i = 0; i < MAX_QUEUED_MUSIC; ++i)
+        play.new_music_queue[i] = QueuedAudioItem();
 }
 
 void shutdown_sound() 

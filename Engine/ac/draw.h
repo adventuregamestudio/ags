@@ -210,9 +210,12 @@ Common::Bitmap *CreateCompatBitmap(int width, int height, int col_depth = 0);
 // Original bitmap **gets deleted** if a new bitmap had to be created.
 // * has_alpha - for sprites with alpha channel (ARGB) tells whether their
 //   alpha channel should be kept, otherwise it's filled with opaqueness.
-Common::Bitmap *PrepareSpriteForUse(Common::Bitmap *bitmap, bool has_alpha);
+// * keep_mask - tells whether to keep mask pixels when converting from another
+//   color depth. May be useful to disable mask when the source is a 8-bit
+//   palette-based image and the opaque sprite is intended.
+Common::Bitmap *PrepareSpriteForUse(Common::Bitmap *bitmap, bool has_alpha, bool keep_mask = true);
 // Same as above, but compatible for std::shared_ptr.
-Common::PBitmap PrepareSpriteForUse(Common::PBitmap bitmap, bool has_alpha);
+Common::PBitmap PrepareSpriteForUse(Common::PBitmap bitmap, bool has_alpha, bool keep_mask = true);
 // Makes a screenshot corresponding to the last screen render and returns it as a bitmap
 // of the requested width and height and game's native color depth.
 Common::Bitmap *CopyScreenIntoBitmap(int width, int height, const Rect *src_rect = nullptr,

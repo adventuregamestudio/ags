@@ -442,8 +442,11 @@ Bitmap *CreateCompatBitmap(int width, int height, int col_depth)
 // * conv_to_gamedepth - tells whether the sprite has to be matching game's
 //   default color depth; otherwise its color depth is to be kept (if possible).
 // * has_alpha - for sprites with alpha channel (ARGB) tells whether their
-//   alpha channel should be kept, otherwise it's filled with opaqueness
-Bitmap *PrepareSpriteForUseImpl(Bitmap* bitmap, bool has_alpha)
+//   alpha channel should be kept, otherwise it's filled with opaqueness.
+// * keep_mask - tells whether to keep mask pixels when converting from another
+//   color depth. May be useful to disable mask when the source is a 8-bit
+//   palette-based image and the opaque sprite is intended.
+Bitmap *PrepareSpriteForUseImpl(Bitmap* bitmap, bool has_alpha, bool keep_mask)
 {
     // sprite must be converted to game's color depth;
     // this behavior is hardcoded in the current engine version
@@ -470,7 +473,7 @@ Bitmap *PrepareSpriteForUseImpl(Bitmap* bitmap, bool has_alpha)
             BitmapHelper::ReplaceHalfAlphaWithRGBMask(bitmap);
         }
 
-        new_bitmap = GfxUtil::ConvertBitmap(bitmap, gfxDriver->GetCompatibleBitmapFormat(game_col_depth));
+        new_bitmap = GfxUtil::ConvertBitmap(bitmap, gfxDriver->GetCompatibleBitmapFormat(game_col_depth), keep_mask);
         was_conv_to_gamedepth = true;
     }
 
@@ -491,7 +494,7 @@ Bitmap *PrepareSpriteForUseImpl(Bitmap* bitmap, bool has_alpha)
     
     // Finally, if we did not create a new copy already, - ensure gfxdriver compatible format
     if (new_bitmap == bitmap)
-        new_bitmap = GfxUtil::ConvertBitmap(bitmap, gfxDriver->GetCompatibleBitmapFormat(bitmap->GetColorDepth()));
+        new_bitmap = GfxUtil::ConvertBitmap(bitmap, gfxDriver->GetCompatibleBitmapFormat(bitmap->GetColorDepth()), keep_mask);
 
     if (must_switch_palette)
         unselect_palette();
@@ -499,17 +502,17 @@ Bitmap *PrepareSpriteForUseImpl(Bitmap* bitmap, bool has_alpha)
     return new_bitmap;
 }
 
-Bitmap *PrepareSpriteForUse(Bitmap* bitmap, bool has_alpha)
+Bitmap *PrepareSpriteForUse(Bitmap* bitmap, bool has_alpha, bool keep_mask)
 {
-    Bitmap *new_bitmap = PrepareSpriteForUseImpl(bitmap, has_alpha);
+    Bitmap *new_bitmap = PrepareSpriteForUseImpl(bitmap, has_alpha, keep_mask);
     if (new_bitmap != bitmap)
         delete bitmap;
     return new_bitmap;
 }
 
-PBitmap PrepareSpriteForUse(PBitmap bitmap, bool has_alpha)
+PBitmap PrepareSpriteForUse(PBitmap bitmap, bool has_alpha, bool keep_mask)
 {
-    Bitmap *new_bitmap = PrepareSpriteForUseImpl(bitmap.get(), has_alpha);
+    Bitmap *new_bitmap = PrepareSpriteForUseImpl(bitmap.get(), has_alpha, keep_mask);
     return new_bitmap == bitmap.get() ? bitmap : PBitmap(new_bitmap); // if bitmap is same, don't create new smart ptr!
 }
 

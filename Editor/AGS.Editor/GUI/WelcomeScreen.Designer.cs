@@ -46,6 +46,7 @@ namespace AGS.Editor
             this.tableLayoutPanelAll = new System.Windows.Forms.TableLayoutPanel();
             this.tableLayoutPanelBottom = new System.Windows.Forms.TableLayoutPanel();
             this.tableLayoutPanelCenter = new System.Windows.Forms.TableLayoutPanel();
+            this.labelVersion = new System.Windows.Forms.Label();
             this.groupBox1.SuspendLayout();
             this.panelLogo.SuspendLayout();
             this.tableLayoutPanelAll.SuspendLayout();
@@ -201,6 +202,7 @@ namespace AGS.Editor
             // panelLogo
             // 
             this.panelLogo.BackColor = System.Drawing.Color.RoyalBlue;
+            this.panelLogo.Controls.Add(this.labelVersion);
             this.panelLogo.Controls.Add(this.lblLogo);
             this.panelLogo.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panelLogo.ForeColor = System.Drawing.Color.White;
@@ -282,6 +284,20 @@ namespace AGS.Editor
             this.tableLayoutPanelCenter.Size = new System.Drawing.Size(507, 263);
             this.tableLayoutPanelCenter.TabIndex = 8;
             // 
+            // labelVersion
+            // 
+            this.labelVersion.AutoSize = true;
+            this.labelVersion.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.labelVersion.ForeColor = System.Drawing.Color.LightSteelBlue;
+            this.labelVersion.Location = new System.Drawing.Point(0, 51);
+            this.labelVersion.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.labelVersion.Name = "labelVersion";
+            this.labelVersion.Padding = new System.Windows.Forms.Padding(4);
+            this.labelVersion.Size = new System.Drawing.Size(189, 21);
+            this.labelVersion.TabIndex = 2;
+            this.labelVersion.Text = "Build X.X.X.X BB-bit, MMMMMM YYYY";
+            this.labelVersion.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
             // WelcomeScreen
             // 
             this.AcceptButton = this.btnContinue;
@@ -327,5 +343,6 @@ namespace AGS.Editor
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanelAll;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanelBottom;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanelCenter;
+        private System.Windows.Forms.Label labelVersion;
     }
 }

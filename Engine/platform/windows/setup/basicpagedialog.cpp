@@ -223,6 +223,7 @@ INT_PTR BasicPageDialog::OnInitDialog()
 
     ResetSetup();
 
+    _isInit = true;
     return FALSE; // notify WinAPI that we set focus ourselves
 }
 
@@ -603,6 +604,9 @@ void BasicPageDialog::ResetSetup()
 
 void BasicPageDialog::SaveSetup()
 {
+    if (!_isInit)
+        return; // was not init, don't apply settings
+
     if (GetCurSel(_hLanguageList) == 0)
         _winCfg.Language.Empty();
     else

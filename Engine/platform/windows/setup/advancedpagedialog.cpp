@@ -95,6 +95,7 @@ INT_PTR AdvancedPageDialog::OnInitDialog()
 
     ResetSetup();
 
+    _isInit = true;
     return FALSE; // notify WinAPI that we set focus ourselves
 }
 
@@ -177,6 +178,9 @@ void AdvancedPageDialog::ResetSetup()
 
 void AdvancedPageDialog::SaveSetup()
 {
+    if (!_isInit)
+        return; // was not init, don't apply settings
+
     _winCfg.SpriteCacheSize = GetCurItemData(_hSpriteCacheList) * 1024;
     _winCfg.TextureCacheSize = GetCurItemData(_hTextureCacheList) * 1024;
     _winCfg.SoundCacheSize = GetCurItemData(_hSoundCacheList) * 1024;
@@ -235,6 +239,7 @@ INT_PTR CustomPathsPageDialog::OnInitDialog()
 
     ResetSetup();
 
+    _isInit = true;
     return FALSE; // notify WinAPI that we set focus ourselves
 }
 
@@ -320,6 +325,9 @@ void CustomPathsPageDialog::ResetSetup()
 
 void CustomPathsPageDialog::SaveSetup()
 {
+    if (!_isInit)
+        return; // was not init, don't apply settings
+
     _winCfg.UserSaveDir = SaveCustomDirSetup(_winCfg.DataDirectory, _hCustomSaveDirCheck, _hCustomSaveDir);
     _winCfg.AppDataDir = SaveCustomDirSetup(_winCfg.DataDirectory, _hCustomAppDataDirCheck, _hCustomAppDataDir);
 }
@@ -354,6 +362,7 @@ INT_PTR AccessibilityPageDialog::OnInitDialog()
 
     ResetSetup();
 
+    _isInit = true;
     return FALSE; // notify WinAPI that we set focus ourselves
 }
 
@@ -389,6 +398,9 @@ void AccessibilityPageDialog::ResetSetup()
 
 void AccessibilityPageDialog::SaveSetup()
 {
+    if (!_isInit)
+        return; // was not init, don't apply settings
+
     const bool enable = GetCheck(_hEnableAccess);
     CfgWriteBoolInt(_cfgOut, "winsetup", "access_page_on", enable);
     

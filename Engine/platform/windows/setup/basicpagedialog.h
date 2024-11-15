@@ -120,6 +120,7 @@ public:
 protected:
     WinConfig &_winCfg;
     const ConfigTree &_cfgIn;
+    bool _isInit = false;
 };
 
 //=============================================================================

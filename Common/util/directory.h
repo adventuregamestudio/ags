@@ -236,14 +236,6 @@ struct FileEntryCmpByName
     }
 };
 
-struct FileEntryCmpByNameDsc
-{
-    bool operator()(const FileEntry &fe1, const FileEntry &fe2) const
-    {
-        return fe2.Name.Compare(fe1.Name) < 0;
-    }
-};
-
 struct FileEntryCmpByNameCI
 {
     bool operator()(const FileEntry &fe1, const FileEntry &fe2) const
@@ -252,27 +244,11 @@ struct FileEntryCmpByNameCI
     }
 };
 
-struct FileEntryCmpByNameDscCI
-{
-    bool operator()(const FileEntry &fe1, const FileEntry &fe2) const
-    {
-        return fe2.Name.CompareNoCase(fe1.Name) < 0;
-    }
-};
-
 struct FileEntryCmpByTime
 {
     bool operator()(const FileEntry &fe1, const FileEntry &fe2) const
     {
         return fe1.Time < fe2.Time;
-    }
-};
-
-struct FileEntryCmpByTimeDsc
-{
-    bool operator()(const FileEntry &fe1, const FileEntry &fe2) const
-    {
-        return fe2.Time < fe1.Time;
     }
 };
 

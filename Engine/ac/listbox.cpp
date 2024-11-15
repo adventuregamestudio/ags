@@ -108,13 +108,13 @@ static void FillDirList(std::vector<String> &files, const String &pattern, Scrip
         if (ascending)
             std::sort(fileents.begin(), fileents.end(), FileEntryCmpByNameCI());
         else
-            std::sort(fileents.begin(), fileents.end(), FileEntryCmpByNameDscCI());
+            std::sort(fileents.rbegin(), fileents.rend(), FileEntryCmpByNameCI());
         break;
     case kScFileSort_Time:
         if (ascending)
             std::sort(fileents.begin(), fileents.end(), FileEntryCmpByTime());
         else
-            std::sort(fileents.begin(), fileents.end(), FileEntryCmpByTimeDsc());
+            std::sort(fileents.rbegin(), fileents.rend(), FileEntryCmpByTime());
         break;
     default: break;
     }
@@ -141,7 +141,7 @@ void ListBox_FillDirList3(GUIListBox *listbox, const char *filemask, int file_so
     listbox->Clear();
 
     std::vector<String> files;
-    FillDirList(files, filemask, (ScriptFileSortStyle)file_sort, sort_direction == kScSortAscending);
+    FillDirList(files, filemask, (ScriptFileSortStyle)file_sort, sort_direction != kScSortDescending);
 
     // TODO: method for adding item batch to speed up update
     for (auto it = files.cbegin(); it != files.cend(); ++it)

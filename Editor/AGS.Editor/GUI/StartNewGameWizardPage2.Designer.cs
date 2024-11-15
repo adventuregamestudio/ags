@@ -92,6 +92,7 @@ namespace AGS.Editor
             this.txtFriendlyName.Size = new System.Drawing.Size(286, 21);
             this.txtFriendlyName.TabIndex = 0;
             this.txtFriendlyName.Text = "New game";
+            this.txtFriendlyName.TextChanged += new System.EventHandler(this.txtFriendlyName_TextChanged);
             // 
             // label2
             // 
@@ -113,6 +114,7 @@ namespace AGS.Editor
             this.txtFileName.Size = new System.Drawing.Size(286, 21);
             this.txtFileName.TabIndex = 1;
             this.txtFileName.TextChanged += new System.EventHandler(this.txtFileName_TextChanged);
+            this.txtFileName.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtFileName_KeyPress);
             // 
             // label1
             // 

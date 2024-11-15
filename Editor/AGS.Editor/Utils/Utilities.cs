@@ -11,6 +11,8 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using System.Reflection;
+using System.Globalization;
+using System.Text;
 
 namespace AGS.Editor
 {
@@ -738,6 +740,33 @@ namespace AGS.Editor
             {
                 prop.SetValue(clone, prop.GetValue(source_obj));
             }
+        }
+
+        /// <summary>
+        /// A function to convert a name that possible has spaces to a nice file name.
+        /// </summary>
+        public static string ConvertToNiceFilename(string input)
+        {
+            char[] invalidChars = Path.GetInvalidFileNameChars();
+            string filteredInput = new string(input.Where(c => !invalidChars.Contains(c) && c <= 127).ToArray());
+
+            string[] words = filteredInput
+                .Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+            StringBuilder txt = new StringBuilder();
+            for (int i = 0; i < words.Length; i++)
+            {
+                if (words[i].Length > 0)
+                {
+                    txt.Append(words[i]);
+                    if (i < words.Length - 1)
+                    {
+                        txt.Append('-');
+                    }
+                }
+            }
+
+            return txt.ToString().Replace("'", "").Trim();
         }
     }
 }

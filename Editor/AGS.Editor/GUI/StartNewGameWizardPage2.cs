@@ -13,6 +13,9 @@ namespace AGS.Editor
 {
     public partial class StartNewGameWizardPage2 : WizardPage
     {
+        private bool _typedInFileName = false;
+        private readonly Debouncer _afterFileNameClearDebouncer = new Debouncer(150);
+
         public StartNewGameWizardPage2(string baseDirectory)
         {
             InitializeComponent();
@@ -123,6 +126,13 @@ namespace AGS.Editor
             else
             {
                 lblFilePath.Text = string.Empty;
+                _afterFileNameClearDebouncer.Debounce(() =>
+                {
+                    if (txtFileName.Text.Length == 0)
+                    {
+                        _typedInFileName = false;
+                    }
+                });
             }
         }
 
@@ -134,6 +144,18 @@ namespace AGS.Editor
         private void btnCreateInBrowse_Click(object sender, EventArgs e)
         {
             txtCreateInFolder.Text = Factory.GUIController.ShowSelectFolderOrDefaultDialog("Please select the folder that you wish to create your new project in.", txtCreateInFolder.Text);
+        }
+
+        private void txtFriendlyName_TextChanged(object sender, EventArgs e)
+        {
+            if (_typedInFileName)
+                return;
+            txtFileName.Text = Utilities.ConvertToNiceFilename(txtFriendlyName.Text);
+        }
+
+        private void txtFileName_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            _typedInFileName = true;
         }
     }
 }

@@ -890,10 +890,10 @@ void Game_PrecacheView(int view, int first_loop, int last_loop)
     precache_view(view - 1 /* to 0-based view index */, first_loop, last_loop, true);
 }
 
-extern void prescan_saves(int *dest_arr, size_t dest_count, int min_slot, int max_slot);
+extern void prescan_saves(int *dest_arr, size_t dest_count, int min_slot, int max_slot, int file_sort, int sort_dir);
 extern ExecutingScript *curscript;
 
-void Game_ScanSaveSlots(void *dest_arr, int min_slot, int max_slot)
+void Game_ScanSaveSlots(void *dest_arr, int min_slot, int max_slot, int file_sort, int sort_direction, int user_param)
 {
     const auto &hdr = CCDynamicArray::GetHeader(dest_arr);
     if (hdr.GetElemCount() == 0u)
@@ -911,16 +911,27 @@ void Game_ScanSaveSlots(void *dest_arr, int min_slot, int max_slot)
         return;
     }
 
+    if (file_sort < kScFileSort_None || file_sort > kScFileSort_Time)
+    {
+        debug_script_warn("ListBox.FillDirList: invalid file sort style (%d)", file_sort);
+        file_sort = kScFileSort_None;
+    }
+    if (sort_direction < kScSortNone || sort_direction > kScSortDescending)
+    {
+        debug_script_warn("ListBox.FillDirList: invalid sorting direction (%d)", sort_direction);
+        sort_direction = kScSortNone;
+    }
+
     can_run_delayed_command();
     if (inside_script)
     {
         int handle = ccGetObjectHandleFromAddress(dest_arr);
         ccAddObjectReference(handle); // add internal handle to prevent disposal
-        curscript->QueueAction(PostScriptAction(ePSAScanSaves, handle, min_slot, max_slot, "ScanSaveSlots"));
+        curscript->QueueAction(PostScriptAction(ePSAScanSaves, handle, min_slot, max_slot, file_sort, sort_direction, user_param, "ScanSaveSlots"));
         return;
     }
 
-    prescan_saves(static_cast<int*>(dest_arr), hdr.GetElemCount(), do_min_slot, do_max_slot);
+    prescan_saves(static_cast<int*>(dest_arr), hdr.GetElemCount(), do_min_slot, do_max_slot, file_sort, sort_direction);
 }
 
 //=============================================================================
@@ -1195,7 +1206,7 @@ bool try_restore_save(const Common::String &path, int slot, bool startup)
     return true;
 }
 
-void prescan_save_slots(int dest_arr_handle, int min_slot, int max_slot)
+void prescan_save_slots(int dest_arr_handle, int min_slot, int max_slot, int file_sort, int sort_dir, int user_param)
 {
     void *dest_arr;
     IScriptObject *mgr;
@@ -1206,34 +1217,58 @@ void prescan_save_slots(int dest_arr_handle, int min_slot, int max_slot)
         return;
     }
 
-    prescan_saves(static_cast<int*>(dest_arr), CCDynamicArray::GetHeader(dest_arr).GetElemCount(), min_slot, max_slot);
+    prescan_saves(static_cast<int*>(dest_arr), CCDynamicArray::GetHeader(dest_arr).GetElemCount(), min_slot, max_slot, file_sort, sort_dir);
     ccReleaseObjectReference(dest_arr_handle); // release internal handle
 
-    run_on_event(kScriptEvent_SavesScanComplete);
+    run_on_event(kScriptEvent_SavesScanComplete, user_param);
 }
 
-void prescan_saves(int *dest_arr, size_t dest_count, int min_slot, int max_slot)
+void prescan_saves(int *dest_arr, size_t dest_count, int min_slot, int max_slot, int file_sort, int sort_dir)
 {
-    int *pdst = dest_arr;
-    for (int slot = min_slot; (slot <= max_slot) && (pdst != dest_arr + dest_count); ++slot)
+    // Step 1: gather existing list of saves in the requested range
+    std::vector<SaveListItem> saves;
+    FillSaveList(saves, min_slot, max_slot);
+
+    // Step 2: sort gathered saves according to the parameters
+    const bool ascending = (sort_dir != kScSortDescending) || (file_sort == kScFileSort_None);
+    switch (file_sort)
     {
+    case kScFileSort_Name:
+        if (ascending)
+            std::sort(saves.begin(), saves.end(), SaveItemCmpByNumber());
+        else
+            std::sort(saves.rbegin(), saves.rend(), SaveItemCmpByNumber());
+        break;
+    case kScFileSort_Time:
+        if (ascending)
+            std::sort(saves.begin(), saves.end(), SaveItemCmpByTime());
+        else
+            std::sort(saves.rbegin(), saves.rend(), SaveItemCmpByTime());
+        break;
+    default: break;
+    }
+
+    // Step 3: prescan saves from the sorted list, and fill the destination array
+    int *pdst = dest_arr;
+    for (const auto &save : saves)
+    {
+        if (pdst == dest_arr + dest_count)
+            break;
+
         HSaveError err;
         SavegameSource src;
         SavegameDescription desc;
-        desc.Slot = slot;
-        String path = get_save_game_path(slot);
-        if (!File::IsFile(path))
-            continue;
-        err = OpenSavegame(path, src, desc, (SavegameDescElem)(kSvgDesc_EnvInfo | kSvgDesc_UserText));
+        desc.Slot = save.Slot;
+        err = OpenSavegame(get_save_game_path(save.Slot), src, desc, (SavegameDescElem)(kSvgDesc_EnvInfo | kSvgDesc_UserText));
         if (!err)
         {
-            debug_script_log("Prescan save slot %d: failed to open save: %s", slot, err->FullMessage().GetCStr());
+            debug_script_log("Prescan save slot %d: failed to open save: %s", save.Slot, err->FullMessage().GetCStr());
             continue;
         }
         // CHECKME: is this color depth test still essential? if yes, is there possible workaround?
         else if (desc.ColorDepth != game.GetColorDepth())
         {
-            debug_script_log("Prescan save slot %d: mismatching game color depth (game: %d-bit, save: %d-bit)", slot, game.GetColorDepth(), desc.ColorDepth);
+            debug_script_log("Prescan save slot %d: mismatching game color depth (game: %d-bit, save: %d-bit)", save.Slot, game.GetColorDepth(), desc.ColorDepth);
             continue;
         }
 
@@ -1245,12 +1280,12 @@ void prescan_saves(int *dest_arr, size_t dest_count, int min_slot, int max_slot)
 
         if (!err)
         {
-            debug_script_log("Prescan save slot %d: incompatible: %s", slot, err->FullMessage().GetCStr());
+            debug_script_log("Prescan save slot %d: incompatible: %s", save.Slot, err->FullMessage().GetCStr());
             continue;
         }
 
         // Put valid slot into dest arr
-        *(pdst++) = slot;
+        *(pdst++) = save.Slot;
     }
 
     // Fill remaining destination array with "no slot" index
@@ -2012,7 +2047,7 @@ RuntimeScriptValue Sc_Game_PrecacheView(const RuntimeScriptValue *params, int32_
 
 RuntimeScriptValue Sc_Game_ScanSaveSlots(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_POBJ_PINT2(Game_ScanSaveSlots, void);
+    API_SCALL_VOID_POBJ_PINT5(Game_ScanSaveSlots, void);
 }
 
 void RegisterGameAPI()
@@ -2043,7 +2078,7 @@ void RegisterGameAPI()
         { "Game::ResetDoOnceOnly",                        API_FN_PAIR(Game_ResetDoOnceOnly) },
         { "Game::PrecacheSprite",                         API_FN_PAIR(Game_PrecacheSprite) },
         { "Game::PrecacheView",                           API_FN_PAIR(Game_PrecacheView) },
-        { "Game::ScanSaveSlots^3",                        API_FN_PAIR(Game_ScanSaveSlots) },
+        { "Game::ScanSaveSlots^6",                        API_FN_PAIR(Game_ScanSaveSlots) },
         { "Game::get_CharacterCount",                     API_FN_PAIR(Game_GetCharacterCount) },
         { "Game::get_DialogCount",                        API_FN_PAIR(Game_GetDialogCount) },
         { "Game::get_FileName",                           API_FN_PAIR(Game_GetFileName) },

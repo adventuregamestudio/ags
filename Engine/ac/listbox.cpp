@@ -172,7 +172,7 @@ int ListBox_FillSaveGameList2(GUIListBox *listbox, int min_slot, int max_slot)
 
   std::vector<SaveListItem> saves;
   FillSaveList(saves, min_slot, max_slot);
-  std::sort(saves.rbegin(), saves.rend()); // sort by modified time in reverse
+  std::sort(saves.rbegin(), saves.rend(), SaveItemCmpByTime()); // sort by time in reverse
 
   // fill in the list box
   listbox->Clear();

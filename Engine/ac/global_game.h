@@ -30,10 +30,24 @@ struct SaveListItem
 
     SaveListItem(int slot, const Common::String &desc, time_t ft)
         : Slot(slot), Description(desc), FileTime(ft) {}
+};
 
-    inline bool operator < (const SaveListItem &other) const
+//
+// SaveListItem comparers, for sorting
+//
+struct SaveItemCmpByNumber
+{
+    bool operator()(const SaveListItem &item1, const SaveListItem &item2) const
     {
-        return FileTime < other.FileTime;
+        return item1.Slot < item2.Slot;
+    }
+};
+
+struct SaveItemCmpByTime
+{
+    bool operator()(const SaveListItem &item1, const SaveListItem &item2) const
+    {
+        return item1.FileTime < item2.FileTime;
     }
 };
 

@@ -88,7 +88,7 @@ struct PostScriptAction
 {
     // TODO: refactor this into a union of structs!
     PostScriptActionType Type = ePSAUndefined;
-    int Data[3]{};
+    int Data[6]{};
     Common::String Name;
     Common::String Text;
     mutable std::unique_ptr<Common::Bitmap> Image;
@@ -102,6 +102,8 @@ struct PostScriptAction
         : Type(type), Name(name) { Data[0] = data1; Data[1] = data2; }
     PostScriptAction(PostScriptActionType type, int data1, int data2, int data3, const Common::String &name)
         : Type(type), Name(name) { Data[0] = data1; Data[1] = data2; Data[2] = data3; }
+    PostScriptAction(PostScriptActionType type, int data1, int data2, int data3, int data4, int data5, int data6, const Common::String &name)
+        : Type(type), Name(name) { Data[0] = data1; Data[1] = data2; Data[2] = data3; Data[3] = data4; Data[4] = data5; Data[5] = data6; }
 };
 
 struct ExecutingScript

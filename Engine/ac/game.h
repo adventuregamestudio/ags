@@ -174,7 +174,7 @@ bool try_restore_save(const Common::String &path, int slot, bool startup = false
 void serialize_bitmap(const Common::Bitmap *thispic, Common::Stream *out);
 Common::Bitmap *read_serialized_bitmap(Common::Stream *in);
 void skip_serialized_bitmap(Common::Stream *in);
-void prescan_save_slots(int dest_arr_handle, int min_slot, int max_slot);
+void prescan_save_slots(int dest_arr_handle, int min_slot, int max_slot, int file_sort, int sort_dir, int user_param);
 
 bool is_in_cutscene();
 CutsceneSkipStyle get_cutscene_skipstyle();

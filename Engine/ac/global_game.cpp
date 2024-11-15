@@ -293,7 +293,7 @@ int GetLastSaveSlot()
     FillSaveList(saves, 0, RESTART_POINT_SAVE_GAME_NUMBER - 1);
     if (saves.size() == 0)
         return -1;
-    std::sort(saves.rbegin(), saves.rend());
+    std::sort(saves.rbegin(), saves.rend(), SaveItemCmpByTime()); // sort by time in reverse
     return saves[0].Slot;
 }
 

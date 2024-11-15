@@ -673,8 +673,6 @@ void post_script_cleanup()
     for (const auto &act : copyof.PostScriptActions)
     {
         const int data1 = act.Data[0];
-        const int data2 = act.Data[1];
-        const int data3 = act.Data[2];
 
         switch (act.Type)
         {
@@ -727,7 +725,7 @@ void post_script_cleanup()
             save_game_dialog2(data1 & 0xFFFF, (data1 >> 16));
             break;
         case ePSAScanSaves:
-            prescan_save_slots(data1, data2, data3);
+            prescan_save_slots(act.Data[0], act.Data[1], act.Data[2], act.Data[3], act.Data[4], act.Data[5]);
             break;
         default:
             quitprintf("undefined post script action found: %d", act.Type);

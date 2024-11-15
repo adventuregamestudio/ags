@@ -553,7 +553,9 @@ static void ValidateDynamicSprite(int handle, IScriptObject *obj)
 // Call a scripting event to let user validate the restored save
 static HSaveError ValidateRestoredSave(const SavegameDescription &save_desc, const RestoredData &r_data, SaveRestoreFeedback &feedback)
 {
-    auto *saveinfo = new ScriptRestoredSaveInfo(r_data.Result.RestoreFlags, save_desc, r_data.DataCounts,
+    auto *saveinfo = new ScriptRestoredSaveInfo(
+        (SaveRestorationFlags)(r_data.Result.RestoreFlags & kSaveRestore_ResultMask),
+        save_desc, r_data.DataCounts,
         (r_data.Result.RestoreFlags & kSaveRestore_MismatchMask) != 0);
     int handle = ccRegisterManagedObject(saveinfo, saveinfo);
     ccAddObjectReference(handle); // add internal ref

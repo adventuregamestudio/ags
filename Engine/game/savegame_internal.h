@@ -104,6 +104,7 @@ enum SaveRestorationFlags
     kSaveRestore_ResultMask         = kSaveRestore_ClearData
                                     | kSaveRestore_MissingDataInSave
                                     | kSaveRestore_ExtraDataInSave
+                                    | kSaveRestore_Prescan
 };
 
 // SaveRestoreResult records allowances for the save restoration

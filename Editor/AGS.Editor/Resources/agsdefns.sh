@@ -3363,7 +3363,8 @@ enum RestoredSaveResult
 {
   eRestoredSave_ClearData   = 0x01,
   eRestoredSave_MissingData = 0x08,
-  eRestoredSave_ExtraData   = 0x10
+  eRestoredSave_ExtraData   = 0x10,
+  eRestoredSave_Prescan     = 0x20
 };
 
 managed struct RestoredSaveInfo

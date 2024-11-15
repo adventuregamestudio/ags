@@ -29,29 +29,31 @@ namespace AGS.Editor
         private void InitializeComponent()
         {
             this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.label4 = new System.Windows.Forms.Label();
+            this.tableLayoutPanelCenter = new System.Windows.Forms.TableLayoutPanel();
+            this.label1 = new System.Windows.Forms.Label();
             this.lstRecentGames = new System.Windows.Forms.ListView();
             this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader2 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.label3 = new System.Windows.Forms.Label();
+            this.label4 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.radRecent = new System.Windows.Forms.RadioButton();
             this.radLoadGame = new System.Windows.Forms.RadioButton();
+            this.label3 = new System.Windows.Forms.Label();
             this.radNewGame = new System.Windows.Forms.RadioButton();
-            this.label1 = new System.Windows.Forms.Label();
             this.btnContinue = new System.Windows.Forms.Button();
             this.btnExit = new System.Windows.Forms.Button();
             this.panelLogo = new System.Windows.Forms.Panel();
+            this.labelVersion = new System.Windows.Forms.Label();
             this.lblLogo = new System.Windows.Forms.Label();
             this.tableLayoutPanelAll = new System.Windows.Forms.TableLayoutPanel();
             this.tableLayoutPanelBottom = new System.Windows.Forms.TableLayoutPanel();
-            this.tableLayoutPanelCenter = new System.Windows.Forms.TableLayoutPanel();
-            this.labelVersion = new System.Windows.Forms.Label();
+            this.tableLayoutRightAlignVersion = new System.Windows.Forms.TableLayoutPanel();
             this.groupBox1.SuspendLayout();
+            this.tableLayoutPanelCenter.SuspendLayout();
             this.panelLogo.SuspendLayout();
             this.tableLayoutPanelAll.SuspendLayout();
             this.tableLayoutPanelBottom.SuspendLayout();
-            this.tableLayoutPanelCenter.SuspendLayout();
+            this.tableLayoutRightAlignVersion.SuspendLayout();
             this.SuspendLayout();
             // 
             // groupBox1
@@ -65,16 +67,44 @@ namespace AGS.Editor
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Welcome";
             // 
-            // label4
+            // tableLayoutPanelCenter
             // 
-            this.label4.AutoSize = true;
-            this.label4.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.label4.Location = new System.Drawing.Point(36, 147);
-            this.label4.Margin = new System.Windows.Forms.Padding(36, 3, 20, 4);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(451, 13);
-            this.label4.TabIndex = 7;
-            this.label4.Text = "Continue making a game that you were recently working on:";
+            this.tableLayoutPanelCenter.ColumnCount = 1;
+            this.tableLayoutPanelCenter.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.tableLayoutPanelCenter.Controls.Add(this.label1, 0, 0);
+            this.tableLayoutPanelCenter.Controls.Add(this.lstRecentGames, 0, 8);
+            this.tableLayoutPanelCenter.Controls.Add(this.label4, 0, 7);
+            this.tableLayoutPanelCenter.Controls.Add(this.label2, 0, 3);
+            this.tableLayoutPanelCenter.Controls.Add(this.radRecent, 0, 6);
+            this.tableLayoutPanelCenter.Controls.Add(this.radLoadGame, 0, 4);
+            this.tableLayoutPanelCenter.Controls.Add(this.label3, 0, 5);
+            this.tableLayoutPanelCenter.Controls.Add(this.radNewGame, 0, 2);
+            this.tableLayoutPanelCenter.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tableLayoutPanelCenter.Location = new System.Drawing.Point(3, 17);
+            this.tableLayoutPanelCenter.Name = "tableLayoutPanelCenter";
+            this.tableLayoutPanelCenter.RowCount = 9;
+            this.tableLayoutPanelCenter.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.tableLayoutPanelCenter.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 8F));
+            this.tableLayoutPanelCenter.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.tableLayoutPanelCenter.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.tableLayoutPanelCenter.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.tableLayoutPanelCenter.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.tableLayoutPanelCenter.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.tableLayoutPanelCenter.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.tableLayoutPanelCenter.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.tableLayoutPanelCenter.Size = new System.Drawing.Size(507, 263);
+            this.tableLayoutPanelCenter.TabIndex = 8;
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.label1.Location = new System.Drawing.Point(20, 4);
+            this.label1.Margin = new System.Windows.Forms.Padding(20, 4, 20, 4);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(467, 13);
+            this.label1.TabIndex = 0;
+            this.label1.Text = "Welcome to AGS! What do you want to do?";
             // 
             // lstRecentGames
             // 
@@ -103,16 +133,16 @@ namespace AGS.Editor
             // 
             this.columnHeader2.Width = 600;
             // 
-            // label3
+            // label4
             // 
-            this.label3.AutoSize = true;
-            this.label3.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.label3.Location = new System.Drawing.Point(36, 102);
-            this.label3.Margin = new System.Windows.Forms.Padding(36, 3, 20, 4);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(451, 13);
-            this.label3.TabIndex = 5;
-            this.label3.Text = "Load one you made earlier!";
+            this.label4.AutoSize = true;
+            this.label4.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.label4.Location = new System.Drawing.Point(36, 147);
+            this.label4.Margin = new System.Windows.Forms.Padding(36, 3, 20, 4);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(451, 13);
+            this.label4.TabIndex = 7;
+            this.label4.Text = "Continue making a game that you were recently working on:";
             // 
             // label2
             // 
@@ -154,6 +184,17 @@ namespace AGS.Editor
             this.radLoadGame.Text = "Continue an existing game";
             this.radLoadGame.UseVisualStyleBackColor = true;
             // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.label3.Location = new System.Drawing.Point(36, 102);
+            this.label3.Margin = new System.Windows.Forms.Padding(36, 3, 20, 4);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(451, 13);
+            this.label3.TabIndex = 5;
+            this.label3.Text = "Load one you made earlier!";
+            // 
             // radNewGame
             // 
             this.radNewGame.AutoSize = true;
@@ -167,17 +208,6 @@ namespace AGS.Editor
             this.radNewGame.TabStop = true;
             this.radNewGame.Text = "Start a new game";
             this.radNewGame.UseVisualStyleBackColor = true;
-            // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.label1.Location = new System.Drawing.Point(20, 4);
-            this.label1.Margin = new System.Windows.Forms.Padding(20, 4, 20, 4);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(467, 13);
-            this.label1.TabIndex = 0;
-            this.label1.Text = "Welcome to AGS! What do you want to do?";
             // 
             // btnContinue
             // 
@@ -202,7 +232,7 @@ namespace AGS.Editor
             // panelLogo
             // 
             this.panelLogo.BackColor = System.Drawing.Color.RoyalBlue;
-            this.panelLogo.Controls.Add(this.labelVersion);
+            this.panelLogo.Controls.Add(this.tableLayoutRightAlignVersion);
             this.panelLogo.Controls.Add(this.lblLogo);
             this.panelLogo.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panelLogo.ForeColor = System.Drawing.Color.White;
@@ -211,6 +241,20 @@ namespace AGS.Editor
             this.panelLogo.Name = "panelLogo";
             this.panelLogo.Size = new System.Drawing.Size(519, 72);
             this.panelLogo.TabIndex = 4;
+            // 
+            // labelVersion
+            // 
+            this.labelVersion.AutoSize = true;
+            this.labelVersion.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.labelVersion.ForeColor = System.Drawing.Color.LightSteelBlue;
+            this.labelVersion.Location = new System.Drawing.Point(326, 0);
+            this.labelVersion.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.labelVersion.Name = "labelVersion";
+            this.labelVersion.Padding = new System.Windows.Forms.Padding(4);
+            this.labelVersion.Size = new System.Drawing.Size(189, 21);
+            this.labelVersion.TabIndex = 2;
+            this.labelVersion.Text = "Build X.X.X.X BB-bit, MMMMMM YYYY";
+            this.labelVersion.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // lblLogo
             // 
@@ -256,47 +300,20 @@ namespace AGS.Editor
             this.tableLayoutPanelBottom.Size = new System.Drawing.Size(513, 43);
             this.tableLayoutPanelBottom.TabIndex = 0;
             // 
-            // tableLayoutPanelCenter
+            // tableLayoutRightAlignVersion
             // 
-            this.tableLayoutPanelCenter.ColumnCount = 1;
-            this.tableLayoutPanelCenter.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.tableLayoutPanelCenter.Controls.Add(this.label1, 0, 0);
-            this.tableLayoutPanelCenter.Controls.Add(this.lstRecentGames, 0, 8);
-            this.tableLayoutPanelCenter.Controls.Add(this.label4, 0, 7);
-            this.tableLayoutPanelCenter.Controls.Add(this.label2, 0, 3);
-            this.tableLayoutPanelCenter.Controls.Add(this.radRecent, 0, 6);
-            this.tableLayoutPanelCenter.Controls.Add(this.radLoadGame, 0, 4);
-            this.tableLayoutPanelCenter.Controls.Add(this.label3, 0, 5);
-            this.tableLayoutPanelCenter.Controls.Add(this.radNewGame, 0, 2);
-            this.tableLayoutPanelCenter.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tableLayoutPanelCenter.Location = new System.Drawing.Point(3, 17);
-            this.tableLayoutPanelCenter.Name = "tableLayoutPanelCenter";
-            this.tableLayoutPanelCenter.RowCount = 9;
-            this.tableLayoutPanelCenter.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.tableLayoutPanelCenter.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 8F));
-            this.tableLayoutPanelCenter.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.tableLayoutPanelCenter.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.tableLayoutPanelCenter.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.tableLayoutPanelCenter.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.tableLayoutPanelCenter.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.tableLayoutPanelCenter.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.tableLayoutPanelCenter.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.tableLayoutPanelCenter.Size = new System.Drawing.Size(507, 263);
-            this.tableLayoutPanelCenter.TabIndex = 8;
-            // 
-            // labelVersion
-            // 
-            this.labelVersion.AutoSize = true;
-            this.labelVersion.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.labelVersion.ForeColor = System.Drawing.Color.LightSteelBlue;
-            this.labelVersion.Location = new System.Drawing.Point(0, 51);
-            this.labelVersion.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.labelVersion.Name = "labelVersion";
-            this.labelVersion.Padding = new System.Windows.Forms.Padding(4);
-            this.labelVersion.Size = new System.Drawing.Size(189, 21);
-            this.labelVersion.TabIndex = 2;
-            this.labelVersion.Text = "Build X.X.X.X BB-bit, MMMMMM YYYY";
-            this.labelVersion.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.tableLayoutRightAlignVersion.AutoSize = true;
+            this.tableLayoutRightAlignVersion.ColumnCount = 2;
+            this.tableLayoutRightAlignVersion.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.tableLayoutRightAlignVersion.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
+            this.tableLayoutRightAlignVersion.Controls.Add(this.labelVersion, 1, 0);
+            this.tableLayoutRightAlignVersion.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.tableLayoutRightAlignVersion.Location = new System.Drawing.Point(0, 51);
+            this.tableLayoutRightAlignVersion.Name = "tableLayoutRightAlignVersion";
+            this.tableLayoutRightAlignVersion.RowCount = 1;
+            this.tableLayoutRightAlignVersion.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.tableLayoutRightAlignVersion.Size = new System.Drawing.Size(519, 21);
+            this.tableLayoutRightAlignVersion.TabIndex = 3;
             // 
             // WelcomeScreen
             // 
@@ -314,12 +331,14 @@ namespace AGS.Editor
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Welcome to AGS!";
             this.groupBox1.ResumeLayout(false);
+            this.tableLayoutPanelCenter.ResumeLayout(false);
+            this.tableLayoutPanelCenter.PerformLayout();
             this.panelLogo.ResumeLayout(false);
             this.panelLogo.PerformLayout();
             this.tableLayoutPanelAll.ResumeLayout(false);
             this.tableLayoutPanelBottom.ResumeLayout(false);
-            this.tableLayoutPanelCenter.ResumeLayout(false);
-            this.tableLayoutPanelCenter.PerformLayout();
+            this.tableLayoutRightAlignVersion.ResumeLayout(false);
+            this.tableLayoutRightAlignVersion.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -344,5 +363,6 @@ namespace AGS.Editor
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanelBottom;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanelCenter;
         private System.Windows.Forms.Label labelVersion;
+        private System.Windows.Forms.TableLayoutPanel tableLayoutRightAlignVersion;
     }
 }

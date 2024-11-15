@@ -119,6 +119,7 @@ enum AGSScriptEventType
     kScriptEvent_DialogRun      = 15, // a dialog option is run
     kScriptEvent_DialogOptionsOpen = 16, // before dialog options are displayed on screen
     kScriptEvent_DialogOptionsClose = 17, // after dialog options are removed from screen
+    kScriptEvent_SavesScanComplete = 18, // after exeuted scheduled saves prescan
 };
 
 

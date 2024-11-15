@@ -1735,6 +1735,7 @@ enum EventType {
   eEventDialogRun = 15,
   eEventDialogOptionsOpen = 16,
   eEventDialogOptionsClose = 17,
+  eEventSavesScanComplete = 18
 #endif // SCRIPT_API_v362
 };
 
@@ -3103,6 +3104,8 @@ builtin struct Game {
 #ifdef SCRIPT_API_v362
   /// Gets the write time of the specified save game slot.
   import static DateTime* GetSaveSlotTime(int saveSlot);
+  /// Prescans save slots from "min_slot" to "max_slot" and fills the compatible ones into the provided dynamic array.
+  import static void   ScanSaveSlots(int valid_slots_dest[], int min_slot, int max_slot);
 #endif // SCRIPT_API_v362
 };
 

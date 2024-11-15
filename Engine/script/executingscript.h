@@ -80,26 +80,28 @@ enum PostScriptActionType
     ePSARestartGame,
     ePSASaveGame,
     ePSASaveGameDialog,
-    ePSAStopDialog
+    ePSAStopDialog,
+    ePSAScanSaves
 };
 
 struct PostScriptAction
 {
+    // TODO: refactor this into a union of structs!
     PostScriptActionType Type = ePSAUndefined;
-    int Data = 0;
+    int Data[3]{};
     Common::String Name;
-    Common::String Description;
+    Common::String Text;
     mutable std::unique_ptr<Common::Bitmap> Image;
     ScriptPosition Position;
 
     PostScriptAction() = default;
-    PostScriptAction(PostScriptActionType type, int data, const Common::String &name)
-        : Type(type), Data(data), Name(name) {}
-    PostScriptAction(PostScriptActionType type, int data, const Common::String &name, const Common::String &desc)
-        : Type(type), Data(data), Name(name), Description(desc) {}
-    PostScriptAction(PostScriptActionType type, int data, const Common::String &name, const Common::String &desc,
-        std::unique_ptr<Common::Bitmap> &&image)
-        : Type(type), Data(data), Name(name), Description(desc), Image(std::move(image)) {}
+    PostScriptAction(PostScriptActionType type, int data, const Common::String &name, const Common::String &text = {},
+        std::unique_ptr<Common::Bitmap> &&image = {})
+        : Type(type), Name(name), Text(text), Image(std::move(image)) { Data[0] = data; }
+    PostScriptAction(PostScriptActionType type, int data1, int data2, const Common::String &name)
+        : Type(type), Name(name) { Data[0] = data1; Data[1] = data2; }
+    PostScriptAction(PostScriptActionType type, int data1, int data2, int data3, const Common::String &name)
+        : Type(type), Name(name) { Data[0] = data1; Data[1] = data2; Data[2] = data3; }
 };
 
 struct ExecutingScript

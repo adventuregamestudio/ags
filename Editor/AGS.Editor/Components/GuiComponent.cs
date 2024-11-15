@@ -51,7 +51,7 @@ namespace AGS.Editor.Components
             _guiController.RegisterIcon("GUISliderIcon", Resources.ResourceManager.GetIcon("guis_slider.ico"));
             _guiController.RegisterIcon("GUITextBoxIcon", Resources.ResourceManager.GetIcon("guis_textbox.ico"));
             _guiController.ProjectTree.AddTreeRoot(this, TOP_LEVEL_COMMAND_ID, "GUIs", ICON_KEY);
-            _agsEditor.TestGameScripts += ScanAndReportMissingEventHandlers;
+            _agsEditor.CheckGameScripts += ScanAndReportMissingEventHandlers;
 
             RePopulateTreeView();
         }
@@ -409,7 +409,7 @@ namespace AGS.Editor.Components
                     continue;
 
                 // Gather function names from the GUI and all of their controls,
-                // in order to test missing functions in a single batch.
+                // in order to check missing functions in a single batch.
                 // TODO: the following code would be simpler if there was an indexed Events table in each GUI and control class;
                 // see also: how Interactions class is done for Characters etc.
                 List<GUIEventReference> objectEvents = new List<GUIEventReference>();
@@ -437,7 +437,7 @@ namespace AGS.Editor.Components
                 }
 
                 var functionNames = objectEvents.Select(evt => evt.FunctionName);
-                var missing = _agsEditor.Tasks.TestMissingEventHandlers(ngui.ScriptModule, functionNames.ToArray());
+                var missing = _agsEditor.Tasks.CheckMissingEventHandlers(ngui.ScriptModule, functionNames.ToArray());
                 if (missing == null || missing.Count == 0)
                     continue;
 

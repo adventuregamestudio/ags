@@ -1724,7 +1724,7 @@ namespace AGS.Editor.Components
         private void ScanAndReportMissingInteractionHandlers(Room room, CompileMessages errors)
         {
             // Gather function names from the Room and all of their contents,
-            // in order to test missing functions in a single batch.
+            // in order to check missing functions in a single batch.
             List<RoomEventReference> objectEvents = new List<RoomEventReference>();
             objectEvents.AddRange(
                 room.Interactions.ScriptFunctionNames.Select((fn, i) =>
@@ -1753,7 +1753,7 @@ namespace AGS.Editor.Components
             }
 
             var functionNames = objectEvents.Select(evt => evt.FunctionName);
-            var missing = _agsEditor.Tasks.TestMissingEventHandlers(room.Script.AutoCompleteData, functionNames.ToArray());
+            var missing = _agsEditor.Tasks.CheckMissingEventHandlers(room.Script.AutoCompleteData, functionNames.ToArray());
             if (missing == null || missing.Count == 0)
                 return;
 

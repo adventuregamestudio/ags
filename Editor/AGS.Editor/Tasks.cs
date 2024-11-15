@@ -940,24 +940,24 @@ namespace AGS.Editor
         /// or null on any error.
         /// NOTE: events that do not have an assigned function are ignored.
         /// </summary>
-        public List<int> TestMissingInteractionHandlers(Interactions interactions)
+        public List<int> CheckMissingInteractionHandlers(Interactions interactions)
         {
             if (string.IsNullOrEmpty(interactions.ScriptModule))
                 return null;
 
-            return TestMissingEventHandlers(interactions.ScriptModule, interactions.ScriptFunctionNames);
+            return CheckMissingEventHandlers(interactions.ScriptModule, interactions.ScriptFunctionNames);
         }
 
-        public List<int> TestMissingEventHandlers(string scriptModule, string[] functionNames)
+        public List<int> CheckMissingEventHandlers(string scriptModule, string[] functionNames)
         {
             Script script = Factory.AGSEditor.CurrentGame.ScriptsAndHeaders.GetScriptByFilename(scriptModule);
             if (script == null || script.AutoCompleteData == null || !script.AutoCompleteData.Populated)
                 return null;
 
-            return TestMissingEventHandlers(script.AutoCompleteData, functionNames);
+            return CheckMissingEventHandlers(script.AutoCompleteData, functionNames);
         }
 
-        public List<int> TestMissingEventHandlers(ScriptAutoCompleteData scriptData, string[] functionNames)
+        public List<int> CheckMissingEventHandlers(ScriptAutoCompleteData scriptData, string[] functionNames)
         {
             List<int> missing = new List<int>();
             for (int i = 0; i < functionNames.Length; ++i)

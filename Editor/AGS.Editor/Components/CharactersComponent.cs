@@ -37,7 +37,7 @@ namespace AGS.Editor.Components
             _guiController.RegisterIcon(ICON_KEY, Resources.ResourceManager.GetIcon("charactr.ico"));
             _guiController.RegisterIcon("CharacterIcon", Resources.ResourceManager.GetIcon("charactr-item.ico"));
             _guiController.ProjectTree.AddTreeRoot(this, TOP_LEVEL_COMMAND_ID, "Characters", ICON_KEY);
-            _agsEditor.TestGameScripts += ScanAndReportMissingInteractionHandlers;
+            _agsEditor.CheckGameScripts += ScanAndReportMissingInteractionHandlers;
             RePopulateTreeView();
         }
 
@@ -376,7 +376,7 @@ namespace AGS.Editor.Components
             var errors = args.Messages;
             foreach (Character c in _agsEditor.CurrentGame.Characters)
             {
-                var missing = _agsEditor.Tasks.TestMissingInteractionHandlers(c.Interactions);
+                var missing = _agsEditor.Tasks.CheckMissingInteractionHandlers(c.Interactions);
                 if (missing == null || missing.Count == 0)
                     continue;
 

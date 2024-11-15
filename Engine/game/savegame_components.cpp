@@ -1520,12 +1520,13 @@ HSaveError WriteThisRoom(Stream *out)
     return HSaveError::None();
 }
 
-HSaveError ReadThisRoom(Stream *in, int32_t cmp_ver, soff_t cmp_size, const PreservedParams& /*pp*/, RestoredData &r_data)
+HSaveError ReadThisRoom(Stream *in, int32_t cmp_ver, soff_t /*cmp_size*/, const PreservedParams& /*pp*/, RestoredData &r_data)
 {
     HSaveError err;
-    displayed_room = in->ReadInt32();
-    if (displayed_room < 0)
-        return err;
+    r_data.Room = in->ReadInt32();
+    r_data.DataCounts.Room = r_data.Room;
+    if (r_data.Room < 0)
+        return HSaveError::None();
 
     // modified room backgrounds
     for (int i = 0; i < MAX_ROOM_BGFRAMES; ++i)
@@ -1572,6 +1573,12 @@ HSaveError ReadThisRoom(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pres
     if (!in->ReadBool())
         troom.ReadFromSavegame(in, loaded_game_file_version, (RoomStatSvgVersion)cmp_ver);
 
+    return HSaveError::None();
+}
+
+HSaveError PrescanThisRoom(Stream *in, int32_t /*cmp_ver*/, soff_t /*cmp_size*/, const PreservedParams& /*pp*/, RestoredData &r_data)
+{
+    r_data.DataCounts.Room = in->ReadInt32();
     return HSaveError::None();
 }
 
@@ -1796,7 +1803,7 @@ ComponentHandler ComponentHandlers[] =
         kSaveCmp_ThisRoom,
         WriteThisRoom,
         ReadThisRoom,
-        nullptr
+        PrescanThisRoom
     },
     {
         "Move Lists",

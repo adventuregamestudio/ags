@@ -138,7 +138,7 @@ struct SaveRestoredDataCounts
     uint32_t GlobalScriptDataSz = 0u;
     uint32_t ScriptModules = 0u;
     std::vector<uint32_t> ScriptModuleDataSz;
-    uint32_t RoomScriptDataSz = 0u; // current room's script data size
+    int Room = -1; // the room this save was made in
 };
 
 // RestoredData keeps certain temporary data to help with
@@ -163,6 +163,7 @@ struct RestoredData
     // Game state data (loaded ahead)
     uint32_t                DoOnceCount;
     // Room data (has to be be preserved until room is loaded)
+    int                     Room;
     PBitmap                 RoomBkgScene[MAX_ROOM_BGFRAMES];
     short                   RoomLightLevels[MAX_ROOM_REGIONS];
     int                     RoomTintLevels[MAX_ROOM_REGIONS];

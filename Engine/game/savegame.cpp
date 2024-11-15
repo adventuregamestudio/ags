@@ -667,10 +667,10 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
     const Rect mouse_bounds = play.mbounds;
 
     // load the room the game was saved in
+    displayed_room = r_data.Room;
     if (displayed_room >= 0)
     {
         load_new_room(displayed_room, nullptr);
-        r_data.DataCounts.RoomScriptDataSz = croom->tsdatasize;
     }
     else
     {
@@ -1145,9 +1145,9 @@ int SaveInfo_GetScriptModuleDataSize(ScriptRestoredSaveInfo *info, int index)
     return info->GetCounts().ScriptModuleDataSz[index];
 }
 
-int SaveInfo_GetRoomScriptDataSize(ScriptRestoredSaveInfo *info)
+int SaveInfo_GetRoom(ScriptRestoredSaveInfo *info)
 {
-    return info->GetCounts().RoomScriptDataSz;
+    return info->GetCounts().Room;
 }
 
 RuntimeScriptValue Sc_SaveInfo_GetCancel(void *self, const RuntimeScriptValue *params, int32_t param_count)
@@ -1255,9 +1255,9 @@ RuntimeScriptValue Sc_SaveInfo_GetScriptModuleDataSize(void *self, const Runtime
     API_OBJCALL_INT_PINT(ScriptRestoredSaveInfo, SaveInfo_GetScriptModuleDataSize);
 }
 
-RuntimeScriptValue Sc_SaveInfo_GetRoomScriptDataSize(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_SaveInfo_GetRoom(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptRestoredSaveInfo, SaveInfo_GetRoomScriptDataSize);
+    API_OBJCALL_INT(ScriptRestoredSaveInfo, SaveInfo_GetRoom);
 }
 
 void RegisterSaveInfoAPI()
@@ -1284,7 +1284,7 @@ void RegisterSaveInfoAPI()
         { "RestoredSaveInfo::get_GlobalScriptDataSize", API_FN_PAIR(SaveInfo_GetGlobalScriptDataSize) },
         { "RestoredSaveInfo::get_ScriptModuleCount",    API_FN_PAIR(SaveInfo_GetScriptModuleCount) },
         { "RestoredSaveInfo::geti_ScriptModuleDataSize",API_FN_PAIR(SaveInfo_GetScriptModuleDataSize) },
-        { "RestoredSaveInfo::get_RoomScriptDataSize",   API_FN_PAIR(SaveInfo_GetRoomScriptDataSize) },
+        { "RestoredSaveInfo::get_Room",                 API_FN_PAIR(SaveInfo_GetRoom) },
     };
 
     ccAddExternalFunctions(saveinfo_api);

@@ -3376,6 +3376,7 @@ managed struct RestoredSaveInfo
   import readonly attribute int Slot;
   import readonly attribute String Description;
   import readonly attribute String EngineVersion;
+  import readonly attribute int Room;
   import readonly attribute int AudioClipTypeCount;
   import readonly attribute int CharacterCount;
   import readonly attribute int DialogCount;
@@ -3389,7 +3390,6 @@ managed struct RestoredSaveInfo
   import readonly attribute int GlobalScriptDataSize;
   import readonly attribute int ScriptModuleCount;
   import readonly attribute int ScriptModuleDataSize[];
-  import readonly attribute int RoomScriptDataSize;
 };
 #endif
 

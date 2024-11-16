@@ -301,10 +301,12 @@ bool sys_window_set_size(int w, int h, bool center) {
     return false;
 }
 
-void sys_window_center() {
+void sys_window_center(int display_index) {
     if (!window)
         return;
 #if (AGS_PLATFORM_DESKTOP)
+    if (display_index < 0)
+        display_index = SDL_GetWindowDisplayIndex(window);
     // CHECKME:
     // There seem to be a bug in SDL2 where it either does not assume
     // the working area & taskbars when centering the window, or ignores
@@ -312,9 +314,10 @@ void sys_window_center() {
     // Until that is fixed, try centering it ourselves
     // See: https://github.com/libsdl-org/SDL/issues/6875
     SDL_Rect bounds;
-    int w, h;
-    int bx1, by1, bx2, by2;
-    SDL_GetDisplayUsableBounds(SDL_GetWindowDisplayIndex(window), &bounds);
+    if (SDL_GetDisplayUsableBounds(display_index, &bounds) != 0)
+        return;
+    int w = 0, h = 0;
+    int bx1 = 0, by1 = 0, bx2 = 0, by2 = 0;
     SDL_GetWindowSize(window, &w, &h);
     SDL_GetWindowBordersSize(window, &by1, &bx1, &by2, &bx2);
     // CHECKME: SDL_SetWindowPosition aligns the client rect to this pos???
@@ -322,6 +325,25 @@ void sys_window_center() {
     int y = bounds.y + by1 + (bounds.h - (h + by1 + by2)) / 2;
     SDL_SetWindowPosition(window, x, y);
 #else // !AGS_PLATFORM_DESKTOP
+    SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+#endif
+}
+
+void sys_window_fit_in_display(int display_index) {
+    if (!window)
+        return;
+#if (AGS_PLATFORM_DESKTOP)
+    SDL_Rect bounds;
+    if (SDL_GetDisplayUsableBounds(display_index, &bounds) != 0)
+        return;
+    int w = 0, h = 0;
+    SDL_GetWindowSize(window, &w, &h);
+    if (w > bounds.w || h > bounds.h) {
+        SDL_SetWindowSize(window, std::min(bounds.w, w), std::min(bounds.h, h));
+    }
+    sys_window_center(display_index);
+#else // !AGS_PLATFORM_DESKTOP
+    // Dummy implementation for the time being
     SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 #endif
 }

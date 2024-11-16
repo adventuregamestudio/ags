@@ -66,8 +66,10 @@ SDL_Window *sys_get_window();
 void sys_window_set_style(AGS::Engine::WindowMode mode, Size size = Size());
 // Set new window size; optionally center new window on screen
 bool sys_window_set_size(int w, int h, bool center);
-// Centers the window on screen
-void sys_window_center();
+// Centers the window on screen, optionally choose the display to position on
+void sys_window_center(int display_index = -1);
+// Reduces window's size to fit into the said display bounds, and repositions to the display's center
+void sys_window_fit_in_display(int display_index);
 // Shows or hides system cursor when it's in the game window
 void sys_window_show_cursor(bool on);
 // Locks on unlocks mouse inside the window.

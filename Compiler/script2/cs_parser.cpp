@@ -1013,23 +1013,20 @@ void AGS::Parser::ParseVarname0(bool accept_member_access, Symbol &structname, S
 
 // We're accepting a parameter list. We've accepted something like "int".
 // We accept a param name such as "i" if present
-Symbol AGS::Parser::ParseParamlist_Param_Name(bool body_follows)
+Symbol AGS::Parser::ParseParamlist_Param_Name(size_t param_idx)
 {
 
-    if (PP::kPreAnalyze == _pp || !body_follows)
-    {
-        // Ignore the parameter name when present, it won't be used later on (in this phase)
-        Symbol const nextsym = _src.PeekNext();
-        if (_sym.IsIdentifier(nextsym))
-            _src.GetNext();
+    // Process a missing parameter name;
+    Symbol const nextsym = _src.PeekNext();
+    if (!_sym.IsIdentifier(nextsym))
         return kKW_NoSymbol;
-    }
 
     Symbol const param_name = ParseVarname();
     if (_sym.IsFunction(param_name))
     {
         Warning(
-            ReferenceMsgSym("This hides the function '%s()'", param_name).c_str(),
+            ReferenceMsgSym("Parameter #%u: This hides the function '%s()'", param_name).c_str(),
+            param_idx,
             _sym.GetName(param_name).c_str());
         return param_name;
     }
@@ -1040,13 +1037,15 @@ Symbol AGS::Parser::ParseParamlist_Param_Name(bool body_follows)
             return param_name;
 
         UserError(
-            ReferenceMsgSym("The name '%s' is already in use as a parameter", param_name).c_str(),
+            ReferenceMsgSym("Parameter #%u: The name '%s' is already in use as a parameter", param_name).c_str(),
+            param_idx,
             _sym.GetName(param_name).c_str());
     }
 
     if (_sym.IsVartype(param_name))
         Warning(
-            ReferenceMsgSym("This hides the type '%s'", param_name).c_str(),
+            ReferenceMsgSym("Parameter #%u: This hides the type '%s'", param_name).c_str(),
+            param_idx,
             _sym.GetName(param_name).c_str());
 
     return param_name;
@@ -1069,31 +1068,43 @@ void AGS::Parser::ParseParamlist_Param_AsVar2Sym(Symbol param_name, TypeQualifie
 
 void AGS::Parser::ParseParamlist_Param(Symbol const name_of_func, bool const body_follows, TypeQualifierSet tqs, Vartype param_vartype, size_t const param_idx)
 {
+    size_t const declared = _src.GetCursor();
+
     if (kKW_Void == param_vartype)
-        UserError("Cannot use the type 'void' in a parameter list");
+        UserError("Parameter #%u: Cannot use the type 'void' in a parameter list", param_idx);
     if (_sym.IsStructVartype(param_vartype) && !_sym.IsManagedVartype(param_vartype))
         UserError(
-            ReferenceMsgSym("Cannot use the non-managed struct type '%s' in a parameter list", param_vartype).c_str(),
+            ReferenceMsgSym("Parameter #%u: Cannot use the non-managed struct type '%s' in a parameter list", param_vartype).c_str(),
+            param_idx,
             _sym.GetName(param_vartype).c_str());
 
-    Symbol const param_name = ParseParamlist_Param_Name(body_follows);
+    Symbol const param_name = ParseParamlist_Param_Name(param_idx);
+    if (body_follows && kKW_NoSymbol == param_name)
+        UserError(
+            "Parameter #%u: Expected a parameter name, found '%s' instead",
+            param_idx,
+            _sym.GetName(_src.PeekNext()).c_str());
+
     ParseDynArrayMarkerIfPresent(param_vartype);
     Symbol const param_default = ParseParamlist_Param_DefaultValue(param_idx, param_vartype);
-    
+
+    auto &parameters = _sym[name_of_func].FunctionD->Parameters;
+
     if (!body_follows &&
         kKW_NoSymbol == param_default &&
-        !_sym[name_of_func].FunctionD->Parameters.empty() &&
-        kKW_NoSymbol != _sym[name_of_func].FunctionD->Parameters.back().Default)
+        !parameters.empty() &&
+        kKW_NoSymbol != parameters.back().Default)
         UserError(
-            "Parameter #%u of function '%s' follows an optional parameter and so must have a default, too",
-            param_idx, _sym.GetName(name_of_func).c_str());
-    
-    _sym[name_of_func].FunctionD->Parameters.push_back({});
-    auto &back = _sym[name_of_func].FunctionD->Parameters.back();
-    back.Vartype = param_vartype; 
-    back.Name = param_name;
-    back.Default = param_default;
-    
+            "Parameter #%u follows an optional parameter and so must have a default, too",
+            param_idx);
+
+    FuncParameterDesc fpd = {};
+    fpd.Vartype = param_vartype;
+    fpd.Name = param_name;
+    fpd.Default = param_default;
+    fpd.Declared = declared;
+    parameters.push_back(fpd);
+
     if (PP::kMain != _pp || !body_follows)
         return;
 
@@ -1116,7 +1127,7 @@ void AGS::Parser::ParseFuncdecl_Paramlist(Symbol funcsym, bool body_follows)
     while (!_src.ReachedEOF())
     {
         ParseQualifiers(tqs);
-        
+
         // Only certain qualifiers allowed
         for (auto tq_it = tqs.begin(); tq_it != tqs.end(); tq_it++)
         {
@@ -1124,7 +1135,7 @@ void AGS::Parser::ParseFuncdecl_Paramlist(Symbol funcsym, bool body_follows)
                 continue;
             UserError("Unexpected '%s' in parameter list", _sym.GetName(tqs.TQ2Symbol(tq_it->first)).c_str());
         }
-        
+
         Symbol const leading_sym = _src.PeekNext();
         if (param_idx == 0u && kKW_Void == leading_sym)
         {
@@ -1138,7 +1149,7 @@ void AGS::Parser::ParseFuncdecl_Paramlist(Symbol funcsym, bool body_follows)
         if (kKW_DotDotDot == leading_sym)
         {
             _sym[funcsym].FunctionD->IsVariadic = true;
-            SkipNextSymbol(_src, kKW_DotDotDot); 
+            SkipNextSymbol(_src, kKW_DotDotDot);
             return Expect(kKW_CloseParenthesis, _src.GetNext(), "Expected ')' following the '...'");
         }
 
@@ -1146,29 +1157,30 @@ void AGS::Parser::ParseFuncdecl_Paramlist(Symbol funcsym, bool body_follows)
             UserError("Too many parameters defined for function (max. allowed: %u)", MAX_FUNCTION_PARAMETERS - 1u);
 
         ParseParamlist_Param(funcsym, body_follows, tqs, ParseVartype(), _sym.FuncParamsCount(funcsym) + 1u);
-            
+
         tqs = {}; // type qualifiers have been used up
 
         Symbol const punctuation = _src.GetNext();
         Expect(SymbolList{ kKW_Comma, kKW_CloseParenthesis }, punctuation);
         if (kKW_CloseParenthesis == punctuation)
             return;
-        continue;       
+        continue;
     } // while
-    
+
     InternalError("End of input when processing parameter list"); // Cannot happen
 }
 
-void AGS::Parser::ParseFuncdecl_MasterData2Sym(TypeQualifierSet tqs, Vartype return_vartype, Symbol struct_of_function, Symbol name_of_function, bool body_follows)
+void AGS::Parser::ParseFuncdecl_MasterData2Sym(TypeQualifierSet tqs, Vartype const return_vartype, Symbol struct_of_func, Symbol name_of_func, bool body_follows)
 {
-    _sym.MakeEntryFunction(name_of_function);
-    SymbolTableEntry &entry = _sym[name_of_function];
+    _sym.MakeEntryFunction(name_of_func);
+    SymbolTableEntry &entry = _sym[name_of_func];
 
     entry.LifeScope = std::make_pair(_scrip.Codesize_i32(), _scrip.Codesize_i32());
     
-    entry.FunctionD->IsConstructor = (kKW_NoSymbol != struct_of_function) &&
+    entry.FunctionD->IsConstructor = (kKW_NoSymbol != struct_of_func) &&
         entry.ComponentD && (entry.ComponentD->Component == entry.ComponentD->Parent);
     entry.FunctionD->Parameters.resize(1u);
+    // Function return type (entered as [0])
     entry.FunctionD->Parameters[0].Vartype = return_vartype;
     entry.FunctionD->Parameters[0].Name = kKW_NoSymbol;
     entry.FunctionD->Parameters[0].Default = kKW_NoSymbol;
@@ -1189,42 +1201,45 @@ void AGS::Parser::ParseFuncdecl_MasterData2Sym(TypeQualifierSet tqs, Vartype ret
             ft = kFT_Import;
         if (body_follows)
             ft = kFT_LocalBody;
-        if (_sym[name_of_function].FunctionD->Offset < ft)
-            _sym[name_of_function].FunctionD->Offset = ft;
+        if (_sym[name_of_func].FunctionD->Offset < ft)
+            _sym[name_of_func].FunctionD->Offset = ft;
     }
 }
 
-// there was a forward declaration -- check that the real declaration matches it
-void AGS::Parser::ParseFuncdecl_CheckThatKnownInfoMatches(std::string const &func_name, SymbolTableEntry::FunctionDesc const *this_entry, SymbolTableEntry::FunctionDesc const *known_info, size_t const known_declared, bool body_follows)
+void AGS::Parser::ParseFuncdecl_CheckAndAddKnownInfo(Symbol const name_of_func, SymbolTableEntry::FunctionDesc *known_info, size_t known_declared, bool const body_follows)
 {
     if (!known_info)
         return; // We don't have any known info
+    auto &this_entry = _sym[name_of_func].FunctionD;
     if (!this_entry)
         InternalError("Function record missing");
 
+    // Type qualifiers - must match
     auto known_tq = known_info->TypeQualifiers;
     known_tq[TQ::kImport] = false;
     auto this_tq = this_entry->TypeQualifiers;
-    this_tq[TQ::kImport]  = false;
+    this_tq[TQ::kImport] = false;
     if (known_tq != this_tq)
     {
         std::string const known_tq_str = TypeQualifierSet2String(known_tq);
         std::string const this_tq_str = TypeQualifierSet2String(this_tq);
         std::string const msg = ReferenceMsgLoc("'%s' has the qualifiers '%s' here but '%s' elsewhere", known_declared);
-        UserError(msg.c_str(), func_name.c_str(), this_tq_str.c_str(), known_tq_str.c_str());
+        UserError(msg.c_str(), _sym.GetName(name_of_func).c_str(), this_tq_str.c_str(), known_tq_str.c_str());
     }
 
-    size_t const known_parameters_count = known_info->Parameters.size() - 1u;
-    size_t const this_parameters_count = this_entry->Parameters.size() - 1u;
-    if (known_parameters_count != this_parameters_count)
+    // Return type - must match
+    Symbol const known_ret_type = known_info->Parameters[0u].Vartype;
+    Symbol const this_ret_type = this_entry->Parameters[0u].Vartype;
+    if (known_ret_type != this_ret_type)
         UserError(
-			ReferenceMsgLoc(
-				"Function '%s' is declared with %d mandatory parameters here, %d mandatory parameters elswehere",
-				known_declared).c_str(), 
-			func_name.c_str(), 
-			this_parameters_count, 
-			known_parameters_count);
+            ReferenceMsgLoc(
+                "Return type of '%s' is declared as '%s' here, as '%s' elsewhere",
+                known_declared).c_str(),
+            _sym.GetName(name_of_func).c_str(),
+            _sym.GetName(this_ret_type).c_str(),
+            _sym.GetName(known_ret_type).c_str());
 
+    // Whether variadic function - must match
     if (known_info->IsVariadic != this_entry->IsVariadic)
     {
         std::string const te =
@@ -1235,53 +1250,103 @@ void AGS::Parser::ParseFuncdecl_CheckThatKnownInfoMatches(std::string const &fun
             known_info->IsVariadic ?
             "to accepts additional parameters elsewhere" :
             "to not accept additional parameters elsewhere";
-        std::string const msg =
-            ReferenceMsgLoc("Function '%s' %s, %s", known_declared);
-        UserError(msg.c_str(), func_name.c_str(), te.c_str(), ki.c_str());
+        UserError(
+            ReferenceMsgLoc("Function '%s' %s, %s", known_declared).c_str(),
+            _sym.GetName(name_of_func).c_str(),
+            te.c_str(),
+            ki.c_str());
     }
 
-    Symbol const known_ret_type = known_info->Parameters[0u].Vartype;
-    Symbol const this_ret_type = this_entry->Parameters[0u].Vartype;
-    if (known_ret_type != this_ret_type)
+    // Number of explicit parameters - must match
+    auto const &known_params = known_info->Parameters;
+    auto &this_params = this_entry->Parameters;
+    if (known_params.size() != this_params.size())
         UserError(
             ReferenceMsgLoc(
-				"Return type of '%s' is declared as '%s' here, as '%s' elsewhere",
-				known_declared).c_str(),
-            func_name.c_str(),
-            _sym.GetName(this_ret_type).c_str(),
-            _sym.GetName(known_ret_type).c_str());
+                "Function '%s' is declared with %u explicit parameters here, "
+                "%u explicit parameters elswehere",
+                known_declared).c_str(),
+            _sym.GetName(name_of_func).c_str(),
+            this_params.size() - 1u,
+            known_params.size() - 1u);
 
-    auto const &known_params = known_info->Parameters;
-    auto const &this_params = this_entry->Parameters;
-    for (size_t param_idx = 1u; param_idx <= this_parameters_count; param_idx++)
+    // Vartypes of the explicit parameters - must match
+    for (size_t param_idx = 1u; param_idx < this_params.size(); param_idx++)
     {
         Vartype const known_param_vartype = known_params[param_idx].Vartype;
         Vartype const this_param_vartype = this_params[param_idx].Vartype;
         if (known_param_vartype != this_param_vartype)
             UserError(
                 ReferenceMsgLoc(
-					"For function '%s': Type of parameter #%d is '%s' here, '%s' in a declaration elsewhere",
-					known_declared).c_str(),
-                func_name.c_str(),
+                    "For function '%s': Type of parameter #%u is '%s' here, '%s' in a declaration elsewhere",
+                    known_declared).c_str(),
+                _sym.GetName(name_of_func).c_str(),
                 param_idx,
                 _sym.GetName(this_param_vartype).c_str(),
                 _sym.GetName(known_param_vartype).c_str());
     }
 
+    // Inconsistency in parameter names - is accumulated
+    auto &this_incon = this_entry->ParamNamingInconsistency;
+    auto const &known_incon = known_info->ParamNamingInconsistency;
+    if (known_incon.Exists)
+    {
+        this_incon.Exists = known_incon.Exists;
+        this_incon.ParamIdx = known_incon.ParamIdx;
+        this_incon.Name1 = known_incon.Name1;
+        this_incon.Declared1 = known_incon.Declared1;
+        this_incon.Name2 = known_incon.Name2;
+        this_incon.Declared2 = known_incon.Declared2;
+    }
+
+    // Parameter names - are accumulated; check for naming inconsistency
+    for (size_t param_idx = 1u; param_idx < this_params.size(); ++param_idx)
+    {
+        auto &this_name = this_params[param_idx].Name;
+        auto const &known_name = known_params[param_idx].Name;
+
+        if (kKW_NoSymbol == this_name)
+            this_name = known_name;
+
+        if (kKW_NoSymbol == known_name ||
+            kKW_NoSymbol == this_name ||
+            this_name == known_name)
+            continue;
+
+        // Found a naming inconsistency
+        auto &incon = this_entry->ParamNamingInconsistency;
+        if (incon.Exists)
+            continue; // it's enough to track 1 inconsistency
+
+        incon.Exists = true;
+        incon.ParamIdx = param_idx;
+        incon.Name1 = this_name;
+        incon.Declared1 = this_params[param_idx].Declared;
+        incon.Name2 = known_name;
+        incon.Declared2 = known_params[param_idx].Declared;
+    }
+
+    // Parameter defaults - may be completely omitted when the body follows
+    //     (for legacy reasons)
+    //     Otherwise - must match
     if (body_follows)
     {
-        // If none of the parameters have a default, we'll let this through.
-        bool has_default = false;
+        bool at_least_one_default_exists = false;
         for (size_t param_idx = 1u; param_idx < this_params.size(); ++param_idx)
             if (kKW_NoSymbol != this_params[param_idx].Default)
             {
-                has_default = true;
+                at_least_one_default_exists = true;
                 break;
             }
-        if (!has_default)
-            return;
+        if (!at_least_one_default_exists)
+        {
+            // Copy the known defaults over
+            for (size_t param_idx = 1u; param_idx < this_params.size(); ++param_idx)
+                this_params[param_idx].Default = known_params[param_idx].Default;
+        }
     }
 
+    // Defaults must now all match
     for (size_t param_idx = 1u; param_idx < this_params.size(); ++param_idx)
     {
         auto const this_default = this_params[param_idx].Default;
@@ -1290,7 +1355,7 @@ void AGS::Parser::ParseFuncdecl_CheckThatKnownInfoMatches(std::string const &fun
             continue;
 
         std::string errstr1 = "In this declaration, parameter #<1> <2>; ";
-            string_replace (errstr1, "<1>", std::to_string(param_idx));
+        string_replace(errstr1, "<1>", std::to_string(param_idx));
         if (kKW_NoSymbol == this_default)
             string_replace(errstr1, "<2>", "doesn't have a default value");
         else
@@ -1484,17 +1549,8 @@ void AGS::Parser::ParseFuncdecl(TypeQualifierSet tqs, Vartype return_vartype, Sy
     ParseFuncdecl_MasterData2Sym(tqs, return_vartype, struct_of_func, name_of_func, body_follows);
     ParseFuncdecl_Paramlist(name_of_func, body_follows);
     
-    ParseFuncdecl_CheckThatKnownInfoMatches(_sym.GetName(name_of_func), _sym[name_of_func].FunctionD, known_info.get(), known_declared, body_follows);
+    ParseFuncdecl_CheckAndAddKnownInfo(name_of_func, known_info.get(), known_declared, body_follows);
     
-    // copy the default values from the function prototype into the symbol table
-    if (known_info.get())
-    {
-        auto &func_parameters = _sym[name_of_func].FunctionD->Parameters;
-        auto const &known_parameters = known_info->Parameters;
-        for (size_t parameters_idx = 0u; parameters_idx < func_parameters.size(); ++parameters_idx)
-            func_parameters[parameters_idx].Default = known_parameters[parameters_idx].Default;
-    }
-
     ParseFuncdecl_HandleFunctionOrImportIndex(tqs, struct_of_func, name_of_func, body_follows);
 }
 
@@ -2662,7 +2718,7 @@ void AGS::Parser::ParseExpression_InParens(SrcList &expression, EvaluationResult
 
 // We're in the parameter list of a function call, and we have less parameters than declared.
 // Provide defaults for the missing values
-void AGS::Parser::AccessData_FunctionCall_ProvideDefaults(int func_args_count, size_t supplied_args_count,Symbol func_symbol, bool func_is_import)
+void AGS::Parser::AccessData_FunctionCall_ProvideDefaults(int func_args_count, size_t supplied_args_count, Symbol func_symbol, bool func_is_import)
 {
     for (size_t arg_idx = func_args_count; arg_idx > supplied_args_count; arg_idx--)
     {
@@ -2724,7 +2780,7 @@ std::string const AGS::Parser::ReferenceMsgSym(std::string const &msg,Symbol sym
     return ReferenceMsgLoc(msg, _sym.GetDeclared(symb));
 }
 
-void AGS::Parser::AccessData_FunctionCall_PushParams(SrcList &params, size_t closed_paren_idx, size_t func_args_count, size_t supplied_args_count,Symbol func_symbol, bool func_is_import)
+void AGS::Parser::AccessData_FunctionCall_PushParams(SrcList &params, size_t closed_paren_idx, size_t func_args_count, size_t supplied_args_count, Symbol func_symbol, bool func_is_import)
 {
     size_t param_count = supplied_args_count + 1u;
     size_t start_of_current_param = 0u;
@@ -2757,7 +2813,7 @@ void AGS::Parser::AccessData_FunctionCall_PushParams(SrcList &params, size_t clo
                 break; // Don't put this into the for header!
         }
 
-        if (end_of_current_param < 0 || static_cast<size_t>(end_of_current_param) < start_of_current_param)  
+        if (end_of_current_param < 0 || static_cast<size_t>(end_of_current_param) < start_of_current_param)
             InternalError("Parameter length is negative");
 
         // Compile the parameter
@@ -2808,7 +2864,7 @@ void AGS::Parser::AccessData_FunctionCall_PushParams(SrcList &params, size_t clo
 
 
 // Count parameters, check that all the parameters are non-empty; find closing paren
-void AGS::Parser::AccessData_FunctionCall_CountAndCheckParm(SrcList &params,Symbol name_of_func, size_t &index_of_close_paren, size_t &supplied_args_count)
+void AGS::Parser::AccessData_FunctionCall_CountAndCheckParm(SrcList &params, Symbol name_of_func, size_t &index_of_close_paren, size_t &supplied_args_count)
 {
     size_t delimeter_nesting_depth = 1u;
     supplied_args_count = 1u;
@@ -2834,7 +2890,7 @@ void AGS::Parser::AccessData_FunctionCall_CountAndCheckParm(SrcList &params,Symb
             }
         }
 
-        if (1 ==delimeter_nesting_depth && kKW_Comma == symb)
+        if (1 == delimeter_nesting_depth && kKW_Comma == symb)
         {
             supplied_args_count++;
             if (found_param_symbol)
@@ -2960,19 +3016,19 @@ void AGS::Parser::AccessData_PushFunctionCallParams(Symbol name_of_func, bool fu
     size_t supplied_args_count = 0u;
     size_t closed_paren_idx;
     AccessData_FunctionCall_CountAndCheckParm(params, name_of_func, closed_paren_idx, supplied_args_count);
-    
+
     // Push default parameters onto the stack when applicable
     // This will give an error if there aren't enough default parameters
     if (supplied_args_count < func_args_count)
     {
         AccessData_FunctionCall_ProvideDefaults(func_args_count, supplied_args_count, name_of_func, func_is_import);
     }
-	
+
     if (supplied_args_count > func_args_count && !_sym.IsVariadicFunc(name_of_func))
         UserError(
             (1u == func_args_count) ?
-                "Expected just %u parameter but found %u" :
-                "Expected just %u parameters but found %u",
+            "Expected just %u parameter but found %u" :
+            "Expected just %u parameters but found %u",
             func_args_count,
             supplied_args_count);
 
@@ -3027,7 +3083,7 @@ void AGS::Parser::AccessData_FunctionCall(Symbol name_of_func, SrcList &expressi
 
     size_t args_count = 0u;
     AccessData_PushFunctionCallParams(name_of_func, func_is_import, expression, args_count);
-    
+
     if (called_func_uses_this)
     {
         if (0u == args_count)

@@ -495,7 +495,8 @@ private:
 
     // We're accepting a parameter list. We've accepted something like 'int'.
     // We accept a param name such as 'i' if present
-    Symbol ParseParamlist_Param_Name(bool body_follows);
+    // 'param_idx' ist the 1-based index of the parameter in the parameter list, for error messages
+    Symbol ParseParamlist_Param_Name(size_t param_idx);
 
     // Additional handling to ParseVardecl_Var2SymTable() that is special for parameters
     void ParseParamlist_Param_AsVar2Sym(Symbol param_name, TypeQualifierSet tqs, Vartype param_vartype, int param_idx);
@@ -506,10 +507,10 @@ private:
     // Process a function parameter list
     void ParseFuncdecl_Paramlist(Symbol funcsym, bool body_follows);
 
-    void ParseFuncdecl_MasterData2Sym(TypeQualifierSet tqs, Vartype return_vartype, Symbol struct_of_function, Symbol name_of_function, bool body_follows);
+    void ParseFuncdecl_MasterData2Sym(TypeQualifierSet tqs, Vartype return_vartype, Symbol struct_of_func, Symbol name_of_func, bool body_follows);
 
     // There was a forward declaration -- check that the real declaration matches it
-    void ParseFuncdecl_CheckThatKnownInfoMatches(std::string const &func_name, SymbolTableEntry::FunctionDesc const *this_entry, SymbolTableEntry::FunctionDesc const *known_info, size_t declared, bool body_follows);
+    void ParseFuncdecl_CheckAndAddKnownInfo(Symbol name_of_func, SymbolTableEntry::FunctionDesc *known_info, size_t known_declared, bool body_follows);
 
     // Enter the function in the 'imports[]' or 'functions[]' array of '_script'; get its index   
     void ParseFuncdecl_EnterAsImportOrFunc(Symbol name_of_func, bool body_follows, bool func_is_import, size_t params_count, CodeLoc &function_soffs);

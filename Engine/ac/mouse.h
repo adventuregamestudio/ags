@@ -52,6 +52,7 @@ int GetMouseCursor();
 void update_script_mouse_coords();
 void update_inv_cursor(int invnum);
 void set_new_cursor_graphic (int spriteslot);
+void update_hardware_cursor_graphic();
 int find_next_enabled_cursor(int startwith);
 int find_previous_enabled_cursor(int startwith);
 

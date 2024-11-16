@@ -27,6 +27,8 @@
 #include "gfx/bitmap.h"
 #include "gfx/gfx_def.h"
 
+struct SDL_Surface;
+
 namespace AGS
 {
 namespace Engine
@@ -41,6 +43,9 @@ namespace GfxUtil
     // value as necessary; but optionally you may request to ignore mask pixels
     // and treat them as regular color.
     Bitmap *ConvertBitmap(Bitmap *src, int dst_color_depth, bool keep_mask = true);
+
+    // Creates a COPY of the source bitmap, as an SDL Surface
+    SDL_Surface* CreateSDL_SurfaceFromBitmap(Bitmap* src);
 
     // Considers the given information about source and destination surfaces,
     // then draws a bimtap over another either using requested blending mode,

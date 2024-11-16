@@ -183,3 +183,9 @@ iOS/Resources
 
 # ignore libraries dependencies manually placed in Editor
 Editor/References/**/*.dll
+
+# Plugins: MSVS solution output and temporary files
+/Plugins/AGSSpriteFont/AGSSpriteFont/Release_Auto/
+/Plugins/AGSSpriteFont/AGSSpriteFont/Release_Clifftop/
+/Plugins/AGSSpriteFont/Release_Auto/
+/Plugins/AGSSpriteFont/Release_Clifftop/

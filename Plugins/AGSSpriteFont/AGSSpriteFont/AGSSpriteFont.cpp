@@ -343,6 +343,16 @@ void AGS_EngineInitGfx(const char *driverID, void *data)      //*** optional ***
 	// See documentation
 }
 */
+
+//------------------------------------------------------------------------------
+
+// Export this to let engine verify that this is a compatible AGS Plugin;
+// exact return value is not essential, but should be non-zero for consistency.
+int AGS_PluginV2()
+{
+    return 1;
+}
+
 //..............................................................................
 
 #if defined(BUILTIN_PLUGINS)

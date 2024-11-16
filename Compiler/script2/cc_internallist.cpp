@@ -50,11 +50,11 @@ void AGS::LineHandler::UpdateCacheIfNecessary(size_t pos) const
 
 void AGS::LineHandler::AddLineAt(size_t offset, size_t lineno)
 {
-    _lineStartTable[offset].SectionId = _sections.size() - 1;
+    _lineStartTable[offset].SectionId = _sections.size() - 1u;
     _lineStartTable[offset].Lineno = lineno;
     // The cache may no longer be correct, so invalidate it
-    _cacheLineStart = 1;
-    _cacheLineEnd = 0;
+    _cacheLineStart = 1u;
+    _cacheLineEnd = 0u;
 }
 
 AGS::SectionList AGS::LineHandler::CreateSectionList() const
@@ -67,40 +67,76 @@ AGS::SectionList AGS::LineHandler::CreateSectionList() const
 }
 
 AGS::SrcList::SrcList(std::vector<Symbol> &script, LineHandler &line_handler, size_t &cursor)
-    : _script(script)
-    , _lineHandler(line_handler)
-    , _offset(0)
-    , _len(script.size())
-    , _cursor(cursor)
+    : _script(&script)
+    , _lineHandler(&line_handler)
+    , _begin(0u)
+    , _end(script.size())
+    , _cursor(&cursor)
 {
 }
 
-AGS::SrcList::SrcList(SrcList const &src_list, size_t offset, size_t len)
+AGS::SrcList::SrcList(SrcList const &src_list, size_t const offset, size_t const len)
     : _script(src_list._script)
     , _lineHandler(src_list._lineHandler)
-    , _offset(offset + src_list._offset)
+    , _begin(offset + src_list._begin)
     , _cursor(src_list._cursor)
 {
-    _len = len;
-    // _len mustn't be so high that the number of bytes left in the underlying script
-    // are exceeded
-    size_t const script_size = _script.size();
-    size_t const rest_of_script_size = (script_size < offset) ? 0 : script_size - offset;
-    if (_len > rest_of_script_size)
-        _len = rest_of_script_size;
+    size_t const script_size = _script->size();
 
-    // _len mustn't be so high that the number of bytes left in the SrcList are exceeded
-    size_t const src_len = src_list._len;
-    size_t const rest_of_src_len = (src_len < offset) ? 0 : src_len - offset;
-    if (_len > rest_of_src_len)
-        _len = rest_of_src_len;
+    if (_begin > script_size)
+        _begin = _end = script_size;
+
+    _end = _begin + len;
+    if (_end > script_size)
+        _end = script_size;
+    if (_end > src_list._end)
+        _end = src_list._end;
+}
+
+AGS::SrcList::SrcList(SrcList const &src_list)
+    : _script(src_list._script)
+    , _lineHandler(src_list._lineHandler)
+    , _begin(src_list._begin)
+    , _end(src_list._end)
+    , _cursor(src_list._cursor)
+{
+}
+
+AGS::SrcList &AGS::SrcList::operator=(SrcList const &other)
+{
+    if (this == &other)
+        return *this;
+
+    // This class does NOT own the things pointed to
+    // so no attempts to release pointers
+    this->_script = other._script;
+    this->_lineHandler = other._lineHandler;
+    this->_begin = other._begin;
+    this->_end = other._end;
+    this->_cursor = other._cursor;
+    return *this;
+}
+
+AGS::SrcList &AGS::SrcList::operator=(SrcList const &&other) noexcept
+{
+    if (this == &other)
+        return *this;
+
+    // This class does NOT own the things pointed to
+    // so no attempts to release pointers
+    this->_script = other._script;
+    this->_lineHandler = other._lineHandler;
+    this->_begin = other._begin;
+    this->_end = other._end;
+    this->_cursor = other._cursor;
+    return *this;
 }
 
 AGS::Symbol AGS::SrcList::GetNext()
 {
     Symbol const p = PeekNext();
-    if (!ReachedEOF())
-        _cursor++;
+    if (*_cursor >= _begin && *_cursor < _end)
+        ++(*_cursor); // Don't increment '_cursor'!
     return p;
 }
 
@@ -140,17 +176,15 @@ void AGS::SrcList::SkipTo(SymbolList const &stoplist)
 
 void AGS::SrcList::EatFirstSymbol()
 {
-    if (_len < 1)
-        return;
-    _len--;
-    _offset++;
-    if (_cursor < _offset)
-        _cursor = _offset;
+    if (++_begin > _end)
+        _begin = _end;
+    if (*_cursor < _begin)
+        *_cursor = _begin;
 }
 
 void AGS::SrcList::EatLastSymbol()
 {
-    if (_len < 1)
+    if (_end < 1u || _end < _begin)
         return;
-    _len--;
+    --_end;
 }

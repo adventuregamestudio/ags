@@ -414,7 +414,7 @@ private:
     Symbol MangleStructAndComponent(Symbol stname, Symbol component);
 
     // Skip over the next symbol in 'src' which _must_ be 'expected', or else an internal (!) error is given.
-    void SkipNextSymbol(SrcList src, Symbol sym);
+    void SkipNextSymbol(SrcList &src, Symbol sym);
     // If the symbol 'actual' isn't in the list 'expected', give an error.
     // 'custom_msg', if given, replaces the "Expected ..." part of the message
     void Expect(SymbolList const &expected, Symbol actual, std::string const &custom_msg = "");

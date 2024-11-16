@@ -245,7 +245,7 @@ AGS::Symbol AGS::Parser::MangleStructAndComponent(Symbol stname, Symbol componen
     return _sym.FindOrAdd(fullname_str);
 }
 
-void AGS::Parser::SkipNextSymbol(SrcList src, Symbol expected)
+void AGS::Parser::SkipNextSymbol(SrcList &src, Symbol expected)
 {
     Symbol act = _src.GetNext();
     if (act != expected)
@@ -984,9 +984,9 @@ void AGS::Parser::ParseVarname0(bool accept_member_access, Symbol &structname, S
     if (kKW_ScopeRes != _src.PeekNext())
         return;
 
-    SkipNextSymbol(_src, kKW_ScopeRes); // 
+    SkipNextSymbol(_src, kKW_ScopeRes);
     if (!accept_member_access)
-        UserError("May not use '::' here");
+        UserError("Mustn't use '::' here");
 
     structname = varname;
     Symbol const unqualified_component = _src.GetNext();
@@ -2361,7 +2361,7 @@ void AGS::Parser::ParseExpression_Ternary_Term2(EvaluationResult &eres_term1, bo
 void AGS::Parser::ParseExpression_Ternary(size_t const tern_idx, SrcList &expression, bool const result_used, EvaluationResult &eres)
 {
     // First term ends before the '?'
-    SrcList term1 = SrcList(expression, 0, tern_idx);
+    SrcList term1 = SrcList(expression, 0u, tern_idx);
 
     // Second term begins after the '?', we don't know how long it is yet
     SrcList after_term1 = SrcList(expression, tern_idx + 1u, expression.Length() - (tern_idx + 1u));

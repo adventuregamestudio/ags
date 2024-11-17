@@ -19,6 +19,7 @@
 #define __AGS_EE_AC__GLOBALGAME_H
 
 #include <time.h>
+#include "ac/runtime_defines.h"
 #include "util/string.h"
 using namespace AGS; // FIXME later
 
@@ -64,7 +65,8 @@ void SaveGameSlot2(int slnum, const char *descript);
 void DeleteSaveSlot (int slnum);
 int  GetSaveSlotDescription(int slnum,char*desbuf);
 int  LoadSaveSlotScreenshot(int slnum, int width, int height);
-void FillSaveList(std::vector<SaveListItem> &saves, unsigned bot_index, unsigned top_index, size_t max_count = -1);
+void FillSaveList(std::vector<SaveListItem> &saves, unsigned bot_index, unsigned top_index, bool get_description);
+void FillSaveList(std::vector<SaveListItem> &saves, unsigned bot_index, unsigned top_index, bool get_description, ScriptFileSortStyle file_sort, ScriptSortDirection sort_dir);
 // Find the latest save slot, returns the slot index or -1 at failure
 int  GetLastSaveSlot();
 void PauseGame();

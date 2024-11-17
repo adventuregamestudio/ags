@@ -3104,8 +3104,10 @@ builtin struct Game {
 #ifdef SCRIPT_API_v362
   /// Gets the write time of the specified save game slot.
   import static DateTime* GetSaveSlotTime(int saveSlot);
+  /// Returns a dynamic array, containing indexes of found save slots in the range between "min_slot" and "max_slot"
+  import static int[]  GetSaveSlots(int min_slot, int max_slot, FileSortStyle fileSortStyle = eFileSort_None, SortDirection sortDirection = eSortNoDirection);
   /// Prescans save slots from "min_slot" to "max_slot" and fills the compatible ones into the provided dynamic array.
-  import static void   ScanSaveSlots(int valid_slots_dest[], int min_slot, int max_slot, FileSortStyle fileSortStyle = eFileSort_None, SortDirection sortDirection = eSortNoDirection, int user_param = 0);
+  import static void   ScanSaveSlots(int valid_slots[], int min_slot, int max_slot, FileSortStyle fileSortStyle = eFileSort_None, SortDirection sortDirection = eSortNoDirection, int user_param = 0);
 #endif // SCRIPT_API_v362
 };
 

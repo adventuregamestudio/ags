@@ -890,6 +890,38 @@ void Game_PrecacheView(int view, int first_loop, int last_loop)
     precache_view(view - 1 /* to 0-based view index */, first_loop, last_loop, true);
 }
 
+void *Game_GetSaveSlots(int min_slot, int max_slot, int file_sort, int sort_direction)
+{
+    int do_max_slot = std::min(max_slot, TOP_SAVESLOT);
+    int do_min_slot = std::min(do_max_slot, std::max(0, min_slot));
+    if (do_max_slot - do_min_slot <= 0)
+    {
+        debug_script_warn("Game.GetSaveSlots: empty or invalid slots range requested (requested: %d..%d, valid range %d..%d)",
+            min_slot, max_slot, 0, TOP_SAVESLOT);
+        return CCDynamicArray::Create(0, sizeof(int32_t), false).Obj;
+    }
+
+    if (file_sort < kScFileSort_None || file_sort > kScFileSort_Time)
+    {
+        debug_script_warn("Game.GetSaveSlots: invalid file sort style (%d)", file_sort);
+        file_sort = kScFileSort_None;
+    }
+    if (sort_direction < kScSortNone || sort_direction > kScSortDescending)
+    {
+        debug_script_warn("Game.GetSaveSlots: invalid sorting direction (%d)", sort_direction);
+        sort_direction = kScSortNone;
+    }
+
+    std::vector<SaveListItem> saves;
+    FillSaveList(saves, do_min_slot, do_max_slot, false /* no desc */, (ScriptFileSortStyle)file_sort, (ScriptSortDirection)sort_direction);
+
+    DynObjectRef arr = CCDynamicArray::Create(saves.size(), sizeof(int32_t), false);
+    int32_t *arr_ptr = static_cast<int32_t*>(arr.Obj);
+    for (const auto &save : saves)
+        *(arr_ptr++) = save.Slot;
+    return arr.Obj;
+}
+
 extern void prescan_saves(int *dest_arr, size_t dest_count, int min_slot, int max_slot, int file_sort, int sort_dir);
 extern ExecutingScript *curscript;
 
@@ -898,7 +930,7 @@ void Game_ScanSaveSlots(void *dest_arr, int min_slot, int max_slot, int file_sor
     const auto &hdr = CCDynamicArray::GetHeader(dest_arr);
     if (hdr.GetElemCount() == 0u)
     {
-        debug_script_warn("Game.PrescanSaveSlots: empty array provided, skip execution skipped");
+        debug_script_warn("Game.ScanSaveSlots: empty array provided, skip execution skipped");
         return;
     }
 
@@ -906,19 +938,19 @@ void Game_ScanSaveSlots(void *dest_arr, int min_slot, int max_slot, int file_sor
     int do_min_slot = std::min(do_max_slot, std::max(0, min_slot));
     if (do_max_slot - do_min_slot <= 0)
     {
-        debug_script_warn("Game.PrescanSaveSlots: empty or invalid slots range requested (requested: %d..%d, valid range %d..%d), execution skipped",
+        debug_script_warn("Game.ScanSaveSlots: empty or invalid slots range requested (requested: %d..%d, valid range %d..%d), execution skipped",
             min_slot, max_slot, 0, TOP_SAVESLOT);
         return;
     }
 
     if (file_sort < kScFileSort_None || file_sort > kScFileSort_Time)
     {
-        debug_script_warn("ListBox.FillDirList: invalid file sort style (%d)", file_sort);
+        debug_script_warn("Game.ScanSaveSlots: invalid file sort style (%d)", file_sort);
         file_sort = kScFileSort_None;
     }
     if (sort_direction < kScSortNone || sort_direction > kScSortDescending)
     {
-        debug_script_warn("ListBox.FillDirList: invalid sorting direction (%d)", sort_direction);
+        debug_script_warn("Game.ScanSaveSlots: invalid sorting direction (%d)", sort_direction);
         sort_direction = kScSortNone;
     }
 
@@ -1225,30 +1257,12 @@ void prescan_save_slots(int dest_arr_handle, int min_slot, int max_slot, int fil
 
 void prescan_saves(int *dest_arr, size_t dest_count, int min_slot, int max_slot, int file_sort, int sort_dir)
 {
-    // Step 1: gather existing list of saves in the requested range
+    // Gather existing list of saves in the requested range
+    // ...and sort this list according to the parameters
     std::vector<SaveListItem> saves;
-    FillSaveList(saves, min_slot, max_slot);
+    FillSaveList(saves, min_slot, max_slot, false /* no desc */, (ScriptFileSortStyle)file_sort, (ScriptSortDirection)sort_dir);
 
-    // Step 2: sort gathered saves according to the parameters
-    const bool ascending = (sort_dir != kScSortDescending) || (file_sort == kScFileSort_None);
-    switch (file_sort)
-    {
-    case kScFileSort_Name:
-        if (ascending)
-            std::sort(saves.begin(), saves.end(), SaveItemCmpByNumber());
-        else
-            std::sort(saves.rbegin(), saves.rend(), SaveItemCmpByNumber());
-        break;
-    case kScFileSort_Time:
-        if (ascending)
-            std::sort(saves.begin(), saves.end(), SaveItemCmpByTime());
-        else
-            std::sort(saves.rbegin(), saves.rend(), SaveItemCmpByTime());
-        break;
-    default: break;
-    }
-
-    // Step 3: prescan saves from the sorted list, and fill the destination array
+    // Prescan saves from the sorted list, and fill the destination array
     int *pdst = dest_arr;
     for (const auto &save : saves)
     {
@@ -2045,6 +2059,11 @@ RuntimeScriptValue Sc_Game_PrecacheView(const RuntimeScriptValue *params, int32_
     API_SCALL_VOID_PINT3(Game_PrecacheView);
 }
 
+RuntimeScriptValue Sc_Game_GetSaveSlots(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_PINT4(void, globalDynamicArray, Game_GetSaveSlots);
+}
+
 RuntimeScriptValue Sc_Game_ScanSaveSlots(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_POBJ_PINT5(Game_ScanSaveSlots, void);
@@ -2078,6 +2097,7 @@ void RegisterGameAPI()
         { "Game::ResetDoOnceOnly",                        API_FN_PAIR(Game_ResetDoOnceOnly) },
         { "Game::PrecacheSprite",                         API_FN_PAIR(Game_PrecacheSprite) },
         { "Game::PrecacheView",                           API_FN_PAIR(Game_PrecacheView) },
+        { "Game::GetSaveSlots^4",                         API_FN_PAIR(Game_GetSaveSlots) },
         { "Game::ScanSaveSlots^6",                        API_FN_PAIR(Game_ScanSaveSlots) },
         { "Game::get_CharacterCount",                     API_FN_PAIR(Game_GetCharacterCount) },
         { "Game::get_DialogCount",                        API_FN_PAIR(Game_GetDialogCount) },

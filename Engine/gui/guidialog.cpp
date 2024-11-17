@@ -303,7 +303,7 @@ void preparesavegamelist(int ctrllist, int min_slot, int max_slot)
   min_slot = std::min(max_slot, std::max(0, min_slot));
 
   std::vector<SaveListItem> saves;
-  FillSaveList(saves, min_slot, max_slot);
+  FillSaveList(saves, min_slot, max_slot, true);
   std::sort(saves.rbegin(), saves.rend(), SaveItemCmpByTime()); // sort by time in reverse
 
   filenumbers.resize(saves.size());

@@ -64,7 +64,7 @@ TEST_F(Bytecode0, P_r_o_t_o_t_y_p_e) {
         }";
 
     int compile_result = cc_compile(inpl, options, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("P_r_o_t_o_t_y_p_e", scrip);
@@ -107,7 +107,7 @@ TEST_F(Bytecode0, UnaryMinus1) {
 
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("UnaryMinus1", scrip);
@@ -154,7 +154,7 @@ TEST_F(Bytecode0, UnaryMinus2) {
 
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("UnaryMinus2", scrip);
@@ -201,7 +201,7 @@ TEST_F(Bytecode0, NotNot) {
         }";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Notnot", scrip);
@@ -258,7 +258,7 @@ TEST_F(Bytecode0, Float01) {
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     ASSERT_LE(1u, mh.GetMessages().size());
     EXPECT_NE(std::string::npos, mh.GetMessages().at(0).Message.find("reach this point"));
@@ -329,7 +329,7 @@ TEST_F(Bytecode0, Float02) {
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Float02", scrip);
@@ -385,7 +385,7 @@ TEST_F(Bytecode0, Float03) {
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Float03", scrip);
@@ -442,7 +442,7 @@ TEST_F(Bytecode0, Float04) {
         }";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Float04", scrip);
@@ -514,7 +514,7 @@ TEST_F(Bytecode0, FlowIfThenElse1) {
     }";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("FlowIfThenElse1", scrip);
@@ -572,7 +572,7 @@ TEST_F(Bytecode0, FlowIfThenElse2) {
     }";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("FlowIfThenElse2", scrip);
@@ -633,7 +633,7 @@ TEST_F(Bytecode0, FlowWhile) {
         }";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("FlowWhile", scrip);
@@ -701,7 +701,7 @@ TEST_F(Bytecode0, FlowWhileTrue)
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     EXPECT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("FlowWhileTrue", scrip);
@@ -751,7 +751,7 @@ TEST_F(Bytecode0, FlowDoWhileFalse)
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     EXPECT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("FlowDoWhileFalse", scrip);
@@ -806,7 +806,7 @@ TEST_F(Bytecode0, FlowDoNCall) {
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("FlowDoNCall", scrip);
@@ -874,7 +874,7 @@ TEST_F(Bytecode0, FlowDoUnbracedIf) {
     ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("FlowDoUnbracedIf", scrip);
@@ -930,7 +930,7 @@ TEST_F(Bytecode0, FlowFor1) {
         }";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("FlowFor1", scrip);
@@ -1006,7 +1006,7 @@ TEST_F(Bytecode0, FlowFor2) {
     }";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("FlowFor2", scrip);
@@ -1095,7 +1095,7 @@ TEST_F(Bytecode0, FlowFor3) {
     ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("FlowFor3", scrip);
@@ -1151,7 +1151,7 @@ TEST_F(Bytecode0, FlowFor4) {
     ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("FlowFor4", scrip);
@@ -1214,8 +1214,7 @@ TEST_F(Bytecode0, FlowFor5) {
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
-
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("FlowFor5", scrip);
@@ -1294,8 +1293,7 @@ TEST_F(Bytecode0, FlowFor6) {
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
-
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("FlowFor6", scrip);
@@ -1380,8 +1378,7 @@ TEST_F(Bytecode0, FlowFor7) {
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
-
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("FlowFor7", scrip);
@@ -1461,8 +1458,7 @@ TEST_F(Bytecode0, FlowContinue1) {
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
-
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("FlowContinue1", scrip);
@@ -1524,7 +1520,7 @@ TEST_F(Bytecode0, FlowIfDoWhile) {
     }";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("FlowIfDoWhile", scrip);
@@ -1597,7 +1593,7 @@ TEST_F(Bytecode0, FlowSwitch01) {
     }";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     // Line 6: Can't reach this point.
     ASSERT_LE(2u, mh.GetMessages().size());
@@ -1671,7 +1667,7 @@ TEST_F(Bytecode0, FlowSwitch02) {
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("FlowSwitch02", scrip);
@@ -1723,7 +1719,7 @@ TEST_F(Bytecode0, FlowSwitch03) {
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("FlowSwitch03", scrip);
@@ -1775,7 +1771,7 @@ TEST_F(Bytecode0, FlowSwitch04) {
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("FlowSwitch04", scrip);
@@ -1823,7 +1819,7 @@ TEST_F(Bytecode0, FlowSwitch05) {
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("FlowSwitch05", scrip);
@@ -1876,7 +1872,7 @@ TEST_F(Bytecode0, FlowSwitch06) {
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     ASSERT_LE(1u, mh.GetMessages().size());
     EXPECT_NE(std::string::npos, mh.GetMessages().at(0u).Message.find("execution"));
@@ -1939,7 +1935,7 @@ TEST_F(Bytecode0, FlowSwitch07) {
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("FlowSwitch07", scrip);
@@ -2005,7 +2001,7 @@ TEST_F(Bytecode0, FreeLocalPtr_NoRTTI) {
     ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("FreeLocalPtr_NoRtti", scrip);
@@ -2063,7 +2059,7 @@ TEST_F(Bytecode0, FreeLocalPtr_RTTI) {
     FlagSet const options = SCOPT_RTTIOPS;
 
     int compile_result = cc_compile(inpl, options, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("FreeLocalPtr_Rtti", scrip);
@@ -2130,7 +2126,7 @@ TEST_F(Bytecode0, Struct01) {
     FlagSet const options = SCOPT_RTTIOPS;
 
     int compile_result = cc_compile(inpl, options, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Struct01", scrip);
@@ -2209,7 +2205,7 @@ TEST_F(Bytecode0, Struct02) {
     }";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Struct02", scrip);
@@ -2277,7 +2273,7 @@ TEST_F(Bytecode0, Struct03) {
     }";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Struct03", scrip);
@@ -2348,7 +2344,7 @@ TEST_F(Bytecode0, Struct04_NoRTTI) {
     ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Struct04_NoRtti", scrip);
@@ -2417,7 +2413,7 @@ TEST_F(Bytecode0, Struct04_RTTI) {
     FlagSet const options = SCOPT_RTTIOPS;
 
     int compile_result = cc_compile(inpl, options, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Struct04_Rtti", scrip);
@@ -2480,7 +2476,7 @@ TEST_F(Bytecode0, Struct05) {
     ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_LE(2u, mh.GetMessages().size());
     EXPECT_NE(std::string::npos, mh.GetMessages().at(0u).Message.find("zero"));
@@ -2553,7 +2549,7 @@ TEST_F(Bytecode0, Struct06) {
     FlagSet const options = SCOPT_RTTIOPS;
 
     int compile_result = cc_compile(inpl, options, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Struct06", scrip);
@@ -2610,7 +2606,7 @@ TEST_F(Bytecode0, Struct07) {
     ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Struct07", scrip);
@@ -2685,7 +2681,7 @@ TEST_F(Bytecode0, Struct08) {
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Struct08", scrip);
@@ -2775,7 +2771,7 @@ TEST_F(Bytecode0, Struct09_RTTI) {
     FlagSet const options = SCOPT_RTTIOPS | SCOPT_NOAUTOPTRIMPORT;
 
     int compile_result = cc_compile(inpl, options, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Struct09_Rtti", scrip);
@@ -2857,7 +2853,7 @@ TEST_F(Bytecode0, Struct10) {
     ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Struct10", scrip);
@@ -2928,7 +2924,7 @@ TEST_F(Bytecode0, Struct11_NoRTTI) {
     ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Struct11_NoRtti", scrip);
@@ -3009,7 +3005,7 @@ TEST_F(Bytecode0, Struct11_RTTI) {
     FlagSet const options = SCOPT_RTTIOPS;
 
     int compile_result = cc_compile(inpl, options, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Struct11_NoRtti", scrip);
@@ -3104,8 +3100,7 @@ TEST_F(Bytecode0, Struct12) {
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
-
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Struct12", scrip);
@@ -3175,7 +3170,7 @@ TEST_F(Bytecode0, Struct13_NoRTTI) {
     ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Struct13_NoRtti", scrip);
@@ -3227,7 +3222,7 @@ TEST_F(Bytecode0, Struct13_RTTI) {
     FlagSet const options = SCOPT_RTTIOPS;
 
     int compile_result = cc_compile(inpl, options, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Struct13_Rtti", scrip);
@@ -3280,7 +3275,7 @@ TEST_F(Bytecode0, Struct14_NoRTTI) {
     ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Struct14_NoRtti", scrip);
@@ -3339,7 +3334,7 @@ TEST_F(Bytecode0, Struct14_RTTI) {
     FlagSet const options = SCOPT_RTTIOPS;
 
     int compile_result = cc_compile(inpl, options, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Struct14_Rtti", scrip);
@@ -3385,7 +3380,7 @@ TEST_F(Bytecode0, Func01) {
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Func01", scrip);
@@ -3439,7 +3434,7 @@ TEST_F(Bytecode0, Func02) {
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Func02", scrip);
@@ -3507,7 +3502,7 @@ TEST_F(Bytecode0, Func03) {
     ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Func03", scrip);
@@ -3580,7 +3575,7 @@ TEST_F(Bytecode0, Func04) {
    ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Func04", scrip);
@@ -3649,7 +3644,7 @@ TEST_F(Bytecode0, Func05_NoRTTI) {
     ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Func05_NoRtti", scrip);
@@ -3715,7 +3710,7 @@ TEST_F(Bytecode0, Func05_RTTI) {
     FlagSet const options = SCOPT_RTTIOPS;
 
     int compile_result = cc_compile(inpl, options, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Func05_Rtti", scrip);
@@ -3774,8 +3769,7 @@ TEST_F(Bytecode0, Func06) {
     ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
-
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Func06", scrip);
@@ -3832,8 +3826,7 @@ TEST_F(Bytecode0, Func07) {
     ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
-
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Func07", scrip);
@@ -3890,8 +3883,7 @@ TEST_F(Bytecode0, Func08) {
     ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
-
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Func08", scrip);
@@ -3949,8 +3941,7 @@ TEST_F(Bytecode0, Func09) {
     ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
-
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Func09", scrip);
@@ -4011,8 +4002,7 @@ TEST_F(Bytecode0, Func10) {
     ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
-
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Func10", scrip);
@@ -4079,7 +4069,7 @@ TEST_F(Bytecode0, Func11) {
     ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Func11", scrip);
@@ -4146,7 +4136,7 @@ TEST_F(Bytecode0, Func12) {
     ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     ASSERT_LE(1u, mh.GetMessages().size());
     EXPECT_NE(std::string::npos, mh.GetMessages().at(0u).Message.find("'0'"));
@@ -4221,7 +4211,7 @@ TEST_F(Bytecode0, Func13) {
     ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     ASSERT_LE(1u, mh.GetMessages().size());
     EXPECT_NE(std::string::npos, mh.GetMessages().at(0u).Message.find("'0'"));
@@ -4307,7 +4297,7 @@ TEST_F(Bytecode0, Func14_NoRTTI) {
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Func14_NoRtti", scrip);
@@ -4399,7 +4389,7 @@ TEST_F(Bytecode0, Func14_RTTI) {
     FlagSet const options = SCOPT_RTTIOPS;
 
     int compile_result = cc_compile(inpl, options, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Func14_Rtti", scrip);
@@ -4466,8 +4456,7 @@ TEST_F(Bytecode0, Func15) {
         }";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
-
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Func15", scrip);
@@ -4518,7 +4507,7 @@ TEST_F(Bytecode0, Func16) {
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Func16", scrip);
@@ -4576,7 +4565,7 @@ TEST_F(Bytecode0, Func17_NoRTTI) {
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     EXPECT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Func17_NoRtti", scrip);
@@ -4637,7 +4626,7 @@ TEST_F(Bytecode0, Func17_RTTI) {
     FlagSet const options = SCOPT_RTTIOPS;
 
     int compile_result = cc_compile(inpl, options, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     EXPECT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Func17_Rtti", scrip);
@@ -4702,7 +4691,7 @@ TEST_F(Bytecode0, Func18) {
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     EXPECT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Func18", scrip);
@@ -4773,8 +4762,7 @@ TEST_F(Bytecode0, Func19) {
         }";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
-
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Func19", scrip);
@@ -4844,7 +4832,7 @@ TEST_F(Bytecode0, Export) {
     ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Export", scrip);
@@ -4908,7 +4896,7 @@ TEST_F(Bytecode0, ArrayOfPointers1_NoRTTI) {
     ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("ArrayOfPointers1_NoRtti", scrip);
@@ -4979,7 +4967,7 @@ TEST_F(Bytecode0, ArrayOfPointers1_RTTI) {
     FlagSet const options = SCOPT_RTTIOPS;
 
     int compile_result = cc_compile(inpl, options, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("ArrayOfPointers1_Rtti", scrip);
@@ -5049,7 +5037,7 @@ TEST_F(Bytecode0, ArrayOfPointers2_NoRTTI) {
     ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("ArrayOfPointers2_NoRTTI", scrip);
@@ -5116,7 +5104,7 @@ TEST_F(Bytecode0, ArrayOfPointers2_RTTI) {
     FlagSet const options = SCOPT_RTTIOPS;
 
     int compile_result = cc_compile(inpl, options, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("ArrayOfPointers2_RTTI", scrip);
@@ -5184,7 +5172,7 @@ TEST_F(Bytecode0, DynarrayOfDynarray1) {
 
     FlagSet const options = SCOPT_RTTIOPS;
     int compile_result = cc_compile(inpl, options, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("DynarrayOfDynarray1", scrip);
@@ -5247,7 +5235,7 @@ TEST_F(Bytecode0, DynarrayOfDynarray2) {
 
     FlagSet const options = SCOPT_RTTIOPS;
     int compile_result = cc_compile(inpl, options, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("DynarrayOfDynarray2", scrip);
@@ -5320,7 +5308,7 @@ TEST_F(Bytecode0, DynarrayOfDynarray3) {
 
     FlagSet const options = SCOPT_RTTIOPS;
     int compile_result = cc_compile(inpl, options, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("DynarrayOfDynarray3", scrip);
@@ -5393,7 +5381,7 @@ TEST_F(Bytecode0, ArrayOfDynarray) {
 
     FlagSet const options = SCOPT_RTTIOPS;
     int compile_result = cc_compile(inpl, options, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("ArrayOfDynarray", scrip);
@@ -5463,7 +5451,7 @@ TEST_F(Bytecode0, ArrayOfManagedStruct) {
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("ArrayOfManaged", scrip);
@@ -5536,7 +5524,7 @@ TEST_F(Bytecode0, DynarrayOfNonManaged_NoRtti) {
 
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("DynarrayOfNonManaged_NoRtti", scrip);
@@ -5606,7 +5594,7 @@ TEST_F(Bytecode0, DynarrayOfNonManaged_Rtti) {
 
     FlagSet const options = SCOPT_RTTIOPS;
     int compile_result = cc_compile(inpl, options, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("DynarrayOfNonManaged_Rtti", scrip);
@@ -5662,7 +5650,7 @@ TEST_F(Bytecode0, DynarrayOfPrimitives) {
     FlagSet const options = SCOPT_RTTIOPS;
 
     int compile_result = cc_compile(inpl, options, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("DynarrayOfPrimitives_Rtti", scrip);
@@ -5725,7 +5713,7 @@ TEST_F(Bytecode0, Writeprotected) {
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Writeprotected", scrip);
@@ -5786,7 +5774,7 @@ TEST_F(Bytecode0, Protected1) {
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Protected1", scrip);
@@ -5838,7 +5826,7 @@ TEST_F(Bytecode0, Protected2) {
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Protected2", scrip);
@@ -5890,7 +5878,7 @@ TEST_F(Bytecode0, Static1) {
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Static1", scrip);
@@ -5959,7 +5947,7 @@ TEST_F(Bytecode0, Static2) {
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Static2", scrip);
@@ -6019,7 +6007,7 @@ TEST_F(Bytecode0, Import) {
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Import", scrip);

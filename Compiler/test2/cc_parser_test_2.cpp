@@ -53,7 +53,7 @@ TEST_F(Compile2, CompileTimeConstant1)
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
@@ -73,7 +73,7 @@ TEST_F(Compile2, CompileTimeConstant2)
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
@@ -97,7 +97,7 @@ TEST_F(Compile2, CompileTimeConstant3)
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
@@ -111,7 +111,7 @@ TEST_F(Compile2, CompileTimeConstant4a)
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
@@ -126,7 +126,7 @@ TEST_F(Compile2, CompileTimeConstant4b)
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
@@ -143,7 +143,7 @@ TEST_F(Compile2, CompileTimeConstant5a)
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
@@ -160,7 +160,7 @@ TEST_F(Compile2, CompileTimeConstant5b)
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
@@ -177,7 +177,7 @@ TEST_F(Compile2, CompileTimeConstant5c)
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
@@ -197,7 +197,7 @@ TEST_F(Compile2, CompileTimeConstant6)
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
@@ -217,7 +217,7 @@ TEST_F(Compile2, BinaryCompileTimeEval1) {
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
@@ -235,7 +235,7 @@ TEST_F(Compile2, BinaryCompileTimeEval2) {
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
@@ -254,7 +254,7 @@ TEST_F(Compile2, BinaryCompileTimeEval3) {
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
@@ -272,7 +272,7 @@ TEST_F(Compile2, CTEvalIntPlus1) {
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
@@ -291,7 +291,7 @@ TEST_F(Compile2, CTEvalIntPlus2) {
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
@@ -310,7 +310,7 @@ TEST_F(Compile2, CTEvalIntPlus3) {
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
@@ -329,7 +329,7 @@ TEST_F(Compile2, CTEvalIntMinus1) {
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
     
@@ -348,7 +348,7 @@ TEST_F(Compile2, CTEvalIntMinus2) {
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
@@ -368,7 +368,7 @@ TEST_F(Compile2, CTEvalIntMinus3) {
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
@@ -386,7 +386,7 @@ TEST_F(Compile2, CTEvalIntMultiply1) {
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
     
@@ -405,7 +405,7 @@ TEST_F(Compile2, CTEvalIntMultiply2) {
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
@@ -425,7 +425,7 @@ TEST_F(Compile2, CTEvalIntMultiply3) {
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
@@ -443,7 +443,7 @@ TEST_F(Compile2, CTEvalIntDivide) {
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
     
@@ -462,7 +462,7 @@ TEST_F(Compile2, CTEvalIntModulo1) {
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
     
@@ -482,7 +482,7 @@ TEST_F(Compile2, CTEvalIntModulo2) {
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
@@ -501,7 +501,7 @@ TEST_F(Compile2, CTEvalIntShiftLeft1) {
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
     
@@ -520,7 +520,7 @@ TEST_F(Compile2, CTEvalIntShiftLeft2) {
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
@@ -539,7 +539,7 @@ TEST_F(Compile2, CTEvalIntShiftLeft3) {
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
@@ -558,7 +558,7 @@ TEST_F(Compile2, CTEvalIntShiftLeft4) {
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
@@ -577,7 +577,7 @@ TEST_F(Compile2, CTEvalIntShiftLeft5) {
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
@@ -596,7 +596,7 @@ TEST_F(Compile2, CTEvalIntShiftRight1) {
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
@@ -615,7 +615,7 @@ TEST_F(Compile2, CTEvalIntShiftRight2) {
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
@@ -635,7 +635,7 @@ TEST_F(Compile2, CTEvalIntShiftRight3) {
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
@@ -654,7 +654,7 @@ TEST_F(Compile2, CTEvalIntShiftRight4) {
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
@@ -692,7 +692,7 @@ TEST_F(Compile2, CTEvalIntComparisons) {
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
@@ -722,7 +722,7 @@ TEST_F(Compile2, CTEvalBitOps) {
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
@@ -740,7 +740,7 @@ TEST_F(Compile2, CTEvalBitNeg) {
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
     
@@ -766,7 +766,7 @@ TEST_F(Compile2, CTEvalLogicalOps) {
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
     

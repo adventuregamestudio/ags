@@ -583,7 +583,7 @@ private:
     bool ParseExpression_CompileTime(Symbol op_sym, EvaluationResult const &eres_lhs, EvaluationResult const &eres_rhs, EvaluationResult &eres);
 
     // Process a parenthesised list following a 'new'
-    void ParseExpression_New_InitFuncCall(Symbol arg_vartype, SrcList &expression);
+    void ParseExpression_New_CtorFuncCall(Symbol arg_vartype, SrcList &expression);
 
     // Parse the term given in 'expression'. The lowest-binding operator is unary 'new'
     // Parsing must use up 'expression' completely; if there are trailing symbols, throw 'UserError'.

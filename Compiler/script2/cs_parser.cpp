@@ -1895,50 +1895,47 @@ void AGS::Parser::StripOutermostParens(SrcList &expression)
     }
 }
 
-void AGS::Parser::ParseExpression_New_InitFuncCall(Symbol argument_vartype, SrcList &expression)
+void AGS::Parser::ParseExpression_New_CtorFuncCall(Symbol argument_vartype, SrcList &expression)
 {
+    // No parameter list after "new T" (old-style)
     if (kKW_OpenParenthesis != expression.PeekNext())
     {
-        Symbol const init_sym = _sym.Find("initialize");
-        if (kKW_NoSymbol == init_sym || !_sym.IsStructVartype(argument_vartype))
-            return; // nothing to do
+        if (!_sym.IsStructVartype(argument_vartype))
+            return; // not a struct type
 
-        Symbol const init_function =
-            _sym.FindStructComponent(argument_vartype, init_sym);
-        if (!_sym.IsFunction(init_function))
-            return;
+        Symbol const ctor_function =
+            _sym.FindStructComponent(argument_vartype, argument_vartype);
+        if (kKW_NoSymbol == ctor_function || !_sym.IsFunction(ctor_function))
+            return; // no constructor declared
 
         UserError(
             ReferenceMsgSym(
                 "Expected the parameter list for function '%s'",
-                init_function).c_str(),
-            _sym.GetName(init_function).c_str()
+                ctor_function).c_str(),
+            _sym.GetName(ctor_function).c_str()
         );
     }
 
+    // Parameter list after "new T" (new-style)
     do // exactly 1 times
     {
-        Symbol const init_sym = _sym.Find("initialize");
-        if (kKW_NoSymbol == init_sym || !_sym.IsStructVartype(argument_vartype))
-            break;
         if (!_sym.IsStructVartype(argument_vartype))
-            break;
-        Symbol const init_function =
-            _sym.FindStructComponent(argument_vartype, init_sym);
-        if (kKW_NoSymbol == init_function)
-            break;
-        if (!_sym.IsFunction(init_function))
-            break;
-        Symbol const frv = _sym.FuncReturnVartype(init_function);
-        // 'int' is a special accomodation for functions that are declared with the
-        // 'function' keyword. This is why we check for exactly 'int' here;
-        // the compiler is not fine with any other integer vartypes
-        if (kKW_Void != frv && kKW_Int != frv)
+            break; // not a struct
+
+        Symbol const ctor_function =
+            _sym.FindStructComponent(argument_vartype, argument_vartype);
+        if (kKW_NoSymbol == ctor_function || !_sym.IsFunction(ctor_function))
+            break; // no constructor declared
+
+        // Constructor must be 'void'
+        // TODO: move this check to when we parse constructor's declaration
+        Symbol const frv = _sym.FuncReturnVartype(ctor_function);
+        if (kKW_Void != frv)
             UserError(
                 ReferenceMsgSym(
-                    "The return type of function '%s' must be 'void' but is '%s'",
-                    init_function).c_str(),
-                _sym.GetName(init_function).c_str(),
+                    "The return type of constructor '%s' must be 'void' but is '%s'",
+                    ctor_function).c_str(),
+                _sym.GetName(ctor_function).c_str(),
                 _sym.GetName(frv).c_str());
 
         PushReg(SREG_AX);
@@ -1946,7 +1943,7 @@ void AGS::Parser::ParseExpression_New_InitFuncCall(Symbol argument_vartype, SrcL
         WriteCmd(SCMD_REGTOREG, SREG_AX, SREG_MAR);
         _reg_track.SetRegister(SREG_MAR);
         EvaluationResult eres_dummy;
-        AccessData_FunctionCall(init_function, expression, eres_dummy);
+        AccessData_FunctionCall(ctor_function, expression, eres_dummy);
         PopReg(SREG_AX);
         return;
     } while (false);
@@ -2048,7 +2045,7 @@ void AGS::Parser::ParseExpression_New(SrcList &expression, EvaluationResult &ere
     _reg_track.SetRegister(SREG_AX);
 
     if (!with_bracket_expr)
-        ParseExpression_New_InitFuncCall(argument_vartype, expression);
+        ParseExpression_New_CtorFuncCall(argument_vartype, expression);
 
     ParseExpression_CheckUsedUp(expression);
 

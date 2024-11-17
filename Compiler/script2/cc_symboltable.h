@@ -477,7 +477,7 @@ public:
     // Find the description of a component.
     Symbol FindStructComponent(Symbol strct, Symbol component, Symbol ancestor) const;
     inline Symbol FindStructComponent(Symbol strct, Symbol component) const { return FindStructComponent(strct, component, strct); }
-    
+
     // Arrays and variables that are arrays
     // The "Array[...] of vartype" vartype
     Vartype VartypeWithArray(std::vector<size_t> const &dims, AGS::Vartype vartype);

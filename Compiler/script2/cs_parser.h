@@ -563,7 +563,7 @@ private:
     // Count parameters, check that all the parameters are non-empty; find closing paren
     void AccessData_FunctionCall_CountAndCheckParm(SrcList &parameters, Symbol name_of_func, size_t &index_of_close_paren, size_t &supplied_args_count);
 
-    // We are processing a function call. General the actual function call
+    // We are processing a function call. Generate the actual function call
     void AccessData_GenerateFunctionCall(Symbol name_of_func, size_t args_count, bool func_is_import);
 
     // Generate the function call for the function that returns the number of elements

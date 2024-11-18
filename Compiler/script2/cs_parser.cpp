@@ -3636,6 +3636,9 @@ void AGS::Parser::AccessData_SubsequentClause(VariableAccess access_type, bool a
         if (static_access && !_sym[qualified_component].FunctionD->TypeQualifiers[TQ::kStatic])
             UserError("Must specify a specific object for non-static function %s", _sym.GetName(qualified_component).c_str());
 
+        if (_sym.IsConstructor(qualified_component))
+            UserError("Calling struct's constructor '%s' directly is illegal", _sym.GetName(qualified_component).c_str());
+
         SkipNextSymbol(expression, unqualified_component); // Eat function symbol
         if (kKW_OpenParenthesis != expression.PeekNext())
         {

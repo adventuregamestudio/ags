@@ -294,6 +294,7 @@ struct SymbolTableEntry : public SymbolTableConstant
         // [0] describes the return type of the function
         std::vector<FuncParameterDesc> Parameters = {};
         CodeLoc Offset = 0;
+        bool IsConstructor = false;
         bool IsVariadic = false;
         bool NoLoopCheck = false;
     } *FunctionD = nullptr;
@@ -430,6 +431,7 @@ public:
     inline bool IsDelimeter(Symbol s) const { return nullptr != entries.at(s).DelimeterD; }
     inline void MakeEntryDelimeter(Symbol s) { if (!entries.at(s).DelimeterD) entries.at(s).DelimeterD = new SymbolTableEntry::DelimeterDesc; }
     inline bool IsFunction(Symbol s) const { return nullptr != entries.at(s).FunctionD; }
+    inline bool IsConstructor(Symbol s) const { return (nullptr != entries.at(s).FunctionD) && (entries.at(s).FunctionD->IsConstructor); }
     inline void MakeEntryFunction(Symbol s) { if (!entries.at(s).FunctionD) entries.at(s).FunctionD = new SymbolTableEntry::FunctionDesc; }
     inline bool IsLiteral(Symbol s) const { return nullptr != entries.at(s).LiteralD; }
     inline void MakeEntryLiteral(Symbol s) { if (!entries.at(s).LiteralD) entries.at(s).LiteralD = new SymbolTableEntry::LiteralDesc; }

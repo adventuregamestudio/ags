@@ -587,7 +587,7 @@ TEST_F(Compile1, StrangeParameterName) {
 
 TEST_F(Compile1, DoubleParameterName) {
 
-    // Can't use keyword as parameter name
+    // Can't use parameter name twice
 
     char const *inpl = "\
         void Func(int PI, float PI)             \n\

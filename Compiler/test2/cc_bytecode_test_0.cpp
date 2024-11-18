@@ -283,13 +283,13 @@ TEST_F(Bytecode0, Float01) {
       57,    4,    3,    3,            4,    3,   29,    3,    // 95
       36,   13,   51,   24,            7,    3,   36,   12,    // 103
       30,    4,   57,    4,            3,    3,    4,    3,    // 111
-      36,   13,   29,    3,           51,   20,    7,    3,    // 119
+      29,    3,   36,   13,           51,   20,    7,    3,    // 119
       30,    4,   57,    4,            3,    3,    4,    3,    // 127
       29,    3,   51,   16,            7,    3,   30,    4,    // 135
       57,    4,    3,    3,            4,    3,   29,    3,    // 143
       36,   14,   51,   12,            7,    3,   36,   13,    // 151
       30,    4,   57,    4,            3,    3,    4,    3,    // 159
-      36,   14,   29,    3,           51,    8,    7,    3,    // 167
+      29,    3,   36,   14,           51,    8,    7,    3,    // 167
       30,    4,   57,    4,            3,    3,    4,    3,    // 175
        2,    1,   32,    5,           36,   15,    6,    3,    // 183
     1117388800,   51,   32,    8,            3,  -999
@@ -809,7 +809,7 @@ TEST_F(Bytecode0, FlowDoNCall) {
     std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
-    // WriteOutput("FlowDoNCall", scrip);
+  // WriteOutput("FlowDoNCall", scrip);
 
     size_t const codesize = 123;
     EXPECT_EQ(codesize, scrip.code.size());

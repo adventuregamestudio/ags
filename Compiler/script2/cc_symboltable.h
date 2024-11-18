@@ -444,7 +444,9 @@ public:
     inline void MakeEntryFunction(Symbol s) { if (!entries.at(s).FunctionD) entries.at(s).FunctionD = new SymbolTableEntry::FunctionDesc; }
     inline bool IsLiteral(Symbol s) const { return nullptr != entries.at(s).LiteralD; }
     inline void MakeEntryLiteral(Symbol s) { if (!entries.at(s).LiteralD) entries.at(s).LiteralD = new SymbolTableEntry::LiteralDesc; }
-    inline bool IsOperator(Symbol s) const { return nullptr != entries.at(s).OperatorD; }
+    // Operators and assignments have an 'OperatorD' pointer, to differentiate also check 'CanBePartOfAnExpression'
+    inline bool IsAssignment(Symbol s) const { return entries.at(s).OperatorD && !entries.at(s).OperatorD->CanBePartOfAnExpression; }
+    inline bool IsOperator(Symbol s) const { return entries.at(s).OperatorD && entries.at(s).OperatorD->CanBePartOfAnExpression; }
     inline void MakeEntryOperator(Symbol s) { if (!entries.at(s).OperatorD) entries.at(s).OperatorD = new SymbolTableEntry::OperatorDesc; }
     inline bool IsComponent(Symbol s) const { return nullptr != entries.at(s).ComponentD; }
     inline void MakeEntryComponent(Symbol s) { if (!entries.at(s).ComponentD) entries.at(s).ComponentD = new SymbolTableEntry::ComponentDesc; }

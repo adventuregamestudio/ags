@@ -467,7 +467,7 @@ bool AGS::SymbolTable::CanBePartOfAnExpression(Symbol s)
         (IsDelimeter(s) && entries.at(s).DelimeterD->CanBePartOfAnExpression) ||
         IsFunction(s) ||
         IsLiteral(s) ||
-        (IsOperator(s) && entries.at(s).OperatorD->CanBePartOfAnExpression) ||
+        (IsOperator(s)) ||
         IsVariable(s) ||
         (s == kKW_OnePastLongMax);
 }

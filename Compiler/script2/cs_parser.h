@@ -552,35 +552,24 @@ private:
 
     static int GetWriteCommandForSize(int the_size);
 
-    // Handle the cases where a value is a whole array or dynarray or struct
-    void HandleStructOrArrayResult(EvaluationResult &eres);
-
     // If the result isn't in AX, move it there. Dereferences a pointer
     void EvaluationResultToAx(EvaluationResult &eres);
 
-    // We're in the parameter list of a function call, and we have less parameters than declared.
-    // Provide defaults for the missing values
-    void AccessData_FunctionCall_ProvideDefaults(int func_args_count, size_t supplied_args_count, Symbol func_symbol, bool func_is_import);
+    // We are processing a function call. Emit the actual function call
+    void AccessData_FunctionCall_EmitCall(Symbol name_of_func, size_t params_count, bool func_is_import);
 
-    void AccessData_FunctionCall_PushParams(SrcList &params, size_t closed_paren_idx, size_t func_args_count, size_t supplied_args_count, Symbol funcSymbol, bool func_is_import);
-
-    // Count parameters, check that all the parameters are non-empty; find closing paren
-    void AccessData_FunctionCall_CountAndCheckParm(SrcList &parameters, Symbol name_of_func, size_t &index_of_close_paren, size_t &supplied_args_count);
-
-    // We are processing a function call. Generate the actual function call
-    void AccessData_GenerateFunctionCall(Symbol name_of_func, size_t args_count, bool func_is_import);
-
-    // Generate the function call for the function that returns the number of elements
-    // of a dynarray.
+    // Generate Length attribute for the parsed dynarray type 
+    // and add it to the symbol table
     void AccessData_GenerateDynarrayLengthAttrib(EvaluationResult &eres);
 
-    // We are processing a function call.
-    // Get the parameters of the call and push them onto the stack.
-    // Return the number of the parameters pushed
-    void AccessData_PushFunctionCallParams(Symbol name_of_func, bool func_is_import, SrcList &params, size_t &actual_args_count);
+    void AccessData_FunctionCall_Parameters_Named(Symbol const name_of_func, std::vector<FuncParameterDesc> const &param_desc, bool const is_variadic, SrcList &params, std::vector<SrcList> &param_exprs);
+    void AccessData_FunctionCall_Parameters_Sequence(Symbol const name_of_func, std::vector<FuncParameterDesc> const &param_desc, bool const is_variadic, SrcList &params, std::vector<SrcList> &param_exprs);
 
-    // Process a function call. The parameter list begins with 'expression[1u]' (!)
-    void AccessData_FunctionCall(Symbol name_of_func, SrcList &expression, EvaluationResult &eres);
+    // Parse the parameters 'param_list' of a function call
+    void AccessData_FunctionCall_Parameters(Symbol name_of_func, bool func_is_import, std::vector<FuncParameterDesc> const &param_descs, bool is_variadic, SrcList &param_list, size_t &params_count);
+
+    // Process a function call. 'param_list' doesn't encompass the surrounding '()'
+    void AccessData_FunctionCall(Symbol name_of_func, SrcList &param_list, EvaluationResult &eres);
 
     // Evaluate 'vloc_lhs op_sym vloc_rhs' at compile time, return the result in 'vloc'.
     // Return whether this is possible.
@@ -654,7 +643,9 @@ private:
     // Parse the expression. If there are trailing symbols after the expression, throw UserError.
     // If 'result_used' is 'false' then the calling function doesn't use the term result for calculating
     // This happens when a term is called for side effect only, e.g. in the statement '--foo;'
-    void ParseExpression_Term(SrcList &expression, EvaluationResult &eres, bool result_used = true);
+    // It is NOT guaranteed that the cursor will be at the end of 'expression'
+    // after 'ParseExpression_Term()' returns
+    void ParseExpression_Term(SrcList &expression, EvaluationResult &eres, bool result_used = true, bool classic_array_ok = false);
 
     // Parse an expression that must evaluate to a constant at compile time.
     // Return the symbol that signifies the constant.
@@ -676,7 +667,7 @@ private:
     // Parse and evaluate an expression
     // 'src' may be longer than the expression. In this case, leave src pointing to last token in expression.
     // 'src'  is parsed from the point where the cursor is.
-
+    // After 'ParseExpression()' returns, the cursor is at the end of the expression.
     void ParseExpression(SrcList &src, EvaluationResult &eres);
 
     // We access a variable or a component of a struct in order to read or write it.

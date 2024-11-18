@@ -326,7 +326,8 @@ void QueueScriptFunction(ScriptType sc_type, const ScriptFunctionRef &fn_ref,
         auto recv_result = result.lock();
         if (recv_result)
         {
-            WarnEventFunctionNotFound(fn_ref, sc_type == kScTypeRoom);
+            if (!res)
+                WarnEventFunctionNotFound(fn_ref, sc_type == kScTypeRoom);
             *recv_result = res;
         }
     }
@@ -746,7 +747,8 @@ void post_script_cleanup()
         auto recv_result = script.Result.lock();
         if (recv_result)
         {
-            WarnEventFunctionNotFound(script.Function, script.ScType == kScTypeRoom);
+            if (!res)
+                WarnEventFunctionNotFound(script.Function, script.ScType == kScTypeRoom);
             *recv_result = res;
         }
 

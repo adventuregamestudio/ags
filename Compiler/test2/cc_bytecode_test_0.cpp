@@ -4806,6 +4806,65 @@ TEST_F(Bytecode0, Func19) {
     EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
+TEST_F(Bytecode0, Func20) {
+
+    // Call function via named parameters
+
+    char const *inpl = "\
+        int Foo(const string str, int inty, float fnum = 12.34)     \n\
+        {                                           \n\
+            return Foo(                             \n\
+                inty: 99,                           \n\
+                str: \"Hi!\");                      \n\
+        }"; 
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+
+    // WriteOutput("Func20", scrip);
+    size_t const codesize = 34;
+    EXPECT_EQ(codesize, scrip.code.size());
+
+    int32_t code[] = {
+      36,    2,   38,    0,           36,    5,    6,    3,    // 7
+    1095069860,   29,    3,   36,            4,    6,    3,   99,    // 15
+      29,    3,   36,    5,            6,    3,    0,   29,    // 23
+       3,    6,    3,    0,           23,    3,    2,    1,    // 31
+      12,    5,  -999
+    };
+    CompareCode(&scrip, codesize, code);
+
+    size_t const numfixups = 2;
+    EXPECT_EQ(numfixups, scrip.fixups.size());
+
+    int32_t fixups[] = {
+      22,   27,  -999
+    };
+    char fixuptypes[] = {
+      3,   2,  '\0'
+    };
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
+
+    int const numimports = 0;
+    std::string imports[] = {
+     "[[SENTINEL]]"
+    };
+    CompareImports(&scrip, numimports, imports);
+
+    size_t const numexports = 0;
+    EXPECT_EQ(numexports, scrip.exports.size());
+
+    size_t const stringssize = 4;
+    EXPECT_EQ(stringssize, scrip.strings.size());
+
+    char strings[] = {
+    'H',  'i',  '!',    0,          '\0'
+    };
+    CompareStrings(&scrip, stringssize, strings);
+}
+
 TEST_F(Bytecode0, Export) {
 
     char const *inpl = "\

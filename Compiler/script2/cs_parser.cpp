@@ -2809,73 +2809,71 @@ void AGS::Parser::AccessData_GenerateDynarrayLengthAttrib(EvaluationResult &eres
                                                         
 void AGS::Parser::AccessData_FunctionCall_Parameters_Named(Symbol const name_of_func, std::vector<FuncParameterDesc> const &param_desc, bool const is_variadic, SrcList &params, std::vector<SrcList> &param_exprs)
 {
-    if (is_variadic)
-        UserError(
-            ReferenceMsgSym("Call to function '%s': Function is variadic, cannot use named parameters", name_of_func).c_str(),
-            _sym.GetName(name_of_func));
-
     if (_sym[name_of_func].FunctionD->ParamNamingInconsistency.Exists)
     {
+        // We only track ONE name per parameter. Whenever a function has
+        // two declarations where a parameter has differing names,
+        // it is no longer possible to call that function using named arguments.
         auto const &inconsistency = _sym[name_of_func].FunctionD->ParamNamingInconsistency;
         UserError(
             ReferenceMsgLoc(
                 ReferenceMsgLoc(
                     "Call to function '%s': "
                     "Cannot use named parameters because parameter #%u "
-                    "is named inconsistently, i.e., '%s' and '%s'",
-                    inconsistency.Declared1),
-                inconsistency.Declared2).c_str(),
+                    "is named inconsistently in declarations: '%s' and '%s'",
+                    inconsistency.Declared2).c_str(),
+                inconsistency.Declared1).c_str(),
             _sym.GetName(name_of_func).c_str(),
             inconsistency.ParamIdx,
-            inconsistency.Declared1,
-            inconsistency.Declared2);
+            _sym.GetName(inconsistency.Name1).c_str(),
+            _sym.GetName(inconsistency.Name2).c_str());
     }
 
     SrcList const empty_param = SrcList{ params, 0u, 0u, };
     param_exprs.assign(param_desc.size(), empty_param);
 
     params.StartRead();
-    SkipNextSymbol(params, kKW_OpenParenthesis);
+
+    // For error messages
+    std::string ctf = "Call to function '<func>': ";
+    string_replace(ctf, "<func>", _sym.GetName(name_of_func));
 
     while (true)
     {
+        Symbol const divider = params.GetNext();
+        if (kKW_CloseParenthesis == divider)
+            return;
+
         // Get parameter name
         Symbol const param_name = params.GetNext();
-        if (kKW_CloseParenthesis == param_name)
-            return;
 
         if (!_sym.IsIdentifier(param_name))
             UserError(
-                "Call to function '%s': "
-                "Expected a parameter name, found '%s'",
-                _sym.GetName(name_of_func).c_str(),
+                (ctf + "Expected a parameter name, found '%s' "
+                    "(cannot mix positional and named arguments in one call)").c_str(),
                 _sym.GetName(param_name).c_str());
-        Expect(kKW_Colon, params.GetNext());
 
-        size_t arg_idx = 0u;
+        // Find the parameter by name
+        size_t param_idx = 0u;
         for (size_t idx = 1u; idx < param_desc.size(); ++idx)
             if (param_desc[idx].Name == param_name)
-                arg_idx = idx;
-        if (!arg_idx)
+            {
+                param_idx = idx;
+                break;
+            }
+        if (!param_idx)
             UserError(
                 ReferenceMsgSym(
-                    "Call to function '%s': "
-                    "Function doesn't have a parameter named '%s'",
+                    (ctf + "Function doesn't have a parameter named '%s'").c_str(),
                     name_of_func).c_str(),
-                _sym.GetName(name_of_func).c_str(),
                 _sym.GetName(param_name).c_str());
-        if (param_exprs[arg_idx].Length())
+        if (param_exprs[param_idx].Length())
             UserError(
-                "Call to function '%s': "
-                "Parameter '%s' has already been specified",
+                (ctf + "An argument for parameter '%s' has already been specified").c_str(),
                 _sym.GetName(param_name).c_str());
 
-        Symbol const divider = params.GetNext();
-        if (kKW_CloseParenthesis == divider)
-            break;
-
-        if (kKW_Comma != divider)
-            InternalError("Expected one of ',)', found '&s' instead", _sym.GetName(divider).c_str());
+        Expect(kKW_Colon, params.GetNext(),
+            ctf + "Expected ':'");
 
         // Isolate the parameter expression
         size_t const current_param_start = params.GetCursor();
@@ -2883,10 +2881,8 @@ void AGS::Parser::AccessData_FunctionCall_Parameters_Named(Symbol const name_of_
         size_t const current_param_end = params.GetCursor();
         SrcList param(params, current_param_start, current_param_end - current_param_start);
 
-        param_exprs[arg_idx] = param;
+        param_exprs[param_idx] = param;
     }
-
-    
 }
 
 void AGS::Parser::AccessData_FunctionCall_Parameters_Sequence(Symbol const name_of_func, std::vector<FuncParameterDesc> const &param_desc, bool const is_variadic, SrcList &param_list, std::vector<SrcList> &param_exprs)
@@ -2914,6 +2910,16 @@ void AGS::Parser::AccessData_FunctionCall_Parameters_Sequence(Symbol const name_
         size_t const current_param_end = param_list.GetCursor();
         SrcList param(param_list, current_param_start, current_param_end - current_param_start);
 
+        if (param.Length() > 2 && kKW_Colon == param[1u] && _sym.IsIdentifier(param[0u]))
+            UserError(
+                "Call to function %s, argument #%u: "
+                "Expected an expression "
+                "(Cannot mix positional and named arguments in one call)",
+                _sym.GetName(name_of_func).c_str(),
+                arg_idx);
+        // 'current_arg[...]' has moved the cursor; undo that
+        param.SetCursor(current_param_end);
+
         if (param.Length() || kKW_CloseParenthesis != param_list.PeekNext())
             param_exprs.push_back(param);
     }
@@ -2924,7 +2930,11 @@ void AGS::Parser::AccessData_FunctionCall_Parameters(Symbol const name_of_func, 
     // Parse the parameters into a list of expressions that match 'param_descs'
     std::vector<SrcList> param_exprs = {};
     
-    if (param_list.Length() >= 3u && _sym.IsIdentifier(param_list[1u]) && kKW_Colon == param_list[2u])
+bool const use_named_args =
+    param_list.Length() >= 3u &&
+        _sym.IsIdentifier(param_list[1u]) &&
+        kKW_Colon == param_list[2u];
+    if (use_named_args)
         AccessData_FunctionCall_Parameters_Named(name_of_func, param_descs, is_variadic, param_list, param_exprs);
     else
         AccessData_FunctionCall_Parameters_Sequence(name_of_func, param_descs, is_variadic, param_list, param_exprs);
@@ -2938,11 +2948,33 @@ void AGS::Parser::AccessData_FunctionCall_Parameters(Symbol const name_of_func, 
     // In reverse order because the engine expects them this way
     for (size_t idx = last_parameter_idx; idx >= 1u; --idx)
     {
+        // For error messages
+        std::string ctfp = "Call to function '<func>', <name>: ";
+        string_replace(ctfp, "<func>", _sym.GetName(name_of_func));
+        std::string name = "";
+        if (use_named_args &&
+            idx < param_descs.size() &&
+            !_sym[name_of_func].FunctionD->ParamNamingInconsistency.Exists)
+        {
+            name = "parameter '<param>'";
+            string_replace(name, "<param>", _sym.GetName(param_descs[idx].Name));
+            if (name == "parameter ''")
+                name = "";
+        }
+
+        if ("" == name)
+        {
+            name = "parameter #<arg>";
+            string_replace(name, "<arg>", std::to_string(idx));
+        }
+
+        string_replace(ctfp, "<name>", name);
+
         SrcList &param_expr =
             (idx < param_exprs.size())? param_exprs[idx] : empty_expr;
         FuncParameterDesc const &param_desc =
             (idx < param_descs.size()) ? param_descs[idx] : no_desc;
-        
+
         if (param_expr.Length() > 0u) // Parameter expression given
         {
             if (idx >= param_descs.size() && !is_variadic)
@@ -2951,7 +2983,7 @@ void AGS::Parser::AccessData_FunctionCall_Parameters(Symbol const name_of_func, 
                         "Call to function '%s': Expected at most %u parameters, found more",
                         name_of_func).c_str(),
                     _sym.GetName(name_of_func).c_str(),
-                    param_descs.size());                
+                    param_descs.size());
 
             EvaluationResult eres;
             ParseExpression_Term(param_expr, eres, true, true);
@@ -2960,9 +2992,9 @@ void AGS::Parser::AccessData_FunctionCall_Parameters(Symbol const name_of_func, 
             {
                 if (IsVartypeMismatch_Oneway(eres.Vartype, param_desc.Vartype))
                     UserError(
-                        ReferenceMsgSym("Call to function '%s', parameter #%u: Cannot convert '%s' to '%s'", name_of_func).c_str(),
-                        _sym.GetName(name_of_func).c_str(),
-                        idx,
+                        ReferenceMsgSym(
+                            (ctfp + "Cannot convert '%s' to '%s'").c_str(),
+                            name_of_func).c_str(),
                         _sym.GetName(eres.Vartype).c_str(),
                         _sym.GetName(param_desc.Vartype).c_str());
 
@@ -2972,7 +3004,7 @@ void AGS::Parser::AccessData_FunctionCall_Parameters(Symbol const name_of_func, 
                     // Must make sure that NULL isn't passed at runtime
                     WriteCmd(SCMD_CHECKNULLREG, SREG_AX);
             }
-        }       
+        }
         else // Parameter not given.
         {
             // Provide default when it exists
@@ -2980,10 +3012,10 @@ void AGS::Parser::AccessData_FunctionCall_Parameters(Symbol const name_of_func, 
             if (kKW_NoSymbol == deflt)
                 UserError(
                     ReferenceMsgLoc(
-                        "Call to function '%s': "
-                        "Parameter #%u isn't given and doesn't have a default",
+                        (ctfp +
+                            "Parameter #%u isn't given and doesn't have a default").c_str(),
                         param_desc.Declared).c_str(),
-                    _sym.GetName(name_of_func),
+                    _sym.GetName(name_of_func).c_str(),
                     idx);
 
             if (!_sym.IsLiteral(deflt))

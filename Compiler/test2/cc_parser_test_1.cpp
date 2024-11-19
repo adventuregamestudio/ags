@@ -833,6 +833,136 @@ TEST_F(Compile1, FuncReturnStruct3) {
     EXPECT_NE(std::string::npos, mh.GetMessages().at(0).Message.find("return"));
 }
 
+TEST_F(Compile1, FuncNamed_ParamsInconsistent01) {
+
+    // Can't use named args when the parameters are named inconsistently
+
+    char const *inpl = "\
+        import int Func(int Y, int X, ...); \n\
+        int Func(int X, int Y, ...)         \n\
+        {                                   \n\
+            return Func(X: 5, Y: 7);        \n\
+        }                                   \n\
+        ";
+
+    MessageHandler mh;
+    int compile_result = cc_compile(inpl, 0u, scrip, mh);
+    std::string errmsg = mh.GetError().Message;
+    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : errmsg.c_str());
+    EXPECT_NE(std::string::npos, errmsg.find("nconsisten"));
+}
+
+TEST_F(Compile1, FuncNamed_ParamsInconsistent02) {
+
+    // Can use named args when the parameters aren't always named
+    // (as long as the compiler knows all parameter names when it
+    // processes the call)
+
+    char const *inpl = "\
+        int Func(int X, int Y)              \n\
+        {                                   \n\
+            return Func(Y: 5, X: 7);        \n\
+        }                                   \n\
+        import int Func(int, int Y);        \n\
+        ";
+
+    MessageHandler mh;
+    int compile_result = cc_compile(inpl, 0u, scrip, mh);
+    std::string errmsg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : errmsg.c_str());
+}
+
+TEST_F(Compile1, FuncNamed_DoubleParams) {
+
+    // Mustn't specify a parameter twice
+
+    char const *inpl = "\
+        int Func(int X, int Y)              \n\
+        {                                   \n\
+            return Func(Y: 5, X: 7, Y: 5);  \n\
+        }                                   \n\
+        ";
+
+    MessageHandler mh;
+    int compile_result = cc_compile(inpl, 0u, scrip, mh);
+    std::string errmsg = mh.GetError().Message;
+    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : errmsg.c_str());
+    EXPECT_NE(std::string::npos, errmsg.find("'Y'"));
+}
+
+TEST_F(Compile1, FuncNamed_Sequence01) {
+
+    // Can't use a mixture of named and sequence arguments
+
+    char const *inpl = "\
+        int Func(int X, int Y, ...)         \n\
+        {                                   \n\
+            return Func(X: 5, 7);           \n\
+        }                                   \n\
+        ";
+
+    MessageHandler mh;
+    int compile_result = cc_compile(inpl, 0u, scrip, mh);
+    std::string errmsg = mh.GetError().Message;
+    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : errmsg.c_str());
+    EXPECT_NE(std::string::npos, errmsg.find("mix"));
+}
+
+TEST_F(Compile1, FuncNamed_Sequence02) {
+
+    // Can't use a mixture of named and sequence arguments
+
+    char const *inpl = "\
+        int Func(int X, int Y, ...)         \n\
+        {                                   \n\
+            return Func(5, Y: 7);           \n\
+        }                                   \n\
+        ";
+
+    MessageHandler mh;
+    int compile_result = cc_compile(inpl, 0u, scrip, mh);
+    std::string errmsg = mh.GetError().Message;
+    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : errmsg.c_str());
+    EXPECT_NE(std::string::npos, errmsg.find("mix"));
+}
+
+TEST_F(Compile1, FuncNamed_Missing) {
+
+    // Must specify all non-optional parameters
+
+    char const *inpl = "\
+        int Func(int X, int Y, int Z=2)     \n\
+        {                                   \n\
+            return Func(X: 5, Z: 7);        \n\
+        }                                   \n\
+        ";
+
+    MessageHandler mh;
+    int compile_result = cc_compile(inpl, 0u, scrip, mh);
+    std::string errmsg = mh.GetError().Message;
+    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : errmsg.c_str());
+    EXPECT_NE(std::string::npos, errmsg.find("'Y'"));
+    EXPECT_NE(std::string::npos, errmsg.find("ine 1"));
+}
+
+TEST_F(Compile1, FuncNamed_Unknown) {
+
+    // Mustn't specify parameters that the function doesn't have
+
+    char const *inpl = "\
+        int Func(int X, int Z=2)            \n\
+        {                                   \n\
+            return Func(X: 5, Y: 7);        \n\
+        }                                   \n\
+        ";
+
+    MessageHandler mh;
+    int compile_result = cc_compile(inpl, 0u, scrip, mh);
+    std::string errmsg = mh.GetError().Message;
+    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : errmsg.c_str());
+    EXPECT_NE(std::string::npos, errmsg.find("'Y'"));
+}
+
 TEST_F(Compile1, FuncReturn1) {
 
     // Should detect that the 'I' define can't be reached

@@ -3583,3 +3583,62 @@ TEST_F(Bytecode1, StructCtorCall) {
     // TODO: proper bytecode test!!
 }
 
+TEST_F(Bytecode1, CharArrayDecay01)
+{
+    // An array of characters can be a parameter of a variadic function
+
+    char const *inpl = "\
+        import void Display(const string message, ...); \n\
+        short dummy;                \n\
+        char c[100];                \n\
+        int game_start()            \n\
+        {                           \n\
+            Display(\"<%s>\", c);   \n\
+        }                           \n\
+        ";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+
+    // WriteOutput("CharArrayDecay01", scrip);
+    size_t const codesize = 34;
+    EXPECT_EQ(codesize, scrip.code.size());
+
+    int32_t code[] = {
+      36,    5,   38,    0,           36,    6,    6,    2,    // 7
+       2,    3,    2,    3,           34,    3,    6,    3,    // 15
+       0,   34,    3,   39,            2,    6,    3,    0,    // 23
+      33,    3,   35,    2,           36,    7,    6,    3,    // 31
+       0,    5,  -999
+    };
+    CompareCode(&scrip, codesize, code);
+
+    size_t const numfixups = 3;
+    EXPECT_EQ(numfixups, scrip.fixups.size());
+
+    int32_t fixups[] = {
+       8,   16,   23,  -999
+    };
+    char fixuptypes[] = {
+      1,   3,   4,  '\0'
+    };
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
+
+    int const numimports = 1;
+    std::string imports[] = {
+    "Display^101",      "[[SENTINEL]]"
+    };
+    CompareImports(&scrip, numimports, imports);
+
+    size_t const numexports = 0;
+    EXPECT_EQ(numexports, scrip.exports.size());
+
+    size_t const stringssize = 5;
+    EXPECT_EQ(stringssize, scrip.strings.size());
+
+    char strings[] = {
+    '<',  '%',  's',  '>',            0,  '\0'
+    };
+    CompareStrings(&scrip, stringssize, strings);
+}

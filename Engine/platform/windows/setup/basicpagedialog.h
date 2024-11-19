@@ -93,6 +93,7 @@ struct WinConfig
     // Accessibility settings
     SkipSpeechStyle SpeechSkipStyle = kSkipSpeechNone; // none here means "use defaults"
     SkipSpeechStyle TextSkipStyle = kSkipSpeechNone;
+    int    TextReadSpeed = 0;
 
     WinConfig();
     void SetDefaults();

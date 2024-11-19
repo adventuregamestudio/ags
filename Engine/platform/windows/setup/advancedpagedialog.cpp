@@ -110,7 +110,8 @@ INT_PTR AdvancedPageDialog::OnDialogEvent(UINT uMsg, WPARAM wParam, LPARAM lPara
     switch (uMsg)
     {
     case WM_HSCROLL:
-        UpdateMouseSpeedText();
+        if ((HWND)lParam == _hMouseSpeed)
+            UpdateMouseSpeedText();
         return TRUE;
     default:
         return FALSE;
@@ -343,6 +344,10 @@ INT_PTR AccessibilityPageDialog::OnInitDialog()
     _hEnableAccess          = GetDlgItem(_hwnd, IDC_ACCESSENABLECHECK);
     _hSpeechSkipStyle       = GetDlgItem(_hwnd, IDC_SPEECHSKIPSTYLE);
     _hTextSkipStyle         = GetDlgItem(_hwnd, IDC_TEXTSKIPSTYLE);
+    _hTextReadSpeed         = GetDlgItem(_hwnd, IDC_TEXTREADSPEED);
+    _hTextReadSpeedText     = GetDlgItem(_hwnd, IDC_TEXTREADSPEED_TEXT);
+
+    SetSliderRange(_hTextReadSpeed, TextReadSpeedMin, TextReadSpeedMax);
 
     const std::array<std::pair<const char*, SkipSpeechStyle>, 4> skip_vals = { {
         { "Game Default", kSkipSpeechNone }, { "Player Input", kSkipSpeech_AnyInput }, { "Auto (by time)", kSkipSpeechTime }, { "Any", kSkipSpeech_AnyInputOrTime }
@@ -366,6 +371,25 @@ INT_PTR AccessibilityPageDialog::OnInitDialog()
     return FALSE; // notify WinAPI that we set focus ourselves
 }
 
+INT_PTR AccessibilityPageDialog::OnDialogEvent(UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    // First try the generic handlers in the base class
+    if (WinDialog::OnDialogEvent(uMsg, wParam, lParam) == TRUE)
+        return TRUE;
+
+    // Handle any uncommon messages that do not have corresponding
+    // methods in the WinDialog class
+    switch (uMsg)
+    {
+    case WM_HSCROLL:
+        if ((HWND)lParam == _hTextReadSpeed)
+            UpdateTextReadSpeed();
+        return TRUE;
+    default:
+        return FALSE;
+    }
+}
+
 INT_PTR AccessibilityPageDialog::OnCommand(WORD id)
 {
     switch (id)
@@ -383,8 +407,18 @@ void AccessibilityPageDialog::OnEnableAccessCheck()
     const bool enable_skipstyles = !_disabledSkipStyle && enable;
     EnableWindow(GetDlgItem(_hwnd, IDC_LABEL_SPEECHSKIPSTYLE), enable_skipstyles ? TRUE : FALSE);
     EnableWindow(GetDlgItem(_hwnd, IDC_LABEL_TEXTSKIPSTYLE), enable_skipstyles ? TRUE : FALSE);
+    EnableWindow(GetDlgItem(_hwnd, IDC_LABEL_TEXTREADSPEED), enable_skipstyles ? TRUE : FALSE);
     EnableWindow(_hSpeechSkipStyle, enable_skipstyles ? TRUE : FALSE);
     EnableWindow(_hTextSkipStyle, enable_skipstyles ? TRUE : FALSE);
+    EnableWindow(_hTextReadSpeed, enable_skipstyles ? TRUE : FALSE);
+    EnableWindow(_hTextReadSpeedText, enable_skipstyles ? TRUE : FALSE);
+}
+
+void AccessibilityPageDialog::UpdateTextReadSpeed()
+{
+    int slider_pos = GetSliderPos(_hTextReadSpeed);
+    String text = slider_pos == 0 ? "Game Default" : String::FromFormat("%d chars per sec", slider_pos);
+    SetText(_hTextReadSpeedText, STR(text));
 }
 
 void AccessibilityPageDialog::ResetSetup()
@@ -394,6 +428,9 @@ void AccessibilityPageDialog::ResetSetup()
 
     SetCurSelToItemData(_hSpeechSkipStyle, _winCfg.SpeechSkipStyle);
     SetCurSelToItemData(_hTextSkipStyle, _winCfg.TextSkipStyle);
+    int slider_pos = Math::Clamp(_winCfg.TextReadSpeed, TextReadSpeedMin, TextReadSpeedMax);
+    SetSliderPos(_hTextReadSpeed, slider_pos);
+    UpdateTextReadSpeed();
 }
 
 void AccessibilityPageDialog::SaveSetup()
@@ -407,12 +444,14 @@ void AccessibilityPageDialog::SaveSetup()
     if (enable)
     {
         _winCfg.SpeechSkipStyle = (SkipSpeechStyle)GetCurItemData(_hSpeechSkipStyle, kSkipSpeechNone);
-        _winCfg.TextSkipStyle = (SkipSpeechStyle)GetCurItemData(_hTextSkipStyle, kSkipSpeechNone);   
+        _winCfg.TextSkipStyle = (SkipSpeechStyle)GetCurItemData(_hTextSkipStyle, kSkipSpeechNone);  
+        _winCfg.TextReadSpeed = GetSliderPos(_hTextReadSpeed);
     }
     else
     {
         _winCfg.SpeechSkipStyle = kSkipSpeechNone;
         _winCfg.TextSkipStyle = kSkipSpeechNone;
+        _winCfg.TextReadSpeed = 0;
     }
 }
 

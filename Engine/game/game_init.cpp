@@ -606,6 +606,11 @@ void ApplyAccessibilityOptions()
         play.skip_display = usetup.access_textskip;
         play.skip_timed_display = usetup.access_textskip;
     }
+    if (usetup.access_textreadspeed > 0)
+    {
+        play.text_speed = usetup.access_textreadspeed;
+        play.text_min_display_time_ms = Math::Clamp((int)(1000 * (15.f / usetup.access_textreadspeed)), 1000, 3000);
+    }
 }
 
 } // namespace Engine

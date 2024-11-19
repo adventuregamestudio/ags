@@ -148,7 +148,10 @@ void CCScriptGame::WriteInt32(void *address, intptr_t offset, int32_t val)
     case 60:  // play.inv_numinline
         debug_script_warn("ScriptGame: attempt to write in readonly variable at offset %d, value %d", offset, val);
         break;
-    case 61:  play.text_speed = val; break;
+    case 61:  
+        if (usetup.access_textreadspeed <= 0)
+            play.text_speed = val;
+        break;
     case 62:  play.sierra_inv_color = val; break;
     case 63:  play.talkanim_speed = val; break;
     case 64:  play.inv_item_wid = val; break;

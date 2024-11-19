@@ -138,6 +138,7 @@ void WinConfig::Load(const ConfigTree &cfg, const Size &desktop_res)
     // Accessibility settings
     SpeechSkipStyle = parse_speechskip_style(CfgReadString(cfg, "access", "speechskip"), SpeechSkipStyle);
     TextSkipStyle = parse_speechskip_style(CfgReadString(cfg, "access", "textskip"), TextSkipStyle);
+    TextReadSpeed = CfgReadInt(cfg, "access", "textreadspeed");
 
     Title = CfgReadString(cfg, "misc", "titletext", Title);
 }
@@ -173,6 +174,7 @@ void WinConfig::Save(ConfigTree &cfg, const Size &desktop_res) const
 
     CfgWriteString(cfg, "access", "speechskip", make_speechskip_option(SpeechSkipStyle));
     CfgWriteString(cfg, "access", "textskip", make_speechskip_option(TextSkipStyle));
+    CfgWriteInt(cfg, "access", "textreadspeed", TextReadSpeed);
 }
 
 //=============================================================================

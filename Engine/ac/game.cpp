@@ -689,7 +689,8 @@ void Game_SetTextReadingSpeed(int newTextSpeed)
     if (newTextSpeed < 1)
         quitprintf("!Game.TextReadingSpeed: %d is an invalid speed", newTextSpeed);
 
-    play.text_speed = newTextSpeed;
+    if (usetup.access_textreadspeed <= 0)
+        play.text_speed = newTextSpeed;
 }
 
 int Game_GetMinimumTextDisplayTimeMs()
@@ -699,7 +700,8 @@ int Game_GetMinimumTextDisplayTimeMs()
 
 void Game_SetMinimumTextDisplayTimeMs(int newTextMinTime)
 {
-    play.text_min_display_time_ms = newTextMinTime;
+    if (usetup.access_textreadspeed <= 0)
+        play.text_min_display_time_ms = newTextMinTime;
 }
 
 int Game_GetIgnoreUserInputAfterTextTimeoutMs()

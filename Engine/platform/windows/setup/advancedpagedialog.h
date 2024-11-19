@@ -138,16 +138,23 @@ protected:
 
     // Event handlers
     INT_PTR OnInitDialog() override;
+    INT_PTR OnDialogEvent(UINT uMsg, WPARAM wParam, LPARAM lParam) override;
     INT_PTR OnCommand(WORD id) override;
 
 private:
+    static const int TextReadSpeedMin = 0; // 0 means "use game defaults"
+    static const int TextReadSpeedMax = 30; // double of the default AGS "15"
+
     // Event handlers
     void OnEnableAccessCheck();
+    void UpdateTextReadSpeed();
 
     // Dialog controls
     HWND _hEnableAccess = NULL;
     HWND _hSpeechSkipStyle = NULL;
     HWND _hTextSkipStyle = NULL;
+    HWND _hTextReadSpeed = NULL;
+    HWND _hTextReadSpeedText = NULL;
 
     ConfigTree &_cfgOut;
     bool _disabledSkipStyle = false;

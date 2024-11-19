@@ -417,6 +417,7 @@ void apply_config(const ConfigTree &cfg)
         // Accessibility settings
         usetup.access_speechskip = parse_speechskip_style(CfgReadString(cfg, "access", "speechskip"));
         usetup.access_textskip = parse_speechskip_style(CfgReadString(cfg, "access", "textskip"));
+        usetup.access_textreadspeed = CfgReadInt(cfg, "access", "textreadspeed");
     }
 
     // Apply logging configuration

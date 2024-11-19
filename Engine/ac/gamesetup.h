@@ -129,6 +129,7 @@ struct GameSetup
     // game properties which are non-critical for the game progression.
     SkipSpeechStyle access_speechskip = kSkipSpeechNone; // speech skip style
     SkipSpeechStyle access_textskip = kSkipSpeechNone; // display box skip style
+    int   access_textreadspeed = 0; // text reading speed (chars per second)
 
     GameSetup();
 };

@@ -2474,10 +2474,150 @@ TEST_F(Compile1, ReportMissingFunction) {
     EXPECT_NE(std::string::npos, err_msg.find("pNZaFLjz3ajd"));
 }
 
+TEST_F(Compile1, ConstructorDeclaration1) {
+
+    // Constructors are member functions which have name
+    // identical to the name of a struct, and a type 'void'
+
+    char const *inpl = "\
+        managed struct Struct           \n\
+        {                               \n\
+            import void Struct();      \n\
+            int Payload;                \n\
+        };                              \n\
+        ";
+
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    EXPECT_EQ(0u, mh.WarningsCount());
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+}
+
+TEST_F(Compile1, ConstructorDeclaration2) {
+
+    // Constructors in regular structs are not supported
+
+    char const *inpl = "\
+        struct Struct                   \n\
+        {                               \n\
+            import float Struct();      \n\
+            int Payload;                \n\
+        };                              \n\
+        ";
+
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+}
+
+TEST_F(Compile1, ConstructorDeclaration3) {
+
+    // Constructors must have return type 'void'
+
+    char const *inpl = "\
+        managed struct Struct           \n\
+        {                               \n\
+            import float Struct();      \n\
+            int Payload;                \n\
+        };                              \n\
+        ";
+
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+}
+
+TEST_F(Compile1, ConstructorDeclaration4) {
+
+    // Constructors must not be static
+
+    char const *inpl = "\
+        managed struct Struct            \n\
+        {                                \n\
+            import static void Struct(); \n\
+            int Payload;                 \n\
+        };                               \n\
+        ";
+
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+}
+
+TEST_F(Compile1, ConstructorDeclaration5) {
+
+    // Constructors must not be protected
+
+    char const *inpl = "\
+        managed struct Struct               \n\
+        {                                   \n\
+            import protected void Struct(); \n\
+            int Payload;                    \n\
+        };                                  \n\
+        ";
+
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+}
+
+TEST_F(Compile1, ConstructorDeclaration6) {
+
+    // Constructors may be declared for any type in an inheritance
+
+    char const *inpl = "\
+        managed struct Ancester         \n\
+        {                               \n\
+            import void Ancester();     \n\
+            int Payload;                \n\
+        };                              \n\
+                                        \n\
+        managed struct Struct           \n\
+            extends Ancester            \n\
+        {                               \n\
+            import void Struct();       \n\
+        };                              \n\
+        ";
+
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    EXPECT_EQ(0u, mh.WarningsCount());
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+}
+
 TEST_F(Compile1, ParensAfterNew1) {
 
+    // Parentheses after 'new' are not required if there's no constructor
+
+    char const *inpl = "\
+        managed struct Struct           \n\
+        {                               \n\
+            int Payload;                \n\
+        };                              \n\
+                                        \n\
+        int game_start()                \n\
+        {                               \n\
+            Struct *s = new Struct;     \n\
+        }                               \n\
+        ";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string const &err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+}
+
+TEST_F(Compile1, ParensAfterNew2) {
+
     // Parentheses after 'new' are okay
-    // even when there isn't any initializer
+    // even when there isn't any constructor
 
     char const *inpl = "\
         managed struct Struct           \n\
@@ -2495,18 +2635,17 @@ TEST_F(Compile1, ParensAfterNew1) {
     std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
-
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile1, ParensAfterNew2) {
+TEST_F(Compile1, ParensAfterNew3) {
 
-    // When there is an initializer, then it must be called
+    // When there is an constructor, then it must be called
 
     char const *inpl = "\
         managed struct Struct           \n\
         {                               \n\
-            import int initialize();    \n\
+            import void Struct();       \n\
             int Payload;                \n\
         };                              \n\
                                         \n\
@@ -2525,14 +2664,15 @@ TEST_F(Compile1, ParensAfterNew2) {
     ASSERT_NE(std::string::npos, err_msg.find("parameter list"));
 }
 
-TEST_F(Compile1, ParensAfterNew3) {
+TEST_F(Compile1, ParensAfterNew4) {
 
-    // When there is an initializer, then it must be called
+    // Structs inherit constructors from their parents;
+    // when there is *any* constructor, then it must be called
 
     char const *inpl = "\
         managed struct Ancester         \n\
         {                               \n\
-            import int initialize();    \n\
+            import void Ancester();     \n\
             int Payload;                \n\
         };                              \n\
                                         \n\
@@ -2553,10 +2693,10 @@ TEST_F(Compile1, ParensAfterNew3) {
     EXPECT_EQ(0u, mh.WarningsCount());
 
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
-    ASSERT_NE(std::string::npos, err_msg.find("Ancester::initialize"));
+    ASSERT_NE(std::string::npos, err_msg.find("Ancester::Ancester"));
 }
 
-TEST_F(Compile1, ParensAfterNew4) {
+TEST_F(Compile1, ParensAfterNew5) {
 
     // When there is an initializer,
     // then it must be called with the proper arguments
@@ -2565,7 +2705,7 @@ TEST_F(Compile1, ParensAfterNew4) {
         managed struct Struct               \n\
         {                                   \n\
             int Payload;                    \n\
-            import void initialize(float);  \n\
+            import void Struct(float);      \n\
         };                                  \n\
                                             \n\
         int game_start()                    \n\
@@ -2582,60 +2722,6 @@ TEST_F(Compile1, ParensAfterNew4) {
 
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("parameter"));
-}
-
-TEST_F(Compile1, ParensAfterNew5) {
-
-    // When there is an initializer,
-    // it must have return type 'void' or 'int'
-
-    char const *inpl = "\
-        managed struct Struct           \n\
-        {                               \n\
-            import float initialize();  \n\
-            int Payload;                \n\
-        };                              \n\
-                                        \n\
-        int game_start()                \n\
-        {                               \n\
-            Struct *s = new Struct();   \n\
-        }                               \n\
-        ";
-
-
-    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
-    size_t err_line = mh.GetError().Lineno;
-    EXPECT_EQ(0u, mh.WarningsCount());
-
-    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
-}
-
-TEST_F(Compile1, ParensAfterNew6) {
-
-    // A non-function component 'initialize' is fine
-    // and isn't treated as an initializer function
-
-    char const *inpl = "\
-        managed struct Struct           \n\
-        {                               \n\
-            float initialize;           \n\
-            int Payload;                \n\
-        };                              \n\
-                                        \n\
-        int game_start()                \n\
-        {                               \n\
-            Struct *s = new Struct();   \n\
-        }                               \n\
-        ";
-
-
-    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
-    size_t err_line = mh.GetError().Lineno;
-    EXPECT_EQ(0u, mh.WarningsCount());
-
-    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
 TEST_F(Compile1, DynarrayOfArray) {

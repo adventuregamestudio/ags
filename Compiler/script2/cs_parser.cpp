@@ -852,8 +852,7 @@ Symbol AGS::Parser::ParseParamlist_Param_DefaultValue(size_t idx, Vartype const 
         return kKW_NoSymbol; // No default value given
 
     // For giving specifics in error messages
-    std::string msg = "In parameter #<idx>: ";
-    msg.replace(msg.find("<idx>"), 5u, std::to_string(idx));
+    std::string msg = string_replace("In parameter #<idx>: ", "<idx>", std::to_string(idx));
 
     SkipNextSymbol(_src, kKW_Assign);
 
@@ -1290,17 +1289,17 @@ void AGS::Parser::ParseFuncdecl_CheckThatKnownInfoMatches(std::string const &fun
             continue;
 
         std::string errstr1 = "In this declaration, parameter #<1> <2>; ";
-        errstr1.replace(errstr1.find("<1>"), 3, std::to_string(param_idx));
+            string_replace (errstr1, "<1>", std::to_string(param_idx));
         if (kKW_NoSymbol == this_default)
-            errstr1.replace(errstr1.find("<2>"), 3, "doesn't have a default value");
+            string_replace(errstr1, "<2>", "doesn't have a default value");
         else
-            errstr1.replace(errstr1.find("<2>"), 3, "has the default " + _sym.GetName(this_default));
+            string_replace(errstr1, "<2>", "has the default " + _sym.GetName(this_default));
 
         std::string errstr2 = "in a declaration elsewhere, that parameter <2>";
         if (kKW_NoSymbol == known_default)
-            errstr2.replace(errstr2.find("<2>"), 3, "doesn't have a default value");
+            string_replace(errstr2, "<2>", "doesn't have a default value");
         else
-            errstr2.replace(errstr2.find("<2>"), 3, "has the default " + _sym.GetName(known_default));
+            string_replace(errstr2, "<2>", "has the default " + _sym.GetName(known_default));
         errstr1 += errstr2;
         UserError(ReferenceMsgLoc(errstr1, known_declared).c_str());
     }
@@ -1641,10 +1640,10 @@ CodeCell AGS::Parser::GetOpcode(Symbol const op_sym, Vartype vartype1, Vartype v
     CodeCell opcode = _sym[op_sym].OperatorD->IntOpcode;
 
     std::string msg = "Left-hand side of '<op>' term";
-    msg.replace(msg.find("<op>"), 4u, _sym.GetName(op_sym));
+    string_replace(msg, "<op>", _sym.GetName(op_sym));
     CheckVartypeMismatch(vartype1, kKW_Int, true, msg);
     msg = "Right-hand side of '<op>' term";
-    msg.replace(msg.find("<op>"), 4u, _sym.GetName(op_sym));
+    string_replace(msg, "<op>", _sym.GetName(op_sym));
     CheckVartypeMismatch(vartype2, kKW_Int, true, msg);
     return opcode;
 }
@@ -2118,7 +2117,7 @@ void AGS::Parser::ParseExpression_PrefixNegate(Symbol op_sym, EvaluationResult &
     bool const bitwise_negation = kKW_BitNeg == op_sym;
 
     std::string msg = "Argument of '<op>'";
-    msg.replace(msg.find("<op>"), 4u, _sym.GetName(op_sym));
+    string_replace(msg, "<op>", _sym.GetName(op_sym));
     CheckVartypeMismatch(eres.Vartype, kKW_Int, true, msg);
     
     if (eres.kTY_Literal == eres.Type)
@@ -2177,7 +2176,7 @@ void AGS::Parser::ParseExpression_PrefixCrement(Symbol op_sym, AGS::SrcList &exp
     ParseAssignment_ReadLHSForModification(inner, eres);
     
     std::string msg = "Argument of '<op>'";
-    msg.replace(msg.find("<op>"), 4u, _sym.GetName(op_sym).c_str());
+    string_replace(msg, "<op>", _sym.GetName(op_sym).c_str());
     CheckVartypeMismatch(eres.Vartype, kKW_Int, true, msg); 
     
     WriteCmd((kKW_Increment == op_sym) ? SCMD_ADD : SCMD_SUB, SREG_AX, 1);
@@ -2279,7 +2278,7 @@ void AGS::Parser::ParseExpression_PostfixCrement(Symbol const op_sym, SrcList &e
     ParseExpression_CheckUsedUp(inner);
     
     std::string msg = "Argument of '<op>'";
-    msg.replace(msg.find("<op>"), 4u, _sym.GetName(op_sym).c_str());
+    string_replace(msg, "<op>", _sym.GetName(op_sym).c_str());
     CheckVartypeMismatch(eres.Vartype, kKW_Int, true, msg);
     
     // Really do the assignment the long way so that all the checks and safeguards will run.
@@ -2712,10 +2711,10 @@ std::string const AGS::Parser::ReferenceMsgLoc(std::string const &msg, size_t de
         tpl = ". See the current line";
     size_t const loc1 = tpl.find("<1>");
     if (std::string::npos != loc1)
-        tpl.replace(tpl.find("<1>"), 3, section);
+        string_replace(tpl, "<1>", section);
     size_t const loc2 = tpl.find("<2>");
     if (std::string::npos != loc2)
-        tpl.replace(tpl.find("<2>"), 3, std::to_string(line));
+        string_replace(tpl, "<2>", std::to_string(line));
     return msg + tpl;
 }
 
@@ -2783,8 +2782,8 @@ void AGS::Parser::AccessData_FunctionCall_PushParams(SrcList &params, size_t clo
                 WriteCmd(SCMD_CHECKNULLREG, SREG_AX);
 
             std::string msg = "Parameter #<num> of call to function <func>";
-            msg.replace(msg.find("<num>"), 5u, std::to_string(param_count));
-            msg.replace(msg.find("<func>"), 6u, _sym.GetName(func_symbol));
+            string_replace(msg, "<num>", std::to_string(param_count));
+            string_replace(msg, "<func>", _sym.GetName(func_symbol));
             CheckVartypeMismatch(eres.Vartype, param_vartype, true, msg);
         }
 
@@ -5426,7 +5425,7 @@ void AGS::Parser::ParseEnum_AssignedValue(Symbol vname, CodeCell &value)
     SkipNextSymbol(_src, kKW_Assign);
 
     std::string msg = "In the assignment to <name>: ";
-    msg.replace(msg.find("<name>"), 6u, _sym.GetName(vname));
+    string_replace(msg, "<name>", _sym.GetName(vname));
     Symbol const lit = ParseConstantExpression(_src, msg);
     
     value = _sym[lit].LiteralD->Value;
@@ -6975,7 +6974,7 @@ void AGS::Parser::Parse()
     catch (std::exception const &e)
     {
         std::string msg = "Exception encountered at currentline = <line>: ";
-        msg.replace(msg.find("<line>"), 6u, std::to_string(currentline));
+        string_replace(msg, "<line>", std::to_string(currentline));
         msg.append(e.what());
 
         _msgHandler.AddMessage(

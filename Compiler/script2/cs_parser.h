@@ -422,6 +422,9 @@ private:
     // 'custom_msg', if given, replaces the "Expected " part of the message
     inline void Expect(Symbol expected, Symbol actual, std::string const &custom_msg = "")
         { Expect(SymbolList{ expected }, actual, custom_msg); }
+    // Replace 'what' by 'by' within 's'
+    inline std::string string_replace(std::string &s, std::string const &what, std::string const &by) const
+        { return s.replace(s.find(what), what.length(), by); }
 
     // Mark the symbol as "accessed" in the symbol table
     inline void MarkAcessed(Symbol symb) { _sym[symb].Accessed = true; }

@@ -1,13 +1,10 @@
+using AGS.Types;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Drawing;
-using System.Data;
+using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Windows.Forms;
-using System.Xml;
-using AGS.Types;
 
 namespace AGS.Editor
 {
@@ -706,19 +703,47 @@ namespace AGS.Editor
 
         private void EditTextClick(object sender, EventArgs e)
         {
-            if (_selectedControl == null || !HasTextProperty(_selectedControl))
+            if (_selected.Count == 0 || !_selected.Any(gc => HasTextProperty(gc)))
                 return;
 
-            Type controlType = _selectedControl.GetType();
-            var textProperty = controlType.GetProperty("Text");
+            if(_selected.Count == 1)
+            {
+                Type controlType = _selectedControl.GetType();
+                var textProperty = controlType.GetProperty("Text");
+                string title = "Edit " + _selectedControl.Name + " text...";
 
-            String currentText = (String)textProperty.GetValue(_selectedControl);
-            String newText = MultilineStringEditorDialog.ShowEditor(currentText);
+                String currentText = (String)textProperty.GetValue(_selectedControl);
+                String newText = MultilineStringEditorDialog.ShowEditor(title, currentText);
 
-            if (newText == null)
-                return;
-            
-            textProperty.SetValue(_selectedControl, newText);
+                if (newText == null)
+                    return;
+
+                textProperty.SetValue(_selectedControl, newText);
+            } 
+            else
+            {
+                List<GUIControl> ctrls = _selected.Where(gc => HasTextProperty(gc)).ToList();
+
+                var textProperty = _selected[0].GetType().GetProperty("Text");
+                string text = (string)textProperty.GetValue(_selected[0]);
+
+                bool allSame = ctrls.All(ctrl =>
+                    (string)ctrl.GetType().GetProperty("Text")?.GetValue(ctrl, null) == text);
+
+                text = allSame ? text : String.Empty;
+                string title = "Edit " + ctrls.Count.ToString() + " controls text...";
+                String newText = MultilineStringEditorDialog.ShowEditor(title, text);
+
+                if (newText == null)
+                    return;
+
+                foreach (var ctrl in ctrls)
+                {
+                    Type controlType = ctrl.GetType();
+                    var prop = controlType.GetProperty("Text");
+                    prop.SetValue(ctrl, newText);
+                }
+            }
             Factory.GUIController.RefreshPropertyGrid();
             bgPanel.Invalidate();
         }
@@ -1282,7 +1307,7 @@ namespace AGS.Editor
                     }
                     return true;
                 case Keys.E | Keys.Control:
-                    if (_selected.Count == 1)
+                    if (_selected.Count > 0)
                     {
                         EditTextClick(null, null);
                         return true;

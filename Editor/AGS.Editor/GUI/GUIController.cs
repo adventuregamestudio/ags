@@ -1465,9 +1465,9 @@ namespace AGS.Editor
             return CustomResolutionDialog.Show(currentSize);
         }
 
-        private String ShowMultilineStringDialog(String text)
+        private String ShowMultilineStringDialog(string title, String text)
         {
-            return MultilineStringEditorDialog.ShowEditor(text ?? string.Empty);
+            return MultilineStringEditorDialog.ShowEditor(title, text ?? string.Empty);
         }
 
         private Color? ShowColorDialog(Color? color)

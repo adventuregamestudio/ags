@@ -8,17 +8,18 @@ namespace AGS.Editor
     {
         private static System.Drawing.Font _font = null;
 
-        private MultilineStringEditorDialog(String text)
+        private MultilineStringEditorDialog(string title, String text)
         {
             InitializeComponent();
             AdjustFont(); // make text slightly bigger
             MultilineString = text;
+            Text = title;
             UpdateTextStatus();
         }
 
-        public static String ShowEditor(String text)
+        public static String ShowEditor(string title, String text)
         {
-            MultilineStringEditorDialog dialog = new MultilineStringEditorDialog(text);
+            MultilineStringEditorDialog dialog = new MultilineStringEditorDialog(title, text);
             bool ok = dialog.ShowDialog() == DialogResult.OK;
             String result = dialog.MultilineString;
             dialog.Dispose();

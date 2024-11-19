@@ -96,6 +96,7 @@ namespace AGS.Types
 
         [Description("The text displayed on the label")]
         [Category("Appearance")]
+        [EditorAttribute(typeof(MultiLineStringUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         public string Text
         {
             get { return _text; }

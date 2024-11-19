@@ -210,6 +210,12 @@
     <Compile Include="GUI\LogPanel.Designer.cs">
       <DependentUpon>LogPanel.cs</DependentUpon>
     </Compile>
+    <Compile Include="GUI\MultilineStringEditorDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\MultilineStringEditorDialog.Designer.cs">
+      <DependentUpon>MultilineStringEditorDialog.cs</DependentUpon>
+    </Compile>
     <Compile Include="GUI\NumberEntryWithInfoDialog.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -441,6 +447,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="GUI\LogPanel.resx">
       <DependentUpon>LogPanel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\MultilineStringEditorDialog.resx">
+      <DependentUpon>MultilineStringEditorDialog.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="GUI\NumberEntryWithInfoDialog.resx">
       <DependentUpon>NumberEntryWithInfoDialog.cs</DependentUpon>

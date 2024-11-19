@@ -1,13 +1,10 @@
+using AGS.Types;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Drawing;
-using System.Data;
+using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Windows.Forms;
-using System.Xml;
-using AGS.Types;
 
 namespace AGS.Editor
 {
@@ -698,6 +695,59 @@ namespace AGS.Editor
             bgPanel.Invalidate();
         }
 
+        private bool HasTextProperty(GUIControl control)
+        {
+            return control.ControlType == GUILabel.CONTROL_DISPLAY_NAME ||
+                control.ControlType == GUIButton.CONTROL_DISPLAY_NAME;
+        }
+
+        private void EditTextClick(object sender, EventArgs e)
+        {
+            if (_selected.Count == 0 || !_selected.Any(gc => HasTextProperty(gc)))
+                return;
+
+            if(_selected.Count == 1)
+            {
+                Type controlType = _selectedControl.GetType();
+                var textProperty = controlType.GetProperty("Text");
+                string title = "Edit " + _selectedControl.Name + " text...";
+
+                String currentText = (String)textProperty.GetValue(_selectedControl);
+                String newText = MultilineStringEditorDialog.ShowEditor(title, currentText);
+
+                if (newText == null)
+                    return;
+
+                textProperty.SetValue(_selectedControl, newText);
+            } 
+            else
+            {
+                List<GUIControl> ctrls = _selected.Where(gc => HasTextProperty(gc)).ToList();
+
+                var textProperty = _selected[0].GetType().GetProperty("Text");
+                string text = (string)textProperty.GetValue(_selected[0]);
+
+                bool allSame = ctrls.All(ctrl =>
+                    (string)ctrl.GetType().GetProperty("Text")?.GetValue(ctrl, null) == text);
+
+                text = allSame ? text : String.Empty;
+                string title = "Edit " + ctrls.Count.ToString() + " controls text...";
+                String newText = MultilineStringEditorDialog.ShowEditor(title, text);
+
+                if (newText == null)
+                    return;
+
+                foreach (var ctrl in ctrls)
+                {
+                    Type controlType = ctrl.GetType();
+                    var prop = controlType.GetProperty("Text");
+                    prop.SetValue(ctrl, newText);
+                }
+            }
+            Factory.GUIController.RefreshPropertyGrid();
+            bgPanel.Invalidate();
+        }
+
         private void SendToBackClick(object sender, EventArgs e)
         {
             _gui.SendControlToBack(_selectedControl);
@@ -920,8 +970,10 @@ namespace AGS.Editor
                 ContextMenuStrip menu = new ContextMenuStrip();
                 if (control != null)
                 {
-                menu.Items.Add(new ToolStripMenuItem("Bring to Front", null, new EventHandler(BringToFrontClick), "BringToFront"));
-                menu.Items.Add(new ToolStripMenuItem("Send to Back", null, new EventHandler(SendToBackClick), "SendToBack"));
+                    if (HasTextProperty(control))
+                        menu.Items.Add(new ToolStripMenuItem("Edit text...", null, new EventHandler(EditTextClick), Keys.Control | Keys.E));
+                    menu.Items.Add(new ToolStripMenuItem("Bring to Front", null, new EventHandler(BringToFrontClick), "BringToFront"));
+                    menu.Items.Add(new ToolStripMenuItem("Send to Back", null, new EventHandler(SendToBackClick), "SendToBack"));
 
 
 
@@ -1254,6 +1306,13 @@ namespace AGS.Editor
                         _gc.Top++;
                     }
                     return true;
+                case Keys.E | Keys.Control:
+                    if (_selected.Count > 0)
+                    {
+                        EditTextClick(null, null);
+                        return true;
+                    }
+                    return false;
                 default:
                     return false; // no applicable command
             }

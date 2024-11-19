@@ -1931,9 +1931,9 @@ void AGS::Parser::ParseExpression_New_CtorFuncCall(Symbol argument_vartype, SrcL
             return; // not a struct type
 
         Symbol const ctor_function =
-            _sym.FindStructComponent(argument_vartype, argument_vartype);
-        if (kKW_NoSymbol == ctor_function || !_sym.IsConstructor(ctor_function))
-            return; // no constructor declared
+            _sym.FindConstructorOfTypeOrParent(argument_vartype);
+        if (kKW_NoSymbol == ctor_function)
+            return; // no suitable constructor declared
 
         UserError(
             ReferenceMsgSym(
@@ -1950,9 +1950,9 @@ void AGS::Parser::ParseExpression_New_CtorFuncCall(Symbol argument_vartype, SrcL
             break; // not a struct
 
         Symbol const ctor_function =
-            _sym.FindStructComponent(argument_vartype, argument_vartype);
-        if (kKW_NoSymbol == ctor_function || !_sym.IsConstructor(ctor_function))
-            break; // no constructor declared
+            _sym.FindConstructorOfTypeOrParent(argument_vartype);
+        if (kKW_NoSymbol == ctor_function)
+            break; // no suitable constructor declared
 
         PushReg(SREG_AX);
         // Address of the new object is expected in MAR
@@ -5209,6 +5209,8 @@ void AGS::Parser::ParseStruct_VariableOrFunctionDefn(Symbol name_of_struct, Type
     else 
         ParseStruct_VariableDefn(tqs, vartype, name_of_struct, qualified_component);
 
+    if (_sym.IsConstructor(qualified_component))
+        _sym[name_of_struct].VartypeD->Constructor = qualified_component;
     _sym.SetDeclared(qualified_component, declaration_start);
  }
 

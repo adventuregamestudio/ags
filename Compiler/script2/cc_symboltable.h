@@ -337,6 +337,7 @@ struct SymbolTableEntry : public SymbolTableConstant
         AGS::Vartype BaseVartype = kKW_NoSymbol;
         std::vector<size_t> Dims = {}; // For classic arrays: Number of elements in each dimension of static array
         std::map<Symbol, Symbol> Components = {}; // Maps the unqualified component to the qualified component
+        Symbol Constructor = kKW_NoSymbol; // For structs: this vartype's constructor (also contained in Components)
         Symbol Parent = kKW_NoSymbol; // For structs: this vartype extends the Parent
         VartypeFlags Flags;
     } *VartypeD = nullptr;
@@ -479,6 +480,8 @@ public:
     // Find the description of a component.
     Symbol FindStructComponent(Symbol strct, Symbol component, Symbol ancestor) const;
     inline Symbol FindStructComponent(Symbol strct, Symbol component) const { return FindStructComponent(strct, component, strct); }
+    // Finds the first constructor declared either in this struct or in any of its parent types (going up the hierarchy)
+    Symbol FindConstructorOfTypeOrParent(Symbol strct) const;
 
     // Arrays and variables that are arrays
     // The "Array[...] of vartype" vartype

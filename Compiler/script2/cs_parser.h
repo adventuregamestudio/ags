@@ -505,7 +505,7 @@ private:
     void ParseParamlist_Param(Symbol name_of_func, bool body_follows, TypeQualifierSet tqs, Vartype param_vartype, size_t param_idx);
 
     // Process a function parameter list
-    void ParseFuncdecl_Paramlist(Symbol funcsym, bool body_follows);
+    void ParseFuncdecl_Parameters(Symbol funcsym, bool body_follows);
 
     void ParseFuncdecl_MasterData2Sym(TypeQualifierSet tqs, Vartype return_vartype, Symbol struct_of_func, Symbol name_of_func, bool body_follows);
 
@@ -543,9 +543,9 @@ private:
     // Check whether there is a type mismatch; if so, give an error. 'msg' for specializing the error message
     void CheckVartypeMismatch(Vartype vartype_is, Vartype vartype_wants_to_be, bool orderMatters, std::string const &msg = "");
 
-    // 'current_vartype' must be the vartype of AX. If it is 'string' and
-    // wanted_vartype is 'String', then AX will be converted to 'String'.
-    // then convert AX into a String object and set its type accordingly
+    // 'current_vartype' must be the vartype of AX. 
+    // If it is 'string' and 'wanted_vartype' is 'String', 
+    // then convert AX into a 'String' object and set its type accordingly
     void ConvertAXStringToStringObject(Vartype wanted_vartype, Vartype &current_vartype);
 
     static int GetReadCommandForSize(int the_size);
@@ -556,20 +556,22 @@ private:
     void EvaluationResultToAx(EvaluationResult &eres);
 
     // We are processing a function call. Emit the actual function call
-    void AccessData_FunctionCall_EmitCall(Symbol name_of_func, size_t params_count, bool func_is_import);
+    void AccessData_FunctionCall_EmitCall(Symbol name_of_func, size_t args_count, bool func_is_import);
 
     // Generate Length attribute for the parsed dynarray type 
     // and add it to the symbol table
     void AccessData_GenerateDynarrayLengthAttrib(EvaluationResult &eres);
 
-    void AccessData_FunctionCall_Parameters_Named(Symbol const name_of_func, std::vector<FuncParameterDesc> const &param_desc, bool const is_variadic, SrcList &params, std::vector<SrcList> &param_exprs);
-    void AccessData_FunctionCall_Parameters_Sequence(Symbol const name_of_func, std::vector<FuncParameterDesc> const &param_desc, bool const is_variadic, SrcList &params, std::vector<SrcList> &param_exprs);
+    void AccessData_FunctionCall_Arguments_Named(Symbol name_of_func, std::vector<FuncParameterDesc> const &param_desc, bool is_variadic, SrcList &arguments, std::vector<SrcList> &arg_exprs);
+    void AccessData_FunctionCall_Arguments_Sequence(Symbol name_of_func, std::vector<FuncParameterDesc> const &param_desc, bool is_variadic, SrcList &arguments, std::vector<SrcList> &arg_exprs);
 
-    // Parse the parameters 'param_list' of a function call
-    void AccessData_FunctionCall_Parameters(Symbol name_of_func, bool func_is_import, std::vector<FuncParameterDesc> const &param_descs, bool is_variadic, SrcList &param_list, size_t &params_count);
+    void AccessData_FunctionCall_Arguments_Push(Symbol name_of_func, bool func_is_import, size_t args_count, std::vector<SrcList> arg_exprs, bool named_args, std::vector<AGS::FuncParameterDesc> const &param_descs);
 
-    // Process a function call. 'param_list' doesn't encompass the surrounding '()'
-    void AccessData_FunctionCall(Symbol name_of_func, SrcList &param_list, EvaluationResult &eres);
+    // Parse the arguments 'args_list' of a function call
+    void AccessData_FunctionCall_Arguments(Symbol name_of_func, bool func_is_import, std::vector<FuncParameterDesc> const &param_descs, bool is_variadic, SrcList &arguments, size_t &args_count);
+
+    // Process a function call. 'arguments' doesn't encompass the surrounding '()'
+    void AccessData_FunctionCall(Symbol name_of_func, SrcList &arguments, EvaluationResult &eres);
 
     // Evaluate 'vloc_lhs op_sym vloc_rhs' at compile time, return the result in 'vloc'.
     // Return whether this is possible.

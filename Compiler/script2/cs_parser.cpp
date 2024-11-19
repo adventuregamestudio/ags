@@ -853,7 +853,7 @@ Symbol AGS::Parser::ParseParamlist_Param_DefaultValue(size_t idx, Vartype const 
 
     // For giving specifics in error messages
     std::string msg = "In parameter #<idx>: ";
-    msg = string_replace(msg, "<idx>", std::to_string(idx));
+    string_replace(msg, "<idx>", std::to_string(idx));
 
     SkipNextSymbol(_src, kKW_Assign);
 
@@ -1114,7 +1114,7 @@ void AGS::Parser::ParseParamlist_Param(Symbol const name_of_func, bool const bod
     return ParseParamlist_Param_AsVar2Sym(param_name, tqs, param_vartype, param_idx);
 }
 
-void AGS::Parser::ParseFuncdecl_Paramlist(Symbol funcsym, bool body_follows)
+void AGS::Parser::ParseFuncdecl_Parameters(Symbol funcsym, bool body_follows)
 {
     _sym[funcsym].FunctionD->IsVariadic = false;
     _sym[funcsym].FunctionD->Parameters.resize(1u); // [0] is the return type; leave that
@@ -1545,10 +1545,10 @@ void AGS::Parser::ParseFuncdecl(TypeQualifierSet tqs, Vartype return_vartype, Sy
     size_t const known_declared = _sym.GetDeclared(name_of_func);
 
     ParseFuncdecl_MasterData2Sym(tqs, return_vartype, struct_of_func, name_of_func, body_follows);
-    ParseFuncdecl_Paramlist(name_of_func, body_follows);
+    ParseFuncdecl_Parameters(name_of_func, body_follows);
     
     ParseFuncdecl_CheckAndAddKnownInfo(name_of_func, known_info.get(), known_declared, body_follows);
-    
+
     ParseFuncdecl_HandleFunctionOrImportIndex(tqs, struct_of_func, name_of_func, body_follows);
 }
 
@@ -2719,12 +2719,12 @@ std::string const AGS::Parser::ReferenceMsgSym(std::string const &msg,Symbol sym
     return ReferenceMsgLoc(msg, _sym.GetDeclared(symb));
 }
 
-void AGS::Parser::AccessData_FunctionCall_EmitCall(Symbol const name_of_func, size_t const params_count, bool const func_is_import)
+void AGS::Parser::AccessData_FunctionCall_EmitCall(Symbol const name_of_func, size_t const args_count, bool const func_is_import)
 {
     if (func_is_import)
     {
         // tell it how many args for this call (nested imported functions cause stack problems otherwise)
-        WriteCmd(SCMD_NUMFUNCARGS, params_count);
+        WriteCmd(SCMD_NUMFUNCARGS, args_count);
     }
 
     // Load function address into AX
@@ -2745,8 +2745,8 @@ void AGS::Parser::AccessData_FunctionCall_EmitCall(Symbol const name_of_func, si
         WriteCmd(SCMD_CALLEXT, SREG_AX); // Do the call
         _reg_track.SetAllRegisters();
         // At runtime, we will arrive here when the function call has returned: Restore the stack
-        if (params_count > 0u)
-            WriteCmd(SCMD_SUBREALSTACK, params_count);
+        if (args_count > 0u)
+            WriteCmd(SCMD_SUBREALSTACK, args_count);
         return;
     }
 
@@ -2763,9 +2763,9 @@ void AGS::Parser::AccessData_FunctionCall_EmitCall(Symbol const name_of_func, si
     _reg_track.SetAllRegisters();
 
     // At runtime, we will arrive here when the function call has returned: Restore the stack
-    if (params_count > 0u)
+    if (args_count > 0u)
     {
-        size_t const size_of_passed_params = params_count * SIZE_OF_STACK_CELL;
+        size_t const size_of_passed_params = args_count * SIZE_OF_STACK_CELL;
         WriteCmd(SCMD_SUB, SREG_SP, size_of_passed_params);
         _scrip.OffsetToLocalVarBlock -= size_of_passed_params;
     }
@@ -2807,7 +2807,7 @@ void AGS::Parser::AccessData_GenerateDynarrayLengthAttrib(EvaluationResult &eres
 }
 
                                                         
-void AGS::Parser::AccessData_FunctionCall_Parameters_Named(Symbol const name_of_func, std::vector<FuncParameterDesc> const &param_desc, bool const is_variadic, SrcList &params, std::vector<SrcList> &param_exprs)
+void AGS::Parser::AccessData_FunctionCall_Arguments_Named(Symbol const name_of_func, std::vector<FuncParameterDesc> const &param_desc, bool const is_variadic, SrcList &arg_srcs, std::vector<SrcList> &arg_exprs)
 {
     if (_sym[name_of_func].FunctionD->ParamNamingInconsistency.Exists)
     {
@@ -2819,7 +2819,7 @@ void AGS::Parser::AccessData_FunctionCall_Parameters_Named(Symbol const name_of_
             ReferenceMsgLoc(
                 ReferenceMsgLoc(
                     "Call to function '%s': "
-                    "Cannot use named parameters because parameter #%u "
+                    "Cannot use named arguments because parameter #%u "
                     "is named inconsistently in declarations: '%s' and '%s'",
                     inconsistency.Declared2).c_str(),
                 inconsistency.Declared1).c_str(),
@@ -2829,10 +2829,10 @@ void AGS::Parser::AccessData_FunctionCall_Parameters_Named(Symbol const name_of_
             _sym.GetName(inconsistency.Name2).c_str());
     }
 
-    SrcList const empty_param = SrcList{ params, 0u, 0u, };
-    param_exprs.assign(param_desc.size(), empty_param);
+    SrcList const empty_arg = SrcList{ arg_srcs, 0u, 0u, };
+    arg_exprs.assign(param_desc.size(), empty_arg);
 
-    params.StartRead();
+    arg_srcs.StartRead();
 
     // For error messages
     std::string ctf = "Call to function '<func>': ";
@@ -2840,12 +2840,12 @@ void AGS::Parser::AccessData_FunctionCall_Parameters_Named(Symbol const name_of_
 
     while (true)
     {
-        Symbol const divider = params.GetNext();
+        Symbol const divider = arg_srcs.GetNext();
         if (kKW_CloseParenthesis == divider)
             return;
 
         // Get parameter name
-        Symbol const param_name = params.GetNext();
+        Symbol const param_name = arg_srcs.GetNext();
 
         if (!_sym.IsIdentifier(param_name))
             UserError(
@@ -2867,50 +2867,50 @@ void AGS::Parser::AccessData_FunctionCall_Parameters_Named(Symbol const name_of_
                     (ctf + "Function doesn't have a parameter named '%s'").c_str(),
                     name_of_func).c_str(),
                 _sym.GetName(param_name).c_str());
-        if (param_exprs[param_idx].Length())
+        if (arg_exprs[param_idx].Length())
             UserError(
                 (ctf + "An argument for parameter '%s' has already been specified").c_str(),
                 _sym.GetName(param_name).c_str());
 
-        Expect(kKW_Colon, params.GetNext(),
+        Expect(kKW_Colon, arg_srcs.GetNext(),
             ctf + "Expected ':'");
 
-        // Isolate the parameter expression
-        size_t const current_param_start = params.GetCursor();
-        params.SkipTo(SymbolList{ kKW_Comma, kKW_CloseParenthesis, });
-        size_t const current_param_end = params.GetCursor();
-        SrcList param(params, current_param_start, current_param_end - current_param_start);
+        // Isolate the argument expression
+        size_t const current_arg_start = arg_srcs.GetCursor();
+        arg_srcs.SkipTo(SymbolList{ kKW_Comma, kKW_CloseParenthesis, });
+        size_t const current_arg_end = arg_srcs.GetCursor();
+        SrcList arg_expr(arg_srcs, current_arg_start, current_arg_end - current_arg_start);
 
-        param_exprs[param_idx] = param;
+        arg_exprs[param_idx] = arg_expr;
     }
 }
 
-void AGS::Parser::AccessData_FunctionCall_Parameters_Sequence(Symbol const name_of_func, std::vector<FuncParameterDesc> const &param_desc, bool const is_variadic, SrcList &param_list, std::vector<SrcList> &param_exprs)
+void AGS::Parser::AccessData_FunctionCall_Arguments_Sequence(Symbol const name_of_func, std::vector<FuncParameterDesc> const &param_desc, bool const is_variadic, SrcList &arg_list, std::vector<SrcList> &arg_exprs)
 {
     // [0] is unused (reserved for the return value)
-    param_exprs.push_back(SrcList{ param_list, 0u, 0u });
+    arg_exprs.push_back(SrcList{ arg_list, 0u, 0u });
 
-    if (param_list.Length() == 3u && kKW_Void == param_list[1u]) // '(void)'
+    if (arg_list.Length() == 3u && kKW_Void == arg_list[1u]) // '(void)'
         return;
 
-    param_list.StartRead();
+    arg_list.StartRead();
 
     for (size_t arg_idx = 1u; true; ++arg_idx)
     {
-        Symbol const divider = param_list.GetNext();
+        Symbol const divider = arg_list.GetNext();
         if (kKW_CloseParenthesis == divider)
             return;
 
         if (kKW_OpenParenthesis != divider && kKW_Comma != divider)
-            InternalError("Expected one of '(,)', found '&s' instead", _sym.GetName(divider).c_str());
+            InternalError("Expected one of '(,)', found '%s' instead", _sym.GetName(divider).c_str());
 
-        // Isolate the current parameter
-        size_t const current_param_start = param_list.GetCursor();
-        param_list.SkipTo(SymbolList{ kKW_Comma, kKW_CloseParenthesis, });
-        size_t const current_param_end = param_list.GetCursor();
-        SrcList param(param_list, current_param_start, current_param_end - current_param_start);
+        // Isolate the current argument
+        size_t const current_arg_start = arg_list.GetCursor();
+        arg_list.SkipTo(SymbolList{ kKW_Comma, kKW_CloseParenthesis, });
+        size_t const current_arg_end = arg_list.GetCursor();
+        SrcList current_arg(arg_list, current_arg_start, current_arg_end - current_arg_start);
 
-        if (param.Length() > 2 && kKW_Colon == param[1u] && _sym.IsIdentifier(param[0u]))
+        if (current_arg.Length() > 2 && kKW_Colon == current_arg[1u] && _sym.IsIdentifier(current_arg[0u]))
             UserError(
                 "Call to function %s, argument #%u: "
                 "Expected an expression "
@@ -2918,35 +2918,20 @@ void AGS::Parser::AccessData_FunctionCall_Parameters_Sequence(Symbol const name_
                 _sym.GetName(name_of_func).c_str(),
                 arg_idx);
         // 'current_arg[...]' has moved the cursor; undo that
-        param.SetCursor(current_param_end);
+        arg_list.SetCursor(current_arg_end);
 
-        if (param.Length() || kKW_CloseParenthesis != param_list.PeekNext())
-            param_exprs.push_back(param);
+        if (current_arg.Length() || kKW_CloseParenthesis != arg_list.PeekNext())
+            arg_exprs.push_back(current_arg);
     }
 }
 
-void AGS::Parser::AccessData_FunctionCall_Parameters(Symbol const name_of_func, bool const func_is_import, std::vector<FuncParameterDesc> const &param_descs, bool const is_variadic, SrcList &param_list, size_t &params_count)
+void AGS::Parser::AccessData_FunctionCall_Arguments_Push(Symbol name_of_func, bool const func_is_import, size_t args_count, std::vector<SrcList> arg_exprs, bool use_named_args, std::vector<AGS::FuncParameterDesc> const &param_descs)
 {
-    // Parse the parameters into a list of expressions that match 'param_descs'
-    std::vector<SrcList> param_exprs = {};
-    
-bool const use_named_args =
-    param_list.Length() >= 3u &&
-        _sym.IsIdentifier(param_list[1u]) &&
-        kKW_Colon == param_list[2u];
-    if (use_named_args)
-        AccessData_FunctionCall_Parameters_Named(name_of_func, param_descs, is_variadic, param_list, param_exprs);
-    else
-        AccessData_FunctionCall_Parameters_Sequence(name_of_func, param_descs, is_variadic, param_list, param_exprs);
+    auto const no_desc = FuncParameterDesc{};
 
-    params_count = std::max(param_descs.size(), param_exprs.size()) - 1u; // '- 1u' due to the unused '[0u]'
-
-    auto &empty_expr = SrcList{ param_list, 0u, 0u };
-    auto no_desc = FuncParameterDesc{};
-    auto last_parameter_idx = params_count;
     // Push the arguments
     // In reverse order because the engine expects them this way
-    for (size_t idx = last_parameter_idx; idx >= 1u; --idx)
+    for (size_t idx = args_count; idx >= 1u; --idx)
     {
         // For error messages
         std::string ctfp = "Call to function '<func>', <name>: ";
@@ -2964,29 +2949,21 @@ bool const use_named_args =
 
         if ("" == name)
         {
-            name = "parameter #<arg>";
+            name = "argument #<arg>";
             string_replace(name, "<arg>", std::to_string(idx));
         }
 
         string_replace(ctfp, "<name>", name);
 
-        SrcList &param_expr =
-            (idx < param_exprs.size())? param_exprs[idx] : empty_expr;
         FuncParameterDesc const &param_desc =
             (idx < param_descs.size()) ? param_descs[idx] : no_desc;
 
-        if (param_expr.Length() > 0u) // Parameter expression given
+        if (idx < arg_exprs.size() && arg_exprs[idx].Length() > 0u) // Argument passed
         {
-            if (idx >= param_descs.size() && !is_variadic)
-                UserError(
-                    ReferenceMsgSym(
-                        "Call to function '%s': Expected at most %u parameters, found more",
-                        name_of_func).c_str(),
-                    _sym.GetName(name_of_func).c_str(),
-                    param_descs.size());
+            auto &arg_expr = arg_exprs[idx];
 
             EvaluationResult eres;
-            ParseExpression_Term(param_expr, eres, true, true);
+            ParseExpression_Term(arg_expr, eres, true, true);
             EvaluationResultToAx(eres);
             if (idx < param_descs.size())
             {
@@ -3005,7 +2982,7 @@ bool const use_named_args =
                     WriteCmd(SCMD_CHECKNULLREG, SREG_AX);
             }
         }
-        else // Parameter not given.
+        else // No argument or empty argument passed
         {
             // Provide default when it exists
             Symbol const deflt = param_desc.Default;
@@ -3013,10 +2990,8 @@ bool const use_named_args =
                 UserError(
                     ReferenceMsgLoc(
                         (ctfp +
-                            "Parameter #%u isn't given and doesn't have a default").c_str(),
-                        param_desc.Declared).c_str(),
-                    _sym.GetName(name_of_func).c_str(),
-                    idx);
+                            "Argument isn't passed and parameter doesn't have a default").c_str(),
+                        param_desc.Declared).c_str());
 
             if (!_sym.IsLiteral(deflt))
                 InternalError("Parameter default symbol isn't literal");
@@ -3029,13 +3004,38 @@ bool const use_named_args =
         else
             PushReg(SREG_AX);
     }
-
-    
-    // Move cursor to the end of the parameters, they have been used up
-    param_list.SetCursor(param_list.Length());
 }
 
-void AGS::Parser::AccessData_FunctionCall(Symbol name_of_func, SrcList &param_list, EvaluationResult &eres)
+void AGS::Parser::AccessData_FunctionCall_Arguments(Symbol const name_of_func, bool const func_is_import, std::vector<FuncParameterDesc> const &param_descs, bool const is_variadic, SrcList &arguments, size_t &args_count)
+{
+    // Parse the arguments into expressions that match 'param_descs'
+    std::vector<SrcList> arg_exprs = {};
+
+    bool const use_named_args =
+        arguments.Length() >= 3u &&
+        _sym.IsIdentifier(arguments[1u]) &&
+        kKW_Colon == arguments[2u];
+    if (use_named_args)
+        AccessData_FunctionCall_Arguments_Named(name_of_func, param_descs, is_variadic, arguments, arg_exprs);
+    else
+        AccessData_FunctionCall_Arguments_Sequence(name_of_func, param_descs, is_variadic, arguments, arg_exprs);
+
+    args_count = std::max(param_descs.size(), arg_exprs.size()) - 1u; // '- 1u' due to the unused '[0u]'
+    if (args_count > param_descs.size() - 1u && !is_variadic)
+        UserError(
+            ReferenceMsgSym(
+                "Call to function '%s': Expected at most %u arguments, found more",
+                name_of_func).c_str(),
+            _sym.GetName(name_of_func).c_str(),
+            param_descs.size() - 1u);
+
+    AccessData_FunctionCall_Arguments_Push(name_of_func, func_is_import, args_count, arg_exprs, use_named_args, param_descs);
+    
+    // Move cursor to the end of the arguments, they have been used up
+    arguments.SetCursor(arguments.Length());
+}
+
+void AGS::Parser::AccessData_FunctionCall(Symbol name_of_func, SrcList &arguments, EvaluationResult &eres)
 {
     auto const function_tqs = _sym[name_of_func].FunctionD->TypeQualifiers;
     bool const func_is_import = function_tqs[TQ::kImport];
@@ -3070,18 +3070,18 @@ void AGS::Parser::AccessData_FunctionCall(Symbol name_of_func, SrcList &param_li
         mar_pushed = true;
     }
 
-    size_t params_count;
-    AccessData_FunctionCall_Parameters(
+    size_t args_count;
+    AccessData_FunctionCall_Arguments(
         name_of_func,
         func_is_import,
         _sym[name_of_func].FunctionD->Parameters,
         _sym.IsVariadicFunc(name_of_func),
-        param_list,
-        params_count);
+        arguments,
+        args_count);
     
       if (called_func_uses_this)
     {
-        if (0u == params_count)
+        if (0u == args_count)
         {   // MAR must still be current, so undo the unneeded PUSH above.
             _scrip.OffsetToLocalVarBlock -= SIZE_OF_STACK_CELL;
             size_t const size_of_pushreg = 2u;
@@ -3092,14 +3092,14 @@ void AGS::Parser::AccessData_FunctionCall(Symbol name_of_func, SrcList &param_li
         {   // Recover the value of MAR from the stack. It's in front of the parameters.
             WriteCmd(
                 SCMD_LOADSPOFFS,
-                (1 + (func_uses_normal_stack ? params_count : 0)) * SIZE_OF_STACK_CELL);
+                (1 + (func_uses_normal_stack ? args_count : 0)) * SIZE_OF_STACK_CELL);
             WriteCmd(SCMD_MEMREAD, SREG_MAR);
             _reg_track.SetRegister(SREG_MAR);
         }
         WriteCmd(SCMD_CALLOBJ, SREG_MAR);
     }
 
-    AccessData_FunctionCall_EmitCall(name_of_func, params_count, func_is_import);
+    AccessData_FunctionCall_EmitCall(name_of_func, args_count, func_is_import);
 
     eres.Type = eres.kTY_RunTimeValue;
     eres.Location = eres.kLOC_AX;
@@ -3182,8 +3182,20 @@ void AGS::Parser::ParseExpression_Term(SrcList &expression, EvaluationResult &er
 
     expression.SetCursor(std::max(least_binding_op_idx, 1));
 
-    if (_sym.IsArrayVartype(eres.Vartype) && !classic_array_ok)
-        UserError("Cannot access this array as a whole (did you forget to add \"[0]\"?)");
+    if (_sym.IsArrayVartype(eres.Vartype))
+    {
+        if (!classic_array_ok)
+            UserError("Cannot access this array as a whole (did you forget to add \"[0]\"?)");
+
+        if (eres.kLOC_MemoryAtMAR == eres.Location)
+        {
+            // Must move to AX or else 'array[0u]' will be returned
+            _marMgr.UpdateMAR(_src.GetLineno(), _scrip);
+            WriteCmd(SCMD_REGTOREG, SREG_MAR, SREG_AX);
+            _reg_track.SetRegister(SREG_AX);
+            eres.Location = eres.kLOC_AX;
+        }
+    }
 
     if (_sym.IsAtomicVartype(eres.Vartype) && _sym.IsStructVartype(eres.Vartype))
     {
@@ -3289,14 +3301,14 @@ void AGS::Parser::AccessData_CallAttributeFunc(bool is_setter, SrcList &expressi
     if (attrib_uses_this)
         PushReg(SREG_OP); // is the current this ptr, must be restored after call
 
-    size_t params_count = 0u;
+    size_t args_count = 0u;
     if (is_setter)
     {
         if (func_is_import)
             WriteCmd(SCMD_PUSHREAL, SREG_AX);
         else
             PushReg(SREG_AX);
-        ++params_count;
+        ++args_count;
     }
 
     if (call_is_indexed)
@@ -3317,13 +3329,13 @@ void AGS::Parser::AccessData_CallAttributeFunc(bool is_setter, SrcList &expressi
             WriteCmd(SCMD_PUSHREAL, SREG_AX);
         else
             PushReg(SREG_AX);
-        ++params_count;
+        ++args_count;
     }
 
     if (attrib_uses_this)
         WriteCmd(SCMD_CALLOBJ, SREG_MAR); // make MAR the new this ptr
 
-    AccessData_FunctionCall_EmitCall(qualified_func_name, params_count, func_is_import);
+    AccessData_FunctionCall_EmitCall(qualified_func_name, args_count, func_is_import);
 
     if (attrib_uses_this)
         PopReg(SREG_OP); // restore old this ptr after the func call
@@ -3576,8 +3588,8 @@ void AGS::Parser::AccessData_FirstClause(VariableAccess access_type, SrcList &ex
             return;
         }
 
-        SrcList param_list = SrcList(expression, 1u, expression.Length() - 1u);
-        AccessData_FunctionCall(first_sym, param_list, eres);
+        SrcList arguments = SrcList(expression, 1u, expression.Length() - 1u);
+        AccessData_FunctionCall(first_sym, arguments, eres);
         if (_sym.IsDynarrayVartype(eres.Vartype))
             AccessData_ProcessArrayIndexes(expression, eres);
         return;
@@ -3722,8 +3734,8 @@ void AGS::Parser::AccessData_SubsequentClause(VariableAccess access_type, bool a
             return;
         }
 
-        SrcList param_list = SrcList(expression, expression.GetCursor(), expression.Length());
-        AccessData_FunctionCall(qualified_component, param_list, eres);
+        SrcList arguments = SrcList(expression, expression.GetCursor(), expression.Length());
+        AccessData_FunctionCall(qualified_component, arguments, eres);
         if (_sym.IsDynarrayVartype(vartype))
             return AccessData_ProcessArrayIndexes(expression, eres);
         return;

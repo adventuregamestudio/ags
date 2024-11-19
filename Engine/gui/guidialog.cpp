@@ -18,8 +18,8 @@
 #include "ac/common.h"
 #include "ac/draw.h"
 #include "ac/game.h"
-#include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
+#include "ac/gamestate.h"
 #include "ac/global_game.h"
 #include "gui/cscidialog.h"
 #include <cctype> //isdigit()
@@ -34,6 +34,7 @@ using namespace AGS::Engine;
 
 extern IGraphicsDriver *gfxDriver;
 extern GameSetupStruct game;
+extern GamePlayState play;
 
 namespace {
 
@@ -111,7 +112,7 @@ int loadgamedialog(int min_slot, int max_slot)
   const int wnd_height = 120;
   const int boxleft = myscrnwid / 2 - wnd_width / 2;
   const int boxtop = myscrnhit / 2 - wnd_height / 2;
-  const int buttonhit = usetup.textheight + 5;
+  const int buttonhit = play.std_gui_textheight + 5;
 
   int handl = CSCIDrawWindow(boxleft, boxtop, wnd_width, wnd_height);
   int ctrlok =
@@ -166,7 +167,7 @@ int savegamedialog(int min_slot, int max_slot)
   const int wnd_height = 120;
   const int boxleft = myscrnwid / 2 - wnd_width / 2;
   const int boxtop = myscrnhit / 2 - wnd_height / 2;
-  const int buttonhit = usetup.textheight + 5;
+  const int buttonhit = play.std_gui_textheight + 5;
   int labeltop = 5;
 
   int handl = CSCIDrawWindow(boxleft, boxtop, wnd_width, wnd_height);

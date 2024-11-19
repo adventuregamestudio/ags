@@ -24,7 +24,7 @@ using namespace AGS::Common;
 extern int windowbackgroundcolor;
 extern int cbuttfont;
 
-MyTextBox::MyTextBox(int xx, int yy, int wii, const char *tee)
+MyTextBox::MyTextBox(int xx, int yy, int wii, const char *tee, int textheight_)
 {
     x = xx;
     y = yy;
@@ -34,7 +34,8 @@ MyTextBox::MyTextBox(int xx, int yy, int wii, const char *tee)
     else
         text[0] = 0;
 
-    hit = TEXT_HT + 1;
+    textheight = textheight_;
+    hit = textheight + 1;
 }
 
 void MyTextBox::draw(Bitmap *ds)

@@ -188,6 +188,7 @@ struct GamePlayState
     // ** end of the part exposed to script API
     //
 
+    int   std_gui_textheight = 0; // text height for built-in gui dialogs (TODO: use font setting instead)
     long  randseed = 0;    // random seed
     int   player_on_region = 0;    // player's current region
     int   screen_is_faded_out = 0; // the screen is currently black

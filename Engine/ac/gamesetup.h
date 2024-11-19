@@ -68,7 +68,6 @@ struct GameSetup
 
     bool  audio_enabled;
     String audio_driver;
-    int   textheight; // text height used on the certain built-in GUI // TODO: move out to game class?
     bool  no_speech_pack;
     bool  enable_antialiasing;
     bool  disable_exception_handling;

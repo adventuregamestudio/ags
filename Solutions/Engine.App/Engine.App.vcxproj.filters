@@ -213,9 +213,6 @@
     <ClCompile Include="..\..\Engine\ac\game.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\gamesetup.cpp">
-      <Filter>Source Files\ac</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Engine\ac\gamestate.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>

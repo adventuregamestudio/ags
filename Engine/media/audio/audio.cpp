@@ -226,7 +226,7 @@ static int find_free_audio_channel(ScriptAudioClip *clip, int priority, bool int
 
 bool is_audiotype_allowed_to_play(AudioFileType /*type*/)
 { // TODO: this is a remnant of an old audio logic, think this function over
-    return usetup.audio_enabled;
+    return usetup.AudioEnabled;
 }
 
 std::unique_ptr<SoundClip> load_sound_clip(ScriptAudioClip *audioClip, bool repeat)
@@ -687,7 +687,7 @@ void shutdown_sound()
     audio_core_shutdown(); // audio core system
     soundcache_clear(); // clear cached data
     sys_audio_shutdown(); // backend; NOTE: sys_main will know if it's required
-    usetup.audio_enabled = false;
+    usetup.AudioEnabled = false;
 }
 
 // the sound will only be played if there is a free channel or

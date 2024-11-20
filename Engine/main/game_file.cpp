@@ -201,7 +201,7 @@ HError load_game_file()
         game.options[OPT_CUSTOMENGINETAG] = CUSTOMENG_CLIFFTOP;
     }
     // Upscale mode -- for old games that supported it.
-    if ((loaded_game_file_version < kGameVersion_310) && usetup.override_upscale)
+    if ((loaded_game_file_version < kGameVersion_310) && usetup.Override.UpscaleResolution)
     {
         if (game.GetResolutionType() == kGameResolution_320x200)
             game.SetGameResolution(kGameResolution_640x400);

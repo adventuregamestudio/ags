@@ -15,6 +15,7 @@
 #define __AC_GAMESETUP_H
 
 #include "ac/game_version.h"
+#include "ac/runtime_defines.h"
 #include "ac/speech.h"
 #include "ac/sys_events.h"
 #include "main/graphics_mode.h"
@@ -49,86 +50,123 @@ enum ScreenRotation
 
 using AGS::Common::String;
 
+// Accessibility options are meant to make playing the game easier, by modifying certain
+// game properties which are non-critical for the game progression.
+struct AccessibilityGameConfig
+{
+    SkipSpeechStyle SpeechSkipStyle = kSkipSpeechNone; // speech skip style; none here means "use defaults"
+    SkipSpeechStyle TextSkipStyle   = kSkipSpeechNone; // display box skip style
+    int    TextReadSpeed            = 0; // text reading speed (chars per second)
+};
+
+// Override options are for overriding game behavior in various non-standard ways.
+struct OverrideGameConfig
+{
+    int   ScriptOS          = eOS_Unknown; // pretend engine is running on this eScriptSystemOSID
+    int8_t Multitasking     = -1; // -1 for none, 0 or 1 to lock in the on/off mode (TODO: make enum)
+    bool  NoPlugins         = false; // disable loading plugins
+    bool  UpscaleResolution = false; // whether upscale old games that supported that
+    // Optional keys for calling built-in save/restore dialogs;
+    // primarily meant for the test runs of the games where save functionality
+    // is not implemented (or does not work correctly).
+    int   KeySaveGame       = eAGSKeyCodeNone;
+    int   KeyRestoreGame    = eAGSKeyCodeNone;
+    // Optional override for the max save slot
+    int   MaxSaveSlot       = 0;
+};
+
+
+struct GameConfig
+{
+#if AGS_PLATFORM_OS_ANDROID || AGS_PLATFORM_OS_IOS
+    static const size_t DefSpriteCacheSize  = (32 * 1024); // 32 MB
+#else
+    static const size_t DefSpriteCacheSize  = (128 * 1024); // 128 MB
+#endif
+    static const size_t DefTexCacheSize     = (128 * 1024); // 128 MB
+    static const size_t DefSoundLoadAtOnce  = 1024; // 1 MB
+    static const size_t DefSoundCache       = 1024u * 32; // 32 MB
+
+    // Display configuration
+    DisplayModeSetup Display;
+    String  SoftwareRenderDriver;      // Driver for the final output when using Software renderer
+
+    // Graphic options (additional)
+    bool    RenderAtScreenRes    = false; // render sprites at screen resolution, as opposed to native one
+    bool    AntialiasSprites     = false;  // apply AA (linear) scaling to game sprites, regardless of final filter
+
+    // Audio options
+    bool    AudioEnabled         = false;
+    String  AudioDriverID;
+    bool    UseVoicePack         = false;
+
+    // Control options
+    bool    MouseAutoLock        = false;
+    float   MouseSpeed           = 1.f;
+
+    // Cache options
+    size_t  SpriteCacheSize      = DefSpriteCacheSize; // in KB
+    size_t  TextureCacheSize     = DefTexCacheSize; // in KB
+    size_t  SoundCacheSize       = DefSoundCache; // sound cache limit, in KB
+    size_t  SoundLoadAtOnceSize  = DefSoundLoadAtOnce; // threshold for loading sounds immediately, in KB
+
+    // Misc options
+    String  Translation;
+
+    // Custom paths
+    String  UserConfPath; // a read-only config path (if set the regular config is ignored)
+    String  UserConfDir;  // directory to read and write user config in
+    String  UserSaveDir;  // directory to write savedgames and user files to
+    String  AppDataDir;   // directory to write shared game files to
+
+    // Accessibility options
+    AccessibilityGameConfig Access;
+    // User's overrides and hacks
+    OverrideGameConfig Override;
+
+    GameConfig() = default;
+};
+
 // TODO: reconsider the purpose of this struct in the future.
 // Currently it's been used as both initial storage for config options
 // before they are used to initialize engine, and as persistent storage
 // for options that may be changed at runtime (and later written back
 // to the config file).
-struct GameSetup
+struct GameSetup : public GameConfig
 {
-#if AGS_PLATFORM_OS_ANDROID || AGS_PLATFORM_OS_IOS
-    static const size_t DefSpriteCacheSize = (32 * 1024); // 32 MB
-#else
-    static const size_t DefSpriteCacheSize = (128 * 1024); // 128 MB
-#endif
-    static const size_t DefTexCacheSize = (128 * 1024); // 128 MB
-    static const size_t DefSoundLoadAtOnce = 1024; // 1 MB
-    static const size_t DefSoundCache = 1024u * 32; // 32 MB
+    // Disables handling exceptions and displaying exception message on exit
+    bool   DisableExceptionHandling = false;
 
-
-    bool  audio_enabled;
-    String audio_driver;
-    bool  no_speech_pack;
-    bool  enable_antialiasing;
-    bool  disable_exception_handling;
-    String startup_dir; // directory where the default game config is located (usually same as main_data_dir)
-    String main_data_dir; // main data directory
-    String main_data_file; // full path to main data file
+    // Game data paths, some are calculated from enviroment,
+    // other may be use-defined or passed from IDE when doing a test run.
+    String  StartupDir; // directory where the default game config is located (usually same as MainDataDir)
+    String  MainDataDir; // main data directory
+    String  MainDataFile; // full path to main data file
     // Optional dirs are currently for compatibility with Editor only (debug runs);
     // but could be used for something else in theory.
-    String install_dir; // optional custom install dir path (also used as extra data dir)
-    std::vector<std::pair<String, String>> opt_data_dirs; // optional data dirs with asset filters
-    //
-    String conf_path; // a read-only config path (if set the regular config is ignored)
-    String user_conf_dir; // directory to read and write user config in
-    String user_data_dir; // directory to write savedgames and user files to
-    String shared_data_dir; // directory to write shared game files to
-    String translation;
-    bool  mouse_auto_lock;
-    float mouse_speed;
-    MouseControlWhen mouse_ctrl_when;
-    bool  mouse_ctrl_enabled;
-    MouseSpeedDef mouse_speed_def;
-    // touch-to-mouse emulation mode (how the touches are handled overall)
-    TouchMouseEmulation touch_emulate_mouse;
-    // touch control abs/relative mode
-    bool  touch_motion_relative;
-    //
-    bool  RenderAtScreenRes; // render sprites at screen resolution, as opposed to native one
-    size_t SpriteCacheSize = DefSpriteCacheSize; // in KB
-    size_t TextureCacheSize = DefTexCacheSize; // in KB
-    size_t SoundLoadAtOnceSize = DefSoundLoadAtOnce; // threshold for loading sounds immediately, in KB
-    size_t SoundCacheSize = DefSoundCache; // sound cache limit, in KB
-    bool  clear_cache_on_room_change; // for low-end devices: clear resource caches on room change
-    bool  load_latest_save; // load latest saved game on launch
-    ScreenRotation rotation;
-    bool  show_fps;
-    bool  multitasking = false; // whether run on background, when game is switched out
+    String  OptInstallDir; // optional custom install dir path (also used as extra data dir)
+    std::vector<std::pair<String, String>> OptDataDirs; // optional data dirs with asset filters
+    
+    // More precise control over how the mouse speed is applied.
+    // CHECKME: review this, may be redundant after we upgraded to SDL2 (or not...)
+    MouseControlWhen MouseCtrlWhen = kMouseCtrl_Never; // when to apply mouse control (as opposed to system behavior)
+    bool    MouseCtrlEnabled = false; // whether mouse control is to be enabled (applying speed)
+    MouseSpeedDef MouseSpeedDef = kMouseSpeed_Absolute; // meaning of mouse speed (absolute vs relative)
 
-    DisplayModeSetup Screen;
-    String software_render_driver;
+    // Touch-to-mouse emulation mode (how the touches are handled overall)
+    TouchMouseEmulation TouchEmulateMouse = kTouchMouse_None; // touch-to-mouse style
+    bool    TouchMotionRelative = false; // touch control abs/relative mode
 
-    // User's overrides and hacks
-    int   override_script_os; // pretend engine is running on this eScriptSystemOSID
-    char  override_multitasking; // -1 for none, 0 or 1 to lock in the on/off mode
-    bool  override_noplugins = false; // disable loading plugins
-    bool  override_upscale; // whether upscale old games that supported that
-    // Optional keys for calling built-in save/restore dialogs;
-    // primarily meant for the test runs of the games where save functionality
-    // is not implemented (or does not work correctly).
-    int   key_save_game = 0;
-    int   key_restore_game = 0;
-    // Optional override for the max save slot
-    int   max_save_slot = 0;
+    // For mobile devices
+    ScreenRotation Rotation = kScreenRotation_Unlocked; // how to display the game on mobile screen
 
-    // Accessibility settings and overrides;
-    // these are meant to make playing the game easier, by modifying certain
-    // game properties which are non-critical for the game progression.
-    SkipSpeechStyle access_speechskip = kSkipSpeechNone; // speech skip style
-    SkipSpeechStyle access_textskip = kSkipSpeechNone; // display box skip style
-    int   access_textreadspeed = 0; // text reading speed (chars per second)
+    // Misc engine options
+    bool    LoadLatestSave = false; // load latest saved game on launch
+    bool    ClearCacheOnRoomChange = false; // for low-end devices: clear resource caches on room change
+    bool    RunInBackground = false; // whether run on background, when game is switched out
+    bool    ShowFps = false;
 
-    GameSetup();
+    GameSetup() = default;
 };
 
 // TODO: setup object is used for two purposes: temporarily storing config

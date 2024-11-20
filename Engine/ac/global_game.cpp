@@ -375,7 +375,7 @@ int RunAGSGame(const String &newgame, unsigned int mode, int data) {
     unload_game();
 
     // Adjust config (NOTE: normally, RunAGSGame would need a redesign to allow separate config etc per each game)
-    usetup.translation = ""; // reset to default, prevent from trying translation file of game A in game B
+    usetup.Translation = ""; // reset to default, prevent from trying translation file of game A in game B
 
     AssetMgr->RemoveAllLibraries();
 
@@ -780,14 +780,14 @@ void SetMultitasking (int mode) {
     if ((mode < 0) | (mode > 1))
         quit("!SetMultitasking: invalid mode parameter");
     // Save requested setting
-    usetup.multitasking = mode != 0;
+    usetup.RunInBackground = mode != 0;
 
     // Account for the override config option (must be checked first!)
-    if ((usetup.override_multitasking >= 0) && (mode != usetup.override_multitasking))
+    if ((usetup.Override.Multitasking >= 0) && (mode != usetup.Override.Multitasking))
     {
         Debug::Printf("SetMultitasking: overridden by user config: %d -> %d",
-            mode, usetup.override_multitasking);
-        mode = usetup.override_multitasking;
+            mode, usetup.Override.Multitasking);
+        mode = usetup.Override.Multitasking;
     }
 
     // Must run on background if debugger is connected

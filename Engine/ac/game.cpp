@@ -434,7 +434,7 @@ void restore_game_dialog()
 void restore_game_dialog2(int min_slot, int max_slot)
 {
     // Optionally override the max slot
-    max_slot = usetup.max_save_slot > 0 ? usetup.max_save_slot : max_slot;
+    max_slot = usetup.Override.MaxSaveSlot > 0 ? usetup.Override.MaxSaveSlot : max_slot;
 
     can_run_delayed_command();
     if (thisroom.Options.SaveLoadDisabled == 1) {
@@ -466,7 +466,7 @@ void save_game_dialog()
 void save_game_dialog2(int min_slot, int max_slot)
 {
     // Optionally override the max slot
-    max_slot = usetup.max_save_slot > 0 ? usetup.max_save_slot : max_slot;
+    max_slot = usetup.Override.MaxSaveSlot > 0 ? usetup.Override.MaxSaveSlot : max_slot;
 
     can_run_delayed_command();
     if (thisroom.Options.SaveLoadDisabled == 1) {
@@ -689,7 +689,7 @@ void Game_SetTextReadingSpeed(int newTextSpeed)
     if (newTextSpeed < 1)
         quitprintf("!Game.TextReadingSpeed: %d is an invalid speed", newTextSpeed);
 
-    if (usetup.access_textreadspeed <= 0)
+    if (usetup.Access.TextReadSpeed <= 0)
         play.text_speed = newTextSpeed;
 }
 
@@ -700,7 +700,7 @@ int Game_GetMinimumTextDisplayTimeMs()
 
 void Game_SetMinimumTextDisplayTimeMs(int newTextMinTime)
 {
-    if (usetup.access_textreadspeed <= 0)
+    if (usetup.Access.TextReadSpeed <= 0)
         play.text_min_display_time_ms = newTextMinTime;
 }
 
@@ -801,7 +801,7 @@ int Game_ChangeTranslation(const char *newFilename)
     if ((newFilename == nullptr) || (newFilename[0] == 0))
     { // switch back to default translation
         close_translation();
-        usetup.translation = "";
+        usetup.Translation = "";
         GUIE::MarkForTranslationUpdate();
         return 1;
     }
@@ -810,7 +810,7 @@ int Game_ChangeTranslation(const char *newFilename)
     if (!init_translation(newFilename, oldTransFileName))
         return 0; // failed, kept previous translation
 
-    usetup.translation = newFilename;
+    usetup.Translation = newFilename;
     GUIE::MarkForTranslationUpdate();
     return 1;
 }
@@ -1356,7 +1356,7 @@ void display_switch_in()
     Debug::Printf("Switching back into the game");
     ags_clear_input_state();
     // If auto lock option is set, lock mouse to the game window
-    if (usetup.mouse_auto_lock && scsystem.windowed)
+    if (usetup.MouseAutoLock && scsystem.windowed)
         Mouse::TryLockToWindow();
     switched_away = false;
 }

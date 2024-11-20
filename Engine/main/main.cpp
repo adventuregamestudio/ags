@@ -216,13 +216,19 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
         {
             justDisplayVersion = true;
         }
-        else if (ags_stricmp(arg,"--updatereg") == 0)
+        else if (ags_stricmp(arg, "--updatereg") == 0)
+        {
             debug_flags |= DBG_REGONLY;
-        else if ((ags_stricmp(arg,"--startr") == 0) && (ee < argc-1)) {
+        }
+        else if ((ags_stricmp(arg,"--startr") == 0) && (ee < argc-1))
+        {
             override_start_room = atoi(argv[ee+1]);
             ee++;
         }
-        else if (ags_stricmp(arg,"--noexceptionhandler")==0) usetup.disable_exception_handling = true;
+        else if (ags_stricmp(arg, "--noexceptionhandler") == 0)
+        {
+            usetup.DisableExceptionHandling = true;
+        }
         else if (ags_stricmp(arg, "--setup") == 0)
         {
             justRunSetup = true;
@@ -241,24 +247,25 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
         }
         else if (ags_stricmp(arg, "--conf") == 0 && (argc > ee + 1))
         {
-            usetup.conf_path = argv[++ee];
+            usetup.UserConfPath = argv[++ee];
         }
         else if (ags_stricmp(arg, "--localuserconf") == 0)
         {
-            usetup.user_conf_dir = ".";
+            usetup.UserConfDir = ".";
         }
         else if ((ags_stricmp(arg, "--user-conf-dir") == 0) && (argc > ee + 1))
         {
-            usetup.user_conf_dir = argv[++ee];
+            usetup.UserConfDir = argv[++ee];
         }
         else if (ags_stricmp(arg, "--runfromide") == 0 && (argc > ee + 2))
         {
-            usetup.install_dir = argv[ee + 1];
-            String opt_dirs    = argv[ee + 2];
-            parse_asset_dirs(opt_dirs, usetup.opt_data_dirs);
+            usetup.OptInstallDir = argv[ee + 1];
+            String opt_dirs      = argv[ee + 2];
+            parse_asset_dirs(opt_dirs, usetup.OptDataDirs);
             ee += 2;
         }
-        else if (ags_stricmp(arg,"--takeover")==0) {
+        else if (ags_stricmp(arg,"--takeover")==0)
+        {
             if (argc < ee+2)
                 break;
             play.takeover_data = atoi (argv[ee + 1]);
@@ -266,8 +273,11 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
             ee += 2;
         }
         else if (ags_stricmp(arg, "--clear-cache-on-room-change") == 0)
+        {
             cfg["misc"]["clear_cache_on_room_change"] = "1";
-        else if (ags_strnicmp(arg, "--tell", 6) == 0) {
+        }
+        else if (ags_strnicmp(arg, "--tell", 6) == 0)
+        {
             if (arg[6] == 0)
                 tellInfoKeys.insert(String("all"));
             else if (arg[6] == '-' && arg[7] != 0)
@@ -406,7 +416,7 @@ int ags_entry_point(int argc, char *argv[]) {
 
     int result = 0;
 #ifdef USE_CUSTOM_EXCEPTION_HANDLER
-    if (usetup.disable_exception_handling)
+    if (usetup.DisableExceptionHandling)
 #endif
     {
         result = initialize_engine(startup_opts);

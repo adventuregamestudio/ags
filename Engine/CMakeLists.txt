@@ -127,7 +127,6 @@ target_sources(engine
     ac/file.h
     ac/game.cpp
     ac/game.h
-    ac/gamesetup.cpp
     ac/gamesetup.h
     ac/gamestate.cpp
     ac/gamestate.h

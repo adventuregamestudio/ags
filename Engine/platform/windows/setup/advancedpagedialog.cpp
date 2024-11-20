@@ -150,7 +150,7 @@ void AdvancedPageDialog::UpdateMouseSpeedText()
 
 void AdvancedPageDialog::ResetSetup()
 {
-    SetCheck(_hVSync, _winCfg.VSync);
+    SetCheck(_hVSync, _winCfg.Display.VSync);
     SetCheck(_hRenderAtScreenRes, _winCfg.RenderAtScreenRes);
     SetCheck(_hAntialiasSprites, _winCfg.AntialiasSprites);
 
@@ -165,10 +165,10 @@ void AdvancedPageDialog::ResetSetup()
 
     if (_winCfg.AudioEnabled)
     {
-        if (_winCfg.AudioDriverId.IsEmpty())
+        if (_winCfg.AudioDriverID.IsEmpty())
             SetCurSelToItemDataStr(_hAudioDriverList, "default");
         else
-            SetCurSelToItemDataStr(_hAudioDriverList, _winCfg.AudioDriverId.GetCStr());
+            SetCurSelToItemDataStr(_hAudioDriverList, _winCfg.AudioDriverID.GetCStr());
     }
     else
     {
@@ -188,18 +188,18 @@ void AdvancedPageDialog::SaveSetup()
     if (GetCurSel(_hAudioDriverList) == 0)
     {
         _winCfg.AudioEnabled = false;
-        _winCfg.AudioDriverId = "";
+        _winCfg.AudioDriverID = "";
     }
     else
     {
         _winCfg.AudioEnabled = true;
         if (GetCurSel(_hAudioDriverList) == 1)
-            _winCfg.AudioDriverId = ""; // use default
+            _winCfg.AudioDriverID = ""; // use default
         else
-            _winCfg.AudioDriverId = (LPCSTR)GetCurItemData(_hAudioDriverList);
+            _winCfg.AudioDriverID = (LPCSTR)GetCurItemData(_hAudioDriverList);
     }
     _winCfg.UseVoicePack = GetCheck(_hUseVoicePack);
-    _winCfg.VSync = GetCheck(_hVSync);
+    _winCfg.Display.VSync = GetCheck(_hVSync);
     _winCfg.RenderAtScreenRes = GetCheck(_hRenderAtScreenRes);
     _winCfg.AntialiasSprites = GetCheck(_hAntialiasSprites);
 
@@ -426,9 +426,9 @@ void AccessibilityPageDialog::ResetSetup()
     SetCheck(_hEnableAccess, CfgReadBoolInt(_cfgIn, "winsetup", "access_page_on") ? TRUE : FALSE);
     OnEnableAccessCheck();
 
-    SetCurSelToItemData(_hSpeechSkipStyle, _winCfg.SpeechSkipStyle);
-    SetCurSelToItemData(_hTextSkipStyle, _winCfg.TextSkipStyle);
-    int slider_pos = Math::Clamp(_winCfg.TextReadSpeed, TextReadSpeedMin, TextReadSpeedMax);
+    SetCurSelToItemData(_hSpeechSkipStyle, _winCfg.Access.SpeechSkipStyle);
+    SetCurSelToItemData(_hTextSkipStyle, _winCfg.Access.TextSkipStyle);
+    int slider_pos = Math::Clamp(_winCfg.Access.TextReadSpeed, TextReadSpeedMin, TextReadSpeedMax);
     SetSliderPos(_hTextReadSpeed, slider_pos);
     UpdateTextReadSpeed();
 }
@@ -443,15 +443,15 @@ void AccessibilityPageDialog::SaveSetup()
     
     if (enable)
     {
-        _winCfg.SpeechSkipStyle = (SkipSpeechStyle)GetCurItemData(_hSpeechSkipStyle, kSkipSpeechNone);
-        _winCfg.TextSkipStyle = (SkipSpeechStyle)GetCurItemData(_hTextSkipStyle, kSkipSpeechNone);  
-        _winCfg.TextReadSpeed = GetSliderPos(_hTextReadSpeed);
+        _winCfg.Access.SpeechSkipStyle = (SkipSpeechStyle)GetCurItemData(_hSpeechSkipStyle, kSkipSpeechNone);
+        _winCfg.Access.TextSkipStyle = (SkipSpeechStyle)GetCurItemData(_hTextSkipStyle, kSkipSpeechNone);  
+        _winCfg.Access.TextReadSpeed = GetSliderPos(_hTextReadSpeed);
     }
     else
     {
-        _winCfg.SpeechSkipStyle = kSkipSpeechNone;
-        _winCfg.TextSkipStyle = kSkipSpeechNone;
-        _winCfg.TextReadSpeed = 0;
+        _winCfg.Access.SpeechSkipStyle = kSkipSpeechNone;
+        _winCfg.Access.TextSkipStyle = kSkipSpeechNone;
+        _winCfg.Access.TextReadSpeed = 0;
     }
 }
 

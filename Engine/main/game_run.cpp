@@ -289,7 +289,7 @@ static bool game_loop_check_ground_level_interactions()
 
 static void lock_mouse_on_click()
 {
-    if (usetup.mouse_auto_lock && scsystem.windowed)
+    if (usetup.MouseAutoLock && scsystem.windowed)
         Mouse::TryLockToWindow();
 }
 
@@ -650,10 +650,10 @@ static void check_keyboard_controls()
         return;
 
     // Built-in key-presses
-    if ((usetup.key_save_game > 0) && (agskey == usetup.key_save_game)) {
+    if ((usetup.Override.KeySaveGame > 0) && (agskey == usetup.Override.KeySaveGame)) {
         do_save_game_dialog(0, TOP_SAVESLOT - 1);
         return;
-    } else if ((usetup.key_restore_game > 0) && (agskey == usetup.key_restore_game)) {
+    } else if ((usetup.Override.KeyRestoreGame > 0) && (agskey == usetup.Override.KeyRestoreGame)) {
         do_restore_game_dialog(0, TOP_SAVESLOT - 1);
         return;
     }

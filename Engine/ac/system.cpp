@@ -139,7 +139,7 @@ void System_SetVsync(int newValue) {
 
 void System_SetVSyncInternal(bool vsync) {
     scsystem.vsync = vsync;
-    usetup.Screen.Params.VSync = vsync;
+    usetup.Display.VSync = vsync;
 }
 
 int System_GetWindowed() {

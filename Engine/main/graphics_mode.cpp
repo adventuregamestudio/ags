@@ -354,14 +354,14 @@ bool create_gfx_driver_and_init_mode_any(const String &gfx_driver_id,
     bool windowed = setup.Windowed;
     WindowSetup ws = windowed ? setup.WinSetup : setup.FsSetup;
     FrameScaleDef frame = windowed ? setup.WinGameFrame : setup.FsGameFrame;
-    bool result = try_init_mode_using_setup(game_res, ws, use_col_depth, frame, setup.Filter, setup.Params);
+    bool result = try_init_mode_using_setup(game_res, ws, use_col_depth, frame, setup.Filter, DisplaySetupEx(setup.RefreshRate, setup.VSync));
     // Try windowed mode if fullscreen failed, and vice versa
     if (!result && editor_debugging_initialized == 0)
     {
         windowed = !windowed;
         ws = windowed ? setup.WinSetup : setup.FsSetup;
         frame = windowed ? setup.WinGameFrame : setup.FsGameFrame;
-        result = try_init_mode_using_setup(game_res, ws, use_col_depth, frame, setup.Filter, setup.Params);
+        result = try_init_mode_using_setup(game_res, ws, use_col_depth, frame, setup.Filter, DisplaySetupEx(setup.RefreshRate, setup.VSync));
     }
     return result;
 }
@@ -431,7 +431,7 @@ bool graphics_mode_init_any(const GraphicResolution &game_res, const DisplayMode
         ws.Size.Width, ws.Size.Height,
         scale_option.GetCStr());
     Debug::Printf(kDbgMsg_Info, "Graphic settings: refresh rate (optional): %d, vsync: %d",
-        setup.Params.RefreshRate, setup.Params.VSync);
+        setup.RefreshRate, setup.VSync);
 
     // Prepare the list of available gfx factories, having the one requested by user at first place
     // TODO: make factory & driver IDs case-insensitive!

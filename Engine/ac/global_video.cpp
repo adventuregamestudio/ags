@@ -114,7 +114,7 @@ void PlayVideo(const char* name, int skip, int scr_flags)
     }
 
     // if audio is disabled, then don't play any sound on the video either
-    if (!usetup.audio_enabled)
+    if (!usetup.AudioEnabled)
         video_flags &= ~kVideo_EnableAudio;
 
     // for old versions: allow slightly offset video frames

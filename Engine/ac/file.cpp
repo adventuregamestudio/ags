@@ -408,8 +408,8 @@ FSLocation GetGlobalUserConfigDir()
 FSLocation GetGameUserConfigDir()
 {
     FSLocation dir = platform->GetUserConfigDirectory();
-    if (!usetup.user_conf_dir.IsEmpty()) // directive to use custom userconf location
-        return FSLocation(usetup.user_conf_dir);
+    if (!usetup.UserConfDir.IsEmpty()) // directive to use custom userconf location
+        return FSLocation(usetup.UserConfDir);
     else if (Path::IsRelativePath(dir.FullDir)) // relative dir is resolved relative to the game data dir
         return FSLocation(ResPaths.DataDir).Concat(dir.FullDir);
     // For absolute dir, we assume it's a special directory prepared for AGS engine
@@ -440,16 +440,16 @@ inline FSLocation MakeUserDataDir(const String &user_dir)
 
 FSLocation GetGameAppDataDir()
 {
-    if (usetup.shared_data_dir.IsEmpty())
+    if (usetup.AppDataDir.IsEmpty())
         return MakeDefaultDataDir(platform->GetAllUsersDataDirectory());
-    return MakeUserDataDir(usetup.shared_data_dir);
+    return MakeUserDataDir(usetup.AppDataDir);
 }
 
 FSLocation GetGameUserDataDir()
 {
-    if (usetup.user_data_dir.IsEmpty())
+    if (usetup.UserSaveDir.IsEmpty())
         return MakeDefaultDataDir(platform->GetUserSavedgamesDirectory());
-    return MakeUserDataDir(usetup.user_data_dir);
+    return MakeUserDataDir(usetup.UserSaveDir);
 }
 
 bool CreateFSDirs(const FSLocation &fs)

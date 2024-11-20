@@ -357,7 +357,7 @@ void AGSWin32::PostBackendExit() {
 SetupReturnValue AGSWin32::RunSetup(const ConfigTree &cfg_in, const ConfigTree &def_cfg_in, ConfigTree &cfg_out)
 {
   String version_str = String::FromFormat("Adventure Game Studio v%s setup", get_engine_version());
-  return AGS::Engine::WinSetup(cfg_in, def_cfg_in, cfg_out, usetup.main_data_dir, version_str);
+  return AGS::Engine::WinSetup(cfg_in, def_cfg_in, cfg_out, usetup.MainDataDir, version_str);
 }
 
 void AGSWin32::WriteStdOut(const char *fmt, ...)

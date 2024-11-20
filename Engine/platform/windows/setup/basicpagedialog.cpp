@@ -54,36 +54,21 @@ void WinConfig::SetDefaults()
     GameColourDepth = 0;
     LetterboxByDesign = false;
 
-    GfxFilterId = "StdScale";
-    GfxDriverId = "D3D9";
-    FsSetup = WindowSetup(kWnd_FullDesktop);
-    WinSetup = WindowSetup(kWnd_Windowed);
-    FsGameFrame = kFrame_Proportional;
-    WinGameFrame = kFrame_Round;
-    RefreshRate = 0;
-    Windowed = false;
-    VSync = false;
-    RenderAtScreenRes = false;
-    AntialiasSprites = false;
+    Display.Filter.ID = "StdScale";
+    Display.DriverID = "D3D9";
+    Display.FsSetup = WindowSetup(kWnd_FullDesktop);
+    Display.WinSetup = WindowSetup(kWnd_Windowed);
+    Display.FsGameFrame = kFrame_Proportional;
+    Display.WinGameFrame = kFrame_Round;
 
     AudioEnabled = true;
-    AudioDriverId = "";
     UseVoicePack = true;
 
-    MouseAutoLock = false;
-    MouseSpeed = 1.f;
-
-    SpriteCacheSize = 1024 * 128;
-    TextureCacheSize = 1024 * 128;
-    SoundCacheSize = 1024 * 32;
     DefaultLanguageName = "Game Default";
-    Language = "";
+    Translation = "";
 
     UserSaveDir = ".";
     AppDataDir = ".";
-
-    SpeechSkipStyle = kSkipSpeechNone;
-    TextSkipStyle = kSkipSpeechNone;
 }
 
 void WinConfig::Load(const ConfigTree &cfg, const Size &desktop_res)
@@ -100,19 +85,19 @@ void WinConfig::Load(const ConfigTree &cfg, const Size &desktop_res)
     GameColourDepth = CfgReadInt(cfg, "gameproperties", "resolution_bpp", GameColourDepth);
     LetterboxByDesign = CfgReadBoolInt(cfg, "gameproperties", "legacy_letterbox", false);
 
-    GfxDriverId = CfgReadString(cfg, "graphics", "driver", GfxDriverId);
-    GfxFilterId = CfgReadString(cfg, "graphics", "filter", GfxFilterId);
-    FsSetup = parse_window_mode(CfgReadString(cfg, "graphics", "fullscreen", "default"), false,
+    Display.DriverID = CfgReadString(cfg, "graphics", "driver", Display.DriverID);
+    Display.Filter.ID = CfgReadString(cfg, "graphics", "filter", Display.Filter.ID);
+    Display.FsSetup = parse_window_mode(CfgReadString(cfg, "graphics", "fullscreen", "default"), false,
         GameResolution, desktop_res);
-    WinSetup = parse_window_mode(CfgReadString(cfg, "graphics", "window", "default"), true,
+    Display.WinSetup = parse_window_mode(CfgReadString(cfg, "graphics", "window", "default"), true,
         GameResolution, desktop_res);
 
-    FsGameFrame = parse_scaling_option(CfgReadString(cfg, "graphics", "game_scale_fs"), FsGameFrame);
-    WinGameFrame = parse_scaling_option(CfgReadString(cfg, "graphics", "game_scale_win"), WinGameFrame);
+    Display.FsGameFrame = parse_scaling_option(CfgReadString(cfg, "graphics", "game_scale_fs"), Display.FsGameFrame);
+    Display.WinGameFrame = parse_scaling_option(CfgReadString(cfg, "graphics", "game_scale_win"), Display.WinGameFrame);
 
-    RefreshRate = CfgReadInt(cfg, "graphics", "refresh", RefreshRate);
-    Windowed = CfgReadBoolInt(cfg, "graphics", "windowed", Windowed);
-    VSync = CfgReadBoolInt(cfg, "graphics", "vsync", VSync);
+    Display.Windowed = CfgReadBoolInt(cfg, "graphics", "windowed", Display.Windowed);
+    Display.RefreshRate = CfgReadInt(cfg, "graphics", "refresh", Display.RefreshRate);
+    Display.VSync = CfgReadBoolInt(cfg, "graphics", "vsync", Display.VSync);
     int locked_render_at_screenres = CfgReadInt(cfg, "gameproperties", "render_at_screenres", -1);
     if (locked_render_at_screenres < 0)
         RenderAtScreenRes = CfgReadInt(cfg, "graphics", "render_at_screenres", RenderAtScreenRes ? 1 : 0) != 0;
@@ -121,7 +106,7 @@ void WinConfig::Load(const ConfigTree &cfg, const Size &desktop_res)
     AntialiasSprites = CfgReadInt(cfg, "graphics", "antialias", AntialiasSprites ? 1 : 0) != 0;
 
     AudioEnabled = CfgReadBoolInt(cfg, "sound", "enabled", AudioEnabled);
-    AudioDriverId = CfgReadString(cfg, "sound", "driver", AudioDriverId);
+    AudioDriverID = CfgReadString(cfg, "sound", "driver", AudioDriverID);
     UseVoicePack = CfgReadBoolInt(cfg, "sound", "usespeech", UseVoicePack);
 
     MouseAutoLock = CfgReadBoolInt(cfg, "mouse", "auto_lock", MouseAutoLock);
@@ -132,13 +117,13 @@ void WinConfig::Load(const ConfigTree &cfg, const Size &desktop_res)
     SpriteCacheSize = CfgReadInt(cfg, "graphics", "sprite_cache_size", SpriteCacheSize);
     TextureCacheSize = CfgReadInt(cfg, "graphics", "texture_cache_size", TextureCacheSize);
     SoundCacheSize = CfgReadInt(cfg, "sound", "cache_size", SoundCacheSize);
-    Language = CfgReadString(cfg, "language", "translation", Language);
+    Translation = CfgReadString(cfg, "language", "translation", Translation);
     DefaultLanguageName = CfgReadString(cfg, "language", "default_translation_name", DefaultLanguageName);
 
     // Accessibility settings
-    SpeechSkipStyle = parse_speechskip_style(CfgReadString(cfg, "access", "speechskip"), SpeechSkipStyle);
-    TextSkipStyle = parse_speechskip_style(CfgReadString(cfg, "access", "textskip"), TextSkipStyle);
-    TextReadSpeed = CfgReadInt(cfg, "access", "textreadspeed");
+    Access.SpeechSkipStyle = parse_speechskip_style(CfgReadString(cfg, "access", "speechskip"), Access.SpeechSkipStyle);
+    Access.TextSkipStyle = parse_speechskip_style(CfgReadString(cfg, "access", "textskip"), Access.TextSkipStyle);
+    Access.TextReadSpeed = CfgReadInt(cfg, "access", "textreadspeed", Access.TextReadSpeed);
 
     Title = CfgReadString(cfg, "misc", "titletext", Title);
 }
@@ -148,20 +133,20 @@ void WinConfig::Save(ConfigTree &cfg, const Size &desktop_res) const
     CfgWriteString(cfg, "misc", "user_data_dir", UserSaveDir);
     CfgWriteString(cfg, "misc", "shared_data_dir", AppDataDir);
 
-    CfgWriteString(cfg, "graphics", "driver", GfxDriverId);
-    CfgWriteString(cfg, "graphics", "filter", GfxFilterId);
-    CfgWriteString(cfg, "graphics", "fullscreen", make_window_mode_option(FsSetup, GameResolution, desktop_res));
-    CfgWriteString(cfg, "graphics", "window", make_window_mode_option(WinSetup, GameResolution, desktop_res));
-    CfgWriteString(cfg, "graphics", "game_scale_fs", make_scaling_option(FsGameFrame));
-    CfgWriteString(cfg, "graphics", "game_scale_win", make_scaling_option(WinGameFrame));
-    CfgWriteInt(cfg, "graphics", "refresh", RefreshRate);
-    CfgWriteInt(cfg, "graphics", "windowed", Windowed ? 1 : 0);
-    CfgWriteInt(cfg, "graphics", "vsync", VSync ? 1 : 0);
+    CfgWriteString(cfg, "graphics", "driver", Display.DriverID);
+    CfgWriteString(cfg, "graphics", "filter", Display.Filter.ID);
+    CfgWriteString(cfg, "graphics", "fullscreen", make_window_mode_option(Display.FsSetup, GameResolution, desktop_res));
+    CfgWriteString(cfg, "graphics", "window", make_window_mode_option(Display.WinSetup, GameResolution, desktop_res));
+    CfgWriteString(cfg, "graphics", "game_scale_fs", make_scaling_option(Display.FsGameFrame));
+    CfgWriteString(cfg, "graphics", "game_scale_win", make_scaling_option(Display.WinGameFrame));
+    CfgWriteInt(cfg, "graphics", "windowed", Display.Windowed ? 1 : 0);
+    CfgWriteInt(cfg, "graphics", "refresh", Display.RefreshRate);
+    CfgWriteInt(cfg, "graphics", "vsync", Display.VSync ? 1 : 0);
     CfgWriteInt(cfg, "graphics", "render_at_screenres", RenderAtScreenRes ? 1 : 0);
     CfgWriteInt(cfg, "graphics", "antialias", AntialiasSprites ? 1 : 0);
 
     CfgWriteInt(cfg, "sound", "enabled", AudioEnabled ? 1 : 0);
-    CfgWriteString(cfg, "sound", "driver", AudioDriverId);
+    CfgWriteString(cfg, "sound", "driver", AudioDriverID);
     CfgWriteInt(cfg, "sound", "usespeech", UseVoicePack ? 1 : 0);
 
     CfgWriteInt(cfg, "mouse", "auto_lock", MouseAutoLock ? 1 : 0);
@@ -170,11 +155,11 @@ void WinConfig::Save(ConfigTree &cfg, const Size &desktop_res) const
     CfgWriteInt(cfg, "graphics", "sprite_cache_size", SpriteCacheSize);
     CfgWriteInt(cfg, "graphics", "texture_cache_size", TextureCacheSize);
     CfgWriteInt(cfg, "sound", "cache_size", SoundCacheSize);
-    CfgWriteString(cfg, "language", "translation", Language);
+    CfgWriteString(cfg, "language", "translation", Translation);
 
-    CfgWriteString(cfg, "access", "speechskip", make_speechskip_option(SpeechSkipStyle));
-    CfgWriteString(cfg, "access", "textskip", make_speechskip_option(TextSkipStyle));
-    CfgWriteInt(cfg, "access", "textreadspeed", TextReadSpeed);
+    CfgWriteString(cfg, "access", "speechskip", make_speechskip_option(Access.SpeechSkipStyle));
+    CfgWriteString(cfg, "access", "textskip", make_speechskip_option(Access.TextSkipStyle));
+    CfgWriteInt(cfg, "access", "textreadspeed", Access.TextReadSpeed);
 }
 
 //=============================================================================
@@ -258,9 +243,9 @@ INT_PTR BasicPageDialog::OnListSelection(WORD id)
 
 void BasicPageDialog::OnGfxDriverUpdate()
 {
-    _winCfg.GfxDriverId = (LPCSTR)GetCurItemData(_hGfxDriverList);
+    _winCfg.Display.DriverID = (LPCSTR)GetCurItemData(_hGfxDriverList);
 
-    DriverDescMap::const_iterator it = _drvDescMap.find(_winCfg.GfxDriverId);
+    DriverDescMap::const_iterator it = _drvDescMap.find(_winCfg.Display.DriverID);
     if (it != _drvDescMap.end())
         _drvDesc = it->second;
     else
@@ -272,12 +257,12 @@ void BasicPageDialog::OnGfxDriverUpdate()
 
 void BasicPageDialog::OnGfxFilterUpdate()
 {
-    _winCfg.GfxFilterId = (LPCSTR)GetCurItemData(_hGfxFilterList);
+    _winCfg.Display.Filter.ID = (LPCSTR)GetCurItemData(_hGfxFilterList);
 
     _gfxFilterInfo = GfxFilterInfo();
     for (size_t i = 0; i < _drvDesc->FilterList.size(); ++i)
     {
-        if (_drvDesc->FilterList[i].Id.CompareNoCase(_winCfg.GfxFilterId) == 0)
+        if (_drvDesc->FilterList[i].Id.CompareNoCase(_winCfg.Display.Filter.ID) == 0)
         {
             _gfxFilterInfo = _drvDesc->FilterList[i];
             break;
@@ -294,20 +279,20 @@ void BasicPageDialog::OnGfxModeUpdate()
     switch (sel)
     {
     case static_cast<DWORD_PTR>(kGfxMode_Desktop):
-        _winCfg.FsSetup = WindowSetup(kWndSizeHint_Desktop, _desktopSize, kWnd_Fullscreen); break;
+        _winCfg.Display.FsSetup = WindowSetup(kWndSizeHint_Desktop, _desktopSize, kWnd_Fullscreen); break;
     case static_cast<DWORD_PTR>(kGfxMode_GameRes):
-        _winCfg.FsSetup = WindowSetup(kWndSizeHint_GameNative, _winCfg.GameResolution, kWnd_Fullscreen); break;
+        _winCfg.Display.FsSetup = WindowSetup(kWndSizeHint_GameNative, _winCfg.GameResolution, kWnd_Fullscreen); break;
     default:
         {
             const DisplayMode &mode = _drvDesc->GfxModeList.Modes[sel];
-            _winCfg.FsSetup = WindowSetup(Size(mode.Width, mode.Height), kWnd_Fullscreen);
+            _winCfg.Display.FsSetup = WindowSetup(Size(mode.Width, mode.Height), kWnd_Fullscreen);
         }
     }
 }
 
 void BasicPageDialog::OnFullScalingUpdate()
 {
-    _winCfg.FsGameFrame = (FrameScaleDef)GetCurItemData(_hFsScalingList);
+    _winCfg.Display.FsGameFrame = (FrameScaleDef)GetCurItemData(_hFsScalingList);
 }
 
 void BasicPageDialog::OnWinScalingUpdate()
@@ -315,19 +300,19 @@ void BasicPageDialog::OnWinScalingUpdate()
     int scale_type = GetCurItemData(_hWinScalingList);
     if (scale_type < kNumFrameScaleDef)
     { // if one of three main scaling types, then set up max window with that scaling
-        _winCfg.WinGameFrame = (FrameScaleDef)scale_type;
-        _winCfg.WinSetup = WindowSetup(kWnd_Windowed);
+        _winCfg.Display.WinGameFrame = (FrameScaleDef)scale_type;
+        _winCfg.Display.WinSetup = WindowSetup(kWnd_Windowed);
     }
     else
     { // ...otherwise, it's round scaling multiplier (shifted by kNumFrameScaleDef)
-        _winCfg.WinGameFrame = kFrame_Round;
-        _winCfg.WinSetup = WindowSetup(scale_type - kNumFrameScaleDef, kWnd_Windowed);
+        _winCfg.Display.WinGameFrame = kFrame_Round;
+        _winCfg.Display.WinSetup = WindowSetup(scale_type - kNumFrameScaleDef, kWnd_Windowed);
     }
 }
 
 void BasicPageDialog::OnWindowedUpdate()
 {
-    _winCfg.Windowed = GetCheck(_hWindowed);
+    _winCfg.Display.Windowed = GetCheck(_hWindowed);
 }
 
 void BasicPageDialog::OnFullscreenDesktop()
@@ -335,7 +320,7 @@ void BasicPageDialog::OnFullscreenDesktop()
     if (GetCheck(_hFullscreenDesktop))
     {
         EnableWindow(_hGfxModeList, FALSE);
-        _winCfg.FsSetup = WindowSetup(kWnd_FullDesktop);
+        _winCfg.Display.FsSetup = WindowSetup(kWnd_FullDesktop);
     }
     else
     {
@@ -406,7 +391,7 @@ void BasicPageDialog::FillGfxFilterList()
             AddString(_hGfxFilterList, STR(info.Name), (DWORD_PTR)info.Id.GetCStr());
     }
 
-    SetCurSelToItemDataStr(_hGfxFilterList, STR(_winCfg.GfxFilterId), 0);
+    SetCurSelToItemDataStr(_hGfxFilterList, STR(_winCfg.Display.Filter.ID), 0);
     OnGfxFilterUpdate();
 }
 
@@ -442,7 +427,7 @@ void BasicPageDialog::FillGfxModeList()
         InsertString(_hGfxModeList, STR(String::FromFormat("Native game resolution (%d x %d)",
             _winCfg.GameResolution.Width, _winCfg.GameResolution.Height)), spec_mode_idx++, (DWORD_PTR)kGfxMode_GameRes);
 
-    SelectNearestGfxMode(_winCfg.FsSetup);
+    SelectNearestGfxMode(_winCfg.Display.FsSetup);
 }
 
 void BasicPageDialog::FillLanguageList()
@@ -485,12 +470,12 @@ void BasicPageDialog::FillScalingList(HWND hlist, bool windowed)
 
 void BasicPageDialog::SetScalingSelection()
 {
-    SetCurSelToItemData(_hFsScalingList, _winCfg.FsGameFrame, NULL, 0);
+    SetCurSelToItemData(_hFsScalingList, _winCfg.Display.FsGameFrame, NULL, 0);
 
-    if (_winCfg.WinSetup.Scale > 0)
-        SetCurSelToItemData(_hWinScalingList, _winCfg.WinSetup.Scale + kNumFrameScaleDef, NULL, 0);
+    if (_winCfg.Display.WinSetup.Scale > 0)
+        SetCurSelToItemData(_hWinScalingList, _winCfg.Display.WinSetup.Scale + kNumFrameScaleDef, NULL, 0);
     else
-        SetCurSelToItemData(_hWinScalingList, _winCfg.WinGameFrame, NULL, 0);
+        SetCurSelToItemData(_hWinScalingList, _winCfg.Display.WinGameFrame, NULL, 0);
 
     OnFullScalingUpdate();
     OnWinScalingUpdate();
@@ -595,13 +580,13 @@ void BasicPageDialog::SelectNearestGfxMode(const WindowSetup &ws)
 
 void BasicPageDialog::ResetSetup()
 {
-    SetCurSelToItemDataStr(_hGfxDriverList, _winCfg.GfxDriverId.GetCStr(), 0);
-    SetCheck(_hFullscreenDesktop, _winCfg.FsSetup.Mode == kWnd_FullDesktop);
-    EnableWindow(_hGfxModeList, _winCfg.FsSetup.Mode == kWnd_Fullscreen);
+    SetCurSelToItemDataStr(_hGfxDriverList, _winCfg.Display.DriverID.GetCStr(), 0);
+    SetCheck(_hFullscreenDesktop, _winCfg.Display.FsSetup.Mode == kWnd_FullDesktop);
+    EnableWindow(_hGfxModeList, _winCfg.Display.FsSetup.Mode == kWnd_Fullscreen);
     OnGfxDriverUpdate();
-    SetCheck(_hWindowed, _winCfg.Windowed);
+    SetCheck(_hWindowed, _winCfg.Display.Windowed);
     SetScalingSelection();
-    SetCurSelToItemDataStr(_hLanguageList, STR(_winCfg.Language), 0);
+    SetCurSelToItemDataStr(_hLanguageList, STR(_winCfg.Translation), 0);
 }
 
 void BasicPageDialog::SaveSetup()
@@ -610,10 +595,10 @@ void BasicPageDialog::SaveSetup()
         return; // was not init, don't apply settings
 
     if (GetCurSel(_hLanguageList) == 0)
-        _winCfg.Language.Empty();
+        _winCfg.Translation.Empty();
     else
-        _winCfg.Language = GetText(_hLanguageList);
-    _winCfg.GfxFilterId = (LPCSTR)GetCurItemData(_hGfxFilterList);
+        _winCfg.Translation = GetText(_hLanguageList);
+    _winCfg.Display.Filter.ID = (LPCSTR)GetCurItemData(_hGfxFilterList);
 }
 
 } // namespace Engine

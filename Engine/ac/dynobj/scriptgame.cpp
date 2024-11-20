@@ -149,7 +149,7 @@ void CCScriptGame::WriteInt32(void *address, intptr_t offset, int32_t val)
         debug_script_warn("ScriptGame: attempt to write in readonly variable at offset %d, value %d", offset, val);
         break;
     case 61:  
-        if (usetup.access_textreadspeed <= 0)
+        if (usetup.Access.TextReadSpeed <= 0)
             play.text_speed = val;
         break;
     case 62:  play.sierra_inv_color = val; break;
@@ -162,7 +162,7 @@ void CCScriptGame::WriteInt32(void *address, intptr_t offset, int32_t val)
     case 69:  play.follow_change_room_timer = val; break;
     case 70:  play.totalscore = val; break;
     case 71:
-        if (usetup.access_textskip == kSkipSpeechNone)
+        if (usetup.Access.TextSkipStyle == kSkipSpeechNone)
             play.skip_display = static_cast<SkipSpeechStyle>(val);
         break;
     case 72:  play.no_multiloop_repeat = val; break;

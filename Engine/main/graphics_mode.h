@@ -94,6 +94,9 @@ struct DisplaySetupEx
 {
     int                  RefreshRate = 0;  // gfx mode refresh rate
     bool                 VSync = false;    // vertical sync
+
+    DisplaySetupEx(int rate, bool vsync)
+        : RefreshRate(rate), VSync(vsync) {}
 };
 
 // Full graphics configuration, contains graphics driver selection,
@@ -113,7 +116,8 @@ struct DisplayModeSetup
                                 kFrame_Undefined;
 
     bool                 Windowed = false; // initial mode
-    DisplaySetupEx       Params;
+    int                  RefreshRate = 0;  // gfx mode refresh rate
+    bool                 VSync = false;    // vertical sync
 
     GfxFilterSetup       Filter;        // graphics filter definition
 };

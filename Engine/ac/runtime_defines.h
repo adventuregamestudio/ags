@@ -185,4 +185,19 @@ enum ScriptFileSortStyle
     kScFileSort_Time = 2, // by last write time
 };
 
+enum eScriptSystemOSID
+{
+    eOS_Unknown = 0,
+    eOS_DOS,
+    eOS_Win,
+    eOS_Linux,
+    eOS_Mac,
+    eOS_Android,
+    eOS_iOS,
+    eOS_PSP,
+    eOS_Web,
+    eOS_FreeBSD,
+    eNumOS
+};
+
 #endif // __AC_RUNTIMEDEFINES_H

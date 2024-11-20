@@ -548,7 +548,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     play.score_sound = game.scoreClipID;
     play.fade_effect = game.options[OPT_FADETYPE];
     play.std_gui_textheight = get_font_height_outlined(0) + 1;
-    play.enable_antialiasing = usetup.enable_antialiasing;
+    play.enable_antialiasing = usetup.AntialiasSprites;
 
     //
     // 5. Initialize runtime state of certain game objects
@@ -571,7 +571,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     //
     // 7. Start up plugins
     //
-    pl_register_plugins(ents.PluginInfos, !usetup.override_noplugins);
+    pl_register_plugins(ents.PluginInfos, !usetup.Override.NoPlugins);
     pl_startup_plugins();
 
     //
@@ -598,19 +598,19 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
 
 void ApplyAccessibilityOptions()
 {
-    if (usetup.access_speechskip != kSkipSpeechNone)
+    if (usetup.Access.SpeechSkipStyle != kSkipSpeechNone)
     {
-        play.speech_skip_style = user_to_internal_skip_speech(usetup.access_speechskip);
+        play.speech_skip_style = user_to_internal_skip_speech(usetup.Access.SpeechSkipStyle);
     }
-    if (usetup.access_textskip != kSkipSpeechNone)
+    if (usetup.Access.TextSkipStyle != kSkipSpeechNone)
     {
-        play.skip_display = usetup.access_textskip;
-        play.skip_timed_display = usetup.access_textskip;
+        play.skip_display = usetup.Access.TextSkipStyle;
+        play.skip_timed_display = usetup.Access.TextSkipStyle;
     }
-    if (usetup.access_textreadspeed > 0)
+    if (usetup.Access.TextReadSpeed > 0)
     {
-        play.text_speed = usetup.access_textreadspeed;
-        play.text_min_display_time_ms = Math::Clamp((int)(1000 * (15.f / usetup.access_textreadspeed)), 1000, 3000);
+        play.text_speed = usetup.Access.TextReadSpeed;
+        play.text_min_display_time_ms = Math::Clamp((int)(1000 * (15.f / usetup.Access.TextReadSpeed)), 1000, 3000);
     }
 }
 

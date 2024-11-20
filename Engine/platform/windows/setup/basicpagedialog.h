@@ -22,7 +22,7 @@
 #include <memory>
 #include <vector>
 #include "ac/gamestructdefines.h"
-#include "ac/speech.h"
+#include "ac/gamesetup.h"
 #include "gfx/gfxfilter.h"
 #include "gfx/gfxmodelist.h"
 #include "main/graphics_mode.h"
@@ -45,55 +45,17 @@ using namespace AGS::Common;
 // with the GameSetup struct in the engine, and merge config reading/saving.
 //
 //=============================================================================
-struct WinConfig
+struct WinConfig : public GameConfig
 {
     // Meta properties
     String Title;
     String VersionString;
-
     String DataDirectory;
     GameResolutionType GameResType;
     Size   GameResolution;
     int    GameColourDepth;
     bool   LetterboxByDesign;
-
-    // Graphic options
-    String GfxDriverId;
-    String GfxFilterId;
-    WindowSetup FsSetup;
-    WindowSetup WinSetup;
-    FrameScaleDef FsGameFrame;
-    FrameScaleDef WinGameFrame;
-    int    RefreshRate;
-    bool   Windowed;
-    bool   VSync;
-    bool   RenderAtScreenRes;
-    bool   AntialiasSprites;
-
-    // Audio options
-    bool   AudioEnabled;
-    String AudioDriverId;
-    bool   UseVoicePack;
-
-    // Control options
-    bool   MouseAutoLock;
-    float  MouseSpeed;
-
-    // Misc options
-    int    SpriteCacheSize;
-    int    TextureCacheSize;
-    int    SoundCacheSize;
-    String DefaultLanguageName; // this is a human-readable title for the "default language" selection
-    String Language;
-
-    // Custom paths
-    String UserSaveDir;
-    String AppDataDir;
-
-    // Accessibility settings
-    SkipSpeechStyle SpeechSkipStyle = kSkipSpeechNone; // none here means "use defaults"
-    SkipSpeechStyle TextSkipStyle = kSkipSpeechNone;
-    int    TextReadSpeed = 0;
+    String DefaultLanguageName; // human-readable title for the "default language" selection
 
     WinConfig();
     void SetDefaults();

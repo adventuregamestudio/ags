@@ -32,7 +32,7 @@ enum MouseControlWhen
 };
 
 // Mouse speed definition, specifies how the speed setting is applied to the mouse movement
-enum MouseSpeedDef
+enum MouseSpeedDefinition
 {
     kMouseSpeed_Absolute,       // apply speed multiplier directly
     kMouseSpeed_CurrentDisplay, // keep speed/resolution relation based on current system display mode
@@ -161,7 +161,7 @@ struct GameSetup : public GameConfig
     // CHECKME: review this, may be redundant after we upgraded to SDL2 (or not...)
     MouseControlWhen MouseCtrlWhen = kMouseCtrl_Never; // when to apply mouse control (as opposed to system behavior)
     bool    MouseCtrlEnabled = false; // whether mouse control is to be enabled (applying speed)
-    MouseSpeedDef MouseSpeedDef = kMouseSpeed_Absolute; // meaning of mouse speed (absolute vs relative)
+    MouseSpeedDefinition MouseSpeedDef = kMouseSpeed_Absolute; // meaning of mouse speed (absolute vs relative)
 
     // User's overrides and hacks
     OverrideGameConfig Override;

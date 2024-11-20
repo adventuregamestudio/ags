@@ -448,7 +448,7 @@ void apply_config(const ConfigTree &cfg, GameSetup &setup)
             setup.MouseCtrlWhen);
     setup.MouseCtrlEnabled = CfgReadBoolInt(cfg, "mouse", "control_enabled", setup.MouseCtrlEnabled);
     mouse_str = CfgReadString(cfg, "mouse", "speed_def", "current_display");
-    setup.MouseSpeedDef = StrUtil::ParseEnum<MouseSpeedDef>(
+    setup.MouseSpeedDef = StrUtil::ParseEnum<MouseSpeedDefinition>(
         mouse_str, CstrArr<kNumMouseSpeedDefs>{ "absolute", "current_display" }, setup.MouseSpeedDef);
 
     // User's overrides and hacks

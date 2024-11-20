@@ -501,7 +501,7 @@ RuntimeScriptValue Sc_System_SetRenderAtScreenResolution(const RuntimeScriptValu
 
 RuntimeScriptValue Sc_System_SaveConfigToFile(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID(save_config_file);
+    API_SCALL_VOID(save_runtime_config_file);
 }
 
 RuntimeScriptValue Sc_System_Log(const RuntimeScriptValue *params, int32_t param_count)
@@ -565,7 +565,7 @@ void RegisterSystemAPI()
         { "System::get_Windowed",             API_FN_PAIR(System_GetWindowed) },
         { "System::set_Windowed",             API_FN_PAIR(System_SetWindowed) },
         
-        { "System::SaveConfigToFile",         Sc_System_SaveConfigToFile, save_config_file },
+        { "System::SaveConfigToFile",         Sc_System_SaveConfigToFile, save_runtime_config_file },
         { "System::Log^102",                  Sc_System_Log, ScPl_System_Log },
         { "System::GetEngineInteger^2",       API_FN_PAIR(System_GetEngineInteger) },
         { "System::GetEngineString^2",        API_FN_PAIR(System_GetEngineString) },

@@ -41,9 +41,6 @@ using namespace AGS::Common;
 //
 // WinConfig struct, keeps all configurable data.
 //
-// FIXME: can't remember why is this a separate struct, should merge
-// with the GameSetup struct in the engine, and merge config reading/saving.
-//
 //=============================================================================
 struct WinConfig : public GameConfig
 {
@@ -59,7 +56,8 @@ struct WinConfig : public GameConfig
 
     WinConfig();
     void SetDefaults();
-    void Load(const ConfigTree &cfg, const Size &desktop_res);
+    void LoadMeta(const ConfigTree &cfg);
+    void LoadCommon(const ConfigTree &cfg, const Size &desktop_res);
     void Save(ConfigTree &cfg, const Size &desktop_res) const;
 };
 

@@ -18,6 +18,7 @@
 #ifndef __AGS_EE_MAIN__CONFIG_H
 #define __AGS_EE_MAIN__CONFIG_H
 
+#include "ac/gamesetup.h"
 #include "ac/speech.h"
 #include "main/graphics_mode.h"
 #include "util/ini_util.h"
@@ -26,7 +27,7 @@ using AGS::Common::String;
 using AGS::Common::ConfigTree;
 
 // Set up default config settings
-void config_defaults();
+void config_defaults(GameSetup &setup);
 // Find and default configuration file (usually located in the game installation directory)
 String find_default_cfg_file();
 // Find all-games user configuration file
@@ -36,11 +37,17 @@ String find_user_cfg_file();
 // Apply overriding values from the external config (e.g. for mobile ports)
 void override_config_ext(ConfigTree &cfg);
 // Setup game using final config tree
-void apply_config(const ConfigTree &cfg);
+void apply_config(const ConfigTree &cfg, GameSetup &setup);
 // Fixup game setup parameters
-void post_config();
+void post_config(GameSetup &setup);
 
-void save_config_file();
+// Load common configuration from the config tree into GameConfig struct
+void load_common_config(const ConfigTree &cfg, GameConfig &setup, const Size &desktop_res);
+// Saves common configuration from GameConfig struct to the config tree
+void save_common_config(const GameConfig &setup, ConfigTree &cfg, const Size &game_res, const Size &desktop_res);
+
+// Saves minimal runtime config using current engine state
+void save_runtime_config_file();
 
 WindowSetup parse_window_mode(const String &option, bool as_windowed,
     const Size &game_res, const Size &desktop_res, const WindowSetup &def_value = WindowSetup());

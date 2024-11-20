@@ -233,43 +233,34 @@ String find_user_cfg_file()
     return Path::ConcatPaths(GetGameUserConfigDir().FullDir, DefaultConfigFileName);
 }
 
-void config_defaults()
+void config_defaults(GameSetup &setup)
 {
 #if AGS_PLATFORM_OS_WINDOWS
-    usetup.Display.DriverID = "D3D9";
+    setup.Display.DriverID = "D3D9";
 #else
-    usetup.Display.DriverID = "OGL";
+    setup.Display.DriverID = "OGL";
 #endif
     // Defaults for the window style are max resizing window and "fullscreen desktop"
-    usetup.Display.FsSetup = WindowSetup(kWnd_FullDesktop);
-    usetup.Display.WinSetup = WindowSetup(kWnd_Windowed);
-    usetup.Display.FsGameFrame = kFrame_Proportional;
-    usetup.Display.WinGameFrame = kFrame_Round;
+    setup.Display.FsSetup = WindowSetup(kWnd_FullDesktop);
+    setup.Display.WinSetup = WindowSetup(kWnd_Windowed);
+    setup.Display.FsGameFrame = kFrame_Proportional;
+    setup.Display.WinGameFrame = kFrame_Round;
 
-    usetup.AudioEnabled = true;
-    usetup.UseVoicePack = true;
+    setup.AudioEnabled = true;
+    setup.UseVoicePack = true;
 
-    usetup.MouseCtrlWhen = kMouseCtrl_Fullscreen;
-    usetup.MouseCtrlEnabled = true;
-    usetup.MouseSpeedDef = kMouseSpeed_CurrentDisplay;
+    setup.MouseCtrlWhen = kMouseCtrl_Fullscreen;
+    setup.MouseCtrlEnabled = true;
+    setup.MouseSpeedDef = kMouseSpeed_CurrentDisplay;
 
-    usetup.TouchEmulateMouse = kTouchMouse_OneFingerDrag;
-    usetup.TouchMotionRelative = false;
+    setup.TouchEmulateMouse = kTouchMouse_OneFingerDrag;
+    setup.TouchMotionRelative = false;
 }
 
-static void read_legacy_graphics_config(const ConfigTree &cfg)
+static void read_legacy_graphics_config(const ConfigTree &cfg, GameConfig &setup)
 {
-    // Pre-3.* game resolution setup
-    int default_res = CfgReadInt(cfg, "misc", "defaultres", kGameResolution_Default);
-    int screen_res = CfgReadInt(cfg, "misc", "screenres", 0);
-    if (screen_res > 0 &&
-       (default_res >= kGameResolution_Default && default_res <= kGameResolution_320x240))
-    {
-        usetup.Override.UpscaleResolution = true; // run low-res game in high-res mode
-    }
-
-    usetup.Display.Windowed = CfgReadBoolInt(cfg, "misc", "windowed");
-    usetup.Display.DriverID = CfgReadString(cfg, "misc", "gfxdriver", usetup.Display.DriverID);
+    setup.Display.Windowed = CfgReadBoolInt(cfg, "misc", "windowed");
+    setup.Display.DriverID = CfgReadString(cfg, "misc", "gfxdriver", setup.Display.DriverID);
 
     // Window setup: style and size definition, game frame style
     {
@@ -278,18 +269,18 @@ static void read_legacy_graphics_config(const ConfigTree &cfg)
         {
             // Legacy scaling config is applied only to windowed setting
             int scale_factor = 0;
-            parse_legacy_frame_config(legacy_filter, usetup.Display.Filter.ID, usetup.Display.WinGameFrame,
+            parse_legacy_frame_config(legacy_filter, setup.Display.Filter.ID, setup.Display.WinGameFrame,
                 scale_factor);
             if (scale_factor > 0)
-                usetup.Display.WinSetup = WindowSetup(scale_factor);
+                setup.Display.WinSetup = WindowSetup(scale_factor);
 
             // AGS 3.2.1 and 3.3.0 aspect ratio preferences for fullscreen
-            if (!usetup.Display.Windowed)
+            if (!setup.Display.Windowed)
             {
                 bool allow_borders = 
                     (CfgReadBoolInt(cfg, "misc", "sideborders") || CfgReadBoolInt(cfg, "misc", "forceletterbox") ||
                      CfgReadBoolInt(cfg, "misc", "prefer_sideborders") || CfgReadBoolInt(cfg, "misc", "prefer_letterbox"));
-                usetup.Display.FsGameFrame = allow_borders ? kFrame_Proportional : kFrame_Stretch;
+                setup.Display.FsGameFrame = allow_borders ? kFrame_Proportional : kFrame_Stretch;
             }
         }
 
@@ -299,13 +290,13 @@ static void read_legacy_graphics_config(const ConfigTree &cfg)
         {
             int src_scale = 1;
             FrameScaleDef frame = parse_legacy_scaling_option(uniform_frame_scale, src_scale);
-            usetup.Display.FsGameFrame = frame;
-            usetup.Display.WinGameFrame = frame;
+            setup.Display.FsGameFrame = frame;
+            setup.Display.WinGameFrame = frame;
         }
 
         // AGS 3.5.* gfx mode with screen definition
         const bool is_windowed = CfgReadBoolInt(cfg, "graphics", "windowed");
-        WindowSetup &ws = is_windowed ? usetup.Display.WinSetup : usetup.Display.FsSetup;
+        WindowSetup &ws = is_windowed ? setup.Display.WinSetup : setup.Display.FsSetup;
         const WindowMode wm = is_windowed ? kWnd_Windowed : kWnd_Fullscreen;
         ScreenSizeDefinition scr_def = parse_legacy_screendef(CfgReadString(cfg, "graphics", "screen_def"));
         switch (scr_def)
@@ -335,15 +326,27 @@ static void read_legacy_graphics_config(const ConfigTree &cfg)
         }
     }
 
-    usetup.Display.RefreshRate = CfgReadInt(cfg, "misc", "refresh");
-    usetup.AntialiasSprites = CfgReadBoolInt(cfg, "misc", "antialias");
+    setup.Display.RefreshRate = CfgReadInt(cfg, "misc", "refresh");
+    setup.AntialiasSprites = CfgReadBoolInt(cfg, "misc", "antialias");
 }
 
-static void read_legacy_config(const ConfigTree &cfg)
+static void read_legacy_config(const ConfigTree &cfg, GameConfig &setup)
 {
-    read_legacy_graphics_config(cfg);
+    read_legacy_graphics_config(cfg, setup);
 
-    usetup.SpriteCacheSize = CfgReadInt(cfg , "misc", "cachemax", usetup.SpriteCacheSize);
+    setup.SpriteCacheSize = CfgReadInt(cfg , "misc", "cachemax", setup.SpriteCacheSize);
+}
+
+static void read_legacy_meta_config(const ConfigTree &cfg, GameSetup &setup)
+{
+    // Pre-3.* game resolution setup
+    int default_res = CfgReadInt(cfg, "misc", "defaultres", kGameResolution_Default);
+    int screen_res = CfgReadInt(cfg, "misc", "screenres", 0);
+    if (screen_res > 0 &&
+       (default_res >= kGameResolution_Default && default_res <= kGameResolution_320x240))
+    {
+        setup.Override.UpscaleResolution = true; // run low-res game in high-res mode
+    }
 }
 
 void override_config_ext(ConfigTree &cfg)
@@ -351,119 +354,166 @@ void override_config_ext(ConfigTree &cfg)
     platform->ReadConfiguration(cfg);
 }
 
-void apply_config(const ConfigTree &cfg)
+void load_common_config(const ConfigTree &cfg, GameConfig &setup, const Size &desktop_res)
 {
     // Legacy settings have to be translated into new options;
     // they must be read first, to let newer options override them, if ones are present
-    read_legacy_config(cfg);
+    read_legacy_config(cfg, setup);
 
-    {
-        // Audio options
-        usetup.AudioEnabled = CfgReadBoolInt(cfg, "sound", "enabled", usetup.AudioEnabled);
-        usetup.AudioDriverID = CfgReadString(cfg, "sound", "driver");
-        usetup.UseVoicePack = CfgReadBoolInt(cfg, "sound", "usespeech", true);
+    // Graphics mode and options
+    setup.Display.DriverID = CfgReadString(cfg, "graphics", "driver", setup.Display.DriverID);
+    setup.Display.Windowed = CfgReadBoolInt(cfg, "graphics", "windowed", setup.Display.Windowed);
+    setup.Display.FsSetup =
+        parse_window_mode(CfgReadString(cfg, "graphics", "fullscreen", "default"), false,
+            game.GetGameRes(), desktop_res, setup.Display.FsSetup);
+    setup.Display.WinSetup =
+        parse_window_mode(CfgReadString(cfg, "graphics", "window", "default"), true,
+            game.GetGameRes(), desktop_res, setup.Display.WinSetup);
 
-        // Graphics mode and options
-        usetup.Display.DriverID = CfgReadString(cfg, "graphics", "driver", usetup.Display.DriverID);
-        usetup.Display.Windowed = CfgReadBoolInt(cfg, "graphics", "windowed", usetup.Display.Windowed);
-        usetup.Display.FsSetup =
-            parse_window_mode(CfgReadString(cfg, "graphics", "fullscreen", "default"), false,
-                game.GetGameRes(), get_desktop_size(), usetup.Display.FsSetup);
-        usetup.Display.WinSetup =
-            parse_window_mode(CfgReadString(cfg, "graphics", "window", "default"), true,
-                game.GetGameRes(), get_desktop_size(), usetup.Display.WinSetup);
+    setup.Display.Filter.ID = CfgReadString(cfg, "graphics", "filter", "StdScale");
+    setup.Display.FsGameFrame =
+        parse_scaling_option(CfgReadString(cfg, "graphics", "game_scale_fs", "proportional"), setup.Display.FsGameFrame);
+    setup.Display.WinGameFrame =
+        parse_scaling_option(CfgReadString(cfg, "graphics", "game_scale_win", "round"), setup.Display.WinGameFrame);
 
-        usetup.Display.Filter.ID = CfgReadString(cfg, "graphics", "filter", "StdScale");
-        usetup.Display.FsGameFrame =
-            parse_scaling_option(CfgReadString(cfg, "graphics", "game_scale_fs", "proportional"), usetup.Display.FsGameFrame);
-        usetup.Display.WinGameFrame =
-            parse_scaling_option(CfgReadString(cfg, "graphics", "game_scale_win", "round"), usetup.Display.WinGameFrame);
+    setup.Display.RefreshRate = CfgReadInt(cfg, "graphics", "refresh");
+    setup.Display.VSync = CfgReadBoolInt(cfg, "graphics", "vsync");
+    setup.RenderAtScreenRes = CfgReadBoolInt(cfg, "graphics", "render_at_screenres");
+    setup.AntialiasSprites = CfgReadBoolInt(cfg, "graphics", "antialias", setup.AntialiasSprites);
+    setup.SoftwareRenderDriver = CfgReadString(cfg, "graphics", "software_driver");
 
-        usetup.Display.RefreshRate = CfgReadInt(cfg, "graphics", "refresh");
-        usetup.Display.VSync = CfgReadBoolInt(cfg, "graphics", "vsync");
-        usetup.RenderAtScreenRes = CfgReadBoolInt(cfg, "graphics", "render_at_screenres");
-        usetup.AntialiasSprites = CfgReadBoolInt(cfg, "graphics", "antialias", usetup.AntialiasSprites);
-        usetup.SoftwareRenderDriver = CfgReadString(cfg, "graphics", "software_driver");
+    String rotation_str = CfgReadString(cfg, "graphics", "rotation", "unlocked");
+    setup.Rotation = StrUtil::ParseEnum<ScreenRotation>(
+            rotation_str, CstrArr<kNumScreenRotationOptions>{ "unlocked", "portrait", "landscape" },
+            setup.Rotation);
 
-        String rotation_str = CfgReadString(cfg, "graphics", "rotation", "unlocked");
-        usetup.Rotation = StrUtil::ParseEnum<ScreenRotation>(
-                rotation_str, CstrArr<kNumScreenRotationOptions>{ "unlocked", "portrait", "landscape" },
-                usetup.Rotation);
+    // Audio options
+    setup.AudioEnabled = CfgReadBoolInt(cfg, "sound", "enabled", setup.AudioEnabled);
+    setup.AudioDriverID = CfgReadString(cfg, "sound", "driver");
+    setup.UseVoicePack = CfgReadBoolInt(cfg, "sound", "usespeech", true);
 
-        // Custom paths
-        usetup.UserSaveDir = CfgReadString(cfg, "misc", "user_data_dir");
-        usetup.AppDataDir = CfgReadString(cfg, "misc", "shared_data_dir");
+    // Mouse options
+    setup.MouseAutoLock = CfgReadBoolInt(cfg, "mouse", "auto_lock");
+    setup.MouseSpeed = CfgReadFloat(cfg, "mouse", "speed", 1.f);
+    if (setup.MouseSpeed <= 0.f)
+        setup.MouseSpeed = 1.f;
 
-        // Translation / localization
-        usetup.Translation = CfgReadString(cfg, "language", "translation");
+    // Touch options
+    setup.TouchEmulateMouse = StrUtil::ParseEnum<TouchMouseEmulation>(
+        CfgReadString(cfg, "touch", "emul_mouse_mode", "one_finger"),
+        CstrArr<kNumTouchMouseModes>{ "off", "one_finger", "two_fingers" }, setup.TouchEmulateMouse);
+    setup.TouchMotionRelative = CfgReadBoolInt(cfg, "touch", "emul_mouse_relative");
 
-        // Resource caches and options
-        usetup.ClearCacheOnRoomChange = CfgReadBoolInt(cfg, "misc", "clear_cache_on_room_change", usetup.ClearCacheOnRoomChange);
-        usetup.SpriteCacheSize = CfgReadInt(cfg, "graphics", "sprite_cache_size", usetup.SpriteCacheSize);
-        usetup.TextureCacheSize = CfgReadInt(cfg, "graphics", "texture_cache_size", usetup.TextureCacheSize);
-        usetup.SoundCacheSize = CfgReadInt(cfg, "sound", "cache_size", usetup.SoundCacheSize);
-        usetup.SoundLoadAtOnceSize = CfgReadInt(cfg, "sound", "stream_threshold", usetup.SoundLoadAtOnceSize);
+    // Translation / localization
+    setup.Translation = CfgReadString(cfg, "language", "translation");
 
-        // Mouse options
-        usetup.MouseAutoLock = CfgReadBoolInt(cfg, "mouse", "auto_lock");
-        usetup.MouseSpeed = CfgReadFloat(cfg, "mouse", "speed", 1.f);
-        if (usetup.MouseSpeed <= 0.f)
-            usetup.MouseSpeed = 1.f;
-        String mouse_str = CfgReadString(cfg, "mouse", "control_when", "fullscreen");
-        usetup.MouseCtrlWhen = StrUtil::ParseEnum<MouseControlWhen>(
-            mouse_str, CstrArr<kNumMouseCtrlOptions>{ "never", "fullscreen", "always" },
-                usetup.MouseCtrlWhen);
-        usetup.MouseCtrlEnabled = CfgReadBoolInt(cfg, "mouse", "control_enabled", usetup.MouseCtrlEnabled);
-        mouse_str = CfgReadString(cfg, "mouse", "speed_def", "current_display");
-        usetup.MouseSpeedDef = StrUtil::ParseEnum<MouseSpeedDef>(
-            mouse_str, CstrArr<kNumMouseSpeedDefs>{ "absolute", "current_display" }, usetup.MouseSpeedDef);
+    // Custom paths
+    setup.UserSaveDir = CfgReadString(cfg, "misc", "user_data_dir");
+    setup.AppDataDir = CfgReadString(cfg, "misc", "shared_data_dir");
 
-        // Touch options
-        usetup.TouchEmulateMouse = StrUtil::ParseEnum<TouchMouseEmulation>(
-            CfgReadString(cfg, "touch", "emul_mouse_mode", "one_finger"),
-            CstrArr<kNumTouchMouseModes>{ "off", "one_finger", "two_fingers" }, usetup.TouchEmulateMouse);
-        usetup.TouchMotionRelative = CfgReadBoolInt(cfg, "touch", "emul_mouse_relative");
+    // Resource caches and options
+    setup.SpriteCacheSize = CfgReadInt(cfg, "graphics", "sprite_cache_size", setup.SpriteCacheSize);
+    setup.TextureCacheSize = CfgReadInt(cfg, "graphics", "texture_cache_size", setup.TextureCacheSize);
+    setup.SoundCacheSize = CfgReadInt(cfg, "sound", "cache_size", setup.SoundCacheSize);
+    setup.SoundLoadAtOnceSize = CfgReadInt(cfg, "sound", "stream_threshold", setup.SoundLoadAtOnceSize);
 
-        // Various system options
-        usetup.LoadLatestSave = CfgReadBoolInt(cfg, "misc", "load_latest_save", usetup.LoadLatestSave);
-        usetup.RunInBackground = CfgReadInt(cfg, "misc", "background", 0) != 0;
-        usetup.ShowFps = CfgReadBoolInt(cfg, "misc", "show_fps");
+    // Various system options
+    setup.LoadLatestSave = CfgReadBoolInt(cfg, "misc", "load_latest_save", setup.LoadLatestSave);
+    setup.RunInBackground = CfgReadInt(cfg, "misc", "background", 0) != 0;
+    setup.ShowFps = CfgReadBoolInt(cfg, "misc", "show_fps");
+    setup.ClearCacheOnRoomChange = CfgReadBoolInt(cfg, "misc", "clear_cache_on_room_change", setup.ClearCacheOnRoomChange);
 
-        // User's overrides and hacks
-        usetup.Override.Multitasking = CfgReadInt(cfg, "override", "multitasking", -1);
-        usetup.Override.NoPlugins = CfgReadBoolInt(cfg, "override", "noplugins", false);
-        String override_os = CfgReadString(cfg, "override", "os");
-        usetup.Override.ScriptOS = StrUtil::ParseEnum<eScriptSystemOSID>(override_os,
-            CstrArr<eNumOS>{"", "dos", "win", "linux", "mac", "android", "ios", "psp", "web", "freebsd"}, eOS_Unknown);
-        usetup.Override.UpscaleResolution = CfgReadBoolInt(cfg, "override", "upscale", usetup.Override.UpscaleResolution);
-        usetup.Override.KeySaveGame = CfgReadInt(cfg, "override", "save_game_key", 0);
-        usetup.Override.KeyRestoreGame = CfgReadInt(cfg, "override", "restore_game_key", 0);
-        usetup.Override.MaxSaveSlot = CfgReadInt(cfg, "override", "max_save", 0);
+    // Accessibility settings
+    setup.Access.SpeechSkipStyle = parse_speechskip_style(CfgReadString(cfg, "access", "speechskip"));
+    setup.Access.TextSkipStyle = parse_speechskip_style(CfgReadString(cfg, "access", "textskip"));
+    setup.Access.TextReadSpeed = CfgReadInt(cfg, "access", "textreadspeed");
+}
 
-        // Accessibility settings
-        usetup.Access.SpeechSkipStyle = parse_speechskip_style(CfgReadString(cfg, "access", "speechskip"));
-        usetup.Access.TextSkipStyle = parse_speechskip_style(CfgReadString(cfg, "access", "textskip"));
-        usetup.Access.TextReadSpeed = CfgReadInt(cfg, "access", "textreadspeed");
-    }
+void apply_config(const ConfigTree &cfg, GameSetup &setup)
+{
+    const Size &desktop_res = get_desktop_size();
+
+    load_common_config(cfg, setup, desktop_res);
+
+    //
+    // Additional config applied by the engine
+    //
+
+    read_legacy_meta_config(cfg, setup);
+
+    // Mouse control options
+    String mouse_str = CfgReadString(cfg, "mouse", "control_when", "fullscreen");
+    setup.MouseCtrlWhen = StrUtil::ParseEnum<MouseControlWhen>(
+        mouse_str, CstrArr<kNumMouseCtrlOptions>{ "never", "fullscreen", "always" },
+            setup.MouseCtrlWhen);
+    setup.MouseCtrlEnabled = CfgReadBoolInt(cfg, "mouse", "control_enabled", setup.MouseCtrlEnabled);
+    mouse_str = CfgReadString(cfg, "mouse", "speed_def", "current_display");
+    setup.MouseSpeedDef = StrUtil::ParseEnum<MouseSpeedDef>(
+        mouse_str, CstrArr<kNumMouseSpeedDefs>{ "absolute", "current_display" }, setup.MouseSpeedDef);
+
+    // User's overrides and hacks
+    setup.Override.Multitasking = CfgReadInt(cfg, "override", "multitasking", -1);
+    setup.Override.NoPlugins = CfgReadBoolInt(cfg, "override", "noplugins", false);
+    String override_os = CfgReadString(cfg, "override", "os");
+    setup.Override.ScriptOS = StrUtil::ParseEnum<eScriptSystemOSID>(override_os,
+        CstrArr<eNumOS>{"", "dos", "win", "linux", "mac", "android", "ios", "psp", "web", "freebsd"}, eOS_Unknown);
+    setup.Override.UpscaleResolution = CfgReadBoolInt(cfg, "override", "upscale", setup.Override.UpscaleResolution);
+    setup.Override.KeySaveGame = CfgReadInt(cfg, "override", "save_game_key", 0);
+    setup.Override.KeyRestoreGame = CfgReadInt(cfg, "override", "restore_game_key", 0);
+    setup.Override.MaxSaveSlot = CfgReadInt(cfg, "override", "max_save", 0);
 
     // Apply logging configuration
     apply_debug_config(cfg, true);
 }
 
-void post_config()
+void post_config(GameSetup &setup)
 {
-    if (usetup.Display.DriverID.IsEmpty() || usetup.Display.DriverID.CompareNoCase("DX5") == 0)
+    if (setup.Display.DriverID.IsEmpty() || setup.Display.DriverID.CompareNoCase("DX5") == 0)
     {
-        usetup.Display.DriverID = "Software";
+        setup.Display.DriverID = "Software";
     }
 
-    if (usetup.Display.Filter.ID.IsEmpty() || usetup.Display.Filter.ID.CompareNoCase("none") == 0)
+    if (setup.Display.Filter.ID.IsEmpty() || setup.Display.Filter.ID.CompareNoCase("none") == 0)
     {
-        usetup.Display.Filter.ID = "StdScale";
+        setup.Display.Filter.ID = "StdScale";
     }
 }
 
-void save_config_file()
+void save_common_config(const GameConfig &setup, ConfigTree &cfg, const Size &game_res, const Size &desktop_res)
+{
+    CfgWriteString(cfg, "misc", "user_data_dir", setup.UserSaveDir);
+    CfgWriteString(cfg, "misc", "shared_data_dir", setup.AppDataDir);
+
+    CfgWriteString(cfg, "graphics", "driver", setup.Display.DriverID);
+    CfgWriteString(cfg, "graphics", "filter", setup.Display.Filter.ID);
+    CfgWriteString(cfg, "graphics", "fullscreen", make_window_mode_option(setup.Display.FsSetup, game_res, desktop_res));
+    CfgWriteString(cfg, "graphics", "window", make_window_mode_option(setup.Display.WinSetup, game_res, desktop_res));
+    CfgWriteString(cfg, "graphics", "game_scale_fs", make_scaling_option(setup.Display.FsGameFrame));
+    CfgWriteString(cfg, "graphics", "game_scale_win", make_scaling_option(setup.Display.WinGameFrame));
+    CfgWriteInt(cfg, "graphics", "windowed", setup.Display.Windowed ? 1 : 0);
+    CfgWriteInt(cfg, "graphics", "refresh", setup.Display.RefreshRate);
+    CfgWriteInt(cfg, "graphics", "vsync", setup.Display.VSync ? 1 : 0);
+    CfgWriteInt(cfg, "graphics", "render_at_screenres", setup.RenderAtScreenRes ? 1 : 0);
+    CfgWriteInt(cfg, "graphics", "antialias", setup.AntialiasSprites ? 1 : 0);
+
+    CfgWriteInt(cfg, "sound", "enabled", setup.AudioEnabled ? 1 : 0);
+    CfgWriteString(cfg, "sound", "driver", setup.AudioDriverID);
+    CfgWriteInt(cfg, "sound", "usespeech", setup.UseVoicePack ? 1 : 0);
+
+    CfgWriteInt(cfg, "mouse", "auto_lock", setup.MouseAutoLock ? 1 : 0);
+    CfgWriteFloat(cfg, "mouse", "speed", setup.MouseSpeed, 1);
+
+    CfgWriteInt(cfg, "graphics", "sprite_cache_size", setup.SpriteCacheSize);
+    CfgWriteInt(cfg, "graphics", "texture_cache_size", setup.TextureCacheSize);
+    CfgWriteInt(cfg, "sound", "cache_size", setup.SoundCacheSize);
+    CfgWriteString(cfg, "language", "translation", setup.Translation);
+
+    CfgWriteString(cfg, "access", "speechskip", make_speechskip_option(setup.Access.SpeechSkipStyle));
+    CfgWriteString(cfg, "access", "textskip", make_speechskip_option(setup.Access.TextSkipStyle));
+    CfgWriteInt(cfg, "access", "textreadspeed", setup.Access.TextReadSpeed);
+}
+
+void save_runtime_config_file()
 {
     ConfigTree cfg;
     // Last display mode

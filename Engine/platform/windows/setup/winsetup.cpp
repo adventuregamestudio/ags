@@ -119,8 +119,8 @@ INT_PTR WinSetupDialog::OnInitDialog()
 
     _desktopSize = get_desktop_size();
 
-    _winCfg.Load(_defCfgIn, _desktopSize);
-    _winCfg.Load(_cfgIn, _desktopSize);
+    _winCfg.LoadMeta(_defCfgIn);
+    _winCfg.LoadCommon(_cfgIn, _desktopSize);
 
     // Resolution controls
     if (_winCfg.GameResolution.IsNull() &&
@@ -197,7 +197,7 @@ void WinSetupDialog::OnResetToDefaults()
         return;
 
     _winCfg.SetDefaults();
-    _winCfg.Load(_defCfgIn, _desktopSize);
+    _winCfg.LoadCommon(_defCfgIn, _desktopSize);
     for (auto &p : _pages)
         p->ResetSetup();
 }

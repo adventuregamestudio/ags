@@ -1084,9 +1084,9 @@ void engine_prepare_config(ConfigTree &cfg, ConfigTree *def_cfg, const ConfigTre
 // Applies configuration to the running game
 void engine_set_config(const ConfigTree cfg)
 {
-    config_defaults();
-    apply_config(cfg);
-    post_config();
+    config_defaults(usetup);
+    apply_config(cfg, usetup);
+    post_config(usetup);
 }
 
 //

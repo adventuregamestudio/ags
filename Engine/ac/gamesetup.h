@@ -95,6 +95,9 @@ struct GameConfig
     bool    RenderAtScreenRes    = false; // render sprites at screen resolution, as opposed to native one
     bool    AntialiasSprites     = false;  // apply AA (linear) scaling to game sprites, regardless of final filter
 
+    // For mobile devices
+    ScreenRotation Rotation      = kScreenRotation_Unlocked; // how to display the game on mobile screen
+
     // Audio options
     bool    AudioEnabled         = false;
     String  AudioDriverID;
@@ -103,6 +106,9 @@ struct GameConfig
     // Control options
     bool    MouseAutoLock        = false;
     float   MouseSpeed           = 1.f;
+    // Touch-to-mouse emulation mode (how the touches are handled overall)
+    TouchMouseEmulation TouchEmulateMouse = kTouchMouse_None; // touch-to-mouse style
+    bool    TouchMotionRelative = false; // touch control abs/relative mode
 
     // Cache options
     size_t  SpriteCacheSize      = DefSpriteCacheSize; // in KB
@@ -119,10 +125,14 @@ struct GameConfig
     String  UserSaveDir;  // directory to write savedgames and user files to
     String  AppDataDir;   // directory to write shared game files to
 
+    // Misc engine options
+    bool    LoadLatestSave       = false; // load latest saved game on launch
+    bool    ClearCacheOnRoomChange = false; // for low-end devices: clear resource caches on room change
+    bool    RunInBackground      = false; // whether run on background, when game is switched out
+    bool    ShowFps              = false;
+
     // Accessibility options
     AccessibilityGameConfig Access;
-    // User's overrides and hacks
-    OverrideGameConfig Override;
 
     GameConfig() = default;
 };
@@ -153,18 +163,8 @@ struct GameSetup : public GameConfig
     bool    MouseCtrlEnabled = false; // whether mouse control is to be enabled (applying speed)
     MouseSpeedDef MouseSpeedDef = kMouseSpeed_Absolute; // meaning of mouse speed (absolute vs relative)
 
-    // Touch-to-mouse emulation mode (how the touches are handled overall)
-    TouchMouseEmulation TouchEmulateMouse = kTouchMouse_None; // touch-to-mouse style
-    bool    TouchMotionRelative = false; // touch control abs/relative mode
-
-    // For mobile devices
-    ScreenRotation Rotation = kScreenRotation_Unlocked; // how to display the game on mobile screen
-
-    // Misc engine options
-    bool    LoadLatestSave = false; // load latest saved game on launch
-    bool    ClearCacheOnRoomChange = false; // for low-end devices: clear resource caches on room change
-    bool    RunInBackground = false; // whether run on background, when game is switched out
-    bool    ShowFps = false;
+    // User's overrides and hacks
+    OverrideGameConfig Override;
 
     GameSetup() = default;
 };

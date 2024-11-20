@@ -71,11 +71,8 @@ void WinConfig::SetDefaults()
     AppDataDir = ".";
 }
 
-void WinConfig::Load(const ConfigTree &cfg, const Size &desktop_res)
+void WinConfig::LoadMeta(const ConfigTree &cfg)
 {
-    DataDirectory = CfgReadString(cfg, "misc", "datadir", DataDirectory);
-    UserSaveDir = CfgReadString(cfg, "misc", "user_data_dir");
-    AppDataDir = CfgReadString(cfg, "misc", "shared_data_dir");
     // Backward-compatible resolution type
     GameResType = (GameResolutionType)CfgReadInt(cfg, "gameproperties", "legacy_resolution", GameResType);
     if (GameResType < kGameResolution_Undefined || GameResType >= kNumGameResolutions)
@@ -85,81 +82,19 @@ void WinConfig::Load(const ConfigTree &cfg, const Size &desktop_res)
     GameColourDepth = CfgReadInt(cfg, "gameproperties", "resolution_bpp", GameColourDepth);
     LetterboxByDesign = CfgReadBoolInt(cfg, "gameproperties", "legacy_letterbox", false);
 
-    Display.DriverID = CfgReadString(cfg, "graphics", "driver", Display.DriverID);
-    Display.Filter.ID = CfgReadString(cfg, "graphics", "filter", Display.Filter.ID);
-    Display.FsSetup = parse_window_mode(CfgReadString(cfg, "graphics", "fullscreen", "default"), false,
-        GameResolution, desktop_res);
-    Display.WinSetup = parse_window_mode(CfgReadString(cfg, "graphics", "window", "default"), true,
-        GameResolution, desktop_res);
-
-    Display.FsGameFrame = parse_scaling_option(CfgReadString(cfg, "graphics", "game_scale_fs"), Display.FsGameFrame);
-    Display.WinGameFrame = parse_scaling_option(CfgReadString(cfg, "graphics", "game_scale_win"), Display.WinGameFrame);
-
-    Display.Windowed = CfgReadBoolInt(cfg, "graphics", "windowed", Display.Windowed);
-    Display.RefreshRate = CfgReadInt(cfg, "graphics", "refresh", Display.RefreshRate);
-    Display.VSync = CfgReadBoolInt(cfg, "graphics", "vsync", Display.VSync);
-    int locked_render_at_screenres = CfgReadInt(cfg, "gameproperties", "render_at_screenres", -1);
-    if (locked_render_at_screenres < 0)
-        RenderAtScreenRes = CfgReadInt(cfg, "graphics", "render_at_screenres", RenderAtScreenRes ? 1 : 0) != 0;
-    else
-        RenderAtScreenRes = locked_render_at_screenres != 0;
-    AntialiasSprites = CfgReadInt(cfg, "graphics", "antialias", AntialiasSprites ? 1 : 0) != 0;
-
-    AudioEnabled = CfgReadBoolInt(cfg, "sound", "enabled", AudioEnabled);
-    AudioDriverID = CfgReadString(cfg, "sound", "driver", AudioDriverID);
-    UseVoicePack = CfgReadBoolInt(cfg, "sound", "usespeech", UseVoicePack);
-
-    MouseAutoLock = CfgReadBoolInt(cfg, "mouse", "auto_lock", MouseAutoLock);
-    MouseSpeed = CfgReadFloat(cfg, "mouse", "speed", 1.f);
-    if (MouseSpeed <= 0.f)
-        MouseSpeed = 1.f;
-
-    SpriteCacheSize = CfgReadInt(cfg, "graphics", "sprite_cache_size", SpriteCacheSize);
-    TextureCacheSize = CfgReadInt(cfg, "graphics", "texture_cache_size", TextureCacheSize);
-    SoundCacheSize = CfgReadInt(cfg, "sound", "cache_size", SoundCacheSize);
-    Translation = CfgReadString(cfg, "language", "translation", Translation);
-    DefaultLanguageName = CfgReadString(cfg, "language", "default_translation_name", DefaultLanguageName);
-
-    // Accessibility settings
-    Access.SpeechSkipStyle = parse_speechskip_style(CfgReadString(cfg, "access", "speechskip"), Access.SpeechSkipStyle);
-    Access.TextSkipStyle = parse_speechskip_style(CfgReadString(cfg, "access", "textskip"), Access.TextSkipStyle);
-    Access.TextReadSpeed = CfgReadInt(cfg, "access", "textreadspeed", Access.TextReadSpeed);
-
+    // Setup program meta
     Title = CfgReadString(cfg, "misc", "titletext", Title);
+    DefaultLanguageName = CfgReadString(cfg, "language", "default_translation_name", DefaultLanguageName);
+}
+
+void WinConfig::LoadCommon(const ConfigTree &cfg, const Size &desktop_res)
+{
+    load_common_config(cfg, *this, desktop_res);
 }
 
 void WinConfig::Save(ConfigTree &cfg, const Size &desktop_res) const
 {
-    CfgWriteString(cfg, "misc", "user_data_dir", UserSaveDir);
-    CfgWriteString(cfg, "misc", "shared_data_dir", AppDataDir);
-
-    CfgWriteString(cfg, "graphics", "driver", Display.DriverID);
-    CfgWriteString(cfg, "graphics", "filter", Display.Filter.ID);
-    CfgWriteString(cfg, "graphics", "fullscreen", make_window_mode_option(Display.FsSetup, GameResolution, desktop_res));
-    CfgWriteString(cfg, "graphics", "window", make_window_mode_option(Display.WinSetup, GameResolution, desktop_res));
-    CfgWriteString(cfg, "graphics", "game_scale_fs", make_scaling_option(Display.FsGameFrame));
-    CfgWriteString(cfg, "graphics", "game_scale_win", make_scaling_option(Display.WinGameFrame));
-    CfgWriteInt(cfg, "graphics", "windowed", Display.Windowed ? 1 : 0);
-    CfgWriteInt(cfg, "graphics", "refresh", Display.RefreshRate);
-    CfgWriteInt(cfg, "graphics", "vsync", Display.VSync ? 1 : 0);
-    CfgWriteInt(cfg, "graphics", "render_at_screenres", RenderAtScreenRes ? 1 : 0);
-    CfgWriteInt(cfg, "graphics", "antialias", AntialiasSprites ? 1 : 0);
-
-    CfgWriteInt(cfg, "sound", "enabled", AudioEnabled ? 1 : 0);
-    CfgWriteString(cfg, "sound", "driver", AudioDriverID);
-    CfgWriteInt(cfg, "sound", "usespeech", UseVoicePack ? 1 : 0);
-
-    CfgWriteInt(cfg, "mouse", "auto_lock", MouseAutoLock ? 1 : 0);
-    CfgWriteFloat(cfg, "mouse", "speed", MouseSpeed, 1);
-
-    CfgWriteInt(cfg, "graphics", "sprite_cache_size", SpriteCacheSize);
-    CfgWriteInt(cfg, "graphics", "texture_cache_size", TextureCacheSize);
-    CfgWriteInt(cfg, "sound", "cache_size", SoundCacheSize);
-    CfgWriteString(cfg, "language", "translation", Translation);
-
-    CfgWriteString(cfg, "access", "speechskip", make_speechskip_option(Access.SpeechSkipStyle));
-    CfgWriteString(cfg, "access", "textskip", make_speechskip_option(Access.TextSkipStyle));
-    CfgWriteInt(cfg, "access", "textreadspeed", Access.TextReadSpeed);
+    save_common_config(*this, cfg, GameResolution, desktop_res);
 }
 
 //=============================================================================

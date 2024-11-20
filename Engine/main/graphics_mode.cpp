@@ -98,14 +98,14 @@ bool create_gfx_driver(const String &gfx_driver_id)
 // Set requested graphics filter, or default filter if the requested one failed
 bool graphics_mode_set_filter_any(const GfxFilterSetup &setup)
 {
-    Debug::Printf("Requested gfx filter: %s", setup.UserRequest.GetCStr());
+    Debug::Printf("Requested gfx filter: %s", setup.ID.GetCStr());
     if (!graphics_mode_set_filter(setup.ID))
     {
         String def_filter = GfxFactory->GetDefaultFilterID();
         if (def_filter.CompareNoCase(setup.ID) == 0)
             return false;
         Debug::Printf(kDbgMsg_Error, "Failed to apply gfx filter: %s; will try to use factory default filter '%s' instead",
-                setup.UserRequest.GetCStr(), def_filter.GetCStr());
+                setup.ID.GetCStr(), def_filter.GetCStr());
         if (!graphics_mode_set_filter(def_filter))
             return false;
     }
@@ -404,7 +404,7 @@ void display_gfx_mode_error(const Size &game_size, const WindowSetup &ws, const 
             ws.Size.Width, ws.Size.Height, color_depth, game_size.Width, game_size.Height, filter ? filter->GetInfo().Id.GetCStr() : "Undefined");
     else
         main_error.Format("There was a problem finding and/or creating valid graphics mode for game size %d x %d (%d-bit) and requested filter '%s'.",
-            game_size.Width, game_size.Height, color_depth, filter_setup.UserRequest.IsEmpty() ? "Undefined" : filter_setup.UserRequest.GetCStr());
+            game_size.Width, game_size.Height, color_depth, filter_setup.ID.IsEmpty() ? "Undefined" : filter_setup.ID.GetCStr());
 
     platform->DisplayAlert("%s\n"
             "(Problem: '%s')\n"

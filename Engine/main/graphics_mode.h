@@ -55,8 +55,7 @@ enum WindowSizeHint
 // Filter configuration
 struct GfxFilterSetup
 {
-    String ID;          // internal filter ID
-    String UserRequest; // filter name, requested by user
+    String ID;          // filter ID
 };
 
 // Defines how game frame is scaled inside a larger window

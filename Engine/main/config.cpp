@@ -443,11 +443,10 @@ void apply_config(const ConfigTree &cfg)
 void post_config()
 {
     if (usetup.Screen.DriverID.IsEmpty() || usetup.Screen.DriverID.CompareNoCase("DX5") == 0)
+    {
         usetup.Screen.DriverID = "Software";
+    }
 
-    // FIXME: this correction is needed at the moment because graphics driver
-    // implementation requires some filter to be created anyway
-    usetup.Screen.Filter.UserRequest = usetup.Screen.Filter.ID;
     if (usetup.Screen.Filter.ID.IsEmpty() || usetup.Screen.Filter.ID.CompareNoCase("none") == 0)
     {
         usetup.Screen.Filter.ID = "StdScale";

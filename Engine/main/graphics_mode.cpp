@@ -379,7 +379,7 @@ static bool simple_create_gfx_driver_and_init_mode(const String &gfx_driver_id,
     const FrameScaleDef frame = setup.Windowed ? setup.WinGameFrame : setup.FsGameFrame;
 
     DisplayMode dm(GraphicResolution(game_res.Width, game_res.Height, col_depth),
-        ws.Mode, setup.Params.RefreshRate, setup.Params.VSync);
+        ws.Mode, setup.RefreshRate, setup.VSync);
 
     if (!graphics_mode_set_dm(dm)) { return false; }
     if (!graphics_mode_set_native_res(dm)) { return false; }

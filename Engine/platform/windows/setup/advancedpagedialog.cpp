@@ -93,7 +93,7 @@ INT_PTR AdvancedPageDialog::OnInitDialog()
         CfgReadInt(_cfgIn, "gameproperties", "render_at_screenres", -1) >= 0)
         EnableWindow(_hRenderAtScreenRes, FALSE);
 
-    ResetSetup();
+    ResetSetup(_cfgIn);
 
     _isInit = true;
     return FALSE; // notify WinAPI that we set focus ourselves
@@ -148,7 +148,7 @@ void AdvancedPageDialog::UpdateMouseSpeedText()
     SetText(_hMouseSpeedText, STR(text));
 }
 
-void AdvancedPageDialog::ResetSetup()
+void AdvancedPageDialog::ResetSetup(const ConfigTree & /*cfg_from*/)
 {
     SetCheck(_hVSync, _winCfg.Display.VSync);
     SetCheck(_hRenderAtScreenRes, _winCfg.RenderAtScreenRes);
@@ -238,7 +238,7 @@ INT_PTR CustomPathsPageDialog::OnInitDialog()
     _hCustomAppDataDirBtn   = GetDlgItem(_hwnd, IDC_CUSTOMAPPDATADIRBTN);
     _hCustomAppDataDirCheck = GetDlgItem(_hwnd, IDC_CUSTOMAPPDATADIRCHECK);
 
-    ResetSetup();
+    ResetSetup(_cfgIn);
 
     _isInit = true;
     return FALSE; // notify WinAPI that we set focus ourselves
@@ -315,7 +315,7 @@ static String SaveCustomDirSetup(const String &def_dir, HWND dir_check, HWND dir
     }
 }
 
-void CustomPathsPageDialog::ResetSetup()
+void CustomPathsPageDialog::ResetSetup(const ConfigTree & /*cfg_from*/)
 {
     // Custom save dir controls
     SetupCustomDirCtrl(_winCfg.UserSaveDir, _winCfg.DataDirectory,
@@ -365,7 +365,7 @@ INT_PTR AccessibilityPageDialog::OnInitDialog()
         EnableWindow(_hEnableAccess, FALSE);
     }
 
-    ResetSetup();
+    ResetSetup(_cfgIn);
 
     _isInit = true;
     return FALSE; // notify WinAPI that we set focus ourselves
@@ -421,9 +421,16 @@ void AccessibilityPageDialog::UpdateTextReadSpeed()
     SetText(_hTextReadSpeedText, STR(text));
 }
 
-void AccessibilityPageDialog::ResetSetup()
+void AccessibilityPageDialog::ResetSetup(const ConfigTree &cfg_from)
 {
-    SetCheck(_hEnableAccess, CfgReadBoolInt(_cfgIn, "winsetup", "access_page_on") ? TRUE : FALSE);
+    bool enable_access = CfgReadBoolInt(cfg_from, "winsetup", "access_page_on")
+    // Also test if there's any option with non-default value
+        || (_winCfg.Access.SpeechSkipStyle != kSkipSpeechNone)
+        || (_winCfg.Access.TextSkipStyle != kSkipSpeechNone)
+        || (_winCfg.Access.TextReadSpeed > 0)
+        ;
+
+    SetCheck(_hEnableAccess, enable_access ? TRUE : FALSE);
     OnEnableAccessCheck();
 
     SetCurSelToItemData(_hSpeechSkipStyle, _winCfg.Access.SpeechSkipStyle);
@@ -440,7 +447,7 @@ void AccessibilityPageDialog::SaveSetup()
 
     const bool enable = GetCheck(_hEnableAccess);
     CfgWriteBoolInt(_cfgOut, "winsetup", "access_page_on", enable);
-    
+
     if (enable)
     {
         _winCfg.Access.SpeechSkipStyle = (SkipSpeechStyle)GetCurItemData(_hSpeechSkipStyle, kSkipSpeechNone);

@@ -75,7 +75,7 @@ public:
         , _cfgIn(cfg_in)
     {}
 
-    virtual void ResetSetup() { /* do nothing */ };
+    virtual void ResetSetup(const ConfigTree &cfg_from) { /* do nothing */ };
     virtual void SaveSetup() { /* do nothing */ };
 
 protected:
@@ -97,7 +97,7 @@ public:
 
     String GetTitle() const override { return "Basic"; }
 
-    void ResetSetup() override;
+    void ResetSetup(const ConfigTree &cfg_from) override;
     void SaveSetup() override;
 
 protected:

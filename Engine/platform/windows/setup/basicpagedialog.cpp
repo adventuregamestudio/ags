@@ -143,7 +143,7 @@ INT_PTR BasicPageDialog::OnInitDialog()
         EnableWindow(_hGfxModeList, FALSE);
     }
 
-    ResetSetup();
+    ResetSetup(_cfgIn);
 
     _isInit = true;
     return FALSE; // notify WinAPI that we set focus ourselves
@@ -513,7 +513,7 @@ void BasicPageDialog::SelectNearestGfxMode(const WindowSetup &ws)
     OnGfxModeUpdate();
 }
 
-void BasicPageDialog::ResetSetup()
+void BasicPageDialog::ResetSetup(const ConfigTree & /*cfg_from*/)
 {
     SetCurSelToItemDataStr(_hGfxDriverList, _winCfg.Display.DriverID.GetCStr(), 0);
     SetCheck(_hFullscreenDesktop, _winCfg.Display.FsSetup.Mode == kWnd_FullDesktop);

@@ -199,7 +199,7 @@ void WinSetupDialog::OnResetToDefaults()
     _winCfg.SetDefaults();
     _winCfg.LoadCommon(_defCfgIn, _desktopSize);
     for (auto &p : _pages)
-        p->ResetSetup();
+        p->ResetSetup(_defCfgIn);
 }
 
 void WinSetupDialog::SaveSetup()

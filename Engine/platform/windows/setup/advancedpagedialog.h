@@ -40,7 +40,7 @@ public:
 
     String GetTitle() const override { return "Advanced"; }
 
-    void ResetSetup() override;
+    void ResetSetup(const ConfigTree &cfg_from) override;
     void SaveSetup() override;
 
 protected:
@@ -89,7 +89,7 @@ public:
 
     String GetTitle() const override { return "Custom Paths"; }
 
-    void ResetSetup() override;
+    void ResetSetup(const ConfigTree &cfg_from) override;
     void SaveSetup() override;
 
 protected:
@@ -130,7 +130,7 @@ public:
 
     String GetTitle() const override { return "Accessibility"; }
 
-    void ResetSetup() override;
+    void ResetSetup(const ConfigTree &cfg_from) override;
     void SaveSetup() override;
 
 protected:

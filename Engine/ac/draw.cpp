@@ -1695,7 +1695,7 @@ static Bitmap *transform_sprite(Bitmap *src, bool src_has_alpha, std::unique_ptr
         {
             Bitmap tempbmp;
             tempbmp.CreateTransparent(dst_sz.Width, dst_sz.Height, src->GetColorDepth());
-            if ((IS_ANTIALIAS_SPRITES) && !src_has_alpha)
+            if (play.ShouldAASprites() && !src_has_alpha)
                 tempbmp.AAStretchBlt(src, RectWH(dst_sz), kBitmap_Transparency);
             else
                 tempbmp.StretchBlt(src, RectWH(dst_sz), kBitmap_Transparency);
@@ -1703,7 +1703,7 @@ static Bitmap *transform_sprite(Bitmap *src, bool src_has_alpha, std::unique_ptr
         }
         else
         {
-            if ((IS_ANTIALIAS_SPRITES) && !src_has_alpha)
+            if (play.ShouldAASprites() && !src_has_alpha)
                 dst->AAStretchBlt(src, RectWH(dst_sz), kBitmap_Transparency);
             else
                 dst->StretchBlt(src, RectWH(dst_sz), kBitmap_Transparency);
@@ -2729,7 +2729,7 @@ void construct_game_scene(bool full_redraw)
     // React to changes to viewports and cameras (possibly from script) just before the render
     play.UpdateViewports();
 
-    gfxDriver->UseSmoothScaling(IS_ANTIALIAS_SPRITES);
+    gfxDriver->UseSmoothScaling(play.ShouldAASprites());
     gfxDriver->RenderSpritesAtScreenResolution(usetup.RenderAtScreenRes);
 
     pl_run_plugin_hooks(AGSE_PRERENDER, 0);

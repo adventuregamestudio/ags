@@ -536,6 +536,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     //
     // 4. Initialize certain runtime variables
     //
+    // TODO: merge this with engine_init_game_settings()
     game_paused = 0;  // reset the game paused flag
     ifacepopped = -1;
 
@@ -547,6 +548,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     play.score_sound = game.scoreClipID;
     play.fade_effect = game.options[OPT_FADETYPE];
     play.std_gui_textheight = get_font_height_outlined(0) + 1;
+    play.enable_antialiasing = usetup.enable_antialiasing;
 
     //
     // 5. Initialize runtime state of certain game objects

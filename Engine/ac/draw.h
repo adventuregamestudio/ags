@@ -32,8 +32,6 @@ namespace AGS
 }
 using namespace AGS; // FIXME later
 
-#define IS_ANTIALIAS_SPRITES usetup.enable_antialiasing && (play.disable_antialiasing == 0)
-
 // Render stage flags, for filtering out certain elements
 // during room transitions, capturing screenshots, etc.
 // NOTE: these values are matched by ones in a script API,

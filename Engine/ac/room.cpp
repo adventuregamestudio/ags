@@ -696,7 +696,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     }
 
     set_our_eip(210);
-    if (IS_ANTIALIAS_SPRITES) {
+    if (play.ShouldAASprites()) {
         // sometimes the palette has corrupt entries, which crash
         // the create_rgb_table call
         // so, fix them

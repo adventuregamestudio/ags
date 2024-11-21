@@ -206,7 +206,7 @@ struct AGSEvent
 };
 
 void run_claimable_event(const AGS::Common::String &tsname, bool includeRoom, int numParams, const RuntimeScriptValue *params, bool *eventWasClaimed);
-// runs the global script on_event function, passing up to 2 integer parameters
+// runs the global script on_event function, passing a number of integer parameters
 void run_on_event(AGSScriptEventType evtype, int data1 = 0, int data2 = 0, int data3 = 0, int data4 = 0);
 void run_room_event(int id);
 // event list functions

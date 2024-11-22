@@ -382,6 +382,19 @@ void DoBeforeRestore(PreservedParams &pp, SaveCmpSelection select_cmp)
     }
 }
 
+void FillPreservedParams(PreservedParams &pp)
+{
+    // preserve script data sizes
+    pp.GlScDataSize = gameinst->globaldatasize;
+    pp.ScriptModuleNames.resize(numScriptModules);
+    pp.ScMdDataSize.resize(numScriptModules);
+    for (size_t i = 0; i < numScriptModules; ++i)
+    {
+        pp.ScriptModuleNames[i] = moduleInst[i]->instanceof->GetScriptName();
+        pp.ScMdDataSize[i] = moduleInst[i]->globaldatasize;
+    }
+}
+
 static HSaveError RestoreAudio(const RestoredData &r_data)
 {
     // recache queued clips
@@ -540,7 +553,9 @@ static void ValidateDynamicSprite(int handle, IScriptObject *obj)
 // Call a scripting event to let user validate the restored save
 static HSaveError ValidateRestoredSave(const SavegameDescription &save_desc, const RestoredData &r_data, SaveRestoreFeedback &feedback)
 {
-    auto *saveinfo = new ScriptRestoredSaveInfo(r_data.Result.RestoreFlags, save_desc, r_data.DataCounts,
+    auto *saveinfo = new ScriptRestoredSaveInfo(
+        (SaveRestorationFlags)(r_data.Result.RestoreFlags & kSaveRestore_ResultMask),
+        save_desc, r_data.DataCounts,
         (r_data.Result.RestoreFlags & kSaveRestore_MismatchMask) != 0);
     int handle = ccRegisterManagedObject(saveinfo, saveinfo);
     ccAddObjectReference(handle); // add internal ref
@@ -652,10 +667,10 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
     const Rect mouse_bounds = play.mbounds;
 
     // load the room the game was saved in
+    displayed_room = r_data.Room;
     if (displayed_room >= 0)
     {
         load_new_room(displayed_room, nullptr);
-        r_data.DataCounts.RoomScriptDataSz = croom->tsdatasize;
     }
     else
     {
@@ -803,6 +818,38 @@ HSaveError RestoreGameState(Stream *in, const SavegameDescription &desc, const R
     if (!err)
         return err;
     return DoAfterRestore(pp, r_data, select_cmp);
+}
+
+HSaveError PrescanSaveState(Stream *in, const SavegameDescription &desc,
+    const RestoreGameStateOptions &options)
+{
+    SaveCmpSelection select_cmp = FixupCmpSelection(options.SelectedComponents);
+    const bool has_validate_cb = DoesScriptFunctionExistInModules("validate_restored_save");
+
+    PreservedParams pp(desc);
+    RestoredData r_data;
+    FillPreservedParams(pp);
+
+    // Mark the clear game data state for restoration process
+    r_data.Result.RestoreFlags = (SaveRestorationFlags)(
+          (kSaveRestore_ClearData) // always tell that the game data is reset for prescanning
+        | (kSaveRestore_AllowMismatchLess * has_validate_cb) // allow less data in saves
+        );
+
+    HSaveError err = SavegameComponents::PrescanAll(in, options.SaveVersion, select_cmp, pp, r_data);
+    if (!err)
+    {
+        return err;
+    }
+
+    if (has_validate_cb)
+    {
+        // After we have prescanned and gathered save info,
+        // call a "validate" script callback, to let user check the restored save
+        // and make final decision: whether it is considered compatible or not.
+        err = ValidateRestoredSave(pp.Desc, r_data, r_data.Result.Feedback);
+    }
+    return err;
 }
 
 void WriteSaveImage(Stream *out, const Bitmap *screenshot)
@@ -1098,9 +1145,9 @@ int SaveInfo_GetScriptModuleDataSize(ScriptRestoredSaveInfo *info, int index)
     return info->GetCounts().ScriptModuleDataSz[index];
 }
 
-int SaveInfo_GetRoomScriptDataSize(ScriptRestoredSaveInfo *info)
+int SaveInfo_GetRoom(ScriptRestoredSaveInfo *info)
 {
-    return info->GetCounts().RoomScriptDataSz;
+    return info->GetCounts().Room;
 }
 
 RuntimeScriptValue Sc_SaveInfo_GetCancel(void *self, const RuntimeScriptValue *params, int32_t param_count)
@@ -1208,9 +1255,9 @@ RuntimeScriptValue Sc_SaveInfo_GetScriptModuleDataSize(void *self, const Runtime
     API_OBJCALL_INT_PINT(ScriptRestoredSaveInfo, SaveInfo_GetScriptModuleDataSize);
 }
 
-RuntimeScriptValue Sc_SaveInfo_GetRoomScriptDataSize(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_SaveInfo_GetRoom(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptRestoredSaveInfo, SaveInfo_GetRoomScriptDataSize);
+    API_OBJCALL_INT(ScriptRestoredSaveInfo, SaveInfo_GetRoom);
 }
 
 void RegisterSaveInfoAPI()
@@ -1237,7 +1284,7 @@ void RegisterSaveInfoAPI()
         { "RestoredSaveInfo::get_GlobalScriptDataSize", API_FN_PAIR(SaveInfo_GetGlobalScriptDataSize) },
         { "RestoredSaveInfo::get_ScriptModuleCount",    API_FN_PAIR(SaveInfo_GetScriptModuleCount) },
         { "RestoredSaveInfo::geti_ScriptModuleDataSize",API_FN_PAIR(SaveInfo_GetScriptModuleDataSize) },
-        { "RestoredSaveInfo::get_RoomScriptDataSize",   API_FN_PAIR(SaveInfo_GetRoomScriptDataSize) },
+        { "RestoredSaveInfo::get_Room",                 API_FN_PAIR(SaveInfo_GetRoom) },
     };
 
     ccAddExternalFunctions(saveinfo_api);

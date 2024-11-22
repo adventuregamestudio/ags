@@ -258,16 +258,17 @@ int LoadSaveSlotScreenshot(int slnum, int width, int height) {
     return add_dynamic_sprite(std::move(screenshot));
 }
 
-void FillSaveList(std::vector<SaveListItem> &saves, unsigned bot_index, unsigned top_index, size_t max_count)
+void FillSaveList(std::vector<SaveListItem> &saves, unsigned bot_index, unsigned top_index, bool get_description)
 {
-    if (max_count == 0)
+    if (top_index < bot_index)
         return; // duh
 
-    String svg_dir = get_save_game_directory();
-    String svg_suff = get_save_game_suffix();
-    String pattern = String::FromFormat("agssave.???%s", svg_suff.GetCStr());
     bot_index = std::min(999u, bot_index); // NOTE: slots are limited by 0..999 range
     top_index = std::min(999u, top_index);
+
+    const String svg_dir = get_save_game_directory();
+    const String svg_suff = get_save_game_suffix();
+    const String pattern = String::FromFormat("agssave.???%s", svg_suff.GetCStr());
 
     for (FindFile ff = FindFile::OpenFiles(svg_dir, pattern); !ff.AtEnd(); ff.Next())
     {
@@ -280,20 +281,70 @@ void FillSaveList(std::vector<SaveListItem> &saves, unsigned bot_index, unsigned
             || static_cast<unsigned>(saveGameSlot) > top_index)
             continue;
         String description;
-        GetSaveSlotDescription(saveGameSlot, description);
+        if (get_description)
+            GetSaveSlotDescription(saveGameSlot, description);
         saves.push_back(SaveListItem(saveGameSlot, description, ff.GetEntry().Time));
-        if (saves.size() >= max_count)
-            break;
     }
+}
+
+static void SortSaveList(std::vector<SaveListItem> &saves, ScriptSaveGameSortStyle save_sort, ScriptSortDirection sort_dir)
+{
+    const bool ascending = (sort_dir != kScSortDescending) || (save_sort == kScSaveGameSort_None);
+    switch (save_sort)
+    {
+    case kScSaveGameSort_Number:
+        if (ascending)
+            std::sort(saves.begin(), saves.end(), SaveItemCmpByNumber());
+        else
+            std::sort(saves.rbegin(), saves.rend(), SaveItemCmpByNumber());
+        break;
+    case kScSaveGameSort_Time:
+        if (ascending)
+            std::sort(saves.begin(), saves.end(), SaveItemCmpByTime());
+        else
+            std::sort(saves.rbegin(), saves.rend(), SaveItemCmpByTime());
+        break;
+    case kScSaveGameSort_Description:
+        if (ascending)
+            std::sort(saves.begin(), saves.end(), SaveItemCmpByDesc());
+        else
+            std::sort(saves.rbegin(), saves.rend(), SaveItemCmpByDesc());
+        break;
+    default: break;
+    }
+}
+
+void FillSaveList(std::vector<SaveListItem> &saves, unsigned bot_index, unsigned top_index, bool get_description, ScriptSaveGameSortStyle save_sort, ScriptSortDirection sort_dir)
+{
+    FillSaveList(saves, bot_index, top_index, get_description);
+    SortSaveList(saves, save_sort, sort_dir);
+}
+
+void FillSaveList(const std::vector<int> &slots, std::vector<SaveListItem> &saves, bool get_description, ScriptSaveGameSortStyle save_sort, ScriptSortDirection sort_dir)
+{
+    for (const auto &slot : slots)
+    {
+        if (slot < 0 || slot > TOP_SAVESLOT)
+            continue; // unsupported save slot
+        String path = get_save_game_path(slot);
+        if (!File::IsFile(path))
+            continue; // file does not exist
+        String description;
+        if (get_description)
+            GetSaveSlotDescription(slot, description);
+        saves.push_back(SaveListItem(slot, description, File::GetFileTime(path)));
+    }
+
+    SortSaveList(saves, save_sort, sort_dir);
 }
 
 int GetLastSaveSlot()
 {
     std::vector<SaveListItem> saves;
-    FillSaveList(saves, 0, RESTART_POINT_SAVE_GAME_NUMBER - 1);
+    FillSaveList(saves, 0, RESTART_POINT_SAVE_GAME_NUMBER - 1, false /* no desc */);
     if (saves.size() == 0)
         return -1;
-    std::sort(saves.rbegin(), saves.rend());
+    std::sort(saves.rbegin(), saves.rend(), SaveItemCmpByTime()); // sort by time in reverse
     return saves[0].Slot;
 }
 

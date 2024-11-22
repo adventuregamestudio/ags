@@ -672,43 +672,43 @@ void post_script_cleanup()
     // run the queued post-script actions
     for (const auto &act : copyof.PostScriptActions)
     {
-        int thisData = act.Data;
+        const int data1 = act.Data[0];
 
         switch (act.Type)
         {
         case ePSANewRoom:
             // only change rooms when all scripts are done
             if (num_scripts == 0) {
-                new_room(thisData, playerchar);
+                new_room(data1, playerchar);
                 // don't allow any pending room scripts from the old room
                 // in run_another to be executed
                 return;
             }
             else
-                curscript->QueueAction(PostScriptAction(ePSANewRoom, thisData, "NewRoom"));
+                curscript->QueueAction(PostScriptAction(ePSANewRoom, data1, "NewRoom"));
             break;
         case ePSAInvScreen:
             invscreen();
             break;
         case ePSARestoreGame:
             cancel_all_scripts();
-            try_restore_save(thisData);
+            try_restore_save(data1);
             return;
         case ePSARestoreGameDialog:
-            restore_game_dialog2(thisData & 0xFFFF, (thisData >> 16));
+            restore_game_dialog2(data1 & 0xFFFF, (data1 >> 16));
             return;
         case ePSARunAGSGame:
             cancel_all_scripts();
-            load_new_game = thisData;
+            load_new_game = data1;
             return;
         case ePSARunDialog:
             if (is_in_dialog())
             {
-                set_dialog_result_goto(thisData);
+                set_dialog_result_goto(data1);
             }
             else
             {
-                do_conversation(thisData);
+                do_conversation(data1);
             }
             break;
         case ePSAStopDialog:
@@ -719,10 +719,13 @@ void post_script_cleanup()
             restart_game();
             return;
         case ePSASaveGame:
-            save_game(thisData, act.Description.GetCStr(), std::move(act.Image));
+            save_game(data1, act.Text, std::move(act.Image));
             break;
         case ePSASaveGameDialog:
-            save_game_dialog2(thisData & 0xFFFF, (thisData >> 16));
+            save_game_dialog2(data1 & 0xFFFF, (data1 >> 16));
+            break;
+        case ePSAScanSaves:
+            prescan_save_slots(act.Data[0], act.Data[1], act.Data[2], act.Data[3], act.Data[4], act.Data[5]);
             break;
         default:
             quitprintf("undefined post script action found: %d", act.Type);

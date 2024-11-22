@@ -706,6 +706,32 @@ void GUIMain::ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_version, st
     }
 }
 
+void GUIMain::SkipSavestate(Stream *in, GuiSvgVersion svg_version, std::vector<ControlRef> *ctrl_refs)
+{
+    if (svg_version < kGuiSvgVersion_350)
+        in->Seek(15 * sizeof(int32_t));
+    else
+        in->Seek(18 * sizeof(int32_t));
+
+    if (svg_version >= kGuiSvgVersion_36200)
+    {
+        if (!ctrl_refs)
+        {
+            in->Seek(in->ReadInt32() * sizeof(int32_t));
+            return;
+        }
+
+        uint32_t ctrl_count = in->ReadInt32();
+        ctrl_refs->resize(ctrl_count);
+        for (uint32_t i = 0; i < ctrl_count; ++i)
+        {
+            const uint32_t ref_packed = in->ReadInt32();
+            (*ctrl_refs)[i].first = (GUIControlType)((ref_packed >> 16) & 0xFFFF);
+            (*ctrl_refs)[i].second = ref_packed & 0xFFFF;
+        }
+    }
+}
+
 void GUIMain::WriteToSavegame(Common::Stream *out) const
 {
     // Properties

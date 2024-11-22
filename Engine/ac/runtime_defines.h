@@ -185,6 +185,15 @@ enum ScriptFileSortStyle
     kScFileSort_Time = 2, // by last write time
 };
 
+// Script API SaveGameSortStyle
+enum ScriptSaveGameSortStyle
+{
+    kScSaveGameSort_None        = 0, // undefined order
+    kScSaveGameSort_Number      = 1, // by slot number
+    kScSaveGameSort_Time        = 2, // by last write time
+    kScSaveGameSort_Description = 3, // by save description
+};
+
 enum eScriptSystemOSID
 {
     eOS_Unknown = 0,

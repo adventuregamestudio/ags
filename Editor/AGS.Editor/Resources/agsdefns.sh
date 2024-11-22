@@ -2938,6 +2938,8 @@ builtin managed struct Character {
   import function MoveStraight(int x, int y, BlockingStyle=eNoBlock);
   /// Gets/sets whether the character turns on the spot when ordered to face the new standing direction.
   import attribute bool TurnWhenFacing;
+  /// Gets the character this character is following
+  readonly import attribute Character* Following;
 #endif // SCRIPT_API_v362
 #ifdef STRICT
   /// The character's current X-position.

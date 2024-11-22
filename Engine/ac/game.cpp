@@ -930,7 +930,7 @@ void Game_ScanSaveSlots(void *dest_arr, int min_slot, int max_slot, int file_sor
     const auto &hdr = CCDynamicArray::GetHeader(dest_arr);
     if (hdr.GetElemCount() == 0u)
     {
-        debug_script_warn("Game.ScanSaveSlots: empty array provided, skip execution skipped");
+        debug_script_warn("Game.ScanSaveSlots: empty array provided, skip execution");
         return;
     }
 

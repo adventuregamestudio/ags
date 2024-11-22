@@ -287,10 +287,8 @@ void FillSaveList(std::vector<SaveListItem> &saves, unsigned bot_index, unsigned
     }
 }
 
-void FillSaveList(std::vector<SaveListItem> &saves, unsigned bot_index, unsigned top_index, bool get_description, ScriptFileSortStyle file_sort, ScriptSortDirection sort_dir)
+static void SortSaveList(std::vector<SaveListItem> &saves, ScriptFileSortStyle file_sort, ScriptSortDirection sort_dir)
 {
-    FillSaveList(saves, bot_index, top_index, get_description);
-
     const bool ascending = (sort_dir != kScSortDescending) || (file_sort == kScFileSort_None);
     switch (file_sort)
     {
@@ -308,6 +306,30 @@ void FillSaveList(std::vector<SaveListItem> &saves, unsigned bot_index, unsigned
         break;
     default: break;
     }
+}
+
+void FillSaveList(std::vector<SaveListItem> &saves, unsigned bot_index, unsigned top_index, bool get_description, ScriptFileSortStyle file_sort, ScriptSortDirection sort_dir)
+{
+    FillSaveList(saves, bot_index, top_index, get_description);
+    SortSaveList(saves, file_sort, sort_dir);
+}
+
+void FillSaveList(const std::vector<int> &slots, std::vector<SaveListItem> &saves, bool get_description, ScriptFileSortStyle file_sort, ScriptSortDirection sort_dir)
+{
+    for (const auto &slot : slots)
+    {
+        if (slot < 0 || slot > TOP_SAVESLOT)
+            continue; // unsupported save slot
+        String path = get_save_game_path(slot);
+        if (!File::IsFile(path))
+            continue; // file does not exist
+        String description;
+        if (get_description)
+            GetSaveSlotDescription(slot, description);
+        saves.push_back(SaveListItem(slot, description, File::GetFileTime(path)));
+    }
+
+    SortSaveList(saves, file_sort, sort_dir);
 }
 
 int GetLastSaveSlot()

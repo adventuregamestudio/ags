@@ -608,6 +608,51 @@ int Game_GetSpriteHeight(int spriteNum) {
     return game_to_data_coord(game.SpriteInfos[spriteNum].Height);
 }
 
+ScriptFileSortStyle ValidateFileSort(const char *apiname, int file_sort)
+{
+    if (file_sort < kScFileSort_None || file_sort > kScFileSort_Time)
+    {
+        debug_script_warn("%s: invalid file sort style (%d)", apiname, file_sort);
+        return kScFileSort_None;
+    }
+    return static_cast<ScriptFileSortStyle>(file_sort);
+}
+
+ScriptSaveGameSortStyle ValidateSaveGameSort(const char *apiname, int save_sort)
+{
+    if (save_sort < kScSaveGameSort_None || save_sort > kScSaveGameSort_Description)
+    {
+        debug_script_warn("%s: invalid save game sort style (%d)", apiname, save_sort);
+        return kScSaveGameSort_None;
+    }
+    return static_cast<ScriptSaveGameSortStyle>(save_sort);
+}
+
+ScriptSortDirection ValidateSortDirection(const char *apiname, int sort_dir)
+{
+    if (sort_dir < kScSortNone || sort_dir > kScSortDescending)
+    {
+        debug_script_warn("%s: invalid sorting direction (%d)", apiname, sort_dir);
+        return kScSortNone;
+    }
+    return static_cast<ScriptSortDirection>(sort_dir);
+}
+
+bool ValidateSaveSlotRange(const char *api_name, int &min_slot, int &max_slot)
+{
+    int do_max_slot = std::min(max_slot, TOP_SAVESLOT);
+    int do_min_slot = std::min(do_max_slot, std::max(0, min_slot));
+    if (do_max_slot - do_min_slot <= 0)
+    {
+        debug_script_warn("%s: empty or invalid slots range requested (requested: %d..%d, valid range %d..%d)",
+            api_name, min_slot, max_slot, 0, TOP_SAVESLOT);
+        return false;
+    }
+    min_slot = do_min_slot;
+    max_slot = do_max_slot;
+    return true;
+}
+
 void AssertView(const char *apiname, int view)
 {
     // NOTE: we assume (here and below) that the view is already in an internal 0-based range.
@@ -890,30 +935,15 @@ void Game_PrecacheView(int view, int first_loop, int last_loop)
     precache_view(view - 1 /* to 0-based view index */, first_loop, last_loop, true);
 }
 
-void *Game_GetSaveSlots(int min_slot, int max_slot, int save_sort, int sort_direction)
+void *Game_GetSaveSlots(int min_slot, int max_slot, int save_sort, int sort_dir)
 {
-    int do_max_slot = std::min(max_slot, TOP_SAVESLOT);
-    int do_min_slot = std::min(do_max_slot, std::max(0, min_slot));
-    if (do_max_slot - do_min_slot <= 0)
-    {
-        debug_script_warn("Game.GetSaveSlots: empty or invalid slots range requested (requested: %d..%d, valid range %d..%d)",
-            min_slot, max_slot, 0, TOP_SAVESLOT);
+    if (!ValidateSaveSlotRange("Game.GetSaveSlots", min_slot, max_slot))
         return CCDynamicArray::Create(0, sizeof(int32_t), false).Obj;
-    }
-
-    if (save_sort < kScSaveGameSort_None || save_sort > kScSaveGameSort_Time)
-    {
-        debug_script_warn("Game.GetSaveSlots: invalid game save sort style (%d)", save_sort);
-        save_sort = kScSaveGameSort_None;
-    }
-    if (sort_direction < kScSortNone || sort_direction > kScSortDescending)
-    {
-        debug_script_warn("Game.GetSaveSlots: invalid sorting direction (%d)", sort_direction);
-        sort_direction = kScSortNone;
-    }
+    save_sort = ValidateSaveGameSort("Game.GetSaveSlots", save_sort);
+    sort_dir = ValidateSortDirection("Game.GetSaveSlots", sort_dir);
 
     std::vector<SaveListItem> saves;
-    FillSaveList(saves, min_slot, max_slot, false /* no desc */, (ScriptSaveGameSortStyle)save_sort, (ScriptSortDirection)sort_direction);
+    FillSaveList(saves, min_slot, max_slot, false /* no desc */, (ScriptSaveGameSortStyle)save_sort, (ScriptSortDirection)sort_dir);
 
     DynObjectRef arr = CCDynamicArray::Create(saves.size(), sizeof(int32_t), false);
     int32_t *arr_ptr = static_cast<int32_t*>(arr.Obj);
@@ -925,7 +955,7 @@ void *Game_GetSaveSlots(int min_slot, int max_slot, int save_sort, int sort_dire
 extern void prescan_saves(int *dest_arr, size_t dest_count, int min_slot, int max_slot, int file_sort, int sort_dir);
 extern ExecutingScript *curscript;
 
-void Game_ScanSaveSlots(void *dest_arr, int min_slot, int max_slot, int save_sort, int sort_direction, int user_param)
+void Game_ScanSaveSlots(void *dest_arr, int min_slot, int max_slot, int save_sort, int sort_dir, int user_param)
 {
     const auto &hdr = CCDynamicArray::GetHeader(dest_arr);
     if (hdr.GetElemCount() == 0u)
@@ -934,36 +964,21 @@ void Game_ScanSaveSlots(void *dest_arr, int min_slot, int max_slot, int save_sor
         return;
     }
 
-    int do_max_slot = std::min(max_slot, TOP_SAVESLOT);
-    int do_min_slot = std::min(do_max_slot, std::max(0, min_slot));
-    if (do_max_slot - do_min_slot <= 0)
-    {
-        debug_script_warn("Game.ScanSaveSlots: empty or invalid slots range requested (requested: %d..%d, valid range %d..%d), execution skipped",
-            min_slot, max_slot, 0, TOP_SAVESLOT);
+    if (!ValidateSaveSlotRange("Game.ScanSaveSlots", min_slot, max_slot))
         return;
-    }
-
-    if (save_sort < kScSaveGameSort_None || save_sort > kScSaveGameSort_Time)
-    {
-        debug_script_warn("Game.ScanSaveSlots: invalid save game sort style (%d)", save_sort);
-        save_sort = kScSaveGameSort_None;
-    }
-    if (sort_direction < kScSortNone || sort_direction > kScSortDescending)
-    {
-        debug_script_warn("Game.ScanSaveSlots: invalid sorting direction (%d)", sort_direction);
-        sort_direction = kScSortNone;
-    }
+    save_sort = ValidateSaveGameSort("Game.ScanSaveSlots", save_sort);
+    sort_dir = ValidateSortDirection("Game.ScanSaveSlots", sort_dir);
 
     can_run_delayed_command();
     if (inside_script)
     {
         int handle = ccGetObjectHandleFromAddress(dest_arr);
         ccAddObjectReference(handle); // add internal handle to prevent disposal
-        curscript->QueueAction(PostScriptAction(ePSAScanSaves, handle, min_slot, max_slot, save_sort, sort_direction, user_param, "ScanSaveSlots"));
+        curscript->QueueAction(PostScriptAction(ePSAScanSaves, handle, min_slot, max_slot, save_sort, sort_dir, user_param, "ScanSaveSlots"));
         return;
     }
 
-    prescan_saves(static_cast<int*>(dest_arr), hdr.GetElemCount(), min_slot, max_slot, save_sort, sort_direction);
+    prescan_saves(static_cast<int*>(dest_arr), hdr.GetElemCount(), min_slot, max_slot, save_sort, sort_dir);
 }
 
 //=============================================================================

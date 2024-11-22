@@ -19,6 +19,7 @@
 #define __AGS_EE_AC__GAME_H
 
 #include <memory>
+#include "ac/runtime_defines.h"
 #include "ac/dynobj/scriptviewframe.h"
 #include "gfx/bitmap.h"
 #include "main/game_file.h"
@@ -83,6 +84,13 @@ int Game_SetSaveGameDirectory(const char *newFolder);
 const char* Game_GetSaveSlotDescription(int slnum);
 
 const char* Game_GetGlobalStrings(int index);
+
+// Various sort parameter validation.
+ScriptFileSortStyle ValidateFileSort(const char *apiname, int file_sort);
+ScriptSaveGameSortStyle ValidateSaveGameSort(const char *apiname, int save_sort);
+ScriptSortDirection ValidateSortDirection(const char *apiname, int sort_dir);
+// Save slot range validation; fixups min and max slots, returns if the resulting range is non-empty
+bool ValidateSaveSlotRange(const char *api_name, int &min_slot, int &max_slot);
 
 // View, loop, frame parameter assertions.
 // WARNING: these functions assume that view is already in an internal 0-based range.

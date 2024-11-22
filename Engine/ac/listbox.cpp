@@ -126,25 +126,16 @@ static void FillDirList(std::vector<String> &files, const String &pattern, Scrip
     }
 }
 
-void ListBox_FillDirList3(GUIListBox *listbox, const char *filemask, int file_sort, int sort_direction)
+void ListBox_FillDirList3(GUIListBox *listbox, const char *filemask, int file_sort, int sort_dir)
 {
-    if (file_sort < kScFileSort_None || file_sort > kScFileSort_Time)
-    {
-        debug_script_warn("ListBox.FillDirList: invalid file sort style (%d)", file_sort);
-        file_sort = kScFileSort_None;
-    }
-    if (sort_direction < kScSortNone || sort_direction > kScSortDescending)
-    {
-        debug_script_warn("ListBox.FillDirList: invalid sorting direction (%d)", sort_direction);
-        sort_direction = kScSortNone;
-    }
-
-    listbox->Clear();
+    file_sort = ValidateFileSort("ListBox.FillDirList", file_sort);
+    sort_dir = ValidateSortDirection("ListBox.FillDirList", sort_dir);
 
     std::vector<String> files;
-    FillDirList(files, filemask, (ScriptFileSortStyle)file_sort, sort_direction != kScSortDescending);
+    FillDirList(files, filemask, (ScriptFileSortStyle)file_sort, sort_dir != kScSortDescending);
 
     // TODO: method for adding item batch to speed up update
+    listbox->Clear();
     for (auto it = files.cbegin(); it != files.cend(); ++it)
     {
         listbox->AddItem(*it);
@@ -186,21 +177,27 @@ static void ListBox_FillSaveItems(GUIListBox *listbox, const std::vector<SaveLis
 
 int ListBox_FillSaveGameList4(GUIListBox *listbox, int min_slot, int max_slot, int save_sort, int sort_dir)
 {
-  // Optionally override the max slot
-  max_slot = usetup.Override.MaxSaveSlot > 0 ? usetup.Override.MaxSaveSlot : max_slot;
+    // Optionally override the max slot
+    max_slot = usetup.Override.MaxSaveSlot > 0 ? usetup.Override.MaxSaveSlot : max_slot;
 
-  max_slot = std::min(max_slot, TOP_SAVESLOT);
-  min_slot = std::min(max_slot, std::max(0, min_slot));
+    if (!ValidateSaveSlotRange("ListBox.FillSaveGameList", min_slot, max_slot))
+    {
+        listbox->Clear();
+        return 0;
+    }
 
-  std::vector<SaveListItem> saves;
-  FillSaveList(saves, min_slot, max_slot, true, (ScriptSaveGameSortStyle)save_sort, (ScriptSortDirection)sort_dir);
-  std::sort(saves.rbegin(), saves.rend(), SaveItemCmpByTime()); // sort by time in reverse
+    save_sort = ValidateSaveGameSort("ListBox.FillSaveGameList", save_sort);
+    sort_dir = ValidateSortDirection("ListBox.FillSaveGameList", sort_dir);
 
-  // Fill in the list box
-  ListBox_FillSaveItems(listbox, saves);
+    std::vector<SaveListItem> saves;
+    FillSaveList(saves, min_slot, max_slot, true, (ScriptSaveGameSortStyle)save_sort, (ScriptSortDirection)sort_dir);
+    std::sort(saves.rbegin(), saves.rend(), SaveItemCmpByTime()); // sort by time in reverse
 
-  // Returns TRUE if the whole range of slots is occupied
-  return saves.size() > static_cast<uint32_t>(max_slot - min_slot);
+    // Fill in the list box
+    ListBox_FillSaveItems(listbox, saves);
+
+    // Returns TRUE if the whole range of slots is occupied
+    return saves.size() > static_cast<uint32_t>(max_slot - min_slot);
 }
 
 int ListBox_FillSaveGameList(GUIListBox *listbox)

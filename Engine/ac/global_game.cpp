@@ -287,34 +287,40 @@ void FillSaveList(std::vector<SaveListItem> &saves, unsigned bot_index, unsigned
     }
 }
 
-static void SortSaveList(std::vector<SaveListItem> &saves, ScriptFileSortStyle file_sort, ScriptSortDirection sort_dir)
+static void SortSaveList(std::vector<SaveListItem> &saves, ScriptSaveGameSortStyle save_sort, ScriptSortDirection sort_dir)
 {
-    const bool ascending = (sort_dir != kScSortDescending) || (file_sort == kScFileSort_None);
-    switch (file_sort)
+    const bool ascending = (sort_dir != kScSortDescending) || (save_sort == kScSaveGameSort_None);
+    switch (save_sort)
     {
-    case kScFileSort_Name:
+    case kScSaveGameSort_Number:
         if (ascending)
             std::sort(saves.begin(), saves.end(), SaveItemCmpByNumber());
         else
             std::sort(saves.rbegin(), saves.rend(), SaveItemCmpByNumber());
         break;
-    case kScFileSort_Time:
+    case kScSaveGameSort_Time:
         if (ascending)
             std::sort(saves.begin(), saves.end(), SaveItemCmpByTime());
         else
             std::sort(saves.rbegin(), saves.rend(), SaveItemCmpByTime());
         break;
+    case kScSaveGameSort_Description:
+        if (ascending)
+            std::sort(saves.begin(), saves.end(), SaveItemCmpByDesc());
+        else
+            std::sort(saves.rbegin(), saves.rend(), SaveItemCmpByDesc());
+        break;
     default: break;
     }
 }
 
-void FillSaveList(std::vector<SaveListItem> &saves, unsigned bot_index, unsigned top_index, bool get_description, ScriptFileSortStyle file_sort, ScriptSortDirection sort_dir)
+void FillSaveList(std::vector<SaveListItem> &saves, unsigned bot_index, unsigned top_index, bool get_description, ScriptSaveGameSortStyle save_sort, ScriptSortDirection sort_dir)
 {
     FillSaveList(saves, bot_index, top_index, get_description);
-    SortSaveList(saves, file_sort, sort_dir);
+    SortSaveList(saves, save_sort, sort_dir);
 }
 
-void FillSaveList(const std::vector<int> &slots, std::vector<SaveListItem> &saves, bool get_description, ScriptFileSortStyle file_sort, ScriptSortDirection sort_dir)
+void FillSaveList(const std::vector<int> &slots, std::vector<SaveListItem> &saves, bool get_description, ScriptSaveGameSortStyle save_sort, ScriptSortDirection sort_dir)
 {
     for (const auto &slot : slots)
     {
@@ -329,7 +335,7 @@ void FillSaveList(const std::vector<int> &slots, std::vector<SaveListItem> &save
         saves.push_back(SaveListItem(slot, description, File::GetFileTime(path)));
     }
 
-    SortSaveList(saves, file_sort, sort_dir);
+    SortSaveList(saves, save_sort, sort_dir);
 }
 
 int GetLastSaveSlot()

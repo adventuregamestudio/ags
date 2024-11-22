@@ -52,6 +52,14 @@ struct SaveItemCmpByTime
     }
 };
 
+struct SaveItemCmpByDesc
+{
+    bool operator()(const SaveListItem &item1, const SaveListItem &item2) const
+    {
+        return item1.Description.Compare(item2.Description) < 0;
+    }
+};
+
 
 // Notify the running game that the engine requested immediate stop
 void AbortGame();
@@ -68,10 +76,10 @@ int  LoadSaveSlotScreenshot(int slnum, int width, int height);
 // Fills a list of SaveListItems by any save files found within the given range
 void FillSaveList(std::vector<SaveListItem> &saves, unsigned bot_index, unsigned top_index, bool get_description);
 // Fills a list of SaveListItems by any save files found within the given range; sorts the resulting list
-void FillSaveList(std::vector<SaveListItem> &saves, unsigned bot_index, unsigned top_index, bool get_description, ScriptFileSortStyle file_sort, ScriptSortDirection sort_dir);
+void FillSaveList(std::vector<SaveListItem> &saves, unsigned bot_index, unsigned top_index, bool get_description, ScriptSaveGameSortStyle save_sort, ScriptSortDirection sort_dir);
 // Fills a list of SaveListItems by any save files found in the source list of slots;
 // slots may be listed in any order, and post-sorting is only optional
-void FillSaveList(const std::vector<int> &slots, std::vector<SaveListItem> &saves, bool get_description, ScriptFileSortStyle file_sort = kScFileSort_None, ScriptSortDirection sort_dir = kScSortNone);
+void FillSaveList(const std::vector<int> &slots, std::vector<SaveListItem> &saves, bool get_description, ScriptSaveGameSortStyle save_sort = kScSaveGameSort_None, ScriptSortDirection sort_dir = kScSortNone);
 // Find the latest save slot, returns the slot index or -1 at failure
 int  GetLastSaveSlot();
 void PauseGame();

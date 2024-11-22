@@ -890,7 +890,7 @@ void Game_PrecacheView(int view, int first_loop, int last_loop)
     precache_view(view - 1 /* to 0-based view index */, first_loop, last_loop, true);
 }
 
-void *Game_GetSaveSlots(int min_slot, int max_slot, int file_sort, int sort_direction)
+void *Game_GetSaveSlots(int min_slot, int max_slot, int save_sort, int sort_direction)
 {
     int do_max_slot = std::min(max_slot, TOP_SAVESLOT);
     int do_min_slot = std::min(do_max_slot, std::max(0, min_slot));
@@ -901,10 +901,10 @@ void *Game_GetSaveSlots(int min_slot, int max_slot, int file_sort, int sort_dire
         return CCDynamicArray::Create(0, sizeof(int32_t), false).Obj;
     }
 
-    if (file_sort < kScFileSort_None || file_sort > kScFileSort_Time)
+    if (save_sort < kScSaveGameSort_None || save_sort > kScSaveGameSort_Time)
     {
-        debug_script_warn("Game.GetSaveSlots: invalid file sort style (%d)", file_sort);
-        file_sort = kScFileSort_None;
+        debug_script_warn("Game.GetSaveSlots: invalid game save sort style (%d)", save_sort);
+        save_sort = kScSaveGameSort_None;
     }
     if (sort_direction < kScSortNone || sort_direction > kScSortDescending)
     {
@@ -913,7 +913,7 @@ void *Game_GetSaveSlots(int min_slot, int max_slot, int file_sort, int sort_dire
     }
 
     std::vector<SaveListItem> saves;
-    FillSaveList(saves, do_min_slot, do_max_slot, false /* no desc */, (ScriptFileSortStyle)file_sort, (ScriptSortDirection)sort_direction);
+    FillSaveList(saves, min_slot, max_slot, false /* no desc */, (ScriptSaveGameSortStyle)save_sort, (ScriptSortDirection)sort_direction);
 
     DynObjectRef arr = CCDynamicArray::Create(saves.size(), sizeof(int32_t), false);
     int32_t *arr_ptr = static_cast<int32_t*>(arr.Obj);
@@ -925,7 +925,7 @@ void *Game_GetSaveSlots(int min_slot, int max_slot, int file_sort, int sort_dire
 extern void prescan_saves(int *dest_arr, size_t dest_count, int min_slot, int max_slot, int file_sort, int sort_dir);
 extern ExecutingScript *curscript;
 
-void Game_ScanSaveSlots(void *dest_arr, int min_slot, int max_slot, int file_sort, int sort_direction, int user_param)
+void Game_ScanSaveSlots(void *dest_arr, int min_slot, int max_slot, int save_sort, int sort_direction, int user_param)
 {
     const auto &hdr = CCDynamicArray::GetHeader(dest_arr);
     if (hdr.GetElemCount() == 0u)
@@ -943,10 +943,10 @@ void Game_ScanSaveSlots(void *dest_arr, int min_slot, int max_slot, int file_sor
         return;
     }
 
-    if (file_sort < kScFileSort_None || file_sort > kScFileSort_Time)
+    if (save_sort < kScSaveGameSort_None || save_sort > kScSaveGameSort_Time)
     {
-        debug_script_warn("Game.ScanSaveSlots: invalid file sort style (%d)", file_sort);
-        file_sort = kScFileSort_None;
+        debug_script_warn("Game.ScanSaveSlots: invalid save game sort style (%d)", save_sort);
+        save_sort = kScSaveGameSort_None;
     }
     if (sort_direction < kScSortNone || sort_direction > kScSortDescending)
     {
@@ -959,11 +959,11 @@ void Game_ScanSaveSlots(void *dest_arr, int min_slot, int max_slot, int file_sor
     {
         int handle = ccGetObjectHandleFromAddress(dest_arr);
         ccAddObjectReference(handle); // add internal handle to prevent disposal
-        curscript->QueueAction(PostScriptAction(ePSAScanSaves, handle, min_slot, max_slot, file_sort, sort_direction, user_param, "ScanSaveSlots"));
+        curscript->QueueAction(PostScriptAction(ePSAScanSaves, handle, min_slot, max_slot, save_sort, sort_direction, user_param, "ScanSaveSlots"));
         return;
     }
 
-    prescan_saves(static_cast<int*>(dest_arr), hdr.GetElemCount(), do_min_slot, do_max_slot, file_sort, sort_direction);
+    prescan_saves(static_cast<int*>(dest_arr), hdr.GetElemCount(), min_slot, max_slot, save_sort, sort_direction);
 }
 
 //=============================================================================
@@ -1238,7 +1238,7 @@ bool try_restore_save(const Common::String &path, int slot, bool startup)
     return true;
 }
 
-void prescan_save_slots(int dest_arr_handle, int min_slot, int max_slot, int file_sort, int sort_dir, int user_param)
+void prescan_save_slots(int dest_arr_handle, int min_slot, int max_slot, int save_sort, int sort_dir, int user_param)
 {
     void *dest_arr;
     IScriptObject *mgr;
@@ -1249,18 +1249,18 @@ void prescan_save_slots(int dest_arr_handle, int min_slot, int max_slot, int fil
         return;
     }
 
-    prescan_saves(static_cast<int*>(dest_arr), CCDynamicArray::GetHeader(dest_arr).GetElemCount(), min_slot, max_slot, file_sort, sort_dir);
+    prescan_saves(static_cast<int*>(dest_arr), CCDynamicArray::GetHeader(dest_arr).GetElemCount(), min_slot, max_slot, save_sort, sort_dir);
     ccReleaseObjectReference(dest_arr_handle); // release internal handle
 
     run_on_event(kScriptEvent_SavesScanComplete, user_param);
 }
 
-void prescan_saves(int *dest_arr, size_t dest_count, int min_slot, int max_slot, int file_sort, int sort_dir)
+void prescan_saves(int *dest_arr, size_t dest_count, int min_slot, int max_slot, int save_sort, int sort_dir)
 {
     // Gather existing list of saves in the requested range
     // ...and sort this list according to the parameters
     std::vector<SaveListItem> saves;
-    FillSaveList(saves, min_slot, max_slot, false /* no desc */, (ScriptFileSortStyle)file_sort, (ScriptSortDirection)sort_dir);
+    FillSaveList(saves, min_slot, max_slot, false /* no desc */, (ScriptSaveGameSortStyle)save_sort, (ScriptSortDirection)sort_dir);
 
     // Prescan saves from the sorted list, and fill the destination array
     int *pdst = dest_arr;

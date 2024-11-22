@@ -516,16 +516,24 @@ enum RenderLayer
 
 enum FileSortStyle
 {
-  eFileSort_None = 0,
-  eFileSort_Name = 1,
-  eFileSort_Time = 2
+  eFileSort_None		= 0,
+  eFileSort_Name		= 1,
+  eFileSort_Time		= 2
+};
+
+enum SaveGameSortStyle
+{
+  eSaveGameSort_None	= 0,
+  eSaveGameSort_Number	= 1,
+  eSaveGameSort_Time	= 2,
+  eSaveGameSort_Description = 3
 };
 
 enum SortDirection
 {
-  eSortNoDirection = 0,
-  eSortAscending   = 1,
-  eSortDescending  = 2
+  eSortNoDirection		= 0,
+  eSortAscending		= 1,
+  eSortDescending		= 2
 };
 #endif // SCRIPT_API_v362
 
@@ -1969,9 +1977,9 @@ builtin managed struct ListBox extends GUIControl {
 	/// Fills the list box with all the filenames that match the specified file mask.
 	import void FillDirList(const string fileMask, FileSortStyle fileSortStyle = eFileSort_Name, SortDirection sortDirection = eSortAscending);
 	/// Fills the list box with the current user's saved games in the given range of slots.
-	import int  FillSaveGameList(int min_slot = 1, int max_slot = 100, FileSortStyle fileSortStyle = eFileSort_Time, SortDirection sortDirection = eSortDescending);
+	import int  FillSaveGameList(int min_slot = 1, int max_slot = 100, SaveGameSortStyle saveSortStyle = eSaveGameSort_Time, SortDirection sortDirection = eSortDescending);
 	/// Fills the list box with the current user's saved games using the array of slot indexes.
-	import void FillSaveGameSlots(int save_slots[], FileSortStyle fileSortStyle = eFileSort_None, SortDirection sortDirection = eSortNoDirection);
+	import void FillSaveGameSlots(int save_slots[], SaveGameSortStyle saveSortStyle = eSaveGameSort_None, SortDirection sortDirection = eSortNoDirection);
 #else // !SCRIPT_API_v362
     /// Fills the list box with all the filenames that match the specified file mask.
 	import void FillDirList(const string fileMask);
@@ -3107,9 +3115,9 @@ builtin struct Game {
   /// Gets the write time of the specified save game slot.
   import static DateTime* GetSaveSlotTime(int saveSlot);
   /// Returns a dynamic array, containing indexes of found save slots in the range between "min_slot" and "max_slot"
-  import static int[]  GetSaveSlots(int min_slot, int max_slot, FileSortStyle fileSortStyle = eFileSort_None, SortDirection sortDirection = eSortNoDirection);
+  import static int[]  GetSaveSlots(int min_slot, int max_slot, SaveGameSortStyle saveSortStyle = eSaveGameSort_None, SortDirection sortDirection = eSortNoDirection);
   /// Prescans save slots from "min_slot" to "max_slot" and fills the compatible ones into the provided dynamic array.
-  import static void   ScanSaveSlots(int valid_slots[], int min_slot, int max_slot, FileSortStyle fileSortStyle = eFileSort_None, SortDirection sortDirection = eSortNoDirection, int user_param = 0);
+  import static void   ScanSaveSlots(int valid_slots[], int min_slot, int max_slot, SaveGameSortStyle saveSortStyle = eSaveGameSort_None, SortDirection sortDirection = eSortNoDirection, int user_param = 0);
 #endif // SCRIPT_API_v362
 };
 

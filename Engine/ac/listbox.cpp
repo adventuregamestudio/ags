@@ -184,7 +184,7 @@ static void ListBox_FillSaveItems(GUIListBox *listbox, const std::vector<SaveLis
     listbox->SetSvgIndex(true);
 }
 
-int ListBox_FillSaveGameList4(GUIListBox *listbox, int min_slot, int max_slot, int file_sort, int sort_dir)
+int ListBox_FillSaveGameList4(GUIListBox *listbox, int min_slot, int max_slot, int save_sort, int sort_dir)
 {
   // Optionally override the max slot
   max_slot = usetup.Override.MaxSaveSlot > 0 ? usetup.Override.MaxSaveSlot : max_slot;
@@ -193,7 +193,7 @@ int ListBox_FillSaveGameList4(GUIListBox *listbox, int min_slot, int max_slot, i
   min_slot = std::min(max_slot, std::max(0, min_slot));
 
   std::vector<SaveListItem> saves;
-  FillSaveList(saves, min_slot, max_slot, true, (ScriptFileSortStyle)file_sort, (ScriptSortDirection)sort_dir);
+  FillSaveList(saves, min_slot, max_slot, true, (ScriptSaveGameSortStyle)save_sort, (ScriptSortDirection)sort_dir);
   std::sort(saves.rbegin(), saves.rend(), SaveItemCmpByTime()); // sort by time in reverse
 
   // Fill in the list box
@@ -213,7 +213,7 @@ int ListBox_FillSaveGameList2(GUIListBox *listbox, int min_slot, int max_slot)
     return ListBox_FillSaveGameList4(listbox, min_slot, max_slot, kScFileSort_Time, kScSortDescending);
 }
 
-void ListBox_FillSaveGameSlots(GUIListBox *listbox, void *src_arr, int file_sort, int sort_dir)
+void ListBox_FillSaveGameSlots(GUIListBox *listbox, void *src_arr, int save_sort, int sort_dir)
 {
     const auto &hdr = CCDynamicArray::GetHeader(src_arr);
     if (hdr.GetElemCount() == 0u)
@@ -227,7 +227,7 @@ void ListBox_FillSaveGameSlots(GUIListBox *listbox, void *src_arr, int file_sort
     slots.insert(slots.end(), slots_arr, slots_arr + hdr.GetElemCount());
 
     std::vector<SaveListItem> saves;
-    FillSaveList(slots, saves, true, (ScriptFileSortStyle)file_sort, (ScriptSortDirection)sort_dir);
+    FillSaveList(slots, saves, true, (ScriptSaveGameSortStyle)save_sort, (ScriptSortDirection)sort_dir);
     ListBox_FillSaveItems(listbox, saves);
 }
 

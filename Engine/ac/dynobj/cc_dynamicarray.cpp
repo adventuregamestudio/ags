@@ -142,7 +142,7 @@ DynObjectRef DynamicArrayHelpers::CreateStringArray(const std::vector<String> &i
 int32_t DynamicArray_Length(void *untyped_dynarray)
 {
     const CCDynamicArray::Header &hdr = CCDynamicArray::GetHeader(untyped_dynarray);
-    return hdr.ElemCount;
+    return hdr.GetElemCount();
 }
 
 RuntimeScriptValue Sc_DynamicArray_Length(void *self, const RuntimeScriptValue *params, int32_t param_count)

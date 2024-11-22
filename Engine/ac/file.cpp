@@ -122,6 +122,90 @@ int File_Rename(const char *old_name, const char *new_name) {
   return File::RenameFile(old_rp.FullPath, new_rp.FullPath) ? 1 : 0;
 }
 
+static void FillDirList(std::vector<FileEntry> &files, const FSLocation &loc, const String &pattern)
+{
+    // Do ci search for the location, as parts of the path may have case mismatch
+    String path = File::FindFileCI(loc.BaseDir, loc.SubDir, true);
+    if (path.IsEmpty())
+        return;
+    Directory::GetFiles(path, files, pattern);
+}
+
+void FillDirList(std::vector<String> &files, const String &pattern, ScriptFileSortStyle file_sort, ScriptSortDirection sort_dir)
+{
+    ResolvedPath rp, alt_rp;
+    if (!ResolveScriptPath(pattern, true, rp, alt_rp))
+        return;
+
+    std::vector<FileEntry> fileents;
+    if (rp.AssetMgr)
+    {
+        AssetMgr->FindAssets(fileents, rp.FullPath, "*");
+    }
+    else
+    {
+        FillDirList(fileents, rp.Loc, Path::GetFilename(rp.FullPath));
+        if (alt_rp)
+        {
+            // Files from rp override alt_rp, so make certain we don't add matching files
+            if (fileents.empty())
+            {
+                FillDirList(fileents, alt_rp.Loc, Path::GetFilename(alt_rp.FullPath));
+            }
+            else
+            {
+                std::vector<FileEntry> fileents_alt;
+                FillDirList(fileents_alt, alt_rp.Loc, Path::GetFilename(alt_rp.FullPath));
+                std::sort(fileents.begin(), fileents.end(), FileEntryCmpByNameCI());
+                // TODO: following algorithm pushes element if not matching any existing;
+                // pick this out as a common algorithm somewhere?
+                size_t src_size = fileents.size();
+                for (const auto &alt_fe : fileents_alt)
+                {
+                    if (std::binary_search(fileents.begin(), fileents.begin() + src_size, alt_fe, FileEntryEqByNameCI()))
+                        continue;
+                    fileents.push_back(alt_fe);
+                }
+            }
+        }
+    }
+
+    const bool ascending = (sort_dir != kScSortDescending) || (file_sort == kScFileSort_None);
+    switch (file_sort)
+    {
+    case kScFileSort_Name:
+        if (ascending)
+            std::sort(fileents.begin(), fileents.end(), FileEntryCmpByNameCI());
+        else
+            std::sort(fileents.rbegin(), fileents.rend(), FileEntryCmpByNameCI());
+        break;
+    case kScFileSort_Time:
+        if (ascending)
+            std::sort(fileents.begin(), fileents.end(), FileEntryCmpByTime());
+        else
+            std::sort(fileents.rbegin(), fileents.rend(), FileEntryCmpByTime());
+        break;
+    default: break;
+    }
+
+    for (const auto &fe : fileents)
+    {
+        files.push_back(fe.Name);
+    }
+}
+
+void *File_GetFiles(const char *filemask, int file_sort, int sort_dir)
+{
+    file_sort = ValidateFileSort("ListBox.FillDirList", file_sort);
+    sort_dir = ValidateSortDirection("ListBox.FillDirList", sort_dir);
+
+    std::vector<String> files;
+    FillDirList(files, filemask, (ScriptFileSortStyle)file_sort, (ScriptSortDirection)sort_dir);
+
+    DynObjectRef arr = DynamicArrayHelpers::CreateStringArray(files);
+    return arr.Obj;
+}
+
 void *sc_OpenFile(const char *fnmm, int mode) {
   if ((mode < scFileRead) || (mode > scFileAppend))
     quit("!OpenFile: invalid file mode");
@@ -905,6 +989,11 @@ RuntimeScriptValue Sc_File_Rename(const RuntimeScriptValue *params, int32_t para
     API_SCALL_INT_POBJ2(File_Rename, const char, const char);
 }
 
+RuntimeScriptValue Sc_File_GetFiles(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_POBJ_PINT2(void, globalDynamicArray, File_GetFiles, const char);
+}
+
 // void *(const char *fnmm, int mode)
 RuntimeScriptValue Sc_sc_OpenFile(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -1048,6 +1137,7 @@ void RegisterFileAPI()
         { "File::Delete^1",           API_FN_PAIR(File_Delete) },
         { "File::Exists^1",           API_FN_PAIR(File_Exists) },
         { "File::GetFileTime^1",      API_FN_PAIR(File_GetFileTime) },
+        { "File::GetFiles^3",         API_FN_PAIR(File_GetFiles) },
         { "File::Rename^2",           API_FN_PAIR(File_Rename) },
         { "File::Open^2",             API_FN_PAIR(sc_OpenFile) },
         { "File::ResolvePath^1",      API_FN_PAIR(File_ResolvePath) },

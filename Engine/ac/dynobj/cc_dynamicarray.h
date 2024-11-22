@@ -17,6 +17,7 @@
 #include <vector>
 #include "ac/dynobj/cc_agsdynamicobject.h"
 #include "util/stream.h"
+#include "util/string.h"
 
 
 #define ARRAY_MANAGED_TYPE_FLAG    0x80000000
@@ -73,7 +74,8 @@ extern CCDynamicArray globalDynamicArray;
 namespace DynamicArrayHelpers
 {
     // Create array of managed strings
-    DynObjectRef CreateStringArray(const std::vector<const char*>);
+    DynObjectRef CreateStringArray(const std::vector<const char*> &);
+    DynObjectRef CreateStringArray(const std::vector<AGS::Common::String> &);
 };
 
 #endif

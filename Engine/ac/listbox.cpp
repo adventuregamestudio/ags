@@ -16,6 +16,7 @@
 #include <vector>
 #include <allegro.h> // find files
 #include "ac/common.h"
+#include "ac/file.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
@@ -52,87 +53,13 @@ void ListBox_Clear(GUIListBox *listbox) {
   listbox->Clear();
 }
 
-static void FillDirList(std::vector<FileEntry> &files, const FSLocation &loc, const String &pattern)
-{
-    // Do ci search for the location, as parts of the path may have case mismatch
-    String path = File::FindFileCI(loc.BaseDir, loc.SubDir, true);
-    if (path.IsEmpty())
-        return;
-    Directory::GetFiles(path, files, pattern);
-}
-
-static void FillDirList(std::vector<String> &files, const String &pattern, ScriptFileSortStyle file_sort, bool ascending)
-{
-    ResolvedPath rp, alt_rp;
-    if (!ResolveScriptPath(pattern, true, rp, alt_rp))
-        return;
-
-    if (file_sort == kScFileSort_None)
-        ascending = true;
-
-    std::vector<FileEntry> fileents;
-    if (rp.AssetMgr)
-    {
-        AssetMgr->FindAssets(fileents, rp.FullPath, "*");
-    }
-    else
-    {
-        FillDirList(fileents, rp.Loc, Path::GetFilename(rp.FullPath));
-        if (alt_rp)
-        {
-            // Files from rp override alt_rp, so make certain we don't add matching files
-            if (fileents.empty())
-            {
-                FillDirList(fileents, alt_rp.Loc, Path::GetFilename(alt_rp.FullPath));
-            }
-            else
-            {
-                std::vector<FileEntry> fileents_alt;
-                FillDirList(fileents_alt, alt_rp.Loc, Path::GetFilename(alt_rp.FullPath));
-                std::sort(fileents.begin(), fileents.end(), FileEntryCmpByNameCI());
-                // TODO: following algorithm pushes element if not matching any existing;
-                // pick this out as a common algorithm somewhere?
-                size_t src_size = fileents.size();
-                for (const auto &alt_fe : fileents_alt)
-                {
-                    if (std::binary_search(fileents.begin(), fileents.begin() + src_size, alt_fe, FileEntryEqByNameCI()))
-                        continue;
-                    fileents.push_back(alt_fe);
-                }
-            }
-        }
-    }
-
-    switch (file_sort)
-    {
-    case kScFileSort_Name:
-        if (ascending)
-            std::sort(fileents.begin(), fileents.end(), FileEntryCmpByNameCI());
-        else
-            std::sort(fileents.rbegin(), fileents.rend(), FileEntryCmpByNameCI());
-        break;
-    case kScFileSort_Time:
-        if (ascending)
-            std::sort(fileents.begin(), fileents.end(), FileEntryCmpByTime());
-        else
-            std::sort(fileents.rbegin(), fileents.rend(), FileEntryCmpByTime());
-        break;
-    default: break;
-    }
-
-    for (const auto &fe : fileents)
-    {
-        files.push_back(fe.Name);
-    }
-}
-
 void ListBox_FillDirList3(GUIListBox *listbox, const char *filemask, int file_sort, int sort_dir)
 {
     file_sort = ValidateFileSort("ListBox.FillDirList", file_sort);
     sort_dir = ValidateSortDirection("ListBox.FillDirList", sort_dir);
 
     std::vector<String> files;
-    FillDirList(files, filemask, (ScriptFileSortStyle)file_sort, sort_dir != kScSortDescending);
+    FillDirList(files, filemask, (ScriptFileSortStyle)file_sort, (ScriptSortDirection)sort_dir);
 
     // TODO: method for adding item batch to speed up update
     listbox->Clear();

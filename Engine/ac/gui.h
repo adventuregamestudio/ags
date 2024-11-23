@@ -111,7 +111,8 @@ namespace GUIE
     // Mark labels that acts as special text placeholders for redraw
     void MarkSpecialLabelsForUpdate(AGS::Common::GUILabelMacro macro);
     // Mark inventory windows for redraw, optionally only ones linked to given character;
-    // also marks buttons with inventory icon mode
+    // also marks buttons with inventory icon mode;
+    // pass char_id = -1 to update all inventory windows at once.
     void MarkInventoryForUpdate(int char_id, bool is_player);
 } // namespace GUIE
 } // namespace Engine

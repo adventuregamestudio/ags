@@ -953,7 +953,7 @@ void save_game(int slotn, const String &descript, std::unique_ptr<Bitmap> &&imag
     }
 
     // Save dynamic game data
-    SaveGameState(out.get());
+    SaveGameState(out.get(), (SaveCmpSelection)(kSaveCmp_All & ~(game.options[OPT_SAVECOMPONENTSIGNORE] & kSaveCmp_ScriptIgnoreMask)));
     // call "After Save" event callback
     run_on_event(kScriptEvent_GameSaved, RuntimeScriptValue().SetInt32(slotn));
 }
@@ -1063,7 +1063,8 @@ HSaveError load_game(const String &path, int slotNumber, bool &data_overwritten)
     }
 
     // do the actual restore
-    err = RestoreGameState(src.InputStream.get(), src.Version);
+    err = RestoreGameState(src.InputStream.get(), src.Version,
+        (SaveCmpSelection)(kSaveCmp_All & ~(game.options[OPT_SAVECOMPONENTSIGNORE] & kSaveCmp_ScriptIgnoreMask)));
     data_overwritten = true;
     if (!err)
         return err;

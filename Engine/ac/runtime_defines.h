@@ -27,11 +27,6 @@
 
 #define INVALID_X  30000
 #define MAX_INVORDER 500
-#define DIALOG_NONE      0
-#define DIALOG_RUNNING   1
-#define DIALOG_STOP      2
-#define DIALOG_NEWROOM   100
-#define DIALOG_NEWTOPIC  12000
 #define MAX_TIMERS       21
 #define MAX_PARSED_WORDS 15
 
@@ -100,9 +95,18 @@
 // a 1-based movelist index offset for characters
 #define CHMLSOFFS (1 + MAX_ROOM_OBJECTS)
 #define MAX_SCRIPT_AT_ONCE 10
+
 #define EVENT_NONE       0
 #define EVENT_INPROGRESS 1
 #define EVENT_CLAIMED    2
+
+// Values for GameState::stop_dialog_at_end;
+// tell what to do with the current Dialog after returning from the option script
+#define DIALOG_NONE      0
+#define DIALOG_RUNNING   1
+#define DIALOG_STOP      2
+#define DIALOG_NEWROOM   100
+#define DIALOG_NEWTOPIC  12000
 
 // Internal skip style flags, for speech/display, wait;
 // theoretically correspond to InputType in script (with a 24-bit shift)

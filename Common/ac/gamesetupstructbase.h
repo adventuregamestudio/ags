@@ -118,6 +118,14 @@ struct GameSetupStructBase
         }};
     }
 
+    // Returns a list of game options that must be preserved when restoring a save
+    inline static std::array<int, 1> GetPreservedOptions()
+    {
+        return std::array<int, 1> {{
+            OPT_SAVECOMPONENTSIGNORE
+        }};
+    }
+
 private:
     void OnResolutionSet();
 

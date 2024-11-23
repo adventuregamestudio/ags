@@ -23,6 +23,7 @@
 #include "core/types.h"
 #include "script/runtimescriptvalue.h"
 #include "ac/dynobj/cc_scriptobject.h"
+#include "util/string.h"
 
 // Forward declaration
 namespace AGS { namespace Common { class Stream; } }
@@ -55,5 +56,9 @@ extern ScriptValueType ccGetObjectAddressAndManagerFromHandle(int32_t handle, vo
 
 extern int ccAddObjectReference(int32_t handle);
 extern int ccReleaseObjectReference(int32_t handle);
+
+typedef void (*PfnProcessManagedObject)(int handle, IScriptObject *obj);
+// Iterates all managed objects identified by their Type ID, and runs a callback for each of them
+extern void ccTraverseManagedObjects(const AGS::Common::String &type, PfnProcessManagedObject proc);
 
 #endif // __AGS_EE_DYNOBJ__DYNOBJMANAGER_H

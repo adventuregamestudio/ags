@@ -62,6 +62,7 @@ struct QueuedScript
     QueuedScript() = default;
 };
 
+// Actions that can be scheduled for until the current script completes
 enum PostScriptActionType
 {
     ePSAUndefined,
@@ -73,7 +74,8 @@ enum PostScriptActionType
     ePSARunDialog,
     ePSARestartGame,
     ePSASaveGame,
-    ePSASaveGameDialog
+    ePSASaveGameDialog,
+    ePSAStopDialog
 };
 
 struct PostScriptAction

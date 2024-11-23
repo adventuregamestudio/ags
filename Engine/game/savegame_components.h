@@ -34,9 +34,10 @@ struct RestoredData;
 namespace SavegameComponents
 {
     // Reads all available components from the stream
-    HSaveError    ReadAll(Stream *in, SavegameVersion svg_version, const PreservedParams &pp, RestoredData &r_data);
+    HSaveError    ReadAll(Stream *in, SavegameVersion svg_version, SaveCmpSelection select_cmp,
+        const PreservedParams &pp, RestoredData &r_data);
     // Writes a full list of common components to the stream
-    HSaveError    WriteAllCommon(Stream *out);
+    HSaveError    WriteAllCommon(Stream *out, SaveCmpSelection select_cmp);
 }
 
 } // namespace Engine

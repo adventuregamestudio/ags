@@ -93,30 +93,6 @@ size_t numScriptModules = 0;
 static bool DoRunScriptFuncCantBlock(ccInstance *sci, NonBlockingScriptFunction* funcToRun, bool hasTheFunc);
 
 
-int run_dialog_request (int parmtr) {
-    play.stop_dialog_at_end = DIALOG_RUNNING;
-    RuntimeScriptValue params[]{ parmtr };
-    RunScriptFunction(gameinst.get(), "dialog_request", 1, params);
-
-    if (play.stop_dialog_at_end == DIALOG_STOP) {
-        play.stop_dialog_at_end = DIALOG_NONE;
-        return -2;
-    }
-    if (play.stop_dialog_at_end >= DIALOG_NEWTOPIC) {
-        int tval = play.stop_dialog_at_end - DIALOG_NEWTOPIC;
-        play.stop_dialog_at_end = DIALOG_NONE;
-        return tval;
-    }
-    if (play.stop_dialog_at_end >= DIALOG_NEWROOM) {
-        int roomnum = play.stop_dialog_at_end - DIALOG_NEWROOM;
-        play.stop_dialog_at_end = DIALOG_NONE;
-        NewRoom(roomnum);
-        return -2;
-    }
-    play.stop_dialog_at_end = DIALOG_NONE;
-    return -1;
-}
-
 void run_function_on_non_blocking_thread(NonBlockingScriptFunction* funcToRun) {
 
     update_script_mouse_coords();
@@ -632,7 +608,8 @@ String make_interact_func_name(const String &base, int param, int subd)
     return fname;
 }
 
-void post_script_cleanup() {
+void post_script_cleanup()
+{
     // should do any post-script stuff here, like go to new room
     if (cc_has_error())
         quit(cc_get_error().ErrorString);
@@ -651,7 +628,6 @@ void post_script_cleanup() {
     else {
         curscript = nullptr;
     }
-    //  if (abort_executor) user_disabled_data2=aborted_ip;
 
     int old_room_number = displayed_room;
 
@@ -690,7 +666,17 @@ void post_script_cleanup() {
             load_new_game = thisData;
             return;
         case ePSARunDialog:
-            do_conversation(thisData);
+            if (is_in_dialog())
+            {
+                set_dialog_result_goto(thisData);
+            }
+            else
+            {
+                do_conversation(thisData);
+            }
+            break;
+        case ePSAStopDialog:
+            set_dialog_result_stop();
             break;
         case ePSARestartGame:
             cancel_all_scripts();

@@ -297,7 +297,7 @@ HSaveError OpenSavegame(const String &filename, SavegameDescription &desc, Saveg
 }
 
 // Prepares engine for actual save restore (stops processes, cleans up memory)
-void DoBeforeRestore(PreservedParams &pp)
+void DoBeforeRestore(PreservedParams &pp, SaveCmpSelection select_cmp)
 {
     pp.SpeechVOX = play.voice_avail;
     pp.MusicVOX = play.separate_music_lib;
@@ -348,13 +348,86 @@ void DoBeforeRestore(PreservedParams &pp)
     // Clear the managed object pool
     ccUnregisterAllObjects();
 
-    for (int i = 0; i < TOTAL_AUDIO_CHANNELS; ++i)
+    if ((select_cmp & kSaveCmp_Audio) != 0)
     {
-        stop_and_destroy_channel(i);
+        for (int i = 0; i < TOTAL_AUDIO_CHANNELS; ++i)
+        {
+            stop_and_destroy_channel(i);
+        }
     }
 }
 
-void RestoreViewportsAndCameras(const RestoredData &r_data)
+static HSaveError RestoreAudio(const RestoredData &r_data)
+{
+    // recache queued clips
+    // FIXME: this looks wrong, investigate if these
+    // a) have to be deleted instead of resetting to null (store in unique_ptr!)
+    // b) perhaps this should be done in DoBeforeRestore instead
+    for (int i = 0; i < play.new_music_queue_size; ++i)
+    {
+        play.new_music_queue[i].cachedClip = nullptr;
+    }
+
+    if (play.audio_master_volume >= 0)
+    {
+        int temp_vol = play.audio_master_volume;
+        play.audio_master_volume = -1; // reset to invalid state before re-applying
+        System_SetVolume(temp_vol);
+    }
+
+    // Run audio clips on channels
+    // these two crossfading parameters have to be temporarily reset
+    const int cf_in_chan = play.crossfading_in_channel;
+    const int cf_out_chan = play.crossfading_out_channel;
+    play.crossfading_in_channel = 0;
+    play.crossfading_out_channel = 0;
+    
+    for (int i = 0; i < TOTAL_AUDIO_CHANNELS; ++i)
+    {
+        const RestoredData::ChannelInfo &chan_info = r_data.AudioChans[i];
+        if (chan_info.ClipID < 0)
+            continue;
+        if ((size_t)chan_info.ClipID >= game.audioClips.size())
+        {
+            return new SavegameError(kSvgErr_GameObjectInitFailed,
+                String::FromFormat("Invalid audio clip index: %d (clip count: %zu).", chan_info.ClipID, game.audioClips.size()));
+        }
+        play_audio_clip_on_channel(i, &game.audioClips[chan_info.ClipID],
+            chan_info.Priority, chan_info.Repeat, chan_info.Pos);
+
+        auto* ch = AudioChans::GetChannel(i);
+        if (ch != nullptr)
+        {
+            ch->set_volume_direct(chan_info.VolAsPercent, chan_info.Vol);
+            ch->set_speed(chan_info.Speed);
+            ch->set_panning(chan_info.Pan);
+            ch->xSource = chan_info.XSource;
+            ch->ySource = chan_info.YSource;
+            ch->maximumPossibleDistanceAway = chan_info.MaxDist;
+        }
+    }
+    if ((cf_in_chan > 0) && (AudioChans::GetChannel(cf_in_chan) != nullptr))
+        play.crossfading_in_channel = cf_in_chan;
+    if ((cf_out_chan > 0) && (AudioChans::GetChannel(cf_out_chan) != nullptr))
+        play.crossfading_out_channel = cf_out_chan;
+
+    // If there were synced audio tracks, the time taken to load in the
+    // different channels will have thrown them out of sync, so re-time it
+    for (int i = 0; i < TOTAL_AUDIO_CHANNELS; ++i)
+    {
+        auto* ch = AudioChans::GetChannelIfPlaying(i);
+        int pos = r_data.AudioChans[i].Pos;
+        if ((pos > 0) && (ch != nullptr))
+        {
+            ch->seek(pos);
+        }
+    }
+ 
+    update_directional_sound_vol();
+    return HSaveError::None();
+}
+
+static void RestoreViewportsAndCameras(const RestoredData &r_data)
 {
     for (size_t i = 0; i < r_data.Cameras.size(); ++i)
     {
@@ -393,10 +466,25 @@ static void CopyPreservedGameOptions(GameSetupStructBase &gs, const PreservedPar
     const auto restricted_opts = GameSetupStructBase::GetRestrictedOptions();
     for (auto opt : restricted_opts)
         gs.options[opt] = pp.GameOptions[opt];
+    const auto preserved_opts = GameSetupStructBase::GetPreservedOptions();
+    for (auto opt : preserved_opts)
+        gs.options[opt] = pp.GameOptions[opt];
+}
+
+// A callback that tests if DynamicSprite refers a valid sprite in cache.
+// Used in a call to ccTraverseManagedObjects.
+static void ValidateDynamicSprite(int handle, IScriptObject *obj)
+{
+    ScriptDynamicSprite *dspr = static_cast<ScriptDynamicSprite*>(obj);
+    if (dspr->slot < 0 || dspr->slot >= game.SpriteInfos.size() ||
+        !game.SpriteInfos[dspr->slot].IsDynamicSprite())
+    {
+        dspr->slot = -1;
+    }
 }
 
 // Final processing after successfully restoring from save
-HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data)
+HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveCmpSelection select_cmp)
 {
     // Preserve whether the music vox is available
     play.voice_avail = pp.SpeechVOX;
@@ -408,12 +496,6 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data)
     // Restore debug flags
     if (debug_flags & DBG_DEBUGMODE)
         play.debug_mode = 1;
-
-    // recache queued clips
-    for (int i = 0; i < play.new_music_queue_size; ++i)
-    {
-        play.new_music_queue[i].cachedClip = nullptr;
-    }
 
     // Restore Overlay bitmaps (older save format, which stored them along with overlays)
     auto &overs = get_overlays();
@@ -526,62 +608,12 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data)
         on_background_frame_change();
     }
 
-    if (play.audio_master_volume >= 0)
+    if ((select_cmp & kSaveCmp_Audio) != 0)
     {
-        int temp_vol = play.audio_master_volume;
-        play.audio_master_volume = -1; // reset to invalid state before re-applying
-        System_SetVolume(temp_vol);
+        HSaveError err = RestoreAudio(r_data);
+        if (!err)
+            return err;
     }
-
-    // Run audio clips on channels
-    // these two crossfading parameters have to be temporarily reset
-    const int cf_in_chan = play.crossfading_in_channel;
-    const int cf_out_chan = play.crossfading_out_channel;
-    play.crossfading_in_channel = 0;
-    play.crossfading_out_channel = 0;
-    
-    for (int i = 0; i < TOTAL_AUDIO_CHANNELS; ++i)
-    {
-        const RestoredData::ChannelInfo &chan_info = r_data.AudioChans[i];
-        if (chan_info.ClipID < 0)
-            continue;
-        if ((size_t)chan_info.ClipID >= game.audioClips.size())
-        {
-            return new SavegameError(kSvgErr_GameObjectInitFailed,
-                String::FromFormat("Invalid audio clip index: %d (clip count: %zu).", chan_info.ClipID, game.audioClips.size()));
-        }
-        play_audio_clip_on_channel(i, &game.audioClips[chan_info.ClipID],
-            chan_info.Priority, chan_info.Repeat, chan_info.Pos);
-
-        auto* ch = AudioChans::GetChannel(i);
-        if (ch != nullptr)
-        {
-            ch->set_volume_direct(chan_info.VolAsPercent, chan_info.Vol);
-            ch->set_speed(chan_info.Speed);
-            ch->set_panning(chan_info.Pan);
-            ch->xSource = chan_info.XSource;
-            ch->ySource = chan_info.YSource;
-            ch->maximumPossibleDistanceAway = chan_info.MaxDist;
-        }
-    }
-    if ((cf_in_chan > 0) && (AudioChans::GetChannel(cf_in_chan) != nullptr))
-        play.crossfading_in_channel = cf_in_chan;
-    if ((cf_out_chan > 0) && (AudioChans::GetChannel(cf_out_chan) != nullptr))
-        play.crossfading_out_channel = cf_out_chan;
-
-    // If there were synced audio tracks, the time taken to load in the
-    // different channels will have thrown them out of sync, so re-time it
-    for (int i = 0; i < TOTAL_AUDIO_CHANNELS; ++i)
-    {
-        auto* ch = AudioChans::GetChannelIfPlaying(i);
-        int pos = r_data.AudioChans[i].Pos;
-        if ((pos > 0) && (ch != nullptr))
-        {
-            ch->seek(pos);
-        }
-    }
-
-    update_directional_sound_vol();
 
     adjust_fonts_for_render_mode(game.options[OPT_ANTIALIASFONTS] != 0);
 
@@ -593,8 +625,18 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data)
     RestoreViewportsAndCameras(r_data);
     set_game_speed(r_data.FPS);
 
+    // Run fixups over managed objects if necessary
+    if ((select_cmp & kSaveCmp_DynamicSprites) == 0)
+    {
+        // If dynamic sprite images were not restored from this save, then invalidate all
+        // DynamicSprite objects in the managed pool
+        ccTraverseManagedObjects(ScriptDynamicSprite::TypeID, ValidateDynamicSprite);
+    }
+
+    // Run optional plugin event, reporting game restored
     pl_run_plugin_hooks(AGSE_POSTRESTOREGAME, 0);
 
+    // Next load up any immediately required resources
     // If this is a restart point and no room was loaded, then load startup room
     if (displayed_room < 0)
     {
@@ -603,25 +645,38 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data)
     }
 
     Mouse::SetMoveLimit(play.mbounds); // apply mouse bounds
-    play.ClearIgnoreInput(); // don't keep ignored input after save restore
-    update_polled_stuff();
     
     // Apply accessibility options, must be done last, because some
     // may override restored game settings
     ApplyAccessibilityOptions();
 
+    play.ClearIgnoreInput(); // don't keep ignored input after save restore
+    update_polled_stuff();
+
     return HSaveError::None();
 }
 
-HSaveError RestoreGameState(Stream *in, SavegameVersion svg_version)
+// Fixes up a requested component selection, in case we must override or
+// substitute something internally.
+static SaveCmpSelection FixupCmpSelection(SaveCmpSelection select_cmp)
 {
+    // If kSaveCmp_DynamicSprites is not set, then set kSaveCmp_ObjectSprites
+    //     ensure that object-owned images are still serialized.
+    return (SaveCmpSelection)(select_cmp | 
+        kSaveCmp_ObjectSprites * ((select_cmp & kSaveCmp_DynamicSprites) == 0));
+}
+
+HSaveError RestoreGameState(Stream *in, SavegameVersion svg_version, SaveCmpSelection select_cmp)
+{
+    select_cmp = FixupCmpSelection(select_cmp);
+
     PreservedParams pp;
     RestoredData r_data;
-    DoBeforeRestore(pp);
-    HSaveError err = SavegameComponents::ReadAll(in, svg_version, pp, r_data);
+    DoBeforeRestore(pp, select_cmp);
+    HSaveError err = SavegameComponents::ReadAll(in, svg_version, select_cmp, pp, r_data);
     if (!err)
         return err;
-    return DoAfterRestore(pp, r_data);
+    return DoAfterRestore(pp, r_data, select_cmp);
 }
 
 
@@ -685,10 +740,12 @@ void DoBeforeSave()
     }
 }
 
-void SaveGameState(Stream *out)
+void SaveGameState(Stream *out, SaveCmpSelection select_cmp)
 {
+    select_cmp = FixupCmpSelection(select_cmp);
+
     DoBeforeSave();
-    SavegameComponents::WriteAllCommon(out);
+    SavegameComponents::WriteAllCommon(out, select_cmp);
 }
 
 void ReadPluginSaveData(Stream *in, PluginSvgVersion svg_ver, soff_t max_size)

@@ -421,6 +421,17 @@ void ManagedObjectPool::PrintStats()
     );
 }
 
+void ManagedObjectPool::TraverseManagedObjects(const String &type, PfnProcessObject proc)
+{
+    for (int i = 1; i < nextHandle; i++)
+    {
+        auto &o = objects[i];
+        if (!o.isUsed() || type != o.callback->GetType())
+            continue;
+        proc(o.handle, o.callback);
+    }
+}
+
 ManagedObjectPool::ManagedObjectPool() : objectCreationCounter(0), nextHandle(1), available_ids(), objects(RESERVED_SIZE, ManagedObject()), handleByAddress() {
     handleByAddress.reserve(RESERVED_SIZE);
 }

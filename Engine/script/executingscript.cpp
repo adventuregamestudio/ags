@@ -27,15 +27,26 @@ void ExecutingScript::QueueAction(PostScriptAction &&act)
         // been queued, don't allow a second thing to be queued
         switch (prev_act.Type)
         {
+        // A number of scheduled commands prevent ANY other scheduled command to be added
         case ePSANewRoom:
         case ePSARestoreGame:
         case ePSARestoreGameDialog:
         case ePSARunAGSGame:
         case ePSARestartGame:
-            quitprintf("!%s: Cannot run this command, since there was a %s command already queued to run in \"%s\", line %d",
+            debug_script_warn("!%s: Cannot run this command, since there was a %s command already queued to run in \"%s\", line %d",
                 act.Name.GetCStr(), prev_act.Name.GetCStr(),
                 prev_act.Position.Section.GetCStr(), prev_act.Position.Line);
-            break;
+            return;
+        // Dialog-state changing commands are mutually exclusive
+        case ePSARunDialog:
+        case ePSAStopDialog:
+            if (act.Type == ePSARunDialog || act.Type == ePSAStopDialog)
+            {
+                debug_script_warn("!%s: Cannot run this command, since there was a %s command already queued to run in \"%s\", line %d",
+                    act.Name.GetCStr(), prev_act.Name.GetCStr(),
+                    prev_act.Position.Section.GetCStr(), prev_act.Position.Line);
+                return;
+            }
         default:
             break;
         }

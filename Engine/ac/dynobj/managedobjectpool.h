@@ -19,9 +19,10 @@
 #include <queue>
 #include <unordered_map>
 
+#include "ac/dynobj/cc_scriptobject.h"   // IScriptObject
 #include "core/platform.h"
 #include "script/runtimescriptvalue.h"
-#include "ac/dynobj/cc_scriptobject.h"   // IScriptObject
+#include "util/string.h"
 
 namespace AGS { namespace Common { class Stream; }}
 using namespace AGS; // FIXME later
@@ -109,6 +110,10 @@ public:
     // De-allocate all objects
     void Reset();
     void PrintStats();
+
+    typedef void (*PfnProcessObject)(int handle, IScriptObject *obj);
+    void TraverseManagedObjects(const AGS::Common::String &type, PfnProcessObject proc);
+
     ManagedObjectPool();
 
     // Remaps typeids for the managed objects that contain typeid fields;

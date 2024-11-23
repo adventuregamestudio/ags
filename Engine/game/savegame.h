@@ -153,6 +153,56 @@ struct SavegameDescription
     SavegameDescription();
 };
 
+// SaveCmpSelection flags tell which save components to restore, and which to skip.
+// WARNING: There are interconnected components, and some objects have resources saved
+// as a part of another component, for example: Scripts data stores handles to managed
+// objects, and managed objects are saved as a part of "Managed Pool".
+// Overlays store references to Dynamic Sprites.
+// If Scripts are not restored, then managed objects will become dangling (require true GC!),
+// if Overlays are not restored, then dynamic sprites exclusively owned by them may become
+// dangling as well.
+//
+// Therefore, for now, treat this list as partially a formality. Not all of these flags
+// may be safely disabled when saving/restoring, these ones must be always present.
+//
+// For that reason, we allow only few of these flags to be controlled from the script.
+// See kSaveCmp_ScriptIgnoreMask.
+enum SaveCmpSelection
+{
+    kSaveCmp_None           = 0,
+    kSaveCmp_GameState      = 0x00000001,
+    kSaveCmp_Audio          = 0x00000002,
+    kSaveCmp_Characters     = 0x00000004,
+    kSaveCmp_Dialogs        = 0x00000008,
+    kSaveCmp_GUI            = 0x00000010,
+    kSaveCmp_InvItems       = 0x00000020,
+    kSaveCmp_Cursors        = 0x00000040,
+    kSaveCmp_Views          = 0x00000080,
+    kSaveCmp_DynamicSprites = 0x00000100,
+    // [WARNING] not reliable to disable, requires a way to clean owned images
+    kSaveCmp_Overlays       = 0x00000200,
+    // [WARNING] not reliable to disable, requires a way to clean managed objs and their resources (at the very least)
+    kSaveCmp_Scripts        = 0x00000400,
+    // [WARNING] not reliable to disable, requires a way to clean managed objs and their resources (from room scripts)
+    kSaveCmp_Rooms          = 0x00000800,
+    // [WARNING] not reliable to disable, requires a way to clean managed objs and their resources (from this room script)
+    kSaveCmp_ThisRoom       = 0x00001000,
+    kSaveCmp_Plugins        = 0x00002000,
+    // Special component flags, setup strictly by the engine
+    kSaveCmp_ObjectSprites  = 0x80000000,
+    kSaveCmp_All            = 0xFFFFFFFF,
+
+    // Components, allowed to be ignored by script's request
+    kSaveCmp_ScriptIgnoreMask =
+          kSaveCmp_Audio
+        | kSaveCmp_Dialogs
+        | kSaveCmp_GUI
+        | kSaveCmp_Cursors
+        | kSaveCmp_Views
+        | kSaveCmp_DynamicSprites
+        | kSaveCmp_Plugins
+};
+
 
 // Opens savegame for reading; optionally reads description, if any is provided
 HSaveError     OpenSavegame(const String &filename, SavegameSource &src,
@@ -160,11 +210,11 @@ HSaveError     OpenSavegame(const String &filename, SavegameSource &src,
 // Opens savegame and reads the savegame description
 HSaveError     OpenSavegame(const String &filename, SavegameDescription &desc, SavegameDescElem elems = kSvgDesc_All);
 // Reads the game data from the save stream and reinitializes game state
-HSaveError     RestoreGameState(Stream *in, SavegameVersion svg_version);
+HSaveError     RestoreGameState(Stream *in, SavegameVersion svg_version, SaveCmpSelection select_cmp);
 // Opens savegame for writing and puts in savegame description
 std::unique_ptr<Stream> StartSavegame(const String &filename, const String &user_text, const Bitmap *user_image);
 // Prepares game for saving state and writes game data into the save stream
-void           SaveGameState(Stream *out);
+void           SaveGameState(Stream *out, SaveCmpSelection select_cmp);
 
 } // namespace Engine
 } // namespace AGS

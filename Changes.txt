@@ -167,9 +167,9 @@ Engine:
  - Support calling StopDialog() inside a dialog script, that will schedule dialog's stop command
    at the end of the current option script.
  - Implemented video buffering on a separate thread. Allow to drop late video frames.
- - Added new accessibility config settings in "access" section: "speechskip" and "textskip".
-   These let player to override game's skipping style for character speech and text messages
-   respectively.
+ - Added new accessibility config settings in "access" section: "speechskip", "textskip",
+   "textreadspeed". These let player to override game's skipping style for character speech and
+   text messages, and text reading speed parameter that controls speech timing.
  - Added "max_save" config option in "override" section: this lets to enforce an arbitrary number
    of saves displayed in a standard save/restore dialogs in game.
  - Added "--no-plugins" command-line argument that denies loading any plugins;

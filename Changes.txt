@@ -78,7 +78,7 @@ Editor:
  - Fixed double warning message when trying to close the Editor while a game test is running.
 
 Scripting:
- - Dynamic arrays now have Length readonly attribute that returns their number of elements.
+ - Dynamic arrays now have Length readonly property that returns their number of elements.
 
 Script API:
  - Added eNullFont constant that lets assign or pass a "null font" to any property or function
@@ -498,7 +498,7 @@ Script API:
  - Added static GetByName() function to AudioClip, Character, Dialog, GUI, GUIObject, Hotspot,
    InventoryItem, Object.
  - Added Object.AnimationVolume property, which works similar to Character.AnimationVolume.
- - Added static File.ResolvePath() and File.Path attribute.
+ - Added static File.ResolvePath() and File.Path property.
  - Added support for a text formatting to a number of functions:
    DisplayAtY(), Character.SayAt(), Character.SayBackground(), DrawingSurface.DrawStringWrapped().
 

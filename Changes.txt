@@ -1,7 +1,7 @@
 REVISION HISTORY
 ================
 
-VERSION 3.6.2 - Beta
+VERSION 3.6.2 - Beta, November 2024
 
 Common:
  - Event handler function are now allowed to be located in any script module.
@@ -10,6 +10,11 @@ Common:
    Compatibility" settings.
 
 Editor:
+ - In "Start New Game Wizard" game template selection now displays template's description right
+   in the dialog.
+ - "Game statistics" now have Ctrl + F2 shortcut instead of F2.
+ - F2 can be used for starting editing names of items in the Project Tree (ones that support that)
+   and folders in the Sprite Manager.
  - In General Settings added "Use old-style voice clip naming rule" which lets to select whether
    the game should expect old-style voice clip filenames (4-letter char name followed by number)
    or the new one (full char name, followed by a number, separated by a dot).
@@ -42,6 +47,8 @@ Editor:
  - Copy, paste and delete commands now apply to all the selected GUI controls in GUI editor.
  - When pasting a copied GUI control, Locked property of a new control will be turned off.
  - Support editing group properties for selected GUI controls.
+ - Added a multiline Text edit window for Button and Label controls, that may be called by Ctrl+E,
+   from context menu, or by pressing "..." button of the Text property in the Properties grid.
  - Support importing 1-bit (monochrome) and 4-bit images as sprites, room backgrounds and masks
    (converted to 8-bit).
  - Support importing indexed PNGs as room backgrounds and masks.
@@ -49,8 +56,12 @@ Editor:
  - Removed obsolete "Copy walkable area mask to regions" command from the Room editor.
  - Improved scrolling of drop-down lists in the Room's navigation bar: made scroll buttons larger,
    and support mouse wheel.
+ - In Room Editor, during any area drawing mode Ctrl + LMB now works as area picker regardless
+   of the currently selected tool.
  - Do not delete previously built game exe from Compiled/Windows folder when testing a game
    from the editor.
+ - Editor will now report any missing script functions that are assigned to events but not
+   present in script as warnings when compiling the game.
  - Added "/maketemplate" command-line option that tells Editor to run, make template out of the
    said game, and quit.
  - Fixed Editor refusing to open a project if one or more of the sections are missing in the file.
@@ -66,12 +77,21 @@ Editor:
  - Fixed an unhandled exception occuring when rebuilding rooms if any script's header is missing.
  - Fixed double warning message when trying to close the Editor while a game test is running.
 
+Scripting:
+ - Dynamic arrays now have Length readonly attribute that returns their number of elements.
+
 Script API:
  - Added eNullFont constant that lets assign or pass a "null font" to any property or function
    parameter which expects a font's ID. This "null font" will simply make any text not drawn
    and have no actual measurements (size, spacing, etc).
  - Added global events: eEventDialogStart, eEventDialogStop, eEventDialogRun,
    eEventDialogOptionsOpen, eEventDialogOptionsClose (these are handled in "on_event").
+ - Events eEventGUIMouseDown and eEventGUIMouseUp now get additional parameters: mouse button,
+   mouse x and y positions.
+ - Expanded "on_mouse_click" callback, now supports two more parameters: click x,y coordinates.
+ - Added RestoredSaveInfo struct which contains information about game save's contents, 
+ - Support "validate_restored_save" callback, which lets user to validate restored saves with
+   mismatching data and request cancellation or continuation of restoring this save.
  - Added Button.WrapText, TextPaddingHorizontal, TextPaddingVertical.
  - Added Character.TurnWhenFacing property.
  - Added Character.MoveStraight() complementing WalkStraight().
@@ -81,31 +101,60 @@ Script API:
  - Added RenderLayer enum, and optional "layers" parameter to DynamicSprite.CreateFromScreenShot(),
    that tells which of the game's render layers to capture when making a screenshot.
  - Added File.Copy() and File.Rename().
+ - Added FileSortStyle and SortDirection enum, and File.GetFiles() function that returns a dynamic
+   array of filenames found using certain pattern, and optionally sorted by name or time,
+   in ascending or descending order.
  - Added File.GetFileTime() that returns file's modification time.
  - Added File.ReadBytes(), File.WriteBytes(), File.ReadRawFloat(), File.WriteRawFloat().
+ - Added SaveGameSortStyle enum and Game.GetSaveSlots() function that returns a dynamic array
+   of save slot indexes, optionally sorted in certain way.
  - Added Game.GetSaveSlotTime() that returns a time this save slot was last written.
+ - Added Game.ScanSaveSlots() that scans a range of game saves and tests them for compatibility,
+   using "validate_restored_save" too if it's present in user script.
+   This action is not run immediately, but is scheduled to be executed after current script
+   ends. It reports of scanning completion by sending eEventSavesScanComplete event.
  - Label.TextAlignment has now type Alignment, rather than HorizontalAlignment, and has
    full alignment range (both horizontal and vertical).
- - Added FileSortStyle and SortDirection enum, and optional "fileSortStyle" and "sortDirection"
-   parameters to ListBox.FillDirList(). This lets to sort resulting list by name or time,
-   in ascending or descending order.
- - ListBox.FillSaveGameList(), RestoreGameDialog() and SaveGameDialog() now let define a range
-   of save slots for display.
+ - Added optional "fileSortStyle" and "sortDirection" parameters to ListBox.FillDirList().
+ - Added optional save slot range (min/max), saveSortStyle and sortDirection parameters to
+   ListBox.FillSaveGameList(). This lets to define the exact range of saves it should fill,
+   and order them in desired way.
+ - Added ListBox.FillSaveGameSlots(), which initializes a list of saves from a dynamic array
+   of save slot indexes.
+ - Added Object.DestinationX and DestinationY properties, complementing ones in Character.
  - Added Overlay.SetPosition() and SetSize() functions for convenience.
  - Added Speech.SpeakingCharacter that returns currently speaking character (for blocking speech).
  - Added GetTimerPos() that returns timer's position (remaining time), in ticks.
  - Added CopySaveSlot() and MoveSaveSlot(), which moves existing save to another slot.
+ - Added optional save slot range (min/max) parameters to RestoreGameDialog() and SaveGameDialog().
  - Added optional "sprite" parameter to SaveGameSlot(), that lets to pass a number of an arbitrary
    sprite to write into this save instead of a standard "screenshot".
+ - Added SendEvent() function that allows to trigger "on_event" function calls in script.
+   Special event value eEventUserEvent may be used as a base index for user-defined events.
  - Added System.GetEngineInteger() and System.GetEngineString() for returning diagnostic
    information about engine's runtime state. Possible arguments are defined by
    EngineValueID enum.
  - Added new game-wide option OPT_SAVEGAMESCREENSHOTLAYER that lets to define which of the game's
    render layers will be captured when making a standard screenshot for the save game.
- - Expanded `on_mouse_click` callback, now supports two more parameters: click x,y coordinates.
+ - Add SaveComponentSelection enum and game option OPT_SAVECOMPONENTSIGNORE, which lets to skip
+   certain components when saving or restoring a game. This has dual purpose: reduce number of
+   things in game that may break older saves by simply not having them in a save, and also
+   reducing the size of game saves on disk (e.g. in case of dynamic sprites). Note that all things
+   that were not restored from the save will retain their *current state*.
 
 Engine:
+ - Engine now potentially supports reading saves made in older game versions with different
+   content, so long as these saves have *less* data in any given type (i.e. less Characters,
+   or less controls on a certain GUI, or less variables in script, and so forth).
+   This feature is enabled by having a special "validate_restored_save" function anywhere
+   in the game script, that accepts an argument of type RestoredSaveInfo. RestoredSaveInfo
+   contains various information about the restored save, and "Cancel" property, that must be
+   explicitly set to "false" in script in order to allow to restore such save.
+ - Engine supports returning to previously saved rooms which have less script data.
+   It's important to remember though that it does no validation of restored room state on its own.
  - Dropped support for pre-3.5.0 game saves.
+ - Engine no longer quits with error in case a script function assigned to a Room event is missing.
+   Logs warnings about missing script functions assigned to any events.
  - Ensure that Character.Speaking returns true when a speech is playing even if the character
    has no speech view.
  - DynamicSprite.CreateFromFile() may now load 1-bit and 4-bit bitmaps, converting to 8-bit.
@@ -115,6 +164,8 @@ Engine:
  - Calling DeleteSaveSlot() on a slot within 0-50 range will no longer secretly move a save with
    the topmost number (within the same range) to fill the emptied slot. If you still like to
    recreate this behavior, then use MoveSaveSlot() command.
+ - Support calling StopDialog() inside a dialog script, that will schedule dialog's stop command
+   at the end of the current option script.
  - Implemented video buffering on a separate thread. Allow to drop late video frames.
  - Added new accessibility config settings in "access" section: "speechskip" and "textskip".
    These let player to override game's skipping style for character speech and text messages
@@ -123,6 +174,9 @@ Engine:
    of saves displayed in a standard save/restore dialogs in game.
  - Added "--no-plugins" command-line argument that denies loading any plugins;
    also added respective config option "noplugins" in "override" section.
+ - Fixed calling Dialog.Start() inside a dialog script would create a nested "dialog state",
+   which could eventually lead to internal mistakes and program stack overflow. Dialog.Start()
+   will now schedule a proper dialog topic switch, equivalent to "goto-dialog" command.
  - Fixed displaying room masks with Debug command in legacy "upscale" mode.
 
 Engine Plugin API:
@@ -140,7 +194,7 @@ WinSetup:
  - Redesigned winsetup into a tabbed dialog.
  - Added "Reset To Defaults" button that resets all options to values from the game's default
    config file.
- - Added "Accessibility" settings for skipping speech and text messages.
+ - Added "Accessibility" settings for skipping speech and text messages, for text reading speed.
 
 ---------------------------------------------------------------------------------------------------
 

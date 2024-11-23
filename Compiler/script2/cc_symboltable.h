@@ -294,6 +294,7 @@ struct SymbolTableEntry : public SymbolTableConstant
         // [0] describes the return type of the function
         std::vector<FuncParameterDesc> Parameters = {};
         CodeLoc Offset = 0;
+        bool IsConstructor = false;
         bool IsVariadic = false;
         bool NoLoopCheck = false;
     } *FunctionD = nullptr;
@@ -336,6 +337,7 @@ struct SymbolTableEntry : public SymbolTableConstant
         AGS::Vartype BaseVartype = kKW_NoSymbol;
         std::vector<size_t> Dims = {}; // For classic arrays: Number of elements in each dimension of static array
         std::map<Symbol, Symbol> Components = {}; // Maps the unqualified component to the qualified component
+        Symbol Constructor = kKW_NoSymbol; // For structs: this vartype's constructor (also contained in Components)
         Symbol Parent = kKW_NoSymbol; // For structs: this vartype extends the Parent
         VartypeFlags Flags;
     } *VartypeD = nullptr;
@@ -430,6 +432,7 @@ public:
     inline bool IsDelimeter(Symbol s) const { return nullptr != entries.at(s).DelimeterD; }
     inline void MakeEntryDelimeter(Symbol s) { if (!entries.at(s).DelimeterD) entries.at(s).DelimeterD = new SymbolTableEntry::DelimeterDesc; }
     inline bool IsFunction(Symbol s) const { return nullptr != entries.at(s).FunctionD; }
+    inline bool IsConstructor(Symbol s) const { return (nullptr != entries.at(s).FunctionD) && (entries.at(s).FunctionD->IsConstructor); }
     inline void MakeEntryFunction(Symbol s) { if (!entries.at(s).FunctionD) entries.at(s).FunctionD = new SymbolTableEntry::FunctionDesc; }
     inline bool IsLiteral(Symbol s) const { return nullptr != entries.at(s).LiteralD; }
     inline void MakeEntryLiteral(Symbol s) { if (!entries.at(s).LiteralD) entries.at(s).LiteralD = new SymbolTableEntry::LiteralDesc; }
@@ -475,10 +478,10 @@ public:
     // Fills compo_list with the symbols of all the strct components. Includes the ancestors' components
     void GetComponentsOfStruct(Symbol strct, std::vector<Symbol> &compo_list) const;
     // Find the description of a component.
-    // Return nullptr if not found. Otherwise, caller must 'delete' the result after being done with it
-    // Start search with the components of ancestor.
     Symbol FindStructComponent(Symbol strct, Symbol component, Symbol ancestor) const;
-    inline Symbol *FindStructComponent(Symbol strct, Symbol component) const { FindStructComponent(strct, component, strct); }
+    inline Symbol FindStructComponent(Symbol strct, Symbol component) const { return FindStructComponent(strct, component, strct); }
+    // Finds the first constructor declared either in this struct or in any of its parent types (going up the hierarchy)
+    Symbol FindConstructorOfTypeOrParent(Symbol strct) const;
 
     // Arrays and variables that are arrays
     // The "Array[...] of vartype" vartype

@@ -731,6 +731,22 @@ AGS::Symbol AGS::SymbolTable::FindStructComponent(Symbol strct, Symbol const com
         for (auto components_it = components.begin(); components_it != components.end(); components_it++)
             if (component == components_it->first)
                 return components_it->second;
+        strct = entries.at(strct).VartypeD->Parent;
+    }
+    return kKW_NoSymbol;
+}
+
+AGS::Symbol AGS::SymbolTable::FindConstructorOfTypeOrParent(Symbol strct) const
+{
+    if (!IsVartype(strct) || !entries.at(strct).VartypeD->Flags[VTF::kStruct])
+        return kKW_NoSymbol; // not a struct
+
+    // Check for the constructor in the current struct and in all its parents
+    while (strct)
+    {
+        if (entries.at(strct).VartypeD->Constructor != kKW_NoSymbol)
+            return entries.at(strct).VartypeD->Constructor;
+        strct = entries.at(strct).VartypeD->Parent;
     }
     return kKW_NoSymbol;
 }

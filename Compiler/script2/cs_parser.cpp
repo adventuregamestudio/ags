@@ -943,6 +943,10 @@ void AGS::Parser::ParseFuncdecl_ExtenderPreparations(bool is_static_extender, Sy
     if (!_sym.IsStructVartype(strct))
         UserError("Expected a struct type instead of '%s'", _sym.GetName(strct).c_str());
 
+    // Constructors cannot be extenders
+    if (unqualified_name == strct)
+        UserError("Struct's constructor cannot be defined as extender function");
+
     Symbol const qualified_name = MangleStructAndComponent(strct, unqualified_name);
 
     if (kKW_Dynpointer == _src.PeekNext())
@@ -1162,6 +1166,8 @@ void AGS::Parser::ParseFuncdecl_MasterData2Sym(TypeQualifierSet tqs, Vartype ret
 
     entry.LifeScope = std::make_pair(_scrip.Codesize_i32(), _scrip.Codesize_i32());
     
+    entry.FunctionD->IsConstructor = (kKW_NoSymbol != struct_of_function) &&
+        entry.ComponentD && (entry.ComponentD->Component == entry.ComponentD->Parent);
     entry.FunctionD->Parameters.resize(1u);
     entry.FunctionD->Parameters[0].Vartype = return_vartype;
     entry.FunctionD->Parameters[0].Name = kKW_NoSymbol;
@@ -1338,9 +1344,25 @@ bool AGS::Parser::ParseFuncdecl_DoesBodyFollow()
 
 void AGS::Parser::ParseFuncdecl_Checks(TypeQualifierSet tqs, Symbol struct_of_func, Symbol name_of_func, Vartype return_vartype, bool body_follows, bool no_loop_check)
 {
+    SymbolTableEntry const &func_entry = _sym[name_of_func];
+    bool const is_constructor = (kKW_NoSymbol != struct_of_func) &&
+        func_entry.ComponentD && (func_entry.ComponentD->Component == func_entry.ComponentD->Parent);
+
     if (kKW_NoSymbol == struct_of_func && tqs[TQ::kProtected])
         UserError(
             "Function '%s' isn't a struct component and so cannot be 'protected'",
+            _sym.GetName(name_of_func).c_str());
+    if (is_constructor && !_sym[struct_of_func].VartypeD->Flags[VTF::kManaged])
+        UserError(
+            "Constructors are not supported in non-managed structs (see '%s')",
+            _sym.GetName(name_of_func).c_str());
+    if (is_constructor && tqs[TQ::kStatic])
+        UserError(
+            "Static constructors are not supported (see '%s')",
+            _sym.GetName(name_of_func).c_str());
+    if (is_constructor && tqs[TQ::kProtected])
+        UserError(
+            "Struct's constructor '%s' cannot be 'protected'",
             _sym.GetName(name_of_func).c_str());
     if (!body_follows && no_loop_check)
         UserError("Can only use 'noloopcheck' when a function body follows the definition");
@@ -1348,6 +1370,11 @@ void AGS::Parser::ParseFuncdecl_Checks(TypeQualifierSet tqs, Symbol struct_of_fu
         UserError(
             ReferenceMsgSym("'%s' is defined elsewhere as a non-function", name_of_func).c_str(),
             _sym.GetName(name_of_func).c_str());
+    if (is_constructor && (kKW_Void != return_vartype))
+        UserError(
+            ReferenceMsgSym("Struct's constructor '%s' must be 'void' but is '%s'", return_vartype).c_str(),
+            _sym.GetName(name_of_func).c_str(),
+            _sym.GetName(return_vartype).c_str());
     if (!_sym.IsManagedVartype(return_vartype) && _sym.IsStructVartype(return_vartype))
         UserError(
             ReferenceMsgSym("Cannot return the non-managed struct type '%s'", return_vartype).c_str(),
@@ -1356,7 +1383,7 @@ void AGS::Parser::ParseFuncdecl_Checks(TypeQualifierSet tqs, Symbol struct_of_fu
     if (PP::kPreAnalyze == _pp &&
         body_follows &&
         _sym.IsFunction(name_of_func) &&
-        kFT_LocalBody == _sym[name_of_func].FunctionD->Offset)
+        kFT_LocalBody == func_entry.FunctionD->Offset)
         UserError(
             ReferenceMsgSym("Function '%s' is already defined with body elsewhere", name_of_func).c_str(),
             _sym.GetName(name_of_func).c_str());
@@ -1365,7 +1392,7 @@ void AGS::Parser::ParseFuncdecl_Checks(TypeQualifierSet tqs, Symbol struct_of_fu
         return;
 
     if (!_sym.IsComponent(name_of_func) ||
-        struct_of_func != _sym[name_of_func].ComponentD->Parent)
+        struct_of_func != func_entry.ComponentD->Parent)
     {
         // Functions only become struct components if they are declared in a struct or as extender
         std::string component = _sym.GetName(name_of_func);
@@ -1895,6 +1922,53 @@ void AGS::Parser::StripOutermostParens(SrcList &expression)
     }
 }
 
+void AGS::Parser::ParseExpression_New_CtorFuncCall(Symbol argument_vartype, SrcList &expression)
+{
+    // No parameter list after "new T" (old-style)
+    if (kKW_OpenParenthesis != expression.PeekNext())
+    {
+        if (!_sym.IsStructVartype(argument_vartype))
+            return; // not a struct type
+
+        Symbol const ctor_function =
+            _sym.FindConstructorOfTypeOrParent(argument_vartype);
+        if (kKW_NoSymbol == ctor_function)
+            return; // no suitable constructor declared
+
+        UserError(
+            ReferenceMsgSym(
+                "Expected the parameter list for function '%s'",
+                ctor_function).c_str(),
+            _sym.GetName(ctor_function).c_str()
+        );
+    }
+
+    // Parameter list after "new T" (new-style)
+    do // exactly 1 times
+    {
+        if (!_sym.IsStructVartype(argument_vartype))
+            break; // not a struct
+
+        Symbol const ctor_function =
+            _sym.FindConstructorOfTypeOrParent(argument_vartype);
+        if (kKW_NoSymbol == ctor_function)
+            break; // no suitable constructor declared
+
+        PushReg(SREG_AX);
+        // Address of the new object is expected in MAR
+        WriteCmd(SCMD_REGTOREG, SREG_AX, SREG_MAR);
+        _reg_track.SetRegister(SREG_MAR);
+        EvaluationResult eres_dummy;
+        AccessData_FunctionCall(ctor_function, expression, eres_dummy);
+        PopReg(SREG_AX);
+        return;
+    } while (false);
+
+    // Here when there isn't any init function: must have '()' following
+    SkipNextSymbol(expression, kKW_OpenParenthesis);
+    Expect(kKW_CloseParenthesis, expression.GetNext());
+}
+
 void AGS::Parser::ParseExpression_New(SrcList &expression, EvaluationResult &eres)
 {
     expression.StartRead();
@@ -1950,14 +2024,6 @@ void AGS::Parser::ParseExpression_New(SrcList &expression, EvaluationResult &ere
         if (!is_managed)
             UserError("Expected '[' after the non-managed type '%s'", _sym.GetName(argument_vartype).c_str());
 
-        if (kKW_OpenParenthesis == expression.PeekNext())
-        {
-            Warning("'()' after 'new' isn't implemented, is currently ignored");
-            expression.GetNext();
-            expression.SkipToCloser();
-            SkipNextSymbol(_src, kKW_CloseParenthesis);
-        }
-
         // Only do this check for new, not for new[]. 
         if (0u == _sym.GetSize(argument_vartype))
             UserError(
@@ -1993,6 +2059,9 @@ void AGS::Parser::ParseExpression_New(SrcList &expression, EvaluationResult &ere
     }
 
     _reg_track.SetRegister(SREG_AX);
+
+    if (!with_bracket_expr)
+        ParseExpression_New_CtorFuncCall(argument_vartype, expression);
 
     ParseExpression_CheckUsedUp(expression);
 
@@ -2599,7 +2668,12 @@ void AGS::Parser::AccessData_FunctionCall_ProvideDefaults(int func_args_count, s
     {
         Symbol const param_default = _sym[func_symbol].FunctionD->Parameters[arg_idx].Default;
         if (kKW_NoSymbol == param_default)
-            UserError("Function call parameter #%d isn't provided and doesn't have any default value", arg_idx);
+            UserError(
+                ReferenceMsgSym(
+                    "Function call parameter #%d for function '%s' isn't provided and doesn't have any default value",
+                    func_symbol).c_str(),
+                    arg_idx,
+                    _sym.GetName(func_symbol).c_str());
         if (!_sym.IsLiteral(param_default))
             InternalError("Parameter default symbol isn't literal");
 
@@ -3561,6 +3635,9 @@ void AGS::Parser::AccessData_SubsequentClause(VariableAccess access_type, bool a
     {
         if (static_access && !_sym[qualified_component].FunctionD->TypeQualifiers[TQ::kStatic])
             UserError("Must specify a specific object for non-static function %s", _sym.GetName(qualified_component).c_str());
+
+        if (_sym.IsConstructor(qualified_component))
+            UserError("Calling struct's constructor '%s' directly is illegal", _sym.GetName(qualified_component).c_str());
 
         SkipNextSymbol(expression, unqualified_component); // Eat function symbol
         if (kKW_OpenParenthesis != expression.PeekNext())
@@ -5132,6 +5209,8 @@ void AGS::Parser::ParseStruct_VariableOrFunctionDefn(Symbol name_of_struct, Type
     else 
         ParseStruct_VariableDefn(tqs, vartype, name_of_struct, qualified_component);
 
+    if (_sym.IsConstructor(qualified_component))
+        _sym[name_of_struct].VartypeD->Constructor = qualified_component;
     _sym.SetDeclared(qualified_component, declaration_start);
  }
 
@@ -5690,7 +5769,7 @@ void AGS::Parser::ParseVartype_FuncDecl(TypeQualifierSet tqs, Vartype vartype, S
         UserError(
             ReferenceMsgSym("Function bodies cannot nest, but the body of function %s is still open. (Did you forget a '}'?)", func_name).c_str(),
             _sym.GetName(name_of_current_func).c_str());
-        
+
     _sym[func_name].FunctionD->NoLoopCheck = no_loop_check;
 
     // We've started a function, remember what it is.

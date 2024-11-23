@@ -3558,3 +3558,28 @@ TEST_F(Bytecode1, Linenum02)
     EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
+TEST_F(Bytecode1, StructCtorCall) {
+
+    char const *inpl = "\
+        managed struct Struct               \n\
+        {                                   \n\
+            import void Struct(float f);    \n\
+            int Payload;                    \n\
+        };                                  \n\
+                                            \n\
+        int game_start()                    \n\
+        {                                   \n\
+            Struct s = new Struct(7.0);     \n\
+            return s.Payload;               \n\
+        }                                   \n\
+        ";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string const &err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+
+    // WriteOutput("StructCtorCall", scrip);
+
+    // TODO: proper bytecode test!!
+}
+

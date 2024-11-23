@@ -1533,6 +1533,13 @@ RuntimeScriptValue Sc_SeekMP3PosMillis(const RuntimeScriptValue *params, int32_t
     API_SCALL_VOID_PINT(SeekMP3PosMillis);
 }
 
+RuntimeScriptValue Sc_SendEvent(const RuntimeScriptValue *params, int32_t param_count)
+{
+    ASSERT_PARAM_COUNT(run_on_event, 5); \
+    run_on_event(static_cast<AGSScriptEventType>(params[0].IValue), params[1].IValue, params[2].IValue, params[3].IValue, params[4].IValue);
+    return RuntimeScriptValue(0);
+}
+
 // void (int iit)
 RuntimeScriptValue Sc_SetActiveInventory(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -2586,6 +2593,7 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "SeekMIDIPosition",         API_FN_PAIR(SeekMIDIPosition) },
         { "SeekMODPattern",           API_FN_PAIR(SeekMODPattern) },
         { "SeekMP3PosMillis",         API_FN_PAIR(SeekMP3PosMillis) },
+        { "SendEvent",                Sc_SendEvent, run_on_event },
         { "SetActiveInventory",       API_FN_PAIR(SetActiveInventory) },
         { "SetAmbientTint",           API_FN_PAIR(SetAmbientTint) },
         { "SetAmbientLightLevel",     API_FN_PAIR(SetAmbientLightLevel) },

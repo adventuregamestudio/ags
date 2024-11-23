@@ -537,6 +537,37 @@ enum SortDirection
 };
 #endif // SCRIPT_API_v362
 
+enum EventType {
+  eEventLeaveRoom		= 1,
+  eEventEnterRoomBeforeFadein = 2,
+  // 3 is reserved by an obsolete "death" event
+  eEventGotScore		= 4,
+  eEventGUIMouseDown	= 5,
+  eEventGUIMouseUp		= 6,
+  eEventAddInventory	= 7,
+  eEventLoseInventory	= 8,
+  eEventRestoreGame		= 9,
+#ifdef SCRIPT_API_v36026
+  eEventEnterRoomAfterFadein = 10,
+#endif // SCRIPT_API_v36026
+#ifdef SCRIPT_API_v361
+  eEventLeaveRoomAfterFadeout = 11,
+  eEventGameSaved		= 12,
+#endif // SCRIPT_API_v361
+#ifdef SCRIPT_API_v362
+  eEventDialogStart		= 13,
+  eEventDialogStop		= 14,
+  eEventDialogRun		= 15,
+  eEventDialogOptionsOpen = 16,
+  eEventDialogOptionsClose = 17,
+  eEventSavesScanComplete = 18,
+#endif // SCRIPT_API_v362
+
+#ifdef SCRIPT_API_v362
+  eEventUserEvent		= 10000
+#endif // SCRIPT_API_v362
+};
+
 
 internalstring autoptr builtin managed struct String {
   /// Creates a formatted string using the supplied parameters.
@@ -890,6 +921,10 @@ import void DisableInterface();
 import void EnableInterface();
 /// Checks whether the player interface is currently enabled.
 import int  IsInterfaceEnabled();
+#ifdef SCRIPT_API_v362
+/// Triggers the standard "on_event" script callback, passing EventType and a number of optional parameters
+import void SendEvent(EventType, int data1=0, int data2=0, int data3=0, int data4=0);
+#endif
 
 struct Mouse {
   /// Changes the sprite for the specified mouse cursor.
@@ -1721,33 +1756,6 @@ import void ListBoxRemove (int gui, int object, int listIndex);
 
 import void SetFrameSound (int view, int loop, int frame, int sound);
 #endif // !STRICT
-
-enum EventType {
-  eEventLeaveRoom = 1,
-  eEventEnterRoomBeforeFadein = 2,
-  // 3 is reserved by an obsolete "death" event
-  eEventGotScore = 4,
-  eEventGUIMouseDown = 5,
-  eEventGUIMouseUp = 6,
-  eEventAddInventory = 7,
-  eEventLoseInventory = 8,
-  eEventRestoreGame = 9,
-#ifdef SCRIPT_API_v36026
-  eEventEnterRoomAfterFadein = 10,
-#endif // SCRIPT_API_v36026
-#ifdef SCRIPT_API_v361
-  eEventLeaveRoomAfterFadeout = 11,
-  eEventGameSaved = 12,
-#endif // SCRIPT_API_v361
-#ifdef SCRIPT_API_v362
-  eEventDialogStart = 13,
-  eEventDialogStop = 14,
-  eEventDialogRun = 15,
-  eEventDialogOptionsOpen = 16,
-  eEventDialogOptionsClose = 17,
-  eEventSavesScanComplete = 18
-#endif // SCRIPT_API_v362
-};
 
 #ifdef SCRIPT_API_v350
 enum GUIPopupStyle {

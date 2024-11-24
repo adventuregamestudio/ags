@@ -122,6 +122,8 @@ Extended game object names, resolving hard length limits.
 Object Interactions specify script module where functions are located.
 OPT_SAVESCREENSHOTLAYER, CHF_TURNWHENFACE. Button's WrapText and padding.
 Few minor behavior changes.
+3.6.2.3:
+Script module names are written in the game data.
 
 3.9.9 :
 BlendModes
@@ -131,6 +133,10 @@ Raised for org purposes without format changes
 Palette component range changed from 64 to 256
 4.0.0.9:
 32-bit color properties
+4.0.0.10:
+Font file names
+4.0.0.11:
+Incremented version, marking sync with 3.6.2.3
 */
 
 enum GameDataVersion
@@ -147,8 +153,9 @@ enum GameDataVersion
     kGameVersion_400_08         = 4000008,
     kGameVersion_400_09         = 4000009,
     kGameVersion_400_10         = 4000010,
+    kGameVersion_400_11         = 4000011,
     kGameVersion_LowSupported   = kGameVersion_360_21,
-    kGameVersion_Current        = kGameVersion_400_10
+    kGameVersion_Current        = kGameVersion_400_11
 };
 
 // Data format version of the loaded game

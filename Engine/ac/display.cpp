@@ -297,7 +297,9 @@ bool display_check_user_input(int skip)
     bool state_handled = false;
     for (InputType type = ags_inputevent_ready(); type != kInputNone; type = ags_inputevent_ready())
     { // NOTE: must handle them all in case there were engine's hotkeys too
-        if (type == kInputKeyboard)
+        switch (type)
+        {
+        case kInputKeyboard:
         {
             KeyInput ki;
             if (!run_service_key_controls(ki) || play.fast_forward || state_handled)
@@ -311,8 +313,9 @@ bool display_check_user_input(int skip)
                 play.SetWaitKeySkip(ki);
                 state_handled = true; // stop display
             }
+            break;
         }
-        else if (type == kInputMouse)
+        case kInputMouse:
         {
             eAGSMouseButton mbut;
             if (!run_service_mb_controls(mbut) || play.fast_forward || state_handled)
@@ -326,25 +329,29 @@ bool display_check_user_input(int skip)
                 play.SetWaitSkipResult(SKIP_MOUSECLICK, mbut);
                 state_handled = true; // stop display
             }
+            break;
         }
-        else if (type == kInputGamepad)
+        case kInputGamepad:
         {
             GamepadInput gbut;
-            if (!run_service_gamepad_controls(gbut) || play.fast_forward)
-                continue;
+            if (!run_service_gamepad_controls(gbut) || play.fast_forward || state_handled)
+                continue; // handled by engine layer, or fast-forwarded, or resolved
             eAGSGamepad_Button gbn = gbut.Button;
             if (check_skip_cutscene_gamepad(gbn))
-                return true;
-            if (skip & SKIP_GAMEPAD && !play.IsIgnoringInput() &&
+            {
+                state_handled = true; // stop display
+            }
+            else if (skip & SKIP_GAMEPAD && !play.IsIgnoringInput() &&
                     is_default_gamepad_skip_button_pressed(gbn))
             {
                 play.SetWaitSkipResult(SKIP_GAMEPAD, gbn);
-                return true; // stop display
+                state_handled = true; // stop display
             }
+            break;
         }
-        else
-        {
+        default:
             ags_drop_next_inputevent();
+            break;
         }
     }
     ags_check_mouse_wheel(); // poll always, otherwise it accumulates

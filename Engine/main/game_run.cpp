@@ -744,7 +744,8 @@ static void check_gamepad_controls()
 }
 
 // check_controls: checks mouse & keyboard interface
-static void check_controls() {
+static void check_controls()
+{
     set_our_eip(1007);
 
     sys_evt_process_pending();
@@ -762,7 +763,8 @@ static void check_controls() {
     // Handle all the buffered input events
     for (InputType type = ags_inputevent_ready(); type != kInputNone; type = ags_inputevent_ready())
     {
-        switch (type) {
+        switch (type)
+        {
             case kInputKeyboard:
                 check_keyboard_controls();
                 break;

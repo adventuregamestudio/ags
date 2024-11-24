@@ -943,7 +943,9 @@ bool DialogOptions::RunControls()
     bool state_handled = false;
     for (InputType type = ags_inputevent_ready(); type != kInputNone; type = ags_inputevent_ready())
     {
-        if (type == kInputKeyboard)
+        switch (type)
+        {
+        case kInputKeyboard:
         {
             KeyInput ki;
             if (!run_service_key_controls(ki) || state_handled)
@@ -952,8 +954,9 @@ bool DialogOptions::RunControls()
             {
                 state_handled = true; // handled
             }
+            break;
         }
-        else if (type == kInputMouse)
+        case kInputMouse:
         {
             eAGSMouseButton mbut;
             Point mpos;
@@ -963,10 +966,11 @@ bool DialogOptions::RunControls()
             {
                 state_handled = true; // handled
             }
+            break;
         }
-        else
-        {
+        default:
             ags_drop_next_inputevent();
+            break;
         }
     }
     // Finally handle mouse wheel

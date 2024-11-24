@@ -41,35 +41,20 @@ namespace Properties
 PropertyError ReadSchema(PropertySchema &schema, Stream *in)
 {
     PropertyVersion version = (PropertyVersion)in->ReadInt32();
-    if (version < kPropertyVersion_Initial ||
-        version > kPropertyVersion_Current)
+    if (version < kPropertyVersion_340 || version > kPropertyVersion_Current)
     {
         return kPropertyErr_UnsupportedFormat;
     }
 
     PropertyDesc prop;
     int count = in->ReadInt32();
-    if (version == kPropertyVersion_Initial)
+    for (int i = 0; i < count; ++i)
     {
-        for (int i = 0; i < count; ++i)
-        {
-            prop.Name.Read(in, LEGACY_MAX_CUSTOM_PROP_SCHEMA_NAME_LENGTH);
-            prop.Description.Read(in, LEGACY_MAX_CUSTOM_PROP_DESC_LENGTH);
-            prop.DefaultValue.Read(in, LEGACY_MAX_CUSTOM_PROP_VALUE_LENGTH);
-            prop.Type = (PropertyType)in->ReadInt32();
-            schema[prop.Name] = prop;
-        }
-    }
-    else
-    {
-        for (int i = 0; i < count; ++i)
-        {
-            prop.Name = StrUtil::ReadString(in);
-            prop.Type = (PropertyType)in->ReadInt32();
-            prop.Description = StrUtil::ReadString(in);
-            prop.DefaultValue = StrUtil::ReadString(in);
-            schema[prop.Name] = prop;
-        }
+        prop.Name = StrUtil::ReadString(in);
+        prop.Type = (PropertyType)in->ReadInt32();
+        prop.Description = StrUtil::ReadString(in);
+        prop.DefaultValue = StrUtil::ReadString(in);
+        schema[prop.Name] = prop;
     }
     return kPropertyErr_NoError;
 }
@@ -92,28 +77,19 @@ void WriteSchema(const PropertySchema &schema, Stream *out)
 PropertyError ReadValues(StringIMap &map, Stream *in)
 {
     PropertyVersion version = (PropertyVersion)in->ReadInt32();
-    if (version < kPropertyVersion_Initial ||
-        version > kPropertyVersion_Current)
+    if (version < kPropertyVersion_Initial || version > kPropertyVersion_Current)
     {
         return kPropertyErr_UnsupportedFormat;
     }
 
     int count = in->ReadInt32();
-    if (version == kPropertyVersion_Initial)
+    // NOTE: handle Editor's mistake where it could save empty property bag with version 1
+    if ((version == kPropertyVersion_Initial) && count > 0)
+        return kPropertyErr_UnsupportedFormat;
+    for (int i = 0; i < count; ++i)
     {
-        for (int i = 0; i < count; ++i)
-        {
-            String name  = String::FromStream(in, LEGACY_MAX_CUSTOM_PROP_NAME_LENGTH);
-            map[name] = String::FromStream(in, LEGACY_MAX_CUSTOM_PROP_VALUE_LENGTH);
-        }
-    }
-    else
-    {
-        for (int i = 0; i < count; ++i)
-        {
-            String name  = StrUtil::ReadString(in);
-            map[name] = StrUtil::ReadString(in);
-        }
+        String name  = StrUtil::ReadString(in);
+        map[name] = StrUtil::ReadString(in);
     }
     return kPropertyErr_NoError;
 }

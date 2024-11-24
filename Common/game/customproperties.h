@@ -29,15 +29,6 @@
 #include "util/string.h"
 #include "util/string_types.h"
 
-#define LEGACY_MAX_CUSTOM_PROPERTIES                30
-// NOTE: for some reason the property name stored in schema object was limited
-// to only 20 characters, while the custom properties map could hold up to 200.
-// Whether this was an error or design choice is unknown.
-#define LEGACY_MAX_CUSTOM_PROP_SCHEMA_NAME_LENGTH   20
-#define LEGACY_MAX_CUSTOM_PROP_NAME_LENGTH          200
-#define LEGACY_MAX_CUSTOM_PROP_DESC_LENGTH          100
-#define LEGACY_MAX_CUSTOM_PROP_VALUE_LENGTH         500
-
 namespace AGS
 {
 namespace Common
@@ -45,8 +36,8 @@ namespace Common
 
 enum PropertyVersion
 {
-    kPropertyVersion_Initial = 1,
-    kPropertyVersion_340,
+    kPropertyVersion_Initial = 1, // [DEPRECATED]
+    kPropertyVersion_340 = 2,
     kPropertyVersion_Current = kPropertyVersion_340
 };
 

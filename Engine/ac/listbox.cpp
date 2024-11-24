@@ -16,6 +16,7 @@
 #include <vector>
 #include <allegro.h> // find files
 #include "ac/common.h"
+#include "ac/file.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
@@ -24,6 +25,7 @@
 #include "ac/gui.h"
 #include "ac/path_helper.h"
 #include "ac/string.h"
+#include "ac/dynobj/cc_dynamicarray.h"
 #include "core/assetmanager.h"
 #include "debug/debug_log.h"
 #include "util/directory.h"
@@ -51,76 +53,16 @@ void ListBox_Clear(GUIListBox *listbox) {
   listbox->Clear();
 }
 
-static void FillDirList(std::vector<FileEntry> &files, const FSLocation &loc, const String &pattern)
+void ListBox_FillDirList3(GUIListBox *listbox, const char *filemask, int file_sort, int sort_dir)
 {
-    // Do ci search for the location, as parts of the path may have case mismatch
-    String path = File::FindFileCI(loc.BaseDir, loc.SubDir, true);
-    if (path.IsEmpty())
-        return;
-    Directory::GetFiles(path, files, pattern);
-}
-
-static void FillDirList(std::vector<String> &files, const String &pattern, ScriptFileSortStyle file_sort, bool ascending)
-{
-    ResolvedPath rp = ResolveScriptPath(pattern, true);
-    if (!rp)
-        return;
-
-    if (file_sort == kScFileSort_None)
-        ascending = true;
-
-    std::vector<FileEntry> fileents;
-    if (rp.AssetMgr)
-    {
-        AssetMgr->FindAssets(fileents, rp.FullPath, "*");
-    }
-    else
-    {
-        FillDirList(fileents, rp.Loc, Path::GetFilename(rp.FullPath));
-    }
-
-    switch (file_sort)
-    {
-    case kScFileSort_Name:
-        if (ascending)
-            std::sort(fileents.begin(), fileents.end(), FileEntryCmpByNameCI());
-        else
-            std::sort(fileents.begin(), fileents.end(), FileEntryCmpByNameDscCI());
-        break;
-    case kScFileSort_Time:
-        if (ascending)
-            std::sort(fileents.begin(), fileents.end(), FileEntryCmpByTime());
-        else
-            std::sort(fileents.begin(), fileents.end(), FileEntryCmpByTimeDsc());
-        break;
-    default: break;
-    }
-
-    for (const auto &fe : fileents)
-    {
-        files.push_back(fe.Name);
-    }
-}
-
-void ListBox_FillDirList3(GUIListBox *listbox, const char *filemask, int file_sort, int sort_direction)
-{
-    if (file_sort < kScFileSort_None || file_sort > kScFileSort_Time)
-    {
-        debug_script_warn("ListBox.FillDirList: invalid file sort style (%d)", file_sort);
-        file_sort = kScFileSort_None;
-    }
-    if (sort_direction < kScSortNone || sort_direction > kScSortDescending)
-    {
-        debug_script_warn("ListBox.FillDirList: invalid sorting direction (%d)", sort_direction);
-        sort_direction = kScSortNone;
-    }
-
-    listbox->Clear();
+    file_sort = ValidateFileSort("ListBox.FillDirList", file_sort);
+    sort_dir = ValidateSortDirection("ListBox.FillDirList", sort_dir);
 
     std::vector<String> files;
-    FillDirList(files, filemask, (ScriptFileSortStyle)file_sort, sort_direction == kScSortAscending);
+    FillDirList(files, filemask, (ScriptFileSortStyle)file_sort, (ScriptSortDirection)sort_dir);
 
     // TODO: method for adding item batch to speed up update
+    listbox->Clear();
     for (auto it = files.cbegin(); it != files.cend(); ++it)
     {
         listbox->AddItem(*it);
@@ -139,36 +81,72 @@ int ListBox_GetSaveGameSlots(GUIListBox *listbox, int index) {
   return listbox->SavedGameIndex[index];
 }
 
-int ListBox_FillSaveGameList2(GUIListBox *listbox, int min_slot, int max_slot)
+// Fills ListBox with save game slots, inserts descriptions as textual items,
+// and fills SavedGameIndex array with corresponding slot numbers
+static void ListBox_FillSaveItems(GUIListBox *listbox, const std::vector<SaveListItem> &saves)
 {
-  // Optionally override the max slot
-  max_slot = usetup.Override.MaxSaveSlot > 0 ? usetup.Override.MaxSaveSlot : max_slot;
+    listbox->Clear();
+    // TODO: method for adding item batch to speed up update
+    for (const auto &item : saves)
+    {
+        listbox->AddItem(item.Description);
+        listbox->SavedGameIndex[listbox->ItemCount - 1] = item.Slot;
+    }
 
-  max_slot = std::min(max_slot, TOP_SAVESLOT);
-  min_slot = std::min(max_slot, std::max(0, min_slot));
+    listbox->SetSvgIndex(true);
+}
 
-  std::vector<SaveListItem> saves;
-  FillSaveList(saves, min_slot, max_slot);
-  std::sort(saves.rbegin(), saves.rend()); // sort by modified time in reverse
+int ListBox_FillSaveGameList4(GUIListBox *listbox, int min_slot, int max_slot, int save_sort, int sort_dir)
+{
+    // Optionally override the max slot
+    max_slot = usetup.Override.MaxSaveSlot > 0 ? usetup.Override.MaxSaveSlot : max_slot;
 
-  // fill in the list box
-  listbox->Clear();
-  // TODO: method for adding item batch to speed up update
-  for (const auto &item : saves)
-  {
-    listbox->AddItem(item.Description);
-    listbox->SavedGameIndex[listbox->ItemCount - 1] = item.Slot;
-  }
+    if (!ValidateSaveSlotRange("ListBox.FillSaveGameList", min_slot, max_slot))
+    {
+        listbox->Clear();
+        return 0;
+    }
 
-  listbox->SetSvgIndex(true);
+    save_sort = ValidateSaveGameSort("ListBox.FillSaveGameList", save_sort);
+    sort_dir = ValidateSortDirection("ListBox.FillSaveGameList", sort_dir);
 
-  // Returns TRUE if the whole range of slots is occupied
-  return saves.size() > static_cast<uint32_t>(max_slot - min_slot);
+    std::vector<SaveListItem> saves;
+    FillSaveList(saves, min_slot, max_slot, true, (ScriptSaveGameSortStyle)save_sort, (ScriptSortDirection)sort_dir);
+    std::sort(saves.rbegin(), saves.rend(), SaveItemCmpByTime()); // sort by time in reverse
+
+    // Fill in the list box
+    ListBox_FillSaveItems(listbox, saves);
+
+    // Returns TRUE if the whole range of slots is occupied
+    return saves.size() > static_cast<uint32_t>(max_slot - min_slot);
 }
 
 int ListBox_FillSaveGameList(GUIListBox *listbox)
 {
-  return ListBox_FillSaveGameList2(listbox, 0, LEGACY_TOP_LISTEDSAVESLOT);
+    return ListBox_FillSaveGameList4(listbox, 0, LEGACY_TOP_LISTEDSAVESLOT, kScFileSort_Time, kScSortDescending);
+}
+
+int ListBox_FillSaveGameList2(GUIListBox *listbox, int min_slot, int max_slot)
+{
+    return ListBox_FillSaveGameList4(listbox, min_slot, max_slot, kScFileSort_Time, kScSortDescending);
+}
+
+void ListBox_FillSaveGameSlots(GUIListBox *listbox, void *src_arr, int save_sort, int sort_dir)
+{
+    const auto &hdr = CCDynamicArray::GetHeader(src_arr);
+    if (hdr.GetElemCount() == 0u)
+    {
+        debug_script_warn("ListBox.FillSaveGameSlots: empty array provided, skip execution");
+        return;
+    }
+
+    std::vector<int> slots;
+    const int *slots_arr = static_cast<const int*>(src_arr);
+    slots.insert(slots.end(), slots_arr, slots_arr + hdr.GetElemCount());
+
+    std::vector<SaveListItem> saves;
+    FillSaveList(slots, saves, true, (ScriptSaveGameSortStyle)save_sort, (ScriptSortDirection)sort_dir);
+    ListBox_FillSaveItems(listbox, saves);
 }
 
 int ListBox_GetItemAtLocation(GUIListBox *listbox, int x, int y) {
@@ -427,6 +405,16 @@ RuntimeScriptValue Sc_ListBox_FillSaveGameList2(void *self, const RuntimeScriptV
     API_OBJCALL_INT_PINT2(GUIListBox, ListBox_FillSaveGameList2);
 }
 
+RuntimeScriptValue Sc_ListBox_FillSaveGameList4(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT_PINT4(GUIListBox, ListBox_FillSaveGameList4);
+}
+
+RuntimeScriptValue Sc_ListBox_FillSaveGameSlots(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_POBJ_PINT2(GUIListBox, ListBox_FillSaveGameSlots, void);
+}
+
 // int (GUIListBox *listbox, int x, int y)
 RuntimeScriptValue Sc_ListBox_GetItemAtLocation(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -604,6 +592,8 @@ void RegisterListBoxAPI()
         { "ListBox::FillDirList^3",       API_FN_PAIR(ListBox_FillDirList3) },
         { "ListBox::FillSaveGameList^0",  API_FN_PAIR(ListBox_FillSaveGameList) },
         { "ListBox::FillSaveGameList^2",  API_FN_PAIR(ListBox_FillSaveGameList2) },
+        { "ListBox::FillSaveGameList^4",  API_FN_PAIR(ListBox_FillSaveGameList4) },
+        { "ListBox::FillSaveGameSlots^3", API_FN_PAIR(ListBox_FillSaveGameSlots) },
         { "ListBox::GetItemAtLocation^2", API_FN_PAIR(ListBox_GetItemAtLocation) },
         { "ListBox::GetItemText^2",       API_FN_PAIR(ListBox_GetItemText) },
         { "ListBox::InsertItemAt^2",      API_FN_PAIR(ListBox_InsertItemAt) },

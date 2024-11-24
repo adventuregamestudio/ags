@@ -154,7 +154,7 @@ void CCDynamicArray::TraverseRefs(void *address, PfnTraverseRefOp traverse_op)
 CCDynamicArray globalDynamicArray;
 
 
-DynObjectRef DynamicArrayHelpers::CreateStringArray(const std::vector<const char*> items)
+DynObjectRef DynamicArrayHelpers::CreateStringArray(const std::vector<const char*> &items)
 {
     // FIXME: create using CreateNew, but need to pass String's type id somehow! (just lookup for "String" in rtti?)
     DynObjectRef arr = globalDynamicArray.CreateOld(items.size(), sizeof(int32_t), true);
@@ -165,6 +165,25 @@ DynObjectRef DynamicArrayHelpers::CreateStringArray(const std::vector<const char
     for (auto s : items)
     {
         DynObjectRef str = ScriptString::Create(s);
+        // We must add reference count, because the string is going to be saved
+        // within another object (array), not returned to script directly
+        ccAddObjectReference(str.Handle);
+        *(slots++) = str.Handle;
+    }
+    return arr;
+}
+
+DynObjectRef DynamicArrayHelpers::CreateStringArray(const std::vector<String> &items)
+{
+    // FIXME: create using CreateNew, but need to pass String's type id somehow! (just lookup for "String" in rtti?)
+    DynObjectRef arr = globalDynamicArray.CreateOld(items.size(), sizeof(int32_t), true);
+    if (!arr.Obj)
+        return arr;
+    // Create script strings and put handles into array
+    int32_t *slots = static_cast<int32_t*>(arr.Obj);
+    for (auto s : items)
+    {
+        DynObjectRef str = ScriptString::Create(s.GetCStr());
         // We must add reference count, because the string is going to be saved
         // within another object (array), not returned to script directly
         ccAddObjectReference(str.Handle);
@@ -249,7 +268,7 @@ bool DynamicArrayHelpers::ResolvePointerArray(const void* arrobj, std::vector<Dy
 int32_t DynamicArray_Length(void *untyped_dynarray)
 {
     const CCDynamicArray::Header &hdr = CCDynamicArray::GetHeader(untyped_dynarray);
-    return hdr.ElemCount;
+    return hdr.GetElemCount();
 }
 
 // Deprecated variant of DynamicArray.Length, which emulates a static function;

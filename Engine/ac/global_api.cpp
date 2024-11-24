@@ -798,6 +798,13 @@ RuntimeScriptValue Sc_SaveScreenShot(const RuntimeScriptValue *params, int32_t p
     API_SCALL_INT_POBJ(SaveScreenShot, const char);
 }
 
+RuntimeScriptValue Sc_SendEvent(const RuntimeScriptValue *params, int32_t param_count)
+{
+    ASSERT_PARAM_COUNT(run_on_event, 5); \
+    run_on_event(static_cast<AGSScriptEventType>(params[0].IValue), params[1].IValue, params[2].IValue, params[3].IValue, params[4].IValue);
+    return RuntimeScriptValue(0);
+}
+
 // void  (int red, int green, int blue, int opacity, int luminance)
 RuntimeScriptValue Sc_SetAmbientTint(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -1286,6 +1293,7 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "Said",                     API_FN_PAIR(Said) },
         { "SaveCursorForLocationChange", API_FN_PAIR(SaveCursorForLocationChange) },
         { "SaveScreenShot",           API_FN_PAIR(SaveScreenShot) },
+        { "SendEvent",                Sc_SendEvent, run_on_event },
         { "SetAmbientTint",           API_FN_PAIR(SetAmbientTint) },
         { "SetAmbientLightLevel",     API_FN_PAIR(SetAmbientLightLevel) },
         { "SetAreaLightLevel",        API_FN_PAIR(SetAreaLightLevel) },

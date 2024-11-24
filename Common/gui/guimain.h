@@ -196,6 +196,7 @@ public:
     // Perhaps review this later (maybe when there's a split runtime GUI class).
     void    ReadFromSavegame(Stream *in, GuiSvgVersion svg_version, std::vector<ControlRef> &ctrl_refs);
     void    WriteToSavegame(Stream *out) const;
+    static void SkipSavestate(Stream *in, GuiSvgVersion svg_version, std::vector<ControlRef> *ctrl_refs);
 
 private:
     void    DrawBlob(Bitmap *ds, int x, int y, color_t draw_color);

@@ -36,6 +36,10 @@ namespace SavegameComponents
     // Reads all available components from the stream
     HSaveError    ReadAll(Stream *in, SavegameVersion svg_version, SaveCmpSelection select_cmp,
         const PreservedParams &pp, RestoredData &r_data);
+    // Prescans all components, gathering data counts and asserting data match;
+    // does *not* keep any actual game data
+    HSaveError    PrescanAll(Stream *in, SavegameVersion svg_version, SaveCmpSelection select_cmp,
+        const PreservedParams &pp, RestoredData &r_data);
     // Writes a full list of common components to the stream
     HSaveError    WriteAllCommon(Stream *out, SaveCmpSelection select_cmp);
 }

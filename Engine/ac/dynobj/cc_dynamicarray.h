@@ -18,6 +18,7 @@
 #include <unordered_map>
 #include "ac/dynobj/cc_agsdynamicobject.h"
 #include "scriptstring.h"
+#include "util/string.h"
 
 
 #define ARRAY_MANAGED_TYPE_FLAG    0x80000000
@@ -93,8 +94,9 @@ extern CCDynamicArray globalDynamicArray;
 namespace DynamicArrayHelpers
 {
     // Create array of managed strings from strings that exists somewhere
-    DynObjectRef CreateStringArray(const std::vector<const char*>);
-    // Create array of managed strings from script strings
+    DynObjectRef CreateStringArray(const std::vector<const char*> &);
+    DynObjectRef CreateStringArray(const std::vector<AGS::Common::String> &);
+    // Create array of managed strings from preallocated script string buffers
     DynObjectRef CreateStringArrayFromBuffers(std::vector<ScriptString::Buffer> &&);
     // Create array from managed list of dynamic objects
     DynObjectRef CreateScriptArray(std::vector<DynObjectRef> &&items);

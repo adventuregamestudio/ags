@@ -96,6 +96,8 @@ enum SaveRestorationFlags
     // We detected that the save file has more data of certain type
     // than the game requires.
     kSaveRestore_ExtraDataInSave    = 0x0010,
+    // Run a save scan only, gather data counts and assert matches
+    kSaveRestore_Prescan            = 0x0020,
     // Mask for finding out if save has any mismatches
     kSaveRestore_MismatchMask       = kSaveRestore_MissingDataInSave
                                     | kSaveRestore_ExtraDataInSave,
@@ -103,6 +105,7 @@ enum SaveRestorationFlags
     kSaveRestore_ResultMask         = kSaveRestore_ClearData
                                     | kSaveRestore_MissingDataInSave
                                     | kSaveRestore_ExtraDataInSave
+                                    | kSaveRestore_Prescan
 };
 
 // SaveRestoreResult records allowances for the save restoration
@@ -136,7 +139,7 @@ struct SaveRestoredDataCounts
     uint32_t GlobalScriptDataSz = 0u;
     uint32_t ScriptModules = 0u;
     std::vector<uint32_t> ScriptModuleDataSz;
-    uint32_t RoomScriptDataSz = 0u; // current room's script data size
+    int Room = -1; // the room this save was made in
 };
 
 // RestoredData keeps certain temporary data to help with
@@ -165,6 +168,7 @@ struct RestoredData
     // Managed objects unserializer
     AGSDeSerializer         ManObjReader;
     // Room data (has to be be preserved until room is loaded)
+    int                     Room;
     PBitmap                 RoomBkgScene[MAX_ROOM_BGFRAMES];
     short                   RoomLightLevels[MAX_ROOM_REGIONS];
     int                     RoomTintLevels[MAX_ROOM_REGIONS];

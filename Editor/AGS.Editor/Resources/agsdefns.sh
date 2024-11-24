@@ -491,18 +491,57 @@ enum RenderLayer
 
 enum FileSortStyle
 {
-  eFileSort_None = 0,
-  eFileSort_Name = 1,
-  eFileSort_Time = 2
+  eFileSort_None		= 0,
+  eFileSort_Name		= 1,
+  eFileSort_Time		= 2
+};
+
+enum SaveGameSortStyle
+{
+  eSaveGameSort_None	= 0,
+  eSaveGameSort_Number	= 1,
+  eSaveGameSort_Time	= 2,
+  eSaveGameSort_Description = 3
 };
 
 enum SortDirection
 {
-  eSortNoDirection = 0,
-  eSortAscending   = 1,
-  eSortDescending  = 2
+  eSortNoDirection		= 0,
+  eSortAscending		= 1,
+  eSortDescending		= 2
 };
 #endif // SCRIPT_API_v362
+
+enum EventType {
+  eEventLeaveRoom		= 1,
+  eEventEnterRoomBeforeFadein = 2,
+  // 3 is reserved by an obsolete "death" event
+  // 4 is reserved by an obsolete "got score" event
+  eEventGUIMouseDown	= 5,
+  eEventGUIMouseUp		= 6,
+  eEventAddInventory	= 7,
+  eEventLoseInventory	= 8,
+  eEventRestoreGame		= 9,
+#ifdef SCRIPT_API_v36026
+  eEventEnterRoomAfterFadein = 10,
+#endif // SCRIPT_API_v36026
+#ifdef SCRIPT_API_v361
+  eEventLeaveRoomAfterFadeout = 11,
+  eEventGameSaved		= 12,
+#endif // SCRIPT_API_v361
+#ifdef SCRIPT_API_v362
+  eEventDialogStart		= 13,
+  eEventDialogStop		= 14,
+  eEventDialogRun		= 15,
+  eEventDialogOptionsOpen = 16,
+  eEventDialogOptionsClose = 17,
+  eEventSavesScanComplete = 18,
+#endif // SCRIPT_API_v362
+
+#ifdef SCRIPT_API_v362
+  eEventUserEvent		= 10000
+#endif // SCRIPT_API_v362
+};
 
 #ifdef SCRIPT_API_v399
 enum eGamepad_Axis
@@ -919,6 +958,10 @@ import void DisableInterface();
 import void EnableInterface();
 /// Checks whether the player interface is currently enabled.
 import int  IsInterfaceEnabled();
+#ifdef SCRIPT_API_v362
+/// Triggers the standard "on_event" script callback, passing EventType and a number of optional parameters
+import void SendEvent(EventType, int data1=0, int data2=0, int data3=0, int data4=0);
+#endif
 
 struct Mouse {
   /// Changes the sprite for the specified mouse cursor.
@@ -1070,6 +1113,8 @@ builtin managed struct File {
   import static DateTime* GetFileTime(const string filename); // $AUTOCOMPLETESTATICONLY$
   /// Renames an existing file; if there's already a file with the new name then it will be overwritten
   import static bool Rename(const string old_filename, const string new_filename);   // $AUTOCOMPLETESTATICONLY$
+  /// Returns an array of filenames that match the specified file mask
+  import static String[] GetFiles(const string fileMask, FileSortStyle fileSortStyle = eFileSort_Name, SortDirection sortDirection = eSortAscending);  // $AUTOCOMPLETESTATICONLY$
   /// Reads the next raw 32-bit float from the file.
   import float  ReadRawFloat();
   /// Writes a raw 32-bit float to the file.
@@ -1357,32 +1402,6 @@ import int  FindGUIID(const string);  // $AUTOCOMPLETEIGNORE$
 import void SkipCutscene();
 #endif // SCRIPT_API_v3507
 
-enum EventType {
-  eEventLeaveRoom = 1,
-  eEventEnterRoomBeforeFadein = 2,
-  // 3 is reserved by an obsolete "death" event
-  // 4 is reserved by an obsolete "got score" event
-  eEventGUIMouseDown = 5,
-  eEventGUIMouseUp = 6,
-  eEventAddInventory = 7,
-  eEventLoseInventory = 8,
-  eEventRestoreGame = 9,
-#ifdef SCRIPT_API_v36026
-  eEventEnterRoomAfterFadein = 10,
-#endif // SCRIPT_API_v36026
-#ifdef SCRIPT_API_v361
-  eEventLeaveRoomAfterFadeout = 11,
-  eEventGameSaved = 12,
-#endif // SCRIPT_API_v361
-#ifdef SCRIPT_API_v362
-  eEventDialogStart = 13,
-  eEventDialogStop = 14,
-  eEventDialogRun = 15,
-  eEventDialogOptionsOpen = 16,
-  eEventDialogOptionsClose = 17,
-#endif // SCRIPT_API_v362
-};
-
 #ifdef SCRIPT_API_v350
 enum GUIPopupStyle {
   eGUIPopupNormal = 0,
@@ -1602,7 +1621,9 @@ builtin managed struct ListBox extends GUIControl {
 	/// Fills the list box with all the filenames that match the specified file mask.
 	import void FillDirList(const string fileMask, FileSortStyle fileSortStyle = eFileSort_Name, SortDirection sortDirection = eSortAscending);
 	/// Fills the list box with the current user's saved games in the given range of slots.
-	import int  FillSaveGameList(int min_slot = 1, int max_slot = 100);
+	import int  FillSaveGameList(int min_slot = 1, int max_slot = 100, SaveGameSortStyle saveSortStyle = eSaveGameSort_Time, SortDirection sortDirection = eSortDescending);
+	/// Fills the list box with the current user's saved games using the array of slot indexes.
+	import void FillSaveGameSlots(int save_slots[], SaveGameSortStyle saveSortStyle = eSaveGameSort_None, SortDirection sortDirection = eSortNoDirection);
 #else // !SCRIPT_API_v362
     /// Fills the list box with all the filenames that match the specified file mask.
 	import void FillDirList(const string fileMask);
@@ -2705,6 +2726,10 @@ builtin struct Game {
 #ifdef SCRIPT_API_v362
   /// Gets the write time of the specified save game slot.
   import static DateTime* GetSaveSlotTime(int saveSlot);
+  /// Returns a dynamic array, containing indexes of found save slots in the range between "min_slot" and "max_slot"
+  import static int[]  GetSaveSlots(int min_slot, int max_slot, SaveGameSortStyle saveSortStyle = eSaveGameSort_None, SortDirection sortDirection = eSortNoDirection);
+  /// Prescans save slots from "min_slot" to "max_slot" and fills the compatible ones into the provided dynamic array.
+  import static void   ScanSaveSlots(int valid_slots[], int min_slot, int max_slot, SaveGameSortStyle saveSortStyle = eSaveGameSort_None, SortDirection sortDirection = eSortNoDirection, int user_param = 0);
 #endif // SCRIPT_API_v362
 #ifdef SCRIPT_API_v400
   /// Gets/sets the default y/x ratio of character's facing directions, determining directional loop selection for all Characters in game.
@@ -2945,7 +2970,8 @@ enum RestoredSaveResult
 {
   eRestoredSave_ClearData   = 0x01,
   eRestoredSave_MissingData = 0x08,
-  eRestoredSave_ExtraData   = 0x10
+  eRestoredSave_ExtraData   = 0x10,
+  eRestoredSave_Prescan     = 0x20
 };
 
 managed struct RestoredSaveInfo
@@ -2957,6 +2983,7 @@ managed struct RestoredSaveInfo
   import readonly attribute int Slot;
   import readonly attribute String Description;
   import readonly attribute String EngineVersion;
+  import readonly attribute int Room;
   import readonly attribute int AudioClipTypeCount;
   import readonly attribute int CharacterCount;
   import readonly attribute int DialogCount;
@@ -2970,7 +2997,6 @@ managed struct RestoredSaveInfo
   import readonly attribute int GlobalScriptDataSize;
   import readonly attribute int ScriptModuleCount;
   import readonly attribute int ScriptModuleDataSize[];
-  import readonly attribute int RoomScriptDataSize;
 };
 #endif
 

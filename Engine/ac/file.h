@@ -19,9 +19,11 @@
 #define __AGS_EE_AC__FILE_H
 
 #include <memory>
+#include <vector>
 #include "ac/dynobj/scriptfile.h"
 #include "ac/runtime_defines.h"
 #include "util/stream.h"
+#include "util/string.h"
 
 int		File_Exists(const char *fnmm);
 int		File_Delete(const char *fnmm);
@@ -44,6 +46,8 @@ int     File_Seek(sc_File *fil, int offset, int origin);
 int		File_GetEOF(sc_File *fil);
 int		File_GetError(sc_File *fil);
 int     File_GetPosition(sc_File *fil);
+// Fills a list of filenames found using given pattern; sorts the resulting list
+void    FillDirList(std::vector<AGS::Common::String> &files, const AGS::Common::String &pattern, ScriptFileSortStyle file_sort, ScriptSortDirection sort_dir);
 
 //=============================================================================
 

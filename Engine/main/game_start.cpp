@@ -52,7 +52,7 @@ void start_game_load_savegame_on_startup(const String &load_save)
         int slot = 1000;
         get_save_slotnum(load_save, slot);
         current_fade_out_effect();
-        try_restore_save(load_save, slot);
+        try_restore_save(load_save, slot, true);
     }
 }
 

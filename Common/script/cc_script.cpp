@@ -26,6 +26,10 @@ using namespace AGS::Common;
 // script file format signature
 const char scfilesig[5] = "SCOM";
 
+const std::string ccScript::noname = "";
+// FIXME: this constant should not be in ccScript, but in whoever uses its section names?
+const std::string ccScript::unknownSectionName = "(unknown section)";
+
 // ScriptExtReader reads script data's extension blocks
 class ScriptExtReader : public DataExtReader
 {
@@ -261,16 +265,18 @@ bool ccScript::Read(Stream *in)
     return true;
 }
 
-const char *ccScript::GetScriptName() const
+const std::string &ccScript::GetScriptName() const
 {
     if (!scriptname.empty())
-        return scriptname.c_str();
+        return scriptname;
+    // In a regular script sections contain an optional list of headers in an order
+    // they were included, and the script body's own name as the last element.
     if (sectionNames.size() > 0)
-        return sectionNames[0].c_str();
-    return "";
+        return sectionNames.back();
+    return noname;
 }
 
-const char* ccScript::GetSectionName(int32_t offs) const
+const std::string &ccScript::GetSectionName(int32_t offs) const
 {
     size_t sect_idx = 0;
     for (; sect_idx < sectionOffsets.size(); ++sect_idx)
@@ -282,7 +288,12 @@ const char* ccScript::GetSectionName(int32_t offs) const
 
     // if no sections in script, return unknown
     if (sect_idx == 0)
-        return "(unknown section)";
+        return unknownSectionName;
 
-    return sectionNames[sect_idx - 1].c_str();
+    return sectionNames[sect_idx - 1];
+}
+
+void ccScript::SetScriptName(const std::string &name)
+{
+    scriptname = name;
 }

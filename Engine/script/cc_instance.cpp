@@ -1714,13 +1714,13 @@ ccInstError ccInstance::Run(int32_t curpc)
 
 String ccInstance::GetCallStack(const int maxLines) const
 {
-    String buffer = String::FromFormat("in \"%s\", line %d\n", runningInst->instanceof->GetSectionName(pc), line_number);
+    String buffer = String::FromFormat("in \"%s\", line %d\n", runningInst->instanceof->GetSectionName(pc).c_str(), line_number);
 
     int linesDone = 0;
     for (int j = callStackSize - 1; (j >= 0) && (linesDone < maxLines); j--, linesDone++)
     {
         String lineBuffer = String::FromFormat("from \"%s\", line %d\n",
-            callStackCodeInst[j]->instanceof->GetSectionName(callStackAddr[j]), callStackLineNumber[j]);
+            callStackCodeInst[j]->instanceof->GetSectionName(callStackAddr[j]).c_str(), callStackLineNumber[j]);
         buffer.Append(lineBuffer);
         if (linesDone == maxLines - 1)
             buffer.Append("(and more...)\n");

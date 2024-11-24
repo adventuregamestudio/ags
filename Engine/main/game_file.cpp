@@ -135,18 +135,18 @@ HError LoadGameScripts(LoadedGameEntities &ents)
     auto in = AssetMgr->OpenAsset("GlobalScript.o");
     if (in)
     {
-        PScript script(ccScript::CreateFromStream(in.get()));
+        PScript script(ccScript::CreateFromStream("GlobalScript.asc", in.get()));
         if (!script)
             return MakeScriptLoadError("GlobalScript.o");
         ents.GlobalScript = script;
     }
     // Dialog script
-    in = AssetMgr->OpenAsset("DialogScript.o");
+    in = AssetMgr->OpenAsset("DialogScripts.o");
     if (in)
     {
-        PScript script(ccScript::CreateFromStream(in.get()));
+        PScript script(ccScript::CreateFromStream("__DialogScripts.asc", in.get()));
         if (!script)
-            return MakeScriptLoadError("DialogScript.o");
+            return MakeScriptLoadError("DialogScripts.o");
         ents.DialogScript = script;
     }
     // Script modules
@@ -167,7 +167,8 @@ HError LoadGameScripts(LoadedGameEntities &ents)
         in = AssetMgr->OpenAsset(modules[i]);
         if (in)
         {
-            PScript script(ccScript::CreateFromStream(in.get()));
+            String script_name = Path::ReplaceExtension(modules[i], "asc");
+            PScript script(ccScript::CreateFromStream(script_name.ToStdString(), in.get()));
             if (!script)
                 return MakeScriptLoadError(modules[i].GetCStr());
             ents.ScriptModules[i] = script;

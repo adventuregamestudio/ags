@@ -31,6 +31,9 @@ using namespace AGS; // FIXME later
 struct ccScript
 {
 public:
+    static const std::string noname;
+    static const std::string unknownSectionName;
+
     std::string scriptname;
     std::vector<char> globaldata;
     std::vector<int32_t> code;    // executable byte-code, 32-bit per op or arg
@@ -60,8 +63,10 @@ public:
 
     ccScript &operator =(const ccScript&);
 
-    const char *GetScriptName() const;
-    const char *GetSectionName(int32_t offset) const;
+    const std::string &GetScriptName() const;
+    const std::string &GetSectionName(int32_t offset) const;
+
+    void        SetScriptName(const std::string &name);
 
     // write the script to disk (after compiling)
     void        Write(Common::Stream *out);

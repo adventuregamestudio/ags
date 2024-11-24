@@ -1586,6 +1586,9 @@
     <ClInclude Include="..\..\Engine\platform\windows\setup\advancedpagedialog.h">
       <Filter>Header Files\setup</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Engine\ac\dynobj\scriptrestoredsaveinfo.h">
+      <Filter>Header Files\ac\dynobj</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\..\Engine\resource\game-1.ico">

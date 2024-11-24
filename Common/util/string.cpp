@@ -53,6 +53,14 @@ String::String(String &&str)
     str._bufHead = nullptr;
 }
 
+String::String(const std::string &str)
+    : _cstr(const_cast<char*>(""))
+    , _len(0)
+    , _buf(nullptr)
+{
+    *this = str;
+}
+
 String::String(const char *cstr)
     : _cstr(const_cast<char*>(""))
     , _len(0)
@@ -939,20 +947,24 @@ void String::SetAt(size_t index, char c)
 
 void String::SetString(const char *cstr, size_t length)
 {
-    if (cstr)
+    if (cstr && length > 0u)
     {
-        length = std::min(length, strlen(cstr));
-        if (length > 0)
-        {
-            ReserveAndShift(false, Math::Surplus(length, _len));
-            memcpy(_cstr, cstr, length);
-            _len = length;
-            _cstr[length] = 0;
-        }
-        else
-        {
-            Empty();
-        }
+        SetStringImpl(cstr, std::min(length, strlen(cstr)));
+    }
+    else
+    {
+        Empty();
+    }
+}
+
+void String::SetStringImpl(const char *cstr, size_t length)
+{
+    if (length > 0)
+    {
+        ReserveAndShift(false, Math::Surplus(length, _len));
+        memcpy(_cstr, cstr, length);
+        _len = length;
+        _cstr[length] = 0;
     }
     else
     {
@@ -1141,6 +1153,12 @@ String &String::operator=(String &&str)
     str._len = 0;
     str._buf = nullptr;
     str._bufHead = nullptr;
+    return *this;
+}
+
+String &String::operator=(const std::string &str)
+{
+    SetStringImpl(str.c_str(), str.length());
     return *this;
 }
 

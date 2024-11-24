@@ -168,7 +168,7 @@ int ListBox_FillSaveGameList2(GUIListBox *listbox, int min_slot, int max_slot)
 
 int ListBox_FillSaveGameList(GUIListBox *listbox)
 {
-  return ListBox_FillSaveGameList2(listbox, 1, LEGACY_TOP_LISTEDSAVESLOT);
+  return ListBox_FillSaveGameList2(listbox, 0, LEGACY_TOP_LISTEDSAVESLOT);
 }
 
 int ListBox_GetItemAtLocation(GUIListBox *listbox, int x, int y) {

@@ -695,12 +695,11 @@ void scriptDebugHook (ccInstance *ccinst, int linenum) {
         return;
     }
 
-    const char *scriptName = ccinst->runningInst->instanceof->GetSectionName(ccinst->pc);
-
+    String scriptName = ccinst->runningInst->instanceof->GetSectionName(ccinst->pc);
     for (const auto & breakpoint : breakpoints)
     {
         if ((breakpoint.lineNumber == linenum) &&
-            (strcmp(breakpoint.scriptName, scriptName) == 0))
+            (scriptName.Compare(breakpoint.scriptName) == 0))
         {
             break_into_debugger();
             break;

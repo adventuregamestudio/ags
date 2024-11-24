@@ -48,6 +48,7 @@ extern void RegisterParserAPI();
 extern void RegisterPathfinderAPI();
 extern void RegisterRegionAPI();
 extern void RegisterRoomAPI();
+extern void RegisterSaveInfoAPI();
 extern void RegisterScreenAPI();
 extern void RegisterSliderAPI();
 extern void RegisterSpeechAPI(ScriptAPIVersion base_api, ScriptAPIVersion compat_api);
@@ -94,6 +95,7 @@ void setup_script_exports(ScriptAPIVersion base_api, ScriptAPIVersion compat_api
     RegisterPathfinderAPI();
     RegisterRegionAPI();
     RegisterRoomAPI();
+    RegisterSaveInfoAPI();
     RegisterScreenAPI();
     RegisterSliderAPI();
     RegisterSpeechAPI(base_api, compat_api);

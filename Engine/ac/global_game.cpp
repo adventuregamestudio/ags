@@ -308,7 +308,7 @@ int RunAGSGame(const String &newgame, unsigned int mode, int data) {
     play.screen_is_faded_out = 1;
 
     if (load_new_game_restore >= 0) {
-        try_restore_save(load_new_game_restore);
+        try_restore_save(load_new_game_restore, true);
         load_new_game_restore = -1;
     }
     else

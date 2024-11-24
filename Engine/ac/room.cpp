@@ -534,6 +534,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     else croom=&troom;
 
     // Decide what to do if we have been or not in this room before
+    const bool been_here = croom->beenhere > 0;
     if (croom->beenhere == 0)
     {
         // If we have not been in this room before, then copy necessary fields from thisroom
@@ -630,12 +631,22 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
 
     roominst=nullptr;
     if (debug_flags & DBG_NOSCRIPT) ;
-    else if (thisroom.CompiledScript!=nullptr) {
+    else if (thisroom.CompiledScript)
+    {
         compile_room_script();
-        if (croom->tsdatasize>0) {
-            if (croom->tsdatasize != roominst->globaldatasize)
-                quit("room script data segment size has changed");
-            memcpy(&roominst->globaldata[0],croom->tsdata.data(),croom->tsdatasize);
+        if (been_here)
+        {
+            if (croom->tsdatasize > roominst->globaldatasize)
+            {
+                quitprintf("Restored Room %d script data size exceeds current script data (%zu vs %zu bytes).",
+                    newnum, croom->tsdatasize, roominst->globaldatasize);
+            }
+            else if (croom->tsdatasize < roominst->globaldatasize)
+            {
+                Debug::Printf(kDbgMsg_Warn, "WARNING: Restored Room %d script data size is less than the current script data (%zu vs %zu bytes)",
+                    newnum, croom->tsdatasize, roominst->globaldatasize);
+            }
+            memcpy(roominst->globaldata, croom->tsdata.data(), std::min<uint32_t>(croom->tsdatasize, roominst->globaldatasize));
         }
     }
     set_our_eip(207);

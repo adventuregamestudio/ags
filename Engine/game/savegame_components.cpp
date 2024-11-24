@@ -900,6 +900,9 @@ HSaveError PrescanGUI(Stream *in, int32_t cmp_ver, soff_t /*cmp_size*/, const Pr
     for (uint32_t i = 0; i < guis_read; ++i)
     {
         GUIMain::SkipSavestate(in, svg_ver, &guictrl_refs_old[i]);
+        if (svg_ver >= kGuiSvgVersion_40008)
+            Properties::SkipValues(in);
+
         assert_buf.Format("GUI %u Controls", i);
         if (i < guis.size() &&
                 !AssertGameContent(err, guictrl_refs_old[i].size(), guis[i].GetControlCount(), assert_buf.GetCStr(), r_data.Result, r_data.DataCounts.GUIControls[i]))

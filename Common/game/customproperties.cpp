@@ -94,6 +94,26 @@ PropertyError ReadValues(StringIMap &map, Stream *in)
     return kPropertyErr_NoError;
 }
 
+PropertyError SkipValues(Stream *in)
+{
+    PropertyVersion version = (PropertyVersion)in->ReadInt32();
+    if (version < kPropertyVersion_Initial || version > kPropertyVersion_Current)
+    {
+        return kPropertyErr_UnsupportedFormat;
+    }
+
+    int count = in->ReadInt32();
+    // NOTE: handle Editor's mistake where it could save empty property bag with version 1
+    if ((version == kPropertyVersion_Initial) && count > 0)
+        return kPropertyErr_UnsupportedFormat;
+    for (int i = 0; i < count; ++i)
+    {
+        StrUtil::SkipString(in); // name
+        StrUtil::SkipString(in); // value
+    }
+    return kPropertyErr_NoError;
+}
+
 void WriteValues(const StringIMap &map, Stream *out)
 {
     out->WriteInt32(kPropertyVersion_Current);

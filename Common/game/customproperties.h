@@ -82,6 +82,8 @@ namespace Properties
     // Reads property values from the stream and assign them to map.
     // The non-matching existing map items, if any, are NOT erased.
     PropertyError ReadValues(StringIMap &map, Stream *in);
+    // Skip serialized properties
+    PropertyError SkipValues(Stream *in);
     // Writes property values chunk to the stream
     void          WriteValues(const StringIMap &map, Stream *out);
 

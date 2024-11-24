@@ -745,6 +745,11 @@ void GUIMain::SkipSavestate(Stream *in, GuiSvgVersion svg_version, std::vector<C
             (*ctrl_refs)[i].second = ref_packed & 0xFFFF;
         }
     }
+
+    if (svg_version >= kGuiSvgVersion_400)
+    {
+        in->Seek(15 * sizeof(int32_t));
+    }
 }
 
 void GUIMain::WriteToSavegame(Common::Stream *out) const

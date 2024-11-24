@@ -438,7 +438,7 @@ HSaveError ReadGameState(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pre
     return err;
 }
 
-// Savegame data format for RoomStatus
+// Savegame data format for Audio state
 enum AudioSvgVersion
 {
     kAudioSvgVersion_Initial  = 0,

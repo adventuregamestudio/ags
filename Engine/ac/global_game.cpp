@@ -285,7 +285,7 @@ int RunAGSGame(const String &newgame, unsigned int mode, int data) {
     unload_game();
 
     // Adjust config (NOTE: normally, RunAGSGame would need a redesign to allow separate config etc per each game)
-    usetup.translation = ""; // reset to default, prevent from trying translation file of game A in game B
+    usetup.Translation = ""; // reset to default, prevent from trying translation file of game A in game B
 
     AssetMgr->RemoveAllLibraries();
 
@@ -624,14 +624,14 @@ void SetMultitasking (int mode) {
     if ((mode < 0) | (mode > 1))
         quit("!SetMultitasking: invalid mode parameter");
     // Save requested setting
-    usetup.multitasking = mode != 0;
+    usetup.RunInBackground = mode != 0;
 
     // Account for the override config option (must be checked first!)
-    if ((usetup.override_multitasking >= 0) && (mode != usetup.override_multitasking))
+    if ((usetup.Override.Multitasking >= 0) && (mode != usetup.Override.Multitasking))
     {
         Debug::Printf("SetMultitasking: overridden by user config: %d -> %d",
-            mode, usetup.override_multitasking);
-        mode = usetup.override_multitasking;
+            mode, usetup.Override.Multitasking);
+        mode = usetup.Override.Multitasking;
     }
 
     // Must run on background if debugger is connected
@@ -765,7 +765,16 @@ int WaitImpl(int skip_type, int nloops)
     if (play.fast_forward && ((skip_type & ~SKIP_AUTOTIMER) != 0))
         return 0;
 
-    play.wait_counter = nloops;
+    // < 3.6.0 treated negative nloops as "no time";
+    // also old engine let nloops to overflow into neg when assigned to wait_counter...
+    if (game.options[OPT_BASESCRIPTAPI] < kScriptAPI_v360)
+    {
+        if (nloops < 0 || nloops > INT16_MAX)
+            nloops = 0;
+    }
+
+    // clamp to int16
+    play.wait_counter = static_cast<int16_t>(Math::Clamp<int>(nloops, -1, INT16_MAX));
     play.wait_skipped_by = SKIP_NONE;
     play.wait_skipped_by_data = 0;
     play.key_skip_wait = skip_type;
@@ -774,7 +783,7 @@ int WaitImpl(int skip_type, int nloops)
 
     if (game.options[OPT_BASESCRIPTAPI] < kScriptAPI_v360)
     {
-        // < 3.6.0 return 1 is skipped by user input, otherwise 0
+        // < 3.6.0 return 1 if skipped by user input, otherwise 0
         return ((play.wait_skipped_by & (SKIP_KEYPRESS | SKIP_MOUSECLICK)) != 0) ? 1 : 0;
     }
     // >= 3.6.0 return skip (input) type flags with keycode

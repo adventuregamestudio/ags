@@ -144,7 +144,7 @@ void Character_AddInventory(CharacterInfo *chaa, ScriptInvItem *invi, int addInd
             if (charextra[charid].invorder[ee] == inum) {
                 // They already have the item, so don't add it to the list
                 if (chaa == playerchar)
-                    run_on_event (kScriptEvent_InventoryAdd, RuntimeScriptValue().SetInt32(inum));
+                    run_on_event(kScriptEvent_InventoryAdd, inum);
                 return;
             }
         }
@@ -168,7 +168,7 @@ void Character_AddInventory(CharacterInfo *chaa, ScriptInvItem *invi, int addInd
     charextra[charid].invorder_count++;
     GUIE::MarkInventoryForUpdate(charid, charid == game.playercharacter);
     if (chaa == playerchar)
-        run_on_event (kScriptEvent_InventoryAdd, RuntimeScriptValue().SetInt32(inum));
+        run_on_event(kScriptEvent_InventoryAdd, inum);
 }
 
 void Character_AddWaypoint(CharacterInfo *chaa, int x, int y) {
@@ -728,7 +728,7 @@ void Character_LoseInventory(CharacterInfo *chap, ScriptInvItem *invi) {
     GUIE::MarkInventoryForUpdate(charid, charid == game.playercharacter);
 
     if (chap == playerchar)
-        run_on_event (kScriptEvent_InventoryLose, RuntimeScriptValue().SetInt32(inum));
+        run_on_event(kScriptEvent_InventoryLose, inum);
 }
 
 void Character_PlaceOnWalkableArea(CharacterInfo *chap) 
@@ -954,13 +954,15 @@ void Character_StopMoving(CharacterInfo *charp) {
         // restart the idle animation straight away
         charextra[chaa].process_idle_this_time = 1;
     }
-    if (charp->walking) {
-        // If the character is currently moving, stop them and reset their frame
+    if (charp->walking)
+    {
+        // If the character is *currently* moving, stop them and reset their frame
         charp->walking = 0;
         if ((charp->flags & CHF_MOVENOTWALK) == 0)
             charp->frame = 0;
-        charp->flags &= ~CHF_MOVENOTWALK;
     }
+    // Reset any moving-related flags
+    charp->flags &= ~CHF_MOVENOTWALK;
 }
 
 void Character_Tint(CharacterInfo *chaa, int red, int green, int blue, int opacity, int luminance) {
@@ -1834,7 +1836,7 @@ void move_character_impl(CharacterInfo *chin, const std::vector<Point> *path, in
             wasStepFrac = movelist.GetPixelUnitFraction() + movelist.GetStepLength();
     }
 
-    StopMoving (chac);
+    StopMoving(chac);
     chin->frame = oldframe;
     // use toxPassedIn cached variable so the hi-res co-ordinates
     // are still displayed as such
@@ -1882,10 +1884,15 @@ void move_character_impl(CharacterInfo *chin, const std::vector<Point> *path, in
             fix_player_sprite(chin, mls[mslot]);
         }
         else
+        {
             chin->flags |= CHF_MOVENOTWALK;
+        }
     }
     else if (walk_anim) // pathfinder couldn't get a route, stand them still
+    {
+        // pathfinder couldn't get a route, stand them still
         chin->frame = 0;
+    }
 }
 
 int find_looporder_index (int curloop) {

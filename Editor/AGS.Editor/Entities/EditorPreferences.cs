@@ -172,7 +172,7 @@ namespace AGS.Editor.Preferences
             ApplyLimit(RecentGames, MAX_RECENT_GAMES);
             afterListChangedDebouncer.Debounce(() =>
             {
-                AfterRecentGamesChanged.Invoke(sender);
+                AfterRecentGamesChanged?.Invoke(sender);
             });
         }
 

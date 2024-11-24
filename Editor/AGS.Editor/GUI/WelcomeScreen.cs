@@ -17,6 +17,7 @@ namespace AGS.Editor
         public WelcomeScreen()
         {
             InitializeComponent();
+            labelVersion.Text = $"Build {AGS.Types.Version.AGS_EDITOR_VERSION} {AGS.Types.Version.AGS_EDITOR_TARGETNAME}, {AGS.Types.Version.AGS_EDITOR_DATE}";
 
             foreach (RecentGame game in Factory.AGSEditor.Settings.RecentGames)
             {

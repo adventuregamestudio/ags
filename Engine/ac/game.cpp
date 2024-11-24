@@ -432,7 +432,7 @@ void restore_game_dialog()
 void restore_game_dialog2(int min_slot, int max_slot)
 {
     // Optionally override the max slot
-    max_slot = usetup.max_save_slot > 0 ? usetup.max_save_slot : max_slot;
+    max_slot = usetup.Override.MaxSaveSlot > 0 ? usetup.Override.MaxSaveSlot : max_slot;
 
     can_run_delayed_command();
     if (inside_script) {
@@ -460,7 +460,7 @@ void save_game_dialog()
 void save_game_dialog2(int min_slot, int max_slot)
 {
     // Optionally override the max slot
-    max_slot = usetup.max_save_slot > 0 ? usetup.max_save_slot : max_slot;
+    max_slot = usetup.Override.MaxSaveSlot > 0 ? usetup.Override.MaxSaveSlot : max_slot;
 
     can_run_delayed_command();
     if (inside_script) {
@@ -661,7 +661,8 @@ void Game_SetTextReadingSpeed(int newTextSpeed)
     if (newTextSpeed < 1)
         quitprintf("!Game.TextReadingSpeed: %d is an invalid speed", newTextSpeed);
 
-    play.text_speed = newTextSpeed;
+    if (usetup.Access.TextReadSpeed <= 0)
+        play.text_speed = newTextSpeed;
 }
 
 int Game_GetMinimumTextDisplayTimeMs()
@@ -671,7 +672,8 @@ int Game_GetMinimumTextDisplayTimeMs()
 
 void Game_SetMinimumTextDisplayTimeMs(int newTextMinTime)
 {
-    play.text_min_display_time_ms = newTextMinTime;
+    if (usetup.Access.TextReadSpeed <= 0)
+        play.text_min_display_time_ms = newTextMinTime;
 }
 
 int Game_GetIgnoreUserInputAfterTextTimeoutMs()
@@ -759,7 +761,7 @@ int Game_ChangeTranslation(const char *newFilename)
     if ((newFilename == nullptr) || (newFilename[0] == 0))
     { // switch back to default translation
         close_translation();
-        usetup.translation = "";
+        usetup.Translation = "";
         GUIE::MarkForTranslationUpdate();
         return 1;
     }
@@ -768,7 +770,7 @@ int Game_ChangeTranslation(const char *newFilename)
     if (!init_translation(newFilename, oldTransFileName))
         return 0; // failed, kept previous translation
 
-    usetup.translation = newFilename;
+    usetup.Translation = newFilename;
     GUIE::MarkForTranslationUpdate();
     return 1;
 }
@@ -956,7 +958,7 @@ void save_game(int slotn, const String &descript, std::unique_ptr<Bitmap> &&imag
     // Save dynamic game data
     SaveGameState(out.get(), (SaveCmpSelection)(kSaveCmp_All & ~(game.options[OPT_SAVECOMPONENTSIGNORE] & kSaveCmp_ScriptIgnoreMask)));
     // call "After Save" event callback
-    run_on_event(kScriptEvent_GameSaved, RuntimeScriptValue().SetInt32(slotn));
+    run_on_event(kScriptEvent_GameSaved, slotn);
 }
 
 int gameHasBeenRestored = 0;
@@ -1094,7 +1096,7 @@ HSaveError load_game(const String &path, int slotNumber, bool startup, bool &dat
     // ensure input state is reset
     ags_clear_input_state();
     // call "After Restore" event callback
-    run_on_event(kScriptEvent_GameRestored, RuntimeScriptValue().SetInt32(slotNumber));
+    run_on_event(kScriptEvent_GameRestored, slotNumber);
     return HSaveError::None();
 }
 
@@ -1324,7 +1326,7 @@ void display_switch_in()
     Debug::Printf("Switching back into the game");
     ags_clear_input_state();
     // If auto lock option is set, lock mouse to the game window
-    if (usetup.mouse_auto_lock && scsystem.windowed)
+    if (usetup.MouseAutoLock && scsystem.windowed)
         Mouse::TryLockToWindow();
     switched_away = false;
 }

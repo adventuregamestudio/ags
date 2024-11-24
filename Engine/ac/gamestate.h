@@ -185,6 +185,7 @@ struct GamePlayState
     int   audio_master_volume = 0; // in 0-100
     char  walkable_areas_on[MAX_WALK_AREAS]{};
     short screen_flipped = 0;
+    bool  enable_antialiasing = false; // enable sprite AA (linear) scaling
     int   entered_at_x = 0;
     int   entered_at_y = 0;
     int   entered_edge = 0;
@@ -195,6 +196,7 @@ struct GamePlayState
     int   speech_volume = 0; // in 0-255 !!
     int   normal_font = 0;
     int   speech_font = 0;
+    int   std_gui_textheight = 0; // text height for built-in gui dialogs (TODO: use font setting instead)
     char  key_skip_wait = 0;
     int   swap_portrait_lastchar = 0;
     int   swap_portrait_lastlastchar = 0;
@@ -203,7 +205,7 @@ struct GamePlayState
     int   screen_tint = 0;
     int   num_parsed_words = 0;
     short parsed_words[MAX_PARSED_WORDS]{};
-    char  bad_parsed_word[100]{};
+    Common::String bad_parsed_word;
     int   raw_color = 0;
     int   raw_modified[MAX_ROOM_BGFRAMES]{};
     Common::PBitmap raw_drawing_surface;
@@ -368,6 +370,9 @@ struct GamePlayState
     // Gets script camera reference; does NOT increment refcount
     // because script interpreter does this when acquiring managed pointer.
     ScriptCamera *GetScriptCamera(int index);
+
+    // Tells if engine should apply AA (linear) scaling to the game sprites
+    bool ShouldAASprites() const { return enable_antialiasing && (disable_antialiasing == 0); }
 
     //
     // User input management

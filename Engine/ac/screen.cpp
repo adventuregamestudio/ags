@@ -669,11 +669,16 @@ void run_fade_in_effect(ScreenTransitionStyle style, int speed)
     play.screen_is_faded_out = 0; // mark screen as clear
 }
 
+// Tells if we should use instant transition effect, based certain conditions
+inline bool should_instant_transition(ScreenTransitionStyle style)
+{
+    return (style == kScrTran_Instant) ||
+        play.screen_tint > 0; // for some reason we do not play fade if screen is tinted
+}
+
 void run_fade_out_effect(ScreenTransitionStyle style, int speed)
 {
-    const bool instant_transition =
-        (style == kScrTran_Instant) ||
-        play.screen_tint > 0; // for some reason we do not play fade if screen is tinted
+    const bool instant_transition = should_instant_transition(style);
     if (instant_transition)
     {
         if (!play.keep_screen_during_instant_transition)
@@ -697,12 +702,11 @@ void current_fade_in_effect()
     debug_script_log("Transition-in in room %d", displayed_room);
 
     // determine the transition style
-    int trans_style = play.fade_effect;
-
+    ScreenTransitionStyle trans_style = static_cast<ScreenTransitionStyle>(play.fade_effect);
+    // if a one-off transition was selected, then use it
     if (play.next_screen_transition >= 0)
     {
-        // a one-off transition was selected, so use it
-        trans_style = play.next_screen_transition;
+        trans_style = static_cast<ScreenTransitionStyle>(play.next_screen_transition);
         play.next_screen_transition = -1;
     }
 
@@ -739,7 +743,7 @@ void current_fade_in_effect()
         def_speed = 16;
     }
 
-    run_fade_in_effect(static_cast<ScreenTransitionStyle>(trans_style), def_speed);
+    run_fade_in_effect(trans_style, def_speed);
 }
 
 void current_fade_out_effect()
@@ -749,10 +753,17 @@ void current_fade_out_effect()
         return;
 
     // get the screen transition type
-    int trans_style = play.fade_effect;
-    // was a temporary transition selected? if so, use it
-    if (play.next_screen_transition >= 0)
-        trans_style = play.next_screen_transition;
+    ScreenTransitionStyle trans_style = (play.next_screen_transition >= 0) ?
+        // was a temporary transition selected? if so, use it
+        static_cast<ScreenTransitionStyle>(play.next_screen_transition) :
+        // else use default game setting
+        static_cast<ScreenTransitionStyle>(play.fade_effect);
+
+    if (play.fast_forward)
+    {
+        play.screen_is_faded_out |= !(should_instant_transition(trans_style)); // mark screen as faded
+        return;
+    }
 
     int def_speed = 0;
     if (trans_style == kScrTran_Fade)
@@ -764,7 +775,7 @@ void current_fade_out_effect()
         def_speed = 16;
     }
 
-    run_fade_out_effect(static_cast<ScreenTransitionStyle>(trans_style), def_speed);
+    run_fade_out_effect(trans_style, def_speed);
 }
 
 //=============================================================================

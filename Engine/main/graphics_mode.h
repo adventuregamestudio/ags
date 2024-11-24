@@ -55,8 +55,7 @@ enum WindowSizeHint
 // Filter configuration
 struct GfxFilterSetup
 {
-    String ID;          // internal filter ID
-    String UserRequest; // filter name, requested by user
+    String ID;          // filter ID
 };
 
 // Defines how game frame is scaled inside a larger window
@@ -95,6 +94,9 @@ struct DisplaySetupEx
 {
     int                  RefreshRate = 0;  // gfx mode refresh rate
     bool                 VSync = false;    // vertical sync
+
+    DisplaySetupEx(int rate, bool vsync)
+        : RefreshRate(rate), VSync(vsync) {}
 };
 
 // Full graphics configuration, contains graphics driver selection,
@@ -114,7 +116,8 @@ struct DisplayModeSetup
                                 kFrame_Undefined;
 
     bool                 Windowed = false; // initial mode
-    DisplaySetupEx       Params;
+    int                  RefreshRate = 0;  // gfx mode refresh rate
+    bool                 VSync = false;    // vertical sync
 
     GfxFilterSetup       Filter;        // graphics filter definition
 };

@@ -337,7 +337,7 @@ void AGSWin32::PostBackendExit() {
 SetupReturnValue AGSWin32::RunSetup(const ConfigTree &cfg_in, const ConfigTree &def_cfg_in, ConfigTree &cfg_out)
 {
   String version_str = String::FromFormat("Adventure Game Studio v%s setup", get_engine_version());
-  return AGS::Engine::WinSetup(cfg_in, def_cfg_in, cfg_out, usetup.main_data_dir, version_str);
+  return AGS::Engine::WinSetup(cfg_in, def_cfg_in, cfg_out, usetup.MainDataDir, version_str);
 }
 
 void AGSWin32::WriteStdOut(const char *fmt, ...)
@@ -390,9 +390,12 @@ Size AGSWin32::ValidateWindowSize(const Size &sz, bool borderless) const
     // * system's window size limit,
     // * work space (visible area);
     // if the window style includes a border, then subtract it from the limits
-    RECT wa_rc, nc_rc;
+    SDL_Rect bounds_rc;
+    RECT nc_rc;
     // This is the size of the available workspace on user's desktop
-    SystemParametersInfo(SPI_GETWORKAREA, 0, &wa_rc, 0);
+    // NOTE: using SDL here, because WinAPI monitor enumeration may have different order
+    // (SDL deals with this by registering monitors in its own list, but we'd like to avoid a hassle)
+    SDL_GetDisplayUsableBounds(sys_get_window_display_index(), &bounds_rc);
     // This is the maximal size that OS can reliably resize the window to (including any frame)
     const Size max_win(GetSystemMetrics(SM_CXMAXTRACK), GetSystemMetrics(SM_CYMAXTRACK));
     // This is the size of window's non-client area (frame, caption, etc)
@@ -400,8 +403,8 @@ Size AGSWin32::ValidateWindowSize(const Size &sz, bool borderless) const
     SetRectEmpty(&nc_rc);
     AdjustWindowRect(&nc_rc, winstyle, FALSE);
     // Calculate the clamped size
-    Size win_ceil(std::min(static_cast<int>(wa_rc.right - wa_rc.left), (max_win.Width)),
-                  std::min(static_cast<int>(wa_rc.bottom - wa_rc.top), (max_win.Height)));
+    Size win_ceil(std::min(bounds_rc.w, (max_win.Width)),
+                  std::min(bounds_rc.h, (max_win.Height)));
     win_ceil = win_ceil - Size(nc_rc.right - nc_rc.left, nc_rc.bottom - nc_rc.top);
     return Size::Clamp(sz, Size(1, 1), win_ceil);
 }

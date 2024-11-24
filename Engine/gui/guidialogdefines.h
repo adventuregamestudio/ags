@@ -33,9 +33,6 @@
 #define MSG_QUITDIALOG   11    // "Do you want to quit?"
 #define NUM_GUIDIALOGMSG 12
 
-#include "ac/gamesetup.h"
-#define TEXT_HT usetup.textheight
-
 /*#define COL251 26
 #define COL252 28
 #define COL253 29

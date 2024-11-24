@@ -1134,7 +1134,7 @@ int run_dialog_entry(int dlgnum)
 {
     DialogTopic *dialog_topic = &dialog[dlgnum];
     // Run global event kScriptEvent_DialogRun for the startup entry (index 0)
-    run_on_event(kScriptEvent_DialogRun, RuntimeScriptValue().SetInt32(dlgnum), RuntimeScriptValue().SetInt32(0));
+    run_on_event(kScriptEvent_DialogRun, dlgnum, 0);
     return run_dialog_script(dlgnum, dialog_topic->startupentrypoint, 0);
 }
 
@@ -1146,7 +1146,7 @@ int run_dialog_option(int dlgnum, int dialog_choice, int sayChosenOption, bool r
     const char *option_name = dialog_topic->optionnames[dialog_choice];
 
     // Run global event kScriptEvent_DialogRun for the new option
-    run_on_event(kScriptEvent_DialogRun, RuntimeScriptValue().SetInt32(dlgnum), RuntimeScriptValue().SetInt32(dialog_choice + 1));
+    run_on_event(kScriptEvent_DialogRun, dlgnum, dialog_choice + 1);
 
     option_flags |= DFLG_HASBEENCHOSEN;
     bool sayTheOption = false;
@@ -1206,13 +1206,13 @@ int show_dialog_options(int dlgnum, bool runGameLoopsInBackground)
   }
 
   // Run the global DialogOptionsOpen event
-  run_on_event(kScriptEvent_DialogOptionsOpen, RuntimeScriptValue().SetInt32(dlgnum));
+  run_on_event(kScriptEvent_DialogOptionsOpen, dlgnum);
 
   DialogOptions dlgopt(dtop, dlgnum, runGameLoopsInBackground);
   dlgopt.Show();
 
   // Run the global DialogOptionsClose event
-  run_on_event(kScriptEvent_DialogOptionsClose, RuntimeScriptValue().SetInt32(dlgnum), RuntimeScriptValue().SetInt32(dlgopt.GetChosenOption()));
+  run_on_event(kScriptEvent_DialogOptionsClose, dlgnum, dlgopt.GetChosenOption());
 
   return dlgopt.GetChosenOption();
 }
@@ -1340,7 +1340,7 @@ void do_conversation(int dlgnum)
     EndSkippingUntilCharStops();
 
     // Run the global DialogStart event
-    run_on_event(kScriptEvent_DialogStart, RuntimeScriptValue().SetInt32(dlgnum));
+    run_on_event(kScriptEvent_DialogStart, dlgnum);
 
     dialogExec.reset(new DialogExec(dlgnum));
     dialogExec->Run();
@@ -1353,7 +1353,7 @@ void do_conversation(int dlgnum)
     }
 
     // Run the global DialogStop event; NOTE: DlgNum may be different in the end
-    run_on_event(kScriptEvent_DialogStop, RuntimeScriptValue().SetInt32(dialogExec->DlgNum));
+    run_on_event(kScriptEvent_DialogStop, dialogExec->DlgNum);
     dialogExec = {};
 }
 

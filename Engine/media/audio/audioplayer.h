@@ -40,6 +40,9 @@ public:
 
     // Gets current playback state
     PlaybackState GetPlayState() const { return _playState; }
+    // Gets current playback state, *excluding* temporary states such as Initial
+    // FIXME: rework this! -- a quick hack to let external user know the future player state on init stage
+    PlaybackState GetPlayStateNormal() const { return _playState == PlayStateInitial ? _onLoadPlayState : _playState; }
     // Gets frequency (sample rate)
     float GetFrequency() const { return _decoder->GetFreq(); }
     // Gets duration, in ms

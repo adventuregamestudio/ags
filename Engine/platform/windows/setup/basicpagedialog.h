@@ -22,7 +22,7 @@
 #include <memory>
 #include <vector>
 #include "ac/gamestructdefines.h"
-#include "ac/speech.h"
+#include "ac/gamesetup.h"
 #include "gfx/gfxfilter.h"
 #include "gfx/gfxmodelist.h"
 #include "main/graphics_mode.h"
@@ -41,60 +41,21 @@ using namespace AGS::Common;
 //
 // WinConfig struct, keeps all configurable data.
 //
-// FIXME: can't remember why is this a separate struct, should merge
-// with the GameSetup struct in the engine, and merge config reading/saving.
-//
 //=============================================================================
-struct WinConfig
+struct WinConfig : public GameConfig
 {
     // Meta properties
     String Title;
     String VersionString;
-
     String DataDirectory;
     Size   GameResolution;
     int    GameColourDepth;
-
-    // Graphic options
-    String GfxDriverId;
-    String GfxFilterId;
-    WindowSetup FsSetup;
-    WindowSetup WinSetup;
-    FrameScaleDef FsGameFrame;
-    FrameScaleDef WinGameFrame;
-    int    RefreshRate;
-    bool   Windowed;
-    bool   VSync;
-    bool   RenderAtScreenRes;
-    bool   AntialiasSprites;
-
-    // Audio options
-    bool   AudioEnabled;
-    String AudioDriverId;
-    bool   UseVoicePack;
-
-    // Control options
-    bool   MouseAutoLock;
-    float  MouseSpeed;
-
-    // Misc options
-    int    SpriteCacheSize;
-    int    TextureCacheSize;
-    int    SoundCacheSize;
-    String DefaultLanguageName; // this is a human-readable title for the "default language" selection
-    String Language;
-
-    // Custom paths
-    String UserSaveDir;
-    String AppDataDir;
-
-    // Accessibility settings
-    SkipSpeechStyle SpeechSkipStyle = kSkipSpeechNone; // none here means "use defaults"
-    SkipSpeechStyle TextSkipStyle = kSkipSpeechNone;
+    String DefaultLanguageName; // human-readable title for the "default language" selection
 
     WinConfig();
     void SetDefaults();
-    void Load(const ConfigTree &cfg, const Size &desktop_res);
+    void LoadMeta(const ConfigTree &cfg);
+    void LoadCommon(const ConfigTree &cfg, const Size &desktop_res);
     void Save(ConfigTree &cfg, const Size &desktop_res) const;
 };
 
@@ -112,12 +73,13 @@ public:
         , _cfgIn(cfg_in)
     {}
 
-    virtual void ResetSetup() { /* do nothing */ };
+    virtual void ResetSetup(const ConfigTree &cfg_from) { /* do nothing */ };
     virtual void SaveSetup() { /* do nothing */ };
 
 protected:
     WinConfig &_winCfg;
     const ConfigTree &_cfgIn;
+    bool _isInit = false;
 };
 
 //=============================================================================
@@ -133,7 +95,7 @@ public:
 
     String GetTitle() const override { return "Basic"; }
 
-    void ResetSetup() override;
+    void ResetSetup(const ConfigTree &cfg_from) override;
     void SaveSetup() override;
 
 protected:

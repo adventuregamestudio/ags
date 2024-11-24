@@ -20,7 +20,9 @@
 struct MyLabel:public NewControl
 {
   char text[150];
-  MyLabel(int xx, int yy, int wii, const char *tee);
+  int textheight; // TODO: use font instead
+
+  MyLabel(int xx, int yy, int wii, const char *tee, int textheight);
 
   void draw(Common::Bitmap *ds) override;
 

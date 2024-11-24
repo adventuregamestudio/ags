@@ -23,6 +23,7 @@
 #define __AGS_EE_GFX__DDB_H
 
 #include <memory>
+#include "gfx/bitmap.h"
 #include "gfx/gfx_def.h"
 #include "gfx/gfxdefines.h"
 
@@ -84,6 +85,7 @@ public:
   virtual int GetWidth() const = 0;
   virtual int GetHeight() const = 0;
   virtual int GetColorDepth() const = 0;
+  virtual bool MatchesFormat(AGS::Common::Bitmap *other) const = 0;
 
   // Tells if this DDB has an actual render data assigned to it.
   virtual bool IsValid() = 0;

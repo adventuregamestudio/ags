@@ -29,6 +29,7 @@
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/sys_main.h"
 #include "main/engine.h"
+#include "util/string_compat.h"
 #include "util/string_utils.h"
 #include "util/utf8.h"
 
@@ -65,7 +66,7 @@ KeyInput sdl_keyevt_to_ags_key(const SDL_Event &event, bool old_keyhandle)
                 ki.CompatKey = ki.Key;
             }
         }
-        snprintf(ki.Text, KeyInput::UTF8_ARR_SIZE, "%s", event.text.text);
+        ags_strncpy_s(ki.Text, KeyInput::UTF8_ARR_SIZE, event.text.text, KeyInput::UTF8_ARR_SIZE - 1);
         Utf8::GetChar(event.text.text, sizeof(SDL_TextInputEvent::text), &ki.UChar);
         return ki;
     case SDL_KEYDOWN:

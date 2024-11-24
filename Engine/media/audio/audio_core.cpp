@@ -198,7 +198,10 @@ AudioPlayerLock audio_core_get_player(int slot_handle)
 void audio_core_slot_stop(int slot_handle)
 {
     std::lock_guard<std::mutex> lk(g_acore.mixer_mutex_m);
-    g_acore.slots_[slot_handle]->Stop();
+    auto it = g_acore.slots_.find(slot_handle);
+    if (it == g_acore.slots_.end())
+        return;
+    it->second->Stop();
     g_acore.slots_.erase(slot_handle);
     g_acore.mixer_cv.notify_all();
 }

@@ -176,4 +176,19 @@ struct AnimateParams
 // RunPathParams is an alias used for clarity of purpose
 typedef AnimateParams RunPathParams;
 
+enum eScriptSystemOSID
+{
+    eOS_Unknown = 0,
+    eOS_DOS,
+    eOS_Win,
+    eOS_Linux,
+    eOS_Mac,
+    eOS_Android,
+    eOS_iOS,
+    eOS_PSP,
+    eOS_Web,
+    eOS_FreeBSD,
+    eNumOS
+};
+
 #endif // __AC_RUNTIMEDEFINES_H

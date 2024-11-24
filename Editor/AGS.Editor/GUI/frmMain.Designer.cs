@@ -96,6 +96,7 @@ namespace AGS.Editor
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.frmMain_FormClosing);
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.frmMain_KeyDown);
             this.IsMdiContainer = true;
+            this.MainMenuStrip = this.mainMenu;
             this.Controls.Add(this.mainContainer);
             this.Controls.Add(this.toolStrip);
             this.Controls.Add(this.mainMenu);

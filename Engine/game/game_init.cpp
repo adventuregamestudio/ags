@@ -394,8 +394,6 @@ void LoadLipsyncData()
 void InitGameResolution(GameSetupStruct &game, GameDataVersion data_ver)
 {
     const Size game_size = game.GetGameRes();
-    usetup.textheight = get_font_height_outlined(0) + 1;
-
     Debug::Printf(kDbgMsg_Info, "Game native resolution: %d x %d (%d bit)", game_size.Width, game_size.Height, game.color_depth * 8);
 
     // Assign general game viewports
@@ -477,6 +475,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     //
     // 4. Initialize certain runtime variables
     //
+    // TODO: merge this with engine_init_game_settings()
     game_paused = 0;  // reset the game paused flag
     ifacepopped = -1;
 
@@ -486,6 +485,8 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     set_save_game_suffix(svg_suffix);
 
     play.fade_effect = game.options[OPT_FADETYPE];
+    play.std_gui_textheight = get_font_height_outlined(0) + 1;
+    play.enable_antialiasing = usetup.AntialiasSprites;
 
     //
     // 5. Initialize runtime state of certain game objects
@@ -508,7 +509,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     //
     // 7. Start up plugins
     //
-    pl_register_plugins(ents.PluginInfos, !usetup.override_noplugins);
+    pl_register_plugins(ents.PluginInfos, !usetup.Override.NoPlugins);
     pl_startup_plugins();
 
     //
@@ -535,13 +536,18 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
 
 void ApplyAccessibilityOptions()
 {
-    if (usetup.access_speechskip != kSkipSpeechNone)
+    if (usetup.Access.SpeechSkipStyle != kSkipSpeechNone)
     {
-        play.speech_skip_style = user_to_internal_skip_speech(usetup.access_speechskip);
+        play.speech_skip_style = user_to_internal_skip_speech(usetup.Access.SpeechSkipStyle);
     }
-    if (usetup.access_textskip != kSkipSpeechNone)
+    if (usetup.Access.TextSkipStyle != kSkipSpeechNone)
     {
-        play.skip_display = usetup.access_textskip;
+        play.skip_display = usetup.Access.TextSkipStyle;
+    }
+    if (usetup.Access.TextReadSpeed > 0)
+    {
+        play.text_speed = usetup.Access.TextReadSpeed;
+        play.text_min_display_time_ms = Math::Clamp((int)(1000 * (15.f / usetup.Access.TextReadSpeed)), 1000, 3000);
     }
 }
 

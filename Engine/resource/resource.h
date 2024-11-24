@@ -45,6 +45,9 @@
 #define IDC_ACCESSENABLECHECK           1050
 #define IDC_LABEL_SPEECHSKIPSTYLE       1051
 #define IDC_LABEL_TEXTSKIPSTYLE         1052
+#define IDC_LABEL_TEXTREADSPEED         1053
+#define IDC_TEXTREADSPEED               1054
+#define IDC_TEXTREADSPEED_TEXT          1055
 
 // Next default values for new objects
 // 
@@ -52,7 +55,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        112
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1053
+#define _APS_NEXT_CONTROL_VALUE         1055
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

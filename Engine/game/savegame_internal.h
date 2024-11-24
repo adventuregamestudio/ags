@@ -56,6 +56,12 @@ struct PreservedParams
         : Desc(desc) {}
 };
 
+// Audio playback state flags, used only in serialization
+enum AudioSvgPlaybackFlags
+{
+    kSvgAudioPaused = 0x01
+};
+
 enum GameViewCamFlags
 {
     kSvgGameAutoRoomView = 0x01
@@ -171,6 +177,7 @@ struct RestoredData
     struct ChannelInfo
     {
         int ClipID = -1;
+        int Flags = 0;
         int Pos = 0;
         int Priority = 0;
         int Repeat = 0;

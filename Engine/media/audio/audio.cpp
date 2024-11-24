@@ -226,7 +226,7 @@ static int find_free_audio_channel(ScriptAudioClip *clip, int priority, bool int
 
 bool is_audiotype_allowed_to_play(AudioFileType /*type*/)
 { // TODO: this is a remnant of an old audio logic, think this function over
-    return usetup.audio_enabled;
+    return usetup.AudioEnabled;
 }
 
 std::unique_ptr<SoundClip> load_sound_clip(ScriptAudioClip *audioClip, bool repeat)
@@ -576,6 +576,9 @@ void stop_all_sound_and_music()
     stop_voice_nonblocking();
     for (int i = 0; i < TOTAL_AUDIO_CHANNELS; ++i)
         stop_and_destroy_channel(i);
+    // Sound queues
+    for (int i = 0; i < MAX_QUEUED_MUSIC; ++i)
+        play.new_music_queue[i] = QueuedAudioItem();
 }
 
 void shutdown_sound() 
@@ -584,7 +587,7 @@ void shutdown_sound()
     audio_core_shutdown(); // audio core system
     soundcache_clear(); // clear cached data
     sys_audio_shutdown(); // backend; NOTE: sys_main will know if it's required
-    usetup.audio_enabled = false;
+    usetup.AudioEnabled = false;
 }
 
 

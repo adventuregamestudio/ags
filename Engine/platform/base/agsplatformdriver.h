@@ -23,6 +23,7 @@
 #include <vector>
 #include "ac/datetime.h"
 #include "ac/path_helper.h"
+#include "ac/runtime_defines.h"
 #include "debug/outputhandler.h"
 #include "util/geometry.h"
 #include "util/ini_util.h"
@@ -35,21 +36,6 @@ namespace AGS
     namespace Engine { struct DisplayMode; }
 }
 using namespace AGS; // FIXME later
-
-enum eScriptSystemOSID
-{
-    eOS_Unknown = 0,
-    eOS_DOS,
-    eOS_Win,
-    eOS_Linux,
-    eOS_Mac,
-    eOS_Android,
-    eOS_iOS,
-    eOS_PSP,
-    eOS_Web,
-    eOS_FreeBSD,
-    eNumOS
-};
 
 enum SetupReturnValue
 {

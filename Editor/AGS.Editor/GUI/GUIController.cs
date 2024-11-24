@@ -929,6 +929,7 @@ namespace AGS.Editor
                 ScriptFunctionUIEditor.CreateScriptFunction = new ScriptFunctionUIEditor.CreateScriptFunctionHandler(ScriptFunctionUIEditor_CreateScriptFunction);
                 CustomResolutionUIEditor.CustomResolutionSetGUI = new CustomResolutionUIEditor.CustomResolutionGUIType(ShowCustomResolutionChooserFromPropertyGrid);
                 ColorUIEditor.ColorGUI = new ColorUIEditor.ColorGUIType(ShowColorDialog);
+                MultiLineStringUIEditor.MultilineStringGUI = new MultiLineStringUIEditor.MultilineStringGUIType(ShowMultilineStringDialog);
                 AudioClipSourceFileUIEditor.AudioClipSourceFileGUI = new AudioClipSourceFileUIEditor.AudioClipSourceFileGUIType(ShowAudioClipSourceFileChooserFromPropertyGrid);
             }
         }
@@ -1500,6 +1501,11 @@ namespace AGS.Editor
         private Size ShowCustomResolutionChooserFromPropertyGrid(Size currentSize)
         {
             return CustomResolutionDialog.Show(currentSize);
+        }
+
+        private String ShowMultilineStringDialog(string title, String text)
+        {
+            return MultilineStringEditorDialog.ShowEditor(title, text ?? string.Empty);
         }
 
         private Color? ShowColorDialog(Color? color)

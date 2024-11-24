@@ -447,7 +447,10 @@ Bitmap *CreateCompatBitmap(int width, int height, int col_depth)
 //   default color depth; otherwise its color depth is to be kept (if possible).
 // * make_opaque - for sprites with alpha channel (ARGB) tells to make their
 //   alpha fully opaque, if that's necessary for the sprite's use.
-static Bitmap *PrepareSpriteForUseImpl(Common::Bitmap *bitmap, bool conv_to_gamedepth, bool make_opaque)
+// * keep_mask - tells whether to keep mask pixels when converting from another
+//   color depth. May be useful to disable mask when the source is a 8-bit
+//   palette-based image and the opaque sprite is intended.
+static Bitmap *PrepareSpriteForUseImpl(Common::Bitmap *bitmap, bool conv_to_gamedepth, bool make_opaque, bool keep_mask)
 {
     // sprite must be converted to game's color depth;
     // this behavior is hardcoded in the current engine version
@@ -473,7 +476,7 @@ static Bitmap *PrepareSpriteForUseImpl(Common::Bitmap *bitmap, bool conv_to_game
             BitmapHelper::ReplaceHalfAlphaWithRGBMask(bitmap);
         }
 
-        new_bitmap = GfxUtil::ConvertBitmap(bitmap, gfxDriver->GetCompatibleBitmapFormat(game_col_depth));
+        new_bitmap = GfxUtil::ConvertBitmap(bitmap, gfxDriver->GetCompatibleBitmapFormat(game_col_depth), keep_mask);
         was_conv_to_gamedepth = true;
     }
 
@@ -496,7 +499,7 @@ static Bitmap *PrepareSpriteForUseImpl(Common::Bitmap *bitmap, bool conv_to_game
     
     // Finally, if we did not create a new copy already, - ensure gfxdriver compatible format
     if (new_bitmap == bitmap)
-        new_bitmap = GfxUtil::ConvertBitmap(bitmap, gfxDriver->GetCompatibleBitmapFormat(bitmap->GetColorDepth()));
+        new_bitmap = GfxUtil::ConvertBitmap(bitmap, gfxDriver->GetCompatibleBitmapFormat(bitmap->GetColorDepth()), keep_mask);
 
     if (must_switch_palette)
         unselect_palette();
@@ -504,17 +507,17 @@ static Bitmap *PrepareSpriteForUseImpl(Common::Bitmap *bitmap, bool conv_to_game
     return new_bitmap;
 }
 
-Bitmap *PrepareSpriteForUse(Bitmap* bitmap, bool conv_to_gamedepth, bool make_opaque)
+Bitmap *PrepareSpriteForUse(Bitmap* bitmap, bool conv_to_gamedepth, bool make_opaque, bool keep_mask)
 {
-    Bitmap *new_bitmap = PrepareSpriteForUseImpl(bitmap, conv_to_gamedepth, make_opaque);
+    Bitmap *new_bitmap = PrepareSpriteForUseImpl(bitmap, conv_to_gamedepth, make_opaque, keep_mask);
     if (new_bitmap != bitmap)
         delete bitmap;
     return new_bitmap;
 }
 
-PBitmap PrepareSpriteForUse(PBitmap bitmap, bool conv_to_gamedepth, bool make_opaque)
+PBitmap PrepareSpriteForUse(PBitmap bitmap, bool conv_to_gamedepth, bool make_opaque, bool keep_mask)
 {
-    Bitmap *new_bitmap = PrepareSpriteForUseImpl(bitmap.get(), conv_to_gamedepth, make_opaque);
+    Bitmap *new_bitmap = PrepareSpriteForUseImpl(bitmap.get(), conv_to_gamedepth, make_opaque, keep_mask);
     return new_bitmap == bitmap.get() ? bitmap : PBitmap(new_bitmap); // if bitmap is same, don't create new smart ptr!
 }
 
@@ -1171,8 +1174,8 @@ IDriverDependantBitmap* recycle_ddb_bitmap(IDriverDependantBitmap *ddb,
     assert(source);
     if (ddb && // already has an allocated DDB,
         (drawstate.SoftwareRender || // is software renderer, or...
-        ((ddb->GetColorDepth() == source->GetColorDepth()) && // existing DDB format matches
-            (ddb->GetWidth() == source->GetWidth()) && (ddb->GetHeight() == source->GetHeight()))))
+        ((ddb->GetRefID() == UINT32_MAX) && // the texture is *not identified*, and...
+            (ddb->MatchesFormat(source))))) // existing DDB format matches
         gfxDriver->UpdateDDBFromBitmap(ddb, source);
     else if (ddb) // if existing texture format does not match, then create a new texture
         ddb->AttachData(std::shared_ptr<Texture>(gfxDriver->CreateTexture(source, opaque)), opaque);
@@ -1682,14 +1685,14 @@ bool scale_and_flip_sprite(ObjTexture &actsp, int sppic, int newwidth, int newhe
       if (isMirrored) {
           // TODO: "flip self" function may allow to optimize this
           Bitmap *tempspr = BitmapHelper::CreateTransparentBitmap(newwidth, newheight, coldept);
-          if ((IS_ANTIALIAS_SPRITES) && (coldept < 32))
+          if (play.ShouldAASprites() && (coldept < 32))
               tempspr->AAStretchBlt (src_sprite, RectWH(0, 0, newwidth, newheight), Common::kBitmap_Transparency);
           else
               tempspr->StretchBlt (src_sprite, RectWH(0, 0, newwidth, newheight), Common::kBitmap_Transparency);
           active_spr->FlipBlt(tempspr, 0, 0, Common::kFlip_Horizontal);
           delete tempspr;
       }
-      else if ((IS_ANTIALIAS_SPRITES) && (coldept < 32))
+      else if (play.ShouldAASprites() && (coldept < 32))
           active_spr->AAStretchBlt(src_sprite,RectWH(0,0,newwidth,newheight), Common::kBitmap_Transparency);
       else
           active_spr->StretchBlt(src_sprite,RectWH(0,0,newwidth,newheight), Common::kBitmap_Transparency);
@@ -1742,7 +1745,7 @@ static Bitmap *transform_sprite(Bitmap *src, std::unique_ptr<Bitmap> &dst,
         {
             Bitmap tempbmp;
             tempbmp.CreateTransparent(dst_sz.Width, dst_sz.Height, src->GetColorDepth());
-            if ((IS_ANTIALIAS_SPRITES) && (src->GetColorDepth() < 32))
+            if (play.ShouldAASprites() && (src->GetColorDepth() < 32))
                 tempbmp.AAStretchBlt(src, RectWH(dst_sz), kBitmap_Transparency);
             else
                 tempbmp.StretchBlt(src, RectWH(dst_sz), kBitmap_Transparency);
@@ -1750,7 +1753,7 @@ static Bitmap *transform_sprite(Bitmap *src, std::unique_ptr<Bitmap> &dst,
         }
         else
         {
-            if ((IS_ANTIALIAS_SPRITES) && (src->GetColorDepth() < 32))
+            if (play.ShouldAASprites() && (src->GetColorDepth() < 32))
                 dst->AAStretchBlt(src, RectWH(dst_sz), kBitmap_Transparency);
             else
                 dst->StretchBlt(src, RectWH(dst_sz), kBitmap_Transparency);
@@ -2821,7 +2824,7 @@ void construct_game_scene(bool full_redraw)
     // React to changes to viewports and cameras (possibly from script) just before the render
     play.UpdateViewports();
 
-    gfxDriver->UseSmoothScaling(IS_ANTIALIAS_SPRITES);
+    gfxDriver->UseSmoothScaling(play.ShouldAASprites());
     gfxDriver->RenderSpritesAtScreenResolution(usetup.RenderAtScreenRes);
 
     pl_run_plugin_hooks(AGSE_PRERENDER, 0);

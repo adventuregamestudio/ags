@@ -23,13 +23,14 @@ using namespace Common;
 
 extern int acdialog_font;
 
-MyLabel::MyLabel(int xx, int yy, int wii, const char *tee)
+MyLabel::MyLabel(int xx, int yy, int wii, const char *tee, int textheight_)
 {
     snprintf(text, sizeof(text), "%s", tee);
     x = xx;
     y = yy;
     wid = wii;
-    hit = TEXT_HT;
+    textheight = textheight_;
+    hit = textheight;
 }
 
 void MyLabel::draw(Bitmap *ds)
@@ -42,7 +43,7 @@ void MyLabel::draw(Bitmap *ds)
         return;
     for (size_t ee = 0; ee < Lines.Count(); ee++) {
         wouttext_outline(ds, x, cyp, acdialog_font, text_color, Lines[ee].GetCStr());
-        cyp += TEXT_HT;
+        cyp += textheight;
     }
 }
 

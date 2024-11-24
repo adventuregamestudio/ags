@@ -28,7 +28,7 @@ namespace AGS.Editor.Components
             _guiController.RegisterIcon("InventoryIcon", Resources.ResourceManager.GetIcon("iconinv-item.ico"));
             _guiController.RegisterIcon(ICON_KEY, Resources.ResourceManager.GetIcon("iconinv.ico"));
             _guiController.ProjectTree.AddTreeRoot(this, TOP_LEVEL_COMMAND_ID, "Inventory items", ICON_KEY);
-            _agsEditor.TestGameScripts += ScanAndReportMissingInteractionHandlers;
+            _agsEditor.CheckGameScripts += ScanAndReportMissingInteractionHandlers;
             RePopulateTreeView();
         }
 
@@ -273,7 +273,7 @@ namespace AGS.Editor.Components
             var errors = args.Messages;
             foreach (InventoryItem inv in _agsEditor.CurrentGame.InventoryItems)
             {
-                var missing = _agsEditor.Tasks.TestMissingInteractionHandlers(inv.Interactions);
+                var missing = _agsEditor.Tasks.CheckMissingInteractionHandlers(inv.Interactions);
                 if (missing == null || missing.Count == 0)
                     continue;
 

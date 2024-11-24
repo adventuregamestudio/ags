@@ -508,7 +508,6 @@
     <ClCompile Include="..\..\Engine\ac\file.cpp" />
     <ClCompile Include="..\..\Engine\ac\game.cpp" />
     <ClCompile Include="..\..\Engine\ac\joystick.cpp" />
-    <ClCompile Include="..\..\Engine\ac\gamesetup.cpp" />
     <ClCompile Include="..\..\Engine\ac\gamestate.cpp" />
     <ClCompile Include="..\..\Engine\ac\global_api.cpp" />
     <ClCompile Include="..\..\Engine\ac\global_audio.cpp" />

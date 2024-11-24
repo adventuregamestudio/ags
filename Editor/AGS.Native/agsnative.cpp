@@ -473,17 +473,21 @@ bool load_template_file(const AGSString &fileName, AGSString &description,
 	    {
 		    in->Seek(30);
 		    int gameVersion = in->ReadInt32();
+			
             // TODO: check this out, in theory we still support pre-2.72 game import
 		    if (gameVersion != 32) // CHECKME: why we use `!=` and not `>=` ? also what's 32?
 		    {
 			    // older than 2.72 template
 			    return false;
 		    }
+		    in = nullptr;
 	    }
 
         if (templateMgr->DoesAssetExist(TEMPLATE_DESC_FILE))
         {
             std::vector<char> desc_data;
+            load_asset_data(templateMgr.get(), TEMPLATE_DESC_FILE, desc_data);
+            description.SetString(&desc_data.front(), desc_data.size());
             load_asset_data(templateMgr.get(), TEMPLATE_DESC_FILE, desc_data);
             description.SetString(&desc_data.front(), desc_data.size());
         }

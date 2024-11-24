@@ -296,7 +296,7 @@ void unload_old_room()
     // room unloaded callback
     run_room_event(kRoomEvent_AfterFadeout);
     // global room unloaded event
-    run_on_event(kScriptEvent_RoomAfterFadeout, RuntimeScriptValue().SetInt32(displayed_room));
+    run_on_event(kScriptEvent_RoomAfterFadeout, displayed_room);
 
     debug_script_log("Unloading room %d", displayed_room);
 
@@ -497,7 +497,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     }
 
     for (size_t i = 0; i < thisroom.BgFrameCount; ++i) {
-        thisroom.BgFrames[i].Graphic = PrepareSpriteForUse(thisroom.BgFrames[i].Graphic, true /* to game depth */, true /* force opaque */);
+        thisroom.BgFrames[i].Graphic = PrepareSpriteForUse(thisroom.BgFrames[i].Graphic, true /* to game depth */, true /* force opaque */, false /* no keep mask */);
     }
 
     set_our_eip(202);
@@ -600,7 +600,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     }
 
     set_our_eip(210);
-    if (IS_ANTIALIAS_SPRITES) {
+    if (play.ShouldAASprites()) {
         create_rgb_table (&rgb_table, palette, nullptr);
         rgb_map = &rgb_table;
     }
@@ -824,7 +824,7 @@ void new_room(int newnum,CharacterInfo*forchar) {
     // player leaves screen event
     run_room_event(kRoomEvent_BeforeFadeout);
     // Run the global OnRoomLeave event
-    run_on_event (kScriptEvent_RoomLeave, RuntimeScriptValue().SetInt32(displayed_room));
+    run_on_event(kScriptEvent_RoomLeave, displayed_room);
 
     pl_run_plugin_hooks(AGSE_LEAVEROOM, displayed_room);
 
@@ -842,7 +842,7 @@ void new_room(int newnum,CharacterInfo*forchar) {
     // change rooms
     unload_old_room();
 
-    if (usetup.clear_cache_on_room_change)
+    if (usetup.ClearCacheOnRoomChange)
     {
         // Delete all cached resources
         spriteset.DisposeAllCached();

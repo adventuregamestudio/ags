@@ -30,7 +30,7 @@ struct SymbolTableEntry
     int16_t stype = 0;
     int32_t flags = 0;
     int16_t vartype = 0;
-    int soffs = 0; // or property getter/setter import indexes, packed as two int16 
+    int32_t soffs = 0; // or property getter/setter import indexes, packed as two int16 
     int32_t ssize = 0; // or return type size for function
     int16_t sscope = 0; // or num arguments for function
     // symbol's life scope, in bytecode pos

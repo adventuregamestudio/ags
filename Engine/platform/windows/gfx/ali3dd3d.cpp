@@ -490,6 +490,17 @@ bool D3DGraphicsDriver::CreateDisplayMode(const DisplayMode &mode)
   {
     sys_window_create("", mode.Width, mode.Height, mode.Mode);
   }
+  else
+  {
+#if (AGS_PLATFORM_DESKTOP)
+    // Move window to the default display, this is where we create exclusive fullscreen
+    if (mode.IsRealFullscreen())
+    {
+      if (sys_get_window_display_index() != 0)
+        sys_window_fit_in_display(0);
+    }
+#endif
+  }
 
   HWND hwnd = (HWND)sys_win_get_window();
   memset( &d3dpp, 0, sizeof(d3dpp) );

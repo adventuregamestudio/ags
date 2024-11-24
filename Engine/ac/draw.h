@@ -33,8 +33,6 @@ namespace AGS
 }
 using namespace AGS; // FIXME later
 
-#define IS_ANTIALIAS_SPRITES usetup.enable_antialiasing && (play.disable_antialiasing == 0)
-
 // Render stage flags, for filtering out certain elements
 // during room transitions, capturing screenshots, etc.
 // NOTE: these values are matched by ones in a script API,
@@ -203,9 +201,13 @@ Common::Bitmap *CreateCompatBitmap(int width, int height, int col_depth = 0);
 //   default color depth; otherwise its color depth is to be kept (if possible).
 // * make_opaque - for sprites with alpha channel (ARGB) tells to make their
 //   alpha fully opaque, if that's necessary for the sprite's use.
-Common::Bitmap *PrepareSpriteForUse(Common::Bitmap *bitmap, bool conv_to_gamedepth, bool make_opaque = false);
+// * keep_mask - tells whether to keep mask pixels when converting from another
+//   color depth. May be useful to disable mask when the source is a 8-bit
+//   palette-based image and the opaque sprite is intended.
+// TODO: think if it's logical to merge 'make_opaque' and 'keep_mask'.
+Common::Bitmap *PrepareSpriteForUse(Common::Bitmap *bitmap, bool conv_to_gamedepth, bool make_opaque = false, bool keep_mask = true);
 // Same as above, but compatible with std::shared_ptr.
-Common::PBitmap PrepareSpriteForUse(Common::PBitmap bitmap, bool conv_to_gamedepth, bool make_opaque = false);
+Common::PBitmap PrepareSpriteForUse(Common::PBitmap bitmap, bool conv_to_gamedepth, bool make_opaque = false, bool keep_mask = true);
 // Makes a screenshot corresponding to the last screen render and returns it as a bitmap
 // of the requested width and height and game's native color depth.
 Common::Bitmap *CopyScreenIntoBitmap(int width, int height, const Rect *src_rect = nullptr,

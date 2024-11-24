@@ -99,7 +99,7 @@ SkipSpeechStyle internal_skip_speech_to_user(int internal_val)
 
 bool init_voicepak(const String &name)
 {
-    if (usetup.no_speech_pack) return false; // voice-over disabled
+    if (!usetup.UseVoicePack) return false; // voice-over disabled
 
     String speech_file = name.IsEmpty() ? "speech.vox" : String::FromFormat("sp_%s.vox", name.GetCStr());
     if (ResPaths.SpeechPak.Name.CompareNoCase(speech_file) == 0)
@@ -283,7 +283,7 @@ void Speech_SetSkipStyle(SkipSpeechStyle newval)
     if ((newval < kSkipSpeechFirst) || (newval > kSkipSpeechLast))
         quit("!SetSkipSpeech: invalid skip mode specified");
 
-    if (usetup.access_speechskip == kSkipSpeechNone)
+    if (usetup.Access.SpeechSkipStyle == kSkipSpeechNone)
     {
         debug_script_log("SkipSpeech style set to %d", newval);
         play.speech_skip_style = user_to_internal_skip_speech((SkipSpeechStyle)newval);

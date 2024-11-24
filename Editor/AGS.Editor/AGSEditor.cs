@@ -39,8 +39,8 @@ namespace AGS.Editor
         public event ExtraCompilationStepHandler ExtraCompilationStep;
         public delegate void ExtraOutputCreationStepHandler(OutputCreationStepArgs args);
         public event ExtraOutputCreationStepHandler ExtraOutputCreationStep;
-        public delegate void TestGameScriptsHandler(GenericMessagesArgs args);
-        public event TestGameScriptsHandler TestGameScripts;
+        public delegate void CheckGameScriptsHandler(GenericMessagesArgs args);
+        public event CheckGameScriptsHandler CheckGameScripts;
 
 		public const string BUILT_IN_HEADER_FILE_NAME = "_BuiltInScriptHeader.ash";
         public const string OUTPUT_DIRECTORY = "Compiled";
@@ -1084,7 +1084,7 @@ namespace AGS.Editor
             }
             ExtraCompilationStep?.Invoke(new CompilationStepArgs(_game.ScriptsToCompile, errors));
             
-            RunGameScriptTests(errors);
+            RunGameScriptChecks(errors);
 
             return messagesToReturn;
         }
@@ -1092,7 +1092,7 @@ namespace AGS.Editor
         /// <summary>
         /// Runs few optional script checks.
         /// </summary>
-        private void RunGameScriptTests(CompileMessages errors)
+        private void RunGameScriptChecks(CompileMessages errors)
         {
             // Update autocomplete for all the script modules, if necessary
             // TODO: this is not a ideal solution, as it's likely duplicating script parsing by the script compiler
@@ -1103,7 +1103,7 @@ namespace AGS.Editor
                     AutoComplete.ConstructCache(scripts.Script, null);
             }
 
-            TestGameScripts.Invoke(new GenericMessagesArgs(errors));
+            CheckGameScripts.Invoke(new GenericMessagesArgs(errors));
         }
 
         private void CreateAudioVOXFile(bool forceRebuild)

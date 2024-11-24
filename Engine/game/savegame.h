@@ -57,6 +57,7 @@ enum SavegameVersion
     kSvgVersion_360_beta  = 3060023,
     kSvgVersion_360_final = 3060041,
     kSvgVersion_361       = 3060115,
+    kSvgVersion_361_p8    = 3060130,
     kSvgVersion_362       = 3060200,
     kSvgVersion_399       = 3999999,
     kSvgVersion_400       = 4000000,

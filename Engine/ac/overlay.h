@@ -26,7 +26,8 @@ namespace AGS { namespace Common { class Bitmap; } }
 using namespace AGS; // FIXME later
 
 void Overlay_Remove(ScriptOverlay *sco);
-void Overlay_SetText(ScriptOverlay *scover, int wii, int fontid, int clr, const char*text);
+void Overlay_SetText(ScriptOverlay *scover, int width, int fontid, int text_color, const char *text);
+void Overlay_SetText(ScreenOverlay &over, int x, int y, int width, int fontid, int text_color, const char *text);
 int  Overlay_GetX(ScriptOverlay *scover);
 void Overlay_SetX(ScriptOverlay *scover, int newx);
 int  Overlay_GetY(ScriptOverlay *scover);

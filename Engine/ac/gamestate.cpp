@@ -565,7 +565,7 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
     screen_tint = in->ReadInt32();
     num_parsed_words = in->ReadInt32();
     in->ReadArrayOfInt16( parsed_words, MAX_PARSED_WORDS);
-    in->Read( bad_parsed_word, 100);
+    bad_parsed_word.ReadCount(in, 100); // CHECKME: does it have to be serialized?
     raw_color = in->ReadInt32();
     in->Seek(LEGACY_MAXSAVEGAMES * sizeof(int16_t));// [DEPRECATED]
     mouse_cursor_hidden = in->ReadInt32();
@@ -764,7 +764,7 @@ void GamePlayState::WriteForSavegame(Stream *out) const
     out->WriteInt32( screen_tint);
     out->WriteInt32( num_parsed_words);
     out->WriteArrayOfInt16( parsed_words, MAX_PARSED_WORDS);
-    out->Write( bad_parsed_word, 100);
+    bad_parsed_word.WriteCount(out, 100); // CHECKME: does it have to be serialized?
     out->WriteInt32( raw_color);
     out->WriteByteCount(0, LEGACY_MAXSAVEGAMES * sizeof(int16_t));// [DEPRECATED]
     out->WriteInt32( mouse_cursor_hidden);

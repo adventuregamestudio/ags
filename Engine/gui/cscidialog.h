@@ -18,6 +18,7 @@
 #ifndef __AGS_EE_GUI__CSCIDIALOG_H
 #define __AGS_EE_GUI__CSCIDIALOG_H
 
+#include "core/types.h"
 #include "gui/guidialogdefines.h"
 
 int  CSCIGetVersion();

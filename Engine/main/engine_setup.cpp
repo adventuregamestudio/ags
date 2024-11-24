@@ -46,7 +46,7 @@ extern IGraphicsDriver *gfxDriver;
 
 void engine_adjust_for_rotation_settings()
 {
-    switch (usetup.rotation) {
+    switch (usetup.Rotation) {
         case ScreenRotation::kScreenRotation_Portrait:
             SDL_SetHint(SDL_HINT_ORIENTATIONS, "Portrait PortraitUpsideDown");
             break;
@@ -117,7 +117,7 @@ void engine_post_gfxmode_mouse_setup(const Size &init_desktop)
     // NOTE that we setup speed and other related properties regardless of
     // whether mouse control was requested because it may be enabled later.
     Mouse::SetSpeedUnit(1.f);
-    if (usetup.mouse_speed_def == kMouseSpeed_CurrentDisplay)
+    if (usetup.MouseSpeedDef == kMouseSpeed_CurrentDisplay)
     {
         Size cur_desktop;
         if (sys_get_desktop_resolution(cur_desktop.Width, cur_desktop.Height) == 0)
@@ -125,17 +125,17 @@ void engine_post_gfxmode_mouse_setup(const Size &init_desktop)
             (float)cur_desktop.Height / (float)init_desktop.Height));
     }
 
-    Mouse_EnableControl(usetup.mouse_ctrl_enabled);
+    Mouse_EnableControl(usetup.MouseCtrlEnabled);
     Debug::Printf(kDbgMsg_Info, "Mouse speed control: %s, unit: %f, user value: %f",
-        usetup.mouse_ctrl_enabled ? "enabled" : "disabled", Mouse::GetSpeedUnit(), Mouse::GetSpeed());
-    Mouse::SetTouch2MouseMode(usetup.touch_emulate_mouse, usetup.touch_motion_relative, usetup.mouse_speed);
+        usetup.MouseCtrlEnabled ? "enabled" : "disabled", Mouse::GetSpeedUnit(), Mouse::GetSpeed());
+    Mouse::SetTouch2MouseMode(usetup.TouchEmulateMouse, usetup.TouchMotionRelative, usetup.MouseSpeed);
     Debug::Printf(kDbgMsg_Info, "Touch-to-mouse motion mode: %s",
-        usetup.touch_motion_relative ? "relative" : "absolute");
+        usetup.TouchMotionRelative ? "relative" : "absolute");
 
     on_coordinates_scaling_changed();
 
     // If auto lock option is set, lock mouse to the game window
-    if (usetup.mouse_auto_lock && scsystem.windowed != 0)
+    if (usetup.MouseAutoLock && scsystem.windowed != 0)
         Mouse::TryLockToWindow();
 }
 
@@ -170,7 +170,7 @@ void engine_post_gfxmode_setup(const Size &init_desktop, const DisplayMode &old_
     engine_post_gfxmode_mouse_setup(init_desktop);
 
     // reset multitasking (may be overridden by the current display mode)
-    SetMultitasking(usetup.multitasking);
+    SetMultitasking(usetup.RunInBackground);
 
     invalidate_screen();
 }

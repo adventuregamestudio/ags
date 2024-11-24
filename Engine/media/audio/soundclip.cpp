@@ -63,7 +63,7 @@ void SoundClip::pause()
         return;
     auto player = audio_core_get_player(slot_);
     player->Pause();
-    state = player->GetPlayState();
+    state = player->GetPlayStateNormal();
 }
 
 void SoundClip::resume()
@@ -146,7 +146,7 @@ bool SoundClip::update()
         paramsChanged = false;
     }
 
-    PlaybackState core_state = player->GetPlayState();
+    PlaybackState core_state = player->GetPlayStateNormal();
     float posms_f = player->GetPositionMs();
     posMs = static_cast<int>(posms_f);
     pos = posms_to_pos(posMs);
@@ -160,7 +160,7 @@ bool SoundClip::update()
     {
     case PlaybackState::PlayStatePlaying:
         player->Play();
-        state = player->GetPlayState();
+        state = player->GetPlayStateNormal();
         break;
     default: /* do nothing */
         break;

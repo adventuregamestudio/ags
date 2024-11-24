@@ -304,7 +304,7 @@ void engine_init_mouse()
         Debug::Printf(kDbgMsg_Info, "Initializing mouse: failed");
     else
         Debug::Printf(kDbgMsg_Info, "Initializing mouse: number of buttons reported is %d", res);
-    Mouse::SetSpeed(usetup.mouse_speed);
+    Mouse::SetSpeed(usetup.MouseSpeed);
 }
 
 void engine_locate_speech_pak()
@@ -388,10 +388,10 @@ void engine_init_keyboard()
 
 void engine_init_audio()
 {
-    if (usetup.audio_enabled)
+    if (usetup.AudioEnabled)
     {
         Debug::Printf("Initializing audio");
-        bool res = sys_audio_init(usetup.audio_driver);
+        bool res = sys_audio_init(usetup.AudioDriverID);
         if (res)
         {
             try {
@@ -402,10 +402,10 @@ void engine_init_audio()
                 res = false;
             }
         }
-        usetup.audio_enabled = res;
+        usetup.AudioEnabled = res;
     }
     
-    if (usetup.audio_enabled)
+    if (usetup.AudioEnabled)
     {
         soundcache_set_rules(usetup.SoundLoadAtOnceSize * 1024, usetup.SoundCacheSize * 1024);
     }
@@ -418,7 +418,7 @@ void engine_init_audio()
 
 void engine_init_debug()
 {
-    if (usetup.show_fps)
+    if (usetup.ShowFps)
         display_fps = kFPS_Forced;
     if ((debug_flags & (~DBG_DEBUGMODE)) >0) {
         platform->DisplayAlert("Engine debugging enabled.\n"
@@ -476,14 +476,14 @@ static void resolve_configured_path(String &option)
 // Setup paths and directories that may be affected by user configuration
 void engine_init_user_directories()
 {
-    resolve_configured_path(usetup.user_data_dir);
-    resolve_configured_path(usetup.shared_data_dir);
-    if (!usetup.user_conf_dir.IsEmpty())
-        Debug::Printf(kDbgMsg_Info, "User config directory: %s", usetup.user_conf_dir.GetCStr());
-    if (!usetup.user_data_dir.IsEmpty())
-        Debug::Printf(kDbgMsg_Info, "User data directory: %s", usetup.user_data_dir.GetCStr());
-    if (!usetup.shared_data_dir.IsEmpty())
-        Debug::Printf(kDbgMsg_Info, "Shared data directory: %s", usetup.shared_data_dir.GetCStr());
+    resolve_configured_path(usetup.UserSaveDir);
+    resolve_configured_path(usetup.AppDataDir);
+    if (!usetup.UserConfDir.IsEmpty())
+        Debug::Printf(kDbgMsg_Info, "User config directory: %s", usetup.UserConfDir.GetCStr());
+    if (!usetup.UserSaveDir.IsEmpty())
+        Debug::Printf(kDbgMsg_Info, "User data directory: %s", usetup.UserSaveDir.GetCStr());
+    if (!usetup.AppDataDir.IsEmpty())
+        Debug::Printf(kDbgMsg_Info, "Shared data directory: %s", usetup.AppDataDir.GetCStr());
 
     // Initialize default save directory early, for we'll need it to set restart point
     SetDefaultSaveDirectory();
@@ -602,7 +602,7 @@ void engine_init_game_settings()
     play.randseed = time(nullptr);
     srand(play.randseed);
 
-    if (usetup.audio_enabled)
+    if (usetup.AudioEnabled)
     {
         play.separate_music_lib = !ResPaths.AudioPak.Name.IsEmpty();
         play.voice_avail = ResPaths.VoiceAvail;
@@ -744,7 +744,7 @@ void engine_init_game_settings()
     play.speech_font = 1;
     play.speech_text_shadow = 16;
     play.screen_tint = -1;
-    play.bad_parsed_word[0] = 0;
+    play.bad_parsed_word.Empty();
     play.swap_portrait_side = 0;
     play.swap_portrait_lastchar = -1;
     play.swap_portrait_lastlastchar = -1;
@@ -825,8 +825,8 @@ void engine_init_game_settings()
     memset(&play.script_timers[0],0,MAX_TIMERS * sizeof(int));
     memset(&play.default_audio_type_volumes[0], -1, MAX_AUDIO_TYPES * sizeof(int));
 
-    if (!usetup.translation.IsEmpty())
-        Game_ChangeTranslation(usetup.translation.GetCStr());
+    if (!usetup.Translation.IsEmpty())
+        Game_ChangeTranslation(usetup.Translation.GetCStr());
 
     update_invorder();
     displayed_room = -10;
@@ -848,9 +848,9 @@ void engine_init_game_settings()
 
 void engine_setup_scsystem_auxiliary()
 {
-    if (usetup.override_script_os > eOS_Unknown)
+    if (usetup.Override.ScriptOS > eOS_Unknown)
     {
-        scsystem.os = usetup.override_script_os;
+        scsystem.os = usetup.Override.ScriptOS;
     }
     else
     {
@@ -864,7 +864,7 @@ void engine_prepare_to_start_game()
 
     engine_setup_scsystem_auxiliary();
 
-    if (usetup.load_latest_save)
+    if (usetup.LoadLatestSave)
     {
         int slot = GetLastSaveSlot();
         if (slot >= 0)
@@ -933,9 +933,9 @@ bool define_gamedata_location()
     }
 
     // On success: set all the necessary path and filename settings
-    usetup.startup_dir = startup_dir;
-    usetup.main_data_file = data_path;
-    usetup.main_data_dir = Path::GetDirectoryPath(data_path);
+    usetup.StartupDir = startup_dir;
+    usetup.MainDataFile = data_path;
+    usetup.MainDataDir = Path::GetDirectoryPath(data_path);
     return true;
 }
 
@@ -948,10 +948,10 @@ bool engine_init_gamedata()
         return false;
 
     // Try init game lib
-    AssetError asset_err = AssetMgr->AddLibrary(usetup.main_data_file);
+    AssetError asset_err = AssetMgr->AddLibrary(usetup.MainDataFile);
     if (asset_err != kAssetNoError)
     {
-        platform->DisplayAlert("ERROR: The game data is missing, is of unsupported format or corrupt.\nFile: '%s'", usetup.main_data_file.GetCStr());
+        platform->DisplayAlert("ERROR: The game data is missing, is of unsupported format or corrupt.\nFile: '%s'", usetup.MainDataFile.GetCStr());
         return false;
     }
 
@@ -967,10 +967,10 @@ bool engine_init_gamedata()
     }
 
     // Setup ResPaths, so that we know out main locations further
-    ResPaths.GamePak.Path = usetup.main_data_file;
-    ResPaths.GamePak.Name = Path::GetFilename(usetup.main_data_file);
-    ResPaths.DataDir = usetup.install_dir.IsEmpty() ? usetup.main_data_dir : Path::MakeAbsolutePath(usetup.install_dir);
-    for (const auto &opt_dir : usetup.opt_data_dirs)
+    ResPaths.GamePak.Path = usetup.MainDataFile;
+    ResPaths.GamePak.Name = Path::GetFilename(usetup.MainDataFile);
+    ResPaths.DataDir = usetup.OptInstallDir.IsEmpty() ? usetup.MainDataDir : Path::MakeAbsolutePath(usetup.OptInstallDir);
+    for (const auto &opt_dir : usetup.OptDataDirs)
     {
         ResPaths.OptDataDirs.push_back(std::make_pair(
             Path::MakeAbsolutePath(opt_dir.first),
@@ -978,7 +978,7 @@ bool engine_init_gamedata()
             ));
     }
 
-    Debug::Printf(kDbgMsg_Info, "Startup directory: %s", usetup.startup_dir.GetCStr());
+    Debug::Printf(kDbgMsg_Info, "Startup directory: %s", usetup.StartupDir.GetCStr());
     Debug::Printf(kDbgMsg_Info, "Data directory: %s", ResPaths.DataDir.GetCStr());
     for (const auto &opt_dir : ResPaths.OptDataDirs)
     {
@@ -989,9 +989,9 @@ bool engine_init_gamedata()
 
 void engine_read_config(ConfigTree &cfg, ConfigTree *def_cfg)
 {
-    if (!usetup.conf_path.IsEmpty())
+    if (!usetup.UserConfPath.IsEmpty())
     {
-        IniUtil::Read(usetup.conf_path, cfg);
+        IniUtil::Read(usetup.UserConfPath, cfg);
         if (def_cfg)
             *def_cfg = cfg;
         return;
@@ -1011,24 +1011,24 @@ void engine_read_config(ConfigTree &cfg, ConfigTree *def_cfg)
 
     // Handle directive to search for the user config inside the custom directory;
     // this option may come either from command line or default/global config.
-    if (usetup.user_conf_dir.IsEmpty())
-        usetup.user_conf_dir = CfgReadString(cfg, "misc", "user_conf_dir");
-    if (usetup.user_conf_dir.IsEmpty()) // also try deprecated option
-        usetup.user_conf_dir = CfgReadBoolInt(cfg, "misc", "localuserconf") ? "." : "";
+    if (usetup.UserConfDir.IsEmpty())
+        usetup.UserConfDir = CfgReadString(cfg, "misc", "user_conf_dir");
+    if (usetup.UserConfDir.IsEmpty()) // also try deprecated option
+        usetup.UserConfDir = CfgReadBoolInt(cfg, "misc", "localuserconf") ? "." : "";
     // Test if the file is writeable, if it is then both engine and setup
     // applications may actually use it fully as a user config, otherwise
     // fallback to default behavior.
-    if (!usetup.user_conf_dir.IsEmpty())
+    if (!usetup.UserConfDir.IsEmpty())
     {
-        resolve_configured_path(usetup.user_conf_dir);
-        if (Path::IsRelativePath(usetup.user_conf_dir))
-            usetup.user_conf_dir = Path::ConcatPaths(usetup.startup_dir, usetup.user_conf_dir);
-        if (!Directory::CreateDirectory(usetup.user_conf_dir) ||
-            !File::TestWriteFile(Path::ConcatPaths(usetup.user_conf_dir, DefaultConfigFileName)))
+        resolve_configured_path(usetup.UserConfDir);
+        if (Path::IsRelativePath(usetup.UserConfDir))
+            usetup.UserConfDir = Path::ConcatPaths(usetup.StartupDir, usetup.UserConfDir);
+        if (!Directory::CreateDirectory(usetup.UserConfDir) ||
+            !File::TestWriteFile(Path::ConcatPaths(usetup.UserConfDir, DefaultConfigFileName)))
         {
             Debug::Printf(kDbgMsg_Warn, "Write test failed at user config dir '%s', using default path.",
-                usetup.user_conf_dir.GetCStr());
-            usetup.user_conf_dir = "";
+                usetup.UserConfDir.GetCStr());
+            usetup.UserConfDir = "";
         }
     }
 
@@ -1058,9 +1058,9 @@ void engine_prepare_config(ConfigTree &cfg, ConfigTree *def_cfg, const ConfigTre
 // Applies configuration to the running game
 void engine_set_config(const ConfigTree cfg)
 {
-    config_defaults();
-    apply_config(cfg);
-    post_config();
+    config_defaults(usetup);
+    apply_config(cfg, usetup);
+    post_config(usetup);
 }
 
 //
@@ -1275,13 +1275,13 @@ int initialize_engine(const ConfigTree &startup_opts)
     engine_adjust_for_rotation_settings();
 
     // Attempt to initialize graphics mode
-    if (!engine_try_set_gfxmode_any(usetup.Screen))
+    if (!engine_try_set_gfxmode_any(usetup.Display))
         return EXIT_ERROR;
 
     // Configure game window after renderer was initialized
     engine_setup_window();
 
-    SetMultitasking(usetup.multitasking);
+    SetMultitasking(usetup.RunInBackground);
 
     sys_window_show_cursor(false); // hide the system cursor
 
@@ -1308,7 +1308,7 @@ bool engine_try_set_gfxmode_any(const DisplayModeSetup &setup)
 
     engine_shutdown_gfxmode();
 
-    sys_renderer_set_output(usetup.software_render_driver);
+    sys_renderer_set_output(usetup.SoftwareRenderDriver);
 
     const Size init_desktop = get_desktop_size();
     bool res = graphics_mode_init_any(GraphicResolution(game.GetGameRes(), game.color_depth * 8),
@@ -1339,10 +1339,8 @@ bool engine_try_switch_windowed_gfxmode()
     DisplayMode last_opposite_mode = setting.Dm;
     FrameScaleDef frame = setting.Frame;
 
-    last_opposite_mode.Vsync = usetup.Screen.Params.VSync = old_dm.Vsync; // normalize vsync in case it has been toggled at runtime
-
     // Apply vsync in case it has been toggled at runtime
-    last_opposite_mode.Vsync = usetup.Screen.Params.VSync;
+    last_opposite_mode.Vsync = usetup.Display.VSync;
 
     // If there are saved parameters for given mode (fullscreen/windowed),
     // *and* if the window is on the same display where it's been last time,
@@ -1354,10 +1352,10 @@ bool engine_try_switch_windowed_gfxmode()
     }
     else
     {
-        WindowSetup ws = windowed ? usetup.Screen.WinSetup : usetup.Screen.FsSetup;
-        frame = windowed ? usetup.Screen.WinGameFrame : usetup.Screen.FsGameFrame;
+        WindowSetup ws = windowed ? usetup.Display.WinSetup : usetup.Display.FsSetup;
+        frame = windowed ? usetup.Display.WinGameFrame : usetup.Display.FsGameFrame;
         res = graphics_mode_set_dm_any(game.GetGameRes(), ws, old_dm.ColorDepth,
-            frame, usetup.Screen.Params);
+            frame, DisplaySetupEx(usetup.Display.RefreshRate, usetup.Display.VSync));
     }
 
     // Apply corresponding frame render method

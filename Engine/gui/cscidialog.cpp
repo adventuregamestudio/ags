@@ -215,11 +215,11 @@ int CSCICreateControl(int typeandflags, int xx, int yy, int wii, int hii, const 
         vobjs[usec] = new MyPushButton(xx, yy, wii, hii, title);
 
     } else if (type == CNT_LISTBOX) {
-        vobjs[usec] = new MyListBox(xx, yy, wii, hii);
+        vobjs[usec] = new MyListBox(xx, yy, wii, hii, play.std_gui_textheight);
     } else if (type == CNT_LABEL) {
-        vobjs[usec] = new MyLabel(xx, yy, wii, title);
+        vobjs[usec] = new MyLabel(xx, yy, wii, title, play.std_gui_textheight);
     } else if (type == CNT_TEXTBOX) {
-        vobjs[usec] = new MyTextBox(xx, yy, wii, title);
+        vobjs[usec] = new MyTextBox(xx, yy, wii, title, play.std_gui_textheight);
     } else
         quit("Unknown control type requested");
 

@@ -134,7 +134,6 @@ target_sources(engine
     ac/game.h
     ac/joystick.cpp
     ac/joystick.h
-    ac/gamesetup.cpp
     ac/gamesetup.h
     ac/gamestate.cpp
     ac/gamestate.h

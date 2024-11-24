@@ -40,7 +40,7 @@ namespace AGS.Editor
             if (!DesignMode)
             {
                 var config = GUIController.Instance.WindowConfig;
-                ConfigUtils.WriteControlPosition(config, "SpriteChooser", this);
+                ConfigUtils.WriteFormPosition(config, "SpriteChooser", this);
                 spriteSelector1.WriteConfig(config.GetOrAddObject("SpriteChooser/spriteSelector"));
             }
 

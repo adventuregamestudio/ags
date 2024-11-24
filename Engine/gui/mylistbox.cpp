@@ -30,14 +30,15 @@ extern int windowbackgroundcolor;
 extern int cbuttfont;
 extern int smcode;
 
-  MyListBox::MyListBox(int xx, int yy, int wii, int hii)
+  MyListBox::MyListBox(int xx, int yy, int wii, int hii, int textheight_)
   {
     x = xx;
     y = yy;
     wid = wii;
     hit = hii;
-    hit -= (hit - 4) % TEXT_HT; // resize to multiple of text height
-    numonscreen = (hit - 4) / TEXT_HT;
+    textheight = textheight_;
+    hit -= (hit - 4) % textheight; // resize to multiple of text height
+    numonscreen = (hit - 4) / textheight;
     items = 0;
     topitem = 0;
     selected = -1;
@@ -89,11 +90,11 @@ extern int smcode;
       if (inum >= items)
         break;
 
-      int thisypos = y + 2 + tt * TEXT_HT;
+      int thisypos = y + 2 + tt * textheight;
       color_t text_color;
       if (inum == selected) {
         draw_color = GUI::GetStandardColorForBitmap(0);
-        ds->FillRect(Rect(x, thisypos, x + wid, thisypos + TEXT_HT - 1), draw_color);
+        ds->FillRect(Rect(x, thisypos, x + wid, thisypos + textheight - 1), draw_color);
         text_color = GUI::GetStandardColorForBitmap(7);
       }
       else text_color = GUI::GetStandardColorForBitmap(0);
@@ -112,7 +113,7 @@ extern int smcode;
         topitem++;
 
     } else {
-      selected = ((my - y) - 2) / TEXT_HT + topitem;
+      selected = ((my - y) - 2) / textheight + topitem;
       if (selected >= items)
         selected = items - 1;
 

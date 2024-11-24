@@ -24,7 +24,9 @@ struct MyListBox:public NewControl
 {
   int items, topitem, numonscreen, selected;
   char *itemnames[MAXLISTITEM];
-  MyListBox(int xx, int yy, int wii, int hii);
+  int textheight; // TODO: use font instead
+
+  MyListBox(int xx, int yy, int wii, int hii, int textheight);
   void clearlist();
   ~MyListBox() override;
 

@@ -107,13 +107,14 @@ void run_claimable_event(const String &tsname, bool includeRoom, int numParams, 
 }
 
 // runs the global script on_event function
-void run_on_event(AGSScriptEventType evtype, const RuntimeScriptValue &data1, const RuntimeScriptValue &data2)
+void run_on_event(AGSScriptEventType evtype, int data1, int data2, int data3, int data4)
 {
-    RuntimeScriptValue params[]{ evtype , data1, data2 };
-    QueueScriptFunction(kScTypeGame, "on_event", 3, params);
+    RuntimeScriptValue params[]{ evtype , data1, data2, data3, data4 };
+    QueueScriptFunction(kScTypeGame, "on_event", 5, params);
 }
 
-void run_room_event(int id) {
+void run_room_event(int id)
+{
     auto obj_evt = ObjectEvent(kScTypeRoom, "room");
     assert(thisroom.EventHandlers);
     run_interaction_script(obj_evt, thisroom.EventHandlers.get(), id);
@@ -187,9 +188,9 @@ void process_event(const AGSEvent *evp)
             obj_evt = ObjectEvent(kScTypeRoom, "room");
             if (inter.ObjEvent == kRoomEvent_BeforeFadein) {
                 in_enters_screen ++;
-                run_on_event(kScriptEvent_RoomEnter, RuntimeScriptValue().SetInt32(displayed_room));
+                run_on_event(kScriptEvent_RoomEnter, displayed_room);
             } else if (inter.ObjEvent == kRoomEvent_AfterFadein) {
-                run_on_event(kScriptEvent_RoomAfterFadein, RuntimeScriptValue().SetInt32(displayed_room));
+                run_on_event(kScriptEvent_RoomAfterFadein, displayed_room);
             }
             //Debug::Printf("Running room interaction, event %d", evp->data3);
             break;

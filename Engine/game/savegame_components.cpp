@@ -1835,7 +1835,8 @@ ComponentHandler ComponentHandlers[] =
         4000000,
         kSaveCmp_Scripts, // must go along with scripts
         WriteRTTI,
-        ReadRTTI
+        ReadRTTI,
+        nullptr
     },
     {
         "Plugin Data",

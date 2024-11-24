@@ -10,8 +10,8 @@ Common:
    placeholders and get replaced by fonts from plugin).
  - Most of the deprecated functionality (game settings and script API) is cut out from both
    Editor and Engine, and is no longer supported. The Editor guarantees to import the projects
-   saved by AGS 3.6.0 and later. The Engine may run games compiled in 3.6.0, but only so long
-   as they don't use any deprecated settings or script commands.
+   saved by AGS 3.6.0 and later, but *running* games compiled by pre-4.0 versions is no longer
+   guaranteed.
  - Removed support for 16-bit games. Any older 16-bit project will be converted to 32-bit
    on import by the Editor.
  - Completely removed Global Messages and Room Messages.
@@ -37,6 +37,10 @@ Editor:
  - Added "Source FontFile" property to Fonts, this property lets assign a Font File to the Font.
  - Implemented "Watch Variables" panel which lets to watch values of the selected script variables
    while running the game. This feature is working only if game is built in Debug mode.
+   The panel has an option to automatically enlist local variables (relative to current position
+   in script).
+ - Added "Add to Watch Panel" command to Script Editor's context menu.
+ - Support dragging a text from the script window into the "Watch Variables" panel.
  - Added "Word Wrap" command to Edit menu for scripts.
  - General panel look enhancements.
  - Support built-in Base Color Themes that have the custom themes applied over them.
@@ -56,6 +60,9 @@ Compiler:
  - Optimization to the bytecode generation: same scripts may now work faster at runtime.
 
 Scripting:
+ - Managed structs may have constructors. Constructor is a member function which name is
+   identical to the struct's name, and type is "void". Constructor will be called
+   automatically when the managed object is created with "new" command.
  - Support for having regular structs inside any structs (regular or managed); there's
    no nesting limit.
  - Support having managed pointers inside managed structs.
@@ -88,6 +95,9 @@ Scripting:
  - Support addressing members of the function return values in one expression. This lets
    chain multiple commands including function calls, e.g. GetObject().MyVariable...and so on.
  - Two sequenced string literals ("text" "text") are now automatically concatenated.
+ - Dialog Scripts dropped support for a number of obsolete commands: "run-script", "new-room",
+   "set-speech-view", "set-globalint", "play-sound", "add-inv", "lose-inv". All of those have
+   contemporary equivalents.
 
 Script API:
  - Most of the deprecated API is now removed completely, except those that have no equivalent.

@@ -681,7 +681,7 @@ namespace AGS.Editor.Components
 				
                 try
                 {
-                    BusyDialog.Show(pleaseWaitText, new BusyDialog.ProcessingHandler(SaveRoomOnThread), room);
+                    BusyDialog.Show(pleaseWaitText, new BusyDialog.ProcessingHandler(SaveRoomOnThread), new CompileRoomParameters(room, errors));
                 }
                 catch (CompileMessage ex)
                 {

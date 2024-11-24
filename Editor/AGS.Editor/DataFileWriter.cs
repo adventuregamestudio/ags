@@ -1710,8 +1710,9 @@ namespace AGS.Editor
             {
                 CustomPropertiesWriter.Write(writer, game.Characters[i].Properties);
             }
-            writer.Write(1); // inv slot 0 is unused, write the property header (int 1)
-            writer.Write(0); // then write the number of props used by this inv item (int 0)
+            // inventory slot 0 is unused, write the dummy custom properties
+            CustomProperties dummyProperties = new CustomProperties();
+            CustomPropertiesWriter.Write(writer, dummyProperties);
             for (int i = 0; i < game.InventoryItems.Count; ++i)
             {
                 CustomPropertiesWriter.Write(writer, game.InventoryItems[i].Properties);

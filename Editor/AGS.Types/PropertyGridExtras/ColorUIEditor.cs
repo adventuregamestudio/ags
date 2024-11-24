@@ -7,7 +7,7 @@ namespace AGS.Types
 {
     public class ColorUIEditor : UITypeEditor
     {
-        public delegate Color ColorGUIType(Color color);
+        public delegate Color? ColorGUIType(Color? color);
         public static ColorGUIType ColorGUI;
         public static GameColorDepth ColorMode = GameColorDepth.TrueColor;
 
@@ -39,14 +39,16 @@ namespace AGS.Types
 
         public override object EditValue(ITypeDescriptorContext context, IServiceProvider provider, object value)
         {
-            Color color = ColorFromPropertyValue(context, value);
+            Color? color = (value != null) ? ColorFromPropertyValue(context, value) : (Color?)null;
 
             if (ColorGUI != null)
             {
                 color = ColorGUI(color);
             }
 
-            return ColorToPropertyValue(context, color);
+            return color.HasValue ?
+                ColorToPropertyValue(context, color.Value) :
+                value; // must return original input value if there were no changes
         }
 
         public override bool GetPaintValueSupported(ITypeDescriptorContext context)

@@ -296,6 +296,11 @@ namespace AGS.Editor.Components
                 RemoveExecutionPointFromAllScripts();
             }
 
+            if (evArgs.Handled)
+            {
+                return; // operation has been completed by another handler
+            }
+
             Dialog dialog = GetDialog(evArgs.FileName);
             if (dialog != null)
             {
@@ -320,7 +325,12 @@ namespace AGS.Editor.Components
                     dialogEditor.Paint += paintEvent;
                     dialogEditor.Invalidate();
                 }
-            }         
+                evArgs.Result = ZoomToFileResult.Success;
+            }
+            else
+            {
+                evArgs.Result = ZoomToFileResult.ScriptNotFound;
+            }
 		}
 
         private string GetNodeID(Dialog item)

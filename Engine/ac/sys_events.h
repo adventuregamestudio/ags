@@ -87,6 +87,8 @@ inline int make_sdl_merged_mod(int mod)
 InputType ags_inputevent_ready();
 // Queries for the next input event in buffer; returns uninitialized data if none was queued
 SDL_Event ags_get_next_inputevent();
+// Pops and drops next input event in buffer, if any
+void ags_drop_next_inputevent();
 // Tells if the key is currently down, provided AGS key.
 // NOTE: for particular script codes this function returns positive if either of two keys are down.
 int ags_iskeydown(eAGSKeyCode ags_key);
@@ -94,7 +96,7 @@ int ags_iskeydown(eAGSKeyCode ags_key);
 void ags_simulate_keypress(eAGSKeyCode ags_key, bool old_keyhandle);
 
 // TODO: hide these later? (bad design with run_service_key_controls,
-// but also need to clear them in ags_clear_input_buffer())
+// but also need to clear them in ags_clear_input_state())
 extern int sys_modkeys; // accumulated mod flags
 extern bool sys_modkeys_fired; // tells whether mod combination had been used for action
 
@@ -145,9 +147,6 @@ void ags_touch_set_mouse_emulation(TouchMouseEmulation mode,
 // Clears buffered keypresses and mouse clicks;
 // resets current key/mb states
 void ags_clear_input_state();
-// Clears buffered keypresses and mouse clicks, if any;
-// does NOT reset current key/mb states
-void ags_clear_input_buffer();
 // Clears buffered mouse movement
 void ags_clear_mouse_movement();
 

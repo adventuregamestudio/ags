@@ -1441,7 +1441,7 @@ ComponentHandler ComponentHandlers[] =
         "RTTI",
         4000000,
         4000000,
-        kSaveCmp_Scripts,
+        kSaveCmp_Scripts, // must go along with scripts
         WriteRTTI,
         ReadRTTI
     },

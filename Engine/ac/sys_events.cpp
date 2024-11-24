@@ -341,6 +341,12 @@ SDL_Event ags_get_next_inputevent()
     return {};
 }
 
+void ags_drop_next_inputevent()
+{
+    if (!g_inputEvtQueue.empty())
+        g_inputEvtQueue.pop_front();
+}
+
 int ags_iskeydown(eAGSKeyCode ags_key)
 {
     // old input handling: update key state in realtime
@@ -960,16 +966,6 @@ void ags_clear_input_state()
     sys_modkeys = 0;
     sys_modkeys_fired = false;
     mouse_button_state = 0;
-    ags_clear_mouse_movement();
-}
-
-void ags_clear_input_buffer()
-{
-    g_inputEvtQueue.clear();
-    // accumulated mod keys have to be cleared because they depend on key evt queue
-    sys_modkeys = 0;
-    sys_modkeys_fired = false;
-    // forget about accumulated mouse movement too
     ags_clear_mouse_movement();
 }
 

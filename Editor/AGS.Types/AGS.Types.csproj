@@ -132,6 +132,7 @@
     <Compile Include="EditorFeatures\BaseTemplate.cs" />
     <Compile Include="EditorFeatures\BeforeShowContextMenuEventArgs.cs" />
     <Compile Include="EditorFeatures\ContentDocument.cs" />
+    <Compile Include="EditorFeatures\OpenScriptFunctionArgs.cs" />
     <Compile Include="EditorFeatures\EditorContentPanel.cs">
       <SubType>UserControl</SubType>
     </Compile>

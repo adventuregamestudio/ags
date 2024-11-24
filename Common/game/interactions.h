@@ -56,7 +56,22 @@ struct InteractionEvents
 {
     // An optional name of a script module to run functions in
     String ScriptModule;
-    std::vector<String> Events;
+    // Script function names, corresponding to the event's index,
+    // paired with Enabled flag to tell if this event handler has to be processed
+    struct EventHandler
+    {
+        String FunctionName;
+        // At runtime we may want to receive function's call result and update
+        // Enabled status, but result may be delayed, so we have to use a shared memory object for safety.
+        // TODO: have this in runtime-only struct, when we have a clear separation
+        std::shared_ptr<bool> Enabled;
+
+        inline bool IsEnabled() const { return Enabled && *Enabled; }
+
+        EventHandler(const String &fn_name)
+            : FunctionName(fn_name), Enabled(new bool(!fn_name.IsEmpty())) {}
+    };
+    std::vector<EventHandler> Events;
 
     // Read and create pre-3.6.2 version of the InteractionEvents
     static std::unique_ptr<InteractionEvents> CreateFromStream_v361(Stream *in);

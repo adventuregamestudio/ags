@@ -371,6 +371,32 @@ int Object_GetClickable(ScriptObject *objj) {
     return 1;
 }
 
+int Object_GetDestinationX(ScriptObject *objj)
+{
+    if (!is_valid_object(objj->id))
+        quit("!Object.DestionationX: Invalid object specified");
+
+    if (objs[objj->id].moving)
+    {
+        MoveList *cmls = &mls[objs[objj->id].moving];
+        return cmls->pos.back().X;
+    }
+    return objs[objj->id].x;
+}
+
+int Object_GetDestinationY(ScriptObject *objj)
+{
+    if (!is_valid_object(objj->id))
+        quit("!Object.DestionationX: Invalid object specified");
+
+    if (objs[objj->id].moving)
+    {
+        MoveList *cmls = &mls[objs[objj->id].moving];
+        return cmls->pos.back().Y;
+    }
+    return objs[objj->id].y;
+}
+
 bool Object_GetManualScaling(ScriptObject *objj)
 {
     if (!is_valid_object(objj->id))
@@ -1144,6 +1170,16 @@ RuntimeScriptValue Sc_Object_SetClickable(void *self, const RuntimeScriptValue *
     API_OBJCALL_VOID_PINT(ScriptObject, Object_SetClickable);
 }
 
+RuntimeScriptValue Sc_Object_GetDestinationX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptObject, Object_GetDestinationX);
+}
+
+RuntimeScriptValue Sc_Object_GetDestinationY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptObject, Object_GetDestinationY);
+}
+
 RuntimeScriptValue Sc_Object_GetEnabled(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_BOOL(ScriptObject, Object_GetEnabled);
@@ -1380,6 +1416,8 @@ void RegisterObjectAPI()
         { "Object::set_BlockingWidth",        API_FN_PAIR(Object_SetBlockingWidth) },
         { "Object::get_Clickable",            API_FN_PAIR(Object_GetClickable) },
         { "Object::set_Clickable",            API_FN_PAIR(Object_SetClickable) },
+        { "Object::get_DestinationX",         API_FN_PAIR(Object_GetDestinationX) },
+        { "Object::get_DestinationY",         API_FN_PAIR(Object_GetDestinationY) },
         { "Object::get_Enabled",              API_FN_PAIR(Object_GetEnabled) },
         { "Object::set_Enabled",              API_FN_PAIR(Object_SetEnabled) },
         { "Object::get_Frame",                API_FN_PAIR(Object_GetFrame) },

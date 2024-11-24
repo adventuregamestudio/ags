@@ -550,7 +550,7 @@ void IAGSEngine::PlaySoundChannel (int32 channel, int32 soundType, int32 volume,
         return;
     }
 
-    std::unique_ptr<SOUNDCLIP> newcha(load_sound_clip(asset_name, ext, (loop != 0)));
+    std::unique_ptr<SoundClip> newcha(load_sound_clip(asset_name, ext, (loop != 0)));
     if (!newcha)
     {
         debug_script_warn("IAGSEngine::PlaySoundChannel: failed to load %s", filename);

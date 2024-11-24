@@ -93,7 +93,6 @@ public:
 
         // Handle player's input, break the loop if requested
         bool do_break = display_check_user_input(_skipStyle);
-        ags_clear_input_buffer();
         if (do_break)
             return false;
             
@@ -295,32 +294,37 @@ Bitmap *create_textual_image(const char *text, int asspch, int isThought,
 // returns if the display loop should break.
 bool display_check_user_input(int skip)
 {
+    bool state_handled = false;
     for (InputType type = ags_inputevent_ready(); type != kInputNone; type = ags_inputevent_ready())
     { // NOTE: must handle them all in case there were engine's hotkeys too
         if (type == kInputKeyboard)
         {
             KeyInput ki;
-            if (!run_service_key_controls(ki) || play.fast_forward)
-                continue;
+            if (!run_service_key_controls(ki) || play.fast_forward || state_handled)
+                continue; // handled by engine layer, or fast-forwarded, or resolved
             if (check_skip_cutscene_keypress(ki.Key))
-                return true;
-            if ((skip & SKIP_KEYPRESS) && !play.IsIgnoringInput() && !IsAGSServiceKey(ki.Key))
+            {
+                state_handled = true;
+            }
+            else if ((skip & SKIP_KEYPRESS) && !play.IsIgnoringInput() && !IsAGSServiceKey(ki.Key))
             {
                 play.SetWaitKeySkip(ki);
-                return true; // stop display
+                state_handled = true; // stop display
             }
         }
         else if (type == kInputMouse)
         {
             eAGSMouseButton mbut;
-            if (!run_service_mb_controls(mbut) || play.fast_forward)
-                continue;
+            if (!run_service_mb_controls(mbut) || play.fast_forward || state_handled)
+                continue; // handled by engine layer, or fast-forwarded, or resolved
             if (check_skip_cutscene_mclick(mbut))
-                return true;
-            if (skip & SKIP_MOUSECLICK && !play.IsIgnoringInput())
+            {
+                state_handled = true;
+            }
+            else if (skip & SKIP_MOUSECLICK && !play.IsIgnoringInput())
             {
                 play.SetWaitSkipResult(SKIP_MOUSECLICK, mbut);
-                return true; // stop display
+                state_handled = true; // stop display
             }
         }
         else if (type == kInputGamepad)
@@ -338,8 +342,13 @@ bool display_check_user_input(int skip)
                 return true; // stop display
             }
         }
+        else
+        {
+            ags_drop_next_inputevent();
+        }
     }
-    return false; // continue display loop
+    ags_check_mouse_wheel(); // poll always, otherwise it accumulates
+    return state_handled;
 }
 
 // Pass yy = -1 to find Y co-ord automatically
@@ -462,7 +471,6 @@ void display_at(int xx, int yy, int wii, const char *text, const TopBarSettings 
 
 void post_display_cleanup()
 {
-    ags_clear_input_buffer();
     play.messagetime = -1;
     play.speech_in_post_state = false;
 }

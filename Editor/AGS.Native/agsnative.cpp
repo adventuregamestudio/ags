@@ -2365,7 +2365,7 @@ void CopyInteractions(AGS::Types::Interactions ^destination, const AGS::Common::
     // TODO: add a warning? if warning list would be passed in here
 	for (size_t i = 0; i < evt_count; i++)
 	{
-		destination->ScriptFunctionNames[i] = TextHelper::ConvertASCII(source->Events[i]);
+		destination->ScriptFunctionNames[i] = TextHelper::ConvertASCII(source->Events[i].FunctionName);
 	}
 }
 

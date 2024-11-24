@@ -19,21 +19,20 @@
 #include "media/audio/audiodefines.h"
 #include "ac/dynobj/scriptaudioclip.h"
 #include "ac/dynobj/scriptobjects.h"
+#include "media/audio/soundclip.h"
 #include "ac/timer.h"
-
-class SOUNDCLIP;
 
 class AudioChans
 {
 public:
     // Gets a clip from the channel
-    static SOUNDCLIP *GetChannel(int index);
+    static SoundClip *GetChannel(int index);
     // Gets a clip from the channel but only if it's in playback state
-    static SOUNDCLIP *GetChannelIfPlaying(int index);
+    static SoundClip *GetChannelIfPlaying(int index);
     // Assign new clip to the channel
-    static SOUNDCLIP *SetChannel(int index, std::unique_ptr<SOUNDCLIP> clip);
+    static SoundClip *SetChannel(int index, std::unique_ptr<SoundClip> &&clip);
     // Move clip from one channel to another, clearing the first channel
-    static SOUNDCLIP *MoveChannel(int to, int from);
+    static SoundClip *MoveChannel(int to, int from);
     // Deletes any clip and frees the channel
     static void       DeleteClipOnChannel(int index);
 
@@ -52,8 +51,8 @@ void        calculate_reserved_channel_count();
 void        update_clip_default_volume(ScriptAudioClip *audioClip);
 void        start_fading_in_new_track_if_applicable(int fadeInChannel, ScriptAudioClip *newSound);
 void        stop_or_fade_out_channel(int fadeOutChannel, int fadeInChannel = -1, ScriptAudioClip *newSound = nullptr);
-SOUNDCLIP*  load_sound_clip(ScriptAudioClip *audioClip, bool repeat);
-ScriptAudioChannel* play_audio_clip_on_channel(int channel, ScriptAudioClip *clip, int priority, int repeat, int fromOffset, SOUNDCLIP *cachedClip = nullptr);
+std::unique_ptr<SoundClip> load_sound_clip(ScriptAudioClip *audioClip, bool repeat);
+ScriptAudioChannel* play_audio_clip_on_channel(int channel, ScriptAudioClip *clip, int priority, int repeat, int fromOffset, std::unique_ptr<SoundClip> &&cachedClip = nullptr);
 void        remove_clips_of_type_from_queue(int audioType);
 void        update_queued_clips_volume(int audioType, int new_vol);
 // Checks if speech voice-over is currently playing, and reapply volume drop to all other active clips
@@ -72,7 +71,7 @@ void        update_directional_sound_vol();
 bool        is_audiotype_allowed_to_play(AudioFileType type);
 // Loads sound data referenced by audio clip item, and starts playback;
 // returns NULL on failure
-SOUNDCLIP * load_sound_and_play(ScriptAudioClip *aclip, bool repeat);
+std::unique_ptr<SoundClip> load_sound_and_play(ScriptAudioClip *aclip, bool repeat);
 void        stop_all_sound_and_music();
 void        shutdown_sound();
 

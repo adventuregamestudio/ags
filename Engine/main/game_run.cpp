@@ -757,7 +757,7 @@ static void check_controls() {
     // during which some global vars like mouse_on_iface may change...
     // need to rewrite all this interface interaction ugliness!
     int was_mouse_on_iface;
-    check_mouse_state(was_mouse_on_iface);
+    check_mouse_state(was_mouse_on_iface); // NOTE: this also polls mousewheel
 
     // Handle all the buffered input events
     for (InputType type = ags_inputevent_ready(); type != kInputNone; type = ags_inputevent_ready())
@@ -773,11 +773,10 @@ static void check_controls() {
                 check_gamepad_controls();
                 break;
             default:
+                ags_drop_next_inputevent();
                 break;
         }
     }
-
-    ags_clear_input_buffer();
 }
 
 static void check_room_edges(size_t numevents_was)

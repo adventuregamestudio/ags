@@ -318,7 +318,11 @@ namespace AGS.Editor
 
         public bool ProcessKeyDown(Keys key)
         {
-            if ((key == (Keys.Control | Keys.F4)) ||
+            if (_currentPane != null && _currentPane.Control.KeyPressed(key))
+            {
+                return true;
+            }
+            else if ((key == (Keys.Control | Keys.F4)) ||
 				(key == (Keys.Control | Keys.W)))
             {
                 if (_currentPane != null)
@@ -355,16 +359,16 @@ namespace AGS.Editor
                 }
                 return true;
             }
-			else if (_currentPane != null)
-			{
-				return _currentPane.Control.KeyPressed(key);
-			}
 			return false;
         }
 
         public bool ProcessKeyUp(Keys key)
         {
-            if (key == Keys.ControlKey)
+            if (_currentPane != null && _currentPane.Control.KeyReleased(key))
+            {
+                return true;
+            }
+            else if (key == Keys.ControlKey)
             {
                 if (_flipThroughPanesIndex < _panes.Count)
                 {
@@ -372,10 +376,6 @@ namespace AGS.Editor
                     _panesInOrderUsed.Insert(0, _currentPane);
                 }
                 _flipThroughPanesIndex = 0;
-            }
-            else if (_currentPane != null)
-            {
-                return _currentPane.Control.KeyReleased(key);
             }
             return false;
         }

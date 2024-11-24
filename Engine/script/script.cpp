@@ -117,19 +117,24 @@ void run_function_on_non_blocking_thread(NonBlockingScriptFunction* funcToRun) {
     funcToRun->RoomHasFunction = DoRunScriptFuncCantBlock(roominstFork.get(), funcToRun, funcToRun->RoomHasFunction);
 }
 
+// Returns 0 normally, or -1 to indicate that the event has
+// become invalid and another interaction should not be run
+// (eg. a room change occured)
+    // FIXME: refactor this nonsense! check_interaction_only here is used as
+    // both function argument and return value!
 
-// Returns 0 normally, or -1 to indicate that the NewInteraction has
-// become invalid and don't run another interaction on it
+// Returns 0 normally, or -1 to indicate that the event has
+// become invalid and another handler should not be run
 // (eg. a room change occured)
 int run_interaction_script(const ObjectEvent &obj_evt, const InteractionEvents *nint, int evnt, int chkAny)
 {
     if (evnt < 0 || static_cast<size_t>(evnt) >= nint->Events.size() ||
-            nint->Events[evnt].IsEmpty()) {
-        // no response defined for this event
+            !nint->Events[evnt].IsEnabled())
+    {
+        // No response enabled for this event
         // If there is a response for "Any Click", then abort now so as to
         // run that instead
-        if (chkAny < 0) ;
-        else if (!nint->Events[chkAny].IsEmpty())
+        if (chkAny >= 0 && nint->Events[chkAny].IsEnabled())
             return 0;
 
         // Otherwise, run unhandled_event
@@ -137,6 +142,8 @@ int run_interaction_script(const ObjectEvent &obj_evt, const InteractionEvents *
         return 0;
     }
 
+    // FIXME: refactor this nonsense! check_interaction_only here is used as
+    // both function argument and return value!
     if (play.check_interaction_only) {
         play.check_interaction_only = 2; // CHECKME: wth is "2"?
         return -1;
@@ -144,9 +151,8 @@ int run_interaction_script(const ObjectEvent &obj_evt, const InteractionEvents *
 
     const int room_was = play.room_changes;
 
-    // Which script do we call: global script or room script?
-    const ScriptType sc_type = obj_evt.ScType;
-    QueueScriptFunction(sc_type, ScriptFunctionRef(nint->ScriptModule, nint->Events[evnt]), obj_evt.ParamCount, obj_evt.Params);
+    QueueScriptFunction(obj_evt.ScType, ScriptFunctionRef(nint->ScriptModule, nint->Events[evnt].FunctionName),
+        obj_evt.ParamCount, obj_evt.Params, nint->Events[evnt].Enabled);
 
     // if the room changed within the action
     if (room_was != play.room_changes)
@@ -268,19 +274,44 @@ bool DoesScriptFunctionExistInModules(const String &fn_name)
     return DoesScriptFunctionExist(gameinst.get(), fn_name);
 }
 
-void QueueScriptFunction(ScriptType sc_type, const String &fn_name, size_t param_count, const RuntimeScriptValue *params)
+// Reports a warning in case a requested event handler function was not run
+// TODO: find a way to pass event's name too, but they are not clearly defined as strings inside the engine atm...
+static void WarnEventFunctionNotFound(const ScriptFunctionRef &fn_ref, bool in_room)
 {
-    QueueScriptFunction(sc_type, ScriptFunctionRef(fn_name), param_count, params);
+    String message = String::FromFormat("WARNING: requested event handler function '%s' not found",
+            fn_ref.FuncName.GetCStr());
+    if (in_room)
+        message.AppendFmt(" (Room %d)", displayed_room);
+    else
+        message.AppendFmt(" (%s)", fn_ref.ModuleName.GetCStr());
+    debug_script_warn("%s", message.GetCStr());
 }
 
-void QueueScriptFunction(ScriptType sc_type, const ScriptFunctionRef &fn_ref, size_t param_count, const RuntimeScriptValue *params)
+void QueueScriptFunction(ScriptType sc_type, const String &fn_name,
+    size_t param_count, const RuntimeScriptValue *params, std::weak_ptr<bool> result)
+{
+    QueueScriptFunction(sc_type, ScriptFunctionRef(fn_name), param_count, params, result);
+}
+
+void QueueScriptFunction(ScriptType sc_type, const ScriptFunctionRef &fn_ref,
+    size_t param_count, const RuntimeScriptValue *params, std::weak_ptr<bool> result)
 {
     if (inside_script)
+    {
         // queue the script for the run after current script is finished
-        curscript->RunAnother(sc_type, fn_ref, param_count, params);
+        curscript->RunAnother(sc_type, fn_ref, param_count, params, result);
+    }
     else
+    {
         // if no script is currently running, run the requested script right away
-        RunScriptFunctionAuto(sc_type, fn_ref, param_count, params);
+        bool res = RunScriptFunctionAuto(sc_type, fn_ref, param_count, params);
+        auto recv_result = result.lock();
+        if (recv_result)
+        {
+            WarnEventFunctionNotFound(fn_ref, sc_type == kScTypeRoom);
+            *recv_result = res;
+        }
+    }
 }
 
 static bool DoRunScriptFuncCantBlock(ccInstance *sci, NonBlockingScriptFunction* funcToRun, bool hasTheFunc)
@@ -289,13 +320,15 @@ static bool DoRunScriptFuncCantBlock(ccInstance *sci, NonBlockingScriptFunction*
         return(false);
 
     no_blocking_functions++;
-    int result = sci->CallScriptFunction(funcToRun->FunctionName, funcToRun->ParamCount, funcToRun->Params);
+    ccInstError result = sci->CallScriptFunction(funcToRun->FunctionName, funcToRun->ParamCount, funcToRun->Params);
 
-    if (result == -2) {
+    if (result == kInstErr_FuncNotFound)
+    {
         // the function doens't exist, so don't try and run it again
         hasTheFunc = false;
     }
-    else if ((result != 0) && (result != 100)) {
+    else if ((result != kInstErr_None) && (result != kInstErr_Aborted))
+    {
         quit_with_script_error(funcToRun->FunctionName);
     }
     else
@@ -323,20 +356,7 @@ static RunScFuncResult PrepareTextScript(ccInstance *sci, const String &tsname)
         return kScFnRes_ScriptBusy;
     }
     ExecutingScript exscript;
-    // CHECKME: this conditional block will never run, because
-    // function would have quit earlier (deprecated functionality?)
-    if (sci->IsBeingRun())
-    {
-        auto fork = sci->Fork();
-        if (!fork)
-            quit("unable to fork instance for secondary script");
-        exscript.ForkedInst.reset(fork);
-        exscript.Inst = fork;
-    }
-    else
-    {
-        exscript.Inst = sci;
-    }
+    exscript.Inst = sci;
     scripts[num_scripts] = std::move(exscript);
     curscript = &scripts[num_scripts];
     num_scripts++;
@@ -360,17 +380,16 @@ RunScFuncResult RunScriptFunction(ccInstance *sci, const String &tsname, size_t 
     // also abort Script A because ccError is a global variable.
     ScriptError cachedCcError = cc_get_error();
 
-    cc_clear_error();
     const RunScFuncResult res = PrepareTextScript(sci, tsname);
     if (res != kScFnRes_Done)
     {
-        cc_error(cachedCcError);
+        if (res != kScFnRes_NotFound)
+            quit_with_script_error(tsname);
+        cc_error(cachedCcError); // restore cached error state
         return res;
     }
 
-    cc_clear_error();
     const ccInstError inst_ret = curscript->Inst->CallScriptFunction(tsname, numParam, params);
-
     if ((inst_ret != kInstErr_None) && (inst_ret != kInstErr_FuncNotFound) && (inst_ret != kInstErr_Aborted))
     {
         quit_with_script_error(tsname);
@@ -399,31 +418,26 @@ RunScFuncResult RunScriptFunction(ccInstance *sci, const String &tsname, size_t 
     return kScFnRes_Done;
 }
 
-void RunScriptFunctionInModules(const String &tsname, size_t param_count, const RuntimeScriptValue *params)
+bool RunScriptFunctionInModules(const String &tsname, size_t param_count, const RuntimeScriptValue *params)
 {
+    bool result = false;
     for (size_t i = 0; i < numScriptModules; ++i)
-        RunScriptFunction(moduleInst[i].get(), tsname, param_count, params);
-    RunScriptFunction(gameinst.get(), tsname, param_count, params);
+        result |= RunScriptFunction(moduleInst[i].get(), tsname, param_count, params) == kScFnRes_Done;
+    result |= RunScriptFunction(gameinst.get(), tsname, param_count, params) == kScFnRes_Done;
+    return result;
 }
 
-void RunScriptFunctionInRoom(const String &tsname, size_t param_count, const RuntimeScriptValue *params)
+bool RunScriptFunctionInRoom(const String &tsname, size_t param_count, const RuntimeScriptValue *params)
 {
     if (!roominst)
-        return; // room is not loaded yet
-    // Some room callbacks are considered to be obligatory; for historical reasons these are
-    // identified by having no parameters;
-    // FIXME: this is a hack, this should be defined either by function type, or as an arg
-    const bool strict_room_event = (param_count == 0);
-    const RunScFuncResult res = RunScriptFunction(roominst.get(), tsname, param_count, params);
-    // If it's a obligatory room event, and return code means missing function - error
-    if (strict_room_event && (res != kScFnRes_Done))
-        quitprintf("RunScriptFunction: error %d (%s) trying to run '%s'   (Room %d)",
-            res, cc_get_error().ErrorString.GetCStr(), tsname.GetCStr(), displayed_room);
+        return false; // room is not loaded yet
+
+    return RunScriptFunction(roominst.get(), tsname, param_count, params) == kScFnRes_Done;
 }
 
 // Run non-claimable event in all script modules, *excluding* room;
 // break if certain changes occured to the game state
-static void RunEventInModules(const String &tsname, size_t param_count, const RuntimeScriptValue *params,
+static bool RunEventInModules(const String &tsname, size_t param_count, const RuntimeScriptValue *params,
     bool break_after_first)
 {
     const int room_changes_was = play.room_changes;
@@ -434,33 +448,36 @@ static void RunEventInModules(const String &tsname, size_t param_count, const Ru
         if (ret != kScFnRes_NotFound)
         {
             // Break on room change or save restoration,
-            // or if was told to break after the first found callback
-            if (break_after_first ||
+            // or if was told to break after the first found callback,
+            // or if script execution error occured
+            if ((ret != kScFnRes_Done) ||
+                break_after_first ||
                 (room_changes_was != play.room_changes) ||
                 (restore_game_count_was != gameHasBeenRestored))
-                return;
+                return ret == kScFnRes_Done; // return if succeeded to run
         }
     }
-    RunScriptFunction(gameinst.get(), tsname, param_count, params);
+    // Try global script last
+    return RunScriptFunction(gameinst.get(), tsname, param_count, params) == kScFnRes_Done;
 }
 
 // Run non-claimable event in all script modules, *excluding* room;
 // break if certain changes occured to the game state
-static void RunUnclaimableEvent(const String &tsname)
+static bool RunUnclaimableEvent(const String &tsname)
 {
-    RunEventInModules(tsname, 0, nullptr, false);
+    return RunEventInModules(tsname, 0, nullptr, false);
 }
 
 // Run a single event callback, look for it in all script modules, *excluding* room;
 // break after the first run callback, or in case of certain changes to the game state
-static void RunSingleEvent(const String &tsname, size_t param_count, const RuntimeScriptValue *params)
+static bool RunSingleEvent(const String &tsname, size_t param_count, const RuntimeScriptValue *params)
 {
-    RunEventInModules(tsname, param_count, params, true);
+    return RunEventInModules(tsname, param_count, params, true);
 }
 
 // Run a single event callback in the specified script module;
 // if the name is not provided, then tries to run it in global script.
-static void RunEventInModule(const ScriptFunctionRef &fn_ref, size_t param_count, const RuntimeScriptValue *params)
+static bool RunEventInModule(const ScriptFunctionRef &fn_ref, size_t param_count, const RuntimeScriptValue *params)
 {
     if (!fn_ref.ModuleName.IsEmpty())
     {
@@ -468,43 +485,41 @@ static void RunEventInModule(const ScriptFunctionRef &fn_ref, size_t param_count
         {
             if (fn_ref.ModuleName.Compare(moduleInst[i]->instanceof->GetScriptName()) == 0)
             {
-                RunScriptFunction(moduleInst[i].get(), fn_ref.FuncName, param_count, params);
-                return;
+                return RunScriptFunction(moduleInst[i].get(), fn_ref.FuncName, param_count, params) == kScFnRes_Done;
             }
         }
     }
-    RunScriptFunction(gameinst.get(), fn_ref.FuncName, param_count, params);
+    // Try global script last, for backwards compatibility
+    return RunScriptFunction(gameinst.get(), fn_ref.FuncName, param_count, params) == kScFnRes_Done;
 }
 
 // Run claimable event in all script modules, *including* room;
 // break if event was claimed by any of the run callbacks.
 // CHECKME: should not this also break on room change / save restore, like RunUnclaimableEvent?
-static void RunClaimableEvent(const String &tsname, size_t param_count, const RuntimeScriptValue *params)
+static bool RunClaimableEvent(const String &tsname, size_t param_count, const RuntimeScriptValue *params)
 {
     // Run claimable event chain in script modules and room script
     bool eventWasClaimed;
     run_claimable_event(tsname, true, param_count, params, &eventWasClaimed);
     // Break on event claim
     if (eventWasClaimed)
-        return;
-    RunScriptFunction(gameinst.get(), tsname, param_count, params);
+        return true; // suppose if claimed then some function ran successfully
+    return RunScriptFunction(gameinst.get(), tsname, param_count, params) == kScFnRes_Done;
 }
 
-void RunScriptFunctionAuto(ScriptType sc_type, const ScriptFunctionRef &fn_ref, size_t param_count, const RuntimeScriptValue *params)
+bool RunScriptFunctionAuto(ScriptType sc_type, const ScriptFunctionRef &fn_ref, size_t param_count, const RuntimeScriptValue *params)
 {
     // If told to use a room instance, then run only there
     if (sc_type == kScTypeRoom)
     {
-        RunScriptFunctionInRoom(fn_ref.FuncName, param_count, params);
-        return;
+        return RunScriptFunctionInRoom(fn_ref.FuncName, param_count, params);
     }
     // Rep-exec is only run in script modules, but not room script
     // (because room script has its own callback, attached to event slot)
     const String &fn_name = fn_ref.FuncName;
     if (strcmp(fn_name.GetCStr(), REP_EXEC_NAME) == 0)
     {
-        RunUnclaimableEvent(REP_EXEC_NAME);
-        return;
+        return RunUnclaimableEvent(REP_EXEC_NAME);
     }
     // Claimable event is run in all the script modules and room script,
     // before running in the globalscript instance
@@ -512,8 +527,7 @@ void RunScriptFunctionAuto(ScriptType sc_type, const ScriptFunctionRef &fn_ref, 
     if ((strcmp(fn_name.GetCStr(), ScriptEventCb[kTS_KeyPress].FnName) == 0) || (strcmp(fn_name.GetCStr(), ScriptEventCb[kTS_MouseClick].FnName) == 0) ||
         (strcmp(fn_name.GetCStr(), ScriptEventCb[kTS_TextInput].FnName) == 0) || (strcmp(fn_name.GetCStr(), "on_event") == 0))
     {
-        RunClaimableEvent(fn_name, param_count, params);
-        return;
+        return RunClaimableEvent(fn_name, param_count, params);
     }
 
     // Else run this event in script modules (except room) according to the function ref
@@ -703,9 +717,18 @@ void post_script_cleanup()
         sync_audio_playback();
     }
 
-    for (const auto &script : copyof.ScFnQueue) {
+    for (const auto &script : copyof.ScFnQueue)
+    {
         old_room_number = displayed_room;
-        RunScriptFunctionAuto(script.ScType, script.Function, script.ParamCount, script.Params);
+
+        bool res = RunScriptFunctionAuto(script.ScType, script.Function, script.ParamCount, script.Params);
+        auto recv_result = script.Result.lock();
+        if (recv_result)
+        {
+            WarnEventFunctionNotFound(script.Function, script.ScType == kScTypeRoom);
+            *recv_result = res;
+        }
+
         // FIXME: this is some bogus hack for "on_call" event handler
         // don't use instance + param count, instead find a way to save actual callback name!
         if (script.ScType == kScTypeRoom && script.ParamCount == 1)

@@ -15,7 +15,7 @@
 #include "media/audio/soundclip.h"
 #include "media/audio/audio_core.h"
 
-SOUNDCLIP::SOUNDCLIP(int slot, AudioFileType snd_type, bool loop)
+SoundClip::SoundClip(int slot, AudioFileType snd_type, bool loop)
     : slot_(slot)
     , soundType(snd_type)
     , repeat(loop)
@@ -43,13 +43,13 @@ SOUNDCLIP::SOUNDCLIP(int slot, AudioFileType snd_type, bool loop)
     freq = player->GetFrequency();
 }
 
-SOUNDCLIP::~SOUNDCLIP()
+SoundClip::~SoundClip()
 {
     if (slot_ >= 0)
         audio_core_slot_stop(slot_);
 }
 
-bool SOUNDCLIP::play()
+bool SoundClip::play()
 {
     if (!is_ready())
         return false;
@@ -57,7 +57,7 @@ bool SOUNDCLIP::play()
     return true;
 }
 
-void SOUNDCLIP::pause()
+void SoundClip::pause()
 {
     if (!is_ready())
         return;
@@ -66,14 +66,14 @@ void SOUNDCLIP::pause()
     state = player->GetPlayState();
 }
 
-void SOUNDCLIP::resume()
+void SoundClip::resume()
 {
     if (!is_ready())
         return;
     state = PlaybackState::PlayStatePlaying;
 }
 
-int SOUNDCLIP::posms_to_pos(int pos_ms)
+int SoundClip::posms_to_pos(int pos_ms)
 {
     switch (soundType)
     {
@@ -87,7 +87,7 @@ int SOUNDCLIP::posms_to_pos(int pos_ms)
     }
 }
 
-int SOUNDCLIP::pos_to_posms(int pos_)
+int SoundClip::pos_to_posms(int pos_)
 {
     switch (soundType)
     {
@@ -101,13 +101,13 @@ int SOUNDCLIP::pos_to_posms(int pos_)
     }
 }
 
-void SOUNDCLIP::seek(int pos_)
+void SoundClip::seek(int pos_)
 {
     // TODO: we probably would need a separate implementation eventually
     seek_ms(pos_to_posms(pos_));
 }
 
-void SOUNDCLIP::seek_ms(int pos_ms)
+void SoundClip::seek_ms(int pos_ms)
 {
     if (slot_ < 0) { return; }
     auto player = audio_core_get_player(slot_);
@@ -121,7 +121,7 @@ void SOUNDCLIP::seek_ms(int pos_ms)
     pos = posms_to_pos(posMs);
 }
 
-bool SOUNDCLIP::update()
+bool SoundClip::update()
 {
     if (!is_ready()) return false;
 

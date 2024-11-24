@@ -35,10 +35,12 @@ namespace AGS.Editor
 		public event PreDeleteSpriteHandler PreDeleteSprite;
 		public delegate void ProcessAllGameTextsHandler(IGameTextProcessor processor, CompileMessages errors);
         public event ProcessAllGameTextsHandler ProcessAllGameTexts;
-        public delegate void ExtraCompilationStepHandler(CompileMessages errors);
+        public delegate void ExtraCompilationStepHandler(CompilationStepArgs args);
         public event ExtraCompilationStepHandler ExtraCompilationStep;
-        public delegate void ExtraOutputCreationStepHandler(bool miniExeForDebug);
+        public delegate void ExtraOutputCreationStepHandler(OutputCreationStepArgs args);
         public event ExtraOutputCreationStepHandler ExtraOutputCreationStep;
+        public delegate void TestGameScriptsHandler(GenericMessagesArgs args);
+        public event TestGameScriptsHandler TestGameScripts;
 
 		public const string BUILT_IN_HEADER_FILE_NAME = "_BuiltInScriptHeader.ash";
         public const string OUTPUT_DIRECTORY = "Compiled";
@@ -930,7 +932,7 @@ namespace AGS.Editor
 
             script.CompiledData =
                 compiler.CompileScript(script.FileName, preProcessedCode.ToArray(), GetScriptCompileOptions(_game), messages);
-		}
+        }
 
         /// <summary>
         /// Preprocesses and then compiles the script prepended the supplied headers.
@@ -1080,9 +1082,28 @@ namespace AGS.Editor
                         alreadyIncluded.Add(Tuple.Create(mes.ScriptName, mes.LineNumber, mes.Message)))
                         errors.Add(mes);
             }
-            ExtraCompilationStep?.Invoke(errors);
+            ExtraCompilationStep?.Invoke(new CompilationStepArgs(_game.ScriptsToCompile, errors));
             
+            RunGameScriptTests(errors);
+
             return messagesToReturn;
+        }
+        
+        /// <summary>
+        /// Runs few optional script checks.
+        /// </summary>
+        private void RunGameScriptTests(CompileMessages errors)
+        {
+            // Update autocomplete for all the script modules, if necessary
+            // TODO: this is not a ideal solution, as it's likely duplicating script parsing by the script compiler
+            // if done right after the compilation. Search for a better way later?
+            foreach (ScriptAndHeader scripts in _game.RootScriptFolder.AllItemsFlat)
+            {
+                if (!scripts.Script.AutoCompleteData.Populated)
+                    AutoComplete.ConstructCache(scripts.Script, null);
+            }
+
+            TestGameScripts.Invoke(new GenericMessagesArgs(errors));
         }
 
         private void CreateAudioVOXFile(bool forceRebuild)
@@ -1142,7 +1163,7 @@ namespace AGS.Editor
             targetDataFile.Build(errors, forceRebuild); // ensure that data file is built first
             if (ExtraOutputCreationStep != null)
             {
-                ExtraOutputCreationStep(false);
+                ExtraOutputCreationStep(new OutputCreationStepArgs(false));
             }
 
             // TODO: As of now the build targets other than DataFile and Debug do DEPLOYMENT rather than BUILDING
@@ -1396,7 +1417,7 @@ namespace AGS.Editor
             target.Build(errors, false);
             if (ExtraOutputCreationStep != null)
             {
-                ExtraOutputCreationStep(true);
+                ExtraOutputCreationStep(new OutputCreationStepArgs(true));
             }
 
             buildNames[target.Name] = Factory.AGSEditor.BaseGameFileName;

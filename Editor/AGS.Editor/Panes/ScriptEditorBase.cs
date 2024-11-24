@@ -481,8 +481,11 @@ namespace AGS.Editor
             GoToLine(lineNumber, false, false);
         }
 
-        public void GoToLine(int lineNumber, bool selectLine, bool goToLineAfterOpeningBrace)
+        public bool GoToLine(int lineNumber, bool selectLine, bool goToLineAfterOpeningBrace)
         {
+            if (lineNumber < 0 || lineNumber >= _scintilla.LineCount)
+                return false;
+
             if (goToLineAfterOpeningBrace)
             {
                 lineNumber = FindLineNumberAfterOpeningBrace(lineNumber);
@@ -494,6 +497,7 @@ namespace AGS.Editor
             {
                 _scintilla.SelectCurrentLine();
             }
+            return true;
         }
 
         private int FindLineNumberAfterOpeningBrace(int startFromLine)

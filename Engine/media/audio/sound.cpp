@@ -119,7 +119,7 @@ void soundcache_precache(const AssetPath &apath)
     SndCache.Put(apath.Name, sounddata);
 }
 
-SOUNDCLIP *load_sound_clip(const AssetPath &apath, const char *extension_hint, bool loop)
+std::unique_ptr<SoundClip> load_sound_clip(const AssetPath &apath, const char *extension_hint, bool loop)
 {
     size_t asset_size;
     std::unique_ptr<Stream> s_in;
@@ -161,5 +161,5 @@ SOUNDCLIP *load_sound_clip(const AssetPath &apath, const char *extension_hint, b
     if (slot < 0) { return nullptr; }
 
     const auto sound_type = GuessSoundTypeFromExt(ext_hint);
-    return new SOUNDCLIP(slot, sound_type, loop);
+    return std::unique_ptr<SoundClip>(new SoundClip(slot, sound_type, loop));
 }

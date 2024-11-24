@@ -138,7 +138,7 @@ static bool play_voice_clip_on_channel(const String &voice_name)
         return false;
     }
 
-    std::unique_ptr<SOUNDCLIP> voice_clip(load_sound_clip(apath, "", false));
+    std::unique_ptr<SoundClip> voice_clip(load_sound_clip(apath, "", false));
     if (voice_clip != nullptr) {
         voice_clip->set_volume255(play.speech_volume);
         if (!voice_clip->play())

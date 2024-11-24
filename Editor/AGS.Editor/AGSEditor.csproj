@@ -141,8 +141,6 @@
     <Compile Include="ColorThemes\Controls\MainMenuColorTable.cs" />
     <Compile Include="ColorThemes\Controls\ToolStripColorTable.cs" />
     <Compile Include="ColorThemes\IColorThemes.cs" />
-    <Compile Include="Components\CharacterIDChangedEventArgs.cs" />
-    <Compile Include="Components\CharacterRoomChangedEventArgs.cs" />
     <Compile Include="Components\CharactersComponent.cs" />
     <Compile Include="ColorThemes\Controls\CustomPropertyGrid.cs">
       <SubType>Component</SubType>
@@ -162,6 +160,9 @@
     <Compile Include="Components\ViewsComponent.cs" />
     <Compile Include="Entities\IAppSettings.cs" />
     <Compile Include="Config\ConfigUtils.cs" />
+    <Compile Include="Entities\CharacterIDChangedEventArgs.cs" />
+    <Compile Include="Entities\CharacterRoomChangedEventArgs.cs" />
+    <Compile Include="Entities\CompilationStepArgs.cs" />
     <Compile Include="Entities\ExistingScriptHeaderToAdd.cs" />
     <Compile Include="Entities\ExistingFileToAdd.cs" />
     <Compile Include="Config\IObjectConfig.cs" />
@@ -169,7 +170,9 @@
     <Compile Include="Config\ObjectConfigJson.cs" />
     <Compile Include="Entities\LogBufferEventArgs.cs" />
     <Compile Include="Entities\MultiSelectAction.cs" />
+    <Compile Include="Entities\OutputCreationStepArgs.cs" />
     <Compile Include="Entities\ScriptModuleDef.cs" />
+    <Compile Include="Entities\GenericMessagesArgs.cs" />
     <Compile Include="Enums\AdjustMaskOptions.cs" />
     <Compile Include="GUI\AdjustMasksDialog.cs">
       <SubType>Form</SubType>
@@ -1080,7 +1083,6 @@
     <Compile Include="Enums\DebugState.cs" />
     <Compile Include="Enums\FunctionCallType.cs" />
     <Compile Include="Entities\RecentlyEditedGame.cs" />
-    <Compile Include="Enums\ZoomToFileZoomType.cs" />
     <Compile Include="Factory.cs" />
     <Compile Include="GIFLoader\GifDecoder.cs" />
     <Compile Include="GUI\AboutDialog.cs">

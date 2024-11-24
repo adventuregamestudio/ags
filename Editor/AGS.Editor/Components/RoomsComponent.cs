@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
@@ -788,9 +789,22 @@ namespace AGS.Editor.Components
             return fixups;
         }
 
+        private class CompileRoomParameters
+        {
+            internal Room Room { get; set; }
+            internal CompileMessages Errors { get; set; }
+
+            internal CompileRoomParameters(Room room, CompileMessages errors)
+            {
+                Room = room;
+                Errors = errors;
+            }
+        }
+
         private object SaveRoomOnThread(IWorkProgress progress, object parameter)
-        {            
-            Room room = (Room)parameter;
+        {
+            CompileRoomParameters par = (CompileRoomParameters)parameter;
+            Room room = par.Room;
             _agsEditor.RegenerateScriptHeader(room);
             List<Script> headers = (List<Script>)_agsEditor.GetAllScriptHeaders();
             CompileMessages messages = new CompileMessages();
@@ -799,6 +813,12 @@ namespace AGS.Editor.Components
                 throw messages.Errors[0];
 
             ((IRoomController)this).Save();
+            
+            // Scan after saving, because saving a room here is a more critical task,
+            // and scanning is rather a extra aid.
+            if (!room.Script.AutoCompleteData.Populated)
+                AutoComplete.ConstructCache(room.Script, null);
+            ScanAndReportMissingInteractionHandlers(room, par.Errors);
 
             return null;            
         }
@@ -1375,14 +1395,25 @@ namespace AGS.Editor.Components
 
         private void GUIController_OnZoomToFile(ZoomToFileEventArgs evArgs)
         {
+            if (evArgs.Handled)
+            {
+                return; // operation has been completed by another handler
+            }
+
             int roomNumberToEdit = GetRoomNumberForFileName(evArgs.FileName, evArgs.IsDebugExecutionPoint);
             
             if (roomNumberToEdit >= 0)
             {
                 UnloadedRoom roomToGetScriptFor = GetUnloadedRoom(roomNumberToEdit);                
                 ScriptEditor editor = (ScriptEditor)CreateOrShowScript(roomToGetScriptFor).Control;
-				ZoomToCorrectPositionInScript(editor, evArgs);
+                if (editor != null)
+                {
+                    ZoomToCorrectPositionInScript(editor, evArgs);
+                    return;
+                }
             }
+
+            evArgs.Result = ZoomToFileResult.ScriptNotFound;
         }
 
         private void GUIController_OnGetScript(string fileName, ref Script script)
@@ -1506,13 +1537,18 @@ namespace AGS.Editor.Components
 				CompileMessages roomErrors = new CompileMessages();
 				SaveRoomButDoNotShowAnyErrors(room, roomErrors, $"Rebuilding room {room.Number} {rebuildReason}...");
 
-				if (roomErrors.Count > 0)
+				if (roomErrors.HasErrors)
 				{
-					errors.Add(new CompileError("Failed to save room " + room.FileName + "; details below"));
-					errors.Add(roomErrors[0]);
+					errors.Add(new CompileError($"Failed to save room {room.FileName}; details below"));
+					errors.AddRange(roomErrors);
 					success = false;
 					break;
 				}
+                else if (roomErrors.Count > 0)
+                {
+                    errors.Add(new CompileWarning($"Room {room.FileName} was saved, but there were warnings; details below"));
+                    errors.AddRange(roomErrors);
+                }
 			}
 
             return success;
@@ -1988,6 +2024,116 @@ namespace AGS.Editor.Components
         private string GetItemNodeID(UnloadedRoom room)
         {
             return TREE_PREFIX_ROOM_NODE + room.Number;
+        }
+
+        /// <summary>
+        /// Helper class for use when scanning for event handlers
+        /// </summary>
+        private class RoomObjectWithEvents
+        {
+            public Room Room;
+            // TODO: add parent class to room objects (and maybe game objects in general)
+            // with overridden properties like "ScriptName", "ID" and "DisplayName",
+            // this will allow to get these basic values without casting to explicit types.
+            public RoomObject Object;
+            public RoomHotspot Hotspot;
+            public RoomRegion Region;
+
+            public RoomObjectWithEvents(Room room) { Room = room; }
+            public RoomObjectWithEvents(RoomObject roomObject) { Object = roomObject; }
+            public RoomObjectWithEvents(RoomHotspot roomObject) { Hotspot = roomObject; }
+            public RoomObjectWithEvents(RoomRegion roomObject) { Region = roomObject; }
+        }
+
+        private class RoomEventReference
+        {
+            public RoomObjectWithEvents RoomObject;
+            public string EventName;
+            public string FunctionName;
+
+            public RoomEventReference(RoomObjectWithEvents obj, string evtName, string fnName)
+            {
+                RoomObject = obj;
+                EventName = evtName;
+                FunctionName = fnName;
+            }
+        }
+
+        private void ScanAndReportMissingInteractionHandlers(Room room, CompileMessages errors)
+        {
+            // Gather function names from the Room and all of their contents,
+            // in order to test missing functions in a single batch.
+            List<RoomEventReference> objectEvents = new List<RoomEventReference>();
+            objectEvents.AddRange(
+                room.Interactions.ScriptFunctionNames.Select((fn, i) =>
+                   new RoomEventReference(new RoomObjectWithEvents(room), room.Interactions.FunctionSuffixes[i], room.Interactions.ScriptFunctionNames[i])));
+
+            foreach (var obj in room.Objects)
+            {
+                var objWithEvents = new RoomObjectWithEvents(obj);
+                objectEvents.AddRange(
+                    obj.Interactions.ScriptFunctionNames.Select((fn, i) =>
+                        new RoomEventReference(objWithEvents, obj.Interactions.FunctionSuffixes[i], obj.Interactions.ScriptFunctionNames[i])));
+            }
+            foreach (var hot in room.Hotspots)
+            {
+                var objWithEvents = new RoomObjectWithEvents(hot);
+                objectEvents.AddRange(
+                    hot.Interactions.ScriptFunctionNames.Select((fn, i) =>
+                        new RoomEventReference(objWithEvents, hot.Interactions.FunctionSuffixes[i], hot.Interactions.ScriptFunctionNames[i])));
+            }
+            foreach (var reg in room.Regions)
+            {
+                var objWithEvents = new RoomObjectWithEvents(reg);
+                objectEvents.AddRange(
+                    reg.Interactions.ScriptFunctionNames.Select((fn, i) =>
+                        new RoomEventReference(objWithEvents, reg.Interactions.FunctionSuffixes[i], reg.Interactions.ScriptFunctionNames[i])));
+            }
+
+            var functionNames = objectEvents.Select(evt => evt.FunctionName);
+            var missing = _agsEditor.Tasks.TestMissingEventHandlers(room.Script.AutoCompleteData, functionNames.ToArray());
+            if (missing == null || missing.Count == 0)
+                return;
+
+            foreach (var miss in missing)
+            {
+                RoomEventReference evtRef = objectEvents[miss];
+                RoomObjectWithEvents roomObject = evtRef.RoomObject;
+                if (roomObject.Room != null)
+                {
+                    errors.Add(new CompileWarning($"Room {room.Number}'s event {evtRef.EventName} function \"{evtRef.FunctionName}\" not found in script {room.ScriptFileName}."));
+                }
+                else
+                {
+                    string typeName;
+                    int objid;
+                    string scriptName;
+                    if (roomObject.Object != null)
+                    {
+                        typeName = "Object";
+                        objid = roomObject.Object.ID;
+                        scriptName = roomObject.Object.Name;
+                    }
+                    else if (roomObject.Hotspot != null)
+                    {
+                        typeName = "Hotspot";
+                        objid = roomObject.Hotspot.ID;
+                        scriptName = roomObject.Hotspot.Name;
+                    }
+                    else if (roomObject.Region != null)
+                    {
+                        typeName = "Region";
+                        objid = roomObject.Region.ID;
+                        scriptName = "";
+                    }
+                    else
+                    {
+                        continue;
+                    }
+
+                    errors.Add(new CompileWarning($"Room {room.Number}: {typeName} ({objid}) {scriptName}'s event {evtRef.EventName} function \"{evtRef.FunctionName}\" not found in script {room.ScriptFileName}."));
+                }
+            }
         }
 
         private void CopyGamePalette()

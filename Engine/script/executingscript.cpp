@@ -57,12 +57,14 @@ void ExecutingScript::QueueAction(PostScriptAction &&act)
     PostScriptActions.push_back(std::move(act_pos));
 }
 
-void ExecutingScript::RunAnother(ScriptType sctype, const String &fn_name, size_t param_count, const RuntimeScriptValue *params)
+void ExecutingScript::RunAnother(ScriptType sctype, const String &fn_name,
+    size_t param_count, const RuntimeScriptValue *params, std::weak_ptr<bool> result)
 {
-    RunAnother(sctype, ScriptFunctionRef(fn_name), param_count, params);
+    RunAnother(sctype, ScriptFunctionRef(fn_name), param_count, params, result);
 }
 
-void ExecutingScript::RunAnother(ScriptType sctype, const ScriptFunctionRef &fn_ref, size_t param_count, const RuntimeScriptValue *params)
+void ExecutingScript::RunAnother(ScriptType sctype, const ScriptFunctionRef &fn_ref,
+    size_t param_count, const RuntimeScriptValue *params, std::weak_ptr<bool> result)
 {
     QueuedScript script;
     script.ScType = sctype;
@@ -70,5 +72,6 @@ void ExecutingScript::RunAnother(ScriptType sctype, const ScriptFunctionRef &fn_
     script.ParamCount = param_count;
     for (size_t p = 0; p < MAX_SCRIPT_EVT_PARAMS && p < param_count; ++p)
         script.Params[p] = params[p];
+    script.Result = result;
     ScFnQueue.push_back(script);
 }

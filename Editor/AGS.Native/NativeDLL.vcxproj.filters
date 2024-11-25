@@ -216,9 +216,6 @@
     <ClInclude Include="NativeMethods.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Scripting.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\Native\ac\actiontype.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>
@@ -232,6 +229,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SpriteFileReader_NET.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IScriptCompiler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CompiledScript.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -3580,7 +3580,43 @@ TEST_F(Bytecode1, StructCtorCall) {
 
     // WriteOutput("StructCtorCall", scrip);
 
-    // TODO: proper bytecode test!!
+    size_t const codesize = 63;
+    EXPECT_EQ(codesize, scrip.code.size());
+
+    int32_t code[] = {
+      36,    8,   38,    0,           36,    9,   73,    3,    // 7
+       4,   29,    3,    3,            3,    2,   29,    2,    // 15
+       6,    3, 1088421888,   34,            3,   51,    4,    7,    // 23
+       2,   45,    2,   39,            1,    6,    3,    0,    // 31
+      33,    3,   35,    1,           30,    2,   30,    3,    // 39
+      51,    0,   47,    3,            1,    1,    4,   36,    // 47
+      10,   51,    4,   48,            2,   52,    7,    3,    // 55
+      51,    4,   49,    2,            1,    4,    5,  -999
+    };
+    CompareCode(&scrip, codesize, code);
+
+    size_t const numfixups = 1;
+    EXPECT_EQ(numfixups, scrip.fixups.size());
+
+    int32_t fixups[] = {
+      31,  -999
+    };
+    char fixuptypes[] = {
+      4,  '\0'
+    };
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
+
+    int const numimports = 1;
+    std::string imports[] = {
+    "Struct::Struct^1",            "[[SENTINEL]]"
+    };
+    CompareImports(&scrip, numimports, imports);
+
+    size_t const numexports = 0;
+    EXPECT_EQ(numexports, scrip.exports.size());
+
+    size_t const stringssize = 0;
+    EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
 TEST_F(Bytecode1, CharArrayDecay01)
@@ -3598,7 +3634,7 @@ TEST_F(Bytecode1, CharArrayDecay01)
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("CharArrayDecay01", scrip);

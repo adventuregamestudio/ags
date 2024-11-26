@@ -570,7 +570,7 @@ private:
     // Parse the arguments 'args_list' of a function call
     void AccessData_FunctionCall_Arguments(Symbol name_of_func, bool func_is_import, std::vector<FuncParameterDesc> const &param_descs, bool is_variadic, SrcList &arguments, size_t &args_count);
 
-    // Process a function call. 'arguments' doesn't encompass the surrounding '()'
+    // Process a function call. 
     void AccessData_FunctionCall(Symbol name_of_func, SrcList &arguments, EvaluationResult &eres);
 
     // Evaluate 'vloc_lhs op_sym vloc_rhs' at compile time, return the result in 'vloc'.

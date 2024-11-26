@@ -847,7 +847,7 @@ TEST_F(Compile1, FuncNamed_ParamsInconsistent01) {
 
     MessageHandler mh;
     int compile_result = cc_compile(inpl, 0u, scrip, mh);
-    std::string errmsg = mh.GetError().Message;
+    std::string const &errmsg = mh.GetError().Message;
     ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : errmsg.c_str());
     EXPECT_NE(std::string::npos, errmsg.find("nconsisten"));
 }
@@ -868,7 +868,7 @@ TEST_F(Compile1, FuncNamed_ParamsInconsistent02) {
 
     MessageHandler mh;
     int compile_result = cc_compile(inpl, 0u, scrip, mh);
-    std::string errmsg = mh.GetError().Message;
+    std::string const &errmsg = mh.GetError().Message;
     ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : errmsg.c_str());
 }
 
@@ -885,7 +885,7 @@ TEST_F(Compile1, FuncNamed_DoubleParams) {
 
     MessageHandler mh;
     int compile_result = cc_compile(inpl, 0u, scrip, mh);
-    std::string errmsg = mh.GetError().Message;
+    std::string const &errmsg = mh.GetError().Message;
     ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : errmsg.c_str());
     EXPECT_NE(std::string::npos, errmsg.find("'Y'"));
 }
@@ -903,7 +903,7 @@ TEST_F(Compile1, FuncNamed_Sequence01) {
 
     MessageHandler mh;
     int compile_result = cc_compile(inpl, 0u, scrip, mh);
-    std::string errmsg = mh.GetError().Message;
+    std::string const &errmsg = mh.GetError().Message;
     ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : errmsg.c_str());
     EXPECT_NE(std::string::npos, errmsg.find("mix"));
 }
@@ -921,7 +921,7 @@ TEST_F(Compile1, FuncNamed_Sequence02) {
 
     MessageHandler mh;
     int compile_result = cc_compile(inpl, 0u, scrip, mh);
-    std::string errmsg = mh.GetError().Message;
+    std::string const &errmsg = mh.GetError().Message;
     ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : errmsg.c_str());
     EXPECT_NE(std::string::npos, errmsg.find("mix"));
 }
@@ -2721,7 +2721,7 @@ TEST_F(Compile1, ConstructorDeclaration6) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile1, ParensAfterNew1) {
+TEST_F(Compile1, ParensAfterNew01) {
 
     // Parentheses after 'new' are not required if there's no constructor
 
@@ -2744,7 +2744,30 @@ TEST_F(Compile1, ParensAfterNew1) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile1, ParensAfterNew2) {
+TEST_F(Compile1, ParensAfterNew02) {
+
+    // No trailing symbols allowed
+
+    char const *inpl = "\
+        managed struct Struct           \n\
+        {                               \n\
+            int Payload;                \n\
+        };                              \n\
+                                        \n\
+        int game_start()                \n\
+        {                               \n\
+            Struct *s = new Struct 1.0; \n\
+        }                               \n\
+        ";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string const &err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("1.0"));
+}
+
+TEST_F(Compile1, ParensAfterNew03) {
 
     // Parentheses after 'new' are okay
     // even when there isn't any constructor
@@ -2768,7 +2791,32 @@ TEST_F(Compile1, ParensAfterNew2) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile1, ParensAfterNew3) {
+TEST_F(Compile1, ParensAfterNew04) {
+
+    // No trailing symbols after the parentheses
+
+    char const *inpl = "\
+        managed struct Struct           \n\
+        {                               \n\
+            int Payload;                \n\
+        };                              \n\
+                                        \n\
+        int game_start()                \n\
+        {                               \n\
+            Struct *s = new Struct()    \n\
+                ();                     \n\
+        }                               \n\
+        ";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string const &err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("("));
+    EXPECT_EQ(9u, err_line);
+}
+
+TEST_F(Compile1, ParensAfterNew05) {
 
     // When there is an constructor, then it must be called
 
@@ -2788,13 +2836,12 @@ TEST_F(Compile1, ParensAfterNew3) {
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
     std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
-    EXPECT_EQ(0u, mh.WarningsCount());
-
+    
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     ASSERT_NE(std::string::npos, err_msg.find("parameter list"));
 }
 
-TEST_F(Compile1, ParensAfterNew4) {
+TEST_F(Compile1, ParensAfterNew06) {
 
     // Structs inherit constructors from their parents;
     // when there is *any* constructor, then it must be called
@@ -2820,15 +2867,14 @@ TEST_F(Compile1, ParensAfterNew4) {
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
     std::string err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
-    EXPECT_EQ(0u, mh.WarningsCount());
-
+    
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     ASSERT_NE(std::string::npos, err_msg.find("Ancester::Ancester"));
 }
 
-TEST_F(Compile1, ParensAfterNew5) {
+TEST_F(Compile1, ParensAfterNew07) {
 
-    // When there is an initializer,
+    // When there is a constructor call,
     // then it must be called with the proper arguments
 
     char const *inpl = "\
@@ -2844,14 +2890,39 @@ TEST_F(Compile1, ParensAfterNew5) {
         }                                   \n\
         ";
 
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string const &err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("#1"));
+}
+
+TEST_F(Compile1, ParensAfterNew08) {
+
+    // No trailing symbols after the constructor call
+
+    char const *inpl = "\
+        managed struct Struct               \n\
+        {                                   \n\
+            int Payload;                    \n\
+            import void Struct(float);      \n\
+        };                                  \n\
+                                            \n\
+        int game_start()                    \n\
+        {                                   \n\
+            Struct *s = new Struct(f:       \n\
+                0.0)0;                      \n\
+        }                                   \n\
+        ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
-    EXPECT_NE(std::string::npos, err_msg.find("parameter"));
+    EXPECT_NE(std::string::npos, err_msg.find("'0'"));
 }
 
 TEST_F(Compile1, DynarrayOfArray) {

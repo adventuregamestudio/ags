@@ -1956,12 +1956,12 @@ void AGS::Parser::ParseExpression_New_CtorFuncCall(Symbol argument_vartype, SrcL
     if (kKW_OpenParenthesis != expression.PeekNext())
     {
         if (!_sym.IsStructVartype(argument_vartype))
-            return; // not a struct type
+            return ParseExpression_CheckUsedUp(expression); // not a struct type
 
         Symbol const ctor_function =
             _sym.FindConstructorOfTypeOrParent(argument_vartype);
         if (kKW_NoSymbol == ctor_function)
-            return; // no suitable constructor declared
+            return ParseExpression_CheckUsedUp(expression); // no suitable constructor declared
 
         UserError(
             ReferenceMsgSym(
@@ -1987,7 +1987,16 @@ void AGS::Parser::ParseExpression_New_CtorFuncCall(Symbol argument_vartype, SrcL
         WriteCmd(SCMD_REGTOREG, SREG_AX, SREG_MAR);
         _reg_track.SetRegister(SREG_MAR);
         EvaluationResult eres_dummy;
-        AccessData_FunctionCall(ctor_function, expression, eres_dummy);
+
+        // Get the arguments of the constructor call
+        size_t const start_of_arguments = expression.GetCursor();
+        SkipNextSymbol(expression, kKW_OpenParenthesis);
+        expression.SkipToCloser();
+        SkipNextSymbol(expression, kKW_CloseParenthesis);
+        ParseExpression_CheckUsedUp(expression);
+        size_t const end_of_arguments = expression.GetCursor();
+        SrcList arguments = SrcList(expression, start_of_arguments, end_of_arguments - start_of_arguments);
+        AccessData_FunctionCall(ctor_function, arguments, eres_dummy);
         PopReg(SREG_AX);
         return;
     } while (false);
@@ -1995,6 +2004,7 @@ void AGS::Parser::ParseExpression_New_CtorFuncCall(Symbol argument_vartype, SrcL
     // Here when there isn't any init function: must have '()' following
     SkipNextSymbol(expression, kKW_OpenParenthesis);
     Expect(kKW_CloseParenthesis, expression.GetNext());
+    ParseExpression_CheckUsedUp(expression);
 }
 
 void AGS::Parser::ParseExpression_New(SrcList &expression, EvaluationResult &eres)

@@ -234,6 +234,7 @@ ccInstance *ccInstance::CreateEx(PScript scri, const ccInstance *joined)
     ccInstance *cinst = new ccInstance();
     if (!cinst->_Create(scri, joined))
     {
+        delete cinst;
         return nullptr;
     }
     return cinst;

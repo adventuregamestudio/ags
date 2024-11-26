@@ -1123,9 +1123,6 @@ ccInstError ccInstance::Run(int32_t curpc)
         case SCMD_DYNAMICBOUNDS:
         {
             const auto &reg1 = registers[codeOp.Arg1i()];
-            // TODO: test reg[MAR] type here;
-            // That might be dynamic object, but also a non-managed dynamic array, "allocated"
-            // on global or local memspace (buffer)
             void *arr_ptr = registers[SREG_MAR].GetPtrWithOffset();
             const auto &hdr = CCDynamicArray::GetHeader(arr_ptr);
             if ((reg1.IValue < 0) ||

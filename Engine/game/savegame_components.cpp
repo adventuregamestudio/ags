@@ -962,6 +962,13 @@ HSaveError PrescanGUI(Stream *in, int32_t cmp_ver, soff_t /*cmp_size*/, const Pr
             return err;
     }
 
+    // For older save formats: copy pre-existing control ref array
+    if (svg_ver < kGuiSvgVersion_36200)
+    {
+        for (uint32_t i = 0; i < guis_read; ++i)
+            guictrl_refs_old[i] = guis[i].GetControlRefs();
+    }
+
     std::array<size_t, kGUICtrlTypeNum> ctrl_counts_old{}, ctrl_counts_new{};
     for (const auto &refs_arr : guictrl_refs_old)
         for (const auto &ref : refs_arr)

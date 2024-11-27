@@ -190,7 +190,7 @@ int run_interaction_script(const ObjectEvent &obj_evt, const InteractionEvents *
 }
 
 int create_global_script() {
-    constexpr int kscript_create_error = -3;
+    constexpr int kscript_create_error = -3; // FIXME: use global script error code
 
     ccSetOption(SCOPT_AUTOIMPORT, 1);
 
@@ -199,24 +199,23 @@ int create_global_script() {
     std::vector<ccInstance*> all_insts; // gather all to resolve exports below
     for (size_t i = 0; i < numScriptModules; ++i)
     {
-        auto inst = ccInstance::CreateFromScript(scriptModules[i]);
-        if (!inst)
+        moduleInst[i] = ccInstance::CreateFromScript(scriptModules[i]);
+        if (!moduleInst[i])
             return kscript_create_error;
-        moduleInst[i].reset(inst);
-        all_insts.push_back(inst);
+        all_insts.push_back(moduleInst[i].get()); // this is only for temp reference
     }
 
-    gameinst.reset(ccInstance::CreateFromScript(gamescript));
+    gameinst = ccInstance::CreateFromScript(gamescript);
     if (!gameinst)
         return kscript_create_error;
-    all_insts.push_back(gameinst.get());
+    all_insts.push_back(gameinst.get()); // this is only for temp reference
 
     if (dialogScriptsScript)
     {
-        dialogScriptsInst.reset(ccInstance::CreateFromScript(dialogScriptsScript));
+        dialogScriptsInst = ccInstance::CreateFromScript(dialogScriptsScript);
         if (!dialogScriptsInst)
             return kscript_create_error;
-        all_insts.push_back(dialogScriptsInst.get());
+        all_insts.push_back(dialogScriptsInst.get()); // this is only for temp reference
     }
 
     // Resolve the script imports after all the scripts have been loaded 
@@ -236,11 +235,11 @@ int create_global_script() {
         if (!fork)
             return kscript_create_error;
 
-        moduleInstFork[module_idx].reset(fork);
+        moduleInstFork[module_idx] = std::move(fork);
         moduleRepExecAddr[module_idx] = moduleInst[module_idx]->GetSymbolAddress(REP_EXEC_NAME);
     }
 
-    gameinstFork.reset(gameinst->Fork());
+    gameinstFork = gameinst->Fork();
     if (gameinstFork == nullptr)
         return kscript_create_error;
 

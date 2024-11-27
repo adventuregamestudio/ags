@@ -121,16 +121,16 @@ void ccScript::Write(Stream *out)
     out->WriteInt32(code.size());
     out->WriteInt32(strings.size());
     if (globaldata.size() > 0)
-        out->Write(&globaldata.front(), globaldata.size());
+        out->Write(globaldata.data(), globaldata.size());
     if (code.size() > 0)
-        out->WriteArrayOfInt32(&code.front(), code.size());
+        out->WriteArrayOfInt32(code.data(), code.size());
     if (strings.size() > 0)
-        out->Write(&strings.front(), strings.size());
+        out->Write(strings.data(), strings.size());
     out->WriteInt32(fixups.size());
     if (fixups.size() > 0)
     {
-        out->Write(&fixuptypes.front(), fixups.size());
-        out->WriteArrayOfInt32(&fixups.front(), fixups.size());
+        out->Write(fixuptypes.data(), fixups.size());
+        out->WriteArrayOfInt32(fixups.data(), fixups.size());
     }
     out->WriteInt32(imports.size());
     for (size_t n = 0; n < imports.size(); ++n)
@@ -191,19 +191,19 @@ bool ccScript::Read(Stream *in)
     globaldata.resize(globaldatasize);
     if (globaldatasize > 0)
     {
-        in->Read(&globaldata.front(), globaldata.size());
+        in->Read(globaldata.data(), globaldata.size());
     }
 
     code.resize(codesize);
     if (codesize > 0)
     {
-        in->ReadArrayOfInt32(&code.front(), code.size());
+        in->ReadArrayOfInt32(code.data(), code.size());
     }
 
     strings.resize(stringssize);
     if (strings.size() > 0)
     {
-        in->Read(&strings.front(), strings.size());
+        in->Read(strings.data(), strings.size());
     }
 
     const uint32_t numfixups = in->ReadInt32();
@@ -211,8 +211,8 @@ bool ccScript::Read(Stream *in)
     fixups.resize(numfixups);
     if (numfixups > 0)
     {
-        in->Read(&fixuptypes.front(), numfixups);
-        in->ReadArrayOfInt32(&fixups.front(), numfixups);
+        in->Read(fixuptypes.data(), numfixups);
+        in->ReadArrayOfInt32(fixups.data(), numfixups);
     }
 
     const uint32_t numimports = in->ReadInt32();

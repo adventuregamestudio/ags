@@ -214,7 +214,7 @@ int IAGSEngine::GetSavedData (char *buffer, int32 bufsize) {
         quit("!IAGSEngine::GetSavedData: buffer too small");
 
     if (savedatasize > 0)
-        memcpy(buffer, &plugins[this->pluginId].savedata.front(), savedatasize);
+        memcpy(buffer, plugins[this->pluginId].savedata.data(), savedatasize);
 
     return savedatasize;
 }

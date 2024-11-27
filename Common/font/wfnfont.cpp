@@ -87,12 +87,12 @@ WFNError WFNFont::ReadFromFile(Stream *in, const soff_t data_size)
         return kWFNErr_NoError; // no items
 
     // Read character data array
-    std::vector<uint8_t> raw_data; raw_data.resize(total_char_data);
-    in->Read(&raw_data.front(), total_char_data);
+    std::vector<uint8_t> raw_data(total_char_data);
+    in->Read(raw_data.data(), total_char_data);
 
     // Read offset table
-    std::vector<uint16_t> offset_table; offset_table.resize(char_count);
-    in->ReadArrayOfInt16(reinterpret_cast<int16_t*>(&offset_table.front()), char_count);
+    std::vector<uint16_t> offset_table(char_count);
+    in->ReadArrayOfInt16(reinterpret_cast<int16_t*>(offset_table.data()), char_count);
 
     // Read all referenced offsets in an unsorted vector
     std::vector<uint16_t> offs;

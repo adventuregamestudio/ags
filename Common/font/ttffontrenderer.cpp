@@ -120,11 +120,11 @@ ALFONT_FONT *TTFFontRenderer::LoadTTF(const AGS::Common::String &filename, int f
         return nullptr;
 
     const size_t lenof = reader->GetLength();
-    std::vector<uint8_t> buf; buf.resize(lenof);
-    reader->Read(&buf.front(), lenof);
+    std::vector<uint8_t> buf(lenof);
+    reader->Read(buf.data(), lenof);
     reader.reset();
 
-    return LoadTTFFromMem(&buf.front(), lenof, font_size, alfont_flags);
+    return LoadTTFFromMem(buf.data(), lenof, font_size, alfont_flags);
 }
 
 bool TTFFontRenderer::LoadFromDiskEx(int fontNumber, int fontSize, const String &filename,

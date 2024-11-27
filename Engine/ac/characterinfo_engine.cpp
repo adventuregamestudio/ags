@@ -479,7 +479,7 @@ void UpdateCharacterIdle(CharacterInfo *chi, CharacterExtras *chex, int &doing_n
         else if (useloop >= maxLoops)
           useloop = 0;
 
-        animate_character(chi, useloop, chi->idle_anim_speed, (chi->idletime == 0) ? 1 : 0, 1);
+        animate_character(chi, useloop, chi->idle_anim_speed, (chi->idletime == 0) ? 1 : 0 /* repeat */);
 
         // don't set Animating while the idle anim plays (TODO: investigate why?)
         chi->animating = 0;

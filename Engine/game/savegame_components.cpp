@@ -826,6 +826,13 @@ HSaveError ReadGUI(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Preserved
             Properties::ReadValues(play.guiProps[i], in);
     }
 
+    // For older save formats: copy pre-existing control ref array
+    if (svg_ver < kGuiSvgVersion_36200)
+    {
+        for (uint32_t i = 0; i < guis_read; ++i)
+            guictrl_refs_old[i] = guis[i].GetControlRefs();
+    }
+
     r_data.DataCounts.GUIControls.resize(guis_read);
 
     // Build a reference of the range of control indexes per type per each GUI;
@@ -907,6 +914,13 @@ HSaveError PrescanGUI(Stream *in, int32_t cmp_ver, soff_t /*cmp_size*/, const Pr
         if (i < guis.size() &&
                 !AssertGameContent(err, guictrl_refs_old[i].size(), guis[i].GetControlCount(), assert_buf.GetCStr(), r_data.Result, r_data.DataCounts.GUIControls[i]))
             return err;
+    }
+
+    // For older save formats: copy pre-existing control ref array
+    if (svg_ver < kGuiSvgVersion_36200)
+    {
+        for (uint32_t i = 0; i < guis_read; ++i)
+            guictrl_refs_old[i] = guis[i].GetControlRefs();
     }
 
     std::array<size_t, kGUIControlTypeNum> ctrl_counts_old{}, ctrl_counts_new{};

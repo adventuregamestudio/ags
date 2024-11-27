@@ -881,6 +881,13 @@ HSaveError ReadGUI(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Preserved
     for (uint32_t i = 0; i < guis_read; ++i)
         guis[i].ReadFromSavegame(in, svg_ver, guictrl_refs_old[i]);
 
+    // For older save formats: copy pre-existing control ref array
+    if (svg_ver < kGuiSvgVersion_36200)
+    {
+        for (uint32_t i = 0; i < guis_read; ++i)
+            guictrl_refs_old[i] = guis[i].GetControlRefs();
+    }
+
     r_data.DataCounts.GUIControls.resize(guis_read);
 
     // Build a reference of the range of control indexes per type per each GUI;

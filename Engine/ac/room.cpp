@@ -995,7 +995,7 @@ void check_new_room() {
 void compile_room_script() {
     cc_clear_error();
 
-    roominst.reset(ccInstance::CreateFromScript(thisroom.CompiledScript));
+    roominst = ccInstance::CreateFromScript(thisroom.CompiledScript);
     if ((cc_has_error()) || (roominst==nullptr)) {
         quitprintf("Unable to create local script:\n%s", cc_get_error().ErrorString.GetCStr());
     }
@@ -1006,7 +1006,7 @@ void compile_room_script() {
     if (!roominst->ResolveImportFixups(roominst->instanceof.get()))
         quitprintf("Unable to resolve import fixups in room script:\n%s", cc_get_error().ErrorString.GetCStr());
 
-    roominstFork.reset(roominst->Fork());
+    roominstFork = roominst->Fork();
     if (roominstFork == nullptr)
         quitprintf("Unable to create forked room instance:\n%s", cc_get_error().ErrorString.GetCStr());
 

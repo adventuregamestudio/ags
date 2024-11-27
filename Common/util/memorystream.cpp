@@ -140,7 +140,7 @@ int32_t MemoryStream::WriteByte(uint8_t val)
 
 
 VectorStream::VectorStream(const std::vector<uint8_t> &cbuf)
-    : MemoryStream(&cbuf.front(), cbuf.size())
+    : MemoryStream(cbuf.data(), cbuf.size())
     , _vec(nullptr)
 {
     _mode = static_cast<StreamMode>(kStream_Read | kStream_Seek);
@@ -148,7 +148,7 @@ VectorStream::VectorStream(const std::vector<uint8_t> &cbuf)
 
 VectorStream::VectorStream(std::vector<uint8_t> &buf, StreamMode mode)
     : MemoryStream((((mode & kStream_ReadWrite) == kStream_Read) && (buf.size() > 0) ?
-            &buf.front() : nullptr),
+            buf.data() : nullptr),
         buf.size(), mode)
     , _vec(&buf)
 {

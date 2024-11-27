@@ -441,8 +441,8 @@ size_t split_lines(const char *todis, SplitLines &lines, int wii, int fonnt, siz
     // in this case we perhaps could use custom ITERATOR types that read
     // and write utf8 chars in std::strings or similar containers.
     test_buf.clear();
-    const char *end_ptr = &line_buf.back(); // buffer end ptr
-    const char *theline = &line_buf.front(); // sub-line ptr
+    const char *end_ptr = line_buf.data() + line_buf.size(); // buffer end ptr
+    const char *theline = line_buf.data(); // sub-line ptr
     const char *scan_ptr = theline; // a moving scan pos
     const char *prev_ptr = scan_ptr; // previous scan pos
     const char *last_whitespace = nullptr; // last found whitespace

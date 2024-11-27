@@ -943,10 +943,10 @@ bool OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination,
   const int bpp = 32 / 8;
   const int buf_sz = copy_from.GetWidth() * copy_from.GetHeight() * bpp;
   std::vector<uint8_t> buffer(buf_sz);
-  glReadPixels(copy_from.Left, copy_from.Top, copy_from.GetWidth(), copy_from.GetHeight(), GL_RGBA, GL_UNSIGNED_BYTE, &buffer.front());
+  glReadPixels(copy_from.Left, copy_from.Top, copy_from.GetWidth(), copy_from.GetHeight(), GL_RGBA, GL_UNSIGNED_BYTE, buffer.data());
 
   // Now convert from OGL RGBA to Allegro RGBA pixel format
-  uint8_t* sourcePtr = &buffer.front();
+  uint8_t* sourcePtr = buffer.data();
   for (int y = destination->GetHeight() - 1; y >= 0; y--)
   {
     unsigned int * destPtr = reinterpret_cast<unsigned int*>(&destination->GetScanLineForWriting(y)[0]);

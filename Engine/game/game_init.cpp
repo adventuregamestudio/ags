@@ -364,9 +364,9 @@ void LoadLipsyncData()
             splipsync[ee].numPhonemes = speechsync->ReadInt16();
             speechsync->Read(splipsync[ee].filename, 14);
             splipsync[ee].endtimeoffs.resize(splipsync[ee].numPhonemes);
-            speechsync->ReadArrayOfInt32(&splipsync[ee].endtimeoffs.front(), splipsync[ee].numPhonemes);
+            speechsync->ReadArrayOfInt32(splipsync[ee].endtimeoffs.data(), splipsync[ee].numPhonemes);
             splipsync[ee].frame.resize(splipsync[ee].numPhonemes);
-            speechsync->ReadArrayOfInt16(&splipsync[ee].frame.front(), splipsync[ee].numPhonemes);
+            speechsync->ReadArrayOfInt16(splipsync[ee].frame.data(), splipsync[ee].numPhonemes);
         }
     }
     Debug::Printf(kDbgMsg_Info, "Lipsync data found and loaded");

@@ -1320,7 +1320,7 @@ HSaveError ReadScriptModules(Stream *in, int32_t cmp_ver, soff_t cmp_size, const
         return err;
     r_data.GlobalScript.Data.resize(data_len);
     if (data_len > 0u)
-        in->Read(&r_data.GlobalScript.Data.front(), data_len);
+        in->Read(r_data.GlobalScript.Data.data(), data_len);
 
     std::vector<bool> modules_match(pp.ScriptModuleNames.size());
     const uint32_t modules_read = in->ReadInt32();
@@ -1363,7 +1363,7 @@ HSaveError ReadScriptModules(Stream *in, int32_t cmp_ver, soff_t cmp_size, const
         RestoredData::ScriptData scdata;
         scdata.Data.resize(data_len);
         if (data_len > 0u)
-            in->Read(&scdata.Data.front(), data_len);
+            in->Read(scdata.Data.data(), data_len);
         r_data.ScriptModules[module_name] = std::move(scdata);
     }
 

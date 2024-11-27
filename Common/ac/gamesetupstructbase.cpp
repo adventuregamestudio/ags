@@ -181,7 +181,7 @@ void GameSetupStructBase::ReadFromFile(Stream *in, GameDataVersion game_ver, Ser
     in->ReadArrayOfInt32(reserved, NUM_INTS_RESERVED);
 
     info.ExtensionOffset = static_cast<uint32_t>(in->ReadInt32());
-    in->ReadArrayOfInt32(&info.HasMessages.front(), MAXGLOBALMES);
+    in->ReadArrayOfInt32(info.HasMessages.data(), MAXGLOBALMES);
 
     info.HasWordsDict = in->ReadInt32() != 0;
     in->ReadInt32(); // globalscript (dummy 32-bit pointer value)

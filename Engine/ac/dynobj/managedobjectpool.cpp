@@ -201,16 +201,16 @@ void ManagedObjectPool::WriteToDisk(Stream *out) {
         // write the type of the object
         StrUtil::WriteCStr(o.callback->GetType(), out);
         // now write the object data
-        int bytesWritten = o.callback->Serialize(o.addr, &serializeBuffer.front(), serializeBuffer.size());
+        int bytesWritten = o.callback->Serialize(o.addr, serializeBuffer.data(), serializeBuffer.size());
         if ((bytesWritten < 0) && ((size_t)(-bytesWritten) > serializeBuffer.size()))
         {
             // buffer not big enough, re-allocate with requested size
             serializeBuffer.resize(-bytesWritten);
-            bytesWritten = o.callback->Serialize(o.addr, &serializeBuffer.front(), serializeBuffer.size());
+            bytesWritten = o.callback->Serialize(o.addr, serializeBuffer.data(), serializeBuffer.size());
         }
         assert(bytesWritten >= 0);
         out->WriteInt32(bytesWritten);
-        out->Write(&serializeBuffer.front(), bytesWritten);
+        out->Write(serializeBuffer.data(), bytesWritten);
         out->WriteInt32(o.refCount);
 
         ManagedObjectLog("Wrote handle = %d", o.handle);
@@ -241,9 +241,9 @@ int ManagedObjectPool::ReadFromDisk(Stream *in, ICCObjectCollectionReader *reade
                         if (numBytes > serializeBuffer.size()) {
                             serializeBuffer.resize(numBytes);
                         }
-                        in->Read(&serializeBuffer.front(), numBytes);
+                        in->Read(serializeBuffer.data(), numBytes);
                         // Delegate work to ICCObjectReader
-                        reader->Unserialize(i, typeNameBuffer, &serializeBuffer.front(), numBytes);
+                        reader->Unserialize(i, typeNameBuffer, serializeBuffer.data(), numBytes);
                         objects[i].refCount = in->ReadInt32();
                         ManagedObjectLog("Read handle = %d", objects[i].handle);
                     }
@@ -263,9 +263,9 @@ int ManagedObjectPool::ReadFromDisk(Stream *in, ICCObjectCollectionReader *reade
                     if (numBytes > serializeBuffer.size()) {
                         serializeBuffer.resize(numBytes);
                     }
-                    in->Read(&serializeBuffer.front(), numBytes);
+                    in->Read(serializeBuffer.data(), numBytes);
                     // Delegate work to ICCObjectReader
-                    reader->Unserialize(handle, typeNameBuffer, &serializeBuffer.front(), numBytes);
+                    reader->Unserialize(handle, typeNameBuffer, serializeBuffer.data(), numBytes);
                     objects[handle].refCount = in->ReadInt32();
                     ManagedObjectLog("Read handle = %d", objects[i].handle);
                 }

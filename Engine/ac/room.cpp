@@ -277,10 +277,11 @@ ScriptPathfinder* Room_GetPathFinder()
 void save_room_data_segment () {
     croom->FreeScriptData();
     
-    croom->tsdatasize = roominst->globaldatasize;
+    const auto &globaldata = roominst->GetGlobalData();
+    croom->tsdatasize = globaldata.size();
     if (croom->tsdatasize > 0) {
         croom->tsdata.resize(croom->tsdatasize);
-        memcpy(croom->tsdata.data(),&roominst->globaldata[0],croom->tsdatasize);
+        memcpy(croom->tsdata.data(),&globaldata[0],croom->tsdatasize);
     }
 
 }
@@ -636,17 +637,18 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         compile_room_script();
         if (been_here)
         {
-            if (croom->tsdatasize > roominst->globaldatasize)
+            const auto &globaldata = roominst->GetGlobalData();
+            if (croom->tsdatasize > globaldata.size())
             {
                 quitprintf("Restored Room %d script data size exceeds current script data (%zu vs %zu bytes).",
-                    newnum, croom->tsdatasize, roominst->globaldatasize);
+                    newnum, croom->tsdatasize, globaldata.size());
             }
-            else if (croom->tsdatasize < roominst->globaldatasize)
+            else if (croom->tsdatasize < globaldata.size())
             {
                 Debug::Printf(kDbgMsg_Warn, "WARNING: Restored Room %d script data size is less than the current script data (%zu vs %zu bytes)",
-                    newnum, croom->tsdatasize, roominst->globaldatasize);
+                    newnum, croom->tsdatasize, globaldata.size());
             }
-            memcpy(roominst->globaldata, croom->tsdata.data(), std::min<uint32_t>(croom->tsdatasize, roominst->globaldatasize));
+            roominst->CopyGlobalData(croom->tsdata);
         }
     }
     set_our_eip(207);
@@ -911,10 +913,10 @@ void compile_room_script() {
         quitprintf("Unable to create local script:\n%s", cc_get_error().ErrorString.GetCStr());
     }
 
-    if (!roominst->ResolveScriptImports(roominst->instanceof.get()))
+    if (!roominst->ResolveScriptImports())
         quitprintf("Unable to resolve imports in room script:\n%s", cc_get_error().ErrorString.GetCStr());
 
-    if (!roominst->ResolveImportFixups(roominst->instanceof.get()))
+    if (!roominst->ResolveImportFixups())
         quitprintf("Unable to resolve import fixups in room script:\n%s", cc_get_error().ErrorString.GetCStr());
 
     roominstFork = roominst->Fork();

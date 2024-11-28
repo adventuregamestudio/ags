@@ -378,11 +378,11 @@ static void debug_script_print_impl(const String &msg, MessageType mt)
     ccInstance *curinst = ccInstance::GetCurrentInstance();
     if (curinst != nullptr) {
         String scriptname;
-        if (curinst->instanceof == gamescript)
+        if (curinst->GetScript() == gamescript)
             scriptname = "G ";
-        else if (curinst->instanceof == thisroom.CompiledScript)
+        else if (curinst->GetScript() == thisroom.CompiledScript)
             scriptname = "R ";
-        else if (curinst->instanceof == dialogScriptsScript)
+        else if (curinst->GetScript() == dialogScriptsScript)
             scriptname = "D ";
         else
             scriptname = "? ";
@@ -695,7 +695,7 @@ void scriptDebugHook (ccInstance *ccinst, int linenum) {
         return;
     }
 
-    String scriptName = ccinst->runningInst->instanceof->GetSectionName(ccinst->pc);
+    String scriptName = ccinst->runningInst->GetScript()->GetSectionName(ccinst->pc);
     for (const auto & breakpoint : breakpoints)
     {
         if ((breakpoint.lineNumber == linenum) &&

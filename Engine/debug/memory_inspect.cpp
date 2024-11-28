@@ -339,10 +339,10 @@ static bool TryGetGlobalVariable(const String &field_ref, const ccInstance *inst
     // Select the actual script at the top of the stack
     // (this could be a different script runnin on this instance, in case of far calls)
     const ccInstance *top_inst = inst->runningInst;
-    if (!top_inst->instanceof->sctoc)
+    if (!top_inst->GetScript()->sctoc)
         return false; // no TOC
 
-    const auto &toc = *top_inst->instanceof->sctoc;
+    const auto &toc = *top_inst->GetScript()->sctoc;
     if (toc.GetGlobalVariables().empty())
         return false; // no global data
 
@@ -354,7 +354,7 @@ static bool TryGetGlobalVariable(const String &field_ref, const ccInstance *inst
     // If this is a script's own global variable, then simply reference its global memory
     if ((var.v_flags & ScriptTOC::kVariable_Import) == 0)
     {
-        found_var = MemoryVariable(&var, top_inst->globaldata + var.offset, nullptr, top_inst->globaldatasize);
+        found_var = MemoryVariable(&var, top_inst->GetGlobalData().data() + var.offset, nullptr, top_inst->GetGlobalData().size());
         return true;
     }
     // If it's an imported variable, then this may be memory from another script,
@@ -371,7 +371,7 @@ static bool TryGetGlobalVariable(const String &field_ref, const ccInstance *inst
             // Import from another script
             found_var = MemoryVariable(&var,
                 import->Value.GetDirectPtr(), nullptr,
-                import->InstancePtr->globaldatasize);
+                import->InstancePtr->GetGlobalData().size());
         }
         else
         {
@@ -392,7 +392,7 @@ static bool TryGetLocalVariable(const String &field_ref, const ccInstance *inst,
     // Select the actual script at the top of the stack
     // (this could be a different script runnin on this instance, in case of far calls)
     // NOTE: we will still use pc and stack of the current inst, since it's the one running!
-    const ccScript *top_script = inst->runningInst->instanceof.get();
+    const ccScript *top_script = inst->runningInst->GetScript().get();
     if (!top_script->sctoc)
         return false; // no TOC
 

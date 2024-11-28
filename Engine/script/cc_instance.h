@@ -127,22 +127,7 @@ enum ccInstError
 struct ccInstance
 {
 public:
-    typedef std::unordered_map<int32_t, ScriptVariable> ScVarMap;
-    typedef std::shared_ptr<ScVarMap>                   PScVarMap;
-public:
-    int32_t flags;
-    PScVarMap globalvars;
-    char *globaldata;
-    int32_t globaldatasize;
-    // Executed byte-code. Unlike ccScript's code array which is int32_t, the one
-    // in ccInstance must be intptr_t to accomodate real pointers placed after
-    // performing fixups.
-    intptr_t *code;
     ccInstance *runningInst;  // might point to another instance if in far call
-    int32_t codesize;
-    const char *strings;
-    int32_t stringssize;
-    RuntimeScriptValue *exports;
     RuntimeScriptValue *stack;
     int  num_stackentries;
     // An array for keeping stack data; stack entries reference unknown data from here
@@ -154,20 +139,12 @@ public:
     RuntimeScriptValue registers[CC_NUM_REGISTERS];
     int32_t pc;                     // program counter
     int32_t line_number;            // source code line number
-    PScript instanceof;
-    int  loadedInstanceId;
     int  returnValue;
 
     int  callStackSize;
     int32_t callStackLineNumber[MAX_CALL_STACK];
     int32_t callStackAddr[MAX_CALL_STACK];
     ccInstance *callStackCodeInst[MAX_CALL_STACK];
-
-    // array of real import indexes used in script
-    uint32_t *resolved_imports;
-    int  numimports;
-
-    char *code_fixups;
 
     // returns the currently executing instance, or NULL if none
     static ccInstance *GetCurrentInstance(void);
@@ -191,6 +168,11 @@ public:
 
     ccInstance();
     ~ccInstance();
+
+    // Get the script that this Instance represents
+    PScript GetScript() const { return _instanceof; }
+    const std::vector<uint8_t> &GetGlobalData() const { return _scriptData->globaldata; }
+
     // Create a runnable instance of the same script, sharing global memory
     std::unique_ptr<ccInstance> Fork();
     // Specifies that when the current function returns to the script, it
@@ -216,10 +198,14 @@ public:
 
     // For each import, find the instance that corresponds to it and save it
     // in resolved_imports[]. Return whether the function is successful
-    bool    ResolveScriptImports(const ccScript *scri);
+    bool    ResolveScriptImports();
     // Using resolved_imports[], resolve the IMPORT fixups
     // Also change CALLEXT op-codes to CALLAS when they pertain to a script instance 
-    bool    ResolveImportFixups(const ccScript *scri);
+    bool    ResolveImportFixups();
+
+    // Copies global data values over to this instance;
+    // copies not more than the allocated size of global data
+    void    CopyGlobalData(const std::vector<uint8_t> &data);
 
     // Returns a dictionary that maps local script's typeid to global typeid (in joint RTTI)
     // Requires RTTI
@@ -261,6 +247,39 @@ private:
     void    PushToFuncCallStack(FunctionCallStack &func_callstack, const RuntimeScriptValue &rval);
     void    PopFromFuncCallStack(FunctionCallStack &func_callstack, int32_t num_entries);
 
+    // Represented script object
+    PScript _instanceof;
+    int32_t _loadedInstanceId = 0;
+    int     _flags = 0; // INSTF_* flags
+
+    // Runtime variant of script data, fixups and imports,
+    // resolved after loading all the game scripts,
+    // and possibly shared among multiple script instance forks.
+    struct ResolvedScriptData
+    {
+        // Script's global data (for global variables)
+        std::vector<uint8_t>    globaldata;
+        // Executed byte-code. Unlike ccScript's code array which is int32_t, the one
+        // in ccInstance must be intptr_t to accomodate real pointers placed after
+        // performing fixups.
+        std::vector<intptr_t>   code;
+        std::vector<uint8_t>    code_fixups;
+        // Resolved global variables
+        std::unordered_map<int32_t, ScriptVariable> globalvars;
+        // Array of real import indexes used in script
+        std::vector<uint32_t>   resolved_imports;
+    };
+    std::shared_ptr<ResolvedScriptData> _scriptData;
+    // This script's exports
+    std::vector<RuntimeScriptValue> _exports;
+
+    // Code pointers for faster access
+    intptr_t   *_code = nullptr;
+    uint32_t    _codesize = 0; // size of code is limited under 32-bit due to bytecode format
+    const uint8_t *_code_fixups = nullptr;
+    const char *_strings = nullptr; // pointer to ccScript's string data
+    size_t      _stringsize = 0u;
+
     // RTTI tables
     static std::unique_ptr<JointRTTI> _rtti;
     // Full name to global id (global id is an actual index in the joint rtti table)
@@ -273,6 +292,7 @@ private:
     std::unordered_map<uint32_t, uint32_t> _typeidLocal2Global;
     // Global variables name-to-index lookup (in script's TOC)
     std::unordered_map<Common::String, uint32_t> _globalVarLookup;
+
 
     // Minimal timeout: how much time may pass without any engine update
     // before we want to check on the situation and do system poll

@@ -330,13 +330,13 @@ void DoBeforeRestore(PreservedParams &pp, SaveCmpSelection select_cmp)
     clear_drawobj_cache();
 
     // preserve script data sizes and cleanup scripts
-    pp.GlScDataSize = gameinst->globaldatasize;
+    pp.GlScDataSize = gameinst->GetGlobalData().size();
     pp.ScriptModuleNames.resize(numScriptModules);
     pp.ScMdDataSize.resize(numScriptModules);
     for (size_t i = 0; i < numScriptModules; ++i)
     {
-        pp.ScriptModuleNames[i] = moduleInst[i]->instanceof->GetScriptName();
-        pp.ScMdDataSize[i] = moduleInst[i]->globaldatasize;
+        pp.ScriptModuleNames[i] = moduleInst[i]->GetScript()->GetScriptName();
+        pp.ScMdDataSize[i] = moduleInst[i]->GetGlobalData().size();
     }
 
     FreeAllScriptInstances();
@@ -367,13 +367,13 @@ void DoBeforeRestore(PreservedParams &pp, SaveCmpSelection select_cmp)
 void FillPreservedParams(PreservedParams &pp)
 {
     // preserve script data sizes
-    pp.GlScDataSize = gameinst->globaldatasize;
+    pp.GlScDataSize = gameinst->GetGlobalData().size();
     pp.ScriptModuleNames.resize(numScriptModules);
     pp.ScMdDataSize.resize(numScriptModules);
     for (size_t i = 0; i < numScriptModules; ++i)
     {
-        pp.ScriptModuleNames[i] = moduleInst[i]->instanceof->GetScriptName();
-        pp.ScMdDataSize[i] = moduleInst[i]->globaldatasize;
+        pp.ScriptModuleNames[i] = moduleInst[i]->GetScript()->GetScriptName();
+        pp.ScMdDataSize[i] = moduleInst[i]->GetGlobalData().size();
     }
 }
 
@@ -583,8 +583,9 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
 
     // read the global data into the newly created script
     if (!r_data.GlobalScript.Data.empty())
-        memcpy(gameinst->globaldata, r_data.GlobalScript.Data.data(),
-                std::min((size_t)gameinst->globaldatasize, r_data.GlobalScript.Data.size()));
+    {
+        gameinst->CopyGlobalData(r_data.GlobalScript.Data);
+    }
 
     // restore the script module data
     for (auto &sc_entry : r_data.ScriptModules)
@@ -595,10 +596,9 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
             continue;
         for (auto &scmoduleinst : moduleInst)
         {
-            if (name.Compare(scmoduleinst->instanceof->GetScriptName()) == 0)
+            if (name.Compare(scmoduleinst->GetScript()->GetScriptName()) == 0)
             {
-                memcpy(scmoduleinst->globaldata, scdata.Data.data(),
-                    std::min((size_t)scmoduleinst->globaldatasize, scdata.Data.size()));
+                scmoduleinst->CopyGlobalData(scdata.Data);
                 break;
             }
         }

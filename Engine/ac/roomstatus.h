@@ -65,7 +65,7 @@ struct RoomStatus
     uint32_t numobj;
     std::vector<RoomObject> obj;
     uint32_t tsdatasize;
-    std::vector<char> tsdata;
+    std::vector<uint8_t> tsdata;
 
     HotspotState hotspot[MAX_ROOM_HOTSPOTS];
     char  region_enabled[MAX_ROOM_REGIONS];

@@ -346,6 +346,43 @@ void ccInstance::AbortAndDestroy()
     }
 
 
+size_t ccInstance::GetExportedSymbol(const Common::String &symname) const
+{
+    // We expect that the functions may be exported with the number of arguments
+    // appended to their names after '$' separator.
+    for (auto it = _exportLookup.lower_bound(symname);
+        it != _exportLookup.end() && it->first.CompareLeft(symname) == 0; ++it)
+    {
+        if (it->first.GetLength() == symname.GetLength() || it->first[symname.GetLength()] == '$')
+            return it->second;
+    }
+    return SIZE_MAX;
+}
+
+bool ccInstance::FindExportedFunction(const String &fn_name, int32_t &start_at, int32_t &num_args) const
+{
+    const size_t exp_index = GetExportedSymbol(fn_name);
+    if (exp_index == SIZE_MAX)
+        return false;
+
+    const int32_t etype = (_instanceof->export_addr[exp_index] >> 24L) & 0x000ff;
+    if (etype != EXPORT_FUNCTION)
+        return false; // not a function
+    start_at = (_instanceof->export_addr[exp_index] & 0x00ffffff);
+
+    const String &exp_name = _instanceof->exports[exp_index];
+    assert(exp_name.GetLength() >= fn_name.GetLength());
+    if (exp_name.GetLength() <= fn_name.GetLength())
+    {
+        num_args = 0; // unknown, registered without args info
+    }
+    else
+    {
+        num_args = atoi(&exp_name[fn_name.GetLength() + 1]);
+    }
+    return true;
+}
+
 ccInstError ccInstance::CallScriptFunction(const String &funcname, int32_t numargs, const RuntimeScriptValue *params)
 {
     cc_clear_error();
@@ -369,46 +406,23 @@ ccInstError ccInstance::CallScriptFunction(const String &funcname, int32_t numar
         return kInstErr_Busy;
     }
 
+    int start_at, export_args;
+    if (!FindExportedFunction(funcname, start_at, export_args))
+    {
+        cc_error("function '%s' not found", funcname.GetCStr());
+        return kInstErr_FuncNotFound;
+    }
+
     // NOTE: passing more parameters than expected by the function is fine:
     // the function args are pushed to the stack in REVERSE order, first
     // parameters are always the last, so function code knows how to find them
     // using negative offsets, and does not care about any preceding entries.
-    int32_t startat = -1;
-    char mangledName[200];
-    const size_t mangled_len = snprintf(mangledName, sizeof(mangledName), "%s$", funcname.GetCStr());
-    int export_args = numargs;
-
-    for (size_t k = 0; k < _instanceof->exports.size(); k++) {
-        const char *thisExportName = _instanceof->exports[k].c_str();
-        bool match = false;
-
-        // check for a mangled name match
-        if (strncmp(thisExportName, mangledName, mangled_len) == 0) {
-            // found, compare the number of parameters
-            export_args = atoi(thisExportName + mangled_len);
-            if (export_args > numargs) {
-                cc_error("Not enough parameters to exported function '%s' (expected %d, supplied %d)",
-                    funcname.GetCStr(), export_args, numargs);
-                return kInstErr_Generic;
-            }
-            match = true;
-        }
-        // check for an exact match (if the script was compiled with an older version)
-        if (match || (strcmp(thisExportName, funcname.GetCStr()) == 0)) {
-            const int32_t etype = (_instanceof->export_addr[k] >> 24L) & 0x000ff;
-            if (etype != EXPORT_FUNCTION) {
-                cc_error("symbol '%s' is not a function", funcname.GetCStr());
-                return kInstErr_FuncNotFound;
-            }
-            startat = (_instanceof->export_addr[k] & 0x00ffffff);
-            break;
-        }
-    }
-
-    if (startat < 0)
+    // But if there's not enough parameters, then we cannot call this function.
+    if (export_args > numargs)
     {
-        cc_error("function '%s' not found", funcname.GetCStr());
-        return kInstErr_FuncNotFound;
+        cc_error("Not enough parameters to exported function '%s' (expected %d, supplied %d)",
+            funcname.GetCStr(), export_args, numargs);
+        return kInstErr_Generic;
     }
 
     // Prepare instance for run
@@ -430,7 +444,7 @@ ccInstError ccInstance::CallScriptFunction(const String &funcname, int32_t numar
 
     InstThreads.push_back(this); // push instance thread
     _runningInst = this;
-    const ccInstError reterr = Run(startat);
+    const ccInstError reterr = Run(start_at);
     // Cleanup before returning, even if error
     ASSERT_STACK_SIZE(numargs);
     PopValuesFromStack(numargs);
@@ -1637,17 +1651,8 @@ void ccInstance::GetScriptPosition(ScriptPosition &script_pos) const
 
 RuntimeScriptValue ccInstance::GetSymbolAddress(const String &symname) const
 {
-    char altName[200];
-    snprintf(altName, sizeof(altName), "%s$", symname.GetCStr());
-    const size_t len_altName = strlen(altName);
-    for (size_t k = 0; k < _instanceof->exports.size(); k++) {
-        if (strcmp(_instanceof->exports[k].c_str(), symname.GetCStr()) == 0)
-            return _exports[k];
-        // mangled function name
-        if (strncmp(_instanceof->exports[k].c_str(), altName, len_altName) == 0)
-            return _exports[k];
-    }
-    return {};
+    size_t exp_index = GetExportedSymbol(symname);
+    return (exp_index < SIZE_MAX) ? _exports[exp_index] : RuntimeScriptValue();
 }
 
 void ccInstance::DumpInstruction(const ScriptOperation &op) const
@@ -1825,8 +1830,10 @@ bool ccInstance::_Create(PScript scri, const ccInstance *joined)
     // Resolve script exports; this is done for each script instance,
     // CHECKME: why? they seem to reference shared data
     _exports.resize(scri->exports.size());
+    _exportLookup.clear();
     // find the real address of the exports
-    for (size_t i = 0; i < scri->exports.size(); i++) {
+    for (size_t i = 0; i < scri->exports.size(); i++)
+    {
         const int32_t etype = (scri->export_addr[i] >> 24L) & 0x000ff;
         const int32_t eaddr = (scri->export_addr[i] & 0x00ffffff);
         if (etype == EXPORT_FUNCTION)
@@ -1849,11 +1856,15 @@ bool ccInstance::_Create(PScript scri, const ccInstance *joined)
                 return false;
             }
         }
-        else {
+        else
+        {
             cc_error("internal export fixup error");
             return false;
         }
+
+        _exportLookup[scri->exports[i]] = i;
     }
+
     _instanceof = scri;
     _flags = 0;
     if (joined != nullptr)

@@ -237,7 +237,7 @@ int run_dialog_script(int dialogID, int offse, int optionIndex)
     snprintf(func_name, sizeof(func_name), "_run_dialog%d", dialogID);
     RuntimeScriptValue params[]{ optionIndex };
     RunScriptFunction(dialogScriptsInst.get(), func_name, 1, params);
-    result = dialogScriptsInst->returnValue;
+    result = dialogScriptsInst->GetReturnValue();
   }
   else
   {
@@ -1469,19 +1469,19 @@ bool is_in_dialog()
     return dialogExec != nullptr;
 }
 
-// NOTE: this is ugly, but I could not come to a better solution at the time...
+// TODO: this is ugly, but I could not come to a better solution at the time...
 void set_dialog_result_goto(int dlgnum)
 {
     assert(dialogExec && dialogScriptsInst);
     if (dialogScriptsInst)
-        dialogScriptsInst->returnValue = dlgnum;
+        dialogScriptsInst->SetReturnValue(dlgnum);
 }
 
 void set_dialog_result_stop()
 {
     assert(dialogExec && dialogScriptsInst);
     if (dialogScriptsInst)
-        dialogScriptsInst->returnValue = RUN_DIALOG_STOP_DIALOG;
+        dialogScriptsInst->SetReturnValue(RUN_DIALOG_STOP_DIALOG);
 }
 
 bool handle_state_change_in_dialog_request(const char *apiname, int dlgreq_retval)

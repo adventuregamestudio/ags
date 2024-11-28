@@ -126,25 +126,6 @@ enum ccInstError
 struct ccInstance
 {
 public:
-    ccInstance *runningInst;  // might point to another instance if in far call
-    RuntimeScriptValue *stack;
-    int  num_stackentries;
-    // An array for keeping stack data; stack entries reference unknown data from here
-    // TODO: probably change to dynamic array later
-    char *stackdata;    // for storing stack data of unknown type
-    char *stackdata_ptr;// works similar to original stack pointer, points to the next unused byte in stack data array
-    int32_t stackdatasize; // conventional size of stack data in bytes
-    //
-    RuntimeScriptValue registers[CC_NUM_REGISTERS];
-    int32_t pc;                     // program counter
-    int32_t line_number;            // source code line number
-    int  returnValue;
-
-    int  callStackSize;
-    int32_t callStackLineNumber[MAX_CALL_STACK];
-    int32_t callStackAddr[MAX_CALL_STACK];
-    ccInstance *callStackCodeInst[MAX_CALL_STACK];
-
     // returns the currently executing instance, or NULL if none
     static ccInstance *GetCurrentInstance(void);
     // clears recorded stack of current instances
@@ -156,12 +137,22 @@ public:
     static std::unique_ptr<ccInstance> CreateEx(PScript scri, const ccInstance * joined);
     static void SetExecTimeout(unsigned sys_poll_ms, unsigned abort_ms, unsigned abort_loops);
 
-    ccInstance();
+    ccInstance() = default;
     ~ccInstance();
 
     // Get the script that this Instance represents
     PScript GetScript() const { return _instanceof; }
+    // Get the currently executed instance, which may be this instance,
+    // or another one in case of a nested "far call"
+    ccInstance *GetRunningInst() const { return _runningInst; }
+    // Get a readonly access to the global script data
     const std::vector<uint8_t> &GetGlobalData() const { return _scriptData->globaldata; }
+    // Get current program pointer (position in bytecode)
+    int     GetPC() const { return _pc; }
+    // Get latest return value
+    int     GetReturnValue() const { return _returnValue; }
+    // TODO: this is a hack, required for dialog script; redo this later!
+    void    SetReturnValue(int val) { _returnValue = val; }
 
     // Create a runnable instance of the same script, sharing global memory
     std::unique_ptr<ccInstance> Fork();
@@ -263,6 +254,24 @@ private:
     const char *_strings = nullptr; // pointer to ccScript's string data
     size_t      _stringsize = 0u;
 
+    // Virtual machine state
+    RuntimeScriptValue _registers[CC_NUM_REGISTERS]; // registers
+    std::vector<RuntimeScriptValue> _stack;
+    // An array for keeping stack data; stack entries reference data of variable size from here
+    std::vector<uint8_t> _stackdata;
+    RuntimeScriptValue *_stackBegin = nullptr; // fast-access ptr to beginning of _stack
+    uint8_t    *_stackdataBegin = nullptr; // fast-access ptr to beginning of _stackdata
+    uint8_t    *_stackdataPtr = nullptr; // points to the next unused byte in stack data array
+    // Callstack: for storing nested program positions
+    int         _callStackLineNumber[MAX_CALL_STACK]{};
+    int         _callStackAddr[MAX_CALL_STACK]{};
+    ccInstance *_callStackCodeInst[MAX_CALL_STACK]{};
+    uint32_t    _callStackSize = 0u;
+
+    ccInstance *_runningInst = nullptr;  // might point to another instance if in far call
+    int         _pc = 0; // program counter
+    int         _lineNumber = 0; // source code line number
+    int         _returnValue = 0; // last executed function's return value
 
     // Minimal timeout: how much time may pass without any engine update
     // before we want to check on the situation and do system poll

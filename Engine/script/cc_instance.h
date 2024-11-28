@@ -18,6 +18,7 @@
 #ifndef __CC_INSTANCE_H
 #define __CC_INSTANCE_H
 
+#include <map>
 #include <memory>
 #include <unordered_map>
 
@@ -218,6 +219,12 @@ private:
     ScriptVariable *FindGlobalVar(int32_t var_addr);
     bool    CreateRuntimeCodeFixups(const ccScript *scri);
 
+    // Get the matching export index; returns SIZE_MAX on failure
+    size_t  GetExportedSymbol(const Common::String &symname) const;
+    // Searches for the function among this script's exports,
+    // on success returns its starting position in bytecode, and number of arguments
+    bool    FindExportedFunction(const Common::String &fn_name, int32_t &start_at, int32_t &num_args) const;
+
     // Begin executing script starting from the given bytecode index
     ccInstError Run(int32_t curpc);
 
@@ -264,7 +271,9 @@ private:
     };
     std::shared_ptr<ResolvedScriptData> _scriptData;
     // This script's exports
+    // TODO: not sure why these are not shared among forks, review this later
     std::vector<RuntimeScriptValue> _exports;
+    std::map<Common::String, size_t> _exportLookup; // must be a sorted map, we use partial name matches
 
     // Code pointers for faster access
     intptr_t   *_code = nullptr;

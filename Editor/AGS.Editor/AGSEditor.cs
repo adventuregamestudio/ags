@@ -980,16 +980,6 @@ namespace AGS.Editor
             DialogScriptConverter dialogConverter = new DialogScriptConverter();
             string dialogScriptsText = dialogConverter.ConvertGameDialogScripts(_game, errors, rebuildAll);
             Script dialogScripts = new Script(Script.DIALOG_SCRIPTS_FILE_NAME, dialogScriptsText, false);
-
-            // A dialog_request must exist in the global script, otherwise
-            // the dialogs script fails to load at run-time
-            // TODO: check if it's still true, and is necessary!
-            Script script = CurrentGame.RootScriptFolder.GetScriptByFileName(Script.GLOBAL_SCRIPT_FILE_NAME, true);
-            if (script != null)
-            {
-                script.Text = ScriptGeneration.InsertFunction(script.Text, "dialog_request", "int param");
-            }
-
             return dialogScripts;
         }
 

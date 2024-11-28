@@ -221,9 +221,9 @@ int create_global_script() {
     // Resolve the script imports after all the scripts have been loaded 
     for (auto &inst : all_insts)
     {
-        if (!inst->ResolveScriptImports(inst->instanceof.get()))
+        if (!inst->ResolveScriptImports())
             return kscript_create_error;
-        if (!inst->ResolveImportFixups(inst->instanceof.get()))
+        if (!inst->ResolveImportFixups())
             return kscript_create_error;
     }
 
@@ -501,7 +501,7 @@ static bool RunEventInModule(const ScriptFunctionRef &fn_ref, size_t param_count
     {
         for (size_t i = 0; i < numScriptModules; ++i)
         {
-            if (fn_ref.ModuleName.Compare(moduleInst[i]->instanceof->GetScriptName()) == 0)
+            if (fn_ref.ModuleName.Compare(moduleInst[i]->GetScript()->GetScriptName()) == 0)
             {
                 return RunScriptFunction(moduleInst[i].get(), fn_ref.FuncName, param_count, params) == kScFnRes_Done;
             }
@@ -622,9 +622,9 @@ String GetScriptName(ccInstance *sci)
     // TODO: check script modules too?
     if (!sci)
         return "Not in a script";
-    else if (sci->instanceof == gamescript)
+    else if (sci->GetScript() == gamescript)
         return "Global script";
-    else if (sci->instanceof == thisroom.CompiledScript)
+    else if (sci->GetScript() == thisroom.CompiledScript)
         return String::FromFormat("Room %d script", displayed_room);
     return "Unknown script";
 }

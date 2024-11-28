@@ -38,7 +38,7 @@ struct SystemImports
 {
 private:
     // Note we can't use a hash-map here, because we sometimes need to search
-    // by partial keys.
+    // by partial keys, so sorting is cruicial
     typedef std::map<String, uint32_t> IndexMap;
 
     std::vector<ScriptImport> imports;

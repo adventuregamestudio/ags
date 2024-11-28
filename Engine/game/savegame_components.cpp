@@ -1301,19 +1301,19 @@ enum ScriptModulesSvgVersion
 HSaveError WriteScriptModules(Stream *out)
 {
     // write the data segment of the global script
-    int data_len = gameinst->globaldatasize;
+    int data_len = gameinst->GetGlobalData().size();
     out->WriteInt32(data_len);
     if (data_len > 0)
-        out->Write(gameinst->globaldata, data_len);
+        out->Write(gameinst->GetGlobalData().data(), data_len);
     // write the script modules data segments
     out->WriteInt32(numScriptModules);
     for (size_t i = 0; i < numScriptModules; ++i)
     {
-        StrUtil::WriteString(moduleInst[i]->instanceof->GetScriptName(), out);
-        data_len = moduleInst[i]->globaldatasize;
+        StrUtil::WriteString(moduleInst[i]->GetScript()->GetScriptName(), out);
+        data_len = moduleInst[i]->GetGlobalData().size();
         out->WriteInt32(data_len);
         if (data_len > 0)
-            out->Write(moduleInst[i]->globaldata, data_len);
+            out->Write(moduleInst[i]->GetGlobalData().data(), data_len);
     }
     return HSaveError::None();
 }

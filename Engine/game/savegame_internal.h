@@ -156,7 +156,7 @@ struct RestoredData
     // Scripts global data
     struct ScriptData
     {
-        std::vector<char>   Data;
+        std::vector<uint8_t> Data;
     };
     ScriptData              GlobalScript;
     std::unordered_map<String, ScriptData> ScriptModules;

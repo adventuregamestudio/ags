@@ -695,7 +695,7 @@ void scriptDebugHook (ccInstance *ccinst, int linenum) {
         return;
     }
 
-    String scriptName = ccinst->runningInst->GetScript()->GetSectionName(ccinst->pc);
+    String scriptName = ccinst->GetRunningInst()->GetScript()->GetSectionName(ccinst->GetPC());
     for (const auto & breakpoint : breakpoints)
     {
         if ((breakpoint.lineNumber == linenum) &&

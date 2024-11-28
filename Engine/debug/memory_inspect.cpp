@@ -338,7 +338,7 @@ static bool TryGetGlobalVariable(const String &field_ref, const ccInstance *inst
 {
     // Select the actual script at the top of the stack
     // (this could be a different script runnin on this instance, in case of far calls)
-    const ccInstance *top_inst = inst->runningInst;
+    const ccInstance *top_inst = inst->GetRunningInst();
     if (!top_inst->GetScript()->sctoc)
         return false; // no TOC
 
@@ -392,7 +392,7 @@ static bool TryGetLocalVariable(const String &field_ref, const ccInstance *inst,
     // Select the actual script at the top of the stack
     // (this could be a different script runnin on this instance, in case of far calls)
     // NOTE: we will still use pc and stack of the current inst, since it's the one running!
-    const ccScript *top_script = inst->runningInst->GetScript().get();
+    const ccScript *top_script = inst->GetRunningInst()->GetScript().get();
     if (!top_script->sctoc)
         return false; // no TOC
 
@@ -401,7 +401,7 @@ static bool TryGetLocalVariable(const String &field_ref, const ccInstance *inst,
         return false; // no local data
 
     // TODO: use runtime TOC where we can guarantee sorted function list (or fixup TOC on load)
-    ScriptTOC::Function test_func; test_func.scope_begin = inst->pc; test_func.scope_end = inst->pc + 1;
+    ScriptTOC::Function test_func; test_func.scope_begin = inst->GetPC(); test_func.scope_end = inst->GetPC() + 1;
     auto func_it = std::lower_bound(toc.GetFunctions().begin(), toc.GetFunctions().end(), test_func,
         [](const ScriptTOC::Function &first, const ScriptTOC::Function &second)
         { return (first.scope_begin < second.scope_begin) && (first.scope_end <= second.scope_begin); });
@@ -415,12 +415,12 @@ static bool TryGetLocalVariable(const String &field_ref, const ccInstance *inst,
     // Find the latest variable which scope begins prior to the current script pos
     const ScriptTOC::Variable *var = func.local_data;
     for (const ScriptTOC::Variable *next_var = var;
-        next_var && next_var->scope_begin <= static_cast<uint32_t>(inst->pc);
+        next_var && next_var->scope_begin <= static_cast<uint32_t>(inst->GetPC());
         var = next_var, next_var = next_var->next_local);
 
     // FIXME: helper method returning stack? don't direct access!
     // Note this stack ptr is set *after* the last allocated local data
-    const auto *stack_ptr = inst->registers[SREG_SP].RValue;
+    const auto *stack_ptr = inst->GetCurrentStack();
     const ScriptTOC::Variable *last_var = nullptr;
     // Scan local variable backwards before we find one that matches the name
     for (; var; var = var->prev_local)
@@ -428,7 +428,7 @@ static bool TryGetLocalVariable(const String &field_ref, const ccInstance *inst,
         assert(var->v_flags & ScriptTOC::kVariable_Local);
         // Skip if local variable's scope ends before current pos;
         // note we don't break, as this may be a nested scope inside a function
-        if (var->scope_end <= static_cast<uint32_t>(inst->pc))
+        if (var->scope_end <= static_cast<uint32_t>(inst->GetPC()))
             continue;
 
         --stack_ptr;
@@ -490,7 +490,7 @@ static HError ParseScriptVariable(const String &field_ref, const ccInstance *ins
     const auto &var = *memvar.Variable;
     // resolve local script's type to a global type index
     // TODO: this should be resolved after loading script, similar to RTTI!
-    const ccInstance *top_inst = inst->runningInst;
+    const ccInstance *top_inst = inst->GetRunningInst();
     const auto *l2gtypes = &top_inst->GetLocal2GlobalTypeMap();
     auto type_it = l2gtypes->find(var.f_typeid);
     if (type_it == l2gtypes->end())

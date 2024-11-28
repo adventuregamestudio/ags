@@ -275,24 +275,6 @@ void ccInstance::SetExecTimeout(const unsigned sys_poll_ms, const unsigned abort
     _maxWhileLoops = abort_loops;
 }
 
-ccInstance::ccInstance()
-{
-    runningInst         = nullptr;
-    stack               = nullptr;
-    num_stackentries    = 0;
-    stackdata           = nullptr;
-    stackdatasize       = 0;
-    stackdata_ptr       = nullptr;
-    pc                  = 0;
-    line_number         = 0;
-    callStackSize       = 0;
-    returnValue         = 0;
-
-    memset(callStackLineNumber, 0, sizeof(callStackLineNumber));
-    memset(callStackAddr, 0, sizeof(callStackAddr));
-    memset(callStackCodeInst, 0, sizeof(callStackCodeInst));
-}
-
 ccInstance::~ccInstance()
 {
     Free();
@@ -305,7 +287,7 @@ std::unique_ptr<ccInstance> ccInstance::Fork()
 
 void ccInstance::Abort()
 {
-    if (pc != 0)
+    if (_pc != 0)
         _flags |= INSTF_ABORTED;
 }
 
@@ -359,10 +341,10 @@ void ccInstance::AbortAndDestroy()
 // Two stack assertions that are always enabled:
 // ASSERT_STACK_SPACE_AVAILABLE tests that we do not exceed stack limit
 #define ASSERT_STACK_SPACE_AVAILABLE(N_VALS, N_BYTES) \
-    if ((registers[SREG_SP].RValue + N_VALS - &stack[0]) >= CC_STACK_SIZE || \
-        (stackdata_ptr + N_BYTES - stackdata) >= CC_STACK_DATA_SIZE) \
+    if ((_registers[SREG_SP].RValue + N_VALS - _stackBegin) >= CC_STACK_SIZE || \
+        (_stackdataPtr + N_BYTES - _stackdataBegin) >= CC_STACK_DATA_SIZE) \
     { \
-        cc_error("stack overflow, attempted to grow from %d by %d bytes", (stackdata_ptr - stackdata), N_BYTES); \
+        cc_error("stack overflow, attempted to grow from %d by %d bytes", (_stackdataPtr - _stackdataBegin), N_BYTES); \
         return kInstErr_Generic; \
     }
 
@@ -376,7 +358,7 @@ void ccInstance::AbortAndDestroy()
 
 // ASSERT_STACK_SIZE tests that we do not unwind stack past its beginning
 #define ASSERT_STACK_SIZE(N) \
-    if (registers[SREG_SP].RValue - N < &stack[0]) \
+    if (_registers[SREG_SP].RValue - N < _stackBegin) \
     { \
         cc_error("stack underflow"); \
         return kInstErr_Generic; \
@@ -384,10 +366,10 @@ void ccInstance::AbortAndDestroy()
 
 // ASSERT_STACK_UNWINDED tests that the stack pointer is at the expected position
 #define ASSERT_STACK_UNWINDED(STACK_VAL, DATA_PTR) \
-    if ((registers[SREG_SP].RValue > STACK_VAL.RValue) || \
-        (stackdata_ptr > DATA_PTR)) \
+    if ((_registers[SREG_SP].RValue > STACK_VAL.RValue) || \
+        (_stackdataPtr > DATA_PTR)) \
     { \
-        cc_error("stack is not unwinded after function call, %d bytes remain", (stackdata_ptr - DATA_PTR)); \
+        cc_error("stack is not unwinded after function call, %d bytes remain", (_stackdataPtr - DATA_PTR)); \
         return kInstErr_Generic; \
     }
 
@@ -409,7 +391,7 @@ ccInstError ccInstance::CallScriptFunction(const String &funcname, int32_t numar
         return kInstErr_InvalidArgNum;
     }
 
-    if (pc != 0)
+    if (_pc != 0)
     {
         cc_error("instance already being executed");
         return kInstErr_Busy;
@@ -462,9 +444,9 @@ ccInstError ccInstance::CallScriptFunction(const String &funcname, int32_t numar
     // Allow to pass less parameters if script callback has less declared args
     numargs = std::min(numargs, export_args);
     // object pointer needs to start zeroed
-    registers[SREG_OP].SetScriptObject(nullptr, nullptr);
-    registers[SREG_SP].SetStackPtr( &stack[0] );
-    stackdata_ptr = stackdata;
+    _registers[SREG_OP].SetScriptObject(nullptr, nullptr);
+    _registers[SREG_SP].SetStackPtr( _stack.data() );
+    _stackdataPtr = _stackdata.data();
     // NOTE: Pushing parameters to stack in reverse order
     ASSERT_STACK_SPACE_VALS(numargs + 1 /* return address */);
     for (int i = numargs - 1; i >= 0; --i)
@@ -475,12 +457,12 @@ ccInstError ccInstance::CallScriptFunction(const String &funcname, int32_t numar
     PushValueToStack(RuntimeScriptValue().SetInt32(0));
 
     InstThreads.push_back(this); // push instance thread
-    runningInst = this;
+    _runningInst = this;
     const ccInstError reterr = Run(startat);
     // Cleanup before returning, even if error
     ASSERT_STACK_SIZE(numargs);
     PopValuesFromStack(numargs);
-    pc = 0;
+    _pc = 0;
     currentline = 0;
     InstThreads.pop_back(); // pop instance thread
     if (reterr != kInstErr_None)
@@ -503,29 +485,29 @@ ccInstError ccInstance::CallScriptFunction(const String &funcname, int32_t numar
         return kInstErr_Aborted;
     }
 
-    ASSERT_STACK_UNWINDED(registers[SREG_SP], stackdata);
+    ASSERT_STACK_UNWINDED(_registers[SREG_SP], _stackdata.data());
     return cc_has_error() ? kInstErr_Generic : kInstErr_None;
 }
 
 // Macros to maintain the call stack
 #define PUSH_CALL_STACK \
-    if (callStackSize >= MAX_CALL_STACK) { \
+    if (_callStackSize >= MAX_CALL_STACK) { \
         cc_error("CallScriptFunction stack overflow (recursive call error?)"); \
         return kInstErr_Generic; \
     } \
-    callStackLineNumber[callStackSize] = line_number;  \
-    callStackCodeInst[callStackSize] = runningInst;  \
-    callStackAddr[callStackSize] = pc;  \
-    callStackSize++ 
+    _callStackLineNumber[_callStackSize] = _lineNumber;  \
+    _callStackCodeInst[_callStackSize] = _runningInst;  \
+    _callStackAddr[_callStackSize] = _pc;  \
+    _callStackSize++ 
 
 #define POP_CALL_STACK \
-    if (callStackSize < 1) { \
+    if (_callStackSize < 1) { \
         cc_error("CallScriptFunction stack underflow -- internal error"); \
         return kInstErr_Generic; \
     } \
-    callStackSize--;\
-    line_number = callStackLineNumber[callStackSize];\
-    currentline = line_number
+    _callStackSize--;\
+    _lineNumber = _callStackLineNumber[_callStackSize];\
+    currentline = _lineNumber
 
 
 // Return stack ptr at given offset from stack head;
@@ -601,10 +583,10 @@ inline bool FixupArgument(RuntimeScriptValue &arg, const int fixup, const uintpt
 #define MAXNEST 50  // number of recursive function calls allowed
 ccInstError ccInstance::Run(int32_t curpc)
 {
-    pc = curpc;
-    returnValue = -1;
+    _pc = curpc;
+    _returnValue = -1;
 
-    if ((curpc < 0) || (static_cast<uint32_t>(curpc) >= runningInst->_codesize))
+    if ((curpc < 0) || (static_cast<uint32_t>(curpc) >= _runningInst->_codesize))
     {
         cc_error("specified code offset is not valid");
         return kInstErr_Generic;
@@ -616,8 +598,8 @@ ccInstError ccInstance::Run(int32_t curpc)
     int num_args_to_func = -1;
     int next_call_needs_object = 0;
     thisbase[0] = 0;
-    funcstart[0] = pc;
-    ccInstance *codeInst = runningInst;
+    funcstart[0] = _pc;
+    ccInstance *codeInst = _runningInst;
     ScriptOperation codeOp;
     FunctionCallStack func_callstack;
 #if DEBUG_CC_EXEC
@@ -641,7 +623,7 @@ ccInstError ccInstance::Run(int32_t curpc)
         //
         /* Read operation */
         //=====================================================================
-        codeOp.Instruction.Code = codeInst->_code[pc];
+        codeOp.Instruction.Code = codeInst->_code[_pc];
         codeOp.Instruction.InstanceId = (codeOp.Instruction.Code >> INSTANCE_ID_SHIFT) & INSTANCE_ID_MASK;
         codeOp.Instruction.Code &= INSTANCE_ID_REMOVEMASK; // now this is pure instruction code
 
@@ -650,21 +632,21 @@ ccInstError ccInstance::Run(int32_t curpc)
 
         codeOp.ArgCount = sccmd_info[codeOp.Instruction.Code].ArgCount;
 
-        CC_ERROR_IF_RETCODE(pc + codeOp.ArgCount >= codeInst->_codesize,
-            "unexpected end of code data (%d; %d)", pc + codeOp.ArgCount, codeInst->_codesize);
+        CC_ERROR_IF_RETCODE(_pc + codeOp.ArgCount >= codeInst->_codesize,
+            "unexpected end of code data (%d; %d)", _pc + codeOp.ArgCount, codeInst->_codesize);
 
 
         // Read arguments; use switch as it proved to be faster than the loop
         switch (codeOp.ArgCount)
         {
         case 3:
-            codeOp.Args[2].SetInt32(static_cast<int32_t>(codeInst->_code[pc + 3]));
+            codeOp.Args[2].SetInt32(static_cast<int32_t>(codeInst->_code[_pc + 3]));
             /* fall-through */
         case 2:
-            codeOp.Args[1].SetInt32(static_cast<int32_t>(codeInst->_code[pc + 2]));
+            codeOp.Args[1].SetInt32(static_cast<int32_t>(codeInst->_code[_pc + 2]));
             /* fall-through */
         case 1:
-            codeOp.Args[0].SetInt32(static_cast<int32_t>(codeInst->_code[pc + 1]));
+            codeOp.Args[0].SetInt32(static_cast<int32_t>(codeInst->_code[_pc + 1]));
             break;
         default:
             break;
@@ -685,8 +667,8 @@ ccInstError ccInstance::Run(int32_t curpc)
         switch (codeOp.Instruction.Code)
         {
         case SCMD_LINENUM:
-            line_number = codeOp.Arg1i();
-            currentline = line_number;
+            _lineNumber = codeOp.Arg1i();
+            currentline = _lineNumber;
             if (new_line_hook)
                 new_line_hook(this, currentline);
             break;
@@ -694,7 +676,7 @@ ccInstError ccInstance::Run(int32_t curpc)
         {
             const auto arg_reg = codeOp.Arg1i();
             const auto arg_lit = codeOp.Arg2i();
-            auto &reg1 = registers[arg_reg];
+            auto &reg1 = _registers[arg_reg];
             // If the the register is SREG_SP, we are allocating new variable on the stack
             if (arg_reg == SREG_SP)
             {
@@ -707,8 +689,8 @@ ccInstError ccInstance::Run(int32_t curpc)
                 if (reg1.RValue->IsValid())
                 {
                     // TODO: perhaps should add a flag here to ensure this happens only after MEMWRITE-ing to stack
-                    registers[SREG_SP].RValue++;
-                    stackdata_ptr += arg_lit; // formality, to keep data ptr consistent
+                    _registers[SREG_SP].RValue++;
+                    _stackdataPtr += arg_lit; // formality, to keep data ptr consistent
                 }
                 else
                 {
@@ -726,7 +708,7 @@ ccInstError ccInstance::Run(int32_t curpc)
         {
             const auto arg_reg = codeOp.Arg1i();
             const auto arg_lit = codeOp.Arg2i();
-            auto &reg1 = registers[arg_reg];
+            auto &reg1 = _registers[arg_reg];
             if (reg1.Type == kScValStackPtr)
             {
                 // If this is SREG_SP, this is stack pop, which frees local variables;
@@ -754,8 +736,8 @@ ccInstError ccInstance::Run(int32_t curpc)
         }
         case SCMD_REGTOREG:
         {
-            const auto &reg1 = registers[codeOp.Arg1i()];
-            auto       &reg2 = registers[codeOp.Arg2i()];
+            const auto &reg1 = _registers[codeOp.Arg1i()];
+            auto       &reg2 = _registers[codeOp.Arg2i()];
             reg2 = reg1;
             break;
         }
@@ -768,20 +750,20 @@ ccInstError ccInstance::Run(int32_t curpc)
             // be only up to 4 bytes large;
             // I guess that's an obsolete way to do WRITE, WRITEW and WRITEB
             const auto arg_size = codeOp.Arg1i();
-            FixupArgument(codeOp.Args[1], codeInst->_code_fixups[pc + 2], codeInst->_code[pc + 2], this->stack, codeInst->_strings);
+            FixupArgument(codeOp.Args[1], codeInst->_code_fixups[_pc + 2], codeInst->_code[_pc + 2], _stackBegin, codeInst->_strings);
             ASSERT_CC_ERROR();
             const auto &arg_value = codeOp.Arg2();
             switch (arg_size)
             {
             case sizeof(char) :
-                registers[SREG_MAR].WriteByte(arg_value.IValue);
+                _registers[SREG_MAR].WriteByte(arg_value.IValue);
                 break;
             case sizeof(int16_t) :
-                registers[SREG_MAR].WriteInt16(arg_value.IValue);
+                _registers[SREG_MAR].WriteInt16(arg_value.IValue);
                 break;
             case sizeof(int32_t) :
                 // We do not know if this is math integer or some pointer, etc
-                registers[SREG_MAR].WriteValue(arg_value);
+                _registers[SREG_MAR].WriteValue(arg_value);
                 break;
             default:
                 cc_error("unexpected data size for WRITELIT op: %d", arg_size);
@@ -797,10 +779,10 @@ ccInstError ccInstance::Run(int32_t curpc)
             ASSERT_STACK_SIZE(1);
             RuntimeScriptValue rval = PopValueFromStack();
             curnest--;
-            pc = rval.IValue;
-            if (pc == 0)
+            _pc = rval.IValue;
+            if (_pc == 0)
             {
-                returnValue = registers[SREG_AX].IValue;
+                _returnValue = _registers[SREG_AX].IValue;
                 return kInstErr_None;
             }
             POP_CALL_STACK;
@@ -808,8 +790,8 @@ ccInstError ccInstance::Run(int32_t curpc)
         }
         case SCMD_LITTOREG:
         {
-            auto &reg1 = registers[codeOp.Arg1i()];
-            FixupArgument(codeOp.Args[1], codeInst->_code_fixups[pc + 2], codeInst->_code[pc + 2], this->stack, codeInst->_strings);
+            auto &reg1 = _registers[codeOp.Arg1i()];
+            FixupArgument(codeOp.Args[1], codeInst->_code_fixups[_pc + 2], codeInst->_code[_pc + 2], _stackBegin, codeInst->_strings);
             ASSERT_CC_ERROR();
             const auto &arg_value = codeOp.Arg2();
             reg1 = arg_value;
@@ -818,35 +800,35 @@ ccInstError ccInstance::Run(int32_t curpc)
         case SCMD_MEMREAD:
         {
             // Take the data address from reg[MAR] and copy int32_t to reg[arg1]
-            auto &reg1 = registers[codeOp.Arg1i()];
-            reg1 = registers[SREG_MAR].ReadValue();
+            auto &reg1 = _registers[codeOp.Arg1i()];
+            reg1 = _registers[SREG_MAR].ReadValue();
             break;
         }
         case SCMD_MEMWRITE:
         {
             // Take the data address from reg[MAR] and copy there int32_t from reg[arg1]
-            const auto &reg1 = registers[codeOp.Arg1i()];
-            registers[SREG_MAR].WriteValue(reg1);
+            const auto &reg1 = _registers[codeOp.Arg1i()];
+            _registers[SREG_MAR].WriteValue(reg1);
             break;
         }
         case SCMD_LOADSPOFFS:
         {
             const auto arg_off = codeOp.Arg1i();
-            registers[SREG_MAR] = GetStackPtrOffsetRw(arg_off);
+            _registers[SREG_MAR] = GetStackPtrOffsetRw(arg_off);
             ASSERT_CC_ERROR();
             break;
         }
         case SCMD_MULREG:
         {
-            auto       &reg1 = registers[codeOp.Arg1i()];
-            const auto &reg2 = registers[codeOp.Arg2i()];
+            auto       &reg1 = _registers[codeOp.Arg1i()];
+            const auto &reg2 = _registers[codeOp.Arg2i()];
             reg1.SetInt32(reg1.IValue * reg2.IValue);
             break;
         }
         case SCMD_DIVREG:
         {
-            auto       &reg1 = registers[codeOp.Arg1i()];
-            const auto &reg2 = registers[codeOp.Arg2i()];
+            auto       &reg1 = _registers[codeOp.Arg1i()];
+            const auto &reg2 = _registers[codeOp.Arg2i()];
             if (reg2.IValue == 0)
             {
                 cc_error("!Integer divide by zero");
@@ -857,101 +839,101 @@ ccInstError ccInstance::Run(int32_t curpc)
         }
         case SCMD_ADDREG:
         {
-            auto       &reg1 = registers[codeOp.Arg1i()];
-            const auto &reg2 = registers[codeOp.Arg2i()];
+            auto       &reg1 = _registers[codeOp.Arg1i()];
+            const auto &reg2 = _registers[codeOp.Arg2i()];
             // This may be pointer arithmetics, in which case IValue stores offset from base pointer
             reg1.IValue += reg2.IValue;
             break;
         }
         case SCMD_SUBREG:
         {
-            auto       &reg1 = registers[codeOp.Arg1i()];
-            const auto &reg2 = registers[codeOp.Arg2i()];
+            auto       &reg1 = _registers[codeOp.Arg1i()];
+            const auto &reg2 = _registers[codeOp.Arg2i()];
             // This may be pointer arithmetics, in which case IValue stores offset from base pointer
             reg1.IValue -= reg2.IValue;
             break;
         }
         case SCMD_BITAND:
         {
-            auto       &reg1 = registers[codeOp.Arg1i()];
-            const auto &reg2 = registers[codeOp.Arg2i()];
+            auto       &reg1 = _registers[codeOp.Arg1i()];
+            const auto &reg2 = _registers[codeOp.Arg2i()];
             reg1.SetInt32(reg1.IValue & reg2.IValue);
             break;
         }
         case SCMD_BITOR:
         {
-            auto       &reg1 = registers[codeOp.Arg1i()];
-            const auto &reg2 = registers[codeOp.Arg2i()];
+            auto       &reg1 = _registers[codeOp.Arg1i()];
+            const auto &reg2 = _registers[codeOp.Arg2i()];
             reg1.SetInt32(reg1.IValue | reg2.IValue);
             break;
         }
         case SCMD_ISEQUAL:
         {
-            auto       &reg1 = registers[codeOp.Arg1i()];
-            const auto &reg2 = registers[codeOp.Arg2i()];
+            auto       &reg1 = _registers[codeOp.Arg1i()];
+            const auto &reg2 = _registers[codeOp.Arg2i()];
             reg1.SetInt32AsBool(reg1 == reg2);
             break;
         }
         case SCMD_NOTEQUAL:
         {
-            auto       &reg1 = registers[codeOp.Arg1i()];
-            const auto &reg2 = registers[codeOp.Arg2i()];
+            auto       &reg1 = _registers[codeOp.Arg1i()];
+            const auto &reg2 = _registers[codeOp.Arg2i()];
             reg1.SetInt32AsBool(reg1 != reg2);
             break;
         }
         case SCMD_GREATER:
         {
-            auto       &reg1 = registers[codeOp.Arg1i()];
-            const auto &reg2 = registers[codeOp.Arg2i()];
+            auto       &reg1 = _registers[codeOp.Arg1i()];
+            const auto &reg2 = _registers[codeOp.Arg2i()];
             reg1.SetInt32AsBool(reg1.IValue > reg2.IValue);
             break;
         }
         case SCMD_LESSTHAN:
         {
-            auto       &reg1 = registers[codeOp.Arg1i()];
-            const auto &reg2 = registers[codeOp.Arg2i()];
+            auto       &reg1 = _registers[codeOp.Arg1i()];
+            const auto &reg2 = _registers[codeOp.Arg2i()];
             reg1.SetInt32AsBool(reg1.IValue < reg2.IValue);
             break;
         }
         case SCMD_GTE:
         {
-            auto       &reg1 = registers[codeOp.Arg1i()];
-            const auto &reg2 = registers[codeOp.Arg2i()];
+            auto       &reg1 = _registers[codeOp.Arg1i()];
+            const auto &reg2 = _registers[codeOp.Arg2i()];
             reg1.SetInt32AsBool(reg1.IValue >= reg2.IValue);
             break;
         }
         case SCMD_LTE:
         {
-            auto       &reg1 = registers[codeOp.Arg1i()];
-            const auto &reg2 = registers[codeOp.Arg2i()];
+            auto       &reg1 = _registers[codeOp.Arg1i()];
+            const auto &reg2 = _registers[codeOp.Arg2i()];
             reg1.SetInt32AsBool(reg1.IValue <= reg2.IValue);
             break;
         }
         case SCMD_AND:
         {
-            auto       &reg1 = registers[codeOp.Arg1i()];
-            const auto &reg2 = registers[codeOp.Arg2i()];
+            auto       &reg1 = _registers[codeOp.Arg1i()];
+            const auto &reg2 = _registers[codeOp.Arg2i()];
             reg1.SetInt32AsBool(reg1.IValue && reg2.IValue);
             break;
         }
         case SCMD_OR:
         {
-            auto       &reg1 = registers[codeOp.Arg1i()];
-            const auto &reg2 = registers[codeOp.Arg2i()];
+            auto       &reg1 = _registers[codeOp.Arg1i()];
+            const auto &reg2 = _registers[codeOp.Arg2i()];
             reg1.SetInt32AsBool(reg1.IValue || reg2.IValue);
             break;
         }
         case SCMD_XORREG:
         {
-            auto       &reg1 = registers[codeOp.Arg1i()];
-            const auto &reg2 = registers[codeOp.Arg2i()];
+            auto       &reg1 = _registers[codeOp.Arg1i()];
+            const auto &reg2 = _registers[codeOp.Arg2i()];
             reg1.SetInt32(reg1.IValue ^ reg2.IValue);
             break;
         }
         case SCMD_MODREG:
         {
-            auto       &reg1 = registers[codeOp.Arg1i()];
-            const auto &reg2 = registers[codeOp.Arg2i()];
+            auto       &reg1 = _registers[codeOp.Arg1i()];
+            const auto &reg2 = _registers[codeOp.Arg2i()];
             if (reg2.IValue == 0)
             {
                 cc_error("!Integer divide by zero");
@@ -962,7 +944,7 @@ ccInstError ccInstance::Run(int32_t curpc)
         }
         case SCMD_NOTREG:
         {
-            auto       &reg1 = registers[codeOp.Arg1i()];
+            auto       &reg1 = _registers[codeOp.Arg1i()];
             reg1 = !(reg1);
             break;
         }
@@ -979,14 +961,14 @@ ccInstError ccInstance::Run(int32_t curpc)
             PUSH_CALL_STACK;
 
             ASSERT_STACK_SPACE_VALS(1);
-            PushValueToStack(RuntimeScriptValue().SetInt32(pc + codeOp.ArgCount + 1));
+            PushValueToStack(RuntimeScriptValue().SetInt32(_pc + codeOp.ArgCount + 1));
 
-            const auto &reg1 = registers[codeOp.Arg1i()];
+            const auto &reg1 = _registers[codeOp.Arg1i()];
             if (thisbase[curnest] == 0)
-                pc = reg1.IValue;
+                _pc = reg1.IValue;
             else {
-                pc = funcstart[curnest];
-                pc += (reg1.IValue - thisbase[curnest]);
+                _pc = funcstart[curnest];
+                _pc += (reg1.IValue - thisbase[curnest]);
             }
 
             next_call_needs_object = 0;
@@ -996,62 +978,62 @@ ccInstError ccInstance::Run(int32_t curpc)
 
             curnest++;
             thisbase[curnest] = 0;
-            funcstart[curnest] = pc;
+            funcstart[curnest] = _pc;
             continue; // continue so that the PC doesn't get overwritten
         }
         case SCMD_MEMREADB:
         {
             // Take the data address from reg[MAR] and copy byte to reg[arg1]
-            auto &reg1 = registers[codeOp.Arg1i()];
-            reg1.SetUInt8(registers[SREG_MAR].ReadByte());
+            auto &reg1 = _registers[codeOp.Arg1i()];
+            reg1.SetUInt8(_registers[SREG_MAR].ReadByte());
             break;
         }
         case SCMD_MEMREADW:
         {
             // Take the data address from reg[MAR] and copy int16_t to reg[arg1]
-            auto &reg1 = registers[codeOp.Arg1i()];
-            reg1.SetInt16(registers[SREG_MAR].ReadInt16());
+            auto &reg1 = _registers[codeOp.Arg1i()];
+            reg1.SetInt16(_registers[SREG_MAR].ReadInt16());
             break;
         }
         case SCMD_MEMWRITEB:
         {
             // Take the data address from reg[MAR] and copy there byte from reg[arg1]
-            const auto &reg1 = registers[codeOp.Arg1i()];
-            registers[SREG_MAR].WriteByte(reg1.IValue);
+            const auto &reg1 = _registers[codeOp.Arg1i()];
+            _registers[SREG_MAR].WriteByte(reg1.IValue);
             break;
         }
         case SCMD_MEMWRITEW:
         {
             // Take the data address from reg[MAR] and copy there int16_t from reg[arg1]
-            const auto &reg1 = registers[codeOp.Arg1i()];
-            registers[SREG_MAR].WriteInt16(reg1.IValue);
+            const auto &reg1 = _registers[codeOp.Arg1i()];
+            _registers[SREG_MAR].WriteInt16(reg1.IValue);
             break;
         }
         case SCMD_JZ:
         {
             const auto arg_lit = codeOp.Arg1i();
-            if (registers[SREG_AX].IsNull())
-                pc += arg_lit;
+            if (_registers[SREG_AX].IsNull())
+                _pc += arg_lit;
             break;
         }
         case SCMD_JNZ:
         {
             const auto arg_lit = codeOp.Arg1i();
-            if (!registers[SREG_AX].IsNull())
-                pc += arg_lit;
+            if (!_registers[SREG_AX].IsNull())
+                _pc += arg_lit;
             break;
         }
         case SCMD_PUSHREG:
         {
             // Push reg[arg1] value to the stack
-            const auto &reg1 = registers[codeOp.Arg1i()];
+            const auto &reg1 = _registers[codeOp.Arg1i()];
             ASSERT_STACK_SPACE_VALS(1);
             PushValueToStack(reg1);
             break;
         }
         case SCMD_POPREG:
         {
-            auto &reg1 = registers[codeOp.Arg1i()];
+            auto &reg1 = _registers[codeOp.Arg1i()];
             ASSERT_STACK_SIZE(1);
             reg1 = PopValueFromStack();
             break;
@@ -1059,7 +1041,7 @@ ccInstError ccInstance::Run(int32_t curpc)
         case SCMD_JMP:
         {
             const auto arg_lit = codeOp.Arg1i();
-            pc += arg_lit;
+            _pc += arg_lit;
 
             // Make sure it's not stuck in a While loop
             if (arg_lit < 0)
@@ -1091,14 +1073,14 @@ ccInstError ccInstance::Run(int32_t curpc)
         }
         case SCMD_MUL:
         {
-            auto &reg1 = registers[codeOp.Arg1i()];
+            auto &reg1 = _registers[codeOp.Arg1i()];
             const auto arg_lit = codeOp.Arg2i();
             reg1.IValue *= arg_lit;
             break;
         }
         case SCMD_CHECKBOUNDS:
         {
-            const auto &reg1 = registers[codeOp.Arg1i()];
+            const auto &reg1 = _registers[codeOp.Arg1i()];
             const auto arg_lit = codeOp.Arg2i();
             if ((reg1.IValue < 0) ||
                 (reg1.IValue >= arg_lit))
@@ -1110,8 +1092,8 @@ ccInstError ccInstance::Run(int32_t curpc)
         }
         case SCMD_DYNAMICBOUNDS:
         {
-            const auto &reg1 = registers[codeOp.Arg1i()];
-            void *arr_ptr = registers[SREG_MAR].GetPtrWithOffset();
+            const auto &reg1 = _registers[codeOp.Arg1i()];
+            void *arr_ptr = _registers[SREG_MAR].GetPtrWithOffset();
             const auto &hdr = CCDynamicArray::GetHeader(arr_ptr);
             if ((reg1.IValue < 0) ||
                 (static_cast<uint32_t>(reg1.IValue) >= hdr.TotalSize))
@@ -1131,8 +1113,8 @@ ccInstError ccInstance::Run(int32_t curpc)
         }
         case SCMD_MEMREADPTR:
         {
-            auto &reg1 = registers[codeOp.Arg1i()];
-            int32_t handle = registers[SREG_MAR].ReadInt32();
+            auto &reg1 = _registers[codeOp.Arg1i()];
+            int32_t handle = _registers[SREG_MAR].ReadInt32();
             // FIXME: make pool return a ready RuntimeScriptValue with these set?
             // or another struct, which may be assigned to RSV
             void *object;
@@ -1144,8 +1126,8 @@ ccInstError ccInstance::Run(int32_t curpc)
         }
         case SCMD_MEMWRITEPTR:
         {
-            const auto &reg1 = registers[codeOp.Arg1i()];
-            int32_t handle = registers[SREG_MAR].ReadInt32();
+            const auto &reg1 = _registers[codeOp.Arg1i()];
+            int32_t handle = _registers[SREG_MAR].ReadInt32();
             void *address;
 
             switch (reg1.Type)
@@ -1180,13 +1162,13 @@ ccInstError ccInstance::Run(int32_t curpc)
                 ccAddObjectReference(newHandle);
             }
             // Assign always, avoid leaving undefined value
-            registers[SREG_MAR].WriteInt32(newHandle);
+            _registers[SREG_MAR].WriteInt32(newHandle);
             break;
         }
         case SCMD_MEMINITPTR:
         {
             void *address;
-            const auto &reg1 = registers[codeOp.Arg1i()];
+            const auto &reg1 = _registers[codeOp.Arg1i()];
 
             switch (reg1.Type)
             {
@@ -1216,33 +1198,33 @@ ccInstError ccInstance::Run(int32_t curpc)
                 return kInstErr_Generic;
 
             ccAddObjectReference(newHandle);
-            registers[SREG_MAR].WriteInt32(newHandle);
+            _registers[SREG_MAR].WriteInt32(newHandle);
             break;
         }
         case SCMD_MEMZEROPTR:
         {
-            int32_t handle = registers[SREG_MAR].ReadInt32();
+            int32_t handle = _registers[SREG_MAR].ReadInt32();
             ccReleaseObjectReference(handle);
-            registers[SREG_MAR].WriteInt32(0);
+            _registers[SREG_MAR].WriteInt32(0);
             break;
         }
         case SCMD_MEMZEROPTRND:
         {
-            int32_t handle = registers[SREG_MAR].ReadInt32();
+            int32_t handle = _registers[SREG_MAR].ReadInt32();
 
             // don't do the Dispose check for the object being returned -- this is
             // for returning a String (or other pointer) from a custom function.
             // Note: we might be freeing a dynamic array which contains the DisableDispose
             // object, that will be handled inside the recursive call to SubRef.
             // CHECKME!! what type of data may reg1 point to?
-            pool.disableDisposeForObject = registers[SREG_AX].Ptr;
+            pool.disableDisposeForObject = _registers[SREG_AX].Ptr;
             ccReleaseObjectReference(handle);
             pool.disableDisposeForObject = nullptr;
-            registers[SREG_MAR].WriteInt32(0);
+            _registers[SREG_MAR].WriteInt32(0);
             break;
         }
         case SCMD_CHECKNULL:
-            if (registers[SREG_MAR].IsNull())
+            if (_registers[SREG_MAR].IsNull())
             {
                 cc_error("!Null pointer referenced");
                 return kInstErr_Generic;
@@ -1250,7 +1232,7 @@ ccInstError ccInstance::Run(int32_t curpc)
             break;
         case SCMD_CHECKNULLREG:
         {
-            const auto &reg1 = registers[codeOp.Arg1i()];
+            const auto &reg1 = _registers[codeOp.Arg1i()];
             if (reg1.IsNull())
             {
                 cc_error("!Null string referenced");
@@ -1269,7 +1251,7 @@ ccInstError ccInstance::Run(int32_t curpc)
             PUSH_CALL_STACK;
 
             // Call to a function in another script
-            const auto &reg1 = registers[codeOp.Arg1i()];
+            const auto &reg1 = _registers[codeOp.Arg1i()];
 
             // If there are nested CALLAS calls, the stack might
             // contain 2 calls worth of parameters, so only
@@ -1285,19 +1267,19 @@ ccInstError ccInstance::Run(int32_t curpc)
                 PushValueToStack(*prval);
             }
 
-            const RuntimeScriptValue oldstack = registers[SREG_SP];
-            const char *oldstackdata = stackdata_ptr;
+            const RuntimeScriptValue oldstack = _registers[SREG_SP];
+            const uint8_t * const oldstackdata = _stackdataPtr;
             // Push placeholder for the return value (it will be popped before ret)
             PushValueToStack(RuntimeScriptValue().SetInt32(0));
 
-            int oldpc = pc;
-            ccInstance *wasRunning = runningInst;
+            const int oldpc = _pc;
+            ccInstance *wasRunning = _runningInst;
 
             // extract the instance ID
             int32_t instId = codeOp.Instruction.InstanceId;
             // determine the offset into the code of the instance we want
-            runningInst = loadedInstances[instId];
-            uintptr_t callAddr = reg1.PtrU8 - reinterpret_cast<uint8_t*>(runningInst->_code);
+            _runningInst = loadedInstances[instId];
+            uintptr_t callAddr = reg1.PtrU8 - reinterpret_cast<uint8_t*>(_runningInst->_code);
             if (callAddr % sizeof(uintptr_t) != 0)
             {
                 cc_error("call address not aligned");
@@ -1308,14 +1290,14 @@ ccInstError ccInstance::Run(int32_t curpc)
             if (Run(static_cast<int32_t>(callAddr)))
                 return kInstErr_Generic;
 
-            runningInst = wasRunning;
+            _runningInst = wasRunning;
 
             if ((_flags & INSTF_ABORTED) == 0)
                 ASSERT_STACK_UNWINDED(oldstack, oldstackdata);
 
             next_call_needs_object = 0;
 
-            pc = oldpc;
+            _pc = oldpc;
             was_just_callas = func_callstack.Count;
             num_args_to_func = -1;
             POP_CALL_STACK;
@@ -1324,7 +1306,7 @@ ccInstError ccInstance::Run(int32_t curpc)
         case SCMD_CALLEXT:
         {
             // Call to a real 'C' code function
-            const auto &reg1 = registers[codeOp.Arg1i()];
+            const auto &reg1 = _registers[codeOp.Arg1i()];
 
             was_just_callas = -1;
             if (num_args_to_func < 0)
@@ -1347,7 +1329,7 @@ ccInstError ccInstance::Run(int32_t curpc)
                 int32_t int_ret_val;
                 if (next_call_needs_object)
                 {
-                    RuntimeScriptValue obj_rval = registers[SREG_OP];
+                    RuntimeScriptValue obj_rval = _registers[SREG_OP];
                     obj_rval.DirectPtrObj();
                     int_ret_val = call_function(reg1.Ptr, &obj_rval, num_args_to_func, func_callstack.GetHead() + 1);
                 }
@@ -1370,7 +1352,7 @@ ccInstError ccInstance::Run(int32_t curpc)
                 // member function call
                 if (reg1.Type == kScValObjectFunction)
                 {
-                    RuntimeScriptValue obj_rval = registers[SREG_OP];
+                    RuntimeScriptValue obj_rval = _registers[SREG_OP];
                     obj_rval.DirectPtrObj();
                     return_value = reg1.ObjPfn(obj_rval.Ptr, func_callstack.GetHead() + 1, num_args_to_func);
                 }
@@ -1397,14 +1379,14 @@ ccInstError ccInstance::Run(int32_t curpc)
                 return kInstErr_Generic;
             }
 
-            registers[SREG_AX] = return_value;
+            _registers[SREG_AX] = return_value;
             next_call_needs_object = 0;
             num_args_to_func = -1;
             break;
         }
         case SCMD_PUSHREAL:
         {
-            const auto &reg1 = registers[codeOp.Arg1i()];
+            const auto &reg1 = _registers[codeOp.Arg1i()];
             PushToFuncCallStack(func_callstack, reg1);
             break;
         }
@@ -1423,7 +1405,7 @@ ccInstError ccInstance::Run(int32_t curpc)
         case SCMD_CALLOBJ:
         {
             // set the OP register
-            const auto &reg1 = registers[codeOp.Arg1i()];
+            const auto &reg1 = _registers[codeOp.Arg1i()];
             if (reg1.IsNull())
             {
                 cc_error("!Null pointer referenced");
@@ -1440,12 +1422,12 @@ ccInstError ccInstance::Run(int32_t curpc)
                 // in any other case that would count as error. 
             case kScValGlobalVar:
             case kScValStackPtr:
-                registers[SREG_OP] = reg1;
+                _registers[SREG_OP] = reg1;
                 break;
             case kScValStaticArray:
                 //FIXME: return manager type from interface?
                 //CC_ERROR_IF_RETCODE(!reg1.ArrMgr->GetDynamicManager(), "internal error: SCMD_CALLOBJ argument is not a dynamic object");
-                registers[SREG_OP].SetScriptObject(
+                _registers[SREG_OP].SetScriptObject(
                         reg1.ArrMgr->GetElementPtr(reg1.Ptr, reg1.IValue),
                         reg1.ArrMgr->GetObjectManager());
                 break;
@@ -1458,15 +1440,15 @@ ccInstError ccInstance::Run(int32_t curpc)
         }
         case SCMD_SHIFTLEFT:
         {
-            auto       &reg1 = registers[codeOp.Arg1i()];
-            const auto &reg2 = registers[codeOp.Arg2i()];
+            auto       &reg1 = _registers[codeOp.Arg1i()];
+            const auto &reg2 = _registers[codeOp.Arg2i()];
             reg1.SetInt32(reg1.IValue << reg2.IValue);
             break;
         }
         case SCMD_SHIFTRIGHT:
         {
-            auto       &reg1 = registers[codeOp.Arg1i()];
-            const auto &reg2 = registers[codeOp.Arg2i()];
+            auto       &reg1 = _registers[codeOp.Arg1i()];
+            const auto &reg2 = _registers[codeOp.Arg2i()];
             reg1.SetInt32(reg1.IValue >> reg2.IValue);
             break;
         }
@@ -1478,7 +1460,7 @@ ccInstError ccInstance::Run(int32_t curpc)
         }
         case SCMD_NEWARRAY:
         {
-            auto &reg1 = registers[codeOp.Arg1i()];
+            auto &reg1 = _registers[codeOp.Arg1i()];
             const int arg_elnum = reg1.IValue;
             const uint32_t arg_elsize = static_cast<uint32_t>(codeOp.Arg2i());
             const bool arg_managed = codeOp.Arg3().GetAsBool();
@@ -1493,7 +1475,7 @@ ccInstError ccInstance::Run(int32_t curpc)
         }
         case SCMD_NEWARRAY2:
         {
-            auto &reg1 = registers[codeOp.Arg1i()];
+            auto &reg1 = _registers[codeOp.Arg1i()];
             const int arg_elnum = reg1.IValue;
             const uint32_t arg_typeid = static_cast<uint32_t>(codeOp.Arg2i());
             const uint32_t arg_elsize = static_cast<uint32_t>(codeOp.Arg3i());
@@ -1506,14 +1488,14 @@ ccInstError ccInstance::Run(int32_t curpc)
             // which would replace a local typeid with a global one once the script is loaded;
             // but we need to implement such fixup in a compiler first.
             assert(ccInstance::_rtti && !ccInstance::_rtti->IsEmpty());
-            const uint32_t global_tid = runningInst->_typeidLocal2Global[arg_typeid];
+            const uint32_t global_tid = _runningInst->_typeidLocal2Global[arg_typeid];
             DynObjectRef ref = CCDynamicArray::CreateNew(global_tid, static_cast<uint32_t>(arg_elnum), arg_elsize);
             reg1.SetScriptObject(ref.Obj, ref.Mgr);
             break;
         }
         case SCMD_NEWUSEROBJECT:
         {
-            auto &reg1 = registers[codeOp.Arg1i()];
+            auto &reg1 = _registers[codeOp.Arg1i()];
             const uint32_t arg_size = static_cast<uint32_t>(codeOp.Arg2i());
             if (arg_size > INT32_MAX)
             {
@@ -1526,7 +1508,7 @@ ccInstError ccInstance::Run(int32_t curpc)
         }
         case SCMD_NEWUSEROBJECT2:
         {
-            auto &reg1 = registers[codeOp.Arg1i()];
+            auto &reg1 = _registers[codeOp.Arg1i()];
             const uint32_t arg_typeid = codeOp.Arg2i();
             const uint32_t arg_size = codeOp.Arg3i();
             if (arg_size > INT32_MAX)
@@ -1538,36 +1520,36 @@ ccInstError ccInstance::Run(int32_t curpc)
             // which would replace a local typeid with a global one once the script is loaded;
             // but we need to implement such fixup in a compiler first.
             assert(ccInstance::_rtti && !ccInstance::_rtti->IsEmpty());
-            const uint32_t global_tid = runningInst->_typeidLocal2Global[arg_typeid];
+            const uint32_t global_tid = _runningInst->_typeidLocal2Global[arg_typeid];
             DynObjectRef ref = ScriptUserObject::Create(global_tid, arg_size);
             reg1.SetScriptObject(ref.Obj, ref.Mgr);
             break;
         }
         case SCMD_FADD:
         {
-            auto &reg1 = registers[codeOp.Arg1i()];
+            auto &reg1 = _registers[codeOp.Arg1i()];
             const auto arg_lit = codeOp.Arg2i();
             reg1.SetFloat(reg1.FValue + arg_lit); // arg2 was used as int here originally
             break;
         }
         case SCMD_FSUB:
         {
-            auto &reg1 = registers[codeOp.Arg1i()];
+            auto &reg1 = _registers[codeOp.Arg1i()];
             const auto arg_lit = codeOp.Arg2i();
             reg1.SetFloat(reg1.FValue - arg_lit); // arg2 was used as int here originally
             break;
         }
         case SCMD_FMULREG:
         {
-            auto       &reg1 = registers[codeOp.Arg1i()];
-            const auto &reg2 = registers[codeOp.Arg2i()];
+            auto       &reg1 = _registers[codeOp.Arg1i()];
+            const auto &reg2 = _registers[codeOp.Arg2i()];
             reg1.SetFloat(reg1.FValue * reg2.FValue);
             break;
         }
         case SCMD_FDIVREG:
         {
-            auto       &reg1 = registers[codeOp.Arg1i()];
-            const auto &reg2 = registers[codeOp.Arg2i()];
+            auto       &reg1 = _registers[codeOp.Arg1i()];
+            const auto &reg2 = _registers[codeOp.Arg2i()];
             if (reg2.FValue == 0.0)
             {
                 cc_error("!Floating point divide by zero");
@@ -1578,43 +1560,43 @@ ccInstError ccInstance::Run(int32_t curpc)
         }
         case SCMD_FADDREG:
         {
-            auto       &reg1 = registers[codeOp.Arg1i()];
-            const auto &reg2 = registers[codeOp.Arg2i()];
+            auto       &reg1 = _registers[codeOp.Arg1i()];
+            const auto &reg2 = _registers[codeOp.Arg2i()];
             reg1.SetFloat(reg1.FValue + reg2.FValue);
             break;
         }
         case SCMD_FSUBREG:
         {
-            auto       &reg1 = registers[codeOp.Arg1i()];
-            const auto &reg2 = registers[codeOp.Arg2i()];
+            auto       &reg1 = _registers[codeOp.Arg1i()];
+            const auto &reg2 = _registers[codeOp.Arg2i()];
             reg1.SetFloat(reg1.FValue - reg2.FValue);
             break;
         }
         case SCMD_FGREATER:
         {
-            auto       &reg1 = registers[codeOp.Arg1i()];
-            const auto &reg2 = registers[codeOp.Arg2i()];
+            auto       &reg1 = _registers[codeOp.Arg1i()];
+            const auto &reg2 = _registers[codeOp.Arg2i()];
             reg1.SetFloatAsBool(reg1.FValue > reg2.FValue);
             break;
         }
         case SCMD_FLESSTHAN:
         {
-            auto       &reg1 = registers[codeOp.Arg1i()];
-            const auto &reg2 = registers[codeOp.Arg2i()];
+            auto       &reg1 = _registers[codeOp.Arg1i()];
+            const auto &reg2 = _registers[codeOp.Arg2i()];
             reg1.SetFloatAsBool(reg1.FValue < reg2.FValue);
             break;
         }
         case SCMD_FGTE:
         {
-            auto       &reg1 = registers[codeOp.Arg1i()];
-            const auto &reg2 = registers[codeOp.Arg2i()];
+            auto       &reg1 = _registers[codeOp.Arg1i()];
+            const auto &reg2 = _registers[codeOp.Arg2i()];
             reg1.SetFloatAsBool(reg1.FValue >= reg2.FValue);
             break;
         }
         case SCMD_FLTE:
         {
-            auto       &reg1 = registers[codeOp.Arg1i()];
-            const auto &reg2 = registers[codeOp.Arg2i()];
+            auto       &reg1 = _registers[codeOp.Arg1i()];
+            const auto &reg2 = _registers[codeOp.Arg2i()];
             reg1.SetFloatAsBool(reg1.FValue <= reg2.FValue);
             break;
         }
@@ -1622,26 +1604,26 @@ ccInstError ccInstance::Run(int32_t curpc)
         {
             const auto arg_size = codeOp.Arg1i();
             // Check if we are zeroing at stack tail
-            if (registers[SREG_MAR] == registers[SREG_SP])
+            if (_registers[SREG_MAR] == _registers[SREG_SP])
             {
                 // creating a local variable -- check the stack to ensure no mem overrun
                 ASSERT_STACK_SPACE_BYTES(arg_size);
                 // NOTE: according to compiler's logic, this is always followed
                 // by SCMD_ADD, and that is where the data is "allocated", here we
                 // just clean the place.
-                memset(stackdata_ptr, 0, arg_size);
+                memset(_stackdataPtr, 0, arg_size);
             }
             else
             {
                 cc_error("internal error: stack tail address expected on SCMD_ZEROMEMORY instruction, reg[MAR] type is %d",
-                    registers[SREG_MAR].Type);
+                    _registers[SREG_MAR].Type);
                 return kInstErr_Generic;
             }
             break;
         }
         case SCMD_CREATESTRING:
         {
-            auto &reg1 = registers[codeOp.Arg1i()];
+            auto &reg1 = _registers[codeOp.Arg1i()];
             const char *ptr = reinterpret_cast<const char*>(reg1.GetDirectPtr());
             DynObjectRef ref = ScriptString::Create(ptr);
             reg1.SetScriptObject(ref.Obj, &myScriptStringImpl);
@@ -1649,8 +1631,8 @@ ccInstError ccInstance::Run(int32_t curpc)
         }
         case SCMD_STRINGSEQUAL:
         {
-            auto       &reg1 = registers[codeOp.Arg1i()];
-            const auto &reg2 = registers[codeOp.Arg2i()];
+            auto       &reg1 = _registers[codeOp.Arg1i()];
+            const auto &reg2 = _registers[codeOp.Arg2i()];
             if ((reg1.IsNull()) || (reg2.IsNull()))
             {
                 cc_error("!Null pointer referenced");
@@ -1666,8 +1648,8 @@ ccInstError ccInstance::Run(int32_t curpc)
         }
         case SCMD_STRINGSNOTEQ:
         {
-            auto       &reg1 = registers[codeOp.Arg1i()];
-            const auto &reg2 = registers[codeOp.Arg2i()];
+            auto       &reg1 = _registers[codeOp.Arg1i()];
+            const auto &reg2 = _registers[codeOp.Arg2i()];
             if ((reg1.IsNull()) || (reg2.IsNull()))
             {
                 cc_error("!Null pointer referenced");
@@ -1692,20 +1674,20 @@ ccInstError ccInstance::Run(int32_t curpc)
         /* End perform operation */
         //=====================================================================
 
-        pc += codeOp.ArgCount + 1;
+        _pc += codeOp.ArgCount + 1;
     }
     return kInstErr_None;
 }
 
 String ccInstance::GetCallStack(const int maxLines) const
 {
-    String buffer = String::FromFormat("in \"%s\", line %d\n", runningInst->_instanceof->GetSectionName(pc).c_str(), line_number);
+    String buffer = String::FromFormat("in \"%s\", line %d\n", _runningInst->_instanceof->GetSectionName(_pc).c_str(), _lineNumber);
 
     int linesDone = 0;
-    for (int j = callStackSize - 1; (j >= 0) && (linesDone < maxLines); j--, linesDone++)
+    for (uint32_t j = _callStackSize; (j-- > 0) && (linesDone < maxLines); linesDone++)
     {
         String lineBuffer = String::FromFormat("from \"%s\", line %d\n",
-            callStackCodeInst[j]->_instanceof->GetSectionName(callStackAddr[j]).c_str(), callStackLineNumber[j]);
+            _callStackCodeInst[j]->_instanceof->GetSectionName(_callStackAddr[j]).c_str(), _callStackLineNumber[j]);
         buffer.Append(lineBuffer);
         if (linesDone == maxLines - 1)
             buffer.Append("(and more...)\n");
@@ -1715,8 +1697,8 @@ String ccInstance::GetCallStack(const int maxLines) const
 
 void ccInstance::GetScriptPosition(ScriptPosition &script_pos) const
 {
-    script_pos.Section = runningInst->_instanceof->GetSectionName(pc);
-    script_pos.Line    = line_number;
+    script_pos.Section = _runningInst->_instanceof->GetSectionName(_pc);
+    script_pos.Line    = _lineNumber;
 }
 
 RuntimeScriptValue ccInstance::GetSymbolAddress(const String &symname) const
@@ -1747,7 +1729,7 @@ void ccInstance::DumpInstruction(const ScriptOperation &op) const
 
     auto data_s = File::OpenFile("script.log", kFile_Create, kStream_Write);
     TextStreamWriter writer(std::move(data_s));
-    writer.WriteFormat("Line %3d, IP:%8d (SP:%p) ", line_num, pc, registers[SREG_SP].RValue);
+    writer.WriteFormat("Line %3d, IP:%8d (SP:%p) ", line_num, _pc, _registers[SREG_SP].RValue);
 
     const ScriptCommandInfo &cmd_info = sccmd_info[op.Instruction.Code];
     writer.WriteString(cmd_info.CmdName);
@@ -1818,7 +1800,7 @@ void ccInstance::DumpInstruction(const ScriptOperation &op) const
 
 bool ccInstance::IsBeingRun() const
 {
-    return pc != 0;
+    return _pc != 0;
 }
 
 void ccInstance::NotifyAlive()
@@ -1866,17 +1848,15 @@ bool ccInstance::_Create(PScript scri, const ccInstance *joined)
     // just use the pointer to the strings since they don't change
     _strings = scri->strings.size() > 0 ? scri->strings.data() : "";
     _stringsize = scri->strings.size();
-    // create a stack
-    stackdatasize = CC_STACK_DATA_SIZE;
-    // This is quite a random choice; there's no way to deduce number of stack
+
+    // Create a stack
+    // The size of a stack is quite an arbitrary choice; there's no way to deduce number of stack
     // entries needed without knowing amount of local variables (at least)
-    num_stackentries = CC_STACK_SIZE;
-    stack       = new RuntimeScriptValue[num_stackentries];
-    stackdata   = new char[stackdatasize];
-    if (stack == nullptr || stackdata == nullptr) {
-        cc_error("not enough memory to allocate stack");
-        return false;
-    }
+    _stack.resize(CC_STACK_SIZE);
+    _stackdata.resize(CC_STACK_DATA_SIZE);
+    _stackBegin = _stack.data();
+    _stackdataBegin = _stackdata.data();
+    _stackdataPtr = _stackdata.data();
 
     // find a LoadedInstance slot for it
     for (int i = 0; i < MAX_LOADED_INSTANCES; i++) {
@@ -1973,8 +1953,8 @@ bool ccInstance::_Create(PScript scri, const ccInstance *joined)
     }
 
     // Reset execution state
-    pc = 0;
-    line_number = 0;
+    _pc = 0;
+    _lineNumber = 0;
     currentline = -1; // FIXME: refactor this to not use global vars
     return true;
 }
@@ -2003,10 +1983,10 @@ void ccInstance::Free()
 
     _exports = {};
 
-    delete [] stack;
-    delete [] stackdata;
-    stack = nullptr;
-    stackdata = nullptr;
+    _stack = {};
+    _stackdata = {};
+    _stackBegin = nullptr;
+    _stackdataPtr = {};
 }
 
 bool ccInstance::ResolveScriptImports()
@@ -2277,28 +2257,28 @@ void ccInstance::CopyGlobalData(const std::vector<uint8_t> &data)
 void ccInstance::PushValueToStack(const RuntimeScriptValue &rval)
 {
     // Write value to the stack tail and advance stack ptr
-    registers[SREG_SP].WriteValue(rval);
-    stackdata_ptr += sizeof(int32_t); // formality, to keep data ptr consistent
-    registers[SREG_SP].RValue++;
+    _registers[SREG_SP].WriteValue(rval);
+    _stackdataPtr += sizeof(int32_t); // formality, to keep data ptr consistent
+    _registers[SREG_SP].RValue++;
 }
 
 void ccInstance::PushDataToStack(const int32_t num_bytes)
 {
-    CC_ERROR_IF(registers[SREG_SP].RValue->IsValid(), "internal error: valid data beyond stack ptr");
+    CC_ERROR_IF(_registers[SREG_SP].RValue->IsValid(), "internal error: valid data beyond stack ptr");
     // Assign pointer to data block to the stack tail, advance both stack ptr and stack data ptr
     // NOTE: memory is zeroed by SCMD_ZEROMEMORY
-    registers[SREG_SP].RValue->SetData(stackdata_ptr, num_bytes);
-    stackdata_ptr += num_bytes;
-    registers[SREG_SP].RValue++;
+    _registers[SREG_SP].RValue->SetData(_stackdataPtr, num_bytes);
+    _stackdataPtr += num_bytes;
+    _registers[SREG_SP].RValue++;
 }
 
 RuntimeScriptValue ccInstance::PopValueFromStack()
 {
     // rewind stack ptr to the last valid value, decrement stack data ptr if needed and invalidate the stack tail
-    registers[SREG_SP].RValue--;
-    const RuntimeScriptValue rval = *registers[SREG_SP].RValue; // save before invalidating
-    stackdata_ptr -= sizeof(int32_t); // formality, to keep data ptr consistent
-    registers[SREG_SP].RValue->Invalidate(); // FIXME: bad, this is used to separate PushValue and PushData
+    _registers[SREG_SP].RValue--;
+    const RuntimeScriptValue rval = *_registers[SREG_SP].RValue; // save before invalidating
+    _stackdataPtr -= sizeof(int32_t); // formality, to keep data ptr consistent
+    _registers[SREG_SP].RValue->Invalidate(); // FIXME: bad, this is used to separate PushValue and PushData
     return rval;
 }
 
@@ -2307,23 +2287,23 @@ void ccInstance::PopValuesFromStack(const int32_t num_entries = 1)
     for (int i = 0; i < num_entries; ++i)
     {
         // rewind stack ptr to the last valid value, decrement stack data ptr if needed and invalidate the stack tail
-        registers[SREG_SP].RValue--;
-        stackdata_ptr -= sizeof(int32_t); // formality, to keep data ptr consistent
-        registers[SREG_SP].RValue->Invalidate(); // FIXME: bad, this is used to separate PushValue and PushData
+        _registers[SREG_SP].RValue--;
+        _stackdataPtr -= sizeof(int32_t); // formality, to keep data ptr consistent
+        _registers[SREG_SP].RValue->Invalidate(); // FIXME: bad, this is used to separate PushValue and PushData
     }
 }
 
 void ccInstance::PopDataFromStack(const int32_t num_bytes)
 {
     int32_t total_pop = 0;
-    while (total_pop < num_bytes && registers[SREG_SP].RValue > &stack[0])
+    while (total_pop < num_bytes && _registers[SREG_SP].RValue > _stackBegin)
     {
         // rewind stack ptr to the last valid value, decrement stack data ptr if needed and invalidate the stack tail
-        registers[SREG_SP].RValue--;
-        stackdata_ptr -= registers[SREG_SP].RValue->Size;
+        _registers[SREG_SP].RValue--;
+        _stackdataPtr -= _registers[SREG_SP].RValue->Size;
         // remember popped bytes count
-        total_pop += registers[SREG_SP].RValue->Size;
-        registers[SREG_SP].RValue->Invalidate(); // FIXME: bad, this is used to separate PushValue and PushData
+        total_pop += _registers[SREG_SP].RValue->Size;
+        _registers[SREG_SP].RValue->Invalidate(); // FIXME: bad, this is used to separate PushValue and PushData
     }
     CC_ERROR_IF(total_pop < num_bytes, "stack underflow");
     CC_ERROR_IF(total_pop > num_bytes, "stack pointer points inside local variable after pop, stack corrupted?");
@@ -2332,8 +2312,8 @@ void ccInstance::PopDataFromStack(const int32_t num_bytes)
 RuntimeScriptValue ccInstance::GetStackPtrOffsetRw(const int32_t rw_offset)
 {
     int32_t total_off = 0;
-    RuntimeScriptValue *stack_entry = registers[SREG_SP].RValue;
-    while (total_off < rw_offset && stack_entry >= &stack[0])
+    RuntimeScriptValue *stack_entry = _registers[SREG_SP].RValue;
+    while (total_off < rw_offset && stack_entry >= _stackBegin)
     {
         stack_entry--;
         total_off += stack_entry->Size;

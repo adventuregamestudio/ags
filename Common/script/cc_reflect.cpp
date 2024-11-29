@@ -46,13 +46,13 @@ static uint32_t StrTableCopy(std::vector<char> &str_table, const char *string)
         return 0u; // assume string table starts with "null-terminator" slot
     // If the string belongs to our string table already, then return existing offset;
     // otherwise - copy this string over to our strings
-    if (!str_table.empty() && (string >= &str_table.front() && string <= &str_table.back()))
-        return string - &str_table.front();
+    if (!str_table.empty() && (string >= str_table.data() && (string < str_table.data() + str_table.size())))
+        return string - str_table.data();
 
     const size_t old_packsz = str_table.size();
     const size_t new_strsz = strlen(string) + 1; // count null-terminator
     str_table.resize(str_table.size() + new_strsz);
-    memcpy(&str_table.front() + old_packsz, string, new_strsz);
+    memcpy(str_table.data() + old_packsz, string, new_strsz);
     return static_cast<uint32_t>(old_packsz);
 }
 
@@ -175,7 +175,7 @@ RTTI RTTISerializer::Read(Stream *in)
     if (str_table_sz > 0)
     {
         rtti._strings.resize(str_table_sz);
-        in->Read(&rtti._strings.front(), str_table_sz);
+        in->Read(rtti._strings.data(), str_table_sz);
     }
 
     // Finish
@@ -229,7 +229,7 @@ void RTTISerializer::Write(const RTTI &rtti, Stream *out)
     const soff_t str_soff = out->GetPosition();
     if (rtti._strings.size() > 0)
     {
-        out->Write(&rtti._strings.front(), rtti._strings.size());
+        out->Write(rtti._strings.data(), rtti._strings.size());
     }
 
     // Finalize, write actual RTTI header
@@ -345,7 +345,7 @@ RTTI RTTIBuilder::Finalize()
     _rtti._strings.resize(_strpackedLen);
     for (const auto &s : _strtable)
     { // write strings at the precalculated offsets
-        memcpy(&_rtti._strings.front() + s.second, s.first.c_str(), s.first.size() + 1);
+        memcpy(_rtti._strings.data() + s.second, s.first.c_str(), s.first.size() + 1);
     }
 
     // Save complete field data
@@ -675,7 +675,7 @@ ScriptTOC ScriptTOCSerializer::Read(Stream *in, const RTTI *rtti)
     if (str_table_sz > 0)
     {
         toc._strings.resize(str_table_sz);
-        in->Read(&toc._strings.front(), str_table_sz);
+        in->Read(toc._strings.data(), str_table_sz);
     }
 
     // Finish
@@ -759,7 +759,7 @@ void ScriptTOCSerializer::Write(const ScriptTOC &toc, Stream *out)
     const soff_t str_soff = out->GetPosition();
     if (toc._strings.size() > 0)
     {
-        out->Write(&toc._strings.front(), toc._strings.size());
+        out->Write(toc._strings.data(), toc._strings.size());
     }
 
     // Finalize, write actual TOC header
@@ -916,7 +916,7 @@ ScriptTOC ScriptTOCBuilder::Finalize(const RTTI *rtti)
     _toc._strings.resize(_strpackedLen);
     for (const auto &s : _strtable)
     { // write strings at the precalculated offsets
-        memcpy(&_toc._strings.front() + s.second, s.first.c_str(), s.first.size() + 1);
+        memcpy(_toc._strings.data() + s.second, s.first.c_str(), s.first.size() + 1);
     }
 
     // Sort global vars by offset

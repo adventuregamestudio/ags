@@ -2294,10 +2294,12 @@ builtin struct Maths {
 builtin managed struct DateTime {
   /// Gets the current date and time on the player's system.
   readonly import static attribute DateTime* Now;   // $AUTOCOMPLETESTATICONLY$
+#ifdef SCRIPT_API_v362
   /// Creates DateTime object from the provided date and time; returns invalid object if year is below 1970 or above 2038, or any other value is invalid
   import static DateTime* CreateFromDate(int year, int month, int day, int hour = 0, int minute = 0, int second = 0);   // $AUTOCOMPLETESTATICONLY$
   /// Creates DateTime object from the provided raw time value (in seconds); returns invalid object if rawTime is negative
   import static DateTime* CreateFromRawTime(int rawTime);   // $AUTOCOMPLETESTATICONLY$
+#endif // SCRIPT_API_v362
   /// Gets the Year component of the date.
   readonly import attribute int Year;
   /// Gets the Month (1-12) component of the date.

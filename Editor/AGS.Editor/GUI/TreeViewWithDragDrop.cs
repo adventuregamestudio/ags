@@ -17,7 +17,6 @@ namespace AGS.Editor
         // Time to wait while dragging cursor hovers over a node before expanding it
         private const int DragWaitBeforeExpandNodeMs = 500;
 
-        private Color? _treeNodesBackgroundColor;
         private TreeNode _dropHoveredNode;
         private DateTime _timeOfDragDropHoverStart;
         private LineInBetween _lineInBetween;
@@ -37,17 +36,15 @@ namespace AGS.Editor
 
         private void HighlightNodeAndExpandIfNeeded(TreeNode treeNode, bool expandOnDragHover, TargetDropZone dropZone)
         {
-            if (_treeNodesBackgroundColor == null)
-            {
-                _treeNodesBackgroundColor = treeNode.BackColor;
-            }
-
             if (treeNode != _dropHoveredNode)
             {
-                treeNode.BackColor = Color.LightGray;
                 ClearHighlightNode();
                 _dropHoveredNode = treeNode;
+                _dropHoveredNode.BackColor = SystemColors.Highlight;
+                _dropHoveredNode.ForeColor = SystemColors.HighlightText;
                 _timeOfDragDropHoverStart = DateTime.Now;
+                if (_dropHoveredNode == SelectedNode)
+                    HideSelection = true;
             }
             else if (expandOnDragHover && HasANodeBeenHoveredEnoughForExpanding() && dropZone == TargetDropZone.Middle)
             {
@@ -59,7 +56,10 @@ namespace AGS.Editor
         {
             if (_dropHoveredNode != null)
             {
-                _dropHoveredNode.BackColor = _treeNodesBackgroundColor.Value;
+                _dropHoveredNode.BackColor = Color.Empty;
+                _dropHoveredNode.ForeColor = Color.Empty;
+                if (_dropHoveredNode == SelectedNode)
+                    HideSelection = false;
                 _dropHoveredNode = null;
             }
         }
@@ -121,6 +121,12 @@ namespace AGS.Editor
             return GetDropZoneImpl(cur_y - node_y, node_h);
         }
 
+        private void ClearAllDragHighlights()
+        {
+            HideMiddleLine();
+            ClearHighlightNode();
+        }
+
         protected override void OnQueryContinueDrag(QueryContinueDragEventArgs e)
         {
             if (e.EscapePressed)
@@ -130,12 +136,13 @@ namespace AGS.Editor
 
             if (e.Action != DragAction.Continue)
             {
-                HideMiddleLine();
+                ClearAllDragHighlights();
             }
         }
 
         protected override void OnDragDrop(DragEventArgs e)
         {
+            ClearAllDragHighlights();
             // If not dragging a tree item, then fallback to standard drag drop
             if (!e.Data.GetDataPresent(typeof(TreeNode)))
             {
@@ -144,13 +151,11 @@ namespace AGS.Editor
             }
 
             TreeNode dragItem = (TreeNode)e.Data.GetData(typeof(TreeNode));
-            HideMiddleLine();
-            ClearHighlightNode();
             Point locationInControl = PointToClient(new Point(e.X, e.Y));
             TreeNode dropTarget = HitTest(locationInControl).Node;
             TargetDropZone dropZone = GetDropZone(dropTarget, locationInControl);
 
-            OnItemDragDrop(new TreeItemDragEventArgs(e, dragItem, dropTarget, dropZone));
+            OnItemDragDrop(new TreeItemDragEventArgs(e, dragItem, dropTarget, dropZone, false, false));
         }
 
         protected override void OnDragEnter(DragEventArgs e)
@@ -161,43 +166,52 @@ namespace AGS.Editor
         protected override void OnDragLeave(EventArgs e)
         {
             base.OnDragLeave(e);
+            ClearAllDragHighlights();
         }
 
         protected override void OnDragOver(DragEventArgs e)
         {
-            // If not dragging a tree item, then fallback to standard drag drop
-            if (!e.Data.GetDataPresent(typeof(TreeNode)))
+            // If not dragging a tree item, then let them override a standard drag drop
+            bool isDraggingItem = e.Data.GetDataPresent(typeof(TreeNode));
+            if (!isDraggingItem)
             {
                 base.OnDragOver(e);
-                return;
+
+                if (e.Effect == DragDropEffects.None)
+                    return; // was cancelled
             }
 
-            TreeNode dragItem = (TreeNode)e.Data.GetData(typeof(TreeNode));
             Point locationInControl = PointToClient(new Point(e.X, e.Y));
             TreeNode dropTarget = HitTest(locationInControl).Node;
-            if (dropTarget == null)
+            TargetDropZone dropZone = TargetDropZone.Middle;
+            bool showLine = false;
+            bool expandOnHover = true;
+
+            // If dragging an item, invoke ItemDragOver event and let subscribers adjust highlight parameters
+            if (isDraggingItem)
             {
-                e.Effect = DragDropEffects.None; // cancel
-                return;
+                TreeNode dragItem = (TreeNode)e.Data.GetData(typeof(TreeNode));
+                dropZone = GetDropZone(dropTarget, locationInControl);
+                showLine = dropZone == TargetDropZone.Top || dropZone == TargetDropZone.Bottom;
+                TreeItemDragEventArgs itemDrag = new TreeItemDragEventArgs(e, dragItem, dropTarget, dropZone, showLine, expandOnHover);
+                OnItemDragOver(itemDrag); // let user code respond to the drag state
+                e.Effect = itemDrag.Effect;
+                showLine = itemDrag.ShowLine;
+                expandOnHover = itemDrag.ExpandOnDragHover;
             }
 
-            TargetDropZone dropZone = GetDropZone(dropTarget, locationInControl);
-            TreeItemDragEventArgs itemDrag = new TreeItemDragEventArgs(e, dragItem, dropTarget, dropZone);
-            OnItemDragOver(itemDrag); // let user code respond to the drag state
-            e.Effect = itemDrag.Effect;
-
-            if (itemDrag.Effect != DragDropEffects.None)
+            if (e.Effect != DragDropEffects.None)
             {
                 int node_h = dropTarget.Bounds.Height;
                 int node_y = dropTarget.Bounds.Y;
                 int line_h = node_h / 5;
                 int width = GetLineInBetweenWidth(dropTarget);
 
-                if (dropZone == TargetDropZone.Top && itemDrag.ShowLine)
+                if (dropZone == TargetDropZone.Top && showLine)
                 {
                     ShowMiddleLine(dropTarget.Bounds.X, node_y - line_h / 2, width, line_h);
                 }
-                else if (dropZone == TargetDropZone.Bottom && itemDrag.ShowLine)
+                else if (dropZone == TargetDropZone.Bottom && showLine)
                 {
                     ShowMiddleLine(dropTarget.Bounds.X, node_y + node_h - line_h / 2, width, line_h);
                 }
@@ -206,12 +220,11 @@ namespace AGS.Editor
                     HideMiddleLine();
                 }
 
-                HighlightNodeAndExpandIfNeeded(dropTarget, itemDrag.ExpandOnDragHover, dropZone);
+                HighlightNodeAndExpandIfNeeded(dropTarget, expandOnHover, dropZone);
             }
             else
             {
-                HideMiddleLine();
-                ClearHighlightNode();
+                ClearAllDragHighlights();
             }
 
             // auto-scroll the tree when move the mouse to top/bottom

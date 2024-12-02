@@ -5,6 +5,17 @@ using System.Windows.Forms;
 
 namespace AGS.Editor
 {
+    /// <summary>
+    /// TreeViewWithDragDrop is an extended type of TreeView that handles drag and drop
+    /// action for tree nodes. Supports dropping tree nodes on top of another tree node,
+    /// or before or after particular node.
+    /// It provides 3 new events that let customize its behavior:
+    ///    * ItemTryDrag - called when the user starts dragging a tree node, and lets
+    ///                    specify AllowedEffect (Move, Copy, etc), or cancel the action
+    ///                    by setting DragDropEffects.None.
+    ///    * ItemDragOver - called repeatedly while the tree node is being dragged around.
+    ///    * ItemDragDrop - called when the tree node is dropped.
+    /// </summary>
     public class TreeViewWithDragDrop : TreeView
     {
         public delegate void ItemTryDragEventHandler(object sender, TreeItemTryDragEventArgs e);
@@ -36,11 +47,18 @@ namespace AGS.Editor
             _lineInBetween.Hide();
         }
 
+        /// <summary>
+        /// Tells if the dragging cursor was hovering above another node long enough to expand it.
+        /// </summary>
         private bool HasANodeBeenHoveredEnoughForExpanding()
         {
             return DateTime.Now.Subtract(_timeOfDragDropHoverStart) >= TimeSpan.FromMilliseconds(DragWaitBeforeExpandNodeMs);
         }
 
+        /// <summary>
+        /// Reacts to dragging cursor hovering over another node: highlights that node,
+        /// and optionally expands it, if it's expandable.
+        /// </summary>
         private void HighlightNodeAndExpandIfNeeded(TreeNode treeNode, bool expandOnDragHover, TargetDropZone dropZone)
         {
             if (treeNode != _dropHoveredNode)
@@ -62,6 +80,9 @@ namespace AGS.Editor
             }
         }
 
+        /// <summary>
+        /// Clears highlight from the last highlighted tree node.
+        /// </summary>
         private void ClearHighlightNode()
         {
             if (_dropHoveredNode != null)
@@ -74,17 +95,27 @@ namespace AGS.Editor
             }
         }
 
+        /// <summary>
+        /// Displays the "in-between tree nodes" marker at the given coordinates.
+        /// </summary>
         private void ShowMiddleLine(int x, int y, int w, int h)
         {
             // it auto-hides so we don't have to handle the drop being cancelled which has to be done in projectItem!
             _lineInBetween.ShowAndHideAt(x, y, w, h);
         }
 
+        /// <summary>
+        /// Hide thes "in-between tree nodes" marker.
+        /// </summary>
         private void HideMiddleLine()
         {
             _lineInBetween.Hide();
         }
 
+        /// <summary>
+        /// Calculates the necessary width of a "in-between tree nodes" marker,
+        /// depending on a selected tree node.
+        /// </summary>
         private int GetLineInBetweenWidth(TreeNode treeNode)
         {
             int maxWdith = treeNode.Bounds.Width;
@@ -99,6 +130,9 @@ namespace AGS.Editor
             return Math.Max(maxWdith, this.Width / 3);
         }
 
+        /// <summary>
+        /// Gets the location type of a cursor relative to the tree node.
+        /// </summary>
         private TargetDropZone GetDropZoneImpl(int y, int h)
         {
             TargetDropZone dropZone = TargetDropZone.Middle;
@@ -123,6 +157,9 @@ namespace AGS.Editor
             return dropZone;
         }
 
+        /// <summary>
+        /// Gets the location type of a cursor relative to the tree node.
+        /// </summary>
         private TargetDropZone GetDropZone(TreeNode treeNode, Point locationInControl)
         {
             int node_h = treeNode.Bounds.Height;
@@ -131,12 +168,19 @@ namespace AGS.Editor
             return GetDropZoneImpl(cur_y - node_y, node_h);
         }
 
+        /// <summary>
+        /// Clears all visual drag highlights and markers.
+        /// </summary>
         private void ClearAllDragHighlights()
         {
             HideMiddleLine();
             ClearHighlightNode();
         }
 
+        /// <summary>
+        /// Completely resets the visual state of a drag'n'drop action,
+        /// including any graphical configuration prepared when the drag starts.
+        /// </summary>
         private void ResetDragDropState()
         {
             ClearAllDragHighlights();

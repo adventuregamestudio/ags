@@ -18,6 +18,13 @@ namespace AGS.Editor
         private const int DragWaitBeforeExpandNodeMs = 500;
 
         private TreeNode _dropHoveredNode;
+        private Color _treeNodeBackColor = Color.Empty;
+        private Color _treeNodeForeColor = Color.Empty;
+        // TODO: public properties to configure highlight colors? may be useful with color themes
+        // NOTE: if the treeview supports both dragging its own item, and dragging something else
+        // from another place, then highlight colors will change depending on a case.
+        private Color _treeNodeHighlightBackColor = SystemColors.Highlight;
+        private Color _treeNodeHighlightForeColor = SystemColors.HighlightText;
         private DateTime _timeOfDragDropHoverStart;
         private LineInBetween _lineInBetween;
 
@@ -39,9 +46,12 @@ namespace AGS.Editor
             if (treeNode != _dropHoveredNode)
             {
                 ClearHighlightNode();
+                // Save normal colors of the hovered over node, and set highlight colors
+                _treeNodeBackColor = treeNode.BackColor;
+                _treeNodeForeColor = treeNode.ForeColor;
                 _dropHoveredNode = treeNode;
-                _dropHoveredNode.BackColor = SystemColors.Highlight;
-                _dropHoveredNode.ForeColor = SystemColors.HighlightText;
+                _dropHoveredNode.BackColor = _treeNodeHighlightBackColor;
+                _dropHoveredNode.ForeColor = _treeNodeHighlightForeColor;
                 _timeOfDragDropHoverStart = DateTime.Now;
                 if (_dropHoveredNode == SelectedNode)
                     HideSelection = true;
@@ -56,8 +66,8 @@ namespace AGS.Editor
         {
             if (_dropHoveredNode != null)
             {
-                _dropHoveredNode.BackColor = Color.Empty;
-                _dropHoveredNode.ForeColor = Color.Empty;
+                _dropHoveredNode.BackColor = _treeNodeBackColor;
+                _dropHoveredNode.ForeColor = _treeNodeForeColor;
                 if (_dropHoveredNode == SelectedNode)
                     HideSelection = false;
                 _dropHoveredNode = null;
@@ -127,6 +137,14 @@ namespace AGS.Editor
             ClearHighlightNode();
         }
 
+        private void ResetDragDropState()
+        {
+            ClearAllDragHighlights();
+            // Reset highlight color setup back to defaults
+            _treeNodeHighlightBackColor = SystemColors.Highlight;
+            _treeNodeHighlightForeColor = SystemColors.HighlightText;
+        }
+
         protected override void OnQueryContinueDrag(QueryContinueDragEventArgs e)
         {
             if (e.EscapePressed)
@@ -136,13 +154,13 @@ namespace AGS.Editor
 
             if (e.Action != DragAction.Continue)
             {
-                ClearAllDragHighlights();
+                ResetDragDropState();
             }
         }
 
         protected override void OnDragDrop(DragEventArgs e)
         {
-            ClearAllDragHighlights();
+            ResetDragDropState();
             // If not dragging a tree item, then fallback to standard drag drop
             if (!e.Data.GetDataPresent(typeof(TreeNode)))
             {
@@ -252,6 +270,9 @@ namespace AGS.Editor
             if (tryDrag.AllowedEffect == DragDropEffects.None)
                 return;
 
+            // Because we drag a selected item, we use a different color for highlighting drop target
+            _treeNodeHighlightBackColor = Color.LightGray;
+            _treeNodeHighlightForeColor = Color.Empty;
             DoDragDrop(e.Item, tryDrag.AllowedEffect);
             base.OnItemDrag(e);
         }

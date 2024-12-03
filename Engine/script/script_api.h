@@ -33,18 +33,20 @@ typedef RuntimeScriptValue ScriptAPIObjectFunction(void *self, const RuntimeScri
 // Sprintf that takes either script values or common argument list from plugin.
 // Uses EITHER sc_args/sc_argc or varg_ptr as parameter list, whichever is not
 // NULL, with varg_ptr having HIGHER priority.
-const char *ScriptSprintf(char *buffer, size_t buf_length, const char *format,
+size_t ScriptSprintf(char *buffer, size_t buf_length, const char *format,
                           const RuntimeScriptValue *sc_args, int32_t sc_argc, va_list *varg_ptr);
 // Sprintf that takes script values as arguments
 inline const char *ScriptSprintf(char *buffer, size_t buf_length, const char *format, const RuntimeScriptValue *args, int32_t argc)
 {
-    return ScriptSprintf(buffer, buf_length, format, args, argc, nullptr);
+    ScriptSprintf(buffer, buf_length, format, args, argc, nullptr);
+    return buffer;
 }
-// Variadic sprintf (needed, because all arguments are pushed as pointer-sized values). Currently used only when plugin calls
-// exported engine function. Should be removed when this plugin issue is resolved.
+// Variadic sprintf (needed, because all arguments are pushed as pointer-sized values).
+// Currently used only when plugin calls exported engine function.
 inline const char *ScriptVSprintf(char *buffer, size_t buf_length, const char *format, va_list &arg_ptr)
 {
-    return ScriptSprintf(buffer, buf_length, format, nullptr, 0, &arg_ptr);
+    ScriptSprintf(buffer, buf_length, format, nullptr, 0, &arg_ptr);
+    return buffer;
 }
 
 // Helper macro for registering an API function for both script and plugin,

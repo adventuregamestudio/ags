@@ -25,7 +25,6 @@ enum FormatParseResult
 {
     kFormatParseNone,
     kFormatParseInvalid,
-    kFormatParseLiteralPercent,
     kFormatParseArgInteger,
     kFormatParseArgFloat,
     kFormatParseArgCharacter,
@@ -66,24 +65,22 @@ inline const char *GetArgPtr(const RuntimeScriptValue *sc_args, va_list *varg_pt
 // TODO: this implementation can be further optimised by either not calling
 // snprintf but formatting values ourselves, or by using some library method
 // that supports customizing, such as getting arguments in a custom way.
-const char *ScriptSprintf(char *buffer, size_t buf_length, const char *format,
+size_t ScriptSprintf(char *buffer, size_t buf_length, const char *format,
                           const RuntimeScriptValue *sc_args, int32_t sc_argc, va_list *varg_ptr)
 {
-    if (!buffer || buf_length == 0)
+    assert(buffer && buf_length > 0);
+    assert(format);
+    assert(sc_args || varg_ptr || sc_argc == 0);
+    if (!(buffer && buf_length > 0) || !(format) || !(sc_args || varg_ptr || sc_argc == 0))
     {
-        cc_error("Internal error in ScriptSprintf: buffer is null");
-        return "";
+        return 0u;
     }
-    if (!format)
-    {// NOTE: interpreter (usually) catches null-pointer sent as format at some stage earlier
-        cc_error("Internal error in ScriptSprintf: format string is null");
-        return "";
-    }
-    if (!varg_ptr && sc_argc > 0 && !sc_args)
-    {
-        cc_error("Internal error in ScriptSprintf: args pointer is null");
-        return "";
-    }
+
+    // Prepare pointers to the read/write positions and buffer ends
+    char       *out_ptr    = buffer;
+    const char *out_endptr = buffer + buf_length;
+    const char *fmt_ptr    = format;
+    int32_t    arg_idx     = 0;
 
     // Expected format character count:
     // percent sign:    1
@@ -96,165 +93,170 @@ const char *ScriptSprintf(char *buffer, size_t buf_length, const char *format,
     // NOTE: although width and precision will
     // not likely be defined by a 10-digit
     // number, such case is theoretically valid.
-    const size_t fmtbuf_size = 27;
-    char       fmtbuf[fmtbuf_size];
-    char       *fmt_bufptr;
-    char       *fmt_bufendptr = &fmtbuf[fmtbuf_size - 1];
-
-    char       *out_ptr    = buffer;
-    // save 1 character for null terminator
-    const char *out_endptr = buffer + buf_length - 1;
-    const char *fmt_ptr    = format;
-    int32_t    arg_idx     = 0;
+    const size_t placebuf_size = 27;
+    char       placebuf[placebuf_size];
+    char       *placebuf_ptr;
+    char       *placebuf_endptr = placebuf + placebuf_size - 1; // reserve 1 for terminator
 
     ptrdiff_t  avail_outbuf;
-    int        snprintf_res;
+    const char *litsec_at, *litsec_end; // range of literal input section
     FormatParseResult fmt_done;
 
     // Parse the format string, looking for argument placeholders
     while (*fmt_ptr && out_ptr != out_endptr)
     {
-        // Try to put argument into placeholder
-        if (*fmt_ptr == '%')
+        avail_outbuf = out_endptr - out_ptr;
+        // Scan until the first placeholder
+        litsec_at = fmt_ptr;
+        for (; *fmt_ptr && *fmt_ptr != '%'; ++fmt_ptr);
+        litsec_end = fmt_ptr;
+        // If the next char is '%', this means that there was a escaped "%%";
+        // following is a trick that skips each second '%' in a sequence of '%'
+        for (; fmt_ptr[0] == '%' && fmt_ptr[1] == '%'; ++litsec_end, fmt_ptr += 2);
+        // Copy the literal section to the output
+        ptrdiff_t copy_len = litsec_end - litsec_at;
+        if (copy_len > 0u)
         {
-            avail_outbuf = out_endptr - out_ptr;
-            fmt_bufptr = fmtbuf;
-            *(fmt_bufptr++) = '%';
-            snprintf_res = 0;
-            fmt_done = kFormatParseNone;
+            copy_len = std::min(copy_len, avail_outbuf - 1); // save 1 for terminator
+            memcpy(out_ptr, litsec_at, copy_len);
+            out_ptr += copy_len;
+            continue; // we want to guarantee that we start with placeholder
+        }
 
-            // Parse placeholder
-            while (*(++fmt_ptr) && fmt_done == kFormatParseNone && fmt_bufptr != fmt_bufendptr)
+        // We have found a placeholder symbol, try to parse format and print an argument
+        placebuf_ptr = placebuf;
+        *(placebuf_ptr++) = '%';
+        fmt_done = kFormatParseNone;
+
+        // Parse placeholder
+        while (*(++fmt_ptr) && fmt_done == kFormatParseNone && placebuf_ptr != placebuf_endptr)
+        {
+            *(placebuf_ptr++) = *fmt_ptr;
+            switch (*fmt_ptr)
             {
-                *(fmt_bufptr++) = *fmt_ptr;
-                switch (*fmt_ptr)
+            case 'd':
+            case 'i':
+            case 'o':
+            case 'u':
+            case 'x':
+            case 'X':
+                fmt_done = kFormatParseArgInteger;
+                break;
+            case 'c':
+                fmt_done = kFormatParseArgCharacter;
+                break;
+            case 'e':
+            case 'E':
+            case 'f':
+            case 'F':
+            case 'g':
+            case 'G':
+            case 'a':
+            case 'A':
+                fmt_done = kFormatParseArgFloat;
+                break;
+            case 'p':
+                fmt_done = kFormatParseArgPointer;
+                break;
+            case 's':
+                fmt_done = kFormatParseArgString;
+                break;
+            // Following are valid flag characters that may be used in formatting
+            case '#':
+            case ' ':
+            case '+':
+            case '*':
+            case '-':
+            case '.':
+            case '0':
+            case '1':
+            case '2':
+            case '3':
+            case '4':
+            case '5':
+            case '6':
+            case '7':
+            case '8':
+            case '9':
+                break;
+            default: // met invalid placeholder character
+                fmt_done = kFormatParseInvalid;
+                break;
+            }
+        }
+        *placebuf_ptr = 0; // terminate the placeholder buf
+
+        avail_outbuf = out_endptr - out_ptr;
+        // Use placeholder and print the next argument (if available)
+        if (fmt_done >= kFormatParseArgFirst && fmt_done <= kFormatParseArgLast &&
+            (varg_ptr || arg_idx < sc_argc))
+        {
+            int snprintf_res = 0;
+            // Print the actual value
+            switch (fmt_done)
+            {
+            case kFormatParseArgInteger:
+                snprintf_res = snprintf(out_ptr, avail_outbuf, placebuf, GetArgInt(sc_args, varg_ptr, arg_idx));
+                break;
+            case kFormatParseArgFloat:
+                snprintf_res = snprintf(out_ptr, avail_outbuf, placebuf, GetArgFloat(sc_args, varg_ptr, arg_idx));
+                break;
+            case kFormatParseArgCharacter:
+            {
+                int chr = GetArgInt(sc_args, varg_ptr, arg_idx);
+                char cbuf[5]{};
+                usetc(cbuf, chr);
+                snprintf_res = snprintf(out_ptr, avail_outbuf, "%s", cbuf);
+                break;
+            }
+            case kFormatParseArgString:
+            {
+                const char *p = GetArgPtr(sc_args, varg_ptr, arg_idx);
+                // Do extra checks for %s placeholder
+                if (!p)
                 {
-                case 'd':
-                case 'i':
-                case 'o':
-                case 'u':
-                case 'x':
-                case 'X':
-                    fmt_done = kFormatParseArgInteger;
-                    break;
-                case 'c':
-                    fmt_done = kFormatParseArgCharacter;
-                    break;
-                case 'e':
-                case 'E':
-                case 'f':
-                case 'F':
-                case 'g':
-                case 'G':
-                case 'a':
-                case 'A':
-                    fmt_done = kFormatParseArgFloat;
-                    break;
-                case 'p':
-                    fmt_done = kFormatParseArgPointer;
-                    break;
-                case 's':
-                    fmt_done = kFormatParseArgString;
-                    break;
-                case '%':
-                    // This may be a literal percent sign ('%%')
-                    if (fmt_bufptr - fmtbuf == 2)
+                    if (loaded_game_file_version < kGameVersion_320)
                     {
-                        fmt_done = kFormatParseLiteralPercent;
+                        // explicitly put "(null)" into the placeholder
+                        p = "(null)";
                     }
-                    // ...Otherwise we reached the next placeholder
                     else
                     {
-                        fmt_ptr--;
-                        fmt_bufptr--;
-                        fmt_done = kFormatParseInvalid;
+                        cc_error("!ScriptSprintf: formatting argument %d is expected to be a string, but it is a null pointer", arg_idx + 1);
+                        return 0u;
                     }
-                    break;
                 }
+                else if (p == buffer)
+                {
+                    cc_error("!ScriptSprintf: formatting argument %d is a pointer to output buffer", arg_idx + 1);
+                    return 0u;
+                }
+                snprintf_res = snprintf(out_ptr, avail_outbuf, placebuf, p);
+                break;
+            }
+            case kFormatParseArgPointer:
+                snprintf_res = snprintf(out_ptr, avail_outbuf, placebuf, GetArgPtr(sc_args, varg_ptr, arg_idx));
+                break;
+            default:
+                assert(false); // should not happen
+                break;
             }
 
-            // Deal with the placeholder parsing results
-            if (fmt_done == kFormatParseLiteralPercent)
-            {
-                // literal percent sign
-                *(out_ptr++) = '%';
-                continue;
-            }
-            else if (fmt_done >= kFormatParseArgFirst && fmt_done <= kFormatParseArgLast &&
-                (varg_ptr || arg_idx < sc_argc))
-            {
-                // Print the actual value
-                // NOTE: snprintf is called with avail_outbuf + 1 here, because we let it use our reserved
-                // character for null-terminator, in case we are at the end of the buffer
-                *fmt_bufptr = 0; // terminate the format buffer, we are going to use it
-                switch (fmt_done)
-                {
-                case kFormatParseArgInteger:
-                    snprintf_res = snprintf(out_ptr, avail_outbuf + 1, fmtbuf, GetArgInt(sc_args, varg_ptr, arg_idx)); break;
-                case kFormatParseArgFloat:
-                    snprintf_res = snprintf(out_ptr, avail_outbuf + 1, fmtbuf, GetArgFloat(sc_args, varg_ptr, arg_idx)); break;
-                case kFormatParseArgCharacter:
-                {
-                    int chr = GetArgInt(sc_args, varg_ptr, arg_idx);
-                    char cbuf[5]{};
-                    usetc(cbuf, chr);
-                    snprintf_res = snprintf(out_ptr, avail_outbuf + 1, "%s", cbuf);
-                    break;
-                }
-                case kFormatParseArgString:
-                {
-                    const char *p = GetArgPtr(sc_args, varg_ptr, arg_idx);
-                    // Do extra checks for %s placeholder
-                    if (fmt_done == kFormatParseArgString && !p)
-                    {
-                        if (loaded_game_file_version < kGameVersion_320)
-                        {
-                            // explicitly put "(null)" into the placeholder
-                            p = "(null)";
-                        }
-                        else
-                        {
-                            cc_error("!ScriptSprintf: formatting argument %d is expected to be a string, but it is a null pointer", arg_idx + 1);
-                            return "";
-                        }
-                    }
-                    else if (fmt_done == kFormatParseArgString && p == buffer)
-                    {
-                        cc_error("!ScriptSprintf: formatting argument %d is a pointer to output buffer", arg_idx + 1);
-                        return "";
-                    }
-                    snprintf_res = snprintf(out_ptr, avail_outbuf + 1, fmtbuf, p);
-                    break;
-                }
-                case kFormatParseArgPointer:
-                    snprintf_res = snprintf(out_ptr, avail_outbuf + 1, fmtbuf, GetArgPtr(sc_args, varg_ptr, arg_idx)); break;
-                default: /* should not happen */ break;
-                }
-
-                arg_idx++;
-                if (snprintf_res >= 0)
-                {
-                    // snprintf returns maximal number of characters, so limit it with buffer size
-                    out_ptr += std::min<ptrdiff_t>(snprintf_res, avail_outbuf);
-                    continue;
-                }
-                // -- pass further to invalid format case
-            }
-            
-            // If format was not valid, or there are no available
-            // parameters, just copy stored format buffer as it is
-            size_t copy_len = std::min(std::min<ptrdiff_t>(fmt_bufptr - fmtbuf, fmtbuf_size - 1), avail_outbuf);
-            memcpy(out_ptr, fmtbuf, copy_len);
-            out_ptr += copy_len;
+            arg_idx++;
+            // snprintf returns maximal number of characters, so limit it with buffer size
+            out_ptr += std::min<ptrdiff_t>(snprintf_res, avail_outbuf);
         }
-        // If there's no placeholder, simply copy the character to output buffer
         else
         {
-            *(out_ptr++) = *(fmt_ptr++);
+            // If not a supported format, or there are no available parameters,
+            // then just copy stored placeholder buffer as-is
+            size_t copy_len = std::min(std::min<ptrdiff_t>(placebuf_ptr - placebuf, placebuf_size - 1), avail_outbuf - 1);
+            memcpy(out_ptr, placebuf, copy_len);
+            out_ptr += copy_len;
         }
     }
 
     // Terminate the string
-    *out_ptr = 0;
-    return buffer;
+    *(out_ptr++) = 0;
+    return out_ptr - buffer;
 }

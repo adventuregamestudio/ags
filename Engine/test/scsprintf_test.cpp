@@ -64,7 +64,7 @@ TEST(ScSprintf, ScSprintf) {
     result = ScriptSprintf(ScSfBuffer, STD_BUFFER_SIZE, "%zzzzzz", params, 3);
     ASSERT_TRUE(strcmp(result, "%zzzzzz") == 0);
     result = ScriptSprintf(ScSfBuffer, STD_BUFFER_SIZE, "%12.34%d", params, 3);
-    ASSERT_TRUE(strcmp(result, "%12.34123") == 0);
+    ASSERT_TRUE(strcmp(result, "%12.34%d") == 0);
 
     // Not enough arguments
     result = ScriptSprintf(ScSfBuffer, STD_BUFFER_SIZE, "%5d%0.5f%s", params, 0);
@@ -111,7 +111,7 @@ TEST(ScSprintf, ScSprintf) {
     result = ScriptVSprintf__(ScSfBuffer, STD_BUFFER_SIZE, "%zzzzzz", argi, argf, argcc);
     ASSERT_TRUE(strcmp(result, "%zzzzzz") == 0);
     result = ScriptVSprintf__(ScSfBuffer, STD_BUFFER_SIZE, "%12.34%d", argi, argf, argcc);
-    ASSERT_TRUE(strcmp(result, "%12.34123") == 0);
+    ASSERT_TRUE(strcmp(result, "%12.34%d") == 0);
 
     // Not enough buffer space
     result = ScriptVSprintf__(ScSfBuffer, 9, "12345678%d", argi, argf, argcc);

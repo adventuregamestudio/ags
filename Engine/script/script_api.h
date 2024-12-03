@@ -36,17 +36,31 @@ typedef RuntimeScriptValue ScriptAPIObjectFunction(void *self, const RuntimeScri
 size_t ScriptSprintf(char *buffer, size_t buf_length, const char *format,
                           const RuntimeScriptValue *sc_args, int32_t sc_argc, va_list *varg_ptr);
 // Sprintf that takes script values as arguments
-inline const char *ScriptSprintf(char *buffer, size_t buf_length, const char *format, const RuntimeScriptValue *args, int32_t argc)
+inline size_t ScriptSprintf(char *buffer, size_t buf_length, const char *format, const RuntimeScriptValue *args, int32_t argc)
 {
-    ScriptSprintf(buffer, buf_length, format, args, argc, nullptr);
-    return buffer;
+    return ScriptSprintf(buffer, buf_length, format, args, argc, nullptr);
+}
+// Sprintf that takes script values as arguments, and prints into the resizable vector
+inline const char *ScriptSprintf(std::vector<char> &buf, const char *format, const RuntimeScriptValue *args, int32_t argc)
+{
+    size_t need_len = ScriptSprintf(nullptr, 0u, format, args, argc, nullptr);
+    buf.resize(need_len + 1);
+    ScriptSprintf(buf.data(), buf.size(), format, args, argc, nullptr);
+    return buf.data();
 }
 // Variadic sprintf (needed, because all arguments are pushed as pointer-sized values).
 // Currently used only when plugin calls exported engine function.
-inline const char *ScriptVSprintf(char *buffer, size_t buf_length, const char *format, va_list &arg_ptr)
+inline size_t ScriptVSprintf(char *buffer, size_t buf_length, const char *format, va_list &arg_ptr)
 {
-    ScriptSprintf(buffer, buf_length, format, nullptr, 0, &arg_ptr);
-    return buffer;
+    return ScriptSprintf(buffer, buf_length, format, nullptr, 0, &arg_ptr);
+}
+// // Variadic sprintf that prints into the resizable vector
+inline const char *ScriptVSprintf(std::vector<char> &buf, const char *format, va_list &arg_ptr)
+{
+    size_t need_len = ScriptSprintf(nullptr, 0u, format, nullptr, 0, &arg_ptr);
+    buf.resize(need_len + 1);
+    ScriptSprintf(buf.data(), buf.size(), format, nullptr, 0, &arg_ptr);
+    return buf.data();
 }
 
 // Helper macro for registering an API function for both script and plugin,
@@ -71,24 +85,25 @@ inline const char *ScriptVSprintf(char *buffer, size_t buf_length, const char *f
 
 //-----------------------------------------------------------------------------
 // Calls to ScriptSprintf with automatic translation
+// TODO: here and below, consider using a char buffer pool to avoid frequent reallocations
 
 #define API_SCALL_SCRIPT_SPRINTF(FUNCTION, PARAM_COUNT) \
     ASSERT_PARAM_COUNT(FUNCTION, PARAM_COUNT); \
-    char ScSfBuffer[STD_BUFFER_SIZE]; \
-    const char *scsf_buffer = ScriptSprintf(ScSfBuffer, STD_BUFFER_SIZE, get_translation(params[PARAM_COUNT - 1].CStr), params + PARAM_COUNT, param_count - PARAM_COUNT)
+    std::vector<char> ScSfBuffer; \
+    const char *scsf_buffer = ScriptSprintf(ScSfBuffer, get_translation(params[PARAM_COUNT - 1].CStr), params + PARAM_COUNT, param_count - PARAM_COUNT)
 
 #define API_OBJCALL_SCRIPT_SPRINTF(METHOD, PARAM_COUNT) \
     ASSERT_OBJ_PARAM_COUNT(METHOD, PARAM_COUNT); \
-    char ScSfBuffer[STD_BUFFER_SIZE]; \
-    const char *scsf_buffer = ScriptSprintf(ScSfBuffer, STD_BUFFER_SIZE, get_translation(params[PARAM_COUNT - 1].CStr), params + PARAM_COUNT, param_count - PARAM_COUNT)
+    std::vector<char> ScSfBuffer; \
+    const char *scsf_buffer = ScriptSprintf(ScSfBuffer, get_translation(params[PARAM_COUNT - 1].CStr), params + PARAM_COUNT, param_count - PARAM_COUNT)
 
 //-----------------------------------------------------------------------------
 // Calls to ScriptSprintf without translation
 
 #define API_SCALL_SCRIPT_SPRINTF_PURE(FUNCTION, PARAM_COUNT) \
     ASSERT_PARAM_COUNT(FUNCTION, PARAM_COUNT); \
-    char ScSfBuffer[STD_BUFFER_SIZE]; \
-    const char *scsf_buffer = ScriptSprintf(ScSfBuffer, STD_BUFFER_SIZE, params[PARAM_COUNT - 1].CStr, params + PARAM_COUNT, param_count - PARAM_COUNT)
+    std::vector<char> ScSfBuffer; \
+    const char *scsf_buffer = ScriptSprintf(ScSfBuffer, params[PARAM_COUNT - 1].CStr, params + PARAM_COUNT, param_count - PARAM_COUNT)
 
 //-----------------------------------------------------------------------------
 // Calls to ScriptSprintfV (unsafe plugin variant)
@@ -96,15 +111,15 @@ inline const char *ScriptVSprintf(char *buffer, size_t buf_length, const char *f
 #define API_PLUGIN_SCRIPT_SPRINTF(FORMAT_STR) \
     va_list args; \
     va_start(args, FORMAT_STR); \
-    char ScSfBuffer[STD_BUFFER_SIZE]; \
-    const char *scsf_buffer = ScriptVSprintf(ScSfBuffer, STD_BUFFER_SIZE, get_translation(FORMAT_STR), args); \
+    std::vector<char> ScSfBuffer; \
+    const char *scsf_buffer = ScriptVSprintf(ScSfBuffer, get_translation(FORMAT_STR), args); \
     va_end(args)
 
 #define API_PLUGIN_SCRIPT_SPRINTF_PURE(FORMAT_STR) \
     va_list args; \
     va_start(args, FORMAT_STR); \
-    char ScSfBuffer[STD_BUFFER_SIZE]; \
-    const char *scsf_buffer = ScriptVSprintf(ScSfBuffer, STD_BUFFER_SIZE, FORMAT_STR, args); \
+    std::vector<char> ScSfBuffer; \
+    const char *scsf_buffer = ScriptVSprintf(ScSfBuffer, FORMAT_STR, args); \
     va_end(args)
 
 //-----------------------------------------------------------------------------

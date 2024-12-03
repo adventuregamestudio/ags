@@ -68,10 +68,10 @@ inline const char *GetArgPtr(const RuntimeScriptValue *sc_args, va_list *varg_pt
 size_t ScriptSprintf(char *buffer, size_t buf_length, const char *format,
                           const RuntimeScriptValue *sc_args, int32_t sc_argc, va_list *varg_ptr)
 {
-    assert(buffer && buf_length > 0);
+    assert((!buffer && buf_length == 0u) || (buffer && buf_length > 0u));
     assert(format);
     assert(sc_args || varg_ptr || sc_argc == 0);
-    if (!(buffer && buf_length > 0) || !(format) || !(sc_args || varg_ptr || sc_argc == 0))
+    if (!((!buffer && buf_length == 0u) || (buffer && buf_length > 0u)) || !(format) || !(sc_args || varg_ptr || sc_argc == 0))
     {
         return 0u;
     }
@@ -98,12 +98,13 @@ size_t ScriptSprintf(char *buffer, size_t buf_length, const char *format,
     char       *placebuf_ptr;
     char       *placebuf_endptr = placebuf + placebuf_size - 1; // reserve 1 for terminator
 
+    size_t     output_len = 0u; // the total length of the output (not necessarily printed)
     ptrdiff_t  avail_outbuf;
     const char *litsec_at, *litsec_end; // range of literal input section
     FormatParseResult fmt_done;
 
     // Parse the format string, looking for argument placeholders
-    while (*fmt_ptr && out_ptr != out_endptr)
+    while (*fmt_ptr && (!out_ptr || out_ptr != out_endptr))
     {
         avail_outbuf = out_endptr - out_ptr;
         // Scan until the first placeholder
@@ -117,9 +118,13 @@ size_t ScriptSprintf(char *buffer, size_t buf_length, const char *format,
         ptrdiff_t copy_len = litsec_end - litsec_at;
         if (copy_len > 0u)
         {
-            copy_len = std::min(copy_len, avail_outbuf - 1); // save 1 for terminator
-            memcpy(out_ptr, litsec_at, copy_len);
-            out_ptr += copy_len;
+            output_len += copy_len;
+            if (out_ptr)
+            {
+                copy_len = std::min(copy_len, avail_outbuf - 1); // save 1 for terminator
+                memcpy(out_ptr, litsec_at, copy_len);
+                out_ptr += copy_len;
+            }
             continue; // we want to guarantee that we start with placeholder
         }
 
@@ -243,20 +248,33 @@ size_t ScriptSprintf(char *buffer, size_t buf_length, const char *format,
             }
 
             arg_idx++;
-            // snprintf returns maximal number of characters, so limit it with buffer size
-            out_ptr += std::min<ptrdiff_t>(snprintf_res, avail_outbuf);
+            output_len += snprintf_res;
+            if (out_ptr)
+            {
+                // snprintf returns maximal number of characters, so limit it with buffer size
+                out_ptr += std::min<ptrdiff_t>(snprintf_res, avail_outbuf);
+            }
         }
         else
         {
             // If not a supported format, or there are no available parameters,
             // then just copy stored placeholder buffer as-is
-            size_t copy_len = std::min(std::min<ptrdiff_t>(placebuf_ptr - placebuf, placebuf_size - 1), avail_outbuf - 1);
-            memcpy(out_ptr, placebuf, copy_len);
-            out_ptr += copy_len;
+            ptrdiff_t copy_len = std::min<ptrdiff_t>(placebuf_ptr - placebuf, placebuf_size - 1);
+            output_len += copy_len;
+            if (out_ptr)
+            {
+                copy_len = std::min(copy_len, avail_outbuf - 1); // save 1 for terminator
+                memcpy(out_ptr, placebuf, copy_len);
+                out_ptr += copy_len;
+            }
         }
     }
 
     // Terminate the string
-    *(out_ptr++) = 0;
-    return out_ptr - buffer;
+    if (out_ptr)
+    {
+        *(out_ptr++) = 0;
+    }
+    
+    return output_len;
 }

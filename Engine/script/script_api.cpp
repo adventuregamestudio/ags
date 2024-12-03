@@ -252,7 +252,7 @@ size_t ScriptSprintf(char *buffer, size_t buf_length, const char *format,
             if (out_ptr)
             {
                 // snprintf returns maximal number of characters, so limit it with buffer size
-                out_ptr += std::min<ptrdiff_t>(snprintf_res, avail_outbuf);
+                out_ptr += std::min<ptrdiff_t>(snprintf_res, avail_outbuf - 1); // save 1 for terminator
             }
         }
         else
@@ -273,7 +273,7 @@ size_t ScriptSprintf(char *buffer, size_t buf_length, const char *format,
     // Terminate the string
     if (out_ptr)
     {
-        *(out_ptr++) = 0;
+        *out_ptr = 0;
     }
     
     return output_len;

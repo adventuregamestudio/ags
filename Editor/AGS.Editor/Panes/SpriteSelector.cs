@@ -1788,10 +1788,11 @@ namespace AGS.Editor
 
         private void FolderList_ItemDragOver(object sender, TreeItemDragEventArgs e)
         {
-            if ((e.DragItem != null) && (e.DragItem != _rootTreeNode) && (e.DropTarget != _rootTreeNode)
-                && (e.DragItem != e.DropTarget) && (e.DropTarget != null || e.ShowLine))
+            if ((e.DragItem != null) && (e.DragItem != _rootTreeNode) && (e.DropTarget != null)
+                && (!e.DropTarget.IsDescendantOf(e.DragItem)))
             {
                 e.Effect = DragDropEffects.Move;
+                e.ShowLine &= e.DropTarget != _rootTreeNode;
             }
             else
             {
@@ -1801,6 +1802,13 @@ namespace AGS.Editor
 
         private void FolderList_ItemDragDrop(object sender, TreeItemDragEventArgs e)
         {
+            if (e.DropTarget == null)
+                return; // can't drop into nowhere
+            if (e.DropTarget.IsDescendantOf(e.DragItem))
+                return; // can't drop into itself or its own descendants
+
+            TargetDropZone zone = (e.DropTarget != _rootTreeNode) ? e.DropZone : TargetDropZone.Middle;
+
             switch (e.DropZone)
             {
                 case TargetDropZone.Top:
@@ -1826,6 +1834,7 @@ namespace AGS.Editor
 
             folder.Remove();
             beforeFolder.Parent.Nodes.Insert(beforeFolder.Index, folder);
+            folderList.SelectedNode = folder;
         }
 
         private void MoveFolderAfterFolder(TreeNode folder, TreeNode afterFolder)
@@ -1839,10 +1848,14 @@ namespace AGS.Editor
 
             folder.Remove();
             afterFolder.Parent.Nodes.Insert(afterFolder.Index + 1, folder);
+            folderList.SelectedNode = folder;
         }
 
         private void MoveFolderToFolder(TreeNode folder, TreeNode intoFolder)
         {
+            if (folder.Parent == intoFolder)
+                return; // already there
+
             SpriteFolder movedSpriteFolder = _folders[folder.Name];
             SpriteFolder sourceParent = _folders[folder.Parent.Name];
             SpriteFolder destParent = _folders[intoFolder.Name];
@@ -1851,6 +1864,7 @@ namespace AGS.Editor
 
             folder.Remove();
             intoFolder.Nodes.Add(folder);
+            folderList.SelectedNode = folder;
         }
 
         #endregion // Folder Drag n Drop

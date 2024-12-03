@@ -260,8 +260,15 @@ namespace AGS.Editor
                 e.Effect = itemDrag.Effect;
                 showLine = itemDrag.ShowLine;
                 expandOnHover = itemDrag.ExpandOnDragHover;
+
+                // Safety check: dragging a tree node into the sub-nodes is forbidden
+                if (e.Effect != DragDropEffects.None && dropTarget.IsDescendantOf(dragItem))
+                {
+                    e.Effect = DragDropEffects.None;
+                }
             }
 
+            // Apply visual indication, depending on Effect and position
             if (e.Effect != DragDropEffects.None)
             {
                 int node_h = dropTarget.Bounds.Height;

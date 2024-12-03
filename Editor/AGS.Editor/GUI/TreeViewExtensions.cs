@@ -61,5 +61,20 @@ namespace AGS.Editor
                 }
             }
         }
+
+        /// <summary>
+        /// Tells whether the given node is a descendant of otherNode.
+        /// Returns positive also if both references refer to the same node.
+        /// </summary>
+        public static bool IsDescendantOf(this TreeNode node, TreeNode otherNode)
+        {
+            while (node != null)
+            {
+                if (node == otherNode)
+                    return true;
+                node = node.Parent;
+            }
+            return false;
+        }
     }
 }

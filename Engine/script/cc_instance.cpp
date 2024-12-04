@@ -1451,9 +1451,9 @@ ccInstError ccInstance::Run(int32_t curpc)
             const auto arg_elsize = codeOp.Arg2i();
             const auto arg_managed = codeOp.Arg3().GetAsBool();
             int numElements = reg1.IValue;
-            if (numElements < 1)
+            if (numElements < 0)
             {
-                cc_error("invalid size for dynamic array; requested: %d, range: 1..%d", numElements, INT32_MAX);
+                cc_error("Invalid size for dynamic array; requested: %d, range: 0..%d", numElements, INT32_MAX);
                 return kInstErr_Generic;
             }
             DynObjectRef ref = CCDynamicArray::Create(numElements, arg_elsize, arg_managed);

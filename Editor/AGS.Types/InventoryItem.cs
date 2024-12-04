@@ -42,7 +42,7 @@ namespace AGS.Types
             _cursorImage = 0;
             _hotspotX = 0;
             _hotspotY = 0;
-            _properties = new CustomProperties();
+            _properties = new CustomProperties(CustomPropertyAppliesTo.InventoryItems);
         }
 
         [Description("The ID number of the item")]
@@ -132,7 +132,6 @@ namespace AGS.Types
         [AGSSerializeClass()]
         [Description("Custom properties for this item")]
         [Category("Properties")]
-        [EditorAttribute(typeof(CustomPropertiesUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         public CustomProperties Properties
         {
             get { return _properties; }

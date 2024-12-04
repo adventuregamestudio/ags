@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using AGS.Types;
@@ -939,40 +940,68 @@ namespace AGS.Editor
         }
 
         /// <summary>
-        /// Scans corresponding script module looking for the linked event functions.
-        /// Returns a list of indexes for those events which functions were NOT found,
-        /// or null on any error.
-        /// NOTE: events that do not have an assigned function are ignored.
+        /// FunctionLocation tells the location of a script function in script.
         /// </summary>
-        public List<int> CheckMissingInteractionHandlers(Interactions interactions)
+        public struct FunctionLocation
+        {
+            public string Name;
+            public string ScriptName;
+            public int LineNumber;
+
+            public FunctionLocation(string name, string scriptName, int lineNumber)
+            {
+                Name = name;
+                ScriptName = scriptName;
+                LineNumber = lineNumber;
+            }
+        }
+
+        /// <summary>
+        /// Scans corresponding script module looking for the interaction functions.
+        /// Creates an array of FunctionLocations, which indexes correspond to interaction indexes.
+        /// If checkDefaultMatches is true, then also scans for the default event function names,
+        /// otherwise only scans for the function names actually assigned to the interactions.
+        /// Returns null on any error.
+        /// </summary>
+        public FunctionLocation?[] FindInteractionHandlers(string objectName, Interactions interactions, bool checkDefaultMatches)
         {
             if (string.IsNullOrEmpty(interactions.ScriptModule))
                 return null;
 
-            return CheckMissingEventHandlers(interactions.ScriptModule, interactions.ScriptFunctionNames);
+            // We generate default function names for those interactions that *DO NOT* have a function linked.
+            var functionNames = checkDefaultMatches ?
+                interactions.ScriptFunctionNames
+                    .Select((f, i) => { return !string.IsNullOrEmpty(f) ? f : $"{objectName}_{interactions.FunctionSuffixes[i]}"; })
+                    .ToArray()
+                : interactions.ScriptFunctionNames;
+
+            return FindEventHandlers(interactions.ScriptModule, functionNames);
         }
 
-        public List<int> CheckMissingEventHandlers(string scriptModule, string[] functionNames)
+        /// <summary>
+        /// Scans the script module looking for the list of functions.
+        /// Creates an array of FunctionLocations, which indexes correspond to the input function name indexes.
+        /// Returns null on any error.
+        /// <returns></returns>
+        public FunctionLocation?[] FindEventHandlers(string scriptName, string[] functionNames)
         {
-            Script script = Factory.AGSEditor.CurrentGame.ScriptsAndHeaders.GetScriptByFilename(scriptModule);
+            Script script = Factory.AGSEditor.CurrentGame.ScriptsAndHeaders.GetScriptByFilename(scriptName);
             if (script == null || script.AutoCompleteData == null || !script.AutoCompleteData.Populated)
                 return null;
 
-            return CheckMissingEventHandlers(script.AutoCompleteData, functionNames);
+            return FindEventHandlers(scriptName, script.AutoCompleteData, functionNames);
         }
 
-        public List<int> CheckMissingEventHandlers(ScriptAutoCompleteData scriptData, string[] functionNames)
+        public FunctionLocation?[] FindEventHandlers(string scriptName, ScriptAutoCompleteData scriptData, string[] functionNames)
         {
-            List<int> missing = new List<int>();
-            for (int i = 0; i < functionNames.Length; ++i)
-            {
-                if (string.IsNullOrEmpty(functionNames[i]))
-                    continue;
-
-                if (scriptData.FindFunction(functionNames[i]) == null)
-                    missing.Add(i);
-            }
-            return missing;
+            // FIXME: cannot get function line from ScriptToken.StartsAtCharacterIndex here
+            // need to either add this to autocomplete, or rescan the file... which is going to be a lot of extra work
+            return functionNames
+                .Select(f => {
+                    var func = scriptData.FindFunction(f);
+                    return func != null ? new FunctionLocation(f, scriptName, -1) : (FunctionLocation?)null;
+                })
+                .ToArray();
         }
 
         /// <summary>

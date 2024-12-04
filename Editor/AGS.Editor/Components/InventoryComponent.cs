@@ -273,13 +273,25 @@ namespace AGS.Editor.Components
             var errors = args.Messages;
             foreach (InventoryItem inv in _agsEditor.CurrentGame.InventoryItems)
             {
-                var missing = _agsEditor.Tasks.CheckMissingInteractionHandlers(inv.Interactions);
-                if (missing == null || missing.Count == 0)
+                var funcs = _agsEditor.Tasks.FindInteractionHandlers(inv.Name, inv.Interactions, true);
+                if (funcs == null || funcs.Length == 0)
                     continue;
 
-                foreach (var miss in missing)
+                for (int i = 0; i < funcs.Length; ++i)
                 {
-                    errors.Add(new CompileWarning($"Inventory ({inv.ID}) {inv.Name}'s event {inv.Interactions.Schema.FunctionSuffixes[miss]} function \"{inv.Interactions.ScriptFunctionNames[miss]}\" not found in script {inv.Interactions.ScriptModule}."));
+                    bool has_interaction = !string.IsNullOrEmpty(inv.Interactions.ScriptFunctionNames[i]);
+                    bool has_function = funcs[i].HasValue;
+                    // If we have an assigned interaction function, but the function is not found - report a missing warning
+                    if (has_interaction && !has_function)
+                    {
+                        errors.Add(new CompileWarning($"Inventory ({inv.ID}) {inv.Name}'s event {inv.Interactions.Schema.FunctionSuffixes[i]} function \"{inv.Interactions.ScriptFunctionNames[i]}\" not found in script {inv.Interactions.ScriptModule}."));
+                    }
+                    // If we don't have an assignment, but has a similar function - report a possible unlinked function
+                    else if (!has_interaction && has_function)
+                    {
+                        errors.Add(new CompileWarning($"Function \"{funcs[i].Value.Name}\" looks like an event handler, but is not linked on Inventory ({inv.ID}) {inv.Name}'s Event pane",
+                            funcs[i].Value.ScriptName, funcs[i].Value.LineNumber));
+                    }
                 }
             }
         }

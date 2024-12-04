@@ -195,22 +195,22 @@ TEST_F(Bytecode1, StringOldstyle03) {
 
     // WriteOutput("StringOldstyle03", scrip);
 
-    size_t const codesize = 88;
+    size_t const codesize = 90;
     EXPECT_EQ(codesize, scrip.code.size());
 
     int32_t code[] = {
       36,    6,   38,    0,           36,    7,    6,    3,    // 7
-       0,   51,    8,    3,            3,    5,    3,    2,    // 15
-       4,    6,    7,  199,            3,    4,    2,    7,    // 23
-       3,    3,    5,    2,            8,    3,   28,   25,    // 31
-       1,    4,    1,    1,            5,    1,    2,    7,    // 39
-       1,    3,    7,    3,           70,  -26,    1,    5,    // 47
-       1,    3,    5,    2,            6,    3,    0,    8,    // 55
-       3,   36,    8,    5,           36,   11,   38,   60,    // 63
-      36,   12,    6,    2,            4,    3,    2,    3,    // 71
-      29,    3,    6,    3,            0,   23,    3,    2,    // 79
-       1,    4,   36,   13,            6,    3,    0,    5,    // 87
-     -999
+       0,   51,    8,    7,            2,    3,    3,    5,    // 15
+       3,    2,    4,    6,            7,  199,    3,    4,    // 23
+       2,    7,    3,    3,            5,    2,    8,    3,    // 31
+      28,   25,    1,    4,            1,    1,    5,    1,    // 39
+       2,    7,    1,    3,            7,    3,   70,  -26,    // 47
+       1,    5,    1,    3,            5,    2,    6,    3,    // 55
+       0,    8,    3,   36,            8,    5,   36,   11,    // 63
+      38,   62,   36,   12,            6,    2,    4,    3,    // 71
+       2,    3,   29,    3,            6,    3,    0,   23,    // 79
+       3,    2,    1,    4,           36,   13,    6,    3,    // 87
+       0,    5,  -999
     };
     CompareCode(&scrip, codesize, code);
 
@@ -218,7 +218,7 @@ TEST_F(Bytecode1, StringOldstyle03) {
     EXPECT_EQ(numfixups, scrip.fixups.size());
 
     int32_t fixups[] = {
-       8,   68,   76,  -999
+       8,   70,   78,  -999
     };
     char fixuptypes[] = {
       3,   1,   2,  '\0'
@@ -267,7 +267,7 @@ TEST_F(Bytecode1, StringOldstyle04) {
 
     // WriteOutput("StringOldstyle04", scrip);
 
-    size_t const codesize = 94;
+    size_t const codesize = 96;
     EXPECT_EQ(codesize, scrip.code.size());
 
     int32_t code[] = {
@@ -282,7 +282,8 @@ TEST_F(Bytecode1, StringOldstyle04) {
        2,    6,    3,    0,            8,    3,    1,    1,    // 71
      200,   36,    6,    2,            1,  200,    6,    3,    // 79
        0,    5,   36,    8,           38,   82,   36,    9,    // 87
-      51,    8,    3,    2,            3,    5,  -999
+      51,    8,    7,    2,            3,    2,    3,    5,    // 95
+     -999
     };
     CompareCode(&scrip, codesize, code);
 
@@ -623,6 +624,76 @@ TEST_F(Bytecode1, StringStandardOldstyle) {
     };
     CompareStrings(&scrip, stringssize, strings);
 }
+
+TEST_F(Bytecode1, CharArrayAsString01)
+{
+    // An array of characters can be passed to a 'string' parameter
+
+    char const *inpl = "\
+        int PayloadDummy;                       \n\
+        char GlobalC[10];                       \n\
+        int printme(string text)                \n\
+        {                                       \n\
+            Display(text);                      \n\
+        }                                       \n\
+                                                \n\
+        int game_start()                        \n\
+        {                                       \n\
+            printme(GlobalC);                   \n\
+            char LocalC[5];                     \n\
+            printme(LocalC);                    \n\
+        }                                       \n\
+                                                \n\
+        import void Display(const string, ...); \n\
+        ";
+
+    int compile_result = cc_compile(inpl, SCOPT_OLDSTRINGS, scrip, mh);
+    std::string const &err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+
+    // WriteOutput("CharArrayAsString01", scrip);
+    size_t const codesize = 87;
+    EXPECT_EQ(codesize, scrip.code.size());
+
+    int32_t code[] = {
+      36,    4,   38,    0,           36,    5,   51,    8,    // 7
+       7,    2,    3,    2,            3,   34,    3,   39,    // 15
+       1,    6,    3,    0,           33,    3,   35,    1,    // 23
+      36,    6,    6,    3,            0,    5,   36,    9,    // 31
+      38,   30,   36,   10,            6,    2,    4,    3,    // 39
+       2,    3,   29,    3,            6,    3,    0,   23,    // 47
+       3,    2,    1,    4,           36,   11,   51,    0,    // 55
+      63,    5,    1,    1,            5,   36,   12,   51,    // 63
+       5,    3,    2,    3,           29,    3,    6,    3,    // 71
+       0,   23,    3,    2,            1,    4,   36,   13,    // 79
+       2,    1,    5,    6,            3,    0,    5,  -999
+    };
+    CompareCode(&scrip, codesize, code);
+
+    size_t const numfixups = 4;
+    EXPECT_EQ(numfixups, scrip.fixups.size());
+
+    int32_t fixups[] = {
+      19,   38,   46,   72,        -999
+    };
+    char fixuptypes[] = {
+      4,   1,   2,   2,     '\0'
+    };
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
+
+    int const numimports = 1;
+    std::string imports[] = {
+    "Display^101",  "[[SENTINEL]]"
+    };
+    CompareImports(&scrip, numimports, imports);
+
+    size_t const numexports = 0;
+    EXPECT_EQ(numexports, scrip.exports.size());
+
+    size_t const stringssize = 0;
+    EXPECT_EQ(stringssize, scrip.strings.size());
+}
+
 
 TEST_F(Bytecode1, AccessStructAsPointer01) {
 
@@ -3678,3 +3749,4 @@ TEST_F(Bytecode1, CharArrayDecay01)
     };
     CompareStrings(&scrip, stringssize, strings);
 }
+

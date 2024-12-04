@@ -3541,8 +3541,20 @@ void AGS::Parser::AccessData_Variable(VariableAccess access_type, SrcList &expre
     eres.Vartype = _sym.GetVartype(varname);
     eres.LocalNonParameter = (ScT::kLocal == scope_type && entry.Scope != _sym.kParameterScope);
     eres.Modifiable = !var_tqs[TQ::kReadonly];
-    return AccessData_ProcessArrayIndexes(expression, eres);
 
+    if (_sym.kParameterScope == _sym[varname].Scope &&
+        _sym.VartypeWithout(VTT::kConst, eres.Vartype) == kKW_String)
+    {
+        // "string" parameters are passed as _pointers_ to the
+        // actual string, so we need to dereference here.
+        // The parameter cell doesn't contain a pointer to
+        // managed memory space, so don't use 'SCMD_MEMREADPTR'
+        _marMgr.UpdateMAR(expression.GetLineno(), _scrip);
+        WriteCmd(SCMD_MEMREAD, SREG_MAR);
+        _reg_track.SetRegister(SREG_MAR);
+    }
+
+    return AccessData_ProcessArrayIndexes(expression, eres);
 }
 
 void AGS::Parser::AccessData_This(EvaluationResult &eres)

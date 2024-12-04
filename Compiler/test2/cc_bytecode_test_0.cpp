@@ -45,13 +45,6 @@
 */
 
 
-// NOTE! If any "WriteOutput" lines in this file are uncommented, then the 
-//  #define below _must_ be changed to a local writable temp dir. 
-// (If you only want to run the tests to see if any tests fail, you do NOT 
-// need that dir and you do NOT need any local files whatsoever.)
-#define LOCAL_PATH "C:\\TEMP\\"
-
-
 /*    PROTOTYPE
 
 TEST_F(Bytecode0, P_r_o_t_o_t_y_p_e) {
@@ -4819,7 +4812,7 @@ TEST_F(Bytecode0, Func20) {
         }"; 
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
 
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
@@ -4863,6 +4856,26 @@ TEST_F(Bytecode0, Func20) {
     'H',  'i',  '!',    0,          '\0'
     };
     CompareStrings(&scrip, stringssize, strings);
+}
+
+TEST_F(Bytecode0, Func21) {
+
+    // Call function via named parameters
+
+    char const *inpl = "\
+        int Foo(const string str, int inty, float fnum = 12.34)     \n\
+        {                                           \n\
+            return Foo(                             \n\
+                inty: 99,                           \n\
+                str: \"Hi!\");                      \n\
+        }";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string const &err_msg = mh.GetError().Message;
+
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+
+    // WriteOutput("Func20", scrip);
 }
 
 TEST_F(Bytecode0, Export) {

@@ -163,19 +163,19 @@ namespace AGS.Editor
 
         public void RemoveAllChildNodes(IEditorComponent plugin, string parentID)
         {
-            TreeNode[] results = _projectTree.Nodes.Find(parentID, true);
-            if (results.Length > 0)
+            TreeNode node = _projectTree.Nodes.FindUnique(parentID, true);
+            if (node != null)
             {
-                results[0].Nodes.Clear();
+                node.Nodes.Clear();
             }
         }
 
         public void StartFromNode(IEditorComponent plugin, string id)
         {
-            TreeNode[] results = _projectTree.Nodes.Find(id, true);
-            if (results.Length > 0)
+            TreeNode node = _projectTree.Nodes.FindUnique(id, true);
+            if (node != null)
             {
-                _lastAddedNode = results[0];
+                _lastAddedNode = node;
             }
             else
             {
@@ -185,38 +185,38 @@ namespace AGS.Editor
 
         public void ChangeNodeLabel(IEditorComponent plugin, string id, string newLabelText)
         {
-            TreeNode[] results = _projectTree.Nodes.Find(id, true);
-            if (results.Length > 0)
+            TreeNode node = _projectTree.Nodes.FindUnique(id, true);
+            if (node != null)
             {
-                results[0].Text = newLabelText;
+                node.Text = newLabelText;
             }
         }
 
         public void ChangeNodeIcon(IEditorComponent plugin, string id, string newIconKey)
         {
-            TreeNode[] results = _projectTree.Nodes.Find(id, true);
-            if (results.Length > 0)
+            TreeNode node = _projectTree.Nodes.FindUnique(id, true);
+            if (node != null)
             {
-                results[0].ImageKey = newIconKey;
-                results[0].SelectedImageKey = newIconKey;
+                node.ImageKey = newIconKey;
+                node.SelectedImageKey = newIconKey;
             }
         }
 
         public void SelectNode(IEditorComponent plugin, string id)
         {
-            TreeNode[] results = _projectTree.Nodes.Find(id, true);
-            if (results.Length > 0)
+            TreeNode node = _projectTree.Nodes.FindUnique(id, true);
+            if (node != null)
             {
-                _projectTree.SelectedNode = results[0];
+                _projectTree.SelectedNode = node;
             }
         }
 
         public void ExpandNode(IEditorComponent plugin, string id)
         {
-            TreeNode[] results = _projectTree.Nodes.Find(id, true);
-            if (results.Length > 0)
+            TreeNode node = _projectTree.Nodes.FindUnique(id, true);
+            if (node != null)
             {
-                results[0].Expand();
+                node.Expand();
             }
         }
 
@@ -241,10 +241,10 @@ namespace AGS.Editor
         public void BeginLabelEdit(IEditorComponent plugin, string nodeID)
         {
             SelectNode(plugin, nodeID);
-            TreeNode[] results = _projectTree.Nodes.Find(nodeID, true);
-            if (results.Length > 0)
+            TreeNode node = _projectTree.Nodes.FindUnique(nodeID, true);
+            if (node != null)
             {
-                results[0].BeginEdit();
+                node.BeginEdit();
             }
         }
 

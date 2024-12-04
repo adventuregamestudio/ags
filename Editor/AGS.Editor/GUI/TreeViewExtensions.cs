@@ -61,5 +61,13 @@ namespace AGS.Editor
                 }
             }
         }
+
+        /// <summary>
+        /// Finds a TreeNode inside TreeNodeCollection using a unique case-sensitive key.
+        /// </summary>
+        public static TreeNode FindUnique(this TreeNodeCollection nodes, string name, bool searchAllChildren)
+        {
+            return nodes.Find(name, searchAllChildren).FirstOrDefault(n => n.Name == name);
+        }
     }
 }

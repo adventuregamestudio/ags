@@ -93,6 +93,7 @@ namespace AGS.Types
             _textParser = new TextParser();
             _lipSync = new LipSync();
             _propertySchema = new CustomPropertySchema();
+            CustomProperties.Schema = _propertySchema;
             _globalVariables = new GlobalVariables();
             _globalMessages = new string[NUMBER_OF_GLOBAL_MESSAGES];
 			_deletedViewIDs = new SortedDictionary<int, object>();

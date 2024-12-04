@@ -61,7 +61,7 @@ namespace AGS.Types
 
         public Character()
         {
-            _properties = new CustomProperties();
+            _properties = new CustomProperties(CustomPropertyAppliesTo.Characters);
         }
 
         [Description("The ID number of the character")]
@@ -351,7 +351,6 @@ namespace AGS.Types
         [AGSSerializeClass()]
         [Description("Custom properties for this character")]
         [Category("Properties")]
-        [EditorAttribute(typeof(CustomPropertiesUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         public CustomProperties Properties
         {
             get { return _properties; }

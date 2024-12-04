@@ -68,6 +68,7 @@ namespace AGS.Editor
         private Dictionary<TreeNode, SpriteFolder> _nodeFolderMapping;
         private SpriteFolder _currentFolder;
         private SpriteFolder _rootFolder;
+        private TreeNode _rootTreeNode;
         private ImageList _spriteImages = new ImageList();
         private int _spriteNumberOnMenuActivation;
         private bool _showUseThisSpriteOption = false;
@@ -100,6 +101,9 @@ namespace AGS.Editor
             }
             folderList.ImageList = _spManagerIcons;
             folderList.KeyDown += new System.Windows.Forms.KeyEventHandler(this.folderList_KeyDown);
+            folderList.ItemTryDrag += FolderList_ItemTryDrag;
+            folderList.ItemDragOver += FolderList_ItemDragOver;
+            folderList.ItemDragDrop += FolderList_ItemDragDrop;
             SetSpritePreviewMultiplier(2); // default value for sprite multiplier
         }
 
@@ -184,6 +188,8 @@ namespace AGS.Editor
                 DisplaySpritesForFolder(rootFolder);
                 folderList.Nodes[0].Expand();
             }
+
+            _rootTreeNode = folderList.Nodes[0];
         }
 
         private void AddNodeState(SpriteFolder folder, List<int> expanded)
@@ -1585,48 +1591,6 @@ namespace AGS.Editor
             }
         }
 
-        private void folderList_DragOver(object sender, DragEventArgs e)
-        {
-			TreeNode target;
-
-            if (e.Data.GetDataPresent(typeof(SpriteManagerDragDropData)))
-            {
-				target = GetMouseOverTreeNode(e.X, e.Y);
-				SetFolderListDropHighlight(target);
-				if (target != null)
-                {
-					target.Expand();
-                    e.Effect = DragDropEffects.Move;
-                }
-                else
-                {
-                    e.Effect = DragDropEffects.None;
-                }
-            }
-        }
-
-		private void SetFolderListDropHighlight(TreeNode target)
-		{
-			if (_dropHighlight != target)
-			{
-				if (_dropHighlight != null)
-				{
-					_dropHighlight.BackColor = Color.Empty;
-					_dropHighlight.ForeColor = Color.Empty;
-				}
-				if (target != null)
-				{
-					folderList.HideSelection = target == folderList.SelectedNode;
-					target.BackColor = SystemColors.Highlight;
-					target.ForeColor = SystemColors.HighlightText;
-				}
-				else
-					if (_dropHighlight == folderList.SelectedNode)
-						folderList.HideSelection = false;
-				_dropHighlight = target;
-			}
-		}
-
         private void RemoveSpritesFromFolder(SpriteFolder folder, List<Sprite> spritesToRemove)
         {
             foreach (Sprite draggedSprite in spritesToRemove)
@@ -1634,24 +1598,6 @@ namespace AGS.Editor
                 folder.Sprites.Remove(draggedSprite);
             }
         }
-
-        private void folderList_DragDrop(object sender, DragEventArgs e)
-        {
-            SpriteFolder draggedInto = GetMouseOverFolder(e.X, e.Y);
-            SpriteManagerDragDropData dragged = (SpriteManagerDragDropData)e.Data.GetData(typeof(SpriteManagerDragDropData));
-            RemoveSpritesFromFolder(_currentFolder, dragged.Sprites);
-            foreach (Sprite draggedSprite in dragged.Sprites)
-            {
-                draggedInto.Sprites.Add(draggedSprite);
-            }
-			SetFolderListDropHighlight(null);
-            RefreshSpriteDisplay();
-        }
-
-		private void folderList_DragLeave(object sender, EventArgs e)
-		{
-			SetFolderListDropHighlight(null);
-		}
 
 		private TreeNode GetMouseOverTreeNode(int screenX, int screenY)
         {
@@ -1801,6 +1747,127 @@ namespace AGS.Editor
         {
             splitContainer1.SplitterDistance = 2 * (button_importNew.Font.Height) + button_importNew.Margin.Top + button_importNew.Margin.Bottom - 4;
         }
+
+        #region Folder Drag n Drop
+
+        private void folderList_DragOver(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(typeof(SpriteManagerDragDropData)))
+            {
+                TreeNode target = GetMouseOverTreeNode(e.X, e.Y);
+                if (target != null)
+                {
+                    e.Effect = DragDropEffects.Move;
+                }
+                else
+                {
+                    e.Effect = DragDropEffects.None;
+                }
+            }
+        }
+
+        private void folderList_DragDrop(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(typeof(SpriteManagerDragDropData)))
+            {
+                SpriteFolder draggedInto = GetMouseOverFolder(e.X, e.Y);
+                SpriteManagerDragDropData dragged = (SpriteManagerDragDropData)e.Data.GetData(typeof(SpriteManagerDragDropData));
+                RemoveSpritesFromFolder(_currentFolder, dragged.Sprites);
+                foreach (Sprite draggedSprite in dragged.Sprites)
+                {
+                    draggedInto.Sprites.Add(draggedSprite);
+                }
+                RefreshSpriteDisplay();
+            }
+        }
+
+        private void FolderList_ItemTryDrag(object sender, TreeItemTryDragEventArgs e)
+        {
+            e.AllowedEffect = DragDropEffects.Move;
+        }
+
+        private void FolderList_ItemDragOver(object sender, TreeItemDragEventArgs e)
+        {
+            if ((e.DragItem != null) && (e.DragItem != _rootTreeNode) && (e.DropTarget != null)
+                && (!e.DropTarget.IsDescendantOf(e.DragItem)))
+            {
+                e.Effect = DragDropEffects.Move;
+                e.ShowLine &= e.DropTarget != _rootTreeNode;
+            }
+            else
+            {
+                e.Effect = DragDropEffects.None;
+            }
+        }
+
+        private void FolderList_ItemDragDrop(object sender, TreeItemDragEventArgs e)
+        {
+            if (e.DropTarget == null)
+                return; // can't drop into nowhere
+            if (e.DropTarget.IsDescendantOf(e.DragItem))
+                return; // can't drop into itself or its own descendants
+
+            TargetDropZone zone = (e.DropTarget != _rootTreeNode) ? e.DropZone : TargetDropZone.Middle;
+
+            switch (e.DropZone)
+            {
+                case TargetDropZone.Top:
+                    MoveFolderBeforeFolder(e.DragItem, e.DropTarget);
+                    break;
+                case TargetDropZone.Bottom:
+                    MoveFolderAfterFolder(e.DragItem, e.DropTarget);
+                    break;
+                default:
+                    MoveFolderToFolder(e.DragItem, e.DropTarget);
+                    break;
+            }
+        }
+
+        private void MoveFolderBeforeFolder(TreeNode folder, TreeNode beforeFolder)
+        {
+            SpriteFolder movedSpriteFolder = _folders[folder.Name];
+            SpriteFolder beforeSpriteFolder = _folders[beforeFolder.Name];
+            SpriteFolder sourceParent = _folders[folder.Parent.Name];
+            SpriteFolder destParent = _folders[beforeFolder.Parent.Name];
+            sourceParent.SubFolders.Remove(movedSpriteFolder);
+            destParent.SubFolders.Insert(destParent.SubFolders.IndexOf(beforeSpriteFolder), movedSpriteFolder);
+
+            folder.Remove();
+            beforeFolder.Parent.Nodes.Insert(beforeFolder.Index, folder);
+            folderList.SelectedNode = folder;
+        }
+
+        private void MoveFolderAfterFolder(TreeNode folder, TreeNode afterFolder)
+        {
+            SpriteFolder movedSpriteFolder = _folders[folder.Name];
+            SpriteFolder afterSpriteFolder = _folders[afterFolder.Name];
+            SpriteFolder sourceParent = _folders[folder.Parent.Name];
+            SpriteFolder destParent = _folders[afterFolder.Parent.Name];
+            sourceParent.SubFolders.Remove(movedSpriteFolder);
+            destParent.SubFolders.Insert(destParent.SubFolders.IndexOf(afterSpriteFolder) + 1, movedSpriteFolder);
+
+            folder.Remove();
+            afterFolder.Parent.Nodes.Insert(afterFolder.Index + 1, folder);
+            folderList.SelectedNode = folder;
+        }
+
+        private void MoveFolderToFolder(TreeNode folder, TreeNode intoFolder)
+        {
+            if (folder.Parent == intoFolder)
+                return; // already there
+
+            SpriteFolder movedSpriteFolder = _folders[folder.Name];
+            SpriteFolder sourceParent = _folders[folder.Parent.Name];
+            SpriteFolder destParent = _folders[intoFolder.Name];
+            sourceParent.SubFolders.Remove(movedSpriteFolder);
+            destParent.SubFolders.Add(movedSpriteFolder);
+
+            folder.Remove();
+            intoFolder.Nodes.Add(folder);
+            folderList.SelectedNode = folder;
+        }
+
+        #endregion // Folder Drag n Drop
 
         #region IObjectConfigurable
 

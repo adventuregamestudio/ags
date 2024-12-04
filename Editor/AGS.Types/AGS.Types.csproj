@@ -145,7 +145,6 @@
     <Compile Include="EditorFeatures\RoomTemplate.cs" />
     <Compile Include="Enums\AndroidBuildFormat.cs" />
     <Compile Include="Enums\InputMotionMode.cs" />
-    <Compile Include="Enums\TargetDropZone.cs" />
     <Compile Include="Enums\TouchToMouseEmulationType.cs" />
     <Compile Include="Enums\FontAutoOutlineStyle.cs" />
     <Compile Include="Enums\CrossfadeSpeed.cs" />

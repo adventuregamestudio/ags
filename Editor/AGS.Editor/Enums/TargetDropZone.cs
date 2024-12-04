@@ -1,6 +1,6 @@
-﻿using System.ComponentModel;
+﻿using System;
 
-namespace AGS.Types
+namespace AGS.Editor
 {
     public enum TargetDropZone
     {

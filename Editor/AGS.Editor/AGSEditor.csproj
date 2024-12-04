@@ -153,6 +153,7 @@
     <Compile Include="Entities\CharacterIDChangedEventArgs.cs" />
     <Compile Include="Entities\CharacterRoomChangedEventArgs.cs" />
     <Compile Include="Entities\CompilationStepArgs.cs" />
+    <Compile Include="Entities\TreeItemDragEventArgs.cs" />
     <Compile Include="Entities\ExistingScriptHeaderToAdd.cs" />
     <Compile Include="Entities\ExistingFileToAdd.cs" />
     <Compile Include="Config\IObjectConfig.cs" />
@@ -163,6 +164,8 @@
     <Compile Include="Entities\OutputCreationStepArgs.cs" />
     <Compile Include="Entities\ScriptModuleDef.cs" />
     <Compile Include="Entities\GenericMessagesArgs.cs" />
+    <Compile Include="Entities\TreeItemTryDragEventArgs.cs" />
+    <Compile Include="Enums\TargetDropZone.cs" />
     <Compile Include="GUI\AssignToView.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -253,6 +256,9 @@
       <DependentUpon>SpriteChooser.cs</DependentUpon>
     </Compile>
     <Compile Include="GUI\TreeViewExtensions.cs" />
+    <Compile Include="GUI\TreeViewWithDragDrop.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="GUI\ViewChooser.cs">
       <SubType>Form</SubType>
     </Compile>

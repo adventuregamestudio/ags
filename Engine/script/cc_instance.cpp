@@ -1478,9 +1478,9 @@ ccInstError ccInstance::Run(int32_t curpc)
             const int arg_elnum = reg1.IValue;
             const uint32_t arg_elsize = static_cast<uint32_t>(codeOp.Arg2i());
             const bool arg_managed = codeOp.Arg3().GetAsBool();
-            if (arg_elnum < 1)
+            if (arg_elnum < 0)
             {
-                cc_error("invalid size for dynamic array; requested: %d, range: 1..%d", arg_elnum, INT32_MAX);
+                cc_error("Invalid size for dynamic array; requested: %d, range: 0..%d", arg_elnum, INT32_MAX);
                 return kInstErr_Generic;
             }
             DynObjectRef ref = CCDynamicArray::CreateOld(static_cast<uint32_t>(arg_elnum), arg_elsize, arg_managed);
@@ -1493,9 +1493,9 @@ ccInstError ccInstance::Run(int32_t curpc)
             const int arg_elnum = reg1.IValue;
             const uint32_t arg_typeid = static_cast<uint32_t>(codeOp.Arg2i());
             const uint32_t arg_elsize = static_cast<uint32_t>(codeOp.Arg3i());
-            if (arg_elnum < 1)
+            if (arg_elnum < 0)
             {
-                cc_error("invalid size for dynamic array; requested: %d, range: 1..%d", arg_elnum, INT32_MAX);
+                cc_error("Invalid size for dynamic array; requested: %d, range: 0..%d", arg_elnum, INT32_MAX);
                 return kInstErr_Generic;
             }
             // TODO: this likely may be optimized by doing a fixup,

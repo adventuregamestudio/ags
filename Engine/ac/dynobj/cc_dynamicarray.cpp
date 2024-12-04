@@ -72,6 +72,10 @@ void CCDynamicArray::Unserialize(int index, Stream *in, size_t data_sz)
 
 /* static */ DynObjectRef CCDynamicArray::CreateImpl(uint32_t type_id, bool is_managed, uint32_t elem_count, uint32_t elem_size)
 {
+    assert(elem_count >= 0);
+    if (elem_count < 0)
+        return {};
+
     uint8_t *new_arr = new uint8_t[elem_count * elem_size + MemHeaderSz];
     memset(new_arr, 0, elem_count * elem_size + MemHeaderSz);
     Header &hdr = reinterpret_cast<Header&>(*new_arr);
@@ -88,7 +92,7 @@ void CCDynamicArray::Unserialize(int index, Stream *in, size_t data_sz)
     if (handle == 0)
     {
         delete[] new_arr;
-        return DynObjectRef();
+        return {};
     }
     return DynObjectRef(handle, obj_ptr, &globalDynamicArray);
 }

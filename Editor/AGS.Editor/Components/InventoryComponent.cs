@@ -137,12 +137,14 @@ namespace AGS.Editor.Components
             return new string[] { "InventoryItem" };
         }
 
-        public override void ShowItemPaneByName(string name)
+        public override bool ShowItemPaneByName(string name)
         {
             InventoryItem selectedItem = _agsEditor.CurrentGame.RootInventoryItemFolder.FindInventoryItemByName(name, true);
-            if (selectedItem == null) return;
+            if (selectedItem == null)
+                return false;
             _guiController.ProjectTree.SelectNode(this, GetNodeID(selectedItem));
             ShowOrAddPane(selectedItem);
+            return true;
         }
 
         private void OnItemIDOrNameChanged(InventoryItem item, bool name_only)
@@ -284,7 +286,8 @@ namespace AGS.Editor.Components
                     // If we have an assigned interaction function, but the function is not found - report a missing warning
                     if (has_interaction && !has_function)
                     {
-                        errors.Add(new CompileWarning($"Inventory ({inv.ID}) {inv.Name}'s event {inv.Interactions.Schema.FunctionSuffixes[i]} function \"{inv.Interactions.ScriptFunctionNames[i]}\" not found in script {inv.Interactions.ScriptModule}."));
+                        errors.Add(new CompileWarningWithGameObject($"Inventory ({inv.ID}) {inv.Name}'s event {inv.Interactions.Schema.FunctionSuffixes[i]} function \"{inv.Interactions.ScriptFunctionNames[i]}\" not found in script {inv.Interactions.ScriptModule}.",
+                            "InventoryItem", inv.Name, true));
                     }
                     // If we don't have an assignment, but has a similar function - report a possible unlinked function
                     else if (!has_interaction && has_function)

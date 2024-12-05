@@ -55,8 +55,9 @@ namespace AGS.Editor.Components
         {
         }
 
-        public virtual void ShowItemPaneByName(string name)
+        public virtual bool ShowItemPaneByName(string name)
         {
+            return false;
         }
 
         public virtual IList<string> GetManagedScriptElements()

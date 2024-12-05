@@ -200,7 +200,7 @@ namespace AGS.Editor.Components
             return new string[] { "GUI", "Label", "Button", "Slider", "ListBox", "TextBox", "InvWindow" };
         }
 
-        public override void ShowItemPaneByName(string name)
+        public override bool ShowItemPaneByName(string name)
         {
             IList<GUI> guis = GetFlatList();
             foreach (GUI g in guis)
@@ -209,7 +209,7 @@ namespace AGS.Editor.Components
                 {
                     _guiController.ProjectTree.SelectNode(this, GetNodeID(g));
                     ShowOrAddPane(g);
-                    return;
+                    return true;
                 }
                 
                 foreach(GUIControl gctrl in g.Controls)
@@ -219,10 +219,12 @@ namespace AGS.Editor.Components
                         _guiController.ProjectTree.SelectNode(this, GetNodeID(g));
                         ShowOrAddPane(g);
                         Factory.GUIController.SetPropertyGridObject(gctrl);
-                        return;
+                        return true;
                     }
                 }
             }
+
+            return false;
         }
 
         private void OnItemIDOrNameChanged(GUI item, bool name_only)
@@ -454,11 +456,13 @@ namespace AGS.Editor.Components
                     {
                         if (guiObject.GUI != null)
                         {
-                            errors.Add(new CompileWarning($"GUI ({ngui.ID}) {ngui.Name}'s event {evtRef.EventName} function \"{evtRef.FunctionName}\" not found in script {ngui.ScriptModule}."));
+                            errors.Add(new CompileWarningWithGameObject($"GUI ({ngui.ID}) {ngui.Name}'s event {evtRef.EventName} function \"{evtRef.FunctionName}\" not found in script {ngui.ScriptModule}.",
+                                "GUI", ngui.Name, true));
                         }
                         else
                         {
-                            errors.Add(new CompileWarning($"GUI ({ngui.ID}) {ngui.Name}: {guiObject.Control.ControlType} #{guiObject.Control.ID} {guiObject.Control.Name}'s event {evtRef.EventName} function \"{evtRef.FunctionName}\" not found in script {ngui.ScriptModule}."));
+                            errors.Add(new CompileWarningWithGameObject($"GUI ({ngui.ID}) {ngui.Name}: {guiObject.Control.ControlType} #{guiObject.Control.ID} {guiObject.Control.Name}'s event {evtRef.EventName} function \"{evtRef.FunctionName}\" not found in script {ngui.ScriptModule}.",
+                                guiObject.Control.ControlType, guiObject.Control.Name, true));
                         }
                     }
                     // If we don't have an assignment, but has a similar function - report a possible unlinked function

@@ -160,7 +160,7 @@ namespace AGS.Editor.Components
             return new string[] { "Character" };
         }
 
-        public override void ShowItemPaneByName(string name)
+        public override bool ShowItemPaneByName(string name)
         {
             IList<Character> characters = GetFlatList();
             foreach(Character c in characters)
@@ -169,9 +169,10 @@ namespace AGS.Editor.Components
                 {
                     _guiController.ProjectTree.SelectNode(this, GetNodeID(c));
                     ShowOrAddPane(c);
-                    return;
+                    return true;
                 }
             }
+            return false;
         }
 
         public void ShowPlayerCharacter()
@@ -387,7 +388,8 @@ namespace AGS.Editor.Components
                     // If we have an assigned interaction function, but the function is not found - report a missing warning
                     if (has_interaction && !has_function)
                     {
-                        errors.Add(new CompileWarning($"Character ({c.ID}) {c.ScriptName}'s event {c.Interactions.Schema.FunctionSuffixes[i]} function \"{c.Interactions.ScriptFunctionNames[i]}\" not found in script {c.Interactions.ScriptModule}."));
+                        errors.Add(new CompileWarningWithGameObject($"Character ({c.ID}) {c.ScriptName}'s event {c.Interactions.Schema.FunctionSuffixes[i]} function \"{c.Interactions.ScriptFunctionNames[i]}\" not found in script {c.Interactions.ScriptModule}.",
+                            "Character", c.ScriptName, true));
                     }
                     // If we don't have an assignment, but has a similar function - report a possible unlinked function
                     else if (!has_interaction && has_function)

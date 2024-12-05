@@ -554,15 +554,7 @@ namespace AGS.Editor
             {
                 if (!string.IsNullOrEmpty(typeName))
                 {
-                    BaseComponent component = Factory.ComponentController.FindComponentThatManageScriptElement(typeName) as BaseComponent;
-                    if (component != null)
-                    {
-                        component.ShowItemPaneByName(symbolName);
-                    }
-                    else
-                    {
-                        Factory.GUIController.ShowMessage("This symbol is internally defined by AGS and probably corresponds to an in-game entity which does not support Go to Definition at the moment.", MessageBoxIcon.Information);
-                    }
+                    ZoomToComponentObject(typeName, symbolName);
                 }
                 else
                 {
@@ -577,6 +569,27 @@ namespace AGS.Editor
             else
             {
                 Factory.GUIController.ZoomToFile(scriptName, ZoomToFileZoomType.ZoomToCharacterPosition, scriptCharPos);
+            }
+        }
+
+        public void ZoomToComponentObject(string typeName, string objectName, bool selectEventsTab = false)
+        {
+            BaseComponent component = Factory.ComponentController.FindComponentThatManageScriptElement(typeName) as BaseComponent;
+            if (component != null)
+            {
+                if (component.ShowItemPaneByName(objectName))
+                {
+                    if (selectEventsTab)
+                        Factory.GUIController.SelectEventsTabInPropertyGrid();
+                }
+                else
+                {
+                    Factory.GUIController.ShowMessage($"There was error trying to open an object {objectName} of type {typeName} for editing.", MessageBoxIcon.Information);
+                }
+            }
+            else
+            {
+                Factory.GUIController.ShowMessage("This symbol is internally defined by AGS and probably corresponds to an in-game entity which does not support Go to Definition at the moment.", MessageBoxIcon.Information);
             }
         }
 

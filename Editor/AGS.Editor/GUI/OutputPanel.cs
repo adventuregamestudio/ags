@@ -92,6 +92,11 @@ namespace AGS.Editor
                 {
                     Factory.GUIController.ZoomToFile(error.ScriptName, (error as CompileWarningWithFunction).FunctionName);
                 }
+                else if (error is CompileWarningWithGameObject)
+                {
+                    var errorWithObject = error as CompileWarningWithGameObject;
+                    Factory.GUIController.ZoomToComponentObject(errorWithObject.TypeName, errorWithObject.ObjectName, errorWithObject.IsObjectEvent);
+                }
             }
         }
 

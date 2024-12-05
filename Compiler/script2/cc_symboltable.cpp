@@ -387,8 +387,6 @@ AGS::SymbolTable::SymbolTable()
 
 bool AGS::SymbolTable::IsVTT(Symbol s, VartypeType vtt) const
 {
-    if (IsVariable(s))
-        s = entries.at(s).VariableD->Vartype;
     if (!IsVartype(s))
         return false;
 
@@ -398,16 +396,22 @@ bool AGS::SymbolTable::IsVTT(Symbol s, VartypeType vtt) const
     return vtt == entries.at(s).VartypeD->Type;
 }
 
-bool AGS::SymbolTable::IsVTF(Symbol s, VartypeFlag flag) const
+AGS::Vartype AGS::SymbolTable::CoreVartype(Vartype s) const
 {
-    if (IsVariable(s))
-        s = entries.at(s).VariableD->Vartype;
     if (!IsVartype(s))
         return false;
 
-    // Get to the innermost symbol; read that symbol's flags
+    // Get to the innermost symbol
     while (VTT::kAtomic != entries.at(s).VartypeD->Type)
         s = entries.at(s).VartypeD->BaseVartype;
+    return s;
+}
+
+bool AGS::SymbolTable::IsVTF(Symbol s, VartypeFlag flag) const
+{
+    if (!IsVartype(s))
+        return false;
+
     return entries.at(s).VartypeD->Flags[flag];
 }
 
@@ -463,15 +467,13 @@ bool AGS::SymbolTable::CanBePartOfAnExpression(Symbol s)
         (IsDelimeter(s) && entries.at(s).DelimeterD->CanBePartOfAnExpression) ||
         IsFunction(s) ||
         IsLiteral(s) ||
-        (IsOperator(s) && entries.at(s).OperatorD->CanBePartOfAnExpression) ||
+        (IsOperator(s)) ||
         IsVariable(s) ||
         (s == kKW_OnePastLongMax);
 }
 
 bool AGS::SymbolTable::IsAnyIntegerVartype(Symbol s) const
 {
-    if (IsVariable(s))
-        s = entries.at(s).VariableD->Vartype;
     if (!IsVartype(s) || !IsAtomicVartype(s))
         return false;
     if (kKW_NoSymbol == entries.at(s).VartypeD->BaseVartype)
@@ -490,10 +492,9 @@ size_t AGS::SymbolTable::GetSize(Symbol s) const
 
 bool AGS::SymbolTable::IsPrimitiveVartype(Symbol s) const
 {
-    if (IsVariable(s))
-        s = entries.at(s).VariableD->Vartype;
     if (!IsVartype(s))
         return false;
+
     if (VTT::kConst == entries.at(s).VartypeD->Type)
         s = entries.at(s).VartypeD->BaseVartype;
     if (!IsPredefined(s))
@@ -505,8 +506,6 @@ bool AGS::SymbolTable::IsPrimitiveVartype(Symbol s) const
 
 size_t AGS::SymbolTable::ArrayElementsCount(Symbol s) const
 {
-    if (IsVariable(s))
-        s = entries.at(s).VariableD->Vartype;
     if (!IsVartype(s))
         return 0u;
 
@@ -523,8 +522,6 @@ size_t AGS::SymbolTable::ArrayElementsCount(Symbol s) const
 
 bool AGS::SymbolTable::IsManagedVartype(Symbol s) const
 {
-    if (IsVariable(s))
-        s = entries.at(s).VariableD->Vartype;
     if (!IsVartype(s))
         return false;
     
@@ -540,7 +537,8 @@ std::string const AGS::SymbolTable::GetName(AGS::Symbol symbl) const
         return std::string("(end of input)");
     if (static_cast<size_t>(symbl) >= entries.size())
         return std::string("(invalid symbol)");
-    if (IsAutoptrVartype(symbl))
+    if (IsDynpointerVartype(symbl) &&
+        IsAutoptrVartype(VartypeWithout(VTT::kDynpointer, symbl)))
     {
         std::string name = entries[symbl].Name;
         int const pos_of_last_ch = name.length() - 1u;
@@ -770,9 +768,6 @@ AGS::ScopeType AGS::SymbolTable::GetScopeType(Symbol s) const
 
 bool AGS::SymbolTable::IsAnyStringVartype(Symbol s) const
 {
-    if (IsVariable(s))
-        s = entries[s].VariableD->Vartype;
-
     if (!IsVartype(s))
         return false;
 
@@ -786,18 +781,12 @@ bool AGS::SymbolTable::IsAnyStringVartype(Symbol s) const
 
 bool AGS::SymbolTable::IsOldstring(Symbol s) const
 {
-    if (!IsInBounds(s))
-        return false;
-
-    // Convert a var to its vartype
-    if (IsVariable(s))
-        s = entries[s].VariableD->Vartype;
-
     if (!IsVartype(s))
             return false;
 
     Vartype const s_without_const =
         VartypeWithout(VTT::kConst, s);
+
     // string and const string are oldstrings
     if (kKW_String == s_without_const)
         return true;

@@ -227,6 +227,7 @@ struct FuncParameterDesc
     AGS::Vartype Vartype = kKW_NoSymbol;
     Symbol Name = kKW_NoSymbol;
     Symbol Default = kKW_NoSymbol;
+    size_t Declared;
 };
 
 struct SymbolTable;
@@ -293,6 +294,13 @@ struct SymbolTableEntry : public SymbolTableConstant
         TypeQualifierSet TypeQualifiers = {};
         // [0] describes the return type of the function
         std::vector<FuncParameterDesc> Parameters = {};
+        struct ParamNamingInconsistencyDesc
+        {
+            bool Exists = false; // true when param #'ParamIdx' is inconsistently named
+            size_t ParamIdx = 0u;
+            Symbol Name1 = kKW_NoSymbol, Name2 = kKW_NoSymbol;
+            size_t Declared1 = 0u, Declared2 = 0u;
+        } ParamNamingInconsistency;
         CodeLoc Offset = 0;
         bool IsConstructor = false;
         bool IsVariadic = false;
@@ -436,7 +444,9 @@ public:
     inline void MakeEntryFunction(Symbol s) { if (!entries.at(s).FunctionD) entries.at(s).FunctionD = new SymbolTableEntry::FunctionDesc; }
     inline bool IsLiteral(Symbol s) const { return nullptr != entries.at(s).LiteralD; }
     inline void MakeEntryLiteral(Symbol s) { if (!entries.at(s).LiteralD) entries.at(s).LiteralD = new SymbolTableEntry::LiteralDesc; }
-    inline bool IsOperator(Symbol s) const { return nullptr != entries.at(s).OperatorD; }
+    // Operators and assignments have an 'OperatorD' pointer, to differentiate also check 'CanBePartOfAnExpression'
+    inline bool IsAssignment(Symbol s) const { return entries.at(s).OperatorD && !entries.at(s).OperatorD->CanBePartOfAnExpression; }
+    inline bool IsOperator(Symbol s) const { return entries.at(s).OperatorD && entries.at(s).OperatorD->CanBePartOfAnExpression; }
     inline void MakeEntryOperator(Symbol s) { if (!entries.at(s).OperatorD) entries.at(s).OperatorD = new SymbolTableEntry::OperatorDesc; }
     inline bool IsComponent(Symbol s) const { return nullptr != entries.at(s).ComponentD; }
     inline void MakeEntryComponent(Symbol s) { if (!entries.at(s).ComponentD) entries.at(s).ComponentD = new SymbolTableEntry::ComponentDesc; }
@@ -455,15 +465,18 @@ public:
     // so it can be part of an expression no matter what is determined here
     bool CanBePartOfAnExpression(Symbol s);
 
-    // Whether the operator is boolean. "Boolean" operators return an 'int' no matter what vartype their arguments
+    // Whether the operator is boolean.
+    // Boolean operators return an 'int' no matter what vartype their arguments are
     inline bool IsBooleanOperator(Symbol s) { return IsOperator(s) && entries.at(s).OperatorD->Boolean; }
 
     // Variables or vartypes
     // Size of a variable or vartype
     size_t GetSize(Symbol s) const;
+    // The core vartype of a possibly composite vartype
+    Vartype CoreVartype(Vartype s) const; 
 
     inline bool IsAtomicVartype(Symbol s) const { return IsVTT(s, VTT::kAtomic); }
-    inline bool IsBuiltinVartype(Symbol s) const { return IsVTF(s, VTF::kBuiltin); }
+    inline bool IsBuiltinVartype(Symbol s) const { return IsVTF(CoreVartype(s), VTF::kBuiltin); }
     // Don't confuse with IsConstant() == is a constant that signifies a literal
     inline bool IsConstVartype(Symbol s) const { return IsVTT(s, VTT::kConst); }
 
@@ -478,6 +491,7 @@ public:
     // Fills compo_list with the symbols of all the strct components. Includes the ancestors' components
     void GetComponentsOfStruct(Symbol strct, std::vector<Symbol> &compo_list) const;
     // Find the description of a component.
+    // Start search with the components of ancestor.
     Symbol FindStructComponent(Symbol strct, Symbol component, Symbol ancestor) const;
     inline Symbol FindStructComponent(Symbol strct, Symbol component) const { return FindStructComponent(strct, component, strct); }
     // Finds the first constructor declared either in this struct or in any of its parent types (going up the hierarchy)

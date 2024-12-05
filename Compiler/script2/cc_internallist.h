@@ -95,8 +95,8 @@ public:
     SectionList CreateSectionList() const;
 };
 
-// A list of input tokens. Only _len tokens, beginning at _offset, are taken into
-// consideration, the other tokens are treated as if they weren't there.
+// A list of input tokens. Only the tokens between '_begin' (included) and '_end' (excluded)
+// are taken into consideration, the other tokens are treated as if they weren't there.
 // The list can be traversed using GetNext() / PeekNext() or directly with [..]
 class SrcList
 {
@@ -104,40 +104,44 @@ public:
     static const Symbol kEOF;
 
 private:
-    std::vector<Symbol> &_script;
-    LineHandler &_lineHandler;
-    size_t _offset; 
-    size_t _len;    // Length relative to [0], not relative to [_offset]
-    size_t &_cursor; // Position relative to [0], not relative to [_offset]
+    std::vector<Symbol> *_script; // NOT owned
+    LineHandler *_lineHandler; // NOT owned
+    size_t _begin; 
+    size_t _end;    // '[_end]' itself is not included
+    size_t *_cursor; // '*_cursor' is relative to '[0u]', not to '[_begin]'. NOT owned
 
 public:
     SrcList(std::vector<Symbol> &script, LineHandler &line_handler, size_t &cursor);
 
     // This uses the same symbols and the same cursor variable that src_list does;
-    // but the resulting SrcList starts at [offset] and has the length len.
+    // but the resulting SrcList starts at '[offset]' and has length 'len'
     // No symbols are actually copied.
     // NOTE: If you move the cursor of the new list then the cursor of the original list
     // moves correspondingly because the cursor variable is shared. This is intentional.
     SrcList(SrcList const &src_list, size_t offset, size_t len);
 
-    inline size_t GetCursor() const { return _cursor - _offset; }
-    inline void SetCursor(size_t idx) { _cursor = idx + _offset; }
+    // Have to be specified explicitly because the class contains pointer fields
+    SrcList(SrcList const &src_list);
+    SrcList &operator=(SrcList const &other);
+    SrcList &operator=(SrcList const &&other) noexcept;
+
+    inline size_t GetCursor() const { return *_cursor - _begin; }
+    inline void SetCursor(size_t idx) { *_cursor = idx + _begin; if (*_cursor > _end) *_cursor = _end;  }
     
-    inline size_t Length() const { return _len; };
-    inline bool ReachedEOF() const { return _cursor - _offset >= _len  || _cursor >= _script.size(); }
-    // Whether the cursor has gone _beyond_ the start when going backwards
-    inline bool ReachedStartOF() const { return _cursor < _offset; }
+    inline size_t Length() const { return (_begin < _end) ? _end - _begin : 0u; };
+    inline bool ReachedEOF() const { return *_cursor >= _end; }
+    inline bool ReachedStartOF() const { return *_cursor <= _begin; }
 
     // Set the cursor to the start of the list
-    inline void StartRead() { SetCursor(0); }
+    inline void StartRead() { SetCursor(0u); }
     // Read the next symbol
     Symbol GetNext();
     // Look at the symbol that will be read next, but don't read it yet
-    inline Symbol PeekNext() const { return ReachedEOF() ? kEOF : _script[_cursor]; }
+    inline Symbol PeekNext() const { return (*_cursor >= _begin && *_cursor < _end) ? (*_script)[*_cursor] : kEOF; }
     // Look at the symbol that comes next when going backwards when reading
-    inline Symbol PeekPrev() const { return ReachedStartOF() ? kEOF : _script[GetCursor() - 1u]; }
+    inline Symbol PeekPrev() const { return (*_cursor >= _begin && *_cursor < _end) ? (*_script)[*_cursor - 1u] : kEOF; }
     // Move the cursor back by 1 space.
-    inline void BackUp() { size_t c = GetCursor(); SetCursor((c > 0u) ? c - 1u : 0u); }
+    inline void BackUp() { if (*_cursor > _begin) --*_cursor; }
 
     // Skim through the list, ignoring delimited content completely. Stop in the following cases:
     // .  A symbol in 'stoplist' is encountered
@@ -148,7 +152,7 @@ public:
     // .  The symbol 'stopsym' is encountered.
     // .  A closing symbol is encountered that hasn't been opened.
     // Don't consume the symbol that stops the scan.
-    inline void SkipTo(Symbol stopsym) { SkipTo(SymbolList{ stopsym }); }
+    inline void SkipTo(Symbol stopsym) { SkipTo(SymbolList{ stopsym, }); }
     // Skim through the list, ignoring delimited content completely. 
     // Stop whem a closing symbol is encountered that hasn't been opened.
     // Don't consume that symbol.
@@ -159,7 +163,7 @@ public:
     Symbol operator[](size_t idx) { SetCursor(idx); return GetNext(); }
 
     // Whether the index is within the list
-    inline bool InRange(size_t idx) const { return idx < _len; }
+    inline bool InRange(size_t idx) const { return idx + _begin < _end; }
 
     // Shorten *this
     void EatFirstSymbol();
@@ -169,22 +173,22 @@ public:
     // will still be relative to the original list. This is intentional
     // (When the user gets an error, they want to know the "real" line where the error is,
     // not a line reference that is relative to an excerpt of their program.)
-    inline size_t GetLinenoAt(size_t pos) const { return _lineHandler.GetLinenoAt(pos + _offset); }
-    inline size_t GetSectionIdAt (size_t pos) const { return _lineHandler.GetSectionIdAt(pos + _offset); }
+    inline size_t GetLinenoAt(size_t pos) const { return _lineHandler->GetLinenoAt(pos + _begin); }
+    inline size_t GetSectionIdAt (size_t pos) const { return _lineHandler->GetSectionIdAt(pos + _begin); }
     // Get the data for the symbol that has been read last.
     // Note: The cursor points at the symbol that will be read next, but we need the data
     // of the symbol that has just been read. That's the symbol in front of the cursor.
-    inline size_t GetLineno() const { return GetLinenoAt(std::max<size_t>(1u, _cursor) - 1); }
-    inline size_t GetSectionId() const { return GetSectionIdAt(std::max<size_t>(1u, _cursor) - 1); }
+    inline size_t GetLineno() const { return GetLinenoAt((*_cursor > _begin)? *_cursor - _begin - 1u : 0u); }
+    inline size_t GetSectionId() const { return GetSectionIdAt((*_cursor > 0u)? *_cursor - 1u : 0u); }
 
-    inline std::string const &SectionId2Section(size_t id) const { return _lineHandler.SectionId2Section(id); }
+    inline std::string const &SectionId2Section(size_t id) const { return _lineHandler->SectionId2Section(id); }
 
     //
     // Used for building the srclist, not for processing the srclist
     //
-    inline void Append(Symbol symb) { _script.push_back(symb); _len++; }
-    inline void NewLine(size_t lineno) { _lineHandler.AddLineAt(_script.size(), lineno); }
-    inline void NewSection(std::string const &section) { _lineHandler.NewSection(section); }
+    inline void Append(Symbol symb) { _script->push_back(symb); _end++; }
+    inline void NewLine(size_t lineno) { _lineHandler->AddLineAt(_script->size(), lineno); }
+    inline void NewSection(std::string const &section) { _lineHandler->NewSection(section); }
 };
 } // namespace AGS
 

@@ -1806,13 +1806,13 @@ namespace AGS.Editor.Components
                 {
                     if (roomObject.Room != null)
                     {
-                        errors.Add(new CompileWarning($"Function \"{funcs[i].Value.Name}\" looks like an event handler, but is not linked on Room {room.Number}'s Event pane",
-                            funcs[i].Value.ScriptName, funcs[i].Value.LineNumber));
+                        errors.Add(new CompileWarningWithFunction($"Function \"{funcs[i].Value.Name}\" looks like an event handler, but is not linked on Room {room.Number}'s Event pane",
+                            funcs[i].Value.ScriptName, funcs[i].Value.Name, funcs[i].Value.LineNumber));
                     }
                     else
                     {
-                        errors.Add(new CompileWarning($"Function \"{funcs[i].Value.Name}\" looks like an event handler, but is not linked on {evtRef.TypeName} ({evtRef.ID}) {evtRef.ObjName}'s Event pane",
-                            funcs[i].Value.ScriptName, funcs[i].Value.LineNumber));
+                        errors.Add(new CompileWarningWithFunction($"Function \"{funcs[i].Value.Name}\" looks like an event handler, but is not linked on {evtRef.TypeName} ({evtRef.ID}) {evtRef.ObjName}'s Event pane",
+                            funcs[i].Value.ScriptName, funcs[i].Value.Name, funcs[i].Value.LineNumber));
                     }
                 }
             }

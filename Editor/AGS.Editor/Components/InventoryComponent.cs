@@ -289,8 +289,8 @@ namespace AGS.Editor.Components
                     // If we don't have an assignment, but has a similar function - report a possible unlinked function
                     else if (!has_interaction && has_function)
                     {
-                        errors.Add(new CompileWarning($"Function \"{funcs[i].Value.Name}\" looks like an event handler, but is not linked on Inventory ({inv.ID}) {inv.Name}'s Event pane",
-                            funcs[i].Value.ScriptName, funcs[i].Value.LineNumber));
+                        errors.Add(new CompileWarningWithFunction($"Function \"{funcs[i].Value.Name}\" looks like an event handler, but is not linked on Inventory ({inv.ID}) {inv.Name}'s Event pane",
+                            funcs[i].Value.ScriptName, funcs[i].Value.Name, funcs[i].Value.LineNumber));
                     }
                 }
             }

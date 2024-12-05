@@ -999,7 +999,7 @@ namespace AGS.Editor
             return functionNames
                 .Select(f => {
                     var func = scriptData.FindFunction(f);
-                    return func != null ? new FunctionLocation(f, scriptName, -1) : (FunctionLocation?)null;
+                    return func != null ? new FunctionLocation(f, scriptName, 0) : (FunctionLocation?)null;
                 })
                 .ToArray();
         }

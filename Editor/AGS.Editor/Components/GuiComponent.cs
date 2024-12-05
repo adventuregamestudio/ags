@@ -466,13 +466,13 @@ namespace AGS.Editor.Components
                     {
                         if (guiObject.GUI != null)
                         {
-                            errors.Add(new CompileWarning($"Function \"{funcs[i].Value.Name}\" looks like an event handler, but is not linked on GUI ({ngui.ID}) {ngui.Name}'s Event pane",
-                                funcs[i].Value.ScriptName, funcs[i].Value.LineNumber));
+                            errors.Add(new CompileWarningWithFunction($"Function \"{funcs[i].Value.Name}\" looks like an event handler, but is not linked on GUI ({ngui.ID}) {ngui.Name}'s Event pane",
+                                funcs[i].Value.ScriptName, funcs[i].Value.Name, funcs[i].Value.LineNumber));
                         }
                         else
                         {
-                            errors.Add(new CompileWarning($"Function \"{funcs[i].Value.Name}\" looks like an event handler, but is not linked on {guiObject.Control.ControlType} ({guiObject.Control.ID}) {guiObject.Control.Name}'s Event pane",
-                                funcs[i].Value.ScriptName, funcs[i].Value.LineNumber));
+                            errors.Add(new CompileWarningWithFunction($"Function \"{funcs[i].Value.Name}\" looks like an event handler, but is not linked on {guiObject.Control.ControlType} ({guiObject.Control.ID}) {guiObject.Control.Name}'s Event pane",
+                                funcs[i].Value.ScriptName, funcs[i].Value.Name, funcs[i].Value.LineNumber));
                         }
                     }
                 }

@@ -52,7 +52,9 @@ namespace AGS.Editor
                 foreach (CompileMessage error in _errors)
                 {
                     ListViewItem newItem = lvwResults.Items.Add(error.Message);
-					if (error is CompileError)
+                    newItem.Tag = error;
+
+                    if (error is CompileError)
 					{
 						newItem.ImageKey = "CompileErrorIcon";
 					}
@@ -79,16 +81,18 @@ namespace AGS.Editor
 			if (lvwResults.SelectedItems.Count > 0)
 			{
 				ListViewItem selectedItem = lvwResults.SelectedItems[0];
-				if (selectedItem.SubItems.Count > 1)
-				{
-                    int line = 0;
-                    if (selectedItem.SubItems.Count > 2 && selectedItem.SubItems[2].Text != null &&
-                        int.TryParse(selectedItem.SubItems[2].Text, out line))
-                    {
-                        Factory.GUIController.ZoomToFile(selectedItem.SubItems[1].Text, Convert.ToInt32(selectedItem.SubItems[2].Text));
-                    }
-				}
-			}
+                CompileMessage error = selectedItem.Tag as CompileMessage;
+                if (error.LineNumber > 0)
+                {
+                    Factory.GUIController.ZoomToFile(error.ScriptName, error.LineNumber);
+                }
+                // TODO: following is possibly a temporary hack, until we find a way
+                // to initialize post-step warnings that check event functions with line numbers.
+                else if (error is CompileWarningWithFunction)
+                {
+                    Factory.GUIController.ZoomToFile(error.ScriptName, (error as CompileWarningWithFunction).FunctionName);
+                }
+            }
         }
 
         private string ListItemToString(ListViewItem item)

@@ -153,6 +153,7 @@
     <Compile Include="Entities\CharacterIDChangedEventArgs.cs" />
     <Compile Include="Entities\CharacterRoomChangedEventArgs.cs" />
     <Compile Include="Entities\CompilationStepArgs.cs" />
+    <Compile Include="Entities\CompileWarningEx.cs" />
     <Compile Include="Entities\TreeItemDragEventArgs.cs" />
     <Compile Include="Entities\ExistingScriptHeaderToAdd.cs" />
     <Compile Include="Entities\ExistingFileToAdd.cs" />

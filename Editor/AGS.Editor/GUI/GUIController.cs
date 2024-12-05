@@ -530,6 +530,56 @@ namespace AGS.Editor
 			ZoomToFile(fileName, lineNumber);
 		}
 
+        /// <summary>
+        /// Tries to open a pane that contains an object described by the given script symbol.
+        /// * If a symbol is user-defined, then opens a corresponding user script.
+        /// * If a symbol is a game item, then opens that item's edit pane.
+        /// * If a symbol is a part of a scripting API, then launches the manual.
+        /// </summary>
+        public void ZoomToAnyScriptSymbol(string scriptName, string symbolName, string typeName, int scriptCharPos)
+        {
+            if (scriptName == AGSEditor.BUILT_IN_HEADER_FILE_NAME)
+            {
+                if (symbolName == "player")
+                {
+                    CharactersComponent charactersComponent = Factory.ComponentController.FindComponent<CharactersComponent>();
+                    charactersComponent.ShowPlayerCharacter();
+                }
+                else
+                {
+                    Factory.GUIController.LaunchHelpForKeyword(symbolName);
+                }
+            }
+            else if (scriptName == Tasks.AUTO_GENERATED_HEADER_NAME)
+            {
+                if (!string.IsNullOrEmpty(typeName))
+                {
+                    BaseComponent component = Factory.ComponentController.FindComponentThatManageScriptElement(typeName) as BaseComponent;
+                    if (component != null)
+                    {
+                        component.ShowItemPaneByName(symbolName);
+                    }
+                    else
+                    {
+                        Factory.GUIController.ShowMessage("This symbol is internally defined by AGS and probably corresponds to an in-game entity which does not support Go to Definition at the moment.", MessageBoxIcon.Information);
+                    }
+                }
+                else
+                {
+                    Factory.GUIController.ShowMessage("This symbol is internally defined by AGS.", MessageBoxIcon.Information);
+                }
+            }
+            else if (scriptName == GlobalVariablesComponent.GLOBAL_VARS_HEADER_FILE_NAME)
+            {
+                IGlobalVariablesController globalVariables = (IGlobalVariablesController)Factory.ComponentController.FindComponentThatImplementsInterface(typeof(IGlobalVariablesController));
+                globalVariables.SelectGlobalVariable(symbolName);
+            }
+            else
+            {
+                Factory.GUIController.ZoomToFile(scriptName, ZoomToFileZoomType.ZoomToCharacterPosition, scriptCharPos);
+            }
+        }
+
         public void ZoomToFile(string fileName)
         {
             ZoomToFile(fileName, ZoomToFileZoomType.DoNotMoveCursor, 0, false);

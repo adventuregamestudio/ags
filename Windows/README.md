@@ -1,5 +1,7 @@
 # Adventure Game Studio - Windows
 
+The following are instructions on how to build the Engine and Editor if you don't want to manually build the files you can download the latest installer on our website at [https://www.adventuregamestudio.co.uk/site/ags/](https://www.adventuregamestudio.co.uk/site/ags/)
+
 ## Build Requirements
 
 * In common:

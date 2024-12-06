@@ -226,6 +226,7 @@
     <Compile Include="GUI\NumberEntryWithInfoDialog.Designer.cs">
       <DependentUpon>NumberEntryWithInfoDialog.cs</DependentUpon>
     </Compile>
+    <Compile Include="GUI\OutputPanelItem.cs" />
     <Compile Include="GUI\Progress.cs">
       <SubType>Form</SubType>
     </Compile>

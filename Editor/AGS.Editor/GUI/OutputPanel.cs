@@ -34,8 +34,7 @@ namespace AGS.Editor
 
         public void SetMessage(string message, string imageKey)
         {
-            ListViewItem newItem = lvwResults.Items.Add(message);
-            newItem.ImageKey = imageKey;
+            ListViewItem newItem = lvwResults.Items.Add(new OutputPanelItem(message, imageKey));
         }
 
         public CompileMessages ErrorsToList
@@ -51,27 +50,7 @@ namespace AGS.Editor
             {
                 foreach (CompileMessage error in _errors)
                 {
-                    ListViewItem newItem = lvwResults.Items.Add(error.Message);
-                    newItem.Tag = error;
-
-                    if (error is CompileError)
-					{
-						newItem.ImageKey = "CompileErrorIcon";
-					}
-					else
-					{
-						newItem.ImageKey = "CompileWarningIcon";
-                    }
-
-                    if (error.ScriptName.Length > 0)
-                    {
-                        newItem.SubItems.Add(error.ScriptName);
-                    }
-
-                    if (error.ScriptName.Length > 0 && error.LineNumber > 0)
-                    {
-                        newItem.SubItems.Add(error.LineNumber.ToString());
-                    }
+                    ListViewItem newItem = lvwResults.Items.Add(new OutputPanelItem(error));
                 }
             }
         }
@@ -80,45 +59,9 @@ namespace AGS.Editor
         {
 			if (lvwResults.SelectedItems.Count > 0)
 			{
-				ListViewItem selectedItem = lvwResults.SelectedItems[0];
-                CompileMessage error = selectedItem.Tag as CompileMessage;
-                if (error.LineNumber > 0)
-                {
-                    Factory.GUIController.ZoomToFile(error.ScriptName, error.LineNumber);
-                }
-                // TODO: following is possibly a temporary hack, until we find a way
-                // to initialize post-step warnings that check event functions with line numbers.
-                else if (error is CompileWarningWithFunction)
-                {
-                    Factory.GUIController.ZoomToFile(error.ScriptName, (error as CompileWarningWithFunction).FunctionName);
-                }
-                else if (error is CompileWarningWithGameObject)
-                {
-                    var errorWithObject = error as CompileWarningWithGameObject;
-                    Factory.GUIController.ZoomToComponentObject(errorWithObject.TypeName, errorWithObject.ObjectName, errorWithObject.IsObjectEvent);
-                }
+                OutputPanelItem selectedItem = lvwResults.SelectedItems[0] as OutputPanelItem;
+                selectedItem.DefaultAction();
             }
-        }
-
-        private string ListItemToString(ListViewItem item)
-        {
-            string thisLine = string.Empty;
-            if (item.SubItems.Count > 1)
-            {
-                thisLine += item.SubItems[1].Text;  // filename
-
-                if ((item.SubItems.Count > 2) &&
-                    (item.SubItems[2].Text.Length > 0))
-                {
-                    thisLine += "(" + item.SubItems[2].Text + ")";  // line number
-                }
-            }
-            if (thisLine.Length > 0)
-            {
-                thisLine += ": ";
-            }
-            thisLine += item.SubItems[0].Text;
-            return thisLine;
         }
 
         private string ListItemsToString(IEnumerable list)
@@ -126,7 +69,7 @@ namespace AGS.Editor
             StringBuilder sb = new StringBuilder();
             foreach(ListViewItem item in list)
             {
-                sb.Append(ListItemToString(item));
+                sb.Append(item.ToString());
                 sb.Append(Environment.NewLine);
             }
             return sb.ToString();

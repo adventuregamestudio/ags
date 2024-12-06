@@ -50,7 +50,9 @@ If you have an issue in the tracker that you would like to work on, please let u
 
 # Pull Requests
 If it is your first pull request and you don't know where to start [contributing to an Open Source Project](https://egghead.io/courses/how-to-contribute-to-an-open-source-project-on-github) is a great resource for first-time contributors.
+
 To start, make a fork of the branch you are working on and create your own feature/fix branch. After you have finished your commits, please send a pull request. We'll review your pull request and may ask you to make some changes to the code before we merge it.
 For information on the project [AGS Info and Knowledge Base](https://github.com/adventuregamestudio/ags/wiki) has information on the history and current state of the project.
+
 Information on our coding conventions can be found at [AGS Coding Conventions](https://github.com/adventuregamestudio/ags/wiki/AGS-Coding-Conventions-(Cpp))
 Please be aware that many parts of the engine are still written in very old and often "dirty" code, and it may not be easy to understand the ties between different program parts. If you are having problems and can't find the needed information in the [AGS Info and Knowledge Base](https://github.com/adventuregamestudio/ags/wiki), please reach out to us, and we may be able to help.

@@ -75,7 +75,6 @@ namespace AGS.Editor
         private bool _sendUpdateNotifications = false;
         private string[] _lastImportedFilenames = null;
         private Timer _timer;
-        private TreeNode _dropHighlight;
         private int _spriteSizeMultiplier = 1;
         private bool _idleHandlerSet = false;
         // Which information to display under sprites

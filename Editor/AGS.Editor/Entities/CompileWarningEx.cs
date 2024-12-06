@@ -16,6 +16,11 @@ namespace AGS.Editor
             _funcName = funcName;
         }
 
+        public CompileWarningWithFunction(string message)
+            : base(message)
+        {
+        }
+
         public string FunctionName
         {
             get { return _funcName; }
@@ -25,8 +30,9 @@ namespace AGS.Editor
     /// <summary>
     /// CompileWarningWithGameObject - adds game object's type and name to the warning message.
     /// </summary>
-    public class CompileWarningWithGameObject : CompileWarning
+    public class CompileWarningWithGameObject : CompileWarningWithFunction
     {
+        private int _roomNumber = -1;
         private string _typeName = string.Empty;
         private string _objectName = string.Empty;
         private bool _isObjectEvent = false;
@@ -37,6 +43,37 @@ namespace AGS.Editor
             _typeName = typeName;
             _objectName = objectName;
             _isObjectEvent = isObjectEvent;
+        }
+
+        public CompileWarningWithGameObject(string message, string typeName, string objectName, string scriptName, string functionName, int lineNumber)
+            : base(message, scriptName, functionName, lineNumber)
+        {
+            _typeName = typeName;
+            _objectName = objectName;
+            _isObjectEvent = true;
+        }
+
+        public CompileWarningWithGameObject(string message, int roomNumber, string typeName, string objectName, bool isObjectEvent = false)
+            : base(message)
+        {
+            _roomNumber = roomNumber;
+            _typeName = typeName;
+            _objectName = objectName;
+            _isObjectEvent = isObjectEvent;
+        }
+
+        public CompileWarningWithGameObject(string message, int roomNumber, string typeName, string objectName, string scriptName, string functionName, int lineNumber)
+            : base(message, scriptName, functionName, lineNumber)
+        {
+            _roomNumber = roomNumber;
+            _typeName = typeName;
+            _objectName = objectName;
+            _isObjectEvent = true;
+        }
+
+        public int RoomNumber
+        {
+            get { return _roomNumber; }
         }
 
         public string TypeName

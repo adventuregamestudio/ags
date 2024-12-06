@@ -1,9 +1,22 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Windows.Forms;
 using AGS.Types;
 
 namespace AGS.Editor
 {
+    public struct OutputItemAction
+    {
+        public string Name;
+        public string Title;
+
+        public OutputItemAction(string name, string title)
+        {
+            Name = name;
+            Title = title;
+        }
+    }
+
     /// <summary>
     /// OutputPanelItem is a ListViewItem descendant that wraps CompileMessage
     /// and handles user interaction with this message.
@@ -12,6 +25,8 @@ namespace AGS.Editor
     {
         private const string IMAGE_KEY_ERROR = "CompileErrorIcon";
         private const string IMAGE_KEY_WARNING = "CompileWarningIcon";
+        private const string ACTION_GOTO_SCRIPT = "GotoScript";
+        private const string ACTION_GOTO_OBJECT = "GotoObject";
         private CompileMessage _message;
 
         /// <summary>
@@ -56,22 +71,51 @@ namespace AGS.Editor
             get { return _message; }
         }
 
+        public virtual OutputItemAction[] GetActions()
+        {
+            var actions = new List<OutputItemAction>();
+            if (_message.LineNumber > 0 || (_message is CompileWarningWithFunction && !string.IsNullOrEmpty(((CompileWarningWithFunction)_message).FunctionName)))
+            {
+                actions.Add(new OutputItemAction(ACTION_GOTO_SCRIPT, "Go to Script"));
+            }
+            if (_message is CompileWarningWithGameObject)
+            {
+                actions.Add(new OutputItemAction(ACTION_GOTO_OBJECT, "Go to Object"));
+            }
+            return actions.ToArray();
+        }
+
         public virtual void DefaultAction()
         {
-            if (_message.LineNumber > 0)
+            // Select default item action depending on its type
+            string defaultCommand = ACTION_GOTO_SCRIPT;
+            if (_message is CompileWarningWithGameObject && string.IsNullOrEmpty(((CompileWarningWithGameObject)_message).FunctionName))
+                defaultCommand = ACTION_GOTO_OBJECT;
+            Action(defaultCommand);
+        }
+
+        public virtual void Action(string command)
+        {
+            if (command == ACTION_GOTO_SCRIPT)
             {
-                Factory.GUIController.ZoomToFile(_message.ScriptName, _message.LineNumber);
+                if (_message.LineNumber > 0)
+                {
+                    Factory.GUIController.ZoomToFile(_message.ScriptName, _message.LineNumber);
+                }
+                // TODO: following is possibly a temporary hack, until we find a way
+                // to initialize post-step warnings for event functions with line numbers.
+                else if (_message is CompileWarningWithFunction)
+                {
+                    Factory.GUIController.ZoomToFile(_message.ScriptName, (_message as CompileWarningWithFunction).FunctionName);
+                }
             }
-            // TODO: following is possibly a temporary hack, until we find a way
-            // to initialize post-step warnings that check event functions with line numbers.
-            else if (_message is CompileWarningWithFunction)
+            else if (command == ACTION_GOTO_OBJECT)
             {
-                Factory.GUIController.ZoomToFile(_message.ScriptName, (_message as CompileWarningWithFunction).FunctionName);
-            }
-            else if (_message is CompileWarningWithGameObject)
-            {
-                var errorWithObject = _message as CompileWarningWithGameObject;
-                Factory.GUIController.ZoomToComponentObject(errorWithObject.TypeName, errorWithObject.ObjectName, errorWithObject.IsObjectEvent);
+                if (_message is CompileWarningWithGameObject)
+                {
+                    var errorWithObject = _message as CompileWarningWithGameObject;
+                    Factory.GUIController.ZoomToComponentObject(errorWithObject.TypeName, errorWithObject.ObjectName, errorWithObject.IsObjectEvent);
+                }
             }
         }
 

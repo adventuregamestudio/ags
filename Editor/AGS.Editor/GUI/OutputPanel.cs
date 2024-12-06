@@ -13,6 +13,7 @@ namespace AGS.Editor
         private const string MENU_ITEM_COPYSEL_TO_CLIPBOARD = "CopySelectedToClipboard";
         private const string MENU_ITEM_COPYALL_TO_CLIPBOARD = "CopyAllToClipboard";
         private CompileMessages _errors;
+        private OutputPanelItem _rightClickItem;
 
         public OutputPanel()
         {
@@ -77,20 +78,22 @@ namespace AGS.Editor
 
 		private void ContextMenuEventHandler(object sender, EventArgs e)
 		{
-            String result = string.Empty;
             ToolStripMenuItem item = (ToolStripMenuItem)sender;
             if (item.Name == MENU_ITEM_COPYSEL_TO_CLIPBOARD)
             {
-                result = ListItemsToString(lvwResults.SelectedItems);
+                string result = ListItemsToString(lvwResults.SelectedItems);
+                if (!string.IsNullOrEmpty(result))
+                    Utilities.CopyTextToClipboard(result);
             }
             else if (item.Name == MENU_ITEM_COPYALL_TO_CLIPBOARD)
             {
-                result = ListItemsToString(lvwResults.Items);
+                string result = ListItemsToString(lvwResults.Items);
+                if (!string.IsNullOrEmpty(result))
+                    Utilities.CopyTextToClipboard(result);
             }
-
-            if (!string.IsNullOrEmpty(result))
+            else if (_rightClickItem != null)
             {
-                Utilities.CopyTextToClipboard(result);
+                _rightClickItem.Action(item.Name);
             }
 		}
 
@@ -100,7 +103,18 @@ namespace AGS.Editor
             menu.Items.Add(new ToolStripMenuItem("Copy selection to clipboard", null, ContextMenuEventHandler, MENU_ITEM_COPYSEL_TO_CLIPBOARD));
             menu.Items.Add(new ToolStripMenuItem("Copy all to clipboard", null, ContextMenuEventHandler, MENU_ITEM_COPYALL_TO_CLIPBOARD));
 
-			menu.Show(lvwResults, menuPosition);
+            var hitInfo = lvwResults.HitTest(menuPosition);
+            _rightClickItem = hitInfo.Item as OutputPanelItem;
+            if (_rightClickItem != null)
+            {
+                var actions = _rightClickItem.GetActions();
+                foreach (var action in actions)
+                {
+                    menu.Items.Add(new ToolStripMenuItem(action.Title, null, ContextMenuEventHandler, action.Name));
+                }
+            }
+
+            menu.Show(lvwResults, menuPosition);
 		}
 
 		private void lvwResults_MouseUp(object sender, MouseEventArgs e)

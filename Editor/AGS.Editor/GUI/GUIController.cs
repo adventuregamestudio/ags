@@ -589,7 +589,7 @@ namespace AGS.Editor
             }
             else
             {
-                Factory.GUIController.ShowMessage("This symbol is internally defined by AGS and probably corresponds to an in-game entity which does not support Go to Definition at the moment.", MessageBoxIcon.Information);
+                Factory.GUIController.ShowMessage("This symbol is internally defined by AGS and probably corresponds to an in-game entity which does not support \"Go to\" at the moment.", MessageBoxIcon.Information);
             }
         }
 

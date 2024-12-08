@@ -1645,7 +1645,14 @@ namespace AGS.Editor
 
         private ScriptStruct ParsePreviousExpression(int startAtPos, out string charactersAfterDot, out bool staticAccess, out bool isThis)
         {
+            ScriptVariable tmp;
+            return ParsePreviousExpression(startAtPos, out charactersAfterDot, out staticAccess, out isThis, out tmp);
+        }
+
+        private ScriptStruct ParsePreviousExpression(int startAtPos, out string charactersAfterDot, out bool staticAccess, out bool isThis, out ScriptVariable scriptVar)
+        {
             isThis = false;
+            scriptVar = null;
 
             string pathedExpression = GetPreviousPathedExpression(startAtPos, true);
             // strip off anything after the last dot (since that's what they're typing now)
@@ -1682,6 +1689,7 @@ namespace AGS.Editor
                     ScriptVariable var = FindLocalVariableWithName(startAtPos, thisWord);
                     if (var != null)
                     {
+                        scriptVar = var;
                         foundType = FindGlobalVariableOrType(var.Type);
                     }
                 }
@@ -1693,6 +1701,7 @@ namespace AGS.Editor
                 ScriptVariable memberVar = foundType.FindMemberVariable(thisWord);
                 if (memberVar != null)
                 {
+                    scriptVar = memberVar;
                     foundType = FindGlobalVariableOrType(memberVar.Type);
                     staticAccess = false;
                 }
@@ -1709,12 +1718,21 @@ namespace AGS.Editor
             string charactersAfterDot;
             bool staticAccess;
             bool isThis;
+            ScriptVariable var;
 
-            ScriptStruct foundType = ParsePreviousExpression(scintillaControl1.CurrentPosition - 1, out charactersAfterDot, out staticAccess, out isThis);
+            ScriptStruct foundType = ParsePreviousExpression(scintillaControl1.CurrentPosition - 1, out charactersAfterDot, out staticAccess, out isThis, out var);
 
             if (foundType != null)
             {
                 ShowAutoComplete(charactersAfterDot.Length, ConstructScintillaAutocompleteList(GetAllStructsWithMatchingName(foundType.Name), staticAccess, isThis, null));
+                return;
+            }
+            if (var != null)
+            {
+                if (var.IsDynamicArray)
+                {
+                    ShowAutoComplete(charactersAfterDot.Length, GetMembersOfDynamicArray());
+                }    
             }
         }
 
@@ -2311,6 +2329,11 @@ namespace AGS.Editor
                     globalsList.Add(ss.Name + "?" + IMAGE_INDEX_STRUCT);
                 }
             }
+        }
+
+        private string GetMembersOfDynamicArray()
+        {
+            return "Length?" + IMAGE_INDEX_PROPERTY;
         }
 
         private void AddMembersOfStruct(List<string> autoCompleteList, List<ScriptStruct> scriptStructs, bool staticOnly, bool isThis)

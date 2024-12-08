@@ -2527,6 +2527,8 @@ builtin struct System {
   import static int GetEngineInteger(EngineValueID value, int index = 0); // $AUTOCOMPLETESTATICONLY$
   /// Gets a runtime engine string by the given identifier; is meant for diagnostic purposes only
   import static String GetEngineString(EngineValueID value, int index = 0); // $AUTOCOMPLETESTATICONLY$
+  /// Gets/sets whether the engine displays the FPS counter
+  import static attribute bool DisplayFPS; // $AUTOCOMPLETESTATICONLY$
 #endif // SCRIPT_API_v362
 };
 

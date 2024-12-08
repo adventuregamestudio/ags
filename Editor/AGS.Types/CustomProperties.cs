@@ -5,6 +5,8 @@ using System.Xml;
 
 namespace AGS.Types
 {
+    [Category("Custom Properties")]
+    [DisplayName("Custom Properties")]
     [TypeConverter(typeof(ExpandableObjectConverter))]
     [EditorAttribute(typeof(CustomPropertiesUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
 

@@ -15,6 +15,13 @@ namespace AGS.Types
 
         static public CustomPropertySchema Schema;
 
+        [AGSNoSerialize()]
+        public CustomPropertyAppliesTo AppliesTo
+        {
+            set { _appliesTo = value; }
+            get { return _appliesTo; }
+        }
+
         public CustomProperties(CustomPropertyAppliesTo appliesTo)
         {
             _appliesTo = appliesTo;

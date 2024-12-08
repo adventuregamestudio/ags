@@ -19,7 +19,7 @@ namespace AGS.Types
         private bool _startWithItem;
         private int _id;
         private int _hotspotX, _hotspotY;
-        private CustomProperties _properties;
+        private CustomProperties _properties = new CustomProperties(CustomPropertyAppliesTo.InventoryItems);
         private Interactions _interactions = new Interactions(_interactionSchema);
         private bool _currentlyDeserializing = false;
 
@@ -42,7 +42,6 @@ namespace AGS.Types
             _cursorImage = 0;
             _hotspotX = 0;
             _hotspotY = 0;
-            _properties = new CustomProperties(CustomPropertyAppliesTo.InventoryItems);
         }
 
         [Description("The ID number of the item")]
@@ -135,7 +134,11 @@ namespace AGS.Types
         public CustomProperties Properties
         {
             get { return _properties; }
-            protected set { _properties = value; }
+            protected set 
+            {
+                _properties = value;
+                _properties.AppliesTo = CustomPropertyAppliesTo.InventoryItems;
+            }
         }
 
         [AGSNoSerialize()]

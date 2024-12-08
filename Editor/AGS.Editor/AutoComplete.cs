@@ -564,7 +564,8 @@ namespace AGS.Editor
             {
                 if (!DoesCurrentLineHaveToken(script, AUTO_COMPLETE_IGNORE))
                 {
-                    bool isArray = false, isPointer = false;
+                    bool isArray = false, isDynamicArray = false;
+                    bool isPointer = false;
                     bool isStatic = false, isStaticOnly = false;
                     bool isNoInherit = false, isProtected = false;
                     string type = state.WordBeforeLast;
@@ -579,7 +580,8 @@ namespace AGS.Editor
 						varName = state.WordBeforeLast;
 						type = state.WordBeforeWordBeforeLast;
 						isArray = true;
-					}
+                        isDynamicArray = true;
+                    }
                     if (type == "*")
                     {
                         isPointer = true;
@@ -612,7 +614,7 @@ namespace AGS.Editor
                     if (type != "struct")
                     {
                         //if (varName == "{") System.Diagnostics.Debugger.Break();
-                        ScriptVariable newVar = new ScriptVariable(varName, type, isArray, isPointer, state.InsideIfDefBlock, state.InsideIfNDefBlock, isStatic, isStaticOnly, isNoInherit, isProtected, state.CurrentScriptCharacterIndex);
+                        ScriptVariable newVar = new ScriptVariable(varName, type, isArray, isDynamicArray, isPointer, state.InsideIfDefBlock, state.InsideIfNDefBlock, isStatic, isStaticOnly, isNoInherit, isProtected, state.CurrentScriptCharacterIndex);
 
                         if (!string.IsNullOrEmpty(state.PreviousComment))
                         {
@@ -733,9 +735,13 @@ namespace AGS.Editor
                         string variableName = nextWord;
                         nextWord = GetNextWord(ref script);
                         bool isArray = false;
+                        bool isDynamicArray = false;
                         if (nextWord == "[") 
                         {
                             isArray = true;
+                            if (PeekNextWord(script) == "]")
+                                isDynamicArray = true;
+
                             while ((script.Length > 0) && (GetNextWord(ref script) != "]")) ;
 							nextWord = GetNextWord(ref script);
                         }
@@ -743,7 +749,7 @@ namespace AGS.Editor
                         if (((nextWord == "=") || (nextWord == ";") || (nextWord == ",")) &&
                             (lastWord != "return") && (lastWord != "else"))
                         {
-							variables.Add(new ScriptVariable(variableName, lastWord, isArray, isPointer, null, null, false, false, false, false, (scriptToParse.Length - script.Length) + relativeCharacterIndex));
+							variables.Add(new ScriptVariable(variableName, lastWord, isArray, isDynamicArray, isPointer, null, null, false, false, false, false, (scriptToParse.Length - script.Length) + relativeCharacterIndex));
                         }
                         if (nextWord != ",")
                         {

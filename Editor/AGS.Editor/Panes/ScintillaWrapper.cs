@@ -2383,7 +2383,7 @@ namespace AGS.Editor
                 }
                 if ((paramName.Length > 0) && (paramType.Length > 0))
                 {
-                    variables.Add(new ScriptVariable(paramName, paramType, false, isPointer, null, null, false, false, false, false, func.StartsAtCharacterIndex));
+                    variables.Add(new ScriptVariable(paramName, paramType, false, false, isPointer, null, null, false, false, false, false, func.StartsAtCharacterIndex));
                 }
             }
         }

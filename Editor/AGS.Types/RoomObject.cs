@@ -170,7 +170,6 @@ namespace AGS.Types
 
         [AGSSerializeClass()]
         [Description("Custom properties for this object")]
-        [Category("Properties")]
         public CustomProperties Properties
         {
             get { return _properties; }

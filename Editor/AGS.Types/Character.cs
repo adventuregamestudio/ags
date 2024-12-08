@@ -349,7 +349,6 @@ namespace AGS.Types
 
         [AGSSerializeClass()]
         [Description("Custom properties for this character")]
-        [Category("Properties")]
         public CustomProperties Properties
         {
             get { return _properties; }

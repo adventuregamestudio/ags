@@ -98,7 +98,7 @@ namespace AGS.Editor.Components
             return new string[] { "CursorMode" };
         }
 
-        public override void ShowItemPaneByName(string name)
+        public override bool ShowItemPaneByName(string name)
         {
             foreach (MouseCursor mc in _agsEditor.CurrentGame.Cursors)
             {
@@ -107,9 +107,10 @@ namespace AGS.Editor.Components
                     MouseCursor chosenCursor = mc;
                     _guiController.ProjectTree.SelectNode(this, GetNodeID(chosenCursor));
                     ShowOrAddPane(chosenCursor);
-                    return;
+                    return true;
                 }
             }
+            return false;
         }
 
         public override void PropertyChanged(string propertyName, object oldValue)

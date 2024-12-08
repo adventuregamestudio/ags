@@ -200,7 +200,7 @@ namespace AGS.Editor.Components
             return new string[] { "GUI", "Label", "Button", "Slider", "ListBox", "TextBox", "InvWindow" };
         }
 
-        public override void ShowItemPaneByName(string name)
+        public override bool ShowItemPaneByName(string name)
         {
             IList<GUI> guis = GetFlatList();
             foreach (GUI g in guis)
@@ -209,7 +209,7 @@ namespace AGS.Editor.Components
                 {
                     _guiController.ProjectTree.SelectNode(this, GetNodeID(g));
                     ShowOrAddPane(g);
-                    return;
+                    return true;
                 }
                 
                 foreach(GUIControl gctrl in g.Controls)
@@ -219,10 +219,12 @@ namespace AGS.Editor.Components
                         _guiController.ProjectTree.SelectNode(this, GetNodeID(g));
                         ShowOrAddPane(g);
                         Factory.GUIController.SetPropertyGridObject(gctrl);
-                        return;
+                        return true;
                     }
                 }
             }
+
+            return false;
         }
 
         private void OnItemIDOrNameChanged(GUI item, bool name_only)
@@ -381,19 +383,21 @@ namespace AGS.Editor.Components
             public NormalGUI GUI;
             public GUIControl Control;
 
-            public GUIObjectWithEvents(NormalGUI gui) { GUI = gui; }
-            public GUIObjectWithEvents(GUIControl control) { Control = control; }
+            public GUIObjectWithEvents(NormalGUI gui) { GUI = gui; Control = null; }
+            public GUIObjectWithEvents(GUIControl control) { GUI = null; Control = control; }
         }
 
         private class GUIEventReference
         {
             public GUIObjectWithEvents GUIObject;
+            public string ObjName;
             public string EventName;
             public string FunctionName;
 
             public GUIEventReference(GUIObjectWithEvents obj, string evtName, string fnName)
             {
                 GUIObject = obj;
+                ObjName = obj.GUI != null ? obj.GUI.Name : obj.Control.Name;
                 EventName = evtName;
                 FunctionName = fnName;
             }
@@ -436,26 +440,44 @@ namespace AGS.Editor.Components
                     }
                 }
 
-                var functionNames = objectEvents.Select(evt => evt.FunctionName);
-                var missing = _agsEditor.Tasks.CheckMissingEventHandlers(ngui.ScriptModule, functionNames.ToArray());
-                if (missing == null || missing.Count == 0)
+                var functionNames = objectEvents.Select(evt => !string.IsNullOrEmpty(evt.FunctionName) ? evt.FunctionName : $"{evt.ObjName}_{evt.EventName}");
+                var funcs = _agsEditor.Tasks.FindEventHandlers(ngui.ScriptModule, functionNames.ToArray());
+                if (funcs == null || funcs.Length == 0)
                     continue;
 
-                foreach (var miss in missing)
+                for (int i = 0; i < funcs.Length; ++i)
                 {
-                    GUIEventReference evtRef = objectEvents[miss];
+                    GUIEventReference evtRef = objectEvents[i];
                     GUIObjectWithEvents guiObject = evtRef.GUIObject;
-                    if (guiObject.GUI != null)
+                    bool has_interaction = !string.IsNullOrEmpty(evtRef.FunctionName);
+                    bool has_function = funcs[i].HasValue;
+                    // If we have an assigned interaction function, but the function is not found - report a missing warning
+                    if (has_interaction && !has_function)
                     {
-                        errors.Add(new CompileWarning($"GUI ({ngui.ID}) {ngui.Name}'s event {evtRef.EventName} function \"{evtRef.FunctionName}\" not found in script {ngui.ScriptModule}."));
+                        if (guiObject.GUI != null)
+                        {
+                            errors.Add(new CompileWarningWithGameObject($"GUI ({ngui.ID}) {ngui.Name}'s event {evtRef.EventName} function \"{evtRef.FunctionName}\" not found in script {ngui.ScriptModule}.",
+                                "GUI", ngui.Name, true));
+                        }
+                        else
+                        {
+                            errors.Add(new CompileWarningWithGameObject($"GUI ({ngui.ID}) {ngui.Name}: {guiObject.Control.ControlType} #{guiObject.Control.ID} {guiObject.Control.Name}'s event {evtRef.EventName} function \"{evtRef.FunctionName}\" not found in script {ngui.ScriptModule}.",
+                                guiObject.Control.ControlType, guiObject.Control.Name, true));
+                        }
                     }
-                    else if (guiObject.Control != null)
+                    // If we don't have an assignment, but has a similar function - report a possible unlinked function
+                    else if (!has_interaction && has_function)
                     {
-                        string typeName = guiObject.Control.ControlType;
-                        int objid = guiObject.Control.ID;
-                        string scriptName = guiObject.Control.Name;
-
-                        errors.Add(new CompileWarning($"GUI ({ngui.ID}) {ngui.Name}: {typeName} #{objid} {scriptName}'s event {evtRef.EventName} function \"{evtRef.FunctionName}\" not found in script {ngui.ScriptModule}."));
+                        if (guiObject.GUI != null)
+                        {
+                            errors.Add(new CompileWarningWithGameObject($"Function \"{funcs[i].Value.Name}\" looks like an event handler, but is not linked on GUI ({ngui.ID}) {ngui.Name}'s Event pane",
+                                "GUI", ngui.Name, funcs[i].Value.ScriptName, funcs[i].Value.Name, funcs[i].Value.LineNumber));
+                        }
+                        else
+                        {
+                            errors.Add(new CompileWarningWithGameObject($"Function \"{funcs[i].Value.Name}\" looks like an event handler, but is not linked on {guiObject.Control.ControlType} ({guiObject.Control.ID}) {guiObject.Control.Name}'s Event pane",
+                                guiObject.Control.ControlType, guiObject.Control.Name, funcs[i].Value.ScriptName, funcs[i].Value.Name, funcs[i].Value.LineNumber));
+                        }
                     }
                 }
             }

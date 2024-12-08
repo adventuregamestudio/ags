@@ -6,8 +6,8 @@ namespace AGS.Types
 {
     public abstract class CompileMessage : ApplicationException
     {
-        private string _scriptName;
-        private int _lineNumber;
+        private string _scriptName = string.Empty;
+        private int _lineNumber = 0;
 
         public CompileMessage(string message, string scriptName, int lineNumber)
             : base(message)
@@ -19,15 +19,11 @@ namespace AGS.Types
         public CompileMessage(string message)
             : base(message)
         {
-            _scriptName = string.Empty;
-            _lineNumber = 0;
         }
 
         public CompileMessage(string message, Exception innerException)
             : base(message, innerException)
         {
-            _scriptName = string.Empty;
-            _lineNumber = 0;
         }
 
         public CompileMessage(CompileMessage other) : base(other.Message)

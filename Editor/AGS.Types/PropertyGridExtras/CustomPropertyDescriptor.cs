@@ -81,7 +81,7 @@ namespace AGS.Types
 
         public override void ResetValue(object component)
         {
-            throw new NotImplementedException();
+            _properties.PropertyValues.Remove(_schemaItem.Name);
         }
 
         public override void SetValue(object component, object value)
@@ -120,7 +120,7 @@ namespace AGS.Types
 
         public override bool ShouldSerializeValue(object component)
         {
-            return true;
+            return _properties.PropertyValues.ContainsKey(_schemaItem.Name);
         }
     }
 }

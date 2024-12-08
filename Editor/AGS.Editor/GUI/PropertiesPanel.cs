@@ -102,6 +102,7 @@ namespace AGS.Editor
             set
             {
                 propertiesGrid.SelectedObject = value;
+                propertiesGrid.ExpandAllGridItems();
             }
         }
 
@@ -111,6 +112,7 @@ namespace AGS.Editor
             set 
             {
                 propertiesGrid.SelectedObjects = value;
+                propertiesGrid.ExpandAllGridItems();
             }
         }
 

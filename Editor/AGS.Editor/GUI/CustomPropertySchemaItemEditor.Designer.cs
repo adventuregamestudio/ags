@@ -238,6 +238,7 @@ namespace AGS.Editor
             this.Name = "CustomPropertySchemaItemEditor";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Property settings";
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.CustomPropertySchemaItemEditor_FormClosed);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
             this.ResumeLayout(false);

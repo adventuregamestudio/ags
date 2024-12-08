@@ -6,6 +6,7 @@ using System.Data;
 using System.Text;
 using System.Windows.Forms;
 using WeifenLuo.WinFormsUI.Docking;
+using System.Windows.Forms.Design;
 
 namespace AGS.Editor
 {
@@ -88,6 +89,40 @@ namespace AGS.Editor
             {
                 Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
             }
+        }
+
+        public void ExpandAllGridItems()
+        {
+            propertiesGrid.ExpandAllGridItems();
+        }
+
+        public object SelectedObject
+        {
+            get { return propertiesGrid.SelectedObject; }
+            set
+            {
+                propertiesGrid.SelectedObject = value;
+            }
+        }
+
+        public object[] SelectedObjects
+        { 
+            get { return propertiesGrid.SelectedObjects; }
+            set 
+            {
+                propertiesGrid.SelectedObjects = value;
+            }
+        }
+
+        public GridItem SelectedGridItem
+        {
+            get { return propertiesGrid.SelectedGridItem; }
+            set { propertiesGrid.SelectedGridItem = value; }
+        }
+
+        public PropertyTab SelectedTab
+        {
+            get { return propertiesGrid.SelectedTab; }
         }
     }
 }

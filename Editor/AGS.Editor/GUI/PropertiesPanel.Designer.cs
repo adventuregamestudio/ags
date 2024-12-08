@@ -70,7 +70,7 @@
 
         #endregion
 
-        internal System.Windows.Forms.PropertyGrid propertiesGrid;
+        private System.Windows.Forms.PropertyGrid propertiesGrid;
         internal System.Windows.Forms.ComboBox propertyObjectCombo;
     }
 }

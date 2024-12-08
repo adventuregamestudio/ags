@@ -219,6 +219,7 @@
     <Compile Include="PropertyGridExtras\AudioClipSourceFileUIEditor.cs" />
     <Compile Include="PropertyGridExtras\ColorUIEditor.cs" />
     <Compile Include="PropertyGridExtras\CustomPropertiesUIEditor.cs" />
+    <Compile Include="PropertyGridExtras\CustomPropertyDescriptor.cs" />
     <Compile Include="PropertyGridExtras\FontFileUIEditor.cs" />
     <Compile Include="PropertyGridExtras\FontSizeTypeConverter.cs" />
     <Compile Include="PropertyGridExtras\FontSizeUIEditor.cs" />

@@ -350,8 +350,34 @@ namespace AGS.Editor
 					state.AddNextWord(thisWord);
 				}
             }
+
+            GenerateDynamicArrayStructs(newCache, structsLookup);
+
             scriptToCache.AutoCompleteData.CopyFrom(newCache);
 			scriptToCache.AutoCompleteData.Populated = true;
+        }
+
+        private static void GenerateDynamicArrayStructs(ScriptAutoCompleteData data, List<ScriptStruct> structsLookup)
+        {
+            foreach (var variable in data.Variables)
+            {
+                if (!variable.IsDynamicArray)
+                    continue;
+
+                string trueType = variable.Type;
+                string fakeStructName = trueType + "[]";
+                variable.Type = fakeStructName;
+                if (structsLookup.Find(s => s.Name == fakeStructName) != null)
+                    continue;
+
+                ScriptStruct dynArrStruct = new ScriptStruct(fakeStructName);
+                ScriptVariable lengthVar = new ScriptVariable("Length", "int", false, false, false, null, null, false, false, false, false, 0);
+                lengthVar.Description = "Returns length of this dynamic array.";
+                dynArrStruct.Variables.Add(lengthVar);
+                dynArrStruct.FullDefinition = true;
+                data.Structs.Add(dynArrStruct);
+                structsLookup.Add(dynArrStruct);
+            }
         }
 
         private static void AdjustFunctionListForExtenderFunction(List<ScriptStruct> structsLookup,

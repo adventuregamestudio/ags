@@ -376,7 +376,7 @@ namespace AGS.Editor
                     continue;
 
                 string trueType = variable.Type;
-                string fakeStructName = trueType + "[]";
+                string fakeStructName = trueType + (variable.IsPointer ? "*[]" : "[]");
                 variable.Type = fakeStructName;
                 if (structsLookup.Find(s => s.Name == fakeStructName) != null)
                     continue;

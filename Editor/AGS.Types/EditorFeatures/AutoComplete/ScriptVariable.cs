@@ -34,7 +34,7 @@ namespace AGS.Types.AutoComplete
 
         public override string ToString()
         {
-            return "VAR: " + (IsStatic ? "static " : "") + Type + (IsPointer ? "*" : "") + (IsArray ? "[]" : "") + " " + VariableName;
+            return "VAR: " + (IsStatic ? "static " : "") + Type + (IsPointer && !IsDynamicArray ? "*" : "") + " " + VariableName + (IsArray && !IsDynamicArray ? "[]" : "");
         }
     }
 }

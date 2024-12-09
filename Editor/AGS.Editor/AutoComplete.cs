@@ -359,7 +359,18 @@ namespace AGS.Editor
 
         private static void GenerateDynamicArrayStructs(ScriptAutoCompleteData data, List<ScriptStruct> structsLookup)
         {
-            foreach (var variable in data.Variables)
+            GenerateDynamicArrayStructs(data.Variables, data.Structs, structsLookup);
+        }
+
+        private static void GenerateDynamicArrayStructs(List<ScriptVariable> variables, List<ScriptStruct> structs)
+        {
+            List<ScriptStruct> structsLookup = new List<ScriptStruct>(structs);
+            GenerateDynamicArrayStructs(variables, structs, structsLookup);
+        }
+
+        private static void GenerateDynamicArrayStructs(List<ScriptVariable> variables, List<ScriptStruct> structs, List<ScriptStruct> structsLookup)
+        {
+            foreach (var variable in variables)
             {
                 if (!variable.IsDynamicArray)
                     continue;
@@ -375,7 +386,7 @@ namespace AGS.Editor
                 lengthVar.Description = "Returns length of this dynamic array.";
                 dynArrStruct.Variables.Add(lengthVar);
                 dynArrStruct.FullDefinition = true;
-                data.Structs.Add(dynArrStruct);
+                structs.Add(dynArrStruct);
                 structsLookup.Add(dynArrStruct);
             }
         }
@@ -731,10 +742,54 @@ namespace AGS.Editor
             return nextWord;
         }
 
-        public static List<ScriptVariable> GetLocalVariableDeclarationsFromScriptExtract(string scriptToParse, int relativeCharacterIndex)
+        public static List<ScriptVariable> GetLocalVariableDeclarations(ScriptFunction func, List<ScriptStruct> localStructs, string scriptToParse, int relativeCharacterIndex)
+        {
+            List<ScriptVariable> variables = new List<ScriptVariable>();
+            GetFunctionParametersAsVariableList(func, variables);
+            GetLocalVariableDeclarationsFromScriptExtract(scriptToParse, relativeCharacterIndex, variables);
+            GenerateDynamicArrayStructs(variables, localStructs);
+            return variables;
+        }
+
+        private static void GetFunctionParametersAsVariableList(ScriptFunction func, List<ScriptVariable> variables)
+        {
+            if (func.ParamList.Length == 0)
+            {
+                return;
+            }
+            string[] parameters = func.ParamList.Split(',');
+            foreach (string thisParam in parameters)
+            {
+                string param = thisParam.Trim();
+                if (param.StartsWith("optional "))
+                {
+                    param = param.Substring(9).Trim();
+                }
+                int index = param.Length - 1;
+                while ((index >= 0) &&
+                       (Char.IsLetterOrDigit(param[index]) || param[index] == '_'))
+                {
+                    index--;
+                }
+                string paramName = param.Substring(index + 1);
+                string paramType = param.Substring(0, index + 1).Trim();
+                bool isPointer = false;
+                if (paramType.EndsWith("*"))
+                {
+                    isPointer = true;
+                    paramType = paramType.Substring(0, paramType.Length - 1).Trim();
+                }
+                if ((paramName.Length > 0) && (paramType.Length > 0))
+                {
+                    variables.Add(new ScriptVariable(paramName, paramType, false, false, isPointer, null, null, false, false, false, false, func.StartsAtCharacterIndex));
+                }
+            }
+            return;
+        }
+
+        private static void GetLocalVariableDeclarationsFromScriptExtract(string scriptToParse, int relativeCharacterIndex, List<ScriptVariable> variables)
         {
             FastString script = scriptToParse;
-            List<ScriptVariable> variables = new List<ScriptVariable>();
             string lastWord = string.Empty;
             while (script.Length > 0)
             {
@@ -792,7 +847,7 @@ namespace AGS.Editor
                     lastWord = string.Empty;
                 }
             }
-            return variables;
+            return;
         }
     }
 }

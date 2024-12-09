@@ -760,28 +760,37 @@ namespace AGS.Editor
             string[] parameters = func.ParamList.Split(',');
             foreach (string thisParam in parameters)
             {
-                string param = thisParam.Trim();
+                FastString param = thisParam.Trim();
                 if (param.StartsWith("optional "))
                 {
                     param = param.Substring(9).Trim();
                 }
                 int index = param.Length - 1;
+
+                bool isDynamicArray = false;
+                if (index >= 0 && param[index] == ']')
+                {
+                    isDynamicArray = true;
+                    while (index >= 0 && param[index--] != '[');
+                    param = param.Substring(0, index + 1).Trim();
+                }
+
                 while ((index >= 0) &&
                        (Char.IsLetterOrDigit(param[index]) || param[index] == '_'))
                 {
                     index--;
                 }
-                string paramName = param.Substring(index + 1);
-                string paramType = param.Substring(0, index + 1).Trim();
+                FastString paramName = param.Substring(index + 1);
+                FastString paramType = param.Substring(0, index + 1).Trim();
                 bool isPointer = false;
-                if (paramType.EndsWith("*"))
+                if (paramType[paramType.Length - 1] == '*')
                 {
                     isPointer = true;
                     paramType = paramType.Substring(0, paramType.Length - 1).Trim();
                 }
                 if ((paramName.Length > 0) && (paramType.Length > 0))
                 {
-                    variables.Add(new ScriptVariable(paramName, paramType, false, false, isPointer, null, null, false, false, false, false, func.StartsAtCharacterIndex));
+                    variables.Add(new ScriptVariable(paramName.ToString(), paramType.ToString(), false, isDynamicArray, isPointer, null, null, false, false, false, false, func.StartsAtCharacterIndex));
                 }
             }
             return;

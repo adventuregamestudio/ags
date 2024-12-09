@@ -634,8 +634,8 @@ void scriptDebugHook (ccInstance *ccinst, int linenum) {
 
     if (pluginsWantingDebugHooks > 0) {
         // a plugin is handling the debugging
-        String scname = GetScriptName(ccinst);
-        pl_run_plugin_debug_hooks(scname.GetCStr(), linenum);
+        const char *scname = ccinst ? ccinst->GetScript()->GetScriptName().c_str() : "(Not in script)";
+        pl_run_plugin_debug_hooks(scname, linenum);
         return;
     }
 

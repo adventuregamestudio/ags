@@ -616,19 +616,6 @@ void FreeGlobalScripts()
     runDialogOptionCloseFunc.ModuleHasFunction.clear();
 }
 
-String GetScriptName(ccInstance *sci)
-{
-    // TODO: have script name a ccScript's member?
-    // TODO: check script modules too?
-    if (!sci)
-        return "Not in a script";
-    else if (sci->GetScript() == gamescript)
-        return "Global script";
-    else if (sci->GetScript() == thisroom.CompiledScript)
-        return String::FromFormat("Room %d script", displayed_room);
-    return "Unknown script";
-}
-
 //=============================================================================
 
 String make_interact_func_name(const String &base, int param, int subd)

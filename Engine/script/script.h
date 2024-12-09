@@ -163,9 +163,6 @@ void    FreeRoomScriptInstance();
 // this frees all of the bytecode and runtime script memory.
 void    FreeGlobalScripts();
 
-
-String  GetScriptName(ccInstance *sci);
-
 //=============================================================================
 
 // Makes a old-style interaction function name (for interaction list "run script" command)

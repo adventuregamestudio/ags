@@ -28,18 +28,17 @@ using namespace AGS::Types;
 public ref class CompiledScript : ICompiledScript
 {
 private:
-	PScript* _compiledScript;
+	UScript* _compiledScript;
 public:
-	CompiledScript(PScript script) 
+	CompiledScript(UScript &&script) 
 	{
-		_compiledScript = new PScript();
-		*_compiledScript = script;
+		_compiledScript = new UScript(std::move(script));
 	}
 
-	property PScript Data
+	property UScript &Data
 	{
-		PScript get() { return *_compiledScript; }
-		void set(PScript newScript) { *_compiledScript = newScript; }
+		UScript &get() { return *_compiledScript; }
+		void set(UScript &newScript) { *_compiledScript = std::move(newScript); }
 	}
 
 	~CompiledScript() 

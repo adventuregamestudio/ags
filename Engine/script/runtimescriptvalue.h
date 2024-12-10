@@ -375,9 +375,15 @@ public:
         }
         case kScValStaticArray:
         case kScValScriptObject:
+        case kScValPluginObject:
             return RuntimeScriptValue().SetInt32(this->ObjMgr->ReadInt32(this->Ptr, this->IValue));
-        default:
+        case kScValPluginArg:
+        case kScValData:
+        case kScValStringLiteral:
             return RuntimeScriptValue().SetInt32(*(int32_t*)this->GetPtrWithOffset());
+        default:
+            assert(false);
+            return {};
         }
     }
 
@@ -427,15 +433,18 @@ public:
         }
         case kScValStaticArray:
         case kScValScriptObject:
+        case kScValPluginObject:
         {
             this->ObjMgr->WriteInt32(this->Ptr, this->IValue, rval.IValue);
             break;
         }
-        default:
-        {
+        case kScValPluginArg:
+        case kScValData:
             *((int32_t*)this->GetPtrWithOffset()) = rval.IValue;
             break;
-        }
+        default:
+            assert(false);
+            break;
         }
     }
 

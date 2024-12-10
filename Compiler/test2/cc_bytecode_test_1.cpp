@@ -3750,3 +3750,65 @@ TEST_F(Bytecode1, CharArrayDecay01)
     CompareStrings(&scrip, stringssize, strings);
 }
 
+TEST_F(Bytecode1, DotAfterFuncCall)
+{
+    // When a func call returns a struct that has a suitable
+    // attribute, this attribute must be callable.
+
+    char const *inpl = "\
+        builtin managed struct Hotspot                          \n\
+        {                                                       \n\
+            import static Hotspot* GetAtScreenXY(int x, int y); \n\
+            readonly import attribute int ID;                   \n\
+            readonly int reserved[2];                           \n\
+        };                                                      \n\
+                                                                \n\
+        int game_start()                                        \n\
+        {                                                       \n\
+            int id = Hotspot.GetAtScreenXY(7, 0).ID;            \n\
+        }                                                       \n\
+        ";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string const &err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+
+    // WriteOutput("DotAfterFuncCall", scrip);
+
+    size_t const codesize = 53;
+    EXPECT_EQ(codesize, scrip.code.size());
+
+    int32_t code[] = {
+      36,    9,   38,    0,           36,   10,    6,    3,    // 7
+       0,   34,    3,    6,            3,    7,   34,    3,    // 15
+      39,    2,    6,    3,            0,   33,    3,   35,    // 23
+       2,    3,    3,    2,           52,   29,    6,   45,    // 31
+       2,   39,    0,    6,            3,    1,   33,    3,    // 39
+      30,    6,   29,    3,           36,   11,    2,    1,    // 47
+       4,    6,    3,    0,            5,  -999
+    };
+    CompareCode(&scrip, codesize, code);
+
+    size_t const numfixups = 2;
+    EXPECT_EQ(numfixups, scrip.fixups.size());
+
+    int32_t fixups[] = {
+      20,   37,  -999
+    };
+    char fixuptypes[] = {
+      4,   4,  '\0'
+    };
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
+
+    int const numimports = 2;
+    std::string imports[] = {
+    "Hotspot::GetAtScreenXY^2",   "Hotspot::get_ID^0",           "[[SENTINEL]]"
+    };
+    CompareImports(&scrip, numimports, imports);
+
+    size_t const numexports = 0;
+    EXPECT_EQ(numexports, scrip.exports.size());
+
+    size_t const stringssize = 0;
+    EXPECT_EQ(stringssize, scrip.strings.size());
+}

@@ -3756,8 +3756,14 @@ void AGS::Parser::AccessData_SubsequentClause(VariableAccess access_type, bool a
             return;
         }
 
-        SrcList arguments = SrcList(expression, expression.GetCursor(), expression.Length());
+        size_t const arguments_begin = expression.GetCursor();
+        SkipNextSymbol(expression, kKW_OpenParenthesis);
+        expression.SkipToCloser();
+        SkipNextSymbol(expression, kKW_CloseParenthesis);
+        size_t const arguments_end = expression.GetCursor();
+        SrcList arguments = SrcList(expression, arguments_begin, arguments_end - arguments_begin);
         AccessData_FunctionCall(qualified_component, arguments, eres);
+        expression.SetCursor(arguments_end);
         if (_sym.IsDynarrayVartype(vartype))
             return AccessData_ProcessArrayIndexes(expression, eres);
         return;

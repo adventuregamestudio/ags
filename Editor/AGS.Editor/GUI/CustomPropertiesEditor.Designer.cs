@@ -91,6 +91,7 @@ namespace AGS.Editor
             this.Name = "CustomPropertiesEditor";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Edit custom properties";
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.CustomPropertiesEditor_FormClosed);
             this.ResumeLayout(false);
             this.PerformLayout();
 

@@ -160,7 +160,7 @@ namespace AGS.Editor.Components
             return new string[] { "Character" };
         }
 
-        public override void ShowItemPaneByName(string name)
+        public override bool ShowItemPaneByName(string name)
         {
             IList<Character> characters = GetFlatList();
             foreach(Character c in characters)
@@ -169,9 +169,10 @@ namespace AGS.Editor.Components
                 {
                     _guiController.ProjectTree.SelectNode(this, GetNodeID(c));
                     ShowOrAddPane(c);
-                    return;
+                    return true;
                 }
             }
+            return false;
         }
 
         public void ShowPlayerCharacter()
@@ -376,13 +377,26 @@ namespace AGS.Editor.Components
             var errors = args.Messages;
             foreach (Character c in _agsEditor.CurrentGame.Characters)
             {
-                var missing = _agsEditor.Tasks.CheckMissingInteractionHandlers(c.Interactions);
-                if (missing == null || missing.Count == 0)
+                var funcs = _agsEditor.Tasks.FindInteractionHandlers(c.ScriptName, c.Interactions, true);
+                if (funcs == null || funcs.Length == 0)
                     continue;
 
-                foreach (var miss in missing)
+                for (int i = 0; i < funcs.Length; ++i)
                 {
-                    errors.Add(new CompileWarning($"Character ({c.ID}) {c.ScriptName}'s event {c.Interactions.Schema.FunctionSuffixes[miss]} function \"{c.Interactions.ScriptFunctionNames[miss]}\" not found in script {c.Interactions.ScriptModule}."));
+                    bool has_interaction = !string.IsNullOrEmpty(c.Interactions.ScriptFunctionNames[i]);
+                    bool has_function = funcs[i].HasValue;
+                    // If we have an assigned interaction function, but the function is not found - report a missing warning
+                    if (has_interaction && !has_function)
+                    {
+                        errors.Add(new CompileWarningWithGameObject($"Character ({c.ID}) {c.ScriptName}'s event {c.Interactions.Schema.FunctionSuffixes[i]} function \"{c.Interactions.ScriptFunctionNames[i]}\" not found in script {c.Interactions.ScriptModule}.",
+                            "Character", c.ScriptName, true));
+                    }
+                    // If we don't have an assignment, but has a similar function - report a possible unlinked function
+                    else if (!has_interaction && has_function)
+                    {
+                        errors.Add(new CompileWarningWithGameObject($"Function \"{funcs[i].Value.Name}\" looks like an event handler, but is not linked on Character ({c.ID}) {c.ScriptName}'s Event pane",
+                            "Character", c.ScriptName, funcs[i].Value.ScriptName, funcs[i].Value.Name, funcs[i].Value.LineNumber));
+                    }
                 }
             }
         }

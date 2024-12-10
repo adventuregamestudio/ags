@@ -234,7 +234,7 @@ namespace AGS.Editor.Components
             return new string[] { "Dialog" };
         }
 
-        public override void ShowItemPaneByName(string name)
+        public override bool ShowItemPaneByName(string name)
         {
             IList<Dialog> dialogs = GetFlatList();
             foreach (Dialog d in dialogs)
@@ -243,9 +243,10 @@ namespace AGS.Editor.Components
                 {
                     _guiController.ProjectTree.SelectNode(this, GetNodeID(d));
                     ShowPaneForDialog(d);
-                    return;
+                    return true;
                 }
             }
+            return false;
         }
 
         private DialogEditor ShowPaneForDialog(int dialogNumber)

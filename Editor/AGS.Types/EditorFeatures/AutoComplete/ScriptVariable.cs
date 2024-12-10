@@ -6,7 +6,7 @@ namespace AGS.Types.AutoComplete
 {
     public class ScriptVariable : ScriptToken
     {
-        public ScriptVariable(string variableName, string type, bool isArray, bool isDynamicArray, bool isPointer, string ifDefOnly, string ifNDefOnly, bool isStatic, bool isStaticOnly, bool noInherit, bool isProtected, int scriptCharacterIndex)
+        public ScriptVariable(string variableName, string type, bool isArray, bool isDynamicArray, bool isPointer, string ifDefOnly, string ifNDefOnly, bool isStatic, bool isStaticOnly, bool noInherit, bool isProtected, bool isReadOnly, int scriptCharacterIndex)
         {
             VariableName = variableName;
             Type = type;
@@ -19,7 +19,8 @@ namespace AGS.Types.AutoComplete
             IsStaticOnly = isStaticOnly;
             NoInherit = noInherit;
             IsProtected = isProtected;
-			StartsAtCharacterIndex = scriptCharacterIndex;
+            IsReadOnly = isReadOnly;
+            StartsAtCharacterIndex = scriptCharacterIndex;
         }
 
         public string VariableName;
@@ -31,6 +32,7 @@ namespace AGS.Types.AutoComplete
         public bool NoInherit;
         public bool IsProtected;
         public bool IsDynamicArray;
+        public bool IsReadOnly;
 
         public override string ToString()
         {

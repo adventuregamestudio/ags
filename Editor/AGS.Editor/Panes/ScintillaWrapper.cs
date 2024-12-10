@@ -2097,7 +2097,12 @@ namespace AGS.Editor
 
         private string ConstructVariableCalltipText(ScriptVariable variable, ScriptStruct owningStruct)
         {
-            string callTip = variable.Type;
+            string callTip = "";
+            if (variable.IsReadOnly)
+            {
+                callTip += "readonly ";
+            }
+            callTip += variable.Type;
             if (variable.IsArray)
             {
                 callTip += "[ ]";

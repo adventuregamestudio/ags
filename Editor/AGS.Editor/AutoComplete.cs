@@ -382,7 +382,7 @@ namespace AGS.Editor
                     continue;
 
                 ScriptStruct dynArrStruct = new ScriptStruct(fakeStructName);
-                ScriptVariable lengthVar = new ScriptVariable("Length", "int", false, false, false, null, null, false, false, false, false, 0);
+                ScriptVariable lengthVar = new ScriptVariable("Length", "int", false, false, false, null, null, false, false, false, false, true, 0);
                 lengthVar.Description = "Returns length of this dynamic array.";
                 dynArrStruct.Variables.Add(lengthVar);
                 dynArrStruct.FullDefinition = true;
@@ -605,6 +605,7 @@ namespace AGS.Editor
                     bool isPointer = false;
                     bool isStatic = false, isStaticOnly = false;
                     bool isNoInherit = false, isProtected = false;
+                    bool isReadonly = false;
                     string type = state.WordBeforeLast;
 					string varName = state.LastWord;
                     if (thisWord == "[")
@@ -639,6 +640,10 @@ namespace AGS.Editor
                     {
                         isProtected = true;
                     }
+                    if (state.IsWordInPreviousList("readonly"))
+                    {
+                        isReadonly = true;
+                    }
                     if (DoesCurrentLineHaveToken(script, AUTO_COMPLETE_STATIC_ONLY))
                     {
                         isStaticOnly = true;
@@ -651,7 +656,7 @@ namespace AGS.Editor
                     if (type != "struct")
                     {
                         //if (varName == "{") System.Diagnostics.Debugger.Break();
-                        ScriptVariable newVar = new ScriptVariable(varName, type, isArray, isDynamicArray, isPointer, state.InsideIfDefBlock, state.InsideIfNDefBlock, isStatic, isStaticOnly, isNoInherit, isProtected, state.CurrentScriptCharacterIndex);
+                        ScriptVariable newVar = new ScriptVariable(varName, type, isArray, isDynamicArray, isPointer, state.InsideIfDefBlock, state.InsideIfNDefBlock, isStatic, isStaticOnly, isNoInherit, isProtected, isReadonly, state.CurrentScriptCharacterIndex);
 
                         if (!string.IsNullOrEmpty(state.PreviousComment))
                         {
@@ -790,7 +795,7 @@ namespace AGS.Editor
                 }
                 if ((paramName.Length > 0) && (paramType.Length > 0))
                 {
-                    variables.Add(new ScriptVariable(paramName.ToString(), paramType.ToString(), false, isDynamicArray, isPointer, null, null, false, false, false, false, func.StartsAtCharacterIndex));
+                    variables.Add(new ScriptVariable(paramName.ToString(), paramType.ToString(), false, isDynamicArray, isPointer, null, null, false, false, false, false, false, func.StartsAtCharacterIndex));
                 }
             }
             return;
@@ -839,7 +844,7 @@ namespace AGS.Editor
                         if (((nextWord == "=") || (nextWord == ";") || (nextWord == ",")) &&
                             (lastWord != "return") && (lastWord != "else"))
                         {
-							variables.Add(new ScriptVariable(variableName, lastWord, isArray, isDynamicArray, isPointer, null, null, false, false, false, false, (scriptToParse.Length - script.Length) + relativeCharacterIndex));
+							variables.Add(new ScriptVariable(variableName, lastWord, isArray, isDynamicArray, isPointer, null, null, false, false, false, false, false, (scriptToParse.Length - script.Length) + relativeCharacterIndex));
                         }
                         if (nextWord != ",")
                         {

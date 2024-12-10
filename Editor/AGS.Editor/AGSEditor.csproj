@@ -179,7 +179,6 @@
       <DependentUpon>CustomPropertiesEditor.cs</DependentUpon>
     </Compile>
     <Compile Include="GUI\CustomPropertyBag.cs" />
-    <Compile Include="GUI\CustomPropertyDescriptor.cs" />
     <Compile Include="GUI\CustomPropertySchemaEditor.cs">
       <SubType>Form</SubType>
     </Compile>

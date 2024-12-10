@@ -350,8 +350,45 @@ namespace AGS.Editor
 					state.AddNextWord(thisWord);
 				}
             }
+
+            GenerateDynamicArrayStructs(newCache, structsLookup);
+
             scriptToCache.AutoCompleteData.CopyFrom(newCache);
 			scriptToCache.AutoCompleteData.Populated = true;
+        }
+
+        private static void GenerateDynamicArrayStructs(ScriptAutoCompleteData data, List<ScriptStruct> structsLookup)
+        {
+            GenerateDynamicArrayStructs(data.Variables, data.Structs, structsLookup);
+        }
+
+        private static void GenerateDynamicArrayStructs(List<ScriptVariable> variables, List<ScriptStruct> structs)
+        {
+            List<ScriptStruct> structsLookup = new List<ScriptStruct>(structs);
+            GenerateDynamicArrayStructs(variables, structs, structsLookup);
+        }
+
+        private static void GenerateDynamicArrayStructs(List<ScriptVariable> variables, List<ScriptStruct> structs, List<ScriptStruct> structsLookup)
+        {
+            foreach (var variable in variables)
+            {
+                if (!variable.IsDynamicArray)
+                    continue;
+
+                string trueType = variable.Type;
+                string fakeStructName = trueType + (variable.IsPointer ? "*[]" : "[]");
+                variable.Type = fakeStructName;
+                if (structsLookup.Find(s => s.Name == fakeStructName) != null)
+                    continue;
+
+                ScriptStruct dynArrStruct = new ScriptStruct(fakeStructName);
+                ScriptVariable lengthVar = new ScriptVariable("Length", "int", false, false, false, null, null, false, false, false, false, true, 0);
+                lengthVar.Description = "Returns length of this dynamic array.";
+                dynArrStruct.Variables.Add(lengthVar);
+                dynArrStruct.FullDefinition = true;
+                structs.Add(dynArrStruct);
+                structsLookup.Add(dynArrStruct);
+            }
         }
 
         private static void AdjustFunctionListForExtenderFunction(List<ScriptStruct> structsLookup,
@@ -564,9 +601,11 @@ namespace AGS.Editor
             {
                 if (!DoesCurrentLineHaveToken(script, AUTO_COMPLETE_IGNORE))
                 {
-                    bool isArray = false, isPointer = false;
+                    bool isArray = false, isDynamicArray = false;
+                    bool isPointer = false;
                     bool isStatic = false, isStaticOnly = false;
                     bool isNoInherit = false, isProtected = false;
+                    bool isReadonly = false;
                     string type = state.WordBeforeLast;
 					string varName = state.LastWord;
                     if (thisWord == "[")
@@ -579,7 +618,8 @@ namespace AGS.Editor
 						varName = state.WordBeforeLast;
 						type = state.WordBeforeWordBeforeLast;
 						isArray = true;
-					}
+                        isDynamicArray = true;
+                    }
                     if (type == "*")
                     {
                         isPointer = true;
@@ -600,6 +640,10 @@ namespace AGS.Editor
                     {
                         isProtected = true;
                     }
+                    if (state.IsWordInPreviousList("readonly"))
+                    {
+                        isReadonly = true;
+                    }
                     if (DoesCurrentLineHaveToken(script, AUTO_COMPLETE_STATIC_ONLY))
                     {
                         isStaticOnly = true;
@@ -612,7 +656,7 @@ namespace AGS.Editor
                     if (type != "struct")
                     {
                         //if (varName == "{") System.Diagnostics.Debugger.Break();
-                        ScriptVariable newVar = new ScriptVariable(varName, type, isArray, isPointer, state.InsideIfDefBlock, state.InsideIfNDefBlock, isStatic, isStaticOnly, isNoInherit, isProtected, state.CurrentScriptCharacterIndex);
+                        ScriptVariable newVar = new ScriptVariable(varName, type, isArray, isDynamicArray, isPointer, state.InsideIfDefBlock, state.InsideIfNDefBlock, isStatic, isStaticOnly, isNoInherit, isProtected, isReadonly, state.CurrentScriptCharacterIndex);
 
                         if (!string.IsNullOrEmpty(state.PreviousComment))
                         {
@@ -703,10 +747,63 @@ namespace AGS.Editor
             return nextWord;
         }
 
-        public static List<ScriptVariable> GetLocalVariableDeclarationsFromScriptExtract(string scriptToParse, int relativeCharacterIndex)
+        public static List<ScriptVariable> GetLocalVariableDeclarations(ScriptFunction func, List<ScriptStruct> localStructs, string scriptToParse, int relativeCharacterIndex)
+        {
+            List<ScriptVariable> variables = new List<ScriptVariable>();
+            GetFunctionParametersAsVariableList(func, variables);
+            GetLocalVariableDeclarationsFromScriptExtract(scriptToParse, relativeCharacterIndex, variables);
+            GenerateDynamicArrayStructs(variables, localStructs);
+            return variables;
+        }
+
+        private static void GetFunctionParametersAsVariableList(ScriptFunction func, List<ScriptVariable> variables)
+        {
+            if (func.ParamList.Length == 0)
+            {
+                return;
+            }
+            string[] parameters = func.ParamList.Split(',');
+            foreach (string thisParam in parameters)
+            {
+                FastString param = thisParam.Trim();
+                if (param.StartsWith("optional "))
+                {
+                    param = param.Substring(9).Trim();
+                }
+                int index = param.Length - 1;
+
+                bool isDynamicArray = false;
+                if (index >= 0 && param[index] == ']')
+                {
+                    isDynamicArray = true;
+                    while (index >= 0 && param[index--] != '[');
+                    param = param.Substring(0, index + 1).Trim();
+                }
+
+                while ((index >= 0) &&
+                       (Char.IsLetterOrDigit(param[index]) || param[index] == '_'))
+                {
+                    index--;
+                }
+                FastString paramName = param.Substring(index + 1);
+                FastString paramType = param.Substring(0, index + 1).Trim();
+                bool isPointer = false;
+                if (paramType[paramType.Length - 1] == '*')
+                {
+                    isPointer = true;
+                    paramType = paramType.Substring(0, paramType.Length - 1).Trim();
+                }
+                if ((paramName.Length > 0) && (paramType.Length > 0))
+                {
+                    variables.Add(new ScriptVariable(paramName.ToString(), paramType.ToString(), false, isDynamicArray, isPointer, null, null, false, false, false, false, false, func.StartsAtCharacterIndex));
+                }
+            }
+            return;
+        }
+
+        private static void GetLocalVariableDeclarationsFromScriptExtract(string scriptToParse, int relativeCharacterIndex, List<ScriptVariable> variables)
         {
             FastString script = scriptToParse;
-            List<ScriptVariable> variables = new List<ScriptVariable>();
             string lastWord = string.Empty;
             while (script.Length > 0)
             {
@@ -733,9 +830,13 @@ namespace AGS.Editor
                         string variableName = nextWord;
                         nextWord = GetNextWord(ref script);
                         bool isArray = false;
+                        bool isDynamicArray = false;
                         if (nextWord == "[") 
                         {
                             isArray = true;
+                            if (PeekNextWord(script) == "]")
+                                isDynamicArray = true;
+
                             while ((script.Length > 0) && (GetNextWord(ref script) != "]")) ;
 							nextWord = GetNextWord(ref script);
                         }
@@ -743,7 +844,7 @@ namespace AGS.Editor
                         if (((nextWord == "=") || (nextWord == ";") || (nextWord == ",")) &&
                             (lastWord != "return") && (lastWord != "else"))
                         {
-							variables.Add(new ScriptVariable(variableName, lastWord, isArray, isPointer, null, null, false, false, false, false, (scriptToParse.Length - script.Length) + relativeCharacterIndex));
+							variables.Add(new ScriptVariable(variableName, lastWord, isArray, isDynamicArray, isPointer, null, null, false, false, false, false, false, (scriptToParse.Length - script.Length) + relativeCharacterIndex));
                         }
                         if (nextWord != ",")
                         {
@@ -760,7 +861,7 @@ namespace AGS.Editor
                     lastWord = string.Empty;
                 }
             }
-            return variables;
+            return;
         }
     }
 }

@@ -94,21 +94,56 @@ int a;
             Assert.That(scriptToTest.AutoCompleteData.Variables.Count, Is.EqualTo(1));
         }
 
+
         [Test]
         public void ContainsArray()
         {
             string scriptCode = $@"
-int arrOfInts[] = new int[100];
+int staticArrayOfInts[100];
 ";
             Script scriptToTest = CachedAutoCompletedScriptFromCode(scriptCode);
 
             Assert.That(scriptToTest.AutoCompleteData.Variables.Count, Is.EqualTo(1));
 
-            ScriptVariable variable = scriptToTest.AutoCompleteData.Variables.FirstOrDefault(v => v.VariableName == "arrOfInts");
+            ScriptVariable variable = scriptToTest.AutoCompleteData.Variables.FirstOrDefault(v => v.VariableName == "staticArrayOfInts");
             Assert.That(variable, Is.Not.Null);
-            Assert.That(variable.Type, Is.EqualTo("int"));
+            Assert.That(variable.Type, Is.EqualTo("int")); // static array type is only base type
             Assert.That(variable.IsArray, Is.True);
             Assert.That(variable.IsPointer, Is.False);
+        }
+
+        [Test]
+        public void ContainsDynamicArray()
+        {
+            string scriptCode = $@"
+int arrOfInts[] = new int[100];
+int arrOfInts2[] = new int[100];
+";
+            Script scriptToTest = CachedAutoCompletedScriptFromCode(scriptCode);
+
+            Assert.That(scriptToTest.AutoCompleteData.Variables.Count, Is.EqualTo(2));
+            Assert.That(scriptToTest.AutoCompleteData.Structs.Count, Is.EqualTo(1)); // dynamic array also generates a pair struct, per type
+
+            ScriptVariable var1 = scriptToTest.AutoCompleteData.Variables.FirstOrDefault(v => v.VariableName == "arrOfInts");
+            Assert.That(var1, Is.Not.Null);
+            Assert.That(var1.Type, Is.EqualTo("int[]")); // we may have to review this at some point but seems sufficient for autocomplete
+            Assert.That(var1.IsArray, Is.True);
+            Assert.That(var1.IsPointer, Is.False);
+
+            ScriptVariable var2 = scriptToTest.AutoCompleteData.Variables.FirstOrDefault(v => v.VariableName == "arrOfInts2");
+            Assert.That(var2, Is.Not.Null);
+            Assert.That(var2.Type, Is.EqualTo("int[]"));
+            Assert.That(var2.IsArray, Is.True);
+            Assert.That(var2.IsPointer, Is.False);
+
+            ScriptStruct strct = scriptToTest.AutoCompleteData.Structs.FirstOrDefault(s => s.Name == "int[]");
+            Assert.That(strct, Is.Not.Null);
+            Assert.That(strct.Variables.Count, Is.EqualTo(1));
+            ScriptVariable lenProp = strct.Variables.FirstOrDefault(v => v.VariableName == "Length");
+            Assert.That(lenProp, Is.Not.Null);
+            Assert.That(lenProp.Type, Is.EqualTo("int"));
+            Assert.That(lenProp.IsPointer, Is.False);
+            Assert.That(lenProp.IsArray, Is.False);
         }
 
         [Test]
@@ -256,6 +291,8 @@ if (mytext != ""HelloWorld"")
             string scriptCode = $@"
 #define MAX_THINGS 5
 int a;
+// this will count both in variable and as struct
+// se GenerateDynamicArrayStructs in AutoComplete.cs
 int arrOfInts[] = new int[100];
 
 import void MyImportedFunction();
@@ -299,7 +336,7 @@ mytext = mytext.Append(""World"");
             Assert.That(scriptToTest.AutoCompleteData.Variables.Count, Is.EqualTo(3));
             Assert.That(scriptToTest.AutoCompleteData.Functions.Count, Is.EqualTo(5));
             Assert.That(scriptToTest.AutoCompleteData.Enums.Count, Is.EqualTo(1));
-            Assert.That(scriptToTest.AutoCompleteData.Structs.Count, Is.EqualTo(2));
+            Assert.That(scriptToTest.AutoCompleteData.Structs.Count, Is.EqualTo(3));
             Assert.That(scriptToTest.AutoCompleteData.Defines.Count, Is.EqualTo(1));
 
             Assert.That(scriptToTest.AutoCompleteData.FindVariable("a"), Is.Not.Null);

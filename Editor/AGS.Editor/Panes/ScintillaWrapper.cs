@@ -2097,7 +2097,12 @@ namespace AGS.Editor
 
         private string ConstructVariableCalltipText(ScriptVariable variable, ScriptStruct owningStruct)
         {
-            string callTip = variable.Type;
+            string callTip = "";
+            if (variable.IsReadOnly)
+            {
+                callTip += "readonly ";
+            }
+            callTip += variable.Type;
             if (variable.IsArray)
             {
                 callTip += "[ ]";
@@ -2353,41 +2358,6 @@ namespace AGS.Editor
             }
         }
 
-        private void AddFunctionParametersToVariableList(ScriptFunction func, List<ScriptVariable> variables)
-        {
-            if (func.ParamList.Length == 0)
-            {
-                return;
-            }
-            string[] parameters = func.ParamList.Split(',');
-            foreach (string thisParam in parameters)
-            {
-                string param = thisParam.Trim();
-                if (param.StartsWith("optional "))
-                {
-                    param = param.Substring(9).Trim();
-                }
-                int index = param.Length - 1;
-                while ((index >= 0) &&
-                       (Char.IsLetterOrDigit(param[index]) || param[index] == '_'))
-                {
-                    index--;
-                }
-                string paramName = param.Substring(index + 1);
-                string paramType = param.Substring(0, index + 1).Trim();
-                bool isPointer = false;
-                if (paramType.EndsWith("*"))
-                {
-                    isPointer = true;
-                    paramType = paramType.Substring(0, paramType.Length - 1).Trim();
-                }
-                if ((paramName.Length > 0) && (paramType.Length > 0))
-                {
-                    variables.Add(new ScriptVariable(paramName, paramType, false, isPointer, null, null, false, false, false, false, func.StartsAtCharacterIndex));
-                }
-            }
-        }
-
         private ScriptVariable FindLocalVariableWithName(int startAtPos, string nameToFind)
         {
             List<ScriptVariable> localVars = GetListOfLocalVariablesForCurrentPosition(false, startAtPos);
@@ -2463,8 +2433,9 @@ namespace AGS.Editor
                         startPos += openBracketOffset;
                         scriptExtract = scriptExtract.Substring(openBracketOffset);
                     }
-                    List<ScriptVariable> localVars = AutoComplete.GetLocalVariableDeclarationsFromScriptExtract(scriptExtract, startPos);
-                    AddFunctionParametersToVariableList(func, localVars);
+
+                    var localStructs = _autoCompleteForThis.AutoCompleteData.Structs;
+                    List<ScriptVariable> localVars = AutoComplete.GetLocalVariableDeclarations(func, localStructs, scriptExtract, startPos);
                     return localVars;
                 }
             }

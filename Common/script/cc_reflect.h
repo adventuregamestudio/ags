@@ -193,10 +193,10 @@ public:
         _strings.push_back(0); // guarantee zero-len string at index 0
     }
 
-    RTTI(const RTTI &rtti) = default;
+    RTTI(const RTTI &rtti);
     RTTI(RTTI &&rtti) = default;
 
-    RTTI &operator = (const RTTI &rtti) = default;
+    RTTI &operator = (const RTTI &rtti);
     RTTI &operator = (RTTI &&rtti) = default;
 
     bool IsEmpty() const { return _types.empty(); }
@@ -454,11 +454,11 @@ public:
         _strings.push_back(0); // guarantee zero-len string at index 0
     }
 
-    ScriptTOC(const ScriptTOC &rtti) = default;
-    ScriptTOC(ScriptTOC &&rtti) = default;
+    ScriptTOC(const ScriptTOC &toc);
+    ScriptTOC(ScriptTOC &&toc) = default;
 
-    ScriptTOC &operator = (const ScriptTOC &rtti) = default;
-    ScriptTOC &operator = (ScriptTOC &&rtti) = default;
+    ScriptTOC &operator = (const ScriptTOC &toc);
+    ScriptTOC &operator = (ScriptTOC &&toc) = default;
 
     bool IsEmpty() const { return _glVariables.empty() && _functions.empty(); }
     // Returns list of global variables
@@ -467,6 +467,10 @@ public:
     const std::vector<Variable> &GetLocalVariables() const { return _locVariables; }
     // Returns list of functions
     const std::vector<Function> &GetFunctions() const { return _functions; }
+
+    // Rebinds ScriptTOC collection with another RTTI object,
+    // updates "quick references"
+    void RebindRTTI(RTTI *rtti);
 
     //
     // Various helpers

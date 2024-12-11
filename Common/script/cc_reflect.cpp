@@ -252,6 +252,21 @@ void RTTISerializer::Write(const RTTI &rtti, Stream *out)
     out->Seek(end_soff, kSeekBegin);
 }
 
+RTTI::RTTI(const RTTI &rtti)
+{
+    *this = rtti;
+}
+
+RTTI &RTTI::operator=(const RTTI &rtti)
+{
+    _locs = rtti._locs;
+    _types = rtti._types;
+    _fields = rtti._fields;
+    _strings = rtti._strings;
+    CreateQuickRefs();
+    return *this;
+}
+
 const RTTI::Location *RTTI::FindLocationByLocalID(uint32_t loc_id) const
 {
     if (loc_id >= _locs.size())
@@ -783,6 +798,28 @@ void ScriptTOCSerializer::Write(const ScriptTOC &toc, Stream *out)
     out->WriteInt32((uint32_t)(str_soff - toc_soff)); // strings table offset
     out->WriteInt32(toc._strings.size()); // string table size
     out->Seek(end_soff, kSeekBegin);
+}
+
+ScriptTOC::ScriptTOC(const ScriptTOC &toc)
+{
+    *this = toc;
+}
+
+ScriptTOC &ScriptTOC::operator=(const ScriptTOC &toc)
+{
+    _glVariables = toc._glVariables;
+    _locVariables = toc._locVariables;
+    _functions = toc._functions;
+    _fparams = toc._fparams;
+    _strings = toc._strings;
+    // FIXME: this is dangerous because of how RTTI is referenced using raw pointer
+    CreateQuickRefs(toc._rtti);
+    return *this;
+}
+
+void ScriptTOC::RebindRTTI(RTTI *rtti)
+{
+    CreateQuickRefs(rtti);
 }
 
 void ScriptTOC::CreateQuickRefs(const RTTI *rtti)

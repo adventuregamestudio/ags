@@ -419,12 +419,12 @@ HError LoadRoomScript(RoomStruct *room, int newnum)
     auto in = AssetMgr->OpenAsset(filename);
     if (in)
     {
-        PScript script(ccScript::CreateFromStream(in.get()));
+        auto script = UScript(ccScript::CreateFromStream(in.get()));
         if (!script)
             return new Error(String::FromFormat(
                 "Failed to load a script module: %s", filename.GetCStr()),
                 cc_get_error().ErrorString);
-        room->CompiledScript = script;
+        room->CompiledScript = std::move(script);
     }
     return HError::None();
 }
@@ -918,16 +918,14 @@ void check_new_room() {
 void compile_room_script() {
     cc_clear_error();
 
-    roominst = ccInstance::CreateFromScript(thisroom.CompiledScript);
+    roominst = ccInstance::CreateFromScript(RuntimeScript::Create(thisroom.CompiledScript.get(), "R"));
     if ((cc_has_error()) || (roominst==nullptr)) {
         quitprintf("Unable to create local script:\n%s", cc_get_error().ErrorString.GetCStr());
     }
 
-    if (!roominst->ResolveScriptImports())
+    roominst->GetScript()->RegisterExports(simp);
+    if (!roominst->GetScript()->ResolveImports(simp))
         quitprintf("Unable to resolve imports in room script:\n%s", cc_get_error().ErrorString.GetCStr());
-
-    if (!roominst->ResolveImportFixups())
-        quitprintf("Unable to resolve import fixups in room script:\n%s", cc_get_error().ErrorString.GetCStr());
 
     roominstFork = roominst->Fork();
     if (roominstFork == nullptr)

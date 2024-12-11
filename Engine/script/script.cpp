@@ -45,6 +45,7 @@
 #include "media/audio/audio_system.h"
 
 using namespace AGS::Common;
+using namespace AGS::Engine;
 
 extern GameSetupStruct game;
 extern int gameHasBeenRestored, displayed_room;
@@ -56,8 +57,8 @@ extern bool logScriptTOC;
 ExecutingScript scripts[MAX_SCRIPT_AT_ONCE];
 ExecutingScript *curscript = nullptr; // non-owning ptr
 
-PScript gamescript;
-PScript dialogScriptsScript;
+PRuntimeScript gamescript;
+PRuntimeScript dialogScriptsScript;
 UInstance gameinst;
 UInstance roominst;
 UInstance dialogScriptsInst;
@@ -83,7 +84,7 @@ NonBlockingScriptFunction runDialogOptionCloseFunc("dialog_options_close", 1);
 
 ScriptSystem scsystem;
 
-std::vector<PScript> scriptModules;
+std::vector<AGS::Engine::PRuntimeScript> scriptModules;
 std::vector<UInstance> moduleInst;
 std::vector<UInstance> moduleInstFork;
 std::vector<RuntimeScriptValue> moduleRepExecAddr;
@@ -189,12 +190,17 @@ int create_global_script() {
         all_insts.push_back(dialogScriptsInst.get()); // this is only for temp reference
     }
 
-    // Resolve the script imports after all the scripts have been loaded 
+    //
+    // Script linking stage
+    // Register all the script exports
     for (auto &inst : all_insts)
     {
-        if (!inst->ResolveScriptImports())
-            return kscript_create_error;
-        if (!inst->ResolveImportFixups())
+        inst->GetScript()->RegisterExports(simp);
+    }
+    // Resolve all the script imports (these include both engine API and script exports)
+    for (auto &inst : all_insts)
+    {
+        if (!inst->GetScript()->ResolveImports(simp))
             return kscript_create_error;
     }
 
@@ -221,8 +227,8 @@ int create_global_script() {
     {
         for (const auto &inst : all_insts)
         {
-            if (inst->GetScript()->sctoc)
-                Debug::Printf(PrintScriptTOC(*inst->GetScript()->sctoc, inst->GetScript()->sectionNames[0].c_str()));
+            if (inst->GetScript()->GetTOC())
+                Debug::Printf(PrintScriptTOC(*inst->GetScript()->GetTOC(), inst->GetScript()->GetScriptName().GetCStr()));
         }
     }
 
@@ -561,6 +567,13 @@ void FreeAllScriptInstances()
     ccInstance::FreeInstanceStack();
     FreeRoomScriptInstance();
 
+    if (gameinst)
+        gameinst->GetScript()->UnRegisterExports(simp);
+    if (dialogScriptsInst)
+        dialogScriptsInst->GetScript()->UnRegisterExports(simp);
+    for (auto &module : moduleInst)
+        module->GetScript()->UnRegisterExports(simp);
+
     // NOTE: don't know why, but Forks must be deleted prior to primary inst,
     // or bad things will happen; TODO: investigate and make this less fragile
     gameinstFork.reset();
@@ -572,6 +585,8 @@ void FreeAllScriptInstances()
 
 void FreeRoomScriptInstance()
 {
+    if (roominst)
+        roominst->GetScript()->UnRegisterExports(simp);
     // NOTE: don't know why, but Forks must be deleted prior to primary inst,
     // or bad things will happen; TODO: investigate and make this less fragile
     roominstFork.reset();

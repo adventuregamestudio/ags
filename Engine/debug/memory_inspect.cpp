@@ -36,6 +36,7 @@
 #include "ac/dynobj/dynobj_manager.h"
 #include "script/cc_common.h"
 #include "script/cc_instance.h"
+#include "script/runtimescript.h"
 #include "script/script_runtime.h"
 #include "script/systemimports.h"
 #include "util/compress.h"
@@ -340,10 +341,10 @@ static bool TryGetGlobalVariable(const String &field_ref, const ccInstance *inst
     // Select the actual script at the top of the stack
     // (this could be a different script runnin on this instance, in case of far calls)
     const ccInstance *top_inst = inst->GetRunningInst();
-    if (!top_inst->GetScript()->sctoc)
+    if (!top_inst->GetScript()->GetTOC())
         return false; // no TOC
 
-    const auto &toc = *top_inst->GetScript()->sctoc;
+    const auto &toc = *top_inst->GetScript()->GetTOC();
     if (toc.GetGlobalVariables().empty())
         return false; // no global data
 
@@ -367,12 +368,12 @@ static bool TryGetGlobalVariable(const String &field_ref, const ccInstance *inst
         if (!import)
             return false;
 
-        if (import->InstancePtr)
+        if (import->ScriptPtr)
         {
             // Import from another script
             found_var = MemoryVariable(&var,
                 import->Value.GetDirectPtr(), nullptr,
-                import->InstancePtr->GetGlobalData().size());
+                import->ScriptPtr->GetGlobalData().size());
         }
         else
         {
@@ -393,11 +394,11 @@ static bool TryGetLocalVariable(const String &field_ref, const ccInstance *inst,
     // Select the actual script at the top of the stack
     // (this could be a different script runnin on this instance, in case of far calls)
     // NOTE: we will still use pc and stack of the current inst, since it's the one running!
-    const ccScript *top_script = inst->GetRunningInst()->GetScript().get();
-    if (!top_script->sctoc)
+    const RuntimeScript *top_script = inst->GetRunningInst()->GetScript();
+    if (!top_script->GetTOC())
         return false; // no TOC
 
-    const auto &toc = *top_script->sctoc;
+    const auto &toc = *top_script->GetTOC();
     if (toc.GetLocalVariables().empty())
         return false; // no local data
 

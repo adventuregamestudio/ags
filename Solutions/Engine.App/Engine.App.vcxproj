@@ -654,6 +654,7 @@
     <ClCompile Include="..\..\Engine\script\cc_reflecthelper.cpp" />
     <ClCompile Include="..\..\Engine\script\executingscript.cpp" />
     <ClCompile Include="..\..\Engine\script\exports.cpp" />
+    <ClCompile Include="..\..\Engine\script\runtimescript.cpp" />
     <ClCompile Include="..\..\Engine\script\runtimescriptvalue.cpp" />
     <ClCompile Include="..\..\Engine\script\script.cpp" />
     <ClCompile Include="..\..\Engine\script\script_api.cpp" />
@@ -913,6 +914,7 @@
     <ClInclude Include="..\..\Engine\script\cc_reflecthelper.h" />
     <ClInclude Include="..\..\Engine\script\executingscript.h" />
     <ClInclude Include="..\..\Engine\script\exports.h" />
+    <ClInclude Include="..\..\Engine\script\runtimescript.h" />
     <ClInclude Include="..\..\Engine\script\runtimescriptvalue.h" />
     <ClInclude Include="..\..\Engine\script\script.h" />
     <ClInclude Include="..\..\Engine\script\script_api.h" />

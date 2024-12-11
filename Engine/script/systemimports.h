@@ -60,34 +60,38 @@ private:
     std::map<String, uint32_t> _lookup;
 };
 
-class ccInstance;
+namespace AGS { namespace Engine { class RuntimeScript; } }
 
 struct ScriptImport
 {
     using String = AGS::Common::String;
+    using RuntimeScript = AGS::Engine::RuntimeScript;
 
     ScriptImport() = default;
-    ScriptImport(const String &name, const RuntimeScriptValue &rval, const ccInstance *inst, ScriptValueHint val_hint = kScValHint_Unknown)
-        : Name(name), Value(rval), InstancePtr(inst), ValueHint(val_hint) {}
+    ScriptImport(const String &name, const RuntimeScriptValue &rval, const RuntimeScript *script, ScriptValueHint val_hint = kScValHint_Unknown);
 
     String              Name;
     RuntimeScriptValue  Value;
-    const ccInstance   *InstancePtr = nullptr;
+    // Numeric index of a runtime script to which this import belongs
+    int32_t             ScriptID = -1;
     ScriptValueHint     ValueHint = kScValHint_Unknown;
+    // Fast access reference to the script
+    const RuntimeScript *ScriptPtr = nullptr;
 };
 
 class SystemImports
 {
     using String = AGS::Common::String;
+    using RuntimeScript = AGS::Engine::RuntimeScript;
 public:
     SystemImports();
 
     // Adds a resolved import under given name
-    uint32_t Add(const String &name, const RuntimeScriptValue &value, const ccInstance *inst, ScriptValueHint val_hint = kScValHint_Unknown);
+    uint32_t Add(const String &name, const RuntimeScriptValue &value, const RuntimeScript *script, ScriptValueHint val_hint = kScValHint_Unknown);
     // Removes an import
     void Remove(const String &name);
     // Removes all imports registered for the given script instance
-    void RemoveScriptExports(const ccInstance *inst);
+    void RemoveScriptExports(const RuntimeScript *script);
     // Clears the map, removes all entries
     void Clear();
     // Gets an import by exact name match

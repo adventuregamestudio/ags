@@ -170,8 +170,6 @@ String  cc_get_callstack(int max_lines = INT_MAX);
 // Gets current ExecutingScript object
 ExecutingScript *get_executingscript();
 
-extern PScript gamescript;
-extern PScript dialogScriptsScript;
 // [ikm] we keep ccInstances saved in unique_ptrs globally for now
 // (e.g. as opposed to shared_ptrs), because the script handling part of the
 // engine is quite fragile and prone to errors whenever the instance is not
@@ -207,7 +205,9 @@ extern NonBlockingScriptFunction runDialogOptionTextInputHandlerFunc;
 extern NonBlockingScriptFunction runDialogOptionRepExecFunc;
 extern NonBlockingScriptFunction runDialogOptionCloseFunc;
 
-extern std::vector<PScript> scriptModules;
+extern AGS::Engine::PRuntimeScript gamescript;
+extern AGS::Engine::PRuntimeScript dialogScriptsScript;
+extern std::vector<AGS::Engine::PRuntimeScript> scriptModules;
 extern std::vector<UInstance> moduleInst;
 extern std::vector<UInstance> moduleInstFork;
 extern std::vector<RuntimeScriptValue> moduleRepExecAddr;

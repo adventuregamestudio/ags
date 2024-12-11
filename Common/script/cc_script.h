@@ -35,10 +35,10 @@ public:
     static const std::string unknownSectionName;
 
     std::string scriptname;
-    std::vector<char> globaldata;
+    std::vector<uint8_t> globaldata;
     std::vector<int32_t> code;    // executable byte-code, 32-bit per op or arg
     std::vector<char> strings;
-    std::vector<char> fixuptypes; // global data/string area/ etc
+    std::vector<uint8_t> fixuptypes; // global data/string area/ etc
     std::vector<int32_t> fixups;  // code array index to fixup (in ints)
     std::vector<std::string> imports; // names of imports
     std::vector<std::string> exports; // names of exports
@@ -50,8 +50,6 @@ public:
     // Extended information (optional)
     std::unique_ptr<RTTI> rtti;
     std::unique_ptr<ScriptTOC> sctoc;
-
-    int instances = 0; // reference count for this script object
 
     static ccScript *CreateFromStream(Common::Stream *in);
     static ccScript *CreateFromStream(const std::string &name, Common::Stream *in);
@@ -74,6 +72,6 @@ public:
     bool        Read(Common::Stream *in);
 };
 
-typedef std::shared_ptr<ccScript> PScript;
+typedef std::unique_ptr<ccScript> UScript;
 
 #endif // __CC_SCRIPT_H

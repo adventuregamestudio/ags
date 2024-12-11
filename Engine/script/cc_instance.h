@@ -26,8 +26,8 @@
 #include "script/cc_reflecthelper.h"
 #include "script/cc_script.h"  // ccScript
 #include "script/cc_internal.h"  // bytecode constants
+#include "script/runtimescript.h"
 #include "script/runtimescriptvalue.h"
-#include "script/systemimports.h"
 #include "util/string.h"
 
 using namespace AGS;
@@ -44,10 +44,6 @@ using namespace AGS;
 #define MAX_CALL_STACK      128
 #define MAX_FUNCTION_PARAMS 20
 
-// We use 10 bits to hold instance IDs ORed with op-code
-#define INSTANCE_ID_SHIFT       22LL
-#define INSTANCE_ID_MASK        0x00000000000003FFLL
-#define INSTANCE_ID_REMOVEMASK  0x00000000003FFFFFLL
 // This gives us 1024 unique instance IDs
 // NOTE: these are given to the primary instances only, not forks
 #define MAX_PRIMARY_INSTANCES   1024
@@ -85,18 +81,6 @@ struct ScriptOperation
     inline int Arg3i() const { return Args[2].IValue; }
 };
 
-struct ScriptVariable
-{
-    ScriptVariable()
-    {
-        ScAddress   = -1; // address = 0 is valid one, -1 means undefined
-    }
-
-    int32_t             ScAddress;  // original 32-bit relative data address, written in compiled script;
-                                    // if we are to use Map or HashMap, this could be used as Key
-    RuntimeScriptValue  RValue;
-};
-
 struct FunctionCallStack;
 
 struct ScriptPosition
@@ -129,6 +113,8 @@ enum ccInstError
 // Running instance of the script
 class ccInstance
 {
+    using RuntimeScript = AGS::Engine::RuntimeScript;
+    using PRuntimeScript = std::shared_ptr<RuntimeScript>;
 public:
     // returns the currently executing instance, or NULL if none
     static ccInstance *GetCurrentInstance(void);
@@ -137,8 +123,8 @@ public:
     // when destroying all script instances, e.g. on game quit.
     static void FreeInstanceStack();
     // create a runnable instance of the supplied script
-    static std::unique_ptr<ccInstance> CreateFromScript(PScript script);
-    static std::unique_ptr<ccInstance> CreateEx(PScript scri, const ccInstance * joined);
+    static std::unique_ptr<ccInstance> CreateFromScript(PRuntimeScript script);
+    static std::unique_ptr<ccInstance> CreateEx(PRuntimeScript script, const ccInstance * joined);
     static void SetExecTimeout(unsigned sys_poll_ms, unsigned abort_ms, unsigned abort_loops);
     static void SetPluginReturnValue(const RuntimeScriptValue &value);
     static const JointRTTI *GetRTTI() { return _rtti.get(); }
@@ -155,12 +141,12 @@ public:
     ~ccInstance();
 
     // Get the script that this Instance represents
-    PScript GetScript() const { return _instanceof; }
+    AGS::Engine::RuntimeScript *GetScript() const { return _instanceof.get(); }
     // Get the currently executed instance, which may be this instance,
     // or another one in case of a nested "far call"
     ccInstance *GetRunningInst() const { return _runningInst; }
     // Get a readonly access to the global script data
-    const std::vector<uint8_t> &GetGlobalData() const { return _scriptData->globaldata; }
+    const std::vector<uint8_t> &GetGlobalData() const { return _instanceof->GetGlobalData(); }
     // Get current program pointer (position in bytecode)
     int     GetPC() const { return _pc; }
     // Gets the top entry of this instance's stack
@@ -193,13 +179,6 @@ public:
     // Notifies that the game was being updated (script not hanging)
     void    NotifyAlive();
 
-    // For each import, find the instance that corresponds to it and save it
-    // in resolved_imports[]. Return whether the function is successful
-    bool    ResolveScriptImports();
-    // Using resolved_imports[], resolve the IMPORT fixups
-    // Also change CALLEXT op-codes to CALLAS when they pertain to a script instance 
-    bool    ResolveImportFixups();
-
     // Copies global data values over to this instance;
     // copies not more than the allocated size of global data
     void    CopyGlobalData(const std::vector<uint8_t> &data);
@@ -213,21 +192,9 @@ public:
 
 
 private:
-    bool    _Create(PScript scri, const ccInstance * joined);
+    bool    _Create(PRuntimeScript scri, const ccInstance * joined);
     // free the memory associated with the instance
     void    Free();
-
-    bool    CreateGlobalVars(const ccScript *scri);
-    bool    AddGlobalVar(const ScriptVariable &glvar);
-    ScriptVariable *FindGlobalVar(int32_t var_addr);
-    bool    CreateRuntimeCodeFixups(const ccScript *scri);
-    bool    ResolveExports(const ccScript *scri);
-    // Registers this script's resolved exports as imports in the symbol import table
-    bool    ImportScriptExports(const ccScript *scri);
-
-    // Searches for the function among this script's exports,
-    // on success returns its starting position in bytecode, and number of arguments
-    bool    FindExportedFunction(const Common::String &fn_name, int32_t &start_at, int32_t &num_args) const;
 
     // Begin executing script starting from the given bytecode index
     ccInstError Run(int32_t curpc);
@@ -254,37 +221,13 @@ private:
     void    PushToFuncCallStack(FunctionCallStack &func_callstack, const RuntimeScriptValue &rval);
     void    PopFromFuncCallStack(FunctionCallStack &func_callstack, int32_t num_entries);
 
-    // Represented script object
-    PScript _instanceof;
     int32_t _loadedInstanceId = -1;
     int     _flags = 0; // INSTF_* flags
-
-    // Runtime variant of script data, fixups and imports,
-    // resolved after loading all the game scripts,
-    // and possibly shared among multiple script instance forks.
-    struct ResolvedScriptData
-    {
-        // Script's global data (for global variables)
-        std::vector<uint8_t>    globaldata;
-        // Executed byte-code. Unlike ccScript's code array which is int32_t, the one
-        // in ccInstance must be intptr_t to accomodate real pointers placed after
-        // performing fixups.
-        std::vector<intptr_t>   code;
-        std::vector<uint8_t>    code_fixups;
-        // Resolved global variables
-        std::unordered_map<int32_t, ScriptVariable> globalvars;
-        // This script's exports
-        std::vector<RuntimeScriptValue> exports;
-        ScriptSymbolsMap        export_lookup;
-        // Array of real import indexes used in script
-        std::vector<uint32_t>   resolved_imports;
-
-        ResolvedScriptData();
-    };
-    std::shared_ptr<ResolvedScriptData> _scriptData;
+    // Represented script object
+    PRuntimeScript _instanceof;
 
     // Code pointers for faster access
-    intptr_t   *_code = nullptr;
+    const intptr_t *_code = nullptr;
     uint32_t    _codesize = 0; // size of code is limited under 32-bit due to bytecode format
     const uint8_t *_code_fixups = nullptr;
     const char *_strings = nullptr; // pointer to ccScript's string data

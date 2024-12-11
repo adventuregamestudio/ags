@@ -41,13 +41,10 @@
 #include "ac/common_defines.h"
 #include "game/interactions.h"
 #include "gfx/gfx_def.h"
+#include "script/cc_script.h"
 #include "util/error.h"
 #include "util/geometry.h"
 #include "util/string_types.h"
-
-struct ccScript;
-struct SpriteInfo;
-typedef std::shared_ptr<ccScript> PScript;
 
 // TODO: move the following enums under AGS::Common namespace
 // later, when more engine source is put in AGS namespace and
@@ -325,7 +322,7 @@ public:
     // Event script links
     UInteractionEvents      EventHandlers;
     // Compiled room script
-    PScript                 CompiledScript;
+    UScript                 CompiledScript;
     // Various extended options with string values, meta-data etc
     StringMap               StrOptions;
 };

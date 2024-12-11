@@ -108,8 +108,6 @@ ccScript &ccScript::operator =(const ccScript &src)
     sectionNames = src.sectionNames;
     sectionOffsets = src.sectionOffsets;
     rtti.reset(new RTTI(*src.rtti));
-
-    instances = 0; // don't copy reference count, since it's a new object
     return *this;
 }
 
@@ -171,7 +169,6 @@ void ccScript::Write(Stream *out)
 
 bool ccScript::Read(Stream *in)
 {
-    instances = 0;
     currentline = -1;
 
     char gotsig[5]{};

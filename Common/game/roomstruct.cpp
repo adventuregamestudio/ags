@@ -11,7 +11,6 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-
 #include "ac/common.h" // quit
 #include "game/room_file.h"
 #include "game/roomstruct.h"

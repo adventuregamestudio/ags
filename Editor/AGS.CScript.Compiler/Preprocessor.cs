@@ -99,14 +99,26 @@ namespace AGS.CScript.Compiler
 				int i = 0;
 				while ((i < line.Length) && (!Char.IsLetterOrDigit(line[i])))
 				{
-					if ((line[i] == '"') || (line[i] == '\''))
-					{
-						i = FindIndexOfMatchingCharacter(line.ToString(), i, line[i]);
-						if (i < 0)
-						{
-							i = line.Length;
-							break;
-						}
+                    if ((line[i] == '"') || (line[i] == '\''))
+                    {
+                        int end_of_literal = FindIndexOfMatchingCharacter(line.ToString(), i, line[i]);
+                        if (end_of_literal < 0)
+                        {
+                            i = line.Length;
+                            break;
+                        }
+                        if (i == 0 && line[0] == '"')
+                        {
+                            // '[end_of_literal]' contains the '"', we need the part before that
+                            FastString literal = line.Substring(0, end_of_literal);
+                            if (literal.StartsWith(Constants.NEW_SCRIPT_MARKER))
+                            {
+                                // Start the new script
+                                _scriptName = literal.Substring(Constants.NEW_SCRIPT_MARKER.Length).ToString();
+                                _lineNumber = 0;
+                            }
+                        }
+                        i = end_of_literal;
 					}
 					i++;
 				}
@@ -388,7 +400,9 @@ namespace AGS.CScript.Compiler
 						int endOfString = FindIndexOfMatchingCharacter(text, i, text[i]);
 						if (endOfString < 0)
 						{
-							RecordError(ErrorCode.UnterminatedString, "Unterminated string");
+                            RecordError(
+                                ErrorCode.UnterminatedString,
+                                $"Unterminated string: {text[i]} is missing");
 							break;
 						}
 						endOfString++;

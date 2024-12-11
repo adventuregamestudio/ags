@@ -263,7 +263,8 @@ bool RuntimeScript::Create(const ccScript *script)
     for (size_t i = 0; i < script->code.size(); ++i)
         _code[i] = script->code[i];
     _fixups = script->fixups;
-    _fixuptypes = script->fixuptypes;
+    _fixupTypes = script->fixuptypes;
+    _fixupValues.resize(script->fixups.size());
     _codeFixups.resize(script->code.size());
     _strings = script->strings;
     for (const auto &i : script->imports)
@@ -371,11 +372,12 @@ bool RuntimeScript::ResolveImportFixups()
     const auto &resolved_imports = _resolvedImports;
     for (size_t fixup_idx = 0; fixup_idx < _fixups.size(); ++fixup_idx)
     {
-        if (_fixuptypes[fixup_idx] != FIXUP_IMPORT)
+        if (_fixupTypes[fixup_idx] != FIXUP_IMPORT)
             continue;
 
         uint32_t const fixup = _fixups[fixup_idx];
-        uint32_t const import_index = resolved_imports[_code[fixup]];
+        int32_t const fixupValue = _fixupValues[fixup_idx];
+        uint32_t const import_index = resolved_imports[fixupValue];
         ScriptImport const *import = simp.GetByIndex(import_index);
         if (!import)
         {
@@ -401,9 +403,9 @@ bool RuntimeScript::CreateGlobalVars()
     uint8_t *globaldata = _globaldata.data();
 
     // Step One: deduce global variables from fixups
-    for (size_t i = 0; i < _fixuptypes.size(); ++i)
+    for (size_t i = 0; i < _fixupTypes.size(); ++i)
     {
-        switch (_fixuptypes[i])
+        switch (_fixupTypes[i])
         {
         case FIXUP_GLOBALDATA:
             // GLOBALDATA fixup takes relative address of global data element from code array;
@@ -489,11 +491,9 @@ ScriptVariable *RuntimeScript::FindGlobalVar(const int32_t var_addr)
 
 bool RuntimeScript::CreateRuntimeCodeFixups()
 {
-    uint8_t *code_fixups = _codeFixups.data();
-
     for (size_t i = 0; i < _fixups.size(); ++i)
     {
-        if (_fixuptypes[i] == FIXUP_DATADATA)
+        if (_fixupTypes[i] == FIXUP_NOFIXUP || _fixupTypes[i] == FIXUP_DATADATA)
         {
             continue;
         }
@@ -502,20 +502,23 @@ bool RuntimeScript::CreateRuntimeCodeFixups()
         if (fixup < 0 || static_cast<size_t>(fixup) >= _code.size())
         {
             cc_error_fixups(this, INT32_MAX, "bad fixup at %d (fixup type %d, bytecode pos %d, bytecode range is 0..%d)",
-                i,  _fixuptypes[i], fixup, static_cast<int32_t>(_code.size()));
+                i,  _fixupTypes[i], fixup, static_cast<int32_t>(_code.size()));
             return false;
         }
 
-        code_fixups[fixup] = _fixuptypes[i];
+        const int32_t fixup_value = static_cast<int32_t>(_code[fixup]);
+        const uint8_t fixup_type = _fixupTypes[i];
+        _fixupValues[i] = fixup_value; // save original code value for this fixup
+        _codeFixups[fixup] = fixup_type; // save fixup type for the code cell
 
-        switch (_fixuptypes[i])
+        switch (fixup_type)
         {
         case FIXUP_GLOBALDATA:
             {
-                ScriptVariable *gl_var = FindGlobalVar(static_cast<int32_t>(_code[fixup]));
+                ScriptVariable *gl_var = FindGlobalVar(fixup_value);
                 if (!gl_var)
                 {
-                    cc_error_fixups(this, fixup, "cannot resolve global variable (bytecode pos %d, key %d)", fixup, static_cast<int32_t>(_code[fixup]));
+                    cc_error_fixups(this, fixup, "cannot resolve global variable (bytecode pos %d, key %d)", fixup, fixup_value);
                     return false;
                 }
                 _code[fixup] = (intptr_t)gl_var;
@@ -527,7 +530,7 @@ bool RuntimeScript::CreateRuntimeCodeFixups()
         case FIXUP_IMPORT:
             break; // do nothing yet
         default:
-            cc_error_fixups(this, INT32_MAX, "unknown fixup type: %d (fixup num %d)", _fixuptypes[i], i);
+            cc_error_fixups(this, INT32_MAX, "unknown fixup type: %d (fixup num %d)", fixup_type, i);
             return false;
         }
     }

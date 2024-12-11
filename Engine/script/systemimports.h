@@ -60,10 +60,12 @@ struct ScriptImport
     using String = AGS::Common::String;
 
     ScriptImport() = default;
+    ScriptImport(const String &name, const RuntimeScriptValue &rval, ccInstance *inst)
+        : Name(name), Value(rval), InstancePtr(inst) {}
 
-    String              Name; // import's uid
+    String              Name;
     RuntimeScriptValue  Value;
-    ccInstance          *InstancePtr = nullptr; // script instance
+    ccInstance         *InstancePtr = nullptr;
 };
 
 class SystemImports

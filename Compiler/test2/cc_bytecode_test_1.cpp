@@ -3750,7 +3750,7 @@ TEST_F(Bytecode1, CharArrayDecay01)
     CompareStrings(&scrip, stringssize, strings);
 }
 
-TEST_F(Bytecode1, DotAfterFuncCall)
+TEST_F(Bytecode1, DotAfterFuncCall01)
 {
     // When a func call returns a struct that has a suitable
     // attribute, this attribute must be callable.
@@ -3773,7 +3773,7 @@ TEST_F(Bytecode1, DotAfterFuncCall)
     std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
-    // WriteOutput("DotAfterFuncCall", scrip);
+    // WriteOutput("DotAfterFuncCall01", scrip);
 
     size_t const codesize = 53;
     EXPECT_EQ(codesize, scrip.code.size());
@@ -3803,6 +3803,75 @@ TEST_F(Bytecode1, DotAfterFuncCall)
     int const numimports = 2;
     std::string imports[] = {
     "Hotspot::GetAtScreenXY^2",   "Hotspot::get_ID^0",           "[[SENTINEL]]"
+    };
+    CompareImports(&scrip, numimports, imports);
+
+    size_t const numexports = 0;
+    EXPECT_EQ(numexports, scrip.exports.size());
+
+    size_t const stringssize = 0;
+    EXPECT_EQ(stringssize, scrip.strings.size());
+}
+
+TEST_F(Bytecode1, DotAfterFuncCall02)
+{
+    // When a func call returns a struct that has a suitable
+    // attribute, this attribute must be callable.
+
+    char const *inpl = "\
+        internalstring autoptr builtin managed struct String    \n\
+        {                                                       \n\
+            readonly import attribute int AsInt;                \n\
+        };                                                      \n\
+                                                                \n\
+        import String Func1();                                  \n\
+        import String[] Func2();                                \n\
+                                                                \n\
+        int game_start()                                        \n\
+        {                                                       \n\
+            int x = Func1().AsInt +                             \n\
+            Func2().Length;                                     \n\
+        }                                                       \n\
+        ";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string const &err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+
+    // WriteOutput("DotAfterFuncCall02", scrip);
+    size_t const codesize = 81;
+    EXPECT_EQ(codesize, scrip.code.size());
+
+    int32_t code[] = {
+      36,   10,   38,    0,           36,   11,   39,    0,    // 7
+       6,    3,    1,   33,            3,    3,    3,    2,    // 15
+      52,   29,    6,   45,            2,   39,    0,    6,    // 23
+       3,    0,   33,    3,           30,    6,   29,    3,    // 31
+      36,   12,   39,    0,            6,    3,    2,   33,    // 39
+       3,    3,    3,    2,           52,   29,    6,   45,    // 47
+       2,   39,    0,    6,            3,    3,   33,    3,    // 55
+      30,    6,   36,   11,           30,    4,   11,    4,    // 63
+       3,    3,    4,    3,           36,   12,   29,    3,    // 71
+      36,   13,    2,    1,            4,    6,    3,    0,    // 79
+       5,  -999
+    };
+    CompareCode(&scrip, codesize, code);
+
+    size_t const numfixups = 4;
+    EXPECT_EQ(numfixups, scrip.fixups.size());
+
+    int32_t fixups[] = {
+      10,   25,   38,   53,        -999
+    };
+    char fixuptypes[] = {
+      4,   4,   4,   4,     '\0'
+    };
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
+
+    int const numimports = 4;
+    std::string imports[] = {
+    "String::get_AsInt^0",        "Func1^0",     "Func2^0",     "__Builtin_DynamicArray::get_Length",        // 3
+     "[[SENTINEL]]"
     };
     CompareImports(&scrip, numimports, imports);
 

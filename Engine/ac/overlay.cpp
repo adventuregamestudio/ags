@@ -656,7 +656,7 @@ Point update_overlay_graphicspace(ScreenOverlay &over)
     Point pos = get_overlay_display_pos(over);
     Bitmap *pic = over.GetImage();
     over._gs = GraphicSpace(pos.X, pos.Y, pic->GetWidth(), pic->GetHeight(),
-        pic->GetWidth(), pic->GetHeight(), over.rotation);
+        over.scaleWidth, over.scaleHeight, over.rotation);
     return Point(pos.X, pos.Y);
 }
 

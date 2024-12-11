@@ -2809,6 +2809,7 @@ static void construct_overlays()
 
         assert(overtx.Ddb); // Test for missing texture, might happen if not marked for update
         if (!overtx.Ddb) continue;
+        overtx.Ddb->SetOrigin(0.f, 0.f);
         overtx.Ddb->SetStretch(over.scaleWidth, over.scaleHeight);
         overtx.Ddb->SetRotation(over.rotation);
         overtx.Ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(over.transparency));

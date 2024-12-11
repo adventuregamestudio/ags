@@ -26,6 +26,7 @@
 #include "script/cc_script.h"  // ccScript
 #include "script/cc_internal.h"  // bytecode constants
 #include "script/runtimescriptvalue.h"
+#include "script/systemimports.h"
 #include "util/string.h"
 
 using namespace AGS;
@@ -124,7 +125,7 @@ enum ccInstError
 };
 
 // Running instance of the script
-struct ccInstance
+class ccInstance
 {
 public:
     // returns the currently executing instance, or NULL if none
@@ -138,7 +139,7 @@ public:
     static std::unique_ptr<ccInstance> CreateEx(PScript scri, const ccInstance * joined);
     static void SetExecTimeout(unsigned sys_poll_ms, unsigned abort_ms, unsigned abort_loops);
 
-    ccInstance() = default;
+    ccInstance();
     ~ccInstance();
 
     // Get the script that this Instance represents
@@ -199,8 +200,6 @@ private:
     ScriptVariable *FindGlobalVar(int32_t var_addr);
     bool    CreateRuntimeCodeFixups(const ccScript *scri);
 
-    // Get the matching export index; returns SIZE_MAX on failure
-    size_t  GetExportedSymbol(const Common::String &symname) const;
     // Searches for the function among this script's exports,
     // on success returns its starting position in bytecode, and number of arguments
     bool    FindExportedFunction(const Common::String &fn_name, int32_t &start_at, int32_t &num_args) const;
@@ -254,7 +253,7 @@ private:
     // This script's exports
     // TODO: not sure why these are not shared among forks, review this later
     std::vector<RuntimeScriptValue> _exports;
-    std::map<Common::String, size_t> _exportLookup; // must be a sorted map, we use partial name matches
+    ScriptSymbolsMap _exportLookup; // must be a sorted map, we use partial name matches
 
     // Code pointers for faster access
     intptr_t   *_code = nullptr;

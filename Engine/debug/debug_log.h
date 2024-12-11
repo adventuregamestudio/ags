@@ -19,7 +19,7 @@
 #include "util/ini_util.h"
 #include "util/string.h"
 
-struct ccInstance;
+class ccInstance;
 
 void init_debug(const AGS::Common::ConfigTree &cfg, bool stderr_only);
 void apply_debug_config(const AGS::Common::ConfigTree &cfg, bool finalize);

@@ -61,6 +61,9 @@ void cc_error(const ScriptError &err);
 // Project-dependent script error formatting
 AGS::Common::String cc_format_error(const AGS::Common::String &message);
 
+// currently compiled or executed line
 extern int currentline;
+// name of currently compiling script or script section
+extern std::string ccCurScriptName;
 
 #endif // __CC_ERROR_H

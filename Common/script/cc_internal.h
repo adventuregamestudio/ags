@@ -130,7 +130,4 @@
 extern const char scfilesig[5];
 #define ENDFILESIG 0xbeefcafe
 
-// name of currently compiling script or script section
-extern std::string ccCurScriptName;
-
 #endif // __CC_INTERNAL_H

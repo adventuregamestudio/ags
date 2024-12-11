@@ -13,6 +13,7 @@
 //=============================================================================
 #include <algorithm>
 #include <cctype>
+#include <string.h>
 #include "script/cs_parser_common.h"
 #include "preproc/preprocessor.h"
 #include "script/cc_common.h"
@@ -24,7 +25,6 @@
 
 using namespace AGS::Common;
 
-extern int currentline; // in script/script_common
 
 namespace AGS {
 namespace Preprocessor {
@@ -148,6 +148,10 @@ namespace Preprocessor {
         err.Message = msg;
         _errors.push_back(err);
 
+        // 'cc_error()' will only work properly when the global variables
+        // 'currentline' and 'ccCurScriptName' are current
+        currentline = _lineNumber;
+        ccCurScriptName = _scriptName.GetCStr();
         cc_error(msg.GetCStr());
     }
 
@@ -245,7 +249,8 @@ namespace Preprocessor {
                     size_t endOfString = FindIndexOfMatchingCharacter(text, i, text[i]);
                     if (endOfString == NOT_FOUND) //size_t is unsigned but it's alright
                     {
-                        LogError(ErrorCode::UnterminatedString, "Unterminated string");
+                        String msg = String::FromFormat("Unterminated string: '%c' is missing", text[i]);
+                        LogError(ErrorCode::UnterminatedString, msg);
                         break;
                     }
                     endOfString++;
@@ -405,12 +410,24 @@ namespace Preprocessor {
             {
                 if ((line[i] == '"') || (line[i] == '\''))
                 {
-                    i = FindIndexOfMatchingCharacter(line, i, line[i]);
-                    if (i == NOT_FOUND)
+                    int end_of_literal = FindIndexOfMatchingCharacter(line, i, line[i]);
+                    if (end_of_literal == NOT_FOUND)
                     {
                         i = line.GetLength();
                         break;
                     }
+                    if (i == 0u && line[0u] == '"')
+                    {
+                        // '[end_of_literal]' contains the '"', we need the part before that
+                        String literal = line.Mid(0u, end_of_literal);
+                        if (literal.StartsWith(NEW_SCRIPT_TOKEN_PREFIX))
+                        {
+                            // Start the new script
+                            _scriptName = literal.Mid(strlen(NEW_SCRIPT_TOKEN_PREFIX));
+                            _lineNumber = 0;
+                        }
+                    }
+                    i = end_of_literal;
                 }
                 i++;
             }
@@ -463,7 +480,7 @@ namespace Preprocessor {
     {
         _errors.clear();
         StringBuilder output = StringBuilder(script.GetLength());
-        currentline = _lineNumber = 0;
+        _lineNumber = 0;
         String escapedScriptName = scriptName;
         escapedScriptName.Replace("\\", "\\\\");
         output.WriteLine(String::FromFormat("%s%s\"", NEW_SCRIPT_TOKEN_PREFIX, escapedScriptName.GetCStr()));
@@ -471,7 +488,7 @@ namespace Preprocessor {
         _scriptName = scriptName;
         while (reader.IsValid())
         {
-            currentline = ++_lineNumber;
+            ++_lineNumber;
             String thisLine = reader.ReadLine();
             thisLine = RemoveComments(thisLine);
             if (thisLine.GetLength() > 0)

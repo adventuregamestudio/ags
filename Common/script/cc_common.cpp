@@ -23,7 +23,7 @@ using namespace AGS::Common;
 int ccCompOptions = SCOPT_LEFTTORIGHT;
 // currently compiled or executed line
 int currentline;
-// currently compiled section name
+// name of currently compiling script or script section
 std::string ccCurScriptName;
 
 void ccSetOption(int optbit, int onoroff)

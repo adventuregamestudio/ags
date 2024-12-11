@@ -168,8 +168,9 @@ private:
     // in RuntimeScript must be intptr_t to accomodate real pointers placed after
     // performing fixups.
     std::vector<intptr_t>   _code;
-    std::vector<int32_t>    _fixups;  // code array index to fixup (in ints)
-    std::vector<uint8_t>    _fixuptypes; // global data/string area/ etc
+    std::vector<int32_t>    _fixups; // code array index to fixup (in ints)
+    std::vector<uint8_t>    _fixupTypes; // FIXUP_* type per fixup index
+    std::vector<int32_t>    _fixupValues; // fixup values per fixup index
     std::vector<uint8_t>    _codeFixups; // fixup type per each code entry
     // Resolved global variables
     std::unordered_map<int32_t, ScriptVariable> _globalvars;

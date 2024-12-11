@@ -20,6 +20,7 @@
 #include "script/cc_common.h"
 #include "script/systemimports.h"
 
+using namespace AGS::Engine;
 
 bool ccAddExternalStaticFunction(const String &name, ScriptAPIFunction *scfn, void *dirfn)
 {
@@ -63,9 +64,9 @@ bool ccAddExternalScriptObjectHandle(const String &name, void *ptr)
      return simp.Add(name, RuntimeScriptValue().SetScriptObject(ptr, &GlobalStaticManager), nullptr, kScValHint_Handle) != UINT32_MAX;
 }
 
-bool ccAddExternalScriptSymbol(const String &name, const RuntimeScriptValue &prval, ccInstance *inst)
+bool ccAddExternalScriptSymbol(const String &name, const RuntimeScriptValue &prval, RuntimeScript *script)
 {
-    return simp.Add(name, prval, inst) != UINT32_MAX;
+    return simp.Add(name, prval, script) != UINT32_MAX;
 }
 
 void ccRemoveExternalSymbol(const String &name)

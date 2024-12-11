@@ -107,6 +107,49 @@ public:
 };
 
 
+// CCPluginObject is a plugin's dynamic manager wrapper.
+// The purpose is to hide the actual plugin's manager behind a proxy,
+// as plugin's interface may not fully comply to our internal one.
+// This prevents errors if one of the extended methods is called by the engine.
+// The base IScriptObject interface currently consists of only few
+// methods, which are used only once in the object's lifetime,
+// and therefore this wrapper should have a small overhead.
+struct CCPluginObject final : public CCBasicObject
+{
+private:
+    virtual ~CCPluginObject() = default;
+
+    IScriptObject *_pluginMgr = nullptr;
+
+public:
+    CCPluginObject(IScriptObject *plugin_mgr)
+        : _pluginMgr(plugin_mgr) {}
+
+    // Dispose the object
+    int Dispose(void *address, bool force) override
+    {
+        // This wrapper's lifetime is tied to the plugin object
+        if (_pluginMgr->Dispose(address, force) != 0)
+        {
+            delete this;
+            return 1;
+        }
+        return 0;
+    }
+    // Return the type name of the object
+    const char *GetType() override
+    {
+        return _pluginMgr->GetType();
+    }
+    // Serialize the object into BUFFER (which is BUFSIZE bytes)
+    // return number of bytes used
+    int Serialize(void *address, uint8_t *buffer, int bufsize) override
+    {
+        return _pluginMgr->Serialize(address, buffer, bufsize);
+    }
+};
+
+
 extern AGSCCStaticObject GlobalStaticManager;
 
 #endif // __AC_CCDYNAMICOBJECT_H

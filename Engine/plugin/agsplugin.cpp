@@ -678,8 +678,12 @@ void IAGSEngine::QueueGameScriptFunction(const char *name, int32 globalScript, i
 }
 
 int IAGSEngine::RegisterManagedObject(void *object, IAGSScriptManagedObject *callback) {
-    GlobalReturnValue.SetPluginObject(object, (IScriptObject*)callback);
-    return ccRegisterManagedObject(object, (IScriptObject*)callback, kScValPluginObject);
+    // TODO: the managers may be either a separate static object, or the managed object itself.
+    // we may try to optimize following by having a cache of CCPluginObjects per callback
+    // address. Need to research if that's reliable, and will actually be more performant.
+    auto *pl_obj = new CCPluginObject((IScriptObject*)callback);
+    GlobalReturnValue.SetPluginObject((void*)object, pl_obj);
+    return ccRegisterManagedObject(object, pl_obj, kScValPluginObject);
 }
 
 void IAGSEngine::AddManagedObjectReader(const char *typeName, IAGSManagedObjectReader *reader) {
@@ -695,8 +699,9 @@ void IAGSEngine::AddManagedObjectReader(const char *typeName, IAGSManagedObjectR
 }
 
 void IAGSEngine::RegisterUnserializedObject(int key, void *object, IAGSScriptManagedObject *callback) {
-    GlobalReturnValue.SetPluginObject((void*)object, (IScriptObject*)callback);
-    ccRegisterUnserializedObject(key, object, (IScriptObject*)callback, kScValPluginObject);
+    auto *pl_obj = new CCPluginObject((IScriptObject*)callback);
+    GlobalReturnValue.SetPluginObject((void*)object, pl_obj);
+    ccRegisterUnserializedObject(key, object, pl_obj, kScValPluginObject);
 }
 
 int IAGSEngine::GetManagedObjectKeyByAddress(void *address) {

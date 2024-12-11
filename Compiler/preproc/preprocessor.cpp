@@ -245,7 +245,9 @@ namespace Preprocessor {
                     size_t endOfString = FindIndexOfMatchingCharacter(text, i, text[i]);
                     if (endOfString == NOT_FOUND) //size_t is unsigned but it's alright
                     {
-                        LogError(ErrorCode::UnterminatedString, "Unterminated string");
+                        std::string msg = "Unterminated string: <char> is missing";
+                        msg = msg.replace(msg.find("<char>"), 6, std::string(1, text[i]));
+                        LogError(ErrorCode::UnterminatedString, msg.c_str());
                         break;
                     }
                     endOfString++;
@@ -405,12 +407,24 @@ namespace Preprocessor {
             {
                 if ((line[i] == '"') || (line[i] == '\''))
                 {
-                    i = FindIndexOfMatchingCharacter(line, i, line[i]);
-                    if (i == NOT_FOUND)
+                    int end_of_literal = FindIndexOfMatchingCharacter(line, i, line[i]);
+                    if (end_of_literal == NOT_FOUND)
                     {
                         i = line.GetLength();
                         break;
                     }
+                    if (i == 0u && line[0u] == '"')
+                    {
+                        // '[end_of_literal]' contains the '"', we need the part before that
+                        String literal = line.Mid(0u, end_of_literal);
+                        if (literal.StartsWith(NEW_SCRIPT_TOKEN_PREFIX))
+                        {
+                            // Start the new script
+                            _scriptName = literal.Mid(strlen(NEW_SCRIPT_TOKEN_PREFIX));
+                            _lineNumber = 0;
+                        }
+                    }
+                    i = end_of_literal;
                 }
                 i++;
             }

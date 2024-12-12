@@ -3016,3 +3016,23 @@ TEST_F(Compile1, ExpressionNotFoundMessage2)
     EXPECT_NE(std::string::npos, err_msg.find("an expression"));
     EXPECT_NE(std::string::npos, err_msg.find("'do'"));
 }
+
+TEST_F(Compile1, ImportWithBody) {
+
+    // An "import" function must not be declared with body
+
+    char const *inpl = "\
+        import int func(void)               \n\
+        {                                   \n\
+            return 0;                       \n\
+        }                                   \n\
+        ";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string const &err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("'import'"));
+}

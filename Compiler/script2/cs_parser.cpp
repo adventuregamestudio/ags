@@ -1411,6 +1411,9 @@ void AGS::Parser::ParseFuncdecl_Checks(TypeQualifierSet tqs, Symbol struct_of_fu
     bool const is_constructor = (kKW_NoSymbol != struct_of_func) &&
         func_entry.ComponentD && (func_entry.ComponentD->Component == func_entry.ComponentD->Parent);
 
+    if (tqs[TQ::kImport] && body_follows)
+        UserError("Cannot declare this function 'import' and define its body at the same time");
+
     if (kKW_NoSymbol == struct_of_func && tqs[TQ::kProtected])
         UserError(
             "Function '%s' isn't a struct component and so cannot be 'protected'",
@@ -1482,7 +1485,7 @@ void AGS::Parser::ParseFuncdecl_HandleFunctionOrImportIndex(TypeQualifierSet tqs
     _sym[name_of_func].FunctionD->TypeQualifiers[TQ::kImport] = true;
     // Import functions have an index into the imports[] array in lieu of a start offset.
     auto const imports_idx = _sym[name_of_func].FunctionD->Offset;
-
+    
     _sym[name_of_func].FunctionD->TypeQualifiers[TQ::kImport] = true;
 
     if (PP::kPreAnalyze == _pp)
@@ -1490,6 +1493,12 @@ void AGS::Parser::ParseFuncdecl_HandleFunctionOrImportIndex(TypeQualifierSet tqs
         _sym[name_of_func].FunctionD->Offset = kFT_Import;
         return;
     }
+
+    if (imports_idx < 0 || imports_idx >= _scrip.imports.size())
+        InternalError(
+            "Imported function '%s' has the imports index '%d' which is invalid",
+            _sym.GetName(name_of_func).c_str(),
+            imports_idx);
 
     // Append the number of parameters to the name of the import:
     // this lets the engine to link different implementations depending on API

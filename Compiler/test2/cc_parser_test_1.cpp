@@ -2906,7 +2906,7 @@ TEST_F(Compile1, ParensAfterNew08) {
         managed struct Struct               \n\
         {                                   \n\
             int Payload;                    \n\
-            import void Struct(float);      \n\
+            import void Struct(float f);    \n\
         };                                  \n\
                                             \n\
         int game_start()                    \n\

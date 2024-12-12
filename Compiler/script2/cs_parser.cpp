@@ -1988,15 +1988,8 @@ void AGS::Parser::ParseExpression_New_CtorFuncCall(Symbol argument_vartype, SrcL
         _reg_track.SetRegister(SREG_MAR);
         EvaluationResult eres_dummy;
 
-        // Get the arguments of the constructor call
-        size_t const start_of_arguments = expression.GetCursor();
-        SkipNextSymbol(expression, kKW_OpenParenthesis);
-        expression.SkipToCloser();
-        SkipNextSymbol(expression, kKW_CloseParenthesis);
+        AccessData_FunctionCall(ctor_function, expression, eres_dummy);
         ParseExpression_CheckUsedUp(expression);
-        size_t const end_of_arguments = expression.GetCursor();
-        SrcList arguments = SrcList(expression, start_of_arguments, end_of_arguments - start_of_arguments);
-        AccessData_FunctionCall(ctor_function, arguments, eres_dummy);
         PopReg(SREG_AX);
         return;
     } while (false);
@@ -3045,8 +3038,16 @@ void AGS::Parser::AccessData_FunctionCall_Arguments(Symbol const name_of_func, b
     arguments.SetCursor(arguments.Length());
 }
 
-void AGS::Parser::AccessData_FunctionCall(Symbol name_of_func, SrcList &arguments, EvaluationResult &eres)
+void AGS::Parser::AccessData_FunctionCall(Symbol name_of_func, SrcList &expression, EvaluationResult &eres)
 {
+    // Get the arguments of the call
+    size_t const arguments_begin = expression.GetCursor();
+    SkipNextSymbol(expression, kKW_OpenParenthesis);
+    expression.SkipToCloser();
+    SkipNextSymbol(expression, kKW_CloseParenthesis);
+    size_t const arguments_end = expression.GetCursor();
+    SrcList arguments = SrcList(expression, arguments_begin, arguments_end - arguments_begin);
+
     auto const function_tqs = _sym[name_of_func].FunctionD->TypeQualifiers;
     bool const func_is_import = function_tqs[TQ::kImport];
     // If function uses normal stack, we need to do stack calculations to get at certain elements
@@ -3090,7 +3091,7 @@ void AGS::Parser::AccessData_FunctionCall(Symbol name_of_func, SrcList &argument
         args_count);
     
       if (called_func_uses_this)
-    {
+      {
         if (0u == args_count)
         {   // MAR must still be current, so undo the unneeded PUSH above.
             _scrip.OffsetToLocalVarBlock -= SIZE_OF_STACK_CELL;
@@ -3127,6 +3128,7 @@ void AGS::Parser::AccessData_FunctionCall(Symbol name_of_func, SrcList &argument
         PopReg(SREG_OP);
 
     MarkAcessed(name_of_func);
+    expression.SetCursor(arguments_end);
 }
 
 bool AGS::Parser::ParseExpression_CompileTime(Symbol const op_sym, EvaluationResult const &eres_lhs, EvaluationResult const &eres_rhs, EvaluationResult &eres)
@@ -3610,8 +3612,7 @@ void AGS::Parser::AccessData_FirstClause(VariableAccess access_type, SrcList &ex
             return;
         }
 
-        SrcList arguments = SrcList(expression, 1u, expression.Length() - 1u);
-        AccessData_FunctionCall(first_sym, arguments, eres);
+        AccessData_FunctionCall(first_sym, expression, eres);
         if (_sym.IsDynarrayVartype(eres.Vartype))
             AccessData_ProcessArrayIndexes(expression, eres);
         return;
@@ -3756,14 +3757,7 @@ void AGS::Parser::AccessData_SubsequentClause(VariableAccess access_type, bool a
             return;
         }
 
-        size_t const arguments_begin = expression.GetCursor();
-        SkipNextSymbol(expression, kKW_OpenParenthesis);
-        expression.SkipToCloser();
-        SkipNextSymbol(expression, kKW_CloseParenthesis);
-        size_t const arguments_end = expression.GetCursor();
-        SrcList arguments = SrcList(expression, arguments_begin, arguments_end - arguments_begin);
-        AccessData_FunctionCall(qualified_component, arguments, eres);
-        expression.SetCursor(arguments_end);
+        AccessData_FunctionCall(qualified_component, expression, eres);
         if (_sym.IsDynarrayVartype(vartype))
             return AccessData_ProcessArrayIndexes(expression, eres);
         return;

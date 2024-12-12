@@ -275,6 +275,11 @@ void ccInstance::SetExecTimeout(const unsigned sys_poll_ms, const unsigned abort
     _maxWhileLoops = abort_loops;
 }
 
+ccInstance::ccInstance()
+    : _exportLookup('$')
+{
+}
+
 ccInstance::~ccInstance()
 {
     Free();
@@ -374,23 +379,10 @@ void ccInstance::AbortAndDestroy()
     }
 
 
-size_t ccInstance::GetExportedSymbol(const Common::String &symname) const
-{
-    // We expect that the functions may be exported with the number of arguments
-    // appended to their names after '$' separator.
-    for (auto it = _exportLookup.lower_bound(symname);
-        it != _exportLookup.end() && it->first.CompareLeft(symname) == 0; ++it)
-    {
-        if (it->first.GetLength() == symname.GetLength() || it->first[symname.GetLength()] == '$')
-            return it->second;
-    }
-    return SIZE_MAX;
-}
-
 bool ccInstance::FindExportedFunction(const String &fn_name, int32_t &start_at, int32_t &num_args) const
 {
-    const size_t exp_index = GetExportedSymbol(fn_name);
-    if (exp_index == SIZE_MAX)
+    const uint32_t exp_index = _exportLookup.GetIndexOfAny(fn_name);
+    if (exp_index == UINT32_MAX)
         return false;
 
     const int32_t etype = (_instanceof->export_addr[exp_index] >> 24L) & 0x000ff;
@@ -556,6 +548,7 @@ inline bool FixupArgument(RuntimeScriptValue &arg, const int fixup, const uintpt
     case FIXUP_GLOBALDATA:
         {
             ScriptVariable *gl_var = (ScriptVariable*)code;
+            assert(gl_var->RValue.IsValid());
             arg.SetGlobalVar(&gl_var->RValue);
         }
         return true;
@@ -570,9 +563,10 @@ inline bool FixupArgument(RuntimeScriptValue &arg, const int fixup, const uintpt
         return true;
     case FIXUP_IMPORT:
         {
-            const ScriptImport *import = simp.getByIndex(static_cast<uint32_t>(code));
+            const ScriptImport *import = simp.GetByIndex(static_cast<uint32_t>(code));
             if (import)
             {
+                assert(import->Value.IsValid());
                 arg = import->Value;
             }
             else
@@ -1717,8 +1711,8 @@ void ccInstance::GetScriptPosition(ScriptPosition &script_pos) const
 
 RuntimeScriptValue ccInstance::GetSymbolAddress(const String &symname) const
 {
-    size_t exp_index = GetExportedSymbol(symname);
-    return (exp_index < SIZE_MAX) ? _exports[exp_index] : RuntimeScriptValue();
+    uint32_t exp_index = _exportLookup.GetIndexOfAny(symname);
+    return (exp_index < UINT32_MAX) ? _exports[exp_index] : RuntimeScriptValue();
 }
 
 void ccInstance::DumpInstruction(const ScriptOperation &op) const
@@ -1782,7 +1776,7 @@ void ccInstance::DumpInstruction(const ScriptOperation &op) const
             case kScValPluginFunction:
             case kScValPluginObject:
             {
-                String name = simp.findName(arg);
+                String name = simp.FindName(arg);
                 if (!name.IsEmpty())
                 {
                     writer.WriteFormat(" &%s", name.GetCStr());
@@ -1896,7 +1890,7 @@ bool ccInstance::_Create(PScript scri, const ccInstance *joined)
     // Resolve script exports; this is done for each script instance,
     // CHECKME: why? they seem to reference shared data
     _exports.resize(scri->exports.size());
-    _exportLookup.clear();
+    _exportLookup.Clear();
     // find the real address of the exports
     for (size_t i = 0; i < scri->exports.size(); i++)
     {
@@ -1928,7 +1922,7 @@ bool ccInstance::_Create(PScript scri, const ccInstance *joined)
             return false;
         }
 
-        _exportLookup[scri->exports[i]] = i;
+        _exportLookup.Add(scri->exports[i], i);
     }
 
     _instanceof = scri;
@@ -1937,10 +1931,15 @@ bool ccInstance::_Create(PScript scri, const ccInstance *joined)
         _flags = INSTF_SHAREDATA;
     scri->instances++;
 
-    if ((scri->instances == 1) && (ccGetOption(SCOPT_AUTOIMPORT) != 0)) {
+    if ((scri->instances == 1) && (ccGetOption(SCOPT_AUTOIMPORT) != 0))
+    {
         // import all the exported stuff from this script
-        for (size_t i = 0; i < scri->exports.size(); i++) {
-            if (!ccAddExternalScriptSymbol(scri->exports[i].c_str(), _exports[i], this)) {
+        for (size_t i = 0; i < scri->exports.size(); i++)
+        {
+            String name = scri->exports[i];
+            name.Replace('$', '^'); // replace exported name separator with imported name separator
+            if (!ccAddExternalScriptSymbol(name, _exports[i], this))
+            {
                 cc_error("Export table overflow at '%s'", scri->exports[i].c_str());
                 return false;
             }
@@ -2034,7 +2033,7 @@ bool ccInstance::ResolveScriptImports()
             continue;
         }
 
-        resolved_imports[import_idx] = simp.get_index_of(String::Wrapper(scri->imports[import_idx].c_str()));
+        resolved_imports[import_idx] = simp.GetIndexOfAny(String::Wrapper(scri->imports[import_idx].c_str()));
         if (resolved_imports[import_idx] == UINT32_MAX)
         {
             Debug::Printf(kDbgMsg_Error, "unresolved import '%s' in '%s'", scri->imports[import_idx].c_str(), scri->sectionNames.size() > 0 ? scri->sectionNames[0].c_str() : "<unknown>");
@@ -2243,7 +2242,7 @@ bool ccInstance::ResolveImportFixups()
 
         uint32_t const fixup = scri->fixups[fixup_idx];
         uint32_t const import_index = resolved_imports[_code[fixup]];
-        ScriptImport const *import = simp.getByIndex(import_index);
+        ScriptImport const *import = simp.GetByIndex(import_index);
         if (!import)
         {
             cc_error("cannot resolve import, key = %d", import_index);

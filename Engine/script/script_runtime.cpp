@@ -23,64 +23,64 @@
 
 bool ccAddExternalStaticFunction(const String &name, ScriptAPIFunction *scfn, void *dirfn)
 {
-    return simp.add(name, RuntimeScriptValue().SetStaticFunction(scfn), nullptr) != UINT32_MAX &&
+    return simp.Add(name, RuntimeScriptValue().SetStaticFunction(scfn), nullptr) != UINT32_MAX &&
         (!dirfn ||
-        simp_for_plugin.add(name, RuntimeScriptValue().SetPluginFunction(dirfn), nullptr) != UINT32_MAX);
+        simp_for_plugin.Add(name, RuntimeScriptValue().SetPluginFunction(dirfn), nullptr) != UINT32_MAX);
 }
 
 bool ccAddExternalObjectFunction(const String &name, ScriptAPIObjectFunction *scfn, void *dirfn)
 {
-    return simp.add(name, RuntimeScriptValue().SetObjectFunction(scfn), nullptr) != UINT32_MAX &&
+    return simp.Add(name, RuntimeScriptValue().SetObjectFunction(scfn), nullptr) != UINT32_MAX &&
         (!dirfn ||
-        simp_for_plugin.add(name, RuntimeScriptValue().SetPluginFunction(dirfn), nullptr) != UINT32_MAX);
+        simp_for_plugin.Add(name, RuntimeScriptValue().SetPluginFunction(dirfn), nullptr) != UINT32_MAX);
 }
 
 bool ccAddExternalFunction(const ScFnRegister &scfnreg)
 {
     String name = String::Wrapper(scfnreg.Name);
-    return simp.add(name, scfnreg.Fn, nullptr) != UINT32_MAX &&
+    return simp.Add(name, scfnreg.Fn, nullptr) != UINT32_MAX &&
         (scfnreg.PlFn.IsNull() ||
-        simp_for_plugin.add(name, scfnreg.PlFn, nullptr) != UINT32_MAX);
+        simp_for_plugin.Add(name, scfnreg.PlFn, nullptr) != UINT32_MAX);
 }
 
 bool ccAddExternalPluginFunction(const String &name, void *pfn)
 {
-    return simp.add(name, RuntimeScriptValue().SetPluginFunction(pfn), nullptr) != UINT32_MAX;
+    return simp.Add(name, RuntimeScriptValue().SetPluginFunction(pfn), nullptr) != UINT32_MAX;
 }
 
 bool ccAddExternalStaticArray(const String &name, void *ptr, CCStaticObjectArray *array_mgr)
 {
-    return simp.add(name, RuntimeScriptValue().SetStaticArray(ptr, array_mgr), nullptr) != UINT32_MAX;
+    return simp.Add(name, RuntimeScriptValue().SetStaticArray(ptr, array_mgr), nullptr) != UINT32_MAX;
 }
 
 bool ccAddExternalScriptObject(const String &name, void *ptr, IScriptObject *manager)
 {
-    return simp.add(name, RuntimeScriptValue().SetScriptObject(ptr, manager), nullptr) != UINT32_MAX;
+    return simp.Add(name, RuntimeScriptValue().SetScriptObject(ptr, manager), nullptr) != UINT32_MAX;
 }
 
 bool ccAddExternalScriptObjectHandle(const String &name, void *ptr)
 {
-     return simp.add(name, RuntimeScriptValue().SetScriptObject(ptr, &GlobalStaticManager), nullptr, kScValHint_Handle) != UINT32_MAX;
+     return simp.Add(name, RuntimeScriptValue().SetScriptObject(ptr, &GlobalStaticManager), nullptr, kScValHint_Handle) != UINT32_MAX;
 }
 
 bool ccAddExternalScriptSymbol(const String &name, const RuntimeScriptValue &prval, ccInstance *inst)
 {
-    return simp.add(name, prval, inst) != UINT32_MAX;
+    return simp.Add(name, prval, inst) != UINT32_MAX;
 }
 
 void ccRemoveExternalSymbol(const String &name)
 {
-    simp.remove(name);
+    simp.Remove(name);
 }
 
 void ccRemoveAllSymbols()
 {
-    simp.clear();
+    simp.Clear();
 }
 
 void *ccGetSymbolAddress(const String &name)
 {
-    const ScriptImport *import = simp.getByName(name);
+    const ScriptImport *import = simp.GetByName(name);
     if (import)
     {
         return import->Value.Ptr;
@@ -90,7 +90,7 @@ void *ccGetSymbolAddress(const String &name)
 
 void *ccGetSymbolAddressForPlugin(const String &name)
 {
-    const ScriptImport *import = simp_for_plugin.getByName(name);
+    const ScriptImport *import = simp_for_plugin.GetByName(name);
     if (import)
     {
         return import->Value.Ptr;
@@ -98,7 +98,7 @@ void *ccGetSymbolAddressForPlugin(const String &name)
     else
     {
         // Also search the internal symbol table for non-function symbols
-        import = simp.getByName(name);
+        import = simp.GetByName(name);
         if (import)
         {
             return import->Value.Ptr;
@@ -109,7 +109,7 @@ void *ccGetSymbolAddressForPlugin(const String &name)
 
 void *ccGetScriptObjectAddress(const String &name, const String &type)
 {
-    const auto *imp = simp.getByName(name);
+    const auto *imp = simp.GetByName(name);
     if (!imp)
         return nullptr;
     if (imp->Value.Type != kScValScriptObject && imp->Value.Type != kScValPluginObject)

@@ -362,7 +362,7 @@ static bool TryGetGlobalVariable(const String &field_ref, const ccInstance *inst
     else
     {
         // TODO: following may be simplified by recording variable ptr in runtime TOC
-        const ScriptImport *import = simp.getByName(var.name);
+        const ScriptImport *import = simp.GetByName(var.name);
         if (!import)
             return false;
 

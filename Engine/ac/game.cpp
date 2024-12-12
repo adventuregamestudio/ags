@@ -625,6 +625,16 @@ bool ValidateSaveSlotRange(const char *api_name, int &min_slot, int &max_slot)
     return true;
 }
 
+GraphicFlip ValidateFlip(const char *apiname, int flip)
+{
+    if ((flip < kFlip_None) || (flip > kFlip_Both))
+    {
+        debug_script_warn("%s: invalid flip parameter (%d)", apiname, flip);
+        return kFlip_None;
+    }
+    return static_cast<GraphicFlip>(flip);
+}
+
 void AssertView(const char *apiname, int view)
 {
     // NOTE: we assume (here and below) that the view is already in an internal 0-based range.

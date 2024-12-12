@@ -71,6 +71,8 @@ ScriptSaveGameSortStyle ValidateSaveGameSort(const char *apiname, int save_sort)
 ScriptSortDirection ValidateSortDirection(const char *apiname, int sort_dir);
 // Save slot range validation; fixups min and max slots, returns if the resulting range is non-empty
 bool ValidateSaveSlotRange(const char *api_name, int &min_slot, int &max_slot);
+// Graphic parameter validation.
+Common::GraphicFlip ValidateFlip(const char *apiname, int flip);
 
 // View, loop, frame parameter assertions.
 // WARNING: these functions assume that view is already in an internal 0-based range.

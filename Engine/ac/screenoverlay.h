@@ -100,6 +100,7 @@ struct ScreenOverlay
     bool IsSpriteShared() const { return (_flags & kOver_SpriteShared) != 0; }
     bool IsAutoPosition() const { return (_flags & kOver_AutoPosition) != 0; }
     bool IsRoomLayer() const { return (_flags & kOver_RoomLayer) != 0; }
+    Common::GraphicFlip GetFlip() const { return Common::GfxDef::GetFlipFromFlags(_spritetf); }
     bool HasTint() const { return (_flags & kOver_HasTint) != 0; }
     bool HasLightLevel() const { return (_flags & kOver_HasLightLevel) != 0; }
     void SetAutoPosition(int for_character)
@@ -128,6 +129,8 @@ struct ScreenOverlay
     void SetImage(std::unique_ptr<Common::Bitmap> pic, int offx = 0, int offy = 0);
     // Assigns a shared sprite to this overlay
     void SetSpriteNum(int sprnum, int offx = 0, int offy = 0);
+    // Assigns flip setting
+    void SetFlip(Common::GraphicFlip flip);
     // Assigns tint settings
     void SetTint(int red, int green, int blue, int opacity, int luminance);
     // Assigns light level
@@ -152,6 +155,7 @@ private:
 
     int _flags = 0; // OverlayFlags
     int _sprnum = 0; // sprite id
+    Common::SpriteTransformFlags _spritetf = Common::kSprTf_None;
     bool _hasChanged = false;
 };
 

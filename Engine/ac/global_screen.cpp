@@ -14,6 +14,7 @@
 #include "ac/common.h"
 #include "ac/gamesetup.h"
 #include "ac/draw.h"
+#include "ac/game.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
@@ -38,9 +39,9 @@ extern AGSPlatformDriver *platform;
 extern RGB palette[256];
 extern unsigned int loopcounter;
 
-void FlipScreen(int amount) {
-    if ((amount<0) | (amount>3)) quit("!FlipScreen: invalid argument (0-3)");
-    play.screen_flipped=amount;
+void FlipScreen(int direction) {
+    direction = ValidateFlip("FlipScreen", direction);
+    play.screen_flipped = direction;
 }
 
 class ShakeScreenState : public GameState

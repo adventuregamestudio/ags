@@ -93,6 +93,12 @@ void ScreenOverlay::SetSpriteNum(int sprnum, int offx, int offy)
     MarkChanged();
 }
 
+void ScreenOverlay::SetFlip(GraphicFlip flip)
+{
+    _spritetf = GfxDef::GetFlagsFromFlip(flip);
+    MarkChanged();
+}
+
 void ScreenOverlay::SetTint(int red, int green, int blue, int opacity, int luminance)
 {
     tint_r = red;
@@ -180,7 +186,7 @@ void ScreenOverlay::ReadFromSavegame(Stream *in, bool &has_bitmap, int32_t cmp_v
         tint_level = in->ReadInt8();
         tint_light = in->ReadInt32(); // tint light (or light level)
         // Reserved for transform options
-        in->ReadInt32(); // sprite transform flags1
+        _spritetf = (SpriteTransformFlags)in->ReadInt32(); // sprite transform flags1
         in->ReadInt32(); // sprite transform flags2
         in->ReadInt32(); // transform scale x
         in->ReadInt32(); // transform scale y
@@ -234,7 +240,7 @@ void ScreenOverlay::WriteToSavegame(Stream *out) const
     out->WriteInt8(tint_level);
     out->WriteInt32(tint_light); // tint light (or light level)
     // Reserved for transform options
-    out->WriteInt32(0); // sprite transform flags1
+    out->WriteInt32(_spritetf); // sprite transform flags1
     out->WriteInt32(0); // sprite transform flags2
     out->WriteInt32(0); // transform scale x
     out->WriteInt32(0); // transform scale y

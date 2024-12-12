@@ -18,7 +18,7 @@
 #ifndef __AGS_EE_AC__GLOBALSCREEN_H
 #define __AGS_EE_AC__GLOBALSCREEN_H
 
-void FlipScreen(int amount);
+void FlipScreen(int direction);
 void ShakeScreen(int severe);
 void ShakeScreenBackground (int delay, int amount, int length);
 void TintScreen(int red, int grn, int blu);

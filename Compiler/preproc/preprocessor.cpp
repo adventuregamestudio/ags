@@ -13,6 +13,7 @@
 //=============================================================================
 #include <algorithm>
 #include <cctype>
+#include <string>
 #include "script/cs_parser_common.h"
 #include "preproc/preprocessor.h"
 #include "script/cc_common.h"

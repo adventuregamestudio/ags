@@ -24,14 +24,14 @@ using AGS::Common::String;
 
 struct ScriptImport
 {
-    ScriptImport()
-    {
-        InstancePtr = nullptr;
-    }
+    ScriptImport() = default;
+    ScriptImport(const String &name, const RuntimeScriptValue &val, ccInstance *inst, ScriptValueHint val_hint = kScValHint_Unknown)
+        : Name(name), Value(val), InstancePtr(inst), ValueHint(val_hint) {}
 
-    String              Name;           // import's uid
+    String              Name;
     RuntimeScriptValue  Value;
-    ccInstance          *InstancePtr;   // script instance
+    ccInstance          *InstancePtr = nullptr;
+    ScriptValueHint     ValueHint = kScValHint_Unknown;
 };
 
 struct SystemImports
@@ -45,7 +45,7 @@ private:
     IndexMap btree;
 
 public:
-    uint32_t add(const String &name, const RuntimeScriptValue &value, ccInstance *inst);
+    uint32_t add(const String &name, const RuntimeScriptValue &value, ccInstance *inst, ScriptValueHint val_hint = kScValHint_Unknown);
     void remove(const String &name);
     const ScriptImport *getByName(const String &name);
     uint32_t get_index_of(const String &name);

@@ -145,7 +145,7 @@ void InitAndRegisterAudioObjects(GameSetupStruct &game)
         game.audioClips[i].id = i;
         int handle = ccRegisterPersistentObject(&game.audioClips[i], &ccDynamicAudioClip); // add internal ref
         StaticAudioClipArray[i] = handle;
-        ccAddExternalScriptObject(game.audioClips[i].scriptName, &StaticAudioClipArray[i], &GlobalStaticManager);
+        ccAddExternalScriptObjectHandle(game.audioClips[i].scriptName, &StaticAudioClipArray[i]);
     }
 }
 
@@ -175,7 +175,7 @@ void InitAndRegisterCharacters(GameSetupStruct &game, const LoadedGameEntities &
         StaticCharacterArray[i] = handle;
 
         // export the character's script object
-        ccAddExternalScriptObject(game.chars[i].scrname, &StaticCharacterArray[i], &GlobalStaticManager);
+        ccAddExternalScriptObjectHandle(game.chars[i].scrname, &StaticCharacterArray[i]);
     }
 
     // extra character properties (because the characters are split into 2 structs now)
@@ -203,7 +203,7 @@ void InitAndRegisterDialogs(const GameSetupStruct &game)
         StaticDialogArray[i] = handle;
 
         if (!game.dialogScriptNames[i].IsEmpty())
-            ccAddExternalScriptObject(game.dialogScriptNames[i], &StaticDialogArray[i], &GlobalStaticManager);
+            ccAddExternalScriptObjectHandle(game.dialogScriptNames[i], &StaticDialogArray[i]);
     }
 }
 
@@ -242,7 +242,7 @@ HError InitAndRegisterGUI(const GameSetupStruct &game)
         StaticGUIArray[i] = handle;
 
         // export the gui script object
-        ccAddExternalScriptObject(guis[i].Name, &StaticGUIArray[i], &GlobalStaticManager);
+        ccAddExternalScriptObjectHandle(guis[i].Name, &StaticGUIArray[i]);
     }
     // export all the GUI's controls
     export_all_gui_controls();
@@ -263,7 +263,7 @@ void InitAndRegisterInvItems(const GameSetupStruct &game)
         StaticInventoryArray[i] = handle;
 
         if (!game.invScriptNames[i].IsEmpty())
-            ccAddExternalScriptObject(game.invScriptNames[i], &StaticInventoryArray[i], &GlobalStaticManager);
+            ccAddExternalScriptObjectHandle(game.invScriptNames[i], &StaticInventoryArray[i]);
     }
 }
 
@@ -327,7 +327,7 @@ HError InitAndRegisterGameEntities(const LoadedGameEntities &ents)
     RegisterStaticArrays(game);
 
     setup_player_character(game.playercharacter);
-    ccAddExternalScriptObject("player", &_sc_PlayerCharPtr, &GlobalStaticManager);
+    ccAddExternalScriptObjectHandle("player", &_sc_PlayerCharPtr);
     return HError::None();
 }
 

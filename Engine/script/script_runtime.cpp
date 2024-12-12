@@ -16,6 +16,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include "ac/dynobj/cc_dynamicarray.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "script/cc_common.h"
 #include "script/systemimports.h"
 
@@ -55,6 +56,11 @@ bool ccAddExternalStaticArray(const String &name, void *ptr, CCStaticObjectArray
 bool ccAddExternalScriptObject(const String &name, void *ptr, IScriptObject *manager)
 {
     return simp.add(name, RuntimeScriptValue().SetScriptObject(ptr, manager), nullptr) != UINT32_MAX;
+}
+
+bool ccAddExternalScriptObjectHandle(const String &name, void *ptr)
+{
+     return simp.add(name, RuntimeScriptValue().SetScriptObject(ptr, &GlobalStaticManager), nullptr, kScValHint_Handle) != UINT32_MAX;
 }
 
 bool ccAddExternalScriptSymbol(const String &name, const RuntimeScriptValue &prval, ccInstance *inst)
@@ -108,9 +114,24 @@ void *ccGetScriptObjectAddress(const String &name, const String &type)
         return nullptr;
     if (imp->Value.Type != kScValScriptObject && imp->Value.Type != kScValPluginObject)
         return nullptr;
-    if (type != imp->Value.ObjMgr->GetType())
+
+    void *object;
+    IScriptObject *mgr;
+    if (imp->ValueHint == kScValHint_Handle)
+    {
+        const int32_t handle = *static_cast<const int32_t*>(imp->Value.Ptr);
+        if (ccGetObjectAddressAndManagerFromHandle(handle, object, mgr) == kScValUndefined)
+            return nullptr;
+    }
+    else
+    {
+        object = imp->Value.Ptr;
+        mgr = imp->Value.ObjMgr;
+    }
+
+    if (type != mgr->GetType())
         return nullptr;
-    return imp->Value.Ptr;
+    return object;
 }
 
 new_line_hook_type new_line_hook = nullptr;

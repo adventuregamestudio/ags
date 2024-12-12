@@ -590,14 +590,14 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         // export the object's script object
         if (thisroom.Objects[cc].ScriptName.IsEmpty())
             continue;
-        ccAddExternalScriptObject(thisroom.Objects[cc].ScriptName, &StaticObjectArray[cc], &GlobalStaticManager);
+        ccAddExternalScriptObjectHandle(thisroom.Objects[cc].ScriptName, &StaticObjectArray[cc]);
     }
 
     for (int cc = 0; cc < MAX_ROOM_HOTSPOTS; cc++) {
         if (thisroom.Hotspots[cc].ScriptName.IsEmpty())
             continue;
 
-        ccAddExternalScriptObject(thisroom.Hotspots[cc].ScriptName, &StaticHotspotArray[cc], &GlobalStaticManager);
+        ccAddExternalScriptObjectHandle(thisroom.Hotspots[cc].ScriptName, &StaticHotspotArray[cc]);
     }
 
     set_our_eip(210);

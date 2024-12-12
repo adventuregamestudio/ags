@@ -47,6 +47,16 @@ enum ScriptValueType
     kScValCodePtr,      // as a pointer to element in byte-code array
 };
 
+// ScriptValueHint is a hint about ScriptValue's meaning and purpose.
+// Not to be used in RuntimeScriptValue itself, but to accompany one
+// in other structs that contain RuntimeScriptValues.
+// TODO: find another name / place for this?
+enum ScriptValueHint
+{
+    kScValHint_Unknown,
+    kScValHint_Handle   // a managed object's handle
+};
+
 struct RuntimeScriptValue
 {
 public:

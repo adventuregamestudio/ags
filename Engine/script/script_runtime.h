@@ -63,6 +63,7 @@ bool ccAddExternalPluginFunction(const String &name, void *pfn);
 // Register engine objects for script's access.
 bool ccAddExternalStaticArray(const String &name, void *ptr, CCStaticObjectArray *array_mgr);
 bool ccAddExternalScriptObject(const String &name, void *ptr, IScriptObject *manager);
+bool ccAddExternalScriptObjectHandle(const String &name, void *ptr);
 // Register script own functions (defined in the linked scripts)
 bool ccAddExternalScriptSymbol(const String &name, const RuntimeScriptValue &prval, ccInstance *inst);
 // Remove the script access to a variable or function in your program

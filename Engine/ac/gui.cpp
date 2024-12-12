@@ -656,7 +656,7 @@ void export_all_gui_controls()
             int handle = ccRegisterPersistentObject(guio, &ccDynamicGUIObject); // add ref for engine
             StaticGUIControlsHandles[i][j] = handle;
             if (!guio->Name.IsEmpty()) {
-                ccAddExternalScriptObject(guio->Name, &StaticGUIControlsHandles[i][j], &GlobalStaticManager);
+                ccAddExternalScriptObjectHandle(guio->Name, &StaticGUIControlsHandles[i][j]);
             }
         }
     }

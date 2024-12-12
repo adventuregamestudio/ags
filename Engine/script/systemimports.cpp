@@ -18,7 +18,7 @@
 SystemImports simp;
 SystemImports simp_for_plugin;
 
-uint32_t SystemImports::add(const String &name, const RuntimeScriptValue &value, ccInstance *anotherscr)
+uint32_t SystemImports::add(const String &name, const RuntimeScriptValue &value, ccInstance *anotherscr, ScriptValueHint val_hint)
 {
     uint32_t ixof = get_index_of(name);
     // Check if symbol already exists
@@ -27,8 +27,7 @@ uint32_t SystemImports::add(const String &name, const RuntimeScriptValue &value,
         // Only allow override if not a script-exported function
         if (anotherscr == nullptr)
         {
-            imports[ixof].Value = value;
-            imports[ixof].InstancePtr = anotherscr;
+            imports[ixof] = ScriptImport(name, value, anotherscr, val_hint);
         }
         return ixof;
     }
@@ -45,10 +44,9 @@ uint32_t SystemImports::add(const String &name, const RuntimeScriptValue &value,
 
     btree[name] = ixof;
     if (ixof == imports.size())
-        imports.push_back(ScriptImport());
-    imports[ixof].Name          = name;
-    imports[ixof].Value         = value;
-    imports[ixof].InstancePtr   = anotherscr;
+        imports.emplace_back(ScriptImport(name, value, anotherscr, val_hint));
+    else
+        imports[ixof] = ScriptImport(name, value, anotherscr, val_hint);
     return ixof;
 }
 
@@ -58,9 +56,7 @@ void SystemImports::remove(const String &name)
     if (idx == UINT32_MAX)
         return;
     btree.erase(imports[idx].Name);
-    imports[idx].Name = nullptr;
-    imports[idx].Value.Invalidate();
-    imports[idx].InstancePtr = nullptr;
+    imports[idx] = {};
 }
 
 const ScriptImport *SystemImports::getByName(const String &name)

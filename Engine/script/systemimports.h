@@ -29,8 +29,10 @@ class ScriptSymbolsMap
 {
     using String = AGS::Common::String;
 public:
-    ScriptSymbolsMap(char appendage_separator)
-        : _appendageSeparator(appendage_separator) {}
+    ScriptSymbolsMap(char appendage_separator, bool allow_match_expanded)
+        : _appendageSeparator(appendage_separator)
+        , _allowMatchExpanded(allow_match_expanded)
+    {}
 
     // Maps a symbol name to linear index
     void Add(const String &name, uint32_t index);
@@ -47,7 +49,12 @@ public:
     uint32_t GetIndexOfAny(const String &name) const;
 
 private:
+    // Which char to use as a appendage separator
     const char _appendageSeparator;
+    // Should we allow to select symbols that have extra appendages
+    // compared to the request in case exact match was not found
+    // (i.e. requested "func", select "func^2").
+    const bool _allowMatchExpanded;
     // Note we can't use a hash-map here, because we sometimes need to search
     // by partial keys, so sorting is cruicial
     std::map<String, uint32_t> _lookup;

@@ -86,7 +86,14 @@ uint32_t ScriptSymbolsMap::GetIndexOfAny(const String &name) const
         // If the request is without appendage, then choose the first found symbol
         // which has at least base name matching (it will be exact match if one exists in symbol map)
         if (argnum_at == String::NoIndex)
-            return it->second;
+        {
+            if ((try_sym.GetLength() == name_only.GetLength()) ||
+                _allowMatchExpanded)
+            {
+                return it->second;
+            }
+            break; // exact base-name match would be first in order, so no reason to continue
+        }
         
         // Second - compare argnum appendage
         // If the request has appendage, but the symbol does not, then save it as a best match and continue
@@ -114,7 +121,7 @@ uint32_t ScriptSymbolsMap::GetIndexOfAny(const String &name) const
 
 
 SystemImports::SystemImports()
-    : _lookup('^')
+    : _lookup('^', true /* allow to match symbols with more appendages */)
 {
 }
 

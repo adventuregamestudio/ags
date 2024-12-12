@@ -249,7 +249,7 @@ void ccInstance::SetExecTimeout(const unsigned sys_poll_ms, const unsigned abort
 }
 
 ccInstance::ccInstance()
-    : _exportLookup('$')
+    : _exportLookup('$', true /* allow to match symbols with more appendages */)
 {
 }
 

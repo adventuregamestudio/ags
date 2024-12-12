@@ -1935,7 +1935,7 @@ void prepare_and_add_object_gfx(
     {
         actsp.Ddb->SetStretch(scale_size.Width, scale_size.Height);
         actsp.Ddb->SetRotation(objsav.rotation);
-        actsp.Ddb->SetFlippedLeftRight(objsav.mirrored);
+        actsp.Ddb->SetFlip(objsav.mirrored ? kFlip_Horizontal : kFlip_None);
         apply_tint_or_light_ddb(actsp, objsav.lightlev, objsav.tintamnt, objsav.tintr, objsav.tintg, objsav.tintb, objsav.tintlight);
     }
 

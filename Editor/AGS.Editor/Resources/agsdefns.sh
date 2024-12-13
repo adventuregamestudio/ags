@@ -218,6 +218,7 @@ enum eVoiceMode {
 };
 
 enum eFlipDirection {
+  eFlipNone = 0,
   eFlipLeftToRight = 1,
   eFlipUpsideDown = 2,
   eFlipBoth = 3
@@ -725,7 +726,7 @@ builtin managed struct AudioClip;
 
 builtin managed struct ViewFrame {
   /// Gets whether this frame is flipped.
-  readonly import attribute bool Flipped;
+  readonly import attribute eFlipDirection Flipped;
   /// Gets the frame number of this frame.
   readonly import attribute int Frame;
   /// Gets/sets the sprite that is displayed by this frame.

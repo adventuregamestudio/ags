@@ -32,10 +32,8 @@ extern CCAudioClip ccDynamicAudioClip;
 
 
 int ViewFrame_GetFlipped(ScriptViewFrame *svf) {
-  // TODO: can return GraphicFlip here, because old boolean value matches horizontal flip
-  if ((views[svf->view].loops[svf->loop].frames[svf->frame].flags & kSprTf_FlipX) != 0)
-    return 1;
-  return 0;
+  // We can return GraphicFlip here, because old boolean value matches horizontal flip
+  return GfxDef::GetFlipFromFlags(views[svf->view].loops[svf->loop].frames[svf->frame].flags);
 }
 
 int ViewFrame_GetGraphic(ScriptViewFrame *svf) {

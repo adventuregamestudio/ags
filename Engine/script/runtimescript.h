@@ -87,7 +87,11 @@ public:
     RuntimeScript(const String &tag);
     ~RuntimeScript();
 
+    // Create new RuntimeScript instance from the given loaded script data
     static std::unique_ptr<RuntimeScript> Create(const ccScript *script, const String &tag);
+    // Gets RuntimeScript by its linking ID
+    // FIXME: move this to another class that contains all linked scripts
+    static RuntimeScript *GetLinkedScript(int linkid);
     // Joins custom provided RTTI into the global collection;
     // fills in maps for locid and typeid remap which may be used to know
     // which *global* ids were assigned to this particular rtti's entries.

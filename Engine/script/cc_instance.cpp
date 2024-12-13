@@ -103,11 +103,6 @@ struct FunctionCallStack
 };
 
 
-std::unique_ptr<JointRTTI> ccInstance::_rtti;
-std::unordered_map<String, uint32_t> ccInstance::_rttiLookup;
-std::unique_ptr<RTTIHelper> ccInstance::_rttiHelper;
-
-
 unsigned ccInstance::_timeoutCheckMs = 60u;
 unsigned ccInstance::_timeoutAbortMs = 0u;
 unsigned ccInstance::_maxWhileLoops = 0u;
@@ -137,26 +132,7 @@ std::unique_ptr<ccInstance> ccInstance::CreateEx(PRuntimeScript script, const cc
     {
         return nullptr;
     }
-    // Join RTTI
-    if (!ccInstance::_rtti)
-        ccInstance::_rtti.reset(new JointRTTI());
-    if (!ccInstance::_rttiHelper)
-        ccInstance::_rttiHelper.reset(new RTTIHelper());
-    // TODO: not related to static members, move this to private _Create, and optimize for forks
-    if (script->GetRTTI() && !script->GetRTTI()->IsEmpty())
-    {
-        JoinRTTI(*script->GetRTTI(), cinst->_locidLocal2Global, cinst->_typeidLocal2Global);
-    }
     return cinst;
-}
-
-void ccInstance::JoinRTTI(const RTTI &rtti,
-    std::unordered_map<uint32_t, uint32_t> &loc_l2g,
-    std::unordered_map<uint32_t, uint32_t> &type_l2g)
-{
-    ccInstance::_rtti->Join(rtti, loc_l2g, type_l2g);
-    // TODO: optimize by updating only newly joint types
-    ccInstance::_rttiHelper->Generate(ccInstance::_rtti->AsConstRTTI());
 }
 
 void ccInstance::SetExecTimeout(const unsigned sys_poll_ms, const unsigned abort_ms,
@@ -1358,7 +1334,7 @@ ccInstError ccInstance::Run(int32_t curpc)
             // which would replace a local typeid with a global one once the script is loaded;
             // but we need to implement such fixup in a compiler first.
             assert(ccInstance::_rtti && !ccInstance::_rtti->IsEmpty());
-            const uint32_t global_tid = _runningInst->_typeidLocal2Global[arg_typeid];
+            const uint32_t global_tid = _runningInst->_typeidLocal2Global->at(arg_typeid);
             DynObjectRef ref = CCDynamicArray::CreateNew(global_tid, static_cast<uint32_t>(arg_elnum), arg_elsize);
             reg1.SetScriptObject(ref.Obj, ref.Mgr);
             break;
@@ -1390,7 +1366,7 @@ ccInstError ccInstance::Run(int32_t curpc)
             // which would replace a local typeid with a global one once the script is loaded;
             // but we need to implement such fixup in a compiler first.
             assert(ccInstance::_rtti && !ccInstance::_rtti->IsEmpty());
-            const uint32_t global_tid = _runningInst->_typeidLocal2Global[arg_typeid];
+            const uint32_t global_tid = _runningInst->_typeidLocal2Global->at(arg_typeid);
             DynObjectRef ref = ScriptUserObject::Create(global_tid, arg_size);
             reg1.SetScriptObject(ref.Obj, ref.Mgr);
             break;
@@ -1697,6 +1673,8 @@ bool ccInstance::_Create(PRuntimeScript script, const ccInstance *joined)
     _code = script->GetCode().data();
     _codesize = static_cast<int32_t>(script->GetCode().size());
     _code_fixups = script->GetCodeFixups().data();
+    _rtti = RuntimeScript::GetJointRTTI();
+    _typeidLocal2Global = &script->GetLocal2GlobalTypeMap();
 
     // If this is a primary script's instance:
     // * register it in the loadedInstances array
@@ -1726,22 +1704,6 @@ bool ccInstance::_Create(PRuntimeScript script, const ccInstance *joined)
     _flags = 0;
     if (joined != nullptr)
         _flags = INSTF_SHAREDATA;
-
-    // Generate lookup tables for script TOC (if available)
-    if (joined)
-    {
-        // FIXME: use shared ptr?
-        _globalVarLookup = joined->_globalVarLookup;
-    }
-    else if (script->GetTOC())
-    {
-        const auto &glvars = script->GetTOC()->GetGlobalVariables();
-        for (size_t i = 0; i < glvars.size(); ++i)
-        {
-            _globalVarLookup.insert(
-                std::make_pair(String(glvars[i].name), static_cast<uint32_t>(i)));
-        }
-    }
 
     // Reset execution state
     _pc = 0;

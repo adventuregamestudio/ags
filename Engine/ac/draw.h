@@ -157,9 +157,9 @@ void draw_sprite_slot_support_alpha(Common::Bitmap *ds, int xpos, int ypos, int 
 void draw_gui_sprite(Common::Bitmap *ds, int pic, int x, int y, Common::BlendMode blend_mode);
 void draw_gui_sprite(Common::Bitmap *ds, int xpos, int ypos,
     Common::Bitmap *image, Common::BlendMode blend_mode = Common::kBlend_Normal, int alpha = 0xFF);
-void draw_gui_sprite_flipped(Common::Bitmap *ds, int pic, int x, int y, Common::BlendMode blend_mode, bool is_flipped);
+void draw_gui_sprite_flipped(Common::Bitmap *ds, int pic, int x, int y, Common::BlendMode blend_mode, AGS::Common::GraphicFlip flip);
 void draw_gui_sprite_flipped(Common::Bitmap *ds, int xpos, int ypos,
-    Common::Bitmap *image, Common::BlendMode blend_mode = Common::kBlend_Normal, int alpha = 0xFF, bool is_flipped = false);
+    Common::Bitmap *image, Common::BlendMode blend_mode = Common::kBlend_Normal, int alpha = 0xFF, AGS::Common::GraphicFlip flip = AGS::Common::kFlip_None);
 
 // Render game on screen
 void render_to_screen();

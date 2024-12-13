@@ -55,6 +55,16 @@ enum BlendMode
     kNumBlendModes
 };
 
+// SpriteTransformFlags combine graphic effect options that do not have a value.
+// These may be used both to store these options in memory and in serialization.
+enum SpriteTransformFlags
+{
+    kSprTf_None     = 0x0000,
+    kSprTf_FlipX    = 0x0001,
+    kSprTf_FlipY    = 0x0002,
+    kSprTf_FlipXY   = (kSprTf_FlipX | kSprTf_FlipY),
+};
+
 // GraphicResolution struct determines image size and color depth
 struct GraphicResolution : Size
 {
@@ -125,6 +135,29 @@ private:
 
 namespace GfxDef
 {
+    inline bool FlagsHaveFlip(SpriteTransformFlags flags)
+    {
+        return (flags & kSprTf_FlipXY) != 0;
+    }
+
+    inline GraphicFlip GetFlipFromFlags(SpriteTransformFlags flags)
+    {
+        switch (flags & kSprTf_FlipXY)
+        {
+        case kSprTf_FlipX: return kFlip_Horizontal;
+        case kSprTf_FlipY: return kFlip_Vertical;
+        case kSprTf_FlipXY: return kFlip_Both;
+        default: return kFlip_None;
+        }
+    }
+
+    inline SpriteTransformFlags GetFlagsFromFlip(GraphicFlip flip)
+    {
+        return (SpriteTransformFlags)(
+              kSprTf_FlipX * ((flip & kFlip_Horizontal) != 0)
+            | kSprTf_FlipY * ((flip & kFlip_Vertical) != 0));
+    }
+
     // Converts value from range of 100 to range of 250 (sic!);
     // uses formula that reduces precision loss and supports flawless forth &
     // reverse conversion for multiplies of 10%

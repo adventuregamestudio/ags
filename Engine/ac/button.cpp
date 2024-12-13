@@ -41,7 +41,7 @@ void UpdateButtonState(const AnimatingGUIButton &abtn)
 {
     // Assign view frame as normal image and reset all the rest
     int image = views[abtn.view].loops[abtn.loop].frames[abtn.frame].pic;
-    uint32_t flags = views[abtn.view].loops[abtn.loop].frames[abtn.frame].flags;
+    SpriteTransformFlags flags = views[abtn.view].loops[abtn.loop].frames[abtn.frame].flags;
     guibuts[abtn.buttonid].SetImages(
         views[abtn.view].loops[abtn.loop].frames[abtn.frame].pic, 0, 0, flags);
 }

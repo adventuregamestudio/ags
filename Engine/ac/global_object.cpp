@@ -78,18 +78,18 @@ int GetObjectIDAtRoom(int roomx, int roomy)
         if (objs[aa].flags & OBJF_NOINTERACT)
             continue;
         int xxx=objs[aa].x,yyy=objs[aa].y;
-        int isflipped = 0;
+        SpriteTransformFlags sprite_flags = kSprTf_None;
         int spWidth = objs[aa].get_width();
         int spHeight = objs[aa].get_height();
         // TODO: support mirrored transformation in GraphicSpace
         if (objs[aa].view != RoomObject::NoView)
-            isflipped = views[objs[aa].view].loops[objs[aa].loop].frames[objs[aa].frame].flags & VFLG_FLIPSPRITE;
+            sprite_flags = views[objs[aa].view].loops[objs[aa].loop].frames[objs[aa].frame].flags;
 
         Bitmap *theImage = GetObjectSourceImage(aa);
         // Convert to local object coordinates
         Point local = objs[aa].GetGraphicSpace().WorldToLocal(roomx, roomy);
         if (is_pos_in_sprite(local.X, local.Y, 0, 0, theImage,
-                spWidth, spHeight, isflipped) == FALSE)
+                spWidth, spHeight, sprite_flags) == FALSE)
             continue;
 
         int usebasel = objs[aa].get_baseline();   

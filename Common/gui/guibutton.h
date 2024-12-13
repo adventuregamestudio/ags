@@ -71,11 +71,11 @@ public:
     Rect CalcGraphicRect(bool clipped) override;
     void Draw(Bitmap *ds, int x = 0, int y = 0) override;
     void SetClipImage(bool on);
-    void SetCurrentImage(int32_t image, uint32_t flags = 0);
+    void SetCurrentImage(int32_t image, SpriteTransformFlags flags = kSprTf_None);
     void SetMouseOverImage(int32_t image);
     void SetNormalImage(int32_t image);
     void SetPushedImage(int32_t image);
-    void SetImages(int32_t normal, int32_t over, int32_t pushed, uint32_t flags = 0);
+    void SetImages(int32_t normal, int32_t over, int32_t pushed, SpriteTransformFlags flags = kSprTf_None);
     void SetText(const String &text);
     void SetWrapText(bool on);
 
@@ -118,10 +118,10 @@ private:
     int32_t _mouseOverImage;
     int32_t _pushedImage;
     // TODO: flags for each kind of image?
-    uint32_t _imageFlags;
+    SpriteTransformFlags _imageFlags;
     // Active displayed image
     int32_t  _currentImage;
-    uint32_t _curImageFlags;
+    SpriteTransformFlags _curImageFlags;
     // Text property set by user
     String _text;
     // type of content placeholder, if any

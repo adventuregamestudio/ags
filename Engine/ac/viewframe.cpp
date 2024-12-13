@@ -32,7 +32,8 @@ extern CCAudioClip ccDynamicAudioClip;
 
 
 int ViewFrame_GetFlipped(ScriptViewFrame *svf) {
-  if (views[svf->view].loops[svf->loop].frames[svf->frame].flags & VFLG_FLIPSPRITE)
+  // TODO: can return GraphicFlip here, because old boolean value matches horizontal flip
+  if ((views[svf->view].loops[svf->loop].frames[svf->frame].flags & kSprTf_FlipX) != 0)
     return 1;
   return 0;
 }
@@ -126,10 +127,10 @@ void DrawViewFrame(Bitmap *ds, const ViewFrame *vframe, int x, int y)
     if ((ds->GetColorDepth() == 32) && (vf_bmp->GetColorDepth() == 32))
     {
         Bitmap *src = vf_bmp;
-        if (vframe->flags & VFLG_FLIPSPRITE)
+        if (GfxDef::FlagsHaveFlip(vframe->flags))
         {
             src = new Bitmap(vf_bmp->GetWidth(), vf_bmp->GetHeight(), vf_bmp->GetColorDepth());
-            src->FlipBlt(vf_bmp, 0, 0, Common::kFlip_Horizontal);
+            src->FlipBlt(vf_bmp, 0, 0, GfxDef::GetFlipFromFlags(vframe->flags));
         }
         draw_sprite_support_alpha(ds, x, y, src);
         if (src != vf_bmp)
@@ -137,8 +138,8 @@ void DrawViewFrame(Bitmap *ds, const ViewFrame *vframe, int x, int y)
     }
     else
     {
-        if (vframe->flags & VFLG_FLIPSPRITE)
-            ds->FlipBlt(vf_bmp, x, y, Common::kFlip_Horizontal);
+        if (GfxDef::FlagsHaveFlip(vframe->flags))
+            ds->FlipBlt(vf_bmp, x, y, GfxDef::GetFlipFromFlags(vframe->flags));
         else
             ds->Blit(vf_bmp, x, y, Common::kBitmap_Transparency);
     }

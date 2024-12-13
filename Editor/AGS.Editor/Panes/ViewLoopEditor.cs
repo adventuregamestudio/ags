@@ -131,7 +131,7 @@ namespace AGS.Editor
             foreach (int sel in _selectedFrames)
 			{
 				ViewFrame frame = _loop.Frames[sel];
-				frame.Flipped = !frame.Flipped;
+				frame.Flip ^= SpriteFlipStyle.Horizontal;
 			}
             this.Invalidate();
         }
@@ -436,10 +436,7 @@ namespace AGS.Editor
 
         private void pasteLoop(bool flipped)
         {
-            //int loopId = _loop.ID;
-            //_loop = _copiedLoop.Clone(flipped);
-            //_loop.ID = loopId;
-            _copiedLoop.Clone(_loop, flipped);            
+            _copiedLoop.CloneInto(_loop, flipped);            
             UpdateControlWidth();
             this.Invalidate();
         }
@@ -455,8 +452,8 @@ namespace AGS.Editor
         }
 
         private void onFlipAllClicked(object sender, EventArgs e)
-        {            
-            _loop.Frames.ForEach(c => c.Flipped = !c.Flipped);
+        {
+            _loop.Frames.ForEach(f => f.Flip ^= SpriteFlipStyle.Horizontal);
             this.Invalidate();
         }
 

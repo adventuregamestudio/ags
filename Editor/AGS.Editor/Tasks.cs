@@ -565,6 +565,21 @@ namespace AGS.Editor
                     AGSEditor.DEFAULT_SCRIPT_COMPILER : AGSEditor.DEFAULT_LEGACY_SCRIPT_COMPILER;
             }
 
+            // Update viewframes
+            if (xmlVersionIndex < 4000012)
+            {
+                foreach (AGS.Types.View view in game.ViewFlatList)
+                {
+                    foreach (ViewLoop loop in view.Loops)
+                    {
+                        foreach (ViewFrame frame in loop.Frames)
+                        {
+                            frame.Flip = frame.Flipped ? SpriteFlipStyle.Horizontal : SpriteFlipStyle.None;
+                        }
+                    }
+                }
+            }
+
             if (string.IsNullOrEmpty(game.Settings.ScriptCompiler))
             {
                 var compiler = Factory.NativeProxy.GetEmbeddedScriptCompilers().FirstOrDefault();

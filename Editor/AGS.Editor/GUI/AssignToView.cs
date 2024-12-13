@@ -62,6 +62,7 @@ namespace AGS.Editor
             get { return _continueIntoNextLoop; }
         }
 
+        // TODO: support all flip choices?
         public bool FlipFrames
         {
             get { return _flipFrames; }

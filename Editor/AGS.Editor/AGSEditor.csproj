@@ -461,6 +461,7 @@
     <Compile Include="Utils\ScriptGeneration.cs" />
     <Compile Include="Utils\StdConsoleWriter.cs" />
     <Compile Include="Utils\Validation.cs" />
+    <Compile Include="Utils\ViewUtils.cs" />
     <EmbeddedResource Include="GUI\AdjustMasksDialog.resx">
       <DependentUpon>AdjustMasksDialog.cs</DependentUpon>
     </EmbeddedResource>

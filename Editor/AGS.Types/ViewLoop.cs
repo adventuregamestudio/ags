@@ -97,12 +97,7 @@ namespace AGS.Types
 
         public ViewLoop Clone()
         {
-            return Clone(false);
-        }
-
-        public ViewLoop Clone(bool flipped)
-        {
-            ViewLoop clone = new ViewLoop 
+            ViewLoop clone = new ViewLoop
             {
                 _frames = new List<ViewFrame>(),
                 _runNextLoop = RunNextLoop
@@ -110,20 +105,10 @@ namespace AGS.Types
 
             foreach (ViewFrame frame in _frames)
             {
-                clone.Frames.Add(frame.Clone(flipped));
+                clone.Frames.Add(frame.Clone());
             }
 
             return clone;
-        }
-
-        public void Clone(ViewLoop target, bool flipped)
-        {
-            target.Frames.Clear();
-            target.RunNextLoop = RunNextLoop;
-            foreach (ViewFrame frame in _frames)
-            {
-                target.Frames.Add(frame.Clone(flipped));
-            } 
         }
     }
 }

@@ -1658,7 +1658,7 @@ void drawViewLoop (HDC hdc, ViewLoop^ loopToDraw, int x, int y, int size, List<i
     for (int i = 0; i < loopToDraw->Frames->Count; ++i) 
     {
 	    frames[i].pic = loopToDraw->Frames[i]->Image;
-	    frames[i].flags = (loopToDraw->Frames[i]->Flipped) ? Common::kSprTf_FlipX : Common::kSprTf_None;
+	    frames[i].flags = Common::GfxDef::GetFlagsFromFlip((Common::GraphicFlip)loopToDraw->Frames[i]->Flip);
     }
     std::vector<int> selected(cursel->Count);
     for (int i = 0; i < cursel->Count; ++i)
@@ -2487,7 +2487,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 			{
 				AGS::Types::ViewFrame^ newFrame = gcnew AGS::Types::ViewFrame();
 				newFrame->ID = k;
-				newFrame->Flipped = (newViews[i].loops[j].frames[k].flags & Common::kSprTf_FlipX) != 0;
+				newFrame->Flip  = (SpriteFlipStyle)Common::GfxDef::GetFlipFromFlags(newViews[i].loops[j].frames[k].flags);
 				newFrame->Image = newViews[i].loops[j].frames[k].pic;
 				newFrame->Sound = newViews[i].loops[j].frames[k].sound;
 				newFrame->Delay = newViews[i].loops[j].frames[k].speed;

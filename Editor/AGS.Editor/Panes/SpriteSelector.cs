@@ -1129,9 +1129,10 @@ namespace AGS.Editor
                 ViewFrame newFrame = new ViewFrame();
                 newFrame.ID = view.Loops[loop].Frames.Count;
                 newFrame.Image = spriteNum;
+                // TODO: support all flip choices?
                 if (dialog.FlipFrames)
                 {
-                    newFrame.Flipped = true;
+                    newFrame.Flip = SpriteFlipStyle.Horizontal;
                 }
                 view.Loops[loop].Frames.Add(newFrame);
             }

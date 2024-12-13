@@ -127,9 +127,10 @@ namespace AGS.Editor
          * 4.00.00.10     - Font and FontFile separation;
          *                  Settings.ScriptCompiler as a selection of script compiler IDs,
          *                  ExtendedCompiler is deprecated.
+         * 4.00.00.12     - ViewFrame.Flip has full flip selection.
          *
         */
-        public const int    LATEST_XML_VERSION_INDEX = 4000010;
+        public const int    LATEST_XML_VERSION_INDEX = 4000012;
         /// <summary>
         /// XML version index on the release of AGS 4.0.0, this constant be used to determine
         /// if upgrade of Rooms/Sprites/etc. to new format have been performed.

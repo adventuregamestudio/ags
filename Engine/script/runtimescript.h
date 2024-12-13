@@ -16,6 +16,7 @@
 #include <memory>
 #include <vector>
 #include "script/cc_internal.h" // FIXME: should not be included into this header
+#include "script/cc_reflecthelper.h"
 #include "script/cc_script.h"
 #include "script/runtimescriptvalue.h"
 #include "script/systemimports.h"
@@ -87,6 +88,13 @@ public:
     ~RuntimeScript();
 
     static std::unique_ptr<RuntimeScript> Create(const ccScript *script, const String &tag);
+    // Joins custom provided RTTI into the global collection;
+    // fills in maps for locid and typeid remap which may be used to know
+    // which *global* ids were assigned to this particular rtti's entries.
+    // Updates RTTIHelper correspondingly.
+    static void JoinRTTI(const RTTI &rtti,
+        std::unordered_map<uint32_t, uint32_t> &loc_l2g,
+        std::unordered_map<uint32_t, uint32_t> &type_l2g);
 
     struct ResolvedExport
     {
@@ -140,6 +148,18 @@ public:
     void    UnRegisterExports(SystemImports &simp);
     // Links this script to others, resolving import/exports
     bool    ResolveImports(const SystemImports &simp);
+
+
+    // TODO: move the "static" contents to a separate class that links RuntimeScripts
+    // together (something like ScriptProgram?)
+    static const JointRTTI *GetJointRTTI() { return _jointRtti.get(); }
+    static const Engine::RTTIHelper *GetRTTIHelper() { return _rttiHelper.get(); }
+    // Returns a dictionary that maps local script's typeid to global typeid (in joint RTTI)
+    // Requires RTTI
+    const std::unordered_map<uint32_t, uint32_t> &
+        GetLocal2GlobalTypeMap() const { return _typeidLocal2Global; }
+    const std::unordered_map<Common::String, uint32_t> &
+        GetGlobalVariableLookup() const { return _globalVarLookup; }
 
 private:
     bool    Create(const ccScript *script);
@@ -197,6 +217,20 @@ private:
     std::unique_ptr<RTTI>   _rtti;
     // Script table of contents (for debugging purposes)
     std::unique_ptr<ScriptTOC> _toc;
+
+    // RTTI tables
+    static std::unique_ptr<JointRTTI> _jointRtti;
+    // Full name to global id (global id is an actual index in the joint rtti table)
+    static std::unordered_map<Common::String, uint32_t> _rttiLookup;
+    // Helper data for quicker RTTI analyzis
+    static std::unique_ptr<Engine::RTTIHelper> _rttiHelper;
+
+    // Map local script's location id to global (program-wide)
+    std::unordered_map<uint32_t, uint32_t> _locidLocal2Global;
+    // Map local script's type id to global (program-wide)
+    std::unordered_map<uint32_t, uint32_t> _typeidLocal2Global;
+    // Global variables name-to-index lookup (in script's TOC)
+    std::unordered_map<Common::String, uint32_t> _globalVarLookup;
 };
 
 typedef std::shared_ptr<RuntimeScript> PRuntimeScript;

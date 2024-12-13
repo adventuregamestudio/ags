@@ -17,11 +17,12 @@
 #include "ac/dynobj/managedobjectpool.h"
 #include "ac/dynobj/cc_dynamicarray.h"
 #include "script/cc_script.h"
-#include "script/cc_instance.h"
+#include "script/runtimescript.h"
 #include "util/memorystream.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;
+using namespace AGS::Engine;
 
 const char *ScriptUserObject::TypeName = "UserObj2";
 
@@ -106,8 +107,8 @@ void ScriptUserObject::TraverseRefs(void *address, PfnTraverseRefOp traverse_op)
     const Header &hdr = GetHeader(address);
     if (hdr.TypeId == 0u)
         return;
-    assert(ccInstance::GetRTTI()->GetTypes().size() > hdr.TypeId);
-    const auto *helper = ccInstance::GetRTTIHelper();
+    assert(RuntimeScript::GetJointRTTI()->GetTypes().size() > hdr.TypeId);
+    const auto *helper = RuntimeScript::GetRTTIHelper();
     const auto fref = helper->GetManagedOffsetsForType(hdr.TypeId);
     for (auto it = fref.first; it < fref.second; ++it)
     {

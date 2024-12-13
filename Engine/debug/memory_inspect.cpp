@@ -610,7 +610,7 @@ static String GetNextVarSection(const String &var_ref, size_t &index, char &acce
 static HError VariableRefToMemoryRef(const String &var_ref, const ccInstance *inst,
     MemoryReference &mem_ref, FieldInfo &var_field_info)
 {
-    const auto &rtti = ccInstance::GetRTTI()->AsConstRTTI();
+    const auto &rtti = RuntimeScript::GetJointRTTI()->AsConstRTTI();
     FieldInfo last_field_info;
     FieldInfo next_field_info;
 

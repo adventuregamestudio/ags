@@ -1597,8 +1597,8 @@ HSaveError WriteRTTI(Stream *out)
 {
     // Write the minimal necessary RTTI data, enough to resolve types when restoring a save;
     // NOTE: we might just dump whole RTTI here, if it's necessary to keep all field descs and names
-    const auto &rtti = ccInstance::GetRTTI()->AsConstRTTI();
-    const auto &helper = ccInstance::GetRTTIHelper();
+    const auto &rtti = RuntimeScript::GetJointRTTI()->AsConstRTTI();
+    const auto &helper = RuntimeScript::GetRTTIHelper();
     const auto &locs = rtti.GetLocations();
     const auto &types = rtti.GetTypes();
     // NOTE: we don't write IDs here, as the Joint RTTI assumes to have them strcitly sequential

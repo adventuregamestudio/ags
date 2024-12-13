@@ -139,9 +139,14 @@ static void cc_error_fixups(const RuntimeScript *scri, const int32_t pc, const c
     }
 }
 
+
 const String RuntimeScript::_noname = "(unknown)";
 const String RuntimeScript::_unknownSectionName = "(unknown section)";
 RuntimeScript *RuntimeScript::_linkedScripts[RuntimeScript::MaxLinkedScripts] = { nullptr };
+
+std::unique_ptr<JointRTTI> RuntimeScript::_jointRtti;
+std::unordered_map<String, uint32_t> RuntimeScript::_rttiLookup;
+std::unique_ptr<RTTIHelper> RuntimeScript::_rttiHelper;
 
 RuntimeScript::RuntimeScript()
     : _exportLookup('$', true /* allow to match symbols with more appendages */)
@@ -180,7 +185,26 @@ RuntimeScript::RuntimeScript(const String &tag)
         return nullptr;
     }
 
+    // Join RTTI
+    if (!RuntimeScript::_jointRtti)
+        RuntimeScript::_jointRtti.reset(new JointRTTI());
+    if (!RuntimeScript::_rttiHelper)
+        RuntimeScript::_rttiHelper.reset(new RTTIHelper());
+    if (run_script->GetRTTI() && !run_script->GetRTTI()->IsEmpty())
+    {
+        JoinRTTI(*run_script->GetRTTI(), run_script->_locidLocal2Global, run_script->_typeidLocal2Global);
+    }
+
     return run_script;
+}
+
+/* static */ void RuntimeScript::JoinRTTI(const RTTI &rtti,
+    std::unordered_map<uint32_t, uint32_t> &loc_l2g,
+    std::unordered_map<uint32_t, uint32_t> &type_l2g)
+{
+    _jointRtti->Join(rtti, loc_l2g, type_l2g);
+    // TODO: optimize by updating only newly joint types
+    _rttiHelper->Generate(_jointRtti->AsConstRTTI());
 }
 
 RuntimeScript::~RuntimeScript()
@@ -293,6 +317,17 @@ bool RuntimeScript::Create(const ccScript *script)
         return false;
     if (!ResolveExports())
         return false;
+
+    // Generate lookup tables for script TOC (if available)
+    if (_toc)
+    {
+        const auto &glvars = _toc->GetGlobalVariables();
+        for (size_t i = 0; i < glvars.size(); ++i)
+        {
+            _globalVarLookup.insert(
+                std::make_pair(String(glvars[i].name), static_cast<uint32_t>(i)));
+        }
+    }
 
     return true;
 }

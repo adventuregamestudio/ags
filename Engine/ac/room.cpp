@@ -474,9 +474,9 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     }
 
     // Optionally dump joint RTTI into the log
-    if (logScriptRTTI && ccInstance::GetRTTI())
+    if (logScriptRTTI && RuntimeScript::GetJointRTTI())
     {
-        Debug::Printf(PrintRTTI(ccInstance::GetRTTI()->AsConstRTTI()));
+        Debug::Printf(PrintRTTI(RuntimeScript::GetJointRTTI()->AsConstRTTI()));
     }
     // Optionally dump room script's TOC into the log
     if (logScriptTOC && thisroom.CompiledScript && thisroom.CompiledScript->sctoc)

@@ -621,7 +621,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
     // Apply restored RTTI placeholder, after current room was loaded;
     // remap typeids in the deserialized managed objects, where necessary
     std::unordered_map<uint32_t, uint32_t> loc_l2g, type_l2g;
-    ccInstance::JoinRTTI(r_data.GenRTTI, loc_l2g, type_l2g);
+    RuntimeScript::JoinRTTI(r_data.GenRTTI, loc_l2g, type_l2g);
     pool.RemapTypeids(type_l2g);
 
     // Reapply few parameters after room load

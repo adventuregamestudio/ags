@@ -198,6 +198,11 @@ RuntimeScript::RuntimeScript(const String &tag)
     return run_script;
 }
 
+/* static */ RuntimeScript *RuntimeScript::GetLinkedScript(int linkid)
+{
+    return _linkedScripts[linkid];
+}
+
 /* static */ void RuntimeScript::JoinRTTI(const RTTI &rtti,
     std::unordered_map<uint32_t, uint32_t> &loc_l2g,
     std::unordered_map<uint32_t, uint32_t> &type_l2g)

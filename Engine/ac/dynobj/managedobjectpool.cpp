@@ -69,7 +69,7 @@ int32_t ManagedObjectPool::SubRefCheckDispose(int32_t handle) {
 
     o.refCount--;
     const auto newRefCount = o.refCount;
-    const auto canBeDisposed = (o.addr != disableDisposeForObject);
+    const auto canBeDisposed = ((o.gcRefCount & ManagedObject::GC_FLAG_EXCLUDED) == 0) && (o.addr != disableDisposeForObject);
     if (canBeDisposed && o.refCount <= 0) {
         gcUsedList.erase(o.gcItUsed);
         Remove(o);

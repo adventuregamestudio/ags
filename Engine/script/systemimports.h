@@ -67,12 +67,12 @@ struct ScriptImport
     using String = AGS::Common::String;
 
     ScriptImport() = default;
-    ScriptImport(const String &name, const RuntimeScriptValue &rval, ccInstance *inst, ScriptValueHint val_hint = kScValHint_Unknown)
+    ScriptImport(const String &name, const RuntimeScriptValue &rval, const ccInstance *inst, ScriptValueHint val_hint = kScValHint_Unknown)
         : Name(name), Value(rval), InstancePtr(inst) {}
 
     String              Name;
     RuntimeScriptValue  Value;
-    ccInstance         *InstancePtr = nullptr;
+    const ccInstance   *InstancePtr = nullptr;
     ScriptValueHint     ValueHint = kScValHint_Unknown;
 };
 
@@ -83,11 +83,11 @@ public:
     SystemImports();
 
     // Adds a resolved import under given name
-    uint32_t Add(const String &name, const RuntimeScriptValue &value, ccInstance *inst, ScriptValueHint val_hint = kScValHint_Unknown);
+    uint32_t Add(const String &name, const RuntimeScriptValue &value, const ccInstance *inst, ScriptValueHint val_hint = kScValHint_Unknown);
     // Removes an import
     void Remove(const String &name);
     // Removes all imports registered for the given script instance
-    void RemoveScriptExports(ccInstance *inst);
+    void RemoveScriptExports(const ccInstance *inst);
     // Clears the map, removes all entries
     void Clear();
     // Gets an import by exact name match

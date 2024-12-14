@@ -464,7 +464,7 @@ ccInstError ccInstance::CallScriptFunction(const String &funcname, int32_t numar
         return kInstErr_Aborted;
     }
 
-    ASSERT_STACK_UNWINDED(_registers[SREG_SP], _stackdata.data());
+    ASSERT_STACK_UNWINDED(RuntimeScriptValue().SetStackPtr(_stack.data()), _stackdata.data());
     return cc_has_error() ? kInstErr_Generic : kInstErr_None;
 }
 

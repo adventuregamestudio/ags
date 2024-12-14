@@ -74,6 +74,17 @@ struct ScriptVariable
     RuntimeScriptValue  RValue;
 };
 
+struct ScriptPosition
+{
+    ScriptPosition() = default;
+    ScriptPosition(const Common::String &section, int32_t line)
+        : Section(section), Line(line) {}
+
+    Common::String  Section;
+    int32_t         Line = 0;
+};
+
+
 // Runtime variant of script data, fixups and imports,
 // resolved after loading all the game scripts,
 // and possibly shared among multiple script instance forks.

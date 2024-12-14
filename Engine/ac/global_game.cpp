@@ -319,7 +319,7 @@ int RunAGSGame(const String &newgame, unsigned int mode, int data) {
 
         if (inside_script) {
             curscript->QueueAction(PostScriptAction(ePSARunAGSGame, mode | RAGMODE_LOADNOW, "RunAGSGame"));
-            ccInstance::GetCurrentInstance()->Abort();
+            scriptExecutor->Abort();
         }
         else
             load_new_game = mode | RAGMODE_LOADNOW;

@@ -125,7 +125,7 @@ SystemImports::SystemImports()
 {
 }
 
-uint32_t SystemImports::Add(const String &name, const RuntimeScriptValue &value, ccInstance *inst)
+uint32_t SystemImports::Add(const String &name, const RuntimeScriptValue &value, const ccInstance *inst)
 {
     assert(value.IsValid());
     uint32_t ixof = GetIndexOf(name);
@@ -197,7 +197,7 @@ String SystemImports::FindName(const RuntimeScriptValue &value) const
     return String();
 }
 
-void SystemImports::RemoveScriptExports(ccInstance *inst)
+void SystemImports::RemoveScriptExports(const ccInstance *inst)
 {
     if (!inst)
     {

@@ -328,13 +328,13 @@ void DoBeforeRestore(PreservedParams &pp, SaveCmpSelection select_cmp)
     clear_drawobj_cache();
 
     // preserve script data sizes and cleanup scripts
-    pp.GlScDataSize = gameinst->GetGlobalData().size();
+    pp.GlScDataSize = gamescript->GetGlobalData().size();
     pp.ScriptModuleNames.resize(numScriptModules);
     pp.ScMdDataSize.resize(numScriptModules);
     for (size_t i = 0; i < numScriptModules; ++i)
     {
-        pp.ScriptModuleNames[i] = moduleInst[i]->GetScript()->GetScriptName();
-        pp.ScMdDataSize[i] = moduleInst[i]->GetGlobalData().size();
+        pp.ScriptModuleNames[i] = scriptModules[i]->GetScriptName();
+        pp.ScMdDataSize[i] = scriptModules[i]->GetGlobalData().size();
     }
 
     FreeAllScriptInstances();
@@ -365,13 +365,13 @@ void DoBeforeRestore(PreservedParams &pp, SaveCmpSelection select_cmp)
 void FillPreservedParams(PreservedParams &pp)
 {
     // preserve script data sizes
-    pp.GlScDataSize = gameinst->GetGlobalData().size();
+    pp.GlScDataSize = gamescript->GetGlobalData().size();
     pp.ScriptModuleNames.resize(numScriptModules);
     pp.ScMdDataSize.resize(numScriptModules);
     for (size_t i = 0; i < numScriptModules; ++i)
     {
-        pp.ScriptModuleNames[i] = moduleInst[i]->GetScript()->GetScriptName();
-        pp.ScMdDataSize[i] = moduleInst[i]->GetGlobalData().size();
+        pp.ScriptModuleNames[i] = scriptModules[i]->GetScriptName();
+        pp.ScMdDataSize[i] = scriptModules[i]->GetGlobalData().size();
     }
 }
 
@@ -582,7 +582,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
     // read the global data into the newly created script
     if (!r_data.GlobalScript.Data.empty())
     {
-        gameinst->CopyGlobalData(r_data.GlobalScript.Data);
+        gamescript->CopyGlobalData(r_data.GlobalScript.Data);
     }
 
     // restore the script module data
@@ -592,11 +592,11 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
         auto &scdata = sc_entry.second;
         if (scdata.Data.empty())
             continue;
-        for (auto &scmoduleinst : moduleInst)
+        for (auto &scmodule : scriptModules)
         {
-            if (name.Compare(scmoduleinst->GetScript()->GetScriptName()) == 0)
+            if (name.Compare(scmodule->GetScriptName()) == 0)
             {
-                scmoduleinst->CopyGlobalData(scdata.Data);
+                scmodule->CopyGlobalData(scdata.Data);
                 break;
             }
         }
@@ -844,7 +844,7 @@ void DoBeforeSave()
     if (displayed_room >= 0)
     {
         // update the current room script's data segment copy
-        if (roominst)
+        if (roomscript)
             save_room_data_segment();
     }
 }

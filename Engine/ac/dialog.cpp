@@ -43,10 +43,10 @@
 #include "ac/system.h"
 #include "debug/debug_log.h"
 #include "font/fonts.h"
-#include "script/cc_instance.h"
 #include "main/game_run.h"
 #include "platform/base/agsplatformdriver.h"
 #include "script/script.h"
+#include "script/scriptexecutor.h"
 #include "ac/spritecache.h"
 #include "gfx/ddb.h"
 #include "gfx/gfx_util.h"
@@ -204,7 +204,7 @@ static int run_dialog_request(int parmtr)
 {
     play.stop_dialog_at_end = DIALOG_RUNNING;
     RuntimeScriptValue params[]{ parmtr };
-    RunScriptFunction(gameinst.get(), "dialog_request", 1, params);
+    RunScriptFunction(gamescript.get(), "dialog_request", 1, params);
 
     if (play.stop_dialog_at_end == DIALOG_STOP)
     {
@@ -250,13 +250,13 @@ int run_dialog_script(int dialogID, int offse, int optionIndex)
   said_speech_line = 0;
   int result = RUN_DIALOG_STAY;
 
-  if (dialogScriptsInst)
+  if (dialogScriptsScript)
   {
     char func_name[100];
     snprintf(func_name, sizeof(func_name), "_run_dialog%d", dialogID);
     RuntimeScriptValue params[]{ optionIndex };
-    RunScriptFunction(dialogScriptsInst.get(), func_name, 1, params);
-    result = dialogScriptsInst->GetReturnValue();
+    RunScriptFunction(dialogScriptsScript.get(), func_name, 1, params);
+    result = scriptExecutor->GetReturnValue();
   }
 
   if (in_new_room > 0)
@@ -1438,7 +1438,8 @@ bool is_in_dialogoptions()
 
 bool is_dialog_executing_script()
 {
-    return dialogExec && dialogScriptsInst && dialogExec->GetExecutedOption() >= 0;
+    return dialogExec && (dialogExec->GetExecutedOption() >= 0)
+        && scriptExecutor && (scriptExecutor->GetRunningScript() == dialogScriptsScript.get());
 }
 
 // TODO: this is ugly, but I could not come to a better solution at the time...
@@ -1446,14 +1447,14 @@ void set_dialog_result_goto(int dlgnum)
 {
     assert(is_dialog_executing_script());
     if (is_dialog_executing_script())
-        dialogScriptsInst->SetReturnValue(dlgnum);
+        scriptExecutor->SetReturnValue(dlgnum);
 }
 
 void set_dialog_result_stop()
 {
     assert(is_dialog_executing_script());
     if (is_dialog_executing_script())
-        dialogScriptsInst->SetReturnValue(RUN_DIALOG_STOP_DIALOG);
+        scriptExecutor->SetReturnValue(RUN_DIALOG_STOP_DIALOG);
 }
 
 bool handle_state_change_in_dialog_request(const char *apiname, int dlgreq_retval)

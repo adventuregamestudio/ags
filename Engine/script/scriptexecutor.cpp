@@ -23,9 +23,20 @@
 
 using namespace AGS::Common;
 using namespace AGS::Common::Memory;
+using namespace AGS::Engine;
 
 // FIXME: don't use global var like this
 extern new_line_hook_type new_line_hook;
+// FIXME: do something with this, don't use global variable
+extern std::unique_ptr<ScriptExecutor> scriptExecutor;
+
+
+String cc_get_callstack(int max_lines)
+{
+    // TODO: support separation onto groups, which have engine calls between
+    return scriptExecutor->GetCallStack(max_lines);
+}
+
 
 namespace AGS
 {
@@ -159,6 +170,34 @@ void ScriptExecutor::Abort()
 {
     if (_pc != 0)
         _flags |= kScExecState_Aborted;
+}
+
+void ScriptExecutor::GetScriptPosition(ScriptPosition &script_pos) const
+{
+    if (!_current)
+        return;
+
+    script_pos.Section = _current->GetSectionName(_pc);
+    script_pos.Line    = _lineNumber;
+}
+
+String ScriptExecutor::GetCallStack(const int maxLines) const
+{
+    if (!_current)
+        return {};
+
+    String buffer = String::FromFormat("in \"%s\", line %d\n", _current->GetSectionName(_pc).GetCStr(), _lineNumber);
+
+    int linesDone = 0;
+    for (auto it = _callstack.crbegin(); it != _callstack.crend() && (linesDone < maxLines); linesDone++, ++it)
+    {
+        String lineBuffer = String::FromFormat("from \"%s\", line %d\n",
+            it->Script->GetSectionName(it->PC).GetCStr(), it->LineNumber);
+        buffer.Append(lineBuffer);
+        if (linesDone == maxLines - 1)
+            buffer.Append("(and more...)\n");
+    }
+    return buffer;
 }
     
 void ScriptExecutor::SetExecTimeout(unsigned sys_poll_ms, unsigned abort_ms, unsigned abort_loops)

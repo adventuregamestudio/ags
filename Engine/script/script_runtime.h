@@ -16,7 +16,8 @@
 
 #include "util/memory_compat.h"    // std::size
 #include "script/cc_script.h"      // ccScript
-#include "script/cc_instance.h"    // ccInstance
+#include "script/runtimescript.h"
+#include "script/runtimescriptvalue.h"
 
 struct IScriptObject;
 
@@ -87,7 +88,8 @@ void *ccGetSymbolAddressForPlugin(const String &name);
 void *ccGetScriptObjectAddress(const String &name, const String &type);
 
 // DEBUG HOOK
-typedef void (*new_line_hook_type) (ccInstance *, int);
+namespace AGS { namespace Engine { class ScriptExecutor; } }
+typedef void (*new_line_hook_type) (AGS::Engine::ScriptExecutor *, int);
 void ccSetDebugHook(new_line_hook_type jibble);
 
 // Set the script interpreter timeout values:

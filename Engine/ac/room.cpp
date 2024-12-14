@@ -51,7 +51,6 @@
 #include "ac/dynobj/managedobjectpool.h"
 #include "ac/dynobj/scriptpathfinder.h"
 #include "gui/guimain.h"
-#include "script/cc_instance.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
 #include "debug/out.h"
@@ -284,12 +283,14 @@ ScriptPathfinder* Room_GetPathFinder()
 
 //=============================================================================
 
-void save_room_data_segment () {
+void save_room_data_segment ()
+{
     croom->FreeScriptData();
     
-    const auto &globaldata = roominst->GetGlobalData();
+    const auto &globaldata = roomscript->GetGlobalData();
     croom->tsdatasize = globaldata.size();
-    if (croom->tsdatasize > 0) {
+    if (croom->tsdatasize > 0)
+    {
         croom->tsdata.resize(croom->tsdatasize);
         memcpy(croom->tsdata.data(),&globaldata[0],croom->tsdatasize);
     }
@@ -326,7 +327,7 @@ void unload_old_room()
     }
 
     if (croom==nullptr) ;
-    else if (roominst!=nullptr) {
+    else if (roomscript) {
         save_room_data_segment();
         FreeRoomScriptInstance();
     }
@@ -639,14 +640,14 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
             StopMoving(cc);
     }
 
-    roominst=nullptr;
+    roomscript = nullptr;
     if (debug_flags & DBG_NOSCRIPT) ;
     else if (thisroom.CompiledScript)
     {
         compile_room_script();
         if (been_here)
         {
-            const auto &globaldata = roominst->GetGlobalData();
+            const auto &globaldata = roomscript->GetGlobalData();
             if (croom->tsdatasize > globaldata.size())
             {
                 quitprintf("Restored Room %d script data size exceeds current script data (%zu vs %zu bytes).",
@@ -657,7 +658,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
                 Debug::Printf(kDbgMsg_Warn, "WARNING: Restored Room %d script data size is less than the current script data (%zu vs %zu bytes)",
                     newnum, croom->tsdatasize, globaldata.size());
             }
-            roominst->CopyGlobalData(croom->tsdata);
+            roomscript->CopyGlobalData(croom->tsdata);
         }
     }
     set_our_eip(207);
@@ -918,18 +919,14 @@ void check_new_room() {
 void compile_room_script() {
     cc_clear_error();
 
-    roominst = ccInstance::CreateFromScript(RuntimeScript::Create(thisroom.CompiledScript.get(), "R"));
-    if ((cc_has_error()) || (roominst==nullptr)) {
+    roomscript = RuntimeScript::Create(thisroom.CompiledScript.get(), "R");
+    if ((cc_has_error()) || (roomscript==nullptr)) {
         quitprintf("Unable to create local script:\n%s", cc_get_error().ErrorString.GetCStr());
     }
 
-    roominst->GetScript()->RegisterExports(simp);
-    if (!roominst->GetScript()->ResolveImports(simp))
+    roomscript->RegisterExports(simp);
+    if (!roomscript->ResolveImports(simp))
         quitprintf("Unable to resolve imports in room script:\n%s", cc_get_error().ErrorString.GetCStr());
-
-    roominstFork = roominst->Fork();
-    if (roominstFork == nullptr)
-        quitprintf("Unable to create forked room instance:\n%s", cc_get_error().ErrorString.GetCStr());
 
     repExecAlways.RoomHasFunction = true;
     lateRepExecAlways.RoomHasFunction = true;

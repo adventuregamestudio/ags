@@ -46,6 +46,7 @@
 #include "script/exports.h"
 #include "script/script.h"
 #include "script/script_runtime.h"
+#include "util/memory_compat.h"
 #include "util/string_compat.h"
 #include "util/string_utils.h"
 
@@ -503,6 +504,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     // NOTE: we must do this before plugin start, because some plugins may
     // require access to script API at initialization time.
     //
+    scriptExecutor = std::make_unique<ScriptExecutor>();
     ccSetScriptAliveTimer(1000 / 60u, 1000u, 150000u);
     setup_script_exports(base_api, compat_api);
 

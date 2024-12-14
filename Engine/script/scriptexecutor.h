@@ -65,6 +65,23 @@ public:
     // Schedule abortion of the current script execution;
     // the actual stop will occur whenever control returns to the ScriptExecutor.
     void    Abort();
+
+    // Tells whether this instance is in the process of executing the byte-code
+    bool    IsBeingRun() const { return _pc != 0; }
+    // Get the currently executed script
+    const RuntimeScript *GetRunningScript() const { return _current; }
+    // Get current program pointer (position in bytecode)
+    int     GetPC() const { return _pc; }
+    // Get the script's execution position
+    void    GetScriptPosition(ScriptPosition &script_pos) const;
+    // Get the script's execution position and callstack as human-readable text
+    Common::String GetCallStack(int max_lines = INT_MAX) const;
+    // Gets the top entry of this instance's stack
+    const RuntimeScriptValue *GetCurrentStack() const { return _registers[SREG_SP].RValue; }
+    // Get latest return value
+    int     GetReturnValue() const { return _returnValue; }
+    // TODO: this is a hack, required for dialog script; redo this later!
+    void    SetReturnValue(int val) { _returnValue = val; }
     
     // Configures script executor timeout in case of a "hanging" script
     void    SetExecTimeout(unsigned sys_poll_ms, unsigned abort_ms, unsigned abort_loops);

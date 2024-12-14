@@ -80,9 +80,9 @@ void run_claimable_event(const String &tsname, bool includeRoom, int numParams, 
     int eventClaimedOldValue = eventClaimed;
     eventClaimed = EVENT_INPROGRESS;
 
-    if (includeRoom && roominst)
+    if (includeRoom && roomscript)
     {
-        RunScriptFunction(roominst.get(), tsname, numParams, params);
+        RunScriptFunction(roomscript.get(), tsname, numParams, params);
         if (eventClaimed == EVENT_CLAIMED)
         {
             eventClaimed = eventClaimedOldValue;
@@ -91,9 +91,9 @@ void run_claimable_event(const String &tsname, bool includeRoom, int numParams, 
     }
 
     // run script modules
-    for (auto &module_inst : moduleInst)
+    for (auto &module_script : scriptModules)
     {
-        RunScriptFunction(module_inst.get(), tsname, numParams, params);
+        RunScriptFunction(module_script.get(), tsname, numParams, params);
         if (eventClaimed == EVENT_CLAIMED)
         {
             eventClaimed = eventClaimedOldValue;

@@ -129,10 +129,12 @@ struct ObjTexture
 {
     // Sprite ID
     uint32_t SpriteID = UINT32_MAX;
-    // Raw bitmaps; used for software render mode,
+    // Raw bitmap; used for software render mode,
     // or when particular object types require generated image.
     std::unique_ptr<Bitmap> Bmp;
-    std::unique_ptr<Bitmap> Bmp2;
+    // Intermediate raw bitmaps; used in software render mode
+    // when the bitmap must pass multiple transformations.
+    std::unique_ptr<Bitmap> TempBmp[2];
     // Corresponding texture, created by renderer
     IDriverDependantBitmap *Ddb = nullptr;
     // Sprite notification block: becomes invalid to notify an updated
@@ -1629,157 +1631,89 @@ static void apply_tint_or_light(ObjTexture &actsp, int light_level,
 
 }
 
-// FIXME: refactor this function in similar way to how it was done in ags3 branch:
-// split transform_sprite out.
-// transform_sprite - should contain most of the scale_and_flip_sprite.
-// find ags3 variants of transform_sprite and scale_and_flip_sprite in code below.
-//
-// Draws the specified 'sppic' sprite onto actsps[useindx] at the
-// specified width and height, and flips the sprite if necessary.
-// Returns 1 if something was drawn to actsps; returns 0 if no
-// scaling or stretching was required, in which case nothing was done
-bool scale_and_flip_sprite(ObjTexture &actsp, int sppic, int newwidth, int newheight,
-                          float rotation, bool isMirrored)
-{
-  bool actsps_used = true;
-
-  Bitmap *src_sprite = spriteset[sppic];
-  Bitmap *temp_rot = nullptr;
-  const int coldept = src_sprite->GetColorDepth();
-  const bool scaled = src_sprite->GetSize() != Size(newwidth, newheight);
-
-  if (rotation != 0.f) { 
-      Size rot_sz = RotateSize(Size(newwidth, newheight), rotation);
-      newwidth = rot_sz.Width;
-      newheight = rot_sz.Height;
-
-      // TODO: allegro does not provide a ready function to combine stretch & rotate
-      // (only rotate & scale, but scale is a uniform factor, so not dst_width/dst_height),
-      // so we create another intermediate bitmap for rotation here...
-      // might investigate methods for optimizing this later.
-      if (scaled || isMirrored) {
-          Size src_sz = Size(src_sprite->GetWidth(), src_sprite->GetHeight());
-          Size rot_sz = RotateSize(src_sz, rotation);
-          temp_rot = BitmapHelper::CreateTransparentBitmap(rot_sz.Width, rot_sz.Height, coldept);
-          if (isMirrored) rotation = -rotation;
-          // (+ width%2 fixes one pixel offset problem)
-          temp_rot->RotateBlt(src_sprite, rot_sz.Width / 2 + rot_sz.Width % 2, rot_sz.Height / 2,
-              src_sz.Width / 2, src_sz.Height / 2, rotation); // clockwise
-          src_sprite = temp_rot;
-      }
-  }
-
-  // create and blank out the new sprite
-  recycle_bitmap(actsp.Bmp, coldept, newwidth, newheight, true);
-  Bitmap *active_spr = actsp.Bmp.get();
-
-  if (scaled) {
-      // Scaled character
-      set_our_eip(334);
-
-      // Ensure that anti-aliasing routines have a palette to
-      // use for mapping while faded out
-      if (in_new_room)
-          select_palette (palette);
-
-      if (isMirrored) {
-          // TODO: "flip self" function may allow to optimize this
-          Bitmap *tempspr = BitmapHelper::CreateTransparentBitmap(newwidth, newheight, coldept);
-          if (play.ShouldAASprites() && (coldept < 32))
-              tempspr->AAStretchBlt (src_sprite, RectWH(0, 0, newwidth, newheight), Common::kBitmap_Transparency);
-          else
-              tempspr->StretchBlt (src_sprite, RectWH(0, 0, newwidth, newheight), Common::kBitmap_Transparency);
-          active_spr->FlipBlt(tempspr, 0, 0, Common::kFlip_Horizontal);
-          delete tempspr;
-      }
-      else if (play.ShouldAASprites() && (coldept < 32))
-          active_spr->AAStretchBlt(src_sprite,RectWH(0,0,newwidth,newheight), Common::kBitmap_Transparency);
-      else
-          active_spr->StretchBlt(src_sprite,RectWH(0,0,newwidth,newheight), Common::kBitmap_Transparency);
-      if (in_new_room)
-          unselect_palette();
-
-  } 
-  else {
-      // Not a scaled character, draw at normal size
-
-      set_our_eip(339);
-
-      if (isMirrored)
-          active_spr->FlipBlt(src_sprite, 0, 0, Common::kFlip_Horizontal);
-      else if (rotation != 0.f)
-          // (+ width%2 fixes one pixel offset problem)
-          active_spr->RotateBlt(src_sprite, newwidth / 2 + newwidth % 2, newheight / 2,
-              src_sprite->GetWidth() / 2, src_sprite->GetHeight() / 2, rotation); // clockwise
-      else
-          actsps_used = false; // can use original sprite
-  }
-  delete temp_rot;
-
-  return actsps_used;
-}
-
 // Generates a transformed sprite, using src image and parameters;
 // * if transformation is necessary - writes into dst and returns dst;
 // * if no transformation is necessary - simply returns src;
 // Used for software render mode only.
 static Bitmap *transform_sprite(Bitmap *src, std::unique_ptr<Bitmap> &dst,
-    const Size dst_sz, GraphicFlip flip = Common::kFlip_None)
+    std::unique_ptr<Bitmap> (&transform_bmp)[2],
+    const Size &scale_sz, float rotation = 0.f, GraphicFlip flip = Common::kFlip_None)
 {
-    if ((src->GetSize() == dst_sz) && (flip == kFlip_None))
+    if ((src->GetSize() == scale_sz) && (rotation == 0.f) && (flip == kFlip_None) )
         return src; // No transform: return source image
 
-    recycle_bitmap(dst, src->GetColorDepth(), dst_sz.Width, dst_sz.Height, true);
-    set_our_eip(339);
+    std::unique_ptr<Bitmap> &scale_bmp  = transform_bmp[0];
+    std::unique_ptr<Bitmap> &rot_bmp    = transform_bmp[1];
 
+    Bitmap *use_src = src;
+    Size dst_sz = scale_sz;
+    if (rotation != 0.f)
+    {
+        // Rotate the future scale size, as it will need to accomodate
+        dst_sz = RotateSize(dst_sz, rotation);
+        // Calculate rotated size of the source image, and do RotateBlt
+        const Size src_sz = Size(use_src->GetWidth(), use_src->GetHeight());
+        const Size rot_sz = RotateSize(use_src->GetSize(), rotation);
+        recycle_bitmap(rot_bmp, use_src->GetColorDepth(), rot_sz.Width, rot_sz.Height, true);
+        // If only ONE flip is requested, then inverse the rotation
+        if (flip == kFlip_Horizontal || flip == kFlip_Vertical)
+            rotation = -rotation;
+        // ( + width%2 fixes one pixel offset problem )
+        rot_bmp->RotateBlt(use_src, rot_sz.Width / 2 + rot_sz.Width % 2, rot_sz.Height / 2,
+            src_sz.Width / 2, src_sz.Height / 2, rotation); // clockwise
+        use_src = rot_bmp.get();
+    }
+
+    recycle_bitmap(dst, src->GetColorDepth(), dst_sz.Width, dst_sz.Height, true);
     // If scaled: first scale then optionally mirror
     if (src->GetSize() != dst_sz)
     {
         // 8-bit support: ensure that anti-aliasing routines have a palette
         // to use for mapping while faded out.
-        // TODO: find out if this may be moved out and not repeated?
-        if (in_new_room > 0)
+        // FIXME: investigate if this may be moved out and not repeated, or at least passed as a parameter!
+        const bool do_select_palette = (in_new_room > 0) && play.ShouldAASprites() && (src->GetColorDepth() == 1);
+        if (do_select_palette)
             select_palette(palette);
 
         if (flip != kFlip_None)
         {
-            Bitmap tempbmp;
-            tempbmp.CreateTransparent(dst_sz.Width, dst_sz.Height, src->GetColorDepth());
+            // TODO: "flip self" function could have allowed to optimize this
+            recycle_bitmap(scale_bmp, use_src->GetColorDepth(), dst_sz.Width, dst_sz.Height, true);
             if (play.ShouldAASprites() && (src->GetColorDepth() < 32))
-                tempbmp.AAStretchBlt(src, RectWH(dst_sz), kBitmap_Transparency);
+                scale_bmp->AAStretchBlt(use_src, RectWH(dst_sz), kBitmap_Transparency);
             else
-                tempbmp.StretchBlt(src, RectWH(dst_sz), kBitmap_Transparency);
-            dst->FlipBlt(&tempbmp, 0, 0, kFlip_Horizontal);
+                scale_bmp->StretchBlt(use_src, RectWH(dst_sz), kBitmap_Transparency);
+            dst->FlipBlt(scale_bmp.get(), 0, 0, flip);
         }
         else
         {
             if (play.ShouldAASprites() && (src->GetColorDepth() < 32))
-                dst->AAStretchBlt(src, RectWH(dst_sz), kBitmap_Transparency);
+                dst->AAStretchBlt(use_src, RectWH(dst_sz), kBitmap_Transparency);
             else
-                dst->StretchBlt(src, RectWH(dst_sz), kBitmap_Transparency);
+                dst->StretchBlt(use_src, RectWH(dst_sz), kBitmap_Transparency);
         }
 
-        if (in_new_room > 0)
+        if (do_select_palette)
             unselect_palette();
     }
     else
     {
-        // If not scaled, then simply blit mirrored
-        dst->FlipBlt(src, 0, 0, kFlip_Horizontal);
+        // If not scaled, then simply blit flipped or plainly
+        dst->FlipBlt(use_src, 0, 0, flip);
     }
     return dst.get(); // return transformed result
 }
 
-// Draws the specified 'sppic' sprite onto ObjTexture 'actsp' at the
-// specified width and height, and flips the sprite if necessary.
-// Returns 1 if something was drawn to actsps; returns 0 if no
-// scaling or stretching was required, in which case nothing was done.
+// Draws the specified 'sppic' sprite onto ObjTexture 'actsp' at the specified
+// width and height, and flips the sprite if necessary.
+// If any transformation was necessary, then writes the result into ObjTexture.
+// Returns if any transformation was done.
 // Used for software render mode only.
-static bool scale_and_flip_sprite(ObjTexture &actsp, int sppic, int width, int height, bool hmirror)
+static bool transform_sprite(ObjTexture &actsp, int sppic, const Size &scale_sz, 
+                          float rotation, GraphicFlip flip)
 {
     Bitmap *src = spriteset[sppic];
-    Bitmap *result = transform_sprite(src, actsp.Bmp, Size(width, height),
-        hmirror ? kFlip_Horizontal : kFlip_None);
+    Bitmap *result = transform_sprite(src, actsp.Bmp, actsp.TempBmp, scale_sz, rotation, flip);
     return result != src;
 }
 
@@ -1910,7 +1844,7 @@ static bool construct_object_gfx(const ViewFrame *vf, int pic,
     const int src_sprwidth = sprite->GetWidth();
     const int src_sprheight = sprite->GetHeight();
     // draw the base sprite, scaled and flipped as appropriate
-    bool actsps_used = scale_and_flip_sprite(actsp, pic, scale_size.Width, scale_size.Height, objsrc.rotation, is_mirrored);
+    bool actsps_used = transform_sprite(actsp, pic, scale_size, objsrc.rotation, is_mirrored ? kFlip_Horizontal : kFlip_None);
     if (!actsps_used)
     {
         // ensure actsps exists // CHECKME: why do we need this in hardware accel mode too?
@@ -2778,12 +2712,7 @@ static void construct_overlays()
             Bitmap *use_bmp = nullptr;
             if (is_software_mode)
             {
-                use_bmp = transform_sprite(over.GetImage(), overtx.Bmp, Size(over.scaleWidth, over.scaleHeight));
-                auto *bmp1 = overtx.Bmp.release();
-                auto *bmp2 = overtx.Bmp2.release();
-                use_bmp = recreate_overlay_image(over, bmp1, bmp2);
-                overtx.Bmp.reset(bmp1);
-                overtx.Bmp2.reset(bmp2);
+                use_bmp = transform_sprite(over.GetImage(), overtx.Bmp, overtx.TempBmp, Size(over.scaleWidth, over.scaleHeight), over.rotation);
                 if (crop_walkbehinds && over.IsRoomLayer())
                 {
                     auto &use_cache = overtx.Bmp;

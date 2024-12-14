@@ -661,35 +661,6 @@ Point update_overlay_graphicspace(ScreenOverlay &over)
     return Point(pos.X, pos.Y);
 }
 
-// For software renderer - apply all supported Overlay transforms
-// FIXME: merge this with transform_sprite
-Bitmap *recreate_overlay_image(ScreenOverlay &over, Bitmap *&scalebmp, Bitmap *&rotbmp)
-{
-    Bitmap *pic = over.GetImage();
-    Bitmap *use_bmp = pic;
-    if (over.rotation != 0.0)
-    {
-        Size final_sz = RotateSize(use_bmp->GetSize(), over.rotation);
-        rotbmp = recycle_bitmap(rotbmp, use_bmp->GetColorDepth(),
-            final_sz.Width, final_sz.Height, false);
-        const int dst_w = final_sz.Width;
-        const int dst_h = final_sz.Height;
-        // (+ width%2 fixes one pixel offset problem)
-        rotbmp->ClearTransparent();
-        rotbmp->RotateBlt(use_bmp, dst_w / 2 + dst_w % 2, dst_h / 2,
-            use_bmp->GetWidth() / 2, use_bmp->GetHeight() / 2, over.rotation); // clockwise
-        use_bmp = rotbmp;
-    }
-    if (pic->GetSize() != Size(over.scaleWidth, over.scaleHeight))
-    {
-        Size final_sz = RotateSize(Size(over.scaleWidth, over.scaleHeight), over.rotation);
-        scalebmp = recycle_bitmap(scalebmp, pic->GetColorDepth(), over.scaleWidth, over.scaleHeight);
-        scalebmp->StretchBlt(use_bmp, RectWH(scalebmp->GetSize()));
-        use_bmp = scalebmp;
-    }
-    return use_bmp;
-}
-
 void restore_overlays()
 {
     // Will have to readjust free ids records, as overlays may be restored in any random slots

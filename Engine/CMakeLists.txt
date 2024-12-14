@@ -399,6 +399,8 @@ target_sources(engine
     script/executingscript.h
     script/exports.cpp
     script/exports.h
+    script/runtimescript.cpp
+    script/runtimescript.h
     script/runtimescriptvalue.cpp
     script/runtimescriptvalue.h
     script/script.cpp
@@ -407,6 +409,8 @@ target_sources(engine
     script/script_api.h
     script/script_runtime.cpp
     script/script_runtime.h
+    script/scriptexecutor.cpp
+    script/scriptexecutor.h
     script/systemimports.cpp
     script/systemimports.h
     util/library.h

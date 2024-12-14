@@ -322,13 +322,13 @@ void ccInstance::AbortAndDestroy()
     if ((_registers[SREG_SP].RValue + N_VALS - _stackBegin) >= CC_STACK_SIZE || \
         (_stackdataPtr + N_BYTES - _stackdataBegin) >= CC_STACK_DATA_SIZE) \
     { \
-        cc_error("stack overflow, attempted to grow from %d by %d bytes", (_stackdataPtr - _stackdataBegin), N_BYTES); \
+        cc_error("stack overflow, attempted to grow from %zu by %zu bytes", (size_t)(_stackdataPtr - _stackdataBegin), (size_t)(N_BYTES)); \
         return kInstErr_Generic; \
     }
 
 // ASSERT_STACK_SPACE_BYTES tests that we do not exceed stack limit
 // if we are going to add N_BYTES bytes to stack
-#define ASSERT_STACK_SPACE_BYTES(N_BYTES) ASSERT_STACK_SPACE_AVAILABLE(1, N_BYTES)
+#define ASSERT_STACK_SPACE_BYTES(N_BYTES) ASSERT_STACK_SPACE_AVAILABLE(1u, N_BYTES)
 
 // ASSERT_STACK_SPACE_VALS tests that we do not exceed stack limit
 // if we are going to add N_VALS values, sizeof(int32) each
@@ -347,7 +347,7 @@ void ccInstance::AbortAndDestroy()
     if ((_registers[SREG_SP].RValue > STACK_VAL.RValue) || \
         (_stackdataPtr > DATA_PTR)) \
     { \
-        cc_error("stack is not unwinded after function call, %d bytes remain", (_stackdataPtr - DATA_PTR)); \
+        cc_error("stack is not unwinded after function call, %zu bytes remain", (size_t)(_stackdataPtr - DATA_PTR)); \
         return kInstErr_Generic; \
     }
 

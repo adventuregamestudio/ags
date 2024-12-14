@@ -2241,7 +2241,7 @@ RuntimeScriptValue ccInstance::GetStackPtrOffsetRw(const int32_t rw_offset)
 {
     int32_t total_off = 0;
     RuntimeScriptValue *stack_entry = _registers[SREG_SP].RValue;
-    while (total_off < rw_offset && stack_entry >= _stackBegin)
+    while (total_off < rw_offset && stack_entry > _stackBegin)
     {
         stack_entry--;
         total_off += stack_entry->Size;

@@ -18,6 +18,7 @@
 #ifndef __CC_INSTANCE_H
 #define __CC_INSTANCE_H
 
+#if defined (DISABLED)
 #include <map>
 #include <memory>
 #include <unordered_map>
@@ -252,5 +253,7 @@ private:
     // Last time the script was noted of being "alive"
     AGS_FastClock::time_point _lastAliveTs;
 };
+
+#endif // DISABLED
 
 #endif // __CC_INSTANCE_H

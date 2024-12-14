@@ -14,7 +14,7 @@
 #include "script/systemimports.h"
 #include <stdlib.h>
 #include <string.h>
-#include "script/cc_instance.h"
+#include "script/runtimescript.h"
 
 using namespace AGS::Common;
 

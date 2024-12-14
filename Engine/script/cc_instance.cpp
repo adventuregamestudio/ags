@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "script/cc_instance.h"
+#if defined (DISABLED)
 #include <cstdio>
 #include <deque>
 #include <string.h>
@@ -1836,3 +1837,5 @@ void ccInstance::PopFromFuncCallStack(FunctionCallStack &func_callstack, int32_t
     func_callstack.Head += num_entries;
     func_callstack.Count -= num_entries;
 }
+
+#endif // DISABLED

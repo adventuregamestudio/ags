@@ -316,6 +316,7 @@ float Overlay_GetRotation(ScriptOverlay *scover) {
 void Overlay_SetRotation(ScriptOverlay *scover, float degrees) {
     auto *over = GetOverlayValidate("Overlay.Rotation", scover);
     over->rotation = Math::ClampAngle360(degrees);
+    over->MarkChanged();
 }
 
 int Overlay_GetZOrder(ScriptOverlay *scover)

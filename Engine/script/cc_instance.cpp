@@ -496,7 +496,7 @@ ccInstError ccInstance::CallScriptFunction(const String &funcname, int32_t numar
 }
 
 // Macros to maintain the call stack
-#define PUSH_CALL_STACK \
+#define PUSH_CALL_STACK() \
     if (_callStackSize >= MAX_CALL_STACK) { \
         cc_error("CallScriptFunction stack overflow (recursive call error?)"); \
         return kInstErr_Generic; \
@@ -506,7 +506,7 @@ ccInstError ccInstance::CallScriptFunction(const String &funcname, int32_t numar
     _callStackAddr[_callStackSize] = _pc;  \
     _callStackSize++ 
 
-#define POP_CALL_STACK \
+#define POP_CALL_STACK() \
     if (_callStackSize < 1) { \
         cc_error("CallScriptFunction stack underflow -- internal error"); \
         return kInstErr_Generic; \
@@ -793,7 +793,7 @@ ccInstError ccInstance::Run(int32_t curpc)
                 _returnValue = _registers[SREG_AX].IValue;
                 return kInstErr_None;
             }
-            POP_CALL_STACK;
+            POP_CALL_STACK();
             continue; // continue so that the PC doesn't get overwritten
         }
         case SCMD_LITTOREG:
@@ -966,7 +966,7 @@ ccInstError ccInstance::Run(int32_t curpc)
                 return kInstErr_Generic;
             }
 
-            PUSH_CALL_STACK;
+            PUSH_CALL_STACK();
 
             ASSERT_STACK_SPACE_VALS(1);
             PushValueToStack(RuntimeScriptValue().SetInt32(_pc + codeOp.ArgCount + 1));
@@ -1256,7 +1256,7 @@ ccInstError ccInstance::Run(int32_t curpc)
         }
         case SCMD_CALLAS:
         {
-            PUSH_CALL_STACK;
+            PUSH_CALL_STACK();
 
             // Call to a function in another script
             const auto &reg1 = _registers[codeOp.Arg1i()];
@@ -1308,7 +1308,7 @@ ccInstError ccInstance::Run(int32_t curpc)
             _pc = oldpc;
             was_just_callas = func_callstack.Count;
             num_args_to_func = -1;
-            POP_CALL_STACK;
+            POP_CALL_STACK();
             break;
         }
         case SCMD_CALLEXT:

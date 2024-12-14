@@ -19,8 +19,6 @@
 #include "util/ini_util.h"
 #include "util/string.h"
 
-class ccInstance;
-
 void init_debug(const AGS::Common::ConfigTree &cfg, bool stderr_only);
 void apply_debug_config(const AGS::Common::ConfigTree &cfg, bool finalize);
 void shutdown_debug();
@@ -38,9 +36,11 @@ void debug_script_log(const char *msg, ...);
 // Same as quit(), but with message formatting
 void quitprintf(const char *texx, ...);
 
+namespace AGS { namespace Engine { class ScriptExecutor; } }
+
 // Connect engine to external debugger, if one is available
 bool init_editor_debugging(const AGS::Common::ConfigTree &cfg);
 // allow LShift to single-step,  RShift to pause flow
-void scriptDebugHook (ccInstance *ccinst, int linenum) ;
+void scriptDebugHook(AGS::Engine::ScriptExecutor *exec, int linenum) ;
 
 #endif // __AC_DEBUG_LOG_H

@@ -629,15 +629,13 @@ int IAGSEngine::CallGameScriptFunction(const char *name, int32 globalScript, int
     if (inside_script)
         return -300;
 
-    ccInstance *toRun = GetScriptInstanceByType(globalScript ? kScTypeGame : kScTypeRoom);
-
+    RuntimeScript *run_script = GetScriptInstanceByType(globalScript ? kScTypeGame : kScTypeRoom);
     RuntimeScriptValue params[]{
         RuntimeScriptValue().SetPluginArgument(arg1),
         RuntimeScriptValue().SetPluginArgument(arg2),
         RuntimeScriptValue().SetPluginArgument(arg3),
     };
-    int toret = RunScriptFunction(toRun, name, numArgs, params);
-    return toret;
+    return RunScriptFunction(run_script, name, numArgs, params);
 }
 
 void IAGSEngine::NotifySpriteUpdated(int32 slot) {
@@ -667,7 +665,7 @@ int IAGSEngine::RegisterManagedObject(void *object, IAGSScriptManagedObject *cal
     // we may try to optimize following by having a cache of CCPluginObjects per callback
     // address. Need to research if that's reliable, and will actually be more performant.
     auto *pl_obj = new CCPluginObject((IScriptObject*)callback);
-    ccInstance::SetPluginReturnValue(RuntimeScriptValue().SetPluginObject((void*)object, pl_obj));
+    ScriptExecutor::SetPluginReturnValue(RuntimeScriptValue().SetPluginObject((void*)object, pl_obj));
     return ccRegisterManagedObject(object, pl_obj, kScValPluginObject);
 }
 
@@ -685,7 +683,7 @@ void IAGSEngine::AddManagedObjectReader(const char *typeName, IAGSManagedObjectR
 
 void IAGSEngine::RegisterUnserializedObject(int key, void *object, IAGSScriptManagedObject *callback) {
     auto *pl_obj = new CCPluginObject((IScriptObject*)callback);
-    ccInstance::SetPluginReturnValue(RuntimeScriptValue().SetPluginObject((void*)object, pl_obj));
+    ScriptExecutor::SetPluginReturnValue(RuntimeScriptValue().SetPluginObject((void*)object, pl_obj));
     ccRegisterUnserializedObject(key, object, pl_obj, kScValPluginObject);
 }
 
@@ -697,14 +695,14 @@ void* IAGSEngine::GetManagedObjectAddressByKey(int key) {
     void *object;
     IScriptObject *manager;
     ScriptValueType obj_type = ccGetObjectAddressAndManagerFromHandle(key, object, manager);
-    ccInstance::SetPluginReturnValue(RuntimeScriptValue().SetScriptObject(obj_type, object, manager));
+    ScriptExecutor::SetPluginReturnValue(RuntimeScriptValue().SetScriptObject(obj_type, object, manager));
     return object;
 }
 
 const char* IAGSEngine::CreateScriptString(const char *fromText) {
     const char *string = CreateNewScriptString(fromText);
     // Should be standard dynamic object, because not managed by plugin
-    ccInstance::SetPluginReturnValue(RuntimeScriptValue().SetScriptObject((void*)string, &myScriptStringImpl));
+    ScriptExecutor::SetPluginReturnValue(RuntimeScriptValue().SetScriptObject((void*)string, &myScriptStringImpl));
     return string;
 }
 
@@ -849,7 +847,7 @@ void *IAGSEngine::CreateDynamicArray(size_t elem_count, size_t elem_size, bool i
 
     auto obj_ref = CCDynamicArray::CreateOld(static_cast<uint32_t>(elem_count), static_cast<uint32_t>(elem_size), is_managed_type);
     // Should be standard dynamic object, because not managed by plugin
-    ccInstance::SetPluginReturnValue(RuntimeScriptValue().SetScriptObject(obj_ref.Obj, &globalDynamicArray));
+    ScriptExecutor::SetPluginReturnValue(RuntimeScriptValue().SetScriptObject(obj_ref.Obj, &globalDynamicArray));
     return obj_ref.Obj;
 }
 

@@ -18,6 +18,7 @@
 #include "ac/dynobj/cc_dynamicarray.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "script/cc_common.h"
+#include "script/script.h"
 #include "script/systemimports.h"
 
 using namespace AGS::Engine;
@@ -145,13 +146,12 @@ new_line_hook_type new_line_hook = nullptr;
 void ccSetScriptAliveTimer(unsigned sys_poll_timeout, unsigned abort_timeout,
     unsigned abort_loops)
 {
-    ccInstance::SetExecTimeout(sys_poll_timeout, abort_timeout, abort_loops);
+    scriptExecutor->SetExecTimeout(sys_poll_timeout, abort_timeout, abort_loops);
 }
 
-void ccNotifyScriptStillAlive () {
-    ccInstance *cur_inst = ccInstance::GetCurrentInstance();
-    if (cur_inst)
-        cur_inst->NotifyAlive();
+void ccNotifyScriptStillAlive ()
+{
+    scriptExecutor->NotifyAlive();
 }
 
 void ccSetDebugHook(new_line_hook_type jibble)

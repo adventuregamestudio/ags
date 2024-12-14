@@ -303,13 +303,30 @@ void ScriptExecutor::NotifyAlive()
 
 ScriptExecError ScriptExecutor::Run(const RuntimeScript *script, int32_t curpc, const RuntimeScriptValue *params, size_t param_count)
 {
+    const bool is_nested_run = _callstack.size() > 0;
     // Setup current script
     SetCurrentScript(script);
 
+    RuntimeScriptValue * const oldstack_begin = _stackBegin;
+    uint8_t * const oldstackdata_begin = _stackdataBegin;
+
+    if (is_nested_run)
+    {
+        _stackBegin = _registers[SREG_SP].RValue;
+        _stackdataBegin = _stackdataPtr;
+    }
+    else
+    {
+        _registers[SREG_SP].SetStackPtr(_stackBegin);
+        _stackdataPtr = _stackdataBegin;
+    }
+
+    const RuntimeScriptValue oldstack = _registers[SREG_SP];
+    const uint8_t * const oldstackdata = _stackdataPtr;
+
     // object pointer needs to start zeroed
     _registers[SREG_OP].SetScriptObject(nullptr, nullptr);
-    _registers[SREG_SP].SetStackPtr( _stack.data() );
-    _stackdataPtr = _stackdata.data();
+
     // NOTE: Pushing parameters to stack in reverse order
     ASSERT_STACK_SPACE_VALS(param_count + 1 /* return address */);
     for (int i = param_count - 1; i >= 0; --i)
@@ -330,8 +347,14 @@ ScriptExecError ScriptExecutor::Run(const RuntimeScript *script, int32_t curpc, 
     // Final assert: stack must be reset to where it was before starting this script
     if (!(_flags & kScExecState_Aborted))
     {
-        ASSERT_STACK_UNWINDED(_registers[SREG_SP], _stackdata.data());
+        ASSERT_STACK_UNWINDED(oldstack, oldstackdata);
     }
+    if (is_nested_run)
+    {
+        _stackBegin = oldstack_begin;
+        _stackdataBegin = oldstackdata_begin;
+    }
+    SetCurrentScript(nullptr);
     return cc_has_error() ? kScExecErr_Generic : kScExecErr_None;
 }
 
@@ -1112,6 +1135,8 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
         case SCMD_CALLAS:
         {
             PUSH_CALL_STACK();
+            const RuntimeScript *was_running = _current;
+            const int oldpc = _pc;
 
             // Call to a function in another script
             const auto &reg1 = _registers[codeOp.Arg1i()];
@@ -1135,9 +1160,6 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
             // Push placeholder for the return value (it will be popped before ret)
             PushValueToStack(RuntimeScriptValue().SetInt32(0));
 
-            const int oldpc = _pc;
-            const RuntimeScript *was_running = _current;
-
             // extract the instance ID
             const int32_t instance_id = codeOp.Instruction.InstanceId;
             // determine the offset into the code of the instance we want
@@ -1157,17 +1179,22 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
             if ((_flags & kScExecState_Aborted) == 0)
                 ASSERT_STACK_UNWINDED(oldstack, oldstackdata);
 
+            POP_CALL_STACK();
             SetCurrentScript(was_running); // switch back to the previous script
-
             _pc = oldpc;
             next_call_needs_object = 0;
             was_just_callas = func_callstack.Count;
             num_args_to_func = -1;
-            POP_CALL_STACK();
             break;
         }
         case SCMD_CALLEXT:
         {
+            PUSH_CALL_STACK();
+            const RuntimeScript *was_running = _current;
+            const int oldpc = _pc;
+            const RuntimeScriptValue oldstack = _registers[SREG_SP];
+            const uint8_t * const oldstackdata = _stackdataPtr;
+
             // Call to a real 'C' code function
             const auto &reg1 = _registers[codeOp.Arg1i()];
 
@@ -1242,6 +1269,12 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
                 return kScExecErr_Generic;
             }
 
+            if ((_flags & kScExecState_Aborted) == 0)
+                ASSERT_STACK_UNWINDED(oldstack, oldstackdata);
+
+            POP_CALL_STACK();
+            SetCurrentScript(was_running); // switch back to the previous script
+            _pc = oldpc;
             _registers[SREG_AX] = return_value;
             next_call_needs_object = 0;
             num_args_to_func = -1;
@@ -1545,14 +1578,28 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
 void ScriptExecutor::SetCurrentScript(const RuntimeScript *script)
 {
     _current    = script;
-    _code       = _current->GetCode().data();
-    _codesize   = _current->GetCode().size();
-    _code_fixups = _current->GetCodeFixups().data();
-    _strings    = _current->GetStrings().data();
-    _stringsize = _current->GetStrings().size();
-    // Table pointers
-    _rtti       = RuntimeScript::GetJointRTTI();
-    _typeidLocal2Global = &_current->GetLocal2GlobalTypeMap();
+    if (_current)
+    {
+        _code       = _current->GetCode().data();
+        _codesize   = _current->GetCode().size();
+        _code_fixups = _current->GetCodeFixups().data();
+        _strings    = _current->GetStrings().data();
+        _stringsize = _current->GetStrings().size();
+        // Table pointers
+        _rtti       = RuntimeScript::GetJointRTTI();
+        _typeidLocal2Global = &_current->GetLocal2GlobalTypeMap();
+    }
+    else
+    {
+        _code       = nullptr;
+        _codesize   = 0u;
+        _code_fixups = nullptr;
+        _strings    = nullptr;
+        _stringsize = 0u;
+        // Table pointers
+        _rtti       = nullptr;
+        _typeidLocal2Global = nullptr;
+    }
 }
 
 void ScriptExecutor::PushValueToStack(const RuntimeScriptValue &rval)

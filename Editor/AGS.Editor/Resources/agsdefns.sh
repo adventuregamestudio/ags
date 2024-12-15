@@ -1506,7 +1506,7 @@ builtin managed struct DynamicSprite {
   import static DynamicSprite* CreateFromSaveGame(int slot, int width, int height);  // $AUTOCOMPLETESTATICONLY$
   /// Creates a dynamic sprite as a copy of the current screen.
 #ifdef SCRIPT_API_v362
-  import static DynamicSprite* CreateFromScreenShot(int width=0, int height=0, int layer=eRenderLayerAll);  // $AUTOCOMPLETESTATICONLY$
+  import static DynamicSprite* CreateFromScreenShot(int width=0, int height=0, RenderLayer layer=eRenderLayerAll);  // $AUTOCOMPLETESTATICONLY$
 #else // !SCRIPT_API_v362
   import static DynamicSprite* CreateFromScreenShot(int width=0, int height=0);  // $AUTOCOMPLETESTATICONLY$
 #endif // !SCRIPT_API_v362

@@ -136,7 +136,7 @@ namespace AGS.Editor.Components
             return new string[] { "FontType" };
         }
 
-        public override void ShowItemPaneByName(string name)
+        public override bool ShowItemPaneByName(string name)
         {
             foreach(AGS.Types.Font f in _agsEditor.CurrentGame.Fonts)
             {
@@ -145,9 +145,10 @@ namespace AGS.Editor.Components
                     AGS.Types.Font chosenFont = f;
                     _guiController.ProjectTree.SelectNode(this, GetNodeID(chosenFont));
                     ShowOrAddPane(chosenFont);
-                    return;
+                    return true;
                 }
             }
+            return false;
         }
 
         public override void PropertyChanged(string propertyName, object oldValue)

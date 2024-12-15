@@ -17,7 +17,7 @@ namespace AGS.Types
         protected int _bgcol;
         protected int _bgimage;
         protected List<GUIControl> _controls = new List<GUIControl>();
-        private CustomProperties _properties = new CustomProperties();
+        private CustomProperties _properties = new CustomProperties(CustomPropertyAppliesTo.GUIs);
         private string _scriptModule = Script.GLOBAL_SCRIPT_FILE_NAME;
 
         public GUI()

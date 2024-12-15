@@ -48,7 +48,7 @@ namespace AGS.Types
         private int _backgroundCount;
         private int _gameId;
         private bool _modified;
-        private CustomProperties _properties = new CustomProperties();
+        private CustomProperties _properties = new CustomProperties(CustomPropertyAppliesTo.Rooms);
         private Interactions _interactions = new Interactions(_interactionSchema);
         private readonly List<RoomObject> _objects = new List<RoomObject>();
         private readonly List<RoomHotspot> _hotspots = new List<RoomHotspot>();
@@ -359,12 +359,14 @@ namespace AGS.Types
 
         [AGSSerializeClass()]
         [Description("Custom properties for this room")]
-        [Category("Properties")]
-        [EditorAttribute(typeof(CustomPropertiesUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         public CustomProperties Properties
         {
             get { return _properties; }
-            protected set { _properties = value; }
+            protected set 
+            {
+                _properties = value;
+                _properties.AppliesTo = CustomPropertyAppliesTo.Rooms;
+            }
         }
 
         [AGSNoSerialize()]

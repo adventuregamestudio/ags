@@ -2048,6 +2048,9 @@ namespace AGS.Editor.Components
         private class RoomEventReference
         {
             public RoomObjectWithEvents RoomObject;
+            public string TypeName;
+            public int ID;
+            public string ObjName;
             public string EventName;
             public string FunctionName;
 
@@ -2056,6 +2059,29 @@ namespace AGS.Editor.Components
                 RoomObject = obj;
                 EventName = evtName;
                 FunctionName = fnName;
+
+                if (RoomObject.Room != null)
+                {
+                    ObjName = "Room";
+                }
+                else if (RoomObject.Object != null)
+                {
+                    TypeName = "Object";
+                    ID = RoomObject.Object.ID;
+                    ObjName = RoomObject.Object.Name;
+                }
+                else if (RoomObject.Hotspot != null)
+                {
+                    TypeName = "Hotspot";
+                    ID = RoomObject.Hotspot.ID;
+                    ObjName = RoomObject.Hotspot.Name;
+                }
+                else if (RoomObject.Region != null)
+                {
+                    TypeName = "Region";
+                    ID = RoomObject.Region.ID;
+                    ObjName = $"Region{RoomObject.Region.ID}";
+                }
             }
         }
 
@@ -2090,48 +2116,42 @@ namespace AGS.Editor.Components
                         new RoomEventReference(objWithEvents, reg.Interactions.FunctionSuffixes[i], reg.Interactions.ScriptFunctionNames[i])));
             }
 
-            var functionNames = objectEvents.Select(evt => evt.FunctionName);
-            var missing = _agsEditor.Tasks.CheckMissingEventHandlers(room.Script.AutoCompleteData, functionNames.ToArray());
-            if (missing == null || missing.Count == 0)
+            var functionNames = objectEvents.Select(evt => !string.IsNullOrEmpty(evt.FunctionName) ? evt.FunctionName : $"{evt.ObjName}_{evt.EventName}");
+            var funcs = _agsEditor.Tasks.FindEventHandlers(room.Script.FileName, room.Script.AutoCompleteData, functionNames.ToArray());
+            if (funcs == null || funcs.Length == 0)
                 return;
 
-            foreach (var miss in missing)
+            for (int i = 0; i < funcs.Length; ++i)
             {
-                RoomEventReference evtRef = objectEvents[miss];
+                RoomEventReference evtRef = objectEvents[i];
                 RoomObjectWithEvents roomObject = evtRef.RoomObject;
-                if (roomObject.Room != null)
+                bool has_interaction = !string.IsNullOrEmpty(evtRef.FunctionName);
+                bool has_function = funcs[i].HasValue;
+                // If we have an assigned interaction function, but the function is not found - report a missing warning
+                if (has_interaction && !has_function)
                 {
-                    errors.Add(new CompileWarning($"Room {room.Number}'s event {evtRef.EventName} function \"{evtRef.FunctionName}\" not found in script {room.ScriptFileName}."));
-                }
-                else
-                {
-                    string typeName;
-                    int objid;
-                    string scriptName;
-                    if (roomObject.Object != null)
+                    if (roomObject.Room != null)
                     {
-                        typeName = "Object";
-                        objid = roomObject.Object.ID;
-                        scriptName = roomObject.Object.Name;
-                    }
-                    else if (roomObject.Hotspot != null)
-                    {
-                        typeName = "Hotspot";
-                        objid = roomObject.Hotspot.ID;
-                        scriptName = roomObject.Hotspot.Name;
-                    }
-                    else if (roomObject.Region != null)
-                    {
-                        typeName = "Region";
-                        objid = roomObject.Region.ID;
-                        scriptName = "";
+                        errors.Add(new CompileWarning($"Room {room.Number}'s event {evtRef.EventName} function \"{evtRef.FunctionName}\" not found in script {room.ScriptFileName}."));
                     }
                     else
                     {
-                        continue;
+                        errors.Add(new CompileWarning($"Room {room.Number}: {evtRef.TypeName} ({evtRef.ID}) {evtRef.ObjName}'s event {evtRef.EventName} function \"{evtRef.FunctionName}\" not found in script {room.ScriptFileName}."));
                     }
-
-                    errors.Add(new CompileWarning($"Room {room.Number}: {typeName} ({objid}) {scriptName}'s event {evtRef.EventName} function \"{evtRef.FunctionName}\" not found in script {room.ScriptFileName}."));
+                }
+                // If we don't have an assignment, but has a similar function - report a possible unlinked function
+                else if (!has_interaction && has_function)
+                {
+                    if (roomObject.Room != null)
+                    {
+                        errors.Add(new CompileWarningWithFunction($"Function \"{funcs[i].Value.Name}\" looks like an event handler, but is not linked on Room {room.Number}'s Event pane",
+                            funcs[i].Value.ScriptName, funcs[i].Value.Name, funcs[i].Value.LineNumber));
+                    }
+                    else
+                    {
+                        errors.Add(new CompileWarningWithFunction($"Function \"{funcs[i].Value.Name}\" looks like an event handler, but is not linked on {evtRef.TypeName} ({evtRef.ID}) {evtRef.ObjName}'s Event pane",
+                            funcs[i].Value.ScriptName, funcs[i].Value.Name, funcs[i].Value.LineNumber));
+                    }
                 }
             }
         }

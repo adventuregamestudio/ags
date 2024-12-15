@@ -128,11 +128,11 @@ namespace AGS.Editor
                 // Remember which pane and item were selected on the property grid,
                 // so that we can restore them later
                 tabbedDocumentContainer1.ActiveDocument.SelectedPropertyGridTab = 
-                    propertiesPanel.propertiesGrid.SelectedTab.TabName;
-                if (propertiesPanel.propertiesGrid.SelectedGridItem != null)
+                    propertiesPanel.SelectedTab.TabName;
+                if (propertiesPanel.SelectedGridItem != null)
                 {
                     tabbedDocumentContainer1.ActiveDocument.SelectedPropertyGridItem = 
-                        propertiesPanel.propertiesGrid.SelectedGridItem.Label;
+                        propertiesPanel.SelectedGridItem.Label;
                 }                
             }
         }
@@ -161,7 +161,7 @@ namespace AGS.Editor
 
         private GridItem FindPropertyGridItemForType(string fullTypeName)
         {
-            GridItem startFromHere = propertiesPanel.propertiesGrid.SelectedGridItem;
+            GridItem startFromHere = propertiesPanel.SelectedGridItem;
             if (startFromHere == null)
             {
                 return null;
@@ -188,9 +188,9 @@ namespace AGS.Editor
                 {
                     if ((itemToSelect.Parent != null) && (!itemToSelect.Parent.Expanded))
                     {
-                        propertiesPanel.propertiesGrid.ExpandAllGridItems();
+                        propertiesPanel.ExpandAllGridItems();
                     }
-                    propertiesPanel.propertiesGrid.SelectedGridItem = itemToSelect;
+                    propertiesPanel.SelectedGridItem = itemToSelect;
                 }
             }
         }
@@ -297,7 +297,7 @@ namespace AGS.Editor
             propertiesPanel.Focus();
             // The property grid provides no RootGridItem property,
             // so we must find it manually
-            GridItem rootItem = propertiesPanel.propertiesGrid.SelectedGridItem;
+            GridItem rootItem = propertiesPanel.SelectedGridItem;
             while (rootItem.GridItemType != GridItemType.Root)
             {
                 rootItem = rootItem.Parent;
@@ -364,13 +364,13 @@ namespace AGS.Editor
 
         public void SetPropertyObject(object propertiesObject)
         {
-            propertiesPanel.propertiesGrid.SelectedObject = propertiesObject;
+            propertiesPanel.SelectedObject = propertiesObject;
             SelectObjectInPropertyList(propertiesObject);
         }
 
         public void SetPropertyObjects(object[] propertiesObjects)
         {
-            propertiesPanel.propertiesGrid.SelectedObjects = propertiesObjects;
+            propertiesPanel.SelectedObjects = propertiesObjects;
 
             propertiesPanel.propertyObjectCombo.SelectedIndex = -1;
         }

@@ -47,7 +47,7 @@ namespace AGS.Types
         private bool _adjustSpeedWithScaling;
         private bool _adjustVolumeWithScaling;
         private bool _movementLinkedToAnimation = true;
-        private CustomProperties _properties = new CustomProperties();
+        private CustomProperties _properties = new CustomProperties(CustomPropertyAppliesTo.Characters);
         private Interactions _interactions = new Interactions(_interactionSchema);
 
         static Character()
@@ -369,12 +369,14 @@ namespace AGS.Types
 
         [AGSSerializeClass()]
         [Description("Custom properties for this character")]
-        [Category("Properties")]
-        [EditorAttribute(typeof(CustomPropertiesUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         public CustomProperties Properties
         {
             get { return _properties; }
-            protected set { _properties = value; }
+            protected set 
+            {
+                _properties = value;
+                _properties.AppliesTo = CustomPropertyAppliesTo.Characters;
+            }
         }
 
         [AGSNoSerialize()]

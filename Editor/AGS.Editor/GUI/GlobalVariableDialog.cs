@@ -94,8 +94,8 @@ namespace AGS.Editor
                 _variable.Name = txtName.Text;
                 _variable.DefaultValue = txtDefaultValue.Text;
                 _variable.Type = cmbType.SelectedItem.ToString();
-                _variable.ArrayType = (VariableArrayType)cmbArray.SelectedIndex;
-                _variable.ArraySize = _variable.ArrayType == VariableArrayType.Array ? (int)udArraySize.Value : 0;
+                _variable.ArrayType = (GlobalVariableArrayType)cmbArray.SelectedIndex;
+                _variable.ArraySize = _variable.ArrayType == GlobalVariableArrayType.Array ? (int)udArraySize.Value : 0;
                 this.DialogResult = DialogResult.OK;
                 this.Close();
             }
@@ -115,8 +115,8 @@ namespace AGS.Editor
 
         private void cmbArray_SelectedIndexChanged(object sender, EventArgs e)
         {
-            VariableArrayType arrType = (VariableArrayType)cmbArray.SelectedIndex;
-            if (arrType == VariableArrayType.None)
+            GlobalVariableArrayType arrType = (GlobalVariableArrayType)cmbArray.SelectedIndex;
+            if (arrType == GlobalVariableArrayType.None)
             {
                 label5.Enabled = false;
                 udArraySize.Enabled = false;
@@ -124,8 +124,8 @@ namespace AGS.Editor
             }
             else
             {
-                label5.Enabled = arrType == VariableArrayType.Array;
-                udArraySize.Enabled = arrType == VariableArrayType.Array;
+                label5.Enabled = arrType == GlobalVariableArrayType.Array;
+                udArraySize.Enabled = arrType == GlobalVariableArrayType.Array;
                 // TODO: maybe support array initialization? although it's not convenient to do with a single textbox
                 txtDefaultValue.Enabled = false;
                 txtDefaultValue.Text = string.Empty;

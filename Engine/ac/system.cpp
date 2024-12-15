@@ -27,6 +27,7 @@
 #include "ac/system.h"
 #include "ac/dynobj/scriptsystem.h"
 #include "debug/debug_log.h"
+#include "debug/debugger.h"
 #include "debug/out.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/gfxfilter.h"
@@ -50,6 +51,7 @@ extern ScriptSystem scsystem;
 extern IGraphicsDriver *gfxDriver;
 extern CCAudioChannel ccDynamicAudio;
 extern volatile bool switched_away;
+extern FPSDisplayMode display_fps;
 
 bool System_GetHasInputFocus()
 {
@@ -301,6 +303,16 @@ String GetEngineValueName(EngineValueID value_id)
     }
 }
 
+bool System_GetDisplayFPS() {
+    return display_fps != kFPS_Hide;
+}
+
+void System_SetDisplayFPS(bool show_fps)
+{
+    if (display_fps != kFPS_Forced)
+        display_fps = show_fps ? kFPS_Display : kFPS_Hide;
+}
+
 //=============================================================================
 //
 // Script API Functions
@@ -461,6 +473,16 @@ RuntimeScriptValue Sc_System_GetEngineString(const RuntimeScriptValue *params, i
     API_SCALL_OBJ_PINT2(const char, myScriptStringImpl, System_GetEngineString);
 }
 
+RuntimeScriptValue Sc_System_GetDisplayFPS(const RuntimeScriptValue* params, int32_t param_count)
+{
+    API_SCALL_BOOL(System_GetDisplayFPS);
+}
+
+RuntimeScriptValue Sc_System_SetDisplayFPS(const RuntimeScriptValue* params, int32_t param_count)
+{
+    API_SCALL_VOID_PBOOL(System_SetDisplayFPS);
+}
+
 //=============================================================================
 //
 // Exclusive variadic API implementation for Plugins
@@ -505,6 +527,8 @@ void RegisterSystemAPI()
         { "System::Log^102",                  Sc_System_Log, ScPl_System_Log },
         { "System::GetEngineInteger^2",       API_FN_PAIR(System_GetEngineInteger) },
         { "System::GetEngineString^2",        API_FN_PAIR(System_GetEngineString) },
+        { "System::get_DisplayFPS",           API_FN_PAIR(System_GetDisplayFPS) },
+        { "System::set_DisplayFPS",           API_FN_PAIR(System_SetDisplayFPS) },
     };
 
     ccAddExternalFunctions(system_api);

@@ -29,7 +29,7 @@ namespace AGS.Editor
         private void InitializeComponent()
         {
             this.splitWindow = new System.Windows.Forms.SplitContainer();
-            this.folderList = new System.Windows.Forms.TreeView();
+            this.folderList = new AGS.Editor.TreeViewWithDragDrop();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.panel1 = new System.Windows.Forms.Panel();
             this.label1 = new System.Windows.Forms.Label();
@@ -81,7 +81,6 @@ namespace AGS.Editor
             this.folderList.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.folderList_AfterSelect);
             this.folderList.DragDrop += new System.Windows.Forms.DragEventHandler(this.folderList_DragDrop);
             this.folderList.DragOver += new System.Windows.Forms.DragEventHandler(this.folderList_DragOver);
-            this.folderList.DragLeave += new System.EventHandler(this.folderList_DragLeave);
             this.folderList.MouseUp += new System.Windows.Forms.MouseEventHandler(this.folderList_MouseUp);
             // 
             // splitContainer1
@@ -209,7 +208,7 @@ namespace AGS.Editor
         #endregion
 
         private System.Windows.Forms.SplitContainer splitWindow;
-        private System.Windows.Forms.TreeView folderList;
+        private AGS.Editor.TreeViewWithDragDrop folderList;
         private System.Windows.Forms.SplitContainer splitContainer1;
         private System.Windows.Forms.ListView spriteList;
         private System.Windows.Forms.Panel panel1;

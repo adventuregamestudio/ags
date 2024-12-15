@@ -646,60 +646,17 @@ namespace AGS.Editor
 
             if (found != null)
             {
-                if (foundInScript.FileName == AGSEditor.BUILT_IN_HEADER_FILE_NAME)
+                string scriptElementType = null;
+                if (found is ScriptVariable)
                 {
-                    if (_goToDefinition == "player")
-                    {
-                        CharactersComponent charactersComponent = Factory.ComponentController.FindComponent<CharactersComponent>();
-                        charactersComponent.ShowPlayerCharacter();
-                    }
-                    else
-                    {
-                        Factory.GUIController.LaunchHelpForKeyword(_goToDefinition);
-                    }
+                    scriptElementType = (found as ScriptVariable).Type;
                 }
-                else if (foundInScript.FileName == Tasks.AUTO_GENERATED_HEADER_NAME)
+                else if (found is ScriptEnumValue)
                 {
-                    string scriptElementType = null, scriptElementName = null;
-                    if (found is ScriptVariable)
-                    {
-                        ScriptVariable sVar = found as ScriptVariable;
-                        scriptElementType = sVar.Type;
-                        scriptElementName = sVar.VariableName;
-                    }
-                    else if (found is ScriptEnumValue)
-                    {
-                        ScriptEnumValue sEnum = found as ScriptEnumValue;
-                        scriptElementType = sEnum.Type;
-                        scriptElementName = sEnum.Name;
-                    }
+                    scriptElementType = (found as ScriptEnumValue).Type;
+                }
 
-                    if (!string.IsNullOrEmpty(scriptElementType))
-                    { 
-                        BaseComponent component = Factory.ComponentController.FindComponentThatManageScriptElement(scriptElementType) as BaseComponent;
-                        if(component != null)
-                        {
-                            component.ShowItemPaneByName(scriptElementName);
-                        }
-                        else
-                        {
-                            Factory.GUIController.ShowMessage("This variable is internally defined by AGS and probably corresponds to an in-game entity which does not support Go to Definition at the moment.", MessageBoxIcon.Information);
-                        }
-                    }
-                    else
-                    {
-                        Factory.GUIController.ShowMessage("This is internally defined by AGS.", MessageBoxIcon.Information);
-                    }
-                }
-                else if (foundInScript.FileName == GlobalVariablesComponent.GLOBAL_VARS_HEADER_FILE_NAME)
-                {
-                    IGlobalVariablesController globalVariables = (IGlobalVariablesController)Factory.ComponentController.FindComponentThatImplementsInterface(typeof(IGlobalVariablesController));
-                    globalVariables.SelectGlobalVariable(_goToDefinition);
-                }
-                else
-                {
-                    Factory.GUIController.ZoomToFile(foundInScript.FileName, ZoomToFileZoomType.ZoomToCharacterPosition, found.StartsAtCharacterIndex);
-                }
+                Factory.GUIController.ZoomToAnyScriptSymbol(foundInScript.FileName, _goToDefinition, scriptElementType, found.StartsAtCharacterIndex);
             }
         }
 

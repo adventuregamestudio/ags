@@ -327,7 +327,7 @@ namespace AGS.Editor.Components
             }
         }
 
-        public override void ShowItemPaneByName(string name)
+        public override bool ShowItemPaneByName(string name)
         {
             IList<AudioClip> audioClips = _agsEditor.CurrentGame.RootAudioClipFolder.GetAllAudioClipsFromAllSubFolders();
             foreach (AudioClip ac in audioClips)
@@ -336,7 +336,7 @@ namespace AGS.Editor.Components
                 {
                     _guiController.ProjectTree.SelectNode(this, GetNodeID(ac));
                     ShowPaneForItem(GetNodeID(ac));
-                    return;
+                    return true;
                 }
             }
 
@@ -347,9 +347,11 @@ namespace AGS.Editor.Components
                 {
                     _guiController.ProjectTree.SelectNode(this, GetClipTypeNodeID(clipType));
                     ShowPaneForItem(GetClipTypeNodeID(clipType));
-                    return;
+                    return true;
                 }
             }
+
+            return false;
         }
 
         private void ImportAudioFiles(string[] selectedFiles)

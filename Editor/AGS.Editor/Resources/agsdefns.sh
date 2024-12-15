@@ -2000,10 +2000,12 @@ builtin struct Maths {
 builtin managed struct DateTime {
   /// Gets the current date and time on the player's system.
   readonly import static attribute DateTime* Now;   // $AUTOCOMPLETESTATICONLY$
+#ifdef SCRIPT_API_v362
   /// Creates DateTime object from the provided date and time; returns invalid object if year is below 1970 or above 2038, or any other value is invalid
   import static DateTime* CreateFromDate(int year, int month, int day, int hour = 0, int minute = 0, int second = 0);   // $AUTOCOMPLETESTATICONLY$
   /// Creates DateTime object from the provided raw time value (in seconds); returns invalid object if rawTime is negative
   import static DateTime* CreateFromRawTime(int rawTime);   // $AUTOCOMPLETESTATICONLY$
+#endif // SCRIPT_API_v362
   /// Gets the Year component of the date.
   readonly import attribute int Year;
   /// Gets the Month (1-12) component of the date.
@@ -2206,6 +2208,8 @@ builtin struct System {
   import static int GetEngineInteger(EngineValueID value, int index = 0); // $AUTOCOMPLETESTATICONLY$
   /// Gets a runtime engine string by the given identifier; is meant for diagnostic purposes only
   import static String GetEngineString(EngineValueID value, int index = 0); // $AUTOCOMPLETESTATICONLY$
+  /// Gets/sets whether the engine displays the FPS counter
+  import static attribute bool DisplayFPS; // $AUTOCOMPLETESTATICONLY$
 #endif // SCRIPT_API_v362
 };
 
@@ -2575,9 +2579,11 @@ builtin managed struct Character {
 #endif // SCRIPT_API_v361
 #ifdef SCRIPT_API_v362
   /// Moves the character in a straight line as far as possible towards the co-ordinates, without walking animation. Useful for keyboard movement.
-  import function MoveStraight(int x, int y, BlockingStyle=eNoBlock);
+  import void MoveStraight(int x, int y, BlockingStyle=eNoBlock);
   /// Gets/sets whether the character turns on the spot when ordered to face the new standing direction.
   import attribute bool TurnWhenFacing;
+  /// Gets the character this character is following
+  readonly import attribute Character* Following;
 #endif // SCRIPT_API_v362
 #ifdef SCRIPT_API_v400
   /// Returns the moving path of this character, or null if it's not moving

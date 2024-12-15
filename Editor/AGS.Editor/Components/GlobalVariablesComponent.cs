@@ -63,10 +63,10 @@ namespace AGS.Editor.Components
                 string declaration = $"{variable.Type} {variable.Name}";
                 switch (variable.ArrayType)
                 {
-                    case VariableArrayType.Array:
+                    case GlobalVariableArrayType.Array:
                         declaration = declaration + $"[{variable.ArraySize}]";
                         break;
-                    case VariableArrayType.DynamicArray:
+                    case GlobalVariableArrayType.DynamicArray:
                         declaration = declaration + $"[]";
                         break;
                 }
@@ -103,13 +103,13 @@ namespace AGS.Editor.Components
             {
                 switch (variable.ArrayType)
                 {
-                    case VariableArrayType.None:
+                    case GlobalVariableArrayType.None:
                         sb.AppendLine($"import {variable.Type} {variable.Name};");
                         break;
-                    case VariableArrayType.Array:
+                    case GlobalVariableArrayType.Array:
                         sb.AppendLine($"import {variable.Type} {variable.Name}[{variable.ArraySize}];");
                         break;
-                    case VariableArrayType.DynamicArray:
+                    case GlobalVariableArrayType.DynamicArray:
                         sb.AppendLine($"import {variable.Type} {variable.Name}[];");
                         break;
                 }

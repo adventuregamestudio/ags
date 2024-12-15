@@ -6,9 +6,9 @@ using System.Xml;
 namespace AGS.Types
 {
     /// <summary>
-    /// VariableArrayType provides variable's qualification as an array.
+    /// GlobalVariableArrayType provides variable's qualification as an array.
     /// </summary>
-    public enum VariableArrayType
+    public enum GlobalVariableArrayType
     {
         None, // not an array, regular variable
         Array, // static, fixed-sized array
@@ -20,7 +20,7 @@ namespace AGS.Types
         private string _name = string.Empty;
         private string _type = string.Empty;
         private string _defaultValue = string.Empty;
-        private VariableArrayType _arrayType = VariableArrayType.None;
+        private GlobalVariableArrayType _arrayType = GlobalVariableArrayType.None;
         private int _arraySize = 0;
 
         public GlobalVariable() { }
@@ -43,7 +43,7 @@ namespace AGS.Types
             set { _defaultValue = value; }
         }
 
-        public VariableArrayType ArrayType
+        public GlobalVariableArrayType ArrayType
         {
             get { return _arrayType; }
             set { _arrayType = value; }

@@ -2036,15 +2036,15 @@ bool ccInstance::ResolveScriptImports()
         resolved_imports[import_idx] = simp.GetIndexOfAny(String::Wrapper(scri->imports[import_idx].c_str()));
         if (resolved_imports[import_idx] == UINT32_MAX)
         {
-            Debug::Printf(kDbgMsg_Error, "unresolved import '%s' in '%s'", scri->imports[import_idx].c_str(), scri->sectionNames.size() > 0 ? scri->sectionNames[0].c_str() : "<unknown>");
+            Debug::Printf(kDbgMsg_Error, "unresolved import '%s' in '%s'", scri->imports[import_idx].c_str(), scri->GetScriptName().c_str());
             errors++;
             last_err_idx = import_idx;
         }
     }
 
     if (errors > 0)
-        cc_error("in %s: %d unresolved imports (last: %s)",
-            scri->sectionNames.size() > 0 ? scri->sectionNames[0].c_str() : "<unknown>",
+        cc_error("in '%s': %d unresolved imports (last: '%s')",
+            scri->GetScriptName().c_str(),
             errors,
             scri->imports[last_err_idx].c_str());
 
@@ -2168,15 +2168,15 @@ static void cc_error_fixups(const ccScript *scri, const size_t pc, const char *f
     va_start(ap, fmt);
     const String displbuf = String::FromFormatV(fmt, ap);
     va_end(ap);
-    const char *scname = scri->sectionNames.size() > 0 ? scri->sectionNames[0].c_str() : "?";
+    const char *scname = scri->GetScriptName().c_str();
     if (pc == SIZE_MAX)
     {
-        cc_error("in script %s: %s", scname, displbuf.GetCStr());
+        cc_error("in script '%s': %s", scname, displbuf.GetCStr());
     }
     else
     {
         const int line = DetermineScriptLine(scri->code.data(), scri->code.size(), pc);
-        cc_error("in script %s around line %d: %s", scname, line, displbuf.GetCStr());
+        cc_error("in script '%s' around line %d: %s", scname, line, displbuf.GetCStr());
     }
 }
 

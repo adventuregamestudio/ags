@@ -27,7 +27,7 @@ namespace AGS.Types
         private string _description = string.Empty;
         private bool _useRoomAreaScaling;
         private bool _useRoomAreaLighting;
-        private CustomProperties _properties = new CustomProperties();
+        private CustomProperties _properties = new CustomProperties(CustomPropertyAppliesTo.Objects);
         private Interactions _interactions = new Interactions(_interactionSchema);
 		private IChangeNotification _notifyOfModification;
 
@@ -197,12 +197,14 @@ namespace AGS.Types
 
         [AGSSerializeClass()]
         [Description("Custom properties for this object")]
-        [Category("Properties")]
-        [EditorAttribute(typeof(CustomPropertiesUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         public CustomProperties Properties
         {
             get { return _properties; }
-            protected set { _properties = value; }
+            protected set
+            {
+                _properties = value;
+                _properties.AppliesTo = CustomPropertyAppliesTo.Objects;
+            }
         }
 
         [AGSNoSerialize()]

@@ -106,8 +106,8 @@ namespace AGS.Editor
             string varType;
             switch (variable.ArrayType)
             {
-                case VariableArrayType.Array: varType = $"{variable.Type}[{variable.ArraySize}]"; break;
-                case VariableArrayType.DynamicArray: varType = $"{variable.Type}[]"; break;
+                case GlobalVariableArrayType.Array: varType = $"{variable.Type}[{variable.ArraySize}]"; break;
+                case GlobalVariableArrayType.DynamicArray: varType = $"{variable.Type}[]"; break;
                 default: varType = variable.Type; break;
             }
 

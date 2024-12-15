@@ -17,7 +17,7 @@ namespace AGS.Types
         private bool _useContinuousScaling;
         private int _scalingLevelMin = 100;
         private int _scalingLevelMax = 100;
-        private CustomProperties _properties = new CustomProperties();
+        private CustomProperties _properties = new CustomProperties(CustomPropertyAppliesTo.WalkableAreas);
         private IChangeNotification _notifyOfModification;
 
         public RoomWalkableArea(IChangeNotification changeNotifier)

@@ -29,7 +29,7 @@ namespace AGS.Types
         private int _actualVolume;
         private AudioClipPriority _actualPriority;
         private bool _actualRepeat;
-        private CustomProperties _properties = new CustomProperties();
+        private CustomProperties _properties = new CustomProperties(CustomPropertyAppliesTo.AudioClips);
 
         // The value of a "no sound reference"
         public const int FixedIndexNoValue = 0;

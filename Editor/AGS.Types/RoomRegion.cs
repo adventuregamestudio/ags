@@ -22,7 +22,7 @@ namespace AGS.Types
         private int _tintAmount = 50;
         private int _tintLuminance = 100;
         private Interactions _interactions = new Interactions(_interactionSchema);
-        private CustomProperties _properties = new CustomProperties();
+        private CustomProperties _properties = new CustomProperties(CustomPropertyAppliesTo.Regions);
         private IChangeNotification _notifyOfModification;
 
         static RoomRegion()

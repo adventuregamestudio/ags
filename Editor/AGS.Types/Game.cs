@@ -90,6 +90,7 @@ namespace AGS.Types
             _textParser = new TextParser();
             _lipSync = new LipSync();
             _propertySchema = new CustomPropertySchema();
+            CustomProperties.Schema = _propertySchema;
             _globalVariables = new GlobalVariables();
 			_deletedViewIDs = new SortedDictionary<int, object>();
             _scripts = new ScriptFolders(ScriptFolder.MAIN_SCRIPT_FOLDER_NAME);

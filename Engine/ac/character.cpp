@@ -556,6 +556,15 @@ void Character_FollowCharacter(CharacterInfo *chaa, CharacterInfo *tofollow, int
 
 }
 
+CharacterInfo* Character_GetFollowing(CharacterInfo* chaa)
+{
+    if (chaa->following ==-1)
+        return nullptr;
+
+    int charid = chaa->following;
+    return &game.chars[charid];
+}
+
 int Character_IsCollidingWithChar(CharacterInfo *char1, CharacterInfo *char2) {
     if (char2 == nullptr)
         quit("!AreCharactersColliding: invalid char2");
@@ -3239,6 +3248,12 @@ RuntimeScriptValue Sc_Character_FollowCharacter(void *self, const RuntimeScriptV
     API_OBJCALL_VOID_POBJ_PINT2(CharacterInfo, Character_FollowCharacter, CharacterInfo);
 }
 
+// CharacterInfo * | CharacterInfo *chaa
+RuntimeScriptValue Sc_Character_GetFollowing(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ(CharacterInfo, CharacterInfo, ccDynamicCharacter, Character_GetFollowing);
+}
+
 // int (CharacterInfo *chaa, const char *property)
 RuntimeScriptValue Sc_Character_GetProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -4183,6 +4198,7 @@ void RegisterCharacterAPI(ScriptAPIVersion /*base_api*/, ScriptAPIVersion /*comp
         { "Character::set_DiagonalLoops",         API_FN_PAIR(Character_SetDiagonalWalking) },
         { "Character::get_Enabled",               API_FN_PAIR(Character_GetEnabled) },
         { "Character::set_Enabled",               API_FN_PAIR(Character_SetEnabled) },
+        { "Character::get_Following",             API_FN_PAIR(Character_GetFollowing) },
         { "Character::get_Frame",                 API_FN_PAIR(Character_GetFrame) },
         { "Character::set_Frame",                 API_FN_PAIR(Character_SetFrame) },
         { "Character::get_ID",                    API_FN_PAIR(Character_GetID) },

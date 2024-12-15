@@ -19,7 +19,7 @@ namespace AGS.Types
         private bool _scriptChangedSinceLastCompile;
         private string _cachedConvertedScript;
         private List<DialogOption> _options = new List<DialogOption>();
-        private CustomProperties _properties = new CustomProperties();
+        private CustomProperties _properties = new CustomProperties(CustomPropertyAppliesTo.Dialogs);
 
         public Dialog()
         {

@@ -163,6 +163,8 @@
     <Compile Include="Entities\CharacterIDChangedEventArgs.cs" />
     <Compile Include="Entities\CharacterRoomChangedEventArgs.cs" />
     <Compile Include="Entities\CompilationStepArgs.cs" />
+    <Compile Include="Entities\CompileWarningEx.cs" />
+    <Compile Include="Entities\TreeItemDragEventArgs.cs" />
     <Compile Include="Entities\ExistingScriptHeaderToAdd.cs" />
     <Compile Include="Entities\ExistingFileToAdd.cs" />
     <Compile Include="Config\IObjectConfig.cs" />
@@ -173,6 +175,8 @@
     <Compile Include="Entities\OutputCreationStepArgs.cs" />
     <Compile Include="Entities\ScriptModuleDef.cs" />
     <Compile Include="Entities\GenericMessagesArgs.cs" />
+    <Compile Include="Entities\TreeItemTryDragEventArgs.cs" />
+    <Compile Include="Enums\TargetDropZone.cs" />
     <Compile Include="Enums\AdjustMaskOptions.cs" />
     <Compile Include="GUI\AdjustMasksDialog.cs">
       <SubType>Form</SubType>
@@ -193,7 +197,6 @@
       <DependentUpon>CustomPropertiesEditor.cs</DependentUpon>
     </Compile>
     <Compile Include="GUI\CustomPropertyBag.cs" />
-    <Compile Include="GUI\CustomPropertyDescriptor.cs" />
     <Compile Include="GUI\CustomPropertySchemaEditor.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -245,6 +248,7 @@
     <Compile Include="GUI\NumberEntryWithInfoDialog.Designer.cs">
       <DependentUpon>NumberEntryWithInfoDialog.cs</DependentUpon>
     </Compile>
+    <Compile Include="GUI\OutputPanelItem.cs" />
     <Compile Include="GUI\Progress.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -276,6 +280,9 @@
       <DependentUpon>SpriteChooser.cs</DependentUpon>
     </Compile>
     <Compile Include="GUI\TreeViewExtensions.cs" />
+    <Compile Include="GUI\TreeViewWithDragDrop.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="GUI\ViewChooser.cs">
       <SubType>Form</SubType>
     </Compile>

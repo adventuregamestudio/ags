@@ -37,5 +37,11 @@ namespace AGS.Editor
         {
             this.Close();
         }
+
+        private void CustomPropertiesEditor_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            // refresh property grid, a property may have been added, changed or removed
+            Factory.GUIController.RefreshPropertyGrid();
+        }
     }
 }

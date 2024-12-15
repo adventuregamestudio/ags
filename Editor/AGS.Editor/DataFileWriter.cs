@@ -1711,7 +1711,7 @@ namespace AGS.Editor
                 CustomPropertiesWriter.Write(writer, game.Characters[i].Properties);
             }
             // inventory slot 0 is unused, write the dummy custom properties
-            CustomProperties dummyProperties = new CustomProperties();
+            CustomProperties dummyProperties = new CustomProperties(CustomPropertyAppliesTo.None);
             CustomPropertiesWriter.Write(writer, dummyProperties);
             for (int i = 0; i < game.InventoryItems.Count; ++i)
             {

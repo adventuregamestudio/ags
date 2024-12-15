@@ -41,7 +41,7 @@ namespace AGS.Types
         private bool _enabled = true;
         private bool _visible = true;
         private bool _translated = true;
-        private CustomProperties _properties = new CustomProperties();
+        private CustomProperties _properties = new CustomProperties(CustomPropertyAppliesTo.GUIControls);
 
         [NonSerialized]
         private GUI _parent;

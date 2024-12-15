@@ -83,5 +83,11 @@ namespace AGS.Editor
             this.DialogResult = DialogResult.Cancel;
             this.Close();
         }
+
+        private void CustomPropertySchemaItemEditor_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            // refresh property grid, a property may have been added, changed or removed
+            Factory.GUIController.RefreshPropertyGrid();
+        }
     }
 }

@@ -88,7 +88,7 @@ extern RGB palette[256];
 void AbortGame()
 {
     // make sure scripts stop at the next step
-    cancel_all_scripts();
+    AbortAllScripts();
 }
 
 void restart_game() {

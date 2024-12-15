@@ -156,10 +156,8 @@ int run_interaction_script(const ObjectEvent &obj_evt, const InteractionEvents *
     return 0;
 }
 
-int create_global_script()
+bool LinkGlobalScripts()
 {
-    constexpr int kscript_create_error = -3; // FIXME: use global script error code
-
     ccSetOption(SCOPT_AUTOIMPORT, 1);
 
     // NOTE: this function assumes that the module lists have their elements preallocated!
@@ -188,7 +186,7 @@ int create_global_script()
     for (auto &inst : all_insts)
     {
         if (!inst->ResolveImports(simp))
-            return kscript_create_error;
+            return false;
     }
 
     // Record addresses for 'repeatedly_execute'
@@ -210,10 +208,10 @@ int create_global_script()
         }
     }
 
-    return 0;
+    return true;
 }
 
-void cancel_all_scripts()
+void AbortAllScripts()
 {
     scriptExecutor->Abort();
     num_scripts = 0;
@@ -507,6 +505,9 @@ bool RunScriptFunctionAuto(ScriptType sc_type, const ScriptFunctionRef &fn_ref, 
 
 void AllocScriptModules()
 {
+    if (!scriptExecutor)
+        scriptExecutor = std::make_unique<ScriptExecutor>();
+
     // NOTE: this preallocation possibly required to safeguard some algorithms
     scriptModules.resize(numScriptModules);
     moduleRepExecAddr.resize(numScriptModules);
@@ -526,36 +527,34 @@ void AllocScriptModules()
     }
 }
 
-void FreeAllScriptInstances()
+void UnlinkAllScripts()
 {
-    FreeRoomScriptInstance();
-
+    if (roomscript)
+        roomscript->UnRegisterExports(simp);
     if (gamescript)
         gamescript->UnRegisterExports(simp);
     if (dialogScriptsScript)
         dialogScriptsScript->UnRegisterExports(simp);
     for (auto &module : scriptModules)
         module->UnRegisterExports(simp);
-
-    gamescript.reset();
-    dialogScriptsScript.reset();
-    scriptModules.clear();
 }
 
-void FreeRoomScriptInstance()
+void FreeRoomScript()
 {
     if (roomscript)
         roomscript->UnRegisterExports(simp);
-    roomscript.reset();
+    roomscript = nullptr;
 }
 
-void FreeGlobalScripts()
+void FreeAllScripts()
 {
-    numScriptModules = 0;
+    UnlinkAllScripts();
 
-    gamescript.reset();
+    roomscript = nullptr;
+    gamescript = nullptr;
+    dialogScriptsScript = nullptr;
     scriptModules.clear();
-    dialogScriptsScript.reset();
+    numScriptModules = 0;
 
     repExecAlways.ModuleHasFunction.clear();
     lateRepExecAlways.ModuleHasFunction.clear();
@@ -567,6 +566,8 @@ void FreeGlobalScripts()
     runDialogOptionTextInputHandlerFunc.ModuleHasFunction.clear();
     runDialogOptionRepExecFunc.ModuleHasFunction.clear();
     runDialogOptionCloseFunc.ModuleHasFunction.clear();
+
+    scriptExecutor = nullptr;
 }
 
 //=============================================================================
@@ -626,14 +627,14 @@ void post_script_cleanup()
                 curscript->QueueAction(PostScriptAction(ePSANewRoom, data1, "NewRoom"));
             break;
         case ePSARestoreGame:
-            cancel_all_scripts();
+            AbortAllScripts();
             try_restore_save(data1);
             return;
         case ePSARestoreGameDialog:
             restore_game_dialog2(data1 & 0xFFFF, (data1 >> 16));
             return;
         case ePSARunAGSGame:
-            cancel_all_scripts();
+            AbortAllScripts();
             load_new_game = data1;
             return;
         case ePSARunDialog:
@@ -657,7 +658,7 @@ void post_script_cleanup()
             }
             break;
         case ePSARestartGame:
-            cancel_all_scripts();
+            AbortAllScripts();
             restart_game();
             return;
         case ePSASaveGame:

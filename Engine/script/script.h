@@ -99,9 +99,6 @@ void    run_function_on_non_blocking_thread(NonBlockingScriptFunction* funcToRun
 int     run_interaction_script(const ObjectEvent &obj_evt, const InteractionEvents *nint, int evnt, int chkAny = -1);
 void    run_unhandled_event(const ObjectEvent &obj_evt, int evnt);
 
-int     create_global_script();
-void    cancel_all_scripts();
-
 enum RunScFuncResult
 {
     kScFnRes_Done = 0,
@@ -142,13 +139,18 @@ bool   RunScriptFunctionAuto(ScriptType sc_type, const ScriptFunctionRef &fn_ref
 
 // Preallocates script module instances
 void    AllocScriptModules();
-// Delete all the script instance objects
-void    FreeAllScriptInstances();
+// Link all script modules into a single program,
+// registers script exports in a global symbol table
+bool    LinkGlobalScripts();
+// Cancel any running scripts
+void    AbortAllScripts();
+// Unlinks scripts, unregister script exports
+void    UnlinkAllScripts();
 // Delete only the current room script instance
-void    FreeRoomScriptInstance();
+void    FreeRoomScript();
 // Deletes all the global scripts and modules;
 // this frees all of the bytecode and runtime script memory.
-void    FreeGlobalScripts();
+void    FreeAllScripts();
 
 //=============================================================================
 

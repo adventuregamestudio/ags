@@ -508,8 +508,7 @@ void unload_game()
     ccUnregisterAllObjects();
     pl_stop_plugins();
 
-    FreeAllScriptInstances();
-    FreeGlobalScripts();
+    FreeAllScripts();
 
     charextra.clear();
     mls.clear();

@@ -337,7 +337,8 @@ void DoBeforeRestore(PreservedParams &pp, SaveCmpSelection select_cmp)
         pp.ScMdDataSize[i] = scriptModules[i]->GetGlobalData().size();
     }
 
-    FreeAllScriptInstances();
+    // TODO: investigate if we actually have to do this when restoring a save
+    UnlinkAllScripts();
 
     // reset saved room states
     resetRoomStatuses();
@@ -571,11 +572,10 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
     // Re-export any missing audio channel script objects, e.g. if restoring old save
     export_missing_audiochans();
 
-    AllocScriptModules();
-    if (create_global_script())
+    if (!LinkGlobalScripts())
     {
         return new SavegameError(kSvgErr_GameObjectInitFailed,
-            String::FromFormat("Unable to recreate global script: %s",
+            String::FromFormat("Failed to link global script: %s",
                 cc_get_error().ErrorString.GetCStr()));
     }
 

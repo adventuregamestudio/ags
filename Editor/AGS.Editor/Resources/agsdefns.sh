@@ -1986,8 +1986,8 @@ builtin managed struct ListBox extends GUIControl {
 #ifdef SCRIPT_API_v362
 	/// Fills the list box with all the filenames that match the specified file mask.
 	import void FillDirList(const string fileMask, FileSortStyle fileSortStyle = eFileSort_Name, SortDirection sortDirection = eSortAscending);
-	/// Fills the list box with the current user's saved games in the given range of slots.
-	import int  FillSaveGameList(int min_slot = 1, int max_slot = 100, SaveGameSortStyle saveSortStyle = eSaveGameSort_Time, SortDirection sortDirection = eSortDescending);
+	/// Fills the list box with the current user's saved games in the given range of slots. Returns true if all slots in range are occupied.
+	import bool FillSaveGameList(int min_slot = 1, int max_slot = 100, SaveGameSortStyle saveSortStyle = eSaveGameSort_Time, SortDirection sortDirection = eSortDescending);
 	/// Fills the list box with the current user's saved games using the array of slot indexes.
 	import void FillSaveGameSlots(int save_slots[], SaveGameSortStyle saveSortStyle = eSaveGameSort_None, SortDirection sortDirection = eSortNoDirection);
 #else // !SCRIPT_API_v362

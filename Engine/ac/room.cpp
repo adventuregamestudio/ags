@@ -317,7 +317,7 @@ void unload_old_room()
     for (uint32_t ff=0;ff<croom->numobj;ff++)
         objs[ff].moving = 0;
 
-    cancel_all_scripts();
+    AbortAllScripts();
     events.clear();  // cancel any pending room events
 
     if (roomBackgroundBmp != nullptr)
@@ -329,7 +329,7 @@ void unload_old_room()
     if (croom==nullptr) ;
     else if (roomscript) {
         save_room_data_segment();
-        FreeRoomScriptInstance();
+        FreeRoomScript();
     }
     else croom->tsdatasize=0;
     memset(&play.walkable_areas_on[0],1,MAX_WALK_AREAS);

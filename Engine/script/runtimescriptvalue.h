@@ -20,7 +20,7 @@
 
 #include "ac/dynobj/cc_scriptobject.h"
 #include "ac/dynobj/cc_staticarray.h"
-#include "script/script_api.h"
+#include "script/script_api.h" // FIXME: find a way to not include this big header
 #include "util/memory.h"
 
 enum ScriptValueType

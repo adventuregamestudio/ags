@@ -629,15 +629,13 @@ int IAGSEngine::CallGameScriptFunction(const char *name, int32 globalScript, int
     if (inside_script)
         return -300;
 
-    ccInstance *toRun = GetScriptInstanceByType(globalScript ? kScTypeGame : kScTypeRoom);
-
+    RuntimeScript *run_script = GetScriptInstanceByType(globalScript ? kScTypeGame : kScTypeRoom);
     RuntimeScriptValue params[]{
         RuntimeScriptValue().SetPluginArgument(arg1),
         RuntimeScriptValue().SetPluginArgument(arg2),
         RuntimeScriptValue().SetPluginArgument(arg3),
     };
-    int toret = RunScriptFunction(toRun, name, numArgs, params);
-    return toret;
+    return RunScriptFunction(run_script, name, numArgs, params);
 }
 
 void IAGSEngine::NotifySpriteUpdated(int32 slot) {

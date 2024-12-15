@@ -1,7 +1,7 @@
 REVISION HISTORY
 ================
 
-VERSION 3.6.2 - Beta, November 2024
+VERSION 3.6.2 - Beta, December 2024
 
 Common:
  - Event handler function are now allowed to be located in any script module.
@@ -18,6 +18,8 @@ Editor:
  - In General Settings added "Use old-style voice clip naming rule" which lets to select whether
    the game should expect old-style voice clip filenames (4-letter char name followed by number)
    or the new one (full char name, followed by a number, separated by a dot).
+ - Property Grid now displays Custom Properties right in the main properties list for each item
+   that supports them.
  - Added "WrapText", "TextPaddingHorizontal", "TextPaddingVertical" properties to GUI Button.
  - GUI Labels can select full range of Alignment values in their TextAlignment property.
  - Added "TurnWhenFacing" property to Characters.
@@ -49,6 +51,7 @@ Editor:
  - Support editing group properties for selected GUI controls.
  - Added a multiline Text edit window for Button and Label controls, that may be called by Ctrl+E,
    from context menu, or by pressing "..." button of the Text property in the Properties grid.
+ - Support reordering folders in Sprite Manager with drag & drop.
  - Support importing 1-bit (monochrome) and 4-bit images as sprites, room backgrounds and masks
    (converted to 8-bit).
  - Support importing indexed PNGs as room backgrounds and masks.
@@ -60,11 +63,15 @@ Editor:
    of the currently selected tool.
  - Do not delete previously built game exe from Compiled/Windows folder when testing a game
    from the editor.
- - Editor will now report any missing script functions that are assigned to events but not
-   present in script as warnings when compiling the game.
+ - Editor will now report any missing script functions that are assigned to events, but not
+   present in script, as warnings when compiling the game.
+ - Editor will now report any script functions that *look like* event functions, but not assigned
+   to corresponding events, as warnings when compiling the game.
  - Added "/maketemplate" command-line option that tells Editor to run, make template out of the
    said game, and quit.
  - Fixed Editor refusing to open a project if one or more of the sections are missing in the file.
+ - Fixed dragging an item into the folder in Project Explorer could move it into a wrong folder
+   if the folders have similar names only different in letter case.
  - Fixed importing indexed PNG as a sprite, previously Editor would mistakenly treat the source
    image as 32-bit.
  - Fixed importing 8-bit BMP sprites with no "Remap palette" and "Leave As Is" as a transparency
@@ -79,6 +86,8 @@ Editor:
 
 Scripting:
  - Dynamic arrays now have Length readonly property that returns their number of elements.
+ - Support zero-length dynamic arrays. This may be useful if you need to have a dynamic array
+   with no elements, but don't want to bother about checking a null pointer.
 
 Script API:
  - Added eNullFont constant that lets assign or pass a "null font" to any property or function
@@ -93,6 +102,7 @@ Script API:
  - Support "validate_restored_save" callback, which lets user to validate restored saves with
    mismatching data and request cancellation or continuation of restoring this save.
  - Added Button.WrapText, TextPaddingHorizontal, TextPaddingVertical.
+ - Added Character.Following property that returns another Character that this one follows after.
  - Added Character.TurnWhenFacing property.
  - Added Character.MoveStraight() complementing WalkStraight().
  - Added DateTime.CreateFromDate() and CreateFromRawTime().
@@ -131,6 +141,7 @@ Script API:
    sprite to write into this save instead of a standard "screenshot".
  - Added SendEvent() function that allows to trigger "on_event" function calls in script.
    Special event value eEventUserEvent may be used as a base index for user-defined events.
+ - Added System.DisplayFPS property that toggles FPS counter (a replacement to Debug(4, 1)).
  - Added System.GetEngineInteger() and System.GetEngineString() for returning diagnostic
    information about engine's runtime state. Possible arguments are defined by
    EngineValueID enum.
@@ -166,6 +177,7 @@ Engine:
    recreate this behavior, then use MoveSaveSlot() command.
  - Support calling StopDialog() inside a dialog script, that will schedule dialog's stop command
    at the end of the current option script.
+ - Removed arbitrary limit of 2k bytes for the result of String.Format().
  - Implemented video buffering on a separate thread. Allow to drop late video frames.
  - Added new accessibility config settings in "access" section: "speechskip", "textskip",
    "textreadspeed". These let player to override game's skipping style for character speech and
@@ -177,6 +189,8 @@ Engine:
  - Fixed calling Dialog.Start() inside a dialog script would create a nested "dialog state",
    which could eventually lead to internal mistakes and program stack overflow. Dialog.Start()
    will now schedule a proper dialog topic switch, equivalent to "goto-dialog" command.
+ - Fixed calling Character.Animate() during idling state could cause incorrect error, reporting
+   invalid animation loop.
  - Fixed displaying room masks with Debug command in legacy "upscale" mode.
 
 Engine Plugin API:

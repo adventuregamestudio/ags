@@ -130,11 +130,7 @@ namespace AGS.Types
             var descriptors = new List<PropertyDescriptor>();
             foreach (CustomPropertySchemaItem item in Schema.PropertyDefinitions)
             {
-                if (((_appliesTo == CustomPropertyAppliesTo.Characters) && (item.AppliesToCharacters)) ||
-                    ((_appliesTo == CustomPropertyAppliesTo.Hotspots) && (item.AppliesToHotspots)) ||
-                    ((_appliesTo == CustomPropertyAppliesTo.InventoryItems) && (item.AppliesToInvItems)) ||
-                    ((_appliesTo == CustomPropertyAppliesTo.Objects) && (item.AppliesToObjects)) ||
-                    ((_appliesTo == CustomPropertyAppliesTo.Rooms) && (item.AppliesToRooms)))
+                if ((_appliesTo & item.AppliesTo) != 0)
                 {
                     descriptors.Add(new CustomPropertyDescriptor(item, this));
                 }

@@ -197,7 +197,11 @@ namespace AGS.Types
         public CustomProperties Properties
         {
             get { return _properties; }
-            protected set { _properties = value; }
+            protected set
+            {
+                _properties = value;
+                _properties.AppliesTo = CustomPropertyAppliesTo.AudioClips;
+            }
         }
 
         public AudioClip(XmlNode node)

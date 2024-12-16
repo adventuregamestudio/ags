@@ -222,6 +222,11 @@ unsigned ccInstance::_timeoutAbortMs = 0u;
 unsigned ccInstance::_maxWhileLoops = 0u;
 
 
+ccInstance::ResolvedScriptData::ResolvedScriptData()
+    : export_lookup('$', true /* allow to match symbols with more appendages */)
+{
+}
+
 ccInstance *ccInstance::GetCurrentInstance()
 {
     return InstThreads.size() > 0 ? InstThreads.back() : nullptr;
@@ -273,11 +278,6 @@ void ccInstance::SetExecTimeout(const unsigned sys_poll_ms, const unsigned abort
     _timeoutCheckMs = sys_poll_ms;
     _timeoutAbortMs = abort_ms;
     _maxWhileLoops = abort_loops;
-}
-
-ccInstance::ccInstance()
-    : _exportLookup('$', true /* allow to match symbols with more appendages */)
-{
 }
 
 ccInstance::~ccInstance()
@@ -381,7 +381,7 @@ void ccInstance::AbortAndDestroy()
 
 bool ccInstance::FindExportedFunction(const String &fn_name, int32_t &start_at, int32_t &num_args) const
 {
-    const uint32_t exp_index = _exportLookup.GetIndexOfAny(fn_name);
+    const uint32_t exp_index = _scriptData->export_lookup.GetIndexOfAny(fn_name);
     if (exp_index == UINT32_MAX)
         return false;
 
@@ -1711,8 +1711,8 @@ void ccInstance::GetScriptPosition(ScriptPosition &script_pos) const
 
 RuntimeScriptValue ccInstance::GetSymbolAddress(const String &symname) const
 {
-    uint32_t exp_index = _exportLookup.GetIndexOfAny(symname);
-    return (exp_index < UINT32_MAX) ? _exports[exp_index] : RuntimeScriptValue();
+    uint32_t exp_index = _scriptData->export_lookup.GetIndexOfAny(symname);
+    return (exp_index < UINT32_MAX) ? _scriptData->exports[exp_index] : RuntimeScriptValue();
 }
 
 void ccInstance::DumpInstruction(const ScriptOperation &op) const
@@ -1813,16 +1813,19 @@ bool ccInstance::_Create(PScript scri, const ccInstance *joined)
     if ((scri == nullptr) && (joined != nullptr))
         scri = joined->_instanceof;
 
-    if (scri == nullptr) {
+    if (scri == nullptr)
+    {
         cc_error("null pointer passed");
         return false;
     }
 
-    if (joined != nullptr) {
+    if (joined != nullptr)
+    {
         // share memory space with an existing instance (ie. this is a thread/fork)
         _scriptData = joined->_scriptData;
     } 
-    else {
+    else
+    {
         // create own memory space
         // NOTE: globalvars are created in CreateGlobalVars()
         _scriptData.reset(new ResolvedScriptData());
@@ -1858,13 +1861,16 @@ bool ccInstance::_Create(PScript scri, const ccInstance *joined)
     _stackdataPtr = _stackdata.data();
 
     // find a LoadedInstance slot for it
-    for (int i = 0; i < MAX_LOADED_INSTANCES; i++) {
-        if (loadedInstances[i] == nullptr) {
+    for (int i = 0; i < MAX_LOADED_INSTANCES; i++)
+    {
+        if (loadedInstances[i] == nullptr)
+        {
             loadedInstances[i] = this;
             _loadedInstanceId = i;
             break;
         }
-        if (i == MAX_LOADED_INSTANCES - 1) {
+        if (i == MAX_LOADED_INSTANCES - 1)
+        {
             cc_error("too many active instances");
             return false;
         }
@@ -1885,44 +1891,17 @@ bool ccInstance::_Create(PScript scri, const ccInstance *joined)
         {
             return false;
         }
-    }
-
-    // Resolve script exports; this is done for each script instance,
-    // CHECKME: why? they seem to reference shared data
-    _exports.resize(scri->exports.size());
-    _exportLookup.Clear();
-    // find the real address of the exports
-    for (size_t i = 0; i < scri->exports.size(); i++)
-    {
-        const int32_t etype = (scri->export_addr[i] >> 24L) & 0x000ff;
-        const int32_t eaddr = (scri->export_addr[i] & 0x00ffffff);
-        if (etype == EXPORT_FUNCTION)
+        if (!ResolveExports(scri.get()))
         {
-            // NOTE: unfortunately, there seems to be no way to know if
-            // that's an extender function that expects object pointer
-            _exports[i].SetCodePtr(reinterpret_cast<uint8_t*>(_code) 
-                + (static_cast<uintptr_t>(eaddr) * sizeof(uintptr_t)));
-        }
-        else if (etype == EXPORT_DATA)
-        {
-            ScriptVariable *gl_var = FindGlobalVar(eaddr);
-            if (gl_var)
-            {
-                _exports[i].SetGlobalVar(&gl_var->RValue);
-            }
-            else
-            {
-                cc_error("cannot resolve global variable, key = %d", eaddr);
-                return false;
-            }
-        }
-        else
-        {
-            cc_error("internal export fixup error");
             return false;
         }
-
-        _exportLookup.Add(scri->exports[i], i);
+        // Register exports in the global symbol imports table,
+        // but only if this is the first instance for the given script
+        if ((ccGetOption(SCOPT_AUTOIMPORT) != 0) && (scri->instances == 0))
+        {
+            if (!ImportScriptExports(scri.get()))
+                return false;
+        }
     }
 
     _instanceof = scri;
@@ -1930,21 +1909,6 @@ bool ccInstance::_Create(PScript scri, const ccInstance *joined)
     if (joined != nullptr)
         _flags = INSTF_SHAREDATA;
     scri->instances++;
-
-    if ((scri->instances == 1) && (ccGetOption(SCOPT_AUTOIMPORT) != 0))
-    {
-        // import all the exported stuff from this script
-        for (size_t i = 0; i < scri->exports.size(); i++)
-        {
-            String name = scri->exports[i];
-            name.Replace('$', '^'); // replace exported name separator with imported name separator
-            if (!ccAddExternalScriptSymbol(name, _exports[i], this))
-            {
-                cc_error("Export table overflow at '%s'", scri->exports[i].c_str());
-                return false;
-            }
-        }
-    }
 
     // Generate lookup tables for script TOC (if available)
     if (joined)
@@ -1973,7 +1937,8 @@ void ccInstance::Free()
 {
     // When the base script has no more "instances",
     // remove all script exports
-    if (_instanceof != nullptr) {
+    if (_instanceof != nullptr)
+    {
         _instanceof->instances--;
         if (_instanceof->instances == 0)
         {
@@ -1990,8 +1955,6 @@ void ccInstance::Free()
     _codesize = 0;
     _strings = nullptr;
     _stringsize = 0u;
-
-    _exports = {};
 
     _stack = {};
     _stackdata = {};
@@ -2221,6 +2184,64 @@ bool ccInstance::CreateRuntimeCodeFixups(const ccScript *scri)
             break; // do nothing yet
         default:
             cc_error_fixups(scri, SIZE_MAX, "unknown fixup type: %d (fixup num %d)", scri->fixuptypes[i], i);
+            return false;
+        }
+    }
+    return true;
+}
+
+bool ccInstance::ResolveExports(const ccScript *scri)
+{
+    auto &exports = _scriptData->exports;
+    auto &export_lookup = _scriptData->export_lookup;
+
+    exports.resize(scri->exports.size());
+    export_lookup.Clear();
+    // find the real address of the exports
+    for (size_t i = 0; i < scri->exports.size(); i++)
+    {
+        const int32_t etype = (scri->export_addr[i] >> 24L) & 0x000ff;
+        const int32_t eaddr = (scri->export_addr[i] & 0x00ffffff);
+        if (etype == EXPORT_FUNCTION)
+        {
+            // NOTE: unfortunately, there seems to be no way to know if
+            // that's an extender function that expects object pointer
+            exports[i].SetCodePtr(reinterpret_cast<uint8_t*>(_code) 
+                + (static_cast<uintptr_t>(eaddr) * sizeof(uintptr_t)));
+        }
+        else if (etype == EXPORT_DATA)
+        {
+            ScriptVariable *gl_var = FindGlobalVar(eaddr);
+            if (gl_var)
+            {
+                exports[i].SetGlobalVar(&gl_var->RValue);
+            }
+            else
+            {
+                cc_error("cannot resolve global variable, key = %d", eaddr);
+                return false;
+            }
+        }
+        else
+        {
+            cc_error("internal export fixup error");
+            return false;
+        }
+
+        export_lookup.Add(scri->exports[i], i);
+    }
+    return true;
+}
+
+bool ccInstance::ImportScriptExports(const ccScript *scri)
+{
+    for (size_t i = 0; i < scri->exports.size(); i++)
+    {
+        String name = scri->exports[i];
+        name.Replace('$', '^'); // replace exported name separator with imported name separator
+        if (!ccAddExternalScriptSymbol(name, _scriptData->exports[i], this))
+        {
+            cc_error("Export table overflow at '%s'", scri->exports[i].c_str());
             return false;
         }
     }

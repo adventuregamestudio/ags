@@ -149,7 +149,7 @@ public:
         std::unordered_map<uint32_t, uint32_t> &loc_l2g,
         std::unordered_map<uint32_t, uint32_t> &type_l2g);
 
-    ccInstance();
+    ccInstance() = default;
     ~ccInstance();
 
     // Get the script that this Instance represents
@@ -219,6 +219,9 @@ private:
     bool    AddGlobalVar(const ScriptVariable &glvar);
     ScriptVariable *FindGlobalVar(int32_t var_addr);
     bool    CreateRuntimeCodeFixups(const ccScript *scri);
+    bool    ResolveExports(const ccScript *scri);
+    // Registers this script's resolved exports as imports in the symbol import table
+    bool    ImportScriptExports(const ccScript *scri);
 
     // Searches for the function among this script's exports,
     // on success returns its starting position in bytecode, and number of arguments
@@ -265,14 +268,15 @@ private:
         std::vector<uint8_t>    code_fixups;
         // Resolved global variables
         std::unordered_map<int32_t, ScriptVariable> globalvars;
+        // This script's exports
+        std::vector<RuntimeScriptValue> exports;
+        ScriptSymbolsMap        export_lookup;
         // Array of real import indexes used in script
         std::vector<uint32_t>   resolved_imports;
+
+        ResolvedScriptData();
     };
     std::shared_ptr<ResolvedScriptData> _scriptData;
-    // This script's exports
-    // TODO: not sure why these are not shared among forks, review this later
-    std::vector<RuntimeScriptValue> _exports;
-    ScriptSymbolsMap _exportLookup; // must be a sorted map, we use partial name matches
 
     // Code pointers for faster access
     intptr_t   *_code = nullptr;

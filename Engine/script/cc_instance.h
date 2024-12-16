@@ -43,12 +43,13 @@ using namespace AGS;
 #define MAX_CALL_STACK      128
 #define MAX_FUNCTION_PARAMS 20
 
-// 256 because we use 8 bits to hold instance number
-#define MAX_PRIMARY_INSTANCES 256
-
-#define INSTANCE_ID_SHIFT 24LL
-#define INSTANCE_ID_MASK  0x00000000000000ffLL
-#define INSTANCE_ID_REMOVEMASK 0x0000000000ffffffLL
+// We use 10 bits to hold instance IDs ORed with op-code
+#define INSTANCE_ID_SHIFT       22LL
+#define INSTANCE_ID_MASK        0x00000000000003FFLL
+#define INSTANCE_ID_REMOVEMASK  0x00000000003FFFFFLL
+// This gives us 1024 unique instance IDs
+// NOTE: these are given to the primary instances only, not forks
+#define MAX_PRIMARY_INSTANCES   1024
 
 // Script executor debugging flag:
 // enables mistake checks, but slows things down!

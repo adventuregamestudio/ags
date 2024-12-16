@@ -25,12 +25,12 @@
 #include "script/cc_internal.h"
 #include "cc_variablesymlist.h"
 #include "fmem.h"
+#include "util/string_utils.h"
 #include "util/utf8.h"
 
 extern int currentline;
 
 char ccCopyright[]="ScriptCompiler32 v" SCOM_VERSIONSTR " (c) 2000-2007 Chris Jones and 2011-2024 others";
-static char scriptNameBuffer[256];
 
 int  evaluate_expression(ccInternalList*,ccCompiledScript*,int,bool insideBracketedDeclaration);
 int  evaluate_assignment(ccInternalList *targ, ccCompiledScript *scrip, bool expectCloseBracket, int cursym, int32_t lilen, int32_t *vnlist, bool insideBracketedDeclaration);
@@ -331,8 +331,10 @@ int cc_tokenize(const char*inpl, ccInternalList*targ, ccCompiledScript*scrip) {
 
             if (strncmp(thissymbol.c_str(), NEW_SCRIPT_TOKEN_PREFIX, 18) == 0)
             {
-                snprintf(scriptNameBuffer, sizeof(scriptNameBuffer), "%s", &thissymbol[18]);
-                ccCurScriptName = scriptNameBuffer;
+                // FIXME: ugly, but we must unescape the section name, to avoid reverse path separator duplications
+                AGS::Common::String unesc_name = AGS::Common::StrUtil::Unescape(&thissymbol[18]);
+                unesc_name.Trim('\"'); // strip any opening or closing quote chars
+                ccCurScriptName = unesc_name.GetCStr();
 
                 linenum = 0;
                 currentline = 0;
@@ -3440,11 +3442,12 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
 
         if (strncmp(sym.get_name(cursym), NEW_SCRIPT_TOKEN_PREFIX, 18) == 0)
         {
-            snprintf(scriptNameBuffer, sizeof(scriptNameBuffer), "%s", &sym.get_name(cursym)[18]);
-            scriptNameBuffer[strlen(scriptNameBuffer) - 1] = 0;  // strip closing speech mark
-            ccCurScriptName = scriptNameBuffer;
+            // FIXME: ugly, but we must unescape the section name, to avoid reverse path separator duplications
+            AGS::Common::String unesc_name = AGS::Common::StrUtil::Unescape(&sym.get_name(cursym)[18]);
+            unesc_name.Trim('\"'); // strip any opening or closing quote chars
+            ccCurScriptName = unesc_name.GetCStr();
 
-            scrip->start_new_section(scriptNameBuffer);
+            scrip->start_new_section(ccCurScriptName.c_str());
             currentline = 0;
             continue;
         }

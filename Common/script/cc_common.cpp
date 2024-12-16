@@ -18,7 +18,13 @@
 
 using namespace AGS::Common;
 
+// FIXME: refactor, get rid of these global vars!
+//
 int ccCompOptions = SCOPT_LEFTTORIGHT;
+// currently compiled or executed line
+int currentline;
+// currently compiled section name
+std::string ccCurScriptName;
 
 void ccSetOption(int optbit, int onoroff)
 {

@@ -222,14 +222,14 @@ ccScript* ccCompileText(const char *texo, const char *scriptName) {
         else
             ccCurScriptName = "Internal header file";
 
-        cctemp->start_new_section(ccCurScriptName);
+        cctemp->start_new_section(ccCurScriptName.c_str());
         cc_compile(defaultheaders[t],cctemp);
         if (cc_has_error()) break;
     }
 
     if (!cc_has_error()) {
         ccCurScriptName = scriptName;
-        cctemp->start_new_section(ccCurScriptName);
+        cctemp->start_new_section(ccCurScriptName.c_str());
         cc_compile(texo,cctemp);
     }
 

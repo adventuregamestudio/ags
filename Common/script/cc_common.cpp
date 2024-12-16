@@ -20,7 +20,7 @@ using namespace AGS::Common;
 
 int ccCompOptions = 0;
 int currentline = 0;
-const char *ccCurScriptName = "";
+std::string ccCurScriptName;
 
 void ccResetOptions(int optbit)
 {

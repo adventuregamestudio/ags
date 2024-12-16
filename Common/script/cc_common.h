@@ -67,6 +67,6 @@ void cc_error(const ScriptError &err);
 AGS::Common::String cc_format_error(const AGS::Common::String &message);
 
 extern int currentline;
-extern const char *ccCurScriptName;
+extern std::string ccCurScriptName;
 
 #endif // __CC_COMMON_H

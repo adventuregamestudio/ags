@@ -45,7 +45,7 @@ using namespace AGS;
 #define MAX_FUNCTION_PARAMS 20
 
 // 256 because we use 8 bits to hold instance number
-#define MAX_LOADED_INSTANCES 256
+#define MAX_PRIMARY_INSTANCES 256
 
 #define INSTANCE_ID_SHIFT 24LL
 #define INSTANCE_ID_MASK  0x00000000000000ffLL
@@ -251,7 +251,7 @@ private:
 
     // Represented script object
     PScript _instanceof;
-    int32_t _loadedInstanceId = 0;
+    int32_t _loadedInstanceId = -1;
     int     _flags = 0; // INSTF_* flags
 
     // Runtime variant of script data, fixups and imports,

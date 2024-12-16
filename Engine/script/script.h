@@ -174,7 +174,7 @@ extern PScript dialogScriptsScript;
 // engine is quite fragile and prone to errors whenever the instance is not
 // **deleted** in precise time. This is related to:
 // - ccScript's "instances" counting, which affects script exports reg/unreg;
-// - loadedInstances array.
+// - LoadedInstances array.
 // One of the examples is the save restoration, that may occur in the midst
 // of a post-script cleanup process, whilst the engine's stack still has
 // references to the ccInstances that are going to be deleted on cleanup.

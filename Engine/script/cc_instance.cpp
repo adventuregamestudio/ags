@@ -155,7 +155,7 @@ const char *fixupnames[] = { "null", "fix_gldata", "fix_func", "fix_string", "fi
 
 extern new_line_hook_type new_line_hook;
 
-ccInstance *loadedInstances[MAX_LOADED_INSTANCES] = { nullptr };
+ccInstance *LoadedInstances[MAX_PRIMARY_INSTANCES] = { nullptr };
 
 // Instance thread stack holds a list of running or suspended script instances;
 // In AGS currently only one thread is running, others are waiting in the queue.
@@ -1286,7 +1286,7 @@ ccInstError ccInstance::Run(int32_t curpc)
             // extract the instance ID
             int32_t instId = codeOp.Instruction.InstanceId;
             // determine the offset into the code of the instance we want
-            _runningInst = loadedInstances[instId];
+            _runningInst = LoadedInstances[instId];
             uintptr_t callAddr = reg1.PtrU8 - reinterpret_cast<uint8_t*>(_runningInst->_code);
             if (callAddr % sizeof(uintptr_t) != 0)
             {
@@ -1819,15 +1819,9 @@ bool ccInstance::_Create(PScript scri, const ccInstance *joined)
         return false;
     }
 
-    if (joined != nullptr)
+    if (!joined)
     {
-        // share memory space with an existing instance (ie. this is a thread/fork)
-        _scriptData = joined->_scriptData;
-    } 
-    else
-    {
-        // create own memory space
-        // NOTE: globalvars are created in CreateGlobalVars()
+        // Create own memory space
         _scriptData.reset(new ResolvedScriptData());
 
         if (scri->globaldata.size() > 0)
@@ -1846,6 +1840,11 @@ bool ccInstance::_Create(PScript scri, const ccInstance *joined)
                 _scriptData->code[i] = scri->code[i];
         }
     }
+    else
+    {
+        // Share memory space with an existing instance (ie. this is a thread/fork)
+        _scriptData = joined->_scriptData;
+    }
 
     // just use the pointer to the strings since they don't change
     _strings = scri->strings.size() > 0 ? scri->strings.data() : "";
@@ -1860,29 +1859,36 @@ bool ccInstance::_Create(PScript scri, const ccInstance *joined)
     _stackdataBegin = _stackdata.data();
     _stackdataPtr = _stackdata.data();
 
-    // find a LoadedInstance slot for it
-    for (int i = 0; i < MAX_LOADED_INSTANCES; i++)
-    {
-        if (loadedInstances[i] == nullptr)
-        {
-            loadedInstances[i] = this;
-            _loadedInstanceId = i;
-            break;
-        }
-        if (i == MAX_LOADED_INSTANCES - 1)
-        {
-            cc_error("too many active instances");
-            return false;
-        }
-    }
-
     // Setup fast access pointers
     _code = _scriptData->code.data();
     _codesize = static_cast<int32_t>(_scriptData->code.size());
     _code_fixups = _scriptData->code_fixups.data();
 
+    // If this is a primary script's instance:
+    // * register it in the loadedInstances array,
+    // * resolve fixups and imports/exports.
+    //
+    // NOTE: loadedInstances serves as a lookup table for getting
+    // another script instance when doing a function call.
+    // Instance *forks* are *not* registered in this table.
     if (!joined)
     {
+        // find a LoadedInstance slot for it
+        for (int i = 0; i < MAX_PRIMARY_INSTANCES; i++)
+        {
+            if (LoadedInstances[i] == nullptr)
+            {
+                LoadedInstances[i] = this;
+                _loadedInstanceId = i;
+                break;
+            }
+        }
+        if (_loadedInstanceId < 0)
+        {
+            cc_error("Too many active script instances, max supported count is %d", MAX_PRIMARY_INSTANCES);
+            return false;
+        }
+
         if (!CreateGlobalVars(scri.get()))
         {
             return false;
@@ -1902,6 +1908,10 @@ bool ccInstance::_Create(PScript scri, const ccInstance *joined)
             if (!ImportScriptExports(scri.get()))
                 return false;
         }
+    }
+    else
+    {
+        _loadedInstanceId = joined->_loadedInstanceId;
     }
 
     _instanceof = scri;
@@ -1946,9 +1956,10 @@ void ccInstance::Free()
         }
     }
 
-    // remove from the Active Instances list
-    if (loadedInstances[_loadedInstanceId] == this)
-        loadedInstances[_loadedInstanceId] = nullptr;
+    // Remove from the Active Instances list,
+    // but only if it's the primary instance (not a fork)
+    if ((_loadedInstanceId >= 0) && (LoadedInstances[_loadedInstanceId] == this))
+        LoadedInstances[_loadedInstanceId] = nullptr;
 
     _scriptData = nullptr;
     _code = nullptr;

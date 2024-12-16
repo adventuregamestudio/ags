@@ -1,5 +1,7 @@
 # Adventure Game Studio - Windows
 
+The following are instructions on how to build the Engine and Editor from the source code. If you'd like to download the ready program installer instead, then please visit AGS website at [https://www.adventuregamestudio.co.uk/site/ags/](https://www.adventuregamestudio.co.uk/site/ags/) or our repository's [Releases page](https://github.com/adventuregamestudio/ags/releases).
+
 ## Build Requirements
 
 * In common:

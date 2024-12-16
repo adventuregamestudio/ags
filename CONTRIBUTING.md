@@ -27,7 +27,7 @@ After you have finished creating your commits, send a pull request. We'll review
 
 The [`master`][master-br] branch is where the next planned version is being developed. It may temporarily contain unstable or untested code.
 
-Currently, `master` corresponds to 3.\* generation of the engine/IDE and maintains backward compatibility with previous releases - see also [Compatibility](#ags-game-compatibility). According to current plans, this branch should only receive improvements to the backend, system support, and performance. Changes to data formats and game scripts should be kept to a strict minimum to fill in the critical gaps in the engine's functionality.
+Currently, `master` corresponds to 3.\* generation of the engine/IDE and maintains backward compatibility with previous releases - see also [Compatibility](README.md#ags-game-compatibility). According to current plans, this branch should only receive improvements to the backend, system support, and performance. Changes to data formats and game scripts should be kept to a strict minimum to fill in the critical gaps in the engine's functionality.
 
 There's an [`ags4`][ags4-br] branch also active where we develop a future version AGS 4.0. There we introduce greater changes and cut much of the old version support.
 
@@ -45,6 +45,10 @@ There may be other temporary development branches meant for preparing and testin
 
 Please be aware that big parts of the engine are still written in a old and often "dirty" code, and it may not be easy to understand ties between different program parts. Because there's a low number of active developers involved in this project our plans or design ideas are not always well documented, unfortunately. If you're in doubt - please discuss your ideas with us first.
 
-For information on the project there's a [AGS Knowledge Base](https://github.com/adventuregamestudio/ags/wiki)studio/ags/wiki](https://github.com/adventuregamestudio/ags/wiki)
+For information on the project there's a [AGS Knowledge Base](https://github.com/adventuregamestudio/ags/wiki)
 
 We've got a Coding Convention for the engine, please check it before writing the engine code: [github.com/adventuregamestudio/ags/wiki/AGS-Coding-Conventions-(Cpp)](https://github.com/adventuregamestudio/ags/wiki/AGS-Coding-Conventions-(Cpp))
+
+
+[master-br]: https://github.com/adventuregamestudio/ags/tree/master
+[ags4-br]: https://github.com/adventuregamestudio/ags/tree/ags4

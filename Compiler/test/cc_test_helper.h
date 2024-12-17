@@ -25,5 +25,6 @@ extern void clear_error(void);
 extern const char *last_seen_cc_error(void);
 extern std::pair<AGS::Common::String, AGS::Common::String> cc_error_at_line(const char* error_msg);
 extern AGS::Common::String cc_error_without_line(const char* error_msg);
-
+extern int currentline;
+extern std::string ccCurScriptName;
 #endif // __CC_TEST_HELPER_H

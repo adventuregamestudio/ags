@@ -49,15 +49,6 @@ namespace Preprocessor {
         int _lineNumber;
         String _scriptName;
         Version _applicationVersion;
-        // A 'static' buffer for the script name when an error is
-        // reported with 'cc_error()'. We can't use the non-'static'
-        // field '_scriptName' for this purpose because the
-        // 'cc_error()' mechanism will need the buffer after this
-        // 'Preprocessor' object has been destroyed.
-        // TODO: Do away with '_scriptOfError' when 'Preprocessor'
-        // is refactored so that it doesn't use 'cc_error()' for
-        // error reporting
-        static String _scriptOfError;
         // Conditional statement stack remembers the results of all the nested conditions
         // that we have entered.
         std::stack<bool> _conditionalStatements;

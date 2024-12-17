@@ -25,7 +25,7 @@ namespace Preprocessor {
 std::vector<AGSString> SplitLines(const AGSString& str)
 {
     std::vector<AGSString> str_lines = str.Split('\n');
-    for (int i = 0; i < (int) str_lines.size(); i++) {
+    for (size_t i = 0; i < str_lines.size(); i++) {
         if (str_lines[i].CompareRight("\r", 1) == 0) {
             str_lines[i].ClipRight(1);
         }
@@ -877,7 +877,7 @@ int Func3()
     String res = pp.Preprocess(inpl, "MultipleNewScriptMarkers");
 
     EXPECT_STREQ("Unterminated string: '\"' is missing", last_seen_cc_error());
-    EXPECT_STREQ("Dialog2", ccCurScriptName);
+    EXPECT_STREQ("Dialog2", ccCurScriptName.c_str());
     // Line count starts from the nearest NEW SCRIPT MARKER
     EXPECT_EQ(3, currentline);
 }

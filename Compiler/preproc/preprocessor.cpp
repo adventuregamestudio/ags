@@ -38,7 +38,6 @@ namespace Preprocessor {
 #endif
 
     const Error Preprocessor::NoError = Error();
-    String Preprocessor::_scriptOfError = {};
 
     size_t FindIndexOfMatchingCharacter(String text, size_t indexOfFirstSpeechMark, int charToMatch)
     {
@@ -152,8 +151,7 @@ namespace Preprocessor {
         // 'cc_error()' will only work properly when the global variables
         // 'currentline' and 'ccCurScriptName' are current
         currentline = _lineNumber;
-        _scriptOfError = _scriptName;
-        ccCurScriptName = _scriptOfError.GetCStr();
+        ccCurScriptName = _scriptName.GetCStr();
         cc_error(msg.GetCStr());
     }
 

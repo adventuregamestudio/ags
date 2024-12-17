@@ -15,8 +15,6 @@
 #include "util/string_compat.h"
 #include "util/string.h"
 
-extern int currentline; // in script/script_common
-
 typedef AGS::Common::String AGSString;
 
 std::string last_cc_error_buf;

@@ -13,7 +13,7 @@
 //=============================================================================
 #include <algorithm>
 #include <cctype>
-#include <string>
+#include <string.h>
 #include "script/cs_parser_common.h"
 #include "preproc/preprocessor.h"
 #include "script/cc_common.h"
@@ -25,7 +25,6 @@
 
 using namespace AGS::Common;
 
-extern int currentline; // in script/script_common
 
 namespace AGS {
 namespace Preprocessor {
@@ -39,6 +38,7 @@ namespace Preprocessor {
 #endif
 
     const Error Preprocessor::NoError = Error();
+    String Preprocessor::_scriptOfError = {};
 
     size_t FindIndexOfMatchingCharacter(String text, size_t indexOfFirstSpeechMark, int charToMatch)
     {
@@ -149,6 +149,11 @@ namespace Preprocessor {
         err.Message = msg;
         _errors.push_back(err);
 
+        // 'cc_error()' will only work properly when the global variables
+        // 'currentline' and 'ccCurScriptName' are current
+        currentline = _lineNumber;
+        _scriptOfError = _scriptName;
+        ccCurScriptName = _scriptOfError.GetCStr();
         cc_error(msg.GetCStr());
     }
 
@@ -246,9 +251,8 @@ namespace Preprocessor {
                     size_t endOfString = FindIndexOfMatchingCharacter(text, i, text[i]);
                     if (endOfString == NOT_FOUND) //size_t is unsigned but it's alright
                     {
-                        std::string msg = "Unterminated string: <char> is missing";
-                        msg = msg.replace(msg.find("<char>"), 6, std::string(1, text[i]));
-                        LogError(ErrorCode::UnterminatedString, msg.c_str());
+                        String msg = String::FromFormat("Unterminated string: '%c' is missing", text[i]);
+                        LogError(ErrorCode::UnterminatedString, msg);
                         break;
                     }
                     endOfString++;
@@ -478,7 +482,7 @@ namespace Preprocessor {
     {
         _errors.clear();
         StringBuilder output = StringBuilder(script.GetLength());
-        currentline = _lineNumber = 0;
+        _lineNumber = 0;
         String escapedScriptName = scriptName;
         escapedScriptName.Replace("\\", "\\\\");
         output.WriteLine(String::FromFormat("%s%s\"", NEW_SCRIPT_TOKEN_PREFIX, escapedScriptName.GetCStr()));
@@ -486,7 +490,7 @@ namespace Preprocessor {
         _scriptName = scriptName;
         while (reader.IsValid())
         {
-            currentline = ++_lineNumber;
+            ++_lineNumber;
             String thisLine = reader.ReadLine();
             thisLine = RemoveComments(thisLine);
             if (thisLine.GetLength() > 0)

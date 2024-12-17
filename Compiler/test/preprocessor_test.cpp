@@ -25,7 +25,7 @@ namespace Preprocessor {
 std::vector<AGSString> SplitLines(const AGSString& str)
 {
     std::vector<AGSString> str_lines = str.Split('\n');
-    for (int i = 0; i < str_lines.size(); i++) {
+    for (int i = 0; i < (int) str_lines.size(); i++) {
         if (str_lines[i].CompareRight("\r", 1) == 0) {
             str_lines[i].ClipRight(1);
         }
@@ -810,6 +810,76 @@ void FuncИह€한𐍈() {
 
     ASSERT_NE(pp.GetLastError().Type, ErrorCode::None);
     ASSERT_EQ(pp.GetLastError().Type, ErrorCode::InvalidCharacter);
+}
+
+TEST(Preprocess, UnterminatedStringSingleQuote) {
+    Preprocessor pp = Preprocessor();
+    const char *inpl = R"EOS(
+int Func1()
+{
+    'unterminated string
+    return 0;
+}
+)EOS";
+
+    clear_error();
+    String res = pp.Preprocess(inpl, "UnterminatedStringSingleQuote");
+
+    // According to the googletest docs,
+    // the expected value should come first, the tested expression second
+    // Then in the case of a failed test, the reported message comes out correctly.
+    EXPECT_STREQ("Unterminated string: ''' is missing", last_seen_cc_error());
+    auto err = pp.GetLastError();
+    // script lines are 1-based, because line 0 is a NEW SCRIPT MARKER added by preproc
+    EXPECT_EQ(4, currentline);
+}
+
+TEST(Preprocess, UnterminatedStringDoubleQuote) {
+    Preprocessor pp = Preprocessor();
+    const char *inpl = R"EOS(
+int Func1()
+{
+    "unterminated string
+    return 0;
+}
+)EOS";
+
+    clear_error();
+    String res = pp.Preprocess(inpl, "UnterminatedStringDoubleQuote");
+
+    EXPECT_STREQ(last_seen_cc_error(), "Unterminated string: '\"' is missing");
+    // script lines are 1-based, because line 0 is a NEW SCRIPT MARKER added by preproc
+    EXPECT_EQ(currentline, 4);
+}
+
+TEST(Preprocess, MultipleNewScriptMarkers) {
+    Preprocessor pp = Preprocessor();
+    const char *inpl = R"EOS(
+"__NEWSCRIPTSTART_Dialog1"
+int Func1()
+{
+    return 0;
+}
+"__NEWSCRIPTSTART_Dialog2"
+int Func2()
+{
+    "unterminated string
+    return 0;
+}
+"__NEWSCRIPTSTART_Dialog3"
+int Func3()
+{
+    return 0;
+}
+)EOS";
+
+    clear_error();
+    String res = pp.Preprocess(inpl, "MultipleNewScriptMarkers");
+
+    EXPECT_STREQ("Unterminated string: '\"' is missing", last_seen_cc_error());
+    EXPECT_STREQ("Dialog2", ccCurScriptName);
+    // Line count starts from the nearest NEW SCRIPT MARKER
+    EXPECT_EQ(3, currentline);
 }
 
 } // Preprocessor

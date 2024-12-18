@@ -32,6 +32,8 @@ Editor:
  - Added Custom Properties for: Audio Clips, Dialogs, GUI, GUI Controls, Regions, Walkable Areas.
  - Added Enabled and Visible properties to Characters, Enabled property to Room Objects.
  - Added BlendMode property to Characters, GUI and Room Objects.
+ - Added Flip property to View Frame, replacing a boolean Flipped property. The new property
+   supports all 3 flip variants: horizontal, vertical and both at once.
  - Added FaceDirectionRatio property to General Settings, Room and Walkable Areas.
  - Added readonly Length property to AudioClips, for the reference.
  - Added "Source FontFile" property to Fonts, this property lets assign a Font File to the Font.
@@ -53,6 +55,8 @@ Editor:
  - When importing room backgrounds of a different size Editor will now let user decide whether
    to reset, keep or rescale room masks.
  - Fixed faulty double-click on project items in case user dragged the cursor away.
+ - Fixed certain errors like "not terminated string" in Dialog Scripts did not report correct
+   Dialog and line, making it difficult to find the cause of mistake.
 
 Compiler:
  - The new extended script compiler is available. Almost all of the new Scripting features are
@@ -83,6 +87,8 @@ Scripting:
    the closing bracket and closing semi-colon.
  - Functions now may call any other function from within same script, regardless of their
    order of declaration.
+ - When calling a function you may specify parameter names like "name1: value, name2: value",
+   and when doing so - pass arguments in any order.
  - Compiler can now evaluate integer or float expressions at compile time whenever result
    is actually constant and can be calculated at compile time.
  - "const" keyword now may be used to define compile-time "int" and "float" constants.
@@ -137,6 +143,7 @@ Script API:
  - Added readonly Game.SpriteColorDepth[] indexed property.
  - Added GUI.ScaleX and ScaleY properties, GUI.SetScale() function.
  - Added GUI.GUIToScreenPoint() and GUI.ScreenToGUIPoint() functions.
+ - Added Overlay.Flip property that lets to set one of the 3 standard flip styles.
  - Added Overlay.Tint(), SetLightLevel() and RemoveTint() functions, Overlay.HasTint,
    HasLightLevel, LightLevel, TintBlue, TintGreen, TintRed, TintSaturation, TintLuminance
    properties, matching Character and Object tinting functionality.
@@ -144,6 +151,7 @@ Script API:
    room's walkable areas.
  - Added StringSplitOptions enum, String.Join(), String.Split() and String.Trim() functions.
  - Expanded String.IndexOf() with new parameters: "StringCompareStyle", "index" and "count".
+ - ViewFrame.Flipped property now returns eFlipDirection instead of bool.
  - Added "walkarea[]" and "walkbehind[]" global arrays.
  - Global generated game objects (Characters, GUIs, etc), and global arrays of these objects
    (character[], object[], gui[], etc) are now declared as object *pointers* and arrays of
@@ -157,6 +165,7 @@ Script API:
 
 Engine:
  - Support joystick and gamepad input.
+ - Engine now supports up to 1024 simultaneously loaded scripts (was 128).
  - Implemented more accurate Character movement. The movement direction is now more precise
    and diagonal movement speed no longer may exceed MovementSpeed setting.
  - Ensure that Character.Speaking returns true even if character has no speech view.

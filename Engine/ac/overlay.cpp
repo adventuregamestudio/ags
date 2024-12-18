@@ -20,6 +20,7 @@
 #include "ac/characterextras.h"
 #include "ac/display.h"
 #include "ac/draw.h"
+#include "ac/game.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_translation.h"
@@ -194,6 +195,18 @@ void Overlay_SetWidth(ScriptOverlay *scover, int width)
 void Overlay_SetHeight(ScriptOverlay *scover, int height) {
     auto *over = GetOverlayValidate("Overlay.Height", scover);
     Overlay_SetScaledSize(*over, over->scaleWidth, height);
+}
+
+int Overlay_GetFlip(ScriptOverlay *scover)
+{
+    auto *over = GetOverlayValidate("Overlay.Flip", scover);
+    return over->GetFlip();
+}
+
+void Overlay_SetFlip(ScriptOverlay *scover, int flip)
+{
+    auto *over = GetOverlayValidate("Overlay.Flip", scover);
+    over->SetFlip(ValidateFlip("Overlay.Flip", flip));
 }
 
 int Overlay_GetValid(ScriptOverlay *scover)
@@ -831,6 +844,16 @@ RuntimeScriptValue Sc_Overlay_SetBlendMode(void *self, const RuntimeScriptValue 
     API_OBJCALL_VOID_PINT(ScriptOverlay, Overlay_SetBlendMode);
 }
 
+RuntimeScriptValue Sc_Overlay_GetFlip(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptOverlay, Overlay_GetFlip);
+}
+
+RuntimeScriptValue Sc_Overlay_SetFlip(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptOverlay, Overlay_SetFlip);
+}
+
 RuntimeScriptValue Sc_Overlay_GetRotation(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_FLOAT(ScriptOverlay, Overlay_GetRotation);
@@ -1001,6 +1024,8 @@ void RegisterOverlayAPI()
         { "Overlay::set_BlendMode",       API_FN_PAIR(Overlay_SetBlendMode) },
         { "Overlay::get_Rotation",        API_FN_PAIR(Overlay_GetRotation) },
         { "Overlay::set_Rotation",        API_FN_PAIR(Overlay_SetRotation) },
+        { "Overlay::get_Flip",            API_FN_PAIR(Overlay_GetFlip) },
+        { "Overlay::set_Flip",            API_FN_PAIR(Overlay_SetFlip) },
     };
 
     ccAddExternalFunctions(overlay_api);

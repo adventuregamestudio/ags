@@ -1239,6 +1239,8 @@ builtin managed struct Overlay {
   readonly import attribute int  TintSaturation;
   /// Gets the Luminance of this overlay's colour tint.
   readonly import attribute int  TintLuminance;
+  /// Gets/sets the flip direction of this overlay.
+  import attribute eFlipDirection Flip;
 #endif // SCRIPT_API_v400
 };
 
@@ -1384,7 +1386,7 @@ import int  WaitInput(InputType inputs, int waitLoops = -1);
 #endif // SCRIPT_API_v36026
 /// Checks whether the specified key is currently held down.
 import bool IsKeyPressed(eKeyCode);
-import void FlipScreen(int way);
+import void FlipScreen(eFlipDirection way);
 /// Fast-forwards the game until the specified character finishes moving.
 import void SkipUntilCharacterStops(CHARID);
 /// Specifies the start of a skippable cutscene.

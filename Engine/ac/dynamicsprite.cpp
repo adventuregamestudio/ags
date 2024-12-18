@@ -117,10 +117,9 @@ void DynamicSprite_Resize(ScriptDynamicSprite *sds, int width, int height) {
 }
 
 void DynamicSprite_Flip(ScriptDynamicSprite *sds, int direction) {
-    if ((direction < 1) || (direction > 3))
-        quit("!DynamicSprite.Flip: invalid direction");
     if (sds->slot == 0)
         quit("!DynamicSprite.Flip: sprite has been deleted");
+    GraphicFlip flip = ValidateFlip("DynamicSprite.Flip", direction);
 
     // resize the sprite to the requested size
     Bitmap *sprite = spriteset[sds->slot];
@@ -128,7 +127,7 @@ void DynamicSprite_Flip(ScriptDynamicSprite *sds, int direction) {
         BitmapHelper::CreateTransparentBitmap(sprite->GetWidth(), sprite->GetHeight(), sprite->GetColorDepth()));
 
     // AGS script FlipDirection corresponds to internal GraphicFlip
-    new_pic->FlipBlt(sprite, 0, 0, static_cast<GraphicFlip>(direction));
+    new_pic->FlipBlt(sprite, 0, 0, flip);
 
     add_dynamic_sprite(sds->slot, std::move(new_pic));
     game_sprite_updated(sds->slot);

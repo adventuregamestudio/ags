@@ -2713,7 +2713,7 @@ static void construct_overlays()
             Bitmap *use_bmp = nullptr;
             if (is_software_mode)
             {
-                use_bmp = transform_sprite(over.GetImage(), overtx.Bmp, overtx.TempBmp, Size(over.scaleWidth, over.scaleHeight), over.rotation);
+                use_bmp = transform_sprite(over.GetImage(), overtx.Bmp, overtx.TempBmp, Size(over.scaleWidth, over.scaleHeight), over.rotation, over.GetFlip());
                 if (crop_walkbehinds && over.IsRoomLayer())
                 {
                     auto &use_cache = overtx.Bmp;
@@ -2741,6 +2741,7 @@ static void construct_overlays()
         if (!overtx.Ddb) continue;
         overtx.Ddb->SetOrigin(0.f, 0.f);
         overtx.Ddb->SetStretch(over.scaleWidth, over.scaleHeight);
+        overtx.Ddb->SetFlip(over.GetFlip());
         overtx.Ddb->SetRotation(over.rotation);
         overtx.Ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(over.transparency));
         overtx.Ddb->SetBlendMode(over.blendMode);

@@ -255,7 +255,7 @@ ccScript *ccCompileText2(std::string const &script, std::string const &scriptNam
         compiled_script->sctoc = ccCompileDataTOC(symt, seclist, compiled_script->rtti.get());
     }
 
-    ccCurScriptName = nullptr;
+    ccCurScriptName = {};
     cc_clear_error();
     compiled_script->FreeExtra();
     return compiled_script;

@@ -5767,11 +5767,11 @@ void AGS::Parser::ParseExport_Function(Symbol func)
             _sym.GetName(func).c_str());
 
     int retval = _scrip.AddExport(
-        _sym.GetName(func).c_str(),
+        _sym.GetName(func),
         _sym[func].FunctionD->Offset,
         _sym.FuncParamsCount(func) + 100u * _sym[func].FunctionD->IsVariadic);
     if (retval < 0)
-        InternalError("Could not export function");
+        InternalError("Could not export function '%s', exports table overflow?", _sym.GetName(func).c_str());
 }
 
 void AGS::Parser::ParseExport_Variable(Symbol var)
@@ -5790,10 +5790,10 @@ void AGS::Parser::ParseExport_Variable(Symbol var)
     // AFAICS, this _is_ exportable.
     
     int retval = _scrip.AddExport(
-        _sym.GetName(var).c_str(),
+        _sym.GetName(var),
         _sym[var].VariableD->Offset);
     if (retval < 0)
-        InternalError("Could not export variable");
+        InternalError("Could not export variable '%s', exports table overflow?", _sym.GetName(var).c_str());
 }
 
 void AGS::Parser::ParseExport()
@@ -7039,7 +7039,7 @@ void AGS::Parser::Parse_ExportAllFunctions()
             _scrip.Functions[func_idx].Name,
             _scrip.Functions[func_idx].CodeOffs,
             _scrip.Functions[func_idx].ParamsCount))
-            InternalError("Function export failed. Out of memory?");
+            InternalError("Could not export function '%s', exports table overflow?", _scrip.Functions[func_idx].Name);
     }
 }
 

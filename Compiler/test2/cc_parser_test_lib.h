@@ -19,12 +19,7 @@
 #include "script2/cc_symboltable.h"
 #include "script2/cs_parser_common.h"
 
-extern void clear_error(void);
-
-extern const char *last_seen_cc_error(void);
-
 extern char kAgsHeaderString[];
-
 extern char kAgsHeaderBool[];
 
 // Only use this function for googletests. Scan and tokenize the input.

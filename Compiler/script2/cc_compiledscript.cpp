@@ -145,7 +145,6 @@ int AGS::ccCompiledScript::AddExport(std::string const &name, CodeLoc const loca
 
     if (location >= 0x00ffffff)
     {
-        cc_error("export offset too high; script data size too large?");
         return -1;
     }
 

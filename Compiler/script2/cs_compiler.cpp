@@ -215,31 +215,6 @@ ccScript *ccCompileText2(std::string const &script, std::string const &scriptNam
     cc_compile(script, options, *compiled_script, symt, seclist, mh);
     if (mh.HasError())
     {
-        auto const &err = mh.GetError();
-
-        constexpr size_t buffer_size = 256;
-        static char message_buffer[buffer_size];
-        message_buffer[0] = '!';
-        ags_strncpy_s(
-            message_buffer + 1,
-            buffer_size - 1,
-            err.Message.c_str(),
-            err.Message.length() + 1);
-
-        static char section_buffer[buffer_size];
-        ags_strncpy_s(
-            section_buffer,
-            buffer_size,
-            err.Section.c_str(),
-            err.Section.length() + 1);
-
-        ccCurScriptName = section_buffer;
-        currentline = err.Lineno;
-        if (mh.kSV_InternalError == err.Severity)
-            cc_error(message_buffer + 1); // Don't have leading '!'
-        else
-            cc_error(message_buffer); // Have leading '!'
-    
         delete compiled_script; // Note: delete calls the destructor
         return NULL;
     }
@@ -255,8 +230,6 @@ ccScript *ccCompileText2(std::string const &script, std::string const &scriptNam
         compiled_script->sctoc = ccCompileDataTOC(symt, seclist, compiled_script->rtti.get());
     }
 
-    ccCurScriptName = {};
-    cc_clear_error();
     compiled_script->FreeExtra();
     return compiled_script;
 }

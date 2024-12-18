@@ -18,16 +18,18 @@
 #include "cc_parser_test_lib.h"
 
 typedef AGS::Common::String AGSString;
-std::string last_cc_error_buf;
 
+// NOTE: following dummy implementations are required purely because
+// ccScript class has calls to cc_error when reading/writing script.
+// These should be removed when we remove static error object
+// from the old compiler code.
 void clear_error()
 {
-    last_cc_error_buf.clear();
 }
 
 char const *last_seen_cc_error()
 {
-    return last_cc_error_buf.c_str();
+    return "";
 }
 
 // Reimplementation of project-dependent functions from Common
@@ -35,7 +37,6 @@ char const *last_seen_cc_error()
 // It is being used in test and compared to hard-coded strings.
 AGSString cc_format_error(const AGSString &message)
 {
-    last_cc_error_buf = message.GetCStr();
     return message;
 }
 

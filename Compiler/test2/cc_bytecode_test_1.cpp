@@ -43,7 +43,6 @@ protected:
         // Initializations, will be done at the start of each test
         // Note: Don't use 'ccSetOption()', 'ccResetOptions()' etc.
         // googletests are often called in parallel, and these functions clobber each other
-        clear_error();
     }
 };
 

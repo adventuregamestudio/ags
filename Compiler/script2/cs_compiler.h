@@ -21,8 +21,8 @@
 
 // Get a list of compiler extensions.
 extern void ccGetExtensions2(std::vector<std::string> &exts);
-// compile the script supplied, returns nullptr on failure
-// cc_error() gets called.
+// Compile the script supplied, returns nullptr on failure.
+// All compiler's errors and warnings are returned as a MessageHandler collection.
 extern ccScript *ccCompileText2(std::string const &script, std::string const &scriptName, uint64_t options, MessageHandler &mh);
 
 #endif // __CS_COMPILER2_H

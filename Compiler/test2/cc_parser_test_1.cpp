@@ -38,7 +38,6 @@ protected:
     {
         // Note: Don't use 'ccSetOption()', 'ccResetOptions()' etc.
         // googletests are often called in parallel, and these clobber each other
-        clear_error();
     }
 };
 

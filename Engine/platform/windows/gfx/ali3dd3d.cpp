@@ -1182,12 +1182,15 @@ void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw
   {
     width = txdata->_tiles[ti].width * xProportion;
     height = txdata->_tiles[ti].height * yProportion;
-    float xOffs;
-    float yOffs = txdata->_tiles[ti].y * yProportion;
-    if (bmpToDraw->_flipped)
+    float xOffs, yOffs;
+    if ((bmpToDraw->_flip & kFlip_Horizontal) != 0)
       xOffs = (bmpToDraw->_width - (txdata->_tiles[ti].x + txdata->_tiles[ti].width)) * xProportion;
     else
       xOffs = txdata->_tiles[ti].x * xProportion;
+    if ((bmpToDraw->_flip & kFlip_Vertical) != 0)
+      yOffs = (bmpToDraw->_height - (txdata->_tiles[ti].y + txdata->_tiles[ti].height)) * yProportion;
+    else
+      yOffs = txdata->_tiles[ti].y * yProportion;
     float thisX = draw_x + xOffs;
     float thisY = draw_y + yOffs;
     thisX = (-(rend_sz.Width / 2.0f)) + thisX;
@@ -1196,7 +1199,7 @@ void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw
     //Setup translation and scaling matrices
     float widthToScale = width;
     float heightToScale = height;
-    if (bmpToDraw->_flipped)
+    if ((bmpToDraw->_flip & kFlip_Horizontal) != 0)
     {
       // The usual transform changes 0..1 into 0..width
       // So first negate it (which changes 0..w into -w..0)
@@ -1204,9 +1207,14 @@ void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw
       // and now shift it over to make it 0..w again
       thisX += width;
     }
+    if ((bmpToDraw->_flip & kFlip_Vertical) != 0)
+    {
+      heightToScale = -heightToScale;
+      thisY -= height; // inverse axis
+    }
     // Apply sprite origin
     thisX -= abs(widthToScale) * bmpToDraw->_originX;
-    thisY += heightToScale * bmpToDraw->_originY; // inverse axis
+    thisY += abs(heightToScale) * bmpToDraw->_originY; // inverse axis
     // Setup rotation and pivot
     float rotZ = bmpToDraw->_rotation;
     float pivotX = -(widthToScale * 0.5), pivotY = (heightToScale * 0.5);

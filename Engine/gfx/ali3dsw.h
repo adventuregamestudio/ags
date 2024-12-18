@@ -47,22 +47,6 @@ class ALSoftwareBitmap : public BaseDDB
 public:
     uint32_t GetRefID() const override { return UINT32_MAX /* not supported */; }
 
-    int  GetAlpha() const override { return _alpha; }
-    void SetAlpha(int alpha) override { _alpha = alpha; }
-    void SetFlippedLeftRight(bool isFlipped) override { _flipped = isFlipped; }
-    void SetStretch(int width, int height, bool /*useResampler*/) override
-    {
-        _stretchToWidth = width;
-        _stretchToHeight = height;
-    }
-    int GetWidthToRender() { return _stretchToWidth; }
-    int GetHeightToRender() { return _stretchToHeight; }
-    // Rotation is set in degrees
-    void SetRotation(float rotation) override { _rotation = rotation; }
-    void SetLightLevel(int /*lightLevel*/) override  { }
-    void SetTint(int /*red*/, int /*green*/, int /*blue*/, int /*tintSaturation*/) override { }
-    void SetBlendMode(Common::BlendMode blendMode) override { _blendMode = blendMode; }
-
     // Tells if this DDB has an actual render data assigned to it.
     bool IsValid() override { return _bmp != nullptr; }
     // Attaches new texture data, sets basic render rules
@@ -70,12 +54,13 @@ public:
     // Detach any internal texture data from this DDB, make this an empty object
     void DetachData() override { _bmp = nullptr; }
 
+    // Rotation is set in degrees clockwise
+    void SetRotation(float rotation) override { _rotation = rotation; }
+    // Software renderer expects DDBs to have tint already applied
+    void SetLightLevel(int /*lightLevel*/) override  { }
+    void SetTint(int /*red*/, int /*green*/, int /*blue*/, int /*tintSaturation*/) override { }    
+
     Bitmap *_bmp = nullptr;
-    bool _flipped = false;
-    int _stretchToWidth = 0, _stretchToHeight = 0;
-    float _rotation = 0.f;
-    int _alpha = 255;
-    Common::BlendMode _blendMode = Common::kBlend_Normal;
 
     ALSoftwareBitmap(int width, int height, int color_depth, bool opaque)
     {

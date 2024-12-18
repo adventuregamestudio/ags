@@ -195,15 +195,15 @@ struct ObjectCache
     short tintr = 0, tintg = 0, tintb = 0, tintamnt = 0, tintlight = 0;
     short lightlev = 0, zoom = 0;
     float rotation = 0.f;
-    bool  mirrored = 0;
+    GraphicFlip flip = kFlip_None;
     int   x = 0, y = 0;
 
     ObjectCache() = default;
     ObjectCache(int pic_, int tintr_, int tintg_, int tintb_, int tint_amnt_, int tint_light_,
-                int light_, int zoom_, float rotation_, bool mirror_, int posx_, int posy_)
+                int light_, int zoom_, float rotation_, GraphicFlip flip_, int posx_, int posy_)
         : sppic(pic_), tintr(tintr_), tintg(tintg_), tintb(tintb_)
         , tintamnt(tint_amnt_), tintlight(tint_light_), lightlev(light_)
-        , zoom(zoom_), rotation(rotation_), mirrored(mirror_), x(posx_), y(posy_) { }
+        , zoom(zoom_), rotation(rotation_), flip(flip_), x(posx_), y(posy_) { }
 };
 
 //
@@ -1368,23 +1368,24 @@ void draw_gui_sprite(Bitmap *ds, int x, int y, Bitmap *sprite, BlendMode blend_m
     }
 }
 
-void draw_gui_sprite_flipped(Bitmap *ds, int pic, int x, int y, BlendMode blend_mode, bool is_flipped)
+void draw_gui_sprite_flipped(Bitmap *ds, int pic, int x, int y, BlendMode blend_mode, GraphicFlip flip)
 {
     draw_gui_sprite_flipped(ds, x, y, spriteset[pic],
-        blend_mode, 0xFF, is_flipped);
+        blend_mode, 0xFF, flip);
 }
 
 void draw_gui_sprite_flipped(Bitmap *ds, int x, int y, Bitmap *sprite,
-    BlendMode blend_mode, int alpha, bool is_flipped)
+    BlendMode blend_mode, int alpha, GraphicFlip flip)
 {
     if (alpha <= 0)
         return;
 
     std::unique_ptr<Bitmap> tempspr;
-    if (is_flipped) {
+    if (flip != kFlip_None)
+    {
         tempspr.reset(new Bitmap(sprite->GetWidth(), sprite->GetHeight(), sprite->GetColorDepth()));
         tempspr->ClearTransparent();
-        tempspr->FlipBlt(sprite, 0, 0, Common::kFlip_Horizontal);
+        tempspr->FlipBlt(sprite, 0, 0, flip);
         sprite = tempspr.get();
     }
 
@@ -1665,9 +1666,9 @@ static Bitmap *transform_sprite(Bitmap *src, std::unique_ptr<Bitmap> &dst,
     }
 
     recycle_bitmap(dst, src->GetColorDepth(), dst_sz.Width, dst_sz.Height, true);
-    // If scaled: first scale then optionally mirror
     if (src->GetSize() != dst_sz)
     {
+        // If scaled: first scale then optionally flip
         // 8-bit support: ensure that anti-aliasing routines have a palette
         // to use for mapping while faded out.
         // FIXME: investigate if this may be moved out and not repeated, or at least passed as a parameter!
@@ -1764,11 +1765,11 @@ static bool construct_object_gfx(const ViewFrame *vf, int pic,
     }
 
     // check whether the image should be flipped
-    bool is_mirrored = false;
+    GraphicFlip use_flip = kFlip_None;
     int specialpic = pic;
-    if (vf && (vf->pic == pic) && ((vf->flags & VFLG_FLIPSPRITE) != 0))
+    if (vf && (vf->pic == pic) && GfxDef::FlagsHaveFlip(vf->flags))
     {
-        is_mirrored = true;
+        use_flip = GfxDef::GetFlipFromFlags(vf->flags);
         specialpic = -pic;
     }
 
@@ -1789,7 +1790,7 @@ static bool construct_object_gfx(const ViewFrame *vf, int pic,
         objsav.lightlev = light_level;
         objsav.zoom = objsrc.zoom;
         objsav.rotation = objsrc.rotation;
-        objsav.mirrored = is_mirrored;
+        objsav.flip = use_flip;
         return is_texture_intact;
     }
 
@@ -1815,7 +1816,7 @@ static bool construct_object_gfx(const ViewFrame *vf, int pic,
         (objsav.lightlev == light_level) &&
         (objsav.zoom == objsrc.zoom) &&
         (objsav.rotation == objsrc.rotation) &&
-        (objsav.mirrored == is_mirrored))
+        (objsav.flip == use_flip))
     {
         // If the image is the same, we can use it cached
         if ((drawstate.WalkBehindMethod != DrawOverCharSprite) &&
@@ -1844,7 +1845,7 @@ static bool construct_object_gfx(const ViewFrame *vf, int pic,
     const int src_sprwidth = sprite->GetWidth();
     const int src_sprheight = sprite->GetHeight();
     // draw the base sprite, scaled and flipped as appropriate
-    bool actsps_used = transform_sprite(actsp, pic, scale_size, objsrc.rotation, is_mirrored ? kFlip_Horizontal : kFlip_None);
+    bool actsps_used = transform_sprite(actsp, pic, scale_size, objsrc.rotation, use_flip);
     if (!actsps_used)
     {
         // ensure actsps exists // CHECKME: why do we need this in hardware accel mode too?
@@ -1882,7 +1883,7 @@ static bool construct_object_gfx(const ViewFrame *vf, int pic,
     objsav.lightlev = light_level;
     objsav.zoom = objsrc.zoom;
     objsav.rotation = objsrc.rotation;
-    objsav.mirrored = is_mirrored;
+    objsav.flip = use_flip;
     objsav.x = objsrc.x;
     objsav.y = objsrc.y;
     return false; // image was modified
@@ -1935,7 +1936,7 @@ void prepare_and_add_object_gfx(
     {
         actsp.Ddb->SetStretch(scale_size.Width, scale_size.Height);
         actsp.Ddb->SetRotation(objsav.rotation);
-        actsp.Ddb->SetFlippedLeftRight(objsav.mirrored);
+        actsp.Ddb->SetFlip(objsav.flip);
         apply_tint_or_light_ddb(actsp, objsav.lightlev, objsav.tintamnt, objsav.tintr, objsav.tintg, objsav.tintb, objsav.tintlight);
     }
 
@@ -1954,7 +1955,7 @@ bool construct_object_gfx(int objid, bool force_software)
 
     ObjectCache objsrc(obj.num, obj.tint_r, obj.tint_g, obj.tint_b,
         obj.tint_level, obj.tint_light, 0 /* skip */, obj.zoom, obj.rotation,
-        false /* skip */, obj.x, obj.y);
+        kFlip_None /* skip */, obj.x, obj.y);
 
     return construct_object_gfx(
         (obj.view != UINT16_MAX) ? &views[obj.view].loops[obj.loop].frames[obj.frame] : nullptr,
@@ -2064,7 +2065,7 @@ bool construct_char_gfx(int charid, bool force_software)
 
     ObjectCache chsrc(pic, chex.tint_r, chex.tint_g, chex.tint_b,
         chex.tint_level, chex.tint_light, 0 /* skip */, chex.zoom, chex.rotation,
-        false /* skip */, chin.x, chin.y);
+        kFlip_None /* skip */, chin.x, chin.y);
 
     return construct_object_gfx(
         vf,

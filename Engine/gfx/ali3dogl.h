@@ -81,28 +81,6 @@ class OGLBitmap : public BaseDDB
 {
 public:
     uint32_t GetRefID() const override { return _data->ID; }
-
-    int  GetAlpha() const override { return _alpha; }
-    void SetAlpha(int alpha) override { _alpha = alpha; }
-    void SetFlippedLeftRight(bool isFlipped) override { _flipped = isFlipped; }
-    void SetStretch(int width, int height, bool useResampler = true) override
-    {
-        _stretchToWidth = width;
-        _stretchToHeight = height;
-        _useResampler = useResampler;
-    }
-    // Rotation is set in degrees, clockwise
-    void SetRotation(float degrees) override { _rotation = -Common::Math::DegreesToRadians(degrees); }
-    void SetLightLevel(int lightLevel) override { _lightLevel = lightLevel; }
-    void SetTint(int red, int green, int blue, int tintSaturation) override 
-    {
-        _red = red;
-        _green = green;
-        _blue = blue;
-        _tintSaturation = tintSaturation;
-    }
-    void SetBlendMode(Common::BlendMode blendMode) override { _blendMode = blendMode; }
-
     // Tells if this DDB has an actual render data assigned to it.
     bool IsValid() override { return _data != nullptr; }
     // Attaches new texture data, sets basic render rules
@@ -119,44 +97,34 @@ public:
         _data = nullptr;
     }
 
+    // Rotation is set in degrees clockwise, stored converted to radians
+    void SetRotation(float degrees) override { _rotation = -Common::Math::DegreesToRadians(degrees); }
+    void SetLightLevel(int lightLevel) override { _lightLevel = lightLevel; }
+    void SetTint(int red, int green, int blue, int tintSaturation) override 
+    {
+        _red = red;
+        _green = green;
+        _blue = blue;
+        _tintSaturation = tintSaturation;
+    }
+
     // OpenGL texture data
     std::shared_ptr<OGLTexture> _data;
     // Optional frame buffer object (for rendering onto a texture)
     unsigned int _fbo {};
+    // Render parameters
     TextureHint _renderHint = kTxHint_Normal;
-
-    // Drawing parameters
-    bool _flipped;
-    int _stretchToWidth, _stretchToHeight;
-    float _rotation;
-    bool _useResampler;
-    int _red, _green, _blue;
-    int _tintSaturation;
-    int _lightLevel;
-    int _alpha;
-    Common::BlendMode _blendMode;
+    bool _useResampler = false;
 
     OGLBitmap(int width, int height, int colDepth, bool opaque)
     {
         _width = width;
         _height = height;
         _colDepth = colDepth;
-        _flipped = false;
         _stretchToWidth = width;
         _stretchToHeight = height;
-        _originX = _originY = 0.f;
-        _useResampler = false;
-        _rotation = 0;
-        _red = _green = _blue = 0;
-        _tintSaturation = 0;
-        _lightLevel = 0;
-        _alpha = 255;
         _opaque = opaque;
-        _blendMode = Common::kBlend_Normal;
     }
-
-    int GetWidthToRender() const { return _stretchToWidth; }
-    int GetHeightToRender() const { return _stretchToHeight; }
 
     ~OGLBitmap() override;
 };

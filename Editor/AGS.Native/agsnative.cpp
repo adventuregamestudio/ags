@@ -566,12 +566,12 @@ void draw_gui_sprite(Common::Bitmap *g, int atxp, int atyp,
     draw_gui_sprite_impl(g, -1, blptr, atxp, atyp);
 }
 
-void draw_gui_sprite_flipped(Common::Bitmap *ds, int pic, int x, int y, Common::BlendMode blend_mode, bool is_flipped) 
+void draw_gui_sprite_flipped(Common::Bitmap *ds, int pic, int x, int y, Common::BlendMode blend_mode, Common::GraphicFlip flip)
 {
     draw_gui_sprite_impl(ds, pic, get_sprite(pic), x, y);
 }
 void draw_gui_sprite_flipped(Common::Bitmap *ds, int x, int y,
-    Common::Bitmap *image, Common::BlendMode blend_mode, int alpha, bool is_flipped)
+    Common::Bitmap *image, Common::BlendMode blend_mode, int alpha, Common::GraphicFlip flip)
 {
     draw_gui_sprite_impl(ds, -1, image, x, y);
 }
@@ -765,12 +765,12 @@ static void doDrawViewLoop(HDC hdc, const std::vector<::ViewFrame> &frames,
             bmpbuf->Blit (toblt, 0, 0, 0, 0, toblt->GetWidth(), toblt->GetHeight());
             toblt = bmpbuf.get();
         }
-        if (frames[i].flags & VFLG_FLIPSPRITE)
+        if (Common::GfxDef::FlagsHaveFlip(frames[i].flags))
         {
             // Flipped bitmap? mirror the sprite
             AGSBitmap *flipped = Common::BitmapHelper::CreateBitmap (toblt->GetWidth(), toblt->GetHeight(), todraw->GetColorDepth ());
             flipped->Clear (flipped->GetMaskColor ());
-            flipped->FlipBlt(toblt, 0, 0, Common::kFlip_Horizontal);
+            flipped->FlipBlt(toblt, 0, 0, Common::GfxDef::GetFlipFromFlags(frames[i].flags));
             bmpbuf.reset(flipped);
             toblt = flipped;
         }
@@ -1658,7 +1658,7 @@ void drawViewLoop (HDC hdc, ViewLoop^ loopToDraw, int x, int y, int size, List<i
     for (int i = 0; i < loopToDraw->Frames->Count; ++i) 
     {
 	    frames[i].pic = loopToDraw->Frames[i]->Image;
-	    frames[i].flags = (loopToDraw->Frames[i]->Flipped) ? VFLG_FLIPSPRITE : 0;
+	    frames[i].flags = Common::GfxDef::GetFlagsFromFlip((Common::GraphicFlip)loopToDraw->Frames[i]->Flip);
     }
     std::vector<int> selected(cursel->Count);
     for (int i = 0; i < cursel->Count; ++i)
@@ -2487,7 +2487,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 			{
 				AGS::Types::ViewFrame^ newFrame = gcnew AGS::Types::ViewFrame();
 				newFrame->ID = k;
-				newFrame->Flipped = (newViews[i].loops[j].frames[k].flags & VFLG_FLIPSPRITE);
+				newFrame->Flip  = (SpriteFlipStyle)Common::GfxDef::GetFlipFromFlags(newViews[i].loops[j].frames[k].flags);
 				newFrame->Image = newViews[i].loops[j].frames[k].pic;
 				newFrame->Sound = newViews[i].loops[j].frames[k].sound;
 				newFrame->Delay = newViews[i].loops[j].frames[k].speed;

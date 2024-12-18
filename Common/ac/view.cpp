@@ -17,18 +17,6 @@
 
 using namespace AGS::Common;
 
-ViewFrame::ViewFrame()
-    : pic(0)
-    , xoffs(0)
-    , yoffs(0)
-    , speed(0)
-    , flags(0)
-    , sound(-1)
-{
-    reserved_for_future[0] = 0;
-    reserved_for_future[1] = 0;
-}
-
 void ViewFrame::ReadFromFile(Stream *in)
 {
     pic = in->ReadInt32();
@@ -36,7 +24,7 @@ void ViewFrame::ReadFromFile(Stream *in)
     yoffs = in->ReadInt16();
     speed = in->ReadInt16();
     in->ReadInt16(); // alignment padding to int32
-    flags = in->ReadInt32();
+    flags = (SpriteTransformFlags)in->ReadInt32();
     sound = in->ReadInt32();
     in->ReadInt32(); // reserved 1
     in->ReadInt32(); // reserved 1

@@ -31,9 +31,9 @@ GUIButton::GUIButton()
     _image = -1;
     _mouseOverImage = -1;
     _pushedImage = -1;
-    _imageFlags = 0;
+    _imageFlags = kSprTf_None;
     _currentImage = -1;
-    _curImageFlags = 0;
+    _curImageFlags = kSprTf_None;
     Font = 0;
     TextColor = 0;
     TextAlignment = kAlignTopCenter;
@@ -215,7 +215,7 @@ void GUIButton::SetPushedImage(int32_t image)
     UpdateCurrentImage();
 }
 
-void GUIButton::SetImages(int32_t normal, int32_t over, int32_t pushed, uint32_t flags)
+void GUIButton::SetImages(int32_t normal, int32_t over, int32_t pushed, SpriteTransformFlags flags)
 {
     _image = normal;
     _mouseOverImage = over;
@@ -229,7 +229,7 @@ int32_t GUIButton::CurrentImage() const
     return _currentImage;
 }
 
-void GUIButton::SetCurrentImage(int32_t new_image, uint32_t flags)
+void GUIButton::SetCurrentImage(int32_t new_image, SpriteTransformFlags flags)
 {
     if (_currentImage == new_image && _curImageFlags == flags)
         return;
@@ -312,7 +312,7 @@ void GUIButton::OnMouseUp()
 void GUIButton::UpdateCurrentImage()
 {
     int new_image = _currentImage;
-    uint32_t new_flags = 0;
+    SpriteTransformFlags new_flags = kSprTf_None;
 
     if (IsPushed && (_pushedImage > 0))
     {
@@ -399,11 +399,11 @@ void GUIButton::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
 
     if (svg_ver >= kGuiSvgVersion_400)
     {
-        _imageFlags = in->ReadInt32();
+        _imageFlags = (SpriteTransformFlags)in->ReadInt32();
     }
     else
     {
-        _imageFlags = 0;
+        _imageFlags = kSprTf_None;
     }
 
     // Update current state after reading
@@ -430,7 +430,6 @@ void GUIButton::WriteToSavegame(Stream *out) const
     out->WriteInt32(0);
     //since kGuiSvgVersion_3991
     out->WriteInt32(_imageFlags);
-
 }
 
 void GUIButton::DrawImageButton(Bitmap *ds, int x, int y, bool draw_disabled)
@@ -447,7 +446,7 @@ void GUIButton::DrawImageButton(Bitmap *ds, int x, int y, bool draw_disabled)
         ds->SetClip(RectWH(x, y, _width, _height));
 
     if (spriteset.DoesSpriteExist(_currentImage))
-        draw_gui_sprite_flipped(ds, _currentImage, x, y, kBlend_Normal, _curImageFlags & VFLG_FLIPSPRITE);
+        draw_gui_sprite_flipped(ds, _currentImage, x, y, kBlend_Normal, GfxDef::GetFlipFromFlags(_curImageFlags));
 
     // Draw active inventory item
     const int gui_inv_pic = GUI::Context.InventoryPic;

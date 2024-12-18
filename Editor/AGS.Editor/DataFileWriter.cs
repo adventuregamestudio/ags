@@ -871,7 +871,7 @@ namespace AGS.Editor
                             writer.Write((short)0); // unused y-offset
                             writer.Write((short)frame.Delay);
                             writer.Write((short)0); // struct alignment padding
-                            writer.Write(frame.Flipped ? NativeConstants.VFLG_FLIPSPRITE : 0);
+                            writer.Write((int)frame.Flip);
                             writer.Write(game.GetAudioArrayIDFromFixedIndex(frame.Sound));
                             writer.Write(0); // unused reservedForFuture[0]
                             writer.Write(0); // unused reservedForFuture[1]

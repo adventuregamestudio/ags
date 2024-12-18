@@ -215,10 +215,32 @@ public:
         return _width == other->GetWidth() && _height == other->GetHeight() && _colDepth == other->GetColorDepth();
     }
 
+    int  GetAlpha() const override { return _alpha; }
+    void SetAlpha(int alpha) override { _alpha = alpha; }
+    void SetFlip(Common::GraphicFlip flip) override { _flip = flip; }
+    void SetStretch(int width, int height, bool /*useResampler*/) override
+    {
+        _stretchToWidth = width;
+        _stretchToHeight = height;
+    }
+    int GetWidthToRender() const { return _stretchToWidth; }
+    int GetHeightToRender() const { return _stretchToHeight; }
+    // Rotation input is in degrees clockwise, but the implementation may store it in radians internally
+    void SetRotation(float rotation) override { _rotation = rotation; }
+    void SetBlendMode(Common::BlendMode blendMode) override { _blendMode = blendMode; }
+
     int _width = 0, _height = 0;
     float _originX = 0.f, _originY = 0.f;
     int _colDepth = 0;
     bool _opaque = false; // no mask color
+    Common::GraphicFlip _flip = Common::kFlip_None;
+    int _stretchToWidth = 0, _stretchToHeight = 0;
+    float _rotation = 0.f; // either in degrees or radians, depending on impl
+    int _alpha = 255;
+    Common::BlendMode _blendMode = Common::kBlend_Normal;
+    int _red = 0, _green = 0, _blue = 0;
+    int _tintSaturation = 0;
+    int _lightLevel = 0;
 
 protected:
     BaseDDB() = default;

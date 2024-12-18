@@ -15,20 +15,19 @@
 #define __AC_VIEW_H
 
 #include <vector>
+#include "gfx/gfx_def.h"
 
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
-#define VFLG_FLIPSPRITE 1
-
 struct ViewFrame {
-    int   pic;
-    short xoffs, yoffs;
-    short speed;
-    int   flags;  // VFLG_* flags
-    int   sound;  // play sound when this frame comes round
-    int   reserved_for_future[2]; // kept only for plugin api
-    ViewFrame();
+    int   pic = 0;
+    short xoffs = 0, yoffs = 0;
+    short speed = 0;
+    Common::SpriteTransformFlags flags = Common::kSprTf_None;
+    int   sound = -1;  // play sound when this frame comes round
+    int   reserved_for_future[2] = { 0 }; // kept only for plugin api // CLNUP: may remove in ags4?
+    ViewFrame() = default;
 
     void ReadFromFile(Common::Stream *in);
     void WriteToFile(Common::Stream *out);

@@ -2421,12 +2421,12 @@ int is_pos_on_character(int xx,int yy) {
         int usewid = game.SpriteInfos[sppic].Width;
         int usehit = game.SpriteInfos[sppic].Height;
         // TODO: support mirrored transformation in GraphicSpace
-        int mirrored = views[chin->view].loops[chin->loop].frames[chin->frame].flags & VFLG_FLIPSPRITE;
+        SpriteTransformFlags sprite_flags = views[chin->view].loops[chin->loop].frames[chin->frame].flags;
         Bitmap *theImage = GetCharacterSourceImage(cc);
         // Convert to local object coordinates
         Point local = charextra[cc].GetGraphicSpace().WorldToLocal(xx, yy);
         if (is_pos_in_sprite(local.X, local.Y, 0, 0, theImage,
-                usewid, usehit, mirrored) == FALSE)
+                usewid, usehit, sprite_flags) == FALSE)
             continue;
 
         int use_base = chin->get_baseline();

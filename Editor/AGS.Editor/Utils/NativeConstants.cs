@@ -45,7 +45,6 @@ namespace AGS.Editor
         public static readonly byte SPF_KEEPDEPTH = (byte)(int)Factory.NativeProxy.GetNativeConstant("SPF_KEEPDEPTH");
         public static readonly byte[] PASSWORD_ENC_STRING = (byte[])Factory.NativeProxy.GetNativeConstant("PASSWORD_ENC_STRING");
         public static readonly int LOOPFLAG_RUNNEXTLOOP = (int)Factory.NativeProxy.GetNativeConstant("LOOPFLAG_RUNNEXTLOOP");
-        public static readonly int VFLG_FLIPSPRITE = (int)Factory.NativeProxy.GetNativeConstant("VFLG_FLIPSPRITE");
         public static readonly uint GUIMAGIC = (uint)Factory.NativeProxy.GetNativeConstant("GUIMAGIC");
         public static readonly int SAVEBUFFERSIZE = (int)Factory.NativeProxy.GetNativeConstant("SAVEBUFFERSIZE");
         public static readonly int GUIMAIN_CLICKABLE = (int)Factory.NativeProxy.GetNativeConstant("GUIMAIN_CLICKABLE");

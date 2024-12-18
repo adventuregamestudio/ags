@@ -73,7 +73,7 @@ public:
   // E.g. (0.0, 0.0) means the texture will be aligned to sprite's position by its
   // left-top corner, (0.5, 0.5) means the texture will be centered around sprite's pos.
   virtual void SetOrigin(float originx, float originy) = 0;
-  virtual void SetFlippedLeftRight(bool isFlipped) = 0;
+  virtual void SetFlip(Common::GraphicFlip flip) = 0;
   virtual void SetStretch(int width, int height, bool useResampler = true) = 0;
   virtual void SetRotation(float rotation) = 0; // degrees
   virtual int  GetAlpha() const = 0;

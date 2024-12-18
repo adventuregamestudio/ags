@@ -82,30 +82,6 @@ class D3DBitmap : public BaseDDB
 {
 public:
     uint32_t GetRefID() const override { return _data->ID; }
-
-    int  GetAlpha() const override { return _alpha; }
-    void SetAlpha(int alpha) override { _alpha = alpha; }
-    void SetFlippedLeftRight(bool isFlipped) override { _flipped = isFlipped; }
-    void SetStretch(int width, int height, bool useResampler = true) override
-    {
-        _stretchToWidth = width;
-        _stretchToHeight = height;
-        _useResampler = useResampler;
-    }
-    int GetWidthToRender() { return _stretchToWidth; }
-    int GetHeightToRender() { return _stretchToHeight; }
-    // Rotation is set in degrees, clockwise
-    void SetRotation(float degrees) override { _rotation = -Common::Math::DegreesToRadians(degrees); }
-    void SetLightLevel(int lightLevel) override { _lightLevel = lightLevel; }
-    void SetTint(int red, int green, int blue, int tintSaturation) override
-    {
-        _red = red;
-        _green = green;
-        _blue = blue;
-        _tintSaturation = tintSaturation;
-    }
-    void SetBlendMode(Common::BlendMode blendMode) override  { _blendMode = blendMode; }
-
     // Tells if this DDB has an actual render data assigned to it.
     bool IsValid() override { return _data != nullptr; }
     // Attaches new texture data, sets basic render rules
@@ -122,45 +98,37 @@ public:
     {
         _data = nullptr;
     }
+    // Releases internal texture data only, keeping the base struct
+    void ReleaseTextureData();
+
+    // Rotation is set in degrees clockwise, stored converted to radians
+    void SetRotation(float degrees) override { _rotation = -Common::Math::DegreesToRadians(degrees); }
+    void SetLightLevel(int lightLevel) override { _lightLevel = lightLevel; }
+    void SetTint(int red, int green, int blue, int tintSaturation) override
+    {
+        _red = red;
+        _green = green;
+        _blue = blue;
+        _tintSaturation = tintSaturation;
+    }
 
     // Direct3D texture data
     std::shared_ptr<D3DTexture> _data;
     // Optional surface for rendering onto a texture
     D3DSurfacePtr _renderSurface;
+    // Render parameters
     TextureHint _renderHint = kTxHint_Normal;
-
-    // Drawing parameters
-    bool _flipped;
-    int _stretchToWidth, _stretchToHeight;
-    float _rotation;
-    bool _useResampler;
-    int _red, _green, _blue;
-    int _tintSaturation;
-    int _lightLevel;
-    int _alpha;
-    Common::BlendMode _blendMode;
+    bool _useResampler = false;
 
     D3DBitmap(int width, int height, int colDepth, bool opaque)
     {
         _width = width;
         _height = height;
         _colDepth = colDepth;
-        _flipped = false;
         _stretchToWidth = width;
         _stretchToHeight = height;
-        _originX = _originY = 0.f;
-        _useResampler = false;
-        _rotation = 0;
-        _red = _green = _blue = 0;
-        _tintSaturation = 0;
-        _lightLevel = 0;
-        _alpha = 255;
         _opaque = opaque;
-        _blendMode = Common::kBlend_Normal;
     }
-
-    // Releases internal texture data only, keeping the base struct
-    void ReleaseTextureData();
 
     ~D3DBitmap() override = default;
 };

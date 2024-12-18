@@ -147,6 +147,7 @@
     <Compile Include="Enums\BlendMode.cs" />
     <Compile Include="Enums\FontFileFormat.cs" />
     <Compile Include="Enums\InputMotionMode.cs" />
+    <Compile Include="Enums\SpriteFlipStyle.cs" />
     <Compile Include="Enums\SpriteImportColorDepth.cs" />
     <Compile Include="Enums\TouchToMouseEmulationType.cs" />
     <Compile Include="Enums\FontAutoOutlineStyle.cs" />

@@ -683,7 +683,6 @@ namespace AGS
                 return bytes;
             }
             if (name->Equals("LOOPFLAG_RUNNEXTLOOP")) return LOOPFLAG_RUNNEXTLOOP;
-            if (name->Equals("VFLG_FLIPSPRITE")) return VFLG_FLIPSPRITE;
             if (name->Equals("GUIMAGIC")) return GUIMAGIC;
             if (name->Equals("SAVEBUFFERSIZE")) return PLUGIN_SAVEBUFFERSIZE;
             if (name->Equals("GUIMAIN_CLICKABLE")) return (int)Common::kGUIMain_Clickable;

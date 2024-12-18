@@ -701,7 +701,7 @@ int isposinbox(int mmx,int mmy,int lf,int tp,int rt,int bt) {
 // arx,ary,spww,sphh are the sprite's bounding box
 // bitmap_original tells whether bitmap is an original sprite, or transformed version
 int is_pos_in_sprite(int xx, int yy, int arx, int ary, Bitmap *sprit,
-                     int spww, int sphh, int flipped) {
+                     int spww, int sphh, Common::SpriteTransformFlags sprite_flags) {
     if (spww==0) spww = sprit->GetWidth() - 1;
     if (sphh==0) sphh = sprit->GetHeight() - 1;
 
@@ -714,8 +714,10 @@ int is_pos_in_sprite(int xx, int yy, int arx, int ary, Bitmap *sprit,
         int xpos = xx - arx;
         int ypos = yy - ary;
 
-        if (flipped)
+        if (sprite_flags & kSprTf_FlipX)
             xpos = (sprit->GetWidth() - 1) - xpos;
+        if (sprite_flags & kSprTf_FlipY)
+            ypos = (sprit->GetHeight() - 1) - ypos;
 
         int gpcol = my_getpixel(sprit, xpos, ypos);
 

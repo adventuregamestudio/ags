@@ -808,7 +808,7 @@ namespace AGS.Editor
                         writer.Write((int)0);
                         writer.Write((short)frame.Delay);
                         WriteZeros(writer, 2);
-                        writer.Write((frame.Flipped) ? 1 : 0);
+                        writer.Write((frame.Flip != SpriteFlipStyle.None) ? 1 : 0);
                         writer.Write(frame.Sound);
                         WriteZeros(writer, 8);
                     }
@@ -917,7 +917,7 @@ namespace AGS.Editor
                     reader.ReadInt32();
                     frame.Delay = reader.ReadInt16();
                     reader.ReadBytes(2);
-                    frame.Flipped = (reader.ReadInt32() == 1);
+                    frame.Flip = (reader.ReadInt32() == 1) ? SpriteFlipStyle.Horizontal : SpriteFlipStyle.None;
                     frame.Sound = reader.ReadInt32();
                     reader.ReadBytes(8);
                     if ((i < numLoops) && (j < numFrames[i]))

@@ -260,11 +260,23 @@ namespace AGS.Editor
 
             Bitmap bmp = Utilities.GetBitmapForSpriteResizedKeepingAspectRatio(new Sprite(spriteNum, spriteSize.Width, spriteSize.Height), targetWidth, targetHeight, chkCentrePivot.Checked, false, Color.Magenta);
 
-            if (thisFrame.Flipped)
+            if (thisFrame.Flip != SpriteFlipStyle.None)
             {
-                Point urCorner = new Point(x, y);
-                Point ulCorner = new Point(x + bmp.Width, y);
-                Point llCorner = new Point(x + bmp.Width, y + bmp.Height);
+                int left = x, right = x + bmp.Width, top = y, bottom = y + bmp.Height;
+                if ((thisFrame.Flip & SpriteFlipStyle.Horizontal) != 0)
+                {
+                    left = x + bmp.Width;
+                    right = x;
+                }
+                if ((thisFrame.Flip & SpriteFlipStyle.Vertical) != 0)
+                {
+                    top = y + bmp.Height;
+                    bottom = y;
+                }
+
+                Point urCorner = new Point(right, top);
+                Point ulCorner = new Point(left, top);
+                Point llCorner = new Point(left, bottom);
                 Point[] destPara = { ulCorner, urCorner, llCorner };
                 e.Graphics.DrawImage(bmp, destPara);
             }

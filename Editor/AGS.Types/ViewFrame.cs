@@ -11,7 +11,7 @@ namespace AGS.Types
     {
         private int _id;
         private int _image = 0;
-        private bool _flipped = false;
+        private SpriteFlipStyle _flip = SpriteFlipStyle.None;
         private int _sound = AudioClip.FixedIndexNoValue;
         private int _speed = 0;
 
@@ -42,12 +42,19 @@ namespace AGS.Types
             set { _image = Math.Max(0, value); }
         }
 
-        [Description("Whether the sprite should be flipped left-to-right")]
+        [Description("Whether the sprite should be flipped")]
         [Category("Appearance")]
+        public SpriteFlipStyle Flip
+        {
+            get { return _flip; }
+            set { _flip = value; }
+        }
+
+        [Obsolete]
+        [Browsable(false)]
         public bool Flipped
         {
-            get { return _flipped; }
-            set { _flipped = value; }
+            get; set;
         }
 
         [Description("The delay after this before the next frame is displayed, relative to the overall animation speed")]
@@ -80,20 +87,7 @@ namespace AGS.Types
 
         public ViewFrame Clone()
         {
-            return Clone(false);
+            return (ViewFrame)MemberwiseClone();
         }
-
-        public ViewFrame Clone(bool flip)
-        {
-            return new ViewFrame 
-            {
-                ID = ID,
-                Image = Image,
-                Flipped = flip ? !Flipped : Flipped,
-                Delay = Delay,
-                Sound = Sound
-            };
-        }
-
     }
 }

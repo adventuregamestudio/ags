@@ -56,6 +56,9 @@ struct CharacterExtras
     short animwait = 0;
     int   anim_volume = 100; // default animation volume (relative factor)
     int   cur_anim_volume = 100; // current animation sound volume (relative factor)
+    int   following = -1; // whom do we follow (character id)
+    int   follow_dist = 0; // follow distance, in pixels
+    int   follow_eagerness = 0; // follow reaction
 
     // Following fields are deriatives of the above (calculated from these
     // and other factors), and hence are not serialized.
@@ -63,13 +66,15 @@ struct CharacterExtras
     // zoom factor of sprite offsets, fixed at 100 in backwards compatible mode
     int   zoom_offs = 100;
 
-    int GetEffectiveY(CharacterInfo *chi) const; // return Y - Z
-
+    // Get visual Y position, which is calculated as Y - Z (scaled)
+    int GetEffectiveY(CharacterInfo *chi) const; 
     // Calculate wanted frame sound volume based on multiple factors
     int GetFrameSoundVolume(CharacterInfo *chi) const;
     // Process the current animation frame for the character:
     // play linked sounds, and so forth.
     void CheckViewFrame(CharacterInfo *chi);
+    // Setups following another character (follow_who)
+    void SetFollowing(CharacterInfo *chi, int follow_who, int distance = 0, int eagerness = 0, bool sort_behind = false);
 
     // Read character extra data from saves.
     void ReadFromSavegame(Common::Stream *in, CharacterSvgVersion save_ver);

@@ -93,6 +93,7 @@ enum CharacterSvgVersion
     kCharSvgVersion_36025   = 2, // animation volume
     kCharSvgVersion_36109   = 3, // removed movelists, save externally
     kCharSvgVersion_36115   = 4, // no limit on character name's length
+    kCharSvgVersion_36205   = 3060205, // 32-bit "following" parameters
 };
 
 
@@ -121,8 +122,8 @@ struct CharacterInfo
     int     y           = 0;
     int     wait        = 0;
     int     flags       = 0;  // CHF_* flags
-    int16_t following   = -1;
-    int16_t followinfo  = 0;
+    int16_t legacy_following = -1;  // deprecated 16-bit values that store follow params
+    int16_t legacy_followinfo = 0;  // -- left for the script and plugin compatibility only
     int     idleview    = 0;  // the loop will be randomly picked
     int16_t idletime    = 0;
     int16_t idleleft    = 0; // num seconds idle before playing anim
@@ -186,32 +187,35 @@ struct CharacterInfo
             ((delay & 0xFF) << 8);
     }
 
+    // Gets legacy follow distance, limited to a 8-bit unsigned value
     inline int get_follow_distance() const
     {
-        return (followinfo == FOLLOW_ALWAYSONTOP) ? FOLLOW_ALWAYSONTOP : (followinfo >> 8);
+        return (legacy_followinfo == FOLLOW_ALWAYSONTOP) ? FOLLOW_ALWAYSONTOP : (legacy_followinfo >> 8);
     }
+    // Gets legacy follow eagerness, limited to a 8-bit unsigned value
     inline int get_follow_eagerness() const
     {
-        return (followinfo == FOLLOW_ALWAYSONTOP) ? 0 : (followinfo & 0xFF);
+        return (legacy_followinfo == FOLLOW_ALWAYSONTOP) ? 0 : (legacy_followinfo & 0xFF);
     }
     inline bool get_follow_sort_behind() const
     {
         return (flags & CHF_BEHINDSHEPHERD) != 0;
     }
 
-    // Sets "following" flags and followinfo values
+    // Sets "following" flags;
+    // sets legacy "followinfo" values: this is for plugin API and old script API compatibility
     void set_following(int16_t follow_whom, int dist = 0, int eagerness = 0, bool sort_behind = false)
     {
-        following = follow_whom;
+        legacy_following = follow_whom;
         if (dist == FOLLOW_ALWAYSONTOP)
         {
             flags = (flags & ~CHF_BEHINDSHEPHERD) | (CHF_BEHINDSHEPHERD * sort_behind);
-            followinfo = FOLLOW_ALWAYSONTOP;
+            legacy_followinfo = FOLLOW_ALWAYSONTOP;
         }
         else
         {
             flags = (flags & ~CHF_BEHINDSHEPHERD);
-            followinfo = (std::min<int>(UINT8_MAX, dist) << 8) | std::min<int>(UINT8_MAX, eagerness);
+            legacy_followinfo = (std::min<int>(UINT8_MAX, dist) << 8) | std::min<int>(UINT8_MAX, eagerness);
         }
     }
 

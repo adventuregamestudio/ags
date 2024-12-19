@@ -124,7 +124,7 @@ void UpdateCharacterMoveAndAnim(CharacterInfo *chi, CharacterExtras *chex, std::
 
 void UpdateFollowingExactlyCharacter(CharacterInfo *chi)
 {
-    const auto &following = game.chars[chi->following];
+    const auto &following = game.chars[charextra[chi->index_id].following];
     chi->x = following.x;
     chi->y = following.y;
     chi->z = following.z;
@@ -363,9 +363,10 @@ bool UpdateCharacterAnimating(CharacterInfo *chi, CharacterExtras *chex, int &do
 
 void UpdateCharacterFollower(CharacterInfo *chi, std::vector<int> &followingAsSheep, int &doing_nothing)
 {
-    const int following = chi->following;
-    const int distaway = chi->get_follow_distance();
-    const int eagerness = chi->get_follow_eagerness();
+    const CharacterExtras *chex = &charextra[chi->index_id];
+    const int following = chex->following;
+    const int distaway  = chex->follow_dist;
+    const int eagerness = chex->follow_eagerness;
 
     if ((following >= 0) && (distaway == FOLLOW_ALWAYSONTOP)) {
       // an always-on-top follow

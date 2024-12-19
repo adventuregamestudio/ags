@@ -516,26 +516,16 @@ void Character_FollowCharacter(CharacterInfo *chaa, CharacterInfo *tofollow, int
         debug_script_log("%s: Stop following other character", chaa->scrname);
     }
 
-    if ((chaa->following >= 0) &&
-        (chaa->followinfo == FOLLOW_ALWAYSONTOP))
+    CharacterExtras *chex = &charextra[chaa->index_id];
+    if ((chex->following >= 0) &&
+        (chex->follow_dist == FOLLOW_ALWAYSONTOP))
     {
             // if this character was following always-on-top, its baseline will
             // have been changed, so release it.
             chaa->baseline = -1;
     }
 
-    if (tofollow == nullptr)
-    {
-        chaa->set_following(-1, 0, 0, false);
-    }
-    else if (distaway == FOLLOW_ALWAYSONTOP)
-    {
-        chaa->set_following(tofollow->index_id, FOLLOW_ALWAYSONTOP, 0, (eagerness == 1));
-    }
-    else
-    {
-        chaa->set_following(tofollow->index_id, distaway, eagerness, false);
-    }
+    chex->SetFollowing(chaa, tofollow ? tofollow->index_id : -1, distaway, eagerness, (eagerness == 1));
 
     if (chaa->animating & CHANIM_REPEAT)
         debug_script_warn("Warning: FollowCharacter called but the sheep is currently animating looped. It may never start to follow.");
@@ -543,10 +533,10 @@ void Character_FollowCharacter(CharacterInfo *chaa, CharacterInfo *tofollow, int
 
 CharacterInfo* Character_GetFollowing(CharacterInfo* chaa)
 {
-    if (chaa->following < 0)
+    if (charextra[chaa->index_id].following < 0)
         return nullptr;
 
-    return &game.chars[chaa->following];
+    return &game.chars[charextra[chaa->index_id].following];
 }
 
 int Character_IsCollidingWithChar(CharacterInfo *char1, CharacterInfo *char2) {

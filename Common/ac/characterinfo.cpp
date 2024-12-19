@@ -31,8 +31,8 @@ void CharacterInfo::ReadBaseFields(Stream *in)
     y = in->ReadInt32();
     wait = in->ReadInt32();
     flags = in->ReadInt32();
-    following = in->ReadInt16();
-    followinfo = in->ReadInt16();
+    legacy_following = in->ReadInt16();
+    legacy_followinfo = in->ReadInt16();
     idleview = in->ReadInt32();
     idletime = in->ReadInt16();
     idleleft = in->ReadInt16();
@@ -78,8 +78,8 @@ void CharacterInfo::WriteBaseFields(Stream *out) const
     out->WriteInt32(y);
     out->WriteInt32(wait);
     out->WriteInt32(flags);
-    out->WriteInt16(following);
-    out->WriteInt16(followinfo);
+    out->WriteInt16(0); // legacy_following
+    out->WriteInt16(0); // legacy_followinfo
     out->WriteInt32(idleview);
     out->WriteInt16(idletime);
     out->WriteInt16(idleleft);

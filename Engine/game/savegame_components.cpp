@@ -674,8 +674,15 @@ HSaveError ReadCharacters(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pr
 
     for (uint32_t i = 0; i < characters_read; ++i)
     {
-        game.chars[i].ReadFromSavegame(in, game.chars2[i], static_cast<CharacterSvgVersion>(cmp_ver));
-        charextra[i].ReadFromSavegame(in, static_cast<CharacterSvgVersion>(cmp_ver));
+        auto &chi = game.chars[i];
+        auto &chex = charextra[i];
+        chi.ReadFromSavegame(in, game.chars2[i], static_cast<CharacterSvgVersion>(cmp_ver));
+        chex.ReadFromSavegame(in, static_cast<CharacterSvgVersion>(cmp_ver));
+        // re-assign legacy following params (for old saves)
+        if (cmp_ver < kCharSvgVersion_36205)
+        {
+            charextra[i].SetFollowing(&chi, chi.legacy_following, chi.get_follow_distance(), chi.get_follow_eagerness(), chi.get_follow_sort_behind());
+        }
         Properties::ReadValues(play.charProps[i], in);
         if (loaded_game_file_version <= kGameVersion_272)
             ReadTimesRun272(*game.intrChar[i], in);
@@ -1703,7 +1710,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Characters",
-        kCharSvgVersion_36115,
+        kCharSvgVersion_36205,
         kCharSvgVersion_350, // skip pre-alpha 3.5.0 ver
         kSaveCmp_Characters,
         WriteCharacters,

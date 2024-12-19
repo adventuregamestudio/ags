@@ -82,8 +82,8 @@ int16_t CCCharacter::ReadInt16(const void *address, intptr_t offset)
     switch (offset)
     {
     // +9 int32 = 36
-    case 36: return ci->following;
-    case 38: return ci->followinfo;
+    case 36: return ci->legacy_following;
+    case 38: return ci->legacy_followinfo;
     // 40 +1 int32 = 44
     case 44: return ci->idletime;
     case 46: return ci->idleleft;

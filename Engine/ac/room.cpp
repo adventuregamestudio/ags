@@ -88,6 +88,7 @@ extern int in_new_room, new_room_was;  // 1 in new room, 2 first time in new roo
 extern ScriptHotspot scrHotspot[MAX_ROOM_HOTSPOTS];
 extern int in_leaves_screen;
 extern CharacterInfo*playerchar;
+extern std::vector<CharacterExtras> charextra;
 extern int starting_room;
 extern unsigned int loopcounter;
 extern IDriverDependantBitmap* roomBackgroundBmp;
@@ -719,14 +720,14 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         // if a following character is still waiting to come into the
         // previous room, force it out so that the timer resets
         for (int ff = 0; ff < game.numcharacters; ff++) {
-            if ((game.chars[ff].following >= 0) && (game.chars[ff].room < 0)) {
-                if ((game.chars[ff].following == game.playercharacter) &&
+            if ((charextra[ff].following >= 0) && (game.chars[ff].room < 0)) {
+                if ((charextra[ff].following == game.playercharacter) &&
                     (forchar->prevroom == newnum))
                     // the player went back to the previous room, so make sure
                     // the following character is still there
                     game.chars[ff].room = newnum;
                 else
-                    game.chars[ff].room = game.chars[game.chars[ff].following].room;
+                    game.chars[ff].room = game.chars[charextra[ff].following].room;
             }
         }
 
@@ -947,11 +948,12 @@ void new_room(int newnum,CharacterInfo*forchar) {
     newnum = in_leaves_screen;
     in_leaves_screen = -1;
 
-    if ((playerchar->following >= 0) &&
-        (game.chars[playerchar->following].room != newnum)) {
+    CharacterExtras *player_ex = &charextra[playerchar->index_id];
+    if ((player_ex->following >= 0) &&
+        (game.chars[player_ex->following].room != newnum)) {
             // the player character is following another character,
             // who is not in the new room. therefore, abort the follow
-            playerchar->set_following(-1);
+            player_ex->SetFollowing(playerchar, -1);
     }
 
     // change rooms

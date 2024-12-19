@@ -530,7 +530,7 @@ bool run_service_key_controls(KeyInput &out_key)
                 game.chars[chd].scrname, game.chars[chd].view + 1, game.chars[chd].loop, game.chars[chd].frame,
                 game.chars[chd].x, game.chars[chd].y, game.chars[chd].z,
                 game.chars[chd].idleview, game.chars[chd].idletime, game.chars[chd].idleleft,
-                game.chars[chd].walking, game.chars[chd].animating, game.chars[chd].following,
+                game.chars[chd].walking, game.chars[chd].animating, charextra[chd].following,
                 game.chars[chd].flags, game.chars[chd].wait, charextra[chd].zoom);
         }
         DisplayMB(buffer.GetCStr());

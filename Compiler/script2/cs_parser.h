@@ -33,13 +33,13 @@ The result is:
 
 * Parsing
     All the high-level logic.
-    The parser augments the symbol table _sym as it goes along.
-    The result is in a parameter scrip that is a struct ccCompiledScript *
+    The parser augments the symbol table '_sym' as it goes along.
+    The result is in a parameter 'scrip' that is a 'struct ccCompiledScript *'
     and has the following key components (amongst many other components):
-        functions - all the functions defined (i.e. they have a body) in the current inputstring
-        imports - all the functions declared (i.e. without body) in the current inputstring
-        exports - all the functions that are made available to other entities
-        code, fixups - the Bytecode that is generated.
+        'functions' - all the functions defined (i.e. they have a body) in the current inputstring
+        'imports' - all the functions declared (i.e. without body) in the current inputstring
+        'exports' - all the functions that are made available to other entities
+        'code', 'fixups' - the Bytecode that is generated.
 
     (For an overview of the implementation details, see cs_parser.cpp)
 */
@@ -432,8 +432,8 @@ private:
     // The size of all local variables that have been allocated at a level higher than from_level
     size_t StacksizeOfLocals(size_t from_level);
 
-    // Does vartype v contain releasable pointers?
-    // Also determines whether vartype contains standard (non-dynamic) arrays.
+    // Does the vartype 'vartype' contain releasable pointers?
+    // Also determines whether 'vartype' contains standard (non-dynamic) arrays.
     bool ContainsReleasableDynpointers(Vartype vartype);
 
     // We're at the end of a block and releasing a standard array of dynpointers.
@@ -584,13 +584,13 @@ private:
     // Parsing must use up 'expression' completely; if there are trailing symbols, throw 'UserError'.
     void ParseExpression_New(SrcList &expression, EvaluationResult &eres);
 
-    // Apply '-' to the expression 'eres'
+    // Apply '-' (unary minus) to the expression 'eres'
     void ParseExpression_PrefixMinus(EvaluationResult &eres);
 
-    // Apply '+' to the expression 'eres'
+    // Apply '+' (unary plus) to the expression 'eres'
     void ParseExpression_PrefixPlus(EvaluationResult &eres);
 
-    // Apply boolean or bitwise negation to the expression 'eres'
+    // Apply boolean ('!') or bitwise ('~') negation to the expression 'eres'
     void ParseExpression_PrefixNegate(Symbol operation, EvaluationResult &eres);
 
     // Parse the term given in 'expression'.
@@ -619,7 +619,7 @@ private:
 
     // Parse the term given in 'expression'. Expression is a ternary 'a ? b : c'
     // Parsing must use up 'expression' completely; if there are trailing symbols, throw 'UserError'.
-    // If result_used == false then the calling function doesn't use the term result for calculating
+    // If 'result_used == false' then the calling function doesn't use the term result for calculating
     // This happens when a term is called for side effect only, e.g. in the statement 'i ? --foo : ++foo;'
     void ParseExpression_Ternary(size_t tern_idx, SrcList &expression, bool result_used, EvaluationResult &eres);
 
@@ -629,13 +629,13 @@ private:
 
     // Parse the term given in 'expression'. Expression begins with '('
     // Parsing must use up 'expression' completely; if there are trailing symbols, throw 'UserError'.
-    // If result_used == false then the calling function doesn't use the term result for calculating
+    // If "result_used == false" then the calling function doesn't use the term result for calculating
     // This happens when a term is called for side effect only, e.g. in the statement '(--foo);'
     void ParseExpression_InParens(SrcList &expression, EvaluationResult &eres, bool result_used);
 
     // Parse the term given in 'expression'. Expression does not contain operators
     // Parsing must use up 'expression' completely; if there are trailing symbols, throw 'UserError'.
-    // If result_used == false then the calling function doesn't use the term result for calculating
+    // If "result_used == false" then the calling function doesn't use the term result for calculating
     // This happens when a term is called for side effect only, e.g. in the statement '--foo;'
     void ParseExpression_NoOps(SrcList &expression, EvaluationResult &eres, bool result_used);
 
@@ -651,23 +651,27 @@ private:
 
     // Parse an expression that must evaluate to a constant at compile time.
     // Return the symbol that signifies the constant.
-    // 'src' may be longer than the expression. In this case, leave src pointing to last token in expression.
+    // 'src' may be longer than the expression. In this case,
+    // leave "src" pointing to last token in expression.
     // If 'msg' is specified, it is used for targeted error messages.
     // 'src' is parsed from the point where the cursor is.
     Symbol ParseConstantExpression(SrcList &src, std::string const &msg = "");
 
     // Parse an expression that must convert to an int.
-    // 'src' may be longer than the expression. In this case, leave src pointing to last token in expression.
+    // 'src' may be longer than the expression. In this case,
+    // leave src pointing to last token in expression.
     // 'src'  is parsed from the point where the cursor is.
     void ParseIntegerExpression(SrcList &src, EvaluationResult &eres, std::string const &msg = "");
     
     // Parse expression in delimiters, e.g., parentheses
-    // 'src' may be longer than the expression. In this case, leave src pointing to last token in expression.
+    // 'src' may be longer than the expression. In this case,
+    // leave src pointing to last token in expression.
     // 'src'  is parsed from the point where the cursor is.
     void ParseDelimitedExpression(SrcList &src, Symbol opener, EvaluationResult &eres);
 
     // Parse and evaluate an expression
-    // 'src' may be longer than the expression. In this case, leave src pointing to last token in expression.
+    // 'src' may be longer than the expression. In this case,
+    // leave src pointing to last token in expression.
     // 'src'  is parsed from the point where the cursor is.
     // After 'ParseExpression()' returns, the cursor is at the end of the expression.
     void ParseExpression(SrcList &src, EvaluationResult &eres);
@@ -707,8 +711,8 @@ private:
     void AccessData_FirstClause(VariableAccess access_type, SrcList &expression, EvaluationResult &eres, bool &implied_this_dot);
 
     // We're processing a STRUCT.STRUCT. ... clause.
-    // We've already processed some structs, and the type of the last one is vartype.
-    // Now we process a component of vartype.
+    // We've already processed some structs, and the type of the last one is "vartype".
+    // Now we process a component of "vartype".
     void AccessData_SubsequentClause(VariableAccess access_type, bool access_via_this, SrcList &expression, EvaluationResult &eres);
 
     // Find the component of a struct in the struct or in the ancestors of the struct
@@ -726,13 +730,13 @@ private:
     bool AccessData_IsClauseLast(SrcList &expression);
 
     // Access a variable, constant, literal, func call, struct.component.component cascade, etc.
-    // Result is in AX or m[MAR], dependent on vloc. Variable type is in vartype.
-    // At end of function, symlist and symlist_len will point to the part of the symbol string
+    // Result is in AX or m[MAR], dependent on 'eres.Location'. Variable type is in 'eres.Vartype'.
+    // At end of function, the cursor of 'expression' will point to the part of the symbol string
     // that has not been processed yet
     void AccessData(VariableAccess access_type, SrcList &expression, EvaluationResult &eres);
 
-    // Insert Bytecode for:
-    // Copy at most OLDSTRING_SIZE-1 bytes from m[MAR...] to m[AX...]
+    // Emit Bytecode for:
+    // Copy at most 'OLDSTRING_SIZE-1' bytes from 'm[MAR...]' to 'm[AX...]'
     // Stop when encountering a 0
     void AccessData_StrCpy();
 
@@ -750,7 +754,7 @@ private:
     // We are parsing the left hand side of a '+=' or similar statement.
     void ParseAssignment_ReadLHSForModification(SrcList &lhs, EvaluationResult &eres);
 
-    // "var = expression"; 'lhs' is the variable
+    // 'var = expression'; 'lhs' is the variable
     void ParseAssignment_Assign(SrcList &lhs);
 
     // We compile something like 'var += expression'
@@ -769,11 +773,13 @@ private:
     // Move variable information into the symbol table
     void ParseVardecl_Var2SymTable(Symbol var_name, Vartype vartype);
 
-    // we have accepted something like "int a" and we're expecting "["
+    // We have accepted something like "int a" and we're expecting "["
     void ParseArrayDecl(Symbol vname, Vartype &vartype);
     void ParseVardecl_CheckIllegalCombis(Vartype vartype, ScopeType scope_type);
 
-    // there was a forward declaration -- check that the real declaration matches it
+    // We are at a declaration of an entity that has been declared before
+    // (e.g., forward-declared)
+    // Check that this declaration doesn't contradict the previous declarations. 
     void ParseVardecl_CheckThatKnownInfoMatches(SymbolTableEntry *this_entry, SymbolTableEntry *known_info, bool body_follows);
 
     void ParseVardecl_Global(Symbol var_name, Vartype vartype);
@@ -870,7 +876,8 @@ private:
     void ParseVarname0(bool accept_member_access, Symbol &structname, Symbol &varname);
 
     // Parse a variable name; may contain '::'
-    // If it does contain '::' then varname will contain the qualified name (a::b) and structname the vartype (a)
+    // If it does contain '::' then varname will contain the qualified name (e.g., 'a::b')
+    // and structname the vartype (e.g., 'a')
     inline void ParseVarname(Symbol &structname, Symbol &varname) { ParseVarname0(true, structname, varname); }
     // Parse a variable name; may not contain '::'
     inline Symbol ParseVarname() { Symbol dummy, varname; ParseVarname0(false, dummy, varname); return varname; }
@@ -889,11 +896,12 @@ private:
 
     void ParseVartype_MemberList(TypeQualifierSet tqs, Vartype vartype, ScopeType scope_type, bool no_loop_check, Symbol &struct_of_current_func, Symbol &name_of_current_func);
 
-    // We accepted a variable type such as 'int', so what follows is a variable, compile-time constant, or function declaration
+    // We accepted a variable type such as 'int',
+    // so what follows is a variable, compile-time constant, or function declaration
     void ParseVartypeClause(TypeQualifierSet tqs, Symbol &name_of_current_func, Symbol &struct_of_current_func);
 
     // After a command that might be the end of sequences such as 'if (...) while (...) command;'
-    //  Find out what surrounding compound statements have ended and handle these endings.
+    // Find out what surrounding compound statements have ended and handle these endings.
     void HandleEndOfCompoundStmts();
 
     // Handle the end of a statement sequence in braces
@@ -908,7 +916,7 @@ private:
     // Handle the end of an 'else' clause
     void HandleEndOfElse();
 
-    // The first clause of 'for (I; W; C);' when it is a declaration
+    // The first clause of 'for (I; W; C);' when 'I' is a declaration
     void ParseFor_InitClauseVardecl();
 
     // The first clause of 'for (I; W; C);'
@@ -929,7 +937,7 @@ private:
     // Handle the end of an 'if' body
     void HandleEndOfIf(bool &else_follows);
 
-    // Parse, e.g., "switch (bar)"
+    // Parse, e.g., 'switch (bar)'
     void ParseSwitch();
 
     // We're in a 'switch' body. Parse 'fallthrough;'
@@ -969,15 +977,17 @@ private:
     // Execute 'block' that will presumably emit Bytecode.
     // If that Bytecode clobbers any register in 'guarded_registers',
     // emit an enclosing 'PushReg(register)' / 'PopReg(register)' around that Bytecode
+    // NOTE: 'block' may be evaluated twice
     void RegisterGuard(RegisterList const &guarded_registers, std::function<void(void)> block);
     // Execute 'block' that will presumably emit Bytecode.
     // If that Bytecode clobbers the register 'guarded_register',
     // emit an enclosing 'PushReg(register)' / 'PopReg(register)' around that Bytecode
+    // NOTE: 'block' may be evaluated twice
     void RegisterGuard(size_t guarded_register, std::function<void(void)> block)
         { return RegisterGuard(RegisterList{ guarded_register }, block); }
 
-    // If a new section has begun at cursor position pos, tell _scrip to deal with that.
-    // Refresh ccCurScriptName
+    // If a new section has begun at cursor position 'pos', tell '_scrip' to deal with that.
+    // Refresh 'ccCurScriptName'
     void HandleSrcSectionChangeAt(size_t pos);
 
     // Emit an opcode without parameters
@@ -1000,9 +1010,9 @@ private:
     inline void PopReg(CodeCell reg)
         { _scrip.RefreshLineno(_src.GetLineno()); _scrip.PopReg(reg); }
 
-    // Make sure that the qualifiers that accumulated for this decl go together
+    // Check that the qualifiers that accumulated for this decl go together
     void Parse_CheckTQ(TypeQualifierSet tqs, bool in_func_body, bool in_struct_decl);
-    // Make sure that no qualifiers have accumulated for this decl
+    // Check that no qualifiers have accumulated
     void Parse_CheckTQSIsEmpty(TypeQualifierSet tqs);
 
     // Analyse the decls and collect info about locally defined functions
@@ -1032,13 +1042,13 @@ private:
     // Enter msg into message handler, throw exception
     void Error(bool is_internal, std::string const &message);
 
-    // Report an user error for the section and lineno that _src currently is at; will throw exception
+    // Report an user error for the section and lineno that '_src' currently is at; will throw exception
     void UserError(char const *descr, ...);
 
-    // Report an internal error for the section and lineno that _src currently is at; will throw exception
+    // Report an internal error for the section and lineno that '_src' currently is at; will throw exception
     void InternalError(char const *descr, ...);
 
-    // Record a warning for the current source position; will NOT throw exception
+    // Record a warning for the section and lineno that '_src' currently is at; will NOT throw exception
     void Warning(char const *descr, ...);
 
 public:
@@ -1051,14 +1061,14 @@ public:
 
 // Compile the input, return any messages in mh, cc_error() does not get called
 extern int cc_compile(
-    std::string const &source,  // preprocessed text to be compiled
+    std::string const &source,       // preprocessed text to be compiled
     AGS::FlagSet options,            // as defined in cc_options
     AGS::ccCompiledScript &scrip,    // store for the compiled text
     AGS::MessageHandler &mh);        // warnings and the error
 
 // Compile the input, additionally return gathered symbols and other source info
 extern int cc_compile(
-    std::string const &source,  // preprocessed text to be compiled
+    std::string const &source,       // preprocessed text to be compiled
     AGS::FlagSet options,            // as defined in cc_options 
     AGS::ccCompiledScript &scrip,    // store for the compiled text
     AGS::SymbolTable &symt,          // store for the parsed symbols

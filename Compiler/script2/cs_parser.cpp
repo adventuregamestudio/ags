@@ -18,17 +18,35 @@ SCOM is a script compiler for the 'C' language.
 BIRD'S EYE OVERVIEW - IMPLEMENTATION
 
 General:
-Functions have names of the form AaaAaa or AaaAaa_BbbBbb
-where the component parts are camelcased. This means that function AaaAaa_BbbBbb is a
-subfunction of function AaaAaa that is exclusively called by function AaaAaa.
+Functions have names of the form 'AaaAaa' or 'AaaAaa_BbbBbb'
+where the component parts are camelcased. This means that function 'AaaAaa_BbbBbb' is a
+subfunction of function 'AaaAaa' that is exclusively called by function 'AaaAaa'.
 
 The Parser does does NOT get the sequence of tokens in a pipe from the scanning step, i.e.,
 it does NOT read the symbols one-by-one. To the contrary, the logic reads back and forth in
 the token sequence.
 
-In case of an error, all parser functions call UserError() or InternalError().
-These functions throw an exception that is caught in Parser::Parse().
+In case of an error, all parser functions call 'UserError()' or 'InternalError()'.
+These functions throw an exception that is caught in 'Parser::Parse()'.
 If you break on this 'throw' command, the compiler is nicely stopped before the call stack has unwound.
+
+Section and line information: Whenever the parser reads source, e.g. as '_src[...]'
+or with 'GetNext()' or 'PeekNext()', it sets a cursor to the position of token read.
+Internally, the parser tracks its progress exclusively through this cursor position.
+For instance, it tracks at which position in the source code a declaration occurs by
+tracking the cursor position where the declaration occurs. Internally, the parser does
+not use line numbers or section names, it only uses cursor positions.
+
+Each cursor position can be converted to a line and a section of the source. This is the
+line and section info that is used for the benefit of the user when 'UserError()' or
+'InternalError()' is called.
+
+However, it's often helpful in debugging to see what line of the source the compiler
+is currently at. For this purpose, the compiler keeps a variable 'currentline'. This
+variable is _only_ guaranteed to be accurate at the start of a statement or declaration,
+and the variable can be clobbered at any time when several compilers run in parallel
+because _all_ compilers share the same 'currentline'. So don't let any compier logic
+depend on this variable, it is _only_ meant as info during debugging. 
 
 The Parser runs in two phases.
 The first phase runs quickly through the tokenized source and collects the headers
@@ -37,94 +55,102 @@ of the local functions.
 The second phase has the following main components:
     Declaration parsing
     Command parsing
-        Functions that process the keyword Kkk are called ParseKkk()
+        Functions that process the keyword 'Kkk' are called 'ParseKkk()'
 
     Code nesting and compound statements
-        In ParseWhile() etc., HandleEndOf..(), and class AGS::Parser::NestingStack.
+        In 'ParseWhile()' etc., 'HandleEndOf..()', and class 'AGS::Parser::NestingStack'.
 
     Expression parsing
-        In ParseExpression()
+        In 'ParseExpression()'
 
     Memory access
-        In AccessData()
+        In 'AccessData()'
         In order to read data or write to data, the respective piece of data must
         be located first. This also encompasses literals of the program code.
-        Note that "." and "[]" are not treated as normal operators (operators like +).
-        The memory offset of struct components in relation to the
-        location of the respective struct is calculated at compile time, whereas array
-        offsets are calculated at run time.
+        '.' and '[...]' are not treated as expression operators (operators like '+')
+        but in dedicated functions
+        
+Notes on how code is emitted:
+    The compiler will only add Bytecode to the _end_ of the current codebase.
+    But this doesn't mean that all code that has once been emitted will then stay.
+    After the compiler has emitted some Bytecode, it will sometimes rip it out again
+    and perhaps stash it away in order to re-insert it at a different place later on.
+    Also, the compiler will sometimes emit placeholder values that will be patched
+    later on.
+    So when you halt the compiler inmidst of its run and consider some specific
+    cells of the Bytecode, they might have a different content from what they will
+    eventually have at the end of the run.
+    
 
-Notes on how nested statements are handled:
-    When handling nested constructs, the parser sometimes generates and emits some code,
-    then rips it out of the codebase and stores it internally, then later on, retrieves
-    it and emits it into the codebase again.
-
-Oldstyle strings, string literals, string buffers:
-    If a "string" is declared, 200 bytes of memory are reserved on the stack (local) or in
-    global memory (global). This is called a "string buffer". Whenever oldstyle strings or
-    literal strings are used, they are referred to by the address of their first byte.
-    The only way of modifying a string buffer is by functions. However, string buffer
-    assignments are possible and handled with inline code. The compiler doesn't attempt in
-    any way to prevent buffer underruns or overruns.
+'const string's and 'string's
+    A '[const] string' is a sequence of bytes in a buffer of unknown length, mainly
+    used as a function parameter or a literal. When a variable is declared as a
+    'string', which is deprecated, 200 bytes of memory are reserved on the stack
+    (local) or in global memory (global). '[const] string's are referred to by the
+    address of their first byte. One-dimensional 'char' arrays can be converted to
+    '[const] string' and thus be passed to function parameters. 'const string's
+    can't be modified, 'string's can. The only way of modifying a 'string' is by
+    functions. However, assignments to 'string' are possible and handled with inline
+    code. Since the buffer length of 'string's is often unknown, the compiler mostly
+    cannot prevent buffer overruns.
 
 
 MEMORY LAYOUT
 
-Global variables go into their own dedicated memory block and are addressed relatively to the beginning of that block.
-	This block is initialized with constant values at the start of the game. So it is possible to set the start value of
-    globals to some constant value, but it is not possible to _calculate_ it at the start of the runtime.
-    In particular, initial pointer values and initial String values can only be given as null because any
-    other value would entail a runtime computation.
+Global variables go into their own dedicated memory block and are addressed
+    relatively to the beginning of that block. This block is initialized with
+    constant values at the start of the game. Thus global variables can start
+    out with an initial value. Pointers and Strings can only be initialized to
+    null because any other value would entail a runtime computation.
 
-Literal strings go into their own, dedicated memory block and are also addressed relatively to the beginning of that block.
-	The scanner populates this memory block; for the parser, the whole block is treated as constant and read-only.
+'string' literals go into their own, dedicated memory block and are also
+    addressed relatively to the beginning of that block.
+	The scanner populates this memory block; for the parser, the whole block is
+    treated as constant and read-only.
 
-Imported values are treated as if they were global values. However, their exact location is only computed at runtime by the
-    linker. For the purposes of the parser, imported values are assigned an ordinal number #0, #1, #2 etc. and are referenced
-    by their ordinal number.
+Imported values: Their exact location is only computed at runtime.
+    For the purposes of the parser, imported values are assigned an ordinal number
+    #0, #1, #2 etc. and are referenced by their ordinal number.
 
-Local variables go into a memory block, the "local memory block", that is reserved on the stack.
- 	They are addressed relatively to the start of that block. The start of this block can always be determined at
- 	compile time by subtracting a specific offset from the stack pointer, namely OffsetToLocalVarBlock.
- 	This offset changes in the course of the compilation but can always be determined at compile time.
- 	The space for local variables is reserved on the stack at runtime when the respective function is called.
-    Therefore, local variables can be initialized to any value that can be computed,
-    they aren't restricted to compile time constants as the global variables are.
+Local variables go into a memory block, the "local memory block", that is reserved
+    on the stack. They are addressed relatively to the start of that block. The
+    start of this block can always be determined at compile time by subtracting a
+    specific offset from the stack pointer, namely 'OffsetToLocalVarBlock'.
+ 	This offset changes in the course of the compilation but can always be
+    determined at compile time.
 
 A local variable is declared within a nesting of { ... } in the program code;
-    It becomes valid at the point of declaration and it becomes invalid when the closing '}' to the
-    innermost open '{' is encountered. In the course of reading the program from beginning to end,
-    the open '{' that have not yet been closed form a stack called the "nesting stack".
-    Whenever a '{' is encountered, the nesting stack gets an additional level; whenever a '}' is encountered,
-    the topmost level is popped from the stack.
-        Side Note: Compound statements can have a body that is NOT surrounded with braces, e.g.,
-        "if (foo) i++;" instead of "if (foo) { i++; }". In this case the nesting stack is
-        still extended by one level before the compound statement body is processed and
-        reduced by one level afterwards.
+    It becomes valid at the point of declaration and it becomes invalid when the
+    closing '}' to the innermost open '{' is encountered. In the course of reading
+    the program from beginning to end, the open '{' that have not yet been closed
+    form a stack called the "nesting stack".
+    At each point of the compilation run, the count of open braces plus 1 is
+    called the "nesting depth" or "scope". 
+    Whenever a '{' is encountered, the nesting stack gets an additional level;
+    whenever a '}' is encountered, the topmost level is popped from the stack.
+        Side Note: Compound statements can have a body that is NOT surrounded with
+        braces, e.g., "if (foo) i++;" instead of "if (foo) { i++; }".
+        The compiler treats these as if a pair of braces was implied:
+        the nesting stack is extended by one level before the compound statement
+        body is processed and reduced by one level afterwards.
   
-    The depth of the stack plus 1 is called the nested depth or scope. Each local variable is assigned
- 	the nested depth of its point of declaration.
-
-    When program flow passes a closing '}' then all the variables with higher nested depth can be freed.
-    This shortens the local memory block from the end; its start remains unchanged.
-    "continue", "break" and "return" statements can break out of several '}' at once. In this case,
-    all their respective variables must be freed.
-
-    Class NestingStack keeps information on the nested level of code.
-    For each nested level, the class keeps, amongst others, the location in the bytecode
-    of the start of the construct and the location of a Bytecode jump to its end.
+    Each local variable is assigned the scope that is valid at its point of declaration.
+    Function parameters have scope 1 by definition; global or imported variables
+    have scope 0 by definition.
+    When program flow passes a closing '}' then all the variables with higher scope
+    are freed. 'continue', 'break' and 'return' statements can break out of several
+    '}' at once.In this case, all their respective variables are freed.
 
 Parameters of a function are local variables; they are assigned the nested depth 1.
     Only parameters can have the nested depth 1.
-    The first parameter of a function is also the first parameter in the local variable block. To make this happen,
-    the parameters must be pushed back-to-front onto the stack when the function is called,
-    i.e. the last function parameter must be pushed first.
+    The first parameter of a function is also the first parameter in the local
+    variable block. When 'struct' functions are called then the struct that applies
+    to the respective function must be passed to that function: This struct is NOT
+    passed as a parameter but in the register OP.
 
-    Global, imported variables, literal constants and strings are valid from the point of declaration onwards
-    until the end of the compilation unit; their assigned nested depth is 0.
 
 Whilst a function is running, its local variable block is as follows:
-((lower memory addresses))
+    ((lower memory addresses))
 		parameter1					<- SP - OffsetToLocalVarBlock
 		parameter2
 		parameter3
@@ -143,56 +169,64 @@ Whilst a function is running, its local variable block is as follows:
 		(pushed value2)
 		...
 		(pushed valueN)				<- SP
-((higher memory addresses))
+    ((higher memory addresses))
 
 Classic arrays and Dynarrays, pointers and managed structs:
-    Memory that is allocated with "new" is allocated dynamically by the Engine. The compiler need not be concerned how it is done.
-	The compiler also needn't concern itself with freeing the dynamic memory itself; this is the Engine's job, too.
-    However, the compiler must declare that a memory cell shall hold a pointer to dynamic memory, by using the opcode MEMWRITEPTR.
-    And when a memory cell is no longer reserved for pointers, this must be declared as well, using the opcode MEMZEROPTR.
-		Side note: Before a function is called, all its parameters are "pushed" to the stack using the PUSHREG opcode.
-		So when some parameters are pointers then the fact that the respective memory cells contain a pointer isn't declared yet.
-		So first thing at the start of the function, all pointer parameters must be read with normal non-...PTR opcodes
-        and then written into the same place as before using the special opcode MEMWRITEPTR.
-		Side note: When a '}' is reached and local pointer variables are concerned, it isn't enough to just shorten the
-		local memory block. On all such pointer variables, MEMZEROPTR must be applied first to declare that the respective memory
-	    cells won't necessarily contain pointers any more.
+    Memory that is allocated with "new" is managed by the Engine.
+	The compiler must declare the fact that a memory cell shall hold a
+    pointer to dynamic memory, by using the opcode MEMWRITEPTR.
+    And when a memory cell is no longer reserved for pointers, this
+    must be declared as well, using the opcode MEMZEROPTR.
+    Whilst a memory cell contains a pointer, it must be manipulated
+    through opcodes that end in ...PTR.
+		Side note 1: Before a function is called, all its parameters are
+        'push'ed to the stack using the PUSHREG opcode.
+		So when some parameters are pointers then the fact that the
+        respective memory cells contain a pointer isn't declared yet.
+		So first thing at the start of the function, all pointer
+        parameters must be read with normal non-...PTR opcodes
+        and then re-written into the same place with MEMWRITEPTR
+		Side note 2: When a '}' is reached and local pointer variables are
+        concerned, it isn't enough to just shorten the local memory block.
+        MEMZEROPTR must be applied first to all cells that had contained
+        pointers in order to tell the engine that those cells won't contain
+        pointers any longer.
 
-    Any address that should hold a pointer must be manipulated using the SCMD_...PTR form of the opcodes
+    Dynarrays: These are sequences of memory blocks that are allocated with 'new'.
+        There are two kinds:
+        Sequences of pointers ('managed' dynarrays)
+        Sequences of a type that is not a pointer ('non-managed' dynarrays)
 
-    There are only two kinds of dynamic memory blocks:
-        memory blocks that do not contain any pointers to dynamic memory whatsoever
-        memory blocks that completely consist of pointers to dynamic memory ONLY.
-    (This is an engine restriction pertaining to memory serialization, not a compiler restriction.)
+        A Dynarray of primitives (e.g., int[]) is represented in memory as a
+        pointer to a memory sequence (a 'non-managed' sequence) that comprises
+        all the elements, one after the other.
+        [*]->[][]...[]
+        A Dynarray of structs must be a dynarray of 'managed' structs. It is
+        represented in memory as a pointer to a block of pointers, each of which
+        points to one element.
+        [*]->[*][*]...[*]
+              |  |     |
+              V  V ... V
+             [] [] ... []
 
-    A Dynarray of primitives (e.g., int[]) is represented in memory as a pointer to a memory
-    block that comprises all the elements, one after the other.
-    [*]->[][]...[]
-    A Dynarray of structs must be a dynarray of managed structs. It is represented in
-    memory as a pointer to a block of pointers, each of which points to one element.
-    [*]->[*][*]...[*]
-          |  |     |
-          V  V ... V
-         [] [] ... []
-    In contrast to a dynamic array, a classic array is never managed.
-    A classic array of primitives (e.g., int[12]) or of non-managed structs is represented
-    in memory as a block of those elements.
-    [][]...[]
-    A classic array of managed structs is a classic array of pointers,
-    each of which points to a memory block that contains one element.
-    [*][*]...[*]
-     |  |     |
-     V  V ... V
-    [] [] ... []
+    "Classic arrays": These are global or local variables, never allocated with 'new', and
+        they need not be simple sequences, they can be multi-dimensional.
+        A classic array of primitives (e.g., int[12]) or of non-managed structs is represented
+        in memory as a block of those elements.
+        [][]...[]
+        A classic array of managed structs is a classic array of pointers,
+        each of which points to a memory block that contains one element.
+        [*][*]...[*]
+         |  |     |
+         V  V ... V
+        [] [] ... []
 
-Pointers are exclusively used for managed memory. If managed structs are manipulated,
-    pointers MUST ALWAYS be used; for un-managed structs, pointers MAY NEVER be used.
-    However as an exception, in import statements non-pointed managed structs can be used, too.
-    That means that the compiler can deduce whether a pointer is expected by
-    looking at the keyword "managed" of the struct alone -- except in global import declarations.
-    Blocks of primitive vartypes can be allocated as managed memory, in which case pointers
-    MUST be used. Again, the compiler can deduce from the declaration that a pointer MUST be
-    used in this case.
+    Pointers are exclusively used for 'managed' memory. If 'managed' structs are manipulated,
+        pointers MUST ALWAYS be used; for un-'managed' structs, pointers MAY NEVER be used.
+        That means that the compiler can deduce whether a pointer is expected by
+        looking at the keyword 'managed' of the struct alone. When the compiler knows that
+        a pointer must be used but the source code does not have a '*' then the compiler
+        silently implies the '*' and carries on compiling. 
 */
 
 
@@ -215,6 +249,9 @@ Pointers are exclusively used for managed memory. If managed structs are manipul
 
 // Declared in Common/script/cc_common.h 
 // Defined in Common/script/cc_common.cpp
+// Note: DO NOT USE this variable in any way except as helper info during debugging
+// When compilers run in parallel, they clobber it, this may happen at any time.
+// Use '_src.GetPosition()' to track at which point of the source the compiler is.
 extern int currentline;
 
 char ccCopyright2[] = "ScriptCompiler32 v" SCOM_VERSIONSTR " (c) 2000-2007 Chris Jones and 2011-2024 others";
@@ -480,7 +517,6 @@ size_t AGS::Parser::StacksizeOfLocals(size_t from_level)
     return total_size;
 }
 
-// Does vartype v contain releasable pointers?
 bool AGS::Parser::ContainsReleasableDynpointers(Vartype vartype)
 {
     if (_sym.IsDynVartype(vartype))
@@ -503,8 +539,6 @@ bool AGS::Parser::ContainsReleasableDynpointers(Vartype vartype)
     return false;
 }
 
-// We're at the end of a block and releasing a standard array of pointers.
-// MAR points to the array start. Release each array element (pointer).
 void AGS::Parser::FreeDynpointersOfStdArrayOfDynpointer(size_t elements_count)
 {
     if (elements_count == 0u)
@@ -535,8 +569,6 @@ void AGS::Parser::FreeDynpointersOfStdArrayOfDynpointer(size_t elements_count)
     loop_start.WriteJump(SCMD_JNZ, _src.GetLineno());
 }
 
-// We're at the end of a block and releasing all the pointers in a struct.
-// MAR already points to the start of the struct.
 void AGS::Parser::FreeDynpointersOfStruct(Vartype struct_vtype)
 {
     SymbolList compo_list;
@@ -587,8 +619,6 @@ void AGS::Parser::FreeDynpointersOfStruct(Vartype struct_vtype)
     }
 }
 
-// We're at the end of a block and we're releasing a standard array of struct.
-// MAR points to the start of the array. Release all the pointers in the array.
 void AGS::Parser::FreeDynpointersOfStdArrayOfStruct(Vartype element_vtype, size_t elements_count)
 {
 
@@ -610,8 +640,6 @@ void AGS::Parser::FreeDynpointersOfStdArrayOfStruct(Vartype element_vtype, size_
     loop_start.WriteJump(SCMD_JNZ, _src.GetLineno());
 }
 
-// We're at the end of a block and releasing a standard array. MAR points to the start.
-// Release the pointers that the array contains.
 void AGS::Parser::FreeDynpointersOfStdArray(Symbol the_array)
 {
     Vartype const array_vartype =
@@ -631,14 +659,14 @@ void AGS::Parser::FreeDynpointersOfStdArray(Symbol the_array)
         FreeDynpointersOfStdArrayOfStruct(element_vartype, elements_count);
 }
 
-// Note: here we only release the pointers contained directly in script's "pointer"
-// variables and PODs (plain structs). Any pointers contained within another dynamically
-// allocated object (struct or array) cannot be released at compile time.
-// Instead, the engine is responsible to track and release these, then cleanup any loose refs
-// using its garbage collector.
-
 void AGS::Parser::FreeDynpointersOfLocals(size_t from_level)
 {
+    // Note: here we only release the pointers contained directly in script's "pointer"
+    // variables and PODs (plain structs). Any pointers contained within another dynamically
+    // allocated object (struct or array) cannot be released at compile time.
+    // Instead, the engine is responsible to track and release these, then cleanup any loose refs
+    // using its garbage collector.
+
     for (size_t level = from_level; level <= _nest.TopLevel(); level++)
     {
         std::map<Symbol, SymbolTableEntry> const &od = _nest.GetOldDefinitions(level);
@@ -703,7 +731,6 @@ void AGS::Parser::FreeDynpointersOfAllLocals_DynResult(void)
         rp_before_precautions.Restore();
 }
 
-// Free all local Dynpointers taking care to not clobber AX
 void AGS::Parser::FreeDynpointersOfAllLocals_KeepAX(void)
 {
     RestorePoint rp_before_free(_scrip);
@@ -845,7 +872,6 @@ Symbol AGS::Parser::ParseConstantExpression(SrcList &src, std::string const &msg
     return eres.Symbol;
 }
 
-// Must return a symbol that is a literal.
 Symbol AGS::Parser::ParseParamlist_Param_DefaultValue(size_t idx, Vartype const param_vartype)
 {
     if (kKW_Assign != _src.PeekNext())
@@ -928,7 +954,7 @@ void AGS::Parser::ParseDynArrayMarkerIfPresent(Vartype &vartype)
 }
 
 // extender function, eg. function GoAway(this Character *someone)
-// We've just accepted something like "int func(", we expect "this" --OR-- "static" (!)
+// We've just accepted something like 'int func(', we expect 'this' --OR-- 'static' (!)
 // We'll accept something like "this Character *"
 void AGS::Parser::ParseFuncdecl_ExtenderPreparations(bool is_static_extender, Symbol &strct, Symbol &unqualified_name, TypeQualifierSet &tqs)
 {
@@ -1369,7 +1395,6 @@ void AGS::Parser::ParseFuncdecl_CheckAndAddKnownInfo(Symbol const name_of_func, 
     }
 }
 
-// Enter the function in the imports[] or functions[] array; get its index   
 void AGS::Parser::ParseFuncdecl_EnterAsImportOrFunc(Symbol name_of_func, bool body_follows, bool func_is_import, size_t params_count, CodeLoc &function_soffs)
 {
     if (body_follows)
@@ -1393,8 +1418,6 @@ void AGS::Parser::ParseFuncdecl_EnterAsImportOrFunc(Symbol name_of_func, bool bo
     function_soffs = _scrip.FindOrAddImport(_sym.GetName(name_of_func));
 }
 
-// We're at something like "int foo(", directly before the "("
-// Get the symbol after the corresponding ")"
 bool AGS::Parser::ParseFuncdecl_DoesBodyFollow()
 {
     int const cursor = _src.GetCursor();
@@ -1637,8 +1660,6 @@ int AGS::Parser::IndexOfLeastBondingOperator(SrcList &expression)
     return (largest_is_prefix) ? 0 : index_of_largest;
 }
 
-// Change the generic opcode to the one that is correct for the vartypes
-// Also check whether the operator can handle the types at all
 CodeCell AGS::Parser::GetOpcode(Symbol const op_sym, Vartype vartype1, Vartype vartype2)
 {
     if (!_sym.IsAssignment(op_sym) && !_sym.IsOperator(op_sym))
@@ -1854,8 +1875,6 @@ void AGS::Parser::CheckVartypeMismatch(Vartype vartype_is, Vartype vartype_wants
         wtb_vartype_string.c_str());
 }
 
-// If we need a String but AX contains a string, 
-// then convert AX into a String object and set its type accordingly
 void AGS::Parser::ConvertAXStringToStringObject(Vartype wanted_vartype, Vartype &current_vartype)
 {
     if (kKW_String == _sym.VartypeWithout(VTT::kConst, current_vartype) &&
@@ -2111,7 +2130,6 @@ void AGS::Parser::ParseExpression_New(SrcList &expression, EvaluationResult &ere
     // Vartype has already been set
 }
 
-// We're parsing an expression that starts with '-' (unary minus)
 void AGS::Parser::ParseExpression_PrefixMinus(EvaluationResult &eres)
 {
     if (eres.kTY_Literal == eres.Type)
@@ -2142,7 +2160,6 @@ void AGS::Parser::ParseExpression_PrefixMinus(EvaluationResult &eres)
     eres.Modifiable = false;
 }
 
-// We're parsing an expression that starts with '+' (unary plus)
 void AGS::Parser::ParseExpression_PrefixPlus(EvaluationResult &eres)
 {
     
@@ -2152,7 +2169,6 @@ void AGS::Parser::ParseExpression_PrefixPlus(EvaluationResult &eres)
     UserError("Cannot apply unary '+' to an expression of type '%s'", _sym.GetName(eres.Vartype).c_str());
 }
 
-// We're parsing an expression that starts with '!' (boolean NOT) or '~' (bitwise Negate)
 void AGS::Parser::ParseExpression_PrefixNegate(Symbol op_sym, EvaluationResult &eres)
 {
     bool const bitwise_negation = kKW_BitNeg == op_sym;
@@ -2240,10 +2256,10 @@ void AGS::Parser::ParseExpression_PrefixCrement(Symbol op_sym, AGS::SrcList &exp
 }
 
 
-// The least binding operator is the first thing in the expression
-// This means that the op must be an unary op.
 void AGS::Parser::ParseExpression_Prefix(SrcList &expression, EvaluationResult &eres)
 {
+    // The least binding operator is the first thing in the expression
+    // This means that the op must be an unary op.
     Symbol const op_sym = expression[0];
 
     if (expression.Length() < 2u)
@@ -3277,7 +3293,6 @@ Symbol  AGS::Parser::ConstructAttributeFuncName(Symbol attribsym, bool is_setter
     return _sym.FindOrAdd(func_str);
 }
 
-// We call the getter or setter of an attribute
 void AGS::Parser::AccessData_CallAttributeFunc(bool is_setter, SrcList &expression, Vartype vartype)
 {
     // Search for the attribute: It might be in an ancestor of 'vartype' instead of in 'vartype'.
@@ -3365,7 +3380,6 @@ void AGS::Parser::AccessData_CallAttributeFunc(bool is_setter, SrcList &expressi
 }
 
 
-// Location contains a pointer to another address. Get that address.
 void AGS::Parser::AccessData_Dereference(EvaluationResult &eres)
 {
     if (EvaluationResult::kLOC_AX == eres.Location)
@@ -3670,7 +3684,7 @@ void AGS::Parser::AccessData_FirstClause(VariableAccess access_type, SrcList &ex
         // Fake a "this." here
         // Eat the component, pretend that it is 'this'. We need to do this in order 
         // to force the code that will be emitted to be connected to the proper place in the source.
-        expression.GetNext(); 
+        expression.GetNext();
         AccessData_This(eres);
 
         // Going forward, the code should imply "this."
@@ -3810,8 +3824,6 @@ AGS::Symbol AGS::Parser::FindComponentInStruct(Vartype strct, Symbol unqualified
     return kKW_NoSymbol;
 }
 
-// We are in a STRUCT.STRUCT.STRUCT... cascade.
-// Check whether we have passed the last dot
 bool AGS::Parser::AccessData_IsClauseLast(SrcList &expression)
 {
     size_t const cursor = expression.GetCursor();
@@ -3821,9 +3833,6 @@ bool AGS::Parser::AccessData_IsClauseLast(SrcList &expression)
     return is_last;
 }
 
-// Access a variable, constant, literal, func call, struct.component.component cascade, etc.
-// At end of function, symlist and symlist_len will point to the part of the symbol string
-// that has not been processed yet
 void AGS::Parser::AccessData(VariableAccess access_type, SrcList &expression, EvaluationResult &eres)
 {
     expression.StartRead();
@@ -3928,10 +3937,6 @@ void AGS::Parser::AccessData_StrCpy()
     _reg_track.SetAllRegisters();
 }
 
-// We are typically in an assignment LHS = RHS; the RHS has already been
-// evaluated, and the result of that evaluation is in AX.
-// Store AX into the memory location that corresponds to LHS, or
-// call the attribute function corresponding to LHS.
 void AGS::Parser::AccessData_AssignTo(SrcList &expression, EvaluationResult eres)
 {
     // We'll evaluate expression later on which moves the cursor,
@@ -4153,7 +4158,6 @@ void AGS::Parser::ParseDelimitedExpression(SrcList &src, Symbol const opener, Ev
     return Expect(closer, src.GetNext());
 }
 
-// We are parsing the left hand side of a += or similar statement.
 void AGS::Parser::ParseAssignment_ReadLHSForModification(SrcList &expression, EvaluationResult &eres)
 {
     AccessData(VAC::kReadingForLaterWriting, expression, eres);
@@ -4164,7 +4168,6 @@ void AGS::Parser::ParseAssignment_ReadLHSForModification(SrcList &expression, Ev
     EvaluationResultToAx(eres_dummy); // Don't clobber eres
 }
 
-// "var = expression"; lhs is the variable
 void AGS::Parser::ParseAssignment_Assign(SrcList &lhs)
 {
     SkipNextSymbol(_src, kKW_Assign);
@@ -4174,7 +4177,6 @@ void AGS::Parser::ParseAssignment_Assign(SrcList &lhs)
     return AccessData_AssignTo(lhs, eres);
 }
 
-// We compile something like "var += expression"
 void AGS::Parser::ParseAssignment_MAssign(Symbol const ass_symbol, SrcList &lhs)
 {
     SkipNextSymbol(_src, ass_symbol);
@@ -4395,7 +4397,6 @@ void AGS::Parser::ParseVardecl_CheckIllegalCombis(Vartype vartype, ScopeType sco
         UserError("'void' is not a valid type in this context");
 }
 
-// there was a forward declaration -- check that the real declaration matches it
 void AGS::Parser::ParseVardecl_CheckThatKnownInfoMatches(SymbolTableEntry *this_entry, SymbolTableEntry *known_info, bool body_follows)
 {
     // Note, a variable cannot be declared if it is in use as a constant.
@@ -4809,7 +4810,6 @@ void AGS::Parser::ParseStruct_SetTypeInSymboltable(Symbol stname, TypeQualifierS
     _sym.SetDeclared(stname, _src.GetCursor());
 }
 
-// We have accepted something like "struct foo" and are waiting for "extends"
 void AGS::Parser::ParseStruct_ExtendsClause(Symbol stname)
 {
     SkipNextSymbol(_src, kKW_Extends);
@@ -4832,7 +4832,6 @@ void AGS::Parser::ParseStruct_ExtendsClause(Symbol stname)
     _sym[stname].VartypeD->Parent = parent;
 }
 
-// Check whether the qualifiers that accumulated for this decl go together
 void AGS::Parser::Parse_CheckTQ(TypeQualifierSet tqs, bool in_func_body, bool in_struct_decl)
 {
     if (in_struct_decl)
@@ -5004,8 +5003,6 @@ void AGS::Parser::ParseStruct_Attribute_ParamList(Symbol struct_of_func, Symbol 
     }
 }
 
-// We are processing an attribute.
-// This corresponds to a getter func and a setter func, declare one of them
 void AGS::Parser::ParseStruct_Attribute_DeclareFunc(TypeQualifierSet tqs, Symbol strct, Symbol qualified_name, Symbol unqualified_name, bool is_setter, bool is_indexed, Vartype vartype)
 {
     // If this symbol has been defined before, check whether the definitions clash
@@ -5533,7 +5530,6 @@ void AGS::Parser::ParseStruct(TypeQualifierSet tqs, Symbol &struct_of_current_fu
     ParseVartype_MemberList(vardecl_tqs, vartype, scope_type, false, struct_of_current_func, name_of_current_func);
 }
 
-// We've accepted something like "enum foo { bar"; '=' follows
 void AGS::Parser::ParseEnum_AssignedValue(Symbol vname, CodeCell &value)
 {
     SkipNextSymbol(_src, kKW_Assign);
@@ -6104,7 +6100,6 @@ void AGS::Parser::ParseReturn(Symbol name_of_current_func)
     _scrip.OffsetToLocalVarBlock = save_offset;
 }
 
-// Evaluate the header of an "if" clause, e.g. "if (i < 0)".
 void AGS::Parser::ParseIf()
 {
     EvaluationResult eres;
@@ -6150,7 +6145,6 @@ void AGS::Parser::HandleEndOfIf(bool &else_follows)
     _nest.SetType(NSType::kElse);
 }
 
-// Evaluate the head of a "while" clause, e.g. "while (i < 0)" 
 void AGS::Parser::ParseWhile()
 {
     // point to the start of the code that evaluates the condition

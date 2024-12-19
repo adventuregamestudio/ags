@@ -144,6 +144,8 @@ void draw_gui_sprite(Common::Bitmap *ds, int pic, int x, int y, bool use_alpha, 
 void draw_gui_sprite_v330(Common::Bitmap *ds, int pic, int x, int y, bool use_alpha = true, Common::BlendMode blend_mode = Common::kBlendMode_Alpha);
 void draw_gui_sprite(Common::Bitmap *ds, bool use_alpha, int xpos, int ypos,
     Common::Bitmap *image, bool src_has_alpha, Common::BlendMode blend_mode = Common::kBlendMode_Alpha, int alpha = 0xFF);
+// Puts a pixel of certain color, scales it if running in upscaled resolution (legacy feature)
+void putpixel_scaled(Common::Bitmap *ds, int x, int y, int col);
 
 // Render game on screen
 void render_to_screen();
@@ -151,7 +153,7 @@ void render_to_screen();
 void draw_game_screen_callback();
 void GfxDriverOnInitCallback(void *data);
 bool GfxDriverSpriteEvtCallback(int evt, int data);
-void putpixel_compensate (Common::Bitmap *g, int xx,int yy, int col);
+
 // Create the actsps[objid] image with the object drawn correctly.
 // Returns true if nothing at all has changed and actsps is still
 // intact from last time; false otherwise.

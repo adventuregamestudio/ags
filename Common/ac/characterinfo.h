@@ -111,43 +111,54 @@ struct CharacterInfo2;
 // TODO: must refactor, some parts of it should be in a runtime Character class.
 struct CharacterInfo
 {
-    int   defview;
-    int   talkview;
-    int   view;
-    int   room, prevroom;
-    int   x, y, wait;
-    int   flags;
-    short following;
-    short followinfo;
-    int   idleview;           // the loop will be randomly picked
-    short idletime, idleleft; // num seconds idle before playing anim
-    short transparency;       // if character is transparent
-    short baseline;
-    int   activeinv;
-    int   talkcolor;
-    int   thinkview;
-    short blinkview, blinkinterval; // design time
-    short blinktimer, blinkframe;   // run time
-    short walkspeed_y;
-    short pic_yoffs; // this is fixed in screen coordinates
-    int   z;    // z-location, for flying etc
-    int   walkwait;
-    short speech_anim_speed, idle_anim_speed;
-    short blocking_width, blocking_height;
-    int   index_id;  // used for object functions to know the id
-    short pic_xoffs; // this is fixed in screen coordinates
-    short walkwaitcounter;
-    uint16_t loop, frame;
-    short walking; // stores movelist index, optionally +TURNING_AROUND
-    short animating; // stores CHANIM_* flags in lower byte and delay in upper byte
-    short walkspeed, animspeed;
-    short inv[MAX_INV];
-    short actx, acty;
+    int     defview     = 0;
+    int     talkview    = 0;
+    int     view        = 0;
+    int     room        = 0;
+    int     prevroom    = 0;
+    int     x           = 0;
+    int     y           = 0;
+    int     wait        = 0;
+    int     flags       = 0;  // CHF_* flags
+    int16_t following   = -1;
+    int16_t followinfo  = 0;
+    int     idleview    = 0;  // the loop will be randomly picked
+    int16_t idletime    = 0;
+    int16_t idleleft    = 0; // num seconds idle before playing anim
+    int16_t transparency = 0; // level of transparency (0 - 100)
+    int16_t baseline    = -1;
+    int     activeinv   = -1; // selected inventory item
+    int     talkcolor   = 0;
+    int     thinkview   = 0;
+    int16_t blinkview   = 0;
+    int16_t blinkinterval = 0;
+    int16_t blinktimer  = 0;
+    int16_t blinkframe  = 0;
+    int16_t walkspeed_y = 0;
+    int16_t pic_yoffs   = 0; // this is fixed in screen coordinates
+    int     z           = 0; // z-location, for flying etc
+    int     walkwait    = 0;
+    int16_t speech_anim_speed = 0;
+    int16_t idle_anim_speed = 0;
+    int16_t blocking_width = 0;
+    int16_t blocking_height = 0;
+    int     index_id    = 0; // this character's numeric ID
+    int16_t pic_xoffs   = 0; // this is fixed in screen coordinates
+    int16_t walkwaitcounter = 0;
+    uint16_t loop       = 0;
+    uint16_t frame      = 0;
+    int16_t walking     = 0; // stores movelist index, optionally +TURNING_AROUND
+    int16_t animating   = 0; // stores CHANIM_* flags in lower byte and delay in upper byte
+    int16_t walkspeed   = 0;
+    int16_t animspeed   = 0;
+    int16_t inv[MAX_INV] = { 0 }; // quantities of each inventory item in game
+    int16_t actx        = 0;
+    int16_t acty        = 0;
     // These two name fields are deprecated, but must stay here
     // for compatibility with old scripts and plugin API
-    char  name[LEGACY_MAX_CHAR_NAME_LEN];
-    char  scrname[LEGACY_MAX_SCRIPT_NAME_LEN];
-    char  on;
+    char    name[LEGACY_MAX_CHAR_NAME_LEN] = { 0 };
+    char    scrname[LEGACY_MAX_SCRIPT_NAME_LEN] = { 0 };
+    int8_t  on          = 0; // is character enabled
 
     int get_baseline() const;        // return baseline, or Y if not set
     int get_blocking_top() const;    // return Y - BlockingHeight/2

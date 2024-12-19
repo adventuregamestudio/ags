@@ -96,7 +96,5 @@ void ccSetDebugHook(new_line_hook_type jibble);
 void ccSetScriptAliveTimer(unsigned sys_poll_timeout, unsigned abort_timeout, unsigned abort_loops);
 // reset the current while loop counter
 void ccNotifyScriptStillAlive();
-// for calling exported plugin functions old-style
-int call_function(void *fn_addr, const RuntimeScriptValue *object, int numparm, const RuntimeScriptValue *parms);
 
 #endif // __AGS_EE_CC__SCRIPTRUNTIME_H

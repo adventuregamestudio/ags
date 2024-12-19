@@ -159,12 +159,6 @@ ccInstance *LoadedInstances[MAX_PRIMARY_INSTANCES] = { nullptr };
 // An example situation is repeatedly_execute_always callback running while
 // another instance is waiting at the blocking action or Wait().
 std::deque<ccInstance*> InstThreads;
-// [IKM] 2012-10-21:
-// NOTE: This is temporary solution (*sigh*, one of many) which allows certain
-// exported functions return value as a RuntimeScriptValue object;
-// Of 2012-12-20: now used only for plugin exports
-// FIXME: re-investigate this, find if it's possible to get rid of this.
-RuntimeScriptValue GlobalReturnValue;
 
 
 String cc_get_callstack(int max_lines)
@@ -209,6 +203,7 @@ struct FunctionCallStack
 };
 
 
+RuntimeScriptValue ccInstance::_pluginReturnValue;
 unsigned ccInstance::_timeoutCheckMs = 60u;
 unsigned ccInstance::_timeoutAbortMs = 0u;
 unsigned ccInstance::_maxWhileLoops = 0u;
@@ -251,6 +246,11 @@ void ccInstance::SetExecTimeout(const unsigned sys_poll_ms, const unsigned abort
     _timeoutCheckMs = sys_poll_ms;
     _timeoutAbortMs = abort_ms;
     _maxWhileLoops = abort_loops;
+}
+
+void ccInstance::SetPluginReturnValue(const RuntimeScriptValue &value)
+{
+    _pluginReturnValue = value;
 }
 
 ccInstance::~ccInstance()
@@ -1307,26 +1307,15 @@ ccInstError ccInstance::Run(int32_t curpc)
 
             if (reg1.Type == kScValPluginFunction)
             {
-                GlobalReturnValue.Invalidate();
-                int32_t int_ret_val;
                 if (next_call_needs_object)
                 {
                     RuntimeScriptValue obj_rval = _registers[SREG_OP];
                     obj_rval.DirectPtrObj();
-                    int_ret_val = call_function(reg1.Ptr, &obj_rval, num_args_to_func, func_callstack.GetHead() + 1);
+                    return_value = CallPluginFunction(reg1.Ptr, &obj_rval, func_callstack.GetHead() + 1, num_args_to_func);
                 }
                 else
                 {
-                    int_ret_val = call_function(reg1.Ptr, nullptr, num_args_to_func, func_callstack.GetHead() + 1);
-                }
-
-                if (GlobalReturnValue.IsValid())
-                {
-                    return_value = GlobalReturnValue;
-                }
-                else
-                {
-                    return_value.SetPluginArgument(int_ret_val);
+                    return_value = CallPluginFunction(reg1.Ptr, nullptr, func_callstack.GetHead() + 1, num_args_to_func);
                 }
             }
             else if (next_call_needs_object)
@@ -2212,6 +2201,158 @@ void ccInstance::CopyGlobalData(const std::vector<uint8_t> &data)
 {
     const size_t copy_sz = std::min(data.size(), _scriptData->globaldata.size());
     std::copy(data.begin(), data.begin() + copy_sz, _scriptData->globaldata.begin());
+}
+
+RuntimeScriptValue ccInstance::CallPluginFunction(void *fn_addr, const RuntimeScriptValue *object, const RuntimeScriptValue *params, int param_count)
+{
+    assert(fn_addr);
+    assert(param_count == 0 || params);
+    if (!fn_addr)
+    {
+        cc_error("Null function pointer in CallPluginFunction");
+        return {};
+    }
+    if (param_count > 0 && !params)
+    {
+        cc_error("Invalid parameters array in CallPluginFunction");
+        return {};
+    }
+
+    intptr_t parm_value[9];
+    if (object)
+    {
+        parm_value[0] = (intptr_t)object->GetPtrWithOffset();
+        param_count++;
+    }
+
+    for (int ival = object ? 1 : 0, iparm = 0; ival < param_count; ++ival, ++iparm)
+    {
+        switch (params[iparm].Type)
+        {
+        case kScValInteger:
+        case kScValFloat:   // AGS passes floats, copying their values into long variable
+        case kScValPluginArg:
+            parm_value[ival] = (intptr_t)params[iparm].IValue;
+            break;
+        default:
+            parm_value[ival] = (intptr_t)params[iparm].GetPtrWithOffset();
+            break;
+        }
+    }
+
+    //
+    // Here we are sending parameters of type intptr_t to a registered function
+    // of unknown kind. Intptr_t is 32-bit or 64-bit depending on a build.
+    // The exported functions usually have two types of parameters: pointer and
+    // 'int' (32-bit). For x32 build those two have the same size, but for x64
+    // build pointer has 64-bit size while the 'int' remains 32-bit.
+    // In a formal case that would cause 'overflow' - function will receive more
+    // data than needed (written to stack), with some values shifted further by
+    // 32 bits.
+    //
+    // Upon testing, however, it was revealed that 64-bit processors usually
+    // treat all the function parameters pushed to stack as 64-bit values
+    // (few first parameters may be sent via registers, and hence are of least
+    // concern anyway). Therefore, no 'overflow' occurs, and 64-bit values are
+    // effectively truncated to 32-bit integers in the callee.
+    //
+    // Formally speaking, this is still unreliable, but we have to live with
+    // this for the time being, until a more suitable solution is found and
+    // implemented.
+    //
+    // One basic idea would be to pass array of RuntimeScriptValues and get
+    // same RSV as a return result, just like we do with the engine's own exports.
+    // Needless to say that such approach would require a breaking change in plugin API.
+    //
+
+    _pluginReturnValue.Invalidate();
+
+    intptr_t result;
+    switch (param_count)
+    {
+    case 0:
+        {
+            intptr_t (*fparam) ();
+            fparam = (intptr_t (*)())fn_addr;
+            result = fparam();
+            break;
+        }
+    case 1:
+        {
+            intptr_t (*fparam) (intptr_t);
+            fparam = (intptr_t (*)(intptr_t))fn_addr;
+            result = fparam(parm_value[0]);
+            break;
+        }
+    case 2:
+        {
+            intptr_t (*fparam) (intptr_t, intptr_t);
+            fparam = (intptr_t (*)(intptr_t, intptr_t))fn_addr;
+            result = fparam(parm_value[0], parm_value[1]);
+            break;
+        }
+    case 3:
+        {
+            intptr_t (*fparam) (intptr_t, intptr_t, intptr_t);
+            fparam = (intptr_t (*)(intptr_t, intptr_t, intptr_t))fn_addr;
+            result = fparam(parm_value[0], parm_value[1], parm_value[2]);
+            break;
+        }
+    case 4:
+        {
+            intptr_t (*fparam) (intptr_t, intptr_t, intptr_t, intptr_t);
+            fparam = (intptr_t (*)(intptr_t, intptr_t, intptr_t, intptr_t))fn_addr;
+            result = fparam(parm_value[0], parm_value[1], parm_value[2], parm_value[3]);
+            break;
+        }
+    case 5:
+        {
+            intptr_t (*fparam) (intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
+            fparam = (intptr_t (*)(intptr_t, intptr_t, intptr_t, intptr_t, intptr_t))fn_addr;
+            result = fparam(parm_value[0], parm_value[1], parm_value[2], parm_value[3], parm_value[4]);
+            break;
+        }
+    case 6:
+        {
+            intptr_t (*fparam) (intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
+            fparam = (intptr_t (*)(intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t))fn_addr;
+            result = fparam(parm_value[0], parm_value[1], parm_value[2], parm_value[3], parm_value[4], parm_value[5]);
+            break;
+        }
+    case 7:
+        {
+            intptr_t (*fparam) (intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
+            fparam = (intptr_t (*)(intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t))fn_addr;
+            result = fparam(parm_value[0], parm_value[1], parm_value[2], parm_value[3], parm_value[4], parm_value[5], parm_value[6]);
+            break;
+        }
+    case 8:
+        {
+            intptr_t (*fparam) (intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
+            fparam = (intptr_t (*)(intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t))fn_addr;
+            result = fparam(parm_value[0], parm_value[1], parm_value[2], parm_value[3], parm_value[4], parm_value[5], parm_value[6], parm_value[7]);
+            break;
+        }
+    case 9:
+        {
+            intptr_t (*fparam) (intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
+            fparam = (intptr_t (*)(intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t))fn_addr;
+            result = fparam(parm_value[0], parm_value[1], parm_value[2], parm_value[3], parm_value[4], parm_value[5], parm_value[6], parm_value[7], parm_value[8]);
+            break;
+        }
+    default:
+        cc_error("Too many arguments in call to plugin function");
+        return {};
+    }
+
+    if (_pluginReturnValue.IsValid())
+    {
+        return _pluginReturnValue;
+    }
+    else
+    {
+        return RuntimeScriptValue().SetPluginArgument(static_cast<int32_t>(result));
+    }
 }
 
 void ccInstance::PushValueToStack(const RuntimeScriptValue &rval)

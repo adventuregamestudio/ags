@@ -93,7 +93,6 @@ extern RGB palette[256];
 extern int displayed_room;
 extern RoomStruct thisroom;
 extern RoomStatus *croom;
-extern RuntimeScriptValue GlobalReturnValue;
 
 
 // **************** PLUGIN IMPLEMENTATION ****************
@@ -682,7 +681,7 @@ int IAGSEngine::RegisterManagedObject(void *object, IAGSScriptManagedObject *cal
     // we may try to optimize following by having a cache of CCPluginObjects per callback
     // address. Need to research if that's reliable, and will actually be more performant.
     auto *pl_obj = new CCPluginObject((IScriptObject*)callback);
-    GlobalReturnValue.SetPluginObject((void*)object, pl_obj);
+    ccInstance::SetPluginReturnValue(RuntimeScriptValue().SetPluginObject((void*)object, pl_obj));
     return ccRegisterManagedObject(object, pl_obj, kScValPluginObject);
 }
 
@@ -700,7 +699,7 @@ void IAGSEngine::AddManagedObjectReader(const char *typeName, IAGSManagedObjectR
 
 void IAGSEngine::RegisterUnserializedObject(int key, void *object, IAGSScriptManagedObject *callback) {
     auto *pl_obj = new CCPluginObject((IScriptObject*)callback);
-    GlobalReturnValue.SetPluginObject((void*)object, pl_obj);
+    ccInstance::SetPluginReturnValue(RuntimeScriptValue().SetPluginObject((void*)object, pl_obj));
     ccRegisterUnserializedObject(key, object, pl_obj, kScValPluginObject);
 }
 
@@ -712,14 +711,14 @@ void* IAGSEngine::GetManagedObjectAddressByKey(int key) {
     void *object;
     IScriptObject *manager;
     ScriptValueType obj_type = ccGetObjectAddressAndManagerFromHandle(key, object, manager);
-    GlobalReturnValue.SetScriptObject(obj_type, object, manager);
+    ccInstance::SetPluginReturnValue(RuntimeScriptValue().SetScriptObject(obj_type, object, manager));
     return object;
 }
 
 const char* IAGSEngine::CreateScriptString(const char *fromText) {
     const char *string = CreateNewScriptString(fromText);
     // Should be still standard dynamic object, because not managed by plugin
-    GlobalReturnValue.SetScriptObject((void*)string, &myScriptStringImpl);
+    ccInstance::SetPluginReturnValue(RuntimeScriptValue().SetScriptObject((void*)string, &myScriptStringImpl));
     return string;
 }
 

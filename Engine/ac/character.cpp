@@ -496,6 +496,9 @@ void Character_FaceCharacter(CharacterInfo *char1, CharacterInfo *char2, int blo
 
 void Character_FollowCharacter(CharacterInfo *chaa, CharacterInfo *tofollow, int distaway, int eagerness) {
 
+    // FOLLOW_ALWAYSONTOP constant limits distaway to 32766
+    if ((distaway < 0) || (distaway > FOLLOW_ALWAYSONTOP))
+        quitprintf("!FollowCharacterEx: invalid distance: must be 0-%d or FOLLOW_EXACTLY", FOLLOW_ALWAYSONTOP - 1);
     if ((eagerness < 0) || (eagerness > 250))
         quit("!FollowCharacterEx: invalid eagerness: must be 0-250");
 
@@ -504,48 +507,46 @@ void Character_FollowCharacter(CharacterInfo *chaa, CharacterInfo *tofollow, int
         quitprintf("!FollowCharacterEx: you cannot tell the player character %s, who is in room %d, to follow a character %s who is in another room %d",
             chaa->scrname, chaa->room, tofollow->scrname, tofollow->room);
 
-    if (tofollow != nullptr) {
+    if (tofollow != nullptr)
+    {
         debug_script_log("%s: Start following %s (dist %d, eager %d)", chaa->scrname, tofollow->scrname, distaway, eagerness);
     }
-    else {
+    else
+    {
         debug_script_log("%s: Stop following other character", chaa->scrname);
     }
 
     if ((chaa->following >= 0) &&
-        (chaa->followinfo == FOLLOW_ALWAYSONTOP)) {
+        (chaa->followinfo == FOLLOW_ALWAYSONTOP))
+    {
             // if this character was following always-on-top, its baseline will
             // have been changed, so release it.
             chaa->baseline = -1;
     }
 
     if (tofollow == nullptr)
-        chaa->following = -1;
+    {
+        chaa->set_following(-1, 0, 0, false);
+    }
+    else if (distaway == FOLLOW_ALWAYSONTOP)
+    {
+        chaa->set_following(tofollow->index_id, FOLLOW_ALWAYSONTOP, 0, (eagerness == 1));
+    }
     else
-        chaa->following = tofollow->index_id;
-
-    chaa->followinfo=(distaway << 8) | eagerness;
-
-    chaa->flags &= ~CHF_BEHINDSHEPHERD;
-
-    // special case for Always On Other Character
-    if (distaway == FOLLOW_ALWAYSONTOP) {
-        chaa->followinfo = FOLLOW_ALWAYSONTOP;
-        if (eagerness == 1)
-            chaa->flags |= CHF_BEHINDSHEPHERD;
+    {
+        chaa->set_following(tofollow->index_id, distaway, eagerness, false);
     }
 
     if (chaa->animating & CHANIM_REPEAT)
         debug_script_warn("Warning: FollowCharacter called but the sheep is currently animating looped. It may never start to follow.");
-
 }
 
 CharacterInfo* Character_GetFollowing(CharacterInfo* chaa)
 {
-    if (chaa->following ==-1)
+    if (chaa->following < 0)
         return nullptr;
 
-    int charid = chaa->following;
-    return &game.chars[charid];
+    return &game.chars[chaa->following];
 }
 
 int Character_IsCollidingWithChar(CharacterInfo *char1, CharacterInfo *char2) {

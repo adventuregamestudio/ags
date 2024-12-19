@@ -951,7 +951,7 @@ void new_room(int newnum,CharacterInfo*forchar) {
         (game.chars[playerchar->following].room != newnum)) {
             // the player character is following another character,
             // who is not in the new room. therefore, abort the follow
-            playerchar->following = -1;
+            playerchar->set_following(-1);
     }
 
     // change rooms

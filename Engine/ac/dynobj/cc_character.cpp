@@ -140,8 +140,10 @@ void CCCharacter::WriteInt16(void *address, intptr_t offset, int16_t val)
     switch (offset)
     {
     // +9 int32 = 36
-    case 36: ci->following = val; break;
-    case 38: ci->followinfo = val; break;
+    case 36: // following
+    case 38: // followinfo
+        cc_error("ScriptCharacter: attempt to write readonly 'short' variable at offset %d", offset);
+        break;
     // 40 +1 int32 = 44
     case 44: ci->idletime = val; break;
     case 46: ci->idleleft = val; break;

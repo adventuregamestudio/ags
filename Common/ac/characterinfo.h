@@ -14,6 +14,7 @@
 #ifndef __AC_CHARACTERINFO_H
 #define __AC_CHARACTERINFO_H
 
+#include <algorithm>
 #include <vector>
 #include "core/types.h"
 #include "ac/common_defines.h" // constants
@@ -183,6 +184,35 @@ struct CharacterInfo
             (CHANIM_REPEAT * repeat) |
             (CHANIM_BACKWARDS * !forwards) |
             ((delay & 0xFF) << 8);
+    }
+
+    inline int get_follow_distance() const
+    {
+        return (followinfo == FOLLOW_ALWAYSONTOP) ? FOLLOW_ALWAYSONTOP : (followinfo >> 8);
+    }
+    inline int get_follow_eagerness() const
+    {
+        return (followinfo == FOLLOW_ALWAYSONTOP) ? 0 : (followinfo & 0xFF);
+    }
+    inline bool get_follow_sort_behind() const
+    {
+        return (flags & CHF_BEHINDSHEPHERD) != 0;
+    }
+
+    // Sets "following" flags and followinfo values
+    void set_following(int16_t follow_whom, int dist = 0, int eagerness = 0, bool sort_behind = false)
+    {
+        following = follow_whom;
+        if (dist == FOLLOW_ALWAYSONTOP)
+        {
+            flags = (flags & ~CHF_BEHINDSHEPHERD) | (CHF_BEHINDSHEPHERD * sort_behind);
+            followinfo = FOLLOW_ALWAYSONTOP;
+        }
+        else
+        {
+            flags = (flags & ~CHF_BEHINDSHEPHERD);
+            followinfo = (std::min<int>(UINT8_MAX, dist) << 8) | std::min<int>(UINT8_MAX, eagerness);
+        }
     }
 
     void ReadFromFile(Common::Stream *in, CharacterInfo2 &chinfo2, GameDataVersion data_ver);

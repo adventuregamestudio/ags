@@ -462,7 +462,7 @@ Bitmap *PrepareSpriteForUseImpl(Bitmap* bitmap, bool has_alpha, bool keep_mask)
     Bitmap *new_bitmap = bitmap;
 
     // If it was requested to convert bitmap to the game's default color depth,
-    // the do so if bitmap is not matching the game.
+    // then do so if bitmap is not matching the game.
     bool was_conv_to_gamedepth = false;
     if (conv_to_gamedepth && (bmp_col_depth != game_col_depth))
     {
@@ -1236,13 +1236,9 @@ void clear_letterbox_borders()
     gfxDriver->ClearRectangle(0, viewport.Bottom + 1, game.GetGameRes().Width - 1, game.GetGameRes().Height - 1, nullptr);
 }
 
-void putpixel_compensate (Bitmap *ds, int xx,int yy, int col) {
-    if ((ds->GetColorDepth() == 32) && (col != 0)) {
-        // ensure the alpha channel is preserved if it has one
-        int alphaval = geta32(ds->GetPixel(xx, yy));
-        col = makeacol32(getr32(col), getg32(col), getb32(col), alphaval);
-    }
-    ds->FillRect(Rect(xx, yy, xx + get_fixed_pixel_size(1) - 1, yy + get_fixed_pixel_size(1) - 1), col);
+void putpixel_scaled(Bitmap *ds, int x, int y, int col)
+{
+    ds->FillRect(Rect(x, y, x + get_fixed_pixel_size(1) - 1, y + get_fixed_pixel_size(1) - 1), col);
 }
 
 void draw_sprite_support_alpha(Bitmap *ds, bool ds_has_alpha, int xpos, int ypos, Bitmap *image, bool src_has_alpha,

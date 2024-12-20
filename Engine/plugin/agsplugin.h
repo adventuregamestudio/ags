@@ -680,7 +680,12 @@ public:
   // You may return this pointer from the registered plugin's function just like any other
   // managed object pointer.
   AGSIFUNC(void*) CreateDynamicArray(size_t elem_count, size_t elem_size, bool is_managed_type);
-
+  // Retrieves dynamic array's length (number of elements).
+  // You should pass a dynamic array object either received from the engine in your registered
+  // script function, or created by you with CreateDynamicArray().
+  AGSIFUNC(size_t) GetDynamicArrayLength(const void *arr);
+  // Retrieves dynamic array's size (total capacity in bytes).
+  AGSIFUNC(size_t) GetDynamicArraySize(const void *arr);
 };
 
 

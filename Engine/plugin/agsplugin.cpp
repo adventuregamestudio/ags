@@ -868,6 +868,16 @@ void *IAGSEngine::CreateDynamicArray(size_t elem_count, size_t elem_size, bool i
     return obj_ref.Obj;
 }
 
+size_t IAGSEngine::GetDynamicArrayLength(const void *arr)
+{
+    return arr ? CCDynamicArray::GetHeader(arr).ElemCount : 0u;
+}
+
+size_t IAGSEngine::GetDynamicArraySize(const void *arr)
+{
+    return arr ? CCDynamicArray::GetHeader(arr).TotalSize : 0u;
+}
+
 // *********** General plugin implementation **********
 
 void pl_stop_plugins() {

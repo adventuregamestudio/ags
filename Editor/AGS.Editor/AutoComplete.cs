@@ -788,7 +788,8 @@ namespace AGS.Editor
                 FastString paramName = param.Substring(index + 1);
                 FastString paramType = param.Substring(0, index + 1).Trim();
                 bool isPointer = false;
-                if (paramType[paramType.Length - 1] == '*')
+                // FIXME: implement FastString EndsWith
+                if ((paramType.Length > 0) && paramType[paramType.Length - 1] == '*')
                 {
                     isPointer = true;
                     paramType = paramType.Substring(0, paramType.Length - 1).Trim();

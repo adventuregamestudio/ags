@@ -47,6 +47,7 @@ struct AGSMac : AGSPlatformDriver {
   FSLocation GetUserSavedgamesDirectory() override;
   FSLocation GetAllUsersDataDirectory() override;
   FSLocation GetUserConfigDirectory() override;
+  FSLocation GetUserGlobalConfigDirectory() override;
   FSLocation GetAppOutputDirectory() override;
   const char *GetIllegalFileChars() override;
 };
@@ -101,6 +102,11 @@ FSLocation AGSMac::GetUserSavedgamesDirectory()
 FSLocation AGSMac::GetUserConfigDirectory()
 {
   return FSLocation(libraryApplicationSupport);
+}
+
+FSLocation AGSMac::GetUserGlobalConfigDirectory()
+{
+  return commonDataPath;
 }
 
 FSLocation AGSMac::GetAppOutputDirectory()

@@ -48,7 +48,7 @@ struct GameSetupStruct : public GameSetupStructBase
     std::vector<UInteractionEvents> invScripts;
     // TODO: why we do not use this in the engine instead of
     // loaded_game_file_version?
-    int               filever = 0;  // just used by editor
+    GameDataVersion   filever = kGameVersion_Undefined;
     Common::String    compiled_with; // version of AGS this data was created by
     char              lipSyncFrameLetters[MAXLIPSYNCFRAMES][50] = {{ 0 }};
     AGS::Common::PropertySchema propSchema;

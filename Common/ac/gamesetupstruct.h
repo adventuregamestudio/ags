@@ -68,9 +68,9 @@ struct GameSetupStruct : public GameSetupStructBase
     char              saveGameFileExtension[MAX_SG_EXT_LENGTH] = { 0 };
     // NOTE: saveGameFolderName is generally used to create game subdirs in common user directories
     Common::String    saveGameFolderName;
-    int               roomCount = 0;
-    std::vector<int>  roomNumbers;
-    std::vector<Common::String> roomNames;
+    // Saved room names, known during the game compilation;
+    // may be used to learn the total number of registered rooms
+    std::map<int, Common::String> roomNames;
     std::vector<ScriptAudioClip> audioClips;
     std::vector<AudioClipType> audioClipTypes;
     // number of accessible game audio channels (the ones under direct user control)

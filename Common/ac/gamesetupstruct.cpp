@@ -208,18 +208,13 @@ void GameSetupStruct::read_room_names(Stream *in, GameDataVersion data_ver)
 {
     if (options[OPT_DEBUGMODE] != 0)
     {
-        roomCount = in->ReadInt32();
-        roomNumbers.resize(roomCount);
-        roomNames.resize(roomCount);
-        for (int i = 0; i < roomCount; ++i)
+        uint32_t room_count = in->ReadInt32();
+        for (int i = 0; i < room_count; ++i)
         {
-            roomNumbers[i] = in->ReadInt32();
-            roomNames[i].Read(in);
+            int room_number = in->ReadInt32();
+            String room_name = String::FromStream(in);
+            roomNames.insert(std::make_pair(room_number, room_name));
         }
-    }
-    else
-    {
-        roomCount = 0;
     }
 }
 

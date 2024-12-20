@@ -75,6 +75,8 @@ namespace AGS.Editor.Components
             else if (controlID == COMMAND_NEW_TEXTWINDOW)
             {
                 GUI newGUI = new TextWindowGUI();
+                // Default GUI colors are set as palette indexes, remap them to proper colors
+                Tasks.RemapGUIColours(newGUI, _agsEditor.CurrentGame, GameColorDepth.Palette);
                 AddNewGUI(newGUI);
                 _agsEditor.CurrentGame.NotifyClientsGUIAddedOrRemoved(newGUI);
             }

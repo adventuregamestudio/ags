@@ -648,6 +648,16 @@ namespace AGS.Editor
         }
 
         /// <summary>
+        /// Remaps color properties in particular GUI control from old color depth to a new color depth;
+        /// for example: from palette mode to 32-bit mode, or other way.
+        /// </summary>
+        public static void RemapGUIColours(GUIControl guiControl, Game game, GameColorDepth oldColorDepth)
+        {
+            Func<int, int> remapColor = (color) => { return ColorMapper.RemapColourNumberToDepth(color, game.Palette, game.Settings.ColorDepth, oldColorDepth); };
+            RemapColourProperties(guiControl, remapColor);
+        }
+
+        /// <summary>
         /// Remaps historical 16-bit R6G5B6 values to proper 32-bit ARGB.
         /// </summary>
         private static void RemapLegacyColourProperties(Game game)
@@ -698,28 +708,33 @@ namespace AGS.Editor
 
             foreach (var ctrl in gui.Controls)
             {
-                if (ctrl is GUIButton)
-                {
-                    GUIButton but = ctrl as GUIButton;
-                    but.TextColor = remapColor(but.TextColor);
-                }
-                else if (ctrl is GUILabel)
-                {
-                    GUILabel lab = ctrl as GUILabel;
-                    lab.TextColor = remapColor(lab.TextColor);
-                }
-                else if (ctrl is GUIListBox)
-                {
-                    GUIListBox list = ctrl as GUIListBox;
-                    list.TextColor = remapColor(list.TextColor);
-                    list.SelectedTextColor = remapColor(list.SelectedTextColor);
-                    list.SelectedBackgroundColor = remapColor(list.SelectedBackgroundColor);
-                }
-                else if (ctrl is GUITextBox)
-                {
-                    GUITextBox textbox = ctrl as GUITextBox;
-                    textbox.TextColor = remapColor(textbox.TextColor);
-                }
+                RemapColourProperties(ctrl, remapColor);
+            }
+        }
+
+        private static void RemapColourProperties(GUIControl guiControl, Func<int, int> remapColor)
+        {
+            if (guiControl is GUIButton)
+            {
+                GUIButton but = guiControl as GUIButton;
+                but.TextColor = remapColor(but.TextColor);
+            }
+            else if (guiControl is GUILabel)
+            {
+                GUILabel lab = guiControl as GUILabel;
+                lab.TextColor = remapColor(lab.TextColor);
+            }
+            else if (guiControl is GUIListBox)
+            {
+                GUIListBox list = guiControl as GUIListBox;
+                list.TextColor = remapColor(list.TextColor);
+                list.SelectedTextColor = remapColor(list.SelectedTextColor);
+                list.SelectedBackgroundColor = remapColor(list.SelectedBackgroundColor);
+            }
+            else if (guiControl is GUITextBox)
+            {
+                GUITextBox textbox = guiControl as GUITextBox;
+                textbox.TextColor = remapColor(textbox.TextColor);
             }
         }
 

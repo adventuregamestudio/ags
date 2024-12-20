@@ -1189,6 +1189,8 @@ namespace AGS.Editor
             newControl.ZOrder = _gui.Controls.Count;
             newControl.Parent = _gui;
             newControl.ID = _gui.Controls.Count;
+            // Default GUI colors are set as palette indexes, remap them to proper colors
+            Tasks.RemapGUIColours(newControl, Factory.AGSEditor.CurrentGame, GameColorDepth.Palette);
             _gui.Controls.Add(newControl);
             _selectedControl = newControl;
             _selected.Clear();

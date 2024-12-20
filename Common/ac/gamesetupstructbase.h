@@ -42,37 +42,35 @@ struct GameSetupStructBase
     static const int  NUM_LEGACY_GLOBALMES = 500;
 
     Common::String    gamename;
-    int               options[MAX_OPTIONS];
-    uint8_t           paluses[256];
-    RGB               defpal[256];
-    int               numviews;
-    int               numcharacters;
-    int               playercharacter;
-    int               numinvitems;
-    int               numdialog;
-    int               numdlgmessage; // [DEPRECATED]
-    int               numfonts;
-    int               color_depth;          // in bytes per pixel (ie. 1, 2, 4)
-    int               target_win;
-    int               dialog_bullet;        // 0 for none, otherwise slot num of bullet point
-    int               hotdot;      // inv cursor hotspot dot color
-    int               hotdotouter; // inv cursor hotspot cross color
-    int               uniqueid;    // random key identifying the game
-    int               numgui;
-    int               numcursors;
-    int               default_lipsync_frame; // used for unknown chars
-    int               invhotdotsprite;
-    int               reserved[NUM_INTS_RESERVED];
+    int               options[MAX_OPTIONS] = { 0 };
+    uint8_t           paluses[256] = { 0 };
+    RGB               defpal[256] = {};
+    int               numviews = 0;
+    int               numcharacters = 0;
+    int               playercharacter = -1;
+    int               numinvitems = 0;
+    int               numdialog = 0;
+    int               numdlgmessage = 0;    // [DEPRECATED]
+    int               numfonts = 0;
+    int               color_depth = 0;      // in bytes per pixel (ie. 1, 2, 4)
+    int               target_win = 0;
+    int               dialog_bullet = 0;    // 0 for none, otherwise slot num of bullet point
+    int               hotdot = 0;           // inv cursor hotspot dot color
+    int               hotdotouter = 0;      // inv cursor hotspot cross color
+    int               uniqueid = 0;         // random key identifying the game
+    int               numgui = 0;
+    int               numcursors = 0;
+    int               default_lipsync_frame = 0; // used for unknown chars
+    int               invhotdotsprite = 0;
+    int               reserved[NUM_INTS_RESERVED] = { 0 };
     std::unique_ptr<WordsDictionary> dict;
     std::vector<CharacterInfo> chars;
 
-    GameSetupStructBase();
+    GameSetupStructBase() = default;
     GameSetupStructBase(GameSetupStructBase &&gss) = default;
-    ~GameSetupStructBase();
+    ~GameSetupStructBase() = default;
 
     GameSetupStructBase &operator =(GameSetupStructBase &&gss) = default;
-
-    void Free();
 
     // Tells whether the serialized game data contains certain components
     struct SerializeInfo

@@ -48,9 +48,9 @@ struct GameSetupStruct : public GameSetupStructBase
     std::vector<UInteractionEvents> invScripts;
     // TODO: why we do not use this in the engine instead of
     // loaded_game_file_version?
-    int               filever;  // just used by editor
+    int               filever = 0;  // just used by editor
     Common::String    compiled_with; // version of AGS this data was created by
-    char              lipSyncFrameLetters[MAXLIPSYNCFRAMES][50];
+    char              lipSyncFrameLetters[MAXLIPSYNCFRAMES][50] = {{ 0 }};
     AGS::Common::PropertySchema propSchema;
     std::vector<AGS::Common::StringIMap> charProps;
     AGS::Common::StringIMap invProps[MAX_INV];
@@ -64,11 +64,11 @@ struct GameSetupStruct : public GameSetupStructBase
     std::vector<Common::String> viewNames;
     Common::String    invScriptNames[MAX_INV];
     std::vector<Common::String> dialogScriptNames;
-    char              guid[MAX_GUID_LENGTH];
-    char              saveGameFileExtension[MAX_SG_EXT_LENGTH];
+    char              guid[MAX_GUID_LENGTH] = { 0 };
+    char              saveGameFileExtension[MAX_SG_EXT_LENGTH] = { 0 };
     // NOTE: saveGameFolderName is generally used to create game subdirs in common user directories
     Common::String    saveGameFolderName;
-    int               roomCount;
+    int               roomCount = 0;
     std::vector<int>  roomNumbers;
     std::vector<Common::String> roomNames;
     std::vector<ScriptAudioClip> audioClips;
@@ -95,13 +95,11 @@ struct GameSetupStruct : public GameSetupStructBase
     std::vector<SpriteInfo> SpriteInfos;
 
 
-    GameSetupStruct();
+    GameSetupStruct() = default;
     GameSetupStruct(GameSetupStruct &&gss) = default;
-    ~GameSetupStruct();
+    ~GameSetupStruct() = default;
 
     GameSetupStruct &operator =(GameSetupStruct &&gss) = default;
-
-    void Free();
 
     // [IKM] Game struct loading code is moved here from Engine's load_game_file
     // function; for now it is not supposed to be called by Editor; although it

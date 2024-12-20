@@ -19,41 +19,6 @@
 
 using namespace AGS::Common;
 
-GameSetupStruct::GameSetupStruct()
-    : filever(0)
-    , roomCount(0)
-{
-    memset(lipSyncFrameLetters, 0, sizeof(lipSyncFrameLetters));
-    memset(guid, 0, sizeof(guid));
-    memset(saveGameFileExtension, 0, sizeof(saveGameFileExtension));
-}
-
-GameSetupStruct::~GameSetupStruct()
-{
-    Free();
-}
-
-void GameSetupStruct::Free()
-{
-    GameSetupStructBase::Free();
-
-    charScripts.clear();
-    invScripts.clear();
-    numinvitems = 0;
-
-    roomNames.clear();
-    roomNumbers.clear();
-    roomCount = 0;
-
-    audioClips.clear();
-    audioClipTypes.clear();
-
-    audioclipProps.clear();
-    charProps.clear();
-    guiProps.clear();
-    dialogProps.clear();
-    viewNames.clear();
-}
 
 void AdjustFontInfoUsingFlags(FontInfo &finfo, const uint32_t flags)
 {

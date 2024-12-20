@@ -1187,7 +1187,7 @@ void free_old_game_data()
   dialog.clear();
 
   // free game struct last because it contains object counts
-  thisgame.Free();
+  thisgame = {};
 }
 
 void validate_mask(Common::Bitmap *toValidate, const char *name, int maxColour) {

@@ -76,16 +76,18 @@ void CCDynamicArray::Unserialize(int index, Stream *in, size_t data_sz)
     ccRegisterUnserializedObject(index, &new_arr[MemHeaderSz], this);
 }
 
-/* static */ DynObjectRef CCDynamicArray::Create(int numElements, int elementSize, bool isManagedType)
+/* static */ DynObjectRef CCDynamicArray::Create(uint32_t elem_count, uint32_t elem_size, bool is_managed)
 {
-    assert(numElements >= 0);
-    if (numElements < 0)
+    assert(elem_count <= INT32_MAX);
+    assert(!is_managed || elem_size == sizeof(int32_t));
+    if (elem_count > INT32_MAX || (is_managed && elem_size != sizeof(int32_t)))
         return {};
-    uint8_t *new_arr = new uint8_t[numElements * elementSize + MemHeaderSz];
-    memset(new_arr, 0, numElements * elementSize + MemHeaderSz);
+
+    uint8_t *new_arr = new uint8_t[elem_count * elem_size + MemHeaderSz];
+    memset(new_arr, 0, elem_count * elem_size + MemHeaderSz);
     Header &hdr = reinterpret_cast<Header&>(*new_arr);
-    hdr.ElemCount = numElements | (ARRAY_MANAGED_TYPE_FLAG * isManagedType);
-    hdr.TotalSize = elementSize * numElements;
+    hdr.ElemCount = elem_count | (ARRAY_MANAGED_TYPE_FLAG * is_managed);
+    hdr.TotalSize = elem_size * elem_count;
     void *obj_ptr = &new_arr[MemHeaderSz];
     int32_t handle = ccRegisterManagedObject(obj_ptr, &globalDynamicArray);
     if (handle == 0)

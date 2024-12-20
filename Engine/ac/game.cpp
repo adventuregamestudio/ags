@@ -915,6 +915,20 @@ void Game_SetFaceDirectionRatio(float ratio)
     play.face_dir_ratio = ratio;
 }
 
+int Game_GetRoomCount()
+{
+    return game.roomNames.size();
+}
+
+const char* Game_GetRoomName(int index)
+{
+    auto it_room = game.roomNames.find(index);
+    if (it_room == game.roomNames.end())
+        return nullptr;
+
+    return CreateNewScriptString(it_room->second);
+}
+
 void *Game_GetSaveSlots(int min_slot, int max_slot, int save_sort, int sort_dir)
 {
     if (!ValidateSaveSlotRange("Game.GetSaveSlots", min_slot, max_slot))
@@ -1955,6 +1969,16 @@ RuntimeScriptValue Sc_Game_SetFaceDirectionRatio(const RuntimeScriptValue *param
     API_SCALL_VOID_PFLOAT(Game_SetFaceDirectionRatio);
 }
 
+RuntimeScriptValue Sc_Game_GetRoomCount(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Game_GetRoomCount);
+}
+
+RuntimeScriptValue Sc_Game_GetRoomName(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_PINT(const char, myScriptStringImpl, Game_GetRoomName);
+}
+
 RuntimeScriptValue Sc_Game_GetSaveSlots(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_OBJ_PINT4(void, globalDynamicArray, Game_GetSaveSlots);
@@ -2028,6 +2052,8 @@ void RegisterGameAPI()
         { "Game::geti_Cameras",                           API_FN_PAIR(Game_GetAnyCamera) },
         { "Game::get_FaceDirectionRatio",                 API_FN_PAIR(Game_GetFaceDirectionRatio) },
         { "Game::set_FaceDirectionRatio",                 API_FN_PAIR(Game_SetFaceDirectionRatio) },
+        { "Game::get_RoomCount",                          API_FN_PAIR(Game_GetRoomCount) },
+        { "Game::geti_RoomNames",                         API_FN_PAIR(Game_GetRoomName) },
     };
 
     ccAddExternalFunctions(game_api);

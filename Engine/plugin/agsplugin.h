@@ -665,6 +665,22 @@ public:
   // *** BELOW ARE INTERFACE VERSION 29 AND ABOVE ONLY
   // Print message to the engine's log, under one of the log levels AGSLOG_LEVEL_*.
   AGSIFUNC(void)  Log(int level, const char *fmt, ...);
+
+  // *** BELOW ARE INTERFACE VERSION 30 AND ABOVE ONLY
+  // Create a new dynamic array, allocating space for the given number of elements
+  // of the given size. Optionally instructs to create an array for managed handles,
+  // in which case the element size must be sizeof(int32).
+  // IMPORTANT: you MUST correctly tell if this is going to be an array of handles, because
+  // otherwise engine won't know to release their references, which may lead to memory leaks.
+  // IMPORTANT: when writing handles into this array, you MUST inc ref count for each one
+  // of them (see IncrementManagedObjectRefCount), otherwise these objects may get disposed
+  // before the array itself, making these handles invalid!
+  // Dynamic arrays have their meta data allocated prior to array of elements;
+  // this function returns a pointer to the element array, which you may write to.
+  // You may return this pointer from the registered plugin's function just like any other
+  // managed object pointer.
+  AGSIFUNC(void*) CreateDynamicArray(size_t elem_count, size_t elem_size, bool is_managed_type);
+
 };
 
 

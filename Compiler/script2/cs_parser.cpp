@@ -7039,7 +7039,7 @@ void AGS::Parser::Parse_ExportAllFunctions()
             _scrip.Functions[func_idx].Name,
             _scrip.Functions[func_idx].CodeOffs,
             _scrip.Functions[func_idx].ParamsCount))
-            InternalError("Could not export function '%s', exports table overflow?", _scrip.Functions[func_idx].Name);
+            InternalError("Could not export function '%s', exports table overflow?", _scrip.Functions[func_idx].Name.c_str());
     }
 }
 

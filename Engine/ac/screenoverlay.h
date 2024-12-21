@@ -59,8 +59,6 @@ struct ScreenOverlay
 {
     // Overlay's "type" is a merged special overlay ID and internal container index
     int type = -1;
-    // Arbitrary creation order index, meant for resolving equal z-sorting
-    int creation_id = 0;
     int timeout = 0;
     // Note that x,y are overlay's properties, that define its position in script;
     // but real drawn position is x + offsetX, y + offsetY;

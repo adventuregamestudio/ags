@@ -82,6 +82,9 @@ void on_roomcamera_changed(Camera *cam);
 void mark_object_changed(int objid);
 // TODO: write a generic drawable/objcache system where each object
 // allocates a drawable for itself, and disposes one if being removed.
+// Resets drawing index for dynamic objects
+void reset_drawobj_dynamic_index();
+// Resets drawable object for this overlay
 void reset_drawobj_for_overlay(int objnum);
 // Marks all game objects which reference this sprite for redraw
 void notify_sprite_changed(int sprnum, bool deleted);

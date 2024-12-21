@@ -405,13 +405,19 @@ std::vector<RoomCameraDrawData> CameraDrawData;
 // Describes a texture or node description, for sorting and passing into renderer
 struct SpriteListEntry
 {
-    // Optional sprite identifier; used as a second factor when sorting
-    int id = -1;
-    IDriverDependantBitmap *ddb = nullptr;
-    int x = 0, y = 0;
-    int zorder = 0;
+    IDriverDependantBitmap *DDB = nullptr;
+    int X = 0;
+    int Y = 0;
+    int Z = 0;
     // Mark for the render stage callback (if >= 0 other fields are ignored)
-    int renderStage = -1;
+    int RenderStage = -1;
+    // Optional sprite identifier; used as a second factor when sorting
+    uint32_t DrawIndex = 0u;
+
+    SpriteListEntry(IDriverDependantBitmap *ddb, int x, int y)
+        : DDB(ddb), X(x), Y(y), Z(0), RenderStage(-1), DrawIndex(0u) { }
+    SpriteListEntry(IDriverDependantBitmap *ddb, int x, int y, int z, int render_stage, uint32_t draw_index = 0u)
+        : DDB(ddb), X(x), Y(y), Z(z), RenderStage(render_stage), DrawIndex(draw_index) { }
 };
 
 // Two lists of sprites to push into renderer during next render pass
@@ -1364,18 +1370,12 @@ static void clear_draw_list()
 static void add_thing_to_draw(IDriverDependantBitmap* ddb, int x, int y)
 {
     assert(ddb);
-    SpriteListEntry sprite;
-    sprite.ddb = ddb;
-    sprite.x = x;
-    sprite.y = y;
-    thingsToDrawList.push_back(sprite);
+    thingsToDrawList.push_back(SpriteListEntry(ddb, x, y));
 }
 
 static void add_render_stage(int stage)
 {
-    SpriteListEntry sprite;
-    sprite.renderStage = stage;
-    thingsToDrawList.push_back(sprite);
+    thingsToDrawList.push_back(SpriteListEntry(nullptr, 0, 0, 0, stage));
 }
 
 static void clear_sprite_list()
@@ -1383,28 +1383,22 @@ static void clear_sprite_list()
     sprlist.clear();
 }
 
-static void add_to_sprite_list(IDriverDependantBitmap* ddb, int x, int y, int zorder, int id = -1)
+static void add_to_sprite_list(IDriverDependantBitmap* ddb, int x, int y, int zorder, uint32_t id = 0u)
 {
     assert(ddb);
     // completely invisible, so don't draw it at all
     if (ddb->GetAlpha() == 0)
         return;
 
-    SpriteListEntry sprite;
-    sprite.id = id;
-    sprite.ddb = ddb;
-    sprite.zorder = zorder;
-    sprite.x = x;
-    sprite.y = y;
-    sprlist.push_back(sprite);
+    sprlist.push_back(SpriteListEntry(ddb, x, y, zorder, -1, id));
 }
 
 // Sprite drawing order sorting function,
 // where equal zorder is resolved by comparing optional IDs too.
 static bool spritelistentry_less(const SpriteListEntry &e1, const SpriteListEntry &e2)
 {
-    return (e1.zorder < e2.zorder) ||
-        ((e1.zorder == e2.zorder) && (e1.id < e2.id));
+    return (e1.Z < e2.Z) ||
+        ((e1.Z == e2.Z) && (e1.DrawIndex < e2.DrawIndex));
 }
 
 // copy the sorted sprites into the Things To Draw list
@@ -2537,20 +2531,20 @@ void put_sprite_list_on_screen(bool in_room)
 {
     for (const auto &t : thingsToDrawList)
     {
-        assert(t.ddb || (t.renderStage >= 0));
-        if (t.ddb)
+        assert(t.DDB || (t.RenderStage >= 0));
+        if (t.DDB)
         {
-            if (t.ddb->GetAlpha() == 0)
+            if (t.DDB->GetAlpha() == 0)
                 continue; // skip completely invisible things
             // mark the image's region as dirty
-            invalidate_sprite(t.x, t.y, t.ddb, in_room);
+            invalidate_sprite(t.X, t.Y, t.DDB, in_room);
             // push to the graphics driver
-            gfxDriver->DrawSprite(t.x, t.y, t.ddb);
+            gfxDriver->DrawSprite(t.X, t.Y, t.DDB);
         }
-        else if (t.renderStage >= 0)
+        else if (t.RenderStage >= 0)
         {
             // meta entry to run the plugin hook
-            gfxDriver->DrawSprite(t.renderStage, 0, nullptr);
+            gfxDriver->DrawSprite(t.RenderStage, 0, nullptr);
         }
     }
 

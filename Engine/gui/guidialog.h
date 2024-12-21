@@ -35,7 +35,7 @@ void refresh_gui_screen();
 int  loadgamedialog(int min_slot, int max_slot);
 int  savegamedialog(int min_slot, int max_slot);
 void enterstringwindow(const char *prompttext, char *dst_buf, size_t dst_sz);
-int  enternumberwindow(char *prompttext);
+int  enternumberwindow(const char *prompttext);
 int  roomSelectorWindow(int currentRoom, int numRooms,
     const std::vector<int> &roomNumbers, const std::vector<AGS::Common::String> &roomNames);
 int  myscimessagebox(const char *lpprompt, char *btn1, char *btn2);

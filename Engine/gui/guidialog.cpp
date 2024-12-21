@@ -361,7 +361,7 @@ void enterstringwindow(const char *prompttext, char *dst_buf, size_t dst_sz)
   snprintf(dst_buf, dst_sz, "%s", buffer2);
 }
 
-int enternumberwindow(char *prompttext)
+int enternumberwindow(const char *prompttext)
 {
   char ourbuf[200];
   enterstringwindow(prompttext, ourbuf, sizeof(ourbuf));

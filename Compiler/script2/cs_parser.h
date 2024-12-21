@@ -747,7 +747,7 @@ private:
     // evaluated, and the result of that evaluation is in AX.
     // Store AX into the memory location that corresponds to LHS, or
     // call the attribute function corresponding to LHS.
-    void AccessData_AssignTo(SrcList &expression, EvaluationResult eres);
+    void AccessData_AssignTo(SrcList &expression, EvaluationResult const &eres);
 
     void SkipToEndOfExpression(SrcList &src);
 

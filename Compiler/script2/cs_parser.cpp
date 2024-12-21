@@ -3937,7 +3937,7 @@ void AGS::Parser::AccessData_StrCpy()
     _reg_track.SetAllRegisters();
 }
 
-void AGS::Parser::AccessData_AssignTo(SrcList &expression, EvaluationResult eres)
+void AGS::Parser::AccessData_AssignTo(SrcList &expression, EvaluationResult const &eres)
 {
     // We'll evaluate expression later on which moves the cursor,
     // so save it here and restore later on
@@ -4027,7 +4027,7 @@ void AGS::Parser::SkipToEndOfExpression(SrcList &src)
 {
     int nesting_depth = 0;
 
-    Symbol const vartype_of_this = _sym[kKW_This].VariableD->Vartype;
+    Symbol const vartype_of_this = _sym.GetVartype(kKW_This);
 
     // The ':' in an "a ? b : c" construct can also be the end of a label, and in AGS,
     // expressions are allowed for labels. So we must take care that label ends aren't

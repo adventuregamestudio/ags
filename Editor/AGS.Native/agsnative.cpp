@@ -1511,7 +1511,7 @@ void free_old_game_data()
   free_script_modules();
 
   // free game struct last because it contains object counts
-  thisgame.Free();
+  thisgame = {};
 }
 
 // remap the scene, from its current palette oldpale to palette

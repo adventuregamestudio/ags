@@ -21,46 +21,10 @@
 using namespace AGS::Common;
 
 GameSetupStruct::GameSetupStruct()
-    : filever(0)
-    , roomCount(0)
-    , scoreClipID(0)
 {
-    memset(lipSyncFrameLetters, 0, sizeof(lipSyncFrameLetters));
-    memset(guid, 0, sizeof(guid));
-    memset(saveGameFileExtension, 0, sizeof(saveGameFileExtension));
-
     // CHECKME: not sure if this is needed, as likely will be rewritten by loading game data
     intrVars[0] = InteractionVariable("Global 1", 0, 0);
     numIntrVars = 1;
-}
-
-GameSetupStruct::~GameSetupStruct()
-{
-    Free();
-}
-
-void GameSetupStruct::Free()
-{
-    GameSetupStructBase::Free();
-
-    intrChar.clear();
-    charScripts.clear();
-
-    // TODO: find out if it really needs to begin with 1 here?
-    for (size_t i = 1; i < (size_t)MAX_INV; i++)
-        intrInv[i].reset();
-    invScripts.clear();
-    numinvitems = 0;
-
-    roomNames.clear();
-    roomNumbers.clear();
-    roomCount = 0;
-
-    audioClips.clear();
-    audioClipTypes.clear();
-
-    charProps.clear();
-    viewNames.clear();
 }
 
 // Assigns font info parameters using legacy flags value read from the game data

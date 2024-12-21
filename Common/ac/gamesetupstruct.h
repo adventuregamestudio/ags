@@ -46,7 +46,7 @@ struct GameSetupStruct : public GameSetupStructBase
     InventoryItemInfo invinfo[MAX_INV]{};
     std::vector<MouseCursor> mcurs;
     // These are old-style interaction variables created by the Interaction editor
-    InteractionVariable intrVars[MAX_INTERACTION_VARIABLES];
+    InteractionVariable intrVars[MAX_INTERACTION_VARIABLES]{};
     int numIntrVars = 0;
     std::vector<UInteraction> intrChar;
     UInteraction intrInv[MAX_INV];
@@ -54,9 +54,9 @@ struct GameSetupStruct : public GameSetupStructBase
     std::vector<UInteractionEvents> invScripts;
     // TODO: why we do not use this in the engine instead of
     // loaded_game_file_version?
-    int               filever;  // just used by editor
+    int               filever = 0;  // just used by editor
     Common::String    compiled_with; // version of AGS this data was created by
-    char              lipSyncFrameLetters[MAXLIPSYNCFRAMES][50];
+    char              lipSyncFrameLetters[MAXLIPSYNCFRAMES][50] = {{ 0 }};
     AGS::Common::PropertySchema propSchema;
     std::vector<AGS::Common::StringIMap> charProps;
     AGS::Common::StringIMap invProps[MAX_INV];
@@ -66,11 +66,11 @@ struct GameSetupStruct : public GameSetupStructBase
     std::vector<Common::String> viewNames;
     Common::String    invScriptNames[MAX_INV];
     std::vector<Common::String> dialogScriptNames;
-    char              guid[MAX_GUID_LENGTH];
-    char              saveGameFileExtension[MAX_SG_EXT_LENGTH];
+    char              guid[MAX_GUID_LENGTH] = { 0 };
+    char              saveGameFileExtension[MAX_SG_EXT_LENGTH] = { 0 };
     // NOTE: saveGameFolderName is generally used to create game subdirs in common user directories
     Common::String    saveGameFolderName;
-    int               roomCount;
+    int               roomCount = 0;
     std::vector<int>  roomNumbers;
     std::vector<Common::String> roomNames;
     std::vector<ScriptAudioClip> audioClips;
@@ -78,7 +78,7 @@ struct GameSetupStruct : public GameSetupStructBase
     // A clip to play when player gains score in game
     // NOTE: this stores an internal audio clip index, which may or not correspond
     // to the OPT_SCORESOUND, and also depends on whether the game was upgraded from <3.2 data.
-    int               scoreClipID;
+    int               scoreClipID = -1;
     // number of accessible game audio channels (the ones under direct user control)
     int               numGameChannels = 0;
     // backward-compatible channel limit that may be exported to script and reserved by audiotypes
@@ -102,11 +102,9 @@ struct GameSetupStruct : public GameSetupStructBase
 
     GameSetupStruct();
     GameSetupStruct(GameSetupStruct &&gss) = default;
-    ~GameSetupStruct();
+    ~GameSetupStruct() = default;
 
     GameSetupStruct &operator =(GameSetupStruct &&gss) = default;
-
-    void Free();
 
     // [IKM] Game struct loading code is moved here from Engine's load_game_file
     // function; for now it is not supposed to be called by Editor; although it

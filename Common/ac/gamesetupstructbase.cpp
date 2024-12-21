@@ -21,52 +21,6 @@
 
 using namespace AGS::Common;
 
-GameSetupStructBase::GameSetupStructBase()
-    : numviews(0)
-    , numcharacters(0)
-    , playercharacter(-1)
-    , totalscore(0)
-    , numinvitems(0)
-    , numdialog(0)
-    , numdlgmessage(0)
-    , numfonts(0)
-    , color_depth(0)
-    , target_win(0)
-    , dialog_bullet(0)
-    , hotdot(0)
-    , hotdotouter(0)
-    , uniqueid(0)
-    , numgui(0)
-    , numcursors(0)
-    , default_lipsync_frame(0)
-    , invhotdotsprite(0)
-    , _resolutionType(kGameResolution_Undefined)
-    , _dataUpscaleMult(1)
-    , _screenUpscaleMult(1)
-{
-    memset(options, 0, sizeof(options));
-    memset(paluses, 0, sizeof(paluses));
-    memset(defpal, 0, sizeof(defpal));
-    memset(reserved, 0, sizeof(reserved));
-}
-
-GameSetupStructBase::~GameSetupStructBase()
-{
-    Free();
-}
-
-void GameSetupStructBase::Free()
-{
-    for (int i = 0; i < MAXGLOBALMES; ++i)
-    {
-        messages[i].Free();
-    }
-    dict.reset();
-    chars.clear();
-
-    numcharacters = 0;
-}
-
 void GameSetupStructBase::SetDefaultResolution(GameResolutionType type)
 {
     SetDefaultResolution(type, Size());

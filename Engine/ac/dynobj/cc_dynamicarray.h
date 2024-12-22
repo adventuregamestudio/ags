@@ -47,7 +47,7 @@ public:
     }
 
     // Create managed array object and return a pointer to the beginning of a buffer
-    static DynObjectRef Create(int numElements, int elementSize, bool isManagedType);
+    static DynObjectRef Create(uint32_t elem_count, uint32_t elem_size, bool is_managed);
 
     // return the type name of the object
     const char *GetType() override;

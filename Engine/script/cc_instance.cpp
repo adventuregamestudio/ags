@@ -1432,25 +1432,25 @@ ccInstError ccInstance::Run(int32_t curpc)
         case SCMD_NEWARRAY:
         {
             auto &reg1 = _registers[codeOp.Arg1i()];
-            const auto arg_elsize = codeOp.Arg2i();
-            const auto arg_managed = codeOp.Arg3().GetAsBool();
-            int numElements = reg1.IValue;
-            if (numElements < 0)
+            const int arg_elnum = reg1.IValue;
+            const uint32_t arg_elsize = static_cast<uint32_t>(codeOp.Arg2i());
+            const bool arg_managed = codeOp.Arg3().GetAsBool();
+            if (arg_elnum < 0)
             {
-                cc_error("Invalid size for dynamic array; requested: %d, range: 0..%d", numElements, INT32_MAX);
+                cc_error("Invalid size for dynamic array; requested: %d, range: 0..%d", arg_elnum, INT32_MAX);
                 return kInstErr_Generic;
             }
-            DynObjectRef ref = CCDynamicArray::Create(numElements, arg_elsize, arg_managed);
+            DynObjectRef ref = CCDynamicArray::Create(static_cast<uint32_t>(arg_elnum), arg_elsize, arg_managed);
             reg1.SetScriptObject(ref.Obj, &globalDynamicArray);
             break;
         }
         case SCMD_NEWUSEROBJECT:
         {
             auto &reg1 = _registers[codeOp.Arg1i()];
-            const auto arg_size = codeOp.Arg2i();
-            if (arg_size < 0)
+            const uint32_t arg_size = static_cast<uint32_t>(codeOp.Arg2i());
+            if (arg_size > INT32_MAX)
             {
-                cc_error("Invalid size for user object; requested: %d (or %d), range: 0..%d", arg_size, arg_size, INT_MAX);
+                cc_error("Invalid size for user object; requested: %u, range: 0..%d", arg_size, INT32_MAX);
                 return kInstErr_Generic;
             }
             DynObjectRef ref = ScriptUserObject::Create(arg_size);

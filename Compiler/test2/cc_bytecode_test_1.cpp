@@ -3881,3 +3881,71 @@ TEST_F(Bytecode1, DotAfterFuncCall02)
     size_t const stringssize = 0;
     EXPECT_EQ(stringssize, scrip.strings.size());
 }
+
+TEST_F(Bytecode1, StaticFuncImpliedTypename)
+{
+    // Within a struct function, when an unknown function 'f' 
+    // is called and a static function or attribute 'f' of the
+    // struct exists, then call that static function or attribute
+
+    char const *inpl = R"%&/(
+        managed struct Armor
+        {
+            int ArmorPayload;
+            import static attribute int Wizardy;
+            import static Armor *ArmorFactory(int strength);
+        };
+
+        managed struct Helmet extends Armor
+        { };
+
+        Armor *Test1(this Helmet)
+        {
+            return ArmorFactory(Wizardy++);
+        }
+        )%&/";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string const &err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+
+    // WriteOutput("StaticFuncImpliedTypename", scrip);
+    size_t const codesize = 59;
+    EXPECT_EQ(codesize, scrip.code.size());
+
+    int32_t code[] = {
+      36,   13,   38,    0,           36,   14,    3,    6,    // 7
+       2,   52,   29,    6,            3,    6,    2,   52,    // 15
+      39,    0,    6,    3,            0,   33,    3,   29,    // 23
+       3,    1,    3,    1,            3,    6,    2,   52,    // 31
+      34,    3,   39,    1,            6,    3,    1,   33,    // 39
+       3,   35,    1,   30,            3,   34,    3,   39,    // 47
+       1,    6,    3,    2,           33,    3,   35,    1,    // 55
+      30,    6,    5,  -999
+    };
+    CompareCode(&scrip, codesize, code);
+
+    size_t const numfixups = 3;
+    EXPECT_EQ(numfixups, scrip.fixups.size());
+
+    int32_t fixups[] = {
+      20,   38,   51,  -999
+    };
+    char fixuptypes[] = {
+      4,   4,   4,  '\0'
+    };
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
+
+    int const numimports = 3;
+    std::string imports[] = {
+    "Armor::get_Wizardy^0",       "Armor::set_Wizardy^1",       "Armor::ArmorFactory^1",      // 2
+     "[[SENTINEL]]"
+    };
+    CompareImports(&scrip, numimports, imports);
+
+    size_t const numexports = 0;
+    EXPECT_EQ(numexports, scrip.exports.size());
+
+    size_t const stringssize = 0;
+    EXPECT_EQ(stringssize, scrip.strings.size());
+}

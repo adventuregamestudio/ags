@@ -3036,3 +3036,55 @@ TEST_F(Compile1, ImportWithBody) {
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("'import'"));
 }
+
+TEST_F(Compile1, ImpliedStaticFuncNonStaticCall01)
+{
+    // Within a static struct function, a non-static
+    // attribute of the function cannot be called
+
+    char const *inpl = R"%&/(
+        managed struct Armor
+        {
+            int ArmorPayload;
+            import attribute int Wizardy;
+            import static Armor *ArmorFactory(int strength);
+        };
+
+        managed struct Helmet extends Armor
+        { };
+
+        int Test2(static Helmet)
+        {
+            return Wizardy++;
+        }
+        )%&/";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string const &err_msg = mh.GetError().Message;
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("'Armor::Wizardy'"));
+}
+
+TEST_F(Compile1, ImpliedStaticFuncNonStaticCall02)
+{
+    // Within a static struct function, a non-static
+    // attribute of the function cannot be called
+
+    char const *inpl = R"%&/(
+        managed struct Armor
+        {
+            int ArmorPayload;
+            import readonly attribute int Wizardy[];
+        };
+
+        int game_start()
+        {
+            return Armor.Wizardy[5];
+        }
+        )%&/";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string const &err_msg = mh.GetError().Message;
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("'Armor::Wizardy'"));
+}

@@ -700,15 +700,16 @@ private:
 
     void AccessData_This(EvaluationResult &eres);
 
+    void AccessData_StructVartype(Vartype vartype, EvaluationResult &eres);
+
     // We're getting a variable, literal, constant, func call or the first element
     // of a STRUCT.STRUCT.STRUCT... cascade.
     // This moves the cursor in all cases except for the cascade to the end of what is parsed,
     // and in case of a cascade, to the end of the first element of the cascade, i.e.,
     // to the position of the '.'.
     // The "return_scope_type" is used for deciding what values can be returned from a function.
-    // implied_this_dot is set if subsequent processing should imply that
-    // the expression starts with "this.", with the '.' already read in
-    void AccessData_FirstClause(VariableAccess access_type, SrcList &expression, EvaluationResult &eres, bool &implied_this_dot);
+    // 'implied_dot' is set if subsequent processing should imply that a '.' has already been read
+    void AccessData_FirstClause(VariableAccess access_type, SrcList &expression, EvaluationResult &eres, bool &inside_access, bool &implied_dot);
 
     // We're processing a STRUCT.STRUCT. ... clause.
     // We've already processed some structs, and the type of the last one is "vartype".
@@ -736,7 +737,7 @@ private:
     void AccessData(VariableAccess access_type, SrcList &expression, EvaluationResult &eres);
 
     // Emit Bytecode for:
-    // Copy at most 'OLDSTRING_SIZE-1' bytes from 'm[MAR...]' to 'm[AX...]'
+    // Copy at most 'STRINGBUFFER_LENGT-1' bytes from 'm[MAR...]' to 'm[AX...]'
     // Stop when encountering a 0
     void AccessData_StrCpy();
 

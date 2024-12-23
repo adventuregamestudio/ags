@@ -1517,7 +1517,7 @@ void AGS::Parser::ParseFuncdecl_HandleFunctionOrImportIndex(TypeQualifierSet tqs
         return;
     }
 
-    if (imports_idx < 0 || imports_idx >= _scrip.imports.size())
+    if (imports_idx < 0 || static_cast<size_t>(imports_idx) >= _scrip.imports.size())
         InternalError(
             "Imported function '%s' has the imports index '%d' which is invalid",
             _sym.GetName(name_of_func).c_str(),
@@ -3597,12 +3597,21 @@ void AGS::Parser::AccessData_This(EvaluationResult &eres)
     _marMgr.Reset();
 }
 
-void AGS::Parser::AccessData_FirstClause(VariableAccess access_type, SrcList &expression, EvaluationResult &eres, bool &implied_this_dot)
+void AGS::Parser::AccessData_StructVartype(Vartype const vartype, EvaluationResult &eres)
 {
-    implied_this_dot = false;
+    // Return the struct itself, static access
+    eres.Type = eres.kTY_StructName;
+    eres.Location = eres.kLOC_SymbolTable;
+    eres.Symbol = vartype;
+    eres.Vartype = kKW_NoSymbol;
+    _marMgr.Reset();
+}
 
-    // Set defaults that are almost always correct
-    eres.SideEffects = false;
+void AGS::Parser::AccessData_FirstClause(VariableAccess access_type, SrcList &expression, EvaluationResult &eres, bool &inside_access, bool &implied_dot)
+{
+    implied_dot = false;
+
+    eres.SideEffects = false; // This is almost alwways correct
 
     Symbol const first_sym = expression.PeekNext();
 
@@ -3644,18 +3653,14 @@ void AGS::Parser::AccessData_FirstClause(VariableAccess access_type, SrcList &ex
     if (kKW_This == first_sym)
     {
         if (kKW_NoSymbol == _sym.GetVartype(kKW_This))
-            UserError("'this' is only legal in a non-static struct function");
+            UserError("'this' is only legal in a struct function");
+        if (_sym[kKW_This].VariableD->TypeQualifiers[TQ::kStatic])
+            UserError("'this' is only legal in a non-static function");
 
         SkipNextSymbol(expression, kKW_This);
 
         AccessData_This(eres);
-
-        if (kKW_Dot == expression.PeekNext())
-        {
-            SkipNextSymbol(expression, kKW_Dot);
-            // Going forward, we must "imply" "this." since we've just gobbled it.
-            implied_this_dot = true;
-        }
+        inside_access = true;
         return;
     }
 
@@ -3668,31 +3673,36 @@ void AGS::Parser::AccessData_FirstClause(VariableAccess access_type, SrcList &ex
     if (_sym.IsStructVartype(first_sym))
     {
         SkipNextSymbol(expression, first_sym);
-        // Return the struct itself, static access
-        eres.Type = eres.kTY_StructName;
-        eres.Location = eres.kLOC_SymbolTable;
-        eres.Symbol = first_sym;
-        eres.Vartype = kKW_NoSymbol;
-        _marMgr.Reset();
-        return;
+        inside_access = true;
+        return AccessData_StructVartype(first_sym, eres);
     }
 
-    // Can this unknown symbol be interpreted as a component of 'this'?
+    // Can this unknown symbol be interpreted as a component of 'this'
+    // or as a static component of the current class?
     Vartype const this_vartype = _sym.GetVartype(kKW_This);
-    if (_sym.IsVartype(this_vartype) && _sym[this_vartype].VartypeD->Components.count(first_sym))
+    if (_sym.IsVartype(this_vartype))
     {
-        // Fake a "this." here
-        // Eat the component, pretend that it is 'this'. We need to do this in order 
-        // to force the code that will be emitted to be connected to the proper place in the source.
-        expression.GetNext();
-        AccessData_This(eres);
+        Symbol const potential_component = _sym.FindStructComponent(this_vartype, first_sym);
+        if (kKW_NoSymbol != potential_component)
+        {
+            // Fake a "this." or "Vartype." here:
+            // Eat the component, pretend that it is 'this' or 'Vartype'.
+            // We need to do this in order to force the code that will be emitted
+            // to be connected to the proper place in the source.
+            expression.GetNext();
 
-        // Going forward, the code should imply "this."
-        // with the '.' already read in.
-        implied_this_dot = true;
-        // Then back up so that the component will be read again as the next symbol.
-        expression.BackUp();
-        return;
+            if (_sym[kKW_This].VariableD->TypeQualifiers[TQ::kStatic])
+                AccessData_StructVartype(this_vartype, eres);
+            else
+                AccessData_This(eres);
+            inside_access = true;
+
+            // Going forward, the code should imply the '.' already read in.
+            implied_dot = true;
+            // Then back up so that the component will be read again as the next symbol.
+            expression.BackUp();
+            return;
+        }
     }
 
     if (kKW_OnePastLongMax == first_sym)
@@ -3701,9 +3711,6 @@ void AGS::Parser::AccessData_FirstClause(VariableAccess access_type, SrcList &ex
     UserError("Unexpected '%s' in expression", _sym.GetName(first_sym).c_str());
 }
 
-// We're processing a STRUCT.STRUCT. ... clause.
-// We've already processed some structs, and the type of the last one is vartype.
-// Now we process a component of vartype.
 void AGS::Parser::AccessData_SubsequentClause(VariableAccess access_type, bool access_via_this, SrcList &expression, EvaluationResult &eres)
 {
     bool const static_access = (eres.kTY_StructName == eres.Type);
@@ -3716,12 +3723,21 @@ void AGS::Parser::AccessData_SubsequentClause(VariableAccess access_type, bool a
 
     if (kKW_NoSymbol == qualified_component)
         UserError(
-            ReferenceMsgSym("Expected a component of '%s', found '%s' instead", vartype).c_str(),
+            ReferenceMsgSym(
+                "Expected a component of '%s', found '%s' instead",
+                vartype).c_str(),
             _sym.GetName(vartype).c_str(),
             _sym.GetName(unqualified_component).c_str());
 
     if (_sym.IsAttribute(qualified_component))
     {
+        if (static_access && !_sym[qualified_component].AttributeD->IsStatic)
+            UserError(
+                ReferenceMsgSym(
+                    "Must specify a specific object for the non-static attribute '%s'",
+                    qualified_component).c_str(),
+                _sym.GetName(qualified_component).c_str());
+
         // make MAR point to the struct of the attribute
         _marMgr.UpdateMAR(_src.GetLineno(), _scrip);
 
@@ -3763,10 +3779,18 @@ void AGS::Parser::AccessData_SubsequentClause(VariableAccess access_type, bool a
     if (_sym.IsFunction(qualified_component))
     {
         if (static_access && !_sym[qualified_component].FunctionD->TypeQualifiers[TQ::kStatic])
-            UserError("Must specify a specific object for non-static function %s", _sym.GetName(qualified_component).c_str());
+            UserError(
+                ReferenceMsgSym(
+                    "Must specify a specific object for the non-static function %s",
+                    qualified_component).c_str(),
+                _sym.GetName(qualified_component).c_str());
 
         if (_sym.IsConstructor(qualified_component))
-            UserError("Calling struct's constructor '%s' directly is illegal", _sym.GetName(qualified_component).c_str());
+            UserError(
+                ReferenceMsgSym(
+                    "Calling the constructor of struct '%s' directly is illegal",
+                    vartype).c_str(),
+                _sym.GetName(vartype).c_str());
 
         SkipNextSymbol(expression, unqualified_component); // Eat function symbol
         if (kKW_OpenParenthesis != expression.PeekNext())
@@ -3790,7 +3814,9 @@ void AGS::Parser::AccessData_SubsequentClause(VariableAccess access_type, bool a
     {
         if (static_access && !_sym[qualified_component].VariableD->TypeQualifiers[TQ::kStatic])
             UserError(
-                ReferenceMsgSym("Must specify a specific object for non-static component %s", qualified_component).c_str(),
+                ReferenceMsgSym(
+                    "Must specify a specific object for non-static component %s",
+                    qualified_component).c_str(),
                 _sym.GetName(qualified_component).c_str());
 
         AccessData_StructMember(qualified_component, access_type, access_via_this, expression, eres);
@@ -3839,23 +3865,28 @@ void AGS::Parser::AccessData(VariableAccess access_type, SrcList &expression, Ev
     if (0u == expression.Length())
         InternalError("Empty expression");
    
-    bool implied_this_dot = false; // only true when "this." is implied
-    bool static_access = false; // only true when a vartype has just been parsed
-
+    bool implied_dot = false; // only true when "this." or "TYPENAME." is implied
+    bool inside_access = false; // true when inside a struct function body
+    
     // If we are reading, then all the accesses are for reading.
     // If we are writing, then all the accesses except for the last one
     // are for reading and the last one will be for writing.
-    AccessData_FirstClause(AccessData_IsClauseLast(expression) ? access_type : VAC::kReading, expression, eres, implied_this_dot);
+    AccessData_FirstClause(
+        AccessData_IsClauseLast(expression) ? access_type : VAC::kReading,
+        expression,
+        eres,
+        inside_access,
+        implied_dot);
     
     Vartype outer_vartype = kKW_NoSymbol;
 
-    // If the previous function has assumed a "this." that isn't there,
+    // If the previous function has assumed a 'this.' or a 'VARTYPE.' that isn't there,
     // then a '.' won't be coming up but the while body must be executed anyway.
-    while (kKW_Dot == expression.PeekNext() || implied_this_dot)
+    while (kKW_Dot == expression.PeekNext() || implied_dot)
     {
-        if (!implied_this_dot)
+        if (!implied_dot)
             SkipNextSymbol(expression, kKW_Dot);
-        // Note: do not reset "implied_this_dot" here, it's still needed.
+        implied_dot = false;
 
         // Here, if EvaluationResult::kLOC_MemoryAtMAR == eres.location then the first byte of outer is at m[MAR + mar_offset].
         outer_vartype = eres.kTY_StructName == eres.Type? eres.Symbol : eres.Vartype;
@@ -3899,10 +3930,10 @@ void AGS::Parser::AccessData(VariableAccess access_type, SrcList &expression, Ev
         // If we are reading, then all the accesses are for reading.
         // If we are writing, then all the accesses except for the last one
         // are for reading and the last one will be for writing.
-        AccessData_SubsequentClause(AccessData_IsClauseLast(expression) ? access_type : VAC::kReading, implied_this_dot, expression, eres);
-        
+        AccessData_SubsequentClause(AccessData_IsClauseLast(expression) ? access_type : VAC::kReading, inside_access, expression, eres);
+
         // Next component access, if there is any, is dependent on the current access, no longer on "this".
-        implied_this_dot = false;
+        inside_access = false;
     }
 }
 
@@ -4105,11 +4136,14 @@ void AGS::Parser::SkipToEndOfExpression(SrcList &src)
         }
 
         // Let a symbol through if it can be considered a component of 'this'.
-        if (kKW_NoSymbol != vartype_of_this &&
-            0u < _sym[vartype_of_this].VartypeD->Components.count(peeksym))
+        if (kKW_NoSymbol != vartype_of_this) 
         {
-            SkipNextSymbol(src, peeksym);
-            continue;
+            Symbol const potential_component = _sym.FindStructComponent(vartype_of_this, peeksym);
+            if (kKW_NoSymbol != potential_component)
+            {
+                SkipNextSymbol(src, peeksym);
+                continue;
+            }
         }
 
         if (!_sym.CanBePartOfAnExpression(peeksym))
@@ -4657,7 +4691,7 @@ void AGS::Parser::ParseVardecl(TypeQualifierSet tqs, Vartype vartype, Symbol var
         return ParseVardecl_CheckThatKnownInfoMatches(&_sym[var_name], &known_info, false);
 }
 
-void AGS::Parser::ParseFuncBodyStart(Symbol struct_of_func,Symbol name_of_func)
+void AGS::Parser::ParseFuncBodyStart(Symbol struct_of_func, Symbol name_of_func)
 {
     _nest.Push(NSType::kFunction);
 
@@ -4688,7 +4722,7 @@ void AGS::Parser::ParseFuncBodyStart(Symbol struct_of_func,Symbol name_of_func)
 
     SymbolTableEntry &this_entry = _sym[kKW_This];
     this_entry.VariableD->Vartype = kKW_NoSymbol;
-    if (struct_of_func > 0 && !_sym[name_of_func].FunctionD->TypeQualifiers[TQ::kStatic])
+    if (struct_of_func > 0)
     {
         // Declare "this" but do not allocate memory for it
         this_entry.Scope = 0u;
@@ -4696,6 +4730,7 @@ void AGS::Parser::ParseFuncBodyStart(Symbol struct_of_func,Symbol name_of_func)
         this_entry.VariableD->Vartype = struct_of_func; // Don't declare this as dynpointer
         this_entry.VariableD->TypeQualifiers = {};
         this_entry.VariableD->TypeQualifiers[TQ::kReadonly] = true;
+        this_entry.VariableD->TypeQualifiers[TQ::kStatic] = _sym[name_of_func].FunctionD->TypeQualifiers[TQ::kStatic];
         this_entry.VariableD->Offset = 0u;
     }
 }

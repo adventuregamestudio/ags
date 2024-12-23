@@ -2954,8 +2954,10 @@ void convert_room_to_native(Room ^room, RoomStruct &rs)
     // to be saved using native procedure.
     //
     TextConverter^ tcv = TextHelper::GetGameTextConverter();
-    rs.MaskResolution = room->MaskResolution;
 
+    rs.Name = tcv->ConvertTextProperty(room->Description);
+    rs.ScriptName = ""; // reserved
+    rs.MaskResolution = room->MaskResolution;
 	rs.GameID = room->GameID;
 	rs.Edges.Bottom = room->BottomEdgeY;
 	rs.Edges.Left = room->LeftEdgeX;

@@ -117,18 +117,17 @@ void script_debug(int cmdd,int dataa) {
     else if (cmdd==3) 
     {
         int goToRoom = -1;
-        if (game.roomCount == 0)
+        if (game.roomNames.size() == 0)
         {
-            char inroomtex[80];
-            snprintf(inroomtex, sizeof(inroomtex), "!Enter new room: (in room %d)", displayed_room);
+            String inroomtex = String::FromFormat("!Enter new room: (in room %d)", displayed_room);
             setup_for_dialog();
-            goToRoom = enternumberwindow(inroomtex);
+            goToRoom = enternumberwindow(inroomtex.GetCStr());
             restore_after_dialog();
         }
         else
         {
             setup_for_dialog();
-            goToRoom = roomSelectorWindow(displayed_room, game.roomCount, game.roomNumbers, game.roomNames);
+            goToRoom = roomSelectorWindow(displayed_room, game.roomNames);
             restore_after_dialog();
         }
         if (goToRoom >= 0) 

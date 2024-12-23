@@ -378,7 +378,7 @@ void enterstringwindow(const char *prompttext, char *dst_buf, size_t dst_sz)
   snprintf(dst_buf, dst_sz, "%s", buffer2);
 }
 
-int enternumberwindow(char *prompttext)
+int enternumberwindow(const char *prompttext)
 {
   char ourbuf[200];
   enterstringwindow(prompttext, ourbuf, sizeof(ourbuf));
@@ -387,8 +387,7 @@ int enternumberwindow(char *prompttext)
   return atoi(ourbuf);
 }
 
-int roomSelectorWindow(int currentRoom, int numRooms,
-    const std::vector<int> &roomNumbers, const std::vector<String> &roomNames)
+int roomSelectorWindow(int currentRoom, const std::map<int, String> &roomNames)
 {
   char labeltext[200];
   strcpy(labeltext, GUIDialog_Strings[MSG_SAVEDIALOG]);
@@ -404,14 +403,17 @@ int roomSelectorWindow(int currentRoom, int numRooms,
     CSCICreateControl(CNT_PUSHBUTTON | CNF_CANCEL, 80, 145, 60, 10, "Cancel");
 
   CSCISendControlMessage(ctrllist, CLB_CLEAR, 0, 0);    // clear the list box
-  for (int aa = 0; aa < numRooms; aa++)
+  int cur_sel = 0;
+  std::map<int, int> room_item_index;
+  for (const auto &name : roomNames)
   {
-    snprintf(buff, sizeof(buff), "%3d %s", roomNumbers[aa], roomNames[aa].GetCStr());
+    snprintf(buff, sizeof(buff), "%3d %s", name.first, name.second.GetCStr());
     CSCISendControlMessage(ctrllist, CLB_ADDITEM, 0, (intptr_t)&buff[0]);
-    if (roomNumbers[aa] == currentRoom)
+    if (name.first == currentRoom)
     {
-      CSCISendControlMessage(ctrllist, CLB_SETCURSEL, aa, 0);
+      CSCISendControlMessage(ctrllist, CLB_SETCURSEL, cur_sel, 0);
     }
+    room_item_index[cur_sel++] = name.first;
   }
 
   int ctrlok = CSCICreateControl(CNT_PUSHBUTTON | CNF_DEFAULT, 10, 145, 60, 10, "OK");
@@ -447,7 +449,8 @@ int roomSelectorWindow(int currentRoom, int numRooms,
       int cursel = CSCISendControlMessage(ctrllist, CLB_GETCURSEL, 0, 0);
       if (cursel >= 0) 
       {
-        snprintf(buffer2, sizeof(buffer2), "%d", roomNumbers[cursel]);
+        int room_index = room_item_index[cursel];
+        snprintf(buffer2, sizeof(buffer2), "%d", room_index);
         CSCISendControlMessage(ctrltbox, CTB_SETTEXT, 0, (intptr_t)&buffer2[0]);
       }
     }

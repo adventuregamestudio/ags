@@ -205,6 +205,16 @@ void Room_SetFaceDirectionRatio(float ratio)
     croom->face_dir_ratio = ratio;
 }
 
+const char *Room_GetName()
+{
+    return CreateNewScriptString(thisroom.GetName());
+}
+
+int Room_GetNumber()
+{
+    return displayed_room;
+}
+
 bool Room_Exists(int room)
 {
     String room_filename;
@@ -1087,6 +1097,16 @@ RuntimeScriptValue Sc_Room_SetFaceDirectionRatio(const RuntimeScriptValue *param
     API_SCALL_VOID_PFLOAT(Room_SetFaceDirectionRatio);
 }
 
+RuntimeScriptValue Sc_Room_GetName(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ(const char *, myScriptStringImpl, Room_GetName);
+}
+
+RuntimeScriptValue Sc_Room_GetNumber(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Room_GetNumber);
+}
+
 // void (int xx,int yy,int mood)
 RuntimeScriptValue Sc_RoomProcessClick(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -1149,6 +1169,8 @@ void RegisterRoomAPI()
         { "Room::get_Width",                          API_FN_PAIR(Room_GetWidth) },
         { "Room::get_FaceDirectionRatio",             API_FN_PAIR(Room_GetFaceDirectionRatio) },
         { "Room::set_FaceDirectionRatio",             API_FN_PAIR(Room_SetFaceDirectionRatio) },
+        { "Room::get_Name",                           API_FN_PAIR(Room_GetName) },
+        { "Room::get_Number",                         API_FN_PAIR(Room_GetNumber) },
         { "Room::geti_Hotspots",                      API_FN_PAIR(Room_GetiHotspots) },
         { "Room::geti_Objects",                       API_FN_PAIR(Room_GetiObjects) },
         { "Room::geti_Regions",                       API_FN_PAIR(Room_GetiRegions) },

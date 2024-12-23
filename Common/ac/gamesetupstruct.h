@@ -48,7 +48,7 @@ struct GameSetupStruct : public GameSetupStructBase
     std::vector<UInteractionEvents> invScripts;
     // TODO: why we do not use this in the engine instead of
     // loaded_game_file_version?
-    int               filever = 0;  // just used by editor
+    GameDataVersion   filever = kGameVersion_Undefined;
     Common::String    compiled_with; // version of AGS this data was created by
     char              lipSyncFrameLetters[MAXLIPSYNCFRAMES][50] = {{ 0 }};
     AGS::Common::PropertySchema propSchema;
@@ -68,9 +68,11 @@ struct GameSetupStruct : public GameSetupStructBase
     char              saveGameFileExtension[MAX_SG_EXT_LENGTH] = { 0 };
     // NOTE: saveGameFolderName is generally used to create game subdirs in common user directories
     Common::String    saveGameFolderName;
-    int               roomCount = 0;
+    // Existing room numbers
     std::vector<int>  roomNumbers;
-    std::vector<Common::String> roomNames;
+    // Saved room names, known during the game compilation;
+    // may be used to learn the total number of registered rooms
+    std::map<int, Common::String> roomNames;
     std::vector<ScriptAudioClip> audioClips;
     std::vector<AudioClipType> audioClipTypes;
     // number of accessible game audio channels (the ones under direct user control)

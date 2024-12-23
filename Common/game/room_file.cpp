@@ -381,6 +381,13 @@ HError ReadExt_400_CustomProps(RoomStruct *room, Stream *in, RoomFileVersion dat
     return HError::None();
 }
 
+HError ReadExt_400_RoomNames(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
+{
+    room->ScriptName = StrUtil::ReadString(in);
+    room->Name = StrUtil::ReadString(in);
+    return HError::None();
+}
+
 HError ReadRoomBlock(RoomStruct *room, Stream *in, RoomFileBlock block, const String &ext_id,
     soff_t block_len, RoomFileVersion data_ver)
 {
@@ -433,6 +440,10 @@ HError ReadRoomBlock(RoomStruct *room, Stream *in, RoomFileBlock block, const St
     else if (ext_id.CompareNoCase("v400_customprops") == 0)
     {
         return ReadExt_400_CustomProps(room, in, data_ver);
+    }
+    else if (ext_id.CompareNoCase("v400_roomnames") == 0)
+    {
+        return ReadExt_400_RoomNames(room, in, data_ver);
     }
 
     return new RoomFileError(kRoomFileErr_UnknownBlockType,
@@ -724,6 +735,12 @@ void WriteExt_400_CustomProps(const RoomStruct *room, Stream *out)
     }
 }
 
+void WriteExt_400_RoomNames(const RoomStruct *room, Stream *out)
+{
+    StrUtil::WriteString(room->ScriptName, out);
+    StrUtil::WriteString(room->Name, out);
+}
+
 HRoomFileError WriteRoomData(const RoomStruct *room, Stream *out, RoomFileVersion data_ver)
 {
     if (data_ver < kRoomVersion_Current)
@@ -755,6 +772,7 @@ HRoomFileError WriteRoomData(const RoomStruct *room, Stream *out, RoomFileVersio
     WriteRoomBlock(room, "ext_ags399", WriteExt399, out);
     WriteRoomBlock(room, "v400_walkopts", WriteExt_400_WalkareaOpts, out);
     WriteRoomBlock(room, "v400_customprops", WriteExt_400_CustomProps, out);
+    WriteRoomBlock(room, "v400_roomnames", WriteExt_400_RoomNames, out);
 
     // Write end of room file
     out->WriteByte(kRoomFile_EOF);

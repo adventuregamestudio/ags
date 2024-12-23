@@ -18,6 +18,7 @@
 #ifndef __AGS_EE_GUI__GUIDIALOG_H
 #define __AGS_EE_GUI__GUIDIALOG_H
 
+#include <map>
 #include <vector>
 #include "util/string.h"
 
@@ -35,9 +36,8 @@ void refresh_gui_screen();
 int  loadgamedialog(int min_slot, int max_slot);
 int  savegamedialog(int min_slot, int max_slot);
 void enterstringwindow(const char *prompttext, char *dst_buf, size_t dst_sz);
-int  enternumberwindow(char *prompttext);
-int  roomSelectorWindow(int currentRoom, int numRooms,
-    const std::vector<int> &roomNumbers, const std::vector<AGS::Common::String> &roomNames);
+int  enternumberwindow(const char *prompttext);
+int  roomSelectorWindow(int currentRoom, const std::map<int, AGS::Common::String> &roomNames);
 int  myscimessagebox(const char *lpprompt, char *btn1, char *btn2);
 int  quitdialog();
 

@@ -1769,19 +1769,16 @@ namespace AGS.Editor
                 writer.Write(0); // reserved
             }
             writer.Write(0); // [DEPRECATED]
-            if (game.Settings.DebugMode)
+            writer.Write(game.Rooms.Count);
+            for (int i = 0; i < game.Rooms.Count; ++i)
             {
-                writer.Write(game.Rooms.Count);
-                for (int i = 0; i < game.Rooms.Count; ++i)
+                IRoom room = game.Rooms[i];
+                writer.Write(room.Number);
+                if (room.Description != null)
                 {
-                    IRoom room = game.Rooms[i];
-                    writer.Write(room.Number);
-                    if (room.Description != null)
-                    {
-                        FilePutNullTerminatedString(TextProperty(room.Description), 500, writer);
-                    }
-                    else writer.Write((byte)0);
+                    FilePutNullTerminatedString(TextProperty(room.Description), writer);
                 }
+                else writer.Write((byte)0);
             }
 
             //

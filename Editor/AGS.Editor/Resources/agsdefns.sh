@@ -2751,7 +2751,9 @@ builtin struct Game {
   readonly import static attribute int SpriteColorDepth[];
   /// Gets the total number of the rooms in game.
   readonly import static attribute int RoomCount;
-  /// Gets the room's name (description) by its index, returns null if such room does not exist.
+  /// Gets the existing room numbers by a sequential index (from 0 to RoomCount - 1); returns -1 if index is not valid.
+  readonly import static attribute int RoomNumbers[];
+  /// Gets the room's name (description) by the room's number; returns null if such room does not exist.
   readonly import static attribute String RoomNames[];
 #endif // SCRIPT_API_v400
 };

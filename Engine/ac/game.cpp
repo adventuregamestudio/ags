@@ -917,12 +917,19 @@ void Game_SetFaceDirectionRatio(float ratio)
 
 int Game_GetRoomCount()
 {
-    return game.roomNames.size();
+    return game.roomNumbers.size();
 }
 
-const char* Game_GetRoomName(int index)
+int Game_GetRoomNumber(int index)
 {
-    auto it_room = game.roomNames.find(index);
+    if (index < 0 || index >= game.roomNumbers.size())
+        return -1;
+    return game.roomNumbers[index];
+}
+
+const char* Game_GetRoomName(int room_number)
+{
+    auto it_room = game.roomNames.find(room_number);
     if (it_room == game.roomNames.end())
         return nullptr;
 
@@ -1974,6 +1981,11 @@ RuntimeScriptValue Sc_Game_GetRoomCount(const RuntimeScriptValue *params, int32_
     API_SCALL_INT(Game_GetRoomCount);
 }
 
+RuntimeScriptValue Sc_Game_GetRoomNumber(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_PINT(Game_GetRoomNumber);
+}
+
 RuntimeScriptValue Sc_Game_GetRoomName(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_OBJ_PINT(const char, myScriptStringImpl, Game_GetRoomName);
@@ -2053,6 +2065,7 @@ void RegisterGameAPI()
         { "Game::get_FaceDirectionRatio",                 API_FN_PAIR(Game_GetFaceDirectionRatio) },
         { "Game::set_FaceDirectionRatio",                 API_FN_PAIR(Game_SetFaceDirectionRatio) },
         { "Game::get_RoomCount",                          API_FN_PAIR(Game_GetRoomCount) },
+        { "Game::geti_RoomNumbers",                       API_FN_PAIR(Game_GetRoomNumber) },
         { "Game::geti_RoomNames",                         API_FN_PAIR(Game_GetRoomName) },
     };
 

@@ -210,10 +210,12 @@ void GameSetupStruct::read_room_names(Stream *in, GameDataVersion data_ver)
         (options[OPT_DEBUGMODE] != 0))
     {
         uint32_t room_count = in->ReadInt32();
+        roomNumbers.resize(room_count);
         for (int i = 0; i < room_count; ++i)
         {
             int room_number = in->ReadInt32();
             String room_name = String::FromStream(in);
+            roomNumbers[i] = room_number;
             roomNames.insert(std::make_pair(room_number, room_name));
         }
     }

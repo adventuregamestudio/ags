@@ -35,6 +35,7 @@ namespace AGS.Types
 
 		private const string DEFAULT_GENRE = "Adventure";
         private const string DEFAULT_VERSION = "1.0.0.0";
+        private const string DEFAULT_TEXTFORMAT = "utf-8";
 
         private const string DEFAULT_TARGET_NAMES = "DataFile, Windows";
 
@@ -61,8 +62,8 @@ namespace AGS.Types
         private string _customDataDir = null;
         private int _splitResources = 0;
         private bool _attachDataToExe = false;
-        private bool _turnBeforeWalking = true;
-        private bool _turnBeforeFacing = true;
+        private bool _turnBeforeWalking = false;
+        private bool _turnBeforeFacing = false;
         private bool _scaleMovementSpeedWithMaskRes = false;
         private bool _mouseWheelEnabled = true;
         private RoomTransitionStyle _roomTransition = RoomTransitionStyle.FadeOutAndIn;
@@ -70,7 +71,7 @@ namespace AGS.Types
         private SpriteCompression _compressSprites = SpriteCompression.None;
         private bool _optimizeSpriteStorage = true;
         private bool _inventoryCursors = true;
-        private bool _handleInvInScript = false;
+        private bool _handleInvInScript = true;
         private bool _displayMultipleInv = false;
         private ScriptAPIVersion _scriptAPIVersion = ScriptAPIVersion.Highest;
         private ScriptAPIVersion _scriptCompatLevel = ScriptAPIVersion.Highest;
@@ -110,7 +111,7 @@ namespace AGS.Types
         private int _totalScore = 0;
         private GUIAlphaStyle _guiAlphaStyle = GUIAlphaStyle.MultiplyTranslucenceSrcBlend;
         private SpriteAlphaStyle _spriteAlphaStyle = SpriteAlphaStyle.Improved;
-        private bool _runGameLoopsWhileDialogOptionsDisplayed = false;
+        private bool _runGameLoopsWhileDialogOptionsDisplayed = true;
         private InventoryHotspotMarker _inventoryHotspotMarker = new InventoryHotspotMarker();
         private bool _useLowResCoordinatesInScript = true;
         private int _defRoomMaskResolution = 1;
@@ -232,6 +233,7 @@ namespace AGS.Types
         [DisplayName(PROPERTY_COLOUR_DEPTH)]
         [Description("The colour depth of the game (higher gives better colour quality, but slower performance)")]
         [Category("(Basic properties)")]
+        [DefaultValue(GameColorDepth.TrueColor)]
         [TypeConverter(typeof(EnumTypeConverter))]
         public GameColorDepth ColorDepth
         {
@@ -287,6 +289,7 @@ namespace AGS.Types
 
         [DisplayName(PROPERTY_TEXT_FORMAT)]
         [Category("(Basic properties)")]
+        [DefaultValue(DEFAULT_TEXTFORMAT)]
         [TypeConverter(typeof(TextEncodingTypeConverter))]
         public string GameTextEncoding
         {
@@ -349,8 +352,8 @@ namespace AGS.Types
 
         [DisplayName("Sprite file compression")]
         [Description("Compress the sprite file to reduce its size, at the expense of performance")]
-        [DefaultValue(false)]
         [Category("Compiler")]
+        [DefaultValue(SpriteCompression.None)]
         public SpriteCompression CompressSpritesType
         {
             get { return _compressSprites; }
@@ -359,8 +362,8 @@ namespace AGS.Types
 
         [DisplayName("Enable sprite storage optimization")]
         [Description("When possible save sprites in game files in a format that requires less storage space. This may reduce the compiled game size on disk, but effect may differ depending on number of colors used in sprites, and other factors.")]
-        [DefaultValue(true)]
         [Category("Compiler")]
+        [DefaultValue(true)]
         public bool OptimizeSpriteStorage
         {
             get { return _optimizeSpriteStorage; }
@@ -369,8 +372,8 @@ namespace AGS.Types
 
         [DisplayName("Save screenshots in save games")]
         [Description("A screenshot of the player's current position will be saved into the save games")]
-        [DefaultValue(false)]
         [Category("Saved Games")]
+        [DefaultValue(false)]
         public bool SaveScreenshots
         {
             get { return _saveScreenshots; }
@@ -379,8 +382,8 @@ namespace AGS.Types
 
         [DisplayName("Default transition when changing rooms")]
         [Description("This transition will be used when the player exits one room and moves onto another")]
-        [DefaultValue(RoomTransitionStyle.FadeOutAndIn)]
         [Category("Visual")]
+        [DefaultValue(RoomTransitionStyle.FadeOutAndIn)]
         public RoomTransitionStyle RoomTransition
         {
             get { return _roomTransition; }
@@ -389,8 +392,8 @@ namespace AGS.Types
 
         [DisplayName("Enable mouse wheel support")]
         [Description("Enable mouse wheel events to be sent to on_mouse_click")]
-        [DefaultValue(true)]
         [Category("Backwards Compatibility")]
+        [DefaultValue(true)]
         public bool MouseWheelEnabled
         {
             get { return _mouseWheelEnabled; }
@@ -399,8 +402,8 @@ namespace AGS.Types
 
         [DisplayName("Use low-resolution co-ordinates in script")]
         [Description("Backwards-compatible option to always use low-res co-ordinates in the script. This is how previous versions of AGS always worked. WARNING: Changing this setting could break your current scripts.")]
-        [DefaultValue(false)]
         [Category("Backwards Compatibility")]
+        [DefaultValue(false)]
         public bool UseLowResCoordinatesInScript
         {
             get { return _useLowResCoordinatesInScript; }
@@ -409,8 +412,8 @@ namespace AGS.Types
 
         [DisplayName("Characters turn to face direction")]
         [Description("Characters will turn on the spot to face their new direction when FaceLocation is used")]
-        [DefaultValue(true)]
         [Category("Character behavior")]
+        [DefaultValue(false)]
         public bool TurnBeforeFacing
         {
             get { return _turnBeforeFacing; }
@@ -419,8 +422,8 @@ namespace AGS.Types
 
         [DisplayName("Characters turn before walking")]
         [Description("Characters will turn on the spot to face their new direction before starting to move")]
-        [DefaultValue(true)]
         [Category("Character behavior")]
+        [DefaultValue(false)]
         public bool TurnBeforeWalking
         {
             get { return _turnBeforeWalking; }
@@ -449,8 +452,8 @@ namespace AGS.Types
 
         [DisplayName("Split resource files into X MB-sized chunks")]
         [Description("Resources will be split into files sized with the number of megabytes you enter here (0 to disable)")]
-        [DefaultValue(0)]
         [Category("Compiler")]
+        [DefaultValue(0)]
         public int SplitResources
         {
             get { return _splitResources; }
@@ -459,8 +462,8 @@ namespace AGS.Types
 
         [DisplayName("Attach game data to exe (Windows only)")]
         [Description("Main game data will be attached to game exe. Otherwise it will be in a separate file called GAMENAME.ags")]
-        [DefaultValue(false)]
         [Category("Compiler")]
+        [DefaultValue(false)]
         public bool AttachDataToExe
         {
             get { return _attachDataToExe; }
@@ -469,8 +472,8 @@ namespace AGS.Types
 
         [DisplayName("Old-style letterbox mode")]
         [Description("Game will run at 320x240 or 640x480 with top and bottom black borders to give a square aspect ratio. Not recommended unless importing an old project.")]
-        [DefaultValue(false)]
         [Category("Backwards Compatibility")]
+        [DefaultValue(false)]
         public bool LetterboxMode
         {
             get { return _letterboxMode; }
@@ -483,8 +486,8 @@ namespace AGS.Types
 
         [DisplayName("Automatically move the player in Walk mode")]
         [Description("When the player clicks somewhere in Walk mode, the player character will be sent there rather than processing it as an interaction")]
-        [DefaultValue(true)]
         [Category("Character behavior")]
+        [DefaultValue(true)]
         public bool AutoMoveInWalkMode
         {
             get { return _autoMoveInWalkMode; }
@@ -493,8 +496,8 @@ namespace AGS.Types
 
         [DisplayName("Pixel-perfect click detection")]
         [Description("When the player clicks the mouse, a pixel-perfect check will be used to decide what they clicked on (if false, a simple rectangular check is used)")]
-        [DefaultValue(true)]
         [Category("Visual")]
+        [DefaultValue(true)]
         public bool PixelPerfect
         {
             get { return _pixelPerfect; }
@@ -503,9 +506,9 @@ namespace AGS.Types
 
         [DisplayName("When player interface is disabled, GUIs should")]
         [Description("When the player interface is disabled (eg. during a cutscene), GUIs on screen will take this action")]
-        [DefaultValue(InterfaceDisabledAction.GreyOut)]
         [Category("Visual")]
-		[TypeConverter(typeof(EnumTypeConverter))]
+        [DefaultValue(InterfaceDisabledAction.GreyOut)]
+        [TypeConverter(typeof(EnumTypeConverter))]
 		public InterfaceDisabledAction WhenInterfaceDisabled
         {
             get { return _whenInterfaceDisabled; }
@@ -515,8 +518,8 @@ namespace AGS.Types
         [DisplayName(PROPERTY_CLIPGUICONTROLS)]
         [Description("GUI controls will clip their graphical contents, such as text, preventing it from being drawn outside of their rectangle." +
             "\nNOTE: Button images are clipped using individual button's property.")]
-        [DefaultValue(true)]
         [Category("Visual")]
+        [DefaultValue(true)]
         public bool ClipGUIControls
         {
             get { return _clipGuiControls; }
@@ -525,8 +528,8 @@ namespace AGS.Types
 
         [DisplayName("GUI alpha rendering style")]
         [Description("When using 32-bit alpha-channel images, should GUIs be drawn with the new improved alpha method, or the backwards-compatible method?")]
-        [DefaultValue(GUIAlphaStyle.MultiplyTranslucenceSrcBlend)]
         [Category("Visual")]
+        [DefaultValue(GUIAlphaStyle.MultiplyTranslucenceSrcBlend)]
         [TypeConverter(typeof(EnumTypeConverter))]
         public GUIAlphaStyle GUIAlphaStyle
         {
@@ -536,8 +539,8 @@ namespace AGS.Types
 
         [DisplayName("Sprite alpha rendering style")]
         [Description("When using 32-bit alpha-channel images, should sprites be drawn with the new improved alpha method, or the backwards-compatible method?")]
-        [DefaultValue(SpriteAlphaStyle.Improved)]
         [Category("Visual")]
+        [DefaultValue(SpriteAlphaStyle.Improved)]
         [TypeConverter(typeof(EnumTypeConverter))]
         public SpriteAlphaStyle SpriteAlphaStyle
         {
@@ -547,8 +550,8 @@ namespace AGS.Types
 
         [DisplayName("Run game loops while dialog options are displayed")]
         [Description("Whether to allow game animations to continue in the background while waiting for the player to select a dialog option")]
-        [DefaultValue(false)]
         [Category("Dialog")]
+        [DefaultValue(true)]
         public bool RunGameLoopsWhileDialogOptionsDisplayed
         {
             get { return _runGameLoopsWhileDialogOptionsDisplayed; }
@@ -566,6 +569,7 @@ namespace AGS.Types
         [DisplayName("Inventory item cursor hotspot marker")]
         [Description("AGS can automatically add a marker to inventory item cursors to help the player see where the active hotspot is on the cursor")]
         [Category("Inventory")]
+        [DefaultValue(InventoryHotspotMarkerStyle.None)]
         [TypeConverter(typeof(EnumTypeConverter))]
         [RefreshProperties(RefreshProperties.All)]
         public InventoryHotspotMarkerStyle InventoryHotspotMarkerStyle
@@ -577,6 +581,7 @@ namespace AGS.Types
         [DisplayName("Inventory item cursor hotspot marker sprite")]
         [Description("The sprite to draw on top of the inventory cursor at the hotspot position")]
         [Category("Inventory")]
+        [DefaultValue(0)]
         [EditorAttribute(typeof(SpriteSelectUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         public int InventoryHotspotMarkerSprite
         {
@@ -587,6 +592,7 @@ namespace AGS.Types
         [DisplayName("Inventory item cursor hotspot marker dot colour")]
         [Description("The AGS Colour Number of the colour of the central dot of the crosshair")]
         [Category("Inventory")]
+        [DefaultValue(0)]
         public int InventoryHotspotMarkerDotColor
         {
             get { return _inventoryHotspotMarker.DotColor; }
@@ -596,6 +602,7 @@ namespace AGS.Types
         [DisplayName("Inventory item cursor hotspot marker crosshair colour")]
         [Description("The AGS Colour Number of the colour of the crosshair bars")]
         [Category("Inventory")]
+        [DefaultValue(0)]
         public int InventoryHotspotMarkerCrosshairColor
         {
             get { return _inventoryHotspotMarker.CrosshairColor; }
@@ -604,8 +611,8 @@ namespace AGS.Types
 
         [DisplayName("Automatically walk to hotspots in Look mode")]
         [Description("Whenever the player clicks somewhere in Look mode, the player character will automatically be moved there")]
-        [DefaultValue(false)]
         [Category("Character behavior")]
+        [DefaultValue(false)]
         public bool WalkInLookMode
         {
             get { return _walkInLookMode; }
@@ -621,8 +628,8 @@ namespace AGS.Types
 
         [DisplayName("Scale Character sprite offsets")]
         [Description("Scale sprite offsets along with the character sprite, such as Character.z property, and offsets set by Character.LockViewOffset()")]
-        [DefaultValue(true)]
         [Category("Character behavior")]
+        [DefaultValue(true)]
         public bool ScaleCharacterSpriteOffsets
         {
             get { return _scaleCharacterSpriteOffsets; }
@@ -631,8 +638,8 @@ namespace AGS.Types
 
         [DisplayName("Enable Debug Mode")]
         [Description("Enable various debugging keys that help you while developing your game")]
-        [DefaultValue(true)]
         [Category("Compiler")]
+        [DefaultValue(false)]
         public bool DebugMode
         {
             get { return _debugMode; }
@@ -641,8 +648,8 @@ namespace AGS.Types
 
         [DisplayName("Use selected inventory graphic for cursor")]
         [Description("When in Use Inventory mode, the mouse cursor will be the selected inventory item rather than a fixed cursor")]
-        [DefaultValue(true)]
         [Category("Inventory")]
+        [DefaultValue(true)]
         public bool InventoryCursors
         {
             get { return _inventoryCursors; }
@@ -651,8 +658,8 @@ namespace AGS.Types
 
         [DisplayName("Override built-in inventory window click handling")]
         [Description("When the mouse is clicked in an inventory window, on_mouse_click is called rather than using AGS's default processing")]
-        [DefaultValue(true)]
         [Category("Inventory")]
+        [DefaultValue(true)]
         public bool HandleInvClicksInScript
         {
             get { return _handleInvInScript; }
@@ -661,8 +668,8 @@ namespace AGS.Types
 
         [DisplayName("Display multiple icons for multiple items")]
         [Description("If the player has two or more of an item, it will be displayed multiple times in the inventory window")]
-        [DefaultValue(false)]
         [Category("Inventory")]
+        [DefaultValue(false)]
         public bool DisplayMultipleInventory
         {
             get { return _displayMultipleInv; }
@@ -671,8 +678,8 @@ namespace AGS.Types
 
         [DisplayName("Script API version")]
         [Description("Choose the version of the script API to use in your scripts")]
-        [DefaultValue(ScriptAPIVersion.Highest)]
         [Category("Backwards Compatibility")]
+        [DefaultValue(ScriptAPIVersion.Highest)]
         [TypeConverter(typeof(EnumTypeConverter))]
         public ScriptAPIVersion ScriptAPIVersion
         {
@@ -688,8 +695,8 @@ namespace AGS.Types
 
         [DisplayName("Script compatibility level")]
         [Description("Lowest version of the obsoleted script API to support in your script")]
-        [DefaultValue(ScriptAPIVersion.Highest)]
         [Category("Backwards Compatibility")]
+        [DefaultValue(ScriptAPIVersion.Highest)]
         [TypeConverter(typeof(EnumTypeConverter))]
         public ScriptAPIVersion ScriptCompatLevel
         {
@@ -725,8 +732,8 @@ namespace AGS.Types
 
         [DisplayName("Left-to-right operator precedence")]
         [Description("Expressions like (5 - 3 - 2) will equal 0 rather than 4")]
-        [DefaultValue(true)]
         [Category("Backwards Compatibility")]
+        [DefaultValue(true)]
         public bool LeftToRightPrecedence
         {
             get { return _leftToRightPrecedence; }
@@ -735,8 +742,8 @@ namespace AGS.Types
 
         [DisplayName("Enforce post-2.62 scripting")]
         [Description("Disable old-style AGS 2.62 script commands")]
-        [DefaultValue(true)]
         [Category("Backwards Compatibility")]
+        [DefaultValue(true)]
         public bool EnforceObjectBasedScript
         {
             get { return _enforceObjectScripting; }
@@ -745,8 +752,8 @@ namespace AGS.Types
 
         [DisplayName("Enforce new-style strings")]
         [Description("Disable old-style strings from AGS 2.70 and before")]
-        [DefaultValue(true)]
         [Category("Backwards Compatibility")]
+        [DefaultValue(true)]
         public bool EnforceNewStrings
         {
             get { return _enforceNewStrings; }
@@ -755,8 +762,8 @@ namespace AGS.Types
 
         [DisplayName("Enforce new-style audio scripting")]
         [Description("Disable old-style audio commands like PlaySound, IsChannelPlaying, etc")]
-        [DefaultValue(true)]
         [Category("Backwards Compatibility")]
+        [DefaultValue(true)]
         public bool EnforceNewAudio
         {
             get { return _enforceNewAudio; }
@@ -765,8 +772,8 @@ namespace AGS.Types
 
         [DisplayName("Use old-style custom dialog options API")]
         [Description("Use pre-3.4.0 callback functions to handle custom dialog options GUI")]
-        [DefaultValue(false)]
         [Category("Backwards Compatibility")]
+        [DefaultValue(false)]
         public bool UseOldCustomDialogOptionsAPI
         {
             get { return _oldCustomDlgOptsAPI; }
@@ -775,8 +782,8 @@ namespace AGS.Types
 
         [DisplayName("Use old-style keyboard handling")]
         [Description("Use pre-unicode mode key codes in 'on_key_press' function, where regular keys were merged with Ctrl and Alt modifiers.")]
-        [DefaultValue(false)]
         [Category("Backwards Compatibility")]
+        [DefaultValue(false)]
         public bool UseOldKeyboardHandling
         {
             get { return _oldKeyHandling; }
@@ -785,8 +792,8 @@ namespace AGS.Types
 
         [DisplayName("Use old-style voice clip naming rule")]
         [Description("Define voice clip name using only the first 4 letters from a Character's script name.")]
-        [DefaultValue(false)]
         [Category("Backwards Compatibility")]
+        [DefaultValue(false)]
         public bool UseOldVoiceClipNaming
         {
             get { return _oldVoiceClipNaming; }
@@ -795,8 +802,8 @@ namespace AGS.Types
 
         [DisplayName("Play sound when the player gets points")]
         [Description("This sound number will be played whenever the player scores points (0 to disable)")]
-        [DefaultValue(AudioClip.FixedIndexNoValue)]
         [Category("Score")]
+        [DefaultValue(AudioClip.FixedIndexNoValue)]
         [TypeConverter(typeof(AudioClipTypeConverter))]
         public int PlaySoundOnScore
         {
@@ -811,8 +818,8 @@ namespace AGS.Types
 
         [DisplayName("Use GUI for dialog options")]
         [Description("Dialog options can be drawn on a textwindow GUI (0 to just draw at bottom of screen instead)")]
-        [DefaultValue(0)]
         [Category("Dialog")]
+        [DefaultValue(0)]
         public int DialogOptionsGUI
         {
             get { return _dialogOptionsGUI; }
@@ -821,8 +828,8 @@ namespace AGS.Types
 
         [DisplayName("Gap between dialog options (in pixels)")]
         [Description("Gap between dialog options (in pixels)")]
-        [DefaultValue(0)]
         [Category("Dialog")]
+        [DefaultValue(0)]
         public int DialogOptionsGap
         {
             get { return _dialogOptionsGap; }
@@ -831,8 +838,8 @@ namespace AGS.Types
 
         [DisplayName("Dialog bullet point image")]
         [Description("Sprite to use as a bullet point before each dialog option (0 for none)")]
-        [DefaultValue(0)]
         [Category("Dialog")]
+        [DefaultValue(0)]
         [EditorAttribute(typeof(SpriteSelectUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         public int DialogOptionsBullet
         {
@@ -842,8 +849,8 @@ namespace AGS.Types
 
         [DisplayName("Allow speech to be skipped by which events")]
         [Description("Determines whether the mouse, keyboard or the auto-remove timer can remove the current speech line")]
-        [DefaultValue(SkipSpeechStyle.MouseOrKeyboardOrTimer)]
         [Category("Dialog")]
+        [DefaultValue(SkipSpeechStyle.MouseOrKeyboardOrTimer)]
         [TypeConverter(typeof(EnumTypeConverter))]
         public SkipSpeechStyle SkipSpeech
         {
@@ -853,8 +860,8 @@ namespace AGS.Types
 
         [DisplayName("Speech style")]
         [Description("Determines whether speech is displayed in lucasarts or sierra-style")]
-        [DefaultValue(SpeechStyle.Lucasarts)]
         [Category("Dialog")]
+        [DefaultValue(SpeechStyle.Lucasarts)]
         public SpeechStyle SpeechStyle
         {
             get { return _speechStyle; }
@@ -863,8 +870,8 @@ namespace AGS.Types
 
         [DisplayName("Use game-wide speech animation delay")]
         [Description("Determines whether to use game-wide speech animation delay or use the individual character settings.")]
-        [DefaultValue(false)]
         [Category("Dialog")]
+        [DefaultValue(false)]
         [RefreshProperties(RefreshProperties.All)]
         public bool UseGlobalSpeechAnimationDelay
         {
@@ -874,8 +881,8 @@ namespace AGS.Types
 
         [DisplayName("Game-wide speech animation delay")]
         [Description("Sets the Speech.GlobalSpeechAnimationDelay setting to determine the animation speed of character speech; individual character SpeechAnimationDelay settings will be ignored.")]
-        [DefaultValue(5)]
         [Category("Dialog")]
+        [DefaultValue(5)]
         public int GlobalSpeechAnimationDelay
         {
             get { return _globalSpeechAnimationDelay; }
@@ -897,8 +904,8 @@ namespace AGS.Types
 
         [DisplayName("Number dialog options")]
         [Description("Dialog options become numbered bullet points, and the numeric keys can be used to select them")]
-        [DefaultValue(DialogOptionsNumbering.None)]
         [Category("Dialog")]
+        [DefaultValue(DialogOptionsNumbering.None)]
         [TypeConverter(typeof(EnumTypeConverter))]
         public DialogOptionsNumbering NumberDialogOptions
         {
@@ -908,8 +915,8 @@ namespace AGS.Types
 
         [DisplayName("Print dialog options upwards")]
         [Description("The first dialog option will be at the bottom, and the last at the top")]
-        [DefaultValue(false)]
         [Category("Dialog")]
+        [DefaultValue(false)]
         public bool DialogOptionsBackwards
         {
             get { return _dialogOptionsBackwards; }
@@ -918,8 +925,8 @@ namespace AGS.Types
 
         [DisplayName("Sierra-style portrait location")]
         [Description("Determines whether to draw the Sierra-style portrait on the left or right of the screen")]
-        [DefaultValue(SpeechPortraitSide.Left)]
         [Category("Dialog")]
+        [DefaultValue(SpeechPortraitSide.Left)]
         public SpeechPortraitSide SpeechPortraitSide
         {
             get { return _speechPortraitSide; }
@@ -928,7 +935,6 @@ namespace AGS.Types
 
         [DisplayName("Custom Say function in dialog scripts")]
         [Description("Sets which function name to use in place of character.Say when running dialog scripts. Note that it must be an extension function of a Character class. Leave empty to use default (Character.Say).")]
-        [DefaultValue("")]
         [Category("Dialog")]
         public string DialogScriptSayFunction
         {
@@ -938,7 +944,6 @@ namespace AGS.Types
 
         [DisplayName("Custom Narrate function in dialog scripts")]
         [Description("Sets which function name to use in place of narrator's speech when running dialog scripts. Note that it must be either regular function or a static struct function. Leave empty to use default (Display).")]
-        [DefaultValue("")]
         [Category("Dialog")]
         public string DialogScriptNarrateFunction
         {
@@ -948,8 +953,8 @@ namespace AGS.Types
 
         [DisplayName("Custom text-window GUI")]
         [Description("Sets which text-window GUI is used for normal text in the game. You must use the GUI number, not name. You can't use GUI 0 for this, because 0 means that AGS will use its built-in text window instead.")]
-        [DefaultValue(0)]
         [Category("Text output")]
+        [DefaultValue(0)]
         public int TextWindowGUI
         {
             get { return _textWindowGUI; }
@@ -958,8 +963,8 @@ namespace AGS.Types
 
         [DisplayName("Always display text as speech")]
         [Description("Enables the lucasarts-style option where all default text in the game is spoken by the main character")]
-        [DefaultValue(false)]
         [Category("Text output")]
+        [DefaultValue(false)]
         public bool AlwaysDisplayTextAsSpeech
         {
             get { return _alwaysDisplayTextAsSpeech; }
@@ -976,8 +981,8 @@ namespace AGS.Types
 
         [DisplayName(PROPERTY_ANTI_ALIAS_FONTS)]
         [Description("True-type fonts will be anti-aliased in-game, but there is a performance penalty")]
-        [DefaultValue(false)]
         [Category("Text output")]
+        [DefaultValue(false)]
         public bool AntiAliasFonts
         {
             get { return _antiAliasFonts; }
@@ -986,8 +991,8 @@ namespace AGS.Types
 
         [DisplayName(PROPERTY_FONT_HEIGHT_IN_LOGIC)]
         [Description("How the true-type font height will be defined whenever it is required by the script or game logic.")]
-        [DefaultValue(FontHeightDefinition.NominalHeight)]
         [Category("Text output")]
+        [DefaultValue(FontHeightDefinition.NominalHeight)]
         [TypeConverter(typeof(EnumTypeConverter))]
         public FontHeightDefinition TTFHeightDefinedBy
         {
@@ -998,8 +1003,8 @@ namespace AGS.Types
         [DisplayName("TTF fonts adjustment defaults")]
         [Description("Automatic adjustment of the true-type font metrics; primarily for backward compatibility." +
             "\nThis option will be used as a default value for each new imported font, but you may also customize it in the Font's properties.")]
-        [DefaultValue(FontMetricsFixup.None)]
         [Category("Text output")]
+        [DefaultValue(FontMetricsFixup.None)]
         [TypeConverter(typeof(EnumTypeConverter))]
         public FontMetricsFixup TTFMetricsFixup
         {
@@ -1009,8 +1014,8 @@ namespace AGS.Types
 
         [DisplayName("Custom thought bubble GUI")]
         [Description("Character.Think will use this custom text-window GUI")]
-        [DefaultValue(0)]
         [Category("Text output")]
+        [DefaultValue(0)]
         public int ThoughtGUI
         {
             get { return _thoughtGUI; }
@@ -1019,8 +1024,8 @@ namespace AGS.Types
 
         [DisplayName("Write game text Right-to-Left")]
         [Description("The game will draw text right-to-left, used by languages such as Hebrew")]
-        [DefaultValue(false)]
         [Category("Text output")]
+        [DefaultValue(false)]
         public bool BackwardsText
         {
             get { return _backwardsText; }
@@ -1030,6 +1035,7 @@ namespace AGS.Types
         [DisplayName("Maximum possible score")]
         [Description("The maximum score that the player can achieve (displayed by @TOTALSCORE@ on GUI labels)")]
         [Category("Score")]
+        [DefaultValue(0)]
         public int MaximumScore
         {
             get { return _totalScore; }
@@ -1209,8 +1215,8 @@ namespace AGS.Types
 
         [DisplayName("Render sprites at screen resolution")]
         [Description("When drawing zoomed character and object sprites, AGS will take advantage of higher runtime resolution to give scaled images more detail, than it would be possible if the game was displayed in its native resolution. The effect is stronger for low-res games. Keep disabled for pixel-perfect output. Currently supported only by Direct3D and OpenGL renderers.")]
-        [DefaultValue(RenderAtScreenResolution.UserDefined)]
         [Category("Visual")]
+        [DefaultValue(RenderAtScreenResolution.UserDefined)]
         [TypeConverter(typeof(EnumTypeConverter))]
         public RenderAtScreenResolution RenderAtScreenResolution
         {
@@ -1220,8 +1226,8 @@ namespace AGS.Types
 
         [DisplayName(PROPERTY_ANDROID_APPLICATION_ID)]
         [Description("The application ID, used in app store. Also called package name, it's usually looks like com.mystudio.mygame, and it's used in store URLs. It must have at least two segments (one or more dots), and each segment must start with a letter.")]
-        [DefaultValue("com.mystudio.mygame")]
         [Category("Android")]
+        [DefaultValue("com.mystudio.mygame")]
         public string AndroidApplicationId
         {
             get { return _androidApplicationId; }
@@ -1242,8 +1248,8 @@ namespace AGS.Types
 
         [DisplayName(PROPERTY_ANDROID_APP_VERSION_CODE)]
         [Description("The version ID used by Google Play Store and others - positive integer, must be different from the last one uploaded.")]
-        [DefaultValue("1")]
         [Category("Android")]
+        [DefaultValue("1")]
         public int AndroidAppVersionCode
         {
             get { return _androidAppVersionCode; }
@@ -1252,7 +1258,6 @@ namespace AGS.Types
 
         [DisplayName(PROPERTY_ANDROID_APP_VERSION_NAME)]
         [Description("The version name visible to users in the stores, this can be anything. Leave empty to use the same version you set in desktop platforms.")]
-        [DefaultValue("")]
         [Category("Android")]
         public string AndroidAppVersionName
         {
@@ -1262,8 +1267,8 @@ namespace AGS.Types
 
         [DisplayName("Build Format")]
         [Description("Use embedded formats when testing locally. Google Play only accepts AAB.")]
-        [DefaultValue("Aab")]
         [Category("Android")]
+        [DefaultValue(AndroidBuildFormat.Aab)]
         public AndroidBuildFormat AndroidBuildFormat
         {
             get { return _androidBuildFormat; }

@@ -14,12 +14,8 @@
 #include "script/systemimports.h"
 #include <stdlib.h>
 #include <string.h>
-#include "script/cc_instance.h"
 
 using namespace AGS::Common;
-
-SystemImports simp;
-SystemImports simp_for_plugin;
 
 
 void ScriptSymbolsMap::Add(const String &name, uint32_t index)

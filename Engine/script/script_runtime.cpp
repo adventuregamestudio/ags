@@ -20,6 +20,10 @@
 #include "script/systemimports.h"
 
 
+SystemImports simp;
+SystemImports simp_for_plugin;
+
+
 bool ccAddExternalStaticFunction(const String &name, ScriptAPIFunction *scfn, void *dirfn)
 {
     return simp.Add(name, RuntimeScriptValue().SetStaticFunction(scfn), nullptr) != UINT32_MAX &&

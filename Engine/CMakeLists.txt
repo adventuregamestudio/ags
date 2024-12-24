@@ -648,6 +648,7 @@ if(AGS_TESTS)
     add_executable(
         engine_test
         test/scsprintf_test.cpp
+        test/systemimports_test.cpp
     )
     set_target_properties(engine_test PROPERTIES
         CXX_STANDARD 11
@@ -659,6 +660,7 @@ if(AGS_TESTS)
     target_link_libraries(
         engine_test
         engine
+        common
         gtest_main
     )
 

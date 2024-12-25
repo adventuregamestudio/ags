@@ -3387,19 +3387,14 @@ enum SaveComponentSelection
 };
 
 #ifdef SCRIPT_API_v362
-enum RestoredSaveResult
-{
-  eRestoredSave_ClearData   = 0x01,
-  eRestoredSave_MissingData = 0x08,
-  eRestoredSave_ExtraData   = 0x10,
-  eRestoredSave_Prescan     = 0x20
-};
-
 managed struct RestoredSaveInfo
 {
   import attribute bool Cancel;
   import attribute SaveComponentSelection RetryWithoutComponents;
-  import readonly attribute RestoredSaveResult Result;
+
+  import readonly attribute bool IsPrescan;
+  import readonly attribute bool HasExtraData;
+  import readonly attribute bool HasMissingData;
 
   import readonly attribute int Slot;
   import readonly attribute String Description;

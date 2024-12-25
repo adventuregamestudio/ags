@@ -3397,26 +3397,46 @@ enum RestoredSaveResult
 
 managed struct RestoredSaveInfo
 {
+  /// Gets/sets whether this game's save should be cancelled.
   import attribute bool Cancel;
+  /// Gets/sets whether this game's save should be reloaded again without particular components.
   import attribute SaveComponentSelection RetryWithoutComponents;
-  import readonly attribute bool Result[]; // RestoredSaveResult
+  /// Gets the result of restoring this save. Use RestoredSaveResult values as index in this array to learn whether particular case is present.
+  import readonly attribute bool Result[];
 
+  /// Gets the save's slot number.
   import readonly attribute int Slot;
+  /// Gets the save's description string, which it was written with.
   import readonly attribute String Description;
+  /// Gets the version of the engine which wrote this save.
   import readonly attribute String EngineVersion;
+  /// Gets the room number this save was made in.
   import readonly attribute int Room;
+  /// Gets the number of Audio Types present in this save.
   import readonly attribute int AudioClipTypeCount;
+  /// Gets the number of Characters present in this save.
   import readonly attribute int CharacterCount;
+  /// Gets the number of Dialogs present in this save.
   import readonly attribute int DialogCount;
+  /// Gets the number of GUIs present in this save.
   import readonly attribute int GUICount;
+  /// Gets the number of controls on each GUI present in this save.
   import readonly attribute int GUIControlCount[];
+  /// Gets the number of Inventory Items present in this save.
   import readonly attribute int InventoryItemCount;
+  /// Gets the number of Cursors present in this save.
   import readonly attribute int CursorCount;
+  /// Gets the number of Views present in this save.
   import readonly attribute int ViewCount;
+  /// Gets the number of loops in each View present in this save.
   import readonly attribute int ViewLoopCount[];
+  /// Gets the number of frames in each View present in this save.
   import readonly attribute int ViewFrameCount[];
+  /// Gets the total size of the global script data (variables), in bytes, present in this save.
   import readonly attribute int GlobalScriptDataSize;
+  /// Gets the number of script modules (except for the global script) present in this save.
   import readonly attribute int ScriptModuleCount;
+  /// Gets the total size of each of the script module's data (variables), in bytes, present in this save.
   import readonly attribute int ScriptModuleDataSize[];
 };
 #endif

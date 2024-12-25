@@ -1040,9 +1040,9 @@ void SaveInfo_SetRetryWithoutComponents(ScriptRestoredSaveInfo *info, int cmp_se
     info->SetRetryWithoutComponents(static_cast<SaveCmpSelection>(cmp_selection));
 }
 
-int SaveInfo_GetResult(ScriptRestoredSaveInfo *info)
+bool SaveInfo_GetResult(ScriptRestoredSaveInfo *info, int flags)
 {
-    return info->GetResult();
+    return (info->GetResult() & flags) != 0;
 }
 
 int SaveInfo_GetSlot(ScriptRestoredSaveInfo *info)
@@ -1172,7 +1172,7 @@ RuntimeScriptValue Sc_SaveInfo_SetRetryWithoutComponents(void *self, const Runti
 
 RuntimeScriptValue Sc_SaveInfo_GetResult(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptRestoredSaveInfo, SaveInfo_GetResult);
+    API_OBJCALL_BOOL_PINT(ScriptRestoredSaveInfo, SaveInfo_GetResult);
 }
 
 RuntimeScriptValue Sc_SaveInfo_GetSlot(void *self, const RuntimeScriptValue *params, int32_t param_count)
@@ -1267,7 +1267,7 @@ void RegisterSaveInfoAPI()
         { "RestoredSaveInfo::set_Cancel",               API_FN_PAIR(SaveInfo_SetCancel) },
         { "RestoredSaveInfo::get_RetryWithoutComponents", API_FN_PAIR(SaveInfo_GetRetryWithoutComponents) },
         { "RestoredSaveInfo::set_RetryWithoutComponents", API_FN_PAIR(SaveInfo_SetRetryWithoutComponents) },
-        { "RestoredSaveInfo::get_Result",               API_FN_PAIR(SaveInfo_GetResult) },
+        { "RestoredSaveInfo::geti_Result",              API_FN_PAIR(SaveInfo_GetResult) },
         { "RestoredSaveInfo::get_Slot",                 API_FN_PAIR(SaveInfo_GetSlot) },
         { "RestoredSaveInfo::get_Description",          API_FN_PAIR(SaveInfo_GetDescription) },
         { "RestoredSaveInfo::get_EngineVersion",        API_FN_PAIR(SaveInfo_GetEngineVersion) },

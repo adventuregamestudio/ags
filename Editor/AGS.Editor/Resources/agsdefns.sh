@@ -3399,7 +3399,7 @@ managed struct RestoredSaveInfo
 {
   import attribute bool Cancel;
   import attribute SaveComponentSelection RetryWithoutComponents;
-  import readonly attribute RestoredSaveResult Result;
+  import readonly attribute bool Result[]; // RestoredSaveResult
 
   import readonly attribute int Slot;
   import readonly attribute String Description;

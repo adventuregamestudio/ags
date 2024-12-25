@@ -239,6 +239,12 @@ void File_WriteInt(sc_File *fil, int towrite) {
   FileWriteInt(fil->handle, towrite);
 }
 
+void File_WriteFloat(sc_File *fil, float towrite) {
+  Stream *out = get_file_stream(fil->handle, "File.WriteFloat");
+  out->WriteInt8('F');
+  out->WriteFloat32(towrite);
+}
+
 void File_WriteRawChar(sc_File *fil, int towrite) {
   FileWriteRawChar(fil->handle, towrite);
 }
@@ -332,8 +338,24 @@ int File_ReadInt(sc_File *fil) {
   return FileReadInt(fil->handle);
 }
 
+float File_ReadFloat(sc_File *fil) {
+  Stream *in = get_file_stream(fil->handle, "File.ReadFloat");
+  if (in->EOS())
+    return -1;
+  if (in->ReadInt8() != 'F')
+  {
+    debug_script_warn("File.ReadFloat: File read back in wrong order");
+    return -1;
+  }
+  return in->ReadFloat32();
+}
+
 int File_ReadRawChar(sc_File *fil) {
   return FileReadRawChar(fil->handle);
+}
+
+int File_ReadRawInt(sc_File *fil) {
+  return FileReadRawInt(fil->handle);
 }
 
 float File_ReadRawFloat(sc_File *fil) {
@@ -341,27 +363,23 @@ float File_ReadRawFloat(sc_File *fil) {
   return out->ReadFloat32();
 }
 
-int File_ReadRawInt(sc_File *fil) {
-  return FileReadRawInt(fil->handle);
-}
-
-int File_ReadBytes(sc_File *fil, void *arr_obj, int index, int count)
+int File_ReadRawBytes(sc_File *fil, void *arr_obj, int index, int count)
 {
-    Stream *in = get_file_stream(fil->handle, "File.ReadBytes");
+    Stream *in = get_file_stream(fil->handle, "File.ReadRawBytes");
     const auto &hdr = CCDynamicArray::GetHeader(arr_obj);
     if (hdr.GetElemCount() == 0)
     {
-        debug_script_warn("File.ReadBytes: dynamic array has zero length");
+        debug_script_warn("File.ReadRawBytes: dynamic array has zero length");
         return 0;
     }
     if (index < 0 || static_cast<uint32_t>(index) >= hdr.GetElemCount())
     {
-        debug_script_warn("File.ReadBytes: starting index out of bounds: %d, range is %u..%u", index, 0u, hdr.GetElemCount() - 1);
+        debug_script_warn("File.ReadRawBytes: starting index out of bounds: %d, range is %u..%u", index, 0u, hdr.GetElemCount() - 1);
         return 0;
     }
     if (count < 0 || static_cast<uint32_t>(index) > hdr.GetElemCount() - index)
     {
-        debug_script_warn("File.ReadBytes: invalid count: %d, valid range is %u..%u", count, 0u, hdr.GetElemCount() - index);
+        debug_script_warn("File.ReadRawBytes: invalid count: %d, valid range is %u..%u", count, 0u, hdr.GetElemCount() - index);
         return 0;
     }
 
@@ -371,23 +389,23 @@ int File_ReadBytes(sc_File *fil, void *arr_obj, int index, int count)
     return static_cast<int>(in->Read(static_cast<uint8_t*>(arr_obj) + read_at, read_count));
 }
 
-int File_WriteBytes(sc_File *fil, void *arr_obj, int index, int count)
+int File_WriteRawBytes(sc_File *fil, void *arr_obj, int index, int count)
 {
-    Stream *out = get_file_stream(fil->handle, "File.WriteBytes");
+    Stream *out = get_file_stream(fil->handle, "File.WriteRawBytes");
     const auto &hdr = CCDynamicArray::GetHeader(arr_obj);
     if (hdr.GetElemCount() == 0)
     {
-        debug_script_warn("File.WriteBytes: dynamic array has zero length");
+        debug_script_warn("File.WriteRawBytes: dynamic array has zero length");
         return 0;
     }
     if (index < 0 || static_cast<uint32_t>(index) >= hdr.GetElemCount())
     {
-        debug_script_warn("File.WriteBytes: starting index out of bounds: %d, range is %u..%u", index, 0u, hdr.GetElemCount() - 1);
+        debug_script_warn("File.WriteRawBytes: starting index out of bounds: %d, range is %u..%u", index, 0u, hdr.GetElemCount() - 1);
         return 0;
     }
     if (count < 0 || static_cast<uint32_t>(index) > hdr.GetElemCount() - index)
     {
-        debug_script_warn("File.WriteBytes: invalid count: %d, valid range is %u..%u", count, 0u, hdr.GetElemCount() - index);
+        debug_script_warn("File.WriteRawBytes: invalid count: %d, valid range is %u..%u", count, 0u, hdr.GetElemCount() - index);
         return 0;
     }
 
@@ -1017,6 +1035,11 @@ RuntimeScriptValue Sc_File_ReadInt(void *self, const RuntimeScriptValue *params,
     API_OBJCALL_INT(sc_File, File_ReadInt);
 }
 
+RuntimeScriptValue Sc_File_ReadFloat(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_FLOAT(sc_File, File_ReadFloat);
+}
+
 // int (sc_File *fil)
 RuntimeScriptValue Sc_File_ReadRawChar(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -1064,6 +1087,11 @@ RuntimeScriptValue Sc_File_WriteInt(void *self, const RuntimeScriptValue *params
     API_OBJCALL_VOID_PINT(sc_File, File_WriteInt);
 }
 
+RuntimeScriptValue Sc_File_WriteFloat(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PFLOAT(sc_File, File_WriteFloat);
+}
+
 // void (sc_File *fil, int towrite)
 RuntimeScriptValue Sc_File_WriteRawChar(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -1092,14 +1120,14 @@ RuntimeScriptValue Sc_File_WriteString(void *self, const RuntimeScriptValue *par
     API_OBJCALL_VOID_POBJ(sc_File, File_WriteString, const char);
 }
 
-RuntimeScriptValue Sc_File_ReadBytes(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_File_ReadRawBytes(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT_POBJ_PINT2(sc_File, File_ReadBytes, void);
+    API_OBJCALL_INT_POBJ_PINT2(sc_File, File_ReadRawBytes, void);
 }
 
-RuntimeScriptValue Sc_File_WriteBytes(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_File_WriteRawBytes(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT_POBJ_PINT2(sc_File, File_WriteBytes, void);
+    API_OBJCALL_INT_POBJ_PINT2(sc_File, File_WriteRawBytes, void);
 }
 
 RuntimeScriptValue Sc_File_Seek(void *self, const RuntimeScriptValue *params, int32_t param_count)
@@ -1144,6 +1172,7 @@ void RegisterFileAPI()
 
         { "File::Close^0",            API_FN_PAIR(File_Close) },
         { "File::ReadInt^0",          API_FN_PAIR(File_ReadInt) },
+        { "File::ReadFloat^0",        API_FN_PAIR(File_ReadFloat) },
         { "File::ReadRawChar^0",      API_FN_PAIR(File_ReadRawChar) },
         { "File::ReadRawInt^0",       API_FN_PAIR(File_ReadRawInt) },
         { "File::ReadRawFloat^0",     API_FN_PAIR(File_ReadRawFloat) },
@@ -1152,13 +1181,14 @@ void RegisterFileAPI()
         { "File::ReadString^1",       API_FN_PAIR(File_ReadString) },
         { "File::ReadStringBack^0",   API_FN_PAIR(File_ReadStringBack) },
         { "File::WriteInt^1",         API_FN_PAIR(File_WriteInt) },
+        { "File::WriteFloat^1",       API_FN_PAIR(File_WriteFloat) },
         { "File::WriteRawChar^1",     API_FN_PAIR(File_WriteRawChar) },
         { "File::WriteRawFloat^1",    API_FN_PAIR(File_WriteRawFloat) },
         { "File::WriteRawInt^1",      API_FN_PAIR(File_WriteRawInt) },
         { "File::WriteRawLine^1",     API_FN_PAIR(File_WriteRawLine) },
         { "File::WriteString^1",      API_FN_PAIR(File_WriteString) },
-        { "File::ReadBytes^3",        API_FN_PAIR(File_ReadBytes) },
-        { "File::WriteBytes^3",       API_FN_PAIR(File_WriteBytes) },
+        { "File::ReadRawBytes^3",     API_FN_PAIR(File_ReadRawBytes) },
+        { "File::WriteRawBytes^3",    API_FN_PAIR(File_WriteRawBytes) },
         { "File::Seek^2",             API_FN_PAIR(File_Seek) },
         { "File::get_EOF",            API_FN_PAIR(File_GetEOF) },
         { "File::get_Error",          API_FN_PAIR(File_GetError) },

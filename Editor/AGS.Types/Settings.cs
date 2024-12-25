@@ -180,6 +180,7 @@ namespace AGS.Types
         [DisplayName("Game file name")]
         [Description("The game's binary name (the name of the file AGS will create after compiling the game). Leave empty to use project folder's name.")]
         [Category("(Basic properties)")]
+        [DefaultValue("")]
         public string GameFileName
         {
             get { return _gameFileName; }
@@ -202,6 +203,7 @@ namespace AGS.Types
         [DisplayName(PROPERTY_GAME_NAME)]
         [Description("The game's name (for display in the title bar)")]
         [Category("(Basic properties)")]
+        [DefaultValue("")]
         public string GameName
         {
             get { return _gameName; }
@@ -444,6 +446,7 @@ namespace AGS.Types
         [DisplayName("Package custom data folder(s)")]
         [Description("A comma-separated list of folders; their contents will be added to the game resources")]
         [Category("Compiler")]
+        [DefaultValue("")]
         public string CustomDataDir
         {
             get { return _customDataDir; }
@@ -936,6 +939,7 @@ namespace AGS.Types
         [DisplayName("Custom Say function in dialog scripts")]
         [Description("Sets which function name to use in place of character.Say when running dialog scripts. Note that it must be an extension function of a Character class. Leave empty to use default (Character.Say).")]
         [Category("Dialog")]
+        [DefaultValue("")]
         public string DialogScriptSayFunction
         {
             get { return _dialogScriptSayFunction; }
@@ -945,6 +949,7 @@ namespace AGS.Types
         [DisplayName("Custom Narrate function in dialog scripts")]
         [Description("Sets which function name to use in place of narrator's speech when running dialog scripts. Note that it must be either regular function or a static struct function. Leave empty to use default (Display).")]
         [Category("Dialog")]
+        [DefaultValue("")]
         public string DialogScriptNarrateFunction
         {
             get { return _dialogScriptNarrateFunction; }
@@ -1064,7 +1069,8 @@ namespace AGS.Types
 		[DisplayName("Game description")]
 		[Description("The game's description")]
 		[Category("(Information)")]
-		public string Description
+        [DefaultValue("")]
+        public string Description
 		{
 			get { return _description; }
 			set { _description = value; }
@@ -1082,6 +1088,7 @@ namespace AGS.Types
 		[DisplayName("Genre")]
 		[Description("The game's genre")]
         [Category("(Information)")]
+        [DefaultValue("")]
         public string Genre
 		{
 			get { return _genre; }
@@ -1091,6 +1098,7 @@ namespace AGS.Types
 		[DisplayName("Version")]
 		[Description("Current game version")]
         [Category("(Information)")]
+        [DefaultValue("")]
         public string Version
 		{
 			get { return _version; }
@@ -1112,7 +1120,8 @@ namespace AGS.Types
 		[DisplayName("Developer name")]
 		[Description("The name of the game developer (you!). On Windows assigned to the game exe properties.")]
         [Category("(Basic properties)")]
-		public string DeveloperName
+        [DefaultValue("")]
+        public string DeveloperName
 		{
 			get { return _developerName; }
 			set { _developerName = value; }
@@ -1121,6 +1130,7 @@ namespace AGS.Types
 		[DisplayName("Developer website")]
 		[Description("URL of game developer's website")]
         [Category("(Information)")]
+        [DefaultValue("")]
         public string DeveloperURL
 		{
 			get { return _developerURL; }
@@ -1134,7 +1144,8 @@ namespace AGS.Types
 		[DisplayName("Save game file extension")]
 		[Description("The file extension to give save game files")]
 		[Category("Saved Games")]
-		public string SaveGameFileExtension
+        [DefaultValue("")]
+        public string SaveGameFileExtension
 		{
 			get { return _saveGameExtension; }
 			set 
@@ -1159,6 +1170,7 @@ namespace AGS.Types
         [DisplayName("Save games folder name")]
         [Description("If set, creates a folder of this name inside the player's Saved Games folder to store the save games in.")]
         [Category("Saved Games")]
+        [DefaultValue("")]
         public string SaveGameFolderName
         {
             get { return _saveGamesFolderName; }
@@ -1259,6 +1271,7 @@ namespace AGS.Types
         [DisplayName(PROPERTY_ANDROID_APP_VERSION_NAME)]
         [Description("The version name visible to users in the stores, this can be anything. Leave empty to use the same version you set in desktop platforms.")]
         [Category("Android")]
+        [DefaultValue("")]
         public string AndroidAppVersionName
         {
             get { return _androidAppVersionName; }

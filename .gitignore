@@ -189,5 +189,7 @@ Editor/References/**/*.dll
 /Plugins/ags_parallax/msvc/.temp/
 /Plugins/ags_snowrain/msvc/.build/
 /Plugins/ags_snowrain/msvc/.temp/
+/Plugins/agsblend/msvc/.build/
+/Plugins/agsblend/msvc/.temp/
 /Plugins/AGSSpriteFont/msvc/.build/
 /Plugins/AGSSpriteFont/msvc/.temp/

@@ -72,14 +72,14 @@ using namespace AGS::Engine;
 
 
 #if defined(BUILTIN_PLUGINS)
-#include "../Plugins/AGSflashlight/agsflashlight.h"
-#include "../Plugins/agsblend/agsblend.h"
-#include "../Plugins/ags_snowrain/ags_snowrain.h"
-#include "../Plugins/ags_parallax/ags_parallax.h"
-#include "../Plugins/agspalrender/agspalrender.h"
+#include "../Plugins/agsflashlight/agsflashlight/agsflashlight.h"
+#include "../Plugins/agsblend/agsblend/agsblend.h"
+#include "../Plugins/ags_snowrain/ags_snowrain/ags_snowrain.h"
+#include "../Plugins/ags_parallax/ags_parallax/ags_parallax.h"
+#include "../Plugins/agspalrender/agspalrender/agspalrender.h"
 #include "../Plugins/AGSSpriteFont/AGSSpriteFont/AGSSpriteFont.h"
 #if AGS_PLATFORM_OS_IOS
-#include "../Plugins/agstouch/agstouch.h"
+#include "../Plugins/agstouch/agstouch/agstouch.h"
 #endif // AGS_PLATFORM_OS_IOS
 #endif // BUILTIN_PLUGINS
 

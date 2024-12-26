@@ -1,6 +1,6 @@
 UNAME := $(shell uname)
 
-INCDIR = ../../Engine ../../Common
+INCDIR =
 LIBDIR =
 CC = gcc
 CXX = g++
@@ -9,10 +9,8 @@ LIBS = -lm -lstdc++
 
 ifeq ($(UNAME), Darwin)
 TARGET = libags_parallax.dylib
-CFLAGS += -DMAC_VERSION
 else
 TARGET = libags_parallax.so
-CFLAGS += -DLINUX_VERSION
 endif
 
 CXXFLAGS = $(CFLAGS)

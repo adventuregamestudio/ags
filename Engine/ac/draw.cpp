@@ -100,6 +100,12 @@ struct DrawState
     // Whether there are currently remnants of a on-screen effect
     bool ScreenIsDirty = false;
 
+    // The base of DrawIndex range that may be allocated to dynamically
+    // created objects; set after initing static game objects.
+    uint32_t FixedDrawIndexBase = 0u;
+    // Next allocated DrawIndex index
+    uint32_t NextDrawIndex = 0u;
+
     // A map of shared "control blocks" per each sprite used
     // when preparing object textures. "Control block" is currently just
     // an integer which lets to check whether the object texture is in sync
@@ -130,6 +136,11 @@ struct ObjTexture
 {
     // Sprite ID
     uint32_t SpriteID = UINT32_MAX;
+    // DrawIndex is a persistent arbitrary number allocated for the drawable object,
+    // that is used to resolve z-sorting in case of equal z;
+    // this is meant to keep object's sorting order fixed, and avoid random sorting
+    // swaps when the list of objects changes.
+    uint32_t DrawIndex = 0u;
     // Raw bitmap; used for software render mode,
     // or when particular object types require generated image.
     std::unique_ptr<Bitmap> Bmp;
@@ -167,6 +178,7 @@ struct ObjTexture
     ObjTexture &operator =(ObjTexture &&o)
     {
         SpriteID = o.SpriteID;
+        DrawIndex = o.DrawIndex;
         if (Ddb)
         {
             assert(gfxDriver);
@@ -405,13 +417,19 @@ std::vector<RoomCameraDrawData> CameraDrawData;
 // Describes a texture or node description, for sorting and passing into renderer
 struct SpriteListEntry
 {
-    // Optional sprite identifier; used as a second factor when sorting
-    int id = -1;
-    IDriverDependantBitmap *ddb = nullptr;
-    int x = 0, y = 0;
-    int zorder = 0;
+    IDriverDependantBitmap *DDB = nullptr;
+    int X = 0;
+    int Y = 0;
+    int Z = 0;
     // Mark for the render stage callback (if >= 0 other fields are ignored)
-    int renderStage = -1;
+    int RenderStage = -1;
+    // Optional sprite identifier; used as a second factor when sorting
+    uint32_t DrawIndex = 0u;
+
+    SpriteListEntry(IDriverDependantBitmap *ddb, int x, int y)
+        : DDB(ddb), X(x), Y(y), Z(0), RenderStage(-1), DrawIndex(0u) { }
+    SpriteListEntry(IDriverDependantBitmap *ddb, int x, int y, int z, int render_stage, uint32_t draw_index = 0u)
+        : DDB(ddb), X(x), Y(y), Z(z), RenderStage(render_stage), DrawIndex(draw_index) { }
 };
 
 // Two lists of sprites to push into renderer during next render pass
@@ -730,13 +748,19 @@ void init_game_drawdata()
 {
     // character and object caches
     charcache.resize(game.numcharacters);
-    for (int i = 0; i < MAX_ROOM_OBJECTS; ++i)
+    for (size_t i = 0; i < (size_t)MAX_ROOM_OBJECTS; ++i)
         objcache[i] = ObjectCache();
 
+    size_t draw_index = 1u; // DrawIndex 0 is reserved for walk-behinds
     size_t actsps_num = game.numcharacters + MAX_ROOM_OBJECTS;
     actsps.resize(actsps_num);
+    for (auto &actsp : actsps)
+        actsp.DrawIndex = draw_index++;
 
     guibg.resize(game.numgui);
+    for (auto &guidraw : guibg)
+        guidraw.DrawIndex = draw_index++;
+
     gui_render_tex.resize(game.numgui);
     size_t guio_num = 0;
     // Prepare GUI cache lists and build the quick reference for controls cache
@@ -747,6 +771,9 @@ void init_game_drawdata()
         guio_num += gui.GetControlCount();
     }
     guiobjbg.resize(guio_num);
+
+    drawstate.FixedDrawIndexBase = draw_index;
+    drawstate.NextDrawIndex = draw_index;
 }
 
 extern void dispose_engine_overlay();
@@ -1005,6 +1032,11 @@ void on_roomcamera_changed(Camera *cam)
 void mark_object_changed(int objid)
 {
     objcache[objid].y = -9999;
+}
+
+void reset_drawobj_dynamic_index()
+{
+    drawstate.NextDrawIndex = drawstate.FixedDrawIndexBase;
 }
 
 void reset_drawobj_for_overlay(int objnum)
@@ -1364,18 +1396,12 @@ static void clear_draw_list()
 static void add_thing_to_draw(IDriverDependantBitmap* ddb, int x, int y)
 {
     assert(ddb);
-    SpriteListEntry sprite;
-    sprite.ddb = ddb;
-    sprite.x = x;
-    sprite.y = y;
-    thingsToDrawList.push_back(sprite);
+    thingsToDrawList.push_back(SpriteListEntry(ddb, x, y));
 }
 
 static void add_render_stage(int stage)
 {
-    SpriteListEntry sprite;
-    sprite.renderStage = stage;
-    thingsToDrawList.push_back(sprite);
+    thingsToDrawList.push_back(SpriteListEntry(nullptr, 0, 0, 0, stage));
 }
 
 static void clear_sprite_list()
@@ -1383,28 +1409,22 @@ static void clear_sprite_list()
     sprlist.clear();
 }
 
-static void add_to_sprite_list(IDriverDependantBitmap* ddb, int x, int y, int zorder, int id = -1)
+static void add_to_sprite_list(IDriverDependantBitmap* ddb, int x, int y, int zorder, uint32_t id = 0u)
 {
     assert(ddb);
     // completely invisible, so don't draw it at all
     if (ddb->GetAlpha() == 0)
         return;
 
-    SpriteListEntry sprite;
-    sprite.id = id;
-    sprite.ddb = ddb;
-    sprite.zorder = zorder;
-    sprite.x = x;
-    sprite.y = y;
-    sprlist.push_back(sprite);
+    sprlist.push_back(SpriteListEntry(ddb, x, y, zorder, -1, id));
 }
 
 // Sprite drawing order sorting function,
 // where equal zorder is resolved by comparing optional IDs too.
 static bool spritelistentry_less(const SpriteListEntry &e1, const SpriteListEntry &e2)
 {
-    return (e1.zorder < e2.zorder) ||
-        ((e1.zorder == e2.zorder) && (e1.id < e2.id));
+    return (e1.Z < e2.Z) ||
+        ((e1.Z == e2.Z) && (e1.DrawIndex < e2.DrawIndex));
 }
 
 // copy the sorted sprites into the Things To Draw list
@@ -2021,7 +2041,7 @@ void prepare_objects_for_drawing()
             Size(obj.last_width, obj.last_height), atx, aty, usebasel,
             (obj.flags & OBJF_NOWALKBEHINDS) == 0, obj.transparent, hw_accel);
         // Finally, add the texture to the draw list
-        add_to_sprite_list(actsp.Ddb, atx, aty, usebasel);
+        add_to_sprite_list(actsp.Ddb, atx, aty, usebasel, actsp.DrawIndex);
     }
 }
 
@@ -2131,7 +2151,7 @@ void prepare_characters_for_drawing()
             Size(chex.width, chex.height), atx, aty, usebasel,
             (chin.flags & CHF_NOWALKBEHINDS) == 0, chin.transparency, hw_accel);
         // Finally, add the texture to the draw list
-        add_to_sprite_list(actsp.Ddb, atx, aty, usebasel);
+        add_to_sprite_list(actsp.Ddb, atx, aty, usebasel, actsp.DrawIndex);
     }
 }
 
@@ -2165,7 +2185,7 @@ static void add_roomovers_for_drawing()
         if (!over.IsRoomLayer()) continue; // not a room layer
         if (over.transparency == 255) continue; // skip fully transparent
         Point pos = get_overlay_position(over);
-        add_to_sprite_list(overtxs[over.type].Ddb, pos.X, pos.Y, over.zorder, over.creation_id);
+        add_to_sprite_list(overtxs[over.type].Ddb, pos.X, pos.Y, over.zorder, overtxs[over.type].DrawIndex);
     }
 }
 
@@ -2214,8 +2234,8 @@ void prepare_room_sprites()
                     if (wbobj.Ddb)
                     {
                         add_to_sprite_list(wbobj.Ddb, wbobj.Pos.X, wbobj.Pos.Y,
-                            croom->walkbehind_base[wb], INT32_MIN);
-                        // when baselines are equal, walk-behinds must be sorted back, so tag as INT32_MIN
+                            croom->walkbehind_base[wb], 0u);
+                        // when baselines are equal, walk-behinds must be sorted back, so draw index = 0
                     }
                 }
             }
@@ -2434,7 +2454,7 @@ void draw_gui_and_overlays()
         if (over.IsRoomLayer()) continue; // not a ui layer
         if (over.transparency == 255) continue; // skip fully transparent
         Point pos = get_overlay_position(over);
-        add_to_sprite_list(overtxs[over.type].Ddb, pos.X, pos.Y, over.zorder, over.creation_id);
+        add_to_sprite_list(overtxs[over.type].Ddb, pos.X, pos.Y, over.zorder, overtxs[over.type].DrawIndex);
     }
 
     // Add GUIs
@@ -2522,7 +2542,7 @@ void draw_gui_and_overlays()
                 gui_ddb = gui_render_tex[index];
             }
             gui_ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(gui.Transparency));
-            add_to_sprite_list(gui_ddb, gui.X, gui.Y, gui.ZOrder, index);
+            add_to_sprite_list(gui_ddb, gui.X, gui.Y, gui.ZOrder, guibg[index].DrawIndex);
         }
     }
 
@@ -2537,20 +2557,20 @@ void put_sprite_list_on_screen(bool in_room)
 {
     for (const auto &t : thingsToDrawList)
     {
-        assert(t.ddb || (t.renderStage >= 0));
-        if (t.ddb)
+        assert(t.DDB || (t.RenderStage >= 0));
+        if (t.DDB)
         {
-            if (t.ddb->GetAlpha() == 0)
+            if (t.DDB->GetAlpha() == 0)
                 continue; // skip completely invisible things
             // mark the image's region as dirty
-            invalidate_sprite(t.x, t.y, t.ddb, in_room);
+            invalidate_sprite(t.X, t.Y, t.DDB, in_room);
             // push to the graphics driver
-            gfxDriver->DrawSprite(t.x, t.y, t.ddb);
+            gfxDriver->DrawSprite(t.X, t.Y, t.DDB);
         }
-        else if (t.renderStage >= 0)
+        else if (t.RenderStage >= 0)
         {
             // meta entry to run the plugin hook
-            gfxDriver->DrawSprite(t.renderStage, 0, nullptr);
+            gfxDriver->DrawSprite(t.RenderStage, 0, nullptr);
         }
     }
 
@@ -2673,6 +2693,12 @@ static void construct_overlays()
         if (over.transparency == 255) continue; // skip fully transparent
 
         auto &overtx = overtxs[i];
+        if (overtxs[i].DrawIndex == 0u)
+        {
+            overtxs[i].DrawIndex = drawstate.NextDrawIndex;
+            drawstate.NextDrawIndex = (drawstate.NextDrawIndex == UINT32_MAX) ? drawstate.FixedDrawIndexBase : drawstate.NextDrawIndex + 1;
+        }
+
         bool has_changed = over.HasChanged();
         // If walk behinds are drawn over the cached object sprite, then check if positions were updated
         if (crop_walkbehinds && over.IsRoomLayer())

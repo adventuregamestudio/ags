@@ -1,4 +1,4 @@
-INCDIR = ../../Engine ../../Common
+INCDIR =
 CXX=g++
 CXXFLAGS=-fPIC -fvisibility-inlines-hidden -Wall -std=gnu++11 $(addprefix -I,$(INCDIR))
 DEPS=$(wildcard *.h)

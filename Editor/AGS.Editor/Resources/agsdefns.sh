@@ -1338,7 +1338,7 @@ builtin managed struct File {
   import static File *Open(const string filename, FileMode);   // $AUTOCOMPLETESTATICONLY$
   /// Closes the file.
   import void Close();
-  /// Reads an integer value from the file.
+  /// Reads an integer value from the file. The integer is expected to be written by WriteInt and be prepended by a tag.
   import int  ReadInt();
   /// Reads the next raw byte from the file.
   import int  ReadRawChar();
@@ -1350,15 +1350,15 @@ builtin managed struct File {
 #endif // !STRICT_STRINGS
   /// Reads the next raw line of text from the file.
   import String ReadRawLineBack();
-  /// Reads the next string from the file.
+  /// Reads the next string from the file. The string is expected to be written by WriteString, or have its length prepended as a 32-bit integer.
   import String ReadStringBack();
-  /// Writes an integer to the file.
+  /// Writes an integer to the file, safeguarding it by a tag.
   import void WriteInt(int value);
   /// Writes a raw byte to the file.
   import void WriteRawChar(int value);
   /// Writes a raw line of text to the file.
   import void WriteRawLine(const string text);
-  /// Writes a string to the file.
+  /// Writes a string to the file, prepending it with a string's length.
   import void WriteString(const string text);
   /// Gets whether you have reached the end of the file.
   readonly import attribute bool EOF;
@@ -1371,7 +1371,7 @@ builtin managed struct File {
   readonly import attribute int Position;
 #endif // SCRIPT_API_v340
 #ifdef SCRIPT_API_v36026
-  /// Writes a raw 32-bit int to the file.
+  /// Writes a raw 32-bit integer to the file.
   import void WriteRawInt(int value);
 #endif // SCRIPT_API_v36026
 #ifdef SCRIPT_API_v361
@@ -1389,14 +1389,18 @@ builtin managed struct File {
   import static bool Rename(const string old_filename, const string new_filename);   // $AUTOCOMPLETESTATICONLY$
   /// Returns an array of filenames that match the specified file mask
   import static String[] GetFiles(const string fileMask, FileSortStyle fileSortStyle = eFileSort_Name, SortDirection sortDirection = eSortAscending);  // $AUTOCOMPLETESTATICONLY$
+  /// Reads a float value from the file. The float is expected to be written by WriteFloat and be prepended by a tag.
+  import float  ReadFloat();
+  /// Writes a float to the file, safeguarding it by a tag.
+  import void   WriteFloat(float value);
   /// Reads the next raw 32-bit float from the file.
   import float  ReadRawFloat();
   /// Writes a raw 32-bit float to the file.
   import void   WriteRawFloat(float value);
   /// Reads up to "count" number of bytes and stores them in a provided dynamic array, starting with certain index. Returns actual number of read bytes.
-  import int    ReadBytes(char bytes[], int index, int count);
+  import int    ReadRawBytes(char bytes[], int index, int count);
   /// Writes up to "count" number of bytes from the provided dynamic array, starting with certain index. Returns actual number of written bytes.
-  import int    WriteBytes(char bytes[], int index, int count);
+  import int    WriteRawBytes(char bytes[], int index, int count);
 #endif // SCRIPT_API_v362
   int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };

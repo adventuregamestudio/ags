@@ -494,17 +494,17 @@ if (AGS_BUILTIN_PLUGINS)
     target_compile_definitions(engine PRIVATE BUILTIN_PLUGINS)
 
     target_sources(engine PRIVATE 
-        ../Plugins/agsblend/AGSBlend.cpp
-        ../Plugins/agsblend/agsblend.h
+        ../Plugins/agsblend/agsblend/AGSBlend.cpp
+        ../Plugins/agsblend/agsblend/agsblend.h
 
-        ../Plugins/AGSflashlight/agsflashlight.cpp
-        ../Plugins/AGSflashlight/agsflashlight.h
+        ../Plugins/AGSflashlight/AGSflashlight/agsflashlight.cpp
+        ../Plugins/AGSflashlight/AGSflashlight/agsflashlight.h
 
-        ../Plugins/ags_parallax/ags_parallax.cpp
-        ../Plugins/ags_parallax/ags_parallax.h
+        ../Plugins/ags_parallax/ags_parallax/ags_parallax.cpp
+        ../Plugins/ags_parallax/ags_parallax/ags_parallax.h
 
-        ../Plugins/ags_snowrain/ags_snowrain.cpp
-        ../Plugins/ags_snowrain/ags_snowrain.h
+        ../Plugins/ags_snowrain/ags_snowrain/ags_snowrain.cpp
+        ../Plugins/ags_snowrain/ags_snowrain/ags_snowrain.h
 
         ../Plugins/AGSSpriteFont/AGSSpriteFont/AGSSpriteFont.cpp
         ../Plugins/AGSSpriteFont/AGSSpriteFont/AGSSpriteFont.h
@@ -525,13 +525,13 @@ if (AGS_BUILTIN_PLUGINS)
         ../Plugins/AGSSpriteFont/AGSSpriteFont/color.cpp
         ../Plugins/AGSSpriteFont/AGSSpriteFont/color.h
 
-        ../Plugins/agstouch/agstouch.cpp
-        ../Plugins/agstouch/agstouch.h
+        ../Plugins/agstouch/agstouch/agstouch.cpp
+        ../Plugins/agstouch/agstouch/agstouch.h
 
-        ../Plugins/agspalrender/palrender.h
-        ../Plugins/agspalrender/ags_palrender.cpp
-        ../Plugins/agspalrender/raycast.cpp
-        ../Plugins/agspalrender/raycast.h
+        ../Plugins/agspalrender/agspalrender/palrender.h
+        ../Plugins/agspalrender/agspalrender/ags_palrender.cpp
+        ../Plugins/agspalrender/agspalrender/raycast.cpp
+        ../Plugins/agspalrender/agspalrender/raycast.h
     )
 endif()
 

@@ -1040,9 +1040,19 @@ void SaveInfo_SetRetryWithoutComponents(ScriptRestoredSaveInfo *info, int cmp_se
     info->SetRetryWithoutComponents(static_cast<SaveCmpSelection>(cmp_selection));
 }
 
-int SaveInfo_GetResult(ScriptRestoredSaveInfo *info)
+bool SaveInfo_HasExtraData(ScriptRestoredSaveInfo *info)
 {
-    return info->GetResult();
+    return (info->GetResult() & kSaveRestore_ExtraDataInSave) != 0;
+}
+
+bool SaveInfo_HasMissingData(ScriptRestoredSaveInfo *info)
+{
+    return (info->GetResult() & kSaveRestore_MissingDataInSave) != 0;
+}
+
+bool SaveInfo_IsPrescan(ScriptRestoredSaveInfo *info)
+{
+    return (info->GetResult() & kSaveRestore_Prescan) != 0;
 }
 
 int SaveInfo_GetSlot(ScriptRestoredSaveInfo *info)
@@ -1170,9 +1180,19 @@ RuntimeScriptValue Sc_SaveInfo_SetRetryWithoutComponents(void *self, const Runti
     API_OBJCALL_VOID_PINT(ScriptRestoredSaveInfo, SaveInfo_SetRetryWithoutComponents);
 }
 
-RuntimeScriptValue Sc_SaveInfo_GetResult(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_SaveInfo_HasExtraData(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptRestoredSaveInfo, SaveInfo_GetResult);
+    API_OBJCALL_BOOL(ScriptRestoredSaveInfo, SaveInfo_HasExtraData);
+}
+
+RuntimeScriptValue Sc_SaveInfo_HasMissingData(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL(ScriptRestoredSaveInfo, SaveInfo_HasMissingData);
+}
+
+RuntimeScriptValue Sc_SaveInfo_IsPrescan(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL(ScriptRestoredSaveInfo, SaveInfo_IsPrescan);
 }
 
 RuntimeScriptValue Sc_SaveInfo_GetSlot(void *self, const RuntimeScriptValue *params, int32_t param_count)
@@ -1267,7 +1287,9 @@ void RegisterSaveInfoAPI()
         { "RestoredSaveInfo::set_Cancel",               API_FN_PAIR(SaveInfo_SetCancel) },
         { "RestoredSaveInfo::get_RetryWithoutComponents", API_FN_PAIR(SaveInfo_GetRetryWithoutComponents) },
         { "RestoredSaveInfo::set_RetryWithoutComponents", API_FN_PAIR(SaveInfo_SetRetryWithoutComponents) },
-        { "RestoredSaveInfo::get_Result",               API_FN_PAIR(SaveInfo_GetResult) },
+        { "RestoredSaveInfo::get_IsPrescan",            API_FN_PAIR(SaveInfo_IsPrescan) },
+        { "RestoredSaveInfo::get_HasExtraData",         API_FN_PAIR(SaveInfo_HasExtraData) },
+        { "RestoredSaveInfo::get_HasMissingData",       API_FN_PAIR(SaveInfo_HasMissingData) },
         { "RestoredSaveInfo::get_Slot",                 API_FN_PAIR(SaveInfo_GetSlot) },
         { "RestoredSaveInfo::get_Description",          API_FN_PAIR(SaveInfo_GetDescription) },
         { "RestoredSaveInfo::get_EngineVersion",        API_FN_PAIR(SaveInfo_GetEngineVersion) },

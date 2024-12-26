@@ -197,3 +197,5 @@ Editor/References/**/*.dll
 /Plugins/agspalrender/msvc/.temp/
 /Plugins/AGSSpriteFont/msvc/.build/
 /Plugins/AGSSpriteFont/msvc/.temp/
+/Plugins/agstouch/msvc/.build/
+/Plugins/agstouch/msvc/.temp/

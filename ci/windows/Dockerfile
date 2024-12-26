@@ -1,5 +1,5 @@
 # base will already have Chocolatey installed
-FROM ericoporto/min-ags-dev-env:1.0.0
+FROM ghcr.io/ericoporto/min-ags-dev-env:2.0.16
 
 # if no temp folder exists by default, create it
 RUN IF exist %TEMP%\nul ( echo %TEMP% ) ELSE ( mkdir %TEMP% )
@@ -13,10 +13,10 @@ RUN pushd %TEMP% && \
   robocopy empty %TEMP% /MIR > nul & \
   rd /s /q empty
 
-ARG NUGET_VERSION=5.7.0
+ARG NUGET_VERSION=6.12.1
 ARG INNO_SETUP_VERSION=6.2.2
-RUN cinst nuget.commandline --version %NUGET_VERSION% -y && \
-  cinst innosetup --version %INNO_SETUP_VERSION% -y && \
+RUN choco install nuget.commandline --version %NUGET_VERSION% -y && \
+  choco install innosetup --version %INNO_SETUP_VERSION% -y && \
   mkdir empty && \
   robocopy empty %TEMP% /MIR > nul & \
   rd /s /q empty
@@ -59,10 +59,13 @@ RUN mkdir Lib\irrKlang && \
   move %TEMP%\irrKlang-64bit-%IRRKLANG_VERSION%\bin\dotnet-4-64\*.dll Lib\irrKlang\x64\ && \
   rd /s /q %TEMP%\irrKlang-64bit-%IRRKLANG_VERSION%
 
+# from
+# https://github.com/microsoft/winget-pkgs/blob/master/manifests/m/Microsoft/VCRedist/2015%2B/x86/14.29.30133.0/Microsoft.VCRedist.2015%2B.x86.installer.yaml
+# https://github.com/microsoft/winget-pkgs/blob/master/manifests/m/Microsoft/VCRedist/2015%2B/x64/14.29.30133.0/Microsoft.VCRedist.2015%2B.x64.installer.yaml
 RUN mkdir Redist && \
   cd Redist && \
-  curl -fLOJ https://download.microsoft.com/download/6/A/A/6AA4EDFF-645B-48C5-81CC-ED5963AEAD48/vc_redist.x86.exe && \
-  curl -fLOJ https://download.microsoft.com/download/6/A/A/6AA4EDFF-645B-48C5-81CC-ED5963AEAD48/vc_redist.x64.exe
+  curl -fLJ https://download.visualstudio.microsoft.com/download/pr/221ed2ae-1269-497b-a962-e113045001fa/1ACD8D5EA1CDC3EB2EB4C87BE3AB28722D0825C15449E5C9CEEF95D897DE52FA/VC_redist.x86.exe -o vc_redist.x86.exe && \
+  curl -fLJ https://download.visualstudio.microsoft.com/download/pr/7239cdc3-bd73-4f27-9943-22de059a6267/003063723B2131DA23F40E2063FB79867BAE275F7B5C099DBD1792E25845872B/VC_redist.x64.exe -o vc_redist.x64.exe
 
 ARG SDL_VERSION=release-2.28.5
 ARG SDL_VERSION_NUMBER=2.28.5
@@ -81,16 +84,20 @@ RUN mkdir Lib\SDL2 && \
  
 ARG SDL2_SOUND_VERSION=c5639414c1bb24fb4eef5861c13adb42a4aab950
 RUN mkdir Lib\SDL_sound && \
-  echo "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86 ^&^& pushd Lib\SDL_sound\build_x86 ^&^& msbuild SDL_sound.sln /p:PlatformToolset=v140 /p:Configuration=Release /p:Platform=Win32 /maxcpucount /nologo ^&^& popd > sdlsoundvcbuild_x86.bat && \
-  echo "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x64 ^&^& pushd Lib\SDL_sound\build_x64 ^&^& msbuild SDL_sound.sln /p:PlatformToolset=v140 /p:Configuration=Release /p:Platform=x64 /maxcpucount /nologo ^&^& popd > sdlsoundvcbuild_x64.bat && \
   mkdir Lib\SDL_sound\build_x86  && \
   mkdir Lib\SDL_sound\build_x64  && \
   curl -fLSs "https://github.com/icculus/SDL_sound/archive/%SDL2_SOUND_VERSION%.tar.gz" | tar -f - -xvzC Lib\SDL_sound --strip-components 1 && \
   set SDL2_DIR=%cd%\Lib\SDL2 && \
-  cmake -DCMAKE_SYSTEM_VERSION=8.1 -S Lib\SDL_sound -B Lib\SDL_sound\build_x86 -G "Visual Studio 14 2015" -T"v140" -A"Win32" -DCMAKE_PREFIX_PATH=Lib\SDL2  -DSDLSOUND_DECODER_MIDI=1 && \
-  sdlsoundvcbuild_x86.bat && \
-  cmake -DCMAKE_SYSTEM_VERSION=8.1 -S Lib\SDL_sound -B Lib\SDL_sound\build_x64 -G "Visual Studio 14 2015" -T"v140" -A"x64" -DCMAKE_PREFIX_PATH=Lib\SDL2  -DSDLSOUND_DECODER_MIDI=1 && \
-  sdlsoundvcbuild_x64.bat && \
+  call "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/Tools/VsDevCmd.bat" && \
+  cmake -S Lib\SDL_sound -B Lib\SDL_sound\build_x86 -G "Visual Studio 17 2022" -T"v142" -A"Win32" -DCMAKE_PREFIX_PATH=Lib\SDL2  -DSDLSOUND_DECODER_MIDI=1 && \
+  pushd Lib\SDL_sound\build_x86 && \
+  msbuild SDL_sound.sln /p:PlatformToolset=v142 /p:Configuration=Release /p:Platform=Win32 /maxcpucount /nologo && \
+  popd && \
+  call "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/Tools/VsDevCmd.bat" && \
+  cmake -S Lib\SDL_sound -B Lib\SDL_sound\build_x64 -G "Visual Studio 17 2022" -T"v142" -A"x64" -DCMAKE_PREFIX_PATH=Lib\SDL2  -DSDLSOUND_DECODER_MIDI=1 && \
+  pushd Lib\SDL_sound\build_x64 && \
+  msbuild SDL_sound.sln /p:PlatformToolset=v142 /p:Configuration=Release /p:Platform=x64 /maxcpucount /nologo && \
+  popd && \  
   mkdir Lib\SDL_sound\lib && \
   mkdir Lib\SDL_sound\lib\x86 && \
   mkdir Lib\SDL_sound\lib\x64 && \

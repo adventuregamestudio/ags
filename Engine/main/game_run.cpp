@@ -61,7 +61,6 @@
 #include "main/update.h"
 #include "media/audio/audio_system.h"
 #include "platform/base/agsplatformdriver.h"
-#include "plugin/agsplugin_evts.h"
 #include "plugin/plugin_engine.h"
 #include "script/script.h"
 #include "script/script_runtime.h"
@@ -372,7 +371,7 @@ static void check_mouse_controls(const int was_mouse_on_iface)
             }
         }
         else if (!IsInterfaceEnabled()) ;  // blocking cutscene, ignore mouse
-        else if (pl_run_plugin_hooks(AGSE_MOUSECLICK, mbut)) {
+        else if (pl_run_plugin_hooks(kPluginEvt_MouseClick, mbut)) {
             // plugin took the click
             debug_script_log("Plugin handled mouse button %d", mbut);
         }
@@ -573,7 +572,7 @@ static void check_keyboard_controls()
         return;
     }
     // Now check for in-game controls
-    if (pl_run_plugin_hooks(AGSE_KEYPRESS, agskey)) {
+    if (pl_run_plugin_hooks(kPluginEvt_KeyPress, agskey)) {
         // plugin took the keypress
         debug_script_log("Keypress code %d taken by plugin", agskey);
         return;

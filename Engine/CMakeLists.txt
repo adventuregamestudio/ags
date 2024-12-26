@@ -414,7 +414,6 @@ target_sources(engine
     platform/util/libc.c
     plugin/agsplugin.cpp
     plugin/agsplugin.h
-    plugin/agsplugin_evts.h
     plugin/plugin_builtin.h
     plugin/plugin_engine.h
     plugin/plugin_stubs.cpp

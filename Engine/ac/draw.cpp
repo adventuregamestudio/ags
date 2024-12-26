@@ -53,7 +53,6 @@
 #include "gui/guimain.h"
 #include "gui/guiobject.h"
 #include "platform/base/agsplatformdriver.h"
-#include "plugin/agsplugin_evts.h"
 #include "plugin/plugin_engine.h"
 #include "ac/spritecache.h"
 #include "gfx/gfx_util.h"
@@ -1201,11 +1200,11 @@ extern volatile bool want_exit, abort_engine;
 void render_to_screen()
 {
     // Stage: final plugin callback (still drawn on game screen)
-    if (pl_any_want_hook(AGSE_FINALSCREENDRAW))
+    if (pl_any_want_hook(kPluginEvt_FinalScreenDraw))
     {
         gfxDriver->BeginSpriteBatch(play.GetMainViewport(),
             play.GetGlobalTransform(drawstate.FullFrameRedraw), (GraphicFlip)play.screen_flipped);
-        gfxDriver->DrawSprite(AGSE_FINALSCREENDRAW, 0, nullptr);
+        gfxDriver->DrawSprite(kPluginEvt_FinalScreenDraw, 0, nullptr);
         gfxDriver->EndSpriteBatch();
     }
     // Stage: engine overlay
@@ -2240,8 +2239,8 @@ void prepare_room_sprites()
                 }
             }
 
-            if (pl_any_want_hook(AGSE_PRESCREENDRAW))
-                add_render_stage(AGSE_PRESCREENDRAW);
+            if (pl_any_want_hook(kPluginEvt_PreScreenDraw))
+                add_render_stage(kPluginEvt_PreScreenDraw);
 
             draw_sprite_list();
         }
@@ -2255,8 +2254,8 @@ void prepare_room_sprites()
     if ((debugMoveListChar >= 0) && debugMoveListObj.Ddb)
         add_thing_to_draw(debugMoveListObj.Ddb, 0, 0);
 
-    if (pl_any_want_hook(AGSE_POSTROOMDRAW))
-        add_render_stage(AGSE_POSTROOMDRAW);
+    if (pl_any_want_hook(kPluginEvt_PostRoomDraw))
+        add_render_stage(kPluginEvt_PostRoomDraw);
 }
 
 // Draws the black surface behind (or rather between) the room viewports
@@ -2441,8 +2440,8 @@ void draw_gui_and_overlays()
            !drawstate.SoftwareRender &&
            (game.options[OPT_NEWGUIALPHA] == kGuiAlphaRender_Proper);
 
-    if(pl_any_want_hook(AGSE_PREGUIDRAW))
-        gfxDriver->DrawSprite(AGSE_PREGUIDRAW, 0, nullptr); // render stage
+    if(pl_any_want_hook(kPluginEvt_PreGUIDraw))
+        gfxDriver->DrawSprite(kPluginEvt_PreGUIDraw, 0, nullptr); // render stage
 
     clear_sprite_list();
 
@@ -2756,7 +2755,7 @@ void construct_game_scene(bool full_redraw)
     gfxDriver->UseSmoothScaling(play.ShouldAASprites());
     gfxDriver->RenderSpritesAtScreenResolution(usetup.RenderAtScreenRes);
 
-    pl_run_plugin_hooks(AGSE_PRERENDER, 0);
+    pl_run_plugin_hooks(kPluginEvt_PreRender, 0);
 
     // Possible reasons to invalidate whole screen for the software renderer
     if (full_redraw || play.screen_tint > 0 || play.shakesc_length > 0)
@@ -2807,9 +2806,9 @@ void construct_game_screen_overlay(bool draw_mouse)
     gfxDriver->BeginSpriteBatch(play.GetMainViewport(),
             play.GetGlobalTransform(drawstate.FullFrameRedraw),
             (GraphicFlip)play.screen_flipped);
-    if (pl_any_want_hook(AGSE_POSTSCREENDRAW))
+    if (pl_any_want_hook(kPluginEvt_PostScreenDraw))
     {
-        gfxDriver->DrawSprite(AGSE_POSTSCREENDRAW, 0, nullptr);
+        gfxDriver->DrawSprite(kPluginEvt_PostScreenDraw, 0, nullptr);
     }
 
     // Mouse cursor

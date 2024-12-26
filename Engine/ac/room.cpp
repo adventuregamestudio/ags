@@ -57,7 +57,6 @@
 #include "game/room_file.h"
 #include "game/room_version.h"
 #include "platform/base/agsplatformdriver.h"
-#include "plugin/agsplugin_evts.h"
 #include "plugin/plugin_engine.h"
 #include "script/cc_common.h"
 #include "script/script.h"
@@ -925,7 +924,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     debug_script_log("Now in room %d", displayed_room);
     cursor_gstate.MarkChanged();
     GUIE::MarkAllGUIForUpdate(true, true);
-    pl_run_plugin_hooks(AGSE_ENTERROOM, displayed_room);
+    pl_run_plugin_hooks(kPluginEvt_EnterRoom, displayed_room);
 }
 
 // new_room: changes the current room number, and loads the new room from disk
@@ -942,7 +941,7 @@ void new_room(int newnum,CharacterInfo*forchar) {
     // Run the global OnRoomLeave event
     run_on_event(kScriptEvent_RoomLeave, displayed_room);
 
-    pl_run_plugin_hooks(AGSE_LEAVEROOM, displayed_room);
+    pl_run_plugin_hooks(kPluginEvt_LeaveRoom, displayed_room);
 
     // update the new room number if it has been altered by OnLeave scripts
     newnum = in_leaves_screen;

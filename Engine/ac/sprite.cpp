@@ -17,7 +17,6 @@
 #include "ac/sprite.h"
 #include "ac/system.h"
 #include "platform/base/agsplatformdriver.h"
-#include "plugin/agsplugin_evts.h"
 #include "plugin/plugin_engine.h"
 #include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"
@@ -83,5 +82,5 @@ Bitmap *initialize_sprite(sprkey_t index, Bitmap *image, uint32_t &sprite_flags)
 
 void post_init_sprite(sprkey_t index)
 {
-    pl_run_plugin_hooks(AGSE_SPRITELOAD, index);
+    pl_run_plugin_hooks(kPluginEvt_SpriteLoad, index);
 }

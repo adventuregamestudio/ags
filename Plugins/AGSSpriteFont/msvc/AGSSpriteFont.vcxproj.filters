@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\AGSSpriteFont\AGSSpriteFont.cpp" />
+    <ClCompile Include="..\AGSSpriteFont\CharacterEntry.cpp" />
+    <ClCompile Include="..\AGSSpriteFont\color.cpp" />
+    <ClCompile Include="..\AGSSpriteFont\SpriteFont.cpp" />
+    <ClCompile Include="..\AGSSpriteFont\SpriteFontRenderer.cpp" />
+    <ClCompile Include="..\AGSSpriteFont\SpriteFontRendererClifftopGames.cpp" />
+    <ClCompile Include="..\AGSSpriteFont\VariableWidthFont.cpp" />
+    <ClCompile Include="..\AGSSpriteFont\VariableWidthSpriteFont.cpp" />
+    <ClCompile Include="..\AGSSpriteFont\VariableWidthSpriteFontClifftopGames.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\AGSSpriteFont\AGSSpriteFont.h" />
+    <ClInclude Include="..\AGSSpriteFont\CharacterEntry.h" />
+    <ClInclude Include="..\AGSSpriteFont\color.h" />
+    <ClInclude Include="..\AGSSpriteFont\SpriteFont.h" />
+    <ClInclude Include="..\AGSSpriteFont\SpriteFontRenderer.h" />
+    <ClInclude Include="..\AGSSpriteFont\SpriteFontRendererClifftopGames.h" />
+    <ClInclude Include="..\AGSSpriteFont\VariableWidthFont.h" />
+    <ClInclude Include="..\AGSSpriteFont\VariableWidthSpriteFont.h" />
+    <ClInclude Include="..\AGSSpriteFont\VariableWidthSpriteFontClifftopGames.h" />
+    <ClInclude Include="..\AGSSpriteFont\agsplugin.h" />
+  </ItemGroup>
+</Project>

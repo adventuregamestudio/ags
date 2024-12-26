@@ -1,9 +1,10 @@
-OBJS = AGSSpriteFont/AGSSpriteFont.o \
-AGSSpriteFont/CharacterEntry.o \
-AGSSpriteFont/color.o \
-AGSSpriteFont/SpriteFont.o \
-AGSSpriteFont/SpriteFontRenderer.o \
-AGSSpriteFont/SpriteFontRendererClifftopGames.o \
-AGSSpriteFont/VariableWidthFont.o \
-AGSSpriteFont/VariableWidthSpriteFont.o \
-AGSSpriteFont/VariableWidthSpriteFontClifftopGames.o
+OBJS = \
+    AGSSpriteFont/AGSSpriteFont.o \
+    AGSSpriteFont/CharacterEntry.o \
+    AGSSpriteFont/color.o \
+    AGSSpriteFont/SpriteFont.o \
+    AGSSpriteFont/SpriteFontRenderer.o \
+    AGSSpriteFont/SpriteFontRendererClifftopGames.o \
+    AGSSpriteFont/VariableWidthFont.o \
+    AGSSpriteFont/VariableWidthSpriteFont.o \
+    AGSSpriteFont/VariableWidthSpriteFontClifftopGames.o

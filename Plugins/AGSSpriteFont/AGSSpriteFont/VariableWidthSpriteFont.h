@@ -1,5 +1,5 @@
 #pragma once
-#include "plugin/agsplugin.h"
+#include "agsplugin.h"
 #include "VariableWidthFont.h"
 #include <vector>
 

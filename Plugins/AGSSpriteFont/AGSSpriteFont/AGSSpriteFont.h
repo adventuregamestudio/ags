@@ -1,7 +1,7 @@
 #ifndef AGS_SPRITE_FONT_H
 #define AGS_SPRITE_FONT_H
 
-#include "plugin/agsplugin.h"
+#include "agsplugin.h"
 
 namespace agsspritefont
 {

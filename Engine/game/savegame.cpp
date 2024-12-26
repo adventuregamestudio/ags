@@ -55,7 +55,6 @@
 #include "media/audio/audio_system.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/sys_main.h"
-#include "plugin/agsplugin_evts.h"
 #include "plugin/plugin_engine.h"
 #include "script/script.h"
 #include "script/cc_common.h"
@@ -760,7 +759,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
         return validate_err;
 
     // Run optional plugin event, reporting game restored
-    pl_run_plugin_hooks(AGSE_POSTRESTOREGAME, 0);
+    pl_run_plugin_hooks(kPluginEvt_PostRestoreGame, 0);
 
     // Next load up any immediately required resources
     // If this is a restart point and no room was loaded, then load startup room
@@ -895,7 +894,7 @@ std::unique_ptr<Stream> StartSavegame(const String &filename, const String &user
     out->Write(SavegameSource::Signature.GetCStr(), SavegameSource::Signature.GetLength());
 
     // CHECKME: what is this plugin hook suppose to mean, and if it is called here correctly
-    pl_run_plugin_hooks(AGSE_PRESAVEGAME, 0);
+    pl_run_plugin_hooks(kPluginEvt_PreSaveGame, 0);
 
     // Write descrition block
     WriteDescription(out.get(), user_text, user_image);
@@ -948,7 +947,7 @@ void ReadPluginSaveData(Stream *in, PluginSvgVersion svg_ver, soff_t max_size)
             auto guard_stream = std::make_unique<Stream>(
                 std::make_unique<StreamSection>(in->GetStreamBase(), in->GetPosition(), end_pos));
             int32_t fhandle = add_file_stream(std::move(guard_stream), "RestoreGame");
-            pl_run_plugin_hook_by_name(pl_name, AGSE_RESTOREGAME, fhandle);
+            pl_run_plugin_hook_by_name(pl_name, kPluginEvt_RestoreGame, fhandle);
             close_file_stream(fhandle, "RestoreGame");
 
             // Seek to the end of plugin data, in case it ended up reading not in the end
@@ -959,12 +958,12 @@ void ReadPluginSaveData(Stream *in, PluginSvgVersion svg_ver, soff_t max_size)
     else
     {
         String pl_name;
-        for (int pl_index = 0; pl_query_next_plugin_for_event(AGSE_RESTOREGAME, pl_index, pl_name); ++pl_index)
+        for (int pl_index = 0; pl_query_next_plugin_for_event(kPluginEvt_RestoreGame, pl_index, pl_name); ++pl_index)
         {
             auto guard_stream = std::make_unique<Stream>(
                 std::make_unique<StreamSection>(in->GetStreamBase(), in->GetPosition(), end_pos));
             int32_t fhandle = add_file_stream(std::move(guard_stream), "RestoreGame");
-            pl_run_plugin_hook_by_index(pl_index, AGSE_RESTOREGAME, fhandle);
+            pl_run_plugin_hook_by_index(pl_index, kPluginEvt_RestoreGame, fhandle);
             close_file_stream(fhandle, "RestoreGame");
         }
     }
@@ -977,7 +976,7 @@ void WritePluginSaveData(Stream *out)
 
     int num_plugins_wrote = 0;
     String pl_name;
-    for (int pl_index = 0; pl_query_next_plugin_for_event(AGSE_SAVEGAME, pl_index, pl_name); ++pl_index)
+    for (int pl_index = 0; pl_query_next_plugin_for_event(kPluginEvt_SaveGame, pl_index, pl_name); ++pl_index)
     {
         // NOTE: we don't care if they really write anything,
         // but count them so long as they subscribed to AGSE_SAVEGAME
@@ -993,7 +992,7 @@ void WritePluginSaveData(Stream *out)
         auto guard_stream = std::make_unique<Stream>(
             std::make_unique<StreamSection>(out->GetStreamBase(), out->GetPosition(), INT64_MAX));
         int32_t fhandle = add_file_stream(std::move(guard_stream), "SaveGame");
-        pl_run_plugin_hook_by_index(pl_index, AGSE_SAVEGAME, fhandle);
+        pl_run_plugin_hook_by_index(pl_index, kPluginEvt_SaveGame, fhandle);
         close_file_stream(fhandle, "SaveGame");
 
         // Finalize header

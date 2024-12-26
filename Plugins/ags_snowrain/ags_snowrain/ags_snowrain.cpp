@@ -5,9 +5,9 @@ but a workalike plugin created by JJS for the AGS engine PSP port.
 
 */
 
-#include "core/platform.h"
+#include "platform.h"
 
-#if AGS_PLATFORM_OS_WINDOWS
+#if (AGS_PLATFORM_OS_WINDOWS)
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #pragma warning(disable : 4244)
@@ -28,7 +28,7 @@ but a workalike plugin created by JJS for the AGS engine PSP port.
 #define sin(x) vfpu_sinf(x)
 #endif
 
-#include "plugin/agsplugin.h"
+#include "agsplugin.h"
 
 #if defined(BUILTIN_PLUGINS)
 namespace ags_snowrain {
@@ -852,7 +852,7 @@ void AGS_EngineInitGfx(const char *driverID, void *data)
 
 
 
-#if AGS_PLATFORM_OS_WINDOWS && !defined(BUILTIN_PLUGINS)
+#if (AGS_PLATFORM_OS_WINDOWS) && !defined(BUILTIN_PLUGINS)
 
 // ********************************************
 // ***********  Editor Interface  *************

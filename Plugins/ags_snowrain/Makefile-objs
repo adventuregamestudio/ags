@@ -1,1 +1,2 @@
-OBJS = ags_snowrain.o
+OBJS = \
+    ags_snowrain/ags_snowrain.o

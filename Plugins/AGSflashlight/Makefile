@@ -1,6 +1,6 @@
 UNAME := $(shell uname)
 
-INCDIR = ../../Engine ../../Common
+INCDIR =
 LIBDIR =
 CC = gcc
 CXX = g++
@@ -9,10 +9,8 @@ LIBS = -lm -lstdc++
 
 ifeq ($(UNAME), Darwin)
 TARGET = libagsflashlight.dylib
-CFLAGS += -DMAC_VERSION
 else
 TARGET = libagsflashlight.so
-CFLAGS += -DLINUX_VERSION
 endif
 
 CXXFLAGS = $(CFLAGS)

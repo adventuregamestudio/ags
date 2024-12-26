@@ -1,1 +1,2 @@
-OBJS = agsflashlight.o
+OBJS = \
+    agsflashlight/agsflashlight.o

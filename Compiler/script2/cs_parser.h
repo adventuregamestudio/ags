@@ -733,9 +733,9 @@ private:
     void AccessData(VariableAccess access_type, SrcList &expression, EvaluationResult &eres);
 
     // Emit Bytecode for:
-    // Copy at most 'STRINGBUFFER_LENGT-1' bytes from 'm[MAR...]' to 'm[AX...]'
-    // Stop when encountering a 0
-    void AccessData_StrCpy();
+    // Copy at most 'count - 1' bytes from m[MAR...] to m[AX...],
+    // add '\0' at end of copy so 'count' bytes are processed in all
+    void AccessData_StrCpy(size_t count);
 
     // An optional '*' can follow at this point. If it is here, eat it.
     void EatDynpointerSymbolIfPresent(SrcList src, Vartype vartype);

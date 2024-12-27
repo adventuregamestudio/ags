@@ -788,12 +788,15 @@ bool AGS::SymbolTable::IsOldstring(Symbol s) const
     Vartype const s_without_const =
         VartypeWithout(VTT::kConst, s);
 
-    // string and const string are oldstrings
+    // 'string' and 'const string' are oldstrings
     if (kKW_String == s_without_const)
         return true;
 
-    // const char[..] and char[..] are considered oldstrings, too
-    return (IsArrayVartype(s) && kKW_Char == VartypeWithout(VTT::kArray, s_without_const));
+    // 'char'[..] considered oldstring, too
+    return
+        IsArrayVartype(s) &&
+        1u == ArrayDimensionsCount(s) &&
+        kKW_Char == VartypeWithout(VTT::kArray, s_without_const);
 }
 
 AGS::Symbol AGS::SymbolTable::Add(std::string const &name)

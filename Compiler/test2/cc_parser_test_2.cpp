@@ -792,7 +792,6 @@ TEST_F(Compile2, CTEvalLogicalOps) {
     EXPECT_NE(std::string::npos, err_msg.find("'101577700 /"));
 }
 
-
 TEST_F(Compile2, ParamIsFunc) {
 
     char const *inpl = R"&/(
@@ -807,4 +806,24 @@ TEST_F(Compile2, ParamIsFunc) {
 
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("'crash'"));
+}
+
+TEST_F(Compile2, MultiDimCharArrayToString) {
+
+    // A character array with more than 1 dimension cannot be
+    // converted to 'const string'.
+
+    char const *inpl = R"%&/(
+        int test(const string s)
+        {
+            char arr[5][7];
+            return test(arr);
+        }
+        )%&/";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string const &err_msg = mh.GetError().Message;
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("convert"));
 }

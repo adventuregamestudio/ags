@@ -235,7 +235,11 @@ bool AddWaypointDirect(MoveList &mls, int x, int y, int move_speed_x, int move_s
     const float fspeed_x = input_speed_to_move(move_speed_x);
     const float fspeed_y = input_speed_to_move(move_speed_y);
     mls.pos.emplace_back( x, y );
-    calculate_move_stage(mls, mls.GetNumStages() - 1, fspeed_x, fspeed_y);
+    // Ensure there are at least 2 pos elements (required for the further algorithms)
+    if (mls.pos.size() == 1)
+        mls.pos.push_back(mls.pos[0]);
+    // Calculate new stage starting from the one before last
+    calculate_move_stage(mls, mls.GetNumStages() - 2, fspeed_x, fspeed_y);
     return true;
 }
 

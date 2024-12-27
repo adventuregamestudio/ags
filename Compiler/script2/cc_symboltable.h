@@ -511,6 +511,8 @@ public:
 
     inline bool IsArrayVartype(Symbol s) const { return IsVTT(s, VTT::kArray); }
     size_t ArrayElementsCount(Symbol s) const;
+    size_t ArrayDimensionsCount(Symbol s) const
+        { return entries.at(s).VartypeD ? entries.at(s).VartypeD->Dims.size() : 0u; }
     inline bool IsDynarrayVartype(Symbol s) const { return IsVTT(s, VTT::kDynarray); }
     inline bool IsAnyArrayVartype(Symbol s) const { return IsArrayVartype(s) || IsDynarrayVartype(s); }
     

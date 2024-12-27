@@ -1723,7 +1723,7 @@ bool AGS::Parser::IsVartypeMismatch_Oneway(Vartype vartype_is, Vartype vartype_w
         return false;
 
 
-    // Can convert null to dynpointer or dynarray
+    // Can convert 'null' to dynpointer or dynarray
     if (kKW_Null == vartype_is)
         return
             !_sym.IsDynpointerVartype(vartype_wants_to_be) &&
@@ -1733,14 +1733,14 @@ bool AGS::Parser::IsVartypeMismatch_Oneway(Vartype vartype_is, Vartype vartype_w
     if (_sym.IsDynarrayVartype(vartype_is) != _sym.IsDynarrayVartype(vartype_wants_to_be))
         return true;
 
-    // can convert String * to const string
+    // Can convert 'String *' to 'const string'
     if (_sym.GetStringStructSym() == _sym.VartypeWithout(VTT::kDynpointer, vartype_is) &&
         kKW_String == _sym.VartypeWithout(VTT::kConst, vartype_wants_to_be))
     {
         return false;
     }
 
-    // can convert string or const string to String *
+    // Can convert 'string' or 'const string' to 'String *'
     if (kKW_String == _sym.VartypeWithout(VTT::kConst, vartype_is) &&
         _sym.GetStringStructSym() == _sym.VartypeWithout(VTT::kDynpointer, vartype_wants_to_be))
     {
@@ -1767,11 +1767,11 @@ bool AGS::Parser::IsVartypeMismatch_Oneway(Vartype vartype_is, Vartype vartype_w
     vartype_is = _sym.VartypeWithout(VTT::kConst, vartype_is);
     vartype_wants_to_be = _sym.VartypeWithout(VTT::kConst, vartype_wants_to_be);
 
-    // floats cannot mingle with other types
+    // 'float's cannot mingle with other types
     if ((vartype_is == kKW_Float) != (vartype_wants_to_be == kKW_Float))
         return true;
 
-    // Can convert short, char etc. into int
+    // Can convert 'short', 'char' etc. into 'int'
     if (_sym.IsAnyIntegerVartype(vartype_is) && kKW_Int == vartype_wants_to_be)
         return false;
 
@@ -1783,7 +1783,7 @@ bool AGS::Parser::IsVartypeMismatch_Oneway(Vartype vartype_is, Vartype vartype_w
             return false;
 
         // Array types must match exactly. We can't allow a 'child*[]' to be
-        // assigned to 'pareent[]' without additional dynamic type checking
+        // assigned to 'parent*[]' without additional dynamic type checking
         Symbol const core_wants_to_be = _sym.VartypeWithout(VTT::kDynarray, vartype_wants_to_be);
         Symbol const core_is = _sym.VartypeWithout(VTT::kDynarray, vartype_is);
         
@@ -3916,17 +3916,14 @@ void AGS::Parser::AccessData(VariableAccess access_type, SrcList &expression, Ev
     }
 }
 
-// Insert Bytecode for:
-// Copy at most OLDSTRING_LENGTH - 1 bytes from m[MAR...] to m[AX...]
-// Stop when encountering a 0
-void AGS::Parser::AccessData_StrCpy()
+void AGS::Parser::AccessData_StrCpy(size_t count)
 {
     BackwardJumpDest loop_start(_scrip);
     ForwardJump out_of_loop(_scrip);
 
     WriteCmd(SCMD_REGTOREG, SREG_AX, SREG_CX); // CX = dest
     WriteCmd(SCMD_REGTOREG, SREG_MAR, SREG_BX); // BX = src
-    WriteCmd(SCMD_LITTOREG, SREG_DX, STRINGBUFFER_LENGTH - 1); // DX = count
+    WriteCmd(SCMD_LITTOREG, SREG_DX, count - 1); // DX = counter
     loop_start.Set();   // Label LOOP_START
     WriteCmd(SCMD_REGTOREG, SREG_BX, SREG_MAR); // AX = m[BX]
     WriteCmd(SCMD_MEMREAD, SREG_AX);
@@ -3949,8 +3946,8 @@ void AGS::Parser::AccessData_StrCpy()
 
 void AGS::Parser::AccessData_AssignTo(SrcList &expression, EvaluationResult const &eres)
 {
-    // We'll evaluate expression later on which moves the cursor,
-    // so save it here and restore later on
+    // We'll evaluate 'expression' later on, which will
+    // move the cursor, so save it here and restore it later
     size_t const end_of_rhs_cursor = _src.GetCursor();
 
     EvaluationResult rhs_eres = eres;
@@ -4013,7 +4010,7 @@ void AGS::Parser::AccessData_AssignTo(SrcList &expression, EvaluationResult cons
     if (kKW_String == lhs_eres.Vartype && kKW_String == _sym.VartypeWithout(VTT::kConst, rhs_eres.Vartype))
     {
         // copy the string contents over.
-        AccessData_StrCpy();
+        AccessData_StrCpy(STRINGBUFFER_LENGTH);
         _src.SetCursor(end_of_rhs_cursor); // move cursor back to end of RHS
         return;
     }
@@ -4565,7 +4562,7 @@ void AGS::Parser::ParseVardecl_Local(Symbol var_name, Vartype vartype)
     WriteCmd(SCMD_LOADSPOFFS, 0);
     _reg_track.SetRegister(SREG_MAR);
     if (kKW_String == _sym.VartypeWithout(VTT::kConst, lhsvartype))
-        AccessData_StrCpy();
+        AccessData_StrCpy(STRINGBUFFER_LENGTH);
     else
         WriteCmd(
             is_dyn ? SCMD_MEMWRITEPTR : GetWriteCommandForSize(var_size),

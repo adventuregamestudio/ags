@@ -845,6 +845,10 @@ builtin struct Room {
   import static bool Exists(int room);   // $AUTOCOMPLETESTATICONLY$
 #endif // SCRIPT_API_v360
 #ifdef SCRIPT_API_v400
+  /// Gets the current Room's number
+  import static readonly attribute int Number; // $AUTOCOMPLETESTATICONLY$
+  /// Gets the current Room's name (description)
+  import static readonly attribute String Name; // $AUTOCOMPLETESTATICONLY$
   /// Accesses the Hotspots in the current room.
   import static readonly attribute Hotspot *Hotspots[];   // $AUTOCOMPLETESTATICONLY$
   /// Accesses the Objects in the current room.
@@ -855,7 +859,7 @@ builtin struct Room {
   import static readonly attribute WalkableArea *WalkableAreas[];   // $AUTOCOMPLETESTATICONLY$
   /// Accesses the Walk-behinds in the current room.
   import static readonly attribute Walkbehind *Walkbehinds[];   // $AUTOCOMPLETESTATICONLY$
-  /// Gets this Room's Pathfinder object that lets find route around walkable areas.
+  /// Gets the current Room's Pathfinder object that lets find route around walkable areas.
   import static readonly attribute Pathfinder *PathFinder;   // $AUTOCOMPLETESTATICONLY$
   /// Gets/sets the optional y/x ratio of character's facing directions, determining directional loop selection for each Character in the current room.
   import static attribute float FaceDirectionRatio;
@@ -2745,6 +2749,12 @@ builtin struct Game {
   import static attribute float FaceDirectionRatio;
   /// Gets the color depth of the specified sprite.
   readonly import static attribute int SpriteColorDepth[];
+  /// Gets the total number of the rooms in game.
+  readonly import static attribute int RoomCount;
+  /// Gets the existing room numbers by a sequential index (from 0 to RoomCount - 1); returns -1 if index is not valid.
+  readonly import static attribute int RoomNumbers[];
+  /// Gets the room's name (description) by the room's number; returns null if such room does not exist.
+  readonly import static attribute String RoomNames[];
 #endif // SCRIPT_API_v400
 };
 

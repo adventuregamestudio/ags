@@ -246,6 +246,11 @@ public:
     // Init default room state
     void            InitDefaults();
 
+    // Gets this room's human-readable name (description)
+    const String &GetName() const { return Name; }
+    // Gets this room's script name
+    const String &GetScriptName() const { return ScriptName; }
+
     // Gets bitmap of particular mask layer
     Bitmap *GetMask(RoomAreaMask mask) const;
     // Sets bitmap for the particular mask layer;
@@ -275,6 +280,10 @@ public:
     // the room must have behavior specific to certain version of AGS.
     int32_t                 DataVersion;
 
+    // This room's name (description)
+    String                  Name;
+    // This room's scriptname. This is a reserved field atm.
+    String                  ScriptName;
     // Room region masks resolution. Defines the relation between room and mask units.
     // Mask point is calculated as roompt / MaskResolution. Must be >= 1.
     int32_t                 MaskResolution;
@@ -319,7 +328,6 @@ public:
     PScript                 CompiledScript;
     // Various extended options with string values, meta-data etc
     StringMap               StrOptions;
-
 };
 
 

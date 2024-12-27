@@ -154,8 +154,9 @@ enum GameDataVersion
     kGameVersion_400_09         = 4000009,
     kGameVersion_400_10         = 4000010,
     kGameVersion_400_11         = 4000011,
+    kGameVersion_400_13         = 4000013,
     kGameVersion_LowSupported   = kGameVersion_360_21,
-    kGameVersion_Current        = kGameVersion_400_11
+    kGameVersion_Current        = kGameVersion_400_13
 };
 
 // Data format version of the loaded game

@@ -33,9 +33,9 @@ const char *get_translation (const char *text) {
 
     source_text_length = GetTextDisplayLength(text);
 
-#if AGS_PLATFORM_64BIT
+#if !(AGS_PLATFORM_64BIT)
     // check if a plugin wants to translate it - if so, return that
-    // TODO: plugin API is currently strictly 32-bit, so this may break on 64-bit systems
+    // FIXME: plugin API is currently strictly 32-bit, so this may break on 64-bit systems
     char *plResult = Int32ToPtr<char>(pl_run_plugin_hooks(kPluginEvt_TranslateText, PtrToInt32(text)));
     if (plResult) {
         return plResult;

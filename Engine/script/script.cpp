@@ -319,7 +319,7 @@ static RunScFuncResult PrepareTextScript(const RuntimeScript *script, const Stri
         cc_error("no such function in script");
         return kScFnRes_NotFound;
     }
-    if (scriptExecutor->IsBeingRun())
+    if (scriptExecutor->IsRunning())
     {
         cc_error("script is already in execution");
         return kScFnRes_ScriptBusy;

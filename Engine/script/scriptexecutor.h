@@ -30,14 +30,17 @@ enum ScriptExecError
     kScExecErr_Generic = -1, // any generic exec error; use cc_get_error()
     kScExecErr_FuncNotFound = -2, // requested function is not found in script
     kScExecErr_InvalidArgNum = -3, // invalid number of args (not in supported range)
-    kScExecErr_Busy = -4, // is busy executing script (unused?)
+    kScExecErr_Busy = -4, // is busy executing script
 };
 
 enum ScriptExecState
 {
     kScExecState_None    = 0x00,
     kScExecState_Aborted = 0x01, // scheduled to abort
-    kScExecState_Running = 0x02  // set by main code to confirm script isn't stuck
+    kScExecState_Running = 0x02, // has any script loaded and in running state (may be suspended though)
+    kScExecState_Busy    = 0x04, // in the bytecode execution loop;
+                                 // reset while waiting for the nested engine calls
+    kScExecState_Alive   = 0x08, // updated periodically to confirm that script exec isn't stuck
 };
 
 // ScriptPosition defines position in the executed script
@@ -66,9 +69,12 @@ public:
     // the actual stop will occur whenever control returns to the ScriptExecutor.
     void    Abort();
 
-    // Tells whether this instance is in the process of executing the byte-code
-    bool    IsBeingRun() const { return _pc != 0; }
-    // Get the currently executed script
+    // Tells whether any script is loaded into and being executed;
+    // note that this returns positive even when executor is suspended
+    bool    IsRunning() const { return (_flags & kScExecState_Running) != 0; }
+    // Tells if the executor is busy running bytecode, and cannot start a nested run right now
+    bool    IsBusy() const { return (_flags & kScExecState_Busy) != 0; }
+    // Get the currently running script
     const RuntimeScript *GetRunningScript() const { return _current; }
     // Get current program pointer (position in bytecode)
     int     GetPC() const { return _pc; }
@@ -123,8 +129,6 @@ private:
 
     //
     // Virtual machine state
-    // Executed script callstack, contains previous script positions
-    std::deque<ScriptExecPosition> _callstack; // deque for easier iterating over
     // Registers
     RuntimeScriptValue _registers[CC_NUM_REGISTERS];
     // Data stack, contains function args, local variables, temporary values
@@ -151,6 +155,8 @@ private:
     int         _pc = 0; // program counter
     int         _lineNumber = 0; // source code line number
     int         _returnValue = 0; // last executed function's return value
+    // Executed script callstack, contains *previous* script positions
+    std::deque<ScriptExecPosition> _callstack; // deque for easier iterating over
 
     // A value returned from plugin functions saved as RuntimeScriptValue.
     // This is a temporary solution (*sigh*, one of many) which allows to

@@ -94,13 +94,18 @@ void ScriptExecutor::SetPluginReturnValue(const RuntimeScriptValue &value)
 
 ScriptExecError ScriptExecutor::Run(const RuntimeScript *script, const String &funcname, const RuntimeScriptValue *params, size_t param_count)
 {
-    cc_clear_error();
-    currentline = 0; // FIXME: stop using a global variable
-
     assert(param_count == 0 || params);
+    cc_clear_error();
+
+    if (IsBusy())
+    {
+        cc_error("ScriptExecutor is busy");
+        return kScExecErr_Busy;
+    }
+
     if (param_count > 0 && !params)
     {
-        cc_error("internal error in ScriptExecutor::Run");
+        cc_error("bad input arguments in ScriptExecutor::Run");
         return kScExecErr_Generic;
     }
 
@@ -132,16 +137,16 @@ ScriptExecError ScriptExecutor::Run(const RuntimeScript *script, const String &f
     // Allow to pass less parameters if script callback has less declared args
     param_count = std::min<size_t>(param_count, export_args);
     // Prepare executor for run
-    _flags &= ~kScExecState_Aborted;
-    _pc = 0;
-    _lineNumber = 0;
+    _flags = (_flags & ~kScExecState_Aborted) | kScExecState_Running | kScExecState_Busy;
     _returnValue = 0;
+    currentline = 0; // FIXME: stop using a global variable
 
     const ScriptExecError reterr = Run(script, start_at, params, param_count);
 
+    const bool was_aborted = (_flags & kScExecState_Aborted) != 0;
+    const bool has_nested_calls = _callstack.size() > 0;
     // Clear exec state
-    _pc = 0;
-    _lineNumber = 0;
+    _flags = (kScExecState_Running * has_nested_calls);
     _returnValue = 0;
     currentline = 0;
 
@@ -157,13 +162,9 @@ ScriptExecError ScriptExecutor::Run(const RuntimeScript *script, const String &f
     if (new_line_hook)
         new_line_hook(nullptr, 0);
 
-    if (_flags & kScExecState_Aborted)
-    {
-        _flags &= ~kScExecState_Aborted;
-        return kScExecErr_Aborted;
-    }
-
-    return kScExecErr_None;
+    return was_aborted ?
+        kScExecErr_Aborted :
+        kScExecErr_None;
 }
 
 void ScriptExecutor::Abort()
@@ -209,7 +210,7 @@ void ScriptExecutor::SetExecTimeout(unsigned sys_poll_ms, unsigned abort_ms, uns
 
 void ScriptExecutor::NotifyAlive()
 {
-    _flags |= kScExecState_Running;
+    _flags |= kScExecState_Alive;
     _lastAliveTs = AGS_FastClock::now();
 }
 
@@ -302,27 +303,50 @@ void ScriptExecutor::NotifyAlive()
         return kScExecErr_Generic; \
     }
 
+// Macros to maintain the call stack
+#define PUSH_CALL_STACK() \
+    if (_callstack.size() >= MAX_CALL_STACK) { \
+        cc_error("CallScriptFunction stack overflow (recursive call error?)"); \
+        return kScExecErr_Generic; \
+    } \
+    _callstack.push_back(ScriptExecPosition(_current, _pc, _lineNumber));
+
+#define POP_CALL_STACK() \
+    if (_callstack.size() < 1) { \
+        cc_error("CallScriptFunction stack underflow -- internal error"); \
+        return kScExecErr_Generic; \
+    } \
+    _lineNumber = _callstack.back().LineNumber; \
+    currentline = _lineNumber; \
+    _callstack.pop_back();
+
 
 ScriptExecError ScriptExecutor::Run(const RuntimeScript *script, int32_t curpc, const RuntimeScriptValue *params, size_t param_count)
 {
-    const bool is_nested_run = _callstack.size() > 0;
-    // Setup current script
-    SetCurrentScript(script);
+    const bool is_nested_run = _current != nullptr;
 
+    const RuntimeScript *was_running = _current;
+    const int oldpc = _pc;
     RuntimeScriptValue * const oldstack_begin = _stackBegin;
     uint8_t * const oldstackdata_begin = _stackdataBegin;
 
     if (is_nested_run)
     {
-        _stackBegin = _registers[SREG_SP].RValue;
-        _stackdataBegin = _stackdataPtr;
+        PUSH_CALL_STACK();
+        // In the nested call we keep stack pointers where they are,
+        // and treat their position as a new "beginning of stack" for this exec pass.
     }
     else
     {
-        _registers[SREG_SP].SetStackPtr(_stackBegin);
-        _stackdataPtr = _stackdataBegin;
+        // On script thread entry we reset stack pointers to the actual beginning
+        // of executor's stack.
+        _registers[SREG_SP].SetStackPtr(_stack.data());
+        _stackdataPtr = _stackdata.data();
     }
 
+    SetCurrentScript(script);
+    _stackBegin = _registers[SREG_SP].RValue;
+    _stackdataBegin = _stackdataPtr;
     const RuntimeScriptValue oldstack = _registers[SREG_SP];
     const uint8_t * const oldstackdata = _stackdataPtr;
 
@@ -347,35 +371,21 @@ ScriptExecError ScriptExecutor::Run(const RuntimeScript *script, int32_t curpc, 
         return reterr;
 
     // Final assert: stack must be reset to where it was before starting this script
-    if (!(_flags & kScExecState_Aborted))
-    {
+    if ((_flags & kScExecState_Aborted) == 0)
         ASSERT_STACK_UNWINDED(oldstack, oldstackdata);
-    }
+
     if (is_nested_run)
     {
-        _stackBegin = oldstack_begin;
-        _stackdataBegin = oldstackdata_begin;
+        POP_CALL_STACK();
     }
-    SetCurrentScript(nullptr);
+
+    SetCurrentScript(was_running); // switch back to the previous script
+    _pc = oldpc;
+    _stackBegin = oldstack_begin;
+    _stackdataBegin = oldstackdata_begin;
+
     return cc_has_error() ? kScExecErr_Generic : kScExecErr_None;
 }
-
-// Macros to maintain the call stack
-#define PUSH_CALL_STACK() \
-    if (_callstack.size() >= MAX_CALL_STACK) { \
-        cc_error("CallScriptFunction stack overflow (recursive call error?)"); \
-        return kScExecErr_Generic; \
-    } \
-    _callstack.push_back(ScriptExecPosition(_current, _pc, _lineNumber));
-
-#define POP_CALL_STACK() \
-    if (_callstack.size() < 1) { \
-        cc_error("CallScriptFunction stack underflow -- internal error"); \
-        return kScExecErr_Generic; \
-    } \
-    _lineNumber = _callstack.back().LineNumber; \
-    currentline = _lineNumber; \
-    _callstack.pop_back();
 
 
 // Return stack ptr at given offset from stack head;
@@ -935,9 +945,9 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
             if (arg_lit < 0)
             {
                 ++loopIterations;
-                if (_flags & kScExecState_Running)
+                if (_flags & kScExecState_Alive)
                 { // was notified still running, don't do anything
-                    _flags &= ~kScExecState_Running;
+                    _flags &= ~kScExecState_Alive;
                     loopIterations = 0u;
                     loopCheckIterations = 0u;
                 }
@@ -1136,10 +1146,6 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
         }
         case SCMD_CALLAS:
         {
-            PUSH_CALL_STACK();
-            const RuntimeScript *was_running = _current;
-            const int oldpc = _pc;
-
             // Call to a function in another script
             const auto &reg1 = _registers[codeOp.Arg1i()];
 
@@ -1157,12 +1163,7 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
                 PushValueToStack(*prval);
             }
 
-            const RuntimeScriptValue oldstack = _registers[SREG_SP];
-            const uint8_t * const oldstackdata = _stackdataPtr;
-            // Push placeholder for the return value (it will be popped before ret)
-            PushValueToStack(RuntimeScriptValue().SetInt32(0));
-
-            // extract the instance ID
+            // extract the script ID
             const int32_t instance_id = codeOp.Instruction.InstanceId;
             // determine the offset into the code of the instance we want
             const RuntimeScript *next_to_run = RuntimeScript::GetLinkedScript(instance_id);
@@ -1172,9 +1173,22 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
                 cc_error("call address not aligned");
                 return kScExecErr_Generic;
             }
-            callAddr /= sizeof(uintptr_t); // size of ccScript::code elements
+            callAddr /= sizeof(uintptr_t); // size of code elements
+
+            PUSH_CALL_STACK();
+            const RuntimeScript *was_running = _current;
+            const int oldpc = _pc;
+            const RuntimeScriptValue oldstack = _registers[SREG_SP];
+            const uint8_t * const oldstackdata = _stackdataPtr;
+
+            // Push placeholder for the return value (it will be popped before ret)
+            PushValueToStack(RuntimeScriptValue().SetInt32(0));
+
             SetCurrentScript(next_to_run); // switch to the new script
 
+            // TODO: rewrite executor impl here to NOT have any nested Run calls;
+            // instead continue same loop, just like in SCMD_CALL,
+            // but push "current script" on SCMD_CALLAS and pop "current script" on SCMD_RET.
             if (Run(static_cast<int32_t>(callAddr)))
                 return kScExecErr_Generic;
 
@@ -1191,11 +1205,7 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
         }
         case SCMD_CALLEXT:
         {
-            PUSH_CALL_STACK();
-            const RuntimeScript *was_running = _current;
-            const int oldpc = _pc;
-            const RuntimeScriptValue oldstack = _registers[SREG_SP];
-            const uint8_t * const oldstackdata = _stackdataPtr;
+            _flags &= ~kScExecState_Busy;
 
             // Call to a real 'C' code function
             const auto &reg1 = _registers[codeOp.Arg1i()];
@@ -1260,12 +1270,7 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
                 return kScExecErr_Generic;
             }
 
-            if ((_flags & kScExecState_Aborted) == 0)
-                ASSERT_STACK_UNWINDED(oldstack, oldstackdata);
-
-            POP_CALL_STACK();
-            SetCurrentScript(was_running); // switch back to the previous script
-            _pc = oldpc;
+            _flags |= kScExecState_Busy;
             _registers[SREG_AX] = return_value;
             next_call_needs_object = 0;
             num_args_to_func = -1;

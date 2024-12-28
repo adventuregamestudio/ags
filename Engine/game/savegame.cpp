@@ -1144,7 +1144,17 @@ int SaveInfo_GetScriptModuleCount(ScriptRestoredSaveInfo *info)
     return info->GetCounts().ScriptModules;
 }
 
-int SaveInfo_GetScriptModuleDataSize(ScriptRestoredSaveInfo *info, int index)
+const char *SaveInfo_GetScriptModuleNames(ScriptRestoredSaveInfo *info, int index)
+{
+    if (index < 0 || static_cast<uint32_t>(index) >= info->GetCounts().ScriptModuleDataSz.size())
+    {
+        debug_script_warn("RestoredSaveInfo::ScriptModuleNames: index %d out of bounds (%d..%d)", index, 0, info->GetCounts().ScriptModules);
+        return 0;
+    }
+    return CreateNewScriptString(info->GetCounts().ScriptModuleNames[index]);
+}
+
+int SaveInfo_GetScriptModuleDataSizes(ScriptRestoredSaveInfo *info, int index)
 {
     if (index < 0 || static_cast<uint32_t>(index) >= info->GetCounts().ScriptModuleDataSz.size())
     {
@@ -1269,9 +1279,14 @@ RuntimeScriptValue Sc_SaveInfo_GetScriptModuleCount(void *self, const RuntimeScr
     API_OBJCALL_INT(ScriptRestoredSaveInfo, SaveInfo_GetScriptModuleCount);
 }
 
-RuntimeScriptValue Sc_SaveInfo_GetScriptModuleDataSize(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_SaveInfo_GetScriptModuleNames(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT_PINT(ScriptRestoredSaveInfo, SaveInfo_GetScriptModuleDataSize);
+    API_OBJCALL_OBJ_PINT(ScriptRestoredSaveInfo, const char, myScriptStringImpl, SaveInfo_GetScriptModuleNames);
+}
+
+RuntimeScriptValue Sc_SaveInfo_GetScriptModuleDataSizes(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT_PINT(ScriptRestoredSaveInfo, SaveInfo_GetScriptModuleDataSizes);
 }
 
 RuntimeScriptValue Sc_SaveInfo_GetRoom(void *self, const RuntimeScriptValue *params, int32_t param_count)
@@ -1304,7 +1319,8 @@ void RegisterSaveInfoAPI()
         { "RestoredSaveInfo::geti_ViewFrameCount",      API_FN_PAIR(SaveInfo_GetViewFrameCount) },
         { "RestoredSaveInfo::get_GlobalScriptDataSize", API_FN_PAIR(SaveInfo_GetGlobalScriptDataSize) },
         { "RestoredSaveInfo::get_ScriptModuleCount",    API_FN_PAIR(SaveInfo_GetScriptModuleCount) },
-        { "RestoredSaveInfo::geti_ScriptModuleDataSize",API_FN_PAIR(SaveInfo_GetScriptModuleDataSize) },
+        { "RestoredSaveInfo::geti_ScriptModuleNames",   API_FN_PAIR(SaveInfo_GetScriptModuleNames) },
+        { "RestoredSaveInfo::geti_ScriptModuleDataSizes",API_FN_PAIR(SaveInfo_GetScriptModuleDataSizes) },
         { "RestoredSaveInfo::get_Room",                 API_FN_PAIR(SaveInfo_GetRoom) },
     };
 

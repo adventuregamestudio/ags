@@ -3437,8 +3437,10 @@ managed struct RestoredSaveInfo
   import readonly attribute int GlobalScriptDataSize;
   /// Gets the number of script modules (except for the global script) present in this save.
   import readonly attribute int ScriptModuleCount;
+  /// Gets the name of each of the script module present in this save.
+  import readonly attribute String ScriptModuleNames[];
   /// Gets the total size of each of the script module's data (variables), in bytes, present in this save.
-  import readonly attribute int ScriptModuleDataSize[];
+  import readonly attribute int ScriptModuleDataSizes[];
 };
 #endif
 

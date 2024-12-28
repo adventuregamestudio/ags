@@ -137,6 +137,7 @@ struct SaveRestoredDataCounts
     std::vector<uint32_t> ViewFrames;
     uint32_t GlobalScriptDataSz = 0u;
     uint32_t ScriptModules = 0u;
+    std::vector<String> ScriptModuleNames;
     std::vector<uint32_t> ScriptModuleDataSz;
     int Room = -1; // the room this save was made in
 };

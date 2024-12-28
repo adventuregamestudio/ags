@@ -14,13 +14,20 @@
 #include "script/systemimports.h"
 #include <stdlib.h>
 #include <string.h>
-#include "script/cc_instance.h"
+#include "script/runtimescript.h"
 
 using namespace AGS::Common;
 
 SystemImports simp;
 SystemImports simp_for_plugin;
 
+
+ScriptImport::ScriptImport(const String &name, const RuntimeScriptValue &rval, const RuntimeScript *script, ScriptValueHint val_hint)
+    : Name(name), Value(rval), ScriptPtr(script), ValueHint(val_hint)
+{
+    if (script)
+        ScriptID = script->GetLinkIndex();
+}
 
 void ScriptSymbolsMap::Add(const String &name, uint32_t index)
 {
@@ -125,7 +132,7 @@ SystemImports::SystemImports()
 {
 }
 
-uint32_t SystemImports::Add(const String &name, const RuntimeScriptValue &value, const ccInstance *inst, ScriptValueHint val_hint)
+uint32_t SystemImports::Add(const String &name, const RuntimeScriptValue &value, const RuntimeScript *script, ScriptValueHint val_hint)
 {
     assert(value.IsValid());
     uint32_t ixof = GetIndexOf(name);
@@ -133,7 +140,7 @@ uint32_t SystemImports::Add(const String &name, const RuntimeScriptValue &value,
     if (ixof != UINT32_MAX)
     {
         // Only allow override if not a script-exported function
-        if (inst == nullptr)
+        if (script == nullptr)
         {
             _imports[ixof] = ScriptImport(name, value, nullptr, val_hint);
         }
@@ -151,9 +158,9 @@ uint32_t SystemImports::Add(const String &name, const RuntimeScriptValue &value,
     }
 
     if (ixof == _imports.size())
-        _imports.emplace_back(name, value, inst, val_hint);
+        _imports.emplace_back(name, value, script, val_hint);
     else
-        _imports[ixof] = ScriptImport(name, value, inst, val_hint);
+        _imports[ixof] = ScriptImport(name, value, script, val_hint);
     _lookup.Add(name, ixof);
     return ixof;
 }
@@ -197,9 +204,9 @@ String SystemImports::FindName(const RuntimeScriptValue &value) const
     return String();
 }
 
-void SystemImports::RemoveScriptExports(const ccInstance *inst)
+void SystemImports::RemoveScriptExports(const RuntimeScript *script)
 {
-    if (!inst)
+    if (!script)
     {
         return;
     }
@@ -209,7 +216,7 @@ void SystemImports::RemoveScriptExports(const ccInstance *inst)
         if (import.Name.IsEmpty())
             continue;
 
-        if (import.InstancePtr == inst)
+        if (import.ScriptPtr == script)
         {
             _lookup.Remove(import.Name);
             import = {};

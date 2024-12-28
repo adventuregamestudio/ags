@@ -255,7 +255,7 @@ RuntimeScriptValue RuntimeScript::GetSymbolAddress(const String &symname) const
 bool RuntimeScript::FindExportedFunction(const String &fn_name, int32_t &start_at, int32_t &num_args) const
 {
     const uint32_t exp_index = _exportLookup.GetIndexOfAny(fn_name);
-    if (exp_index == SIZE_MAX)
+    if (exp_index == UINT32_MAX)
         return false;
 
     if (_resolvedExports[exp_index].Type != EXPORT_FUNCTION)

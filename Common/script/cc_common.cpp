@@ -18,8 +18,12 @@
 
 using namespace AGS::Common;
 
+// FIXME: refactor, get rid of these global vars!
+//
 int ccCompOptions = 0;
+// currently compiled or executed lin
 int currentline = 0;
+// name of currently compiling script or script section
 std::string ccCurScriptName;
 
 void ccResetOptions(int optbit)

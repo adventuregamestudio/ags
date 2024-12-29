@@ -37,6 +37,7 @@
 #include "ac/sys_events.h"
 #include "ac/dynobj/cc_pluginobject.h"
 #include "ac/dynobj/dynobj_manager.h"
+#include "ac/dynobj/cc_dynamicarray.h"
 #include "ac/dynobj/scriptobjects.h"
 #include "ac/dynobj/scriptstring.h"
 #include "ac/dynobj/scriptsystem.h"
@@ -96,12 +97,11 @@ extern int displayed_room;
 extern RoomStruct thisroom;
 extern RoomStatus *croom;
 extern ScriptObject scrObj[MAX_ROOM_OBJECTS];
-extern RuntimeScriptValue GlobalReturnValue;
 
 // **************** PLUGIN IMPLEMENTATION ****************
 
 
-const int PLUGIN_API_VERSION = 29;
+const int PLUGIN_API_VERSION = 30;
 struct EnginePlugin
 {
     EnginePlugin() {
@@ -667,7 +667,7 @@ int IAGSEngine::RegisterManagedObject(void *object, IAGSScriptManagedObject *cal
     // we may try to optimize following by having a cache of CCPluginObjects per callback
     // address. Need to research if that's reliable, and will actually be more performant.
     auto *pl_obj = new CCPluginObject((IScriptObject*)callback);
-    GlobalReturnValue.SetPluginObject((void*)object, pl_obj);
+    ccInstance::SetPluginReturnValue(RuntimeScriptValue().SetPluginObject((void*)object, pl_obj));
     return ccRegisterManagedObject(object, pl_obj, kScValPluginObject);
 }
 
@@ -685,7 +685,7 @@ void IAGSEngine::AddManagedObjectReader(const char *typeName, IAGSManagedObjectR
 
 void IAGSEngine::RegisterUnserializedObject(int key, void *object, IAGSScriptManagedObject *callback) {
     auto *pl_obj = new CCPluginObject((IScriptObject*)callback);
-    GlobalReturnValue.SetPluginObject((void*)object, pl_obj);
+    ccInstance::SetPluginReturnValue(RuntimeScriptValue().SetPluginObject((void*)object, pl_obj));
     ccRegisterUnserializedObject(key, object, pl_obj, kScValPluginObject);
 }
 
@@ -697,14 +697,14 @@ void* IAGSEngine::GetManagedObjectAddressByKey(int key) {
     void *object;
     IScriptObject *manager;
     ScriptValueType obj_type = ccGetObjectAddressAndManagerFromHandle(key, object, manager);
-    GlobalReturnValue.SetScriptObject(obj_type, object, manager);
+    ccInstance::SetPluginReturnValue(RuntimeScriptValue().SetScriptObject(obj_type, object, manager));
     return object;
 }
 
 const char* IAGSEngine::CreateScriptString(const char *fromText) {
     const char *string = CreateNewScriptString(fromText);
-    // Should be still standard dynamic object, because not managed by plugin
-    GlobalReturnValue.SetScriptObject((void*)string, &myScriptStringImpl);
+    // Should be standard dynamic object, because not managed by plugin
+    ccInstance::SetPluginReturnValue(RuntimeScriptValue().SetScriptObject((void*)string, &myScriptStringImpl));
     return string;
 }
 
@@ -832,6 +832,35 @@ void IAGSEngine::Log(int level, const char *fmt, ...)
     plugin.logbuf.AppendFmtv(fmt, argptr);
     DbgMgr.Print(kDbgGroup_Plugin, static_cast<MessageType>(level), plugin.logbuf);
     va_end(argptr);
+}
+
+void *IAGSEngine::CreateDynamicArray(size_t elem_count, size_t elem_size, bool is_managed_type)
+{
+    if (elem_count > INT32_MAX || elem_size > INT32_MAX || (static_cast<uint64_t>(elem_count) * elem_size) > UINT32_MAX)
+    {
+        debug_script_warn("IAGSEngine::CreateDynamicArray: requested array size exceeds the supported limit");
+        return nullptr;
+    }
+    if (is_managed_type && elem_size != sizeof(int32_t))
+    {
+        debug_script_warn("IAGSEngine::CreateDynamicArray: managed handles must have elem_size = 4, requested %zu instead", elem_size);
+        return nullptr;
+    }
+
+    auto obj_ref = CCDynamicArray::CreateOld(static_cast<uint32_t>(elem_count), static_cast<uint32_t>(elem_size), is_managed_type);
+    // Should be standard dynamic object, because not managed by plugin
+    ccInstance::SetPluginReturnValue(RuntimeScriptValue().SetScriptObject(obj_ref.Obj, &globalDynamicArray));
+    return obj_ref.Obj;
+}
+
+size_t IAGSEngine::GetDynamicArrayLength(const void *arr)
+{
+    return arr ? CCDynamicArray::GetHeader(arr).ElemCount : 0u;
+}
+
+size_t IAGSEngine::GetDynamicArraySize(const void *arr)
+{
+    return arr ? CCDynamicArray::GetHeader(arr).TotalSize : 0u;
 }
 
 // *********** General plugin implementation **********

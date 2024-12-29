@@ -7,7 +7,7 @@ namespace AGS.Types
 {
     public class InventoryHotspotMarker
     {
-        private InventoryHotspotMarkerStyle _style;
+        private InventoryHotspotMarkerStyle _style = InventoryHotspotMarkerStyle.None;
         private int _dotColor;
         private int _crosshairColor;
         private int _spriteSlot;

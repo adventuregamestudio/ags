@@ -124,7 +124,7 @@ void UpdateCharacterMoveAndAnim(CharacterInfo *chi, CharacterExtras *chex, std::
 
 void UpdateFollowingExactlyCharacter(CharacterInfo *chi)
 {
-    const auto &following = game.chars[chi->following];
+    const auto &following = game.chars[charextra[chi->index_id].following];
     chi->x = following.x;
     chi->y = following.y;
     chi->z = following.z;
@@ -132,7 +132,7 @@ void UpdateFollowingExactlyCharacter(CharacterInfo *chi)
     chi->prevroom = following.prevroom;
 
     const int usebase = following.get_baseline();
-    if (chi->flags & CHF_BEHINDSHEPHERD)
+    if (chi->get_follow_sort_behind())
       chi->baseline = usebase - 1;
     else
       chi->baseline = usebase + 1;
@@ -363,33 +363,37 @@ bool UpdateCharacterAnimating(CharacterInfo *chi, CharacterExtras *chex, int &do
 
 void UpdateCharacterFollower(CharacterInfo *chi, std::vector<int> &followingAsSheep, int &doing_nothing)
 {
-	if ((chi->following >= 0) && (chi->followinfo == FOLLOW_ALWAYSONTOP)) {
+    const CharacterExtras *chex = &charextra[chi->index_id];
+    const int following = chex->following;
+    const int distaway  = chex->follow_dist;
+    const int eagerness = chex->follow_eagerness;
+
+    if ((following >= 0) && (distaway == FOLLOW_ALWAYSONTOP)) {
       // an always-on-top follow
       followingAsSheep.push_back(chi->index_id);
     }
     // not moving, but should be following another character
-    else if ((chi->following >= 0) && (doing_nothing == 1)) {
-      short distaway=(chi->followinfo >> 8) & 0x00ff;
+    else if ((following >= 0) && (doing_nothing == 1)) {
       // no character in this room
-      if (!game.chars[chi->following].is_enabled() || !chi->is_enabled()) ;
+      if (!game.chars[following].is_enabled() || !chi->is_enabled()) ;
       else if (chi->room < 0) {
         chi->room ++; // CHECKME: what the heck is this for ???
         if (chi->room == 0) {
           // appear in the new room
-          chi->room = game.chars[chi->following].room;
+          chi->room = game.chars[following].room;
           chi->x = play.entered_at_x;
           chi->y = play.entered_at_y;
         }
       }
       // wait a bit, so we're not constantly walking
-      else if (Random(100) < (chi->followinfo & 0x00ff)) ;
+      else if (Random(100) < eagerness) ;
       // the followed character has changed room
-      else if ((chi->room != game.chars[chi->following].room)
-            && (!game.chars[chi->following].is_enabled()))
+      else if ((chi->room != game.chars[following].room)
+            && (!game.chars[following].is_enabled()))
         ;  // do nothing if the player isn't visible
-      else if (chi->room != game.chars[chi->following].room) {
+      else if (chi->room != game.chars[following].room) {
         chi->prevroom = chi->room;
-        chi->room = game.chars[chi->following].room;
+        chi->room = game.chars[following].room;
 
         if (chi->room == displayed_room) {
           // only move to the room-entered position if coming into
@@ -425,16 +429,16 @@ void UpdateCharacterFollower(CharacterInfo *chi, std::vector<int> &followingAsSh
         // if the characetr is following another character and
         // neither is in the current room, don't try to move
       }
-      else if ((abs(game.chars[chi->following].x - chi->x) > distaway+30) ||
-        (abs(game.chars[chi->following].y - chi->y) > distaway+30) ||
-        ((chi->followinfo & 0x00ff) == 0)) {
+      else if ((abs(game.chars[following].x - chi->x) > distaway+30) ||
+        (abs(game.chars[following].y - chi->y) > distaway+30) ||
+        (eagerness == 0)) {
         // in same room
         int goxoffs=(Random(50)-25);
         // make sure he's not standing on top of the other man
         if (goxoffs < 0) goxoffs-=distaway;
         else goxoffs+=distaway;
-        move_character(chi, game.chars[chi->following].x + goxoffs,
-          game.chars[chi->following].y + (Random(50)-25), false /* ignwall */, true /* walk anim */);
+        move_character(chi, game.chars[following].x + goxoffs,
+          game.chars[following].y + (Random(50)-25), false /* ignwall */, true /* walk anim */);
         doing_nothing = 0;
       }
     }

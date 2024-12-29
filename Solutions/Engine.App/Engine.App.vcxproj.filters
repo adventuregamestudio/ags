@@ -1529,9 +1529,6 @@
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_scriptobject.h">
       <Filter>Header Files\ac\dynobj</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\plugin\agsplugin_evts.h">
-      <Filter>Header Files\plugin</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptobjects.h">
       <Filter>Header Files\ac\dynobj</Filter>
     </ClInclude>

@@ -140,6 +140,7 @@ public:
     static std::unique_ptr<ccInstance> CreateFromScript(PScript script);
     static std::unique_ptr<ccInstance> CreateEx(PScript scri, const ccInstance * joined);
     static void SetExecTimeout(unsigned sys_poll_ms, unsigned abort_ms, unsigned abort_loops);
+    static void SetPluginReturnValue(const RuntimeScriptValue &value);
     static const JointRTTI *GetRTTI() { return _rtti.get(); }
     static const Engine::RTTIHelper *GetRTTIHelper() { return _rttiHelper.get(); }
     // Joins custom provided RTTI into the global collection;
@@ -231,6 +232,9 @@ private:
     // Begin executing script starting from the given bytecode index
     ccInstError Run(int32_t curpc);
 
+    // For calling exported plugin functions old-style
+    RuntimeScriptValue CallPluginFunction(void *fn_addr, const RuntimeScriptValue *object, const RuntimeScriptValue *params, int param_count);
+
     // Stack processing
     // Push writes new value and increments stack ptr;
     // stack ptr now points to the __next empty__ entry
@@ -317,6 +321,19 @@ private:
     int         _pc = 0; // program counter
     int         _lineNumber = 0; // source code line number
     int         _returnValue = 0; // last executed function's return value
+
+    // A value returned from plugin functions saved as RuntimeScriptValue.
+    // This is a temporary solution (*sigh*, one of many) which allows to
+    // receive any pointer values from plugins, as RSV can only store plain
+    // numeric values as 32-bit integers. Not to mention that this way we
+    // can store an accompanying IScriptObject manager for managed objects.
+    // The big problem with this is that plugins do not know about RSV,
+    // so engine has to make educated GUESS, and assign this whenever plugin
+    // prepares a pointer, e.g. by registering or retrieving a managed object.
+    // This works, let's say, 95% of cases in practice, but is not formally
+    // reliable.
+    // FIXME: re-investigate this, find if there's a better solution?
+    static RuntimeScriptValue _pluginReturnValue;
 
     // Minimal timeout: how much time may pass without any engine update
     // before we want to check on the situation and do system poll

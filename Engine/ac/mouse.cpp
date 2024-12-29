@@ -155,16 +155,14 @@ void set_mouse_cursor(int newcurs, bool force_update)
         }
         else
         {
-            putpixel_compensate(gen_cursor.get(), hotspotx, hotspoty, MakeColor(game.hotdot));
-
+            gen_cursor->PutPixel(hotspotx, hotspoty, MakeColor(game.hotdot));
             if (game.hotdotouter > 0)
             {
-                int outercol = MakeColor(game.hotdotouter);
-
-                putpixel_compensate(gen_cursor.get(), hotspotx + 1, hotspoty, outercol);
-                putpixel_compensate(gen_cursor.get(), hotspotx, hotspoty + 1, outercol);
-                putpixel_compensate(gen_cursor.get(), hotspotx - 1, hotspoty, outercol);
-                putpixel_compensate(gen_cursor.get(), hotspotx, hotspoty - 1, outercol);
+                const int outercol = MakeColor(game.hotdotouter);
+                gen_cursor->PutPixel(hotspotx + 1, hotspoty, outercol);
+                gen_cursor->PutPixel(hotspotx, hotspoty + 1, outercol);
+                gen_cursor->PutPixel(hotspotx - 1, hotspoty, outercol);
+                gen_cursor->PutPixel(hotspotx, hotspoty - 1, outercol);
             }
         }
 

@@ -21,6 +21,10 @@
 #include "script/systemimports.h"
 
 
+SystemImports simp;
+SystemImports simp_for_plugin;
+
+
 bool ccAddExternalStaticFunction(const String &name, ScriptAPIFunction *scfn, void *dirfn)
 {
     return simp.Add(name, RuntimeScriptValue().SetStaticFunction(scfn), nullptr) != UINT32_MAX &&
@@ -152,146 +156,4 @@ void ccNotifyScriptStillAlive () {
 void ccSetDebugHook(new_line_hook_type jibble)
 {
     new_line_hook = jibble;
-}
-
-int call_function(void *fn_addr, const RuntimeScriptValue *object, int numparm, const RuntimeScriptValue *parms)
-{
-    if (!fn_addr)
-    {
-        cc_error("null function pointer in call_function");
-        return -1;
-    }
-    if (numparm > 0 && !parms)
-    {
-        cc_error("invalid parameters array in call_function");
-        return -1;
-    }
-
-    intptr_t parm_value[9];
-    if (object)
-    {
-        parm_value[0] = (intptr_t)object->GetPtrWithOffset();
-        numparm++;
-    }
-
-    for (int ival = object ? 1 : 0, iparm = 0; ival < numparm; ++ival, ++iparm)
-    {
-        switch (parms[iparm].Type)
-        {
-        case kScValInteger:
-        case kScValFloat:   // AGS passes floats, copying their values into long variable
-        case kScValPluginArg:
-            parm_value[ival] = (intptr_t)parms[iparm].IValue;
-            break;
-            break;
-        default:
-            parm_value[ival] = (intptr_t)parms[iparm].GetPtrWithOffset();
-            break;
-        }
-    }
-
-    //
-    // AN IMPORTANT NOTE ON PARAM TYPE
-    // of 2012-11-10
-    //
-    //// NOTE of 2012-12-20:
-    //// Everything said below is applicable only for calling
-    //// exported plugin functions.
-    //
-    // Here we are sending parameters of type intptr_t to registered
-    // function of unknown kind. Intptr_t is 32-bit for x32 build and
-    // 64-bit for x64 build.
-    // The exported functions usually have two types of parameters:
-    // pointer and 'int' (32-bit). For x32 build those two have the
-    // same size, but for x64 build first has 64-bit size while the
-    // second remains 32-bit.
-    // In formal case that would cause 'overflow' - function will
-    // receive more data than needed (written to stack), with some
-    // values shifted further by 32 bits.
-    //
-    // Upon testing, however, it was revealed that AMD64 processor,
-    // the only platform we support x64 Linux AGS build on right now,
-    // treats all the function parameters pushed to stack as 64-bit
-    // values (few first parameters are sent via registers, and hence
-    // are least concern anyway). Therefore, no 'overflow' occurs,
-    // and 64-bit values are being effectively truncated to 32-bit
-    // integers in the callee.
-    //
-    // Since this is still quite unreliable, this should be
-    // reimplemented when there's enough free time available for
-    // developers both for coding & testing.
-    //
-    // Most basic idea is to pass array of RuntimeScriptValue
-    // objects (that hold type description) and get same RSV as a
-    // return result. Keep in mind, though, that this solution will
-    // require fixing ALL exported functions, so a good amount of
-    // time and energy should be allocated for this task.
-    //
-
-    switch (numparm)
-    {
-    case 0:
-        {
-            int (*fparam) ();
-            fparam = (int (*)())fn_addr;
-            return fparam();
-        }
-    case 1:
-        {
-            int (*fparam) (intptr_t);
-            fparam = (int (*)(intptr_t))fn_addr;
-            return fparam(parm_value[0]);
-        }
-    case 2:
-        {
-            int (*fparam) (intptr_t, intptr_t);
-            fparam = (int (*)(intptr_t, intptr_t))fn_addr;
-            return fparam(parm_value[0], parm_value[1]);
-        }
-    case 3:
-        {
-            int (*fparam) (intptr_t, intptr_t, intptr_t);
-            fparam = (int (*)(intptr_t, intptr_t, intptr_t))fn_addr;
-            return fparam(parm_value[0], parm_value[1], parm_value[2]);
-        }
-    case 4:
-        {
-            int (*fparam) (intptr_t, intptr_t, intptr_t, intptr_t);
-            fparam = (int (*)(intptr_t, intptr_t, intptr_t, intptr_t))fn_addr;
-            return fparam(parm_value[0], parm_value[1], parm_value[2], parm_value[3]);
-        }
-    case 5:
-        {
-            int (*fparam) (intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
-            fparam = (int (*)(intptr_t, intptr_t, intptr_t, intptr_t, intptr_t))fn_addr;
-            return fparam(parm_value[0], parm_value[1], parm_value[2], parm_value[3], parm_value[4]);
-        }
-    case 6:
-        {
-            int (*fparam) (intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
-            fparam = (int (*)(intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t))fn_addr;
-            return fparam(parm_value[0], parm_value[1], parm_value[2], parm_value[3], parm_value[4], parm_value[5]);
-        }
-    case 7:
-        {
-            int (*fparam) (intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
-            fparam = (int (*)(intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t))fn_addr;
-            return fparam(parm_value[0], parm_value[1], parm_value[2], parm_value[3], parm_value[4], parm_value[5], parm_value[6]);
-        }
-    case 8:
-        {
-            int (*fparam) (intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
-            fparam = (int (*)(intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t))fn_addr;
-            return fparam(parm_value[0], parm_value[1], parm_value[2], parm_value[3], parm_value[4], parm_value[5], parm_value[6], parm_value[7]);
-        }
-    case 9:
-        {
-            int (*fparam) (intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
-            fparam = (int (*)(intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t))fn_addr;
-            return fparam(parm_value[0], parm_value[1], parm_value[2], parm_value[3], parm_value[4], parm_value[5], parm_value[6], parm_value[7], parm_value[8]);
-        }
-    }
-
-    cc_error("too many arguments in call to function");
-    return -1;
 }

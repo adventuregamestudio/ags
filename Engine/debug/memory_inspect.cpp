@@ -36,6 +36,7 @@
 #include "ac/dynobj/dynobj_manager.h"
 #include "script/cc_common.h"
 #include "script/cc_instance.h"
+#include "script/script_runtime.h"
 #include "script/systemimports.h"
 #include "util/compress.h"
 #include "util/string_utils.h"

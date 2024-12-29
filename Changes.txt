@@ -274,6 +274,7 @@ Editor:
  - Fixed "Color Finder" and color properties were mapping a color number to RGB values with
    accuracy mistakes, resulting in slightly different values than the engine would use.
  - Fixed an unhandled exception occuring when rebuilding rooms if any script's header is missing.
+ - Fixed a "unterminated string" error in Dialogs was not pointing to the actual error location.
  - Fixed double warning message when trying to close the Editor while a game test is running.
 
 Scripting:
@@ -288,7 +289,7 @@ Script API:
  - Added global events: eEventDialogStart, eEventDialogStop, eEventDialogRun,
    eEventDialogOptionsOpen, eEventDialogOptionsClose (these are handled in "on_event").
  - Events eEventGUIMouseDown and eEventGUIMouseUp now get additional parameters: mouse button,
-   mouse x and y positions.
+   mouse x and y positions (relative to the exact GUI).
  - Expanded "on_mouse_click" callback, now supports two more parameters: click x,y coordinates.
  - Added RestoredSaveInfo struct which contains information about game save's contents, 
  - Support "validate_restored_save" callback, which lets user to validate restored saves with
@@ -307,7 +308,8 @@ Script API:
    array of filenames found using certain pattern, and optionally sorted by name or time,
    in ascending or descending order.
  - Added File.GetFileTime() that returns file's modification time.
- - Added File.ReadBytes(), File.WriteBytes(), File.ReadRawFloat(), File.WriteRawFloat().
+ - Added File.ReadFloat(), WriteFloat(), ReadRawFloat(), WriteRawFloat(), ReadRawBytes() and
+   WriteRawBytes().
  - Added SaveGameSortStyle enum and Game.GetSaveSlots() function that returns a dynamic array
    of save slot indexes, optionally sorted in certain way.
  - Added Game.GetSaveSlotTime() that returns a time this save slot was last written.
@@ -356,8 +358,11 @@ Engine:
  - Engine supports returning to previously saved rooms which have less script data.
    It's important to remember though that it does no validation of restored room state on its own.
  - Dropped support for pre-3.5.0 game saves.
+ - Increased the cap of simultaneously loaded scripts to 1024 (this includes all regular script
+   modules, a single active dialog script, and a single active room script).
  - Engine no longer quits with error in case a script function assigned to a Room event is missing.
    Logs warnings about missing script functions assigned to any events.
+ - Character.FollowCharacter() can now have a distance parameter up to 32766 (was limited to 255).
  - Ensure that Character.Speaking returns true when a speech is playing even if the character
    has no speech view.
  - DynamicSprite.CreateFromFile() may now load 1-bit and 4-bit bitmaps, converting to 8-bit.
@@ -370,6 +375,8 @@ Engine:
  - Support calling StopDialog() inside a dialog script, that will schedule dialog's stop command
    at the end of the current option script.
  - Removed arbitrary limit of 2k bytes for the result of String.Format().
+ - Ensure that the objects with identical z-order (baseline) always keep same relative sort order
+   when being drawn (note: engine does not guarantee predefined order, only determenistic one).
  - Implemented video buffering on a separate thread. Allow to drop late video frames.
  - Added new accessibility config settings in "access" section: "speechskip", "textskip",
    "textreadspeed". These let player to override game's skipping style for character speech and
@@ -383,9 +390,14 @@ Engine:
    will now schedule a proper dialog topic switch, equivalent to "goto-dialog" command.
  - Fixed calling Character.Animate() during idling state could cause incorrect error, reporting
    invalid animation loop.
+ - Fixed inventory cursor's crosshair hotspot was drawn incorrectly if active item's sprite has
+   a alpha channel.
  - Fixed displaying room masks with Debug command in legacy "upscale" mode.
 
 Engine Plugin API:
+ - Added IAGSEngine.CreateDynamicArray(), which lets plugins to create dynamic arrays.
+ - Added IAGSEngine.GetDynamicArrayLength() and IAGSEngine.GetDynamicArraySize(), which tell
+   the passed array object's number of elements, and total size in bytes respectively.
  - Added IAGSEngine.Log(), which lets plugins to print using engine's log system.
 
 Compatibility:

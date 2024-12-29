@@ -526,10 +526,11 @@ void remove_screen_overlay(int type)
 
     reset_drawobj_for_overlay(type);
 
-    // If all overlays have been removed, reset creation index (helps vs overflows)
     play.overlay_count--;
+    // If all overlays have been removed, reset dynamic draw index (helps vs overflows);
+    // we do this here, because overlays are the only dynamic objects atm
     if (play.overlay_count == 0)
-        play.overlay_creation_id = 0;
+        reset_drawobj_dynamic_index();
 }
 
 void remove_all_overlays()
@@ -566,7 +567,6 @@ static size_t add_screen_overlay_impl(bool roomlayer, int x, int y, int type, in
 
     ScreenOverlay over;
     over.type = type;
-    over.creation_id = play.overlay_creation_id++;
     if (piccy)
     {
         over.SetImage(std::unique_ptr<Bitmap>(piccy), pic_offx, pic_offy);

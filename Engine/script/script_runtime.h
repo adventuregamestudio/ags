@@ -97,7 +97,11 @@ void ccSetDebugHook(new_line_hook_type jibble);
 void ccSetScriptAliveTimer(unsigned sys_poll_timeout, unsigned abort_timeout, unsigned abort_loops);
 // reset the current while loop counter
 void ccNotifyScriptStillAlive();
-// for calling exported plugin functions old-style
-int call_function(void *fn_addr, const RuntimeScriptValue *object, int numparm, const RuntimeScriptValue *parms);
+
+// Symbols registered for scripts
+extern SystemImports simp;
+// This is to register symbols exclusively for plugins, to allow them
+// perform old style unsafe function calls
+extern SystemImports simp_for_plugin;
 
 #endif // __AGS_EE_CC__SCRIPTRUNTIME_H

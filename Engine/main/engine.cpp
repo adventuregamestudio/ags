@@ -653,8 +653,6 @@ void engine_init_game_settings()
     for (ee=0;ee<game.numcharacters;ee++) {
         memset(&game.chars[ee].inv[0],0,MAX_INV*sizeof(short));
         game.chars[ee].activeinv=-1;
-        game.chars[ee].following=-1;
-        game.chars[ee].followinfo=97 | (10 << 8);
         game.chars[ee].idleleft=game.chars[ee].idletime;
         game.chars[ee].baseline = -1;
         game.chars[ee].walkwaitcounter = 0;

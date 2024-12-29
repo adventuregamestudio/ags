@@ -14,6 +14,7 @@
 #ifndef __AC_CHARACTERINFO_H
 #define __AC_CHARACTERINFO_H
 
+#include <algorithm>
 #include <vector>
 #include "core/types.h"
 #include "ac/common_defines.h" // constants
@@ -94,6 +95,7 @@ enum CharacterSvgVersion
     kCharSvgVersion_36025   = 2, // animation volume
     kCharSvgVersion_36109   = 3, // removed movelists, save externally
     kCharSvgVersion_36115   = 4, // no limit on character name's length
+    kCharSvgVersion_36205   = 3060205, // 32-bit "following" parameters
     kCharSvgVersion_400     = 4000000, // extended graphic effects (blend, rotate,...)
     kCharSvgVersion_400_03  = 4000003, // compat with kCharSvgVersion_36115
     kCharSvgVersion_400_09  = 4000009, // 32-bit color properties
@@ -104,37 +106,45 @@ enum CharacterSvgVersion
 // TODO: must refactor, some parts of it should be in a runtime Character class.
 struct CharacterInfo
 {
-    int   defview;
-    int   talkview;
-    int   view;
-    int   room, prevroom;
-    int   x, y, wait;
-    int   flags;
-    short following;
-    short followinfo;
-    int   idleview;           // the loop will be randomly picked
-    short idletime, idleleft; // num seconds idle before playing anim
-    short transparency;       // if character is transparent
-    short baseline;
-    int   activeinv;
-    int   talkcolor;
-    int   thinkview;
-    short blinkview, blinkinterval; // design time
-    short blinktimer, blinkframe;   // run time
-    short walkspeed_y;
-    short pic_yoffs; // this is fixed in screen coordinates
-    int   z;    // z-location, for flying etc
-    int   walkwait;
-    short speech_anim_speed, idle_anim_speed;
-    short blocking_width, blocking_height;
-    int   index_id;  // used for object functions to know the id
-    short pic_xoffs; // this is fixed in screen coordinates
-    short walkwaitcounter;
-    uint16_t loop, frame;
-    short walking; // stores movelist index, optionally +TURNING_AROUND
-    short animating; // stores CHANIM_* flags in lower byte and delay in upper byte
-    short walkspeed, animspeed;
-    short inv[MAX_INV];
+    int     defview     = 0;
+    int     talkview    = 0;
+    int     view        = 0;
+    int     room        = 0;
+    int     prevroom    = 0;
+    int     x           = 0;
+    int     y           = 0;
+    int     wait        = 0;
+    int     flags       = 0;  // CHF_* flags
+    int     idleview    = 0;  // the loop will be randomly picked
+    int16_t idletime    = 0;
+    int16_t idleleft    = 0; // num seconds idle before playing anim
+    int16_t transparency = 0; // level of transparency (0 - 100)
+    int16_t baseline    = -1;
+    int     activeinv   = -1; // selected inventory item
+    int     talkcolor   = 0;
+    int     thinkview   = 0;
+    int16_t blinkview   = 0;
+    int16_t blinkinterval = 0;
+    int16_t blinktimer  = 0;
+    int16_t blinkframe  = 0;
+    int16_t walkspeed_y = 0;
+    int16_t pic_yoffs   = 0; // this is fixed in screen coordinates
+    int     z           = 0; // z-location, for flying etc
+    int     walkwait    = 0;
+    int16_t speech_anim_speed = 0;
+    int16_t idle_anim_speed = 0;
+    int16_t blocking_width = 0;
+    int16_t blocking_height = 0;
+    int     index_id    = 0; // this character's numeric ID
+    int16_t pic_xoffs   = 0; // this is fixed in screen coordinates
+    int16_t walkwaitcounter = 0;
+    uint16_t loop       = 0;
+    uint16_t frame      = 0;
+    int16_t walking     = 0; // stores movelist index, optionally +TURNING_AROUND
+    int16_t animating   = 0; // stores CHANIM_* flags in lower byte and delay in upper byte
+    int16_t walkspeed   = 0;
+    int16_t animspeed   = 0;
+    int16_t inv[MAX_INV] = { 0 }; // quantities of each inventory item in game
     AGS::Common::String scrname; // script name
     AGS::Common::String name; // regular name (aka description)
 
@@ -169,6 +179,17 @@ struct CharacterInfo
             (CHANIM_REPEAT * repeat) |
             (CHANIM_BACKWARDS * !forwards) |
             ((delay & 0xFF) << 8);
+    }
+
+    // Gets if character follows another, while being drawn behind
+    inline bool get_follow_sort_behind() const
+    {
+        return (flags & CHF_BEHINDSHEPHERD) != 0;
+    }
+    // Sets "following sort behind" flag
+    void set_following_sortbehind(bool sort_behind = false)
+    {
+        flags = (flags & ~CHF_BEHINDSHEPHERD) | (CHF_BEHINDSHEPHERD * sort_behind);
     }
 
     void ReadFromFile(Common::Stream *in, GameDataVersion data_ver);

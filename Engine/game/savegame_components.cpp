@@ -594,8 +594,15 @@ HSaveError ReadCharacters(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pr
 
     for (uint32_t i = 0; i < characters_read; ++i)
     {
-        game.chars[i].ReadFromSavegame(in, static_cast<CharacterSvgVersion>(cmp_ver));
-        charextra[i].ReadFromSavegame(in, static_cast<CharacterSvgVersion>(cmp_ver));
+        auto &chi = game.chars[i];
+        auto &chex = charextra[i];
+        chi.ReadFromSavegame(in, static_cast<CharacterSvgVersion>(cmp_ver));
+        chex.ReadFromSavegame(in, static_cast<CharacterSvgVersion>(cmp_ver));
+        // re-assign legacy following params (for old saves)
+        if (cmp_ver < kCharSvgVersion_36205)
+        { // FIXME!!
+            //charextra[i].SetFollowing(&chi, chi.legacy_following, chi.get_follow_distance(), chi.get_follow_eagerness(), chi.get_follow_sort_behind());
+        }
         Properties::ReadValues(play.charProps[i], in);
     }
     return err;
@@ -1283,11 +1290,14 @@ HSaveError ReadScriptModules(Stream *in, int32_t cmp_ver, soff_t cmp_size, const
     const uint32_t modules_read = in->ReadInt32();
     r_data.DataCounts.ScriptModules = modules_read;
     r_data.DataCounts.ScriptModuleDataSz.resize(modules_read);
+    r_data.DataCounts.ScriptModuleNames.resize(modules_read);
     for (size_t read_module_index = 0; read_module_index < modules_read; ++read_module_index)
     {
         const String module_name = (cmp_ver < kScriptModulesSvgVersion_36200) ?
             (read_module_index < pp.ScriptModuleNames.size() ? pp.ScriptModuleNames[read_module_index] : "") :
             StrUtil::ReadString(in);
+        r_data.DataCounts.ScriptModuleNames[read_module_index] = module_name;
+
         data_len = in->ReadInt32();
 
         // Try to find existing module length and assert its presence and matching size
@@ -1347,11 +1357,14 @@ HSaveError PrescanScriptModules(Stream *in, int32_t cmp_ver, soff_t /*cmp_size*/
     const uint32_t modules_read = in->ReadInt32();
     r_data.DataCounts.ScriptModules = modules_read;
     r_data.DataCounts.ScriptModuleDataSz.resize(modules_read);
+    r_data.DataCounts.ScriptModuleNames.resize(modules_read);
     for (size_t read_module_index = 0; read_module_index < modules_read; ++read_module_index)
     {
         const String module_name = (cmp_ver < kScriptModulesSvgVersion_36200) ?
             (read_module_index < pp.ScriptModuleNames.size() ? pp.ScriptModuleNames[read_module_index] : "") :
             StrUtil::ReadString(in);
+        r_data.DataCounts.ScriptModuleNames[read_module_index] = module_name;
+
         data_len = in->ReadInt32();
 
         // Try to find existing module length and assert its presence and matching size

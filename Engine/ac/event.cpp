@@ -29,7 +29,6 @@
 #include "main/game_run.h"
 #include "script/cc_common.h"
 #include "platform/base/agsplatformdriver.h"
-#include "plugin/agsplugin_evts.h"
 #include "plugin/plugin_engine.h"
 #include "script/script.h"
 #include "gfx/bitmap.h"

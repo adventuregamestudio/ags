@@ -9,14 +9,20 @@ Adventure Game Studio (AGS) - is the IDE and the engine meant for creating and r
 
 For community forums, games and more, go to the website: [www.adventuregamestudio.co.uk](https://www.adventuregamestudio.co.uk)
 
+The latest stable version of AGS Editor may be found here: [https://www.adventuregamestudio.co.uk/site/ags/](https://www.adventuregamestudio.co.uk/site/ags/)
+
+For the full list of releases, both stable, betas and others, see our repository's [Releases page](https://github.com/adventuregamestudio/ags/releases).
+
+Please be aware that, unlike the runtime engine, AGS Editor is only supported on MS Windows (and Windows emulators such as WINE).
+
 
 ## Branches and releases
 
-The [`master`][master-br] branch is where the next planned version is being developed. It may contain unstable or untested code.
+The [`master`][master-br] branch is where the next planned version is being developed. It may temporarily contain unstable or untested code.
 
 Currently, `master` corresponds to 3.\* generation of the engine/IDE and maintains backward compatibility with previous releases - see also [Compatibility](#ags-game-compatibility). According to current plans, this branch should only receive improvements to the backend, system support, and performance. Changes to data formats and game script should be kept to a strict minimum necessary to fill in the critical gaps in the engine's functionality.
 
-There's an [`ags4`][ags4-br] branch also active where we develop a future version currently named simply "ags4". There we introduce greater changes and cut much of the old version support.
+There's an [`ags4`][ags4-br] branch also active where we develop a future version AGS 4.0. There we introduce greater changes and cut much of the old version support.
 
 According to our plans, in the future `master` branch will be merged with `ags4`, while the backward compatible generation will remain as the `ags3` branch and only receive fixes and minor enhancements. But there's still some work to do in AGS 3.\*, so the exact moment that happens is unknown.
 
@@ -86,26 +92,13 @@ There are other repositories which contain additional resources and may be of in
 
 ## Contributing
 
-If you'd like to contribute to the project the usual workflow is this: you fork our repository (unless you already did that), create a feature/fix branch, commit your changes to that branch, and then create a pull request. We will review your commits and sometimes may ask you to alter your code before merging it into our repository.
+If you would like to contribute to the project, please read the [CONTRIBUTING.md](CONTRIBUTING.md). Below is a brief summary of the process.
 
-We may accept patch files too if you send them to one of the project maintainers.
+* For the bug fixes or minor code improvements, you need only create a fork of the repository, commit your changes to a branch, and submit a pull request. We will review your commits and may ask you to make alterations to your code if needed before merging it into our repository.
 
-For bug fixing and trivial code improvements that may be enough, but for more significant changes, completely new features or changes in the program design we ask you to first open an issue in the tracker and discuss it with the development team to make sure that suggested changes won't break anything, nor will be in conflict with existing program behavior or our development plans.
+* For new features or other larger contributions, please first open an issue in the [Issue Tracker](https://github.com/adventuregamestudio/ags/issues). There we can discuss the proposed changes with the development team to ensure that they will be consistent with existing program behavior and future development plans.
 
-Please be aware that big parts of the engine are still written in a very old and often "dirty" code, and it may not be easy to understand ties between different program parts. Because there's a low number of active developers involved in this project, our plans or design ideas are not always well documented, unfortunately. If you're in doubt - please discuss your ideas with us first.
-
-The [`master`][master-br] branch should be kept in a working state and compilable on all targeted platforms. The "release-X.X.X" branch is created to prepare the code for the respective release and continue making patches to that release. If you've found a critical issue in the latest release it should be fixed in the release-X.X.X branch when possible. The release branch is then either merged to master or if that's no longer convenient, - a fix is copied and applied to the master branch separately.
-
-Note that we usually only update the one latest release branch.
-
-Currently, the `master` branch should only receive improvements to existing functionality, performance, backend libraries, and so on.
-
-As been mentioned before, there's another branch called [`ags4`][ags4-br] where we do bigger changes, cut many of the older version support, and which should eventually become the main development branch. For more information about this split and its reasons, please refer to [#448](https://github.com/adventuregamestudio/ags/issues/448).
-
-There's also a Wiki in this repository which serves as a "knowledge base" for this project: [github.com/adventuregamestudio/ags/wiki](https://github.com/adventuregamestudio/ags/wiki)
-
-Among other things there we've got a coding convention, please check it before writing the engine code: [github.com/adventuregamestudio/ags/wiki/AGS-Coding-Conventions-(Cpp)](https://github.com/adventuregamestudio/ags/wiki/AGS-Coding-Conventions-(Cpp))
-
+We may also accept patch files if you send them to one of the project maintainers.
 
 ## Changes from Chris Jones' version of AGS
 

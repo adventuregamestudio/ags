@@ -58,7 +58,6 @@
 #include "game/room_file.h"
 #include "game/room_version.h"
 #include "platform/base/agsplatformdriver.h"
-#include "plugin/agsplugin_evts.h"
 #include "plugin/plugin_engine.h"
 #include "script/cc_common.h"
 #include "script/script.h"
@@ -88,6 +87,7 @@ extern SpriteCache spriteset;
 extern int in_new_room, new_room_was;  // 1 in new room, 2 first time in new room, 3 loading saved game
 extern int in_leaves_screen;
 extern CharacterInfo*playerchar;
+extern std::vector<CharacterExtras> charextra;
 extern int starting_room;
 extern unsigned int loopcounter;
 extern IDriverDependantBitmap* roomBackgroundBmp;
@@ -622,14 +622,14 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         // if a following character is still waiting to come into the
         // previous room, force it out so that the timer resets
         for (int ff = 0; ff < game.numcharacters; ff++) {
-            if ((game.chars[ff].following >= 0) && (game.chars[ff].room < 0)) {
-                if ((game.chars[ff].following == game.playercharacter) &&
+            if ((charextra[ff].following >= 0) && (game.chars[ff].room < 0)) {
+                if ((charextra[ff].following == game.playercharacter) &&
                     (forchar->prevroom == newnum))
                     // the player went back to the previous room, so make sure
                     // the following character is still there
                     game.chars[ff].room = newnum;
                 else
-                    game.chars[ff].room = game.chars[game.chars[ff].following].room;
+                    game.chars[ff].room = game.chars[charextra[ff].following].room;
             }
         }
 
@@ -821,7 +821,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     debug_script_log("Now in room %d", displayed_room);
     cursor_gstate.MarkChanged();
     GUIE::MarkAllGUIForUpdate(true, true);
-    pl_run_plugin_hooks(AGSE_ENTERROOM, displayed_room);
+    pl_run_plugin_hooks(kPluginEvt_EnterRoom, displayed_room);
 }
 
 // new_room: changes the current room number, and loads the new room from disk
@@ -838,17 +838,18 @@ void new_room(int newnum,CharacterInfo*forchar) {
     // Run the global OnRoomLeave event
     run_on_event(kScriptEvent_RoomLeave, displayed_room);
 
-    pl_run_plugin_hooks(AGSE_LEAVEROOM, displayed_room);
+    pl_run_plugin_hooks(kPluginEvt_LeaveRoom, displayed_room);
 
     // update the new room number if it has been altered by OnLeave scripts
     newnum = in_leaves_screen;
     in_leaves_screen = -1;
 
-    if ((playerchar->following >= 0) &&
-        (game.chars[playerchar->following].room != newnum)) {
+    CharacterExtras *player_ex = &charextra[playerchar->index_id];
+    if ((player_ex->following >= 0) &&
+        (game.chars[player_ex->following].room != newnum)) {
             // the player character is following another character,
             // who is not in the new room. therefore, abort the follow
-            playerchar->following = -1;
+            player_ex->SetFollowing(playerchar, -1);
     }
 
     // change rooms

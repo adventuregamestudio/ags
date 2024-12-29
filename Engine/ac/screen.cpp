@@ -26,7 +26,6 @@
 #include "main/game_run.h"
 #include "script/script_runtime.h"
 #include "platform/base/agsplatformdriver.h"
-#include "plugin/agsplugin_evts.h"
 #include "plugin/plugin_engine.h"
 #include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"
@@ -710,7 +709,7 @@ void current_fade_in_effect()
         play.next_screen_transition = -1;
     }
 
-    if (pl_run_plugin_hooks(AGSE_TRANSITIONIN, 0))
+    if (pl_run_plugin_hooks(kPluginEvt_TransitionIn, 0))
     {
         play.screen_is_faded_out = 0; // mark screen as clear
         return;
@@ -749,7 +748,7 @@ void current_fade_in_effect()
 void current_fade_out_effect()
 {
     debug_script_log("Transition-out in room %d", displayed_room);
-    if (pl_run_plugin_hooks(AGSE_TRANSITIONOUT, 0))
+    if (pl_run_plugin_hooks(kPluginEvt_TransitionOut, 0))
         return;
 
     // get the screen transition type

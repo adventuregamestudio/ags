@@ -57,7 +57,6 @@
 #include "media/audio/audio_system.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/sys_main.h"
-#include "plugin/agsplugin_evts.h"
 #include "plugin/plugin_engine.h"
 #include "script/script.h"
 #include "script/cc_common.h"
@@ -705,7 +704,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
         return validate_err;
 
     // Run optional plugin event, reporting game restored
-    pl_run_plugin_hooks(AGSE_POSTRESTOREGAME, 0);
+    pl_run_plugin_hooks(kPluginEvt_PostRestoreGame, 0);
 
     // Next load up any immediately required resources
     // If this is a restart point and no room was loaded, then load startup room
@@ -834,7 +833,7 @@ std::unique_ptr<Stream> StartSavegame(const String &filename, const String &user
     out->Write(SavegameSource::Signature.GetCStr(), SavegameSource::Signature.GetLength());
 
     // CHECKME: what is this plugin hook suppose to mean, and if it is called here correctly
-    pl_run_plugin_hooks(AGSE_PRESAVEGAME, 0);
+    pl_run_plugin_hooks(kPluginEvt_PreSaveGame, 0);
 
     // Write descrition block
     WriteDescription(out.get(), user_text, user_image);
@@ -877,7 +876,7 @@ void ReadPluginSaveData(Stream *in, PluginSvgVersion svg_ver, soff_t max_size)
             auto guard_stream = std::make_unique<Stream>(
                 std::make_unique<StreamSection>(in->GetStreamBase(), in->GetPosition(), end_pos));
             int32_t fhandle = add_file_stream(std::move(guard_stream), "RestoreGame");
-            pl_run_plugin_hook_by_name(pl_name, AGSE_RESTOREGAME, fhandle);
+            pl_run_plugin_hook_by_name(pl_name, kPluginEvt_RestoreGame, fhandle);
             close_file_stream(fhandle, "RestoreGame");
 
             // Seek to the end of plugin data, in case it ended up reading not in the end
@@ -888,12 +887,12 @@ void ReadPluginSaveData(Stream *in, PluginSvgVersion svg_ver, soff_t max_size)
     else
     {
         String pl_name;
-        for (int pl_index = 0; pl_query_next_plugin_for_event(AGSE_RESTOREGAME, pl_index, pl_name); ++pl_index)
+        for (int pl_index = 0; pl_query_next_plugin_for_event(kPluginEvt_RestoreGame, pl_index, pl_name); ++pl_index)
         {
             auto guard_stream = std::make_unique<Stream>(
                 std::make_unique<StreamSection>(in->GetStreamBase(), in->GetPosition(), end_pos));
             int32_t fhandle = add_file_stream(std::move(guard_stream), "RestoreGame");
-            pl_run_plugin_hook_by_index(pl_index, AGSE_RESTOREGAME, fhandle);
+            pl_run_plugin_hook_by_index(pl_index, kPluginEvt_RestoreGame, fhandle);
             close_file_stream(fhandle, "RestoreGame");
         }
     }
@@ -906,7 +905,7 @@ void WritePluginSaveData(Stream *out)
 
     int num_plugins_wrote = 0;
     String pl_name;
-    for (int pl_index = 0; pl_query_next_plugin_for_event(AGSE_SAVEGAME, pl_index, pl_name); ++pl_index)
+    for (int pl_index = 0; pl_query_next_plugin_for_event(kPluginEvt_SaveGame, pl_index, pl_name); ++pl_index)
     {
         // NOTE: we don't care if they really write anything,
         // but count them so long as they subscribed to AGSE_SAVEGAME
@@ -922,7 +921,7 @@ void WritePluginSaveData(Stream *out)
         auto guard_stream = std::make_unique<Stream>(
             std::make_unique<StreamSection>(out->GetStreamBase(), out->GetPosition(), INT64_MAX));
         int32_t fhandle = add_file_stream(std::move(guard_stream), "SaveGame");
-        pl_run_plugin_hook_by_index(pl_index, AGSE_SAVEGAME, fhandle);
+        pl_run_plugin_hook_by_index(pl_index, kPluginEvt_SaveGame, fhandle);
         close_file_stream(fhandle, "SaveGame");
 
         // Finalize header
@@ -969,9 +968,19 @@ void SaveInfo_SetRetryWithoutComponents(ScriptRestoredSaveInfo *info, int cmp_se
     info->SetRetryWithoutComponents(static_cast<SaveCmpSelection>(cmp_selection));
 }
 
-int SaveInfo_GetResult(ScriptRestoredSaveInfo *info)
+bool SaveInfo_HasExtraData(ScriptRestoredSaveInfo *info)
 {
-    return info->GetResult();
+    return (info->GetResult() & kSaveRestore_ExtraDataInSave) != 0;
+}
+
+bool SaveInfo_HasMissingData(ScriptRestoredSaveInfo *info)
+{
+    return (info->GetResult() & kSaveRestore_MissingDataInSave) != 0;
+}
+
+bool SaveInfo_IsPrescan(ScriptRestoredSaveInfo *info)
+{
+    return (info->GetResult() & kSaveRestore_Prescan) != 0;
 }
 
 int SaveInfo_GetSlot(ScriptRestoredSaveInfo *info)
@@ -1064,7 +1073,17 @@ int SaveInfo_GetScriptModuleCount(ScriptRestoredSaveInfo *info)
     return info->GetCounts().ScriptModules;
 }
 
-int SaveInfo_GetScriptModuleDataSize(ScriptRestoredSaveInfo *info, int index)
+const char *SaveInfo_GetScriptModuleNames(ScriptRestoredSaveInfo *info, int index)
+{
+    if (index < 0 || static_cast<uint32_t>(index) >= info->GetCounts().ScriptModuleDataSz.size())
+    {
+        debug_script_warn("RestoredSaveInfo::ScriptModuleNames: index %d out of bounds (%d..%d)", index, 0, info->GetCounts().ScriptModules);
+        return 0;
+    }
+    return CreateNewScriptString(info->GetCounts().ScriptModuleNames[index]);
+}
+
+int SaveInfo_GetScriptModuleDataSizes(ScriptRestoredSaveInfo *info, int index)
 {
     if (index < 0 || static_cast<uint32_t>(index) >= info->GetCounts().ScriptModuleDataSz.size())
     {
@@ -1099,9 +1118,19 @@ RuntimeScriptValue Sc_SaveInfo_SetRetryWithoutComponents(void *self, const Runti
     API_OBJCALL_VOID_PINT(ScriptRestoredSaveInfo, SaveInfo_SetRetryWithoutComponents);
 }
 
-RuntimeScriptValue Sc_SaveInfo_GetResult(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_SaveInfo_HasExtraData(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptRestoredSaveInfo, SaveInfo_GetResult);
+    API_OBJCALL_BOOL(ScriptRestoredSaveInfo, SaveInfo_HasExtraData);
+}
+
+RuntimeScriptValue Sc_SaveInfo_HasMissingData(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL(ScriptRestoredSaveInfo, SaveInfo_HasMissingData);
+}
+
+RuntimeScriptValue Sc_SaveInfo_IsPrescan(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL(ScriptRestoredSaveInfo, SaveInfo_IsPrescan);
 }
 
 RuntimeScriptValue Sc_SaveInfo_GetSlot(void *self, const RuntimeScriptValue *params, int32_t param_count)
@@ -1179,9 +1208,14 @@ RuntimeScriptValue Sc_SaveInfo_GetScriptModuleCount(void *self, const RuntimeScr
     API_OBJCALL_INT(ScriptRestoredSaveInfo, SaveInfo_GetScriptModuleCount);
 }
 
-RuntimeScriptValue Sc_SaveInfo_GetScriptModuleDataSize(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_SaveInfo_GetScriptModuleNames(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT_PINT(ScriptRestoredSaveInfo, SaveInfo_GetScriptModuleDataSize);
+    API_OBJCALL_OBJ_PINT(ScriptRestoredSaveInfo, const char, myScriptStringImpl, SaveInfo_GetScriptModuleNames);
+}
+
+RuntimeScriptValue Sc_SaveInfo_GetScriptModuleDataSizes(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT_PINT(ScriptRestoredSaveInfo, SaveInfo_GetScriptModuleDataSizes);
 }
 
 RuntimeScriptValue Sc_SaveInfo_GetRoom(void *self, const RuntimeScriptValue *params, int32_t param_count)
@@ -1196,7 +1230,9 @@ void RegisterSaveInfoAPI()
         { "RestoredSaveInfo::set_Cancel",               API_FN_PAIR(SaveInfo_SetCancel) },
         { "RestoredSaveInfo::get_RetryWithoutComponents", API_FN_PAIR(SaveInfo_GetRetryWithoutComponents) },
         { "RestoredSaveInfo::set_RetryWithoutComponents", API_FN_PAIR(SaveInfo_SetRetryWithoutComponents) },
-        { "RestoredSaveInfo::get_Result",               API_FN_PAIR(SaveInfo_GetResult) },
+        { "RestoredSaveInfo::get_IsPrescan",            API_FN_PAIR(SaveInfo_IsPrescan) },
+        { "RestoredSaveInfo::get_HasExtraData",         API_FN_PAIR(SaveInfo_HasExtraData) },
+        { "RestoredSaveInfo::get_HasMissingData",       API_FN_PAIR(SaveInfo_HasMissingData) },
         { "RestoredSaveInfo::get_Slot",                 API_FN_PAIR(SaveInfo_GetSlot) },
         { "RestoredSaveInfo::get_Description",          API_FN_PAIR(SaveInfo_GetDescription) },
         { "RestoredSaveInfo::get_EngineVersion",        API_FN_PAIR(SaveInfo_GetEngineVersion) },
@@ -1212,7 +1248,8 @@ void RegisterSaveInfoAPI()
         { "RestoredSaveInfo::geti_ViewFrameCount",      API_FN_PAIR(SaveInfo_GetViewFrameCount) },
         { "RestoredSaveInfo::get_GlobalScriptDataSize", API_FN_PAIR(SaveInfo_GetGlobalScriptDataSize) },
         { "RestoredSaveInfo::get_ScriptModuleCount",    API_FN_PAIR(SaveInfo_GetScriptModuleCount) },
-        { "RestoredSaveInfo::geti_ScriptModuleDataSize",API_FN_PAIR(SaveInfo_GetScriptModuleDataSize) },
+        { "RestoredSaveInfo::geti_ScriptModuleNames",   API_FN_PAIR(SaveInfo_GetScriptModuleNames) },
+        { "RestoredSaveInfo::geti_ScriptModuleDataSizes",API_FN_PAIR(SaveInfo_GetScriptModuleDataSizes) },
         { "RestoredSaveInfo::get_Room",                 API_FN_PAIR(SaveInfo_GetRoom) },
     };
 

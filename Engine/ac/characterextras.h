@@ -61,6 +61,9 @@ struct CharacterExtras
     short animwait = 0;
     int   anim_volume = 100; // default animation volume (relative factor)
     int   cur_anim_volume = 100; // current animation sound volume (relative factor)
+    int   following = -1; // whom do we follow (character id)
+    int   follow_dist = 0; // follow distance, in pixels
+    int   follow_eagerness = 0; // follow reaction
     Common::BlendMode blend_mode = Common::kBlend_Normal;
     float rotation = 0.f;
     // Optional character face direction ratio, 0 = ignore
@@ -72,13 +75,15 @@ struct CharacterExtras
     // zoom factor of sprite offsets, fixed at 100 in backwards compatible mode
     int   zoom_offs = 100;
 
-    int GetEffectiveY(CharacterInfo *chi) const; // return Y - Z
-
+    // Get visual Y position, which is calculated as Y - Z (scaled)
+    int GetEffectiveY(CharacterInfo *chi) const; 
     // Calculate wanted frame sound volume based on multiple factors
     int GetFrameSoundVolume(CharacterInfo *chi) const;
     // Process the current animation frame for the character:
     // play linked sounds, and so forth.
     void CheckViewFrame(CharacterInfo *chi);
+    // Setups following another character (follow_who)
+    void SetFollowing(CharacterInfo *chi, int follow_who, int distance = 0, int eagerness = 0, bool sort_behind = false);
 
     inline Pointf GetOrigin() const { return Pointf(0.5f, 1.f); /* middle-bottom */ }
     inline const Common::GraphicSpace &GetGraphicSpace() const { return _gs; }

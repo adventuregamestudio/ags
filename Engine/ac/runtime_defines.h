@@ -16,12 +16,6 @@
 
 #include "ac/common_defines.h"
 
-// xalleg.h pulls in an Allegro-internal definition of MAX_TIMERS which
-// conflicts with the definition in runtime_defines.h. Forget it.
-#ifdef MAX_TIMERS
-#undef MAX_TIMERS
-#endif
-
 // Max old-style script string length
 #define MAX_MAXSTRLEN 200
 
@@ -198,6 +192,34 @@ enum eScriptSystemOSID
     eOS_Web,
     eOS_FreeBSD,
     eNumOS
+};
+
+// Plugin system event IDs;
+// must correspond to the declarations in plugin API.
+// These event ids are defined as flags to let plugins combine them into
+// a flag set when subscribing for events.
+enum PluginEventID
+{
+    kPluginEvt_KeyPress         = 0x00000001,
+    kPluginEvt_MouseClick       = 0x00000002,
+    kPluginEvt_PostScreenDraw   = 0x00000004,
+    kPluginEvt_PreScreenDraw    = 0x00000008,
+    kPluginEvt_SaveGame         = 0x00000010,
+    kPluginEvt_RestoreGame      = 0x00000020,
+    kPluginEvt_PreGUIDraw       = 0x00000040,
+    kPluginEvt_LeaveRoom        = 0x00000080,
+    kPluginEvt_EnterRoom        = 0x00000100,
+    kPluginEvt_TransitionIn     = 0x00000200,
+    kPluginEvt_TransitionOut    = 0x00000400,
+    kPluginEvt_FinalScreenDraw  = 0x00000800,
+    kPluginEvt_TranslateText    = 0x00001000,
+    kPluginEvt_ScriptDebug      = 0x00002000,
+    // 0x00004000 - unused, was AUDIODECODE, no longer supported
+    kPluginEvt_SpriteLoad       = 0x00008000,
+    kPluginEvt_PreRender        = 0x00010000,
+    kPluginEvt_PreSaveGame      = 0x00020000,
+    kPluginEvt_PostRestoreGame  = 0x00040000,
+    kPluginEvt_PostRoomDraw     = 0x00080000,
 };
 
 #endif // __AC_RUNTIMEDEFINES_H

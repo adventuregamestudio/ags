@@ -22,7 +22,6 @@
 
 #include <stddef.h> // for size_t
 #include <stdint.h>
-#include "agsplugin_evts.h"
 
 // If the plugin isn't using DDraw, don't require the headers
 #ifndef DIRECTDRAW_VERSION
@@ -269,6 +268,42 @@ protected:
   IAGSStream() = default;
   ~IAGSStream() = default;
 };
+
+
+// Plugin events
+//
+// Below are interface 3 and later
+#define AGSE_KEYPRESS        0x01
+#define AGSE_MOUSECLICK      0x02
+#define AGSE_POSTSCREENDRAW  0x04
+// Below are interface 4 and later
+#define AGSE_PRESCREENDRAW   0x08
+// Below are interface 5 and later
+#define AGSE_SAVEGAME        0x10
+#define AGSE_RESTOREGAME     0x20
+// Below are interface 6 and later
+#define AGSE_PREGUIDRAW      0x40
+#define AGSE_LEAVEROOM       0x80
+#define AGSE_ENTERROOM       0x100
+#define AGSE_TRANSITIONIN    0x200
+#define AGSE_TRANSITIONOUT   0x400
+// Below are interface 12 and later
+#define AGSE_FINALSCREENDRAW 0x800
+#define AGSE_TRANSLATETEXT   0x1000
+// Below are interface 13 and later
+#define AGSE_SCRIPTDEBUG     0x2000
+// AGSE_AUDIODECODE is no longer supported
+#define AGSE_AUDIODECODE     0x4000
+// Below are interface 18 and later
+#define AGSE_SPRITELOAD      0x8000
+// Below are interface 21 and later
+#define AGSE_PRERENDER       0x10000
+// Below are interface 24 and later
+#define AGSE_PRESAVEGAME     0x20000
+#define AGSE_POSTRESTOREGAME 0x40000
+// Below are interface 26 and later
+#define AGSE_POSTROOMDRAW    0x80000
+#define AGSE_TOOHIGH         0x100000
 
 // Logging levels
 #define AGSLOG_LEVEL_NONE   0
@@ -557,6 +592,27 @@ public:
   // *** BELOW ARE INTERFACE VERSION 29 AND ABOVE ONLY
   // Print message to the engine's log, under one of the log levels AGSLOG_LEVEL_*.
   AGSIFUNC(void)  Log(int level, const char *fmt, ...);
+
+  // *** BELOW ARE INTERFACE VERSION 30 AND ABOVE ONLY
+  // Create a new dynamic array, allocating space for the given number of elements
+  // of the given size. Optionally instructs to create an array for managed handles,
+  // in which case the element size must be sizeof(int32).
+  // IMPORTANT: you MUST correctly tell if this is going to be an array of handles, because
+  // otherwise engine won't know to release their references, which may lead to memory leaks.
+  // IMPORTANT: when writing handles into this array, you MUST inc ref count for each one
+  // of them (see IncrementManagedObjectRefCount), otherwise these objects may get disposed
+  // before the array itself, making these handles invalid!
+  // Dynamic arrays have their meta data allocated prior to array of elements;
+  // this function returns a pointer to the element array, which you may write to.
+  // You may return this pointer from the registered plugin's function just like any other
+  // managed object pointer.
+  AGSIFUNC(void*) CreateDynamicArray(size_t elem_count, size_t elem_size, bool is_managed_type);
+  // Retrieves dynamic array's length (number of elements).
+  // You should pass a dynamic array object either received from the engine in your registered
+  // script function, or created by you with CreateDynamicArray().
+  AGSIFUNC(size_t) GetDynamicArrayLength(const void *arr);
+  // Retrieves dynamic array's size (total capacity in bytes).
+  AGSIFUNC(size_t) GetDynamicArraySize(const void *arr);
 };
 
 

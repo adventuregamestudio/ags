@@ -389,7 +389,6 @@ target_sources(engine
     platform/util/libc.c
     plugin/agsplugin.cpp
     plugin/agsplugin.h
-    plugin/agsplugin_evts.h
     plugin/plugin_builtin.h
     plugin/plugin_engine.h
     plugin/plugin_stubs.cpp
@@ -625,6 +624,7 @@ if(AGS_TESTS)
     add_executable(
         engine_test
         test/scsprintf_test.cpp
+        test/systemimports_test.cpp
     )
     set_target_properties(engine_test PROPERTIES
         CXX_STANDARD 11
@@ -636,6 +636,7 @@ if(AGS_TESTS)
     target_link_libraries(
         engine_test
         engine
+        common
         gtest_main
     )
 

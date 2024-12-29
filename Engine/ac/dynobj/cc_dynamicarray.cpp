@@ -72,8 +72,9 @@ void CCDynamicArray::Unserialize(int index, Stream *in, size_t data_sz)
 
 /* static */ DynObjectRef CCDynamicArray::CreateImpl(uint32_t type_id, bool is_managed, uint32_t elem_count, uint32_t elem_size)
 {
-    assert(elem_count >= 0);
-    if (elem_count < 0)
+    assert(elem_count <= INT32_MAX);
+    assert(!is_managed || elem_size == sizeof(int32_t));
+    if (elem_count > INT32_MAX || (is_managed && elem_size != sizeof(int32_t)))
         return {};
 
     uint8_t *new_arr = new uint8_t[elem_count * elem_size + MemHeaderSz];

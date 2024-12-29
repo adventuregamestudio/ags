@@ -83,6 +83,9 @@ void on_roomcamera_changed(Camera *cam);
 void mark_object_changed(int objid);
 // TODO: write a generic drawable/objcache system where each object
 // allocates a drawable for itself, and disposes one if being removed.
+// Resets drawing index for dynamic objects
+void reset_drawobj_dynamic_index();
+// Resets drawable object for this overlay
 void reset_drawobj_for_overlay(int objnum);
 // Marks all game objects which reference this sprite for redraw
 void notify_sprite_changed(int sprnum, bool deleted);
@@ -165,7 +168,7 @@ void draw_gui_sprite_flipped(Common::Bitmap *ds, int xpos, int ypos,
 void render_to_screen();
 void GfxDriverOnInitCallback(void *data);
 bool GfxDriverSpriteEvtCallback(int evt, int data);
-void putpixel_compensate (Common::Bitmap *g, int xx,int yy, int col);
+
 // Create the actsps[objid] image with the object drawn correctly.
 // Returns true if nothing at all has changed and actsps is still
 // intact from last time; false otherwise.

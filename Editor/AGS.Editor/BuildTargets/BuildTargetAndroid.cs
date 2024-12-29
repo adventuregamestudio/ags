@@ -95,7 +95,7 @@ namespace AGS.Editor
                 cfg["graphics"]["renderer"] = "1";
             }
 
-            if (setup.GraphicsFilter == "StdScale") {
+            if (setup.GraphicsFilter == RuntimeSetup.DEFAULT_GFX_FILTER_NAME) {
                 cfg["graphics"]["smoothing"] = "0";
             } else {
                 cfg["graphics"]["smoothing"] = "1";

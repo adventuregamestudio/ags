@@ -9,6 +9,8 @@ namespace AGS.Types
 {
     public class RuntimeSetup : ICustomTypeDescriptor
     {
+        public const string DEFAULT_GFX_FILTER_NAME = "stdscale";
+
         private Settings _gameSettings;
         private GraphicsDriver _gfxDriver;
         // All possible gfx filters, for every gfx driver
@@ -32,18 +34,18 @@ namespace AGS.Types
         {
             _gfxFiltersAll = new Dictionary<GraphicsDriver, Dictionary<string, string>>();
             Dictionary<string, string> filters = new Dictionary<string, string>();
-            filters["stdscale"] = "Nearest-neighbour";
+            filters[DEFAULT_GFX_FILTER_NAME] = "Nearest-neighbour";
             _gfxFiltersAll.Add(GraphicsDriver.Software, filters);
             filters = new Dictionary<string, string>();
-            filters["stdscale"] = "Nearest-neighbour";
+            filters[DEFAULT_GFX_FILTER_NAME] = "Nearest-neighbour";
             filters["linear"] = "Linear interpolation (with anti-aliasing)";
             _gfxFiltersAll.Add(GraphicsDriver.D3D9, filters);
             _gfxFiltersAll.Add(GraphicsDriver.OpenGL, filters);
 
             _gfxFiltersDefault = new Dictionary<GraphicsDriver, string>();
-            _gfxFiltersDefault[GraphicsDriver.Software] = "stdscale";
-            _gfxFiltersDefault[GraphicsDriver.D3D9] = "stdscale";
-            _gfxFiltersDefault[GraphicsDriver.OpenGL] = "stdscale";
+            _gfxFiltersDefault[GraphicsDriver.Software] = DEFAULT_GFX_FILTER_NAME;
+            _gfxFiltersDefault[GraphicsDriver.D3D9] = DEFAULT_GFX_FILTER_NAME;
+            _gfxFiltersDefault[GraphicsDriver.OpenGL] = DEFAULT_GFX_FILTER_NAME;
         }
 
         public void SetDefaults()
@@ -53,7 +55,7 @@ namespace AGS.Types
             FullscreenGameScaling = GameScaling.ProportionalStretch;
             GameScaling = GameScaling.MaxInteger;
             GameScalingMultiplier = 1;
-            GraphicsFilter = "stdscale";
+            GraphicsFilter = DEFAULT_GFX_FILTER_NAME;
             VSync = false;
             AAScaledSprites = false;
             RenderAtScreenResolution = false;
@@ -74,8 +76,8 @@ namespace AGS.Types
 
         [DisplayName("Graphics driver")]
         [Description("The default graphics driver that your game will use. Software renderer is slower at scaling images, but it is slightly faster with raw drawing, and only one supporting 8-bit games at the moment.")]
-        [DefaultValue(GraphicsDriver.D3D9)]
         [Category("Graphics")]
+        [DefaultValue(GraphicsDriver.D3D9)]
         [TypeConverter(typeof(EnumTypeConverter))]
         [RefreshProperties(RefreshProperties.All)]
         public GraphicsDriver GraphicsDriver
@@ -102,8 +104,8 @@ namespace AGS.Types
 
         [DisplayName("Start in windowed mode")]
         [Description("Run the game in windowed as opposed to fullscreen mode.")]
-        [DefaultValue(false)]
         [Category("Graphics")]
+        [DefaultValue(false)]
         public bool Windowed
         {
             get;
@@ -112,8 +114,8 @@ namespace AGS.Types
 
         [DisplayName("Fullscreen as borderless window")]
         [Description("In fullscreen mode create a borderless window covering whole desktop as opposed to exclusive (real) fullscreen.")]
-        [DefaultValue(true)]
         [Category("Graphics")]
+        [DefaultValue(true)]
         public bool FullscreenDesktop
         {
             get;
@@ -122,8 +124,8 @@ namespace AGS.Types
 
         [DisplayName("Fullscreen scaling style")]
         [Description("Determines how the game frame is scaled in the fullscreen mode.")]
-        [DefaultValue(GameScaling.ProportionalStretch)]
         [Category("Graphics")]
+        [DefaultValue(GameScaling.ProportionalStretch)]
         [TypeConverter(typeof(FullscreenGameScalingConverter))]
         public GameScaling FullscreenGameScaling
         {
@@ -133,8 +135,8 @@ namespace AGS.Types
 
         [DisplayName("Windowed scaling style")]
         [Description("Determines how the game frame is scaled in the windowed mode.")]
-        [DefaultValue(GameScaling.MaxInteger)]
         [Category("Graphics")]
+        [DefaultValue(GameScaling.MaxInteger)]
         [TypeConverter(typeof(EnumTypeConverter))]
         [RefreshProperties(RefreshProperties.All)]
         // TODO:  consider renaming to WindowedGameScaling and implement property-to-property deserialization attribute
@@ -147,8 +149,8 @@ namespace AGS.Types
 
         [DisplayName("Windowed game scaling multiplier")]
         [Description("A round multiplier to scale game window with.")]
-        [DefaultValue(1)]
         [Category("Graphics")]
+        [DefaultValue(1)]
         // TODO: consider renaming to WindowedScalingMultiplier and implement property-to-property deserialization attribute
         // similar to value-to-value DeserializeConvertValueAttribute
         public int GameScalingMultiplier
@@ -160,8 +162,9 @@ namespace AGS.Types
         [DisplayName("Scaling filter")]
         [Description("Graphics filter to use when scaling the game.")]
         [Category("Graphics")]
+        [DefaultValue(DEFAULT_GFX_FILTER_NAME)]
         [TypeConverter(typeof(GraphicsFilterTypeConverter))]
-        public String GraphicsFilter
+        public string GraphicsFilter
         {
             get;
             set;
@@ -176,8 +179,8 @@ namespace AGS.Types
 
         [DisplayName("Vertical sync")]
         [Description("Enable vertical synchronization. This will prevent \"screen tearing\", but may lower game's FPS if the player's graphic card is not fast enough.")]
-        [DefaultValue(false)]
         [Category("Graphics")]
+        [DefaultValue(false)]
         public bool VSync
         {
             get;
@@ -186,8 +189,8 @@ namespace AGS.Types
 
         [DisplayName("Anti-alias scaled sprites")]
         [Description("Enable sprites anti-aliasing when scaling them in game. Is not recommended to use with the software graphics driver.")]
-        [DefaultValue(false)]
         [Category("Graphics")]
+        [DefaultValue(false)]
         public bool AAScaledSprites
         {
             get;
@@ -200,8 +203,8 @@ namespace AGS.Types
 
         [DisplayName("Render sprites at screen resolution")]
         [Description("When drawing zoomed character and object sprites, AGS will take advantage of higher runtime resolution to give scaled images more detail, than it would be possible if the game was displayed in its native resolution. The effect is stronger for low-res games. Keep disabled for pixel-perfect output. Currently supported only by Direct3D and OpenGL renderers.")]
-        [DefaultValue(false)]
         [Category("Graphics")]
+        [DefaultValue(false)]
         public bool RenderAtScreenResolution
         {
             get;
@@ -210,8 +213,8 @@ namespace AGS.Types
 
         [DisplayName("Rotation mode")]
         [Description("Sets if the player can freely rotate the screen or if it should be locked to a specific orientation.")]
-        [DefaultValue(ScreenRotationMode.Unlocked)]
         [Category("Graphics")]
+        [DefaultValue(ScreenRotationMode.Unlocked)]
         public ScreenRotationMode Rotation
         {
             get;
@@ -220,8 +223,8 @@ namespace AGS.Types
 
         [DisplayName("Audio driver")]
         [Description("The suggested audio driver option. Normally you keep this at Default, but if your game does not use audio at all you may disable it to tell the engine to not initialize audio system at the runtime.")]
-        [DefaultValue(RuntimeAudioDriver.Default)]
         [Category("Audio")]
+        [DefaultValue(RuntimeAudioDriver.Default)]
         public RuntimeAudioDriver DigitalSound
         {
             get;
@@ -234,8 +237,8 @@ namespace AGS.Types
 
         [DisplayName("Use voice pack if available")]
         [Description("Enables the use of digital voice-over pack. Will be ignored if your game does not have one.")]
-        [DefaultValue(true)]
         [Category("Audio")]
+        [DefaultValue(true)]
         public bool UseVoicePack
         {
             get;
@@ -249,6 +252,7 @@ namespace AGS.Types
         [DisplayName("Game language")]
         [Description("Use this translation when running the game.")]
         [Category("Gameplay")]
+        [DefaultValue("")]
         [TypeConverter(typeof(TranslationListTypeConverter))]
         public string Translation
         {
@@ -258,8 +262,8 @@ namespace AGS.Types
 
         [DisplayName("Auto-lock mouse to window")]
         [Description("When running the game in window, system mouse cursor will be automatically locked inside the window bounds. It will be unlocked whenever player switches out from the game or presses Ctrl+Alt key combo.")]
-        [DefaultValue(false)]
         [Category("Mouse")]
+        [DefaultValue(false)]
         public bool AutoLockMouse
         {
             get;
@@ -268,8 +272,8 @@ namespace AGS.Types
         
         [DisplayName("Mouse cursor speed")]
         [Description("Mouse speed multiplier in fullscreen mode")]
-        [DefaultValue(1.0)]
         [Category("Mouse")]
+        [DefaultValue(1.0)]
         public float MouseSpeed
         {
             get;
@@ -278,8 +282,8 @@ namespace AGS.Types
 
         [DisplayName("Touch to Mouse Emulation")]
         [Description("Tells AGS if touch events should create emulated mouse events and how this should work.")]
-        [DefaultValue(TouchToMouseEmulationType.OneFinger)]
         [Category("Touch")]
+        [DefaultValue(TouchToMouseEmulationType.OneFinger)]
         [TypeConverter(typeof(EnumTypeConverter))]
         public TouchToMouseEmulationType TouchToMouseEmulation
         {
@@ -289,8 +293,8 @@ namespace AGS.Types
 
         [DisplayName("Touch to Mouse motion mode")]
         [Description("Whether the emulated mouse should directly correspond to a touch position, or only count relative touch movements.")]
-        [DefaultValue(InputMotionMode.Direct)]
         [Category("Touch")]
+        [DefaultValue(InputMotionMode.Direct)]
         [TypeConverter(typeof(EnumTypeConverter))]
         public InputMotionMode TouchToMouseMotionMode
         {
@@ -300,8 +304,8 @@ namespace AGS.Types
 
         [DisplayName("Display FPS on Screen")]
         [Description("Whether to display fps counter on screen, useful for debugging.")]
-        [DefaultValue(false)]
         [Category("Misc")]
+        [DefaultValue(false)]
         public bool ShowFPS
         {
             get;
@@ -310,8 +314,8 @@ namespace AGS.Types
 
         [DisplayName("Sprite cache size (in megabytes)")]
         [Description("The limit for runtime sprite cache. The cache is used to keep game graphics loaded even if they are not currently used. Bigger cache means faster room transitions and generally better performance if your game has lots of high-res animations.")]
-        [DefaultValue(128)]
         [Category("Performance")]
+        [DefaultValue(128)]
         public int SpriteCacheSize
         {
             get;
@@ -320,8 +324,8 @@ namespace AGS.Types
 
         [DisplayName("Texture cache size (in megabytes)")]
         [Description("The limit for runtime texture cache. The cache is used to keep textures loaded in VRAM (your graphics card memory), and improves performance.")]
-        [DefaultValue(128)]
         [Category("Performance")]
+        [DefaultValue(128)]
         public int TextureCacheSize
         {
             get;
@@ -330,8 +334,8 @@ namespace AGS.Types
 
         [DisplayName("Sound cache size (in megabytes)")]
         [Description("The limit for runtime sound cache. The cache is used to keep small sound clips loaded (typically the ones less than 1 MB each). Bigger cache means less loading of the same clips, such as frame-linked sounds, and improves performance.")]
-        [DefaultValue(32)]
         [Category("Performance")]
+        [DefaultValue(32)]
         public int SoundCacheSize
         {
             get;
@@ -354,8 +358,8 @@ namespace AGS.Types
 
         [DisplayName("Use custom game saves path")]
         [Description("Define your own location for saved games and individual player files created by game script. Players are able to change this option freely.")]
-        [DefaultValue(false)]
         [Category("Enviroment")]
+        [DefaultValue(false)]
         [RefreshProperties(RefreshProperties.All)]
         public bool UseCustomSavePath
         {
@@ -366,7 +370,8 @@ namespace AGS.Types
         [DisplayName("Custom game saves path")]
         [Description("Define your own location for saved games and individual player files created by game script. Leave empty to use game's directory. This option accepts only relative paths, and your players will be able to change it to their liking.")]
         [Category("Enviroment")]
-        public String CustomSavePath
+        [DefaultValue("")]
+        public string CustomSavePath
         {
             get
             {
@@ -380,8 +385,8 @@ namespace AGS.Types
 
         [DisplayName("Use custom shared data path")]
         [Description("Define your own location for shared data files created by game script.")]
-        [DefaultValue(false)]
         [Category("Enviroment")]
+        [DefaultValue(false)]
         [RefreshProperties(RefreshProperties.All)]
         public bool UseCustomAppDataPath
         {
@@ -392,7 +397,8 @@ namespace AGS.Types
         [DisplayName("Custom shared data path")]
         [Description("Define your own location for shared data files created by game script. Leave empty to use game's directory. This option accepts only relative paths.")]
         [Category("Enviroment")]
-        public String CustomAppDataPath
+        [DefaultValue("")]
+        public string CustomAppDataPath
         {
             get
             {
@@ -407,6 +413,7 @@ namespace AGS.Types
         [DisplayName("Title text")]
         [Description("Text shown at the title bar of the setup program.")]
         [Category("(Setup appearance)")]
+        [DefaultValue("")]
         public string TitleText
         {
             get;

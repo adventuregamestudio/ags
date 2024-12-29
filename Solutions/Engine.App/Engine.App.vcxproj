@@ -908,7 +908,6 @@
     <ClInclude Include="..\..\Engine\platform\windows\setup\winsetup.h" />
     <ClInclude Include="..\..\Engine\platform\windows\winapi_exclusive.h" />
     <ClInclude Include="..\..\Engine\plugin\agsplugin.h" />
-    <ClInclude Include="..\..\Engine\plugin\agsplugin_evts.h" />
     <ClInclude Include="..\..\Engine\plugin\plugin_builtin.h" />
     <ClInclude Include="..\..\Engine\plugin\plugin_engine.h" />
     <ClInclude Include="..\..\Engine\resource\resource.h" />

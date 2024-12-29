@@ -44,6 +44,24 @@ void CharacterExtras::CheckViewFrame(CharacterInfo *chi)
     ::CheckViewFrame(chi->view, chi->loop, chi->frame, GetFrameSoundVolume(chi));
 }
 
+void CharacterExtras::SetFollowing(CharacterInfo *chi, int follow_who, int distance, int eagerness, bool sort_behind)
+{
+    if (follow_who < 0)
+    {
+        following = -1;
+        follow_dist = 0;
+        follow_eagerness = 0;
+        chi->set_following_sortbehind(false);
+    }
+    else
+    {
+        following = follow_who;
+        follow_dist = distance;
+        follow_eagerness = (distance == FOLLOW_ALWAYSONTOP) ? 0 : eagerness;
+        chi->set_following_sortbehind(sort_behind && (distance == FOLLOW_ALWAYSONTOP));
+    }
+}
+
 void CharacterExtras::ReadFromSavegame(Stream *in, CharacterSvgVersion save_ver)
 {
     in->ReadArrayOfInt16(invorder, MAX_INVORDER);
@@ -67,6 +85,12 @@ void CharacterExtras::ReadFromSavegame(Stream *in, CharacterSvgVersion save_ver)
         cur_anim_volume = static_cast<uint8_t>(in->ReadInt8());
         in->ReadInt8(); // reserved to fill int32
         in->ReadInt8();
+    }
+    if (save_ver >= kCharSvgVersion_36205)
+    {
+        following = in->ReadInt32();
+        follow_dist = in->ReadInt32();
+        follow_eagerness = in->ReadInt32();
     }
     if (save_ver >= kCharSvgVersion_400)
     {
@@ -117,11 +141,15 @@ void CharacterExtras::WriteToSavegame(Stream *out) const
     out->WriteInt8(process_idle_this_time);
     out->WriteInt8(slow_move_counter);
     out->WriteInt16(animwait);
-    // since version 2
+    // kCharSvgVersion_36025
     out->WriteInt8(static_cast<uint8_t>(anim_volume));
     out->WriteInt8(static_cast<uint8_t>(cur_anim_volume));
     out->WriteInt8(0); // reserved to fill int32
     out->WriteInt8(0);
+    // kCharSvgVersion_36205
+    out->WriteInt32(following);
+    out->WriteInt32(follow_dist);
+    out->WriteInt32(follow_eagerness);
     // kCharSvgVersion_400
     out->WriteInt32(blend_mode);
     // Reserved for colour options

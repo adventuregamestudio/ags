@@ -1075,7 +1075,7 @@ builtin managed struct File {
   import static File *Open(const string filename, FileMode);   // $AUTOCOMPLETESTATICONLY$
   /// Closes the file.
   import void Close();
-  /// Reads an integer value from the file.
+  /// Reads an integer value from the file. The integer is expected to be written by WriteInt and be prepended by a tag.
   import int  ReadInt();
   /// Reads the next raw byte from the file.
   import int  ReadRawChar();
@@ -1083,15 +1083,15 @@ builtin managed struct File {
   import int  ReadRawInt();
   /// Reads the next raw line of text from the file.
   import String ReadRawLineBack();
-  /// Reads the next string from the file.
+  /// Reads the next string from the file. The string is expected to be written by WriteString, or have its length prepended as a 32-bit integer.
   import String ReadStringBack();
-  /// Writes an integer to the file.
+  /// Writes an integer to the file, safeguarding it by a tag.
   import void WriteInt(int value);
   /// Writes a raw byte to the file.
   import void WriteRawChar(int value);
   /// Writes a raw line of text to the file.
   import void WriteRawLine(const string text);
-  /// Writes a string to the file.
+  /// Writes a string to the file, prepending it with a string's length.
   import void WriteString(const string text);
   /// Gets whether you have reached the end of the file.
   readonly import attribute bool EOF;
@@ -1102,7 +1102,7 @@ builtin managed struct File {
   /// Gets current cursor position inside the file.
   readonly import attribute int Position;
 #ifdef SCRIPT_API_v36026
-  /// Writes a raw 32-bit int to the file.
+  /// Writes a raw 32-bit integer to the file.
   import void WriteRawInt(int value);
 #endif // SCRIPT_API_v36026
 #ifdef SCRIPT_API_v361
@@ -1120,14 +1120,18 @@ builtin managed struct File {
   import static bool Rename(const string old_filename, const string new_filename);   // $AUTOCOMPLETESTATICONLY$
   /// Returns an array of filenames that match the specified file mask
   import static String[] GetFiles(const string fileMask, FileSortStyle fileSortStyle = eFileSort_Name, SortDirection sortDirection = eSortAscending);  // $AUTOCOMPLETESTATICONLY$
+  /// Reads a float value from the file. The float is expected to be written by WriteFloat and be prepended by a tag.
+  import float  ReadFloat();
+  /// Writes a float to the file, safeguarding it by a tag.
+  import void   WriteFloat(float value);
   /// Reads the next raw 32-bit float from the file.
   import float  ReadRawFloat();
   /// Writes a raw 32-bit float to the file.
   import void   WriteRawFloat(float value);
   /// Reads up to "count" number of bytes and stores them in a provided dynamic array, starting with certain index. Returns actual number of read bytes.
-  import int    ReadBytes(char bytes[], int index, int count);
+  import int    ReadRawBytes(char bytes[], int index, int count);
   /// Writes up to "count" number of bytes from the provided dynamic array, starting with certain index. Returns actual number of written bytes.
-  import int    WriteBytes(char bytes[], int index, int count);
+  import int    WriteRawBytes(char bytes[], int index, int count);
 #endif // SCRIPT_API_v362
   int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };
@@ -1272,7 +1276,7 @@ builtin managed struct DynamicSprite {
   import static DynamicSprite* CreateFromSaveGame(int slot, int width, int height);  // $AUTOCOMPLETESTATICONLY$
   /// Creates a dynamic sprite as a copy of the current screen.
 #ifdef SCRIPT_API_v362
-  import static DynamicSprite* CreateFromScreenShot(int width=0, int height=0, int layer=eRenderLayerAll);  // $AUTOCOMPLETESTATICONLY$
+  import static DynamicSprite* CreateFromScreenShot(int width=0, int height=0, RenderLayer layer=eRenderLayerAll);  // $AUTOCOMPLETESTATICONLY$
 #else // !SCRIPT_API_v362
   import static DynamicSprite* CreateFromScreenShot(int width=0, int height=0);  // $AUTOCOMPLETESTATICONLY$
 #endif // !SCRIPT_API_v362
@@ -1627,8 +1631,8 @@ builtin managed struct ListBox extends GUIControl {
 #ifdef SCRIPT_API_v362
 	/// Fills the list box with all the filenames that match the specified file mask.
 	import void FillDirList(const string fileMask, FileSortStyle fileSortStyle = eFileSort_Name, SortDirection sortDirection = eSortAscending);
-	/// Fills the list box with the current user's saved games in the given range of slots.
-	import int  FillSaveGameList(int min_slot = 1, int max_slot = 100, SaveGameSortStyle saveSortStyle = eSaveGameSort_Time, SortDirection sortDirection = eSortDescending);
+	/// Fills the list box with the current user's saved games in the given range of slots. Returns true if all slots in range are occupied.
+	import bool FillSaveGameList(int min_slot = 1, int max_slot = 100, SaveGameSortStyle saveSortStyle = eSaveGameSort_Time, SortDirection sortDirection = eSortDescending);
 	/// Fills the list box with the current user's saved games using the array of slot indexes.
 	import void FillSaveGameSlots(int save_slots[], SaveGameSortStyle saveSortStyle = eSaveGameSort_None, SortDirection sortDirection = eSortNoDirection);
 #else // !SCRIPT_API_v362
@@ -2985,37 +2989,56 @@ enum SaveComponentSelection
 };
 
 #ifdef SCRIPT_API_v362
-enum RestoredSaveResult
-{
-  eRestoredSave_ClearData   = 0x01,
-  eRestoredSave_MissingData = 0x08,
-  eRestoredSave_ExtraData   = 0x10,
-  eRestoredSave_Prescan     = 0x20
-};
-
 managed struct RestoredSaveInfo
 {
+  /// Gets/sets whether this game's save should be cancelled.
   import attribute bool Cancel;
+  /// Gets/sets whether this game's save should be reloaded again without particular components.
   import attribute SaveComponentSelection RetryWithoutComponents;
-  import readonly attribute RestoredSaveResult Result;
 
+  /// Gets whether this save was only prescanned, and not loaded into the game.
+  import readonly attribute bool IsPrescan;
+  /// Gets whether this save has extra data that cannot be directly applied to the current game.
+  import readonly attribute bool HasExtraData;
+  /// Gets whether this save has less data than in the current game.
+  import readonly attribute bool HasMissingData;
+
+  /// Gets the save's slot number.
   import readonly attribute int Slot;
+  /// Gets the save's description string, which it was written with.
   import readonly attribute String Description;
+  /// Gets the version of the engine which wrote this save.
   import readonly attribute String EngineVersion;
+  /// Gets the room number this save was made in.
   import readonly attribute int Room;
+  /// Gets the number of Audio Types present in this save.
   import readonly attribute int AudioClipTypeCount;
+  /// Gets the number of Characters present in this save.
   import readonly attribute int CharacterCount;
+  /// Gets the number of Dialogs present in this save.
   import readonly attribute int DialogCount;
+  /// Gets the number of GUIs present in this save.
   import readonly attribute int GUICount;
+  /// Gets the number of controls on each GUI present in this save.
   import readonly attribute int GUIControlCount[];
+  /// Gets the number of Inventory Items present in this save.
   import readonly attribute int InventoryItemCount;
+  /// Gets the number of Cursors present in this save.
   import readonly attribute int CursorCount;
+  /// Gets the number of Views present in this save.
   import readonly attribute int ViewCount;
+  /// Gets the number of loops in each View present in this save.
   import readonly attribute int ViewLoopCount[];
+  /// Gets the number of frames in each View present in this save.
   import readonly attribute int ViewFrameCount[];
+  /// Gets the total size of the global script data (variables), in bytes, present in this save.
   import readonly attribute int GlobalScriptDataSize;
+  /// Gets the number of script modules (except for the global script) present in this save.
   import readonly attribute int ScriptModuleCount;
-  import readonly attribute int ScriptModuleDataSize[];
+  /// Gets the name of each of the script module present in this save.
+  import readonly attribute String ScriptModuleNames[];
+  /// Gets the total size of each of the script module's data (variables), in bytes, present in this save.
+  import readonly attribute int ScriptModuleDataSizes[];
 };
 #endif
 

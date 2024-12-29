@@ -184,7 +184,7 @@ Engine:
    at the end of the current option script.
  - Removed arbitrary limit of 2k bytes for the result of String.Format().
  - Ensure that the objects with identical z-order (baseline) always keep same relative sort order
-   when being drawn (note: engine does not guarantee predefined order, only determenistic one).
+   when being drawn (note: engine does not guarantee a predefined order, only a persistent one).
  - Implemented video buffering on a separate thread. Allow to drop late video frames.
  - Added new accessibility config settings in "access" section: "speechskip", "textskip",
    "textreadspeed". These let player to override game's skipping style for character speech and

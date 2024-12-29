@@ -6961,19 +6961,19 @@ void AGS::Parser::Parse_BlankOutUnusedImports()
         if (_sym[entries_idx].Accessed)
             continue;
 
-        // Don't "compact" the entries in the _scrip.imports[] array. They are referenced by index, and if you
+        // Don't "compact" the entries in '_scrip.imports[]'. They are referenced by index, and if you
         // change the indexes of the entries then you get dangling "references". So the only thing allowed is
         // setting unused import entries to "".
         if (_sym.IsFunction(entries_idx))
         {
             if(_sym[entries_idx].FunctionD->TypeQualifiers[TQ::kImport])
-                _scrip.imports[_sym[entries_idx].FunctionD->Offset][0u] = '\0';
+                _scrip.imports[_sym[entries_idx].FunctionD->Offset].clear();
             continue;
         }
         if (_sym.IsVariable(entries_idx))
         {
             if (_sym[entries_idx].VariableD->TypeQualifiers[TQ::kImport])
-                _scrip.imports[_sym[entries_idx].VariableD->Offset][0u] = '\0';
+                _scrip.imports[_sym[entries_idx].VariableD->Offset].clear();
             continue;
         }
     }
@@ -7091,7 +7091,7 @@ void AGS::Parser::Parse_CheckFixupSanity()
                 fixup_idx,
                 code_idx);
         int const cv = _scrip.code[code_idx];
-        if (cv < 0 || static_cast<size_t>(cv) >= _scrip.imports.size() || '\0' == _scrip.imports[cv][0u])
+        if (cv < 0 || static_cast<size_t>(cv) >= _scrip.imports.size() || _scrip.imports[cv].empty())
             InternalError(
                 "Fixup #%d references non-existent import #%d",
                 fixup_idx,

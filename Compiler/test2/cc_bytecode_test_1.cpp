@@ -385,20 +385,20 @@ TEST_F(Bytecode1, StringOldstyle05) {
 
 TEST_F(Bytecode1, StringStandard01) {
 
-    char const *xtra = "\
-        int main()                         \n\
-        {                                  \n\
-            String s = \"Hello, world!\";  \n\
-            if (s != \"Bye\")              \n\
-                return 1;                  \n\
-            return 0;                      \n\
-        }                                  \n\
-        ";
+    char const *xtra = R"%&/(
+        String bye;
+        int game_start()
+        {
+            String hello = "Hello, world!";
+            if (hello != bye)
+                return 1;
+            return 0;
+        }
+        )%&/";
 
     std::string inpl = kAgsHeaderBool;
     inpl += kAgsHeaderString;
     inpl += xtra;
-
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
     std::string const &err_msg = mh.GetError().Message;
@@ -406,50 +406,55 @@ TEST_F(Bytecode1, StringStandard01) {
 
     // WriteOutput("StringStandard01", scrip);
 
-    size_t const codesize = 63;
-    EXPECT_EQ(codesize, scrip.code.size());
+    size_t const code_size = 65;
+    EXPECT_EQ(code_size, scrip.code.size());
 
     int32_t code[] = {
-      36,    2,   38,    0,           36,    3,    6,    3,    // 7
+      36,    4,   38,    0,           36,    5,    6,    3,    // 7
        0,   64,    3,   51,            0,   47,    3,    1,    // 15
-       1,    4,   36,    4,           51,    4,   48,    3,    // 23
-      29,    3,    6,    3,           14,   30,    4,   66,    // 31
-       4,    3,    3,    4,            3,   28,   12,   36,    // 39
-       5,    6,    3,    1,           51,    4,   49,    2,    // 47
-       1,    4,    5,   36,            6,    6,    3,    0,    // 55
-      51,    4,   49,    2,            1,    4,    5,  -999
+       1,    4,   36,    6,           51,    4,   48,    3,    // 23
+      29,    3,    6,    2,            0,   48,    3,   30,    // 31
+       4,   66,    4,    3,            3,    4,    3,   28,    // 39
+      12,   36,    7,    6,            3,    1,   51,    4,    // 47
+      49,    2,    1,    4,            5,   36,    8,    6,    // 55
+       3,    0,   51,    4,           49,    2,    1,    4,    // 63
+       5,  -999
     };
-    CompareCode(&scrip, codesize, code);
+    CompareCode(&scrip, code_size, code);
 
-    size_t const numfixups = 2;
-    EXPECT_EQ(numfixups, scrip.fixups.size());
+    size_t const fixups_size = 2;
+    ASSERT_EQ(scrip.fixups.size(), scrip.fixuptypes.size());
+    EXPECT_EQ(fixups_size, scrip.fixups.size());
 
     int32_t fixups[] = {
        8,   28,  -999
     };
     char fixuptypes[] = {
-      3,   3,  '\0'
+      3,   1,  '\0'
     };
-    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
+    CompareFixups(&scrip, fixups_size, fixups, fixuptypes);
 
-    int const numimports = 0;
-    std::string imports[] = {
-     "[[SENTINEL]]"
-    };
-    CompareImports(&scrip, numimports, imports);
+    int const non_empty_imports_count = 0;
+    CompareImports(&scrip, non_empty_imports_count, nullptr);
 
-    size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.exports.size());
+    size_t const exports_size = 0;
+    ASSERT_EQ(scrip.exports.size(), scrip.export_addr.size());
+    EXPECT_EQ(exports_size, scrip.exports.size());
 
-    size_t const stringssize = 18;
-    EXPECT_EQ(stringssize, scrip.strings.size());
+    size_t const strings_size = 14;
+    EXPECT_EQ(strings_size, scrip.strings.size());
 
     char strings[] = {
     'H',  'e',  'l',  'l',          'o',  ',',  ' ',  'w',     // 7
-    'o',  'r',  'l',  'd',          '!',    0,  'B',  'y',     // 15
-    'e',    0,  '\0'
-    };
-    CompareStrings(&scrip, stringssize, strings);
+    'o',  'r',  'l',  'd',          '!',    0, };
+    CompareStrings(&scrip, strings_size, strings);
+
+    size_t const globaldata_size = 4;
+    EXPECT_EQ(globaldata_size, scrip.globaldata.size());
+
+    CharRun global_runs[] = {
+    {   4, 0x00}, {0, 0x00} };
+    CompareGlobalRuns(&scrip, global_runs);
 }
 
 TEST_F(Bytecode1, StringStandard02) {

@@ -73,6 +73,8 @@ Scripting:
  - When declaring a pointer to managed struct you may now omit "*" sign.
  - When writing struct's function's code you may now omit "this" keyword when addressing
    current struct's member (variable, attribute or function).
+ - Similarly you may omit struct's name when addressing a static member from within a
+   struct's member function.
  - Extender attributes; similar to extender functions, but these define a pair of
    get_ and set_ functions.
  - Multi-dimensional regular arrays. They may have any positive number of dimensions.
@@ -139,14 +141,16 @@ Script API:
    Create(), CreateFromBackground(), CreateFromDrawingSurface(), CreateFromExistingSprite()
    and CreateFromFile().
  - Added DrawingSurface.BlendImage() and DrawingSurface.BlendSurface() functions.
- - Added readonly DrawingSurface.ColorDepth property.
- - Added readonly Game.SpriteColorDepth[] indexed property.
+ - Added DrawingSurface.ColorDepth readonly property.
+ - Added Game.RoomCount, RoomNumbers[] and RoomNames[] properties.
+ - Added Game.SpriteColorDepth[] readonly indexed property.
  - Added GUI.ScaleX and ScaleY properties, GUI.SetScale() function.
  - Added GUI.GUIToScreenPoint() and GUI.ScreenToGUIPoint() functions.
  - Added Overlay.Flip property that lets to set one of the 3 standard flip styles.
  - Added Overlay.Tint(), SetLightLevel() and RemoveTint() functions, Overlay.HasTint,
    HasLightLevel, LightLevel, TintBlue, TintGreen, TintRed, TintSaturation, TintLuminance
    properties, matching Character and Object tinting functionality.
+ - Added Room.Number and Name properties.
  - Added Room.PathFinder property that returns a Pathfinder object, searching paths over this
    room's walkable areas.
  - Added StringSplitOptions enum, String.Join(), String.Split() and String.Trim() functions.

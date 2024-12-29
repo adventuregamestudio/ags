@@ -86,7 +86,7 @@ void CharacterExtras::ReadFromSavegame(Stream *in, CharacterSvgVersion save_ver)
         in->ReadInt8(); // reserved to fill int32
         in->ReadInt8();
     }
-    if (save_ver >= kCharSvgVersion_36205)
+    if (save_ver >= kCharSvgVersion_36205 && (save_ver < kCharSvgVersion_400 || save_ver >= kCharSvgVersion_400_13))
     {
         following = in->ReadInt32();
         follow_dist = in->ReadInt32();

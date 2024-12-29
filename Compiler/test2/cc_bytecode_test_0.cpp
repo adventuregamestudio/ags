@@ -4879,28 +4879,28 @@ TEST_F(Bytecode0, Func21) {
 
 TEST_F(Bytecode0, Export) {
 
-    char const *inpl = "\
-    struct Struct                   \n\
-    {                               \n\
-        float Float;                \n\
-        int Int;                    \n\
-    };                              \n\
-    Struct StructyStructy;          \n\
-    export StructyStructy;          \n\
-                                    \n\
-    int Inty;                       \n\
-    float Floaty;                   \n\
-    export Floaty, Inty;            \n\
-                                    \n\
-    int main()                      \n\
-    {                               \n\
-        Struct s;                   \n\
-        s.Int = 3;                  \n\
-        s.Float = 1.1 / 2.2;        \n\
-        return -2;                  \n\
-    }                               \n\
-    export main;                    \n\
-    ";
+    char const *inpl = R"%&/(
+        struct Struct
+        {
+            float Float;
+            int Int;
+        };
+        Struct StructyStructy;
+        export StructyStructy;
+
+        int Prime = 7907;
+        float Napier = 2.71828182845;
+        export Napier, Prime;
+
+        int game_start()
+        {
+            Struct s;
+            s.Int = 3;
+            s.Float = 1.1 / 2.2;
+            return -2;
+        }
+        export game_start;
+    )%&/";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
     std::string const &err_msg = mh.GetError().Message;
@@ -4908,43 +4908,50 @@ TEST_F(Bytecode0, Export) {
 
     // WriteOutput("Export", scrip);
 
-    size_t const codesize = 40;
-    EXPECT_EQ(codesize, scrip.code.size());
+    size_t const code_size = 40;
+    EXPECT_EQ(code_size, scrip.code.size());
 
     int32_t code[] = {
-      36,   14,   38,    0,           36,   15,   51,    0,    // 7
-      63,    8,    1,    1,            8,   36,   16,    6,    // 15
-       3,    3,   51,    4,            8,    3,   36,   17,    // 23
+      36,   15,   38,    0,           36,   16,   51,    0,    // 7
+      63,    8,    1,    1,            8,   36,   17,    6,    // 15
+       3,    3,   51,    4,            8,    3,   36,   18,    // 23
        6,    3, 1056964608,   51,            8,    8,    3,   36,    // 31
-      18,    6,    3,   -2,            2,    1,    8,    5,    // 39
+      19,    6,    3,   -2,            2,    1,    8,    5,    // 39
      -999
     };
-    CompareCode(&scrip, codesize, code);
+    CompareCode(&scrip, code_size, code);
 
-    size_t const numfixups = 0;
-    EXPECT_EQ(numfixups, scrip.fixups.size());
+    size_t const fixups_size = 0;
+    ASSERT_EQ(scrip.fixups.size(), scrip.fixuptypes.size());
+    EXPECT_EQ(fixups_size, scrip.fixups.size());
 
-    int const numimports = 0;
-    std::string imports[] = {
-     "[[SENTINEL]]"
-    };
-    CompareImports(&scrip, numimports, imports);
+    int const non_empty_imports_count = 0;
+    CompareImports(&scrip, non_empty_imports_count, nullptr);
 
-    size_t const numexports = 4;
-    EXPECT_EQ(numexports, scrip.exports.size());
+    size_t const exports_size = 4;
+    ASSERT_EQ(scrip.exports.size(), scrip.export_addr.size());
+
+    EXPECT_EQ(exports_size, scrip.exports.size());
 
     std::string exports[] = {
-    "StructyStructy", "Floaty",   "Inty",     "main$0",   // 3
-     "[[SENTINEL]]"
+    "StructyStructy", "Napier",   "Prime",    "game_start$0",   // 3
     };
     int32_t export_addr[] = {
     0x2000000, 0x200000c,    0x2000008, 0x1000000, // 3
-     0
     };
-    CompareExports(&scrip, numexports, exports, export_addr);
+    CompareExports(&scrip, exports_size, exports, export_addr);
 
-    size_t const stringssize = 0;
-    EXPECT_EQ(stringssize, scrip.strings.size());
+    size_t const strings_size = 0;
+    EXPECT_EQ(strings_size, scrip.strings.size());
+
+    size_t const globaldata_size = 16;
+    EXPECT_EQ(globaldata_size, scrip.globaldata.size());
+
+    unsigned char globaldata[] = {
+    0x00, 0x00, 0x00, 0x00,         0x00, 0x00, 0x00, 0x00,    // 7
+    0xe3, 0x1e, 0x00, 0x00,         0x54, 0xf8, 0x2d, 0x40,    // 15
+    };
+    CompareGlobalData(&scrip, globaldata_size, globaldata);
 }
 
 TEST_F(Bytecode0, ArrayOfPointers1_NoRTTI) {
@@ -5112,8 +5119,9 @@ TEST_F(Bytecode0, ArrayOfPointers2_NoRTTI) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("ArrayOfPointers2_NoRTTI", scrip);
-    size_t const codesize = 131;
-    EXPECT_EQ(codesize, scrip.code.size());
+
+    size_t const code_size = 131;
+    EXPECT_EQ(code_size, scrip.code.size());
 
     int32_t code[] = {
       36,    8,   38,    0,           36,    9,   51,    0,    // 7
@@ -5134,22 +5142,24 @@ TEST_F(Bytecode0, ArrayOfPointers2_NoRTTI) {
        3,    1,   70,   -9,            2,    1,  200,    6,    // 127
        3,    0,    5,  -999
     };
-    CompareCode(&scrip, codesize, code);
+    CompareCode(&scrip, code_size, code);
 
-    size_t const numfixups = 0;
-    EXPECT_EQ(numfixups, scrip.fixups.size());
+    size_t const fixups_size = 0;
+    ASSERT_EQ(scrip.fixups.size(), scrip.fixuptypes.size());
+    EXPECT_EQ(fixups_size, scrip.fixups.size());
 
-    int const numimports = 0;
-    std::string imports[] = {
-     "[[SENTINEL]]"
-    };
-    CompareImports(&scrip, numimports, imports);
+    int const non_empty_imports_count = 0;
+    CompareImports(&scrip, non_empty_imports_count, nullptr);
 
-    size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.exports.size());
+    size_t const exports_size = 0;
+    ASSERT_EQ(scrip.exports.size(), scrip.export_addr.size());
+    EXPECT_EQ(exports_size, scrip.exports.size());
 
-    size_t const stringssize = 0;
-    EXPECT_EQ(stringssize, scrip.strings.size());
+    size_t const strings_size = 0;
+    EXPECT_EQ(strings_size, scrip.strings.size());
+
+    size_t const globaldata_size = 0;
+    EXPECT_EQ(globaldata_size, scrip.globaldata.size());
 }
 
 TEST_F(Bytecode0, ArrayOfPointers2_RTTI) {

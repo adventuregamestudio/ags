@@ -1155,10 +1155,8 @@ TEST_F(Compile0, StructForwardDeclareNew) {
 
 TEST_F(Compile0, StructManaged1a_NoRTTIOPS)
 {
-    // NO SCOPT_RTTIOPS:
-    // Cannot have managed components in managed struct.
-    // This is an Engine restriction.
-    ccSetOption(SCOPT_RTTIOPS, 0);
+    // Cannot have managed components in managed struct
+    // when RTTIOPT is unset. This is an Engine restriction.
 
     char const *inpl = "\
         managed struct Managed1 \n\
@@ -1169,11 +1167,13 @@ TEST_F(Compile0, StructManaged1a_NoRTTIOPS)
         };                      \n\
         ";
 
+    // Note: Don't use 'ccSetOption()' in Googletests.
+    // 'kNoOptions' is 0, so in particular, SCOPT_RTTIOPS is 0.
+
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
     std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
-
 
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_EQ(std::string::npos, err_msg.find("xception"));
@@ -1181,10 +1181,8 @@ TEST_F(Compile0, StructManaged1a_NoRTTIOPS)
 
 TEST_F(Compile0, StructManaged1b_NoRTTIOPS)
 {
-    // NO SCOPT_RTTIOPS:
-    // Cannot have managed components in managed struct.
-    // This is an Engine restriction.
-    ccSetOption(SCOPT_RTTIOPS, 0);
+    // Cannot have managed components in managed struct
+    // when RTTIOPS is unset. This is an Engine restriction.
 
     char const *inpl = "\
         managed struct Managed1 \n\
@@ -1194,6 +1192,9 @@ TEST_F(Compile0, StructManaged1b_NoRTTIOPS)
             Managed1 compo[];   \n\
         };                      \n\
         ";
+
+    // Note: Don't use 'ccSetOption()' in Googletests.
+    // 'kNoOptions' is 0, so in particular, SCOPT_RTTIOPS is 0.
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
     std::string const &err_msg = mh.GetError().Message;
@@ -1206,8 +1207,8 @@ TEST_F(Compile0, StructManaged1b_NoRTTIOPS)
 
 TEST_F(Compile0, StructManaged2a_RTTIOPS)
 {
-    // + SCOPT_RTTIOPS:
-    // Can have managed components in managed struct.
+    // Can have managed components in managed struct
+    // when RTTIOPS is set.
 
     char const *inpl = "\
         managed struct Managed1 \n\
@@ -1228,7 +1229,8 @@ TEST_F(Compile0, StructManaged2a_RTTIOPS)
 
 TEST_F(Compile0, StructManaged2b_RTTIOPS)
 {
-    // Can have managed components in managed struct.
+    // Can have managed components in managed struct
+    // when RTTIOPS is set.
 
     char const *inpl = "\
         managed struct Managed1 \n\
@@ -1434,9 +1436,9 @@ TEST_F(Compile0, ImportOverride2) {
         }                       \n\
         ";
 
-    ccSetOption(SCOPT_NOIMPORTOVERRIDE, true);
+    // Note: Don't use 'ccSetOption()' in Googletests.
 
-    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    int compile_result = cc_compile(inpl, SCOPT_NOIMPORTOVERRIDE, scrip, mh);
     std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
@@ -1454,8 +1456,9 @@ TEST_F(Compile0, ImportOverride3) {
     import int Func(int i = 5);     \n\
     ";
 
-    ccSetOption(SCOPT_NOIMPORTOVERRIDE, true);
-    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    // Note: Don't use 'ccSetOption()' in Googletests.
+
+    int compile_result = cc_compile(inpl, SCOPT_NOIMPORTOVERRIDE, scrip, mh);
     std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
@@ -2435,7 +2438,8 @@ TEST_F(Compile0, StringOldstyle01) {
 
 TEST_F(Compile0, StringOldstyle02) {
 
-    // If a function expects a non-const string, it mustn't be passed a const string
+    // If a function expects a non-const string,
+    // it mustn't be passed a const string
 
     char const *inpl = "\
         void Func(string s)         \n\
@@ -2444,9 +2448,9 @@ TEST_F(Compile0, StringOldstyle02) {
         }                           \n\
         ";
 
-    ccSetOption(SCOPT_OLDSTRINGS, true);
+    // Note: Don't use 'ccSetOption()' in Googletests.
 
-    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    int compile_result = cc_compile(inpl, SCOPT_OLDSTRINGS, scrip, mh);
     std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
@@ -2457,8 +2461,8 @@ TEST_F(Compile0, StringOldstyle02) {
 
 TEST_F(Compile0, StringOldstyle03) {
 
-    // A string literal is a constant string, so you should not be able to
-    // return it as a string.
+    // A string literal is a constant string,
+    // so you can't return it as a string.
 
     char const *inpl = "\
         string Func()                   \n\
@@ -2467,9 +2471,9 @@ TEST_F(Compile0, StringOldstyle03) {
         }                               \n\
         ";
 
-    ccSetOption(SCOPT_OLDSTRINGS, true);
+    // Note: Don't use 'ccSetOption()' in Googletests.
 
-    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    int compile_result = cc_compile(inpl, SCOPT_OLDSTRINGS, scrip, mh);
     std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());

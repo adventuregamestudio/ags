@@ -762,6 +762,11 @@ private:
 
     void ParseVardecl_InitialValAssignment_IntOrFloatVartype(Vartype var, std::vector<char> &initial_val);
 
+    // Assign a string literal to a char array or a 'string'
+    void ParseVardecl_InitialValAssignment_AssignStringLit(Symbol string_lit, size_t available_space, std::vector<char> &initial_val);
+
+    void ParseVardecl_InitialValAssignment_Array(Vartype vartype, std::vector<char> &initial_val);
+
     void ParseVardecl_InitialValAssignment_OldString(std::vector<char> &initial_val);
 
     // Parse the assignment of an initial value to a variable. 

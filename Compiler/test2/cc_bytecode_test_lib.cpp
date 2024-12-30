@@ -114,17 +114,17 @@ static void WriteOutputFixups(std::ofstream &of, AGS::ccCompiledScript const &sc
         if (idx % 8u == 3u) of << "      ";
         if (idx % 8u == 7u) of << "   // " << idx << std::endl;
     }
-    of << " -999 " << std::endl << "};" << std::endl;
+    of << "};" << std::endl;
     
     of << "char fixuptypes[] = {" << std::endl;
     for (size_t idx = 0u; idx < fixups_size; idx++)
     {
-        of.width(3);
+        of.width(4);
         of << static_cast<int>(scrip.fixuptypes[idx]) << ", ";
-        if (idx % 8u == 3u) of << "   ";
+        if (idx % 8u == 3u) of << "      ";
         if (idx % 8u == 7u) of << "   // " << idx << std::endl;
     }
-    of << " '\\0' " << std::endl << "};" << std::endl;
+    of << "};" << std::endl;
 
     of << "CompareFixups(&scrip, fixups_size, fixups, fixuptypes);" << std::endl << std::endl;
 }
@@ -205,7 +205,7 @@ void CompareImports(AGS::ccCompiledScript *scrip, size_t non_empty_imports_count
     size_t array_idx = 0u; // index into 'imports[]'
     for (size_t scrip_idx = 0u; scrip_idx < scrip->imports.size(); scrip_idx++)
     {
-        if (!scrip->imports[scrip_idx].empty())
+        if (scrip->imports[scrip_idx].empty())
             continue;
 
         std::string const prefix = "scrip.imports[" + std::to_string(scrip_idx) + "] == ";

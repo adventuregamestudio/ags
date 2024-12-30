@@ -2921,8 +2921,8 @@ TEST_F(Bytecode0, Struct11_NoRTTI) {
 
     // WriteOutput("Struct11_NoRtti", scrip);
 
-    size_t const codesize = 75;
-    EXPECT_EQ(codesize, scrip.code.size());
+    size_t const code_size = 75;
+    EXPECT_EQ(code_size, scrip.code.size());
 
     int32_t code[] = {
       36,   19,   38,    0,           36,   20,   73,    3,    // 7
@@ -2936,30 +2936,32 @@ TEST_F(Bytecode0, Struct11_NoRTTI) {
        7,    3,   30,    4,           11,    4,    3,    3,    // 71
        4,    3,    5,  -999
     };
-    CompareCode(&scrip, codesize, code);
+    CompareCode(&scrip, code_size, code);
 
-    size_t const numfixups = 5;
-    EXPECT_EQ(numfixups, scrip.fixups.size());
+    size_t const fixups_size = 5;
+    ASSERT_EQ(scrip.fixups.size(), scrip.fixuptypes.size());
+    EXPECT_EQ(fixups_size, scrip.fixups.size());
 
     int32_t fixups[] = {
-      11,   18,   37,   47,         60,  -999
-    };
+      11,   18,   37,   47,         60, };
     char fixuptypes[] = {
-      4,   4,   4,   4,      4,  '\0'
-    };
-    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
+       4,    4,    4,    4,          4, };
+    CompareFixups(&scrip, fixups_size, fixups, fixuptypes);
 
-    int const numimports = 1;
+    int const non_empty_imports_count = 1;
     std::string imports[] = {
-    "SS",           "[[SENTINEL]]"
-    };
-    CompareImports(&scrip, numimports, imports);
+    "SS", };
+    CompareImports(&scrip, non_empty_imports_count, imports);
 
-    size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.exports.size());
+    size_t const exports_size = 0;
+    ASSERT_EQ(scrip.exports.size(), scrip.export_addr.size());
+    EXPECT_EQ(exports_size, scrip.exports.size());
 
-    size_t const stringssize = 0;
-    EXPECT_EQ(stringssize, scrip.strings.size());
+    size_t const strings_size = 0;
+    EXPECT_EQ(strings_size, scrip.strings.size());
+
+    size_t const globaldata_size = 0;
+    EXPECT_EQ(globaldata_size, scrip.globaldata.size());
 }
 
 TEST_F(Bytecode0, Struct11_RTTI) {
@@ -3000,9 +3002,9 @@ TEST_F(Bytecode0, Struct11_RTTI) {
     std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
-    // WriteOutput("Struct11_NoRtti", scrip);
-    size_t const codesize = 76;
-    EXPECT_EQ(codesize, scrip.code.size());
+    // WriteOutput("Struct11_Rtti", scrip);
+    size_t const code_size = 76;
+    EXPECT_EQ(code_size, scrip.code.size());
 
     int32_t code[] = {
       36,   19,   38,    0,           36,   20,   74,    3,    // 7
@@ -3016,30 +3018,32 @@ TEST_F(Bytecode0, Struct11_RTTI) {
        6,    7,    3,   30,            4,   11,    4,    3,    // 71
        3,    4,    3,    5,          -999
     };
-    CompareCode(&scrip, codesize, code);
+    CompareCode(&scrip, code_size, code);
 
-    size_t const numfixups = 5;
-    EXPECT_EQ(numfixups, scrip.fixups.size());
+    size_t const fixups_size = 5;
+    ASSERT_EQ(scrip.fixups.size(), scrip.fixuptypes.size());
+    EXPECT_EQ(fixups_size, scrip.fixups.size());
 
     int32_t fixups[] = {
-      12,   19,   38,   48,         61,  -999
-    };
+      12,   19,   38,   48,         61, };
     char fixuptypes[] = {
-      4,   4,   4,   4,      4,  '\0'
-    };
-    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
+       4,    4,    4,    4,          4, };
+    CompareFixups(&scrip, fixups_size, fixups, fixuptypes);
 
-    int const numimports = 1;
+    int const non_empty_imports_count = 1;
     std::string imports[] = {
-    "SS",           "[[SENTINEL]]"
-    };
-    CompareImports(&scrip, numimports, imports);
+    "SS", };
+    CompareImports(&scrip, non_empty_imports_count, imports);
 
-    size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.exports.size());
+    size_t const exports_size = 0;
+    ASSERT_EQ(scrip.exports.size(), scrip.export_addr.size());
+    EXPECT_EQ(exports_size, scrip.exports.size());
 
-    size_t const stringssize = 0;
-    EXPECT_EQ(stringssize, scrip.strings.size());
+    size_t const strings_size = 0;
+    EXPECT_EQ(strings_size, scrip.strings.size());
+
+    size_t const globaldata_size = 0;
+    EXPECT_EQ(globaldata_size, scrip.globaldata.size());
 }
 
 TEST_F(Bytecode0, Struct12) {

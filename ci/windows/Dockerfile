@@ -60,12 +60,12 @@ RUN mkdir Lib\irrKlang && \
   rd /s /q %TEMP%\irrKlang-64bit-%IRRKLANG_VERSION%
 
 # from
-# https://github.com/microsoft/winget-pkgs/blob/master/manifests/m/Microsoft/VCRedist/2015%2B/x86/14.29.30133.0/Microsoft.VCRedist.2015%2B.x86.installer.yaml
-# https://github.com/microsoft/winget-pkgs/blob/master/manifests/m/Microsoft/VCRedist/2015%2B/x64/14.29.30133.0/Microsoft.VCRedist.2015%2B.x64.installer.yaml
+# https://github.com/microsoft/winget-pkgs/blob/master/manifests/m/Microsoft/VCRedist/2015%2B/x86/14.42.34433.0/Microsoft.VCRedist.2015%2B.x86.installer.yaml
+# https://github.com/microsoft/winget-pkgs/blob/master/manifests/m/Microsoft/VCRedist/2015%2B/x64/14.42.34433.0/Microsoft.VCRedist.2015%2B.x64.installer.yaml
 RUN mkdir Redist && \
   cd Redist && \
-  curl -fLJ https://download.visualstudio.microsoft.com/download/pr/221ed2ae-1269-497b-a962-e113045001fa/1ACD8D5EA1CDC3EB2EB4C87BE3AB28722D0825C15449E5C9CEEF95D897DE52FA/VC_redist.x86.exe -o vc_redist.x86.exe && \
-  curl -fLJ https://download.visualstudio.microsoft.com/download/pr/7239cdc3-bd73-4f27-9943-22de059a6267/003063723B2131DA23F40E2063FB79867BAE275F7B5C099DBD1792E25845872B/VC_redist.x64.exe -o vc_redist.x64.exe
+  curl -fLJ https://download.visualstudio.microsoft.com/download/pr/5319f718-2a84-4aff-86be-8dbdefd92ca1/DD1A8BE03398367745A87A5E35BEBDAB00FDAD080CF42AF0C3F20802D08C25D4/VC_redist.x86.exe -o vc_redist.x86.exe && \
+  curl -fLJ https://download.visualstudio.microsoft.com/download/pr/c7dac50a-e3e8-40f6-bbb2-9cc4e3dfcabe/1821577409C35B2B9505AC833E246376CC68A8262972100444010B57226F0940/VC_redist.x64.exe -o vc_redist.x64.exe
 
 ARG SDL_VERSION=release-2.28.5
 ARG SDL_VERSION_NUMBER=2.28.5

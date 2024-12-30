@@ -4256,6 +4256,49 @@ void AGS::Parser::ParseVardecl_InitialValAssignment_IntOrFloatVartype(Vartype co
     }
 }
 
+void AGS::Parser::ParseVardecl_InitialValAssignment_AssignStringLit(Symbol string_lit, size_t const available_space, std::vector<char> &initial_val)
+{
+    // Get the relevant characters from the strings table
+    std::string const lit_value = &(_scrip.strings[_sym[string_lit].LiteralD->Value]);
+
+    if (lit_value.length() >= available_space)
+        UserError(
+            "Initializing string literal has %u chars and is too long (available space: %u chars)",
+            lit_value.length(),
+            available_space - 1u);
+
+    initial_val.assign(lit_value.begin(), lit_value.end());
+    initial_val.push_back('\0');
+}
+
+void AGS::Parser::ParseVardecl_InitialValAssignment_Array(Vartype const vartype, std::vector<char> &initial_val)
+{
+    Symbol const next_sym = _src.GetNext();
+    if (_sym.IsLiteral(next_sym) && _sym.VartypeWithConst(kKW_String) == _sym[next_sym].LiteralD->Vartype)
+    {
+        Vartype const base_vartype = _sym[vartype].VartypeD->BaseVartype;
+        if (kKW_Char != base_vartype)
+            UserError(
+                "Cannot initialize an array of '%s' with a string literal",
+                _sym.GetName(base_vartype).c_str());
+        size_t const dims_count = _sym.ArrayDimensionsCount(vartype);
+        if (dims_count > 1u)
+            UserError(
+                "Cannot initialize a multi-dimensional array with a string literal");
+
+        ParseVardecl_InitialValAssignment_AssignStringLit(
+            next_sym,
+            _sym.ArrayElementsCount(vartype),
+            initial_val);
+        return;
+    }
+    // TODO: Check that the array can be initialized.
+    // It must consist of non-managed arrays or non-managed structs
+    // or 'float's or integer types or 'string'.
+    Expect(kKW_OpenBrace, next_sym);
+    InternalError("Array initializers aren't implemented yet (except for string literals)");
+}
+
 void AGS::Parser::ParseVardecl_InitialValAssignment_OldString(std::vector<char> &initial_val)
 {
     Symbol string_lit = _src.GetNext();
@@ -4266,16 +4309,7 @@ void AGS::Parser::ParseVardecl_InitialValAssignment_OldString(std::vector<char> 
         _sym.VartypeWithConst(kKW_String) != _sym[string_lit].LiteralD->Vartype)
         UserError("Expected a string literal after '=', found '%s' instead", _sym.GetName(_src.PeekNext()).c_str());
 
-    // The scanner has put the constant string into the strings table. That's where we must find and get it.
-    std::string const lit_value = &(_scrip.strings[_sym[string_lit].LiteralD->Value]);
-    
-    if (lit_value.length() >= STRINGBUFFER_LENGTH)
-        UserError(
-            "Initializer string is too long (max. chars allowed: %u)",
-            STRINGBUFFER_LENGTH - 1u);
-
-    initial_val.assign(lit_value.begin(), lit_value.end());
-    initial_val.push_back('\0');
+    ParseVardecl_InitialValAssignment_AssignStringLit(string_lit, STRINGBUFFER_LENGTH, initial_val);
 }
 
 void AGS::Parser::ParseVardecl_InitialValAssignment(Symbol varname, std::vector<char> &initial_val)
@@ -4288,8 +4322,9 @@ void AGS::Parser::ParseVardecl_InitialValAssignment(Symbol varname, std::vector<
 
     if (_sym.IsStructVartype(vartype))
         UserError("'%s' is a struct and cannot be initialized here", _sym.GetName(varname).c_str());
+
     if (_sym.IsArrayVartype(vartype))
-        UserError("'%s' is an array and cannot be initialized here", _sym.GetName(varname).c_str());
+        return ParseVardecl_InitialValAssignment_Array(vartype, initial_val);
 
     if (kKW_String == vartype)
         return ParseVardecl_InitialValAssignment_OldString(initial_val);

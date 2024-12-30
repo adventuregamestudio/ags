@@ -48,18 +48,17 @@ protected:
 
 TEST_F(Bytecode1, StringOldstyle01) {
 
-    char const *inpl = "\
-        int Sentinel1;              \n\
-        string GLOBAL;              \n\
-        int Sentinel2;              \n\
-                                    \n\
-        string MyFunction(int a)    \n\
-        {                           \n\
-            string x;               \n\
-            char   Sentinel3;       \n\
-            return GLOBAL;          \n\
-        }                           \n\
-        ";
+    char const *inpl = R"%&/(
+        int Sentinel1 = 2'147'483'392;
+        string Global = "Hurz";
+        char Global2[5] = "Lamm"; 
+
+        string MyFunction(int a)
+        {
+            string Local = Global;
+            return Global;
+        }
+        )%&/";
 
     FlagSet const options = SCOPT_OLDSTRINGS;
 
@@ -69,40 +68,59 @@ TEST_F(Bytecode1, StringOldstyle01) {
 
     // WriteOutput("StringOldstyle01", scrip);
 
-    size_t const codesize = 34;
-    EXPECT_EQ(codesize, scrip.code.size());
+    size_t const code_size = 75;
+    EXPECT_EQ(code_size, scrip.code.size());
 
     int32_t code[] = {
-      36,    6,   38,    0,           36,    7,   51,    0,    // 7
-      63,  200,    1,    1,          200,   36,    8,   51,    // 15
-       0,   63,    1,    1,            1,    1,   36,    9,    // 23
-       6,    2,    4,    3,            2,    3,    2,    1,    // 31
-     201,    5,  -999
+      36,    7,   38,    0,           36,    8,    6,    2,    // 7
+       4,    3,    2,    3,           51,    0,    3,    3,    // 15
+       5,    3,    2,    4,            6,    7,  199,    3,    // 23
+       4,    2,    7,    3,            3,    5,    2,    8,    // 31
+       3,   28,   25,    1,            4,    1,    1,    5,    // 39
+       1,    2,    7,    1,            3,    7,    3,   70,    // 47
+     -26,    1,    5,    1,            3,    5,    2,    6,    // 55
+       3,    0,    8,    3,            1,    1,  200,   36,    // 63
+       9,    6,    2,    4,            3,    2,    3,    2,    // 71
+       1,  200,    5,  -999
     };
-    CompareCode(&scrip, codesize, code);
+    CompareCode(&scrip, code_size, code);
 
-    size_t const numfixups = 1;
-    EXPECT_EQ(numfixups, scrip.fixups.size());
+    size_t const fixups_size = 2;
+    ASSERT_EQ(scrip.fixups.size(), scrip.fixuptypes.size());
+    EXPECT_EQ(fixups_size, scrip.fixups.size());
 
     int32_t fixups[] = {
-      26,  -999
+       8,   67,  -999
     };
     char fixuptypes[] = {
-      1,  '\0'
+      1,   1,  '\0'
     };
-    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
+    CompareFixups(&scrip, fixups_size, fixups, fixuptypes);
 
-    int const numimports = 0;
-    std::string imports[] = {
-     "[[SENTINEL]]"
-    };
-    CompareImports(&scrip, numimports, imports);
+    int const non_empty_imports_count = 0;
+    CompareImports(&scrip, non_empty_imports_count, nullptr);
 
-    size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.exports.size());
+    size_t const exports_size = 0;
+    ASSERT_EQ(scrip.exports.size(), scrip.export_addr.size());
+    EXPECT_EQ(exports_size, scrip.exports.size());
 
-    size_t const stringssize = 0;
-    EXPECT_EQ(stringssize, scrip.strings.size());
+    size_t const strings_size = 10;
+    EXPECT_EQ(strings_size, scrip.strings.size());
+
+    char strings[] = {
+    'H',  'u',  'r',  'z',            0,  'L',  'a',  'm',     // 7
+    'm',    0, };
+    CompareStrings(&scrip, strings_size, strings);
+
+    size_t const globaldata_size = 209;
+    EXPECT_EQ(globaldata_size, scrip.globaldata.size());
+
+    CharRun global_runs[] = {
+    {   1, 0x00}, {   2, 0xff}, {   1, 0x7f}, {   1, 0x48},    // 5
+    {   1, 0x75}, {   1, 0x72}, {   1, 0x7a}, { 196, 0x00},    // 204
+    {   1, 0x4c}, {   1, 0x61}, {   2, 0x6d}, {   1, 0x00},    // 209
+    {0, 0x00} };
+    CompareGlobalRuns(&scrip, global_runs);
 }
 
 TEST_F(Bytecode1, StringOldstyle02) {

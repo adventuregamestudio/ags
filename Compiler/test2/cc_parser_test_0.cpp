@@ -1457,7 +1457,7 @@ TEST_F(Compile0, ImportOverride3) {
     ";
 
     // Note: Don't use 'ccSetOption()' in Googletests.
-
+    
     int compile_result = cc_compile(inpl, SCOPT_NOIMPORTOVERRIDE, scrip, mh);
     std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
@@ -2480,6 +2480,43 @@ TEST_F(Compile0, StringOldstyle03) {
 
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("ype mismatch"));
+}
+
+TEST_F(Compile0, StringOldstyle04) {
+    // Initializing constant is too long
+    // (the terminating '\0' MUST fit into 'Global2')
+
+    char const *inpl = R"%&/(
+        char Global2[4] = "Lamm"; 
+        )%&/";
+
+    int compile_result = cc_compile(inpl, SCOPT_OLDSTRINGS, scrip, mh);
+    std::string const &err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("oo long"));
+}
+
+TEST_F(Compile0, StringOldstyle05) {
+    // Initializing constant is too long
+
+    char const *inpl = R"%&/(
+        string Global = "123456789a123456789b123456789c123456789d"
+                        "123456789a123456789b123456789c123456789d"
+                        "123456789a123456789b123456789c123456789d"
+                        "123456789a123456789b123456789c123456789d"
+                        "123456789a123456789b123456789c123456789d";
+        )%&/";
+
+    int compile_result = cc_compile(inpl, SCOPT_OLDSTRINGS, scrip, mh);
+    std::string const &err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("oo long"));
 }
 
 TEST_F(Compile0, ConstOldstringReturn)

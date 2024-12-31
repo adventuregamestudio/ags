@@ -111,6 +111,7 @@ namespace AGS.Types
         /// Wrapper function for SelectSingleNode that returns the node's
         /// first child if successful, or null if the node was not found.
         /// <returns></returns>
+        /// </summary>
         public static XmlNode GetFirstChildOrNull(XmlNode parent, string elementName)
         {
             XmlNode foundNode = parent.SelectSingleNode(elementName);

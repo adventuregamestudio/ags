@@ -307,6 +307,7 @@ build_editor_task:
     folder: Solutions\packages
     fingerprint_script:
       - type Editor\AGS.Editor\packages.config
+      - type Editor\AGS.Types\packages.config
       - type Editor\AGS.Editor.Tests\packages.config
     populate_script: nuget restore Solutions\AGS.Editor.Full.sln
   build_debug_script: >

@@ -2,7 +2,7 @@
 #define AgsName "Adventure Game Studio"
 #define AgsUrl "https://www.adventuregamestudio.co.uk/"
 #define VcRedistInstaller "vc_redist.x86.exe"
-#define VcRedistName "Microsoft Visual C++ 2015 Redistributable (x86)"
+#define VcRedistName "Microsoft Visual C++ 2015-2022 Redistributable (x86)"
 
 ; requires following macros to be passed by command line:
 ;   AgsAppId - a GUID identifying installed software
@@ -202,9 +202,9 @@ const
   PLATFORM_CHECK_ERROR_MESSAGE = 'This program is only supported on Windows Vista or newer.';
 
   // Visual C++ runtime
-  // https://download.microsoft.com/download/6/A/A/6AA4EDFF-645B-48C5-81CC-ED5963AEAD48/vc_redist.x86.exe
-  VCPP_REDIST_MAJOR_VERSION = 14.0;
-  VCPP_REDIST_BUILD_VERSION = 24215;
+  // https://download.visualstudio.microsoft.com/download/pr/5319f718-2a84-4aff-86be-8dbdefd92ca1/DD1A8BE03398367745A87A5E35BEBDAB00FDAD080CF42AF0C3F20802D08C25D4/VC_redist.x86.exe
+  VCPP_REDIST_MAJOR_VERSION = 14.42;
+  VCPP_REDIST_BUILD_VERSION = 34433;
 
   // .NET Framework 4.6 or newer
   // in theory this is only needed for OS versions older than Windows 10

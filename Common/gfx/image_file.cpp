@@ -257,7 +257,7 @@ static void bmp_read_image(Stream *in, PixelBuffer &pxdata, const BMP_InfoHeader
 /* bmp_read_RLE8_compressed_image:
  *  For reading the 8 bit RLE compressed BMP image format.
  */
-static void bmp_read_RLE8_compressed_image(Stream *in, PixelBuffer &pxdata, BMP_InfoHeader &hdr)
+static void bmp_read_RLE8_compressed_image(Stream *in, PixelBuffer &pxdata, const BMP_InfoHeader &hdr)
 {
     unsigned char count, val, val0;
     int j, pos, line;
@@ -326,7 +326,7 @@ static void bmp_read_RLE8_compressed_image(Stream *in, PixelBuffer &pxdata, BMP_
 /* bmp_read_RLE4_compressed_image:
  *  For reading the 4 bit RLE compressed BMP image format.
  */
-static void bmp_read_RLE4_compressed_image(Stream *in, PixelBuffer &pxdata, BMP_InfoHeader &hdr)
+static void bmp_read_RLE4_compressed_image(Stream *in, PixelBuffer &pxdata, const BMP_InfoHeader &hdr)
 {
     unsigned char b[8];
     unsigned char count;
@@ -405,7 +405,7 @@ static void bmp_read_RLE4_compressed_image(Stream *in, PixelBuffer &pxdata, BMP_
 /* bmp_read_bitfields_image:
  *  For reading the bitfield compressed BMP image format.
  */
-static void bmp_read_bitfields_image(Stream *in, PixelBuffer &pxdata, BMP_InfoHeader &hdr)
+static void bmp_read_bitfields_image(Stream *in, PixelBuffer &pxdata, const BMP_InfoHeader &hdr)
 {
     int k, i, line, height, dir;
     int color_depth;
@@ -556,6 +556,11 @@ bool SaveBMP(const BitmapData &bmp, const RGB *pal, Stream *out) {
 
 PixelBuffer LoadBMP(Stream *in, RGB *pal) {
     BMP_InfoHeader hdr;
+    int rMask = 0;
+    int gMask = 0;
+    int bMask = 0;
+
+    const soff_t format_at = in->GetPosition(); // starting offset
 
     int16_t bmpType = in->ReadInt16(); /* file type */
     hdr.bfSize = in->ReadInt32();      /* size of the BMP file in bytes  */
@@ -588,7 +593,7 @@ PixelBuffer LoadBMP(Stream *in, RGB *pal) {
         hdr.importantColorsCount = 0;
 
         bmp_read_palette(hdr.offsetBits - 26, pal, in, true);
-    } else if(hdr.headerSize == BMP_INFO_HEADER_SIZE) {
+    } else if (hdr.headerSize >= BMP_INFO_HEADER_SIZE) {
         hdr.w = in->ReadInt32();                   /* bitmap width in pixels (signed integer)  */
         hdr.h = in->ReadInt32();                   /* bitmap height in pixels (signed integer)  */
         hdr.colorPlanes = in->ReadInt16();         /* number of color planes (must be 1)  */
@@ -601,7 +606,11 @@ PixelBuffer LoadBMP(Stream *in, RGB *pal) {
         hdr.colorsCount = in->ReadInt32();          /* number of colors in the color palette */
         hdr.importantColorsCount = in->ReadInt32(); /* number of important colors used */
 
-        if(hdr.compression != kBI_BitFields) {
+        if(hdr.compression == kBI_BitFields) {
+            rMask = in->ReadInt32();
+            gMask = in->ReadInt32();
+            bMask = in->ReadInt32();
+        } else {
             bmp_read_palette(hdr.offsetBits - 54, pal, in, false);
         }
     } else {
@@ -612,11 +621,10 @@ PixelBuffer LoadBMP(Stream *in, RGB *pal) {
     w = hdr.w;
     h = std::abs(hdr.h);
 
-    if(hdr.compression == kBI_BitFields) {
-        int rMask = in->ReadInt32();
-        /*int gMask =*/ in->ReadInt32();
-        int bMask = in->ReadInt32();
-
+    // Check RGB bit masks.
+    // TODO: normally we should deduce bit shifts and pass this information
+    // further into bmp_read_bitfields_image(), where these will be used
+    if (hdr.compression == kBI_BitFields) {
         if ((bMask == 0x001f) && (rMask == 0x7C00)) {
             bpp = 15;
         } else if ((bMask == 0x001f) && (rMask == 0xF800)) {
@@ -640,6 +648,9 @@ PixelBuffer LoadBMP(Stream *in, RGB *pal) {
         return {};
     }
 
+    // Set right to the pixel data, possibly skip any unused fields from advanced versions
+    in->Seek(format_at + hdr.offsetBits, kSeekBegin);
+
     switch (hdr.compression) {
         case kBI_RGB_None:
             bmp_read_image(in, pxdata, hdr);
@@ -654,7 +665,7 @@ PixelBuffer LoadBMP(Stream *in, RGB *pal) {
             bmp_read_bitfields_image(in, pxdata, hdr);
             break;
         default:
-            return {};
+            return {}; // unsupported compression type
     }
 
     return std::move(pxdata);

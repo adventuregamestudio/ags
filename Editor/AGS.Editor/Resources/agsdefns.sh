@@ -2690,11 +2690,11 @@ enum StopMovementStyle
 
 builtin managed struct Character {
   /// Adds the specified item to the character's inventory.
-  import function AddInventory(InventoryItem *item, int addAtIndex=SCR_NO_VALUE);
+  import void AddInventory(InventoryItem *item, int addAtIndex=SCR_NO_VALUE);
   /// Manually adds a waypoint to the character's movement path.
-  import function AddWaypoint(int x, int y);
+  import void AddWaypoint(int x, int y);
   /// Animates the character using its current locked view.
-  import function Animate(int loop, int delay, RepeatStyle=eOnce, BlockingStyle=eBlock, Direction=eForwards
+  import void Animate(int loop, int delay, RepeatStyle=eOnce, BlockingStyle=eBlock, Direction=eForwards
 #ifdef SCRIPT_API_v3507
     , int frame=0
 #endif  
@@ -2704,30 +2704,30 @@ builtin managed struct Character {
   );
 #ifdef SCRIPT_API_v340
   /// Moves the character to another room. If this is the player character, the game will also switch to that room.
-  import function ChangeRoom(int room, int x=SCR_NO_VALUE, int y=SCR_NO_VALUE, CharacterDirection direction=eDirectionNone);
+  import void ChangeRoom(int room, int x=SCR_NO_VALUE, int y=SCR_NO_VALUE, CharacterDirection direction=eDirectionNone);
 #else // !SCRIPT_API_v340
   /// Moves the character to another room. If this is the player character, the game will also switch to that room.
-  import function ChangeRoom(int room, int x=SCR_NO_VALUE, int y=SCR_NO_VALUE);
+  import void ChangeRoom(int room, int x=SCR_NO_VALUE, int y=SCR_NO_VALUE);
 #endif // !SCRIPT_API_v340
   /// Moves the character to another room, using the old-style position variable
-  import function ChangeRoomAutoPosition(int room, int position=0);
+  import void ChangeRoomAutoPosition(int room, int position=0);
   /// Changes the character's normal walking view.
-  import function ChangeView(int view);
+  import void ChangeView(int view);
   /// Turns this character to face the other character.
-  import function FaceCharacter(Character* , BlockingStyle=eBlock);
+  import void FaceCharacter(Character* , BlockingStyle=eBlock);
   /// Turns this character to face the specified location in the room.
-  import function FaceLocation(int x, int y, BlockingStyle=eBlock);
+  import void FaceLocation(int x, int y, BlockingStyle=eBlock);
   /// Turns this character to face the specified object.
-  import function FaceObject(Object* , BlockingStyle=eBlock);
+  import void FaceObject(Object* , BlockingStyle=eBlock);
   /// Starts this character following the other character.
-  import function FollowCharacter(Character*, int dist=10, int eagerness=97);
+  import void FollowCharacter(Character*, int dist=10, int eagerness=97);
   /// Returns the character that is at the specified position on the screen.
   import static Character* GetAtScreenXY(int x, int y);    // $AUTOCOMPLETESTATICONLY$
 #ifdef SCRIPT_API_v361
   import static Character* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
 #endif // SCRIPT_API_v361
   /// Gets a numeric custom property for this character.
-  import function GetProperty(const string property);
+  import int GetProperty(const string property);
 #ifndef STRICT_STRINGS
   import void     GetPropertyText(const string property, string buffer);
 #endif // !STRICT_STRINGS
@@ -2736,74 +2736,74 @@ builtin managed struct Character {
   /// Checks whether the character currently has the specified inventory item.
   import bool     HasInventory(InventoryItem *item);
   /// Checks whether this character is in collision with the other character.
-  import function IsCollidingWithChar(Character*);
+  import bool IsCollidingWithChar(Character*);
   /// Checks whether this character is in collision with the object.
-  import function IsCollidingWithObject(Object* );
+  import bool IsCollidingWithObject(Object* );
 #ifdef SCRIPT_API_v341
   /// Locks the character to this view, ready for doing animations.
-  import function LockView(int view, StopMovementStyle=eStopMoving);
+  import void LockView(int view, StopMovementStyle=eStopMoving);
   /// Locks the character to this view, and aligns it against one side of the existing sprite.
-  import function LockViewAligned(int view, int loop, HorizontalAlignment, StopMovementStyle=eStopMoving);
+  import void LockViewAligned(int view, int loop, HorizontalAlignment, StopMovementStyle=eStopMoving);
   /// Locks the character to the specified view frame
-  import function LockViewFrame(int view, int loop, int frame, StopMovementStyle=eStopMoving);
+  import void LockViewFrame(int view, int loop, int frame, StopMovementStyle=eStopMoving);
   /// Locks the character to is view, with high-resolution position adjustment.
-  import function LockViewOffset(int view, int xOffset, int yOffset, StopMovementStyle=eStopMoving);
+  import void LockViewOffset(int view, int xOffset, int yOffset, StopMovementStyle=eStopMoving);
 #else // !SCRIPT_API_v341
   /// Locks the character to this view, ready for doing animations.
-  import function LockView(int view);
+  import void LockView(int view);
   /// Locks the character to this view, and aligns it against one side of the existing sprite.
-  import function LockViewAligned(int view, int loop, Alignment);
+  import void LockViewAligned(int view, int loop, Alignment);
   /// Locks the character to the specified view frame
-  import function LockViewFrame(int view, int loop, int frame);
+  import void LockViewFrame(int view, int loop, int frame);
   /// Locks the character to is view, with high-resolution position adjustment.
-  import function LockViewOffset(int view, int xOffset, int yOffset);
+  import void LockViewOffset(int view, int xOffset, int yOffset);
 #endif // !SCRIPT_API_v341
   /// Removes the item from this character's inventory.
-  import function LoseInventory(InventoryItem *item);
+  import void LoseInventory(InventoryItem *item);
   /// Moves the character to the destination, without playing his walking animation.
-  import function Move(int x, int y, BlockingStyle=eNoBlock, WalkWhere=eWalkableAreas);
+  import void Move(int x, int y, BlockingStyle=eNoBlock, WalkWhere=eWalkableAreas);
   /// Moves the character to the nearest walkable area.
-  import function PlaceOnWalkableArea();
+  import void PlaceOnWalkableArea();
   /// Removes an existing colour tint from the character.
-  import void     RemoveTint();
+  import void RemoveTint();
   /// Runs one of the character's interaction events.
-  import function RunInteraction(CursorMode);
+  import void RunInteraction(CursorMode);
   /// Says the specified text using the character's speech settings.
-  import function Say(const string message, ...);
+  import void Say(const string message, ...);
 #ifdef SCRIPT_API_v361
   /// Says the specified text at the specified position on the screen using the character's speech settings.
-  import function SayAt(int x, int y, int width, const string message, ...);
+  import void SayAt(int x, int y, int width, const string message, ...);
   /// Displays the text as lucasarts-style speech but does not block the game.
   import Overlay* SayBackground(const string message, ...);
 #else // !SCRIPT_API_v361
   /// Says the specified text at the specified position on the screen using the character's speech settings.
-  import function SayAt(int x, int y, int width, const string message);
+  import void SayAt(int x, int y, int width, const string message);
   /// Displays the text as lucasarts-style speech but does not block the game.
   import Overlay* SayBackground(const string message);
 #endif // !SCRIPT_API_v361
   /// Makes this character the player character.
-  import function SetAsPlayer();
+  import void SetAsPlayer();
   /// Changes the character's idle view.
-  import function SetIdleView(int view, int delay);
+  import void SetIdleView(int view, int delay);
   /// Changes the character's movement speed.
-  import function SetWalkSpeed(int x, int y);
+  import void SetWalkSpeed(int x, int y);
   /// Stops the character from moving.
-  import function StopMoving();
+  import void StopMoving();
   /// The specified text is displayed in a thought-bubble GUI.
-  import function Think(const string message, ...);
+  import void Think(const string message, ...);
   /// Tints the character to the specified colour.
   import void     Tint(int red, int green, int blue, int saturation, int luminance);
 #ifdef SCRIPT_API_v341
   /// Unlocks the view after an animation has finished.
-  import function UnlockView(StopMovementStyle=eStopMoving);
+  import void UnlockView(StopMovementStyle=eStopMoving);
 #else // !SCRIPT_API_v341
   /// Unlocks the view after an animation has finished.
-  import function UnlockView();
+  import void UnlockView();
 #endif // !SCRIPT_API_v341
   /// Moves the character to the destination, automatically playing his walking animation.
-  import function Walk(int x, int y, BlockingStyle=eNoBlock, WalkWhere=eWalkableAreas);
+  import void Walk(int x, int y, BlockingStyle=eNoBlock, WalkWhere=eWalkableAreas);
   /// Moves the character in a straight line as far as possible towards the co-ordinates. Useful for keyboard movement.
-  import function WalkStraight(int x, int y, BlockingStyle=eNoBlock);
+  import void WalkStraight(int x, int y, BlockingStyle=eNoBlock);
   /// Gets/sets the character's current inventory item. null if no item selected.
   import attribute InventoryItem* ActiveInventory;
   /// Gets whether the character is currently animating.
@@ -2897,15 +2897,15 @@ builtin managed struct Character {
 #endif // SCRIPT_API_v334
 #ifdef SCRIPT_API_v340
   /// Turns this character to face the specified direction.
-  import function FaceDirection(CharacterDirection direction, BlockingStyle=eBlock);
+  import void FaceDirection(CharacterDirection direction, BlockingStyle=eBlock);
   /// Sets an integer custom property for this character.
   import bool SetProperty(const string property, int value);
   /// Sets a text custom property for this character.
   import bool SetTextProperty(const string property, const string value);
   /// Checks whether an event handler has been registered for clicking on this character in the specified cursor mode.
-  import bool     IsInteractionAvailable(CursorMode);
+  import bool IsInteractionAvailable(CursorMode);
   /// Sets the individual light level for this character.
-  import function SetLightLevel(int light_level);
+  import void SetLightLevel(int light_level);
   /// Gets the X coordinate of the character's final moving destination; or current position if character is not moving.
   readonly import attribute int DestinationX;
   /// Gets the Y coordinate of the character's final moving destination; or current position if character is not moving.

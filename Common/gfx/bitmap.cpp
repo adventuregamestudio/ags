@@ -284,7 +284,7 @@ void ReadPixelsFromMemory(Bitmap *dst, const uint8_t *src_buffer, const size_t s
 
 // Converts loaded bitmap to the requested color depth,
 // optionally fixups color palette
-static Bitmap *BitmapColorDepthFixup(Bitmap *bmp, int dst_color_depth, RGB *pal)
+static Bitmap *BitmapColorDepthFixup(Bitmap *bmp, int dst_color_depth, RGB *pal, bool src_has_alpha)
 {
     int bmp_depth = bmp->GetColorDepth();
     int dest_depth = get_color_load_depth(bmp_depth, false);
@@ -300,6 +300,9 @@ static Bitmap *BitmapColorDepthFixup(Bitmap *bmp, int dst_color_depth, RGB *pal)
         if (al_bmp != bmp->GetAllegroBitmap())
             bmp->WrapAllegroBitmap(al_bmp, false);
     }
+
+    if ((dest_depth == 32) && !src_has_alpha)
+        BitmapHelper::MakeOpaqueSkipMask(bmp);
 
     /* construct a fake palette if 8-bit mode is not involved */
     if ((bmp_depth != 8) && (dest_depth != 8) && pal)
@@ -322,7 +325,7 @@ Bitmap* LoadBitmap(Stream *in, const String& ext, int dst_color_depth, RGB *pal)
     if (!bmp)
         return nullptr;
     // Perform color depth and palette fixups
-    Bitmap *fixed_bmp = BitmapColorDepthFixup(bmp, dst_color_depth, pal);
+    Bitmap *fixed_bmp = BitmapColorDepthFixup(bmp, dst_color_depth, pal, pxbuf.HasAlphaChannel());
     if (fixed_bmp != bmp)
         delete bmp;
     return fixed_bmp;

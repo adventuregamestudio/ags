@@ -41,6 +41,7 @@ enum PixelFormat
     kPxFmt_R5G6B5,      // 16-bit R5G6B5, historical 16-bit pixel format in AGS
     kPxFmt_R8G8B8,      // 24-bit RGB (no alpha)
     kPxFmt_A8R8G8B8,    // 32-bit ARGB
+    kPxFmt_X8R8G8B8,    // 32-bit RGB with no valid alpha
 };
 
 // Returns bits-per-pixel from format
@@ -55,6 +56,7 @@ inline int PixelFormatToPixelBits(PixelFormat fmt)
     case kPxFmt_R5G6B5:     return 16;
     case kPxFmt_R8G8B8:     return 24;
     case kPxFmt_A8R8G8B8:   return 32;
+    case kPxFmt_X8R8G8B8:   return 32;
     default:                return 0;
     }
 }
@@ -64,7 +66,7 @@ inline int PixelFormatToPixelBytes(PixelFormat fmt)
     return (PixelFormatToPixelBits(fmt) + 7) / 8;
 }
 
-inline PixelFormat ColorDepthToPixelFormat(int color_depth)
+inline PixelFormat ColorDepthToPixelFormat(int color_depth, bool alpha_valid = true)
 {
     switch (color_depth)
     {
@@ -74,7 +76,7 @@ inline PixelFormat ColorDepthToPixelFormat(int color_depth)
     case 15: return kPxFmt_R5G5B5;
     case 16: return kPxFmt_R5G6B5;
     case 24: return kPxFmt_R8G8B8;
-    case 32: return kPxFmt_A8R8G8B8;
+    case 32: return alpha_valid ? kPxFmt_A8R8G8B8 : kPxFmt_X8R8G8B8;
     default: return kPxFmt_Undefined;
     }
 }
@@ -119,6 +121,7 @@ public:
     operator bool() const { return _cbuf != nullptr; }
 
     inline PixelFormat GetFormat() const { return _format; }
+    inline bool HasAlphaChannel() const { return _format == kPxFmt_A8R8G8B8; }
     inline int GetColorDepth() const { return _bitsPerPixel; }
     inline int GetWidth() const { return _width; }
     inline int GetHeight() const { return _height; }

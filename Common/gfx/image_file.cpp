@@ -559,6 +559,7 @@ PixelBuffer LoadBMP(Stream *in, RGB *pal) {
     int rMask = 0;
     int gMask = 0;
     int bMask = 0;
+    bool hasAlpha = false;
 
     const soff_t format_at = in->GetPosition(); // starting offset
 
@@ -610,6 +611,8 @@ PixelBuffer LoadBMP(Stream *in, RGB *pal) {
             rMask = in->ReadInt32();
             gMask = in->ReadInt32();
             bMask = in->ReadInt32();
+            // TODO: might need to support alpha bits, if it's present in the header
+            // also set hasAlpha = true in such case
         } else {
             bmp_read_palette(hdr.offsetBits - 54, pal, in, false);
         }
@@ -643,7 +646,11 @@ PixelBuffer LoadBMP(Stream *in, RGB *pal) {
     if (bpp < 8)
         bpp = 8;
 
-    PixelBuffer pxdata(w, h, ColorDepthToPixelFormat(bpp));
+    // TODO: if we support loading 32-bit ARGB images (existing old BMP loader code doesn't),
+    // then we might also have to test if there's ANY alpha present in the image
+    // AFTER decoding the pixel data, and adjust the format info (?).
+
+    PixelBuffer pxdata(w, h, ColorDepthToPixelFormat(bpp, hasAlpha));
     if (!pxdata) {
         return {};
     }

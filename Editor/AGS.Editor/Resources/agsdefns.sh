@@ -2538,7 +2538,7 @@ builtin struct System {
 
 builtin managed struct Object {
   /// Animates the object using its current view.
-  import function Animate(int loop, int delay, RepeatStyle=eOnce, BlockingStyle=eBlock, Direction=eForwards
+  import void Animate(int loop, int delay, RepeatStyle=eOnce, BlockingStyle=eBlock, Direction=eForwards
 #ifdef SCRIPT_API_v3507
     , int frame=0
 #endif  
@@ -2549,41 +2549,41 @@ builtin managed struct Object {
   /// Gets the object that is on the screen at the specified co-ordinates.
   import static Object* GetAtScreenXY(int x, int y);    // $AUTOCOMPLETESTATICONLY$
 #ifndef STRICT_STRINGS
-  import void     GetName(string buffer);
-  import function GetPropertyText(const string property, string buffer);
+  import void GetName(string buffer);
+  import void GetPropertyText(const string property, string buffer);
 #endif // !STRICT_STRINGS
 #ifdef SCRIPT_API_v361
   import static Object* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
 #endif // SCRIPT_API_v361
   /// Gets an integer Custom Property for this object.
-  import function GetProperty(const string property);
+  import int GetProperty(const string property);
   /// Gets a text Custom Property for this object.
   import String   GetTextProperty(const string property);
   /// Checks whether this object is colliding with another.
   import bool IsCollidingWithObject(Object*);
   /// Merges the object's image into the room background, and disables the object.
-  import function MergeIntoBackground();
+  import void MergeIntoBackground();
   /// Starts the object moving towards the specified co-ordinates.
-  import function Move(int x, int y, int speed, BlockingStyle=eNoBlock, WalkWhere=eWalkableAreas);
+  import void Move(int x, int y, int speed, BlockingStyle=eNoBlock, WalkWhere=eWalkableAreas);
   /// Removes a specific object tint, and returns the object to using the ambient room tint.
-  import function RemoveTint();
+  import void RemoveTint();
   /// Runs the event handler for the specified event.
-  import function RunInteraction(CursorMode);
+  import void RunInteraction(CursorMode);
   /// Instantly moves the object to have its bottom-left at the new co-ordinates.
-  import function SetPosition(int x, int y);
+  import void SetPosition(int x, int y);
 #ifdef SCRIPT_API_v360
   /// Sets the object to use the specified view, ahead of doing an animation.
-  import function SetView(int view, int loop=0, int frame=0);
+  import void SetView(int view, int loop=0, int frame=0);
 #else // !SCRIPT_API_v360
   /// Sets the object to use the specified view, ahead of doing an animation.
-  import function SetView(int view, int loop=-1, int frame=-1);
+  import void SetView(int view, int loop=-1, int frame=-1);
 #endif // !SCRIPT_API_v360
   /// Stops any currently running animation on the object.
-  import function StopAnimating();
+  import void StopAnimating();
   /// Stops any currently running move on the object.
-  import function StopMoving();
+  import void StopMoving();
   /// Tints the object to the specified colour.
-  import function Tint(int red, int green, int blue, int saturation, int luminance);
+  import void Tint(int red, int green, int blue, int saturation, int luminance);
   /// Gets whether the object is currently animating.
   readonly import attribute bool Animating;
   /// Gets/sets the object's baseline. This can be 0 to use the object's Y position as its baseline.
@@ -2630,7 +2630,7 @@ builtin managed struct Object {
   /// Checks whether an event handler has been registered for clicking on this object in the specified cursor mode.
   import bool     IsInteractionAvailable(CursorMode);
   /// Sets the individual light level for this object.
-  import function SetLightLevel(int light_level);
+  import void SetLightLevel(int light_level);
   /// Sets an integer custom property for this object.
   import bool SetProperty(const string property, int value);
   /// Sets a text custom property for this object.

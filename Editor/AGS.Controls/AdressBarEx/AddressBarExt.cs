@@ -549,9 +549,9 @@ namespace AddressBarExt.Controls
                     tsddOverflow.Items.Clear();
                 }
 
-                ToolStripDropDownButton currentDrop = null;
+                // ToolStripDropDownButton currentDrop = null;
                 ToolStripItem tsi = null;
-                ToolStripItem currentItem = null;
+                // ToolStripItem currentItem = null;
 
                 // whilst we have too many nodes to render
                 while (TooManyNodes())

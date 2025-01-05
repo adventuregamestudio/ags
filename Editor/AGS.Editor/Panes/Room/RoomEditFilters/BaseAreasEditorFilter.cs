@@ -116,9 +116,13 @@ namespace AGS.Editor
             get;
         }
 
+// currently we don't raise these events at BaseAreasEditorFilter but we do raise for specific layers.
+// this quiets the "event is never used" warning for both events below
+#pragma warning disable 67
         public event EventHandler OnItemsChanged;
-        public event EventHandler<SelectedRoomItemEventArgs> OnSelectedItemChanged;
         public event EventHandler<RoomFilterContextMenuArgs> OnContextMenu;
+#pragma warning restore 67
+        public event EventHandler<SelectedRoomItemEventArgs> OnSelectedItemChanged;
 
         public abstract int ItemCount { get; }
 

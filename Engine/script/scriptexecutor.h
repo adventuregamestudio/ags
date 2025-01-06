@@ -50,21 +50,68 @@ struct ScriptExecPosition
     int32_t PC = 0;
     int32_t LineNumber = 0;
 
+    ScriptExecPosition() = default;
     ScriptExecPosition(const RuntimeScript *script, int pc, int linenumber)
         : Script(script), PC(pc), LineNumber(linenumber) {}
 };
 
-struct FunctionCallStack;
 
+class ScriptThread
+{
+    using String = Common::String;
+public:
+    ScriptThread();
+    ScriptThread(const String &name);
+
+    const String &GetName() const { return _name; }
+    std::vector<RuntimeScriptValue> &GetStack() { return _stack; }
+    std::vector<uint8_t> &GetStackData() { return _stackdata; }
+    const std::deque<ScriptExecPosition> &GetCallStack() const { return _callstack; }
+    const ScriptExecPosition &GetPosition() const { return _pos; }
+    size_t GetStackBegin() const { return _stackBeginOff; }
+    size_t GetStackDataBegin() const { return _stackDataBeginOff; }
+    size_t GetStackOffset() const { return _stackOffset; }
+    size_t GetStackDataOffset() const { return _stackDataOffset; }
+
+    // Get the script's execution position and callstack as human-readable text
+    String FormatCallStack(uint32_t max_lines = UINT32_MAX) const;
+
+    // Record script execution state in the thread object
+    void SaveState(const ScriptExecPosition &pos, std::deque<ScriptExecPosition> &callstack,
+        size_t stack_begin, size_t stackdata_begin, size_t stack_off, size_t stackdata_off);
+
+private:
+    void Alloc();
+
+    // An arbitrary name for this script thread
+    String _name;
+    // Data stack, contains function args, local variables, temporary values
+    std::vector<RuntimeScriptValue> _stack;
+    // An array for keeping stack data; stack entries reference data of variable size from here
+    std::vector<uint8_t> _stackdata;
+    // Executed script callstack, contains *previous* script positions
+    std::deque<ScriptExecPosition> _callstack; // deque for easier iterating over
+    // Latest recorded script position, used when thread gets suspended
+    ScriptExecPosition _pos;
+    // Stack state
+    size_t _stackBeginOff = 0u;
+    size_t _stackDataBeginOff = 0u;
+    size_t _stackOffset = 0u;
+    size_t _stackDataOffset = 0u;
+};
+
+
+struct FunctionCallStack;
 
 class ScriptExecutor
 {
     using String = Common::String;
 public:
-    ScriptExecutor();
+    ScriptExecutor() = default;
 
-    // Begin executing the function in the given script, passing an array of parameters
-    ScriptExecError Run(const RuntimeScript *script, const String &funcname, const RuntimeScriptValue *params, size_t param_count);
+    // Begin executing the function in the given script, passing an array of parameters;
+    // the script will be executed on the provided script thread.
+    ScriptExecError Run(ScriptThread *thread, const RuntimeScript *script, const String &funcname, const RuntimeScriptValue *params, size_t param_count);
     // Schedule abortion of the current script execution;
     // the actual stop will occur whenever control returns to the ScriptExecutor.
     void    Abort();
@@ -74,20 +121,23 @@ public:
     bool    IsRunning() const { return (_flags & kScExecState_Running) != 0; }
     // Tells if the executor is busy running bytecode, and cannot start a nested run right now
     bool    IsBusy() const { return (_flags & kScExecState_Busy) != 0; }
-    // Get the currently running script
+    // Get the currently used script thread
+    ScriptThread *GetRunningThread() const { return _thread; }
+    // Get the currently executed script
     const RuntimeScript *GetRunningScript() const { return _current; }
     // Get current program pointer (position in bytecode)
     int     GetPC() const { return _pc; }
     // Get the script's execution position
     void    GetScriptPosition(ScriptPosition &script_pos) const;
-    // Get the script's execution position and callstack as human-readable text
-    Common::String GetCallStack(int max_lines = INT_MAX) const;
     // Gets the top entry of this instance's stack
     const RuntimeScriptValue *GetCurrentStack() const { return _registers[SREG_SP].RValue; }
     // Get latest return value
     int     GetReturnValue() const { return _returnValue; }
     // TODO: this is a hack, required for dialog script; redo this later!
     void    SetReturnValue(int val) { _returnValue = val; }
+
+    // Get the script's execution position and callstack as human-readable text
+    String  FormatCallStack(uint32_t max_lines = UINT32_MAX) const;
     
     // Configures script executor timeout in case of a "hanging" script
     void    SetExecTimeout(unsigned sys_poll_ms, unsigned abort_ms, unsigned abort_loops);
@@ -103,6 +153,14 @@ private:
     ScriptExecError Run(const RuntimeScript *script, int32_t curpc, const RuntimeScriptValue *params, size_t param_count);
     // Begin executing latest run script starting from the given bytecode index
     ScriptExecError Run(int32_t curpc);
+
+    // Switches to the new script thread;
+    // if there was any thread currently in running, then saves its state and
+    // pushes to the thread stack.
+    void    PushThread(ScriptThread *thread);
+    // Pops out a script thread from the thread stack,
+    // if there was any, and makes it active.
+    void    PopThread();
 
     // Sets current script and fast-access pointers
     void    SetCurrentScript(const RuntimeScript *script);
@@ -127,16 +185,17 @@ private:
     void    PushToFuncCallStack(FunctionCallStack &func_callstack, const RuntimeScriptValue &rval);
     void    PopFromFuncCallStack(FunctionCallStack &func_callstack, int32_t num_entries);
 
-    //
-    // Virtual machine state
-    // Registers
-    RuntimeScriptValue _registers[CC_NUM_REGISTERS];
-    // Data stack, contains function args, local variables, temporary values
-    std::vector<RuntimeScriptValue> _stack;
-    // An array for keeping stack data; stack entries reference data of variable size from here
-    std::vector<uint8_t> _stackdata;
-    RuntimeScriptValue *_stackBegin = nullptr; // fast-access ptr to beginning of _stack
-    uint8_t    *_stackdataBegin = nullptr; // fast-access ptr to beginning of _stackdata
+    // Current used thread
+    ScriptThread *_thread = nullptr;
+    // Thread stack holds a list of running or suspended script threads;
+    // In AGS currently only one script thread is running, others are waiting in the queue.
+    // An example situation is "repeatedly_execute_always" callback running while
+    // other thread(s) are waiting at the blocking action or Wait().
+    std::deque<ScriptThread*> _threadStack;
+
+    // Thread stack pointers for faster access to the current thread
+    RuntimeScriptValue *_stackBegin = nullptr; // ptr to beginning of stack (or stack's section)
+    uint8_t    *_stackdataBegin = nullptr; // ptr to beginning of stackdata (or stackdata's section)
     uint8_t    *_stackdataPtr = nullptr; // points to the next unused byte in stack data array
 
     // Current executed script
@@ -147,16 +206,22 @@ private:
     const uint8_t *_code_fixups = nullptr;
     const char *_strings = nullptr; // pointer to ccScript's string data
     size_t      _stringsize = 0u;
-    // Table pointers for simplicity
+    // Script table pointers
     const JointRTTI *_rtti = nullptr;
     const std::unordered_map<uint32_t, uint32_t> *_typeidLocal2Global = nullptr;
     
+    //
+    // Virtual machine state
+    // Registers
+    RuntimeScriptValue _registers[CC_NUM_REGISTERS];
     uint32_t    _flags = kScExecState_None; // executor state flags ScriptExecState
     int         _pc = 0; // program counter
     int         _lineNumber = 0; // source code line number
     int         _returnValue = 0; // last executed function's return value
-    // Executed script callstack, contains *previous* script positions
-    std::deque<ScriptExecPosition> _callstack; // deque for easier iterating over
+    // Executed script callstack, contains *previous* script positions;
+    // this is copied from the ScriptThread on start, and copied back when done
+    std::deque<ScriptExecPosition> _callstack;
+
 
     // A value returned from plugin functions saved as RuntimeScriptValue.
     // This is a temporary solution (*sigh*, one of many) which allows to

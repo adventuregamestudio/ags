@@ -34,7 +34,9 @@ extern std::unique_ptr<ScriptExecutor> scriptExecutor;
 String cc_get_callstack(int max_lines)
 {
     // TODO: support separation onto groups, which have engine calls between
-    return scriptExecutor->GetCallStack(max_lines);
+    if (scriptExecutor)
+        return scriptExecutor->GetCallStack(max_lines);
+    return {};
 }
 
 
@@ -566,9 +568,8 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
         case SCMD_LINENUM:
             _lineNumber = codeOp.Arg1i();
             currentline = _lineNumber;
-            // FIXME!!! -- restore this
-            //if (new_line_hook)
-            //    new_line_hook(this, currentline);
+            if (new_line_hook)
+                new_line_hook(this, currentline);
             break;
         case SCMD_ADD:
         {

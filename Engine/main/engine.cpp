@@ -105,7 +105,7 @@ t_engine_pre_init_callback engine_pre_init_callback = nullptr;
 
 bool engine_init_backend()
 {
-    set_our_eip(-199);
+    set_our_eip(-200);
     platform->PreBackendInit();
     // Initialize SDL
     Debug::Printf(kDbgMsg_Info, "Initializing backend libs");
@@ -1140,6 +1140,7 @@ static void engine_print_info(const std::set<String> &keys, ConfigTree *user_cfg
 
 void engine_init_editor_debugging(const ConfigTree &cfg)
 {
+    set_our_eip(-201);
     Debug::Printf(kDbgMsg_Info, "Try connect to the external debugger");
     if (!init_editor_debugging(cfg))
         return;

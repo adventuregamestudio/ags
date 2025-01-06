@@ -52,7 +52,7 @@ and SDL2.dll to run.
 Official page for SDL_Sound library is https://www.icculus.org/SDL_sound/, but downloads are hosted on github: https://github.com/icculus/SDL_sound/releases.
 Any latest 2.0.X release should be good.
 
-For the reference, at the time of last update our build server is using following revision: https://github.com/icculus/SDL_sound/archive/c5639414c1bb24fb4eef5861c13adb42a4aab950.zip
+For the reference, at the time of last update our build server is using following revision: https://github.com/icculus/SDL_sound/archive/16e626561f3b496e4a2da98c95d23359eeee3c01.zip
 
 After you downloaded the source this way or another, you should use CMake to generate MSVS solution from their provided CMakeList.txt.
 Note that when doing this you may have to direct CMake to the SDL2's cmake config files. First go to the SDL2's sources location and find "cmake" directory inside. It should contain the file called "sdl2-config.cmake". If the file is not present, this means something is wrong with the SDL2's package, or maybe you've downloaded a way too old version of SDL2.

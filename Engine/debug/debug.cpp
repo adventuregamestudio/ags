@@ -652,10 +652,12 @@ void break_into_debugger()
 {
 #if AGS_PLATFORM_OS_WINDOWS
 
+    if (!send_state_to_debugger("BREAK"))
+        return;
+
     if (editor_window_handle != NULL)
         SetForegroundWindow(editor_window_handle);
 
-    send_state_to_debugger("BREAK");
     game_paused_in_debugger = 1;
 
     while (game_paused_in_debugger) 

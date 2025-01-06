@@ -509,6 +509,7 @@ void unload_game()
     pl_stop_plugins();
 
     FreeAllScripts();
+    ShutdownScriptExec();
 
     charextra.clear();
     mls.clear();

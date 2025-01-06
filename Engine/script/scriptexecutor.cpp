@@ -31,19 +31,75 @@ extern new_line_hook_type new_line_hook;
 extern std::unique_ptr<ScriptExecutor> scriptExecutor;
 
 
-String cc_get_callstack(int max_lines)
-{
-    // TODO: support separation onto groups, which have engine calls between
-    if (scriptExecutor)
-        return scriptExecutor->GetCallStack(max_lines);
-    return {};
-}
-
-
 namespace AGS
 {
 namespace Engine
 {
+
+// A helper function, formatting provided script pos and callstack into a human-readable text
+static String FormatCallStack(const ScriptExecPosition &pos, const std::deque<ScriptExecPosition> &callstack, uint32_t max_lines)
+{
+    if (!pos.Script)
+        return {};
+
+    String buffer = String::FromFormat("in \"%s\", line %d\n", pos.Script->GetSectionName(pos.PC).GetCStr(), pos.LineNumber);
+
+    uint32_t lines_done = 0u;
+    for (auto it = callstack.crbegin(); it != callstack.crend() && (lines_done < max_lines); ++lines_done, ++it)
+    {
+        String lineBuffer = String::FromFormat("from \"%s\", line %d\n",
+            it->Script->GetSectionName(it->PC).GetCStr(), it->LineNumber);
+        buffer.Append(lineBuffer);
+        if (lines_done == max_lines - 1)
+            buffer.Append("(and more...)\n");
+    }
+    return buffer;
+}
+
+
+// Size of stack in RuntimeScriptValues (aka distinct variables)
+#define CC_STACK_SIZE       256
+// Size of stack in bytes (raw data storage)
+#define CC_STACK_DATA_SIZE  (1024 * sizeof(int32_t))
+#define MAX_CALL_STACK      128
+
+
+ScriptThread::ScriptThread()
+{
+    Alloc();
+}
+
+ScriptThread::ScriptThread(const String &name)
+    : _name(name)
+{
+    Alloc();
+}
+
+void ScriptThread::Alloc()
+{
+    // Create a stack
+    // The size of a stack is quite an arbitrary choice; there's no way to deduce number of stack
+    // entries needed without knowing amount of local variables (at least)
+    _stack.resize(CC_STACK_SIZE);
+    _stackdata.resize(CC_STACK_DATA_SIZE);
+}
+
+String ScriptThread::FormatCallStack(uint32_t max_lines) const
+{
+    return ::FormatCallStack(_pos, _callstack, max_lines);
+}
+
+void ScriptThread::SaveState(const ScriptExecPosition &pos, std::deque<ScriptExecPosition> &callstack,
+    size_t stack_begin, size_t stackdata_begin, size_t stack_off, size_t stackdata_off)
+{
+    _callstack = callstack;
+    _pos = pos;
+    _stackBeginOff = stack_begin;
+    _stackDataBeginOff = stackdata_begin;
+    _stackOffset = stack_off;
+    _stackDataOffset = stackdata_off;
+}
+
 
 // Function call stack is used to temporarily store
 // values before passing them to script function
@@ -67,35 +123,19 @@ struct FunctionCallStack
     size_t              Count = 0u;
 };
 
-// Size of stack in RuntimeScriptValues (aka distinct variables)
-#define CC_STACK_SIZE       256
-// Size of stack in bytes (raw data storage)
-#define CC_STACK_DATA_SIZE  (1024 * sizeof(int32_t))
-#define MAX_CALL_STACK      128
-
 
 RuntimeScriptValue ScriptExecutor::_pluginReturnValue;
 
-
-ScriptExecutor::ScriptExecutor()
-{
-    // Create a stack
-    // The size of a stack is quite an arbitrary choice; there's no way to deduce number of stack
-    // entries needed without knowing amount of local variables (at least)
-    _stack.resize(CC_STACK_SIZE);
-    _stackdata.resize(CC_STACK_DATA_SIZE);
-    _stackBegin = _stack.data();
-    _stackdataBegin = _stackdata.data();
-    _stackdataPtr = _stackdata.data();
-}
 
 void ScriptExecutor::SetPluginReturnValue(const RuntimeScriptValue &value)
 {
     _pluginReturnValue = value;
 }
 
-ScriptExecError ScriptExecutor::Run(const RuntimeScript *script, const String &funcname, const RuntimeScriptValue *params, size_t param_count)
+ScriptExecError ScriptExecutor::Run(ScriptThread *thread, const RuntimeScript *script, const String &funcname, const RuntimeScriptValue *params, size_t param_count)
 {
+    assert(thread);
+    assert(script);
     assert(param_count == 0 || params);
     cc_clear_error();
 
@@ -105,7 +145,7 @@ ScriptExecError ScriptExecutor::Run(const RuntimeScript *script, const String &f
         return kScExecErr_Busy;
     }
 
-    if (param_count > 0 && !params)
+    if (!thread || !script || (param_count > 0) && !params)
     {
         cc_error("bad input arguments in ScriptExecutor::Run");
         return kScExecErr_Generic;
@@ -143,7 +183,11 @@ ScriptExecError ScriptExecutor::Run(const RuntimeScript *script, const String &f
     _returnValue = 0;
     currentline = 0; // FIXME: stop using a global variable
 
+    PushThread(thread);
+
     const ScriptExecError reterr = Run(script, start_at, params, param_count);
+
+    PopThread();
 
     const bool was_aborted = (_flags & kScExecState_Aborted) != 0;
     const bool has_nested_calls = _callstack.size() > 0;
@@ -175,32 +219,114 @@ void ScriptExecutor::Abort()
         _flags |= kScExecState_Aborted;
 }
 
+void ScriptExecutor::PushThread(ScriptThread *thread)
+{
+    assert(thread);
+    // If there's already an active thread, then save latest exec state,
+    // then push the previous thread to the thread stack.
+    ScriptThread *was_thread = _thread;
+    if (_thread)
+    {
+        if (_thread != thread)
+        {
+            _thread->SaveState(ScriptExecPosition(_current, _pc, _lineNumber), _callstack,
+                _stackBegin - _thread->GetStack().data(),
+                _stackdataBegin - _thread->GetStackData().data(),
+                _registers[SREG_SP].RValue - _stackBegin,
+                _stackdataPtr - _stackdataBegin);
+        }
+        _threadStack.push_back(_thread); // push always, simpler to do PopThread this way
+    }
+    
+    // Assign new current thread, get its data if it's a different one
+    _thread = thread;
+    if (was_thread != _thread)
+    {
+        // Restore execution pos
+        _callstack = _thread->GetCallStack();
+        const auto &pos = _thread->GetPosition();
+        SetCurrentScript(pos.Script);
+        _pc = pos.PC;
+        _lineNumber = pos.LineNumber;
+        // Restore data stack state
+        _stackBegin = _thread->GetStack().data() + _thread->GetStackBegin();
+        _stackdataBegin = _thread->GetStackData().data() + _thread->GetStackDataBegin();
+        _registers[SREG_SP].RValue = _stackBegin + _thread->GetStackOffset();
+        _stackdataPtr = _stackdataBegin + _thread->GetStackDataOffset();
+    }
+}
+
+void ScriptExecutor::PopThread()
+{
+    assert(_thread);
+    // If the previous thread is not the same thread, then save latest state
+    if (_threadStack.empty() || _threadStack.back() != _thread)
+    {
+        _thread->SaveState(ScriptExecPosition(_current, _pc, _lineNumber), _callstack,
+                _stackBegin - _thread->GetStack().data(),
+                _stackdataBegin - _thread->GetStackData().data(),
+                _registers[SREG_SP].RValue - _stackBegin,
+                _stackdataPtr - _stackdataBegin);
+    }
+    // If there's anything in the thread stack, pop one back and restore the state
+    if (_threadStack.empty())
+    {
+        _thread = nullptr;
+        SetCurrentScript(nullptr);
+        _pc = 0;
+        _lineNumber = 0;
+    }
+    else
+    {
+        ScriptThread *was_thread = _thread;
+        _thread = _threadStack.back();
+        _threadStack.pop_back();
+
+        if (was_thread != _thread)
+        {
+            // Restore execution pos
+            _callstack = _thread->GetCallStack();
+            const auto &pos = _thread->GetPosition();
+            SetCurrentScript(pos.Script);
+            _pc = pos.PC;
+            _lineNumber = pos.LineNumber;
+            // Restore data stack state
+            _stackBegin = _thread->GetStack().data() + _thread->GetStackBegin();
+            _stackdataBegin = _thread->GetStackData().data() + _thread->GetStackDataBegin();
+            _registers[SREG_SP].RValue = _stackBegin + _thread->GetStackOffset();
+            _stackdataPtr = _stackdataBegin + _thread->GetStackDataOffset();
+        }
+    }
+}
+
 void ScriptExecutor::GetScriptPosition(ScriptPosition &script_pos) const
 {
     if (!_current)
         return;
 
-    script_pos.Section = _current->GetSectionName(_pc);
-    script_pos.Line    = _lineNumber;
+    script_pos = ScriptPosition(_current->GetSectionName(_pc), _lineNumber);
 }
 
-String ScriptExecutor::GetCallStack(const int maxLines) const
+String ScriptExecutor::FormatCallStack(uint32_t max_lines) const
 {
-    if (!_current)
-        return {};
+    if (!_thread)
+        return {}; // not running on any thread
 
-    String buffer = String::FromFormat("in \"%s\", line %d\n", _current->GetSectionName(_pc).GetCStr(), _lineNumber);
+    String callstack;
+    callstack.Append("in the active script:\n");
+    callstack.Append(::FormatCallStack(ScriptExecPosition(_current, _pc, _lineNumber), _callstack, max_lines));
+    callstack.Append("in the waiting script:\n");
 
-    int linesDone = 0;
-    for (auto it = _callstack.crbegin(); it != _callstack.crend() && (linesDone < maxLines); linesDone++, ++it)
+    const ScriptThread *last_thread = nullptr;
+    for (auto thread = _threadStack.crbegin(); thread != _threadStack.crend(); ++thread)
     {
-        String lineBuffer = String::FromFormat("from \"%s\", line %d\n",
-            it->Script->GetSectionName(it->PC).GetCStr(), it->LineNumber);
-        buffer.Append(lineBuffer);
-        if (linesDone == maxLines - 1)
-            buffer.Append("(and more...)\n");
+        if (last_thread == *thread)
+            continue;
+
+        callstack.Append((*thread)->FormatCallStack(max_lines));
+        last_thread = *thread;
     }
-    return buffer;
+    return callstack;
 }
     
 void ScriptExecutor::SetExecTimeout(unsigned sys_poll_ms, unsigned abort_ms, unsigned abort_loops)
@@ -329,6 +455,7 @@ ScriptExecError ScriptExecutor::Run(const RuntimeScript *script, int32_t curpc, 
 
     const RuntimeScript *was_running = _current;
     const int oldpc = _pc;
+    const int oldlinenum = _lineNumber;
     RuntimeScriptValue * const oldstack_begin = _stackBegin;
     uint8_t * const oldstackdata_begin = _stackdataBegin;
 
@@ -341,9 +468,9 @@ ScriptExecError ScriptExecutor::Run(const RuntimeScript *script, int32_t curpc, 
     else
     {
         // On script thread entry we reset stack pointers to the actual beginning
-        // of executor's stack.
-        _registers[SREG_SP].SetStackPtr(_stack.data());
-        _stackdataPtr = _stackdata.data();
+        // of the thread's stack.
+        _registers[SREG_SP].SetStackPtr(_thread->GetStack().data());
+        _stackdataPtr = _thread->GetStackData().data();
     }
 
     SetCurrentScript(script);
@@ -383,6 +510,7 @@ ScriptExecError ScriptExecutor::Run(const RuntimeScript *script, int32_t curpc, 
 
     SetCurrentScript(was_running); // switch back to the previous script
     _pc = oldpc;
+    _lineNumber = oldlinenum;
     _stackBegin = oldstack_begin;
     _stackdataBegin = oldstackdata_begin;
 
@@ -1582,7 +1710,6 @@ void ScriptExecutor::SetCurrentScript(const RuntimeScript *script)
         _code_fixups = _current->GetCodeFixups().data();
         _strings    = _current->GetStrings().data();
         _stringsize = _current->GetStrings().size();
-        // Table pointers
         _rtti       = RuntimeScript::GetJointRTTI();
         _typeidLocal2Global = &_current->GetLocal2GlobalTypeMap();
     }
@@ -1593,7 +1720,6 @@ void ScriptExecutor::SetCurrentScript(const RuntimeScript *script)
         _code_fixups = nullptr;
         _strings    = nullptr;
         _stringsize = 0u;
-        // Table pointers
         _rtti       = nullptr;
         _typeidLocal2Global = nullptr;
     }

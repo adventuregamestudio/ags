@@ -137,6 +137,10 @@ bool    RunScriptFunctionInRoom(const String &tsname, size_t param_count = 0, co
 bool   RunScriptFunctionAuto(ScriptType sc_type, const ScriptFunctionRef &fn_ref, size_t param_count = 0,
     const RuntimeScriptValue *params = nullptr);
 
+// Allocates script executor and standard threads
+void    InitScriptExec();
+// Frees script executor and all threads
+void    ShutdownScriptExec();
 // Preallocates script module instances
 void    AllocScriptModules();
 // Link all script modules into a single program,

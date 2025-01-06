@@ -40,9 +40,11 @@
 #include "debug/debug_log.h"
 #include "debug/out.h"
 #include "main/game_run.h"
-#include "script/script_runtime.h"
-#include "util/string_compat.h"
 #include "media/audio/audio_system.h"
+#include "script/script_runtime.h"
+#include "util/memory_compat.h"
+#include "util/string_compat.h"
+
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -85,6 +87,8 @@ std::vector<RuntimeScriptValue> moduleRepExecAddr;
 size_t numScriptModules = 0;
 
 std::unique_ptr<ScriptExecutor> scriptExecutor;
+std::unique_ptr<ScriptThread> scriptThreadMain;
+std::unique_ptr<ScriptThread> scriptThreadNonBlocking;
 
 
 static bool DoRunScriptFuncCantBlock(const RuntimeScript *script, NonBlockingScriptFunction* funcToRun, bool hasTheFunc);
@@ -288,7 +292,7 @@ static bool DoRunScriptFuncCantBlock(const RuntimeScript *script, NonBlockingScr
         return(false);
 
     no_blocking_functions++;
-    const ScriptExecError result = scriptExecutor->Run(
+    const ScriptExecError result = scriptExecutor->Run(scriptThreadNonBlocking.get(),
         script, funcToRun->FunctionName, funcToRun->Params, funcToRun->ParamCount);
 
     if (result == kScExecErr_FuncNotFound)
@@ -358,7 +362,8 @@ RunScFuncResult RunScriptFunction(const RuntimeScript *script, const String &tsn
         return res;
     }
 
-    const ScriptExecError inst_ret = scriptExecutor->Run(curscript->Script, tsname, params, numParam);
+    const ScriptExecError inst_ret = scriptExecutor->Run(scriptThreadMain.get(),
+        curscript->Script, tsname, params, numParam);
     if ((inst_ret != kScExecErr_None) && (inst_ret != kScExecErr_FuncNotFound) && (inst_ret != kScExecErr_Aborted))
     {
         quit_with_script_error(tsname);
@@ -503,11 +508,24 @@ bool RunScriptFunctionAuto(ScriptType sc_type, const ScriptFunctionRef &fn_ref, 
     return RunEventInModule(fn_ref, param_count, params);
 }
 
+void InitScriptExec()
+{
+    scriptExecutor = std::make_unique<ScriptExecutor>();
+    scriptThreadMain = std::make_unique<ScriptThread>("Main");
+    scriptThreadNonBlocking = std::make_unique<ScriptThread>("Non-Blocking");
+
+    ccSetScriptAliveTimer(1000 / 60u, 1000u, 150000u);
+}
+
+void ShutdownScriptExec()
+{
+    scriptExecutor = {};
+    scriptThreadMain = {};
+    scriptThreadNonBlocking = {};
+}
+
 void AllocScriptModules()
 {
-    if (!scriptExecutor)
-        scriptExecutor = std::make_unique<ScriptExecutor>();
-
     // NOTE: this preallocation possibly required to safeguard some algorithms
     scriptModules.resize(numScriptModules);
     moduleRepExecAddr.resize(numScriptModules);
@@ -566,8 +584,6 @@ void FreeAllScripts()
     runDialogOptionTextInputHandlerFunc.ModuleHasFunction.clear();
     runDialogOptionRepExecFunc.ModuleHasFunction.clear();
     runDialogOptionCloseFunc.ModuleHasFunction.clear();
-
-    scriptExecutor = nullptr;
 }
 
 //=============================================================================
@@ -787,6 +803,13 @@ bool get_script_position(ScriptPosition &script_pos)
         return true;
     }
     return false;
+}
+
+String cc_get_callstack(int max_lines)
+{
+    if (scriptExecutor && max_lines > 0)
+        return scriptExecutor->FormatCallStack(max_lines);
+    return {};
 }
 
 String cc_format_error(const String &message)

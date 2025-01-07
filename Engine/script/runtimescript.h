@@ -236,8 +236,6 @@ private:
 
     // RTTI tables
     static std::unique_ptr<JointRTTI> _jointRtti;
-    // Full name to global id (global id is an actual index in the joint rtti table)
-    static std::unordered_map<Common::String, uint32_t> _rttiLookup;
     // Helper data for quicker RTTI analyzis
     static std::unique_ptr<Engine::RTTIHelper> _rttiHelper;
 

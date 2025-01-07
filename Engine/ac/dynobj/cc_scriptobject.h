@@ -58,9 +58,9 @@ struct IScriptObject
     // TODO: it might be better to rewrite the managed pool and remove this flag at all,
     // because it makes the use of this interface prone to mistakes.
     virtual int Dispose(void *address, bool force = false) = 0;
-    // return the type name of the object
+    // Return the type name of the object
     virtual const char *GetType() = 0;
-    // serialize the object into BUFFER (which is BUFSIZE bytes)
+    // Serialize the object into BUFFER (which is BUFSIZE bytes)
     // return number of bytes used
     // TODO: pass savegame format version
     virtual int Serialize(void *address, uint8_t *buffer, int bufsize) = 0;
@@ -68,7 +68,9 @@ struct IScriptObject
     // WARNING: following section is not a part of plugin API, therefore these methods
     // should **never** be called for kScValPluginObject script objects!
 
-    //
+    // Return the object's type id;
+    // Should return UINT32_MAX if type id is unknown.
+    virtual uint32_t GetTypeID(const void *address) = 0;
     // Interface of a managed object that contains typeid fields.
     // Remap typeid fields using the provided map
     virtual void RemapTypeids(void *address,

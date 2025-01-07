@@ -47,11 +47,14 @@ struct CCBasicObject : public IScriptObject
 public:
     virtual ~CCBasicObject() = default;
 
+    // Return the object's type id;
+    // Should return UINT32_MAX if type id is unknown.
+    uint32_t GetTypeID(const void *address) override { return UINT32_MAX; };
     // Dispose the object
-    int Dispose(void* address, bool force) override;
+    int Dispose(void *address, bool force) override;
     // Serialize the object into BUFFER (which is BUFSIZE bytes)
     // return number of bytes used
-    int Serialize(void* address, uint8_t* buffer, int bufsize) override;
+    int Serialize(void *address, uint8_t* buffer, int bufsize) override;
     // Remap typeid fields using the provided map
     void RemapTypeids(void *address,
         const std::unordered_map<uint32_t, uint32_t>& typeid_map) override;

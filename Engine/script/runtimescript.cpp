@@ -101,6 +101,7 @@ const ScriptCommandInfo sccmd_info[CC_NUM_SCCMDS] =
     ScriptCommandInfo( SCMD_NEWUSEROBJECT   , "newuserobject"     , 2, kScOpOneArgIsReg ),
     ScriptCommandInfo( SCMD_NEWUSEROBJECT2  , "newuserobject2"    , 3, kScOpOneArgIsReg ),
     ScriptCommandInfo( SCMD_NEWARRAY2       , "newarray2"         , 3, kScOpOneArgIsReg ),
+    ScriptCommandInfo( SCMD_DYNAMICCAST     , "dynamiccast"       , 1, kScOpNoArgIsReg),
 };
 
 // FIXME: move to some "script helpers" module
@@ -145,7 +146,6 @@ const String RuntimeScript::_unknownSectionName = "(unknown section)";
 RuntimeScript *RuntimeScript::_linkedScripts[RuntimeScript::MaxLinkedScripts] = { nullptr };
 
 std::unique_ptr<JointRTTI> RuntimeScript::_jointRtti;
-std::unordered_map<String, uint32_t> RuntimeScript::_rttiLookup;
 std::unique_ptr<RTTIHelper> RuntimeScript::_rttiHelper;
 
 RuntimeScript::RuntimeScript()

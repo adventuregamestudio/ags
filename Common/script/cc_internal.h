@@ -110,8 +110,9 @@
 #define SCMD_NEWUSEROBJECT 73   // reg1 = new user object of arg2 size
 #define SCMD_NEWUSEROBJECT2 74  // reg1 = new user object of arg2 type and arg3 size
 #define SCMD_NEWARRAY2    75    // reg1 = new array of reg1 elements, arg2 type and arg3 size
+#define SCMD_DYNAMICCAST  76    // reg[AX] = result of casting reg[AX] pointer to arg1 type
 
-#define CC_NUM_SCCMDS     76
+#define CC_NUM_SCCMDS     77
 #define MAX_SCMD_ARGS     3     // maximal possible number of arguments
 
 #define EXPORT_NONE       0

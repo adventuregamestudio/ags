@@ -271,6 +271,8 @@ class JointRTTI : private RTTI
 {
 public:
     const RTTI &AsConstRTTI() const { return *this; }
+    const std::unordered_map<AGS::Common::String, uint32_t> &GetTypeLookup() const
+        { return _rttiLookup; }
 
     using RTTI::IsEmpty;
     using RTTI::GetLocations;

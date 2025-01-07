@@ -106,6 +106,11 @@ void *ccGetObjectAddressFromHandle(int32_t handle) {
     return addr;
 }
 
+IScriptObject *ccGetObjectManager(void *address)
+{
+    return pool.AddressToManager(address);
+}
+
 ScriptValueType ccGetObjectAddressAndManagerFromHandle(int32_t handle, void *&object, IScriptObject *&manager)
 {
     if (handle == 0) {

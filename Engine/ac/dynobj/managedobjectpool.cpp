@@ -105,6 +105,15 @@ void* ManagedObjectPool::HandleToAddress(int32_t handle) {
     return o.addr;
 }
 
+IScriptObject *ManagedObjectPool::AddressToManager(void *addr)
+{
+    if (addr == nullptr) { return nullptr; }
+    auto it = handleByAddress.find(addr);
+    if (it == handleByAddress.end()) { return nullptr; }
+    auto &o = objects[it->second];
+    return o.callback;
+}
+
 // this function is called often (whenever a pointer is used)
 ScriptValueType ManagedObjectPool::HandleToAddressAndManager(int32_t handle, void *&object, IScriptObject *&manager) {
     if ((handle < 1 || (size_t)handle >= objects.size()) || !objects[handle].isUsed())
@@ -114,7 +123,7 @@ ScriptValueType ManagedObjectPool::HandleToAddressAndManager(int32_t handle, voi
         return kScValUndefined;
     }
     auto &o = objects[handle];
-    object = (void *)o.addr;  // WARNING: This strips the const from the char* pointer.
+    object = o.addr;
     manager = o.callback;
     return o.obj_type;
 }

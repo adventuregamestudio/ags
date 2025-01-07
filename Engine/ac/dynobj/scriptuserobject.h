@@ -57,6 +57,8 @@ public:
     int Dispose(void *address, bool force) override;
     void Unserialize(int index, AGS::Common::Stream *in, size_t data_sz) override;
 
+    // Return the object's type id
+    uint32_t GetTypeID(const void *address) override { return GetHeader(address).TypeId; };
     // Remap typeid fields using the provided map
     void RemapTypeids(void *address,
         const std::unordered_map<uint32_t, uint32_t> &typeid_map) override;

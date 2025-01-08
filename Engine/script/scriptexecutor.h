@@ -64,6 +64,8 @@ public:
     ScriptThread(const String &name);
 
     const String &GetName() const { return _name; }
+    const std::vector<RuntimeScriptValue> &GetStack() const { return _stack; }
+    const std::vector<uint8_t> &GetStackData() const { return _stackdata; }
     std::vector<RuntimeScriptValue> &GetStack() { return _stack; }
     std::vector<uint8_t> &GetStackData() { return _stackdata; }
     const std::deque<ScriptExecPosition> &GetCallStack() const { return _callstack; }
@@ -76,9 +78,11 @@ public:
     // Get the script's execution position and callstack as human-readable text
     String FormatCallStack(uint32_t max_lines = UINT32_MAX) const;
 
-    // Record script execution state in the thread object
+    // Save script execution state in the thread object
     void SaveState(const ScriptExecPosition &pos, std::deque<ScriptExecPosition> &callstack,
         size_t stack_begin, size_t stackdata_begin, size_t stack_off, size_t stackdata_off);
+    // Resets execution state; this effectively invalidates the thread
+    void ResetState();
 
 private:
     void Alloc();
@@ -161,6 +165,10 @@ private:
     // Pops out a script thread from the thread stack,
     // if there was any, and makes it active.
     void    PopThread();
+    // Assigns thread state to the ScriptExecutor
+    void    SelectThread(ScriptThread *thread);
+    // Saves ScriptExecutor's state to the active thread
+    void    SaveThreadState();
 
     // Sets current script and fast-access pointers
     void    SetCurrentScript(const RuntimeScript *script);

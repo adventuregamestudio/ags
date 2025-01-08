@@ -100,6 +100,16 @@ void ScriptThread::SaveState(const ScriptExecPosition &pos, std::deque<ScriptExe
     _stackDataOffset = stackdata_off;
 }
 
+void ScriptThread::ResetState()
+{
+    _callstack.clear();
+    _pos = {};
+    _stackBeginOff = 0u;
+    _stackDataBeginOff = 0u;
+    _stackOffset = 0u;
+    _stackDataOffset = 0u;
+}
+
 
 // Function call stack is used to temporarily store
 // values before passing them to script function
@@ -190,9 +200,9 @@ ScriptExecError ScriptExecutor::Run(ScriptThread *thread, const RuntimeScript *s
     PopThread();
 
     const bool was_aborted = (_flags & kScExecState_Aborted) != 0;
-    const bool has_nested_calls = _callstack.size() > 0;
+    const bool has_work = _thread != nullptr;
     // Clear exec state
-    _flags = (kScExecState_Running * has_nested_calls);
+    _flags = (kScExecState_Running * has_work);
     _returnValue = 0;
     currentline = 0;
 
@@ -229,11 +239,7 @@ void ScriptExecutor::PushThread(ScriptThread *thread)
     {
         if (_thread != thread)
         {
-            _thread->SaveState(ScriptExecPosition(_current, _pc, _lineNumber), _callstack,
-                _stackBegin - _thread->GetStack().data(),
-                _stackdataBegin - _thread->GetStackData().data(),
-                _registers[SREG_SP].RValue - _stackBegin,
-                _stackdataPtr - _stackdataBegin);
+            SaveThreadState();
         }
         _threadStack.push_back(_thread); // push always, simpler to do PopThread this way
     }
@@ -242,39 +248,24 @@ void ScriptExecutor::PushThread(ScriptThread *thread)
     _thread = thread;
     if (was_thread != _thread)
     {
-        // Restore execution pos
-        _callstack = _thread->GetCallStack();
-        const auto &pos = _thread->GetPosition();
-        SetCurrentScript(pos.Script);
-        _pc = pos.PC;
-        _lineNumber = pos.LineNumber;
-        // Restore data stack state
-        _stackBegin = _thread->GetStack().data() + _thread->GetStackBegin();
-        _stackdataBegin = _thread->GetStackData().data() + _thread->GetStackDataBegin();
-        _registers[SREG_SP].RValue = _stackBegin + _thread->GetStackOffset();
-        _stackdataPtr = _stackdataBegin + _thread->GetStackDataOffset();
+        SelectThread(_thread);
     }
 }
 
 void ScriptExecutor::PopThread()
 {
     assert(_thread);
-    // If the previous thread is not the same thread, then save latest state
+    // If the previous thread is not the same thread, then save popped thread's state
+    // NOTE: it's a curious problem, whether the thread should be simply reset here;
+    // it depends on whether we let to run same thread nested with another in the middle...
     if (_threadStack.empty() || _threadStack.back() != _thread)
     {
-        _thread->SaveState(ScriptExecPosition(_current, _pc, _lineNumber), _callstack,
-                _stackBegin - _thread->GetStack().data(),
-                _stackdataBegin - _thread->GetStackData().data(),
-                _registers[SREG_SP].RValue - _stackBegin,
-                _stackdataPtr - _stackdataBegin);
+        SaveThreadState();
     }
     // If there's anything in the thread stack, pop one back and restore the state
     if (_threadStack.empty())
     {
-        _thread = nullptr;
-        SetCurrentScript(nullptr);
-        _pc = 0;
-        _lineNumber = 0;
+        SelectThread(nullptr);
     }
     else
     {
@@ -284,19 +275,44 @@ void ScriptExecutor::PopThread()
 
         if (was_thread != _thread)
         {
-            // Restore execution pos
-            _callstack = _thread->GetCallStack();
-            const auto &pos = _thread->GetPosition();
-            SetCurrentScript(pos.Script);
-            _pc = pos.PC;
-            _lineNumber = pos.LineNumber;
-            // Restore data stack state
-            _stackBegin = _thread->GetStack().data() + _thread->GetStackBegin();
-            _stackdataBegin = _thread->GetStackData().data() + _thread->GetStackDataBegin();
-            _registers[SREG_SP].RValue = _stackBegin + _thread->GetStackOffset();
-            _stackdataPtr = _stackdataBegin + _thread->GetStackDataOffset();
+            SelectThread(_thread);
         }
     }
+}
+
+void ScriptExecutor::SelectThread(ScriptThread *thread)
+{
+    if (thread)
+    {
+        _thread = thread;
+        // Restore execution pos
+        _callstack = thread->GetCallStack();
+        const auto &pos = thread->GetPosition();
+        SetCurrentScript(pos.Script);
+        _pc = pos.PC;
+        _lineNumber = pos.LineNumber;
+        // Restore data stack state
+        _stackBegin = thread->GetStack().data() + thread->GetStackBegin();
+        _stackdataBegin = thread->GetStackData().data() + thread->GetStackDataBegin();
+        _registers[SREG_SP].RValue = _stackBegin + thread->GetStackOffset();
+        _stackdataPtr = _stackdataBegin + thread->GetStackDataOffset();
+    }
+    else
+    {
+        _thread = nullptr;
+        SetCurrentScript(nullptr);
+        _pc = 0;
+        _lineNumber = 0;
+    }
+}
+
+void ScriptExecutor::SaveThreadState()
+{
+    _thread->SaveState(ScriptExecPosition(_current, _pc, _lineNumber), _callstack,
+        _stackBegin - _thread->GetStack().data(),
+        _stackdataBegin - _thread->GetStackData().data(),
+        _registers[SREG_SP].RValue - _stackBegin,
+        _stackdataPtr - _stackdataBegin);
 }
 
 void ScriptExecutor::GetScriptPosition(ScriptPosition &script_pos) const
@@ -493,15 +509,17 @@ ScriptExecError ScriptExecutor::Run(const RuntimeScript *script, int32_t curpc, 
 
     const ScriptExecError reterr = Run(curpc);
 
-    // Cleanup before returning, even if error
-    ASSERT_STACK_SIZE(param_count);
-    PopValuesFromStack(param_count);
     if (reterr != kScExecErr_None)
         return reterr;
 
-    // Final assert: stack must be reset to where it was before starting this script
+    // Cleanup and assert stack state:
+    // stack must be reset to where it was before starting this script
     if ((_flags & kScExecState_Aborted) == 0)
+    {
+        ASSERT_STACK_SIZE(param_count);
+        PopValuesFromStack(param_count);
         ASSERT_STACK_UNWINDED(oldstack, oldstackdata);
+    }
 
     if (is_nested_run)
     {
@@ -630,7 +648,12 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
         return kScExecErr_Generic;
     }
 
-    int32_t thisbase[MAXNEST], funcstart[MAXNEST];
+    // TODO: many of these local vars should be made ScriptExecutor's private members,
+    // and also have duplicates in ScriptThread, where they are copied from on Run
+    // and copied back after Run. Noteably: thisbase, func_callstack, was_just_callas etc.
+    // This will be required if we support thread suspending.
+    int32_t thisbase[MAXNEST];
+    int32_t funcstart[MAXNEST];
     int was_just_callas = -1;
     int curnest = 0;
     int num_args_to_func = -1;
@@ -1415,6 +1438,7 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
         {
             const auto arg_lit = codeOp.Arg1i();
             PopFromFuncCallStack(func_callstack, arg_lit);
+            ASSERT_CC_ERROR();
             if (was_just_callas >= 0)
             {
                 ASSERT_STACK_SIZE(arg_lit);

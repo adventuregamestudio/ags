@@ -323,6 +323,8 @@ static RunScFuncResult PrepareTextScript(const RuntimeScript *script, const Stri
         cc_error("no such function in script");
         return kScFnRes_NotFound;
     }
+    // TODO: should be IsBusy instead?
+    // need to figure out and possible adjust the script running rules
     if (scriptExecutor->IsRunning())
     {
         cc_error("script is already in execution");

@@ -14,9 +14,9 @@
             "urlHash": "7f6b977a7ebae4cdecd4ac9b9404760a9e9a6b77"
         },
         "sdl": {
-            "revision": "2.28.5",
+            "revision": "2.30.11",
             "release_type": "release",
-            "urlHash": "9dba2b579b7bfbd24cb302e4f4b27563cc8f1070"
+            "urlHash": "db4ae1d7a477854d44a468f19661794b59721267"
         }
     }
 }

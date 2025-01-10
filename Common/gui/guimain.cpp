@@ -244,8 +244,9 @@ void GUIMain::DrawSelf(Bitmap *ds)
 
     set_our_eip(376);
     // stop border being transparent, if the whole GUI isn't
+    // FIXME: don't do this in DrawSelf, fix properties when they are set!
     if ((FgColor == 0) && (BgColor != 0))
-        FgColor = 16;
+        FgColor = GUI::GetStandardColor(16);
 
     if (BgColor != 0)
         ds->Fill(ds->GetCompatibleColor(BgColor));

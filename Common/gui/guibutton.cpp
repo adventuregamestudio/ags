@@ -366,7 +366,7 @@ void GUIButton::ReadFromFile(Stream *in, GuiVersion gui_version)
     TextAlignment = (FrameAlignment)in->ReadInt32();
 
     if (TextColor == 0)
-        TextColor = 16;
+        TextColor = 16; // FIXME: adjust this using GetStandardColor where is safe to access GuiContext
     _currentImage = _image;
 }
 

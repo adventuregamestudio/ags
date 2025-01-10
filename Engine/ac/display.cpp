@@ -257,7 +257,7 @@ Bitmap *create_textual_image(const char *text, const DisplayTextLooks &look, col
 
         if (drawBackground)
         {
-            text_color = 15; // use fixed standard color here
+            text_color = GUI::GetStandardColorForBitmap(15); // use fixed standard color here
             draw_text_window_and_bar(&text_window_ds, wantFreeScreenop, topbar, disp,
                 &ttxleft, &ttxtop, &adjustedXX, &adjustedYY, &wii, &text_color, 0, usingGui);
         }
@@ -295,7 +295,7 @@ Bitmap *create_textual_image(const char *text, const DisplayTextLooks &look, col
     {
         // Textual overlay purposed for the standard message box
         int xoffs, yoffs, oriwid = wii - padding * 2;
-        text_color = 15; // use fixed standard color here
+        text_color = GUI::GetStandardColorForBitmap(15); // use fixed standard color here
         draw_text_window_and_bar(&text_window_ds, wantFreeScreenop, topbar, disp, &xoffs, &yoffs, &adjustedXX, &adjustedYY, &wii, &text_color);
 
         adjust_y_coordinate_for_text(&yoffs, usingfont);

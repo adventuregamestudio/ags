@@ -144,7 +144,7 @@ void GUITextBox::ReadFromFile(Stream *in, GuiVersion gui_version)
     TextBoxFlags = in->ReadInt32();
 
     if (TextColor == 0)
-        TextColor = 16;
+        TextColor = 16; // FIXME: adjust this using GetStandardColor where is safe to access GuiContext
 }
 
 void GUITextBox::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)

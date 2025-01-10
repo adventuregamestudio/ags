@@ -35,7 +35,7 @@ GUIListBox::GUIListBox()
     TextColor = 0;
     SelectedTextColor = 7;
     ListBoxFlags = kListBox_DefFlags;
-    SelectedBgColor = 16;
+    SelectedBgColor = 16; // FIXME: adjust this using GetStandardColor where is safe to access GuiContext
     TextAlignment = kHAlignLeft;
 
     _scEventCount = 1;
@@ -376,7 +376,7 @@ void GUIListBox::ReadFromFile(Stream *in, GuiVersion gui_version)
     }
 
     if (TextColor == 0)
-        TextColor = 16;
+        TextColor = 16; // FIXME: adjust this using GetStandardColor where is safe to access GuiContext
 
     // Reset dynamic values
     RowHeight = 0;

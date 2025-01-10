@@ -187,7 +187,7 @@ void GUIListBox::Draw(Bitmap *ds, int x, int y)
         if (item + TopItem == SelectedItem)
         {
             text_color = ds->GetCompatibleColor(SelectedTextColor);
-            if (SelectedBgColor > 0)
+            if (SelectedBgColor != 0)
             {
                 int stretch_to = (x + width) - pixel_size;
                 // draw the SelectedItem item bar (if colour not transparent)

@@ -246,7 +246,7 @@ void DrawingSurface_Clear(ScriptDrawingSurface *sds, int colour)
 {
     Bitmap *ds = sds->StartDrawing();
     int allegroColor;
-    if ((colour == -SCR_NO_VALUE) || (colour == SCR_COLOR_TRANSPARENT))
+    if (colour == SCR_COLOR_TRANSPARENT)
     {
         allegroColor = ds->GetMaskColor();
     }

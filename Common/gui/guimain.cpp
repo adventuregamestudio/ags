@@ -825,7 +825,7 @@ int GetStandardColor(int index)
         index = 0;
     if (Context.GameColorDepth == 8)
         return index;
-    return GuiContext::StandardColors[index];
+    return GuiContext::StandardColors[index] | (0xFF << 24);
 }
 
 int GetStandardColorForBitmap(int index)

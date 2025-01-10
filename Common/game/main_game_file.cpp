@@ -324,19 +324,23 @@ static int RemapFromLegacyColourNumber(const GameSetupStruct &game, int color)
     if (game.color_depth == 1)
         return color; // keep palette index
 
-    // Special 0-31 color numbers were always interpreted as palette indexes;
-    // for them we compose a 32-bit xRGB from the palette entry
+    // Special color number 0 is treated as fully transparent
+    if (color == 0)
+        return 0;
+    // Special color numbers 1-31 were always interpreted as palette indexes;
+    // for them we compose a 32-bit ARGB from the palette entry
     if (color >= 0 && color < 32)
     {
         const RGB &rgb = game.defpal[color];
-        return rgb.b | (rgb.g << 8) | (rgb.r << 16);
+        return rgb.b | (rgb.g << 8) | (rgb.r << 16) | (0xFF << 24);
     }
 
-    // The rest is a R5G6B5 color; we convert it to a proper 32-bit xRGB
+    // The rest is a R5G6B5 color; we convert it to a proper 32-bit ARGB;
+    // color is always opaque when ported from legacy projects
     uint8_t red = RGBScale5[(color >> 11) & 0x1f];
     uint8_t green = RGBScale6[(color >> 5) & 0x3f];
     uint8_t blue = RGBScale5[(color) & 0x1f];
-    return blue | (green << 8) | (red << 16);
+    return blue | (green << 8) | (red << 16) | (0xFF << 24);
 }
 
 void UpgradeGame(GameSetupStruct &game, GameDataVersion data_ver)

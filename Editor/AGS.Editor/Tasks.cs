@@ -553,6 +553,10 @@ namespace AGS.Editor
             {
                 RemapLegacyColourProperties(game);
             }
+            else if (xmlVersionIndex < 4000014)
+            {
+                RemapOpaqueColourProperties(game);
+            }
 
             // Update ScriptCompiler selection
             if (xmlVersionIndex < 3999900)
@@ -663,6 +667,12 @@ namespace AGS.Editor
         private static void RemapLegacyColourProperties(Game game)
         {
             Func<int, int> remapColor = (color) => { return ColorMapper.RemapFromLegacyColourNumber(color, game.Palette, game.Settings.ColorDepth); };
+            RemapColourProperties(game, remapColor);
+        }
+
+        private static void RemapOpaqueColourProperties(Game game)
+        {
+            Func<int, int> remapColor = (color) => { return ColorMapper.MakeOpaque(color, game.Settings.ColorDepth); };
             RemapColourProperties(game, remapColor);
         }
 

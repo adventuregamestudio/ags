@@ -22,10 +22,7 @@ namespace AGS.Types
             _showScrollArrows = true;
             _textColor = 0;
             _selectedTextColor = 7;
-            // FIXME: selected bg color was 16, but had to change to 17 as a temp hotfix,
-            // because 16 is pure black (ags color property = 0), and ListBox refuses to
-            // paint selection if property eq 0.
-            _selectedBackgroundColor = 17;
+            _selectedBackgroundColor = 16;
             _textAlignment = HorizontalAlignment.Left;
         }
 

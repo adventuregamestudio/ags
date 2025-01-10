@@ -70,16 +70,21 @@ namespace AGS.Types
         private Color ColorFromString(string value)
         {
             var rgb = value.Split(';');
-            if (rgb.Length == 3)
-                return Color.FromArgb(int.Parse(rgb[0]), int.Parse(rgb[1]), int.Parse(rgb[2]));
-            else if (rgb.Length == 4)
-                return Color.FromArgb(int.Parse(rgb[0]), int.Parse(rgb[1]), int.Parse(rgb[2]), int.Parse(rgb[3]));
-            return Color.Black; // or throw?
+            switch (rgb.Length)
+            {
+                case 3: return Color.FromArgb(int.Parse(rgb[0]), int.Parse(rgb[1]), int.Parse(rgb[2]));
+                // TODO: parse rgb[0] as alpha when we actually support alpha here
+                case 4: return Color.FromArgb(0xFF, int.Parse(rgb[1]), int.Parse(rgb[2]), int.Parse(rgb[3]));
+                default: return Color.FromArgb(0); // return transparent color on failure
+            }
         }
 
         private string ColorToString(Color color)
         {
-            return string.Format($"{color.R}; {color.G}; {color.B}");
+            // We make transparent color a special case, for user's convenience
+            return color.A == 0 ? "0" :
+                // TODO: add alpha component when we actually support alpha here
+                string.Format($"{color.R}; {color.G}; {color.B}");
         }
 
         private int AgsColorNumberFromString(string value)

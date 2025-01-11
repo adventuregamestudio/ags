@@ -47,8 +47,8 @@
 // Stream offset type
 typedef int64_t soff_t;
 
-#define fixed_t int32_t // fixed point type
-#define color_t int32_t
+typedef int32_t fixed_t; // fixed point type
+typedef int32_t color_t; // AGS color number type (meaning depends on game's setting)
 
 // TODO: use distinct fixed point class
 enum

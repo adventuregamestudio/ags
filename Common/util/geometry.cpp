@@ -35,14 +35,14 @@ bool IsRectInsideRect(const Rect &place, const Rect &item)
 float DistanceBetween(const Rect &r1, const Rect &r2)
 {
     // https://gamedev.stackexchange.com/a/154040
-    Rect rect_outer(
+    const Rect rect_outer(
         std::min(r1.Left, r2.Left),
         std::min(r1.Top, r2.Top),
         std::max(r1.Right, r2.Right),
         std::max(r1.Bottom, r2.Bottom)
     );
-    int inner_width = std::max(0, rect_outer.GetWidth() - r1.GetWidth() - r2.GetWidth());
-    int inner_height = std::max(0, rect_outer.GetHeight() - r1.GetHeight() - r2.GetHeight());
+    const int inner_width = std::max(0, rect_outer.GetWidth() - r1.GetWidth() - r2.GetWidth());
+    const int inner_height = std::max(0, rect_outer.GetHeight() - r1.GetHeight() - r2.GetHeight());
     return static_cast<float>(std::sqrt((inner_width * inner_width) + (inner_height * inner_height)));
 }
 
@@ -83,8 +83,8 @@ int AlignInVRange(int frame_y1, int frame_y2, int item_offy, int item_height, Fr
 
 Rect AlignInRect(const Rect &frame, const Rect &item, FrameAlignment align)
 {
-    int x = AlignInHRange(frame.Left, frame.Right, item.Left, item.GetWidth(), align);
-    int y = AlignInVRange(frame.Top, frame.Bottom, item.Top, item.GetHeight(), align);
+    const int x = AlignInHRange(frame.Left, frame.Right, item.Left, item.GetWidth(), align);
+    const int y = AlignInVRange(frame.Top, frame.Bottom, item.Top, item.GetHeight(), align);
 
     Rect dst_item = item;
     dst_item.MoveTo(Point(x, y));
@@ -149,11 +149,11 @@ Size RotateSize(Size sz, int degrees)
     if (fixangle > 90)
         fixangle = 180 - fixangle;
     // useAngle is now between 0 and 90 (otherwise the sin/cos stuff doesn't work)
-    double rads = AGSMath::DegreesToRadians(fixangle);
-    double sinv = sin(rads);
-    double cosv = cos(rads);
-    int width = (int)(cosv * (double)sz.Width + sinv * (double)sz.Height);
-    int height = (int)(sinv * (double)sz.Width + cosv * (double)sz.Height);
+    const double rads = AGSMath::DegreesToRadians(fixangle);
+    const double sinv = sin(rads);
+    const double cosv = cos(rads);
+    const int width = (int)(cosv * (double)sz.Width + sinv * (double)sz.Height);
+    const int height = (int)(sinv * (double)sz.Width + cosv * (double)sz.Height);
     return Size(width, height);
 }
 

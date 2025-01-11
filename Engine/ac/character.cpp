@@ -2603,7 +2603,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
     const color_t text_color = speakingChar->talkcolor;
 
     Rect ui_view = play.GetUIViewport();
-    int allowShrink = 0;
+    DisplayTextShrink allow_shrink = kDisplayTextShrink_None;
     int bwidth = widd;
     if (bwidth < 0)
         bwidth = ui_view.GetWidth()/2 + ui_view.GetWidth()/4;
@@ -2617,7 +2617,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
         if (useview == 0)
             useview = -1;
         // speech bubble can shrink to fit
-        allowShrink = 1;
+        allow_shrink = kDisplayTextShrink_Left;
         if (speakingChar->room != displayed_room) {
             // not in room, centre it
             xx = -1;
@@ -2633,7 +2633,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
     set_our_eip(1500);
 
     if (game.options[OPT_SPEECHTYPE] == 0)
-        allowShrink = 1;
+        allow_shrink = kDisplayTextShrink_Left;
 
     // If has a valid speech view, and idle anim in progress for the character, then stop it
     if (useview >= 0)
@@ -2881,7 +2881,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
             }
 
             // allow the text box to be shrunk to fit the text
-            allowShrink = 1;
+            allow_shrink = kDisplayTextShrink_Left;
 
             // if the portrait's on the right, swap it round
             if (portrait_on_right) {
@@ -2905,7 +2905,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
                     tdxp = xx;
                 }
                 tdxp += get_textwindow_border_width(play.speech_textwindow_gui) / 2;
-                allowShrink = 2;
+                allow_shrink = kDisplayTextShrink_Right;
             }
             if (game.options[OPT_SPEECHTYPE] == 3)
                 overlay_x = 0;
@@ -2971,7 +2971,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
         }
     }
     else {
-        allowShrink = 1;
+        allow_shrink = kDisplayTextShrink_Left;
     }
 
     // it wants the centred position, so make it so
@@ -2980,14 +2980,14 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
 
     // if they used DisplaySpeechAt, then use the supplied width
     if ((widd > 0) && (isThought == 0))
-        allowShrink = 0;
+        allow_shrink = kDisplayTextShrink_None;
 
     if (isThought)
         char_thinking = aschar;
 
     set_our_eip(155);
     display_main(tdxp, tdyp, bwidth, texx, nullptr, kDisplayText_Speech, 0 /* no overid */,
-        disp_style, FONT_SPEECH, text_color, isThought, allowShrink, -1 /* don't autoplace */);
+        DisplayTextLooks(disp_style, isThought, allow_shrink), FONT_SPEECH, text_color, -1 /* don't autoplace */);
     set_our_eip(156);
     if ((play.in_conversation > 0) && (game.options[OPT_SPEECHTYPE] == 3))
         closeupface = nullptr;

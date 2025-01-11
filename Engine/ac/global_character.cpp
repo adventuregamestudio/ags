@@ -230,11 +230,9 @@ void DisplaySpeechAt (int xx, int yy, int wii, int aschar, const char*spch) {
 
 // [DEPRECATED] left only for use in Display, replace/merge with modern function
 static int CreateTextOverlay(int xx, int yy, int wii, int fontid, int text_color, const char* text, int over_type, DisplayTextStyle style, int speech_for_char) {
-    int allowShrink = 0;
-    if (speech_for_char >= 0) // allow DisplaySpeechBackground to be shrunk
-        allowShrink = 1;
-
-    auto *over = Overlay_CreateTextCore(false, xx, yy, wii, fontid, text_color, text, over_type, style, allowShrink, speech_for_char);
+    // allow DisplaySpeechBackground to be shrunk
+    DisplayTextShrink allow_shrink = (speech_for_char >= 0) ? kDisplayTextShrink_Left : kDisplayTextShrink_None;
+    auto *over = Overlay_CreateTextCore(false, xx, yy, wii, fontid, text_color, text, over_type, style, allow_shrink, speech_for_char);
     return over ? over->type : 0;
 }
 

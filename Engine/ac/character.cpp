@@ -2989,7 +2989,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
         char_thinking = aschar;
 
     set_our_eip(155);
-    display_main(tdxp, tdyp, bwidth, texx, nullptr, DISPLAYTEXT_SPEECH, FONT_SPEECH, textcol, isThought, allowShrink, -1 /* don't autoplace */);
+    display_main(tdxp, tdyp, bwidth, texx, nullptr, kDisplayText_Speech, 0 /* no overid */, FONT_SPEECH, textcol, isThought, allowShrink, -1 /* don't autoplace */);
     set_our_eip(156);
     if ((play.in_conversation > 0) && (game.options[OPT_SPEECHTYPE] == 3))
         closeupface = nullptr;

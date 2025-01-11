@@ -24,20 +24,16 @@
 
 using namespace AGS; // FIXME later
 
-// options for 'disp_type' parameter
-// blocking speech
-#define DISPLAYTEXT_SPEECH        0
-// super-blocking message box
-#define DISPLAYTEXT_MESSAGEBOX    1
-// regular non-blocking overlay
-#define DISPLAYTEXT_NORMALOVERLAY 2
-// also accepts explicit overlay ID >= OVER_CUSTOM
-
-struct ScreenOverlay;
+enum DisplayTextType
+{
+    kDisplayText_MessageBox,
+    kDisplayText_Speech,
+    kDisplayText_NormalOverlay
+};
 
 struct TopBarSettings
 {
-    AGS::Common::String Text;
+    Common::String Text;
     int Font = 0;
     int Height = 0;
 
@@ -57,6 +53,8 @@ struct DisplayVars
         : Linespacing(linespacing), FullTextHeight(fulltxheight) {}
 };
 
+struct ScreenOverlay;
+
 // Generates a textual image from the given text and parameters;
 // see _display_main's comment below for parameters description.
 // NOTE: this function treats text as-is, not doing any processing over it.
@@ -65,10 +63,13 @@ Common::Bitmap *create_textual_image(const char *text, int asspch, int isThought
     int &xx, int &yy, int &adjustedXX, int &adjustedYY, int wii, int usingfont, int allowShrink,
     const TopBarSettings *topbar);
 // Creates a textual overlay using the given parameters;
-// Pass yy = -1 to find Y co-ord automatically
-// allowShrink = 0 for none, 1 for leftwards, 2 for rightwards
-// pass blocking=2 to create permanent overlay
-// asspch has several meanings, which affect how the message is positioned
+// * disp_type tells the wanted type of overlay and behavior (blocking, etc);
+// * over_id - OVER_CUSTOM for auto overlay, but allows to pass actual overlay id
+//    to use, valid only if kDisplayText_NormalOverlay;
+//    FIXME: find a way to not pass over_id at all, this logic is bad
+// * pass yy = -1 to find Y co-ord automatically
+// * allowShrink = 0 for none, 1 for leftwards, 2 for rightwards
+// * asspch has several meanings, which affect how the message is positioned
 //   == 0 - standard display box
 //   != 0 - text color for a speech or a regular textual overlay, where
 //     < 0 - use text window if applicable
@@ -78,7 +79,7 @@ Common::Bitmap *create_textual_image(const char *text, int asspch, int isThought
 // (translation, parsing voice token) was done prior to its call.
 // TODO: refactor this collection of args into few args + 1-2 structs with extended params.
 ScreenOverlay *display_main(int xx, int yy, int wii, const char *text,
-    const TopBarSettings *topbar, int disp_type, int usingfont,
+    const TopBarSettings *topbar, DisplayTextType disp_type, int over_id, int usingfont,
     int asspch, int isThought, int allowShrink, int autoplace_at_char = -1, bool roomlayer = false);
 // Displays a standard blocking message box at a given position
 void display_at(int xx, int yy, int wii, const char *text, const TopBarSettings *topbar);

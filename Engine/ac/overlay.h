@@ -37,7 +37,7 @@ ScriptOverlay* Overlay_CreateGraphical(int x, int y, int slot, bool clone);
 ScriptOverlay* Overlay_CreateTextual(int x, int y, int width, int font, int colour, const char* text);
 ScreenOverlay *Overlay_CreateGraphicCore(bool room_layer, int x, int y, int slot, bool clone = false);
 ScreenOverlay *Overlay_CreateTextCore(bool room_layer, int x, int y, int width, int font, int text_color,
-    const char *text, int disp_type, int allow_shrink, int speech_for_char = -1);
+    const char *text, int over_type, int allow_shrink, int speech_for_char = -1);
 
 ScreenOverlay *get_overlay(int type);
 // Gets overlay position for drawing in its respective layer (screen or room)

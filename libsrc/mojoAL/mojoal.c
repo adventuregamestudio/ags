@@ -1433,12 +1433,13 @@ static ALboolean mix_source_buffer(ALCcontext *ctx, ALsource *src, BufferQueueIt
             int mixframes, mixlen, remainingmixframes;
             while ( (((mixlen = SDL_AudioStreamAvailable(src->stream)) / bufferframesize) < framesneeded) && (src->offset < buffer->len) ) {
                 const int bytesleft = (buffer->len - src->offset);
+                /* workaround in case remains are less than bufferframesize */
                 const int framesput = (bytesleft + (bufferframesize - 1)) / bufferframesize;
-                // [HOTFIX] ensure bytesput is positive even if remains are less than bufferframesize
                 const int bytesput = SDL_min(SDL_min(framesput, 1024) * bufferframesize, bytesleft);
                 FIXME("dynamically adjust frames here?");  /* we hardcode 1024 samples when opening the audio device, too. */
                 SDL_AudioStreamPut(src->stream, data, bytesput);
                 src->offset += bytesput;
+                /* workaround in case remains are not evenly divided by sizeof (float) */
                 data += (bytesput + (sizeof (float) - 1)) / sizeof (float);
             }
 
@@ -1814,18 +1815,12 @@ static void calculate_channel_gains(const ALCcontext *ctx, const ALsource *src, 
         V_sse = _mm_sub_ps(position_sse, _mm_mul_ps(_mm_set1_ps(a), up_sse));
 
         mags = magnitude_sse(at_sse) * magnitude_sse(V_sse);
-        // [HOTFIX] possibly incorrect conditional calculation
-        // around mojoAL commit a9e2f30b04f10df1912d06ff5a610edda4677ba5;
-        // cosangle may only be valid if mags is not zero
-        if (mags == 0.0f)
-        {
+        if (mags == 0.0f) {
             radians = 0.0f;
-        }
-        else
-        {
+        } else {
             cosangle = dotproduct_sse(at_sse, V_sse) / mags;
             cosangle = SDL_clamp(cosangle, -1.0f, 1.0f);
-            radians = SDL_acosf(cosangle);
+            radians = SDL_acosf(cosangle);   
         }
 
         R_sse = xyzzy_sse(at_sse, up_sse);
@@ -1850,15 +1845,9 @@ static void calculate_channel_gains(const ALCcontext *ctx, const ALsource *src, 
         V_neon = vsubq_f32(position_neon, vmulq_f32(vdupq_n_f32(a), up_neon));
 
         mags = magnitude_neon(at_neon) * magnitude_neon(V_neon);
-        // [HOTFIX] possibly incorrect conditional calculation
-        // around mojoAL commit a9e2f30b04f10df1912d06ff5a610edda4677ba5;
-        // cosangle may only be valid if mags is not zero
-        if (mags == 0.0f)
-        {
+        if (mags == 0.0f) {
             radians = 0.0f;
-        }
-        else
-        {
+        } else {
             cosangle = dotproduct_neon(at_neon, V_neon) / mags;
             cosangle = SDL_clamp(cosangle, -1.0f, 1.0f);
             radians = SDL_acosf(cosangle);
@@ -1889,15 +1878,9 @@ static void calculate_channel_gains(const ALCcontext *ctx, const ALsource *src, 
 
         /* Calculate angle */
         mags = magnitude(at) * magnitude(V);
-        // [HOTFIX] possibly incorrect conditional calculation
-        // around mojoAL commit a9e2f30b04f10df1912d06ff5a610edda4677ba5;
-        // cosangle may only be valid if mags is not zero
-        if (mags == 0.0f)
-        {
+        if (mags == 0.0f) {
             radians = 0.0f;
-        }
-        else
-        {
+        } else {
             cosangle = dotproduct(at, V) / mags;
             cosangle = SDL_clamp(cosangle, -1.0f, 1.0f);
             radians = SDL_acosf(cosangle);

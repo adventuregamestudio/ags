@@ -34,18 +34,21 @@ int CreateTextOverlay(int xx, int yy, int wii, int fontid, int text_color, const
 }
 
 int CreateTextOverlay(int xx, int yy, int wii, int fontid, int text_color, const char* text, DisplayTextStyle style) {
-    int allowShrink = 0;
 
+    DisplayTextShrink allow_shrink = kDisplayTextShrink_None;
     if (xx != OVR_AUTOPLACE)
     {
         data_to_game_coords(&xx, &yy);
         // NOTE: this is ugly, but OVR_AUTOPLACE here suggests that width is already in game coords
         wii = data_to_game_coord(wii);
     }
-    else  // allow DisplaySpeechBackground to be shrunk
-        allowShrink = 1;
+    else
+    {
+        // allow DisplaySpeechBackground to be shrunk
+        allow_shrink = kDisplayTextShrink_Left;
+    }
 
-    auto *over = Overlay_CreateTextCore(false, xx, yy, wii, fontid, text_color, text, OVER_CUSTOM, style, allowShrink);
+    auto *over = Overlay_CreateTextCore(false, xx, yy, wii, fontid, text_color, text, OVER_CUSTOM, style, allow_shrink);
     return over ? over->type : 0;
 }
 

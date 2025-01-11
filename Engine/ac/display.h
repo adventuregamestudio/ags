@@ -40,6 +40,29 @@ enum DisplayTextStyle
     kDisplayTextStyle_Overchar,     // display text above a character
 };
 
+// Whether displayed text is allowed to be shrinked
+enum DisplayTextShrink
+{
+    kDisplayTextShrink_None,
+    kDisplayTextShrink_Left,
+    kDisplayTextShrink_Right
+};
+
+struct DisplayTextLooks
+{
+    DisplayTextStyle Style = kDisplayTextStyle_TextWindow;
+    // Is this a character's thought; FIXME: merge with Style?
+    bool AsThought = false;
+    // Allow to make the resulting overlay smaller than requested
+    DisplayTextShrink AllowShrink = kDisplayTextShrink_None;
+
+    DisplayTextLooks() = default;
+    DisplayTextLooks(DisplayTextStyle style)
+        : Style(style) {}
+    DisplayTextLooks(DisplayTextStyle style, bool as_thought, DisplayTextShrink allow_shrink)
+        : Style(style), AsThought(as_thought), AllowShrink(allow_shrink) {}
+};
+
 struct TopBarSettings
 {
     Common::String Text;
@@ -68,8 +91,8 @@ struct ScreenOverlay;
 // see _display_main's comment below for parameters description.
 // NOTE: this function treats text as-is, not doing any processing over it.
 // TODO: refactor this collection of args into 1-2 structs with params.
-Common::Bitmap *create_textual_image(const char *text, DisplayTextStyle style, color_t text_color, int isThought,
-    int &xx, int &yy, int &adjustedXX, int &adjustedYY, int wii, int usingfont, int allowShrink,
+Common::Bitmap *create_textual_image(const char *text, const DisplayTextLooks &look, color_t text_color,
+    int &xx, int &yy, int &adjustedXX, int &adjustedYY, int wii, int usingfont,
     bool &alphaChannel, const TopBarSettings *topbar);
 // Creates a textual overlay using the given parameters;
 // * disp_type tells the wanted type of overlay and behavior (blocking, etc);
@@ -78,14 +101,13 @@ Common::Bitmap *create_textual_image(const char *text, DisplayTextStyle style, c
 //    FIXME: find a way to not pass over_id at all, this logic is bad
 // * style - more specific desired look (use text window, etc);
 // * pass yy = -1 to find Y co-ord automatically;
-// * allowShrink = 0 for none, 1 for leftwards, 2 for rightwards.
 // NOTE: this function treats the text as-is; it assumes that any processing
 // (translation, parsing voice token) was done prior to its call.
 // TODO: refactor this collection of args into few args + 1-2 structs with extended params.
 ScreenOverlay *display_main(int xx, int yy, int wii, const char *text,
     const TopBarSettings *topbar, DisplayTextType disp_type, int over_id,
-    DisplayTextStyle style, int usingfont, color_t text_color, int isThought,
-    int allowShrink, bool overlayPositionFixed, bool roomlayer = false);
+    const DisplayTextLooks &look, int usingfont, color_t text_color,
+    bool overlayPositionFixed, bool roomlayer = false);
 // Displays a standard blocking message box at a given position
 void display_at(int xx, int yy, int wii, const char *text, const TopBarSettings *topbar);
 // Cleans up display message state

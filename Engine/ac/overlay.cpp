@@ -77,7 +77,7 @@ void Overlay_SetText(ScreenOverlay &over, int x, int y, int width, int fontid, i
     // from CreateTextOverlay
     width = data_to_game_coord(width);
     // allow DisplaySpeechBackground to be shrunk
-    int allow_shrink = (x == OVR_AUTOPLACE) ? 1 : 0;
+    DisplayTextShrink allow_shrink = (x == OVR_AUTOPLACE) ? kDisplayTextShrink_Left : kDisplayTextShrink_None;
 
     // from Overlay_CreateTextCore
     if (width < 8) width = play.GetUIViewport().GetWidth() / 2;
@@ -90,9 +90,10 @@ void Overlay_SetText(ScreenOverlay &over, int x, int y, int width, int fontid, i
     // Recreate overlay image
     int dummy_x = x, dummy_y = y, adj_x = x, adj_y = y;
     bool has_alpha = false;
-    Bitmap *image = create_textual_image(draw_text, kDisplayTextStyle_TextWindow, text_color,
-        0 /* not thought */, dummy_x, dummy_y, adj_x, adj_y,
-        width, fontid, allow_shrink, has_alpha, nullptr);
+    Bitmap *image = create_textual_image(draw_text,
+        DisplayTextLooks(kDisplayTextStyle_TextWindow, false /* not thought */, allow_shrink),
+        text_color, dummy_x, dummy_y, adj_x, adj_y,
+        width, fontid, has_alpha, nullptr);
 
     // Update overlay properties
     over.SetImage(std::unique_ptr<Bitmap>(image), has_alpha, adj_x - dummy_x, adj_y - dummy_y);
@@ -237,7 +238,7 @@ ScreenOverlay *Overlay_CreateGraphicCore(bool room_layer, int x, int y, int slot
 }
 
 ScreenOverlay *Overlay_CreateTextCore(bool room_layer, int x, int y, int width, int font, int text_color,
-    const char *text, int over_type, DisplayTextStyle style, int allow_shrink)
+    const char *text, int over_type, DisplayTextStyle style, DisplayTextShrink allow_shrink)
 {
     if (width < 8) width = play.GetUIViewport().GetWidth() / 2;
     if (x < 0) x = play.GetUIViewport().GetWidth() / 2 - width / 2;
@@ -245,7 +246,7 @@ ScreenOverlay *Overlay_CreateTextCore(bool room_layer, int x, int y, int width, 
     // Skip a voice-over token, if present
     const char *draw_text = skip_voiceover_token(text);
     return display_main(x, y, width, draw_text, nullptr, kDisplayText_NormalOverlay, over_type,
-        style, font, text_color, 0 /* not thought */, allow_shrink, false /* no fixed pos */, room_layer);
+        DisplayTextLooks(style, false /* not thought */, allow_shrink), font, text_color, false /* no fixed pos */, room_layer);
 }
 
 ScriptOverlay* Overlay_CreateGraphicalImpl(bool room_layer, int x, int y, int slot, bool transparent, bool clone)
@@ -273,7 +274,7 @@ ScriptOverlay* Overlay_CreateTextualImpl(bool room_layer, int x, int y, int widt
 {
     data_to_game_coords(&x, &y);
     width = data_to_game_coord(width);
-    auto *over = Overlay_CreateTextCore(room_layer, x, y, width, font, colour, text, OVER_CUSTOM, kDisplayTextStyle_TextWindow, 0);
+    auto *over = Overlay_CreateTextCore(room_layer, x, y, width, font, colour, text, OVER_CUSTOM, kDisplayTextStyle_TextWindow, kDisplayTextShrink_None);
     return over ? create_scriptoverlay(*over) : nullptr;
 }
 

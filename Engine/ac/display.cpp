@@ -264,26 +264,36 @@ Bitmap *create_textual_image(const char *text, DisplayTextStyle style, color_t t
             }
         }
         else if ((ShouldAntiAliasText()) && (game.GetColorDepth() >= 24))
-            alphaChannel = true;
-
-        for (size_t ee = 0; ee<Lines.Count(); ee++)
         {
-            int ttyp = ttxtop + ee * disp.Linespacing;
+            alphaChannel = true;
+        }
+
+        // Assign final text color, either use passed parameter, or TextWindow property
+        if (style == kDisplayTextStyle_TextWindow)
+        {
+            if ((usingGui >= 0) &&
+                    ((game.options[OPT_SPEECHTYPE] >= 2) || (isThought)))
+                text_color = text_window_ds->GetCompatibleColor(guis[usingGui].FgColor);
+            else
+                text_color = text_window_ds->GetCompatibleColor(text_color);
+        }
+        else
+        {
+            text_color = text_window_ds->GetCompatibleColor(text_color);
+        }
+
+        // Print the lines of text
+        for (size_t i = 0; i < Lines.Count(); ++i)
+        {
+            int ttyp = ttxtop + i * disp.Linespacing;
             // if it's inside a text box then don't centre the text
             if (style == kDisplayTextStyle_TextWindow)
             {
-                if ((usingGui >= 0) &&
-                    ((game.options[OPT_SPEECHTYPE] >= 2) || (isThought)))
-                    text_color = text_window_ds->GetCompatibleColor(guis[usingGui].FgColor);
-                else
-                    text_color = text_window_ds->GetCompatibleColor(text_color);
-
-                wouttext_aligned(text_window_ds, ttxleft, ttyp, oriwid, usingfont, text_color, Lines[ee].GetCStr(), play.text_align);
+                wouttext_aligned(text_window_ds, ttxleft, ttyp, oriwid, usingfont, text_color, Lines[i].GetCStr(), play.text_align);
             }
             else
             {
-                text_color = text_window_ds->GetCompatibleColor(text_color);
-                wouttext_aligned(text_window_ds, ttxleft, ttyp, wii, usingfont, text_color, Lines[ee].GetCStr(), play.speech_text_align);
+                wouttext_aligned(text_window_ds, ttxleft, ttyp, wii, usingfont, text_color, Lines[i].GetCStr(), play.speech_text_align);
             }
         }
     }
@@ -301,8 +311,8 @@ Bitmap *create_textual_image(const char *text, DisplayTextStyle style, color_t t
 
         adjust_y_coordinate_for_text(&yoffs, usingfont);
 
-        for (size_t ee = 0; ee<Lines.Count(); ee++)
-            wouttext_aligned(text_window_ds, xoffs, yoffs + ee * disp.Linespacing, oriwid, usingfont, text_color, Lines[ee].GetCStr(), play.text_align);
+        for (size_t i = 0; i < Lines.Count(); ++i)
+            wouttext_aligned(text_window_ds, xoffs, yoffs + i * disp.Linespacing, oriwid, usingfont, text_color, Lines[i].GetCStr(), play.text_align);
     }
     return text_window_ds;
 }

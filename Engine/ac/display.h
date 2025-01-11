@@ -24,11 +24,20 @@
 
 using namespace AGS; // FIXME later
 
+// The general type and behavior of the displayed text
 enum DisplayTextType
 {
-    kDisplayText_MessageBox,
-    kDisplayText_Speech,
-    kDisplayText_NormalOverlay
+    kDisplayText_MessageBox,    // a super-blocking message box
+    kDisplayText_Speech,        // a blocking character speech
+    kDisplayText_NormalOverlay  // a custom text overlay
+};
+
+// More specific visual look of the displayed text
+enum DisplayTextStyle
+{
+    kDisplayTextStyle_MessageBox,   // standard message box
+    kDisplayTextStyle_TextWindow,   // use text window GUI, if applicable
+    kDisplayTextStyle_Overchar,     // display text above a character
 };
 
 struct TopBarSettings
@@ -59,7 +68,7 @@ struct ScreenOverlay;
 // see _display_main's comment below for parameters description.
 // NOTE: this function treats text as-is, not doing any processing over it.
 // TODO: refactor this collection of args into 1-2 structs with params.
-Common::Bitmap *create_textual_image(const char *text, int asspch, int isThought,
+Common::Bitmap *create_textual_image(const char *text, DisplayTextStyle style, color_t text_color, int isThought,
     int &xx, int &yy, int &adjustedXX, int &adjustedYY, int wii, int usingfont, int allowShrink,
     const TopBarSettings *topbar);
 // Creates a textual overlay using the given parameters;
@@ -67,20 +76,17 @@ Common::Bitmap *create_textual_image(const char *text, int asspch, int isThought
 // * over_id - OVER_CUSTOM for auto overlay, but allows to pass actual overlay id
 //    to use, valid only if kDisplayText_NormalOverlay;
 //    FIXME: find a way to not pass over_id at all, this logic is bad
-// * pass yy = -1 to find Y co-ord automatically
-// * allowShrink = 0 for none, 1 for leftwards, 2 for rightwards
-// * asspch has several meanings, which affect how the message is positioned
-//   == 0 - standard display box
-//   != 0 - text color for a speech or a regular textual overlay, where
-//     < 0 - use text window if applicable
-//     > 0 - suppose it's a classic LA-style speech above character's head
+// * style - more specific desired look (use text window, etc);
+// * pass yy = -1 to find Y co-ord automatically;
+// * allowShrink = 0 for none, 1 for leftwards, 2 for rightwards.
 // autoplace_at_char - tells whether overlay should autoposition itself whenever game updates.
 // NOTE: this function treats the text as-is; it assumes that any processing
 // (translation, parsing voice token) was done prior to its call.
 // TODO: refactor this collection of args into few args + 1-2 structs with extended params.
 ScreenOverlay *display_main(int xx, int yy, int wii, const char *text,
-    const TopBarSettings *topbar, DisplayTextType disp_type, int over_id, int usingfont,
-    int asspch, int isThought, int allowShrink, int autoplace_at_char = -1, bool roomlayer = false);
+    const TopBarSettings *topbar, DisplayTextType disp_type, int over_id,
+    DisplayTextStyle style, int usingfont, color_t text_color,
+    int isThought, int allowShrink, int autoplace_at_char = -1, bool roomlayer = false);
 // Displays a standard blocking message box at a given position
 void display_at(int xx, int yy, int wii, const char *text, const TopBarSettings *topbar);
 // Cleans up display message state

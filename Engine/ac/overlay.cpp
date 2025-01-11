@@ -88,9 +88,8 @@ void Overlay_SetText(ScreenOverlay &over, int x, int y, int width, int fontid, i
 
     // Recreate overlay image
     int dummy_x = x, dummy_y = y, adj_x = x, adj_y = y;
-    // NOTE: we pass text_color negated to let optionally use textwindow (if applicable)
-    // this is a generic ugliness of _display_main args, need to refactor later.
-    Bitmap *image = create_textual_image(draw_text, -text_color, 0, dummy_x, dummy_y, adj_x, adj_y,
+    Bitmap *image = create_textual_image(draw_text, kDisplayTextStyle_TextWindow, text_color,
+        0 /* not thought */, dummy_x, dummy_y, adj_x, adj_y,
         width, fontid, allow_shrink, nullptr);
 
     // Update overlay properties
@@ -245,7 +244,8 @@ ScreenOverlay *Overlay_CreateTextCore(bool room_layer, int x, int y, int width, 
     if (text_color == 0) text_color = 16;
     // Skip a voice-over token, if present
     const char *draw_text = skip_voiceover_token(text);
-    return display_main(x, y, width, draw_text, nullptr, kDisplayText_NormalOverlay, over_type, font, -text_color, 0, allow_shrink, speech_for_char, room_layer);
+    return display_main(x, y, width, draw_text, nullptr, kDisplayText_NormalOverlay, over_type,
+        kDisplayTextStyle_TextWindow, font, text_color, 0 /* not thought */, allow_shrink, speech_for_char, room_layer);
 }
 
 ScriptOverlay* Overlay_CreateGraphicalImpl(bool room_layer, int x, int y, int slot, bool clone)

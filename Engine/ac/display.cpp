@@ -350,7 +350,7 @@ bool display_check_user_input(int skip)
 // allowShrink = 0 for none, 1 for leftwards, 2 for rightwards
 // pass blocking=2 to create permanent overlay
 ScreenOverlay *display_main(int xx, int yy, int wii, const char *text,
-    const TopBarSettings *topbar, int disp_type, int usingfont,
+    const TopBarSettings *topbar, DisplayTextType disp_type, int over_id, int usingfont,
     int asspch, int isThought, int allowShrink, bool overlayPositionFixed, bool roomlayer)
 {
     //
@@ -365,7 +365,7 @@ ScreenOverlay *display_main(int xx, int yy, int wii, const char *text,
     // ensure that the screen is up to date before the message box
     // is drawn on top of it
     // TODO: is this really necessary anymore?
-    if ((play.skip_until_char_stops >= 0) && (disp_type == DISPLAYTEXT_MESSAGEBOX))
+    if ((play.skip_until_char_stops >= 0) && (disp_type == kDisplayText_MessageBox))
         render_graphics();
 
     // TODO: should this really be called regardless of message type?
@@ -375,10 +375,10 @@ ScreenOverlay *display_main(int xx, int yy, int wii, const char *text,
     if (topbar)
     {
         // the top bar should behave like DisplaySpeech wrt blocking (???)
-        disp_type = DISPLAYTEXT_SPEECH;
+        disp_type = kDisplayText_Speech;
     }
 
-    if ((asspch > 0) && (disp_type < DISPLAYTEXT_NORMALOVERLAY))
+    if ((asspch > 0) && (disp_type < kDisplayText_NormalOverlay))
     {
         // update the all_buttons_disabled variable in advance
         // of the adjust_x/y_for_guis calls
@@ -388,11 +388,11 @@ ScreenOverlay *display_main(int xx, int yy, int wii, const char *text,
     }
 
     // Remove any previous blocking texts if necessary
-    if (disp_type < DISPLAYTEXT_NORMALOVERLAY)
+    if (disp_type < kDisplayText_NormalOverlay)
         remove_screen_overlay(play.text_overlay_on);
 
     // If fast-forwarding, then skip any blocking message immediately
-    if (play.fast_forward && (disp_type < DISPLAYTEXT_NORMALOVERLAY)) {
+    if (play.fast_forward && (disp_type < kDisplayText_NormalOverlay)) {
         play.SetWaitSkipResult(SKIP_AUTOTIMER);
         post_display_cleanup();
         return nullptr;
@@ -402,13 +402,16 @@ ScreenOverlay *display_main(int xx, int yy, int wii, const char *text,
     // Configure and create an overlay object
     //
 
-    int ovrtype;
     switch (disp_type)
     {
-    case DISPLAYTEXT_SPEECH: ovrtype = OVER_TEXTSPEECH; break;
-    case DISPLAYTEXT_MESSAGEBOX: ovrtype = OVER_TEXTMSG; break;
-    case DISPLAYTEXT_NORMALOVERLAY: ovrtype = OVER_CUSTOM; break;
-    default: ovrtype = disp_type; break; // must be precreated overlay id
+    case kDisplayText_MessageBox:    over_id = OVER_TEXTMSG; break;
+    case kDisplayText_Speech:        over_id = OVER_TEXTSPEECH; break;
+    case kDisplayText_NormalOverlay:
+         // must be either OVER_CUSTOM flag or precreated overlay id
+        assert(over_id == OVER_CUSTOM || over_id >= OVER_FIRSTFREE);
+        if (over_id != OVER_CUSTOM && OVER_CUSTOM < OVER_FIRSTFREE)
+            over_id = OVER_CUSTOM;
+        break;
     }
 
     int adjustedXX, adjustedYY;
@@ -416,12 +419,12 @@ ScreenOverlay *display_main(int xx, int yy, int wii, const char *text,
     Bitmap *text_window_ds = create_textual_image(text, asspch, isThought,
         xx, yy, adjustedXX, adjustedYY, wii, usingfont, allowShrink, alphaChannel, topbar);
 
-    size_t nse = add_screen_overlay(roomlayer, xx, yy, ovrtype, text_window_ds, adjustedXX - xx, adjustedYY - yy, alphaChannel);
+    size_t nse = add_screen_overlay(roomlayer, xx, yy, over_id, text_window_ds, adjustedXX - xx, adjustedYY - yy, alphaChannel);
     auto *over = get_overlay(nse); // FIXME: optimize return value
     // we should not delete text_window_ds here, because it is now owned by Overlay
 
     // If it's a non-blocking overlay type, then we're done here
-    if (disp_type >= DISPLAYTEXT_NORMALOVERLAY) {
+    if (disp_type == kDisplayText_NormalOverlay) {
         return over;
     }
 
@@ -429,7 +432,7 @@ ScreenOverlay *display_main(int xx, int yy, int wii, const char *text,
     // Wait for the blocking text to timeout or until skipped by another command
     //
 
-    if (disp_type == DISPLAYTEXT_MESSAGEBOX) {
+    if (disp_type == kDisplayText_MessageBox) {
         int countdown = GetTextDisplayTime(text);
         int skip_setting = user_to_internal_skip_speech((SkipSpeechStyle)play.skip_display);
 
@@ -438,7 +441,7 @@ ScreenOverlay *display_main(int xx, int yy, int wii, const char *text,
         while (disp_state.Run());
         disp_state.End();
     }
-    else { /* DISPLAYTEXT_SPEECH */
+    else { /* kDisplayText_Speech */
         if (!overlayPositionFixed)
         {
             over->SetRoomRelative(true);
@@ -463,7 +466,7 @@ void display_at(int xx, int yy, int wii, const char *text, const TopBarSettings 
     // Start voice-over, if requested by the tokens in speech text
     try_auto_play_speech(text, text, play.narrator_speech);
 
-    display_main(xx, yy, wii, text, topbar, DISPLAYTEXT_MESSAGEBOX, FONT_NORMAL, 0, 0, 0, false);
+    display_main(xx, yy, wii, text, topbar, kDisplayText_MessageBox, 0 /* no overid */, FONT_NORMAL, 0, 0, 0, false);
 
     // Stop any blocking voice-over, if was started by this function
     if (play.IsBlockingVoiceSpeech())

@@ -238,14 +238,14 @@ ScreenOverlay *Overlay_CreateGraphicCore(bool room_layer, int x, int y, int slot
 }
 
 ScreenOverlay *Overlay_CreateTextCore(bool room_layer, int x, int y, int width, int font, int text_color,
-    const char *text, int disp_type, int allow_shrink)
+    const char *text, int over_type, int allow_shrink)
 {
     if (width < 8) width = play.GetUIViewport().GetWidth() / 2;
     if (x < 0) x = play.GetUIViewport().GetWidth() / 2 - width / 2;
     if (text_color == 0) text_color = 16;
     // Skip a voice-over token, if present
     const char *draw_text = skip_voiceover_token(text);
-    return display_main(x, y, width, draw_text, nullptr, disp_type, font, -text_color, 0, allow_shrink, false, room_layer);
+    return display_main(x, y, width, draw_text, nullptr, kDisplayText_NormalOverlay, over_type, font, -text_color, 0, allow_shrink, false, room_layer);
 }
 
 ScriptOverlay* Overlay_CreateGraphicalImpl(bool room_layer, int x, int y, int slot, bool transparent, bool clone)
@@ -273,7 +273,7 @@ ScriptOverlay* Overlay_CreateTextualImpl(bool room_layer, int x, int y, int widt
 {
     data_to_game_coords(&x, &y);
     width = data_to_game_coord(width);
-    auto *over = Overlay_CreateTextCore(room_layer, x, y, width, font, colour, text, DISPLAYTEXT_NORMALOVERLAY, 0);
+    auto *over = Overlay_CreateTextCore(room_layer, x, y, width, font, colour, text, OVER_CUSTOM, 0);
     return over ? create_scriptoverlay(*over) : nullptr;
 }
 

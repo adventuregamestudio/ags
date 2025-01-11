@@ -29,7 +29,7 @@ int CreateGraphicOverlay(int x, int y, int slott, int trans) {
     return over ? over->type : 0;
 }
 
-int CreateTextOverlay(int xx, int yy, int wii, int fontid, int text_color, const char* text, int disp_type) {
+int CreateTextOverlay(int xx, int yy, int wii, int fontid, int text_color, const char* text) {
     int allowShrink = 0;
 
     if (xx != OVR_AUTOPLACE)
@@ -41,8 +41,7 @@ int CreateTextOverlay(int xx, int yy, int wii, int fontid, int text_color, const
     else  // allow DisplaySpeechBackground to be shrunk
         allowShrink = 1;
 
-    auto *over = Overlay_CreateTextCore(false, xx, yy, wii, fontid, text_color, text, disp_type, allowShrink);
-    assert((disp_type < OVER_FIRSTFREE) || (disp_type == over->type));
+    auto *over = Overlay_CreateTextCore(false, xx, yy, wii, fontid, text_color, text, OVER_CUSTOM, allowShrink);
     return over ? over->type : 0;
 }
 

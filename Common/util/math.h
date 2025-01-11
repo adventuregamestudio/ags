@@ -83,9 +83,9 @@ namespace Math
         return rads * (float)(180.0 / M_PI);
     }
 
-    inline float DegreesToRadians(float deg)
+    inline double DegreesToRadians(double deg)
     {
-        return deg * (float)(M_PI / 180.0);
+        return deg * (double)(M_PI / 180.0);
     }
 
     // Wraps the angle in degrees into [0;360) range

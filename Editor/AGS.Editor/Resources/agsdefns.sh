@@ -743,7 +743,7 @@ builtin managed struct ViewFrame {
 
 builtin managed struct DrawingSurface {
   /// Clears the surface to the specified colour, or transparent if you do not specify a colour.
-  import void Clear(int colour=-SCR_NO_VALUE);
+  import void Clear(int colour=COLOR_TRANSPARENT);
   /// Creates a copy of the surface.
   import DrawingSurface* CreateCopy();
   /// Draws a circle onto the surface with its centre at (x,y).

@@ -504,6 +504,7 @@ namespace AGS.Types
         [DefaultValue(0)]
         [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         [TypeConverter(typeof(CustomColorConverter))]
+        [SerializeAsHex]
         public int InventoryHotspotMarkerDotColor
         {
             get { return _inventoryHotspotMarker.DotColor; }
@@ -516,6 +517,7 @@ namespace AGS.Types
         [DefaultValue(0)]
         [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         [TypeConverter(typeof(CustomColorConverter))]
+        [SerializeAsHex]
         public int InventoryHotspotMarkerCrosshairColor
         {
             get { return _inventoryHotspotMarker.CrosshairColor; }

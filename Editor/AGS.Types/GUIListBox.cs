@@ -83,6 +83,7 @@ namespace AGS.Types
         [RefreshProperties(RefreshProperties.All)]
         [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         [TypeConverter(typeof(CustomColorConverter))]
+        [SerializeAsHex]
         public int TextColor
         {
             get { return _textColor; }
@@ -95,6 +96,7 @@ namespace AGS.Types
         [RefreshProperties(RefreshProperties.All)]
         [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         [TypeConverter(typeof(CustomColorConverter))]
+        [SerializeAsHex]
         public int SelectedTextColor
         {
             get { return _selectedTextColor; }
@@ -107,6 +109,7 @@ namespace AGS.Types
         [RefreshProperties(RefreshProperties.All)]
         [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         [TypeConverter(typeof(CustomColorConverter))]
+        [SerializeAsHex]
         public int SelectedBackgroundColor
         {
             get { return _selectedBackgroundColor; }

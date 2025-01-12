@@ -504,9 +504,6 @@
     <ClCompile Include="..\..\Engine\gui\newcontrol.cpp">
       <Filter>Source Files\gui</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\script\cc_instance.cpp">
-      <Filter>Source Files\script</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Engine\script\executingscript.cpp">
       <Filter>Source Files\script</Filter>
     </ClCompile>
@@ -1162,9 +1159,6 @@
     </ClInclude>
     <ClInclude Include="..\..\Engine\gfx\graphicsdriver.h">
       <Filter>Header Files\gfx</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\script\cc_instance.h">
-      <Filter>Header Files\script</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\script\executingscript.h">
       <Filter>Header Files\script</Filter>

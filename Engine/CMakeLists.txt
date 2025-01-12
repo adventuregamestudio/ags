@@ -391,8 +391,6 @@ target_sources(engine
     plugin/plugin_engine.h
     plugin/plugin_stubs.cpp
     resource/resource.h
-    script/cc_instance.cpp
-    script/cc_instance.h
     script/cc_reflecthelper.cpp
     script/cc_reflecthelper.h
     script/executingscript.cpp

@@ -21,7 +21,8 @@ android {
         applicationId projectProperties['applicationId']
         archivesBaseName = "app-" + appIdLastPart
         minSdkVersion 19
-        targetSdkVersion 33
+        targetSdkVersion 34
+        multiDexEnabled = true
         versionCode Integer.parseInt(projectProperties.getProperty('versionCode'))
         versionName projectProperties['versionName']
     }

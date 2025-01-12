@@ -20,6 +20,10 @@
 #include "script/cc_common.h"
 #include "script/script_runtime.h"
 #include "util/memory.h"
+#if (DEBUG_CC_EXEC)
+#include "util/file.h"
+#include "util/textstreamwriter.h"
+#endif
 
 using namespace AGS::Common;
 using namespace AGS::Common::Memory;
@@ -137,6 +141,13 @@ struct FunctionCallStack
 RuntimeScriptValue ScriptExecutor::_pluginReturnValue;
 
 
+ScriptExecutor::~ScriptExecutor()
+{
+#if (DEBUG_CC_EXEC)
+    CloseExecLog();
+#endif
+}
+
 void ScriptExecutor::SetPluginReturnValue(const RuntimeScriptValue &value)
 {
     _pluginReturnValue = value;
@@ -186,6 +197,13 @@ ScriptExecError ScriptExecutor::Run(ScriptThread *thread, const RuntimeScript *s
         return kScExecErr_InvalidArgNum;
     }
 
+#if DEBUG_CC_EXEC
+    if (ccGetOption(SCOPT_DEBUGRUN) != 0)
+    {
+        OpenExecLog();
+    }
+#endif
+
     // Allow to pass less parameters if script callback has less declared args
     param_count = std::min<size_t>(param_count, export_args);
     // Prepare executor for run
@@ -205,6 +223,13 @@ ScriptExecError ScriptExecutor::Run(ScriptThread *thread, const RuntimeScript *s
     _flags = (kScExecState_Running * has_work);
     _returnValue = 0;
     currentline = 0;
+
+#if DEBUG_CC_EXEC
+    if (!IsRunning())
+    {
+        CloseExecLog();
+    }
+#endif
 
     if (reterr != kScExecErr_None)
         return reterr;
@@ -666,6 +691,10 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
     unsigned loopIterations = 0u; // any loop iterations (needed for timeout test)
     unsigned loopCheckIterations = 0u; // loop iterations accumulated only if check is enabled
 
+#if DEBUG_CC_EXEC
+    const bool dump_opcodes = (ccGetOption(SCOPT_DEBUGRUN) != 0) && (_execWriter != nullptr);
+#endif
+
     const auto timeout = std::chrono::milliseconds(_timeoutCheckMs);
     _lastAliveTs = AGS_FastClock::now();
 
@@ -711,6 +740,13 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
         //---------------------------------------------------------------------
         /* End read operation */
         //=====================================================================
+
+#if (DEBUG_CC_EXEC)
+        if (dump_opcodes)
+        {
+            DumpInstruction(codeOp);
+        }
+#endif
 
         /* Perform operation */
         //=====================================================================
@@ -1999,6 +2035,120 @@ void ScriptExecutor::PopFromFuncCallStack(FunctionCallStack &func_callstack, int
     func_callstack.Head += num_entries;
     func_callstack.Count -= num_entries;
 }
+
+//-----------------------------------------------------------------------------
+//
+// Script execution debug dump.
+//
+// TODO: debug dump that we have now has a very bad performance,
+// and is mostly useless for games with big scripts, because it does not print
+// any information about the context (which script or function is run, etc).
+// It's ported from the older engine code without much change, only for the
+// reference. This needs some work to make it any useful with modern games.
+//
+//-----------------------------------------------------------------------------
+
+#if (DEBUG_CC_EXEC)
+
+void ScriptExecutor::OpenExecLog()
+{
+    // TODO: let configure file path
+    auto s = File::OpenFile("script.log", kFile_Create, kStream_Write);
+    _execWriter.reset(new TextStreamWriter(std::move(s)));
+}
+
+void ScriptExecutor::CloseExecLog()
+{
+    _execWriter = {};
+}
+
+const char *regnames[] = { "null", "sp", "mar", "ax", "bx", "cx", "op", "dx" };
+const char *fixupnames[] = { "null", "fix_gldata", "fix_func", "fix_string", "fix_import", "fix_datadata", "fix_stack" };
+
+void ScriptExecutor::DumpInstruction(const ScriptOperation &op) const
+{
+    assert(_execWriter);
+    if (!_execWriter)
+        return;
+
+    // line_num local var should be shared between all the instances
+    static int line_num = 0; // FIXME
+
+    if (op.Instruction.Code == SCMD_LINENUM)
+    {
+        line_num = op.Args[0].IValue;
+        return;
+    }
+
+    _execWriter->WriteFormat("Line %3d, IP:%8d (SP:%p) ", line_num, _pc, _registers[SREG_SP].RValue);
+
+    const ScriptCommandInfo &cmd_info = sccmd_info[op.Instruction.Code];
+    _execWriter->WriteString(cmd_info.CmdName);
+
+    for (int i = 0; i < cmd_info.ArgCount; ++i)
+    {
+        if (i > 0)
+        {
+            _execWriter->WriteChar(',');
+        }
+        if (cmd_info.ArgIsReg[i])
+        {
+            _execWriter->WriteFormat(" %s", regnames[op.Args[i].IValue]);
+        }
+        else
+        {
+            RuntimeScriptValue arg = op.Args[i];
+            if (arg.Type == kScValStackPtr || arg.Type == kScValGlobalVar)
+            {
+                arg = *arg.RValue;
+            }
+            switch(arg.Type) {
+            case kScValInteger:
+            case kScValPluginArg:
+                _execWriter->WriteFormat(" %d", arg.IValue);
+                break;
+            case kScValFloat:
+                _execWriter->WriteFormat(" %f", arg.FValue);
+                break;
+            case kScValStringLiteral:
+                _execWriter->WriteFormat(" \"%s\"", arg.Ptr);
+                break;
+            case kScValStackPtr:
+            case kScValGlobalVar:
+                _execWriter->WriteFormat(" %p", arg.RValue);
+                break;
+            case kScValData:
+            case kScValCodePtr:
+                _execWriter->WriteFormat(" %p", arg.GetPtrWithOffset());
+                break;
+            case kScValStaticArray:
+            case kScValScriptObject:
+            case kScValStaticFunction:
+            case kScValObjectFunction:
+            case kScValPluginFunction:
+            case kScValPluginObject:
+            {
+                String name = simp.FindName(arg);
+                if (!name.IsEmpty())
+                {
+                    _execWriter->WriteFormat(" &%s", name.GetCStr());
+                }
+                else
+                {
+                    _execWriter->WriteFormat(" %p", arg.GetPtrWithOffset());
+                }
+             }
+                break;
+            case kScValUndefined:
+				_execWriter->WriteString("undefined");
+                break;
+             }
+        }
+    }
+    _execWriter->WriteLineBreak();
+}
+
+#endif // DEBUG_CC_EXEC
 
 } // namespace Engine
 } // namespace AGS

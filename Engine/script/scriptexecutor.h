@@ -18,6 +18,16 @@
 #include "ac/timer.h"
 #include "script/runtimescript.h"
 
+// Script executor debugging flag:
+// enables mistake checks, but slows things down!
+#ifndef DEBUG_CC_EXEC
+#define DEBUG_CC_EXEC (AGS_PLATFORM_DEBUG)
+#endif
+
+#if (DEBUG_CC_EXEC)
+#include "util/textstreamwriter.h"
+#endif
+
 namespace AGS
 {
 namespace Engine
@@ -105,6 +115,7 @@ private:
 };
 
 
+struct ScriptOperation;
 struct FunctionCallStack;
 
 class ScriptExecutor
@@ -112,6 +123,7 @@ class ScriptExecutor
     using String = Common::String;
 public:
     ScriptExecutor() = default;
+    ~ScriptExecutor();
 
     // Begin executing the function in the given script, passing an array of parameters;
     // the script will be executed on the provided script thread.
@@ -193,6 +205,15 @@ private:
     void    PushToFuncCallStack(FunctionCallStack &func_callstack, const RuntimeScriptValue &rval);
     void    PopFromFuncCallStack(FunctionCallStack &func_callstack, int32_t num_entries);
 
+#if (DEBUG_CC_EXEC)
+    // Opens log for dumping execution steps
+    void    OpenExecLog();
+    // Closes execution log
+    void    CloseExecLog();
+    // Formats instruction into string output
+    void    DumpInstruction(const ScriptOperation &op) const;
+#endif
+
     // Current used thread
     ScriptThread *_thread = nullptr;
     // Thread stack holds a list of running or suspended script threads;
@@ -229,6 +250,11 @@ private:
     // Executed script callstack, contains *previous* script positions;
     // this is copied from the ScriptThread on start, and copied back when done
     std::deque<ScriptExecPosition> _callstack;
+
+#if (DEBUG_CC_EXEC)
+    // Execution logger, optional
+    std::unique_ptr<AGS::Common::TextStreamWriter> _execWriter;
+#endif
 
 
     // A value returned from plugin functions saved as RuntimeScriptValue.

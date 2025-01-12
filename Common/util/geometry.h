@@ -469,6 +469,11 @@ Rect PlaceInRect(const Rect &place, const Rect &item, const RectPlacement &place
 Rect SumRects(const Rect &r1, const Rect &r2);
 // Intersect two rectangles, the resolt is the rectangle bounding their intersection
 Rect IntersectRects(const Rect &r1, const Rect &r2);
+
+// Calculates the size of a rectangle necessary to accomodate the rect of original size
+// if it were rotated by the given angle (in degrees)
+Size RotateSize(Size sz, int degrees);
+
 //} // namespace Common
 //} // namespace AGS
 

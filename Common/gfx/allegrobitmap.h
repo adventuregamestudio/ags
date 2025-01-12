@@ -222,8 +222,8 @@ public:
     void    LitBlendBlt(Bitmap *src, int dst_x, int dst_y, int light_amount);
     // TODO: generic "draw transformed" function? What about mask option?
     void    FlipBlt(Bitmap *src, int dst_x, int dst_y, GraphicFlip flip);
-    void    RotateBlt(Bitmap *src, int dst_x, int dst_y, fixed_t angle);
-    void    RotateBlt(Bitmap *src, int dst_x, int dst_y, int pivot_x, int pivot_y, fixed_t angle);
+    void    RotateBlt(Bitmap *src, int dst_x, int dst_y, int angle);
+    void    RotateBlt(Bitmap *src, int dst_x, int dst_y, int pivot_x, int pivot_y, int angle);
 
     //=========================================================================
     // Pixel operations

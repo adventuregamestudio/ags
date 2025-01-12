@@ -77,14 +77,22 @@ namespace Math
             static_cast<T>(val) : def;
     }
 
-    inline float RadiansToDegrees(float rads)
+    inline double RadiansToDegrees(const double rads)
     {
-        return rads * (float)(180.0 / M_PI);
+        return rads * (180.0 / M_PI);
     }
 
-    inline float DegreesToRadians(float deg)
+    inline double DegreesToRadians(const double deg)
     {
-        return deg * (float)(M_PI / 180.0);
+        return deg * (M_PI / 180.0);
+    }
+
+    // Wraps the angle in degrees into [0;360) range
+    inline double ClampAngle360(const double degrees)
+    {
+        if (degrees >= 0.0)
+            return std::fmod(degrees, 360.0);
+        return std::fmod(360.0 + degrees, 360.0);
     }
 } // namespace Math
 

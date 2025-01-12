@@ -209,27 +209,16 @@ void DynamicSprite_Rotate(ScriptDynamicSprite *sds, int angle, int width, int he
     if (sds->slot == 0)
         quit("!DynamicSprite.Rotate: sprite has been deleted");
 
+    const int src_width = game.SpriteInfos[sds->slot].Width;
+    const int src_height = game.SpriteInfos[sds->slot].Height;
     if ((width == SCR_NO_VALUE) || (height == SCR_NO_VALUE)) {
-        // calculate the new image size automatically
-        // 1 degree = 181 degrees in terms of x/y size, so % 180
-        int useAngle = angle % 180;
-        // and 0..90 is the same as 180..90
-        if (useAngle > 90)
-            useAngle = 180 - useAngle;
-        // useAngle is now between 0 and 90 (otherwise the sin/cos stuff doesn't work)
-        double angleInRadians = (double)useAngle * (M_PI / 180.0);
-        double sinVal = sin(angleInRadians);
-        double cosVal = cos(angleInRadians);
-
-        width = (cosVal * (double)game.SpriteInfos[sds->slot].Width + sinVal * (double)game.SpriteInfos[sds->slot].Height);
-        height = (sinVal * (double)game.SpriteInfos[sds->slot].Width + cosVal * (double)game.SpriteInfos[sds->slot].Height);
+        Size rot_sz = RotateSize(Size(src_width, src_height), angle);
+        width = rot_sz.Width;
+        height = rot_sz.Height;
     }
     else {
         data_to_game_coords(&width, &height);
     }
-
-    // convert to allegro angle
-    angle = (angle * 256) / 360;
 
     // resize the sprite to the requested size
     Bitmap *sprite = spriteset[sds->slot];
@@ -238,7 +227,7 @@ void DynamicSprite_Rotate(ScriptDynamicSprite *sds, int angle, int width, int he
     // rotate the sprite about its centre
     // (+ width%2 fixes one pixel offset problem)
     new_pic->RotateBlt(sprite, width / 2 + width % 2, height / 2,
-        sprite->GetWidth() / 2, sprite->GetHeight() / 2, itofix(angle));
+        src_width / 2, src_height / 2, angle);
 
     // replace the bitmap in the sprite set
     add_dynamic_sprite(sds->slot, std::move(new_pic), (game.SpriteInfos[sds->slot].Flags & SPF_ALPHACHANNEL) != 0);

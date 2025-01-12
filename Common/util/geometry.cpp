@@ -141,5 +141,21 @@ Rect IntersectRects(const Rect &r1, const Rect &r2)
         std::min(r1.Right, r2.Right), std::min(r1.Bottom, r2.Bottom));
 }
 
+Size RotateSize(Size sz, int degrees)
+{
+    // 1 degree = 181 degrees in terms of x/y size, so % 180
+    int fixangle = degrees % 180;
+    // and 0..90 is the same as 180..90
+    if (fixangle > 90)
+        fixangle = 180 - fixangle;
+    // useAngle is now between 0 and 90 (otherwise the sin/cos stuff doesn't work)
+    const double rads = AGSMath::DegreesToRadians(fixangle);
+    const double sinv = sin(rads);
+    const double cosv = cos(rads);
+    const int width = (int)(cosv * (double)sz.Width + sinv * (double)sz.Height);
+    const int height = (int)(sinv * (double)sz.Width + cosv * (double)sz.Height);
+    return Size(width, height);
+}
+
 //} // namespace Common
 //} // namespace AGS

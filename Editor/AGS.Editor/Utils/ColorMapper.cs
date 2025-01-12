@@ -159,7 +159,7 @@ namespace AGS.Editor
         /// <summary>
         /// Generates a new colour number value from a legacy number.
         /// </summary>
-        public static int RemapFromLegacyColourNumber(int legacyColourNumber, PaletteEntry[] palette, GameColorDepth gameColorDepth)
+        public static int RemapFromLegacyColourNumber(int legacyColourNumber, PaletteEntry[] palette, GameColorDepth gameColorDepth, bool isBackgroundColor)
         {
             // For 8-bit games simply treat the color number as a palette index
             if (gameColorDepth == GameColorDepth.Palette)
@@ -167,9 +167,14 @@ namespace AGS.Editor
                 return legacyColourNumber;
             }
 
-            // Special color number 0 is treated as fully transparent
+            // Special color number 0 is treated depending on its purpose:
+            // * background color becomes fully transparent;
+            // * foreground color becomes opaque black
             if (legacyColourNumber == 0)
-                return 0;
+            {
+                return isBackgroundColor ? 0 : (0 | (0xFF << 24));
+            }
+
             // Special color numbers 1-31 were always interpreted as palette indexes;
             // for them we compose a 32-bit ARGB from the palette entry
             if ((legacyColourNumber > 0) && (legacyColourNumber < 32))

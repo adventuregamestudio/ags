@@ -621,14 +621,16 @@ namespace AGS.Editor
             return returnValue;
         }
 
+        private delegate int RemapColourProperty(int color, bool isBackgroundColor = false);
+
         /// <summary>
         /// Remaps all color properties in game from old color depth to a new color depth;
         /// for example: from palette mode to 32-bit mode, or other way.
         /// </summary>
         public static void RemapColourPropertiesOnDepthChange(Game game, GameColorDepth oldColorDepth)
         {
-            Func<int, int> remapColor = (color) => { return ColorMapper.RemapColourNumberToDepth(color, game.Palette, game.Settings.ColorDepth, oldColorDepth); };
-            RemapColourProperties(game, remapColor);
+            RemapColourProperty remapColor = (color, isBg) => { return ColorMapper.RemapColourNumberToDepth(color, game.Palette, game.Settings.ColorDepth, oldColorDepth); };
+            RemapColourProperties(game, remapColor );
         }
 
         /// <summary>
@@ -637,7 +639,7 @@ namespace AGS.Editor
         /// </summary>
         public static void RemapCharacterColours(Character character, Game game, GameColorDepth oldColorDepth)
         {
-            Func<int, int> remapColor = (color) => { return ColorMapper.RemapColourNumberToDepth(color, game.Palette, game.Settings.ColorDepth, oldColorDepth); };
+            RemapColourProperty remapColor = (color, isBg) => { return ColorMapper.RemapColourNumberToDepth(color, game.Palette, game.Settings.ColorDepth, oldColorDepth); };
             RemapColourProperties(character, remapColor);
         }
 
@@ -647,7 +649,7 @@ namespace AGS.Editor
         /// </summary>
         public static void RemapGUIColours(GUI gui, Game game, GameColorDepth oldColorDepth)
         {
-            Func<int, int> remapColor = (color) => { return ColorMapper.RemapColourNumberToDepth(color, game.Palette, game.Settings.ColorDepth, oldColorDepth); };
+            RemapColourProperty remapColor = (color, isBg) => { return ColorMapper.RemapColourNumberToDepth(color, game.Palette, game.Settings.ColorDepth, oldColorDepth); };
             RemapColourProperties(gui, remapColor);
         }
 
@@ -657,7 +659,7 @@ namespace AGS.Editor
         /// </summary>
         public static void RemapGUIColours(GUIControl guiControl, Game game, GameColorDepth oldColorDepth)
         {
-            Func<int, int> remapColor = (color) => { return ColorMapper.RemapColourNumberToDepth(color, game.Palette, game.Settings.ColorDepth, oldColorDepth); };
+            RemapColourProperty remapColor = (color, isBg) => { return ColorMapper.RemapColourNumberToDepth(color, game.Palette, game.Settings.ColorDepth, oldColorDepth); };
             RemapColourProperties(guiControl, remapColor);
         }
 
@@ -666,20 +668,31 @@ namespace AGS.Editor
         /// </summary>
         private static void RemapLegacyColourProperties(Game game)
         {
-            Func<int, int> remapColor = (color) => { return ColorMapper.RemapFromLegacyColourNumber(color, game.Palette, game.Settings.ColorDepth); };
+            RemapColourProperty remapColor = (color, isBg) => {
+                return ColorMapper.RemapFromLegacyColourNumber(color, game.Palette, game.Settings.ColorDepth, isBg);
+            };
             RemapColourProperties(game, remapColor);
         }
 
+        /// <summary>
+        /// Remaps 32-bit RGB color number to proper 32-bit ARGB.
+        /// This method has a nuance: the background colors of value 0 are treated as "transparent",
+        /// while foreground colors of value 0 are treated as "black".
+        /// </summary>
         private static void RemapOpaqueColourProperties(Game game)
         {
-            Func<int, int> remapColor = (color) => { return ColorMapper.MakeOpaque(color, game.Settings.ColorDepth); };
+            RemapColourProperty remapColor = (color, isBg) => {
+                if (isBg && (color == 0))
+                    return 0;
+                return ColorMapper.MakeOpaque(color, game.Settings.ColorDepth);
+            };
             RemapColourProperties(game, remapColor);
         }
 
         /// <summary>
         /// Remaps all color properties in game using provided delegate.
         /// </summary>
-        private static void RemapColourProperties(Game game, Func<int, int> remapColor)
+        private static void RemapColourProperties(Game game, RemapColourProperty remapColor)
         {
             var settings = game.Settings;
             settings.InventoryHotspotMarkerCrosshairColor = remapColor(settings.InventoryHotspotMarkerCrosshairColor);
@@ -696,18 +709,18 @@ namespace AGS.Editor
             }
         }
 
-        private static void RemapColourProperties(Character character, Func<int, int> remapColor)
+        private static void RemapColourProperties(Character character, RemapColourProperty remapColor)
         {
             character.SpeechColor = remapColor(character.SpeechColor);
         }
 
-        private static void RemapColourProperties(GUI gui, Func<int, int> remapColor)
+        private static void RemapColourProperties(GUI gui, RemapColourProperty remapColor)
         {
-            gui.BackgroundColor = remapColor(gui.BackgroundColor);
+            gui.BackgroundColor = remapColor(gui.BackgroundColor, isBackgroundColor: true);
             if (gui is NormalGUI)
             {
                 var ngui = gui as NormalGUI;
-                ngui.BorderColor = remapColor(ngui.BorderColor);
+                ngui.BorderColor = remapColor(ngui.BorderColor, isBackgroundColor: true);
             }
             else if (gui is TextWindowGUI)
             {
@@ -722,7 +735,7 @@ namespace AGS.Editor
             }
         }
 
-        private static void RemapColourProperties(GUIControl guiControl, Func<int, int> remapColor)
+        private static void RemapColourProperties(GUIControl guiControl, RemapColourProperty remapColor)
         {
             if (guiControl is GUIButton)
             {
@@ -739,7 +752,7 @@ namespace AGS.Editor
                 GUIListBox list = guiControl as GUIListBox;
                 list.TextColor = remapColor(list.TextColor);
                 list.SelectedTextColor = remapColor(list.SelectedTextColor);
-                list.SelectedBackgroundColor = remapColor(list.SelectedBackgroundColor);
+                list.SelectedBackgroundColor = remapColor(list.SelectedBackgroundColor, isBackgroundColor: true);
             }
             else if (guiControl is GUITextBox)
             {

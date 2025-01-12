@@ -23,6 +23,7 @@
 #undef max
 
 #include <algorithm>
+#include <cmath>
 #include <limits>
 
 #ifndef M_PI

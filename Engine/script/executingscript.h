@@ -108,6 +108,9 @@ struct PostScriptAction
 
 struct ExecutingScript
 {
+    // Some old games were (accidentally) relying on number of queued script calls being limited
+    static const int LEGACY_MAX_QUEUED_SCRIPTS = 4;
+
     // Instance refers either to one of the global instances,
     // or a ForkedInst created for this purpose
     ccInstance *Inst = nullptr;

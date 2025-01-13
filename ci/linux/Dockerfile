@@ -113,7 +113,7 @@ RUN curl -fLsS "https://github.com/xiph/theora/archive/refs/tags/v${LIBTHEORA_VE
   rm /tmp/libtheora-${LIBTHEORA_VERSION}.tar.gz 
 
 # Build and install SDL_sound
-ARG SDL2_SOUND_VERSION=16e626561f3b496e4a2da98c95d23359eeee3c01
+ARG SDL2_SOUND_VERSION=474dbf755a1b67ebe7a55467b4f65e033f268aff
 RUN cd /tmp && \
   curl -fLsS "https://github.com/icculus/SDL_sound/archive/$SDL2_SOUND_VERSION.tar.gz" --output SDL_sound.tar.gz && \
   tar -xvzf SDL_sound.tar.gz && \

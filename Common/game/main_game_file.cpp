@@ -213,7 +213,7 @@ HGameFileError OpenMainGameFileFromDefaultAsset(MainGameSource &src, AssetManage
     return OpenMainGameFileBase(src);
 }
 
-HGameFileError ReadDialogScript(PScript &dialog_script, Stream *in, GameDataVersion data_ver)
+HGameFileError ReadDialogScript(UScript &dialog_script, Stream *in, GameDataVersion data_ver)
 {
     dialog_script.reset(ccScript::CreateFromStream(in));
     if (dialog_script == nullptr)
@@ -221,7 +221,7 @@ HGameFileError ReadDialogScript(PScript &dialog_script, Stream *in, GameDataVers
     return HGameFileError::None();
 }
 
-HGameFileError ReadScriptModules(std::vector<PScript> &sc_mods, Stream *in, GameDataVersion data_ver)
+HGameFileError ReadScriptModules(std::vector<UScript> &sc_mods, Stream *in, GameDataVersion data_ver)
 {
     int count = in->ReadInt32();
     sc_mods.resize(count);

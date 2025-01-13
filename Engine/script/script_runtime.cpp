@@ -18,8 +18,10 @@
 #include "ac/dynobj/cc_dynamicarray.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "script/cc_common.h"
+#include "script/script.h"
 #include "script/systemimports.h"
 
+using namespace AGS::Engine;
 
 SystemImports simp;
 SystemImports simp_for_plugin;
@@ -67,9 +69,9 @@ bool ccAddExternalScriptObjectHandle(const String &name, void *ptr)
      return simp.Add(name, RuntimeScriptValue().SetScriptObject(ptr, &GlobalStaticManager), nullptr, kScValHint_Handle) != UINT32_MAX;
 }
 
-bool ccAddExternalScriptSymbol(const String &name, const RuntimeScriptValue &prval, ccInstance *inst)
+bool ccAddExternalScriptSymbol(const String &name, const RuntimeScriptValue &prval, RuntimeScript *script)
 {
-    return simp.Add(name, prval, inst) != UINT32_MAX;
+    return simp.Add(name, prval, script) != UINT32_MAX;
 }
 
 void ccRemoveExternalSymbol(const String &name)
@@ -144,13 +146,12 @@ new_line_hook_type new_line_hook = nullptr;
 void ccSetScriptAliveTimer(unsigned sys_poll_timeout, unsigned abort_timeout,
     unsigned abort_loops)
 {
-    ccInstance::SetExecTimeout(sys_poll_timeout, abort_timeout, abort_loops);
+    scriptExecutor->SetExecTimeout(sys_poll_timeout, abort_timeout, abort_loops);
 }
 
-void ccNotifyScriptStillAlive () {
-    ccInstance *cur_inst = ccInstance::GetCurrentInstance();
-    if (cur_inst)
-        cur_inst->NotifyAlive();
+void ccNotifyScriptStillAlive ()
+{
+    scriptExecutor->NotifyAlive();
 }
 
 void ccSetDebugHook(new_line_hook_type jibble)

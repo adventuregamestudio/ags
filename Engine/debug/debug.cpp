@@ -375,18 +375,9 @@ void shutdown_debug()
 static void debug_script_print_impl(const String &msg, MessageType mt)
 {
     String script_ref;
-    ccInstance *curinst = ccInstance::GetCurrentInstance();
-    if (curinst != nullptr) {
-        String scriptname;
-        if (curinst->GetScript() == gamescript)
-            scriptname = "G ";
-        else if (curinst->GetScript() == thisroom.CompiledScript)
-            scriptname = "R ";
-        else if (curinst->GetScript() == dialogScriptsScript)
-            scriptname = "D ";
-        else
-            scriptname = "? ";
-        script_ref.Format("[%s%d]", scriptname.GetCStr(), currentline);
+    if (scriptExecutor && scriptExecutor->GetRunningScript()) {
+        String scriptname = scriptExecutor->GetRunningScript()->GetTag();
+        script_ref.Format("[%s %d]", scriptname.GetCStr(), currentline);
     }
 
     Debug::Printf(kDbgGroup_Game, mt, "(room:%d)%s %s", displayed_room, script_ref.GetCStr(), msg.GetCStr());
@@ -600,7 +591,7 @@ int check_for_messages_from_debugger()
             String req_id(req_id_str + 1, var_ref_str - req_id_str - 1);
             String var_ref(var_ref_str + 1, end_str - var_ref_str - 1);
             MemoryInspect::VariableInfo var_info;
-            HError err = MemoryInspect::QueryScriptVariableInContext(var_ref, var_info);
+            HError err = MemoryInspect::QueryScriptVariableInContext(scriptExecutor.get(), var_ref, var_info);
             std::vector<std::pair<String, String>> values;
             values.push_back(std::make_pair("ReqID", req_id));
             if (err)
@@ -673,23 +664,22 @@ int scrDebugWait = 0;
 extern int pluginsWantingDebugHooks;
 
 // allow LShift to single-step,  RShift to pause flow
-void scriptDebugHook (ccInstance *ccinst, int linenum) {
+void scriptDebugHook(ScriptExecutor *exec, int linenum)
+{
+    if (!exec || !exec->GetRunningScript())
+    {
+        return; // not inside script
+    }
 
-    if (pluginsWantingDebugHooks > 0) {
+    if (pluginsWantingDebugHooks > 0)
+    {
         // a plugin is handling the debugging
-        const char *scname = ccinst ? ccinst->GetScript()->GetScriptName().c_str() : "(Not in script)";
-        pl_run_plugin_debug_hooks(scname, linenum);
+        String scname = exec->GetRunningScript()->GetScriptName();
+        pl_run_plugin_debug_hooks(scname.GetCStr(), linenum);
         return;
     }
 
     // no plugin, use built-in debugger
-
-    if (ccinst == nullptr) 
-    {
-        // come out of script
-        return;
-    }
-
     if (break_on_next_script_step) 
     {
         break_on_next_script_step = 0;
@@ -697,7 +687,7 @@ void scriptDebugHook (ccInstance *ccinst, int linenum) {
         return;
     }
 
-    String scriptName = ccinst->GetRunningInst()->GetScript()->GetSectionName(ccinst->GetPC());
+    String scriptName = exec->GetRunningScript()->GetSectionName(exec->GetPC());
     for (const auto & breakpoint : breakpoints)
     {
         if ((breakpoint.lineNumber == linenum) &&

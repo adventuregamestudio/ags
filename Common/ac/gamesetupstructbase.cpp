@@ -144,6 +144,7 @@ const char *GetScriptAPIName(ScriptAPIVersion v)
     case kScriptAPI_v399: return "3.99.x";
     case kScriptAPI_v400: return "4.0.0-alpha8";
     case kScriptAPI_v400_07: return "4.0.0-alpha12";
+    case kScriptAPI_v400_14: return "4.0.0-alpha18";
     default: return "unknown";
     }
 }

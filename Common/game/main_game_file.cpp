@@ -319,24 +319,33 @@ static const uint8_t RGBScale6[64]
 // Remaps color number from legacy to new format:
 // * palette index in 8-bit game,
 // * encoded 32-bit A8R8G8B8 in 32-bit game.
-static int RemapFromLegacyColourNumber(const GameSetupStruct &game, int color)
+static int RemapFromLegacyColourNumber(const GameSetupStruct &game, int color, bool is_bg = false)
 {
     if (game.color_depth == 1)
         return color; // keep palette index
 
-    // Special 0-31 color numbers were always interpreted as palette indexes;
-    // for them we compose a 32-bit xRGB from the palette entry
+    // Special color number 0 is treated depending on its purpose:
+    // * background color becomes fully transparent;
+    // * foreground color becomes opaque black
+    if (color == 0)
+    {
+        return is_bg ? 0 : (0 | (0xFF << 24));
+    }
+
+    // Special color numbers 1-31 were always interpreted as palette indexes;
+    // for them we compose a 32-bit ARGB from the palette entry
     if (color >= 0 && color < 32)
     {
         const RGB &rgb = game.defpal[color];
-        return rgb.b | (rgb.g << 8) | (rgb.r << 16);
+        return rgb.b | (rgb.g << 8) | (rgb.r << 16) | (0xFF << 24);
     }
 
-    // The rest is a R5G6B5 color; we convert it to a proper 32-bit xRGB
+    // The rest is a R5G6B5 color; we convert it to a proper 32-bit ARGB;
+    // color is always opaque when ported from legacy projects
     uint8_t red = RGBScale5[(color >> 11) & 0x1f];
     uint8_t green = RGBScale6[(color >> 5) & 0x3f];
     uint8_t blue = RGBScale5[(color) & 0x1f];
-    return blue | (green << 8) | (red << 16);
+    return blue | (green << 8) | (red << 16) | (0xFF << 24);
 }
 
 void UpgradeGame(GameSetupStruct &game, GameDataVersion data_ver)
@@ -415,8 +424,9 @@ void UpgradeGUI(GameSetupStruct &game, LoadedGameEntities &ents, GameDataVersion
     {
         for (auto &gui : ents.Guis)
         {
-            gui.BgColor = RemapFromLegacyColourNumber(game, gui.BgColor);
-            gui.FgColor = RemapFromLegacyColourNumber(game, gui.FgColor);
+            gui.BgColor = RemapFromLegacyColourNumber(game, gui.BgColor, true);
+            gui.FgColor = RemapFromLegacyColourNumber(game, gui.FgColor, !gui.IsTextWindow()
+                /* right, treat border as background for normal gui */);
         }
 
         for (auto &btn : ents.GuiControls.Buttons)
@@ -432,7 +442,7 @@ void UpgradeGUI(GameSetupStruct &game, LoadedGameEntities &ents, GameDataVersion
         for (auto &list : ents.GuiControls.ListBoxes)
         {
             list.TextColor = RemapFromLegacyColourNumber(game, list.TextColor);
-            list.SelectedBgColor = RemapFromLegacyColourNumber(game, list.SelectedBgColor);
+            list.SelectedBgColor = RemapFromLegacyColourNumber(game, list.SelectedBgColor, true);
             list.SelectedTextColor = RemapFromLegacyColourNumber(game, list.SelectedTextColor);
         }
 

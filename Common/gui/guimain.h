@@ -281,6 +281,8 @@ public:
     // Last selected inventory item's pic
     int InventoryPic = -1;
 
+    // Standard colors are used as defaults if no user setting exists;
+    // all of them are fully opaque RGBs.
     const static int MaxStandardColors = 32;
     const static int StandardColors[MaxStandardColors];
 };

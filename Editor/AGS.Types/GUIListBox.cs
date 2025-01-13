@@ -22,10 +22,7 @@ namespace AGS.Types
             _showScrollArrows = true;
             _textColor = 0;
             _selectedTextColor = 7;
-            // FIXME: selected bg color was 16, but had to change to 17 as a temp hotfix,
-            // because 16 is pure black (ags color property = 0), and ListBox refuses to
-            // paint selection if property eq 0.
-            _selectedBackgroundColor = 17;
+            _selectedBackgroundColor = 16;
             _textAlignment = HorizontalAlignment.Left;
         }
 
@@ -86,6 +83,7 @@ namespace AGS.Types
         [RefreshProperties(RefreshProperties.All)]
         [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         [TypeConverter(typeof(CustomColorConverter))]
+        [SerializeAsHex]
         public int TextColor
         {
             get { return _textColor; }
@@ -98,6 +96,7 @@ namespace AGS.Types
         [RefreshProperties(RefreshProperties.All)]
         [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         [TypeConverter(typeof(CustomColorConverter))]
+        [SerializeAsHex]
         public int SelectedTextColor
         {
             get { return _selectedTextColor; }
@@ -110,6 +109,7 @@ namespace AGS.Types
         [RefreshProperties(RefreshProperties.All)]
         [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         [TypeConverter(typeof(CustomColorConverter))]
+        [SerializeAsHex]
         public int SelectedBackgroundColor
         {
             get { return _selectedBackgroundColor; }

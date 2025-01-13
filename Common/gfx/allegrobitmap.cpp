@@ -540,18 +540,11 @@ void Bitmap::SetScanLine(int index, unsigned char *data, int data_size)
 namespace BitmapHelper
 {
 
-int AGSColorToBitmapColor(int color, int color_depth)
+int AGSColorToBitmapColor(int color, int /*color_depth*/)
 {
     // no conversion necessary, we assume that "ags color" is matching
     // palette index in 8-bit mode and 32-bit A8R8G8B8 in 32-bit mode
-    if (color_depth == 8)
-    {
-        return color;
-    }
-    else
-    {
-        return color | 0xFF000000; // temporary fix for missing alpha in color values
-    }
+    return color;
 }
 
 void AGSColorToRGB(int color, int color_depth, RGB &rgb)

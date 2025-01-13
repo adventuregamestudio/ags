@@ -179,11 +179,7 @@ namespace AGS.Types
                 }
                 if ((prop.CanRead) && (prop.CanWrite))
                 {
-                    bool canSerializeClass = false;
-                    if (prop.GetCustomAttributes(typeof(AGSSerializeClassAttribute), true).Length > 0)
-                    {
-                        canSerializeClass = true;
-                    }
+                    bool canSerializeClass = prop.GetCustomAttribute(typeof(AGSSerializeClassAttribute), true) != null;
 
                     if (prop.GetValue(obj, null) == null)
                     {
@@ -208,6 +204,13 @@ namespace AGS.Types
                             }
                             writer.WriteString(propValue);
                             writer.WriteEndElement();
+                        }
+                        else if (prop.PropertyType == typeof(int))
+                        {
+                            if (prop.GetCustomAttribute(typeof(SerializeAsHex), true) != null)
+                                writer.WriteElementString(prop.Name, $"0x{((int)prop.GetValue(obj, null)).ToString("X8")}");
+                            else
+                                writer.WriteElementString(prop.Name, prop.GetValue(obj, null).ToString());
                         }
                         // We must use InvariantCulture for floats and doubles, because their
                         // format depends on local system settings used when the project was saved
@@ -305,7 +308,15 @@ namespace AGS.Types
                 }
                 else if (prop.PropertyType == typeof(int))
                 {
-                    prop.SetValue(obj, Convert.ToInt32(elementValue), null);
+                    if (prop.GetCustomAttribute(typeof(SerializeAsHex), true) != null &&
+                        elementValue.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+                    {
+                        prop.SetValue(obj, Convert.ToInt32(elementValue, 16), null);
+                    }
+                    else
+                    {
+                        prop.SetValue(obj, Convert.ToInt32(elementValue), null);
+                    }
                 }
                 else if (prop.PropertyType == typeof(short))
                 {

@@ -137,6 +137,10 @@ Palette component range changed from 64 to 256
 Font file names
 4.0.0.11:
 Incremented version, marking sync with 3.6.2.3
+4.0.0.13:
+Room names are always serialized, not just in Debug config (had to adjust format)
+4.0.0.14:
+Obligatory alpha component in 32-bit color. SCR_COLOR_TRANSPARENT is redefined as 0.
 */
 
 enum GameDataVersion
@@ -155,8 +159,9 @@ enum GameDataVersion
     kGameVersion_400_10         = 4000010,
     kGameVersion_400_11         = 4000011,
     kGameVersion_400_13         = 4000013,
+    kGameVersion_400_14         = 4000014,
     kGameVersion_LowSupported   = kGameVersion_360_21,
-    kGameVersion_Current        = kGameVersion_400_13
+    kGameVersion_Current        = kGameVersion_400_14
 };
 
 // Data format version of the loaded game

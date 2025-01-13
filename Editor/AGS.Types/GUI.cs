@@ -52,6 +52,7 @@ namespace AGS.Types
         [RefreshProperties(RefreshProperties.All)]
         [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         [TypeConverter(typeof(CustomColorConverter))]
+        [SerializeAsHex]
         public int BackgroundColor
         {
             get { return _bgcol; }

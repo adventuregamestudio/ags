@@ -784,7 +784,7 @@ int Game_GetColorFromRGB(int red, int grn, int blu) {
         return makecol8(red, grn, blu);
     }
 
-    return makecol32(red, grn, blu);
+    return makeacol32(red, grn, blu, 0xFF);
 }
 
 const char* Game_InputBox(const char *msg) {

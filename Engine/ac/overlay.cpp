@@ -80,7 +80,7 @@ void Overlay_SetText(ScreenOverlay &over, int x, int y, int width, int fontid, i
 
     // from Overlay_CreateTextCore
     if (width < 8) width = play.GetUIViewport().GetWidth() / 2;
-    if (text_color == 0) text_color = 16;
+    if (text_color == 0) text_color = GUI::GetStandardColor(16);
 
     const char *draw_text = get_translation(text);
     // Skip a voice-over token, if present
@@ -241,7 +241,7 @@ ScreenOverlay *Overlay_CreateTextCore(bool room_layer, int x, int y, int width, 
 {
     if (width < 8) width = play.GetUIViewport().GetWidth() / 2;
     if (x < 0) x = play.GetUIViewport().GetWidth() / 2 - width / 2;
-    if (text_color == 0) text_color = 16;
+    if (text_color == 0) text_color = GUI::GetStandardColor(16);
     // Skip a voice-over token, if present
     const char *draw_text = skip_voiceover_token(text);
     return display_main(x, y, width, draw_text, nullptr, kDisplayText_NormalOverlay, over_type,

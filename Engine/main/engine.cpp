@@ -740,7 +740,7 @@ void engine_init_game_settings()
     play.speech_volume = 255;
     play.normal_font = 0;
     play.speech_font = 1;
-    play.speech_text_shadow = 16;
+    play.speech_text_shadow = GUI::GetStandardColor(16);
     play.screen_tint = -1;
     play.bad_parsed_word.Empty();
     play.swap_portrait_side = 0;
@@ -768,9 +768,9 @@ void engine_init_game_settings()
     play.disable_dialog_parser = 0;
     play.screen_is_faded_out = 0;
     play.player_on_region = 0;
-    play.top_bar_backcolor = 8;
-    play.top_bar_textcolor = 16;
-    play.top_bar_bordercolor = 8;
+    play.top_bar_backcolor = GUI::GetStandardColor(8);
+    play.top_bar_textcolor = GUI::GetStandardColor(16);
+    play.top_bar_bordercolor = GUI::GetStandardColor(8);
     play.top_bar_borderwidth = 1;
     play.top_bar_ypos = 25;
     play.top_bar_font = -1;

@@ -46,7 +46,7 @@
 #define KEEP_MOVING    0
 
 #define SCR_NO_VALUE   31998
-#define SCR_COLOR_TRANSPARENT -1
+#define SCR_COLOR_TRANSPARENT 0
 
 #define FONT_STATUSBAR  0
 #define FONT_NORMAL     play.normal_font

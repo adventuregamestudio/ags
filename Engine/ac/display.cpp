@@ -257,7 +257,7 @@ Bitmap *create_textual_image(const char *text, const DisplayTextLooks &look, col
 
         if (drawBackground)
         {
-            text_color = 15; // use fixed standard color here
+            text_color = GUI::GetStandardColorForBitmap(15); // use fixed standard color here
             draw_text_window_and_bar(&text_window_ds, wantFreeScreenop, topbar, disp,
                 &ttxleft, &ttxtop, &adjustedXX, &adjustedYY, &wii, &text_color, 0, usingGui);
         }
@@ -295,7 +295,7 @@ Bitmap *create_textual_image(const char *text, const DisplayTextLooks &look, col
     {
         // Textual overlay purposed for the standard message box
         int xoffs, yoffs, oriwid = wii - padding * 2;
-        text_color = 15; // use fixed standard color here
+        text_color = GUI::GetStandardColorForBitmap(15); // use fixed standard color here
         draw_text_window_and_bar(&text_window_ds, wantFreeScreenop, topbar, disp, &xoffs, &yoffs, &adjustedXX, &adjustedYY, &wii, &text_color);
 
         adjust_y_coordinate_for_text(&yoffs, usingfont);
@@ -743,20 +743,21 @@ int get_but_pic(GUIMain*guo,int indx)
     return butid >= 0 ? guibuts[butid].GetNormalImage() : 0;
 }
 
-void draw_button_background(Bitmap *ds, int xx1,int yy1,int xx2,int yy2,GUIMain*iep) {
-    color_t draw_color;
-    if (iep==nullptr) {  // standard window
-        draw_color = GUI::GetStandardColorForBitmap(15);
+void draw_button_background(Bitmap *ds, int xx1,int yy1,int xx2,int yy2,GUIMain*iep)
+{
+    if (iep == nullptr)
+    {
+        // Standard window
+        color_t draw_color = GUI::GetStandardColorForBitmap(15);
         ds->FillRect(Rect(xx1,yy1,xx2,yy2), draw_color);
         draw_color = GUI::GetStandardColorForBitmap(16);
         ds->DrawRect(Rect(xx1,yy1,xx2,yy2), draw_color);
     }
-    else {
-        if (iep->BgColor >= 0) draw_color = ds->GetCompatibleColor(iep->BgColor);
-        else draw_color = GUI::GetStandardColorForBitmap(0); // black backrgnd behind picture
-
-        if (iep->BgColor > 0)
-            ds->FillRect(Rect(xx1,yy1,xx2,yy2), draw_color);
+    else
+    {
+        // Custom text window
+        if (iep->BgColor != 0)
+            ds->FillRect(Rect(xx1,yy1,xx2,yy2), MakeColor(iep->BgColor));
 
         const int leftRightWidth = game.SpriteInfos[get_but_pic(iep,4)].Width;
         const int topBottomHeight = game.SpriteInfos[get_but_pic(iep,6)].Height;

@@ -88,13 +88,13 @@
 #define OPT_SAVECOMPONENTSIGNORE 55
 #define OPT_LIPSYNCTEXT       99
 
-#define COLOR_TRANSPARENT -1
-#define DIALOG_PARSER_SELECTED -3053
+#define COLOR_TRANSPARENT     0
+#define SCR_NO_VALUE          31998   // $AUTOCOMPLETEIGNORE$
+
+#define DIALOG_PARSER_SELECTED   -3053
 #define RUN_DIALOG_RETURN        -1
 #define RUN_DIALOG_STOP_DIALOG   -2
 #define RUN_DIALOG_GOTO_PREVIOUS -4
-
-#define SCR_NO_VALUE   31998   // $AUTOCOMPLETEIGNORE$
 
 #ifdef SCRIPT_API_v399
   #define AXIS_DEFAULT_DEADZONE 0.125
@@ -743,7 +743,7 @@ builtin managed struct ViewFrame {
 
 builtin managed struct DrawingSurface {
   /// Clears the surface to the specified colour, or transparent if you do not specify a colour.
-  import void Clear(int colour=-SCR_NO_VALUE);
+  import void Clear(int colour=COLOR_TRANSPARENT);
   /// Creates a copy of the surface.
   import DrawingSurface* CreateCopy();
   /// Draws a circle onto the surface with its centre at (x,y).

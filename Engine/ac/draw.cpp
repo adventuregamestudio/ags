@@ -2958,7 +2958,7 @@ void update_room_debug()
                 int targetx = cmls.pos[i + 1].X;
                 int targety = cmls.pos[i + 1].Y;
                 debugMoveListObj.Bmp->DrawLine(Line(srcx / mult, srcy / mult, targetx / mult, targety / mult),
-                    MakeColor(i + 1));
+                    GUI::GetStandardColorForBitmap(i + 1));
             }
         }
         sync_object_texture(debugMoveListObj);

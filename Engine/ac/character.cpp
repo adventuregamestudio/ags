@@ -957,37 +957,50 @@ void Character_SetSpeed(CharacterInfo *chaa, int xspeed, int yspeed) {
     }
 }
 
-void Character_StopMoving(CharacterInfo *charp) {
+void Character_StopMoving(CharacterInfo *chi)
+{
+    // If not moving, then clear the move-related flags (for safety) and bail out
+    // NOTE: I recall there was a potential case when this flag could remain after Move...
+    if (chi->walking == 0)
+    {
+        chi->flags &= ~CHF_MOVENOTWALK;
+        return;
+    }
 
-    int chaa = charp->index_id;
-    if (chaa == play.skip_until_char_stops)
+    int chid = chi->index_id;
+    if (chid == play.skip_until_char_stops)
         EndSkippingUntilCharStops();
 
-    if (charextra[chaa].xwas != INVALID_X) {
-        charp->x = charextra[chaa].xwas;
-        charp->y = charextra[chaa].ywas;
-        charextra[chaa].xwas = INVALID_X;
-    }
-    if ((charp->walking > 0) && (charp->walking < TURNING_AROUND)) {
-        // if it's not a MoveCharDirect, make sure they end up on a walkable area
-        if ((mls[charp->walking].direct == 0) && (charp->room == displayed_room))
-            Character_PlaceOnWalkableArea(charp);
-
-        debug_script_log("%s: stop moving", charp->scrname);
-
-        charp->idleleft = charp->idletime;
-        // restart the idle animation straight away
-        charextra[chaa].process_idle_this_time = 1;
-    }
-    if (charp->walking)
+    CharacterExtras &chex = charextra[chid];
+    // Fixup position to the last saved one (CHECKME: find out what this means)
+    if (chex.xwas != INVALID_X)
     {
-        // If the character is *currently* moving, stop them and reset their frame
-        charp->walking = 0;
-        if ((charp->flags & CHF_MOVENOTWALK) == 0)
-            charp->frame = 0;
+        chi->x = chex.xwas;
+        chi->y = chex.ywas;
+        chex.xwas = INVALID_X;
     }
-    // Reset any moving-related flags
-    charp->flags &= ~CHF_MOVENOTWALK;
+
+    // If it is in walking state, and is *not* during turning around,
+    // then validate the character position, ensuring that it does not
+    // end on a non-walkable area and gets stuck.
+    if ((chi->walking < TURNING_AROUND) && (chi->room == displayed_room))
+    {
+        if ((mls[chi->walking].direct == 0))
+            Character_PlaceOnWalkableArea(chi);
+    }
+
+    debug_script_log("%s: stop moving", chi->scrname);
+
+    // Switch character state from walking to standing
+    chi->walking = 0;
+    // If the character was walking, then reset their frame
+    if ((chi->flags & CHF_MOVENOTWALK) == 0)
+        chi->frame = 0;
+    chi->flags &= ~CHF_MOVENOTWALK;
+
+    // Restart idle timer and mark to process right away (in case its persistent idling)
+    chi->idleleft = chi->idletime;
+    chex.process_idle_this_time = 1;
 }
 
 void Character_Tint(CharacterInfo *chaa, int red, int green, int blue, int opacity, int luminance) {

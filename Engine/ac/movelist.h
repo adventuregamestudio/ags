@@ -57,7 +57,7 @@ public:
     // made a fractional value to let recalculate movelist dynamically
     float   onpart = 0.f;
     uint8_t doneflag = 0u;
-    uint8_t direct = 0;  // MoveCharDirect was used or not
+    uint8_t direct = 0;  // ignoring walkable areas (yes = 1, no = 0)
 
     // Dynamic fixups, not serialized
     // Final section move speed and steps, used when an object

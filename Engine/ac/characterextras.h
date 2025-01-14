@@ -44,7 +44,7 @@ struct CharacterExtras
     short width = 0;
     short height = 0;
     short zoom = 100;
-    short xwas = 0;
+    short xwas = 0; // TODO: figure out how these xwas,ywas are being used and comment them
     short ywas = 0;
     short tint_r = 0;
     short tint_g = 0;

@@ -20,7 +20,6 @@
 #include "ac/event.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
-#include "ac/global_character.h"
 #include "ac/global_game.h"
 #include "ac/movelist.h"
 #include "ac/properties.h"
@@ -105,10 +104,8 @@ void NewRoom(int nrnum) {
         // we might be within a MoveCharacterBlocking -- the room
         // change should abort it
         if (is_char_walking_ndirect(playerchar)) {
-            // nasty hack - make sure it doesn't move the character
-            // to a walkable area
-            mls[playerchar->walking].move_direct = 1;
-            StopMoving(game.playercharacter);
+            // stop the character, but doesn't fix the character to a walkable area
+            Character_StopMovingEx(playerchar, false);
         }
     }
     else if (in_graph_script)

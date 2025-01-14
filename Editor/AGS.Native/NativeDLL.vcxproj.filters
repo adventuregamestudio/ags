@@ -225,6 +225,12 @@
     <ClInclude Include="IScriptCompiler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="IScriptCompiler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CompiledScript.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="NativeDLL.rc">

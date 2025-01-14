@@ -39,7 +39,7 @@ At the time of writing SDL_Sound `2.*` has just been released, but almost no lin
 Until that is resolved, we recommend to clone their repository from https://github.com/icculus/SDL_sound.
 Or download particular revision archive using following url:
 
-    https://github.com/icculus/SDL_sound/archive/c5639414c1bb24fb4eef5861c13adb42a4aab950.tar.gz
+    https://github.com/icculus/SDL_sound/archive/474dbf755a1b67ebe7a55467b4f65e033f268aff.tar.gz
 
 then build and install using CMake (see instructions in the SDL_Sound's docs).
 

@@ -3,7 +3,7 @@
 FROM ubuntu:jammy
 
 # The current used version of emsdk
-ARG EMSCRIPTEN_VERSION=3.1.55
+ARG EMSCRIPTEN_VERSION=3.1.74
 ENV EMSDK=/emsdk
 
 #fix TZ docker hang
@@ -91,7 +91,7 @@ RUN echo "## Aggressive optimization: Remove debug symbols" \
 # using `--entrypoint /bin/bash` in CLI).
 # This corresponds to the env variables set during: `source ./emsdk_env.sh`
 ENV EMSDK=/emsdk \
-    PATH="/emsdk:/emsdk/upstream/emscripten:/emsdk/node/16.20.0_64bit/bin:${PATH}"
+    PATH="/emsdk:/emsdk/upstream/emscripten:/emsdk/node/20.18.0_64bit/bin:${PATH}"
 
 # ------------------------------------------------------------------------------
 # Create a 'standard` 1000:1000 user

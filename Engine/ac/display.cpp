@@ -261,6 +261,8 @@ Bitmap *create_textual_image(const char *text, const DisplayTextLooks &look, col
             draw_text_window_and_bar(&text_window_ds, wantFreeScreenop, topbar, disp,
                 &ttxleft, &ttxtop, &adjustedXX, &adjustedYY, &wii, &text_color, 0, usingGui);
         }
+        {
+        }
 
         // Assign final text color, either use passed parameter, or TextWindow property
         if (fix_look.Style == kDisplayTextStyle_TextWindow)

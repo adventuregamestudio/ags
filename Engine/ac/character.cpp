@@ -193,7 +193,7 @@ void Character_AddWaypoint(CharacterInfo *chaa, int x, int y) {
         return;
     }
 
-    MoveList &cmls = mls[chaa->walking % TURNING_AROUND];
+    MoveList &cmls = mls[chaa->get_movelist_id()];
 
     // They're already walking there anyway
     const Point &last_pos = cmls.GetLastPos();
@@ -933,43 +933,60 @@ void Character_SetSpeed(CharacterInfo *chaa, int xspeed, int yspeed) {
     else
         chaa->walkspeed_y = yspeed;
 
-    if (chaa->walking > 0)
+    if (chaa->is_moving())
     {
-        Pathfinding::RecalculateMoveSpeeds(mls[chaa->walking % TURNING_AROUND], old_speedx, old_speedy, xspeed, yspeed);
+        Pathfinding::RecalculateMoveSpeeds(mls[chaa->get_movelist_id()], old_speedx, old_speedy, xspeed, yspeed);
     }
 }
 
-void Character_StopMoving(CharacterInfo *charp) {
+void Character_StopMoving(CharacterInfo *chi)
+{
+    Character_StopMovingEx(chi, chi->is_moving() && (mls[chi->walking].move_direct == 0));
+}
 
-    int chaa = charp->index_id;
-    if (chaa == play.skip_until_char_stops)
+void Character_StopMovingEx(CharacterInfo *chi, bool force_walkable_area)
+{
+    // If not moving, then clear the move-related flags (for safety) and bail out
+    // NOTE: I recall there was a potential case when this flag could remain after Move...
+    if (chi->walking == 0)
+    {
+        chi->flags &= ~CHF_MOVENOTWALK;
+        return;
+    }
+
+    int chid = chi->index_id;
+    if (chid == play.skip_until_char_stops)
         EndSkippingUntilCharStops();
 
-    if (charextra[chaa].xwas != INVALID_X) {
-        charp->x = charextra[chaa].xwas;
-        charp->y = charextra[chaa].ywas;
-        charextra[chaa].xwas = INVALID_X;
-    }
-    if ((charp->walking > 0) && (charp->walking < TURNING_AROUND)) {
-        // if it's not a MoveCharDirect, make sure they end up on a walkable area
-        if ((mls[charp->walking].move_direct == 0) && (charp->room == displayed_room))
-            Character_PlaceOnWalkableArea(charp);
-
-        debug_script_log("%s: stop moving", charp->scrname.GetCStr());
-
-        charp->idleleft = charp->idletime;
-        // restart the idle animation straight away
-        charextra[chaa].process_idle_this_time = 1;
-    }
-    if (charp->walking)
+    CharacterExtras &chex = charextra[chid];
+    // Fixup position to the last saved one (CHECKME: find out what this means)
+    if (chex.xwas != INVALID_X)
     {
-        // If the character is *currently* moving, stop them and reset their frame
-        charp->walking = 0;
-        if ((charp->flags & CHF_MOVENOTWALK) == 0)
-            charp->frame = 0;
+        chi->x = chex.xwas;
+        chi->y = chex.ywas;
+        chex.xwas = INVALID_X;
     }
-    // Reset any moving-related flags
-    charp->flags &= ~CHF_MOVENOTWALK;
+
+    // If it is in walking state, and is *not* during turning around,
+    // then validate the character position, ensuring that it does not
+    // end on a non-walkable area and gets stuck.
+    if (force_walkable_area && (chi->walking < TURNING_AROUND) && (chi->room == displayed_room))
+    {
+        Character_PlaceOnWalkableArea(chi);
+    }
+
+    debug_script_log("%s: stop moving", chi->scrname.GetCStr());
+
+    // Switch character state from walking to standing
+    chi->walking = 0;
+    // If the character was walking, then reset their frame
+    if ((chi->flags & CHF_MOVENOTWALK) == 0)
+        chi->frame = 0;
+    chi->flags &= ~CHF_MOVENOTWALK;
+
+    // Restart idle timer and mark to process right away (in case its persistent idling)
+    chi->idleleft = chi->idletime;
+    chex.process_idle_this_time = 1;
 }
 
 void Character_Tint(CharacterInfo *chaa, int red, int green, int blue, int opacity, int luminance) {
@@ -1449,7 +1466,7 @@ int Character_GetMoving(CharacterInfo *chaa) {
 
 int Character_GetDestinationX(CharacterInfo *chaa) {
     if (chaa->walking) {
-        MoveList *cmls = &mls[chaa->walking % TURNING_AROUND];
+        MoveList *cmls = &mls[chaa->get_movelist_id()];
         return cmls->pos.back().X;
     }
     else
@@ -1458,7 +1475,7 @@ int Character_GetDestinationX(CharacterInfo *chaa) {
 
 int Character_GetDestinationY(CharacterInfo *chaa) {
     if (chaa->walking) {
-        MoveList *cmls = &mls[chaa->walking % TURNING_AROUND];
+        MoveList *cmls = &mls[chaa->get_movelist_id()];
         return cmls->pos.back().Y;
     }
     else
@@ -1834,7 +1851,7 @@ void move_character_impl(CharacterInfo *chin, const std::vector<Point> *path, in
     {
         waitWas = chin->walkwait;
         animWaitWas = charextra[chac].animwait;
-        const auto &movelist = mls[chin->walking % TURNING_AROUND];
+        const auto &movelist = mls[chin->get_movelist_id()];
         // We set (fraction + 1), because movelist is always +1 ahead of current character pos;
         if (movelist.onpart > 0.f)
             wasStepFrac = movelist.GetPixelUnitFraction() + movelist.GetStepLength();
@@ -1945,7 +1962,7 @@ void start_character_turning (CharacterInfo *chinf, int useloop, int no_diagonal
     if ((toidx < fromidx) && ((fromidx - toidx) < 4))
         go_anticlock = 1;
     // strip any current turning_around stages
-    chinf->walking = chinf->walking % TURNING_AROUND;
+    chinf->walking = chinf->get_movelist_id();
     if (go_anticlock)
         chinf->walking += TURNING_BACKWARDS;
     else
@@ -2073,7 +2090,7 @@ int doNextCharMoveStep(CharacterInfo *chi, CharacterExtras *chex) {
 
 bool is_char_walking_ndirect(CharacterInfo *chi)
 {
-    return ((chi->walking > 0) && (chi->walking < TURNING_AROUND)) &&
+    return chi->is_moving_not_turning() &&
         (mls[chi->walking].move_direct == 0);
 }
 

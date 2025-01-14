@@ -92,7 +92,7 @@ RUN curl -fLsS "https://github.com/xiph/vorbis/releases/download/v${LIBVORBIS_VE
   rm /tmp/libvorbis-${LIBVORBIS_VERSION}.tar.gz 
 
 # Build and install SDL2
-ARG SDL_VERSION=release-2.28.5
+ARG SDL_VERSION=release-2.30.11
 RUN curl -fLsS "https://github.com/libsdl-org/SDL/archive/refs/tags/${SDL_VERSION}.tar.gz" | tar -f - -xvzC /tmp && \
   cd /tmp/SDL-${SDL_VERSION} && \
   ./configure --enable-shared --enable-loadso --enable-pulseaudio-shared --enable-sndio-shared --enable-x11-shared --enable-oss=no --enable-libsamplerate-shared --enable-video-wayland=no --enable-directfb-shared --enable-rpath=no && \
@@ -113,7 +113,7 @@ RUN curl -fLsS "https://github.com/xiph/theora/archive/refs/tags/v${LIBTHEORA_VE
   rm /tmp/libtheora-${LIBTHEORA_VERSION}.tar.gz 
 
 # Build and install SDL_sound
-ARG SDL2_SOUND_VERSION=c5639414c1bb24fb4eef5861c13adb42a4aab950
+ARG SDL2_SOUND_VERSION=474dbf755a1b67ebe7a55467b4f65e033f268aff
 RUN cd /tmp && \
   curl -fLsS "https://github.com/icculus/SDL_sound/archive/$SDL2_SOUND_VERSION.tar.gz" --output SDL_sound.tar.gz && \
   tar -xvzf SDL_sound.tar.gz && \

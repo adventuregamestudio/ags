@@ -11,11 +11,12 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-
 #include "ac/math.h"
 #include <cmath>
 #include "ac/common.h" // quit
 #include "util/math.h"
+
+using namespace AGS::Common;
 
 int FloatToInt(float value, int roundDirection)
 {
@@ -115,12 +116,12 @@ float Math_RaiseToPower(float base, float exp)
 
 float Math_DegreesToRadians(float value)
 {
-    return static_cast<float>(value * (M_PI / 180.0));
+    return static_cast<float>(Math::DegreesToRadians(value));
 }
 
 float Math_RadiansToDegrees(float value)
 {
-    return static_cast<float>(value * (180.0 / M_PI));
+    return static_cast<float>(Math::RadiansToDegrees(value));
 }
 
 float Math_GetPi()

@@ -382,7 +382,7 @@ void Bitmap::RotateBlt(Bitmap *src, int dst_x, int dst_y, int angle)
 }
 
 void Bitmap::RotateBlt(Bitmap *src, int dst_x, int dst_y, int pivot_x, int pivot_y, int angle)
-{	
+{
     // convert to allegro angle
     fixed_t al_angle = itofix((angle * 256) / 360);
 	BITMAP *al_src_bmp = src->_alBitmap;

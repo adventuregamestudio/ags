@@ -266,8 +266,6 @@ Editor:
  - Added "/maketemplate" command-line option that tells Editor to run, make template out of the
    said game, and quit.
  - Fixed Editor refusing to open a project if one or more of the sections are missing in the file.
- - Fixed dragging an item into the folder in Project Explorer could move it into a wrong folder
-   if the folders have similar names only different in letter case.
  - Fixed importing indexed PNG as a sprite, previously Editor would mistakenly treat the source
    image as 32-bit.
  - Fixed importing 8-bit BMP sprites with no "Remap palette" and "Leave As Is" as a transparency
@@ -380,7 +378,7 @@ Engine:
    at the end of the current option script.
  - Removed arbitrary limit of 2k bytes for the result of String.Format().
  - Ensure that the objects with identical z-order (baseline) always keep same relative sort order
-   when being drawn (note: engine does not guarantee predefined order, only determenistic one).
+   when being drawn (note: engine does not guarantee a predefined order, only a persistent one).
  - Implemented video buffering on a separate thread. Allow to drop late video frames.
  - Added new accessibility config settings in "access" section: "speechskip", "textskip",
    "textreadspeed". These let player to override game's skipping style for character speech and
@@ -392,10 +390,6 @@ Engine:
  - Fixed calling Dialog.Start() inside a dialog script would create a nested "dialog state",
    which could eventually lead to internal mistakes and program stack overflow. Dialog.Start()
    will now schedule a proper dialog topic switch, equivalent to "goto-dialog" command.
- - Fixed calling Character.Animate() during idling state could cause incorrect error, reporting
-   invalid animation loop.
- - Fixed inventory cursor's crosshair hotspot was drawn incorrectly if active item's sprite has
-   a alpha channel.
  - Fixed displaying room masks with Debug command in legacy "upscale" mode.
 
 Engine Plugin API:
@@ -421,6 +415,22 @@ WinSetup:
    related to the speech and text skipping.
 
 ---------------------------------------------------------------------------------------------------
+
+VERSION 3.6.1 - Patch 9, January 2025
+
+Editor:
+ - Fixed dragging an item to a folder in Project Explorer might cause that item to visibly appear
+   in a wrong folder, if there are folders which name differ only in letter case.
+
+Engine:
+ - Fixed Character.Animate() could cause game to error reporting "invalid loop" if this character
+   was idling at the time, and Character.LockView() was not called prior to Animate().
+ - Fixed inventory cursor hotspot (crosshair) not drawn properly over item sprites with alpha.
+
+OSX:
+ - Fixed location of global config file: was in game installation directory, now in
+   "Library/Application Support/uk.co.adventuregamestudio".
+
 
 VERSION 3.6.1 - Patch 8, November 2024
 

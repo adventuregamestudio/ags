@@ -959,6 +959,11 @@ void Character_SetSpeed(CharacterInfo *chaa, int xspeed, int yspeed) {
 
 void Character_StopMoving(CharacterInfo *chi)
 {
+    Character_StopMovingEx(chi, chi->is_moving() && (mls[chi->walking].direct == 0));
+}
+
+void Character_StopMovingEx(CharacterInfo *chi, bool force_walkable_area)
+{
     // If not moving, then clear the move-related flags (for safety) and bail out
     // NOTE: I recall there was a potential case when this flag could remain after Move...
     if (chi->walking == 0)
@@ -983,10 +988,9 @@ void Character_StopMoving(CharacterInfo *chi)
     // If it is in walking state, and is *not* during turning around,
     // then validate the character position, ensuring that it does not
     // end on a non-walkable area and gets stuck.
-    if ((chi->walking < TURNING_AROUND) && (chi->room == displayed_room))
+    if (force_walkable_area && (chi->walking < TURNING_AROUND) && (chi->room == displayed_room))
     {
-        if ((mls[chi->walking].direct == 0))
-            Character_PlaceOnWalkableArea(chi);
+        Character_PlaceOnWalkableArea(chi);
     }
 
     debug_script_log("%s: stop moving", chi->scrname);

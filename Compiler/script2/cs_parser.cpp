@@ -999,11 +999,11 @@ void AGS::Parser::ParseFuncdecl_ExtenderPreparations(bool is_static_extender, Sy
     unqualified_name = qualified_name;
 }
 
-void AGS::Parser::ParseVarname0(bool accept_member_access, Symbol &structname, Symbol &varname)
+void AGS::Parser::ParseVarname0(bool const accept_member_access, Symbol &structname, Symbol &varname)
 {
     structname = kKW_NoSymbol;
     varname = _src.GetNext();
-    if (varname <= kKW_LastPredefined)
+    if (!_sym.IsIdentifier(varname))
         UserError("Expected an identifier, found '%s' instead", _sym.GetName(varname).c_str());
 
     // Note: A varname may be allowed although there already is a vartype with the same name.
@@ -1037,38 +1037,17 @@ void AGS::Parser::ParseVarname0(bool accept_member_access, Symbol &structname, S
     }
 }
 
-Symbol AGS::Parser::ParseParamlist_Param_Name(size_t param_idx)
+Symbol AGS::Parser::ParseParamlist_Param_Name(size_t const param_idx)
 {
-
-    // Process a missing parameter name;
+    // Process a missing parameter name
     Symbol const nextsym = _src.PeekNext();
     if (!_sym.IsIdentifier(nextsym))
         return kKW_NoSymbol;
 
     Symbol const param_name = ParseVarname();
-    if (_sym.IsFunction(param_name))
-    {
-        Warning(
-            ReferenceMsgSym("Parameter #%u: This hides the function '%s()'", param_name).c_str(),
-            param_idx,
-            _sym.GetName(param_name).c_str());
-        return param_name;
-    }
-
-    if (_sym.IsVariable(param_name))
-    {
-        if (ScT::kLocal != _sym.GetScopeType(param_name))
-            return param_name;
-
+    if (_sym.IsVariable(param_name) && ScT::kLocal == _sym.GetScopeType(param_name))
         UserError(
             ReferenceMsgSym("Parameter #%u: The name '%s' is already in use as a parameter", param_name).c_str(),
-            param_idx,
-            _sym.GetName(param_name).c_str());
-    }
-
-    if (_sym.IsVartype(param_name))
-        Warning(
-            ReferenceMsgSym("Parameter #%u: This hides the type '%s'", param_name).c_str(),
             param_idx,
             _sym.GetName(param_name).c_str());
 
@@ -1108,7 +1087,7 @@ void AGS::Parser::ParseParamlist_Param(Symbol const name_of_func, bool const bod
             "Parameter #%u: Expected a parameter name, found '%s' instead",
             param_idx,
             _sym.GetName(_src.PeekNext()).c_str());
-
+    
     ParseDynArrayMarkerIfPresent(param_vartype);
     Symbol const param_default = ParseParamlist_Param_DefaultValue(param_idx, param_vartype);
 

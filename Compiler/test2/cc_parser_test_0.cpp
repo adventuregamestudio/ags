@@ -854,6 +854,43 @@ TEST_F(Compile0, LocalGlobalSeq2) {
     EXPECT_EQ(7u, mh.GetMessages()[0].Lineno);
 }
 
+TEST_F(Compile0, WarningParameterHides01)
+{
+    // A function parameter cannot hide anything unless the 
+    // function body follows
+
+    char const *inpl = R"%&/(
+        import int test();
+        import int func(float test);
+        )%&/";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string const &err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    ASSERT_EQ(0u, mh.WarningsCount());
+}
+
+TEST_F(Compile0, WarningParameterHides02)
+{
+    // A function parameter cannot hide anything unless the 
+    // function body follows
+
+    char const *inpl = R"%&/(
+        import int test();
+        void func(float test)
+        {
+            return;
+        }
+        )%&/";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string const &err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    ASSERT_EQ(1u, mh.WarningsCount());
+    std::string const warn_msg = mh.GetMessages().at(0u).Message;
+    EXPECT_NE(std::string::npos, warn_msg.find("hide"));
+}
+
 TEST_F(Compile0, VartypeLocalSeq1) {
 
     // Can't redefine a vartype as a local variable

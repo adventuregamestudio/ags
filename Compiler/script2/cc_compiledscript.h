@@ -30,10 +30,10 @@ public:
         size_t ParamsCount;
         CodeLoc CodeOffs;
     };
-    std::vector<FuncProps> Functions = {};
+    std::vector<FuncProps> Functions;
 
-    std::unordered_map<std::string, int> ImportIdx = {};
-    std::unordered_map<std::string, int> ExportIdx = {};
+    std::unordered_map<std::string, int> ImportIdx;
+    std::unordered_map<std::string, int> ExportIdx;
 
     std::vector<CodeLoc> Labels; // Code locations that will receive their actual value later on
     std::unordered_map<CodeCell, CodeCell> Label2Value; // map labels to actual values

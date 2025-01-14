@@ -68,7 +68,7 @@ struct ScriptImport
 
     ScriptImport() = default;
     ScriptImport(const String &name, const RuntimeScriptValue &rval, const ccInstance *inst, ScriptValueHint val_hint = kScValHint_Unknown)
-        : Name(name), Value(rval), InstancePtr(inst) {}
+        : Name(name), Value(rval), InstancePtr(inst), ValueHint(val_hint) {}
 
     String              Name;
     RuntimeScriptValue  Value;

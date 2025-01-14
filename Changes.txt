@@ -1,5 +1,21 @@
 REVISION HISTORY
 ================
+VERSION 3.6.1 - Patch 9, January 2025
+
+Editor:
+ - Fixed dragging an item to a folder in Project Explorer might cause that item to visibly appear
+   in a wrong folder, if there are folders which name differ only in letter case.
+
+Engine:
+ - Fixed Character.Animate() could cause game to error reporting "invalid loop" if this character
+   was idling at the time, and Character.LockView() was not called prior to Animate().
+ - Fixed inventory cursor hotspot (crosshair) not drawn properly over item sprites with alpha.
+
+OSX:
+ - Fixed location of global config file: was in game installation directory, now in
+   "Library/Application Support/uk.co.adventuregamestudio".
+
+
 VERSION 3.6.1 - Patch 8, November 2024
 
 Editor:

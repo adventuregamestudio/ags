@@ -66,7 +66,7 @@ static void ResetFrameIfAtEnd(CharacterInfo *chi)
     const int frames_in_loop = views[chi->view].loops[chi->loop].numFrames;
     if (chi->frame >= frames_in_loop)
     {
-        chi->frame = (chi->walking > 0 && frames_in_loop > 1) ? 1 : 0;
+        chi->frame = (chi->is_moving() && frames_in_loop > 1) ? 1 : 0;
     }
 }
 
@@ -188,7 +188,7 @@ bool UpdateCharacterTurning(CharacterInfo *chi, CharacterExtras *chex)
 
 void UpdateCharacterMoving(CharacterInfo *chi, CharacterExtras *chex, int &doing_nothing)
 {
-	if ((chi->walking > 0) && (chi->room == displayed_room))
+	if (chi->is_moving() && (chi->room == displayed_room))
     {
       if (chi->walkwait > 0)
       {

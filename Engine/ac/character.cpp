@@ -189,7 +189,7 @@ void Character_AddWaypoint(CharacterInfo *chaa, int x, int y) {
         return;
     }
 
-    MoveList &cmls = mls[chaa->walking % TURNING_AROUND];
+    MoveList &cmls = mls[chaa->get_movelist_id()];
 
     // They're already walking there anyway
     const Point &last_pos = cmls.GetLastPos();
@@ -933,7 +933,7 @@ void Character_SetSpeed(CharacterInfo *chaa, int xspeed, int yspeed) {
 
     if ((xspeed == 0) || (yspeed == 0))
         quit("!SetCharacterSpeedEx: invalid speed value");
-    if ((chaa->walking > 0) && (loaded_game_file_version < kGameVersion_361))
+    if ((chaa->is_moving() > 0) && (loaded_game_file_version < kGameVersion_361))
     {
         debug_script_warn("Character_SetSpeed: cannot change speed while walking");
         return;
@@ -951,9 +951,9 @@ void Character_SetSpeed(CharacterInfo *chaa, int xspeed, int yspeed) {
     else
         chaa->walkspeed_y = yspeed;
 
-    if (chaa->walking > 0)
+    if (chaa->is_moving())
     {
-        Pathfinding::RecalculateMoveSpeeds(mls[chaa->walking % TURNING_AROUND], old_speedx, old_speedy, xspeed, yspeed);
+        Pathfinding::RecalculateMoveSpeeds(mls[chaa->get_movelist_id()], old_speedx, old_speedy, xspeed, yspeed);
     }
 }
 
@@ -1432,7 +1432,7 @@ int Character_GetMoving(CharacterInfo *chaa) {
 
 int Character_GetDestinationX(CharacterInfo *chaa) {
     if (chaa->walking) {
-        MoveList *cmls = &mls[chaa->walking % TURNING_AROUND];
+        MoveList *cmls = &mls[chaa->get_movelist_id()];
         return cmls->pos.back().X;
     }
     else
@@ -1441,7 +1441,7 @@ int Character_GetDestinationX(CharacterInfo *chaa) {
 
 int Character_GetDestinationY(CharacterInfo *chaa) {
     if (chaa->walking) {
-        MoveList *cmls = &mls[chaa->walking % TURNING_AROUND];
+        MoveList *cmls = &mls[chaa->get_movelist_id()];
         return cmls->pos.back().Y;
     }
     else
@@ -1749,7 +1749,7 @@ void walk_character(int chac,int tox,int toy,int ignwal, bool autoWalkAnims) {
     {
         waitWas = chin->walkwait;
         animWaitWas = charextra[chac].animwait;
-        const auto &movelist = mls[chin->walking % TURNING_AROUND];
+        const auto &movelist = mls[chin->get_movelist_id()];
         // We set (fraction + 1), because movelist is always +1 ahead of current character pos;
         if (movelist.onpart > 0.f)
             wasStepFrac = movelist.GetPixelUnitFraction() + movelist.GetStepLength();
@@ -1861,7 +1861,7 @@ void start_character_turning (CharacterInfo *chinf, int useloop, int no_diagonal
     if ((toidx < fromidx) && ((fromidx - toidx) < 4))
         go_anticlock = 1;
     // strip any current turning_around stages
-    chinf->walking = chinf->walking % TURNING_AROUND;
+    chinf->walking = chinf->get_movelist_id();
     if (go_anticlock)
         chinf->walking += TURNING_BACKWARDS;
     else
@@ -1989,7 +1989,7 @@ int doNextCharMoveStep(CharacterInfo *chi, CharacterExtras *chex) {
 
 bool is_char_walking_ndirect(CharacterInfo *chi)
 {
-    return ((chi->walking > 0) && (chi->walking < TURNING_AROUND)) &&
+    return chi->is_moving_not_turning() &&
         (mls[chi->walking].direct == 0);
 }
 

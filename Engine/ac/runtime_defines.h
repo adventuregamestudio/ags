@@ -141,11 +141,6 @@ const int LegacyRoomVolumeFactor            = 30;
 
 #define STD_BUFFER_SIZE 2048
 
-// NOTE: these flags are merged with the MoveList index;
-// but this means that the number of MoveList users will be limited by 1000
-#define TURNING_AROUND     1000
-#define TURNING_BACKWARDS 10000
-
 #define LOCTYPE_HOTSPOT 1
 #define LOCTYPE_CHAR 2
 #define LOCTYPE_OBJ  3

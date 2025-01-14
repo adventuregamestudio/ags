@@ -69,6 +69,11 @@ using namespace AGS; // FIXME later
 #define CHANIM_REPEAT       0x02
 #define CHANIM_BACKWARDS    0x04
 
+// These flags are merged with the CharacterInfo's MoveList index;
+// but this means that the number of MoveList users will be limited by 1000
+#define TURNING_AROUND      1000
+#define TURNING_BACKWARDS   10000
+
 
 // Converts character flags (CHF_*) to matching RoomObject flags (OBJF_*)
 inline int CharFlagsToObjFlags(int chflags)
@@ -172,6 +177,10 @@ struct CharacterInfo
         walk_speed_x = walkspeed;
         walk_speed_y = ((walkspeed_y == UNIFORM_WALK_SPEED) ? walkspeed : walkspeed_y);
     }
+
+    inline bool is_moving()          const { return walking > 0; }
+    inline bool is_moving_not_turning() const { return (walking > 0) && (walking < TURNING_AROUND); }
+    inline int  get_movelist_id()    const { return walking % TURNING_AROUND; }
 
     inline bool has_explicit_light() const { return (flags & CHF_HASLIGHT) != 0; }
     inline bool has_explicit_tint()  const { return (flags & CHF_HASTINT) != 0; }

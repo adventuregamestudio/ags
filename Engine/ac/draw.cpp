@@ -2933,11 +2933,9 @@ void update_room_debug()
             recycle_bitmap(debugMoveListObj.Bmp, game.GetColorDepth(),
                 thisroom.WalkAreaMask->GetWidth(), thisroom.WalkAreaMask->GetHeight(), true);
 
-        if (game.chars[debugMoveListChar].walking > 0)
+        if (game.chars[debugMoveListChar].is_moving())
         {
-            int mlsnum = game.chars[debugMoveListChar].walking;
-            if (game.chars[debugMoveListChar].walking >= TURNING_AROUND)
-                mlsnum %= TURNING_AROUND;
+            int mlsnum = game.chars[debugMoveListChar].get_movelist_id();
             const MoveList &cmls = mls[mlsnum];
             for (uint32_t i = 0; i < cmls.GetNumStages() - 1; i++) {
                 short srcx = cmls.pos[i].X;

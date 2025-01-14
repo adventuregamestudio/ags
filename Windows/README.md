@@ -4,22 +4,22 @@ The following are instructions on how to build the Engine and Editor from the so
 
 ## Build Requirements
 
-* In common:
-  * Microsoft Visual Studio 2015 or higher - currently the only supported IDE for making Engine and Editor. The free Community edition is sufficient and is available for download at the Microsoft's site:
-    * https://visualstudio.microsoft.com/downloads/
-    * https://visualstudio.microsoft.com/vs/older-downloads/
-  * If you are using MSVS 2019 and higher you might need to manually download [Windows 10 SDK (10.0.10240)](https://go.microsoft.com/fwlink/p/?LinkId=619296) from the [SDK Archive](https://developer.microsoft.com/en-us/windows/downloads/sdk-archive/).
-* Specifically for the Engine:
-  * SDL 2.0.12 or higher (https://github.com/libsdl-org/SDL/tree/SDL2)
-  * SDL_Sound 2.0.* (https://github.com/icculus/sdl_sound)
-  * libogg-1.1.3 or higher ([Download](https://www.xiph.org/downloads/))
-  * libtheora-1.0 or higher ([Download](https://www.xiph.org/downloads/))
-  * libvorbis-1.2.0 or higher ([Download](https://www.xiph.org/downloads/))
-* Specifically for the Editor:
-  * irrKlang 1.6 (32-bit) assembly pack for .NET 4.5 ([Download](https://www.ambiera.com/irrklang/downloads.html)).
-* To build Windows installer:
-  * Inno Setup 6.0.2 or higher ([Download](http://www.jrsoftware.org/isdl.php))
-  * (optional) PowerShell ([Download](https://aka.ms/powershell-release?tag=stable))
+- In common:
+  - Microsoft Visual Studio 2019 or higher - currently the only supported IDE for making Engine and Editor. The free Community edition is sufficient and is available for download at the Microsoft's site:
+    - https://visualstudio.microsoft.com/downloads/
+    - https://visualstudio.microsoft.com/vs/older-downloads/
+  - You might need to manually download [Windows 10 SDK (10.0.10240)](https://go.microsoft.com/fwlink/p/?LinkId=619296) from the [SDK Archive](https://developer.microsoft.com/en-us/windows/downloads/sdk-archive/).
+- Specifically for the Engine:
+  - SDL 2.0.12 or higher (https://github.com/libsdl-org/SDL/tree/SDL2)
+  - SDL_Sound 2.0.* (https://github.com/icculus/sdl_sound)
+  - libogg-1.1.3 or higher ([Download](https://www.xiph.org/downloads/))
+  - libtheora-1.0 or higher ([Download](https://www.xiph.org/downloads/))
+  - libvorbis-1.2.0 or higher ([Download](https://www.xiph.org/downloads/))
+- Specifically for the Editor:
+  - irrKlang 1.6 (32-bit) assembly pack for .NET 4.6 ([Download](https://www.ambiera.com/irrklang/downloads.html)).
+- To build Windows installer:
+  - Inno Setup 6.2.2 or higher ([Download](http://www.jrsoftware.org/isdl.php))
+  - (optional) PowerShell ([Download](https://aka.ms/powershell-release?tag=stable))
 **IMPORTANT:** all libraries should match the Engine's architecture: e.g. if you are building engine using 32-bit (x86) configuration then link libraries for 32-bit (x86) too.
 
 **NOTE:** You may skip building libraries from the source completely by using prebuilt libs from the archive called "WinDevDependenciesVS.zip", which is attached to any [latest release of AGS](https://github.com/adventuregamestudio/ags/releases). If you go this way, then skip **"Building the libraries"** sections altogether.
@@ -42,8 +42,8 @@ If for some reason you'd like to build it yourself, take the one under "Source C
 
 AGS engine will need following files to link:
 
-* SDL2.lib
-* SDL2main.lib
+- `SDL2.lib`
+- `SDL2main.lib`
 
 and SDL2.dll to run.
 
@@ -71,11 +71,11 @@ All of these come with MSVC projects. You may need to make sure there are distin
 ## Building AGS Engine
 
 Engine requires following libraries:
-* SDL2
-* SDL_Sound
-* libogg
-* libtheora
-* libvorbis
+- SDL2
+- SDL_Sound
+- libogg
+- libtheora
+- libvorbis
 
 You may download the prebuilt libraries [here](https://github.com/adventuregamestudio/ags/releases/download/v.3.6.0.15/WinDevDependenciesVS.zip), although you'd still have to get library sources from their homepages because you need their headers for the engine compilation.
 
@@ -85,13 +85,19 @@ Engine MSVS solution is Solutions\Engine.sln. It contains two projects, the "Eng
 
 In order to direct Studio to necessary libraries and their headers setup following enviroment variables in your system by [creating user macros in the Property Pages](https://docs.microsoft.com/en-us/cpp/build/working-with-project-properties?view=msvc-160#user-defined-macros):
  
-* AGS_SDL_INCLUDE - pointing to the location of SDL2 headers;
-* AGS_SDL_LIB - pointing to the location of SDL2 library files;
-* AGS_SDL_SOUND_INCLUDE - pointing to the location of SDL Sound headers;
-* AGS_SDL_SOUND_LIB - pointing to the location of SDL Sound library files;
-* AGS_LIBOGG_LIB - pointing to the location of libogg library files;
-* AGS_LIBTHEORA_LIB - pointing to the location of libtheora library files;
-* AGS_LIBVORBIS_LIB - pointing to the location of libvorbis library files;
+- `AGS_SDL_INCLUDE` - pointing to the location of SDL2 headers;
+- `AGS_SDL_LIB` - pointing to the location of SDL2 library files;
+- `AGS_SDL_SOUND_INCLUDE` - pointing to the location of SDL Sound headers;
+- `AGS_SDL_SOUND_LIB` - pointing to the location of SDL Sound library files;
+- `AGS_LIBOGG_LIB` - pointing to the location of libogg library files;
+- `AGS_LIBTHEORA_LIB` - pointing to the location of libtheora library files;
+- `AGS_LIBVORBIS_LIB` - pointing to the location of libvorbis library files;
+
+**NOTE:** because libtheora, libvorbis, libogg and SDL Sound library used are statically built, if you need to alternate between branches using VS2019+ and VS2015 builds of the libraries, you can also specify the additional following environment variables:
+- `AGS_SDL_SOUND_LIB_VS19` - pointing to the location of VS2019+ builds of SDL Sound library files;
+- `AGS_LIBOGG_LIB_VS19` - pointing to the location of VS2019+ builds of libogg library files;
+- `AGS_LIBTHEORA_LIB_VS19` - pointing to the location of VS2019+ builds of libtheora library files;
+- `AGS_LIBVORBIS_LIB_VS19` - pointing to the location of VS2019+ builds of libvorbis library files;
 
 
 ## Building AGS Editor
@@ -136,7 +142,7 @@ There are two things to note here:
 
 In any case, there is a number of files that have to be prepared for installer to actually build. These files have to be placed in Windows\Installer\Source and subdirectories:
 
-- Redist\vc_redist.x86.exe - a [Visual C++ Redistributable for Visual Studio 2015](https://download.microsoft.com/download/6/A/A/6AA4EDFF-645B-48C5-81CC-ED5963AEAD48/vc_redist.x86.exe) (or C++ Redist corresponding to the MSVS you were building AGS with).
+- Redist\vc_redist.x86.exe - a [Visual C++ Redistributable for Visual Studio 2015+, version 14.42.34433](https://download.visualstudio.microsoft.com/download/pr/5319f718-2a84-4aff-86be-8dbdefd92ca1/DD1A8BE03398367745A87A5E35BEBDAB00FDAD080CF42AF0C3F20802D08C25D4/VC_redist.x86.exe) (or C++ Redist corresponding to the MSVS you were building AGS with).
 - Editor\
   - AGSEditor.exe
   - AGS.Controls.dll

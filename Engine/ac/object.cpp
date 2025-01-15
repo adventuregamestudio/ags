@@ -306,20 +306,14 @@ bool Object_IsInteractionAvailable(ScriptObject *oobj, int mood) {
     return (ciwas == 2);
 }
 
-void Object_Move(ScriptObject *objj, int x, int y, int speed, int blocking, int direct) {
-    if ((direct == ANYWHERE) || (direct == 1))
-        direct = 1;
-    else if ((direct == WALKABLE_AREAS) || (direct == 0))
-        direct = 0;
-    else
-        quit("Object.Move: invalid DIRECT parameter");
+void Object_Move(ScriptObject *objj, int x, int y, int speed, int blocking, int ignwal)
+{
+    ValidateMoveParams("Object.Move", blocking, ignwal);
 
-    move_object(objj->id, x, y, speed, direct);
+    move_object(objj->id, x, y, speed, ignwal);
 
-    if ((blocking == BLOCKING) || (blocking == 1))
+    if (blocking)
         GameLoopUntilNotMoving(&objs[objj->id].moving);
-    else if ((blocking != IN_BACKGROUND) && (blocking != 0))
-        quit("Object.Move: invalid BLOCKING paramter");
 }
 
 void Object_SetClickable(ScriptObject *objj, int clik) {

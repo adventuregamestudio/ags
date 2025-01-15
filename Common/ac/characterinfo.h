@@ -105,6 +105,7 @@ enum CharacterSvgVersion
     kCharSvgVersion_400_03  = 4000003, // compat with kCharSvgVersion_36115
     kCharSvgVersion_400_09  = 4000009, // 32-bit color properties
     kCharSvgVersion_400_13  = 4000013, // compat with kCharSvgVersion_36205
+    kCharSvgVersion_400_14  = 4000014, // proper ARGB color properties
 };
 
 

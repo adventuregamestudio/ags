@@ -182,7 +182,7 @@ namespace AGS.Editor
 				if ((_selectedControl != null) && (_selectedControl is GUIButton))
 				{
 					GUIButton selectedButton = (GUIButton)_selectedControl;
-					if (selectedButton.Image > 0)
+					if (selectedButton.Image > 0 && (selectedButton.Image != (int)oldValue))
 					{
                         int newWidth, newHeight;
                         Utilities.GetSizeSpriteWillBeRenderedInGame(selectedButton.Image, out newWidth, out newHeight);

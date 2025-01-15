@@ -142,16 +142,16 @@ namespace AGS.Editor
             cmbFilenames.Items.Clear();
             imageLookup = new List<string>();
 
+            OneTimeControlSetup();
+
             foreach (string filename in filenames)
             {
                 imageLookup.Add(filename);
                 cmbFilenames.Items.Add(Path.GetFileName(filename));
             }
 
+            // NOTE: this also calls PostImageLoad()
             cmbFilenames.SelectedIndex = 0;
-
-            OneTimeControlSetup();
-            PostImageLoad();
         }
 
         public SpriteImportWindow(Bitmap bmp, SpriteFolder folder)
@@ -196,16 +196,16 @@ namespace AGS.Editor
             cmbFilenames.Items.Clear();
             imageLookup = new List<string>();
 
+            OneTimeControlSetup();
+
             foreach (string filename in filenames)
             {
                 imageLookup.Add(filename);
                 cmbFilenames.Items.Add(Path.GetFileName(filename));
             }
 
+            // NOTE: this also calls PostImageLoad()
             cmbFilenames.SelectedIndex = 0;
-
-            OneTimeControlSetup();
-            PostImageLoad();
         }
 
         public SpriteImportWindow(Bitmap bmp, Sprite replace)

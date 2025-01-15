@@ -90,6 +90,7 @@
 #define OPT_SAVEGAMESCREENSHOTLAYER 53
 #define OPT_VOICECLIPNAMERULE 54
 #define OPT_SAVECOMPONENTSIGNORE 55
+// OPT_GAMEFPS                56 // [HIDDEN], only read once on startup
 #define OPT_LIPSYNCTEXT       99
 
 #define COLOR_TRANSPARENT -1

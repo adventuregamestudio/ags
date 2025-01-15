@@ -541,6 +541,11 @@ namespace AGS.Editor
                 game.Settings.UseOldVoiceClipNaming = true;
             }
 
+            if (xmlVersionIndex < 3060206)
+            {
+                game.Settings.GameFPS = 40; // 40 was historical default FPS
+            }
+
             System.Version editorVersion = new System.Version(AGS.Types.Version.AGS_EDITOR_VERSION);
             System.Version projectVersion = game.SavedXmlEditorVersion != null ? Types.Utilities.TryParseVersion(game.SavedXmlEditorVersion) : null;
             if (projectVersion == null || projectVersion < editorVersion)

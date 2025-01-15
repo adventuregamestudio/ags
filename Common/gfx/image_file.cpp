@@ -883,7 +883,7 @@ PixelBuffer LoadPCX(Stream *in, RGB *pal) {
                     pal[i].r = static_cast<uint8_t>(in->ReadInt8()) / 4;
                     pal[i].g = static_cast<uint8_t>(in->ReadInt8()) / 4;
                     pal[i].b = static_cast<uint8_t>(in->ReadInt8()) / 4;
-                    pal[i].filler = 0;
+                    pal[i].a = 0; // filler
                 }
                 break;
             }

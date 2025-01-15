@@ -382,12 +382,17 @@ namespace AGS.Editor.Utils
             bool alpha, bool remapColours, bool useRoomBackground,
             SpriteImportTransparency transparency, string filename, int frame, Rectangle selection, bool tile)
         {
-            // ignore alpha channel if not 32 bit ARGB
-            bool useAlphaChannel = bmp.PixelFormat != PixelFormat.Format32bppArgb ||
-                Factory.AGSEditor.CurrentGame.Settings.ColorDepth != GameColorDepth.TrueColor ? false : alpha;
+            // Use alpha channel if:
+            // * game is 32-bit
+            // * bitmap has valid alpha component
+            // * alpha requested by user;
+            bool useAlphaChannel = alpha
+                && Factory.AGSEditor.CurrentGame.Settings.ColorDepth == GameColorDepth.TrueColor
+                && bmp.HasAlpha();
 
             // ignore palette remap options if not using an indexed palette
-            if (bmp.PixelFormat != PixelFormat.Format8bppIndexed)
+            // and even then - if using alpha channel (remap won't work with alpha)
+            if (bmp.PixelFormat != PixelFormat.Format8bppIndexed && !useAlphaChannel)
             {
                 remapColours = false;
                 useRoomBackground = false;

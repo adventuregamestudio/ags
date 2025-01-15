@@ -1696,7 +1696,7 @@ namespace AGS.Editor
 
 		public bool QueryWhetherToSaveGameBeforeContinuing(string message)
 		{
-            if (!_agsEditor.TestIfCanSaveNow())
+            if (StdConsoleWriter.IsEnabled || !_agsEditor.TestIfCanSaveNow())
                 return false;
 
             bool proceed = true;

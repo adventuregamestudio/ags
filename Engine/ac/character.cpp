@@ -990,6 +990,10 @@ void Character_StopMovingEx(CharacterInfo *chi, bool force_walkable_area)
     // end on a non-walkable area and gets stuck.
     if (force_walkable_area && (chi->walking < TURNING_AROUND) && (chi->room == displayed_room))
     {
+        // TODO: don't use PlaceOnWalkable, as that may result in moving character
+        // into the random direction. Instead, consider writing a "backtracing"
+        // function that runs along MoveList's current stage back, looking for
+        // the first pixel on a walkable area.
         Character_PlaceOnWalkableArea(chi);
     }
 
@@ -1759,19 +1763,28 @@ int Character_GetSpeakingFrame(CharacterInfo *chaa) {
 const int turnlooporder[8] = {0, 6, 1, 7, 3, 5, 2, 4};
 
 // Core character move implementation:
-// searches for a path to a given destination;
+// uses a provided path or searches for a path to a given destination;
 // starts a move or walk (with automatic animation).
-static void move_character_impl(CharacterInfo *chin, int tox, int toy, bool ignwal, bool walk_anim)
+void move_character_impl(CharacterInfo *chin, const std::vector<Point> *path, int tox, int toy, bool ignwal, bool walk_anim)
 {
     const int chac = chin->index_id;
     if (!ValidateCharForMove(chin, "MoveCharacter"))
         return;
 
-    if ((tox == chin->x) && (toy == chin->y))
+    if (path && path->empty() || !path && (tox == chin->x) && (toy == chin->y))
     {
         StopMoving(chac);
-        debug_script_log("%s already at destination, not moving", chin->scrname);
+        debug_script_log("MoveCharacter: %s move path is empty, or is already at destination, not moving", chin->scrname);
         return;
+    }
+
+    if (path)
+    {
+        // Jump character to the path's start
+        chin->x = path->front().X;
+        chin->y = path->front().Y;
+        tox = path->back().X;
+        toy = path->back().Y;
     }
 
     if ((chin->animating) && (walk_anim))
@@ -1815,10 +1828,20 @@ static void move_character_impl(CharacterInfo *chin, int tox, int toy, bool ignw
     const int dst_y = data_to_game_coord(toy);
 
     const int mslot = chac + CHMLSOFFS;
-    MaskRouteFinder *pathfind = get_room_pathfinder();
-    pathfind->SetWalkableArea(prepare_walkable_areas(chac), thisroom.MaskResolution);
-    if (Pathfinding::FindRoute(mls[mslot], pathfind, src_x, src_y, dst_x, dst_y,
-        move_speed_x, move_speed_y, false, ignwal != 0))
+    bool path_result = false;
+    if (path)
+    {
+        path_result = Pathfinding::CalculateMoveList(mls[mslot], *path, move_speed_x, move_speed_y);
+    }
+    else
+    {
+        MaskRouteFinder *pathfind = get_room_pathfinder();
+        pathfind->SetWalkableArea(prepare_walkable_areas(chac), thisroom.MaskResolution);
+        path_result = Pathfinding::FindRoute(mls[mslot], pathfind, src_x, src_y, dst_x, dst_y, move_speed_x, move_speed_y, false, ignwal);
+    }
+
+    // If successful, then start moving
+    if (path_result)
     {
         chin->walking = mslot;
         mls[mslot].direct = ignwal;
@@ -2129,7 +2152,7 @@ void FindReasonableLoopForCharacter(CharacterInfo *chap) {
 
 void move_character(CharacterInfo *chaa, int tox, int toy, bool ignwal, bool walk_anim)
 {
-    move_character_impl(chaa, tox, toy, ignwal, walk_anim);
+    move_character_impl(chaa, nullptr, tox, toy, ignwal, walk_anim);
 }
 
 void move_character_straight(CharacterInfo *chaa, int x, int y, bool walk_anim)
@@ -2147,12 +2170,13 @@ void move_character_straight(CharacterInfo *chaa, int x, int y, bool walk_anim)
     int lastcx = chaa->x, lastcy = chaa->y;
     if (!pathfind->CanSeeFrom(chaa->x, chaa->y, x, y, &lastcx, &lastcy))
     {
+        // move_character_impl assumes all coordinates in "data" system
         movetox = game_to_data_coord(lastcx);
         movetoy = game_to_data_coord(lastcy);
     }
 
-    // FIXME: there's likely no point in calling routefinder again, so pass a direct path instead?
-    move_character_impl(chaa, movetox, movetoy, false /* walkable areas */, walk_anim);
+    std::vector<Point> path = { {chaa->x, chaa->y}, {movetox, movetoy} };
+    move_character_impl(chaa, &path, movetox, movetoy, false /* walkable areas */, walk_anim);
 }
 
 void walk_character(CharacterInfo *chaa, int tox, int toy, bool ignwal)

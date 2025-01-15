@@ -202,24 +202,36 @@ void SetCharacterIgnoreLight (int who, int yesorno) {
     Character_SetIgnoreLighting(&game.chars[who], yesorno);
 }
 
+void MoveCharacter(int cc,int x, int y)
+{
+    if (!is_valid_character(cc))
+        quit("!MoveCharacter: invalid character specified");
 
-
-
-void MoveCharacter(int cc,int xx,int yy) {
-    walk_character(cc,xx,yy,0, true);
+    Character_DoMove(&game.chars[cc], "MoveCharacter", x, y,
+                     false /* not straight */, IN_BACKGROUND, WALKABLE_AREAS, true /* animate */);
 }
-void MoveCharacterDirect(int cc,int xx, int yy) {
-    walk_character(cc,xx,yy,1, true);
+
+void MoveCharacterDirect(int cc, int x, int y)
+{
+    if (!is_valid_character(cc))
+        quit("!MoveCharacterDirect: invalid character specified");
+
+    Character_DoMove(&game.chars[cc], "MoveCharacterDirect", x, y,
+                     false /* not straight */, IN_BACKGROUND, ANYWHERE, true /* animate */);
 }
-void MoveCharacterStraight(int cc,int xx, int yy) {
+
+void MoveCharacterStraight(int cc,int x, int y)
+{
     if (!is_valid_character(cc))
         quit("!MoveCharacterStraight: invalid character specified");
 
-    Character_WalkStraight(&game.chars[cc], xx, yy, IN_BACKGROUND);
+    Character_DoMove(&game.chars[cc], "MoveCharacterStraight", x, y,
+                     true /* straight */, IN_BACKGROUND, WALKABLE_AREAS, true /* animate */);
 }
 
 // Append to character path
-void MoveCharacterPath (int chac, int tox, int toy) {
+void MoveCharacterPath(int chac, int tox, int toy)
+{
     if (!is_valid_character(chac))
         quit("!MoveCharacterPath: invalid character specified");
 
@@ -313,44 +325,37 @@ void SetCharacterIgnoreWalkbehinds (int cha, int clik) {
 }
 
 
-void MoveCharacterToObject(int chaa,int obbj) {
+void MoveCharacterToObject(int chaa,int obbj)
+{
     // invalid object, do nothing
     // this allows MoveCharacterToObject(EGO, GetObjectAt(...));
     if (!is_valid_object(obbj))
         return;
 
-    walk_character(chaa,objs[obbj].x+5,objs[obbj].y+6,0, true);
-
-    GameLoopUntilNotMoving(&game.chars[chaa].walking);
+    // NOTE: yep, it was using a hardcoded +5,+6 relative position...
+    Character_DoMove(&game.chars[chaa], "MoveCharacterToObject", objs[obbj].x + 5, objs[obbj].y + 6,
+                     false /* not straight */, BLOCKING, WALKABLE_AREAS, true /* animate */);
 }
 
-void MoveCharacterToHotspot(int chaa,int hotsp) {
+void MoveCharacterToHotspot(int chaa, int hotsp)
+{
     if ((hotsp<0) || (hotsp>=MAX_ROOM_HOTSPOTS))
         quit("!MovecharacterToHotspot: invalid hotspot");
-    if (thisroom.Hotspots[hotsp].WalkTo.X<1) return;
-    walk_character(chaa,thisroom.Hotspots[hotsp].WalkTo.X,thisroom.Hotspots[hotsp].WalkTo.Y,0, true);
+    if (thisroom.Hotspots[hotsp].WalkTo.X < 1)
+        return;
 
-    GameLoopUntilNotMoving(&game.chars[chaa].walking);
+    Character_DoMove(&game.chars[chaa], "MoveCharacterToObject", thisroom.Hotspots[hotsp].WalkTo.X, thisroom.Hotspots[hotsp].WalkTo.Y,
+                     false /* not straight */, BLOCKING, WALKABLE_AREAS, true /* animate */);
 }
 
-int MoveCharacterBlocking(int chaa,int xx,int yy,int direct) {
+int MoveCharacterBlocking(int chaa, int x, int y, int ignwal)
+{
     if (!is_valid_character (chaa))
         quit("!MoveCharacterBlocking: invalid character");
 
-    // check if they try to move the player when Hide Player Char is
-    // ticked -- otherwise this will hang the game
-    if (game.chars[chaa].on != 1)
-    {
-        debug_script_warn("MoveCharacterBlocking: character is turned off (is Hide Player Character selected?) and cannot be moved");
-        return 0;
-    }
+    Character_DoMove(&game.chars[chaa], "MoveCharacterBlocking", x, y,
+                     false /* not straight */, BLOCKING, ignwal, true /* animate */);
 
-    if (direct)
-        MoveCharacterDirect(chaa,xx,yy);
-    else
-        MoveCharacter(chaa,xx,yy);
-
-    GameLoopUntilNotMoving(&game.chars[chaa].walking);
     return -1; // replicates legacy engine effect
 }
 

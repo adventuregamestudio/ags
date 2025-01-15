@@ -799,6 +799,30 @@ bool CycleViewAnim(int view, uint16_t &o_loop, uint16_t &o_frame, bool forwards,
     return !done; // have we finished animating?
 }
 
+void ValidateMoveParams(const char *apiname, int &blocking, int &ignwal)
+{
+    if (blocking == BLOCKING)
+        blocking = 1;
+    else if (blocking == IN_BACKGROUND)
+        blocking = 0;
+
+    if (ignwal == ANYWHERE)
+        ignwal = 1;
+    else if (ignwal == WALKABLE_AREAS)
+        ignwal = 0;
+
+    if ((blocking < 0) || (blocking > 1))
+    {
+        debug_script_warn("%s: invalid 'blocking' value %d, will treat as BLOCKING (1)", apiname, blocking);
+        blocking = 1;
+    }
+    if ((ignwal < 0) || (ignwal > 1))
+    {
+        debug_script_warn("%s: invalid 'walk where' value %d, will treat as ANYWHERE (1)", apiname, ignwal);
+        ignwal = 1;
+    }
+}
+
 //=============================================================================
 //
 // Script API Functions

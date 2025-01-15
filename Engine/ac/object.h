@@ -116,7 +116,10 @@ int     SetFirstAnimFrame(int view, int loop, int sframe, int direction);
 // loop and frame values are passed by reference and will be updated;
 // returns whether the animation should continue.
 bool    CycleViewAnim(int view, uint16_t &loop, uint16_t &frame, bool forwards, int repeat);
-void    CheckViewFrameForObject(RoomObject *obj);
+
+// Tests if the standard move/walk parameters are in valid range, if not then clamps them and
+// reports a script warning.
+void    ValidateMoveParams(const char *apiname, int &blocking, int &ignwal);
 
 #endif // __AGS_EE_AC__OBJECT_H
 

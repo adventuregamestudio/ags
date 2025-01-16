@@ -193,5 +193,7 @@ Editor/References/**/*.dll
 /Plugins/agsblend/msvc/.temp/
 /Plugins/AGSflashlight/msvc/.build/
 /Plugins/AGSflashlight/msvc/.temp/
+/Plugins/agspalrender/msvc/.build/
+/Plugins/agspalrender/msvc/.temp/
 /Plugins/AGSSpriteFont/msvc/.build/
 /Plugins/AGSSpriteFont/msvc/.temp/

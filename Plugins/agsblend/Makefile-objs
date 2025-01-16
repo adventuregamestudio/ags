@@ -1,1 +1,2 @@
-OBJS = AGSBlend.o
+OBJS = \
+    agsblend/AGSBlend.o

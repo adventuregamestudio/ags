@@ -16,6 +16,11 @@
 #define MIN_EDITOR_VERSION 1
 #define MIN_ENGINE_VERSION 3
 
+#if (AGS_PLATFORM_OS_WINDOWS)
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#include <windows.h>
+#endif
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -71,10 +76,7 @@ typedef unsigned char uint8;
 
 #pragma endregion
 
-#if AGS_PLATFORM_OS_WINDOWS && !defined(BUILTIN_PLUGINS)
-#define WIN32_LEAN_AND_MEAN
-#define NOMINMAX
-#include <Windows.h>
+#if (AGS_PLATFORM_OS_WINDOWS) && !defined(BUILTIN_PLUGINS)
 
 // The standard Windows DLL entry point
 
@@ -870,7 +872,7 @@ int DrawAlpha(int destination, int sprite, int x, int y, int trans)
 }
 
 
-#if AGS_PLATFORM_OS_WINDOWS && !defined(BUILTIN_PLUGINS)
+#if (AGS_PLATFORM_OS_WINDOWS) && !defined(BUILTIN_PLUGINS)
 
 //==============================================================================
 

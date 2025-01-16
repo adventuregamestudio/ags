@@ -6,7 +6,7 @@ Helper functions for touch devices
 
 #include "core/platform.h"
 
-#if AGS_PLATFORM_OS_WINDOWS
+#if (AGS_PLATFORM_OS_WINDOWS)
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #pragma warning(disable : 4244)
@@ -18,7 +18,10 @@ Helper functions for touch devices
 
 #include "plugin/agsplugin.h"
 
+// TODO: double check which platforms needs this; and which SDL to include (1 or 2)
+#if (AGS_PLATFORM_OS_IOS)
 #include <SDL.h>
+#endif
 
 #if defined(BUILTIN_PLUGINS)
 namespace agstouch {
@@ -35,7 +38,7 @@ IAGSEngine* engine;
 
 void TouchShowKeyboard()
 {
-#if defined(IOS_VERSION)
+#if (AGS_PLATFORM_OS_IOS)
   SDL_StartTextInput();
 #endif
 }
@@ -43,7 +46,7 @@ void TouchShowKeyboard()
 
 void TouchHideKeyboard()
 {
-#if defined(IOS_VERSION)
+#if (AGS_PLATFORM_OS_IOS)
   SDL_StopTextInput();
 #endif
 }
@@ -51,7 +54,7 @@ void TouchHideKeyboard()
 
 bool TouchIsKeyboardVisible()
 {
-#if defined(IOS_VERSION)
+#if (AGS_PLATFORM_OS_IOS)
   return SDL_IsTextInputActive();
 #else
   return false;
@@ -89,7 +92,7 @@ void AGS_EngineInitGfx(const char *driverID, void *data)
 
 
 
-#if AGS_PLATFORM_OS_WINDOWS && !defined(BUILTIN_PLUGINS)
+#if (AGS_PLATFORM_OS_WINDOWS) && !defined(BUILTIN_PLUGINS)
 
 // ********************************************
 // ***********  Editor Interface  *************

@@ -9,10 +9,8 @@ LIBS = -lm -lstdc++
 
 ifeq ($(UNAME), Darwin)
 TARGET = libagsflashlight.dylib
-CFLAGS += -DMAC_VERSION
 else
 TARGET = libagsflashlight.so
-CFLAGS += -DLINUX_VERSION
 endif
 
 CXXFLAGS = $(CFLAGS)

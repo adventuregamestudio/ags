@@ -191,5 +191,7 @@ Editor/References/**/*.dll
 /Plugins/ags_snowrain/msvc/.temp/
 /Plugins/agsblend/msvc/.build/
 /Plugins/agsblend/msvc/.temp/
+/Plugins/AGSflashlight/msvc/.build/
+/Plugins/AGSflashlight/msvc/.temp/
 /Plugins/AGSSpriteFont/msvc/.build/
 /Plugins/AGSSpriteFont/msvc/.temp/

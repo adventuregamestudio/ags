@@ -9,10 +9,8 @@ LIBS = -lm -lstdc++
 
 ifeq ($(UNAME), Darwin)
 TARGET = libagsspritefont.dylib
-CFLAGS += -DMAC_VERSION
 else
 TARGET = libagsspritefont.so
-CFLAGS += -DLINUX_VERSION
 endif
 
 CXXFLAGS = $(CFLAGS)

@@ -185,5 +185,7 @@ iOS/Resources
 Editor/References/**/*.dll
 
 # Plugins: MSVS solution output and temporary files
+/Plugins/ags_parallax/msvc/.build/
+/Plugins/ags_parallax/msvc/.temp/
 /Plugins/AGSSpriteFont/msvc/.build/
 /Plugins/AGSSpriteFont/msvc/.temp/

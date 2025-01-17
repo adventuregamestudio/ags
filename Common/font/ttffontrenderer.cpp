@@ -17,6 +17,7 @@
 #include "core/platform.h"
 #include "core/assetmanager.h"
 #include "font/fonts.h"
+#include "gfx/blender.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;
@@ -63,11 +64,23 @@ void TTFFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *desti
   if (y > destination->cb)  // optimisation
     return;
 
+  // Check if this is a alpha-blending case, and init corresponding draw mode
+  const bool alpha_blend = (bitmap_color_depth(destination) == 32) && (geta32(colour) != 0xFF);
+  if (alpha_blend)
+  {
+    alfont_blend_mode(_argb2argb_blender);
+  }
+
   // Y - 1 because it seems to get drawn down a bit
   if ((ShouldAntiAliasText()) && (bitmap_color_depth(destination) > 8))
     alfont_textout_aa(destination, _fontData[fontNumber].AlFont, text, x, y - 1, colour);
   else
     alfont_textout(destination, _fontData[fontNumber].AlFont, text, x, y - 1, colour);
+
+  if (alpha_blend)
+  {
+    alfont_blend_mode(nullptr);
+  }
 }
 
 bool TTFFontRenderer::LoadFromDisk(int fontNumber, int fontSize)

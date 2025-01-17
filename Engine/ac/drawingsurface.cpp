@@ -204,24 +204,12 @@ void DrawingSurface_BlendSurface(ScriptDrawingSurface* target, ScriptDrawingSurf
 
 void DrawingSurface_SetDrawingColor(ScriptDrawingSurface *sds, int newColour) 
 {
-    sds->currentColourScript = newColour;
-    // StartDrawing to set up ds to set the colour at the appropriate
-    // depth for the background
-    Bitmap *ds = sds->StartDrawing();
-    if (newColour == SCR_COLOR_TRANSPARENT)
-    {
-        sds->currentColour = ds->GetMaskColor();
-    }
-    else
-    {
-        sds->currentColour = ds->GetCompatibleColor(newColour);
-    }
-    sds->FinishedDrawingReadOnly();
+    sds->SetDrawingColor(newColour);
 }
 
 int DrawingSurface_GetDrawingColor(ScriptDrawingSurface *sds)
 {
-    return sds->currentColourScript;
+    return sds->GetScriptDrawingColor();
 }
 
 int DrawingSurface_GetHeight(ScriptDrawingSurface *sds) 
@@ -244,7 +232,7 @@ int DrawingSurface_GetColorDepth(ScriptDrawingSurface *sds)
 
 void DrawingSurface_Clear(ScriptDrawingSurface *sds, int colour)
 {
-    Bitmap *ds = sds->StartDrawing();
+    Bitmap *ds = sds->StartDrawing(); // clear is always done in solid mode
     int allegroColor;
     if (colour == SCR_COLOR_TRANSPARENT)
     {
@@ -260,33 +248,29 @@ void DrawingSurface_Clear(ScriptDrawingSurface *sds, int colour)
 
 void DrawingSurface_DrawCircle(ScriptDrawingSurface *sds, int x, int y, int radius)
 {
-    Bitmap *ds = sds->StartDrawing();
-    ds->FillCircle(Circle(x, y, radius), sds->currentColour);
-    sds->FinishedDrawing();
+    Bitmap *ds = sds->StartDrawingWithBrush();
+    ds->FillCircle(Circle(x, y, radius), sds->GetRealDrawingColor());
+    sds->FinishedDrawingWithBrush();
 }
 
 void DrawingSurface_DrawRectangle(ScriptDrawingSurface *sds, int x1, int y1, int x2, int y2)
 {
-    Bitmap *ds = sds->StartDrawing();
-    ds->FillRect(Rect(x1,y1,x2,y2), sds->currentColour);
-    sds->FinishedDrawing();
+    Bitmap *ds = sds->StartDrawingWithBrush();
+    ds->FillRect(Rect(x1,y1,x2,y2), sds->GetRealDrawingColor());
+    sds->FinishedDrawingWithBrush();
 }
 
 void DrawingSurface_DrawTriangle(ScriptDrawingSurface *sds, int x1, int y1, int x2, int y2, int x3, int y3)
 {
-    Bitmap *ds = sds->StartDrawing();
-    ds->DrawTriangle(Triangle(x1,y1,x2,y2,x3,y3), sds->currentColour);
-    sds->FinishedDrawing();
+    Bitmap *ds = sds->StartDrawingWithBrush();
+    ds->DrawTriangle(Triangle(x1,y1,x2,y2,x3,y3), sds->GetRealDrawingColor());
+    sds->FinishedDrawingWithBrush();
 }
 
 void DrawingSurface_DrawString(ScriptDrawingSurface *sds, int xx, int yy, int font, const char* text)
 {
-    Bitmap *ds = sds->StartDrawing();
-    color_t text_color = sds->currentColour;
-    if ((ds->GetColorDepth() <= 8) && (text_color > 255)) {
-        text_color = GUI::GetStandardColorForBitmap(1);
-        debug_script_warn ("DrawingSurface.DrawString: Attempted to use color %d on 256-col surface", text_color);
-    }
+    Bitmap *ds = sds->StartDrawing(); // TODO: support blending?
+    color_t text_color = sds->GetRealDrawingColor();
     String res_str = GUI::ApplyTextDirection(text);
     wouttext_outline(ds, xx, yy, font, text_color, res_str.GetCStr());
     sds->FinishedDrawing();
@@ -299,8 +283,8 @@ void DrawingSurface_DrawStringWrapped(ScriptDrawingSurface *sds, int xx, int yy,
     if (break_up_text_into_lines(draw_text, Lines, wid, font) == 0)
         return;
 
-    Bitmap *ds = sds->StartDrawing();
-    color_t text_color = sds->currentColour;
+    Bitmap *ds = sds->StartDrawing(); // TODO: support blending?
+    color_t text_color = sds->GetRealDrawingColor();
 
     for (size_t i = 0; i < Lines.Count(); i++)
     {
@@ -313,9 +297,9 @@ void DrawingSurface_DrawStringWrapped(ScriptDrawingSurface *sds, int xx, int yy,
 
 void DrawingSurface_DrawLine(ScriptDrawingSurface *sds, int fromx, int fromy, int tox, int toy, int thickness) {
     int ii,jj,xx,yy;
-    Bitmap *ds = sds->StartDrawing();
+    Bitmap *ds = sds->StartDrawingWithBrush();
     // draw several lines to simulate the thickness
-    color_t draw_color = sds->currentColour;
+    color_t draw_color = sds->GetRealDrawingColor();
     for (ii = 0; ii < thickness; ii++) 
     {
         xx = (ii - (thickness / 2));
@@ -325,27 +309,18 @@ void DrawingSurface_DrawLine(ScriptDrawingSurface *sds, int fromx, int fromy, in
             ds->DrawLine (Line(fromx + xx, fromy + yy, tox + xx, toy + yy), draw_color);
         }
     }
-    sds->FinishedDrawing();
+    sds->FinishedDrawingWithBrush();
 }
 
 void DrawingSurface_DrawPixel(ScriptDrawingSurface *sds, int x, int y) {
-    int thickness = 1;
-    int ii,jj;
     Bitmap *ds = sds->StartDrawing();
-    // draw several pixels to simulate the thickness
-    color_t draw_color = sds->currentColour;
-    for (ii = 0; ii < thickness; ii++) 
-    {
-        for (jj = 0; jj < thickness; jj++)
-        {
-            ds->PutPixel(x + ii, y + jj, draw_color);
-        }
-    }
+    // TODO: support alpha blending mode
+    ds->PutPixel(x, y, sds->GetRealDrawingColor());
     sds->FinishedDrawing();
 }
 
 int DrawingSurface_GetPixel(ScriptDrawingSurface *sds, int x, int y) {
-    Bitmap *ds = sds->StartDrawing();
+    Bitmap *ds = sds->StartDrawingReadOnly();
     int rawPixel = ds->GetPixel(x, y);
     int maskColor = ds->GetMaskColor();
     int colDepth = ds->GetColorDepth();

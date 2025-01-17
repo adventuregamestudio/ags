@@ -551,6 +551,10 @@ std::string const AGS::SymbolTable::GetName(AGS::Symbol symbl) const
 
 AGS::Vartype AGS::SymbolTable::VartypeWithArray(std::vector<size_t> const &dims, AGS::Vartype vartype)
 {
+    if (dims.empty())
+        // A zero-dimensional array is a "no-op".
+        return vartype;
+
     // If 'vartype' is an array, the new array index must be spliced into the vartype name
     // in front of the first '['
     std::string pre = GetName(vartype);
@@ -598,6 +602,24 @@ AGS::Vartype AGS::SymbolTable::VartypeWithArray(std::vector<size_t> const &dims,
         entries[array_vartype].VartypeD->Dims = dims_to_use;
     }
     return array_vartype;
+}
+
+AGS::Vartype AGS::SymbolTable::ArrayVartypeWithoutFirstDim(Vartype const vartype)
+{
+    if (!IsVartype(vartype))
+        return kKW_NoSymbol;
+
+    auto &dims = entries[vartype].VartypeD->Dims;
+    size_t const dims_count = dims.size();
+    if (0u == dims_count)
+        return vartype;
+
+    Vartype const base_vartype = entries[vartype].VartypeD->BaseVartype;
+    if (1u == dims_count)
+        return base_vartype;
+
+    std::vector<size_t> const new_dims{ dims.cbegin() + 1u, dims.cend() };
+    return VartypeWithArray(new_dims, base_vartype);
 }
 
 AGS::Vartype AGS::SymbolTable::VartypeWithConst(AGS::Vartype vartype)
@@ -753,7 +775,8 @@ AGS::Vartype AGS::SymbolTable::GetFirstBaseVartype(AGS::Vartype vartype) const
 {
     // TODO: extra safety checks?
     for (const auto *ste = &entries[vartype]; ste->VartypeD && (ste->VartypeD->BaseVartype > 0);
-        vartype = ste->VartypeD->BaseVartype, ste = &entries[vartype]) { }
+        vartype = ste->VartypeD->BaseVartype, ste = &entries[vartype])
+    { }
     return vartype;
 }
 

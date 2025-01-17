@@ -456,9 +456,6 @@
     <ClCompile Include="..\..\Engine\gfx\ali3dsw.cpp">
       <Filter>Source Files\gfx</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\gfx\blender.cpp">
-      <Filter>Source Files\gfx</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Engine\gfx\gfx_util.cpp">
       <Filter>Source Files\gfx</Filter>
     </ClCompile>
@@ -1119,9 +1116,6 @@
       <Filter>Header Files\gfx</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\gfx\ali3dsw.h">
-      <Filter>Header Files\gfx</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\gfx\blender.h">
       <Filter>Header Files\gfx</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\gfx\ddb.h">

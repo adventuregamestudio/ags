@@ -269,7 +269,7 @@ void DrawingSurface_DrawTriangle(ScriptDrawingSurface *sds, int x1, int y1, int 
 
 void DrawingSurface_DrawString(ScriptDrawingSurface *sds, int xx, int yy, int font, const char* text)
 {
-    Bitmap *ds = sds->StartDrawing(); // TODO: support blending?
+    Bitmap *ds = sds->StartDrawing(); // no need to use "brush", blending is done by font renderer
     color_t text_color = sds->GetRealDrawingColor();
     String res_str = GUI::ApplyTextDirection(text);
     wouttext_outline(ds, xx, yy, font, text_color, res_str.GetCStr());
@@ -283,7 +283,7 @@ void DrawingSurface_DrawStringWrapped(ScriptDrawingSurface *sds, int xx, int yy,
     if (break_up_text_into_lines(draw_text, Lines, wid, font) == 0)
         return;
 
-    Bitmap *ds = sds->StartDrawing(); // TODO: support blending?
+    Bitmap *ds = sds->StartDrawing(); // no need to use "brush", blending is done by font renderer
     color_t text_color = sds->GetRealDrawingColor();
 
     for (size_t i = 0; i < Lines.Count(); i++)

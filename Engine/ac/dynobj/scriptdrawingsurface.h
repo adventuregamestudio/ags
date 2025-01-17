@@ -38,9 +38,12 @@ public:
     int Dispose(void *address, bool force) override;
     const char *GetType() override;
     void Unserialize(int index, AGS::Common::Stream *in, size_t data_sz) override;
+    // Tells if DrawingSurface is currently in alpha blending drawing mode
+    inline bool IsAlphaBlending() const { return _alphaBlending; }
     int GetRealDrawingColor() const { return _currentColor; }
     int GetScriptDrawingColor() const { return _currentScriptColor; }
     void SetDrawingColor(int color_number);
+
     // TODO: review this, may need to hide GetBitmapSurface and use StartDrawingReadOnly instead;
     // the reason is that the bitmap may have to be "locked" for the duration of use, as it is
     // not owned by ScriptDrawingSurface. Alternatively, consider using shared ptr,

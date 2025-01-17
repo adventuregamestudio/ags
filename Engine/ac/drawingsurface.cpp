@@ -314,8 +314,14 @@ void DrawingSurface_DrawLine(ScriptDrawingSurface *sds, int fromx, int fromy, in
 
 void DrawingSurface_DrawPixel(ScriptDrawingSurface *sds, int x, int y) {
     Bitmap *ds = sds->StartDrawing();
-    // TODO: support alpha blending mode
-    ds->PutPixel(x, y, sds->GetRealDrawingColor());
+    if (sds->IsAlphaBlending())
+    {
+        ds->BlendPixel(x, y, sds->GetRealDrawingColor());
+    }
+    else
+    {
+        ds->PutPixel(x, y, sds->GetRealDrawingColor());
+    }
     sds->FinishedDrawing();
 }
 

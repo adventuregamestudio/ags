@@ -500,7 +500,9 @@ public:
 
     // Arrays and variables that are arrays
     // The "Array[...] of vartype" vartype
-    Vartype VartypeWithArray(std::vector<size_t> const &dims, AGS::Vartype vartype);
+    Vartype VartypeWithArray(std::vector<size_t> const &dims, Vartype vartype);
+    // The array without the first dimension 'a[3, 5]' -> 'a[5]'
+    Vartype ArrayVartypeWithoutFirstDim(Vartype vartype);
     // The "Const of vartype" vartype
     Vartype VartypeWithConst(AGS::Vartype vartype);
     // The "Dynarray of vartype" vartype

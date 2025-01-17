@@ -237,3 +237,16 @@ TEST_F(SymbolTable, IsAnyIntegerVartype)
     EXPECT_TRUE(symt.IsAnyIntegerVartype(AGS::kKW_Long));
     EXPECT_FALSE(symt.IsAnyIntegerVartype(AGS::kKW_Float));
 }
+
+TEST_F(SymbolTable, ArrayWithoutFirstDim)
+{
+    std::vector<size_t> const dims = { 3, 5, };
+    AGS::Vartype vartype35 = symt.VartypeWithArray(dims, AGS::kKW_Short);
+    EXPECT_STREQ("short[3, 5]", symt.GetName(vartype35).c_str());
+    AGS::Vartype vartype5 = symt.ArrayVartypeWithoutFirstDim(vartype35);
+    EXPECT_STREQ("short[5]", symt.GetName(vartype5).c_str());
+    AGS::Vartype vartype = symt.ArrayVartypeWithoutFirstDim(vartype5);
+    EXPECT_STREQ("short", symt.GetName(vartype).c_str());
+    AGS::Vartype vartype0 = symt.ArrayVartypeWithoutFirstDim(vartype);
+    EXPECT_STREQ("short", symt.GetName(vartype0).c_str());
+}

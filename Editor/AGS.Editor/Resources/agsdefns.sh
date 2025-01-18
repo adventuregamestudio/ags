@@ -424,7 +424,7 @@ managed struct Point {
 #endif // SCRIPT_API_v3507
 
 #define CHARID int  // $AUTOCOMPLETEIGNORE$
-builtin struct ColorType {
+struct ColorType {
   char r,g,b;
   char filler;  // $AUTOCOMPLETEIGNORE$
   };
@@ -926,7 +926,7 @@ import int  IsInterfaceEnabled();
 import void SendEvent(EventType, int data1=0, int data2=0, int data3=0, int data4=0);
 #endif
 
-struct Mouse {
+builtin struct Mouse {
   /// Changes the sprite for the specified mouse cursor.
   import static void ChangeModeGraphic(CursorMode, int slot);
   /// Changes the active hotspot for the specified mouse cursor.
@@ -3391,7 +3391,7 @@ enum SaveComponentSelection
 };
 
 #ifdef SCRIPT_API_v362
-managed struct RestoredSaveInfo
+builtin managed struct RestoredSaveInfo
 {
   /// Gets/sets whether this game's save should be cancelled.
   import attribute bool Cancel;

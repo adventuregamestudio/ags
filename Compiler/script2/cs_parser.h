@@ -763,14 +763,28 @@ private:
     void ParseVardecl_InitialValAssignment_IntOrFloatVartype(Vartype var, std::vector<char> &initial_val);
 
     // Assign a string literal to a char array or a 'string'
-    void ParseVardecl_InitialValAssignment_AssignStringLit(Symbol string_lit, size_t available_space, std::vector<char> &initial_val);
+    // 'available_space' means the _total_ available space
+    // counting the string-terminating '\0'.
+    void ParseVardecl_InitialValAssignment_ArrayOrStringBuf_Literal(Symbol string_lit, size_t available_space, std::vector<char> &initial_val);
 
+    // Initial assignment to a global non-managed struct
+    void ParseVardecl_InitialValAssignment_Struct(Vartype vartype, std::vector<char> &initial_val);
+
+    // Initialize a static array by specifying named entries of the form '[idx]: value'
+    // Starting '{' has already been eaten
+    void ParseVardecl_InitialValAssignment_Array_Named(size_t first_dim_size, Vartype el_vartype, std::vector<char> &initial_val);
+
+    // Initialize a static array by specifying a sequence of (unnamed) entries
+    // Starting '{' has already been eaten
+    void ParseVardecl_InitialValAssignment_Array_Sequence(size_t first_dim_size, Vartype el_vartype, std::vector<char> &initial_val);
+
+    // Initial assignment to a global classic array
     void ParseVardecl_InitialValAssignment_Array(Vartype vartype, std::vector<char> &initial_val);
 
-    void ParseVardecl_InitialValAssignment_OldString(std::vector<char> &initial_val);
+    void ParseVardecl_InitialValAssignment_StringBuf(std::vector<char> &initial_val);
 
-    // Parse the assignment of an initial value to a variable. 
-    void ParseVardecl_InitialValAssignment(Symbol varname, std::vector<char> &initial_val);
+    // Parse the assignment of an initial value. 'vartype' is the vartype of the assigned entity.
+    void ParseVardecl_InitialValAssignment(Vartype vartype, std::vector<char> &initial_val);
 
     // Move variable information into the symbol table
     void ParseVardecl_Var2SymTable(Vartype vartype, Symbol var_name);

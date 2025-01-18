@@ -2817,6 +2817,185 @@ TEST_F(Bytecode1, StructWOldstyleString2) {
     CompareStrings(&scrip, stringssize, strings);
 }
 
+TEST_F(Bytecode1, StructInit) {
+
+    // Initializing a global unmanaged struct
+
+    char const *inpl = R"%&/(
+        enum bool
+        {
+            false = 0,
+            true = 1,
+        };
+        struct Struct
+        {
+            attribute int attrib1;
+            attribute int attrib2[];
+            int Int;
+            short Short;
+            char Char;
+            float Float;
+            int Dummy;
+            bool Bool;
+        } S1 = { Int: (1 > 0)? 17 + 4 : 0, Float: 7.7,
+                 Short: -1, Bool: true,
+                 Char: '\n',
+               };  
+
+        int game_start()
+        {
+            return S1.Bool ? S1.Int + S1.Short + S1.Char : S1.Dummy;
+        }
+        )%&/";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string const &err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+
+    // WriteOutput("StructInit", scrip);
+    size_t const code_size = 56;
+    EXPECT_EQ(code_size, scrip.code.size());
+
+    int32_t code[] = {
+      36,   23,   38,    0,           36,   24,    6,    2,    // 7
+      15,    7,    3,   28,           37,    6,    2,    0,    // 15
+       7,    3,   29,    3,            6,    2,    4,   25,    // 23
+       3,   30,    4,   11,            4,    3,    3,    4,    // 31
+       3,   29,    3,    6,            2,    6,   24,    3,    // 39
+      30,    4,   11,    4,            3,    3,    4,    3,    // 47
+      31,    5,    6,    2,           11,    7,    3,    5,    // 55
+     -999
+    };
+    CompareCode(&scrip, code_size, code);
+
+    size_t const fixups_size = 5;
+    ASSERT_EQ(scrip.fixups.size(), scrip.fixuptypes.size());
+    EXPECT_EQ(fixups_size, scrip.fixups.size());
+
+    int32_t fixups[] = {
+       8,   15,   22,   37,         52, };
+    char fixuptypes[] = {
+       1,    1,    1,    1,          1, };
+    CompareFixups(&scrip, fixups_size, fixups, fixuptypes);
+
+    int const non_empty_imports_count = 0;
+    CompareImports(&scrip, non_empty_imports_count, nullptr);
+
+    size_t const exports_size = 0;
+    ASSERT_EQ(scrip.exports.size(), scrip.export_addr.size());
+    EXPECT_EQ(exports_size, scrip.exports.size());
+
+    size_t const strings_size = 0;
+    EXPECT_EQ(strings_size, scrip.strings.size());
+
+    size_t const globaldata_size = 20;
+    EXPECT_EQ(globaldata_size, scrip.globaldata.size());
+
+    unsigned char globaldata[] = {
+    0x15, 0x00, 0x00, 0x00,         0xff, 0xff, 0x0a, 0x66,    // 7
+    0x66, 0xf6, 0x40, 0x00,         0x00, 0x00, 0x00, 0x01,    // 15
+    0x00, 0x00, 0x00, 0x00, };
+    CompareGlobalData(&scrip, globaldata_size, globaldata);
+}
+
+TEST_F(Bytecode1, ArrayInit01) {
+
+    // Initializing a global array of characters
+    // A (one-dimensional) array of char may be given by a string literal
+
+    char const *inpl = R"%&/(
+        char matrix[5][6] = {
+            "SATOR",
+            { 'A', 'R', 'E', 'P', 'O', },
+            "TENET",
+            { [4]: 'S', [3]: 'A', [2]: 'T', [1]: 'O',
+              [0]: 'R', [5]: '\xFF' & '\x0F' & '\xF0', },
+        };
+        )%&/";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string const &err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+
+    // WriteOutput("ArrayInit01", scrip);
+    size_t const code_size = 0;
+    EXPECT_EQ(code_size, scrip.code.size());
+
+    size_t const fixups_size = 0;
+    ASSERT_EQ(scrip.fixups.size(), scrip.fixuptypes.size());
+    EXPECT_EQ(fixups_size, scrip.fixups.size());
+
+    int const non_empty_imports_count = 0;
+    CompareImports(&scrip, non_empty_imports_count, nullptr);
+
+    size_t const exports_size = 0;
+    ASSERT_EQ(scrip.exports.size(), scrip.export_addr.size());
+    EXPECT_EQ(exports_size, scrip.exports.size());
+
+    size_t const strings_size = 12;
+    EXPECT_EQ(strings_size, scrip.strings.size());
+
+    char strings[] = {
+    'S',  'A',  'T',  'O',          'R',    0,  'T',  'E',     // 7
+    'N',  'E',  'T',    0, };
+    CompareStrings(&scrip, strings_size, strings);
+
+    size_t const globaldata_size = 30;
+    EXPECT_EQ(globaldata_size, scrip.globaldata.size());
+
+    unsigned char globaldata[] = {
+    0x53, 0x41, 0x54, 0x4f,         0x52, 0x00, 0x41, 0x52,    // 7
+    0x45, 0x50, 0x4f, 0x00,         0x54, 0x45, 0x4e, 0x45,    // 15
+    0x54, 0x00, 0x52, 0x4f,         0x54, 0x41, 0x53, 0x00,    // 23
+    0x00, 0x00, 0x00, 0x00,         0x00, 0x00, };
+    CompareGlobalData(&scrip, globaldata_size, globaldata);
+}
+
+TEST_F(Bytecode1, ArrayInit02) {
+
+    // Initializing a global array of integers
+
+    char const *inpl = R"%&/(
+        const int two = 2;
+        int matrix[3][3] = {
+            [0]:     { 1, },
+            [4 / 4]: { 0, 1, },
+            [two]:   { [2]: 1, },
+        };
+        )%&/";
+
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string const &err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+
+    // WriteOutput("ArrayInit02", scrip);
+    size_t const code_size = 0;
+    EXPECT_EQ(code_size, scrip.code.size());
+
+    size_t const fixups_size = 0;
+    ASSERT_EQ(scrip.fixups.size(), scrip.fixuptypes.size());
+    EXPECT_EQ(fixups_size, scrip.fixups.size());
+
+    int const non_empty_imports_count = 0;
+    CompareImports(&scrip, non_empty_imports_count, nullptr);
+
+    size_t const exports_size = 0;
+    ASSERT_EQ(scrip.exports.size(), scrip.export_addr.size());
+    EXPECT_EQ(exports_size, scrip.exports.size());
+
+    size_t const strings_size = 0;
+    EXPECT_EQ(strings_size, scrip.strings.size());
+
+    size_t const globaldata_size = 36;
+    EXPECT_EQ(globaldata_size, scrip.globaldata.size());
+
+    CharRun global_runs[] = {
+    {   1, 0x01}, {  15, 0x00}, {   1, 0x01}, {  15, 0x00},    // 32
+    {   1, 0x01}, {   3, 0x00}, {0, 0x00} };
+    CompareGlobalRuns(&scrip, global_runs);
+}
+
 TEST_F(Bytecode1, ThisExpression1) {
 
     // "this" must be handled correctly as an expression term

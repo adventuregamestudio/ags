@@ -215,7 +215,7 @@ bool AGS::Snippet::IsEmpty()
 
 void AGS::RestorePoint::Cut(Snippet &snippet, bool const keep_starting_linum)
 {
-    int32_t const orig_codesize = _scrip.Codesize_i32();
+    CodeLoc const orig_codesize = _scrip.Codesize_i32();
 
     // Reset the code to the remembered location.
     CodeLoc rcl = _rememberedCodeLocation;

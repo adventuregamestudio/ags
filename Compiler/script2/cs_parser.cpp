@@ -235,6 +235,7 @@ Classic arrays and Dynarrays, pointers and managed structs:
 #include <cmath>
 #include <limits>
 #include <memory>
+#include <algorithm>
 
 #include "util/string.h"
 
@@ -292,15 +293,14 @@ void AGS::Parser::SkipNextSymbol(SrcList &src, Symbol expected)
             _sym.GetName(act).c_str());
 }
 
-
-void AGS::Parser::Expect(SymbolList const &expected, Symbol actual, std::string const &custom_msg)
+void AGS::Parser::Expect(SymbolList const &expected, Symbol const actual, std::string const &custom_msg)
 {
-    for (size_t expected_idx = 0u; expected_idx < expected.size(); expected_idx++)
-        if (actual == expected[expected_idx])
-            return;
+    auto found_it = std::find(expected.cbegin(), expected.cend(), actual);
+    if (expected.cend() != found_it) // found 'actual' in the list
+        return;
 
     std::string errmsg = custom_msg;
-    if (errmsg == "")
+    if (errmsg.empty())
     {
         // Provide a default message
         errmsg = "Expected ";
@@ -310,7 +310,7 @@ void AGS::Parser::Expect(SymbolList const &expected, Symbol actual, std::string 
             if (expected_idx + 2u < expected.size())
                 errmsg += ", ";
             else if (expected_idx + 2u == expected.size())
-                errmsg += " or ";
+                errmsg += ", or ";
         }
     }
     errmsg += ", found '%s' instead";
@@ -2659,7 +2659,10 @@ void AGS::Parser::ParseExpression_Binary(size_t const op_idx, SrcList &expressio
     }
  
     if (ParseExpression_CompileTime(operator_sym, eres_lhs, eres_rhs, eres))
-        start_of_term.Restore();
+        // Don't keep the starting LINUM:
+        // This code may run within the global data section, when a global is initialized,
+        // and that starting LINUM will be superfluous, outside of a function body.
+        start_of_term.Restore(false);
 }
 
 void AGS::Parser::ParseExpression_CheckUsedUp(SrcList &expression)
@@ -4256,19 +4259,241 @@ void AGS::Parser::ParseVardecl_InitialValAssignment_IntOrFloatVartype(Vartype co
     }
 }
 
-void AGS::Parser::ParseVardecl_InitialValAssignment_AssignStringLit(Symbol string_lit, size_t const available_space, std::vector<char> &initial_val)
+void AGS::Parser::ParseVardecl_InitialValAssignment_ArrayOrStringBuf_Literal(Symbol string_lit, size_t const available_space, std::vector<char> &initial_val)
 {
     // Get the relevant characters from the strings table
     std::string const lit_value = &(_scrip.strings[_sym[string_lit].LiteralD->Value]);
 
-    if (lit_value.length() >= available_space)
+    // '- 1u' to leave space for the terminating '\0'
+    if (lit_value.length() > available_space - 1u)
         UserError(
-            "Initializing string literal has %u chars and is too long (available space: %u chars)",
+            "Initializing string literal has %u chars and is too long "
+            "(available space: %u chars)",
             lit_value.length(),
             available_space - 1u);
 
     initial_val.assign(lit_value.begin(), lit_value.end());
-    initial_val.push_back('\0');
+    initial_val.resize(available_space);
+}
+
+void AGS::Parser::ParseVardecl_InitialValAssignment_Struct(Vartype const vartype, std::vector<char> &initial_val)
+{
+    // Data that we need to track for each (direct or indirect) component of 'vartype'
+    struct ComponentFields
+    {
+        Symbol Component; // without the qualifier
+        Symbol QualifiedName;
+        size_t Offset;
+        AGS::Vartype Vartype;
+        bool IsFunction;
+        bool IsAttribute;
+        std::vector<char> InitialVal;
+        size_t InitialValDeclared;
+    };
+    std::vector<ComponentFields> fields = {};
+
+    SymbolList components;
+    _sym.GetComponentsOfStruct(vartype, components);
+
+    for (size_t idx = 0u; idx < components.size(); idx++)
+    {
+        auto &compo = components[idx];
+        ComponentFields cf;
+        cf.Component = _sym[compo].ComponentD->Component;
+        cf.QualifiedName = compo;
+        cf.Offset = _sym[compo].ComponentD->Offset;
+        cf.Vartype = _sym[compo].VariableD ? _sym[compo].VariableD->Vartype : kKW_NoSymbol;
+        cf.InitialVal = {};
+        cf.InitialValDeclared = 0u;
+        cf.IsAttribute = (nullptr != _sym[compo].AttributeD);
+        cf.IsFunction = (nullptr != _sym[compo].FunctionD);
+        fields.push_back(cf);
+    }
+
+    Expect(kKW_OpenBrace, _src.GetNext());
+    Symbol sym = _src.GetNext();
+    while (sym != kKW_CloseBrace)
+    {
+        // Find the entry in 'fields' where 'Component' equals 'sym'
+        auto found_it = std::find_if(
+            fields.begin(),
+            fields.end(),
+            [&](ComponentFields const &cf) { return cf.Component == sym; });
+
+        if (fields.end() == found_it) // didn't find in the list
+        {
+            if (!_sym.IsIdentifier(sym))
+                UserError(
+                    "Expected an identifier as a component of '%s' but found '%s",
+                    _sym.GetName(vartype).c_str(),
+                    _sym.GetName(sym).c_str());
+            UserError(
+                ReferenceMsgSym(
+                    "Cannot find '%s' in struct '%s'", vartype).c_str(),
+                _sym.GetName(sym).c_str(),
+                _sym.GetName(vartype).c_str());
+        }
+        if (found_it->IsAttribute)
+            UserError(
+                ReferenceMsgSym(
+                    "Cannot initialize the attribute '%s'", vartype).c_str(),
+                _sym.GetName(vartype).c_str(),
+                _sym.GetName(found_it->QualifiedName).c_str());
+        if (found_it->IsFunction)
+            UserError(
+                ReferenceMsgSym(
+                    "Cannot initialize the function '%s'", vartype).c_str(),
+                _sym.GetName(vartype).c_str(),
+                _sym.GetName(found_it->QualifiedName).c_str());
+        if (!found_it->InitialVal.empty())
+            UserError(
+                ReferenceMsgLoc(
+                    "Component '%s' has already been initialized",
+                    found_it->InitialValDeclared).c_str(),
+                _sym.GetName(found_it->QualifiedName).c_str());
+
+        Expect(kKW_Colon, _src.GetNext());
+        found_it->InitialValDeclared = _src.GetCursor();
+        ParseVardecl_InitialValAssignment(found_it->Vartype, found_it->InitialVal);
+        sym = _src.GetNext();
+        Expect(SymbolList{ kKW_Comma, kKW_CloseBrace }, sym);
+        if (kKW_Comma == sym)
+            sym = _src.GetNext();
+    }
+
+    // Sort the fields in ascending order of 'Offset'
+    std::sort(
+        fields.begin(),
+        fields.end(),
+        [](ComponentFields const &cf1, ComponentFields const &cf2) { return cf1.Offset < cf2.Offset; });
+
+    initial_val.clear();
+
+    for (auto it = fields.begin(); it != fields.end(); it++)
+    {
+        if (it->IsAttribute || it->IsFunction)
+            continue; // Nothing to initialize
+        if (it->InitialVal.empty())
+            continue; // Skip fields that don't have an initialization
+        // Everything between the end of the preceding initialization and the current offset
+        // hasn't been specified, so set it to zeros.
+        initial_val.resize(it->Offset);
+        
+        // Append the current initial value here
+        initial_val.insert(
+            initial_val.end(),
+            it->InitialVal.begin(),
+            it->InitialVal.end());
+    }
+    // Fields at the end of this struct might not be initialized yet,
+    // so fill up to the size of this struct.
+    initial_val.resize(_sym.GetSize(vartype));
+}
+
+void AGS::Parser::ParseVardecl_InitialValAssignment_Array_Named(size_t const first_dim_size, Vartype const el_vartype, std::vector<char> &initial_val)
+{
+    struct init_record
+    {
+        size_t Declared; // Where in _src the initial value was specified
+        std::vector<char> InitialVal;
+    };
+    std::unordered_map<size_t, init_record> inits;
+
+    while (kKW_CloseBrace != _src.PeekNext())
+    {
+        // Get the index '[...]:'
+        Symbol const bracket = _src.GetNext();
+        if (kKW_OpenBracket != bracket)
+            UserError(
+                "Expected '}' or '[', found '%s' instead "
+                "(cannot mix named and unnamed array fields within the same '{...}')",
+                _sym.GetName(bracket).c_str());
+        EvaluationResult eres;
+        size_t const array_index_start = _src.GetCursor();
+        ParseIntegerExpression(_src, eres, "Expected an array index");
+        if (EvaluationResult::kLOC_SymbolTable != eres.Location)
+        {
+            _src.SetCursor(array_index_start);
+            UserError(
+                "Cannot evaluate the array index expression at compile time that starts with '[%s'",
+                _sym.GetName(_src.PeekNext()).c_str());
+        }
+        if (!_sym.IsLiteral(eres.Symbol))
+            InternalError("Cannot retrieve literal '%s'", _sym.GetName(eres.Symbol).c_str());
+        int const idx_as_int = _sym[eres.Symbol].LiteralD->Value;
+        if (idx_as_int < 0)
+            UserError("Array index '[%d]' is too low (minimum is '[0]')", idx_as_int);
+        size_t const idx = static_cast<size_t>(idx_as_int);
+        if (idx >= first_dim_size)
+            UserError("Array index '[%u]' is too high (maximum is '[%u]')", idx, first_dim_size - 1u);
+        if (inits.count(idx))
+            UserError(
+                ReferenceMsgLoc(
+                    "The value of field '[%u]' has already been specified",
+                    inits[idx].Declared).c_str(),
+                idx);
+        
+        Expect(kKW_CloseBracket, _src.GetNext());
+        Expect(kKW_Colon, _src.GetNext());
+
+        // Get the value and write a record to 'inits'
+        init_record current_record;
+        current_record.Declared = array_index_start;
+        ParseVardecl_InitialValAssignment(el_vartype, current_record.InitialVal);
+        inits[idx] = current_record;
+
+        // Handle the separators
+        Symbol const comma_or_close = _src.PeekNext();
+        Expect(SymbolList{ kKW_Comma, kKW_CloseBrace, }, comma_or_close);
+        if (kKW_Comma == comma_or_close)
+            SkipNextSymbol(_src, kKW_Comma);
+    }
+    SkipNextSymbol(_src, kKW_CloseBrace);
+
+    // Stitch together the fields,
+    // using binary zeros wherever a field hasn't been specified.
+    size_t const el_size = _sym.GetSize(el_vartype);
+    auto const all_binary_zeros = std::vector<char>(el_size, '\0');
+    initial_val.clear();
+    initial_val.reserve(el_size * first_dim_size);
+    for (size_t dim_idx = 0u; dim_idx < first_dim_size; ++dim_idx)
+    {
+        auto const &the_field_to_append =
+            inits.count(dim_idx) ? inits[dim_idx].InitialVal : all_binary_zeros;
+        initial_val.insert(
+            initial_val.end(), 
+            the_field_to_append.cbegin(), the_field_to_append.cend());
+    }
+}
+
+void AGS::Parser::ParseVardecl_InitialValAssignment_Array_Sequence(size_t const first_dim_size, Vartype const el_vartype, std::vector<char> &initial_val)
+{
+    initial_val.clear();
+
+    for (size_t dim_idx = 0u; kKW_CloseBrace != _src.PeekNext(); ++dim_idx)
+    {
+        if (first_dim_size == dim_idx)
+            UserError("Expected at most %u array fields, found more", first_dim_size);
+
+        if (kKW_OpenBracket == _src.PeekNext())
+            UserError(
+                "Expected a value, found '[' instead "
+                "(cannot mix named and unnamed array fields within the same '{...}'");
+        std::vector<char> el_initial_val;
+        ParseVardecl_InitialValAssignment(el_vartype, el_initial_val);
+        initial_val.insert(
+            initial_val.end(),
+            el_initial_val.begin(), el_initial_val.end());
+
+        Symbol const comma_or_close = _src.PeekNext();
+        Expect(SymbolList{ kKW_Comma, kKW_CloseBrace, }, comma_or_close);
+        if (kKW_Comma == comma_or_close)
+            SkipNextSymbol(_src, kKW_Comma);
+    }
+    SkipNextSymbol(_src, kKW_CloseBrace);
+
+    // Initialize all following elements with binary zeros
+    initial_val.resize(first_dim_size * _sym.GetSize(el_vartype));
 }
 
 void AGS::Parser::ParseVardecl_InitialValAssignment_Array(Vartype const vartype, std::vector<char> &initial_val)
@@ -4286,20 +4511,24 @@ void AGS::Parser::ParseVardecl_InitialValAssignment_Array(Vartype const vartype,
             UserError(
                 "Cannot initialize a multi-dimensional array with a string literal");
 
-        ParseVardecl_InitialValAssignment_AssignStringLit(
+        ParseVardecl_InitialValAssignment_ArrayOrStringBuf_Literal(
             next_sym,
             _sym.ArrayElementsCount(vartype),
             initial_val);
         return;
     }
-    // TODO: Check that the array can be initialized.
-    // It must consist of non-managed arrays or non-managed structs
-    // or 'float's or integer types or 'string'.
-    Expect(kKW_OpenBrace, next_sym);
-    InternalError("Array initializers aren't implemented yet (except for string literals)");
+    Expect(kKW_OpenBrace, next_sym, "Expected '{' or a string literal");
+
+    // Split the first dimension off the array vartype
+    size_t const first_dim_size = _sym[vartype].VartypeD->Dims.at(0u);
+    Vartype const el_vartype = _sym.ArrayVartypeWithoutFirstDim(vartype);
+
+    if (kKW_OpenBracket == _src.PeekNext())
+        return ParseVardecl_InitialValAssignment_Array_Named(first_dim_size, el_vartype, initial_val);
+    return ParseVardecl_InitialValAssignment_Array_Sequence(first_dim_size, el_vartype, initial_val);
 }
 
-void AGS::Parser::ParseVardecl_InitialValAssignment_OldString(std::vector<char> &initial_val)
+void AGS::Parser::ParseVardecl_InitialValAssignment_StringBuf(std::vector<char> &initial_val)
 {
     Symbol string_lit = _src.GetNext();
     if (_sym.IsConstant(string_lit))
@@ -4309,32 +4538,33 @@ void AGS::Parser::ParseVardecl_InitialValAssignment_OldString(std::vector<char> 
         _sym.VartypeWithConst(kKW_String) != _sym[string_lit].LiteralD->Vartype)
         UserError("Expected a string literal after '=', found '%s' instead", _sym.GetName(_src.PeekNext()).c_str());
 
-    ParseVardecl_InitialValAssignment_AssignStringLit(string_lit, STRINGBUFFER_LENGTH, initial_val);
+    ParseVardecl_InitialValAssignment_ArrayOrStringBuf_Literal(string_lit, STRINGBUFFER_LENGTH, initial_val);
 }
 
-void AGS::Parser::ParseVardecl_InitialValAssignment(Symbol varname, std::vector<char> &initial_val)
+void AGS::Parser::ParseVardecl_InitialValAssignment(Vartype vartype, std::vector<char> &initial_val)
 {
-    SkipNextSymbol(_src, kKW_Assign);
-
-    Vartype const vartype = _sym.GetVartype(varname);
     if (_sym.IsManagedVartype(vartype))
+    {
+        // We only reserve the space for the pointer.
+        // The space for the actual object will be reserved with an AGS 'new' expression.
+        initial_val.resize (SIZE_OF_DYNPOINTER);
         return Expect(kKW_Null, _src.GetNext());
+    }
 
     if (_sym.IsStructVartype(vartype))
-        UserError("'%s' is a struct and cannot be initialized here", _sym.GetName(varname).c_str());
+        return ParseVardecl_InitialValAssignment_Struct(vartype, initial_val);
 
     if (_sym.IsArrayVartype(vartype))
         return ParseVardecl_InitialValAssignment_Array(vartype, initial_val);
 
     if (kKW_String == vartype)
-        return ParseVardecl_InitialValAssignment_OldString(initial_val);
+        return ParseVardecl_InitialValAssignment_StringBuf(initial_val);
 
     if (_sym.IsAnyIntegerVartype(vartype) || kKW_Float == vartype)
         return ParseVardecl_InitialValAssignment_IntOrFloatVartype(vartype, initial_val);
 
     UserError(
-        "Variable '%s' has type '%s' and cannot be initialized here",
-        _sym.GetName(varname).c_str(),
+        "Type '%s' cannot be initialized",
         _sym.GetName(vartype).c_str());
 }
 
@@ -4511,10 +4741,17 @@ void AGS::Parser::ParseVardecl_Import(Symbol var_name)
 void AGS::Parser::ParseVardecl_Global(Symbol var_name, Vartype vartype)
 {
     size_t const vartype_size = _sym.GetSize(vartype);
-    std::vector<char> initial_val(vartype_size + 1u, '\0');
+    std::vector<char> initial_val;
 
     if (kKW_Assign == _src.PeekNext())
-        ParseVardecl_InitialValAssignment(var_name, initial_val);
+    {
+        SkipNextSymbol(_src, kKW_Assign);
+        ParseVardecl_InitialValAssignment(vartype, initial_val);
+    }
+    else
+    {
+        initial_val.insert(initial_val.begin(), _sym.GetSize(vartype), '\0');
+    }
     
     SymbolTableEntry &entry = _sym[var_name];
     entry.VariableD->Vartype = vartype;

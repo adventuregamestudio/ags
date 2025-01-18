@@ -2469,6 +2469,7 @@ void draw_gui_and_overlays()
                         draw_at = guihelpbg[index].get();
                     }
 
+                    draw_at->ResetClip();
                     draw_at->ClearTransparent();
                     if (draw_with_controls)
                         gui.DrawWithControls(draw_at);

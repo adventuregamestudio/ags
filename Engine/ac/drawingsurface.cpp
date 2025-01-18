@@ -53,7 +53,7 @@ void DrawingSurface_Release(ScriptDrawingSurface* sds)
                 invalidate_screen();
                 mark_current_background_dirty();
             }
-            play.raw_modified[sds->roomBackgroundNumber] = 1;
+            play.raw_modified[sds->roomBackgroundNumber] = true;
         }
 
         sds->roomBackgroundNumber = -1;

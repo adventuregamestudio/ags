@@ -207,9 +207,7 @@ struct GamePlayState
     int   num_parsed_words = 0;
     short parsed_words[MAX_PARSED_WORDS]{};
     Common::String bad_parsed_word;
-    int   raw_color = 0;
-    int   raw_modified[MAX_ROOM_BGFRAMES]{};
-    Common::PBitmap raw_drawing_surface;
+    bool  raw_modified[MAX_ROOM_BGFRAMES]{}; // tell which current room bgs were modified
     int   room_changes = 0;
     int   mouse_cursor_hidden = 0;
     unsigned long shakesc_delay = 0;  // unsigned long to match loopcounter

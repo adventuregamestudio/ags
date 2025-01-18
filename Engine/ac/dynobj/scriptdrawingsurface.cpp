@@ -121,7 +121,7 @@ ScriptDrawingSurface::ScriptDrawingSurface()
     dynamicSurfaceNumber = -1;
     isLinkedBitmapOnly = false;
     linkedBitmapOnly = nullptr;
-    currentColour = play.raw_color;
-    currentColourScript = 0;
+    currentColour = 0;
+    currentColourScript = SCR_COLOR_TRANSPARENT;
     modified = 0;
 }

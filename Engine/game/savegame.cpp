@@ -310,7 +310,6 @@ void DoBeforeRestore(PreservedParams &pp, SaveCmpSelection select_cmp)
     memcpy(pp.GameOptions, game.options, GameSetupStruct::MAX_OPTIONS * sizeof(int));
 
     unload_old_room();
-    raw_saved_screen = nullptr;
     remove_all_overlays();
     play.complete_overlay_on = 0;
     play.text_overlay_on = 0;

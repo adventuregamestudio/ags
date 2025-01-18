@@ -218,7 +218,6 @@ Common::Bitmap *CopyScreenIntoBitmap(int width, int height, const Rect *src_rect
 
 
 // TODO: hide these behind some kind of an interface
-extern std::unique_ptr<Common::Bitmap> raw_saved_screen;
 extern std::unique_ptr<Common::Bitmap> dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
 
 #endif // __AGS_EE_AC__DRAW_H

@@ -807,7 +807,7 @@ void engine_init_game_settings()
     play.lastParserEntry[0] = 0;
     play.follow_change_room_timer = 150;
     for (ee = 0; ee < MAX_ROOM_BGFRAMES; ee++) 
-        play.raw_modified[ee] = 0;
+        play.raw_modified[ee] = false;
     play.game_speed_modifier = 0;
     if (debug_flags & DBG_DEBUGMODE)
         play.debug_mode = 1;

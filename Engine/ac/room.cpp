@@ -335,9 +335,8 @@ void unload_old_room()
     play.bg_frame = 0;
     play.bg_frame_locked = 0;
     remove_all_overlays();
-    raw_saved_screen = nullptr;
     for (int ff = 0; ff < MAX_ROOM_BGFRAMES; ff++)
-        play.raw_modified[ff] = 0;
+        play.raw_modified[ff] = false;
 
     // ensure that any half-moves (eg. with scaled movement) are stopped
     for (int ff = 0; ff < game.numcharacters; ff++) {

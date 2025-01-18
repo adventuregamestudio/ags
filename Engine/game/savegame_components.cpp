@@ -1464,9 +1464,7 @@ HSaveError WriteThisRoom(Stream *out)
         if (play.raw_modified[i])
             serialize_bitmap(thisroom.BgFrames[i].Graphic.get(), out);
     }
-    out->WriteBool(raw_saved_screen != nullptr);
-    if (raw_saved_screen)
-        serialize_bitmap(raw_saved_screen.get(), out);
+    out->WriteBool(false); //[DEPRECATED]
 
     // room region state
     for (int i = 0; i < MAX_ROOM_REGIONS; ++i)
@@ -1509,7 +1507,7 @@ HSaveError ReadThisRoom(Stream *in, int32_t cmp_ver, soff_t /*cmp_size*/, const 
             r_data.RoomBkgScene[i] = nullptr;
     }
     if (in->ReadBool())
-        raw_saved_screen.reset(read_serialized_bitmap(in));
+        skip_serialized_bitmap(in); //[DEPRECATED]
 
     // room region state
     for (int i = 0; i < MAX_ROOM_REGIONS; ++i)

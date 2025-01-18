@@ -80,6 +80,7 @@ ALFONT_DLL_DECLSPEC int alfont_get_font_real_height(ALFONT_FONT *f);
 ALFONT_DLL_DECLSPEC void alfont_get_font_real_vextent(ALFONT_FONT *f, int *top, int *bottom);
 
 ALFONT_DLL_DECLSPEC int alfont_text_mode(int mode);
+ALFONT_DLL_DECLSPEC BLENDER_FUNC alfont_blend_mode(BLENDER_FUNC blend_func);
 
 ALFONT_DLL_DECLSPEC void alfont_textout_aa(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int y, int color);
 ALFONT_DLL_DECLSPEC void alfont_textout(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int y, int color);

@@ -518,6 +518,9 @@
     <ClCompile Include="..\..\Common\gfx\image_file.cpp">
       <Filter>Source Files\gfx</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Common\gfx\blender.cpp">
+      <Filter>Source Files\gfx</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Common\ac\audiocliptype.h">
@@ -830,6 +833,9 @@
       <Filter>Header Files\gfx</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\gfx\image_file.h">
+      <Filter>Header Files\gfx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\gfx\blender.h">
       <Filter>Header Files\gfx</Filter>
     </ClInclude>
   </ItemGroup>

@@ -429,9 +429,41 @@ void Bitmap::PutPixel(int x, int y, color_t color)
 		return _putpixel24(_alBitmap, x, y, color);
 	case 32:
 		return _putpixel32(_alBitmap, x, y, color);
+	default: assert(0); // this should not normally happen
 	}
-    assert(0); // this should not normally happen
 	return putpixel(_alBitmap, x, y, color);
+}
+
+// hack into allegro...
+extern "C" {
+    extern BLENDER_FUNC _blender_func15;
+    extern BLENDER_FUNC _blender_func16;
+    extern BLENDER_FUNC _blender_func24;
+    extern BLENDER_FUNC _blender_func32;
+}
+
+void Bitmap::BlendPixel(int x, int y, color_t color)
+{
+    if (x < 0 || x >= _alBitmap->w || y < 0 || y >= _alBitmap->h)
+    {
+        return;
+    }
+
+    switch (bitmap_color_depth(_alBitmap))
+    {
+    case 8:
+        return _putpixel(_alBitmap, x, y, color);
+    case 15:
+        return _putpixel15(_alBitmap, x, y, _blender_func15(color, _getpixel15(_alBitmap, x, y), 0xFF));
+    case 16:
+        return _putpixel16(_alBitmap, x, y, _blender_func16(color, _getpixel16(_alBitmap, x, y), 0xFF));
+    case 24:
+        return _putpixel24(_alBitmap, x, y, _blender_func24(color, _getpixel24(_alBitmap, x, y), 0xFF));
+    case 32:
+        return _putpixel32(_alBitmap, x, y, _blender_func32(color, _getpixel32(_alBitmap, x, y), 0xFF));
+    default: assert(0); // this should not normally happen
+    }
+    return putpixel(_alBitmap, x, y, color);
 }
 
 int Bitmap::GetPixel(int x, int y) const

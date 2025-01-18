@@ -237,6 +237,7 @@ public:
     // blocks of bitmap memory - reading/writing from/to scan lines should be
     // done in such cases.
     void	PutPixel(int x, int y, color_t color);
+    void    BlendPixel(int x, int y, color_t color);
     int		GetPixel(int x, int y) const;
 
     //=========================================================================

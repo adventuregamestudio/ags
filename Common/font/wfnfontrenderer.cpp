@@ -18,6 +18,7 @@
 #include "debug/out.h"
 #include "font/wfnfont.h"
 #include "gfx/bitmap.h"
+#include "gfx/blender.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;
@@ -88,6 +89,14 @@ static int RenderChar(Bitmap *ds, const int at_x, const int at_y, Rect clip,
   const unsigned char *actdata = wfn_char.Data;
   const int bytewid = wfn_char.GetRowByteCount();
 
+  // Check if this is a alpha-blending case, and init corresponding draw mode
+  const bool alpha_blend = (ds->GetColorDepth() == 32) && (geta32(text_color) != 0xFF);
+  if (alpha_blend)
+  {
+    drawing_mode(DRAW_MODE_TRANS, nullptr, 0, 0);
+    set_argb2any_blender();
+  }
+
   int sx = std::max(at_x, clip.Left), ex = clip.Right + 1;
   int sy = std::max(at_y, clip.Top), ey = clip.Bottom + 1;
   int sw = std::max(0, clip.Left - at_x);
@@ -102,6 +111,10 @@ static int RenderChar(Bitmap *ds, const int at_x, const int at_y, Rect clip,
         {
           ds->FillRect(RectWH(x, y, scale, scale), text_color);
         } 
+        else if (alpha_blend)
+        {
+          ds->BlendPixel(x, y, text_color);
+        }
         else
         {
           ds->PutPixel(x, y, text_color);
@@ -109,6 +122,12 @@ static int RenderChar(Bitmap *ds, const int at_x, const int at_y, Rect clip,
       }
     }
   }
+
+  if (alpha_blend)
+  {
+    drawing_mode(DRAW_MODE_SOLID, nullptr, 0, 0);
+  }
+
   return width * scale;
 }
 

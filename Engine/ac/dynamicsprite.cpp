@@ -362,7 +362,7 @@ ScriptDynamicSprite* DynamicSprite_CreateFromDrawingSurface(ScriptDrawingSurface
         height = std::max(1, height);
     }
 
-    Bitmap *ds = sds->StartDrawing();
+    Bitmap *ds = sds->StartDrawingReadOnly();
     if ((x < 0) || (y < 0) || (x + width > ds->GetWidth()) || (y + height > ds->GetHeight()))
         quit("!DynamicSprite.CreateFromDrawingSurface: requested area is outside the surface");
 

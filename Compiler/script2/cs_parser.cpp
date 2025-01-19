@@ -2721,10 +2721,7 @@ void AGS::Parser::ParseExpression_Binary(size_t const op_idx, SrcList &expressio
     }
  
     if (ParseExpression_CompileTime(operator_sym, eres_lhs, eres_rhs, eres))
-        // Don't keep the starting LINUM:
-        // This code may run within the global data section, when a global is initialized,
-        // and that starting LINUM will be superfluous, outside of a function body.
-        start_of_term.Restore(false);
+        start_of_term.Restore();
 }
 
 void AGS::Parser::ParseExpression_CheckUsedUp(SrcList &expression)
@@ -4291,7 +4288,11 @@ void AGS::Parser::ParseAssignment_MAssign(Symbol const ass_symbol, SrcList &lhs)
 void AGS::Parser::ParseVardecl_InitialValAssignment_IntOrFloatVartype(Vartype const wanted_vartype, std::vector<char> &initial_val)
 {
     EvaluationResult eres;
+    // Parse an expression making sure that no code is generated,
+    // not even LINUM directives (we are outside of a function body)
+    RestorePoint rp(_scrip);
     ParseExpression(_src, eres);
+    rp.Restore(false);
     
     if (eres.kTY_Literal != eres.Type)
         UserError("Cannot evaluate this expression at compile time, it cannot be used as initializer");
@@ -4300,7 +4301,7 @@ void AGS::Parser::ParseVardecl_InitialValAssignment_IntOrFloatVartype(Vartype co
 
     if ((kKW_Float == wanted_vartype) != (kKW_Float == eres.Vartype))
         UserError(
-            "Expected a '%s' value after '=' but found a '%s' value instead",
+            "Expected a '%s' value as an initializer but found a '%s' value instead",
             _sym.GetName(wanted_vartype).c_str(),
             _sym.GetName(eres.Vartype).c_str());
     
@@ -4315,10 +4316,10 @@ void AGS::Parser::ParseVardecl_InitialValAssignment_IntOrFloatVartype(Vartype co
         initial_val[0u] = litval;
         return;
     case 2u:
-        (reinterpret_cast<int16_t *> (&initial_val[0]))[0] = litval;
+        (reinterpret_cast<int16_t *> (initial_val.data()))[0] = litval;
         return;
     case 4u:
-        (reinterpret_cast<int32_t *> (&initial_val[0]))[0] = litval;
+        (reinterpret_cast<int32_t *> (initial_val.data()))[0] = litval;
         return;
     }
 }
@@ -4345,14 +4346,14 @@ void AGS::Parser::ParseVardecl_InitialValAssignment_Struct(Vartype const vartype
     // Data that we need to track for each (direct or indirect) component of 'vartype'
     struct ComponentFields
     {
-        Symbol Component; // without the qualifier
-        Symbol QualifiedName;
-        size_t Offset;
-        AGS::Vartype Vartype;
-        bool IsFunction;
-        bool IsAttribute;
-        std::vector<char> InitialVal;
-        size_t InitialValDeclared;
+        Symbol Component = kKW_NoSymbol; // without the qualifier
+        Symbol QualifiedName = kKW_NoSymbol;
+        size_t Offset = 0u;
+        AGS::Vartype Vartype = kKW_NoSymbol;
+        bool IsFunction = false;
+        bool IsAttribute = false;
+        std::vector<char> InitialVal = {};
+        size_t InitialValDeclared = SIZE_MAX;
     };
     std::vector<ComponentFields> fields = {};
 
@@ -4458,8 +4459,8 @@ void AGS::Parser::ParseVardecl_InitialValAssignment_Array_Named(size_t const fir
 {
     struct init_record
     {
-        size_t Declared; // Where in _src the initial value was specified
-        std::vector<char> InitialVal;
+        size_t Declared = SIZE_MAX; // Where in _src the initial value was specified
+        std::vector<char> InitialVal = {};
     };
     std::unordered_map<size_t, init_record> inits;
 
@@ -4474,7 +4475,11 @@ void AGS::Parser::ParseVardecl_InitialValAssignment_Array_Named(size_t const fir
                 _sym.GetName(bracket).c_str());
         EvaluationResult eres;
         size_t const array_index_start = _src.GetCursor();
+        // Parse an integer expression making sure that no code is generated
+        // not even LINUM directives (we are outside of a function body)
+        RestorePoint rp(_scrip);
         ParseIntegerExpression(_src, eres, "Expected an array index");
+        rp.Restore(false);
         if (EvaluationResult::kLOC_SymbolTable != eres.Location)
         {
             _src.SetCursor(array_index_start);
@@ -4819,7 +4824,7 @@ void AGS::Parser::ParseVardecl_Global(Symbol var_name, Vartype vartype)
     
     SymbolTableEntry &entry = _sym[var_name];
     entry.VariableD->Vartype = vartype;
-    int const global_offset = _scrip.AddGlobal(vartype_size, &initial_val[0]);
+    int const global_offset = _scrip.AddGlobal(vartype_size, initial_val.data());
     if (global_offset < 0)
         InternalError("Cannot allocate global variable");
 

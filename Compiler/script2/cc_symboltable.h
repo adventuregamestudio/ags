@@ -228,7 +228,7 @@ struct FuncParameterDesc
     AGS::Vartype Vartype = kKW_NoSymbol;
     Symbol Name = kKW_NoSymbol;
     Symbol Default = kKW_NoSymbol;
-    size_t Declared;
+    size_t Declared = SIZE_MAX;
 };
 
 struct SymbolTable;

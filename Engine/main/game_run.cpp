@@ -1250,6 +1250,11 @@ void SyncDrawablesState()
     update_objects_scale();
 }
 
+void ShutGameWaitState()
+{
+    restrict_until = {};
+}
+
 void update_polled_stuff()
 {
     if (want_exit) {

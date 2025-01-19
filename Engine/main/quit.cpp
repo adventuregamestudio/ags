@@ -197,8 +197,6 @@ void quit(const char *quitmsg)
 
     set_our_eip(9900);
 
-    set_our_eip(9016);
-
     quit_stop_cd();
     if (use_cdplayer)
         platform->ShutdownCDPlayer();
@@ -209,6 +207,7 @@ void quit(const char *quitmsg)
 
     // Release game data and unregister assets
     quit_check_dynamic_sprites(qreason);
+    shutdown_game_state();
     unload_game();
     AssetMgr.reset();
 

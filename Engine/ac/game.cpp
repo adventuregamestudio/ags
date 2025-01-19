@@ -66,6 +66,7 @@
 #include "gui/guitextbox.h"
 #include "gui/guidialog.h"
 #include "main/engine.h"
+#include "main/game_run.h"
 #include "media/audio/audio_system.h"
 #include "media/video/video.h"
 #include "platform/base/agsplatformdriver.h"
@@ -495,6 +496,12 @@ void free_do_once_tokens()
     play.do_once_tokens.clear();
 }
 
+void shutdown_game_state()
+{
+    // Try every possible game state that is represented by a global object
+    shutdown_dialog_state();
+    ShutGameWaitState();
+}
 
 // Free all the memory associated with the game
 void unload_game()

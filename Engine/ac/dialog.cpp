@@ -1596,6 +1596,12 @@ void schedule_dialog_stop()
         dialogOpts->Stop();
 }
 
+void shutdown_dialog_state()
+{
+    dialogExec = {};
+    dialogOpts = {};
+}
+
 // end dialog manager
 
 

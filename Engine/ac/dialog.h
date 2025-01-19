@@ -51,6 +51,8 @@ int run_dialog_option(int dlgnum, int dialog_choice, int sayChosenOption, bool r
 bool handle_state_change_in_dialog_request(const char *apiname, int dlgreq_retval);
 // Shedule dialog state to stop next time it receives a control
 void schedule_dialog_stop();
+// Disposes dialog state object(s)
+void shutdown_dialog_state();
 
 extern std::vector<ScriptDialog> scrDialog;
 extern std::vector<DialogTopic> dialog;

@@ -75,8 +75,8 @@ void    Character_Tint(CharacterInfo *chaa, int red, int green, int blue, int op
 void    Character_Think(CharacterInfo *chaa, const char *text);
 void    Character_UnlockView(CharacterInfo *chaa);
 void    Character_UnlockViewEx(CharacterInfo *chaa, int stopMoving);
-void    Character_Walk(CharacterInfo *chaa, int x, int y, int blocking, int direct);
-void    Character_Move(CharacterInfo *chaa, int x, int y, int blocking, int direct);
+void    Character_Walk(CharacterInfo *chaa, int x, int y, int blocking, int ignwal);
+void    Character_Move(CharacterInfo *chaa, int x, int y, int blocking, int ignwal);
 void    Character_WalkStraight(CharacterInfo *chaa, int xx, int yy, int blocking);
 
 void    Character_RunInteraction(CharacterInfo *chaa, int mood);
@@ -174,7 +174,6 @@ void animate_character(CharacterInfo *chap, int loopn, int sppd, int rept,
     int direction = 0, int sframe = 0, int volume = 100);
 // Clears up animation parameters
 void stop_character_anim(CharacterInfo *chap);
-void walk_character(int chac,int tox,int toy,int ignwal, bool autoWalkAnims);
 int  find_looporder_index (int curloop);
 // returns 0 to use diagonal, 1 to not
 int  useDiagonal (CharacterInfo *char1);
@@ -189,12 +188,15 @@ int  doNextCharMoveStep(CharacterInfo *chi, CharacterExtras *chex);
 bool is_char_walking_ndirect(CharacterInfo *chi);
 int  find_nearest_walkable_area_within(int *xx, int *yy, int range, int step);
 void find_nearest_walkable_area (int *xx, int *yy);
-void walk_character(int chac,int tox,int toy,int ignwal, bool autoWalkAnims);
 void FindReasonableLoopForCharacter(CharacterInfo *chap);
-// Start character walk or move
-void walk_or_move_character(CharacterInfo *chaa, int x, int y, int blocking, int direct, bool isWalk);
-// Start character walk or move along the straight line without pathfinding, until any non-passable area is met
-void walk_or_move_character_straight(CharacterInfo *chaa, int x, int y, int blocking, int direct, bool isWalk);
+// Start character walk or move; calculate path using destination and optionally "ignore walls" flag
+void move_character(CharacterInfo *chaa, int tox, int toy, bool ignwal, bool walk_anim);
+// Start character walk or move along the straight line until any non-passable area is met
+void move_character_straight(CharacterInfo *chaa, int x, int y, bool walk_anim);
+// Start character walk; calculate path using destination and optionally "ignore walls" flag
+void walk_character(CharacterInfo *chaa, int tox, int toy, bool ignwal);
+// Start character walk the straight line until any non-passable area is met
+void walk_character_straight(CharacterInfo *chaa, int tox, int toy);
 int  wantMoveNow (CharacterInfo *chi, CharacterExtras *chex);
 void setup_player_character(int charid);
 Common::Bitmap *GetCharacterImage(int charid, bool *is_original = nullptr);
@@ -229,6 +231,10 @@ Rect GetCharacterRoomBBox(int charid, bool use_frame_0 = false);
 // or the one that is least far away from its camera; calculated as a perpendicular distance between two AABBs.
 PViewport FindNearestViewport(int charid);
 
+// Character_DoMove converts and validates script parameters, and calls corresponding internal character move function
+void Character_DoMove(CharacterInfo *chaa, const char *api_name,
+    int x, int y, bool walk_straight, int blocking, int ignwal, bool walk_anim);
+
 //
 // Character update functions
 // TODO: move these into a runtime Character class, when there will be a proper one,
@@ -246,6 +252,6 @@ extern CharacterInfo*playerchar;
 extern int32_t _sc_PlayerCharPtr;
 
 // order of loops to turn character in circle from down to down
-extern int turnlooporder[8];
+extern const int turnlooporder[8];
 
 #endif // __AGS_EE_AC__CHARACTER_H

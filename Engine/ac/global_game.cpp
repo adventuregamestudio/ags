@@ -890,7 +890,7 @@ void RoomProcessClick(int xx,int yy,int mood) {
             yy=thisroom.Hotspots[hsnum].WalkTo.Y;
             debug_script_log("Move to walk-to point hotspot %d", hsnum);
         }
-        walk_character(game.playercharacter,xx,yy,0, true);
+        walk_character(playerchar, xx, yy, false /* walk areas */);
         return;
     }
     play.usedmode=mood;

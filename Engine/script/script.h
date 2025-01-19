@@ -175,7 +175,10 @@ void    quit_with_script_error(const String &fn_name);
 int     get_nivalue (InteractionCommandList *nic, int idx, int parm);
 InteractionVariable *get_interaction_variable (int varindx);
 InteractionVariable *FindGraphicalVariable(const char *varName);
+// Assert and abort game if the script is currently inside the rep_exec_always function
 void    can_run_delayed_command();
+// Tells whether the script is currently NOT inside the rep_exec_always function
+bool    get_can_run_delayed_command();
 
 // Gets current running script position
 bool    get_script_position(ScriptPosition &script_pos);

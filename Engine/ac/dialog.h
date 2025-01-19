@@ -33,8 +33,10 @@ void do_conversation(int dlgnum);
 // Tells if the game is currently running a dialog
 bool is_in_dialog();
 // Tells if the game is currently displaying dialog options;
-// this may be inside a Dialog, or if Dialog.DisplayOptions was called.
+// this may be inside a Dialog, or if Dialog.DisplayOptions was called
 bool is_in_dialogoptions();
+// Tells if the game is currently running a dialog, and a dialog script is being executed
+bool is_dialog_executing_script();
 // Commands dialog executor to goto a different dialog topic after current option's script have finished executing
 void set_dialog_result_goto(int dlgnum);
 // Commands dialog executor to stop a dialog after current option's script have finished executing
@@ -47,6 +49,8 @@ int run_dialog_option(int dlgnum, int dialog_choice, int sayChosenOption, bool r
 // Returns whether the change was handled in "dialog's way", and further processing is not necessary.
 // Otherwise should process the command as normal.
 bool handle_state_change_in_dialog_request(const char *apiname, int dlgreq_retval);
+// Shedule dialog state to stop next time it receives a control
+void schedule_dialog_stop();
 
 extern std::vector<ScriptDialog> scrDialog;
 extern std::vector<DialogTopic> dialog;

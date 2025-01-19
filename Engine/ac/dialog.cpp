@@ -463,6 +463,10 @@ public:
 
     // Shows and run the loop until it's over
     void Show();
+    // Request dialog options to stop;
+    // Note that the stopping is scheduled and is performed as soon as
+    // dialog options state receives control.
+    void Stop();
 
     // Begin the state, initialize and prepare any resources
     void Begin() override;
@@ -514,6 +518,7 @@ private:
     int numdisp;
     // last chosen option
     int chose;
+    bool doStop = false;
 
     std::unique_ptr<Bitmap> tempScrn;
     int parserActivated;
@@ -576,8 +581,14 @@ void DialogOptions::Show()
     End();
 }
 
+void DialogOptions::Stop()
+{
+    doStop = true;
+}
+
 void DialogOptions::Begin()
 {
+    doStop = false;
     chose = -1;
     // First of all, decide if options should be displayed at all
     numdisp=0;
@@ -908,6 +919,10 @@ bool DialogOptions::Run()
         play.disabled_user_interface++;
         UpdateGameOnce(false, ddb, dirtyx, dirtyy);
         play.disabled_user_interface--;
+
+        // Stop the dialog options if requested from script
+        if (doStop)
+            return false;
     }
     else
     {
@@ -926,6 +941,10 @@ bool DialogOptions::Run()
     {
         runDialogOptionRepExecFunc.Params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
         run_function_on_non_blocking_thread(&runDialogOptionRepExecFunc);
+
+        // Stop the dialog options if requested from script
+        if (doStop)
+            return false;
     }
 
     // Handle mouse over options
@@ -947,7 +966,11 @@ bool DialogOptions::Run()
             run_function_on_non_blocking_thread(&getDialogOptionUnderCursorFunc);
 
             if (!getDialogOptionUnderCursorFunc.AtLeastOneImplementationExists)
-            quit("!The script function dialog_options_get_active is not implemented. It must be present to use a custom dialogue system.");
+                quit("!The script function dialog_options_get_active is not implemented. It must be present to use a custom dialogue system.");
+
+            // Stop the dialog options if requested from script
+            if (doStop)
+                return false;
 
             mouseison = ccDialogOptionsRendering.activeOptionID;
         }
@@ -982,6 +1005,10 @@ bool DialogOptions::Run()
 
     // Handle player's input
     RunControls();
+
+    // Stop the dialog options if requested from script
+    if (doStop)
+        return false;
 
     // Post user input, processing changes
     if (newCustomRender)
@@ -1342,7 +1369,12 @@ public:
     // FIXME: this is a hack, see also the comment below
     ScriptPosition &GetSavedDialogRequestScPos() { return _savedDialogRequestScriptPos; }
 
+    // Runs Dialog state
     void Run();
+    // Request the Dialog state to stop.
+    // Note that the stopping is scheduled and is performed as soon as
+    // dialog state receives control.
+    void Stop();
 
 private:
     int HandleDialogResult(int res);
@@ -1355,6 +1387,7 @@ private:
     std::stack<int> _topicHist;
     int _executedOption = -1; // option which is currently run (or -1)
     bool _areOptionsDisplayed = false; // if dialog options are displayed on screen
+    bool _doStop = false;
 
     // A position in script saved by certain API function calls in "dialog_request" callback;
     // used purely for error reporting when the script has 2+ calls to gamestate-changing
@@ -1366,6 +1399,10 @@ private:
 
 int DialogExec::HandleDialogResult(int res)
 {
+    // Stop the dialog if requested
+    if (_doStop)
+        return RUN_DIALOG_STOP_DIALOG;
+
     // Handle goto-previous, see if there's any previous dialog in history
     if (res == RUN_DIALOG_GOTO_PREVIOUS)
     {
@@ -1387,6 +1424,8 @@ int DialogExec::HandleDialogResult(int res)
 
 void DialogExec::Run()
 {
+    _doStop = false;
+
     while (_dlgNum >= 0)
     {
         if (_dlgNum < 0 || _dlgNum >= game.numdialog)
@@ -1416,6 +1455,10 @@ void DialogExec::Run()
         _areOptionsDisplayed = true;
         int chose = show_dialog_options(_dlgNum, (game.options[OPT_RUNGAMEDLGOPTS] != 0));
         _areOptionsDisplayed = false;
+
+        // Stop the dialog if requested from script
+        if (_doStop)
+            return;
 
         if (chose == CHOSE_TEXTPARSER)
         {
@@ -1450,6 +1493,11 @@ void DialogExec::Run()
     }
 }
 
+void DialogExec::Stop()
+{
+    _doStop = true;
+}
+
 void do_conversation(int dlgnum)
 {
     assert(dialogExec == nullptr);
@@ -1481,6 +1529,8 @@ void do_conversation(int dlgnum)
     // Run the global DialogStop event; NOTE: _dlgNum may be different in the end
     run_on_event(kScriptEvent_DialogStop, dialogExec->GetDlgNum());
     dialogExec = {};
+
+    set_default_cursor();
 }
 
 bool is_in_dialog()
@@ -1493,18 +1543,23 @@ bool is_in_dialogoptions()
     return dialogOpts != nullptr;
 }
 
+bool is_dialog_executing_script()
+{
+    return dialogExec && dialogScriptsInst && dialogExec->GetExecutedOption() >= 0;
+}
+
 // TODO: this is ugly, but I could not come to a better solution at the time...
 void set_dialog_result_goto(int dlgnum)
 {
-    assert(dialogExec && dialogScriptsInst);
-    if (dialogScriptsInst)
+    assert(is_dialog_executing_script());
+    if (is_dialog_executing_script())
         dialogScriptsInst->SetReturnValue(dlgnum);
 }
 
 void set_dialog_result_stop()
 {
-    assert(dialogExec && dialogScriptsInst);
-    if (dialogScriptsInst)
+    assert(is_dialog_executing_script());
+    if (is_dialog_executing_script())
         dialogScriptsInst->SetReturnValue(RUN_DIALOG_STOP_DIALOG);
 }
 
@@ -1529,6 +1584,16 @@ bool handle_state_change_in_dialog_request(const char *apiname, int dlgreq_retva
             dialogExec->GetSavedDialogRequestScPos().Section.GetCStr(), dialogExec->GetSavedDialogRequestScPos().Line);
     }
     return true; // handled, state change will be taken care of by a dialog script
+}
+
+void schedule_dialog_stop()
+{
+    // NOTE: dialog options may be displayed with Dialog.DisplayOptions() too
+    assert(dialogExec || dialogOpts);
+    if (dialogExec)
+        dialogExec->Stop();
+    if (dialogOpts)
+        dialogOpts->Stop();
 }
 
 // end dialog manager

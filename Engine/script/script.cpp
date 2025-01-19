@@ -698,7 +698,14 @@ void post_script_cleanup()
             }
             break;
         case ePSAStopDialog:
-            set_dialog_result_stop();
+            if (is_dialog_executing_script())
+            {
+                set_dialog_result_stop();
+            }
+            else if (is_in_dialogoptions())
+            {
+                schedule_dialog_stop();
+            }
             break;
         case ePSARestartGame:
             cancel_all_scripts();
@@ -1035,11 +1042,14 @@ int run_interaction_commandlist(const ObjectEvent &obj_evt, InteractionCommandLi
 
 }
 
-// check and abort game if the script is currently
-// inside the rep_exec_always function
 void can_run_delayed_command() {
   if (no_blocking_functions)
     quit("!This command cannot be used within non-blocking events such as " REP_EXEC_ALWAYS_NAME);
+}
+
+bool get_can_run_delayed_command()
+{
+    return no_blocking_functions == 0;
 }
 
 void run_unhandled_event(const ObjectEvent &obj_evt, int evnt) {

@@ -26,7 +26,7 @@
 typedef struct RGB
 {
    unsigned char r, g, b;
-   unsigned char filler;
+   unsigned char a; /* alpha (if available, otherwise acts as a filler) */
 } RGB;
 
 #define PAL_SIZE     256

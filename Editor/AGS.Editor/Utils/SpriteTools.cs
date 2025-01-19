@@ -260,31 +260,11 @@ namespace AGS.Editor.Utils
         public static void ReplaceSprite(Sprite sprite, Bitmap bmp, bool alpha, bool remapColours, bool useRoomBackground,
             SpriteImportTransparency transparency, string filename, int frame, Rectangle selection, bool tile)
         {
-            // ignore alpha channel if not 32 bit ARGB
-            bool useAlphaChannel = bmp.PixelFormat != PixelFormat.Format32bppArgb ||
-                Factory.AGSEditor.CurrentGame.Settings.ColorDepth != GameColorDepth.TrueColor ? false : alpha;
-
-            // ignore palette remap options if not using an indexed palette
-            if (bmp.PixelFormat != PixelFormat.Format8bppIndexed)
-            {
-                remapColours = false;
-                useRoomBackground = false;
-            }
-
-            // do replacement
-            Factory.NativeProxy.ReplaceSpriteWithBitmap(sprite, bmp, transparency, remapColours, useRoomBackground, useAlphaChannel);
-
-            sprite.TransparentColour = transparency;
-            sprite.RemapToGamePalette = remapColours;
-            sprite.RemapToRoomPalette = useRoomBackground;
-            sprite.SourceFile = Utilities.GetRelativeToProjectPath(filename);
-            sprite.Frame = frame;
-            sprite.OffsetX = selection.Left;
-            sprite.OffsetY = selection.Top;
-            sprite.ImportWidth = selection.Width;
-            sprite.ImportHeight = selection.Height;
-            sprite.ImportAlphaChannel = alpha;
-            sprite.ImportAsTile = tile;
+            DoInsertSprite doInsert = (bmp_, useAlpha_, transparency_, remapColours_, useRoomBackground_) => {
+                Factory.NativeProxy.ReplaceSpriteWithBitmap(sprite, bmp_, transparency_, remapColours_, useRoomBackground_, useAlpha_);
+                return sprite;
+            };
+            InsertNewSprite(bmp, doInsert, alpha, remapColours, useRoomBackground, transparency, filename, frame, selection, tile);
         }
 
         public static void ReplaceSprite(Sprite sprite, Bitmap bmp, bool alpha, bool remapColours, bool useRoomBackground,
@@ -327,33 +307,12 @@ namespace AGS.Editor.Utils
         public static void ImportNewSprite(SpriteFolder folder, Bitmap bmp, bool alpha, bool remapColours, bool useRoomBackground,
             SpriteImportTransparency transparency, string filename, int frame, Rectangle selection, bool tile)
         {
-            // ignore alpha channel if not 32 bit ARGB
-            bool useAlphaChannel = bmp.PixelFormat != PixelFormat.Format32bppArgb ||
-                Factory.AGSEditor.CurrentGame.Settings.ColorDepth != GameColorDepth.TrueColor ? false : alpha;
-
-            // ignore palette remap options if not using an indexed palette
-            if (bmp.PixelFormat != PixelFormat.Format8bppIndexed)
-            {
-                remapColours = false;
-                useRoomBackground = false;
-            } 
-
-            // do import
-            Sprite sprite = Factory.NativeProxy.CreateSpriteFromBitmap(bmp, transparency, remapColours, useRoomBackground, useAlphaChannel);
-            
-            sprite.TransparentColour = transparency;
-            sprite.RemapToGamePalette = remapColours;
-            sprite.RemapToRoomPalette = useRoomBackground;
-            sprite.SourceFile = Utilities.GetRelativeToProjectPath(filename);
-            sprite.Frame = frame;
-            sprite.OffsetX = selection.Left;
-            sprite.OffsetY = selection.Top;
-            sprite.ImportWidth = selection.Width;
-            sprite.ImportHeight = selection.Height;
-            sprite.ImportAlphaChannel = alpha;
-            sprite.ImportAsTile = tile;
-
-            folder.Sprites.Add(sprite);
+            DoInsertSprite doInsert = (bmp_, useAlpha_, transparency_, remapColours_, useRoomBackground_) => {
+                return Factory.NativeProxy.CreateSpriteFromBitmap(bmp_, transparency_, remapColours_, useRoomBackground_, useAlpha_);
+            };
+            Sprite sprite = InsertNewSprite(bmp, doInsert, alpha, remapColours, useRoomBackground, transparency, filename, frame, selection, tile);
+            if (sprite != null)
+                folder.Sprites.Add(sprite);
         }
 
         public static void ImportNewSprites(SpriteFolder folder, Bitmap bmp, bool alpha, bool remapColours, bool useRoomBackground,
@@ -410,6 +369,54 @@ namespace AGS.Editor.Utils
 
             progress.Hide();
             progress.Dispose();
+        }
+
+        private delegate Sprite DoInsertSprite(Bitmap bmp, bool useAlpha, SpriteImportTransparency transparency,
+            bool remapColours, bool useRoomBackground);
+
+        /// <summary>
+        /// Prepares new sprite and inserts it into the internal sprite set,
+        /// using provided delegate. Returns null on any failure.
+        /// </summary>
+        private static Sprite InsertNewSprite(Bitmap bmp, DoInsertSprite doInsert,
+            bool alpha, bool remapColours, bool useRoomBackground,
+            SpriteImportTransparency transparency, string filename, int frame, Rectangle selection, bool tile)
+        {
+            // Use alpha channel if:
+            // * game is 32-bit
+            // * bitmap has valid alpha component
+            // * alpha requested by user;
+            bool useAlphaChannel = alpha
+                && Factory.AGSEditor.CurrentGame.Settings.ColorDepth == GameColorDepth.TrueColor
+                && bmp.HasAlpha();
+
+            // ignore palette remap options if not using an indexed palette
+            // and even then - if using alpha channel (remap won't work with alpha)
+            if (bmp.PixelFormat != PixelFormat.Format8bppIndexed && !useAlphaChannel)
+            {
+                remapColours = false;
+                useRoomBackground = false;
+            }
+
+            // do import
+            Sprite sprite = doInsert(bmp, useAlphaChannel, transparency, remapColours, useRoomBackground);
+            if (sprite == null)
+                return null;
+
+            // Assign new sprite's properties
+            sprite.TransparentColour = transparency;
+            sprite.RemapToGamePalette = remapColours;
+            sprite.RemapToRoomPalette = useRoomBackground;
+            sprite.SourceFile = Utilities.GetRelativeToProjectPath(filename);
+            sprite.Frame = frame;
+            sprite.OffsetX = selection.Left;
+            sprite.OffsetY = selection.Top;
+            sprite.ImportWidth = selection.Width;
+            sprite.ImportHeight = selection.Height;
+            sprite.ImportAlphaChannel = alpha;
+            sprite.ImportAsTile = tile;
+
+            return sprite;
         }
 
         private static string ExpandExportPath(object obj, string path)

@@ -142,16 +142,16 @@ namespace AGS.Editor
             cmbFilenames.Items.Clear();
             imageLookup = new List<string>();
 
+            OneTimeControlSetup();
+
             foreach (string filename in filenames)
             {
                 imageLookup.Add(filename);
                 cmbFilenames.Items.Add(Path.GetFileName(filename));
             }
 
+            // NOTE: this also calls PostImageLoad()
             cmbFilenames.SelectedIndex = 0;
-
-            OneTimeControlSetup();
-            PostImageLoad();
         }
 
         public SpriteImportWindow(Bitmap bmp, SpriteFolder folder)
@@ -196,16 +196,16 @@ namespace AGS.Editor
             cmbFilenames.Items.Clear();
             imageLookup = new List<string>();
 
+            OneTimeControlSetup();
+
             foreach (string filename in filenames)
             {
                 imageLookup.Add(filename);
                 cmbFilenames.Items.Add(Path.GetFileName(filename));
             }
 
+            // NOTE: this also calls PostImageLoad()
             cmbFilenames.SelectedIndex = 0;
-
-            OneTimeControlSetup();
-            PostImageLoad();
         }
 
         public SpriteImportWindow(Bitmap bmp, Sprite replace)
@@ -264,8 +264,11 @@ namespace AGS.Editor
             }
 
             string format = image.PixelFormat.ToString().Substring(6).ToUpper().Replace("BPP", " bit ").Replace("INDEXED", "indexed");
-            string frametext = frames > 1 ? String.Format(", {0} frames", frames) : "";
-            lblImageDescription.Text = String.Format("{0} x {1}, {2}{3}", image.Width, image.Height, format, frametext);
+            string format_ex = string.Empty;
+            if (image.IsIndexed())
+                format_ex = image.HasAlpha() ? " (ARGB)" : " (RGB)";
+            string frametext = frames > 1 ? $", {frames} frames" : "";
+            lblImageDescription.Text = $"{image.Width} x {image.Height}, {format}{format_ex}{frametext}";
 
             // clear old labels to reset the scrollbars
             previewPanel.Controls.Clear();

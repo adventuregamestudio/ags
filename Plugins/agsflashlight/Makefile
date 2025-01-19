@@ -8,9 +8,9 @@ CFLAGS = -fPIC -fvisibility=hidden -O2 -g -Wall
 LIBS = -lm -lstdc++
 
 ifeq ($(UNAME), Darwin)
-TARGET = libags_snowrain.dylib
+TARGET = libagsflashlight.dylib
 else
-TARGET = libags_snowrain.so
+TARGET = libagsflashlight.so
 endif
 
 CXXFLAGS = $(CFLAGS)

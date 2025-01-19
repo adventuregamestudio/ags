@@ -54,7 +54,8 @@
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
-struct DialogExec;
+class DialogExec;
+class DialogOptions;
 
 extern GameSetupStruct game;
 extern int in_new_room;
@@ -67,7 +68,8 @@ extern IGraphicsDriver *gfxDriver;
 std::vector<DialogTopic> dialog;
 ScriptDialogOptionsRendering ccDialogOptionsRendering;
 ScriptDrawingSurface* dialogOptionsRenderingSurface;
-std::unique_ptr<DialogExec> dialogExec; // current running dialog
+std::unique_ptr<DialogExec> dialogExec; // current running dialog state
+std::unique_ptr<DialogOptions> dialogOpts; // current running dialog options
 
 int said_speech_line; // used while in dialog to track whether screen needs updating
 
@@ -1311,18 +1313,20 @@ int show_dialog_options(int dlgnum, bool runGameLoopsInBackground)
   // Run the global DialogOptionsOpen event
   run_on_event(kScriptEvent_DialogOptionsOpen, dlgnum);
 
-  DialogOptions dlgopt(dtop, dlgnum, runGameLoopsInBackground);
-  dlgopt.Show();
+  dialogOpts.reset(new DialogOptions(dtop, dlgnum, runGameLoopsInBackground));
+  dialogOpts->Show();
 
   // Run the global DialogOptionsClose event
-  run_on_event(kScriptEvent_DialogOptionsClose, dlgnum, dlgopt.GetChosenOption());
+  run_on_event(kScriptEvent_DialogOptionsClose, dlgnum, dialogOpts->GetChosenOption());
 
-  return dlgopt.GetChosenOption();
+  const int chosen = dialogOpts->GetChosenOption();
+  dialogOpts = {};
+  return chosen;
 }
 
 // Dialog execution state
 // TODO: reform into GameState implementation, similar to DialogOptions!
-struct DialogExec
+class DialogExec
 {
 public:
     DialogExec(int start_dlgnum)
@@ -1484,6 +1488,11 @@ bool is_in_dialog()
     return dialogExec != nullptr;
 }
 
+bool is_in_dialogoptions()
+{
+    return dialogOpts != nullptr;
+}
+
 // TODO: this is ugly, but I could not come to a better solution at the time...
 void set_dialog_result_goto(int dlgnum)
 {
@@ -1556,7 +1565,7 @@ int Dialog_GetExecutedOption()
 
 bool Dialog_GetAreOptionsDisplayed()
 {
-    return dialogExec ? dialogExec->AreOptionsDisplayed() : false;
+    return is_in_dialogoptions();
 }
 
 RuntimeScriptValue Sc_Dialog_GetByName(const RuntimeScriptValue *params, int32_t param_count)

@@ -32,6 +32,9 @@ void Dialog_Start(ScriptDialog *sd);
 void do_conversation(int dlgnum);
 // Tells if the game is currently running a dialog
 bool is_in_dialog();
+// Tells if the game is currently displaying dialog options;
+// this may be inside a Dialog, or if Dialog.DisplayOptions was called.
+bool is_in_dialogoptions();
 // Commands dialog executor to goto a different dialog topic after current option's script have finished executing
 void set_dialog_result_goto(int dlgnum);
 // Commands dialog executor to stop a dialog after current option's script have finished executing

@@ -49,6 +49,7 @@ namespace AGS.Types
         private Size _resolution = new Size(320, 200);
         private GameColorDepth _colorDepth = GameColorDepth.TrueColor;
         private string _gameTextEncoding = Encoding.UTF8.WebName;
+        private int _gameFPS = 60;
         private bool _allowRelativeAssetResolution = false;
         private bool _debugMode = true;
         private bool _antiGlideMode = true;
@@ -297,6 +298,19 @@ namespace AGS.Types
         {
             get { return _gameTextEncoding; }
             set { _gameTextEncoding = value; }
+        }
+
+        [DisplayName("Game Speed (FPS)")]
+        [Category("(Basic properties)")]
+        [DefaultValue(60)]
+        public int GameFPS
+        {
+            get { return _gameFPS; }
+            set
+            {
+                if (value <= 0) throw new ArgumentOutOfRangeException("Value must be greater than zero. Value was " + value.ToString() + ".");
+                _gameFPS = value;
+            }
         }
 
         [DisplayName("Allow relative asset resolutions")]

@@ -531,6 +531,7 @@ void SetRestartPoint() {
 
 
 void SetGameSpeed(int newspd) {
+    game.options[OPT_GAMEFPS] = newspd; // save for the reference
     newspd += play.game_speed_modifier;
     if (newspd>1000) newspd=1000;
     if (newspd<10) newspd=10;

@@ -37,6 +37,13 @@ namespace agspalrender {
 
 #define PI         (3.1415926535f)
 
+// Imported script functions
+// FIXME: tidy this, these are defined in ags_palrender.cpp, had to reference here for a hotfix
+  typedef AGSViewFrame *(*SCAPI_GAME_GETVIEWFRAME) (int viewNumber, int loopNumber, int frame);
+  typedef int (*SCAPI_VIEWFRAME_GETGRAPHIC)(AGSViewFrame *ch);
+  extern SCAPI_GAME_GETVIEWFRAME       Game_GetViewFrame;
+  extern SCAPI_VIEWFRAME_GETGRAPHIC    ViewFrame_GetGraphic;
+
 //Variable Declaration
   bool raycastOn;
   double posX = 22.0, posY = 11.5; //x and y start position
@@ -1409,11 +1416,11 @@ void Raycast_Render (int slot)
 			else if (sprdeg > 202 && sprdeg < 248) loop = 5;
 			else if (sprdeg > 247 && sprdeg < 293) loop = 2;
 			else if (sprdeg > 292 && sprdeg < 337) loop = 4;
-			AGSViewFrame *vf = engine->GetViewFrame (sprite[spriteOrder[i]].view,loop,sprite[spriteOrder[i]].frame);
+			AGSViewFrame *vf = Game_GetViewFrame(sprite[spriteOrder[i]].view,loop,sprite[spriteOrder[i]].frame);
 			if (vf == nullptr) engine->AbortGame ("Raycast_Render: Unable to load viewframe of sprite.");
 			else
 			{
-				sprite[spriteOrder[i]].texture = vf->pic;
+				sprite[spriteOrder[i]].texture = ViewFrame_GetGraphic(vf);
 				int (*sfGetGameParameter)(int,int,int,int);
 				sfGetGameParameter = ((int(*)(int,int,int,int)) engine->GetScriptFunctionAddress("GetGameParameter"));
 				flipped = sfGetGameParameter(13,sprite[spriteOrder[i]].view,loop,sprite[spriteOrder[i]].frame);

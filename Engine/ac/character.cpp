@@ -941,7 +941,7 @@ void Character_SetSpeed(CharacterInfo *chaa, int xspeed, int yspeed) {
 
 void Character_StopMoving(CharacterInfo *chi)
 {
-    Character_StopMovingEx(chi, chi->is_moving() && (mls[chi->walking].move_direct == 0));
+    Character_StopMovingEx(chi, chi->is_moving() && (mls[chi->get_movelist_id()].move_direct == 0));
 }
 
 void Character_StopMovingEx(CharacterInfo *chi, bool force_walkable_area)
@@ -1177,7 +1177,7 @@ bool Character_SetTextProperty(CharacterInfo *chaa, const char *property, const 
 
 void *Character_GetPath(CharacterInfo *chaa)
 {
-    const int mslot = chaa->walking % TURNING_AROUND;
+    const int mslot = chaa->get_movelist_id();
     if (mslot == 0)
         return nullptr;
 
@@ -2075,8 +2075,8 @@ int doNextCharMoveStep(CharacterInfo *chi, CharacterExtras *chex) {
         }
 
         if ((chi->walking < 1) || (chi->walking >= TURNING_AROUND)) ;
-        else if (mls[chi->walking].onpart > 0.f) {
-            mls[chi->walking].onpart -= 1.f;
+        else if (mls[chi->get_movelist_id()].onpart > 0.f) {
+            mls[chi->get_movelist_id()].onpart -= 1.f;
             chi->x = xwas;
             chi->y = ywas;
         }
@@ -2090,7 +2090,7 @@ int doNextCharMoveStep(CharacterInfo *chi, CharacterExtras *chex) {
 bool is_char_walking_ndirect(CharacterInfo *chi)
 {
     return chi->is_moving_not_turning() &&
-        (mls[chi->walking].move_direct == 0);
+        (mls[chi->get_movelist_id()].move_direct == 0);
 }
 
 int find_nearest_walkable_area_within(int *xx, int *yy, int range, int step)

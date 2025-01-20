@@ -74,6 +74,7 @@ struct ALFONT_FONT {
 BITMAP *default_bmp; //Draw Font on default BITMAP;
 static FT_Library ft_library;
 static int alfont_textmode = 0;
+static BLENDER_FUNC alfont_blend_func = NULL;
 static int alfont_inited = 0;
 
 
@@ -710,6 +711,12 @@ int alfont_text_mode(int mode) {
   return old_mode;
 }
 
+BLENDER_FUNC alfont_blend_mode(BLENDER_FUNC blend_func) {
+  BLENDER_FUNC old_func = alfont_blend_func;
+  alfont_blend_func = blend_func;
+  return old_func;
+}
+
 
 void alfont_destroy_font(ALFONT_FONT *f) {
   if (f == NULL)
@@ -982,7 +989,13 @@ void alfont_textout_aa_ex(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int
   }
 
   //build transparency
-  if (f->transparency!=255) {
+  if (alfont_blend_func!=NULL) {
+	  if (bitmap_color_depth(bmp) > 8) {
+		  drawing_mode(DRAW_MODE_TRANS, NULL, 0, 0);
+		  set_blender_mode(NULL, NULL, alfont_blend_func, 0, 0, 0, f->transparency);
+	  }
+  }
+  else if (f->transparency!=255) {
 	  if (bitmap_color_depth(bmp)>8) {
 		drawing_mode(DRAW_MODE_TRANS,NULL,0,0);
 		set_preservedalpha_trans_blender(0,0,0,f->transparency);
@@ -2156,7 +2169,13 @@ void alfont_textout_ex(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int y,
   }
 
   //build transparency
-  if (f->transparency!=255) {
+  if (alfont_blend_func!=NULL) {
+	  if (bitmap_color_depth(bmp) > 8) {
+		  drawing_mode(DRAW_MODE_TRANS, NULL, 0, 0);
+		  set_blender_mode(NULL, NULL, alfont_blend_func, 0, 0, 0, f->transparency);
+	  }
+  }
+  else if (f->transparency!=255) {
 	  if (bitmap_color_depth(bmp)>8) {
 		drawing_mode(DRAW_MODE_TRANS,NULL,0,0);
 		set_preservedalpha_trans_blender(0,0,0,f->transparency);

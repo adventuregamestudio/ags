@@ -22,6 +22,7 @@
 #include "ac/dynobj/dynobj_manager.h"
 #include "game/roomstruct.h"
 #include "gfx/bitmap.h"
+#include "gfx/blender.h"
 
 using namespace AGS::Common;
 
@@ -29,7 +30,7 @@ extern RoomStruct thisroom;
 extern SpriteCache spriteset;
 extern GameSetupStruct game;
 
-Bitmap* ScriptDrawingSurface::GetBitmapSurface()
+Bitmap *ScriptDrawingSurface::GetBitmapSurface()
 {
     // TODO: consider creating weak_ptr here, and store one in the DrawingSurface!
     if (roomBackgroundNumber >= 0)
@@ -46,19 +47,60 @@ Bitmap* ScriptDrawingSurface::GetBitmapSurface()
     return nullptr;
 }
 
+void ScriptDrawingSurface::SetDrawingColor(int color_number)
+{
+    _currentScriptColor = color_number;
+    Bitmap *ds = GetBitmapSurface();
+    if (color_number == SCR_COLOR_TRANSPARENT)
+    {
+        _currentColor = ds->GetMaskColor();
+    }
+    else
+    {
+        _currentColor = ds->GetCompatibleColor(color_number);
+    }
+}
+
 Bitmap *ScriptDrawingSurface::StartDrawing()
+{
+    Bitmap *ds = this->GetBitmapSurface();
+    _alphaBlending = (ds->GetColorDepth() == 32) && (geta32(_currentColor) != 0xFF);
+    return ds;
+}
+
+Bitmap *ScriptDrawingSurface::StartDrawingWithBrush()
+{
+    Bitmap *ds = this->GetBitmapSurface();
+    _alphaBlending = (ds->GetColorDepth() == 32) && (geta32(_currentColor) != 0xFF);
+    if (_alphaBlending)
+    {
+        drawing_mode(DRAW_MODE_TRANS, nullptr, 0, 0);
+        set_argb2any_blender();
+    }
+    return ds;
+}
+
+Bitmap *ScriptDrawingSurface::StartDrawingReadOnly()
 {
     return this->GetBitmapSurface();
 }
 
-void ScriptDrawingSurface::FinishedDrawingReadOnly()
-{
-}
-
 void ScriptDrawingSurface::FinishedDrawing()
 {
-    FinishedDrawingReadOnly();
     modified = 1;
+}
+
+void ScriptDrawingSurface::FinishedDrawingWithBrush()
+{
+    if (_alphaBlending)
+    {
+        drawing_mode(DRAW_MODE_SOLID, nullptr, 0, 0);
+    }
+    modified = 1;
+}
+
+void ScriptDrawingSurface::FinishedDrawingReadOnly()
+{
 }
 
 int ScriptDrawingSurface::Dispose(void* /*address*/, bool /*force*/) {
@@ -87,8 +129,8 @@ void ScriptDrawingSurface::Serialize(const void* /*address*/, Stream *out) {
         out->WriteInt32(roomBackgroundNumber);
     out->WriteInt32(dynamicSpriteNumber);
     out->WriteInt32(dynamicSurfaceNumber);
-    out->WriteInt32(currentColour);
-    out->WriteInt32(currentColourScript);
+    out->WriteInt32(_currentColor);
+    out->WriteInt32(_currentScriptColor);
     out->WriteInt32(0); // unused, was highResCoordinates
     out->WriteInt32(modified);
     out->WriteInt32(0); // unused, was hasAlphaChannel
@@ -104,12 +146,13 @@ void ScriptDrawingSurface::Unserialize(int index, Stream *in, size_t /*data_sz*/
         roomMaskType = (RoomAreaMask)(room_ds & 0xFF);
     dynamicSpriteNumber = in->ReadInt32();
     dynamicSurfaceNumber = in->ReadInt32();
-    currentColour = in->ReadInt32();
-    currentColourScript = in->ReadInt32();
+    _currentColor = in->ReadInt32();
+    _currentScriptColor = in->ReadInt32();
     in->ReadInt32(); // unused, was highResCoordinates
     modified = in->ReadInt32();
     in->ReadInt32(); // unused, was hasAlphaChannel
     isLinkedBitmapOnly = (in->ReadInt32() != 0);
+    _alphaBlending = false;
     ccRegisterUnserializedObject(index, this, this);
 }
 
@@ -121,7 +164,8 @@ ScriptDrawingSurface::ScriptDrawingSurface()
     dynamicSurfaceNumber = -1;
     isLinkedBitmapOnly = false;
     linkedBitmapOnly = nullptr;
-    currentColour = 0;
-    currentColourScript = SCR_COLOR_TRANSPARENT;
     modified = 0;
+    _alphaBlending = false;
+    _currentColor = 0;
+    _currentScriptColor = SCR_COLOR_TRANSPARENT;
 }

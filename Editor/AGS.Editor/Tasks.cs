@@ -548,6 +548,11 @@ namespace AGS.Editor
                 game.Settings.UseOldVoiceClipNaming = true;
             }
 
+            if (xmlVersionIndex < 3060206)
+            {
+                game.Settings.GameFPS = 40; // 40 was historical default FPS
+            }
+
             // Update all the ColourNumber property values in game
             if (xmlVersionIndex < 4000009)
             {

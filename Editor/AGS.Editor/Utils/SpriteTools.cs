@@ -335,12 +335,16 @@ namespace AGS.Editor.Utils
         private static void AdjustImportParams(Bitmap bmp, SpriteImportOptions options,
             out bool useAlphaChannel, out bool remapColours, out bool useRoomBackground)
         {
-            // only use alpha channel if it's a 32-bit sprite imported into a 32-bit game
-            useAlphaChannel = bmp.PixelFormat == PixelFormat.Format32bppArgb &&
-                Factory.AGSEditor.CurrentGame.Settings.ColorDepth == GameColorDepth.TrueColor;
+            // Use alpha channel if:
+            // * game is 32-bit
+            // * bitmap has valid alpha component
+            useAlphaChannel =
+                   Factory.AGSEditor.CurrentGame.Settings.ColorDepth == GameColorDepth.TrueColor
+                && bmp.HasAlpha();
 
             // ignore palette remap options if not using an indexed palette
-            if (bmp.PixelFormat != PixelFormat.Format8bppIndexed)
+            // and even then - if using alpha channel (remap won't work with alpha)
+            if (bmp.PixelFormat != PixelFormat.Format8bppIndexed && !useAlphaChannel)
             {
                 remapColours = false;
                 useRoomBackground = false;

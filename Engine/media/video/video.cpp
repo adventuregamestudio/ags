@@ -346,7 +346,7 @@ static HError video_single_run(const String &asset_name,
     gl_Video->Begin();
     while (gl_Video->Run());
     gl_Video->End();
-    gl_Video.reset();
+    gl_Video = {};
     
     return HError::None();
 }
@@ -384,7 +384,7 @@ void video_single_resume()
 
 void video_single_stop()
 {
-    gl_Video.reset();
+    gl_Video = {};
 }
 
 //-----------------------------------------------------------------------------

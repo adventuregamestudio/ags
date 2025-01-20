@@ -45,11 +45,20 @@ void RunDialog(int tum)
 
 void StopDialog()
 {
+    // NOTE: dialog options may be displayed with Dialog.DisplayOptions() too
+    if (!is_in_dialog() && !is_in_dialogoptions())
+    {
+        debug_script_log("StopDialog: not currently in dialog, nor dialog options are displayed, ignored");
+        return;
+    }
+
     if (handle_state_change_in_dialog_request("StopDialog", DIALOG_STOP))
         return; // handled
 
-    if (inside_script) 
+    if (inside_script && get_can_run_delayed_command())
         get_executingscript()->QueueAction(PostScriptAction(ePSAStopDialog, 0, "StopDialog"));
+    else
+        schedule_dialog_stop();
 }
 
 void SetDialogOption(int dlg, int opt, int onoroff, bool dlg_script)

@@ -389,6 +389,7 @@ void SetRestartPoint() {
 
 
 void SetGameSpeed(int newspd) {
+    game.options[OPT_GAMEFPS] = newspd; // save for the reference
     newspd += play.game_speed_modifier;
     if (newspd>1000) newspd=1000;
     if (newspd<10) newspd=10;
@@ -734,7 +735,7 @@ void RoomProcessClick(int xx,int yy,int mood) {
             yy=thisroom.Hotspots[hsnum].WalkTo.Y;
             debug_script_log("Move to walk-to point hotspot %d", hsnum);
         }
-        move_character(playerchar, xx, yy, false /* ignwal */, true /* walk anim */);
+        walk_character(playerchar, xx, yy, false /* walk areas */);
         return;
     }
     play.usedmode=mood;

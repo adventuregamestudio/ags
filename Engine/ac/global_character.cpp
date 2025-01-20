@@ -112,12 +112,14 @@ int GetPlayerCharacter() {
     return game.playercharacter;
 }
 
-void MoveCharacterToHotspot(int chaa,int hotsp) {
+void MoveCharacterToHotspot(int chaa, int hotsp)
+{
     if ((hotsp<0) || (hotsp>=MAX_ROOM_HOTSPOTS))
         quit("!MovecharacterToHotspot: invalid hotspot");
-    if (thisroom.Hotspots[hotsp].WalkTo.X<1) return;
-    move_character(&game.chars[chaa], thisroom.Hotspots[hotsp].WalkTo.X, thisroom.Hotspots[hotsp].WalkTo.Y, false /* ignwal */, true /* walk anim */);
+    if (thisroom.Hotspots[hotsp].WalkTo.X < 1)
+        return;
 
+    walk_character(&game.chars[chaa], thisroom.Hotspots[hotsp].WalkTo.X, thisroom.Hotspots[hotsp].WalkTo.Y, false /* walkable areas */);
     GameLoopUntilNotMoving(&game.chars[chaa].walking);
 }
 

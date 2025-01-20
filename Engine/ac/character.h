@@ -190,6 +190,10 @@ void move_character(CharacterInfo *chaa, int tox, int toy, bool ignwal, bool wal
 void move_character(CharacterInfo *chaa, const std::vector<Point> &path, bool walk_anim, const RunPathParams &run_params);
 // Start character walk or move along the straight line without pathfinding, until any non-passable area is met
 void move_character_straight(CharacterInfo *chaa, int x, int y, bool walk_anim);
+// Start character walk; calculate path using destination and optionally "ignore walls" flag
+void walk_character(CharacterInfo *chaa, int tox, int toy, bool ignwal);
+// Start character walk the straight line until any non-passable area is met
+void walk_character_straight(CharacterInfo *chaa, int tox, int toy);
 void FindReasonableLoopForCharacter(CharacterInfo *chap);
 int  wantMoveNow (CharacterInfo *chi, CharacterExtras *chex);
 void setup_player_character(int charid);
@@ -243,6 +247,6 @@ extern CharacterInfo*playerchar;
 extern int32_t _sc_PlayerCharPtr;
 
 // order of loops to turn character in circle from down to down
-extern int turnlooporder[8];
+extern const int turnlooporder[8];
 
 #endif // __AGS_EE_AC__CHARACTER_H

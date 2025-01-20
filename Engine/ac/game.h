@@ -149,6 +149,8 @@ void save_game_dialog2(int min_slot, int max_slot);
 // Unconditionally display a built-in save game dialog
 bool do_save_game_dialog(int min_slot, int max_slot);
 void free_do_once_tokens();
+// Shuts down game's running state objects
+void shutdown_game_state();
 // Free all the memory associated with the game
 void unload_game();
 void save_game(int slotn, const Common::String &descript, std::unique_ptr<Common::Bitmap> &&image = nullptr);

@@ -158,7 +158,10 @@ String  make_interact_func_name(const String &base, int param, int subd);
 // (either for logical reasons, and for optimization).
 void    post_script_cleanup();
 void    quit_with_script_error(const String &fn_name);
+// Assert and abort game if the script is currently inside the rep_exec_always function
 void    can_run_delayed_command();
+// Tells whether the script is currently NOT inside the rep_exec_always function
+bool    get_can_run_delayed_command();
 
 // Gets current running script position
 bool    get_script_position(ScriptPosition &script_pos);

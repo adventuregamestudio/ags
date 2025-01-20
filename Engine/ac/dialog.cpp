@@ -55,7 +55,8 @@
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
-struct DialogExec;
+class DialogExec;
+class DialogOptions;
 
 extern GameSetupStruct game;
 extern int in_new_room;
@@ -68,7 +69,8 @@ extern IGraphicsDriver *gfxDriver;
 std::vector<DialogTopic> dialog;
 ScriptDialogOptionsRendering ccDialogOptionsRendering;
 ScriptDrawingSurface* dialogOptionsRenderingSurface;
-std::unique_ptr<DialogExec> dialogExec; // current running dialog
+std::unique_ptr<DialogExec> dialogExec; // current running dialog state
+std::unique_ptr<DialogOptions> dialogOpts; // current running dialog options
 
 int said_speech_line; // used while in dialog to track whether screen needs updating
 
@@ -361,6 +363,10 @@ public:
 
     // Shows and run the loop until it's over
     void Show();
+    // Request dialog options to stop;
+    // Note that the stopping is scheduled and is performed as soon as
+    // dialog options state receives control.
+    void Stop();
 
     // Begin the state, initialize and prepare any resources
     void Begin() override;
@@ -412,6 +418,7 @@ private:
     int numdisp;
     // last chosen option
     int chose;
+    bool doStop = false;
 
     std::unique_ptr<Bitmap> tempScrn;
     int parserActivated;
@@ -474,8 +481,14 @@ void DialogOptions::Show()
     End();
 }
 
+void DialogOptions::Stop()
+{
+    doStop = true;
+}
+
 void DialogOptions::Begin()
 {
+    doStop = false;
     chose = -1;
     // First of all, decide if options should be displayed at all
     numdisp=0;
@@ -799,6 +812,10 @@ bool DialogOptions::Run()
         play.disabled_user_interface++;
         UpdateGameOnce(false, ddb, dirtyx, dirtyy);
         play.disabled_user_interface--;
+
+        // Stop the dialog options if requested from script
+        if (doStop)
+            return false;
     }
     else
     {
@@ -817,6 +834,10 @@ bool DialogOptions::Run()
     {
         runDialogOptionRepExecFunc.Params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
         run_function_on_non_blocking_thread(&runDialogOptionRepExecFunc);
+
+        // Stop the dialog options if requested from script
+        if (doStop)
+            return false;
     }
 
     // Handle mouse over options
@@ -838,7 +859,11 @@ bool DialogOptions::Run()
             run_function_on_non_blocking_thread(&getDialogOptionUnderCursorFunc);
 
             if (!getDialogOptionUnderCursorFunc.AtLeastOneImplementationExists)
-            quit("!The script function dialog_options_get_active is not implemented. It must be present to use a custom dialogue system.");
+                quit("!The script function dialog_options_get_active is not implemented. It must be present to use a custom dialogue system.");
+
+            // Stop the dialog options if requested from script
+            if (doStop)
+                return false;
 
             mouseison = ccDialogOptionsRendering.activeOptionID;
         }
@@ -873,6 +898,10 @@ bool DialogOptions::Run()
 
     // Handle player's input
     RunControls();
+
+    // Stop the dialog options if requested from script
+    if (doStop)
+        return false;
 
     // Post user input, processing changes
     if (newCustomRender)
@@ -1208,97 +1237,130 @@ int show_dialog_options(int dlgnum, bool runGameLoopsInBackground)
   // Run the global DialogOptionsOpen event
   run_on_event(kScriptEvent_DialogOptionsOpen, dlgnum);
 
-  DialogOptions dlgopt(dtop, dlgnum, runGameLoopsInBackground);
-  dlgopt.Show();
+  dialogOpts.reset(new DialogOptions(dtop, dlgnum, runGameLoopsInBackground));
+  dialogOpts->Show();
 
   // Run the global DialogOptionsClose event
-  run_on_event(kScriptEvent_DialogOptionsClose, dlgnum, dlgopt.GetChosenOption());
+  run_on_event(kScriptEvent_DialogOptionsClose, dlgnum, dialogOpts->GetChosenOption());
 
-  return dlgopt.GetChosenOption();
+  const int chosen = dialogOpts->GetChosenOption();
+  dialogOpts = {};
+  return chosen;
 }
 
 // Dialog execution state
 // TODO: reform into GameState implementation, similar to DialogOptions!
-struct DialogExec
+class DialogExec
 {
-    int DlgNum = -1;
-    int DlgWas = -1;
+public:
+    DialogExec(int start_dlgnum)
+        : _dlgNum(start_dlgnum) {}
+
+    // Tells if the dialog is either processing or ended on the start entry
+    // TODO: possibly a hack, investigate if it's possible to do without this
+    bool IsFirstEntry() const { return _isFirstEntry; }
+    int  GetDlgNum() const { return _dlgNum; }
+    int  GetExecutedOption() const { return _executedOption; }
+    bool AreOptionsDisplayed() const { return _areOptionsDisplayed; }
+
+    // FIXME: this is a hack, see also the comment below
+    ScriptPosition &GetSavedDialogRequestScPos() { return _savedDialogRequestScriptPos; }
+
+    // Runs Dialog state
+    void Run();
+    // Request the Dialog state to stop.
+    // Note that the stopping is scheduled and is performed as soon as
+    // dialog state receives control.
+    void Stop();
+
+private:
+    int HandleDialogResult(int res);
+
+    int _dlgNum = -1;
+    int _dlgWas = -1;
     // CHECKME: this may be unnecessary, investigate later
-    bool IsFirstEntry = true;
+    bool _isFirstEntry = true;
     // Dialog topics history, used by "goto-previous" command
-    std::stack<int> TopicHist;
-    int ExecutedOption = -1; // option which is currently run (or -1)
-    bool AreOptionsDisplayed = false; // if dialog options are displayed on screen
+    std::stack<int> _topicHist;
+    int _executedOption = -1; // option which is currently run (or -1)
+    bool _areOptionsDisplayed = false; // if dialog options are displayed on screen
+    bool _doStop = false;
 
     // A position in script saved by certain API function calls in "dialog_request" callback;
     // used purely for error reporting when the script has 2+ calls to gamestate-changing
     // functions such as StartDialog or ChangeRoom.
     // FIXME: this is horrible, review this and make consistent with error reporting
     // for regular calls in normal script.
-    ScriptPosition SavedDialogRequestScriptPos;
-
-    DialogExec(int start_dlgnum) : DlgNum(start_dlgnum) {}
-    int HandleDialogResult(int res);
-    void Run();
+    ScriptPosition _savedDialogRequestScriptPos;
 };
 
 int DialogExec::HandleDialogResult(int res)
 {
+    // Stop the dialog if requested
+    if (_doStop)
+        return RUN_DIALOG_STOP_DIALOG;
+
     // Handle goto-previous, see if there's any previous dialog in history
     if (res == RUN_DIALOG_GOTO_PREVIOUS)
     {
-        if (TopicHist.size() == 0)
+        if (_topicHist.size() == 0)
             return RUN_DIALOG_STOP_DIALOG;
-        res = TopicHist.top();
-        TopicHist.pop();
+        res = _topicHist.top();
+        _topicHist.pop();
     }
     // Continue to the next dialog
     if (res >= 0)
     {
         // save the old topic number in the history, and switch to the new one
-        TopicHist.push(DlgNum);
-        DlgNum = res;
-        return DlgNum;
+        _topicHist.push(_dlgNum);
+        _dlgNum = res;
+        return _dlgNum;
     }
     return res;
 }
 
 void DialogExec::Run()
 {
-    while (DlgNum >= 0)
+    _doStop = false;
+
+    while (_dlgNum >= 0)
     {
-        if (DlgNum < 0 || DlgNum >= game.numdialog)
-            quitprintf("!RunDialog: invalid dialog number specified: %d", DlgNum);
+        if (_dlgNum < 0 || _dlgNum >= game.numdialog)
+            quitprintf("!RunDialog: invalid dialog number specified: %d", _dlgNum);
 
         // current dialog object
-        DialogTopic *dtop = &dialog[DlgNum];
+        DialogTopic *dtop = &dialog[_dlgNum];
         int res = 0; // dialog execution result
         // If a new dialog topic: run dialog entry point
-        if (DlgNum != DlgWas)
+        if (_dlgNum != _dlgWas)
         {
-            ExecutedOption = 0;
-            res = run_dialog_entry(DlgNum);
-            DlgWas = DlgNum;
-            ExecutedOption = -1;
+            _executedOption = 0;
+            res = run_dialog_entry(_dlgNum);
+            _dlgWas = _dlgNum;
+            _executedOption = -1;
 
             // Handle the dialog entry's result
             res = HandleDialogResult(res);
             if (res == RUN_DIALOG_STOP_DIALOG)
                 return; // stop the dialog
-            IsFirstEntry = false;
+            _isFirstEntry = false;
             if (res != RUN_DIALOG_STAY)
                 continue; // skip to the next dialog
         }
 
         // Show current dialog's options
-        AreOptionsDisplayed = true;
-        int chose = show_dialog_options(DlgNum, (game.options[OPT_RUNGAMEDLGOPTS] != 0));
-        AreOptionsDisplayed = false;
+        _areOptionsDisplayed = true;
+        int chose = show_dialog_options(_dlgNum, (game.options[OPT_RUNGAMEDLGOPTS] != 0));
+        _areOptionsDisplayed = false;
+
+        // Stop the dialog if requested from script
+        if (_doStop)
+            return;
 
         if (chose == CHOSE_TEXTPARSER)
         {
             said_speech_line = 0;
-            res = run_dialog_request(DlgNum);
+            res = run_dialog_request(_dlgNum);
             if (said_speech_line > 0)
             {
                 // fix the problem with the close-up face remaining on screen
@@ -1310,10 +1372,10 @@ void DialogExec::Run()
         }
         else if (chose >= 0)
         {
-            ExecutedOption = chose + 1; // option id is 1-based in script, and 0 is entry point
+            _executedOption = chose + 1; // option id is 1-based in script, and 0 is entry point
             // chose some option - handle it and run its script
-            res = run_dialog_option(DlgNum, chose, SAYCHOSEN_USEFLAG, true /* run script */);
-            ExecutedOption = -1;
+            res = run_dialog_option(_dlgNum, chose, SAYCHOSEN_USEFLAG, true /* run script */);
+            _executedOption = -1;
         }
         else
         {
@@ -1326,6 +1388,11 @@ void DialogExec::Run()
             return; // stop the dialog
         // continue to the next dialog or show same dialog's options again
     }
+}
+
+void DialogExec::Stop()
+{
+    _doStop = true;
 }
 
 void do_conversation(int dlgnum)
@@ -1345,16 +1412,18 @@ void do_conversation(int dlgnum)
     dialogExec.reset(new DialogExec(dlgnum));
     dialogExec->Run();
     // CHECKME: find out if this is safe to do always, regardless of number of iterations
-    if (dialogExec->IsFirstEntry)
+    if (dialogExec->IsFirstEntry())
     {
         // bail out from first startup script
         remove_screen_overlay(OVER_COMPLETE);
         play.in_conversation--;
     }
 
-    // Run the global DialogStop event; NOTE: DlgNum may be different in the end
-    run_on_event(kScriptEvent_DialogStop, dialogExec->DlgNum);
+    // Run the global DialogStop event; NOTE: _dlgNum may be different in the end
+    run_on_event(kScriptEvent_DialogStop, dialogExec->GetDlgNum());
     dialogExec = {};
+
+    set_default_cursor();
 }
 
 bool is_in_dialog()
@@ -1362,18 +1431,28 @@ bool is_in_dialog()
     return dialogExec != nullptr;
 }
 
+bool is_in_dialogoptions()
+{
+    return dialogOpts != nullptr;
+}
+
+bool is_dialog_executing_script()
+{
+    return dialogExec && dialogScriptsInst && dialogExec->GetExecutedOption() >= 0;
+}
+
 // TODO: this is ugly, but I could not come to a better solution at the time...
 void set_dialog_result_goto(int dlgnum)
 {
-    assert(dialogExec && dialogScriptsInst);
-    if (dialogScriptsInst)
+    assert(is_dialog_executing_script());
+    if (is_dialog_executing_script())
         dialogScriptsInst->SetReturnValue(dlgnum);
 }
 
 void set_dialog_result_stop()
 {
-    assert(dialogExec && dialogScriptsInst);
-    if (dialogScriptsInst)
+    assert(is_dialog_executing_script());
+    if (is_dialog_executing_script())
         dialogScriptsInst->SetReturnValue(RUN_DIALOG_STOP_DIALOG);
 }
 
@@ -1389,15 +1468,31 @@ bool handle_state_change_in_dialog_request(const char *apiname, int dlgreq_retva
     if (play.stop_dialog_at_end == DIALOG_RUNNING)
     {
         play.stop_dialog_at_end = dlgreq_retval;
-        get_script_position(dialogExec->SavedDialogRequestScriptPos);
+        get_script_position(dialogExec->GetSavedDialogRequestScPos());
     }
     else
     {
         debug_script_warn("!%s: more than one NewRoom/RunDialog/StopDialog requests within a dialog '%s' (%d), following one(s) will be ignored\n\tfirst was made in \"%s\", line %d",
-            apiname, game.dialogScriptNames[dialogExec->DlgNum].GetCStr(), dialogExec->DlgNum,
-            dialogExec->SavedDialogRequestScriptPos.Section.GetCStr(), dialogExec->SavedDialogRequestScriptPos.Line);
+            apiname, game.dialogScriptNames[dialogExec->GetDlgNum()].GetCStr(), dialogExec->GetDlgNum(),
+            dialogExec->GetSavedDialogRequestScPos().Section.GetCStr(), dialogExec->GetSavedDialogRequestScPos().Line);
     }
     return true; // handled, state change will be taken care of by a dialog script
+}
+
+void schedule_dialog_stop()
+{
+    // NOTE: dialog options may be displayed with Dialog.DisplayOptions() too
+    assert(dialogExec || dialogOpts);
+    if (dialogExec)
+        dialogExec->Stop();
+    if (dialogOpts)
+        dialogOpts->Stop();
+}
+
+void shutdown_dialog_state()
+{
+    dialogExec = {};
+    dialogOpts = {};
 }
 
 // end dialog manager
@@ -1424,17 +1519,17 @@ ScriptDialog *Dialog_GetByName(const char *name)
 
 ScriptDialog *Dialog_GetCurrentDialog()
 {
-    return dialogExec ? &scrDialog[dialogExec->DlgNum] : nullptr;
+    return dialogExec ? &scrDialog[dialogExec->GetDlgNum()] : nullptr;
 }
 
 int Dialog_GetExecutedOption()
 {
-    return dialogExec ? dialogExec->ExecutedOption : -1;
+    return dialogExec ? dialogExec->GetExecutedOption() : -1;
 }
 
 bool Dialog_GetAreOptionsDisplayed()
 {
-    return dialogExec ? dialogExec->AreOptionsDisplayed : false;
+    return is_in_dialogoptions();
 }
 
 RuntimeScriptValue Sc_Dialog_GetByName(const RuntimeScriptValue *params, int32_t param_count)

@@ -45,6 +45,8 @@ void UpdateCursorAndDrawables();
 // Useful after a major game state change, such as loading new room, in case we expect
 // that a render may occur before a normal game update is performed.
 void SyncDrawablesState();
+// Shuts down game's waiting state, if one is running right now.
+void ShutGameWaitState();
 // Gets current logical game FPS, this is normally a fixed number set in script;
 // in case of "maxed fps" mode this function returns real measured FPS.
 float get_game_fps();

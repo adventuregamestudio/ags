@@ -185,7 +185,17 @@ iOS/Resources
 Editor/References/**/*.dll
 
 # Plugins: MSVS solution output and temporary files
-/Plugins/AGSSpriteFont/AGSSpriteFont/Release_Auto/
-/Plugins/AGSSpriteFont/AGSSpriteFont/Release_Clifftop/
-/Plugins/AGSSpriteFont/Release_Auto/
-/Plugins/AGSSpriteFont/Release_Clifftop/
+/Plugins/ags_parallax/msvc/.build/
+/Plugins/ags_parallax/msvc/.temp/
+/Plugins/ags_snowrain/msvc/.build/
+/Plugins/ags_snowrain/msvc/.temp/
+/Plugins/agsblend/msvc/.build/
+/Plugins/agsblend/msvc/.temp/
+/Plugins/AGSflashlight/msvc/.build/
+/Plugins/AGSflashlight/msvc/.temp/
+/Plugins/agspalrender/msvc/.build/
+/Plugins/agspalrender/msvc/.temp/
+/Plugins/AGSSpriteFont/msvc/.build/
+/Plugins/AGSSpriteFont/msvc/.temp/
+/Plugins/agstouch/msvc/.build/
+/Plugins/agstouch/msvc/.temp/

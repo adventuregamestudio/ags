@@ -194,6 +194,7 @@ void quit(const char *quitmsg)
 
     // Release game data and unregister assets
     quit_check_dynamic_sprites(qreason);
+    shutdown_game_state();
     unload_game();
     AssetMgr.reset();
 

@@ -833,6 +833,8 @@ void engine_init_game_settings()
     set_our_eip(-4);
     mousey=100;  // stop icon bar popping up
 
+    set_game_speed((game.options[OPT_GAMEFPS] > 0) ? game.options[OPT_GAMEFPS] : 40);
+
     // We use same variable to read config and be used at runtime for now,
     // so update it here with regards to game design option
     usetup.RenderAtScreenRes = 
@@ -1252,8 +1254,6 @@ int initialize_engine(const ConfigTree &startup_opts)
     set_our_eip(-10);
 
     engine_init_exit_handler();
-
-    set_game_speed(40);
 
     set_our_eip(-20);
     set_our_eip(-19);

@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\agspalrender\ags_palrender.cpp" />
+    <ClCompile Include="..\agspalrender\raycast.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\agspalrender\agspalrender.h" />
+    <ClInclude Include="..\agspalrender\agsplugin.h" />
+    <ClInclude Include="..\agspalrender\palrender.h" />
+    <ClInclude Include="..\agspalrender\raycast.h" />
+    <ClInclude Include="..\agspalrender\platform.h" />
+  </ItemGroup>
+</Project>

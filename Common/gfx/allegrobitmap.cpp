@@ -586,7 +586,7 @@ void AGSColorToRGB(int color, int color_depth, RGB &rgb)
         if (color < 0 || color > 255)
             color = 0;
         get_color(color, &rgb);
-        rgb.filler = 0xFF; // pseudo-alpha
+        rgb.a = 0xFF; // pseudo-alpha
     }
     else
     {
@@ -594,7 +594,7 @@ void AGSColorToRGB(int color, int color_depth, RGB &rgb)
         rgb.r = getr32(color);
         rgb.g = getg32(color);
         rgb.b = getb32(color);
-        rgb.filler = 0xFF; // pseudo-alpha
+        rgb.a = 0xFF; // pseudo-alpha
     }
 }
 

@@ -377,6 +377,44 @@ namespace AGS.Editor
             dstBmp.Palette = srcBmp.Palette;
             return dstBmp;
         }
+        
+        /// <summary>
+        /// Check if Bitmap contains a valid alpha channel.
+        /// Returns positive for ARGB pixel format, and for bitmaps of Indexed
+        /// format which palette contains alpha component.
+        /// </summary>
+        public static bool HasAlpha(this Bitmap bmp)
+        {
+            if (Bitmap.IsAlphaPixelFormat(bmp.PixelFormat))
+                return true;
+
+            if ((bmp.PixelFormat & PixelFormat.Indexed) != 0)
+                return DoesPaletteHaveAlpha(bmp);
+
+            return false;
+        }
+
+        /// <summary>
+        /// Check if Bitmap's palette has alpha component.
+        /// Fails if there's no palette.
+        /// </summary>
+        public static bool DoesPaletteHaveAlpha(this Bitmap bmp)
+        {
+            if (bmp.Palette == null)
+                return false;
+
+            // First test if there is a "alpha" or "halftone" flags present
+            if ((bmp.Palette.Flags & (0x1 | 0x4)) == 0)
+                return false;
+
+            // Do a full scan of pal entries to see if they contain
+            // any non-opaque or non-fully-transparent colors.
+            for (int i = 0; i < bmp.Palette.Entries.Length; ++i)
+                if (bmp.Palette.Entries[i].A != 0 && bmp.Palette.Entries[i].A != 255)
+                    return true;
+
+            return false;
+        }
 
         /// <summary>
         /// Loads a <see cref="Bitmap"/> from file that doesn't lock the original file.

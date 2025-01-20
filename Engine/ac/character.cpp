@@ -972,6 +972,10 @@ void Character_StopMovingEx(CharacterInfo *chi, bool force_walkable_area)
     // end on a non-walkable area and gets stuck.
     if (force_walkable_area && (chi->walking < TURNING_AROUND) && (chi->room == displayed_room))
     {
+        // TODO: don't use PlaceOnWalkable, as that may result in moving character
+        // into the random direction. Instead, consider writing a "backtracing"
+        // function that runs along MoveList's current stage back, looking for
+        // the first pixel on a walkable area.
         Character_PlaceOnWalkableArea(chi);
     }
 
@@ -1063,7 +1067,7 @@ bool ValidateCharForMove(CharacterInfo *chaa, const char *api_name)
 }
 
 // Character_DoMove converts and validates script parameters, and calls corresponding internal character move function
-void Character_DoMove(CharacterInfo *chaa, const char *api_name,
+static void Character_DoMove(CharacterInfo *chaa, const char *api_name,
     void *path_arr, int x, int y, bool use_path, bool walk_straight,
     int blocking, int ignwal, bool walk_anim, int repeat = ANIM_ONCE, int direction = FORWARDS)
 {
@@ -1803,7 +1807,7 @@ void Character_SetUseRegionTint(CharacterInfo *chaa, int yesorno)
 //=============================================================================
 
 // order of loops to turn character in circle from down to down
-int turnlooporder[8] = {0, 6, 1, 7, 3, 5, 2, 4};
+const int turnlooporder[8] = {0, 6, 1, 7, 3, 5, 2, 4};
 
 // Core character move implementation:
 // uses a provided path or searches for a path to a given destination;
@@ -1815,25 +1819,20 @@ void move_character_impl(CharacterInfo *chin, const std::vector<Point> *path, in
     if (!ValidateCharForMove(chin, "MoveCharacter"))
         return;
 
+    if ((path && path->empty()) || (!path && (tox == chin->x) && (toy == chin->y)))
+    {
+        StopMoving(chac);
+        debug_script_log("MoveCharacter: %s move path is empty, or is already at destination, not moving", chin->scrname.GetCStr());
+        return;
+    }
+
     if (path)
     {
-        if (path->empty())
-        {
-            StopMoving(chac);
-            debug_script_log("MoveCharacter: path is empty for %s, not moving", chin->scrname.GetCStr());
-            return;
-        }
         // Jump character to the path start
         chin->x = run_params.Forward ? path->front().X : path->back().X;
         chin->y = run_params.Forward ? path->front().Y : path->back().Y;
         tox = run_params.Forward ? path->back().X : path->front().X;
         toy = run_params.Forward ? path->back().Y : path->front().Y;
-    }
-    else if ((tox == chin->x) && (toy == chin->y))
-    {
-        StopMoving(chac);
-        debug_script_log("MoveCharacter: %s already at destination, not moving", chin->scrname.GetCStr());
-        return;
     }
 
     if ((chin->animating) && (walk_anim))
@@ -1909,7 +1908,7 @@ void move_character_impl(CharacterInfo *chin, const std::vector<Point> *path, in
             chin->flags |= CHF_MOVENOTWALK;
         }
     }
-    else if (walk_anim) // pathfinder couldn't get a route, stand them still
+    else if (walk_anim)
     {
         // pathfinder couldn't get a route, stand them still
         chin->frame = 0;
@@ -2210,8 +2209,18 @@ void move_character_straight(CharacterInfo *chaa, int x, int y, bool walk_anim)
         movetoy = lastcy;
     }
 
-    // FIXME: there's likely no point in calling routefinder again, so pass a direct path instead?
-    move_character_impl(chaa, nullptr, movetox, movetoy, false /* walkable areas */, walk_anim, RunPathParams());
+    std::vector<Point> path = { {chaa->x, chaa->y}, {movetox, movetoy} };
+    move_character_impl(chaa, &path, movetox, movetoy, false /* walkable areas */, walk_anim, RunPathParams());
+}
+
+void walk_character(CharacterInfo *chaa, int tox, int toy, bool ignwal)
+{
+    move_character(chaa, tox, toy, ignwal, true /* animate */);
+}
+
+void walk_character_straight(CharacterInfo *chaa, int x, int y)
+{
+    move_character_straight(chaa, x, y, true /* animate */);
 }
 
 int wantMoveNow (CharacterInfo *chi, CharacterExtras *chex) {

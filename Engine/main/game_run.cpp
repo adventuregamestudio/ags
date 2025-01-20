@@ -1357,6 +1357,11 @@ void SyncDrawablesState()
     update_drawable_object_states(false /* NO cursor-related update */, -1, -1);
 }
 
+void ShutGameWaitState()
+{
+    restrict_until = {};
+}
+
 void update_polled_stuff()
 {
     if (want_exit) {

@@ -49,6 +49,7 @@ namespace AGS.Types
         private GameColorDepth _colorDepth = GameColorDepth.TrueColor;
         private string _gameTextEncoding = Encoding.UTF8.WebName;
         private string _gameTextLanguage = "en_US";
+        private int _gameFPS = 60;
         private bool _debugMode = true;
         private bool _antiGlideMode = true;
         private bool _walkInLookMode = false;
@@ -257,6 +258,19 @@ namespace AGS.Types
         {
             get { return _gameTextEncoding; }
             set { _gameTextEncoding = value; }
+        }
+
+        [DisplayName("Game Speed (FPS)")]
+        [Category("(Basic properties)")]
+        [DefaultValue(60)]
+        public int GameFPS
+        {
+            get { return _gameFPS; }
+            set
+            {
+                if (value <= 0) throw new ArgumentOutOfRangeException("Value must be greater than zero. Value was " + value.ToString() + ".");
+                _gameFPS = value;
+            }
         }
 
         [DisplayName(PROPERTY_TEXT_LANGUAGE)]

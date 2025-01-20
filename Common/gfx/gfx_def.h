@@ -101,10 +101,10 @@ public:
             ? 0.f : 1.f / sy;
         // World->local transform
         W2LTransform = glmex::make_inv_transform2d((float)-x, (float)-y, sx_inv, sy_inv,
-            -Math::DegreesToRadians(rot), 0.5f * dst_w, 0.5f * dst_h);
+            (float)-Math::DegreesToRadians(rot), 0.5f * dst_w, 0.5f * dst_h);
         // Local->world transform + AABB
         L2WTransform = glmex::make_transform2d((float)x, (float)y, sx, sy,
-            Math::DegreesToRadians(rot), -0.5f * dst_w, -0.5f * dst_h);
+            (float)Math::DegreesToRadians(rot), -0.5f * dst_w, -0.5f * dst_h);
         Rect aabb = RectWH(0, 0, src_w, src_h);
         _AABB = glmex::full_transform(aabb, L2WTransform);
     }

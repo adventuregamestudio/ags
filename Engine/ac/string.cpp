@@ -463,13 +463,13 @@ int String_IndexOf (const char *thisString, const char *lookForText, bool caseSe
         return -1;
     }
 
-    if (count == 0 || count >= header.ULength - startIndex)
-        count = header.ULength - startIndex;
-
     if (count < 0) {
         debug_script_warn("String.IndexOf: invalid count %d. Did you meant to use '0' for until string end?", count);
         return -1;
     }
+
+    if (count == 0 || static_cast<uint32_t>(count) >= (header.ULength - startIndex))
+        count = header.ULength - startIndex;
 
     // Use GetStringCharOff to possibly speed up start offset search in utf-8
     size_t start = GetStringCharOff(thisString, startIndex);

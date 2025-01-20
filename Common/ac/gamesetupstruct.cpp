@@ -211,7 +211,7 @@ void GameSetupStruct::read_room_names(Stream *in, GameDataVersion data_ver)
     {
         uint32_t room_count = in->ReadInt32();
         roomNumbers.resize(room_count);
-        for (int i = 0; i < room_count; ++i)
+        for (uint32_t i = 0; i < room_count; ++i)
         {
             int room_number = in->ReadInt32();
             String room_name = String::FromStream(in);

@@ -922,7 +922,7 @@ int Game_GetRoomCount()
 
 int Game_GetRoomNumber(int index)
 {
-    if (index < 0 || index >= game.roomNumbers.size())
+    if (index < 0 || static_cast<uint32_t>(index) >= game.roomNumbers.size())
         return -1;
     return game.roomNumbers[index];
 }

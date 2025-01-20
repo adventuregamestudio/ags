@@ -629,12 +629,6 @@ RuntimeScriptValue Sc_IsVoxAvailable(const RuntimeScriptValue *params, int32_t p
     API_SCALL_INT(IsVoxAvailable);
 }
 
-// void (int chaa,int hotsp)
-RuntimeScriptValue Sc_MoveCharacterToHotspot(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT2(MoveCharacterToHotspot);
-}
-
 // void (int objj,int xx,int yy,int spp)
 RuntimeScriptValue Sc_MoveObject(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -1267,7 +1261,6 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "IsTimerExpired",           API_FN_PAIR(IsTimerExpired) },
         { "IsTranslationAvailable",   API_FN_PAIR(IsTranslationAvailable) },
         { "IsVoxAvailable",           API_FN_PAIR(IsVoxAvailable) },
-        { "MoveCharacterToHotspot",   API_FN_PAIR(MoveCharacterToHotspot) },
         { "MoveObject",               API_FN_PAIR(MoveObject) },
         { "MoveObjectDirect",         API_FN_PAIR(MoveObjectDirect) },
         { "MoveSaveSlot",             API_FN_PAIR(MoveSaveSlot) },

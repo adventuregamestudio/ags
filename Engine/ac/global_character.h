@@ -24,6 +24,7 @@ void StopMoving(int chaa);
 void ReleaseCharacterView(int chat);
 int  GetCharacterWidth(int ww);
 int  GetCharacterHeight(int charid);
+// CLNUP: this exists only because it's used to walk character to hotspot's WalkX/Y
 void MoveCharacterToHotspot(int chaa,int hotsp);
 
 void RunCharacterInteraction (int cc, int mood);// [DEPRECATED]

@@ -1,7 +1,7 @@
 REVISION HISTORY
 ================
 
-VERSION 3.6.2 - Beta, December 2024
+VERSION 3.6.2 - Beta, January 2025
 
 Common:
  - Event handler function are now allowed to be located in any script module.
@@ -15,9 +15,10 @@ Editor:
  - "Game statistics" now have Ctrl + F2 shortcut instead of F2.
  - F2 can be used for starting editing names of items in the Project Tree (ones that support that)
    and folders in the Sprite Manager.
- - In General Settings added "Use old-style voice clip naming rule" which lets to select whether
-   the game should expect old-style voice clip filenames (4-letter char name followed by number)
-   or the new one (full char name, followed by a number, separated by a dot).
+ - Added "Game Speed" property in General Settings.
+ - Added "Use old-style voice clip naming rule" property in General Settings, it lets to select
+   whether the game should expect old-style voice clip filenames (4-letter char name followed by
+   number) or the new one (full char name, followed by a number, separated by a dot).
  - Property Grid now displays Custom Properties right in the main properties list for each item
    that supports them.
  - Added "WrapText", "TextPaddingHorizontal", "TextPaddingVertical" properties to GUI Button.
@@ -52,8 +53,11 @@ Editor:
  - Added a multiline Text edit window for Button and Label controls, that may be called by Ctrl+E,
    from context menu, or by pressing "..." button of the Text property in the Properties grid.
  - Support reordering folders in Sprite Manager with drag & drop.
+ - Support importing 32-bit BMP files of extended formats (this support is formal at the moment,
+   and does not guarantee that any of the extended data will be interpreted).
  - Support importing 1-bit (monochrome) and 4-bit images as sprites, room backgrounds and masks
    (converted to 8-bit).
+ - Support importing indexed images which palettes contain translucent alpha as sprites with alpha.
  - Support importing indexed PNGs as room backgrounds and masks.
  - Do not alter or clamp palette for 8-bit sprites imported in a 16/32-bit game.
  - Removed obsolete "Copy walkable area mask to regions" command from the Room editor.
@@ -77,11 +81,14 @@ Editor:
    even if that's a filler entry not used by the image.
  - Fixed exporting room backgrounds was always writing a 32-bit image rather than using actual
    background's color depth.
+ - Fixed Button getting resized to the image's size when user cancels different sprite assignment.
  - Fixed "Color Finder" and color properties were mapping a color number to RGB values with
    accuracy mistakes, resulting in slightly different values than the engine would use.
  - Fixed an unhandled exception occuring when rebuilding rooms if any script's header is missing.
  - Fixed a "unterminated string" error in Dialogs was not pointing to the actual error location.
  - Fixed double warning message when trying to close the Editor while a game test is running.
+ - Fixed Editor may display a "save project" confirmation when run with "/compile" command-line
+   parameter.
 
 Scripting:
  - Dynamic arrays now have Length readonly property that returns their number of elements.
@@ -152,8 +159,11 @@ Script API:
    things in game that may break older saves by simply not having them in a save, and also
    reducing the size of game saves on disk (e.g. in case of dynamic sprites). Note that all things
    that were not restored from the save will retain their *current state*.
+ - Fixed some script functions in AGS API were declared with "int" return value, while they
+   are supposed to be "void".
 
 Engine:
+ - Updated to SDL 2.30.11 and SDL_Sound 2.0.4.
  - Engine now potentially supports reading saves made in older game versions with different
    content, so long as these saves have *less* data in any given type (i.e. less Characters,
    or less controls on a certain GUI, or less variables in script, and so forth).
@@ -178,8 +188,9 @@ Engine:
  - Calling DeleteSaveSlot() on a slot within 0-50 range will no longer secretly move a save with
    the topmost number (within the same range) to fill the emptied slot. If you still like to
    recreate this behavior, then use MoveSaveSlot() command.
- - Support calling StopDialog() inside a dialog script, that will schedule dialog's stop command
-   at the end of the current option script.
+ - Support calling StopDialog() inside any regular script and dialog script, and also while
+   dialog options are displayed. That will schedule dialog's stop to be performed after current
+   script finishes.
  - Removed arbitrary limit of 2k bytes for the result of String.Format().
  - Ensure that the objects with identical z-order (baseline) always keep same relative sort order
    when being drawn (note: engine does not guarantee a predefined order, only a persistent one).
@@ -191,10 +202,15 @@ Engine:
    of saves displayed in a standard save/restore dialogs in game.
  - Added "--no-plugins" command-line argument that denies loading any plugins;
    also added respective config option "noplugins" in "override" section.
+ - Fixed character may get stuck inside a non-walkable area after Character.WalkStraight().
  - Fixed calling Dialog.Start() inside a dialog script would create a nested "dialog state",
    which could eventually lead to internal mistakes and program stack overflow. Dialog.Start()
    will now schedule a proper dialog topic switch, equivalent to "goto-dialog" command.
  - Fixed displaying room masks with Debug command in legacy "upscale" mode.
+ - Fixed a potential lockup that may occur when the engine is run from the editor, and is told
+   to stop at a breakpoint.
+ - Fixed 48khz OGG clips may have extra silence added to them in the end, causing "hickups" when
+   the sound playback is looped.
 
 Engine Plugin API:
  - Added IAGSEngine.CreateDynamicArray(), which lets plugins to create dynamic arrays.
@@ -209,6 +225,9 @@ Compatibility:
  - Fixed old pathfinder imprecision affecting few pre-3.0 games.
  - Allow pre-2.7 games to have RestartGame() command be followed and overridden by a NewRoom().
    This is necessary for some older games to be able to proceed.
+
+Windows:
+ - Windows version of AGS is now built with MSVS 2019 and higher.
 
 WinSetup:
  - Redesigned winsetup into a tabbed dialog.

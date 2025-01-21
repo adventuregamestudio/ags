@@ -215,19 +215,21 @@ void ccCompiledScript::write_code(int32_t byy) {
     code.push_back(byy);
 }
 
-void ccCompiledScript::start_new_section(const char *name) {
+void ccCompiledScript::start_new_section(const char *section_name, const char *module_name) {
 
     if ((sectionNames.size() == 0) ||
         (code.size() != sectionOffsets.back()))
     {
-        sectionNames.push_back(name);
+        sectionNames.push_back(section_name);
         sectionOffsets.push_back(code.size());
+        sectionModuleName.push_back(module_name);
     }
     else
     {
         // nothing was in the last section, so overwrite it with this new one
-        sectionNames.back() = name;
+        sectionNames.back() = section_name;
         sectionOffsets.back() = code.size();
+        sectionModuleName.back() = module_name;
     }
 }
 

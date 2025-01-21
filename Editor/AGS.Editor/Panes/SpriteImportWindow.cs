@@ -407,8 +407,8 @@ namespace AGS.Editor
 
             try
             {
-                SpriteTools.ReplaceSprite(replace, image, UseAlphaChannel, RemapToGamePalette,
-                    UseBackgroundSlots, SpriteImportMethod, filename, 0, spritesheet);
+                SpriteTools.ReplaceSprite(replace, image, new SpriteImportOptions(UseAlphaChannel, RemapToGamePalette,
+                    UseBackgroundSlots, SpriteImportMethod, filename, 0), spritesheet);
             }
             catch (AGSEditorException ex)
             {
@@ -437,13 +437,13 @@ namespace AGS.Editor
                 if (frames == 1)
                 {
                     // in the interest of speed, import the existing bitmap if the file has a single frame
-                    SpriteTools.ImportNewSprites(folder, image, UseAlphaChannel, RemapToGamePalette,
-                        UseBackgroundSlots, SpriteImportMethod, filename, 0, spritesheet);
+                    SpriteTools.ImportNewSprites(folder, image, new SpriteImportOptions(UseAlphaChannel, RemapToGamePalette,
+                        UseBackgroundSlots, SpriteImportMethod, filename, 0), spritesheet);
                 }
                 else
                 {
-                    SpriteTools.ImportNewSprites(folder, filename, UseAlphaChannel, RemapToGamePalette,
-                        UseBackgroundSlots, SpriteImportMethod, spritesheet);
+                    SpriteTools.ImportNewSprites(folder, new SpriteImportOptions(UseAlphaChannel, RemapToGamePalette,
+                        UseBackgroundSlots, SpriteImportMethod, filename), spritesheet);
                 }
             }
             catch (AGSEditorException ex)

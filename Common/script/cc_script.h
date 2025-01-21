@@ -47,6 +47,8 @@ public:
     // of the code came from header files, and which from the main file
     std::vector<std::string> sectionNames;
     std::vector<int32_t> sectionOffsets;
+    // which "module" will this section's type declarations be related to
+    std::vector<std::string> sectionModuleName;
     // Extended information (optional)
     std::unique_ptr<RTTI> rtti;
     std::unique_ptr<ScriptTOC> sctoc;

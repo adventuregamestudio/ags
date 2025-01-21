@@ -1858,9 +1858,16 @@ void UpdateNativeSpritesToGame(Game ^game, CompileMessages ^errors)
         spritesModified = true;
         errors->Add(gcnew CompileWarning(String::Format(
             "Sprite file (acsprset.spr) contained less sprites than the game project referenced ({0} sprites were missing). "
-            "This could happen if it was not saved properly last time. Some sprites could be missing actual images. "
-            "You may try restoring them by reimporting from the source files.{1}{2}Affected sprites:{3}{4}",
-            missing.size(), Environment::NewLine, Environment::NewLine, Environment::NewLine, sprnum->ToString())));
+            "This could happen if it was not saved properly last time, or the files in your project folder got corrupted for some reason. "
+            "Some sprites could be missing actual images.{1}{2}"
+            "You may try restoring them by:{3}"
+            "    a) reimporting individual sprites from the source files,{4}"
+            "    b) File -> Restore all sprites from sources,{5}"
+            "    c) using sprite backup file \"backup_acsprset.spr\".{6}{7}"
+            "Affected sprites:{8}{9}",
+            missing.size(), Environment::NewLine, Environment::NewLine, Environment::NewLine,
+            Environment::NewLine, Environment::NewLine, Environment::NewLine, Environment::NewLine,
+            Environment::NewLine, sprnum->ToString())));
     }
 
     // Test for leftovers: when the game does NOT have a sprite ref,
@@ -1871,7 +1878,7 @@ void UpdateNativeSpritesToGame(Game ^game, CompileMessages ^errors)
         errors->Add(gcnew CompileWarning(String::Format(
             "Sprite file (acsprset.spr) contained extra data that is not referenced by the game project. "
             "This could happen if it was not saved properly last time. This leftover data will be removed completely "
-            "next time you save your project.")));
+            "next time you save your project. This should not affect your game.")));
     }
 }
 

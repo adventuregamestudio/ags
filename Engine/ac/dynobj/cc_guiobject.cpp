@@ -22,7 +22,7 @@ extern std::vector<std::vector<int>> StaticGUIControlsHandles;
 
 // return the type name of the object
 const char *CCGUIObject::GetType() {
-    return "GUIObject";
+    return "GUIControl";
 }
 
 size_t CCGUIObject::CalcSerializeSize(const void* /*address*/)

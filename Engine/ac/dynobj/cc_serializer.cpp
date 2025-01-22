@@ -77,7 +77,8 @@ void AGSDeSerializer::Unserialize(int index, const char *objectType, const char 
         ScriptUserObject *suo = new ScriptUserObject();
         suo->Unserialize(index, &mems, data_sz);
     }
-    else if (strcmp(objectType, "GUIObject") == 0) {
+    else if (strcmp(objectType, "GUIObject") == 0 || // old historical name
+             strcmp(objectType, "GUIControl") == 0) {
         ccDynamicGUIObject.Unserialize(index, &mems, data_sz);
     }
     else if (strcmp(objectType, "Character") == 0) {
@@ -141,23 +142,28 @@ void AGSDeSerializer::Unserialize(int index, const char *objectType, const char 
             dialogOptionsRenderingSurface = sds;
         }
     }
-    else if (strcmp(objectType, "DialogOptionsRendering") == 0)
+    else if (strcmp(objectType, "DialogOptionsRendering") == 0 || // old historical name
+             strcmp(objectType, "DialogOptionsRenderingInfo") == 0)
     {
         ccDialogOptionsRendering.Unserialize(index, &mems, data_sz);
     }
-    else if (strcmp(objectType, "StringDictionary") == 0)
+    else if (strcmp(objectType, "StringDictionary") == 0 || // old historical name
+             strcmp(objectType, "Dictionary") == 0)
     {
         Dict_Unserialize(index, &mems, data_sz);
     }
-    else if (strcmp(objectType, "StringSet") == 0)
+    else if (strcmp(objectType, "StringSet") == 0 || // old historical name
+             strcmp(objectType, "Set") == 0)
     {
         Set_Unserialize(index, &mems, data_sz);
     }
-    else if (strcmp(objectType, "Viewport2") == 0)
+    else if (strcmp(objectType, "Viewport2") == 0 || // old name (used for wrong reasons)
+             strcmp(objectType, "Viewport") == 0)
     {
         Viewport_Unserialize(index, &mems, data_sz);
     }
-    else if (strcmp(objectType, "Camera2") == 0)
+    else if (strcmp(objectType, "Camera2") == 0 || // old name (used for wrong reasons)
+             strcmp(objectType, "Camera") == 0)
     {
         Camera_Unserialize(index, &mems, data_sz);
     }

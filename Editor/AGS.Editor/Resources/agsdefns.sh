@@ -3154,6 +3154,13 @@ builtin managed struct MaskPathfinder extends Pathfinder {
 #endif // SCRIPT_API_v400
 
 
+#ifdef SCRIPT_API_v400
+/// Tests if type1 can be cast to type2, either down (parent to child) or up (child to parent).
+import bool TestDynamicCast(const string type1, const string type2);
+import bool TestDynamicCastGUIControl(GUIControl* control, const string new_type);
+#endif // SCRIPT_API_v400
+
+
 import ColorType palette[PALETTE_SIZE];
 import Mouse mouse;
 import GameState game;

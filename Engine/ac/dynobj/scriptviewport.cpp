@@ -22,7 +22,7 @@ ScriptViewport::ScriptViewport(int id) : _id(id) {}
 
 const char *ScriptViewport::GetType()
 {
-    return "Viewport2";
+    return "Viewport";
 }
 
 int ScriptViewport::Dispose(void* /*address*/, bool /*force*/)

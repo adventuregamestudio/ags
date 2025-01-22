@@ -61,12 +61,20 @@ static std::unique_ptr<RTTI> ccCompileRTTI(const SymbolTable &symt, const Sectio
     std::string buf; // for constructing names
 
     // Add sections as locations
-    // CHECKME: do we have to add all?
+    // NOTE: we must add even if section name is empty, in order to retain correct indexes
     const auto &sections = seclist.GetSections();
     for (size_t l = 0; l < sections.size(); ++l)
     {
         rtb.AddLocation(sections[l], l, 0u);
     }
+    // Add module names as locations (if available)
+    const auto &modules = seclist.GetModuleNames();
+    for (size_t m = 0u, l = sections.size(); m < modules.size(); ++m, ++l)
+    {
+        rtb.AddLocation(modules[m], l, 0u);
+    }
+
+    const size_t loc_module_offset = sections.size();
 
     // Add "no type" with id 0
     rtb.AddType("", 0u, 0u, 0u, 0u, 0u);
@@ -84,7 +92,12 @@ static std::unique_ptr<RTTI> ccCompileRTTI(const SymbolTable &symt, const Sectio
             if (ste.Declared < INT_MAX)
                 section_id = seclist.GetSectionIdAt(ste.Declared);
             uint32_t flags = VartypeFlagsToRTTIType(ste.VartypeD->Flags);
-            rtb.AddType(ste.Name, t, section_id, ste.VartypeD->Parent, flags, ste.VartypeD->Size);
+            uint32_t loc_id = 0u;
+            if (modules[section_id].empty())
+                loc_id = section_id;
+            else
+                loc_id = section_id + loc_module_offset;
+            rtb.AddType(ste.Name, t, loc_id, ste.VartypeD->Parent, flags, ste.VartypeD->Size);
         }
         // Detect a struct's mem field (not function or attribute, etc)
         else if (ste.ComponentD && ste.VariableD)

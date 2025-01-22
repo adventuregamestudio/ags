@@ -51,10 +51,13 @@
 #include "ac/string.h"
 #include "ac/room.h"
 #include "media/video/video.h"
+#include "script/runtimescript.h"
 #include "util/string_compat.h"
 #include "media/audio/audio_system.h"
 
 #include "ac/dynobj/scriptstring.h"
+
+using namespace AGS::Engine;
 
 // void (char*texx, ...)
 RuntimeScriptValue Sc_sc_AbortGame(const RuntimeScriptValue *params, int32_t param_count)
@@ -1009,6 +1012,66 @@ void ScPl_DisplayTopBar(int ypos, int ttexcol, int backcol, char *title, char *t
 }
 
 
+#include "ac/dynobj/dynobj_manager.h"
+#include "gui/guiobject.h"
+using namespace AGS::Common;
+
+bool TestDynamicCast_Impl(const char *type1, const char *type2)
+{
+    uint32_t type1_id = UINT32_MAX, type2_id = UINT32_MAX;
+    const auto &type_lookup = RuntimeScript::GetJointRTTI()->GetTypeLookup();
+    auto type1_it = type_lookup.find(type1);
+    if (type1_it == type_lookup.end())
+        return false;
+    type1_id = type1_it->second;
+    auto type2_it = type_lookup.find(type2);
+    if (type2_it == type_lookup.end())
+        return false;
+    type2_id = type2_it->second;
+
+    // If same type, then the cast is successful
+    if (type1_id == type2_id)
+        return true;
+    // Find out if the requested type is its parent
+    const auto *type = &RuntimeScript::GetJointRTTI()->GetTypes()[type1_id];
+    while (type->parent)
+    {
+        type = type->parent;
+        if (type->this_id == type2_id)
+            return true;
+    }
+    // If nothing found, then the cast was a failure
+    return false;
+}
+
+bool TestDynamicCast(const char *type1, const char *type2)
+{
+    return TestDynamicCast_Impl(type1, type2);
+}
+
+bool TestDynamicCastGUIControl(GUIObject *obj, const char *new_type)
+{
+    int handle = ccGetObjectHandleFromAddress(obj);
+    if (handle == 0)
+        return false;
+    void *object;
+    IScriptObject *mgr;
+    if (ccGetObjectAddressAndManagerFromHandle(handle, object, mgr) == kScValUndefined)
+        return false;
+    return TestDynamicCast_Impl(mgr->GetType(), new_type);
+}
+
+RuntimeScriptValue Sc_TestDynamicCast(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_BOOL_POBJ2(TestDynamicCast, const char, const char);
+}
+
+RuntimeScriptValue Sc_TestDynamicCastGUIControl(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_BOOL_POBJ2(TestDynamicCastGUIControl, GUIObject, const char);
+}
+
+
 void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*/)
 {
     ScFnRegister global_api[] = {
@@ -1178,6 +1241,10 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "WaitMouseKey",             API_FN_PAIR(WaitMouseKey) },
         { "WaitInput",                API_FN_PAIR(WaitInput) },
         { "SkipWait",                 API_FN_PAIR(SkipWait) },
+
+        // For test only
+        { "TestDynamicCast",          API_FN_PAIR(TestDynamicCast) },
+        { "TestDynamicCastGUIControl",API_FN_PAIR(TestDynamicCastGUIControl) },
     };
 
     ccAddExternalFunctions(global_api);

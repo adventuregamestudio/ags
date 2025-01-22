@@ -18,13 +18,7 @@
 #ifndef __AGS_EE_AC__GLOBALOBJECT_H
 #define __AGS_EE_AC__GLOBALOBJECT_H
 
-namespace AGS { namespace Common { class Bitmap; } }
-using namespace AGS; // FIXME later
-
-// TODO: merge with other Rect declared in bitmap unit
-struct _Rect {
-    int x1,y1,x2,y2;
-};
+#include "gfx/bitmap.h"
 
 // Get object at the given screen coordinates
 int  GetObjectIDAtScreen(int xx,int yy);
@@ -57,14 +51,13 @@ void SetObjectClickable (int cha, int clik);
 void SetObjectIgnoreWalkbehinds (int cha, int clik);
 void RunObjectInteraction (int aa, int mood);
 int  AreObjectsColliding(int obj1,int obj2);
-int  GetThingRect(int thing, _Rect *rect);
 int  AreThingsOverlapping(int thing1, int thing2);
 
 int  GetObjectProperty (int hss, const char *property);
 void GetObjectPropertyText (int item, const char *property, char *bufer);
 
-Common::Bitmap *GetObjectImage(int obj, bool *is_original = nullptr);
+AGS::Common::Bitmap *GetObjectImage(int obj, bool *is_original = nullptr);
 // Gets current source image (untransformed) for the room object
-Common::Bitmap *GetObjectSourceImage(int obj);
+AGS::Common::Bitmap *GetObjectSourceImage(int obj);
 
 #endif // __AGS_EE_AC__GLOBALOBJECT_H

@@ -75,8 +75,20 @@ void AGS::Scanner::NewLine(size_t lineno)
 
 void AGS::Scanner::NewSection(std::string const &section)
 {
-    _section = section;
-    _tokenList.NewSection(section);
+    // Parse section name, which may contain optional appendixes
+    std::string module_name;
+    const auto append_at = section.find(';');
+    if (append_at == std::string::npos)
+    {
+        _section = section;
+    }
+    else
+    {
+        _section = section.substr(0, append_at);
+        module_name = section.substr(append_at + 1);
+    }
+
+    _tokenList.NewSection(_section, module_name);
     NewLine(0);
 }
 

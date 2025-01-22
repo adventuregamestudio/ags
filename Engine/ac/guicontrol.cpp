@@ -270,37 +270,37 @@ RuntimeScriptValue Sc_GUIControl_SetSize(void *self, const RuntimeScriptValue *p
 // GUIButton* (GUIObject *guio)
 RuntimeScriptValue Sc_GUIControl_GetAsButton(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_OBJ(GUIObject, GUIButton, ccDynamicGUI, GUIControl_GetAsButton);
+    API_OBJCALL_OBJ(GUIObject, GUIButton, ccDynamicGUIObject, GUIControl_GetAsButton);
 }
 
 // GUIInvWindow* (GUIObject *guio)
 RuntimeScriptValue Sc_GUIControl_GetAsInvWindow(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_OBJ(GUIObject, GUIInvWindow, ccDynamicGUI, GUIControl_GetAsInvWindow);
+    API_OBJCALL_OBJ(GUIObject, GUIInvWindow, ccDynamicGUIObject, GUIControl_GetAsInvWindow);
 }
 
 // GUILabel* (GUIObject *guio)
 RuntimeScriptValue Sc_GUIControl_GetAsLabel(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_OBJ(GUIObject, GUILabel, ccDynamicGUI, GUIControl_GetAsLabel);
+    API_OBJCALL_OBJ(GUIObject, GUILabel, ccDynamicGUIObject, GUIControl_GetAsLabel);
 }
 
 // GUIListBox* (GUIObject *guio)
 RuntimeScriptValue Sc_GUIControl_GetAsListBox(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_OBJ(GUIObject, GUIListBox, ccDynamicGUI, GUIControl_GetAsListBox);
+    API_OBJCALL_OBJ(GUIObject, GUIListBox, ccDynamicGUIObject, GUIControl_GetAsListBox);
 }
 
 // GUISlider* (GUIObject *guio)
 RuntimeScriptValue Sc_GUIControl_GetAsSlider(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_OBJ(GUIObject, GUISlider, ccDynamicGUI, GUIControl_GetAsSlider);
+    API_OBJCALL_OBJ(GUIObject, GUISlider, ccDynamicGUIObject, GUIControl_GetAsSlider);
 }
 
 // GUITextBox* (GUIObject *guio)
 RuntimeScriptValue Sc_GUIControl_GetAsTextBox(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_OBJ(GUIObject, GUITextBox, ccDynamicGUI, GUIControl_GetAsTextBox);
+    API_OBJCALL_OBJ(GUIObject, GUITextBox, ccDynamicGUIObject, GUIControl_GetAsTextBox);
 }
 
 // int (GUIObject *guio)

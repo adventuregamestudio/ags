@@ -514,7 +514,7 @@ TEST_F(Compile2, CTEvalIntShiftLeft2) {
     char const *inpl = "\
         int main()                              \n\
         {                                       \n\
-            return 536870912 << 2;              \n\
+            return 536870912 << 3;              \n\
         }                                       \n\
         ";
 
@@ -582,6 +582,25 @@ TEST_F(Compile2, CTEvalIntShiftLeft5) {
 
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("egative shift"));
+}
+
+TEST_F(Compile2, CTEvalIntShiftLeft6) {
+
+
+    char const* inpl = "\
+        int main()                              \n\
+        {                                       \n\
+            return (0xFF << 24) / 0;            \n\
+        }                                       \n\
+        ";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string const& err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("-16777216"));
 }
 
 TEST_F(Compile2, CTEvalIntShiftRight1) {

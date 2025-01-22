@@ -481,34 +481,41 @@ int AreObjectsColliding(int obj1,int obj2) {
     return (AreThingsOverlapping(obj1 + OVERLAPPING_OBJECT, obj2 + OVERLAPPING_OBJECT)) ? 1 : 0;
 }
 
-int GetThingRect(int thing, _Rect *rect) {
-    if (is_valid_character(thing)) {
+static int GetThingRect(int thing, Rect *rect)
+{
+    if (is_valid_character(thing))
+    {
         if (game.chars[thing].room != displayed_room)
             return 0;
 
-        int charwid = game_to_data_coord(GetCharacterWidth(thing));
-        rect->x1 = game.chars[thing].x - (charwid / 2);
-        rect->x2 = rect->x1 + charwid;
-        rect->y1 = charextra[thing].GetEffectiveY(&game.chars[thing]) - game_to_data_coord(GetCharacterHeight(thing));
-        rect->y2 = charextra[thing].GetEffectiveY(&game.chars[thing]);
+        const int charw = game_to_data_coord(GetCharacterWidth(thing));
+        const int charh = game_to_data_coord(GetCharacterHeight(thing));
+        *rect = RectWH(
+            game.chars[thing].x - (charw / 2),
+            charextra[thing].GetEffectiveY(&game.chars[thing]) - charh + 1,
+            charw, charh);
     }
-    else if (is_valid_object(thing - OVERLAPPING_OBJECT)) {
+    else if (is_valid_object(thing - OVERLAPPING_OBJECT))
+    {
         int objid = thing - OVERLAPPING_OBJECT;
         if (objs[objid].on != 1)
             return 0;
-        rect->x1 = objs[objid].x;
-        rect->x2 = objs[objid].x + game_to_data_coord(objs[objid].get_width());
-        rect->y1 = objs[objid].y - game_to_data_coord(objs[objid].get_height());
-        rect->y2 = objs[objid].y;
+
+        const int objw = game_to_data_coord(objs[objid].get_width());
+        const int objh = game_to_data_coord(objs[objid].get_height());
+        *rect = RectWH(objs[objid].x, objs[objid].y - objh + 1, objw, objh);
     }
     else
+    {
         quit("!AreThingsOverlapping: invalid parameter");
+    }
 
     return 1;
 }
 
-int AreThingsOverlapping(int thing1, int thing2) {
-    _Rect r1, r2;
+int AreThingsOverlapping(int thing1, int thing2)
+{
+    Rect r1, r2;
     // get the bounding rectangles, and return 0 if the object/char
     // is currently turned off
     if (GetThingRect(thing1, &r1) == 0)
@@ -516,23 +523,22 @@ int AreThingsOverlapping(int thing1, int thing2) {
     if (GetThingRect(thing2, &r2) == 0)
         return 0;
 
-    if ((r1.x2 > r2.x1) && (r1.x1 < r2.x2) &&
-        (r1.y2 > r2.y1) && (r1.y1 < r2.y2)) {
-            // determine how far apart they are
-            // take the smaller of the X distances as the overlapping amount
-            int xdist = abs(r1.x2 - r2.x1);
-            if (abs(r1.x1 - r2.x2) < xdist)
-                xdist = abs(r1.x1 - r2.x2);
-            // take the smaller of the Y distances
-            int ydist = abs(r1.y2 - r2.y1);
-            if (abs(r1.y1 - r2.y2) < ydist)
-                ydist = abs(r1.y1 - r2.y2);
-            // the overlapping amount is the smaller of the X and Y ovrlap
-            if (xdist < ydist)
-                return xdist;
-            else
-                return ydist;
-            //    return 1;
+    if (AreRectsIntersecting(r1, r2))
+    {
+        // determine how far apart they are
+        // take the smaller of the X distances as the overlapping amount
+        int xdist = abs(r1.Right - r2.Left) + 1;
+        if (abs(r1.Left - r2.Right) < xdist)
+            xdist = abs(r1.Left - r2.Right) + 1;
+        // take the smaller of the Y distances
+        int ydist = abs(r1.Bottom - r2.Top) + 1;
+        if (abs(r1.Top - r2.Bottom) < ydist)
+            ydist = abs(r1.Top - r2.Bottom) + 1;
+        // the overlapping amount is the smaller of the X and Y ovrlap
+        if (xdist < ydist)
+            return xdist;
+        else
+            return ydist;
     }
     return 0;
 }

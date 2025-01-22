@@ -269,9 +269,10 @@ private:
 // (unlike common RTTI).
 class JointRTTI : private RTTI
 {
+    using String = AGS::Common::String;
 public:
     const RTTI &AsConstRTTI() const { return *this; }
-    const std::unordered_map<AGS::Common::String, uint32_t> &GetTypeLookup() const
+    const std::unordered_map<String, uint32_t> &GetTypeLookup() const
         { return _rttiLookup; }
 
     using RTTI::IsEmpty;
@@ -285,9 +286,17 @@ public:
         std::unordered_map<uint32_t, uint32_t> &loc_l2g,
         std::unordered_map<uint32_t, uint32_t> &type_l2g);
 
+    // Adds a lookup alias for the given typename.
+    // This typename will match any first found type of the same name,
+    // disregarding the namespace (decl location).
+    void AddGlobalTypeLookupAlias(const String &type_name);
+    // Adds lookup aliases for all typenames that are declared
+    // within the given namespace (decl location).
+    void AddGlobalTypeLookupAliasesForLocation(const String &location);
+
 private:
     // Map fully-qualified type name to a joint (global) typeid
-    std::unordered_map<AGS::Common::String, uint32_t> _rttiLookup;
+    std::unordered_map<String, uint32_t> _rttiLookup;
 
     uint32_t JoinLocation(const Location &loc, uint32_t uid, const char *name,
         std::unordered_map<uint32_t, uint32_t> &loc_l2g);

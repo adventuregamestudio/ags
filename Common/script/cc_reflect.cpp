@@ -525,6 +525,28 @@ void JointRTTI::Join(const RTTI &rtti,
     CreateQuickRefs();
 }
 
+void JointRTTI::AddGlobalTypeLookupAlias(const String &type_name)
+{
+    for (const auto &type : _types)
+    {
+        if (type_name.Compare(type.name) == 0)
+        {
+            _rttiLookup.insert(std::make_pair(type_name, type.this_id));
+        }
+    }
+}
+
+void JointRTTI::AddGlobalTypeLookupAliasesForLocation(const String &location)
+{
+    for (const auto &type : _types)
+    {
+        if (type.location && (location.Compare(type.location->name) == 0))
+        {
+            _rttiLookup.insert(std::make_pair(type.name, type.this_id));
+        }
+    }
+}
+
 //*****************************************************************************
 // ScriptTOC serialization
 //

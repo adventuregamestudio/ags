@@ -110,6 +110,9 @@ public:
     static void JoinRTTI(const RTTI &rtti,
         std::unordered_map<uint32_t, uint32_t> &loc_l2g,
         std::unordered_map<uint32_t, uint32_t> &type_l2g);
+    // Add lookup aliases for all RTTI types that belong to the given namespace (location).
+    // In effect this lets to find certain types by their bare name, without location spec.
+    static void AddGlobalTypeAliases(const String &location);
 
     struct ResolvedExport
     {

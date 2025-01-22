@@ -212,6 +212,11 @@ RuntimeScript::RuntimeScript(const String &tag)
     _rttiHelper->Generate(_jointRtti->AsConstRTTI());
 }
 
+/* static */ void RuntimeScript::AddGlobalTypeAliases(const String &location)
+{
+    _jointRtti->AddGlobalTypeLookupAliasesForLocation(location);
+}
+
 RuntimeScript::~RuntimeScript()
 {
     if ((_linkIndex > 0u) && (_linkedScripts[_linkIndex] == this))

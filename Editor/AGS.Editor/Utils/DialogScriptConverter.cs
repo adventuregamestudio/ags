@@ -32,7 +32,7 @@ namespace AGS.Editor
 
             foreach (Dialog dialog in game.RootDialogFolder.AllItemsFlat)
             {
-                sb.AppendLine(AGS.CScript.Compiler.Constants.NEW_SCRIPT_MARKER + "Dialog " + dialog.ID + "\"");
+                sb.AppendLine(AGS.CScript.Compiler.ScriptAnnotations.MakeNewScriptMarker($"Dialog {dialog.ID}"));
 
                 if ((dialog.CachedConvertedScript == null) ||
                     (dialog.ScriptChangedSinceLastConverted) ||

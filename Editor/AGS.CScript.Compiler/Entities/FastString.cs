@@ -82,6 +82,7 @@ namespace AGS.CScript.Compiler
             return new FastString(_data, _offset + offset);
         }
 
+        // FIXME: should also return FastString!
         public string Substring(int offset, int length)
         {
             return _data.Substring(_offset + offset, length);

@@ -99,6 +99,7 @@
     <Compile Include="Entities\LocalScope.cs" />
     <Compile Include="Entities\Modifiers.cs" />
     <Compile Include="Entities\Pair.cs" />
+    <Compile Include="Entities\ScriptAnnotations.cs" />
     <Compile Include="Entities\ScriptEnum.cs" />
     <Compile Include="Entities\Error.cs" />
     <Compile Include="Entities\ErrorCode.cs" />

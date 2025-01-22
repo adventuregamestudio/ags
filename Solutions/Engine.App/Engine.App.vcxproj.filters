@@ -375,7 +375,7 @@
     <ClCompile Include="..\..\Engine\ac\dynobj\cc_gui.cpp">
       <Filter>Source Files\ac\dynobj</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\dynobj\cc_guiobject.cpp">
+    <ClCompile Include="..\..\Engine\ac\dynobj\cc_guicontrol.cpp">
       <Filter>Source Files\ac\dynobj</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\ac\dynobj\cc_hotspot.cpp">
@@ -1004,7 +1004,7 @@
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_gui.h">
       <Filter>Header Files\ac\dynobj</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\cc_guiobject.h">
+    <ClInclude Include="..\..\Engine\ac\dynobj\cc_guicontrol.h">
       <Filter>Header Files\ac\dynobj</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_hotspot.h">

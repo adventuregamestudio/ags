@@ -16,7 +16,7 @@
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
 
-struct CCGUI final : AGSCCDynamicObject
+struct CCGUI : AGSCCDynamicObject
 {
 public:
     // return the type name of the object
@@ -28,6 +28,12 @@ protected:
     size_t CalcSerializeSize(const void *address) override;
     // Write object data into the provided stream
     void Serialize(const void *address, AGS::Common::Stream *out) override;
+};
+
+struct CCTextWindowGUI final : public CCGUI
+{
+public:
+    const char *GetType() override { return "TextWindowGUI"; }
 };
 
 #endif // __AC_CCGUI_H

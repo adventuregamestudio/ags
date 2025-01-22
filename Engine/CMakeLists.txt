@@ -64,8 +64,8 @@ target_sources(engine
     ac/dynobj/cc_scriptobject.h
     ac/dynobj/cc_gui.cpp
     ac/dynobj/cc_gui.h
-    ac/dynobj/cc_guiobject.cpp
-    ac/dynobj/cc_guiobject.h
+    ac/dynobj/cc_guicontrol.cpp
+    ac/dynobj/cc_guicontrol.h
     ac/dynobj/cc_hotspot.cpp
     ac/dynobj/cc_hotspot.h
     ac/dynobj/cc_inventory.cpp

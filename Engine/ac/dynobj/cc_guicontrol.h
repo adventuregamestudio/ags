@@ -11,12 +11,12 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AC_CCGUIOBJECT_H
-#define __AC_CCGUIOBJECT_H
+#ifndef __AC_CCGUICONTROL_H
+#define __AC_CCGUICONTROL_H
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
 
-struct CCGUIObject final : AGSCCDynamicObject
+struct CCGUIControl : AGSCCDynamicObject
 {
 public:
     // return the type name of the object
@@ -30,4 +30,44 @@ protected:
     void Serialize(const void *address, AGS::Common::Stream *out) override;
 };
 
-#endif // __AC_CCGUIOBJECT_H
+//
+// Following subclasses are necessary only for GetType() overrides,
+// matching type names in script API.
+//
+struct CCGUIButton final : public CCGUIControl
+{
+public:
+    const char *GetType() override { return "Button"; }
+};
+
+struct CCGUIInvWindow final : public CCGUIControl
+{
+public:
+    const char *GetType() override { return "InvWindow"; }
+};
+
+struct CCGUILabel final : public CCGUIControl
+{
+public:
+    const char *GetType() override { return "Label"; }
+};
+
+struct CCGUIListBox final : public CCGUIControl
+{
+public:
+    const char *GetType() override { return "ListBox"; }
+};
+
+struct CCGUISlider final : public CCGUIControl
+{
+public:
+    const char *GetType() override { return "Slider"; }
+};
+
+struct CCGUITextBox final : public CCGUIControl
+{
+public:
+    const char *GetType() override { return "TextBox"; }
+};
+
+#endif // __AC_CCGUICONTROL_H

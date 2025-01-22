@@ -33,7 +33,13 @@ using namespace AGS::Common;
 
 extern CCAudioChannel ccDynamicAudio;
 extern CCAudioClip ccDynamicAudioClip;
-extern CCGUIObject ccDynamicGUIObject;
+extern CCGUIControl ccDynamicGUIControl;
+extern CCGUIButton ccDynamicGUIButton;
+extern CCGUIInvWindow ccDynamicGUIInvWindow;
+extern CCGUILabel ccDynamicGUILabel;
+extern CCGUIListBox ccDynamicGUIListBox;
+extern CCGUISlider ccDynamicGUISlider;
+extern CCGUITextBox ccDynamicGUITextBox;
 extern CCCharacter ccDynamicCharacter;
 extern CCHotspot   ccDynamicHotspot;
 extern CCRegion    ccDynamicRegion;
@@ -41,6 +47,7 @@ extern CCWalkableArea ccDynamicWalkarea;
 extern CCWalkbehind ccDynamicWalkbehind;
 extern CCInventory ccDynamicInv;
 extern CCGUI       ccDynamicGUI;
+extern CCTextWindowGUI ccDynamicTextWindowGUI;
 extern CCObject    ccDynamicObject;
 extern CCDialog    ccDynamicDialog;
 extern ScriptDrawingSurface* dialogOptionsRenderingSurface;
@@ -79,7 +86,25 @@ void AGSDeSerializer::Unserialize(int index, const char *objectType, const char 
     }
     else if (strcmp(objectType, "GUIObject") == 0 || // old historical name
              strcmp(objectType, "GUIControl") == 0) {
-        ccDynamicGUIObject.Unserialize(index, &mems, data_sz);
+        ccDynamicGUIControl.Unserialize(index, &mems, data_sz);
+    }
+    else if (strcmp(objectType, "Button") == 0) {
+        ccDynamicGUIButton.Unserialize(index, &mems, data_sz);
+    }
+    else if (strcmp(objectType, "InvWindow") == 0) {
+        ccDynamicGUIInvWindow.Unserialize(index, &mems, data_sz);
+    }
+    else if (strcmp(objectType, "Label") == 0) {
+        ccDynamicGUILabel.Unserialize(index, &mems, data_sz);
+    }
+    else if (strcmp(objectType, "ListBox") == 0) {
+        ccDynamicGUIListBox.Unserialize(index, &mems, data_sz);
+    }
+    else if (strcmp(objectType, "Slider") == 0) {
+        ccDynamicGUISlider.Unserialize(index, &mems, data_sz);
+    }
+    else if (strcmp(objectType, "TextBox") == 0) {
+        ccDynamicGUITextBox.Unserialize(index, &mems, data_sz);
     }
     else if (strcmp(objectType, "Character") == 0) {
         ccDynamicCharacter.Unserialize(index, &mems, data_sz);
@@ -104,6 +129,9 @@ void AGSDeSerializer::Unserialize(int index, const char *objectType, const char 
     }
     else if (strcmp(objectType, "GUI") == 0) {
         ccDynamicGUI.Unserialize(index, &mems, data_sz);
+    }
+    else if (strcmp(objectType, "TextWindowGUI") == 0) {
+        ccDynamicTextWindowGUI.Unserialize(index, &mems, data_sz);
     }
     else if (strcmp(objectType, "Object") == 0) {
         ccDynamicObject.Unserialize(index, &mems, data_sz);

@@ -24,7 +24,7 @@
 #include "ac/dynobj/cc_character.h"
 #include "ac/dynobj/cc_dialog.h"
 #include "ac/dynobj/cc_gui.h"
-#include "ac/dynobj/cc_guiobject.h"
+#include "ac/dynobj/cc_guicontrol.h"
 #include "ac/dynobj/cc_hotspot.h"
 #include "ac/dynobj/cc_inventory.h"
 #include "ac/dynobj/cc_object.h"

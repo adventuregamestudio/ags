@@ -61,26 +61,27 @@ int TTFFontRenderer::GetTextHeight(const char * /*text*/, int fontNumber)
 
 void TTFFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *destination, int x, int y, int colour)
 {
-  if (y > destination->cb)  // optimisation
-    return;
+    if (y > destination->cb)  // optimisation
+        return;
 
-  // Check if this is a alpha-blending case, and init corresponding draw mode
-  const bool alpha_blend = (bitmap_color_depth(destination) == 32) && (geta32(colour) != 0xFF);
-  if (alpha_blend)
-  {
-    alfont_blend_mode(_argb2argb_blender);
-  }
+    // Check if this is a alpha-blending case, and init corresponding draw mode
+    const bool alpha_blend = (bitmap_color_depth(destination) == 32) &&
+        ((geta32(colour) != 0xFF) || (_blendMode != kBlend_Normal));
+    if (alpha_blend)
+    {
+        alfont_blend_mode(GetBlenderFunc(_blendMode));
+    }
 
-  // Y - 1 because it seems to get drawn down a bit
-  if ((ShouldAntiAliasText()) && (bitmap_color_depth(destination) > 8))
-    alfont_textout_aa(destination, _fontData[fontNumber].AlFont, text, x, y - 1, colour);
-  else
-    alfont_textout(destination, _fontData[fontNumber].AlFont, text, x, y - 1, colour);
+    // Y - 1 because it seems to get drawn down a bit
+    if ((ShouldAntiAliasText()) && (bitmap_color_depth(destination) > 8))
+        alfont_textout_aa(destination, _fontData[fontNumber].AlFont, text, x, y - 1, colour);
+    else
+        alfont_textout(destination, _fontData[fontNumber].AlFont, text, x, y - 1, colour);
 
-  if (alpha_blend)
-  {
-    alfont_blend_mode(nullptr);
-  }
+    if (alpha_blend)
+    {
+        alfont_blend_mode(nullptr);
+    }
 }
 
 bool TTFFontRenderer::LoadFromDisk(int fontNumber, int fontSize)
@@ -179,6 +180,11 @@ void TTFFontRenderer::GetFontMetrics(int fontNumber, FontMetrics *metrics)
 
 void TTFFontRenderer::AdjustFontForAntiAlias(int /*fontNumber*/, bool /*aa_mode*/)
 {
+}
+
+void TTFFontRenderer::SetBlendMode(BlendMode blend_mode)
+{
+    _blendMode = blend_mode;
 }
 
 void TTFFontRenderer::FreeMemory(int fontNumber)

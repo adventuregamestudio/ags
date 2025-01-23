@@ -299,7 +299,6 @@ namespace Common
 
 // Array of blender descriptions
 // NOTE: set NULL function pointer to fallback to common image blitting
-typedef BLENDER_FUNC PfnBlenderCb;
 static const PfnBlenderCb BlendModeSets[kNumBlendModes] =
 {
     _argb2argb_blender,             // kBlend_Alpha
@@ -321,6 +320,13 @@ bool SetBlender(BlendMode blend_mode, int alpha)
     const auto &blender = BlendModeSets[blend_mode];
     set_blender_mode(nullptr, nullptr, blender, 0, 0, 0, alpha);
     return true;
+}
+
+BLENDER_FUNC GetBlenderFunc(BlendMode blend_mode)
+{
+    if (blend_mode < 0 || blend_mode >= kNumBlendModes)
+        return nullptr;
+    return BlendModeSets[blend_mode];
 }
 
 } // namespace Common

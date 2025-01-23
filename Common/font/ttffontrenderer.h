@@ -46,6 +46,7 @@ public:
       const FontRenderParams *params, FontMetrics *metrics) override;
   void GetFontMetrics(int fontNumber, FontMetrics *metrics) override;
   void AdjustFontForAntiAlias(int fontNumber, bool aa_mode) override;
+  void SetBlendMode(AGS::Common::BlendMode blend_mode) override;
 
   TTFFontRenderer(AGS::Common::AssetManager *amgr);
   virtual ~TTFFontRenderer();
@@ -69,6 +70,7 @@ private:
     };
     std::map<int, FontData> _fontData;
     AGS::Common::AssetManager *_amgr = nullptr;
+    AGS::Common::BlendMode _blendMode = AGS::Common::kBlend_Normal;
 };
 
 #endif // __AC_TTFFONTRENDERER_H

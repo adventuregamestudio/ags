@@ -282,7 +282,7 @@ void DrawingSurface_DrawString(ScriptDrawingSurface *sds, int xx, int yy, int fo
     Bitmap *ds = sds->StartDrawing(); // no need to use "brush", blending is done by font renderer
     color_t text_color = sds->GetRealDrawingColor();
     String res_str = GUI::ApplyTextDirection(text);
-    wouttext_outline(ds, xx, yy, font, text_color, res_str.GetCStr());
+    wouttext_outline(ds, xx, yy, font, text_color, sds->GetBlendMode(), res_str.GetCStr());
     sds->FinishedDrawing();
 }
 
@@ -298,7 +298,7 @@ void DrawingSurface_DrawStringWrapped(ScriptDrawingSurface *sds, int xx, int yy,
 
     for (size_t i = 0; i < Lines.Count(); i++)
     {
-        GUI::DrawTextAlignedHor(ds, Lines[i], font, text_color,
+        GUI::DrawTextAlignedHor(ds, Lines[i], font, text_color, sds->GetBlendMode(),
             xx, xx + wid - 1, yy + linespacing*i, (FrameAlignment)alignment);
     }
 

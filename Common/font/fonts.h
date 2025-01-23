@@ -90,7 +90,9 @@ void set_font_outline(size_t font_number, int outline_type,
     enum FontInfo::AutoOutlineStyle style = FontInfo::kSquared, int thickness = 1);
 bool is_font_antialiased(size_t font_number);
 // Outputs a single line of text on the defined position on bitmap, using defined font, color and parameters
-void wouttextxy(AGS::Common::Bitmap *ds, int xxx, int yyy, size_t font_number, color_t text_color, const char *texx);
+void wouttextxy(AGS::Common::Bitmap *ds, int xxx, int yyy, size_t font_number, color_t text_color, const char *text);
+void wouttextxy(AGS::Common::Bitmap *ds, int xxx, int yyy, size_t font_number,
+    color_t text_color, AGS::Common::BlendMode blend_mode, const char *text);
 // Assigns FontInfo to the font
 void set_fontinfo(size_t font_number, const FontInfo &finfo);
 // Gets full information about the font
@@ -108,6 +110,8 @@ void alloc_font_outline_buffers(size_t font_number,
     int text_width, int text_height, int color_depth);
 // Perform necessary adjustments on all fonts in case the text render mode changed (anti-aliasing etc)
 void adjust_fonts_for_render_mode(bool aa_mode);
+// Set current blend mode, it will be applied for all the following text render
+void font_set_blend_mode(size_t font_number, AGS::Common::BlendMode blend_mode);
 // Free particular font's data
 void freefont(size_t font_number);
 // Moves font data from one index to another; previous index becomes empty

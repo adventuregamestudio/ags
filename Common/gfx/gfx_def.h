@@ -281,7 +281,7 @@ namespace GfxDef
 } // namespace GfxDef
 
 // Sets current blending mode, which will affect any further drawing
-bool SetBlender(Common::BlendMode blend_mode, int alpha);
+bool SetBlender(BlendMode blend_mode, int alpha);
 
 } // namespace Common
 } // namespace AGS

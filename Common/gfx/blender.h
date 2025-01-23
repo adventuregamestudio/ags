@@ -19,6 +19,7 @@
 #define __AC_BLENDER_H
 
 #include "core/types.h"
+#include "gfx/gfx_def.h"
 
 //
 // Allegro's standard alpha blenders result in:
@@ -76,5 +77,16 @@ uint32_t _blender_masked_subtract32(uint32_t x, uint32_t y, uint32_t n);
 uint32_t _blender_masked_screen32(uint32_t x, uint32_t y, uint32_t n);
 uint32_t _blender_masked_multiply32(uint32_t x, uint32_t y, uint32_t n);
 // ===============================
+
+namespace AGS
+{
+namespace Common
+{
+    typedef uint32_t (*PfnBlenderCb)(uint32_t x, uint32_t y, uint32_t n);
+    // Gets 32-bit ARGB blender function for the given blending mode.
+    // This is meant for manually applying blend functions.
+    PfnBlenderCb GetBlenderFunc(BlendMode blend_mode);
+} // namespace Common
+} // namespace AGS
 
 #endif // __AC_BLENDER_H

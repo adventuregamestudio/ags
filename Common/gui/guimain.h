@@ -341,8 +341,10 @@ namespace GUI
     void DrawDisabledEffect(Bitmap *ds, const Rect &rc);
     // Draw text aligned inside rectangle
     void DrawTextAligned(Bitmap *ds, const String &text, int font, color_t text_color, const Rect &frame, FrameAlignment align);
+    void DrawTextAligned(Bitmap *ds, const String &text, int font, color_t text_color, BlendMode blend_mode, const Rect &frame, FrameAlignment align);
     // Draw text aligned horizontally inside given bounds
     void DrawTextAlignedHor(Bitmap *ds, const String &text, int font, color_t text_color, int x1, int x2, int y, FrameAlignment align);
+    void DrawTextAlignedHor(Bitmap *ds, const String &text, int font, color_t text_color, BlendMode blend_mode, int x1, int x2, int y, FrameAlignment align);
     // Draw wrapped text aligned inside rectangle:
     // a block of text is aligned vertically, while each line is aligned horizontally.
     void DrawTextLinesAligned(Bitmap *ds, const std::vector<String> &text, size_t item_count,
@@ -385,7 +387,9 @@ extern void draw_gui_sprite_flipped(AGS::Common::Bitmap *ds, int x, int y,
     AGS::Common::Bitmap *image, AGS::Common::BlendMode blend_mode, int alpha, AGS::Common::GraphicFlip flip);
 
 // Those function have distinct implementations in Engine and Editor
-extern void wouttext_outline(AGS::Common::Bitmap *ds, int xxp, int yyp, int usingfont, color_t text_color, const char *texx);
+extern void wouttext_outline(AGS::Common::Bitmap *ds, int x, int y, int usingfont, color_t text_color, const char *text);
+extern void wouttext_outline(AGS::Common::Bitmap *ds, int x, int y, int usingfont,
+    color_t text_color, AGS::Common::BlendMode blend_mode, const char *text);
 
 extern void set_our_eip(int eip);
 extern void set_eip_guiobj(int eip);

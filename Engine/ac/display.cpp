@@ -617,7 +617,7 @@ void wouttextxy_AutoOutline_Semitransparent2Opaque(Bitmap *map)
 #endif
 
 // Draw outline that is calculated from the text font, not derived from an outline font
-void wouttextxy_AutoOutline(Bitmap *ds, size_t font, int32_t color, const char *texx, int &xxp, int &yyp)
+static void wouttextxy_AutoOutline(Bitmap *ds, size_t font, int32_t color, BlendMode blend_mode, const char *text, int &x, int &y)
 {
     const FontInfo &finfo = get_fontinfo(font);
     int const thickness = finfo.AutoOutlineThickness;
@@ -634,7 +634,7 @@ void wouttextxy_AutoOutline(Bitmap *ds, size_t font, int32_t color, const char *
     if (antialias) // This is to make sure TTF renderer will use a fully opaque color
         color |= makeacol32(0, 0, 0, 0xff);
 
-    const int t_width = get_text_width(texx, font);
+    const int t_width = get_text_width(text, font);
     const auto t_extent = get_font_surface_extent(font);
     const int t_height = t_extent.second - t_extent.first;
     if (t_width == 0 || t_height == 0)
@@ -648,7 +648,7 @@ void wouttextxy_AutoOutline(Bitmap *ds, size_t font, int32_t color, const char *
     outline_stencil->ClearTransparent();
     // Ready text stencil
     // Note we are drawing with y off, in case some font's glyphs exceed font's ascender
-    wouttextxy(texx_stencil, 0, -t_yoff, font, color, texx);
+    wouttextxy(texx_stencil, 0, -t_yoff, font, color, blend_mode, text);
 #if defined (AGS_FONTOUTLINE_MOREOPAQUE)
     wouttextxy_AutoOutline_Semitransparent2Opaque(texx_stencil);
 #endif
@@ -657,7 +657,7 @@ void wouttextxy_AutoOutline(Bitmap *ds, size_t font, int32_t color, const char *
     void(Bitmap::*pfn_drawstencil)(Bitmap *src, int dst_x, int dst_y);
     if (antialias)
     { // NOTE: we must set out blender AFTER wouttextxy, or it will be overidden
-        set_argb2any_blender();
+        SetBlender(blend_mode, 0xFF);
         pfn_drawstencil = &Bitmap::TransBlendBlt;
     }
     else
@@ -666,9 +666,9 @@ void wouttextxy_AutoOutline(Bitmap *ds, size_t font, int32_t color, const char *
     }
 
     // move start of text so that the outline doesn't drop off the bitmap
-    xxp += thickness;
-    int const outline_y = yyp + t_yoff;
-    yyp += thickness;
+    x += thickness;
+    int const outline_y = y + t_yoff;
+    y += thickness;
 
     // What we do here: first we paint text onto outline_stencil offsetting vertically;
     // then we paint resulting outline_stencil onto final dest offsetting horizontally.
@@ -693,28 +693,33 @@ void wouttextxy_AutoOutline(Bitmap *ds, size_t font, int32_t color, const char *
         }
 
         // stamp the outline stencil to the left and right of the text
-        (ds->*pfn_drawstencil)(outline_stencil, xxp - x_diff, outline_y);
+        (ds->*pfn_drawstencil)(outline_stencil, x - x_diff, outline_y);
         if (x_diff > 0)
-            (ds->*pfn_drawstencil)(outline_stencil, xxp + x_diff, outline_y);
+            (ds->*pfn_drawstencil)(outline_stencil, x + x_diff, outline_y);
     }
 }
 
 // Draw an outline if requested, then draw the text on top 
-void wouttext_outline(Common::Bitmap *ds, int xxp, int yyp, int font, color_t text_color, const char *texx) 
+void wouttext_outline(Bitmap *ds, int x, int y, int font, color_t text_color, BlendMode blend_mode, const char *text)
 {    
     size_t const text_font = static_cast<size_t>(font);
     // Draw outline (a backdrop) if requested
     color_t const outline_color = ds->GetCompatibleColor(play.speech_text_shadow);
     int const outline_font = get_font_outline(font);
     if (outline_font >= 0)
-        wouttextxy(ds, xxp, yyp, static_cast<size_t>(outline_font), outline_color, texx);
+        wouttextxy(ds, x, y, static_cast<size_t>(outline_font), outline_color, blend_mode, text);
     else if (outline_font == FONT_OUTLINE_AUTO)
-        wouttextxy_AutoOutline(ds, text_font, outline_color, texx, xxp, yyp);
+        wouttextxy_AutoOutline(ds, text_font, outline_color, blend_mode, text, x, y);
     else
         ; // no outline
 
     // Draw text on top
-    wouttextxy(ds, xxp, yyp, text_font, text_color, texx);
+    wouttextxy(ds, x, y, text_font, text_color, blend_mode, text);
+}
+
+void wouttext_outline(Common::Bitmap *ds, int x, int y, int font, color_t text_color, const char *text)
+{
+    wouttext_outline(ds, x, y, font, text_color, kBlend_Normal, text);
 }
 
 void wouttext_aligned(Bitmap *ds, int usexp, int yy, int oriwid, int usingfont, color_t text_color, const char *text, HorAlignment align) {

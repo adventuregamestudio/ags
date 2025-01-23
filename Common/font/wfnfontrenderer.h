@@ -45,6 +45,7 @@ public:
       const FontRenderParams *params, FontMetrics *metrics) override;
   void GetFontMetrics(int fontNumber, FontMetrics *metrics) override { *metrics = FontMetrics(); }
   void AdjustFontForAntiAlias(int /*fontNumber*/, bool /*aa_mode*/) override { /* do nothing */}
+  void SetBlendMode(AGS::Common::BlendMode blend_mode) override;
 
   WFNFontRenderer(AGS::Common::AssetManager *mgr)
       : _amgr(mgr) {}
@@ -58,6 +59,7 @@ private:
   };
   std::map<int, FontData> _fontData;
   AGS::Common::AssetManager *_amgr = nullptr;
+  AGS::Common::BlendMode _blendMode = AGS::Common::kBlend_Normal;
 };
 
 #endif // __AC_WFNFONTRENDERER_H

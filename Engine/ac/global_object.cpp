@@ -140,12 +140,6 @@ void RemoveObjectTint(int obj) {
     }
 }
 
-void SetObjectView(int obn, int vii) {
-    // According to the old AGS manual, the loop and frame should be both reset to 0
-    SetObjectFrameSimple(obn, vii, 0, 0);
-    debug_script_log("Object %d set to view %d", obn, vii);
-}
-
 bool SetObjectFrameSimple(int obn, int viw, int lop, int fra) {
     if (!is_valid_object(obn))
         quitprintf("!SetObjectFrame: invalid object number specified (%d, range is 0 - %d)", obn, 0, croom->numobj);
@@ -186,12 +180,6 @@ bool SetObjectFrameSimple(int obn, int viw, int lop, int fra) {
     return true;
 }
 
-void SetObjectFrame(int obn, int viw, int lop, int fra) {
-    if (!SetObjectFrameSimple(obn, viw, lop, fra))
-        return;
-    objs[obn].CheckViewFrame();
-}
-
 // pass trans=0 for fully solid, trans=100 for fully transparent
 void SetObjectTransparency(int obn,int trans) {
     if (!is_valid_object(obn)) quit("!SetObjectTransparent: invalid object number specified");
@@ -199,8 +187,6 @@ void SetObjectTransparency(int obn,int trans) {
 
     objs[obn].transparent = GfxDef::Trans100ToLegacyTrans255(trans);
 }
-
-
 
 void SetObjectBaseline (int obn, int basel) {
     if (!is_valid_object(obn)) quit("!SetObjectBaseline: invalid object number specified");
@@ -326,16 +312,6 @@ void GetObjectName(int obj, char *buffer) {
         quit("!GetObjectName: invalid object number");
 
     snprintf(buffer, MAX_MAXSTRLEN, "%s", get_translation(croom->obj[obj].name.GetCStr()));
-}
-
-void MoveObject(int objj,int xx,int yy,int spp)
-{
-    move_object(objj, xx, yy, spp, false /* use walkable areas */);
-}
-
-void MoveObjectDirect(int objj,int xx,int yy,int spp)
-{
-    move_object(objj, xx, yy, spp, true /* ignore walls */);
 }
 
 void SetObjectClickable (int cha, int clik) {

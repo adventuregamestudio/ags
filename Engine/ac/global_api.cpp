@@ -405,54 +405,6 @@ RuntimeScriptValue Sc_GetLocationType(const RuntimeScriptValue *params, int32_t 
     API_SCALL_INT_PINT2(GetLocationType);
 }
 
-// int (int xx,int yy)
-RuntimeScriptValue Sc_GetObjectIDAtScreen(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_PINT2(GetObjectIDAtScreen);
-}
-
-// int (int obn)
-RuntimeScriptValue Sc_GetObjectBaseline(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_PINT(GetObjectBaseline);
-}
-
-// int (int obn)
-RuntimeScriptValue Sc_GetObjectGraphic(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_PINT(GetObjectGraphic);
-}
-
-// void (int obj, char *buffer)
-RuntimeScriptValue Sc_GetObjectName(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT_POBJ(GetObjectName, char);
-}
-
-// int  (int hss, const char *property)
-RuntimeScriptValue Sc_GetObjectProperty(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_PINT_POBJ(GetObjectProperty, const char);
-}
-
-// void  (int item, const char *property, char *bufer)
-RuntimeScriptValue Sc_GetObjectPropertyText(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT_POBJ2(GetObjectPropertyText, const char, char);
-}
-
-// int  (int objj)
-RuntimeScriptValue Sc_GetObjectX(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_PINT(GetObjectX);
-}
-
-// int  (int objj)
-RuntimeScriptValue Sc_GetObjectY(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_PINT(GetObjectY);
-}
-
 // int ()
 RuntimeScriptValue Sc_GetPlayerCharacter(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -599,18 +551,6 @@ RuntimeScriptValue Sc_IsMusicVoxAvailable(const RuntimeScriptValue *params, int3
     API_SCALL_INT(IsMusicVoxAvailable);
 }
 
-// int (int objj)
-RuntimeScriptValue Sc_IsObjectAnimating(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_PINT(IsObjectAnimating);
-}
-
-// int (int objj)
-RuntimeScriptValue Sc_IsObjectMoving(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_PINT(IsObjectMoving);
-}
-
 // int (int tnum)
 RuntimeScriptValue Sc_IsTimerExpired(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -627,18 +567,6 @@ RuntimeScriptValue Sc_IsTranslationAvailable(const RuntimeScriptValue *params, i
 RuntimeScriptValue Sc_IsVoxAvailable(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT(IsVoxAvailable);
-}
-
-// void (int objj,int xx,int yy,int spp)
-RuntimeScriptValue Sc_MoveObject(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT4(MoveObject);
-}
-
-// void (int objj,int xx,int yy,int spp)
-RuntimeScriptValue Sc_MoveObjectDirect(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT4(MoveObjectDirect);
 }
 
 RuntimeScriptValue Sc_MoveSaveSlot(const RuntimeScriptValue *params, int32_t param_count)
@@ -677,12 +605,6 @@ RuntimeScriptValue Sc_Rand(const RuntimeScriptValue *params, int32_t param_count
 }
 
 extern RuntimeScriptValue Sc_RefreshMouse(const RuntimeScriptValue *params, int32_t param_count);
-
-// void (int obj)
-RuntimeScriptValue Sc_RemoveObjectTint(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(RemoveObjectTint);
-}
 
 // void (int areanum)
 RuntimeScriptValue Sc_RemoveWalkableArea(const RuntimeScriptValue *params, int32_t param_count)
@@ -747,12 +669,6 @@ RuntimeScriptValue Sc_RunHotspotInteraction(const RuntimeScriptValue *params, in
 RuntimeScriptValue Sc_RunInventoryInteraction(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT2(RunInventoryInteraction);
-}
-
-// void  (int aa, int mood)
-RuntimeScriptValue Sc_RunObjectInteraction(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT2(RunObjectInteraction);
 }
 
 // void  (int regnum, int mood)
@@ -887,60 +803,6 @@ RuntimeScriptValue Sc_SetNextScreenTransition(const RuntimeScriptValue *params, 
 
 extern RuntimeScriptValue Sc_SetNormalFont(const RuntimeScriptValue *params, int32_t param_count);
 
-// void  (int obn, int basel)
-RuntimeScriptValue Sc_SetObjectBaseline(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT2(SetObjectBaseline);
-}
-
-// void  (int cha, int clik)
-RuntimeScriptValue Sc_SetObjectClickable(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT2(SetObjectClickable);
-}
-
-// void (int obn,int viw,int lop,int fra)
-RuntimeScriptValue Sc_SetObjectFrame(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT4(SetObjectFrame);
-}
-
-// void (int obn,int slott) 
-RuntimeScriptValue Sc_SetObjectGraphic(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT2(SetObjectGraphic);
-}
-
-// void  (int cha, int clik)
-RuntimeScriptValue Sc_SetObjectIgnoreWalkbehinds(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT2(SetObjectIgnoreWalkbehinds);
-}
-
-// void (int objj, int tox, int toy)
-RuntimeScriptValue Sc_SetObjectPosition(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT3(SetObjectPosition);
-}
-
-// void (int obj, int red, int green, int blue, int opacity, int luminance)
-RuntimeScriptValue Sc_SetObjectTint(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT6(SetObjectTint);
-}
-
-// void (int obn,int trans)
-RuntimeScriptValue Sc_SetObjectTransparency(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT2(SetObjectTransparency);
-}
-
-// void (int obn,int vii)
-RuntimeScriptValue Sc_SetObjectView(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT2(SetObjectView);
-}
-
 // void (int inndx,int rr,int gg,int bb)
 RuntimeScriptValue Sc_SetPalRGB(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -1036,12 +898,6 @@ RuntimeScriptValue Sc_StopDialog(const RuntimeScriptValue *params, int32_t param
 RuntimeScriptValue Sc_StopMoving(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT(StopMoving);
-}
-
-// void (int objj)
-RuntimeScriptValue Sc_StopObjectMoving(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(StopObjectMoving);
 }
 
 // int (const char*stino)
@@ -1220,14 +1076,6 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "GetInvProperty",           API_FN_PAIR(GetInvProperty) },
         { "GetInvPropertyText",       API_FN_PAIR(GetInvPropertyText) },
         { "GetLocationType",          API_FN_PAIR(GetLocationType) },
-        { "GetObjectAt",              API_FN_PAIR(GetObjectIDAtScreen) },
-        { "GetObjectBaseline",        API_FN_PAIR(GetObjectBaseline) },
-        { "GetObjectGraphic",         API_FN_PAIR(GetObjectGraphic) },
-        { "GetObjectName",            API_FN_PAIR(GetObjectName) },
-        { "GetObjectProperty",        API_FN_PAIR(GetObjectProperty) },
-        { "GetObjectPropertyText",    API_FN_PAIR(GetObjectPropertyText) },
-        { "GetObjectX",               API_FN_PAIR(GetObjectX) },
-        { "GetObjectY",               API_FN_PAIR(GetObjectY) },
         { "GetPlayerCharacter",       API_FN_PAIR(GetPlayerCharacter) },
         { "GetRegionAt",              API_FN_PAIR(GetRegionIDAtRoom) },
         { "GetRoomProperty",          API_FN_PAIR(Room_GetProperty) },
@@ -1256,13 +1104,9 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "IsInterfaceEnabled",       API_FN_PAIR(IsInterfaceEnabled) },
         { "IsKeyPressed",             API_FN_PAIR(IsKeyPressed) },
         { "IsMusicVoxAvailable",      API_FN_PAIR(IsMusicVoxAvailable) },
-        { "IsObjectAnimating",        API_FN_PAIR(IsObjectAnimating) },
-        { "IsObjectMoving",           API_FN_PAIR(IsObjectMoving) },
         { "IsTimerExpired",           API_FN_PAIR(IsTimerExpired) },
         { "IsTranslationAvailable",   API_FN_PAIR(IsTranslationAvailable) },
         { "IsVoxAvailable",           API_FN_PAIR(IsVoxAvailable) },
-        { "MoveObject",               API_FN_PAIR(MoveObject) },
-        { "MoveObjectDirect",         API_FN_PAIR(MoveObjectDirect) },
         { "MoveSaveSlot",             API_FN_PAIR(MoveSaveSlot) },
         { "MoveSaveSlot",             API_FN_PAIR(MoveSaveSlot) },
         { "PauseGame",                API_FN_PAIR(PauseGame) },
@@ -1271,7 +1115,6 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "QuitGame",                 API_FN_PAIR(QuitGame) },
         { "Random",                   Sc_Rand, __Rand },
         { "RefreshMouse",             API_FN_PAIR(RefreshMouse) },
-        { "RemoveObjectTint",         API_FN_PAIR(RemoveObjectTint) },
         { "RemoveWalkableArea",       API_FN_PAIR(RemoveWalkableArea) },
         { "ResetRoom",                API_FN_PAIR(ResetRoom) },
         { "RestartGame",              API_FN_PAIR(restart_game) },
@@ -1281,7 +1124,6 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "RunDialog",                API_FN_PAIR(RunDialog) },
         { "RunHotspotInteraction",    API_FN_PAIR(RunHotspotInteraction) },
         { "RunInventoryInteraction",  API_FN_PAIR(RunInventoryInteraction) },
-        { "RunObjectInteraction",     API_FN_PAIR(RunObjectInteraction) },
         { "RunRegionInteraction",     API_FN_PAIR(RunRegionInteraction) },
         { "Said",                     API_FN_PAIR(Said) },
         { "SaveCursorForLocationChange", API_FN_PAIR(SaveCursorForLocationChange) },
@@ -1307,15 +1149,6 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "SetNextCursorMode",        API_FN_PAIR(SetNextCursor) },
         { "SetNextScreenTransition",  API_FN_PAIR(SetNextScreenTransition) },
         { "SetNormalFont",            API_FN_PAIR(SetNormalFont) },
-        { "SetObjectBaseline",        API_FN_PAIR(SetObjectBaseline) },
-        { "SetObjectClickable",       API_FN_PAIR(SetObjectClickable) },
-        { "SetObjectFrame",           API_FN_PAIR(SetObjectFrame) },
-        { "SetObjectGraphic",         API_FN_PAIR(SetObjectGraphic) },
-        { "SetObjectIgnoreWalkbehinds", API_FN_PAIR(SetObjectIgnoreWalkbehinds) },
-        { "SetObjectPosition",        API_FN_PAIR(SetObjectPosition) },
-        { "SetObjectTint",            API_FN_PAIR(SetObjectTint) },
-        { "SetObjectTransparency",    API_FN_PAIR(SetObjectTransparency) },
-        { "SetObjectView",            API_FN_PAIR(SetObjectView) },
         { "SetPalRGB",                API_FN_PAIR(SetPalRGB) },
         { "SetRegionTint",            API_FN_PAIR(SetRegionTint) },
         { "SetRestartPoint",          API_FN_PAIR(SetRestartPoint) },
@@ -1333,7 +1166,6 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "StopChannel",              API_FN_PAIR(stop_and_destroy_channel) },
         { "StopDialog",               API_FN_PAIR(StopDialog) },
         { "StopMoving",               API_FN_PAIR(StopMoving) },
-        { "StopObjectMoving",         API_FN_PAIR(StopObjectMoving) },
         { "StringToInt",              API_FN_PAIR(StringToInt) },
         { "StrLen",                   API_FN_PAIR(strlen) },
         { "TintScreen",               API_FN_PAIR(TintScreen) },

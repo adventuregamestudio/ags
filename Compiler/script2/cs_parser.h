@@ -482,7 +482,7 @@ private:
     // We accept a default value clause like "= 15" if it follows at this point.
     // If there isn't any default, kKW_NoSymbol is returned.
     // Otherwise, a symbol is returned that is a literal.
-    Symbol ParseParamlist_Param_DefaultValue(size_t idx, Vartype param_vartype);
+    Symbol ParseFuncdecl_Parameters_ParamDefaultValue(Vartype param_vartype, size_t idx);
 
     // We have accepted something like 'int foo' and a trailing '[]' might follow.
     // If it does, convert 'vartype' to a dynarray.
@@ -493,16 +493,8 @@ private:
     // We'll accept something like 'this Character *' --OR-- 'static Character'
     void ParseFuncdecl_ExtenderPreparations(bool is_static_extender, Symbol &struct_of_func, Symbol &name_of_func, TypeQualifierSet &tqs);
 
-    // We're accepting a parameter list. We've accepted something like 'int'.
-    // We accept a param name such as 'i' if present
-    // 'param_idx' ist the 1-based index of the parameter in the parameter list, for error messages
-    Symbol ParseParamlist_Param_Name(size_t param_idx);
-
-    // Additional handling to ParseVardecl_Var2SymTable() that is special for parameters
-    void ParseParamlist_Param_AsVar2Sym(Symbol param_name, TypeQualifierSet tqs, Vartype param_vartype, int param_idx);
-
     // Process a parameter decl in a function parameter list
-    void ParseParamlist_Param(Symbol name_of_func, bool body_follows, TypeQualifierSet tqs, Vartype param_vartype, size_t param_idx);
+    void ParseFuncdecl_Parameters_Param(Symbol name_of_func, bool body_follows, bool read_only, size_t param_idx);
 
     // Process a function parameter list
     void ParseFuncdecl_Parameters(Symbol funcsym, bool body_follows);
@@ -525,7 +517,8 @@ private:
     void ParseFuncdecl_HandleFunctionOrImportIndex(TypeQualifierSet tqs, Symbol struct_of_func, Symbol name_of_func, bool body_follows);
 
     // Parse a function declaration.
-    // We're behind the opening '(', and any first extender parameter has already be resolved.
+    // We're behind the opening '(' of the parameter list,
+    // and any first extender parameter has already be resolved.
     void ParseFuncdecl(TypeQualifierSet tqs, Vartype return_vartype, Symbol struct_of_func, Symbol name_of_func, bool no_loop_check, bool body_follows);
 
     // Return in 'idx' the index of the operator in the list that binds the least
@@ -772,7 +765,7 @@ private:
     void ParseVardecl_InitialValAssignment(Symbol varname, std::vector<char> &initial_val);
 
     // Move variable information into the symbol table
-    void ParseVardecl_Var2SymTable(Symbol var_name, Vartype vartype);
+    void ParseVardecl_Var2SymTable(Vartype vartype, Symbol var_name);
 
     // We have accepted something like "int a" and we're expecting "["
     void ParseArrayDecl(Symbol vname, Vartype &vartype);

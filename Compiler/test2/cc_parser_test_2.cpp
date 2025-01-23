@@ -773,3 +773,19 @@ TEST_F(Compile2, CTEvalLogicalOps) {
     EXPECT_NE(std::string::npos, err_msg.find("'101577700 /"));
 }
 
+
+TEST_F(Compile2, ParamIsFunc) {
+
+    char const *inpl = R"&/(
+        int crash(int crash, int x)
+        { }
+    )&/";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string const &err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("'crash'"));
+}

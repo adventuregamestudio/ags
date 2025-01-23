@@ -904,3 +904,33 @@ TEST_F(Compile2, ArrayInitNamedDouble) {
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("[3]"));
 }
+
+TEST_F(Compile2, InitManaged01)
+{
+    
+    char const *inpl = R"%&/(
+        managed struct Foo
+        {
+            int Payload;
+        } Var = new Foo;
+        )%&/";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string const &err_msg = mh.GetError().Message;
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("'null'"));
+}
+TEST_F(Compile2, InitManaged02)
+{
+    
+    char const *inpl = R"%&/(
+        int List[] = new int;
+        )%&/";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string const &err_msg = mh.GetError().Message;
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("'null'"));
+}

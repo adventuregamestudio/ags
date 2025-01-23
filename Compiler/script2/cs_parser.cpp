@@ -4548,12 +4548,26 @@ void AGS::Parser::ParseVardecl_InitialValAssignment_StringBuf(std::vector<char> 
 
 void AGS::Parser::ParseVardecl_InitialValAssignment(Vartype vartype, std::vector<char> &initial_val)
 {
-    if (_sym.IsManagedVartype(vartype))
+    if (_sym.IsDynarrayVartype(vartype))
     {
         // We only reserve the space for the pointer.
         // The space for the actual object will be reserved with an AGS 'new' expression.
         initial_val.resize (SIZE_OF_DYNPOINTER);
-        return Expect(kKW_Null, _src.GetNext());
+
+        if (kKW_Null != _src.GetNext())
+            UserError("Can only initialize this global dynamic array as 'null'");
+        return;
+    }
+
+    if (_sym.IsDynpointerVartype(vartype))
+    {
+        // We only reserve the space for the pointer.
+        // The space for the actual object will be reserved with an AGS 'new' expression.
+        initial_val.resize (SIZE_OF_DYNPOINTER);
+
+        if (kKW_Null != _src.GetNext())
+            UserError("Can only initialize this global managed variable as 'null'");
+        return;
     }
 
     if (_sym.IsStructVartype(vartype))
@@ -7138,7 +7152,7 @@ void AGS::Parser::ParseInput()
         // Command clauses
 
         if (kKW_NoSymbol == name_of_current_func)
-            UserError("'%s' is illegal outside a function", _sym.GetName(leading_sym).c_str());
+            UserError("Cannot start a definition or declaration with '%s'", _sym.GetName(leading_sym).c_str());
 
         Parse_CheckTQSIsEmpty(tqs);
         ParseCommand(leading_sym, struct_of_current_func, name_of_current_func);
@@ -7213,11 +7227,11 @@ void AGS::Parser::UserError(char const *msg, ...)
     va_copy(vlist2, vlist1);
     size_t const needed_len = vsnprintf(nullptr, 0u, msg, vlist1) + 1u;
     std::vector<char> message(needed_len);
-    vsprintf(&message[0u], msg, vlist2);
+    vsprintf(message.data(), msg, vlist2);
     va_end(vlist2);
     va_end(vlist1);
 
-    Error(false, &message[0u]);
+    Error(false, message.data());
 }
 
 void AGS::Parser::InternalError(char const *descr, ...)
@@ -7226,14 +7240,14 @@ void AGS::Parser::InternalError(char const *descr, ...)
     va_list vlist1, vlist2;
     va_start(vlist1, descr);
     va_copy(vlist2, vlist1);
-    // '+ 1' for the trailing '\0'
+    // '+ 1u' for the trailing '\0'
     size_t const needed_len = vsnprintf(nullptr, 0u, descr, vlist1) + 1u;
     std::vector<char> message(needed_len);
-    vsprintf(&message[0u], descr, vlist2);
+    vsprintf(message.data(), descr, vlist2);
     va_end(vlist2);
     va_end(vlist1);
 
-    Error(true, &message[0u]);
+    Error(true, message.data());
 }
 
 void AGS::Parser::Warning(char const *descr, ...)
@@ -7242,10 +7256,10 @@ void AGS::Parser::Warning(char const *descr, ...)
     va_list vlist1, vlist2;
     va_start(vlist1, descr);
     va_copy(vlist2, vlist1);
-    // '+ 1' for the trailing '\0'
+    // '+ 1u' for the trailing '\0'
     size_t const needed_len = vsnprintf(nullptr, 0u, descr, vlist1) + 1u;
     std::vector<char> message(needed_len);
-    vsprintf(&message[0u], descr, vlist2);
+    vsprintf(message.data(), descr, vlist2);
     va_end(vlist2);
     va_end(vlist1);
 

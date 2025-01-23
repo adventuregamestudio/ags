@@ -80,7 +80,7 @@ void DrawingSurface_Release(ScriptDrawingSurface* sds)
         dynamicallyCreatedSurfaces[sds->dynamicSurfaceNumber] = nullptr;
         sds->dynamicSurfaceNumber = -1;
     }
-    sds->modified = 0;
+    sds->modified = false;
 }
 
 ScriptDrawingSurface* DrawingSurface_CreateCopy(ScriptDrawingSurface *sds)
@@ -212,6 +212,16 @@ int DrawingSurface_GetDrawingColor(ScriptDrawingSurface *sds)
     return sds->GetScriptDrawingColor();
 }
 
+void DrawingSurface_SetBlendMode(ScriptDrawingSurface *sds, int blend_mode)
+{
+    sds->SetBlendMode(static_cast<BlendMode>(blend_mode));
+}
+
+int DrawingSurface_GetBlendMode(ScriptDrawingSurface *sds)
+{
+    return sds->GetBlendMode();
+}
+
 int DrawingSurface_GetHeight(ScriptDrawingSurface *sds) 
 {
     Bitmap *ds = sds->GetBitmapSurface();
@@ -313,7 +323,7 @@ void DrawingSurface_DrawLine(ScriptDrawingSurface *sds, int fromx, int fromy, in
 }
 
 void DrawingSurface_DrawPixel(ScriptDrawingSurface *sds, int x, int y) {
-    Bitmap *ds = sds->StartDrawing();
+    Bitmap *ds = sds->StartDrawingWithBrush();
     if (sds->IsAlphaBlending())
     {
         ds->BlendPixel(x, y, sds->GetRealDrawingColor());
@@ -476,6 +486,16 @@ RuntimeScriptValue Sc_DrawingSurface_SetDrawingColor(void *self, const RuntimeSc
     API_OBJCALL_VOID_PINT(ScriptDrawingSurface, DrawingSurface_SetDrawingColor);
 }
 
+RuntimeScriptValue Sc_DrawingSurface_GetBlendMode(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptDrawingSurface, DrawingSurface_GetBlendMode);
+}
+
+RuntimeScriptValue Sc_DrawingSurface_SetBlendMode(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptDrawingSurface, DrawingSurface_SetBlendMode);
+}
+
 // int (ScriptDrawingSurface *sds)
 RuntimeScriptValue Sc_DrawingSurface_GetHeight(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -531,6 +551,8 @@ void RegisterDrawingSurfaceAPI(ScriptAPIVersion /*base_api*/, ScriptAPIVersion /
         { "DrawingSurface::Release^0",            API_FN_PAIR(DrawingSurface_Release) },
         { "DrawingSurface::get_DrawingColor",     API_FN_PAIR(DrawingSurface_GetDrawingColor) },
         { "DrawingSurface::set_DrawingColor",     API_FN_PAIR(DrawingSurface_SetDrawingColor) },
+        { "DrawingSurface::get_BlendMode",        API_FN_PAIR(DrawingSurface_GetBlendMode) },
+        { "DrawingSurface::set_BlendMode",        API_FN_PAIR(DrawingSurface_SetBlendMode) },
         { "DrawingSurface::get_ColorDepth",       API_FN_PAIR(DrawingSurface_GetColorDepth) },
         { "DrawingSurface::get_Height",           API_FN_PAIR(DrawingSurface_GetHeight) },
         { "DrawingSurface::get_Width",            API_FN_PAIR(DrawingSurface_GetWidth) },

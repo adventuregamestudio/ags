@@ -286,3 +286,39 @@ uint32_t _blender_masked_multiply32(uint32_t x, uint32_t y, uint32_t n)
     return _blender_mask_alpha24(_blender_multiply24(x, y, n), x, y, n);
 }
 // ===============================
+
+#include "gfx/gfx_def.h"
+
+namespace AGS
+{
+namespace Common
+{
+
+// Array of blender descriptions
+// NOTE: set NULL function pointer to fallback to common image blitting
+typedef BLENDER_FUNC PfnBlenderCb;
+static const PfnBlenderCb BlendModeSets[kNumBlendModes] =
+{
+    _argb2argb_blender,             // kBlend_Alpha
+    _blender_masked_add32,          // kBlend_Add
+    _blender_masked_darken32,       // kBlend_Darken
+    _blender_masked_lighten32,      // kBlend_Lighten
+    _blender_masked_multiply32,     // kBlend_Multiply
+    _blender_masked_screen32,       // kBlend_Screen
+    _blender_masked_burn32,         // kBlend_Burn
+    _blender_masked_subtract32,     // kBlend_Subtract
+    _blender_masked_exclusion32,    // kBlend_Exclusion
+    _blender_masked_dodge32,        // kBlend_Dodge
+};
+
+bool SetBlender(BlendMode blend_mode, int alpha)
+{
+    if (blend_mode < 0 || blend_mode >= kNumBlendModes)
+        return false;
+    const auto &blender = BlendModeSets[blend_mode];
+    set_blender_mode(nullptr, nullptr, blender, 0, 0, 0, alpha);
+    return true;
+}
+
+} // namespace Common
+} // namespace AGS

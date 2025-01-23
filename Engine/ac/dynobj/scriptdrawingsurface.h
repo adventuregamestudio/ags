@@ -17,11 +17,13 @@
 #include "ac/dynobj/cc_agsdynamicobject.h"
 #include "game/roomstruct.h"
 #include "gfx/bitmap.h"
+#include "gfx/gfx_def.h"
 #include "util/stream.h"
 
 struct ScriptDrawingSurface final : AGSCCDynamicObject
 {
     using Bitmap = AGS::Common::Bitmap;
+    using BlendMode = AGS::Common::BlendMode;
 public:
     // These numbers and types are used to determine the source of this drawing surface;
     // only one of them can be valid for this surface.
@@ -33,7 +35,7 @@ public:
     int dynamicSurfaceNumber;
     bool isLinkedBitmapOnly;
     Bitmap *linkedBitmapOnly;
-    int modified;
+    bool modified;
 
     int Dispose(void *address, bool force) override;
     const char *GetType() override;
@@ -43,6 +45,8 @@ public:
     int GetRealDrawingColor() const { return _currentColor; }
     int GetScriptDrawingColor() const { return _currentScriptColor; }
     void SetDrawingColor(int color_number);
+    BlendMode GetBlendMode() const { return _currentBlendMode; }
+    void SetBlendMode(BlendMode);
 
     // TODO: review this, may need to hide GetBitmapSurface and use StartDrawingReadOnly instead;
     // the reason is that the bitmap may have to be "locked" for the duration of use, as it is
@@ -68,6 +72,7 @@ private:
     bool _alphaBlending = false;
     int _currentColor = 0;
     int _currentScriptColor = 0;
+    BlendMode _currentBlendMode = AGS::Common::kBlend_Normal;
 };
 
 #endif // __AC_SCRIPTDRAWINGSURFACE_H

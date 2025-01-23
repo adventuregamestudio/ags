@@ -40,9 +40,10 @@ enum GraphicFlip
 };
 
 // Blend modes for object sprites
+// This matches the blend modes in script API
 enum BlendMode
 {
-    kBlend_Normal,        // alpha-blend src to dest, combining src & dest alphas
+    kBlend_Normal       = 0, // alpha-blend src to dest, combining src & dest alphas
     kBlend_Add,
     kBlend_Darken,
     kBlend_Lighten,
@@ -278,6 +279,9 @@ namespace GfxDef
         }
     }
 } // namespace GfxDef
+
+// Sets current blending mode, which will affect any further drawing
+bool SetBlender(Common::BlendMode blend_mode, int alpha);
 
 } // namespace Common
 } // namespace AGS

@@ -793,6 +793,8 @@ builtin managed struct DrawingSurface {
   /// Gets the width of the surface.
   readonly import attribute int Width;
 #ifdef SCRIPT_API_v400
+  /// Gets/sets the current BlendMode that will be used for drawing onto this surface.
+  import attribute BlendMode BlendMode;
   /// Gets the colour depth of this surface.
   readonly import attribute int ColorDepth;
 #endif // SCRIPT_API_v400

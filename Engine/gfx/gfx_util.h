@@ -44,7 +44,7 @@ namespace GfxUtil
     Bitmap *ConvertBitmap(Bitmap *src, int dst_color_depth, bool keep_mask = true);
 
     // Considers the given information about source and destination surfaces,
-    // then draws a bimtap over another either using requested blending mode,
+    // then draws a bitmap over another either using requested blending mode,
     // or fallbacks to common "magic pink" transparency mode;
     // optionally uses blending alpha (overall image transparency).
     void DrawSpriteBlend(Bitmap *ds, const Point &ds_at, Bitmap *sprite,

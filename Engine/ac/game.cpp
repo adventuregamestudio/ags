@@ -781,17 +781,29 @@ int Game_GetInSkippableCutscene()
     return 0;
 }
 
-int Game_GetColorFromRGB(int red, int grn, int blu) {
+int Game_GetColorFromRGBA(int red, int grn, int blu, int alpha)
+{
     if ((red < 0) || (red > 255) || (grn < 0) || (grn > 255) ||
-        (blu < 0) || (blu > 255))
-        quit("!GetColorFromRGB: colour values must be 0-255");
+        (blu < 0) || (blu > 255) || (alpha < 0) || (alpha > 255))
+    {
+        debug_script_warn("GetColorFromRGB: colour values must be 0-255");
+        red = Math::Clamp(red, 0, 255);
+        grn = Math::Clamp(grn, 0, 255);
+        blu = Math::Clamp(blu, 0, 255);
+        alpha = Math::Clamp(alpha, 0, 255);
+    }
 
     if (game.color_depth == 1)
     {
         return makecol8(red, grn, blu);
     }
 
-    return makeacol32(red, grn, blu, 0xFF);
+    return makeacol32(red, grn, blu, alpha);
+}
+
+int Game_GetColorFromRGB(int red, int grn, int blu)
+{
+    return Game_GetColorFromRGBA(red, grn, blu, 255);
 }
 
 const char* Game_InputBox(const char *msg) {
@@ -1705,6 +1717,11 @@ RuntimeScriptValue Sc_Game_GetColorFromRGB(const RuntimeScriptValue *params, int
     API_SCALL_INT_PINT3(Game_GetColorFromRGB);
 }
 
+RuntimeScriptValue Sc_Game_GetColorFromRGBA(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_PINT4(Game_GetColorFromRGBA);
+}
+
 // int (int viewNumber, int loopNumber)
 RuntimeScriptValue Sc_Game_GetFrameCountForLoop(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -2018,6 +2035,7 @@ void RegisterGameAPI()
         { "Game::ChangeTranslation^1",                    API_FN_PAIR(Game_ChangeTranslation) },
         { "Game::DoOnceOnly^1",                           API_FN_PAIR(Game_DoOnceOnly) },
         { "Game::GetColorFromRGB^3",                      API_FN_PAIR(Game_GetColorFromRGB) },
+        { "Game::GetColorFromRGBA^4",                     API_FN_PAIR(Game_GetColorFromRGBA) },
         { "Game::GetFrameCountForLoop^2",                 API_FN_PAIR(Game_GetFrameCountForLoop) },
         { "Game::GetLocationName^2",                      API_FN_PAIR(Game_GetLocationName) },
         { "Game::GetLoopCountForView^1",                  API_FN_PAIR(Game_GetLoopCountForView) },

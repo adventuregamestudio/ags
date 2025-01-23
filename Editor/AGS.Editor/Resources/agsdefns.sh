@@ -2750,6 +2750,8 @@ builtin struct Game {
   import static void   ScanSaveSlots(int valid_slots[], int min_slot, int max_slot, SaveGameSortStyle saveSortStyle = eSaveGameSort_None, SortDirection sortDirection = eSortNoDirection, int user_param = 0);
 #endif // SCRIPT_API_v362
 #ifdef SCRIPT_API_v400
+  /// Gets the AGS Colour Number for the specified RGBA colour.
+  import static int    GetColorFromRGBA(int red, int green, int blue, int alpha);
   /// Gets/sets the default y/x ratio of character's facing directions, determining directional loop selection for all Characters in game.
   import static attribute float FaceDirectionRatio;
   /// Gets the color depth of the specified sprite.

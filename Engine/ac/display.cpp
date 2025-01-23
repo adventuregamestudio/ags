@@ -625,14 +625,13 @@ static void wouttextxy_AutoOutline(Bitmap *ds, size_t font, int32_t color, Blend
     if (thickness <= 0)
         return;
 
-    // We use 32-bit stencils in any case when anti-aliasing is required
+    // We use 32-bit stencils in any case when alpha-blending is required
     // because blending works correctly if there's an actual color
     // on the destination bitmap (and our intermediate bitmaps are transparent).
     int const  ds_cd = ds->GetColorDepth();
-    bool const antialias = (ds_cd == 32) && (game.options[OPT_ANTIALIASFONTS] != 0) && !is_bitmap_font(font);
-    int const  stencil_cd = antialias ? 32 : ds_cd;
-    if (antialias) // This is to make sure TTF renderer will use a fully opaque color
-        color |= makeacol32(0, 0, 0, 0xff);
+    bool const alpha_blend = (ds_cd == 32) && !is_bitmap_font(font) &&
+        ((game.options[OPT_ANTIALIASFONTS] != 0) || (geta32(color) < 255) || (blend_mode != kBlend_Normal));
+    int const  stencil_cd = alpha_blend ? 32 : ds_cd;
 
     const int t_width = get_text_width(text, font);
     const auto t_extent = get_font_surface_extent(font);
@@ -655,7 +654,7 @@ static void wouttextxy_AutoOutline(Bitmap *ds, size_t font, int32_t color, Blend
     // Anti-aliased TTFs require to be alpha-blended, not blit,
     // or the alpha values will be plain copied and final image will be broken.
     void(Bitmap::*pfn_drawstencil)(Bitmap *src, int dst_x, int dst_y);
-    if (antialias)
+    if (alpha_blend)
     { // NOTE: we must set out blender AFTER wouttextxy, or it will be overidden
         SetBlender(blend_mode, 0xFF);
         pfn_drawstencil = &Bitmap::TransBlendBlt;
@@ -712,6 +711,13 @@ void wouttext_outline(Bitmap *ds, int x, int y, int font, color_t text_color, Bl
         wouttextxy_AutoOutline(ds, text_font, outline_color, blend_mode, text, x, y);
     else
         ; // no outline
+
+    // FIXME: there's a problem with auto-outlining while using translucent text color:
+    // because auto-outlining is implemented by drawing same text with another color,
+    // and then drawing actual text on top, the translucent text will appear not above
+    // background, but above *outline*, which results in combining text + outline alphas.
+    // For a correct *automatic* behavior, we'd have to somehow clear the outline pixels
+    // right below the text pixels, or use blender variants that discard dest alpha.
 
     // Draw text on top
     wouttextxy(ds, x, y, text_font, text_color, blend_mode, text);

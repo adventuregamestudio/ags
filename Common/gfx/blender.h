@@ -58,9 +58,7 @@ void set_argb2any_blender();
 
 // ===============================
 // [AVD] Custom blenders for software BlendMode implementation
-// If we ditch software rendering we can remove this whole section
-// not very pretty but forces the original alpha of "x" to "blender_result"
-uint32_t _blender_mask_alpha24(uint32_t blender_result, uint32_t x, uint32_t y, uint32_t n);
+uint32_t _blender_mask_alpha32(uint32_t blender_result, uint32_t x, uint32_t y, uint32_t n);
 uint32_t _my_blender_dodge24(uint32_t x, uint32_t y, uint32_t n);
 uint32_t _my_blender_burn24(uint32_t x, uint32_t y, uint32_t n);
 uint32_t _my_blender_lighten24(uint32_t x, uint32_t y, uint32_t n);

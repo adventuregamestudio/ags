@@ -357,6 +357,13 @@ int DrawingSurface_GetPixel(ScriptDrawingSurface *sds, int x, int y) {
     return rawPixel;
 }
 
+void DrawingSurface_SetPixel(ScriptDrawingSurface *sds, int x, int y, int color)
+{
+    Bitmap *ds = sds->StartDrawing();
+    ds->PutPixel(x, y, ds->GetCompatibleColor(color));
+    sds->FinishedDrawing();
+}
+
 //=============================================================================
 //
 // Script API Functions
@@ -468,6 +475,11 @@ RuntimeScriptValue Sc_DrawingSurface_GetPixel(void *self, const RuntimeScriptVal
     API_OBJCALL_INT_PINT2(ScriptDrawingSurface, DrawingSurface_GetPixel);
 }
 
+RuntimeScriptValue Sc_DrawingSurface_SetPixel(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT3(ScriptDrawingSurface, DrawingSurface_SetPixel);
+}
+
 // void (ScriptDrawingSurface* sds)
 RuntimeScriptValue Sc_DrawingSurface_Release(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -548,6 +560,7 @@ void RegisterDrawingSurfaceAPI(ScriptAPIVersion /*base_api*/, ScriptAPIVersion /
         { "DrawingSurface::DrawSurface^10",       API_FN_PAIR(DrawingSurface_DrawSurface) },
         { "DrawingSurface::DrawTriangle^6",       API_FN_PAIR(DrawingSurface_DrawTriangle) },
         { "DrawingSurface::GetPixel^2",           API_FN_PAIR(DrawingSurface_GetPixel) },
+        { "DrawingSurface::SetPixel^3",           API_FN_PAIR(DrawingSurface_SetPixel) },
         { "DrawingSurface::Release^0",            API_FN_PAIR(DrawingSurface_Release) },
         { "DrawingSurface::get_DrawingColor",     API_FN_PAIR(DrawingSurface_GetDrawingColor) },
         { "DrawingSurface::set_DrawingColor",     API_FN_PAIR(DrawingSurface_SetDrawingColor) },

@@ -20,6 +20,7 @@
 
 #include "ac/gamesetupstruct.h"
 #include "font/fonts.h"
+#include "gfx/gfx_def.h"
 #include "gui/guimain.h"
 #include "gui/guibutton.h"
 #include "gui/guiinv.h"
@@ -28,15 +29,22 @@
 #include "gui/guitextbox.h"
 #include "util/string_utils.h"
 
+using namespace AGS::Common;
+
 extern GameSetupStruct thisgame;
 
 //=============================================================================
 // AGS.Native-specific implementation split out of acgui.h
 //=============================================================================
 
-void wouttext_outline(Common::Bitmap *ds, int xxp, int yyp, int usingfont, color_t text_color, const char *texx)
+void wouttext_outline(Bitmap *ds, int xxp, int yyp, int usingfont, color_t text_color, const char *texx)
 {
   wouttextxy(ds, xxp, yyp, usingfont, text_color, texx);
+}
+
+void wouttext_outline(Bitmap *ds, int xxp, int yyp, int usingfont, color_t text_color, BlendMode blend_mode, const char *texx)
+{
+    wouttextxy(ds, xxp, yyp, usingfont, text_color, texx);
 }
 
 //=============================================================================

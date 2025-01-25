@@ -80,7 +80,7 @@ void DrawingSurface_Release(ScriptDrawingSurface* sds)
         dynamicallyCreatedSurfaces[sds->dynamicSurfaceNumber] = nullptr;
         sds->dynamicSurfaceNumber = -1;
     }
-    sds->modified = 0;
+    sds->modified = false;
 }
 
 ScriptDrawingSurface* DrawingSurface_CreateCopy(ScriptDrawingSurface *sds)
@@ -212,6 +212,16 @@ int DrawingSurface_GetDrawingColor(ScriptDrawingSurface *sds)
     return sds->GetScriptDrawingColor();
 }
 
+void DrawingSurface_SetBlendMode(ScriptDrawingSurface *sds, int blend_mode)
+{
+    sds->SetBlendMode(static_cast<BlendMode>(blend_mode));
+}
+
+int DrawingSurface_GetBlendMode(ScriptDrawingSurface *sds)
+{
+    return sds->GetBlendMode();
+}
+
 int DrawingSurface_GetHeight(ScriptDrawingSurface *sds) 
 {
     Bitmap *ds = sds->GetBitmapSurface();
@@ -272,7 +282,7 @@ void DrawingSurface_DrawString(ScriptDrawingSurface *sds, int xx, int yy, int fo
     Bitmap *ds = sds->StartDrawing(); // no need to use "brush", blending is done by font renderer
     color_t text_color = sds->GetRealDrawingColor();
     String res_str = GUI::ApplyTextDirection(text);
-    wouttext_outline(ds, xx, yy, font, text_color, res_str.GetCStr());
+    wouttext_outline(ds, xx, yy, font, text_color, sds->GetBlendMode(), res_str.GetCStr());
     sds->FinishedDrawing();
 }
 
@@ -288,7 +298,7 @@ void DrawingSurface_DrawStringWrapped(ScriptDrawingSurface *sds, int xx, int yy,
 
     for (size_t i = 0; i < Lines.Count(); i++)
     {
-        GUI::DrawTextAlignedHor(ds, Lines[i], font, text_color,
+        GUI::DrawTextAlignedHor(ds, Lines[i], font, text_color, sds->GetBlendMode(),
             xx, xx + wid - 1, yy + linespacing*i, (FrameAlignment)alignment);
     }
 
@@ -313,7 +323,7 @@ void DrawingSurface_DrawLine(ScriptDrawingSurface *sds, int fromx, int fromy, in
 }
 
 void DrawingSurface_DrawPixel(ScriptDrawingSurface *sds, int x, int y) {
-    Bitmap *ds = sds->StartDrawing();
+    Bitmap *ds = sds->StartDrawingWithBrush();
     if (sds->IsAlphaBlending())
     {
         ds->BlendPixel(x, y, sds->GetRealDrawingColor());
@@ -345,6 +355,13 @@ int DrawingSurface_GetPixel(ScriptDrawingSurface *sds, int x, int y) {
 
     sds->FinishedDrawingReadOnly();
     return rawPixel;
+}
+
+void DrawingSurface_SetPixel(ScriptDrawingSurface *sds, int x, int y, int color)
+{
+    Bitmap *ds = sds->StartDrawing();
+    ds->PutPixel(x, y, ds->GetCompatibleColor(color));
+    sds->FinishedDrawing();
 }
 
 //=============================================================================
@@ -458,6 +475,11 @@ RuntimeScriptValue Sc_DrawingSurface_GetPixel(void *self, const RuntimeScriptVal
     API_OBJCALL_INT_PINT2(ScriptDrawingSurface, DrawingSurface_GetPixel);
 }
 
+RuntimeScriptValue Sc_DrawingSurface_SetPixel(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT3(ScriptDrawingSurface, DrawingSurface_SetPixel);
+}
+
 // void (ScriptDrawingSurface* sds)
 RuntimeScriptValue Sc_DrawingSurface_Release(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -474,6 +496,16 @@ RuntimeScriptValue Sc_DrawingSurface_GetDrawingColor(void *self, const RuntimeSc
 RuntimeScriptValue Sc_DrawingSurface_SetDrawingColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(ScriptDrawingSurface, DrawingSurface_SetDrawingColor);
+}
+
+RuntimeScriptValue Sc_DrawingSurface_GetBlendMode(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptDrawingSurface, DrawingSurface_GetBlendMode);
+}
+
+RuntimeScriptValue Sc_DrawingSurface_SetBlendMode(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptDrawingSurface, DrawingSurface_SetBlendMode);
 }
 
 // int (ScriptDrawingSurface *sds)
@@ -528,9 +560,12 @@ void RegisterDrawingSurfaceAPI(ScriptAPIVersion /*base_api*/, ScriptAPIVersion /
         { "DrawingSurface::DrawSurface^10",       API_FN_PAIR(DrawingSurface_DrawSurface) },
         { "DrawingSurface::DrawTriangle^6",       API_FN_PAIR(DrawingSurface_DrawTriangle) },
         { "DrawingSurface::GetPixel^2",           API_FN_PAIR(DrawingSurface_GetPixel) },
+        { "DrawingSurface::SetPixel^3",           API_FN_PAIR(DrawingSurface_SetPixel) },
         { "DrawingSurface::Release^0",            API_FN_PAIR(DrawingSurface_Release) },
         { "DrawingSurface::get_DrawingColor",     API_FN_PAIR(DrawingSurface_GetDrawingColor) },
         { "DrawingSurface::set_DrawingColor",     API_FN_PAIR(DrawingSurface_SetDrawingColor) },
+        { "DrawingSurface::get_BlendMode",        API_FN_PAIR(DrawingSurface_GetBlendMode) },
+        { "DrawingSurface::set_BlendMode",        API_FN_PAIR(DrawingSurface_SetBlendMode) },
         { "DrawingSurface::get_ColorDepth",       API_FN_PAIR(DrawingSurface_GetColorDepth) },
         { "DrawingSurface::get_Height",           API_FN_PAIR(DrawingSurface_GetHeight) },
         { "DrawingSurface::get_Width",            API_FN_PAIR(DrawingSurface_GetWidth) },

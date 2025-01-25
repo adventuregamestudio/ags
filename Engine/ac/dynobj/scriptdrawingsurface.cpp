@@ -22,7 +22,7 @@
 #include "ac/dynobj/dynobj_manager.h"
 #include "game/roomstruct.h"
 #include "gfx/bitmap.h"
-#include "gfx/blender.h"
+#include "gfx/gfx_def.h"
 
 using namespace AGS::Common;
 
@@ -61,33 +61,37 @@ void ScriptDrawingSurface::SetDrawingColor(int color_number)
     }
 }
 
+void ScriptDrawingSurface::SetBlendMode(BlendMode blend_mode)
+{
+    _currentBlendMode = blend_mode;
+}
+
 Bitmap *ScriptDrawingSurface::StartDrawing()
 {
-    Bitmap *ds = this->GetBitmapSurface();
-    _alphaBlending = (ds->GetColorDepth() == 32) && (geta32(_currentColor) != 0xFF);
-    return ds;
+    return GetBitmapSurface();
 }
 
 Bitmap *ScriptDrawingSurface::StartDrawingWithBrush()
 {
-    Bitmap *ds = this->GetBitmapSurface();
-    _alphaBlending = (ds->GetColorDepth() == 32) && (geta32(_currentColor) != 0xFF);
+    Bitmap *ds = GetBitmapSurface();
+    _alphaBlending = (ds->GetColorDepth() == 32)
+        && ((geta32(_currentColor) != 0xFF) || (_currentBlendMode != kBlend_Normal));
     if (_alphaBlending)
     {
         drawing_mode(DRAW_MODE_TRANS, nullptr, 0, 0);
-        set_argb2any_blender();
+        SetBlender(_currentBlendMode, 0xFF);
     }
     return ds;
 }
 
 Bitmap *ScriptDrawingSurface::StartDrawingReadOnly()
 {
-    return this->GetBitmapSurface();
+    return GetBitmapSurface();
 }
 
 void ScriptDrawingSurface::FinishedDrawing()
 {
-    modified = 1;
+    modified = true;
 }
 
 void ScriptDrawingSurface::FinishedDrawingWithBrush()
@@ -96,7 +100,7 @@ void ScriptDrawingSurface::FinishedDrawingWithBrush()
     {
         drawing_mode(DRAW_MODE_SOLID, nullptr, 0, 0);
     }
-    modified = 1;
+    modified = true;
 }
 
 void ScriptDrawingSurface::FinishedDrawingReadOnly()
@@ -120,7 +124,8 @@ size_t ScriptDrawingSurface::CalcSerializeSize(const void* /*address*/)
     return sizeof(int32_t) * 9;
 }
 
-void ScriptDrawingSurface::Serialize(const void* /*address*/, Stream *out) {
+void ScriptDrawingSurface::Serialize(const void* /*address*/, Stream *out)
+{
     // pack mask type in the last byte of a negative integer
     // note: (-1) is reserved for "unused", for backward compatibility
     if (roomMaskType > 0)
@@ -131,13 +136,20 @@ void ScriptDrawingSurface::Serialize(const void* /*address*/, Stream *out) {
     out->WriteInt32(dynamicSurfaceNumber);
     out->WriteInt32(_currentColor);
     out->WriteInt32(_currentScriptColor);
+    // NOTE: could turn any of the boolean fields below into a bit flag set
     out->WriteInt32(0); // unused, was highResCoordinates
-    out->WriteInt32(modified);
+    out->WriteInt32(modified ? 1 : 0);
     out->WriteInt32(0); // unused, was hasAlphaChannel
-    out->WriteInt32(isLinkedBitmapOnly ? 1 : 0);
+    out->WriteInt32(isLinkedBitmapOnly ? 1 : 0); // NOTE: could turn this into bit flag set
+    // version data sz: 36
+    out->WriteInt32(_currentBlendMode);
+    out->WriteInt32(0); // reserve to 4 ints
+    out->WriteInt32(0);
+    out->WriteInt32(0);
 }
 
-void ScriptDrawingSurface::Unserialize(int index, Stream *in, size_t /*data_sz*/) {
+void ScriptDrawingSurface::Unserialize(int index, Stream *in, size_t data_sz)
+{
     int room_ds = in->ReadInt32();
     if (room_ds >= 0)
         roomBackgroundNumber = room_ds;
@@ -149,9 +161,13 @@ void ScriptDrawingSurface::Unserialize(int index, Stream *in, size_t /*data_sz*/
     _currentColor = in->ReadInt32();
     _currentScriptColor = in->ReadInt32();
     in->ReadInt32(); // unused, was highResCoordinates
-    modified = in->ReadInt32();
+    modified = (in->ReadInt32() != 0);
     in->ReadInt32(); // unused, was hasAlphaChannel
     isLinkedBitmapOnly = (in->ReadInt32() != 0);
+    if (data_sz > 36)
+    {
+        _currentBlendMode = (BlendMode)in->ReadInt32();
+    }
     _alphaBlending = false;
     ccRegisterUnserializedObject(index, this, this);
 }
@@ -164,8 +180,9 @@ ScriptDrawingSurface::ScriptDrawingSurface()
     dynamicSurfaceNumber = -1;
     isLinkedBitmapOnly = false;
     linkedBitmapOnly = nullptr;
-    modified = 0;
+    modified = false;
     _alphaBlending = false;
     _currentColor = 0;
     _currentScriptColor = SCR_COLOR_TRANSPARENT;
+    _currentBlendMode = kBlend_Normal;
 }

@@ -934,10 +934,22 @@ void DrawTextAligned(Bitmap *ds, const String &text, int font, color_t text_colo
     wouttext_outline(ds, pos.X, pos.Y, font, text_color, text.GetCStr());
 }
 
+void DrawTextAligned(Bitmap *ds, const String &text, int font, color_t text_color, BlendMode blend_mode, const Rect &frame, FrameAlignment align)
+{
+    Point pos = CalcTextPosition(text, font, frame, align);
+    wouttext_outline(ds, pos.X, pos.Y, font, text_color, blend_mode, text.GetCStr());
+}
+
 void DrawTextAlignedHor(Bitmap *ds, const String &text, int font, color_t text_color, int x1, int x2, int y, FrameAlignment align)
 {
     Line line = CalcTextPositionHor(text, font, x1, x2, y, align);
     wouttext_outline(ds, line.X1, y, font, text_color, text.GetCStr());
+}
+
+void DrawTextAlignedHor(Bitmap *ds, const String &text, int font, color_t text_color, BlendMode blend_mode, int x1, int x2, int y, FrameAlignment align)
+{
+    Line line = CalcTextPositionHor(text, font, x1, x2, y, align);
+    wouttext_outline(ds, line.X1, y, font, text_color, blend_mode, text.GetCStr());
 }
 
 void DrawTextLinesAligned(Bitmap *ds, const std::vector<String> &text, size_t item_count,

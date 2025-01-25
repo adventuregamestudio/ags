@@ -767,7 +767,7 @@ builtin managed struct DrawingSurface {
 #endif // SCRIPT_API_v399
   /// Draws a straight line between the two points on the surface.
   import void DrawLine(int x1, int y1, int x2, int y2, int thickness=1);
-  /// Changes the colour of a single pixel on the surface.
+  /// Draws a single pixel to the surface, respecting selected drawing mode.
   import void DrawPixel(int x, int y);
   /// Draws a filled rectangle to the surface.
   import void DrawRectangle(int x1, int y1, int x2, int y2);
@@ -793,6 +793,10 @@ builtin managed struct DrawingSurface {
   /// Gets the width of the surface.
   readonly import attribute int Width;
 #ifdef SCRIPT_API_v400
+  /// Changes the colour of a single pixel on the surface. This operation ignores drawing settings, and simply sets the color value.
+  import void SetPixel(int x, int y, int color);
+  /// Gets/sets the current BlendMode that will be used for drawing onto this surface.
+  import attribute BlendMode BlendMode;
   /// Gets the colour depth of this surface.
   readonly import attribute int ColorDepth;
 #endif // SCRIPT_API_v400

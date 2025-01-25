@@ -14,6 +14,7 @@
 #ifndef __AC_AGSFONTRENDERER_H
 #define __AC_AGSFONTRENDERER_H
 
+#include "gfx/gfx_def.h"
 #include "util/string.h"
 
 struct BITMAP;
@@ -110,6 +111,8 @@ public:
     virtual void GetFontMetrics(int fontNumber, FontMetrics *metrics) = 0;
     // Perform any necessary adjustments when the AA mode is toggled
     virtual void AdjustFontForAntiAlias(int fontNumber, bool aa_mode) = 0;
+    // Set blend mode which will be applied to all the following text renders
+    virtual void SetBlendMode(AGS::Common::BlendMode blend_mode) = 0;
 
 protected:
     IAGSFontRendererInternal() = default;

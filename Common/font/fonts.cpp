@@ -470,18 +470,27 @@ size_t split_lines(const char *todis, SplitLines &lines, int wii, int fonnt, siz
     return lines.Count();
 }
 
-void wouttextxy(Bitmap *ds, int xxx, int yyy, size_t font_number, color_t text_color, const char *texx)
+void wouttextxy(Bitmap *ds, int x, int y, size_t font_number, color_t text_color, BlendMode blend_mode, const char *text)
 {
     if (font_number >= fonts.size())
         return;
-    yyy += fonts[font_number].Info.YOffset;
-    if (yyy > ds->GetClip().Bottom)
-        return;                   // each char is clipped but this speeds it up
 
-    if (fonts[font_number].Renderer != nullptr)
+    auto &font = fonts[font_number];
+    y += fonts[font_number].Info.YOffset;
+    if (y > ds->GetClip().Bottom)
+        return; // each char is clipped but this speeds it up
+
+    if (font.Renderer != nullptr)
     {
-        fonts[font_number].Renderer->RenderText(texx, font_number, (BITMAP*)ds->GetAllegroBitmap(), xxx, yyy, text_color);
+        if (font.RendererInt)
+            font.RendererInt->SetBlendMode(blend_mode);
+        font.Renderer->RenderText(text, font_number, (BITMAP*)ds->GetAllegroBitmap(), x, y, text_color);
     }
+}
+
+void wouttextxy(Bitmap *ds, int x, int y, size_t font_number, color_t text_color, const char *text)
+{
+    wouttextxy(ds, x, y, font_number, text_color, kBlend_Normal, text);
 }
 
 void set_fontinfo(size_t font_number, const FontInfo &finfo)
@@ -617,6 +626,15 @@ void adjust_fonts_for_render_mode(bool aa_mode)
         if (fonts[i].RendererInt)
             fonts[i].RendererInt->AdjustFontForAntiAlias(i, aa_mode);
     }
+}
+
+void font_set_blend_mode(size_t font_number, AGS::Common::BlendMode blend_mode)
+{
+    if (font_number >= fonts.size())
+        return;
+
+    if (fonts[font_number].RendererInt)
+        fonts[font_number].RendererInt->SetBlendMode(blend_mode);
 }
 
 void freefont(size_t font_number)

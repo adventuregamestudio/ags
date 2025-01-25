@@ -61,41 +61,42 @@ int WFNFontRenderer::GetTextHeight(const char *text, int fontNumber)
 }
 
 static int RenderChar(Bitmap *ds, const int at_x, const int at_y, Rect clip,
-    const WFNChar &wfn_char, const int scale, const color_t text_color);
+    const WFNChar &wfn_char, const int scale, const color_t text_color, bool alpha_blend);
 
 void WFNFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *destination, int x, int y, int colour)
 {
-  int oldeip = get_our_eip();
-  set_our_eip(415);
+    const WFNFont* font = _fontData[fontNumber].Font;
+    const FontRenderParams &params = _fontData[fontNumber].Params;
+    Bitmap ds(destination, true);
 
-  const WFNFont* font = _fontData[fontNumber].Font;
-  const FontRenderParams &params = _fontData[fontNumber].Params;
-  Bitmap ds(destination, true);
+    // Check if this is a alpha-blending case, and init corresponding draw mode
+    const bool alpha_blend = (ds.GetColorDepth() == 32) &&
+        ((geta32(colour) != 0xFF) || (_blendMode != kBlend_Normal));
+    if (alpha_blend)
+    {
+        drawing_mode(DRAW_MODE_TRANS, nullptr, 0, 0);
+        SetBlender(_blendMode, 0xFF);
+    }
 
-  // NOTE: allegro's putpixel ignores clipping (optimization),
-  // so we'll have to accomodate for that ourselves
-  Rect clip = ds.GetClip();
-  for (int code = ugetxc(&text); code; code = ugetxc(&text))
-    x += RenderChar(&ds, x, y, clip, font->GetChar(code), params.SizeMultiplier, colour);
+    // NOTE: allegro's putpixel ignores clipping (optimization),
+    // so we'll have to accomodate for that ourselves
+    Rect clip = ds.GetClip();
+    for (int code = ugetxc(&text); code; code = ugetxc(&text))
+        x += RenderChar(&ds, x, y, clip, font->GetChar(code), params.SizeMultiplier, colour, alpha_blend);
 
-  set_our_eip(oldeip);
+    if (alpha_blend)
+    {
+        drawing_mode(DRAW_MODE_SOLID, nullptr, 0, 0);
+    }
 }
 
 static int RenderChar(Bitmap *ds, const int at_x, const int at_y, Rect clip,
-    const WFNChar &wfn_char, const int scale, const color_t text_color)
+    const WFNChar &wfn_char, const int scale, const color_t text_color, bool alpha_blend)
 {
   const int width = wfn_char.Width;
   const int height = wfn_char.Height;
   const unsigned char *actdata = wfn_char.Data;
   const int bytewid = wfn_char.GetRowByteCount();
-
-  // Check if this is a alpha-blending case, and init corresponding draw mode
-  const bool alpha_blend = (ds->GetColorDepth() == 32) && (geta32(text_color) != 0xFF);
-  if (alpha_blend)
-  {
-    drawing_mode(DRAW_MODE_TRANS, nullptr, 0, 0);
-    set_argb2any_blender();
-  }
 
   int sx = std::max(at_x, clip.Left), ex = clip.Right + 1;
   int sy = std::max(at_y, clip.Top), ey = clip.Bottom + 1;
@@ -121,11 +122,6 @@ static int RenderChar(Bitmap *ds, const int at_x, const int at_y, Rect clip,
         }
       }
     }
-  }
-
-  if (alpha_blend)
-  {
-    drawing_mode(DRAW_MODE_SOLID, nullptr, 0, 0);
   }
 
   return width * scale;
@@ -162,6 +158,11 @@ bool WFNFontRenderer::LoadFromDiskEx(int fontNumber, int /*fontSize*/,
   if (metrics)
     *metrics = FontMetrics();
   return true;
+}
+
+void WFNFontRenderer::SetBlendMode(BlendMode blend_mode)
+{
+    _blendMode = blend_mode;
 }
 
 void WFNFontRenderer::FreeMemory(int fontNumber)

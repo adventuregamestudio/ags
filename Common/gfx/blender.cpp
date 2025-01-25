@@ -196,14 +196,17 @@ void set_argb2any_blender()
 #define _BLENDOP_EXCLUSION(B,L) (B + L - 2 * B * L / 255)
 #define _BLENDOP_SUBTRACT(B,L) (L - B < 0) ? 0:(L - B)
 
-uint32_t _blender_mask_alpha24(uint32_t blender_result, uint32_t x, uint32_t y, uint32_t n)
+uint32_t _blender_mask_alpha32(uint32_t blender_result, uint32_t x, uint32_t y, uint32_t n)
 {
+    // TODO: there may be ways to optimize following, reducing amount of division ops
     const uint32_t src_alpha = geta32(x);
-    const uint32_t alphainv = 255 - src_alpha;
-    const uint32_t r = (getr24(blender_result)*src_alpha + alphainv*getr24(y)) / 255;
-    const uint32_t g = (getg24(blender_result)*src_alpha + alphainv*getg24(y)) / 255;
-    const uint32_t b = (getb24(blender_result)*src_alpha + alphainv*getb24(y)) / 255;
-    return r | g << 8 | b << 16;
+    const uint32_t dst_alpha = geta32(y);
+    const uint32_t inv_src_a = 255 - src_alpha;
+    const uint32_t fin_a = 255 - (255 - src_alpha) * (255 - dst_alpha) / 255;
+    const uint32_t r = getr24(blender_result) * src_alpha / fin_a + inv_src_a * getr24(y) / fin_a / 255;
+    const uint32_t g = getg24(blender_result) * src_alpha / fin_a + inv_src_a * getg24(y) / fin_a / 255;
+    const uint32_t b = getb24(blender_result) * src_alpha / fin_a + inv_src_a * getb24(y) / fin_a / 255;
+    return makeacol32(r, g, b, fin_a);
 }
 // alegro's dodge blend was wrong, mine is not perfect either
 uint32_t _my_blender_dodge24(uint32_t x, uint32_t y, uint32_t n)
@@ -251,38 +254,80 @@ uint32_t _my_blender_subtract24(uint32_t x, uint32_t y, uint32_t n)
 
 uint32_t _blender_masked_add32(uint32_t x, uint32_t y, uint32_t n)
 {
-    return _blender_mask_alpha24(_blender_add24(x, y, n), x, y, n);
+    return _blender_mask_alpha32(_blender_add24(x, y, n), x, y, n);
 }
 uint32_t _blender_masked_dodge32(uint32_t x, uint32_t y, uint32_t n)
 {
-    return _blender_mask_alpha24(_my_blender_dodge24(x, y, n), x, y, n);
+    return _blender_mask_alpha32(_my_blender_dodge24(x, y, n), x, y, n);
 }
 uint32_t _blender_masked_burn32(uint32_t x, uint32_t y, uint32_t n)
 {
-    return _blender_mask_alpha24(_my_blender_burn24(x, y, n), x, y, n);
+    return _blender_mask_alpha32(_my_blender_burn24(x, y, n), x, y, n);
 }
 uint32_t _blender_masked_lighten32(uint32_t x, uint32_t y, uint32_t n)
 {
-    return _blender_mask_alpha24(_my_blender_lighten24(x, y, n), x, y, n);
+    return _blender_mask_alpha32(_my_blender_lighten24(x, y, n), x, y, n);
 }
 uint32_t _blender_masked_darken32(uint32_t x, uint32_t y, uint32_t n)
 {
-    return _blender_mask_alpha24(_my_blender_darken24(x, y, n), x, y, n);
+    return _blender_mask_alpha32(_my_blender_darken24(x, y, n), x, y, n);
 }
 uint32_t _blender_masked_exclusion32(uint32_t x, uint32_t y, uint32_t n)
 {
-    return _blender_mask_alpha24(_my_blender_exclusion24(x, y, n), x, y, n);
+    return _blender_mask_alpha32(_my_blender_exclusion24(x, y, n), x, y, n);
 }
 uint32_t _blender_masked_subtract32(uint32_t x, uint32_t y, uint32_t n)
 {
-    return _blender_mask_alpha24(_my_blender_subtract24(x, y, n), x, y, n);
+    return _blender_mask_alpha32(_my_blender_subtract24(x, y, n), x, y, n);
 }
 uint32_t _blender_masked_screen32(uint32_t x, uint32_t y, uint32_t n)
 {
-    return _blender_mask_alpha24(_blender_screen24(x, y, n), x, y, n);
+    return _blender_mask_alpha32(_blender_screen24(x, y, n), x, y, n);
 }
 uint32_t _blender_masked_multiply32(uint32_t x, uint32_t y, uint32_t n)
 {
-    return _blender_mask_alpha24(_blender_multiply24(x, y, n), x, y, n);
+    return _blender_mask_alpha32(_blender_multiply24(x, y, n), x, y, n);
 }
 // ===============================
+
+#include "gfx/gfx_def.h"
+
+namespace AGS
+{
+namespace Common
+{
+
+// Array of blender descriptions
+// NOTE: set NULL function pointer to fallback to common image blitting
+static const PfnBlenderCb BlendModeSets[kNumBlendModes] =
+{
+    _argb2argb_blender,             // kBlend_Alpha
+    _blender_masked_add32,          // kBlend_Add
+    _blender_masked_darken32,       // kBlend_Darken
+    _blender_masked_lighten32,      // kBlend_Lighten
+    _blender_masked_multiply32,     // kBlend_Multiply
+    _blender_masked_screen32,       // kBlend_Screen
+    _blender_masked_burn32,         // kBlend_Burn
+    _blender_masked_subtract32,     // kBlend_Subtract
+    _blender_masked_exclusion32,    // kBlend_Exclusion
+    _blender_masked_dodge32,        // kBlend_Dodge
+};
+
+bool SetBlender(BlendMode blend_mode, int alpha)
+{
+    if (blend_mode < 0 || blend_mode >= kNumBlendModes)
+        return false;
+    const auto &blender = BlendModeSets[blend_mode];
+    set_blender_mode(nullptr, nullptr, blender, 0, 0, 0, alpha);
+    return true;
+}
+
+BLENDER_FUNC GetBlenderFunc(BlendMode blend_mode)
+{
+    if (blend_mode < 0 || blend_mode >= kNumBlendModes)
+        return nullptr;
+    return BlendModeSets[blend_mode];
+}
+
+} // namespace Common
+} // namespace AGS

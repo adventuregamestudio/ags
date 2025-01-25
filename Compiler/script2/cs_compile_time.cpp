@@ -177,8 +177,8 @@ void AGS::CTF_IntShiftLeft::Evaluate(Symbol arg1, Symbol arg2, Symbol &result)
             std::to_string(i2).c_str());
 
     // The Engine calculates shifts by using signed values, so overflow is possible. 
-    size_t const digitnum = std::numeric_limits<CodeCell>::digits - 1;
-    if (0 != abs(i1) >> (digitnum - i2))
+    size_t const digitnum = std::numeric_limits<CodeCell>::digits + 1;
+    if (0 != i2 && 0 != abs(i1) >> (digitnum - i2))
         UserError(
             "Overflow when calculating '%s << %s'",
             std::to_string(i1).c_str(),

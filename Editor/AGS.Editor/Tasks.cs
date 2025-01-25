@@ -548,7 +548,7 @@ namespace AGS.Editor
                 game.Settings.UseOldVoiceClipNaming = true;
             }
 
-            if (xmlVersionIndex < 3060206)
+            if (xmlVersionIndex < 3060206 || (xmlVersionIndex > 3999900 && xmlVersionIndex < 4000014))
             {
                 game.Settings.GameFPS = 40; // 40 was historical default FPS
             }

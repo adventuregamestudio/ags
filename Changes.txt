@@ -4,7 +4,7 @@ AGS 4 - Early Alpha
 
 Common:
  - Support true 32-bit colors in GUI, text messages and drawing commands in script.
-   Color number properties now correspond to the encoded 32-bit RGB (R8G8B8 format).
+   Color number properties now correspond to the encoded 32-bit ARGB (A8R8G8B8 format).
  - Fonts are split into Font Files and Fonts, where multiple Fonts may use same Font File,
    or not have any Font File assigned at all (for instance, if they are meant to act as
    placeholders and get replaced by fonts from plugin).
@@ -27,6 +27,12 @@ Editor:
  - Actual font files on disk are now stored in "Fonts" subfolder in the project when imported,
    and keep their original names (no longer renamed to "agsfntN.*").
  - Translation sources are now saved in PO format.
+ - Merged all Color and ColorNumber property pairs into a single Color property that acts as
+   a RGBA selection for 32-bit games, and palette index for 8-bit games. In 32-bit game projects
+   you can assign full RGBA color definition, where alpha is optional, and is assumed 255
+   if not specified. Color value 0 means "transparent" regardless of game's color depth.
+   NOTE: color picker currently does not let define alpha, so only opaque colors may be selected
+   using it; but you may still enter RGBA value by hand.
  - In General Settings added "Script Compiler" option that lets to choose between old and new
    script compilers for your game (see "Scripting" section below for the new compiler's details).
  - Added Custom Properties for: Audio Clips, Dialogs, GUI, GUI Controls, Regions, Walkable Areas.
@@ -114,6 +120,9 @@ Script API:
    or new compiler.
  - Added SCRIPT_EXT_NESTEDPOINTERS macro which tells whether nested managed structs are
    supported by the compiler.
+ - All existing Color properties now assume full ARGB values (0xAARRGGBB) in 32-bit games.
+   This means that you *must* specify alpha value when assigning a color number directly,
+   otherwise the game will treat the color as fully transparent.
  - Added Joystick struct, meant to work with joystics and gamepads in script.
  - Added VideoPlayer struct, which provides means of playing non-blocking videos rendered onto
    a sprite that may be displayed on any game object.
@@ -132,6 +141,8 @@ Script API:
  - Added Character.UseRegionTint and Object.UseRegionTint, deprecated Character.IgnoreLighting.
  - Added Camera.Rotation, Character.GraphicRotation, GUI.Rotation, Object.GraphicRotation,
    Overlay.Rotation.
+ - Added Game.GetColorFromRGBA() function that creates a color number for red, green, blue and
+   alpha combination.
  - Added Game.FaceDirectionRatio, Room.FaceDirectionRatio, WalkableArea.FaceDirectionRatio
    and Character.FaceDirectionRatio.
  - Added Character.MovePath() and WalkPath(), which makes character to move along an arbitrary
@@ -141,7 +152,11 @@ Script API:
    Create(), CreateFromBackground(), CreateFromDrawingSurface(), CreateFromExistingSprite()
    and CreateFromFile().
  - Added DrawingSurface.BlendImage() and DrawingSurface.BlendSurface() functions.
+ - Added DrawingSurface.BlendMode property that lets define blend mode for primitive drawing
+   operations (line, rectangle, triangle, etc).
  - Added DrawingSurface.ColorDepth readonly property.
+ - Added DrawingSurface.SetPixel() function that lets to set a pixel value of specified color,
+   disregarding any surface's drawing settings.
  - Added Game.RoomCount, RoomNumbers[] and RoomNames[] properties.
  - Added Game.SpriteColorDepth[] readonly indexed property.
  - Added GUI.ScaleX and ScaleY properties, GUI.SetScale() function.
@@ -170,6 +185,10 @@ Script API:
 Engine:
  - Support joystick and gamepad input.
  - Engine now supports up to 1024 simultaneously loaded scripts (was 128).
+ - All color settings in a 32-bit game now respect alpha value, meaning they may be
+   half-transparent. This refers to almost anything that may have a color: texts,
+   GUI backgrounds, DrawingSurface's DrawingColor, and so forth. The exceptions are things
+   that only make sense with opaque color: Tint settings, and screen Fade effects.
  - Implemented more accurate Character movement. The movement direction is now more precise
    and diagonal movement speed no longer may exceed MovementSpeed setting.
  - Ensure that Character.Speaking returns true even if character has no speech view.

@@ -85,24 +85,27 @@ int sys_get_window_display_index() {
 #endif
 }
 
-int sys_get_desktop_resolution(int &width, int &height) {
+bool sys_get_desktop_resolution(int &width, int &height) {
+    return sys_get_desktop_resolution(sys_get_window_display_index(), width, height);
+}
+
+bool sys_get_desktop_resolution(int display_index, int &width, int &height) {
     SDL_Rect r;
-    if (SDL_GetDisplayBounds(sys_get_window_display_index(), &r) != 0) {
+    if (SDL_GetDisplayBounds(display_index, &r) != 0) {
         Debug::Printf(kDbgMsg_Error, "SDL_GetDisplayBounds failed: %s", SDL_GetError());
-        return -1;
+        return false;
     }
     width = r.w;
     height = r.h;
-    return 0;
+    return true;
 }
 
-void sys_get_desktop_modes(std::vector<AGS::Engine::DisplayMode> &dms, int color_depth) {
+void sys_get_desktop_modes(int display_index, std::vector<AGS::Engine::DisplayMode> &dms, int color_depth) {
     SDL_DisplayMode mode;
-    const int display_id = sys_get_window_display_index();
-    const int count = SDL_GetNumDisplayModes(display_id);
+    const int count = SDL_GetNumDisplayModes(display_index);
     dms.clear();
     for (int i = 0; i < count; ++i) {
-        if (SDL_GetDisplayMode(display_id, i, &mode) != 0) {
+        if (SDL_GetDisplayMode(display_index, i, &mode) != 0) {
             Debug::Printf(kDbgMsg_Error, "SDL_GetDisplayMode failed: %s", SDL_GetError());
             continue;
         }
@@ -111,6 +114,7 @@ void sys_get_desktop_modes(std::vector<AGS::Engine::DisplayMode> &dms, int color
             continue;
         }
         AGS::Engine::DisplayMode dm;
+        dm.DisplayIndex = display_index;
         dm.Width = mode.w;
         dm.Height = mode.h;
         dm.ColorDepth = bitsdepth;

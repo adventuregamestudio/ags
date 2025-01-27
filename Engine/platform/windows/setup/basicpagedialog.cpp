@@ -87,14 +87,14 @@ void WinConfig::LoadMeta(const ConfigTree &cfg)
     DefaultLanguageName = CfgReadString(cfg, "language", "default_translation_name", DefaultLanguageName);
 }
 
-void WinConfig::LoadCommon(const ConfigTree &cfg, const Size &desktop_res)
+void WinConfig::LoadCommon(const ConfigTree &cfg)
 {
-    load_common_config(cfg, *this, desktop_res);
+    load_common_config(cfg, *this);
 }
 
-void WinConfig::Save(ConfigTree &cfg, const Size &desktop_res) const
+void WinConfig::Save(ConfigTree &cfg) const
 {
-    save_common_config(*this, cfg, GameResolution, desktop_res);
+    save_common_config(*this, cfg);
 }
 
 //=============================================================================
@@ -115,8 +115,8 @@ INT_PTR BasicPageDialog::OnInitDialog()
     _hGfxFilterList         = GetDlgItem(_hwnd, IDC_GFXFILTER);
     _hLanguageList          = GetDlgItem(_hwnd, IDC_LANGUAGE);
 
-    _desktopSize = get_desktop_size();
-    _maxWindowSize = AGSPlatformDriver::GetDriver()->ValidateWindowSize(_desktopSize, false);
+    _desktopSize = get_desktop_size(_displayIndex);
+    _maxWindowSize = AGSPlatformDriver::GetDriver()->ValidateWindowSize(_displayIndex, _desktopSize, false);
 
     // Resolution controls
     if (_winCfg.GameResolution.IsNull())
@@ -440,7 +440,7 @@ void BasicPageDialog::InitDriverDescFromFactory(const String &id)
     drv_desc->UseColorDepth =
         gfx_driver->GetDisplayDepthForNativeDepth(_winCfg.GameColourDepth ? _winCfg.GameColourDepth : 32);
 
-    IGfxModeList *gfxm_list = gfx_driver->GetSupportedModeList(drv_desc->UseColorDepth);
+    IGfxModeList *gfxm_list = gfx_driver->GetSupportedModeList(_displayIndex, drv_desc->UseColorDepth);
     VDispModes &modes = drv_desc->GfxModeList.Modes;
     if (gfxm_list)
     {

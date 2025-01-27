@@ -45,8 +45,7 @@ extern SpriteCache spriteset;
 const String DefaultConfigFileName = "acsetup.cfg";
 
 
-WindowSetup parse_window_mode(const String &option, bool as_windowed,
-    const Size &game_res, const Size &desktop_res, const WindowSetup &def_value)
+WindowSetup parse_window_mode(const String &option, bool as_windowed, const WindowSetup &def_value)
 {
     // "full_window" option means pseudo fullscreen ("borderless fullscreen window")
     if (!as_windowed && (option.CompareNoCase("full_window") == 0))
@@ -57,10 +56,10 @@ WindowSetup parse_window_mode(const String &option, bool as_windowed,
     // Note that for "desktop" we return "default" for windowed, this will result
     // in refering to the desktop size but resizing in accordance to the scaling style
     if (option.CompareNoCase("desktop") == 0)
-        return as_windowed ? WindowSetup(exp_wmode) : WindowSetup(kWndSizeHint_Desktop, desktop_res, exp_wmode);
+        return as_windowed ? WindowSetup(exp_wmode) : WindowSetup(kWndSizeHint_Desktop, Size(), exp_wmode);
     // "Native" means using game resolution as a window size
     if (option.CompareNoCase("native") == 0)
-        return WindowSetup(kWndSizeHint_GameNative, game_res, exp_wmode);
+        return WindowSetup(kWndSizeHint_GameNative, Size(), exp_wmode);
     // Try parse an explicit resolution type or game scale factor --
     size_t at = option.FindChar('x');
     if (at == 0)
@@ -164,7 +163,7 @@ void parse_asset_dirs(const String &option, std::vector<std::pair<String, String
     }
 }
 
-String make_window_mode_option(const WindowSetup &ws, const Size &game_res, const Size &desktop_res)
+String make_window_mode_option(const WindowSetup &ws)
 {
     if (ws.Mode == kWnd_FullDesktop)
         return "full_window";
@@ -354,7 +353,7 @@ void override_config_ext(ConfigTree &cfg)
     platform->ReadConfiguration(cfg);
 }
 
-void load_common_config(const ConfigTree &cfg, GameConfig &setup, const Size &desktop_res)
+void load_common_config(const ConfigTree &cfg, GameConfig &setup)
 {
     // Legacy settings have to be translated into new options;
     // they must be read first, to let newer options override them, if ones are present
@@ -366,10 +365,10 @@ void load_common_config(const ConfigTree &cfg, GameConfig &setup, const Size &de
     setup.Display.Windowed = CfgReadBoolInt(cfg, "graphics", "windowed", setup.Display.Windowed);
     setup.Display.FsSetup =
         parse_window_mode(CfgReadString(cfg, "graphics", "fullscreen", "default"), false,
-            game.GetGameRes(), desktop_res, setup.Display.FsSetup);
+            setup.Display.FsSetup);
     setup.Display.WinSetup =
         parse_window_mode(CfgReadString(cfg, "graphics", "window", "default"), true,
-            game.GetGameRes(), desktop_res, setup.Display.WinSetup);
+            setup.Display.WinSetup);
 
     setup.Display.Filter.ID = CfgReadString(cfg, "graphics", "filter", "StdScale");
     setup.Display.FsGameFrame =
@@ -432,9 +431,7 @@ void load_common_config(const ConfigTree &cfg, GameConfig &setup, const Size &de
 
 void apply_config(const ConfigTree &cfg, GameSetup &setup)
 {
-    const Size &desktop_res = get_desktop_size();
-
-    load_common_config(cfg, setup, desktop_res);
+    load_common_config(cfg, setup);
 
     //
     // Additional config applied by the engine
@@ -480,15 +477,15 @@ void post_config(GameSetup &setup)
     }
 }
 
-void save_common_config(const GameConfig &setup, ConfigTree &cfg, const Size &game_res, const Size &desktop_res)
+void save_common_config(const GameConfig &setup, ConfigTree &cfg)
 {
     CfgWriteString(cfg, "misc", "user_data_dir", setup.UserSaveDir);
     CfgWriteString(cfg, "misc", "shared_data_dir", setup.AppDataDir);
 
     CfgWriteString(cfg, "graphics", "driver", setup.Display.DriverID);
     CfgWriteString(cfg, "graphics", "filter", setup.Display.Filter.ID);
-    CfgWriteString(cfg, "graphics", "fullscreen", make_window_mode_option(setup.Display.FsSetup, game_res, desktop_res));
-    CfgWriteString(cfg, "graphics", "window", make_window_mode_option(setup.Display.WinSetup, game_res, desktop_res));
+    CfgWriteString(cfg, "graphics", "fullscreen", make_window_mode_option(setup.Display.FsSetup));
+    CfgWriteString(cfg, "graphics", "window", make_window_mode_option(setup.Display.WinSetup));
     CfgWriteString(cfg, "graphics", "game_scale_fs", make_scaling_option(setup.Display.FsGameFrame));
     CfgWriteString(cfg, "graphics", "game_scale_win", make_scaling_option(setup.Display.WinGameFrame));
     CfgWriteInt(cfg, "graphics", "windowed", setup.Display.Windowed ? 1 : 0);

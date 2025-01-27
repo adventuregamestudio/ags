@@ -57,8 +57,8 @@ struct WinConfig : public GameConfig
     WinConfig();
     void SetDefaults();
     void LoadMeta(const ConfigTree &cfg);
-    void LoadCommon(const ConfigTree &cfg, const Size &desktop_res);
-    void Save(ConfigTree &cfg, const Size &desktop_res) const;
+    void LoadCommon(const ConfigTree &cfg);
+    void Save(ConfigTree &cfg) const;
 };
 
 //=============================================================================
@@ -166,6 +166,7 @@ private:
     PDriverDesc _drvDesc;
     GfxFilterInfo _gfxFilterInfo;
     // Resolution limits
+    int _displayIndex = 0;
     Size _desktopSize;
     Size _maxWindowSize;
 

@@ -1340,7 +1340,7 @@ bool engine_try_set_gfxmode_any(const DisplayModeSetup &setup)
 
     sys_renderer_set_output(usetup.SoftwareRenderDriver);
 
-    const Size init_desktop = get_desktop_size();
+    const Size init_desktop = get_desktop_size(setup.DisplayIndex);
     bool res = graphics_mode_init_any(GraphicResolution(game.GetGameRes(), game.color_depth * 8),
         setup, ColorDepthOption(game.GetColorDepth()));
 
@@ -1363,7 +1363,7 @@ bool engine_try_switch_windowed_gfxmode()
     // Release engine resources that depend on display mode
     engine_pre_gfxmode_release();
 
-    Size init_desktop = get_desktop_size();
+    Size init_desktop = get_desktop_size(old_dm.DisplayIndex);
     bool windowed = !old_dm.IsWindowed();
     ActiveDisplaySetting setting = graphics_mode_get_last_setting(windowed);
     DisplayMode last_opposite_mode = setting.Dm;

@@ -40,10 +40,12 @@ void sys_set_background_mode(bool on);
 // Queries the display index on which the window is currently positioned.
 // Returns default display index in case window does not exist yet, or on any error.
 int sys_get_window_display_index();
-// Queries current desktop resolution.
-int sys_get_desktop_resolution(int &width, int &height);
+// Queries current desktop resolution from the display that hosts game window.
+bool sys_get_desktop_resolution(int &width, int &height);
+// Queries current desktop resolution from the requested display.
+bool sys_get_desktop_resolution(int display_index, int &width, int &height);
 // Queries supported desktop modes.
-void sys_get_desktop_modes(std::vector<AGS::Engine::DisplayMode> &dms, int color_depth = 0);
+void sys_get_desktop_modes(int display_index, std::vector<AGS::Engine::DisplayMode> &dms, int color_depth = 0);
 // Sets output driver for the backend's renderer
 // TODO: consider make part of the SDLRendererGraphicsDriver later
 void sys_renderer_set_output(const String &name);

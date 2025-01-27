@@ -27,6 +27,9 @@ using AGS::Engine::GraphicResolution;
 using AGS::Engine::DisplayMode;
 using AGS::Engine::WindowMode;
 
+// Gets desktop size for the given display
+Size get_desktop_size(int display_index);
+// Gets desktop size for the displays that hosts game window
 Size get_desktop_size();
 
 namespace AGS { namespace Engine { class IGfxModeList; }}

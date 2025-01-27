@@ -809,14 +809,14 @@ int OGLGraphicsDriver::GetDisplayDepthForNativeDepth(int /*native_color_depth*/)
     return 32;
 }
 
-IGfxModeList *OGLGraphicsDriver::GetSupportedModeList(int color_depth)
+IGfxModeList *OGLGraphicsDriver::GetSupportedModeList(int display_index, int color_depth)
 {
     std::vector<DisplayMode> modes {};
-    sys_get_desktop_modes(modes, color_depth);
+    sys_get_desktop_modes(display_index, modes, color_depth);
     if ((modes.size() == 0) && color_depth == 32)
     {
         // Pretend that 24-bit are 32-bit
-        sys_get_desktop_modes(modes, 24);
+        sys_get_desktop_modes(display_index, modes, 24);
         for (auto &m : modes) { m.ColorDepth = 32; }
     }
     return new OGLDisplayModeList(modes);

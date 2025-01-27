@@ -159,12 +159,7 @@ public:
 class D3DGfxModeList : public IGfxModeList
 {
 public:
-    D3DGfxModeList(const D3DPtr &direct3d, D3DFORMAT d3dformat)
-        : _direct3d(direct3d)
-        , _pixelFormat(d3dformat)
-    {
-        _modeCount = _direct3d->GetAdapterModeCount(D3DADAPTER_DEFAULT, _pixelFormat);
-    }
+    D3DGfxModeList(const D3DPtr &direct3d, int display_index, D3DFORMAT d3dformat);
     ~D3DGfxModeList() = default;
 
     int GetModeCount() const override
@@ -176,6 +171,8 @@ public:
 
 private:
     D3DPtr      _direct3d;
+    int         _displayIndex = 0;
+    UINT        _adapterIndex = 0u;
     D3DFORMAT   _pixelFormat;
     int         _modeCount = 0;
 };
@@ -226,7 +223,7 @@ public:
     bool SetNativeResolution(const GraphicResolution &native_res) override;
     bool SetRenderFrame(const Rect &dst_rect) override;
     int  GetDisplayDepthForNativeDepth(int native_color_depth) const override;
-    IGfxModeList *GetSupportedModeList(int color_depth) override;
+    IGfxModeList *GetSupportedModeList(int display_index, int color_depth) override;
     bool IsModeSupported(const DisplayMode &mode) override;
     PGfxFilter GetGraphicsFilter() const override;
     // Clears the screen rectangle. The coordinates are expected in the **native game resolution**.
@@ -290,9 +287,10 @@ private:
     D3DPtr direct3d;
     D3DPRESENT_PARAMETERS d3dpp;
     D3DDevicePtr direct3ddevice;
+    D3DDEVICE_CREATION_PARAMETERS direct3dcreateparams;
+    D3DCAPS9 direct3ddevicecaps;
     D3DGAMMARAMP defaultgammaramp;
     D3DGAMMARAMP currentgammaramp;
-    D3DCAPS9 direct3ddevicecaps;
     // Default vertex buffer, for textures that don't have one
     D3DVertexBufferPtr vertexbuffer;
     // Texture for rendering in native resolution
@@ -377,7 +375,7 @@ private:
     void AdjustSizeToNearestSupportedByCard(int *width, int *height);
     void UpdateTextureRegion(D3DTextureTile *tile, const Bitmap *bitmap, bool has_alpha, bool opaque);
     void CreateVirtualScreen();
-    bool IsTextureFormatOk( D3DFORMAT TextureFormat, D3DFORMAT AdapterFormat );
+    bool IsTextureFormatOk(D3DFORMAT TextureFormat, D3DFORMAT AdapterFormat);
 
     // Backup all draw lists in the temp storage
     void BackupDrawLists();

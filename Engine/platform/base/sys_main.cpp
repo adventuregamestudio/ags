@@ -181,7 +181,7 @@ void sys_audio_shutdown()
 // TODO: support multiple windows? in case we need some for diag purposes etc
 static SDL_Window *window = nullptr;
 
-SDL_Window *sys_window_create(const char *window_title, int w, int h, WindowMode mode, int ex_flags) {
+SDL_Window *sys_window_create(const char *window_title, int display_index, int w, int h, WindowMode mode, int ex_flags) {
     if (window) {
         sys_window_destroy();
     }
@@ -201,10 +201,15 @@ SDL_Window *sys_window_create(const char *window_title, int w, int h, WindowMode
 #if (AGS_PLATFORM_OS_IOS)
     flags |= SDL_WINDOW_ALLOW_HIGHDPI;
 #endif
+#if !(AGS_PLATFORM_DESKTOP)
+    // Force displays setting to default on non-desktop platforms
+    assert(display_index == DEFAULT_DISPLAY_INDEX);
+    display_index = DEFAULT_DISPLAY_INDEX;
+#endif
     window = SDL_CreateWindow(
         window_title,
-        SDL_WINDOWPOS_CENTERED_DISPLAY(DEFAULT_DISPLAY_INDEX),
-        SDL_WINDOWPOS_CENTERED_DISPLAY(DEFAULT_DISPLAY_INDEX),
+        SDL_WINDOWPOS_CENTERED_DISPLAY(display_index),
+        SDL_WINDOWPOS_CENTERED_DISPLAY(display_index),
         w,
         h,
         flags
@@ -216,7 +221,7 @@ SDL_Window *sys_window_create(const char *window_title, int w, int h, WindowMode
     // may be known only after the window is displayed, which means that
     // this may have to be called with a short delay (but how to know when?)
     if (mode == kWnd_Windowed)
-        sys_window_center();
+        sys_window_center(display_index);
 #endif
     return window;
 }

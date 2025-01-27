@@ -362,6 +362,7 @@ void load_common_config(const ConfigTree &cfg, GameConfig &setup, const Size &de
 
     // Graphics mode and options
     setup.Display.DriverID = CfgReadString(cfg, "graphics", "driver", setup.Display.DriverID);
+    setup.Display.DisplayIndex = CfgReadInt(cfg, "graphics", "display", 0);
     setup.Display.Windowed = CfgReadBoolInt(cfg, "graphics", "windowed", setup.Display.Windowed);
     setup.Display.FsSetup =
         parse_window_mode(CfgReadString(cfg, "graphics", "fullscreen", "default"), false,

@@ -471,18 +471,23 @@ bool D3DGraphicsDriver::CreateDisplayMode(const DisplayMode &mode)
     return false;
 
   SDL_Window *window = sys_get_window();
+  int use_display = mode.DisplayIndex;
   if (!window)
   {
-    sys_window_create("", mode.Width, mode.Height, mode.Mode);
+    sys_window_create("", mode.DisplayIndex, mode.Width, mode.Height, mode.Mode);
   }
   else
   {
 #if (AGS_PLATFORM_DESKTOP)
-    // Move window to the default display, this is where we create exclusive fullscreen
-    if (mode.IsRealFullscreen())
+    // If user requested an exclusive fullscreen, move window to where we created it first,
+    // because DirectX does not normally support switching displays in exclusive mode.
+    // NOTE: we may in theory support this, but we'd have to release and recreate
+    // ALL the resources, including all textures currently in memory.
+    if (mode.IsRealFullscreen() &&
+        (_fullscreenDisplay > 0) && (sys_get_window_display_index() != _fullscreenDisplay))
     {
-      if (sys_get_window_display_index() != 0)
-        sys_window_fit_in_display(0);
+      use_display = _fullscreenDisplay;
+      sys_window_fit_in_display(_fullscreenDisplay);
     }
 #endif
   }
@@ -523,7 +528,8 @@ bool D3DGraphicsDriver::CreateDisplayMode(const DisplayMode &mode)
   }
   else
   {
-    hr = direct3d->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, hwnd,
+    const UINT use_adapter = SDL_Direct3D9GetAdapterIndex(use_display);
+    hr = direct3d->CreateDevice(use_adapter, D3DDEVTYPE_HAL, hwnd,
                       D3DCREATE_MIXED_VERTEXPROCESSING | D3DCREATE_MULTITHREADED,  // multithreaded required for AVI player
                       &d3dpp, direct3ddevice.Acquire());
   }
@@ -699,7 +705,11 @@ bool D3DGraphicsDriver::SetDisplayMode(const DisplayMode &mode)
     return false;
 
   OnInit();
-  OnModeSet(mode);
+  DisplayMode set_mode = mode;
+  set_mode.DisplayIndex = sys_get_window_display_index();
+  OnModeSet(set_mode);
+  if ((_fullscreenDisplay < 0) || set_mode.IsRealFullscreen())
+    _fullscreenDisplay = set_mode.DisplayIndex;
   InitializeD3DState();
   CreateVirtualScreen();
   return true;

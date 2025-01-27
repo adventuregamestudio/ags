@@ -1376,7 +1376,8 @@ bool engine_try_switch_windowed_gfxmode()
     // *and* if the window is on the same display where it's been last time,
     // then use old params, otherwise - get default setup for the new mode.
     bool res;
-    if (last_opposite_mode.IsValid() && (setting.DisplayIndex == sys_get_window_display_index()))
+    const int use_display_index = sys_get_window_display_index();
+    if (last_opposite_mode.IsValid() && (setting.Dm.DisplayIndex == use_display_index))
     {
         res = graphics_mode_set_dm(last_opposite_mode);
     }
@@ -1385,7 +1386,7 @@ bool engine_try_switch_windowed_gfxmode()
         WindowSetup ws = windowed ? usetup.Display.WinSetup : usetup.Display.FsSetup;
         frame = windowed ? usetup.Display.WinGameFrame : usetup.Display.FsGameFrame;
         res = graphics_mode_set_dm_any(game.GetGameRes(), ws, old_dm.ColorDepth,
-            frame, DisplaySetupEx(usetup.Display.RefreshRate, usetup.Display.VSync));
+            frame, DisplaySetupEx(use_display_index, usetup.Display.RefreshRate, usetup.Display.VSync));
     }
 
     // Apply corresponding frame render method

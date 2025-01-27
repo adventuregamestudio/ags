@@ -59,7 +59,7 @@ void sys_audio_shutdown();
 //
 struct SDL_Window;
 // Create a new single game window.
-SDL_Window *sys_window_create(const char *window_title, int w, int h, AGS::Engine::WindowMode mode, int ex_flags = 0);
+SDL_Window *sys_window_create(const char *window_title, int display_index, int w, int h, AGS::Engine::WindowMode mode, int ex_flags = 0);
 // Returns current game window, if one exists, or null.
 SDL_Window *sys_get_window();
 // Changes the window style for the given mode (fullscreen / windowed).

@@ -92,11 +92,12 @@ struct WindowSetup
 // Additional parameters for the display mode setup
 struct DisplaySetupEx
 {
-    int                  RefreshRate = 0;  // gfx mode refresh rate
-    bool                 VSync = false;    // vertical sync
+    int  DisplayIndex = 0; // which display to use (0 - default)
+    int  RefreshRate = 0;  // gfx mode refresh rate
+    bool VSync = false;    // vertical sync
 
-    DisplaySetupEx(int rate, bool vsync)
-        : RefreshRate(rate), VSync(vsync) {}
+    DisplaySetupEx(int display_index, int rate, bool vsync)
+        : DisplayIndex(display_index), RefreshRate(rate), VSync(vsync) {}
 };
 
 // Full graphics configuration, contains graphics driver selection,
@@ -115,6 +116,7 @@ struct DisplayModeSetup
     FrameScaleDef        WinGameFrame = // how the game frame should be scaled/positioned in windowed mode
                                 kFrame_Undefined;
 
+    int                  DisplayIndex = 0; // which display to use (0 - default)
     bool                 Windowed = false; // initial mode
     int                  RefreshRate = 0;  // gfx mode refresh rate
     bool                 VSync = false;    // vertical sync
@@ -138,7 +140,6 @@ struct ActiveDisplaySetting
 {
     DisplayMode     Dm;
     FrameScaleDef   Frame = kFrame_Undefined;
-    int             DisplayIndex = -1;
 };
 
 // Initializes any possible gfx mode, using user config as a recommendation;

@@ -300,6 +300,7 @@ private:
     CUSTOMVERTEX defaultVertices[4];
     String previousError;
     D3DPixelShaderPtr pixelShader;
+    int _fullscreenDisplay = -1; // a display where exclusive fullscreen was created
     bool _smoothScaling;
     bool _legacyPixelShader;
     float _pixelRenderXOffset;

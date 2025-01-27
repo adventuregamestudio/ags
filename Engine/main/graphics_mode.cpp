@@ -292,7 +292,7 @@ static bool try_init_mode_using_setup(const GraphicResolution &game_res, const W
     // We determine the requested size of the screen using setup options
     const Size screen_size = precalc_screen_size(game_res, ws, frame);
     DisplayMode dm(GraphicResolution(screen_size.Width, screen_size.Height, col_depth),
-        ws.Mode, params.RefreshRate, params.VSync);
+        ws.Mode, params.DisplayIndex, params.RefreshRate, params.VSync);
     if (!try_init_compatible_mode(dm))
         return false;
 
@@ -354,14 +354,14 @@ bool create_gfx_driver_and_init_mode_any(const String &gfx_driver_id,
     bool windowed = setup.Windowed;
     WindowSetup ws = windowed ? setup.WinSetup : setup.FsSetup;
     FrameScaleDef frame = windowed ? setup.WinGameFrame : setup.FsGameFrame;
-    bool result = try_init_mode_using_setup(game_res, ws, use_col_depth, frame, setup.Filter, DisplaySetupEx(setup.RefreshRate, setup.VSync));
+    bool result = try_init_mode_using_setup(game_res, ws, use_col_depth, frame, setup.Filter, DisplaySetupEx(setup.DisplayIndex, setup.RefreshRate, setup.VSync));
     // Try windowed mode if fullscreen failed, and vice versa
     if (!result && editor_debugging_initialized == 0)
     {
         windowed = !windowed;
         ws = windowed ? setup.WinSetup : setup.FsSetup;
         frame = windowed ? setup.WinGameFrame : setup.FsGameFrame;
-        result = try_init_mode_using_setup(game_res, ws, use_col_depth, frame, setup.Filter, DisplaySetupEx(setup.RefreshRate, setup.VSync));
+        result = try_init_mode_using_setup(game_res, ws, use_col_depth, frame, setup.Filter, DisplaySetupEx(setup.DisplayIndex, setup.RefreshRate, setup.VSync));
     }
     return result;
 }
@@ -379,7 +379,7 @@ static bool simple_create_gfx_driver_and_init_mode(const String &gfx_driver_id,
     const FrameScaleDef frame = setup.Windowed ? setup.WinGameFrame : setup.FsGameFrame;
 
     DisplayMode dm(GraphicResolution(game_res.Width, game_res.Height, col_depth),
-        ws.Mode, setup.RefreshRate, setup.VSync);
+        ws.Mode, setup.DisplayIndex, setup.RefreshRate, setup.VSync);
 
     if (!graphics_mode_set_dm(dm)) { return false; }
     if (!graphics_mode_set_native_res(dm)) { return false; }
@@ -495,7 +495,7 @@ bool graphics_mode_set_dm_any(const Size &game_size, const WindowSetup &ws,
     // We determine the requested size of the screen using setup options
     const Size screen_size = precalc_screen_size(game_size, ws, frame);
     DisplayMode dm(GraphicResolution(screen_size.Width, screen_size.Height, color_depth.Bits),
-        ws.Mode, params.RefreshRate, params.VSync);
+        ws.Mode, params.DisplayIndex, params.RefreshRate, params.VSync);
     return try_init_compatible_mode(dm);
 }
 
@@ -517,12 +517,11 @@ bool graphics_mode_set_dm(const DisplayMode &dm)
     DisplayMode rdm = gfxDriver->GetDisplayMode();
     ActiveDisplaySetting &setting = rdm.IsWindowed() ? SavedWindowedSetting : SavedFullscreenSetting;
     setting.Dm = rdm;
-    setting.DisplayIndex = sys_get_window_display_index();
     Debug::Printf(kDbgMsg_Info, "Graphics driver set: %s", gfxDriver->GetDriverName());
     Debug::Printf(kDbgMsg_Info, "Graphics mode set: %d x %d (%d-bit) %s, on display %d",
         rdm.Width, rdm.Height, rdm.ColorDepth,
         rdm.IsWindowed() ? "windowed" : (rdm.IsRealFullscreen() ? "fullscreen" : "fullscreen desktop"),
-        setting.DisplayIndex);
+        setting.Dm.DisplayIndex);
     Debug::Printf(kDbgMsg_Info, "Graphics mode set: refresh rate (optional): %d, vsync: %d", rdm.RefreshRate, rdm.Vsync);
     uint64_t tex_mem = gfxDriver->GetAvailableTextureMemory();
     if (tex_mem > 0u)

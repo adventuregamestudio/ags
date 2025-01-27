@@ -50,7 +50,8 @@ enum WindowMode
 struct DisplayMode : public GraphicResolution
 {
     WindowMode Mode = kWnd_Windowed;
-    int32_t RefreshRate = 0;
+    int     DisplayIndex = 0; // which display to use (0 - default)
+    int     RefreshRate = 0;
     bool    Vsync = false;
 
     // Tells if this is logically a normal windowed mode
@@ -59,9 +60,11 @@ struct DisplayMode : public GraphicResolution
     inline bool IsRealFullscreen() const { return Mode == kWnd_Fullscreen; }
 
     DisplayMode() = default;
-    DisplayMode(const GraphicResolution &res, WindowMode mode = kWnd_Windowed, int32_t refresh = 0, bool vsync = false)
+    DisplayMode(const GraphicResolution &res, WindowMode mode = kWnd_Windowed,
+                int display_index = 0, int32_t refresh = 0, bool vsync = false)
         : GraphicResolution(res)
         , Mode(mode)
+        , DisplayIndex(display_index)
         , RefreshRate(refresh)
         , Vsync(vsync)
     {}

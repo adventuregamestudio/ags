@@ -245,6 +245,9 @@ bool OGLGraphicsDriver::InitGlScreen(const DisplayMode &mode)
   }
   else
   {
+#if (AGS_PLATFORM_DESKTOP)
+    sys_window_fit_in_display(mode.DisplayIndex);
+#endif
     sys_window_set_style(mode.Mode, Size(mode.Width, mode.Height));
   }
 
@@ -302,7 +305,7 @@ bool OGLGraphicsDriver::CreateWindowAndGlContext(const DisplayMode &mode)
   if (SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1) != 0)
     SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "Error occured setting attribute SDL_GL_DOUBLEBUFFER: %s", SDL_GetError());
 
-  SDL_Window *sdl_window = sys_window_create("", mode.Width, mode.Height, mode.Mode, SDL_WINDOW_OPENGL);
+  SDL_Window *sdl_window = sys_window_create("", mode.DisplayIndex, mode.Width, mode.Height, mode.Mode, SDL_WINDOW_OPENGL);
   if (!sdl_window)
   {
     Debug::Printf(kDbgMsg_Error, "Error opening window for OpenGL: %s", SDL_GetError());
@@ -760,6 +763,7 @@ bool OGLGraphicsDriver::SetDisplayMode(const DisplayMode &mode)
   // On certain platforms OpenGL renderer ignores requested screen sizes
   // and uses values imposed by the operating system (device).
   DisplayMode final_mode = mode;
+  final_mode.DisplayIndex = sys_get_window_display_index();
   final_mode.Width = device_screen_physical_width;
   final_mode.Height = device_screen_physical_height;
   OnModeSet(final_mode);

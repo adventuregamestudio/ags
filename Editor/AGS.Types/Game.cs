@@ -24,6 +24,12 @@ namespace AGS.Types
         public const int MAX_SOUND_CHANNELS = 16;
         public const int MAX_USER_SOUND_CHANNELS = MAX_SOUND_CHANNELS - 1; // 1 reserved for Speech
 
+        // TODO: these events are unfortunately a hack. They are not even fired by the
+        // Game class itself, and instead require for some external manager to call
+        // Game.Notify** methods.
+        // We need some sort of a global interface, preferably in AGS.Types, that would
+        // contain all the game changing events and Notify methods, e.g. IGameListener,
+        // provided by the Editor API.
         public delegate void GUIAddedOrRemovedHandler(GUI theGUI);
         public delegate void GUIControlAddedOrRemovedHandler(GUI owningGUI, GUIControl control);
         public delegate void ViewListUpdatedHandler();

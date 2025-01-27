@@ -106,6 +106,7 @@ void WinConfig::Save(ConfigTree &cfg) const
 INT_PTR BasicPageDialog::OnInitDialog()
 {
     _hGameResolutionText    = GetDlgItem(_hwnd, IDC_RESOLUTION);
+    _hDisplayList           = GetDlgItem(_hwnd, IDC_DISPLAYINDEX);
     _hWindowed              = GetDlgItem(_hwnd, IDC_WINDOWED);
     _hGfxDriverList         = GetDlgItem(_hwnd, IDC_GFXDRIVER);
     _hGfxModeList           = GetDlgItem(_hwnd, IDC_GFXMODE);
@@ -115,6 +116,7 @@ INT_PTR BasicPageDialog::OnInitDialog()
     _hGfxFilterList         = GetDlgItem(_hwnd, IDC_GFXFILTER);
     _hLanguageList          = GetDlgItem(_hwnd, IDC_LANGUAGE);
 
+    _displayIndex = _winCfg.Display.DisplayIndex;
     _desktopSize = get_desktop_size(_displayIndex);
     _maxWindowSize = AGSPlatformDriver::GetDriver()->ValidateWindowSize(_displayIndex, _desktopSize, false);
 
@@ -125,6 +127,7 @@ INT_PTR BasicPageDialog::OnInitDialog()
     SetText(_hGameResolutionText, STR(String::FromFormat("Native game resolution: %d x %d x %d",
         _winCfg.GameResolution.Width, _winCfg.GameResolution.Height, _winCfg.GameColourDepth)));
 
+    FillDisplayList();
     FillGfxDriverList();
     FillScalingList(_hFsScalingList, false);
     FillScalingList(_hWinScalingList, true);
@@ -165,6 +168,7 @@ INT_PTR BasicPageDialog::OnListSelection(WORD id)
 {
     switch (id)
     {
+    case IDC_DISPLAYINDEX: OnDisplayUpdate(); break;
     case IDC_GFXDRIVER: OnGfxDriverUpdate(); break;
     case IDC_GFXFILTER: OnGfxFilterUpdate(); break;
     case IDC_GFXMODE:   OnGfxModeUpdate(); break;
@@ -174,6 +178,12 @@ INT_PTR BasicPageDialog::OnListSelection(WORD id)
         return FALSE;
     }
     return TRUE;
+}
+
+void BasicPageDialog::OnDisplayUpdate()
+{
+    _displayIndex = GetCurSel(_hDisplayList);
+    FillGfxModeList();
 }
 
 void BasicPageDialog::OnGfxDriverUpdate()
@@ -277,6 +287,23 @@ bool BasicPageDialog::GfxModes::GetMode(int index, DisplayMode &mode) const
         return true;
     }
     return false;
+}
+
+void BasicPageDialog::FillDisplayList()
+{
+    ResetContent(_hDisplayList);
+    int display_count = SDL_GetNumVideoDisplays();
+    for (int i = 0; i < display_count; ++i)
+    {
+        const char *disp_name = SDL_GetDisplayName(i);
+        String item_name = String::FromFormat("%d : %s", i + 1, disp_name ? disp_name : "(unknown)");
+        AddString(_hDisplayList, STR(item_name));
+    }
+
+    if (display_count <= 1)
+    {
+        EnableWindow(_hDisplayList, FALSE);
+    }
 }
 
 void BasicPageDialog::AddScalingString(HWND hlist, int scaling_factor)
@@ -516,6 +543,7 @@ void BasicPageDialog::SelectNearestGfxMode(const WindowSetup &ws)
 void BasicPageDialog::ResetSetup(const ConfigTree & /*cfg_from*/)
 {
     SetCurSelToItemDataStr(_hGfxDriverList, _winCfg.Display.DriverID.GetCStr(), 0);
+    SetCurSel(_hDisplayList, _winCfg.Display.DisplayIndex);
     SetCheck(_hFullscreenDesktop, _winCfg.Display.FsSetup.Mode == kWnd_FullDesktop);
     EnableWindow(_hGfxModeList, _winCfg.Display.FsSetup.Mode == kWnd_Fullscreen);
     OnGfxDriverUpdate();
@@ -529,6 +557,7 @@ void BasicPageDialog::SaveSetup()
     if (!_isInit)
         return; // was not init, don't apply settings
 
+    _winCfg.Display.DisplayIndex = GetCurSel(_hDisplayList);
     if (GetCurSel(_hLanguageList) == 0)
         _winCfg.Translation.Empty();
     else

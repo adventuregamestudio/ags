@@ -483,6 +483,7 @@ void save_common_config(const GameConfig &setup, ConfigTree &cfg)
     CfgWriteString(cfg, "misc", "shared_data_dir", setup.AppDataDir);
 
     CfgWriteString(cfg, "graphics", "driver", setup.Display.DriverID);
+    CfgWriteInt(cfg, "graphics", "display", setup.Display.DisplayIndex);
     CfgWriteString(cfg, "graphics", "filter", setup.Display.Filter.ID);
     CfgWriteString(cfg, "graphics", "fullscreen", make_window_mode_option(setup.Display.FsSetup));
     CfgWriteString(cfg, "graphics", "window", make_window_mode_option(setup.Display.WinSetup));

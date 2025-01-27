@@ -17,6 +17,7 @@
 #define IDC_LANGUAGE                    1009
 #define IDC_SPRITECACHE                 1010
 #define IDC_RENDERATSCREENRES           1011
+#define IDC_DISPLAYINDEX                1012
 #define IDC_FULLSCREENDESKTOP           1013
 #define IDC_TEXTURECACHE                1014
 #define IDC_SPRITECACHE3                1015

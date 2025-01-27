@@ -117,6 +117,7 @@ private:
     };
 
     // Event handlers
+    void OnDisplayUpdate();
     void OnGfxDriverUpdate();
     void OnGfxFilterUpdate();
     void OnGfxModeUpdate();
@@ -149,6 +150,7 @@ private:
 
     // Operations
     void AddScalingString(HWND hlist, int scaling_factor);
+    void FillDisplayList();
     void FillGfxDriverList();
     void FillGfxFilterList();
     void FillGfxModeList();
@@ -172,6 +174,7 @@ private:
 
     // Dialog controls
     HWND _hGameResolutionText = NULL;
+    HWND _hDisplayList = NULL;
     HWND _hWindowed = NULL;
     HWND _hGfxDriverList = NULL;
     HWND _hGfxModeList = NULL;

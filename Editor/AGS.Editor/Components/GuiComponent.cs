@@ -86,6 +86,7 @@ namespace AGS.Editor.Components
                         GUI newGUI = ImportExport.ImportGUIFromFile(fileName, _agsEditor.CurrentGame);
                         newGUI.ID = _agsEditor.CurrentGame.RootGUIFolder.GetAllItemsCount();
                         AddSingleItem(newGUI);
+                        GUIIndexTypeConverter.SetGUIList(_agsEditor.CurrentGame.GUIs);
                         _agsEditor.CurrentGame.NotifyClientsGUIAddedOrRemoved(newGUI);
                     }
                     catch (Exception ex)
@@ -120,6 +121,7 @@ namespace AGS.Editor.Components
                 {
                     _agsEditor.CurrentGame.NotifyClientsGUIAddedOrRemoved(_guiRightClicked);
                     DeleteSingleItem(_guiRightClicked);
+                    GUIIndexTypeConverter.SetGUIList(_agsEditor.CurrentGame.GUIs);
                 }
             }
             else if (controlID == COMMAND_CHANGE_ID)
@@ -235,6 +237,8 @@ namespace AGS.Editor.Components
             else
                 RePopulateTreeView(GetNodeID(item)); // currently this is the only way to update tree item ids
 
+            GUIIndexTypeConverter.RefreshGUIList();
+
             foreach (ContentDocument doc in _documents.Values)
             {
                 var docItem = ((GUIEditor)doc.Control).GuiToEdit;
@@ -295,6 +299,7 @@ namespace AGS.Editor.Components
             _documents.Clear();
 
             RePopulateTreeView();
+            GUIIndexTypeConverter.SetGUIList(_agsEditor.CurrentGame.GUIs);
         }
 
         public override void GameSettingsChanged()
@@ -324,6 +329,7 @@ namespace AGS.Editor.Components
             newGui.ID = _agsEditor.CurrentGame.RootGUIFolder.GetAllItemsCount();
             newGui.Name = _agsEditor.GetFirstAvailableScriptName("gGui");
             string newNodeId = AddSingleItem(newGui);
+            GUIIndexTypeConverter.SetGUIList(_agsEditor.CurrentGame.GUIs);
             _guiController.ProjectTree.SelectNode(this, newNodeId);
 			ShowOrAddPane(newGui);
         }
@@ -336,6 +342,7 @@ namespace AGS.Editor.Components
         {
             GUI itemBeingEdited = ((GUIEditor)_guiController.ActivePane.Control).GuiToEdit;
             RePopulateTreeView(GetNodeID(itemBeingEdited));
+            GUIIndexTypeConverter.SetGUIList(_agsEditor.CurrentGame.GUIs);
         }
 
         private string GetNodeID(GUI item)

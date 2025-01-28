@@ -362,13 +362,22 @@ namespace AGS.Editor
             GenerateDynamicArrayStructs(data.Variables, data.Structs, structsLookup);
         }
 
-        private static void GenerateDynamicArrayStructs(List<ScriptVariable> variables, List<ScriptStruct> structs)
+        private static void GenerateDynamicArrayStructs(List<ScriptVariable> variables, List<ScriptStruct> structs, List<ScriptStruct> structsLookup)
         {
-            List<ScriptStruct> structsLookup = new List<ScriptStruct>(structs);
-            GenerateDynamicArrayStructs(variables, structs, structsLookup);
+            List<ScriptStruct> structsCopy = new List<ScriptStruct>(structs);
+
+            GenerateDynamicArrayStructsIntern(variables, structs, structsLookup);
+            foreach (var s in structsCopy)
+                GenerateDynamicArrayStructsIntern(s.Variables, structs, structsLookup);
         }
 
-        private static void GenerateDynamicArrayStructs(List<ScriptVariable> variables, List<ScriptStruct> structs, List<ScriptStruct> structsLookup)
+        private static void GenerateDynamicArrayStructsForVarsOnly(List<ScriptVariable> variables, List<ScriptStruct> structs)
+        {
+            List<ScriptStruct> structsLookup = new List<ScriptStruct>(structs);
+            GenerateDynamicArrayStructsIntern(variables, structs, structsLookup);
+        }
+
+        private static void GenerateDynamicArrayStructsIntern(List<ScriptVariable> variables, List<ScriptStruct> structs, List<ScriptStruct> structsLookup)
         {
             foreach (var variable in variables)
             {
@@ -752,7 +761,7 @@ namespace AGS.Editor
             List<ScriptVariable> variables = new List<ScriptVariable>();
             GetFunctionParametersAsVariableList(func, variables);
             GetLocalVariableDeclarationsFromScriptExtract(scriptToParse, relativeCharacterIndex, variables);
-            GenerateDynamicArrayStructs(variables, localStructs);
+            GenerateDynamicArrayStructsForVarsOnly(variables, localStructs);
             return variables;
         }
 

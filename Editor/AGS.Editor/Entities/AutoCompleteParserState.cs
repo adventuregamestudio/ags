@@ -9,7 +9,10 @@ namespace AGS.Editor
     {
         // FIXME: this is super ugly; auto complete parser can remember up to N last words
         // when parsing a declaration. The number of words has to be enough to parse all modifiers.
-        private const int MAX_WORDS = 8;
+        //
+        // protected static readonly attribute Character * [] IndexedAttribName [];
+        // 0         1      2        3         4         5 6  7                 8 
+        private const int MAX_WORDS = 9;
 
         public AutoCompleteParserState()
         {
@@ -39,14 +42,19 @@ namespace AGS.Editor
 
         public bool IsWordInPreviousList(string lookForWord)
         {
+            return FindWordInPreviousList(lookForWord) >= 0;
+        }
+
+        public int FindWordInPreviousList(string lookForWord)
+        {
             for (int i = 0; i < PreviousWords.Length; i++)
             {
                 if (PreviousWords[i] == lookForWord)
                 {
-                    return true;
+                    return i;
                 }
             }
-            return false;
+            return -1;
         }
 
         public void ClearPreviousWords()
@@ -79,7 +87,6 @@ namespace AGS.Editor
         public ScriptStruct InsideStructDefinition = null;
         public ScriptFunction InsideFunctionBody = null;
         public int CurrentScriptCharacterIndex;
-		public bool DynamicArrayDefinition = false;
         public string PreviousComment = null;
     }
 }

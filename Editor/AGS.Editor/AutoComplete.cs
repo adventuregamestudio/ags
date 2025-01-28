@@ -277,7 +277,6 @@ namespace AGS.Editor
 				else if ((thisWord == "[") && (PeekNextWord(script) == "]"))
 				{
 					GetNextWord(ref script);
-					state.DynamicArrayDefinition = true;
 					state.AddNextWord("[]");
 				}
 				else if ((thisWord == "=") || (thisWord == ";") ||
@@ -322,7 +321,6 @@ namespace AGS.Editor
 						}
 					}
 					state.ClearPreviousWords();
-					state.DynamicArrayDefinition = false;
 				}
 				else if ((thisWord == "}") && (state.InsideEnumDefinition != null))
 				{
@@ -562,10 +560,10 @@ namespace AGS.Editor
                         isPointer = true;
                         type = state.WordBeforeWordBeforeLast;
                     }
-					if (state.DynamicArrayDefinition)
+					if (type == "[]")
 					{
 						// get the type name and the []
-						type = state.WordBeforeWordBeforeLast + state.WordBeforeLast;
+						type = state.WordBeforeWordBeforeLast + "[]";
 					}
                     if (state.IsWordInPreviousList("static"))
                     {
@@ -598,7 +596,6 @@ namespace AGS.Editor
                         functions.Add(newFunc);
                         succeeded = true;
                     }
-					state.DynamicArrayDefinition = false;
                 }
             }
 
@@ -611,36 +608,71 @@ namespace AGS.Editor
             {
                 if (!DoesCurrentLineHaveToken(script, AUTO_COMPLETE_IGNORE))
                 {
+                    bool isAttribute = false;
                     bool isArray = false, isDynamicArray = false;
                     bool isPointer = false;
                     bool isStatic = false, isStaticOnly = false;
                     bool isNoInherit = false, isProtected = false;
                     bool isReadonly = false;
                     string type = state.WordBeforeLast;
+                    int typeWordIndex = 1;
 					string varName = state.LastWord;
+
+                    isAttribute = state.IsWordInPreviousList("attribute");
+
                     if (thisWord == "[")
                     {
                         while ((script.Length > 0) && (GetNextWord(ref script) != "]")) ;
                         isArray = true;
                     }
-					else if (state.DynamicArrayDefinition)
+					else
 					{
-						varName = state.WordBeforeLast;
-						type = state.WordBeforeWordBeforeLast;
-						isArray = true;
-                        isDynamicArray = true;
+                        // Dynarray brackets may be met in following cases:
+                        // - indexed attribute (attribute type name[])
+                        // - dynamic array (type name[])
+                        // - attribute returning dynamic array (attribute type[] name)
+                        // - indexed attribute returning dynamic array (attribute type[] name[])
+                        if (varName == "[]")
+                        {
+                            // it's appended to the name
+                            varName = state.WordBeforeLast;
+                            type = state.WordBeforeWordBeforeLast;
+                            typeWordIndex = 2;
+                            if (isAttribute)
+                            {
+                                // indexed attribute
+                            }
+                            else
+                            {
+                                // regular variable of dynamic array type
+                                isArray = true;
+                                isDynamicArray = true;
+                            }
+                        }
+
+                        if (type == "[]")
+                        {
+                            typeWordIndex++;
+                            type = state.PreviousWords[typeWordIndex];
+                            // it's appended to a type
+                            if (isAttribute)
+                            {
+                                // attribute returning dynamic array
+                                isArray = true;
+                                isDynamicArray = true;
+                            }
+                            else
+                            {
+                                // bad syntax?
+                            }
+                        }
                     }
+
                     if (type == "*")
                     {
                         isPointer = true;
-                        if (state.DynamicArrayDefinition)
-                        {
-                            type = state.PreviousWords[3];
-                        }
-                        else
-                        {
-                            type = state.WordBeforeWordBeforeLast;
-                        }
+                        typeWordIndex++;
+                        type = state.PreviousWords[typeWordIndex];
                     }
                     if (state.IsWordInPreviousList("static"))
                     {
@@ -677,7 +709,6 @@ namespace AGS.Editor
                         variables.Add(newVar);
                     }
                 }
-				state.DynamicArrayDefinition = false;
 			}
         }
 

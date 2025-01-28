@@ -249,6 +249,7 @@ bool OGLGraphicsDriver::InitGlScreen(const DisplayMode &mode)
     sys_window_fit_in_display(mode.DisplayIndex);
 #endif
     sys_window_set_style(mode.Mode, Size(mode.Width, mode.Height));
+    sys_window_bring_to_front();
   }
 
   SDL_GL_GetDrawableSize(_sdlWindow, &device_screen_physical_width, &device_screen_physical_height);

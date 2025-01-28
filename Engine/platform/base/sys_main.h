@@ -66,6 +66,8 @@ SDL_Window *sys_window_create(const char *window_title, int display_index, int w
 SDL_Window *sys_get_window();
 // Changes the window style for the given mode (fullscreen / windowed).
 void sys_window_set_style(AGS::Engine::WindowMode mode, Size size = Size());
+// Brings the game window to front
+void sys_window_bring_to_front();
 // Set new window size; optionally center new window on screen
 bool sys_window_set_size(int w, int h, bool center);
 // Centers the window on screen, optionally choose the display to position on

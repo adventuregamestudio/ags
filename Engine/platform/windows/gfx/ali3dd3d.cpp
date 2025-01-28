@@ -566,6 +566,7 @@ bool D3DGraphicsDriver::CreateDisplayMode(const DisplayMode &mode)
     if (!mode.IsRealFullscreen())
     {
       sys_window_set_style(mode.Mode, Size(mode.Width, mode.Height));
+      sys_window_bring_to_front();
     }
   }
   return true;

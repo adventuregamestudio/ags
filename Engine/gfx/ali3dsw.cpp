@@ -185,6 +185,7 @@ bool SDLRendererGraphicsDriver::SetDisplayMode(const DisplayMode &mode)
     }
 #endif // AGS_PLATFORM_DESKTOP
     sys_window_set_style(mode.Mode, Size(mode.Width, mode.Height));
+    sys_window_bring_to_front();
   }
 
 #if AGS_PLATFORM_MOBILE

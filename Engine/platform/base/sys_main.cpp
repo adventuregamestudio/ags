@@ -261,6 +261,11 @@ void sys_window_set_style(WindowMode mode, Size size) {
     }
 }
 
+void sys_window_bring_to_front() {
+    if (!window) return;
+    SDL_RaiseWindow(window);
+}
+
 void sys_window_show_cursor(bool on) {
     SDL_ShowCursor(on ? SDL_ENABLE : SDL_DISABLE);
 }

@@ -115,6 +115,7 @@ void main_print_help() {
 #if AGS_PLATFORM_OS_WINDOWS
            "  --console-attach             Write output to the parent process's console\n"
 #endif
+           "  --display <number>           1-based index of system display to start the game on.\n"
            "  --fps                        Display fps counter\n"
            "  --fullscreen                 Force display mode to fullscreen\n"
            "  --gfxdriver <id>             Request graphics driver. Available options:\n"
@@ -318,6 +319,8 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
                 }
             }
         }
+        else if ((ags_stricmp(arg, "--display") == 0) && (argc > ee + 1))
+            cfg["graphics"]["display"] = argv[++ee];
         else if ((ags_stricmp(arg, "--translation") == 0) && (argc > ee + 1))
             cfg["language"]["translation"] = argv[++ee];
         else if (ags_stricmp(arg, "--no-translation") == 0)

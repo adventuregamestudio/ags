@@ -118,32 +118,51 @@ int staticArrayOfInts[100];
             string scriptCode = $@"
 int arrOfInts[] = new int[100];
 int arrOfInts2[] = new int[100];
+Character* arrOfCharacters[] = new Character[100];
 ";
             Script scriptToTest = CachedAutoCompletedScriptFromCode(scriptCode);
 
-            Assert.That(scriptToTest.AutoCompleteData.Variables.Count, Is.EqualTo(2));
-            Assert.That(scriptToTest.AutoCompleteData.Structs.Count, Is.EqualTo(1)); // dynamic array also generates a pair struct, per type
+            Assert.That(scriptToTest.AutoCompleteData.Variables.Count, Is.EqualTo(3));
+            Assert.That(scriptToTest.AutoCompleteData.Structs.Count, Is.EqualTo(2)); // dynamic array also generates a pseudo-struct, per type
 
             ScriptVariable var1 = scriptToTest.AutoCompleteData.Variables.FirstOrDefault(v => v.VariableName == "arrOfInts");
             Assert.That(var1, Is.Not.Null);
             Assert.That(var1.Type, Is.EqualTo("int[]")); // we may have to review this at some point but seems sufficient for autocomplete
             Assert.That(var1.IsArray, Is.True);
+            Assert.That(var1.IsDynamicArray, Is.True);
             Assert.That(var1.IsPointer, Is.False);
 
             ScriptVariable var2 = scriptToTest.AutoCompleteData.Variables.FirstOrDefault(v => v.VariableName == "arrOfInts2");
             Assert.That(var2, Is.Not.Null);
             Assert.That(var2.Type, Is.EqualTo("int[]"));
             Assert.That(var2.IsArray, Is.True);
+            Assert.That(var2.IsDynamicArray, Is.True);
             Assert.That(var2.IsPointer, Is.False);
+
+            ScriptVariable var3 = scriptToTest.AutoCompleteData.Variables.FirstOrDefault(v => v.VariableName == "arrOfCharacters");
+            Assert.That(var3, Is.Not.Null);
+            Assert.That(var3.Type, Is.EqualTo("Character*[]"));
+            Assert.That(var3.IsArray, Is.True);
+            Assert.That(var3.IsDynamicArray, Is.True);
+            Assert.That(var3.IsPointer, Is.True);
 
             ScriptStruct strct = scriptToTest.AutoCompleteData.Structs.FirstOrDefault(s => s.Name == "int[]");
             Assert.That(strct, Is.Not.Null);
             Assert.That(strct.Variables.Count, Is.EqualTo(1));
             ScriptVariable lenProp = strct.Variables.FirstOrDefault(v => v.VariableName == "Length");
             Assert.That(lenProp, Is.Not.Null);
-            Assert.That(lenProp.Type, Is.EqualTo("int"));
+            Assert.That(lenProp.Type, Is.EqualTo("int")); // type of Length attribute
             Assert.That(lenProp.IsPointer, Is.False);
             Assert.That(lenProp.IsArray, Is.False);
+
+            ScriptStruct strct2 = scriptToTest.AutoCompleteData.Structs.FirstOrDefault(s => s.Name == "Character*[]");
+            Assert.That(strct2, Is.Not.Null);
+            Assert.That(strct2.Variables.Count, Is.EqualTo(1));
+            ScriptVariable lenProp2 = strct2.Variables.FirstOrDefault(v => v.VariableName == "Length");
+            Assert.That(lenProp2, Is.Not.Null);
+            Assert.That(lenProp2.Type, Is.EqualTo("int")); // type of Length attribute
+            Assert.That(lenProp2.IsPointer, Is.False);
+            Assert.That(lenProp2.IsArray, Is.False);
         }
 
         [Test]
@@ -256,6 +275,63 @@ struct Child extends Base {{
             Assert.That(childStruct.Variables.Count, Is.EqualTo(2));
             Assert.That(childStruct.Variables[0].VariableName, Is.EqualTo("x"));
             Assert.That(childStruct.Variables[1].VariableName, Is.EqualTo("y"));
+        }
+
+        [Test]
+        public void ContainsDynamicArrayInAStruct()
+        {
+            string scriptCode = $@"
+struct MyStruct {{
+    int arrOfInts[];
+    attribute int IndexedAttrib[];
+    attribute int[] AttribOfArray;
+    attribute int[] IndexedAttribOfArrays[];
+}}
+";
+            Script scriptToTest = CachedAutoCompletedScriptFromCode(scriptCode);
+
+            Assert.That(scriptToTest.AutoCompleteData.Variables.Count, Is.EqualTo(0));
+            Assert.That(scriptToTest.AutoCompleteData.Structs.Count, Is.EqualTo(2)); // dynamic array also generates a pseudo-struct, per type
+
+            var myStruct = scriptToTest.AutoCompleteData.Structs.FirstOrDefault(s => s.Name == "MyStruct");
+            Assert.That(myStruct, Is.Not.Null);
+
+            ScriptVariable var1 = myStruct.Variables.FirstOrDefault(v => v.VariableName == "arrOfInts");
+            Assert.That(var1, Is.Not.Null);
+            Assert.That(var1.Type, Is.EqualTo("int[]"));
+            Assert.That(var1.IsArray, Is.True);
+            Assert.That(var1.IsDynamicArray, Is.True);
+            Assert.That(var1.IsPointer, Is.False);
+
+            ScriptVariable var2 = myStruct.Variables.FirstOrDefault(v => v.VariableName == "IndexedAttrib");
+            Assert.That(var2, Is.Not.Null);
+            Assert.That(var2.Type, Is.EqualTo("int"));
+            Assert.That(var2.IsArray, Is.False);
+            Assert.That(var2.IsDynamicArray, Is.False);
+            Assert.That(var2.IsPointer, Is.False);
+
+            ScriptVariable var3 = myStruct.Variables.FirstOrDefault(v => v.VariableName == "AttribOfArray");
+            Assert.That(var3, Is.Not.Null);
+            Assert.That(var3.Type, Is.EqualTo("int[]"));
+            Assert.That(var3.IsArray, Is.True);
+            Assert.That(var3.IsDynamicArray, Is.True);
+            Assert.That(var3.IsPointer, Is.False);
+
+            ScriptVariable var4 = myStruct.Variables.FirstOrDefault(v => v.VariableName == "IndexedAttribOfArrays");
+            Assert.That(var4, Is.Not.Null);
+            Assert.That(var4.Type, Is.EqualTo("int[]"));
+            Assert.That(var4.IsArray, Is.True);
+            Assert.That(var4.IsDynamicArray, Is.True);
+            Assert.That(var4.IsPointer, Is.False);
+
+            ScriptStruct strct = scriptToTest.AutoCompleteData.Structs.FirstOrDefault(s => s.Name == "int[]");
+            Assert.That(strct, Is.Not.Null);
+            Assert.That(strct.Variables.Count, Is.EqualTo(1));
+            ScriptVariable lenProp = strct.Variables.FirstOrDefault(v => v.VariableName == "Length");
+            Assert.That(lenProp, Is.Not.Null);
+            Assert.That(lenProp.Type, Is.EqualTo("int"));
+            Assert.That(lenProp.IsPointer, Is.False);
+            Assert.That(lenProp.IsArray, Is.False);
         }
 
         [Test]

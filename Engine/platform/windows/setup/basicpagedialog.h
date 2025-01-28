@@ -37,6 +37,9 @@ namespace Engine
 
 using namespace AGS::Common;
 
+class IGfxDriverFactory;
+class IGraphicsDriver;
+
 //=============================================================================
 //
 // WinConfig struct, keeps all configurable data.
@@ -105,6 +108,7 @@ protected:
 
     // Event handlers
     INT_PTR OnInitDialog() override;
+    INT_PTR OnDestroyDialog() override;
     INT_PTR OnCommand(WORD id) override;
     INT_PTR OnListSelection(WORD id) override;
 
@@ -141,6 +145,8 @@ private:
     typedef std::vector<GfxFilterInfo> VFilters;
     struct DriverDesc
     {
+        IGfxDriverFactory *Factory = nullptr;
+        IGraphicsDriver *Driver    = nullptr;
         String      Id;            // internal id
         String      UserName;      // human-friendly driver name
         GfxModes    GfxModeList;   // list of supported modes
@@ -159,6 +165,9 @@ private:
     int  GetRealDisplayIndex();
     void SetScalingSelection();
     void InitDriverDescFromFactory(const String &id);
+    void UpdateDriverModesFromFactory();
+    void UpdateDriverModes(DriverDesc *desc);
+    void ReleaseDrivers();
     void SelectNearestGfxMode(const WindowSetup &ws);
 
     // Dialog properties

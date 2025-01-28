@@ -152,6 +152,12 @@ INT_PTR BasicPageDialog::OnInitDialog()
     return FALSE; // notify WinAPI that we set focus ourselves
 }
 
+INT_PTR BasicPageDialog::OnDestroyDialog()
+{
+    ReleaseDrivers();
+    return FALSE;
+}
+
 INT_PTR BasicPageDialog::OnCommand(WORD id)
 {
     switch (id)
@@ -183,6 +189,10 @@ INT_PTR BasicPageDialog::OnListSelection(WORD id)
 void BasicPageDialog::OnDisplayUpdate()
 {
     _displayIndex = GetRealDisplayIndex();
+    _desktopSize = get_desktop_size(_displayIndex);
+    _maxWindowSize = AGSPlatformDriver::GetDriver()->ValidateWindowSize(_displayIndex, _desktopSize, false);
+
+    UpdateDriverModesFromFactory();
     FillGfxModeList();
 }
 
@@ -469,13 +479,38 @@ void BasicPageDialog::InitDriverDescFromFactory(const String &id)
     }
 
     PDriverDesc drv_desc(new DriverDesc());
+    drv_desc->Factory = gfx_factory;
+    drv_desc->Driver = gfx_driver;
     drv_desc->Id = gfx_driver->GetDriverID();
     drv_desc->UserName = gfx_driver->GetDriverName();
     drv_desc->UseColorDepth =
         gfx_driver->GetDisplayDepthForNativeDepth(_winCfg.GameColourDepth ? _winCfg.GameColourDepth : 32);
 
+    UpdateDriverModes(drv_desc.get());
+
+    drv_desc->FilterList.resize(gfx_factory->GetFilterCount());
+    for (size_t i = 0; i < drv_desc->FilterList.size(); ++i)
+    {
+        drv_desc->FilterList[i] = *gfx_factory->GetFilterInfo(i);
+    }
+
+    _drvDescMap[drv_desc->Id] = drv_desc;
+}
+
+void BasicPageDialog::UpdateDriverModesFromFactory()
+{
+    for (auto &drv_desc : _drvDescMap)
+    {
+        UpdateDriverModes(drv_desc.second.get());
+    }
+}
+
+void BasicPageDialog::UpdateDriverModes(DriverDesc *drv_desc)
+{
+    IGraphicsDriver *gfx_driver = drv_desc->Driver;
     IGfxModeList *gfxm_list = gfx_driver->GetSupportedModeList(_displayIndex, drv_desc->UseColorDepth);
     VDispModes &modes = drv_desc->GfxModeList.Modes;
+    modes.clear();
     if (gfxm_list)
     {
         std::set<Size> unique_sizes; // trying to hide modes which only have different refresh rates
@@ -497,15 +532,14 @@ void BasicPageDialog::InitDriverDescFromFactory(const String &id)
         modes.push_back(DisplayMode(GraphicResolution(_desktopSize.Width, _desktopSize.Height, drv_desc->UseColorDepth)));
         modes.push_back(DisplayMode(GraphicResolution(_winCfg.GameResolution.Width, _winCfg.GameResolution.Height, drv_desc->UseColorDepth)));
     }
+}
 
-    drv_desc->FilterList.resize(gfx_factory->GetFilterCount());
-    for (size_t i = 0; i < drv_desc->FilterList.size(); ++i)
-    {
-        drv_desc->FilterList[i] = *gfx_factory->GetFilterInfo(i);
-    }
-
-    gfx_factory->Shutdown();
-    _drvDescMap[drv_desc->Id] = drv_desc;
+void BasicPageDialog::ReleaseDrivers()
+{
+    _drvDesc = nullptr;
+    for (auto &drv_desc : _drvDescMap)
+        drv_desc.second->Factory->Shutdown();
+    _drvDescMap = {};
 }
 
 void BasicPageDialog::SelectNearestGfxMode(const WindowSetup &ws)

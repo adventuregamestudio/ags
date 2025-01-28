@@ -1386,7 +1386,7 @@ bool engine_try_switch_windowed_gfxmode()
         WindowSetup ws = windowed ? usetup.Display.WinSetup : usetup.Display.FsSetup;
         frame = windowed ? usetup.Display.WinGameFrame : usetup.Display.FsGameFrame;
         res = graphics_mode_set_dm_any(game.GetGameRes(), ws, old_dm.ColorDepth,
-            frame, DisplaySetupEx(use_display_index, usetup.Display.RefreshRate, usetup.Display.VSync));
+            frame, DisplayParamsEx(use_display_index, usetup.Display.RefreshRate, usetup.Display.VSync));
     }
 
     // Apply corresponding frame render method

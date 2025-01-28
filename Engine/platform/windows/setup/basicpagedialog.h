@@ -156,6 +156,7 @@ private:
     void FillGfxModeList();
     void FillLanguageList();
     void FillScalingList(HWND hlist, bool windowed);
+    int  GetRealDisplayIndex();
     void SetScalingSelection();
     void InitDriverDescFromFactory(const String &id);
     void SelectNearestGfxMode(const WindowSetup &ws);

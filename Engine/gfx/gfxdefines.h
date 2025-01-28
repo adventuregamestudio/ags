@@ -50,7 +50,7 @@ enum WindowMode
 struct DisplayMode : public GraphicResolution
 {
     WindowMode Mode = kWnd_Windowed;
-    int     DisplayIndex = 0; // which display to use (0 - default)
+    int     DisplayIndex = 0; // 0-based display index
     int     RefreshRate = 0;
     bool    Vsync = false;
 

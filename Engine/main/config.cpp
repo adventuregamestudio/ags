@@ -361,7 +361,9 @@ void load_common_config(const ConfigTree &cfg, GameConfig &setup)
 
     // Graphics mode and options
     setup.Display.DriverID = CfgReadString(cfg, "graphics", "driver", setup.Display.DriverID);
-    setup.Display.DisplayIndex = CfgReadInt(cfg, "graphics", "display", 0);
+    const int user_display_index = CfgReadInt(cfg, "graphics", "display", 0);
+    setup.Display.UseDefaultDisplay = user_display_index <= 0;
+    setup.Display.DisplayIndex = user_display_index <= 0 ? 0 : user_display_index - 1;
     setup.Display.Windowed = CfgReadBoolInt(cfg, "graphics", "windowed", setup.Display.Windowed);
     setup.Display.FsSetup =
         parse_window_mode(CfgReadString(cfg, "graphics", "fullscreen", "default"), false,
@@ -483,7 +485,8 @@ void save_common_config(const GameConfig &setup, ConfigTree &cfg)
     CfgWriteString(cfg, "misc", "shared_data_dir", setup.AppDataDir);
 
     CfgWriteString(cfg, "graphics", "driver", setup.Display.DriverID);
-    CfgWriteInt(cfg, "graphics", "display", setup.Display.DisplayIndex);
+    CfgWriteInt(cfg, "graphics", "display", (setup.Display.UseDefaultDisplay) ?
+        0 : setup.Display.DisplayIndex + 1);
     CfgWriteString(cfg, "graphics", "filter", setup.Display.Filter.ID);
     CfgWriteString(cfg, "graphics", "fullscreen", make_window_mode_option(setup.Display.FsSetup));
     CfgWriteString(cfg, "graphics", "window", make_window_mode_option(setup.Display.WinSetup));

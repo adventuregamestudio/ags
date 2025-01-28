@@ -93,13 +93,13 @@ struct WindowSetup
 };
 
 // Additional parameters for the display mode setup
-struct DisplaySetupEx
+struct DisplayParamsEx
 {
-    int  DisplayIndex = 0; // which display to use (0 - default)
+    int  DisplayIndex = 0; // 0-based display index
     int  RefreshRate = 0;  // gfx mode refresh rate
     bool VSync = false;    // vertical sync
 
-    DisplaySetupEx(int display_index, int rate, bool vsync)
+    DisplayParamsEx(int display_index, int rate, bool vsync)
         : DisplayIndex(display_index), RefreshRate(rate), VSync(vsync) {}
 };
 
@@ -119,7 +119,8 @@ struct DisplayModeSetup
     FrameScaleDef        WinGameFrame = // how the game frame should be scaled/positioned in windowed mode
                                 kFrame_Undefined;
 
-    int                  DisplayIndex = 0; // which display to use (0 - default)
+    bool                 UseDefaultDisplay = true; // used when writing config back
+    int                  DisplayIndex = 0; // 0-based display index
     bool                 Windowed = false; // initial mode
     int                  RefreshRate = 0;  // gfx mode refresh rate
     bool                 VSync = false;    // vertical sync
@@ -155,7 +156,7 @@ bool graphics_mode_create_renderer(const String &driver_id);
 // Try to find and initialize compatible display mode as close to given setup as possible
 bool graphics_mode_set_dm_any(const Size &game_size, const WindowSetup &ws,
                               const ColorDepthOption &color_depth,
-                              const FrameScaleDef frame, const DisplaySetupEx &params);
+                              const FrameScaleDef frame, const DisplayParamsEx &params);
 // Set the display mode with given parameters
 bool graphics_mode_set_dm(const AGS::Engine::DisplayMode &dm);
 // Set the native image size

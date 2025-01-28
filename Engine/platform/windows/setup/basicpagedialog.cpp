@@ -182,7 +182,7 @@ INT_PTR BasicPageDialog::OnListSelection(WORD id)
 
 void BasicPageDialog::OnDisplayUpdate()
 {
-    _displayIndex = GetCurSel(_hDisplayList);
+    _displayIndex = GetRealDisplayIndex();
     FillGfxModeList();
 }
 
@@ -292,6 +292,7 @@ bool BasicPageDialog::GfxModes::GetMode(int index, DisplayMode &mode) const
 void BasicPageDialog::FillDisplayList()
 {
     ResetContent(_hDisplayList);
+    AddString(_hDisplayList, "Default");
     int display_count = SDL_GetNumVideoDisplays();
     for (int i = 0; i < display_count; ++i)
     {
@@ -430,6 +431,12 @@ void BasicPageDialog::FillScalingList(HWND hlist, bool windowed)
     }
 }
 
+int BasicPageDialog::GetRealDisplayIndex()
+{
+    const int user_display_sel = GetCurSel(_hDisplayList);
+    return user_display_sel == 0 ? 0 : user_display_sel - 1;
+}
+
 void BasicPageDialog::SetScalingSelection()
 {
     SetCurSelToItemData(_hFsScalingList, _winCfg.Display.FsGameFrame, NULL, 0);
@@ -543,7 +550,7 @@ void BasicPageDialog::SelectNearestGfxMode(const WindowSetup &ws)
 void BasicPageDialog::ResetSetup(const ConfigTree & /*cfg_from*/)
 {
     SetCurSelToItemDataStr(_hGfxDriverList, _winCfg.Display.DriverID.GetCStr(), 0);
-    SetCurSel(_hDisplayList, _winCfg.Display.DisplayIndex);
+    SetCurSel(_hDisplayList, _winCfg.Display.UseDefaultDisplay ? 0 : _winCfg.Display.DisplayIndex + 1);
     SetCheck(_hFullscreenDesktop, _winCfg.Display.FsSetup.Mode == kWnd_FullDesktop);
     EnableWindow(_hGfxModeList, _winCfg.Display.FsSetup.Mode == kWnd_Fullscreen);
     OnGfxDriverUpdate();
@@ -557,7 +564,9 @@ void BasicPageDialog::SaveSetup()
     if (!_isInit)
         return; // was not init, don't apply settings
 
-    _winCfg.Display.DisplayIndex = GetCurSel(_hDisplayList);
+    const int user_display_index = GetCurSel(_hDisplayList);
+    _winCfg.Display.UseDefaultDisplay = user_display_index == 0;
+    _winCfg.Display.DisplayIndex = user_display_index == 0 ? 0 : user_display_index - 1;
     if (GetCurSel(_hLanguageList) == 0)
         _winCfg.Translation.Empty();
     else

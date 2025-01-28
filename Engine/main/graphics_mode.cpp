@@ -295,7 +295,7 @@ bool try_init_compatible_mode(const DisplayMode &dm)
 static bool try_init_mode_using_setup(const GraphicResolution &game_res, const WindowSetup &ws,
                                const int col_depth, const FrameScaleDef frame,
                                const GfxFilterSetup &filter,
-                               const DisplaySetupEx &params)
+                               const DisplayParamsEx &params)
 {
     // We determine the requested size of the screen using setup options
     const Size screen_size = precalc_screen_size(game_res, params.DisplayIndex, ws, frame);
@@ -362,14 +362,14 @@ bool create_gfx_driver_and_init_mode_any(const String &gfx_driver_id,
     bool windowed = setup.Windowed;
     WindowSetup ws = windowed ? setup.WinSetup : setup.FsSetup;
     FrameScaleDef frame = windowed ? setup.WinGameFrame : setup.FsGameFrame;
-    bool result = try_init_mode_using_setup(game_res, ws, use_col_depth, frame, setup.Filter, DisplaySetupEx(setup.DisplayIndex, setup.RefreshRate, setup.VSync));
+    bool result = try_init_mode_using_setup(game_res, ws, use_col_depth, frame, setup.Filter, DisplayParamsEx(setup.DisplayIndex, setup.RefreshRate, setup.VSync));
     // Try windowed mode if fullscreen failed, and vice versa
     if (!result && editor_debugging_initialized == 0)
     {
         windowed = !windowed;
         ws = windowed ? setup.WinSetup : setup.FsSetup;
         frame = windowed ? setup.WinGameFrame : setup.FsGameFrame;
-        result = try_init_mode_using_setup(game_res, ws, use_col_depth, frame, setup.Filter, DisplaySetupEx(setup.DisplayIndex, setup.RefreshRate, setup.VSync));
+        result = try_init_mode_using_setup(game_res, ws, use_col_depth, frame, setup.Filter, DisplayParamsEx(setup.DisplayIndex, setup.RefreshRate, setup.VSync));
     }
     return result;
 }
@@ -499,7 +499,7 @@ bool graphics_mode_create_renderer(const String &driver_id)
 
 bool graphics_mode_set_dm_any(const Size &game_size, const WindowSetup &ws,
                               const ColorDepthOption &color_depth,
-                              const FrameScaleDef frame, const DisplaySetupEx &params)
+                              const FrameScaleDef frame, const DisplayParamsEx &params)
 {
     // We determine the requested size of the screen using setup options
     const Size screen_size = precalc_screen_size(game_size, params.DisplayIndex, ws, frame);

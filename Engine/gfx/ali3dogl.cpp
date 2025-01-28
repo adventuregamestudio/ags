@@ -245,7 +245,7 @@ bool OGLGraphicsDriver::InitGlScreen(const DisplayMode &mode)
   }
   else
   {
-#if (AGS_PLATFORM_DESKTOP)
+#if (AGS_SUPPORT_MULTIDISPLAY)
     sys_window_fit_in_display(mode.DisplayIndex);
 #endif
     sys_window_set_style(mode.Mode, Size(mode.Width, mode.Height));

@@ -490,7 +490,7 @@ bool D3DGraphicsDriver::CreateDisplayMode(const DisplayMode &mode)
   }
   else
   {
-#if (AGS_PLATFORM_DESKTOP)
+#if (AGS_SUPPORT_MULTIDISPLAY)
     // If user requested an exclusive fullscreen, move window to where we created it first,
     // because DirectX does not normally support switching displays in exclusive mode.
     // NOTE: we may in theory support this, but we'd have to release and recreate

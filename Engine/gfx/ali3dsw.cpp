@@ -173,7 +173,7 @@ bool SDLRendererGraphicsDriver::SetDisplayMode(const DisplayMode &mode)
   }
   else
   {
-#if (AGS_PLATFORM_DESKTOP)
+#if (AGS_SUPPORT_MULTIDISPLAY)
     // This is a bit of a hack, but certain drivers do not support changing
     // display in exclusive fullscreen mode, and here we find out if it's the case.
     // NOTE: we may in theory support this, but we'd have to release and recreate
@@ -183,7 +183,7 @@ bool SDLRendererGraphicsDriver::SetDisplayMode(const DisplayMode &mode)
     {
       sys_window_fit_in_display(_fullscreenDisplay);
     }
-#endif // AGS_PLATFORM_DESKTOP
+#endif // AGS_SUPPORT_MULTIDISPLAY
     sys_window_set_style(mode.Mode, Size(mode.Width, mode.Height));
     sys_window_bring_to_front();
   }

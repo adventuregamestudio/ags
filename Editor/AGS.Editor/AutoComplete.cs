@@ -394,6 +394,7 @@ namespace AGS.Editor
                 ScriptVariable lengthVar = new ScriptVariable("Length", "int", false, false, false, null, null, false, false, false, false, true, 0);
                 lengthVar.Description = "Returns length of this dynamic array.";
                 dynArrStruct.Variables.Add(lengthVar);
+                dynArrStruct.BaseType = trueType;
                 dynArrStruct.FullDefinition = true;
                 structs.Add(dynArrStruct);
                 structsLookup.Add(dynArrStruct);

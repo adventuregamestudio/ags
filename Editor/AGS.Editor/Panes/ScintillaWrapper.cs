@@ -1505,7 +1505,7 @@ namespace AGS.Editor
         public ScriptStruct FindGlobalVariableOrType(string type)
         {
             bool dummy = false;
-            return FindGlobalVariableOrType(type, ref dummy);
+            return FindGlobalVariableOrType(type, out dummy);
         }
 
         private IList<IScript> GetAutoCompleteScriptList()
@@ -1540,7 +1540,7 @@ namespace AGS.Editor
             return null;
         }
 
-        private ScriptStruct FindGlobalVariableOrType(string type, ref bool staticAccess)
+        private ScriptStruct FindGlobalVariableOrType(string type, out bool staticAccess)
         {
             // First try search for a type that has this name
             var foundType = FindGlobalType(type);
@@ -1567,9 +1567,10 @@ namespace AGS.Editor
             return null;
         }
 
-        private string ReadNextWord(ref string pathedExpression)
+        private string ReadNextWord(ref string pathedExpression, out bool indexedAccess)
         {
             string thisWord = string.Empty;
+            indexedAccess = false;
             while ((pathedExpression.Length > 0) &&
                 ((Char.IsLetterOrDigit(pathedExpression[0])) || (pathedExpression[0] == '_')))
             {
@@ -1588,6 +1589,7 @@ namespace AGS.Editor
                     cursorPos++;
                 }
                 pathedExpression = pathedExpression.Substring(cursorPos);
+                indexedAccess = true;
             }
             if ((pathedExpression.Length > 0) && (pathedExpression[0] == '.'))
             {
@@ -1662,38 +1664,44 @@ namespace AGS.Editor
                 pathedExpression = string.Empty;
             }
 
-            string thisWord = ReadNextWord(ref pathedExpression);
+            bool indexedAccess = false;
             staticAccess = false;
+            string thisWord = ReadNextWord(ref pathedExpression, out indexedAccess);
             ScriptStruct foundType;
 
             if (thisWord == THIS_STRUCT)
             {
                 thisWord = FindTypeForThis(startAtPos);
-                foundType = FindGlobalVariableOrType(thisWord, ref staticAccess);
+                foundType = FindGlobalVariableOrType(thisWord, out staticAccess);
                 isThis = true;
                 // force this to false for the "this" variable
                 staticAccess = false;
             }
             else
             {
-                foundType = FindGlobalVariableOrType(thisWord, ref staticAccess);
+                foundType = FindGlobalVariableOrType(thisWord, out staticAccess);
+                if (staticAccess && indexedAccess)
+                    return null; // element access of type? bad syntax...
+
                 if ((foundType == null) && (thisWord.Length > 0))
                 {
                     ScriptVariable var = FindLocalVariableWithName(startAtPos, thisWord);
                     if (var != null)
                     {
-                        foundType = FindGlobalVariableOrType(var.Type);
+                        foundType = ProcessVariableAccess(var, indexedAccess);
                     }
                 }
             }
 
             while ((pathedExpression.Length > 0) && (foundType != null))
             {
-                thisWord = ReadNextWord(ref pathedExpression);
+                thisWord = ReadNextWord(ref pathedExpression, out indexedAccess);
                 ScriptVariable memberVar = foundType.FindMemberVariable(thisWord);
                 if (memberVar != null)
                 {
-                    foundType = FindGlobalVariableOrType(memberVar.Type);
+                    foundType = ProcessVariableAccess(memberVar, indexedAccess);
+                    if (foundType == null)
+                        return null;
                     staticAccess = false;
                 }
                 else
@@ -1701,6 +1709,22 @@ namespace AGS.Editor
                     foundType = null;
                 }
             }
+            return foundType;
+        }
+
+        private ScriptStruct ProcessVariableAccess(ScriptVariable var, bool indexedAccess)
+        {
+            if (!var.IsArray && indexedAccess)
+                return null; // accessing element of non-array, bad syntax...
+
+            if (var.IsArray && !var.IsDynamicArray && !indexedAccess)
+                return null; // accessing member of static array, no result
+
+            ScriptStruct foundType = FindGlobalType(var.Type);
+
+            if (var.IsDynamicArray && indexedAccess)
+                foundType = FindGlobalType(foundType.BaseType);
+
             return foundType;
         }
 

@@ -12,7 +12,17 @@ namespace AGS.Types.AutoComplete
             IfDefOnly = ifDefOnly;
             IfNDefOnly = ifNDefOnly;
             FullDefinition = true;
-			StartsAtCharacterIndex = scriptCharacterIndex;
+            StartsAtCharacterIndex = scriptCharacterIndex;
+        }
+
+        public ScriptStruct(string name, string baseType, string ifDefOnly, string ifNDefOnly, int scriptCharacterIndex)
+        {
+            Name = name;
+            BaseType = baseType;
+            IfDefOnly = ifDefOnly;
+            IfNDefOnly = ifNDefOnly;
+            FullDefinition = true;
+            StartsAtCharacterIndex = scriptCharacterIndex;
         }
 
         public ScriptStruct(string name)
@@ -46,6 +56,8 @@ namespace AGS.Types.AutoComplete
         }
 
         public string Name;
+        // Base type of the complex type, e.g. type of elements for array type
+        public string BaseType;
         public bool FullDefinition;
         public List<ScriptVariable> Variables = new List<ScriptVariable>();
         public List<ScriptFunction> Functions = new List<ScriptFunction>();

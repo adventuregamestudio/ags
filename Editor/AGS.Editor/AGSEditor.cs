@@ -1137,7 +1137,7 @@ namespace AGS.Editor
             }
             else if (_game.FindRoomByID(_game.PlayerCharacter.StartingRoom) == null)
             {
-                errors.Add(new CompileError("The game is set to start in room " + _game.PlayerCharacter.StartingRoom + " which does not exist"));
+                errors.Add(new CompileError($"The player character {_game.PlayerCharacter.ScriptName} has StartingRoom set to room {_game.PlayerCharacter.StartingRoom} which does not exist"));
             }
 
             if ((_game.Settings.ColorDepth == GameColorDepth.Palette) &&

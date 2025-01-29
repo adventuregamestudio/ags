@@ -190,9 +190,9 @@ ScriptExecError ScriptExecutor::Run(ScriptThread *thread, const RuntimeScript *s
     // parameters are always the last, so function code knows how to find them
     // using negative offsets, and does not care about any preceding entries.
     // But if there's not enough parameters, then we cannot call this function.
-    if (export_args > param_count)
+    if (static_cast<uint32_t>(export_args) > param_count)
     {
-        cc_error("Not enough parameters to exported function '%s' (expected %d, supplied %d)",
+        cc_error("Not enough parameters to exported function '%s' (expected %d, supplied %zu)",
             funcname.GetCStr(), export_args, param_count);
         return kScExecErr_InvalidArgNum;
     }
@@ -718,8 +718,8 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
 
         codeOp.ArgCount = sccmd_info[codeOp.Instruction.Code].ArgCount;
 
-        CC_ERROR_IF_RETCODE(_pc + codeOp.ArgCount >= _codesize,
-            "unexpected end of code data (%d; %d)", _pc + codeOp.ArgCount, _codesize);
+        CC_ERROR_IF_RETCODE(static_cast<uint32_t>(_pc + codeOp.ArgCount) >= _codesize,
+            "unexpected end of code data (%d; %u)", _pc + codeOp.ArgCount, _codesize);
 
 
         // Read arguments; use switch as it proved to be faster than the loop

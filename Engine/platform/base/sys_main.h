@@ -37,6 +37,10 @@ void sys_set_background_mode(bool on);
 
 // Display utilities.
 //
+// Gets number of available displays.
+int sys_get_display_count();
+// Tells if the given display index valid (exists).
+bool sys_is_display_valid(int display_index);
 // Queries the display index on which the window is currently positioned.
 // Returns default display index in case window does not exist yet, or on any error.
 int sys_get_window_display_index();

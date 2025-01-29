@@ -73,6 +73,14 @@ void sys_set_background_mode(bool /*on*/) {
 // ----------------------------------------------------------------------------
 const int DEFAULT_DISPLAY_INDEX = 0;
 
+int sys_get_display_count() {
+    return SDL_GetNumVideoDisplays();
+}
+
+bool sys_is_display_valid(int display_index) {
+    return display_index >= 0 && display_index < SDL_GetNumVideoDisplays();
+}
+
 int sys_get_window_display_index() {
 #if (AGS_SUPPORT_MULTIDISPLAY)
     int index = -1;

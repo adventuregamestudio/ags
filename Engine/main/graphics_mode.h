@@ -147,8 +147,10 @@ struct ActiveDisplaySetting
 };
 
 // Initializes any possible gfx mode, using user config as a recommendation;
-// may try all available renderers and modes before succeeding (or failing)
-bool graphics_mode_init_any(const GraphicResolution &game_res, const DisplayModeSetup &setup, const ColorDepthOption &color_depth);
+// may try all available renderers and modes before succeeding (or failing).
+// Returns result, and sets original desktop size on the used display.
+bool graphics_mode_init_any(const GraphicResolution &game_res, const DisplayModeSetup &setup, const ColorDepthOption &color_depth,
+                            Size *init_desktop_size);
 // Return last saved display mode of the given kind
 ActiveDisplaySetting graphics_mode_get_last_setting(bool windowed);
 // Creates graphics driver of given id

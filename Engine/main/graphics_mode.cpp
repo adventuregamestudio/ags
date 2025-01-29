@@ -241,8 +241,15 @@ static Size precalc_screen_size(const Size &game_size, int display_index, const 
     return get_max_display_size(display_index, false);
 }
 
+static int validate_display_index(int display_index)
+{
+    if (display_index >= sys_get_display_count())
+        return 0;
+    return display_index;
+}
+
 // Find closest possible compatible display mode and initialize it
-bool try_init_compatible_mode(const DisplayMode &dm)
+static bool try_init_compatible_mode(const DisplayMode &dm)
 {
     const Size &screen_size = Size(dm.Width, dm.Height);
     // Find nearest compatible mode and init that
@@ -347,11 +354,13 @@ void log_out_driver_modes(const int display_index, const int color_depth)
 
 // Create requested graphics driver and try to find and initialize compatible display mode as close to user setup as possible;
 // if the given setup fails, gets default setup for the opposite type of mode (fullscreen/windowed) and tries that instead.
-bool create_gfx_driver_and_init_mode_any(const String &gfx_driver_id,
+static bool create_gfx_driver_and_init_mode_any(const String &gfx_driver_id,
     const GraphicResolution &game_res,
     const DisplayModeSetup &setup, const ColorDepthOption &color_depth)
 {
     if (!graphics_mode_create_renderer(gfx_driver_id))
+        return false;
+    if (!sys_is_display_valid(setup.DisplayIndex))
         return false;
 
     const int use_col_depth =
@@ -380,7 +389,10 @@ static bool simple_create_gfx_driver_and_init_mode(const String &gfx_driver_id,
                                             const DisplayModeSetup &setup,
                                             const ColorDepthOption &color_depth)
 {
-    if (!graphics_mode_create_renderer(gfx_driver_id)) { return false; }
+    if (!graphics_mode_create_renderer(gfx_driver_id))
+        return false;
+    if (!sys_is_display_valid(setup.DisplayIndex))
+        return false;
 
     // FIXME: use precalc_screen_size() here for Desktop systems, don't hardcode to using game_res
     const int col_depth = gfxDriver->GetDisplayDepthForNativeDepth(color_depth.Bits);
@@ -422,14 +434,21 @@ void display_gfx_mode_error(const Size &game_size, const WindowSetup &ws, const 
             main_error.GetCStr(), SDL_GetError(), platform->GetGraphicsTroubleshootingText());
 }
 
-bool graphics_mode_init_any(const GraphicResolution &game_res, const DisplayModeSetup &setup, const ColorDepthOption &color_depth)
+bool graphics_mode_init_any(const GraphicResolution &game_res, const DisplayModeSetup &setup, const ColorDepthOption &color_depth,
+                            Size *init_desktop_size)
 {
+    const int use_display_index = validate_display_index(setup.DisplayIndex);
+    if (use_display_index != setup.DisplayIndex)
+        Debug::Printf(kDbgMsg_Warn, "Requested display index %d is invalid, fall back to default", setup.DisplayIndex);
+
     // Log out display information
     Size device_size;
-    if (sys_get_desktop_resolution(setup.DisplayIndex, device_size.Width, device_size.Height))
+    if (sys_get_desktop_resolution(use_display_index, device_size.Width, device_size.Height))
         Debug::Printf("Device display resolution: %d x %d", device_size.Width, device_size.Height);
     else
         Debug::Printf(kDbgMsg_Error, "Unable to obtain device resolution");
+    if (init_desktop_size)
+        *init_desktop_size = device_size;
 
     WindowSetup ws = setup.Windowed ? setup.WinSetup : setup.FsSetup;
     FrameScaleDef gameframe = setup.Windowed ? setup.WinGameFrame : setup.FsGameFrame;
@@ -456,15 +475,19 @@ bool graphics_mode_init_any(const GraphicResolution &game_res, const DisplayMode
     else
         Debug::Printf(kDbgMsg_Error, "Requested graphics driver '%s' not found, will try existing drivers instead", setup.DriverID.GetCStr());
 
+    // Fixup display setup if necessary
+    DisplayModeSetup use_setup = setup;
+    use_setup.DisplayIndex = use_display_index;
+
     // Try to create renderer and init gfx mode, choosing one factory at a time
     bool result = false;
     for (const auto &id : ids)
     {
         result =
 #ifdef USE_SIMPLE_GFX_INIT
-            simple_create_gfx_driver_and_init_mode(id, game_res, setup, color_depth);
+            simple_create_gfx_driver_and_init_mode(id, game_res, use_setup, color_depth);
 #else
-            create_gfx_driver_and_init_mode_any(id, game_res, setup, color_depth);
+            create_gfx_driver_and_init_mode_any(id, game_res, use_setup, color_depth);
 #endif
 
         if (result)
@@ -474,7 +497,7 @@ bool graphics_mode_init_any(const GraphicResolution &game_res, const DisplayMode
     // If all possibilities failed, display error message and quit
     if (!result)
     {
-        display_gfx_mode_error(game_res, ws, color_depth.Bits, setup.Filter);
+        display_gfx_mode_error(game_res, ws, color_depth.Bits, use_setup.Filter);
         return false;
     }
     return true;
@@ -501,10 +524,12 @@ bool graphics_mode_set_dm_any(const Size &game_size, const WindowSetup &ws,
                               const ColorDepthOption &color_depth,
                               const FrameScaleDef frame, const DisplayParamsEx &params)
 {
+    const int use_display_index = validate_display_index(params.DisplayIndex);
+
     // We determine the requested size of the screen using setup options
-    const Size screen_size = precalc_screen_size(game_size, params.DisplayIndex, ws, frame);
+    const Size screen_size = precalc_screen_size(game_size, use_display_index, ws, frame);
     DisplayMode dm(GraphicResolution(screen_size.Width, screen_size.Height, color_depth.Bits),
-        ws.Mode, params.DisplayIndex, params.RefreshRate, params.VSync);
+        ws.Mode, use_display_index, params.RefreshRate, params.VSync);
     return try_init_compatible_mode(dm);
 }
 
@@ -512,6 +537,12 @@ bool graphics_mode_set_dm(const DisplayMode &dm)
 {
     Debug::Printf("Attempt to switch gfx mode to %d x %d (%d-bit) %s, on display %d",
         dm.Width, dm.Height, dm.ColorDepth, dm.IsWindowed() ? "windowed" : "fullscreen", dm.DisplayIndex);
+
+    if (!sys_is_display_valid(dm.DisplayIndex))
+    {
+        Debug::Printf(kDbgMsg_Error, "Requested display index %d is not valid.", dm.DisplayIndex);
+        return false;
+    }
 
     // Tell Allegro new default bitmap color depth (must be done before set_gfx_mode)
     // TODO: this is also done inside ALSoftwareGraphicsDriver implementation; can remove one?

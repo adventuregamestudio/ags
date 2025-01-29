@@ -106,6 +106,8 @@ INT_PTR WinDialog::OnDialogEvent(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/)
     {
     case WM_INITDIALOG:
         return OnInitDialog();
+    case WM_DESTROY:
+        return OnDestroyDialog();
     case WM_COMMAND:
         if (HIWORD(wParam) == CBN_SELCHANGE)
             return OnListSelection(LOWORD(wParam));

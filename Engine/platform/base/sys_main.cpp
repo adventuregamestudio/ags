@@ -74,7 +74,7 @@ void sys_set_background_mode(bool /*on*/) {
 const int DEFAULT_DISPLAY_INDEX = 0;
 
 int sys_get_window_display_index() {
-#if (AGS_PLATFORM_DESKTOP)
+#if (AGS_SUPPORT_MULTIDISPLAY)
     int index = -1;
     SDL_Window *window = sys_get_window();
     if (window)
@@ -85,24 +85,27 @@ int sys_get_window_display_index() {
 #endif
 }
 
-int sys_get_desktop_resolution(int &width, int &height) {
+bool sys_get_desktop_resolution(int &width, int &height) {
+    return sys_get_desktop_resolution(sys_get_window_display_index(), width, height);
+}
+
+bool sys_get_desktop_resolution(int display_index, int &width, int &height) {
     SDL_Rect r;
-    if (SDL_GetDisplayBounds(sys_get_window_display_index(), &r) != 0) {
+    if (SDL_GetDisplayBounds(display_index, &r) != 0) {
         Debug::Printf(kDbgMsg_Error, "SDL_GetDisplayBounds failed: %s", SDL_GetError());
-        return -1;
+        return false;
     }
     width = r.w;
     height = r.h;
-    return 0;
+    return true;
 }
 
-void sys_get_desktop_modes(std::vector<AGS::Engine::DisplayMode> &dms, int color_depth) {
+void sys_get_desktop_modes(int display_index, std::vector<AGS::Engine::DisplayMode> &dms, int color_depth) {
     SDL_DisplayMode mode;
-    const int display_id = sys_get_window_display_index();
-    const int count = SDL_GetNumDisplayModes(display_id);
+    const int count = SDL_GetNumDisplayModes(display_index);
     dms.clear();
     for (int i = 0; i < count; ++i) {
-        if (SDL_GetDisplayMode(display_id, i, &mode) != 0) {
+        if (SDL_GetDisplayMode(display_index, i, &mode) != 0) {
             Debug::Printf(kDbgMsg_Error, "SDL_GetDisplayMode failed: %s", SDL_GetError());
             continue;
         }
@@ -111,6 +114,7 @@ void sys_get_desktop_modes(std::vector<AGS::Engine::DisplayMode> &dms, int color
             continue;
         }
         AGS::Engine::DisplayMode dm;
+        dm.DisplayIndex = display_index;
         dm.Width = mode.w;
         dm.Height = mode.h;
         dm.ColorDepth = bitsdepth;
@@ -181,7 +185,7 @@ void sys_audio_shutdown()
 // TODO: support multiple windows? in case we need some for diag purposes etc
 static SDL_Window *window = nullptr;
 
-SDL_Window *sys_window_create(const char *window_title, int w, int h, WindowMode mode, int ex_flags) {
+SDL_Window *sys_window_create(const char *window_title, int display_index, int w, int h, WindowMode mode, int ex_flags) {
     if (window) {
         sys_window_destroy();
     }
@@ -201,22 +205,27 @@ SDL_Window *sys_window_create(const char *window_title, int w, int h, WindowMode
 #if (AGS_PLATFORM_OS_IOS)
     flags |= SDL_WINDOW_ALLOW_HIGHDPI;
 #endif
+#if !(AGS_SUPPORT_MULTIDISPLAY)
+    // Force displays setting to default on non-desktop platforms
+    assert(display_index == DEFAULT_DISPLAY_INDEX);
+    display_index = DEFAULT_DISPLAY_INDEX;
+#endif
     window = SDL_CreateWindow(
         window_title,
-        SDL_WINDOWPOS_CENTERED_DISPLAY(DEFAULT_DISPLAY_INDEX),
-        SDL_WINDOWPOS_CENTERED_DISPLAY(DEFAULT_DISPLAY_INDEX),
+        SDL_WINDOWPOS_CENTERED_DISPLAY(display_index),
+        SDL_WINDOWPOS_CENTERED_DISPLAY(display_index),
         w,
         h,
         flags
     );
-#if (AGS_PLATFORM_DESKTOP)
+#if (AGS_SUPPORT_MULTIDISPLAY)
     // CHECKME: this is done because SDL2 has some bug(s) during
     // centering. See: https://github.com/libsdl-org/SDL/issues/6875
     // TODO: SDL2 docs mentioned that on some systems the window border size
     // may be known only after the window is displayed, which means that
     // this may have to be called with a short delay (but how to know when?)
     if (mode == kWnd_Windowed)
-        sys_window_center();
+        sys_window_center(display_index);
 #endif
     return window;
 }
@@ -250,6 +259,11 @@ void sys_window_set_style(WindowMode mode, Size size) {
         SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
         break;
     }
+}
+
+void sys_window_bring_to_front() {
+    if (!window) return;
+    SDL_RaiseWindow(window);
 }
 
 void sys_window_show_cursor(bool on) {
@@ -304,7 +318,7 @@ bool sys_window_set_size(int w, int h, bool center) {
 void sys_window_center(int display_index) {
     if (!window)
         return;
-#if (AGS_PLATFORM_DESKTOP)
+#if (AGS_SUPPORT_MULTIDISPLAY)
     if (display_index < 0)
         display_index = SDL_GetWindowDisplayIndex(window);
     // CHECKME:
@@ -324,7 +338,7 @@ void sys_window_center(int display_index) {
     int x = bounds.x + bx1 + (bounds.w - (w + bx1 + bx2)) / 2;
     int y = bounds.y + by1 + (bounds.h - (h + by1 + by2)) / 2;
     SDL_SetWindowPosition(window, x, y);
-#else // !AGS_PLATFORM_DESKTOP
+#else // !AGS_SUPPORT_MULTIDISPLAY
     SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 #endif
 }
@@ -332,7 +346,7 @@ void sys_window_center(int display_index) {
 void sys_window_fit_in_display(int display_index) {
     if (!window)
         return;
-#if (AGS_PLATFORM_DESKTOP)
+#if (AGS_SUPPORT_MULTIDISPLAY)
     SDL_Rect bounds;
     if (SDL_GetDisplayUsableBounds(display_index, &bounds) != 0)
         return;
@@ -342,7 +356,7 @@ void sys_window_fit_in_display(int display_index) {
         SDL_SetWindowSize(window, std::min(bounds.w, w), std::min(bounds.h, h));
     }
     sys_window_center(display_index);
-#else // !AGS_PLATFORM_DESKTOP
+#else // !AGS_SUPPORT_MULTIDISPLAY
     // Dummy implementation for the time being
     SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 #endif

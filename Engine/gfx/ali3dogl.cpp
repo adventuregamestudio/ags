@@ -245,7 +245,11 @@ bool OGLGraphicsDriver::InitGlScreen(const DisplayMode &mode)
   }
   else
   {
+#if (AGS_SUPPORT_MULTIDISPLAY)
+    sys_window_fit_in_display(mode.DisplayIndex);
+#endif
     sys_window_set_style(mode.Mode, Size(mode.Width, mode.Height));
+    sys_window_bring_to_front();
   }
 
   SDL_GL_GetDrawableSize(_sdlWindow, &device_screen_physical_width, &device_screen_physical_height);
@@ -302,7 +306,7 @@ bool OGLGraphicsDriver::CreateWindowAndGlContext(const DisplayMode &mode)
   if (SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1) != 0)
     SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "Error occured setting attribute SDL_GL_DOUBLEBUFFER: %s", SDL_GetError());
 
-  SDL_Window *sdl_window = sys_window_create("", mode.Width, mode.Height, mode.Mode, SDL_WINDOW_OPENGL);
+  SDL_Window *sdl_window = sys_window_create("", mode.DisplayIndex, mode.Width, mode.Height, mode.Mode, SDL_WINDOW_OPENGL);
   if (!sdl_window)
   {
     Debug::Printf(kDbgMsg_Error, "Error opening window for OpenGL: %s", SDL_GetError());
@@ -760,6 +764,7 @@ bool OGLGraphicsDriver::SetDisplayMode(const DisplayMode &mode)
   // On certain platforms OpenGL renderer ignores requested screen sizes
   // and uses values imposed by the operating system (device).
   DisplayMode final_mode = mode;
+  final_mode.DisplayIndex = sys_get_window_display_index();
   final_mode.Width = device_screen_physical_width;
   final_mode.Height = device_screen_physical_height;
   OnModeSet(final_mode);
@@ -805,14 +810,14 @@ int OGLGraphicsDriver::GetDisplayDepthForNativeDepth(int /*native_color_depth*/)
     return 32;
 }
 
-IGfxModeList *OGLGraphicsDriver::GetSupportedModeList(int color_depth)
+IGfxModeList *OGLGraphicsDriver::GetSupportedModeList(int display_index, int color_depth)
 {
     std::vector<DisplayMode> modes {};
-    sys_get_desktop_modes(modes, color_depth);
+    sys_get_desktop_modes(display_index, modes, color_depth);
     if ((modes.size() == 0) && color_depth == 32)
     {
         // Pretend that 24-bit are 32-bit
-        sys_get_desktop_modes(modes, 24);
+        sys_get_desktop_modes(display_index, modes, 24);
         for (auto &m : modes) { m.ColorDepth = 32; }
     }
     return new OGLDisplayModeList(modes);

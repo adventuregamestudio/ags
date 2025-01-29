@@ -61,18 +61,23 @@ PlaneScaling         GameScaling;
 
 
 
-Size get_desktop_size()
+Size get_desktop_size(int display_index)
 {
     Size sz;
-    sys_get_desktop_resolution(sz.Width, sz.Height);
+    sys_get_desktop_resolution(display_index, sz.Width, sz.Height);
     return sz;
 }
 
-Size get_max_display_size(bool windowed)
+Size get_desktop_size()
 {
-    Size device_size = get_desktop_size();
+    return get_desktop_size(sys_get_window_display_index());
+}
+
+Size get_max_display_size(int display_index, bool windowed)
+{
+    Size device_size = get_desktop_size(display_index);
     if (windowed)
-        device_size = platform->ValidateWindowSize(device_size, false);
+        device_size = platform->ValidateWindowSize(display_index, device_size, false);
     return device_size;
 }
 
@@ -213,24 +218,27 @@ Size get_game_frame_from_screen_size(const Size &game_size, const Size screen_si
     }
 }
 
-static Size precalc_screen_size(const Size &game_size, const WindowSetup &ws, const FrameScaleDef frame)
+static Size precalc_screen_size(const Size &game_size, int display_index, const WindowSetup &ws, const FrameScaleDef frame)
 {
     const bool windowed = ws.Mode == kWnd_Windowed;
-    // Set requested screen (window) size, depending on screen definition option
-    if (!ws.Size.IsNull())
+    if (ws.SizeHint == kWndSizeHint_GameNative)
+    {
+        return game_size;
+    }
+    else if (!ws.Size.IsNull())
     {
         // Use explicit resolution from user config
         return ws.Size;
     }
     else if (ws.Scale > 0)
     {
-        return get_game_frame_from_screen_size(game_size, get_max_display_size(windowed), frame, ws.Scale);
+        return get_game_frame_from_screen_size(game_size, get_max_display_size(display_index, windowed), frame, ws.Scale);
     }
     // If nothing is set, then for the fullscreen mode set as big as current device/desktop size;
     // for the windowed mode assume maximal size inside desktop using given frame scaling
     if (windowed)
-        return get_game_frame_from_screen_size(game_size, get_max_display_size(windowed), frame);
-    return get_max_display_size(false);
+        return get_game_frame_from_screen_size(game_size, get_max_display_size(display_index, windowed), frame);
+    return get_max_display_size(display_index, false);
 }
 
 // Find closest possible compatible display mode and initialize it
@@ -239,13 +247,13 @@ bool try_init_compatible_mode(const DisplayMode &dm)
     const Size &screen_size = Size(dm.Width, dm.Height);
     // Find nearest compatible mode and init that
     Debug::Printf("Attempt to find nearest supported resolution for screen size %d x %d (%d-bit) %s, on display %d",
-        dm.Width, dm.Height, dm.ColorDepth, dm.IsWindowed() ? "windowed" : "fullscreen", sys_get_window_display_index());
-    const Size device_size = get_max_display_size(dm.IsWindowed());
+        dm.Width, dm.Height, dm.ColorDepth, dm.IsWindowed() ? "windowed" : "fullscreen", dm.DisplayIndex);
+    const Size device_size = get_max_display_size(dm.DisplayIndex, dm.IsWindowed());
     if (dm.IsWindowed())
         Debug::Printf("Maximal allowed window size: %d x %d", device_size.Width, device_size.Height);
     DisplayMode dm_compat = dm;
 
-    std::unique_ptr<IGfxModeList> modes(gfxDriver->GetSupportedModeList(dm.ColorDepth));
+    std::unique_ptr<IGfxModeList> modes(gfxDriver->GetSupportedModeList(dm.DisplayIndex, dm.ColorDepth));
 
     // Windowed mode
     if (dm.IsWindowed())
@@ -287,12 +295,12 @@ bool try_init_compatible_mode(const DisplayMode &dm)
 static bool try_init_mode_using_setup(const GraphicResolution &game_res, const WindowSetup &ws,
                                const int col_depth, const FrameScaleDef frame,
                                const GfxFilterSetup &filter,
-                               const DisplaySetupEx &params)
+                               const DisplayParamsEx &params)
 {
     // We determine the requested size of the screen using setup options
-    const Size screen_size = precalc_screen_size(game_res, ws, frame);
+    const Size screen_size = precalc_screen_size(game_res, params.DisplayIndex, ws, frame);
     DisplayMode dm(GraphicResolution(screen_size.Width, screen_size.Height, col_depth),
-        ws.Mode, params.RefreshRate, params.VSync);
+        ws.Mode, params.DisplayIndex, params.RefreshRate, params.VSync);
     if (!try_init_compatible_mode(dm))
         return false;
 
@@ -306,12 +314,12 @@ static bool try_init_mode_using_setup(const GraphicResolution &game_res, const W
     return true;
 }
 
-void log_out_driver_modes(const int color_depth)
+void log_out_driver_modes(const int display_index, const int color_depth)
 {
-    IGfxModeList *modes = gfxDriver->GetSupportedModeList(color_depth);
+    IGfxModeList *modes = gfxDriver->GetSupportedModeList(display_index, color_depth);
     if (!modes)
     {
-        Debug::Printf(kDbgMsg_Error, "Couldn't get a list of supported resolutions for color depth = %d", color_depth);
+        Debug::Printf(kDbgMsg_Error, "Couldn't get a list of supported resolutions for display %d, color depth = %d", display_index, color_depth);
         return;
     }
     const int mode_count = modes->GetModeCount();
@@ -326,7 +334,7 @@ void log_out_driver_modes(const int color_depth)
     }
     delete modes;
 
-    String out_str = String::FromFormat("Supported gfx modes (%d-bit): ", color_depth);
+    String out_str = String::FromFormat("Supported gfx modes for display %d (%d-bit): ", display_index, color_depth);
     if (!mode_str.IsEmpty())
     {
         out_str.Append("\n\t");
@@ -349,19 +357,19 @@ bool create_gfx_driver_and_init_mode_any(const String &gfx_driver_id,
     const int use_col_depth =
         color_depth.Forced ? color_depth.Bits : gfxDriver->GetDisplayDepthForNativeDepth(color_depth.Bits);
     // Log out supported driver modes
-    log_out_driver_modes(use_col_depth);
+    log_out_driver_modes(setup.DisplayIndex, use_col_depth);
 
     bool windowed = setup.Windowed;
     WindowSetup ws = windowed ? setup.WinSetup : setup.FsSetup;
     FrameScaleDef frame = windowed ? setup.WinGameFrame : setup.FsGameFrame;
-    bool result = try_init_mode_using_setup(game_res, ws, use_col_depth, frame, setup.Filter, DisplaySetupEx(setup.RefreshRate, setup.VSync));
+    bool result = try_init_mode_using_setup(game_res, ws, use_col_depth, frame, setup.Filter, DisplayParamsEx(setup.DisplayIndex, setup.RefreshRate, setup.VSync));
     // Try windowed mode if fullscreen failed, and vice versa
     if (!result && editor_debugging_initialized == 0)
     {
         windowed = !windowed;
         ws = windowed ? setup.WinSetup : setup.FsSetup;
         frame = windowed ? setup.WinGameFrame : setup.FsGameFrame;
-        result = try_init_mode_using_setup(game_res, ws, use_col_depth, frame, setup.Filter, DisplaySetupEx(setup.RefreshRate, setup.VSync));
+        result = try_init_mode_using_setup(game_res, ws, use_col_depth, frame, setup.Filter, DisplayParamsEx(setup.DisplayIndex, setup.RefreshRate, setup.VSync));
     }
     return result;
 }
@@ -374,12 +382,13 @@ static bool simple_create_gfx_driver_and_init_mode(const String &gfx_driver_id,
 {
     if (!graphics_mode_create_renderer(gfx_driver_id)) { return false; }
 
+    // FIXME: use precalc_screen_size() here for Desktop systems, don't hardcode to using game_res
     const int col_depth = gfxDriver->GetDisplayDepthForNativeDepth(color_depth.Bits);
     const WindowSetup ws = setup.Windowed ? setup.WinSetup : setup.FsSetup;
     const FrameScaleDef frame = setup.Windowed ? setup.WinGameFrame : setup.FsGameFrame;
 
     DisplayMode dm(GraphicResolution(game_res.Width, game_res.Height, col_depth),
-        ws.Mode, setup.RefreshRate, setup.VSync);
+        ws.Mode, setup.DisplayIndex, setup.RefreshRate, setup.VSync);
 
     if (!graphics_mode_set_dm(dm)) { return false; }
     if (!graphics_mode_set_native_res(dm)) { return false; }
@@ -417,7 +426,7 @@ bool graphics_mode_init_any(const GraphicResolution &game_res, const DisplayMode
 {
     // Log out display information
     Size device_size;
-    if (sys_get_desktop_resolution(device_size.Width, device_size.Height) == 0)
+    if (sys_get_desktop_resolution(setup.DisplayIndex, device_size.Width, device_size.Height))
         Debug::Printf("Device display resolution: %d x %d", device_size.Width, device_size.Height);
     else
         Debug::Printf(kDbgMsg_Error, "Unable to obtain device resolution");
@@ -490,19 +499,19 @@ bool graphics_mode_create_renderer(const String &driver_id)
 
 bool graphics_mode_set_dm_any(const Size &game_size, const WindowSetup &ws,
                               const ColorDepthOption &color_depth,
-                              const FrameScaleDef frame, const DisplaySetupEx &params)
+                              const FrameScaleDef frame, const DisplayParamsEx &params)
 {
     // We determine the requested size of the screen using setup options
-    const Size screen_size = precalc_screen_size(game_size, ws, frame);
+    const Size screen_size = precalc_screen_size(game_size, params.DisplayIndex, ws, frame);
     DisplayMode dm(GraphicResolution(screen_size.Width, screen_size.Height, color_depth.Bits),
-        ws.Mode, params.RefreshRate, params.VSync);
+        ws.Mode, params.DisplayIndex, params.RefreshRate, params.VSync);
     return try_init_compatible_mode(dm);
 }
 
 bool graphics_mode_set_dm(const DisplayMode &dm)
 {
     Debug::Printf("Attempt to switch gfx mode to %d x %d (%d-bit) %s, on display %d",
-        dm.Width, dm.Height, dm.ColorDepth, dm.IsWindowed() ? "windowed" : "fullscreen", sys_get_window_display_index());
+        dm.Width, dm.Height, dm.ColorDepth, dm.IsWindowed() ? "windowed" : "fullscreen", dm.DisplayIndex);
 
     // Tell Allegro new default bitmap color depth (must be done before set_gfx_mode)
     // TODO: this is also done inside ALSoftwareGraphicsDriver implementation; can remove one?
@@ -517,12 +526,11 @@ bool graphics_mode_set_dm(const DisplayMode &dm)
     DisplayMode rdm = gfxDriver->GetDisplayMode();
     ActiveDisplaySetting &setting = rdm.IsWindowed() ? SavedWindowedSetting : SavedFullscreenSetting;
     setting.Dm = rdm;
-    setting.DisplayIndex = sys_get_window_display_index();
     Debug::Printf(kDbgMsg_Info, "Graphics driver set: %s", gfxDriver->GetDriverName());
     Debug::Printf(kDbgMsg_Info, "Graphics mode set: %d x %d (%d-bit) %s, on display %d",
         rdm.Width, rdm.Height, rdm.ColorDepth,
         rdm.IsWindowed() ? "windowed" : (rdm.IsRealFullscreen() ? "fullscreen" : "fullscreen desktop"),
-        setting.DisplayIndex);
+        setting.Dm.DisplayIndex);
     Debug::Printf(kDbgMsg_Info, "Graphics mode set: refresh rate (optional): %d, vsync: %d", rdm.RefreshRate, rdm.Vsync);
     uint64_t tex_mem = gfxDriver->GetAvailableTextureMemory();
     if (tex_mem > 0u)

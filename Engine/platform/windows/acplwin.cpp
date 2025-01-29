@@ -78,7 +78,7 @@ struct AGSWin32 : AGSPlatformDriver {
   void DisplayMessageBox(const char *text) override;
   void PauseApplication() override;
   void ResumeApplication() override;
-  Size ValidateWindowSize(const Size &sz, bool borderless) const override;
+  Size ValidateWindowSize(int display_index, const Size &sz, bool borderless) const override;
   SDL_Surface *CreateWindowIcon() override;
 
   // Returns command line argument in a UTF-8 format
@@ -408,7 +408,7 @@ void AGSWin32::ShutdownCDPlayer() {
   cd_exit();
 }
 
-Size AGSWin32::ValidateWindowSize(const Size &sz, bool borderless) const
+Size AGSWin32::ValidateWindowSize(int display_index, const Size &sz, bool borderless) const
 {
     // Limit the window's client size by the two metrics:
     // * system's window size limit,
@@ -419,7 +419,7 @@ Size AGSWin32::ValidateWindowSize(const Size &sz, bool borderless) const
     // This is the size of the available workspace on user's desktop
     // NOTE: using SDL here, because WinAPI monitor enumeration may have different order
     // (SDL deals with this by registering monitors in its own list, but we'd like to avoid a hassle)
-    SDL_GetDisplayUsableBounds(sys_get_window_display_index(), &bounds_rc);
+    SDL_GetDisplayUsableBounds(display_index, &bounds_rc);
     // This is the maximal size that OS can reliably resize the window to (including any frame)
     const Size max_win(GetSystemMetrics(SM_CXMAXTRACK), GetSystemMetrics(SM_CYMAXTRACK));
     // This is the size of window's non-client area (frame, caption, etc)

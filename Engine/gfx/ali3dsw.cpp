@@ -13,6 +13,7 @@
 //=============================================================================
 #include "gfx/ali3dsw.h"
 #include <algorithm>
+#include <array>
 #include <stack>
 #include "ac/sys_events.h"
 #include "gfx/ali3dexception.h"
@@ -20,7 +21,8 @@
 #include "gfx/gfx_util.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/sys_main.h"
-#include "ac/timer.h"
+#include "util/string_compat.h"
+
 
 namespace AGS
 {
@@ -79,14 +81,14 @@ int SDLRendererGraphicsDriver::GetDisplayDepthForNativeDepth(int /*native_color_
     return 32;
 }
 
-IGfxModeList *SDLRendererGraphicsDriver::GetSupportedModeList(int color_depth)
+IGfxModeList *SDLRendererGraphicsDriver::GetSupportedModeList(int display_index, int color_depth)
 {
     std::vector<DisplayMode> modes;
-    sys_get_desktop_modes(modes, color_depth);
+    sys_get_desktop_modes(display_index, modes, color_depth);
     if ((modes.size() == 0) && color_depth == 32)
     {
         // Pretend that 24-bit are 32-bit
-        sys_get_desktop_modes(modes, 24);
+        sys_get_desktop_modes(display_index, modes, 24);
         for (auto &m : modes) { m.ColorDepth = 32; }
     }
     return new SDLRendererGfxModeList(modes);
@@ -130,7 +132,7 @@ bool SDLRendererGraphicsDriver::SetDisplayMode(const DisplayMode &mode)
   SDL_Window *window = sys_get_window();
   if (!window)
   {
-    window = sys_window_create("", mode.Width, mode.Height, mode.Mode);
+    window = sys_window_create("", mode.DisplayIndex, mode.Width, mode.Height, mode.Mode);
 
     _hasGamma = SDL_GetWindowGammaRamp(window, _defaultGammaRed, _defaultGammaGreen, _defaultGammaBlue) == 0;
 
@@ -154,13 +156,36 @@ bool SDLRendererGraphicsDriver::SetDisplayMode(const DisplayMode &mode)
         if (!_capsVsync)
           Debug::Printf(kDbgMsg_Warn, "WARNING: Vertical sync is not supported. Setting will be kept at driver default.");
       }
+
+      // Record if SDL have created a DirectX renderer - we use this info for some checks
+      const std::array<const char *, 3> directx_renderers = { { "direct3d", "direct3d11", "direct3d12" } };
+      for (const char *name : directx_renderers)
+      {
+        if (ags_stricmp(rinfo.name, name) == 0)
+        {
+          _isDirectX = true;
+          break;
+        }
+      }
     } else {
       Debug::Printf("SDLRenderer: failed to query renderer info: %s", SDL_GetError());
     }
   }
   else
   {
+#if (AGS_SUPPORT_MULTIDISPLAY)
+    // This is a bit of a hack, but certain drivers do not support changing
+    // display in exclusive fullscreen mode, and here we find out if it's the case.
+    // NOTE: we may in theory support this, but we'd have to release and recreate
+    // ALL the resources, including all textures currently in memory.
+    if (_isDirectX && mode.IsRealFullscreen() &&
+        (_fullscreenDisplay > 0) && (sys_get_window_display_index() != _fullscreenDisplay))
+    {
+      sys_window_fit_in_display(_fullscreenDisplay);
+    }
+#endif // AGS_SUPPORT_MULTIDISPLAY
     sys_window_set_style(mode.Mode, Size(mode.Width, mode.Height));
+    sys_window_bring_to_front();
   }
 
 #if AGS_PLATFORM_MOBILE
@@ -168,7 +193,11 @@ bool SDLRendererGraphicsDriver::SetDisplayMode(const DisplayMode &mode)
 #endif
 
   OnInit();
-  OnModeSet(mode);
+  DisplayMode set_mode = mode;
+  set_mode.DisplayIndex = sys_get_window_display_index();
+  if ((_fullscreenDisplay < 0) || set_mode.IsRealFullscreen())
+    _fullscreenDisplay = set_mode.DisplayIndex;
+  OnModeSet(set_mode);
   return true;
 }
 

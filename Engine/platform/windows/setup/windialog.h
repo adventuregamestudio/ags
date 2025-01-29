@@ -56,6 +56,7 @@ protected:
     // Event handlers
     virtual INT_PTR OnDialogEvent(UINT uMsg, WPARAM wParam, LPARAM lParam);
     virtual INT_PTR OnInitDialog() { return FALSE; /* do nothing */ }
+    virtual INT_PTR OnDestroyDialog() { return FALSE; /* do nothing */ }
     virtual INT_PTR OnCommand(WORD id) { return FALSE; /* do nothing */ }
     virtual INT_PTR OnListSelection(WORD id) { return FALSE; /* do nothing */ }
 

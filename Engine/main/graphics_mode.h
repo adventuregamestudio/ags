@@ -27,6 +27,9 @@ using AGS::Engine::GraphicResolution;
 using AGS::Engine::DisplayMode;
 using AGS::Engine::WindowMode;
 
+// Gets desktop size for the given display
+Size get_desktop_size(int display_index);
+// Gets desktop size for the displays that hosts game window
 Size get_desktop_size();
 
 namespace AGS { namespace Engine { class IGfxModeList; }}
@@ -90,13 +93,14 @@ struct WindowSetup
 };
 
 // Additional parameters for the display mode setup
-struct DisplaySetupEx
+struct DisplayParamsEx
 {
-    int                  RefreshRate = 0;  // gfx mode refresh rate
-    bool                 VSync = false;    // vertical sync
+    int  DisplayIndex = 0; // 0-based display index
+    int  RefreshRate = 0;  // gfx mode refresh rate
+    bool VSync = false;    // vertical sync
 
-    DisplaySetupEx(int rate, bool vsync)
-        : RefreshRate(rate), VSync(vsync) {}
+    DisplayParamsEx(int display_index, int rate, bool vsync)
+        : DisplayIndex(display_index), RefreshRate(rate), VSync(vsync) {}
 };
 
 // Full graphics configuration, contains graphics driver selection,
@@ -115,6 +119,8 @@ struct DisplayModeSetup
     FrameScaleDef        WinGameFrame = // how the game frame should be scaled/positioned in windowed mode
                                 kFrame_Undefined;
 
+    bool                 UseDefaultDisplay = true; // used when writing config back
+    int                  DisplayIndex = 0; // 0-based display index
     bool                 Windowed = false; // initial mode
     int                  RefreshRate = 0;  // gfx mode refresh rate
     bool                 VSync = false;    // vertical sync
@@ -138,7 +144,6 @@ struct ActiveDisplaySetting
 {
     DisplayMode     Dm;
     FrameScaleDef   Frame = kFrame_Undefined;
-    int             DisplayIndex = -1;
 };
 
 // Initializes any possible gfx mode, using user config as a recommendation;
@@ -151,7 +156,7 @@ bool graphics_mode_create_renderer(const String &driver_id);
 // Try to find and initialize compatible display mode as close to given setup as possible
 bool graphics_mode_set_dm_any(const Size &game_size, const WindowSetup &ws,
                               const ColorDepthOption &color_depth,
-                              const FrameScaleDef frame, const DisplaySetupEx &params);
+                              const FrameScaleDef frame, const DisplayParamsEx &params);
 // Set the display mode with given parameters
 bool graphics_mode_set_dm(const AGS::Engine::DisplayMode &dm);
 // Set the native image size

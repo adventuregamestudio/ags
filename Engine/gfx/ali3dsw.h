@@ -165,7 +165,7 @@ public:
     bool SetRenderFrame(const Rect &dst_rect) override;
     bool IsModeSupported(const DisplayMode &mode) override;
     int  GetDisplayDepthForNativeDepth(int native_color_depth) const override;
-    IGfxModeList *GetSupportedModeList(int color_depth) override;
+    IGfxModeList *GetSupportedModeList(int display_index, int color_depth) override;
     PGfxFilter GetGraphicsFilter() const override;
     void UnInit();
     // Clears the screen rectangle. The coordinates are expected in the **native game resolution**.
@@ -240,6 +240,8 @@ private:
 
     SDL_Renderer *_renderer = nullptr;
     SDL_Texture *_screenTex = nullptr;
+    bool _isDirectX = false; // records if created DirectX based renderer
+    int _fullscreenDisplay = -1; // a display where exclusive fullscreen was created
     // BITMAP struct for wrapping screen texture locked pixels, so that we may use blit()
     BITMAP *_fakeTexBitmap = nullptr;
     unsigned char *_lastTexPixels = nullptr;

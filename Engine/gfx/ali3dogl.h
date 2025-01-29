@@ -235,7 +235,7 @@ public:
     bool SetNativeResolution(const GraphicResolution &native_res) override;
     bool SetRenderFrame(const Rect &dst_rect) override;
     int GetDisplayDepthForNativeDepth(int native_color_depth) const override;
-    IGfxModeList *GetSupportedModeList(int color_depth) override;
+    IGfxModeList *GetSupportedModeList(int display_index, int color_depth) override;
     bool IsModeSupported(const DisplayMode &mode) override;
     PGfxFilter GetGraphicsFilter() const override;
     void UnInit();

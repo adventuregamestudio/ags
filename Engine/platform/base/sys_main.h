@@ -40,10 +40,12 @@ void sys_set_background_mode(bool on);
 // Queries the display index on which the window is currently positioned.
 // Returns default display index in case window does not exist yet, or on any error.
 int sys_get_window_display_index();
-// Queries current desktop resolution.
-int sys_get_desktop_resolution(int &width, int &height);
+// Queries current desktop resolution from the display that hosts game window.
+bool sys_get_desktop_resolution(int &width, int &height);
+// Queries current desktop resolution from the requested display.
+bool sys_get_desktop_resolution(int display_index, int &width, int &height);
 // Queries supported desktop modes.
-void sys_get_desktop_modes(std::vector<AGS::Engine::DisplayMode> &dms, int color_depth = 0);
+void sys_get_desktop_modes(int display_index, std::vector<AGS::Engine::DisplayMode> &dms, int color_depth = 0);
 // Sets output driver for the backend's renderer
 // TODO: consider make part of the SDLRendererGraphicsDriver later
 void sys_renderer_set_output(const String &name);
@@ -59,11 +61,13 @@ void sys_audio_shutdown();
 //
 struct SDL_Window;
 // Create a new single game window.
-SDL_Window *sys_window_create(const char *window_title, int w, int h, AGS::Engine::WindowMode mode, int ex_flags = 0);
+SDL_Window *sys_window_create(const char *window_title, int display_index, int w, int h, AGS::Engine::WindowMode mode, int ex_flags = 0);
 // Returns current game window, if one exists, or null.
 SDL_Window *sys_get_window();
 // Changes the window style for the given mode (fullscreen / windowed).
 void sys_window_set_style(AGS::Engine::WindowMode mode, Size size = Size());
+// Brings the game window to front
+void sys_window_bring_to_front();
 // Set new window size; optionally center new window on screen
 bool sys_window_set_size(int w, int h, bool center);
 // Centers the window on screen, optionally choose the display to position on

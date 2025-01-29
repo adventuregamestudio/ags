@@ -834,9 +834,10 @@ namespace AGS.Types
         public CrossfadeSpeed CrossfadeMusic { get; set; }
 
         [DisplayName("Use GUI for dialog options")]
-        [Description("Dialog options can be drawn on a textwindow GUI (0 to just draw at bottom of screen instead)")]
+        [Description("Dialog options can be drawn on a normal or textwindow GUI (0 to just draw at bottom of screen instead)")]
         [Category("Dialog")]
         [DefaultValue(0)]
+        [TypeConverter(typeof(GUIIndexTypeConverter))]
         public int DialogOptionsGUI
         {
             get { return _dialogOptionsGUI; }
@@ -974,6 +975,7 @@ namespace AGS.Types
         [Description("Sets which text-window GUI is used for normal text in the game. You must use the GUI number, not name. You can't use GUI 0 for this, because 0 means that AGS will use its built-in text window instead.")]
         [Category("Text output")]
         [DefaultValue(0)]
+        [TypeConverter(typeof(GUITextWindowIndexTypeConverter))]
         public int TextWindowGUI
         {
             get { return _textWindowGUI; }
@@ -1035,6 +1037,7 @@ namespace AGS.Types
         [Description("Character.Think will use this custom text-window GUI")]
         [Category("Text output")]
         [DefaultValue(0)]
+        [TypeConverter(typeof(GUITextWindowIndexTypeConverter))]
         public int ThoughtGUI
         {
             get { return _thoughtGUI; }

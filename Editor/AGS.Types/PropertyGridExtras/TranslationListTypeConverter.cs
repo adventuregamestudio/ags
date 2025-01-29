@@ -17,7 +17,7 @@ namespace AGS.Types
 
         public static void SetTranslationsList(IList<Translation> trans)
         {
-            // Keep a refernce to the list so it can be updated whenever we need to
+            // Keep a reference to the list so it can be updated whenever we need to
             _Translations = trans;
             RefreshTranslationsList();
         }

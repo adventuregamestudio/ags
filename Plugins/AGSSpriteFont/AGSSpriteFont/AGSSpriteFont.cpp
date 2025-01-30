@@ -297,7 +297,7 @@ void AGS_EngineShutdown()
 
 //------------------------------------------------------------------------------
 
-int AGS_EngineOnEvent(int event, int data)                    //*** optional ***
+intptr_t AGS_EngineOnEvent(int event, intptr_t data)          //*** optional ***
 {
 	switch (event)
 	{

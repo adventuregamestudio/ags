@@ -46,6 +46,8 @@ public:
     // ignore_walls - tells to ignore impassable areas (builds a straight line path).
     virtual bool FindRoute(std::vector<Point> &path, int srcx, int srcy, int dstx, int dsty,
         bool exact_dest = false, bool ignore_walls = false) = 0;
+    // Tells whether the current position is walkable
+    virtual bool IsWalkableAt(int x, int y) = 0;
 };
 
 // MaskRouteFinder: a mask-based RouteFinder.
@@ -63,6 +65,8 @@ public:
     // ignore_walls - tells to ignore impassable areas (builds a straight line path).
     bool FindRoute(std::vector<Point> &path, int srcx, int srcy, int dstx, int dsty,
         bool exact_dest = false, bool ignore_walls = false) override;
+    // Tells whether the current position is walkable
+    bool IsWalkableAt(int x, int y) override;
 
     // Assign a walkable mask, and an optional coordinate scale factor which will be used
     // to convert (divide) input coordinates, and resulting path back (multiply).

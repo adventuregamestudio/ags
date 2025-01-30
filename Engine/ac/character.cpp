@@ -1771,7 +1771,10 @@ void move_character_impl(CharacterInfo *chin, const std::vector<Point> *path, in
     if (!ValidateCharForMove(chin, "MoveCharacter"))
         return;
 
-    if (path && path->empty() || !path && (tox == chin->x) && (toy == chin->y))
+    // If has path, then test if it's empty, or has 2 stages where start is identical to end;
+    // If no path, then test if destination is identical to the current pos
+    if (path && ((path->size() < 2) || (path->size() == 2) && ((*path)[0] == (*path)[1])) ||
+        !path && (tox == chin->x) && (toy == chin->y))
     {
         StopMoving(chac);
         debug_script_log("MoveCharacter: %s move path is empty, or is already at destination, not moving", chin->scrname);
@@ -2165,6 +2168,12 @@ void move_character_straight(CharacterInfo *chaa, int x, int y, bool walk_anim)
 
     MaskRouteFinder *pathfind = get_room_pathfinder();
     pathfind->SetWalkableArea(prepare_walkable_areas(chaa->index_id), thisroom.MaskResolution);
+    if (!pathfind->IsWalkableAt(chaa->x, chaa->y))
+    {
+        StopMoving(chaa->index_id);
+        debug_script_log("MoveCharacterStraight: %s (%d,%d) is not on a walkable area, not moving", chaa->scrname, chaa->x, chaa->y);
+        return;
+    }
 
     int movetox = x, movetoy = y;
     int lastcx = chaa->x, lastcy = chaa->y;

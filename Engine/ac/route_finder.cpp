@@ -18,6 +18,7 @@
 #include "ac/route_finder_impl.h"
 #include "ac/route_finder_impl_legacy.h"
 #include "debug/out.h"
+#include "gfx/bitmap.h"
 #include "util/memory_compat.h"
 
 using namespace AGS::Common;
@@ -70,7 +71,15 @@ bool MaskRouteFinder::FindRoute(std::vector<Point> &path, int srcx, int srcy, in
     return true;
 }
 
-void MaskRouteFinder::SetWalkableArea(const AGS::Common::Bitmap *walkablearea, int coord_scale)
+bool MaskRouteFinder::IsWalkableAt(int x, int y)
+{
+    if (!_walkablearea)
+        return false;
+
+    return _walkablearea->GetPixel(x / _coordScale, y / _coordScale) > 0;
+}
+
+void MaskRouteFinder::SetWalkableArea(const Bitmap *walkablearea, int coord_scale)
 {
     _walkablearea = walkablearea;
     assert(coord_scale > 0);
@@ -86,12 +95,12 @@ std::unique_ptr<MaskRouteFinder> CreateDefaultMaskPathfinder(GameDataVersion gam
 {
     if (game_ver >= kGameVersion_350) 
     {
-        AGS::Common::Debug::Printf(AGS::Common::MessageType::kDbgMsg_Info, "Initialize path finder");
+        Debug::Printf(MessageType::kDbgMsg_Info, "Initialize path finder");
         return std::make_unique<JPSRouteFinder>();
     } 
     else 
     {
-        AGS::Common::Debug::Printf(AGS::Common::MessageType::kDbgMsg_Info, "Initialize legacy path finder library");
+        Debug::Printf(MessageType::kDbgMsg_Info, "Initialize legacy path finder library");
         return std::make_unique<LegacyRouteFinder>();
     }
 }
@@ -201,7 +210,7 @@ void calculate_move_stage(MoveList &mls, uint32_t stage, fixed move_speed_x, fix
     mls.permove[stage].Y = newymove;
 
 #ifdef DEBUG_PATHFINDER
-  AGS::Common::Debug::Printf("stage %d from %d,%d to %d,%d Xpermove:%X Ypm:%X", stage, ourx, oury, destx, desty, newxmove, newymove);
+  Debug::Printf("stage %d from %d,%d to %d,%d Xpermove:%X Ypm:%X", stage, ourx, oury, destx, desty, newxmove, newymove);
 #endif
 }
 

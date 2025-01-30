@@ -760,7 +760,7 @@ DLLEXPORT int    AGS_EditorSaveGame (char *, int);
 DLLEXPORT void   AGS_EditorLoadGame (char *, int);
 DLLEXPORT void   AGS_EngineStartup (IAGSEngine *);
 DLLEXPORT void   AGS_EngineShutdown (void);
-DLLEXPORT int    AGS_EngineOnEvent (int, int);
+DLLEXPORT intptr_t AGS_EngineOnEvent (int, intptr_t);
 DLLEXPORT int    AGS_EngineDebugHook(const char *, int, int);
 DLLEXPORT void   AGS_EngineInitGfx(const char* driverID, void *data); 
 // Export this to let engine verify that this is a compatible AGS Plugin;

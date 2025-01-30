@@ -1477,10 +1477,8 @@ size_t D3DGraphicsDriver::RenderSpriteBatch(const D3DSpriteBatch &batch, size_t 
         {
         case DRAWENTRY_STAGECALLBACK:
             // raw-draw plugin support
-            // NOTE: device ptr cast will only work on 32-bit systems!
             int sx, sy;
-            if (auto *ddb = DoSpriteEvtCallback(e.x,
-                static_cast<int32_t>(reinterpret_cast<uintptr_t>(direct3ddevice.get())), sx, sy))
+            if (auto *ddb = DoSpriteEvtCallback(e.x, reinterpret_cast<intptr_t>(direct3ddevice.get()), sx, sy))
             {
                 auto stageEntry = D3DDrawListEntry((D3DBitmap*)ddb, batch.ID, sx, sy);
                 RenderSprite(&stageEntry, batch.Matrix, batch.Color, rend_sz);

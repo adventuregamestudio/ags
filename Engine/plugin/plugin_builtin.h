@@ -29,7 +29,7 @@ struct InbuiltPluginDetails {
     AGS::Common::String    filename;
     void      (*engineStartup) (IAGSEngine *);
     void      (*engineShutdown) ();
-    int       (*onEvent) (int, int);
+    intptr_t  (*onEvent) (int evt, intptr_t param);
     void      (*initGfxHook) (const char *driverName, void *data);
     int       (*debugHook) (const char * whichscript, int lineNumber, int reserved);
 };

@@ -2576,7 +2576,7 @@ void put_sprite_list_on_screen(bool in_room)
     set_our_eip(1100);
 }
 
-bool GfxDriverSpriteEvtCallback(int evt, int data)
+bool GfxDriverSpriteEvtCallback(int evt, intptr_t data)
 {
     if (displayed_room < 0)
     {

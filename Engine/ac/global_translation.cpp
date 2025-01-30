@@ -33,14 +33,11 @@ const char *get_translation (const char *text) {
 
     source_text_length = GetTextDisplayLength(text);
 
-#if !(AGS_PLATFORM_64BIT)
     // check if a plugin wants to translate it - if so, return that
-    // FIXME: plugin API is currently strictly 32-bit, so this may break on 64-bit systems
-    char *plResult = Int32ToPtr<char>(pl_run_plugin_hooks(kPluginEvt_TranslateText, PtrToInt32(text)));
-    if (plResult) {
-        return plResult;
-    }
-#endif
+    const char *pl_result = reinterpret_cast<const char*>(
+        pl_run_plugin_hooks(kPluginEvt_TranslateText, reinterpret_cast<intptr_t>(text)));
+    if (pl_result)
+        return pl_result;
 
     const auto &transtree = get_translation_tree();
     const auto it = transtree.find(String::Wrapper(text));

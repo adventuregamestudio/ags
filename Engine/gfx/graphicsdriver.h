@@ -84,7 +84,7 @@ struct RenderMatrixes
 
 
 typedef void (*GFXDRV_CLIENTCALLBACK)();
-typedef bool (*GFXDRV_CLIENTCALLBACKEVT)(int evt, int data);
+typedef bool (*GFXDRV_CLIENTCALLBACKEVT)(int evt, intptr_t data);
 typedef void (*GFXDRV_CLIENTCALLBACKINITGFX)(void *data);
 
 class IGraphicsDriver

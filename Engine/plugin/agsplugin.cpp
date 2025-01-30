@@ -117,7 +117,7 @@ struct EnginePlugin
     int         invalidatedRegion = 0;
     void      (*engineStartup) (IAGSEngine *) = nullptr;
     void      (*engineShutdown) () = nullptr;
-    int       (*onEvent) (int, int) = nullptr;
+    intptr_t  (*onEvent) (int evt, intptr_t param) = nullptr;
     void      (*initGfxHook) (const char *driverName, void *data) = nullptr;
     int       (*debugHook) (const char * whichscript, int lineNumber, int reserved) = nullptr;
     IAGSEngine  eiface;
@@ -901,13 +901,13 @@ void pl_startup_plugins() {
     }
 }
 
-int pl_run_plugin_hooks(int event, int data)
+intptr_t pl_run_plugin_hooks(int event, intptr_t data)
 {
     for (auto &plugin : plugins)
     {
         if (plugin.wantHook & event)
         {
-            int retval = plugin.onEvent(event, data);
+            intptr_t retval = plugin.onEvent(event, data);
             // FIXME: this is an inconvenient design: breaking out
             // should be done only for events that are claimable,
             // such as key press, but not any random event!
@@ -943,7 +943,7 @@ bool pl_query_next_plugin_for_event(int event, int &pl_index, String &pl_name)
     return false;
 }
 
-int pl_run_plugin_hook_by_index(int pl_index, int event, int data)
+intptr_t pl_run_plugin_hook_by_index(int pl_index, int event, intptr_t data)
 {
     if (pl_index < 0 || pl_index >= plugins.size())
         return 0;
@@ -956,7 +956,7 @@ int pl_run_plugin_hook_by_index(int pl_index, int event, int data)
     return 0;
 }
 
-int pl_run_plugin_hook_by_name(Common::String &pl_name, int event, int data)
+intptr_t pl_run_plugin_hook_by_name(Common::String &pl_name, int event, intptr_t data)
 {
     for (auto &plugin : plugins)
     {
@@ -1096,7 +1096,7 @@ HError pl_load_plugin(EnginePlugin *apl, const std::vector<String> lookup_dirs)
 
     apl->engineStartup = (void(*)(IAGSEngine*))startup_function;
     apl->engineShutdown = (void(*)())apl->library.GetFunctionAddress("AGS_EngineShutdown");
-    apl->onEvent = (int(*)(int,int))apl->library.GetFunctionAddress("AGS_EngineOnEvent");
+    apl->onEvent = (intptr_t(*)(int,intptr_t))apl->library.GetFunctionAddress("AGS_EngineOnEvent");
     apl->debugHook = (int(*)(const char*,int,int))apl->library.GetFunctionAddress("AGS_EngineDebugHook");
     apl->initGfxHook = (void(*)(const char*, void*))apl->library.GetFunctionAddress("AGS_EngineInitGfx");
     return HError::None();

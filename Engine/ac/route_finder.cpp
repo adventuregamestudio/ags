@@ -310,26 +310,43 @@ bool FindNearestWalkablePoint(Bitmap *mask, const Point &from_pt, Point &dst_pt,
         return true;
     }
 
+    // Scan outwards from the starting point, rectangle by rectangle,
+    // and measure distance between start and found point. The one with the smallest
+    // distance will be accepted as a result.
+    // As soon as we find the first walkable point, we limit the max scan range
+    // to its distance, because we won't need anything beyond that.
     // We store distances as "squared distance" in order to avoid sqrt() call in a loop
     uint64_t nearest_sqdist = UINT64_MAX;
     Point nearest_pt(-1, -1);
     const int mask_line_len = mask->GetLineLength();
     const uint8_t *mask_ptr = mask->GetData();
 
-    // X outer and Y internal loop was a historical order of search,
-    // kept for backwards compatibility (this is not too important, but just in case)
-    for (int x = use_limits.Left; x <= use_limits.Right; x += step)
+    int max_range = std::max(
+        std::max(from_pt.X - use_limits.Left, use_limits.Right - from_pt.X),
+        std::max(from_pt.Y - use_limits.Top, use_limits.Bottom - from_pt.Y));
+    for (int cur_range = 1; cur_range <= max_range; cur_range += step)
     {
-        for (int y = use_limits.Top; y <= use_limits.Bottom; y += step)
+        const int scan_fromx = std::max(use_limits.Left,   from_pt.X - cur_range);
+        const int scan_tox   = std::min(use_limits.Right,  from_pt.X + cur_range);
+        const int scan_fromy = std::max(use_limits.Top,    from_pt.Y - cur_range);
+        const int scan_toy   = std::min(use_limits.Bottom, from_pt.Y + cur_range);
+        // X outer and Y internal loop was a historical order of search,
+        // kept for backwards compatibility (this is not too important, but just in case)
+        for (int x = scan_fromx; x <= scan_tox; x += step)
         {
-            if (mask_ptr[y * mask_line_len + x] == 0)
-                continue;
-
-            uint64_t sqdist = (x - from_pt.X) * (x - from_pt.X) + (y - from_pt.Y) * (y - from_pt.Y);
-            if (sqdist < nearest_sqdist)
+            const int y_step = (x == scan_fromx || x == scan_tox) ? step : cur_range * 2;
+            for (int y = scan_fromy; y <= scan_toy; y += y_step)
             {
-                nearest_sqdist = sqdist;
-                nearest_pt = Point(x, y);
+                if (mask_ptr[y * mask_line_len + x] == 0)
+                    continue;
+
+                uint64_t sqdist = (x - from_pt.X) * (x - from_pt.X) + (y - from_pt.Y) * (y - from_pt.Y);
+                if (sqdist < nearest_sqdist)
+                {
+                    max_range = std::sqrt(sqdist);
+                    nearest_sqdist = sqdist;
+                    nearest_pt = Point(x, y);
+                }
             }
         }
     }

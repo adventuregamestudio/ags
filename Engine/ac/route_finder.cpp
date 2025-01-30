@@ -115,16 +115,18 @@ bool FindRoute(MoveList &mls, IRouteFinder *finder, int srcx, int srcy, int dstx
     return CalculateMoveList(mls, path, move_speed_x, move_speed_y);
 }
 
-inline fixed input_speed_to_fixed(int speed_val)
+// Converts input moving speed to a fixed-point representation.
+// Negative move speeds become fractional, e.g. -2 = 1/2 speed.
+inline fixed InputSpeedToFixed(int speed_val)
 {
-    // negative move speeds like -2 get converted to 1/2
     if (speed_val < 0)
         return itofix(1) / (-speed_val);
     else
         return itofix(speed_val);
 }
 
-inline fixed calc_move_speed_at_angle(fixed speed_x, fixed speed_y, fixed xdist, fixed ydist)
+// Calculates velocity vector length from x/y speed components
+inline fixed CalcMoveSpeedAtAngle(fixed speed_x, fixed speed_y, fixed xdist, fixed ydist)
 {
     fixed useMoveSpeed;
     if (speed_x == speed_y)
@@ -152,7 +154,7 @@ inline fixed calc_move_speed_at_angle(fixed speed_x, fixed speed_y, fixed xdist,
 }
 
 // Calculates the X and Y per game loop, for this stage of the movelist
-void calculate_move_stage(MoveList &mls, uint32_t stage, fixed move_speed_x, fixed move_speed_y)
+void CalculateMoveStage(MoveList &mls, uint32_t stage, fixed move_speed_x, fixed move_speed_y)
 {
     // work out the x & y per move. First, opp/adj=tan, so work out the angle
     if (mls.pos[stage] == mls.pos[stage + 1])
@@ -189,7 +191,7 @@ void calculate_move_stage(MoveList &mls, uint32_t stage, fixed move_speed_x, fix
     fixed xdist = itofix(abs(ourx - destx));
     fixed ydist = itofix(abs(oury - desty));
 
-    fixed useMoveSpeed = calc_move_speed_at_angle(move_speed_x, move_speed_y, xdist, ydist);
+    fixed useMoveSpeed = CalcMoveSpeedAtAngle(move_speed_x, move_speed_y, xdist, ydist);
 
     fixed angl = fixatan(fixdiv(ydist, xdist));
 
@@ -220,10 +222,10 @@ bool CalculateMoveList(MoveList &mls, const std::vector<Point> path, int move_sp
     mlist.pos = path;
     mlist.permove.resize(path.size());
 
-    const fixed fix_speed_x = input_speed_to_fixed(move_speed_x);
-    const fixed fix_speed_y = input_speed_to_fixed(move_speed_y);
+    const fixed fix_speed_x = InputSpeedToFixed(move_speed_x);
+    const fixed fix_speed_y = InputSpeedToFixed(move_speed_y);
     for (uint32_t i = 0; i < mlist.GetNumStages() - 1; i++)
-        calculate_move_stage(mlist, i, fix_speed_x, fix_speed_y);
+        CalculateMoveStage(mlist, i, fix_speed_x, fix_speed_y);
 
     mlist.from = mlist.pos[0];
     mls = mlist;
@@ -232,21 +234,21 @@ bool CalculateMoveList(MoveList &mls, const std::vector<Point> path, int move_sp
 
 bool AddWaypointDirect(MoveList &mls, int x, int y, int move_speed_x, int move_speed_y)
 {
-    const fixed fix_speed_x = input_speed_to_fixed(move_speed_x);
-    const fixed fix_speed_y = input_speed_to_fixed(move_speed_y);
+    const fixed fix_speed_x = InputSpeedToFixed(move_speed_x);
+    const fixed fix_speed_y = InputSpeedToFixed(move_speed_y);
     const uint32_t last_stage = mls.GetNumStages() - 1;
     mls.pos.emplace_back( x, y );
     mls.permove.resize(mls.pos.size());
-    calculate_move_stage(mls, last_stage, fix_speed_x, fix_speed_y);
+    CalculateMoveStage(mls, last_stage, fix_speed_x, fix_speed_y);
     return true;
 }
 
 void RecalculateMoveSpeeds(MoveList &mls, int old_speed_x, int old_speed_y, int new_speed_x, int new_speed_y)
 {
-    const fixed old_movspeed_x = input_speed_to_fixed(old_speed_x);
-    const fixed old_movspeed_y = input_speed_to_fixed(old_speed_y);
-    const fixed new_movspeed_x = input_speed_to_fixed(new_speed_x);
-    const fixed new_movspeed_y = input_speed_to_fixed(new_speed_y);
+    const fixed old_movspeed_x = InputSpeedToFixed(old_speed_x);
+    const fixed old_movspeed_y = InputSpeedToFixed(old_speed_y);
+    const fixed new_movspeed_x = InputSpeedToFixed(new_speed_x);
+    const fixed new_movspeed_y = InputSpeedToFixed(new_speed_y);
     // save current stage's step lengths, for later onpart's update
     const fixed old_stage_xpermove = mls.permove[mls.onstage].X;
     const fixed old_stage_ypermove = mls.permove[mls.onstage].Y;
@@ -272,8 +274,8 @@ void RecalculateMoveSpeeds(MoveList &mls, int old_speed_x, int old_speed_y, int 
 
             fixed xdist = itofix(abs(ourx - destx));
             fixed ydist = itofix(abs(oury - desty));
-            fixed old_speed_at_angle = calc_move_speed_at_angle(old_movspeed_x, old_movspeed_y, xdist, ydist);
-            fixed new_speed_at_angle = calc_move_speed_at_angle(new_movspeed_x, new_movspeed_y, xdist, ydist);
+            fixed old_speed_at_angle = CalcMoveSpeedAtAngle(old_movspeed_x, old_movspeed_y, xdist, ydist);
+            fixed new_speed_at_angle = CalcMoveSpeedAtAngle(new_movspeed_x, new_movspeed_y, xdist, ydist);
 
             mls.permove[i].X = fixdiv(fixmul(mls.permove[i].X, new_speed_at_angle), old_speed_at_angle);
             mls.permove[i].Y = fixdiv(fixmul(mls.permove[i].Y, new_speed_at_angle), old_speed_at_angle);

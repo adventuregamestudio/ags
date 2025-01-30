@@ -292,6 +292,56 @@ void RecalculateMoveSpeeds(MoveList &mls, int old_speed_x, int old_speed_y, int 
     }
 }
 
+bool FindNearestWalkablePoint(Bitmap *mask, const Point &from_pt, Point &dst_pt,
+    const int range, const int step, const Rect &limits)
+{
+    assert(mask->GetColorDepth() == 8);
+    const Rect mask_limits = IntersectRects(limits, RectWH(mask->GetSize()));
+    const Rect use_limits = (range <= 0) ? mask_limits :
+        IntersectRects(mask_limits, RectWH(from_pt.X - range / 2, from_pt.Y - range / 2, range * 2, range * 2));
+
+    if (use_limits.IsEmpty())
+        return false;
+
+    // Quickly test if starting point is already on a walkable pixel
+    if (use_limits.IsInside(from_pt) && mask->GetPixel(from_pt.X, from_pt.Y) > 0)
+    {
+        dst_pt = from_pt;
+        return true;
+    }
+
+    // We store distances as "squared distance" in order to avoid sqrt() call in a loop
+    uint64_t nearest_sqdist = UINT64_MAX;
+    Point nearest_pt(-1, -1);
+    const int mask_line_len = mask->GetLineLength();
+    const uint8_t *mask_ptr = mask->GetData();
+
+    // X outer and Y internal loop was a historical order of search,
+    // kept for backwards compatibility (this is not too important, but just in case)
+    for (int x = use_limits.Left; x <= use_limits.Right; x += step)
+    {
+        for (int y = use_limits.Top; y <= use_limits.Bottom; y += step)
+        {
+            if (mask_ptr[y * mask_line_len + x] == 0)
+                continue;
+
+            uint64_t sqdist = (x - from_pt.X) * (x - from_pt.X) + (y - from_pt.Y) * (y - from_pt.Y);
+            if (sqdist < nearest_sqdist)
+            {
+                nearest_sqdist = sqdist;
+                nearest_pt = Point(x, y);
+            }
+        }
+    }
+
+    if (nearest_sqdist < UINT64_MAX)
+    {
+        dst_pt = nearest_pt;
+        return true;
+    }
+    return false;
+}
+
 } // namespace Pathfinding
 
 } // namespace Engine

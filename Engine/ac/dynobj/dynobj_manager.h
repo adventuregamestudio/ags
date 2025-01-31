@@ -31,29 +31,29 @@ using namespace AGS; // FIXME later
 
 // register a memory handle for the object and allow script
 // pointers to point to it
-extern int32_t ccRegisterManagedObject(void *object, IScriptObject *, ScriptValueType obj_type = kScValScriptObject);
+int32_t ccRegisterManagedObject(void *object, IScriptObject *, ScriptValueType obj_type = kScValScriptObject);
 // register a de-serialized object
-extern int32_t ccRegisterUnserializedObject(int index, void *object, IScriptObject *, ScriptValueType obj_type = kScValScriptObject);
+int32_t ccRegisterUnserializedObject(int index, void *object, IScriptObject *, ScriptValueType obj_type = kScValScriptObject);
 // unregister a particular object
-extern int   ccUnRegisterManagedObject(void *object);
+int   ccUnRegisterManagedObject(void *object);
 // remove all registered objects
-extern void  ccUnregisterAllObjects();
+void  ccUnregisterAllObjects();
 // serialize all objects to disk
-extern void  ccSerializeAllObjects(Common::Stream *out);
+void  ccSerializeAllObjects(Common::Stream *out);
 // un-serialise all objects (will remove all currently registered ones)
-extern int   ccUnserializeAllObjects(Common::Stream *in, ICCObjectCollectionReader *callback);
+int   ccUnserializeAllObjects(Common::Stream *in, ICCObjectCollectionReader *callback);
 // dispose the object if RefCount==0
-extern void  ccAttemptDisposeObject(int32_t handle);
+void  ccAttemptDisposeObject(int32_t handle);
 // translate between object handles and memory addresses
-extern int32_t ccGetObjectHandleFromAddress(void *address);
-extern void *ccGetObjectAddressFromHandle(int32_t handle);
-extern ScriptValueType ccGetObjectAddressAndManagerFromHandle(int32_t handle, void *&object, IScriptObject *&manager);
+int32_t ccGetObjectHandleFromAddress(void *address);
+void *ccGetObjectAddressFromHandle(int32_t handle);
+ScriptValueType ccGetObjectAddressAndManagerFromHandle(int32_t handle, void *&object, IScriptObject *&manager);
 
-extern int ccAddObjectReference(int32_t handle);
-extern int ccReleaseObjectReference(int32_t handle);
+int ccAddObjectReference(int32_t handle);
+int ccReleaseObjectReference(int32_t handle);
 
 typedef void (*PfnProcessManagedObject)(int handle, IScriptObject *obj);
 // Iterates all managed objects identified by their Type ID, and runs a callback for each of them
-extern void ccTraverseManagedObjects(const AGS::Common::String &type, PfnProcessManagedObject proc);
+void ccTraverseManagedObjects(const AGS::Common::String &type, PfnProcessManagedObject proc);
 
 #endif // __AGS_EE_DYNOBJ__DYNOBJMANAGER_H

@@ -2263,79 +2263,50 @@ RuntimeScriptValue ccInstance::CallPluginFunction(void *fn_addr, const RuntimeSc
     // Needless to say that such approach would require a breaking change in plugin API.
     //
 
+    typedef intptr_t(*fntype0) ();
+    typedef intptr_t(*fntype1) (intptr_t);
+    typedef intptr_t(*fntype2) (intptr_t, intptr_t);
+    typedef intptr_t(*fntype3) (intptr_t, intptr_t, intptr_t);
+    typedef intptr_t(*fntype4) (intptr_t, intptr_t, intptr_t, intptr_t);
+    typedef intptr_t(*fntype5) (intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
+    typedef intptr_t(*fntype6) (intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
+    typedef intptr_t(*fntype7) (intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
+    typedef intptr_t(*fntype8) (intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
+    typedef intptr_t(*fntype9) (intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
+
     intptr_t result;
     switch (param_count)
     {
     case 0:
-        {
-            intptr_t (*fparam) ();
-            fparam = (intptr_t (*)())fn_addr;
-            result = fparam();
-            break;
-        }
+        result = reinterpret_cast<fntype0>(fn_addr)();
+        break;
     case 1:
-        {
-            intptr_t (*fparam) (intptr_t);
-            fparam = (intptr_t (*)(intptr_t))fn_addr;
-            result = fparam(parm_value[0]);
-            break;
-        }
+        result = reinterpret_cast<fntype1>(fn_addr)(parm_value[0]);
+        break;
     case 2:
-        {
-            intptr_t (*fparam) (intptr_t, intptr_t);
-            fparam = (intptr_t (*)(intptr_t, intptr_t))fn_addr;
-            result = fparam(parm_value[0], parm_value[1]);
-            break;
-        }
+        result = reinterpret_cast<fntype2>(fn_addr)(parm_value[0], parm_value[1]);
+        break;
     case 3:
-        {
-            intptr_t (*fparam) (intptr_t, intptr_t, intptr_t);
-            fparam = (intptr_t (*)(intptr_t, intptr_t, intptr_t))fn_addr;
-            result = fparam(parm_value[0], parm_value[1], parm_value[2]);
-            break;
-        }
+        result = reinterpret_cast<fntype3>(fn_addr)(parm_value[0], parm_value[1], parm_value[2]);
+        break;
     case 4:
-        {
-            intptr_t (*fparam) (intptr_t, intptr_t, intptr_t, intptr_t);
-            fparam = (intptr_t (*)(intptr_t, intptr_t, intptr_t, intptr_t))fn_addr;
-            result = fparam(parm_value[0], parm_value[1], parm_value[2], parm_value[3]);
-            break;
-        }
+        result = reinterpret_cast<fntype4>(fn_addr)(parm_value[0], parm_value[1], parm_value[2], parm_value[3]);
+        break;
     case 5:
-        {
-            intptr_t (*fparam) (intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
-            fparam = (intptr_t (*)(intptr_t, intptr_t, intptr_t, intptr_t, intptr_t))fn_addr;
-            result = fparam(parm_value[0], parm_value[1], parm_value[2], parm_value[3], parm_value[4]);
-            break;
-        }
+        result = reinterpret_cast<fntype5>(fn_addr)(parm_value[0], parm_value[1], parm_value[2], parm_value[3], parm_value[4]);
+        break;
     case 6:
-        {
-            intptr_t (*fparam) (intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
-            fparam = (intptr_t (*)(intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t))fn_addr;
-            result = fparam(parm_value[0], parm_value[1], parm_value[2], parm_value[3], parm_value[4], parm_value[5]);
-            break;
-        }
+        result = reinterpret_cast<fntype6>(fn_addr)(parm_value[0], parm_value[1], parm_value[2], parm_value[3], parm_value[4], parm_value[5]);
+        break;
     case 7:
-        {
-            intptr_t (*fparam) (intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
-            fparam = (intptr_t (*)(intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t))fn_addr;
-            result = fparam(parm_value[0], parm_value[1], parm_value[2], parm_value[3], parm_value[4], parm_value[5], parm_value[6]);
-            break;
-        }
+        result = reinterpret_cast<fntype7>(fn_addr)(parm_value[0], parm_value[1], parm_value[2], parm_value[3], parm_value[4], parm_value[5], parm_value[6]);
+        break;
     case 8:
-        {
-            intptr_t (*fparam) (intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
-            fparam = (intptr_t (*)(intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t))fn_addr;
-            result = fparam(parm_value[0], parm_value[1], parm_value[2], parm_value[3], parm_value[4], parm_value[5], parm_value[6], parm_value[7]);
-            break;
-        }
+        result = reinterpret_cast<fntype8>(fn_addr)(parm_value[0], parm_value[1], parm_value[2], parm_value[3], parm_value[4], parm_value[5], parm_value[6], parm_value[7]);
+        break;
     case 9:
-        {
-            intptr_t (*fparam) (intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
-            fparam = (intptr_t (*)(intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t))fn_addr;
-            result = fparam(parm_value[0], parm_value[1], parm_value[2], parm_value[3], parm_value[4], parm_value[5], parm_value[6], parm_value[7], parm_value[8]);
-            break;
-        }
+        result = reinterpret_cast<fntype9>(fn_addr)(parm_value[0], parm_value[1], parm_value[2], parm_value[3], parm_value[4], parm_value[5], parm_value[6], parm_value[7], parm_value[8]);
+        break;
     default:
         cc_error("Too many arguments in call to plugin function");
         return {};

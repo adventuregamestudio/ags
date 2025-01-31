@@ -90,11 +90,18 @@ static std::unique_ptr<RTTI> ccCompileRTTI(const symbolTable &sym)
     std::string buf; // for constructing names
 
     // Add sections as locations
-    // CHECKME: do we have to add all?
-    for (size_t l = 0; l < sym.sections.size(); ++l)
+    // NOTE: we must add even if section name is empty, in order to retain correct indexes
+    for (size_t l = 0u; l < sym.sections.size(); ++l)
     {
         rtb.AddLocation(sym.sections[l], l, 0u);
     }
+    // Add module names as locations (if available)
+    for (size_t m = 0u, l = sym.sections.size(); m < sym.sectionModules.size(); ++m, ++l)
+    {
+        rtb.AddLocation(sym.sectionModules[m], l, 0u);
+    }
+
+    const size_t loc_module_offset = sym.sections.size();
 
     // Add "no type" with id 0
     rtb.AddType("", 0u, 0u, 0u, 0u, 0u);
@@ -108,7 +115,12 @@ static std::unique_ptr<RTTI> ccCompileRTTI(const symbolTable &sym)
             ((ste.flags & SFLG_MANAGED) != 0))
         {
             uint32_t flags = SflgToRTTIType(ste.flags);
-            rtb.AddType(ste.sname, t, ste.section, ste.extends, flags, ste.ssize);
+            uint32_t loc_id = 0u;
+            if (sym.sectionModules[ste.section].empty())
+                loc_id = ste.section;
+            else
+                loc_id = ste.section + loc_module_offset;
+            rtb.AddType(ste.sname, t, loc_id, ste.extends, flags, ste.ssize);
         }
         else if ((ste.stype == SYM_STRUCTMEMBER) && ((ste.flags & SFLG_STRUCTMEMBER) != 0) &&
             ((ste.flags & SFLG_PROPERTY) == 0))

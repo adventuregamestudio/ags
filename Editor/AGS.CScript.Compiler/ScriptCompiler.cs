@@ -87,7 +87,7 @@ namespace AGS.CScript.Compiler
 			}
             else if (thisToken.Name.StartsWith(Constants.NEW_SCRIPT_MARKER))
 			{
-                _scriptName = thisToken.Name.Substring(Constants.NEW_SCRIPT_MARKER.Length, thisToken.Name.Length - Constants.NEW_SCRIPT_MARKER.Length - 1);
+                ScriptAnnotations.ParseNewScriptMarker(thisToken.Name, out _scriptName);
 			}
 			else
 			{

@@ -151,7 +151,10 @@ namespace AGS.Editor
 
         public void RegisterScriptHeader(string header)
         {
-            Script newHeader = new Script("__Plugin" + _editorInterface.pluginID + ".ash", header, true);
+            // Assign a module name, letting runtime engine to match any types declared in the header
+            string internalPluginName = System.IO.Path.GetFileNameWithoutExtension(_fileName);
+            header = $"#module {internalPluginName}\n{header}";
+            Script newHeader = new Script($"__Plugin_{internalPluginName}.ash", header, true);
             AutoComplete.ConstructCache(newHeader, Factory.AGSEditor.GetImportedScriptHeaders(newHeader, true));
             _scriptHeaders.Add(newHeader);
         }

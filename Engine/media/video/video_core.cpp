@@ -98,7 +98,8 @@ static int video_core_slot_init(std::unique_ptr<VideoPlayer> player)
     return handle;
 }
 
-static std::unique_ptr<VideoPlayer> create_video_player(const AGS::Common::String &ext_hint)
+// Creates a video player for the given file extension
+static std::unique_ptr<VideoPlayer> create_video_player(const String &ext_hint)
 {
     std::unique_ptr<VideoPlayer> player;
     // Table of video format detection
@@ -108,12 +109,14 @@ static std::unique_ptr<VideoPlayer> create_video_player(const AGS::Common::Strin
     else if (ext_hint.CompareNoCase("ogv") == 0)
         player.reset(new TheoraPlayer());
     else
-        return nullptr; // not supported
+        // FIXME: if file extension does not match any standard one,
+        // then try each supported player in an order of priority
+        player.reset(new TheoraPlayer());
     return player;
 }
 
-int video_core_slot_init(std::unique_ptr<AGS::Common::Stream> in,
-    const String &name, const AGS::Common::String &ext_hint, const VideoInitParams &params)
+int video_core_slot_init(std::unique_ptr<Stream> in,
+    const String &name, const String &ext_hint, const VideoInitParams &params)
 {
     auto player = create_video_player(ext_hint);
     if (!player)
@@ -179,8 +182,8 @@ void video_core_init(/*config*/)
     Debug::Printf(kDbgMsg_Warn, "VideoCore: video playback is not supported in this engine build.");
 }
 void video_core_shutdown() { }
-int video_core_slot_init(std::unique_ptr<AGS::Common::Stream>,
-    const AGS::Common::String &, const AGS::Common::String &, const VideoInitParams &)
+int video_core_slot_init(std::unique_ptr<Stream>,
+    const String &, const String &, const VideoInitParams &)
 {
     return -1;
 }

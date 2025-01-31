@@ -103,6 +103,10 @@ namespace Pathfinding
     bool AddWaypointDirect(MoveList &mls, int x, int y, int move_speed_x, int move_speed_y);
     // Recalculates MoveList's step speeds
     void RecalculateMoveSpeeds(MoveList &mls, int old_speed_x, int old_speed_y, int new_speed_x, int new_speed_y);
+    // Searchs for the nearest walkable point on a mask, starting from the given location,
+    // and scanning around in the given square range. Optionally limit the scan to the certain rectangle.
+    bool FindNearestWalkablePoint(AGS::Common::Bitmap *mask, const Point &from_pt, Point &dst_pt,
+        const int range, const int step, const Rect &limits);
 }
 
 } // namespace Engine

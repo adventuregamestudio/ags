@@ -186,8 +186,7 @@ int  has_hit_another_character(int sourceChar);
 int  doNextCharMoveStep(CharacterInfo *chi, CharacterExtras *chex);
 // Tells if character is currently moving, in eWalkableAreas mode
 bool is_char_walking_ndirect(CharacterInfo *chi);
-int  find_nearest_walkable_area_within(int *xx, int *yy, int range, int step);
-void find_nearest_walkable_area (int *xx, int *yy);
+bool FindNearestWalkableAreaForCharacter(const Point &src, Point &dst, bool force_move);
 void FindReasonableLoopForCharacter(CharacterInfo *chap);
 // Start character walk or move; calculate path using destination and optionally "ignore walls" flag
 void move_character(CharacterInfo *chaa, int tox, int toy, bool ignwal, bool walk_anim);

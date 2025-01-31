@@ -115,16 +115,18 @@ bool FindRoute(MoveList &mls, IRouteFinder *finder, int srcx, int srcy, int dstx
     return CalculateMoveList(mls, path, move_speed_x, move_speed_y);
 }
 
-inline fixed input_speed_to_fixed(int speed_val)
+// Converts input moving speed to a fixed-point representation.
+// Negative move speeds become fractional, e.g. -2 = 1/2 speed.
+inline fixed InputSpeedToFixed(int speed_val)
 {
-    // negative move speeds like -2 get converted to 1/2
     if (speed_val < 0)
         return itofix(1) / (-speed_val);
     else
         return itofix(speed_val);
 }
 
-inline fixed calc_move_speed_at_angle(fixed speed_x, fixed speed_y, fixed xdist, fixed ydist)
+// Calculates velocity vector length from x/y speed components
+inline fixed CalcMoveSpeedAtAngle(fixed speed_x, fixed speed_y, fixed xdist, fixed ydist)
 {
     fixed useMoveSpeed;
     if (speed_x == speed_y)
@@ -152,7 +154,7 @@ inline fixed calc_move_speed_at_angle(fixed speed_x, fixed speed_y, fixed xdist,
 }
 
 // Calculates the X and Y per game loop, for this stage of the movelist
-void calculate_move_stage(MoveList &mls, uint32_t stage, fixed move_speed_x, fixed move_speed_y)
+void CalculateMoveStage(MoveList &mls, uint32_t stage, fixed move_speed_x, fixed move_speed_y)
 {
     // work out the x & y per move. First, opp/adj=tan, so work out the angle
     if (mls.pos[stage] == mls.pos[stage + 1])
@@ -189,7 +191,7 @@ void calculate_move_stage(MoveList &mls, uint32_t stage, fixed move_speed_x, fix
     fixed xdist = itofix(abs(ourx - destx));
     fixed ydist = itofix(abs(oury - desty));
 
-    fixed useMoveSpeed = calc_move_speed_at_angle(move_speed_x, move_speed_y, xdist, ydist);
+    fixed useMoveSpeed = CalcMoveSpeedAtAngle(move_speed_x, move_speed_y, xdist, ydist);
 
     fixed angl = fixatan(fixdiv(ydist, xdist));
 
@@ -220,10 +222,10 @@ bool CalculateMoveList(MoveList &mls, const std::vector<Point> path, int move_sp
     mlist.pos = path;
     mlist.permove.resize(path.size());
 
-    const fixed fix_speed_x = input_speed_to_fixed(move_speed_x);
-    const fixed fix_speed_y = input_speed_to_fixed(move_speed_y);
+    const fixed fix_speed_x = InputSpeedToFixed(move_speed_x);
+    const fixed fix_speed_y = InputSpeedToFixed(move_speed_y);
     for (uint32_t i = 0; i < mlist.GetNumStages() - 1; i++)
-        calculate_move_stage(mlist, i, fix_speed_x, fix_speed_y);
+        CalculateMoveStage(mlist, i, fix_speed_x, fix_speed_y);
 
     mlist.from = mlist.pos[0];
     mls = mlist;
@@ -232,21 +234,21 @@ bool CalculateMoveList(MoveList &mls, const std::vector<Point> path, int move_sp
 
 bool AddWaypointDirect(MoveList &mls, int x, int y, int move_speed_x, int move_speed_y)
 {
-    const fixed fix_speed_x = input_speed_to_fixed(move_speed_x);
-    const fixed fix_speed_y = input_speed_to_fixed(move_speed_y);
+    const fixed fix_speed_x = InputSpeedToFixed(move_speed_x);
+    const fixed fix_speed_y = InputSpeedToFixed(move_speed_y);
     const uint32_t last_stage = mls.GetNumStages() - 1;
     mls.pos.emplace_back( x, y );
     mls.permove.resize(mls.pos.size());
-    calculate_move_stage(mls, last_stage, fix_speed_x, fix_speed_y);
+    CalculateMoveStage(mls, last_stage, fix_speed_x, fix_speed_y);
     return true;
 }
 
 void RecalculateMoveSpeeds(MoveList &mls, int old_speed_x, int old_speed_y, int new_speed_x, int new_speed_y)
 {
-    const fixed old_movspeed_x = input_speed_to_fixed(old_speed_x);
-    const fixed old_movspeed_y = input_speed_to_fixed(old_speed_y);
-    const fixed new_movspeed_x = input_speed_to_fixed(new_speed_x);
-    const fixed new_movspeed_y = input_speed_to_fixed(new_speed_y);
+    const fixed old_movspeed_x = InputSpeedToFixed(old_speed_x);
+    const fixed old_movspeed_y = InputSpeedToFixed(old_speed_y);
+    const fixed new_movspeed_x = InputSpeedToFixed(new_speed_x);
+    const fixed new_movspeed_y = InputSpeedToFixed(new_speed_y);
     // save current stage's step lengths, for later onpart's update
     const fixed old_stage_xpermove = mls.permove[mls.onstage].X;
     const fixed old_stage_ypermove = mls.permove[mls.onstage].Y;
@@ -272,8 +274,8 @@ void RecalculateMoveSpeeds(MoveList &mls, int old_speed_x, int old_speed_y, int 
 
             fixed xdist = itofix(abs(ourx - destx));
             fixed ydist = itofix(abs(oury - desty));
-            fixed old_speed_at_angle = calc_move_speed_at_angle(old_movspeed_x, old_movspeed_y, xdist, ydist);
-            fixed new_speed_at_angle = calc_move_speed_at_angle(new_movspeed_x, new_movspeed_y, xdist, ydist);
+            fixed old_speed_at_angle = CalcMoveSpeedAtAngle(old_movspeed_x, old_movspeed_y, xdist, ydist);
+            fixed new_speed_at_angle = CalcMoveSpeedAtAngle(new_movspeed_x, new_movspeed_y, xdist, ydist);
 
             mls.permove[i].X = fixdiv(fixmul(mls.permove[i].X, new_speed_at_angle), old_speed_at_angle);
             mls.permove[i].Y = fixdiv(fixmul(mls.permove[i].Y, new_speed_at_angle), old_speed_at_angle);
@@ -288,6 +290,73 @@ void RecalculateMoveSpeeds(MoveList &mls, int old_speed_x, int old_speed_y, int 
         else
             mls.onpart = (mls.onpart * fixtof(old_stage_ypermove)) / fixtof(mls.permove[mls.onstage].Y);
     }
+}
+
+bool FindNearestWalkablePoint(Bitmap *mask, const Point &from_pt, Point &dst_pt,
+    const int range, const int step, const Rect &limits)
+{
+    assert(mask->GetColorDepth() == 8);
+    const Rect mask_limits = IntersectRects(limits, RectWH(mask->GetSize()));
+    const Rect use_limits = (range <= 0) ? mask_limits :
+        IntersectRects(mask_limits, RectWH(from_pt.X - range / 2, from_pt.Y - range / 2, range * 2, range * 2));
+
+    if (use_limits.IsEmpty())
+        return false;
+
+    // Quickly test if starting point is already on a walkable pixel
+    if (use_limits.IsInside(from_pt) && mask->GetPixel(from_pt.X, from_pt.Y) > 0)
+    {
+        dst_pt = from_pt;
+        return true;
+    }
+
+    // Scan outwards from the starting point, rectangle by rectangle,
+    // and measure distance between start and found point. The one with the smallest
+    // distance will be accepted as a result.
+    // As soon as we find the first walkable point, we limit the max scan range
+    // to its distance, because we won't need anything beyond that.
+    // We store distances as "squared distance" in order to avoid sqrt() call in a loop
+    uint64_t nearest_sqdist = UINT64_MAX;
+    Point nearest_pt(-1, -1);
+    const int mask_line_len = mask->GetLineLength();
+    const uint8_t *mask_ptr = mask->GetData();
+
+    int max_range = std::max(
+        std::max(from_pt.X - use_limits.Left, use_limits.Right - from_pt.X),
+        std::max(from_pt.Y - use_limits.Top, use_limits.Bottom - from_pt.Y));
+    for (int cur_range = 1; cur_range <= max_range; cur_range += step)
+    {
+        const int scan_fromx = std::max(use_limits.Left,   from_pt.X - cur_range);
+        const int scan_tox   = std::min(use_limits.Right,  from_pt.X + cur_range);
+        const int scan_fromy = std::max(use_limits.Top,    from_pt.Y - cur_range);
+        const int scan_toy   = std::min(use_limits.Bottom, from_pt.Y + cur_range);
+        // X outer and Y internal loop was a historical order of search,
+        // kept for backwards compatibility (this is not too important, but just in case)
+        for (int x = scan_fromx; x <= scan_tox; x += step)
+        {
+            const int y_step = (x == scan_fromx || x == scan_tox) ? step : cur_range * 2;
+            for (int y = scan_fromy; y <= scan_toy; y += y_step)
+            {
+                if (mask_ptr[y * mask_line_len + x] == 0)
+                    continue;
+
+                uint64_t sqdist = (x - from_pt.X) * (x - from_pt.X) + (y - from_pt.Y) * (y - from_pt.Y);
+                if (sqdist < nearest_sqdist)
+                {
+                    max_range = std::sqrt(sqdist);
+                    nearest_sqdist = sqdist;
+                    nearest_pt = Point(x, y);
+                }
+            }
+        }
+    }
+
+    if (nearest_sqdist < UINT64_MAX)
+    {
+        dst_pt = nearest_pt;
+        return true;
+    }
+    return false;
 }
 
 } // namespace Pathfinding

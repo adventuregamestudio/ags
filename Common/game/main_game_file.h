@@ -118,9 +118,9 @@ struct LoadedGameEntities
     GUICollection           GuiControls;
     std::vector<DialogTopic> Dialogs;
     std::vector<ViewStruct> Views;
-    PScript                 GlobalScript;
-    PScript                 DialogScript;
-    std::vector<PScript>    ScriptModules;
+    UScript                 GlobalScript;
+    UScript                 DialogScript;
+    std::vector<UScript>    ScriptModules;
     std::vector<PluginInfo> PluginInfos;
 
     // Original sprite data (when it was read into const-sized arrays)

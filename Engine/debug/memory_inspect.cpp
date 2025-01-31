@@ -35,8 +35,9 @@
 #include <algorithm>
 #include "ac/dynobj/dynobj_manager.h"
 #include "script/cc_common.h"
-#include "script/cc_instance.h"
+#include "script/runtimescript.h"
 #include "script/script_runtime.h"
+#include "script/scriptexecutor.h"
 #include "script/systemimports.h"
 #include "util/compress.h"
 #include "util/string_utils.h"
@@ -334,16 +335,15 @@ struct MemoryVariable
         : Variable(var), MemoryPtr(mem_ptr), ObjMgr(mgr), MemorySize(mem_sz) {}
 };
 
-static bool TryGetGlobalVariable(const String &field_ref, const ccInstance *inst,
+static bool TryGetGlobalVariable(const String &field_ref, const ScriptExecutor *exec,
     MemoryVariable &found_var)
 {
-    // Select the actual script at the top of the stack
-    // (this could be a different script runnin on this instance, in case of far calls)
-    const ccInstance *top_inst = inst->GetRunningInst();
-    if (!top_inst->GetScript()->sctoc)
+    // Select the current running script
+    const RuntimeScript *top_inst = exec->GetRunningScript();
+    if (!top_inst->GetTOC())
         return false; // no TOC
 
-    const auto &toc = *top_inst->GetScript()->sctoc;
+    const auto &toc = *top_inst->GetTOC();
     if (toc.GetGlobalVariables().empty())
         return false; // no global data
 
@@ -367,12 +367,12 @@ static bool TryGetGlobalVariable(const String &field_ref, const ccInstance *inst
         if (!import)
             return false;
 
-        if (import->InstancePtr)
+        if (import->ScriptPtr)
         {
             // Import from another script
             found_var = MemoryVariable(&var,
                 import->Value.GetDirectPtr(), nullptr,
-                import->InstancePtr->GetGlobalData().size());
+                import->ScriptPtr->GetGlobalData().size());
         }
         else
         {
@@ -387,22 +387,20 @@ static bool TryGetGlobalVariable(const String &field_ref, const ccInstance *inst
     }
 }
 
-static bool TryGetLocalVariable(const String &field_ref, const ccInstance *inst,
+static bool TryGetLocalVariable(const String &field_ref, const ScriptExecutor *exec,
      MemoryVariable &found_var)
 {
-    // Select the actual script at the top of the stack
-    // (this could be a different script runnin on this instance, in case of far calls)
-    // NOTE: we will still use pc and stack of the current inst, since it's the one running!
-    const ccScript *top_script = inst->GetRunningInst()->GetScript().get();
-    if (!top_script->sctoc)
+    // Select the current running script
+    const RuntimeScript *top_script = exec->GetRunningScript();
+    if (!top_script->GetTOC())
         return false; // no TOC
 
-    const auto &toc = *top_script->sctoc;
+    const auto &toc = *top_script->GetTOC();
     if (toc.GetLocalVariables().empty())
         return false; // no local data
 
     // TODO: use runtime TOC where we can guarantee sorted function list (or fixup TOC on load)
-    ScriptTOC::Function test_func; test_func.scope_begin = inst->GetPC(); test_func.scope_end = inst->GetPC() + 1;
+    ScriptTOC::Function test_func; test_func.scope_begin = exec->GetPC(); test_func.scope_end = exec->GetPC() + 1;
     auto func_it = std::lower_bound(toc.GetFunctions().begin(), toc.GetFunctions().end(), test_func,
         [](const ScriptTOC::Function &first, const ScriptTOC::Function &second)
         { return (first.scope_begin < second.scope_begin) && (first.scope_end <= second.scope_begin); });
@@ -416,12 +414,12 @@ static bool TryGetLocalVariable(const String &field_ref, const ccInstance *inst,
     // Find the latest variable which scope begins prior to the current script pos
     const ScriptTOC::Variable *var = func.local_data;
     for (const ScriptTOC::Variable *next_var = var;
-        next_var && next_var->scope_begin <= static_cast<uint32_t>(inst->GetPC());
+        next_var && next_var->scope_begin <= static_cast<uint32_t>(exec->GetPC());
         var = next_var, next_var = next_var->next_local);
 
     // FIXME: helper method returning stack? don't direct access!
     // Note this stack ptr is set *after* the last allocated local data
-    const auto *stack_ptr = inst->GetCurrentStack();
+    const auto *stack_ptr = exec->GetCurrentStack();
     const ScriptTOC::Variable *last_var = nullptr;
     // Scan local variable backwards before we find one that matches the name
     for (; var; var = var->prev_local)
@@ -429,7 +427,7 @@ static bool TryGetLocalVariable(const String &field_ref, const ccInstance *inst,
         assert(var->v_flags & ScriptTOC::kVariable_Local);
         // Skip if local variable's scope ends before current pos;
         // note we don't break, as this may be a nested scope inside a function
-        if (var->scope_end <= static_cast<uint32_t>(inst->GetPC()))
+        if (var->scope_end <= static_cast<uint32_t>(exec->GetPC()))
             continue;
 
         --stack_ptr;
@@ -472,16 +470,16 @@ struct FieldInfo
 // Try getting a registered variable from the current script's global memory,
 // or local memory (stack); or, if this is an imported variable, then lookup
 // the import table for its real address.
-static HError ParseScriptVariable(const String &field_ref, const ccInstance *inst,
+static HError ParseScriptVariable(const String &field_ref, const ScriptExecutor *exec,
     const RTTI &rtti, MemoryReference &mem_ref, FieldInfo &next_field_info)
 {
     MemoryVariable memvar;
     // First try local data
-    if (!TryGetLocalVariable(field_ref, inst, memvar))
+    if (!TryGetLocalVariable(field_ref, exec, memvar))
     {
         // Then try script's global variable;
         // this includes imported symbols from other scripts, plugins or engine
-        if (!TryGetGlobalVariable(field_ref, inst, memvar))
+        if (!TryGetGlobalVariable(field_ref, exec, memvar))
         {
             return new Error(String::FromFormat("Variable not found in the current scope: '%s'", field_ref.GetCStr()));
         }
@@ -491,7 +489,7 @@ static HError ParseScriptVariable(const String &field_ref, const ccInstance *ins
     const auto &var = *memvar.Variable;
     // resolve local script's type to a global type index
     // TODO: this should be resolved after loading script, similar to RTTI!
-    const ccInstance *top_inst = inst->GetRunningInst();
+    const RuntimeScript *top_inst = exec->GetRunningScript();
     const auto *l2gtypes = &top_inst->GetLocal2GlobalTypeMap();
     auto type_it = l2gtypes->find(var.f_typeid);
     if (type_it == l2gtypes->end())
@@ -606,10 +604,10 @@ static String GetNextVarSection(const String &var_ref, size_t &index, char &acce
 
 // Parses the naming chain item by item, and build mem_ref string,
 // containing set of instructions used to access and resolve actual memory
-static HError VariableRefToMemoryRef(const String &var_ref, const ccInstance *inst,
+static HError VariableRefToMemoryRef(const String &var_ref, const ScriptExecutor *exec,
     MemoryReference &mem_ref, FieldInfo &var_field_info)
 {
-    const auto &rtti = ccInstance::GetRTTI()->AsConstRTTI();
+    const auto &rtti = RuntimeScript::GetJointRTTI()->AsConstRTTI();
     FieldInfo last_field_info;
     FieldInfo next_field_info;
 
@@ -622,7 +620,7 @@ static HError VariableRefToMemoryRef(const String &var_ref, const ccInstance *in
         if (access_type == 0)
         {
             // Try getting a variable in the current script
-            HError err = ParseScriptVariable(item, inst, rtti, mem_ref, next_field_info);
+            HError err = ParseScriptVariable(item, exec, rtti, mem_ref, next_field_info);
             if (!err)
                 return err;
         }
@@ -675,18 +673,17 @@ static HError VariableRefToMemoryRef(const String &var_ref, const ccInstance *in
     return HError::None();
 }
 
-HError QueryScriptVariableInContext(const String &var_ref, VariableInfo &var_info)
+HError QueryScriptVariableInContext(const ScriptExecutor *exec, const String &var_ref, VariableInfo &var_info)
 {
     if (var_ref.IsNullOrSpace())
         return new Error("Bad input"); // no name
 
-    ccInstance *inst = ccInstance::GetCurrentInstance();
-    if (!inst)
+    if (!exec->GetRunningScript())
         return new Error("No running script"); // not in running script
     
     MemoryReference mem_ref;
     FieldInfo var_field_info;
-    HError err = VariableRefToMemoryRef(var_ref, inst, mem_ref, var_field_info);
+    HError err = VariableRefToMemoryRef(var_ref, exec, mem_ref, var_field_info);
     if (!err)
         return err; // failed to parse variable name chain
     

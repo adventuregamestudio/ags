@@ -391,14 +391,14 @@ target_sources(engine
     plugin/plugin_engine.h
     plugin/plugin_stubs.cpp
     resource/resource.h
-    script/cc_instance.cpp
-    script/cc_instance.h
     script/cc_reflecthelper.cpp
     script/cc_reflecthelper.h
     script/executingscript.cpp
     script/executingscript.h
     script/exports.cpp
     script/exports.h
+    script/runtimescript.cpp
+    script/runtimescript.h
     script/runtimescriptvalue.cpp
     script/runtimescriptvalue.h
     script/script.cpp
@@ -407,6 +407,8 @@ target_sources(engine
     script/script_api.h
     script/script_runtime.cpp
     script/script_runtime.h
+    script/scriptexecutor.cpp
+    script/scriptexecutor.h
     script/systemimports.cpp
     script/systemimports.h
     util/library.h

@@ -13,14 +13,14 @@
 //=============================================================================
 #include "cc_dynamicarray.h"
 #include <string.h>
-#include "ac/dynobj/managedobjectpool.h"
 #include "ac/dynobj/dynobj_manager.h"
-#include "script/cc_instance.h"
-#include "script/cc_script.h" // RTTI
-#include "util/memorystream.h"
+#include "ac/dynobj/managedobjectpool.h"
 #include "ac/dynobj/scriptstring.h"
+#include "script/runtimescript.h"
+#include "util/memorystream.h"
 
 using namespace AGS::Common;
+using namespace AGS::Engine;
 
 const char *CCDynamicArray::TypeName = "CCDynamicArr2";
 
@@ -82,8 +82,8 @@ void CCDynamicArray::Unserialize(int index, Stream *in, size_t data_sz)
     Header &hdr = reinterpret_cast<Header&>(*new_arr);
     if (type_id > 0)
     {
-        assert(ccInstance::GetRTTI()->GetTypes().size() > type_id);
-        is_managed = (ccInstance::GetRTTI()->GetTypes()[type_id].flags & RTTI::kType_Managed) != 0;
+        assert(RuntimeScript::GetJointRTTI()->GetTypes().size() > type_id);
+        is_managed = (RuntimeScript::GetJointRTTI()->GetTypes()[type_id].flags & RTTI::kType_Managed) != 0;
     }
     hdr.TypeID = type_id | (ARRAY_MANAGED_TYPE_FLAG * is_managed);
     hdr.ElemCount = elem_count;
@@ -121,8 +121,8 @@ void CCDynamicArray::TraverseRefs(void *address, PfnTraverseRefOp traverse_op)
     const RTTI::Type *ti = nullptr;
     if (type_id > 0)
     {
-        assert(ccInstance::GetRTTI()->GetTypes().size() > type_id);
-        ti = &ccInstance::GetRTTI()->GetTypes()[type_id];
+        assert(RuntimeScript::GetJointRTTI()->GetTypes().size() > type_id);
+        ti = &RuntimeScript::GetJointRTTI()->GetTypes()[type_id];
     }
 
     // Dynamic array of managed pointers: subref them directly
@@ -137,7 +137,7 @@ void CCDynamicArray::TraverseRefs(void *address, PfnTraverseRefOp traverse_op)
     // Dynamic array of regular structs that *may* contain managed pointers
     else if (ti && (ti->flags & RTTI::kType_Struct))
     {
-        const auto fref = ccInstance::GetRTTIHelper()->GetManagedOffsetsForType(type_id);
+        const auto fref = RuntimeScript::GetRTTIHelper()->GetManagedOffsetsForType(type_id);
         if (fref.second > fref.first)
         { // there are managed pointers inside!
             const uint8_t *elem_ptr = static_cast<const uint8_t*>(address);

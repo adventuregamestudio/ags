@@ -16,10 +16,11 @@
 
 #include <memory>
 #include <vector>
-#include "script/cc_instance.h"
-#include "script/executingscript.h"
 #include "ac/dynobj/scriptsystem.h"
 #include "game/interactions.h"
+#include "script/executingscript.h"
+#include "script/runtimescript.h"
+#include "script/scriptexecutor.h"
 #include "util/string.h"
 
 using AGS::Common::String;
@@ -98,9 +99,6 @@ void    run_function_on_non_blocking_thread(NonBlockingScriptFunction* funcToRun
 int     run_interaction_script(const ObjectEvent &obj_evt, const InteractionEvents *nint, int evnt, int chkAny = -1);
 void    run_unhandled_event(const ObjectEvent &obj_evt, int evnt);
 
-int     create_global_script();
-void    cancel_all_scripts();
-
 enum RunScFuncResult
 {
     kScFnRes_Done = 0,
@@ -109,9 +107,9 @@ enum RunScFuncResult
     kScFnRes_ScriptBusy = -3,       // script is already being executed
 };
 
-ccInstance *GetScriptInstanceByType(ScriptType sc_type);
+AGS::Engine::RuntimeScript *GetScriptInstanceByType(ScriptType sc_type);
 // Tests if a function exists in the given script module
-bool    DoesScriptFunctionExist(ccInstance *sci, const String &fn_name);
+bool    DoesScriptFunctionExist(const AGS::Engine::RuntimeScript *script, const String &fn_name);
 // Tests if a function exists in any of the regular script module, *except* room script
 bool    DoesScriptFunctionExistInModules(const String &fn_name);
 // Queues a script function to be run either called by the engine or from another script;
@@ -124,7 +122,7 @@ void    QueueScriptFunction(ScriptType sc_type, const String &fn_name, size_t pa
 void    QueueScriptFunction(ScriptType sc_type, const ScriptFunctionRef &fn_ref, size_t param_count = 0,
     const RuntimeScriptValue *params = nullptr, std::weak_ptr<bool> result = {});
 // Try to run a script function on a given script instance
-RunScFuncResult RunScriptFunction(ccInstance *sci, const String &tsname, size_t param_count = 0,
+RunScFuncResult RunScriptFunction(const AGS::Engine::RuntimeScript *script, const String &tsname, size_t param_count = 0,
     const RuntimeScriptValue *params = nullptr);
 // Run a script function in all the regular script modules, in order, where available
 // includes globalscript, but not the current room script.
@@ -139,15 +137,24 @@ bool    RunScriptFunctionInRoom(const String &tsname, size_t param_count = 0, co
 bool   RunScriptFunctionAuto(ScriptType sc_type, const ScriptFunctionRef &fn_ref, size_t param_count = 0,
     const RuntimeScriptValue *params = nullptr);
 
+// Allocates script executor and standard threads
+void    InitScriptExec();
+// Frees script executor and all threads
+void    ShutdownScriptExec();
 // Preallocates script module instances
 void    AllocScriptModules();
-// Delete all the script instance objects
-void    FreeAllScriptInstances();
+// Link all script modules into a single program,
+// registers script exports in a global symbol table
+bool    LinkGlobalScripts();
+// Cancel any running scripts
+void    AbortAllScripts();
+// Unlinks scripts, unregister script exports
+void    UnlinkAllScripts();
 // Delete only the current room script instance
-void    FreeRoomScriptInstance();
+void    FreeRoomScript();
 // Deletes all the global scripts and modules;
 // this frees all of the bytecode and runtime script memory.
-void    FreeGlobalScripts();
+void    FreeAllScripts();
 
 //=============================================================================
 
@@ -164,31 +171,11 @@ void    can_run_delayed_command();
 bool    get_can_run_delayed_command();
 
 // Gets current running script position
-bool    get_script_position(ScriptPosition &script_pos);
+bool    get_script_position(AGS::Engine::ScriptPosition &script_pos);
 String  cc_get_callstack(int max_lines = INT_MAX);
 
 // Gets current ExecutingScript object
 ExecutingScript *get_executingscript();
-
-extern PScript gamescript;
-extern PScript dialogScriptsScript;
-// [ikm] we keep ccInstances saved in unique_ptrs globally for now
-// (e.g. as opposed to shared_ptrs), because the script handling part of the
-// engine is quite fragile and prone to errors whenever the instance is not
-// **deleted** in precise time. This is related to:
-// - ccScript's "instances" counting, which affects script exports reg/unreg;
-// - LoadedInstances array.
-// One of the examples is the save restoration, that may occur in the midst
-// of a post-script cleanup process, whilst the engine's stack still has
-// references to the ccInstances that are going to be deleted on cleanup.
-// Ideally, this part of the engine should be refactored awhole with a goal
-// to make it safe and consistent.
-typedef std::unique_ptr<ccInstance> UInstance;
-extern UInstance gameinst;
-extern UInstance roominst;
-extern UInstance dialogScriptsInst;
-extern UInstance gameinstFork;
-extern UInstance roominstFork;
 
 extern int num_scripts;
 extern int post_script_cleanup_stack;
@@ -207,10 +194,13 @@ extern NonBlockingScriptFunction runDialogOptionTextInputHandlerFunc;
 extern NonBlockingScriptFunction runDialogOptionRepExecFunc;
 extern NonBlockingScriptFunction runDialogOptionCloseFunc;
 
-extern std::vector<PScript> scriptModules;
-extern std::vector<UInstance> moduleInst;
-extern std::vector<UInstance> moduleInstFork;
+extern AGS::Engine::PRuntimeScript gamescript;
+extern AGS::Engine::PRuntimeScript dialogScriptsScript;
+extern std::vector<AGS::Engine::PRuntimeScript> scriptModules;
+extern AGS::Engine::PRuntimeScript roomscript;
 extern std::vector<RuntimeScriptValue> moduleRepExecAddr;
 extern size_t numScriptModules;
+
+extern std::unique_ptr<AGS::Engine::ScriptExecutor> scriptExecutor;
 
 #endif // __AGS_EE_SCRIPT__SCRIPT_H

@@ -11,185 +11,116 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "script/cc_instance.h"
-#include <cstdio>
-#include <deque>
-#include <string.h>
-#include "ac/common.h"
+#include "script/scriptexecutor.h"
 #include "ac/sys_events.h"
 #include "ac/dynobj/cc_dynamicarray.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/dynobj/managedobjectpool.h"
-#include "ac/dynobj/scriptstring.h"
 #include "ac/dynobj/scriptuserobject.h"
-#include "gui/guidefines.h"
-#include "debug/debug_log.h"
-#include "debug/out.h"
 #include "script/cc_common.h"
-#include "script/script.h"
 #include "script/script_runtime.h"
-#include "script/systemimports.h"
-#include "util/bbop.h"
-#include "util/stream.h"
-#include "util/textstreamwriter.h"
-#include "util/file.h"
 #include "util/memory.h"
-#include "util/string_utils.h" // linux strnicmp definition
+#if (DEBUG_CC_EXEC)
+#include "util/file.h"
+#include "util/textstreamwriter.h"
+#endif
 
 using namespace AGS::Common;
 using namespace AGS::Common::Memory;
 using namespace AGS::Engine;
 
-
-enum ScriptOpArgIsReg
-{
-    kScOpNoArgIsReg     = 0,
-    kScOpArg1IsReg      = 0x0001,
-    kScOpArg2IsReg      = 0x0002,
-    kScOpArg3IsReg      = 0x0004,
-    kScOpOneArgIsReg    = kScOpArg1IsReg,
-    kScOpTwoArgsAreReg  = kScOpArg1IsReg | kScOpArg2IsReg,
-    kScOpTreeArgsAreReg = kScOpArg1IsReg | kScOpArg2IsReg | kScOpArg3IsReg
-};
-
-struct ScriptCommandInfo
-{
-    ScriptCommandInfo(const int32_t code, const char *cmdname, const int arg_count, const ScriptOpArgIsReg arg_is_reg)
-        : Code(code), CmdName(cmdname), ArgCount(arg_count)
-        , ArgIsReg {
-            (arg_is_reg & kScOpArg1IsReg) != 0, 
-            (arg_is_reg & kScOpArg2IsReg) != 0, 
-            (arg_is_reg & kScOpArg3IsReg) != 0
-        }
-    {}
-
-    const int32_t   Code = 0;
-    const char     *CmdName = nullptr;
-    const int       ArgCount = 0;
-    const bool      ArgIsReg[3]{};
-};
-
-const ScriptCommandInfo sccmd_info[CC_NUM_SCCMDS] =
-{
-    ScriptCommandInfo( 0                    , "NULL"              , 0, kScOpNoArgIsReg ),
-    ScriptCommandInfo( SCMD_ADD             , "addi"              , 2, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_SUB             , "subi"              , 2, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_REGTOREG        , "mov"               , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_WRITELIT        , "memwritelit"       , 2, kScOpNoArgIsReg ),
-    ScriptCommandInfo( SCMD_RET             , "ret"               , 0, kScOpNoArgIsReg ),
-    ScriptCommandInfo( SCMD_LITTOREG        , "movl"              , 2, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_MEMREAD         , "memread4"          , 1, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_MEMWRITE        , "memwrite4"         , 1, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_MULREG          , "mul"               , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_DIVREG          , "div"               , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_ADDREG          , "add"               , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_SUBREG          , "sub"               , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_BITAND          , "and"               , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_BITOR           , "or"                , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_ISEQUAL         , "cmpeq"             , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_NOTEQUAL        , "cmpne"             , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_GREATER         , "gt"                , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_LESSTHAN        , "lt"                , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_GTE             , "gte"               , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_LTE             , "lte"               , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_AND             , "land"              , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_OR              , "lor"               , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_CALL            , "call"              , 1, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_MEMREADB        , "memread1"          , 1, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_MEMREADW        , "memread2"          , 1, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_MEMWRITEB       , "memwrite1"         , 1, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_MEMWRITEW       , "memwrite2"         , 1, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_JZ              , "jzi"               , 1, kScOpNoArgIsReg ),
-    ScriptCommandInfo( SCMD_PUSHREG         , "push"              , 1, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_POPREG          , "pop"               , 1, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_JMP             , "jmpi"              , 1, kScOpNoArgIsReg ),
-    ScriptCommandInfo( SCMD_MUL             , "muli"              , 2, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_CALLEXT         , "farcall"           , 1, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_PUSHREAL        , "farpush"           , 1, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_SUBREALSTACK    , "farsubsp"          , 1, kScOpNoArgIsReg ),
-    ScriptCommandInfo( SCMD_LINENUM         , "sourceline"        , 1, kScOpNoArgIsReg ),
-    ScriptCommandInfo( SCMD_CALLAS          , "callscr"           , 1, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_THISBASE        , "thisaddr"          , 1, kScOpNoArgIsReg ),
-    ScriptCommandInfo( SCMD_NUMFUNCARGS     , "setfuncargs"       , 1, kScOpNoArgIsReg ),
-    ScriptCommandInfo( SCMD_MODREG          , "mod"               , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_XORREG          , "xor"               , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_NOTREG          , "not"               , 1, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_SHIFTLEFT       , "shl"               , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_SHIFTRIGHT      , "shr"               , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_CALLOBJ         , "callobj"           , 1, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_CHECKBOUNDS     , "checkbounds"       , 2, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_MEMWRITEPTR     , "memwrite.ptr"      , 1, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_MEMREADPTR      , "memread.ptr"       , 1, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_MEMZEROPTR      , "memwrite.ptr.0"    , 0, kScOpNoArgIsReg ),
-    ScriptCommandInfo( SCMD_MEMINITPTR      , "meminit.ptr"       , 1, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_LOADSPOFFS      , "load.sp.offs"      , 1, kScOpNoArgIsReg ),
-    ScriptCommandInfo( SCMD_CHECKNULL       , "checknull.ptr"     , 0, kScOpNoArgIsReg ),
-    ScriptCommandInfo( SCMD_FADD            , "faddi"             , 2, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_FSUB            , "fsubi"             , 2, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_FMULREG         , "fmul"              , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_FDIVREG         , "fdiv"              , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_FADDREG         , "fadd"              , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_FSUBREG         , "fsub"              , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_FGREATER        , "fgt"               , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_FLESSTHAN       , "flt"               , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_FGTE            , "fgte"              , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_FLTE            , "flte"              , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_ZEROMEMORY      , "zeromem"           , 1, kScOpNoArgIsReg ),
-    ScriptCommandInfo( SCMD_CREATESTRING    , "newstring"         , 1, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_STRINGSEQUAL    , "streq"             , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_STRINGSNOTEQ    , "strne"             , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_CHECKNULLREG    , "checknull"         , 1, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_LOOPCHECKOFF    , "loopcheckoff"      , 0, kScOpNoArgIsReg ),
-    ScriptCommandInfo( SCMD_MEMZEROPTRND    , "memwrite.ptr.0.nd" , 0, kScOpNoArgIsReg ),
-    ScriptCommandInfo( SCMD_JNZ             , "jnzi"              , 1, kScOpNoArgIsReg ),
-    ScriptCommandInfo( SCMD_DYNAMICBOUNDS   , "dynamicbounds"     , 1, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_NEWARRAY        , "newarray"          , 3, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_NEWUSEROBJECT   , "newuserobject"     , 2, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_NEWUSEROBJECT2  , "newuserobject2"    , 3, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_NEWARRAY2       , "newarray2"         , 3, kScOpOneArgIsReg ),
-};
-
-const char *regnames[] = { "null", "sp", "mar", "ax", "bx", "cx", "op", "dx" };
-const char *fixupnames[] = { "null", "fix_gldata", "fix_func", "fix_string", "fix_import", "fix_datadata", "fix_stack" };
-
-
+// FIXME: don't use global var like this
 extern new_line_hook_type new_line_hook;
-
-ccInstance *LoadedInstances[MAX_PRIMARY_INSTANCES] = { nullptr };
-
-// Instance thread stack holds a list of running or suspended script instances;
-// In AGS currently only one thread is running, others are waiting in the queue.
-// An example situation is repeatedly_execute_always callback running while
-// another instance is waiting at the blocking action or Wait().
-std::deque<ccInstance*> InstThreads;
+// FIXME: do something with this, don't use global variable
+extern std::unique_ptr<ScriptExecutor> scriptExecutor;
 
 
-String cc_get_callstack(int max_lines)
+namespace AGS
 {
-    String callstack;
-    for (auto sci = InstThreads.crbegin(); sci != InstThreads.crend(); ++sci)
+namespace Engine
+{
+
+// A helper function, formatting provided script pos and callstack into a human-readable text
+static String FormatCallStack(const ScriptExecPosition &pos, const std::deque<ScriptExecPosition> &callstack, uint32_t max_lines)
+{
+    if (!pos.Script)
+        return {};
+
+    String buffer = String::FromFormat("in \"%s\", line %d\n", pos.Script->GetSectionName(pos.PC).GetCStr(), pos.LineNumber);
+
+    uint32_t lines_done = 0u;
+    for (auto it = callstack.crbegin(); it != callstack.crend() && (lines_done < max_lines); ++lines_done, ++it)
     {
-        if (callstack.IsEmpty())
-            callstack.Append("in the active script:\n");
-        else
-            callstack.Append("in the waiting script:\n");
-        callstack.Append((*sci)->GetCallStack(max_lines));
+        String lineBuffer = String::FromFormat("from \"%s\", line %d\n",
+            it->Script->GetSectionName(it->PC).GetCStr(), it->LineNumber);
+        buffer.Append(lineBuffer);
+        if (lines_done == max_lines - 1)
+            buffer.Append("(and more...)\n");
     }
-    return callstack;
+    return buffer;
+}
+
+
+// Size of stack in RuntimeScriptValues (aka distinct variables)
+#define CC_STACK_SIZE       256
+// Size of stack in bytes (raw data storage)
+#define CC_STACK_DATA_SIZE  (1024 * sizeof(int32_t))
+#define MAX_CALL_STACK      128
+
+
+ScriptThread::ScriptThread()
+{
+    Alloc();
+}
+
+ScriptThread::ScriptThread(const String &name)
+    : _name(name)
+{
+    Alloc();
+}
+
+void ScriptThread::Alloc()
+{
+    // Create a stack
+    // The size of a stack is quite an arbitrary choice; there's no way to deduce number of stack
+    // entries needed without knowing amount of local variables (at least)
+    _stack.resize(CC_STACK_SIZE);
+    _stackdata.resize(CC_STACK_DATA_SIZE);
+}
+
+String ScriptThread::FormatCallStack(uint32_t max_lines) const
+{
+    return ::FormatCallStack(_pos, _callstack, max_lines);
+}
+
+void ScriptThread::SaveState(const ScriptExecPosition &pos, std::deque<ScriptExecPosition> &callstack,
+    size_t stack_begin, size_t stackdata_begin, size_t stack_off, size_t stackdata_off)
+{
+    _callstack = callstack;
+    _pos = pos;
+    _stackBeginOff = stack_begin;
+    _stackDataBeginOff = stackdata_begin;
+    _stackOffset = stack_off;
+    _stackDataOffset = stackdata_off;
+}
+
+void ScriptThread::ResetState()
+{
+    _callstack.clear();
+    _pos = {};
+    _stackBeginOff = 0u;
+    _stackDataBeginOff = 0u;
+    _stackOffset = 0u;
+    _stackDataOffset = 0u;
 }
 
 
 // Function call stack is used to temporarily store
 // values before passing them to script function
-#define MAX_FUNC_PARAMS 20
 // An inverted parameter stack
 struct FunctionCallStack
 {
-    FunctionCallStack()
-    {
-        Head = MAX_FUNC_PARAMS - 1;
-        Count = 0;
-    }
+    FunctionCallStack() = default;
 
     inline RuntimeScriptValue *GetHead()
     {
@@ -200,110 +131,273 @@ struct FunctionCallStack
         return &Entries[Head + Count];
     }
 
+    const static size_t MAX_FUNC_PARAMS = 20u;
     RuntimeScriptValue  Entries[MAX_FUNC_PARAMS + 1];
-    int                 Head;
-    int                 Count;
+    size_t              Head = MAX_FUNC_PARAMS - 1;
+    size_t              Count = 0u;
 };
 
 
-RuntimeScriptValue ccInstance::_pluginReturnValue;
-std::unique_ptr<JointRTTI> ccInstance::_rtti;
-std::unordered_map<String, uint32_t> ccInstance::_rttiLookup;
-std::unique_ptr<RTTIHelper> ccInstance::_rttiHelper;
+RuntimeScriptValue ScriptExecutor::_pluginReturnValue;
 
 
-unsigned ccInstance::_timeoutCheckMs = 60u;
-unsigned ccInstance::_timeoutAbortMs = 0u;
-unsigned ccInstance::_maxWhileLoops = 0u;
-
-
-ccInstance::ResolvedScriptData::ResolvedScriptData()
-    : export_lookup('$', true /* allow to match symbols with more appendages */)
+ScriptExecutor::~ScriptExecutor()
 {
+#if (DEBUG_CC_EXEC)
+    CloseExecLog();
+#endif
 }
 
-ccInstance *ccInstance::GetCurrentInstance()
+void ScriptExecutor::SetPluginReturnValue(const RuntimeScriptValue &value)
 {
-    return InstThreads.size() > 0 ? InstThreads.back() : nullptr;
+    _pluginReturnValue = value;
 }
 
-void ccInstance::FreeInstanceStack()
+ScriptExecError ScriptExecutor::Run(ScriptThread *thread, const RuntimeScript *script, const String &funcname, const RuntimeScriptValue *params, size_t param_count)
 {
-    InstThreads.clear();
-}
+    assert(thread);
+    assert(script);
+    assert(param_count == 0 || params);
+    cc_clear_error();
 
-std::unique_ptr<ccInstance> ccInstance::CreateFromScript(PScript scri)
-{
-    return CreateEx(scri, nullptr);
-}
-
-std::unique_ptr<ccInstance> ccInstance::CreateEx(PScript scri, const ccInstance *joined)
-{
-    // allocate and copy all the memory with data, code and strings across
-    std::unique_ptr<ccInstance> cinst(new ccInstance());
-    if (!cinst->_Create(scri, joined))
+    if (IsBusy())
     {
-        return nullptr;
+        cc_error("ScriptExecutor is busy");
+        return kScExecErr_Busy;
     }
-    // Join RTTI
-    if (!ccInstance::_rtti)
-        ccInstance::_rtti.reset(new JointRTTI());
-    if (!ccInstance::_rttiHelper)
-        ccInstance::_rttiHelper.reset(new RTTIHelper());
-    // TODO: not related to static members, move this to private _Create, and optimize for forks
-    if (scri->rtti && !scri->rtti->IsEmpty())
+
+    if (!thread || !script || (param_count > 0) && !params)
     {
-        JoinRTTI(*scri->rtti, cinst->_locidLocal2Global, cinst->_typeidLocal2Global);
+        cc_error("bad input arguments in ScriptExecutor::Run");
+        return kScExecErr_Generic;
     }
-    return cinst;
+
+    if ((param_count >= FunctionCallStack::MAX_FUNC_PARAMS) || (param_count < 0))
+    {
+        cc_error("invalid number of function arguments %d, supported range is %d - %d", param_count, 0, FunctionCallStack::MAX_FUNC_PARAMS - 1);
+        return kScExecErr_InvalidArgNum;
+    }
+
+    int start_at, export_args;
+    if (!script->FindExportedFunction(funcname, start_at, export_args))
+    {
+        cc_error("function '%s' not found", funcname.GetCStr());
+        return kScExecErr_FuncNotFound;
+    }
+
+    // NOTE: passing more parameters than expected by the function is fine:
+    // the function args are pushed to the stack in REVERSE order, first
+    // parameters are always the last, so function code knows how to find them
+    // using negative offsets, and does not care about any preceding entries.
+    // But if there's not enough parameters, then we cannot call this function.
+    if (static_cast<uint32_t>(export_args) > param_count)
+    {
+        cc_error("Not enough parameters to exported function '%s' (expected %d, supplied %zu)",
+            funcname.GetCStr(), export_args, param_count);
+        return kScExecErr_InvalidArgNum;
+    }
+
+#if DEBUG_CC_EXEC
+    if (ccGetOption(SCOPT_DEBUGRUN) != 0)
+    {
+        OpenExecLog();
+    }
+#endif
+
+    // Allow to pass less parameters if script callback has less declared args
+    param_count = std::min<size_t>(param_count, export_args);
+    // Prepare executor for run
+    _flags = (_flags & ~kScExecState_Aborted) | kScExecState_Running | kScExecState_Busy;
+    _returnValue = 0;
+    currentline = 0; // FIXME: stop using a global variable
+
+    PushThread(thread);
+
+    const ScriptExecError reterr = Run(script, start_at, params, param_count);
+
+    PopThread();
+
+    const bool was_aborted = (_flags & kScExecState_Aborted) != 0;
+    const bool has_work = _thread != nullptr;
+    // Clear exec state
+    _flags = (kScExecState_Running * has_work);
+    _returnValue = 0;
+    currentline = 0;
+
+#if DEBUG_CC_EXEC
+    if (!IsRunning())
+    {
+        CloseExecLog();
+    }
+#endif
+
+    if (reterr != kScExecErr_None)
+        return reterr;
+
+    // NOTE that if proper multithreading is added this will need
+    // to be reconsidered, since the GC could be run in the middle 
+    // of a RET from a function or something where there is an 
+    // object with ref count 0 that is in use
+    pool.RunGarbageCollectionIfAppropriate();
+
+    if (new_line_hook)
+        new_line_hook(nullptr, 0);
+
+    return was_aborted ?
+        kScExecErr_Aborted :
+        kScExecErr_None;
 }
 
-void ccInstance::JoinRTTI(const RTTI &rtti,
-    std::unordered_map<uint32_t, uint32_t> &loc_l2g,
-    std::unordered_map<uint32_t, uint32_t> &type_l2g)
+void ScriptExecutor::Abort()
 {
-    ccInstance::_rtti->Join(rtti, loc_l2g, type_l2g);
-    // TODO: optimize by updating only newly joint types
-    ccInstance::_rttiHelper->Generate(ccInstance::_rtti->AsConstRTTI());
+    if (_pc != 0)
+        _flags |= kScExecState_Aborted;
 }
 
-void ccInstance::SetExecTimeout(const unsigned sys_poll_ms, const unsigned abort_ms,
-    const unsigned abort_loops)
+void ScriptExecutor::PushThread(ScriptThread *thread)
+{
+    assert(thread);
+    // If there's already an active thread, then save latest exec state,
+    // then push the previous thread to the thread stack.
+    ScriptThread *was_thread = _thread;
+    if (_thread)
+    {
+        if (_thread != thread)
+        {
+            SaveThreadState();
+        }
+        _threadStack.push_back(_thread); // push always, simpler to do PopThread this way
+    }
+    
+    // Assign new current thread, get its data if it's a different one
+    _thread = thread;
+    if (was_thread != _thread)
+    {
+        SelectThread(_thread);
+    }
+}
+
+void ScriptExecutor::PopThread()
+{
+    assert(_thread);
+    // If the previous thread is not the same thread, then save popped thread's state
+    // NOTE: it's a curious problem, whether the thread should be simply reset here;
+    // it depends on whether we let to run same thread nested with another in the middle...
+    if (_threadStack.empty() || _threadStack.back() != _thread)
+    {
+        SaveThreadState();
+    }
+    // If there's anything in the thread stack, pop one back and restore the state
+    if (_threadStack.empty())
+    {
+        SelectThread(nullptr);
+    }
+    else
+    {
+        ScriptThread *was_thread = _thread;
+        _thread = _threadStack.back();
+        _threadStack.pop_back();
+
+        if (was_thread != _thread)
+        {
+            SelectThread(_thread);
+        }
+    }
+}
+
+void ScriptExecutor::SelectThread(ScriptThread *thread)
+{
+    if (thread)
+    {
+        _thread = thread;
+        // Restore execution pos
+        _callstack = thread->GetCallStack();
+        const auto &pos = thread->GetPosition();
+        SetCurrentScript(pos.Script);
+        _pc = pos.PC;
+        _lineNumber = pos.LineNumber;
+        // Restore data stack state
+        _stackBegin = thread->GetStack().data() + thread->GetStackBegin();
+        _stackdataBegin = thread->GetStackData().data() + thread->GetStackDataBegin();
+        _registers[SREG_SP].RValue = _stackBegin + thread->GetStackOffset();
+        _stackdataPtr = _stackdataBegin + thread->GetStackDataOffset();
+    }
+    else
+    {
+        _thread = nullptr;
+        SetCurrentScript(nullptr);
+        _pc = 0;
+        _lineNumber = 0;
+    }
+}
+
+void ScriptExecutor::SaveThreadState()
+{
+    _thread->SaveState(ScriptExecPosition(_current, _pc, _lineNumber), _callstack,
+        _stackBegin - _thread->GetStack().data(),
+        _stackdataBegin - _thread->GetStackData().data(),
+        _registers[SREG_SP].RValue - _stackBegin,
+        _stackdataPtr - _stackdataBegin);
+}
+
+void ScriptExecutor::GetScriptPosition(ScriptPosition &script_pos) const
+{
+    if (!_current)
+        return;
+
+    script_pos = ScriptPosition(_current->GetSectionName(_pc), _lineNumber);
+}
+
+String ScriptExecutor::FormatCallStack(uint32_t max_lines) const
+{
+    if (!_thread)
+        return {}; // not running on any thread
+
+    String callstack;
+    callstack.Append("in the active script:\n");
+    callstack.Append(::FormatCallStack(ScriptExecPosition(_current, _pc, _lineNumber), _callstack, max_lines));
+    callstack.Append("in the waiting script:\n");
+
+    const ScriptThread *last_thread = nullptr;
+    for (auto thread = _threadStack.crbegin(); thread != _threadStack.crend(); ++thread)
+    {
+        if (last_thread == *thread)
+            continue;
+
+        callstack.Append((*thread)->FormatCallStack(max_lines));
+        last_thread = *thread;
+    }
+    return callstack;
+}
+    
+void ScriptExecutor::SetExecTimeout(unsigned sys_poll_ms, unsigned abort_ms, unsigned abort_loops)
 {
     _timeoutCheckMs = sys_poll_ms;
     _timeoutAbortMs = abort_ms;
     _maxWhileLoops = abort_loops;
 }
 
-void ccInstance::SetPluginReturnValue(const RuntimeScriptValue &value)
+void ScriptExecutor::NotifyAlive()
 {
-    _pluginReturnValue = value;
+    _flags |= kScExecState_Alive;
+    _lastAliveTs = AGS_FastClock::now();
 }
 
-ccInstance::~ccInstance()
-{
-    Free();
-}
+//-----------------------------------------------------------------------------
+//
+// Script execution routine follows.
+//
+//-----------------------------------------------------------------------------
 
-std::unique_ptr<ccInstance> ccInstance::Fork()
-{
-    return CreateEx(_instanceof, this);
-}
-
-void ccInstance::Abort()
-{
-    if (_pc != 0)
-        _flags |= INSTF_ABORTED;
-}
-
-void ccInstance::AbortAndDestroy()
-{
-    Abort();
-    _flags |= INSTF_FREE;
-}
+// Script executor debugging flag:
+// enables mistake checks, but slows things down!
+#ifndef DEBUG_CC_EXEC
+#define DEBUG_CC_EXEC (AGS_PLATFORM_DEBUG)
+#endif
 
 // ASSERT_CC_OP tests for the internal function call return value and
-// returns failure on error
+// returns failure on error. These assertions are slowing things down
+// when executing excessive scripts, and so are disabled in Release build.
 #if (DEBUG_CC_EXEC)
 
 #define CC_ERROR_IF(COND, ERROR, ...) \
@@ -317,7 +411,7 @@ void ccInstance::AbortAndDestroy()
     if (COND) \
     { \
         cc_error(ERROR, ##__VA_ARGS__); \
-        return kInstErr_Generic; \
+        return kScExecErr_Generic; \
     }
 
 #define CC_ERROR_IF_RETVAL(COND, T, ERROR, ...) \
@@ -330,7 +424,7 @@ void ccInstance::AbortAndDestroy()
 #define ASSERT_CC_ERROR() \
     if (cc_has_error()) \
     { \
-        return kInstErr_Generic; \
+        return kScExecErr_Generic; \
     }
 
 #else
@@ -343,14 +437,14 @@ void ccInstance::AbortAndDestroy()
 #endif // DEBUG_CC_EXEC
 
 
-// Two stack assertions that are always enabled:
+// A number of stack assertions that are always enabled:
 // ASSERT_STACK_SPACE_AVAILABLE tests that we do not exceed stack limit
 #define ASSERT_STACK_SPACE_AVAILABLE(N_VALS, N_BYTES) \
     if ((_registers[SREG_SP].RValue + N_VALS - _stackBegin) >= CC_STACK_SIZE || \
         (_stackdataPtr + N_BYTES - _stackdataBegin) >= CC_STACK_DATA_SIZE) \
     { \
         cc_error("stack overflow, attempted to grow from %zu by %zu bytes", (size_t)(_stackdataPtr - _stackdataBegin), (size_t)(N_BYTES)); \
-        return kInstErr_Generic; \
+        return kScExecErr_Generic; \
     }
 
 // ASSERT_STACK_SPACE_BYTES tests that we do not exceed stack limit
@@ -366,7 +460,7 @@ void ccInstance::AbortAndDestroy()
     if (_registers[SREG_SP].RValue - N < _stackBegin) \
     { \
         cc_error("stack underflow"); \
-        return kInstErr_Generic; \
+        return kScExecErr_Generic; \
     }
 
 // ASSERT_STACK_UNWINDED tests that the stack pointer is at the expected position
@@ -374,146 +468,97 @@ void ccInstance::AbortAndDestroy()
     if ((_registers[SREG_SP].RValue > STACK_VAL.RValue) || \
         (_stackdataPtr > DATA_PTR)) \
     { \
-        cc_error("stack is not unwinded after function call, %zu bytes remain", (size_t)(_stackdataPtr - DATA_PTR)); \
-        return kInstErr_Generic; \
+        cc_error("stack is not unwinded after function call, %d bytes remain", (_stackdataPtr - DATA_PTR)); \
+        return kScExecErr_Generic; \
     }
 
+// Macros to maintain the call stack
+#define PUSH_CALL_STACK() \
+    if (_callstack.size() >= MAX_CALL_STACK) { \
+        cc_error("CallScriptFunction stack overflow (recursive call error?)"); \
+        return kScExecErr_Generic; \
+    } \
+    _callstack.push_back(ScriptExecPosition(_current, _pc, _lineNumber));
 
-bool ccInstance::FindExportedFunction(const String &fn_name, int32_t &start_at, int32_t &num_args) const
+#define POP_CALL_STACK() \
+    if (_callstack.size() < 1) { \
+        cc_error("CallScriptFunction stack underflow -- internal error"); \
+        return kScExecErr_Generic; \
+    } \
+    _lineNumber = _callstack.back().LineNumber; \
+    currentline = _lineNumber; \
+    _callstack.pop_back();
+
+
+ScriptExecError ScriptExecutor::Run(const RuntimeScript *script, int32_t curpc, const RuntimeScriptValue *params, size_t param_count)
 {
-    const uint32_t exp_index = _scriptData->export_lookup.GetIndexOfAny(fn_name);
-    if (exp_index == UINT32_MAX)
-        return false;
+    const bool is_nested_run = _current != nullptr;
 
-    const int32_t etype = (_instanceof->export_addr[exp_index] >> 24L) & 0x000ff;
-    if (etype != EXPORT_FUNCTION)
-        return false; // not a function
-    start_at = (_instanceof->export_addr[exp_index] & 0x00ffffff);
+    const RuntimeScript *was_running = _current;
+    const int oldpc = _pc;
+    const int oldlinenum = _lineNumber;
+    RuntimeScriptValue * const oldstack_begin = _stackBegin;
+    uint8_t * const oldstackdata_begin = _stackdataBegin;
 
-    const String &exp_name = _instanceof->exports[exp_index];
-    assert(exp_name.GetLength() >= fn_name.GetLength());
-    if (exp_name.GetLength() <= fn_name.GetLength())
+    if (is_nested_run)
     {
-        num_args = 0; // unknown, registered without args info
+        PUSH_CALL_STACK();
+        // In the nested call we keep stack pointers where they are,
+        // and treat their position as a new "beginning of stack" for this exec pass.
     }
     else
     {
-        num_args = atoi(&exp_name[fn_name.GetLength() + 1]);
-    }
-    return true;
-}
-
-ccInstError ccInstance::CallScriptFunction(const String &funcname, int32_t numargs, const RuntimeScriptValue *params)
-{
-    cc_clear_error();
-    currentline = 0;
-
-    if (numargs > 0 && !params)
-    {
-        cc_error("internal error in ccInstance::CallScriptFunction");
-        return kInstErr_Generic;
+        // On script thread entry we reset stack pointers to the actual beginning
+        // of the thread's stack.
+        _registers[SREG_SP].SetStackPtr(_thread->GetStack().data());
+        _stackdataPtr = _thread->GetStackData().data();
     }
 
-    if ((numargs >= MAX_FUNCTION_PARAMS) || (numargs < 0))
-    {
-        cc_error("invalid number of function arguments %d, supported range is %d - %d", numargs, 0, MAX_FUNCTION_PARAMS - 1);
-        return kInstErr_InvalidArgNum;
-    }
+    SetCurrentScript(script);
+    _stackBegin = _registers[SREG_SP].RValue;
+    _stackdataBegin = _stackdataPtr;
+    const RuntimeScriptValue oldstack = _registers[SREG_SP];
+    const uint8_t * const oldstackdata = _stackdataPtr;
 
-    if (_pc != 0)
-    {
-        cc_error("instance already being executed");
-        return kInstErr_Busy;
-    }
-
-    int start_at, export_args;
-    if (!FindExportedFunction(funcname, start_at, export_args))
-    {
-        cc_error("function '%s' not found", funcname.GetCStr());
-        return kInstErr_FuncNotFound;
-    }
-
-    // NOTE: passing more parameters than expected by the function is fine:
-    // the function args are pushed to the stack in REVERSE order, first
-    // parameters are always the last, so function code knows how to find them
-    // using negative offsets, and does not care about any preceding entries.
-    // But if there's not enough parameters, then we cannot call this function.
-    if (export_args > numargs)
-    {
-        cc_error("Not enough parameters to exported function '%s' (expected %d, supplied %d)",
-            funcname.GetCStr(), export_args, numargs);
-        return kInstErr_Generic;
-    }
-
-    // Prepare instance for run
-    _flags &= ~INSTF_ABORTED;
-    // Allow to pass less parameters if script callback has less declared args
-    numargs = std::min(numargs, export_args);
     // object pointer needs to start zeroed
     _registers[SREG_OP].SetScriptObject(nullptr, nullptr);
-    _registers[SREG_SP].SetStackPtr( _stack.data() );
-    _stackdataPtr = _stackdata.data();
+
     // NOTE: Pushing parameters to stack in reverse order
-    ASSERT_STACK_SPACE_VALS(numargs + 1 /* return address */);
-    for (int i = numargs - 1; i >= 0; --i)
+    ASSERT_STACK_SPACE_VALS(param_count + 1 /* return address */);
+    for (int i = param_count - 1; i >= 0; --i)
     {
         PushValueToStack(params[i]);
     }
     // Push placeholder for the return value (it will be popped before ret)
     PushValueToStack(RuntimeScriptValue().SetInt32(0));
 
-    InstThreads.push_back(this); // push instance thread
-    _runningInst = this;
-    const ccInstError reterr = Run(start_at);
-    // Cleanup before returning, even if error
-    ASSERT_STACK_SIZE(numargs);
-    PopValuesFromStack(numargs);
-    _pc = 0;
-    currentline = 0;
-    InstThreads.pop_back(); // pop instance thread
-    if (reterr != kInstErr_None)
+    const ScriptExecError reterr = Run(curpc);
+
+    if (reterr != kScExecErr_None)
         return reterr;
 
-    // NOTE that if proper multithreading is added this will need
-    // to be reconsidered, since the GC could be run in the middle 
-    // of a RET from a function or something where there is an 
-    // object with ref count 0 that is in use
-    pool.RunGarbageCollectionIfAppropriate();
-
-    if (new_line_hook)
-        new_line_hook(nullptr, 0);
-
-    if (_flags & INSTF_ABORTED) {
-        _flags &= ~INSTF_ABORTED;
-
-        if (_flags & INSTF_FREE)
-            Free();
-        return kInstErr_Aborted;
+    // Cleanup and assert stack state:
+    // stack must be reset to where it was before starting this script
+    if ((_flags & kScExecState_Aborted) == 0)
+    {
+        ASSERT_STACK_SIZE(param_count);
+        PopValuesFromStack(param_count);
+        ASSERT_STACK_UNWINDED(oldstack, oldstackdata);
     }
 
-    ASSERT_STACK_UNWINDED(RuntimeScriptValue().SetStackPtr(_stack.data()), _stackdata.data());
-    return cc_has_error() ? kInstErr_Generic : kInstErr_None;
+    if (is_nested_run)
+    {
+        POP_CALL_STACK();
+    }
+
+    SetCurrentScript(was_running); // switch back to the previous script
+    _pc = oldpc;
+    _lineNumber = oldlinenum;
+    _stackBegin = oldstack_begin;
+    _stackdataBegin = oldstackdata_begin;
+
+    return cc_has_error() ? kScExecErr_Generic : kScExecErr_None;
 }
-
-// Macros to maintain the call stack
-#define PUSH_CALL_STACK() \
-    if (_callStackSize >= MAX_CALL_STACK) { \
-        cc_error("CallScriptFunction stack overflow (recursive call error?)"); \
-        return kInstErr_Generic; \
-    } \
-    _callStackLineNumber[_callStackSize] = _lineNumber;  \
-    _callStackCodeInst[_callStackSize] = _runningInst;  \
-    _callStackAddr[_callStackSize] = _pc;  \
-    _callStackSize++ 
-
-#define POP_CALL_STACK() \
-    if (_callStackSize < 1) { \
-        cc_error("CallScriptFunction stack underflow -- internal error"); \
-        return kInstErr_Generic; \
-    } \
-    _callStackSize--;\
-    _lineNumber = _callStackLineNumber[_callStackSize];\
-    currentline = _lineNumber
 
 
 // Return stack ptr at given offset from stack head;
@@ -588,41 +633,74 @@ inline bool FixupArgument(RuntimeScriptValue &arg, const int fixup, const uintpt
 }
 
 
+// FIXME: get rid of this
 #define MAXNEST 50  // number of recursive function calls allowed
-ccInstError ccInstance::Run(int32_t curpc)
+
+struct ScriptInstruction
+{
+    ScriptInstruction() = default;
+    ScriptInstruction(int code, int instid) : Code(code), InstanceId(instid) {}
+
+    int32_t	Code = 0;
+    int32_t	InstanceId = 0;
+};
+
+struct ScriptOperation
+{
+	ScriptInstruction   Instruction;
+	RuntimeScriptValue	Args[MAX_SCMD_ARGS];
+	int				    ArgCount = 0;
+
+    // Helper functions for clarity of intent:
+    // returns argN, 1-based
+    inline const RuntimeScriptValue &Arg1() const { return Args[0]; }
+    inline const RuntimeScriptValue &Arg2() const { return Args[1]; }
+    inline const RuntimeScriptValue &Arg3() const { return Args[2]; }
+    // returns argN as a integer literal
+    inline int Arg1i() const { return Args[0].IValue; }
+    inline int Arg2i() const { return Args[1].IValue; }
+    inline int Arg3i() const { return Args[2].IValue; }
+};
+
+ScriptExecError ScriptExecutor::Run(int32_t curpc)
 {
     _pc = curpc;
     _returnValue = -1;
 
-    if ((curpc < 0) || (static_cast<uint32_t>(curpc) >= _runningInst->_codesize))
+    if ((curpc < 0) || (static_cast<uint32_t>(curpc) >= _codesize))
     {
         cc_error("specified code offset is not valid");
-        return kInstErr_Generic;
+        return kScExecErr_Generic;
     }
 
-    int32_t thisbase[MAXNEST], funcstart[MAXNEST];
+    // TODO: many of these local vars should be made ScriptExecutor's private members,
+    // and also have duplicates in ScriptThread, where they are copied from on Run
+    // and copied back after Run. Noteably: thisbase, func_callstack, was_just_callas etc.
+    // This will be required if we support thread suspending.
+    int32_t thisbase[MAXNEST];
+    int32_t funcstart[MAXNEST];
     int was_just_callas = -1;
     int curnest = 0;
     int num_args_to_func = -1;
     int next_call_needs_object = 0;
     thisbase[0] = 0;
     funcstart[0] = _pc;
-    ccInstance *codeInst = _runningInst;
     ScriptOperation codeOp;
     FunctionCallStack func_callstack;
-#if DEBUG_CC_EXEC
-    const bool dump_opcodes = ccGetOption(SCOPT_DEBUGRUN) != 0;
-#endif
     int loopIterationCheckDisabled = 0;
     unsigned loopIterations = 0u; // any loop iterations (needed for timeout test)
     unsigned loopCheckIterations = 0u; // loop iterations accumulated only if check is enabled
+
+#if DEBUG_CC_EXEC
+    const bool dump_opcodes = (ccGetOption(SCOPT_DEBUGRUN) != 0) && (_execWriter != nullptr);
+#endif
 
     const auto timeout = std::chrono::milliseconds(_timeoutCheckMs);
     _lastAliveTs = AGS_FastClock::now();
 
     /* Main bytecode execution loop */
     //=====================================================================
-    while ((_flags & INSTF_ABORTED) == 0)
+    while ((_flags & kScExecState_Aborted) == 0)
     {
         // WARNING: a time-critical code ahead;
         // trying to pick some of the code out to separate function(s)
@@ -631,7 +709,7 @@ ccInstError ccInstance::Run(int32_t curpc)
         //
         /* Read operation */
         //=====================================================================
-        codeOp.Instruction.Code = codeInst->_code[_pc];
+        codeOp.Instruction.Code = _code[_pc];
         codeOp.Instruction.InstanceId = (codeOp.Instruction.Code >> INSTANCE_ID_SHIFT) & INSTANCE_ID_MASK;
         codeOp.Instruction.Code &= INSTANCE_ID_REMOVEMASK; // now this is pure instruction code
 
@@ -640,21 +718,21 @@ ccInstError ccInstance::Run(int32_t curpc)
 
         codeOp.ArgCount = sccmd_info[codeOp.Instruction.Code].ArgCount;
 
-        CC_ERROR_IF_RETCODE(static_cast<uint32_t>(_pc + codeOp.ArgCount) >= codeInst->_codesize,
-            "unexpected end of code data (%d; %d)", _pc + codeOp.ArgCount, codeInst->_codesize);
+        CC_ERROR_IF_RETCODE(static_cast<uint32_t>(_pc + codeOp.ArgCount) >= _codesize,
+            "unexpected end of code data (%d; %u)", _pc + codeOp.ArgCount, _codesize);
 
 
         // Read arguments; use switch as it proved to be faster than the loop
         switch (codeOp.ArgCount)
         {
         case 3:
-            codeOp.Args[2].SetInt32(static_cast<int32_t>(codeInst->_code[_pc + 3]));
+            codeOp.Args[2].SetInt32(static_cast<int32_t>(_code[_pc + 3]));
             /* fall-through */
         case 2:
-            codeOp.Args[1].SetInt32(static_cast<int32_t>(codeInst->_code[_pc + 2]));
+            codeOp.Args[1].SetInt32(static_cast<int32_t>(_code[_pc + 2]));
             /* fall-through */
         case 1:
-            codeOp.Args[0].SetInt32(static_cast<int32_t>(codeInst->_code[_pc + 1]));
+            codeOp.Args[0].SetInt32(static_cast<int32_t>(_code[_pc + 1]));
             break;
         default:
             break;
@@ -758,7 +836,7 @@ ccInstError ccInstance::Run(int32_t curpc)
             // be only up to 4 bytes large;
             // I guess that's an obsolete way to do WRITE, WRITEW and WRITEB
             const auto arg_size = codeOp.Arg1i();
-            FixupArgument(codeOp.Args[1], codeInst->_code_fixups[_pc + 2], codeInst->_code[_pc + 2], _stackBegin, codeInst->_strings);
+            FixupArgument(codeOp.Args[1], _code_fixups[_pc + 2], _code[_pc + 2], _stackBegin, _strings);
             ASSERT_CC_ERROR();
             const auto &arg_value = codeOp.Arg2();
             switch (arg_size)
@@ -791,7 +869,7 @@ ccInstError ccInstance::Run(int32_t curpc)
             if (_pc == 0)
             {
                 _returnValue = _registers[SREG_AX].IValue;
-                return kInstErr_None;
+                return kScExecErr_None;
             }
             POP_CALL_STACK();
             continue; // continue so that the PC doesn't get overwritten
@@ -799,7 +877,7 @@ ccInstError ccInstance::Run(int32_t curpc)
         case SCMD_LITTOREG:
         {
             auto &reg1 = _registers[codeOp.Arg1i()];
-            FixupArgument(codeOp.Args[1], codeInst->_code_fixups[_pc + 2], codeInst->_code[_pc + 2], _stackBegin, codeInst->_strings);
+            FixupArgument(codeOp.Args[1], _code_fixups[_pc + 2], _code[_pc + 2], _stackBegin, _strings);
             ASSERT_CC_ERROR();
             const auto &arg_value = codeOp.Arg2();
             reg1 = arg_value;
@@ -840,7 +918,7 @@ ccInstError ccInstance::Run(int32_t curpc)
             if (reg2.IValue == 0)
             {
                 cc_error("!Integer divide by zero");
-                return kInstErr_Generic;
+                return kScExecErr_Generic;
             }
             reg1.SetInt32(reg1.IValue / reg2.IValue);
             break;
@@ -945,7 +1023,7 @@ ccInstError ccInstance::Run(int32_t curpc)
             if (reg2.IValue == 0)
             {
                 cc_error("!Integer divide by zero");
-                return kInstErr_Generic;
+                return kScExecErr_Generic;
             }
             reg1.SetInt32(reg1.IValue % reg2.IValue);
             break;
@@ -963,7 +1041,7 @@ ccInstError ccInstance::Run(int32_t curpc)
             if (curnest >= MAXNEST - 1)
             {
                 cc_error("!call stack overflow, recursive call problem?");
-                return kInstErr_Generic;
+                return kScExecErr_Generic;
             }
 
             PUSH_CALL_STACK();
@@ -1055,9 +1133,9 @@ ccInstError ccInstance::Run(int32_t curpc)
             if (arg_lit < 0)
             {
                 ++loopIterations;
-                if (_flags & INSTF_RUNNING)
+                if (_flags & kScExecState_Alive)
                 { // was notified still running, don't do anything
-                    _flags &= ~INSTF_RUNNING;
+                    _flags &= ~kScExecState_Alive;
                     loopIterations = 0u;
                     loopCheckIterations = 0u;
                 }
@@ -1065,7 +1143,7 @@ ccInstError ccInstance::Run(int32_t curpc)
                     (++loopCheckIterations > _maxWhileLoops))
                 {
                     cc_error("!Script appears to be hung (a while loop ran %d times). The problem may be in a calling function; check the call stack.", loopCheckIterations);
-                    return kInstErr_Generic;
+                    return kScExecErr_Generic;
                 }
                 else if ((loopIterations & 0x3FF) == 0 && // test each 1024 loops (arbitrary)
                     (std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -1094,7 +1172,7 @@ ccInstError ccInstance::Run(int32_t curpc)
                 (reg1.IValue >= arg_lit))
             {
                 cc_error("!Array index out of bounds (index: %d, bounds: 0..%d)", reg1.IValue, arg_lit - 1);
-                return kInstErr_Generic;
+                return kScExecErr_Generic;
             }
             break;
         }
@@ -1115,7 +1193,7 @@ ccInstError ccInstance::Run(int32_t curpc)
                     int elementSize = (hdr.TotalSize / hdr.ElemCount);
                     cc_error("!Array index out of bounds (index: %d, bounds: 0..%d)", reg1.IValue / elementSize, hdr.ElemCount - 1);
                 }
-                return kInstErr_Generic;
+                return kScExecErr_Generic;
             }
             break;
         }
@@ -1162,7 +1240,7 @@ ccInstError ccInstance::Run(int32_t curpc)
 
             int32_t newHandle = ccGetObjectHandleFromAddress(address);
             if (newHandle == -1)
-                return kInstErr_Generic;
+                return kScExecErr_Generic;
 
             if (handle != newHandle)
             {
@@ -1203,7 +1281,7 @@ ccInstError ccInstance::Run(int32_t curpc)
             // like memwriteptr, but doesn't attempt to free the old one
             int32_t newHandle = ccGetObjectHandleFromAddress(address);
             if (newHandle == -1)
-                return kInstErr_Generic;
+                return kScExecErr_Generic;
 
             ccAddObjectReference(newHandle);
             _registers[SREG_MAR].WriteInt32(newHandle);
@@ -1235,7 +1313,7 @@ ccInstError ccInstance::Run(int32_t curpc)
             if (_registers[SREG_MAR].IsNull())
             {
                 cc_error("!Null pointer referenced");
-                return kInstErr_Generic;
+                return kScExecErr_Generic;
             }
             break;
         case SCMD_CHECKNULLREG:
@@ -1244,7 +1322,7 @@ ccInstError ccInstance::Run(int32_t curpc)
             if (reg1.IsNull())
             {
                 cc_error("!Null string referenced");
-                return kInstErr_Generic;
+                return kScExecErr_Generic;
             }
             break;
         }
@@ -1256,8 +1334,6 @@ ccInstError ccInstance::Run(int32_t curpc)
         }
         case SCMD_CALLAS:
         {
-            PUSH_CALL_STACK();
-
             // Call to a function in another script
             const auto &reg1 = _registers[codeOp.Arg1i()];
 
@@ -1275,44 +1351,50 @@ ccInstError ccInstance::Run(int32_t curpc)
                 PushValueToStack(*prval);
             }
 
-            const RuntimeScriptValue oldstack = _registers[SREG_SP];
-            const uint8_t * const oldstackdata = _stackdataPtr;
-            // Push placeholder for the return value (it will be popped before ret)
-            PushValueToStack(RuntimeScriptValue().SetInt32(0));
-
-            const int oldpc = _pc;
-            ccInstance *wasRunning = _runningInst;
-
-            // extract the instance ID
-            int32_t instId = codeOp.Instruction.InstanceId;
+            // extract the script ID
+            const int32_t instance_id = codeOp.Instruction.InstanceId;
             // determine the offset into the code of the instance we want
-            _runningInst = LoadedInstances[instId];
-            uintptr_t callAddr = reg1.PtrU8 - reinterpret_cast<uint8_t*>(_runningInst->_code);
+            const RuntimeScript *next_to_run = RuntimeScript::GetLinkedScript(instance_id);
+            uintptr_t callAddr = reg1.PtrU8 - reinterpret_cast<const uint8_t*>(next_to_run->GetCode().data());
             if (callAddr % sizeof(uintptr_t) != 0)
             {
                 cc_error("call address not aligned");
-                return kInstErr_Generic;
+                return kScExecErr_Generic;
             }
-            callAddr /= sizeof(uintptr_t); // size of ccScript::code elements
+            callAddr /= sizeof(uintptr_t); // size of code elements
 
+            PUSH_CALL_STACK();
+            const RuntimeScript *was_running = _current;
+            const int oldpc = _pc;
+            const RuntimeScriptValue oldstack = _registers[SREG_SP];
+            const uint8_t * const oldstackdata = _stackdataPtr;
+
+            // Push placeholder for the return value (it will be popped before ret)
+            PushValueToStack(RuntimeScriptValue().SetInt32(0));
+
+            SetCurrentScript(next_to_run); // switch to the new script
+
+            // TODO: rewrite executor impl here to NOT have any nested Run calls;
+            // instead continue same loop, just like in SCMD_CALL,
+            // but push "current script" on SCMD_CALLAS and pop "current script" on SCMD_RET.
             if (Run(static_cast<int32_t>(callAddr)))
-                return kInstErr_Generic;
+                return kScExecErr_Generic;
 
-            _runningInst = wasRunning;
-
-            if ((_flags & INSTF_ABORTED) == 0)
+            if ((_flags & kScExecState_Aborted) == 0)
                 ASSERT_STACK_UNWINDED(oldstack, oldstackdata);
 
-            next_call_needs_object = 0;
-
+            POP_CALL_STACK();
+            SetCurrentScript(was_running); // switch back to the previous script
             _pc = oldpc;
+            next_call_needs_object = 0;
             was_just_callas = func_callstack.Count;
             num_args_to_func = -1;
-            POP_CALL_STACK();
             break;
         }
         case SCMD_CALLEXT:
         {
+            _flags &= ~kScExecState_Busy;
+
             // Call to a real 'C' code function
             const auto &reg1 = _registers[codeOp.Arg1i()];
 
@@ -1373,9 +1455,10 @@ ccInstError ccInstance::Run(int32_t curpc)
 
             if (cc_has_error())
             {
-                return kInstErr_Generic;
+                return kScExecErr_Generic;
             }
 
+            _flags |= kScExecState_Busy;
             _registers[SREG_AX] = return_value;
             next_call_needs_object = 0;
             num_args_to_func = -1;
@@ -1391,6 +1474,7 @@ ccInstError ccInstance::Run(int32_t curpc)
         {
             const auto arg_lit = codeOp.Arg1i();
             PopFromFuncCallStack(func_callstack, arg_lit);
+            ASSERT_CC_ERROR();
             if (was_just_callas >= 0)
             {
                 ASSERT_STACK_SIZE(arg_lit);
@@ -1406,7 +1490,7 @@ ccInstError ccInstance::Run(int32_t curpc)
             if (reg1.IsNull())
             {
                 cc_error("!Null pointer referenced");
-                return kInstErr_Generic;
+                return kScExecErr_Generic;
             }
             switch (reg1.Type)
             {
@@ -1430,7 +1514,7 @@ ccInstError ccInstance::Run(int32_t curpc)
                 break;
             default:
                 cc_error("internal error: SCMD_CALLOBJ argument is not an object of built-in or user-defined type");
-                return kInstErr_Generic;
+                return kScExecErr_Generic;
             }
             next_call_needs_object = 1;
             break;
@@ -1464,7 +1548,7 @@ ccInstError ccInstance::Run(int32_t curpc)
             if (arg_elnum < 0)
             {
                 cc_error("Invalid size for dynamic array; requested: %d, range: 0..%d", arg_elnum, INT32_MAX);
-                return kInstErr_Generic;
+                return kScExecErr_Generic;
             }
             DynObjectRef ref = CCDynamicArray::CreateOld(static_cast<uint32_t>(arg_elnum), arg_elsize, arg_managed);
             reg1.SetScriptObject(ref.Obj, ref.Mgr);
@@ -1479,13 +1563,13 @@ ccInstError ccInstance::Run(int32_t curpc)
             if (arg_elnum < 0)
             {
                 cc_error("Invalid size for dynamic array; requested: %d, range: 0..%d", arg_elnum, INT32_MAX);
-                return kInstErr_Generic;
+                return kScExecErr_Generic;
             }
             // TODO: this likely may be optimized by doing a fixup,
             // which would replace a local typeid with a global one once the script is loaded;
             // but we need to implement such fixup in a compiler first.
-            assert(ccInstance::_rtti && !ccInstance::_rtti->IsEmpty());
-            const uint32_t global_tid = _runningInst->_typeidLocal2Global[arg_typeid];
+            assert(_rtti && !_rtti->IsEmpty());
+            const uint32_t global_tid = _typeidLocal2Global->at(arg_typeid);
             DynObjectRef ref = CCDynamicArray::CreateNew(global_tid, static_cast<uint32_t>(arg_elnum), arg_elsize);
             reg1.SetScriptObject(ref.Obj, ref.Mgr);
             break;
@@ -1497,7 +1581,7 @@ ccInstError ccInstance::Run(int32_t curpc)
             if (arg_size > INT32_MAX)
             {
                 cc_error("Invalid size for user object; requested: %u, range: 0..%d", arg_size, INT32_MAX);
-                return kInstErr_Generic;
+                return kScExecErr_Generic;
             }
             DynObjectRef ref = ScriptUserObject::Create(RTTI::NoType, arg_size);
             reg1.SetScriptObject(ref.Obj, ref.Mgr);
@@ -1511,13 +1595,13 @@ ccInstError ccInstance::Run(int32_t curpc)
             if (arg_size > INT32_MAX)
             {
                 cc_error("Invalid size for user object; requested: %u, range: 0..%d", arg_size, INT32_MAX);
-                return kInstErr_Generic;
+                return kScExecErr_Generic;
             }
             // TODO: this likely may be optimized by doing a fixup,
             // which would replace a local typeid with a global one once the script is loaded;
             // but we need to implement such fixup in a compiler first.
-            assert(ccInstance::_rtti && !ccInstance::_rtti->IsEmpty());
-            const uint32_t global_tid = _runningInst->_typeidLocal2Global[arg_typeid];
+            assert(_rtti && !_rtti->IsEmpty());
+            const uint32_t global_tid = _typeidLocal2Global->at(arg_typeid);
             DynObjectRef ref = ScriptUserObject::Create(global_tid, arg_size);
             reg1.SetScriptObject(ref.Obj, ref.Mgr);
             break;
@@ -1550,7 +1634,7 @@ ccInstError ccInstance::Run(int32_t curpc)
             if (reg2.FValue == 0.0)
             {
                 cc_error("!Floating point divide by zero");
-                return kInstErr_Generic;
+                return kScExecErr_Generic;
             }
             reg1.SetFloat(reg1.FValue / reg2.FValue);
             break;
@@ -1614,7 +1698,7 @@ ccInstError ccInstance::Run(int32_t curpc)
             {
                 cc_error("internal error: stack tail address expected on SCMD_ZEROMEMORY instruction, reg[MAR] type is %d",
                     _registers[SREG_MAR].Type);
-                return kInstErr_Generic;
+                return kScExecErr_Generic;
             }
             break;
         }
@@ -1633,7 +1717,7 @@ ccInstError ccInstance::Run(int32_t curpc)
             if ((reg1.IsNull()) || (reg2.IsNull()))
             {
                 cc_error("!Null pointer referenced");
-                return kInstErr_Generic;
+                return kScExecErr_Generic;
             }
             else
             {
@@ -1650,7 +1734,7 @@ ccInstError ccInstance::Run(int32_t curpc)
             if ((reg1.IsNull()) || (reg2.IsNull()))
             {
                 cc_error("!Null pointer referenced");
-                return kInstErr_Generic;
+                return kScExecErr_Generic;
             }
             else
             {
@@ -1666,626 +1750,42 @@ ccInstError ccInstance::Run(int32_t curpc)
             break;
         default:
             cc_error("instruction %d is not implemented", codeOp.Instruction.Code);
-            return kInstErr_Generic;
+            return kScExecErr_Generic;
         }
         /* End perform operation */
         //=====================================================================
 
         _pc += codeOp.ArgCount + 1;
     }
-    return kInstErr_None;
+    return kScExecErr_None;
 }
 
-String ccInstance::GetCallStack(const int maxLines) const
+void ScriptExecutor::SetCurrentScript(const RuntimeScript *script)
 {
-    String buffer = String::FromFormat("in \"%s\", line %d\n", _runningInst->_instanceof->GetSectionName(_pc).c_str(), _lineNumber);
-
-    int linesDone = 0;
-    for (uint32_t j = _callStackSize; (j-- > 0) && (linesDone < maxLines); linesDone++)
+    _current    = script;
+    if (_current)
     {
-        String lineBuffer = String::FromFormat("from \"%s\", line %d\n",
-            _callStackCodeInst[j]->_instanceof->GetSectionName(_callStackAddr[j]).c_str(), _callStackLineNumber[j]);
-        buffer.Append(lineBuffer);
-        if (linesDone == maxLines - 1)
-            buffer.Append("(and more...)\n");
-    }
-    return buffer;
-}
-
-void ccInstance::GetScriptPosition(ScriptPosition &script_pos) const
-{
-    script_pos.Section = _runningInst->_instanceof->GetSectionName(_pc);
-    script_pos.Line    = _lineNumber;
-}
-
-RuntimeScriptValue ccInstance::GetSymbolAddress(const String &symname) const
-{
-    uint32_t exp_index = _scriptData->export_lookup.GetIndexOfAny(symname);
-    return (exp_index < UINT32_MAX) ? _scriptData->exports[exp_index] : RuntimeScriptValue();
-}
-
-void ccInstance::DumpInstruction(const ScriptOperation &op) const
-{
-    // line_num local var should be shared between all the instances
-    static int line_num = 0;
-
-    if (op.Instruction.Code == SCMD_LINENUM)
-    {
-        line_num = op.Args[0].IValue;
-        return;
-    }
-
-    auto data_s = File::OpenFile("script.log", kFile_Create, kStream_Write);
-    TextStreamWriter writer(std::move(data_s));
-    writer.WriteFormat("Line %3d, IP:%8d (SP:%p) ", line_num, _pc, _registers[SREG_SP].RValue);
-
-    const ScriptCommandInfo &cmd_info = sccmd_info[op.Instruction.Code];
-    writer.WriteString(cmd_info.CmdName);
-
-    for (int i = 0; i < cmd_info.ArgCount; ++i)
-    {
-        if (i > 0)
-        {
-            writer.WriteChar(',');
-        }
-        if (cmd_info.ArgIsReg[i])
-        {
-            writer.WriteFormat(" %s", regnames[op.Args[i].IValue]);
-        }
-        else
-        {
-            RuntimeScriptValue arg = op.Args[i];
-            if (arg.Type == kScValStackPtr || arg.Type == kScValGlobalVar)
-            {
-                arg = *arg.RValue;
-            }
-            switch(arg.Type) {
-            case kScValInteger:
-            case kScValPluginArg:
-                writer.WriteFormat(" %d", arg.IValue);
-                break;
-            case kScValFloat:
-                writer.WriteFormat(" %f", arg.FValue);
-                break;
-            case kScValStringLiteral:
-                writer.WriteFormat(" \"%s\"", arg.Ptr);
-                break;
-            case kScValStackPtr:
-            case kScValGlobalVar:
-                writer.WriteFormat(" %p", arg.RValue);
-                break;
-            case kScValData:
-            case kScValCodePtr:
-                writer.WriteFormat(" %p", arg.GetPtrWithOffset());
-                break;
-            case kScValStaticArray:
-            case kScValScriptObject:
-            case kScValStaticFunction:
-            case kScValObjectFunction:
-            case kScValPluginFunction:
-            case kScValPluginObject:
-            {
-                String name = simp.FindName(arg);
-                if (!name.IsEmpty())
-                {
-                    writer.WriteFormat(" &%s", name.GetCStr());
-                }
-                else
-                {
-                    writer.WriteFormat(" %p", arg.GetPtrWithOffset());
-                }
-             }
-                break;
-            case kScValUndefined:
-				writer.WriteString("undefined");
-                break;
-             }
-        }
-    }
-    writer.WriteLineBreak();
-    // the writer will delete data stream internally
-}
-
-bool ccInstance::IsBeingRun() const
-{
-    return _pc != 0;
-}
-
-void ccInstance::NotifyAlive()
-{
-    _flags |= INSTF_RUNNING;
-    _lastAliveTs = AGS_FastClock::now();
-}
-
-bool ccInstance::_Create(PScript scri, const ccInstance *joined)
-{
-    if ((scri == nullptr) && (joined != nullptr))
-        scri = joined->_instanceof;
-
-    if (scri == nullptr)
-    {
-        cc_error("null pointer passed");
-        return false;
-    }
-
-    if (!joined)
-    {
-        // Create own memory space
-        _scriptData.reset(new ResolvedScriptData());
-
-        if (scri->globaldata.size() > 0)
-        {
-            _scriptData->globaldata.resize(scri->globaldata.size());
-            std::copy(scri->globaldata.begin(), scri->globaldata.end(), _scriptData->globaldata.begin());
-        }
-
-        if (scri->code.size() > 0)
-        {
-            _scriptData->code.resize(scri->code.size());
-            _scriptData->code_fixups.resize(scri->code.size());
-            // 64 bit: Read code into 8 byte array, necessary for being able to perform
-            // relocations on the references.
-            for (size_t i = 0; i < scri->code.size(); ++i)
-                _scriptData->code[i] = scri->code[i];
-        }
+        _code       = _current->GetCode().data();
+        _codesize   = _current->GetCode().size();
+        _code_fixups = _current->GetCodeFixups().data();
+        _strings    = _current->GetStrings().data();
+        _stringsize = _current->GetStrings().size();
+        _rtti       = RuntimeScript::GetJointRTTI();
+        _typeidLocal2Global = &_current->GetLocal2GlobalTypeMap();
     }
     else
     {
-        // Share memory space with an existing instance (ie. this is a thread/fork)
-        _scriptData = joined->_scriptData;
-    }
-
-    // just use the pointer to the strings since they don't change
-    _strings = scri->strings.size() > 0 ? scri->strings.data() : "";
-    _stringsize = scri->strings.size();
-
-    // Create a stack
-    // The size of a stack is quite an arbitrary choice; there's no way to deduce number of stack
-    // entries needed without knowing amount of local variables (at least)
-    _stack.resize(CC_STACK_SIZE);
-    _stackdata.resize(CC_STACK_DATA_SIZE);
-    _stackBegin = _stack.data();
-    _stackdataBegin = _stackdata.data();
-    _stackdataPtr = _stackdata.data();
-
-    // Setup fast access pointers
-    _code = _scriptData->code.data();
-    _codesize = static_cast<int32_t>(_scriptData->code.size());
-    _code_fixups = _scriptData->code_fixups.data();
-
-    // If this is a primary script's instance:
-    // * register it in the loadedInstances array,
-    // * resolve fixups and imports/exports.
-    //
-    // NOTE: loadedInstances serves as a lookup table for getting
-    // another script instance when doing a function call.
-    // Instance *forks* are *not* registered in this table.
-    if (!joined)
-    {
-        // find a LoadedInstance slot for it
-        for (int i = 0; i < MAX_PRIMARY_INSTANCES; i++)
-        {
-            if (LoadedInstances[i] == nullptr)
-            {
-                LoadedInstances[i] = this;
-                _loadedInstanceId = i;
-                break;
-            }
-        }
-        if (_loadedInstanceId < 0)
-        {
-            cc_error("Too many active script instances, max supported count is %d", MAX_PRIMARY_INSTANCES);
-            return false;
-        }
-
-        if (!CreateGlobalVars(scri.get()))
-        {
-            return false;
-        }
-        if (!CreateRuntimeCodeFixups(scri.get()))
-        {
-            return false;
-        }
-        if (!ResolveExports(scri.get()))
-        {
-            return false;
-        }
-        // Register exports in the global symbol imports table,
-        // but only if this is the first instance for the given script
-        if ((ccGetOption(SCOPT_AUTOIMPORT) != 0) && (scri->instances == 0))
-        {
-            if (!ImportScriptExports(scri.get()))
-                return false;
-        }
-    }
-    else
-    {
-        _loadedInstanceId = joined->_loadedInstanceId;
-    }
-
-    _instanceof = scri;
-    _flags = 0;
-    if (joined != nullptr)
-        _flags = INSTF_SHAREDATA;
-    scri->instances++;
-
-    // Generate lookup tables for script TOC (if available)
-    if (joined)
-    {
-        // FIXME: use shared ptr?
-        _globalVarLookup = joined->_globalVarLookup;
-    }
-    else if (scri->sctoc)
-    {
-        const auto &glvars = scri->sctoc->GetGlobalVariables();
-        for (size_t i = 0; i < glvars.size(); ++i)
-        {
-            _globalVarLookup.insert(
-                std::make_pair(String(glvars[i].name), static_cast<uint32_t>(i)));
-        }
-    }
-
-    // Reset execution state
-    _pc = 0;
-    _lineNumber = 0;
-    currentline = -1; // FIXME: refactor this to not use global vars
-    return true;
-}
-
-void ccInstance::Free()
-{
-    // When the base script has no more "instances",
-    // remove all script exports
-    if (_instanceof != nullptr)
-    {
-        _instanceof->instances--;
-        if (_instanceof->instances == 0)
-        {
-            simp.RemoveScriptExports(this);
-        }
-    }
-
-    // Remove from the Active Instances list,
-    // but only if it's the primary instance (not a fork)
-    if ((_loadedInstanceId >= 0) && (LoadedInstances[_loadedInstanceId] == this))
-        LoadedInstances[_loadedInstanceId] = nullptr;
-
-    _scriptData = nullptr;
-    _code = nullptr;
-    _codesize = 0;
-    _strings = nullptr;
-    _stringsize = 0u;
-
-    _stack = {};
-    _stackdata = {};
-    _stackBegin = nullptr;
-    _stackdataPtr = {};
-}
-
-bool ccInstance::ResolveScriptImports()
-{
-    assert(_instanceof);
-    if (!_instanceof)
-        return false;
-
-    // Script keeps the information of what imports are used as an array of names.
-    // When an import is referenced in the code, it's addressed by its index in this
-    // array. Different scripts have differing arrays of imports; indexes
-    // into 'imports[]' are NOT unique and relative to the respective script only.
-    // To allow real-time import use, the sequence of imports in 'imports[]'
-    // and 'resolved_imports[]' should not be modified.
-
-    const ccScript *scri = _instanceof.get();
-    const size_t numimports = scri->imports.size();
-    if (numimports == 0)
-    {
-        // [PGB] AFAICS there's nothing wrong with not having any imports, and
-        // it doesn't lead to trouble. However, if it turns out that we do need
-        // to return 'false' here, we should also report why with a 'Debug::Printf()' call.
-        return true;
-    }
-
-    auto &resolved_imports = _scriptData->resolved_imports;
-    resolved_imports.resize(numimports);
-    size_t errors = 0, last_err_idx = 0;
-    for (size_t import_idx = 0; import_idx < scri->imports.size(); ++import_idx)
-    {
-        if (scri->imports[import_idx].empty())
-        {
-            resolved_imports[import_idx] = UINT32_MAX;
-            continue;
-        }
-
-        resolved_imports[import_idx] = simp.GetIndexOfAny(String::Wrapper(scri->imports[import_idx].c_str()));
-        if (resolved_imports[import_idx] == UINT32_MAX)
-        {
-            Debug::Printf(kDbgMsg_Error, "unresolved import '%s' in '%s'", scri->imports[import_idx].c_str(), scri->GetScriptName().c_str());
-            errors++;
-            last_err_idx = import_idx;
-        }
-    }
-
-    if (errors > 0)
-        cc_error("in '%s': %d unresolved imports (last: '%s')",
-            scri->GetScriptName().c_str(),
-            errors,
-            scri->imports[last_err_idx].c_str());
-
-    return errors == 0;
-}
-
-// TODO: it is possible to deduce global var's size at start with
-// certain accuracy after all global vars are registered. Each
-// global var's size would be limited by closest next var's ScAddress
-// and globaldatasize.
-bool ccInstance::CreateGlobalVars(const ccScript *scri)
-{
-    ScriptVariable glvar;
-    uint8_t *globaldata = _scriptData->globaldata.data();
-
-    // Step One: deduce global variables from fixups
-    for (size_t i = 0; i < scri->fixuptypes.size(); ++i)
-    {
-        switch (scri->fixuptypes[i])
-        {
-        case FIXUP_GLOBALDATA:
-            // GLOBALDATA fixup takes relative address of global data element from code array;
-            // this is the address of actual data
-            glvar.ScAddress = (int32_t)_code[scri->fixups[i]];
-            glvar.RValue.SetData(globaldata + glvar.ScAddress, 0);
-            break;
-        case FIXUP_DATADATA:
-            {
-            // DATADATA fixup takes relative address of global data element from fixups array;
-            // this is the address of element, which stores address of actual data
-            glvar.ScAddress = scri->fixups[i];
-            const int32_t data_addr = BBOp::Int32FromLE(*(int32_t*)&globaldata[glvar.ScAddress]);
-            if (glvar.ScAddress - data_addr != 200 /* size of old AGS string */)
-            {
-                // CHECKME: probably replace with mere warning in the log?
-                cc_error("unexpected old-style string's alignment");
-                return false;
-            }
-            // TODO: register this explicitly as a string instead (can do this later)
-            glvar.RValue.SetScriptObject(globaldata + data_addr, &GlobalStaticManager);
-            }
-            break;
-        default:
-            // other fixups are of no use here
-            continue;
-        }
-
-        AddGlobalVar(glvar);
-    }
-
-    // Step Two: deduce global variables from exports
-    for (size_t i = 0; i < scri->exports.size(); ++i)
-    {
-        const int32_t etype = (scri->export_addr[i] >> 24L) & 0x000ff;
-        const int32_t eaddr = (scri->export_addr[i] & 0x00ffffff);
-        if (etype == EXPORT_DATA)
-        {
-            // NOTE: old-style strings could not be exported in AGS,
-            // no need to worry about these here
-            glvar.ScAddress = eaddr;
-            glvar.RValue.SetData(globaldata + glvar.ScAddress, 0);
-            AddGlobalVar(glvar);
-        }
-    }
-
-    return true;
-}
-
-bool ccInstance::AddGlobalVar(const ScriptVariable &glvar)
-{
-    // NOTE:
-    // We suppress the error here, because unfortunately at least one existing
-    // game ("Metal Dead", built with AGS 3.21.1115) fails to pass this check.
-    // It has been found that this may be caused by a global variable of zero
-    // size (an instance of empty struct) placed in the end of the script.
-    // TODO: invent some workaround?
-    // TODO: enable the error back in AGS 4, as this is not a normal behavior.
-    const int32_t globaldatasize = static_cast<int32_t>(_scriptData->globaldata.size());
-    if (glvar.ScAddress < 0 || glvar.ScAddress >= globaldatasize)
-    {
-        /* return false; */
-        Debug::Printf(kDbgMsg_Warn, "WARNING: global variable refers to data beyond allocated buffer (%d, %d)", glvar.ScAddress, globaldatasize);
-    }
-    _scriptData->globalvars.insert(std::make_pair(glvar.ScAddress, glvar));
-    return true;
-}
-
-ScriptVariable *ccInstance::FindGlobalVar(const int32_t var_addr)
-{
-    // NOTE: see comment for AddGlobalVar()
-    const int32_t globaldatasize = static_cast<int32_t>(_scriptData->globaldata.size());
-    if (var_addr < 0 || var_addr >= globaldatasize)
-    {
-        /*
-        return nullptr;
-        */
-        Debug::Printf(kDbgMsg_Warn, "WARNING: looking up for global variable beyond allocated buffer (%d, %d)", var_addr, globaldatasize);
-    }
-    const auto it = _scriptData->globalvars.find(var_addr);
-    return it != _scriptData->globalvars.end() ? &it->second : nullptr;
-}
-
-static int DetermineScriptLine(const int32_t *code, const size_t codesz, const size_t at_pc)
-{
-    int line = -1;
-    for (size_t pc = 0; (pc <= at_pc) && (pc < codesz); ++pc)
-    {
-        const int op = code[pc] & INSTANCE_ID_REMOVEMASK;
-        if (op < 0 || op >= CC_NUM_SCCMDS) return -1;
-        if (pc + sccmd_info[op].ArgCount >= codesz) return -1;
-        if (op == SCMD_LINENUM)
-            line = code[pc + 1];
-        pc += sccmd_info[op].ArgCount;
-    }
-    return line;
-}
-
-static void cc_error_fixups(const ccScript *scri, const size_t pc, const char *fmt, ...)
-{
-    va_list ap;
-    va_start(ap, fmt);
-    const String displbuf = String::FromFormatV(fmt, ap);
-    va_end(ap);
-    const char *scname = scri->GetScriptName().c_str();
-    if (pc == SIZE_MAX)
-    {
-        cc_error("in script '%s': %s", scname, displbuf.GetCStr());
-    }
-    else
-    {
-        const int line = DetermineScriptLine(scri->code.data(), scri->code.size(), pc);
-        cc_error("in script '%s' around line %d: %s", scname, line, displbuf.GetCStr());
+        _code       = nullptr;
+        _codesize   = 0u;
+        _code_fixups = nullptr;
+        _strings    = nullptr;
+        _stringsize = 0u;
+        _rtti       = nullptr;
+        _typeidLocal2Global = nullptr;
     }
 }
 
-bool ccInstance::CreateRuntimeCodeFixups(const ccScript *scri)
-{
-    uint8_t *code_fixups = _scriptData->code_fixups.data();
-
-    for (size_t i = 0; i < scri->fixups.size(); ++i)
-    {
-        if (scri->fixuptypes[i] == FIXUP_DATADATA)
-        {
-            continue;
-        }
-
-        const int32_t fixup = scri->fixups[i];
-        if (fixup < 0 || static_cast<size_t>(fixup) >= scri->code.size())
-        {
-            cc_error_fixups(scri, SIZE_MAX, "bad fixup at %d (fixup type %d, bytecode pos %d, bytecode range is 0..%d)",
-                i,  scri->fixuptypes[i], fixup, scri->code.size());
-            return false;
-        }
-
-        code_fixups[fixup] = scri->fixuptypes[i];
-
-        switch (scri->fixuptypes[i])
-        {
-        case FIXUP_GLOBALDATA:
-            {
-                ScriptVariable *gl_var = FindGlobalVar(static_cast<int32_t>(_code[fixup]));
-                if (!gl_var)
-                {
-                    cc_error_fixups(scri, fixup, "cannot resolve global variable (bytecode pos %d, key %d)", fixup, static_cast<int32_t>(_code[fixup]));
-                    return false;
-                }
-                _code[fixup] = (intptr_t)gl_var;
-            }
-            break;
-        case FIXUP_FUNCTION:
-        case FIXUP_STRING:
-        case FIXUP_STACK:
-        case FIXUP_IMPORT:
-            break; // do nothing yet
-        default:
-            cc_error_fixups(scri, SIZE_MAX, "unknown fixup type: %d (fixup num %d)", scri->fixuptypes[i], i);
-            return false;
-        }
-    }
-    return true;
-}
-
-bool ccInstance::ResolveExports(const ccScript *scri)
-{
-    auto &exports = _scriptData->exports;
-    auto &export_lookup = _scriptData->export_lookup;
-
-    exports.resize(scri->exports.size());
-    export_lookup.Clear();
-    // find the real address of the exports
-    for (size_t i = 0; i < scri->exports.size(); i++)
-    {
-        const int32_t etype = (scri->export_addr[i] >> 24L) & 0x000ff;
-        const int32_t eaddr = (scri->export_addr[i] & 0x00ffffff);
-        if (etype == EXPORT_FUNCTION)
-        {
-            // NOTE: unfortunately, there seems to be no way to know if
-            // that's an extender function that expects object pointer
-            exports[i].SetCodePtr(reinterpret_cast<uint8_t*>(_code) 
-                + (static_cast<uintptr_t>(eaddr) * sizeof(uintptr_t)));
-        }
-        else if (etype == EXPORT_DATA)
-        {
-            ScriptVariable *gl_var = FindGlobalVar(eaddr);
-            if (gl_var)
-            {
-                exports[i].SetGlobalVar(&gl_var->RValue);
-            }
-            else
-            {
-                cc_error("cannot resolve global variable, key = %d", eaddr);
-                return false;
-            }
-        }
-        else
-        {
-            cc_error("internal export fixup error");
-            return false;
-        }
-
-        export_lookup.Add(scri->exports[i], i);
-    }
-    return true;
-}
-
-bool ccInstance::ImportScriptExports(const ccScript *scri)
-{
-    for (size_t i = 0; i < scri->exports.size(); i++)
-    {
-        String name = scri->exports[i];
-        name.Replace('$', '^'); // replace exported name separator with imported name separator
-        if (!ccAddExternalScriptSymbol(name, _scriptData->exports[i], this))
-        {
-            cc_error("Export table overflow at '%s'", scri->exports[i].c_str());
-            return false;
-        }
-    }
-    return true;
-}
-
-bool ccInstance::ResolveImportFixups()
-{
-    assert(_instanceof);
-    if (!_instanceof)
-        return false;
-
-    const ccScript *scri = _instanceof.get();
-    const auto &resolved_imports = _scriptData->resolved_imports;
-    for (size_t fixup_idx = 0; fixup_idx < scri->fixups.size(); ++fixup_idx)
-    {
-        if (scri->fixuptypes[fixup_idx] != FIXUP_IMPORT)
-            continue;
-
-        uint32_t const fixup = scri->fixups[fixup_idx];
-        uint32_t const import_index = resolved_imports[_code[fixup]];
-        ScriptImport const *import = simp.GetByIndex(import_index);
-        if (!import)
-        {
-            cc_error("cannot resolve import, key = %d", import_index);
-            cc_error_fixups(scri, fixup, "cannot resolve import (bytecode pos %d, key %d)", fixup, import_index);
-            return false;
-        }
-        _code[fixup] = import_index;
-        // If the call is to another script function next CALLEXT
-        // must be replaced with CALLAS
-        if (import->InstancePtr != nullptr && (_code[fixup + 1] & INSTANCE_ID_REMOVEMASK) == SCMD_CALLEXT)
-            _code[fixup + 1] = SCMD_CALLAS | (import->InstancePtr->_loadedInstanceId << INSTANCE_ID_SHIFT);
-    }
-    return true;
-}
-
-void ccInstance::CopyGlobalData(const std::vector<uint8_t> &data)
-{
-    const size_t copy_sz = std::min(data.size(), _scriptData->globaldata.size());
-    std::copy(data.begin(), data.begin() + copy_sz, _scriptData->globaldata.begin());
-}
-
-RuntimeScriptValue ccInstance::CallPluginFunction(void *fn_addr, const RuntimeScriptValue *object, const RuntimeScriptValue *params, int param_count)
+RuntimeScriptValue ScriptExecutor::CallPluginFunction(void *fn_addr, const RuntimeScriptValue *object, const RuntimeScriptValue *params, int param_count)
 {
     assert(fn_addr);
     assert(param_count == 0 || params);
@@ -2437,7 +1937,7 @@ RuntimeScriptValue ccInstance::CallPluginFunction(void *fn_addr, const RuntimeSc
     }
 }
 
-void ccInstance::PushValueToStack(const RuntimeScriptValue &rval)
+void ScriptExecutor::PushValueToStack(const RuntimeScriptValue &rval)
 {
     // Write value to the stack tail and advance stack ptr
     _registers[SREG_SP].WriteValue(rval);
@@ -2445,7 +1945,7 @@ void ccInstance::PushValueToStack(const RuntimeScriptValue &rval)
     _registers[SREG_SP].RValue++;
 }
 
-void ccInstance::PushDataToStack(const int32_t num_bytes)
+void ScriptExecutor::PushDataToStack(const int32_t num_bytes)
 {
     CC_ERROR_IF(_registers[SREG_SP].RValue->IsValid(), "internal error: valid data beyond stack ptr");
     // Assign pointer to data block to the stack tail, advance both stack ptr and stack data ptr
@@ -2455,7 +1955,7 @@ void ccInstance::PushDataToStack(const int32_t num_bytes)
     _registers[SREG_SP].RValue++;
 }
 
-RuntimeScriptValue ccInstance::PopValueFromStack()
+RuntimeScriptValue ScriptExecutor::PopValueFromStack()
 {
     // rewind stack ptr to the last valid value, decrement stack data ptr if needed and invalidate the stack tail
     _registers[SREG_SP].RValue--;
@@ -2465,7 +1965,7 @@ RuntimeScriptValue ccInstance::PopValueFromStack()
     return rval;
 }
 
-void ccInstance::PopValuesFromStack(const int32_t num_entries = 1)
+void ScriptExecutor::PopValuesFromStack(const int32_t num_entries = 1)
 {
     for (int i = 0; i < num_entries; ++i)
     {
@@ -2476,7 +1976,7 @@ void ccInstance::PopValuesFromStack(const int32_t num_entries = 1)
     }
 }
 
-void ccInstance::PopDataFromStack(const int32_t num_bytes)
+void ScriptExecutor::PopDataFromStack(const int32_t num_bytes)
 {
     int32_t total_pop = 0;
     while (total_pop < num_bytes && _registers[SREG_SP].RValue > _stackBegin)
@@ -2492,7 +1992,7 @@ void ccInstance::PopDataFromStack(const int32_t num_bytes)
     CC_ERROR_IF(total_pop > num_bytes, "stack pointer points inside local variable after pop, stack corrupted?");
 }
 
-RuntimeScriptValue ccInstance::GetStackPtrOffsetRw(const int32_t rw_offset)
+RuntimeScriptValue ScriptExecutor::GetStackPtrOffsetRw(const int32_t rw_offset)
 {
     int32_t total_off = 0;
     RuntimeScriptValue *stack_entry = _registers[SREG_SP].RValue;
@@ -2511,9 +2011,9 @@ RuntimeScriptValue ccInstance::GetStackPtrOffsetRw(const int32_t rw_offset)
     return stack_ptr;
 }
 
-void ccInstance::PushToFuncCallStack(FunctionCallStack &func_callstack, const RuntimeScriptValue &rval)
+void ScriptExecutor::PushToFuncCallStack(FunctionCallStack &func_callstack, const RuntimeScriptValue &rval)
 {
-    if (func_callstack.Count >= MAX_FUNC_PARAMS)
+    if (func_callstack.Count >= FunctionCallStack::MAX_FUNC_PARAMS)
     {
         cc_error("function callstack overflow");
         return;
@@ -2524,7 +2024,7 @@ void ccInstance::PushToFuncCallStack(FunctionCallStack &func_callstack, const Ru
     func_callstack.Count++;
 }
 
-void ccInstance::PopFromFuncCallStack(FunctionCallStack &func_callstack, int32_t num_entries)
+void ScriptExecutor::PopFromFuncCallStack(FunctionCallStack &func_callstack, int32_t num_entries)
 {
     if (func_callstack.Count == 0)
     {
@@ -2535,3 +2035,120 @@ void ccInstance::PopFromFuncCallStack(FunctionCallStack &func_callstack, int32_t
     func_callstack.Head += num_entries;
     func_callstack.Count -= num_entries;
 }
+
+//-----------------------------------------------------------------------------
+//
+// Script execution debug dump.
+//
+// TODO: debug dump that we have now has a very bad performance,
+// and is mostly useless for games with big scripts, because it does not print
+// any information about the context (which script or function is run, etc).
+// It's ported from the older engine code without much change, only for the
+// reference. This needs some work to make it any useful with modern games.
+//
+//-----------------------------------------------------------------------------
+
+#if (DEBUG_CC_EXEC)
+
+void ScriptExecutor::OpenExecLog()
+{
+    // TODO: let configure file path
+    auto s = File::OpenFile("script.log", kFile_Create, kStream_Write);
+    _execWriter.reset(new TextStreamWriter(std::move(s)));
+}
+
+void ScriptExecutor::CloseExecLog()
+{
+    _execWriter = {};
+}
+
+const char *regnames[] = { "null", "sp", "mar", "ax", "bx", "cx", "op", "dx" };
+const char *fixupnames[] = { "null", "fix_gldata", "fix_func", "fix_string", "fix_import", "fix_datadata", "fix_stack" };
+
+void ScriptExecutor::DumpInstruction(const ScriptOperation &op) const
+{
+    assert(_execWriter);
+    if (!_execWriter)
+        return;
+
+    // line_num local var should be shared between all the instances
+    static int line_num = 0; // FIXME
+
+    if (op.Instruction.Code == SCMD_LINENUM)
+    {
+        line_num = op.Args[0].IValue;
+        return;
+    }
+
+    _execWriter->WriteFormat("Line %3d, IP:%8d (SP:%p) ", line_num, _pc, _registers[SREG_SP].RValue);
+
+    const ScriptCommandInfo &cmd_info = sccmd_info[op.Instruction.Code];
+    _execWriter->WriteString(cmd_info.CmdName);
+
+    for (int i = 0; i < cmd_info.ArgCount; ++i)
+    {
+        if (i > 0)
+        {
+            _execWriter->WriteChar(',');
+        }
+        if (cmd_info.ArgIsReg[i])
+        {
+            _execWriter->WriteFormat(" %s", regnames[op.Args[i].IValue]);
+        }
+        else
+        {
+            RuntimeScriptValue arg = op.Args[i];
+            if (arg.Type == kScValStackPtr || arg.Type == kScValGlobalVar)
+            {
+                arg = *arg.RValue;
+            }
+            switch(arg.Type) {
+            case kScValInteger:
+            case kScValPluginArg:
+                _execWriter->WriteFormat(" %d", arg.IValue);
+                break;
+            case kScValFloat:
+                _execWriter->WriteFormat(" %f", arg.FValue);
+                break;
+            case kScValStringLiteral:
+                _execWriter->WriteFormat(" \"%s\"", arg.Ptr);
+                break;
+            case kScValStackPtr:
+            case kScValGlobalVar:
+                _execWriter->WriteFormat(" %p", arg.RValue);
+                break;
+            case kScValData:
+            case kScValCodePtr:
+                _execWriter->WriteFormat(" %p", arg.GetPtrWithOffset());
+                break;
+            case kScValStaticArray:
+            case kScValScriptObject:
+            case kScValStaticFunction:
+            case kScValObjectFunction:
+            case kScValPluginFunction:
+            case kScValPluginObject:
+            {
+                String name = simp.FindName(arg);
+                if (!name.IsEmpty())
+                {
+                    _execWriter->WriteFormat(" &%s", name.GetCStr());
+                }
+                else
+                {
+                    _execWriter->WriteFormat(" %p", arg.GetPtrWithOffset());
+                }
+             }
+                break;
+            case kScValUndefined:
+				_execWriter->WriteString("undefined");
+                break;
+             }
+        }
+    }
+    _execWriter->WriteLineBreak();
+}
+
+#endif // DEBUG_CC_EXEC
+
+} // namespace Engine
+} // namespace AGS

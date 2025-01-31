@@ -11,14 +11,13 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-
 #ifndef __AC_DEBUGGER_H
 #define __AC_DEBUGGER_H
 
 #include "util/string.h"
 
 struct IAGSEditorDebugger;
-struct ScriptPosition;
+namespace AGS { namespace Engine { struct ScriptPosition; } }
 
 extern int editor_debugging_enabled;
 extern int editor_debugging_initialized;
@@ -29,7 +28,7 @@ extern int break_on_next_script_step;
 int check_for_messages_from_debugger();
 bool send_state_to_debugger(const char *msg);
 bool send_exception_to_debugger(const char *qmsg);
-bool get_script_position(ScriptPosition &script_pos);
+bool get_script_position(AGS::Engine::ScriptPosition &script_pos);
 
 void check_debug_keys();
 

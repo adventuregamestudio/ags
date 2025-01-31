@@ -88,7 +88,7 @@ extern RGB palette[256];
 void AbortGame()
 {
     // make sure scripts stop at the next step
-    cancel_all_scripts();
+    AbortAllScripts();
 }
 
 void restart_game() {
@@ -319,7 +319,7 @@ int RunAGSGame(const String &newgame, unsigned int mode, int data) {
 
         if (inside_script) {
             curscript->QueueAction(PostScriptAction(ePSARunAGSGame, mode | RAGMODE_LOADNOW, "RunAGSGame"));
-            ccInstance::GetCurrentInstance()->Abort();
+            scriptExecutor->Abort();
         }
         else
             load_new_game = mode | RAGMODE_LOADNOW;

@@ -1253,19 +1253,19 @@ enum ScriptModulesSvgVersion
 HSaveError WriteScriptModules(Stream *out)
 {
     // write the data segment of the global script
-    int data_len = gameinst->GetGlobalData().size();
+    int data_len = gamescript->GetGlobalData().size();
     out->WriteInt32(data_len);
     if (data_len > 0)
-        out->Write(gameinst->GetGlobalData().data(), data_len);
+        out->Write(gamescript->GetGlobalData().data(), data_len);
     // write the script modules data segments
     out->WriteInt32(numScriptModules);
     for (size_t i = 0; i < numScriptModules; ++i)
     {
-        StrUtil::WriteString(moduleInst[i]->GetScript()->GetScriptName(), out);
-        data_len = moduleInst[i]->GetGlobalData().size();
+        StrUtil::WriteString(scriptModules[i]->GetScriptName(), out);
+        data_len = scriptModules[i]->GetGlobalData().size();
         out->WriteInt32(data_len);
         if (data_len > 0)
-            out->Write(moduleInst[i]->GetGlobalData().data(), data_len);
+            out->Write(scriptModules[i]->GetGlobalData().data(), data_len);
     }
     return HSaveError::None();
 }
@@ -1597,8 +1597,8 @@ HSaveError WriteRTTI(Stream *out)
 {
     // Write the minimal necessary RTTI data, enough to resolve types when restoring a save;
     // NOTE: we might just dump whole RTTI here, if it's necessary to keep all field descs and names
-    const auto &rtti = ccInstance::GetRTTI()->AsConstRTTI();
-    const auto &helper = ccInstance::GetRTTIHelper();
+    const auto &rtti = RuntimeScript::GetJointRTTI()->AsConstRTTI();
+    const auto &helper = RuntimeScript::GetRTTIHelper();
     const auto &locs = rtti.GetLocations();
     const auto &types = rtti.GetTypes();
     // NOTE: we don't write IDs here, as the Joint RTTI assumes to have them strcitly sequential

@@ -114,6 +114,7 @@
 #define CC_NUM_SCCMDS     76
 #define MAX_SCMD_ARGS     3     // maximal possible number of arguments
 
+#define EXPORT_NONE       0
 #define EXPORT_FUNCTION   1
 #define EXPORT_DATA       2
 

@@ -20,6 +20,7 @@
 
 #include "util/error.h"
 #include "util/string.h"
+#include "script/scriptexecutor.h"
 
 namespace AGS
 {
@@ -53,7 +54,7 @@ namespace MemoryInspect
     // - imports from other scripts, plugins or engine itself.
     // Requirements: ScriptTOC and RTTI.
     // TODO: value format option?
-    HError QueryScriptVariableInContext(const String &var_ref, VariableInfo &var_info);
+    HError QueryScriptVariableInContext(const ScriptExecutor *exec, const String &var_ref, VariableInfo &var_info);
 }
 
 } // namespace Engine

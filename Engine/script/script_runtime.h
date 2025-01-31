@@ -16,7 +16,8 @@
 
 #include "util/memory_compat.h"    // std::size
 #include "script/cc_script.h"      // ccScript
-#include "script/cc_instance.h"    // ccInstance
+#include "script/runtimescript.h"
+#include "script/runtimescriptvalue.h"
 
 struct IScriptObject;
 
@@ -65,7 +66,7 @@ bool ccAddExternalStaticArray(const String &name, void *ptr, CCStaticObjectArray
 bool ccAddExternalScriptObject(const String &name, void *ptr, IScriptObject *manager);
 bool ccAddExternalScriptObjectHandle(const String &name, void *ptr);
 // Register script own functions (defined in the linked scripts)
-bool ccAddExternalScriptSymbol(const String &name, const RuntimeScriptValue &prval, ccInstance *inst);
+bool ccAddExternalScriptSymbol(const String &name, const RuntimeScriptValue &prval, AGS::Engine::RuntimeScript *script);
 // Remove the script access to a variable or function in your program
 void ccRemoveExternalSymbol(const String &name);
 // Remove all external symbols, allowing you to start from scratch
@@ -87,7 +88,8 @@ void *ccGetSymbolAddressForPlugin(const String &name);
 void *ccGetScriptObjectAddress(const String &name, const String &type);
 
 // DEBUG HOOK
-typedef void (*new_line_hook_type) (ccInstance *, int);
+namespace AGS { namespace Engine { class ScriptExecutor; } }
+typedef void (*new_line_hook_type) (AGS::Engine::ScriptExecutor *, int);
 void ccSetDebugHook(new_line_hook_type jibble);
 
 // Set the script interpreter timeout values:

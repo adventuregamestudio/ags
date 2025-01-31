@@ -19,8 +19,9 @@
 #define __AGS_EE_SCRIPT__EXECUTINGSCRIPT_H
 
 #include <vector>
-#include "script/cc_instance.h"
 #include "gfx/bitmap.h"
+#include "script/runtimescript.h"
+#include "script/runtimescriptvalue.h"
 
 #define MAX_SCRIPT_EVT_PARAMS  4
 
@@ -92,7 +93,7 @@ struct PostScriptAction
     Common::String Name;
     Common::String Text;
     mutable std::unique_ptr<Common::Bitmap> Image;
-    ScriptPosition Position;
+    AGS::Engine::ScriptPosition Position;
 
     PostScriptAction() = default;
     PostScriptAction(PostScriptActionType type, int data, const Common::String &name, const Common::String &text = {},
@@ -108,14 +109,7 @@ struct PostScriptAction
 
 struct ExecutingScript
 {
-    // Some old games were (accidentally) relying on number of queued script calls being limited
-    static const int LEGACY_MAX_QUEUED_SCRIPTS = 4;
-
-    // Instance refers either to one of the global instances,
-    // or a ForkedInst created for this purpose
-    ccInstance *Inst = nullptr;
-    // owned fork; CHECKME: this seem unused in the current engine
-    std::unique_ptr<ccInstance> ForkedInst{};
+    const AGS::Engine::RuntimeScript *Script = nullptr;
     std::vector<PostScriptAction> PostScriptActions;
     std::vector<QueuedScript> ScFnQueue;
 

@@ -46,6 +46,7 @@
 #include "script/exports.h"
 #include "script/script.h"
 #include "script/script_runtime.h"
+#include "util/memory_compat.h"
 #include "util/string_compat.h"
 #include "util/string_utils.h"
 
@@ -503,7 +504,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     // NOTE: we must do this before plugin start, because some plugins may
     // require access to script API at initialization time.
     //
-    ccSetScriptAliveTimer(1000 / 60u, 1000u, 150000u);
+    InitScriptExec();
     setup_script_exports(base_api, compat_api);
 
     //
@@ -519,12 +520,13 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     //
     if (!ents.GlobalScript)
         return new GameInitError(kGameInitErr_NoGlobalScript);
-    gamescript = ents.GlobalScript;
-    dialogScriptsScript = ents.DialogScript;
+    gamescript = std::move(RuntimeScript::Create(ents.GlobalScript.get(), "G"));
+    dialogScriptsScript= std::move(RuntimeScript::Create(ents.DialogScript.get(), "D"));
     numScriptModules = ents.ScriptModules.size();
-    scriptModules = ents.ScriptModules;
+    for (size_t i = 0; i < ents.ScriptModules.size(); ++i)
+        scriptModules.push_back(std::shared_ptr<RuntimeScript>(RuntimeScript::Create(ents.ScriptModules[i].get(), "M")));
     AllocScriptModules();
-    if (create_global_script())
+    if (!LinkGlobalScripts())
         return new GameInitError(kGameInitErr_ScriptLinkFailed, cc_get_error().ErrorString);
 
     // Apply accessibility options, must be done last, because some

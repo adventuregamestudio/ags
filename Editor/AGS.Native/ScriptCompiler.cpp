@@ -134,7 +134,7 @@ public:
         }
 
         // Success, create new CompiledData
-        return gcnew CompiledScript(PScript(cc_script.release()));
+        return gcnew CompiledScript(std::move(cc_script));
     }
 };
 
@@ -223,7 +223,7 @@ public:
         }
 
         // Success, create new CompiledData
-        return gcnew CompiledScript(PScript(cc_script.release()));
+        return gcnew CompiledScript(std::move(cc_script));
     }
 };
 

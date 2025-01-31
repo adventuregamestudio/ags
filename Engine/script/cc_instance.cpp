@@ -1121,11 +1121,12 @@ ccInstError ccInstance::Run(int32_t curpc)
                 break;
             case kScValScriptObject:
             case kScValPluginObject:
+            case kScValPluginArgPtr:
                 address = reg1.Ptr;
                 break;
             case kScValPluginArg:
                 // FIXME: plugin API is currently strictly 32-bit, so this may break on 64-bit systems
-                address = Int32ToPtr<char>(reg1.IValue);
+                address = Int32ToPtr<void>(reg1.IValue);
                 break;
             default:
                 // There's one possible case when the reg1 is 0, which means writing nullptr
@@ -1161,11 +1162,12 @@ ccInstError ccInstance::Run(int32_t curpc)
                 break;
             case kScValScriptObject:
             case kScValPluginObject:
+            case kScValPluginArgPtr:
                 address = reg1.Ptr;
                 break;
             case kScValPluginArg:
                 // FIXME: plugin API is currently strictly 32-bit, so this may break on 64-bit systems
-                address = Int32ToPtr<uint8_t>(reg1.IValue);
+                address = Int32ToPtr<void>(reg1.IValue);
                 break;
             default:
                 // There's one possible case when the reg1 is 0, which means writing nullptr
@@ -1388,6 +1390,7 @@ ccInstError ccInstance::Run(int32_t curpc)
             case kScValScriptObject:
             case kScValPluginObject:
             case kScValPluginArg:
+            case kScValPluginArgPtr:
                 // This might be an object of USER-DEFINED type, calling its MEMBER-FUNCTION.
                 // Note, that this is the only case known when such object is written into reg[SREG_OP];
                 // in any other case that would count as error. 
@@ -1699,6 +1702,7 @@ void ccInstance::DumpInstruction(const ScriptOperation &op) const
             case kScValObjectFunction:
             case kScValPluginFunction:
             case kScValPluginObject:
+            case kScValPluginArgPtr:
             {
                 String name = simp.FindName(arg);
                 if (!name.IsEmpty())

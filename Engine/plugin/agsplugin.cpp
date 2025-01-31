@@ -637,16 +637,16 @@ int IAGSEngine::CanRunScriptFunctionNow() {
     return 1;
 }
 
-int IAGSEngine::CallGameScriptFunction(const char *name, int32 globalScript, int32 numArgs, long arg1, long arg2, long arg3) {
+int IAGSEngine::CallGameScriptFunction(const char *name, int32 globalScript, int32 numArgs, intptr_t arg1, intptr_t arg2, intptr_t arg3) {
     if (inside_script)
         return -300;
 
     ccInstance *toRun = GetScriptInstanceByType(globalScript ? kScTypeGame : kScTypeRoom);
 
-    RuntimeScriptValue params[]{
-        RuntimeScriptValue().SetPluginArgument(arg1),
-        RuntimeScriptValue().SetPluginArgument(arg2),
-        RuntimeScriptValue().SetPluginArgument(arg3),
+    RuntimeScriptValue params[] {
+        RuntimeScriptValue().SetPluginArgOrPtr(arg1),
+        RuntimeScriptValue().SetPluginArgOrPtr(arg2),
+        RuntimeScriptValue().SetPluginArgOrPtr(arg3)
     };
     int toret = RunScriptFunction(toRun, name, numArgs, params);
     return toret;
@@ -664,7 +664,7 @@ void IAGSEngine::SetSpriteAlphaBlended(int32 slot, int32 isAlphaBlended) {
         game.SpriteInfos[slot].Flags |= SPF_ALPHACHANNEL;
 }
 
-void IAGSEngine::QueueGameScriptFunction(const char *name, int32 globalScript, int32 numArgs, long arg1, long arg2) {
+void IAGSEngine::QueueGameScriptFunction(const char *name, int32 globalScript, int32 numArgs, intptr_t arg1, intptr_t arg2) {
     if (!inside_script) {
         this->CallGameScriptFunction(name, globalScript, numArgs, arg1, arg2, 0);
         return;
@@ -672,8 +672,10 @@ void IAGSEngine::QueueGameScriptFunction(const char *name, int32 globalScript, i
 
     if (numArgs < 0 || numArgs > 2)
         quit("IAGSEngine::QueueGameScriptFunction: invalid number of arguments");
-    RuntimeScriptValue params[] { RuntimeScriptValue().SetPluginArgument(arg1),
-        RuntimeScriptValue().SetPluginArgument(arg2) };
+    RuntimeScriptValue params[] {
+        RuntimeScriptValue().SetPluginArgOrPtr(arg1),
+        RuntimeScriptValue().SetPluginArgOrPtr(arg2)
+    };
     get_executingscript()->RunAnother(globalScript ? kScTypeGame : kScTypeRoom, name, numArgs, params);
 }
 

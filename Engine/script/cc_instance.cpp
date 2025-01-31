@@ -203,7 +203,6 @@ struct FunctionCallStack
 };
 
 
-RuntimeScriptValue ccInstance::_pluginReturnValue;
 unsigned ccInstance::_timeoutCheckMs = 60u;
 unsigned ccInstance::_timeoutAbortMs = 0u;
 unsigned ccInstance::_maxWhileLoops = 0u;
@@ -246,11 +245,6 @@ void ccInstance::SetExecTimeout(const unsigned sys_poll_ms, const unsigned abort
     _timeoutCheckMs = sys_poll_ms;
     _timeoutAbortMs = abort_ms;
     _maxWhileLoops = abort_loops;
-}
-
-void ccInstance::SetPluginReturnValue(const RuntimeScriptValue &value)
-{
-    _pluginReturnValue = value;
 }
 
 ccInstance::~ccInstance()
@@ -2269,8 +2263,6 @@ RuntimeScriptValue ccInstance::CallPluginFunction(void *fn_addr, const RuntimeSc
     // Needless to say that such approach would require a breaking change in plugin API.
     //
 
-    _pluginReturnValue.Invalidate();
-
     intptr_t result;
     switch (param_count)
     {
@@ -2349,14 +2341,12 @@ RuntimeScriptValue ccInstance::CallPluginFunction(void *fn_addr, const RuntimeSc
         return {};
     }
 
-    if (_pluginReturnValue.IsValid())
-    {
-        return _pluginReturnValue;
-    }
-    else
-    {
-        return RuntimeScriptValue().SetPluginArgument(static_cast<int32_t>(result));
-    }
+    // Assign as either a numeric value or a pointer, depending on how large the value is.
+    // Yes, that's a hack, but that's as much as we can do without having any meta info
+    // about the called function's prototype.
+    // NOTE: if this is a managed script object, we won't be able to know if we can safely
+    // get its manager, unless bytecode instructs us to later down the way.
+    return RuntimeScriptValue().SetPluginArgOrPtr(result);
 }
 
 void ccInstance::PushValueToStack(const RuntimeScriptValue &rval)

@@ -293,7 +293,13 @@ void RecalculateMoveSpeeds(MoveList &mls, int old_speed_x, int old_speed_y, int 
 }
 
 bool FindNearestWalkablePoint(Bitmap *mask, const Point &from_pt, Point &dst_pt,
-    const int range, const int step, const Rect &limits)
+    const int range, const int step)
+{
+    return FindNearestWalkablePoint(mask, from_pt, dst_pt, RectWH(mask->GetSize()), range, step);
+}
+
+bool FindNearestWalkablePoint(Bitmap *mask, const Point &from_pt, Point &dst_pt,
+    const Rect &limits, const int range, const int step)
 {
     assert(mask->GetColorDepth() == 8);
     const Rect mask_limits = IntersectRects(limits, RectWH(mask->GetSize()));

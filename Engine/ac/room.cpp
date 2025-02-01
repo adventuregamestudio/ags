@@ -47,6 +47,7 @@
 #include "ac/walkbehind.h"
 #include "ac/dynobj/scriptobject.h"
 #include "ac/dynobj/scripthotspot.h"
+#include "ac/dynobj/scriptuserobject.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/dynobj/all_dynamicclasses.h"
 #include "gui/guimain.h"
@@ -202,6 +203,20 @@ bool Room_Exists(int room)
     String room_filename;
     room_filename.Format("room%d.crm", room);
     return AssetMgr->DoesAssetExist(room_filename);
+}
+
+ScriptUserObject *Room_NearestWalkableArea(int x, int y)
+{
+    if (displayed_room < 0)
+        quit("!Room.NearestWalkableArea: no room is currently loaded");
+    data_to_game_coords(&x, &y);
+    Point found_pt;
+    if (Pathfinding::FindNearestWalkablePoint(thisroom.WalkAreaMask.get(), Point(x, y), found_pt))
+    {
+        game_to_data_coords(found_pt.X, found_pt.Y);
+        return ScriptStructHelpers::CreatePoint(found_pt.X, found_pt.Y);
+    }
+    return nullptr;
 }
 
 ScriptDrawingSurface *GetDrawingSurfaceForWalkableArea()
@@ -1253,12 +1268,19 @@ RuntimeScriptValue Sc_Room_Exists(const RuntimeScriptValue *params, int32_t para
     API_SCALL_BOOL_PINT(Room_Exists);
 }
 
+RuntimeScriptValue Sc_Room_NearestWalkableArea(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO_PINT2(ScriptUserObject, Room_NearestWalkableArea);
+}
+
 void RegisterRoomAPI()
 {
     ScFnRegister room_api[] = {
+        { "Room::Exists",                             API_FN_PAIR(Room_Exists) },
         { "Room::GetDrawingSurfaceForBackground^1",   API_FN_PAIR(Room_GetDrawingSurfaceForBackground) },
         { "Room::GetProperty^1",                      API_FN_PAIR(Room_GetProperty) },
         { "Room::GetTextProperty^1",                  API_FN_PAIR(Room_GetTextProperty) },
+        { "Room::NearestWalkableArea^2",              API_FN_PAIR(Room_NearestWalkableArea) },
         { "Room::SetProperty^2",                      API_FN_PAIR(Room_SetProperty) },
         { "Room::SetTextProperty^2",                  API_FN_PAIR(Room_SetTextProperty) },
         { "Room::ProcessClick^3",                     API_FN_PAIR(RoomProcessClick) },
@@ -1273,7 +1295,6 @@ void RegisterRoomAPI()
         { "Room::get_RightEdge",                      API_FN_PAIR(Room_GetRightEdge) },
         { "Room::get_TopEdge",                        API_FN_PAIR(Room_GetTopEdge) },
         { "Room::get_Width",                          API_FN_PAIR(Room_GetWidth) },
-        { "Room::Exists",                             API_FN_PAIR(Room_Exists) },
     };
 
     ccAddExternalFunctions(room_api);

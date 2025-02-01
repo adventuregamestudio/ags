@@ -106,7 +106,9 @@ namespace Pathfinding
     // Searchs for the nearest walkable point on a mask, starting from the given location,
     // and scanning around in the given square range. Optionally limit the scan to the certain rectangle.
     bool FindNearestWalkablePoint(AGS::Common::Bitmap *mask, const Point &from_pt, Point &dst_pt,
-        const int range, const int step, const Rect &limits);
+        const int range = 0, const int step = 1);
+    bool FindNearestWalkablePoint(AGS::Common::Bitmap *mask, const Point &from_pt, Point &dst_pt,
+        const Rect &limits, const int range = 0, const int step = 0);
 }
 
 } // namespace Engine

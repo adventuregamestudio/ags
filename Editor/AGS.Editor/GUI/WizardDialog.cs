@@ -25,21 +25,26 @@ namespace AGS.Editor
             btnBack.Enabled = false;
             _pageNumber = 0;
             _pages = pages;
+            Size needPanelSize = pnlMainPages.Size;
             // Scan all pages and remember the minimal necessary size of the panel,
             // assuming that there will be a "header panel" on top too.
             foreach (var page in pages)
             {
-                if (page.MinimumSize.Width > pnlMainPages.Width)
-                    pnlMainPages.Width = page.MinimumSize.Width;
-                if (page.MinimumSize.Height > pnlMainPages.Height - pnlHeader.Height)
-                    pnlMainPages.Height = page.MinimumSize.Height + pnlHeader.Height;
+                if (page.MinimumSize.Width > needPanelSize.Width)
+                    needPanelSize.Width = page.MinimumSize.Width;
+                if (page.MinimumSize.Height > needPanelSize.Height - pnlHeader.Height)
+                    needPanelSize.Height = page.MinimumSize.Height + pnlHeader.Height;
             }
             // After we're done with the regular pages,
             // insert the "Wizard Intro Page" as the starting page,
             // (it will have "header panel" hidden while its displayed).
             _pages.Insert(0, new WizardIntroPage(wizardName, introText));
-            pnlMainPages.Width = Math.Max(pnlMainPages.Width, _pages[0].MinimumSize.Width);
-            pnlMainPages.Height = Math.Max(pnlMainPages.Height, _pages[0].MinimumSize.Height);
+            needPanelSize.Width = Math.Max(needPanelSize.Width, _pages[0].MinimumSize.Width);
+            needPanelSize.Height = Math.Max(needPanelSize.Height, _pages[0].MinimumSize.Height);
+            if (pnlMainPages.Width < needPanelSize.Width)
+                Width += needPanelSize.Width - pnlMainPages.Width;
+            if (pnlMainPages.Height < needPanelSize.Height)
+                Height += needPanelSize.Height - pnlMainPages.Height;
 
             Utilities.CheckLabelWidthsOnForm(this);
         }

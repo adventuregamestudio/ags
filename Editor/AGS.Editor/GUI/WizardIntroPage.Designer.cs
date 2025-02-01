@@ -40,17 +40,15 @@ namespace AGS.Editor
             // 
             // panel1
             // 
-            this.panel1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
             this.panel1.BackColor = System.Drawing.Color.White;
             this.panel1.Controls.Add(this.lblIntroText);
             this.panel1.Controls.Add(this.lblTitle);
             this.panel1.Controls.Add(this.pictureBox1);
+            this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel1.Location = new System.Drawing.Point(0, 0);
             this.panel1.Margin = new System.Windows.Forms.Padding(4);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(1190, 574);
+            this.panel1.Size = new System.Drawing.Size(1190, 561);
             this.panel1.TabIndex = 6;
             // 
             // lblIntroText
@@ -77,10 +75,12 @@ namespace AGS.Editor
             // 
             // pictureBox1
             // 
+            this.pictureBox1.Dock = System.Windows.Forms.DockStyle.Left;
             this.pictureBox1.Image = ((System.Drawing.Image)(resources.GetObject("pictureBox1.Image")));
             this.pictureBox1.Location = new System.Drawing.Point(0, 0);
+            this.pictureBox1.MinimumSize = new System.Drawing.Size(210, 300);
             this.pictureBox1.Name = "pictureBox1";
-            this.pictureBox1.Size = new System.Drawing.Size(210, 300);
+            this.pictureBox1.Size = new System.Drawing.Size(210, 561);
             this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pictureBox1.TabIndex = 5;
             this.pictureBox1.TabStop = false;
@@ -92,7 +92,7 @@ namespace AGS.Editor
             this.Controls.Add(this.panel1);
             this.MinimumSize = new System.Drawing.Size(540, 300);
             this.Name = "WizardIntroPage";
-            this.Size = new System.Drawing.Size(1190, 574);
+            this.Size = new System.Drawing.Size(1190, 561);
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();

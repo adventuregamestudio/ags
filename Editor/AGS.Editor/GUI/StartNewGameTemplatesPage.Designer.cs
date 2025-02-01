@@ -41,30 +41,33 @@ namespace AGS.Editor
             // 
             this.groupBox1.Controls.Add(this.tableLayoutPanel1);
             this.groupBox1.Controls.Add(this.label1);
+            this.groupBox1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.groupBox1.Location = new System.Drawing.Point(9, 7);
             this.groupBox1.Margin = new System.Windows.Forms.Padding(4);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Padding = new System.Windows.Forms.Padding(4);
-            this.groupBox1.Size = new System.Drawing.Size(520, 219);
+            this.groupBox1.Padding = new System.Windows.Forms.Padding(1);
+            this.groupBox1.Size = new System.Drawing.Size(1172, 547);
             this.groupBox1.TabIndex = 0;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Select Template";
             // 
             // tableLayoutPanel1
             // 
+            this.tableLayoutPanel1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.tableLayoutPanel1.AutoSize = true;
             this.tableLayoutPanel1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.tableLayoutPanel1.ColumnCount = 1;
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.tableLayoutPanel1.Controls.Add(this.lstTemplates, 0, 0);
             this.tableLayoutPanel1.Controls.Add(this.tbDescription, 0, 1);
-            this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tableLayoutPanel1.Location = new System.Drawing.Point(4, 47);
+            this.tableLayoutPanel1.Location = new System.Drawing.Point(1, 44);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
             this.tableLayoutPanel1.RowCount = 2;
-            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(512, 168);
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 60F));
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 40F));
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(1170, 501);
             this.tableLayoutPanel1.TabIndex = 1;
             // 
             // lstTemplates
@@ -75,7 +78,7 @@ namespace AGS.Editor
             this.lstTemplates.Margin = new System.Windows.Forms.Padding(4);
             this.lstTemplates.MultiSelect = false;
             this.lstTemplates.Name = "lstTemplates";
-            this.lstTemplates.Size = new System.Drawing.Size(504, 76);
+            this.lstTemplates.Size = new System.Drawing.Size(1162, 292);
             this.lstTemplates.TabIndex = 1;
             this.lstTemplates.UseCompatibleStateImageBehavior = false;
             this.lstTemplates.ItemSelectionChanged += new System.Windows.Forms.ListViewItemSelectionChangedEventHandler(this.lstTemplates_ItemSelectionChanged);
@@ -84,20 +87,20 @@ namespace AGS.Editor
             // 
             this.tbDescription.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.tbDescription.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tbDescription.Location = new System.Drawing.Point(4, 88);
+            this.tbDescription.Location = new System.Drawing.Point(4, 304);
             this.tbDescription.Margin = new System.Windows.Forms.Padding(4);
             this.tbDescription.Multiline = true;
             this.tbDescription.Name = "tbDescription";
             this.tbDescription.ReadOnly = true;
             this.tbDescription.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.tbDescription.Size = new System.Drawing.Size(504, 76);
+            this.tbDescription.Size = new System.Drawing.Size(1162, 193);
             this.tbDescription.TabIndex = 2;
             // 
             // label1
             // 
             this.label1.AutoSize = true;
             this.label1.Dock = System.Windows.Forms.DockStyle.Top;
-            this.label1.Location = new System.Drawing.Point(4, 18);
+            this.label1.Location = new System.Drawing.Point(1, 15);
             this.label1.Margin = new System.Windows.Forms.Padding(8);
             this.label1.Name = "label1";
             this.label1.Padding = new System.Windows.Forms.Padding(8);
@@ -113,9 +116,10 @@ namespace AGS.Editor
             this.Controls.Add(this.groupBox1);
             this.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Margin = new System.Windows.Forms.Padding(4);
-            this.MinimumSize = new System.Drawing.Size(491, 167);
+            this.MinimumSize = new System.Drawing.Size(540, 320);
             this.Name = "StartNewGameTemplatesPage";
-            this.Size = new System.Drawing.Size(1555, 574);
+            this.Padding = new System.Windows.Forms.Padding(9, 7, 9, 7);
+            this.Size = new System.Drawing.Size(1190, 561);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
             this.tableLayoutPanel1.ResumeLayout(false);

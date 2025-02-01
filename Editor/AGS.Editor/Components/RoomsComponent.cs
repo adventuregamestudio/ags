@@ -467,6 +467,11 @@ namespace AGS.Editor.Components
             room.BackgroundCount = 1;
             room.RightEdgeX = room.Width - 1;
             room.BottomEdgeY = room.Height - 1;
+            room.Interactions.ScriptModule = room.ScriptFileName;
+            foreach (var hotspot in room.Hotspots)
+                hotspot.Interactions.ScriptModule = room.Interactions.ScriptModule;
+            foreach (var region in room.Regions)
+                region.Interactions.ScriptModule = room.Interactions.ScriptModule;
             return room;
         }
 

@@ -174,6 +174,7 @@ namespace AGS.Editor
                 newObj.Name = Factory.AGSEditor.GetFirstAvailableScriptName("oObject", 0, _room);
                 newObj.StartX = ConvertObjectCoordinate(MenuClickPos.X);
                 newObj.StartY = ConvertObjectCoordinate(MenuClickPos.Y);
+                newObj.Interactions.ScriptModule = _room.Interactions.ScriptModule;
                 _room.Objects.Add(newObj);
                 AddObjectRef(newObj);
                 OnItemsChanged(this, null);
@@ -181,7 +182,7 @@ namespace AGS.Editor
                 SetPropertyGridList();
                 Factory.GUIController.SetPropertyGridObject(newObj);
                 _room.Modified = true;
-                _panel.Invalidate();                
+                _panel.Invalidate();
             }
             else if (item.Name == MENU_ITEM_OBJECT_COORDS)
             {

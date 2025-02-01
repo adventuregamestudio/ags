@@ -193,6 +193,12 @@ public:
     // bitmap itself and should rather be a part of the game data logic.
     color_t GetCompatibleColor(color_t color);
 
+    // Tells if the given point lies within the bitmap bounds
+    inline bool IsOnBitmap(int x, int y) const
+    {
+        return x >= 0 && y >= 0 && x < GetWidth() && y < GetHeight();
+    }
+
     //=========================================================================
     // Clipping
     // TODO: consider implementing push-pop clipping stack logic.

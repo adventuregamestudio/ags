@@ -590,6 +590,8 @@ namespace AGS.Editor.Components
                 }
             }
 
+            SyncInteractionScriptModules(room);
+
             return room;
         }
 

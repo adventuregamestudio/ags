@@ -244,6 +244,12 @@
     <Compile Include="GUI\SpriteExportDialog.Designer.cs">
       <DependentUpon>SpriteExportDialog.cs</DependentUpon>
     </Compile>
+    <Compile Include="GUI\WizardIntroPage.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="GUI\WizardIntroPage.Designer.cs">
+      <DependentUpon>WizardIntroPage.cs</DependentUpon>
+    </Compile>
     <Compile Include="GUI\TextEntryDialog.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -467,6 +473,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="GUI\SpriteExportDialog.resx">
       <DependentUpon>SpriteExportDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\WizardIntroPage.resx">
+      <DependentUpon>WizardIntroPage.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Panes\BigPropertySheet.resx">
       <SubType>Designer</SubType>

@@ -20,14 +20,13 @@ namespace AGS.Editor
         public WizardDialog(string wizardName, string introText, List<WizardPage> pages)
         {
             InitializeComponent();
-            this.Text = wizardName;
-            this.lblTitle.Text = "Welcome to the " + wizardName + " Wizard";
-            this.lblIntroText.Text = introText;
-            this.lblHeader1.Text = wizardName;
-            this.pnlMainPages.Visible = false;
-            this.btnBack.Enabled = false;
+            Text = wizardName;
+            lblHeader1.Text = wizardName;
+            btnBack.Enabled = false;
             _pageNumber = 0;
             _pages = pages;
+            // Scan all pages and remember the minimal necessary size of the panel,
+            // assuming that there will be a "header panel" on top too.
             foreach (var page in pages)
             {
                 if (page.MinimumSize.Width > pnlMainPages.Width)
@@ -35,38 +34,49 @@ namespace AGS.Editor
                 if (page.MinimumSize.Height > pnlMainPages.Height - pnlHeader.Height)
                     pnlMainPages.Height = page.MinimumSize.Height + pnlHeader.Height;
             }
+            // After we're done with the regular pages,
+            // insert the "Wizard Intro Page" as the starting page,
+            // (it will have "header panel" hidden while its displayed).
+            _pages.Insert(0, new WizardIntroPage(wizardName, introText));
+            pnlMainPages.Width = Math.Max(pnlMainPages.Width, _pages[0].MinimumSize.Width);
+            pnlMainPages.Height = Math.Max(pnlMainPages.Height, _pages[0].MinimumSize.Height);
+
             Utilities.CheckLabelWidthsOnForm(this);
+        }
+
+        private void WizardDialog_Load(object sender, EventArgs e)
+        {
+            UpdatePanels();
         }
 
         private void btnNext_Click(object sender, EventArgs e)
         {
-            if (_pageNumber == 0)
+            if (!_pages[_pageNumber].NextButtonPressed())
             {
-                this.pnlMainPages.Visible = true;
-                this.btnBack.Enabled = true;
-            }
-            else
-            {
-                if (!_pages[_pageNumber - 1].NextButtonPressed())
-                {
-                    return;
-                }
-            }
-
-            if (_pageNumber >= _pages.Count)
-            {
-                this.DialogResult = DialogResult.OK;
-                this.Close();
                 return;
             }
 
             _pageNumber++;
+            if (_pageNumber >= _pages.Count)
+            {
+                DialogResult = DialogResult.OK;
+                Close();
+                return;
+            }
+
+            
+            UpdatePanels();
+        }
+
+        private void btnBack_Click(object sender, EventArgs e)
+        {
+            _pageNumber--;
             UpdatePanels();
         }
 
         private void UpdatePanels()
         {
-            if (_pageNumber >= _pages.Count)
+            if (_pageNumber == _pages.Count - 1)
             {
                 btnNext.Text = "&Finish";
             }
@@ -75,27 +85,20 @@ namespace AGS.Editor
                 btnNext.Text = "&Next >";
             }
 
-            if (_pageNumber > 0)
-            {
-                this.pnlMainPages.Controls.Clear();
-                this.pnlMainPages.Controls.Add(this.pnlHeader);
-                this.pnlMainPages.Controls.Add(_pages[_pageNumber - 1]);
-                _pages[_pageNumber - 1].BringToFront();
-                _pages[_pageNumber - 1].PageShown();
-                this.lblHeader2.Text = _pages[_pageNumber - 1].TitleText;
-                Utilities.CheckLabelWidthsOnForm(this);
-            }
-        }
-
-        private void btnBack_Click(object sender, EventArgs e)
-        {
-            _pageNumber--;
+            btnBack.Enabled = (_pageNumber > 0);
+            pnlMainPages.Controls.Clear();
             if (_pageNumber == 0)
             {
-                this.pnlMainPages.Visible = false;
-                this.btnBack.Enabled = false;
             }
-            UpdatePanels();
+            else
+            {
+                pnlMainPages.Controls.Add(pnlHeader);
+                lblHeader2.Text = _pages[_pageNumber].TitleText;
+            }
+            pnlMainPages.Controls.Add(_pages[_pageNumber]);
+            _pages[_pageNumber].BringToFront();
+            _pages[_pageNumber].PageShown();
+            Utilities.CheckLabelWidthsOnForm(this);
         }
     }
 }

@@ -16,7 +16,7 @@ namespace AGS.Editor
         public StartNewGameDetailsPage(string baseDirectory)
         {
             InitializeComponent();
-			txtCreateInFolder.Text = baseDirectory;
+            txtCreateInFolder.Text = baseDirectory;
         }
 
         public string FileName

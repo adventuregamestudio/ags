@@ -29,6 +29,7 @@ namespace AGS.Editor
         private void InitializeComponent()
         {
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.btnCreateInBrowse = new System.Windows.Forms.Button();
             this.txtCreateInFolder = new System.Windows.Forms.TextBox();
             this.label3 = new System.Windows.Forms.Label();
             this.lblFilePath = new System.Windows.Forms.Label();
@@ -36,7 +37,6 @@ namespace AGS.Editor
             this.label2 = new System.Windows.Forms.Label();
             this.txtFileName = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
-            this.btnCreateInBrowse = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -56,6 +56,16 @@ namespace AGS.Editor
             this.groupBox1.TabIndex = 0;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "New game details";
+            // 
+            // btnCreateInBrowse
+            // 
+            this.btnCreateInBrowse.Location = new System.Drawing.Point(465, 167);
+            this.btnCreateInBrowse.Name = "btnCreateInBrowse";
+            this.btnCreateInBrowse.Size = new System.Drawing.Size(27, 21);
+            this.btnCreateInBrowse.TabIndex = 6;
+            this.btnCreateInBrowse.Text = "...";
+            this.btnCreateInBrowse.UseVisualStyleBackColor = true;
+            this.btnCreateInBrowse.Click += new System.EventHandler(this.btnCreateInBrowse_Click);
             // 
             // txtCreateInFolder
             // 
@@ -102,8 +112,8 @@ namespace AGS.Editor
             this.label2.Size = new System.Drawing.Size(482, 26);
             this.label2.TabIndex = 2;
             this.label2.Text = "What do you want the game to be called? This name will be displayed in the title " +
-                "bar of the window whilst playing. You can change this later in the General Settings" +
-                " editor.";
+    "bar of the window whilst playing. You can change this later in the General Setti" +
+    "ngs editor.";
             // 
             // txtFileName
             // 
@@ -120,20 +130,10 @@ namespace AGS.Editor
             this.label1.Location = new System.Drawing.Point(16, 85);
             this.label1.MaximumSize = new System.Drawing.Size(500, 0);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(458, 26);
+            this.label1.Size = new System.Drawing.Size(488, 26);
             this.label1.TabIndex = 0;
             this.label1.Text = "Please enter the filename of the game below. This will be used to name the final " +
-                "build of your game. You can change this later in the General Settings editor.";
-            // 
-            // btnCreateInBrowse
-            // 
-            this.btnCreateInBrowse.Location = new System.Drawing.Point(465, 167);
-            this.btnCreateInBrowse.Name = "btnCreateInBrowse";
-            this.btnCreateInBrowse.Size = new System.Drawing.Size(27, 21);
-            this.btnCreateInBrowse.TabIndex = 6;
-            this.btnCreateInBrowse.Text = "...";
-            this.btnCreateInBrowse.UseVisualStyleBackColor = true;
-            this.btnCreateInBrowse.Click += new System.EventHandler(this.btnCreateInBrowse_Click);
+    "build of your game. You can change this later in the General Settings editor.";
             // 
             // StartNewGameDetailsPage
             // 
@@ -142,7 +142,7 @@ namespace AGS.Editor
             this.Controls.Add(this.groupBox1);
             this.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Name = "StartNewGameDetailsPage";
-            this.Size = new System.Drawing.Size(1017, 632);
+            this.Size = new System.Drawing.Size(1555, 574);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
             this.ResumeLayout(false);

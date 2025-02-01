@@ -209,12 +209,11 @@ ScriptUserObject *Room_NearestWalkableArea(int x, int y)
 {
     if (displayed_room < 0)
         quit("!Room.NearestWalkableArea: no room is currently loaded");
-    data_to_game_coords(&x, &y);
     Point found_pt;
-    if (Pathfinding::FindNearestWalkablePoint(thisroom.WalkAreaMask.get(), Point(x, y), found_pt))
+    if (Pathfinding::FindNearestWalkablePoint(thisroom.WalkAreaMask.get(),
+        Point(room_to_mask_coord(x), room_to_mask_coord(y)), found_pt))
     {
-        game_to_data_coords(found_pt.X, found_pt.Y);
-        return ScriptStructHelpers::CreatePoint(found_pt.X, found_pt.Y);
+        return ScriptStructHelpers::CreatePoint(mask_to_room_coord(found_pt.X), mask_to_room_coord(found_pt.Y));
     }
     return nullptr;
 }

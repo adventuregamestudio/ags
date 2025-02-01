@@ -774,8 +774,8 @@
     <EmbeddedResource Include="GUI\SplashPage.resx">
       <DependentUpon>SplashPage.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="GUI\StartNewGameWizardPage2.resx">
-      <DependentUpon>StartNewGameWizardPage2.cs</DependentUpon>
+    <EmbeddedResource Include="GUI\StartNewGameDetailsPage.resx">
+      <DependentUpon>StartNewGameDetailsPage.cs</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="GUI\FindReplaceDialog.resx">
@@ -790,9 +790,9 @@
       <SubType>Designer</SubType>
       <DependentUpon>RoomMessagesEditor.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="GUI\StartNewGameWizardPage.resx">
+    <EmbeddedResource Include="GUI\StartNewGameTemplatesPage.resx">
       <SubType>Designer</SubType>
-      <DependentUpon>StartNewGameWizardPage.cs</DependentUpon>
+      <DependentUpon>StartNewGameTemplatesPage.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="GUI\WelcomeScreen.resx">
       <SubType>Designer</SubType>
@@ -1170,11 +1170,11 @@
     <Compile Include="GUI\AutoNumberSpeechWizardPage.Designer.cs">
       <DependentUpon>AutoNumberSpeechWizardPage.cs</DependentUpon>
     </Compile>
-    <Compile Include="GUI\StartNewGameWizardPage2.cs">
+    <Compile Include="GUI\StartNewGameDetailsPage.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="GUI\StartNewGameWizardPage2.Designer.cs">
-      <DependentUpon>StartNewGameWizardPage2.cs</DependentUpon>
+    <Compile Include="GUI\StartNewGameDetailsPage.Designer.cs">
+      <DependentUpon>StartNewGameDetailsPage.cs</DependentUpon>
     </Compile>
     <Compile Include="GUI\FindReplaceDialog.cs">
       <SubType>Form</SubType>
@@ -1195,11 +1195,11 @@
     <Compile Include="GUI\RoomMessagesEditor.Designer.cs">
       <DependentUpon>RoomMessagesEditor.cs</DependentUpon>
     </Compile>
-    <Compile Include="GUI\StartNewGameWizardPage.cs">
+    <Compile Include="GUI\StartNewGameTemplatesPage.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="GUI\StartNewGameWizardPage.Designer.cs">
-      <DependentUpon>StartNewGameWizardPage.cs</DependentUpon>
+    <Compile Include="GUI\StartNewGameTemplatesPage.Designer.cs">
+      <DependentUpon>StartNewGameTemplatesPage.cs</DependentUpon>
     </Compile>
     <Compile Include="GUI\WelcomeScreen.cs">
       <SubType>Form</SubType>

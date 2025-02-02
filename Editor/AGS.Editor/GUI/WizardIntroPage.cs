@@ -15,11 +15,15 @@ namespace AGS.Editor
         public WizardIntroPage()
         {
             InitializeComponent();
+            // this is to make cup picture appear transparent over background
+            pictureBox1.Controls.Add(pictureBox2);
         }
 
         public WizardIntroPage(string wizardName, string introText)
         {
             InitializeComponent();
+            // this is to make cup picture appear transparent over background
+            pictureBox1.Controls.Add(pictureBox2);
 
             lblTitle.Text = "Welcome to the " + wizardName + " Wizard";
             lblIntroText.Text = introText;

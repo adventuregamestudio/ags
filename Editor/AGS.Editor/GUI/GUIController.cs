@@ -1157,8 +1157,8 @@ namespace AGS.Editor
             }
 
             List<WizardPage> pages = new List<WizardPage>();
-            StartNewGameWizardPage templateSelectPage = new StartNewGameWizardPage(templates);
-            StartNewGameWizardPage2 gameNameSelectPage = new StartNewGameWizardPage2(newGamePath);
+            StartNewGameTemplatesPage templateSelectPage = new StartNewGameTemplatesPage(templates);
+            StartNewGameDetailsPage gameNameSelectPage = new StartNewGameDetailsPage(newGamePath);
             pages.Add(templateSelectPage);
             pages.Add(gameNameSelectPage);
             

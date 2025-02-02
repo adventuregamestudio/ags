@@ -244,6 +244,12 @@
     <Compile Include="GUI\SpriteExportDialog.Designer.cs">
       <DependentUpon>SpriteExportDialog.cs</DependentUpon>
     </Compile>
+    <Compile Include="GUI\WizardIntroPage.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="GUI\WizardIntroPage.Designer.cs">
+      <DependentUpon>WizardIntroPage.cs</DependentUpon>
+    </Compile>
     <Compile Include="GUI\TextEntryDialog.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -467,6 +473,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="GUI\SpriteExportDialog.resx">
       <DependentUpon>SpriteExportDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\WizardIntroPage.resx">
+      <DependentUpon>WizardIntroPage.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Panes\BigPropertySheet.resx">
       <SubType>Designer</SubType>
@@ -699,6 +708,8 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="agsico-1.ico" />
+    <EmbeddedResource Include="Resources\wizard-bg.png" />
+    <EmbeddedResource Include="Resources\wizard-cup.png" />
     <EmbeddedResource Include="Resources\menu_build_openfolder.over.ico" />
     <EmbeddedResource Include="Resources\menu_file_openfolder.ico" />
     <EmbeddedResource Include="Resources\menu_file_openfolder.over.ico" />
@@ -774,8 +785,8 @@
     <EmbeddedResource Include="GUI\SplashPage.resx">
       <DependentUpon>SplashPage.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="GUI\StartNewGameWizardPage2.resx">
-      <DependentUpon>StartNewGameWizardPage2.cs</DependentUpon>
+    <EmbeddedResource Include="GUI\StartNewGameDetailsPage.resx">
+      <DependentUpon>StartNewGameDetailsPage.cs</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="GUI\FindReplaceDialog.resx">
@@ -790,9 +801,9 @@
       <SubType>Designer</SubType>
       <DependentUpon>RoomMessagesEditor.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="GUI\StartNewGameWizardPage.resx">
+    <EmbeddedResource Include="GUI\StartNewGameTemplatesPage.resx">
       <SubType>Designer</SubType>
-      <DependentUpon>StartNewGameWizardPage.cs</DependentUpon>
+      <DependentUpon>StartNewGameTemplatesPage.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="GUI\WelcomeScreen.resx">
       <SubType>Designer</SubType>
@@ -1170,11 +1181,11 @@
     <Compile Include="GUI\AutoNumberSpeechWizardPage.Designer.cs">
       <DependentUpon>AutoNumberSpeechWizardPage.cs</DependentUpon>
     </Compile>
-    <Compile Include="GUI\StartNewGameWizardPage2.cs">
+    <Compile Include="GUI\StartNewGameDetailsPage.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="GUI\StartNewGameWizardPage2.Designer.cs">
-      <DependentUpon>StartNewGameWizardPage2.cs</DependentUpon>
+    <Compile Include="GUI\StartNewGameDetailsPage.Designer.cs">
+      <DependentUpon>StartNewGameDetailsPage.cs</DependentUpon>
     </Compile>
     <Compile Include="GUI\FindReplaceDialog.cs">
       <SubType>Form</SubType>
@@ -1195,11 +1206,11 @@
     <Compile Include="GUI\RoomMessagesEditor.Designer.cs">
       <DependentUpon>RoomMessagesEditor.cs</DependentUpon>
     </Compile>
-    <Compile Include="GUI\StartNewGameWizardPage.cs">
+    <Compile Include="GUI\StartNewGameTemplatesPage.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="GUI\StartNewGameWizardPage.Designer.cs">
-      <DependentUpon>StartNewGameWizardPage.cs</DependentUpon>
+    <Compile Include="GUI\StartNewGameTemplatesPage.Designer.cs">
+      <DependentUpon>StartNewGameTemplatesPage.cs</DependentUpon>
     </Compile>
     <Compile Include="GUI\WelcomeScreen.cs">
       <SubType>Form</SubType>

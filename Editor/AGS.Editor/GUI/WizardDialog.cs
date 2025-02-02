@@ -9,8 +9,8 @@ using System.Windows.Forms;
 namespace AGS.Editor
 {
     /// <summary>
-    /// THIS CLASS IS TEMPORARY ... NEED TO REFACTOR IT TO BECOME A PROPERLY
-    /// FLEXIBLE WIZARD CLASS. For now it's just for the import game wizard
+    /// WizardDialog is a generic class for the wizard-like dialog,
+    /// hosting a sequence of WizardPage controls.
     /// </summary>
     public partial class WizardDialog : Form
     {

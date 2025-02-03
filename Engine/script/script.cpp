@@ -22,7 +22,6 @@
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_audio.h"
-#include "ac/global_character.h"
 #include "ac/global_dialog.h"
 #include "ac/global_display.h"
 #include "ac/global_game.h"

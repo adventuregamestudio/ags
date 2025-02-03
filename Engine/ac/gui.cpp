@@ -17,12 +17,12 @@
 #include <vector>
 #include "ac/gui.h"
 #include "ac/common.h"
+#include "ac/character.h"
 #include "ac/draw.h"
 #include "ac/event.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
-#include "ac/global_character.h"
 #include "ac/global_game.h"
 #include "ac/global_gui.h"
 #include "ac/global_inventoryitem.h"

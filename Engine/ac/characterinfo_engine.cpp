@@ -18,7 +18,6 @@
 #include "ac/character.h"
 #include "ac/characterextras.h"
 #include "ac/gamestate.h"
-#include "ac/global_character.h"
 #include "ac/math.h"
 #include "ac/object.h"
 #include "ac/viewframe.h"
@@ -336,7 +335,7 @@ bool UpdateCharacterAnimating(CharacterInfo *chi, CharacterExtras *chex, int &do
                         chi->frame = 0;
                     // one-off anim, stop
                     else {
-                        ReleaseCharacterView(chi->index_id);
+                        Character_UnlockView(chi);
                         chi->idleleft = chi->idletime;
                     }
                 }

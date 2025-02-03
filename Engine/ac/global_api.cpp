@@ -20,13 +20,13 @@
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 
+#include "ac/character.h"
 #include "ac/display.h"
 #include "ac/dynamicsprite.h"
 #include "ac/event.h"
 #include "ac/game.h"
 #include "ac/gamestructdefines.h"
 #include "ac/global_audio.h"
-#include "ac/global_character.h"
 #include "ac/global_debug.h"
 #include "ac/global_dialog.h"
 #include "ac/global_display.h"
@@ -313,12 +313,6 @@ RuntimeScriptValue Sc_GetBackgroundFrame(const RuntimeScriptValue *params, int32
     API_SCALL_INT(GetBackgroundFrame);
 }
 
-// int  (int xx, int yy)
-RuntimeScriptValue Sc_GetCharIDAtScreen(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_PINT2(GetCharIDAtScreen);
-}
-
 extern RuntimeScriptValue Sc_GetCursorMode(const RuntimeScriptValue *params, int32_t param_count);
 
 // int  (int dlg, int opt)
@@ -403,12 +397,6 @@ RuntimeScriptValue Sc_GetInvPropertyText(const RuntimeScriptValue *params, int32
 RuntimeScriptValue Sc_GetLocationType(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT_PINT2(GetLocationType);
-}
-
-// int ()
-RuntimeScriptValue Sc_GetPlayerCharacter(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT(GetPlayerCharacter);
 }
 
 // int  (int xxx, int yyy)
@@ -894,12 +882,6 @@ RuntimeScriptValue Sc_StopDialog(const RuntimeScriptValue *params, int32_t param
     API_SCALL_VOID(StopDialog);
 }
 
-// void (int chaa)
-RuntimeScriptValue Sc_StopMoving(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(StopMoving);
-}
-
 // int (const char*stino)
 RuntimeScriptValue Sc_StringToInt(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -925,9 +907,9 @@ RuntimeScriptValue Sc_UnPauseGame(const RuntimeScriptValue *params, int32_t para
 }
 
 // void ()
-RuntimeScriptValue Sc_update_invorder(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_UpdateInventory(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID(update_invorder);
+    API_SCALL_VOID(UpdateInventory);
 }
 
 // void ()
@@ -1060,7 +1042,6 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "FlipScreen",               API_FN_PAIR(FlipScreen) },
         { "FloatToInt",               API_FN_PAIR(FloatToInt) },
         { "GetBackgroundFrame",       API_FN_PAIR(GetBackgroundFrame) },
-        { "GetCharacterAt",           API_FN_PAIR(GetCharIDAtScreen) },
         { "GetCursorMode",            API_FN_PAIR(GetCursorMode) },
         { "GetDialogOption",          API_FN_PAIR(GetDialogOption) },
         { "GetGameOption",            API_FN_PAIR(GetGameOption) },
@@ -1076,7 +1057,6 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "GetInvProperty",           API_FN_PAIR(GetInvProperty) },
         { "GetInvPropertyText",       API_FN_PAIR(GetInvPropertyText) },
         { "GetLocationType",          API_FN_PAIR(GetLocationType) },
-        { "GetPlayerCharacter",       API_FN_PAIR(GetPlayerCharacter) },
         { "GetRegionAt",              API_FN_PAIR(GetRegionIDAtRoom) },
         { "GetRoomProperty",          API_FN_PAIR(Room_GetProperty) },
         { "GetScalingAt",             API_FN_PAIR(GetScalingAt) },
@@ -1165,12 +1145,11 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "StartCutscene",            API_FN_PAIR(StartCutscene) },
         { "StopChannel",              API_FN_PAIR(stop_and_destroy_channel) },
         { "StopDialog",               API_FN_PAIR(StopDialog) },
-        { "StopMoving",               API_FN_PAIR(StopMoving) },
         { "StringToInt",              API_FN_PAIR(StringToInt) },
         { "StrLen",                   API_FN_PAIR(strlen) },
         { "TintScreen",               API_FN_PAIR(TintScreen) },
         { "UnPauseGame",              API_FN_PAIR(UnPauseGame) },
-        { "UpdateInventory",          API_FN_PAIR(update_invorder) },
+        { "UpdateInventory",          API_FN_PAIR(UpdateInventory) },
         { "UpdatePalette",            API_FN_PAIR(UpdatePalette) },
         { "Wait",                     API_FN_PAIR(scrWait) },
         { "WaitKey",                  API_FN_PAIR(WaitKey) },

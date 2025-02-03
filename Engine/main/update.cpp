@@ -24,7 +24,6 @@
 #include "ac/game.h"
 #include "ac/gamestate.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/global_character.h"
 #include "ac/lipsync.h"
 #include "ac/movelist.h"
 #include "ac/overlay.h"
@@ -359,7 +358,7 @@ void update_sierra_speech()
             facetalkwait = 999999;
         }
         if ((facetalkframe != 0) || (facetalkrepeat == 1))
-          facetalkwait = views[facetalkview].loops[facetalkloop].frames[facetalkframe].speed + GetCharacterSpeechAnimationDelay(facetalkchar);
+          facetalkwait = views[facetalkview].loops[facetalkloop].frames[facetalkframe].speed + Character_GetSpeechAnimationDelay(facetalkchar);
       }
       updatedFrame |= 1;
     }

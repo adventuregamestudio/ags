@@ -26,7 +26,6 @@
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_audio.h"
-#include "ac/global_character.h"
 #include "ac/global_game.h"
 #include "ac/global_object.h"
 #include "ac/global_translation.h"
@@ -637,7 +636,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         forchar->room=newnum;
         // only stop moving if it's a new room, not a restore game
         for (int cc=0;cc<game.numcharacters;cc++)
-            StopMoving(cc);
+            Character_StopMoving(&game.chars[cc]);
     }
 
     roomscript = nullptr;

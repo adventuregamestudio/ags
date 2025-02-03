@@ -23,7 +23,6 @@
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
-#include "ac/global_character.h"
 #include "ac/global_translation.h"
 #include "ac/object.h"
 #include "ac/properties.h"

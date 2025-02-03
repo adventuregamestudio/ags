@@ -13,13 +13,13 @@
 //=============================================================================
 #include "ac/global_debug.h"
 #include "ac/common.h"
+#include "ac/character.h"
 #include "ac/characterinfo.h"
 #include "ac/draw.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
-#include "ac/global_character.h"
 #include "ac/global_display.h"
 #include "ac/global_room.h"
 #include "ac/properties.h"
@@ -98,7 +98,7 @@ void script_debug(int cmdd,int dataa) {
     if (cmdd==0) {
         for (rr=1;rr<game.numinvitems;rr++)
             playerchar->inv[rr]=1;
-        update_invorder();
+        UpdateInventory();
     }
     else if (cmdd==1) {
         String toDisplay = GetRuntimeInfo();

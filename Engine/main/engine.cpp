@@ -36,7 +36,6 @@
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
-#include "ac/global_character.h"
 #include "ac/global_game.h"
 #include "ac/gui.h"
 #include "ac/lipsync.h"
@@ -826,7 +825,7 @@ void engine_init_game_settings()
     if (!usetup.Translation.IsEmpty())
         Game_ChangeTranslation(usetup.Translation.GetCStr());
 
-    update_invorder();
+    UpdateInventory();
     displayed_room = -10;
 
     currentcursor=0;

@@ -23,7 +23,6 @@
 #include "ac/gamestate.h"
 #include "ac/gamesetup.h"
 #include "ac/global_audio.h"
-#include "ac/global_character.h"
 #include "ac/gui.h"
 #include "ac/mouse.h"
 #include "ac/overlay.h"

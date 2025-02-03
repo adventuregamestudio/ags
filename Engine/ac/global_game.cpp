@@ -26,7 +26,6 @@
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
-#include "ac/global_character.h"
 #include "ac/global_display.h"
 #include "ac/global_gui.h"
 #include "ac/global_hotspot.h"
@@ -452,7 +451,7 @@ int SetGameOption (int opt, int newval) {
         GUIE::MarkForTranslationUpdate();
         break;
     case OPT_DUPLICATEINV:
-        update_invorder();
+        UpdateInventory();
         break;
     case OPT_PORTRAITSIDE:
         if (newval == 0)  // set back to Left

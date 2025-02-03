@@ -87,6 +87,7 @@ const char* Character_GetTextProperty(CharacterInfo *chaa, const char *property)
 
 ScriptInvItem* Character_GetActiveInventory(CharacterInfo *chaa);
 void    Character_SetActiveInventory(CharacterInfo *chaa, ScriptInvItem* iit);
+void    SetActiveInventory(int iit); //[DEPRECATED] but used from few other functions
 int     Character_GetAnimating(CharacterInfo *chaa);
 int     Character_GetAnimationSpeed(CharacterInfo *chaa);
 void    Character_SetAnimationSpeed(CharacterInfo *chaa, int newval);
@@ -137,6 +138,7 @@ void    Character_SetSolid(CharacterInfo *chaa, int yesorno);
 int     Character_GetSpeaking(CharacterInfo *chaa);
 int     Character_GetSpeechColor(CharacterInfo *chaa);
 void    Character_SetSpeechColor(CharacterInfo *chaa, int ncol);
+int     Character_GetSpeechAnimationDelay(CharacterInfo *chaa);
 void    Character_SetSpeechAnimationDelay(CharacterInfo *chaa, int newDelay);
 int     Character_GetSpeechView(CharacterInfo *chaa);
 void    Character_SetSpeechView(CharacterInfo *chaa, int vii);
@@ -194,9 +196,13 @@ void move_character_straight(CharacterInfo *chaa, int x, int y, bool walk_anim);
 void walk_character(CharacterInfo *chaa, int tox, int toy, bool ignwal);
 // Start character walk the straight line until any non-passable area is met
 void walk_character_straight(CharacterInfo *chaa, int tox, int toy);
+void MoveCharacterToHotspot(int chaa, int hotsp);
 void FindReasonableLoopForCharacter(CharacterInfo *chap);
 int  wantMoveNow (CharacterInfo *chi, CharacterExtras *chex);
 void setup_player_character(int charid);
+int GetCharacterWidth(int charid);
+int GetCharacterHeight(int charid);
+
 Common::Bitmap *GetCharacterImage(int charid, bool *is_original = nullptr);
 // Gets current source image (untransformed) for the character
 Common::Bitmap *GetCharacterSourceImage(int charid);
@@ -242,6 +248,7 @@ void UpdateCharacterMoving(CharacterInfo *chi, CharacterExtras *chex, int &doing
 bool UpdateCharacterAnimating(CharacterInfo *chi, CharacterExtras *chex, int &doing_nothing);
 void UpdateCharacterIdle(CharacterInfo *chi, CharacterExtras *chex, int &doing_nothing);
 void UpdateCharacterFollower(CharacterInfo *chi, std::vector<int> &followingAsSheep, int &doing_nothing);
+void UpdateInventory();
 
 extern CharacterInfo*playerchar;
 extern int32_t _sc_PlayerCharPtr;

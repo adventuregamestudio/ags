@@ -21,10 +21,10 @@
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
-#include "ac/global_character.h"
 #include "ac/global_display.h"
 #include "ac/global_screen.h"
 #include "ac/global_translation.h"
+#include "ac/overlay.h"
 #include "ac/runtime_defines.h"
 #include "ac/speech.h"
 #include "ac/string.h"
@@ -128,4 +128,42 @@ void DisplayAtYImpl(int ypos, const char *texx, const TopBarSettings *topbar, bo
 
 void DisplayAtY(int ypos, const char *texx) {
     DisplayAtYImpl(ypos, texx, nullptr, game.options[OPT_ALWAYSSPCH] != 0);
+}
+
+// CLNUP investigate if I can just removed the following comments
+// **** THIS IS UNDOCUMENTED BECAUSE IT DOESN'T WORK PROPERLY
+// **** AT 640x400 AND DOESN'T USE THE RIGHT SPEECH STYLE
+void DisplaySpeechAt(int xx, int yy, int wii, int aschar, const char *spch) {
+    _displayspeech(get_translation(spch), aschar, xx, yy, wii, 0);
+}
+
+// [DEPRECATED] left only for use in Display, replace/merge with modern function
+static int CreateTextOverlay(int xx, int yy, int wii, int fontid, int text_color, const char *text, int over_type, DisplayTextStyle style, int speech_for_char) {
+    // allow DisplaySpeechBackground to be shrunk
+    DisplayTextShrink allow_shrink = (speech_for_char >= 0) ? kDisplayTextShrink_Left : kDisplayTextShrink_None;
+    auto *over = Overlay_CreateTextCore(false, xx, yy, wii, fontid, text_color, text, over_type, style, allow_shrink, speech_for_char);
+    return over ? over->type : 0;
+}
+
+// [DEPRECATED] but still used by Character_SayBackground, might merge since there are no other instances
+int DisplaySpeechBackground(int charid, const char *speel) {
+    // remove any previous background speech for this character
+    // TODO: have a map character -> bg speech over?
+    const auto &overs = get_overlays();
+    for (size_t i = 0; i < overs.size(); ++i)
+    {
+        if (overs[i].speechForChar == charid)
+        {
+            remove_screen_overlay(i);
+            break;
+        }
+    }
+
+    int ovrl = CreateTextOverlay(0, 0, play.GetUIViewport().GetWidth() / 2, FONT_SPEECH,
+                                 game.chars[charid].talkcolor, get_translation(speel), OVER_CUSTOM, kDisplayTextStyle_Overchar, charid);
+
+    auto *over = get_overlay(ovrl);
+    over->speechForChar = charid;
+    over->timeout = GetTextDisplayTime(speel, 1);
+    return ovrl;
 }

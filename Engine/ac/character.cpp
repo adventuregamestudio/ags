@@ -25,7 +25,7 @@
 #include "ac/game.h"
 #include "ac/gamestate.h"
 #include "ac/global_audio.h"
-#include "ac/global_character.h"
+#include "ac/global_display.h"
 #include "ac/global_game.h"
 #include "ac/global_object.h"
 #include "ac/global_region.h"
@@ -56,6 +56,7 @@
 #include <math.h>
 #include "gfx/graphicsdriver.h"
 #include "script/runtimescriptvalue.h"
+#include "script/script.h"
 #include "ac/dynobj/cc_character.h"
 #include "ac/dynobj/cc_inventory.h"
 #include "ac/dynobj/dynobj_manager.h"
@@ -556,6 +557,46 @@ CharacterInfo* Character_GetFollowing(CharacterInfo* chaa)
     return &game.chars[charextra[chaa->index_id].following];
 }
 
+int GetCharacterWidth(int charid) {
+    CharacterInfo *char1 = &game.chars[charid];
+
+    if (charextra[charid].width < 1)
+    {
+        if ((char1->view < 0) ||
+            (char1->loop >= views[char1->view].numLoops) ||
+            (char1->frame >= views[char1->view].loops[char1->loop].numFrames))
+        {
+            debug_script_warn("GetCharacterWidth: Character %s has invalid frame: view %d, loop %d, frame %d",
+                              char1->scrname.GetCStr(), char1->view + 1, char1->loop, char1->frame);
+            return 4;
+        }
+
+        return game.SpriteInfos[views[char1->view].loops[char1->loop].frames[char1->frame].pic].Width;
+    }
+    else
+        return charextra[charid].width;
+}
+
+int GetCharacterHeight(int charid) {
+    CharacterInfo *char1 = &game.chars[charid];
+
+    if (charextra[charid].height < 1)
+    {
+        if ((char1->view < 0) ||
+            (char1->loop >= views[char1->view].numLoops) ||
+            (char1->frame >= views[char1->view].loops[char1->loop].numFrames))
+        {
+            debug_script_warn("GetCharacterHeight: Character %s has invalid frame: view %d, loop %d, frame %d",
+                              char1->scrname.GetCStr(), char1->view + 1, char1->loop, char1->frame);
+            return 2;
+        }
+
+        return game.SpriteInfos[views[char1->view].loops[char1->loop].frames[char1->frame].pic].Height;
+    }
+    else
+        return charextra[charid].height;
+}
+
 int Character_IsCollidingWithChar(CharacterInfo *char1, CharacterInfo *char2) {
     if (char2 == nullptr)
         quit("!AreCharactersColliding: invalid char2");
@@ -631,7 +672,7 @@ int Character_IsCollidingWithObject(CharacterInfo *chin, ScriptObject *objid) {
 bool Character_IsInteractionAvailable(CharacterInfo *cchar, int mood) {
 
     play.check_interaction_only = 1;
-    RunCharacterInteraction(cchar->index_id, mood);
+    Character_RunInteraction(cchar, mood);
     int ciwas = play.check_interaction_only;
     play.check_interaction_only = 0;
     return (ciwas == 2);
@@ -787,6 +828,18 @@ ScriptOverlay* Character_SayBackground(CharacterInfo *chaa, const char *texx) {
     return create_scriptoverlay(*over, true);
 }
 
+// [DEPRECATED] still used by Character_SetAsPlayer
+void SetActiveInventory(int iit) {
+
+    ScriptInvItem *tosend = nullptr;
+    if ((iit > 0) && (iit < game.numinvitems))
+        tosend = &scrInv[iit];
+    else if (iit != -1)
+        quitprintf("!SetActiveInventory: invalid inventory number %d", iit);
+
+    Character_SetActiveInventory(playerchar, tosend);
+}
+
 // CLNUP check the use of SetActiveInventory
 void Character_SetAsPlayer(CharacterInfo *chaa) {
 
@@ -815,11 +868,9 @@ void Character_SetAsPlayer(CharacterInfo *chaa) {
         if (playerchar->activeinv < 0)
             SetNextCursor ();
         else
-            SetActiveInventory (playerchar->activeinv);
+            SetActiveInventory(playerchar->activeinv);
     }
-
 }
-
 
 void Character_SetIdleView(CharacterInfo *chaa, int iview, int itime) {
 
@@ -1131,9 +1182,36 @@ void Character_MovePath(CharacterInfo *chaa, void *path_arr, int blocking, int r
     Character_DoMove(chaa, "Character.WalkPath", path_arr, 0, 0, true /* use path */, false /* not straight */, blocking, ANYWHERE, false /* no anim */, repeat, direction);
 }
 
-void Character_RunInteraction(CharacterInfo *chaa, int mood) {
+void Character_RunInteraction(CharacterInfo *chaa, int mood)
+{
+    // convert cursor mode to event index (in character event table)
+    // TODO: probably move this conversion table elsewhere? should be a global info
+    int evnt;
+    switch (mood)
+    {
+    case MODE_LOOK: evnt = 0; break;
+    case MODE_HAND: evnt = 1; break;
+    case MODE_TALK: evnt = 2; break;
+    case MODE_USE: evnt = 3; break;
+    case MODE_PICKUP: evnt = 5; break;
+    case MODE_CUSTOM1: evnt = 6; break;
+    case MODE_CUSTOM2: evnt = 7; break;
+    default: evnt = -1; break;
+    }
+    const int anyclick_evt = 4; // TODO: make global constant (character any-click evt)
 
-    RunCharacterInteraction(chaa->index_id, mood);
+    // For USE verb: remember active inventory
+    if (mood == MODE_USE)
+    {
+        play.usedinv = playerchar->activeinv;
+    }
+
+    const auto obj_evt = ObjectEvent(kScTypeGame, "character%d", chaa->index_id,
+                                     RuntimeScriptValue().SetScriptObject(chaa, &ccDynamicCharacter), mood);
+    if ((evnt >= 0) &&
+        run_interaction_script(obj_evt, game.charScripts[chaa->index_id].get(), evnt, anyclick_evt) < 0)
+        return; // game state changed, don't do "any click"
+    run_interaction_script(obj_evt, game.charScripts[chaa->index_id].get(), anyclick_evt);  // any click on char
 }
 
 
@@ -1593,6 +1671,14 @@ void Character_SetSpeechColor(CharacterInfo *chaa, int ncol) {
     chaa->talkcolor = ncol;
 }
 
+int Character_GetSpeechAnimationDelay(CharacterInfo *chaa)
+{
+    if (game.options[OPT_GLOBALTALKANIMSPD] != 0)
+        return play.talkanim_speed;
+    else
+        return chaa->speech_anim_speed;
+}
+
 void Character_SetSpeechAnimationDelay(CharacterInfo *chaa, int newDelay)
 {
     if (game.options[OPT_GLOBALTALKANIMSPD] != 0)
@@ -1821,7 +1907,7 @@ void move_character_impl(CharacterInfo *chin, const std::vector<Point> *path, in
 
     if ((path && path->empty()) || (!path && (tox == chin->x) && (toy == chin->y)))
     {
-        StopMoving(chac);
+        Character_StopMoving(chin);
         debug_script_log("MoveCharacter: %s move path is empty, or is already at destination, not moving", chin->scrname.GetCStr());
         return;
     }
@@ -1856,7 +1942,7 @@ void move_character_impl(CharacterInfo *chin, const std::vector<Point> *path, in
             wasStepFrac = movelist.GetPixelUnitFraction() + movelist.GetStepLength();
     }
 
-    StopMoving(chac);
+    Character_StopMoving(chin);
     chin->frame = oldframe;
     // use toxPassedIn cached variable so the hi-res co-ordinates
     // are still displayed as such
@@ -2223,6 +2309,17 @@ void walk_character_straight(CharacterInfo *chaa, int x, int y)
     move_character_straight(chaa, x, y, true /* animate */);
 }
 
+void MoveCharacterToHotspot(int chaa, int hotsp)
+{
+    if ((hotsp < 0) || (hotsp >= MAX_ROOM_HOTSPOTS))
+        quit("!MovecharacterToHotspot: invalid hotspot");
+    if (thisroom.Hotspots[hotsp].WalkTo.X < 1)
+        return;
+
+    walk_character(&game.chars[chaa], thisroom.Hotspots[hotsp].WalkTo.X, thisroom.Hotspots[hotsp].WalkTo.Y, false /* walkable areas */);
+    GameLoopUntilNotMoving(&game.chars[chaa].walking);
+}
+
 int wantMoveNow (CharacterInfo *chi, CharacterExtras *chex) {
     // check most likely case first
     if ((chex->zoom == 100) || ((chi->flags & CHF_SCALEMOVESPEED) == 0))
@@ -2360,10 +2457,13 @@ Bitmap *GetCharacterSourceImage(int charid)
 }
 
 CharacterInfo *GetCharacterAtScreen(int xx, int yy) {
-    int hsnum = GetCharIDAtScreen(xx, yy);
-    if (hsnum < 0)
+    VpPoint vpt = play.ScreenToRoom(xx, yy);
+    if (vpt.second < 0)
         return nullptr;
-    return &game.chars[hsnum];
+    int chnum = is_pos_on_character(vpt.first.X, vpt.first.Y);
+    if (chnum < 0)
+        return nullptr;
+    return &game.chars[chnum];
 }
 
 CharacterInfo *GetCharacterAtRoom(int x, int y)
@@ -2521,7 +2621,7 @@ int my_getpixel(Bitmap *blk, int x, int y) {
 int check_click_on_character(int xx,int yy,int mood) {
     int lowestwas=is_pos_on_character(xx,yy);
     if (lowestwas>=0) {
-        RunCharacterInteraction (lowestwas, mood);
+        Character_RunInteraction(&game.chars[lowestwas], mood);
         return 1;
     }
     return 0;
@@ -2692,7 +2792,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
         set_our_eip(1501);
 
         if (speakingChar->walking)
-            StopMoving(aschar);
+            Character_StopMoving(speakingChar);
 
         // save the frame we need to go back to
         // if they were moving, this will be 0 (because we just called
@@ -2939,7 +3039,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
             facetalkview = useview;
             facetalkloop = 0;
             facetalkframe = 0;
-            facetalkwait = viptr->loops[0].frames[0].speed + GetCharacterSpeechAnimationDelay(speakingChar);
+            facetalkwait = viptr->loops[0].frames[0].speed + Character_GetSpeechAnimationDelay(speakingChar);
             facetalkrepeat = (isThought) ? 0 : 1;
             facetalkBlinkLoop = 0;
             facetalkAllowBlink = 1;
@@ -2962,7 +3062,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
 
             speakingChar->set_animating(!isThought, // only repeat if speech, not thought
                 true, // always forwards
-                GetCharacterSpeechAnimationDelay(speakingChar));
+                Character_GetSpeechAnimationDelay(speakingChar));
 
             speakingChar->view = useview;
             speakingChar->frame=0;
@@ -2982,7 +3082,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
             facetalkBlinkLoop = speakingChar->loop;
 
             // set up the speed of the first frame
-            speakingChar->wait = GetCharacterSpeechAnimationDelay(speakingChar) + 
+            speakingChar->wait = Character_GetSpeechAnimationDelay(speakingChar) +
                 views[speakingChar->view].loops[speakingChar->loop].frames[0].speed;
 
             if (widd < 0) {
@@ -3158,6 +3258,29 @@ PViewport FindNearestViewport(int charid)
         }
     }
     return nearest_view ? nearest_view : play.GetRoomViewport(0);
+}
+
+void UpdateInventory() {
+    for (int cc = 0; cc < game.numcharacters; cc++) {
+        charextra[cc].invorder_count = 0;
+        int ff, howmany;
+        // Iterate through all inv items, adding them once (or multiple
+        // times if requested) to the list.
+        for (ff = 0; ff < game.numinvitems; ff++) {
+            howmany = game.chars[cc].inv[ff];
+            if ((game.options[OPT_DUPLICATEINV] == 0) && (howmany > 1))
+                howmany = 1;
+
+            for (int ts = 0; ts < howmany; ts++) {
+                if (charextra[cc].invorder_count >= MAX_INVORDER)
+                    quit("!Too many inventory items to display: 500 max");
+
+                charextra[cc].invorder[charextra[cc].invorder_count] = ff;
+                charextra[cc].invorder_count++;
+            }
+        }
+    }
+    GUIE::MarkInventoryForUpdate(game.playercharacter, true);
 }
 
 //=============================================================================
@@ -3885,9 +4008,9 @@ RuntimeScriptValue Sc_Character_GetSpeakingFrame(void *self, const RuntimeScript
 }
 
 // int (CharacterInfo *cha)
-RuntimeScriptValue Sc_GetCharacterSpeechAnimationDelay(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Character_GetSpeechAnimationDelay(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, GetCharacterSpeechAnimationDelay);
+    API_OBJCALL_INT(CharacterInfo, Character_GetSpeechAnimationDelay);
 }
 
 // void (CharacterInfo *chaa, int newDelay)
@@ -4247,7 +4370,7 @@ void RegisterCharacterAPI(ScriptAPIVersion /*base_api*/, ScriptAPIVersion /*comp
         { "Character::set_Solid",                 API_FN_PAIR(Character_SetSolid) },
         { "Character::get_Speaking",              API_FN_PAIR(Character_GetSpeaking) },
         { "Character::get_SpeakingFrame",         API_FN_PAIR(Character_GetSpeakingFrame) },
-        { "Character::get_SpeechAnimationDelay",  API_FN_PAIR(GetCharacterSpeechAnimationDelay) },
+        { "Character::get_SpeechAnimationDelay",  API_FN_PAIR(Character_GetSpeechAnimationDelay) },
         { "Character::set_SpeechAnimationDelay",  API_FN_PAIR(Character_SetSpeechAnimationDelay) },
         { "Character::get_SpeechColor",           API_FN_PAIR(Character_GetSpeechColor) },
         { "Character::set_SpeechColor",           API_FN_PAIR(Character_SetSpeechColor) },

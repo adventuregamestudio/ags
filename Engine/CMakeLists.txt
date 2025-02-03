@@ -140,8 +140,6 @@ target_sources(engine
     ac/global_api.cpp
     ac/global_audio.cpp
     ac/global_audio.h
-    ac/global_character.cpp
-    ac/global_character.h
     ac/global_debug.cpp
     ac/global_debug.h
     ac/global_dialog.cpp

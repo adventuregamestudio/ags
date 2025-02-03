@@ -28,7 +28,6 @@
 #include "ac/gamestructdefines.h"
 #include "ac/global_audio.h"
 #include "ac/global_debug.h"
-#include "ac/global_dialog.h"
 #include "ac/global_display.h"
 #include "ac/global_file.h"
 #include "ac/global_game.h"
@@ -314,12 +313,6 @@ RuntimeScriptValue Sc_GetBackgroundFrame(const RuntimeScriptValue *params, int32
 }
 
 extern RuntimeScriptValue Sc_GetCursorMode(const RuntimeScriptValue *params, int32_t param_count);
-
-// int  (int dlg, int opt)
-RuntimeScriptValue Sc_GetDialogOption(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_PINT2(GetDialogOption);
-}
 
 // int  (int opt)
 RuntimeScriptValue Sc_GetGameOption(const RuntimeScriptValue *params, int32_t param_count)
@@ -641,12 +634,6 @@ RuntimeScriptValue Sc_RunAGSGame(const RuntimeScriptValue *params, int32_t param
     API_SCALL_INT_POBJ_PINT2(RunAGSGame, const char);
 }
 
-// void (int tum)
-RuntimeScriptValue Sc_RunDialog(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(RunDialog);
-}
-
 // void  (int hotspothere, int mood)
 RuntimeScriptValue Sc_RunHotspotInteraction(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -734,12 +721,6 @@ RuntimeScriptValue Sc_SetBackgroundFrame(const RuntimeScriptValue *params, int32
 
 extern RuntimeScriptValue Sc_set_cursor_mode(const RuntimeScriptValue *params, int32_t param_count);
 extern RuntimeScriptValue Sc_set_default_cursor(const RuntimeScriptValue *params, int32_t param_count);
-
-// void (int dlg,int opt,int onoroff)
-RuntimeScriptValue Sc_SetDialogOption(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT3(SetDialogOption);
-}
 
 // void (int red, int green, int blue)
 RuntimeScriptValue Sc_SetFadeColor(const RuntimeScriptValue *params, int32_t param_count)
@@ -874,12 +855,6 @@ RuntimeScriptValue Sc_StartCutscene(const RuntimeScriptValue *params, int32_t pa
 RuntimeScriptValue Sc_stop_and_destroy_channel(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT(stop_and_destroy_channel);
-}
-
-// void ()
-RuntimeScriptValue Sc_StopDialog(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID(StopDialog);
 }
 
 // int (const char*stino)
@@ -1043,7 +1018,6 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "FloatToInt",               API_FN_PAIR(FloatToInt) },
         { "GetBackgroundFrame",       API_FN_PAIR(GetBackgroundFrame) },
         { "GetCursorMode",            API_FN_PAIR(GetCursorMode) },
-        { "GetDialogOption",          API_FN_PAIR(GetDialogOption) },
         { "GetGameOption",            API_FN_PAIR(GetGameOption) },
         { "GetGameSpeed",             API_FN_PAIR(GetGameSpeed) },
         { "GetHotspotName",           API_FN_PAIR(GetHotspotName) },
@@ -1101,7 +1075,6 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "RestoreGameSlot",          API_FN_PAIR(RestoreGameSlot) },
         { "RestoreWalkableArea",      API_FN_PAIR(RestoreWalkableArea) },
         { "RunAGSGame",               API_FN_PAIR(RunAGSGame) },
-        { "RunDialog",                API_FN_PAIR(RunDialog) },
         { "RunHotspotInteraction",    API_FN_PAIR(RunHotspotInteraction) },
         { "RunInventoryInteraction",  API_FN_PAIR(RunInventoryInteraction) },
         { "RunRegionInteraction",     API_FN_PAIR(RunRegionInteraction) },
@@ -1116,7 +1089,6 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "SetBackgroundFrame",       API_FN_PAIR(SetBackgroundFrame) },
         { "SetCursorMode",            API_FN_PAIR(set_cursor_mode) },
         { "SetDefaultCursor",         API_FN_PAIR(set_default_cursor) },
-        { "SetDialogOption",          API_FN_PAIR(SetDialogOption) },
         { "SetFadeColor",             API_FN_PAIR(SetFadeColor) },
         { "SetGameOption",            API_FN_PAIR(SetGameOption) },
         { "SetGameSpeed",             API_FN_PAIR(SetGameSpeed) },
@@ -1144,7 +1116,6 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "SkipUntilCharacterStops",  API_FN_PAIR(SkipUntilCharacterStops) },
         { "StartCutscene",            API_FN_PAIR(StartCutscene) },
         { "StopChannel",              API_FN_PAIR(stop_and_destroy_channel) },
-        { "StopDialog",               API_FN_PAIR(StopDialog) },
         { "StringToInt",              API_FN_PAIR(StringToInt) },
         { "StrLen",                   API_FN_PAIR(strlen) },
         { "TintScreen",               API_FN_PAIR(TintScreen) },

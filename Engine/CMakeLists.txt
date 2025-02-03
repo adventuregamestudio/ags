@@ -142,8 +142,6 @@ target_sources(engine
     ac/global_audio.h
     ac/global_debug.cpp
     ac/global_debug.h
-    ac/global_dialog.cpp
-    ac/global_dialog.h
     ac/global_display.cpp
     ac/global_display.h
     ac/global_file.cpp

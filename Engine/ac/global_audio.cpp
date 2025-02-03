@@ -38,19 +38,6 @@ extern std::vector<SpeechLipSyncLine> splipsync;
 extern int numLipLines, curLipLine, curLipLinePhoneme;
 
 
-int IsChannelPlaying(int chan) {
-    if (play.fast_forward)
-        return 0;
-
-    if ((chan < 0) || (chan >= game.numGameChannels))
-        quit("!IsChannelPlaying: invalid sound channel");
-
-    if (AudioChans::ChannelIsPlaying(chan))
-        return 1;
-
-    return 0;
-}
-
 void SetSpeechVolume(int newvol) {
     if ((newvol<0) | (newvol>255))
         quit("!SetSpeechVolume: invalid volume - must be from 0-255");
@@ -59,18 +46,6 @@ void SetSpeechVolume(int newvol) {
     if (ch)
         ch->set_volume255(newvol);
     play.speech_volume = newvol;
-}
-
-void SetVoiceMode(int newmod)
-{
-    if ((newmod < kSpeech_First) | (newmod > kSpeech_Last))
-        quitprintf("!SetVoiceMode: invalid mode number %d", newmod);
-    play.speech_mode = (SpeechMode)newmod;
-}
-
-int GetVoiceMode()
-{
-    return (int)play.speech_mode;
 }
 
 int IsVoxAvailable() {

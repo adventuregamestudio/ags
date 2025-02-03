@@ -518,7 +518,7 @@ void IAGSEngine::PrintDebugConsole (const char *text) {
     Log(AGSLOG_LEVEL_DEBUG, "%s", text);
 }
 int IAGSEngine::IsChannelPlaying (int32 channel) {
-    return ::IsChannelPlaying (channel);
+    return AudioChans::ChannelIsPlaying(channel) ? 1 : 0;
 }
 void IAGSEngine::PlaySoundChannel (int32 channel, int32 soundType, int32 volume, int32 loop, const char *filename) {
     stop_and_destroy_channel (channel);

@@ -320,6 +320,18 @@ void Speech_SetUseGlobalSpeechAnimationDelay(int delay)
 	game.options[OPT_GLOBALTALKANIMSPD] = delay;
 }
 
+void Speech_SetVoiceMode(int newmod)
+{
+    if ((newmod < kSpeech_First) | (newmod > kSpeech_Last))
+        quitprintf("!SetVoiceMode: invalid mode number %d", newmod);
+    play.speech_mode = (SpeechMode)newmod;
+}
+
+int Speech_GetVoiceMode()
+{
+    return (int)play.speech_mode;
+}
+
 //-----------------------------------------------------------------------------
 
 RuntimeScriptValue Sc_Speech_GetAnimationStopTimeMargin(const RuntimeScriptValue *params, int32_t param_count)
@@ -436,12 +448,12 @@ RuntimeScriptValue Sc_Speech_SetUseGlobalSpeechAnimationDelay(const RuntimeScrip
 
 RuntimeScriptValue Sc_Speech_GetVoiceMode(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT(GetVoiceMode);
+    API_SCALL_INT(Speech_GetVoiceMode);
 }
 
 RuntimeScriptValue Sc_Speech_SetVoiceMode(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT(SetVoiceMode);
+    API_SCALL_VOID_PINT(Speech_SetVoiceMode);
 }
 
 RuntimeScriptValue Sc_Speech_GetTextOverlay(const RuntimeScriptValue *params, int32_t param_count)
@@ -488,8 +500,8 @@ void RegisterSpeechAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "Speech::get_TextOverlay",            API_FN_PAIR(Speech_GetTextOverlay) },
         { "Speech::get_UseGlobalSpeechAnimationDelay", API_FN_PAIR(Speech_GetUseGlobalSpeechAnimationDelay) },
         { "Speech::set_UseGlobalSpeechAnimationDelay", API_FN_PAIR(Speech_SetUseGlobalSpeechAnimationDelay) },
-        { "Speech::get_VoiceMode",              Sc_Speech_GetVoiceMode, GetVoiceMode },
-        { "Speech::set_VoiceMode",              Sc_Speech_SetVoiceMode, SetVoiceMode },
+        { "Speech::get_VoiceMode",              API_FN_PAIR(Speech_GetVoiceMode) },
+        { "Speech::set_VoiceMode",              API_FN_PAIR(Speech_SetVoiceMode) },
     };
 
     ccAddExternalFunctions(speech_api);

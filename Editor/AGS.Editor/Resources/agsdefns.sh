@@ -1373,7 +1373,7 @@ import void SetWalkBehindBase(int area, int baseline);
 import int  IsVoxAvailable();
 /// Changes the voice speech volume.
 import void SetSpeechVolume(int volume);
-/// Checks whether a MUSIC.VOX file was found.
+/// Checks whether a AUDIO.VOX file was found.
 import int  IsMusicVoxAvailable();
 /// Saves a screenshot of the current game position to a file.
 import int  SaveScreenShot(const string filename);

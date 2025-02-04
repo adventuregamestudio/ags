@@ -144,8 +144,6 @@ target_sources(engine
     ac/global_debug.h
     ac/global_display.cpp
     ac/global_display.h
-    ac/global_file.cpp
-    ac/global_file.h
     ac/global_game.cpp
     ac/global_game.h
     ac/global_gui.cpp

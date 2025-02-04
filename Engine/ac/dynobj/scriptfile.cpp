@@ -12,7 +12,7 @@
 //
 //=============================================================================
 #include "ac/dynobj/scriptfile.h"
-#include "ac/global_file.h"
+#include "ac/file.h"
 
 // CHECKME: actually NULLs here will be equal to kFile_Open & kStream_Read
 const Common::FileOpenMode sc_File::fopenModes[] = 

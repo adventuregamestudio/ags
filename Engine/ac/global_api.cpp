@@ -29,7 +29,6 @@
 #include "ac/global_audio.h"
 #include "ac/global_debug.h"
 #include "ac/global_display.h"
-#include "ac/global_file.h"
 #include "ac/global_game.h"
 #include "ac/global_gui.h"
 #include "ac/global_hotspot.h"
@@ -214,78 +213,6 @@ RuntimeScriptValue Sc_FadeIn(const RuntimeScriptValue *params, int32_t param_cou
 RuntimeScriptValue Sc_FadeOut(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT(FadeOut);
-}
-
-// void (int handle)
-RuntimeScriptValue Sc_FileClose(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(FileClose);
-}
-
-// int  (int handle)
-RuntimeScriptValue Sc_FileIsEOF(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_PINT(FileIsEOF);
-}
-
-// int (int handle)
-RuntimeScriptValue Sc_FileIsError(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_PINT(FileIsError);
-}
-
-// int (const char*fnmm, const char* cmode)
-RuntimeScriptValue Sc_FileOpenCMode(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_POBJ2(FileOpenCMode, const char, const char);
-}
-
-// void (int handle,char*toread)
-RuntimeScriptValue Sc_FileRead(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT_POBJ(FileRead, char);
-}
-
-// int (int handle)
-RuntimeScriptValue Sc_FileReadInt(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_PINT(FileReadInt);
-}
-
-// char (int handle)
-RuntimeScriptValue Sc_FileReadRawChar(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_PINT(FileReadRawChar);
-}
-
-// int (int handle)
-RuntimeScriptValue Sc_FileReadRawInt(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_PINT(FileReadRawInt);
-}
-
-// void (int handle, const char *towrite)
-RuntimeScriptValue Sc_FileWrite(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT_POBJ(FileWrite, const char);
-}
-
-// void (int handle,int into)
-RuntimeScriptValue Sc_FileWriteInt(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT2(FileWriteInt);
-}
-
-// void (int handle, int chartoWrite)
-RuntimeScriptValue Sc_FileWriteRawChar(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT2(FileWriteRawChar);
-}
-
-// void (int handle, const char*towrite)
-RuntimeScriptValue Sc_FileWriteRawLine(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT_POBJ(FileWriteRawLine, const char);
 }
 
 // int  (const char* GUIName)
@@ -1000,19 +927,6 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "EndCutscene",              API_FN_PAIR(EndCutscene) },
         { "FadeIn",                   API_FN_PAIR(FadeIn) },
         { "FadeOut",                  API_FN_PAIR(FadeOut) },
-        { "FileClose",                API_FN_PAIR(FileClose) },
-        { "FileIsEOF",                API_FN_PAIR(FileIsEOF) },
-        { "FileIsError",              API_FN_PAIR(FileIsError) },
-        // NOTE: FileOpenCMode is a backwards-compatible replacement for old-style global script function FileOpen
-        { "FileOpen",                 API_FN_PAIR(FileOpenCMode) },
-        { "FileRead",                 API_FN_PAIR(FileRead) },
-        { "FileReadInt",              API_FN_PAIR(FileReadInt) },
-        { "FileReadRawChar",          API_FN_PAIR(FileReadRawChar) },
-        { "FileReadRawInt",           API_FN_PAIR(FileReadRawInt) },
-        { "FileWrite",                API_FN_PAIR(FileWrite) },
-        { "FileWriteInt",             API_FN_PAIR(FileWriteInt) },
-        { "FileWriteRawChar",         API_FN_PAIR(FileWriteRawChar) },
-        { "FileWriteRawLine",         API_FN_PAIR(FileWriteRawLine) },
         { "FindGUIID",                API_FN_PAIR(FindGUIID) },
         { "FlipScreen",               API_FN_PAIR(FlipScreen) },
         { "FloatToInt",               API_FN_PAIR(FloatToInt) },

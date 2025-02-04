@@ -18,7 +18,6 @@
 #include "ac/game.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/global_file.h"
 #include "ac/path_helper.h"
 #include "ac/runtime_defines.h"
 #include "ac/string.h"
@@ -44,6 +43,24 @@ extern GameSetupStruct game;
 extern AGSPlatformDriver *platform;
 
 // object-based File routines
+
+int32_t FileOpen(const char *fnmm, FileOpenMode open_mode, StreamMode work_mode)
+{
+    debug_script_print(kDbgMsg_Debug, "FileOpen: request: %s, mode: %s",
+                       fnmm, File::GetCMode(open_mode, work_mode).GetCStr());
+    std::unique_ptr<Stream> s(ResolveScriptPathAndOpen(fnmm, open_mode, work_mode));
+    if (!s)
+        return 0;
+
+    String res_path = s->GetPath();
+    int32_t handle = add_file_stream(std::move(s), "FileOpen");
+    debug_script_print(kDbgMsg_Info, "FileOpen: success, handle %d, path: %s", handle, res_path.GetCStr());
+    return handle;
+}
+
+void FileClose(int32_t handle) {
+    close_file_stream(handle, "FileClose");
+}
 
 int File_Exists(const char *fnmm) {
   const auto rp = ResolveScriptPathAndFindFile(fnmm, true);
@@ -208,8 +225,21 @@ void File_Close(sc_File *fil) {
   fil->Close();
 }
 
+void FileWrite(int32_t handle, const char *towrite) {
+    Stream *out = get_file_stream(handle, "FileWrite");
+    size_t len = strlen(towrite);
+    out->WriteInt32(len + 1); // write with null-terminator
+    out->Write(towrite, len + 1);
+}
+
 void File_WriteString(sc_File *fil, const char *towrite) {
   FileWrite(fil->handle, towrite);
+}
+
+void FileWriteInt(int32_t handle, int into) {
+    Stream *out = get_file_stream(handle, "FileWriteInt");
+    out->WriteInt8('I');
+    out->WriteInt32(into);
 }
 
 void File_WriteInt(sc_File *fil, int towrite) {
@@ -220,6 +250,14 @@ void File_WriteFloat(sc_File *fil, float towrite) {
   Stream *out = get_file_stream(fil->handle, "File.WriteFloat");
   out->WriteInt8('F');
   out->WriteFloat32(towrite);
+}
+
+void FileWriteRawChar(int32_t handle, int chartoWrite) {
+    Stream *out = get_file_stream(handle, "FileWriteRawChar");
+    if ((chartoWrite < 0) || (chartoWrite > 255))
+        debug_script_warn("FileWriteRawChar: can only write values 0-255");
+
+    out->WriteByte(static_cast<uint8_t>(chartoWrite));
 }
 
 void File_WriteRawChar(sc_File *fil, int towrite) {
@@ -234,6 +272,13 @@ void File_WriteRawFloat(sc_File *fil, float towrite) {
 void File_WriteRawInt(sc_File *fil, int towrite) {
   Stream *out = get_file_stream(fil->handle, "FileWriteRawInt");
   out->WriteInt32(towrite);
+}
+
+void FileWriteRawLine(int32_t handle, const char *towrite) {
+    Stream *out = get_file_stream(handle, "FileWriteRawLine");
+    out->Write(towrite, strlen(towrite));
+    out->WriteInt8('\r');
+    out->WriteInt8('\n');
 }
 
 void File_WriteRawLine(sc_File *fil, const char *towrite) {
@@ -286,6 +331,23 @@ const char* File_ReadRawLineBack(sc_File *fil) {
   return CreateNewScriptString(sbuf.GetCStr());
 }
 
+void FileRead(int32_t handle, char *toread) {
+    VALIDATE_STRING(toread);
+    Stream *in = get_file_stream(handle, "FileRead");
+    if (in->EOS()) {
+        toread[0] = 0;
+        return;
+    }
+    size_t lle = (uint32_t)in->ReadInt32();
+    // This tests for the legacy string (limited by 200 chars)
+    if ((lle >= 200) | (lle < 1))
+    {
+        debug_script_warn("FileRead: file was not written by FileWrite");
+        return;
+    }
+    in->Read(toread, lle);
+}
+
 void File_ReadString(sc_File *fil, char *toread) {
   FileRead(fil->handle, toread);
 }
@@ -309,6 +371,18 @@ const char* File_ReadStringBack(sc_File *fil) {
   return CreateNewScriptString(std::move(buf));
 }
 
+int FileReadInt(int32_t handle) {
+    Stream *in = get_file_stream(handle, "FileReadInt");
+    if (in->EOS())
+        return -1;
+    if (in->ReadInt8() != 'I')
+    {
+        debug_script_warn("FileReadInt: File read back in wrong order");
+        return -1;
+    }
+    return in->ReadInt32();
+}
+
 int File_ReadInt(sc_File *fil) {
   return FileReadInt(fil->handle);
 }
@@ -325,9 +399,24 @@ float File_ReadFloat(sc_File *fil) {
   return in->ReadFloat32();
 }
 
+char FileReadRawChar(int32_t handle) {
+    Stream *in = get_file_stream(handle, "FileReadRawChar");
+    return static_cast<uint8_t>(in->ReadByte());
+    // NOTE: this function has incorrect return value for historical reasons;
+    // we keep this strictly for backwards compatibility with old scripts
+}
+
 int File_ReadRawChar(sc_File *fil) {
   return FileReadRawChar(fil->handle);
 }
+
+int FileReadRawInt(int32_t handle) {
+    Stream *in = get_file_stream(handle, "FileReadRawInt");
+    if (in->EOS())
+        return -1;
+    return in->ReadInt32();
+}
+
 
 int File_ReadRawInt(sc_File *fil) {
   return FileReadRawInt(fil->handle);
@@ -396,10 +485,34 @@ int File_Seek(sc_File *fil, int offset, int origin)
     return in->Seek(offset, (StreamSeek)origin);
 }
 
+int FileIsEOF(int32_t handle) {
+    Stream *stream = get_file_stream(handle, "FileIsEOF");
+    if (stream->EOS())
+        return 1;
+
+    // TODO: stream errors
+    if (stream->GetError())
+        return 1;
+
+    if (stream->GetPosition() >= stream->GetLength())
+        return 1;
+    return 0;
+}
+
 int File_GetEOF(sc_File *fil) {
   if (fil->handle <= 0)
     return 1;
   return FileIsEOF(fil->handle);
+}
+
+int FileIsError(int32_t handle) {
+    Stream *stream = get_file_stream(handle, "FileIsError");
+
+    // TODO: stream errors
+    if (stream->GetError())
+        return 1;
+
+    return 0;
 }
 
 int File_GetError(sc_File *fil) {

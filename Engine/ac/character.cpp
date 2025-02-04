@@ -27,7 +27,6 @@
 #include "ac/global_audio.h"
 #include "ac/global_display.h"
 #include "ac/global_game.h"
-#include "ac/global_object.h"
 #include "ac/global_region.h"
 #include "ac/global_room.h"
 #include "ac/global_translation.h"

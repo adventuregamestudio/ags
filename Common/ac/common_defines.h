@@ -37,7 +37,7 @@
 // Room object flags
 // (design-time values are now limited to 16-bit by the game file format)
 #define OBJF_NOINTERACT     0x0001  // not clickable
-#define OBJF_NOWALKBEHINDS  0x0002  // ignore walk-behinds
+#define OBJF_NOWALKBEHINDS  0x0002  // [DEPRECATED] ignore walk-behinds
 #define OBJF_HASTINT        0x0004  // the tint_* members are valid
 #define OBJF_USEREGIONTINTS 0x0008  // obey region tints/light areas
 #define OBJF_USEROOMSCALING 0x0010  // obey room scaling areas

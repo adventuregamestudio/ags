@@ -122,18 +122,6 @@ ScriptHotspot *Hotspot_GetAtScreenXY(int x, int y)
     return Hotspot_GetAtRoomXY(vpt.first.X, vpt.first.Y);
 }
 
-void GetHotspotName(int hotspot, char *buffer) {
-    VALIDATE_STRING(buffer);
-    if ((hotspot < 0) || (hotspot >= MAX_ROOM_HOTSPOTS))
-        quit("!GetHotspotName: invalid hotspot number");
-
-    snprintf(buffer, MAX_MAXSTRLEN, "%s", get_translation(croom->hotspot[hotspot].Name.GetCStr()));
-}
-
-void Hotspot_GetName(ScriptHotspot *hss, char *buffer) {
-    GetHotspotName(hss->id, buffer);
-}
-
 const char* Hotspot_GetName_New(ScriptHotspot *hss) {
     if ((hss->id < 0) || (hss->id >= MAX_ROOM_HOTSPOTS))
         quit("!Hotspot.Name: invalid hotspot number");
@@ -268,12 +256,6 @@ RuntimeScriptValue Sc_Hotspot_GetDrawingSurface(const RuntimeScriptValue *params
     API_SCALL_OBJAUTO(ScriptDrawingSurface, Hotspot_GetDrawingSurface);
 }
 
-// void (ScriptHotspot *hss, char *buffer)
-RuntimeScriptValue Sc_Hotspot_GetName(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_POBJ(ScriptHotspot, Hotspot_GetName, char);
-}
-
 // int  (ScriptHotspot *hss, const char *property)
 RuntimeScriptValue Sc_Hotspot_GetProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -369,7 +351,6 @@ void RegisterHotspotAPI()
         { "Hotspot::GetByName",           API_FN_PAIR(Hotspot_GetByName) },
         { "Hotspot::GetDrawingSurface",   API_FN_PAIR(Hotspot_GetDrawingSurface) },
 
-        { "Hotspot::GetName^1",           API_FN_PAIR(Hotspot_GetName) },
         { "Hotspot::GetProperty^1",       API_FN_PAIR(Hotspot_GetProperty) },
         { "Hotspot::GetPropertyText^2",   API_FN_PAIR(Hotspot_GetPropertyText) },
         { "Hotspot::GetTextProperty^1",   API_FN_PAIR(Hotspot_GetTextProperty) },

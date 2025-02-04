@@ -31,8 +31,16 @@ bool    is_valid_object(int obj_id);
 // Asserts the object ID is valid in the current room,
 // if not then prints a warning to the log; returns assertion result
 bool    AssertObject(const char *apiname, int obj_id);
+// Gets last cached object's image; this may be a source image if there was no transformation
+AGS::Common::Bitmap *GetObjectImage(int obj, bool *is_original = nullptr);
+// Gets current source image (untransformed) for the room object
+AGS::Common::Bitmap *GetObjectSourceImage(int obj);
 int     Object_IsCollidingWithObject(ScriptObject *objj, ScriptObject *obj2);
 ScriptObject *GetObjectAtScreen(int xx, int yy);
+// Get object at the given screen coordinates
+int     GetObjectIDAtScreen(int xx, int yy);
+// Get object at the given room coordinates
+int     GetObjectIDAtRoom(int roomx, int roomy);
 void    Object_Tint(ScriptObject *objj, int red, int green, int blue, int saturation, int luminance);
 void    Object_RemoveTint(ScriptObject *objj);
 void    Object_SetView(ScriptObject *objj, int view, int loop, int frame);
@@ -58,7 +66,6 @@ int     Object_GetMoving(ScriptObject *objj);
 void    Object_SetPosition(ScriptObject *objj, int xx, int yy);
 void    Object_SetX(ScriptObject *objj, int xx);
 void    Object_SetY(ScriptObject *objj, int yy);
-void    Object_GetName(ScriptObject *objj, char *buffer);
 const char* Object_GetName_New(ScriptObject *objj);
 bool    Object_IsInteractionAvailable(ScriptObject *oobj, int mood);
 void    Object_Move(ScriptObject *objj, int x, int y, int speed, int blocking, int ignwal);
@@ -71,13 +78,13 @@ int     Object_GetBlockingWidth(ScriptObject *objj);
 void    Object_SetBlockingHeight(ScriptObject *objj, int bhit);
 int     Object_GetBlockingHeight(ScriptObject *objj);
 int     Object_GetID(ScriptObject *objj);
-void    Object_SetIgnoreWalkbehinds(ScriptObject *chaa, int clik);
-int     Object_GetIgnoreWalkbehinds(ScriptObject *chaa);
 void    Object_RunInteraction(ScriptObject *objj, int mode);
 
 int     Object_GetProperty (ScriptObject *objj, const char *property);
 void    Object_GetPropertyText(ScriptObject *objj, const char *property, char *bufer);
 const char* Object_GetTextProperty(ScriptObject *objj, const char *property);
+
+int     AreThingsOverlapping(int thing1, int thing2);
 
 // Deduces room object's scale, accounting for both manual scaling and the room region effects;
 // calculates resulting sprite size.

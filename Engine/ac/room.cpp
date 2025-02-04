@@ -27,7 +27,6 @@
 #include "ac/gamestate.h"
 #include "ac/global_audio.h"
 #include "ac/global_game.h"
-#include "ac/global_object.h"
 #include "ac/global_translation.h"
 #include "ac/gui.h"
 #include "ac/movelist.h"

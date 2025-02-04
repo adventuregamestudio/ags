@@ -18,7 +18,6 @@
 #include "ac/character.h"
 #include "ac/game.h"
 #include "ac/gamestate.h"
-#include "ac/global_object.h"
 #include "ac/global_translation.h"
 #include "ac/gui.h"
 #include "ac/movelist.h"
@@ -41,6 +40,7 @@
 #include "gfx/bitmap.h"
 #include "gfx/gfx_def.h"
 #include "script/runtimescriptvalue.h"
+#include "script/script.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -54,7 +54,14 @@ extern RoomStruct thisroom;
 extern GameSetupStruct game;
 extern Bitmap *walkable_areas_temp;
 extern CCObject ccDynamicObject;
+extern SpriteCache spriteset;
 
+// CHECKME: what is this?
+#define OVERLAPPING_OBJECT 1000
+
+// Used for deciding whether a char or obj was closer
+// FIXME: should not be a global variable!!!
+int obj_lowest_yp;
 
 bool is_valid_object(int obj_id)
 {
@@ -69,8 +76,138 @@ bool AssertObject(const char *apiname, int obj_id)
     return false;
 }
 
+static int GetThingRect(int thing, Rect *rect)
+{
+    if (is_valid_character(thing))
+    {
+        // FIXME: do we check visible or enabled here?
+        if (game.chars[thing].room != displayed_room)
+            return 0;
+
+        const int charw = GetCharacterWidth(thing);
+        const int charh = GetCharacterHeight(thing);
+        *rect = RectWH(
+            game.chars[thing].x - (charw / 2),
+            charextra[thing].GetEffectiveY(&game.chars[thing]) - charh + 1,
+            charw, charh);
+    }
+    else if (is_valid_object(thing - OVERLAPPING_OBJECT))
+    {
+        int objid = thing - OVERLAPPING_OBJECT;
+        // FIXME: do we check visible or enabled here?
+        if (!objs[objid].is_enabled())
+            return 0;
+
+        const int objw = objs[objid].get_width();
+        const int objh = objs[objid].get_height();
+        *rect = RectWH(objs[objid].x, objs[objid].y - objh + 1, objw, objh);
+    }
+    else
+    {
+        quit("!AreThingsOverlapping: invalid parameter");
+    }
+
+    return 1;
+}
+
+int AreThingsOverlapping(int thing1, int thing2)
+{
+    Rect r1, r2;
+    // get the bounding rectangles, and return 0 if the object/char
+    // is currently turned off
+    if (GetThingRect(thing1, &r1) == 0)
+        return 0;
+    if (GetThingRect(thing2, &r2) == 0)
+        return 0;
+
+    if (AreRectsIntersecting(r1, r2))
+    {
+        // determine how far apart they are
+        // take the smaller of the X distances as the overlapping amount
+        int xdist = abs(r1.Right - r2.Left) + 1;
+        if (abs(r1.Left - r2.Right) < xdist)
+            xdist = abs(r1.Left - r2.Right) + 1;
+        // take the smaller of the Y distances
+        int ydist = abs(r1.Bottom - r2.Top) + 1;
+        if (abs(r1.Top - r2.Bottom) < ydist)
+            ydist = abs(r1.Top - r2.Bottom) + 1;
+        // the overlapping amount is the smaller of the X and Y ovrlap
+        if (xdist < ydist)
+            return xdist;
+        else
+            return ydist;
+    }
+    return 0;
+}
+
+int AreObjectsColliding(int obj1, int obj2) {
+    if (!is_valid_object(obj1) || !is_valid_object(obj2))
+        quit("!AreObjectsColliding: invalid object specified");
+
+    return (AreThingsOverlapping(obj1 + OVERLAPPING_OBJECT, obj2 + OVERLAPPING_OBJECT)) ? 1 : 0;
+}
+
 int Object_IsCollidingWithObject(ScriptObject *objj, ScriptObject *obj2) {
     return AreObjectsColliding(objj->id, obj2->id);
+}
+
+Bitmap *GetObjectImage(int obj, bool *is_original)
+{
+    // NOTE: the cached image will only be present in software render mode
+    Bitmap *actsp = get_cached_object_image(obj);
+    if (is_original)
+        *is_original = !actsp; // no cached means we use original sprite
+    if (actsp)
+        return actsp;
+
+    return spriteset[objs[obj].num];
+}
+
+Bitmap *GetObjectSourceImage(int obj)
+{
+    return spriteset[objs[obj].num];
+}
+
+int GetObjectIDAtRoom(int roomx, int roomy)
+{
+    int bestshotyp = -1, bestshotwas = -1;
+    // Iterate through all objects in the room
+    for (uint32_t aa = 0; aa < croom->numobj; aa++) {
+        if (!objs[aa].is_displayed()) continue; // disabled or invisible
+        if (objs[aa].flags & OBJF_NOINTERACT)
+            continue;
+        int xxx = objs[aa].x, yyy = objs[aa].y;
+        SpriteTransformFlags sprite_flags = kSprTf_None;
+        int spWidth = objs[aa].get_width();
+        int spHeight = objs[aa].get_height();
+        // TODO: support mirrored transformation in GraphicSpace
+        if (objs[aa].view != RoomObject::NoView)
+            sprite_flags = views[objs[aa].view].loops[objs[aa].loop].frames[objs[aa].frame].flags;
+
+        Bitmap *theImage = GetObjectSourceImage(aa);
+        // Convert to local object coordinates
+        Point local = objs[aa].GetGraphicSpace().WorldToLocal(roomx, roomy);
+        if (is_pos_in_sprite(local.X, local.Y, 0, 0, theImage,
+                             spWidth, spHeight, sprite_flags) == FALSE)
+            continue;
+
+        int usebasel = objs[aa].get_baseline();
+        if (usebasel < bestshotyp) continue;
+
+        bestshotwas = aa;
+        bestshotyp = usebasel;
+    }
+    obj_lowest_yp = bestshotyp;
+    return bestshotwas;
+}
+
+int GetObjectIDAtScreen(int scrx, int scry)
+{
+    // translate screen co-ordinates to room co-ordinates
+    VpPoint vpt = play.ScreenToRoom(scrx, scry);
+    if (vpt.second < 0)
+        return -1;
+    return GetObjectIDAtRoom(vpt.first.X, vpt.first.Y);
 }
 
 ScriptObject *GetObjectAtScreen(int xx, int yy) {
@@ -88,6 +225,44 @@ ScriptObject *GetObjectAtRoom(int x, int y)
     return &scrObj[hsnum];
 }
 
+void SetObjectTint(int obj, int red, int green, int blue, int opacity, int luminance) {
+    if (!is_valid_object(obj))
+        quit("!SetObjectTint: invalid object number specified");
+
+    if ((red < 0) || (green < 0) || (blue < 0) ||
+        (red > 255) || (green > 255) || (blue > 255) ||
+        (opacity < 0) || (opacity > 100) ||
+        (luminance < 0) || (luminance > 100))
+    {
+        debug_script_warn("Object.Tint: invalid parameter(s). R,G,B must be 0-255 (passed: %d,%d,%d), opacity & luminance 0-100 (passed: %d,%d)",
+                          red, green, blue, opacity, luminance);
+        return;
+    }
+
+    debug_script_log("Set object %d tint RGB(%d,%d,%d) %d%%", obj, red, green, blue, opacity);
+
+    objs[obj].tint_r = red;
+    objs[obj].tint_g = green;
+    objs[obj].tint_b = blue;
+    objs[obj].tint_level = opacity;
+    objs[obj].tint_light = GfxDef::Value100ToValue250(luminance);
+    objs[obj].flags &= ~OBJF_HASLIGHT;
+    objs[obj].flags |= OBJF_HASTINT;
+}
+
+void RemoveObjectTint(int obj) {
+    if (!is_valid_object(obj))
+        quit("!RemoveObjectTint: invalid object");
+
+    if (objs[obj].flags & (OBJF_HASTINT | OBJF_HASLIGHT)) {
+        debug_script_log("Un-tint object %d", obj);
+        objs[obj].flags &= ~(OBJF_HASTINT | OBJF_HASLIGHT);
+    }
+    else {
+        debug_script_warn("RemoveObjectTint called but object was not tinted");
+    }
+}
+
 void Object_Tint(ScriptObject *objj, int red, int green, int blue, int saturation, int luminance) {
     SetObjectTint(objj->id, red, green, blue, saturation, luminance);
 }
@@ -96,8 +271,71 @@ void Object_RemoveTint(ScriptObject *objj) {
     RemoveObjectTint(objj->id);
 }
 
+void SetObjectGraphic(int obn, int slott) {
+    if (!is_valid_object(obn)) quit("!SetObjectGraphic: invalid object specified");
+
+    if (objs[obn].num != slott) {
+        objs[obn].num = Math::InRangeOrDef<uint16_t>(slott, 0);
+        if (slott > UINT16_MAX)
+            debug_script_warn("Warning: object's (id %d) sprite %d is outside of internal range (%d), reset to 0", obn, slott, UINT16_MAX);
+        debug_script_log("Object %d graphic changed to slot %d", obn, slott);
+    }
+    objs[obn].cycling = 0;
+    objs[obn].frame = 0;
+    objs[obn].loop = 0;
+    objs[obn].view = RoomObject::NoView;
+}
+
+bool SetObjectFrameSimple(int obn, int viw, int lop, int fra) {
+    if (!is_valid_object(obn))
+        quitprintf("!SetObjectFrame: invalid object number specified (%d, range is 0 - %d)", obn, 0, croom->numobj);
+    viw--;
+    AssertViewHasLoops("SetObjectFrame", viw);
+
+    auto &obj = objs[obn];
+    // Fixup invalid loop & frame numbers by using default 0 value
+    if (lop < 0 || lop >= views[viw].numLoops)
+    {
+        debug_script_warn("SetObjectFrame: invalid loop number used for view %d (%d, range is 0 - %d)",
+                          viw, lop, views[viw].numLoops - 1);
+        lop = 0;
+    }
+    if (fra < 0 || fra >= views[viw].loops[lop].numFrames)
+    {
+        debug_script_warn("SetObjectFrame: frame index out of range (%d, must be 0 - %d)", fra, views[viw].loops[lop].numFrames - 1);
+        fra = 0; // NOTE: we have 1 dummy frame allocated for empty loops
+    }
+
+    // Current engine's object data limitation by uint16_t
+    if (viw > UINT16_MAX || lop > UINT16_MAX || fra > UINT16_MAX)
+    {
+        debug_script_warn("Warning: object's (id %d) view/loop/frame (%d/%d/%d) is outside of internal range (%d/%d/%d), reset to no view",
+                          obn, viw + 1, lop, fra, UINT16_MAX + 1, UINT16_MAX, UINT16_MAX);
+        SetObjectGraphic(obn, 0);
+        return false;
+    }
+
+    obj.view = static_cast<uint16_t>(viw);
+    obj.loop = static_cast<uint16_t>(lop);
+    obj.frame = static_cast<uint16_t>(fra);
+    obj.cycling = 0; // reset anim
+    int pic = views[viw].loops[lop].frames[fra].pic;
+    obj.num = Math::InRangeOrDef<uint16_t>(pic, 0);
+    if (pic > UINT16_MAX)
+        debug_script_warn("Warning: object's (id %d) sprite %d is outside of internal range (%d), reset to 0", obn, pic, UINT16_MAX);
+    return true;
+}
+
 void Object_SetView(ScriptObject *objj, int view, int loop, int frame) {
     SetObjectFrameSimple(objj->id, view, loop, frame);
+}
+
+// pass trans=0 for fully solid, trans=100 for fully transparent
+void SetObjectTransparency(int obn, int trans) {
+    if (!is_valid_object(obn)) quit("!SetObjectTransparent: invalid object number specified");
+    if ((trans < 0) || (trans > 100)) quit("!SetObjectTransparent: transparency value must be between 0 and 100");
+
+    objs[obn].transparent = GfxDef::Trans100ToLegacyTrans255(trans);
 }
 
 void Object_SetTransparency(ScriptObject *objj, int trans) {
@@ -120,12 +358,72 @@ void Object_SetAnimationVolume(ScriptObject *objj, int newval) {
     objs[objj->id].anim_volume = Math::Clamp(newval, 0, 100);
 }
 
+void SetObjectBaseline(int obn, int basel) {
+    if (!is_valid_object(obn)) quit("!SetObjectBaseline: invalid object number specified");
+    // baseline has changed, invalidate the cache
+    if (objs[obn].baseline != basel) {
+        objs[obn].baseline = basel;
+        mark_object_changed(obn);
+    }
+}
+
+int GetObjectBaseline(int obn) {
+    if (!is_valid_object(obn)) quit("!GetObjectBaseline: invalid object number specified");
+
+    if (objs[obn].baseline < 1)
+        return 0;
+
+    return objs[obn].baseline;
+}
+
 void Object_SetBaseline(ScriptObject *objj, int basel) {
     SetObjectBaseline(objj->id, basel);
 }
 
 int Object_GetBaseline(ScriptObject *objj) {
     return GetObjectBaseline(objj->id);
+}
+
+void AnimateObjectImpl(int obn, int loopn, int spdd, int rept, int direction, int blocking,
+                       int sframe, int volume)
+{
+    if (!is_valid_object(obn))
+        quit("!AnimateObject: invalid object number specified");
+
+    RoomObject &obj = objs[obn];
+
+    if (obj.view == RoomObject::NoView)
+        quit("!AnimateObject: object has not been assigned a view");
+
+    ValidateViewAnimVLF("Object.Animate", obj.view, loopn, sframe);
+    ValidateViewAnimParams("Object.Animate", blocking, rept, direction);
+
+    if (loopn > UINT16_MAX || sframe > UINT16_MAX)
+    {
+        debug_script_warn("Warning: object's (id %d) loop/frame (%d/%d) is outside of internal range (%d/%d), cancel animation",
+                          obn, loopn, sframe, UINT16_MAX, UINT16_MAX);
+        return;
+    }
+
+    debug_script_log("Obj %d start anim view %d loop %d, speed %d, repeat %d, frame %d",
+                     obn, obj.view + 1, loopn, spdd, rept, sframe);
+
+    obj.set_animating(rept, direction == 0, spdd);
+    obj.loop = (uint16_t)loopn;
+    obj.frame = (uint16_t)SetFirstAnimFrame(obj.view, loopn, sframe, direction);
+    obj.wait = spdd + views[obj.view].loops[loopn].frames[obj.frame].speed;
+    int pic = views[obj.view].loops[loopn].frames[obj.frame].pic;
+    obj.num = Math::InRangeOrDef<uint16_t>(pic, 0);
+    if (pic > UINT16_MAX)
+        debug_script_warn("Warning: object's (id %d) sprite %d is outside of internal range (%d), reset to 0", obn, pic, UINT16_MAX);
+
+    obj.cur_anim_volume = Math::Clamp(volume, 0, 100);
+
+
+    objs[obn].CheckViewFrame();
+
+    if (blocking)
+        GameLoopUntilValueIsZero(&obj.cycling);
 }
 
 void Object_Animate(ScriptObject *objj, int loop, int delay, int repeat,
@@ -149,6 +447,14 @@ void Object_StopAnimating(ScriptObject *objj) {
         objs[objj->id].cycling = 0;
         objs[objj->id].wait = 0;
     }
+}
+
+void StopObjectMoving(int objj) {
+    if (!is_valid_object(objj))
+        quit("!StopObjectMoving: invalid object number");
+    objs[objj].moving = 0;
+
+    debug_script_log("Object %d stop moving", objj);
 }
 
 void Object_StopMoving(ScriptObject *objj) {
@@ -205,6 +511,11 @@ void Object_SetGraphic(ScriptObject *objj, int slott) {
     SetObjectGraphic(objj->id, slott);
 }
 
+int GetObjectGraphic(int obn) {
+    if (!is_valid_object(obn)) quit("!GetObjectGraphic: invalid object specified");
+    return objs[obn].num;
+}
+
 int Object_GetGraphic(ScriptObject *objj) {
     return GetObjectGraphic(objj->id);
 }
@@ -218,12 +529,27 @@ int Object_GetX(ScriptObject *objj) {
     return GetObjectX(objj->id);
 }
 
+int GetObjectY(int objj) {
+    if (!is_valid_object(objj)) quit("!GetObjectY: invalid object number");
+    return objs[objj].y;
+}
+
 int Object_GetY(ScriptObject *objj) {
     return GetObjectY(objj->id);
 }
 
+int IsObjectAnimating(int objj) {
+    if (!is_valid_object(objj)) quit("!IsObjectAnimating: invalid object number");
+    return (objs[objj].cycling != 0) ? 1 : 0;
+}
+
 int Object_GetAnimating(ScriptObject *objj) {
     return IsObjectAnimating(objj->id);
+}
+
+int IsObjectMoving(int objj) {
+    if (!is_valid_object(objj)) quit("!IsObjectMoving: invalid object number");
+    return (objs[objj].moving > 0) ? 1 : 0;
 }
 
 int Object_GetMoving(ScriptObject *objj) {
@@ -281,6 +607,21 @@ int Object_GetTintLuminance(ScriptObject *obj)
     return objs[obj->id].has_explicit_tint() ? GfxDef::Value250ToValue100(objs[obj->id].tint_light) : 0;
 }
 
+void SetObjectPosition(int objj, int tox, int toy) {
+    if (!is_valid_object(objj))
+        quit("!SetObjectPosition: invalid object number");
+
+    if (objs[objj].moving > 0)
+    {
+        debug_script_warn("Object.SetPosition: cannot set position while object is moving");
+        return;
+    }
+
+    objs[objj].x = tox;
+    objs[objj].y = toy;
+    objs[objj].UpdateGraphicSpace();
+}
+
 void Object_SetPosition(ScriptObject *objj, int xx, int yy) {
     SetObjectPosition(objj->id, xx, yy);
 }
@@ -291,10 +632,6 @@ void Object_SetX(ScriptObject *objj, int xx) {
 
 void Object_SetY(ScriptObject *objj, int yy) {
     SetObjectPosition(objj->id, objs[objj->id].x, yy);
-}
-
-void Object_GetName(ScriptObject *objj, char *buffer) {
-    GetObjectName(objj->id, buffer);
 }
 
 const char* Object_GetName_New(ScriptObject *objj) {
@@ -309,6 +646,39 @@ void Object_SetName(ScriptObject *objj, const char *newName) {
         quit("!Object.Name: invalid object number");
     croom->obj[objj->id].name = newName;
     GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
+}
+
+void RunObjectInteraction(int aa, int mood) {
+    if (!is_valid_object(aa))
+        quit("!RunObjectInteraction: invalid object number for current room");
+
+    // convert cursor mode to event index (in character event table)
+    // TODO: probably move this conversion table elsewhere? should be a global info
+    int evnt;
+    switch (mood)
+    {
+    case MODE_LOOK: evnt = 0; break;
+    case MODE_HAND: evnt = 1; break;
+    case MODE_TALK: evnt = 2; break;
+    case MODE_USE: evnt = 3; break;
+    case MODE_PICKUP: evnt = 5; break;
+    case MODE_CUSTOM1: evnt = 6; break;
+    case MODE_CUSTOM2: evnt = 7; break;
+    default: evnt = -1; break;
+    }
+    const int anyclick_evt = 4; // TODO: make global constant (character any-click evt)
+
+    // For USE verb: remember active inventory
+    if (mood == MODE_USE)
+    {
+        play.usedinv = playerchar->activeinv;
+    }
+
+    const auto obj_evt = ObjectEvent(kScTypeRoom, "object%d", aa,
+                                     RuntimeScriptValue().SetScriptObject(&scrObj[aa], &ccDynamicObject), mood);
+    if ((evnt >= 0) && run_interaction_script(obj_evt, thisroom.Objects[aa].EventHandlers.get(), evnt, anyclick_evt) < 0)
+        return; // game state changed, don't do "any click"
+    run_interaction_script(obj_evt, thisroom.Objects[aa].EventHandlers.get(), anyclick_evt); // any click on obj
 }
 
 bool Object_IsInteractionAvailable(ScriptObject *oobj, int mood) {
@@ -356,6 +726,14 @@ void Object_Move(ScriptObject *objj, int x, int y, int speed, int blocking, int 
 void Object_MovePath(ScriptObject *objj, void *path_arr, int speed, int blocking, int repeat, int direction)
 {
     Object_DoMove(objj, "Object.MovePath", path_arr, 0, 0, true /* use path */, speed, blocking, ANYWHERE, repeat, direction);
+}
+
+void SetObjectClickable(int cha, int clik) {
+    if (!is_valid_object(cha))
+        quit("!SetObjectClickable: Invalid object specified");
+    objs[cha].flags &= ~OBJF_NOINTERACT;
+    if (clik == 0)
+        objs[cha].flags |= OBJF_NOINTERACT;
 }
 
 void Object_SetClickable(ScriptObject *objj, int clik) {
@@ -467,19 +845,6 @@ const char *Object_GetScriptName(ScriptObject *objj)
     return CreateNewScriptString(thisroom.Objects[objj->id].ScriptName);
 }
 
-void Object_SetIgnoreWalkbehinds(ScriptObject *chaa, int clik) {
-    SetObjectIgnoreWalkbehinds(chaa->id, clik);
-}
-
-int Object_GetIgnoreWalkbehinds(ScriptObject *chaa) {
-    if (!is_valid_object(chaa->id))
-        quit("!Object.IgnoreWalkbehinds: Invalid object specified");
-
-    if (objs[chaa->id].flags & OBJF_NOWALKBEHINDS)
-        return 1;
-    return 0;
-}
-
 int Object_GetBlendMode(ScriptObject *objj) {
     return objs[objj->id].blend_mode;
 }
@@ -555,6 +920,20 @@ void move_object(int objj, int tox, int toy, int speed, bool ignwal)
 
 void Object_RunInteraction(ScriptObject *objj, int mode) {
     RunObjectInteraction(objj->id, mode);
+}
+
+int GetObjectProperty(int hss, const char *property)
+{
+    if (!is_valid_object(hss))
+        quit("!GetObjectProperty: invalid object");
+    return get_int_property(thisroom.Objects[hss].Properties, croom->objProps[hss], property);
+}
+
+void GetObjectPropertyText(int item, const char *property, char *bufer)
+{
+    if (!AssertObject("GetObjectPropertyText", item))
+        return;
+    get_text_property(thisroom.Objects[item].Properties, croom->objProps[item], property, bufer);
 }
 
 int Object_GetProperty (ScriptObject *objj, const char *property) {
@@ -955,12 +1334,6 @@ RuntimeScriptValue Sc_Object_IsCollidingWithObject(void *self, const RuntimeScri
     API_OBJCALL_INT_POBJ(ScriptObject, Object_IsCollidingWithObject, ScriptObject);
 }
 
-// void (ScriptObject *objj, char *buffer)
-RuntimeScriptValue Sc_Object_GetName(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_POBJ(ScriptObject, Object_GetName, char);
-}
-
 // int (ScriptObject *objj, const char *property)
 RuntimeScriptValue Sc_Object_GetProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -1221,18 +1594,6 @@ RuntimeScriptValue Sc_Object_GetScriptName(void *self, const RuntimeScriptValue 
     API_OBJCALL_OBJ(ScriptObject, const char, myScriptStringImpl, Object_GetScriptName);
 }
 
-// int (ScriptObject *chaa)
-RuntimeScriptValue Sc_Object_GetIgnoreWalkbehinds(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(ScriptObject, Object_GetIgnoreWalkbehinds);
-}
-
-// void (ScriptObject *chaa, int clik)
-RuntimeScriptValue Sc_Object_SetIgnoreWalkbehinds(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetIgnoreWalkbehinds);
-}
-
 // int (ScriptObject *objj)
 RuntimeScriptValue Sc_Object_GetLoop(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -1389,7 +1750,6 @@ void RegisterObjectAPI()
         { "Object::Animate^6",                API_FN_PAIR(Object_Animate6) },
         { "Object::Animate^7",                API_FN_PAIR(Object_Animate) },
         { "Object::IsCollidingWithObject^1",  API_FN_PAIR(Object_IsCollidingWithObject) },
-        { "Object::GetName^1",                API_FN_PAIR(Object_GetName) },
         { "Object::GetProperty^1",            API_FN_PAIR(Object_GetProperty) },
         { "Object::GetPropertyText^2",        API_FN_PAIR(Object_GetPropertyText) },
         { "Object::GetTextProperty^1",        API_FN_PAIR(Object_GetTextProperty) },
@@ -1426,8 +1786,6 @@ void RegisterObjectAPI()
         { "Object::get_Graphic",              API_FN_PAIR(Object_GetGraphic) },
         { "Object::set_Graphic",              API_FN_PAIR(Object_SetGraphic) },
         { "Object::get_ID",                   API_FN_PAIR(Object_GetID) },
-        { "Object::get_IgnoreWalkbehinds",    API_FN_PAIR(Object_GetIgnoreWalkbehinds) },
-        { "Object::set_IgnoreWalkbehinds",    API_FN_PAIR(Object_SetIgnoreWalkbehinds) },
         { "Object::get_Loop",                 API_FN_PAIR(Object_GetLoop) },
         { "Object::get_ManualScaling",        API_FN_PAIR(Object_GetManualScaling) },
         { "Object::set_ManualScaling",        API_FN_PAIR(Object_SetManualScaling) },

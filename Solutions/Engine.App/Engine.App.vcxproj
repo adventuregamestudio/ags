@@ -515,7 +515,6 @@
     <ClCompile Include="..\..\Engine\ac\global_display.cpp" />
     <ClCompile Include="..\..\Engine\ac\global_game.cpp" />
     <ClCompile Include="..\..\Engine\ac\global_gui.cpp" />
-    <ClCompile Include="..\..\Engine\ac\global_object.cpp" />
     <ClCompile Include="..\..\Engine\ac\global_palette.cpp" />
     <ClCompile Include="..\..\Engine\ac\global_region.cpp" />
     <ClCompile Include="..\..\Engine\ac\global_room.cpp" />
@@ -761,7 +760,6 @@
     <ClInclude Include="..\..\Engine\ac\global_display.h" />
     <ClInclude Include="..\..\Engine\ac\global_game.h" />
     <ClInclude Include="..\..\Engine\ac\global_gui.h" />
-    <ClInclude Include="..\..\Engine\ac\global_object.h" />
     <ClInclude Include="..\..\Engine\ac\global_palette.h" />
     <ClInclude Include="..\..\Engine\ac\global_region.h" />
     <ClInclude Include="..\..\Engine\ac\global_room.h" />

@@ -11,10 +11,6 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-//
-//
-//
-//=============================================================================
 #ifndef __AGS_EE_AC__GLOBALGUI_H
 #define __AGS_EE_AC__GLOBALGUI_H
 
@@ -33,7 +29,6 @@ void DisableInterface();
 void EnableInterface();
 // Returns 1 if user interface is enabled, 0 if disabled
 int  IsInterfaceEnabled();
-int GetGUIAt (int xx,int yy);
 void SetTextWindowGUI (int guinum);
 
 #endif // __AGS_EE_AC__GLOBALGUI_H

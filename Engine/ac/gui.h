@@ -11,10 +11,6 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-//
-//
-//
-//=============================================================================
 #ifndef __AGS_EE_AC__GUI_H
 #define __AGS_EE_AC__GUI_H
 
@@ -58,7 +54,9 @@ void    GUI_SetTextColor(ScriptGUI *tehgui, int newcol);
 int     GUI_GetTextColor(ScriptGUI *tehgui);
 void    GUI_SetTextPadding(ScriptGUI *tehgui, int newpos);
 int     GUI_GetTextPadding(ScriptGUI *tehgui);
-ScriptGUI *GetGUIAtLocation(int xx, int yy);
+int     GetGUIAt(int xx, int yy);
+ScriptGUI *GUI_GetAtScreenXY(int xx, int yy);
+
 
 void	remove_popup_interface(int ifacenum);
 void	process_interface_click(int ifce, int btn, int mbut);

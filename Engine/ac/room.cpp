@@ -1152,7 +1152,6 @@ void RegisterRoomAPI()
         { "Room::SetProperty^2",                      API_FN_PAIR(Room_SetProperty) },
         { "Room::SetTextProperty^2",                  API_FN_PAIR(Room_SetTextProperty) },
         { "Room::ProcessClick^3",                     API_FN_PAIR(RoomProcessClick) },
-        { "ProcessClick",                             API_FN_PAIR(RoomProcessClick) },
         { "Room::get_BottomEdge",                     API_FN_PAIR(Room_GetBottomEdge) },
         { "Room::get_ColorDepth",                     API_FN_PAIR(Room_GetColorDepth) },
         { "Room::get_Height",                         API_FN_PAIR(Room_GetHeight) },

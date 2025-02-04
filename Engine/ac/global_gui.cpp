@@ -128,15 +128,6 @@ int IsInterfaceEnabled() {
   return (play.disabled_user_interface > 0) ? 0 : 1;
 }
 
-int GetGUIAt (int xx,int yy) {
-    // Test in the opposite order (from closer to further)
-    for (auto g = play.gui_draw_order.crbegin(); g < play.gui_draw_order.crend(); ++g) {
-        if (guis[*g].IsInteractableAt(xx, yy))
-            return *g;
-    }
-    return -1;
-}
-
 void SetTextWindowGUI (int guinum) {
     if ((guinum < -1) | (guinum >= game.numgui))
         quit("!SetTextWindowGUI: invalid GUI number");

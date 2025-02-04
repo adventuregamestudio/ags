@@ -277,12 +277,6 @@ RuntimeScriptValue Sc_get_translation(const RuntimeScriptValue *params, int32_t 
     API_SCALL_OBJ_POBJ(char, myScriptStringImpl, get_translation, const char);
 }
 
-// int  (char* buffer)
-RuntimeScriptValue Sc_GetTranslationName(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_POBJ(GetTranslationName, char);
-}
-
 RuntimeScriptValue Sc_GetWalkableAreaAtRoom(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT_PINT2(GetWalkableAreaAtRoom);
@@ -805,7 +799,6 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "GetFontLineSpacing",       API_FN_PAIR(GetFontLineSpacing) },
         { "GetTimerPos",              API_FN_PAIR(GetTimerPos) },
         { "GetTranslation",           API_FN_PAIR(get_translation) },
-        { "GetTranslationName",       API_FN_PAIR(GetTranslationName) },
         { "GetWalkableAreaAtRoom",    API_FN_PAIR(GetWalkableAreaAtRoom) },
         { "GetWalkableAreaAt",        API_FN_PAIR(GetWalkableAreaAtScreen) },
         { "GetWalkableAreaAtScreen",  API_FN_PAIR(GetWalkableAreaAtScreen) },

@@ -12,7 +12,8 @@
 //
 //=============================================================================
 //
-//
+// Old Walkable Area Script API.
+// Superceded by WalkableArea script type API.
 //
 //=============================================================================
 #ifndef __AGS_EE_AC__GLOBALWALKABLEAREA_H

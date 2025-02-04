@@ -826,9 +826,7 @@ int Game_GetNormalFont() {
 }
 
 const char* Game_GetTranslationFilename() {
-    char buffer[STD_BUFFER_SIZE];
-    GetTranslationName(buffer); // fills up to MAX_MAXSTRLEN
-    return CreateNewScriptString(buffer);
+    return CreateNewScriptString(get_translation_name());
 }
 
 int Game_ChangeTranslation(const char *newFilename)

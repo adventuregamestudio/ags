@@ -12,7 +12,8 @@
 //
 //=============================================================================
 //
-//
+// Old Walk-begind Script API.
+// Superceded by Walkbehind script type API.
 //
 //=============================================================================
 #ifndef __AGS_EE_AC__GLOBALWALKBEHIND_H

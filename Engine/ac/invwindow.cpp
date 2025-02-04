@@ -20,7 +20,6 @@
 #include "ac/gamestate.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/global_display.h"
-#include "ac/global_inventoryitem.h"
 #include "ac/global_room.h"
 #include "ac/gui.h"
 #include "ac/mouse.h"
@@ -136,23 +135,7 @@ ScriptInvItem* InvWindow_GetItemAtIndex(GUIInvWindow *guii, int index) {
 
 //=============================================================================
 
-int offset_over_inv(GUIInvWindow *inv) {
-    if (inv->ItemWidth <= 0 || inv->ItemHeight <= 0)
-        return -1;
-    int mover = mouse_ifacebut_xoffs / inv->ItemWidth;
-    // if it's off the edge of the visible items, ignore
-    if (mover >= inv->ColCount)
-        return -1;
-    mover += (mouse_ifacebut_yoffs / inv->ItemHeight) * inv->ColCount;
-    if (mover >= inv->ColCount * inv->RowCount)
-        return -1;
 
-    mover += inv->TopItem;
-    if ((mover < 0) || (mover >= charextra[inv->GetCharacterId()].invorder_count))
-        return -1;
-
-    return charextra[inv->GetCharacterId()].invorder[mover];
-}
 
 //=============================================================================
 //

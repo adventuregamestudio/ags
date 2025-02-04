@@ -231,9 +231,6 @@
     <ClCompile Include="..\..\Engine\ac\global_gui.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\global_inventoryitem.cpp">
-      <Filter>Source Files\ac</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Engine\ac\global_object.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
@@ -852,9 +849,6 @@
       <Filter>Header Files\ac</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\global_gui.h">
-      <Filter>Header Files\ac</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\global_inventoryitem.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\global_object.h">

@@ -31,7 +31,6 @@
 #include "ac/global_display.h"
 #include "ac/global_game.h"
 #include "ac/global_gui.h"
-#include "ac/global_inventoryitem.h"
 #include "ac/global_object.h"
 #include "ac/global_palette.h"
 #include "ac/global_region.h"
@@ -240,36 +239,6 @@ RuntimeScriptValue Sc_GetGameSpeed(const RuntimeScriptValue *params, int32_t par
     API_SCALL_INT(GetGameSpeed);
 }
 
-// int  (int xxx, int yyy)
-RuntimeScriptValue Sc_GetInvAt(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_PINT2(GetInvAt);
-}
-
-// int (int indx)
-RuntimeScriptValue Sc_GetInvGraphic(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_PINT(GetInvGraphic);
-}
-
-// void (int indx,char*buff)
-RuntimeScriptValue Sc_GetInvName(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT_POBJ(GetInvName, char);
-}
-
-// int  (int item, const char *property)
-RuntimeScriptValue Sc_GetInvProperty(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_PINT_POBJ(GetInvProperty, const char);
-}
-
-// void  (int item, const char *property, char *bufer)
-RuntimeScriptValue Sc_GetInvPropertyText(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT_POBJ2(GetInvPropertyText, const char, char);
-}
-
 // int (int xxx,int yyy)
 RuntimeScriptValue Sc_GetLocationType(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -392,12 +361,6 @@ RuntimeScriptValue Sc_IsInteractionAvailable(const RuntimeScriptValue *params, i
     API_SCALL_INT_PINT3(IsInteractionAvailable);
 }
 
-// int  (int item, int mood)
-RuntimeScriptValue Sc_IsInventoryInteractionAvailable(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_PINT2(IsInventoryInteractionAvailable);
-}
-
 // int ()
 RuntimeScriptValue Sc_IsInterfaceEnabled(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -518,12 +481,6 @@ RuntimeScriptValue Sc_RunAGSGame(const RuntimeScriptValue *params, int32_t param
     API_SCALL_INT_POBJ_PINT2(RunAGSGame, const char);
 }
 
-// void  (int iit, int modd)
-RuntimeScriptValue Sc_RunInventoryInteraction(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT2(RunInventoryInteraction);
-}
-
 // void  (int regnum, int mood)
 RuntimeScriptValue Sc_RunRegionInteraction(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -616,18 +573,6 @@ RuntimeScriptValue Sc_SetGameOption(const RuntimeScriptValue *params, int32_t pa
 RuntimeScriptValue Sc_SetGameSpeed(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT(SetGameSpeed);
-}
-
-// void (int invi, const char *newName)
-RuntimeScriptValue Sc_SetInvItemName(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT_POBJ(SetInvItemName, const char);
-}
-
-// void (int invi, int piccy)
-RuntimeScriptValue Sc_set_inv_item_pic(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT2(set_inv_item_pic);
 }
 
 extern RuntimeScriptValue Sc_SetMouseBounds(const RuntimeScriptValue *params, int32_t param_count);
@@ -883,11 +828,6 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "GetCursorMode",            API_FN_PAIR(GetCursorMode) },
         { "GetGameOption",            API_FN_PAIR(GetGameOption) },
         { "GetGameSpeed",             API_FN_PAIR(GetGameSpeed) },
-        { "GetInvAt",                 API_FN_PAIR(GetInvAt) },
-        { "GetInvGraphic",            API_FN_PAIR(GetInvGraphic) },
-        { "GetInvName",               API_FN_PAIR(GetInvName) },
-        { "GetInvProperty",           API_FN_PAIR(GetInvProperty) },
-        { "GetInvPropertyText",       API_FN_PAIR(GetInvPropertyText) },
         { "GetLocationType",          API_FN_PAIR(GetLocationType) },
         { "GetRegionAt",              API_FN_PAIR(GetRegionIDAtRoom) },
         { "GetRoomProperty",          API_FN_PAIR(Room_GetProperty) },
@@ -912,7 +852,6 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "IsButtonDown",             API_FN_PAIR(IsButtonDown) },
         { "IsGamePaused",             API_FN_PAIR(IsGamePaused) },
         { "IsInteractionAvailable",   API_FN_PAIR(IsInteractionAvailable) },
-        { "IsInventoryInteractionAvailable", API_FN_PAIR(IsInventoryInteractionAvailable) },
         { "IsInterfaceEnabled",       API_FN_PAIR(IsInterfaceEnabled) },
         { "IsKeyPressed",             API_FN_PAIR(IsKeyPressed) },
         { "IsMusicVoxAvailable",      API_FN_PAIR(IsMusicVoxAvailable) },
@@ -933,7 +872,6 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "RestoreGameSlot",          API_FN_PAIR(RestoreGameSlot) },
         { "RestoreWalkableArea",      API_FN_PAIR(RestoreWalkableArea) },
         { "RunAGSGame",               API_FN_PAIR(RunAGSGame) },
-        { "RunInventoryInteraction",  API_FN_PAIR(RunInventoryInteraction) },
         { "RunRegionInteraction",     API_FN_PAIR(RunRegionInteraction) },
         { "Said",                     API_FN_PAIR(Said) },
         { "SaveCursorForLocationChange", API_FN_PAIR(SaveCursorForLocationChange) },
@@ -949,8 +887,6 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "SetFadeColor",             API_FN_PAIR(SetFadeColor) },
         { "SetGameOption",            API_FN_PAIR(SetGameOption) },
         { "SetGameSpeed",             API_FN_PAIR(SetGameSpeed) },
-        { "SetInvItemName",           API_FN_PAIR(SetInvItemName) },
-        { "SetInvItemPic",            API_FN_PAIR(set_inv_item_pic) },
         { "SetMouseBounds",           API_FN_PAIR(SetMouseBounds) },
         { "SetMouseCursor",           API_FN_PAIR(set_mouse_cursor) },
         { "SetMousePosition",         API_FN_PAIR(SetMousePosition) },

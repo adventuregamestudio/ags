@@ -11,19 +11,23 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-
 #include "ac/inventoryitem.h"
 #include "ac/characterinfo.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
-#include "ac/global_inventoryitem.h"
 #include "ac/global_translation.h"
+#include "ac/gui.h"
 #include "ac/mouse.h"
 #include "ac/properties.h"
 #include "ac/runtime_defines.h"
 #include "ac/string.h"
-#include "script/runtimescriptvalue.h"
 #include "ac/dynobj/cc_inventory.h"
+#include "gui/guidefines.h"
+#include "script/runtimescriptvalue.h"
+#include "script/script.h"
+
+using namespace AGS::Common;
+using namespace AGS::Engine;
 
 
 extern GameSetupStruct game;
@@ -43,8 +47,28 @@ int InventoryItem_GetCursorGraphic(ScriptInvItem *iitem)
     return game.invinfo[iitem->id].cursorPic;
 }
 
+void set_inv_item_pic(int invi, int piccy) {
+    if ((invi < 1) || (invi > game.numinvitems))
+        quit("!SetInvItemPic: invalid inventory item specified");
+
+    if (game.invinfo[invi].pic == piccy)
+        return;
+
+    game.invinfo[invi].pic = piccy;
+    GUIE::MarkInventoryForUpdate(-1, false);
+}
+
 void InventoryItem_SetGraphic(ScriptInvItem *iitem, int piccy) {
     set_inv_item_pic(iitem->id, piccy);
+}
+
+void SetInvItemName(int invi, const char *newName) {
+    if ((invi < 1) || (invi > game.numinvitems))
+        quit("!SetInvName: invalid inventory item specified");
+
+    game.invinfo[invi].name = newName;
+    // might need to redraw the GUI if it has the inv item name on it
+    GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
 }
 
 void InventoryItem_SetName(ScriptInvItem *scii, const char *newname) {
@@ -60,15 +84,46 @@ const char *InventoryItem_GetScriptName(ScriptInvItem *scii)
     return CreateNewScriptString(game.invScriptNames[scii->id]);
 }
 
-ScriptInvItem *GetInvAtLocation(int xx, int yy) {
+int offset_over_inv(GUIInvWindow *inv) {
+    if (inv->ItemWidth <= 0 || inv->ItemHeight <= 0)
+        return -1;
+    int mover = mouse_ifacebut_xoffs / inv->ItemWidth;
+    // if it's off the edge of the visible items, ignore
+    if (mover >= inv->ColCount)
+        return -1;
+    mover += (mouse_ifacebut_yoffs / inv->ItemHeight) * inv->ColCount;
+    if (mover >= inv->ColCount * inv->RowCount)
+        return -1;
+
+    mover += inv->TopItem;
+    if ((mover < 0) || (mover >= charextra[inv->GetCharacterId()].invorder_count))
+        return -1;
+
+    return charextra[inv->GetCharacterId()].invorder[mover];
+}
+
+int GetInvAt(int scrx, int scry) {
+    int ongui = GetGUIAt(scrx, scry);
+    if (ongui >= 0) {
+        GUIMain &gui = guis[ongui];
+        int onobj = gui.FindControlAt(scrx, scry);
+        GUIObject *guio = gui.GetControl(onobj);
+        if (guio) {
+            Point guipt = gui.GetGraphicSpace().WorldToLocal(scrx, scry);
+            mouse_ifacebut_xoffs = guipt.X - guio->X;
+            mouse_ifacebut_yoffs = guipt.Y - guio->Y;
+        }
+        if (guio && (gui.GetControlType(onobj) == kGUIInvWindow))
+            return offset_over_inv((GUIInvWindow *)guio);
+    }
+    return -1;
+}
+
+ScriptInvItem *InventoryItem_GetAtScreenXY(int xx, int yy) {
   int hsnum = GetInvAt(xx, yy);
   if (hsnum <= 0)
     return nullptr;
   return &scrInv[hsnum];
-}
-
-void InventoryItem_GetName(ScriptInvItem *iitem, char *buff) {
-  GetInvName(iitem->id, buff);
 }
 
 const char* InventoryItem_GetName_New(ScriptInvItem *invitem) {
@@ -77,6 +132,54 @@ const char* InventoryItem_GetName_New(ScriptInvItem *invitem) {
 
 int InventoryItem_GetGraphic(ScriptInvItem *iitem) {
   return game.invinfo[iitem->id].pic;
+}
+
+void RunInventoryInteraction(int iit, int mood) {
+    if ((iit < 0) || (iit >= game.numinvitems))
+        quit("!RunInventoryInteraction: invalid inventory number");
+
+    // convert cursor mode to event index (in inventoryitem event table)
+    // TODO: probably move this conversion table elsewhere? should be a global info
+    int evnt;
+    switch (mood)
+    {
+    case MODE_LOOK: evnt = 0; break;
+    case MODE_HAND: evnt = 1; break;
+    case MODE_TALK: evnt = 2; break;
+    case MODE_USE: evnt = 3; break;
+    default: evnt = -1; break;
+    }
+    const int otherclick_evt = 4; // TODO: make global constant (inventory other-click evt)
+
+    // For USE verb: remember active inventory
+    if (mood == MODE_USE)
+    {
+        play.usedinv = playerchar->activeinv;
+    }
+
+    if (evnt < 0) // on any non-supported mode - use "other-click"
+        evnt = otherclick_evt;
+
+    const auto obj_evt = ObjectEvent(kScTypeGame, "inventory%d", iit,
+                                     RuntimeScriptValue().SetScriptObject(&scrInv[iit], &ccDynamicInv), mood);
+    run_interaction_script(obj_evt, game.invScripts[iit].get(), evnt);
+}
+
+int IsInventoryInteractionAvailable(int item, int mood) {
+    if ((item < 0) || (item >= MAX_INV))
+        quit("!IsInventoryInteractionAvailable: invalid inventory number");
+
+    play.check_interaction_only = 1;
+
+    RunInventoryInteraction(item, mood);
+
+    int ciwas = play.check_interaction_only;
+    play.check_interaction_only = 0;
+
+    if (ciwas == 2)
+        return 1;
+
+    return 0;
 }
 
 void InventoryItem_RunInteraction(ScriptInvItem *iitem, int mood) {
@@ -146,21 +249,15 @@ RuntimeScriptValue Sc_InventoryItem_GetByName(const RuntimeScriptValue *params, 
 }
 
 // ScriptInvItem *(int xx, int yy)
-RuntimeScriptValue Sc_GetInvAtLocation(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_InventoryItem_GetAtScreenXY(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_OBJ_PINT2(ScriptInvItem, ccDynamicInv, GetInvAtLocation);
+    API_SCALL_OBJ_PINT2(ScriptInvItem, ccDynamicInv, InventoryItem_GetAtScreenXY);
 }
 
 // int (ScriptInvItem *iitem, int mood)
 RuntimeScriptValue Sc_InventoryItem_CheckInteractionAvailable(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT_PINT(ScriptInvItem, InventoryItem_CheckInteractionAvailable);
-}
-
-// void (ScriptInvItem *iitem, char *buff)
-RuntimeScriptValue Sc_InventoryItem_GetName(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_POBJ(ScriptInvItem, InventoryItem_GetName, char);
 }
 
 // int (ScriptInvItem *scii, const char *property)
@@ -249,11 +346,10 @@ RuntimeScriptValue Sc_InventoryItem_GetName_New(void *self, const RuntimeScriptV
 void RegisterInventoryItemAPI()
 {
     ScFnRegister invitem_api[] = {
-        { "InventoryItem::GetAtScreenXY^2",           API_FN_PAIR(GetInvAtLocation) },
+        { "InventoryItem::GetAtScreenXY^2",           API_FN_PAIR(InventoryItem_GetAtScreenXY) },
         { "InventoryItem::GetByName",                 API_FN_PAIR(InventoryItem_GetByName) },
 
         { "InventoryItem::IsInteractionAvailable^1",  API_FN_PAIR(InventoryItem_CheckInteractionAvailable) },
-        { "InventoryItem::GetName^1",                 API_FN_PAIR(InventoryItem_GetName) },
         { "InventoryItem::GetProperty^1",             API_FN_PAIR(InventoryItem_GetProperty) },
         { "InventoryItem::GetPropertyText^2",         API_FN_PAIR(InventoryItem_GetPropertyText) },
         { "InventoryItem::GetTextProperty^1",         API_FN_PAIR(InventoryItem_GetTextProperty) },

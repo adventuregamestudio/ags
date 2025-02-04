@@ -551,19 +551,6 @@ int GetLocationType(int xxx,int yyy) {
     return __GetLocationType(xxx, yyy, 0);
 }
 
-void SaveCursorForLocationChange() {
-    // update the current location name
-    char tempo[100];
-    GetLocationName(mousex, mousey, tempo);
-
-    if (play.get_loc_name_save_cursor != play.get_loc_name_last_time) {
-        play.get_loc_name_save_cursor = play.get_loc_name_last_time;
-        play.restore_cursor_mode_to = GetCursorMode();
-        play.restore_cursor_image_to = GetMouseCursor();
-        debug_script_log("Saving mouse: mode %d cursor %d", play.restore_cursor_mode_to, play.restore_cursor_image_to);
-    }
-}
-
 void GetLocationName(int xxx,int yyy,char*tempo)
 {
     VALIDATE_STRING(tempo);

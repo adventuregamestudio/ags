@@ -756,7 +756,7 @@ void Character_LoseInventory(CharacterInfo *chap, ScriptInvItem *invi) {
 
     if ((chap->activeinv == inum) & (chap->inv[inum] < 1)) {
         chap->activeinv = -1;
-        if ((chap == playerchar) && (GetCursorMode() == MODE_USE))
+        if ((chap == playerchar) && (Mouse_GetCursorMode() == MODE_USE))
             set_cursor_mode(0);
     }
 
@@ -865,7 +865,7 @@ void Character_SetAsPlayer(CharacterInfo *chaa) {
     // They had inv selected, so change the cursor
     if (cur_mode == MODE_USE) {
         if (playerchar->activeinv < 0)
-            SetNextCursor ();
+            Mouse_SetNextCursor ();
         else
             SetActiveInventory(playerchar->activeinv);
     }
@@ -1275,7 +1275,7 @@ void Character_SetActiveInventory(CharacterInfo *chaa, ScriptInvItem* iit) {
 
         if (chaa->index_id == game.playercharacter) {
 
-            if (GetCursorMode()==MODE_USE)
+            if (Mouse_GetCursorMode()==MODE_USE)
                 set_cursor_mode(0);
         }
         GUIE::MarkInventoryForUpdate(chaa->index_id, chaa->index_id == game.playercharacter);

@@ -21,6 +21,7 @@
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
+#include "ac/global_game.h"
 #include "ac/global_screen.h"
 #include "ac/gui.h"
 #include "ac/sys_events.h"
@@ -87,7 +88,7 @@ int Mouse_GetVisible() {
     return 1;
 }
 
-void SetMouseBounds(int x1, int y1, int x2, int y2)
+void Mouse_SetBounds(int x1, int y1, int x2, int y2)
 {
     int xmax = play.GetMainViewport().GetWidth() - 1;
     int ymax = play.GetMainViewport().GetHeight() - 1;
@@ -175,8 +176,23 @@ void set_default_cursor() {
     set_mouse_cursor(cur_mode);
 }
 
+int Mouse_GetCursor()
+{
+    return cur_cursor;
+}
+
+void Mouse_SetCursor(int newcurs)
+{
+    set_mouse_cursor(newcurs);
+}
+
+void Mouse_SetDefaultCursor()
+{
+    set_default_cursor();
+}
+
 // permanently change cursor graphic
-void ChangeCursorGraphic (int curs, int newslot) {
+void Mouse_ChangeCursorGraphic (int curs, int newslot) {
     if ((curs < 0) || (curs >= game.numcursors))
         quit("!ChangeCursorGraphic: invalid mouse cursor");
 
@@ -196,7 +212,7 @@ int Mouse_GetModeGraphic(int curs) {
     return game.mcurs[curs].pic;
 }
 
-void ChangeCursorHotspot (int curs, int x, int y) {
+void Mouse_ChangeCursorHotspot (int curs, int x, int y) {
     if ((curs < 0) || (curs >= game.numcursors))
         quit("!ChangeCursorHotspot: invalid mouse cursor");
     game.mcurs[curs].hotx = x;
@@ -228,11 +244,11 @@ void Mouse_ChangeModeView2(int curs, int newview) {
     Mouse_ChangeModeView(curs, newview, SCR_NO_VALUE);
 }
 
-void SetNextCursor () {
+void Mouse_SetNextCursor () {
     set_cursor_mode (find_next_enabled_cursor(cur_mode + 1));
 }
 
-void SetPreviousCursor() {
+void Mouse_SetPreviousCursor() {
     set_cursor_mode(find_previous_enabled_cursor(cur_mode - 1));
 }
 
@@ -255,6 +271,11 @@ void set_cursor_mode(int newmode) {
     set_default_cursor();
 
     debug_script_log("Cursor mode set to %d", newmode);
+}
+
+void Mouse_SetCursorMode(int newmode)
+{
+    set_cursor_mode(newmode);
 }
 
 void enable_cursor_mode(int modd) {
@@ -290,13 +311,23 @@ void disable_cursor_mode(int modd) {
     if (cur_mode==modd) find_next_enabled_cursor(modd);
 }
 
-void RefreshMouse() {
+void Mouse_EnableCursorMode(int mode)
+{
+    enable_cursor_mode(mode);
+}
+
+void Mouse_DisableCursorMode(int mode)
+{
+    disable_cursor_mode(mode);
+}
+
+void Mouse_Refresh() {
     ags_domouse();
     scmouse.x = mousex;
     scmouse.y = mousey;
 }
 
-void SetMousePosition (int newx, int newy) {
+void Mouse_SetPosition (int newx, int newy) {
     const Rect &viewport = play.GetMainViewport();
 
     if (newx < 0)
@@ -309,26 +340,39 @@ void SetMousePosition (int newx, int newy) {
         newy = viewport.GetHeight() - 1;
 
     Mouse::SetPosition(Point(newx, newy));
-    RefreshMouse();
+    Mouse_Refresh();
 }
 
-int GetCursorMode() {
+int Mouse_GetCursorMode() {
     return cur_mode;
 }
 
-int IsButtonDown(int which) {
+int Mouse_IsButtonDown(int which) {
     if ((which < kMouseLeft) || (which > kMouseMiddle))
         quit("!IsButtonDown: only works with eMouseLeft, eMouseRight, eMouseMiddle");
     return ags_misbuttondown(static_cast<eAGSMouseButton>(which)) ? 1 : 0;
 }
 
-int IsModeEnabled(int which) {
+int Mouse_IsModeEnabled(int which) {
     return (which < 0) || (which >= game.numcursors) ? 0 :
         which == MODE_USE ? playerchar->activeinv > 0 :
         (game.mcurs[which].flags & MCF_DISABLED) == 0;
 }
 
-void SimulateMouseClick(int button_id) {
+void Mouse_SaveCursorForLocationChange() {
+    // update the current location name
+    char tempo[MAX_MAXSTRLEN];
+    GetLocationName(mousex, mousey, tempo);
+
+    if (play.get_loc_name_save_cursor != play.get_loc_name_last_time) {
+        play.get_loc_name_save_cursor = play.get_loc_name_last_time;
+        play.restore_cursor_mode_to = Mouse_GetCursorMode();
+        play.restore_cursor_image_to = Mouse_GetCursor();
+        debug_script_log("Saving mouse: mode %d cursor %d", play.restore_cursor_mode_to, play.restore_cursor_image_to);
+    }
+}
+
+void Mouse_SimulateClick(int button_id) {
     ags_simulate_mouseclick(static_cast<eAGSMouseButton>(button_id));
 }
 
@@ -359,10 +403,6 @@ void Mouse_SetAutoLock(bool on)
 }
 
 //=============================================================================
-
-int GetMouseCursor() {
-    return cur_cursor;
-}
 
 void update_script_mouse_coords() {
     scmouse.x = mousex;
@@ -466,15 +506,15 @@ int find_previous_enabled_cursor(int startwith) {
 #include "ac/global_game.h"
 
 // void  (int curs, int newslot)
-RuntimeScriptValue Sc_ChangeCursorGraphic(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Mouse_ChangeCursorGraphic(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT2(ChangeCursorGraphic);
+    API_SCALL_VOID_PINT2(Mouse_ChangeCursorGraphic);
 }
 
 // void  (int curs, int x, int y)
-RuntimeScriptValue Sc_ChangeCursorHotspot(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Mouse_ChangeCursorHotspot(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT3(ChangeCursorHotspot);
+    API_SCALL_VOID_PINT3(Mouse_ChangeCursorHotspot);
 }
 
 // void (int curs, int newview)
@@ -489,15 +529,15 @@ RuntimeScriptValue Sc_Mouse_ChangeModeView(const RuntimeScriptValue *params, int
 }
 
 // void (int modd)
-RuntimeScriptValue Sc_disable_cursor_mode(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Mouse_DisableCursorMode(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT(disable_cursor_mode);
+    API_SCALL_VOID_PINT(Mouse_DisableCursorMode);
 }
 
 // void (int modd)
-RuntimeScriptValue Sc_enable_cursor_mode(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Mouse_EnableCursorMode(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT(enable_cursor_mode);
+    API_SCALL_VOID_PINT(Mouse_EnableCursorMode);
 }
 
 // int (int curs)
@@ -507,75 +547,75 @@ RuntimeScriptValue Sc_Mouse_GetModeGraphic(const RuntimeScriptValue *params, int
 }
 
 // int (int which)
-RuntimeScriptValue Sc_IsButtonDown(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Mouse_IsButtonDown(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT_PINT(IsButtonDown);
+    API_SCALL_INT_PINT(Mouse_IsButtonDown);
 }
 
 // int (int which)
-RuntimeScriptValue Sc_IsModeEnabled(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Mouse_IsModeEnabled(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT_PINT(IsModeEnabled);
+    API_SCALL_INT_PINT(Mouse_IsModeEnabled);
 }
 
 // void ();
-RuntimeScriptValue Sc_SaveCursorForLocationChange(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Mouse_SaveCursorForLocationChange(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID(SaveCursorForLocationChange);
+    API_SCALL_VOID(Mouse_SaveCursorForLocationChange);
 }
 
 // void  ()
-RuntimeScriptValue Sc_SetNextCursor(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Mouse_SetNextCursor(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID(SetNextCursor);
+    API_SCALL_VOID(Mouse_SetNextCursor);
 }
 
 // void  ()
-RuntimeScriptValue Sc_SetPreviousCursor(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Mouse_SetPreviousCursor(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID(SetPreviousCursor);
+    API_SCALL_VOID(Mouse_SetPreviousCursor);
 }
 
 // void  (int x1, int y1, int x2, int y2)
-RuntimeScriptValue Sc_SetMouseBounds(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Mouse_SetBounds(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT4(SetMouseBounds);
+    API_SCALL_VOID_PINT4(Mouse_SetBounds);
 }
 
 // void  (int newx, int newy)
-RuntimeScriptValue Sc_SetMousePosition(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Mouse_SetPosition(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT2(SetMousePosition);
+    API_SCALL_VOID_PINT2(Mouse_SetPosition);
 }
 
 // void ()
-RuntimeScriptValue Sc_RefreshMouse(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Mouse_Refresh(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID(RefreshMouse);
+    API_SCALL_VOID(Mouse_Refresh);
 }
 
 // void ()
-RuntimeScriptValue Sc_set_default_cursor(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Mouse_SetDefaultCursor(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID(set_default_cursor);
+    API_SCALL_VOID(Mouse_SetDefaultCursor);
 }
 
 // void (int newcurs)
-RuntimeScriptValue Sc_set_mouse_cursor(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Mouse_SetCursor(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT(set_mouse_cursor);
+    API_SCALL_VOID_PINT(Mouse_SetCursor);
 }
 
 // int ()
-RuntimeScriptValue Sc_GetCursorMode(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Mouse_GetCursorMode(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT(GetCursorMode);
+    API_SCALL_INT(Mouse_GetCursorMode);
 }
 
 // void (int newmode)
-RuntimeScriptValue Sc_set_cursor_mode(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Mouse_SetCursorMode(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT(set_cursor_mode);
+    API_SCALL_VOID_PINT(Mouse_SetCursorMode);
 }
 
 // int ()
@@ -590,9 +630,9 @@ RuntimeScriptValue Sc_Mouse_SetVisible(const RuntimeScriptValue *params, int32_t
     API_SCALL_VOID_PINT(Mouse_SetVisible);
 }
 
-RuntimeScriptValue Sc_Mouse_Click(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Mouse_SimulateClick(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT(SimulateMouseClick);
+    API_SCALL_VOID_PINT(Mouse_SimulateClick);
 }
 
 RuntimeScriptValue Sc_Mouse_GetControlEnabled(const RuntimeScriptValue *params, int32_t param_count)
@@ -631,30 +671,30 @@ RuntimeScriptValue Sc_Mouse_SetSpeed(const RuntimeScriptValue *params, int32_t p
 void RegisterMouseAPI()
 {
     ScFnRegister mouse_api[] = {
-        { "Mouse::ChangeModeGraphic^2",       API_FN_PAIR(ChangeCursorGraphic) },
-        { "Mouse::ChangeModeHotspot^3",       API_FN_PAIR(ChangeCursorHotspot) },
+        { "Mouse::ChangeModeGraphic^2",       API_FN_PAIR(Mouse_ChangeCursorGraphic) },
+        { "Mouse::ChangeModeHotspot^3",       API_FN_PAIR(Mouse_ChangeCursorHotspot) },
         { "Mouse::ChangeModeView^2",          API_FN_PAIR(Mouse_ChangeModeView2) },
         { "Mouse::ChangeModeView^3",          API_FN_PAIR(Mouse_ChangeModeView) },
-        { "Mouse::Click^1",                   Sc_Mouse_Click, SimulateMouseClick },
-        { "Mouse::DisableMode^1",             API_FN_PAIR(disable_cursor_mode) },
-        { "Mouse::EnableMode^1",              API_FN_PAIR(enable_cursor_mode) },
+        { "Mouse::Click^1",                   API_FN_PAIR(Mouse_SimulateClick) },
+        { "Mouse::DisableMode^1",             API_FN_PAIR(Mouse_DisableCursorMode) },
+        { "Mouse::EnableMode^1",              API_FN_PAIR(Mouse_EnableCursorMode) },
         { "Mouse::GetModeGraphic^1",          API_FN_PAIR(Mouse_GetModeGraphic) },
-        { "Mouse::IsButtonDown^1",            API_FN_PAIR(IsButtonDown) },
-        { "Mouse::IsModeEnabled^1",           API_FN_PAIR(IsModeEnabled) },
-        { "Mouse::SaveCursorUntilItLeaves^0", API_FN_PAIR(SaveCursorForLocationChange) },
-        { "Mouse::SelectNextMode^0",          API_FN_PAIR(SetNextCursor) },
-        { "Mouse::SelectPreviousMode^0",      API_FN_PAIR(SetPreviousCursor) },
-        { "Mouse::SetBounds^4",               API_FN_PAIR(SetMouseBounds) },
-        { "Mouse::SetPosition^2",             API_FN_PAIR(SetMousePosition) },
-        { "Mouse::Update^0",                  API_FN_PAIR(RefreshMouse) },
-        { "Mouse::UseDefaultGraphic^0",       API_FN_PAIR(set_default_cursor) },
-        { "Mouse::UseModeGraphic^1",          API_FN_PAIR(set_mouse_cursor) },
+        { "Mouse::IsButtonDown^1",            API_FN_PAIR(Mouse_IsButtonDown) },
+        { "Mouse::IsModeEnabled^1",           API_FN_PAIR(Mouse_IsModeEnabled) },
+        { "Mouse::SaveCursorUntilItLeaves^0", API_FN_PAIR(Mouse_SaveCursorForLocationChange) },
+        { "Mouse::SelectNextMode^0",          API_FN_PAIR(Mouse_SetNextCursor) },
+        { "Mouse::SelectPreviousMode^0",      API_FN_PAIR(Mouse_SetPreviousCursor) },
+        { "Mouse::SetBounds^4",               API_FN_PAIR(Mouse_SetBounds) },
+        { "Mouse::SetPosition^2",             API_FN_PAIR(Mouse_SetPosition) },
+        { "Mouse::Update^0",                  API_FN_PAIR(Mouse_Refresh) },
+        { "Mouse::UseDefaultGraphic^0",       API_FN_PAIR(Mouse_SetDefaultCursor) },
+        { "Mouse::UseModeGraphic^1",          API_FN_PAIR(Mouse_SetCursor) },
         { "Mouse::get_AutoLock",              API_FN_PAIR(Mouse_GetAutoLock) },
         { "Mouse::set_AutoLock",              API_FN_PAIR(Mouse_SetAutoLock) },
         { "Mouse::get_ControlEnabled",        Sc_Mouse_GetControlEnabled, Mouse::IsControlEnabled },
         { "Mouse::set_ControlEnabled",        Sc_Mouse_SetControlEnabled, Mouse_EnableControl },
-        { "Mouse::get_Mode",                  API_FN_PAIR(GetCursorMode) },
-        { "Mouse::set_Mode",                  API_FN_PAIR(set_cursor_mode) },
+        { "Mouse::get_Mode",                  API_FN_PAIR(Mouse_GetCursorMode) },
+        { "Mouse::set_Mode",                  API_FN_PAIR(Mouse_SetCursorMode) },
         { "Mouse::get_Speed",                 Sc_Mouse_GetSpeed, Mouse::GetSpeed },
         { "Mouse::set_Speed",                 Sc_Mouse_SetSpeed, Mouse::SetSpeed },
         { "Mouse::get_Visible",               API_FN_PAIR(Mouse_GetVisible) },

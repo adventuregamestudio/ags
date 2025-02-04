@@ -510,7 +510,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     }
 
     set_our_eip(202);
-    SetMouseBounds(0, 0, 0, 0);
+    Mouse_SetBounds(0, 0, 0, 0);
 
     set_our_eip(203);
     in_new_room=1;

@@ -23,32 +23,40 @@ int Mouse_GetModeGraphic(int curs);
 void Mouse_ChangeModeView(int curs, int newview, int delay);
 // The Mouse:: functions are static so the script doesn't pass
 // in an object parameter
-void SetMousePosition (int newx, int newy);
-int GetCursorMode();
-void SetNextCursor ();
+void Mouse_SetPosition (int newx, int newy);
+int Mouse_GetCursorMode();
+void Mouse_SetNextCursor ();
 // permanently change cursor graphic
-void ChangeCursorGraphic (int curs, int newslot);
-void ChangeCursorHotspot (int curs, int x, int y);
-int IsButtonDown(int which);
-void SetMouseBounds (int x1, int y1, int x2, int y2);
-void RefreshMouse();
+void Mouse_ChangeCursorGraphic (int curs, int newslot);
+void Mouse_ChangeCursorHotspot (int curs, int x, int y);
+int  Mouse_IsButtonDown(int which);
+void Mouse_SetBounds (int x1, int y1, int x2, int y2);
+void Mouse_Refresh();
 // mouse cursor functions:
 // set_mouse_cursor: changes visual appearance to specified cursor
-void set_mouse_cursor(int newcurs, bool force_update = false);
+void Mouse_SetCursor(int newcurs);
+int  Mouse_GetCursor();
 // set_default_cursor: resets visual appearance to current mode (walk, look, etc);
-void set_default_cursor();
+void Mouse_SetDefaultCursor();
 // set_cursor_mode: changes mode and appearance
-void set_cursor_mode(int newmode);
-void enable_cursor_mode(int modd);
-void disable_cursor_mode(int modd);
+void Mouse_SetCursorMode(int newmode);
+void Mouse_EnableCursorMode(int modd);
+void Mouse_DisableCursorMode(int modd);
+
+void Mouse_SaveCursorForLocationChange();
 
 // Try to enable or disable mouse speed control by the engine
 void Mouse_EnableControl(bool on);
-void SimulateMouseClick(int button_id);
+void Mouse_SimulateClick(int button_id);
 
 //=============================================================================
 
-int GetMouseCursor();
+void set_mouse_cursor(int newcurs, bool force_update = false);
+void set_cursor_mode(int newmode);
+void set_default_cursor();
+void enable_cursor_mode(int modd);
+void disable_cursor_mode(int modd);
+
 void update_script_mouse_coords();
 void update_inv_cursor(int invnum);
 void set_new_cursor_graphic (int spriteslot);

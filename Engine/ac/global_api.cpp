@@ -71,10 +71,6 @@ RuntimeScriptValue Sc_CallRoomScript(const RuntimeScriptValue *params, int32_t p
     API_SCALL_VOID_PINT(CallRoomScript);
 }
 
-extern RuntimeScriptValue Sc_ChangeCursorGraphic(const RuntimeScriptValue *params, int32_t param_count);
-
-extern RuntimeScriptValue Sc_ChangeCursorHotspot(const RuntimeScriptValue *params, int32_t param_count);
-
 // void ()
 RuntimeScriptValue Sc_ClaimEvent(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -109,8 +105,6 @@ RuntimeScriptValue Sc_free_dynamic_sprite(const RuntimeScriptValue *params, int3
 {
     API_SCALL_VOID_PINT(free_dynamic_sprite);
 }
-
-extern RuntimeScriptValue Sc_disable_cursor_mode(const RuntimeScriptValue *params, int32_t param_count);
 
 // void (int alsoEffects)
 RuntimeScriptValue Sc_DisableGroundLevelAreas(const RuntimeScriptValue *params, int32_t param_count)
@@ -155,8 +149,6 @@ RuntimeScriptValue Sc_DisplayTopBar(const RuntimeScriptValue *params, int32_t pa
     DisplayTopBar(params[0].IValue, params[1].IValue, params[2].IValue, params[3].CStr, scsf_buffer);
     return RuntimeScriptValue((int32_t)0);
 }
-
-extern RuntimeScriptValue Sc_enable_cursor_mode(const RuntimeScriptValue *params, int32_t param_count);
 
 // void ()
 RuntimeScriptValue Sc_EnableGroundLevelAreas(const RuntimeScriptValue *params, int32_t param_count)
@@ -211,8 +203,6 @@ RuntimeScriptValue Sc_GetBackgroundFrame(const RuntimeScriptValue *params, int32
 {
     API_SCALL_INT(GetBackgroundFrame);
 }
-
-extern RuntimeScriptValue Sc_GetCursorMode(const RuntimeScriptValue *params, int32_t param_count);
 
 // int  (int opt)
 RuntimeScriptValue Sc_GetGameOption(const RuntimeScriptValue *params, int32_t param_count)
@@ -328,8 +318,6 @@ RuntimeScriptValue Sc_IntToFloat(const RuntimeScriptValue *params, int32_t param
     API_SCALL_FLOAT_PINT(IntToFloat);
 }
 
-extern RuntimeScriptValue Sc_IsButtonDown(const RuntimeScriptValue *params, int32_t param_count);
-
 // int ()
 RuntimeScriptValue Sc_IsGamePaused(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -413,8 +401,6 @@ RuntimeScriptValue Sc_Rand(const RuntimeScriptValue *params, int32_t param_count
     API_SCALL_INT_PINT(__Rand);
 }
 
-extern RuntimeScriptValue Sc_RefreshMouse(const RuntimeScriptValue *params, int32_t param_count);
-
 // void (int areanum)
 RuntimeScriptValue Sc_RemoveWalkableArea(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -463,8 +449,6 @@ RuntimeScriptValue Sc_RunAGSGame(const RuntimeScriptValue *params, int32_t param
 }
 
 extern RuntimeScriptValue Sc_Said(const RuntimeScriptValue *params, int32_t param_count);
-
-extern RuntimeScriptValue Sc_SaveCursorForLocationChange(const RuntimeScriptValue *params, int32_t param_count);
 
 // void ()
 RuntimeScriptValue Sc_save_game_dialog(const RuntimeScriptValue *params, int32_t param_count)
@@ -523,9 +507,6 @@ RuntimeScriptValue Sc_SetBackgroundFrame(const RuntimeScriptValue *params, int32
      API_SCALL_VOID_PINT(SetBackgroundFrame);
 }
 
-extern RuntimeScriptValue Sc_set_cursor_mode(const RuntimeScriptValue *params, int32_t param_count);
-extern RuntimeScriptValue Sc_set_default_cursor(const RuntimeScriptValue *params, int32_t param_count);
-
 // void (int red, int green, int blue)
 RuntimeScriptValue Sc_SetFadeColor(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -544,25 +525,17 @@ RuntimeScriptValue Sc_SetGameSpeed(const RuntimeScriptValue *params, int32_t par
     API_SCALL_VOID_PINT(SetGameSpeed);
 }
 
-extern RuntimeScriptValue Sc_SetMouseBounds(const RuntimeScriptValue *params, int32_t param_count);
-extern RuntimeScriptValue Sc_set_mouse_cursor(const RuntimeScriptValue *params, int32_t param_count);
-extern RuntimeScriptValue Sc_SetMousePosition(const RuntimeScriptValue *params, int32_t param_count);
-
 // void  (int mode)
 RuntimeScriptValue Sc_SetMultitasking(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT(SetMultitasking);
 }
 
-extern RuntimeScriptValue Sc_SetNextCursor(const RuntimeScriptValue *params, int32_t param_count);
-
 // void (int newtrans)
 RuntimeScriptValue Sc_SetNextScreenTransition(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT(SetNextScreenTransition);
 }
-
-extern RuntimeScriptValue Sc_SetNormalFont(const RuntimeScriptValue *params, int32_t param_count);
 
 // void (int inndx,int rr,int gg,int bb)
 RuntimeScriptValue Sc_SetPalRGB(const RuntimeScriptValue *params, int32_t param_count)
@@ -581,8 +554,6 @@ RuntimeScriptValue Sc_SetScreenTransition(const RuntimeScriptValue *params, int3
 {
     API_SCALL_VOID_PINT(SetScreenTransition);
 }
-
-extern RuntimeScriptValue Sc_SetSpeechFont(const RuntimeScriptValue *params, int32_t param_count);
 
 // void (int newvol)
 RuntimeScriptValue Sc_SetSpeechVolume(const RuntimeScriptValue *params, int32_t param_count)
@@ -746,15 +717,12 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "AbortGame",                Sc_sc_AbortGame, ScPl_sc_AbortGame },
         { "AreThingsOverlapping",     API_FN_PAIR(AreThingsOverlapping) },
         { "CallRoomScript",           API_FN_PAIR(CallRoomScript) },
-        { "ChangeCursorGraphic",      API_FN_PAIR(ChangeCursorGraphic) },
-        { "ChangeCursorHotspot",      API_FN_PAIR(ChangeCursorHotspot) },
         { "ClaimEvent",               API_FN_PAIR(ClaimEvent) },
         { "CopySaveSlot",             API_FN_PAIR(CopySaveSlot) },
         { "CyclePalette",             API_FN_PAIR(CyclePalette) },
         { "Debug",                    API_FN_PAIR(script_debug) },
         { "DeleteSaveSlot",           API_FN_PAIR(DeleteSaveSlot) },
         { "DeleteSprite",             API_FN_PAIR(free_dynamic_sprite) },
-        { "DisableCursorMode",        API_FN_PAIR(disable_cursor_mode) },
         { "DisableGroundLevelAreas",  API_FN_PAIR(DisableGroundLevelAreas) },
         { "DisableInterface",         API_FN_PAIR(DisableInterface) },
         { "Display",                  Sc_Display, ScPl_Display },
@@ -764,7 +732,6 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         // do we have to do anything about this here? like, test vs script API version...
         { "DisplayAtY",               Sc_DisplayAtY, ScPl_DisplayAtY },
         { "DisplayTopBar",            Sc_DisplayTopBar, ScPl_DisplayTopBar },
-        { "EnableCursorMode",         API_FN_PAIR(enable_cursor_mode) },
         { "EnableGroundLevelAreas",   API_FN_PAIR(EnableGroundLevelAreas) },
         { "EnableInterface",          API_FN_PAIR(EnableInterface) },
         { "EndCutscene",              API_FN_PAIR(EndCutscene) },
@@ -774,7 +741,6 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "FlipScreen",               API_FN_PAIR(FlipScreen) },
         { "FloatToInt",               API_FN_PAIR(FloatToInt) },
         { "GetBackgroundFrame",       API_FN_PAIR(GetBackgroundFrame) },
-        { "GetCursorMode",            API_FN_PAIR(GetCursorMode) },
         { "GetGameOption",            API_FN_PAIR(GetGameOption) },
         { "GetGameSpeed",             API_FN_PAIR(GetGameSpeed) },
         { "GetLocationType",          API_FN_PAIR(GetLocationType) },
@@ -797,7 +763,6 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "InterfaceOff",             API_FN_PAIR(InterfaceOff) },
         { "InterfaceOn",              API_FN_PAIR(InterfaceOn) },
         { "IntToFloat",               API_FN_PAIR(IntToFloat) },
-        { "IsButtonDown",             API_FN_PAIR(IsButtonDown) },
         { "IsGamePaused",             API_FN_PAIR(IsGamePaused) },
         { "IsInteractionAvailable",   API_FN_PAIR(IsInteractionAvailable) },
         { "IsInterfaceEnabled",       API_FN_PAIR(IsInterfaceEnabled) },
@@ -813,7 +778,6 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "PlayVideo",                API_FN_PAIR(PlayVideo) },
         { "QuitGame",                 API_FN_PAIR(QuitGame) },
         { "Random",                   Sc_Rand, __Rand },
-        { "RefreshMouse",             API_FN_PAIR(RefreshMouse) },
         { "RemoveWalkableArea",       API_FN_PAIR(RemoveWalkableArea) },
         { "ResetRoom",                API_FN_PAIR(ResetRoom) },
         { "RestartGame",              API_FN_PAIR(restart_game) },
@@ -821,23 +785,16 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "RestoreWalkableArea",      API_FN_PAIR(RestoreWalkableArea) },
         { "RunAGSGame",               API_FN_PAIR(RunAGSGame) },
         { "Said",                     API_FN_PAIR(Said) },
-        { "SaveCursorForLocationChange", API_FN_PAIR(SaveCursorForLocationChange) },
         { "SaveScreenShot",           API_FN_PAIR(SaveScreenShot) },
         { "SendEvent",                Sc_SendEvent, run_on_event },
         { "SetAmbientTint",           API_FN_PAIR(SetAmbientTint) },
         { "SetAmbientLightLevel",     API_FN_PAIR(SetAmbientLightLevel) },
         { "SetAreaScaling",           API_FN_PAIR(SetAreaScaling) },
         { "SetBackgroundFrame",       API_FN_PAIR(SetBackgroundFrame) },
-        { "SetCursorMode",            API_FN_PAIR(set_cursor_mode) },
-        { "SetDefaultCursor",         API_FN_PAIR(set_default_cursor) },
         { "SetFadeColor",             API_FN_PAIR(SetFadeColor) },
         { "SetGameOption",            API_FN_PAIR(SetGameOption) },
         { "SetGameSpeed",             API_FN_PAIR(SetGameSpeed) },
-        { "SetMouseBounds",           API_FN_PAIR(SetMouseBounds) },
-        { "SetMouseCursor",           API_FN_PAIR(set_mouse_cursor) },
-        { "SetMousePosition",         API_FN_PAIR(SetMousePosition) },
         { "SetMultitaskingMode",      API_FN_PAIR(SetMultitasking) },
-        { "SetNextCursorMode",        API_FN_PAIR(SetNextCursor) },
         { "SetNextScreenTransition",  API_FN_PAIR(SetNextScreenTransition) },
         { "SetPalRGB",                API_FN_PAIR(SetPalRGB) },
         { "SetRestartPoint",          API_FN_PAIR(SetRestartPoint) },

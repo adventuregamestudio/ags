@@ -716,11 +716,11 @@ int IAGSEngine::DecrementManagedObjectRefCount(void *address) {
 
 void IAGSEngine::SetMousePosition(int32 x, int32 y) {
     Mouse::SetPosition(Point(x, y));
-    RefreshMouse();
+    Mouse_Refresh();
 }
 
 void IAGSEngine::SimulateMouseClick(int32 button) {
-    ::SimulateMouseClick(button);
+    Mouse_SimulateClick(button);
 }
 
 int IAGSEngine::GetMovementPathWaypointCount(int32 pathId) {

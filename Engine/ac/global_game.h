@@ -105,7 +105,6 @@ void ShowInputBox(const char *msg, char *bufr);
 void ShowInputBoxImpl(const char *msg, char *bufr, size_t buf_len);
 
 int GetLocationType(int xxx,int yyy);
-void SaveCursorForLocationChange();
 // GetLocationName assumes a string buffer of MAX_MAXSTRLEN
 void GetLocationName(int xxx,int yyy, char *buf);
 

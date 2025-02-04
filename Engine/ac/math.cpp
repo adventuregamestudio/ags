@@ -39,11 +39,6 @@ float IntToFloat(int value)
     return static_cast<float>(value);
 }
 
-float StringToFloat(const char *theString)
-{
-    return static_cast<float>(atof(theString));
-}
-
 float Math_Cos(float value)
 {
     return cos(value);

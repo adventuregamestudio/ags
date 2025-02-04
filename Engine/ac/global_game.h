@@ -67,7 +67,6 @@ void MoveSaveSlot (int old_slot, int new_slot);
 void SaveGameSlot(int slnum, const char *descript, int spritenum);
 void SaveGameSlot2(int slnum, const char *descript);
 void DeleteSaveSlot (int slnum);
-int  GetSaveSlotDescription(int slnum,char*desbuf);// [DEPRECATED] ?
 // Fills a list of SaveListItems by any save files found within the given range
 void FillSaveList(std::vector<SaveListItem> &saves, unsigned bot_index, unsigned top_index, bool get_description);
 // Fills a list of SaveListItems by any save files found within the given range; sorts the resulting list
@@ -117,9 +116,6 @@ void SetMultitasking (int mode);
 
 void RoomProcessClick(int xx,int yy,int mood);
 int IsInteractionAvailable (int xx,int yy,int mood);
-
-void SetSpeechFont (int fontnum);
-void SetNormalFont (int fontnum);
 
 void _sc_AbortGame(const char* text);
 

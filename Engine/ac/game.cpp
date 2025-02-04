@@ -821,8 +821,19 @@ const char* Game_GetLocationName(int x, int y) {
 int Game_GetSpeechFont() {
     return play.speech_font;
 }
+
 int Game_GetNormalFont() {
     return play.normal_font;
+}
+
+void Game_SetSpeechFont(int fontnum) {
+    fontnum = ValidateFontNumber("SetSpeechFont", fontnum);
+    play.speech_font = fontnum;
+}
+
+void Game_SetNormalFont(int fontnum) {
+    fontnum = ValidateFontNumber("SetNormalFont", fontnum);
+    play.normal_font = fontnum;
 }
 
 const char* Game_GetTranslationFilename() {
@@ -1864,9 +1875,9 @@ RuntimeScriptValue Sc_Game_GetNormalFont(const RuntimeScriptValue *params, int32
 }
 
 // void  (int fontnum);
-RuntimeScriptValue Sc_SetNormalFont(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Game_SetNormalFont(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT(SetNormalFont);
+    API_SCALL_VOID_PINT(Game_SetNormalFont);
 }
 
 // int ()
@@ -1882,9 +1893,9 @@ RuntimeScriptValue Sc_Game_GetSpeechFont(const RuntimeScriptValue *params, int32
 }
 
 // void  (int fontnum);
-RuntimeScriptValue Sc_SetSpeechFont(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Game_SetSpeechFont(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT(SetSpeechFont);
+    API_SCALL_VOID_PINT(Game_SetSpeechFont);
 }
 
 // int (int spriteNum)
@@ -2067,10 +2078,10 @@ void RegisterGameAPI()
         { "Game::get_Name",                               API_FN_PAIR(Game_GetName) },
         { "Game::set_Name",                               API_FN_PAIR(Game_SetName) },
         { "Game::get_NormalFont",                         API_FN_PAIR(Game_GetNormalFont) },
-        { "Game::set_NormalFont",                         API_FN_PAIR(SetNormalFont) },
+        { "Game::set_NormalFont",                         API_FN_PAIR(Game_SetNormalFont) },
         { "Game::get_SkippingCutscene",                   API_FN_PAIR(Game_GetSkippingCutscene) },
         { "Game::get_SpeechFont",                         API_FN_PAIR(Game_GetSpeechFont) },
-        { "Game::set_SpeechFont",                         API_FN_PAIR(SetSpeechFont) },
+        { "Game::set_SpeechFont",                         API_FN_PAIR(Game_SetSpeechFont) },
         { "Game::geti_SpriteWidth",                       API_FN_PAIR(Game_GetSpriteWidth) },
         { "Game::geti_SpriteHeight",                      API_FN_PAIR(Game_GetSpriteHeight) },
         { "Game::geti_SpriteColorDepth",                  API_FN_PAIR(Game_GetSpriteDepth) },

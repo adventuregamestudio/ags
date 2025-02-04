@@ -643,18 +643,6 @@ RuntimeScriptValue Sc_stop_and_destroy_channel(const RuntimeScriptValue *params,
     API_SCALL_VOID_PINT(stop_and_destroy_channel);
 }
 
-// int (const char*stino)
-RuntimeScriptValue Sc_StringToInt(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_POBJ(StringToInt, const char);
-}
-
-RuntimeScriptValue Sc_strlen(const RuntimeScriptValue *params, int32_t param_count)
-{
-    // Calling C stdlib function strlen
-    API_SCALL_INT_POBJ(strlen, const char);
-}
-
 // void (int red, int grn, int blu)
 RuntimeScriptValue Sc_TintScreen(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -851,11 +839,9 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "SetMultitaskingMode",      API_FN_PAIR(SetMultitasking) },
         { "SetNextCursorMode",        API_FN_PAIR(SetNextCursor) },
         { "SetNextScreenTransition",  API_FN_PAIR(SetNextScreenTransition) },
-        { "SetNormalFont",            API_FN_PAIR(SetNormalFont) },
         { "SetPalRGB",                API_FN_PAIR(SetPalRGB) },
         { "SetRestartPoint",          API_FN_PAIR(SetRestartPoint) },
         { "SetScreenTransition",      API_FN_PAIR(SetScreenTransition) },
-        { "SetSpeechFont",            API_FN_PAIR(SetSpeechFont) },
         { "SetSpeechVolume",          API_FN_PAIR(SetSpeechVolume) },
         { "SetTextWindowGUI",         API_FN_PAIR(SetTextWindowGUI) },
         { "SetTimer",                 API_FN_PAIR(SetTimer) },
@@ -866,8 +852,6 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "SkipUntilCharacterStops",  API_FN_PAIR(SkipUntilCharacterStops) },
         { "StartCutscene",            API_FN_PAIR(StartCutscene) },
         { "StopChannel",              API_FN_PAIR(stop_and_destroy_channel) },
-        { "StringToInt",              API_FN_PAIR(StringToInt) },
-        { "StrLen",                   API_FN_PAIR(strlen) },
         { "TintScreen",               API_FN_PAIR(TintScreen) },
         { "UnPauseGame",              API_FN_PAIR(UnPauseGame) },
         { "UpdateInventory",          API_FN_PAIR(UpdateInventory) },

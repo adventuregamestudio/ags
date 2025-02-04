@@ -29,7 +29,6 @@ enum RoundDirections {
 
 int FloatToInt(float value, int roundDirection);
 float IntToFloat(int value);
-float StringToFloat(const char *theString);
 float Math_Cos(float value);
 float Math_Sin(float value);
 float Math_Tan(float value);

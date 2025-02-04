@@ -114,6 +114,8 @@ const char* Game_GetLocationName(int x, int y);
 
 int Game_GetSpeechFont();
 int Game_GetNormalFont();
+void Game_SetNormalFont(int font);
+void Game_SetSpeechFont(int font);
 
 const char* Game_GetTranslationFilename();
 int Game_ChangeTranslation(const char *newFilename);

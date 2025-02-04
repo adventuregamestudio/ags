@@ -93,9 +93,9 @@ bool init_translation(const String &lang, const String &fallback_lang)
     Debug::Printf("Translation loaded: %s", trans_filename.GetCStr());
     // Configure new game settings
     if (trans.NormalFont >= 0)
-        SetNormalFont(trans.NormalFont);
+        Game_SetNormalFont(trans.NormalFont);
     if (trans.SpeechFont >= 0)
-        SetSpeechFont(trans.SpeechFont);
+        Game_SetSpeechFont(trans.SpeechFont);
     if (trans.RightToLeft == 1)
     {
         play.text_align = kHAlignLeft;

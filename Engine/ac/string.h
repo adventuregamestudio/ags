@@ -53,8 +53,10 @@ const char* String_Replace(const char *thisString, const char *lookForText, cons
 const char* String_LowerCase(const char *thisString);
 const char* String_UpperCase(const char *thisString);
 int String_GetChars(const char *texx, int index);
-int StringToInt(const char*stino);
-int StrContains (const char *s1, const char *s2);
+int String_AsInt(const char*stino);
+float String_AsFloat(const char *theString);
+int String_IndexOf(const char *thisString, const char *lookForText, bool caseSensitive, int startIndex, int count);
+int String_IndexOf2(const char *s1, const char *s2);
 
 //=============================================================================
 

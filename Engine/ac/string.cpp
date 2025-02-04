@@ -449,8 +449,13 @@ int String_GetChars(const char *thisString, int index) {
     return ugetc(thisString + off);
 }
 
-int StringToInt(const char*stino) {
+int String_AsInt(const char*stino) {
     return atoi(stino);
+}
+
+float String_AsFloat(const char *theString)
+{
+    return static_cast<float>(atof(theString));
 }
 
 int String_IndexOf (const char *thisString, const char *lookForText, bool caseSensitive, int startIndex, int count) {
@@ -496,7 +501,7 @@ int String_IndexOf (const char *thisString, const char *lookForText, bool caseSe
     return startIndex + ustrlen(thistmpbuf.get());
 }
 
-int StrContains (const char *s1, const char *s2) {
+int String_IndexOf2(const char *s1, const char *s2) {
     return String_IndexOf(s1, s2, false, 0, 0);
 }
 
@@ -598,9 +603,9 @@ RuntimeScriptValue Sc_String_CompareTo(void *self, const RuntimeScriptValue *par
 }
 
 // int  (const char *s1, const char *s2)
-RuntimeScriptValue Sc_StrContains(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_String_IndexOf2(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT_POBJ(const char, StrContains, const char);
+    API_OBJCALL_INT_POBJ(const char, String_IndexOf2, const char);
 }
 
 // int  (const char *s1, const char *s2)
@@ -681,16 +686,16 @@ RuntimeScriptValue Sc_String_Split(void *self, const RuntimeScriptValue *params,
     API_OBJCALL_OBJ_POBJ_PINT(const char, void, globalDynamicArray, String_Split, const char);
 }
 
-// FLOAT_RETURN_TYPE (const char *theString);
-RuntimeScriptValue Sc_StringToFloat(void *self, const RuntimeScriptValue *params, int32_t param_count)
+// int (char*stino)
+RuntimeScriptValue Sc_String_AsInt(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_FLOAT(const char, StringToFloat);
+    API_OBJCALL_INT(const char, String_AsInt);
 }
 
-// int (char*stino)
-RuntimeScriptValue Sc_StringToInt(void *self, const RuntimeScriptValue *params, int32_t param_count)
+// FLOAT_RETURN_TYPE (const char *theString);
+RuntimeScriptValue Sc_String_AsFloat(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(const char, StringToInt);
+    API_OBJCALL_FLOAT(const char, String_AsFloat);
 }
 
 // int (const char *texx, int index)
@@ -729,10 +734,10 @@ void RegisterStringAPI()
         { "String::Append^1",         API_FN_PAIR(String_Append) },
         { "String::AppendChar^1",     API_FN_PAIR(String_AppendChar) },
         { "String::CompareTo^2",      API_FN_PAIR(String_CompareTo) },
-        { "String::Contains^1",       API_FN_PAIR(StrContains) },
+        { "String::Contains^1",       API_FN_PAIR(String_IndexOf2) },
         { "String::Copy^0",           API_FN_PAIR(String_Copy) },
         { "String::EndsWith^2",       API_FN_PAIR(String_EndsWith) },
-        { "String::IndexOf^1",        API_FN_PAIR(StrContains) },
+        { "String::IndexOf^1",        API_FN_PAIR(String_IndexOf2) },
         { "String::IndexOf^4",        API_FN_PAIR(String_IndexOf) },
         { "String::LowerCase^0",      API_FN_PAIR(String_LowerCase) },
         { "String::Replace^3",        API_FN_PAIR(String_Replace) },
@@ -743,8 +748,8 @@ void RegisterStringAPI()
         { "String::Trim^0",           API_FN_PAIR(String_Trim) },
         { "String::UpperCase^0",      API_FN_PAIR(String_UpperCase) },
         { "String::Split^2",          API_FN_PAIR(String_Split) },
-        { "String::get_AsFloat",      API_FN_PAIR(StringToFloat) },
-        { "String::get_AsInt",        API_FN_PAIR(StringToInt) },
+        { "String::get_AsFloat",      API_FN_PAIR(String_AsFloat) },
+        { "String::get_AsInt",        API_FN_PAIR(String_AsInt) },
         { "String::geti_Chars",       API_FN_PAIR(String_GetChars) },
         { "String::get_Length",       API_FN_PAIR(String_GetLength) },
     };

@@ -195,15 +195,6 @@ bool GetSaveSlotDescription(int slnum, String &description) {
     return false;
 }
 
-// CLNUP check this, used by ListBox_FillSaveGameList, but Game_GetSaveSlotDescription exist too
-int GetSaveSlotDescription(int slnum, char *desbuf) {
-    VALIDATE_STRING(desbuf);
-    String description;
-    bool res = GetSaveSlotDescription(slnum, description);
-    snprintf(desbuf, MAX_MAXSTRLEN, "%s", description.GetCStr());
-    return res ? 1 : 0;
-}
-
 void FillSaveList(std::vector<SaveListItem> &saves, unsigned bot_index, unsigned top_index, bool get_description)
 {
     if (top_index < bot_index)
@@ -791,16 +782,6 @@ int IsInteractionAvailable (int xx,int yy,int mood) {
         return 1;
 
     return 0;
-}
-
-void SetSpeechFont (int fontnum) {
-    fontnum = ValidateFontNumber("SetSpeechFont", fontnum);
-    play.speech_font = fontnum;
-}
-
-void SetNormalFont (int fontnum) {
-    fontnum = ValidateFontNumber("SetNormalFont", fontnum);
-    play.normal_font = fontnum;
 }
 
 void _sc_AbortGame(const char* text) {

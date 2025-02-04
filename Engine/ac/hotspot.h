@@ -33,6 +33,7 @@ void    Hotspot_GetName(ScriptHotspot *hss, char *buffer);
 const char* Hotspot_GetName_New(ScriptHotspot *hss);
 bool    Hotspot_IsInteractionAvailable(ScriptHotspot *hhot, int mood);
 void    Hotspot_RunInteraction (ScriptHotspot *hss, int mood);
+void    RunHotspotInteraction(int hotspothere, int mood);
 
 int     Hotspot_GetProperty (ScriptHotspot *hss, const char *property);
 void    Hotspot_GetPropertyText (ScriptHotspot *hss, const char *property, char *bufer);

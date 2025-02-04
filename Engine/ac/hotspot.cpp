@@ -12,10 +12,11 @@
 //
 //=============================================================================
 #include "ac/dynobj/cc_hotspot.h"
+#include "ac/character.h"
 #include "ac/common.h"
 #include "ac/hotspot.h"
+#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
-#include "ac/global_hotspot.h"
 #include "ac/global_translation.h"
 #include "ac/gui.h"
 #include "ac/properties.h"
@@ -26,14 +27,17 @@
 #include "game/roomstruct.h"
 #include "gfx/bitmap.h"
 #include "script/runtimescriptvalue.h"
+#include "script/script.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
+extern GameSetupStruct game;
 extern RoomStruct thisroom;
 extern RoomStatus*croom;
 extern ScriptHotspot scrHotspot[MAX_ROOM_HOTSPOTS];
 extern CCHotspot ccDynamicHotspot;
+extern CharacterInfo *playerchar;
 
 bool AssertHotspot(const char *apiname, int hot_id)
 {
@@ -41,6 +45,20 @@ bool AssertHotspot(const char *apiname, int hot_id)
         return true;
     debug_script_warn("%s: invalid hotspot id %d (range is 0..%d)", apiname, hot_id, thisroom.HotspotCount - 1);
     return false;
+}
+
+void DisableHotspot(int hsnum) {
+    if ((hsnum < 1) | (hsnum >= MAX_ROOM_HOTSPOTS))
+        quit("!DisableHotspot: invalid hotspot specified");
+    croom->hotspot[hsnum].Enabled = false;
+    debug_script_log("Hotspot %d disabled", hsnum);
+}
+
+void EnableHotspot(int hsnum) {
+    if ((hsnum < 1) | (hsnum >= MAX_ROOM_HOTSPOTS))
+        quit("!EnableHotspot: invalid hotspot specified");
+    croom->hotspot[hsnum].Enabled = true;
+    debug_script_log("Hotspot %d re-enabled", hsnum);
 }
 
 void Hotspot_SetEnabled(ScriptHotspot *hss, int newval) {
@@ -61,6 +79,26 @@ int Hotspot_GetID(ScriptHotspot *hss) {
 const char *Hotspot_GetScriptName(ScriptHotspot *hss)
 {
     return CreateNewScriptString(thisroom.Hotspots[hss->id].ScriptName);
+}
+
+int GetHotspotPointX(int hotspot) {
+    if ((hotspot < 0) || (hotspot >= MAX_ROOM_HOTSPOTS))
+        quit("!GetHotspotPointX: invalid hotspot");
+
+    if (thisroom.Hotspots[hotspot].WalkTo.X < 1)
+        return -1;
+
+    return thisroom.Hotspots[hotspot].WalkTo.X;
+}
+
+int GetHotspotPointY(int hotspot) {
+    if ((hotspot < 0) || (hotspot >= MAX_ROOM_HOTSPOTS))
+        quit("!GetHotspotPointY: invalid hotspot");
+
+    if (thisroom.Hotspots[hotspot].WalkTo.X < 1) // TODO: there was "x" here, why?
+        return -1;
+
+    return thisroom.Hotspots[hotspot].WalkTo.Y;
 }
 
 int Hotspot_GetWalkToX(ScriptHotspot *hss) {
@@ -84,6 +122,14 @@ ScriptHotspot *Hotspot_GetAtScreenXY(int x, int y)
     return Hotspot_GetAtRoomXY(vpt.first.X, vpt.first.Y);
 }
 
+void GetHotspotName(int hotspot, char *buffer) {
+    VALIDATE_STRING(buffer);
+    if ((hotspot < 0) || (hotspot >= MAX_ROOM_HOTSPOTS))
+        quit("!GetHotspotName: invalid hotspot number");
+
+    snprintf(buffer, MAX_MAXSTRLEN, "%s", get_translation(croom->hotspot[hotspot].Name.GetCStr()));
+}
+
 void Hotspot_GetName(ScriptHotspot *hss, char *buffer) {
     GetHotspotName(hss->id, buffer);
 }
@@ -99,6 +145,44 @@ void Hotspot_SetName(ScriptHotspot *hss, const char *newName) {
         quit("!Hotspot.Name: invalid hotspot number");
     croom->hotspot[hss->id].Name = newName;
     GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
+}
+
+void RunHotspotInteraction(int hotspothere, int mood) {
+
+    // convert cursor mode to event index (in hotspot event table)
+    // TODO: probably move this conversion table elsewhere? should be a global info
+    // TODO: find out what is hotspot event with index 6 (5 is any-click)
+    int evnt;
+    switch (mood)
+    {
+    case MODE_WALK: evnt = 0; break;
+    case MODE_LOOK: evnt = 1; break;
+    case MODE_HAND: evnt = 2; break;
+    case MODE_TALK: evnt = 4; break;
+    case MODE_USE: evnt = 3; break;
+    case MODE_PICKUP: evnt = 7; break;
+    case MODE_CUSTOM1: evnt = 8; break;
+    case MODE_CUSTOM2: evnt = 9; break;
+    default: evnt = -1; break;
+    }
+    const int anyclick_evt = 5; // TODO: make global constant (hotspot any-click evt)
+
+    // For USE verb: remember active inventory
+    if (mood == MODE_USE)
+    {
+        play.usedinv = playerchar->activeinv;
+    }
+
+    if ((game.options[OPT_WALKONLOOK] == 0) & (mood == MODE_LOOK));
+    else if (play.auto_use_walkto_points == 0);
+    else if ((mood != MODE_WALK) && (play.check_interaction_only == 0))
+        MoveCharacterToHotspot(game.playercharacter, hotspothere);
+
+    const auto obj_evt = ObjectEvent(kScTypeRoom, "hotspot%d", hotspothere,
+                                     RuntimeScriptValue().SetScriptObject(&scrHotspot[hotspothere], &ccDynamicHotspot), mood);
+    if ((evnt >= 0) && run_interaction_script(obj_evt, thisroom.Hotspots[hotspothere].EventHandlers.get(), evnt, anyclick_evt) < 0)
+        return; // game state changed, don't do "any click"
+    run_interaction_script(obj_evt, thisroom.Hotspots[hotspothere].EventHandlers.get(), anyclick_evt); // any click on hotspot
 }
 
 bool Hotspot_IsInteractionAvailable(ScriptHotspot *hhot, int mood) {

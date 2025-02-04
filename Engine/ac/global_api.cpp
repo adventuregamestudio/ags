@@ -31,7 +31,6 @@
 #include "ac/global_display.h"
 #include "ac/global_game.h"
 #include "ac/global_gui.h"
-#include "ac/global_hotspot.h"
 #include "ac/global_inventoryitem.h"
 #include "ac/global_object.h"
 #include "ac/global_palette.h"
@@ -121,12 +120,6 @@ RuntimeScriptValue Sc_DisableGroundLevelAreas(const RuntimeScriptValue *params, 
     API_SCALL_VOID_PINT(DisableGroundLevelAreas);
 }
 
-// void (int hsnum)
-RuntimeScriptValue Sc_DisableHotspot(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(DisableHotspot);
-}
-
 // void ()
 RuntimeScriptValue Sc_DisableInterface(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -177,12 +170,6 @@ extern RuntimeScriptValue Sc_enable_cursor_mode(const RuntimeScriptValue *params
 RuntimeScriptValue Sc_EnableGroundLevelAreas(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID(EnableGroundLevelAreas);
-}
-
-// void (int hsnum)
-RuntimeScriptValue Sc_EnableHotspot(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(EnableHotspot);
 }
 
 // void ()
@@ -251,36 +238,6 @@ RuntimeScriptValue Sc_GetGameOption(const RuntimeScriptValue *params, int32_t pa
 RuntimeScriptValue Sc_GetGameSpeed(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT(GetGameSpeed);
-}
-
-// void (int hotspot, char *buffer)
-RuntimeScriptValue Sc_GetHotspotName(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT_POBJ(GetHotspotName, char);
-}
-
-// int  (int hotspot)
-RuntimeScriptValue Sc_GetHotspotPointX(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_PINT(GetHotspotPointX);
-}
-
-// int  (int hotspot)
-RuntimeScriptValue Sc_GetHotspotPointY(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_PINT(GetHotspotPointY);
-}
-
-// int  (int hss, const char *property)
-RuntimeScriptValue Sc_GetHotspotProperty(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_PINT_POBJ(GetHotspotProperty, const char);
-}
-
-// void  (int item, const char *property, char *bufer)
-RuntimeScriptValue Sc_GetHotspotPropertyText(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT_POBJ2(GetHotspotPropertyText, const char, char);
 }
 
 // int  (int xxx, int yyy)
@@ -559,12 +516,6 @@ RuntimeScriptValue Sc_RestoreWalkableArea(const RuntimeScriptValue *params, int3
 RuntimeScriptValue Sc_RunAGSGame(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT_POBJ_PINT2(RunAGSGame, const char);
-}
-
-// void  (int hotspothere, int mood)
-RuntimeScriptValue Sc_RunHotspotInteraction(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT2(RunHotspotInteraction);
 }
 
 // void  (int iit, int modd)
@@ -909,7 +860,6 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "DeleteSprite",             API_FN_PAIR(free_dynamic_sprite) },
         { "DisableCursorMode",        API_FN_PAIR(disable_cursor_mode) },
         { "DisableGroundLevelAreas",  API_FN_PAIR(DisableGroundLevelAreas) },
-        { "DisableHotspot",           API_FN_PAIR(DisableHotspot) },
         { "DisableInterface",         API_FN_PAIR(DisableInterface) },
         { "DisableRegion",            API_FN_PAIR(DisableRegion) },
         { "Display",                  Sc_Display, ScPl_Display },
@@ -921,7 +871,6 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "DisplayTopBar",            Sc_DisplayTopBar, ScPl_DisplayTopBar },
         { "EnableCursorMode",         API_FN_PAIR(enable_cursor_mode) },
         { "EnableGroundLevelAreas",   API_FN_PAIR(EnableGroundLevelAreas) },
-        { "EnableHotspot",            API_FN_PAIR(EnableHotspot) },
         { "EnableInterface",          API_FN_PAIR(EnableInterface) },
         { "EnableRegion",             API_FN_PAIR(EnableRegion) },
         { "EndCutscene",              API_FN_PAIR(EndCutscene) },
@@ -934,11 +883,6 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "GetCursorMode",            API_FN_PAIR(GetCursorMode) },
         { "GetGameOption",            API_FN_PAIR(GetGameOption) },
         { "GetGameSpeed",             API_FN_PAIR(GetGameSpeed) },
-        { "GetHotspotName",           API_FN_PAIR(GetHotspotName) },
-        { "GetHotspotPointX",         API_FN_PAIR(GetHotspotPointX) },
-        { "GetHotspotPointY",         API_FN_PAIR(GetHotspotPointY) },
-        { "GetHotspotProperty",       API_FN_PAIR(GetHotspotProperty) },
-        { "GetHotspotPropertyText",   API_FN_PAIR(GetHotspotPropertyText) },
         { "GetInvAt",                 API_FN_PAIR(GetInvAt) },
         { "GetInvGraphic",            API_FN_PAIR(GetInvGraphic) },
         { "GetInvName",               API_FN_PAIR(GetInvName) },
@@ -989,7 +933,6 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "RestoreGameSlot",          API_FN_PAIR(RestoreGameSlot) },
         { "RestoreWalkableArea",      API_FN_PAIR(RestoreWalkableArea) },
         { "RunAGSGame",               API_FN_PAIR(RunAGSGame) },
-        { "RunHotspotInteraction",    API_FN_PAIR(RunHotspotInteraction) },
         { "RunInventoryInteraction",  API_FN_PAIR(RunInventoryInteraction) },
         { "RunRegionInteraction",     API_FN_PAIR(RunRegionInteraction) },
         { "Said",                     API_FN_PAIR(Said) },

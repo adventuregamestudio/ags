@@ -148,8 +148,6 @@ target_sources(engine
     ac/global_game.h
     ac/global_gui.cpp
     ac/global_gui.h
-    ac/global_hotspot.cpp
-    ac/global_hotspot.h
     ac/global_inventoryitem.cpp
     ac/global_inventoryitem.h
     ac/global_object.cpp

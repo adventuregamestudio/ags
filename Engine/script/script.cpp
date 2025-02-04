@@ -25,7 +25,6 @@
 #include "ac/global_display.h"
 #include "ac/global_game.h"
 #include "ac/global_gui.h"
-#include "ac/global_hotspot.h"
 #include "ac/global_object.h"
 #include "ac/global_room.h"
 #include "ac/global_video.h"

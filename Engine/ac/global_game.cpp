@@ -28,7 +28,6 @@
 #include "ac/gamestate.h"
 #include "ac/global_display.h"
 #include "ac/global_gui.h"
-#include "ac/global_hotspot.h"
 #include "ac/global_inventoryitem.h"
 #include "ac/global_translation.h"
 #include "ac/gui.h"

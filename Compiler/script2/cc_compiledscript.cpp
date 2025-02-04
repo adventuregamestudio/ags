@@ -82,7 +82,7 @@ AGS::GlobalLoc AGS::ccCompiledScript::AddGlobal(size_t const value_size, void *v
 {
     assert(globaldata.size() + value_size <= INT32_MAX);
     if (0u == value_size)
-        return static_cast<int32_t>(globaldata.size()); // nothing to do
+        return static_cast<GlobalLoc>(globaldata.size()); // nothing to do
 
     // The new global variable will be moved to &(globaldata[offset])
     size_t const offset = globaldata.size();
@@ -215,7 +215,7 @@ bool AGS::Snippet::IsEmpty()
 
 void AGS::RestorePoint::Cut(Snippet &snippet, bool const keep_starting_linum)
 {
-    int32_t const orig_codesize = _scrip.Codesize_i32();
+    CodeLoc const orig_codesize = _scrip.Codesize_i32();
 
     // Reset the code to the remembered location.
     CodeLoc rcl = _rememberedCodeLocation;

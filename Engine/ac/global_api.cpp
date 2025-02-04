@@ -645,9 +645,9 @@ RuntimeScriptValue Sc_GetInvPropertyText(const RuntimeScriptValue *params, int32
 }
 
 // void (int xxx,int yyy,char*tempo)
-RuntimeScriptValue Sc_GetLocationName(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_GetLocationNameInBuf(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT2_POBJ(GetLocationName, char);
+    API_SCALL_VOID_PINT2_POBJ(GetLocationNameInBuf, char);
 }
 
 // int (int xxx,int yyy)
@@ -2444,7 +2444,7 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "GetInvName",               API_FN_PAIR(GetInvName) },
         { "GetInvProperty",           API_FN_PAIR(GetInvProperty) },
         { "GetInvPropertyText",       API_FN_PAIR(GetInvPropertyText) },
-        { "GetLocationName",          API_FN_PAIR(GetLocationName) },
+        { "GetLocationName",          API_FN_PAIR(GetLocationNameInBuf) },
         { "GetLocationType",          API_FN_PAIR(GetLocationType) },
         { "GetMessageText",           API_FN_PAIR(GetMessageText) },
         { "GetMIDIPosition",          API_FN_PAIR(GetMIDIPosition) },

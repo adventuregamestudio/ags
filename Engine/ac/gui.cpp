@@ -528,7 +528,7 @@ void replace_macro_tokens(const char *text, String &fixed_text) {
                 if (!IsInterfaceEnabled())
                     tempo[0] = 0;
                 else
-                    GetLocationName(game_to_data_coord(mousex), game_to_data_coord(mousey), tempo);
+                    GetLocationNameInBuf(game_to_data_coord(mousex), game_to_data_coord(mousey), tempo);
             }
             else { // not a macro, there's just a @ in the message
                 curptr = curptrWasAt + 1;

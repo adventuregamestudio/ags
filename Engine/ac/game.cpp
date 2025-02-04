@@ -822,9 +822,7 @@ const char* Game_InputBox(const char *msg) {
 }
 
 const char* Game_GetLocationName(int x, int y) {
-    char buffer[STD_BUFFER_SIZE];
-    GetLocationName(x, y, buffer); // fills up to MAX_MAXSTRLEN
-    return CreateNewScriptString(buffer);
+    return CreateNewScriptString(GetLocationName(x, y));
 }
 
 const char* Game_GetGlobalMessages(int index) {

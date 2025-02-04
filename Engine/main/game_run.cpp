@@ -1062,8 +1062,7 @@ static void UpdateMouseOverLocation()
 {
     // Call GetLocationName - it will internally force a GUI refresh
     // if the result it returns has changed from last time
-    char tempo[STD_BUFFER_SIZE];
-    GetLocationName(game_to_data_coord(mousex), game_to_data_coord(mousey), tempo);
+    GetLocationName(game_to_data_coord(mousex), game_to_data_coord(mousey));
 
     if ((play.get_loc_name_save_cursor >= 0) &&
         (play.get_loc_name_save_cursor != play.get_loc_name_last_time) &&

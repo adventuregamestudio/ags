@@ -1370,13 +1370,12 @@ import void SetAreaScaling(int area, int min, int max);
 import void SetWalkBehindBase(int area, int baseline);
 #endif // SCRIPT_COMPAT_v399
 
-import int  IsVoxAvailable();
+/// Checks whether a SPEECH.VOX file was found.
+import int  IsSpeechVoxAvailable();
 /// Changes the voice speech volume.
 import void SetSpeechVolume(int volume);
 /// Checks whether a AUDIO.VOX file was found.
 import int  IsMusicVoxAvailable();
-/// Saves a screenshot of the current game position to a file.
-import int  SaveScreenShot(const string filename);
 /// Pauses the game, which stops all animations and movement.
 import void PauseGame();
 /// Resumes the game after it was paused earlier.
@@ -1970,9 +1969,6 @@ builtin managed struct Dialog {
 
   readonly int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };
-
-#define IsSpeechVoxAvailable IsVoxAvailable
-//import int IsSpeechVoxAvailable();  // make autocomplete recognise
 
 builtin struct Maths {
   /// Calculates the Arc Cosine of the specified value.

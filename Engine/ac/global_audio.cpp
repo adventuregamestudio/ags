@@ -48,7 +48,7 @@ void SetSpeechVolume(int newvol) {
     play.speech_volume = newvol;
 }
 
-int IsVoxAvailable() {
+int IsSpeechVoxAvailable() {
     return play.voice_avail ? 1 : 0;
 }
 

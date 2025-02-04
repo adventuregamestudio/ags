@@ -17,7 +17,7 @@
 #include "speech.h"
 
 void    SetSpeechVolume(int newvol);
-int     IsVoxAvailable();
+int     IsSpeechVoxAvailable();
 int     IsMusicVoxAvailable ();
 
 struct CharacterInfo;

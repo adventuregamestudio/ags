@@ -361,9 +361,9 @@ RuntimeScriptValue Sc_IsTranslationAvailable(const RuntimeScriptValue *params, i
 }
 
 // int ()
-RuntimeScriptValue Sc_IsVoxAvailable(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_IsSpeechVoxAvailable(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT(IsVoxAvailable);
+    API_SCALL_INT(IsSpeechVoxAvailable);
 }
 
 RuntimeScriptValue Sc_MoveSaveSlot(const RuntimeScriptValue *params, int32_t param_count)
@@ -722,7 +722,6 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "CyclePalette",             API_FN_PAIR(CyclePalette) },
         { "Debug",                    API_FN_PAIR(script_debug) },
         { "DeleteSaveSlot",           API_FN_PAIR(DeleteSaveSlot) },
-        { "DeleteSprite",             API_FN_PAIR(free_dynamic_sprite) },
         { "DisableGroundLevelAreas",  API_FN_PAIR(DisableGroundLevelAreas) },
         { "DisableInterface",         API_FN_PAIR(DisableInterface) },
         { "Display",                  Sc_Display, ScPl_Display },
@@ -744,8 +743,6 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "GetGameOption",            API_FN_PAIR(GetGameOption) },
         { "GetGameSpeed",             API_FN_PAIR(GetGameSpeed) },
         { "GetLocationType",          API_FN_PAIR(GetLocationType) },
-        { "GetRegionAt",              API_FN_PAIR(GetRegionIDAtRoom) },
-        { "GetRoomProperty",          API_FN_PAIR(Room_GetProperty) },
         { "GetScalingAt",             API_FN_PAIR(GetScalingAt) },
         { "GetTextHeight",            API_FN_PAIR(GetTextHeight) },
         { "GetTextWidth",             API_FN_PAIR(GetTextWidth) },
@@ -768,9 +765,9 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "IsInterfaceEnabled",       API_FN_PAIR(IsInterfaceEnabled) },
         { "IsKeyPressed",             API_FN_PAIR(IsKeyPressed) },
         { "IsMusicVoxAvailable",      API_FN_PAIR(IsMusicVoxAvailable) },
+        { "IsSpeechVoxAvailable",     API_FN_PAIR(IsSpeechVoxAvailable) },
         { "IsTimerExpired",           API_FN_PAIR(IsTimerExpired) },
         { "IsTranslationAvailable",   API_FN_PAIR(IsTranslationAvailable) },
-        { "IsVoxAvailable",           API_FN_PAIR(IsVoxAvailable) },
         { "MoveSaveSlot",             API_FN_PAIR(MoveSaveSlot) },
         { "MoveSaveSlot",             API_FN_PAIR(MoveSaveSlot) },
         { "PauseGame",                API_FN_PAIR(PauseGame) },
@@ -785,7 +782,6 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "RestoreWalkableArea",      API_FN_PAIR(RestoreWalkableArea) },
         { "RunAGSGame",               API_FN_PAIR(RunAGSGame) },
         { "Said",                     API_FN_PAIR(Said) },
-        { "SaveScreenShot",           API_FN_PAIR(SaveScreenShot) },
         { "SendEvent",                Sc_SendEvent, run_on_event },
         { "SetAmbientTint",           API_FN_PAIR(SetAmbientTint) },
         { "SetAmbientLightLevel",     API_FN_PAIR(SetAmbientLightLevel) },
@@ -808,7 +804,6 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "SkipCutscene",             API_FN_PAIR(SkipCutscene) },
         { "SkipUntilCharacterStops",  API_FN_PAIR(SkipUntilCharacterStops) },
         { "StartCutscene",            API_FN_PAIR(StartCutscene) },
-        { "StopChannel",              API_FN_PAIR(stop_and_destroy_channel) },
         { "TintScreen",               API_FN_PAIR(TintScreen) },
         { "UnPauseGame",              API_FN_PAIR(UnPauseGame) },
         { "UpdateInventory",          API_FN_PAIR(UpdateInventory) },

@@ -516,7 +516,6 @@
     <ClCompile Include="..\..\Engine\ac\global_game.cpp" />
     <ClCompile Include="..\..\Engine\ac\global_gui.cpp" />
     <ClCompile Include="..\..\Engine\ac\global_palette.cpp" />
-    <ClCompile Include="..\..\Engine\ac\global_region.cpp" />
     <ClCompile Include="..\..\Engine\ac\global_room.cpp" />
     <ClCompile Include="..\..\Engine\ac\global_screen.cpp" />
     <ClCompile Include="..\..\Engine\ac\global_timer.cpp" />
@@ -761,7 +760,6 @@
     <ClInclude Include="..\..\Engine\ac\global_game.h" />
     <ClInclude Include="..\..\Engine\ac\global_gui.h" />
     <ClInclude Include="..\..\Engine\ac\global_palette.h" />
-    <ClInclude Include="..\..\Engine\ac\global_region.h" />
     <ClInclude Include="..\..\Engine\ac\global_room.h" />
     <ClInclude Include="..\..\Engine\ac\global_screen.h" />
     <ClInclude Include="..\..\Engine\ac\global_timer.h" />

@@ -32,7 +32,6 @@
 #include "ac/global_game.h"
 #include "ac/global_gui.h"
 #include "ac/global_palette.h"
-#include "ac/global_region.h"
 #include "ac/global_room.h"
 #include "ac/global_screen.h"
 #include "ac/global_timer.h"
@@ -44,13 +43,13 @@
 #include "ac/mouse.h"
 #include "ac/object.h"
 #include "ac/parser.h"
+#include "ac/region.h"
 #include "ac/string.h"
 #include "ac/room.h"
-#include "media/video/video.h"
-#include "util/string_compat.h"
-#include "media/audio/audio_system.h"
-
 #include "ac/dynobj/scriptstring.h"
+#include "media/video/video.h"
+#include "media/audio/audio_system.h"
+#include "util/string_compat.h"
 
 // void (char*texx, ...)
 RuntimeScriptValue Sc_sc_AbortGame(const RuntimeScriptValue *params, int32_t param_count)
@@ -125,12 +124,6 @@ RuntimeScriptValue Sc_DisableInterface(const RuntimeScriptValue *params, int32_t
     API_SCALL_VOID(DisableInterface);
 }
 
-// void (int hsnum)
-RuntimeScriptValue Sc_DisableRegion(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(DisableRegion);
-}
-
 // void (char*texx, ...)
 RuntimeScriptValue Sc_Display(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -175,12 +168,6 @@ RuntimeScriptValue Sc_EnableGroundLevelAreas(const RuntimeScriptValue *params, i
 RuntimeScriptValue Sc_EnableInterface(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID(EnableInterface);
-}
-
-// void (int hsnum)
-RuntimeScriptValue Sc_EnableRegion(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(EnableRegion);
 }
 
 // int  ()
@@ -481,12 +468,6 @@ RuntimeScriptValue Sc_RunAGSGame(const RuntimeScriptValue *params, int32_t param
     API_SCALL_INT_POBJ_PINT2(RunAGSGame, const char);
 }
 
-// void  (int regnum, int mood)
-RuntimeScriptValue Sc_RunRegionInteraction(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT2(RunRegionInteraction);
-}
-
 extern RuntimeScriptValue Sc_Said(const RuntimeScriptValue *params, int32_t param_count);
 
 extern RuntimeScriptValue Sc_SaveCursorForLocationChange(const RuntimeScriptValue *params, int32_t param_count);
@@ -534,12 +515,6 @@ RuntimeScriptValue Sc_SetAmbientTint(const RuntimeScriptValue *params, int32_t p
 RuntimeScriptValue Sc_SetAmbientLightLevel(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT(SetAmbientLightLevel);
-}
-
-// void (int area, int brightness)
-RuntimeScriptValue Sc_SetAreaLightLevel(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT2(SetAreaLightLevel);
 }
 
 // void (int area, int min, int max)
@@ -599,12 +574,6 @@ extern RuntimeScriptValue Sc_SetNormalFont(const RuntimeScriptValue *params, int
 RuntimeScriptValue Sc_SetPalRGB(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT4(SetPalRGB);
-}
-
-// void  (int area, int red, int green, int blue, int amount)
-RuntimeScriptValue Sc_SetRegionTint(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT5(SetRegionTint);
 }
 
 // void ()
@@ -806,7 +775,6 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "DisableCursorMode",        API_FN_PAIR(disable_cursor_mode) },
         { "DisableGroundLevelAreas",  API_FN_PAIR(DisableGroundLevelAreas) },
         { "DisableInterface",         API_FN_PAIR(DisableInterface) },
-        { "DisableRegion",            API_FN_PAIR(DisableRegion) },
         { "Display",                  Sc_Display, ScPl_Display },
         { "DisplayAt",                Sc_DisplayAt, ScPl_DisplayAt },
         // CHECKME: this function was non-variadic prior to 3.6.1, but AGS compiler does
@@ -817,7 +785,6 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "EnableCursorMode",         API_FN_PAIR(enable_cursor_mode) },
         { "EnableGroundLevelAreas",   API_FN_PAIR(EnableGroundLevelAreas) },
         { "EnableInterface",          API_FN_PAIR(EnableInterface) },
-        { "EnableRegion",             API_FN_PAIR(EnableRegion) },
         { "EndCutscene",              API_FN_PAIR(EndCutscene) },
         { "FadeIn",                   API_FN_PAIR(FadeIn) },
         { "FadeOut",                  API_FN_PAIR(FadeOut) },
@@ -872,14 +839,12 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "RestoreGameSlot",          API_FN_PAIR(RestoreGameSlot) },
         { "RestoreWalkableArea",      API_FN_PAIR(RestoreWalkableArea) },
         { "RunAGSGame",               API_FN_PAIR(RunAGSGame) },
-        { "RunRegionInteraction",     API_FN_PAIR(RunRegionInteraction) },
         { "Said",                     API_FN_PAIR(Said) },
         { "SaveCursorForLocationChange", API_FN_PAIR(SaveCursorForLocationChange) },
         { "SaveScreenShot",           API_FN_PAIR(SaveScreenShot) },
         { "SendEvent",                Sc_SendEvent, run_on_event },
         { "SetAmbientTint",           API_FN_PAIR(SetAmbientTint) },
         { "SetAmbientLightLevel",     API_FN_PAIR(SetAmbientLightLevel) },
-        { "SetAreaLightLevel",        API_FN_PAIR(SetAreaLightLevel) },
         { "SetAreaScaling",           API_FN_PAIR(SetAreaScaling) },
         { "SetBackgroundFrame",       API_FN_PAIR(SetBackgroundFrame) },
         { "SetCursorMode",            API_FN_PAIR(set_cursor_mode) },
@@ -895,7 +860,6 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "SetNextScreenTransition",  API_FN_PAIR(SetNextScreenTransition) },
         { "SetNormalFont",            API_FN_PAIR(SetNormalFont) },
         { "SetPalRGB",                API_FN_PAIR(SetPalRGB) },
-        { "SetRegionTint",            API_FN_PAIR(SetRegionTint) },
         { "SetRestartPoint",          API_FN_PAIR(SetRestartPoint) },
         { "SetScreenTransition",      API_FN_PAIR(SetScreenTransition) },
         { "SetSpeechFont",            API_FN_PAIR(SetSpeechFont) },

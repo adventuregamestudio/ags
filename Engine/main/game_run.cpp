@@ -288,12 +288,14 @@ static bool game_loop_check_ground_level_interactions()
 
 static void lock_mouse_on_click()
 {
-    if (usetup.MouseAutoLock && scsystem.windowed)
+    // Only update when in windowed mode, as always locked in fullscreen
+    if (usetup.MouseAutoLock && scsystem.windowed != 0)
         Mouse::TryLockToWindow();
 }
 
 static void toggle_mouse_lock()
 {
+    // Only update when in windowed mode, as always locked in fullscreen
     if (scsystem.windowed)
     {
         if (Mouse::IsLockedToWindow())

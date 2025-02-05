@@ -358,6 +358,7 @@ bool Mouse_GetAutoLock()
 void Mouse_SetAutoLock(bool on)
 {
     usetup.MouseAutoLock = on;
+    // Only update when in windowed mode, as always locked in fullscreen
     if (scsystem.windowed)
     {
         if (usetup.MouseAutoLock)

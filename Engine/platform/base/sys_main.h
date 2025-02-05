@@ -83,6 +83,7 @@ void sys_window_show_cursor(bool on);
 // Locks on unlocks mouse inside the window.
 // Returns new state of the mouse lock.
 bool sys_window_lock_mouse(bool on);
+bool sys_window_lock_mouse(bool on, const Rect &bounds);
 // Sets mouse position within the game window
 void sys_window_set_mouse(int x, int y);
 // Destroy current game window, if one exists.

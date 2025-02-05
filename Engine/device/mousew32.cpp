@@ -156,7 +156,7 @@ bool Mouse::IsLockedToWindow()
 bool Mouse::TryLockToWindow()
 {
     if (!LockedToWindow)
-        LockedToWindow = sys_window_lock_mouse(true);
+        LockedToWindow = sys_window_lock_mouse(true, Mouse::ControlRect);
     return LockedToWindow;
 }
 

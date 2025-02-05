@@ -50,7 +50,7 @@ static auto fix_alpha_blender = SDL_ComposeCustomBlendMode(
     SDL_BLENDFACTOR_ZERO,
     SDL_BLENDOPERATION_ADD
 );
-#endif
+#endif // SDL_VERSION_ATLEAST(2, 0, 5)
 
 SDLRendererGraphicsDriver::SDLRendererGraphicsDriver()
 {
@@ -799,7 +799,7 @@ static uint32_t _trans_alpha_blender32(uint32_t x, uint32_t y, uint32_t n)
 
 bool SDLRendererGraphicsDriver::SetVsyncImpl(bool enabled, bool &vsync_res)
 {
-    #if SDL_VERSION_ATLEAST(2, 0, 18)
+#if SDL_VERSION_ATLEAST(2, 0, 18)
     if (SDL_RenderSetVSync(_renderer, enabled) == 0) // 0 on success
     {
         // gamma might be lost after changing vsync mode at fullscreen
@@ -810,7 +810,7 @@ bool SDLRendererGraphicsDriver::SetVsyncImpl(bool enabled, bool &vsync_res)
         return true;
     }
     Debug::Printf(kDbgMsg_Warn, "SDLRenderer: SetVsync (%d) failed: %s", enabled, SDL_GetError());
-    #endif
+#endif // SDL_VERSION_ATLEAST(2, 0, 18)
     return false;
 }
 

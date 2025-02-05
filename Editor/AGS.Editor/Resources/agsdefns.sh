@@ -1376,6 +1376,8 @@ import int  IsSpeechVoxAvailable();
 import void SetSpeechVolume(int volume);
 /// Checks whether a AUDIO.VOX file was found.
 import int  IsMusicVoxAvailable();
+/// Saves a screenshot of the current game position to a file.
+import int  SaveScreenShot(const string filename);
 /// Pauses the game, which stops all animations and movement.
 import void PauseGame();
 /// Resumes the game after it was paused earlier.

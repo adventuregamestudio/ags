@@ -23,8 +23,6 @@
 
 using namespace AGS::Common;
 
-extern int numcurso, hotx, hoty;
-
 extern int windowbackgroundcolor;
 extern int cbuttfont;
 extern int smcode;

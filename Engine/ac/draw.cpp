@@ -80,7 +80,7 @@ extern int displayed_room;
 extern CharacterInfo*playerchar;
 extern int eip_guinum;
 extern int cur_mode,cur_cursor;
-extern int hotx,hoty;
+extern int mouse_hotx, mouse_hoty;
 extern int bg_just_changed;
 
 
@@ -2831,8 +2831,8 @@ void construct_game_screen_overlay(bool draw_mouse)
         {
             // Exclusive sub-batch for mouse cursor, to let filter it out (CHECKME later?)
             gfxDriver->BeginSpriteBatch(Rect(), SpriteTransform(), kFlip_None, nullptr, RENDER_BATCH_MOUSE_CURSOR);
-            gfxDriver->DrawSprite(mousex - hotx, mousey - hoty, cursor_tx.Ddb);
-            invalidate_sprite(mousex - hotx, mousey - hoty, cursor_tx.Ddb, false);
+            gfxDriver->DrawSprite(mousex - mouse_hotx, mousey - mouse_hoty, cursor_tx.Ddb);
+            invalidate_sprite(mousex - mouse_hotx, mousey - mouse_hoty, cursor_tx.Ddb, false);
             gfxDriver->EndSpriteBatch();
         }
     }

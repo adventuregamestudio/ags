@@ -60,11 +60,7 @@ namespace Mouse
     void Poll();
     // Set actual OS cursor position on screen; in native game coordinates
     void SetPosition(const Point &p);
-    // Sets the relative position of the cursor's hotspot, in native pixels
-    void SetHotspot(int x, int y);
 }
 
 
 extern int mousex, mousey;
-extern int hotx, hoty;
-extern char currentcursor;

@@ -227,13 +227,15 @@ Bitmap *SpriteCache::operator [] (sprkey_t index)
 {
     // invalid sprite slot
     assert(index >= 0); // out of positive range indexes are valid to fail
-    if (index < 0 || (size_t)index >= _spriteData.size())
+    if (!DoesSpriteExist(index))
         return nullptr;
 
     // Externally added sprite or locked sprite, don't put it into MRU list
     if (_spriteData[index].IsExternalSprite() || _spriteData[index].IsLocked())
         return _spriteData[index].Image;
 
+    // Safety check: must be a sprite from resources
+    assert(_spriteData[index].IsAssetSprite());
     if (_spriteData[index].Image)
     {
         // Move to the beginning of the MRU list

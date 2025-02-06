@@ -1125,12 +1125,6 @@ namespace AGS.Editor
 
         private void RunPreCompilationChecks(CompileMessages errors)
         {
-            if ((_game.LipSync.Type == LipSyncType.PamelaVoiceFiles) &&
-                (_game.Settings.SpeechStyle == SpeechStyle.Lucasarts))
-            {
-                errors.Add(new CompileError("Voice lip-sync cannot be used with Lucasarts-style speech"));
-            }
-
             if (_game.PlayerCharacter == null)
             {
                 errors.Add(new CompileError("No character has been set as the player character"));

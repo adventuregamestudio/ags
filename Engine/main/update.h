@@ -31,4 +31,10 @@ void restore_movelists();
 // Update various things on the game frame (historical code mess...)
 void update_stuff();
 
+// Tells if a voice lipsync is active
+bool has_voice_lipsync();
+// Updates speech animation frame in accordance to a voice-based lipsync,
+// returns if there was any active voice-based lipsync running, or not
+int update_voice_lipsync(int frame);
+
 #endif // __AGS_EE_MAIN__UPDATE_H

@@ -369,15 +369,47 @@ void update_speech_and_messages()
   }
 }
 
-// update sierra-style speech
+bool has_voice_lipsync()
+{
+    return play.speech_has_voice && (curLipLine >= 0);
+}
+
+int update_voice_lipsync(int frame)
+{
+    if (!has_voice_lipsync())
+        return frame; // no change
+
+    auto *ch = AudioChans::GetChannel(SCHAN_SPEECH);
+    const int voice_pos_ms = ch ? ch->get_pos_ms() : -1;
+    if (voice_pos_ms < 0)
+        return frame; // no change
+
+    // check voice lip sync
+    if (curLipLinePhoneme >= splipsync[curLipLine].numPhonemes) {
+        // the lip-sync has finished, so just stay idle
+        return frame;
+    }
+    else
+    {
+        while ((curLipLinePhoneme < splipsync[curLipLine].numPhonemes) &&
+               ((curLipLinePhoneme < 0) || (voice_pos_ms >= splipsync[curLipLine].endtimeoffs[curLipLinePhoneme])))
+        {
+            curLipLinePhoneme++;
+            if (curLipLinePhoneme >= splipsync[curLipLine].numPhonemes)
+                frame = game.default_lipsync_frame;
+            else
+                frame = splipsync[curLipLine].frame[curLipLinePhoneme];
+
+            if (frame >= views[facetalkview].loops[facetalkloop].numFrames)
+                frame = 0;
+        }
+        return frame;
+    }
+}
+
 void update_sierra_speech()
 {
-  int voice_pos_ms = -1;
-  if (play.speech_has_voice)
-  {
-      auto *ch = AudioChans::GetChannel(SCHAN_SPEECH);
-      voice_pos_ms = ch ? ch->get_pos_ms() : -1;
-  }
+  // Update sierra-style portrait (if active)
   if ((face_talking >= 0) && (play.fast_forward == 0)) 
   {
     int updatedFrame = 0;
@@ -411,37 +443,18 @@ void update_sierra_speech()
 
     }
 
-    if (curLipLine >= 0) {
-      // check voice lip sync
-      if (curLipLinePhoneme >= splipsync[curLipLine].numPhonemes) {
-        // the lip-sync has finished, so just stay idle
-      }
-      else 
-      {
-        while ((curLipLinePhoneme < splipsync[curLipLine].numPhonemes) &&
-          ((curLipLinePhoneme < 0) || (voice_pos_ms >= splipsync[curLipLine].endtimeoffs[curLipLinePhoneme])))
-        {
-          curLipLinePhoneme ++;
-          if (curLipLinePhoneme >= splipsync[curLipLine].numPhonemes)
-            facetalkframe = game.default_lipsync_frame;
-          else
-            facetalkframe = splipsync[curLipLine].frame[curLipLinePhoneme];
-
-          if (facetalkframe >= views[facetalkview].loops[facetalkloop].numFrames)
-            facetalkframe = 0;
-
-          updatedFrame |= 1;
-        }
-      }
+    const int old_facetalkframe = facetalkframe;
+    if (has_voice_lipsync()) {
+        facetalkframe = update_voice_lipsync(facetalkframe);
     }
-    else if (facetalkwait>0) facetalkwait--;
+    else if (facetalkwait > 0) { facetalkwait--; }
     // don't animate if the speech has finished
     else if ((play.messagetime < 1) && (facetalkframe == 0) &&
              // if play.close_mouth_speech_time = 0, this means animation should play till
              // the speech ends; but this should not work in voice mode, and also if the
              // speech is in the "post" state
              (play.speech_has_voice || play.speech_in_post_state || play.close_mouth_speech_time > 0))
-      ;
+    { }
     else {
       // Close mouth at end of sentence: if speech has entered the "post" state,
       // or if this is a text only mode and close_mouth_speech_time is set
@@ -481,7 +494,10 @@ void update_sierra_speech()
         if ((facetalkframe != 0) || (facetalkrepeat == 1))
           facetalkwait = views[facetalkview].loops[facetalkloop].frames[facetalkframe].speed + GetCharacterSpeechAnimationDelay(facetalkchar);
       }
-      updatedFrame |= 1;
+    }
+
+    if (facetalkframe != old_facetalkframe) {
+        updatedFrame |= 1;
     }
 
     // is_text_overlay might be 0 if it was only just destroyed this loop

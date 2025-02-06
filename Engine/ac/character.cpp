@@ -3059,6 +3059,7 @@ int GetLipSyncFrame (const char *curtex, int *stroffs) {
     return bestfit;
 }
 
+// Updates text-based lipsync
 int update_lip_sync(int talkview, int talkloop, int *talkframeptr) {
     int talkframe = talkframeptr[0];
     int talkwait = 0;

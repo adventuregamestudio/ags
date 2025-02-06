@@ -1086,7 +1086,7 @@ namespace AGS.Editor
             targetDataFile.Build(errors, forceRebuild); // ensure that data file is built first
             if (ExtraOutputCreationStep != null)
             {
-                ExtraOutputCreationStep(new OutputCreationStepArgs(false));
+                ExtraOutputCreationStep(new OutputCreationStepArgs(false, errors));
             }
 
             // TODO: As of now the build targets other than DataFile and Debug do DEPLOYMENT rather than BUILDING
@@ -1336,7 +1336,7 @@ namespace AGS.Editor
             target.Build(errors, false);
             if (ExtraOutputCreationStep != null)
             {
-                ExtraOutputCreationStep(new OutputCreationStepArgs(true));
+                ExtraOutputCreationStep(new OutputCreationStepArgs(true, errors));
             }
 
             buildNames[target.Name] = Factory.AGSEditor.BaseGameFileName;

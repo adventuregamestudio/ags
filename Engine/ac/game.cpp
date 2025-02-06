@@ -1520,8 +1520,8 @@ void display_switch_in()
 {
     Debug::Printf("Switching back into the game");
     ags_clear_input_state();
-    // If auto lock option is set, lock mouse to the game window
-    if (usetup.MouseAutoLock && scsystem.windowed)
+    // If fullscreen, or auto lock option is set, lock mouse to the game window
+    if ((scsystem.windowed == 0) || usetup.MouseAutoLock)
         Mouse::TryLockToWindow();
     switched_away = false;
 }

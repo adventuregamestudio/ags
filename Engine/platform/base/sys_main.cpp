@@ -279,8 +279,27 @@ void sys_window_show_cursor(bool on) {
 }
 
 bool sys_window_lock_mouse(bool on) {
+    return sys_window_lock_mouse(on, Rect());
+}
+
+bool sys_window_lock_mouse(bool on, const Rect &bounds) {
     if (!window) return false;
     SDL_SetWindowGrab(window, static_cast<SDL_bool>(on));
+#if SDL_VERSION_ATLEAST(2, 0, 18)
+    if (on && !bounds.IsEmpty())
+    {
+        SDL_Rect rect;
+        rect.x = bounds.Left;
+        rect.y = bounds.Top;
+        rect.w = bounds.GetWidth();
+        rect.h = bounds.GetHeight();
+        SDL_SetWindowMouseRect(window, &rect);
+    }
+    else
+    {
+        SDL_SetWindowMouseRect(window, nullptr);
+    }
+#endif // SDL_VERSION_ATLEAST(2, 0, 18)
     return on; // TODO: test if successful?
 }
 

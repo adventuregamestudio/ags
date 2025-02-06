@@ -133,8 +133,8 @@ void engine_post_gfxmode_mouse_setup(const Size &init_desktop)
 
     on_coordinates_scaling_changed();
 
-    // If auto lock option is set, lock mouse to the game window
-    if (usetup.MouseAutoLock && scsystem.windowed != 0)
+    // If fullscreen, or auto lock option is set, lock mouse to the game window
+    if ((scsystem.windowed == 0) || usetup.MouseAutoLock)
         Mouse::TryLockToWindow();
 }
 

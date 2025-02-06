@@ -9,6 +9,7 @@ namespace AGS.Editor.Components
 {
     class AudioComponent : BaseComponentWithFolders<AudioClip, AudioClipFolder>, IProjectTreeSingleClickHandler
     {
+        public const string AUDIO_CACHE_DIRECTORY = "AudioCache";
         private const string COMPILED_AUDIO_FILENAME_PREFIX = "au";
         private const string COMMAND_ADD_AUDIO = "AddAudioClipCmd";
         private const string COMMAND_REIMPORT_ALL = "ReimportAllAudioClipCmd";
@@ -92,11 +93,11 @@ namespace AGS.Editor.Components
 
         private static string GetCacheFileName(int index, string sourceFileName)
         {
-            return Path.Combine(AudioClip.AUDIO_CACHE_DIRECTORY, GetCacheFileNameWithoutPath(index, sourceFileName));
+            return Path.Combine(AUDIO_CACHE_DIRECTORY, GetCacheFileNameWithoutPath(index, sourceFileName));
         }
         public static string GetCacheFileName(AudioClip clip)
         {
-            return Path.Combine(AudioClip.AUDIO_CACHE_DIRECTORY, GetCacheFileNameWithoutPath(clip.Index, clip.SourceFileName));
+            return Path.Combine(AUDIO_CACHE_DIRECTORY, GetCacheFileNameWithoutPath(clip.Index, clip.SourceFileName));
         }
 
         protected override void ItemCommandClick(string controlID)

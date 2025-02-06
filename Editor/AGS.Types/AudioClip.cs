@@ -8,8 +8,6 @@ namespace AGS.Types
     [DefaultProperty("BundlingType")]
     public class AudioClip : IToXml, IComparable<AudioClip>
     {
-        public const string AUDIO_CACHE_DIRECTORY = "AudioCache";
-
         private int _id;
         private string _sourceFileName;
         private string _cacheFileName;

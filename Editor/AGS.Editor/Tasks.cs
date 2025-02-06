@@ -47,8 +47,8 @@ namespace AGS.Editor
             Utilities.AddAllMatchingFiles(filesToInclude, AGSEditor.GAME_FILE_NAME);
             Utilities.AddAllMatchingFiles(filesToInclude, AGSEditor.SPRITE_FILE_NAME);
             Utilities.AddAllMatchingFiles(filesToInclude, "preload.pcx");
-            Utilities.AddAllMatchingFiles(filesToInclude, AudioClip.AUDIO_CACHE_DIRECTORY + @"\*.*");
-            Utilities.AddAllMatchingFiles(filesToInclude, @"Speech\*.*");
+            Utilities.AddAllMatchingFiles(filesToInclude, AudioComponent.AUDIO_CACHE_DIRECTORY + @"\*.*");
+            Utilities.AddAllMatchingFiles(filesToInclude, SpeechComponent.SPEECH_DIRECTORY + @"\*.*");
             Utilities.AddAllMatchingFiles(filesToInclude, "flic*.fl?");
             Utilities.AddAllMatchingFiles(filesToInclude, "agsfnt*.ttf");
             Utilities.AddAllMatchingFiles(filesToInclude, "agsfnt*.wfn");
@@ -620,8 +620,8 @@ namespace AGS.Editor
             parameter += " --runfromide" +
                 " \"" + Path.Combine(AGSEditor.OUTPUT_DIRECTORY, BuildTargetWindows.WINDOWS_DIRECTORY) + "\" " +
                 "\"" + Factory.AGSEditor.GameDirectory + "\":\"\"" + "," +
-                "\"" + AudioClip.AUDIO_CACHE_DIRECTORY + "\":\"audio\"" + "," +
-                "\"" + "Speech" + "\":\"voice\"";
+                "\"" + AudioComponent.AUDIO_CACHE_DIRECTORY + "\":\"audio\"" + "," +
+                "\"" + SpeechComponent.SPEECH_DIRECTORY + "\":\"voice\"";
 
             // Explicit path to the file containing main game data,
             // this is to ensure that the engine won't try to scan other places

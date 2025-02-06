@@ -159,13 +159,13 @@ namespace AGS.Editor
             if (stream == null)
             {
                 // try in the Audio folder if not found
-                tomake = Path.Combine("AudioCache", fileName);
+                tomake = Path.Combine(Components.AudioComponent.AUDIO_CACHE_DIRECTORY, fileName);
                 stream = TryFileOpen(tomake, FileAccess.Read);
             }
             if (stream == null)
             {
                 // no? maybe Speech then, templates include this
-                tomake = Path.Combine("Speech", fileName);
+                tomake = Path.Combine(Components.SpeechComponent.SPEECH_DIRECTORY, fileName);
                 stream = TryFileOpen(tomake, FileAccess.Read);
             }
             buffer = tomake;

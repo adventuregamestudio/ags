@@ -147,7 +147,8 @@ namespace AGS.Editor
 
         public readonly string[] RestrictedGameDirectories = new string[]
         {
-            OUTPUT_DIRECTORY, DEBUG_OUTPUT_DIRECTORY, AudioClip.AUDIO_CACHE_DIRECTORY,
+            OUTPUT_DIRECTORY, DEBUG_OUTPUT_DIRECTORY,
+            Components.AudioComponent.AUDIO_CACHE_DIRECTORY,
             Components.SpeechComponent.SPEECH_DIRECTORY
         };
 

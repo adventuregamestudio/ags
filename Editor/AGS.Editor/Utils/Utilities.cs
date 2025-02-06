@@ -1,4 +1,5 @@
 using AGS.Types;
+using AGS.Editor.Components;
 using AGS.Editor.Utils;
 using System;
 using System.Collections.Generic;
@@ -106,7 +107,9 @@ namespace AGS.Editor
         {
             // TODO: This list partially contradicts the Output Target concepts,
             // because it explicitly mentions Data target's directories
-            List<string> foldersToCreate = new List<string> { "Speech", AudioClip.AUDIO_CACHE_DIRECTORY,
+            List<string> foldersToCreate = new List<string> {
+                SpeechComponent.SPEECH_DIRECTORY,
+                AudioComponent.AUDIO_CACHE_DIRECTORY,
                 AGSEditor.OUTPUT_DIRECTORY, Path.Combine(AGSEditor.OUTPUT_DIRECTORY, AGSEditor.DATA_OUTPUT_DIRECTORY) };
             foreach (string folderName in foldersToCreate)
             {

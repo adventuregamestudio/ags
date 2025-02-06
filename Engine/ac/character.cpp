@@ -2679,12 +2679,15 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
         set_our_eip(1504);
 
         // Calculate speech position based on character's position on screen
+        // (an assumption here, but this must be the case if it's LA-style speech)
         auto view = FindNearestViewport(aschar);
         if (tdxp < 0)
             tdxp = view->RoomToScreen(data_to_game_coord(speakingChar->x), 0).first.X;
         if (tdxp < 2)
             tdxp = 2;
-        tdxp = -tdxp;  // tell it to centre it ([ikm] not sure what's going on here... wrong comment?)
+        // tell it to centre it (passing negative x coord further will be treated as a alignment instruction)
+        // FIXME: this is unreliable and bug prone, use a separate argument for alignment!
+        tdxp = -tdxp;
 
         if (tdyp < 0)
         {
@@ -2961,7 +2964,9 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
     else
         allow_shrink = kDisplayTextShrink_Left;
 
-    // it wants the centred position, so make it so
+    // If initial argument was NOT requiring a autoposition,
+    // but further calculation set it to be centered, then make it so here
+    // (note: this assumes that a valid width is also passed)
     if ((xx >= 0) && (tdxp < 0))
         tdxp -= widd / 2;
 

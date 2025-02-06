@@ -139,6 +139,10 @@ private:
 
 
 // Generates a textual image and returns a disposable bitmap
+// FIXME: for historical reasons this function also contains position adjustment;
+// but this should not be done here at all.
+// FIXME: xx is allowed to be passed as OVR_AUTOPLACE, which has special meaning,
+// but that's a confusing use of this argument.
 Bitmap *create_textual_image(const char *text, const DisplayTextLooks &look, color_t text_color,
     int &xx, int &yy, int &adjustedXX, int &adjustedYY, int wii, int usingfont,
     bool &alphaChannel, const TopBarSettings *topbar)
@@ -157,6 +161,7 @@ Bitmap *create_textual_image(const char *text, const DisplayTextLooks &look, col
     else if (use_thought_gui)
         usingGui = game.options[OPT_THOUGHTGUI];
 
+    const int screen_padding = 5; // historical limit of text placement from any screen border
     const int padding = get_textwindow_padding(usingGui);
     const int paddingScaled = get_fixed_pixel_size(padding);
     // Just in case screen size does is not neatly divisible by 320x200
@@ -181,14 +186,18 @@ Bitmap *create_textual_image(const char *text, const DisplayTextLooks &look, col
             longestline = topBarWid;
     }
 
+    const bool auto_align_pos = xx < -1; // sic, it was suggesting x < -1
     const Rect &ui_view = play.GetUIViewport();
     if (xx == OVR_AUTOPLACE);
     // centre text in middle of screen
     else if (yy<0) yy = ui_view.GetHeight() / 2 - disp.FullTextHeight / 2 - padding;
     // speech, so it wants to be above the character's head
     else if (look.Style == kDisplayTextStyle_Overchar) {
+        // If ordered to auto align, then first make sure that the position is on screen
+        if (auto_align_pos) {
+            yy = Math::Clamp(yy, disp.FullTextHeight + screen_padding, ui_view.GetHeight() - screen_padding);
+        }
         yy -= disp.FullTextHeight;
-        if (yy < 5) yy = 5;
         yy = adjust_y_for_guis(yy);
     }
 
@@ -204,16 +213,14 @@ Bitmap *create_textual_image(const char *text, const DisplayTextLooks &look, col
             xx += (oldWid - wii);
     }
 
-    if (xx<-1) {
+    // If ordered to center around the x pos, then do so, and fixup
+    if (auto_align_pos) {
         xx = (-xx) - wii / 2;
-        if (xx < 0)
-            xx = 0;
-
+        xx = Math::Clamp(xx, screen_padding, ui_view.GetWidth() - screen_padding - wii);
         xx = adjust_x_for_guis(xx, yy);
-
-        if (xx + wii >= ui_view.GetWidth())
-            xx = (ui_view.GetWidth() - wii) - 5;
     }
+    // FIXME: this is unreliable, will execute only of xx == -1,
+    // but what if it's +1 inverted for centering?
     else if (xx<0) xx = ui_view.GetWidth() / 2 - wii / 2;
 
     const int extraHeight = paddingDoubledScaled;

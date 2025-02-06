@@ -117,6 +117,8 @@ void ShowInputBoxImpl(const char *msg, char *bufr, size_t buf_len);
 
 int GetLocationType(int xxx,int yyy);
 void SaveCursorForLocationChange();
+// Returns the name (description) of a location under given coordinates;
+// if nothing found, returns an empty string.
 const char *GetLocationName(int xxx, int yyy);
 // GetLocationNameInBuf assumes a string buffer of MAX_MAXSTRLEN
 void GetLocationNameInBuf(int xxx,int yyy, char *buf);

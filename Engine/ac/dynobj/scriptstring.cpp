@@ -88,6 +88,9 @@ ScriptString::Buffer ScriptString::CreateBuffer(size_t len, size_t ulen)
 
 DynObjectRef ScriptString::Create(const char *text)
 {
+    if (!text)
+        return DynObjectRef();
+
     int len, ulen;
     ustrlen2(text, &len, &ulen);
     auto buf = CreateBuffer(len, ulen);

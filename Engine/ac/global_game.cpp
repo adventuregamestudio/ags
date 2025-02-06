@@ -728,9 +728,9 @@ void SaveCursorForLocationChange() {
 const char *GetLocationName(int x, int y)
 {
     if (displayed_room < 0)
-        return nullptr; // no room loaded yet
+        return ""; // no room loaded yet
 
-    const char *out_name = nullptr;
+    const char *out_name = "";
     if (GetGUIAt(x, y) >= 0)
     {
         int mover = GetInvAt(x, y);
@@ -752,11 +752,11 @@ const char *GetLocationName(int x, int y)
     int loctype = GetLocationType(x, y); // GetLocationType takes screen coords
     VpPoint vpt = play.ScreenToRoomDivDown(x, y);
     if (vpt.second < 0)
-        return nullptr;
+        return "";
     x = vpt.first.X;
     y = vpt.first.Y;
     if ((x >= thisroom.Width) || (x < 0) || (y < 0) || (y >= thisroom.Height))
-        return nullptr;
+        return "";
 
     int onhs,aa;
     if (loctype == 0)
@@ -766,7 +766,7 @@ const char *GetLocationName(int x, int y)
             play.get_loc_name_last_time = 0;
             GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
         }
-        return nullptr;
+        return "";
     }
 
     // on character

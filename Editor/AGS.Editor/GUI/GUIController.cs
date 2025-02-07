@@ -1709,7 +1709,7 @@ namespace AGS.Editor
 			{
 				if ((result == DialogResult.No) && (_agsEditor.CurrentGame.FilesAddedOrRemoved))
 				{
-					result = MessageBox.Show("Files have been added, removed or renamed. If you don't save the game now, you may not be able to successfully open this game next time. Do you want to save your changes?", "Save changes?", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+					result = MessageBox.Show("Files have been added, removed or renamed within the game. If you don't save the game now, the project may become inconsistent and require manual fixing upon loading it next time. Do you want to save your changes?", "Save changes?", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
 				}
 
 				if (result == DialogResult.Yes)

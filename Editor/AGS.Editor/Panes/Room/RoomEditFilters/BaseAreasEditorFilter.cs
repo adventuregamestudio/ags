@@ -9,7 +9,7 @@ using System.Windows.Forms;
 
 namespace AGS.Editor
 {
-    public abstract class BaseAreasEditorFilter : IRoomEditorFilter
+    public abstract class BaseAreasEditorFilter : BaseRoomEditorFilter, IRoomEditorFilter
     {
         protected const string SELECT_AREA_COMMAND = "SelectArea";
         protected const string DRAW_LINE_COMMAND = "DrawLine";

@@ -35,7 +35,7 @@ namespace AGS.Editor
 
         protected override string GetItemName(int id)
         {
-            return _room.WalkableAreas[id].PropertyGridTitle;
+            return MakeLayerItemName("Walkable area", null, null, id);
         }
 
         protected override SortedDictionary<string, int> InitItemRefs()

@@ -35,7 +35,7 @@ namespace AGS.Editor
 
         protected override string GetItemName(int id)
         {
-            return _room.Regions[id].PropertyGridTitle;
+            return MakeLayerItemName("Region", null, null, id);
         }
 
         protected override SortedDictionary<string, int> InitItemRefs()

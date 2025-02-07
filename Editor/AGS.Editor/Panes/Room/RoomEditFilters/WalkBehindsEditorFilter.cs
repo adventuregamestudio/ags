@@ -138,7 +138,7 @@ namespace AGS.Editor
 
         protected override string GetItemName(int id)
         {
-            return _room.WalkBehinds[id].PropertyGridTitle;
+            return MakeLayerItemName("Walk-behind area", null, null, id);
         }
 
         protected override SortedDictionary<string, int> InitItemRefs()

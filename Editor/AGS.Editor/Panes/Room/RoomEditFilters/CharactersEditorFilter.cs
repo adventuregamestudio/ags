@@ -295,6 +295,14 @@ namespace AGS.Editor
         }
 
         /// <summary>
+        /// Forms a object's label for the Navigation bar.
+        /// </summary>
+        protected override string GetNavbarItemTitle(Character obj)
+        {
+            return MakeLayerItemName("Character", obj.ScriptName, obj.RealName, obj.ID);
+        }
+
+        /// <summary>
         /// Tries to get an object under given coordinates.
         /// Returns null if no object was found.
         /// </summary>
@@ -342,7 +350,7 @@ namespace AGS.Editor
             _selectedObject = character;
             if (OnSelectedItemChanged != null)
             {
-                OnSelectedItemChanged(this, new SelectedRoomItemEventArgs(character.PropertyGridTitle));
+                OnSelectedItemChanged(this, new SelectedRoomItemEventArgs(GetNavbarItemTitle(character)));
             }
             ClearMovingState();
         }

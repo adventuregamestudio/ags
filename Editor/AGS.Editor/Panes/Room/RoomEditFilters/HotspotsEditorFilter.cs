@@ -52,7 +52,7 @@ namespace AGS.Editor
 
         protected override string GetItemName(int id)
         {
-            return _room.Hotspots[id].PropertyGridTitle; // NOTE: ScriptName is not obligatory at the moment!
+            return MakeLayerItemName("Hotspot", _room.Hotspots[id].Name, _room.Hotspots[id].Description, id);
         }
 
         protected override SortedDictionary<string, int> InitItemRefs()

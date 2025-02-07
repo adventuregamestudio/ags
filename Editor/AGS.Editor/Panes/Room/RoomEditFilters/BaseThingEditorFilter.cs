@@ -12,7 +12,7 @@ namespace AGS.Editor
     /// individual "things": something that has exact coordinates, simple visual
     /// representation, and may be moved around.
     /// </summary>
-    public abstract class BaseThingEditorFilter<TThing> : IRoomEditorFilter
+    public abstract class BaseThingEditorFilter<TThing> : BaseRoomEditorFilter, IRoomEditorFilter
         where TThing : class
     {
         private bool _isOn = false;
@@ -139,7 +139,7 @@ namespace AGS.Editor
         {
             TThing thing;
             if (id != null && RoomItemRefs.TryGetValue(id, out thing))
-                return GetPropertyGridItemTitle(thing); // NOTE: ScriptName is not obligatory at the moment!
+                return GetNavbarItemTitle(thing);
             return null;
         }
 
@@ -489,6 +489,10 @@ namespace AGS.Editor
         /// Forms a PropertyGrid's entry title for this object.
         /// </summary>
         protected abstract string GetPropertyGridItemTitle(TThing obj);
+        /// <summary>
+        /// Forms a object's label for the Navigation bar.
+        /// </summary>
+        protected abstract string GetNavbarItemTitle(TThing obj);
 
         /// <summary>
         /// React to the new object selected in the properties grid list.

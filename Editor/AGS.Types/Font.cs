@@ -113,6 +113,12 @@ namespace AGS.Types
             get { return "Font: " + this.Name; }
         }
 
+        [Browsable(false)]
+        public string PropertyGridTitle
+        {
+            get { return TypesHelper.MakePropertyGridTitle("Font", _name, _id); }
+        }
+
         [Description("Font to use as an outline for this one")]
         [Category("Appearance")]
         public int OutlineFont

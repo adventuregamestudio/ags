@@ -73,9 +73,8 @@ namespace AGS.Types
         [Browsable(false)]
         public string PropertyGridTitle
         {
-            get { return "Walkable area ID " + _id; }
+            get { return TypesHelper.MakePropertyGridTitle("Walkable area", _id); }
         }
-
 
         #region ICustomTypeDescriptor Members
 

@@ -1031,7 +1031,7 @@ namespace AGS.Editor
             list.Add(forGui.PropertyGridTitle, forGui);
             foreach (GUIControl control in forGui.Controls)
             {
-                list.Add(control.Name + " (" + control.ControlType + "; ID " + control.ID + ")", control);
+                list.Add(control.PropertyGridTitle, control);
             }
             return list;
         }

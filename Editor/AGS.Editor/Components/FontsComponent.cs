@@ -112,7 +112,7 @@ namespace AGS.Editor.Components
                 || document.Control.IsDisposed)
             {
                 Dictionary<string, object> list = new Dictionary<string, object>();
-                list.Add(chosenFont.Name + " (Font " + chosenFont.ID + ")", chosenFont);
+                list.Add(chosenFont.PropertyGridTitle, chosenFont);
 
                 FontEditor editor = new FontEditor(chosenFont);
                 editor.ImportOverFont = ImportOverFont;

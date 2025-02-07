@@ -104,6 +104,12 @@ namespace AGS.Types
             get { return string.IsNullOrEmpty(this.Name) ? ("Dialog " + this.ID) : ("Dialog: " + this.Name); }
         }
 
+        [Browsable(false)]
+        public string PropertyGridTitle
+        {
+            get { return TypesHelper.MakePropertyGridTitle("Dialog", _name, _id); }
+        }
+
         public Dialog(XmlNode node)
         {
             _scriptChangedSinceLastCompile = true;

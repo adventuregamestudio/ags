@@ -246,7 +246,7 @@ namespace AGS.Editor.Components
         private Dictionary<string, object> ConstructPropertyObjectList(InventoryItem item)
         {
             Dictionary<string, object> list = new Dictionary<string, object>();
-            list.Add(item.Name + " (Inventory item " + item.ID + ")", item);
+            list.Add(item.PropertyGridTitle, item);
             return list;
         }
 

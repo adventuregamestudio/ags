@@ -369,7 +369,7 @@ namespace AGS.Types
         [Browsable(false)]
         public string PropertyGridTitle
         {
-            get { return _scriptName + " (Character; ID " + _id + ")"; }
+            get { return TypesHelper.MakePropertyGridTitle("Character", _scriptName, _fullName, _id); }
         }
 
         public Character(XmlNode node)

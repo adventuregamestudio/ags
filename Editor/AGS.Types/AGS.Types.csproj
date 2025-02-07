@@ -246,6 +246,7 @@
     <Compile Include="EditorFeatures\AutoComplete\ScriptAutoCompleteData.cs" />
     <Compile Include="ScriptsAndHeaders.cs" />
     <Compile Include="Translation.cs" />
+    <Compile Include="TypesHelper.cs" />
     <Compile Include="UnloadedRoom.cs" />
     <Compile Include="TextParser.cs" />
     <Compile Include="TextParserWord.cs" />

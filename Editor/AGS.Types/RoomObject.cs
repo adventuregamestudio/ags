@@ -165,7 +165,7 @@ namespace AGS.Types
         [Browsable(false)]
         public string PropertyGridTitle
         {
-            get { return _name + " (Object; ID " + _id + ")"; }
+            get { return TypesHelper.MakePropertyGridTitle("Object", _name, _description, _id); }
         }
 
         [AGSSerializeClass()]

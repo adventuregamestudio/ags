@@ -183,6 +183,12 @@ namespace AGS.Types
         [Browsable(false)]
         public abstract string ScriptClassType { get; }
 
+        [Browsable(false)]
+        public string PropertyGridTitle
+        {
+            get { return TypesHelper.MakePropertyGridTitle(ControlType, _name, _id); }
+        }
+
         /// <summary>
         /// Gets a list of all sprites used by this control. Useful for
         /// exporting the control.

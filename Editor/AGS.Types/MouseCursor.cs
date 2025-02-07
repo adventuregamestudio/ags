@@ -136,6 +136,12 @@ namespace AGS.Types
             get { return "Cursor: " + this.Name; }
         }
 
+        [Browsable(false)]
+        public string PropertyGridTitle
+        {
+            get { return TypesHelper.MakePropertyGridTitle("Character", _name, _id); }
+        }
+
         [Description("The script ID of the cursor")]
         [Category("Design")]
         public string ScriptID

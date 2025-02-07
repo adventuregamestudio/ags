@@ -354,7 +354,7 @@ namespace AGS.Editor.Components
         private Dictionary<string, object> ConstructPropertyObjectList(Dialog item)
         {
             Dictionary<string, object> list = new Dictionary<string, object>();
-            list.Add(item.Name + " (Dialog " + item.ID + ")", item);
+            list.Add(item.PropertyGridTitle, item);
             return list;
         }
 

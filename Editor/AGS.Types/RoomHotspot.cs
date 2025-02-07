@@ -79,7 +79,7 @@ namespace AGS.Types
         [Browsable(false)]
         public string PropertyGridTitle
         {
-            get { return _name + " (Hotspot; ID " + _id + ")"; }
+            get { return TypesHelper.MakePropertyGridTitle("Hotspot", _name, _description, _id); }
         }
 
         [AGSSerializeClass()]

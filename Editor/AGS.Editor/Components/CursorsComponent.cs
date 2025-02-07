@@ -200,7 +200,7 @@ namespace AGS.Editor.Components
         private Dictionary<string, object> ConstructPropertyObjectList(MouseCursor cursor)
         {
             Dictionary<string, object> list = new Dictionary<string, object>();
-            list.Add(cursor.Name + " (Cursor " + cursor.ID + ")", cursor);
+            list.Add(cursor.PropertyGridTitle, cursor);
             return list;
         }
     }

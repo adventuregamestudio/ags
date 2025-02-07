@@ -122,7 +122,7 @@ namespace AGS.Types
         [Browsable(false)]
         public string PropertyGridTitle
         {
-            get { return this.Name + " (" + this.GetType().Name + " " + this.ID + ")"; }
+            get { return TypesHelper.MakePropertyGridTitle(GetType().Name, _name, _id); }
         }
 
         [Browsable(false)]

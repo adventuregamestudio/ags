@@ -32,8 +32,7 @@ namespace AGS.Types
         [Browsable(false)]
         public string PropertyGridTitle
         {
-            get { return "Walk-behind area ID " + _id; }
+            get { return TypesHelper.MakePropertyGridTitle("Walk-behind area", _id); }
         }
-
     }
 }

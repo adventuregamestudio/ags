@@ -972,10 +972,13 @@ namespace AGS.Editor
             }
 
             if (propertyName == RoomHotspot.PROPERTY_NAME_SCRIPT_NAME ||
-				propertyName == RoomObject.PROPERTY_NAME_SCRIPT_NAME ||
+                propertyName == RoomHotspot.PROPERTY_NAME_DESCRIPTION ||
+                propertyName == RoomObject.PROPERTY_NAME_SCRIPT_NAME ||
+                propertyName == RoomObject.PROPERTY_NAME_DESCRIPTION ||
                 propertyName == Character.PROPERTY_NAME_SCRIPTNAME ||
+                propertyName == Character.PROPERTY_NAME_DESCRIPTION ||
                 needRefresh)
-			{
+            {
                 if (_layer != null)
                 {
                     // Force the layer to refresh its property list with the new name   
@@ -984,7 +987,7 @@ namespace AGS.Editor
                     _layer.FilterOn();
                 }
                 RefreshLayersTree();
-			}
+            }
         }
 
 		protected override void OnWindowActivated()

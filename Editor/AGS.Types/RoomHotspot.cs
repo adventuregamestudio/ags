@@ -11,6 +11,7 @@ namespace AGS.Types
     public class RoomHotspot : IChangeNotification
 	{
 		public const string PROPERTY_NAME_SCRIPT_NAME = "Name";
+        public const string PROPERTY_NAME_DESCRIPTION = "Description";
 
         private static InteractionSchema _interactionSchema;
 

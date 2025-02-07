@@ -12,6 +12,7 @@ namespace AGS.Types
     public class Character : ICustomTypeDescriptor, IToXml, IComparable<Character>
     {
         public const string PROPERTY_NAME_SCRIPTNAME = "ScriptName";
+        public const string PROPERTY_NAME_DESCRIPTION = "RealName";
         public const string PROPERTY_NAME_STARTINGROOM = "StartingRoom";
         public const int NARRATOR_CHARACTER_ID = 999;
 

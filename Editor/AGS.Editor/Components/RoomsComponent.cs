@@ -1616,7 +1616,7 @@ namespace AGS.Editor.Components
 			}
 
 			ProjectTree treeController = _guiController.ProjectTree;
-			ProjectTreeItem treeItem = treeController.AddTreeBranch(this, TREE_PREFIX_ROOM_NODE + room.Number, room.Number.ToString() + ": " + room.Description, iconName);
+			ProjectTreeItem treeItem = treeController.AddTreeBranch(this, GetItemNodeID(room), GetItemNodeLabel(room), iconName);
 			treeController.AddTreeLeaf(this, TREE_PREFIX_ROOM_SETTINGS + room.Number, "Edit room", iconName);
             treeController.AddTreeLeaf(this, TREE_PREFIX_ROOM_SCRIPT + room.Number, "Room script", SCRIPT_ICON);
             return treeItem;
@@ -1703,9 +1703,14 @@ namespace AGS.Editor.Components
             return null;
         }
 
-        private string GetItemNodeID(UnloadedRoom room)
+        private string GetItemNodeID(IRoom room)
         {
             return TREE_PREFIX_ROOM_NODE + room.Number;
+        }
+
+        private string GetItemNodeLabel(IRoom room)
+        {
+            return room.Number.ToString() + ": " + room.Description;
         }
 
         /// <summary>

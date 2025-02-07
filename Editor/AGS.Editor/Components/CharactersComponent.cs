@@ -329,9 +329,9 @@ namespace AGS.Editor.Components
             return _agsEditor.CurrentGame.CharacterFlatList;
         }
 
-        private string GetNodeID(Character character)
+        private string GetNodeID(Character item)
         {
-            return ITEM_COMMAND_PREFIX + character.ID;
+            return ITEM_COMMAND_PREFIX + item.ID;
         }
 
         private string GetNodeLabel(Character item)

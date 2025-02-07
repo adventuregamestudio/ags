@@ -54,7 +54,7 @@ namespace AGS.Editor.Components
                 Utilities.CopyFont(0, newItem.ID);
                 Factory.NativeProxy.OnFontAdded(_agsEditor.CurrentGame, newItem.ID);
                 _guiController.ProjectTree.StartFromNode(this, TOP_LEVEL_COMMAND_ID);
-                _guiController.ProjectTree.AddTreeLeaf(this, GetNodeID(newItem), newItem.ID.ToString() + ": " + newItem.Name, "FontIcon");
+                _guiController.ProjectTree.AddTreeLeaf(this, GetNodeID(newItem), GetNodeLabel(newItem), "FontIcon");
                 _guiController.ProjectTree.SelectNode(this, GetNodeID(newItem));
                 ShowOrAddPane(newItem);
                 FontTypeConverter.SetFontList(_agsEditor.CurrentGame.Fonts);
@@ -207,13 +207,18 @@ namespace AGS.Editor.Components
             return "Fnt" + item.ID;
         }
 
+        private string GetNodeLabel(AGS.Types.Font item)
+        {
+            return item.ID.ToString() + ": " + item.Name;
+        }
+
         private void RePopulateTreeView()
         {
             _guiController.ProjectTree.RemoveAllChildNodes(this, TOP_LEVEL_COMMAND_ID);
             _guiController.ProjectTree.StartFromNode(this, TOP_LEVEL_COMMAND_ID);
             foreach (AGS.Types.Font item in _agsEditor.CurrentGame.Fonts)
             {
-                _guiController.ProjectTree.AddTreeLeaf(this, GetNodeID(item), item.ID.ToString() + ": " + item.Name, "FontIcon");
+                _guiController.ProjectTree.AddTreeLeaf(this, GetNodeID(item), GetNodeLabel(item), "FontIcon");
             }
 
             if (_documents.ContainsValue(_guiController.ActivePane))

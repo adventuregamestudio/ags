@@ -579,7 +579,7 @@ namespace AGS.Editor
                         }
                         if (doImport)
                         {
-                            if (Factory.GUIController.ShowQuestion("The new background is a different size to the old one. If you import it, all your regions, hotspots and walkable areas will be cleared. Do you want to proceed?") != DialogResult.Yes)
+                            if (Factory.GUIController.ShowQuestion("The new background is a different size to the old one. If you import it, all your regions, hotspots and walkable areas will be cleared, and edges reset to defaults. Do you want to proceed?") != DialogResult.Yes)
                             {
                                 doImport = false;
                             }
@@ -629,11 +629,11 @@ namespace AGS.Editor
 
         private void OnRoomSizeChanged()
         {
-            // Clamp room edges to the new size
-            _room.LeftEdgeX = MathExtra.Clamp(_room.LeftEdgeX, 0, _room.Width - 2);
-            _room.RightEdgeX = MathExtra.Clamp(_room.RightEdgeX, _room.LeftEdgeX + 1, _room.Width - 1);
-            _room.TopEdgeY = MathExtra.Clamp(_room.TopEdgeY, 0, _room.Height - 2);
-            _room.BottomEdgeY = MathExtra.Clamp(_room.BottomEdgeY, _room.TopEdgeY + 1, _room.Height - 1);
+            // Reset room edges to the defaults at the new size
+            _room.LeftEdgeX = 0;
+            _room.RightEdgeX = _room.Width - 1;
+            _room.TopEdgeY = 0;
+            _room.BottomEdgeY = _room.Height - 1;
         }
 
         private void btnChangeImage_Click(object sender, EventArgs e)

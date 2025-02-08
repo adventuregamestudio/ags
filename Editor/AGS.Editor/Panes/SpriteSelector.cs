@@ -35,6 +35,7 @@ namespace AGS.Editor
         private const string MENU_ITEM_REPLACE_FROM_SOURCE_ALL = "ReplaceAllSpritesFromSource";
         private const string MENU_ITEM_EXPORT_FOLDER = "ExportFolder";
         private const string MENU_ITEM_EXPORT_FIXUP_SOURCES = "ExportFixupSources";
+        private const string MENU_ITEM_REPLACE_SOURCE_FOLDER = "ReplaceSpritesSourceFolder";
         private const string MENU_ITEM_SORT_BY_NUMBER = "SortSpritesByNumber";
         private const string MENU_ITEM_REPLACE_FROM_SOURCE = "ReplaceSpriteFromSource";
         private const string MENU_ITEM_FIND_BY_NUMBER = "FindSpriteByNumber";
@@ -851,6 +852,10 @@ namespace AGS.Editor
             {
                 ReplaceSpritesFromSource();
             }
+            else if (item.Name == MENU_ITEM_REPLACE_SOURCE_FOLDER)
+            {
+                ReplaceSourceFolderForSprites();
+            }
             else if (item.Name == MENU_ITEM_PREVIEW_SIZE_1X)
             {
                 SetSpritePreviewMultiplier(2);
@@ -1223,6 +1228,67 @@ namespace AGS.Editor
             Tasks.ExportSprites(opts);
         }
 
+        private void ReplaceSourceFolderForSprites()
+        {
+            var allSprites = Factory.AGSEditor.CurrentGame.RootSpriteFolder.GetAllSpritesFromAllSubFolders();
+
+            string firstFoundSourceFile = null;
+            foreach (ListViewItem listItem in spriteList.SelectedItems)
+            {
+                Sprite spr = GetSprite(listItem);
+                if (!string.IsNullOrEmpty(spr.SourceFile))
+                {
+                    firstFoundSourceFile = spr.SourceFile;
+                    break;
+                }
+            }
+
+            if (string.IsNullOrEmpty(firstFoundSourceFile))
+            {
+                Sprite spr = allSprites.Where(s => !string.IsNullOrEmpty(s.SourceFile)).FirstOrDefault();
+                if (spr != null)
+                    firstFoundSourceFile = spr.SourceFile;
+            }
+
+            if (string.IsNullOrEmpty(firstFoundSourceFile))
+            {
+                Factory.GUIController.ShowMessage("None of the sprites has a source filename.", MessageBoxIcon.Warning);
+                return;
+            }
+
+            string parentDir = Path.GetDirectoryName(firstFoundSourceFile);
+            var replaceDirs = ReplaceFolderDialog.Show("Replace sprite(s) source path",
+                "Please choose which part of the parent path should be replaced and provide a replacement. Relative paths will be assumed relative to your game's project folder.",
+                parentDir, parentDir, Factory.AGSEditor.CurrentGame.DirectoryPath);
+
+            if (replaceDirs == null || replaceDirs.Item1 == replaceDirs.Item2)
+                return;
+
+            int itemCount = 0;
+            foreach (var sprite in allSprites)
+            {
+                if (string.IsNullOrEmpty(sprite.SourceFile))
+                    continue;
+
+                string newPath;
+                 if (Utilities.ReplacePathBaseProjectRelative(sprite.SourceFile, replaceDirs.Item1, replaceDirs.Item2, out newPath))
+                {
+                    sprite.SourceFile = newPath;
+                    itemCount++;
+                }
+            }
+
+            if (itemCount > 0)
+            {
+                Factory.GUIController.ShowMessage($"{itemCount} sprite(s) had their source paths updated.", MessageBoxIcon.Information);
+                Factory.GUIController.RefreshPropertyGrid();
+            }
+            else
+            {
+                Factory.GUIController.ShowMessage($"No sprites with the matching old paths found, no changes were made.", MessageBoxIcon.Information);
+            }
+        }
+
         private void SortAllSpritesInCurrentFolderByNumber()
         {
             ((List<Sprite>)_currentFolder.Sprites).Sort();
@@ -1362,6 +1428,7 @@ namespace AGS.Editor
             menu.Items.Add(new ToolStripSeparator());
             menu.Items.Add(new ToolStripMenuItem("Export all sprites...", null, onClick, MENU_ITEM_EXPORT_FOLDER));
             menu.Items.Add(new ToolStripMenuItem("Create source files for all sprites with missing / external sources...", null, onClick, MENU_ITEM_EXPORT_FIXUP_SOURCES));
+            menu.Items.Add(new ToolStripMenuItem("Replace source paths for sprites...", null, onClick, MENU_ITEM_REPLACE_SOURCE_FOLDER));
             menu.Items.Add(new ToolStripSeparator());
             menu.Items.Add(new ToolStripMenuItem("Find sprite by number...", null, onClick, MENU_ITEM_FIND_BY_NUMBER));
             menu.Items.Add(new ToolStripMenuItem("Sort sprites by number", null, onClick, MENU_ITEM_SORT_BY_NUMBER));

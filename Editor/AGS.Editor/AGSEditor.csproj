@@ -232,6 +232,12 @@
     <Compile Include="GUI\Progress.Designer.cs">
       <DependentUpon>Progress.cs</DependentUpon>
     </Compile>
+    <Compile Include="GUI\ReplaceFolderDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\ReplaceFolderDialog.Designer.cs">
+      <DependentUpon>ReplaceFolderDialog.cs</DependentUpon>
+    </Compile>
     <Compile Include="GUI\SplashScreen.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -471,6 +477,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="GUI\Progress.resx">
       <DependentUpon>Progress.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\ReplaceFolderDialog.resx">
+      <DependentUpon>ReplaceFolderDialog.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="GUI\SpriteExportDialog.resx">
       <DependentUpon>SpriteExportDialog.cs</DependentUpon>

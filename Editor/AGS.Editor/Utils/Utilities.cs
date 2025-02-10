@@ -146,18 +146,23 @@ namespace AGS.Editor
             }
         }
 
-        public static string GetRelativeToProjectPath(string absolutePath)
+        public static string GetRelativeToBasePath(string absolutePath, string basePath)
         {
             if (String.IsNullOrEmpty(absolutePath) ||
-                !absolutePath.Contains(Factory.AGSEditor.CurrentGame.DirectoryPath))
+                !absolutePath.Contains(basePath))
             {
                 return absolutePath;
             }
 
-            Uri currentProjectUri = new Uri(Factory.AGSEditor.CurrentGame.DirectoryPath + Path.DirectorySeparatorChar);
+            Uri basePathUri = new Uri(basePath + Path.DirectorySeparatorChar);
             Uri currentPathUri = new Uri(absolutePath);
 
-            return Uri.UnescapeDataString(currentProjectUri.MakeRelativeUri(currentPathUri).OriginalString);
+            return Uri.UnescapeDataString(basePathUri.MakeRelativeUri(currentPathUri).OriginalString);
+        }
+
+        public static string GetRelativeToProjectPath(string absolutePath)
+        {
+            return GetRelativeToBasePath(absolutePath, Factory.AGSEditor.CurrentGame.DirectoryPath);
         }
 
         public static string[] GetRelativeToProjectPath(string[] absolutePaths)
@@ -221,6 +226,55 @@ namespace AGS.Editor
         {
             string[] parts = path.Split(PathSeparators);
             return parts.Any(p => p == "." || p == "..");
+        }
+
+        /// <summary>
+        /// Replaces "oldBase" parent part of the "path" with the "newBase", assigns "newPath" and returns a result.
+        /// If "path" does not contain "oldBase", then fails.
+        /// </summary>
+        public static bool ReplacePathBase(string path, string oldBase, string newBase, out string newPath)
+        {
+            Uri oldBaseUri = new Uri(oldBase + Path.DirectorySeparatorChar);
+            Uri pathUri = new Uri(path);
+            if (!oldBaseUri.IsBaseOf(pathUri))
+            {
+                newPath = path;
+                return false;
+            }
+
+            Uri relativeUri = pathUri.MakeRelativeUri(oldBaseUri);
+            Uri newBaseUri = new Uri(newBase + Path.DirectorySeparatorChar);
+            Uri absoluteUri;
+            if (Uri.TryCreate(newBaseUri, relativeUri, out absoluteUri))
+            {
+                if (pathUri.IsFile)
+                    newPath = Path.Combine(absoluteUri.LocalPath, Path.GetFileName(path));
+                else
+                    newPath = absoluteUri.LocalPath;
+                return true;
+            }
+            newPath = path;
+            return false;
+        }
+
+        public static bool ReplacePathBaseProjectRelative(string path, string oldBase, string newBase, out string newPath)
+        {
+            string originalPath = path;
+            if (!Path.IsPathRooted(oldBase))
+                oldBase = Path.Combine(Factory.AGSEditor.CurrentGame.DirectoryPath, oldBase);
+            if (!Path.IsPathRooted(newBase))
+                newBase = Path.Combine(Factory.AGSEditor.CurrentGame.DirectoryPath, newBase);
+            if (!Path.IsPathRooted(path))
+                path = Path.Combine(Factory.AGSEditor.CurrentGame.DirectoryPath, path);
+
+            if (!ReplacePathBase(path, oldBase, newBase, out newPath))
+            {
+                newPath = originalPath;
+                return false;
+            }
+
+            newPath = GetRelativeToProjectPath(newPath);
+            return true;
         }
 
         /// <summary>

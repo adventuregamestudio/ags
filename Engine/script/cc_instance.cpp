@@ -361,7 +361,7 @@ bool ccInstance::FindExportedFunction(const String &fn_name, int32_t &start_at, 
     assert(exp_name.GetLength() >= fn_name.GetLength());
     if (exp_name.GetLength() <= fn_name.GetLength())
     {
-        num_args = 0; // unknown, registered without args info
+        num_args = -1; // unknown, registered without args info
     }
     else
     {
@@ -405,7 +405,11 @@ ccInstError ccInstance::CallScriptFunction(const String &funcname, int32_t numar
     // parameters are always the last, so function code knows how to find them
     // using negative offsets, and does not care about any preceding entries.
     // But if there's not enough parameters, then we cannot call this function.
-    if (export_args > numargs)
+    if (export_args < 0)
+    {
+        export_args = numargs;
+    }
+    else if (export_args > numargs)
     {
         cc_error("Not enough parameters to exported function '%s' (expected %d, supplied %d)",
             funcname.GetCStr(), export_args, numargs);

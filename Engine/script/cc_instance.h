@@ -205,7 +205,8 @@ private:
     bool    ImportScriptExports(const ccScript *scri);
 
     // Searches for the function among this script's exports,
-    // on success returns its starting position in bytecode, and number of arguments
+    // on success returns its starting position in bytecode, and number of arguments;
+    // returns number of args as -1 if no args data found in the compiled script.
     bool    FindExportedFunction(const Common::String &fn_name, int32_t &start_at, int32_t &num_args) const;
 
     // Begin executing script starting from the given bytecode index

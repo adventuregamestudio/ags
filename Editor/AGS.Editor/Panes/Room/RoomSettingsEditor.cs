@@ -545,9 +545,9 @@ namespace AGS.Editor
                     bool doImport = true;
                     bool deleteExtraFrames = false;
                     bool roomSizeChanged = false;
-                    AdjustMaskOptions MaskOption = AdjustMaskOptions.ResetMask;
-                    int MaskXOffset = 0;
-                    int MaskYOffset = 0;
+                    AdjustMaskOptions maskOption = AdjustMaskOptions.ResetMask;
+                    int maskXOffset = 0;
+                    int maskYOffset = 0;
 
                     if ((Factory.AGSEditor.CurrentGame.Settings.ColorDepth == GameColorDepth.Palette) && (bmp.GetColorDepth() > 8))
                     {
@@ -578,9 +578,9 @@ namespace AGS.Editor
                             {
                                 if (dialog.ShowDialog(this) == DialogResult.OK)
                                 {
-                                    MaskOption = dialog.MaskOption;
-                                    MaskXOffset = dialog.XOffset;
-                                    MaskYOffset = dialog.YOffset;
+                                    maskOption = dialog.MaskOption;
+                                    maskXOffset = dialog.XOffset;
+                                    maskYOffset = dialog.YOffset;
                                     roomSizeChanged = true;
                                 }
                                 else
@@ -593,6 +593,7 @@ namespace AGS.Editor
 
                     if (doImport)
                     {
+                        Size oldRoomSize = new Size(_room.Width, _room.Height);
                         _roomController.SetBackground(bgIndex, bmp);
 
                         if (deleteExtraFrames)
@@ -607,17 +608,17 @@ namespace AGS.Editor
                         // If size or resolution has changed, reset or resize the masks and call OnRoomSizeChanged
                         if (roomSizeChanged)
                         {
-                            if (MaskOption == AdjustMaskOptions.ResetMask)
+                            if (maskOption == AdjustMaskOptions.ResetMask)
                             {
                                 _roomController.ResetMasks();
                             }
                             else
                             {
-                                bool doScale = (MaskOption == AdjustMaskOptions.ScaleMaskImage);
-                                _roomController.ResizeMasks(doScale, bmp.Width, bmp.Height, MaskXOffset, MaskYOffset);
+                                bool doScale = (maskOption == AdjustMaskOptions.ScaleMaskImage);
+                                _roomController.ResizeMasks(doScale, bmp.Width, bmp.Height, maskXOffset, maskYOffset);
                             }
 
-                            OnRoomSizeChanged();
+                            OnRoomSizeChanged(oldRoomSize, maskOption);
                         }
 
                         // TODO: choose default zoom based on the room size vs window size?
@@ -636,13 +637,29 @@ namespace AGS.Editor
             }
         }
 
-        private void OnRoomSizeChanged()
+        private void OnRoomSizeChanged(Size oldRoomSize, AdjustMaskOptions maskOption)
         {
-            // Reset room edges to the defaults at the new size
-            _room.LeftEdgeX = 0;
-            _room.RightEdgeX = _room.Width - 1;
-            _room.TopEdgeY = 0;
-            _room.BottomEdgeY = _room.Height - 1;
+            switch (maskOption)
+            {
+                case AdjustMaskOptions.ResetMask:
+                    // Reset room edges to the defaults at the new size
+                    _room.LeftEdgeX = 0;
+                    _room.RightEdgeX = _room.Width - 1;
+                    _room.TopEdgeY = 0;
+                    _room.BottomEdgeY = _room.Height - 1;
+                    break;
+                case AdjustMaskOptions.ScaleMaskImage:
+                    float hfactor = (float)_room.Width / oldRoomSize.Width;
+                    float vfactor = (float)_room.Height / oldRoomSize.Height;
+                    _room.LeftEdgeX = (int)Math.Round(_room.LeftEdgeX * hfactor);
+                    _room.RightEdgeX = (int)Math.Round(_room.RightEdgeX * hfactor);
+                    _room.TopEdgeY = (int)Math.Round(_room.TopEdgeY * vfactor);
+                    _room.BottomEdgeY = (int)Math.Round(_room.BottomEdgeY * vfactor);
+                    break;
+                default:
+                    // Keep edges
+                    break;
+            }
         }
 
         private void btnChangeImage_Click(object sender, EventArgs e)

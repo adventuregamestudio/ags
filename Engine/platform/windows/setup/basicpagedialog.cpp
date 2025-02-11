@@ -103,6 +103,13 @@ void WinConfig::Save(ConfigTree &cfg) const
 //
 //=============================================================================
 
+static int ValidateDisplayIndex(int display_index)
+{
+    if (display_index >= sys_get_display_count())
+        return 0;
+    return display_index;
+}
+
 INT_PTR BasicPageDialog::OnInitDialog()
 {
     _hGameResolutionText    = GetDlgItem(_hwnd, IDC_RESOLUTION);
@@ -116,7 +123,7 @@ INT_PTR BasicPageDialog::OnInitDialog()
     _hGfxFilterList         = GetDlgItem(_hwnd, IDC_GFXFILTER);
     _hLanguageList          = GetDlgItem(_hwnd, IDC_LANGUAGE);
 
-    _displayIndex = _winCfg.Display.DisplayIndex;
+    _displayIndex = ValidateDisplayIndex(_winCfg.Display.DisplayIndex);
     _desktopSize = get_desktop_size(_displayIndex);
     _maxWindowSize = AGSPlatformDriver::GetDriver()->ValidateWindowSize(_displayIndex, _desktopSize, false);
 
@@ -444,7 +451,7 @@ void BasicPageDialog::FillScalingList(HWND hlist, bool windowed)
 int BasicPageDialog::GetRealDisplayIndex()
 {
     const int user_display_sel = GetCurSel(_hDisplayList);
-    return user_display_sel == 0 ? 0 : user_display_sel - 1;
+    return user_display_sel == 0 ? 0 : ValidateDisplayIndex(user_display_sel - 1);
 }
 
 void BasicPageDialog::SetScalingSelection()
@@ -584,7 +591,7 @@ void BasicPageDialog::SelectNearestGfxMode(const WindowSetup &ws)
 void BasicPageDialog::ResetSetup(const ConfigTree & /*cfg_from*/)
 {
     SetCurSelToItemDataStr(_hGfxDriverList, _winCfg.Display.DriverID.GetCStr(), 0);
-    SetCurSel(_hDisplayList, _winCfg.Display.UseDefaultDisplay ? 0 : _winCfg.Display.DisplayIndex + 1);
+    SetCurSel(_hDisplayList, _winCfg.Display.UseDefaultDisplay ? 0 : _displayIndex + 1);
     SetCheck(_hFullscreenDesktop, _winCfg.Display.FsSetup.Mode == kWnd_FullDesktop);
     EnableWindow(_hGfxModeList, _winCfg.Display.FsSetup.Mode == kWnd_Fullscreen);
     OnGfxDriverUpdate();

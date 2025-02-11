@@ -178,7 +178,7 @@ private:
     PDriverDesc _drvDesc;
     GfxFilterInfo _gfxFilterInfo;
     // Resolution limits
-    int _displayIndex = 0;
+    int _displayIndex = 0; // validated display index
     Size _desktopSize;
     Size _maxWindowSize;
 

@@ -160,10 +160,6 @@ public:
     // Notifies that the game was being updated (script not hanging)
     void    NotifyAlive();
 
-    // Assigns a return value for the currently called plugin API;
-    // NOTE: this is a sort of a hack, see comment to _pluginReturnValue for details.
-    static void SetPluginReturnValue(const RuntimeScriptValue &value);
-
 private:
     // Begin executing the given script starting from the given bytecode index
     ScriptExecError Run(const RuntimeScript *script, int32_t curpc, const RuntimeScriptValue *params, size_t param_count);
@@ -255,20 +251,6 @@ private:
     // Execution logger, optional
     std::unique_ptr<AGS::Common::TextStreamWriter> _execWriter;
 #endif
-
-
-    // A value returned from plugin functions saved as RuntimeScriptValue.
-    // This is a temporary solution (*sigh*, one of many) which allows to
-    // receive any pointer values from plugins, as RSV can only store plain
-    // numeric values as 32-bit integers. Not to mention that this way we
-    // can store an accompanying IScriptObject manager for managed objects.
-    // The big problem with this is that plugins do not know about RSV,
-    // so engine has to make educated GUESS, and assign this whenever plugin
-    // prepares a pointer, e.g. by registering or retrieving a managed object.
-    // This works, let's say, 95% of cases in practice, but is not formally
-    // reliable.
-    // FIXME: re-investigate this, find if there's a better solution?
-    static RuntimeScriptValue _pluginReturnValue;
 
     // Minimal timeout: how much time may pass without any engine update
     // before we want to check on the situation and do system poll

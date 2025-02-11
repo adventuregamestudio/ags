@@ -164,13 +164,23 @@ void D3DBitmap::ReleaseTextureData()
     _data.reset();
 }
 
+D3DGfxModeList::D3DGfxModeList(const D3DPtr &direct3d, int display_index, D3DFORMAT d3dformat)
+    : _direct3d(direct3d)
+    , _displayIndex(display_index)
+    , _pixelFormat(d3dformat)
+{
+    _adapterIndex = SDL_Direct3D9GetAdapterIndex(display_index);
+    _modeCount = _direct3d->GetAdapterModeCount(_adapterIndex, _pixelFormat);
+}
+
 bool D3DGfxModeList::GetMode(int index, DisplayMode &mode) const
 {
     if (_direct3d && index >= 0 && index < _modeCount)
     {
         D3DDISPLAYMODE d3d_mode;
-        if (SUCCEEDED(_direct3d->EnumAdapterModes(D3DADAPTER_DEFAULT, _pixelFormat, index, &d3d_mode)))
+        if (SUCCEEDED(_direct3d->EnumAdapterModes(_adapterIndex, _pixelFormat, index, &d3d_mode)))
         {
+            mode.DisplayIndex = _displayIndex;
             mode.Width = d3d_mode.Width;
             mode.Height = d3d_mode.Height;
             mode.ColorDepth = D3DFormatToColorDepth(d3d_mode.Format);
@@ -295,6 +305,7 @@ bool D3DGraphicsDriver::FirstTimeInit()
 {
   HRESULT hr;
 
+  direct3ddevice->GetCreationParameters(&direct3dcreateparams);
   direct3ddevice->GetDeviceCaps(&direct3ddevicecaps);
 
   // the PixelShader.fx uses ps_1_4
@@ -400,10 +411,11 @@ bool D3DGraphicsDriver::IsModeSupported(const DisplayMode &mode)
   D3DFORMAT pixelFormat = ColorDepthToD3DFormat(mode.ColorDepth, false /* opaque */);
   D3DDISPLAYMODE d3d_mode;
 
-  int mode_count = direct3d->GetAdapterModeCount(D3DADAPTER_DEFAULT, pixelFormat);
+  const UINT use_adapter = SDL_Direct3D9GetAdapterIndex(mode.DisplayIndex);
+  int mode_count = direct3d->GetAdapterModeCount(use_adapter, pixelFormat);
   for (int i = 0; i < mode_count; i++)
   {
-    if (FAILED(direct3d->EnumAdapterModes(D3DADAPTER_DEFAULT, pixelFormat, i, &d3d_mode)))
+    if (FAILED(direct3d->EnumAdapterModes(use_adapter, pixelFormat, i, &d3d_mode)))
     {
       SDL_SetError("IDirect3D9::EnumAdapterModes failed");
       return false;
@@ -486,18 +498,23 @@ bool D3DGraphicsDriver::CreateDisplayMode(const DisplayMode &mode)
     return false;
 
   SDL_Window *window = sys_get_window();
+  int use_display = mode.DisplayIndex;
   if (!window)
   {
-    sys_window_create("", mode.Width, mode.Height, mode.Mode);
+    sys_window_create("", mode.DisplayIndex, mode.Width, mode.Height, mode.Mode);
   }
   else
   {
-#if (AGS_PLATFORM_DESKTOP)
-    // Move window to the default display, this is where we create exclusive fullscreen
-    if (mode.IsRealFullscreen())
+#if (AGS_SUPPORT_MULTIDISPLAY)
+    // If user requested an exclusive fullscreen, move window to where we created it first,
+    // because DirectX does not normally support switching displays in exclusive mode.
+    // NOTE: we may in theory support this, but we'd have to release and recreate
+    // ALL the resources, including all textures currently in memory.
+    if (mode.IsRealFullscreen() &&
+        (_fullscreenDisplay > 0) && (sys_get_window_display_index() != _fullscreenDisplay))
     {
-      if (sys_get_window_display_index() != 0)
-        sys_window_fit_in_display(0);
+      use_display = _fullscreenDisplay;
+      sys_window_fit_in_display(_fullscreenDisplay);
     }
 #endif
   }
@@ -538,7 +555,8 @@ bool D3DGraphicsDriver::CreateDisplayMode(const DisplayMode &mode)
   }
   else
   {
-    hr = direct3d->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, hwnd,
+    const UINT use_adapter = SDL_Direct3D9GetAdapterIndex(use_display);
+    hr = direct3d->CreateDevice(use_adapter, D3DDEVTYPE_HAL, hwnd,
                       D3DCREATE_MIXED_VERTEXPROCESSING | D3DCREATE_MULTITHREADED,  // multithreaded required for AVI player
                       &d3dpp, direct3ddevice.Acquire());
   }
@@ -563,6 +581,7 @@ bool D3DGraphicsDriver::CreateDisplayMode(const DisplayMode &mode)
     if (!mode.IsRealFullscreen())
     {
       sys_window_set_style(mode.Mode, Size(mode.Width, mode.Height));
+      sys_window_bring_to_front();
     }
   }
   return true;
@@ -714,7 +733,11 @@ bool D3DGraphicsDriver::SetDisplayMode(const DisplayMode &mode)
     return false;
 
   OnInit();
-  OnModeSet(mode);
+  DisplayMode set_mode = mode;
+  set_mode.DisplayIndex = sys_get_window_display_index();
+  OnModeSet(set_mode);
+  if ((_fullscreenDisplay < 0) || set_mode.IsRealFullscreen())
+    _fullscreenDisplay = set_mode.DisplayIndex;
   InitializeD3DState();
   CreateVirtualScreen();
   return true;
@@ -859,9 +882,9 @@ int D3DGraphicsDriver::GetDisplayDepthForNativeDepth(int /*native_color_depth*/)
     return 32;
 }
 
-IGfxModeList *D3DGraphicsDriver::GetSupportedModeList(int color_depth)
+IGfxModeList *D3DGraphicsDriver::GetSupportedModeList(int display_index, int color_depth)
 {
-  return new D3DGfxModeList(direct3d, ColorDepthToD3DFormat(color_depth, false /* opaque */));
+    return new D3DGfxModeList(direct3d, display_index, ColorDepthToD3DFormat(color_depth, false /* opaque */));
 }
 
 PGfxFilter D3DGraphicsDriver::GetGraphicsFilter() const
@@ -1564,10 +1587,8 @@ size_t D3DGraphicsDriver::RenderSpriteBatch(const D3DSpriteBatch &batch, size_t 
         {
         case DRAWENTRY_STAGECALLBACK:
             // raw-draw plugin support
-            // NOTE: device ptr cast will only work on 32-bit systems!
             int sx, sy;
-            if (auto *ddb = DoSpriteEvtCallback(e.x,
-                static_cast<int32_t>(reinterpret_cast<uintptr_t>(direct3ddevice.get())), sx, sy))
+            if (auto *ddb = DoSpriteEvtCallback(e.x, reinterpret_cast<intptr_t>(direct3ddevice.get()), sx, sy))
             {
                 auto stageEntry = D3DDrawListEntry((D3DBitmap*)ddb, batch.ID, sx, sy);
                 RenderSprite(&stageEntry, batch.Matrix, batch.Color, rend_sz);
@@ -1844,7 +1865,7 @@ void D3DGraphicsDriver::AdjustSizeToNearestSupportedByCard(int *width, int *heig
 
 bool D3DGraphicsDriver::IsTextureFormatOk( D3DFORMAT TextureFormat, D3DFORMAT AdapterFormat ) 
 {
-    HRESULT hr = direct3d->CheckDeviceFormat( D3DADAPTER_DEFAULT,
+    HRESULT hr = direct3d->CheckDeviceFormat(direct3dcreateparams.AdapterOrdinal,
                                           D3DDEVTYPE_HAL,
                                           AdapterFormat,
                                           0,

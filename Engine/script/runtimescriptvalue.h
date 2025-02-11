@@ -30,6 +30,8 @@ enum ScriptValueType
     kScValFloat,        // as float (for floating point math), 32-bit
     kScValPluginArg,    // an 32-bit value, passed to a script function when called
                         // directly by plugin; is allowed to represent object pointer
+    kScValPluginArgPtr, // a *presumably* pointer value, passed to a script function
+                        // when called directly by plugin; does not include MgrPtr
     kScValStackPtr,     // as a pointer to stack entry
     kScValData,         // as a container for randomly sized data (usually array)
     kScValGlobalVar,    // as a pointer to script variable; used only for global vars,
@@ -202,6 +204,31 @@ public:
         MgrPtr  = nullptr;
         Size    = 4;
         return *this;
+    }
+
+    inline RuntimeScriptValue &SetPluginArgPtr(void *ptr)
+    {
+        Type = kScValPluginArgPtr;
+        IValue = 0;
+        Ptr = ptr;
+        MgrPtr = nullptr;
+        Size = 4;
+        return *this;
+    }
+
+    // SetPluginArgOrPtr - is a hack that tries to deduce whether the
+    // argument *may be a pointer* in a 64-bit enviroment.
+    // If value's occupied bits fit within a 32-bit integer, then assigns
+    // a kScValPluginArg, if they exceed 32-bits, then assigns kScValPluginArgPtr.
+    inline RuntimeScriptValue &SetPluginArgOrPtr(intptr_t val)
+    {
+#if (AGS_PLATFORM_64BIT)
+        if ((val & 0xFFFFFFFF00000000) != 0)
+        {
+            return SetPluginArgPtr(reinterpret_cast<void*>(val));
+        }
+#endif
+        return SetPluginArgument(static_cast<int32_t>(val));
     }
 
     inline RuntimeScriptValue &SetStackPtr(RuntimeScriptValue *stack_entry)

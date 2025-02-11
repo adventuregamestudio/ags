@@ -784,7 +784,12 @@ void Character_PlaceOnWalkableArea(CharacterInfo *chap)
     if (displayed_room < 0)
         quit("!Character.PlaceOnWalkableArea: no room is currently loaded");
 
-    find_nearest_walkable_area(&chap->x, &chap->y);
+    Point dst;
+    if (FindNearestWalkableAreaForCharacter(Point(chap->x, chap->y), dst))
+    {
+        chap->x = dst.X;
+        chap->y = dst.Y;
+    }
 }
 
 void Character_RemoveTint(CharacterInfo *chaa) {
@@ -1904,7 +1909,10 @@ void move_character_impl(CharacterInfo *chin, const std::vector<Point> *path, in
     if (!ValidateCharForMove(chin, "MoveCharacter"))
         return;
 
-    if ((path && path->empty()) || (!path && (tox == chin->x) && (toy == chin->y)))
+    // If has path, then test if it's empty, or has 2 stages where start is identical to end;
+    // If no path, then test if destination is identical to the current pos
+    if (path && ((path->size() < 2) || (path->size() == 2) && ((*path)[0] == (*path)[1])) ||
+        !path && (tox == chin->x) && (toy == chin->y))
     {
         Character_StopMoving(chin);
         debug_script_log("MoveCharacter: %s move path is empty, or is already at destination, not moving", chin->scrname.GetCStr());
@@ -2178,76 +2186,50 @@ bool is_char_walking_ndirect(CharacterInfo *chi)
         (mls[chi->get_movelist_id()].move_direct == 0);
 }
 
-int find_nearest_walkable_area_within(int *xx, int *yy, int range, int step)
+bool FindNearestWalkableAreaForCharacter(const Point &src, Point &dst)
 {
-    int ex, ey, nearest = 99999, thisis, nearx = 0, neary = 0;
-    int startx = 0, starty = 14;
-    int roomWidthLowRes = room_to_mask_coord(thisroom.Width);
-    int roomHeightLowRes = room_to_mask_coord(thisroom.Height);
-    int xwidth = roomWidthLowRes, yheight = roomHeightLowRes;
+    const Point at_pt = Point(room_to_mask_coord(src.X), room_to_mask_coord(src.Y));
+    const Bitmap *mask = thisroom.WalkAreaMask.get();
 
-    int xmask = room_to_mask_coord(xx[0]);
-    int ymask = room_to_mask_coord(yy[0]);
-    int rightEdge = room_to_mask_coord(thisroom.Edges.Right);
-    int leftEdge = room_to_mask_coord(thisroom.Edges.Left);
-    int topEdge = room_to_mask_coord(thisroom.Edges.Top);
-    int bottomEdge = room_to_mask_coord(thisroom.Edges.Bottom);
-	
-    // tweak because people forget to move the edges sometimes
-    // if the player is already over the edge, ignore it
-    if (xmask >= rightEdge) rightEdge = roomWidthLowRes;
-    if (xmask <= leftEdge) leftEdge = 0;
-    if (ymask >= bottomEdge) bottomEdge = roomHeightLowRes;
-    if (ymask <= topEdge) topEdge = 0;
-
-    if (range > 0) 
+    int pix_value = 0;
+    if (mask->IsOnBitmap(at_pt.X, at_pt.Y))
     {
-        startx = xmask - range;
-        starty = ymask - range;
-        xwidth = startx + range * 2;
-        yheight = starty + range * 2;
-        if (startx < 0) startx = 0;
-        if (starty < 10) starty = 10;
-        if (xwidth > roomWidthLowRes) xwidth = roomWidthLowRes;
-        if (yheight > roomHeightLowRes) yheight = roomHeightLowRes;
+        pix_value = thisroom.WalkAreaMask->GetPixel(at_pt.X, at_pt.Y);
     }
 
-    for (ex = startx; ex < xwidth; ex += step) {
-        for (ey = starty; ey < yheight; ey += step) {
-            // non-walkalbe, so don't go here
-            if (thisroom.WalkAreaMask->GetPixel(ex,ey) == 0) continue;
-            // off a screen edge, don't move them there
-            if ((ex <= leftEdge) || (ex >= rightEdge) ||
-                (ey <= topEdge) || (ey >= bottomEdge))
-                continue;
-            // otherwise, calculate distance from target
-            thisis=(int) ::sqrt((double)((ex - xmask) * (ex - xmask) + (ey - ymask) * (ey - ymask)));
-            if (thisis<nearest) { nearest=thisis; nearx=ex; neary=ey; }
-        }
-    }
-    if (nearest < 90000) 
+    // Is already on a walkable area?
+    if (pix_value > 0)
     {
-        xx[0] = mask_to_room_coord(nearx);
-        yy[0] = mask_to_room_coord(neary);
-        return 1;
+        dst = src;
+        return true;
     }
 
-    return 0;
-}
+    Rect limits = RectWH(mask->GetSize());
+    // Adjust scan area to match historical behavior of Character.PlaceOnWalkableArea()
+    // Characters that are within Room Edges cannot be moved outside of them
+    int right_edge = room_to_mask_coord(thisroom.Edges.Right);
+    int left_edge = room_to_mask_coord(thisroom.Edges.Left);
+    int top_edge = room_to_mask_coord(thisroom.Edges.Top);
+    int bottom_edge = room_to_mask_coord(thisroom.Edges.Bottom);
 
-void find_nearest_walkable_area (int *xx, int *yy) {
+    // Original comment sais that edges are ignored if the character is outside,
+    // because "people forget to move the edges sometimes".
+    if (at_pt.X <= left_edge) left_edge = 0;
+    if (at_pt.X >= right_edge) right_edge = limits.Right;
+    if (at_pt.Y <= top_edge) top_edge = 0;
+    if (at_pt.Y >= bottom_edge) bottom_edge = limits.Bottom;
 
-    int pixValue = thisroom.WalkAreaMask->GetPixel(room_to_mask_coord(xx[0]), room_to_mask_coord(yy[0]));
-    if (pixValue == 0 || pixValue < 1)
+    // Ancient hack, where the scan area is restricted by 14 topmost pixels;
+    // this is *likely* the historical size of a Sierra-style Statusbar GUI.
+    if (loaded_game_file_version < kGameVersion_362)
     {
-        // First, check every 2 pixels within immediate area
-        if (!find_nearest_walkable_area_within(xx, yy, 20, 2))
-        {
-            // If not, check whole screen at 5 pixel intervals
-            find_nearest_walkable_area_within(xx, yy, -1, 5);
-        }
+        limits.Top = std::max(limits.Top, 14);
     }
 
+    if (!Pathfinding::FindNearestWalkablePoint(thisroom.WalkAreaMask.get(), src, dst, limits, 0, 1))
+        return false;
+    dst = Point(mask_to_room_coord(dst.X), mask_to_room_coord(dst.Y));
+    return true;
 }
 
 void FindReasonableLoopForCharacter(CharacterInfo *chap) {
@@ -2285,6 +2267,12 @@ void move_character_straight(CharacterInfo *chaa, int x, int y, bool walk_anim)
 {
     MaskRouteFinder *pathfind = get_room_pathfinder();
     pathfind->SetWalkableArea(prepare_walkable_areas(chaa->index_id), thisroom.MaskResolution);
+    if (!pathfind->IsWalkableAt(chaa->x, chaa->y))
+    {
+        Character_StopMoving(chaa);
+        debug_script_log("MoveCharacterStraight: %s (%d,%d) is not on a walkable area, not moving", chaa->scrname, chaa->x, chaa->y);
+        return;
+    }
 
     int movetox = x, movetoy = y;
     int lastcx = chaa->x, lastcy = chaa->y;
@@ -2814,12 +2802,15 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
         set_our_eip(1504);
 
         // Calculate speech position based on character's position on screen
+        // (an assumption here, but this must be the case if it's LA-style speech)
         auto view = FindNearestViewport(aschar);
         if (tdxp < 0)
             tdxp = view->RoomToScreen(speakingChar->x, 0).first.X;
         if (tdxp < 2)
             tdxp = 2;
-        tdxp = -tdxp;  // tell it to centre it ([ikm] not sure what's going on here... wrong comment?)
+        // tell it to centre it (passing negative x coord further will be treated as a alignment instruction)
+        // FIXME: this is unreliable and bug prone, use a separate argument for alignment!
+        tdxp = -tdxp;
 
         if (tdyp < 0)
         {
@@ -3099,7 +3090,9 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
         allow_shrink = kDisplayTextShrink_Left;
     }
 
-    // it wants the centred position, so make it so
+    // If initial argument was NOT requiring a autoposition,
+    // but further calculation set it to be centered, then make it so here
+    // (note: this assumes that a valid width is also passed)
     if ((xx >= 0) && (tdxp < 0))
         tdxp -= widd / 2;
 
@@ -3187,6 +3180,7 @@ int GetLipSyncFrame (const char *curtex, int *stroffs) {
     return bestfit;
 }
 
+// Updates text-based lipsync
 int update_lip_sync(int talkview, int talkloop, int *talkframeptr) {
     int talkframe = talkframeptr[0];
     int talkwait = 0;

@@ -381,7 +381,7 @@ namespace AGS.Editor
             Dictionary<string, object> list = new Dictionary<string, object>();
             foreach (ViewFrame frame in loop.Frames)
             {
-                list.Add("Loop " + loop.ID + " frame " + frame.ID + " (View frame)", frame);
+                list.Add($"Loop {loop.ID} frame {frame.ID} (View frame)", frame);
             }
             return list;
         }

@@ -167,7 +167,7 @@ void draw_gui_sprite_flipped(Common::Bitmap *ds, int xpos, int ypos,
 // Render game on screen
 void render_to_screen();
 void GfxDriverOnInitCallback(void *data);
-bool GfxDriverSpriteEvtCallback(int evt, int data);
+bool GfxDriverSpriteEvtCallback(int evt, intptr_t data);
 
 // Create the actsps[objid] image with the object drawn correctly.
 // Returns true if nothing at all has changed and actsps is still

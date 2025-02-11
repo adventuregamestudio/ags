@@ -12,6 +12,7 @@ namespace AGS.Types
     public class Character : ICustomTypeDescriptor, IToXml, IComparable<Character>
     {
         public const string PROPERTY_NAME_SCRIPTNAME = "ScriptName";
+        public const string PROPERTY_NAME_DESCRIPTION = "RealName";
         public const string PROPERTY_NAME_STARTINGROOM = "StartingRoom";
         public const int NARRATOR_CHARACTER_ID = 999;
 
@@ -390,7 +391,7 @@ namespace AGS.Types
         [Browsable(false)]
         public string PropertyGridTitle
         {
-            get { return _scriptName + " (Character; ID " + _id + ")"; }
+            get { return TypesHelper.MakePropertyGridTitle("Character", _scriptName, _fullName, _id); }
         }
 
         public Character(XmlNode node)

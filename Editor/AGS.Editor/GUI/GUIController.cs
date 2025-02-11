@@ -1195,8 +1195,8 @@ namespace AGS.Editor
             }
 
             List<WizardPage> pages = new List<WizardPage>();
-            StartNewGameWizardPage templateSelectPage = new StartNewGameWizardPage(templates);
-            StartNewGameWizardPage2 gameNameSelectPage = new StartNewGameWizardPage2(newGamePath);
+            StartNewGameTemplatesPage templateSelectPage = new StartNewGameTemplatesPage(templates);
+            StartNewGameDetailsPage gameNameSelectPage = new StartNewGameDetailsPage(newGamePath);
             pages.Add(templateSelectPage);
             pages.Add(gameNameSelectPage);
             
@@ -1766,7 +1766,7 @@ namespace AGS.Editor
 			{
 				if ((result == DialogResult.No) && (_agsEditor.CurrentGame.FilesAddedOrRemoved))
 				{
-					result = MessageBox.Show("Files have been added, removed or renamed. If you don't save the game now, you may not be able to successfully open this game next time. Do you want to save your changes?", "Save changes?", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+					result = MessageBox.Show("Files have been added, removed or renamed within the game. If you don't save the game now, the project may become inconsistent and require manual fixing upon loading it next time. Do you want to save your changes?", "Save changes?", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
 				}
 
 				if (result == DialogResult.Yes)

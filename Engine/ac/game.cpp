@@ -813,9 +813,7 @@ const char* Game_InputBox(const char *msg) {
 }
 
 const char* Game_GetLocationName(int x, int y) {
-    char buffer[STD_BUFFER_SIZE];
-    GetLocationName(x, y, buffer); // fills up to MAX_MAXSTRLEN
-    return CreateNewScriptString(buffer);
+    return CreateNewScriptString(GetLocationName(x, y));
 }
 
 int Game_GetSpeechFont() {
@@ -1544,8 +1542,8 @@ void display_switch_in()
 {
     Debug::Printf("Switching back into the game");
     ags_clear_input_state();
-    // If auto lock option is set, lock mouse to the game window
-    if (usetup.MouseAutoLock && scsystem.windowed)
+    // If fullscreen, or auto lock option is set, lock mouse to the game window
+    if ((scsystem.windowed == 0) || usetup.MouseAutoLock)
         Mouse::TryLockToWindow();
     switched_away = false;
 }

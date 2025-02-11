@@ -301,7 +301,7 @@ void VideoMemoryGraphicsDriver::DestroyAllStageScreens()
     _stageScreens.clear();
 }
 
-IDriverDependantBitmap *VideoMemoryGraphicsDriver::DoSpriteEvtCallback(int evt, int data,
+IDriverDependantBitmap *VideoMemoryGraphicsDriver::DoSpriteEvtCallback(int evt, intptr_t data,
     int &x, int &y)
 {
     if (!_spriteEvtCallback)

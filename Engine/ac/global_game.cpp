@@ -551,72 +551,90 @@ int GetLocationType(int xxx,int yyy) {
     return __GetLocationType(xxx, yyy, 0);
 }
 
-void GetLocationName(int xxx,int yyy,char*tempo)
+const char *GetLocationName(int x, int y)
 {
-    VALIDATE_STRING(tempo);
-    tempo[0] = 0;
-
     if (displayed_room < 0)
-        return; // no room loaded yet
+        return ""; // no room loaded yet
 
-    if (GetGUIAt(xxx, yyy) >= 0) {
-        int mover = GetInvAt (xxx, yyy);
-        if (mover > 0) {
+    const char *out_name = "";
+    if (GetGUIAt(x, y) >= 0)
+    {
+        int mover = GetInvAt(x, y);
+        if (mover > 0)
+        {
             if (play.get_loc_name_last_time != 1000 + mover)
                 GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
             play.get_loc_name_last_time = 1000 + mover;
-            snprintf(tempo, MAX_MAXSTRLEN, "%s", get_translation(game.invinfo[mover].name.GetCStr()));
+            out_name = get_translation(game.invinfo[mover].name.GetCStr());
         }
         else if ((play.get_loc_name_last_time > 1000) && (play.get_loc_name_last_time < 1000 + MAX_INV)) {
             // no longer selecting an item
             GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
             play.get_loc_name_last_time = -1;
         }
-        return;
+        return out_name;
     }
 
-    int loctype = GetLocationType(xxx, yyy); // GetLocationType takes screen coords
-    VpPoint vpt = play.ScreenToRoom(xxx, yyy);
+    int loctype = GetLocationType(x, y); // GetLocationType takes screen coords
+    VpPoint vpt = play.ScreenToRoom(x, y);
     if (vpt.second < 0)
-        return;
-    xxx = vpt.first.X;
-    yyy = vpt.first.Y;
-    if ((xxx>=thisroom.Width) | (xxx<0) | (yyy<0) | (yyy>=thisroom.Height))
-        return;
+        return "";
+    x = vpt.first.X;
+    y = vpt.first.Y;
+    if ((x >= thisroom.Width) || (x < 0) || (y < 0) || (y >= thisroom.Height))
+        return "";
 
     int onhs,aa;
-    if (loctype == 0) {
-        if (play.get_loc_name_last_time != 0) {
+    if (loctype == 0)
+    {
+        if (play.get_loc_name_last_time != 0)
+        {
             play.get_loc_name_last_time = 0;
             GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
         }
-        return;
+        return "";
     }
 
     // on character
-    if (loctype == LOCTYPE_CHAR) {
+    if (loctype == LOCTYPE_CHAR)
+    {
         onhs = getloctype_index;
-        snprintf(tempo, MAX_MAXSTRLEN, "%s", get_translation(game.chars[onhs].name.GetCStr()));
+        out_name = get_translation(game.chars[onhs].name.GetCStr());
         if (play.get_loc_name_last_time != 2000+onhs)
             GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
         play.get_loc_name_last_time = 2000+onhs;
-        return;
+        return out_name;
     }
     // on object
-    if (loctype == LOCTYPE_OBJ) {
+    if (loctype == LOCTYPE_OBJ)
+    {
         aa = getloctype_index;
-        snprintf(tempo, MAX_MAXSTRLEN, "%s", get_translation(croom->obj[aa].name.GetCStr()));
+        out_name = get_translation(croom->obj[aa].name.GetCStr());
         if (play.get_loc_name_last_time != 3000+aa)
             GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
         play.get_loc_name_last_time = 3000+aa;
-        return;
+        return out_name;
     }
     onhs = getloctype_index;
     if (onhs>0)
-        snprintf(tempo, MAX_MAXSTRLEN, "%s", get_translation(croom->hotspot[onhs].Name.GetCStr()));
+        out_name = get_translation(croom->hotspot[onhs].Name.GetCStr());
     if (play.get_loc_name_last_time != onhs)
         GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
     play.get_loc_name_last_time = onhs;
+    return out_name;
+}
+
+// GetLocationNameInBuf assumes a string buffer of MAX_MAXSTRLEN
+void GetLocationNameInBuf(int x, int y, char *buf)
+{
+    VALIDATE_STRING(buf);
+    buf[0] = 0;
+
+    const char *name = GetLocationName(x, y);
+    if (!name)
+        return;
+
+    snprintf(buf, MAX_MAXSTRLEN, "%s", name);
 }
 
 int IsKeyPressed (int keycode) {

@@ -120,7 +120,7 @@ void engine_post_gfxmode_mouse_setup(const Size &init_desktop)
     if (usetup.MouseSpeedDef == kMouseSpeed_CurrentDisplay)
     {
         Size cur_desktop;
-        if (sys_get_desktop_resolution(cur_desktop.Width, cur_desktop.Height) == 0)
+        if (sys_get_desktop_resolution(cur_desktop.Width, cur_desktop.Height))
             Mouse::SetSpeedUnit(std::max((float)cur_desktop.Width / (float)init_desktop.Width,
             (float)cur_desktop.Height / (float)init_desktop.Height));
     }
@@ -134,8 +134,8 @@ void engine_post_gfxmode_mouse_setup(const Size &init_desktop)
 
     on_coordinates_scaling_changed();
 
-    // If auto lock option is set, lock mouse to the game window
-    if (usetup.MouseAutoLock && scsystem.windowed != 0)
+    // If fullscreen, or auto lock option is set, lock mouse to the game window
+    if ((scsystem.windowed == 0) || usetup.MouseAutoLock)
         Mouse::TryLockToWindow();
 }
 

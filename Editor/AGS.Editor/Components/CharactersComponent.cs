@@ -303,7 +303,7 @@ namespace AGS.Editor.Components
         private Dictionary<string, object> ConstructPropertyObjectList(Character item)
         {
             Dictionary<string, object> list = new Dictionary<string, object>();
-            list.Add(item.ScriptName + " (Character " + item.ID + ")", item);
+            list.Add(item.PropertyGridTitle, item);
             return list;
         }
 
@@ -317,9 +317,9 @@ namespace AGS.Editor.Components
             return _agsEditor.CurrentGame.CharacterFlatList;
         }
 
-        private string GetNodeID(Character character)
+        private string GetNodeID(Character item)
         {
-            return ITEM_COMMAND_PREFIX + character.ID;
+            return ITEM_COMMAND_PREFIX + item.ID;
         }
 
         private string GetNodeLabel(Character item)

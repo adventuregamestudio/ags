@@ -260,6 +260,14 @@ namespace AGS.Editor
             return obj.PropertyGridTitle;
         }
 
+        /// <summary>
+        /// Forms a object's label for the Navigation bar.
+        /// </summary>
+        protected override string GetNavbarItemTitle(RoomObject obj)
+        {
+            return MakeLayerItemName("Object", obj.Name, obj.Description, obj.ID);
+        }
+
         public override bool AllowClicksInterception()
         {
             return true;
@@ -328,7 +336,7 @@ namespace AGS.Editor
             if (_selectedObject != null &&
                 OnSelectedItemChanged != null)
             {
-                OnSelectedItemChanged(this, new SelectedRoomItemEventArgs(_selectedObject.PropertyGridTitle));
+                OnSelectedItemChanged(this, new SelectedRoomItemEventArgs(GetNavbarItemTitle(_selectedObject)));
             }
             ClearMovingState();
         }

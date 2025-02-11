@@ -33,14 +33,12 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 
-char currentcursor = 0;
 // virtual mouse cursor coordinates
-int mousex = 0, mousey = 0, numcurso = -1, hotx = 0, hoty = 0;
+int mousex = 0, mousey = 0;
 // real mouse coordinates and bounds (in window coords)
 static int real_mouse_x = 0, real_mouse_y = 0;
-static int boundx1 = 0, boundx2 = 99999, boundy1 = 0, boundy2 = 99999;
-char ignore_bounds = 0;
-extern RGB palette[256];
+static Rect mouse_bounds;
+int ignore_bounds = 0; // NOTE: this works as a counter for some reason, review later
 extern volatile bool switched_away;
 
 namespace Mouse
@@ -70,10 +68,10 @@ Point Mouse::SysToGamePos(int sys_mx, int sys_my)
     // Clamp to control rect, and optionally script bounds
     int mx = Math::Clamp(sys_mx, Mouse::ControlRect.Left, Mouse::ControlRect.Right);
     int my = Math::Clamp(sys_my, Mouse::ControlRect.Top, Mouse::ControlRect.Bottom);
-    if (!ignore_bounds)
+    if (ignore_bounds == 0)
     {
-        mx = Math::Clamp(mx, boundx1, boundx2);
-        my = Math::Clamp(my, boundy1, boundy2);
+        mx = Math::Clamp(mx, mouse_bounds.Left, mouse_bounds.Right);
+        my = Math::Clamp(my, mouse_bounds.Top, mouse_bounds.Bottom);
     }
     // Convert to virtual coordinates
     Mouse::WindowToGame(mx, my);
@@ -97,11 +95,10 @@ void Mouse::Poll()
     mousex = real_mouse_x;
     mousey = real_mouse_y;
     // Optionally apply script bounds
-    if (!ignore_bounds &&
-        (mousex < boundx1 || mousey < boundy1 || mousex > boundx2 || mousey > boundy2))
+    if ((ignore_bounds == 0) && (!mouse_bounds.IsInside(mousex, mousey)))
     {
-        mousex = Math::Clamp(mousex, boundx1, boundx2);
-        mousey = Math::Clamp(mousey, boundy1, boundy2);
+        mousex = Math::Clamp(mousex, mouse_bounds.Left, mouse_bounds.Right);
+        mousey = Math::Clamp(mousey, mouse_bounds.Top, mouse_bounds.Bottom);
         Mouse::SetSysPosition(mousex, mousey);
     }
     // Convert to virtual coordinates
@@ -115,12 +112,6 @@ void Mouse::SetSysPosition(int x, int y)
     real_mouse_x = x;
     real_mouse_y = y;
     sys_window_set_mouse(real_mouse_x, real_mouse_y);
-}
-
-void Mouse::SetHotspot(int x, int y)
-{
-    hotx = x;
-    hoty = y;
 }
 
 int Mouse::GetButtonCount()
@@ -147,11 +138,7 @@ void Mouse::UpdateGraphicArea()
 void Mouse::SetMoveLimit(const Rect &r)
 {
     Rect src_r = OffsetRect(r, play.GetMainViewport().GetLT());
-    Rect dst_r = GameScaling.ScaleRange(src_r);
-    boundx1 = dst_r.Left;
-    boundy1 = dst_r.Top;
-    boundx2 = dst_r.Right;
-    boundy2 = dst_r.Bottom;
+    mouse_bounds = GameScaling.ScaleRange(src_r);
 }
 
 void Mouse::SetPosition(const Point &p)
@@ -169,7 +156,7 @@ bool Mouse::IsLockedToWindow()
 bool Mouse::TryLockToWindow()
 {
     if (!LockedToWindow)
-        LockedToWindow = sys_window_lock_mouse(true);
+        LockedToWindow = sys_window_lock_mouse(true, Mouse::ControlRect);
     return LockedToWindow;
 }
 

@@ -266,7 +266,7 @@ bool RuntimeScript::FindExportedFunction(const String &fn_name, int32_t &start_a
     assert(exp_name.GetLength() >= fn_name.GetLength());
     if (exp_name.GetLength() <= fn_name.GetLength())
     {
-        num_args = 0; // unknown, registered without args info
+        num_args = -1; // unknown, registered without args info
     }
     else
     {

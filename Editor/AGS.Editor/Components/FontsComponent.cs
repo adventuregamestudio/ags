@@ -119,7 +119,7 @@ namespace AGS.Editor.Components
                 || document.Control.IsDisposed)
             {
                 Dictionary<string, object> list = new Dictionary<string, object>();
-                list.Add(chosenFont.Name + " (Font " + chosenFont.ID + ")", chosenFont);
+                list.Add(chosenFont.PropertyGridTitle, chosenFont);
 
                 FontEditor editor = new FontEditor(chosenFont);
                 document = new ContentDocument(editor,
@@ -238,6 +238,11 @@ namespace AGS.Editor.Components
         private string GetNodeID(AGS.Types.FontFile item)
         {
             return FONT_FILE_ITEM_PREFIX + item.FileName;
+        }
+
+        private string GetNodeLabel(AGS.Types.Font item)
+        {
+            return item.ID.ToString() + ": " + item.Name;
         }
 
         private string GetNodeID(AGS.Types.Font item, bool isRefNode = false)

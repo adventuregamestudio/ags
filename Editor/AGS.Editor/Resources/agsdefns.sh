@@ -849,6 +849,10 @@ builtin struct Room {
   /// Checks if the specified room exists
   import static bool Exists(int room);   // $AUTOCOMPLETESTATICONLY$
 #endif // SCRIPT_API_v360
+#ifdef SCRIPT_API_v362
+  /// Finds the nearest position on any walkable area, close to the given coordinates. Returns null if no walkable area is found.
+  import static Point* NearestWalkableArea(int x, int y);   // $AUTOCOMPLETESTATICONLY$
+#endif // SCRIPT_API_v362
 #ifdef SCRIPT_API_v400
   /// Gets the current Room's number
   import static readonly attribute int Number; // $AUTOCOMPLETESTATICONLY$

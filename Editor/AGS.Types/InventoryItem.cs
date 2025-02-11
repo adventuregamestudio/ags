@@ -128,6 +128,12 @@ namespace AGS.Types
             get { return "Inventory: " + this.Name; }
         }
 
+        [Browsable(false)]
+        public string PropertyGridTitle
+        {
+            get { return TypesHelper.MakePropertyGridTitle("Inventory item", _name, _description, _id); }
+        }
+
         [AGSSerializeClass()]
         [Description("Custom properties for this item")]
         [Category("Properties")]

@@ -47,6 +47,7 @@ extern IGraphicsDriver *gfxDriver;
 
 ScriptMouse scmouse;
 int cur_mode,cur_cursor;
+int mouse_hotx = 0, mouse_hoty = 0; // in game cursor hotspot offset
 int mouse_frame=0,mouse_delay=0;
 int lastmx=-1,lastmy=-1;
 
@@ -118,7 +119,7 @@ void Mouse_SetBounds(int x1, int y1, int x2, int y2)
 void set_mouse_cursor(int newcurs, bool force_update)
 {
     const int hotspotx = game.mcurs[newcurs].hotx, hotspoty = game.mcurs[newcurs].hoty;
-    Mouse::SetHotspot(hotspotx, hotspoty);
+    mouse_hotx = hotspotx, mouse_hoty = hotspoty;
 
     // if it's same cursor and there's animation in progress, then don't assign a new pic just yet
     if (!force_update &&
@@ -361,8 +362,7 @@ int Mouse_IsModeEnabled(int which) {
 
 void Mouse_SaveCursorForLocationChange() {
     // update the current location name
-    char tempo[MAX_MAXSTRLEN];
-    GetLocationName(mousex, mousey, tempo);
+    GetLocationName(mousex, mousey);
 
     if (play.get_loc_name_save_cursor != play.get_loc_name_last_time) {
         play.get_loc_name_save_cursor = play.get_loc_name_last_time;
@@ -393,6 +393,7 @@ bool Mouse_GetAutoLock()
 void Mouse_SetAutoLock(bool on)
 {
     usetup.MouseAutoLock = on;
+    // Only update when in windowed mode, as always locked in fullscreen
     if (scsystem.windowed)
     {
         if (usetup.MouseAutoLock)

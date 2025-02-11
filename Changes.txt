@@ -216,7 +216,7 @@ Engine:
 
 ===================================================================================================
 
-VERSION 3.6.2 - Beta, January 2025
+VERSION 3.6.2 - RC, February 2025
 
 Common:
  - Event handler function are now allowed to be located in any script module.
@@ -234,6 +234,9 @@ Editor:
  - Added "Use old-style voice clip naming rule" property in General Settings, it lets to select
    whether the game should expect old-style voice clip filenames (4-letter char name followed by
    number) or the new one (full char name, followed by a number, separated by a dot).
+ - GUI selection in settings is now done using drop-down lists which list all eligible GUI types
+   instead of having user to type GUI number. The setting will be automatically fixed if a GUI
+   is removed.
  - Property Grid now displays Custom Properties right in the main properties list for each item
    that supports them.
  - Added "WrapText", "TextPaddingHorizontal", "TextPaddingVertical" properties to GUI Button.
@@ -241,6 +244,8 @@ Editor:
  - Added "TurnWhenFacing" property to Characters.
  - Textual GUI controls can now select "Null Font" as their font: this will prevent any text to be
    drawn even if one is assigned, and make it have zero size (when it matters).
+ - Property Grid and Room's navigation bar now display object's description along with the script
+   name on the drop-down list labels.
  - "Events" tab on the Properties Grid now has "ScriptModule" selection, which lets define in which
    module should the related script functions be generated and looked for. The GUI Controls use
    a ScriptModule set in their parent GUI, and Room events always has a fixed room script selected.
@@ -268,18 +273,26 @@ Editor:
  - Added a multiline Text edit window for Button and Label controls, that may be called by Ctrl+E,
    from context menu, or by pressing "..." button of the Text property in the Properties grid.
  - Support reordering folders in Sprite Manager with drag & drop.
+ - Added "Replace source paths for sprites..." context menu command in Sprite Manager. This command
+   allows to batch-replace parent folder for all sprite source paths, in case you moved original
+   files from one folder to another.
  - Support importing 32-bit BMP files of extended formats (this support is formal at the moment,
    and does not guarantee that any of the extended data will be interpreted).
  - Support importing 1-bit (monochrome) and 4-bit images as sprites, room backgrounds and masks
    (converted to 8-bit).
+ - Do not alter or clamp palette for 8-bit sprites imported in a 16/32-bit game.
  - Support importing indexed images which palettes contain translucent alpha as sprites with alpha.
  - Support importing indexed PNGs as room backgrounds and masks.
- - Do not alter or clamp palette for 8-bit sprites imported in a 16/32-bit game.
+ - When the room background size changes, reset room edges to defaults.
  - Removed obsolete "Copy walkable area mask to regions" command from the Room editor.
  - Improved scrolling of drop-down lists in the Room's navigation bar: made scroll buttons larger,
    and support mouse wheel.
  - In Room Editor, during any area drawing mode Ctrl + LMB now works as area picker regardless
    of the currently selected tool.
+ - Added "Replace source paths for audio clips..." context menu command for the Audio node.
+   This command allows to batch-replace parent folder for all clips' source paths, in case you
+   moved original files from one folder to another.
+ - Don't restrict compiling a voice-based lipsync if game has a Lucas-Arts style speech.
  - Do not delete previously built game exe from Compiled/Windows folder when testing a game
    from the editor.
  - Editor will now report any missing script functions that are assigned to events, but not
@@ -288,7 +301,7 @@ Editor:
    to corresponding events, as warnings when compiling the game.
  - Added "/maketemplate" command-line option that tells Editor to run, make template out of the
    said game, and quit.
- - Fixed Editor refusing to open a project if one or more of the sections are missing in the file.
+ - Fixed Project Explorer refreshing when user changes names or descriptions of room objects.
  - Fixed importing indexed PNG as a sprite, previously Editor would mistakenly treat the source
    image as 32-bit.
  - Fixed importing 8-bit BMP sprites with no "Remap palette" and "Leave As Is" as a transparency
@@ -296,9 +309,14 @@ Editor:
    even if that's a filler entry not used by the image.
  - Fixed exporting room backgrounds was always writing a 32-bit image rather than using actual
    background's color depth.
+ - Fixed Autocomplete not giving correct results in case of a long chained access, i.e. something
+   like "var[0].member.member".
+ - Fixed Autocomplete giving wrong list of choices for wrong syntax cases like: indexed access of
+   a type and non-array struct variable, member access of a static array.
  - Fixed Button getting resized to the image's size when user cancels different sprite assignment.
  - Fixed "Color Finder" and color properties were mapping a color number to RGB values with
    accuracy mistakes, resulting in slightly different values than the engine would use.
+ - Fixed Editor refusing to open a project if one or more of the sections are missing in the file.
  - Fixed an unhandled exception occuring when rebuilding rooms if any script's header is missing.
  - Fixed a "unterminated string" error in Dialogs was not pointing to the actual error location.
  - Fixed double warning message when trying to close the Editor while a game test is running.
@@ -355,6 +373,7 @@ Script API:
    of save slot indexes.
  - Added Object.DestinationX and DestinationY properties, complementing ones in Character.
  - Added Overlay.SetPosition() and SetSize() functions for convenience.
+ - Added Room.NearestWalkableArea() that returns the nearest found point on a walkable area.
  - Added Speech.SpeakingCharacter that returns currently speaking character (for blocking speech).
  - Added GetTimerPos() that returns timer's position (remaining time), in ticks.
  - Added CopySaveSlot() and MoveSaveSlot(), which moves existing save to another slot.
@@ -396,6 +415,10 @@ Engine:
  - Character.FollowCharacter() can now have a distance parameter up to 32766 (was limited to 255).
  - Ensure that Character.Speaking returns true when a speech is playing even if the character
    has no speech view.
+ - Character.PlaceOnWalkableArea() now does a 1-pixel step scan, ensuring walkable area will be
+   found regardless of how small it is. Optimized the search algorithm to keep it fast enough even
+   in very large rooms.
+ - Support voice-based lipsync (Pamela, Papagayo) with Lucas-Arts style speech.
  - DynamicSprite.CreateFromFile() may now load 1-bit and 4-bit bitmaps, converting to 8-bit.
  - Do not alter or clamp palette for 8-bit sprites loaded into a 16/32-bit game at runtime.
  - Assigning InventoryItem.Graphic will no longer reassign CursorGraphic too even if they were
@@ -410,14 +433,22 @@ Engine:
  - Ensure that the objects with identical z-order (baseline) always keep same relative sort order
    when being drawn (note: engine does not guarantee a predefined order, only a persistent one).
  - Implemented video buffering on a separate thread. Allow to drop late video frames.
+ - When mouse is locked in window, confine its position to the game viewport; exclude black border.
+ - Added "display" config option to "graphics" section. This is a 1-based display index, where
+   0 means "use default display".
  - Added new accessibility config settings in "access" section: "speechskip", "textskip",
    "textreadspeed". These let player to override game's skipping style for character speech and
    text messages, and text reading speed parameter that controls speech timing.
  - Added "max_save" config option in "override" section: this lets to enforce an arbitrary number
    of saves displayed in a standard save/restore dialogs in game.
+ - Added "--display" command-line argument that lets choose which display to open game window on.
  - Added "--no-plugins" command-line argument that denies loading any plugins;
    also added respective config option "noplugins" in "override" section.
+ - Fixed Software renderer being unable to restore a windowed mode on certain monitors,
+   when switching from a real fullscreen mode.
  - Fixed character may get stuck inside a non-walkable area after Character.WalkStraight().
+ - Fixed Lucas-Arts style character speech displaying offscreen if character is standing below the
+   bottom of a room viewport.
  - Fixed calling Dialog.Start() inside a dialog script would create a nested "dialog state",
    which could eventually lead to internal mistakes and program stack overflow. Dialog.Start()
    will now schedule a proper dialog topic switch, equivalent to "goto-dialog" command.
@@ -428,6 +459,9 @@ Engine:
    the sound playback is looped.
 
 Engine Plugin API:
+ - Updated few callback and function prototypes in order to make them 64-bit compatible
+   (allow pass and receive pointers). This includes AGS_EngineOnEvent for AGSE_TRANSLATETEXT
+   and render stage events, and CallGameScriptFunction which now lets pass a const char* argument.
  - Added IAGSEngine.CreateDynamicArray(), which lets plugins to create dynamic arrays.
  - Added IAGSEngine.GetDynamicArrayLength() and IAGSEngine.GetDynamicArraySize(), which tell
    the passed array object's number of elements, and total size in bytes respectively.
@@ -448,6 +482,7 @@ WinSetup:
  - Redesigned winsetup into a tabbed dialog.
  - Added "Reset To Defaults" button that resets all options to values from the game's default
    config file.
+ - Added "Display" selection, allows to select which display to open the game window on.
  - Added "Accessibility" settings for skipping speech and text messages, for text reading speed.
  - In "disabled" section of config "access_skipstyle" setting lets disable all options in setup
    related to the speech and text skipping.

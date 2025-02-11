@@ -119,7 +119,7 @@ struct EnginePlugin
     int         invalidatedRegion = 0;
     void      (*engineStartup) (IAGSEngine *) = nullptr;
     void      (*engineShutdown) () = nullptr;
-    int       (*onEvent) (int, int) = nullptr;
+    intptr_t  (*onEvent) (int evt, intptr_t param) = nullptr;
     void      (*initGfxHook) (const char *driverName, void *data) = nullptr;
     int       (*debugHook) (const char * whichscript, int lineNumber, int reserved) = nullptr;
     IAGSEngine  eiface;
@@ -625,15 +625,15 @@ int IAGSEngine::CanRunScriptFunctionNow() {
     return 1;
 }
 
-int IAGSEngine::CallGameScriptFunction(const char *name, int32 globalScript, int32 numArgs, long arg1, long arg2, long arg3) {
+int IAGSEngine::CallGameScriptFunction(const char *name, int32 globalScript, int32 numArgs, intptr_t arg1, intptr_t arg2, intptr_t arg3) {
     if (inside_script)
         return -300;
 
     RuntimeScript *run_script = GetScriptInstanceByType(globalScript ? kScTypeGame : kScTypeRoom);
-    RuntimeScriptValue params[]{
-        RuntimeScriptValue().SetPluginArgument(arg1),
-        RuntimeScriptValue().SetPluginArgument(arg2),
-        RuntimeScriptValue().SetPluginArgument(arg3),
+    RuntimeScriptValue params[] {
+        RuntimeScriptValue().SetPluginArgOrPtr(arg1),
+        RuntimeScriptValue().SetPluginArgOrPtr(arg2),
+        RuntimeScriptValue().SetPluginArgOrPtr(arg3)
     };
     return RunScriptFunction(run_script, name, numArgs, params);
 }
@@ -647,7 +647,7 @@ void IAGSEngine::SetSpriteAlphaBlended(int32 /*slot*/, int32 /*isAlphaBlended*/)
     debug_script_warn("SetSpriteAlphaBlended: this function is deprecated and won't have any effect.");
 }
 
-void IAGSEngine::QueueGameScriptFunction(const char *name, int32 globalScript, int32 numArgs, long arg1, long arg2) {
+void IAGSEngine::QueueGameScriptFunction(const char *name, int32 globalScript, int32 numArgs, intptr_t arg1, intptr_t arg2) {
     if (!inside_script) {
         this->CallGameScriptFunction(name, globalScript, numArgs, arg1, arg2, 0);
         return;
@@ -655,8 +655,10 @@ void IAGSEngine::QueueGameScriptFunction(const char *name, int32 globalScript, i
 
     if (numArgs < 0 || numArgs > 2)
         quit("IAGSEngine::QueueGameScriptFunction: invalid number of arguments");
-    RuntimeScriptValue params[] { RuntimeScriptValue().SetPluginArgument(arg1),
-        RuntimeScriptValue().SetPluginArgument(arg2) };
+    RuntimeScriptValue params[] {
+        RuntimeScriptValue().SetPluginArgOrPtr(arg1),
+        RuntimeScriptValue().SetPluginArgOrPtr(arg2)
+    };
     get_executingscript()->RunAnother(globalScript ? kScTypeGame : kScTypeRoom, name, numArgs, params);
 }
 
@@ -665,7 +667,6 @@ int IAGSEngine::RegisterManagedObject(void *object, IAGSScriptManagedObject *cal
     // we may try to optimize following by having a cache of CCPluginObjects per callback
     // address. Need to research if that's reliable, and will actually be more performant.
     auto *pl_obj = new CCPluginObject((IScriptObject*)callback);
-    ScriptExecutor::SetPluginReturnValue(RuntimeScriptValue().SetPluginObject((void*)object, pl_obj));
     return ccRegisterManagedObject(object, pl_obj, kScValPluginObject);
 }
 
@@ -683,7 +684,6 @@ void IAGSEngine::AddManagedObjectReader(const char *typeName, IAGSManagedObjectR
 
 void IAGSEngine::RegisterUnserializedObject(int key, void *object, IAGSScriptManagedObject *callback) {
     auto *pl_obj = new CCPluginObject((IScriptObject*)callback);
-    ScriptExecutor::SetPluginReturnValue(RuntimeScriptValue().SetPluginObject((void*)object, pl_obj));
     ccRegisterUnserializedObject(key, object, pl_obj, kScValPluginObject);
 }
 
@@ -695,14 +695,12 @@ void* IAGSEngine::GetManagedObjectAddressByKey(int key) {
     void *object;
     IScriptObject *manager;
     ScriptValueType obj_type = ccGetObjectAddressAndManagerFromHandle(key, object, manager);
-    ScriptExecutor::SetPluginReturnValue(RuntimeScriptValue().SetScriptObject(obj_type, object, manager));
     return object;
 }
 
 const char* IAGSEngine::CreateScriptString(const char *fromText) {
     const char *string = CreateNewScriptString(fromText);
     // Should be standard dynamic object, because not managed by plugin
-    ScriptExecutor::SetPluginReturnValue(RuntimeScriptValue().SetScriptObject((void*)string, &myScriptStringImpl));
     return string;
 }
 
@@ -847,7 +845,6 @@ void *IAGSEngine::CreateDynamicArray(size_t elem_count, size_t elem_size, bool i
 
     auto obj_ref = CCDynamicArray::CreateOld(static_cast<uint32_t>(elem_count), static_cast<uint32_t>(elem_size), is_managed_type);
     // Should be standard dynamic object, because not managed by plugin
-    ScriptExecutor::SetPluginReturnValue(RuntimeScriptValue().SetScriptObject(obj_ref.Obj, &globalDynamicArray));
     return obj_ref.Obj;
 }
 
@@ -884,13 +881,13 @@ void pl_startup_plugins() {
     }
 }
 
-int pl_run_plugin_hooks(int event, int data)
+intptr_t pl_run_plugin_hooks(int event, intptr_t data)
 {
     for (auto &plugin : plugins)
     {
         if (plugin.wantHook & event)
         {
-            int retval = plugin.onEvent(event, data);
+            intptr_t retval = plugin.onEvent(event, data);
             // FIXME: this is an inconvenient design: breaking out
             // should be done only for events that are claimable,
             // such as key press, but not any random event!
@@ -926,7 +923,7 @@ bool pl_query_next_plugin_for_event(int event, int &pl_index, String &pl_name)
     return false;
 }
 
-int pl_run_plugin_hook_by_index(int pl_index, int event, int data)
+intptr_t pl_run_plugin_hook_by_index(int pl_index, int event, intptr_t data)
 {
     if (pl_index < 0 || pl_index >= plugins.size())
         return 0;
@@ -939,7 +936,7 @@ int pl_run_plugin_hook_by_index(int pl_index, int event, int data)
     return 0;
 }
 
-int pl_run_plugin_hook_by_name(Common::String &pl_name, int event, int data)
+intptr_t pl_run_plugin_hook_by_name(Common::String &pl_name, int event, intptr_t data)
 {
     for (auto &plugin : plugins)
     {
@@ -1079,7 +1076,7 @@ HError pl_load_plugin(EnginePlugin *apl, const std::vector<String> lookup_dirs)
 
     apl->engineStartup = (void(*)(IAGSEngine*))startup_function;
     apl->engineShutdown = (void(*)())apl->library.GetFunctionAddress("AGS_EngineShutdown");
-    apl->onEvent = (int(*)(int,int))apl->library.GetFunctionAddress("AGS_EngineOnEvent");
+    apl->onEvent = (intptr_t(*)(int,intptr_t))apl->library.GetFunctionAddress("AGS_EngineOnEvent");
     apl->debugHook = (int(*)(const char*,int,int))apl->library.GetFunctionAddress("AGS_EngineDebugHook");
     apl->initGfxHook = (void(*)(const char*, void*))apl->library.GetFunctionAddress("AGS_EngineInitGfx");
     return HError::None();

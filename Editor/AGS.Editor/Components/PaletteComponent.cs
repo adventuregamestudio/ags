@@ -84,7 +84,7 @@ namespace AGS.Editor.Components
             Dictionary<string, object> list = new Dictionary<string, object>();
             for (int i = 0; i < _agsEditor.CurrentGame.Palette.Length; i++)
             {
-                list.Add("Palette entry " + i.ToString() + " (Palette entry)", _agsEditor.CurrentGame.Palette[i]);
+                list.Add($"Palette entry {i} (Palette entry)", _agsEditor.CurrentGame.Palette[i]);
             }
             return list;
         }

@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using System.Xml;
 using AGS.Types;
@@ -52,8 +53,11 @@ namespace AGS.Editor.Components
 
         private void _agsEditor_ExtraOutputCreationStep(OutputCreationStepArgs args)
         {
+            CheckSpeechFilesForConsistency(args.Messages);
+
             if (args.MiniExeForDebug)
                 return;
+
             MakeOneVOX(SPEECH_DIRECTORY, SPEECH_VOX_FILE_NAME);
             // For each top-level subfolder inside the main Speech folder,
             // make a VOX called "sp_[name].vox", where [name] is the lowercase subfolder name.
@@ -105,6 +109,52 @@ namespace AGS.Editor.Components
             {
                 RebuildVOXFile(voxFileName, speechFileList);
                 UpdateVOXFileStatusWithCurrentFileTimes(speechFileList, fileTimes);
+            }
+        }
+
+        /// <summary>
+        /// Scan the Speech folder and first-level subfolders, and check if
+        /// there are any potential issues with the files in it.
+        /// </summary>
+        private void CheckSpeechFilesForConsistency(CompileMessages messages)
+        {
+            CheckSpeechFilesForConsistency(SPEECH_DIRECTORY, messages);
+            var subdirs = Directory.GetDirectories(SPEECH_DIRECTORY);
+            foreach (string dir in subdirs)
+            {
+                CheckSpeechFilesForConsistency(dir, messages);
+            }
+        }
+
+        /// <summary>
+        /// Scan the given speech directory, and check if there are any
+        /// potential issues with the files in it.
+        /// </summary>
+        private void CheckSpeechFilesForConsistency(string dir, CompileMessages messages)
+        {
+            string[] audioClipList = ConstructFileListForSpeechVOX(dir, true);
+
+            if (_agsEditor.CurrentGame.Settings.UseOldVoiceClipNaming)
+            {
+                var regNewStyle = new Regex(@"\w+\.\d+\.\w+");
+                foreach (string clipFile in audioClipList)
+                {
+                    if (regNewStyle.IsMatch(clipFile))
+                    {
+                        messages.Add(new CompileWarning($"Speech file \"{clipFile}\" matches the new voice clip naming rule, but the game is set to use the old rule (see General Settings)."));
+                    }
+                }
+            }
+            else
+            {
+                var regOldStyle = new Regex(@"\w{1,4}\d+\.\w+");
+                foreach (string clipFile in audioClipList)
+                {
+                    if (regOldStyle.IsMatch(clipFile))
+                    {
+                        messages.Add(new CompileWarning($"Speech file \"{clipFile}\" matches the old voice clip naming rule, but the game is set to use the new rule (see General Settings)."));
+                    }
+                }
             }
         }
 
@@ -305,10 +355,11 @@ namespace AGS.Editor.Components
             return rawdatas;
         }
 
-        private string[] ConstructFileListForSpeechVOX(string sourceDir)
+        private string[] ConstructFileListForSpeechVOX(string sourceDir, bool audioOnly = false)
         {
             List<string> files = new List<string>();
-            Utilities.AddAllMatchingFiles(files, sourceDir, LIP_SYNC_DATA_OUTPUT, true);
+            if (!audioOnly)
+                Utilities.AddAllMatchingFiles(files, sourceDir, LIP_SYNC_DATA_OUTPUT, true);
             Utilities.AddAllMatchingFiles(files, sourceDir, MP3_FILE_FILTER, true);
             Utilities.AddAllMatchingFiles(files, sourceDir, OGG_VORBIS_FILE_FILTER, true);
             Utilities.AddAllMatchingFiles(files, sourceDir, FLAC_FILE_FILTER, true);

@@ -190,6 +190,12 @@ public:
     // Converts AGS color-index into RGB color compatible with the bitmap format.
     color_t GetCompatibleColor(int color);
 
+    // Tells if the given point lies within the bitmap bounds
+    inline bool IsOnBitmap(int x, int y) const
+    {
+        return x >= 0 && y >= 0 && x < GetWidth() && y < GetHeight();
+    }
+
     //=========================================================================
     // Clipping
     // TODO: consider implementing push-pop clipping stack logic.

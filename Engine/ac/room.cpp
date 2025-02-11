@@ -44,6 +44,7 @@
 #include "ac/walkablearea.h"
 #include "ac/walkbehind.h"
 #include "ac/dynobj/scriptobjects.h"
+#include "ac/dynobj/scriptuserobject.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/dynobj/all_dynamicclasses.h"
 #include "ac/dynobj/managedobjectpool.h"
@@ -217,6 +218,19 @@ bool Room_Exists(int room)
     String room_filename;
     room_filename.Format("room%d.crm", room);
     return AssetMgr->DoesAssetExist(room_filename);
+}
+
+ScriptUserObject *Room_NearestWalkableArea(int x, int y)
+{
+    if (displayed_room < 0)
+        quit("!Room.NearestWalkableArea: no room is currently loaded");
+    Point found_pt;
+    if (Pathfinding::FindNearestWalkablePoint(thisroom.WalkAreaMask.get(),
+        Point(room_to_mask_coord(x), room_to_mask_coord(y)), found_pt))
+    {
+        return ScriptStructHelpers::CreatePoint(mask_to_room_coord(found_pt.X), mask_to_room_coord(found_pt.Y));
+    }
+    return nullptr;
 }
 
 ScriptDrawingSurface *GetDrawingSurfaceForWalkableArea()
@@ -1111,6 +1125,11 @@ RuntimeScriptValue Sc_Room_Exists(const RuntimeScriptValue *params, int32_t para
     API_SCALL_BOOL_PINT(Room_Exists);
 }
 
+RuntimeScriptValue Sc_Room_NearestWalkableArea(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO_PINT2(ScriptUserObject, Room_NearestWalkableArea);
+}
+
 RuntimeScriptValue Sc_Room_GetiHotspots(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_OBJ_PINT(ScriptHotspot, ccDynamicHotspot, Room_GetiHotspots);
@@ -1148,6 +1167,7 @@ void RegisterRoomAPI()
         { "Room::GetDrawingSurfaceForBackground^1",   API_FN_PAIR(Room_GetDrawingSurfaceForBackground) },
         { "Room::GetProperty^1",                      API_FN_PAIR(Room_GetProperty) },
         { "Room::GetTextProperty^1",                  API_FN_PAIR(Room_GetTextProperty) },
+        { "Room::NearestWalkableArea^2",              API_FN_PAIR(Room_NearestWalkableArea) },
         { "Room::SetProperty^2",                      API_FN_PAIR(Room_SetProperty) },
         { "Room::SetTextProperty^2",                  API_FN_PAIR(Room_SetTextProperty) },
         { "Room::ProcessClick^3",                     API_FN_PAIR(RoomProcessClick) },

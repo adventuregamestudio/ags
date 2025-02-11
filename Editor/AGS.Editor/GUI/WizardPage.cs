@@ -37,7 +37,6 @@ namespace AGS.Editor
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.Name = "WizardPage";
             this.ResumeLayout(false);
-
         }
     }
 }

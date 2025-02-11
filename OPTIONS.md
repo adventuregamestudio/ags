@@ -27,6 +27,7 @@ Locations of two latter files differ between running platforms:
     * Software - software renderer.
   * software_driver = \[string\] - *optional* id of the SDL2 driver to use for the final output in software mode, leave empty for default. IDs are provided by SDL2, not all of these will work on any system:
     * direct3d, opengl, opengles, opengles2, metal, software.
+  * display = \[number\] - *1-based* index of system display to start the game on; 0 means "use defaults".
   * fullscreen = \[string\] - a fullscreen mode definition, which may be one of the following:
     * WxH - explicit window size (e.g. `1280x720`);
     * xS - integer game scaling factor (e.g. `x4`);
@@ -157,6 +158,7 @@ Following OPTIONS are supported when running from command line:
 * --clear-cache-on-room-change - clears sprite cache on every room change.
 * --conf \<FILEPATH\> - specify explicit config file to read on startup.
 * --console-attach - write output to the parent process's console (Windows only).
+* --display \<number\> - *1-based* index of system display to start the game on; 0 means "use defaults".
 * --fps - display fps counter.
 * --fullscreen - run in fullscreen mode.
 * --gfxdriver \<name\> - use specified graphics driver:

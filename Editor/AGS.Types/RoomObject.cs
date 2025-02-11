@@ -11,6 +11,7 @@ namespace AGS.Types
 	public class RoomObject : IComparable<RoomObject>, IChangeNotification, ICustomTypeDescriptor, IToXml
     {
 		public const string PROPERTY_NAME_SCRIPT_NAME = "Name";
+        public const string PROPERTY_NAME_DESCRIPTION = "Description";
 
         private static InteractionSchema _interactionSchema;
 
@@ -192,7 +193,7 @@ namespace AGS.Types
         [Browsable(false)]
         public string PropertyGridTitle
         {
-            get { return _name + " (Object; ID " + _id + ")"; }
+            get { return TypesHelper.MakePropertyGridTitle("Object", _name, _description, _id); }
         }
 
         [AGSSerializeClass()]

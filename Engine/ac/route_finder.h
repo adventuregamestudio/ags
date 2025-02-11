@@ -42,6 +42,8 @@ public:
     // ignore_walls - tells to ignore impassable areas (builds a straight line path).
     virtual bool FindRoute(std::vector<Point> &path, int srcx, int srcy, int dstx, int dsty,
         bool exact_dest = false, bool ignore_walls = false) = 0;
+    // Tells whether the current position is walkable
+    virtual bool IsWalkableAt(int x, int y) = 0;
 };
 
 // MaskRouteFinder: a mask-based RouteFinder.
@@ -59,6 +61,8 @@ public:
     // ignore_walls - tells to ignore impassable areas (builds a straight line path).
     bool FindRoute(std::vector<Point> &path, int srcx, int srcy, int dstx, int dsty,
         bool exact_dest = false, bool ignore_walls = false) override;
+    // Tells whether the current position is walkable
+    bool IsWalkableAt(int x, int y) override;
 
     // Assign a walkable mask, and an optional coordinate scale factor which will be used
     // to convert (divide) input coordinates, and resulting path back (multiply).
@@ -96,6 +100,12 @@ namespace Pathfinding
     bool AddWaypointDirect(MoveList &mls, int x, int y, int move_speed_x, int move_speed_y);
     // Recalculates MoveList's step speeds
     void RecalculateMoveSpeeds(MoveList &mls, int old_speed_x, int old_speed_y, int new_speed_x, int new_speed_y);
+    // Searchs for the nearest walkable point on a mask, starting from the given location,
+    // and scanning around in the given square range. Optionally limit the scan to the certain rectangle.
+    bool FindNearestWalkablePoint(AGS::Common::Bitmap *mask, const Point &from_pt, Point &dst_pt,
+        const int range = 0, const int step = 1);
+    bool FindNearestWalkablePoint(AGS::Common::Bitmap *mask, const Point &from_pt, Point &dst_pt,
+        const Rect &limits, const int range = 0, const int step = 0);
 }
 
 } // namespace Engine

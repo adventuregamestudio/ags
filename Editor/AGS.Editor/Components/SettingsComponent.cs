@@ -56,6 +56,48 @@ namespace AGS.Editor.Components
 			{
 				_guiController.AddOrShowPane(_document);
 			}
+
+            GuiComponent guiComponent = ComponentController.Instance.FindComponent<GuiComponent>();
+            // FIXME: following delegate rem/add is a nasty hack, but we do not have proper
+            // callbacks like "after all components attached", "on game loaded", "on game unloaded",
+            // so have to use RefreshDataFromGame which may be called multiple times.
+            if (guiComponent != null)
+            {
+                guiComponent.GUIChangedID -= GuiComponent_GUIChangedID;
+                guiComponent.GUIChangedID += GuiComponent_GUIChangedID;
+            }
+            Factory.AGSEditor.CurrentGame.GUIAddedOrRemoved -= CurrentGame_GUIRemoved;
+            Factory.AGSEditor.CurrentGame.GUIAddedOrRemoved += CurrentGame_GUIRemoved;
+        }
+
+        private int UpdatePropertyOnGuiMove(int propertyValue, int guiOldID, int guiNewID, bool wasRemoved)
+        {
+            if (propertyValue == guiOldID)
+            {
+                return guiNewID;
+            }
+            else if (wasRemoved && (propertyValue > guiOldID))
+            {
+                return propertyValue - 1;
+            }
+            return propertyValue;
+        }
+
+        private void CurrentGame_GUIRemoved(GUI gui)
+        {
+            // Pass 0 as a "new id", since 0 is used as "no gui"
+            _agsEditor.CurrentGame.Settings.TextWindowGUI = UpdatePropertyOnGuiMove(_agsEditor.CurrentGame.Settings.TextWindowGUI, gui.ID, 0, true);
+            _agsEditor.CurrentGame.Settings.DialogOptionsGUI = UpdatePropertyOnGuiMove(_agsEditor.CurrentGame.Settings.DialogOptionsGUI, gui.ID, 0, true);
+            _agsEditor.CurrentGame.Settings.ThoughtGUI = UpdatePropertyOnGuiMove(_agsEditor.CurrentGame.Settings.ThoughtGUI, gui.ID, 0, true);
+            _settingsPane.RefreshData();
+        }
+
+        private void GuiComponent_GUIChangedID(GUI gui, int oldID)
+        {
+            _agsEditor.CurrentGame.Settings.TextWindowGUI = UpdatePropertyOnGuiMove(_agsEditor.CurrentGame.Settings.TextWindowGUI, oldID, gui.ID, false);
+            _agsEditor.CurrentGame.Settings.DialogOptionsGUI = UpdatePropertyOnGuiMove(_agsEditor.CurrentGame.Settings.DialogOptionsGUI, oldID, gui.ID, false);
+            _agsEditor.CurrentGame.Settings.ThoughtGUI = UpdatePropertyOnGuiMove(_agsEditor.CurrentGame.Settings.ThoughtGUI, oldID, gui.ID, false);
+            _settingsPane.RefreshData();
         }
 
         private void Events_GamePostLoad(Game game)

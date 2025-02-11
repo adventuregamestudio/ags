@@ -289,12 +289,14 @@ static bool game_loop_check_ground_level_interactions()
 
 static void lock_mouse_on_click()
 {
-    if (usetup.MouseAutoLock && scsystem.windowed)
+    // Only update when in windowed mode, as always locked in fullscreen
+    if (usetup.MouseAutoLock && scsystem.windowed != 0)
         Mouse::TryLockToWindow();
 }
 
 static void toggle_mouse_lock()
 {
+    // Only update when in windowed mode, as always locked in fullscreen
     if (scsystem.windowed)
     {
         if (Mouse::IsLockedToWindow())
@@ -1172,8 +1174,7 @@ static void UpdateMouseOverLocation()
 {
     // Call GetLocationName - it will internally force a GUI refresh
     // if the result it returns has changed from last time
-    char tempo[STD_BUFFER_SIZE];
-    GetLocationName(mousex, mousey, tempo);
+    GetLocationName(mousex, mousey);
 
     if ((play.get_loc_name_save_cursor >= 0) &&
         (play.get_loc_name_save_cursor != play.get_loc_name_last_time) &&

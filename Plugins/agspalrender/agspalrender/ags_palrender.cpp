@@ -2174,7 +2174,7 @@ void AGS_EngineShutdown() {
 }
 
 
-int AGS_EngineOnEvent (int event, int data) {
+intptr_t AGS_EngineOnEvent(int event, intptr_t data) {
 	if (event == AGSE_PRESCREENDRAW && clutslot > 0) 
 	{
 		if (drawreflections)

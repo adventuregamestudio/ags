@@ -1184,6 +1184,20 @@ namespace AGS.Editor.Components
 
         public override void PropertyChanged(string propertyName, object oldValue)
         {
+            if (_guiController.ActivePane.SelectedPropertyGridObject is Room)
+            {
+                RoomPropertyChanged(propertyName, oldValue);
+            }
+            else if (_guiController.ActivePane.SelectedPropertyGridObject is Character)
+            {
+                // TODO: wish we could forward event to the CharacterComponent.OnPropertyChanged,
+                // but its implementation relies on it being active Pane!
+                CharacterPropertyChanged(propertyName, oldValue);
+            }
+        }
+
+        private void RoomPropertyChanged(string propertyName, object oldValue)
+        {
             if ((propertyName == UnloadedRoom.PROPERTY_NAME_DESCRIPTION) && (_loadedRoom != null))
             {
                 UnloadedRoom room = FindRoomByID(_loadedRoom.Number);
@@ -1198,10 +1212,10 @@ namespace AGS.Editor.Components
                 }
             }
 
-			if ((propertyName == UnloadedRoom.PROPERTY_NAME_NUMBER) && (_loadedRoom != null))
-			{
-				int numberRequested = _loadedRoom.Number;
-				_loadedRoom.Number = Convert.ToInt32(oldValue);
+            if ((propertyName == UnloadedRoom.PROPERTY_NAME_NUMBER) && (_loadedRoom != null))
+            {
+                int numberRequested = _loadedRoom.Number;
+                _loadedRoom.Number = Convert.ToInt32(oldValue);
                 RenameRoom(_loadedRoom.Number, numberRequested);
                 RoomListTypeConverter.RefreshRoomList();
             }
@@ -1210,19 +1224,20 @@ namespace AGS.Editor.Components
             {
                 AdjustRoomMaskResolution(Convert.ToInt32(oldValue), _loadedRoom.MaskResolution);
             }
+        }
 
-            // TODO: wish we could forward event to the CharacterComponent.OnPropertyChanged,
-            // but its implementation relies on it being active Pane!
-            if ((_guiController.ActivePane.SelectedPropertyGridObject is Character) &&
-                (propertyName == Character.PROPERTY_NAME_SCRIPTNAME))
+        private void CharacterPropertyChanged(string propertyName, object oldValue)
+        {
+            if (propertyName == Character.PROPERTY_NAME_SCRIPTNAME)
             {
+                // TODO: re-investigate if we can allow this
                 Character character = (Character)_guiController.ActivePane.SelectedPropertyGridObject;
                 character.ScriptName = (string)oldValue;
                 _guiController.ShowMessage("You cannot edit a character's script name from here. Open the Character Editor for the character then try again.", MessageBoxIcon.Information);
             }
         }
 
-		private void RenameRoom(int currentNumber, int numberRequested)
+        private void RenameRoom(int currentNumber, int numberRequested)
 		{
 			UnloadedRoom room = _agsEditor.CurrentGame.FindRoomByID(numberRequested);
 			if (room != null)
@@ -1670,7 +1685,7 @@ namespace AGS.Editor.Components
 			}
 
 			ProjectTree treeController = _guiController.ProjectTree;
-			ProjectTreeItem treeItem = treeController.AddTreeBranch(this, TREE_PREFIX_ROOM_NODE + room.Number, room.Number.ToString() + ": " + room.Description, nodeIconName);
+			ProjectTreeItem treeItem = treeController.AddTreeBranch(this, GetItemNodeID(room), GetItemNodeLabel(room), nodeIconName);
 			treeController.AddTreeLeaf(this, TREE_PREFIX_ROOM_SETTINGS + room.Number, "Edit room", iconName);
             treeController.AddTreeLeaf(this, TREE_PREFIX_ROOM_SCRIPT + room.Number, "Room script", SCRIPT_ICON);
             return treeItem;
@@ -2023,9 +2038,14 @@ namespace AGS.Editor.Components
             return null;
         }
 
-        private string GetItemNodeID(UnloadedRoom room)
+        private string GetItemNodeID(IRoom room)
         {
             return TREE_PREFIX_ROOM_NODE + room.Number;
+        }
+
+        private string GetItemNodeLabel(IRoom room)
+        {
+            return room.Number.ToString() + ": " + room.Description;
         }
 
         /// <summary>

@@ -138,19 +138,11 @@ struct FunctionCallStack
 };
 
 
-RuntimeScriptValue ScriptExecutor::_pluginReturnValue;
-
-
 ScriptExecutor::~ScriptExecutor()
 {
 #if (DEBUG_CC_EXEC)
     CloseExecLog();
 #endif
-}
-
-void ScriptExecutor::SetPluginReturnValue(const RuntimeScriptValue &value)
-{
-    _pluginReturnValue = value;
 }
 
 ScriptExecError ScriptExecutor::Run(ScriptThread *thread, const RuntimeScript *script, const String &funcname, const RuntimeScriptValue *params, size_t param_count)
@@ -190,7 +182,11 @@ ScriptExecError ScriptExecutor::Run(ScriptThread *thread, const RuntimeScript *s
     // parameters are always the last, so function code knows how to find them
     // using negative offsets, and does not care about any preceding entries.
     // But if there's not enough parameters, then we cannot call this function.
-    if (static_cast<uint32_t>(export_args) > param_count)
+    if (export_args < 0)
+    {
+        export_args = param_count;
+    }
+    else if (static_cast<uint32_t>(export_args) > param_count)
     {
         cc_error("Not enough parameters to exported function '%s' (expected %d, supplied %zu)",
             funcname.GetCStr(), export_args, param_count);
@@ -1225,11 +1221,11 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
                 break;
             case kScValScriptObject:
             case kScValPluginObject:
+            case kScValPluginArgPtr:
                 address = reg1.Ptr;
                 break;
             case kScValPluginArg:
-                // FIXME: plugin API is currently strictly 32-bit, so this may break on 64-bit systems
-                address = Int32ToPtr<char>(reg1.IValue);
+                address = Int32ToPtr<void>(reg1.IValue);
                 break;
             default:
                 // There's one possible case when the reg1 is 0, which means writing nullptr
@@ -1265,11 +1261,11 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
                 break;
             case kScValScriptObject:
             case kScValPluginObject:
+            case kScValPluginArgPtr:
                 address = reg1.Ptr;
                 break;
             case kScValPluginArg:
-                // FIXME: plugin API is currently strictly 32-bit, so this may break on 64-bit systems
-                address = Int32ToPtr<uint8_t>(reg1.IValue);
+                address = Int32ToPtr<void>(reg1.IValue);
                 break;
             default:
                 // There's one possible case when the reg1 is 0, which means writing nullptr
@@ -1498,6 +1494,7 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
             case kScValScriptObject:
             case kScValPluginObject:
             case kScValPluginArg:
+            case kScValPluginArgPtr:
                 // This might be an object of USER-DEFINED type, calling its MEMBER-FUNCTION.
                 // Note, that this is the only case known when such object is written into reg[SREG_OP];
                 // in any other case that would count as error. 
@@ -1847,94 +1844,61 @@ RuntimeScriptValue ScriptExecutor::CallPluginFunction(void *fn_addr, const Runti
     // Needless to say that such approach would require a breaking change in plugin API.
     //
 
-    _pluginReturnValue.Invalidate();
+    typedef intptr_t(*fntype0) ();
+    typedef intptr_t(*fntype1) (intptr_t);
+    typedef intptr_t(*fntype2) (intptr_t, intptr_t);
+    typedef intptr_t(*fntype3) (intptr_t, intptr_t, intptr_t);
+    typedef intptr_t(*fntype4) (intptr_t, intptr_t, intptr_t, intptr_t);
+    typedef intptr_t(*fntype5) (intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
+    typedef intptr_t(*fntype6) (intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
+    typedef intptr_t(*fntype7) (intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
+    typedef intptr_t(*fntype8) (intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
+    typedef intptr_t(*fntype9) (intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
 
     intptr_t result;
     switch (param_count)
     {
     case 0:
-        {
-            intptr_t (*fparam) ();
-            fparam = (intptr_t (*)())fn_addr;
-            result = fparam();
-            break;
-        }
+        result = reinterpret_cast<fntype0>(fn_addr)();
+        break;
     case 1:
-        {
-            intptr_t (*fparam) (intptr_t);
-            fparam = (intptr_t (*)(intptr_t))fn_addr;
-            result = fparam(parm_value[0]);
-            break;
-        }
+        result = reinterpret_cast<fntype1>(fn_addr)(parm_value[0]);
+        break;
     case 2:
-        {
-            intptr_t (*fparam) (intptr_t, intptr_t);
-            fparam = (intptr_t (*)(intptr_t, intptr_t))fn_addr;
-            result = fparam(parm_value[0], parm_value[1]);
-            break;
-        }
+        result = reinterpret_cast<fntype2>(fn_addr)(parm_value[0], parm_value[1]);
+        break;
     case 3:
-        {
-            intptr_t (*fparam) (intptr_t, intptr_t, intptr_t);
-            fparam = (intptr_t (*)(intptr_t, intptr_t, intptr_t))fn_addr;
-            result = fparam(parm_value[0], parm_value[1], parm_value[2]);
-            break;
-        }
+        result = reinterpret_cast<fntype3>(fn_addr)(parm_value[0], parm_value[1], parm_value[2]);
+        break;
     case 4:
-        {
-            intptr_t (*fparam) (intptr_t, intptr_t, intptr_t, intptr_t);
-            fparam = (intptr_t (*)(intptr_t, intptr_t, intptr_t, intptr_t))fn_addr;
-            result = fparam(parm_value[0], parm_value[1], parm_value[2], parm_value[3]);
-            break;
-        }
+        result = reinterpret_cast<fntype4>(fn_addr)(parm_value[0], parm_value[1], parm_value[2], parm_value[3]);
+        break;
     case 5:
-        {
-            intptr_t (*fparam) (intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
-            fparam = (intptr_t (*)(intptr_t, intptr_t, intptr_t, intptr_t, intptr_t))fn_addr;
-            result = fparam(parm_value[0], parm_value[1], parm_value[2], parm_value[3], parm_value[4]);
-            break;
-        }
+        result = reinterpret_cast<fntype5>(fn_addr)(parm_value[0], parm_value[1], parm_value[2], parm_value[3], parm_value[4]);
+        break;
     case 6:
-        {
-            intptr_t (*fparam) (intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
-            fparam = (intptr_t (*)(intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t))fn_addr;
-            result = fparam(parm_value[0], parm_value[1], parm_value[2], parm_value[3], parm_value[4], parm_value[5]);
-            break;
-        }
+        result = reinterpret_cast<fntype6>(fn_addr)(parm_value[0], parm_value[1], parm_value[2], parm_value[3], parm_value[4], parm_value[5]);
+        break;
     case 7:
-        {
-            intptr_t (*fparam) (intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
-            fparam = (intptr_t (*)(intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t))fn_addr;
-            result = fparam(parm_value[0], parm_value[1], parm_value[2], parm_value[3], parm_value[4], parm_value[5], parm_value[6]);
-            break;
-        }
+        result = reinterpret_cast<fntype7>(fn_addr)(parm_value[0], parm_value[1], parm_value[2], parm_value[3], parm_value[4], parm_value[5], parm_value[6]);
+        break;
     case 8:
-        {
-            intptr_t (*fparam) (intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
-            fparam = (intptr_t (*)(intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t))fn_addr;
-            result = fparam(parm_value[0], parm_value[1], parm_value[2], parm_value[3], parm_value[4], parm_value[5], parm_value[6], parm_value[7]);
-            break;
-        }
+        result = reinterpret_cast<fntype8>(fn_addr)(parm_value[0], parm_value[1], parm_value[2], parm_value[3], parm_value[4], parm_value[5], parm_value[6], parm_value[7]);
+        break;
     case 9:
-        {
-            intptr_t (*fparam) (intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
-            fparam = (intptr_t (*)(intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t))fn_addr;
-            result = fparam(parm_value[0], parm_value[1], parm_value[2], parm_value[3], parm_value[4], parm_value[5], parm_value[6], parm_value[7], parm_value[8]);
-            break;
-        }
+        result = reinterpret_cast<fntype9>(fn_addr)(parm_value[0], parm_value[1], parm_value[2], parm_value[3], parm_value[4], parm_value[5], parm_value[6], parm_value[7], parm_value[8]);
+        break;
     default:
         cc_error("Too many arguments in call to plugin function");
         return {};
     }
 
-    if (_pluginReturnValue.IsValid())
-    {
-        return _pluginReturnValue;
-    }
-    else
-    {
-        return RuntimeScriptValue().SetPluginArgument(static_cast<int32_t>(result));
-    }
+    // Assign as either a numeric value or a pointer, depending on how large the value is.
+    // Yes, that's a hack, but that's as much as we can do without having any meta info
+    // about the called function's prototype.
+    // NOTE: if this is a managed script object, we won't be able to know if we can safely
+    // get its manager, unless bytecode instructs us to later down the way.
+    return RuntimeScriptValue().SetPluginArgOrPtr(result);
 }
 
 void ScriptExecutor::PushValueToStack(const RuntimeScriptValue &rval)
@@ -2127,6 +2091,7 @@ void ScriptExecutor::DumpInstruction(const ScriptOperation &op) const
             case kScValObjectFunction:
             case kScValPluginFunction:
             case kScValPluginObject:
+            case kScValPluginArgPtr:
             {
                 String name = simp.FindName(arg);
                 if (!name.IsEmpty())

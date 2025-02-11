@@ -51,7 +51,7 @@ void AGSPlatformDriver::AttachToParentConsole() { }
 void AGSPlatformDriver::PauseApplication() { }
 void AGSPlatformDriver::ResumeApplication() { }
 
-Size AGSPlatformDriver::ValidateWindowSize(const Size &sz, bool borderless) const
+Size AGSPlatformDriver::ValidateWindowSize(int display_index, const Size &sz, bool borderless) const
 {
     // TODO: Ideally we should also test for the minimal / maximal
     // allowed size of the window in current system here;
@@ -60,7 +60,7 @@ Size AGSPlatformDriver::ValidateWindowSize(const Size &sz, bool borderless) cons
     // without creating a window first. But this potentially may be
     // acquired, at least on some platforms (e.g. Windows).
     SDL_Rect rc;
-    SDL_GetDisplayUsableBounds(sys_get_window_display_index(), &rc);
+    SDL_GetDisplayUsableBounds(display_index, &rc);
     return Size::Clamp(sz, Size(1, 1), Size(rc.w, rc.h));
 }
 

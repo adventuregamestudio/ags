@@ -42,19 +42,18 @@ void apply_config(const ConfigTree &cfg, GameSetup &setup);
 void post_config(GameSetup &setup);
 
 // Load common configuration from the config tree into GameConfig struct
-void load_common_config(const ConfigTree &cfg, GameConfig &setup, const Size &desktop_res);
+void load_common_config(const ConfigTree &cfg, GameConfig &setup);
 // Saves common configuration from GameConfig struct to the config tree
-void save_common_config(const GameConfig &setup, ConfigTree &cfg, const Size &game_res, const Size &desktop_res);
+void save_common_config(const GameConfig &setup, ConfigTree &cfg);
 
 // Saves minimal runtime config using current engine state
 void save_runtime_config_file();
 
-WindowSetup parse_window_mode(const String &option, bool as_windowed,
-    const Size &game_res, const Size &desktop_res, const WindowSetup &def_value = WindowSetup());
+WindowSetup parse_window_mode(const String &option, bool as_windowed, const WindowSetup &def_value = WindowSetup());
 FrameScaleDef parse_scaling_option(const String &option, FrameScaleDef def_value = kFrame_Undefined);
 SkipSpeechStyle parse_speechskip_style(const String &option, SkipSpeechStyle def_value = kSkipSpeechNone);
 void   parse_asset_dirs(const String &option, std::vector<std::pair<String, String>> &opt_dirs);
-String make_window_mode_option(const WindowSetup &ws, const Size &game_res, const Size &desktop_res);
+String make_window_mode_option(const WindowSetup &ws);
 String make_scaling_option(FrameScaleDef scale_def);
 String make_speechskip_option(SkipSpeechStyle style);
 uint32_t convert_scaling_to_fp(int scale_factor);

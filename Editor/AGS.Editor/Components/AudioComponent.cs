@@ -4,14 +4,17 @@ using System.IO;
 using System.Text;
 using System.Linq;
 using AGS.Types;
+using System.Windows.Forms;
 
 namespace AGS.Editor.Components
 {
     class AudioComponent : BaseComponentWithFolders<AudioClip, AudioClipFolder>, IProjectTreeSingleClickHandler
     {
+        public const string AUDIO_CACHE_DIRECTORY = "AudioCache";
         private const string COMPILED_AUDIO_FILENAME_PREFIX = "au";
         private const string COMMAND_ADD_AUDIO = "AddAudioClipCmd";
         private const string COMMAND_REIMPORT_ALL = "ReimportAllAudioClipCmd";
+        private const string COMMAND_REPLACE_AUDIO_SOURCE_FOLDER = "ReplaceAudioClipSourceFolderCmd";
         private const string COMMAND_PROPERTIES = "PropertiesAudioClip";
         private const string COMMAND_RENAME = "RenameAudioClip";
         private const string COMMAND_REIMPORT = "ReimportAudioClip";
@@ -95,11 +98,11 @@ namespace AGS.Editor.Components
 
         private static string GetCacheFileName(int index, string sourceFileName)
         {
-            return Path.Combine(AudioClip.AUDIO_CACHE_DIRECTORY, GetCacheFileNameWithoutPath(index, sourceFileName));
+            return Path.Combine(AUDIO_CACHE_DIRECTORY, GetCacheFileNameWithoutPath(index, sourceFileName));
         }
         public static string GetCacheFileName(AudioClip clip)
         {
-            return Path.Combine(AudioClip.AUDIO_CACHE_DIRECTORY, GetCacheFileNameWithoutPath(clip.Index, clip.SourceFileName));
+            return Path.Combine(AUDIO_CACHE_DIRECTORY, GetCacheFileNameWithoutPath(clip.Index, clip.SourceFileName));
         }
 
         protected override void ItemCommandClick(string controlID)
@@ -115,6 +118,10 @@ namespace AGS.Editor.Components
             else if (controlID == COMMAND_REIMPORT_ALL)
             {
                 CommandForceReimportOfAllAudioClips();
+            }
+            else if (controlID == COMMAND_REPLACE_AUDIO_SOURCE_FOLDER)
+            {
+                CommandReplaceSourceFolderForAudioClips();
             }
             else if (controlID == COMMAND_RENAME)
             {
@@ -648,6 +655,53 @@ namespace AGS.Editor.Components
             }
         }
 
+        private void CommandReplaceSourceFolderForAudioClips()
+        {
+            var allAudioClips = _agsEditor.CurrentGame.RootAudioClipFolder.AllItemsFlat;
+            string firstFoundSourceFile = null;
+            AudioClip foundClip = allAudioClips.Where(s => !string.IsNullOrEmpty(s.SourceFileName)).FirstOrDefault();
+            if (foundClip != null)
+                firstFoundSourceFile = foundClip.SourceFileName;
+
+            if (string.IsNullOrEmpty(firstFoundSourceFile))
+            {
+                Factory.GUIController.ShowMessage("None of the audio clips has a source filename.", MessageBoxIcon.Warning);
+                return;
+            }
+
+            string parentDir = Path.GetDirectoryName(firstFoundSourceFile);
+            var replaceDirs = ReplaceFolderDialog.Show("Replace audio clip(s) source path",
+                "Please choose which part of the parent path should be replaced and provide a replacement. Relative paths will be assumed relative to your game's project folder.",
+                parentDir, parentDir, Factory.AGSEditor.CurrentGame.DirectoryPath);
+
+            if (replaceDirs == null || replaceDirs.Item1 == replaceDirs.Item2)
+                return;
+
+            int itemCount = 0;
+            foreach (var clip in allAudioClips)
+            {
+                if (string.IsNullOrEmpty(clip.SourceFileName))
+                    continue;
+
+                string newPath;
+                if (Utilities.ReplacePathBaseProjectRelative(clip.SourceFileName, replaceDirs.Item1, replaceDirs.Item2, out newPath))
+                {
+                    clip.SourceFileName = newPath;
+                    itemCount++;
+                }
+            }
+
+            if (itemCount > 0)
+            {
+                Factory.GUIController.ShowMessage($"{itemCount} audio clip(s) had their source paths updated.", MessageBoxIcon.Information);
+                Factory.GUIController.RefreshPropertyGrid();
+            }
+            else
+            {
+                Factory.GUIController.ShowMessage($"No audio clips with the matching old paths found, no changes were made.", MessageBoxIcon.Information);
+            }
+        }
+
         private void AddAudioClipToListIfFileNeedsToBeCopiedFromSource(AudioClip clip, PreCompileGameEventArgs evArgs, List<AudioClip> filesToCopy, List<string> fileNamesToUpdate)
         {
             string compiledFileName = clip.CacheFileName;
@@ -854,11 +908,13 @@ namespace AGS.Editor.Components
         protected override void AddNewItemCommandsToFolderContextMenu(string controlID, IList<MenuCommand> menu)
         {
             menu.Add(new MenuCommand(COMMAND_ADD_AUDIO, "Add audio file(s)...", null));
-            menu.Add(new MenuCommand(COMMAND_REIMPORT_ALL, "Force reimport all file(s)", null));
         }
 
         protected override void AddExtraCommandsToFolderContextMenu(string controlID, IList<MenuCommand> menu)
         {
+            menu.Add(MenuCommand.Separator);
+            menu.Add(new MenuCommand(COMMAND_REPLACE_AUDIO_SOURCE_FOLDER, "Replace source paths for audio clips...", null));
+            menu.Add(new MenuCommand(COMMAND_REIMPORT_ALL, "Force reimport all file(s)", null));
             menu.Add(MenuCommand.Separator);
             menu.Add(new MenuCommand(COMMAND_PROPERTIES, "Properties", null));
         }

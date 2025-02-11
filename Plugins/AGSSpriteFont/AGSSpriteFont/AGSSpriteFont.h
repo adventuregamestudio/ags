@@ -7,7 +7,7 @@ namespace agsspritefont
 {
   void AGS_EngineStartup(IAGSEngine *lpEngine);
   void AGS_EngineShutdown();
-  int AGS_EngineOnEvent(int event, int data);
+  intptr_t AGS_EngineOnEvent(int event, intptr_t data);
 }
 
 #endif

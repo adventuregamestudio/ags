@@ -74,7 +74,6 @@ private:
     const ConfigTree &_cfgIn;
     const ConfigTree &_defCfgIn; // game defaults, not including player's setup
     ConfigTree &_cfgOut;
-    Size _desktopSize;
 
     // Dialog controls
     HWND _hTabber = NULL;
@@ -114,13 +113,11 @@ SetupReturnValue WinSetupDialog::ShowModal(const ConfigTree &cfg_in, const Confi
 
 INT_PTR WinSetupDialog::OnInitDialog()
 {
-    _hVersionText           = GetDlgItem(_hwnd, IDC_VERSION);
-    _hTabber                = GetDlgItem(_hwnd, IDC_TABPANEL);
-
-    _desktopSize = get_desktop_size();
+    _hVersionText = GetDlgItem(_hwnd, IDC_VERSION);
+    _hTabber      = GetDlgItem(_hwnd, IDC_TABPANEL);
 
     _winCfg.LoadMeta(_defCfgIn);
-    _winCfg.LoadCommon(_cfgIn, _desktopSize);
+    _winCfg.LoadCommon(_cfgIn);
 
     // Native resolution test
     if (_winCfg.GameResolution.IsNull() || _winCfg.GameColourDepth == 0)
@@ -195,7 +192,7 @@ void WinSetupDialog::OnResetToDefaults()
         return;
 
     _winCfg.SetDefaults();
-    _winCfg.LoadCommon(_defCfgIn, _desktopSize);
+    _winCfg.LoadCommon(_defCfgIn);
     for (auto &p : _pages)
         p->ResetSetup(_defCfgIn);
 }
@@ -206,7 +203,7 @@ void WinSetupDialog::SaveSetup()
     for (auto &p : _pages)
         p->SaveSetup();
 
-    _winCfg.Save(_cfgOut, _desktopSize);
+    _winCfg.Save(_cfgOut);
 }
 
 //=============================================================================

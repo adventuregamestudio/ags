@@ -260,7 +260,7 @@ namespace AGS.Types
         [Browsable(false)]
         public string PropertyGridTitle
         {
-            get { return _description + " (Room; number " + _number + ")"; }
+            get { return $"{_description} (Room; number {_number})"; }
         }
 
         [Description("The speed at which the backgrounds will rotate (only applicable if you have imported more than one)")]

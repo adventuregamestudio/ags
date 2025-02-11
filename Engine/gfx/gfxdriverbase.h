@@ -344,7 +344,7 @@ protected:
     // returns a DDB if anything was drawn onto the current stage screen
     // (in which case it also fills optional x,y position),
     // or nullptr if this entry should be skipped.
-    IDriverDependantBitmap *DoSpriteEvtCallback(int evt, int data, int &x, int &y);
+    IDriverDependantBitmap *DoSpriteEvtCallback(int evt, intptr_t data, int &x, int &y);
 
     // Prepare and get fx item from the pool
     IDriverDependantBitmap *MakeFx(int r, int g, int b);

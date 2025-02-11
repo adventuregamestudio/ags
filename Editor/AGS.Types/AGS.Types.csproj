@@ -228,6 +228,7 @@
     <Compile Include="PropertyGridExtras\FontFileTypeConverter.cs" />
     <Compile Include="PropertyGridExtras\FontSizeTypeConverter.cs" />
     <Compile Include="PropertyGridExtras\FontSizeUIEditor.cs" />
+    <Compile Include="PropertyGridExtras\GUIIndexTypeConverter.cs" />
     <Compile Include="PropertyGridExtras\InteractionPropertyDescriptor.cs" />
     <Compile Include="PropertyGridExtras\InteractionEventPropertyDescriptor.cs" />
     <Compile Include="PropertyGridExtras\MultilineStringUIEditor.cs" />
@@ -250,6 +251,7 @@
     <Compile Include="ScriptsAndHeaders.cs" />
     <Compile Include="Translation.cs" />
     <Compile Include="TranslationEntry.cs" />
+    <Compile Include="TypesHelper.cs" />
     <Compile Include="UnloadedRoom.cs" />
     <Compile Include="TextParser.cs" />
     <Compile Include="TextParserWord.cs" />

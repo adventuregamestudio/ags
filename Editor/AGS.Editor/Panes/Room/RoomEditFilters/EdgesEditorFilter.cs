@@ -8,7 +8,7 @@ using System.Windows.Forms;
 
 namespace AGS.Editor
 {
-    public class EdgesEditorFilter : IRoomEditorFilter
+    public class EdgesEditorFilter : BaseRoomEditorFilter, IRoomEditorFilter
     {
         private enum SelectedEdge
         {

@@ -325,7 +325,7 @@ namespace AGS.Editor.Components
 
         protected override ProjectTreeItem CreateTreeItemForItem(View item)
         {
-            ProjectTreeItem treeItem = (ProjectTreeItem)_guiController.ProjectTree.AddTreeLeaf(this, GetNodeID(item), item.ID.ToString() + ": " + item.Name, "ViewIcon");
+            ProjectTreeItem treeItem = (ProjectTreeItem)_guiController.ProjectTree.AddTreeLeaf(this, GetNodeID(item), GetNodeLabel(item), "ViewIcon");
             treeItem.AllowLabelEdit = true;
             treeItem.LabelTextProperty = item.GetType().GetProperty("Name");
             treeItem.LabelTextDescriptionProperty = item.GetType().GetProperty("NameAndID");

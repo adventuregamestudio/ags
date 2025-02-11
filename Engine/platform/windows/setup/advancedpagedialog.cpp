@@ -38,19 +38,17 @@ namespace Engine
 
 INT_PTR AdvancedPageDialog::OnInitDialog()
 {
-    _hAudioDriverList       = GetDlgItem(_hwnd, IDC_DIGISOUND);
     _hSpriteCacheList       = GetDlgItem(_hwnd, IDC_SPRITECACHE);
     _hTextureCacheList      = GetDlgItem(_hwnd, IDC_TEXTURECACHE);
-    _hSoundCacheList        = GetDlgItem(_hwnd, IDC_SOUNDCACHE);
     _hVSync                 = GetDlgItem(_hwnd, IDC_VSYNC);
     _hRenderAtScreenRes     = GetDlgItem(_hwnd, IDC_RENDERATSCREENRES);
     _hAntialiasSprites      = GetDlgItem(_hwnd, IDC_ANTIALIAS);
+    _hAudioDriverList       = GetDlgItem(_hwnd, IDC_DIGISOUND);
+    _hSoundCacheList        = GetDlgItem(_hwnd, IDC_SOUNDCACHE);
     _hUseVoicePack          = GetDlgItem(_hwnd, IDC_VOICEPACK);
     _hMouseLock             = GetDlgItem(_hwnd, IDC_MOUSE_AUTOLOCK);
     _hMouseSpeed            = GetDlgItem(_hwnd, IDC_MOUSESPEED);
     _hMouseSpeedText        = GetDlgItem(_hwnd, IDC_MOUSESPEED_TEXT);
-
-    SetSliderRange(_hMouseSpeed, MouseSpeedMin, MouseSpeedMax);
 
     // Init sprite cache and texture cache lists
     // 32-bit programs have accessible RAM limit of 2-3 GB (may be less in practice),
@@ -60,8 +58,10 @@ INT_PTR AdvancedPageDialog::OnInitDialog()
         { "256 MB", 256}, { "384 MB", 384}, { "512 MB", 512 }, { "640 MB", 640 },
         { "768 MB", 768 }, { "896 MB", 896 }, { "1 GB", 1024 },
     }};
+    ResetContent(_hSpriteCacheList);
     for (const auto &val : spr_cache_vals)
         AddString(_hSpriteCacheList, val.first, val.second);
+    ResetContent(_hTextureCacheList);
     for (const auto &val : spr_cache_vals)
         AddString(_hTextureCacheList, val.first, val.second);
 #if AGS_PLATFORM_64BIT
@@ -78,12 +78,15 @@ INT_PTR AdvancedPageDialog::OnInitDialog()
     const std::array<std::pair<const char*, int>, 5> sound_cache_vals = { {
         { "Off", 0 }, { "16 MB", 16 }, { "32 MB", 32 }, { "64 MB", 64 }, { "128 MB", 128 }
     }};
+    ResetContent(_hSoundCacheList);
     for (const auto &val : sound_cache_vals)
         AddString(_hSoundCacheList, val.first, val.second);
 
     FillAudioDriverList();
     if (!File::IsFile("speech.vox"))
         EnableWindow(_hUseVoicePack, FALSE);
+
+    SetSliderRange(_hMouseSpeed, MouseSpeedMin, MouseSpeedMax);
 
     if (CfgReadBoolInt(_cfgIn, "disabled", "speechvox"))
         EnableWindow(_hUseVoicePack, FALSE);
@@ -136,6 +139,7 @@ void AdvancedPageDialog::FillAudioDriverList()
     for (const auto &names : drv_names)
         _drvAudioList.push_back(std::make_pair(names.first, names.second));
     // Fill driver data into UI list
+    ResetContent(_hAudioDriverList);
     for (const auto &desc : _drvAudioList)
         AddString(_hAudioDriverList, STR(desc.second), (DWORD_PTR)desc.first.GetCStr());
 }
@@ -352,6 +356,8 @@ INT_PTR AccessibilityPageDialog::OnInitDialog()
     const std::array<std::pair<const char*, SkipSpeechStyle>, 4> skip_vals = { {
         { "Game Default", kSkipSpeechNone }, { "Player Input", kSkipSpeech_AnyInput }, { "Auto (by time)", kSkipSpeechTime }, { "Any", kSkipSpeech_AnyInputOrTime }
     }};
+    ResetContent(_hSpeechSkipStyle);
+    ResetContent(_hTextSkipStyle);
     for (const auto &val : skip_vals)
     {
         AddString(_hSpeechSkipStyle, val.first, val.second);

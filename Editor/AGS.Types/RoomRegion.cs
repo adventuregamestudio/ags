@@ -126,7 +126,7 @@ namespace AGS.Types
         [Browsable(false)]
         public string PropertyGridTitle
         {
-            get { return "Region ID " + _id; }
+            get { return TypesHelper.MakePropertyGridTitle("Region", _id); }
         }
 
         [AGSSerializeClass]

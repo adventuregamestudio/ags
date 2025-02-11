@@ -236,6 +236,24 @@
     <Compile Include="GUI\MultilineStringEditorDialog.Designer.cs">
       <DependentUpon>MultilineStringEditorDialog.cs</DependentUpon>
     </Compile>
+    <Compile Include="GUI\ReplaceFolderDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\ReplaceFolderDialog.Designer.cs">
+      <DependentUpon>ReplaceFolderDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\StartNewGameDetailsPage.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="GUI\StartNewGameDetailsPage.Designer.cs">
+      <DependentUpon>StartNewGameDetailsPage.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\StartNewGameTemplatesPage.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="GUI\StartNewGameTemplatesPage.Designer.cs">
+      <DependentUpon>StartNewGameTemplatesPage.cs</DependentUpon>
+    </Compile>
     <Compile Include="GUI\WatchVariablesPanel.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -289,6 +307,12 @@
     <Compile Include="GUI\ViewChooser.Designer.cs">
       <DependentUpon>ViewChooser.cs</DependentUpon>
     </Compile>
+    <Compile Include="GUI\WizardIntroPage.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="GUI\WizardIntroPage.Designer.cs">
+      <DependentUpon>WizardIntroPage.cs</DependentUpon>
+    </Compile>
     <Compile Include="Hacks.cs" />
     <Compile Include="IAGSEditorDirectories.cs" />
     <Compile Include="ImportExport.cs" />
@@ -299,6 +323,7 @@
       <DependentUpon>NumberEntryDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="Entities\LogBuffer.cs" />
+    <Compile Include="Panes\Room\RoomEditFilters\BaseRoomEditorFilter.cs" />
     <Compile Include="Panes\Room\RoomEditFilters\BaseThingEditorFilter.cs" />
     <Compile Include="Panes\Room\RoomEditFilters\CharactersEditorFilter.cs" />
     <Compile Include="Panes\Room\RoomEditFilters\DesignTimeProperties.cs" />
@@ -488,6 +513,15 @@
     <EmbeddedResource Include="GUI\MultilineStringEditorDialog.resx">
       <DependentUpon>MultilineStringEditorDialog.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="GUI\ReplaceFolderDialog.resx">
+      <DependentUpon>ReplaceFolderDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\StartNewGameDetailsPage.resx">
+      <DependentUpon>StartNewGameDetailsPage.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\StartNewGameTemplatesPage.resx">
+      <DependentUpon>StartNewGameTemplatesPage.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="GUI\WatchVariablesPanel.resx">
       <DependentUpon>WatchVariablesPanel.cs</DependentUpon>
     </EmbeddedResource>
@@ -500,6 +534,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="GUI\SpriteExportDialog.resx">
       <DependentUpon>SpriteExportDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\WizardIntroPage.resx">
+      <DependentUpon>WizardIntroPage.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Panes\BigPropertySheet.resx">
       <SubType>Designer</SubType>
@@ -812,10 +849,6 @@
     <EmbeddedResource Include="GUI\SplashPage.resx">
       <DependentUpon>SplashPage.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="GUI\StartNewGameWizardPage2.resx">
-      <DependentUpon>StartNewGameWizardPage2.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
     <EmbeddedResource Include="GUI\FindReplaceDialog.resx">
       <SubType>Designer</SubType>
       <DependentUpon>FindReplaceDialog.cs</DependentUpon>
@@ -823,10 +856,6 @@
     <EmbeddedResource Include="GUI\ImportGameWizardPage.resx">
       <SubType>Designer</SubType>
       <DependentUpon>ImportGameWizardPage.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="GUI\StartNewGameWizardPage.resx">
-      <SubType>Designer</SubType>
-      <DependentUpon>StartNewGameWizardPage.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="GUI\WelcomeScreen.resx">
       <SubType>Designer</SubType>
@@ -1209,12 +1238,6 @@
     <Compile Include="GUI\AutoNumberSpeechWizardPage.Designer.cs">
       <DependentUpon>AutoNumberSpeechWizardPage.cs</DependentUpon>
     </Compile>
-    <Compile Include="GUI\StartNewGameWizardPage2.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="GUI\StartNewGameWizardPage2.Designer.cs">
-      <DependentUpon>StartNewGameWizardPage2.cs</DependentUpon>
-    </Compile>
     <Compile Include="GUI\FindReplaceDialog.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -1227,12 +1250,6 @@
     </Compile>
     <Compile Include="GUI\ImportGameWizardPage.Designer.cs">
       <DependentUpon>ImportGameWizardPage.cs</DependentUpon>
-    </Compile>
-    <Compile Include="GUI\StartNewGameWizardPage.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="GUI\StartNewGameWizardPage.Designer.cs">
-      <DependentUpon>StartNewGameWizardPage.cs</DependentUpon>
     </Compile>
     <Compile Include="GUI\WelcomeScreen.cs">
       <SubType>Form</SubType>

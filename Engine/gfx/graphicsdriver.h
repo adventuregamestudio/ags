@@ -88,7 +88,7 @@ struct RenderMatrixes
 
 
 typedef void (*GFXDRV_CLIENTCALLBACK)();
-typedef bool (*GFXDRV_CLIENTCALLBACKEVT)(int evt, int data);
+typedef bool (*GFXDRV_CLIENTCALLBACKEVT)(int evt, intptr_t data);
 typedef void (*GFXDRV_CLIENTCALLBACKINITGFX)(void *data);
 
 class IGraphicsDriver
@@ -124,7 +124,7 @@ public:
   virtual bool IsRenderFrameValid() const = 0;
   // Report which color depth options are best suited for the given native color depth
   virtual int  GetDisplayDepthForNativeDepth(int native_color_depth) const = 0;
-  virtual IGfxModeList *GetSupportedModeList(int color_depth) = 0;
+  virtual IGfxModeList *GetSupportedModeList(int display_index, int color_depth) = 0;
   virtual bool IsModeSupported(const DisplayMode &mode) = 0;
   virtual DisplayMode GetDisplayMode() const = 0;
   virtual PGfxFilter GetGraphicsFilter() const = 0;

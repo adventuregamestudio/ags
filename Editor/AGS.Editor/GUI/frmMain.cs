@@ -371,22 +371,30 @@ namespace AGS.Editor
         public void SetPropertyObjects(object[] propertiesObjects)
         {
             propertiesPanel.SelectedObjects = propertiesObjects;
-
             propertiesPanel.propertyObjectCombo.SelectedIndex = -1;
         }
 
         private void SelectObjectInPropertyList(object propertiesObject)
         {
-            if (_propertyObjectList != null)
+            try
             {
-                foreach (string name in _propertyObjectList.Keys)
+                _ignorePropertyListChange = true;
+                if (_propertyObjectList != null)
                 {
-                    if (_propertyObjectList[name] == propertiesObject)
+                    foreach (string name in _propertyObjectList.Keys)
                     {
-                        propertiesPanel.propertyObjectCombo.SelectedIndex =
-                            propertiesPanel.propertyObjectCombo.Items.IndexOf(name);
+                        if (_propertyObjectList[name] == propertiesObject)
+                        {
+                            propertiesPanel.propertyObjectCombo.SelectedIndex =
+                                propertiesPanel.propertyObjectCombo.Items.IndexOf(name);
+                            break;
+                        }
                     }
                 }
+            }
+            finally
+            {
+                _ignorePropertyListChange = false;
             }
         }
 

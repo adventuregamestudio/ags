@@ -12,6 +12,7 @@ namespace AGS.Types
     public class RoomHotspot : IChangeNotification, IToXml
 	{
 		public const string PROPERTY_NAME_SCRIPT_NAME = "Name";
+        public const string PROPERTY_NAME_DESCRIPTION = "Description";
 
         private static InteractionSchema _interactionSchema;
 
@@ -87,7 +88,7 @@ namespace AGS.Types
         [Browsable(false)]
         public string PropertyGridTitle
         {
-            get { return _name + " (Hotspot; ID " + _id + ")"; }
+            get { return TypesHelper.MakePropertyGridTitle("Hotspot", _name, _description, _id); }
         }
 
         [AGSSerializeClass()]

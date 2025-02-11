@@ -175,7 +175,8 @@ namespace AGS.Editor
 
         public readonly string[] RestrictedGameDirectories = new string[]
         {
-            OUTPUT_DIRECTORY, DEBUG_OUTPUT_DIRECTORY, AudioClip.AUDIO_CACHE_DIRECTORY,
+            OUTPUT_DIRECTORY, DEBUG_OUTPUT_DIRECTORY,
+            Components.AudioComponent.AUDIO_CACHE_DIRECTORY,
             Components.SpeechComponent.SPEECH_DIRECTORY
         };
 
@@ -1156,7 +1157,7 @@ namespace AGS.Editor
             targetDataFile.Build(errors, forceRebuild); // ensure that data file is built first
             if (ExtraOutputCreationStep != null)
             {
-                ExtraOutputCreationStep(new OutputCreationStepArgs(false));
+                ExtraOutputCreationStep(new OutputCreationStepArgs(false, errors));
             }
 
             // TODO: As of now the build targets other than DataFile and Debug do DEPLOYMENT rather than BUILDING
@@ -1196,19 +1197,13 @@ namespace AGS.Editor
 
         private void RunPreCompilationChecks(CompileMessages errors)
         {
-            if ((_game.LipSync.Type == LipSyncType.PamelaVoiceFiles) &&
-                (_game.Settings.SpeechStyle == SpeechStyle.Lucasarts))
-            {
-                errors.Add(new CompileError("Voice lip-sync cannot be used with Lucasarts-style speech"));
-            }
-
             if (_game.PlayerCharacter == null)
             {
                 errors.Add(new CompileError("No character has been set as the player character"));
             }
             else if (_game.FindRoomByID(_game.PlayerCharacter.StartingRoom) == null)
             {
-                errors.Add(new CompileError("The game is set to start in room " + _game.PlayerCharacter.StartingRoom + " which does not exist"));
+                errors.Add(new CompileError($"The player character {_game.PlayerCharacter.ScriptName} has StartingRoom set to room {_game.PlayerCharacter.StartingRoom} which does not exist"));
             }
 
             if ((_game.Settings.ColorDepth == GameColorDepth.Palette) &&
@@ -1410,7 +1405,7 @@ namespace AGS.Editor
             target.Build(errors, false);
             if (ExtraOutputCreationStep != null)
             {
-                ExtraOutputCreationStep(new OutputCreationStepArgs(true));
+                ExtraOutputCreationStep(new OutputCreationStepArgs(true, errors));
             }
 
             buildNames[target.Name] = Factory.AGSEditor.BaseGameFileName;

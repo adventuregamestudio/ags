@@ -295,6 +295,13 @@ bool UpdateCharacterAnimating(CharacterInfo *chi, CharacterExtras *chex, int &do
       if (chi->wait > 0) {
           chi->wait--;
       }
+      else if (has_voice_lipsync()) {
+          const int new_frame = update_voice_lipsync(chi->frame);
+          if (chi->frame != new_frame) {
+              chi->frame = new_frame;
+              chex->CheckViewFrame(chi);
+          }
+      }
       else if ((char_speaking_anim == chi->index_id) && (game.options[OPT_LIPSYNCTEXT] != 0)) {
         // currently talking with lip-sync speech
         int fraa = chi->frame;

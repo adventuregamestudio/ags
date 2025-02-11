@@ -108,7 +108,7 @@ public:
     // Called when the application is being resumed.
     virtual void ResumeApplication();
     // Adjust window's * client size * to ensure it is in the supported limits
-    virtual Size ValidateWindowSize(const Size &sz, bool borderless) const;
+    virtual Size ValidateWindowSize(int display_index, const Size &sz, bool borderless) const;
     // Either set window icon using system API directly, or create a SDL_Surface
     // for the SDL backend to set an icon instead.
     virtual SDL_Surface *CreateWindowIcon() { return nullptr; }

@@ -37,6 +37,9 @@ namespace Engine
 
 using namespace AGS::Common;
 
+class IGfxDriverFactory;
+class IGraphicsDriver;
+
 //=============================================================================
 //
 // WinConfig struct, keeps all configurable data.
@@ -55,8 +58,8 @@ struct WinConfig : public GameConfig
     WinConfig();
     void SetDefaults();
     void LoadMeta(const ConfigTree &cfg);
-    void LoadCommon(const ConfigTree &cfg, const Size &desktop_res);
-    void Save(ConfigTree &cfg, const Size &desktop_res) const;
+    void LoadCommon(const ConfigTree &cfg);
+    void Save(ConfigTree &cfg) const;
 };
 
 //=============================================================================
@@ -103,6 +106,7 @@ protected:
 
     // Event handlers
     INT_PTR OnInitDialog() override;
+    INT_PTR OnDestroyDialog() override;
     INT_PTR OnCommand(WORD id) override;
     INT_PTR OnListSelection(WORD id) override;
 
@@ -115,6 +119,7 @@ private:
     };
 
     // Event handlers
+    void OnDisplayUpdate();
     void OnGfxDriverUpdate();
     void OnGfxFilterUpdate();
     void OnGfxModeUpdate();
@@ -138,6 +143,8 @@ private:
     typedef std::vector<GfxFilterInfo> VFilters;
     struct DriverDesc
     {
+        IGfxDriverFactory *Factory = nullptr;
+        IGraphicsDriver *Driver    = nullptr;
         String      Id;            // internal id
         String      UserName;      // human-friendly driver name
         GfxModes    GfxModeList;   // list of supported modes
@@ -147,13 +154,18 @@ private:
 
     // Operations
     void AddScalingString(HWND hlist, int scaling_factor);
+    void FillDisplayList();
     void FillGfxDriverList();
     void FillGfxFilterList();
     void FillGfxModeList();
     void FillLanguageList();
     void FillScalingList(HWND hlist, bool windowed);
+    int  GetRealDisplayIndex();
     void SetScalingSelection();
     void InitDriverDescFromFactory(const String &id);
+    void UpdateDriverModesFromFactory();
+    void UpdateDriverModes(DriverDesc *desc);
+    void ReleaseDrivers();
     void SelectNearestGfxMode(const WindowSetup &ws);
 
     // Dialog properties
@@ -164,11 +176,13 @@ private:
     PDriverDesc _drvDesc;
     GfxFilterInfo _gfxFilterInfo;
     // Resolution limits
+    int _displayIndex = 0; // validated display index
     Size _desktopSize;
     Size _maxWindowSize;
 
     // Dialog controls
     HWND _hGameResolutionText = NULL;
+    HWND _hDisplayList = NULL;
     HWND _hWindowed = NULL;
     HWND _hGfxDriverList = NULL;
     HWND _hGfxModeList = NULL;

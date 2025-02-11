@@ -240,9 +240,9 @@ namespace AGS.Editor.Components
             return FONT_FILE_ITEM_PREFIX + item.FileName;
         }
 
-        private string GetNodeLabel(AGS.Types.Font item)
+        private string GetNodeLabel(AGS.Types.FontFile item)
         {
-            return item.ID.ToString() + ": " + item.Name;
+            return item.FileName;
         }
 
         private string GetNodeID(AGS.Types.Font item, bool isRefNode = false)
@@ -252,11 +252,16 @@ namespace AGS.Editor.Components
                 FONT_ITEM_PREFIX + item.ID;
         }
 
+        private string GetNodeLabel(AGS.Types.Font item)
+        {
+            return item.ID.ToString() + ": " + item.Name;
+        }
+
         private void AddFontNode(AGS.Types.Font item)
         {
             // Add font node in the dedicated folder
             _guiController.ProjectTree.StartFromNode(this, FONTS_FOLDER_NODE_ID);
-            _guiController.ProjectTree.AddTreeLeaf(this, GetNodeID(item), item.ID.ToString() + ": " + item.Name, "FontIcon");
+            _guiController.ProjectTree.AddTreeLeaf(this, GetNodeID(item), GetNodeLabel(item), "FontIcon");
 
             // Add font node as a sub-node to the FontFile
             // NOTE: this meant as an UI experiment, review later
@@ -266,7 +271,7 @@ namespace AGS.Editor.Components
                 if (ff != null)
                 {
                     _guiController.ProjectTree.StartFromNode(this, GetNodeID(ff));
-                    _guiController.ProjectTree.AddTreeLeaf(this, GetNodeID(item, true), item.ID.ToString() + ": " + item.Name, "FontIcon");
+                    _guiController.ProjectTree.AddTreeLeaf(this, GetNodeID(item, true), GetNodeLabel(item), "FontIcon");
                 }
             }
         }
@@ -285,7 +290,7 @@ namespace AGS.Editor.Components
             _guiController.ProjectTree.AddTreeBranch(this, FONT_FILES_FOLDER_NODE_ID, "Font Files", "FixedFolderIcon");
             foreach (AGS.Types.FontFile item in _agsEditor.CurrentGame.FontFiles)
             {
-                _guiController.ProjectTree.AddTreeLeaf(this, GetNodeID(item), item.FileName.ToString(), "FontFileIcon");
+                _guiController.ProjectTree.AddTreeLeaf(this, GetNodeID(item), GetNodeLabel(item), "FontFileIcon");
             }
 
             _guiController.ProjectTree.StartFromNode(this, TOP_LEVEL_COMMAND_ID);
@@ -362,7 +367,7 @@ namespace AGS.Editor.Components
             FontFile newItem = NewFontFile(fontFileName, Utilities.GetRelativeToProjectPath(selectedFile));
             items.Add(newItem);
             _guiController.ProjectTree.StartFromNode(this, FONT_FILES_FOLDER_NODE_ID);
-            _guiController.ProjectTree.AddTreeLeaf(this, GetNodeID(newItem), newItem.FileName, "FontFileIcon");
+            _guiController.ProjectTree.AddTreeLeaf(this, GetNodeID(newItem), GetNodeLabel(newItem), "FontFileIcon");
             _guiController.ProjectTree.SelectNode(this, GetNodeID(newItem));
             ShowOrAddPane(newItem);
             FontFileTypeConverter.SetFontFileList(game.FontFiles);

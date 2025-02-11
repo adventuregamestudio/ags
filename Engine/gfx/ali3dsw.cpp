@@ -140,6 +140,10 @@ bool SDLRendererGraphicsDriver::SetDisplayMode(const DisplayMode &mode)
     if (mode.Vsync) {
         rendererFlags |= SDL_RENDERER_PRESENTVSYNC;
     }
+    // Disable SDL_HINT_RENDER_BATCHING, causes issues with certain monitor setups
+    // See SDL2 issue https://github.com/libsdl-org/SDL/issues/7838
+    // (arguably we do not benefit from batching, because we only draw 1 final texture).
+    SDL_SetHint(SDL_HINT_RENDER_BATCHING, "0");
     _renderer = SDL_CreateRenderer(window, -1, rendererFlags);
 
     SDL_RendererInfo rinfo{};

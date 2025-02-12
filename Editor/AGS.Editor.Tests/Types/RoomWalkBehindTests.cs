@@ -39,7 +39,7 @@ namespace AGS.Types
         public void GetsPropertyGridTitle(int id)
         {
             _roomWalkBehind.ID = id;
-            Assert.That(_roomWalkBehind.PropertyGridTitle, Is.EqualTo($"Walk-behind area ID {id}"));
+            Assert.That(_roomWalkBehind.PropertyGridTitle, Is.EqualTo($"Walk-behind area; ID {id}"));
         }
 
         [TestCase(230)]

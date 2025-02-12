@@ -100,7 +100,7 @@ namespace AGS.Types
         public void GetsPropertyGridTitle(int id)
         {
             _roomRegion.ID = id;
-            Assert.That(_roomRegion.PropertyGridTitle, Is.EqualTo($"Region ID {id}"));
+            Assert.That(_roomRegion.PropertyGridTitle, Is.EqualTo($"Region; ID {id}"));
         }
 
         [TestCase(false, 100, 30, 40, 50, 60, 70)]

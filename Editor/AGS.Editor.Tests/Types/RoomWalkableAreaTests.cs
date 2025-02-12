@@ -76,7 +76,7 @@ namespace AGS.Types
         public void GetsPropertyGridTitle(int id)
         {
             _roomWalkAbleArea.ID = id;
-            Assert.That(_roomWalkAbleArea.PropertyGridTitle, Is.EqualTo($"Walkable area ID {id}"));
+            Assert.That(_roomWalkAbleArea.PropertyGridTitle, Is.EqualTo($"Walkable area; ID {id}"));
         }
 
         [TestCase(5, false, 50, 60, 70)]

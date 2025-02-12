@@ -2270,7 +2270,7 @@ void move_character_straight(CharacterInfo *chaa, int x, int y, bool walk_anim)
     if (!pathfind->IsWalkableAt(chaa->x, chaa->y))
     {
         Character_StopMoving(chaa);
-        debug_script_log("MoveCharacterStraight: %s (%d,%d) is not on a walkable area, not moving", chaa->scrname, chaa->x, chaa->y);
+        debug_script_log("MoveCharacterStraight: %s (%d,%d) is not on a walkable area, not moving", chaa->scrname.GetCStr(), chaa->x, chaa->y);
         return;
     }
 

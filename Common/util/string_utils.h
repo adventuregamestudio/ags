@@ -118,15 +118,19 @@ namespace StrUtil
         return def_val;
     }
     // Parses enum value either as a number, or searching withing the C-string array,
-    // where strings are compared as case-insensitive; returns def_val if failed to do both
+    // where strings are compared as case-insensitive; defines a base value (e.g. 0, -1, +1, etc);
+    // returns def_val if failed to do both
     template<typename T, std::size_t SIZE>
-    T ParseEnumAllowNum(const String &option, const CstrArr<SIZE> &arr, const T &def_val)
+    T ParseEnumAllowNum(const String &option, const CstrArr<SIZE> &arr, const T &base_val, const T &def_val)
     {
-        int num = StrUtil::StringToInt(option, -1);
-        if (num >= 0) return static_cast<T>(num);
+        // Try parse as a number, detect failure by returning an out-of-range "default value"
+        int num = StrUtil::StringToInt(option, base_val - 1);
+        if (num >= base_val)
+            return num < static_cast<int>(SIZE + base_val) ? static_cast<T>(num) : def_val;
+        // Try parse as an option from array
         for (auto it = arr.cbegin(); it < arr.cend(); ++it)
             if ((*it && *it[0] != 0) && (option.CompareNoCase(*it) == 0))
-                return static_cast<T>(it - arr.begin());
+                return static_cast<T>(it - arr.begin() + base_val);
         return def_val;
     }
     // Parses enum value by name, using provided map of correspondence between

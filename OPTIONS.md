@@ -111,7 +111,7 @@ Locations of two latter files differ between running platforms:
       * stdout=+mg:debug
   * file-path = \[string\] - custom path to the log file.
   * sdl = LEVEL - setup SDL's own logging level, defined either by name or numeric ID:
-    * verbose (1), debug (2), info (3), warn (4), error (5), critical (6).
+    * all (0), verbose (1), debug (2), info (3), warn (4), error (5), critical (6).
 * **\[access\]** - accessibility options. These may override programmed game behavior for the purpose of making playing the game easier.
   * speechskip = \[string\] - assigns the speech skip style to a fixed value:
     * default - do not override, use game's scripted option;

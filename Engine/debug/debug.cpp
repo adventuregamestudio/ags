@@ -226,7 +226,7 @@ MessageType get_messagetype_from_string(const String &option)
     if (option.CompareNoCase("all") == 0) return kDbgMsg_All;
     return StrUtil::ParseEnumAllowNum<MessageType>(option,
         CstrArr<kNumDbgMsg>{"", "alert", "fatal", "error", "warn", "info", "debug"},
-        kDbgMsg_None);
+        kDbgMsg_None, kDbgMsg_None);
 }
 
 typedef std::pair<CommonDebugGroup, MessageType> DbgGroupOption;
@@ -299,7 +299,8 @@ void init_debug(const ConfigTree &cfg, bool stderr_only)
     SDL_LogSetOutputFunction(SDL_Log_Output, nullptr);
     String sdl_log = CfgReadString(cfg, "log", "sdl");
     SDL_LogPriority priority = StrUtil::ParseEnumAllowNum<SDL_LogPriority>(sdl_log,
-        CstrArr<SDL_NUM_LOG_PRIORITIES>{"", "verbose", "debug", "info", "warn", "error", "critical"}, SDL_LOG_PRIORITY_INFO);
+        CstrArr<SDL_NUM_LOG_PRIORITIES>{"all", "verbose", "debug", "info", "warn", "error", "critical"},
+        static_cast<SDL_LogPriority>(0), SDL_LOG_PRIORITY_INFO);
     SDL_LogSetAllPriority(priority);
 
     // Register outputs

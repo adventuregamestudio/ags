@@ -110,7 +110,7 @@ Locations of two latter files differ between running platforms:
       * stdout=+mg:debug
   * file-path = \[string\] - custom path to the log file.
   * sdl = LEVEL - setup SDL's own logging level, defined either by name or numeric ID:
-    * verbose (1), debug (2), info (3), warn (4), error (5), critical (6).
+    * all (0), verbose (1), debug (2), info (3), warn (4), error (5), critical (6).
 * **\[override\]** - special options, overriding game behavior.
   * multitasking = \[0; 1\] - lock the game in the "single-tasking" or "multitasking" mode. In the nutshell, "multitasking" here means that the game will continue running when player switched away from game window; otherwise it will freeze until player switches back.
   * os = \[string\] - trick the game to think that it runs on a particular operating system. This may come handy if the game is scripted to play differently depending on OS. Possible choices are:

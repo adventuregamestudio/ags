@@ -276,6 +276,10 @@ inline const char *ScriptVSprintf(std::vector<char> &buf, const char *format, va
     ASSERT_PARAM_COUNT(FUNCTION, 3); \
     return RuntimeScriptValue().SetInt32(FUNCTION((P1CLASS*)params[0].Ptr, params[1].IValue, params[2].IValue))
 
+#define API_SCALL_INT_POBJ_PINT3(FUNCTION, P1CLASS) \
+    ASSERT_PARAM_COUNT(FUNCTION, 4); \
+    return RuntimeScriptValue().SetInt32(FUNCTION((P1CLASS*)params[0].Ptr, params[1].IValue, params[2].IValue, params[3].IValue))
+
 #define API_SCALL_INT_POBJ2(FUNCTION, P1CLASS, P2CLASS) \
     ASSERT_PARAM_COUNT(FUNCTION, 2); \
     return RuntimeScriptValue().SetInt32(FUNCTION((P1CLASS*)params[0].Ptr, (P2CLASS*)params[1].Ptr))

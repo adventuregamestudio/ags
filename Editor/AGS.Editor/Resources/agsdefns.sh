@@ -1665,8 +1665,13 @@ import int  IsVoxAvailable();
 import void SetSpeechVolume(int volume);
 /// Checks whether a MUSIC.VOX file was found.
 import int  IsMusicVoxAvailable();
+#ifdef SCRIPT_API_v362
+/// Saves a screenshot of the current game position to a file.
+import int  SaveScreenShot(const string filename, int width=0, int height=0, RenderLayer layer=eRenderLayerAll);
+#else // !SCRIPT_API_v362
 /// Saves a screenshot of the current game position to a file.
 import int  SaveScreenShot(const string filename);
+#endif // !SCRIPT_API_v362
 /// Pauses the game, which stops all animations and movement.
 import void PauseGame();
 /// Resumes the game after it was paused earlier.

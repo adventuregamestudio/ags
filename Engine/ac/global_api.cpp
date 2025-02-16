@@ -1510,9 +1510,14 @@ RuntimeScriptValue Sc_SaveGameSlot2(const RuntimeScriptValue *params, int32_t pa
 }
 
 // int (char*namm)
-RuntimeScriptValue Sc_SaveScreenShot(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_SaveScreenShot1(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT_POBJ(SaveScreenShot, const char);
+    API_SCALL_INT_POBJ(SaveScreenShot1, const char);
+}
+
+RuntimeScriptValue Sc_SaveScreenShot4(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_POBJ_PINT3(SaveScreenShot4, const char);
 }
 
 // void  (int position)
@@ -2589,7 +2594,8 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "Said",                     API_FN_PAIR(Said) },
         { "SaidUnknownWord",          API_FN_PAIR(SaidUnknownWord) },
         { "SaveCursorForLocationChange", API_FN_PAIR(SaveCursorForLocationChange) },
-        { "SaveScreenShot",           API_FN_PAIR(SaveScreenShot) },
+        { "SaveScreenShot^1",         API_FN_PAIR(SaveScreenShot1) },
+        { "SaveScreenShot^4",         API_FN_PAIR(SaveScreenShot4) },
         { "SeekMIDIPosition",         API_FN_PAIR(SeekMIDIPosition) },
         { "SeekMODPattern",           API_FN_PAIR(SeekMODPattern) },
         { "SeekMP3PosMillis",         API_FN_PAIR(SeekMP3PosMillis) },

@@ -113,7 +113,8 @@ void GetLocationNameInBuf(int xxx,int yyy, char *buf);
 
 int IsKeyPressed (int keycode);
 
-int SaveScreenShot(const char*namm);
+int SaveScreenShot1(const char*namm);
+int SaveScreenShot4(const char *namm, int width, int height, int layers);
 void SetMultitasking (int mode);
 
 void RoomProcessClick(int xx,int yy,int mood);

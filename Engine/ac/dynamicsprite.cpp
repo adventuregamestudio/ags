@@ -300,23 +300,9 @@ ScriptDynamicSprite* DynamicSprite_CreateFromScreenShot(int width, int height, i
     if (!spriteset.HasFreeSlots())
         return nullptr;
 
-    // NOTE: be aware that by the historical logic AGS makes a screenshot
-    // of a "main viewport", that may be smaller in legacy "letterbox" mode.
-    const Rect &viewport = play.GetMainViewport();
-    if (width <= 0)
-        width = viewport.GetWidth();
-
-    if (height <= 0)
-        height = viewport.GetHeight();
-
-    // NOTE: if there will be a difference between script constants and internal
-    // constants of Render Layers, or any necessity to adjust these, then convert flags here.
-    std::unique_ptr<Bitmap> new_pic;
-    if (layers != 0)
-        new_pic.reset(CopyScreenIntoBitmap(width, height, &viewport, false, ~layers));
-    else
-        new_pic.reset(new Bitmap(width, height));
-
+    auto new_pic = create_game_screenshot(width, height, layers);
+    if (!new_pic)
+        return nullptr; // out of mem or invalid parameters
     int new_slot = add_dynamic_sprite(std::move(new_pic));
     if (new_slot <= 0)
         return nullptr; // something went wrong

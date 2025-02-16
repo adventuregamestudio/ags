@@ -641,29 +641,32 @@ int IsKeyPressed (int keycode) {
     return ags_iskeydown(static_cast<eAGSKeyCode>(keycode));
 }
 
-int SaveScreenShot(const char*namm) {
-    String svg_dir = get_save_game_directory();
-    String ext = Path::GetFileExtension(namm);
-    String filename;
+int SaveScreenShot4(const char *namm, int width, int height, int layers)
+{
+    String filepath = namm;
+    String ext = Path::GetFileExtension(filepath);
     if (ext.IsEmpty())
     {
         ext = "bmp";
-        filename = Path::MakePath(svg_dir, namm, "bmp");
+        filepath = Path::ReplaceExtension(filepath, ext);
     }
-    else
+    if (!filepath.StartsWith("$"))
     {
-        filename = Path::ConcatPaths(svg_dir, namm);
+        filepath = Path::ConcatPaths(GameSavedgamesDirToken, filepath);
     }
 
-    std::unique_ptr<Stream> out(File::OpenFileCI(filename, kFile_CreateAlways, kStream_Write));
+    std::unique_ptr<Stream> out = ResolveScriptPathAndOpen(filepath, kFile_CreateAlways, kStream_Write);
     if (!out)
         return 0;
 
-    // NOTE: be aware that by the historical logic AGS makes a screenshot
-    // of a "main viewport", that may be smaller in legacy "letterbox" mode.
-    const Rect &viewport = play.GetMainViewport();
-    std::unique_ptr<Bitmap> bmp(CopyScreenIntoBitmap(viewport.GetWidth(), viewport.GetHeight(), &viewport));
-    return BitmapHelper::SaveBitmap(bmp.get(), palette, out.get(), ext) ? 1 : 0;
+    std::unique_ptr<Bitmap> shot = create_game_screenshot(width, height, layers);
+    if (!shot)
+        return 0; // out of mem or invalid parameters
+    return BitmapHelper::SaveBitmap(shot.get(), palette, out.get(), ext) ? 1 : 0;
+}
+
+int SaveScreenShot1(const char *namm) {
+    return SaveScreenShot4(namm, 0, 0, RENDER_BATCH_ALL);
 }
 
 void SetMultitasking (int mode) {

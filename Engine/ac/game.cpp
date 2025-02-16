@@ -1079,23 +1079,34 @@ void skip_serialized_bitmap(Stream *in)
     in->Seek(picwid * pichit * bpp);
 }
 
-Bitmap *create_savegame_screenshot()
+std::unique_ptr<Common::Bitmap> create_game_screenshot(int width, int height, int layers)
 {
-    if ((play.screenshot_width < 16) || (play.screenshot_height < 16))
-        quit("!Invalid game.screenshot_width/height, must be from 16x16 to screen res");
-
     const Rect &viewport = play.GetMainViewport();
-    int usewid = std::min(play.screenshot_width, viewport.GetWidth());
-    int usehit = std::min(play.screenshot_height, viewport.GetHeight());
-    const uint32_t layers = game.options[OPT_SAVESCREENSHOTLAYER];
-    return CopyScreenIntoBitmap(usewid, usehit, &viewport, false, ~layers);
+    if (width <= 0)
+        width = viewport.GetWidth();
+    if (height <= 0)
+        height = viewport.GetHeight();
+
+    // NOTE: if there will be a difference between script constants and internal
+    // constants of Render Layers, or any necessity to adjust these, then convert flags here.
+    std::unique_ptr<Bitmap> shot;
+    if (layers != 0)
+        shot.reset(CopyScreenIntoBitmap(width, height, &viewport, false, ~layers));
+    else
+        shot.reset(new Bitmap(width, height));
+    return shot;
+}
+
+static std::unique_ptr<Common::Bitmap> create_savegame_screenshot()
+{
+    return create_game_screenshot(play.screenshot_width, play.screenshot_height, game.options[OPT_SAVESCREENSHOTLAYER]);
 }
 
 void save_game(int slotn, const String &descript, std::unique_ptr<Bitmap> &&image)
 {
     String nametouse = get_save_game_path(slotn);
     if (!image && (game.options[OPT_SAVESCREENSHOT] != 0))
-        image.reset(create_savegame_screenshot());
+        image = create_savegame_screenshot();
 
     std::unique_ptr<Stream> out(StartSavegame(nametouse, descript, image.get()));
     if (out == nullptr)

@@ -472,9 +472,14 @@ RuntimeScriptValue Sc_SaveGameSlot2(const RuntimeScriptValue *params, int32_t pa
 }
 
 // int (char*namm)
-RuntimeScriptValue Sc_SaveScreenShot(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_SaveScreenShot1(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT_POBJ(SaveScreenShot, const char);
+    API_SCALL_INT_POBJ(SaveScreenShot1, const char);
+}
+
+RuntimeScriptValue Sc_SaveScreenShot4(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_POBJ_PINT3(SaveScreenShot4, const char);
 }
 
 RuntimeScriptValue Sc_SendEvent(const RuntimeScriptValue *params, int32_t param_count)
@@ -782,7 +787,8 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "RestoreWalkableArea",      API_FN_PAIR(RestoreWalkableArea) },
         { "RunAGSGame",               API_FN_PAIR(RunAGSGame) },
         { "Said",                     API_FN_PAIR(Said) },
-        { "SaveScreenShot",           API_FN_PAIR(SaveScreenShot) },
+        { "SaveScreenShot^1",         API_FN_PAIR(SaveScreenShot1) },
+        { "SaveScreenShot^4",         API_FN_PAIR(SaveScreenShot4) },
         { "SendEvent",                Sc_SendEvent, run_on_event },
         { "SetAmbientTint",           API_FN_PAIR(SetAmbientTint) },
         { "SetAmbientLightLevel",     API_FN_PAIR(SetAmbientLightLevel) },

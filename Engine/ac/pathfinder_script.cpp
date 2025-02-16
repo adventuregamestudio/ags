@@ -59,7 +59,7 @@ ScriptUserObject *Pathfinder_Trace(ScriptPathfinder *pathfind, int srcx, int src
 bool Pathfinder_IsWalkableAt(ScriptPathfinder *pathfind, int x, int y)
 {
     if (!pathfind->GetRouteFinder())
-        return nullptr;
+        return false;
 
     pathfind->SyncPathfinder(); // sync with the source
     return pathfind->GetRouteFinder()->IsWalkableAt(x, y);

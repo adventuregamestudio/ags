@@ -821,21 +821,21 @@ int IsKeyPressed (int keycode) {
     return ags_iskeydown(static_cast<eAGSKeyCode>(keycode));
 }
 
-int SaveScreenShot4(const char *namm, int width, int height, int layers) {
-    String svg_dir = get_save_game_directory();
-    String ext = Path::GetFileExtension(namm);
-    String filename;
+int SaveScreenShot4(const char *namm, int width, int height, int layers)
+{
+    String filepath = namm;
+    String ext = Path::GetFileExtension(filepath);
     if (ext.IsEmpty())
     {
         ext = "bmp";
-        filename = Path::MakePath(svg_dir, namm, "bmp");
+        filepath = Path::ReplaceExtension(filepath, ext);
     }
-    else
+    if (!filepath.StartsWith("$"))
     {
-        filename = Path::ConcatPaths(svg_dir, namm);
+        filepath = Path::ConcatPaths(GameSavedgamesDirToken, filepath);
     }
 
-    std::unique_ptr<Stream> out(File::OpenFileCI(filename, kFile_CreateAlways, kStream_Write));
+    std::unique_ptr<Stream> out = ResolveScriptPathAndOpen(filepath, kFile_CreateAlways, kStream_Write);
     if (!out)
         return 0;
 

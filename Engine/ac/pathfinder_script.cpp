@@ -56,6 +56,27 @@ ScriptUserObject *Pathfinder_Trace(ScriptPathfinder *pathfind, int srcx, int src
     return ScriptStructHelpers::CreatePoint(lastx, lasty);
 }
 
+bool Pathfinder_IsWalkableAt(ScriptPathfinder *pathfind, int x, int y)
+{
+    if (!pathfind->GetRouteFinder())
+        return nullptr;
+
+    pathfind->SyncPathfinder(); // sync with the source
+    return pathfind->GetRouteFinder()->IsWalkableAt(x, y);
+}
+
+ScriptUserObject *Pathfinder_NearestWalkablePoint(ScriptPathfinder *pathfind, int x, int y)
+{
+    if (!pathfind->GetRouteFinder())
+        return nullptr;
+
+    pathfind->SyncPathfinder(); // sync with the source
+    Point result;
+    if (!pathfind->GetRouteFinder()->FindNearestWalkablePoint(Point(x, y), result))
+        return nullptr;
+    return ScriptStructHelpers::CreatePoint(result.X, result.Y);
+}
+
 ScriptMaskPathfinder *MaskPathfinder_Create(int mask_sprite)
 {
     return ScriptMaskPathfinder::CreateFromMaskSprite(mask_sprite);
@@ -78,6 +99,16 @@ RuntimeScriptValue Sc_Pathfinder_Trace(void *self, const RuntimeScriptValue *par
     API_OBJCALL_OBJAUTO_PINT4(ScriptPathfinder, ScriptUserObject, Pathfinder_Trace);
 }
 
+RuntimeScriptValue Sc_Pathfinder_IsWalkableAt(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL_PINT2(ScriptPathfinder, Pathfinder_IsWalkableAt);
+}
+
+RuntimeScriptValue Sc_Pathfinder_NearestWalkablePoint(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJAUTO_PINT2(ScriptPathfinder, ScriptUserObject, Pathfinder_NearestWalkablePoint);
+}
+
 RuntimeScriptValue Sc_MaskPathfinder_Create(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_OBJAUTO_PINT(ScriptMaskPathfinder, MaskPathfinder_Create);
@@ -93,6 +124,8 @@ void RegisterPathfinderAPI()
     ScFnRegister pathfinder_api[] = {
         { "Pathfinder::FindPath",       API_FN_PAIR(Pathfinder_FindPath) },
         { "Pathfinder::Trace",          API_FN_PAIR(Pathfinder_Trace) },
+        { "Pathfinder::IsWalkableAt",   API_FN_PAIR(Pathfinder_IsWalkableAt) },
+        { "Pathfinder::NearestWalkablePoint", API_FN_PAIR(Pathfinder_NearestWalkablePoint) },
 
         { "MaskPathfinder::Create",     API_FN_PAIR(MaskPathfinder_Create) },
         { "MaskPathfinder::SetMask",    API_FN_PAIR(MaskPathfinder_SetMask) },

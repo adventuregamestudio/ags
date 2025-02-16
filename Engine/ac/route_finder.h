@@ -44,6 +44,8 @@ public:
         bool exact_dest = false, bool ignore_walls = false) = 0;
     // Tells whether the current position is walkable
     virtual bool IsWalkableAt(int x, int y) = 0;
+    // Searchs for the nearest walkable point, starting from the given position.
+    virtual bool FindNearestWalkablePoint(const Point &from_pt, Point &dst_pt) = 0;
 };
 
 // MaskRouteFinder: a mask-based RouteFinder.
@@ -63,6 +65,8 @@ public:
         bool exact_dest = false, bool ignore_walls = false) override;
     // Tells whether the current position is walkable
     bool IsWalkableAt(int x, int y) override;
+    // Searchs for the nearest walkable point, starting from the given position.
+    bool FindNearestWalkablePoint(const Point &from_pt, Point &dst_pt) override;
 
     // Assign a walkable mask, and an optional coordinate scale factor which will be used
     // to convert (divide) input coordinates, and resulting path back (multiply).
@@ -102,9 +106,9 @@ namespace Pathfinding
     void RecalculateMoveSpeeds(MoveList &mls, int old_speed_x, int old_speed_y, int new_speed_x, int new_speed_y);
     // Searchs for the nearest walkable point on a mask, starting from the given location,
     // and scanning around in the given square range. Optionally limit the scan to the certain rectangle.
-    bool FindNearestWalkablePoint(AGS::Common::Bitmap *mask, const Point &from_pt, Point &dst_pt,
+    bool FindNearestWalkablePoint(const AGS::Common::Bitmap *mask, const Point &from_pt, Point &dst_pt,
         const int range = 0, const int step = 1);
-    bool FindNearestWalkablePoint(AGS::Common::Bitmap *mask, const Point &from_pt, Point &dst_pt,
+    bool FindNearestWalkablePoint(const AGS::Common::Bitmap *mask, const Point &from_pt, Point &dst_pt,
         const Rect &limits, const int range = 0, const int step = 0);
 }
 

@@ -3136,6 +3136,10 @@ builtin managed struct Pathfinder {
   import Point*[] FindPath(int srcx, int srcy, int dstx, int dsty);
   /// Traces a straight path from source to destination, returns the furthermost point reached.
   import Point* Trace(int srcx, int srcy, int dstx, int dsty);
+  /// Gets whether given coordinates can be walked on.
+  import bool IsWalkableAt(int x, int y);
+  /// Finds the nearest walkable position, close to the given coordinates. Returns null if no walkable position is found.
+  import Point* NearestWalkablePoint(int x, int y);
 };
 
 builtin managed struct MaskPathfinder extends Pathfinder {

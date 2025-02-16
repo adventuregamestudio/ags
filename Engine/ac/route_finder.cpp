@@ -72,6 +72,16 @@ bool MaskRouteFinder::IsWalkableAt(int x, int y)
     return _walkablearea->GetPixel(x / _coordScale, y / _coordScale) > 0;
 }
 
+bool MaskRouteFinder::FindNearestWalkablePoint(const Point &from_pt, Point &dst_pt)
+{
+    if (!_walkablearea)
+        return false;
+
+    bool result = Pathfinding::FindNearestWalkablePoint(_walkablearea, from_pt / _coordScale, dst_pt);
+    dst_pt *= _coordScale;
+    return result;
+}
+
 void MaskRouteFinder::SetWalkableArea(const Bitmap *walkablearea, int coord_scale)
 {
     _walkablearea = walkablearea;
@@ -302,13 +312,13 @@ void RecalculateMoveSpeeds(MoveList &mls, int old_speed_x, int old_speed_y, int 
     }
 }
 
-bool FindNearestWalkablePoint(Bitmap *mask, const Point &from_pt, Point &dst_pt,
+bool FindNearestWalkablePoint(const Bitmap *mask, const Point &from_pt, Point &dst_pt,
     const int range, const int step)
 {
     return FindNearestWalkablePoint(mask, from_pt, dst_pt, RectWH(mask->GetSize()), range, step);
 }
 
-bool FindNearestWalkablePoint(Bitmap *mask, const Point &from_pt, Point &dst_pt,
+bool FindNearestWalkablePoint(const Bitmap *mask, const Point &from_pt, Point &dst_pt,
     const Rect &limits, const int range, const int step)
 {
     assert(mask->GetColorDepth() == 8);

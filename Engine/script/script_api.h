@@ -624,6 +624,10 @@ inline const char *ScriptVSprintf(std::vector<char> &buf, const char *format, va
     ASSERT_OBJ_PARAM_COUNT(METHOD, 1); \
     return RuntimeScriptValue().SetInt32AsBool(METHOD((CLASS*)self, params[0].IValue))
 
+#define API_OBJCALL_BOOL_PINT2(CLASS, METHOD) \
+    ASSERT_OBJ_PARAM_COUNT(METHOD, 2); \
+    return RuntimeScriptValue().SetInt32AsBool(METHOD((CLASS*)self, params[0].IValue, params[1].IValue))
+
 #define API_OBJCALL_BOOL_POBJ(CLASS, METHOD, P1CLASS) \
     ASSERT_OBJ_PARAM_COUNT(METHOD, 1); \
     return RuntimeScriptValue().SetInt32AsBool(METHOD((CLASS*)self, (P1CLASS*)params[0].Ptr))
@@ -683,6 +687,11 @@ inline const char *ScriptVSprintf(std::vector<char> &buf, const char *format, va
 #define API_OBJCALL_OBJAUTO(CLASS, RET_CLASS, METHOD) \
     ASSERT_SELF(METHOD); \
     RET_CLASS* ret_obj = METHOD((CLASS*)self); \
+    return RuntimeScriptValue().SetScriptObject(ret_obj, ret_obj)
+
+#define API_OBJCALL_OBJAUTO_PINT2(CLASS, RET_CLASS, METHOD) \
+    ASSERT_OBJ_PARAM_COUNT(METHOD, 2); \
+    RET_CLASS* ret_obj = METHOD((CLASS*)self, params[0].IValue, params[1].IValue); \
     return RuntimeScriptValue().SetScriptObject(ret_obj, ret_obj)
 
 #define API_OBJCALL_OBJAUTO_PINT2_PBOOL(CLASS, RET_CLASS, METHOD) \

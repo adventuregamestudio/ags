@@ -22,7 +22,6 @@ Common:
 Editor:
  - Open room project format: rooms are now saved as subfolders in "Rooms" folder, where each
    component has its own separate file (room data, backgrounds, masks and scripts).
- - Support room backgrounds and masks as PNGs.
  - "Fonts" node in the Project Explorer now contains separate "Font Files" and "Fonts" sublists.
  - Actual font files on disk are now stored in "Fonts" subfolder in the project when imported,
    and keep their original names (no longer renamed to "agsfntN.*").
@@ -52,17 +51,12 @@ Editor:
  - Added "Word Wrap" command to Edit menu for scripts.
  - General panel look enhancements.
  - Support built-in Base Color Themes that have the custom themes applied over them.
- - Game template selection now displays template's description right in the dialog.
- - F2 is now a hotkey for editing labels in the Project Tree. "Game statistics" are now displayed
-   by Ctrl + F2.
  - Support importing and keeping sprites as explicitly 8-bit images without converting to the
    game's default color depth. This lets to have chosen sprites used as 8-bit masks in a 16/32-bit
    game.
  - When importing room backgrounds of a different size Editor will now let user decide whether
    to reset, keep or rescale room masks.
  - Fixed faulty double-click on project items in case user dragged the cursor away.
- - Fixed certain errors like "not terminated string" in Dialog Scripts did not report correct
-   Dialog and line, making it difficult to find the cause of mistake.
 
 Compiler:
  - The new extended script compiler is available. Almost all of the new Scripting features are
@@ -171,6 +165,8 @@ Script API:
  - Added StringSplitOptions enum, String.Join(), String.Split() and String.Trim() functions.
  - Expanded String.IndexOf() with new parameters: "StringCompareStyle", "index" and "count".
  - ViewFrame.Flipped property now returns eFlipDirection instead of bool.
+ - Added optional width, height and layer parameters to SaveScreenShot().
+   SaveScreenShot() now supports location tokens in file path.
  - Added "walkarea[]" and "walkbehind[]" global arrays.
  - Global generated game objects (Characters, GUIs, etc), and global arrays of these objects
    (character[], object[], gui[], etc) are now declared as object *pointers* and arrays of
@@ -184,14 +180,12 @@ Script API:
 
 Engine:
  - Support joystick and gamepad input.
- - Engine now supports up to 1024 simultaneously loaded scripts (was 128).
  - All color settings in a 32-bit game now respect alpha value, meaning they may be
    half-transparent. This refers to almost anything that may have a color: texts,
    GUI backgrounds, DrawingSurface's DrawingColor, and so forth. The exceptions are things
    that only make sense with opaque color: Tint settings, and screen Fade effects.
  - Implemented more accurate Character movement. The movement direction is now more precise
    and diagonal movement speed no longer may exceed MovementSpeed setting.
- - Ensure that Character.Speaking returns true even if character has no speech view.
  - Camera will not follow a disabled player character.
  - Animated buttons now display flipped frames correctly.
  - AudioChannel.Position and PositionMs no longer return a very large value while skipping
@@ -212,6 +206,7 @@ Engine:
  - Added "--print-rtti" command line option which prints script RTTI table to the log.
    (RTTI stands for "runtime type information", and is used for handling of certain advanced
    script features, such as nested managed structs.)
+ - Fixed SDL log level defaulting to "verbose" instead of "info".
 
 
 ===================================================================================================

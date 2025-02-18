@@ -130,6 +130,22 @@ float Math_RadiansToDegrees(float value)
     return static_cast<float>(Math::RadiansToDegrees(value));
 }
 
+int Math_Random(int limit)
+{
+    if (limit <= 0 || limit > (RAND_MAX + 1))
+    {
+        debug_script_warn("!Maths.Random: invalid parameter %d -- must be in range (1..%d)", limit, (RAND_MAX + 1));
+        return 0;
+    }
+
+    return rand() % (limit);
+}
+
+float Math_RandomFloat()
+{
+    return static_cast<float>(rand()) / static_cast<float>(RAND_MAX + 1);
+}
+
 float Math_Round(float value, int roundDirection)
 {
     return RoundImpl("Math.Round", value, roundDirection);
@@ -148,12 +164,15 @@ float Math_Sqrt(float value)
     return ::sqrt(value);
 }
 
-int __Rand(int upto)
+int Random(int upto)
 {
-    upto++;
-    if (upto < 1)
-        quit("!Random: invalid parameter passed -- must be at least 0.");
-    return rand()%upto;
+    if (upto < 0 || upto > RAND_MAX)
+    {
+        debug_script_warn("!Random: invalid parameter %d -- must be in range (0..%d)", upto, RAND_MAX);
+        return 0;
+    }
+
+    return rand() % (++upto);
 }
 
 
@@ -239,6 +258,16 @@ RuntimeScriptValue Sc_Math_RaiseToPower(const RuntimeScriptValue *params, int32_
     API_SCALL_FLOAT_PFLOAT2(Math_RaiseToPower);
 }
 
+RuntimeScriptValue Sc_Math_Random(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_PINT(Math_Random);
+}
+
+RuntimeScriptValue Sc_Math_RandomFloat(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_FLOAT(Math_RandomFloat);
+}
+
 RuntimeScriptValue Sc_Math_Round(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_FLOAT_PFLOAT_PINT(Math_Round);
@@ -296,6 +325,8 @@ void RegisterMathAPI()
         { "Maths::Log10^1",               API_FN_PAIR(Math_Log10) },
         { "Maths::RadiansToDegrees^1",    API_FN_PAIR(Math_RadiansToDegrees) },
         { "Maths::RaiseToPower^2",        API_FN_PAIR(Math_RaiseToPower) },
+        { "Maths::Random^1",              API_FN_PAIR(Math_Random) },
+        { "Maths::RandomFloat^0",         API_FN_PAIR(Math_RandomFloat) },
         { "Maths::Round^2",               API_FN_PAIR(Math_Round) },
         { "Maths::Sin^1",                 API_FN_PAIR(Math_Sin) },
         { "Maths::Sinh^1",                API_FN_PAIR(Math_Sinh) },

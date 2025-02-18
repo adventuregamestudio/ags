@@ -396,9 +396,9 @@ RuntimeScriptValue Sc_QuitGame(const RuntimeScriptValue *params, int32_t param_c
 }
 
 // int (int upto)
-RuntimeScriptValue Sc_Rand(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Random(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT_PINT(__Rand);
+    API_SCALL_INT_PINT(Random);
 }
 
 // void (int areanum)
@@ -779,7 +779,7 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "PlayFlic",                 API_FN_PAIR(PlayFlic) },
         { "PlayVideo",                API_FN_PAIR(PlayVideo) },
         { "QuitGame",                 API_FN_PAIR(QuitGame) },
-        { "Random",                   Sc_Rand, __Rand },
+        { "Random",                   API_FN_PAIR(Random) },
         { "RemoveWalkableArea",       API_FN_PAIR(RemoveWalkableArea) },
         { "ResetRoom",                API_FN_PAIR(ResetRoom) },
         { "RestartGame",              API_FN_PAIR(restart_game) },

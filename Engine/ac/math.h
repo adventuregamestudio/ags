@@ -50,8 +50,7 @@ float Math_RadiansToDegrees(float value);
 float Math_GetPi();
 float Math_Sqrt(float value);
 float Math_Round(float value, int roundDirection);
-
-int __Rand(int upto);
-#define Random __Rand
+// Returns a random number from 0 to upto *inclusive*
+int   Random(int upto);
 
 #endif // __AGS_EE_AC__MATH_H

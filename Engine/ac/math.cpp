@@ -14,6 +14,7 @@
 #include "ac/math.h"
 #include <cmath>
 #include "ac/common.h" // quit
+#include "debug/debug_log.h"
 #include "util/math.h"
 
 using namespace AGS::Common;
@@ -28,8 +29,13 @@ int FloatToInt(float value, int roundDirection)
         return static_cast<int>(std::ceil(value));
     case eRoundNearest:
         return static_cast<int>(std::round(value));
+    case eRoundTowardsZero:
+        return static_cast<int>(std::trunc(value));
+    case eRoundAwayFromZero:
+        return static_cast<int>(value < 0.f ? std::floor(value) : std::ceil(value));
     default:
-        quit("!FloatToInt: invalid round direction");
+        debug_script_warn("!FloatToInt: invalid round direction %d", roundDirection);
+        return static_cast<int>(value);
     }
     return 0;
 }

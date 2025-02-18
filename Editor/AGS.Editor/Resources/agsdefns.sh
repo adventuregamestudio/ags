@@ -140,7 +140,11 @@ enum MouseButton {
 enum RoundDirection {
   eRoundDown = 0,
   eRoundNearest = 1,
-  eRoundUp = 2
+  eRoundUp = 2,
+#ifdef SCRIPT_API_v400
+  eRoundTowardsZero = 3,
+  eRoundAwayFromZero = 4
+#endif // SCRIPT_API_v400
 };
 
 enum RepeatStyle {

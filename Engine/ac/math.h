@@ -23,7 +23,9 @@
 enum RoundDirections {
     eRoundDown = 0,
     eRoundNearest = 1,
-    eRoundUp = 2
+    eRoundUp = 2,
+    eRoundTowardsZero = 3,
+    eRoundAwayFromZero = 4
 };
 
 

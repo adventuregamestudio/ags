@@ -49,6 +49,7 @@ float Math_DegreesToRadians(float value);
 float Math_RadiansToDegrees(float value);
 float Math_GetPi();
 float Math_Sqrt(float value);
+float Math_Round(float value, int roundDirection);
 
 int __Rand(int upto);
 #define Random __Rand

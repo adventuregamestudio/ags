@@ -2022,6 +2022,9 @@ builtin struct Maths {
   import static float Tanh(float radians);
   /// Gets the value of PI
   readonly import static attribute float Pi;
+#ifdef SCRIPT_API_v400
+  import static float Round(float value, RoundDirection);
+#endif
 };
 
 builtin managed struct DateTime {

@@ -19,25 +19,30 @@
 
 using namespace AGS::Common;
 
-int FloatToInt(float value, int roundDirection)
+float RoundImpl(const char *apiname, float value, int roundDirection)
 {
     switch (roundDirection)
     {
     case eRoundDown:
-        return static_cast<int>(std::floor(value));
+        return std::floor(value);
     case eRoundUp:
-        return static_cast<int>(std::ceil(value));
+        return std::ceil(value);
     case eRoundNearest:
-        return static_cast<int>(std::round(value));
+        return std::round(value);
     case eRoundTowardsZero:
-        return static_cast<int>(std::trunc(value));
+        return std::trunc(value);
     case eRoundAwayFromZero:
-        return static_cast<int>(value < 0.f ? std::floor(value) : std::ceil(value));
+        return value < 0.f ? std::floor(value) : std::ceil(value);
     default:
-        debug_script_warn("!FloatToInt: invalid round direction %d", roundDirection);
-        return static_cast<int>(value);
+        debug_script_warn("!%s: invalid round direction %d", apiname, roundDirection);
+        return value;
     }
-    return 0;
+    return 0.f;
+}
+
+int FloatToInt(float value, int roundDirection)
+{
+    return static_cast<int>(RoundImpl("FloatToInt", value, roundDirection));
 }
 
 float IntToFloat(int value)
@@ -123,6 +128,11 @@ float Math_DegreesToRadians(float value)
 float Math_RadiansToDegrees(float value)
 {
     return static_cast<float>(Math::RadiansToDegrees(value));
+}
+
+float Math_Round(float value, int roundDirection)
+{
+    return RoundImpl("Math.Round", value, roundDirection);
 }
 
 float Math_GetPi()
@@ -229,6 +239,11 @@ RuntimeScriptValue Sc_Math_RaiseToPower(const RuntimeScriptValue *params, int32_
     API_SCALL_FLOAT_PFLOAT2(Math_RaiseToPower);
 }
 
+RuntimeScriptValue Sc_Math_Round(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_FLOAT_PFLOAT_PINT(Math_Round);
+}
+
 // float (float value)
 RuntimeScriptValue Sc_Math_Sin(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -281,6 +296,7 @@ void RegisterMathAPI()
         { "Maths::Log10^1",               API_FN_PAIR(Math_Log10) },
         { "Maths::RadiansToDegrees^1",    API_FN_PAIR(Math_RadiansToDegrees) },
         { "Maths::RaiseToPower^2",        API_FN_PAIR(Math_RaiseToPower) },
+        { "Maths::Round^2",               API_FN_PAIR(Math_Round) },
         { "Maths::Sin^1",                 API_FN_PAIR(Math_Sin) },
         { "Maths::Sinh^1",                API_FN_PAIR(Math_Sinh) },
         { "Maths::Sqrt^1",                API_FN_PAIR(Math_Sqrt) },

@@ -23,7 +23,9 @@
 enum RoundDirections {
     eRoundDown = 0,
     eRoundNearest = 1,
-    eRoundUp = 2
+    eRoundUp = 2,
+    eRoundTowardsZero = 3,
+    eRoundAwayFromZero = 4
 };
 
 
@@ -47,8 +49,8 @@ float Math_DegreesToRadians(float value);
 float Math_RadiansToDegrees(float value);
 float Math_GetPi();
 float Math_Sqrt(float value);
-
-int __Rand(int upto);
-#define Random __Rand
+float Math_Round(float value, int roundDirection);
+// Returns a random number from 0 to upto *inclusive*
+int   Random(int upto);
 
 #endif // __AGS_EE_AC__MATH_H

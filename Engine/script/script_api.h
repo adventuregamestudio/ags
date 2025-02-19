@@ -305,6 +305,10 @@ inline const char *ScriptVSprintf(std::vector<char> &buf, const char *format, va
     ASSERT_PARAM_COUNT(FUNCTION, 1); \
     return RuntimeScriptValue().SetFloat(FUNCTION(params[0].FValue))
 
+#define API_SCALL_FLOAT_PFLOAT_PINT(FUNCTION) \
+    ASSERT_PARAM_COUNT(FUNCTION, 2); \
+    return RuntimeScriptValue().SetFloat(FUNCTION(params[0].FValue, params[1].IValue))
+
 #define API_SCALL_FLOAT_PFLOAT2(FUNCTION) \
     ASSERT_PARAM_COUNT(FUNCTION, 2); \
     return RuntimeScriptValue().SetFloat(FUNCTION(params[0].FValue, params[1].FValue))

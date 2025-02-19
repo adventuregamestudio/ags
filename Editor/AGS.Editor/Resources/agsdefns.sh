@@ -140,7 +140,11 @@ enum MouseButton {
 enum RoundDirection {
   eRoundDown = 0,
   eRoundNearest = 1,
-  eRoundUp = 2
+  eRoundUp = 2,
+#ifdef SCRIPT_API_v400
+  eRoundTowardsZero = 3,
+  eRoundAwayFromZero = 4
+#endif // SCRIPT_API_v400
 };
 
 enum RepeatStyle {
@@ -2018,6 +2022,14 @@ builtin struct Maths {
   import static float Tanh(float radians);
   /// Gets the value of PI
   readonly import static attribute float Pi;
+#ifdef SCRIPT_API_v400
+  /// Returns a random number in the range of 0 to LIMIT-1.
+  import static int Random(int limit);
+  /// Returns a random float in the range of [0.0, 1.0) (including 0 but excluding 1).
+  import static float RandomFloat();
+  /// Rounds the given float towards chosen direction, and returns a result as a new float.
+  import static float Round(float value, RoundDirection);
+#endif
 };
 
 builtin managed struct DateTime {

@@ -35,8 +35,6 @@ extern RoomStruct thisroom;
 extern unsigned int loopcounter;
 extern int char_speaking_anim;
 
-#define Random __Rand
-
 int CharacterInfo::get_baseline() const {
     if (baseline < 1)
         return y;

@@ -757,7 +757,7 @@ int Object_GetDestinationX(ScriptObject *objj)
     if (objs[objj->id].moving)
     {
         MoveList *cmls = &mls[objs[objj->id].moving];
-        return cmls->pos.back().X;
+        return cmls->GetLastPos().X;
     }
     return objs[objj->id].x;
 }
@@ -770,7 +770,7 @@ int Object_GetDestinationY(ScriptObject *objj)
     if (objs[objj->id].moving)
     {
         MoveList *cmls = &mls[objs[objj->id].moving];
-        return cmls->pos.back().Y;
+        return cmls->GetLastPos().Y;
     }
     return objs[objj->id].y;
 }
@@ -970,7 +970,7 @@ void *Object_GetPath(ScriptObject *objj)
     if (mslot == 0)
         return nullptr;
 
-    return ScriptStructHelpers::CreateArrayOfPoints(mls[mslot].pos).Obj;
+    return ScriptStructHelpers::CreateArrayOfPoints(mls[mslot].GetPath()).Obj;
 }
 
 bool Object_GetUseRegionTint(ScriptObject *objj)

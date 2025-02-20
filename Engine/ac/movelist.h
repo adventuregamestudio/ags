@@ -44,7 +44,9 @@ class MoveList
 {
 public:
     // TODO: protect all these fields!
-
+    // - currently accessed directly only by route_finder.cpp,
+    //   must refactor movelist generation and similar utilities
+    //
     // Waypoints, per stage
     std::vector<Point> pos;
     // permove contain number of pixels done per a single step
@@ -60,12 +62,29 @@ public:
     float   onpart = 0.f;
     uint8_t doneflag = 0u; // currently unused, but reserved
     RunPathParams run_params;
+    Point   curpos; // current would-be position of a moving object
 
     bool IsEmpty() const { return pos.empty(); }
+    const RunPathParams &GetRunParams() const { return run_params; }
     uint32_t GetNumStages() const { return pos.size(); }
+    uint32_t GetStage() const { return onstage; }
+    float GetStageProgress() const { return onpart; }
     const Point &GetLastPos() const { return pos.back(); }
     int GetCurrentStageFlags() const { return onstage < stageflags.size() ? stageflags[onstage] : 0; }
     bool IsStageDirect() const { return (GetCurrentStageFlags() & kMoveStage_Direct) != 0; }
+    const std::vector<Point> &GetPath() const { return pos; }
+    Point GetStagePos(uint32_t index) const
+    {
+        assert(index < pos.size());
+        return index < pos.size() ? pos[index] : Point();
+    }
+    Pointf GetStageSpeed(uint32_t index) const
+    {
+        assert(index < permove.size());
+        return index < permove.size() ? permove[index] : Pointf();
+    }
+    const Point &GetCurrentPos() const { return curpos; }
+    const Pointf &GetCurrentSpeed() const { return permove[onstage]; }
 
     // Gets a movelist's step length, in coordinate units
     // (normally the coord unit is a game pixel)
@@ -76,18 +95,30 @@ public:
     // Sets a step progress to this fraction of a coordinate unit
     void  SetPixelUnitFraction(float frac);
 
-    // Set MoveList to the done state; note this does not free the path itself
-    void Complete();
     // Reset MoveList to the beginning, account for RunPathParams
     void ResetToBegin();
-    // Progress to the next stage, account for RunPathParams;
+    // Increment current stage's progress, update object position;
+    // if the stage is complete, then progress to the next stage;
     // returns if there's a new stage available
-    bool NextStage();
+    bool Forward();
+    // Decrement current stage's progress, update object position;
+    // does not let revert the stage, clamps progress by 0.0;
+    // returns if there's a new stage available
+    // TODO: support going stage back?
+    bool Backward();
 
     AGS::Engine::HSaveError ReadFromSavegame(Common::Stream *in, int32_t cmp_ver);
     void WriteToSavegame(Common::Stream *out) const;
 
 private:
+    // Set MoveList to the done state; note this does not free the path itself
+    void Complete();
+    // Progress to the next stage, account for RunPathParams;
+    // returns if there's a new stage available
+    bool NextStage();
+    // Handle stage progress change, possibly moves to the next stage;
+    // returns if there's a new stage available
+    bool OnProgressChanged();
     // Handle end of path, either stop or reset to beginning, as per RunPathParams
     bool OnPathCompleted();
 };

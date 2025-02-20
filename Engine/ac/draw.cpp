@@ -2956,10 +2956,10 @@ void update_room_debug()
             int mlsnum = game.chars[debugMoveListChar].get_movelist_id();
             const MoveList &cmls = mls[mlsnum];
             for (uint32_t i = 0; i < cmls.GetNumStages() - 1; i++) {
-                int srcx = cmls.pos[i].X;
-                int srcy = cmls.pos[i].Y;
-                int targetx = cmls.pos[i + 1].X;
-                int targety = cmls.pos[i + 1].Y;
+                int srcx = cmls.GetStagePos(i).X;
+                int srcy = cmls.GetStagePos(i).Y;
+                int targetx = cmls.GetStagePos(i + 1).X;
+                int targety = cmls.GetStagePos(i + 1).Y;
                 debugMoveListObj.Bmp->DrawLine(Line(srcx / mult, srcy / mult, targetx / mult, targety / mult),
                     GUI::GetStandardColorForBitmap(i + 1));
             }

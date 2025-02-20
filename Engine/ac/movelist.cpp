@@ -45,6 +45,7 @@ void MoveList::Complete()
 {
     doneflag = 1;
     from = run_params.Forward ? pos[GetNumStages() - 1] : pos[0];
+    curpos = from;
 }
 
 void MoveList::ResetToBegin()
@@ -61,6 +62,20 @@ void MoveList::ResetToBegin()
         onstage = GetNumStages() - 2;
         from = pos[onstage + 1];
     }
+
+    curpos = from;
+}
+
+bool MoveList::Forward()
+{
+    onpart += 1.f;
+    return OnProgressChanged();
+}
+
+bool MoveList::Backward()
+{
+    onpart = std::max(0.f, onpart - 1.f);
+    return OnProgressChanged();
 }
 
 bool MoveList::NextStage()
@@ -74,9 +89,56 @@ bool MoveList::NextStage()
     }
     else
     {
-        onpart = -1.f;
+        onpart = 0.f;
         doneflag = 0;
         from = run_params.Forward ? pos[onstage] : pos[onstage + 1];
+        curpos = from;
+        return true;
+    }
+}
+
+bool MoveList::OnProgressChanged()
+{
+    const int cur_stage = onstage;
+    const int tar_pos_stage = run_params.Forward ? (onstage + 1) : (onstage);
+    const float move_dir_factor = run_params.Forward ? 1.f : -1.f;
+    const float xpermove = permove[cur_stage].X * move_dir_factor;
+    const float ypermove = permove[cur_stage].Y * move_dir_factor;
+    Point target = pos[tar_pos_stage];
+
+    // Calculate next positions
+    // FIXME: use round to nearest here?
+    int xps = from.X + (int)(xpermove * onpart);
+    int yps = from.Y + (int)(ypermove * onpart);
+
+    // Check if finished either horizontal or vertical movement;
+    // snap to the target (in case run over)
+    if (((xpermove > 0) && (xps >= target.X)) || ((xpermove < 0) && (xps <= target.X)))
+        xps = target.X;
+    if (((ypermove > 0) && (yps >= target.Y)) || ((ypermove < 0) && (yps <= target.Y)))
+        yps = target.Y;
+    // NOTE: since we're using floats now, let's assume that xps and yps will
+    // reach target with proper timing, in accordance to their speeds.
+    // If something goes wrong on big distances with very sharp angles,
+    // we may restore one of the old fixups, like, snap at a remaining 1 px.
+
+    // Handle end of move stage
+    if (xps == target.X && yps == target.Y)
+    {
+        // this stage is done, go on to the next stage, or stop
+        if (NextStage())
+        {
+            return true;
+        }
+        else
+        {
+            curpos = {};
+            return false;
+        }
+    }
+    else
+    {
+        curpos = Point(xps, yps);
         return true;
     }
 }
@@ -135,6 +197,8 @@ HSaveError MoveList::ReadFromSavegame(Stream *in, int32_t cmp_ver)
         in->ReadInt32(); // potential: from,to (waypoint range)
         in->ReadInt32();
     }
+
+    OnProgressChanged();
 
     if ((cmp_ver >= kMoveSvgVersion_36208 && cmp_ver < kMoveSvgVersion_400) ||
         cmp_ver >= kMoveSvgVersion_40016)

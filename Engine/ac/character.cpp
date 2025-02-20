@@ -996,7 +996,7 @@ void Character_SetSpeed(CharacterInfo *chaa, int xspeed, int yspeed) {
 
 void Character_StopMoving(CharacterInfo *chi)
 {
-    Character_StopMovingEx(chi, chi->is_moving() && (mls[chi->get_movelist_id()].move_direct == 0));
+    Character_StopMovingEx(chi, chi->is_moving() && (!mls[chi->get_movelist_id()].IsDirectMove()));
 }
 
 void Character_StopMovingEx(CharacterInfo *chi, bool force_walkable_area)
@@ -1263,7 +1263,7 @@ void *Character_GetPath(CharacterInfo *chaa)
     if (mslot == 0)
         return nullptr;
 
-    return ScriptStructHelpers::CreateArrayOfPoints(mls[mslot].pos).Obj;
+    return ScriptStructHelpers::CreateArrayOfPoints(mls[mslot].GetPath()).Obj;
 }
 
 ScriptInvItem* Character_GetActiveInventory(CharacterInfo *chaa) {
@@ -1553,7 +1553,7 @@ int Character_GetMoving(CharacterInfo *chaa) {
 int Character_GetDestinationX(CharacterInfo *chaa) {
     if (chaa->walking) {
         MoveList *cmls = &mls[chaa->get_movelist_id()];
-        return cmls->pos.back().X;
+        return cmls->GetLastPos().X;
     }
     else
         return chaa->x;
@@ -1562,7 +1562,7 @@ int Character_GetDestinationX(CharacterInfo *chaa) {
 int Character_GetDestinationY(CharacterInfo *chaa) {
     if (chaa->walking) {
         MoveList *cmls = &mls[chaa->get_movelist_id()];
-        return cmls->pos.back().Y;
+        return cmls->GetLastPos().Y;
     }
     else
         return chaa->y;
@@ -1943,7 +1943,7 @@ void move_character_impl(CharacterInfo *chin, const std::vector<Point> *path, in
         animWaitWas = charextra[chac].animwait;
         const auto &movelist = mls[chin->get_movelist_id()];
         // We set (fraction + 1), because movelist is always +1 ahead of current character pos;
-        if (movelist.onpart > 0.f)
+        if (movelist.GetStageProgress() > 0.f)
             wasStepFrac = movelist.GetPixelUnitFraction() + movelist.GetStepLength();
     }
 
@@ -1977,7 +1977,7 @@ void move_character_impl(CharacterInfo *chin, const std::vector<Point> *path, in
     if (path_result)
     {
         chin->walking = mslot;
-        mls[mslot].move_direct = ignwal;
+        mls[mslot].SetDirectMove(ignwal);
 
         if (wasStepFrac > 0.f)
         {
@@ -2082,14 +2082,14 @@ void start_character_turning (CharacterInfo *chinf, int useloop, int no_diagonal
 }
 
 void fix_player_sprite(CharacterInfo *chinf, const MoveList &cmls) {
-    const float xpmove = cmls.permove[cmls.onstage].X;
-    const float ypmove = cmls.permove[cmls.onstage].Y;
+    const float xpmove = cmls.GetCurrentSpeed().X;
+    const float ypmove = cmls.GetCurrentSpeed().Y;
 
     // if not moving, do nothing
     if ((xpmove == 0.f) && (ypmove == 0.f))
         return;
 
-    const int useloop = GetDirectionalLoop(chinf, xpmove, ypmove, cmls.run_params.Forward);
+    const int useloop = GetDirectionalLoop(chinf, xpmove, ypmove, cmls.GetRunParams().Forward);
 
     if ((game.options[OPT_CHARTURNWHENWALK] == 0) || ((chinf->flags & CHF_NOTURNWHENWALK) != 0)) {
         chinf->loop = useloop;
@@ -2166,8 +2166,8 @@ int doNextCharMoveStep(CharacterInfo *chi, CharacterExtras *chex) {
         }
 
         if ((chi->walking < 1) || (chi->walking >= TURNING_AROUND)) ;
-        else if (mls[chi->get_movelist_id()].onpart > 0.f) {
-            mls[chi->get_movelist_id()].onpart -= 1.f;
+        else if (mls[chi->get_movelist_id()].GetStageProgress() > 0.f) {
+            mls[chi->get_movelist_id()].Backward();
             chi->x = xwas;
             chi->y = ywas;
         }
@@ -2181,7 +2181,7 @@ int doNextCharMoveStep(CharacterInfo *chi, CharacterExtras *chex) {
 bool is_char_walking_ndirect(CharacterInfo *chi)
 {
     return chi->is_moving_not_turning() &&
-        (mls[chi->get_movelist_id()].move_direct == 0);
+        (!mls[chi->get_movelist_id()].IsDirectMove());
 }
 
 bool FindNearestWalkableAreaForCharacter(const Point &src, Point &dst)

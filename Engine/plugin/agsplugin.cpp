@@ -726,17 +726,17 @@ int IAGSEngine::GetMovementPathWaypointCount(int32 pathId) {
 }
 
 int IAGSEngine::GetMovementPathLastWaypoint(int32 pathId) {
-    return mls[pathId % TURNING_AROUND].onstage;
+    return mls[pathId % TURNING_AROUND].GetStage();
 }
 
 void IAGSEngine::GetMovementPathWaypointLocation(int32 pathId, int32 waypoint, int32 *x, int32 *y) {
-    *x = mls[pathId % TURNING_AROUND].pos[waypoint].X;
-    *y = mls[pathId % TURNING_AROUND].pos[waypoint].Y;
+    *x = mls[pathId % TURNING_AROUND].GetStagePos(waypoint).X;
+    *y = mls[pathId % TURNING_AROUND].GetStagePos(waypoint).Y;
 }
 
 void IAGSEngine::GetMovementPathWaypointSpeed(int32 pathId, int32 waypoint, int32 *xSpeed, int32 *ySpeed) {
-    *xSpeed = mls[pathId % TURNING_AROUND].permove[waypoint].X;
-    *ySpeed = mls[pathId % TURNING_AROUND].permove[waypoint].Y;
+    *xSpeed = mls[pathId % TURNING_AROUND].GetStageSpeed(waypoint).X;
+    *ySpeed = mls[pathId % TURNING_AROUND].GetStageSpeed(waypoint).Y;
 }
 
 int IAGSEngine::IsRunningUnderDebugger()

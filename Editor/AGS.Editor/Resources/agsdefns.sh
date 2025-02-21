@@ -832,6 +832,7 @@ builtin managed struct Region;
 builtin managed struct WalkableArea;
 builtin managed struct Walkbehind;
 builtin managed struct Pathfinder;
+builtin managed struct MotionPath;
 #endif // SCRIPT_API_v400
 
 builtin struct Room {
@@ -2395,12 +2396,12 @@ builtin managed struct Object {
   import attribute bool UseRegionTint;
 #endif
 #ifdef SCRIPT_API_v400
-  /// Returns the moving path of this object, or null if it's not moving
-  import Point*[] GetPath();
   /// Moves the object along the path, ignoring walkable areas.
   import void MovePath(Point*[], int speed, BlockingStyle=eNoBlock, RepeatStyle=eOnce, Direction=eForwards);
   /// Gets/sets whether the object will be drawn and updated during the game update.
   import attribute bool Enabled;
+  /// Gets this object's current MotionPath, or null if it's not moving.
+  import attribute MotionPath* MotionPath;
 #endif // SCRIPT_API_v400
   readonly int reserved[2];  // $AUTOCOMPLETEIGNORE$
 };
@@ -2640,8 +2641,6 @@ builtin managed struct Character {
   readonly import attribute Character* Following;
 #endif // SCRIPT_API_v362
 #ifdef SCRIPT_API_v400
-  /// Returns the moving path of this character, or null if it's not moving
-  import Point*[] GetPath();
   /// Moves the character along the path, ignoring walkable areas, without playing his walking animation.
   import void MovePath(Point*[], BlockingStyle=eNoBlock, RepeatStyle=eOnce, Direction=eForwards);
   /// Moves the character along the path, ignoring walkable areas, automatically playing his walking animation.
@@ -2668,6 +2667,8 @@ builtin managed struct Character {
   import attribute bool Visible;
   /// Gets/sets the optional y/x ratio of character's facing directions, determining directional loop selection while Character moves and turns.
   import attribute float FaceDirectionRatio;
+  /// Gets this character's current MotionPath, or null if it's not moving.
+  import attribute MotionPath* MotionPath;
 #endif // SCRIPT_API_v400
 #ifdef SCRIPT_COMPAT_v399
   char  on;
@@ -3213,6 +3214,8 @@ builtin managed struct MotionPath {
   import void StepForward();
   /// Reset the current path to the certain stage and progress position [0.0, 1.f).
   import void Reset(int stage = 0, float progress = 0.0);
+  /// Checks whether this motion path is currently valid.
+  import readonly attribute bool Valid;
   /// Gets this motion path's current moving direction.
   import readonly attribute Direction Direction;
   /// Gets this motion path's repeat style.

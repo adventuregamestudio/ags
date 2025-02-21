@@ -34,7 +34,7 @@ public:
     static ScriptMotionPath *Create(const std::vector<Point> &path, float speedx, float speedy,
         const RunPathParams &run_params);
     static ScriptMotionPath *Create(const std::vector<Point> &path,
-        const std::vector<float> &speedxs, const std::vector<float> &speedys, const RunPathParams &run_params);
+        const std::vector<Pointf> &speeds, const RunPathParams &run_params);
 
 private:
     // Calculate and return required space for serialization, in bytes

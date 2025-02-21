@@ -101,7 +101,7 @@ std::unique_ptr<MaskRouteFinder> CreateDefaultMaskPathfinder()
 
 // Find route using a provided IRouteFinder, and calculate the MoveList using move speeds
 bool FindRoute(MoveList &mls, IRouteFinder *finder, int srcx, int srcy, int dstx, int dsty,
-    int move_speed_x, int move_speed_y, bool exact_dest, bool ignore_walls,
+    float move_speed_x, float move_speed_y, bool exact_dest, bool ignore_walls,
     const RunPathParams &run_params)
 {
     std::vector<Point> path;
@@ -112,11 +112,10 @@ bool FindRoute(MoveList &mls, IRouteFinder *finder, int srcx, int srcy, int dstx
 }
 
 // Negative move speeds become fractional, e.g. -2 = 1/2 speed.
-inline float InputSpeedToVelocity(int speed_val)
+inline float InputSpeedToVelocity(float speed_val)
 {
-    if (speed_val < 0) {
+    if (speed_val < 0.f)
         return 1.f / (-speed_val);
-    }
     else
         return speed_val;
 }
@@ -224,14 +223,10 @@ static void CalculateMoveStage(MoveList &mls, uint32_t index, float move_speed_x
     mls.permove[index].Y = newymove;
 }
 
-bool CalculateMoveList(MoveList &mls, const std::vector<Point> path, int move_speed_x, int move_speed_y,
+static bool CalculateMoveList(MoveList &mls, const std::vector<Point> &path,
+    float move_speed_x, float move_speed_y, const std::vector<Pointf> &move_speeds,
     uint8_t stage_flag, const RunPathParams &run_params)
 {
-    assert(!path.empty());
-    assert(move_speed_x != 0 || move_speed_y != 0);
-    if (path.empty())
-        return false;
-
     MoveList mlist;
     mlist.pos = path;
     // Ensure there are at least 2 pos elements (required for the further algorithms)
@@ -240,10 +235,22 @@ bool CalculateMoveList(MoveList &mls, const std::vector<Point> path, int move_sp
     mlist.permove.resize(path.size());
     mlist.stageflags.resize(path.size(), stage_flag);
 
-    const float fspeed_x = InputSpeedToVelocity(move_speed_x);
-    const float fspeed_y = InputSpeedToVelocity(move_speed_y);
-    for (uint32_t i = 0; i < mlist.GetNumStages() - 1; i++)
-        CalculateMoveStage(mlist, i, fspeed_x, fspeed_y);
+    if (move_speeds.empty())
+    {
+        const float fspeed_x = InputSpeedToVelocity(move_speed_x);
+        const float fspeed_y = InputSpeedToVelocity(move_speed_y);
+        for (uint32_t i = 0; i < mlist.GetNumStages() - 1; i++)
+            CalculateMoveStage(mlist, i, fspeed_x, fspeed_y);
+    }
+    else
+    {
+        for (uint32_t i = 0; i < mlist.GetNumStages() - 1 && i < move_speeds.size(); i++)
+        {
+            const float fspeed_x = InputSpeedToVelocity(move_speeds[i].X);
+            const float fspeed_y = InputSpeedToVelocity(move_speeds[i].Y);
+            CalculateMoveStage(mlist, i, fspeed_x, fspeed_y);
+        }
+    }
 
     mlist.run_params = run_params;
     mlist.ResetToBegin();
@@ -251,7 +258,29 @@ bool CalculateMoveList(MoveList &mls, const std::vector<Point> path, int move_sp
     return true;
 }
 
-bool AddWaypointDirect(MoveList &mls, int x, int y, int move_speed_x, int move_speed_y, uint8_t stage_flag)
+bool CalculateMoveList(MoveList &mls, const std::vector<Point> &path, float move_speed_x, float move_speed_y,
+    uint8_t stage_flag, const RunPathParams &run_params)
+{
+    assert(!path.empty());
+    assert(move_speed_x != 0.f || move_speed_y != 0.f);
+    if (path.empty() || (move_speed_x == 0.f) && (move_speed_y == 0.f))
+        return false;
+
+    return CalculateMoveList(mls, path, move_speed_x, move_speed_y, std::vector<Pointf>(), stage_flag, run_params);
+}
+
+bool CalculateMoveList(MoveList &mls, const std::vector<Point> &path,
+    const std::vector<Pointf> &move_speeds, uint8_t stage_flag, const RunPathParams &run_params)
+{
+    assert(!path.empty());
+    assert(move_speeds.size() >= path.size() - 1);
+    if (path.empty() || (move_speeds.size() < path.size() - 1))
+        return false;
+
+    return CalculateMoveList(mls, path, 0.f, 0.f, move_speeds, stage_flag, run_params);
+}
+
+bool AddWaypointDirect(MoveList &mls, int x, int y, float move_speed_x, float move_speed_y, uint8_t stage_flag)
 {
     // Safety fixup, because the MoveList logic requires at least 2 points
     if (mls.GetNumStages() == 0)
@@ -270,7 +299,7 @@ bool AddWaypointDirect(MoveList &mls, int x, int y, int move_speed_x, int move_s
     return true;
 }
 
-void RecalculateMoveSpeeds(MoveList &mls, int old_speed_x, int old_speed_y, int new_speed_x, int new_speed_y)
+void RecalculateMoveSpeeds(MoveList &mls, float old_speed_x, float old_speed_y, float new_speed_x, float new_speed_y)
 {
     const float old_movspeed_x = InputSpeedToVelocity(old_speed_x);
     const float old_movspeed_y = InputSpeedToVelocity(old_speed_y);

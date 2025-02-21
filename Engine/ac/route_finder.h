@@ -97,13 +97,15 @@ namespace Pathfinding
 
     // Find route using a provided IRouteFinder, and calculate the MoveList using move speeds
     bool FindRoute(MoveList &mls, IRouteFinder *finder, int srcx, int srcy, int dstx, int dsty,
-        int move_speed_x, int move_speed_y, bool exact_dest, bool ignore_walls, const RunPathParams &run_params);
+        float move_speed_x, float move_speed_y, bool exact_dest, bool ignore_walls, const RunPathParams &run_params);
     // Calculate the MoveList from the given navigation path and move speeds.
-    bool CalculateMoveList(MoveList &mls, const std::vector<Point> path, int move_speed_x, int move_speed_y, uint8_t stage_flag, const RunPathParams &run_params);
+    bool CalculateMoveList(MoveList &mls, const std::vector<Point> &path, float move_speed_x, float move_speed_y, uint8_t stage_flag, const RunPathParams &run_params);
+    // Calculate the MoveList from the given navigation path and variable move speeds per section.
+    bool CalculateMoveList(MoveList &mls, const std::vector<Point> &path, const std::vector<Pointf> &move_speeds, uint8_t stage_flag, const RunPathParams &run_params);
     // Append a waypoint to the move list, skip pathfinding
-    bool AddWaypointDirect(MoveList &mls, int x, int y, int move_speed_x, int move_speed_y, uint8_t stage_flag);
+    bool AddWaypointDirect(MoveList &mls, int x, int y, float move_speed_x, float move_speed_y, uint8_t stage_flag);
     // Recalculates MoveList's step speeds
-    void RecalculateMoveSpeeds(MoveList &mls, int old_speed_x, int old_speed_y, int new_speed_x, int new_speed_y);
+    void RecalculateMoveSpeeds(MoveList &mls, float old_speed_x, float old_speed_y, float new_speed_x, float new_speed_y);
     // Searchs for the nearest walkable point on a mask, starting from the given location,
     // and scanning around in the given square range. Optionally limit the scan to the certain rectangle.
     bool FindNearestWalkablePoint(const AGS::Common::Bitmap *mask, const Point &from_pt, Point &dst_pt,

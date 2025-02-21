@@ -63,8 +63,7 @@ ScriptMotionPath *ScriptMotionPath::Create(const std::vector<Point> &path,
     float speedx, float speedy, const RunPathParams &run_params)
 {
     std::unique_ptr<MoveList> mlist(new MoveList());
-    // TODO: support input speeds as floats
-    Pathfinding::CalculateMoveList(*mlist, path, speedx, speedy, 0, run_params);
+    Pathfinding::CalculateMoveList(*mlist, path, speedx, speedy, 0u, run_params);
 
     ScriptMotionPath *motion_path = new ScriptMotionPath(std::move(mlist));
     ccRegisterManagedObject(motion_path, motion_path);
@@ -72,8 +71,12 @@ ScriptMotionPath *ScriptMotionPath::Create(const std::vector<Point> &path,
 }
 
 ScriptMotionPath *ScriptMotionPath::Create(const std::vector<Point> &path,
-    const std::vector<float> &speedxs, const std::vector<float> &speedys, const RunPathParams &run_params)
+    const std::vector<Pointf> &speeds, const RunPathParams &run_params)
 {
-    // TODO
-    return nullptr;
+    std::unique_ptr<MoveList> mlist(new MoveList());
+    Pathfinding::CalculateMoveList(*mlist, path, speeds, 0u, run_params);
+
+    ScriptMotionPath *motion_path = new ScriptMotionPath(std::move(mlist));
+    ccRegisterManagedObject(motion_path, motion_path);
+    return motion_path;
 }

@@ -59,7 +59,7 @@ void MoveList::ResetToEnd()
 {
     const int to_stage = run_params.Forward ? GetNumStages() - 2 : 0;
     // We need to calculate what is the part just prior to ending the stage
-    ResetToStage(to_stage, CalcLastStageProgress(to_stage));
+    ResetToStage(to_stage, 1.f);
 }
 
 void MoveList::ResetToStage(int stage, float progress)
@@ -67,9 +67,21 @@ void MoveList::ResetToStage(int stage, float progress)
     // NOTE: we clamp the stage by the one before last,
     // because it's the stage which contains move speeds between these two
     onstage = Math::Clamp<int>(stage, 0, GetNumStages() - 2);
-    onpart = Math::Clamp(progress, 0.f, CalcLastStageProgress(onstage));
+    onpart = CalcPartsFromProgress(onstage, Math::Clamp(progress, 0.f, 1.f));
     from = run_params.Forward ? pos[onstage] : pos[onstage + 1];
-    curpos = CalcPosFromProgress();
+    curpos = CalcCurrentPos();
+}
+
+void MoveList::SetStageDoneSteps(float parts)
+{
+    onpart = Math::Clamp(parts, 0.f, CalcStagePartsNum(onstage));
+    curpos = CalcCurrentPos();
+}
+
+void MoveList::SetStageProgress(float progress)
+{
+    onpart = CalcPartsFromProgress(onstage, Math::Clamp(progress, 0.f, 1.f));
+    curpos = CalcCurrentPos();
 }
 
 bool MoveList::Forward()
@@ -120,15 +132,20 @@ bool MoveList::RevertStage()
     }
     else
     {
-        onpart = CalcLastStageProgress(onstage);
+        onpart = CalcStagePartsNum(onstage);
         from = run_params.Forward ? pos[onstage] : pos[onstage + 1];
         // FIXME: use round to nearest here?
-        curpos = CalcPosFromProgress();
+        curpos = CalcCurrentPos();
         return true;
     }
 }
 
-Pointf MoveList::CalcPosFromProgress()
+float MoveList::GetStageProgress() const
+{
+    return onpart / CalcPartsFromProgress(onstage, 1.f);
+}
+
+Pointf MoveList::CalcCurrentPos() const
 {
     const float move_dir_factor = run_params.Forward ? 1.f : -1.f;
     const float xpermove = permove[onstage].X * move_dir_factor;
@@ -138,14 +155,19 @@ Pointf MoveList::CalcPosFromProgress()
         from.Y + (ypermove * onpart));
 }
 
-float MoveList::CalcLastStageProgress(int stage)
+float MoveList::CalcStagePartsNum(int stage) const
+{
+    return CalcPartsFromProgress(stage, 1.f);
+}
+
+float MoveList::CalcPartsFromProgress(int stage, float progress) const
 {
     const int tar_pos_stage = run_params.Forward ? (stage + 1) : (stage);
     const float move_dir_factor = run_params.Forward ? 1.f : -1.f;
     const Point target = pos[tar_pos_stage];
 
-    const float xparts = (permove[stage].X != 0.f) ? std::abs(target.X - pos[stage].X) / permove[stage].X : 0.f;
-    const float yparts = (permove[stage].Y != 0.f) ? std::abs(target.Y - pos[stage].Y) / permove[stage].Y : 0.f;
+    const float xparts = (permove[stage].X != 0.f) ? std::fabs(((target.X - pos[stage].X) * progress) / permove[stage].X) : 0.f;
+    const float yparts = (permove[stage].Y != 0.f) ? std::fabs(((target.Y - pos[stage].Y) * progress) / permove[stage].Y) : 0.f;
     return std::max(xparts, yparts);
 }
 
@@ -263,7 +285,7 @@ HSaveError MoveList::ReadFromSavegame(Stream *in, int32_t cmp_ver)
         in->ReadInt32();
     }
 
-    OnProgressChanged();
+    curpos = CalcCurrentPos();
 
     if ((cmp_ver >= kMoveSvgVersion_36208 && cmp_ver < kMoveSvgVersion_400) ||
         cmp_ver >= kMoveSvgVersion_40016)

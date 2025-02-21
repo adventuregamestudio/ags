@@ -312,10 +312,10 @@ void RecalculateMoveSpeeds(MoveList &mls, int old_speed_x, int old_speed_y, int 
     // now adjust current passed stage fraction
     if (mls.onpart >= 0.f)
     {
-        if (old_stage_xpermove != 0)
-            mls.onpart = (mls.onpart * old_stage_xpermove) / mls.permove[mls.onstage].X;
+        if (old_stage_xpermove != 0.f)
+            mls.SetStageDoneSteps((mls.onpart * old_stage_xpermove) / mls.permove[mls.onstage].X);
         else
-            mls.onpart = (mls.onpart * old_stage_ypermove) / mls.permove[mls.onstage].Y;
+            mls.SetStageDoneSteps((mls.onpart * old_stage_ypermove) / mls.permove[mls.onstage].Y);
     }
 }
 

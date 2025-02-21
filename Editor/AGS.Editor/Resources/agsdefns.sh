@@ -3211,7 +3211,7 @@ builtin managed struct MotionPath {
   import void StepBack();
   /// Moves the current path progress one step forward.
   import void StepForward();
-  /// Reset the current path to the certain stage and progress position.
+  /// Reset the current path to the certain stage and progress position [0.0, 1.f).
   import void Reset(int stage = 0, float progress = 0.0);
   /// Gets this motion path's current moving direction.
   import readonly attribute Direction Direction;
@@ -3233,7 +3233,7 @@ builtin managed struct MotionPath {
   import readonly attribute float SpeedY[];
   /// Gets the current stage index
   import readonly attribute int Stage;
-  /// Gets the progress of the current stage
+  /// Gets the progress of the current stage in the range [0.0, 1.f]
   import readonly attribute float Progress;
   /// Gets the current would-be X coordinate of an object
   import readonly attribute int PositionX;

@@ -68,7 +68,8 @@ public:
     const RunPathParams &GetRunParams() const { return run_params; }
     uint32_t GetNumStages() const { return pos.size(); }
     uint32_t GetStage() const { return onstage; }
-    float GetStageProgress() const { return onpart; }
+    float GetStageDoneSteps() const { return onpart; }
+    float GetStageProgress() const;
     const Point &GetLastPos() const { return pos.back(); }
     int GetCurrentStageFlags() const { return onstage < stageflags.size() ? stageflags[onstage] : 0; }
     bool IsStageDirect() const { return (GetCurrentStageFlags() & kMoveStage_Direct) != 0; }
@@ -102,6 +103,10 @@ public:
     void ResetToEnd();
     // Reset MoveList to the given stage and stage progress
     void ResetToStage(int stage, float progress);
+    // Set MoveList's progress to the given number of steps within the current stage
+    void SetStageDoneSteps(float parts);
+    // Set MoveList's progress within the current stage [0.0; 1.0)
+    void SetStageProgress(float progress);
     // Increment current stage's progress, update object position;
     // if the stage is complete, then progress to the next stage;
     // returns if there's a new stage available
@@ -125,9 +130,11 @@ private:
     // returns if there's a new stage available
     bool RevertStage();
     // Calculates the would-be object position from current progress
-    Pointf CalcPosFromProgress();
-    // Calculates the progress for the stage right prior to stage's end, rounded to integer
-    float CalcLastStageProgress(int stage);
+    Pointf CalcCurrentPos() const;
+    // Calculates the number of move steps in the stage (based on speeds)
+    float CalcStagePartsNum(int stage) const;
+    // Calculates the number of move steps corresponding to the given stage progress
+    float CalcPartsFromProgress(int stage, float progress) const;
     // Handle stage progress change, possibly moves to the next stage;
     // returns if there's a new stage available
     bool OnProgressChanged();

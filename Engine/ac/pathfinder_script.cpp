@@ -155,16 +155,24 @@ ScriptMotionPath *MotionPath_Create2(void *path_arr, void *speedx_arr, void *spe
     }
     if (!speedx_arr || !DynamicArrayHelpers::ResolveFloatArray(speedx_arr, speedxs))
     {
-        debug_script_warn("MotionPath.Create: path is null, or failed to resolve array of points");
+        debug_script_warn("MotionPath.Create: speedx array is null, or failed to resolve array of points");
         return nullptr;
     }
     if (!speedy_arr || !DynamicArrayHelpers::ResolveFloatArray(speedy_arr, speedys))
     {
-        debug_script_warn("MotionPath.Create: path is null, or failed to resolve array of points");
+        debug_script_warn("MotionPath.Create: speedy array is null, or failed to resolve array of points");
+        return nullptr;
+    }
+    if (speedxs.size() < path.size() - 1 || speedys.size() < path.size() - 1)
+    {
+        debug_script_warn("MotionPath.Create: speeds arrays are smaller than the number of path's stages");
         return nullptr;
     }
     ValidateAnimParams("MotionPath.Create", repeat, direction);
-    return ScriptMotionPath::Create(path, speedxs, speedys, RunPathParams(repeat, direction == 0));
+    std::vector<Pointf> speeds;
+    for (size_t i = 0; i < speedxs.size() && i < speedys.size(); ++i)
+        speeds.emplace_back(speedxs[i], speedys[i]);
+    return ScriptMotionPath::Create(path, speeds, RunPathParams(repeat, direction == 0));
 }
 
 void *MotionPath_GetPath(ScriptMotionPath *mpath)

@@ -265,10 +265,10 @@ bool AddWaypointDirect(MoveList &mls, int x, int y, int move_speed_x, int move_s
 
 void RecalculateMoveSpeeds(MoveList &mls, int old_speed_x, int old_speed_y, int new_speed_x, int new_speed_y)
 {
-    const fixed old_movspeed_x = InputSpeedToVelocity(old_speed_x);
-    const fixed old_movspeed_y = InputSpeedToVelocity(old_speed_y);
-    const fixed new_movspeed_x = InputSpeedToVelocity(new_speed_x);
-    const fixed new_movspeed_y = InputSpeedToVelocity(new_speed_y);
+    const float old_movspeed_x = InputSpeedToVelocity(old_speed_x);
+    const float old_movspeed_y = InputSpeedToVelocity(old_speed_y);
+    const float new_movspeed_x = InputSpeedToVelocity(new_speed_x);
+    const float new_movspeed_y = InputSpeedToVelocity(new_speed_y);
     // save current stage's step lengths, for later onpart's update
     const float old_stage_xpermove = mls.permove[mls.onstage].X;
     const float old_stage_ypermove = mls.permove[mls.onstage].Y;

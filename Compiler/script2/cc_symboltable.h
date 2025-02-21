@@ -136,6 +136,7 @@ enum Predefined : Symbol
     kKW_Void,           // "void"
 
     kKW_And,            // "&&"
+    kKW_As,             // "as"
     kKW_BitAnd,         // "&"
     kKW_BitNeg,         // "~"
     kKW_BitOr,          // "|"

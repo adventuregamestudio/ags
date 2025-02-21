@@ -60,7 +60,7 @@ public:
     // distance passed is calculated as permove[onstage] * onpart;
     // made a fractional value to let recalculate movelist dynamically
     float   onpart = 0.f;
-    uint8_t doneflag = 0u; // currently unused, but reserved
+    uint8_t doneflag = 0u;
     RunPathParams run_params;
     Point   curpos; // current would-be position of a moving object
 
@@ -95,8 +95,13 @@ public:
     // Sets a step progress to this fraction of a coordinate unit
     void  SetPixelUnitFraction(float frac);
 
+    bool IsDone() const { return doneflag != 0; }
     // Reset MoveList to the beginning, account for RunPathParams
     void ResetToBegin();
+    // Reset MoveList to the path's end, account for RunPathParams
+    void ResetToEnd();
+    // Reset MoveList to the given stage and stage progress
+    void ResetToStage(int stage, float progress);
     // Increment current stage's progress, update object position;
     // if the stage is complete, then progress to the next stage;
     // returns if there's a new stage available
@@ -116,11 +121,20 @@ private:
     // Progress to the next stage, account for RunPathParams;
     // returns if there's a new stage available
     bool NextStage();
+    // Reverts to the previous stage, account for RunPathParams;
+    // returns if there's a new stage available
+    bool RevertStage();
+    // Calculates the would-be object position from current progress
+    Pointf CalcPosFromProgress();
+    // Calculates the progress for the stage right prior to stage's end, rounded to integer
+    float CalcLastStageProgress(int stage);
     // Handle stage progress change, possibly moves to the next stage;
     // returns if there's a new stage available
     bool OnProgressChanged();
     // Handle end of path, either stop or reset to beginning, as per RunPathParams
     bool OnPathCompleted();
+    // Handle reverting past the beginning of path, accounting to RunPathParams
+    void OnPathRevertedBack();
 };
 
 #endif // __AGS_EN_AC__MOVELIST_H

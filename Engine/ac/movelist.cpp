@@ -50,20 +50,26 @@ void MoveList::Complete()
 
 void MoveList::ResetToBegin()
 {
-    if (run_params.Forward)
-    {
-        onstage = 0;
-        from = pos[onstage];
-    }
-    else
-    {
-        // For backwards direction: set stage to the one before last,
-        // because it's the stage which contains move speeds between these two
-        onstage = GetNumStages() - 2;
-        from = pos[onstage + 1];
-    }
+    // For backwards direction: set stage to the one before last,
+    // because it's the stage which contains move speeds between these two
+    ResetToStage(run_params.Forward ? 0 : GetNumStages() - 2, 0.f);
+}
 
-    curpos = from;
+void MoveList::ResetToEnd()
+{
+    const int to_stage = run_params.Forward ? GetNumStages() - 2 : 0;
+    // We need to calculate what is the part just prior to ending the stage
+    ResetToStage(to_stage, CalcLastStageProgress(to_stage));
+}
+
+void MoveList::ResetToStage(int stage, float progress)
+{
+    // NOTE: we clamp the stage by the one before last,
+    // because it's the stage which contains move speeds between these two
+    onstage = Math::Clamp<int>(stage, 0, GetNumStages() - 2);
+    onpart = Math::Clamp(progress, 0.f, CalcLastStageProgress(onstage));
+    from = run_params.Forward ? pos[onstage] : pos[onstage + 1];
+    curpos = CalcPosFromProgress();
 }
 
 bool MoveList::Forward()
@@ -74,8 +80,15 @@ bool MoveList::Forward()
 
 bool MoveList::Backward()
 {
-    onpart = std::max(0.f, onpart - 1.f);
-    return OnProgressChanged();
+    onpart -= 1.f;
+    if (onpart < 0.f)
+    {
+        return RevertStage();
+    }
+    else
+    {
+        return OnProgressChanged();
+    }
 }
 
 bool MoveList::NextStage()
@@ -97,6 +110,45 @@ bool MoveList::NextStage()
     }
 }
 
+bool MoveList::RevertStage()
+{
+    run_params.Forward ? onstage-- : onstage++;
+    if ((onstage < 0) || (onstage >= GetNumStages() - 1))
+    {
+        OnPathRevertedBack();
+        return true;
+    }
+    else
+    {
+        onpart = CalcLastStageProgress(onstage);
+        from = run_params.Forward ? pos[onstage] : pos[onstage + 1];
+        // FIXME: use round to nearest here?
+        curpos = CalcPosFromProgress();
+        return true;
+    }
+}
+
+Pointf MoveList::CalcPosFromProgress()
+{
+    const float move_dir_factor = run_params.Forward ? 1.f : -1.f;
+    const float xpermove = permove[onstage].X * move_dir_factor;
+    const float ypermove = permove[onstage].Y * move_dir_factor;
+    return Pointf(
+        from.X + (xpermove * onpart),
+        from.Y + (ypermove * onpart));
+}
+
+float MoveList::CalcLastStageProgress(int stage)
+{
+    const int tar_pos_stage = run_params.Forward ? (stage + 1) : (stage);
+    const float move_dir_factor = run_params.Forward ? 1.f : -1.f;
+    const Point target = pos[tar_pos_stage];
+
+    const float xparts = (permove[stage].X != 0.f) ? std::abs(target.X - pos[stage].X) / permove[stage].X : 0.f;
+    const float yparts = (permove[stage].Y != 0.f) ? std::abs(target.Y - pos[stage].Y) / permove[stage].Y : 0.f;
+    return std::max(xparts, yparts);
+}
+
 bool MoveList::OnProgressChanged()
 {
     const int cur_stage = onstage;
@@ -104,7 +156,7 @@ bool MoveList::OnProgressChanged()
     const float move_dir_factor = run_params.Forward ? 1.f : -1.f;
     const float xpermove = permove[cur_stage].X * move_dir_factor;
     const float ypermove = permove[cur_stage].Y * move_dir_factor;
-    Point target = pos[tar_pos_stage];
+    const Point target = pos[tar_pos_stage];
 
     // Calculate next positions
     // FIXME: use round to nearest here?
@@ -117,6 +169,7 @@ bool MoveList::OnProgressChanged()
         xps = target.X;
     if (((ypermove > 0) && (yps >= target.Y)) || ((ypermove < 0) && (yps <= target.Y)))
         yps = target.Y;
+
     // NOTE: since we're using floats now, let's assume that xps and yps will
     // reach target with proper timing, in accordance to their speeds.
     // If something goes wrong on big distances with very sharp angles,
@@ -150,6 +203,18 @@ bool MoveList::OnPathCompleted()
 
     ResetToBegin();
     return false;
+}
+
+void MoveList::OnPathRevertedBack()
+{
+    if (run_params.Repeat == ANIM_ONCE)
+    {
+        ResetToBegin();
+    }
+    else
+    {
+        ResetToEnd();
+    }
 }
 
 HSaveError MoveList::ReadFromSavegame(Stream *in, int32_t cmp_ver)

@@ -24,6 +24,7 @@
 #include "ac/keycode.h"
 #include "ac/mouse.h"
 #include "ac/timer.h"
+#include "ac/touch.h"
 #include "device/mousew32.h"
 #include "gfx/graphicsdriver.h"
 #include "platform/base/agsplatformdriver.h"
@@ -580,8 +581,13 @@ int ags_check_mouse_wheel()
 struct Fingers
 {
 public:
-    static const int MAX_FINGERS = 2;
+    static const int MAX_FINGERS = 10;
     static const int NO_INDEX = -1;
+
+    Fingers()
+    {
+        std::fill(_fingers.begin(), _fingers.end(), NO_INDEX_REF);
+    }
 
     // store fingerId, return given finger index
     int push(SDL_FingerID fingerId)
@@ -589,8 +595,8 @@ public:
         if (contains(fingerId))
             return NO_INDEX; // invalid, fingerId already present
 
-        auto it = std::find(_fingers.begin(), _fingers.end(), NO_ID);
-        if(it == _fingers.end())
+        auto it = std::find(_fingers.begin(), _fingers.end(), NO_INDEX_REF);
+        if (it == _fingers.end())
             return NO_INDEX; // no slot for new finger
 
         *it = fingerId;
@@ -600,7 +606,7 @@ public:
     int get_index(SDL_FingerID fingerId) const
     {
         auto it = std::find(_fingers.begin(), _fingers.end(), fingerId);
-        if(it != _fingers.end())
+        if (it != _fingers.end())
             return it - _fingers.begin();
 
         return NO_INDEX;
@@ -610,14 +616,14 @@ public:
     {
         int idx = get_index(fingerId);
         assert(idx != NO_INDEX);
-        if (idx != NO_INDEX) {
-            _fingers[idx] = NO_ID;
-        }
+        if (idx != NO_INDEX)
+            _fingers[idx] = NO_INDEX;
     };
 
 private:
-    const SDL_FingerID NO_ID = -1; // std::find reads by reference, can't be static
-    std::array<SDL_FingerID, MAX_FINGERS> _fingers{{NO_ID, NO_ID}};
+    // std algorithms accept args by reference, can't be static
+    const SDL_FingerID NO_INDEX_REF = NO_INDEX;
+    std::array<SDL_FingerID, MAX_FINGERS> _fingers {};
 
     bool contains(SDL_FingerID fingerId) const
     {
@@ -757,11 +763,11 @@ static int calc_relative_delta(float value, float scale, float &accum)
 // based on touch position and delta, and t2m emulation settings
 static void set_t2m_pos(float x, float y, float dx, float dy)
 {
-    // TODO: better way to get SDL's logical size? we cannot access sdl renderer here
-    int w = gfxDriver->GetDisplayMode().Width;
-    int h = gfxDriver->GetDisplayMode().Height;
+    // CHECKME: can't we use SDL window size here, or anything similar?
+    const int w = gfxDriver->GetDisplayMode().Width;
+    const int h = gfxDriver->GetDisplayMode().Height;
     // Save real touch pos
-    t2m.pos = Point(std::roundf(x * w), std::roundf(y * h));
+    t2m.pos = Point(static_cast<int>(std::roundf(x * w)), static_cast<int>(std::roundf(y * h)));
 
     // No deltas imply the drag start: in such case reset relative deltas
     if ((dx == 0.f) && (dy == 0.f))
@@ -805,14 +811,32 @@ static void sync_sys_mouse_pos()
     }
 }
 
+// Converts SDL touch event position to absolute window position
+// Accepts touch event in relative coordinates [0.0, 1.0],
+// returns position in window coordinates, clamped to the window rect.
+static Point sdl_touch_to_window_pos(float x, float y)
+{
+    // CHECKME: can't we use SDL window size here, or anything similar?
+    const Size d_sz = static_cast<Size>(gfxDriver->GetDisplayMode());
+    const Point pos_real = Point::Clamp(
+        Point(static_cast<int>(std::roundf(x * d_sz.Width)),
+              static_cast<int>(std::roundf(y * d_sz.Height))),
+        Point(), Point(d_sz.Width - 1, d_sz.Height - 1));
+    return pos_real;
+}
+
 static void on_sdl_touch_down(const SDL_TouchFingerEvent &event)
 {
-    int finger_index = touch.fingers.push(event.fingerId);
-    if(finger_index == Fingers::NO_INDEX) return;
+    const int finger_index = touch.fingers.push(event.fingerId);
+    if (finger_index == Fingers::NO_INDEX)
+        return;
 
     touch.fingers_down |= 1 << finger_index;
     detect_double_tap(event, true);
 
+    OnTouchPointerDown(finger_index, sdl_touch_to_window_pos(event.x, event.y));
+
+    // Handle touch-to-mouse emulation
     switch (t2m.mode)
     {
     case kTouchMouse_OneFingerDrag:
@@ -871,12 +895,16 @@ static void on_sdl_touch_down(const SDL_TouchFingerEvent &event)
 
 static void on_sdl_touch_up(const SDL_TouchFingerEvent &event)
 {
-    int finger_index = touch.fingers.get_index(event.fingerId);
-    if(finger_index == Fingers::NO_INDEX) return;
+    const int finger_index = touch.fingers.get_index(event.fingerId);
+    if (finger_index == Fingers::NO_INDEX)
+        return;
 
     touch.fingers_down &= ~(1 << finger_index);
     detect_double_tap(event, false);
 
+    OnTouchPointerUp(finger_index, sdl_touch_to_window_pos(event.x, event.y));
+
+    // Handle touch-to-mouse emulation
     switch (t2m.mode)
     {
     case kTouchMouse_OneFingerDrag:
@@ -930,9 +958,13 @@ static void on_sdl_touch_up(const SDL_TouchFingerEvent &event)
 
 static void on_sdl_touch_motion(const SDL_TouchFingerEvent &event)
 {
-    int finger_index = touch.fingers.get_index(event.fingerId);
-    if(finger_index == Fingers::NO_INDEX) return;
+    const int finger_index = touch.fingers.get_index(event.fingerId);
+    if (finger_index == Fingers::NO_INDEX)
+        return;
 
+    OnTouchPointerMotion(finger_index, sdl_touch_to_window_pos(event.x, event.y));
+
+    // Handle touch-to-mouse emulation
     switch (t2m.mode)
     {
     case kTouchMouse_OneFingerDrag:
@@ -968,6 +1000,7 @@ void ags_clear_input_state()
     sys_modkeys_fired = false;
     mouse_button_state = 0;
     ags_clear_mouse_movement();
+    ResetAllTouchPointers();
 }
 
 void ags_clear_mouse_movement()

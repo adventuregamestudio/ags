@@ -118,6 +118,8 @@ target_sources(engine
     ac/dynobj/scriptsystem.cpp
     ac/dynobj/scriptsystem.h
     ac/dynobj/scriptsystem.cpp
+    ac/dynobj/scripttouchpointer.cpp
+    ac/dynobj/scripttouchpointer.h
     ac/dynobj/scriptuserobject.cpp
     ac/dynobj/scriptuserobject.h
     ac/dynobj/scriptvideoplayer.cpp
@@ -194,6 +196,8 @@ target_sources(engine
     ac/parser.h
     ac/path_helper.h
     ac/pathfinder_script.cpp
+    ac/touch.cpp
+    ac/touch.h
     ac/properties.cpp
     ac/properties.h
     ac/region.cpp

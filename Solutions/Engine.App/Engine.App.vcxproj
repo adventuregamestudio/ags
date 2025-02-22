@@ -499,6 +499,7 @@
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptpathfinder.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptstring.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptsystem.cpp" />
+    <ClCompile Include="..\..\Engine\ac\dynobj\scripttouchpointer.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptuserobject.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptviewframe.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptviewport.cpp" />
@@ -555,6 +556,7 @@
     <ClCompile Include="..\..\Engine\ac\system.cpp" />
     <ClCompile Include="..\..\Engine\ac\textbox.cpp" />
     <ClCompile Include="..\..\Engine\ac\timer.cpp" />
+    <ClCompile Include="..\..\Engine\ac\touch.cpp" />
     <ClCompile Include="..\..\Engine\ac\translation.cpp" />
     <ClCompile Include="..\..\Engine\ac\video_script.cpp" />
     <ClCompile Include="..\..\Engine\ac\viewframe.cpp" />
@@ -743,6 +745,7 @@
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptset.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptstring.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptsystem.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\scripttouchpointer.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptuserobject.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptviewframe.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptviewport.h" />
@@ -782,6 +785,7 @@
     <ClInclude Include="..\..\Engine\ac\overlay.h" />
     <ClInclude Include="..\..\Engine\ac\parser.h" />
     <ClInclude Include="..\..\Engine\ac\path_helper.h" />
+    <ClInclude Include="..\..\Engine\ac\touch.h" />
     <ClInclude Include="..\..\Engine\ac\properties.h" />
     <ClInclude Include="..\..\Engine\ac\route_finder_impl.h" />
     <ClInclude Include="..\..\Engine\ac\sys_events.h" />

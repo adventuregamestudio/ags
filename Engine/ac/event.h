@@ -56,6 +56,8 @@ enum ScriptCallbackType
     kTS_MouseClick              = 3,
     // on text input
     kTS_TextInput               = 4,
+    // on event
+    kTS_OnEvent                 = 5,
     // script callback types number
     kTS_Num
 };
@@ -225,14 +227,26 @@ extern std::vector<AGSEvent> events;
 
 extern int eventClaimed;
 
+enum ScriptCallbackPropagation
+{
+    kScCallback_Direct,
+    kScCallback_CommonClaimable,
+    kScCallback_CommonUnClaimable,
+};
+
 // ScriptEventCallback describes a predefined script function callback
 struct ScriptEventCallback
 {
-    const char *FnName;
-    uint32_t ArgCount;
+    AGS::Common::String FnName;
+    uint32_t ArgCount = 0;
+    ScriptCallbackPropagation CbPropagate = kScCallback_Direct;
+
+    ScriptEventCallback();
+    ScriptEventCallback(const char *fn_name, uint32_t args, ScriptCallbackPropagation propagate)
+        : FnName(fn_name), ArgCount(args), CbPropagate(propagate)
+    {}
 };
 
-extern ScriptEventCallback ScriptEventCb[kTS_Num];
+extern std::array<ScriptEventCallback, kTS_Num> ScriptEventCb;
 
 #endif // __AGS_EE_AC__EVENT_H
-

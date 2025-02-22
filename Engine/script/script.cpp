@@ -503,18 +503,22 @@ bool RunScriptFunctionAuto(ScriptType sc_type, const ScriptFunctionRef &fn_ref, 
     {
         return RunScriptFunctionInRoom(fn_ref.FuncName, param_count, params);
     }
-    // Rep-exec is only run in script modules, but not room script
-    // (because room script has its own callback, attached to event slot)
+
+    // TODO: optimize this function name mapping to propagation type
     const String &fn_name = fn_ref.FuncName;
-    if (strcmp(fn_name.GetCStr(), REP_EXEC_NAME) == 0)
+    auto evt_cb = std::find_if(ScriptEventCb.begin(), ScriptEventCb.end(),
+        [fn_name](const ScriptEventCallback &cb) { return cb.FnName == fn_name; });
+    ScriptCallbackPropagation propagate = evt_cb != ScriptEventCb.end() ? evt_cb->CbPropagate : kScCallback_Direct;
+
+    // Unclaimable event means it is run in all modules except room,
+    // and cannot be stopped from propagating
+    if (propagate == kScCallback_CommonUnClaimable)
     {
         return RunUnclaimableEvent(REP_EXEC_NAME);
     }
     // Claimable event is run in all the script modules and room script,
     // before running in the globalscript instance
-    // FIXME: make this condition a callback parameter?
-    if ((strcmp(fn_name.GetCStr(), ScriptEventCb[kTS_KeyPress].FnName) == 0) || (strcmp(fn_name.GetCStr(), ScriptEventCb[kTS_MouseClick].FnName) == 0) ||
-        (strcmp(fn_name.GetCStr(), ScriptEventCb[kTS_TextInput].FnName) == 0) || (strcmp(fn_name.GetCStr(), "on_event") == 0))
+    if (propagate == kScCallback_CommonClaimable)
     {
         return RunClaimableEvent(fn_name, param_count, params);
     }

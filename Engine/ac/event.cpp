@@ -61,13 +61,14 @@ std::vector<AGSEvent> events;
 int inside_processevent=0;
 int eventClaimed = EVENT_NONE;
 
-ScriptEventCallback ScriptEventCb[kTS_Num] = {
-    { nullptr, 0u },
-    { REP_EXEC_NAME, 0u },
-    { "on_key_press", 2u },
-    { "on_mouse_click", 3u },
-    { "on_text_input", 1u }
-};
+std::array<ScriptEventCallback, kTS_Num> ScriptEventCb = { {
+    { nullptr, 0u, kScCallback_Direct },
+    { REP_EXEC_NAME, 0u, kScCallback_CommonUnClaimable },
+    { "on_key_press", 2u, kScCallback_CommonClaimable },
+    { "on_mouse_click", 3u, kScCallback_CommonClaimable },
+    { "on_text_input", 1u, kScCallback_CommonClaimable },
+    { "on_event", 5u, kScCallback_CommonClaimable },
+} };
 
 
 void run_claimable_event(const String &tsname, bool includeRoom, int numParams, const RuntimeScriptValue *params, bool *eventWasClaimed)

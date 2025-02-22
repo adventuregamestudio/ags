@@ -449,6 +449,26 @@ inline const char *ScriptVSprintf(std::vector<char> &buf, const char *format, va
     RET_CLASS* ret_obj = FUNCTION((P1CLASS*)params[0].Ptr, params[1].IValue, params[2].IValue, params[3].IValue, params[4].IValue, params[5].IValue); \
     return RuntimeScriptValue().SetScriptObject(ret_obj, ret_obj)
 
+#define API_SCALL_OBJAUTO_POBJ_PFLOAT2(RET_CLASS, FUNCTION, P1CLASS) \
+    ASSERT_PARAM_COUNT(FUNCTION, 3); \
+    RET_CLASS* ret_obj = (RET_CLASS*)FUNCTION((P1CLASS*)params[0].Ptr, params[1].FValue, params[2].FValue); \
+    return RuntimeScriptValue().SetScriptObject(ret_obj, ret_obj)
+
+#define API_SCALL_OBJAUTO_POBJ_PFLOAT2_PINT2(RET_CLASS, FUNCTION, P1CLASS) \
+    ASSERT_PARAM_COUNT(FUNCTION, 5); \
+    RET_CLASS* ret_obj = (RET_CLASS*)FUNCTION((P1CLASS*)params[0].Ptr, params[1].FValue, params[2].FValue, params[3].IValue, params[4].IValue); \
+    return RuntimeScriptValue().SetScriptObject(ret_obj, ret_obj)
+
+#define API_SCALL_OBJAUTO_POBJ3(RET_CLASS, FUNCTION, P1CLASS, P2CLASS, P3CLASS) \
+    ASSERT_PARAM_COUNT(FUNCTION, 3); \
+    RET_CLASS* ret_obj = (RET_CLASS*)FUNCTION((P1CLASS*)params[0].Ptr, (P2CLASS*)params[1].Ptr, (P3CLASS*)params[2].Ptr); \
+    return RuntimeScriptValue().SetScriptObject(ret_obj, ret_obj)
+
+#define API_SCALL_OBJAUTO_POBJ3_PINT2(RET_CLASS, FUNCTION, P1CLASS, P2CLASS, P3CLASS) \
+    ASSERT_PARAM_COUNT(FUNCTION, 5); \
+    RET_CLASS* ret_obj = (RET_CLASS*)FUNCTION((P1CLASS*)params[0].Ptr, (P2CLASS*)params[1].Ptr, (P3CLASS*)params[2].Ptr, params[3].IValue, params[4].IValue); \
+    return RuntimeScriptValue().SetScriptObject(ret_obj, ret_obj)
+
 
 #define API_SCALL_STOBJ_POBJ2(RET_CLASS, FUNCTION, P1CLASS, P2CLASS) \
     ASSERT_PARAM_COUNT(FUNCTION, 2); \
@@ -466,6 +486,11 @@ inline const char *ScriptVSprintf(std::vector<char> &buf, const char *format, va
 #define API_OBJCALL_VOID_PINT(CLASS, METHOD) \
     ASSERT_OBJ_PARAM_COUNT(METHOD, 1); \
     METHOD((CLASS*)self, params[0].IValue); \
+    return RuntimeScriptValue((int32_t)0)
+
+#define API_OBJCALL_VOID_PINT_PFLOAT(CLASS, METHOD) \
+    ASSERT_OBJ_PARAM_COUNT(METHOD, 2); \
+    METHOD((CLASS*)self, params[0].IValue, params[1].FValue); \
     return RuntimeScriptValue((int32_t)0)
 
 #define API_OBJCALL_VOID_PINT2(CLASS, METHOD) \
@@ -576,10 +601,6 @@ inline const char *ScriptVSprintf(std::vector<char> &buf, const char *format, va
     ASSERT_OBJ_PARAM_COUNT(METHOD, 1); \
     return RuntimeScriptValue().SetInt32(METHOD((CLASS*)self, params[0].IValue))
 
-#define API_OBJCALL_FLOAT_PINT_PFLOAT(CLASS, METHOD) \
-    ASSERT_OBJ_PARAM_COUNT(METHOD, 2); \
-    return RuntimeScriptValue().SetFloat(METHOD((CLASS*)self, params[0].IValue, params[1].FValue))
-
 #define API_OBJCALL_INT_PINT_POBJ(CLASS, METHOD, P1CLASS) \
     ASSERT_OBJ_PARAM_COUNT(METHOD, 2); \
     return RuntimeScriptValue().SetInt32(METHOD((CLASS*)self, params[0].IValue, (P1CLASS*)params[1].Ptr))
@@ -619,6 +640,14 @@ inline const char *ScriptVSprintf(std::vector<char> &buf, const char *format, va
 #define API_OBJCALL_FLOAT(CLASS, METHOD) \
     ASSERT_SELF(METHOD); \
     return RuntimeScriptValue().SetFloat(METHOD((CLASS*)self))
+
+#define API_OBJCALL_FLOAT_PINT(CLASS, METHOD) \
+    ASSERT_OBJ_PARAM_COUNT(METHOD, 1); \
+    return RuntimeScriptValue().SetFloat(METHOD((CLASS*)self, params[0].IValue))
+
+#define API_OBJCALL_FLOAT_PINT_PFLOAT(CLASS, METHOD) \
+    ASSERT_OBJ_PARAM_COUNT(METHOD, 2); \
+    return RuntimeScriptValue().SetFloat(METHOD((CLASS*)self, params[0].IValue, params[1].FValue))
 
 #define API_OBJCALL_BOOL(CLASS, METHOD) \
     ASSERT_SELF(METHOD); \

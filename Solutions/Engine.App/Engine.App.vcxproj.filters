@@ -297,6 +297,9 @@
     <ClCompile Include="..\..\Engine\ac\parser.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Engine\ac\touch.cpp">
+      <Filter>Source Files\ac</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Engine\ac\properties.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
@@ -771,6 +774,9 @@
     <ClCompile Include="..\..\Engine\script\scriptexecutor.cpp">
       <Filter>Source Files\script</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Engine\ac\dynobj\scripttouchpointer.cpp">
+      <Filter>Source Files\ac\dynobj</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Engine\ac\asset_helper.h">
@@ -912,6 +918,9 @@
       <Filter>Header Files\ac</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\path_helper.h">
+      <Filter>Header Files\ac</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\ac\touch.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\properties.h">
@@ -1540,6 +1549,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Engine\script\scriptexecutor.h">
       <Filter>Header Files\script</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\ac\dynobj\scripttouchpointer.h">
+      <Filter>Header Files\ac\dynobj</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

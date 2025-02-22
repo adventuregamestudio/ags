@@ -3174,6 +3174,24 @@ builtin managed struct MaskPathfinder extends Pathfinder {
   /// Assigns a new mask to this MaskPathfinder
   import void SetMask(int mask_sprite);
 };
+
+managed struct TouchPointer {
+  /// Gets this touch pointer's identifier.
+  import readonly attribute int ID;
+  /// Gets whether this touch pointer is currently down (in touching state).
+  import readonly attribute bool IsDown;
+  /// Gets this touch pointer's X screen coordinate.
+  import readonly attribute int X;
+  /// Gets this touch pointer's Y screen coordinate.
+  import readonly attribute int Y;
+};
+
+builtin struct Touch {
+  /// Number of touch pointers registered by the game engine.
+  readonly import static attribute int TouchPointerCount;  // $AUTOCOMPLETESTATICONLY$
+  /// Accesses a touch pointer state by its identifier.
+  readonly import static attribute TouchPointer* TouchPointers[];  // $AUTOCOMPLETESTATICONLY$
+};
 #endif // SCRIPT_API_v400
 
 

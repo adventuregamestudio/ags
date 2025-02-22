@@ -55,6 +55,7 @@ namespace Mouse
     // Translates system mouse position to a position inside a game viewport,
     // note that this can clamp to game cursor bounds.
     Point SysToGamePos(int sys_mx, int sys_my);
+    inline Point SysToGamePos(const Point &sys_pt) { return SysToGamePos(sys_pt.X, sys_pt.Y); }
 
     // Polls the cursor position, updates mousex, mousey
     void Poll();

@@ -68,6 +68,9 @@ std::array<ScriptEventCallback, kTS_Num> ScriptEventCb = { {
     { "on_mouse_click", 3u, kScCallback_CommonClaimable },
     { "on_text_input", 1u, kScCallback_CommonClaimable },
     { "on_event", 5u, kScCallback_CommonClaimable },
+    { "on_pointer_down", 3u, kScCallback_CommonClaimable },
+    { "on_pointer_move", 3u, kScCallback_CommonClaimable },
+    { "on_pointer_up", 3u, kScCallback_CommonClaimable },
 } };
 
 

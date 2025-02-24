@@ -11,36 +11,32 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AC_SCRIPTJOYSTICK_H
-#define __AC_SCRIPTJOYSTICK_H
+#ifndef __AGS_EE_DYNOBJ__SCRIPTTOUCHPOINTER_H
+#define __AGS_EE_DYNOBJ__SCRIPTTOUCHPOINTER_H
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
-#include "SDL_gamecontroller.h"
 
-struct ScriptJoystick final : AGSCCDynamicObject
+// TODO: make a shared parent class for the script objects which serve
+// as simple wrappers over an object index, and implement AGSCCDynamicObject.
+// See classes like CCHotspot, CCWalkableArea, ScriptJoystick etc.
+struct ScriptTouchPointer final : AGSCCDynamicObject
 {
 public:
-    ScriptJoystick(int id = -1);
-    // Get gamepad index; negative means the gamepad was deleted
-    int GetID() const { return _id; }
-    void SetID(int id) { _id = id; }
-    // Reset gamepad index to indicate that this reference is no longer valid
-    void Invalidate() { _id = -1; }
-    inline bool IsInvalid() const {return _id == -1; }
+    ScriptTouchPointer(int pointer_id)
+        : _pointerID(pointer_id) {}
 
-    int Dispose(void *address, bool force) override;
+    int GetPointerID() const { return _pointerID; }
+
     const char *GetType() override;
     void Unserialize(int index, AGS::Common::Stream *in, size_t data_sz) override;
 
-
-protected:
+private:
     // Calculate and return required space for serialization, in bytes
     size_t CalcSerializeSize(const void *address) override;
     // Write object data into the provided stream
     void Serialize(const void *address, AGS::Common::Stream *out) override;
 
-private:
-    int _id = -1;
+    int _pointerID = -1;
 };
 
-#endif // __AC_SCRIPTJOYSTICK_H
+#endif // __AGS_EE_DYNOBJ__SCRIPTTOUCHPOINTER_H

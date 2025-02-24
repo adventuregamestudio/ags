@@ -46,6 +46,7 @@
 #include "ac/roomstatus.h"
 #include "ac/spritecache.h"
 #include "ac/sys_events.h"
+#include "ac/touch.h"
 #include "ac/viewframe.h"
 #include "ac/walkablearea.h"
 #include "ac/walkbehind.h"
@@ -225,7 +226,7 @@ static void game_loop_do_early_script_update()
     if (in_new_room == 0) {
         // Run the room and game script repeatedly_execute
         run_function_on_non_blocking_thread(&repExecAlways);
-        setevent(AGSEvent_Script(kTS_Repeat));
+        setevent(AGSEvent_Script(kTS_RepeatedlyExecute));
         setevent(AGSEvent_Interaction(kIntEventType_Room, 0, kRoomEvent_Repexec));
     }
 }
@@ -744,6 +745,62 @@ static void check_gamepad_controls()
     }
 }
 
+bool run_service_touch_controls(TouchInput &out_touch)
+{
+    out_touch = {}; // clear the output
+    if (ags_inputevent_ready() != kInputTouch)
+        return false; // there was no touch event
+
+    const SDL_Event t_evt = ags_get_next_inputevent();
+    if (t_evt.type == AGS_SDL_EVT_TOUCHDOWN || t_evt.type == AGS_SDL_EVT_TOUCHUP || t_evt.type == AGS_SDL_EVT_TOUCHMOTION)
+    {
+        const AGS_TouchPointerEventData *data = static_cast<AGS_TouchPointerEventData*>(t_evt.user.data1);
+        out_touch.PointerID = data->PointerID;
+        out_touch.Position = Mouse::SysToGamePos(data->Position);
+        switch (t_evt.type)
+        {
+        case AGS_SDL_EVT_TOUCHDOWN: out_touch.Phase = TouchPhase::Down; break;
+        case AGS_SDL_EVT_TOUCHUP: out_touch.Phase = TouchPhase::Up; break;
+        case AGS_SDL_EVT_TOUCHMOTION: out_touch.Phase = TouchPhase::Motion; break;
+        default: assert(false); break; // must not happen
+        }
+        ags_dispose_userevent(t_evt);
+    }
+    return out_touch.PointerID >= 0;
+}
+
+static void check_touch_controls()
+{
+    TouchInput ti;
+    if (!run_service_touch_controls(ti))
+        return;
+
+    // TODO: check cutscene skip
+    if (play.fast_forward)
+        return;
+    if (play.IsIgnoringInput())
+        return;
+
+    // Run script callbacks
+    switch (ti.Phase)
+    {
+    case TouchPhase::Down:
+        debug_script_log("Running on_pointer_down pointer id %d, pos %d,%d", ti.PointerID, ti.Position.X, ti.Position.Y);
+        setevent(AGSEvent_Script(kTS_PointerDown, ti.PointerID, ti.Position.X, ti.Position.Y));
+        break;
+    case TouchPhase::Up:
+        debug_script_log("Running on_pointer_up pointer id %d, pos %d,%d", ti.PointerID, ti.Position.X, ti.Position.Y);
+        setevent(AGSEvent_Script(kTS_PointerUp, ti.PointerID, ti.Position.X, ti.Position.Y));
+        break;
+    case TouchPhase::Motion:
+        debug_script_log("Running on_pointer_move pointer id %d, pos %d,%d", ti.PointerID, ti.Position.X, ti.Position.Y);
+        setevent(AGSEvent_Script(kTS_PointerMove, ti.PointerID, ti.Position.X, ti.Position.Y));
+        break;
+    default:
+        break;
+    }
+}
+
 // check_controls: checks mouse & keyboard interface
 static void check_controls()
 {
@@ -774,6 +831,9 @@ static void check_controls()
                 break;
             case kInputGamepad:
                 check_gamepad_controls();
+                break;
+            case kInputTouch:
+                check_touch_controls();
                 break;
             default:
                 ags_drop_next_inputevent();

@@ -47,17 +47,15 @@ enum AGSGameEventType
 // Text script event callback subtypes:
 enum ScriptCallbackType
 {
-    kTS_None                    = 0,
-    // repeatedly execute
-    kTS_Repeat                  = 1,
-    // on key press
-    kTS_KeyPress                = 2,
-    // mouse click
-    kTS_MouseClick              = 3,
-    // on text input
-    kTS_TextInput               = 4,
-    // on event
-    kTS_OnEvent                 = 5,
+    kTS_None = 0,
+    kTS_RepeatedlyExecute,
+    kTS_KeyPress,
+    kTS_MouseClick,
+    kTS_TextInput,
+    kTS_OnEvent,
+    kTS_PointerDown,
+    kTS_PointerMove,
+    kTS_PointerUp,
     // script callback types number
     kTS_Num
 };

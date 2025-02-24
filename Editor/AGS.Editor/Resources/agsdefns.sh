@@ -483,6 +483,9 @@ enum InputType
 #ifdef SCRIPT_API_v399
   eInputGamepad  = 0x08000000,
 #endif
+#ifdef SCRIPT_API_v400
+  eInputTouch    = 0x10000000,
+#endif
   eInputAny      = 0xFF000000
 };
 #endif // SCRIPT_API_v36026

@@ -34,7 +34,8 @@
 #include "ac/runtime_defines.h"
 #include "ac/string.h"
 #include "ac/system.h"
-#include "ac/dynobj/cc_guiobject.h"
+#include "ac/dynobj/cc_gui.h"
+#include "ac/dynobj/cc_guicontrol.h"
 #include "ac/dynobj/scriptobjects.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "debug/debug_log.h"
@@ -46,8 +47,6 @@
 #include "script/script_runtime.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
-#include "ac/dynobj/cc_gui.h"
-#include "ac/dynobj/cc_guiobject.h"
 #include "script/runtimescriptvalue.h"
 #include "util/geometry.h"
 #include "util/string_compat.h"
@@ -62,11 +61,16 @@ extern int cur_mode,cur_cursor;
 extern std::vector<ScriptGUI> scrGui;
 std::vector<std::vector<int>> StaticGUIControlsHandles;
 extern GameSetupStruct game;
-extern CCGUIObject ccDynamicGUIObject;
 extern IGraphicsDriver *gfxDriver;
 
 extern CCGUI ccDynamicGUI;
-extern CCGUIObject ccDynamicGUIObject;
+extern CCGUIControl ccDynamicGUIControl;
+extern CCGUIButton ccDynamicGUIButton;
+extern CCGUIInvWindow ccDynamicGUIInvWindow;
+extern CCGUILabel ccDynamicGUILabel;
+extern CCGUIListBox ccDynamicGUIListBox;
+extern CCGUISlider ccDynamicGUISlider;
+extern CCGUITextBox ccDynamicGUITextBox;
 
 
 int ifacepopped=-1;  // currently displayed pop-up GUI (-1 if none)
@@ -530,13 +534,13 @@ void process_interface_click(int ifce, int btn, int mbut) {
             const ScriptFunctionRef fn_ref(guis[ifce].ScriptModule, theObj->EventHandlers[0]);
             if (theObj->GetEventArgs(0).FindChar(',') != String::NoIndex)
             {
-                RuntimeScriptValue params[]{ RuntimeScriptValue().SetScriptObject(theObj, &ccDynamicGUIObject),
+                RuntimeScriptValue params[]{ RuntimeScriptValue().SetScriptObject(theObj, &ccDynamicGUIControl),
                     RuntimeScriptValue().SetInt32(mbut) };
                 QueueScriptFunction(kScTypeGame, fn_ref, 2, params);
             }
             else
             {
-                RuntimeScriptValue params[]{ RuntimeScriptValue().SetScriptObject(theObj, &ccDynamicGUIObject) };
+                RuntimeScriptValue params[]{ RuntimeScriptValue().SetScriptObject(theObj, &ccDynamicGUIControl) };
                 QueueScriptFunction(kScTypeGame, fn_ref, 1, params);
             }
         }
@@ -657,13 +661,31 @@ void export_all_gui_controls()
 {
     set_array_all_gui_controls_size();
 
-    for (int i = 0; i < game.numgui; ++i) {
+    for (int i = 0; i < game.numgui; ++i)
+    {
         auto const &gui = guis[i];
-        for (int j = 0; j < gui.GetControlCount(); j++) {
+        for (int j = 0; j < gui.GetControlCount(); j++)
+        {
             GUIObject *guio = gui.GetControl(j);
-            int handle = ccRegisterPersistentObject(guio, &ccDynamicGUIObject); // add ref for engine
+            IScriptObject *mgr;
+            switch (gui.GetControlType(j))
+            {
+            case kGUIButton: mgr = &ccDynamicGUIButton; break;
+            case kGUILabel: mgr = &ccDynamicGUILabel; break;
+            case kGUIInvWindow: mgr = &ccDynamicGUIInvWindow; break;
+            case kGUISlider: mgr = &ccDynamicGUISlider; break;
+            case kGUITextBox: mgr = &ccDynamicGUITextBox; break;
+            case kGUIListBox: mgr = &ccDynamicGUIListBox; break;
+            default: mgr = nullptr; break;
+            }
+
+            if (!mgr)
+                continue;
+
+            int handle = ccRegisterPersistentObject(guio, mgr); // add ref for engine
             StaticGUIControlsHandles[i][j] = handle;
-            if (!guio->Name.IsEmpty()) {
+            if (!guio->Name.IsEmpty())
+            {
                 ccAddExternalScriptObjectHandle(guio->Name, &StaticGUIControlsHandles[i][j]);
             }
         }
@@ -999,7 +1021,7 @@ RuntimeScriptValue Sc_GUI_GetControlCount(void *self, const RuntimeScriptValue *
 // GUIObject* (ScriptGUI *tehgui, int idx)
 RuntimeScriptValue Sc_GUI_GetiControls(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_OBJ_PINT(ScriptGUI, GUIObject, ccDynamicGUIObject, GUI_GetiControls);
+    API_OBJCALL_OBJ_PINT(ScriptGUI, GUIObject, ccDynamicGUIControl, GUI_GetiControls);
 }
 
 // int (ScriptGUI *sgui)

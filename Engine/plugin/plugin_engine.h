@@ -38,6 +38,7 @@ struct PluginObjectReader
 
 void pl_stop_plugins();
 void pl_startup_plugins();
+void pl_get_plugin_names(std::vector<AGS::Common::String> &names);
 intptr_t pl_run_plugin_hooks(int event, intptr_t data);
 void pl_run_plugin_init_gfx_hooks(const char *driverName, void *data);
 int  pl_run_plugin_debug_hooks(const char *scriptfile, int linenum);

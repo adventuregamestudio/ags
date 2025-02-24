@@ -70,6 +70,8 @@ struct symbolTable {
 	std::vector<SymbolTableEntry> entries;
     // section names filled by tokenizer, required for RTTI
     std::vector<std::string> sections;
+    // type module names, correspond to sections, required for RTTI
+    std::vector<std::string> sectionModules;
     // saved local symbols, for generating script data TOC (optional)
     std::vector<SymbolTableEntry> localEntries;
 

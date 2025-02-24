@@ -57,7 +57,6 @@ extern ScriptSystem scsystem;
 extern std::vector<ViewStruct> views;
 extern SpriteCache spriteset;
 
-extern CCGUIObject ccDynamicGUIObject;
 extern CCCharacter ccDynamicCharacter;
 extern CCHotspot   ccDynamicHotspot;
 extern CCRegion    ccDynamicRegion;
@@ -65,6 +64,7 @@ extern CCWalkableArea ccDynamicWalkarea;
 extern CCWalkbehind ccDynamicWalkbehind;
 extern CCInventory ccDynamicInv;
 extern CCGUI       ccDynamicGUI;
+extern CCTextWindowGUI ccDynamicTextWindowGUI;
 extern CCObject    ccDynamicObject;
 extern CCDialog    ccDynamicDialog;
 extern CCAudioChannel ccDynamicAudio;
@@ -238,8 +238,10 @@ HError InitAndRegisterGUI(const GameSetupStruct &game)
         if (!err)
             return err;
         scrGui[i].id = i;
+
         // register and save handle
-        int handle = ccRegisterPersistentObject(&scrGui[i], &ccDynamicGUI);
+        IScriptObject *mgr = guis[i].IsTextWindow() ? &ccDynamicTextWindowGUI : &ccDynamicGUI;
+        int handle = ccRegisterPersistentObject(&scrGui[i], mgr);
         StaticGUIArray[i] = handle;
 
         // export the gui script object

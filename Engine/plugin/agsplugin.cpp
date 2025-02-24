@@ -881,6 +881,12 @@ void pl_startup_plugins() {
     }
 }
 
+void pl_get_plugin_names(std::vector<AGS::Common::String> &names)
+{
+    for (const auto &pl : plugins)
+        names.push_back(pl.filename);
+}
+
 intptr_t pl_run_plugin_hooks(int event, intptr_t data)
 {
     for (auto &plugin : plugins)

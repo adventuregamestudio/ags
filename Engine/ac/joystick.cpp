@@ -149,7 +149,7 @@ struct JoystickImpl {
     SDL_GameController* sdlGameController = nullptr;
     SDL_Joystick* sdlJoystick = nullptr;
     SDL_JoystickID sdlJoystickID = -1;
-    int scriptJoystickHandle;
+    int scriptJoystickHandle = 0;
 };
 
 std::vector<JoystickImpl> _joysticks;
@@ -180,7 +180,7 @@ void add_joystick(int device_index)
     joy.sdlJoystick = sdl_joy;
     joy.sdlGameController = sdl_gamepad;
     joy.sdlJoystickID = sdl_id;
-    joy.scriptJoystickHandle = -1;
+    joy.scriptJoystickHandle = 0;
     _joysticks.push_back(joy);
 }
 
@@ -195,7 +195,7 @@ void remove_joystick(int instance_id)
     // remove the joystick from list if it was found
     if (it != _joysticks.end()) {
         // need to do something with the script reference here!
-        if(it->scriptJoystickHandle != -1) {
+        if (it->scriptJoystickHandle > 0) {
             auto* scriptJoystick = (ScriptJoystick*) ccGetObjectAddressFromHandle(it->scriptJoystickHandle);
             scriptJoystick->Invalidate();
             ccReleaseObjectReference(it->scriptJoystickHandle);
@@ -204,10 +204,10 @@ void remove_joystick(int instance_id)
         _joysticks.erase(it);
     }
 
-    for(int i=0; i<_joysticks.size(); i++)
+    for (int i=0; i<_joysticks.size(); i++)
     {
         auto const& joy = _joysticks[i];
-        if(joy.scriptJoystickHandle != -1) {
+        if (joy.scriptJoystickHandle > 0) {
             auto* scriptJoystick = (ScriptJoystick*) ccGetObjectAddressFromHandle(joy.scriptJoystickHandle);
             scriptJoystick->SetID(i);
         }
@@ -217,9 +217,9 @@ void remove_joystick(int instance_id)
 // it looks like on desktop platforms a connection event is always generated and thus this is not needed
 void init_joystick()
 {
-    if(!_joysticks.empty()) return;
+    if (!_joysticks.empty()) return;
     int joy_count = SDL_NumJoysticks();
-    for(int i=0; i<joy_count; i++) {
+    for (int i=0; i<joy_count; i++) {
         add_joystick(i);
     }
 }
@@ -237,9 +237,10 @@ int32_t Joystick_GetJoystickCount()
 
 ScriptJoystick* Joystick_GetiJoysticks(int i)
 {
-    if(i<0 || i>=_joysticks.size()) return nullptr;
+    if (i < 0 || i >= _joysticks.size()) return nullptr;
 
-    if(_joysticks[i].scriptJoystickHandle != -1) {
+    if (_joysticks[i].scriptJoystickHandle > 0)
+    {
         return static_cast<ScriptJoystick *>(ccGetObjectAddressFromHandle(_joysticks[i].scriptJoystickHandle));
     }
 

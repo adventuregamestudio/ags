@@ -128,10 +128,21 @@ Few minor behavior changes.
 enum GameDataVersion
 {
     kGameVersion_Undefined      = 0,
+    kGameVersion_200            = 5,
+    kGameVersion_201            = 6,
+    kGameVersion_203            = 7,
+    // NOTE: 8 was possibly a beta version, agsedit 2.40 prints the
+    // following message upon seeing it:
+    // "Error: This game was saved by a beta version of AGS."
+    // NOTE: 9 is shared by all versions from 2.07 to 2.15
+    kGameVersion_207            = 9,
+    // NOTE: 10 was possibly a beta between 2.15 and 2.20
+    kGameVersion_220            = 11,
     kGameVersion_230            = 12,
     kGameVersion_240            = 12,
     kGameVersion_250            = 18,
-    kGameVersion_251            = 19, // same as 2.52
+    // NOTE: 19 is shared by 2.51 and 2.52
+    kGameVersion_251            = 19,
     kGameVersion_253            = 20,
     kGameVersion_254            = 21,
     kGameVersion_255            = 22,

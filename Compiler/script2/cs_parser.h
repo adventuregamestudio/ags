@@ -486,7 +486,7 @@ private:
 
     // We have accepted something like 'int foo' and a trailing '[]' might follow.
     // If it does, convert 'vartype' to a dynarray.
-    void ParseDynArrayMarkerIfPresent(Vartype &vartype);
+    void ParseDynArrayMarkersIfPresent(SrcList &src, Vartype &vartype);
 
     // Extender function, eg. 'function GoAway(this Character *someone)'
     // We've just accepted something like 'int func('
@@ -623,6 +623,9 @@ private:
     // This happens when a term is called for side effect only, e.g. in the statement 'i ? --foo : ++foo;'
     void ParseExpression_Ternary(size_t tern_idx, SrcList &expression, bool result_used, EvaluationResult &eres);
 
+    // Parse a 'as VARTYPE' clause
+    void ParseExpression_As(SrcList &vartype, EvaluationResult &eres);
+
     // Parse the term given in 'expression'. The lowest-binding operator a binary operator.
     // Parsing must use up 'expression' completely; trailing symbols cause a UserError
     void ParseExpression_Binary(size_t op_idx, SrcList &expression, EvaluationResult &eres);
@@ -742,7 +745,7 @@ private:
     void AccessData_StrCpy();
 
     // An optional '*' can follow at this point. If it is here, eat it.
-    void EatDynpointerSymbolIfPresent(Vartype vartype);
+    void EatDynpointerSymbolIfPresent(SrcList src, Vartype vartype);
 
     // We are typically in an assignment LHS = RHS; the RHS has already been
     // evaluated, and the result of that evaluation is in AX.
@@ -865,7 +868,7 @@ private:
 
     // Read a vartype (that must already be defined at this point)
     // This is either a vartype name or 'const string'
-    Symbol ParseVartype(bool with_dynpointer_handling = true);
+    Symbol ParseVartype(SrcList &src, bool with_dynpointer_handling = true);
 
     void ParseExport_Function(Symbol func);
     void ParseExport_Variable(Symbol var);

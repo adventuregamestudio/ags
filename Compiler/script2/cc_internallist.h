@@ -38,8 +38,8 @@ public:
         : _sections(sections)
         , _off2sec(off2sec)
     {}
-    SectionList(const std::vector<std::string> &&sections,
-                const std::map<size_t, size_t> &&off2sec)
+    SectionList(std::vector<std::string> &&sections,
+                std::map<size_t, size_t> &&off2sec)
         : _sections(std::move(sections))
         , _off2sec(std::move(off2sec))
     {}

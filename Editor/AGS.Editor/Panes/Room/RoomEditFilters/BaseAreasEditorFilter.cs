@@ -491,6 +491,18 @@ namespace AGS.Editor
             Factory.ToolBarManager.RefreshCurrentPane();
         }
 
+        private string GetMaskName(RoomAreaMaskType maskType)
+        {
+            switch (maskType)
+            {
+                case RoomAreaMaskType.Hotspots: return "Hotspots"; break;
+                case RoomAreaMaskType.Regions: return "Regions"; break;
+                case RoomAreaMaskType.WalkableAreas: return "Walkable Areas"; break;
+                case RoomAreaMaskType.WalkBehinds: return "Walk-behinds"; break;
+                default: return string.Empty; break;
+            }
+        }
+
         private void ImportMaskFromFile(string fileName)
         {
             Bitmap bmp = null;
@@ -498,12 +510,14 @@ namespace AGS.Editor
             {
                 bmp = BitmapExtensions.LoadNonLockedBitmap(fileName);
 
-                if (!(((bmp.Width == _room.Width) && (bmp.Height == _room.Height)) ||
-                    ((bmp.Width == _room.Width / 2) && (bmp.Height == _room.Height / 2))))
+                int maskFactor = (MaskToDraw == RoomAreaMaskType.WalkBehinds) ? 1 : _room.MaskResolution;
+                if ((bmp.Width != _room.Width / maskFactor) || (bmp.Height != _room.Height / maskFactor))
                 {
-                    Factory.GUIController.ShowMessage("This file cannot be imported because it is not the same size as the room background." +
-                        "\nFile size: " + bmp.Width + " x " + bmp.Height +
-                        "\nRoom size: " + _room.Width + " x " + _room.Height, MessageBoxIcon.Warning);
+                    Factory.GUIController.ShowMessage($"This image cannot be imported as a {GetMaskName(MaskToDraw)} mask, because it does not match the size of the room background (accounting to Mask Resolution setting)." +
+                        $"\nImage size: {bmp.Width} x {bmp.Height}" +
+                        $"\nRoom size: {_room.Width} x {_room.Height}" +
+                        $"\nExpected mask size: {_room.Width / maskFactor} x {_room.Height / maskFactor}",
+                        MessageBoxIcon.Warning);
                     bmp.Dispose();
                     return;
                 }

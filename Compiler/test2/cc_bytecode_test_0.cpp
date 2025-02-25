@@ -5760,6 +5760,72 @@ TEST_F(Bytecode0, DynarrayOfPrimitives) {
     EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
+TEST_F(Bytecode0, DynpointerDynamicCast1)
+{
+    // A 'Vartype *' can receive a 'ChildOfVartype *',
+    // no runtime checks generated
+    // For a 'ChildOfVartype *' to receive a 'Vartype *',
+    // an 'as' clause is required, and the compiler will
+    // generate a runtime check
+
+    char const *inpl = R"%&/(
+            managed struct Me
+            {
+                int Me;
+            };
+
+            managed struct Child extends Me
+            {
+                int Child;
+            };
+
+            managed struct Grandchild extends Child
+            {
+                int Grandchild;
+            };
+
+            int game_start()
+            {
+                Me m = new Grandchild as Child;
+                Grandchild g = m as Grandchild;
+            }
+        )%&/";
+
+    int compile_result = cc_compile(inpl, SCOPT_RTTIOPS, scrip, mh);
+    std::string const &err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+
+    // WriteOutput("DynpointerDynamicCast1", scrip);
+
+    size_t const codesize = 47;
+    EXPECT_EQ(codesize, scrip.code.size());
+
+    int32_t code[] = {
+      36,   18,   38,    0,           36,   19,   74,    3,    // 7
+      94,   12,   51,    0,           47,    3,    1,    1,    // 15
+       4,   36,   20,   51,            4,   48,    3,   76,    // 23
+      94,   51,    0,   47,            3,    1,    1,    4,    // 31
+      36,   21,   51,    8,           49,   51,    4,   49,    // 39
+       2,    1,    8,    6,            3,    0,    5,  -999
+    };
+    CompareCode(&scrip, codesize, code);
+
+    size_t const numfixups = 0;
+    EXPECT_EQ(numfixups, scrip.fixups.size());
+
+    int const numimports = 0;
+    std::string imports[] = {
+     "[[SENTINEL]]"
+    };
+    CompareImports(&scrip, numimports, imports);
+
+    size_t const numexports = 0;
+    EXPECT_EQ(numexports, scrip.exports.size());
+
+    size_t const stringssize = 0;
+    EXPECT_EQ(stringssize, scrip.strings.size());
+}
+
 TEST_F(Bytecode0, Writeprotected) {
 
     // Directly taken from the doc on writeprotected, simplified.

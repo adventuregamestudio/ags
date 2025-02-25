@@ -55,6 +55,12 @@ int SOUNDCLIP::play()
     return true;
 }
 
+int SOUNDCLIP::play_from(int position)
+{
+    seek(position);
+    return play();
+}
+
 void SOUNDCLIP::pause()
 {
     if (!is_ready())

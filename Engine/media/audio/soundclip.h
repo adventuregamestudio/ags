@@ -58,6 +58,7 @@ public:
     int maximumPossibleDistanceAway;
 
     bool play();
+    bool play_from(int position);
     void pause();
     void resume();
     // Seeks to the position, where pos units depend on the audio type
@@ -70,12 +71,6 @@ public:
     // - read and save current position;
     // Returns if the clip is still playing, otherwise it's finished
     bool update();
-
-    inline bool play_from(int position)
-    {
-        seek(position);
-        return play();
-    }
 
     // Gets if the clip is valid (playing or ready to play)
     inline bool is_ready() const

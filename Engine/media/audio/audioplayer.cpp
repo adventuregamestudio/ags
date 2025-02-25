@@ -33,6 +33,7 @@ void AudioPlayer::Init()
         success = _decoder->Seek(_onLoadPositionMs) == _onLoadPositionMs;
     else
         success = _decoder->Open(_onLoadPositionMs);
+    _source->SetPlaybackPosMs(_decoder->GetPositionMs());
     _playState = success ? _onLoadPlayState : PlayStateError;
     if (_playState == PlayStatePlaying)
         _source->Play();
@@ -123,6 +124,7 @@ void AudioPlayer::Seek(float pos_ms)
     {
     case PlayStateInitial:
         _onLoadPositionMs = pos_ms;
+        Init(); // make sure the decoder opens and seeks, update posMs
         break;
     case PlayStatePlaying:
     case PlayStatePaused:

@@ -176,7 +176,8 @@ AGS::SymbolTable::SymbolTable()
     // Operators
     AddOperator(kKW_And, "&&", 118, kNoPrio, true, SCMD_AND);
     // No compile time functions defined here; those are done with special logic.
-
+    AddOperator(kKW_As, "as", 130, kNoPrio, false, kNoOpcode);
+    // No compile time functions defined here; those are done with special logic.
     AddOperator(kKW_BitAnd, "&", 109, kNoPrio, false, SCMD_BITAND);
     OperatorCtFunctions(
         kKW_BitAnd,
@@ -702,12 +703,12 @@ void AGS::SymbolTable::GetComponentsOfStruct(Symbol strct, std::vector<Symbol> &
 
     // Collect the ancestors of 'struct', i.e., those structs that 'struct' extends
     std::vector<Symbol> ancestors = {};
-    while(kKW_NoSymbol != strct)
+    while (kKW_NoSymbol != strct)
     {
         ancestors.push_back(strct);
         strct = entries.at(strct).VartypeD->Parent;
     }
-   
+
     for (auto ancestors_it = ancestors.crbegin(); ancestors_it != ancestors.crend(); ancestors_it++)
     {
         auto const &components = entries.at(*ancestors_it).VartypeD->Components;

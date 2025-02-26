@@ -944,13 +944,18 @@ Symbol AGS::Parser::ParseParamlist_Param_DefaultValue(size_t idx, Vartype const 
     return kKW_NoSymbol; // can't reach
 }
 
-void AGS::Parser::ParseDynArrayMarkerIfPresent(Vartype &vartype)
+void AGS::Parser::ParseDynArrayMarkersIfPresent(SrcList &src, Vartype &vartype)
 {
-    if (kKW_OpenBracket != _src.PeekNext())
-        return;
-    SkipNextSymbol(_src, kKW_OpenBracket);
-    Expect(kKW_CloseBracket, _src.GetNext());
-    vartype = _sym.VartypeWithDynarray(vartype);
+    while (true)
+    {
+        if (kKW_OpenBracket != src.PeekNext())
+            return;
+        SkipNextSymbol(src, kKW_OpenBracket);
+        Expect(kKW_CloseBracket, _src.GetNext());
+        vartype = _sym.VartypeWithDynarray(vartype);
+        if (!FlagIsSet(_options, SCOPT_RTTIOPS) && kKW_OpenBracket == src.PeekNext())
+            UserError("Cannot have dynamic arrays of dynamic arrays because RTTI is off");
+    }
 }
 
 // extender function, eg. function GoAway(this Character *someone)
@@ -1088,7 +1093,7 @@ void AGS::Parser::ParseParamlist_Param(Symbol const name_of_func, bool const bod
             param_idx,
             _sym.GetName(_src.PeekNext()).c_str());
     
-    ParseDynArrayMarkerIfPresent(param_vartype);
+    ParseDynArrayMarkersIfPresent(_src, param_vartype);
     Symbol const param_default = ParseParamlist_Param_DefaultValue(param_idx, param_vartype);
 
     auto &parameters = _sym[name_of_func].FunctionD->Parameters;
@@ -1159,7 +1164,7 @@ void AGS::Parser::ParseFuncdecl_Parameters(Symbol funcsym, bool body_follows)
         if ((++param_idx) >= MAX_FUNCTION_PARAMETERS)
             UserError("Too many parameters defined for function (max. allowed: %u)", MAX_FUNCTION_PARAMETERS - 1u);
 
-        ParseParamlist_Param(funcsym, body_follows, tqs, ParseVartype(), _sym.FuncParamsCount(funcsym) + 1u);
+        ParseParamlist_Param(funcsym, body_follows, tqs, ParseVartype(_src), _sym.FuncParamsCount(funcsym) + 1u);
 
         tqs = {}; // type qualifiers have been used up
 
@@ -1778,26 +1783,26 @@ bool AGS::Parser::IsVartypeMismatch_Oneway(Vartype vartype_is, Vartype vartype_w
     // Checks to do if at least one is dynarray
     if (_sym.IsDynarrayVartype(vartype_is) || _sym.IsDynarrayVartype(vartype_wants_to_be))
     {
-        // BOTH sides must be dynarray 
         if (_sym.IsDynarrayVartype(vartype_is) != _sym.IsDynarrayVartype(vartype_wants_to_be))
-            return false;
+            return true;
 
-        // Array types must match exactly. We can't allow a 'child*[]' to be
-        // assigned to 'pareent[]' without additional dynamic type checking
         Symbol const core_wants_to_be = _sym.VartypeWithout(VTT::kDynarray, vartype_wants_to_be);
         Symbol const core_is = _sym.VartypeWithout(VTT::kDynarray, vartype_is);
-        
-        return core_is != core_wants_to_be;
+        // In unmanaged dynarrays, elements of fixed length follow one after the other,
+        // so we cannot allow different element types, e.g. shorts converting to int etc.
+        if (!_sym.IsManagedVartype(core_is) && core_is != core_wants_to_be)
+            return true;
+
+        return IsVartypeMismatch_Oneway(core_is, core_wants_to_be);
     }
 
     // Checks to do if at least one is dynpointer
     if (_sym.IsDynpointerVartype(vartype_is) || _sym.IsDynpointerVartype(vartype_wants_to_be))
     {
-        // BOTH sides must be dynpointer
         if (_sym.IsDynpointerVartype(vartype_is) != _sym.IsDynpointerVartype(vartype_wants_to_be))
             return true;
 
-        // Core vartypes need not be identical here: check against extensions
+        // Accept conversion of a type to any of its ancesters
         Symbol const target_core_vartype = _sym.VartypeWithout(VTT::kDynpointer, vartype_wants_to_be);
         Symbol current_core_vartype = _sym.VartypeWithout(VTT::kDynpointer, vartype_is);
         while (current_core_vartype != target_core_vartype)
@@ -2026,7 +2031,7 @@ void AGS::Parser::ParseExpression_New(SrcList &expression, EvaluationResult &ere
     if (with_bracket_expr)
     {
         // Note that in AGS, you can write "new Struct[...]" but what you mean then is "new Struct*[...]".
-        EatDynpointerSymbolIfPresent(argument_vartype);
+        EatDynpointerSymbolIfPresent(_src, argument_vartype);
         
         // Check for '[' with a handcrafted error message so that the user isn't led to 
         // fix their code by defining a dynamic array when this would be the wrong thing to do
@@ -2557,6 +2562,85 @@ void AGS::Parser::ParseExpression_Ternary(size_t const tern_idx, SrcList &expres
     eres.Modifiable = false;
 }
 
+void AGS::Parser::ParseExpression_As(SrcList &vartype_list, EvaluationResult &eres)
+{
+    vartype_list.StartRead();
+    Vartype new_vartype = ParseVartype(vartype_list);
+    ParseDynArrayMarkersIfPresent(vartype_list, new_vartype);
+    ParseExpression_CheckUsedUp(vartype_list);
+
+    Vartype const curr_vartype = eres.Vartype;
+
+    if (_sym.IsDynpointerVartype(curr_vartype))
+    {
+        if (!_sym.IsDynpointerVartype(new_vartype))
+            new_vartype = _sym.VartypeWithDynpointer(new_vartype);
+    }
+
+    // Handle cases where 'curr_vartype' is convertable to 'new_vartype'
+    // even without any 'as' clause.
+    if (!IsVartypeMismatch_Oneway(curr_vartype, new_vartype))
+    {
+        eres.Vartype = new_vartype;
+        return;
+    }
+
+    if (_sym.IsDynarrayVartype(curr_vartype))
+        // Here, when we try to convert a (managed) dynarray type
+        // 'A*[]' to type 'B*[]' where 'B' is not an ancester of 'A':
+        // If we'd do this, then the compiler would "forget"
+        // that the array used to have the type 'A*[]' originally.
+        // At this point in time, this array might already contain
+        // non-null elements. We will never run checks whether these
+        // actually _are_ of type 'B*'.
+        // This is unsafe. So do NOT allow this.
+        UserError(    
+            ReferenceMsgSym(
+                "Cannot convert the dynamic array '%s' to type '%s'",
+                curr_vartype).c_str(),
+            _sym.GetName(curr_vartype).c_str(),
+            _sym.GetName(new_vartype).c_str());
+
+    if (_sym.IsAtomicVartype(curr_vartype))
+        // Here, we might implement an int-to-float or float-to-int
+        // conversion in future. There are several possibilities
+        // for the float-to-int conversion (to nearest, lower,
+        // upper int, towards zero, away from zero), so which one?
+        UserError(
+            "Cannot convert type '%s' to type '%s' through an 'as' clause",
+            _sym.GetName(curr_vartype).c_str(),
+            _sym.GetName(new_vartype).c_str());
+
+    if (!_sym.IsDynpointerVartype(curr_vartype))
+        InternalError(
+            "Expected to convert a dynpointer, found '%s'",
+            _sym.GetName(curr_vartype).c_str());
+
+    Vartype const element_vartype = _sym.GetFirstBaseVartype(new_vartype);
+    if (!_sym.IsManagedVartype(element_vartype))
+        UserError(
+            ReferenceMsgSym(
+                "Cannot convert to the non-managed type '%s'",
+                new_vartype).c_str(),
+            _sym.GetName(new_vartype).c_str());
+
+    if (FlagIsSet(_options, SCOPT_RTTIOPS))
+    {
+        EvaluationResultToAx(eres);
+        CodeCell const scmd_dynamiccast = 76;        // TODO: remove when SCMD_DYNAMICCAST is defined
+        WriteCmd(scmd_dynamiccast, element_vartype); // TODO: change to SCMD_DYNAMICCAST when that is defined
+    }
+    else
+    {
+        if (IsVartypeMismatch_Oneway(new_vartype, curr_vartype))
+            UserError(
+                "Cannot convert type '%s', it isn't type '%s' or an ancester of it (RTTI is disabled)",
+                _sym.GetName(curr_vartype).c_str(),
+                _sym.GetName(new_vartype).c_str());
+    }
+    eres.Vartype = new_vartype;
+}
+
 void AGS::Parser::ParseExpression_Binary(size_t const op_idx, SrcList &expression, EvaluationResult &eres)
 {
     RestorePoint start_of_term(_scrip);
@@ -2595,6 +2679,11 @@ void AGS::Parser::ParseExpression_Binary(size_t const op_idx, SrcList &expressio
     else if (kKW_Increment == operator_sym || kKW_Decrement == operator_sym)
     {
         UserError("Cannot use '%s' as a binary operator", _sym.GetName(operator_sym).c_str());
+    }
+    else if (kKW_As == operator_sym)
+    {
+        SrcList rhs = SrcList(expression, op_idx + 1u, expression.Length());
+        return ParseExpression_As( rhs, eres);
     }
     else
     {
@@ -4061,6 +4150,21 @@ void AGS::Parser::SkipToEndOfExpression(SrcList &src)
             continue;
         }
 
+        if (kKW_As == peeksym || kKW_New == peeksym)
+        {   // Only allowed if a type follows   
+            SkipNextSymbol(src, peeksym);
+            Symbol const following_sym = src.PeekNext();
+            if (_sym.IsVartype(following_sym))
+            {
+                SkipNextSymbol(src, following_sym);
+                continue;
+            }
+            UserError(
+                "Expected a type after '%s', found '%s' instead",
+                _sym.GetName(peeksym).c_str(),
+                _sym.GetName(following_sym).c_str());
+        }
+
         if (kKW_Colon == peeksym)
         {
             // This is only allowed if it can be matched to an open tern
@@ -4076,19 +4180,6 @@ void AGS::Parser::SkipToEndOfExpression(SrcList &src)
             SkipNextSymbol(src, kKW_Dot); 
             src.GetNext(); // Eat following symbol
             continue;
-        }
-
-        if (kKW_New == peeksym)
-        {   // Only allowed if a type follows   
-            SkipNextSymbol(src, kKW_New); 
-            Symbol const sym_after_new = src.PeekNext();
-            if (_sym.IsVartype(sym_after_new))
-            {
-                SkipNextSymbol(src, sym_after_new); 
-                continue;
-            }
-            src.BackUp(); // spit out 'new'
-            break;
         }
 
         if (kKW_Null == peeksym)
@@ -4325,7 +4416,7 @@ void AGS::Parser::ParseStruct_ConstantDefn(Symbol const name_of_struct)
         return;
     }
 
-    Vartype const vartype = ParseVartype();
+    Vartype const vartype = ParseVartype(_src);
     if (kKW_Int != vartype && kKW_Float != vartype)
         UserError("Can only handle compile-time constants of type 'int' or 'float' but found '%s' instead",
             _sym.GetName(vartype).c_str());
@@ -5154,7 +5245,7 @@ void AGS::Parser::ParseStruct_Attribute(TypeQualifierSet tqs, Symbol const name_
         UserError("The only allowed type that starts with 'const' is 'const string' (did you mean 'readonly attribute'?)");
 
     SetDynpointerInManagedVartype(vartype);
-    EatDynpointerSymbolIfPresent(vartype);
+    EatDynpointerSymbolIfPresent(_src, vartype);
 
     while (true)
     {
@@ -5338,14 +5429,14 @@ void AGS::Parser::ParseStruct_VariableOrFunctionDefn(Symbol name_of_struct, Type
     _sym.SetDeclared(qualified_component, declaration_start);
  }
 
-void AGS::Parser::EatDynpointerSymbolIfPresent(Vartype vartype)
+void AGS::Parser::EatDynpointerSymbolIfPresent(SrcList src, Vartype vartype)
 {
-    if (kKW_Dynpointer != _src.PeekNext())
+    if (kKW_Dynpointer != src.PeekNext())
         return;
 
     if (PP::kPreAnalyze == _pp || _sym.IsManagedVartype(vartype))
     {
-        SkipNextSymbol(_src, kKW_Dynpointer);
+        SkipNextSymbol(src, kKW_Dynpointer);
         return;
     }
 
@@ -5393,14 +5484,14 @@ void AGS::Parser::ParseStruct_CheckComponentVartype(Symbol const stname, Vartype
 void AGS::Parser::ParseStruct_Vartype(Symbol name_of_struct, TypeQualifierSet tqs)
 {
     _src.BackUp();
-    Vartype vartype = ParseVartype();
+    Vartype vartype = ParseVartype(_src);
 
     if (PP::kMain == _pp)
         // Check for illegal struct member types
 		ParseStruct_CheckComponentVartype(name_of_struct, vartype);
 
     // "int [] func(...)"
-    ParseDynArrayMarkerIfPresent(vartype);
+    ParseDynArrayMarkersIfPresent(_src, vartype);
     
     // "TYPE noloopcheck foo(...)"
     if (kKW_Noloopcheck == _src.PeekNext())
@@ -5537,8 +5628,8 @@ void AGS::Parser::ParseStruct(TypeQualifierSet tqs, Symbol &struct_of_current_fu
 
     Vartype vartype = stname;
     SetDynpointerInManagedVartype(vartype);
-    EatDynpointerSymbolIfPresent(vartype);
-    ParseDynArrayMarkerIfPresent(vartype);
+    EatDynpointerSymbolIfPresent(_src, vartype);
+    ParseDynArrayMarkersIfPresent(_src, vartype);
     ScopeType const scope_type = (vardecl_tqs[TQ::kImport]) ? ScT::kImport : ScT::kGlobal;
 
     ParseVartype_MemberList(vardecl_tqs, vartype, scope_type, false, struct_of_current_func, name_of_current_func);
@@ -5589,17 +5680,17 @@ void AGS::Parser::ParseEnum_Name2Symtable(Symbol enum_name)
     entry.VartypeD->Flags[VTF::kEnum] = true;
 }
 
-AGS::Symbol AGS::Parser::ParseVartype(bool const with_dynpointer_handling)
+AGS::Symbol AGS::Parser::ParseVartype(SrcList &src, bool const with_dynpointer_handling)
 {
-    bool const leading_const = (kKW_Const == _src.PeekNext());
+    bool const leading_const = (kKW_Const == src.PeekNext());
     if (leading_const)
-        SkipNextSymbol(_src, kKW_Const); 
+        SkipNextSymbol(src, kKW_Const); 
 
-    Vartype vartype = _src.GetNext();
+    Vartype vartype = src.GetNext();
     if (!_sym.IsVartype(vartype))
         UserError("Expected a type, found '%s' instead", _sym.GetName(vartype).c_str());
     if (_sym[vartype].VartypeD->Flags[VTF::kUndefined])
-        _structRefs[vartype] = _src.GetCursor();
+        _structRefs[vartype] = src.GetCursor();
 
     if (leading_const)
     {
@@ -5611,7 +5702,7 @@ AGS::Symbol AGS::Parser::ParseVartype(bool const with_dynpointer_handling)
     if (with_dynpointer_handling)
     {
         SetDynpointerInManagedVartype(vartype);
-        EatDynpointerSymbolIfPresent(vartype);
+        EatDynpointerSymbolIfPresent(src, vartype);
     }
     return vartype;
 }
@@ -5704,7 +5795,7 @@ void AGS::Parser::ParseEnum(TypeQualifierSet tqs, Symbol &struct_of_current_func
 
     // Take enum that has just been defined as the vartype of a declaration
     Vartype vartype = enum_name;
-    ParseDynArrayMarkerIfPresent(vartype);
+    ParseDynArrayMarkersIfPresent(_src, vartype);
     ScopeType const scope_type = tqs[TQ::kImport] ? ScT::kImport : ScT::kGlobal;
     ParseVartype_MemberList(tqs, vartype, scope_type, false, struct_of_current_func, name_of_current_func);
 }
@@ -5725,7 +5816,7 @@ void AGS::Parser::ParseAttribute(TypeQualifierSet tqs, Symbol const name_of_curr
     if (tqs[TQ::kStatic])
         UserError("Can only declare 'static attribute' within a 'struct' declaration (use extender syntax 'attribute ... (static STRUCT)')");
 
-    Vartype vartype = ParseVartype();
+    Vartype vartype = ParseVartype(_src);
 
     while (true)
     {
@@ -5990,7 +6081,7 @@ void AGS::Parser::ParseVartypeClause(TypeQualifierSet tqs, Symbol &struct_of_cur
         (tqs[TQ::kImport]) ? ScT::kImport : ScT::kGlobal;
     
     _src.BackUp();
-    Vartype vartype = ParseVartype(false);
+    Vartype vartype = ParseVartype(_src, false);
 
     // A pointer symbol is generally implied for managed vartypes
     bool managed_vartype_has_implied_pointer = _sym.IsManagedVartype(vartype);
@@ -6004,10 +6095,10 @@ void AGS::Parser::ParseVartypeClause(TypeQualifierSet tqs, Symbol &struct_of_cur
     {
         vartype = _sym.VartypeWithDynpointer(vartype);
     }
-    EatDynpointerSymbolIfPresent(vartype);
+    EatDynpointerSymbolIfPresent(_src, vartype);
     
     // "int [] func(...)"
-    ParseDynArrayMarkerIfPresent(vartype);
+    ParseDynArrayMarkersIfPresent(_src, vartype);
     
     // Look for "noloopcheck"; if present, gobble it and set the indicator
     // "TYPE noloopcheck foo(...)"
@@ -6273,7 +6364,7 @@ void AGS::Parser::ParseFor_InitClauseVardecl()
 {
     Vartype vartype = _src.GetNext();
     SetDynpointerInManagedVartype(vartype);
-    EatDynpointerSymbolIfPresent(vartype);
+    EatDynpointerSymbolIfPresent(_src, vartype);
     
     while (true)
     {

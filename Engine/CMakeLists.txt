@@ -295,7 +295,6 @@ target_sources(engine
     debug/logfile.h
     device/mousew32.cpp
     device/mousew32.h
-    font/fonts_engine.cpp
     game/game_init.cpp
     game/game_init.h
     game/savegame.cpp

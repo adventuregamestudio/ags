@@ -137,12 +137,22 @@ private:
 };
 
 
+DisplayTextPosition get_textpos_from_scriptcoords(int x, int y, bool for_speech)
+{
+    int text_pos = kDisplayTextPos_Normal;
+    if (for_speech)
+    {
+        if (x < 0) text_pos |= kDisplayTextPos_OvercharX;
+        if (y < 0) text_pos |= kDisplayTextPos_OvercharY;
+    }
+    else
+    {
+        if (x < 0) text_pos |= kDisplayTextPos_ScreenCenterX;
+        if (y < 0) text_pos |= kDisplayTextPos_ScreenCenterY;
+    }
+    return (DisplayTextPosition)text_pos;
+}
 
-// Generates a textual image and returns a disposable bitmap
-// FIXME: for historical reasons this function also contains position adjustment;
-// but this should not be done here at all.
-// FIXME: xx is allowed to be passed as OVR_AUTOPLACE, which has special meaning,
-// but that's a confusing use of this argument.
 Bitmap *create_textual_image(const char *text, const DisplayTextLooks &look, color_t text_color,
     int &xx, int &yy, int &adjustedXX, int &adjustedYY, int wii, int usingfont,
     bool &alphaChannel, const TopBarSettings *topbar)
@@ -178,7 +188,8 @@ Bitmap *create_textual_image(const char *text, const DisplayTextLooks &look, col
         get_font_linespacing(usingfont),
         get_text_lines_surf_height(usingfont, Lines.Count()));
 
-    if (topbar) {
+    if (topbar)
+    {
         // ensure that the window is wide enough to display any top bar text
         int topBarWid = get_text_width_outlined(topbar->Text.GetCStr(), topbar->Font);
         topBarWid += data_to_game_coord(play.top_bar_borderwidth + 2) * 2;
@@ -186,17 +197,28 @@ Bitmap *create_textual_image(const char *text, const DisplayTextLooks &look, col
             longestline = topBarWid;
     }
 
-    const bool auto_align_pos = xx < -1; // sic, it was suggesting x < -1
     const Rect &ui_view = play.GetUIViewport();
-    if (xx == OVR_AUTOPLACE);
+    if (xx == OVR_AUTOPLACE) {} // FIXME: don't use OVR_AUTOPLACE here
     // centre text in middle of screen
-    else if (yy<0) yy = ui_view.GetHeight() / 2 - disp.FullTextHeight / 2 - padding;
-    // speech, so it wants to be above the character's head
-    else if (look.Style == kDisplayTextStyle_Overchar) {
-        // If ordered to auto align, then first make sure that the position is on screen
-        if (auto_align_pos) {
-            yy = Math::Clamp(yy, disp.FullTextHeight + screen_padding, ui_view.GetHeight() - screen_padding);
-        }
+    else if ((look.Position & kDisplayTextPos_ScreenCenterY) != 0)
+    {
+        yy = ui_view.GetHeight() / 2 - disp.FullTextHeight / 2 - padding;
+    }
+    // LA-style speech, so it wants to be above the character's head
+    else if ((look.Position & kDisplayTextPos_OvercharY) != 0)
+    {
+        // Clamp text position to screen bounds, and align by the text's bottom
+        yy = Math::Clamp(yy, disp.FullTextHeight + screen_padding, ui_view.GetHeight() - screen_padding);
+        yy -= disp.FullTextHeight;
+        yy = adjust_y_for_guis(yy);
+    }
+    // NOTE: this is possibly an accidental mistake, but historically
+    // this Y pos fixup is also applied for SayAt, which results in
+    // text's origin being a left-bottom rather than left-top.
+    // Maybe this could be fixed in some future versions...
+    else if (look.Style == kDisplayTextStyle_Overchar)
+    {
+        yy = std::max(yy, disp.FullTextHeight + screen_padding);
         yy -= disp.FullTextHeight;
         yy = adjust_y_for_guis(yy);
     }
@@ -213,15 +235,18 @@ Bitmap *create_textual_image(const char *text, const DisplayTextLooks &look, col
             xx += (oldWid - wii);
     }
 
-    // If ordered to center around the x pos, then do so, and fixup
-    if (auto_align_pos) {
-        xx = (-xx) - wii / 2;
+    if (xx == OVR_AUTOPLACE) {} // FIXME: don't use OVR_AUTOPLACE here
+    else if ((look.Position & kDisplayTextPos_ScreenCenterX) != 0)
+    {
+        xx = ui_view.GetWidth() / 2 - wii / 2;
+    }
+    // If ordered to center around the x pos, then do so, and clamp to the screen bounds
+    else if ((look.Position & kDisplayTextPos_OvercharX) != 0)
+    {
+        xx -= wii / 2;
         xx = Math::Clamp(xx, screen_padding, ui_view.GetWidth() - screen_padding - wii);
         xx = adjust_x_for_guis(xx, yy);
     }
-    // FIXME: this is unreliable, will execute only of xx == -1,
-    // but what if it's +1 inverted for centering?
-    else if (xx<0) xx = ui_view.GetWidth() / 2 - wii / 2;
 
     const int extraHeight = paddingDoubledScaled;
     const int bmp_width = std::max(2, wii);
@@ -371,9 +396,6 @@ bool display_check_user_input(int skip)
     return state_handled;
 }
 
-// Pass yy = -1 to find Y co-ord automatically
-// allowShrink = 0 for none, 1 for leftwards, 2 for rightwards
-// pass blocking=2 to create permanent overlay
 ScreenOverlay *display_main(int xx, int yy, int wii, const char *text,
     const TopBarSettings *topbar, DisplayTextType disp_type, int over_id,
     const DisplayTextLooks &look, int usingfont, color_t text_color,
@@ -405,7 +427,8 @@ ScreenOverlay *display_main(int xx, int yy, int wii, const char *text,
         disp_type = kDisplayText_Speech;
     }
 
-    if ((look.Style == kDisplayTextStyle_Overchar) && (disp_type < kDisplayText_NormalOverlay))
+    if ((look.Style == kDisplayTextStyle_PlainText || look.Style == kDisplayTextStyle_Overchar)
+        && (disp_type < kDisplayText_NormalOverlay))
     {
         // update the all_buttons_disabled variable in advance
         // of the adjust_x/y_for_guis calls

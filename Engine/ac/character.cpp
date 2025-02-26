@@ -778,7 +778,7 @@ int Character_GetHasExplicitTint(CharacterInfo *ch)
 }
 
 void Character_Say(CharacterInfo *chaa, const char *text) {
-    _DisplaySpeechCore(chaa->index_id, text);
+    DisplaySpeechCore(chaa->index_id, text);
 }
 
 void Character_SayAt(CharacterInfo *chaa, int x, int y, int width, const char *texx) {
@@ -1035,7 +1035,7 @@ void Character_Tint(CharacterInfo *chaa, int red, int green, int blue, int opaci
 }
 
 void Character_Think(CharacterInfo *chaa, const char *text) {
-    _DisplayThoughtCore(chaa->index_id, text);
+    DisplayThoughtCore(chaa->index_id, text);
 }
 
 void Character_UnlockView(CharacterInfo *chaa) {
@@ -2493,7 +2493,7 @@ int check_click_on_character(int xx,int yy,int mood) {
     return 0;
 }
 
-void _DisplaySpeechCore(int chid, const char *displbuf) {
+void DisplaySpeechCore(int chid, const char *displbuf) {
     if (displbuf[0] == 0) {
         // no text, just update the current character who's speaking
         // this allows the portrait side to be switched with an empty
@@ -2511,30 +2511,25 @@ void _DisplaySpeechCore(int chid, const char *displbuf) {
     DisplaySpeech(displbuf, chid);
 }
 
-void _DisplayThoughtCore(int chid, const char *displbuf) {
+void DisplayThoughtCore(int chid, const char *displbuf) {
     // adjust timing of text (so that DisplayThought("%s", str) pauses
     // for the length of the string not 2 frames)
     int len = (int)strlen(displbuf);
     if (len > source_text_length + 3)
         source_text_length = len;
 
-    int xpp = -1, ypp = -1, width = -1;
-
+    int width = -1;
     if ((game.options[OPT_SPEECHTYPE] == 0) || (game.chars[chid].thinkview <= 0)) {
         // lucasarts-style, so we want a speech bubble actually above
         // their head (or if they have no think anim in Sierra-style)
         width = data_to_game_coord(play.speech_bubble_width);
-        xpp = play.RoomToScreenX(data_to_game_coord(game.chars[chid].x)) - width / 2;
-        if (xpp < 0)
-            xpp = 0;
-        // -1 will automatically put it above the char's head
-        ypp = -1;
     }
 
-    _displayspeech(displbuf, chid, xpp, ypp, width, 1);
+    display_speech(displbuf, chid, -1, -1, width, true /*auto-pos*/, true /* is thought */);
 }
 
-void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int isThought) {
+void display_speech(const char *texx, int aschar, int xx, int yy, int widd, bool auto_position, bool is_thought)
+{
     if (!is_valid_character(aschar))
         quit("!DisplaySpeech: invalid character");
 
@@ -2592,10 +2587,17 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
     }
 
     DisplayTextStyle disp_style = kDisplayTextStyle_Overchar;
+    // If the character is in this room, then default to aligning the speech
+    // to the character position; but if it's not then center the speech on screen
+    DisplayTextPosition disp_pos = auto_position ?
+        get_textpos_from_scriptcoords(xx, yy, (speakingChar->room == displayed_room)) :
+        kDisplayTextPos_Normal;
     const color_t text_color = speakingChar->talkcolor;
 
-    Rect ui_view = play.GetUIViewport();
     DisplayTextShrink allow_shrink = kDisplayTextShrink_None;
+    bool align_hcenter = false; // whether to align text by centering over position
+
+    const Rect ui_view = play.GetUIViewport();
     int bwidth = widd;
     if (bwidth < 0)
         bwidth = ui_view.GetWidth()/2 + ui_view.GetWidth()/4;
@@ -2603,18 +2605,14 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
     set_our_eip(151);
 
     int useview = speakingChar->talkview;
-    if (isThought) {
+    if (is_thought)
+    {
         useview = speakingChar->thinkview;
         // view 0 is not valid for think views
         if (useview == 0)
             useview = -1;
         // speech bubble can shrink to fit
         allow_shrink = kDisplayTextShrink_Left;
-        if (speakingChar->room != displayed_room) {
-            // not in room, centre it
-            xx = -1;
-            yy = -1;
-        }
     }
 
     if (useview >= game.numviews)
@@ -2633,7 +2631,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
         stop_character_idling(speakingChar);
     }
 
-    int tdxp = xx,tdyp = yy;
+    int tdxp = xx, tdyp = yy;
     int oldview=-1, oldloop = -1;
     int ovr_type = 0;
     text_lips_offset = 0;
@@ -2685,9 +2683,8 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
             tdxp = view->RoomToScreen(data_to_game_coord(speakingChar->x), 0).first.X;
         if (tdxp < 2)
             tdxp = 2;
-        // tell it to centre it (passing negative x coord further will be treated as a alignment instruction)
-        // FIXME: this is unreliable and bug prone, use a separate argument for alignment!
-        tdxp = -tdxp;
+        // tell it to align it by center
+        align_hcenter = auto_position && (xx < 0);
 
         if (tdyp < 0)
         {
@@ -2695,7 +2692,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
             int height = (charextra[aschar].height < 1) ? game.SpriteInfos[sppic].Height : charextra[aschar].height;
             tdyp = view->RoomToScreen(0, data_to_game_coord(charextra[aschar].GetEffectiveY(speakingChar)) - height).first.Y
                     - get_fixed_pixel_size(5);
-            if (isThought) // if it's a thought, lift it a bit further up
+            if (is_thought) // if it's a thought, lift it a bit further up
                 tdyp -= get_fixed_pixel_size(10);
         }
         if (tdyp < 5)
@@ -2705,6 +2702,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
 
         if ((useview >= 0) && (game.options[OPT_SPEECHTYPE] > 0)) {
             // Sierra-style close-up portrait
+            disp_pos = kDisplayTextPos_Normal;
 
             if (play.swap_portrait_lastchar != aschar) {
                 // if the portraits are set to Alternate, OR they are
@@ -2900,10 +2898,10 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
             facetalkloop = 0;
             facetalkframe = 0;
             facetalkwait = viptr->loops[0].frames[0].speed + GetCharacterSpeechAnimationDelay(speakingChar);
-            facetalkrepeat = (isThought) ? 0 : 1;
+            facetalkrepeat = (is_thought) ? 0 : 1;
             facetalkBlinkLoop = 0;
             facetalkAllowBlink = 1;
-            if ((isThought) && (speakingChar->flags & CHF_NOBLINKANDTHINK))
+            if ((is_thought) && (speakingChar->flags & CHF_NOBLINKANDTHINK))
                 facetalkAllowBlink = 0;
             facetalkchar = &game.chars[aschar];
             if (facetalkchar->blinktimer < 0)
@@ -2921,7 +2919,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
             oldview = speakingChar->view;
             oldloop = speakingChar->loop;
 
-            speakingChar->set_animating(!isThought, // only repeat if speech, not thought
+            speakingChar->set_animating(!is_thought, // only repeat if speech, not thought
                 true, // always forwards
                 GetCharacterSpeechAnimationDelay(speakingChar));
 
@@ -2953,33 +2951,32 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
                 if ((relx < ui_view.GetWidth() / 4) || (relx > ui_view.GetWidth() - (ui_view.GetWidth() / 4)))
                     bwidth -= ui_view.GetWidth() / 5;
             }
-            /*   this causes the text to bob up and down as they talk
-            tdxp = OVR_AUTOPLACE;
-            tdyp = aschar;*/
-            if (!isThought)  // set up the lip sync if not thinking
+            if (!is_thought)  // set up the lip sync if not thinking
                 char_speaking_anim = aschar;
-
         }
     }
     else
+    {
+        // If the character is in another room, then center the speech on screen
         allow_shrink = kDisplayTextShrink_Left;
+    }
 
     // If initial argument was NOT requiring a autoposition,
     // but further calculation set it to be centered, then make it so here
-    // (note: this assumes that a valid width is also passed)
-    if ((xx >= 0) && (tdxp < 0))
+    // (NOTE: this assumes that a valid width is also passed)
+    if ((xx >= 0) && align_hcenter)
         tdxp -= widd / 2;
 
     // if they used DisplaySpeechAt, then use the supplied width
-    if ((widd > 0) && (isThought == 0))
+    if ((widd > 0) && (!is_thought))
         allow_shrink = kDisplayTextShrink_None;
 
-    if (isThought)
+    if (is_thought)
         char_thinking = aschar;
 
     set_our_eip(155);
     display_main(tdxp, tdyp, bwidth, texx, nullptr, kDisplayText_Speech, 0 /* no overid */,
-        DisplayTextLooks(disp_style, isThought, allow_shrink), FONT_SPEECH, text_color, overlayPositionFixed);
+        DisplayTextLooks(disp_style, disp_pos, allow_shrink, is_thought), FONT_SPEECH, text_color, overlayPositionFixed);
     set_our_eip(156);
     if ((play.in_conversation > 0) && (game.options[OPT_SPEECHTYPE] == 3))
         closeupface = nullptr;
@@ -3023,8 +3020,9 @@ int get_character_currently_talking() {
     return -1;
 }
 
-void DisplaySpeech(const char*texx, int aschar) {
-    _displayspeech (texx, aschar, -1, -1, -1, 0);
+void DisplaySpeech(const char *texx, int aschar)
+{
+    display_speech(texx, aschar, -1, -1, -1, true /*auto-pos*/, false /* not thought */);
 }
 
 // Calculate which frame of the loop to use for this character of

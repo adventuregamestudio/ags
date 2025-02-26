@@ -96,6 +96,8 @@ const int LegacyRoomVolumeFactor            = 30;
 #define OVER_FIRSTFREE 5
 #define OVER_CUSTOM   -1
 // Overlay parameters
+// FIXME: this constant is assigned to the Overlay's x coordinate,
+// which is ugly and prone to mistakes, store as Overlay's flag instead
 #define OVR_AUTOPLACE 30000
 
 // These are possibly actions scheduled to run after "wait";

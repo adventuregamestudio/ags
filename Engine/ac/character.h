@@ -11,15 +11,12 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-//
-//
-//
-//=============================================================================
 #ifndef __AGS_EE_AC__CHARACTER_H
 #define __AGS_EE_AC__CHARACTER_H
 
 #include "ac/characterinfo.h"
 #include "ac/characterextras.h"
+#include "ac/display.h"
 #include "ac/dynobj/scriptobject.h"
 #include "ac/dynobj/scriptinvitem.h"
 #include "ac/dynobj/scriptoverlay.h"
@@ -212,9 +209,13 @@ int my_getpixel(Common::Bitmap *blk, int x, int y);
 // X and Y co-ordinates must be in 320x200 format
 int check_click_on_character(int xx,int yy,int mood);
 int is_pos_on_character(int xx,int yy);
-void _DisplaySpeechCore(int chid, const char *displbuf);
-void _DisplayThoughtCore(int chid, const char *displbuf);
-void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int isThought);
+void DisplaySpeechCore(int chid, const char *displbuf);
+void DisplayThoughtCore(int chid, const char *displbuf);
+// Displays character speech or thought message.
+// When auto-position flag is on, passing negative coordinates will request
+// auto-position on the respective axis. The nature of auto-pos will depend
+// on a speech style. E.g. LA speech aligns above character's head.
+void display_speech(const char *texx, int aschar, int xx, int yy, int widd, bool auto_position, bool is_thought);
 int get_character_currently_talking();
 void DisplaySpeech(const char*texx, int aschar);
 int update_lip_sync(int talkview, int talkloop, int *talkframeptr);

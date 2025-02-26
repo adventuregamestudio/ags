@@ -74,12 +74,23 @@ void Overlay_SetText(ScriptOverlay *scover, int width, int fontid, int text_colo
 void Overlay_SetText(ScreenOverlay &over, int x, int y, int width, int fontid, int text_color, const char *text)
 {
     // TODO: find a nice way to refactor and share these code pieces
-    // from CreateTextOverlay
-    width = data_to_game_coord(width);
+    // with Overlay_CreateTextCore
+    int text_pos = kDisplayTextPos_Normal;
+    if (x == OVR_AUTOPLACE)
+    {
+        text_pos = kDisplayTextPos_Overchar;
+    }
+    else
+    {
+        // NOTE: this was not documented, but apparently passing x < 0 or y < 0
+        // to SetTextOverlay actually made it centered on screen
+        text_pos = get_textpos_from_scriptcoords(x, y, false);
+    }
     // allow DisplaySpeechBackground to be shrunk
     DisplayTextShrink allow_shrink = (x == OVR_AUTOPLACE) ? kDisplayTextShrink_Left : kDisplayTextShrink_None;
 
     // from Overlay_CreateTextCore
+    width = data_to_game_coord(width);
     if (width < 8) width = play.GetUIViewport().GetWidth() / 2;
     if (text_color == 0) text_color = 16;
 
@@ -91,7 +102,7 @@ void Overlay_SetText(ScreenOverlay &over, int x, int y, int width, int fontid, i
     int dummy_x = x, dummy_y = y, adj_x = x, adj_y = y;
     bool has_alpha = false;
     Bitmap *image = create_textual_image(draw_text,
-        DisplayTextLooks(kDisplayTextStyle_TextWindow, false /* not thought */, allow_shrink),
+        DisplayTextLooks(kDisplayTextStyle_TextWindow, (DisplayTextPosition)text_pos, allow_shrink),
         text_color, dummy_x, dummy_y, adj_x, adj_y,
         width, fontid, has_alpha, nullptr);
 
@@ -240,13 +251,16 @@ ScreenOverlay *Overlay_CreateGraphicCore(bool room_layer, int x, int y, int slot
 ScreenOverlay *Overlay_CreateTextCore(bool room_layer, int x, int y, int width, int font, int text_color,
     const char *text, int over_type, DisplayTextStyle style, DisplayTextShrink allow_shrink)
 {
+    // NOTE: this was not documented, but apparently passing x < 0 or y < 0
+    // to Overlay.CreateTextual actually made it centered on screen
+    int text_pos = get_textpos_from_scriptcoords(x, y, false);
     if (width < 8) width = play.GetUIViewport().GetWidth() / 2;
-    if (x < 0) x = play.GetUIViewport().GetWidth() / 2 - width / 2;
     if (text_color == 0) text_color = 16;
     // Skip a voice-over token, if present
     const char *draw_text = skip_voiceover_token(text);
     return display_main(x, y, width, draw_text, nullptr, kDisplayText_NormalOverlay, over_type,
-        DisplayTextLooks(style, false /* not thought */, allow_shrink), font, text_color, false /* no fixed pos */, room_layer);
+        DisplayTextLooks(style, (DisplayTextPosition)text_pos, allow_shrink),
+        font, text_color, false /* no fixed pos */, room_layer);
 }
 
 ScriptOverlay* Overlay_CreateGraphicalImpl(bool room_layer, int x, int y, int slot, bool transparent, bool clone)

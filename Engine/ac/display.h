@@ -37,7 +37,27 @@ enum DisplayTextStyle
 {
     kDisplayTextStyle_MessageBox,   // standard message box
     kDisplayTextStyle_TextWindow,   // use text window GUI, if applicable
-    kDisplayTextStyle_Overchar,     // display text above a character
+    kDisplayTextStyle_PlainText,    // plain text without any boxes
+    kDisplayTextStyle_Overchar      // display plain text for a character;
+                                    // this style have special adjustments
+};
+
+enum DisplayTextPosition
+{
+    // display text using explicit position
+    kDisplayTextPos_Normal          = 0,
+    // display text centered on screen along x
+    kDisplayTextPos_ScreenCenterX   = 0x0001,
+    // display text centered on screen along y
+    kDisplayTextPos_ScreenCenterY   = 0x0002,
+    // display text centered on screen along x & y
+    kDisplayTextPos_ScreenCenter    = (kDisplayTextPos_ScreenCenterX | kDisplayTextPos_ScreenCenterY),
+    // display text aligned to a character along x
+    kDisplayTextPos_OvercharX       = 0x0004,
+    // display text aligned to a character along y
+    kDisplayTextPos_OvercharY       = 0x0008,
+    // display text aligned to a character along x & y
+    kDisplayTextPos_Overchar        = (kDisplayTextPos_OvercharX | kDisplayTextPos_OvercharY)
 };
 
 // Whether displayed text is allowed to be shrinked
@@ -48,19 +68,25 @@ enum DisplayTextShrink
     kDisplayTextShrink_Right
 };
 
+// Various options for displaying a text on screen
 struct DisplayTextLooks
 {
     DisplayTextStyle Style = kDisplayTextStyle_TextWindow;
-    // Is this a character's thought; FIXME: merge with Style?
-    bool AsThought = false;
+    // Center text on screen
+    DisplayTextPosition Position = kDisplayTextPos_Normal;
     // Allow to make the resulting overlay smaller than requested
     DisplayTextShrink AllowShrink = kDisplayTextShrink_None;
+    // Is this a character's thought; FIXME: merge with Style?
+    bool AsThought = false;
 
     DisplayTextLooks() = default;
     DisplayTextLooks(DisplayTextStyle style)
         : Style(style) {}
-    DisplayTextLooks(DisplayTextStyle style, bool as_thought, DisplayTextShrink allow_shrink)
-        : Style(style), AsThought(as_thought), AllowShrink(allow_shrink) {}
+    DisplayTextLooks(DisplayTextStyle style, DisplayTextPosition pos, DisplayTextShrink allow_shrink,
+                     bool as_thought = false)
+        : Style(style), Position(pos), AllowShrink(allow_shrink)
+        , AsThought(as_thought)
+    {}
 };
 
 struct TopBarSettings
@@ -87,10 +113,15 @@ struct DisplayVars
 
 struct ScreenOverlay;
 
+// Cast text coordinates received from the script to DisplayTextPosition
+DisplayTextPosition get_textpos_from_scriptcoords(int x, int y, bool for_speech);
 // Generates a textual image from the given text and parameters;
-// see _display_main's comment below for parameters description.
+// see display_main's comment below for parameters description.
 // NOTE: this function treats text as-is, not doing any processing over it.
-// TODO: refactor this collection of args into 1-2 structs with params.
+// FIXME: for historical reasons this function also contains position adjustment;
+// but this should not be done here at all.
+// FIXME: xx is allowed to be passed as OVR_AUTOPLACE, which has special meaning,
+// but that's a confusing use of this argument.
 Common::Bitmap *create_textual_image(const char *text, const DisplayTextLooks &look, color_t text_color,
     int &xx, int &yy, int &adjustedXX, int &adjustedYY, int wii, int usingfont,
     bool &alphaChannel, const TopBarSettings *topbar);

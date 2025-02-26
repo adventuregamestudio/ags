@@ -534,22 +534,20 @@ void DisplayThought(int chid, const char *text) {
     if ((chid < 0) || (chid >= game.numcharacters))
         quit("!DisplayThought: invalid character specified");
 
-    _DisplayThoughtCore(chid, text);
+    DisplayThoughtCore(chid, text);
 }
 
 void __sc_displayspeech(int chid, const char *text) {
     if ((chid<0) || (chid>=game.numcharacters))
         quit("!DisplaySpeech: invalid character specified");
 
-    _DisplaySpeechCore(chid, text);
+    DisplaySpeechCore(chid, text);
 }
 
-// **** THIS IS UNDOCUMENTED BECAUSE IT DOESN'T WORK PROPERLY
-// **** AT 640x400 AND DOESN'T USE THE RIGHT SPEECH STYLE
-void DisplaySpeechAt (int xx, int yy, int wii, int aschar, const char*spch) {
+void DisplaySpeechAt(int xx, int yy, int wii, int aschar, const char*spch) {
     data_to_game_coords(&xx, &yy);
     wii = data_to_game_coord(wii);
-    _displayspeech (get_translation(spch), aschar, xx, yy, wii, 0);
+    display_speech(get_translation(spch), aschar, xx, yy, wii, true /*auto-pos*/, false /* not thought */);
 }
 
 int DisplaySpeechBackground(int charid, const char*speel) {

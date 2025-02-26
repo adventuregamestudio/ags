@@ -2941,3 +2941,46 @@ TEST_F(Compile0, FlowPointerExpressions4) {
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("float"));
 }
+
+TEST_F(Compile0, AsUnknownType) {
+
+    // A type must follow 'as'
+
+    char const *inpl =  R"%&/(
+        struct S { int Payload; };
+
+        int game_start()
+        {
+            S var = new S as Putin;
+        }
+                        )%&/";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string const &err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("Putin"));
+}
+
+TEST_F(Compile0, NewUnknownType) {
+
+    // A type must follow 'new'
+    char const *inpl =  R"%&/(
+        struct S { int Payload; };
+
+        int game_start()
+        {
+            S var = new Putin;
+        }
+                        )%&/";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string const &err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("Putin"));
+}

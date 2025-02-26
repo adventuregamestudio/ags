@@ -4159,8 +4159,10 @@ void AGS::Parser::SkipToEndOfExpression(SrcList &src)
                 SkipNextSymbol(src, following_sym);
                 continue;
             }
-            src.BackUp(); // spit out peeked sym
-            break;
+            UserError(
+                "Expected a type after '%s', found '%s' instead",
+                _sym.GetName(peeksym).c_str(),
+                _sym.GetName(following_sym).c_str());
         }
 
         if (kKW_Colon == peeksym)

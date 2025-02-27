@@ -74,7 +74,7 @@ Bitmap *ScriptDrawingSurface::StartDrawing()
 Bitmap *ScriptDrawingSurface::StartDrawingWithBrush()
 {
     Bitmap *ds = GetBitmapSurface();
-    _alphaBlending = (ds->GetColorDepth() == 32)
+    _alphaBlending = (ds->GetColorDepth() == 32) && (_currentBlendMode != kBlend_Copy)
         && ((geta32(_currentColor) != 0xFF) || (_currentBlendMode != kBlend_Normal));
     if (_alphaBlending)
     {

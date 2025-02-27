@@ -500,7 +500,7 @@ static void ValidateDynamicSprite(int handle, IScriptObject *obj)
     if (dspr->slot < 0 || static_cast<uint32_t>(dspr->slot) >= game.SpriteInfos.size() ||
         !game.SpriteInfos[dspr->slot].IsDynamicSprite())
     {
-        dspr->slot = -1;
+        dspr->slot = 0; // 0 is a "safety placeholder" sprite id
     }
 }
 

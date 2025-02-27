@@ -21,7 +21,7 @@ struct ScriptDynamicSprite final  : AGSCCDynamicObject
 public:
     static const char *TypeID;
 
-    int slot = -1;
+    int slot = 0; // 0 is a "safety placeholder" sprite id
 
     int Dispose(void *address, bool force) override;
     const char *GetType() override;

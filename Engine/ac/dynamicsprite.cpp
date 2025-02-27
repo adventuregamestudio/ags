@@ -65,7 +65,7 @@ int ValidateColorFormat(const char *api_name, ScriptColorFormat color_format)
 void DynamicSprite_Delete(ScriptDynamicSprite *sds) {
     if (sds->slot) {
         free_dynamic_sprite(sds->slot);
-        sds->slot = 0;
+        sds->slot = 0; // 0 is a "safety placeholder" sprite id
     }
 }
 

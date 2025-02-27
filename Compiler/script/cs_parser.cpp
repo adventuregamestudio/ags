@@ -17,7 +17,7 @@
 
 extern int currentline;
 
-char ccCopyright[]="ScriptCompiler32 v" SCOM_VERSIONSTR " (c) 2000-2007 Chris Jones and 2011-2024 others";
+char ccCopyright[]="ScriptCompiler32 v" SCOM_VERSIONSTR " (c) 2000-2007 Chris Jones and 2011-2025 others";
 static char scriptNameBuffer[256];
 
 int  evaluate_expression(ccInternalList*,ccCompiledScript*,int,bool insideBracketedDeclaration);

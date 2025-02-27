@@ -55,7 +55,7 @@ void CCDynamicArray::Serialize(const void *address, Stream *out)
     const Header &hdr = GetHeader(address);
     out->WriteInt32(hdr.TypeID);
     out->WriteInt32(hdr.ElemCount);
-    out->WriteInt32(hdr.TotalSize / hdr.ElemCount); // elem size
+    out->WriteInt32(hdr.ElemCount > 0 ? (hdr.TotalSize / hdr.ElemCount) : 0); // elem size
     out->Write(address, hdr.TotalSize); // elements
 }
 
@@ -142,7 +142,7 @@ void CCDynamicArray::TraverseRefs(void *address, PfnTraverseRefOp traverse_op)
         { // there are managed pointers inside!
             const uint8_t *elem_ptr = static_cast<const uint8_t*>(address);
             // For each array element...
-            const uint32_t el_size = hdr.TotalSize / hdr.ElemCount;
+            const uint32_t el_size = hdr.ElemCount > 0 ? (hdr.TotalSize / hdr.ElemCount) : 0;
             for (uint32_t i = 0; i < hdr.ElemCount; ++i, elem_ptr += el_size)
             {
                 // ..subref each managed pointer found inside

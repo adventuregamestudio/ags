@@ -122,6 +122,11 @@ void GUIObject::SetTransparency(int trans)
     }
 }
 
+void GUIObject::SetTransparencyAsPercentage(int percent)
+{
+    SetTransparency(GfxDef::Trans100ToLegacyTrans255(percent));
+}
+
 void GUIObject::SetBlendMode(BlendMode blend_mode)
 {
     if (_blendMode != blend_mode)

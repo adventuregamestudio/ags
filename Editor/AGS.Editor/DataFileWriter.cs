@@ -1802,6 +1802,7 @@ namespace AGS.Editor
             WriteExtension("v400_gameopts", WriteExt_400GameOpts, writer, gameEnts, errors);
             WriteExtension("v400_customprops", WriteExt_400CustomProps, writer, gameEnts, errors);
             WriteExtension("v400_fontfiles", WriteExt_400FontFiles, writer, gameEnts, errors);
+            WriteExtension("v400_guictrlgfx", WriteExt_400GUIControlGraphics, writer, gameEnts, errors);
 
             // End of extensions list
             writer.Write((byte)0xff);
@@ -1931,24 +1932,27 @@ namespace AGS.Editor
         private static void WriteExt_Ags399(BinaryWriter writer, WriteExtEntities ents, CompileMessages errors)
         {
             Game game = ents.Game;
+            // Reserved for colour options
+            // flags + tint rgbs + light level
+            var reserve_color_options = new byte[3 * 4];
+            // Reserved for transform options
+            // (see brief list in the engine)
+            var reserve_transform_options = new byte[11 * 4];
+
             // new character properties
             foreach (var ch in game.Characters)
             {
                 writer.Write((int)ch.BlendMode);
-                // Reserved for colour options
-                writer.Write(new byte[3 * 4]); // flags + tint rgbs + light level
-                // Reserved for transform options (see brief list in the engine)
-                writer.Write(new byte[11 * 4]);
+                writer.Write(reserve_color_options);
+                writer.Write(reserve_transform_options);
             }
 
             // new gui properties
             foreach (var gui in game.GUIs)
             {
                 writer.Write((int)gui.BlendMode);
-                // Reserved for colour options
-                writer.Write(new byte[3 * 4]); // flags + tint rgbs + light level
-                // Reserved for transform options (see brief list in the engine)
-                writer.Write(new byte[11 * 4]);
+                writer.Write(reserve_color_options);
+                writer.Write(reserve_transform_options);
             }
         }
 
@@ -2030,6 +2034,67 @@ namespace AGS.Editor
             for (int i = 0; i < game.Fonts.Count; ++i)
             {
                 FilePutString(game.Fonts[i].FontFileName, writer);
+            }
+        }
+
+        // GUI controls extended graphic properties
+        private static void WriteExt_400GUIControlGraphics(BinaryWriter writer, WriteExtEntities ents, CompileMessages errors)
+        {
+            // Reserved for colour options
+            // flags + tint rgbs + light level
+            var reserve_color_options = new byte[3 * 4];
+            // Reserved for transform options
+            // (see brief list in the engine)
+            var reserve_transform_options = new byte[11 * 4];
+
+            writer.Write(ents.GUIControls.GUIButtons.Count);
+            foreach (var button in ents.GUIControls.GUIButtons)
+            {
+                GUIControl control = button;
+                writer.Write(control.Transparency);
+                writer.Write((int)control.BlendMode);
+                writer.Write(reserve_color_options);
+                writer.Write(reserve_transform_options);
+            }
+            writer.Write(ents.GUIControls.GUILabels.Count);
+            foreach (var label in ents.GUIControls.GUILabels)
+            {
+                writer.Write(label.Transparency);
+                writer.Write((int)label.BlendMode);
+                writer.Write(reserve_color_options);
+                writer.Write(reserve_transform_options);
+            }
+            writer.Write(ents.GUIControls.GUIInvWindows.Count);
+            foreach (var invw in ents.GUIControls.GUIInvWindows)
+            {
+                writer.Write(invw.Transparency);
+                writer.Write((int)invw.BlendMode);
+                writer.Write(reserve_color_options);
+                writer.Write(reserve_transform_options);
+            }
+            writer.Write(ents.GUIControls.GUISliders.Count);
+            foreach (var slider in ents.GUIControls.GUISliders)
+            {
+                writer.Write(slider.Transparency);
+                writer.Write((int)slider.BlendMode);
+                writer.Write(reserve_color_options);
+                writer.Write(reserve_transform_options);
+            }
+            writer.Write(ents.GUIControls.GUITextBoxes.Count);
+            foreach (var textbox in ents.GUIControls.GUITextBoxes)
+            {
+                writer.Write(textbox.Transparency);
+                writer.Write((int)textbox.BlendMode);
+                writer.Write(reserve_color_options);
+                writer.Write(reserve_transform_options);
+            }
+            writer.Write(ents.GUIControls.GUIListBoxes.Count);
+            foreach (var listbox in ents.GUIControls.GUIListBoxes)
+            {
+                writer.Write(listbox.Transparency);
+                writer.Write((int)listbox.BlendMode);
+                writer.Write(reserve_color_options);
+                writer.Write(reserve_transform_options);
             }
         }
 

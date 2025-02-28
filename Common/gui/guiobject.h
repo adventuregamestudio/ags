@@ -67,7 +67,10 @@ public:
     inline void     SetHeight(int height) { SetSize(_width, height); }
     void            SetTranslated(bool on);
     void            SetVisible(bool on);
+    // Sets transparency as a legacy 255-unit value
     void            SetTransparency(int trans);
+    // Sets transparency as a percentage (0 - 100) where 100 = invisible
+    void            SetTransparencyAsPercentage(int percent);
     void            SetBlendMode(BlendMode blend_mode);
 
     // Events

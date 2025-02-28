@@ -1203,6 +1203,19 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
         // APPROXIMATIONS (need pixel shaders)
         case kBlend_Burn: SetBlendOpRGB(GL_FUNC_SUBTRACT, GL_DST_COLOR, GL_ONE_MINUS_DST_COLOR); break; // LINEAR BURN (approximation)
         case kBlend_Dodge: SetBlendOpRGB(GL_FUNC_ADD, GL_DST_COLOR, GL_ONE); break; // fake color dodge (half strength of the real thing)
+        case kBlend_Copy:
+            SetBlendOpRGBAlpha(GL_FUNC_ADD, GL_SRC_ALPHA, GL_ZERO,
+                               GL_FUNC_ADD, GL_ONE, GL_ZERO);
+            break;
+        case kBlend_CopyRGB:
+            SetBlendOpRGBAlpha(GL_FUNC_ADD, GL_DST_ALPHA, GL_ZERO,
+                               GL_FUNC_ADD, GL_ZERO, GL_ONE);
+            break;
+        case kBlend_CopyAlpha:
+            SetBlendOpRGBAlpha(GL_FUNC_ADD, GL_ZERO, GL_SRC_ALPHA,
+                               GL_FUNC_ADD, GL_ONE, GL_ZERO);
+            break;
+        default: break;
     }
 
     // WORKAROUNDS - BEGIN

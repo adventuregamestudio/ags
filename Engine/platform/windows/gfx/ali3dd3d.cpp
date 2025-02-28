@@ -1298,6 +1298,24 @@ void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw
         // APPROXIMATIONS (need pixel shaders)
         case kBlend_Burn: SetBlendOpRGB(D3DBLENDOP_SUBTRACT, D3DBLEND_DESTCOLOR, D3DBLEND_INVDESTCOLOR); break; // LINEAR BURN (approximation)
         case kBlend_Dodge: SetBlendOpRGB(D3DBLENDOP_ADD, D3DBLEND_DESTCOLOR, D3DBLEND_ONE); break; // fake color dodge (half strength of the real thing)
+        case kBlend_Copy:
+            SetBlendOpRGB(D3DBLENDOP_ADD, D3DBLEND_SRCALPHA, D3DBLEND_ZERO);
+            SetBlendOpAlpha(D3DBLENDOP_ADD, D3DBLEND_ONE, D3DBLEND_ZERO);
+            // Disabling alpha test seems to be required, because Direct3D
+            // skips source zero alpha completely otherwise
+            direct3ddevice->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);
+            break;
+        case kBlend_CopyRGB:
+            SetBlendOpRGB(D3DBLENDOP_ADD, D3DBLEND_DESTALPHA, D3DBLEND_ZERO);
+            SetBlendOpAlpha(D3DBLENDOP_ADD, D3DBLEND_ZERO, D3DBLEND_ONE);
+            direct3ddevice->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);
+            break;
+        case kBlend_CopyAlpha:
+            SetBlendOpRGB(D3DBLENDOP_ADD, D3DBLEND_ZERO, D3DBLEND_SRCALPHA);
+            SetBlendOpAlpha(D3DBLENDOP_ADD, D3DBLEND_ONE, D3DBLEND_ZERO);
+            direct3ddevice->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);
+            break;
+        default: break;
     }
 
     // BLENDMODES WORKAROUNDS - BEGIN
@@ -1353,6 +1371,7 @@ void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw
     // FIXME: set everything prior to a texture drawing instead?
     SetBlendOpRGB(D3DBLENDOP_ADD, D3DBLEND_SRCALPHA, D3DBLEND_INVSRCALPHA);
     SetBlendOpAlpha(_rtBlendAlpha.Op, _rtBlendAlpha.Src, _rtBlendAlpha.Dst);
+    direct3ddevice->SetRenderState(D3DRS_ALPHATESTENABLE, TRUE);
   }
 }
 

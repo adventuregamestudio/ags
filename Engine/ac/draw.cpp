@@ -743,6 +743,17 @@ void dispose_draw_method()
     destroy_blank_image();
 }
 
+static void alloc_fixed_drawindexes()
+{
+    size_t draw_index = 1u; // DrawIndex 0 is reserved for walk-behinds
+    for (auto &actsp : actsps)
+        actsp.DrawIndex = draw_index++;
+    for (auto &guidraw : guibg)
+        guidraw.DrawIndex = draw_index++;
+    drawstate.FixedDrawIndexBase = draw_index;
+    drawstate.NextDrawIndex = draw_index;
+}
+
 void init_game_drawdata()
 {
     // character and object caches
@@ -750,16 +761,10 @@ void init_game_drawdata()
     for (size_t i = 0; i < (size_t)MAX_ROOM_OBJECTS; ++i)
         objcache[i] = ObjectCache();
 
-    size_t draw_index = 1u; // DrawIndex 0 is reserved for walk-behinds
     size_t actsps_num = game.numcharacters + MAX_ROOM_OBJECTS;
     actsps.resize(actsps_num);
-    for (auto &actsp : actsps)
-        actsp.DrawIndex = draw_index++;
 
     guibg.resize(game.numgui);
-    for (auto &guidraw : guibg)
-        guidraw.DrawIndex = draw_index++;
-
     gui_render_tex.resize(game.numgui);
     size_t guio_num = 0;
     // Prepare GUI cache lists and build the quick reference for controls cache
@@ -770,9 +775,7 @@ void init_game_drawdata()
         guio_num += gui.GetControlCount();
     }
     guiobjbg.resize(guio_num);
-
-    drawstate.FixedDrawIndexBase = draw_index;
-    drawstate.NextDrawIndex = draw_index;
+    alloc_fixed_drawindexes();
 }
 
 extern void dispose_engine_overlay();
@@ -925,6 +928,9 @@ void init_room_drawdata()
 {
     if (displayed_room < 0)
         return; // not loaded yet
+
+    // Must realloc, because the ObjTextures are cleared on room change
+    alloc_fixed_drawindexes();
 
     if (drawstate.WalkBehindMethod == DrawAsSeparateSprite)
     {

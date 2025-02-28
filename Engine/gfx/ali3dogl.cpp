@@ -54,11 +54,6 @@ const char* fbo_extension_string = "GL_OES_framebuffer_object";
 // Necessary to update textures from 8-bit bitmaps
 extern RGB palette[256];
 
-// FIXME: use SetBlendOpRGB
-#define AGS_OGLBLENDOP(blend_op, src_blend, dest_blend) \
-  glBlendEquation(blend_op); \
-  glBlendFunc(src_blend, dest_blend); \
-
 
 namespace AGS
 {
@@ -209,8 +204,8 @@ void OGLGraphicsDriver::SetBlendOpUniform(GLenum blend_op, GLenum src_factor, GL
 
 void OGLGraphicsDriver::SetBlendOpRGB(GLenum rgb_op, GLenum srgb_factor, GLenum drgb_factor)
 {
-    glBlendEquationSeparate(rgb_op, _blendOpAlpha);
-    glBlendFuncSeparate(srgb_factor, drgb_factor, _blendSrcAlpha, _blendDstAlpha);
+    glBlendEquationSeparate(rgb_op, _blendAlpha.Op);
+    glBlendFuncSeparate(srgb_factor, drgb_factor, _blendAlpha.Src, _blendAlpha.Dst);
 }
 
 void OGLGraphicsDriver::SetBlendOpRGBAlpha(GLenum rgb_op, GLenum srgb_factor, GLenum drgb_factor,
@@ -218,9 +213,7 @@ void OGLGraphicsDriver::SetBlendOpRGBAlpha(GLenum rgb_op, GLenum srgb_factor, GL
 {
     glBlendEquationSeparate(rgb_op, alpha_op);
     glBlendFuncSeparate(srgb_factor, drgb_factor, sa_factor, da_factor);
-    _blendOpAlpha = alpha_op;
-    _blendSrcAlpha = sa_factor;
-    _blendDstAlpha = da_factor;
+    _blendAlpha = BlendOpState(alpha_op, sa_factor, da_factor);
 }
 
 bool OGLGraphicsDriver::FirstTimeInit()
@@ -271,6 +264,7 @@ void OGLGraphicsDriver::InitGlParams(const DisplayMode &mode)
 
   glEnable(GL_BLEND);
   SetBlendOpUniform(GL_FUNC_ADD, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  _rtBlendAlpha = BlendOpState(GL_FUNC_ADD, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
@@ -448,9 +442,8 @@ attribute vec2 a_TexCoord;
 varying vec2 v_TexCoord;
 
 void main() {
-  v_TexCoord = a_TexCoord;
-  gl_Position = uMVPMatrix * vec4(a_Position.xy, 0.0, 1.0);
-  // gl_Position = vec4(a_Position.xy, 0.0, 1.0);
+    v_TexCoord = a_TexCoord;
+    gl_Position = uMVPMatrix * vec4(a_Position.xy, 0.0, 1.0);
 }
 
 )EOS";
@@ -471,9 +464,8 @@ varying vec2 v_TexCoord;
 
 void main()
 {
-  vec4 src_col = texture2D(textID, v_TexCoord);
-  gl_FragColor = vec4(src_col.xyz, src_col.w * alpha);
-  // gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+    vec4 src_col = texture2D(textID, v_TexCoord);
+    gl_FragColor = vec4(src_col.xyz, src_col.w * alpha);
 }
 )EOS";
 
@@ -538,8 +530,6 @@ void main()
     lum = max(lum - (1.0 - tintLuminance), 0.0);
     vec3 new_col = (hsv2rgb(vec3(tintHSV[0], tintHSV[1], lum)) * tintAmount + src_col.xyz * (1.0 - tintAmount));
     gl_FragColor = vec4(new_col, src_col.w * alpha);
-
-    // gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);
 }
 )EOS";
 
@@ -576,8 +566,6 @@ void main()
        gl_FragColor = vec4(src_col.xyz + vec3(light, light, light), src_col.w * alpha);
    else
        gl_FragColor = vec4(src_col.xyz * abs(light), src_col.w * alpha);
-
-    // gl_FragColor = vec4(0.0, 0.0, 1.0, 1.0);
 }
 )EOS";
 
@@ -1187,7 +1175,7 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
     switch (bmpToDraw->_renderHint)
     {
     case kTxHint_PremulAlpha:
-        glBlendColor(alpha / 255.0f, alpha / 255.0f, alpha / 255.0f, 1.0);
+        glBlendColor(alpha / 255.0f, alpha / 255.0f, alpha / 255.0f, 1.f);
         SetBlendOpRGB(GL_FUNC_ADD, GL_CONSTANT_COLOR, GL_ONE_MINUS_SRC_ALPHA);
         break;
     default: break;
@@ -1195,33 +1183,38 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
 
     // FIXME: user blend modes break the above special blend necessary for rendering RT textures
     // Blend modes
-    switch (bmpToDraw->_blendMode) {
-        // blend mode is always NORMAL at this point
-        //case kBlend_Alpha: AGS_OGLBLENDOP(GL_FUNC_ADD, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); break; // ALPHA
-        case kBlend_Add: AGS_OGLBLENDOP(GL_FUNC_ADD, GL_SRC_ALPHA, GL_ONE); break; // ADD (transparency = strength)
+    switch (bmpToDraw->_blendMode)
+    {
+        case kBlend_Normal:
+            // blend mode is always NORMAL at this point
+            // SetBlendOpRGB(GL_FUNC_ADD, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // ALPHA
+            break;
+        case kBlend_Add: SetBlendOpRGB(GL_FUNC_ADD, GL_SRC_ALPHA, GL_ONE); break; // ADD (transparency = strength)
 #ifdef GL_MIN
-        case kBlend_Darken: AGS_OGLBLENDOP(GL_MIN, GL_ONE, GL_ONE); break; // DARKEN
+        case kBlend_Darken: SetBlendOpRGB(GL_MIN, GL_ONE, GL_ONE); break; // DARKEN
 #endif
 #ifdef GL_MAX
-        case kBlend_Lighten: AGS_OGLBLENDOP(GL_MAX, GL_ONE, GL_ONE); break; // LIGHTEN
+        case kBlend_Lighten: SetBlendOpRGB(GL_MAX, GL_ONE, GL_ONE); break; // LIGHTEN
 #endif
-        case kBlend_Multiply: AGS_OGLBLENDOP(GL_FUNC_ADD, GL_ZERO, GL_SRC_COLOR); break; // MULTIPLY
-        case kBlend_Screen: AGS_OGLBLENDOP(GL_FUNC_ADD, GL_ONE, GL_ONE_MINUS_SRC_COLOR); break; // SCREEN
-        case kBlend_Subtract: AGS_OGLBLENDOP(GL_FUNC_REVERSE_SUBTRACT, GL_SRC_ALPHA, GL_ONE); break; // SUBTRACT (transparency = strength)
-        case kBlend_Exclusion: AGS_OGLBLENDOP(GL_FUNC_ADD, GL_ONE_MINUS_DST_COLOR, GL_ONE_MINUS_SRC_COLOR); break; // EXCLUSION
+        case kBlend_Multiply: SetBlendOpRGB(GL_FUNC_ADD, GL_ZERO, GL_SRC_COLOR); break; // MULTIPLY
+        case kBlend_Screen: SetBlendOpRGB(GL_FUNC_ADD, GL_ONE, GL_ONE_MINUS_SRC_COLOR); break; // SCREEN
+        case kBlend_Subtract: SetBlendOpRGB(GL_FUNC_REVERSE_SUBTRACT, GL_SRC_ALPHA, GL_ONE); break; // SUBTRACT (transparency = strength)
+        case kBlend_Exclusion: SetBlendOpRGB(GL_FUNC_ADD, GL_ONE_MINUS_DST_COLOR, GL_ONE_MINUS_SRC_COLOR); break; // EXCLUSION
         // APPROXIMATIONS (need pixel shaders)
-        case kBlend_Burn: AGS_OGLBLENDOP(GL_FUNC_SUBTRACT, GL_DST_COLOR, GL_ONE_MINUS_DST_COLOR); break; // LINEAR BURN (approximation)
-        case kBlend_Dodge: AGS_OGLBLENDOP(GL_FUNC_ADD, GL_DST_COLOR, GL_ONE); break; // fake color dodge (half strength of the real thing)
+        case kBlend_Burn: SetBlendOpRGB(GL_FUNC_SUBTRACT, GL_DST_COLOR, GL_ONE_MINUS_DST_COLOR); break; // LINEAR BURN (approximation)
+        case kBlend_Dodge: SetBlendOpRGB(GL_FUNC_ADD, GL_DST_COLOR, GL_ONE); break; // fake color dodge (half strength of the real thing)
     }
 
     // WORKAROUNDS - BEGIN
 
     // allow transparency with blending modes
     // darken/lighten the base sprite so a higher transparency value makes it trasparent
-    if (bmpToDraw->_blendMode > 0) {
+    if (bmpToDraw->_blendMode > 0)
+    {
         const float alpha = bmpToDraw->_alpha / 255.0;
         const float invalpha = 1.0 - alpha;
-        switch (bmpToDraw->_blendMode) {
+        switch (bmpToDraw->_blendMode)
+        {
         case kBlend_Darken:
         case kBlend_Multiply:
         case kBlend_Burn: // burn is imperfect due to blend mode, darker than normal even when trasparent
@@ -1231,11 +1224,16 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
             glColor4f(invalpha, invalpha, invalpha, invalpha);
 #endif // !AGS_OPENGL_ES2
             break;
-        default:
+        case kBlend_Lighten:
+        case kBlend_Screen:
+        case kBlend_Exclusion:
+        case kBlend_Dodge:
 #if !AGS_OPENGL_ES2
             glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
             glColor4f(alpha, alpha, alpha, alpha);
 #endif // !AGS_OPENGL_ES2
+            break;
+        default:
             break;
         }
     }
@@ -1249,8 +1247,10 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-    // Restore default blending mode
-    SetBlendOpRGB(GL_FUNC_ADD, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    // Restore default blending mode, using render target's settings
+    // FIXME: set everything prior to a texture drawing instead?
+    SetBlendOpRGBAlpha(GL_FUNC_ADD, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,
+                       _rtBlendAlpha.Op, _rtBlendAlpha.Src, _rtBlendAlpha.Dst);
   }
   glUseProgram(0);
 }
@@ -1346,6 +1346,7 @@ void OGLGraphicsDriver::SetRenderTarget(const OGLSpriteBatch *batch, Size &surfa
         // render target, which also contains alpha channel.
         SetBlendOpRGBAlpha(GL_FUNC_ADD, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,
             GL_FUNC_ADD, GL_ONE_MINUS_DST_ALPHA, GL_ONE);
+        _rtBlendAlpha = BlendOpState(GL_FUNC_ADD, GL_ONE_MINUS_DST_ALPHA, GL_ONE);
     }
     else
     {
@@ -1356,8 +1357,9 @@ void OGLGraphicsDriver::SetRenderTarget(const OGLSpriteBatch *batch, Size &surfa
         const Rect &viewport = _currentBackbuffer->Viewport;
         glViewport(viewport.Left, viewport.Top, viewport.GetWidth(), viewport.GetHeight());
         glScissor(viewport.Left, viewport.Top, viewport.GetWidth(), viewport.GetHeight());
-        // Disable alpha merging rules, return back to default settings
+        // Return back to default alpha merging rules
         SetBlendOpUniform(GL_FUNC_ADD, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        _rtBlendAlpha = BlendOpState(GL_FUNC_ADD, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     }
 
     if (clear)

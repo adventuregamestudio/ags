@@ -331,6 +331,19 @@ private:
     D3DSpriteBatches _backupBatches;
     std::vector<D3DDrawListEntry> _backupSpriteList;
 
+    // Saved blend settings
+    struct BlendOpState
+    {
+        D3DBLENDOP Op{};
+        D3DBLEND   Src{}, Dst{};
+        BlendOpState() = default;
+        BlendOpState(D3DBLENDOP op, D3DBLEND src, D3DBLEND dst)
+            : Op(op), Src(src), Dst(dst) {}
+    };
+
+    // Saved alpha channel blend settings for the current render target
+    BlendOpState _rtBlendAlpha{};
+
     // Called after new mode was successfully initialized
     void OnModeSet(const DisplayMode &mode) override;
     void InitSpriteBatch(size_t index, const SpriteBatchDesc &desc) override;
@@ -386,9 +399,11 @@ private:
     // Renders given texture onto the current render target
     void RenderTexture(D3DBitmap *bitmap, int draw_x, int draw_y, const glm::mat4 &matGlobal,
         const SpriteColorTransform &color, const Size &rend_sz);
-    // Helper method for setting blending parameters
-    void SetBlendOp(D3DBLENDOP blend_op, D3DBLEND src_factor, D3DBLEND dst_factor);
-    // Helper method for setting exclusive alpha blending parameters
+    // Sets uniform blend settings, same for both RGB and alpha component
+    void SetBlendOpUniform(D3DBLENDOP blend_op, D3DBLEND src_factor, D3DBLEND dst_factor);
+    // Sets blend settings for RGB only, and keeps previously set alpha blend settings
+    void SetBlendOpRGB(D3DBLENDOP blend_op, D3DBLEND src_factor, D3DBLEND dst_factor);
+    // Sets blend settings for alpha channel
     void SetBlendOpAlpha(D3DBLENDOP blend_op, D3DBLEND src_factor, D3DBLEND dst_factor);
 };
 

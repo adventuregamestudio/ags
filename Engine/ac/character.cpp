@@ -1772,10 +1772,8 @@ int Character_GetBlendMode(CharacterInfo *chaa) {
     return charextra[chaa->index_id].blend_mode;
 }
 
-void Character_SetBlendMode(CharacterInfo *chaa, int blendMode) {
-    if ((blendMode < 0) || (blendMode >= kNumBlendModes))
-        quitprintf("!SetBlendMode: invalid blend mode %d, supported modes are %d - %d", blendMode, 0, kNumBlendModes - 1);
-    charextra[chaa->index_id].blend_mode = (BlendMode)blendMode;
+void Character_SetBlendMode(CharacterInfo *chaa, int blend_mode) {
+    charextra[chaa->index_id].blend_mode = ValidateBlendMode("Character.BlendMode", blend_mode);
 }
 
 float Character_GetRotation(CharacterInfo *chaa) {

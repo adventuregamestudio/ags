@@ -517,7 +517,7 @@ void display_at(int xx, int yy, int wii, const char *text, const TopBarSettings 
     try_auto_play_speech(text, text, play.narrator_speech);
 
     display_main(xx, yy, wii, text, topbar, kDisplayText_MessageBox, 0 /* no overid */,
-        DisplayTextLooks(kDisplayTextStyle_MessageBox),
+        DisplayTextLooks(kDisplayTextStyle_MessageBox, get_textpos_from_scriptcoords(xx, yy, false), kDisplayTextShrink_None),
         FONT_NORMAL, 0, false /* no fixed pos */);
 
     // Stop any blocking voice-over, if was started by this function

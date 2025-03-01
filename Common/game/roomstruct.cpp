@@ -158,7 +158,7 @@ void RoomStruct::InitDefaults()
     DataVersion     = kRoomVersion_Current;
     GameID          = NO_GAME_ID_IN_ROOM_FILE;
 
-    _resolution     = kRoomRealRes;
+    _legacyResolution = 0;
     MaskResolution  = 1;
     Width           = 320;
     Height          = 200;
@@ -188,9 +188,9 @@ void RoomStruct::InitDefaults()
     memset(Palette, 0, sizeof(Palette));
 }
 
-void RoomStruct::SetResolution(RoomResolutionType type)
+void RoomStruct::SetLegacyResolution(int resolution)
 {
-    _resolution = type;
+    _legacyResolution = resolution;
 }
 
 Bitmap *RoomStruct::GetMask(RoomAreaMask mask) const

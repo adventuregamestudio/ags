@@ -256,15 +256,6 @@ struct MessageInfo
 };
 
 
-// Room's legacy resolution type
-enum RoomResolutionType
-{
-    kRoomRealRes = 0, // room should always be treated as-is
-    kRoomLoRes = 1, // created for low-resolution game
-    kRoomHiRes = 2 // created for high-resolution game
-};
-
-
 //
 // Description of a single room.
 // This class contains initial room data. Some of it may still be modified
@@ -273,15 +264,18 @@ enum RoomResolutionType
 class RoomStruct
 {
 public:
+    static const int LegacyMaskHiresFactor = 2;
+
     RoomStruct();
     ~RoomStruct();
 
-    // Gets if room should adjust its base size depending on game's resolution
-    inline bool IsRelativeRes() const { return _resolution != kRoomRealRes; }
-    // Gets if room belongs to high resolution
-    inline bool IsLegacyHiRes() const { return _resolution == kRoomHiRes; }
-    // Gets legacy resolution type
-    inline RoomResolutionType GetResolutionType() const { return _resolution; }
+    // Gets if room should adjust its size to match the game's resolution
+    inline bool IsRelativeRes() const { return _legacyResolution > 0; }
+    // Gets the legacy room resolution factor. This is essentially a multiplier,
+    // which if applied to 320x200 or 320x240 will give the game resolution this
+    // room was made for. If game's resolution is different, the room will have
+    // to be adjusted for it by scaling up or down correspondingly.
+    inline int  GetLegacyResolution() const { return _legacyResolution; }
 
     // Releases room resources
     void            Free();
@@ -292,7 +286,7 @@ public:
     // Init default room state
     void            InitDefaults();
     // Set legacy resolution type
-    void            SetResolution(RoomResolutionType type);
+    void            SetLegacyResolution(int resolution);
 
     // Gets bitmap of particular mask layer
     Bitmap *GetMask(RoomAreaMask mask) const;
@@ -376,7 +370,7 @@ public:
 
 private:
     // Room's legacy resolution type, defines relation room and game's resolution
-    RoomResolutionType      _resolution;
+    int                     _legacyResolution = 0;
 };
 
 

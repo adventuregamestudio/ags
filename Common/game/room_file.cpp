@@ -220,6 +220,9 @@ HError ReadMainBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
         for (auto &obj : room->Objects)
             obj.Flags = in->ReadInt16();
 
+    // NOTE: we read MaskResolution here, but in old room formats this field
+    // corresponds to "legacy resolution". Today we re-apply this value in
+    // UpdateRoomData() under certain conditions.
     if (data_ver >= kRoomVersion_200_final)
         room->MaskResolution = in->ReadInt16();
 
@@ -528,15 +531,18 @@ HRoomFileError ReadRoomData(RoomStruct *room, std::unique_ptr<Stream> &&in, Room
 HRoomFileError UpdateRoomData(RoomStruct *room, RoomFileVersion data_ver, bool game_is_hires, const std::vector<SpriteInfo> &sprinfos)
 {
     if (data_ver < kRoomVersion_200_final)
-        room->MaskResolution = room->BgFrames[0].Graphic->GetWidth() > 320 ? kRoomHiRes : kRoomLoRes;
+    {
+        room->MaskResolution = room->BgFrames[0].Graphic->GetWidth() > 320 ? RoomStruct::LegacyMaskHiresFactor : 1;
+    }
     if (data_ver < kRoomVersion_3508)
     {
         // Save legacy resolution if it DOES NOT match game's;
-        // otherwise it gets promoted to "real resolution"
-        if (room->MaskResolution == 1 && game_is_hires)
-            room->SetResolution(kRoomLoRes);
-        else if (room->MaskResolution > 1 && !game_is_hires)
-            room->SetResolution(kRoomHiRes);
+        // otherwise it gets treated as "real resolution" by default
+        const int game_res_factor = game_is_hires ? HIRES_COORD_MULTIPLIER : 1;
+        if (room->MaskResolution != game_res_factor)
+        {
+            room->SetLegacyResolution(room->MaskResolution);
+        }
     }
 
     // Old version - copy walkable areas to regions

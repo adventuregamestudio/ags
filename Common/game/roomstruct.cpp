@@ -158,7 +158,7 @@ void RoomStruct::InitDefaults()
     DataVersion     = kRoomVersion_Current;
     GameID          = NO_GAME_ID_IN_ROOM_FILE;
 
-    _legacyResolution = 0;
+    _legacyResolution = kRoomResolution_Real;
     MaskResolution  = 1;
     Width           = 320;
     Height          = 200;
@@ -188,7 +188,7 @@ void RoomStruct::InitDefaults()
     memset(Palette, 0, sizeof(Palette));
 }
 
-void RoomStruct::SetLegacyResolution(int resolution)
+void RoomStruct::SetLegacyResolution(RoomResolutionType resolution)
 {
     _legacyResolution = resolution;
 }

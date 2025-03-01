@@ -2425,7 +2425,7 @@ void ImportBackground(Room ^room, int backgroundNumber, System::Drawing::Bitmap 
 	theRoom->Width = room->Width;
 	theRoom->Height = room->Height;
 	const bool resolutionChanged = (theRoom->GetLegacyResolution() != (int)room->Resolution);
-	theRoom->SetLegacyResolution((int)room->Resolution);
+	theRoom->SetLegacyResolution((RoomResolutionType)room->Resolution);
     theRoom->MaskResolution = room->MaskResolution;
 
 	if (newbg->GetColorDepth() == 8) 
@@ -3951,7 +3951,7 @@ void convert_room_to_native(Room ^room, RoomStruct &rs)
     // to be saved using native procedure.
     //
     TextConverter^ tcv = TextHelper::GetGameTextConverter();
-	rs.SetLegacyResolution((int)room->Resolution);
+	rs.SetLegacyResolution((RoomResolutionType)room->Resolution);
     rs.MaskResolution = room->MaskResolution;
 
 	rs.GameID = room->GameID;

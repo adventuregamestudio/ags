@@ -255,6 +255,22 @@ struct MessageInfo
     MessageInfo();
 };
 
+// Room's legacy resolution type
+// The meaning of this value is bit complicated. In a usual case, it seems,
+// it should be either 1 or 2, meaning low-res or high-res, in the same
+// sense as the legacy game resolution may be low-res or high-res type.
+// If game's resolution type is different, the room's background will have
+// to be adjusted for it by scaling up or down correspondingly.
+// But rare games could have it higher than 2, which would mean "above
+// high res", in which case the room bg would need to be downscaled
+// even though the game is already high-res.
+enum RoomResolutionType
+{
+    kRoomResolution_Real        = 0, // room should always be treated as-is
+    kRoomResolution_Low         = 1, // created for low-resolution game
+    kRoomResolution_High        = 2, // created for high-resolution game
+    kRoomResolution_OverHigh    = 3, // created for high-res game, but bigger (must downscale)
+};
 
 //
 // Description of a single room.
@@ -264,18 +280,16 @@ struct MessageInfo
 class RoomStruct
 {
 public:
+    // Mask resolution auto-assigned for high-res rooms in very old versions
     static const int LegacyMaskHiresFactor = 2;
 
     RoomStruct();
     ~RoomStruct();
 
     // Gets if room should adjust its size to match the game's resolution
-    inline bool IsRelativeRes() const { return _legacyResolution > 0; }
-    // Gets the legacy room resolution factor. This is essentially a multiplier,
-    // which if applied to 320x200 or 320x240 will give the game resolution this
-    // room was made for. If game's resolution is different, the room will have
-    // to be adjusted for it by scaling up or down correspondingly.
-    inline int  GetLegacyResolution() const { return _legacyResolution; }
+    inline bool IsRelativeRes() const { return _legacyResolution > kRoomResolution_Real; }
+    // Gets the legacy room resolution type
+    inline RoomResolutionType GetLegacyResolution() const { return _legacyResolution; }
 
     // Releases room resources
     void            Free();
@@ -286,7 +300,7 @@ public:
     // Init default room state
     void            InitDefaults();
     // Set legacy resolution type
-    void            SetLegacyResolution(int resolution);
+    void            SetLegacyResolution(RoomResolutionType resolution);
 
     // Gets bitmap of particular mask layer
     Bitmap *GetMask(RoomAreaMask mask) const;
@@ -369,8 +383,8 @@ public:
     StringMap               StrOptions;
 
 private:
-    // Room's legacy resolution type, defines relation room and game's resolution
-    int                     _legacyResolution = 0;
+    // Room's legacy resolution type, defines relation between room and game's resolution
+    RoomResolutionType      _legacyResolution = kRoomResolution_Real;
 };
 
 

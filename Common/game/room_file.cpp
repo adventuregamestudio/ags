@@ -538,10 +538,10 @@ HRoomFileError UpdateRoomData(RoomStruct *room, RoomFileVersion data_ver, bool g
     {
         // Save legacy resolution if it DOES NOT match game's;
         // otherwise it gets treated as "real resolution" by default
-        const int game_res_factor = game_is_hires ? HIRES_COORD_MULTIPLIER : 1;
+        const RoomResolutionType game_res_factor = game_is_hires ? kRoomResolution_High : kRoomResolution_Low;
         if (room->MaskResolution != game_res_factor)
         {
-            room->SetLegacyResolution(room->MaskResolution);
+            room->SetLegacyResolution((RoomResolutionType)room->MaskResolution);
         }
     }
 

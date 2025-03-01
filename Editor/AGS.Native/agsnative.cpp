@@ -2424,8 +2424,8 @@ void ImportBackground(Room ^room, int backgroundNumber, System::Drawing::Bitmap 
 	RoomStruct *theRoom = (RoomStruct*)(void*)room->_roomStructPtr;
 	theRoom->Width = room->Width;
 	theRoom->Height = room->Height;
-	bool resolutionChanged = (theRoom->GetResolutionType() != (AGS::Common::RoomResolutionType)room->Resolution);
-	theRoom->SetResolution((AGS::Common::RoomResolutionType)room->Resolution);
+	const bool resolutionChanged = (theRoom->GetLegacyResolution() != (int)room->Resolution);
+	theRoom->SetLegacyResolution((int)room->Resolution);
     theRoom->MaskResolution = room->MaskResolution;
 
 	if (newbg->GetColorDepth() == 8) 
@@ -3774,7 +3774,7 @@ void convert_room_from_native(const RoomStruct &rs, Room ^room, System::Text::En
     room->BackgroundAnimationDelay = rs.BgAnimSpeed;
     room->BackgroundAnimationEnabled = (rs.Options.Flags & kRoomFlag_BkgFrameLocked) == 0;
     room->BackgroundCount = rs.BgFrameCount;
-    room->Resolution = (AGS::Types::RoomResolution)rs.GetResolutionType();
+    room->Resolution = (AGS::Types::RoomResolution)rs.GetLegacyResolution();
     room->MaskResolution = rs.MaskResolution;
 
 	for (size_t i = 0; i < rs.LocalVariables.size(); ++i)
@@ -3951,7 +3951,7 @@ void convert_room_to_native(Room ^room, RoomStruct &rs)
     // to be saved using native procedure.
     //
     TextConverter^ tcv = TextHelper::GetGameTextConverter();
-	rs.SetResolution((AGS::Common::RoomResolutionType)room->Resolution);
+	rs.SetLegacyResolution((int)room->Resolution);
     rs.MaskResolution = room->MaskResolution;
 
 	rs.GameID = room->GameID;

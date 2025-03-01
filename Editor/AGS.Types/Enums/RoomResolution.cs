@@ -9,9 +9,11 @@ namespace AGS.Types
     {
         [Description("Real")]
         Real = 0,
-        [Description("Low (320x240 and below)")]
+        [Description("320x200, 320x240")]
         LowRes = 1,
-        [Description("High (above 320x240)")]
-        HighRes = 2
+        [Description("640x400, 640x480, 800x600")]
+        HighRes = 2,
+        [Description("960x600, 1024x768")]
+        VeryHighRes = 3
     }
 }

@@ -187,6 +187,8 @@ public:
     int GetResult() const { return toret; }
 
 private:
+    // Checks any exit conditions
+    bool CheckExitCondition();
     // Updates an redraws inventory screen; returns if should continue
     bool UpdateAndDraw();
     void Draw(Bitmap *ds);
@@ -255,8 +257,7 @@ void InventoryScreen::Begin()
     is_done = false;
 }
 
-// TODO: refactor and move to Run
-bool InventoryScreen::UpdateAndDraw()
+bool InventoryScreen::CheckExitCondition()
 {
     if (charextra[game.playercharacter].invorder_count < 0)
         update_invorder();
@@ -271,6 +272,15 @@ bool InventoryScreen::UpdateAndDraw()
         NewRoom(inv_screen_newroom);
         return false;
     }
+
+    return true;
+}
+
+// TODO: refactor and move to Run
+bool InventoryScreen::UpdateAndDraw()
+{
+    if (!CheckExitCondition())
+        return false;
 
     Draw();
     return true;
@@ -380,6 +390,9 @@ void InventoryScreen::RedrawOverItem(Bitmap *ds, int isonitem)
 
 bool InventoryScreen::Run()
 {
+    if (!CheckExitCondition())
+        return false;
+
     // Run() can be called in a loop, so keep events going.
     sys_evt_process_pending();
 

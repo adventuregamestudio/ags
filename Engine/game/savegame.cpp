@@ -270,6 +270,11 @@ HSaveError OpenSavegameBase(const String &filename, SavegameSource *src, Savegam
             return new SavegameError(kSvgErr_SignatureFailed);
     }
 
+    if (sig_ver < kSvgVersion_Components)
+    {
+        return new SavegameError(kSvgErr_FormatVersionNotSupported, String::FromFormat("Engine no longer supports pre-3.5.0 saves."));
+    }
+
     SavegameVersion svg_ver;
     SavegameDescription temp_desc;
     HSaveError err = ReadDescription(in.get(), svg_ver, temp_desc, desc ? elems : kSvgDesc_None);

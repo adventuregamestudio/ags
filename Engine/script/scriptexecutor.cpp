@@ -217,7 +217,6 @@ ScriptExecError ScriptExecutor::Run(ScriptThread *thread, const RuntimeScript *s
     const bool has_work = _thread != nullptr;
     // Clear exec state
     _flags = (kScExecState_Running * has_work);
-    _returnValue = 0;
     currentline = 0;
 
 #if DEBUG_CC_EXEC

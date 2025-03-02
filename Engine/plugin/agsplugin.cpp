@@ -826,6 +826,8 @@ size_t IAGSEngine::ResolveFilePath(const char *script_path, char *buf, size_t bu
 {
     std::unique_ptr<Stream> s(ResolveScriptPathAndOpen(script_path,
         static_cast<FileOpenMode>(file_mode), static_cast<StreamMode>(work_mode)));
+    if (!s)
+        return nullptr;
     // FIXME: this is ugly...
     return reinterpret_cast<::IAGSStream*>(s->ReleaseStreamBase().release());
 }

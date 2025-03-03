@@ -23,6 +23,7 @@
 #include "ac/dynobj/scriptfile.h"
 #include "ac/dynobj/scriptviewport.h"
 #include "ac/game.h"
+#include "ac/gui.h"
 #include "debug/debug_log.h"
 #include "plugin/plugin_engine.h"
 #include "util/memory_compat.h"
@@ -53,6 +54,7 @@ extern CCDialog    ccDynamicDialog;
 extern ScriptDrawingSurface* dialogOptionsRenderingSurface;
 extern ScriptDialogOptionsRendering ccDialogOptionsRendering;
 extern std::vector<PluginObjectReader> pluginReaders;
+extern std::vector<std::vector<int>> StaticGUIControlsHandles;
 
 // *** De-serialization of script objects
 
@@ -61,7 +63,7 @@ void AGSDeSerializer::Unserialize(int index, const char *objectType, const char 
     if (dataSize < 0)
     {
         quitprintf("Unserialise: invalid data size (%d) for object type '%s'", dataSize, objectType);
-        return; // TODO: don't quit, return error
+        return; // FIXME: don't quit, return error
     }
     // Note that while our builtin classes may accept Stream object,
     // classes registered by plugin cannot, because streams are not (yet)
@@ -86,7 +88,7 @@ void AGSDeSerializer::Unserialize(int index, const char *objectType, const char 
     }
     else if (strcmp(objectType, "GUIObject") == 0 || // old historical name
              strcmp(objectType, "GUIControl") == 0) {
-        ccDynamicGUIControl.Unserialize(index, &mems, data_sz);
+        UnserializeGUIControl(index, &mems, data_sz);
     }
     else if (strcmp(objectType, "Button") == 0) {
         ccDynamicGUIButton.Unserialize(index, &mems, data_sz);
@@ -218,6 +220,30 @@ void AGSDeSerializer::Unserialize(int index, const char *objectType, const char 
                 return;
             }
         }
+        // FIXME: find a way to return error back to caller instead
         quitprintf("Unserialise: unknown object type: '%s'", objectType);
     }
+}
+
+int AGSDeSerializer::RegisterGUIControl(int index, int guinum, int objnum)
+{
+    GUIObject *obj = guis[guinum].GetControl(objnum);
+    switch (guis[guinum].GetControlType(objnum))
+    {
+    case kGUIButton: return ccRegisterUnserializedPersistentObject(index, obj, &ccDynamicGUIButton);
+    case kGUILabel: return ccRegisterUnserializedPersistentObject(index, obj, &ccDynamicGUILabel);
+    case kGUIInvWindow: return ccRegisterUnserializedPersistentObject(index, obj, &ccDynamicGUIInvWindow);
+    case kGUISlider: return ccRegisterUnserializedPersistentObject(index, obj, &ccDynamicGUISlider);
+    case kGUITextBox: return ccRegisterUnserializedPersistentObject(index, obj, &ccDynamicGUITextBox);
+    case kGUIListBox: return ccRegisterUnserializedPersistentObject(index, obj, &ccDynamicGUIListBox);
+    default: assert(false); /* should not happen */ return 0;
+    }
+}
+
+void AGSDeSerializer::UnserializeGUIControl(int index, AGS::Common::Stream *in, size_t data_sz)
+{
+    int guinum = in->ReadInt32();
+    int objnum = in->ReadInt32();
+    int handle = RegisterGUIControl(index, guinum, objnum);
+    (StaticGUIControlsHandles[guinum])[objnum] = handle;
 }

@@ -12,33 +12,26 @@
 //
 //=============================================================================
 #include "ac/dynobj/cc_guicontrol.h"
-#include "ac/dynobj/scriptobjects.h"
-#include "ac/dynobj/dynobj_manager.h"
-#include "ac/gui.h"
-#include "util/stream.h"
 
 using namespace AGS::Common;
-extern std::vector<std::vector<int>> StaticGUIControlsHandles;
 
 // return the type name of the object
-const char *CCGUIControl::GetType() {
+const char *CCGUIControl::GetType()
+{
     return "GUIControl";
 }
 
 size_t CCGUIControl::CalcSerializeSize(const void* /*address*/)
 {
-    return sizeof(int32_t) * 2;
+    return 0;
 }
 
-void CCGUIControl::Serialize(const void *address, Stream *out) {
-    const GUIObject *guio = static_cast<const GUIObject*>(address);
-    out->WriteInt32(guio->ParentId);
-    out->WriteInt32(guio->Id);
+void CCGUIControl::Serialize(const void* /*address*/, Stream* /*out*/)
+{
+    // no longer supported
 }
 
-void CCGUIControl::Unserialize(int index, Stream *in, size_t /*data_sz*/) {
-    int guinum = in->ReadInt32();
-    int objnum = in->ReadInt32();
-    int handle = ccRegisterUnserializedPersistentObject(index, guis[guinum].GetControl(objnum), this);
-    (StaticGUIControlsHandles[guinum])[objnum] = handle;
+void CCGUIControl::Unserialize(int /*index*/, Stream* /*in*/, size_t /*data_sz*/)
+{
+    // no longer supported
 }

@@ -15,11 +15,17 @@
 #define __AC_SERIALIZER_H
 
 #include "ac/dynobj/cc_scriptobject.h"
+#include "util/stream.h"
 
 struct AGSDeSerializer : ICCObjectCollectionReader
 {
 public:
     void Unserialize(int index, const char *objectType, const char *serializedData, int dataSize) override;
+
+private:
+    // Unserializes an old GUIControl record
+    void UnserializeGUIControl(int index, AGS::Common::Stream *in, size_t data_sz);
+    int  RegisterGUIControl(int index, int guinum, int objnum);
 };
 
 #endif // __AC_SERIALIZER_H

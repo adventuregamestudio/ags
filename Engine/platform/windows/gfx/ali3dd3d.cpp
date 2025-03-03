@@ -32,10 +32,6 @@
 #include "platform/base/sys_main.h"
 #include "util/matrix.h"
 
-#define AGS_D3DBLENDOP(blend_op, src_blend, dest_blend) \
-  direct3ddevice->SetRenderState(D3DRS_BLENDOP, blend_op); \
-  direct3ddevice->SetRenderState(D3DRS_SRCBLEND, src_blend); \
-  direct3ddevice->SetRenderState(D3DRS_DESTBLEND, dest_blend); \
 
 using namespace AGS::Common;
 
@@ -587,7 +583,13 @@ bool D3DGraphicsDriver::CreateDisplayMode(const DisplayMode &mode)
   return true;
 }
 
-void D3DGraphicsDriver::SetBlendOp(D3DBLENDOP blend_op, D3DBLEND src_factor, D3DBLEND dst_factor)
+void D3DGraphicsDriver::SetBlendOpUniform(D3DBLENDOP blend_op, D3DBLEND src_factor, D3DBLEND dst_factor)
+{
+    SetBlendOpRGB(blend_op, src_factor, dst_factor);
+    SetBlendOpAlpha(blend_op, src_factor, dst_factor);
+}
+
+void D3DGraphicsDriver::SetBlendOpRGB(D3DBLENDOP blend_op, D3DBLEND src_factor, D3DBLEND dst_factor)
 {
     direct3ddevice->SetRenderState(D3DRS_BLENDOP, blend_op);
     direct3ddevice->SetRenderState(D3DRS_SRCBLEND, src_factor);
@@ -612,7 +614,9 @@ void D3DGraphicsDriver::InitializeD3DState()
   direct3ddevice->SetRenderState(D3DRS_ZENABLE, FALSE);
 
   direct3ddevice->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
-  SetBlendOp(D3DBLENDOP_ADD, D3DBLEND_SRCALPHA, D3DBLEND_INVSRCALPHA);
+  direct3ddevice->SetRenderState(D3DRS_SEPARATEALPHABLENDENABLE, TRUE);
+  SetBlendOpUniform(D3DBLENDOP_ADD, D3DBLEND_SRCALPHA, D3DBLEND_INVSRCALPHA);
+  _rtBlendAlpha = BlendOpState(D3DBLENDOP_ADD, D3DBLEND_SRCALPHA, D3DBLEND_INVSRCALPHA);
 
   direct3ddevice->SetRenderState(D3DRS_ALPHATESTENABLE, TRUE);
   direct3ddevice->SetRenderState(D3DRS_ALPHAFUNC, D3DCMP_GREATER); 
@@ -1270,7 +1274,7 @@ void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw
     {
     case kTxHint_PremulAlpha:
         direct3ddevice->SetRenderState(D3DRS_BLENDFACTOR, D3DCOLOR_RGBA(alpha, alpha, alpha, 255));
-        SetBlendOp(D3DBLENDOP_ADD, D3DBLEND_BLENDFACTOR, D3DBLEND_INVSRCALPHA);
+        SetBlendOpRGB(D3DBLENDOP_ADD, D3DBLEND_BLENDFACTOR, D3DBLEND_INVSRCALPHA);
         break;
     default:
         break;
@@ -1278,29 +1282,52 @@ void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw
 
     // FIXME: user blend modes break the above special blend for RT textures
     // Blend modes
-    switch (bmpToDraw->_blendMode) {
-        // blend mode is always NORMAL at this point
-        //case kBlend_Alpha: AGS_D3DBLENDOP(D3DBLENDOP_ADD, D3DBLEND_SRCALPHA, D3DBLEND_INVSRCALPHA); break; // ALPHA
-        case kBlend_Add: AGS_D3DBLENDOP(D3DBLENDOP_ADD, D3DBLEND_SRCALPHA, D3DBLEND_ONE); break; // ADD (transparency = strength)
-        case kBlend_Darken: AGS_D3DBLENDOP(D3DBLENDOP_MIN, D3DBLEND_ONE, D3DBLEND_ONE); break; // DARKEN
-        case kBlend_Lighten: AGS_D3DBLENDOP(D3DBLENDOP_MAX, D3DBLEND_ONE, D3DBLEND_ONE); break; // LIGHTEN
-        case kBlend_Multiply: AGS_D3DBLENDOP(D3DBLENDOP_ADD, D3DBLEND_ZERO, D3DBLEND_SRCCOLOR); break; // MULTIPLY
-        case kBlend_Screen: AGS_D3DBLENDOP(D3DBLENDOP_ADD, D3DBLEND_ONE, D3DBLEND_INVSRCCOLOR); break; // SCREEN
-        case kBlend_Subtract: AGS_D3DBLENDOP(D3DBLENDOP_REVSUBTRACT, D3DBLEND_SRCALPHA, D3DBLEND_ONE); break; // SUBTRACT (transparency = strength)
-        case kBlend_Exclusion: AGS_D3DBLENDOP(D3DBLENDOP_ADD, D3DBLEND_INVDESTCOLOR, D3DBLEND_INVSRCCOLOR); break; // EXCLUSION
+    switch (bmpToDraw->_blendMode)
+    {
+        case kBlend_Normal:
+            // blend mode is always NORMAL at this point
+            // SetBlendOpRGB(D3DBLENDOP_ADD, D3DBLEND_SRCALPHA, D3DBLEND_INVSRCALPHA); // ALPHA
+            break;
+        case kBlend_Add: SetBlendOpRGB(D3DBLENDOP_ADD, D3DBLEND_SRCALPHA, D3DBLEND_ONE); break; // ADD (transparency = strength)
+        case kBlend_Darken: SetBlendOpRGB(D3DBLENDOP_MIN, D3DBLEND_ONE, D3DBLEND_ONE); break; // DARKEN
+        case kBlend_Lighten: SetBlendOpRGB(D3DBLENDOP_MAX, D3DBLEND_ONE, D3DBLEND_ONE); break; // LIGHTEN
+        case kBlend_Multiply: SetBlendOpRGB(D3DBLENDOP_ADD, D3DBLEND_ZERO, D3DBLEND_SRCCOLOR); break; // MULTIPLY
+        case kBlend_Screen: SetBlendOpRGB(D3DBLENDOP_ADD, D3DBLEND_ONE, D3DBLEND_INVSRCCOLOR); break; // SCREEN
+        case kBlend_Subtract: SetBlendOpRGB(D3DBLENDOP_REVSUBTRACT, D3DBLEND_SRCALPHA, D3DBLEND_ONE); break; // SUBTRACT (transparency = strength)
+        case kBlend_Exclusion: SetBlendOpRGB(D3DBLENDOP_ADD, D3DBLEND_INVDESTCOLOR, D3DBLEND_INVSRCCOLOR); break; // EXCLUSION
         // APPROXIMATIONS (need pixel shaders)
-        case kBlend_Burn: AGS_D3DBLENDOP(D3DBLENDOP_SUBTRACT, D3DBLEND_DESTCOLOR, D3DBLEND_INVDESTCOLOR); break; // LINEAR BURN (approximation)
-        case kBlend_Dodge: AGS_D3DBLENDOP(D3DBLENDOP_ADD, D3DBLEND_DESTCOLOR, D3DBLEND_ONE); break; // fake color dodge (half strength of the real thing)
+        case kBlend_Burn: SetBlendOpRGB(D3DBLENDOP_SUBTRACT, D3DBLEND_DESTCOLOR, D3DBLEND_INVDESTCOLOR); break; // LINEAR BURN (approximation)
+        case kBlend_Dodge: SetBlendOpRGB(D3DBLENDOP_ADD, D3DBLEND_DESTCOLOR, D3DBLEND_ONE); break; // fake color dodge (half strength of the real thing)
+        case kBlend_Copy:
+            SetBlendOpRGB(D3DBLENDOP_ADD, D3DBLEND_SRCALPHA, D3DBLEND_ZERO);
+            SetBlendOpAlpha(D3DBLENDOP_ADD, D3DBLEND_ONE, D3DBLEND_ZERO);
+            // Disabling alpha test seems to be required, because Direct3D
+            // skips source zero alpha completely otherwise
+            direct3ddevice->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);
+            break;
+        case kBlend_CopyRGB:
+            SetBlendOpRGB(D3DBLENDOP_ADD, D3DBLEND_DESTALPHA, D3DBLEND_ZERO);
+            SetBlendOpAlpha(D3DBLENDOP_ADD, D3DBLEND_ZERO, D3DBLEND_ONE);
+            direct3ddevice->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);
+            break;
+        case kBlend_CopyAlpha:
+            SetBlendOpRGB(D3DBLENDOP_ADD, D3DBLEND_ZERO, D3DBLEND_SRCALPHA);
+            SetBlendOpAlpha(D3DBLENDOP_ADD, D3DBLEND_ONE, D3DBLEND_ZERO);
+            direct3ddevice->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);
+            break;
+        default: break;
     }
 
     // BLENDMODES WORKAROUNDS - BEGIN
 
     // allow transparency with blending modes
     // darken/lighten the base sprite so a higher transparency value makes it trasparent
-    if (bmpToDraw->_blendMode > 0) {
+    if (bmpToDraw->_blendMode > 0)
+    {
         const int alpha = bmpToDraw->_alpha;
         const int invalpha = 255 - alpha;
-        switch (bmpToDraw->_blendMode) {
+        switch (bmpToDraw->_blendMode)
+        {
         case kBlend_Darken:
         case kBlend_Multiply:
         case kBlend_Burn: // FIXME burn is imperfect due to blend mode, darker than normal even when trasparent
@@ -1315,6 +1342,8 @@ void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw
             // fade to black
             direct3ddevice->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_MODULATE);
             direct3ddevice->SetRenderState(D3DRS_TEXTUREFACTOR, D3DCOLOR_RGBA(alpha, alpha, alpha, alpha));
+            break;
+        default:
             break;
         }
         direct3ddevice->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_TEXTURE);
@@ -1338,8 +1367,11 @@ void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw
       throw Ali3DException("IDirect3DDevice9::DrawPrimitive failed");
     }
 
-    // Restore default blending mode
-    SetBlendOp(D3DBLENDOP_ADD, D3DBLEND_SRCALPHA, D3DBLEND_INVSRCALPHA);
+    // Restore default blending mode, using render target's settings
+    // FIXME: set everything prior to a texture drawing instead?
+    SetBlendOpRGB(D3DBLENDOP_ADD, D3DBLEND_SRCALPHA, D3DBLEND_INVSRCALPHA);
+    SetBlendOpAlpha(_rtBlendAlpha.Op, _rtBlendAlpha.Src, _rtBlendAlpha.Dst);
+    direct3ddevice->SetRenderState(D3DRS_ALPHATESTENABLE, TRUE);
   }
 }
 
@@ -1458,8 +1490,8 @@ void D3DGraphicsDriver::SetRenderTarget(const D3DSpriteBatch *batch, Size &rend_
         direct3ddevice->SetTransform(D3DTS_PROJECTION, (D3DMATRIX*)glm::value_ptr(mat_ortho));
         // Configure rules for merging sprite alpha values onto a
         // render target, which also contains alpha channel.
-        direct3ddevice->SetRenderState(D3DRS_SEPARATEALPHABLENDENABLE, TRUE);
         SetBlendOpAlpha(D3DBLENDOP_ADD, D3DBLEND_INVDESTALPHA, D3DBLEND_ONE);
+        _rtBlendAlpha = BlendOpState(D3DBLENDOP_ADD, D3DBLEND_INVDESTALPHA, D3DBLEND_ONE);
     }
     else
     {
@@ -1469,8 +1501,9 @@ void D3DGraphicsDriver::SetRenderTarget(const D3DSpriteBatch *batch, Size &rend_
         rend_sz = _currentBackbuffer->RendSize;
         SetD3DViewport(_currentBackbuffer->Viewport);
         direct3ddevice->SetTransform(D3DTS_PROJECTION, (D3DMATRIX*)glm::value_ptr(_currentBackbuffer->Projection));
-        // Disable alpha merging rules, return back to default settings
-        direct3ddevice->SetRenderState(D3DRS_SEPARATEALPHABLENDENABLE, FALSE);
+        // Return back to default alpha merging rules
+        SetBlendOpAlpha(D3DBLENDOP_ADD, D3DBLEND_SRCALPHA, D3DBLEND_INVSRCALPHA);
+        _rtBlendAlpha = BlendOpState(D3DBLENDOP_ADD, D3DBLEND_SRCALPHA, D3DBLEND_INVSRCALPHA);
     }
 
     if (clear)

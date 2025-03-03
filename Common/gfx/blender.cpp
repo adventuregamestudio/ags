@@ -182,6 +182,24 @@ void set_argb2any_blender()
         0, 0, 0, 0xff);
 }
 
+// Copy blender: copy src, ignore dest
+uint32_t blender_src_copy(uint32_t x, uint32_t /*y*/, uint32_t /*n*/)
+{
+    return x;
+}
+
+// Copy RGB blender: mix source RGB with dest alpha
+uint32_t blender_src_copyrgb(uint32_t x, uint32_t y, uint32_t /*n*/)
+{
+    return x & 0xFFFFFF | y & 0xFF000000;
+}
+
+// Copy alpha blender: mix source alpha with dest RGB
+uint32_t blender_src_copyalpha(uint32_t x, uint32_t y, uint32_t /*n*/)
+{
+    return x & 0xFF000000 | y & 0xFFFFFF;
+}
+
 // ===============================
 // [AVD] Custom blenders for software BlendMode implementation
 // If we ditch software rendering we can remove this whole section
@@ -311,6 +329,9 @@ static const PfnBlenderCb BlendModeSets[kNumBlendModes] =
     _blender_masked_subtract32,     // kBlend_Subtract
     _blender_masked_exclusion32,    // kBlend_Exclusion
     _blender_masked_dodge32,        // kBlend_Dodge
+    blender_src_copy,               // kBlend_Copy
+    blender_src_copyrgb,            // kBlend_CopyRGB
+    blender_src_copyalpha,          // kBlend_CopyAlpha
 };
 
 bool SetBlender(BlendMode blend_mode, int alpha)

@@ -48,9 +48,13 @@ void DrawSpriteBlend(Bitmap *ds, const Point &ds_at, Bitmap *sprite,
     if (alpha <= 0)
         return; // do not draw 100% transparent image
 
+    if (blend_mode == kBlend_Copy)
+    {
+        // optimized variant for Copy "blend mode"
+        ds->Blit(sprite, ds_at.X, ds_at.Y);
+    }
     // support only 32-bit blending at the moment
-    if ((ds->GetColorDepth() == 32) && (sprite->GetColorDepth() == 32) &&
-        // set blenders if applicable and tell if succeeded
+    else if ((ds->GetColorDepth() == 32) && (sprite->GetColorDepth() == 32) &&
         SetBlender(blend_mode, alpha))
     {
         ds->TransBlendBlt(sprite, ds_at.X, ds_at.Y);

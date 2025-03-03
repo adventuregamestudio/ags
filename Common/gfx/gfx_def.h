@@ -53,6 +53,9 @@ enum BlendMode
     kBlend_Subtract,
     kBlend_Exclusion,
     kBlend_Dodge,
+    kBlend_Copy,
+    kBlend_CopyRGB,
+    kBlend_CopyAlpha,
     kNumBlendModes
 };
 

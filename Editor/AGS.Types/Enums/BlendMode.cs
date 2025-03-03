@@ -13,6 +13,9 @@ namespace AGS.Types
         Burn,
         Subtract,
         Exclusion,
-        Dodge
+        Dodge,
+        Copy,
+        CopyRGB,
+        CopyAlpha
     }
 }

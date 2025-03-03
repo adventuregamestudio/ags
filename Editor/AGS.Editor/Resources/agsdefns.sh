@@ -612,7 +612,15 @@ enum BlendMode {
     eBlendBurn,
     eBlendSubtract,
     eBlendExclusion,
-    eBlendDodge
+    eBlendDodge,
+#ifdef SCRIPT_API_v400
+    /// copy source color to destination
+    eBlendCopy,
+    /// copy source rgb to destination (keep destination alpha)
+    eBlendCopyRGB,
+    /// copy source alpha to destination (keep destination rgb)
+    eBlendCopyAlpha
+#endif // #ifdef SCRIPT_API_v400
 };
 #endif // SCRIPT_API_v399
 

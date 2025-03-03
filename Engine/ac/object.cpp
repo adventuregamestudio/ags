@@ -849,10 +849,8 @@ int Object_GetBlendMode(ScriptObject *objj) {
     return objs[objj->id].blend_mode;
 }
 
-void Object_SetBlendMode(ScriptObject *objj, int blendMode) {
-    if ((blendMode < 0) || (blendMode >= kNumBlendModes))
-        quitprintf("!SetBlendMode: invalid blend mode %d, supported modes are %d - %d", blendMode, 0, kNumBlendModes - 1);
-    objs[objj->id].blend_mode = (BlendMode)blendMode;
+void Object_SetBlendMode(ScriptObject *objj, int blend_mode) {
+    objs[objj->id].blend_mode = ValidateBlendMode("Object.BlendMode", blend_mode);
 }
 
 float Object_GetRotation(ScriptObject *objj) {
@@ -1113,6 +1111,16 @@ int check_click_on_object(int roomx, int roomy, int mood)
     if (aa < 0) return 0;
     RunObjectInteraction(aa, mood);
     return 1;
+}
+
+BlendMode ValidateBlendMode(const char *apiname, int blend_mode)
+{
+    if ((blend_mode < 0) || (blend_mode >= kNumBlendModes))
+    {
+        debug_script_warn("!%s: invalid blend mode %d, supported modes are %d - %d", apiname, blend_mode, 0, kNumBlendModes - 1);
+        return kBlend_Normal;
+    }
+    return static_cast<BlendMode>(blend_mode);
 }
 
 void ValidateAnimParams(const char *apiname, int &repeat, int &direction)

@@ -19,6 +19,7 @@
 #include "ac/gui.h"
 #include "ac/guicontrol.h"
 #include "ac/mouse.h"
+#include "ac/object.h"
 #include "ac/properties.h"
 #include "ac/string.h"
 #include "ac/dynobj/cc_gui.h"
@@ -221,6 +222,14 @@ void GUIControl_SetTransparency(GUIObject *guio, int trans) {
     if ((trans < 0) | (trans > 100))
         quit("!SetGUITransparency: transparency value must be between 0 and 100");
     guio->SetTransparency(GfxDef::Trans100ToLegacyTrans255(trans));
+}
+
+int GUIControl_GetBlendMode(GUIObject *guio) {
+    return guio->GetBlendMode();
+}
+
+void GUIControl_SetBlendMode(GUIObject *guio, int blend_mode) {
+    guio->SetBlendMode(ValidateBlendMode("GUIControl.BlendMode", blend_mode));
 }
 
 int GUIControl_GetProperty(GUIObject *guio, const char *property)
@@ -466,6 +475,16 @@ RuntimeScriptValue Sc_GUIControl_SetTransparency(void *self, const RuntimeScript
     API_OBJCALL_VOID_PINT(GUIObject, GUIControl_SetTransparency);
 }
 
+RuntimeScriptValue Sc_GUIControl_GetBlendMode(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(GUIObject, GUIControl_GetBlendMode);
+}
+
+RuntimeScriptValue Sc_GUIControl_SetBlendMode(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(GUIObject, GUIControl_SetBlendMode);
+}
+
 RuntimeScriptValue Sc_GUIControl_GetProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT_POBJ(GUIObject, GUIControl_GetProperty, const char);
@@ -528,6 +547,8 @@ void RegisterGUIControlAPI()
         { "GUIControl::set_ZOrder",       API_FN_PAIR(GUIControl_SetZOrder) },
         { "GUIControl::get_Transparency", API_FN_PAIR(GUIControl_GetTransparency) },
         { "GUIControl::set_Transparency", API_FN_PAIR(GUIControl_SetTransparency) },
+        { "GUIControl::get_BlendMode",    API_FN_PAIR(GUIControl_GetBlendMode) },
+        { "GUIControl::set_BlendMode",    API_FN_PAIR(GUIControl_SetBlendMode) },
     };
 
     ccAddExternalFunctions(guicontrol_api);

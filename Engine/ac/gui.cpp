@@ -30,6 +30,7 @@
 #include "ac/inventoryitem.h"
 #include "ac/invwindow.h"
 #include "ac/mouse.h"
+#include "ac/object.h"
 #include "ac/properties.h"
 #include "ac/runtime_defines.h"
 #include "ac/string.h"
@@ -428,10 +429,8 @@ int GUI_GetBlendMode(ScriptGUI *gui) {
     return guis[gui->id].BlendMode;
 }
 
-void GUI_SetBlendMode(ScriptGUI *gui, int blendMode) {
-    if ((blendMode < 0) || (blendMode >= kNumBlendModes))
-        quitprintf("!SetBlendMode: invalid blend mode %d, supported modes are %d - %d", blendMode, 0, kNumBlendModes - 1);
-    guis[gui->id].BlendMode = (BlendMode)blendMode;
+void GUI_SetBlendMode(ScriptGUI *gui, int blend_mode) {
+    guis[gui->id].BlendMode = ValidateBlendMode("GUI.BlendMode", blend_mode);
 }
 
 float GUI_GetRotation(ScriptGUI *gui) {

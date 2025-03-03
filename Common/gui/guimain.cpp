@@ -294,7 +294,7 @@ void GUIMain::DrawControls(Bitmap *ds)
             continue;
 
         // Depending on draw properties - draw directly on the gui surface, or use a buffer
-        if (objToDraw->GetTransparency() == 0)
+        if (objToDraw->GetTransparency() == 0 && objToDraw->GetBlendMode() == kBlend_Normal)
         {
             if (GUI::Options.ClipControls && objToDraw->IsContentClipped())
                 ds->SetClip(RectWH(objToDraw->X, objToDraw->Y, obj_size.Width, obj_size.Height));
@@ -308,7 +308,7 @@ void GUIMain::DrawControls(Bitmap *ds)
             tempbmp.CreateTransparent(rc.GetWidth(), rc.GetHeight());
             objToDraw->Draw(&tempbmp, -rc.Left, -rc.Top);
             draw_gui_sprite(ds, objToDraw->X + rc.Left, objToDraw->Y + rc.Top,
-                &tempbmp, kBlend_Normal,
+                &tempbmp, objToDraw->GetBlendMode(),
                 GfxDef::LegacyTrans255ToAlpha255(objToDraw->GetTransparency()));
         }
 

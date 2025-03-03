@@ -23,6 +23,7 @@
 #include "ac/common_defines.h"
 #include "ac/dynobj/scriptobjects.h"
 #include "ac/roomobject.h"
+#include "gfx/gfx_def.h"
 
 namespace AGS { namespace Common { class Bitmap; } }
 using namespace AGS; // FIXME later
@@ -105,6 +106,8 @@ int     is_pos_in_sprite(int xx, int yy, int arx, int ary,
 // X and Y are ROOM coordinates
 int     check_click_on_object(int roomx, int roomy, int mood);
 
+// Tests if the blend mode is in valid range, post a warning and fixes to default if not
+AGS::Common::BlendMode ValidateBlendMode(const char *apiname, int blend_mode);
 // Shared functions that prepare or advance the view animation;
 // used by characters, room objects and buttons.
 // TODO: pick out some kind of "animation" struct

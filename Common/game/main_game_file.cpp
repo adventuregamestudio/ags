@@ -501,12 +501,15 @@ protected:
     HError ReadBlock(Stream *in, int block_id, const String &ext_id,
         soff_t block_len, bool &read_next) override;
     HError ReadCustomProperties(Stream *in, const char *obj_type, size_t expect_obj_count, std::vector<StringIMap> &obj_values);
+    HError ReadInteractionScriptModules(Stream *in, LoadedGameEntities &ents);
+    HError ReadExtGUIControlGraphicProperties(Stream *in, LoadedGameEntities &ents);
+    void   ReadGUIControlExtGraphics(Stream *in, GUIObject &obj);
 
     LoadedGameEntities &_ents;
     GameDataVersion _dataVer {};
 };
 
-static HError ReadInteractionScriptModules(Stream *in, LoadedGameEntities &ents)
+HError GameDataExtReader::ReadInteractionScriptModules(Stream *in, LoadedGameEntities &ents)
 {
     // Updated InteractionEvents format, which specifies script module
     // for object interaction events
@@ -543,6 +546,68 @@ HError GameDataExtReader::ReadCustomProperties(Stream *in, const char *obj_type,
     }
     if (errors > 0)
         return new MainGameFileError(kMGFErr_InvalidPropertyValues);
+    return HError::None();
+}
+
+void GameDataExtReader::ReadGUIControlExtGraphics(Stream *in, GUIObject &obj)
+{
+    obj.SetTransparencyAsPercentage(in->ReadInt32());
+    obj.SetBlendMode(static_cast<BlendMode>(in->ReadInt32()));
+    // Reserved for colour options
+    _in->Seek(sizeof(int32_t) * 3); // flags + tint rgbs + light level
+    // Reserved for transform options (see list in savegame format)
+    _in->Seek(sizeof(int32_t) * 11);
+}
+
+HError GameDataExtReader::ReadExtGUIControlGraphicProperties(Stream *in, LoadedGameEntities &ents)
+{
+    size_t num_guibut = in->ReadInt32();
+    if (num_guibut != _ents.GuiControls.Buttons.size())
+        return new Error(String::FromFormat("Mismatching number of GUI buttons: read %zu expected %zu", num_guibut, _ents.GuiControls.Buttons.size()));
+    for (GUIButton &but : _ents.GuiControls.Buttons)
+    {
+        ReadGUIControlExtGraphics(in, but);
+    }
+
+    size_t num_guilabel = in->ReadInt32();
+    if (num_guilabel != _ents.GuiControls.Labels.size())
+        return new Error(String::FromFormat("Mismatching number of GUI labels: read %zu expected %zu", num_guilabel, _ents.GuiControls.Labels.size()));
+    for (GUILabel &label : _ents.GuiControls.Labels)
+    {
+        ReadGUIControlExtGraphics(in, label);
+    }
+
+    size_t num_guiinv = in->ReadInt32();
+    if (num_guiinv != _ents.GuiControls.InvWindows.size())
+        return new Error(String::FromFormat("Mismatching number of GUI invwindows: read %zu expected %zu", num_guiinv, _ents.GuiControls.InvWindows.size()));
+    for (GUIInvWindow &invw : _ents.GuiControls.InvWindows)
+    {
+        ReadGUIControlExtGraphics(in, invw);
+    }
+
+    size_t num_guisliders = in->ReadInt32();
+    if (num_guisliders != _ents.GuiControls.Sliders.size())
+        return new Error(String::FromFormat("Mismatching number of GUI sliders: read %zu expected %zu", num_guisliders, _ents.GuiControls.Sliders.size()));
+    for (GUISlider &slider : _ents.GuiControls.Sliders)
+    {
+        ReadGUIControlExtGraphics(in, slider);
+    }
+
+    size_t num_guitextboxes = in->ReadInt32();
+    if (num_guitextboxes != _ents.GuiControls.TextBoxes.size())
+        return new Error(String::FromFormat("Mismatching number of GUI textboxes: read %zu expected %zu", num_guitextboxes, _ents.GuiControls.TextBoxes.size()));
+    for (GUITextBox &textbox : _ents.GuiControls.TextBoxes)
+    {
+        ReadGUIControlExtGraphics(in, textbox);
+    }
+
+    size_t num_guilistboxes = in->ReadInt32();
+    if (num_guilistboxes != _ents.GuiControls.ListBoxes.size())
+        return new Error(String::FromFormat("Mismatching number of GUI listboxes: read %zu expected %zu", num_guilistboxes, _ents.GuiControls.ListBoxes.size()));
+    for (GUIListBox &listbox : _ents.GuiControls.ListBoxes)
+    {
+        ReadGUIControlExtGraphics(in, listbox);
+    }
     return HError::None();
 }
 
@@ -729,6 +794,12 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
         {
             finfo.Filename = StrUtil::ReadString(in);
         }
+    }
+    else if (ext_id.CompareNoCase("v400_guictrlgfx") == 0)
+    {
+        HError err = ReadExtGUIControlGraphicProperties(in, _ents);
+        if (!err)
+            return err;
     }
     else
     {

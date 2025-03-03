@@ -24,6 +24,7 @@
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_translation.h"
+#include "ac/object.h"
 #include "ac/runtime_defines.h"
 #include "ac/screenoverlay.h"
 #include "ac/spritecache.h"
@@ -299,12 +300,10 @@ int Overlay_GetBlendMode(ScriptOverlay *scover)
     return over->blendMode;
 }
 
-void Overlay_SetBlendMode(ScriptOverlay *scover, int blendMode)
+void Overlay_SetBlendMode(ScriptOverlay *scover, int blend_mode)
 {
     auto *over = GetOverlayValidate("Overlay.BlendMode", scover);
-    if ((blendMode < 0) || (blendMode >= kNumBlendModes))
-        quitprintf("!SetBlendMode: invalid blend mode %d, supported modes are %d - %d", blendMode, 0, kNumBlendModes - 1);
-    over->blendMode = (BlendMode)blendMode;
+    over->blendMode = ValidateBlendMode("Overlay.BlendMode", blend_mode);
 }
 
 int Overlay_GetTransparency(ScriptOverlay *scover)

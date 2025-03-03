@@ -1533,6 +1533,9 @@ builtin managed struct GUIControl {
   import bool SetProperty(const string property, int value);
   /// Sets a text custom property for this GUI.
   import bool SetTextProperty(const string property, const string value);
+
+  /// Gets/sets the blending mode of this control.
+  import attribute BlendMode BlendMode;
 #endif // SCRIPT_API_v400
 };
 

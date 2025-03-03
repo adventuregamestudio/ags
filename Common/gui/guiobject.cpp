@@ -122,6 +122,20 @@ void GUIObject::SetTransparency(int trans)
     }
 }
 
+void GUIObject::SetTransparencyAsPercentage(int percent)
+{
+    SetTransparency(GfxDef::Trans100ToLegacyTrans255(percent));
+}
+
+void GUIObject::SetBlendMode(BlendMode blend_mode)
+{
+    if (_blendMode != blend_mode)
+    {
+        _blendMode = blend_mode;
+        MarkParentChanged(); // for software mode
+    }
+}
+
 // TODO: replace string serialization with StrUtil::ReadString and WriteString
 // methods in the future, to keep this organized.
 void GUIObject::WriteToFile(Stream *out) const
@@ -176,9 +190,29 @@ void GUIObject::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     if (svg_ver >= kGuiSvgVersion_36023)
     {
         _transparency = in->ReadInt32();
-        in->ReadInt32(); // reserve 3 ints
+        in->ReadInt32(); // reserve up to 4 ints
         in->ReadInt32();
         in->ReadInt32();
+    }
+    if (svg_ver >= kGuiSvgVersion_40016)
+    {
+        _blendMode = static_cast<BlendMode>(in->ReadInt32());
+        // Reserved for colour options
+        in->ReadInt32(); // colour flags
+        in->ReadInt32(); // tint rgb + s
+        in->ReadInt32(); // tint light (or light level)
+        // Reserved for transform options
+        in->ReadInt32(); // sprite transform flags1
+        in->ReadInt32(); // sprite transform flags2
+        in->ReadInt32(); // transform scale x
+        in->ReadInt32(); // transform scale y
+        in->ReadInt32(); // transform skew x
+        in->ReadInt32(); // transform skew y
+        in->ReadInt32(); // transform rotate
+        in->ReadInt32(); // sprite pivot x
+        in->ReadInt32(); // sprite pivot y
+        in->ReadInt32(); // sprite anchor x
+        in->ReadInt32(); // sprite anchor y
     }
 }
 
@@ -193,10 +227,29 @@ void GUIObject::WriteToSavegame(Stream *out) const
     out->WriteInt32(ZOrder);
     // Dynamic state
     out->WriteBool(IsActivated != 0);
+    // kGuiSvgVersion_36023
     out->WriteInt32(_transparency);
-    out->WriteInt32(0); // reserve 3 ints
+    out->WriteInt32(0); // reserve up to 4 ints
     out->WriteInt32(0);
     out->WriteInt32(0);
+    // kGuiSvgVersion_40016
+    out->WriteInt32(_blendMode);
+    // Reserved for colour options
+    out->WriteInt32(0); // colour flags
+    out->WriteInt32(0); // tint rgb + s
+    out->WriteInt32(0); // tint light (or light level)
+    // Reserved for transform options
+    out->WriteInt32(0); // sprite transform flags1
+    out->WriteInt32(0); // sprite transform flags2
+    out->WriteInt32(0); // transform scale x
+    out->WriteInt32(0); // transform scale y
+    out->WriteInt32(0); // transform skew x
+    out->WriteInt32(0); // transform skew y
+    out->WriteInt32(0); // transform rotate
+    out->WriteInt32(0); // sprite pivot x
+    out->WriteInt32(0); // sprite pivot y
+    out->WriteInt32(0); // sprite anchor x
+    out->WriteInt32(0); // sprite anchor y
 }
 
 } // namespace Common

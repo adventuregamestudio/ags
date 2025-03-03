@@ -41,6 +41,7 @@ namespace AGS.Types
         private bool _enabled = true;
         private bool _visible = true;
         private bool _translated = true;
+        private int _transparency = 0;
         private CustomProperties _properties = new CustomProperties(CustomPropertyAppliesTo.GUIControls);
 
         [NonSerialized]
@@ -177,6 +178,31 @@ namespace AGS.Types
         {
             get { return _translated; }
             set { _translated = value; }
+        }
+
+        [Description("The blend mode for the Control")]
+        [Category("Appearance")]
+        [TypeConverter(typeof(EnumTypeConverter))]
+        [DefaultValue(BlendMode.Normal)]
+        public BlendMode BlendMode
+        {
+            get;
+            set;
+        }
+
+        [Description("Transparency of the Control, from 0% (solid) to 100% (invisible). Does not work with 8-bit colour games.")]
+        [Category("Appearance")]
+        public int Transparency
+        {
+            get { return _transparency; }
+            set
+            {
+                if ((value < 0) || (value > 100))
+                {
+                    throw new ArgumentException("Transparency must be 0-100%");
+                }
+                _transparency = value;
+            }
         }
 
         [AGSSerializeClass()]

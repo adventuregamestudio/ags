@@ -974,6 +974,10 @@ void Character_StopMovingEx(CharacterInfo *chi, bool force_walkable_area)
     if (chi->walking == 0)
     {
         chi->flags &= ~CHF_MOVENOTWALK;
+        if (force_walkable_area && (chi->room == displayed_room))
+        {
+            Character_PlaceOnWalkableArea(chi);
+        }
         return;
     }
 

@@ -28,6 +28,8 @@ class SectionList
 {
     // list of sections
     std::vector<std::string> _sections;
+    // optional module names per section (for RTTI)
+    std::vector<std::string> _moduleNames;
     // starting line offset to section index
     std::map<size_t, size_t> _off2sec;
 
@@ -38,14 +40,30 @@ public:
         : _sections(sections)
         , _off2sec(off2sec)
     {}
+    SectionList(const std::vector<std::string> &sections,
+                const std::vector<std::string> &module_names,
+                const std::map<size_t, size_t> &off2sec)
+        : _sections(sections)
+        , _moduleNames(module_names)
+        , _off2sec(off2sec)
+    {}
     SectionList(std::vector<std::string> &&sections,
                 std::map<size_t, size_t> &&off2sec)
         : _sections(std::move(sections))
         , _off2sec(std::move(off2sec))
     {}
+    SectionList(std::vector<std::string> &&sections,
+                std::vector<std::string> &&module_names,
+                std::map<size_t, size_t> &&off2sec)
+        : _sections(std::move(sections))
+        , _moduleNames(std::move(module_names))
+        , _off2sec(std::move(off2sec))
+    {}
 
     // Returns a full list of sections
     inline const std::vector<std::string> &GetSections() const { return _sections; }
+    // Returns a full list of module names
+    inline const std::vector<std::string> &GetModuleNames() const { return _moduleNames; }
     // Maps given line-start offset to the section; returns SIZE_MAX on failure
     inline size_t GetSectionIdAt(size_t off) const
     {
@@ -58,7 +76,9 @@ public:
 class LineHandler
 {
     // stores section names as strings
-    std::vector <std::string> _sections;
+    std::vector<std::string> _sections;
+    // stores optional module names, matching each section
+    std::vector<std::string> _moduleNames;
 
     struct SectionLine
     {
@@ -77,7 +97,18 @@ public:
     LineHandler();
 
     // Start a new section. From now on, all AddLineAt() will refer to that section.
-    inline int NewSection(std::string const &section) { _sections.push_back(section); return 0; }
+    inline int NewSection(std::string const &section)
+    {
+        _sections.push_back(section);
+        _moduleNames.push_back({});
+        return 0;
+    }
+    inline int NewSection(std::string const &section, std::string const &module_name)
+    {
+        _sections.push_back(section);
+        _moduleNames.push_back(module_name);
+        return 0;
+    }
 
     // Get the section id that corresponds to the offset
     inline size_t GetSectionIdAt(size_t offset) const { UpdateCacheIfNecessary(offset); return _cacheSectionLine.SectionId; }
@@ -189,6 +220,7 @@ public:
     inline void Append(Symbol symb) { _script->push_back(symb); _end++; }
     inline void NewLine(size_t lineno) { _lineHandler->AddLineAt(_script->size(), lineno); }
     inline void NewSection(std::string const &section) { _lineHandler->NewSection(section); }
+    inline void NewSection(std::string const &section, std::string const &module_name) { _lineHandler->NewSection(section, module_name); }
 };
 } // namespace AGS
 

@@ -24,7 +24,7 @@ int ScriptSetBase::Dispose(void* /*address*/, bool /*force*/)
 
 const char *ScriptSetBase::GetType()
 {
-    return "StringSet";
+    return "Set";
 }
 
 size_t ScriptSetBase::CalcSerializeSize(const void* /*address*/)

@@ -99,6 +99,7 @@ public:
     int CheckDispose(int32_t handle);
     int32_t AddressToHandle(void *addr);
     void* HandleToAddress(int32_t handle);
+    IScriptObject *AddressToManager(void *addr);
     ScriptValueType HandleToAddressAndManager(int32_t handle, void *&object, IScriptObject *&manager);
     // Forcefully remove the object, regardless of the current ref count
     int RemoveObject(void *address);

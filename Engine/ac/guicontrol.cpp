@@ -21,17 +21,23 @@
 #include "ac/mouse.h"
 #include "ac/properties.h"
 #include "ac/string.h"
+#include "ac/dynobj/cc_gui.h"
+#include "ac/dynobj/cc_guicontrol.h"
 #include "debug/debug_log.h"
 #include "script/runtimescriptvalue.h"
-#include "ac/dynobj/cc_gui.h"
-#include "ac/dynobj/cc_guiobject.h"
 
 using namespace AGS::Common;
 
 extern GameSetupStruct game;
 extern std::vector<ScriptGUI> scrGui;
-extern CCGUI ccDynamicGUI;
-extern CCGUIObject ccDynamicGUIObject;
+
+extern CCGUIControl ccDynamicGUIControl;
+extern CCGUIButton ccDynamicGUIButton;
+extern CCGUIInvWindow ccDynamicGUIInvWindow;
+extern CCGUILabel ccDynamicGUILabel;
+extern CCGUIListBox ccDynamicGUIListBox;
+extern CCGUISlider ccDynamicGUISlider;
+extern CCGUITextBox ccDynamicGUITextBox;
 
 GUIObject *GetGUIControlAtLocation(int xx, int yy) {
     int guinum = GetGUIAt(xx, yy);
@@ -259,13 +265,18 @@ bool GUIControl_SetTextProperty(GUIObject *guio, const char *property, const cha
 
 GUIObject *GUIControl_GetByName(const char *name)
 {
-    return static_cast<GUIObject*>(ccGetScriptObjectAddress(name, ccDynamicGUIObject.GetType()));
+    // TODO: figure out if this may be simplified
+    const static std::vector<String> typenames = {
+        ccDynamicGUIButton.GetType(), ccDynamicGUIInvWindow.GetType(), ccDynamicGUILabel.GetType(),
+        ccDynamicGUIListBox.GetType(), ccDynamicGUISlider.GetType(), ccDynamicGUITextBox.GetType()
+    };
+    return static_cast<GUIObject*>(ccGetScriptObjectAddress(name, typenames));
 }
 
 
 RuntimeScriptValue Sc_GUIControl_GetByName(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_OBJ_POBJ(GUIObject, ccDynamicGUIObject, GUIControl_GetByName, const char);
+    API_SCALL_OBJ_POBJ(GUIObject, ccDynamicGUIControl, GUIControl_GetByName, const char);
 }
 
 // void (GUIObject *guio)
@@ -277,7 +288,7 @@ RuntimeScriptValue Sc_GUIControl_BringToFront(void *self, const RuntimeScriptVal
 // GUIObject *(int xx, int yy)
 RuntimeScriptValue Sc_GetGUIControlAtLocation(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_OBJ_PINT2(GUIObject, ccDynamicGUIObject, GetGUIControlAtLocation);
+    API_SCALL_OBJ_PINT2(GUIObject, ccDynamicGUIControl, GetGUIControlAtLocation);
 }
 
 // void (GUIObject *guio)
@@ -301,37 +312,37 @@ RuntimeScriptValue Sc_GUIControl_SetSize(void *self, const RuntimeScriptValue *p
 // GUIButton* (GUIObject *guio)
 RuntimeScriptValue Sc_GUIControl_GetAsButton(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_OBJ(GUIObject, GUIButton, ccDynamicGUIObject, GUIControl_GetAsButton);
+    API_OBJCALL_OBJ(GUIObject, GUIButton, ccDynamicGUIControl, GUIControl_GetAsButton);
 }
 
 // GUIInvWindow* (GUIObject *guio)
 RuntimeScriptValue Sc_GUIControl_GetAsInvWindow(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_OBJ(GUIObject, GUIInvWindow, ccDynamicGUIObject, GUIControl_GetAsInvWindow);
+    API_OBJCALL_OBJ(GUIObject, GUIInvWindow, ccDynamicGUIControl, GUIControl_GetAsInvWindow);
 }
 
 // GUILabel* (GUIObject *guio)
 RuntimeScriptValue Sc_GUIControl_GetAsLabel(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_OBJ(GUIObject, GUILabel, ccDynamicGUIObject, GUIControl_GetAsLabel);
+    API_OBJCALL_OBJ(GUIObject, GUILabel, ccDynamicGUIControl, GUIControl_GetAsLabel);
 }
 
 // GUIListBox* (GUIObject *guio)
 RuntimeScriptValue Sc_GUIControl_GetAsListBox(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_OBJ(GUIObject, GUIListBox, ccDynamicGUIObject, GUIControl_GetAsListBox);
+    API_OBJCALL_OBJ(GUIObject, GUIListBox, ccDynamicGUIControl, GUIControl_GetAsListBox);
 }
 
 // GUISlider* (GUIObject *guio)
 RuntimeScriptValue Sc_GUIControl_GetAsSlider(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_OBJ(GUIObject, GUISlider, ccDynamicGUIObject, GUIControl_GetAsSlider);
+    API_OBJCALL_OBJ(GUIObject, GUISlider, ccDynamicGUIControl, GUIControl_GetAsSlider);
 }
 
 // GUITextBox* (GUIObject *guio)
 RuntimeScriptValue Sc_GUIControl_GetAsTextBox(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_OBJ(GUIObject, GUITextBox, ccDynamicGUIObject, GUIControl_GetAsTextBox);
+    API_OBJCALL_OBJ(GUIObject, GUITextBox, ccDynamicGUIControl, GUIControl_GetAsTextBox);
 }
 
 // int (GUIObject *guio)
@@ -384,7 +395,7 @@ RuntimeScriptValue Sc_GUIControl_GetScriptName(void *self, const RuntimeScriptVa
 // ScriptGUI* (GUIObject *guio)
 RuntimeScriptValue Sc_GUIControl_GetOwningGUI(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_OBJ(GUIObject, ScriptGUI, ccDynamicGUI, GUIControl_GetOwningGUI);
+    API_OBJCALL_OBJ(GUIObject, ScriptGUI, ccDynamicGUIControl, GUIControl_GetOwningGUI);
 }
 
 // int (GUIObject *guio)

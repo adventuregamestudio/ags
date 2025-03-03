@@ -45,7 +45,7 @@ struct ccCompiledScript: public ccScript {
     void set_line_number(int nlum) { next_line=nlum; }
     void flush_line_numbers();
     int  remove_any_import(const char*, SymbolDef *oldSym);
-    void start_new_section(const char *name);
+    void start_new_section(const char *section_name, const char *module_name = "");
 
     // Returns current code size as int32 value;
     // this is meant for use in writing bytecode instructions, for compliance

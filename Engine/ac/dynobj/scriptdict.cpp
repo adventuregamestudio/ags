@@ -23,7 +23,7 @@ int ScriptDictBase::Dispose(void* /*address*/, bool /*force*/)
 
 const char *ScriptDictBase::GetType()
 {
-    return "StringDictionary";
+    return "Dictionary";
 }
 
 size_t ScriptDictBase::CalcSerializeSize(const void* /*address*/)

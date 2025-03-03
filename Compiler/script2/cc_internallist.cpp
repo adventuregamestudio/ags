@@ -28,6 +28,7 @@ AGS::LineHandler::LineHandler()
     , _cacheSectionLine({})
 {
     _sections.push_back("");
+    _moduleNames.push_back("");
     // Add sentinels to the table for simpler lookup algorithms
     size_t const maxsize = std::numeric_limits<size_t>::max();
     _lineStartTable[0] = SectionLine{ 0, 1 };
@@ -60,10 +61,11 @@ void AGS::LineHandler::AddLineAt(size_t offset, size_t lineno)
 AGS::SectionList AGS::LineHandler::CreateSectionList() const
 {
     std::vector<std::string> sections = _sections;
+    std::vector<std::string> module_names = _moduleNames;
     std::map<size_t, size_t> off2sec;
     for (const auto &item : _lineStartTable)
         off2sec[item.first] = item.second.SectionId;
-    return AGS::SectionList(std::move(sections), std::move(off2sec));
+    return AGS::SectionList(std::move(sections), std::move(module_names), std::move(off2sec));
 }
 
 AGS::SrcList::SrcList(std::vector<Symbol> &script, LineHandler &line_handler, size_t &cursor)

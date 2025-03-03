@@ -52,6 +52,7 @@ void  ccAttemptDisposeObject(int32_t handle);
 // translate between object handles and memory addresses
 int32_t ccGetObjectHandleFromAddress(void *address);
 void *ccGetObjectAddressFromHandle(int32_t handle);
+IScriptObject *ccGetObjectManager(void *address);
 ScriptValueType ccGetObjectAddressAndManagerFromHandle(int32_t handle, void *&object, IScriptObject *&manager);
 
 int ccAddObjectReference(int32_t handle);

@@ -20,7 +20,10 @@ namespace AGS.CScript.Compiler
 		private CompileResults _results = new CompileResults();
 		private int _lineNumber;
 		private string _scriptName;
-		private string _applicationVersion;
+        // ModuleName is used when generating a script marker,
+        // as an optional definition of a "module", a group containing types and imports.
+        private string _moduleName;
+        private string _applicationVersion;
 
 		internal Preprocessor(string applicationVersion)
 		{
@@ -45,12 +48,16 @@ namespace AGS.CScript.Compiler
 		public string Preprocess(string script, string scriptName)
 		{
 			StringBuilder output = new StringBuilder(script.Length);
-			output.AppendLine(Constants.NEW_SCRIPT_MARKER + scriptName.Replace(@"\", @"\\") + "\"");
 			StringReader reader = new StringReader(script);
 			string thisLine;
 			_scriptName = scriptName;
-			_lineNumber = 0;
-			while ((thisLine = reader.ReadLine()) != null)
+            _moduleName = string.Empty;
+            _lineNumber = 0;
+            string newScriptMarker = ScriptAnnotations.MakeNewScriptMarker(scriptName);
+            output.AppendLine(newScriptMarker);
+            bool addedModuleMarker = false;
+
+            while ((thisLine = reader.ReadLine()) != null)
 			{
 				_lineNumber++;
 				thisLine = RemoveComments(thisLine);
@@ -63,8 +70,15 @@ namespace AGS.CScript.Compiler
 					else
 					{
 						thisLine = PreProcessDirective(thisLine);
-					}
-				}
+                    }
+
+                    if (!addedModuleMarker && !string.IsNullOrWhiteSpace(_moduleName))
+                    {
+                        string moduleMarker = ScriptAnnotations.MakeNewScriptMarker(scriptName, _moduleName);
+                        output.Replace(newScriptMarker, moduleMarker, 0, newScriptMarker.Length);
+                        addedModuleMarker = true;
+                    }
+                }
 				output.AppendLine(thisLine);
 			}
 			reader.Close();
@@ -114,7 +128,7 @@ namespace AGS.CScript.Compiler
                             if (literal.StartsWith(Constants.NEW_SCRIPT_MARKER))
                             {
                                 // Start the new script
-                                _scriptName = literal.Substring(Constants.NEW_SCRIPT_MARKER.Length).ToString();
+                                ScriptAnnotations.ParseNewScriptMarker(literal, out _scriptName);
                                 _lineNumber = 0;
                             }
                         }
@@ -349,6 +363,14 @@ namespace AGS.CScript.Compiler
 			{
 				// do nothing -- scintilla can fold it, so it can be used to organize the code
 			}
+            else if (directive == "module")
+            {
+                if (string.IsNullOrWhiteSpace(_moduleName))
+                {
+                    string moduleName = GetNextWord(ref line);
+                    _moduleName = moduleName;
+                }
+            }
 			else
 			{
 				RecordError(ErrorCode.UnknownPreprocessorDirective, "Unknown preprocessor directive '" + directive + "'");

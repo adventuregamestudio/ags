@@ -22,7 +22,7 @@ ScriptCamera::ScriptCamera(int id) : _id(id) {}
 
 const char *ScriptCamera::GetType()
 {
-    return "Camera2";
+    return "Camera";
 }
 
 int ScriptCamera::Dispose(void* /*address*/, bool /*force*/)

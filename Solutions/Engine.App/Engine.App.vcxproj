@@ -478,7 +478,7 @@
     <ClCompile Include="..\..\Engine\ac\dynobj\cc_walkbehind.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\dynobj_manager.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\cc_gui.cpp" />
-    <ClCompile Include="..\..\Engine\ac\dynobj\cc_guiobject.cpp" />
+    <ClCompile Include="..\..\Engine\ac\dynobj\cc_guicontrol.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\cc_hotspot.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\cc_inventory.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\cc_object.cpp" />
@@ -714,7 +714,7 @@
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_dynamicarray.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_scriptobject.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_gui.h" />
-    <ClInclude Include="..\..\Engine\ac\dynobj\cc_guiobject.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\cc_guicontrol.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_hotspot.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_inventory.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_object.h" />

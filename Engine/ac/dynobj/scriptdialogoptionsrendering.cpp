@@ -19,7 +19,7 @@ using namespace AGS::Common;
 
 // return the type name of the object
 const char *ScriptDialogOptionsRendering::GetType() {
-    return "DialogOptionsRendering";
+    return "DialogOptionsRenderingInfo";
 }
 
 size_t ScriptDialogOptionsRendering::CalcSerializeSize(const void* /*address*/)

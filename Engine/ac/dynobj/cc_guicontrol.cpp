@@ -11,21 +11,27 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AC_SERIALIZER_H
-#define __AC_SERIALIZER_H
+#include "ac/dynobj/cc_guicontrol.h"
 
-#include "ac/dynobj/cc_scriptobject.h"
-#include "util/stream.h"
+using namespace AGS::Common;
 
-struct AGSDeSerializer : ICCObjectCollectionReader
+// return the type name of the object
+const char *CCGUIControl::GetType()
 {
-public:
-    void Unserialize(int index, const char *objectType, const char *serializedData, int dataSize) override;
+    return "GUIControl";
+}
 
-private:
-    // Unserializes an old GUIControl record
-    void UnserializeGUIControl(int index, AGS::Common::Stream *in, size_t data_sz);
-    int  RegisterGUIControl(int index, int guinum, int objnum);
-};
+size_t CCGUIControl::CalcSerializeSize(const void* /*address*/)
+{
+    return 0;
+}
 
-#endif // __AC_SERIALIZER_H
+void CCGUIControl::Serialize(const void* /*address*/, Stream* /*out*/)
+{
+    // no longer supported
+}
+
+void CCGUIControl::Unserialize(int /*index*/, Stream* /*in*/, size_t /*data_sz*/)
+{
+    // no longer supported
+}

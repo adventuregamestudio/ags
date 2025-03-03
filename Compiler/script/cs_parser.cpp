@@ -189,6 +189,24 @@ int sym_find_or_add(symbolTable &sym, const char *sname, int section_index = -1)
     return symdex;
 }
 
+static void parse_newscriptmarker(const std::string &symbol, std::string &script_name, std::string &module_name)
+{
+    // FIXME: ugly, but we must unescape the section name, to avoid reverse path separator duplications
+    AGS::Common::String unesc_name = AGS::Common::StrUtil::Unescape(&symbol[18]);
+    unesc_name.Trim('\"'); // strip any opening or closing quote chars
+    size_t appendix_at = unesc_name.FindChar(';');
+    if (appendix_at == AGS::Common::String::NoIndex)
+    {
+        ccCurScriptName = unesc_name.GetCStr();
+        module_name = {};
+    }
+    else
+    {
+        ccCurScriptName = unesc_name.Left(appendix_at).GetCStr();
+        module_name = unesc_name.Mid(appendix_at + 1).GetCStr();
+    }
+}
+
 int cc_tokenize(const char*inpl, ccInternalList*targ, ccCompiledScript*scrip) {
     // *** create the symbol table and parse the text code into symbol code
     int linenum=1,in_struct_declr=-1,bracedepth = 0, last_time=0;
@@ -332,16 +350,15 @@ int cc_tokenize(const char*inpl, ccInternalList*targ, ccCompiledScript*scrip) {
 
             if (strncmp(thissymbol.c_str(), NEW_SCRIPT_TOKEN_PREFIX, 18) == 0)
             {
-                // FIXME: ugly, but we must unescape the section name, to avoid reverse path separator duplications
-                AGS::Common::String unesc_name = AGS::Common::StrUtil::Unescape(&thissymbol[18]);
-                unesc_name.Trim('\"'); // strip any opening or closing quote chars
-                ccCurScriptName = unesc_name.GetCStr();
+                std::string module_name;
+                parse_newscriptmarker(thissymbol, ccCurScriptName, module_name);
 
                 linenum = 0;
                 currentline = 0;
 
                 section_index = sym.sections.size();
                 sym.sections.push_back(ccCurScriptName);
+                sym.sectionModules.push_back(module_name);
             }
         }
         targ->write(towrite);
@@ -3466,14 +3483,13 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
             }
         }
 
-        if (strncmp(sym.get_name(cursym), NEW_SCRIPT_TOKEN_PREFIX, 18) == 0)
+        const std::string symname = sym.get_name(cursym);
+        if (strncmp(symname.c_str(), NEW_SCRIPT_TOKEN_PREFIX, 18) == 0)
         {
-            // FIXME: ugly, but we must unescape the section name, to avoid reverse path separator duplications
-            AGS::Common::String unesc_name = AGS::Common::StrUtil::Unescape(&sym.get_name(cursym)[18]);
-            unesc_name.Trim('\"'); // strip any opening or closing quote chars
-            ccCurScriptName = unesc_name.GetCStr();
+            std::string module_name;
+            parse_newscriptmarker(symname, ccCurScriptName, module_name);
 
-            scrip->start_new_section(ccCurScriptName.c_str());
+            scrip->start_new_section(ccCurScriptName.c_str(), module_name.c_str());
             currentline = 0;
             continue;
         }

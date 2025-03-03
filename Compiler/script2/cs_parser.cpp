@@ -2627,8 +2627,7 @@ void AGS::Parser::ParseExpression_As(SrcList &vartype_list, EvaluationResult &er
     if (FlagIsSet(_options, SCOPT_RTTIOPS))
     {
         EvaluationResultToAx(eres);
-        CodeCell const scmd_dynamiccast = 76;        // TODO: remove when SCMD_DYNAMICCAST is defined
-        WriteCmd(scmd_dynamiccast, element_vartype); // TODO: change to SCMD_DYNAMICCAST when that is defined
+        WriteCmd(SCMD_DYNAMICCAST, element_vartype);
     }
     else
     {

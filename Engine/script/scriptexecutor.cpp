@@ -1602,6 +1602,62 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
             reg1.SetScriptObject(ref.Obj, ref.Mgr);
             break;
         }
+        case SCMD_DYNAMICCAST:
+        {
+            auto &reg = _registers[SREG_AX];
+            void *object = reg.Ptr;
+            // Null pointer always casts to null pointer
+            if (!object)
+                break;
+
+            const uint32_t arg_typeid = static_cast<uint32_t>(codeOp.Arg1i());
+            // TODO: this likely may be optimized by doing a fixup,
+            // which would replace a local typeid with a global one once the script is loaded;
+            assert(_rtti && !_rtti->IsEmpty());
+            const uint32_t global_tid = _typeidLocal2Global->at(arg_typeid);
+            ASSERT_CC_ERROR();
+            // NOTE: we call ccGetObjectManager instead of using reg.ObjMgr,
+            // because the accompanying Mgr could be one of the parent class managers,
+            // but we require the manager which this object was registered with.
+            // TODO: possibly may be skipped if we guarantee that every function
+            // that returns a parent type pointer (like GUIControl) pairs it with the
+            // real object's manager (? - need to be researched).
+            IScriptObject *manager = ccGetObjectManager(object);
+            uint32_t obj_tid = manager->GetTypeID(object);
+            // TODO: consider assigning typeid for managers when registering them or adding object to managed pool?
+            // (unless that slows it down unnecessarily...)
+            if (obj_tid == UINT32_MAX)
+            {
+                auto it_found = _rtti->GetTypeLookup().find(manager->GetType());
+                if (it_found == _rtti->GetTypeLookup().end())
+                {
+                    // Object's type not found, consider cast failing
+                    reg.SetScriptObject(nullptr, nullptr);
+                    break;
+                }
+                obj_tid = it_found->second;
+            }
+
+            // If same type, then the cast is successful
+            if (obj_tid == global_tid)
+                break;
+            // Find out if the requested type is its parent
+            const auto *type = &_rtti->GetTypes()[obj_tid];
+            bool is_castable = false;
+            while (type->parent)
+            {
+                type = type->parent;
+                if (type->this_id == global_tid)
+                {
+                    is_castable = true;
+                    break;
+                }
+            }
+            // If nothing found, then the cast was a failure, so zero MAR
+            if (!is_castable)
+                reg.SetScriptObject(nullptr, nullptr);
+            break;
+        }
         case SCMD_FADD:
         {
             auto &reg1 = _registers[codeOp.Arg1i()];

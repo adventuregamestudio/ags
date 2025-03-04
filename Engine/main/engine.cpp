@@ -117,6 +117,7 @@ bool engine_init_backend()
             user_hint);
         return false;
     }
+    sys_evt_register_ags_events();
     
     // Initialize stripped allegro library
     if (install_allegro(SYSTEM_NONE, &errno, atexit))

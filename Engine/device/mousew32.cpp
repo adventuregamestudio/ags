@@ -193,6 +193,11 @@ void Mouse::SetTouch2MouseMode(TouchMouseEmulation mode, bool relative, float sp
     ags_touch_set_mouse_emulation(mode, relative, speed);
 }
 
+void Mouse::SetMouse2Touch(bool enable)
+{
+    SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, enable ? "1" : "0");
+}
+
 void Mouse::SetSpeedUnit(float f)
 {
     SpeedUnit = f;

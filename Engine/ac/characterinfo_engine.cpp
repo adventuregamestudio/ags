@@ -188,9 +188,10 @@ bool UpdateCharacterTurning(CharacterInfo *chi, CharacterExtras *chex)
 
 void UpdateCharacterMoving(CharacterInfo *chi, CharacterExtras *chex, int &doing_nothing)
 {
-    const int was_mslot = chi->get_movelist_id();
-	if (chi->is_moving() && (chi->room == displayed_room))
+    if (chi->is_moving() && (chi->room == displayed_room))
     {
+      const bool was_move_direct = mls[chi->get_movelist_id()].direct != 0;
+
       if (chi->walkwait > 0)
       {
           chi->walkwait--;
@@ -246,7 +247,7 @@ void UpdateCharacterMoving(CharacterInfo *chi, CharacterExtras *chex, int &doing
         doing_nothing=1;
         chi->walkwait=0;
         const bool was_walk_anim = (chi->flags & CHF_MOVENOTWALK) == 0;
-        Character_StopMovingEx(chi, mls[was_mslot].direct == 0);
+        Character_StopMovingEx(chi, !was_move_direct);
         // CHECKME: there's possibly a flaw in game logic design here, as StopMoving also resets the frame,
         // except it does not reset animwait, nor calls CheckViewFrame()
         if (was_walk_anim) {

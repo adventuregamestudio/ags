@@ -257,6 +257,7 @@ void load_common_config(const ConfigTree &cfg, GameConfig &setup)
         CfgReadString(cfg, "touch", "emul_mouse_mode", "one_finger"),
         CstrArr<kNumTouchMouseModes>{ "off", "one_finger", "two_fingers" }, setup.TouchEmulateMouse);
     setup.TouchMotionRelative = CfgReadBoolInt(cfg, "touch", "emul_mouse_relative");
+    setup.MouseEmulateTouch = CfgReadBoolInt(cfg, "touch", "mouse_as_touch", setup.MouseEmulateTouch);
 
     // Translation / localization
     setup.Translation = CfgReadString(cfg, "language", "translation");

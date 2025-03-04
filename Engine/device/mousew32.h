@@ -34,8 +34,10 @@ namespace Mouse
     void SetMovementControl(bool on);
     // Tell if the mouse movement control is enabled
     bool IsControlEnabled();
-    // Set the touch2mouse motion mode: absolute/relative
+    // Set the touch2mouse emulation mode and absolute/relative motion mode
     void SetTouch2MouseMode(TouchMouseEmulation mode, bool relative, float speed);
+    // Set the mouse2touch emulation mode
+    void SetMouse2Touch(bool enable);
     // Set base speed factor, which would serve as a mouse speed unit
     void SetSpeedUnit(float f);
     // Get base speed factor

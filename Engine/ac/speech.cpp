@@ -36,26 +36,31 @@ static String VoiceAssetPath;
 
 int user_to_internal_skip_speech(SkipSpeechStyle userval)
 {
+    // NOTE: After Gamepad and Touch controls were implemented,
+    // we treat "Skip by key" as "by key or gamepad button"
+    // and "Skip by mouse" as "by mouse or touch".
     switch (userval)
     {
     case kSkipSpeechNone:
         return SKIP_NONE;
     case kSkipSpeechKeyMouseTime:
-        return SKIP_AUTOTIMER | SKIP_KEYPRESS | SKIP_MOUSECLICK | SKIP_GAMEPAD; // FIXME: remake this as `kSkipAny`
+        // TODO: remake this as "kSkipAny"?
+        return SKIP_AUTOTIMER | SKIP_KEYPRESS | SKIP_MOUSECLICK | SKIP_GAMEPAD | SKIP_TOUCH;
     case kSkipSpeechKeyTime:
-        return SKIP_AUTOTIMER | SKIP_KEYPRESS;
+        return SKIP_AUTOTIMER | SKIP_KEYPRESS | SKIP_GAMEPAD;
     case kSkipSpeechTime:
         return SKIP_AUTOTIMER;
     case kSkipSpeechKeyMouse:
-        return SKIP_KEYPRESS | SKIP_MOUSECLICK;
+        // TODO: remake this as "kSkipAnyInput"?
+        return SKIP_KEYPRESS | SKIP_MOUSECLICK | SKIP_GAMEPAD | SKIP_TOUCH;
     case kSkipSpeechMouseTime:
-        return SKIP_AUTOTIMER | SKIP_MOUSECLICK;
+        return SKIP_AUTOTIMER | SKIP_MOUSECLICK | SKIP_TOUCH;
     case kSkipSpeechKey:
-        return SKIP_KEYPRESS;
+        return SKIP_KEYPRESS | SKIP_GAMEPAD;
     case kSkipSpeechMouse:
-        return SKIP_MOUSECLICK;
+        return SKIP_MOUSECLICK | SKIP_TOUCH;
     default:
-        quit("user_to_internal_skip_speech: unknown userval");
+        debug_script_warn("user_to_internal_skip_speech: unknown userval");
         return SKIP_NONE;
     }
 }

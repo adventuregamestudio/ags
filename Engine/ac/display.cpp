@@ -336,6 +336,7 @@ Bitmap *create_textual_image(const char *text, const DisplayTextLooks &look, col
         int xoffs, yoffs, oriwid = wii - padding * 2;
         text_color = 15; // use fixed standard color here
         draw_text_window_and_bar(&text_window_ds, wantFreeScreenop, topbar, disp, &xoffs, &yoffs, &adjustedXX, &adjustedYY, &wii, &text_color);
+        text_color = text_window_ds->GetCompatibleColor(text_color);
 
         if (game.options[OPT_TWCUSTOM] > 0)
         {
@@ -866,7 +867,7 @@ void draw_text_window(Bitmap **text_window_ds, bool should_free_ds,
             quit("!Cannot use QFG4 style options without custom text window");
         draw_button_background(ds, 0,0,ds->GetWidth() - 1,ds->GetHeight() - 1,nullptr);
         if (set_text_color)
-            *set_text_color = ds->GetCompatibleColor(16);
+            *set_text_color = 16;
         xins[0]=3;
         yins[0]=3;
     }
@@ -892,7 +893,7 @@ void draw_text_window(Bitmap **text_window_ds, bool should_free_ds,
         int xoffs=game.SpriteInfos[tbnum].Width,yoffs= game.SpriteInfos[tbnum].Height;
         draw_button_background(ds, xoffs,yoffs,(ds->GetWidth() - xoffs) - 1,(ds->GetHeight() - yoffs) - 1,&guis[ifnum]);
         if (set_text_color)
-            *set_text_color = ds->GetCompatibleColor(guis[ifnum].FgColor);
+            *set_text_color = guis[ifnum].FgColor;
         xins[0]=xoffs+padding;
         yins[0]=yoffs+padding;
     }

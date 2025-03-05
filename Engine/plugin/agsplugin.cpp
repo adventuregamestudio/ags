@@ -481,9 +481,7 @@ int IAGSEngine::GetRawPixelColor(int32 color)
     // Convert the standardized colour to the local gfx mode color
     // NOTE: it is unclear whether this has to be game colour depth or display color depth.
     // there was no difference in the original engine, but there is now.
-    int result;
-    __my_setcolor(&result, color, game.GetColorDepth());
-    return result;
+    return my_setcolor(color, game.GetColorDepth());
 }
 
 int IAGSEngine::GetWalkbehindBaseline (int32 wa) {

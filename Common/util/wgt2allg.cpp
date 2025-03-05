@@ -16,36 +16,41 @@
 
 using namespace AGS::Common;
 
-  void __my_setcolor(int *ctset, int newcol, int wantColDep)
-  {
-    if (wantColDep == 8)
+int my_setcolor(const int color, int color_depth)
+{
+    if (color_depth == 8)
     {
-      ctset[0] = newcol;
+        return color;
     }
-    else if ((newcol >= 32) && (wantColDep > 16))
+    else if ((color >= 32) && (color_depth > 16))
     {
-      // true-color
-      ctset[0] = makeacol32(getr16(newcol), getg16(newcol), getb16(newcol), 255);
+        // true-color
+        return makeacol32(getr16(color), getg16(color), getb16(color), 255);
     }
-    else if (newcol >= 32)
+    else if (color >= 32)
     {
-      // If it's 15-bit, convert the color
-      if (wantColDep == 15)
-        ctset[0] = (newcol & 0x001f) | ((newcol >> 1) & 0x7fe0);
-      else
-        ctset[0] = newcol;
-    } 
+        // If it's 15-bit, convert the color
+        if (color_depth == 15)
+            return (color & 0x001f) | ((color >> 1) & 0x7fe0);
+        else
+            return color;
+    }
     else
     {
-      // indexed color, use palette
-      ctset[0] = makecol_depth(wantColDep, col_lookups[newcol] >> 16,
-                               (col_lookups[newcol] >> 8) & 0x000ff, col_lookups[newcol] & 0x000ff);
+        assert(color >= 0 && color < 32);
+        if (color < 0 || color > 32)
+            return 0;
 
-      // in case it's used on an alpha-channel sprite, make sure it's visible
-      if (wantColDep > 16)
-        ctset[0] |= 0xff000000;
+        // indexed color, use palette
+        int res_color = makecol_depth(color_depth, col_lookups[color] >> 16,
+                                  (col_lookups[color] >> 8) & 0x000ff, col_lookups[color] & 0x000ff);
+
+        // in case it's used on an alpha-channel sprite, make sure it's visible
+        if (color_depth > 16)
+            res_color |= 0xff000000;
+        return res_color;
     }
-  }
+}
 
   void wsetrgb(int coll, int r, int g, int b, RGB * pall)
   {

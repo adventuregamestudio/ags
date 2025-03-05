@@ -302,6 +302,11 @@ struct Rect
         return Point(Left, Top);
     }
 
+    inline Point GetRB() const
+    {
+        return Point(Right, Bottom);
+    }
+
     inline Point GetCenter() const
     {
         return Point(Left + GetWidth() / 2, Top + GetHeight() / 2);

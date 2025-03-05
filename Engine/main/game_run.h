@@ -18,6 +18,7 @@
 
 namespace AGS { namespace Engine { class IDriverDependantBitmap; }}
 struct GamepadInput;
+struct TouchInput;
 
 // Loops game frames until certain event takes place (for blocking actions)
 void GameLoopUntilValueIsZero(const char *value);
@@ -61,6 +62,9 @@ bool run_service_mb_controls(eAGSMouseButton &mbut, Point *mpos = nullptr);
 // Runs service gamepad controls, returns false if no button was pressed or if button input was claimed by the engine,
 // otherwise returns true and provides the gamepad input.
 bool run_service_gamepad_controls(GamepadInput &out_key);
+// Runs service touch controls, returns false if not touch is active or if its event was claimed by the engine,
+// otherwise returns true and provides TouchInput data
+bool run_service_touch_controls(TouchInput &out_touch);
 // Polls few things (exit flag and debugger messages)
 // TODO: refactor this
 void update_polled_stuff();

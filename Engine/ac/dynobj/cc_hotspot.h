@@ -16,6 +16,9 @@
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
 
+// TODO: make a shared parent class for the script objects which serve
+// as simple wrappers over an object index, and implement AGSCCDynamicObject.
+// See classes like CCHotspot, CCWalkableArea, etc.
 struct CCHotspot final : AGSCCDynamicObject
 {
 public:

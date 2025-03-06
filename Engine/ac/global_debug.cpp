@@ -81,11 +81,12 @@ String GetRuntimeInfo()
         total_normspr / 1024, max_normspr / 1024, norm_spr_filled, total_lockspr / 1024, total_extspr / 1024,
         total_txcached / 1024, max_txcached / 1024, tx_filled);
     if (play.separate_music_lib)
-        runtimeInfo.Append("[AUDIO.VOX enabled");
+        runtimeInfo.Append("\nAUDIO.VOX enabled");
     if (play.voice_avail)
-        runtimeInfo.Append("[SPEECH.VOX enabled");
-    if (get_translation_tree().size() > 0) {
-        runtimeInfo.Append("[Using translation ");
+        runtimeInfo.Append("\nSPEECH.VOX enabled");
+    if (get_translation_tree().size() > 0)
+    {
+        runtimeInfo.Append("\nUsing translation ");
         runtimeInfo.Append(get_translation_name());
     }
 

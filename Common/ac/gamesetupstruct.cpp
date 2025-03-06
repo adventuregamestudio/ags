@@ -206,7 +206,7 @@ HGameFileError GameSetupStruct::read_audio(Common::Stream *in, GameDataVersion d
 
 void GameSetupStruct::read_room_names(Stream *in, GameDataVersion data_ver)
 {
-    if ((filever >= kGameVersion_400_13) ||
+    if ((data_ver >= kGameVersion_400_13) ||
         (options[OPT_DEBUGMODE] != 0))
     {
         uint32_t room_count = in->ReadInt32();

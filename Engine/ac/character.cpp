@@ -213,6 +213,11 @@ void Character_AddWaypoint(CharacterInfo *chaa, int x, int y) {
     const int dst_y = data_to_game_coord(y);
     Pathfinding::AddWaypointDirect(cmls, dst_x, dst_y, move_speed_x, move_speed_y);
     convert_move_path_to_data_resolution(cmls, last_stage, last_stage + 1);
+
+    // FIXME: this is a hotfix, necessary because we now fixup character's
+    // ending pos after walking in UpdateCharacterMoving();
+    // probably we require to save "direct" flag per move stage instead.
+    cmls.direct = 1;
 }
 
 void Character_Animate(CharacterInfo *chaa, int loop, int delay, int repeat,

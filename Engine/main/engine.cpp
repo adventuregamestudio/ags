@@ -168,9 +168,8 @@ static void fill_game_properties(StringOrderMap &map)
 
 // Starts up setup application, if capable.
 // Returns TRUE if should continue running the game, otherwise FALSE.
-bool engine_run_setup(const ConfigTree &cfg, int &app_res)
+bool engine_run_setup(const ConfigTree &cfg)
 {
-    app_res = EXIT_NORMAL;
 #if AGS_PLATFORM_OS_WINDOWS
     {
             Debug::Printf(kDbgMsg_Info, "Running Setup");
@@ -196,14 +195,10 @@ bool engine_run_setup(const ConfigTree &cfg, int &app_res)
             if (res != kSetup_RunGame)
                 return false;
 
-            // TODO: investigate if the full program restart may (should) be avoided
-
-            // Just re-reading the config file seems to cause a caching
-            // problem on Win9x, so let's restart the process.
-            sys_main_shutdown();
-            allegro_exit();
+            // Start the game in the new process, and close the current one afterwards
             String args = String::FromFormat("\"%s\"", appPath.GetCStr());
-            _spawnl(_P_OVERLAY, appPath.GetCStr(), args.GetCStr(), NULL);
+            _spawnl(_P_NOWAIT, appPath.GetCStr(), args.GetCStr(), NULL);
+            return false;
     }
 #else
     (void)cfg;
@@ -1192,9 +1187,8 @@ int initialize_engine(const ConfigTree &startup_opts)
     // Test if need to run built-in setup program (where available)
     if (!justTellInfo && justRunSetup)
     {
-        int res;
-        if (!engine_run_setup(cfg, res))
-            return res;
+        if (!engine_run_setup(cfg))
+            return EXIT_NORMAL;
     }
     // Set up game options from user config
     engine_set_config(cfg);

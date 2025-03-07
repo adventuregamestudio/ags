@@ -71,56 +71,24 @@ int do_movelist_move(short &mslot, int &pos_x, int &pos_y)
     if (mslot < 1)
         return 0;
 
-    int need_to_fix_sprite = 0; // TODO: find out what this value means and refactor
     MoveList &cmls = mls[mslot];
-    const int cur_stage = cmls.onstage;
-    const int tar_pos_stage = cmls.run_params.Forward ? (cmls.onstage + 1) : (cmls.onstage);
-    const float move_dir_factor = cmls.run_params.Forward ? 1.f : -1.f;
-    const float xpermove = cmls.permove[cur_stage].X * move_dir_factor;
-    const float ypermove = cmls.permove[cur_stage].Y * move_dir_factor;
-    const float onpart = cmls.onpart;
-    Point target = cmls.pos[tar_pos_stage];
-    // the new position that will be assigned to pos_x and pos_y
-    int xps = pos_x, yps = pos_y;
-
-    // Calculate next positions
-    xps = cmls.from.X + (int)(xpermove * onpart);
-    yps = cmls.from.Y + (int)(ypermove * onpart);
-
-    // Check if finished either horizontal or vertical movement;
-    // snap to the target (in case run over)
-    if (((xpermove > 0) && (xps >= target.X)) || ((xpermove < 0) && (xps <= target.X)))
-        xps = target.X;
-    if (((ypermove > 0) && (yps >= target.Y)) || ((ypermove < 0) && (yps <= target.Y)))
-        yps = target.Y;
-    // NOTE: since we're using floats now, let's assume that xps and yps will
-    // reach target with proper timing, in accordance to their speeds.
-    // If something goes wrong on big distances with very sharp angles,
-    // we may restore one of the old fixups, like, snap at a remaining 1 px.
-
-    // Handle end of move stage
-    if (xps == target.X && yps == target.Y)
+    // CHECKME: historically, we return the previous position before advancing movelist
+    pos_x = cmls.GetCurrentPos().X;
+    pos_y = cmls.GetCurrentPos().Y;
+    // TODO: find out what this value means and refactor
+    int need_to_fix_sprite = 0;
+    const int old_stage = cmls.GetStage();
+    if (cmls.Forward())
     {
-        // this stage is done, go on to the next stage, or stop
-        if (cmls.NextStage())
-        {
-            xps = cmls.from.X;
-            yps = cmls.from.Y;
+        if (cmls.GetStage() != old_stage)
             need_to_fix_sprite = 2; // used to request a sprite direction update
-        }
-        else
-        {
-            // reset MoveList, and tell moving object to stop
-            cmls = {};
-            mslot = 0; // movelist 0 means "not moving/walking"
-            need_to_fix_sprite = 1; // WARNING: value 1 is not used anywhere, could be a mistake
-        }
     }
-
-    // Make a step along the current vector and return
-    cmls.onpart += 1.f;
-    pos_x = xps;
-    pos_y = yps;
+    else
+    {
+        // reset MoveList, and tell moving object to stop
+        cmls = {};
+        mslot = 0; // movelist 0 means "not moving/walking"
+    }
     return need_to_fix_sprite;
 }
 

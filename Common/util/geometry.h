@@ -91,6 +91,22 @@ struct PointT
         X = x;
         Y = y;
     }
+    // Cast from another Point<R>
+    template <typename R>
+    PointT(const PointT<R> &pt)
+    {
+        X = static_cast<T>(pt.X);
+        Y = static_cast<T>(pt.Y);
+    }
+
+    // Cast from another Point<R>
+    template <typename R>
+    Pt &operator =(const PointT<R> &pt)
+    {
+        X = static_cast<T>(pt.X);
+        Y = static_cast<T>(pt.Y);
+        return *this;
+    }
 
     inline static Pt Clamp(const Pt &p, const Pt &floor, const Pt &ceil)
     {

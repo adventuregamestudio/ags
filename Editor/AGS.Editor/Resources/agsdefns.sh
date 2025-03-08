@@ -483,6 +483,9 @@ enum InputType
 #ifdef SCRIPT_API_v399
   eInputGamepad  = 0x08000000,
 #endif
+#ifdef SCRIPT_API_v400
+  eInputTouch    = 0x10000000,
+#endif
   eInputAny      = 0xFF000000
 };
 #endif // SCRIPT_API_v36026
@@ -3173,6 +3176,24 @@ builtin managed struct MaskPathfinder extends Pathfinder {
   import static MaskPathfinder* Create(int mask_sprite);  // $AUTOCOMPLETESTATICONLY$
   /// Assigns a new mask to this MaskPathfinder
   import void SetMask(int mask_sprite);
+};
+
+managed struct TouchPointer {
+  /// Gets this touch pointer's identifier.
+  import readonly attribute int ID;
+  /// Gets whether this touch pointer is currently down (in touching state).
+  import readonly attribute bool IsDown;
+  /// Gets this touch pointer's X screen coordinate.
+  import readonly attribute int X;
+  /// Gets this touch pointer's Y screen coordinate.
+  import readonly attribute int Y;
+};
+
+builtin struct Touch {
+  /// Number of touch pointers registered by the game engine.
+  readonly import static attribute int TouchPointerCount;  // $AUTOCOMPLETESTATICONLY$
+  /// Accesses a touch pointer state by its identifier.
+  readonly import static attribute TouchPointer* TouchPointers[];  // $AUTOCOMPLETESTATICONLY$
 };
 #endif // SCRIPT_API_v400
 

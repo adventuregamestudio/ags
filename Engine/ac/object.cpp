@@ -530,8 +530,11 @@ void update_object_scale(int &res_zoom, int &res_width, int &res_height,
         }
     }
 
+    // safety fixes
+    if (sprnum < 0 || sprnum >= game.SpriteInfos.size() || !game.SpriteInfos[sprnum].IsValid())
+        sprnum = 0;
     if (zoom == 0)
-        zoom = 100; // safety fix
+        zoom = 100;
 
     int sprwidth = game.SpriteInfos[sprnum].Width;
     int sprheight = game.SpriteInfos[sprnum].Height;

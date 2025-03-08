@@ -255,6 +255,7 @@ struct SpriteInfo
     SpriteInfo(int w, int h, uint32_t flags)
         : Width(w), Height(h), Flags(flags) {}
 
+    inline bool IsValid() const { return Width > 0 && Height > 0; }
     inline Size GetResolution() const { return Size(Width, Height); }
     // Gets if sprite is created at runtime (by engine, or a script command)
     inline bool IsDynamicSprite() const { return (Flags & SPF_DYNAMICALLOC) != 0; }

@@ -531,7 +531,8 @@ void update_object_scale(int &res_zoom, int &res_width, int &res_height,
     }
 
     // safety fixes
-    if (sprnum < 0 || sprnum >= game.SpriteInfos.size() || !game.SpriteInfos[sprnum].IsValid())
+    if ((sprnum < 0) || (static_cast<uint32_t>(sprnum) >= game.SpriteInfos.size())
+            || !game.SpriteInfos[sprnum].IsValid())
         sprnum = 0;
     if (zoom == 0)
         zoom = 100;

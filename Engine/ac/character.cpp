@@ -974,18 +974,6 @@ void Character_StopMoving(CharacterInfo *chi)
 
 void Character_StopMovingEx(CharacterInfo *chi, bool force_walkable_area)
 {
-    // If not moving, then clear the move-related flags (for safety) and bail out
-    // NOTE: I recall there was a potential case when this flag could remain after Move...
-    if (chi->walking == 0)
-    {
-        chi->flags &= ~CHF_MOVENOTWALK;
-        if (force_walkable_area && (chi->room == displayed_room))
-        {
-            Character_PlaceOnWalkableArea(chi);
-        }
-        return;
-    }
-
     int chid = chi->index_id;
     if (chid == play.skip_until_char_stops)
         EndSkippingUntilCharStops();
@@ -999,13 +987,18 @@ void Character_StopMovingEx(CharacterInfo *chi, bool force_walkable_area)
         chex.xwas = INVALID_X;
     }
 
-    // If it is in walking state, and is *not* during turning around,
-    // then validate the character position, ensuring that it does not
-    // end on a non-walkable area and gets stuck.
-    if (force_walkable_area && (chi->walking < TURNING_AROUND) && (chi->room == displayed_room))
+    // If requested by a caller, then validate the character position,
+    // ensuring that it does not end on a non-walkable area and gets stuck.
+    // Because the pathfinder is not ideal, and there are various sources of
+    // inaccuracy in the walking logic, in rare cases the character might
+    // pass through or even finish on a non-walkable pixel.
+    if (force_walkable_area && (chi->room == displayed_room))
     {
         // TODO: don't use PlaceOnWalkable, as that may result in moving character
-        // into the random direction. Instead, consider writing a "backtracing"
+        // into the random direction.
+        // For finishing a walk clamp to a precalculated final destination instead
+        // (CHECKME: is it guaranteed valid?).
+        // For when interrupting a move, consider writing a "backtracing"
         // function that runs along MoveList's current stage back, looking for
         // the first pixel on a walkable area.
         Character_PlaceOnWalkableArea(chi);
@@ -1013,16 +1006,22 @@ void Character_StopMovingEx(CharacterInfo *chi, bool force_walkable_area)
 
     debug_script_log("%s: stop moving", chi->scrname);
 
-    // Switch character state from walking to standing
-    chi->walking = 0;
-    // If the character was walking, then reset their frame
-    if ((chi->flags & CHF_MOVENOTWALK) == 0)
-        chi->frame = 0;
-    chi->flags &= ~CHF_MOVENOTWALK;
+    // If the character is currently moving, stop them and reset their state
+    if (chi->walking > 0)
+    {
+        // Switch character state from walking to standing
+        chi->walking = 0;
+        // If the character was animating a walk, then reset their frame to standing
+        if ((chi->flags & CHF_MOVENOTWALK) == 0)
+            chi->frame = 0;
+        // Restart idle timer and mark to process right away (in case its persistent idling)
+        chi->idleleft = chi->idletime;
+        chex.process_idle_this_time = 1;
+    }
 
-    // Restart idle timer and mark to process right away (in case its persistent idling)
-    chi->idleleft = chi->idletime;
-    chex.process_idle_this_time = 1;
+    // Always clear the move-related flags (for safety)
+    // NOTE: I recall there was a potential case when this flag could remain after Move...
+    chi->flags &= ~CHF_MOVENOTWALK;
 }
 
 void Character_Tint(CharacterInfo *chaa, int red, int green, int blue, int opacity, int luminance) {

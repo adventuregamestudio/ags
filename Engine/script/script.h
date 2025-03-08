@@ -91,6 +91,7 @@ struct NonBlockingScriptFunction
     }
 };
 
+// Run a script function on a non-blocking script thread
 void    run_function_on_non_blocking_thread(NonBlockingScriptFunction* funcToRun);
 
 // Runs the ObjectEvent using a script callback of 'evnt' index,
@@ -121,7 +122,7 @@ void    QueueScriptFunction(ScriptType sc_type, const String &fn_name, size_t pa
 // by RunScriptFunctionAuto().
 void    QueueScriptFunction(ScriptType sc_type, const ScriptFunctionRef &fn_ref, size_t param_count = 0,
     const RuntimeScriptValue *params = nullptr, std::weak_ptr<bool> result = {});
-// Try to run a script function on a given script instance
+// Try to run a script function on the main script thread
 RunScFuncResult RunScriptFunction(const AGS::Engine::RuntimeScript *script, const String &tsname, size_t param_count = 0,
     const RuntimeScriptValue *params = nullptr);
 // Run a script function in all the regular script modules, in order, where available

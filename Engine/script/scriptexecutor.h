@@ -79,6 +79,8 @@ public:
     std::vector<RuntimeScriptValue> &GetStack() { return _stack; }
     std::vector<uint8_t> &GetStackData() { return _stackdata; }
     const std::deque<ScriptExecPosition> &GetCallStack() const { return _callstack; }
+    // Tells if the thread is busy, that is - has anything in its callstack
+    bool   IsBusy() const { return _callstack.size() > 0; }
     const ScriptExecPosition &GetPosition() const { return _pos; }
     size_t GetStackBegin() const { return _stackBeginOff; }
     size_t GetStackDataBegin() const { return _stackDataBeginOff; }

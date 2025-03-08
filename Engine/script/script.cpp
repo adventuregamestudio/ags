@@ -86,7 +86,7 @@ std::unique_ptr<ScriptExecutor> scriptExecutor;
 std::unique_ptr<ScriptThread> scriptThreadMain;
 std::unique_ptr<ScriptThread> scriptThreadNonBlocking;
 
-
+// Run a script function on a non-blocking script thread
 static bool DoRunScriptFuncCantBlock(const RuntimeScript *script, NonBlockingScriptFunction* funcToRun, bool hasTheFunc);
 
 
@@ -298,6 +298,7 @@ void QueueScriptFunction(ScriptType sc_type, const ScriptFunctionRef &fn_ref,
     }
 }
 
+// Run a script function on a non-blocking script thread
 static bool DoRunScriptFuncCantBlock(const RuntimeScript *script, NonBlockingScriptFunction* funcToRun, bool hasTheFunc)
 {
     if (!hasTheFunc)
@@ -354,6 +355,18 @@ static RunScFuncResult PrepareTextScript(const RuntimeScript *script, const Stri
     return kScFnRes_Done;
 }
 
+static void PostScriptProcessing(const String &tsname)
+{
+    post_script_cleanup_stack++;
+
+    if (post_script_cleanup_stack > 50)
+        quitprintf("!post_script_cleanup call stack exceeded: possible recursive function call? running %s", tsname.GetCStr());
+
+    post_script_cleanup();
+
+    post_script_cleanup_stack--;
+}
+
 RunScFuncResult RunScriptFunction(const RuntimeScript *script, const String &tsname, size_t numParam, const RuntimeScriptValue *params)
 {
     assert(script);
@@ -383,14 +396,10 @@ RunScFuncResult RunScriptFunction(const RuntimeScript *script, const String &tsn
         quit_with_script_error(tsname);
     }
 
-    post_script_cleanup_stack++;
-
-    if (post_script_cleanup_stack > 50)
-        quitprintf("!post_script_cleanup call stack exceeded: possible recursive function call? running %s", tsname.GetCStr());
-
-    post_script_cleanup();
-
-    post_script_cleanup_stack--;
+    if (!scriptThreadMain->IsBusy())
+    {
+        PostScriptProcessing(tsname);
+    }
 
     // restore cached error state
     cc_error(cachedCcError);

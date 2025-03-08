@@ -60,10 +60,9 @@ PRuntimeScript gamescript;
 PRuntimeScript dialogScriptsScript;
 PRuntimeScript roomscript;
 
-int num_scripts=0;
+int num_scripts = 0; // number of ExecutingScript objects recorded
 int post_script_cleanup_stack = 0;
-
-int inside_script=0,in_graph_script=0;
+int inside_script = 0;
 int no_blocking_functions = 0; // set to 1 while in rep_Exec_always
 
 NonBlockingScriptFunction repExecAlways(REP_EXEC_ALWAYS_NAME, 0);

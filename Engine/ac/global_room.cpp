@@ -37,7 +37,6 @@ extern CharacterInfo*playerchar;
 extern int displayed_room;
 extern int in_enters_screen;
 extern int in_leaves_screen;
-extern int gs_to_newroom;
 extern bool new_room_placeonwalkable;
 extern RoomStruct thisroom;
 
@@ -95,7 +94,7 @@ void NewRoom(int nrnum) {
         setevent(AGSEvent_NewRoom(nrnum));
         return;
     }
-    else if ((inside_script==0) & (in_graph_script==0)) {
+    else if (inside_script == 0) {
         new_room(nrnum,playerchar);
         return;
     }
@@ -108,8 +107,6 @@ void NewRoom(int nrnum) {
             Character_StopMovingEx(playerchar, false);
         }
     }
-    else if (in_graph_script)
-        gs_to_newroom = nrnum;
 }
 
 void ResetRoom(int nrnum) {

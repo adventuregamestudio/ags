@@ -109,7 +109,6 @@ extern std::vector<int> StaticHotspotArray;
 std::unique_ptr<MaskRouteFinder> room_pathfinder;
 RGB_MAP rgb_table;  // for 256-col antialiasing
 int new_room_flags=0;
-int gs_to_newroom=-1;
 
 ScriptDrawingSurface* Room_GetDrawingSurfaceForBackground(int backgroundNumber)
 {

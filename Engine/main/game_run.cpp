@@ -82,7 +82,7 @@ extern int game_paused;
 extern int getloctype_index;
 extern int in_enters_screen,done_es_error;
 extern int in_leaves_screen;
-extern int inside_script,in_graph_script;
+extern int inside_script;
 extern int no_blocking_functions;
 extern CharacterInfo*playerchar;
 extern int cur_mode;

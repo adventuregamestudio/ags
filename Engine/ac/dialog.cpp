@@ -1508,7 +1508,7 @@ bool is_in_dialogoptions()
 bool is_dialog_executing_script()
 {
     return dialogExec && (dialogExec->GetExecutedOption() >= 0)
-        && scriptExecutor && (scriptExecutor->GetRunningScript() == dialogScriptsScript.get());
+        && scriptExecutor; // scriptExecutor is tested for safety, because we need it for a hack below
 }
 
 // TODO: this is ugly, but I could not come to a better solution at the time...

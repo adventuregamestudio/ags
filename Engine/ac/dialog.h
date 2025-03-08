@@ -27,6 +27,7 @@ int  Dialog_GetOptionState(ScriptDialog *sd, int option);
 int  Dialog_HasOptionBeenChosen(ScriptDialog *sd, int option);
 void Dialog_SetOptionState(ScriptDialog *sd, int option, int newState);
 void Dialog_Start(ScriptDialog *sd);
+void StopDialog();
 
 // Starts a dialog
 void do_conversation(int dlgnum);

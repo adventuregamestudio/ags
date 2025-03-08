@@ -19,8 +19,8 @@
 #include "debug/out.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
-
 #include "ac/character.h"
+#include "ac/dialog.h"
 #include "ac/display.h"
 #include "ac/dynamicsprite.h"
 #include "ac/event.h"
@@ -613,10 +613,9 @@ RuntimeScriptValue Sc_StartCutscene(const RuntimeScriptValue *params, int32_t pa
     API_SCALL_VOID_PINT(StartCutscene);
 }
 
-// void  (int chid) 
-RuntimeScriptValue Sc_stop_and_destroy_channel(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_StopDialog(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT(stop_and_destroy_channel);
+    API_SCALL_VOID(StopDialog);
 }
 
 // void (int red, int grn, int blu)
@@ -811,6 +810,7 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "SkipCutscene",             API_FN_PAIR(SkipCutscene) },
         { "SkipUntilCharacterStops",  API_FN_PAIR(SkipUntilCharacterStops) },
         { "StartCutscene",            API_FN_PAIR(StartCutscene) },
+        { "StopDialog",               API_FN_PAIR(StopDialog) },
         { "TintScreen",               API_FN_PAIR(TintScreen) },
         { "UnPauseGame",              API_FN_PAIR(UnPauseGame) },
         { "UpdateInventory",          API_FN_PAIR(UpdateInventory) },

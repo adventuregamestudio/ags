@@ -1834,7 +1834,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Move Lists",
-        kMoveSvgVersion_36109,
+        kMoveSvgVersion_36208,
         kMoveSvgVersion_350, // skip pre-alpha 3.5.0 ver
         (SaveCmpSelection)(kSaveCmp_Characters | kSaveCmp_ThisRoom), // must go along with characters and room objects
         WriteMoveLists,

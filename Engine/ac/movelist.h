@@ -24,6 +24,11 @@ using namespace AGS; // FIXME later
 #define LEGACY_MAXMOVESTAGES 256
 #define MAXNEEDSTAGES_LEGACY 40
 
+enum MoveListStageFlags
+{
+    kMoveStage_Direct = 0x01 // ignoring walkable areas
+};
+
 enum MoveListDoneFlags
 {
     kMoveListDone_X = 0x01,
@@ -36,6 +41,7 @@ enum MoveListSvgVersion
     kMoveSvgVersion_Initial = 0, // [UNSUPPORTED] from 3.5.0 pre-alpha
     kMoveSvgVersion_350,   // new pathfinder, arbitrary number of stages
     kMoveSvgVersion_36109, // skip empty lists, progress as float
+    kMoveSvgVersion_36208   = 3060208, // flags per stage
 };
 
 class MoveList
@@ -50,14 +56,15 @@ public:
     // these values are treated as "fixed" (fixed-point) type.
     // TODO: perhaps turn Point class into a template, and use Point<fixed> here.
     std::vector<Point> permove;
+    // Flags per stage (see MoveListStageFlags)
+    std::vector<uint8_t> stageflags;
     uint32_t onstage = 0; // current path stage
     Point   from; // current stage's starting position
     // Steps made during current stage;
     // distance passed is calculated as permove[onstage] * onpart;
     // made a fractional value to let recalculate movelist dynamically
     float   onpart = 0.f;
-    uint8_t doneflag = 0u;
-    uint8_t direct = 0;  // ignoring walkable areas (yes = 1, no = 0)
+    uint8_t doneflag = 0u; // see MoveListDoneFlags
 
     // Dynamic fixups, not serialized
     // Final section move speed and steps, used when an object
@@ -68,6 +75,8 @@ public:
     bool IsEmpty() const { return pos.empty(); }
     uint32_t GetNumStages() const { return pos.size(); }
     const Point &GetLastPos() const { return pos.back(); }
+    int GetCurrentStageFlags() const { return onstage < stageflags.size() ? stageflags[onstage] : 0; }
+    bool IsStageDirect() const { return (GetCurrentStageFlags() & kMoveStage_Direct) != 0; }
 
     // Gets a movelist's step length, in coordinate units
     // (normally the coord unit is a game pixel)

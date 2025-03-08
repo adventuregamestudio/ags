@@ -211,13 +211,8 @@ void Character_AddWaypoint(CharacterInfo *chaa, int x, int y) {
     cmls.pos[last_stage] = { data_to_game_coord(last_pos.X), data_to_game_coord(last_pos.Y) };
     const int dst_x = data_to_game_coord(x);
     const int dst_y = data_to_game_coord(y);
-    Pathfinding::AddWaypointDirect(cmls, dst_x, dst_y, move_speed_x, move_speed_y);
+    Pathfinding::AddWaypointDirect(cmls, dst_x, dst_y, move_speed_x, move_speed_y, kMoveStage_Direct);
     convert_move_path_to_data_resolution(cmls, last_stage, last_stage + 1);
-
-    // FIXME: this is a hotfix, necessary because we now fixup character's
-    // ending pos after walking in UpdateCharacterMoving();
-    // probably we require to save "direct" flag per move stage instead.
-    cmls.direct = 1;
 }
 
 void Character_Animate(CharacterInfo *chaa, int loop, int delay, int repeat,
@@ -969,7 +964,7 @@ void Character_SetSpeed(CharacterInfo *chaa, int xspeed, int yspeed) {
 
 void Character_StopMoving(CharacterInfo *chi)
 {
-    Character_StopMovingEx(chi, chi->is_moving() && (mls[chi->get_movelist_id()].direct == 0));
+    Character_StopMovingEx(chi, chi->is_moving() && !mls[chi->get_movelist_id()].IsStageDirect());
 }
 
 void Character_StopMovingEx(CharacterInfo *chi, bool force_walkable_area)
@@ -1847,7 +1842,7 @@ void move_character_impl(CharacterInfo *chin, const std::vector<Point> *path, in
     bool path_result = false;
     if (path)
     {
-        path_result = Pathfinding::CalculateMoveList(mls[mslot], *path, move_speed_x, move_speed_y);
+        path_result = Pathfinding::CalculateMoveList(mls[mslot], *path, move_speed_x, move_speed_y, ignwal ? kMoveStage_Direct : 0);
     }
     else
     {
@@ -1860,7 +1855,6 @@ void move_character_impl(CharacterInfo *chin, const std::vector<Point> *path, in
     if (path_result)
     {
         chin->walking = mslot;
-        mls[mslot].direct = ignwal;
         convert_move_path_to_data_resolution(mls[mslot]);
 
         if (wasStepFrac > 0.f)
@@ -2069,7 +2063,7 @@ int doNextCharMoveStep(CharacterInfo *chi, CharacterExtras *chex) {
 bool is_char_walking_ndirect(CharacterInfo *chi)
 {
     return chi->is_moving_not_turning() &&
-        (mls[chi->get_movelist_id()].direct == 0);
+        !mls[chi->get_movelist_id()].IsStageDirect();
 }
 
 bool FindNearestWalkableAreaForCharacter(const Point &src, Point &dst, bool force_move)

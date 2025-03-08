@@ -476,7 +476,6 @@ void move_object(int objj, int tox, int toy, int speed, int ignwal) {
         speed, speed, false, ignwal != 0))
     {
         objs[objj].moving = mslot;
-        mls[mslot].direct = ignwal;
         convert_move_path_to_data_resolution(mls[mslot]);
     }
 }

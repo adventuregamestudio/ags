@@ -51,9 +51,10 @@ HSaveError MoveList::ReadFromSavegame(Stream *in, int32_t cmp_ver)
     }
 
     *this = MoveList(); // reset struct
-    uint32_t numstage = in->ReadInt32();
+    const uint32_t numstage = in->ReadInt32();
     pos.resize(numstage);
     permove.resize(numstage);
+    stageflags.resize(numstage);
     if ((numstage == 0) && cmp_ver >= kMoveSvgVersion_36109)
     {
         return HSaveError::None();
@@ -66,7 +67,7 @@ HSaveError MoveList::ReadFromSavegame(Stream *in, int32_t cmp_ver)
     in->ReadInt32(); // UNUSED
     in->ReadInt32(); // UNUSED
     doneflag = in->ReadInt8();
-    direct = in->ReadInt8();
+    const uint8_t old_direct_flag = in->ReadInt8();
 
     for (uint32_t i = 0; i < numstage; ++i)
     { // X & Y was packed as high/low shorts, and hence reversed in lo-end
@@ -88,6 +89,18 @@ HSaveError MoveList::ReadFromSavegame(Stream *in, int32_t cmp_ver)
     else
         onpart = onpart_u.val.f;
 
+    if (cmp_ver >= kMoveSvgVersion_36208)
+    {
+        for (uint32_t i = 0; i < numstage; ++i)
+        {
+            stageflags[i] = in->ReadInt8();
+        }
+    }
+    else
+    {
+        std::fill(stageflags.begin(), stageflags.end(), old_direct_flag);
+    }
+
     return HSaveError::None();
 }
 
@@ -105,7 +118,7 @@ void MoveList::WriteToSavegame(Stream *out) const
     out->WriteInt32(0); // UNUSED
     out->WriteInt32(0); // UNUSED
     out->WriteInt8(doneflag);
-    out->WriteInt8(direct);
+    out->WriteInt8(0); // DEPRECATED (was global direct flag)
 
     for (uint32_t i = 0; i < numstage; ++i)
     { // X & Y was packed as high/low shorts, and hence reversed in lo-end
@@ -119,5 +132,10 @@ void MoveList::WriteToSavegame(Stream *out) const
     for (uint32_t i = 0; i < numstage; ++i)
     {
         out->WriteInt32(permove[i].Y);
+    }
+    // kMoveSvgVersion_36208
+    for (uint32_t i = 0; i < numstage; ++i)
+    {
+        out->WriteInt8(stageflags[i]);
     }
 }

@@ -112,7 +112,7 @@ bool FindRoute(MoveList &mls, IRouteFinder *finder, int srcx, int srcy, int dstx
     if (!finder->FindRoute(path, srcx, srcy, dstx, dsty, exact_dest, ignore_walls))
         return false;
 
-    return CalculateMoveList(mls, path, move_speed_x, move_speed_y);
+    return CalculateMoveList(mls, path, move_speed_x, move_speed_y, ignore_walls ? kMoveStage_Direct : 0);
 }
 
 // Converts input moving speed to a fixed-point representation.
@@ -216,11 +216,12 @@ void CalculateMoveStage(MoveList &mls, uint32_t stage, fixed move_speed_x, fixed
 #endif
 }
 
-bool CalculateMoveList(MoveList &mls, const std::vector<Point> path, int move_speed_x, int move_speed_y)
+bool CalculateMoveList(MoveList &mls, const std::vector<Point> path, int move_speed_x, int move_speed_y, uint8_t stage_flag)
 {
     MoveList mlist;
     mlist.pos = path;
     mlist.permove.resize(path.size());
+    mlist.stageflags.resize(path.size(), stage_flag);
 
     const fixed fix_speed_x = InputSpeedToFixed(move_speed_x);
     const fixed fix_speed_y = InputSpeedToFixed(move_speed_y);
@@ -232,13 +233,21 @@ bool CalculateMoveList(MoveList &mls, const std::vector<Point> path, int move_sp
     return true;
 }
 
-bool AddWaypointDirect(MoveList &mls, int x, int y, int move_speed_x, int move_speed_y)
+bool AddWaypointDirect(MoveList &mls, int x, int y, int move_speed_x, int move_speed_y, uint8_t stage_flag)
 {
+    // Safety fixup, because the MoveList logic requires at least 2 points
+    if (mls.GetNumStages() == 0)
+    {
+        mls.pos.emplace_back(x, y);
+    }
+
     const fixed fix_speed_x = InputSpeedToFixed(move_speed_x);
     const fixed fix_speed_y = InputSpeedToFixed(move_speed_y);
     const uint32_t last_stage = mls.GetNumStages() - 1;
     mls.pos.emplace_back( x, y );
     mls.permove.resize(mls.pos.size());
+    mls.stageflags.resize(mls.pos.size(), stage_flag);
+    mls.stageflags[last_stage] = stage_flag;
     CalculateMoveStage(mls, last_stage, fix_speed_x, fix_speed_y);
     return true;
 }

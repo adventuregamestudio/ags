@@ -190,7 +190,7 @@ void UpdateCharacterMoving(CharacterInfo *chi, CharacterExtras *chex, int &doing
 {
     if (chi->is_moving() && (chi->room == displayed_room))
     {
-      const bool was_move_direct = mls[chi->get_movelist_id()].direct != 0;
+      const bool was_move_direct = mls[chi->get_movelist_id()].IsStageDirect();
 
       if (chi->walkwait > 0)
       {

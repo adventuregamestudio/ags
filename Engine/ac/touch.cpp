@@ -27,7 +27,7 @@ struct TouchPointer
     static const int NoIndex = -1;
     int PointerID = NoIndex;
     TouchPhase Phase = TouchPhase::Undefined;
-    Point Position = Point(-1, -1); // default to offscreen
+    Point Position = Point(INT32_MIN, INT32_MIN); // default to offscreen
     int ScriptObjHandle = 0;
 
     TouchPointer() = default;

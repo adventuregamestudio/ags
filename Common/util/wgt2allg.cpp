@@ -20,35 +20,36 @@ int my_setcolor(const int color, int color_depth)
 {
     if (color_depth == 8)
     {
+        // indexed color
         return color;
     }
     else if ((color >= 32) && (color_depth > 16))
     {
-        // true-color
+        // true-color RGB
         return makeacol32(getr16(color), getg16(color), getb16(color), 255);
     }
     else if (color >= 32)
     {
-        // If it's 15-bit, convert the color
+        // 15-bit or 16-bit color RGB
         if (color_depth == 15)
             return (color & 0x001f) | ((color >> 1) & 0x7fe0);
         else
             return color;
     }
-    else
+    else if (color >= 0)
     {
-        assert(color >= 0 && color < 32);
-        if (color < 0 || color > 32)
-            return 0;
-
-        // indexed color, use palette
+        // special 0-31 slots, use standard palette regardless of color depth
         int res_color = makecol_depth(color_depth, col_lookups[color] >> 16,
                                   (col_lookups[color] >> 8) & 0x000ff, col_lookups[color] & 0x000ff);
 
-        // in case it's used on an alpha-channel sprite, make sure it's visible
         if (color_depth > 16)
-            res_color |= 0xff000000;
+            res_color |= 0xff000000; // add alpha for 32-bit color depth
         return res_color;
+    }
+    else
+    {
+        assert(false); // invalid input color index
+        return 0;
     }
 }
 

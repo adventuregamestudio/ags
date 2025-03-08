@@ -2252,6 +2252,8 @@ builtin managed struct Dialog {
   import readonly attribute String ScriptName;
 #endif // SCRIPT_API_v361
 #ifdef SCRIPT_API_v362
+  /// Stop the currently running dialog.
+  import static void Stop(); // $AUTOCOMPLETESTATICONLY$
   /// Gets the currently running dialog, returns null if no dialog is run
   import static readonly attribute Dialog* CurrentDialog; // $AUTOCOMPLETESTATICONLY$
   /// Gets the currently executed dialog option, or -1 if none is

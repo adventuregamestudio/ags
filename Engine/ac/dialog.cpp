@@ -1624,6 +1624,11 @@ ScriptDialog *Dialog_GetByName(const char *name)
     return static_cast<ScriptDialog*>(ccGetScriptObjectAddress(name, ccDynamicDialog.GetType()));
 }
 
+void Dialog_Stop()
+{
+    StopDialog();
+}
+
 ScriptDialog *Dialog_GetCurrentDialog()
 {
     return dialogExec ? &scrDialog[dialogExec->GetDlgNum()] : nullptr;
@@ -1642,6 +1647,11 @@ bool Dialog_GetAreOptionsDisplayed()
 RuntimeScriptValue Sc_Dialog_GetByName(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_OBJ_POBJ(ScriptDialog, ccDynamicDialog, Dialog_GetByName, const char);
+}
+
+RuntimeScriptValue Sc_Dialog_Stop(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID(Dialog_Stop);
 }
 
 RuntimeScriptValue Sc_Dialog_GetCurrentDialog(const RuntimeScriptValue *params, int32_t param_count)
@@ -1727,6 +1737,7 @@ void RegisterDialogAPI()
 {
     ScFnRegister dialog_api[] = {
         { "Dialog::GetByName",            API_FN_PAIR(Dialog_GetByName) },
+        { "Dialog::Stop",                 API_FN_PAIR(Dialog_Stop) },
         { "Dialog::get_CurrentDialog",    API_FN_PAIR(Dialog_GetCurrentDialog) },
         { "Dialog::get_ExecutedOption",   API_FN_PAIR(Dialog_GetExecutedOption) },
         { "Dialog::get_AreOptionsDisplayed", API_FN_PAIR(Dialog_GetAreOptionsDisplayed) },

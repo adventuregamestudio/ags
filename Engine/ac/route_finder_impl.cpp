@@ -87,7 +87,7 @@ bool JPSRouteFinder::FindRouteJPS(std::vector<Point> &nav_path, int fromx, int f
 
     nav_path.clear();
 
-    for (int i = 0; i < cpath.size(); i++)
+    for (size_t i = 0; i < cpath.size(); i++)
     {
         int x, y;
         nav.UnpackSquare(cpath[i], x, y);

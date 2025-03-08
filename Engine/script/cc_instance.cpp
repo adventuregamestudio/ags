@@ -611,8 +611,8 @@ ccInstError ccInstance::Run(int32_t curpc)
 
         codeOp.ArgCount = sccmd_info[codeOp.Instruction.Code].ArgCount;
 
-        CC_ERROR_IF_RETCODE(_pc + codeOp.ArgCount >= codeInst->_codesize,
-            "unexpected end of code data (%d; %d)", _pc + codeOp.ArgCount, codeInst->_codesize);
+        CC_ERROR_IF_RETCODE(static_cast<uint32_t>(_pc + codeOp.ArgCount) >= codeInst->_codesize,
+            "unexpected end of code data (%u; %u)", static_cast<uint32_t>(_pc + codeOp.ArgCount), codeInst->_codesize);
 
 
         // Read arguments; use switch as it proved to be faster than the loop

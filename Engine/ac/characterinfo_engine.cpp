@@ -295,17 +295,20 @@ bool UpdateCharacterAnimating(CharacterInfo *chi, CharacterExtras *chex, int &do
         doing_nothing = 1;
 
       const int view = chi->view;
+      const bool is_char_speaking = (char_speaking_anim == chi->index_id);
+
       if (chi->wait > 0) {
           chi->wait--;
       }
-      else if (has_voice_lipsync()) {
+      else if (is_char_speaking && (game.options[OPT_SPEECHTYPE] == kSpeechStyle_LucasArts)
+               && has_voice_lipsync()) {
           const int new_frame = update_voice_lipsync(chi->frame);
           if (chi->frame != new_frame) {
               chi->frame = new_frame;
               chex->CheckViewFrame(chi);
           }
       }
-      else if ((char_speaking_anim == chi->index_id) && (game.options[OPT_LIPSYNCTEXT] != 0)) {
+      else if (is_char_speaking && (game.options[OPT_LIPSYNCTEXT] != 0)) {
         // currently talking with lip-sync speech
         int fraa = chi->frame;
         chi->wait = update_lip_sync(view, chi->loop, &fraa) - 1;

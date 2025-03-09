@@ -3293,7 +3293,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 	game->Settings->SaveScreenshots = (thisgame.options[OPT_SAVESCREENSHOT] != 0);
 	game->Settings->SkipSpeech = (SkipSpeechStyle)thisgame.options[OPT_NOSKIPTEXT];
 	game->Settings->SpeechPortraitSide = (SpeechPortraitSide)thisgame.options[OPT_PORTRAITSIDE];
-	game->Settings->SpeechStyle = (SpeechStyle)thisgame.options[OPT_SPEECHTYPE];
+	game->Settings->SpeechStyle = (AGS::Types::SpeechStyle)thisgame.options[OPT_SPEECHTYPE];
 	game->Settings->SplitResources = thisgame.options[OPT_SPLITRESOURCES];
 	game->Settings->TextWindowGUI = thisgame.options[OPT_TWCUSTOM];
 	game->Settings->ThoughtGUI = thisgame.options[OPT_THOUGHTGUI];

@@ -241,7 +241,29 @@ static void game_loop_do_late_script_update()
 
 static bool game_loop_check_ground_level_interactions()
 {
-    if ((play.ground_level_areas_disabled & GLED_INTERACTION) == 0) {
+    // If ground interactions are disabled completely, then bail out
+    if ((play.ground_level_areas_disabled & GLED_INTERACTION) != 0)
+        return true; // continue update
+
+    // Do not check for ground interactions while in the waiting
+    // (a blocking action, or a Wait call from the user script).
+    // This is done because interaction event handlers are scheduled and are
+    // only run after blocking action / wait is over.
+    // Which may cause all kinds of unexpected and untimely effects.
+    // NOTE: this condition was not present in the older versions of the
+    // engine, but result was more or less same by accident, as the number
+    // of scheduled callbacks was limited to a very small number.
+    // (That was pretty unreliable though.)
+    if (IsInWaitMode())
+    {
+        // NOTE: if we do update play.player_on_region here, then player might
+        // trigger "walk on/off region" after finishing blocking walk if
+        // it was walking back and forth the region and with the last step
+        // has crossed the region's border. CHECKME: should we do this...?
+        return true; // continue update
+    }
+    else
+    {
         // check if he's standing on a hotspot
         int hotspotThere = get_hotspot_at(playerchar->x, playerchar->y);
         // run Stands on Hotspot event
@@ -251,7 +273,8 @@ static bool game_loop_check_ground_level_interactions()
         int onRegion = GetRegionIDAtRoom(playerchar->x, playerchar->y);
         int inRoom = displayed_room;
 
-        if (onRegion != play.player_on_region) {
+        if (onRegion != play.player_on_region)
+        {
             // we need to save this and set play.player_on_region
             // now, so it's correct going into RunRegionInteraction
             int oldRegion = play.player_on_region;
@@ -264,26 +287,36 @@ static bool game_loop_check_ground_level_interactions()
             if (onRegion > 0)
                 RunRegionInteraction (onRegion, 1);
         }
-        if (play.player_on_region > 0)   // player stands on region
-            RunRegionInteraction (play.player_on_region, 0);
+
+        if (play.player_on_region > 0) // player stands on region
+        {
+            RunRegionInteraction(play.player_on_region, 0);
+        }
 
         // one of the region interactions sent us to another room
-        if (inRoom != displayed_room) {
+        if (inRoom != displayed_room)
+        {
             check_new_room();
         }
 
         // if in a Wait loop which is no longer valid (probably
         // because the Region interaction did a NewRoom), abort
         // the rest of the loop
-        if ((restrict_until) && (!ShouldStayInWaitMode())) {
+        // CHECKME: research which are the conditions for this to happen, and
+        // if this fixup is actually necessary.
+        // we know that any events, like change room, are scheduled and not run
+        // during blocking action, which means that such room change could only occur
+        // if we entered ground interaction checks while NOT inside a blocking wait.
+        if ((restrict_until) && (!ShouldStayInWaitMode()))
+        {
             // cancel the Rep Exec and Stands on Hotspot events that
             // we just added -- otherwise the event queue gets huge
             events.resize(numEventsAtStartOfFunction);
             return false; // interrupt update
         }
-    } // end if checking ground level interactions
 
-    return true; // continue update
+        return true; // continue update
+    }
 }
 
 static void lock_mouse_on_click()

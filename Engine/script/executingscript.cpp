@@ -77,14 +77,6 @@ void ExecutingScript::RunAnother(ScriptType sctype, const String &fn_name,
 void ExecutingScript::RunAnother(ScriptType sctype, const ScriptFunctionRef &fn_ref,
     size_t param_count, const RuntimeScriptValue *params, std::weak_ptr<bool> result)
 {
-    // Some old games were (accidentally) relying on number of queued script calls being limited;
-    // NOTE: the extra call was *not* ignored, it was *replacing* the last one instead.
-    if ((loaded_game_file_version < kGameVersion_362) &&
-        ScFnQueue.size() >= LEGACY_MAX_QUEUED_SCRIPTS)
-    {
-        ScFnQueue.pop_back();
-    }
-
     QueuedScript script;
     script.ScType = sctype;
     script.Function = fn_ref;

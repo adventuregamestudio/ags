@@ -2521,7 +2521,7 @@ void DisplayThoughtCore(int chid, const char *displbuf) {
         source_text_length = len;
 
     int width = -1;
-    if ((game.options[OPT_SPEECHTYPE] == 0) || (game.chars[chid].thinkview <= 0)) {
+    if ((game.options[OPT_SPEECHTYPE] == kSpeechStyle_LucasArts) || (game.chars[chid].thinkview <= 0)) {
         // lucasarts-style, so we want a speech bubble actually above
         // their head (or if they have no think anim in Sierra-style)
         width = data_to_game_coord(play.speech_bubble_width);
@@ -2620,11 +2620,11 @@ void display_speech(const char *texx, int aschar, int xx, int yy, int widd, bool
     if (useview >= game.numviews)
         quitprintf("!Character.Say: attempted to use view %d for animation, but it does not exist", useview + 1);
 
-    if (game.options[OPT_SPEECHTYPE] == 3)
+    if (game.options[OPT_SPEECHTYPE] == kSpeechStyle_QFG4)
         remove_screen_overlay(OVER_COMPLETE);
     set_our_eip(1500);
 
-    if (game.options[OPT_SPEECHTYPE] == 0)
+    if (game.options[OPT_SPEECHTYPE] == kSpeechStyle_LucasArts)
         allow_shrink = kDisplayTextShrink_Left;
 
     // If has a valid speech view, and idle anim in progress for the character, then stop it
@@ -2702,7 +2702,7 @@ void display_speech(const char *texx, int aschar, int xx, int yy, int widd, bool
 
         set_our_eip(152);
 
-        if ((useview >= 0) && (game.options[OPT_SPEECHTYPE] > 0)) {
+        if ((useview >= 0) && (game.options[OPT_SPEECHTYPE] > kSpeechStyle_LucasArts)) {
             // Sierra-style close-up portrait
             disp_pos = kDisplayTextPos_Normal;
 
@@ -2765,7 +2765,7 @@ void display_speech(const char *texx, int aschar, int xx, int yy, int widd, bool
             // Determine whether to display the portrait on the left or right
             int portrait_on_right = 0;
 
-            if (game.options[OPT_SPEECHTYPE] == 3) 
+            if (game.options[OPT_SPEECHTYPE] == kSpeechStyle_QFG4)
             { }  // always on left with QFG-style speech
             else if ((play.swap_portrait_side == 1) ||
                 (play.swap_portrait_side == -1) ||
@@ -2785,7 +2785,7 @@ void display_speech(const char *texx, int aschar, int xx, int yy, int widd, bool
 
             // if they accidentally used a large full-screen image as the sierra-style
             // talk view, correct it
-            if ((game.options[OPT_SPEECHTYPE] != 3) && (bigx > ui_view.GetWidth() - get_fixed_pixel_size(50)))
+            if ((game.options[OPT_SPEECHTYPE] != kSpeechStyle_QFG4) && (bigx > ui_view.GetWidth() - get_fixed_pixel_size(50)))
                 bigx = ui_view.GetWidth() - get_fixed_pixel_size(50);
 
             if (widd > 0)
@@ -2798,7 +2798,7 @@ void display_speech(const char *texx, int aschar, int xx, int yy, int widd, bool
             facetalk_qfg4_override_placement_x = false;
             facetalk_qfg4_override_placement_y = false;
 
-            if (game.options[OPT_SPEECHTYPE] == 3) {
+            if (game.options[OPT_SPEECHTYPE] == kSpeechStyle_QFG4) {
                 // QFG4-style whole screen picture
                 closeupface = BitmapHelper::CreateBitmap(ui_view.GetWidth(), ui_view.GetHeight());
                 closeupface->Clear(0);
@@ -2893,7 +2893,7 @@ void display_speech(const char *texx, int aschar, int xx, int yy, int widd, bool
                 tdxp += get_textwindow_border_width(play.speech_textwindow_gui) / 2;
                 allow_shrink = kDisplayTextShrink_Right;
             }
-            if (game.options[OPT_SPEECHTYPE] == 3)
+            if (game.options[OPT_SPEECHTYPE] == kSpeechStyle_QFG4)
                 overlay_x = 0;
             face_talking=add_screen_overlay(false,overlay_x,ovr_yp,ovr_type,closeupface, closeupface_has_alpha);
             facetalkview = useview;
@@ -2980,7 +2980,7 @@ void display_speech(const char *texx, int aschar, int xx, int yy, int widd, bool
     display_main(tdxp, tdyp, bwidth, texx, nullptr, kDisplayText_Speech, 0 /* no overid */,
         DisplayTextLooks(disp_style, disp_pos, allow_shrink, is_thought), FONT_SPEECH, text_color, overlayPositionFixed);
     set_our_eip(156);
-    if ((play.in_conversation > 0) && (game.options[OPT_SPEECHTYPE] == 3))
+    if ((play.in_conversation > 0) && (game.options[OPT_SPEECHTYPE] == kSpeechStyle_QFG4))
         closeupface = nullptr;
     if (closeupface!=nullptr)
         remove_screen_overlay(ovr_type);

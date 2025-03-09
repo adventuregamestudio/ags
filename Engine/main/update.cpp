@@ -517,7 +517,7 @@ void update_sierra_speech()
       auto *face_over = get_overlay(face_talking);
       assert(face_over != nullptr);
       Bitmap *frame_pic = spriteset[face_over->GetSpriteNum()];
-      if (game.options[OPT_SPEECHTYPE] == 3) {
+      if (game.options[OPT_SPEECHTYPE] == kSpeechStyle_QFG4) {
         // QFG4-style fullscreen dialog
         if (facetalk_qfg4_override_placement_x)
         {

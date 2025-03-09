@@ -361,7 +361,7 @@ int MoveCharacterBlocking(int chaa, int x, int y, int ignwal)
 
 int GetCharacterSpeechAnimationDelay(CharacterInfo *cha)
 {
-	if ((loaded_game_file_version < kGameVersion_312) && (game.options[OPT_SPEECHTYPE] != 0))
+	if ((loaded_game_file_version < kGameVersion_312) && (game.options[OPT_SPEECHTYPE] != kSpeechStyle_LucasArts))
 	{
 		// legacy versions of AGS assigned a fixed delay to Sierra-style speech only
 		return 5;

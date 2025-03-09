@@ -775,7 +775,7 @@ void DialogOptions::Draw()
       int txoffs=0,tyoffs=0,yspos = ui_view.GetHeight()/2-(2*padding+needheight)/2;
       int xspos = ui_view.GetWidth()/2 - areawid/2;
       // shift window to the right if QG4-style full-screen pic
-      if ((game.options[OPT_SPEECHTYPE] == 3) && (said_text > 0))
+      if ((game.options[OPT_SPEECHTYPE] == kSpeechStyle_QFG4) && (said_text > 0))
         xspos = (ui_view.GetWidth() - areawid) - get_fixed_pixel_size(10);
 
       // needs to draw the right text window, not the default

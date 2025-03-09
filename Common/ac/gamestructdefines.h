@@ -113,6 +113,19 @@ enum ScreenTransitionStyle
     kNumScrTransitions
 };
 
+// Style of the character speech:
+// defines how it's displayed and animated
+enum SpeechStyle
+{
+    kSpeechStyle_LucasArts = 0,
+    kSpeechStyle_SierraTransparent = 1,
+    kSpeechStyle_SierraBackground = 2,
+    kSpeechStyle_QFG4 = 4, // fullscreen aka Quest-for-Glory-4 style
+
+    kSpeechStyle_First = kSpeechStyle_LucasArts,
+    kSpeechStyle_Last = kSpeechStyle_QFG4,
+};
+
 // Legacy font flags
 //#define FFLG_LEGACY_NOSCALE 0x01 // TODO: is this from legacy format, ever used?
 #define FFLG_LEGACY_SIZEMASK 0x3f

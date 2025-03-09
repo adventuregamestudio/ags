@@ -195,8 +195,8 @@ void DisplayAtY(int ypos, const char *texx) {
 }
 
 void SetSpeechStyle (int newstyle) {
-    if ((newstyle < 0) || (newstyle > 3))
-        quit("!SetSpeechStyle: must use a SPEECH_* constant as parameter");
+    if ((newstyle < kSpeechStyle_First) || (newstyle > kSpeechStyle_Last))
+        quit("!SetSpeechStyle: must use a eSpeech* constant as parameter");
     game.options[OPT_SPEECHTYPE] = newstyle;
 }
 

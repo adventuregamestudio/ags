@@ -161,7 +161,8 @@ Bitmap *create_textual_image(const char *text, const DisplayTextLooks &look, col
     // Configure the textual image
     //
 
-    const bool use_speech_textwindow = (look.Style == kDisplayTextStyle_TextWindow) && (game.options[OPT_SPEECHTYPE] >= 2);
+    const bool use_speech_textwindow = (look.Style == kDisplayTextStyle_TextWindow)
+        && (game.options[OPT_SPEECHTYPE] >= kSpeechStyle_SierraBackground);
     const bool use_thought_gui = (look.AsThought) && (game.options[OPT_THOUGHTGUI] > 0);
 
     alphaChannel = false;
@@ -305,7 +306,7 @@ Bitmap *create_textual_image(const char *text, const DisplayTextLooks &look, col
         if (fix_look.Style == kDisplayTextStyle_TextWindow)
         {
             if ((usingGui >= 0) &&
-                    ((game.options[OPT_SPEECHTYPE] >= 2) || (fix_look.AsThought)))
+               ((game.options[OPT_SPEECHTYPE] >= kSpeechStyle_SierraBackground) || (fix_look.AsThought)))
                 text_color = text_window_ds->GetCompatibleColor(guis[usingGui].FgColor);
             else
                 text_color = text_window_ds->GetCompatibleColor(text_color);

@@ -495,11 +495,11 @@ namespace AGS.Editor
         {
             switch (maskType)
             {
-                case RoomAreaMaskType.Hotspots: return "Hotspots"; break;
-                case RoomAreaMaskType.Regions: return "Regions"; break;
-                case RoomAreaMaskType.WalkableAreas: return "Walkable Areas"; break;
-                case RoomAreaMaskType.WalkBehinds: return "Walk-behinds"; break;
-                default: return string.Empty; break;
+                case RoomAreaMaskType.Hotspots: return "Hotspots";
+                case RoomAreaMaskType.Regions: return "Regions";
+                case RoomAreaMaskType.WalkableAreas: return "Walkable Areas";
+                case RoomAreaMaskType.WalkBehinds: return "Walk-behinds";
+                default: return string.Empty;
             }
         }
 

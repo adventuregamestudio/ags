@@ -921,6 +921,11 @@ int Game_BlockingWaitSkipped()
     return play.GetWaitSkipResult();
 }
 
+int Game_IsInBlockingWait()
+{
+    return IsInWaitMode();
+}
+
 void Game_PrecacheSprite(int sprnum)
 {
     const auto tp_start = AGS_FastClock::now();
@@ -2084,6 +2089,11 @@ RuntimeScriptValue Sc_Game_BlockingWaitSkipped(const RuntimeScriptValue *params,
     API_SCALL_INT(Game_BlockingWaitSkipped);
 }
 
+RuntimeScriptValue Sc_Game_IsInBlockingWait(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_BOOL(Game_IsInBlockingWait);
+}
+
 RuntimeScriptValue Sc_Game_PrecacheSprite(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT(Game_PrecacheSprite);
@@ -2166,6 +2176,7 @@ void RegisterGameAPI()
         { "Game::get_AudioClipCount",                     API_FN_PAIR(Game_GetAudioClipCount) },
         { "Game::geti_AudioClips",                        API_FN_PAIR(Game_GetAudioClip) },
         { "Game::get_BlockingWaitSkipped",                API_FN_PAIR(Game_BlockingWaitSkipped) },
+        { "Game::get_IsInBlockingWait",                   API_FN_PAIR(Game_IsInBlockingWait) },
         { "Game::get_SpeechVoxFilename",                  API_FN_PAIR(Game_GetSpeechVoxFilename) },
         { "Game::get_Camera",                             API_FN_PAIR(Game_GetCamera) },
         { "Game::get_CameraCount",                        API_FN_PAIR(Game_GetCameraCount) },

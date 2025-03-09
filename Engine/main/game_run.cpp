@@ -91,7 +91,7 @@ extern SpriteCache spriteset;
 extern int cur_mode,cur_cursor;
 extern char check_dynamic_sprites_at_exit;
 
-// Checks if user interface should remain disabled for now
+// Checks if wait mode should continue until condition is met
 static bool ShouldStayInWaitMode();
 
 float fps = std::numeric_limits<float>::quiet_NaN();
@@ -1084,13 +1084,20 @@ static void UpdateMouseOverLocation()
     }
 }
 
-// Checks if user interface should remain disabled for now
+bool IsInWaitMode()
+{
+    return restrict_until != nullptr;
+}
+
+// Checks if wait mode should continue until condition is met
 // FIXME: should be a private method of GameLoopUntilState,
 // but is called elsewhere for some strange reason;
 // investigate and move to GameLoopUntilState.
-static bool ShouldStayInWaitMode() {
+static bool ShouldStayInWaitMode()
+{
+    assert(restrict_until);
     if (!restrict_until)
-        quit("end_wait_loop called but game not in loop_until state");
+        return false;
 
     switch (restrict_until->GetUntilType())
     {
@@ -1133,10 +1140,9 @@ static bool ShouldStayInWaitMode() {
         return FindButtonAnimation(restrict_until->GetData1(), restrict_until->GetData2()) >= 0;
     }
     default:
-        quit("loop_until: unknown until event");
+        debug_script_warn("loop_until: unknown until event, aborting");
+        return false;
     }
-
-    return true; // should stay in wait
 }
 
 // Run single game iteration; calls UpdateGameOnce() internally
@@ -1183,11 +1189,6 @@ void GameLoopUntilValueIsZero(const short *value)
 void GameLoopUntilValueIsZero(const int *value) 
 {
     GameLoopUntilEvent(UNTIL_INTIS0, value);
-}
-
-void GameLoopUntilValueIsZeroOrLess(const short *value) 
-{
-    GameLoopUntilEvent(UNTIL_MOVEEND, value);
 }
 
 void GameLoopUntilValueIsNegative(const short *value) 

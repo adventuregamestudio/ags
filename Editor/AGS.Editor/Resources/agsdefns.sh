@@ -3151,7 +3151,7 @@ builtin struct Game {
   /// Prescans save slots from "min_slot" to "max_slot" and fills the compatible ones into the provided dynamic array.
   import static void   ScanSaveSlots(int valid_slots[], int min_slot, int max_slot, SaveGameSortStyle saveSortStyle = eSaveGameSort_None, SortDirection sortDirection = eSortNoDirection, int user_param = 0);
   /// Gets whether the game is currently in a blocking state, that is during a blocking action or a Wait() call.
-  import static readonly attribute bool IsInBlockingWait;
+  import static readonly attribute bool InBlockingWait;
 #endif // SCRIPT_API_v362
 };
 

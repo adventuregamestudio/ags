@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "ac/game.h"
+#include <queue>
 #include <stdio.h>
 #include "ac/common.h"
 #include "ac/view.h"
@@ -165,7 +166,8 @@ std::vector<ViewStruct> views;
 std::vector<CharacterExtras> charextra;
 // MoveLists for characters and room objects; NOTE: 1-based array!
 // object sprites begin with index 1, characters are after MAX_ROOM_OBJECTS + 1
-std::vector<MoveList> mls;
+std::vector<MoveList> movelists;
+std::queue<uint32_t> movelist_free_ids;
 
 //=============================================================================
 
@@ -519,7 +521,8 @@ void unload_game()
     ShutdownScriptExec();
 
     charextra.clear();
-    mls.clear();
+    movelists.clear();
+    movelist_free_ids = std::queue<uint32_t>();
     views.clear();
     splipsync.clear();
     numLipLines = 0;
@@ -1685,6 +1688,70 @@ void precache_view(int view, int first_loop, int last_loop, bool with_sounds)
         dur_sp_load / total_frames, dur_tx_make / total_frames, total_sounds, dur_sound_load);
     Debug::Printf("\tSprite cache: %zu -> %zu KB, texture cache: %zu -> %zu KB",
         spcache_before / 1024u, spcache_after / 1024u, txcache_before / 1024u, txcache_after / 1024u);
+}
+
+uint32_t add_movelist(MoveList &&mlist)
+{
+    // Find a free ID
+    uint32_t index = 0;
+    if (movelist_free_ids.size() > 0)
+    {
+        index = movelist_free_ids.front();
+        movelist_free_ids.pop();
+    }
+    else if (movelists.size() == UINT32_MAX)
+    {
+        return 0u;
+    }
+    else
+    {
+        index = std::max<uint32_t>(1, movelists.size());
+    }
+
+    return add_movelist(std::move(mlist), index);
+}
+
+uint32_t add_movelist(MoveList &&mlist, uint32_t at_index)
+{
+    movelists.resize(std::max<size_t>(at_index + 1, movelists.size()));
+    movelists[at_index] = std::move(mlist);
+    return at_index;
+}
+
+void remove_movelist(uint32_t index)
+{
+    if (index == 0 || index >= movelists.size() || movelists[index].IsEmpty())
+        return; // requested non-existing movelist
+
+    // Don't erase vector elements, instead set invalid and record free index
+    movelists[index] = {};
+    movelist_free_ids.push(index);
+}
+
+MoveList *get_movelist(uint32_t index)
+{
+    if (index == 0 || index >= movelists.size() || movelists[index].IsEmpty())
+        return nullptr; // requested non-existing movelist
+
+    return &movelists[index];
+}
+
+void restore_movelists()
+{
+    // Will have to readjust free ids records, as movelists may be restored in any random slots
+    movelist_free_ids = std::queue<uint32_t>();
+    for (uint32_t i = 0; i < movelists.size(); ++i)
+    {
+        if (movelists[i].IsEmpty())
+        {
+            movelist_free_ids.push(i);
+        }
+    }
+}
+
+std::vector<MoveList> &get_movelists()
+{
+    return movelists;
 }
 
 //=============================================================================

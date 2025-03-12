@@ -452,6 +452,9 @@ void Object_StopAnimating(ScriptObject *objj) {
 void StopObjectMoving(int objj) {
     if (!is_valid_object(objj))
         quit("!StopObjectMoving: invalid object number");
+
+    if (objs[objj].moving > 0)
+        remove_movelist(objs[objj].moving);
     objs[objj].moving = 0;
 
     debug_script_log("Object %d stop moving", objj);
@@ -756,7 +759,7 @@ int Object_GetDestinationX(ScriptObject *objj)
 
     if (objs[objj->id].moving)
     {
-        MoveList *cmls = &mls[objs[objj->id].moving];
+        MoveList *cmls = get_movelist(objs[objj->id].moving);
         return cmls->GetLastPos().X;
     }
     return objs[objj->id].x;
@@ -769,7 +772,7 @@ int Object_GetDestinationY(ScriptObject *objj)
 
     if (objs[objj->id].moving)
     {
-        MoveList *cmls = &mls[objs[objj->id].moving];
+        MoveList *cmls = get_movelist(objs[objj->id].moving);
         return cmls->GetLastPos().Y;
     }
     return objs[objj->id].y;
@@ -890,25 +893,25 @@ void move_object(int objj, const std::vector<Point> *path, int tox, int toy, int
 
     debug_script_log("Object %d start move to %d,%d", objj, tox, toy);
 
-    const int mslot = objj + 1;
+    MoveList new_mlist;
     bool path_result = false;
     if (path)
     {
-        path_result = Pathfinding::CalculateMoveList(mls[mslot], *path, speed, speed,
+        path_result = Pathfinding::CalculateMoveList(new_mlist, *path, speed, speed,
             ignwal ? kMoveStage_Direct : 0, run_params);
     }
     else
     {
         MaskRouteFinder *pathfind = get_room_pathfinder();
         pathfind->SetWalkableArea(prepare_walkable_areas(-1), thisroom.MaskResolution);
-        path_result = Pathfinding::FindRoute(mls[mslot], pathfind, obj.x, obj.y, tox, toy,
+        path_result = Pathfinding::FindRoute(new_mlist, pathfind, obj.x, obj.y, tox, toy,
             speed, speed, false, ignwal, run_params);
     }
     
     // If successful, then start moving
     if (path_result)
     {
-        objs[objj].moving = mslot;
+        objs[objj].moving = add_movelist(std::move(new_mlist));
     }
 }
 
@@ -962,15 +965,6 @@ bool Object_SetTextProperty(ScriptObject *objj, const char *property, const char
     if (!AssertObject("Object.SetTextProperty", objj->id))
         return false;
     return set_text_property(croom->objProps[objj->id], property, value);
-}
-
-void *Object_GetPath(ScriptObject *objj)
-{
-    const int mslot = objs[objj->id].moving;
-    if (mslot == 0)
-        return nullptr;
-
-    return ScriptStructHelpers::CreateArrayOfPoints(mls[mslot].GetPath()).Obj;
 }
 
 bool Object_GetUseRegionTint(ScriptObject *objj)
@@ -1375,11 +1369,6 @@ RuntimeScriptValue Sc_Object_SetTextProperty(void *self, const RuntimeScriptValu
     API_OBJCALL_BOOL_POBJ2(ScriptObject, Object_SetTextProperty, const char, const char);
 }
 
-RuntimeScriptValue Sc_Object_GetPath(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_OBJ(ScriptObject, void, globalDynamicArray, Object_GetPath);
-}
-
 RuntimeScriptValue Sc_Object_IsInteractionAvailable(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_BOOL_PINT(ScriptObject, Object_IsInteractionAvailable);
@@ -1768,7 +1757,6 @@ void RegisterObjectAPI()
         { "Object::GetTextProperty^1",        API_FN_PAIR(Object_GetTextProperty) },
         { "Object::SetProperty^2",            API_FN_PAIR(Object_SetProperty) },
         { "Object::SetTextProperty^2",        API_FN_PAIR(Object_SetTextProperty) },
-        { "Object::GetPath^0",                API_FN_PAIR(Object_GetPath) },
         { "Object::IsInteractionAvailable^1", API_FN_PAIR(Object_IsInteractionAvailable) },
         { "Object::Move^5",                   API_FN_PAIR(Object_Move) },
         { "Object::MovePath^5",               API_FN_PAIR(Object_MovePath) },

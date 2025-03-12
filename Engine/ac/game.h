@@ -194,6 +194,23 @@ void game_sprite_updated(int sprnum, bool deleted = false);
 // Precaches sprites for a view, within a selected range of loops.
 void precache_view(int view, int first_loop = 0, int last_loop = INT32_MAX, bool with_sounds = false);
 
+class MoveList;
+// Allocates a movelist slot and moves data over; returns new movelist's index,
+// or 0 if not possible to allocate one.
+uint32_t add_movelist(MoveList &&mlist);
+// Allocates a movelist slot at the given index and assigns new data.
+uint32_t add_movelist(MoveList &&mlist, uint32_t at_index);
+// Removes a movelist, frees the occupied slot
+void remove_movelist(uint32_t index);
+// Returns movelist by its index, or null if no such valid movelist exists
+MoveList *get_movelist(uint32_t index);
+// Restores movelists, e.g. after restoring a game save
+void restore_movelists();
+// Returns a ref to movelists vector, useful for iterating over them;
+// FIXME: this is currently required for reading or writing saves,
+// avoid having this, or at least change to const reference
+std::vector<MoveList> &get_movelists();
+
 // Global AssetManager instance.
 extern std::unique_ptr<AGS::Common::AssetManager> AssetMgr;
 

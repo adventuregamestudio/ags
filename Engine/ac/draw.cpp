@@ -2954,7 +2954,7 @@ void update_room_debug()
         if (game.chars[debugMoveListChar].is_moving())
         {
             int mlsnum = game.chars[debugMoveListChar].get_movelist_id();
-            const MoveList &cmls = mls[mlsnum];
+            const MoveList &cmls = *get_movelist(mlsnum);
             for (uint32_t i = 0; i < cmls.GetNumStages() - 1; i++) {
                 int srcx = cmls.GetStagePos(i).X;
                 int srcy = cmls.GetStagePos(i).Y;

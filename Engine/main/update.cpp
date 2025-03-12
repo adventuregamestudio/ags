@@ -66,12 +66,11 @@ extern IGraphicsDriver *gfxDriver;
 // Returns whether to there's a need to update the sprite due to a change in direction
 int do_movelist_move(short &mslot, int &pos_x, int &pos_y)
 {
-    // TODO: find out why movelist 0 is not being used
-    assert(mslot >= 1);
+    assert(mslot > 0);
     if (mslot < 1)
         return 0;
 
-    MoveList &cmls = mls[mslot];
+    MoveList &cmls = *get_movelist(mslot);
     // CHECKME: historically, we return the previous position before advancing movelist
     pos_x = cmls.GetCurrentPos().X;
     pos_y = cmls.GetCurrentPos().Y;
@@ -86,7 +85,7 @@ int do_movelist_move(short &mslot, int &pos_x, int &pos_y)
     else
     {
         // reset MoveList, and tell moving object to stop
-        cmls = {};
+        remove_movelist(mslot);
         mslot = 0; // movelist 0 means "not moving/walking"
     }
     return need_to_fix_sprite;

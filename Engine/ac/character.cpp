@@ -2028,7 +2028,7 @@ int doNextCharMoveStep(CharacterInfo *chi, CharacterExtras *chex) {
     if (do_movelist_move(chi->walking, chi->x, chi->y) == 2) 
     {
         if ((chi->flags & CHF_MOVENOTWALK) == 0)
-            fix_player_sprite(&mls[chi->walking], chi);
+            fix_player_sprite(&mls[chi->get_movelist_id()], chi);
     }
 
     ntf = has_hit_another_character(chi->index_id);

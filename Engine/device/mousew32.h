@@ -34,8 +34,10 @@ namespace Mouse
     void SetMovementControl(bool on);
     // Tell if the mouse movement control is enabled
     bool IsControlEnabled();
-    // Set the touch2mouse motion mode: absolute/relative
+    // Set the touch2mouse emulation mode and absolute/relative motion mode
     void SetTouch2MouseMode(TouchMouseEmulation mode, bool relative, float speed);
+    // Set the mouse2touch emulation mode
+    void SetMouse2Touch(bool enable);
     // Set base speed factor, which would serve as a mouse speed unit
     void SetSpeedUnit(float f);
     // Get base speed factor
@@ -55,6 +57,7 @@ namespace Mouse
     // Translates system mouse position to a position inside a game viewport,
     // note that this can clamp to game cursor bounds.
     Point SysToGamePos(int sys_mx, int sys_my);
+    inline Point SysToGamePos(const Point &sys_pt) { return SysToGamePos(sys_pt.X, sys_pt.Y); }
 
     // Polls the cursor position, updates mousex, mousey
     void Poll();

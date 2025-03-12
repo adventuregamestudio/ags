@@ -108,7 +108,9 @@ struct GameConfig
     float   MouseSpeed           = 1.f;
     // Touch-to-mouse emulation mode (how the touches are handled overall)
     TouchMouseEmulation TouchEmulateMouse = kTouchMouse_None; // touch-to-mouse style
-    bool    TouchMotionRelative = false; // touch control abs/relative mode
+    bool    TouchMotionRelative  = false; // touch control abs/relative mode
+    // Mouse-to-touch emulation (LMB creates touch events)
+    bool    MouseEmulateTouch    = false;
 
     // Cache options
     size_t  SpriteCacheSize      = DefSpriteCacheSize; // in KB

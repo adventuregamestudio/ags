@@ -129,8 +129,11 @@ void engine_post_gfxmode_mouse_setup(const Size &init_desktop)
     Debug::Printf(kDbgMsg_Info, "Mouse speed control: %s, unit: %f, user value: %f",
         usetup.MouseCtrlEnabled ? "enabled" : "disabled", Mouse::GetSpeedUnit(), Mouse::GetSpeed());
     Mouse::SetTouch2MouseMode(usetup.TouchEmulateMouse, usetup.TouchMotionRelative, usetup.MouseSpeed);
-    Debug::Printf(kDbgMsg_Info, "Touch-to-mouse motion mode: %s",
-        usetup.TouchMotionRelative ? "relative" : "absolute");
+    Mouse::SetMouse2Touch(usetup.MouseEmulateTouch);
+    const char *emul_mode_names[] = { "none", "one finger", "two fingers" };
+    Debug::Printf(kDbgMsg_Info, "Touch-to-mouse emulation: %s, motion: %s",
+        emul_mode_names[usetup.TouchEmulateMouse], usetup.TouchMotionRelative ? "relative" : "absolute");
+    Debug::Printf(kDbgMsg_Info, "Mouse-to-touch emulation: %s", usetup.MouseEmulateTouch ? "enabled" : "disabled");
 
     on_coordinates_scaling_changed();
 

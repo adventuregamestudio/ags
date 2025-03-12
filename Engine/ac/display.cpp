@@ -11,14 +11,11 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-
+#include "ac/display.h"
 #include <math.h>
-
 #include <stdio.h>
 #include "ac/display.h"
 #include "ac/common.h"
-#include "font/agsfontrenderer.h"
-#include "font/fonts.h"
 #include "ac/character.h"
 #include "ac/draw.h"
 #include "ac/game.h"
@@ -27,26 +24,28 @@
 #include "ac/global_audio.h"
 #include "ac/global_game.h"
 #include "ac/gui.h"
+#include "ac/joystick.h"
 #include "ac/mouse.h"
 #include "ac/overlay.h"
 #include "ac/sys_events.h"
 #include "ac/screenoverlay.h"
 #include "ac/speech.h"
+#include "ac/spritecache.h"
 #include "ac/string.h"
 #include "ac/system.h"
+#include "ac/timer.h"
+#include "ac/touch.h"
 #include "debug/debug_log.h"
+#include "font/agsfontrenderer.h"
+#include "font/fonts.h"
 #include "gfx/blender.h"
+#include "gfx/gfx_util.h"
 #include "gui/guibutton.h"
 #include "gui/guimain.h"
 #include "main/game_run.h"
-#include "platform/base/agsplatformdriver.h"
-#include "ac/spritecache.h"
-#include "gfx/gfx_util.h"
-#include "util/string_utils.h"
-#include "ac/mouse.h"
 #include "media/audio/audio_system.h"
-#include "ac/timer.h"
-#include "joystick.h"
+#include "platform/base/agsplatformdriver.h"
+#include "util/string_utils.h"
 
 using namespace AGS::Common;
 using namespace AGS::Common::BitmapHelper;
@@ -333,7 +332,7 @@ bool display_check_user_input(int skip)
             {
                 state_handled = true;
             }
-            else if ((skip & SKIP_KEYPRESS) && !play.IsIgnoringInput() && !IsAGSServiceKey(ki.Key))
+            else if ((skip & SKIP_KEYPRESS) != 0 && !play.IsIgnoringInput() && !IsAGSServiceKey(ki.Key))
             {
                 play.SetWaitKeySkip(ki);
                 state_handled = true; // stop display
@@ -349,7 +348,7 @@ bool display_check_user_input(int skip)
             {
                 state_handled = true;
             }
-            else if (skip & SKIP_MOUSECLICK && !play.IsIgnoringInput())
+            else if ((skip & SKIP_MOUSECLICK) != 0 && !play.IsIgnoringInput())
             {
                 play.SetWaitSkipResult(SKIP_MOUSECLICK, mbut);
                 state_handled = true; // stop display
@@ -366,10 +365,23 @@ bool display_check_user_input(int skip)
             {
                 state_handled = true; // stop display
             }
-            else if (skip & SKIP_GAMEPAD && !play.IsIgnoringInput() &&
+            else if ((skip & SKIP_GAMEPAD) != 0 && !play.IsIgnoringInput() &&
                     is_default_gamepad_skip_button_pressed(gbn))
             {
                 play.SetWaitSkipResult(SKIP_GAMEPAD, gbn);
+                state_handled = true; // stop display
+            }
+            break;
+        }
+        case kInputTouch:
+        {
+            TouchInput ti;
+            if (!run_service_touch_controls(ti) || play.fast_forward || state_handled)
+                continue; // handled by engine layer, or fast-forwarded, or resolved
+            // TODO: check skip cutscene? we might check if it's "skip by mouse" here
+            if ((skip & SKIP_TOUCH) != 0 && (ti.Phase == TouchPhase::Down) && !play.IsIgnoringInput())
+            {
+                play.SetWaitSkipResult(SKIP_TOUCH);
                 state_handled = true; // stop display
             }
             break;

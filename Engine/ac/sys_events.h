@@ -12,7 +12,7 @@
 //
 //=============================================================================
 //
-//
+// A bridge between AGS engine and SDL events.
 //
 //=============================================================================
 #ifndef __AGS_EE_AC__SYS_EVENTS_H
@@ -20,6 +20,7 @@
 #include <SDL_keyboard.h>
 #include <SDL_events.h>
 #include "ac/keycode.h"
+#include "util/geometry.h"
 
 // Internal AGS device and event type, made as flags
 // NOTE: this matches InputType in script (with a 24-bit shift)
@@ -30,14 +31,22 @@ enum InputType
     kInputKeyboard  = 0x02,
     kInputMouse     = 0x04,
     kInputGamepad   = 0x08,
+    kInputTouch     = 0x10,
     kInputAny       = 0xFF
+};
+
+// AGS custom event codes used in SDL_Event
+enum AGS_SDLUserEvents
+{
+    AGS_SDL_EVT_BEGIN       = SDL_USEREVENT,
+    AGS_SDL_EVT_TOUCHDOWN   = AGS_SDL_EVT_BEGIN,
+    AGS_SDL_EVT_TOUCHUP,
+    AGS_SDL_EVT_TOUCHMOTION,
+    AGS_SDL_EVT_END
 };
 
 // Keyboard input handling
 //
-// avoid including SDL.h here, at least for now, because that leads to conflicts with allegro
-union SDL_Event;
-
 // Converts SDL key data to eAGSKeyCode, which may be also directly used as an ASCII char
 // if it is in proper range, see comments to eAGSKeyCode for details.
 // Optionally works in bacward compatible mode (old_keyhandle)
@@ -87,6 +96,8 @@ inline int make_sdl_merged_mod(int mod)
 InputType ags_inputevent_ready();
 // Queries for the next input event in buffer; returns uninitialized data if none was queued
 SDL_Event ags_get_next_inputevent();
+// Disposes a custom SDL_Event, freeing any allocated data
+void ags_dispose_userevent(const SDL_Event &evt);
 // Pops and drops next input event in buffer, if any
 void ags_drop_next_inputevent();
 // Tells if the key is currently down, provided AGS key.
@@ -122,7 +133,18 @@ extern volatile int sys_mouse_y; // mouse y position
 extern volatile int sys_mouse_z; // mouse wheel position
 
 // Touch input handling
-// currently only performs touch-to-mouse emulation
+// Custom touch event data for using inside AGS own input processing
+struct AGS_TouchPointerEventData
+{
+    // AGS internal pointer ID
+    int PointerID = -1;
+    // Event position in the window coordinates
+    Point Position;
+
+    AGS_TouchPointerEventData() = default;
+    AGS_TouchPointerEventData(int pointer_id, const Point &pos)
+        : PointerID(pointer_id), Position(pos) {}
+};
 //
 // Touch-to-mouse emulation mode
 enum TouchMouseEmulation
@@ -153,7 +175,7 @@ void ags_clear_mouse_movement();
 
 // Events.
 //
-union SDL_Event;
+void sys_evt_register_ags_events();
 // Set engine callback for when quit event is received by the backend.
 void sys_evt_set_quit_callback(void(*proc)(void));
 // Set engine callback for when input focus is received or lost by the window.

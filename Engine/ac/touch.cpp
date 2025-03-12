@@ -38,7 +38,7 @@ struct TouchPointer
     void SetUndefinedState()
     {
         Phase = TouchPhase::Undefined;
-        Position = Point(-1, -1);
+        Position = Point(INT32_MIN, INT32_MIN);
     }
 };
 

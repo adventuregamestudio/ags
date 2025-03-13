@@ -204,7 +204,7 @@ void SetNewSprite(int slot, AGSBitmap *sprit, int flags) {
 }
 
 void deleteSprite (int sprslot) {
-  spriteset.DisposeSprite(sprslot);
+  spriteset.DeleteSprite(sprslot);
   spritesModified = true;
 }
 
@@ -1790,7 +1790,7 @@ int RemoveLeftoverSprites(SpriteFolder ^folder)
         if (!spriteset.DoesSpriteExist(i)) continue;
         if (folder->FindSpriteByID(i, true) == nullptr)
         {
-            spriteset.DisposeSprite(i);
+            spriteset.DeleteSprite(i);
             removed++;
         }
     }

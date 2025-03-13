@@ -477,7 +477,7 @@ void free_dynamic_sprite(int slot, bool notify_all) {
         (game.SpriteInfos[slot].Flags & SPF_DYNAMICALLOC) == 0)
         return;
 
-    spriteset.DisposeSprite(slot);
+    spriteset.DeleteSprite(slot);
     if (notify_all)
         game_sprite_updated(slot, true);
     else

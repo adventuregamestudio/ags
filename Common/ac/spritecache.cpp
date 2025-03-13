@@ -104,7 +104,7 @@ bool SpriteCache::SetSprite(sprkey_t index, std::unique_ptr<Bitmap> image, int f
 
     if (!image || image->GetSize().IsNull() || image->GetColorDepth() <= 0)
     {
-        DisposeSprite(index); // free previous item in this slot anyway
+        DeleteSprite(index); // free previous item in this slot anyway
         Debug::Printf(kDbgGroup_SprCache, kDbgMsg_Error, "SetSprite: attempt to assign an invalid bitmap to index %d", index);
         return false;
     }
@@ -144,7 +144,7 @@ std::unique_ptr<Bitmap> SpriteCache::RemoveSprite(sprkey_t index)
     return std::move(image);
 }
 
-void SpriteCache::DisposeSprite(sprkey_t index)
+void SpriteCache::DeleteSprite(sprkey_t index)
 {
     assert(index >= 0); // out of positive range indexes are valid to fail
     if (index < 0 || (size_t)index >= _spriteData.size())
@@ -240,7 +240,16 @@ Bitmap *SpriteCache::operator [] (sprkey_t index)
     return _placeholder.get();
 }
 
-void SpriteCache::DisposeAllCached()
+void SpriteCache::DisposeCached(sprkey_t index)
+{
+    if (IsAssetSprite(index))
+    {
+        _spriteData[index].Flags &= ~SPRCACHEFLAG_LOCKED;
+        ResourceCache::Dispose(index);
+    }
+}
+
+void SpriteCache::DisposeAllFreeCached()
 {
     ResourceCache::DisposeFreeItems();
 }

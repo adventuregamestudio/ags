@@ -68,6 +68,7 @@ struct CharacterExtras
     float rotation = 0.f;
     // Optional character face direction ratio, 0 = ignore
     float face_dir_ratio = 0.f;
+    int   movelist_handle = 0; // handle to the script movelist
 
     // Following fields are deriatives of the above (calculated from these
     // and other factors), and hence are not serialized.

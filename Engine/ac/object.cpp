@@ -32,7 +32,9 @@
 #include "ac/walkablearea.h"
 #include "ac/dynobj/cc_object.h"
 #include "ac/dynobj/cc_dynamicarray.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "ac/dynobj/scriptuserobject.h"
+#include "ac/dynobj/scriptmotionpath.h"
 #include "debug/debug_log.h"
 #include "main/game_run.h"
 #include "ac/route_finder.h"
@@ -452,7 +454,8 @@ void Object_StopAnimating(ScriptObject *objj) {
 void StopObjectMoving(int objj) {
     if (!is_valid_object(objj))
         quit("!StopObjectMoving: invalid object number");
-    objs[objj].moving = 0;
+
+    objs[objj].OnStopMoving();
 
     debug_script_log("Object %d stop moving", objj);
 }
@@ -756,8 +759,8 @@ int Object_GetDestinationX(ScriptObject *objj)
 
     if (objs[objj->id].moving)
     {
-        MoveList *cmls = &mls[objs[objj->id].moving];
-        return cmls->pos.back().X;
+        MoveList *cmls = get_movelist(objs[objj->id].moving);
+        return cmls->GetLastPos().X;
     }
     return objs[objj->id].x;
 }
@@ -769,8 +772,8 @@ int Object_GetDestinationY(ScriptObject *objj)
 
     if (objs[objj->id].moving)
     {
-        MoveList *cmls = &mls[objs[objj->id].moving];
-        return cmls->pos.back().Y;
+        MoveList *cmls = get_movelist(objs[objj->id].moving);
+        return cmls->GetLastPos().Y;
     }
     return objs[objj->id].y;
 }
@@ -890,24 +893,24 @@ void move_object(int objj, const std::vector<Point> *path, int tox, int toy, int
 
     debug_script_log("Object %d start move to %d,%d", objj, tox, toy);
 
-    const int mslot = objj + 1;
+    MoveList new_mlist;
     bool path_result = false;
     if (path)
     {
-        path_result = Pathfinding::CalculateMoveList(mls[mslot], *path, speed, speed, run_params);
+        path_result = Pathfinding::CalculateMoveList(new_mlist, *path, speed, speed, run_params);
     }
     else
     {
         MaskRouteFinder *pathfind = get_room_pathfinder();
         pathfind->SetWalkableArea(prepare_walkable_areas(-1), thisroom.MaskResolution);
-        path_result = Pathfinding::FindRoute(mls[mslot], pathfind, obj.x, obj.y, tox, toy, speed, speed, false, ignwal, run_params);
+        path_result = Pathfinding::FindRoute(new_mlist, pathfind, obj.x, obj.y, tox, toy, speed, speed, false, ignwal, run_params);
     }
     
     // If successful, then start moving
     if (path_result)
     {
-        objs[objj].moving = mslot;
-        mls[mslot].move_direct = ignwal;
+        new_mlist.SetDirectMove(ignwal);
+        objs[objj].moving = add_movelist(std::move(new_mlist));
     }
 }
 
@@ -963,15 +966,6 @@ bool Object_SetTextProperty(ScriptObject *objj, const char *property, const char
     return set_text_property(croom->objProps[objj->id], property, value);
 }
 
-void *Object_GetPath(ScriptObject *objj)
-{
-    const int mslot = objs[objj->id].moving;
-    if (mslot == 0)
-        return nullptr;
-
-    return ScriptStructHelpers::CreateArrayOfPoints(mls[mslot].pos).Obj;
-}
-
 bool Object_GetUseRegionTint(ScriptObject *objj)
 {
     return (croom->obj[objj->id].flags & OBJF_USEREGIONTINTS) != 0;
@@ -982,6 +976,24 @@ void Object_SetUseRegionTint(ScriptObject *objj, int yesorno)
     objs[objj->id].flags &= ~OBJF_USEREGIONTINTS;
     if (yesorno)
         objs[objj->id].flags |= OBJF_USEREGIONTINTS;
+}
+
+ScriptMotionPath *Object_GetMotionPath(ScriptObject *objj)
+{
+    RoomObject &obj = objs[objj->id];
+    const int mslot = obj.moving;
+    if (mslot <= 0)
+        return nullptr;
+
+    if (obj.movelist_handle > 0)
+    {
+        return static_cast<ScriptMotionPath *>(ccGetObjectAddressFromHandle(obj.movelist_handle));
+    }
+
+    auto sc_path = ScriptMotionPath::Create(mslot);
+    ccAddObjectReference(sc_path.Handle);
+    obj.movelist_handle = sc_path.Handle;
+    return static_cast<ScriptMotionPath *>(sc_path.Obj);
 }
 
 void update_object_scale(int &res_zoom, int &res_width, int &res_height,
@@ -1370,11 +1382,6 @@ RuntimeScriptValue Sc_Object_SetTextProperty(void *self, const RuntimeScriptValu
     API_OBJCALL_BOOL_POBJ2(ScriptObject, Object_SetTextProperty, const char, const char);
 }
 
-RuntimeScriptValue Sc_Object_GetPath(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_OBJ(ScriptObject, void, globalDynamicArray, Object_GetPath);
-}
-
 RuntimeScriptValue Sc_Object_IsInteractionAvailable(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_BOOL_PINT(ScriptObject, Object_IsInteractionAvailable);
@@ -1746,6 +1753,11 @@ RuntimeScriptValue Sc_Object_SetRotation(void *self, const RuntimeScriptValue *p
     API_OBJCALL_VOID_PFLOAT(ScriptObject, Object_SetRotation);
 }
 
+RuntimeScriptValue Sc_Object_GetMotionPath(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJAUTO(ScriptObject, ScriptMotionPath, Object_GetMotionPath);
+}
+
 
 void RegisterObjectAPI()
 {
@@ -1763,7 +1775,6 @@ void RegisterObjectAPI()
         { "Object::GetTextProperty^1",        API_FN_PAIR(Object_GetTextProperty) },
         { "Object::SetProperty^2",            API_FN_PAIR(Object_SetProperty) },
         { "Object::SetTextProperty^2",        API_FN_PAIR(Object_SetTextProperty) },
-        { "Object::GetPath^0",                API_FN_PAIR(Object_GetPath) },
         { "Object::IsInteractionAvailable^1", API_FN_PAIR(Object_IsInteractionAvailable) },
         { "Object::Move^5",                   API_FN_PAIR(Object_Move) },
         { "Object::MovePath^5",               API_FN_PAIR(Object_MovePath) },
@@ -1830,6 +1841,8 @@ void RegisterObjectAPI()
         { "Object::set_GraphicRotation",      API_FN_PAIR(Object_SetRotation) },
         { "Object::get_UseRegionTint",        API_FN_PAIR(Object_GetUseRegionTint) },
         { "Object::set_UseRegionTint",        API_FN_PAIR(Object_SetUseRegionTint) },
+
+        { "Object::get_MotionPath",           API_FN_PAIR(Object_GetMotionPath) },
     };
 
     ccAddExternalFunctions(object_api);

@@ -1538,8 +1538,9 @@ HSaveError PrescanThisRoom(Stream *in, int32_t /*cmp_ver*/, soff_t /*cmp_size*/,
 
 HSaveError WriteMoveLists(Stream *out)
 {
-    out->WriteInt32(static_cast<int32_t>(mls.size()));
-    for (const auto &movelist : mls)
+    const auto &movelists = get_movelists();
+    out->WriteInt32(static_cast<int32_t>(movelists.size()));
+    for (const auto &movelist : movelists)
     {
         movelist.WriteToSavegame(out);
     }
@@ -1550,29 +1551,19 @@ HSaveError ReadMoveLists(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pre
 {
     HSaveError err;
     uint32_t movelist_count = in->ReadInt32();
-    // TODO: this assertion is needed only because mls size is fixed to the
-    // number of characters + max number of objects, where each game object
-    // has a fixed movelist index. It may be removed if movelists will be
-    // allocated on demand with an arbitrary index instead.
-    if (!AssertGameContent(err, movelist_count, mls.size(), "Move Lists", r_data.Result, r_data.DataCounts.Dummy))
-        return err;
-
-    for (size_t i = 0; i < movelist_count; ++i)
+    for (uint32_t i = 0; i < movelist_count; ++i)
     {
-        err = mls[i].ReadFromSavegame(in, cmp_ver);
+        MoveList mlist;
+        err = mlist.ReadFromSavegame(in, cmp_ver);
         if (!err)
             return err;
+        add_movelist(std::move(mlist), i);
     }
     return err;
 }
 
 HSaveError PrescanMoveLists(Stream *in, int32_t /*cmp_ver*/, soff_t /*cmp_size*/, const PreservedParams& /*pp*/, RestoredData &r_data)
 {
-    HSaveError err;
-    uint32_t movelist_count = in->ReadInt32();
-    // NOTE: see comment to ReadMoveLists() on why do we have this assertion here
-    if (!AssertGameContent(err, movelist_count, mls.size(), "Move Lists", r_data.Result, r_data.DataCounts.Dummy))
-        return err;
     return HSaveError::None();
 }
 
@@ -1718,7 +1709,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Characters",
-        kCharSvgVersion_400_14,
+        kCharSvgVersion_400_16,
         kCharSvgVersion_400,
         kSaveCmp_Characters,
         WriteCharacters,
@@ -1818,7 +1809,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Room States",
-        kRoomStatSvgVersion_40008,
+        kRoomStatSvgVersion_40016,
         kRoomStatSvgVersion_40003,
         kSaveCmp_Rooms,
         WriteRoomStates,

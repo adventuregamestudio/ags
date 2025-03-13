@@ -21,6 +21,7 @@
 #include "ac/dynobj/scriptcamera.h"
 #include "ac/dynobj/scriptcontainers.h"
 #include "ac/dynobj/scriptfile.h"
+#include "ac/dynobj/scriptmotionpath.h"
 #include "ac/dynobj/scriptviewport.h"
 #include "ac/game.h"
 #include "ac/gui.h"
@@ -210,6 +211,11 @@ void AGSDeSerializer::Unserialize(int index, const char *objectType, const char 
         // joysticks cannot be restored properly, any operation will fail
         auto *scj = new ScriptJoystick();
         ccRegisterUnserializedObject(index, scj, scj);
+    }
+    else if (strcmp(objectType, "MotionPath") == 0)
+    {
+        ScriptMotionPath *sc_path = new ScriptMotionPath();
+        sc_path->Unserialize(index, &mems, data_sz);
     }
     else
     {

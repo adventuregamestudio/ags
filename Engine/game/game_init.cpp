@@ -441,8 +441,6 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     //
     spriteset.EnlargeTo(ents.SpriteCount - 1);
     charextra.resize(game.numcharacters);
-    // NOTE: movelists have 1 extra slot 0 which assumes a role of "undefined" list
-    mls.resize(game.numcharacters + MAX_ROOM_OBJECTS + 1);
     guis = std::move(ents.Guis);
     guibuts = std::move(ents.GuiControls.Buttons);
     guiinv = std::move(ents.GuiControls.InvWindows);

@@ -975,7 +975,7 @@ void new_room(int newnum,CharacterInfo*forchar) {
     if (usetup.ClearCacheOnRoomChange)
     {
         // Delete all cached resources
-        spriteset.DisposeAllCached();
+        spriteset.DisposeAllFreeCached();
         soundcache_clear();
         texturecache_clear();
     }

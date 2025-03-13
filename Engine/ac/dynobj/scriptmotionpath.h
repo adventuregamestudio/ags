@@ -23,18 +23,16 @@
 class ScriptMotionPath : public AGSCCDynamicObject
 {
 public:
-    ScriptMotionPath(MoveList *mlist, uint32_t mlist_id);
-    ScriptMotionPath(std::unique_ptr<MoveList> &&mlist);
-    MoveList *GetMoveList() const { return _moveList; }
+    ScriptMotionPath(uint32_t mlist_id);
+    bool IsValid() const;
+    MoveList *GetMoveList() const;
+    void Invalidate();
 
     const char *GetType() override;
     int Dispose(void *address, bool force) override;
     void Unserialize(int index, AGS::Common::Stream *in, size_t data_sz) override;
 
-    static ScriptMotionPath *Create(const std::vector<Point> &path, float speedx, float speedy,
-        const RunPathParams &run_params);
-    static ScriptMotionPath *Create(const std::vector<Point> &path,
-        const std::vector<Pointf> &speeds, const RunPathParams &run_params);
+    static DynObjectRef Create(uint32_t mlist_id);
 
 private:
     // Calculate and return required space for serialization, in bytes
@@ -42,9 +40,7 @@ private:
     // Write object data into the provided stream
     void Serialize(const void *address, AGS::Common::Stream *out) override;
 
-    std::unique_ptr<MoveList> _ownMoveList;
-    MoveList *const _moveList = nullptr;
-    uint32_t _moveListInternalID = 0u;
+    uint32_t _moveListID = 0u;
 };
 
 #endif // __AGS_EE_DYNOBJ__SCRIPTMOTIONPATH_H

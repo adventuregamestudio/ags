@@ -212,6 +212,16 @@ void WriteGameID(const Translation &tra, Stream *out)
     StrUtil::WriteString(EncryptText(en_buf, tra.GameName), tra.GameName.GetLength() + 1, out);
 }
 
+// This double escapes an escaped '[' character (old-style linebreak,
+// which must be escaped by user if they want a literal '[' in text).
+// This is required before doing standard unescaping for this line.
+String PreprocessLineForOldStyleLinebreaks(const String &line)
+{
+    String s = line;
+    s.Replace("\\[", "\\\\[");
+    return s;
+}
+
 void WriteDict(const Translation &tra, Stream *out)
 {
     std::vector<char> en_buf;
@@ -221,8 +231,8 @@ void WriteDict(const Translation &tra, Stream *out)
         const String &dst = kv.second;
         if (!dst.IsNullOrSpace())
         {
-            String unsrc = StrUtil::Unescape(src);
-            String undst = StrUtil::Unescape(dst);
+            String unsrc = StrUtil::Unescape(PreprocessLineForOldStyleLinebreaks(src));
+            String undst = StrUtil::Unescape(PreprocessLineForOldStyleLinebreaks(dst));
             StrUtil::WriteString(EncryptText(en_buf, unsrc), unsrc.GetLength() + 1, out);
             StrUtil::WriteString(EncryptText(en_buf, undst), undst.GetLength() + 1, out);
         }

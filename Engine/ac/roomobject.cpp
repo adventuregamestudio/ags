@@ -200,6 +200,18 @@ void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
         blend_mode = kBlend_Normal;
     }
 
+    if (cmp_ver >= kRoomStatSvgVersion_40016)
+    {
+        movelist_handle = in->ReadInt32();
+        in->ReadInt32(); // reserve up to 4 ints
+        in->ReadInt32();
+        in->ReadInt32();
+    }
+    else
+    {
+        movelist_handle = 0;
+    }
+
     spr_width = last_width;
     spr_height = last_height;
     UpdateGraphicSpace();
@@ -253,6 +265,11 @@ void RoomObject::WriteToSavegame(Stream *out) const
     out->WriteInt32(0); // sprite pivot y
     out->WriteInt32(0); // sprite anchor x
     out->WriteInt32(0); // sprite anchor y
+    // kRoomStatSvgVersion_40016
+    out->WriteInt32(movelist_handle);
+    out->WriteInt32(0); // reserve up to 4 ints
+    out->WriteInt32(0);
+    out->WriteInt32(0);
 }
 
 void RoomObject::UpdateGraphicSpace()

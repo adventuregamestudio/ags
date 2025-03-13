@@ -23,6 +23,7 @@
 class ScriptMotionPath : public AGSCCDynamicObject
 {
 public:
+    ScriptMotionPath() = default;
     ScriptMotionPath(uint32_t mlist_id);
     bool IsValid() const;
     MoveList *GetMoveList() const;

@@ -47,6 +47,7 @@
 #include "ac/view.h"
 #include "ac/viewframe.h"
 #include "ac/walkablearea.h"
+#include "ac/dynobj/scriptmotionpath.h"
 #include "debug/debug_log.h"
 #include "gui/guimain.h"
 #include "main/game_run.h"
@@ -924,7 +925,7 @@ int Character_GetLightLevel(CharacterInfo *ch)
 void Character_SetLightLevel(CharacterInfo *chaa, int light_level)
 {
     light_level = Math::Clamp(light_level, -100, 100);
-    
+
     charextra[chaa->index_id].tint_light = light_level;
     chaa->flags &= ~CHF_HASTINT;
     chaa->flags |= CHF_HASLIGHT;
@@ -1001,6 +1002,13 @@ void Character_StopMoving(CharacterInfo *chi)
 
 void Character_StopMovingEx(CharacterInfo *chi, bool force_walkable_area)
 {
+    // If we have a movelist reference attached, then invalidate and dec refcount
+    if (charextra[chi->index_id].movelist_handle > 0)
+    {
+        release_script_movelist(charextra[chi->index_id].movelist_handle);
+        charextra[chi->index_id].movelist_handle = 0;
+    }
+
     int chid = chi->index_id;
     if (chid == play.skip_until_char_stops)
         EndSkippingUntilCharStops();
@@ -1105,7 +1113,6 @@ void Character_UnlockViewEx(CharacterInfo *chaa, int stopMoving) {
     chaa->pic_yoffs = 0;
     // restart the idle animation straight away
     charextra[chaa->index_id].process_idle_this_time = 1;
-
 }
 
 // Tests if the given character is permitted to start a move in the room
@@ -1885,6 +1892,24 @@ void Character_SetUseRegionTint(CharacterInfo *chaa, int yesorno)
     chaa->flags &= ~CHF_NOLIGHTING;
     if (!yesorno)
         chaa->flags |= CHF_NOLIGHTING;
+}
+
+ScriptMotionPath *Character_GetMotionPath(CharacterInfo *ch)
+{
+    const int mslot = ch->get_movelist_id();
+    if (mslot <= 0)
+        return nullptr;
+
+    CharacterExtras &chex = charextra[ch->index_id];
+    if (chex.movelist_handle > 0)
+    {
+        return static_cast<ScriptMotionPath *>(ccGetObjectAddressFromHandle(chex.movelist_handle));
+    }
+
+    auto sc_path = ScriptMotionPath::Create(mslot);
+    ccAddObjectReference(sc_path.Handle);
+    chex.movelist_handle = sc_path.Handle;
+    return static_cast<ScriptMotionPath *>(sc_path.Obj);
 }
 
 //=============================================================================
@@ -4211,6 +4236,11 @@ RuntimeScriptValue Sc_Character_SetFaceDirectionRatio(void *self, const RuntimeS
     API_OBJCALL_VOID_PFLOAT(CharacterInfo, Character_SetFaceDirectionRatio);
 }
 
+RuntimeScriptValue Sc_Character_GetMotionPath(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJAUTO(CharacterInfo, ScriptMotionPath, Character_GetMotionPath);
+}
+
 //=============================================================================
 //
 // Exclusive variadic API implementation for Plugins
@@ -4415,6 +4445,7 @@ void RegisterCharacterAPI(ScriptAPIVersion /*base_api*/, ScriptAPIVersion /*comp
 
         { "Character::get_FaceDirectionRatio",    API_FN_PAIR(Character_GetFaceDirectionRatio) },
         { "Character::set_FaceDirectionRatio",    API_FN_PAIR(Character_SetFaceDirectionRatio) },
+        { "Character::get_MotionPath",            API_FN_PAIR(Character_GetMotionPath) },
     };
 
     ccAddExternalFunctions(character_api);

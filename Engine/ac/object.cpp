@@ -32,7 +32,9 @@
 #include "ac/walkablearea.h"
 #include "ac/dynobj/cc_object.h"
 #include "ac/dynobj/cc_dynamicarray.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "ac/dynobj/scriptuserobject.h"
+#include "ac/dynobj/scriptmotionpath.h"
 #include "debug/debug_log.h"
 #include "main/game_run.h"
 #include "ac/route_finder.h"
@@ -453,9 +455,7 @@ void StopObjectMoving(int objj) {
     if (!is_valid_object(objj))
         quit("!StopObjectMoving: invalid object number");
 
-    if (objs[objj].moving > 0)
-        remove_movelist(objs[objj].moving);
-    objs[objj].moving = 0;
+    objs[objj].OnStopMoving();
 
     debug_script_log("Object %d stop moving", objj);
 }
@@ -977,6 +977,24 @@ void Object_SetUseRegionTint(ScriptObject *objj, int yesorno)
     objs[objj->id].flags &= ~OBJF_USEREGIONTINTS;
     if (yesorno)
         objs[objj->id].flags |= OBJF_USEREGIONTINTS;
+}
+
+ScriptMotionPath *Object_GetMotionPath(ScriptObject *objj)
+{
+    RoomObject &obj = objs[objj->id];
+    const int mslot = obj.moving;
+    if (mslot <= 0)
+        return nullptr;
+
+    if (obj.movelist_handle > 0)
+    {
+        return static_cast<ScriptMotionPath *>(ccGetObjectAddressFromHandle(obj.movelist_handle));
+    }
+
+    auto sc_path = ScriptMotionPath::Create(mslot);
+    ccAddObjectReference(sc_path.Handle);
+    obj.movelist_handle = sc_path.Handle;
+    return static_cast<ScriptMotionPath *>(sc_path.Obj);
 }
 
 void update_object_scale(int &res_zoom, int &res_width, int &res_height,
@@ -1740,6 +1758,11 @@ RuntimeScriptValue Sc_Object_SetRotation(void *self, const RuntimeScriptValue *p
     API_OBJCALL_VOID_PFLOAT(ScriptObject, Object_SetRotation);
 }
 
+RuntimeScriptValue Sc_Object_GetMotionPath(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJAUTO(ScriptObject, ScriptMotionPath, Object_GetMotionPath);
+}
+
 
 void RegisterObjectAPI()
 {
@@ -1823,6 +1846,8 @@ void RegisterObjectAPI()
         { "Object::set_GraphicRotation",      API_FN_PAIR(Object_SetRotation) },
         { "Object::get_UseRegionTint",        API_FN_PAIR(Object_GetUseRegionTint) },
         { "Object::set_UseRegionTint",        API_FN_PAIR(Object_SetUseRegionTint) },
+
+        { "Object::get_MotionPath",           API_FN_PAIR(Object_GetMotionPath) },
     };
 
     ccAddExternalFunctions(object_api);

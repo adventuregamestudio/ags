@@ -210,6 +210,8 @@ void restore_movelists();
 // FIXME: this is currently required for reading or writing saves,
 // avoid having this, or at least change to const reference
 std::vector<MoveList> &get_movelists();
+// Releases a script movelist's reference and invalidates the script object.
+void release_script_movelist(int handle);
 
 // Global AssetManager instance.
 extern std::unique_ptr<AGS::Common::AssetManager> AssetMgr;

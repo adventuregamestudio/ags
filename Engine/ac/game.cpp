@@ -50,6 +50,7 @@
 #include "ac/dynobj/cc_dynamicarray.h"
 #include "ac/dynobj/scriptcamera.h"
 #include "ac/dynobj/scriptgame.h"
+#include "ac/dynobj/scriptmotionpath.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "debug/debug_log.h"
 #include "debug/out.h"
@@ -1752,6 +1753,15 @@ void restore_movelists()
 std::vector<MoveList> &get_movelists()
 {
     return movelists;
+}
+
+void release_script_movelist(int handle)
+{
+    ScriptMotionPath *sc_path = static_cast<ScriptMotionPath*>(ccGetObjectAddressFromHandle(handle));
+    if (!sc_path)
+        return;
+    sc_path->Invalidate();
+    ccReleaseObjectReference(handle);
 }
 
 //=============================================================================

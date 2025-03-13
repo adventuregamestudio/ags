@@ -1709,7 +1709,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Characters",
-        kCharSvgVersion_400_14,
+        kCharSvgVersion_400_16,
         kCharSvgVersion_400,
         kSaveCmp_Characters,
         WriteCharacters,
@@ -1809,7 +1809,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Room States",
-        kRoomStatSvgVersion_40008,
+        kRoomStatSvgVersion_40016,
         kRoomStatSvgVersion_40003,
         kSaveCmp_Rooms,
         WriteRoomStates,

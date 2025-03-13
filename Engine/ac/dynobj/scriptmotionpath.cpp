@@ -15,6 +15,7 @@
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/game.h"
 #include "ac/route_finder.h"
+#include "util/stream.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -54,19 +55,18 @@ int ScriptMotionPath::Dispose(void *address, bool force)
 
 void ScriptMotionPath::Unserialize(int index, Stream *in, size_t data_sz)
 {
-    // TODO
+    _moveListID = in->ReadInt32();
     ccRegisterUnserializedObject(index, this, this);
 }
 
 size_t ScriptMotionPath::CalcSerializeSize(const void *address)
 {
-    // TODO
-    return 0;
+    return sizeof(uint32_t);
 }
 
 void ScriptMotionPath::Serialize(const void *address, Stream *out)
 {
-    // TODO
+    out->WriteInt32(_moveListID);
 }
 
 DynObjectRef ScriptMotionPath::Create(uint32_t mlist_id)

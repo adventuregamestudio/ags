@@ -13,22 +13,32 @@
 //=============================================================================
 #include "ac/dynobj/scriptmotionpath.h"
 #include "ac/dynobj/dynobj_manager.h"
+#include "ac/game.h"
 #include "ac/route_finder.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-ScriptMotionPath::ScriptMotionPath(MoveList *mlist, uint32_t mlist_id)
-    : _moveList(mlist)
-    , _moveListInternalID(mlist_id)
+ScriptMotionPath::ScriptMotionPath(uint32_t mlist_id)
+    : _moveListID(mlist_id)
 {
 }
 
-ScriptMotionPath::ScriptMotionPath(std::unique_ptr<MoveList> &&mlist)
-    : _ownMoveList(std::move(mlist))
-    , _moveList(_ownMoveList.get())
-    , _moveListInternalID(UINT32_MAX)
+bool ScriptMotionPath::IsValid() const
 {
+    return _moveListID > 0;
+}
+
+MoveList *ScriptMotionPath::GetMoveList() const
+{
+    return _moveListID == 0 ?
+        nullptr :
+        get_movelist(_moveListID);
+}
+
+void ScriptMotionPath::Invalidate()
+{
+    _moveListID = 0u;
 }
 
 const char *ScriptMotionPath::GetType()
@@ -59,24 +69,9 @@ void ScriptMotionPath::Serialize(const void *address, Stream *out)
     // TODO
 }
 
-ScriptMotionPath *ScriptMotionPath::Create(const std::vector<Point> &path,
-    float speedx, float speedy, const RunPathParams &run_params)
+DynObjectRef ScriptMotionPath::Create(uint32_t mlist_id)
 {
-    std::unique_ptr<MoveList> mlist(new MoveList());
-    Pathfinding::CalculateMoveList(*mlist, path, speedx, speedy, 0u, run_params);
-
-    ScriptMotionPath *motion_path = new ScriptMotionPath(std::move(mlist));
-    ccRegisterManagedObject(motion_path, motion_path);
-    return motion_path;
-}
-
-ScriptMotionPath *ScriptMotionPath::Create(const std::vector<Point> &path,
-    const std::vector<Pointf> &speeds, const RunPathParams &run_params)
-{
-    std::unique_ptr<MoveList> mlist(new MoveList());
-    Pathfinding::CalculateMoveList(*mlist, path, speeds, 0u, run_params);
-
-    ScriptMotionPath *motion_path = new ScriptMotionPath(std::move(mlist));
-    ccRegisterManagedObject(motion_path, motion_path);
-    return motion_path;
+    ScriptMotionPath *motion_path = new ScriptMotionPath(mlist_id);
+    int handle = ccRegisterManagedObject(motion_path, motion_path);
+    return DynObjectRef(handle, motion_path, motion_path);
 }

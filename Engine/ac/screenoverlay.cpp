@@ -80,8 +80,8 @@ void ScreenOverlay::SetSpriteNum(int sprnum, int offx, int offy)
 {
     ResetImage();
 
-    assert(sprnum >= 0 && sprnum < game.SpriteInfos.size());
-    if (sprnum < 0 || sprnum >= game.SpriteInfos.size())
+    assert(sprnum >= 0 && static_cast<size_t>(sprnum) < game.SpriteInfos.size());
+    if (sprnum < 0 || static_cast<size_t>(sprnum) >= game.SpriteInfos.size())
         return;
 
     _flags |= kOver_SpriteShared

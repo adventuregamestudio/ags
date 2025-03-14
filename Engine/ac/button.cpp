@@ -166,8 +166,8 @@ void Button_SetNormalGraphic(GUIButton *butt, int slotn) {
     // Any other sprite - update the clickable area to the same size as the graphic
     else
     {
-        const int width = slotn < game.SpriteInfos.size() ? game.SpriteInfos[slotn].Width : 0;
-        const int height = slotn < game.SpriteInfos.size() ? game.SpriteInfos[slotn].Height : 0;
+        const int width = static_cast<size_t>(slotn) < game.SpriteInfos.size() ? game.SpriteInfos[slotn].Width : 0;
+        const int height = static_cast<size_t>(slotn) < game.SpriteInfos.size() ? game.SpriteInfos[slotn].Height : 0;
         butt->SetNormalImage(slotn);
         butt->SetSize(width, height);
     }

@@ -10,12 +10,14 @@ Editor:
 
 Engine:
  - Fixed a AudioChannel did not report a correct Position right after a AudioClip.PlayFrom() call.
+ - Fixed Button resizing to sprite 0 size if NormalGraphic is set to 0 (default button look).
  - Fixed object's look not updated after it was assigned a dynamic sprite, redrawn, sprite deleted,
    object redrawn without a sprite (used a placeholder), and then another dynamic sprite assigned
    with coincidentally the same number.
  - Fixed font outline index limited to 127 (although we theoretically support higher font numbers).
  - Fixed font outline parameters not initialized correctly if engine is built by a system that
    treats "char" as unsigned 8-bit type.
+ - Fixed SDL log level was defaulting to "verbose" if not read from config (should be "info").
 
 WinSetup:
  - Fixed "Save and Run" command sometimes caused 2 engine processes, one of which terminated later.

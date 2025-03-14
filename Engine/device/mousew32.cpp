@@ -33,14 +33,12 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 
-char currentcursor = 0;
 // virtual mouse cursor coordinates
 int mousex = 0, mousey = 0, numcurso = -1, hotx = 0, hoty = 0;
 // real mouse coordinates and bounds (in window coords)
 static int real_mouse_x = 0, real_mouse_y = 0;
 static int boundx1 = 0, boundx2 = 99999, boundy1 = 0, boundy2 = 99999;
-char ignore_bounds = 0;
-extern char alpha_blend_cursor;
+int ignore_bounds = 0; // FIXME: this currently works as a counter, not bool?
 extern RGB palette[256];
 extern volatile bool switched_away;
 

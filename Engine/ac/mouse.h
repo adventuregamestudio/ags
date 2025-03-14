@@ -95,7 +95,7 @@ extern ScriptMouse scmouse;
 extern CursorGraphicState cursor_gstate;
 
 extern int mousex, mousey;
-extern char ignore_bounds;
+extern int ignore_bounds;
 extern int cur_mode;
 extern int cur_cursor;
 

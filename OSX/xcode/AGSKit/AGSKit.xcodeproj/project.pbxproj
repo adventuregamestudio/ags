@@ -781,6 +781,7 @@
 		526F27AB1D3B5CC300EF4E1F /* logfile.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F252A1D3B5CC300EF4E1F /* logfile.h */; };
 		526F27AC1D3B5CC300EF4E1F /* mousew32.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F252C1D3B5CC300EF4E1F /* mousew32.cpp */; };
 		526F27AD1D3B5CC300EF4E1F /* mousew32.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F252D1D3B5CC300EF4E1F /* mousew32.h */; };
+		526F27AE1D3B5CC300EF4E1F /* fonts_engine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F252F1D3B5CC300EF4E1F /* fonts_engine.cpp */; };
 		526F27AF1D3B5CC300EF4E1F /* ali3dexception.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F25311D3B5CC300EF4E1F /* ali3dexception.h */; };
 		526F27B01D3B5CC300EF4E1F /* ali3dogl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F25321D3B5CC300EF4E1F /* ali3dogl.cpp */; };
 		526F27B11D3B5CC300EF4E1F /* ali3dogl.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F25331D3B5CC300EF4E1F /* ali3dogl.h */; };
@@ -1727,6 +1728,7 @@
 		526F252A1D3B5CC300EF4E1F /* logfile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = logfile.h; sourceTree = "<group>"; };
 		526F252C1D3B5CC300EF4E1F /* mousew32.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = mousew32.cpp; sourceTree = "<group>"; };
 		526F252D1D3B5CC300EF4E1F /* mousew32.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mousew32.h; sourceTree = "<group>"; };
+		526F252F1D3B5CC300EF4E1F /* fonts_engine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = fonts_engine.cpp; sourceTree = "<group>"; };
 		526F25311D3B5CC300EF4E1F /* ali3dexception.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ali3dexception.h; sourceTree = "<group>"; };
 		526F25321D3B5CC300EF4E1F /* ali3dogl.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ali3dogl.cpp; sourceTree = "<group>"; };
 		526F25331D3B5CC300EF4E1F /* ali3dogl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ali3dogl.h; sourceTree = "<group>"; };
@@ -2465,6 +2467,7 @@
 				526F24151D3B5CC200EF4E1F /* ac */,
 				526F251F1D3B5CC300EF4E1F /* debug */,
 				526F252B1D3B5CC300EF4E1F /* device */,
+				526F252E1D3B5CC300EF4E1F /* font */,
 				52D12C1B1D61C0950077B784 /* game */,
 				526F25301D3B5CC300EF4E1F /* gfx */,
 				526F25521D3B5CC300EF4E1F /* gui */,
@@ -3172,6 +3175,14 @@
 				526F252D1D3B5CC300EF4E1F /* mousew32.h */,
 			);
 			path = device;
+			sourceTree = "<group>";
+		};
+		526F252E1D3B5CC300EF4E1F /* font */ = {
+			isa = PBXGroup;
+			children = (
+				526F252F1D3B5CC300EF4E1F /* fonts_engine.cpp */,
+			);
+			path = font;
 			sourceTree = "<group>";
 		};
 		526F25301D3B5CC300EF4E1F /* gfx */ = {
@@ -4333,6 +4344,7 @@
 				526F278E1D3B5CC300EF4E1F /* system.cpp in Sources */,
 				20E67D6428F1BDE000B95C00 /* gfx.c in Sources */,
 				20E681F628F1D2A800B95C00 /* SDL_sound_mp3.c in Sources */,
+				526F27AE1D3B5CC300EF4E1F /* fonts_engine.cpp in Sources */,
 				526F26FA1D3B5CC300EF4E1F /* gamestate.cpp in Sources */,
 				20E684AE28F20CC700B95C00 /* bitpack.c in Sources */,
 				20522A8A28E8FD2B00589E91 /* sdl2_util.cpp in Sources */,

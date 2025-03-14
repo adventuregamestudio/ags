@@ -211,7 +211,6 @@
 		1C96488C2B1E4D9E0034D46A /* filebasedagsdebugger.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 20156861290DD94B005E5B22 /* filebasedagsdebugger.cpp */; };
 		1C96488F2B1E4D9E0034D46A /* debug.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 20156864290DD94B005E5B22 /* debug.cpp */; };
 		1C9648912B1E4D9E0034D46A /* mousew32.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 20156812290DD94A005E5B22 /* mousew32.cpp */; };
-		1C9648932B1E4D9E0034D46A /* fonts_engine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 20156816290DD94B005E5B22 /* fonts_engine.cpp */; };
 		1C9648952B1E4D9E0034D46A /* savegame_v321.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2015679A290DD949005E5B22 /* savegame_v321.cpp */; };
 		1C9648962B1E4D9E0034D46A /* game_init.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2015679B290DD949005E5B22 /* game_init.cpp */; };
 		1C96489A2B1E4D9E0034D46A /* savegame_components.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2015679F290DD949005E5B22 /* savegame_components.cpp */; };
@@ -1783,7 +1782,6 @@
 		20156810290DD94A005E5B22 /* mylabel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = mylabel.cpp; sourceTree = "<group>"; };
 		20156812290DD94A005E5B22 /* mousew32.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = mousew32.cpp; sourceTree = "<group>"; };
 		20156813290DD94B005E5B22 /* mousew32.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mousew32.h; sourceTree = "<group>"; };
-		20156816290DD94B005E5B22 /* fonts_engine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = fonts_engine.cpp; sourceTree = "<group>"; };
 		20156818290DD94B005E5B22 /* game-1.ICO */ = {isa = PBXFileReference; lastKnownFileType = image.ico; path = "game-1.ICO"; sourceTree = "<group>"; };
 		20156819290DD94B005E5B22 /* tintshader.fxo */ = {isa = PBXFileReference; lastKnownFileType = file; path = tintshader.fxo; sourceTree = "<group>"; };
 		2015681A290DD94B005E5B22 /* tintshaderLegacy.fx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = tintshaderLegacy.fx; sourceTree = "<group>"; };
@@ -3383,7 +3381,6 @@
 				2015664A290DD945005E5B22 /* ac */,
 				20156858290DD94B005E5B22 /* debug */,
 				20156811290DD94A005E5B22 /* device */,
-				20156815290DD94B005E5B22 /* font */,
 				20156798290DD949005E5B22 /* game */,
 				20156836290DD94B005E5B22 /* gfx */,
 				201567FC290DD94A005E5B22 /* gui */,
@@ -3913,14 +3910,6 @@
 				20156813290DD94B005E5B22 /* mousew32.h */,
 			);
 			path = device;
-			sourceTree = "<group>";
-		};
-		20156815290DD94B005E5B22 /* font */ = {
-			isa = PBXGroup;
-			children = (
-				20156816290DD94B005E5B22 /* fonts_engine.cpp */,
-			);
-			path = font;
 			sourceTree = "<group>";
 		};
 		20156817290DD94B005E5B22 /* resource */ = {
@@ -4579,7 +4568,6 @@
 				1C96488C2B1E4D9E0034D46A /* filebasedagsdebugger.cpp in Sources */,
 				1C96488F2B1E4D9E0034D46A /* debug.cpp in Sources */,
 				1C9648912B1E4D9E0034D46A /* mousew32.cpp in Sources */,
-				1C9648932B1E4D9E0034D46A /* fonts_engine.cpp in Sources */,
 				1C9648952B1E4D9E0034D46A /* savegame_v321.cpp in Sources */,
 				1C9648962B1E4D9E0034D46A /* game_init.cpp in Sources */,
 				1C96489A2B1E4D9E0034D46A /* savegame_components.cpp in Sources */,

@@ -162,10 +162,15 @@ float MoveList::CalcStagePartsNum(int stage) const
 
 float MoveList::CalcPartsFromProgress(int stage, float progress) const
 {
+    // NOTE: the last stage has no movement, so no progress can be made
+    if (stage < 0 || stage >= GetNumStages() - 1)
+        return 0.f;
+
     const int tar_pos_stage = run_params.Forward ? (stage + 1) : (stage);
     const float move_dir_factor = run_params.Forward ? 1.f : -1.f;
     const Point target = pos[tar_pos_stage];
 
+    progress = Math::Clamp(progress, 0.f, 1.f);
     const float xparts = (permove[stage].X != 0.f) ? std::fabs(((target.X - pos[stage].X) * progress) / permove[stage].X) : 0.f;
     const float yparts = (permove[stage].Y != 0.f) ? std::fabs(((target.Y - pos[stage].Y) * progress) / permove[stage].Y) : 0.f;
     return std::max(xparts, yparts);

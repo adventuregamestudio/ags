@@ -37,6 +37,7 @@ enum MoveListSvgVersion
     kMoveSvgVersion_36208   = 3060208, // flags per stage
     kMoveSvgVersion_400     = 4000000, // fixed->floats, positions are int32
     kMoveSvgVersion_40006   = 4000006, // extra running params (repeat, dir)
+    kMoveSvgVersion_40016   = 4000016, // sync with kMoveSvgVersion_36208
 };
 
 class MoveList

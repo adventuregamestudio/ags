@@ -136,7 +136,8 @@ HSaveError MoveList::ReadFromSavegame(Stream *in, int32_t cmp_ver)
         in->ReadInt32();
     }
 
-    if (cmp_ver >= kMoveSvgVersion_36208)
+    if ((cmp_ver >= kMoveSvgVersion_36208 && cmp_ver < kMoveSvgVersion_400) ||
+        cmp_ver >= kMoveSvgVersion_40016)
     {
         for (uint32_t i = 0; i < numstage; ++i)
         {

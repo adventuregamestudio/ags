@@ -740,7 +740,7 @@ void DialogOptions::Draw()
       int txoffs=0,tyoffs=0,yspos = ui_view.GetHeight()/2-(2*padding+needheight)/2;
       int xspos = ui_view.GetWidth()/2 - areawid/2;
       // shift window to the right if QG4-style full-screen pic
-      if ((game.options[OPT_SPEECHTYPE] == 3) && (said_text > 0))
+      if ((game.options[OPT_SPEECHTYPE] == kSpeechStyle_QFG4) && (said_text > 0))
         xspos = (ui_view.GetWidth() - areawid) - 10;
 
       // needs to draw the right text window, not the default
@@ -1587,6 +1587,11 @@ ScriptDialog *Dialog_GetByName(const char *name)
     return static_cast<ScriptDialog*>(ccGetScriptObjectAddress(name, ccDynamicDialog.GetType()));
 }
 
+void Dialog_Stop()
+{
+    StopDialog();
+}
+
 ScriptDialog *Dialog_GetCurrentDialog()
 {
     return dialogExec ? &scrDialog[dialogExec->GetDlgNum()] : nullptr;
@@ -1605,6 +1610,11 @@ bool Dialog_GetAreOptionsDisplayed()
 RuntimeScriptValue Sc_Dialog_GetByName(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_OBJ_POBJ(ScriptDialog, ccDynamicDialog, Dialog_GetByName, const char);
+}
+
+RuntimeScriptValue Sc_Dialog_Stop(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID(Dialog_Stop);
 }
 
 RuntimeScriptValue Sc_Dialog_GetCurrentDialog(const RuntimeScriptValue *params, int32_t param_count)
@@ -1710,6 +1720,7 @@ void RegisterDialogAPI()
 {
     ScFnRegister dialog_api[] = {
         { "Dialog::GetByName",            API_FN_PAIR(Dialog_GetByName) },
+        { "Dialog::Stop",                 API_FN_PAIR(Dialog_Stop) },
         { "Dialog::get_CurrentDialog",    API_FN_PAIR(Dialog_GetCurrentDialog) },
         { "Dialog::get_ExecutedOption",   API_FN_PAIR(Dialog_GetExecutedOption) },
         { "Dialog::get_AreOptionsDisplayed", API_FN_PAIR(Dialog_GetAreOptionsDisplayed) },

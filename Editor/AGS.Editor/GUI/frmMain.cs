@@ -30,7 +30,8 @@ namespace AGS.Editor
 
         private Dictionary<string, object> _propertyObjectList = null;
         private bool _ignorePropertyListChange = false;
-		private bool _suspendDrawing = false;
+        private bool _ignoreSelectObjectInList = false;
+        private bool _suspendDrawing = false;
         private List<DockContent> _dockPanes = new List<DockContent>();
         private WindowsLayoutManager _layoutManager;
 
@@ -376,9 +377,13 @@ namespace AGS.Editor
 
         private void SelectObjectInPropertyList(object propertiesObject)
         {
+            // Prevent occasional recursion (code logic around PropertyGrid is quite confusing)
+            if (_ignoreSelectObjectInList)
+                return;
+
             try
             {
-                _ignorePropertyListChange = true;
+                _ignoreSelectObjectInList = true;
                 if (_propertyObjectList != null)
                 {
                     foreach (string name in _propertyObjectList.Keys)
@@ -394,7 +399,7 @@ namespace AGS.Editor
             }
             finally
             {
-                _ignorePropertyListChange = false;
+                _ignoreSelectObjectInList = false;
             }
         }
 

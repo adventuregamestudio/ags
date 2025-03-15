@@ -108,7 +108,7 @@ bool FindRoute(MoveList &mls, IRouteFinder *finder, int srcx, int srcy, int dstx
     if (!finder->FindRoute(path, srcx, srcy, dstx, dsty, exact_dest, ignore_walls))
         return false;
 
-    return CalculateMoveList(mls, path, move_speed_x, move_speed_y, run_params);
+    return CalculateMoveList(mls, path, move_speed_x, move_speed_y, ignore_walls ? kMoveStage_Direct : 0, run_params);
 }
 
 // Negative move speeds become fractional, e.g. -2 = 1/2 speed.
@@ -225,7 +225,7 @@ static void CalculateMoveStage(MoveList &mls, uint32_t index, float move_speed_x
 }
 
 bool CalculateMoveList(MoveList &mls, const std::vector<Point> path, int move_speed_x, int move_speed_y,
-    const RunPathParams &run_params)
+    uint8_t stage_flag, const RunPathParams &run_params)
 {
     assert(!path.empty());
     assert(move_speed_x != 0 || move_speed_y != 0);
@@ -238,6 +238,7 @@ bool CalculateMoveList(MoveList &mls, const std::vector<Point> path, int move_sp
     if (mlist.pos.size() == 1)
         mlist.pos.push_back(mlist.pos[0]);
     mlist.permove.resize(path.size());
+    mlist.stageflags.resize(path.size(), stage_flag);
 
     const float fspeed_x = InputSpeedToVelocity(move_speed_x);
     const float fspeed_y = InputSpeedToVelocity(move_speed_y);
@@ -250,14 +251,20 @@ bool CalculateMoveList(MoveList &mls, const std::vector<Point> path, int move_sp
     return true;
 }
 
-bool AddWaypointDirect(MoveList &mls, int x, int y, int move_speed_x, int move_speed_y)
+bool AddWaypointDirect(MoveList &mls, int x, int y, int move_speed_x, int move_speed_y, uint8_t stage_flag)
 {
+    // Safety fixup, because the MoveList logic requires at least 2 points
+    if (mls.GetNumStages() == 0)
+    {
+        mls.pos.emplace_back(x, y);
+    }
+
     const float fspeed_x = InputSpeedToVelocity(move_speed_x);
     const float fspeed_y = InputSpeedToVelocity(move_speed_y);
+
     mls.pos.emplace_back( x, y );
-    // Ensure there are at least 2 pos elements (required for the further algorithms)
-    if (mls.pos.size() == 1)
-        mls.pos.push_back(mls.pos[0]);
+    mls.stageflags.resize(mls.pos.size(), stage_flag);
+    mls.stageflags[mls.GetNumStages() - 2] = stage_flag;
     // Calculate new stage starting from the one before last
     CalculateMoveStage(mls, mls.GetNumStages() - 2, fspeed_x, fspeed_y);
     return true;

@@ -207,7 +207,7 @@ void Character_AddWaypoint(CharacterInfo *chaa, int x, int y) {
         debug_script_warn("Character::AddWaypoint: called for '%s' with walk speed 0", chaa->scrname.GetCStr());
     }
 
-    Pathfinding::AddWaypointDirect(cmls, x, y, move_speed_x, move_speed_y);
+    Pathfinding::AddWaypointDirect(cmls, x, y, move_speed_x, move_speed_y, kMoveStage_Direct);
 }
 
 void Character_Animate(CharacterInfo *chaa, int loop, int delay, int repeat,
@@ -814,7 +814,7 @@ int Character_GetHasExplicitTint(CharacterInfo *ch)
 }
 
 void Character_Say(CharacterInfo *chaa, const char *text) {
-    _DisplaySpeechCore(chaa->index_id, text);
+    DisplaySpeechCore(chaa->index_id, text);
 }
 
 void Character_SayAt(CharacterInfo *chaa, int x, int y, int width, const char *texx) {
@@ -996,19 +996,11 @@ void Character_SetSpeed(CharacterInfo *chaa, int xspeed, int yspeed) {
 
 void Character_StopMoving(CharacterInfo *chi)
 {
-    Character_StopMovingEx(chi, chi->is_moving() && (mls[chi->get_movelist_id()].move_direct == 0));
+    Character_StopMovingEx(chi, chi->is_moving() && !mls[chi->get_movelist_id()].IsStageDirect());
 }
 
 void Character_StopMovingEx(CharacterInfo *chi, bool force_walkable_area)
 {
-    // If not moving, then clear the move-related flags (for safety) and bail out
-    // NOTE: I recall there was a potential case when this flag could remain after Move...
-    if (chi->walking == 0)
-    {
-        chi->flags &= ~CHF_MOVENOTWALK;
-        return;
-    }
-
     int chid = chi->index_id;
     if (chid == play.skip_until_char_stops)
         EndSkippingUntilCharStops();
@@ -1022,13 +1014,18 @@ void Character_StopMovingEx(CharacterInfo *chi, bool force_walkable_area)
         chex.xwas = INVALID_X;
     }
 
-    // If it is in walking state, and is *not* during turning around,
-    // then validate the character position, ensuring that it does not
-    // end on a non-walkable area and gets stuck.
-    if (force_walkable_area && (chi->walking < TURNING_AROUND) && (chi->room == displayed_room))
+    // If requested by a caller, then validate the character position,
+    // ensuring that it does not end on a non-walkable area and gets stuck.
+    // Because the pathfinder is not ideal, and there are various sources of
+    // inaccuracy in the walking logic, in rare cases the character might
+    // pass through or even finish on a non-walkable pixel.
+    if (force_walkable_area && (chi->room == displayed_room))
     {
         // TODO: don't use PlaceOnWalkable, as that may result in moving character
-        // into the random direction. Instead, consider writing a "backtracing"
+        // into the random direction.
+        // For finishing a walk clamp to a precalculated final destination instead
+        // (CHECKME: is it guaranteed valid?).
+        // For when interrupting a move, consider writing a "backtracing"
         // function that runs along MoveList's current stage back, looking for
         // the first pixel on a walkable area.
         Character_PlaceOnWalkableArea(chi);
@@ -1036,16 +1033,22 @@ void Character_StopMovingEx(CharacterInfo *chi, bool force_walkable_area)
 
     debug_script_log("%s: stop moving", chi->scrname.GetCStr());
 
-    // Switch character state from walking to standing
-    chi->walking = 0;
-    // If the character was walking, then reset their frame
-    if ((chi->flags & CHF_MOVENOTWALK) == 0)
-        chi->frame = 0;
-    chi->flags &= ~CHF_MOVENOTWALK;
+    // If the character is currently moving, stop them and reset their state
+    if (chi->walking > 0)
+    {
+        // Switch character state from walking to standing
+        chi->walking = 0;
+        // If the character was animating a walk, then reset their frame to standing
+        if ((chi->flags & CHF_MOVENOTWALK) == 0)
+            chi->frame = 0;
+        // Restart idle timer and mark to process right away (in case its persistent idling)
+        chi->idleleft = chi->idletime;
+        chex.process_idle_this_time = 1;
+    }
 
-    // Restart idle timer and mark to process right away (in case its persistent idling)
-    chi->idleleft = chi->idletime;
-    chex.process_idle_this_time = 1;
+    // Always clear the move-related flags (for safety)
+    // NOTE: I recall there was a potential case when this flag could remain after Move...
+    chi->flags &= ~CHF_MOVENOTWALK;
 }
 
 void Character_Tint(CharacterInfo *chaa, int red, int green, int blue, int opacity, int luminance) {
@@ -1071,7 +1074,7 @@ void Character_Tint(CharacterInfo *chaa, int red, int green, int blue, int opaci
 }
 
 void Character_Think(CharacterInfo *chaa, const char *text) {
-    _DisplayThoughtCore(chaa->index_id, text);
+    DisplayThoughtCore(chaa->index_id, text);
 }
 
 void Character_UnlockView(CharacterInfo *chaa) {
@@ -1964,7 +1967,8 @@ void move_character_impl(CharacterInfo *chin, const std::vector<Point> *path, in
     bool path_result = false;
     if (path)
     {
-        path_result = Pathfinding::CalculateMoveList(mls[mslot], *path, move_speed_x, move_speed_y, run_params);
+        path_result = Pathfinding::CalculateMoveList(mls[mslot], *path, move_speed_x, move_speed_y,
+            ignwal ? kMoveStage_Direct : 0, run_params);
     }
     else
     {
@@ -1977,7 +1981,6 @@ void move_character_impl(CharacterInfo *chin, const std::vector<Point> *path, in
     if (path_result)
     {
         chin->walking = mslot;
-        mls[mslot].move_direct = ignwal;
 
         if (wasStepFrac > 0.f)
         {
@@ -2146,7 +2149,7 @@ int doNextCharMoveStep(CharacterInfo *chi, CharacterExtras *chex) {
     if (do_movelist_move(chi->walking, chi->x, chi->y) == 2) 
     {
         if ((chi->flags & CHF_MOVENOTWALK) == 0)
-            fix_player_sprite(chi, mls[chi->walking]);
+            fix_player_sprite(chi, mls[chi->get_movelist_id()]);
     }
 
     ntf = has_hit_another_character(chi->index_id);
@@ -2181,7 +2184,7 @@ int doNextCharMoveStep(CharacterInfo *chi, CharacterExtras *chex) {
 bool is_char_walking_ndirect(CharacterInfo *chi)
 {
     return chi->is_moving_not_turning() &&
-        (mls[chi->get_movelist_id()].move_direct == 0);
+        !mls[chi->get_movelist_id()].IsStageDirect();
 }
 
 bool FindNearestWalkableAreaForCharacter(const Point &src, Point &dst)
@@ -2612,7 +2615,7 @@ int check_click_on_character(int xx,int yy,int mood) {
     return 0;
 }
 
-void _DisplaySpeechCore(int chid, const char *displbuf) {
+void DisplaySpeechCore(int chid, const char *displbuf) {
     if (displbuf[0] == 0) {
         // no text, just update the current character who's speaking
         // this allows the portrait side to be switched with an empty
@@ -2630,30 +2633,25 @@ void _DisplaySpeechCore(int chid, const char *displbuf) {
     DisplaySpeech(displbuf, chid);
 }
 
-void _DisplayThoughtCore(int chid, const char *displbuf) {
+void DisplayThoughtCore(int chid, const char *displbuf) {
     // adjust timing of text (so that DisplayThought("%s", str) pauses
     // for the length of the string not 2 frames)
     int len = (int)strlen(displbuf);
     if (len > source_text_length + 3)
         source_text_length = len;
 
-    int xpp = -1, ypp = -1, width = -1;
-
-    if ((game.options[OPT_SPEECHTYPE] == 0) || (game.chars[chid].thinkview <= 0)) {
+    int width = -1;
+    if ((game.options[OPT_SPEECHTYPE] == kSpeechStyle_LucasArts) || (game.chars[chid].thinkview <= 0)) {
         // lucasarts-style, so we want a speech bubble actually above
         // their head (or if they have no think anim in Sierra-style)
         width = play.speech_bubble_width;
-        xpp = play.RoomToScreenX(game.chars[chid].x) - width / 2;
-        if (xpp < 0)
-            xpp = 0;
-        // -1 will automatically put it above the char's head
-        ypp = -1;
     }
 
-    _displayspeech(displbuf, chid, xpp, ypp, width, 1);
+    display_speech(displbuf, chid, -1, -1, width, true /*auto-pos*/, true /* is thought */);
 }
 
-void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int isThought) {
+void display_speech(const char *texx, int aschar, int xx, int yy, int widd, bool auto_position, bool is_thought)
+{
     if (!is_valid_character(aschar))
         quit("!DisplaySpeech: invalid character");
 
@@ -2711,10 +2709,17 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
     }
 
     DisplayTextStyle disp_style = kDisplayTextStyle_Overchar;
+    // If the character is in this room, then default to aligning the speech
+    // to the character position; but if it's not then center the speech on screen
+    DisplayTextPosition disp_pos = auto_position ?
+        get_textpos_from_scriptcoords(xx, yy, (speakingChar->room == displayed_room)) :
+        kDisplayTextPos_Normal;
     const color_t text_color = speakingChar->talkcolor;
 
-    Rect ui_view = play.GetUIViewport();
     DisplayTextShrink allow_shrink = kDisplayTextShrink_None;
+    bool align_hcenter = false; // whether to align text by centering over position
+
+    const Rect ui_view = play.GetUIViewport();
     int bwidth = widd;
     if (bwidth < 0)
         bwidth = ui_view.GetWidth()/2 + ui_view.GetWidth()/4;
@@ -2722,28 +2727,24 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
     set_our_eip(151);
 
     int useview = speakingChar->talkview;
-    if (isThought) {
+    if (is_thought)
+    {
         useview = speakingChar->thinkview;
         // view 0 is not valid for think views
         if (useview == 0)
             useview = -1;
         // speech bubble can shrink to fit
         allow_shrink = kDisplayTextShrink_Left;
-        if (speakingChar->room != displayed_room) {
-            // not in room, centre it
-            xx = -1;
-            yy = -1;
-        }
     }
 
     if (useview >= game.numviews)
         quitprintf("!Character.Say: attempted to use view %d for animation, but it does not exist", useview + 1);
 
-    if (game.options[OPT_SPEECHTYPE] == 3)
+    if (game.options[OPT_SPEECHTYPE] == kSpeechStyle_QFG4)
         remove_screen_overlay(OVER_COMPLETE);
     set_our_eip(1500);
 
-    if (game.options[OPT_SPEECHTYPE] == 0)
+    if (game.options[OPT_SPEECHTYPE] == kSpeechStyle_LucasArts)
         allow_shrink = kDisplayTextShrink_Left;
 
     // If has a valid speech view, and idle anim in progress for the character, then stop it
@@ -2755,7 +2756,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
     // TODO: consider turning certain speech styles into autoplaced overlays
     // in the future; but that would require a large refactor of all the coordinate
     // calculations below, and inside display_main.
-    int tdxp = xx,tdyp = yy;
+    int tdxp = xx, tdyp = yy;
     int oldview=-1, oldloop = -1;
     int ovr_type = 0;
     text_lips_offset = 0;
@@ -2806,9 +2807,8 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
             tdxp = view->RoomToScreen(speakingChar->x, 0).first.X;
         if (tdxp < 2)
             tdxp = 2;
-        // tell it to centre it (passing negative x coord further will be treated as a alignment instruction)
-        // FIXME: this is unreliable and bug prone, use a separate argument for alignment!
-        tdxp = -tdxp;
+        // tell it to align it by center
+        align_hcenter = auto_position && (xx < 0);
 
         if (tdyp < 0)
         {
@@ -2816,7 +2816,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
             int height = (charextra[aschar].height < 1) ? game.SpriteInfos[sppic].Height : charextra[aschar].height;
             tdyp = view->RoomToScreen(0, charextra[aschar].GetEffectiveY(speakingChar) - height).first.Y
                 - 5;
-            if (isThought) // if it's a thought, lift it a bit further up
+            if (is_thought) // if it's a thought, lift it a bit further up
                 tdyp -= 10;
         }
         if (tdyp < 5)
@@ -2824,8 +2824,9 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
 
         set_our_eip(152);
 
-        if ((useview >= 0) && (game.options[OPT_SPEECHTYPE] > 0)) {
+        if ((useview >= 0) && (game.options[OPT_SPEECHTYPE] > kSpeechStyle_LucasArts)) {
             // Sierra-style close-up portrait
+            disp_pos = kDisplayTextPos_Normal;
 
             if (play.swap_portrait_lastchar != aschar) {
                 // if the portraits are set to Alternate, OR they are
@@ -2894,7 +2895,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
             // Determine whether to display the portrait on the left or right
             int portrait_on_right = 0;
 
-            if (game.options[OPT_SPEECHTYPE] == 3) 
+            if (game.options[OPT_SPEECHTYPE] == kSpeechStyle_QFG4)
             { }  // always on left with QFG-style speech
             else if ((play.swap_portrait_side == 1) ||
                 (play.swap_portrait_side == -1) ||
@@ -2914,7 +2915,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
 
             // if they accidentally used a large full-screen image as the sierra-style
             // talk view, correct it
-            if ((game.options[OPT_SPEECHTYPE] != 3) && (bigx > ui_view.GetWidth() - 50))
+            if ((game.options[OPT_SPEECHTYPE] != kSpeechStyle_QFG4) && (bigx > ui_view.GetWidth() - 50))
                 bigx = ui_view.GetWidth() - 50;
 
             if (widd > 0)
@@ -2927,7 +2928,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
             facetalk_qfg4_override_placement_x = false;
             facetalk_qfg4_override_placement_y = false;
 
-            if (game.options[OPT_SPEECHTYPE] == 3) {
+            if (game.options[OPT_SPEECHTYPE] == kSpeechStyle_QFG4) {
                 // QFG4-style whole screen picture
                 closeupface = BitmapHelper::CreateBitmap(ui_view.GetWidth(), ui_view.GetHeight());
                 closeupface->Clear(0);
@@ -3021,17 +3022,17 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
                 tdxp += get_textwindow_border_width(play.speech_textwindow_gui) / 2;
                 allow_shrink = kDisplayTextShrink_Right;
             }
-            if (game.options[OPT_SPEECHTYPE] == 3)
+            if (game.options[OPT_SPEECHTYPE] == kSpeechStyle_QFG4)
                 overlay_x = 0;
             face_talking = add_screen_overlay(false,overlay_x,ovr_yp,ovr_type,closeupface);
             facetalkview = useview;
             facetalkloop = 0;
             facetalkframe = 0;
             facetalkwait = viptr->loops[0].frames[0].speed + Character_GetSpeechAnimationDelay(speakingChar);
-            facetalkrepeat = (isThought) ? 0 : 1;
+            facetalkrepeat = (is_thought) ? 0 : 1;
             facetalkBlinkLoop = 0;
             facetalkAllowBlink = 1;
-            if ((isThought) && (speakingChar->flags & CHF_NOBLINKANDTHINK))
+            if ((is_thought) && (speakingChar->flags & CHF_NOBLINKANDTHINK))
                 facetalkAllowBlink = 0;
             facetalkchar = &game.chars[aschar];
             if (facetalkchar->blinktimer < 0)
@@ -3048,7 +3049,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
             oldview = speakingChar->view;
             oldloop = speakingChar->loop;
 
-            speakingChar->set_animating(!isThought, // only repeat if speech, not thought
+            speakingChar->set_animating(!is_thought, // only repeat if speech, not thought
                 true, // always forwards
                 Character_GetSpeechAnimationDelay(speakingChar));
 
@@ -3080,32 +3081,34 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
                 if ((relx < ui_view.GetWidth() / 4) || (relx > ui_view.GetWidth() - (ui_view.GetWidth() / 4)))
                     bwidth -= ui_view.GetWidth() / 5;
             }
-            if (!isThought)  // set up the lip sync if not thinking
+            if (!is_thought)  // set up the lip sync if not thinking
                 char_speaking_anim = aschar;
         }
     }
-    else {
+    else
+    {
+        // If the character is in another room, then center the speech on screen
         allow_shrink = kDisplayTextShrink_Left;
     }
 
     // If initial argument was NOT requiring a autoposition,
     // but further calculation set it to be centered, then make it so here
-    // (note: this assumes that a valid width is also passed)
-    if ((xx >= 0) && (tdxp < 0))
+    // (NOTE: this assumes that a valid width is also passed)
+    if ((xx >= 0) && align_hcenter)
         tdxp -= widd / 2;
 
     // if they used DisplaySpeechAt, then use the supplied width
-    if ((widd > 0) && (isThought == 0))
+    if ((widd > 0) && (!is_thought))
         allow_shrink = kDisplayTextShrink_None;
 
-    if (isThought)
+    if (is_thought)
         char_thinking = aschar;
 
     set_our_eip(155);
     display_main(tdxp, tdyp, bwidth, texx, nullptr, kDisplayText_Speech, 0 /* no overid */,
-        DisplayTextLooks(disp_style, isThought, allow_shrink), FONT_SPEECH, text_color, -1 /* don't autoplace */);
+        DisplayTextLooks(disp_style, disp_pos, allow_shrink, is_thought), FONT_SPEECH, text_color, -1 /* don't autoplace */);
     set_our_eip(156);
-    if ((play.in_conversation > 0) && (game.options[OPT_SPEECHTYPE] == 3))
+    if ((play.in_conversation > 0) && (game.options[OPT_SPEECHTYPE] == kSpeechStyle_QFG4))
         closeupface = nullptr;
     if (closeupface!=nullptr)
         remove_screen_overlay(ovr_type);
@@ -3142,8 +3145,9 @@ int get_character_currently_talking() {
     return -1;
 }
 
-void DisplaySpeech(const char*texx, int aschar) {
-    _displayspeech (texx, aschar, -1, -1, -1, 0);
+void DisplaySpeech(const char *texx, int aschar)
+{
+    display_speech(texx, aschar, -1, -1, -1, true /*auto-pos*/, false /* not thought */);
 }
 
 // Calculate which frame of the loop to use for this character of

@@ -568,7 +568,6 @@
     <ClCompile Include="..\..\Engine\debug\logfile.cpp" />
     <ClCompile Include="..\..\Engine\debug\memory_inspect.cpp" />
     <ClCompile Include="..\..\Engine\device\mousew32.cpp" />
-    <ClCompile Include="..\..\Engine\font\fonts_engine.cpp" />
     <ClCompile Include="..\..\Engine\game\game_init.cpp" />
     <ClCompile Include="..\..\Engine\game\savegame.cpp" />
     <ClCompile Include="..\..\Engine\game\savegame_components.cpp" />

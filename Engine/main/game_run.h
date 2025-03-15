@@ -24,7 +24,6 @@ struct TouchInput;
 void GameLoopUntilValueIsZero(const char *value);
 void GameLoopUntilValueIsZero(const short *value);
 void GameLoopUntilValueIsZero(const int *value);
-void GameLoopUntilValueIsZeroOrLess(const short *move);
 void GameLoopUntilValueIsNegative(const short *value);
 void GameLoopUntilValueIsNegative(const int *value);
 void GameLoopUntilNotMoving(const short *move);
@@ -46,6 +45,8 @@ void UpdateCursorAndDrawables();
 // Useful after a major game state change, such as loading new room, in case we expect
 // that a render may occur before a normal game update is performed.
 void SyncDrawablesState();
+// Checks if currently in waiting state (blocking action, or Wait called from script).
+bool IsInWaitMode();
 // Shuts down game's waiting state, if one is running right now.
 void ShutGameWaitState();
 // Gets current logical game FPS, this is normally a fixed number set in script;

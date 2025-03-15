@@ -894,20 +894,21 @@ void move_object(int objj, const std::vector<Point> *path, int tox, int toy, int
     bool path_result = false;
     if (path)
     {
-        path_result = Pathfinding::CalculateMoveList(mls[mslot], *path, speed, speed, run_params);
+        path_result = Pathfinding::CalculateMoveList(mls[mslot], *path, speed, speed,
+            ignwal ? kMoveStage_Direct : 0, run_params);
     }
     else
     {
         MaskRouteFinder *pathfind = get_room_pathfinder();
         pathfind->SetWalkableArea(prepare_walkable_areas(-1), thisroom.MaskResolution);
-        path_result = Pathfinding::FindRoute(mls[mslot], pathfind, obj.x, obj.y, tox, toy, speed, speed, false, ignwal, run_params);
+        path_result = Pathfinding::FindRoute(mls[mslot], pathfind, obj.x, obj.y, tox, toy,
+            speed, speed, false, ignwal, run_params);
     }
     
     // If successful, then start moving
     if (path_result)
     {
         objs[objj].moving = mslot;
-        mls[mslot].move_direct = ignwal;
     }
 }
 
@@ -1000,8 +1001,12 @@ void update_object_scale(int &res_zoom, int &res_width, int &res_height,
         }
     }
 
+    // safety fixes
+    if ((sprnum < 0) || (static_cast<uint32_t>(sprnum) >= game.SpriteInfos.size())
+            || !game.SpriteInfos[sprnum].IsValid())
+        sprnum = 0;
     if (zoom == 0)
-        zoom = 100; // safety fix
+        zoom = 100;
 
     int sprwidth = game.SpriteInfos[sprnum].Width;
     int sprheight = game.SpriteInfos[sprnum].Height;

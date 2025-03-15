@@ -193,14 +193,10 @@ bool engine_run_setup(const ConfigTree &cfg, const ConfigTree &def_cfg)
             if (res != kSetup_RunGame)
                 return false;
 
-            // TODO: investigate if the full program restart may (should) be avoided
-
-            // Just re-reading the config file seems to cause a caching
-            // problem on Win9x, so let's restart the process.
-            sys_main_shutdown();
-            allegro_exit();
+            // Start the game in the new process, and close the current one afterwards
             String args = String::FromFormat("\"%s\"", appPath.GetCStr());
-            _spawnl(_P_OVERLAY, appPath.GetCStr(), args.GetCStr(), NULL);
+            _spawnl(_P_NOWAIT, appPath.GetCStr(), args.GetCStr(), NULL);
+            return false;
     }
 #else
     (void)cfg;

@@ -646,6 +646,17 @@ void dispose_draw_method()
     destroy_blank_image();
 }
 
+static void alloc_fixed_drawindexes()
+{
+    size_t draw_index = 1u; // DrawIndex 0 is reserved for walk-behinds
+    for (auto &actsp : actsps)
+        actsp.DrawIndex = draw_index++;
+    for (auto &guidraw : guibg)
+        guidraw.DrawIndex = draw_index++;
+    drawstate.FixedDrawIndexBase = draw_index;
+    drawstate.NextDrawIndex = draw_index;
+}
+
 void init_game_drawdata()
 {
     // character and object caches
@@ -653,17 +664,11 @@ void init_game_drawdata()
     for (size_t i = 0; i < (size_t)MAX_ROOM_OBJECTS; ++i)
         objcache[i] = ObjectCache();
 
-    size_t draw_index = 1u; // DrawIndex 0 is reserved for walk-behinds
     size_t actsps_num = game.numcharacters + MAX_ROOM_OBJECTS;
     actsps.resize(actsps_num);
-    for (auto &actsp : actsps)
-        actsp.DrawIndex = draw_index++;
     
     guihelpbg.resize(game.numgui);
     guibg.resize(game.numgui);
-    for (auto &guidraw : guibg)
-        guidraw.DrawIndex = draw_index++;
-
     gui_render_tex.resize(game.numgui);
     size_t guio_num = 0;
     // Prepare GUI cache lists and build the quick reference for controls cache
@@ -674,9 +679,7 @@ void init_game_drawdata()
         guio_num += gui.GetControlCount();
     }
     guiobjbg.resize(guio_num);
-
-    drawstate.FixedDrawIndexBase = draw_index;
-    drawstate.NextDrawIndex = draw_index;
+    alloc_fixed_drawindexes();
 }
 
 extern void dispose_engine_overlay();
@@ -829,6 +832,9 @@ void init_room_drawdata()
 {
     if (displayed_room < 0)
         return; // not loaded yet
+
+    // Must realloc, because the ObjTextures are cleared on room change
+    alloc_fixed_drawindexes();
 
     if (drawstate.WalkBehindMethod == DrawAsSeparateSprite)
     {
@@ -1959,16 +1965,15 @@ void prepare_and_add_object_gfx(
 bool construct_object_gfx(int objid, bool force_software)
 {
     const RoomObject &obj = objs[objid];
-    if (!spriteset.DoesSpriteExist(obj.num))
-        quitprintf("There was an error drawing object %d. Its current sprite, %d, is invalid.", objid, obj.num);
+    const int sprite_id = spriteset.DoesSpriteExist(obj.num) ? obj.num : 0;
 
-    ObjectCache objsrc(obj.num, obj.tint_r, obj.tint_g, obj.tint_b,
+    ObjectCache objsrc(sprite_id, obj.tint_r, obj.tint_g, obj.tint_b,
         obj.tint_level, obj.tint_light, 0 /* skip */, obj.zoom, obj.rotation,
         kFlip_None /* skip */, obj.x, obj.y);
 
     return construct_object_gfx(
         (obj.view != UINT16_MAX) ? &views[obj.view].loops[obj.loop].frames[obj.frame] : nullptr,
-        obj.num,
+        sprite_id,
         Size(obj.last_width, obj.last_height),
         obj.flags & OBJF_TINTLIGHTMASK,
         objsrc,
@@ -2068,9 +2073,7 @@ bool construct_char_gfx(int charid, bool force_software)
     const CharacterInfo &chin = game.chars[charid];
     const CharacterExtras &chex = charextra[charid];
     const ViewFrame *vf = &views[chin.view].loops[chin.loop].frames[chin.frame];
-    const int pic = vf->pic;
-    if (!spriteset.DoesSpriteExist(pic))
-        quitprintf("There was an error drawing character %d. Its current frame's sprite, %d, is invalid.", charid, pic);
+    const int pic = spriteset.DoesSpriteExist(vf->pic) ? vf->pic : 0;
 
     ObjectCache chsrc(pic, chex.tint_r, chex.tint_g, chex.tint_b,
         chex.tint_level, chex.tint_light, 0 /* skip */, chex.zoom, chex.rotation,

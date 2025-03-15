@@ -12,6 +12,8 @@ namespace AGS.Types
         [Description("Low (320x240 and below)")]
         LowRes = 1,
         [Description("High (above 320x240)")]
-        HighRes = 2
+        HighRes = 2,
+        [Description("Invalid high (above 320x240, but must downscale)")]
+        OverHighRes = 3
     }
 }

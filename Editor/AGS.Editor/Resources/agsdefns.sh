@@ -1981,6 +1981,8 @@ builtin managed struct Dialog {
   import readonly attribute String ScriptName;
 #endif // SCRIPT_API_v361
 #ifdef SCRIPT_API_v362
+  /// Stop the currently running dialog.
+  import static void Stop(); // $AUTOCOMPLETESTATICONLY$
   /// Gets the currently running dialog, returns null if no dialog is run
   import static readonly attribute Dialog* CurrentDialog; // $AUTOCOMPLETESTATICONLY$
   /// Gets the currently executed dialog option, or -1 if none is
@@ -2771,7 +2773,7 @@ builtin struct Game {
   /// Gets the code which describes how was the last blocking state skipped by a user (or autotimer).
   import static readonly attribute int BlockingWaitSkipped;
   /// Gets name of the currently active voice-over pack.
-  readonly import static attribute String SpeechVoxFilename;
+  import static readonly attribute String SpeechVoxFilename;
 #endif // SCRIPT_API_v360
 #ifdef SCRIPT_API_v361
   /// Resets all of the "DoOnceOnly" token states
@@ -2788,6 +2790,8 @@ builtin struct Game {
   import static int[]  GetSaveSlots(int min_slot, int max_slot, SaveGameSortStyle saveSortStyle = eSaveGameSort_None, SortDirection sortDirection = eSortNoDirection);
   /// Prescans save slots from "min_slot" to "max_slot" and fills the compatible ones into the provided dynamic array.
   import static void   ScanSaveSlots(int valid_slots[], int min_slot, int max_slot, SaveGameSortStyle saveSortStyle = eSaveGameSort_None, SortDirection sortDirection = eSortNoDirection, int user_param = 0);
+  /// Gets whether the game is currently in a blocking state, that is during a blocking action or a Wait() call.
+  import static readonly attribute bool InBlockingWait;
 #endif // SCRIPT_API_v362
 #ifdef SCRIPT_API_v400
   /// Gets the AGS Colour Number for the specified RGBA colour.

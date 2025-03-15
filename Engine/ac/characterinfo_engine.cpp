@@ -185,8 +185,10 @@ bool UpdateCharacterTurning(CharacterInfo *chi, CharacterExtras *chex)
 
 void UpdateCharacterMoving(CharacterInfo *chi, CharacterExtras *chex, int &doing_nothing)
 {
-	if (chi->is_moving() && (chi->room == displayed_room))
+    if (chi->is_moving() && (chi->room == displayed_room))
     {
+      const bool was_move_direct = mls[chi->get_movelist_id()].IsStageDirect();
+
       if (chi->walkwait > 0)
       {
           chi->walkwait--;
@@ -242,7 +244,7 @@ void UpdateCharacterMoving(CharacterInfo *chi, CharacterExtras *chex, int &doing
         doing_nothing=1;
         chi->walkwait=0;
         const bool was_walk_anim = (chi->flags & CHF_MOVENOTWALK) == 0;
-        Character_StopMoving(chi);
+        Character_StopMovingEx(chi, !was_move_direct);
         // CHECKME: there's possibly a flaw in game logic design here, as StopMoving also resets the frame,
         // except it does not reset animwait, nor calls CheckViewFrame()
         if (was_walk_anim) {
@@ -290,17 +292,20 @@ bool UpdateCharacterAnimating(CharacterInfo *chi, CharacterExtras *chex, int &do
         doing_nothing = 1;
 
       const int view = chi->view;
+      const bool is_char_speaking = (char_speaking_anim == chi->index_id);
+
       if (chi->wait > 0) {
           chi->wait--;
       }
-      else if (has_voice_lipsync()) {
+      else if (is_char_speaking && (game.options[OPT_SPEECHTYPE] == kSpeechStyle_LucasArts)
+               && has_voice_lipsync()) {
           const int new_frame = update_voice_lipsync(chi->frame);
           if (chi->frame != new_frame) {
               chi->frame = new_frame;
               chex->CheckViewFrame(chi);
           }
       }
-      else if ((char_speaking_anim == chi->index_id) && (game.options[OPT_LIPSYNCTEXT] != 0)) {
+      else if (is_char_speaking && (game.options[OPT_LIPSYNCTEXT] != 0)) {
         // currently talking with lip-sync speech
         int fraa = chi->frame;
         chi->wait = update_lip_sync(view, chi->loop, &fraa) - 1;

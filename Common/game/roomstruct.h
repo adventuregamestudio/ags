@@ -217,15 +217,22 @@ struct WalkBehind
     WalkBehind();
 };
 
-
 // Room's legacy resolution type
+// The meaning of this value is bit complicated. In a usual case, it seems,
+// it should be either 1 or 2, meaning low-res or high-res, in the same
+// sense as the legacy game resolution may be low-res or high-res type.
+// If game's resolution type is different, the room's background will have
+// to be adjusted for it by scaling up or down correspondingly.
+// But rare games could have it higher than 2, which would mean "above
+// high res", in which case the room bg would need to be downscaled
+// even though the game is already high-res.
 enum RoomResolutionType
 {
-    kRoomRealRes = 0, // room should always be treated as-is
-    kRoomLoRes = 1, // created for low-resolution game
-    kRoomHiRes = 2 // created for high-resolution game
+    kRoomResolution_Real        = 0, // room should always be treated as-is
+    kRoomResolution_Low         = 1, // created for low-resolution game
+    kRoomResolution_High        = 2, // created for high-resolution game
+    kRoomResolution_OverHigh    = 3, // created for high-res game, but bigger (must downscale)
 };
-
 
 //
 // Description of a single room.
@@ -235,6 +242,9 @@ enum RoomResolutionType
 class RoomStruct
 {
 public:
+    // Mask resolution auto-assigned for high-res rooms in very old versions
+    static const int LegacyMaskHiresFactor = 2;
+
     RoomStruct();
     ~RoomStruct();
 

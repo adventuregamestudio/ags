@@ -258,6 +258,11 @@ HSaveError OpenSavegameBase(const String &filename, SavegameSource *src, Savegam
             return new SavegameError(kSvgErr_SignatureFailed);
     }
 
+    if (sig_ver < kSvgVersion_Components)
+    {
+        return new SavegameError(kSvgErr_FormatVersionNotSupported, String::FromFormat("Engine no longer supports pre-3.5.0 saves."));
+    }
+
     SavegameVersion svg_ver;
     SavegameDescription temp_desc;
     HSaveError err = ReadDescription(in.get(), svg_ver, temp_desc, desc ? elems : kSvgDesc_None);
@@ -885,7 +890,7 @@ void ReadPluginSaveData(Stream *in, PluginSvgVersion svg_ver, soff_t max_size)
     else
     {
         String pl_name;
-        for (int pl_index = 0; pl_query_next_plugin_for_event(kPluginEvt_RestoreGame, pl_index, pl_name); ++pl_index)
+        for (uint32_t pl_index = 0; pl_query_next_plugin_for_event(kPluginEvt_RestoreGame, pl_index, pl_name); ++pl_index)
         {
             auto guard_stream = std::make_unique<Stream>(
                 std::make_unique<StreamSection>(in->GetStreamBase(), in->GetPosition(), end_pos));
@@ -901,9 +906,9 @@ void WritePluginSaveData(Stream *out)
     soff_t pluginnum_pos = out->GetPosition();
     out->WriteInt32(0); // number of plugins which wrote data
 
-    int num_plugins_wrote = 0;
+    uint32_t num_plugins_wrote = 0;
     String pl_name;
-    for (int pl_index = 0; pl_query_next_plugin_for_event(kPluginEvt_SaveGame, pl_index, pl_name); ++pl_index)
+    for (uint32_t pl_index = 0; pl_query_next_plugin_for_event(kPluginEvt_SaveGame, pl_index, pl_name); ++pl_index)
     {
         // NOTE: we don't care if they really write anything,
         // but count them so long as they subscribed to AGSE_SAVEGAME

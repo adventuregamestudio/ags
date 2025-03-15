@@ -181,8 +181,8 @@ bool play_voice_speech(int charid, int sndid)
 
     // change Sierra w/bgrnd  to Sierra without background when voice
     // is available (for Tierra)
-    if ((game.options[OPT_SPEECHTYPE] == 2) && (play.no_textbg_when_voice > 0)) {
-        game.options[OPT_SPEECHTYPE] = 1;
+    if ((game.options[OPT_SPEECHTYPE] == kSpeechStyle_SierraBackground) && (play.no_textbg_when_voice > 0)) {
+        game.options[OPT_SPEECHTYPE] = kSpeechStyle_SierraTransparent;
         play.no_textbg_when_voice = 2;
     }
     return true;
@@ -214,7 +214,7 @@ void stop_voice_speech()
     if (play.no_textbg_when_voice == 2)
     {
         play.no_textbg_when_voice = 1;
-        game.options[OPT_SPEECHTYPE] = 2;
+        game.options[OPT_SPEECHTYPE] = kSpeechStyle_SierraBackground;
     }
     play.speech_has_voice = false;
     play.speech_voice_blocking = false;

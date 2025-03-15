@@ -313,7 +313,11 @@ Editor:
    accuracy mistakes, resulting in slightly different values than the engine would use.
  - Fixed Editor refusing to open a project if one or more of the sections are missing in the file.
  - Fixed an unhandled exception occuring when rebuilding rooms if any script's header is missing.
+ - Fixed a check for an imported room mask size did not correctly account for the room's
+   mask resolution setting (it worked, but mishandled some edge cases).
  - Fixed a "unterminated string" error in Dialogs was not pointing to the actual error location.
+ - Fixed translation compiler mistreating escaped opening bracket in a text line ("\[");
+   it must keep it as-is, because "[" char is a old-style line break in AGS.
  - Fixed double warning message when trying to close the Editor while a game test is running.
  - Fixed Editor may display a "save project" confirmation when run with "/compile" command-line
    parameter.
@@ -342,6 +346,7 @@ Script API:
  - Added DateTime.CreateFromDate() and CreateFromRawTime().
  - Added static Dialog.CurrentDialog property and non-static ExecutedOption and AreOptionsDisplayed
    properties.
+ - Added static Dialog.Stop() function, a OO-style alias to StopDialog().
  - Added RenderLayer enum, and optional "layers" parameter to DynamicSprite.CreateFromScreenShot(),
    that tells which of the game's render layers to capture when making a screenshot.
  - Added File.Copy() and File.Rename().
@@ -351,6 +356,8 @@ Script API:
  - Added File.GetFileTime() that returns file's modification time.
  - Added File.ReadFloat(), WriteFloat(), ReadRawFloat(), WriteRawFloat(), ReadRawBytes() and
    WriteRawBytes().
+ - Added Game.InBlockingWait property, that tells whether game is waiting for any blocking action
+   or a Wait* call to complete.
  - Added SaveGameSortStyle enum and Game.GetSaveSlots() function that returns a dynamic array
    of save slot indexes, optionally sorted in certain way.
  - Added Game.GetSaveSlotTime() that returns a time this save slot was last written.
@@ -375,6 +382,8 @@ Script API:
  - Added optional save slot range (min/max) parameters to RestoreGameDialog() and SaveGameDialog().
  - Added optional "sprite" parameter to SaveGameSlot(), that lets to pass a number of an arbitrary
    sprite to write into this save instead of a standard "screenshot".
+ - Added optional "width", "height" and "layer" parameters to SaveScreenShot().
+   SaveScreenShot() now accepts paths containing standard file tokens ($SAVEGAMEDIR$ etc).
  - Added SendEvent() function that allows to trigger "on_event" function calls in script.
    Special event value eEventUserEvent may be used as a base index for user-defined events.
  - Added System.DisplayFPS property that toggles FPS counter (a replacement to Debug(4, 1)).
@@ -425,6 +434,8 @@ Engine:
    dialog options are displayed. That will schedule dialog's stop to be performed after current
    script finishes.
  - Removed arbitrary limit of 2k bytes for the result of String.Format().
+ - Engine will no longer quit with error if any object is assigned a non-existing sprite, but
+   continue, using a sprite 0 as a placeholder instead.
  - Ensure that the objects with identical z-order (baseline) always keep same relative sort order
    when being drawn (note: engine does not guarantee a predefined order, only a persistent one).
  - Implemented video buffering on a separate thread. Allow to drop late video frames.
@@ -442,16 +453,31 @@ Engine:
  - Fixed Software renderer being unable to restore a windowed mode on certain monitors,
    when switching from a real fullscreen mode.
  - Fixed character may get stuck inside a non-walkable area after Character.WalkStraight().
+ - Fixed character may rarely finish walking on a non-walkable pixel.
+ - Fixed calling Character.StopMoving() after AddWaypoint() succeeded a regular Walk() call with
+   eWalkableAreas parameter will wrongfully teleport the character to the nearest walkable area,
+   even though AddWaypoint is supposed to ignore walkable areas.
+ - Fixed a number of region or hotspot's "Stand on hotspot" events may unexpectedly run after a
+   blocking character's walk, even if character is no longer standing on that region/hotspot.
  - Fixed Lucas-Arts style character speech displaying offscreen if character is standing below the
    bottom of a room viewport.
  - Fixed calling Dialog.Start() inside a dialog script would create a nested "dialog state",
    which could eventually lead to internal mistakes and program stack overflow. Dialog.Start()
    will now schedule a proper dialog topic switch, equivalent to "goto-dialog" command.
+ - Fixed a AudioChannel did not report a correct Position right after a AudioClip.PlayFrom() call.
+ - Fixed Button resizing to sprite 0 size if NormalGraphic is set to 0 (default button look).
+ - Fixed object's look not updated after it was assigned a dynamic sprite, redrawn, sprite deleted,
+   object redrawn without a sprite (used a placeholder), and then another dynamic sprite assigned
+   with coincidentally the same number.
+ - Fixed font outline index limited to 127 (although we theoretically support higher font numbers).
+ - Fixed font outline parameters not initialized correctly if engine is built by a system that
+   treats "char" as unsigned 8-bit type.
  - Fixed displaying room masks with Debug command in legacy "upscale" mode.
  - Fixed a potential lockup that may occur when the engine is run from the editor, and is told
    to stop at a breakpoint.
  - Fixed 48khz OGG clips may have extra silence added to them in the end, causing "hickups" when
    the sound playback is looped.
+ - Fixed SDL log level was defaulting to "verbose" if not read from config (should be "info").
 
 Engine Plugin API:
  - Updated few callback and function prototypes in order to make them 64-bit compatible
@@ -466,6 +492,7 @@ Compatibility:
  - Fixed loading of games made in AGS 2.55-56 which include plugins.
  - Fixed loading of rare games made with AGS 2.5 or higher, which contained deprecated
    "room animations" (animations themselves are currently not functional).
+ - Fixed old rooms with rare x3 resolution not displaying correctly.
  - Fixed old pathfinder imprecision affecting few pre-3.0 games.
  - Allow pre-2.7 games to have RestartGame() command be followed and overridden by a NewRoom().
    This is necessary for some older games to be able to proceed.
@@ -481,6 +508,8 @@ WinSetup:
  - Added "Accessibility" settings for skipping speech and text messages, for text reading speed.
  - In "disabled" section of config "access_skipstyle" setting lets disable all options in setup
    related to the speech and text skipping.
+ - Fixed "Save and Run" command sometimes caused 2 engine processes, one of which terminated later.
+   This did not prevent a game from running, but could result in temporary CPU and memory overload.
 
 ---------------------------------------------------------------------------------------------------
 

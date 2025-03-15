@@ -75,7 +75,8 @@ void Overlay_SetText(ScriptOverlay *scover, int width, int fontid, int text_colo
 void Overlay_SetText(ScreenOverlay &over, int x, int y, int width, int fontid, int text_color, const char *text)
 {
     // TODO: find a nice way to refactor and share these code pieces
-    // from CreateTextOverlay
+    // with Overlay_CreateTextCore
+    DisplayTextPosition text_pos = over.IsAutoPosition() ? kDisplayTextPos_Overchar : kDisplayTextPos_Normal;
     // allow DisplaySpeechBackground to be shrunk
     DisplayTextShrink allow_shrink = over.IsAutoPosition() ? kDisplayTextShrink_Left : kDisplayTextShrink_None;
 
@@ -90,7 +91,7 @@ void Overlay_SetText(ScreenOverlay &over, int x, int y, int width, int fontid, i
     // Recreate overlay image
     int dummy_x = x, dummy_y = y, adj_x = x, adj_y = y;
     Bitmap *image = create_textual_image(draw_text,
-        DisplayTextLooks(kDisplayTextStyle_TextWindow, false /* not thought */, allow_shrink),
+        DisplayTextLooks(kDisplayTextStyle_TextWindow, text_pos, allow_shrink),
         text_color, dummy_x, dummy_y, adj_x, adj_y, width, fontid, nullptr);
 
     // Update overlay properties
@@ -240,13 +241,15 @@ ScreenOverlay *Overlay_CreateGraphicCore(bool room_layer, int x, int y, int slot
 ScreenOverlay *Overlay_CreateTextCore(bool room_layer, int x, int y, int width, int font, int text_color,
     const char *text, int over_type, DisplayTextStyle style, DisplayTextShrink allow_shrink, int speech_for_char)
 {
+    // NOTE: this was not documented, but apparently passing x < 0 or y < 0
+    // to Overlay.CreateTextual actually made it centered on screen
+    DisplayTextPosition text_pos = get_textpos_from_scriptcoords(x, y, false);
     if (width < 8) width = play.GetUIViewport().GetWidth() / 2;
-    if (x < 0) x = play.GetUIViewport().GetWidth() / 2 - width / 2;
     if (text_color == 0) text_color = GUI::GetStandardColor(16);
     // Skip a voice-over token, if present
     const char *draw_text = skip_voiceover_token(text);
     return display_main(x, y, width, draw_text, nullptr, kDisplayText_NormalOverlay, over_type,
-        DisplayTextLooks(style, false /* not thought */, allow_shrink),
+        DisplayTextLooks(style, text_pos, allow_shrink),
         font, text_color, speech_for_char, room_layer);
 }
 

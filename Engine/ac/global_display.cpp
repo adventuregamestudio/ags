@@ -130,11 +130,8 @@ void DisplayAtY(int ypos, const char *texx) {
     DisplayAtYImpl(ypos, texx, nullptr, game.options[OPT_ALWAYSSPCH] != 0);
 }
 
-// CLNUP investigate if I can just removed the following comments
-// **** THIS IS UNDOCUMENTED BECAUSE IT DOESN'T WORK PROPERLY
-// **** AT 640x400 AND DOESN'T USE THE RIGHT SPEECH STYLE
 void DisplaySpeechAt(int xx, int yy, int wii, int aschar, const char *spch) {
-    _displayspeech(get_translation(spch), aschar, xx, yy, wii, 0);
+    display_speech(get_translation(spch), aschar, xx, yy, wii, false /*not auto-pos*/, false /* not thought */);
 }
 
 // [DEPRECATED] left only for use in Display, replace/merge with modern function

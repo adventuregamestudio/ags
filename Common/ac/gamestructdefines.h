@@ -115,6 +115,19 @@ enum ScreenTransitionStyle
     kNumScrTransitions
 };
 
+// Style of the character speech:
+// defines how it's displayed and animated
+enum SpeechStyle
+{
+    kSpeechStyle_LucasArts = 0,
+    kSpeechStyle_SierraTransparent = 1,
+    kSpeechStyle_SierraBackground = 2,
+    kSpeechStyle_QFG4 = 4, // fullscreen aka Quest-for-Glory-4 style
+
+    kSpeechStyle_First = kSpeechStyle_LucasArts,
+    kSpeechStyle_Last = kSpeechStyle_QFG4,
+};
+
 // Contemporary font flags
 #define FFLG_SIZEMULTIPLIER        0x01  // size data means multiplier
 #define FFLG_DEFLINESPACING        0x02  // linespacing derived from the font height
@@ -219,6 +232,7 @@ struct SpriteInfo
     SpriteInfo(int w, int h, int color_depth, uint32_t flags)
         : Width(w), Height(h), ColorDepth(color_depth), Flags(flags) {}
 
+    inline bool IsValid() const { return Width > 0 && Height > 0; }
     inline Size GetResolution() const { return Size(Width, Height); }
     // Gets if sprite is created at runtime (by engine, or a script command)
     inline bool IsDynamicSprite() const { return (Flags & SPF_DYNAMICALLOC) != 0; }
@@ -246,7 +260,7 @@ struct FontInfo
     // Factor to multiply base font size by
     int           SizeMultiplier;
     // Outlining font index, or auto-outline flag
-    char          Outline;
+    int           Outline;
     // Custom vertical render offset, used mainly for fixing broken fonts
     int           YOffset;
     // Custom line spacing between two lines of text (0 = use font height)

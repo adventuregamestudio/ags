@@ -170,7 +170,7 @@ void SetNewSprite(int slot, AGSBitmap *sprit, int flags) {
 }
 
 void deleteSprite (int sprslot) {
-  spriteset.DisposeSprite(sprslot);
+  spriteset.DeleteSprite(sprslot);
   spritesModified = true;
 }
 
@@ -1350,7 +1350,7 @@ int RemoveLeftoverSprites(SpriteFolder ^folder)
         if (!spriteset.DoesSpriteExist(i)) continue;
         if (folder->FindSpriteByID(i, true) == nullptr)
         {
-            spriteset.DisposeSprite(i);
+            spriteset.DeleteSprite(i);
             removed++;
         }
     }
@@ -2478,7 +2478,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 	game->Settings->SaveScreenshots = (thisgame.options[OPT_SAVESCREENSHOT] != 0);
 	game->Settings->SkipSpeech = (SkipSpeechStyle)thisgame.options[OPT_NOSKIPTEXT];
 	game->Settings->SpeechPortraitSide = (SpeechPortraitSide)thisgame.options[OPT_PORTRAITSIDE];
-	game->Settings->SpeechStyle = (SpeechStyle)thisgame.options[OPT_SPEECHTYPE];
+	game->Settings->SpeechStyle = (AGS::Types::SpeechStyle)thisgame.options[OPT_SPEECHTYPE];
 	game->Settings->SplitResources = thisgame.options[OPT_SPLITRESOURCES];
 	game->Settings->TextWindowGUI = thisgame.options[OPT_TWCUSTOM];
 	game->Settings->ThoughtGUI = thisgame.options[OPT_THOUGHTGUI];

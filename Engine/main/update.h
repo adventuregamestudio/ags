@@ -29,7 +29,7 @@ int do_movelist_move(short &mslot, int &pos_x, int &pos_y);
 // Update various things on the game frame (historical code mess...)
 void update_stuff();
 
-// Tells if a voice lipsync is active
+// Tells if a voice lipsyncing is currently active (enabled and speech playing)
 bool has_voice_lipsync();
 // Updates speech animation frame in accordance to a voice-based lipsync,
 // returns if there was any active voice-based lipsync running, or not

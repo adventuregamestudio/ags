@@ -116,7 +116,8 @@ void clear_gui_screen()
 
 void refresh_gui_screen()
 {
-    gfxDriver->UpdateDDBFromBitmap(dialogDDB, windowBuffer);
+    if (dialogDDB)
+        gfxDriver->UpdateDDBFromBitmap(dialogDDB, windowBuffer);
     UpdateCursorAndDrawables();
     render_graphics(dialogDDB, windowPosX, windowPosY);
 }

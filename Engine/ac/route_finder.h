@@ -99,9 +99,9 @@ namespace Pathfinding
     bool FindRoute(MoveList &mls, IRouteFinder *finder, int srcx, int srcy, int dstx, int dsty,
         int move_speed_x, int move_speed_y, bool exact_dest, bool ignore_walls, const RunPathParams &run_params);
     // Calculate the MoveList from the given navigation path and move speeds.
-    bool CalculateMoveList(MoveList &mls, const std::vector<Point> path, int move_speed_x, int move_speed_y, const RunPathParams &run_params);
+    bool CalculateMoveList(MoveList &mls, const std::vector<Point> path, int move_speed_x, int move_speed_y, uint8_t stage_flag, const RunPathParams &run_params);
     // Append a waypoint to the move list, skip pathfinding
-    bool AddWaypointDirect(MoveList &mls, int x, int y, int move_speed_x, int move_speed_y);
+    bool AddWaypointDirect(MoveList &mls, int x, int y, int move_speed_x, int move_speed_y, uint8_t stage_flag);
     // Recalculates MoveList's step speeds
     void RecalculateMoveSpeeds(MoveList &mls, int old_speed_x, int old_speed_y, int new_speed_x, int new_speed_y);
     // Searchs for the nearest walkable point on a mask, starting from the given location,

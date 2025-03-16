@@ -27,6 +27,24 @@ void CharacterExtras::UpdateGraphicSpace(const CharacterInfo *chin)
         spr_width, spr_height, width, height, rotation);
 }
 
+void CharacterExtras::SetTurning(bool on, bool ccw, int turn_steps)
+{
+    if (on && (turn_steps > 0))
+        flags = (flags & ~kCharf_TurningMask) | kCharf_Turning | (ccw ? kCharf_TurningCCW : 0);
+    else
+        flags = (flags & ~kCharf_TurningMask);
+    turns = turn_steps;
+}
+
+void CharacterExtras::DecrementTurning()
+{
+    turns--;
+    if (turns <= 0)
+    {
+        SetTurning(false, false, 0);
+    }
+}
+
 int CharacterExtras::GetEffectiveY(CharacterInfo *chi) const
 {
     return chi->y - (chi->z * zoom_offs) / 100;
@@ -119,13 +137,15 @@ void CharacterExtras::ReadFromSavegame(Stream *in, CharacterSvgVersion save_ver)
     {
         face_dir_ratio = in->ReadFloat32();
         movelist_handle = in->ReadInt32();
-        in->ReadInt32(); // reserve for 4 total int32
-        in->ReadInt32();
+        flags = in->ReadInt32();
+        turns = in->ReadInt32();
     }
     else
     {
         face_dir_ratio = 0.f;
         movelist_handle = 0;
+        flags = 0;
+        turns = 0;
     }
 }
 
@@ -174,6 +194,6 @@ void CharacterExtras::WriteToSavegame(Stream *out) const
     // -- kCharSvgVersion_400_03
     out->WriteFloat32(face_dir_ratio);
     out->WriteInt32(movelist_handle);
-    out->WriteInt32(0); // reserve for 4 total int32
-    out->WriteInt32(0);
+    out->WriteInt32(flags);
+    out->WriteInt32(turns);
 }

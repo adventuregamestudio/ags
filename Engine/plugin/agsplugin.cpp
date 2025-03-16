@@ -722,21 +722,21 @@ void IAGSEngine::SimulateMouseClick(int32 button) {
 }
 
 int IAGSEngine::GetMovementPathWaypointCount(int32 pathId) {
-    return get_movelist(pathId % TURNING_AROUND)->GetNumStages();
+    return get_movelist(pathId)->GetNumStages();
 }
 
 int IAGSEngine::GetMovementPathLastWaypoint(int32 pathId) {
-    return get_movelist(pathId % TURNING_AROUND)->GetStage();
+    return get_movelist(pathId)->GetStage();
 }
 
 void IAGSEngine::GetMovementPathWaypointLocation(int32 pathId, int32 waypoint, int32 *x, int32 *y) {
-    *x = get_movelist(pathId % TURNING_AROUND)->GetStagePos(waypoint).X;
-    *y = get_movelist(pathId % TURNING_AROUND)->GetStagePos(waypoint).Y;
+    *x = get_movelist(pathId)->GetStagePos(waypoint).X;
+    *y = get_movelist(pathId)->GetStagePos(waypoint).Y;
 }
 
 void IAGSEngine::GetMovementPathWaypointSpeed(int32 pathId, int32 waypoint, int32 *xSpeed, int32 *ySpeed) {
-    *xSpeed = get_movelist(pathId % TURNING_AROUND)->GetStageSpeed(waypoint).X;
-    *ySpeed = get_movelist(pathId % TURNING_AROUND)->GetStageSpeed(waypoint).Y;
+    *xSpeed = get_movelist(pathId)->GetStageSpeed(waypoint).X;
+    *ySpeed = get_movelist(pathId)->GetStageSpeed(waypoint).Y;
 }
 
 int IAGSEngine::IsRunningUnderDebugger()

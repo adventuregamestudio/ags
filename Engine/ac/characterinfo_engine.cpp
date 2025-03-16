@@ -138,7 +138,7 @@ void UpdateFollowingExactlyCharacter(CharacterInfo *chi)
 
 bool UpdateCharacterTurning(CharacterInfo *chi, CharacterExtras *chex)
 {
-    if (chi->walking >= TURNING_AROUND) {
+    if (chex->IsTurning()) {
       const int view = chi->view;
       // Currently rotating to correct direction
       if (chi->walkwait > 0) {
@@ -148,7 +148,7 @@ bool UpdateCharacterTurning(CharacterInfo *chi, CharacterExtras *chex)
         // Work out which direction is next
         int wantloop = find_looporder_index(chi->loop) + 1;
         // going anti-clockwise, take one before instead
-        if (chi->walking >= TURNING_BACKWARDS)
+        if (chex->IsTurningCounterClockwise())
           wantloop -= 2;
         while (1) {
           if (wantloop >= 8)
@@ -159,7 +159,7 @@ bool UpdateCharacterTurning(CharacterInfo *chi, CharacterExtras *chex)
           if ((turnlooporder[wantloop] >= views[view].numLoops) ||
               (views[view].loops[turnlooporder[wantloop]].numFrames < 1) ||
               ((turnlooporder[wantloop] >= 4) && ((chi->flags & CHF_NODIAGONAL)!=0))) {
-            if (chi->walking >= TURNING_BACKWARDS)
+            if (chex->IsTurningCounterClockwise())
               wantloop--;
             else
               wantloop++;
@@ -169,12 +169,10 @@ bool UpdateCharacterTurning(CharacterInfo *chi, CharacterExtras *chex)
           }
         }
         chi->loop = turnlooporder[wantloop];
-        chi->walking -= TURNING_AROUND;
+        chex->DecrementTurning();
         // if still turning, wait for next frame
-        if (chi->walking % TURNING_BACKWARDS >= TURNING_AROUND)
+        if (chex->turns > 0)
           chi->walkwait = chi->animspeed;
-        else
-          chi->walking = chi->walking % TURNING_BACKWARDS;
         chex->animwait = 0;
       }
 
@@ -214,7 +212,7 @@ void UpdateCharacterMoving(CharacterInfo *chi, CharacterExtras *chex, int &doing
         for (int ff = 0; ff < abs(numSteps); ff++) {
           if (doNextCharMoveStep(chi, chex))
             break;
-          if ((chi->walking == 0) || (chi->walking >= TURNING_AROUND))
+          if ((chi->walking == 0) || (chex->turns > 0))
             break;
         }
 

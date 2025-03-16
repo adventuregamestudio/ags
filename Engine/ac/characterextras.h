@@ -37,6 +37,13 @@ using namespace AGS; // FIXME later
 
 struct CharacterInfo;
 
+enum CharacterRuntimeFlags
+{
+    kCharf_Turning      = 0x00000001, // is turning
+    kCharf_TurningCCW   = 0x00000002, // turning counter-clockwise
+    kCharf_TurningMask  = (kCharf_Turning | kCharf_TurningCCW),
+};
+
 // The CharacterInfo struct size is fixed because it's exposed to script
 // and plugin API, therefore new stuff has to go here
 // TODO: now safe to merge with CharacterInfo into one class
@@ -69,12 +76,20 @@ struct CharacterExtras
     // Optional character face direction ratio, 0 = ignore
     float face_dir_ratio = 0.f;
     int   movelist_handle = 0; // handle to the script movelist
+    int   flags = 0; // runtime character flags (CharacterRuntimeFlags)
+    int   turns = 0; // turning counter
 
     // Following fields are deriatives of the above (calculated from these
     // and other factors), and hence are not serialized.
     //
     // zoom factor of sprite offsets, fixed at 100 in backwards compatible mode
     int   zoom_offs = 100;
+
+    bool IsTurning() const { return (flags & kCharf_Turning) != 0; }
+    bool IsTurningClockwise() const { return IsTurning() && (flags & kCharf_TurningCCW) == 0; }
+    bool IsTurningCounterClockwise() const { return IsTurning() && (flags & kCharf_TurningCCW) != 0; }
+    void SetTurning(bool on, bool ccw, int turn_steps);
+    void DecrementTurning();
 
     // Get visual Y position, which is calculated as Y - Z (scaled)
     int GetEffectiveY(CharacterInfo *chi) const; 

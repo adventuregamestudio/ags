@@ -2067,7 +2067,9 @@ int hasUpDownLoops(CharacterInfo *char1) {
     return 1;
 }
 
-void start_character_turning (CharacterInfo *chinf, int useloop, int no_diagonal) {
+void start_character_turning(CharacterInfo *chinf, int useloop, int no_diagonal)
+{
+    CharacterExtras &chex = charextra[chinf->index_id];
     // work out how far round they have to turn 
     int fromidx = find_looporder_index (chinf->loop);
     int toidx = find_looporder_index (useloop);
@@ -2078,18 +2080,16 @@ void start_character_turning (CharacterInfo *chinf, int useloop, int no_diagonal
         go_anticlock = 1;
     if ((toidx < fromidx) && ((fromidx - toidx) < 4))
         go_anticlock = 1;
-    // strip any current turning_around stages
-    chinf->walking = chinf->get_movelist_id();
-    if (go_anticlock)
-        chinf->walking += TURNING_BACKWARDS;
-    else
+    if (go_anticlock == 0)
         go_anticlock = -1;
 
     // Allow the diagonal frames just for turning
     if (no_diagonal == 2)
         no_diagonal = 0;
 
-    for (ii = fromidx; ii != toidx; ii -= go_anticlock) {
+    int turns = 0;
+    for (ii = fromidx; ii != toidx; ii -= go_anticlock)
+    {
         // Wrap the loop order into range [0-7]
         if (ii < 0)
             ii = 7;
@@ -2103,9 +2103,13 @@ void start_character_turning (CharacterInfo *chinf, int useloop, int no_diagonal
             continue; // no such loop
         if (views[chinf->view].loops[turnlooporder[ii]].numFrames < 1)
             continue; // no frames in such loop
-        chinf->walking += TURNING_AROUND;
+        turns++;
     }
 
+    if (turns > 0)
+    {
+        chex.SetTurning(true, go_anticlock > 0, turns);
+    }
 }
 
 void fix_player_sprite(CharacterInfo *chinf, const MoveList &cmls) {
@@ -2183,7 +2187,8 @@ int doNextCharMoveStep(CharacterInfo *chi, CharacterExtras *chex)
     }
 
     ntf = has_hit_another_character(chi->index_id);
-    if (ntf >= 0) {
+    if (ntf >= 0)
+    {
         chi->walkwait = 30;
         if (game.chars[ntf].walkspeed < 5)
             chi->walkwait += (5 - game.chars[ntf].walkspeed) * 5;
@@ -2198,12 +2203,14 @@ int doNextCharMoveStep(CharacterInfo *chi, CharacterExtras *chex)
             chex->animwait = chi->walkwait;
         }
 
-        if ((chi->walking < 1) || (chi->walking >= TURNING_AROUND)) ;
-        else if (mlist.GetStageProgress() > 0.f) {
+        if ((chi->walking < 1) || (chex->turns > 0)) { /* skip */ }
+        else if (mlist.GetStageProgress() > 0.f)
+        {
             mlist.Backward();
             chi->x = xwas;
             chi->y = ywas;
         }
+
         debug_script_log("%s: Bumped into %s, waiting for them to move",
             chi->scrname.GetCStr(), game.chars[ntf].scrname.GetCStr());
         return 1;
@@ -2213,7 +2220,7 @@ int doNextCharMoveStep(CharacterInfo *chi, CharacterExtras *chex)
 
 bool is_char_walking_ndirect(CharacterInfo *chi)
 {
-    return chi->is_moving_not_turning() &&
+    return chi->is_moving() &&
         (!get_movelist(chi->get_movelist_id())->IsStageDirect());
 }
 

@@ -592,13 +592,26 @@ HSaveError ReadCharacters(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pr
     if (!AssertGameContent(err, characters_read, game.numcharacters, "Characters", r_data.Result, r_data.DataCounts.Characters))
         return err;
 
+    const CharacterSvgVersion svg_ver = static_cast<CharacterSvgVersion>(cmp_ver);
     for (uint32_t i = 0; i < characters_read; ++i)
     {
         auto &chi = game.chars[i];
         auto &chex = charextra[i];
-        chi.ReadFromSavegame(in, static_cast<CharacterSvgVersion>(cmp_ver));
-        chex.ReadFromSavegame(in, static_cast<CharacterSvgVersion>(cmp_ver));
+        chi.ReadFromSavegame(in, svg_ver);
+        chex.ReadFromSavegame(in, svg_ver);
         Properties::ReadValues(play.charProps[i], in);
+
+        // Upgrade legacy turning mask
+        if (svg_ver < kCharSvgVersion_400_16)
+        {
+            int turns = (chi.walking % LEGACY_CHAR_TURNING_BACKWARDS) / LEGACY_CHAR_TURNING_AROUND;
+            bool turn_ccw = chi.walking % LEGACY_CHAR_TURNING_BACKWARDS;
+            if (turns > 0)
+            {
+                chex.SetTurning(true, turn_ccw, turns);
+            }
+            chi.walking = chi.walking % LEGACY_CHAR_TURNING_AROUND;
+        }
     }
     return err;
 }

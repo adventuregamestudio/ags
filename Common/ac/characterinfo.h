@@ -72,10 +72,13 @@ using namespace AGS; // FIXME later
 #define CHANIM_REPEAT       0x02
 #define CHANIM_BACKWARDS    0x04
 
-// These flags are merged with the CharacterInfo's MoveList index;
-// but this means that the number of MoveList users will be limited by 1000
-#define TURNING_AROUND      1000
-#define TURNING_BACKWARDS   10000
+// These deprecated values were **added** to CharacterInfo's MoveList index;
+// TURNING_AROUND was added times the character must turn,
+// TURNING_BACKWARDS was added if the character is turning counter-clockwise;
+// which meant that the number of MoveList users will be limited by 1000,
+// and the number of possible turns limited to 9.
+#define LEGACY_CHAR_TURNING_AROUND      1000
+#define LEGACY_CHAR_TURNING_BACKWARDS   10000
 
 
 // Converts character flags (CHF_*) to matching RoomObject flags (OBJF_*)
@@ -106,7 +109,7 @@ enum CharacterSvgVersion
     kCharSvgVersion_400_09  = 4000009, // 32-bit color properties
     kCharSvgVersion_400_13  = 4000013, // compat with kCharSvgVersion_36205
     kCharSvgVersion_400_14  = 4000014, // proper ARGB color properties
-    kCharSvgVersion_400_16  = 4000016, // motion path exposed to script
+    kCharSvgVersion_400_16  = 4000016, // motion path exposed to script, separate runtime flags, turns
 };
 
 
@@ -175,8 +178,7 @@ struct CharacterInfo
     }
 
     inline bool is_moving()          const { return walking > 0; }
-    inline bool is_moving_not_turning() const { return (walking > 0) && (walking < TURNING_AROUND); }
-    inline int  get_movelist_id()    const { return walking % TURNING_AROUND; }
+    inline int  get_movelist_id()    const { return walking; }
     inline bool has_explicit_light() const { return (flags & CHF_HASLIGHT) != 0; }
     inline bool has_explicit_tint()  const { return (flags & CHF_HASTINT) != 0; }
     inline bool is_animating()       const { return (animating & CHANIM_ON) != 0; }

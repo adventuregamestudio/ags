@@ -36,11 +36,12 @@ Editor:
    script compilers for your game (see "Scripting" section below for the new compiler's details).
  - Added Custom Properties for: Audio Clips, Dialogs, GUI, GUI Controls, Regions, Walkable Areas.
  - Added Enabled and Visible properties to Characters, Enabled property to Room Objects.
- - Added BlendMode property to Characters, GUI and Room Objects.
- - Added Flip property to View Frame, replacing a boolean Flipped property. The new property
+ - Added BlendMode property for Characters, GUI and Room Objects.
+ - Added Transparency property for GUIControls.
+ - Added Flip property for View Frame, replacing a boolean Flipped property. The new property
    supports all 3 flip variants: horizontal, vertical and both at once.
  - Added FaceDirectionRatio property to General Settings, Room and Walkable Areas.
- - Added readonly Length property to AudioClips, for the reference.
+ - Added readonly Length property for AudioClips, for the reference.
  - Added "Source FontFile" property to Fonts, this property lets assign a Font File to the Font.
  - Implemented "Watch Variables" panel which lets to watch values of the selected script variables
    while running the game. This feature is working only if game is built in Debug mode.
@@ -75,6 +76,8 @@ Scripting:
    current struct's member (variable, attribute or function).
  - Similarly you may omit struct's name when addressing a static member from within a
    struct's member function.
+ - Support for dynamic pointer cast: use syntax "pointer as Type" to cast the pointer
+   to either a parent or child type (upcast and downcast respectively).
  - Extender attributes; similar to extender functions, but these define a pair of
    get_ and set_ functions.
  - Multi-dimensional regular arrays. They may have any positive number of dimensions.
@@ -117,7 +120,8 @@ Script API:
  - All existing Color properties now assume full ARGB values (0xAARRGGBB) in 32-bit games.
    This means that you *must* specify alpha value when assigning a color number directly,
    otherwise the game will treat the color as fully transparent.
- - Added Joystick struct, meant to work with joystics and gamepads in script.
+ - Added Joystick struct, meant to handle joystics and gamepads in script.
+ - Added Touch and TouchPointer structs, meant to handle touch controls in script.
  - Added VideoPlayer struct, which provides means of playing non-blocking videos rendered onto
    a sprite that may be displayed on any game object.
  - Added WalkableArea and Walkbehind structs which let work with these region types in OO-style.
@@ -125,13 +129,16 @@ Script API:
    "space", and returns them as an array of Points.
  - Added MaskPathfinder struct, which lets to initialize a Pathfinder using a 8-bit sprite
    serving as a navigation mask.
+ - Added MotionPath struct, which lets to read existing game object's motion plan, or create your
+   own and use it as a reference when moving a custom object.
  - Added Custom Properties interface to types: AudioClip, Dialog, GUI, GUIControl, Region,
    WalkableArea. This includes functions: GetProperty(), GetTextProperty(), SetProperty() and
    SetTextProperty().
  - Added BlendMode enum.
+ - Added Character.BlendMode, GUI.BlendMode, GUIControl.BlendMode, Object.BlendMode,
+   Overlay.BlendMode.
  - Added Character.Enabled and Visible properties, added Object.Enabled property,
    Character.on is deprecated.
- - Added Character.BlendMode, GUI.BlendMode, Object.BlendMode, Overlay.BlendMode.
  - Added Character.UseRegionTint and Object.UseRegionTint, deprecated Character.IgnoreLighting.
  - Added Camera.Rotation, Character.GraphicRotation, GUI.Rotation, Object.GraphicRotation,
    Overlay.Rotation.
@@ -142,6 +149,8 @@ Script API:
  - Added Character.MovePath() and WalkPath(), which makes character to move along an arbitrary
    list of coordinates, and Character.GetPath() that returns current character's walking path.
  - Added Object.MovePath() and Object.GetPath() functions, that work similar to Character's.
+ - Added Character.MotionPath and Object.MotionPath properties that let to get active character's
+   or object's movement plan.
  - Added ColorFormat enum, and optional "color_format" parameter to DynamicSprite's functions:
    Create(), CreateFromBackground(), CreateFromDrawingSurface(), CreateFromExistingSprite()
    and CreateFromFile().
@@ -155,6 +164,9 @@ Script API:
  - Added Game.SpriteColorDepth[] readonly indexed property.
  - Added GUI.ScaleX and ScaleY properties, GUI.SetScale() function.
  - Added GUI.GUIToScreenPoint() and GUI.ScreenToGUIPoint() functions.
+ - Added Math.Random(), Math.RandomFloat() and Math.Round() functions.
+ - Added eRoundTowardsZero and eRoundAwayFromZero rounding styles for use in FloatToInt() and
+   Math.Round() functions.
  - Added Overlay.Flip property that lets to set one of the 3 standard flip styles.
  - Added Overlay.Tint(), SetLightLevel() and RemoveTint() functions, Overlay.HasTint,
    HasLightLevel, LightLevel, TintBlue, TintGreen, TintRed, TintSaturation, TintLuminance
@@ -180,6 +192,7 @@ Script API:
 
 Engine:
  - Support joystick and gamepad input.
+ - Support touch input directly, without touch-to-mouse emulation.
  - All color settings in a 32-bit game now respect alpha value, meaning they may be
    half-transparent. This refers to almost anything that may have a color: texts,
    GUI backgrounds, DrawingSurface's DrawingColor, and so forth. The exceptions are things

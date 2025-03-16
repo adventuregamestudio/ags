@@ -684,6 +684,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
     adjust_fonts_for_render_mode(game.options[OPT_ANTIALIASFONTS] != 0);
 
     restore_characters();
+    restore_movelists();
     restore_overlays();
 
     prepare_gui_runtime(false /* not startup */);

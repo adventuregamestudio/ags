@@ -680,7 +680,7 @@ Point update_overlay_graphicspace(ScreenOverlay &over)
 void restore_overlays()
 {
     // Will have to readjust free ids records, as overlays may be restored in any random slots
-    while (!over_free_ids.empty()) { over_free_ids.pop(); }
+    over_free_ids = std::queue<int32_t>();
     for (size_t i = 0; i < screenover.size(); ++i)
     {
         auto &over = screenover[i];

@@ -493,6 +493,7 @@
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptdynamicsprite.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptfile.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptgame.cpp" />
+    <ClCompile Include="..\..\Engine\ac\dynobj\scriptmotionpath.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptmouse.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptjoystick.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptoverlay.cpp" />
@@ -737,6 +738,7 @@
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptfile.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptgame.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptjoystick.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\scriptmotionpath.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptmouse.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptoverlay.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptpathfinder.h" />

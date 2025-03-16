@@ -446,6 +446,5 @@ private:
 
 extern GamePlayState play;
 extern std::vector<CharacterExtras> charextra;
-extern std::vector<MoveList> mls;
 
 #endif // __AC_GAMESTATE_H

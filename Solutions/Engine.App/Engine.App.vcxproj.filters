@@ -768,6 +768,9 @@
     <ClCompile Include="..\..\Engine\script\scriptexecutor.cpp">
       <Filter>Source Files\script</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Engine\ac\dynobj\scriptmotionpath.cpp">
+      <Filter>Source Files\ac\dynobj</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Engine\ac\dynobj\scripttouchpointer.cpp">
       <Filter>Source Files\ac\dynobj</Filter>
     </ClCompile>
@@ -1543,6 +1546,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Engine\script\scriptexecutor.h">
       <Filter>Header Files\script</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\ac\dynobj\scriptmotionpath.h">
+      <Filter>Header Files\ac\dynobj</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\dynobj\scripttouchpointer.h">
       <Filter>Header Files\ac\dynobj</Filter>

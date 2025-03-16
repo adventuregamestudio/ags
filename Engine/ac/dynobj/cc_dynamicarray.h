@@ -100,6 +100,8 @@ namespace DynamicArrayHelpers
     DynObjectRef CreateStringArrayFromBuffers(std::vector<ScriptString::Buffer> &&);
     // Create array from managed list of dynamic objects
     DynObjectRef CreateScriptArray(std::vector<DynObjectRef> &&items);
+    bool ResolveIntArray(const void *arrobj, std::vector<int> &ints);
+    bool ResolveFloatArray(const void *arrobj, std::vector<float> &floats);
     // Resolves a dynamic array of managed pointers (handles) to a list of object addresses
     bool ResolvePointerArray(const void* arrobj, std::vector<void*> &objects);
     // Resolves a dynamic array of managed pointers (handles) to a list of DynObjectRef structs,

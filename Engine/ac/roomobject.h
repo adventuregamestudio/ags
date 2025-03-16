@@ -61,6 +61,7 @@ struct RoomObject {
     Common::String name;
     Common::BlendMode blend_mode;
     float rotation;
+    int   movelist_handle = 0; // handle to the script movelist
 
     RoomObject();
 
@@ -98,6 +99,7 @@ struct RoomObject {
     void UpdateGraphicSpace();
 
     void UpdateCyclingView(int ref_id);
+    void OnStopMoving();
     // Calculate wanted frame sound volume based on multiple factors
     int  GetFrameSoundVolume() const;
     // Process the current animation frame for the room object:

@@ -102,6 +102,8 @@ target_sources(engine
     ac/dynobj/scriptfile.h
     ac/dynobj/scriptjoystick.cpp
     ac/dynobj/scriptjoystick.h
+    ac/dynobj/scriptmotionpath.cpp
+    ac/dynobj/scriptmotionpath.h
     ac/dynobj/scriptmouse.cpp
     ac/dynobj/scriptmouse.h
     ac/dynobj/scriptmouse.cpp

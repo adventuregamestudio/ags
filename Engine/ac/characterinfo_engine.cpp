@@ -17,6 +17,7 @@
 #include "ac/global_game.h" // GetGameSpeed
 #include "ac/character.h"
 #include "ac/characterextras.h"
+#include "ac/game.h"
 #include "ac/gamestate.h"
 #include "ac/math.h"
 #include "ac/object.h"
@@ -187,7 +188,7 @@ void UpdateCharacterMoving(CharacterInfo *chi, CharacterExtras *chex, int &doing
 {
     if (chi->is_moving() && (chi->room == displayed_room))
     {
-      const bool was_move_direct = mls[chi->get_movelist_id()].IsStageDirect();
+      const bool was_move_direct = get_movelist(chi->get_movelist_id())->IsStageDirect();
 
       if (chi->walkwait > 0)
       {

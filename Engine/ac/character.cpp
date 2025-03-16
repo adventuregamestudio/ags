@@ -47,6 +47,7 @@
 #include "ac/view.h"
 #include "ac/viewframe.h"
 #include "ac/walkablearea.h"
+#include "ac/dynobj/scriptmotionpath.h"
 #include "debug/debug_log.h"
 #include "gui/guimain.h"
 #include "main/game_run.h"
@@ -193,7 +194,7 @@ void Character_AddWaypoint(CharacterInfo *chaa, int x, int y) {
         return;
     }
 
-    MoveList &cmls = mls[chaa->get_movelist_id()];
+    MoveList &cmls = *get_movelist(chaa->get_movelist_id());
 
     // They're already walking there anyway
     const Point &last_pos = cmls.GetLastPos();
@@ -924,7 +925,7 @@ int Character_GetLightLevel(CharacterInfo *ch)
 void Character_SetLightLevel(CharacterInfo *chaa, int light_level)
 {
     light_level = Math::Clamp(light_level, -100, 100);
-    
+
     charextra[chaa->index_id].tint_light = light_level;
     chaa->flags &= ~CHF_HASTINT;
     chaa->flags |= CHF_HASLIGHT;
@@ -990,17 +991,24 @@ void Character_SetSpeed(CharacterInfo *chaa, int xspeed, int yspeed) {
 
     if (chaa->is_moving())
     {
-        Pathfinding::RecalculateMoveSpeeds(mls[chaa->get_movelist_id()], old_speedx, old_speedy, xspeed, yspeed);
+        Pathfinding::RecalculateMoveSpeeds(*get_movelist(chaa->get_movelist_id()), old_speedx, old_speedy, xspeed, yspeed);
     }
 }
 
 void Character_StopMoving(CharacterInfo *chi)
 {
-    Character_StopMovingEx(chi, chi->is_moving() && !mls[chi->get_movelist_id()].IsStageDirect());
+    Character_StopMovingEx(chi, chi->is_moving() && (!get_movelist(chi->get_movelist_id())->IsStageDirect()));
 }
 
 void Character_StopMovingEx(CharacterInfo *chi, bool force_walkable_area)
 {
+    // If we have a movelist reference attached, then invalidate and dec refcount
+    if (charextra[chi->index_id].movelist_handle > 0)
+    {
+        release_script_movelist(charextra[chi->index_id].movelist_handle);
+        charextra[chi->index_id].movelist_handle = 0;
+    }
+
     int chid = chi->index_id;
     if (chid == play.skip_until_char_stops)
         EndSkippingUntilCharStops();
@@ -1037,6 +1045,7 @@ void Character_StopMovingEx(CharacterInfo *chi, bool force_walkable_area)
     if (chi->walking > 0)
     {
         // Switch character state from walking to standing
+    remove_movelist(chi->get_movelist_id());
         chi->walking = 0;
         // If the character was animating a walk, then reset their frame to standing
         if ((chi->flags & CHF_MOVENOTWALK) == 0)
@@ -1104,7 +1113,6 @@ void Character_UnlockViewEx(CharacterInfo *chaa, int stopMoving) {
     chaa->pic_yoffs = 0;
     // restart the idle animation straight away
     charextra[chaa->index_id].process_idle_this_time = 1;
-
 }
 
 // Tests if the given character is permitted to start a move in the room
@@ -1258,15 +1266,6 @@ bool Character_SetTextProperty(CharacterInfo *chaa, const char *property, const 
     if (!AssertCharacter("Character.SetTextProperty", chaa->index_id))
         return false;
     return set_text_property(play.charProps[chaa->index_id], property, value);
-}
-
-void *Character_GetPath(CharacterInfo *chaa)
-{
-    const int mslot = chaa->get_movelist_id();
-    if (mslot == 0)
-        return nullptr;
-
-    return ScriptStructHelpers::CreateArrayOfPoints(mls[mslot].pos).Obj;
 }
 
 ScriptInvItem* Character_GetActiveInventory(CharacterInfo *chaa) {
@@ -1555,8 +1554,8 @@ int Character_GetMoving(CharacterInfo *chaa) {
 
 int Character_GetDestinationX(CharacterInfo *chaa) {
     if (chaa->walking) {
-        MoveList *cmls = &mls[chaa->get_movelist_id()];
-        return cmls->pos.back().X;
+        MoveList *cmls = get_movelist(chaa->get_movelist_id());
+        return cmls->GetLastPos().X;
     }
     else
         return chaa->x;
@@ -1564,8 +1563,8 @@ int Character_GetDestinationX(CharacterInfo *chaa) {
 
 int Character_GetDestinationY(CharacterInfo *chaa) {
     if (chaa->walking) {
-        MoveList *cmls = &mls[chaa->get_movelist_id()];
-        return cmls->pos.back().Y;
+        MoveList *cmls = get_movelist(chaa->get_movelist_id());
+        return cmls->GetLastPos().Y;
     }
     else
         return chaa->y;
@@ -1895,6 +1894,24 @@ void Character_SetUseRegionTint(CharacterInfo *chaa, int yesorno)
         chaa->flags |= CHF_NOLIGHTING;
 }
 
+ScriptMotionPath *Character_GetMotionPath(CharacterInfo *ch)
+{
+    const int mslot = ch->get_movelist_id();
+    if (mslot <= 0)
+        return nullptr;
+
+    CharacterExtras &chex = charextra[ch->index_id];
+    if (chex.movelist_handle > 0)
+    {
+        return static_cast<ScriptMotionPath *>(ccGetObjectAddressFromHandle(chex.movelist_handle));
+    }
+
+    auto sc_path = ScriptMotionPath::Create(mslot);
+    ccAddObjectReference(sc_path.Handle);
+    chex.movelist_handle = sc_path.Handle;
+    return static_cast<ScriptMotionPath *>(sc_path.Obj);
+}
+
 //=============================================================================
 
 // order of loops to turn character in circle from down to down
@@ -1944,9 +1961,9 @@ void move_character_impl(CharacterInfo *chin, const std::vector<Point> *path, in
     {
         waitWas = chin->walkwait;
         animWaitWas = charextra[chac].animwait;
-        const auto &movelist = mls[chin->get_movelist_id()];
+        const auto &movelist = *get_movelist(chin->get_movelist_id());
         // We set (fraction + 1), because movelist is always +1 ahead of current character pos;
-        if (movelist.onpart > 0.f)
+        if (movelist.GetStageProgress() > 0.f)
             wasStepFrac = movelist.GetPixelUnitFraction() + movelist.GetStepLength();
     }
 
@@ -1963,28 +1980,35 @@ void move_character_impl(CharacterInfo *chin, const std::vector<Point> *path, in
         debug_script_warn("MoveCharacter: called for '%s' with walk speed 0", chin->scrname.GetCStr());
     }
 
-    const int mslot = chac + CHMLSOFFS;
+    MoveList new_mlist;
     bool path_result = false;
     if (path)
     {
-        path_result = Pathfinding::CalculateMoveList(mls[mslot], *path, move_speed_x, move_speed_y,
+        path_result = Pathfinding::CalculateMoveList(new_mlist, *path, move_speed_x, move_speed_y,
             ignwal ? kMoveStage_Direct : 0, run_params);
     }
     else
     {
         MaskRouteFinder *pathfind = get_room_pathfinder();
         pathfind->SetWalkableArea(prepare_walkable_areas(chac), thisroom.MaskResolution);
-        path_result = Pathfinding::FindRoute(mls[mslot], pathfind, chin->x, chin->y, tox, toy, move_speed_x, move_speed_y, false, ignwal, run_params);
+        path_result = Pathfinding::FindRoute(new_mlist, pathfind, chin->x, chin->y, tox, toy,
+            move_speed_x, move_speed_y, false, ignwal, run_params);
     }
 
     // If successful, then start moving
     if (path_result)
     {
-        chin->walking = mslot;
+        chin->walking = add_movelist(std::move(new_mlist));
+        if (chin->walking == 0)
+        {
+            chin->frame = 0;
+            return; // no free slot? bail out
+        }
 
+        MoveList &mlist = *get_movelist(chin->walking);
         if (wasStepFrac > 0.f)
         {
-            mls[mslot].SetPixelUnitFraction(wasStepFrac);
+            mlist.SetPixelUnitFraction(wasStepFrac);
         }
 
         // cancel any pending waits on current animations
@@ -1995,7 +2019,7 @@ void move_character_impl(CharacterInfo *chin, const std::vector<Point> *path, in
         {
             chin->walkwait = waitWas;
             charextra[chac].animwait = animWaitWas;
-            fix_player_sprite(chin, mls[mslot]);
+            fix_player_sprite(chin, mlist);
         }
         else
         {
@@ -2085,14 +2109,14 @@ void start_character_turning (CharacterInfo *chinf, int useloop, int no_diagonal
 }
 
 void fix_player_sprite(CharacterInfo *chinf, const MoveList &cmls) {
-    const float xpmove = cmls.permove[cmls.onstage].X;
-    const float ypmove = cmls.permove[cmls.onstage].Y;
+    const float xpmove = cmls.GetCurrentSpeed().X;
+    const float ypmove = cmls.GetCurrentSpeed().Y;
 
     // if not moving, do nothing
     if ((xpmove == 0.f) && (ypmove == 0.f))
         return;
 
-    const int useloop = GetDirectionalLoop(chinf, xpmove, ypmove, cmls.run_params.Forward);
+    const int useloop = GetDirectionalLoop(chinf, xpmove, ypmove, cmls.GetRunParams().Forward);
 
     if ((game.options[OPT_CHARTURNWHENWALK] == 0) || ((chinf->flags & CHF_NOTURNWHENWALK) != 0)) {
         chinf->loop = useloop;
@@ -2143,13 +2167,19 @@ int has_hit_another_character(int sourceChar) {
 // Does the next move from the character's movelist.
 // Returns 1 if they are now waiting for another char to move,
 // otherwise returns 0
-int doNextCharMoveStep(CharacterInfo *chi, CharacterExtras *chex) {
+int doNextCharMoveStep(CharacterInfo *chi, CharacterExtras *chex)
+{
+    assert(chi->walking > 0);
+    if (chi->walking <= 0)
+        return 0;
+
     int ntf=0, xwas = chi->x, ywas = chi->y;
+    MoveList &mlist = *get_movelist(chi->get_movelist_id());
 
     if (do_movelist_move(chi->walking, chi->x, chi->y) == 2) 
     {
         if ((chi->flags & CHF_MOVENOTWALK) == 0)
-            fix_player_sprite(chi, mls[chi->get_movelist_id()]);
+            fix_player_sprite(chi, mlist);
     }
 
     ntf = has_hit_another_character(chi->index_id);
@@ -2169,8 +2199,8 @@ int doNextCharMoveStep(CharacterInfo *chi, CharacterExtras *chex) {
         }
 
         if ((chi->walking < 1) || (chi->walking >= TURNING_AROUND)) ;
-        else if (mls[chi->get_movelist_id()].onpart > 0.f) {
-            mls[chi->get_movelist_id()].onpart -= 1.f;
+        else if (mlist.GetStageProgress() > 0.f) {
+            mlist.Backward();
             chi->x = xwas;
             chi->y = ywas;
         }
@@ -2184,7 +2214,7 @@ int doNextCharMoveStep(CharacterInfo *chi, CharacterExtras *chex) {
 bool is_char_walking_ndirect(CharacterInfo *chi)
 {
     return chi->is_moving_not_turning() &&
-        !mls[chi->get_movelist_id()].IsStageDirect();
+        (!get_movelist(chi->get_movelist_id())->IsStageDirect());
 }
 
 bool FindNearestWalkableAreaForCharacter(const Point &src, Point &dst)
@@ -3415,11 +3445,6 @@ RuntimeScriptValue Sc_Character_SetTextProperty(void *self, const RuntimeScriptV
     API_OBJCALL_BOOL_POBJ2(CharacterInfo, Character_SetTextProperty, const char, const char);
 }
 
-RuntimeScriptValue Sc_Character_GetPath(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_OBJ(CharacterInfo, void, globalDynamicArray, Character_GetPath);
-}
-
 // int (CharacterInfo *chaa, ScriptInvItem *invi)
 RuntimeScriptValue Sc_Character_HasInventory(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -4211,6 +4236,11 @@ RuntimeScriptValue Sc_Character_SetFaceDirectionRatio(void *self, const RuntimeS
     API_OBJCALL_VOID_PFLOAT(CharacterInfo, Character_SetFaceDirectionRatio);
 }
 
+RuntimeScriptValue Sc_Character_GetMotionPath(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJAUTO(CharacterInfo, ScriptMotionPath, Character_GetMotionPath);
+}
+
 //=============================================================================
 //
 // Exclusive variadic API implementation for Plugins
@@ -4267,7 +4297,6 @@ void RegisterCharacterAPI(ScriptAPIVersion /*base_api*/, ScriptAPIVersion /*comp
         { "Character::GetTextProperty^1",         API_FN_PAIR(Character_GetTextProperty) },
         { "Character::SetProperty^2",             API_FN_PAIR(Character_SetProperty) },
         { "Character::SetTextProperty^2",         API_FN_PAIR(Character_SetTextProperty) },
-        { "Character::GetPath^0",                 API_FN_PAIR(Character_GetPath) },
         { "Character::HasInventory^1",            API_FN_PAIR(Character_HasInventory) },
         { "Character::IsCollidingWithChar^1",     API_FN_PAIR(Character_IsCollidingWithChar) },
         { "Character::IsCollidingWithObject^1",   API_FN_PAIR(Character_IsCollidingWithObject) },
@@ -4416,6 +4445,7 @@ void RegisterCharacterAPI(ScriptAPIVersion /*base_api*/, ScriptAPIVersion /*comp
 
         { "Character::get_FaceDirectionRatio",    API_FN_PAIR(Character_GetFaceDirectionRatio) },
         { "Character::set_FaceDirectionRatio",    API_FN_PAIR(Character_SetFaceDirectionRatio) },
+        { "Character::get_MotionPath",            API_FN_PAIR(Character_GetMotionPath) },
     };
 
     ccAddExternalFunctions(character_api);

@@ -16,6 +16,7 @@
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/dynobj/managedobjectpool.h"
 #include "ac/dynobj/scriptstring.h"
+#include "debug/debug_log.h"
 #include "script/runtimescript.h"
 #include "util/memorystream.h"
 
@@ -230,8 +231,46 @@ DynObjectRef DynamicArrayHelpers::CreateScriptArray(std::vector<DynObjectRef> &&
     return arr;
 }
 
+bool DynamicArrayHelpers::ResolveIntArray(const void *arrobj, std::vector<int> &ints)
+{
+    assert(arrobj);
+    if (!arrobj)
+        return false;
+
+    ints.clear();
+    const auto &header = CCDynamicArray::GetHeader(arrobj);
+    const int *data = static_cast<const int*>(arrobj);
+    ints.reserve(header.ElemCount);
+    for (uint32_t i = 0; i < header.ElemCount; ++i)
+    {
+        ints.push_back(data[i]);
+    }
+    return true;
+}
+
+bool DynamicArrayHelpers::ResolveFloatArray(const void *arrobj, std::vector<float> &floats)
+{
+    assert(arrobj);
+    if (!arrobj)
+        return false;
+
+    floats.clear();
+    const auto &header = CCDynamicArray::GetHeader(arrobj);
+    const float *data = static_cast<const float*>(arrobj);
+    floats.reserve(header.ElemCount);
+    for (uint32_t i = 0; i < header.ElemCount; ++i)
+    {
+        floats.push_back(data[i]);
+    }
+    return true;
+}
+
 bool DynamicArrayHelpers::ResolvePointerArray(const void* arrobj, std::vector<void*> &objects)
 {
+    assert(arrobj);
+    if (!arrobj)
+        return false;
+
     objects.clear();
     const auto &header = CCDynamicArray::GetHeader(arrobj);
     assert(header.IsPointerArray());
@@ -249,6 +288,10 @@ bool DynamicArrayHelpers::ResolvePointerArray(const void* arrobj, std::vector<vo
 
 bool DynamicArrayHelpers::ResolvePointerArray(const void* arrobj, std::vector<DynObjectRef> &objects)
 {
+    assert(arrobj);
+    if (!arrobj)
+        return false;
+
     objects.clear();
     const auto &header = CCDynamicArray::GetHeader(arrobj);
     assert(header.IsPointerArray());
@@ -272,6 +315,11 @@ bool DynamicArrayHelpers::ResolvePointerArray(const void* arrobj, std::vector<Dy
 
 int32_t DynamicArray_Length(void *untyped_dynarray)
 {
+    if (!untyped_dynarray)
+    {
+        debug_script_warn("ERROR: DynamicArray.Length: null pointer");
+        return 0;
+    }
     const CCDynamicArray::Header &hdr = CCDynamicArray::GetHeader(untyped_dynarray);
     return hdr.GetElemCount();
 }

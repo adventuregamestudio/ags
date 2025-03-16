@@ -14,6 +14,7 @@
 #include "ac/roomobject.h"
 #include "ac/common.h"
 #include "ac/common_defines.h"
+#include "ac/game.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/object.h"
@@ -79,6 +80,8 @@ void RoomObject::UpdateCyclingView(int ref_id)
 	if (!is_enabled()) return;
     if (moving>0) {
       do_movelist_move(moving, x, y);
+      if (moving == 0)
+        OnStopMoving();
     }
     if (cycling==0) return;
     if (view == RoomObject::NoView) return;
@@ -98,6 +101,22 @@ void RoomObject::UpdateCyclingView(int ref_id)
 
     wait=vfptr->speed+overall_speed;
     CheckViewFrame();
+}
+
+void RoomObject::OnStopMoving()
+{
+    // Release movelist
+    if (moving > 0)
+    {
+        remove_movelist(moving);
+        moving = 0;
+    }
+    // If we have a movelist reference attached, then invalidate and dec refcount
+    if (movelist_handle > 0)
+    {
+        release_script_movelist(movelist_handle);
+        movelist_handle = 0;
+    }
 }
 
 // Calculate wanted frame sound volume based on multiple factors
@@ -181,6 +200,18 @@ void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
         blend_mode = kBlend_Normal;
     }
 
+    if (cmp_ver >= kRoomStatSvgVersion_40016)
+    {
+        movelist_handle = in->ReadInt32();
+        in->ReadInt32(); // reserve up to 4 ints
+        in->ReadInt32();
+        in->ReadInt32();
+    }
+    else
+    {
+        movelist_handle = 0;
+    }
+
     spr_width = last_width;
     spr_height = last_height;
     UpdateGraphicSpace();
@@ -234,6 +265,11 @@ void RoomObject::WriteToSavegame(Stream *out) const
     out->WriteInt32(0); // sprite pivot y
     out->WriteInt32(0); // sprite anchor x
     out->WriteInt32(0); // sprite anchor y
+    // kRoomStatSvgVersion_40016
+    out->WriteInt32(movelist_handle);
+    out->WriteInt32(0); // reserve up to 4 ints
+    out->WriteInt32(0);
+    out->WriteInt32(0);
 }
 
 void RoomObject::UpdateGraphicSpace()

@@ -194,6 +194,23 @@ static bool ValidateMoveList(const char *api_name, ScriptMotionPath *mpath)
     return true;
 }
 
+static bool ValidateMoveListAndStageIndex(const char *api_name, ScriptMotionPath *mpath, int stage)
+{
+    MoveList *mlist = mpath->GetMoveList();
+    if (!mlist)
+    {
+        debug_script_warn("%s: motion path is invalid, underlying data was disposed.", api_name);
+        return false;
+    }
+    if (stage < 0 || static_cast<uint32_t>(stage) >= mlist->GetNumStages())
+    {
+        debug_script_warn("%s: stage out of range for a motion path, requested %d, valid range 0..%u.",
+                          api_name, stage, mlist->GetNumStages());
+        return false;
+    }
+    return true;
+}
+
 void *MotionPath_GetPath(ScriptMotionPath *mpath)
 {
     if (!ValidateMoveList("MotionPath.GetPath", mpath))
@@ -217,7 +234,7 @@ void MotionPath_StepForward(ScriptMotionPath *mpath)
 
 void MotionPath_Reset(ScriptMotionPath *mpath, int stage, float progress)
 {
-    if (!ValidateMoveList("MotionPath.Reset", mpath))
+    if (!ValidateMoveListAndStageIndex("MotionPath.Reset", mpath, stage))
         return;
     mpath->GetMoveList()->ResetToStage(stage, progress);
 }
@@ -266,28 +283,28 @@ int MotionPath_GetWalkWhere(ScriptMotionPath *mpath)
 
 int MotionPath_GetStageX(ScriptMotionPath *mpath, int index)
 {
-    if (!ValidateMoveList("MotionPath.StageX", mpath))
+    if (!ValidateMoveListAndStageIndex("MotionPath.StageX", mpath, index))
         return 0;
     return mpath->GetMoveList()->GetStagePos(index).X;
 }
 
 int MotionPath_GetStageY(ScriptMotionPath *mpath, int index)
 {
-    if (!ValidateMoveList("MotionPath.StageY", mpath))
+    if (!ValidateMoveListAndStageIndex("MotionPath.StageY", mpath, index))
         return 0;
     return mpath->GetMoveList()->GetStagePos(index).Y;
 }
 
-float MotionPath_GetSpeedX(ScriptMotionPath *mpath, int index)
+float MotionPath_GetStageSpeedX(ScriptMotionPath *mpath, int index)
 {
-    if (!ValidateMoveList("MotionPath.SpeedX", mpath))
+    if (!ValidateMoveListAndStageIndex("MotionPath.SpeedX", mpath, index))
         return 0;
     return mpath->GetMoveList()->GetStageSpeed(index).X;
 }
 
-float MotionPath_GetSpeedY(ScriptMotionPath *mpath, int index)
+float MotionPath_GetStageSpeedY(ScriptMotionPath *mpath, int index)
 {
-    if (!ValidateMoveList("MotionPath.SpeedY", mpath))
+    if (!ValidateMoveListAndStageIndex("MotionPath.SpeedY", mpath, index))
         return 0;
     return mpath->GetMoveList()->GetStageSpeed(index).Y;
 }
@@ -318,6 +335,20 @@ int MotionPath_GetPositionY(ScriptMotionPath *mpath)
     if (!ValidateMoveList("MotionPath.PositionY", mpath))
         return 0;
     return mpath->GetMoveList()->GetCurrentPos().Y;
+}
+
+float MotionPath_GetVelocityX(ScriptMotionPath *mpath)
+{
+    if (!ValidateMoveList("MotionPath.VelocityX", mpath))
+        return 0;
+    return mpath->GetMoveList()->GetCurrentSpeed().X;
+}
+
+float MotionPath_GetVelocityY(ScriptMotionPath *mpath)
+{
+    if (!ValidateMoveList("MotionPath.VelocityY", mpath))
+        return 0;
+    return mpath->GetMoveList()->GetCurrentSpeed().Y;
 }
 
 RuntimeScriptValue Sc_MotionPath_Create(const RuntimeScriptValue *params, int32_t param_count)
@@ -390,14 +421,14 @@ RuntimeScriptValue Sc_MotionPath_GetStageY(void *self, const RuntimeScriptValue 
     API_OBJCALL_INT_PINT(ScriptMotionPath, MotionPath_GetStageY);
 }
 
-RuntimeScriptValue Sc_MotionPath_GetSpeedX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_MotionPath_GetStageSpeedX(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_FLOAT_PINT(ScriptMotionPath, MotionPath_GetSpeedX);
+    API_OBJCALL_FLOAT_PINT(ScriptMotionPath, MotionPath_GetStageSpeedX);
 }
 
-RuntimeScriptValue Sc_MotionPath_GetSpeedY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_MotionPath_GetStageSpeedY(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_FLOAT_PINT(ScriptMotionPath, MotionPath_GetSpeedY);
+    API_OBJCALL_FLOAT_PINT(ScriptMotionPath, MotionPath_GetStageSpeedY);
 }
 
 RuntimeScriptValue Sc_MotionPath_GetStage(void *self, const RuntimeScriptValue *params, int32_t param_count)
@@ -418,6 +449,16 @@ RuntimeScriptValue Sc_MotionPath_GetPositionX(void *self, const RuntimeScriptVal
 RuntimeScriptValue Sc_MotionPath_GetPositionY(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptMotionPath, MotionPath_GetPositionY);
+}
+
+RuntimeScriptValue Sc_MotionPath_GetVelocityX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_FLOAT(ScriptMotionPath, MotionPath_GetVelocityX);
+}
+
+RuntimeScriptValue Sc_MotionPath_GetVelocityY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_FLOAT(ScriptMotionPath, MotionPath_GetVelocityY);
 }
 
 
@@ -446,12 +487,14 @@ void RegisterPathfinderAPI()
         { "MotionPath::get_StageCount", API_FN_PAIR(MotionPath_GetStageCount) },
         { "MotionPath::geti_StageX",    API_FN_PAIR(MotionPath_GetStageX) },
         { "MotionPath::geti_StageY",    API_FN_PAIR(MotionPath_GetStageY) },
-        { "MotionPath::geti_SpeedX",    API_FN_PAIR(MotionPath_GetSpeedX) },
-        { "MotionPath::geti_SpeedY",    API_FN_PAIR(MotionPath_GetSpeedY) },
+        { "MotionPath::geti_StageSpeedX", API_FN_PAIR(MotionPath_GetStageSpeedX) },
+        { "MotionPath::geti_StageSpeedY", API_FN_PAIR(MotionPath_GetStageSpeedY) },
         { "MotionPath::get_Stage",      API_FN_PAIR(MotionPath_GetStage) },
         { "MotionPath::get_Progress",   API_FN_PAIR(MotionPath_GetProgress) },
         { "MotionPath::get_PositionX",  API_FN_PAIR(MotionPath_GetPositionX) },
         { "MotionPath::get_PositionY",  API_FN_PAIR(MotionPath_GetPositionY) },
+        { "MotionPath::get_VelocityX",  API_FN_PAIR(MotionPath_GetVelocityX) },
+        { "MotionPath::get_VelocityY",  API_FN_PAIR(MotionPath_GetVelocityY) },
     };
 
     ccAddExternalFunctions(pathfinder_api);

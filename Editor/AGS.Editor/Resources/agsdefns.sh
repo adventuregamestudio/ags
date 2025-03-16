@@ -3216,7 +3216,7 @@ builtin managed struct MotionPath {
   import void Reset(int stage = 0, float progress = 0.0);
   /// Checks whether this motion path is currently valid.
   import readonly attribute bool Valid;
-  /// Gets this motion path's current moving direction.
+  /// Gets this motion path's current moving direction (forwards or backwards).
   import readonly attribute Direction Direction;
   /// Gets this motion path's repeat style.
   import readonly attribute RepeatStyle RepeatStyle;
@@ -3231,17 +3231,21 @@ builtin managed struct MotionPath {
   /// Accesses the Y coordinate of the each stage's starting position.
   import readonly attribute int StageY[];
   /// Accesses the horizontal speed magnitude of the each stage.
-  import readonly attribute float SpeedX[];
+  import readonly attribute float StageSpeedX[];
   /// Accesses the vertical speed magnitude of the each stage.
-  import readonly attribute float SpeedY[];
-  /// Gets the current stage index
+  import readonly attribute float StageSpeedY[];
+  /// Gets the current stage index.
   import readonly attribute int Stage;
-  /// Gets the progress of the current stage in the range [0.0, 1.f]
+  /// Gets the progress of the current stage in the range [0.0, 1.f].
   import readonly attribute float Progress;
-  /// Gets the current would-be X coordinate of an object
+  /// Gets the current would-be X coordinate of an object.
   import readonly attribute int PositionX;
-  /// Gets the current would-be Y coordinate of an object
+  /// Gets the current would-be Y coordinate of an object.
   import readonly attribute int PositionY;
+  /// Gets the current X magnitude of an object's velocity.
+  import readonly attribute float VelocityX;
+  /// Gets the current Y magnitude of an object's velocity.
+  import readonly attribute float VelocityY;
 };
 #endif // SCRIPT_API_v400
 

@@ -165,7 +165,7 @@ namespace AGS.Editor.Components
                 string[] codesForThisFrame = _agsEditor.CurrentGame.LipSync.CharactersPerFrame[i].Split('/');
                 foreach (string code in codesForThisFrame)
                 {
-                    if (code.ToUpper() == phonemeCode)
+                    if (code.ToUpperInvariant() == phonemeCode)
                     {
                         frameID = i;
                         break;
@@ -228,7 +228,7 @@ namespace AGS.Editor.Components
                             continue;
                         }
                         int milliSeconds = ((part0 / 15) * 1000) / 24;
-                        string phonemeCode = parts[1].Trim().ToUpper();
+                        string phonemeCode = parts[1].Trim().ToUpperInvariant();
                         int frameID = FindFrameNumberForPhoneme(phonemeCode);
                         if (frameID < 0)
                         {
@@ -275,7 +275,7 @@ namespace AGS.Editor.Components
                         if (xpos < 0) // Clamp negative XPOS to 0
                             xpos = 0;
                         int milliSeconds = (part0 * 1000) / 24;
-                        string phonemeCode = parts[1].Trim().ToUpper();
+                        string phonemeCode = parts[1].Trim().ToUpperInvariant();
                         int frameID = FindFrameNumberForPhoneme(phonemeCode);
                         if (frameID < 0)
                         {

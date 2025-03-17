@@ -207,7 +207,7 @@ namespace AGS.Editor.Components
                 bool nameInUse = _agsEditor.CurrentGame.IsScriptNameAlreadyUsed(itemBeingEdited.ScriptName, itemBeingEdited);
                 if (itemBeingEdited.ScriptName.StartsWith("c") && itemBeingEdited.ScriptName.Length > 1)
                 {
-                    nameInUse |= _agsEditor.CurrentGame.IsScriptNameAlreadyUsed(itemBeingEdited.ScriptName.Substring(1).ToUpper(), itemBeingEdited);
+                    nameInUse |= _agsEditor.CurrentGame.IsScriptNameAlreadyUsed(itemBeingEdited.ScriptName.Substring(1).ToUpperInvariant(), itemBeingEdited);
                 }
                 if (nameInUse)
                 {

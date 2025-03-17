@@ -974,7 +974,7 @@ namespace AGS.Types
 
                     if (gui.Name.StartsWith("g") &&
                         (gui.Name.Length > 1) &&
-                        (gui.Name.Substring(1).ToUpper() == tryName))
+                        (gui.Name.Substring(1).ToUpperInvariant() == tryName))
                     {
                         return true;
                     }
@@ -1008,7 +1008,7 @@ namespace AGS.Types
 
                     if (character.ScriptName.StartsWith("c") &&
                         (character.ScriptName.Length > 1) &&
-                        (character.ScriptName.Substring(1).ToUpper() == tryName))
+                        (character.ScriptName.Substring(1).ToUpperInvariant() == tryName))
                     {
                         return true;
                     }
@@ -1067,7 +1067,7 @@ namespace AGS.Types
         {
             foreach (View view in folderToCheck.Views)
             {
-                if ((view.Name.ToUpper() == name) && (view != ignoreObject))
+                if ((view.Name.ToUpperInvariant() == name) && (view != ignoreObject))
                 {
                     return true;
                 }

@@ -172,7 +172,7 @@ namespace AGS.Editor
             foreach (Character c in _agsEditor.CurrentGame.RootCharacterFolder.AllItemsFlat)
             {
                 sb.Append(c.ScriptName.TrimStart('c') + " ");
-                sb.Append(c.ScriptName.TrimStart('c').ToLower() + " ");
+                sb.Append(c.ScriptName.TrimStart('c').ToLowerInvariant() + " ");
             }
             return sb.ToString();
         }

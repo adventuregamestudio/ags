@@ -724,7 +724,7 @@ namespace AGS.Editor
             string scriptName = character.ScriptName;
             if (scriptName.StartsWith("c"))
             {
-                scriptName = scriptName.Substring(1).ToUpper();
+                scriptName = scriptName.Substring(1).ToUpperInvariant();
             }
             writer.Write(Encoding.Default.GetBytes(scriptName)); // always ANSI
             WriteZeros(writer, 20 - scriptName.Length);
@@ -897,7 +897,7 @@ namespace AGS.Editor
 			character.ScriptName = ReadNullTerminatedString(reader, 20);
             if (character.ScriptName.Length > 0)
             {
-                character.ScriptName = "c" + Char.ToUpper(character.ScriptName[0]) + character.ScriptName.Substring(1).ToLower();
+                character.ScriptName = "c" + Char.ToUpperInvariant(character.ScriptName[0]) + character.ScriptName.Substring(1).ToLowerInvariant();
 
                 EnsureCharacterScriptNameIsUnique(character, game);
             }
@@ -1075,7 +1075,7 @@ namespace AGS.Editor
         {
             string scriptNameBase = view.Name; 
             int suffix = 0;
-            while (game.IsScriptNameAlreadyUsed(view.Name.ToUpper(), view))
+            while (game.IsScriptNameAlreadyUsed(view.Name.ToUpperInvariant(), view))
             {
                 suffix++;
                 view.Name = scriptNameBase + suffix;

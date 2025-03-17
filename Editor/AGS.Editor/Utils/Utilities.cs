@@ -14,6 +14,10 @@ using System.Reflection;
 
 namespace AGS.Editor
 {
+    /// <summary>
+    /// Utilities class contains all kinds of helper functions.
+    /// FIXME: reorganize this in multiple classes, current class is a mess.
+    /// </summary>
     internal class Utilities
     {
         private const int ERROR_NO_MORE_FILES = 18;

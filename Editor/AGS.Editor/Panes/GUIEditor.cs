@@ -157,7 +157,7 @@ namespace AGS.Editor
                 bool nameInUse = game.IsScriptNameAlreadyUsed(newName, objectBeingChanged);
                 if (newName.StartsWith("g") && newName.Length > 1)
                 {
-                    nameInUse |= game.IsScriptNameAlreadyUsed(newName.Substring(1).ToUpper(), objectBeingChanged);
+                    nameInUse |= game.IsScriptNameAlreadyUsed(newName.Substring(1).ToUpperInvariant(), objectBeingChanged);
                 }
 
                 if (nameInUse)

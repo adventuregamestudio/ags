@@ -187,7 +187,7 @@ namespace AGS.Editor
             {
                 // the old dialog script compiler allowed semicolons,
                 // so just strip them out
-                dlgScriptCommand = dlgScriptCommand.ToLower().Replace(";", "");
+                dlgScriptCommand = dlgScriptCommand.ToLowerInvariant().Replace(";", "");
                 
                 if (dlgScriptCommand == "return")
                 {
@@ -331,7 +331,7 @@ namespace AGS.Editor
             }
             string charName = result.Groups[1].Captures[0].Value;
             string viewNumber = result.Groups[2].Captures[0].Value;
-            Character character = FindCharacterByScriptName(charName.ToLower());
+            Character character = FindCharacterByScriptName(charName.ToLowerInvariant());
             return string.Format("{0}.SpeechView = {1};", character.ScriptName, viewNumber);
         }
 
@@ -381,7 +381,7 @@ namespace AGS.Editor
         private string ProcessCharacterSpeechLine(string dlgScriptCommand)
         {
             int colonAtIndex = dlgScriptCommand.IndexOf(':');
-            string charName = dlgScriptCommand.Substring(0, colonAtIndex).Trim().ToLower();
+            string charName = dlgScriptCommand.Substring(0, colonAtIndex).Trim().ToLowerInvariant();
             string textToSay = dlgScriptCommand.Substring(colonAtIndex + 1).Trim();
             if (textToSay == string.Empty)
                 textToSay = "...";
@@ -397,7 +397,7 @@ namespace AGS.Editor
 
             foreach (Character character in _game.RootCharacterFolder.AllItemsFlat)
             {
-                string thisCharName = character.ScriptName.ToLower();
+                string thisCharName = character.ScriptName.ToLowerInvariant();
                 if ((thisCharName == scriptName) ||
                     (thisCharName == scriptNameWithCPrefix))
                 {

@@ -55,7 +55,7 @@ namespace AGS.Editor
         {
             foreach (CustomPropertySchemaItem item in _schema.PropertyDefinitions)
             {
-                if (item.Name.ToLower() == nameToCheckLowerCase)
+                if (item.Name.ToLowerInvariant() == nameToCheckLowerCase)
                 {
                     MessageBox.Show("You already have a property with this name.", "Property already exists", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return true;
@@ -78,7 +78,7 @@ namespace AGS.Editor
             {
                 if (isNewItem)
                 {
-                    if (!IsThereACustomPropertyWithThisName(schemaItem.Name.ToLower()))
+                    if (!IsThereACustomPropertyWithThisName(schemaItem.Name.ToLowerInvariant()))
                     {
                         _schema.PropertyDefinitions.Add(schemaItem);
                     }

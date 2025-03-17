@@ -173,7 +173,7 @@ namespace AGS.Editor.Components
                 {
                     View itemBeingEdited = (View)treeItem.LabelTextDataSource;
 
-                    if (_agsEditor.CurrentGame.IsScriptNameAlreadyUsed(itemBeingEdited.Name.ToUpper(), itemBeingEdited))
+                    if (_agsEditor.CurrentGame.IsScriptNameAlreadyUsed(itemBeingEdited.Name.ToUpperInvariant(), itemBeingEdited))
                     {
                         _guiController.ShowMessage("This script name is already used by another item.", MessageBoxIconType.Warning);
                         itemBeingEdited.Name = treeItem.LabelTextBeforeLabelEdit;
@@ -202,7 +202,7 @@ namespace AGS.Editor.Components
             if (propertyName == "Name")
             {
                 View itemBeingEdited = ((ViewEditor)_guiController.ActivePane.Control).ViewToEdit;
-                if (_agsEditor.CurrentGame.IsScriptNameAlreadyUsed(itemBeingEdited.Name.ToUpper(), itemBeingEdited))
+                if (_agsEditor.CurrentGame.IsScriptNameAlreadyUsed(itemBeingEdited.Name.ToUpperInvariant(), itemBeingEdited))
                 {
                     _guiController.ShowMessage("This script name is already used by another item.", MessageBoxIconType.Warning);
                     itemBeingEdited.Name = (string)oldValue;

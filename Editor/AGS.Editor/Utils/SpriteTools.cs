@@ -475,7 +475,7 @@ namespace AGS.Editor.Utils
 
             foreach (PropertyInfo property in properties)
             {
-                string token = String.Format("%{0}%", property.Name.ToLower());
+                string token = String.Format("%{0}%", property.Name.ToLowerInvariant());
                 object value = property.GetValue(obj);
                 replace.Add(token, value != null ? value.ToString() : "");
             }

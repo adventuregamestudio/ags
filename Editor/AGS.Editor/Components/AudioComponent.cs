@@ -461,7 +461,7 @@ namespace AGS.Editor.Components
         private string EnsureScriptNameIsUnique(string nameToTry, int truncateToLength = Int32.MaxValue)
         {
             nameToTry = AGS.Types.Utilities.RemoveInvalidCharactersFromScriptName(nameToTry);
-            nameToTry = "a" + Char.ToUpper(nameToTry[0]) + nameToTry.Substring(1);
+            nameToTry = "a" + Char.ToUpperInvariant(nameToTry[0]) + nameToTry.Substring(1);
             string tryThisTime = nameToTry.Length > truncateToLength ?
                 nameToTry.Substring(0, truncateToLength) : nameToTry;
             int suffix = 0;

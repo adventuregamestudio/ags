@@ -232,7 +232,7 @@ namespace AGS.Editor
         {
             foreach (Character character in _game.RootCharacterFolder.AllItemsFlat)
             {
-                if (character.ScriptName.ToLower() == characterName)
+                if (character.ScriptName.ToLowerInvariant() == characterName)
                 {
                     return character;
                 }
@@ -242,7 +242,7 @@ namespace AGS.Editor
 
         protected int FindCharacterIDForCharacter(string characterName)
         {
-            characterName = characterName.ToLower();
+            characterName = characterName.ToLowerInvariant();
 
             if (characterName == NARRATOR_NAME)
             {

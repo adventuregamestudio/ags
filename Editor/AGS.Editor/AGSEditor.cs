@@ -1302,13 +1302,13 @@ namespace AGS.Editor
 			{
 				if (!string.IsNullOrEmpty(view.Name))
 				{
-					if (viewNames.ContainsKey(view.Name.ToLower()))
+					if (viewNames.ContainsKey(view.Name.ToLowerInvariant()))
 					{
 						errors.Add(new CompileError("There are two or more views with the same name '" + view.Name + "'"));
 					}
 					else
 					{
-						viewNames.Add(view.Name.ToLower(), view);
+						viewNames.Add(view.Name.ToLowerInvariant(), view);
 					}
 				}
 			}

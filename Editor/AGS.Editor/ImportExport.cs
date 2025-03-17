@@ -870,7 +870,7 @@ namespace AGS.Editor
         {
             string scriptNameBase = view.Name; 
             int suffix = 0;
-            while (game.IsScriptNameAlreadyUsed(view.Name.ToUpper(), view))
+            while (game.IsScriptNameAlreadyUsed(view.Name.ToUpperInvariant(), view))
             {
                 suffix++;
                 view.Name = scriptNameBase + suffix;

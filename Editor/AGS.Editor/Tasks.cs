@@ -991,7 +991,7 @@ namespace AGS.Editor
             {
                 if (view.Name.Length > 0)
                 {
-                    sb.AppendLine("#define " + view.Name.ToUpper() + " " + view.ID);
+                    sb.AppendLine("#define " + view.Name.ToUpperInvariant() + " " + view.ID);
                 }
             }
 
@@ -1018,7 +1018,7 @@ namespace AGS.Editor
 
                     if (gui.Name.StartsWith("g"))
                     {
-                        string guiMacroName = gui.Name.Substring(1).ToUpper();
+                        string guiMacroName = gui.Name.Substring(1).ToUpperInvariant();
                         sb.AppendLine(string.Format("#define {0} FindGUIID(\"{1}\")", guiMacroName, guiMacroName));
                     }
 
@@ -1058,7 +1058,7 @@ namespace AGS.Editor
                     if (character.ScriptName.StartsWith("c") &&
                         (character.ScriptName.Length > 1))
                     {
-                        string macroName = character.ScriptName.Substring(1).ToUpper();
+                        string macroName = character.ScriptName.Substring(1).ToUpperInvariant();
                         // only create the legacy #define if it doesn't start with 0-9
                         // (eg. c500 would cause error)
                         if (!Char.IsDigit(macroName[0]))

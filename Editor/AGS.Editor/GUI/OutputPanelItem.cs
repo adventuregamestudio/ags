@@ -73,6 +73,9 @@ namespace AGS.Editor
 
         public virtual OutputItemAction[] GetActions()
         {
+            if (_message == null)
+                return new OutputItemAction[0];
+
             var actions = new List<OutputItemAction>();
             if (_message.LineNumber > 0 || (_message is CompileWarningWithFunction && !string.IsNullOrEmpty(((CompileWarningWithFunction)_message).FunctionName)))
             {

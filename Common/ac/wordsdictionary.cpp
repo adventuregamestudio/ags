@@ -18,7 +18,7 @@
 #include "util/stream.h"
 #include "util/string_compat.h"
 
-using AGS::Common::Stream;
+using namespace AGS::Common;
 
 WordsDictionary::WordsDictionary()
     : num_words(0)
@@ -107,24 +107,35 @@ void decrypt_text(char *toenc, size_t buf_sz) {
   }
 }
 
-void read_string_decrypt(Stream *in, char *buf, size_t buf_sz) {
-  size_t len = in->ReadInt32();
-  size_t slen = std::min(buf_sz - 1, len);
-  in->Read(buf, slen);
-  if (len > slen)
-      in->Seek(len - slen);
-  decrypt_text(buf, slen);
-  buf[slen] = 0;
+void read_string_decrypt(Stream *in, char *buf, size_t buf_sz)
+{
+    size_t len = in->ReadInt32();
+    size_t slen = std::min(buf_sz - 1, len);
+    in->Read(buf, slen);
+    if (len > slen)
+        in->Seek(len - slen);
+    decrypt_text(buf, slen);
+    buf[slen] = 0;
+}
+
+String read_string_decrypt(Stream *in, std::vector<char> &dec_buf)
+{
+    size_t len = in->ReadInt32();
+    dec_buf.resize(len + 1);
+    in->Read(dec_buf.data(), len);
+    decrypt_text(dec_buf.data(), len);
+    dec_buf.back() = 0; // null terminate in case read string does not have one
+    return String(dec_buf.data());
 }
 
 void read_dictionary (WordsDictionary *dict, Stream *out) {
   int ii;
 
-  dict->allocate_memory(out->ReadInt32());
+    dict->allocate_memory(out->ReadInt32());
   for (ii = 0; ii < dict->num_words; ii++) {
     read_string_decrypt (out, dict->word[ii], MAX_PARSER_WORD_LENGTH);
     dict->wordnum[ii] = out->ReadInt16();
-  }
+    }
 }
 
 #if defined (OBSOLETE)

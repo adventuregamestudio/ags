@@ -11,11 +11,11 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-
 #ifndef __AC_WORDSDICTIONARY_H
 #define __AC_WORDSDICTIONARY_H
 
 #include "core/types.h"
+#include "util/string.h"
 
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
@@ -41,7 +41,8 @@ extern const char *passwencstring;
 
 extern void decrypt_text(char *toenc, size_t buf_sz);
 extern void read_string_decrypt(Common::Stream *in, char *buf, size_t buf_sz);
-extern void read_dictionary (WordsDictionary *dict, Common::Stream *in);
+extern Common::String read_string_decrypt(Common::Stream *in);
+extern void read_dictionary(WordsDictionary *dict, Common::Stream *in);
 
 #if defined (OBSOLETE)
 // TODO: not a part of wordsdictionary, move to obsoletes

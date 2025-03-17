@@ -18,7 +18,7 @@
 #include "util/stream.h"
 #include "util/string_compat.h"
 
-using AGS::Common::Stream;
+using namespace AGS::Common;
 
 WordsDictionary::WordsDictionary()
     : num_words(0)
@@ -115,6 +115,16 @@ void read_string_decrypt(Stream *in, char *buf, size_t buf_sz) {
       in->Seek(len - slen);
   decrypt_text(buf, slen);
   buf[slen] = 0;
+}
+
+String read_string_decrypt(Stream *in)
+{
+    size_t len = in->ReadInt32();
+    std::vector<char> text(len + 1);
+    in->Read(text.data(), len);
+    decrypt_text(text.data(), len);
+    text.back() = 0;
+    return String(text.data());
 }
 
 void read_dictionary (WordsDictionary *dict, Stream *out) {

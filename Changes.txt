@@ -1,5 +1,19 @@
 REVISION HISTORY
 ================
+VERSION 3.6.0 - Patch 13, March 2025
+
+Editor:
+ - Fixed translation compiler mistreating escaped opening bracket in a text line ("\[");
+   it must keep it as-is, because "[" char is a old-style line break in AGS.
+
+Engine:
+ - Fixed loading translation entries larger than 1024 bytes.
+
+WinSetup:
+ - Fixed "Save and Run" command sometimes caused 2 engine processes, one of which terminated later.
+   This did not prevent a game from running, but could result in temporary CPU and memory overload.
+
+
 VERSION 3.6.0 - Patch 12, February 2025
 
 Engine:

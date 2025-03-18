@@ -54,6 +54,13 @@ namespace AGS.Editor
 
         public static void RemapBackground(Bitmap scene, bool exactPal, PaletteEntry[] gamePalette, out int colorsImage, out int colorsLimit)
         {
+            if (scene.Palette.Entries.Length == 0)
+            {
+                colorsImage = 0;
+                colorsLimit = 0;
+                return;
+            }
+
             ColorPalette palette = scene.Palette;
             /*
             // Unconditionally copy any Locked colors to the bitmap palette

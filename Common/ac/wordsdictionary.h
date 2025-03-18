@@ -14,6 +14,7 @@
 #ifndef __AC_WORDSDICTIONARY_H
 #define __AC_WORDSDICTIONARY_H
 
+#include <vector>
 #include "core/types.h"
 #include "util/string.h"
 
@@ -39,9 +40,13 @@ struct WordsDictionary {
 
 extern const char *passwencstring;
 
-extern void decrypt_text(char *toenc, size_t buf_sz);
+// Decrypts text found in the given buffer, writes back to the same buffer
+extern void decrypt_text(char *buf, size_t buf_sz);
+// Reads an encrypted string from the stream and decrypts into the provided buffer
 extern void read_string_decrypt(Common::Stream *in, char *buf, size_t buf_sz);
-extern Common::String read_string_decrypt(Common::Stream *in);
+// Reads an encrypted string from the stream and returns as a string;
+// uses provided vector as a temporary decryption buffer (avoid extra allocs)
+extern Common::String read_string_decrypt(Common::Stream *in, std::vector<char> &dec_buf);
 extern void read_dictionary(WordsDictionary *dict, Common::Stream *in);
 
 #if defined (OBSOLETE)

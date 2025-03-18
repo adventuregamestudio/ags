@@ -76,11 +76,12 @@ HError ReadTraBlock(Translation &tra, Stream *in, TraFileBlock block, const Stri
     {
     case kTraFblk_Dict:
         {
+            std::vector<char> buf;
             // Read lines until we find zero-length key & value
             while (true)
             {
-                String src_line = read_string_decrypt(in);
-                String dst_line = read_string_decrypt(in);
+                String src_line = read_string_decrypt(in, buf);
+                String dst_line = read_string_decrypt(in, buf);
                 if (src_line.IsEmpty() || dst_line.IsEmpty())
                     break;
                 tra.Dict.insert(std::make_pair(src_line, dst_line));

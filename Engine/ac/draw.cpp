@@ -402,9 +402,11 @@ IDriverDependantBitmap* roomBackgroundBmp = nullptr;
 bool current_background_is_dirty = false;
 
 
-// Buffer and info flags for viewport/camera pairs rendering in software mode
+// Buffer and info flags for viewport/camera pairs rendering;
+// Hardware and software modes use different members of this struct
 struct RoomCameraDrawData
 {
+    IDriverDependantBitmap *VpRenderTarget = nullptr;
     // Intermediate bitmap for the software drawing method.
     // We use this bitmap in case room camera has scaling enabled, we draw dirty room rects on it,
     // and then pass to software renderer which draws sprite on top and then either blits or stretch-blits
@@ -412,9 +414,18 @@ struct RoomCameraDrawData
     // For more details see comment in ALSoftwareGraphicsDriver::RenderToBackBuffer().
     PBitmap Buffer;      // this is the actual bitmap
     PBitmap Frame;       // this is either same bitmap reference or sub-bitmap of virtual screen
-    bool    IsOffscreen; // whether room viewport was offscreen (cannot use sub-bitmap)
-    bool    IsOverlap;   // whether room viewport overlaps any others (marking dirty rects is complicated)
+    bool    IsOffscreen = false; // whether room viewport was offscreen (cannot use sub-bitmap)
+    bool    IsOverlap = false; // whether room viewport overlaps any others (marking dirty rects is complicated)
+
+    ~RoomCameraDrawData();
 };
+
+RoomCameraDrawData::~RoomCameraDrawData()
+{
+    if (VpRenderTarget)
+        gfxDriver->DestroyDDB(VpRenderTarget);
+}
+
 std::vector<RoomCameraDrawData> CameraDrawData;
 
 
@@ -753,11 +764,16 @@ void clear_drawobj_cache()
 
 void release_drawobj_rendertargets()
 {
-    if ((gui_render_tex.size() == 0) ||
-        !gfxDriver->ShouldReleaseRenderTargets())
+    if (!gfxDriver->ShouldReleaseRenderTargets())
         return;
 
     gfxDriver->ClearDrawLists(); // force clear to ensure nothing stays cached
+    for (auto &camdata : CameraDrawData)
+    {
+        if (camdata.VpRenderTarget)
+            gfxDriver->DestroyDDB(camdata.VpRenderTarget);
+        camdata.VpRenderTarget = nullptr;
+    }
     for (auto &tex : gui_render_tex)
     {
         if (tex)
@@ -845,19 +861,19 @@ void init_room_drawdata()
     debug_draw_room_mask(debugRoomMask);
     debug_draw_movelist(debugMoveListChar);
 
-    // Following data is only updated for software renderer
-    if (drawstate.FullFrameRedraw)
-        return;
-    // Make sure all frame buffers are created for software drawing
-    int view_count = play.GetRoomViewportCount();
+    const int view_count = play.GetRoomViewportCount();
     CameraDrawData.resize(view_count);
-    for (int i = 0; i < play.GetRoomViewportCount(); ++i)
-        sync_roomview(play.GetRoomViewport(i).get());
+    if (!drawstate.FullFrameRedraw)
+    {
+        // Make sure camera frame buffers are created for software drawing
+        for (int i = 0; i < view_count; ++i)
+            sync_roomview(play.GetRoomViewport(i).get());
+    }
 }
 
 void on_roomviewport_created(int index)
 {
-    if (drawstate.FullFrameRedraw || (displayed_room < 0))
+    if (displayed_room < 0)
         return;
     if ((size_t)index < CameraDrawData.size())
         return;
@@ -866,7 +882,7 @@ void on_roomviewport_created(int index)
 
 void on_roomviewport_deleted(int index)
 {
-    if (drawstate.FullFrameRedraw || (displayed_room < 0))
+    if (displayed_room < 0)
         return;
     CameraDrawData.erase(CameraDrawData.begin() + index);
     delete_invalid_regions(index);
@@ -874,6 +890,7 @@ void on_roomviewport_deleted(int index)
 
 void on_roomviewport_changed(Viewport *view)
 {
+    // Following update is only interesting for the software renderer
     if (drawstate.FullFrameRedraw || (displayed_room < 0))
         return;
     if (!view->IsVisible() || view->GetCamera() == nullptr)
@@ -893,6 +910,7 @@ void on_roomviewport_changed(Viewport *view)
 
 void detect_roomviewport_overlaps(size_t z_index)
 {
+    // Following update is only interesting for the software renderer
     if (drawstate.FullFrameRedraw || (displayed_room < 0))
         return;
     // Find out if we overlap or are overlapped by anything;
@@ -922,6 +940,7 @@ void detect_roomviewport_overlaps(size_t z_index)
 
 void on_roomcamera_changed(Camera *cam)
 {
+    // Following update is only interesting for the software renderer
     if (drawstate.FullFrameRedraw || (displayed_room < 0))
         return;
     if (cam->HasChangedSize())
@@ -2622,29 +2641,43 @@ static void construct_room_view()
         const Rect &cam_rc = camera->GetRect();
         const float view_sx = (float)view_rc.GetWidth() / (float)cam_rc.GetWidth();
         const float view_sy = (float)view_rc.GetHeight() / (float)cam_rc.GetHeight();
-        const SpriteTransform view_trans(view_rc.Left, view_rc.Top, view_sx, view_sy);
         const SpriteTransform cam_trans(-cam_rc.Left, -cam_rc.Top, 1.f, 1.f,
             camera->GetRotation(), Point(cam_rc.GetWidth() / 2, cam_rc.GetHeight() / 2));
 
+        assert(viewport->GetID() < CameraDrawData.size());
+
         if (drawstate.FullFrameRedraw)
         {
+            const Rect view_p = RectWH(0, 0, view_rc.GetWidth(), view_rc.GetHeight());
+            const SpriteTransform view_trans(0, 0, view_sx, view_sy);
+
+            auto &cam_data = CameraDrawData[viewport->GetID()];
+            cam_data.VpRenderTarget = recycle_render_target(cam_data.VpRenderTarget,
+                view_rc.GetWidth(), view_rc.GetHeight(), game.GetColorDepth());
             // For hw renderer we draw everything as a sprite stack;
             // viewport-camera pair is done as 2 nested scene nodes,
             // where first defines how camera's image translates into the viewport on screen,
             // and second - how room's image translates into the camera.
-            gfxDriver->BeginSpriteBatch(view_rc, view_trans, RENDER_BATCH_ROOM_LAYER);
+            gfxDriver->BeginSpriteBatch(cam_data.VpRenderTarget, view_p, view_trans, kFlip_None, RENDER_BATCH_ROOM_LAYER);
             gfxDriver->BeginSpriteBatch(Rect(), cam_trans);
             gfxDriver->SetStageScreen(cam_rc.GetSize(), cam_rc.Left, cam_rc.Top);
+            // Put all the accumulated room sprites onto the viewport texture
             put_sprite_list_on_screen(true);
             gfxDriver->EndSpriteBatch();
             gfxDriver->EndSpriteBatch();
+
+            // Now render the viewport texture itself
+            gfxDriver->DrawSprite(view_rc.Left, view_rc.Top, cam_data.VpRenderTarget);
         }
         else
         {
+            const Rect view_p = view_rc;
+            const SpriteTransform view_trans(view_rc.Left, view_rc.Top, view_sx, view_sy);
+
             // For software renderer - combine viewport and camera in one batch,
             // due to how the room drawing is implemented currently in the software mode.
             // TODO: review this later?
-            gfxDriver->BeginSpriteBatch(view_rc, view_trans, RENDER_BATCH_ROOM_LAYER);
+            gfxDriver->BeginSpriteBatch(view_p, view_trans, RENDER_BATCH_ROOM_LAYER);
 
             if (CameraDrawData[viewport->GetID()].Frame == nullptr && CameraDrawData[viewport->GetID()].IsOverlap)
             { // room background is prepended to the sprite stack

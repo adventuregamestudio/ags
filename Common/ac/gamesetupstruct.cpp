@@ -197,28 +197,20 @@ void GameSetupStruct::read_lipsync(Common::Stream *in, GameDataVersion data_ver)
 void GameSetupStruct::read_messages(Common::Stream *in,
     const std::array<int, MAXGLOBALMES> &load_messages, GameDataVersion data_ver)
 {
-    char mbuf[GLOBALMESLENGTH];
+    std::vector<char> mbuf(GLOBALMESLENGTH + 1);
     for (int i = 0; i < MAXGLOBALMES; ++i)
     {
         if (!load_messages[i])
             continue;
         if (data_ver < kGameVersion_261) // Global messages are not encrypted on < 2.61
         {
-            char* nextchar = mbuf;
-            // TODO: probably this is same as fgetstring
-            while (1)
-            {
-                *nextchar = in->ReadInt8();
-                if (*nextchar == 0)
-                    break;
-                nextchar++;
-            }
+            StrUtil::ReadCStr(mbuf.data(), in, GLOBALMESLENGTH + 1);
+            messages[i] = mbuf.data();
         }
         else
         {
-            read_string_decrypt(in, mbuf, GLOBALMESLENGTH);
+            messages[i] = read_string_decrypt(in, mbuf);
         }
-        messages[i] = mbuf;
     }
 }
 

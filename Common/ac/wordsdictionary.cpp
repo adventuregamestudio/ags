@@ -18,7 +18,7 @@
 #include "util/stream.h"
 #include "util/string_compat.h"
 
-using AGS::Common::Stream;
+using namespace AGS::Common;
 
 WordsDictionary::WordsDictionary()
     : num_words(0)
@@ -90,41 +90,60 @@ int WordsDictionary::find_index (const char*wrem) {
 
 const char *passwencstring = "Avis Durgan";
 
-void decrypt_text(char *toenc, size_t buf_sz) {
-  int adx = 0;
-  const char *p_end = toenc + buf_sz;
+void decrypt_text(char *buf, size_t buf_sz)
+{
+    int adx = 0;
+    const char *p_end = buf + buf_sz;
 
-  while (toenc < p_end) {
-    toenc[0] -= passwencstring[adx];
-    if (toenc[0] == 0)
-      break;
+    while (buf < p_end)
+    {
+        *buf -= passwencstring[adx];
+        if (*buf == 0)
+            break;
 
-    adx++;
-    toenc++;
+        adx++;
+        buf++;
 
-    if (adx > 10)
-      adx = 0;
-  }
+        if (adx > 10)
+            adx = 0;
+    }
 }
 
-void read_string_decrypt(Stream *in, char *buf, size_t buf_sz) {
-  size_t len = in->ReadInt32();
-  size_t slen = std::min(buf_sz - 1, len);
-  in->Read(buf, slen);
-  if (len > slen)
-      in->Seek(len - slen);
-  decrypt_text(buf, slen);
-  buf[slen] = 0;
+void read_string_decrypt(Stream *in, char *buf, size_t buf_sz)
+{
+    size_t len = in->ReadInt32();
+    size_t slen = std::min(buf_sz - 1, len);
+    in->Read(buf, slen);
+    if (len > slen)
+        in->Seek(len - slen);
+    decrypt_text(buf, slen);
+    buf[slen] = 0;
 }
 
-void read_dictionary (WordsDictionary *dict, Stream *out) {
-  int ii;
+Common::String read_string_decrypt(Common::Stream *in)
+{
+    std::vector<char> dec_buf;
+    return read_string_decrypt(in, dec_buf);
+}
 
-  dict->allocate_memory(out->ReadInt32());
-  for (ii = 0; ii < dict->num_words; ii++) {
-    read_string_decrypt (out, dict->word[ii], MAX_PARSER_WORD_LENGTH);
-    dict->wordnum[ii] = out->ReadInt16();
-  }
+String read_string_decrypt(Stream *in, std::vector<char> &dec_buf)
+{
+    size_t len = in->ReadInt32();
+    dec_buf.resize(len + 1);
+    in->Read(dec_buf.data(), len);
+    decrypt_text(dec_buf.data(), len);
+    dec_buf.back() = 0; // null terminate in case read string does not have one
+    return String(dec_buf.data());
+}
+
+void read_dictionary(WordsDictionary *dict, Stream *out)
+{
+    dict->allocate_memory(out->ReadInt32());
+    for (int i = 0; i < dict->num_words; ++i)
+    {
+        read_string_decrypt(out, dict->word[i], MAX_PARSER_WORD_LENGTH);
+        dict->wordnum[i] = out->ReadInt16();
+    }
 }
 
 #if defined (OBSOLETE)

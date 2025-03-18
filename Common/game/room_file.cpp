@@ -273,14 +273,18 @@ HError ReadMainBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
         }
     }
 
-    char buffer[3000];
+    std::vector<char> mbuf(MAX_MESSAGE_PRE261_LEN + 1);
     for (size_t i = 0; i < room->MessageCount; ++i)
     {
-        if (data_ver >= kRoomVersion_261)
-            read_string_decrypt(in, buffer, sizeof(buffer));
+        if (data_ver < kRoomVersion_261) // Room messages are not encrypted on < 2.61
+        {
+            StrUtil::ReadCStr(mbuf.data(), in, MAX_MESSAGE_PRE261_LEN + 1);
+            room->Messages[i] = mbuf.data();
+        }
         else
-            StrUtil::ReadCStr(buffer, in, sizeof(buffer));
-        room->Messages[i] = buffer;
+        {
+            room->Messages[i] = read_string_decrypt(in, mbuf);
+        }
     }
 
     // Very old format legacy room animations (FullAnimation)

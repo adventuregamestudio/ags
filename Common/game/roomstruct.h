@@ -101,6 +101,8 @@ enum RoomFlags
 #define MAX_WALK_BEHINDS   16
 
 #define MAX_MESSAGES       100
+// Max length of a serialized room message prior to 2.61
+#define MAX_MESSAGE_PRE261_LEN 3000
 
 
 namespace AGS

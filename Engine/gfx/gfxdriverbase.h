@@ -252,6 +252,8 @@ struct VMSpriteBatch
     glm::mat4 ViewportMat;
     // Batch color transformation
     SpriteColorTransform Color;
+    // A flag telling to skip this batch fully (used in case associated resources are gone)
+    bool Skip = false;
 
     VMSpriteBatch() = default;
     VMSpriteBatch(uint32_t id, const Rect &view, const glm::mat4 &matrix,

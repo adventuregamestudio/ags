@@ -1394,6 +1394,12 @@ void OGLGraphicsDriver::RenderSpriteBatches()
 size_t OGLGraphicsDriver::RenderSpriteBatch(const OGLSpriteBatch &batch, size_t from,
     const glm::mat4 &projection, const Size &surface_size)
 {
+    if (batch.Skip)
+    {
+        for (; (from < _spriteList.size()) && (_spriteList[from].node == batch.ID); ++from);
+        return from;
+    }
+
     for (; (from < _spriteList.size()) && (_spriteList[from].node == batch.ID); ++from)
     {
         const auto &e = _spriteList[from];
@@ -1568,6 +1574,7 @@ void OGLGraphicsDriver::DestroyDDB(IDriverDependantBitmap* ddb)
             {
                 backup_rt.RenderTarget = nullptr;
                 backup_rt.Fbo = 0u;
+                backup_rt.Skip = true;
             }
         }
     }

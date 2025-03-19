@@ -406,7 +406,7 @@ bool current_background_is_dirty = false;
 // Hardware and software modes use different members of this struct
 struct RoomCameraDrawData
 {
-    IDriverDependantBitmap *VpRenderTarget = nullptr;
+    IDriverDependantBitmap *CamRenderTarget = nullptr;
     // Intermediate bitmap for the software drawing method.
     // We use this bitmap in case room camera has scaling enabled, we draw dirty room rects on it,
     // and then pass to software renderer which draws sprite on top and then either blits or stretch-blits
@@ -422,8 +422,8 @@ struct RoomCameraDrawData
 
 RoomCameraDrawData::~RoomCameraDrawData()
 {
-    if (VpRenderTarget)
-        gfxDriver->DestroyDDB(VpRenderTarget);
+    if (CamRenderTarget)
+        gfxDriver->DestroyDDB(CamRenderTarget);
 }
 
 std::vector<RoomCameraDrawData> CameraDrawData;
@@ -770,9 +770,9 @@ void release_drawobj_rendertargets()
     gfxDriver->ClearDrawLists(); // force clear to ensure nothing stays cached
     for (auto &camdata : CameraDrawData)
     {
-        if (camdata.VpRenderTarget)
-            gfxDriver->DestroyDDB(camdata.VpRenderTarget);
-        camdata.VpRenderTarget = nullptr;
+        if (camdata.CamRenderTarget)
+            gfxDriver->DestroyDDB(camdata.CamRenderTarget);
+        camdata.CamRenderTarget = nullptr;
     }
     for (auto &tex : gui_render_tex)
     {
@@ -885,7 +885,8 @@ void on_roomviewport_deleted(int index)
     if (displayed_room < 0)
         return;
     CameraDrawData.erase(CameraDrawData.begin() + index);
-    delete_invalid_regions(index);
+    if (!drawstate.FullFrameRedraw)
+        delete_invalid_regions(index);
 }
 
 void on_roomviewport_changed(Viewport *view)
@@ -2637,42 +2638,36 @@ static void construct_room_view()
         if (!camera)
             continue;
 
+        assert(viewport->GetID() < CameraDrawData.size());
         const Rect &view_rc = viewport->GetRect();
         const Rect &cam_rc = camera->GetRect();
-        const float view_sx = (float)view_rc.GetWidth() / (float)cam_rc.GetWidth();
-        const float view_sy = (float)view_rc.GetHeight() / (float)cam_rc.GetHeight();
-        const SpriteTransform cam_trans(-cam_rc.Left, -cam_rc.Top, 1.f, 1.f,
-            camera->GetRotation(), Point(cam_rc.GetWidth() / 2, cam_rc.GetHeight() / 2));
-
-        assert(viewport->GetID() < CameraDrawData.size());
 
         if (drawstate.FullFrameRedraw)
         {
-            const Rect view_p = RectWH(0, 0, view_rc.GetWidth(), view_rc.GetHeight());
-            const SpriteTransform view_trans(0, 0, view_sx, view_sy);
+            const SpriteTransform cam_trans(-cam_rc.Left, -cam_rc.Top, 1.f, 1.f,
+                camera->GetRotation(), Point(cam_rc.GetWidth() / 2, cam_rc.GetHeight() / 2));
 
             auto &cam_data = CameraDrawData[viewport->GetID()];
-            cam_data.VpRenderTarget = recycle_render_target(cam_data.VpRenderTarget,
-                view_rc.GetWidth(), view_rc.GetHeight(), game.GetColorDepth());
-            // For hw renderer we draw everything as a sprite stack;
-            // viewport-camera pair is done as 2 nested scene nodes,
-            // where first defines how camera's image translates into the viewport on screen,
-            // and second - how room's image translates into the camera.
-            gfxDriver->BeginSpriteBatch(cam_data.VpRenderTarget, view_p, view_trans, kFlip_None, RENDER_BATCH_ROOM_LAYER);
-            gfxDriver->BeginSpriteBatch(Rect(), cam_trans);
+            cam_data.CamRenderTarget = recycle_render_target(cam_data.CamRenderTarget,
+                cam_rc.GetWidth(), cam_rc.GetHeight(), game.GetColorDepth());
+            gfxDriver->BeginSpriteBatch(cam_data.CamRenderTarget, Rect(), cam_trans, kFlip_None, RENDER_BATCH_ROOM_LAYER);
             gfxDriver->SetStageScreen(cam_rc.GetSize(), cam_rc.Left, cam_rc.Top);
             // Put all the accumulated room sprites onto the viewport texture
             put_sprite_list_on_screen(true);
             gfxDriver->EndSpriteBatch();
-            gfxDriver->EndSpriteBatch();
 
-            // Now render the viewport texture itself
-            gfxDriver->DrawSprite(view_rc.Left, view_rc.Top, cam_data.VpRenderTarget);
+            // Now render the camera texture itself, scaling to the viewport size
+            cam_data.CamRenderTarget->SetStretch(view_rc.GetWidth(), view_rc.GetHeight());
+            gfxDriver->DrawSprite(view_rc.Left, view_rc.Top, cam_data.CamRenderTarget);
         }
         else
         {
             const Rect view_p = view_rc;
+            const float view_sx = (float)view_rc.GetWidth() / (float)cam_rc.GetWidth();
+            const float view_sy = (float)view_rc.GetHeight() / (float)cam_rc.GetHeight();
             const SpriteTransform view_trans(view_rc.Left, view_rc.Top, view_sx, view_sy);
+            const SpriteTransform cam_trans(-cam_rc.Left, -cam_rc.Top, 1.f, 1.f,
+                camera->GetRotation(), Point(cam_rc.GetWidth() / 2, cam_rc.GetHeight() / 2));
 
             // For software renderer - combine viewport and camera in one batch,
             // due to how the room drawing is implemented currently in the software mode.

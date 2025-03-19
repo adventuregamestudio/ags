@@ -1610,6 +1610,12 @@ void D3DGraphicsDriver::RenderSpriteBatches()
 
 size_t D3DGraphicsDriver::RenderSpriteBatch(const D3DSpriteBatch &batch, size_t from, const Size &rend_sz)
 {
+    if (batch.Skip)
+    {
+        for (; (from < _spriteList.size()) && (_spriteList[from].node == batch.ID); ++from);
+        return from;
+    }
+
     for (; (from < _spriteList.size()) && (_spriteList[from].node == batch.ID); ++from)
     {
         const auto &e = _spriteList[from];
@@ -1791,6 +1797,7 @@ void D3DGraphicsDriver::DestroyDDB(IDriverDependantBitmap* ddb)
             {
                 backup_rt.RenderTarget = nullptr;
                 backup_rt.RenderSurface = nullptr;
+                backup_rt.Skip = true;
             }
         }
     }

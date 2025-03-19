@@ -120,7 +120,10 @@ void CharacterInfo::ReadFromFile(Stream *in, GameDataVersion data_ver)
     name.ReadCount(in, LEGACY_MAX_CHAR_NAME_LEN);
     scrname.ReadCount(in, LEGACY_MAX_SCRIPT_NAME_LEN);
     uint8_t on = in->ReadInt8(); // old enabled + visible flag
-    flags |= (CHF_ENABLED | CHF_VISIBLE) * on;
+    // Only treat "on" as a visible flag, otherwise it breaks game logic
+    // when reading older games (i.e. to make character visible you must turn
+    // both enabled and visible properties).
+    flags |= (CHF_VISIBLE) * on;
     in->ReadInt8(); // alignment padding to int32
 }
 
@@ -146,8 +149,17 @@ void CharacterInfo::ReadFromSavegame(Stream *in, CharacterSvgVersion save_ver)
     {
         name = StrUtil::ReadString(in);
     }
-    uint8_t on = in->ReadInt8(); // old enabled + visible flag
-    flags |= (CHF_ENABLED | CHF_VISIBLE) * on;
+
+    if (save_ver >= kCharSvgVersion_400_03)
+    {
+        in->ReadInt8(); // [OBSOLETE] old enabled + visible flag
+    }
+    else
+    {
+        uint8_t on = in->ReadInt8(); // old enabled + visible flag
+        // Only treat "on" as visible and make characters from old saves all enabled
+        flags |= CHF_ENABLED | (CHF_VISIBLE) * on;
+    }
 
     //
     // Upgrade restored data

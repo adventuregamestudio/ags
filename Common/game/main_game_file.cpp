@@ -398,6 +398,17 @@ void UpgradeCharacters(GameSetupStruct &game, GameDataVersion data_ver)
         }
     }
 
+    // For characters loaded from an older game, mark everything as
+    // Enabled, because there's no good way to distinct if it was
+    // disabled or only made invisible by setting "on" property.
+    if (data_ver < kGameVersion_400)
+    {
+        for (int i = 0; i < char_count; i++)
+        {
+            chars[i].set_enabled(true);
+        }
+    }
+
     // 32-bit color properties
     if (data_ver < kGameVersion_400_09)
     {

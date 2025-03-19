@@ -61,7 +61,10 @@ void ReadRoomObjectBase(RoomObjectInfo &obj, Stream *in)
     obj.Y = in->ReadInt16();
     obj.Room = in->ReadInt16();
     uint16_t on = in->ReadInt16();
-    obj.Flags |= (OBJF_ENABLED | OBJF_VISIBLE) * on;
+    // Only treat "on" as a visible flag, otherwise it breaks game logic
+    // when reading older rooms (i.e. to make object visible you must turn
+    // both enabled and visible properties).
+    obj.Flags |= (OBJF_VISIBLE) * on;
 }
 
 // Write base room object's fields
@@ -502,6 +505,17 @@ HRoomFileError ReadRoomData(RoomStruct *room, std::unique_ptr<Stream> &&in, Room
 
 HRoomFileError UpdateRoomData(RoomStruct *room, RoomFileVersion data_ver, const std::vector<SpriteInfo> &sprinfos)
 {
+    // For objects loaded from an older room, mark everything as
+    // Enabled, because there's no good way to distinct if it was
+    // disabled or only made invisible by setting "on" property.
+    if (data_ver < kRoomVersion_400)
+    {
+        for (auto &obj : room->Objects)
+        {
+            obj.Flags |= OBJF_ENABLED;
+        }
+    }
+
     // if they set a continiously scaled area where the top
     // and bottom zoom levels are identical, set it as a normal
     // scaled area

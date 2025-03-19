@@ -161,7 +161,8 @@ void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
     {
         uint8_t on = in->ReadInt8(); // old enabled + visible flag
         flags = in->ReadInt8();
-        flags |= (OBJF_ENABLED | OBJF_VISIBLE) * on;
+        // Only treat "on" as visible and make objects from old saves all enabled
+        flags |= OBJF_ENABLED | (OBJF_VISIBLE) * on;
     }
 
     blocking_width = in->ReadInt16();

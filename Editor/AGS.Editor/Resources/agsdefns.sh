@@ -1604,6 +1604,10 @@ import void PlayVideo(const string filename, VideoSkipStyle, int flags);
 /// Sets an ambient light level that affects all objects and characters in the room.
 import void SetAmbientLightLevel(int light_level);
 #endif // SCRIPT_API_v340
+#ifdef SCRIPT_API_v362
+/// Gets the baseline of the specified walk-behind area.
+import int GetWalkBehindBase(int area);
+#endif // SCRIPT_API_v362
 
 #ifndef STRICT_AUDIO
 // **** OLD MUSIC/SOUND FUNCTIONS ****

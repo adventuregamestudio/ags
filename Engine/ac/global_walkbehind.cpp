@@ -22,13 +22,29 @@
 
 extern RoomStatus*croom;
 
-void SetWalkBehindBase(int wa,int bl) {
-  if ((wa < 1) || (wa >= MAX_WALK_BEHINDS))
-    quit("!SetWalkBehindBase: invalid walk-behind area specified");
+void SetWalkBehindBase(int wa,int bl)
+{
+    if ((wa < 1) || (wa >= MAX_WALK_BEHINDS))
+    {
+        debug_script_warn("SetWalkBehindBase: invalid walk-behind area specified: %d, range is 1..%d", wa, MAX_WALK_BEHINDS - 1);
+        return;
+    }
 
-  if (bl != croom->walkbehind_base[wa]) {
-    walk_behind_baselines_changed = 1;
-    croom->walkbehind_base[wa] = bl;
-    debug_script_log("Walk-behind %d baseline changed to %d", wa, bl);
-  }
+    if (bl != croom->walkbehind_base[wa])
+    {
+        walk_behind_baselines_changed = 1;
+        croom->walkbehind_base[wa] = bl;
+        debug_script_log("Walk-behind %d baseline changed to %d", wa, bl);
+    }
+}
+
+int GetWalkBehindBase(int wa)
+{
+    if ((wa < 1) || (wa >= MAX_WALK_BEHINDS))
+    {
+        debug_script_warn("SetWalkBehindBase: invalid walk-behind area specified: %d, range is 1..%d", wa, MAX_WALK_BEHINDS - 1);
+        return 0;
+    }
+
+    return croom->walkbehind_base[wa];
 }

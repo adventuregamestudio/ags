@@ -838,6 +838,11 @@ RuntimeScriptValue Sc_GetWalkableAreaAtScreen(const RuntimeScriptValue *params, 
     API_SCALL_INT_PINT2(GetWalkableAreaAtScreen);
 }
 
+RuntimeScriptValue Sc_GetWalkBehindBase(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_PINT(GetWalkBehindBase);
+}
+
 RuntimeScriptValue Sc_GetDrawingSurfaceForWalkableArea(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_OBJAUTO(ScriptDrawingSurface, GetDrawingSurfaceForWalkableArea);
@@ -2484,6 +2489,7 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "GetWalkableAreaAtRoom",    API_FN_PAIR(GetWalkableAreaAtRoom) },
         { "GetWalkableAreaAt",        API_FN_PAIR(GetWalkableAreaAtScreen) },
         { "GetWalkableAreaAtScreen",  API_FN_PAIR(GetWalkableAreaAtScreen) },
+        { "GetWalkBehindBase",        API_FN_PAIR(GetWalkBehindBase) },
         { "GetDrawingSurfaceForWalkableArea", API_FN_PAIR(GetDrawingSurfaceForWalkableArea) },
         { "GetDrawingSurfaceForWalkbehind", API_FN_PAIR(GetDrawingSurfaceForWalkbehind) },
         { "GiveScore",                API_FN_PAIR(GiveScore) },

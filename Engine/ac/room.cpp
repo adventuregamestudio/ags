@@ -1129,27 +1129,27 @@ RuntimeScriptValue Sc_Room_NearestWalkableArea(const RuntimeScriptValue *params,
     API_SCALL_OBJAUTO_PINT2(ScriptUserObject, Room_NearestWalkableArea);
 }
 
-RuntimeScriptValue Sc_Room_GetiHotspots(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Room_GetiHotspots(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_OBJ_PINT(ScriptHotspot, ccDynamicHotspot, Room_GetiHotspots);
 }
 
-RuntimeScriptValue Sc_Room_GetiObjects(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Room_GetiObjects(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_OBJ_PINT(ScriptObject, ccDynamicObject, Room_GetiObjects);
 }
 
-RuntimeScriptValue Sc_Room_GetiRegions(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Room_GetiRegions(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_OBJ_PINT(ScriptRegion, ccDynamicRegion, Room_GetiRegions);
 }
 
-RuntimeScriptValue Sc_Room_GetiWalkableAreas(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Room_GetiWalkableAreas(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_OBJ_PINT(ScriptWalkableArea, ccDynamicWalkarea, Room_GetiWalkableAreas);
 }
 
-RuntimeScriptValue Sc_Room_GetiWalkbehinds(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Room_GetiWalkbehinds(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_OBJ_PINT(ScriptWalkbehind, ccDynamicWalkbehind, Room_GetiWalkbehinds);
 }

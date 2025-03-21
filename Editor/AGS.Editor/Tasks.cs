@@ -543,8 +543,8 @@ namespace AGS.Editor
                 game.Settings.ScaleCharacterSpriteOffsets = false;
             }
 
-            if (xmlVersionIndex < 3060200)
-            {
+            if (xmlVersionIndex < 3060200 || (xmlVersionIndex > 3999900 && xmlVersionIndex < 4000010))
+                {
                 game.Settings.UseOldVoiceClipNaming = true;
             }
 

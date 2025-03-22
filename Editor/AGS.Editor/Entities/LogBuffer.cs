@@ -133,7 +133,7 @@ namespace AGS.Editor
         public void SetLogLevel(LogGroup group, LogLevel level)
         {
             int i = 0;
-            for(; i<(int)level + 1; i++)
+            for (; i<(int)level + 1; i++)
             {
                 SetFilterArr(group, i, true);
             }
@@ -141,6 +141,7 @@ namespace AGS.Editor
             {
                 SetFilterArr(group, i, false);
             }
+            _modified = true;
             _notifyReset = true;
             DebounceChange();
         }
@@ -166,7 +167,7 @@ namespace AGS.Editor
 
         private void elapse(object sender, ElapsedEventArgs e)
         {
-            if(_modified)
+            if (_modified)
             {
                 _modified = false;
                 RaiseEventBufferChanged();
@@ -175,7 +176,7 @@ namespace AGS.Editor
 
         private void DebounceChange()
         {
-            if(_debounceTimer != null)
+            if (_debounceTimer != null)
             {
                 _debounceTimer.Enabled = false;
                 _debounceTimer.Stop();

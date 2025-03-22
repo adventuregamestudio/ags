@@ -24,6 +24,7 @@
 #include "ac/properties.h"
 #include "ac/string.h"
 #include "ac/dynobj/cc_inventory.h"
+#include "debug/debug_log.h"
 #include "gui/guimain.h"
 #include "gui/guiinv.h"
 #include "script/script.h"
@@ -38,10 +39,21 @@ extern CharacterInfo*playerchar;
 extern ScriptInvItem scrInv[MAX_INV];
 extern CCInventory ccDynamicInv;
 
+bool ValidateInventoryItem(const char *api_name, int invitem)
+{
+    // Inventory Item 0 is a "dummy" slot in AGS historically (idk why)
+    if ((invitem < 1) || (invitem >= game.numinvitems))
+    {
+        debug_script_warn("%s: invalid inventory item specified, id %d, valid range is 1..%d", invitem, game.numinvitems - 1);
+        return false;
+    }
+    return true;
+}
 
-void set_inv_item_pic(int invi, int piccy) {
-    if ((invi < 1) || (invi > game.numinvitems))
-        quit("!SetInvItemPic: invalid inventory item specified");
+void set_inv_item_pic(int invi, int piccy)
+{
+    if (!ValidateInventoryItem("SetInvItemPic", invi))
+        return;
 
     if (game.invinfo[invi].pic == piccy)
         return;
@@ -57,9 +69,10 @@ void set_inv_item_pic(int invi, int piccy) {
     GUI::MarkInventoryForUpdate(-1, false);
 }
 
-void SetInvItemName(int invi, const char *newName) {
-    if ((invi < 1) || (invi > game.numinvitems))
-        quit("!SetInvName: invalid inventory item specified");
+void SetInvItemName(int invi, const char *newName)
+{
+    if (!ValidateInventoryItem("SetInvName", invi))
+        return;
 
     game.invinfo[invi].name = newName;
     // might need to redraw the GUI if it has the inv item name on it
@@ -82,21 +95,26 @@ int GetInvAt(int atx, int aty) {
   return -1;
 }
 
-void GetInvName(int indx,char*buff) {
-  VALIDATE_STRING(buff);
-  if ((indx<0) | (indx>=game.numinvitems)) quit("!GetInvName: invalid inventory item specified");
-  snprintf(buff, MAX_MAXSTRLEN, "%s", get_translation(game.invinfo[indx].name.GetCStr()));
+void GetInvName(int indx, char*buff)
+{
+    VALIDATE_STRING(buff);
+    if (!ValidateInventoryItem("GetInvName", indx))
+        return;
+    snprintf(buff, MAX_MAXSTRLEN, "%s", get_translation(game.invinfo[indx].name.GetCStr()));
 }
 
-int GetInvGraphic(int indx) {
-  if ((indx<0) | (indx>=game.numinvitems)) quit("!GetInvGraphic: invalid inventory item specified");
+int GetInvGraphic(int indx)
+{
+    if (!ValidateInventoryItem("GetInvGraphic", indx))
+        return 0;
 
-  return game.invinfo[indx].pic;
+    return game.invinfo[indx].pic;
 }
 
-void RunInventoryInteraction (int iit, int mood) {
-    if ((iit < 0) || (iit >= game.numinvitems))
-        quit("!RunInventoryInteraction: invalid inventory number");
+void RunInventoryInteraction (int iit, int mood)
+{
+    if (!ValidateInventoryItem("RunInventoryInteraction", iit))
+        return;
 
     // convert cursor mode to event index (in inventoryitem event table)
     // TODO: probably move this conversion table elsewhere? should be a global info
@@ -132,27 +150,34 @@ void RunInventoryInteraction (int iit, int mood) {
     }
 }
 
-int IsInventoryInteractionAvailable (int item, int mood) {
-  if ((item < 0) || (item >= MAX_INV))
-    quit("!IsInventoryInteractionAvailable: invalid inventory number");
+int IsInventoryInteractionAvailable (int item, int mood)
+{
+    if (!ValidateInventoryItem("IsInventoryInteractionAvailable", item))
+        return 0;
 
-  play.check_interaction_only = 1;
+    play.check_interaction_only = 1;
 
-  RunInventoryInteraction(item, mood);
+    RunInventoryInteraction(item, mood);
 
-  int ciwas = play.check_interaction_only;
-  play.check_interaction_only = 0;
+    int ciwas = play.check_interaction_only;
+    play.check_interaction_only = 0;
 
-  if (ciwas == 2)
-    return 1;
+    if (ciwas == 2)
+        return 1;
 
-  return 0;
+    return 0;
 }
 
-int GetInvProperty (int item, const char *property) {
+int GetInvProperty(int item, const char *property)
+{
+    if (!ValidateInventoryItem("GetInvProperty", item))
+        return 0;
     return get_int_property (game.invProps[item], play.invProps[item], property);
 }
 
-void GetInvPropertyText (int item, const char *property, char *bufer) {
+void GetInvPropertyText (int item, const char *property, char *bufer)
+{
+    if (!ValidateInventoryItem("GetInvPropertyText", item))
+        return;
     get_text_property (game.invProps[item], play.invProps[item], property, bufer);
 }

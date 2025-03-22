@@ -138,7 +138,11 @@ void run_function_on_non_blocking_thread(NonBlockingScriptFunction* funcToRun) {
     funcToRun->roomHasFunction = DoRunScriptFuncCantBlock(roominstFork.get(), funcToRun, funcToRun->roomHasFunction);
 }
 
-int run_interaction_event(const ObjectEvent &obj_evt, Interaction *nint, int evnt, int chkAny, bool isInv) {
+int run_interaction_event(const ObjectEvent &obj_evt, Interaction *nint, int evnt, int chkAny, bool isInv)
+{
+    assert(nint);
+    if (!nint)
+        return 0;
 
     if (evnt < 0 || (size_t)evnt >= nint->Events.size() ||
         (nint->Events[evnt].Response.get() == nullptr) || (nint->Events[evnt].Response->Cmds.size() == 0)) {
@@ -175,7 +179,11 @@ int run_interaction_event(const ObjectEvent &obj_evt, Interaction *nint, int evn
 // Returns 0 normally, or -1 to indicate that the NewInteraction has
 // become invalid and don't run another interaction on it
 // (eg. a room change occured)
-int run_interaction_script(const ObjectEvent &obj_evt, InteractionScripts *nint, int evnt, int chkAny) {
+int run_interaction_script(const ObjectEvent &obj_evt, InteractionScripts *nint, int evnt, int chkAny)
+{
+    assert(nint);
+    if (!nint)
+        return 0;
 
     if (evnt < 0 || static_cast<size_t>(evnt) >= nint->ScriptFuncNames.size() ||
             nint->ScriptFuncNames[evnt].IsEmpty()) {

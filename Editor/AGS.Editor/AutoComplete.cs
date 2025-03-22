@@ -82,7 +82,7 @@ namespace AGS.Editor
             {
                 if ((script[index + 1] == '/'))
                 {
-                    index = script.IndexOf('\r', index + 2);
+                    index = IndexOfLineEnd(script, index + 2).Item2;
                     if (index < 0)
                     {
                         index = script.Length;
@@ -525,12 +525,31 @@ namespace AGS.Editor
             }
         }
 
+        /// <summary>
+        /// Searches for any line-break (LF or CRLF), and returns a pair of character indexes:
+        /// an index of line-break, and an index right after line-break.
+        /// </summary>
+        private static Tuple<int, int> IndexOfLineEnd(FastString script, int fromIndex = 0)
+        {
+            int indexofLF = script.IndexOf('\n', fromIndex);
+            if (indexofLF < 0)
+                return new Tuple<int, int>(-1, -1);
+            if (indexofLF > 0 && script[indexofLF - 1] == '\r')
+            {
+                return new Tuple<int, int>(indexofLF - 1, indexofLF + 1);
+            }
+            else
+            {
+                return new Tuple<int, int>(indexofLF, indexofLF + 1);
+            }
+        }
+
         private static bool DoesCurrentLineHaveToken(FastString script, string tokenToCheckFor)
         {
-            int indexOfNextLine = script.IndexOf("\r\n");
-            if (indexOfNextLine > 0)
+            var indexOfNextLine = IndexOfLineEnd(script);
+            if (indexOfNextLine.Item1 > 0)
             {
-                if (script.Substring(0, indexOfNextLine).IndexOf(tokenToCheckFor) > 0)
+                if (script.Substring(0, indexOfNextLine.Item1).IndexOf(tokenToCheckFor) > 0)
                 {
                     return true;
                 }
@@ -714,14 +733,14 @@ namespace AGS.Editor
 
         private static void GoToNextLine(ref FastString script)
         {
-            int indexOfNextLine = script.IndexOf("\r\n");
-            if (indexOfNextLine < 0)
+            var indexOfNextLine = IndexOfLineEnd(script);
+            if (indexOfNextLine.Item1 < 0)
             {
                 script = string.Empty;
             }
             else
             {
-                script = script.Substring(indexOfNextLine + 2);
+                script = script.Substring(indexOfNextLine.Item2);
             }
         }
 

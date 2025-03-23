@@ -657,7 +657,8 @@ HAGSError import_sci_font(const AGSString &filename, int fslot)
 }
 
 // CLNUP temporarily forced doubleSize to 2, it will get scaled up in the font preview, but not in the GUIs
-int drawFontAt (HDC hdc, int fontnum, int x, int y, int width) {
+int drawFontAt(HDC hdc, int fontnum, int draw_atx, int draw_aty, int width, int height, int scroll_y)
+{
   assert(fontnum < thisgame.numfonts);
   if (fontnum >= thisgame.numfonts)
   {
@@ -688,13 +689,14 @@ int drawFontAt (HDC hdc, int fontnum, int x, int y, int width) {
   if (doubleSize > 1)
       width /= 2;
   int chars_per_row = std::max(1, (width - (padding * 2)) / grid_size);
-  int height = (num_chars / chars_per_row + 1) * grid_size + padding * 2;
+  int full_height = (num_chars / chars_per_row + 1) * grid_size + padding * 2;
 
   if (!hdc)
-    return height * doubleSize;
+    return full_height * doubleSize;
 
-  // we can't antialias font because changing col dep to 16 here causes
-  // it to crash ... why?
+  int skip_rows = (scroll_y - padding - grid_margin) / grid_size;
+  first_char = skip_rows * chars_per_row;
+
   Common::Bitmap *tempblock = Common::BitmapHelper::CreateBitmap(width, height, 8);
   tempblock->Fill(0);
   color_t text_color = tempblock->GetCompatibleColor(15); // fixed white color
@@ -704,15 +706,15 @@ int drawFontAt (HDC hdc, int fontnum, int x, int y, int width) {
   {
     wgtprintf(tempblock,
                 padding + (c % chars_per_row) * grid_size + grid_margin,
-                padding + (c / chars_per_row) * grid_size + grid_margin,
+                padding + (c / chars_per_row) * grid_size + grid_margin - scroll_y,
                 fontnum, text_color, "%c", c);
   }
   set_uformat(old_uformat);
 
   if (doubleSize > 1) 
-    drawBlockDoubleAt(hdc, tempblock, x, y);
+    drawBlockDoubleAt(hdc, tempblock, draw_atx, draw_aty);
   else
-    drawBlock(hdc, tempblock, x, y);
+    drawBlock(hdc, tempblock, draw_atx, draw_aty);
    
   delete tempblock;
   return height * doubleSize;

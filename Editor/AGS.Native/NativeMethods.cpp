@@ -56,7 +56,7 @@ extern bool reload_font(int curFont);
 extern bool measure_font_height(const AGSString &filename, int pixel_height, int &formal_height);
 // Draws font char sheet on the provided context and returns the height of drawn object;
 // may be called with hdc = 0 to get required height without drawing anything
-extern int drawFontAt (HDC hdc, int fontnum, int x, int y, int width);
+extern int drawFontAt(HDC hdc, int fontnum, int draw_atx, int draw_aty, int width, int height, int scroll_y);
 extern Dictionary<int, Sprite^>^ load_sprite_dimensions();
 extern void drawGUI(HDC hdc, int x, int y, GUI^ gui, int resolutionFactor, float scale, int control_transparency, int selectedControl);
 extern void drawSprite(HDC hdc, int x,int y, int spriteNum, bool flipImage);
@@ -331,9 +331,9 @@ namespace AGS
 			drawSprite((HDC)hDC, x, y, spriteNum, flipImage);
 		}
 
-		int NativeMethods::DrawFont(int hDC, int x, int y, int width, int fontNum)
+		int NativeMethods::DrawFont(int hDC, int fontNum, int draw_atx, int draw_aty, int width, int height, int scroll_y)
 		{
-			return drawFontAt((HDC)hDC, fontNum, x, y, width);
+			return drawFontAt((HDC)hDC, fontNum, draw_atx, draw_aty, width, height, scroll_y);
 		}
 
 		void NativeMethods::DrawSprite(int hDC, int x, int y, int width, int height, int spriteNum, bool flipImage)

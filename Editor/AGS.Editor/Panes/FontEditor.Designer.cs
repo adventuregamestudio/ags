@@ -29,12 +29,9 @@ namespace AGS.Editor
         private void InitializeComponent()
         {
             this.currentItemGroupBox = new System.Windows.Forms.GroupBox();
-            this.imagePanel = new System.Windows.Forms.Panel();
-            this.pictureBox = new System.Windows.Forms.PictureBox();
+            this.imagePanel = new AGS.Editor.BufferedPanel();
             this.label1 = new System.Windows.Forms.Label();
             this.currentItemGroupBox.SuspendLayout();
-            this.imagePanel.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox)).BeginInit();
             this.SuspendLayout();
             // 
             // currentItemGroupBox
@@ -58,21 +55,13 @@ namespace AGS.Editor
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.imagePanel.AutoScroll = true;
-            this.imagePanel.Controls.Add(this.pictureBox);
             this.imagePanel.Location = new System.Drawing.Point(13, 48);
             this.imagePanel.Name = "imagePanel";
             this.imagePanel.Size = new System.Drawing.Size(477, 402);
             this.imagePanel.TabIndex = 3;
+            this.imagePanel.Scroll += new System.Windows.Forms.ScrollEventHandler(this.imagePanel_Scroll);
             this.imagePanel.SizeChanged += new System.EventHandler(this.imagePanel_SizeChanged);
-            // 
-            // pictureBox
-            // 
-            this.pictureBox.Location = new System.Drawing.Point(0, 0);
-            this.pictureBox.Name = "pictureBox";
-            this.pictureBox.Size = new System.Drawing.Size(100, 50);
-            this.pictureBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
-            this.pictureBox.TabIndex = 0;
-            this.pictureBox.TabStop = false;
+            this.imagePanel.Paint += new System.Windows.Forms.PaintEventHandler(this.imagePanel_Paint);
             // 
             // label1
             // 
@@ -93,9 +82,6 @@ namespace AGS.Editor
             this.Load += new System.EventHandler(this.FontEditor_Load);
             this.currentItemGroupBox.ResumeLayout(false);
             this.currentItemGroupBox.PerformLayout();
-            this.imagePanel.ResumeLayout(false);
-            this.imagePanel.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -104,7 +90,6 @@ namespace AGS.Editor
 
         private System.Windows.Forms.GroupBox currentItemGroupBox;
         private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.Panel imagePanel;
-        private System.Windows.Forms.PictureBox pictureBox;
+        private BufferedPanel imagePanel;
     }
 }

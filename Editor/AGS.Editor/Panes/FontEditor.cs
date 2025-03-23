@@ -20,12 +20,13 @@ namespace AGS.Editor
         public FontEditor(AGS.Types.Font selectedFont) : this()
         {
             _item = selectedFont;
-            PaintFont();
+            imagePanel.Invalidate();
         }
 
         public delegate void ImportFont(AGS.Types.Font font);
 
         private AGS.Types.Font _item;
+        private int _previewHeight;
 
         public AGS.Types.Font ItemToEdit
         {
@@ -33,7 +34,7 @@ namespace AGS.Editor
             set
             {
                 _item = value;
-                PaintFont();
+                imagePanel.Invalidate();
             }
         }
 
@@ -42,7 +43,7 @@ namespace AGS.Editor
         public void OnFontUpdated()
         {
             Factory.GUIController.RefreshPropertyGrid();
-            PaintFont();
+            imagePanel.Invalidate();
         }
 
         protected override string OnGetHelpKeyword()
@@ -50,32 +51,57 @@ namespace AGS.Editor
             return "Font Preview";
         }
 
-        private void PaintFont()
+        // TODO: reimplement this to e.g. only have a bitmap of the panel's size,
+        // and draw a visible portion of the font preview.
+        private void PaintFont(Graphics g)
         {
             if (_item == null)
-            {
-                pictureBox.Image = null;
                 return;
-            }
 
-            if (imagePanel.ClientSize.Width <= 0)
+            if (imagePanel.ClientSize.Width <= 0 || imagePanel.ClientSize.Height <= 0)
                 return; // sometimes occurs during automatic rearrangement of controls
 
-            int height = Factory.NativeProxy.DrawFont(IntPtr.Zero, 0, 0, imagePanel.ClientSize.Width, _item.ID);
-            if (height <= 0)
+            int width = imagePanel.ClientSize.Width;
+            int height = imagePanel.ClientSize.Height;
+            int full_height = Factory.NativeProxy.DrawFont(IntPtr.Zero, _item.ID, 0, 0, width, 0, 0);
+            if (full_height <= 0)
+            {
+                SetPreviewHeight(0);
                 return; // something went wrong when calculating needed height
+            }
 
-            Bitmap bmp = new Bitmap(imagePanel.ClientSize.Width, height);
-            Graphics g = Graphics.FromImage(bmp);
-            Factory.NativeProxy.DrawFont(g.GetHdc(), 0, 0, imagePanel.ClientSize.Width, _item.ID);
-            g.ReleaseHdc();
+            SetPreviewHeight(full_height);
 
-            pictureBox.Image = bmp;
+            int scroll_y = -imagePanel.AutoScrollPosition.Y;
+            try
+            {
+                Factory.NativeProxy.DrawFont(g.GetHdc(), _item.ID, 0, 0, width, height, scroll_y);
+                g.ReleaseHdc();
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+        private void SetPreviewHeight(int height)
+        {
+            _previewHeight = height;
+            imagePanel.AutoScrollMinSize = new Size(0, height);
+        }
+
+        private void imagePanel_Paint(object sender, PaintEventArgs e)
+        {
+            PaintFont(e.Graphics);
         }
 
         private void imagePanel_SizeChanged(object sender, EventArgs e)
         {
-            PaintFont();
+            imagePanel.Invalidate();
+        }
+
+        private void imagePanel_Scroll(object sender, ScrollEventArgs e)
+        {
+            imagePanel.Invalidate();
         }
 
         private void LoadColorTheme(ColorTheme t)

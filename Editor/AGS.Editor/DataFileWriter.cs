@@ -1465,30 +1465,30 @@ namespace AGS.Editor
             WriteString(game.Settings.GUIDAsString, NativeConstants.MAX_GUID_LENGTH, writer);
             WriteString(game.Settings.SaveGameFileExtension, NativeConstants.MAX_SG_EXT_LENGTH, writer);
             WriteString(game.Settings.SaveGameFolderName, NativeConstants.MAX_SG_FOLDER_LEN, writer);
-            for (int i = 0; i < game.Fonts.Count; ++i)
+            foreach (Font font in game.Fonts)
             {
                 int flags = 0;
-                if (game.Fonts[i].PointSize == 0)
+                if (font.FontFile != null && font.FontFile.FileFormat == FontFileFormat.WFN)
                     flags |= NativeConstants.FFLG_SIZEMULTIPLIER;
                 if (game.Settings.TTFHeightDefinedBy == FontHeightDefinition.NominalHeight)
                     flags |= NativeConstants.FFLG_REPORTNOMINALHEIGHT;
-                if (game.Fonts[i].TTFMetricsFixup == FontMetricsFixup.SetAscenderToHeight)
+                if (font.TTFMetricsFixup == FontMetricsFixup.SetAscenderToHeight)
                     flags |= NativeConstants.FFLG_ASCENDERFIXUP;
                 writer.Write(flags);
                 if ((flags & NativeConstants.FFLG_SIZEMULTIPLIER) == 0)
-                    writer.Write(game.Fonts[i].PointSize * game.Fonts[i].SizeMultiplier);
+                    writer.Write(font.PointSize * font.SizeMultiplier);
                 else
-                    writer.Write(game.Fonts[i].SizeMultiplier);
+                    writer.Write(font.SizeMultiplier);
 
                 int outline = -1;
-                if (game.Fonts[i].OutlineStyle == FontOutlineStyle.Automatic)
+                if (font.OutlineStyle == FontOutlineStyle.Automatic)
                     outline = NativeConstants.FONT_OUTLINE_AUTO;
-                else if (game.Fonts[i].OutlineStyle != FontOutlineStyle.None)
-                    outline = game.Fonts[i].OutlineFont;
+                else if (font.OutlineStyle != FontOutlineStyle.None)
+                    outline = font.OutlineFont;
                 writer.Write(outline);
 
-                writer.Write(game.Fonts[i].VerticalOffset);
-                writer.Write(game.Fonts[i].LineSpacing);
+                writer.Write(font.VerticalOffset);
+                writer.Write(font.LineSpacing);
             }
             int topmostSprite;
             byte[] spriteFlags = new byte[NativeConstants.MAX_STATIC_SPRITES];

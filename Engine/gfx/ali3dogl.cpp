@@ -1203,6 +1203,9 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
         // APPROXIMATIONS (need pixel shaders)
         case kBlend_Burn: SetBlendOpRGB(GL_FUNC_SUBTRACT, GL_DST_COLOR, GL_ONE_MINUS_DST_COLOR); break; // LINEAR BURN (approximation)
         case kBlend_Dodge: SetBlendOpRGB(GL_FUNC_ADD, GL_DST_COLOR, GL_ONE); break; // fake color dodge (half strength of the real thing)
+        // IMPORTANT: please note that we are rendering onto a surface that has a premultiplied alpha,
+        // that's why Copy blend modes are somewhat different from the math you'd normally expect;
+        // i.e. we do not use GL_ONE, GL_ZERO to copy RGB, but GL_SRC_ALPHA, GL_ZERO.
         case kBlend_Copy:
             SetBlendOpRGBAlpha(GL_FUNC_ADD, GL_SRC_ALPHA, GL_ZERO,
                                GL_FUNC_ADD, GL_ONE, GL_ZERO);
@@ -1212,6 +1215,8 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
                                GL_FUNC_ADD, GL_ZERO, GL_ONE);
             break;
         case kBlend_CopyAlpha:
+            // FIXME: this does not really work whenever destination has non-opaque alpha,
+            // because destination surface colors are alpha-premultiplied!
             SetBlendOpRGBAlpha(GL_FUNC_ADD, GL_ZERO, GL_SRC_ALPHA,
                                GL_FUNC_ADD, GL_ONE, GL_ZERO);
             break;

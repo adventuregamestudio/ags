@@ -1298,6 +1298,9 @@ void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw
         // APPROXIMATIONS (need pixel shaders)
         case kBlend_Burn: SetBlendOpRGB(D3DBLENDOP_SUBTRACT, D3DBLEND_DESTCOLOR, D3DBLEND_INVDESTCOLOR); break; // LINEAR BURN (approximation)
         case kBlend_Dodge: SetBlendOpRGB(D3DBLENDOP_ADD, D3DBLEND_DESTCOLOR, D3DBLEND_ONE); break; // fake color dodge (half strength of the real thing)
+        // IMPORTANT: please note that we are rendering onto a surface that has a premultiplied alpha,
+        // that's why Copy blend modes are somewhat different from the math you'd normally expect;
+        // i.e. we do not use D3DBLEND_ONE, D3DBLEND_ZERO to copy RGB, but D3DBLEND_SRCALPHA, D3DBLEND_ZERO.
         case kBlend_Copy:
             SetBlendOpRGB(D3DBLENDOP_ADD, D3DBLEND_SRCALPHA, D3DBLEND_ZERO);
             SetBlendOpAlpha(D3DBLENDOP_ADD, D3DBLEND_ONE, D3DBLEND_ZERO);
@@ -1311,6 +1314,8 @@ void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw
             direct3ddevice->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);
             break;
         case kBlend_CopyAlpha:
+            // FIXME: this does not really work whenever destination has non-opaque alpha,
+            // because destination surface colors are alpha-premultiplied!
             SetBlendOpRGB(D3DBLENDOP_ADD, D3DBLEND_ZERO, D3DBLEND_SRCALPHA);
             SetBlendOpAlpha(D3DBLENDOP_ADD, D3DBLEND_ONE, D3DBLEND_ZERO);
             direct3ddevice->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);

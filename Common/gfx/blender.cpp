@@ -221,9 +221,10 @@ uint32_t _blender_mask_alpha32(uint32_t blender_result, uint32_t x, uint32_t y, 
     const uint32_t dst_alpha = geta32(y);
     const uint32_t inv_src_a = 255 - src_alpha;
     const uint32_t fin_a = 255 - (255 - src_alpha) * (255 - dst_alpha) / 255;
-    const uint32_t r = getr24(blender_result) * src_alpha / fin_a + inv_src_a * getr24(y) / fin_a / 255;
-    const uint32_t g = getg24(blender_result) * src_alpha / fin_a + inv_src_a * getg24(y) / fin_a / 255;
-    const uint32_t b = getb24(blender_result) * src_alpha / fin_a + inv_src_a * getb24(y) / fin_a / 255;
+    const uint32_t r = getr24(blender_result) * src_alpha / fin_a + inv_src_a * getr24(y) / fin_a;
+    const uint32_t g = getg24(blender_result) * src_alpha / fin_a + inv_src_a * getg24(y) / fin_a;
+    const uint32_t b = getb24(blender_result) * src_alpha / fin_a + inv_src_a * getb24(y) / fin_a;
+
     return makeacol32(r, g, b, fin_a);
 }
 // alegro's dodge blend was wrong, mine is not perfect either

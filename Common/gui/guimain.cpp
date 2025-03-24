@@ -300,13 +300,14 @@ void GUIMain::DrawControls(Bitmap *ds)
         if (!objToDraw->IsEnabled() && (GUI::Options.DisabledStyle == kGuiDis_Blackout))
             continue;
 
+        if (GUI::Options.ClipControls && objToDraw->IsContentClipped())
+            ds->SetClip(RectWH(objToDraw->X, objToDraw->Y, obj_size.Width, obj_size.Height));
+        else
+            ds->ResetClip();
+
         // Depending on draw properties - draw directly on the gui surface, or use a buffer
         if (objToDraw->GetTransparency() == 0)
         {
-            if (GUI::Options.ClipControls && objToDraw->IsContentClipped())
-                ds->SetClip(RectWH(objToDraw->X, objToDraw->Y, obj_size.Width, obj_size.Height));
-            else
-                ds->ResetClip();
             objToDraw->Draw(ds, objToDraw->X, objToDraw->Y);
         }
         else

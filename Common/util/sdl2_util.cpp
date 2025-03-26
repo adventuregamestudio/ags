@@ -14,11 +14,9 @@
 #include "util/sdl2_util.h"
 #include "debug/assert.h"
 
-using namespace AGS::Common;
-
 namespace AGS
 {
-namespace Engine
+namespace Common
 {
 namespace SDL2Util
 {
@@ -84,5 +82,5 @@ SDL_RWops *OpenRWops(std::unique_ptr<Stream> ags_stream)
 }
 
 } // namespace SDL2Util
-} // namespace Engine
+} // namespace Common
 } // namespace AGS

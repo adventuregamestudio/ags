@@ -15,5 +15,13 @@ namespace AGS.Editor
             item.ShortcutKeys = shortcutKeys;
             return item;
         }
+
+        public static ToolStripMenuItem CreateMenuItem(string text, Image image, EventHandler onClick, string name, Keys shortcutKeys, bool enabled)
+        {
+            ToolStripMenuItem item = new ToolStripMenuItem(text, image, onClick, name);
+            item.ShortcutKeys = shortcutKeys;
+            item.Enabled = enabled;
+            return item;
+        }
     }
 }

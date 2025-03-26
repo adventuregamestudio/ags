@@ -24,7 +24,7 @@
 
 namespace AGS
 {
-namespace Engine
+namespace Common
 {
 namespace SDL2Util
 {

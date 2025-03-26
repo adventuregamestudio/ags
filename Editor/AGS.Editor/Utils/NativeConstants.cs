@@ -74,7 +74,6 @@ namespace AGS.Editor
 
         public static readonly int FFLG_LOGICALNOMINALHEIGHT = (int)Factory.NativeProxy.GetNativeConstant("FFLG_LOGICALNOMINALHEIGHT");
         public static readonly int FFLG_LOGICALCUSTOMHEIGHT = (int)Factory.NativeProxy.GetNativeConstant("FFLG_LOGICALCUSTOMHEIGHT");
-        public static readonly int FFLG_ASCENDERFIXUP = (int)Factory.NativeProxy.GetNativeConstant("FFLG_ASCENDERFIXUP");
 
         public class GUIVersion
         {

@@ -1781,8 +1781,6 @@ void GameFontUpdated(Game ^game, int fontNumber, bool forceUpdate)
         flags |= FFLG_LOGICALNOMINALHEIGHT;
     else if (font->HeightDefinedBy == FontHeightDefinition::CustomValue)
         flags |= FFLG_LOGICALCUSTOMHEIGHT;
-    if (font->TTFMetricsFixup == FontMetricsFixup::SetAscenderToHeight)
-        flags |= FFLG_ASCENDERFIXUP;
     font_info.Flags = flags;
     switch (font->OutlineStyle)
     {

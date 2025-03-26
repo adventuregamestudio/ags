@@ -8,6 +8,7 @@ namespace AGS.Types
     {
         [Description("Do nothing")]
         None,
+        [Obsolete]
         [Description("Resize ascender to the nominal font height")]
         SetAscenderToHeight
     }

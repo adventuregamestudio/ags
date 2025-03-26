@@ -11,11 +11,11 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-
 #include <memory>
 #include <stdexcept>
 #include <string.h> // memcpy
 #include <aastr.h>
+#include <SDL.h>
 #include "gfx/allegrobitmap.h"
 #include "util/filestream.h"
 #include "debug/assert.h"
@@ -43,6 +43,11 @@ Bitmap::Bitmap(const Bitmap *src, const Rect &rc)
 Bitmap::Bitmap(BITMAP *al_bmp, bool shared_data)
 {
     WrapAllegroBitmap(al_bmp, shared_data);
+}
+
+Bitmap::Bitmap(SDL_Surface *sdl_bmp, bool shared_data)
+{
+    WrapSDLSurface(sdl_bmp, shared_data);
 }
 
 Bitmap::Bitmap(const Bitmap &bmp)
@@ -194,13 +199,33 @@ void Bitmap::ForgetAllegroBitmap()
     _pixelData = {};
 }
 
+bool Bitmap::WrapSDLSurface(SDL_Surface *sdl_bmp, bool shared_data)
+{
+    Destroy();
+
+    _alBitmap = create_bitmap_userdata(sdl_bmp->format->BitsPerPixel,
+        sdl_bmp->w, sdl_bmp->h, sdl_bmp->pixels, sdl_bmp->h * sdl_bmp->pitch, sdl_bmp->pitch, nullptr);
+    if (!_alBitmap)
+        return false;
+
+    _sdlBitmap = sdl_bmp;
+    _isDataOwner = !shared_data;
+    return true;
+}
+
 void Bitmap::Destroy()
 {
-    if (_isDataOwner && _alBitmap)
+    if (_alBitmap && (_isDataOwner || _sdlBitmap))
     {
         destroy_bitmap(_alBitmap);
     }
+    if (_sdlBitmap && _isDataOwner)
+    {
+        SDL_FreeSurface(_sdlBitmap);
+    }
+
     _alBitmap = nullptr;
+    _sdlBitmap = nullptr;
     _isDataOwner = false;
     _pixelData = {};
 }

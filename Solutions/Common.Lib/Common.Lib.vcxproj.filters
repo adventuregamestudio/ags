@@ -69,9 +69,6 @@
     <Filter Include="Library Sources\aastr">
       <UniqueIdentifier>{c4dc6891-0e6a-42d5-9849-7a7b3f5c4d27}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Library Sources\alfont">
-      <UniqueIdentifier>{e7a82ba7-051e-4d0e-88b0-7ca64220a40e}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Library Sources\freetype">
       <UniqueIdentifier>{4b4e728b-ae08-436a-aeaa-9e342f323611}</UniqueIdentifier>
     </Filter>
@@ -95,6 +92,9 @@
     </Filter>
     <Filter Include="Library Sources\miniz">
       <UniqueIdentifier>{e2b0e876-0ee0-4a08-a2b9-0e7e889b04e7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Library Sources\sdl_ttf">
+      <UniqueIdentifier>{0846c0bb-c918-4a04-b3bb-9537be0bf2ea}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\data">
       <UniqueIdentifier>{e022a7d9-4192-4fe8-98cc-0fa84edee576}</UniqueIdentifier>
@@ -274,9 +274,6 @@
     </ClCompile>
     <ClCompile Include="..\..\Common\util\string_compat.c">
       <Filter>Source Files\util</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Common\libsrc\alfont-2.0.9\alfont.c">
-      <Filter>Library Sources\alfont</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Common\ac\keycode.cpp">
       <Filter>Source Files\ac</Filter>
@@ -599,6 +596,12 @@
     <ClCompile Include="..\..\libsrc\freetype\builds\windows\ftsystem.c">
       <Filter>Library Sources\freetype\windows</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\libsrc\sdl_ttf\SDL_ttf.c">
+      <Filter>Library Sources\sdl_ttf</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\sdl2_util.cpp">
+      <Filter>Source Files\util</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Common\ac\audiocliptype.h">
@@ -898,6 +901,9 @@
     <ClInclude Include="..\..\Common\util\transformstream.h">
       <Filter>Header Files\util</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Common\util\sdl2_util.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Common\util\stl_utils.h">
       <Filter>Header Files\util</Filter>
     </ClInclude>
@@ -945,9 +951,6 @@
     </ClInclude>
     <ClInclude Include="..\..\libsrc\allegro\include\allegro\unicode.h">
       <Filter>Library Sources\allegro</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Common\libsrc\alfont-2.0.9\alfont.h">
-      <Filter>Library Sources\alfont</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\libsrc\aastr-0.1.1\aastr.h">
       <Filter>Library Sources\aastr</Filter>
@@ -999,6 +1002,6 @@
     </ClInclude>
     <ClInclude Include="..\..\libsrc\stb\stb_image.h">
       <Filter>Library Sources\stb</Filter>
-	</ClInclude>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -1678,10 +1678,6 @@ void GameFontUpdated(Game ^game, int fontNumber, bool forceUpdate)
         font_info.Flags &= ~FFLG_REPORTNOMINALHEIGHT;
     else
         font_info.Flags |= FFLG_REPORTNOMINALHEIGHT;
-    if (font->TTFMetricsFixup == FontMetricsFixup::None)
-        font_info.Flags &= ~FFLG_ASCENDERFIXUP;
-    else
-        font_info.Flags |= FFLG_ASCENDERFIXUP;
 
     forceUpdate |=
         font_info.Filename != old_filename ||

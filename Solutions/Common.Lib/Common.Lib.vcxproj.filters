@@ -75,9 +75,6 @@
     <Filter Include="Library Sources\aastr">
       <UniqueIdentifier>{c4dc6891-0e6a-42d5-9849-7a7b3f5c4d27}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Library Sources\alfont">
-      <UniqueIdentifier>{e7a82ba7-051e-4d0e-88b0-7ca64220a40e}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Library Sources\freetype">
       <UniqueIdentifier>{4b4e728b-ae08-436a-aeaa-9e342f323611}</UniqueIdentifier>
     </Filter>
@@ -101,6 +98,9 @@
     </Filter>
     <Filter Include="Library Sources\miniz">
       <UniqueIdentifier>{e2b0e876-0ee0-4a08-a2b9-0e7e889b04e7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Library Sources\sdl_ttf">
+      <UniqueIdentifier>{0846c0bb-c918-4a04-b3bb-9537be0bf2ea}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -280,9 +280,6 @@
     </ClCompile>
     <ClCompile Include="..\..\Common\util\string_compat.c">
       <Filter>Source Files\util</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Common\libsrc\alfont-2.0.9\alfont.c">
-      <Filter>Library Sources\alfont</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Common\ac\keycode.cpp">
       <Filter>Source Files\ac</Filter>
@@ -583,6 +580,12 @@
     </ClCompile>
     <ClCompile Include="..\..\libsrc\freetype\builds\windows\ftsystem.c">
       <Filter>Library Sources\freetype\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\sdl_ttf\SDL_ttf.c">
+      <Filter>Library Sources\sdl_ttf</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\sdl2_util.cpp">
+      <Filter>Source Files\util</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -905,6 +908,9 @@
       <Filter>Header Files\util</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\util\transformstream.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\util\sdl2_util.h">
       <Filter>Header Files\util</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\util\stl_utils.h">

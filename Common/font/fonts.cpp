@@ -14,7 +14,6 @@
 #include <algorithm>
 #include <cstdio>
 #include <vector>
-#include <alfont.h>
 #include "ac/common.h" // set_our_eip
 #include "ac/gamestructdefines.h"
 #include "debug/out.h"

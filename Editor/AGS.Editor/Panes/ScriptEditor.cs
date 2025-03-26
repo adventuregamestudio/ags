@@ -23,8 +23,6 @@ namespace AGS.Editor
         private const string TOGGLE_BREAKPOINT_COMMAND = "ToggleBreakpoint";
         private const string SHOW_MATCHING_SCRIPT_OR_HEADER_COMMAND = "ScriptShowMatchingScript";
         private const string TOGGLE_LINE_COMMENT_COMMAND = "ToggleLineComment";
-        private const string COLLAPSE_ALL_REGIONS_COMMAND = "CollapseAllRegions";
-        private const string EXPAND_ALL_REGIONS_COMMAND = "ExpandAllRegions";
         // Custom context menu commands
         private const string CONTEXT_MENU_TOGGLE_BREAKPOINT = "CtxToggleBreakpoint";
 
@@ -142,9 +140,6 @@ namespace AGS.Editor
             commands.Commands.Add(MenuCommand.Separator);
             commands.Commands.Add(new MenuCommand(TOGGLE_BREAKPOINT_COMMAND, "Toggle Breakpoint", Keys.F9, "ToggleBreakpointMenuIcon"));
             commands.Commands.Add(new MenuCommand(TOGGLE_LINE_COMMENT_COMMAND, "Toggle Line Comment", Keys.Control | Keys.Shift | Keys.Q));
-            commands.Commands.Add(new MenuCommand(COLLAPSE_ALL_REGIONS_COMMAND, "Collapse All Regions"));
-            commands.Commands.Add(new MenuCommand(EXPAND_ALL_REGIONS_COMMAND, "Expand All Regions"));
-            commands.Commands.Add(MenuCommand.Separator);
             commands.Commands.Add(new MenuCommand(SHOW_MATCHING_SCRIPT_OR_HEADER_COMMAND, "Switch to Matching Script or Header", Keys.Control | Keys.M));
         }
 
@@ -563,14 +558,6 @@ namespace AGS.Editor
             else if (command == TOGGLE_LINE_COMMENT_COMMAND)
             {
                 scintilla.ToggleLineComment();
-            }
-            else if (command == COLLAPSE_ALL_REGIONS_COMMAND)
-            {
-                scintilla.CollapseAllRegions();
-            }
-            else if (command == EXPAND_ALL_REGIONS_COMMAND)
-            {
-                scintilla.ExpandAllRegions();
             }
             else
             {

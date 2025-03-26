@@ -629,16 +629,6 @@ namespace AGS.Editor
             scintillaControl1.EndUndoAction();
         }
 
-        public void CollapseAllRegions()
-        {
-            scintillaControl1.FoldAll(FoldAction.Contract);
-        }
-
-        public void ExpandAllRegions()
-        {
-            scintillaControl1.FoldAll(FoldAction.Expand);
-        }
-
         public void GoToPosition(int newPos)
         {
             int lineNum = scintillaControl1.LineFromPosition(newPos);

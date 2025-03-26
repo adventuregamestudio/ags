@@ -138,11 +138,11 @@ enum SpeechStyle
 #define FFLG_DEFLINESPACING        0x02  // linespacing derived from the font height
 // Use nominal font's import size as a font's height in all the game logic.
 // If not set will use real font's height reported by the font file.
-#define FFLG_LOGICALNOMINALHEIGHT   0x04
+#define FFLG_LOGICALNOMINALHEIGHT  0x04
 // Do the TTF ascender fixup, where font's ascender is resized
 // to the nominal font's height. This is primarily for backwards compatibility
 // with older games.
-#define FFLG_ASCENDERFIXUP         0x08
+#define FFLG_ASCENDERFIXUP         0x08 // [DEPRECATED]
 // Use a user-provided custom value as a font's height in all the game logic.
 // If not set will use real font's height reported by the font file.
 #define FFLG_LOGICALCUSTOMHEIGHT   0x10

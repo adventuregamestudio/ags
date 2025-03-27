@@ -281,6 +281,8 @@ private:
     ShaderProgram _tintShader;
     ShaderProgram _lightShader;
     ShaderProgram _transparencyShader;
+    ShaderProgram _darkenbyAlphaShader;
+    ShaderProgram _lightenByAlphaShader;
 
     int device_screen_physical_width;
     int device_screen_physical_height;

@@ -403,6 +403,8 @@ void OGLGraphicsDriver::TestRenderToTexture()
 bool CreateTransparencyShader(ShaderProgram &prg);
 bool CreateTintShader(ShaderProgram &prg);
 bool CreateLightShader(ShaderProgram &prg);
+bool CreateDarkenByAlphaShader(ShaderProgram& prg);
+bool CreateLightenByAlphaShader(ShaderProgram& prg);
 bool CreateShaderProgram(ShaderProgram &prg, const char *name, const char *vertex_shader_src, const char *fragment_shader_src);
 void DeleteShaderProgram(ShaderProgram &prg);
 void OutputShaderError(GLuint obj_id, const String &obj_name, bool is_shader);
@@ -422,6 +424,8 @@ bool OGLGraphicsDriver::CreateShaders()
   shaders_created &= CreateTransparencyShader(_transparencyShader);
   shaders_created &= CreateTintShader(_tintShader);
   shaders_created &= CreateLightShader(_lightShader);
+  shaders_created &= CreateDarkenByAlphaShader(_darkenbyAlphaShader);
+  shaders_created &= CreateLightenByAlphaShader(_lightenByAlphaShader);
   return shaders_created;
 }
 
@@ -570,6 +574,46 @@ void main()
 )EOS";
 
 
+// blend hack 1: darken to simulate transparency as a replacement to glTexEnvi for blend mode workarounds
+static const auto darkenbyalpha_fragment_shader_src = R"EOS(
+#version 100
+
+precision mediump float;
+
+uniform sampler2D textID;
+uniform float alpha;
+
+varying vec2 v_TexCoord;
+
+void main()
+{
+  vec4 src_col = texture2D(textID, v_TexCoord);
+  gl_FragColor = vec4(src_col.xyz*alpha, src_col.w * alpha);
+  // gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+}
+)EOS";
+
+
+// blend hack 2: lighten  to simulate transparency as a replacement to glTexEnvi for blend mode workarounds
+static const auto lightenbyalpha_fragment_shader_src = R"EOS(
+#version 100
+
+precision mediump float;
+
+uniform sampler2D textID;
+uniform float alpha;
+
+varying vec2 v_TexCoord;
+
+void main()
+{
+  float invalpha = 1.0 - alpha;
+  vec4 src_col = texture2D(textID, v_TexCoord);
+  gl_FragColor = vec4(src_col.xyz + invalpha - (src_col.xyz*invalpha), src_col.w);
+}
+)EOS";
+
+
 bool CreateTransparencyShader(ShaderProgram &prg)
 {
   if(!CreateShaderProgram(prg, "Transparency", default_vertex_shader_src, transparency_fragment_shader_src)) return false;
@@ -600,6 +644,24 @@ bool CreateLightShader(ShaderProgram &prg)
   prg.LightingAmount = glGetUniformLocation(prg.Program, "light");
   prg.Alpha = glGetUniformLocation(prg.Program, "alpha");
   return true;
+}
+
+bool CreateDarkenByAlphaShader(ShaderProgram& prg)
+{
+    if (!CreateShaderProgram(prg, "DarkenByAlpha", default_vertex_shader_src, darkenbyalpha_fragment_shader_src)) return false;
+    prg.MVPMatrix = glGetUniformLocation(prg.Program, "uMVPMatrix");
+    prg.TextureId = glGetUniformLocation(prg.Program, "textID");
+    prg.Alpha = glGetUniformLocation(prg.Program, "alpha");
+    return true;
+}
+
+bool CreateLightenByAlphaShader(ShaderProgram& prg)
+{
+    if (!CreateShaderProgram(prg, "LightenByAlpha", default_vertex_shader_src, lightenbyalpha_fragment_shader_src)) return false;
+    prg.MVPMatrix = glGetUniformLocation(prg.Program, "uMVPMatrix");
+    prg.TextureId = glGetUniformLocation(prg.Program, "textID");
+    prg.Alpha = glGetUniformLocation(prg.Program, "alpha");
+    return true;
 }
 
 
@@ -853,6 +915,8 @@ void OGLGraphicsDriver::UnInit()
   DeleteShaderProgram(_transparencyShader);
   DeleteShaderProgram(_tintShader);
   DeleteShaderProgram(_lightShader);
+  DeleteShaderProgram(_darkenbyAlphaShader);
+  DeleteShaderProgram(_lightenByAlphaShader);
 
   DeleteWindowAndGlContext();
   sys_window_destroy();
@@ -1060,9 +1124,30 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
   }
   else
   {
-    // Use default processing
-    program = _transparencyShader;
-    glUseProgram(_transparencyShader.Program);
+    switch (bmpToDraw->_blendMode) {
+    case kBlend_Darken:
+    case kBlend_Multiply:
+    case kBlend_Burn: // burn is imperfect due to blend mode, darker than normal even when trasparent
+      // hack for blendmodes: fade to white to make it transparent
+      program = _lightenByAlphaShader;
+      glUseProgram(_lightenByAlphaShader.Program);
+      break;
+
+    case kBlend_Lighten:
+    case kBlend_Screen:
+    case kBlend_Exclusion:
+    case kBlend_Dodge:
+      // hack for blendmodes: fade to black to make it transparent
+      program = _darkenbyAlphaShader;
+      glUseProgram(_darkenbyAlphaShader.Program);
+      break;
+
+    default:
+      // Use default processing
+      program = _transparencyShader;
+      glUseProgram(_transparencyShader.Program);
+      break;
+    }
   }
 
   glUniform1i(program.TextureId, 0);
@@ -1224,6 +1309,9 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
     }
 
     // WORKAROUNDS - BEGIN
+    /*
+    // 2025-03-25@AVD: Reimplemented as _darkenbyAlphaShader and _darkenbyAlphaShader to match D3D output.
+    // Currently, OGL always uses a shader here, which can't be mixed with glTexEnvi this way.
 
     // allow transparency with blending modes
     // darken/lighten the base sprite so a higher transparency value makes it trasparent
@@ -1255,6 +1343,7 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
             break;
         }
     }
+    */
 
     // workaround: since the dodge is only half strength we can get a closer approx by drawing it twice
     if (bmpToDraw->_blendMode == kBlend_Dodge)

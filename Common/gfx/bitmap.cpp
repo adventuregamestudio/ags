@@ -131,6 +131,41 @@ Bitmap *AdjustBitmapSize(const Bitmap *src, int width, int height)
     return bmp;
 }
 
+// TODO: maybe merge this algorithm with ApplyMask found below
+template <typename TPx>
+static void ReplaceColorImpl(uint8_t *data, int width, int height, int pitch, const TPx color1, const TPx color2)
+{
+    for (int y = 0; y < height; ++y, data += pitch)
+    {
+        TPx *data_p = reinterpret_cast<TPx*>(data);
+        for (int x = 0; x < width; ++x)
+        {
+            if (data_p[x] == color1)
+                data_p[x] = color2;
+        }
+    }
+}
+
+void ReplaceColor(Bitmap *bmp, int color1, int color2)
+{
+    switch (bmp->GetColorDepth())
+    {
+    case 8:
+        ReplaceColorImpl<uint8_t>(bmp->GetDataForWriting(),
+                                   bmp->GetWidth(), bmp->GetHeight(), bmp->GetLineLength(), color1, color2);
+        break;
+    case 16:
+        ReplaceColorImpl<uint16_t>(bmp->GetDataForWriting(),
+                                   bmp->GetWidth(), bmp->GetHeight(), bmp->GetLineLength(), color1, color2);
+        break;
+    case 32:
+        ReplaceColorImpl<uint32_t>(bmp->GetDataForWriting(),
+                                   bmp->GetWidth(), bmp->GetHeight(), bmp->GetLineLength(), color1, color2);
+        break;
+    default: assert(false); break;
+    }
+}
+
 void MakeOpaque(Bitmap *bmp)
 {
     if (bmp->GetColorDepth() < 32)

@@ -75,13 +75,19 @@ void TTFFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *desti
         return;
 
     // Check if this is a alpha-blending case, and init corresponding draw mode
+    const bool is_indexed_dst = (bitmap_color_depth(destination) == 8);
     const bool alpha_blend = (bitmap_color_depth(destination) == 32) &&
         ((geta32(color) != 0xFF) || (_blendMode != kBlend_Normal));
+    const bool text_smooth = (ShouldAntiAliasText()) && (!is_indexed_dst);
 
+    SDL_Color fg;
+    if (is_indexed_dst)
+        fg = { (Uint8)getr8(color), (Uint8)getg8(color), (Uint8)getb8(color), (Uint8)255 };
+    else
+        fg = { (Uint8)getr32(color), (Uint8)getg32(color), (Uint8)getb32(color), (Uint8)geta32(color) };
+    
     SDL_Surface *surf = nullptr;
-    const SDL_Color fg = { (Uint8)getr32(color), (Uint8)getg32(color), (Uint8)getb32(color), (Uint8)geta32(color) };
-    const bool text_blended = (ShouldAntiAliasText()) && (bitmap_color_depth(destination) > 8);
-    if (text_blended)
+    if (text_smooth)
         surf = TTF_RenderUTF8_Blended(_fontData[fontNumber].Font, text, fg);
     else
         surf = TTF_RenderUTF8_Solid(_fontData[fontNumber].Font, text, fg);
@@ -92,11 +98,19 @@ void TTFFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *desti
     Bitmap helper(surf, false);
     Bitmap dest(destination, true);
 
+    // For solid render: temporarily replace palette color at slot 1 with the text color
     RGB old_pal_color;
-    get_color(1, &old_pal_color);
-    if (!text_blended)
+    if (!text_smooth)
     {
-        set_color(1, (RGB *)&fg); // NOTE: SDL_Color and Allegro RGB match fields
+        if (is_indexed_dst)
+        {
+            BitmapHelper::ReplaceColor(&helper, 1, color);
+        }
+        else
+        {
+            get_color(1, &old_pal_color);
+            set_color(1, (RGB *)&fg); // NOTE: SDL_Color and Allegro RGB match fields
+        }
     }
 
     if (alpha_blend)
@@ -109,7 +123,7 @@ void TTFFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *desti
         dest.MaskedBlit(&helper, x, y);
     }
 
-    if (!text_blended)
+    if (!text_smooth && !is_indexed_dst)
     {
         set_color(1, &old_pal_color);
     }

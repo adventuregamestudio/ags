@@ -17,6 +17,7 @@ namespace AGS.Types
         private int _outlineFont;
         private FontOutlineStyle _outlineStyle;
 		private string _sourceFilename = string.Empty;
+        private string _projectFilename = string.Empty;
         private int _sizeMultiplier = 1;
         private int _verticalOffset;
         private int _lineSpacing;
@@ -159,15 +160,22 @@ namespace AGS.Types
             set { _autoOutlineStyle = value; }
         }
 
-		[Description("The file path that this font was imported from")]
-		[Category("Design")]
+        [Description("The file path that this font was imported from")]
+        [Category("Design")]
         [EditorAttribute(typeof(FontFileUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         [TypeConverter(typeof(ReadOnlyConverter))]
         public string SourceFilename
-		{
-			get { return _sourceFilename; }
-			set { _sourceFilename = value; }
-		}
+        {
+            get { return _sourceFilename; }
+            set
+            {
+                _sourceFilename = value;
+                if (string.IsNullOrEmpty(_sourceFilename))
+                    _projectFilename = string.Empty;
+                else
+                    _projectFilename = $"agsfnt{ID}.{System.IO.Path.GetExtension(_sourceFilename)}";
+            }
+        }
 
         [Description("Font's size multiplier; primarily for bitmap fonts that don't scale on their own")]
         [Category("Appearance")]
@@ -221,6 +229,14 @@ namespace AGS.Types
 		{
 			get { return "agsfnt" + _id + ".ttf"; }
 		}
+
+        [AGSNoSerialize]
+        [ReadOnly(true)]
+        public string ProjectFilename
+        {
+            get { return _projectFilename; }
+            set { _projectFilename = value; }
+        }
 
         public Font(XmlNode node)
         {

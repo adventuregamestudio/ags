@@ -40,7 +40,7 @@ namespace AGS.Types
                 // TODO: find a better solution for the font format check, perhaps store font type as Font's property,
                 // or add a direct (unserialized) reference to related FontFile
                 if (fontSize == 0 ||
-                    (context.Instance is Font && !((Font)context.Instance).SourceFilename.EndsWith(".ttf")))
+                    (context.Instance is Font && !((Font)context.Instance).ProjectFilename.ToLower().EndsWith(".ttf")))
                 {
                     return "N/A";
                 }

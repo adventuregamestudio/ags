@@ -43,15 +43,17 @@ namespace AGS.Editor.Components
             if (controlID == COMMAND_NEW_ITEM)
             {
                 IList<AGS.Types.Font> items = _agsEditor.CurrentGame.Fonts;
+                AGS.Types.Font copyFrom = items[0];
                 AGS.Types.Font newItem = new AGS.Types.Font();
                 newItem.ID = items.Count;
                 newItem.Name = "Font " + newItem.ID;
                 newItem.OutlineStyle = FontOutlineStyle.None;
-                newItem.PointSize = items[0].PointSize;
-                newItem.SourceFilename = Utilities.GetRelativeToProjectPath(items[0].SourceFilename);
+                newItem.PointSize = copyFrom.PointSize;
+                newItem.SourceFilename = Utilities.GetRelativeToProjectPath(copyFrom.SourceFilename);
+                newItem.ProjectFilename = $"agsfnt{newItem.ID}.{Path.GetExtension(copyFrom.ProjectFilename)}";
                 newItem.TTFMetricsFixup = _agsEditor.CurrentGame.Settings.TTFMetricsFixup; // use defaults
                 items.Add(newItem);
-                Utilities.CopyFont(0, newItem.ID);
+                Utilities.CopyFont(copyFrom.ID, newItem.ID);
                 Factory.NativeProxy.OnFontAdded(_agsEditor.CurrentGame, newItem.ID);
                 _guiController.ProjectTree.StartFromNode(this, TOP_LEVEL_COMMAND_ID);
                 _guiController.ProjectTree.AddTreeLeaf(this, GetNodeID(newItem), GetNodeLabel(newItem), "FontIcon");
@@ -199,6 +201,18 @@ namespace AGS.Editor.Components
             _documents.Clear();
 
             RePopulateTreeView();
+            
+            // Ensure that each Font has a ProjectFilename assigned.
+            // This property is currently not serialized, and must be updated on game load
+            // or on a new font import.
+            foreach (AGS.Types.Font font in _agsEditor.CurrentGame.Fonts)
+            {
+                if (string.IsNullOrEmpty(font.ProjectFilename))
+                {
+                    font.ProjectFilename = File.Exists(font.TTFFileName) ? font.TTFFileName : font.WFNFileName;
+                }
+            }
+
             FontTypeConverter.SetFontList(_agsEditor.CurrentGame.Fonts);
         }
 
@@ -234,9 +248,7 @@ namespace AGS.Editor.Components
 
         private int ReimportFontSize(AGS.Types.Font font)
         {
-            // TODO: find a better solution for the font format check, perhaps store font type as Font's property,
-            // or add a direct (unserialized) reference to related FontFile
-            if (!font.SourceFilename.EndsWith(".ttf"))
+            if (!font.ProjectFilename.ToLower().EndsWith(".ttf"))
             {
                 _guiController.ShowMessage("You can only reimport TTF fonts with different size. For bitmap fonts try adjusting Size Multiplier instead.", MessageBoxIconType.Information);
                 return font.PointSize;
@@ -252,7 +264,7 @@ namespace AGS.Editor.Components
             // point size, until found the closest result
             if (sizeType == FontHeightDefinition.PixelHeight)
             {
-                sizeValue = Factory.NativeProxy.FindTTFSizeForHeight(font.SourceFilename, sizeValue);
+                sizeValue = Factory.NativeProxy.FindTTFSizeForHeight(font.ProjectFilename, sizeValue);
             }
 
             return sizeValue;
@@ -289,6 +301,7 @@ namespace AGS.Editor.Components
             font.PointSize = sizeValue;
             font.SizeMultiplier = 1;
             font.SourceFilename = Utilities.GetRelativeToProjectPath(fileName);
+            font.ProjectFilename = font.TTFFileName;
         }
 
         private void ImportWFNFont(AGS.Types.Font font, string fileName, string newTTFName, string newWFNName)
@@ -312,6 +325,7 @@ namespace AGS.Editor.Components
                 font.PointSize = 0;
                 font.SizeMultiplier = 1;
                 font.SourceFilename = Utilities.GetRelativeToProjectPath(fileName);
+                font.ProjectFilename = font.WFNFileName;
             }
             catch (AGSEditorException ex)
             {

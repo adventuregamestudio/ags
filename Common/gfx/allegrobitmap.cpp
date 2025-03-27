@@ -101,6 +101,7 @@ bool Bitmap::Create(int width, int height, int color_depth)
     _pixelData = std::move(data);
     _alBitmap = bitmap;
     _isDataOwner = true;
+    _pitch = GetWidth() * GetBPP();
     return true;
 }
 
@@ -141,6 +142,7 @@ bool Bitmap::Create(PixelBuffer &&pxbuf)
     _pixelData = std::move(data);
     _alBitmap = bitmap;
     _isDataOwner = true;
+    _pitch = GetWidth() * GetBPP();
     return true;
 }
 
@@ -152,6 +154,7 @@ bool Bitmap::CreateSubBitmap(const Bitmap *src, const Rect &rc)
     Destroy();
     _alBitmap = create_sub_bitmap(src->_alBitmap, rc.Left, rc.Top, rc.GetWidth(), rc.GetHeight());
     _isDataOwner = true;
+    _pitch = GetWidth() * GetBPP();
     return _alBitmap != nullptr;
 }
 
@@ -163,6 +166,7 @@ bool Bitmap::ResizeSubBitmap(int width, int height)
     // might require amending allegro bitmap struct
     _alBitmap->w = _alBitmap->cr = width;
     _alBitmap->h = _alBitmap->cb = height;
+    _pitch = GetWidth() * GetBPP();
     return true;
 }
 
@@ -194,6 +198,7 @@ bool Bitmap::WrapAllegroBitmap(BITMAP *al_bmp, bool shared_data)
     Destroy();
     _alBitmap = al_bmp;
     _isDataOwner = !shared_data;
+    _pitch = GetWidth() * GetBPP();
     return _alBitmap != nullptr;
 }
 
@@ -202,6 +207,7 @@ void Bitmap::ForgetAllegroBitmap()
     _alBitmap = nullptr;
     _isDataOwner = false;
     _pixelData = {};
+    _pitch = 0;
 }
 
 bool Bitmap::WrapSDLSurface(SDL_Surface *sdl_bmp, bool shared_data)
@@ -215,6 +221,7 @@ bool Bitmap::WrapSDLSurface(SDL_Surface *sdl_bmp, bool shared_data)
 
     _sdlBitmap = sdl_bmp;
     _isDataOwner = !shared_data;
+    _pitch = _sdlBitmap->pitch;
     return true;
 }
 
@@ -233,6 +240,7 @@ void Bitmap::Destroy()
     _sdlBitmap = nullptr;
     _isDataOwner = false;
     _pixelData = {};
+    _pitch = 0;
 }
 
 bool Bitmap::SaveToFile(const char *filename, bool skip_alpha, const RGB *palette)

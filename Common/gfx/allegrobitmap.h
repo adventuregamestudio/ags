@@ -170,7 +170,7 @@ public:
     // Gets scanline length in bytes (is the same for any scanline)
 	inline int  GetLineLength() const
     {
-        return GetWidth() * GetBPP();
+        return _pitch;
     }
 
 	// Gets a pointer to underlying graphic data
@@ -304,6 +304,7 @@ private:
     SDL_Surface *_sdlBitmap = nullptr;
     BITMAP *_alBitmap = nullptr;
     bool    _isDataOwner = false;
+    int     _pitch = 0; // cached pitch (scanline length)
 };
 
 

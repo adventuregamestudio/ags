@@ -3035,6 +3035,27 @@ void TTF_SetFontKerning(TTF_Font *font, int allowed)
 #endif
 }
 
+void TTF_GetFontBBox(const TTF_Font *font, int *minx, int *maxx, int *miny, int *maxy)
+{
+    if (!font || !font->face) {
+        return;
+    }
+    /* Recalculate FT_Face's bbox from font units to pixels */
+    const FT_Face face = font->face;
+    if (minx) {
+        *minx = FT_MulFix(FT_DivFix(face->bbox.xMin, face->units_per_EM), face->size->metrics.x_ppem);
+    }
+    if (maxx) {
+        *maxx = FT_MulFix(FT_DivFix(face->bbox.xMax, face->units_per_EM), face->size->metrics.x_ppem);
+    }
+    if (miny) {
+        *miny = FT_MulFix(FT_DivFix(face->bbox.yMin, face->units_per_EM), face->size->metrics.y_ppem);
+    }
+    if (maxy) {
+        *maxy = FT_MulFix(FT_DivFix(face->bbox.yMax, face->units_per_EM), face->size->metrics.y_ppem);
+    }
+}
+
 long TTF_FontFaces(const TTF_Font *font)
 {
     return font->face->num_faces;

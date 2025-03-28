@@ -679,6 +679,23 @@ extern DECLSPEC int SDLCALL TTF_GetFontKerning(const TTF_Font *font);
 extern DECLSPEC void SDLCALL TTF_SetFontKerning(TTF_Font *font, int allowed);
 
 /**
+ * Query the font bounding box.
+ * 
+ * The bounding box defines bounds large enough to contain any glyph from
+ * the font. It is expressed in pixel offsets from glyph's origin (0,0),
+ * with Y axis pointing upwards. Thus ymax offset may be seen of as the
+ * "maximum ascender" and ymin offset - as the "minimum descender".
+ *
+ * \param font the font to query.
+ * \param bbox the TTF_BBox struct to fill.
+ *
+ * \since This function is available since SDL_ttf 2.26.0.
+ */
+extern DECLSPEC void SDLCALL TTF_GetFontBBox(const TTF_Font *font,
+                                             int *minx, int *maxx,
+                                             int *miny, int *maxy);
+
+/**
  * Query the number of faces of a font.
  *
  * \param font the font to query.

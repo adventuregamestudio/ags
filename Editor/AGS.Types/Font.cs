@@ -202,11 +202,8 @@ namespace AGS.Types
             }
         }
 
-        [DisplayName("TTF font adjustment")]
-        [Description("Automatic adjustment of the true-type font metrics; primarily for backward compatibility.")]
-        [DefaultValue(FontMetricsFixup.None)]
-        [Category("Appearance")]
-        [TypeConverter(typeof(EnumTypeConverter))]
+        [Obsolete]
+        [Browsable(false)]
         public FontMetricsFixup TTFMetricsFixup
         {
             get { return _ttfMetricsFixup; }

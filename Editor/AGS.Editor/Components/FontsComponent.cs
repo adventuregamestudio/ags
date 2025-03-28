@@ -394,7 +394,6 @@ namespace AGS.Editor.Components
                 AssignFontFileToFont(newItem, sourceFontFile);
             }
             newItem.PointSize = sourceFontFile.FileFormat == FontFileFormat.WFN ? 0 : DEFAULT_IMPORTED_FONT_SIZE;
-            newItem.TTFMetricsFixup = game.Settings.TTFMetricsFixup; // use defaults
             return newItem;
         }
 

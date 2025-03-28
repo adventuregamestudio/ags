@@ -155,12 +155,12 @@ Pointf MoveList::CalcCurrentPos() const
         from.Y + (ypermove * onpart));
 }
 
-float MoveList::CalcStagePartsNum(int stage) const
+float MoveList::CalcStagePartsNum(uint32_t stage) const
 {
     return CalcPartsFromProgress(stage, 1.f);
 }
 
-float MoveList::CalcPartsFromProgress(int stage, float progress) const
+float MoveList::CalcPartsFromProgress(uint32_t stage, float progress) const
 {
     // NOTE: the last stage has no movement, so no progress can be made
     if (stage < 0 || stage >= GetNumStages() - 1)

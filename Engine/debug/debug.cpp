@@ -502,7 +502,7 @@ int check_for_messages_from_debugger()
         {
 #if AGS_PLATFORM_OS_WINDOWS
             const char *windowHandle = strstr(msgPtr, "EditorWindow") + 14;
-            editor_window_handle = (HWND)atoi(windowHandle);
+            editor_window_handle = reinterpret_cast<HWND>(atoi(windowHandle));
 #endif
             Debug::Printf(kDbgMsg_Info, "Debugger: session start");
         }

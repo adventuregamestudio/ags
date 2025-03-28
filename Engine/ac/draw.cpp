@@ -659,7 +659,7 @@ void dispose_draw_method()
 
 static void alloc_fixed_drawindexes()
 {
-    size_t draw_index = 1u; // DrawIndex 0 is reserved for walk-behinds
+    uint32_t draw_index = 1u; // DrawIndex 0 is reserved for walk-behinds
     for (auto &actsp : actsps)
         actsp.DrawIndex = draw_index++;
     for (auto &guidraw : guibg)
@@ -681,7 +681,7 @@ void init_game_drawdata()
     guihelpbg.resize(game.numgui);
     guibg.resize(game.numgui);
     gui_render_tex.resize(game.numgui);
-    size_t guio_num = 0;
+    int guio_num = 0;
     // Prepare GUI cache lists and build the quick reference for controls cache
     guiobjddbref.resize(game.numgui);
     for (const auto &gui : guis)

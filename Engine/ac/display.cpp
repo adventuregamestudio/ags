@@ -308,7 +308,7 @@ Bitmap *create_textual_image(const char *text, const DisplayTextLooks &look, col
         // Print the lines of text
         for (size_t i = 0; i < Lines.Count(); ++i)
         {
-            int ttyp = ttxtop + i * disp.Linespacing;
+            int ttyp = ttxtop + static_cast<int>(i) * disp.Linespacing;
             // if it's inside a text box then don't centre the text
             if (fix_look.Style == kDisplayTextStyle_TextWindow)
             {
@@ -331,7 +331,7 @@ Bitmap *create_textual_image(const char *text, const DisplayTextLooks &look, col
         adjust_y_coordinate_for_text(&yoffs, usingfont);
 
         for (size_t i = 0; i < Lines.Count(); ++i)
-            wouttext_aligned(text_window_ds, xoffs, yoffs + i * disp.Linespacing, oriwid, usingfont, text_color, Lines[i].GetCStr(), play.text_align);
+            wouttext_aligned(text_window_ds, xoffs, yoffs + static_cast<int>(i) * disp.Linespacing, oriwid, usingfont, text_color, Lines[i].GetCStr(), play.text_align);
     }
     return text_window_ds;
 }

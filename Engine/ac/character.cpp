@@ -3195,11 +3195,12 @@ int GetLipSyncFrame (const char *curtex, int *stroffs) {
     "Y/H/K/Q/C", "I/T/E/X/th", "U/W", "S/Z/J/ch", NULL,
     NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};*/
 
-    int bestfit_len = 0, bestfit = game.default_lipsync_frame;
+    size_t bestfit_len = 0;
+    int bestfit = game.default_lipsync_frame;
     for (int aa = 0; aa < MAXLIPSYNCFRAMES; aa++) {
         char *tptr = game.lipSyncFrameLetters[aa];
         while (tptr[0] != 0) {
-            int lenthisbit = strlen(tptr);
+            size_t lenthisbit = strlen(tptr);
             if (strchr(tptr, '/'))
                 lenthisbit = strchr(tptr, '/') - tptr;
 

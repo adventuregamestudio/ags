@@ -66,7 +66,7 @@ public:
 
     bool IsEmpty() const { return pos.empty(); }
     const RunPathParams &GetRunParams() const { return run_params; }
-    uint32_t GetNumStages() const { return pos.size(); }
+    uint32_t GetNumStages() const { return static_cast<uint32_t>(pos.size()); }
     uint32_t GetStage() const { return onstage; }
     float GetStageDoneSteps() const { return onpart; }
     float GetStageProgress() const;
@@ -132,9 +132,9 @@ private:
     // Calculates the would-be object position from current progress
     Pointf CalcCurrentPos() const;
     // Calculates the number of move steps in the stage (based on speeds)
-    float CalcStagePartsNum(int stage) const;
+    float CalcStagePartsNum(uint32_t stage) const;
     // Calculates the number of move steps corresponding to the given stage progress
-    float CalcPartsFromProgress(int stage, float progress) const;
+    float CalcPartsFromProgress(uint32_t stage, float progress) const;
     // Handle stage progress change, possibly moves to the next stage;
     // returns if there's a new stage available
     bool OnProgressChanged();

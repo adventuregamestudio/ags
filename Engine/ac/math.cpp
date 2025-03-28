@@ -132,9 +132,9 @@ float Math_RadiansToDegrees(float value)
 
 int Math_Random(int limit)
 {
-    if (limit <= 0 || limit > (RAND_MAX + 1))
+    if (limit <= 0 || ((RAND_MAX < INT32_MAX) && (limit > static_cast<int>(RAND_MAX) + 1)))
     {
-        debug_script_warn("!Maths.Random: invalid parameter %d -- must be in range (1..%d)", limit, (RAND_MAX + 1));
+        debug_script_warn("!Maths.Random: invalid parameter %d -- must be in range (1..%d)", limit, static_cast<int>(RAND_MAX) + 1);
         return 0;
     }
 
@@ -143,7 +143,7 @@ int Math_Random(int limit)
 
 float Math_RandomFloat()
 {
-    return static_cast<float>(rand()) / static_cast<float>(RAND_MAX + 1);
+    return static_cast<float>(static_cast<double>(rand()) / (RAND_MAX + 1.0));
 }
 
 float Math_Round(float value, int roundDirection)

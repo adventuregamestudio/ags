@@ -104,7 +104,8 @@ public:
     // Makes sure sprite cache has allocated slots for all sprites up to the given inclusive limit;
     // returns requested index on success, or -1 on failure.
     sprkey_t    EnlargeTo(sprkey_t topmost);
-    // Finds a free slot index, if all slots are occupied enlarges sprite bank; returns index
+    // Finds a free slot index, if all slots are occupied enlarges sprite bank;
+    // returns a positive index on success, or -1 if no more free slots are available.
     sprkey_t    GetFreeIndex();
     // Returns current size of the cache, in bytes; this includes locked size too!
     inline size_t GetCacheSize() const { return ResourceCache::GetCacheSize(); }

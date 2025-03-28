@@ -96,7 +96,7 @@ static int RenderChar(Bitmap *ds, const int at_x, const int at_y, Rect clip,
   const int width = wfn_char.Width;
   const int height = wfn_char.Height;
   const unsigned char *actdata = wfn_char.Data;
-  const int bytewid = wfn_char.GetRowByteCount();
+  const size_t bytewid = wfn_char.GetRowByteCount();
 
   int sx = std::max(at_x, clip.Left), ex = clip.Right + 1;
   int sy = std::max(at_y, clip.Top), ey = clip.Bottom + 1;

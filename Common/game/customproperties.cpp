@@ -62,7 +62,7 @@ PropertyError ReadSchema(PropertySchema &schema, Stream *in)
 void WriteSchema(const PropertySchema &schema, Stream *out)
 {
     out->WriteInt32(kPropertyVersion_Current);
-    out->WriteInt32(schema.size());
+    out->WriteInt32(static_cast<uint32_t>(schema.size()));
     for (PropertySchema::const_iterator it = schema.begin();
          it != schema.end(); ++it)
     {
@@ -117,7 +117,7 @@ PropertyError SkipValues(Stream *in)
 void WriteValues(const StringIMap &map, Stream *out)
 {
     out->WriteInt32(kPropertyVersion_Current);
-    out->WriteInt32(map.size());
+    out->WriteInt32(static_cast<uint32_t>(map.size()));
     for (StringIMap::const_iterator it = map.begin();
          it != map.end(); ++it)
     {

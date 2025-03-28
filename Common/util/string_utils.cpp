@@ -167,7 +167,8 @@ void StrUtil::SkipString(Stream *in)
 void StrUtil::WriteString(const String &s, Stream *out)
 {
     size_t len = s.GetLength();
-    out->WriteInt32(len);
+    len = std::min<size_t>(len, UINT32_MAX);
+    out->WriteInt32(static_cast<uint32_t>(len));
     if (len > 0)
         out->Write(s.GetCStr(), len);
 }
@@ -175,14 +176,16 @@ void StrUtil::WriteString(const String &s, Stream *out)
 void StrUtil::WriteString(const char *cstr, Stream *out)
 {
     size_t len = strlen(cstr);
-    out->WriteInt32(len);
+    len = std::min<size_t>(len, UINT32_MAX);
+    out->WriteInt32(static_cast<uint32_t>(len));
     if (len > 0)
         out->Write(cstr, len);
 }
 
 void StrUtil::WriteString(const char *cstr, size_t len, Stream *out)
 {
-    out->WriteInt32(len);
+    len = std::min<size_t>(len, UINT32_MAX);
+    out->WriteInt32(static_cast<uint32_t>(len));
     if (len > 0)
         out->Write(cstr, len);
 }
@@ -268,7 +271,7 @@ void StrUtil::ReadStringMap(StringMap &map, Stream *in)
 
 void StrUtil::WriteStringMap(const StringMap &map, Stream *out)
 {
-    out->WriteInt32(map.size());
+    out->WriteInt32(static_cast<uint32_t>(map.size()));
     for (const auto &kv : map)
     {
         StrUtil::WriteString(kv.first, out);

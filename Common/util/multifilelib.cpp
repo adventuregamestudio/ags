@@ -393,14 +393,14 @@ void MFLUtil::WriteV30(const AssetLibInfo &lib, Stream *out)
 {
     out->WriteInt32(0); // reserved options
     // filenames for all library parts
-    out->WriteInt32(lib.LibFileNames.size());
+    out->WriteInt32(static_cast<uint32_t>(lib.LibFileNames.size()));
     for (size_t i = 0; i < lib.LibFileNames.size(); ++i)
     {
         StrUtil::WriteCStr(lib.LibFileNames[i], out);
     }
 
     // table of contents for all assets in library
-    out->WriteInt32(lib.AssetInfos.size());
+    out->WriteInt32(static_cast<uint32_t>(lib.AssetInfos.size()));
     for (const auto &asset : lib.AssetInfos)
     {
         StrUtil::WriteCStr(asset.FileName, out);

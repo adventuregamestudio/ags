@@ -434,7 +434,7 @@ ScriptDynamicSprite* DynamicSprite_CreateFromBackground(int frame, int x1, int y
 
 int add_dynamic_sprite(std::unique_ptr<Bitmap> image, uint32_t extra_flags)
 {
-    int slot = spriteset.GetFreeIndex();
+    sprkey_t slot = spriteset.GetFreeIndex();
     if (slot <= 0)
         return 0;
 

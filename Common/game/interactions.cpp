@@ -71,7 +71,7 @@ HError InteractionEvents::Read_v362(Stream *in)
 
 void InteractionEvents::Write_v361(Stream *out) const
 {
-    out->WriteInt32(Events.size());
+    out->WriteInt32(static_cast<uint32_t>(Events.size()));
     for (const auto &evt : Events)
     {
         evt.FunctionName.Write(out);
@@ -82,7 +82,7 @@ void InteractionEvents::Write_v362(Stream *out) const
 {
     out->WriteInt32(kInterEvents_v362);
     StrUtil::WriteString(ScriptModule, out);
-    out->WriteInt32(Events.size());
+    out->WriteInt32(static_cast<uint32_t>(Events.size()));
     for (const auto &evt : Events)
     {
         StrUtil::WriteString(evt.FunctionName, out);

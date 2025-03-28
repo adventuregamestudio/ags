@@ -634,7 +634,7 @@ void GUIMain::WriteToFile(Stream *out) const
     out->WriteInt32(Y);
     out->WriteInt32(Width);
     out->WriteInt32(Height);
-    out->WriteInt32(_ctrlRefs.size());
+    out->WriteInt32(static_cast<uint32_t>(_ctrlRefs.size()));
     out->WriteInt32(PopupStyle);
     out->WriteInt32(PopupAtMouseY);
     out->WriteInt32(BgColor);
@@ -778,7 +778,7 @@ void GUIMain::WriteToSavegame(Common::Stream *out) const
     out->WriteInt32(MouseWasAt.Y);
     // Control refs (for asserting controls data on restoration,
     // and also in case if we support dynamic creation of controls)
-    out->WriteInt32(_ctrlRefs.size());
+    out->WriteInt32(static_cast<uint32_t>(_ctrlRefs.size()));
     for (const auto &ref : _ctrlRefs)
     {
         uint32_t ref_packed = ((ref.first & 0xFFFF) << 16) | (ref.second & 0xFFFF);
@@ -1118,7 +1118,7 @@ void WriteGUI(const std::vector<GUIMain> &guis, const GUIRefCollection &guiobjs,
 {
     out->WriteInt32(GUIMAGIC);
     out->WriteInt32(kGuiVersion_Current);
-    out->WriteInt32(guis.size());
+    out->WriteInt32(static_cast<uint32_t>(guis.size()));
 
     for (const auto &gui : guis)
     {

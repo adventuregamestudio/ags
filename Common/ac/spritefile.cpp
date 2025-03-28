@@ -623,7 +623,7 @@ int SaveSpriteIndex(const String &filename, const SpriteFileIndex &index)
     // write last sprite number and num sprites, to verify that
     // it matches the spr file
     out->WriteInt32(index.GetLastSlot());
-    out->WriteInt32(index.GetCount());
+    out->WriteInt32(static_cast<uint32_t>(index.GetCount()));
     if (index.GetCount() > 0)
     {
         out->WriteArrayOfInt16(&index.Widths[0], index.Widths.size());
@@ -759,7 +759,7 @@ void SpriteFileWriter::WriteSpriteData(const SpriteDatHeader &hdr,
         }
     }
     // write the image pixel data
-    _out->WriteInt32(im_data_sz);
+    _out->WriteInt32(static_cast<uint32_t>(im_data_sz));
     switch (im_bpp)
     {
     case 1: _out->Write(im_data, im_data_sz);

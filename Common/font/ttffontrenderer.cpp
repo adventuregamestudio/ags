@@ -108,7 +108,7 @@ static int GetAlfontFlags(int load_mode)
 // Loads a TTF font of a certain size
 static ALFONT_FONT *LoadTTFFromMem(const uint8_t *data, size_t data_len, int font_size, int alfont_flags)
 {
-    ALFONT_FONT *alfptr = alfont_load_font_from_mem(reinterpret_cast<const char*>(data), data_len);
+    ALFONT_FONT *alfptr = alfont_load_font_from_mem(reinterpret_cast<const char*>(data), static_cast<int>(data_len));
     if (!alfptr)
         return nullptr;
     alfont_set_font_size_ex(alfptr, font_size, alfont_flags);

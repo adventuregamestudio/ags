@@ -168,11 +168,14 @@ sprkey_t SpriteCache::EnlargeTo(sprkey_t topmost)
 
 sprkey_t SpriteCache::GetFreeIndex()
 {
+    if (_spriteData.size() >= MAX_SPRITE_SLOTS)
+        return -1;
+
     // FIXME: inefficient if large number of sprites were created in game;
     // use "available ids" stack, see managed pool for an example;
     // IMPORTANT: must keep in mind that SpriteCache's interface allows
     // to set any arbitrary sprite ID with SetSprite and SetEmptySprite!
-    for (size_t i = MIN_SPRITE_INDEX; i < _spriteData.size(); ++i)
+    for (sprkey_t i = MIN_SPRITE_INDEX; static_cast<size_t>(i) < _spriteData.size(); ++i)
     {
         // slot empty
         if (!DoesSpriteExist(i))
@@ -183,7 +186,7 @@ sprkey_t SpriteCache::GetFreeIndex()
         }
     }
     // enlarge the sprite bank to find a free slot and return the first new free slot
-    return EnlargeTo(_spriteData.size());
+    return EnlargeTo(static_cast<sprkey_t>(_spriteData.size()));
 }
 
 bool SpriteCache::SpriteData::IsAssetSprite() const
@@ -401,7 +404,7 @@ int SpriteCache::SaveToFile(const String &filename, int store_flags, SpriteCompr
     std::vector<std::pair<bool, Bitmap*>> sprites;
     for (size_t i = 0; i < _spriteData.size(); ++i)
     {
-        auto &image = ResourceCache::Get(i);
+        auto &image = ResourceCache::Get(static_cast<sprkey_t>(i));
         if (image) // optionally convert a sprite's pixel data for the saving
             _callbacks.PrewriteSprite(image.get());
         sprites.push_back(std::make_pair(
@@ -441,7 +444,7 @@ HError SpriteCache::InitFile(std::unique_ptr<Stream> &&sprite_file,
         else
         {
             // Mark as empty slot
-            InitNullSprite(i);
+            InitNullSprite(static_cast<sprkey_t>(i));
         }
     }
     return HError::None();

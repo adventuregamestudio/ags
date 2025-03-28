@@ -128,9 +128,12 @@ DebugManager::DebugManager(bool buffer_messages)
 
 MessageGroupHandle DebugManager::FindFreeGroupID()
 {
+    if (_groups.size() >= UINT32_MAX)
+        return InvalidMessageGroup;
+
     if (_freeGroupID >= _groups.size())
     {
-        _freeGroupID = _groups.size();
+        _freeGroupID = static_cast<uint32_t>(_groups.size());
     }
     else
     {
@@ -149,7 +152,11 @@ MessageGroupHandle DebugManager::RegisterGroup(const String &id, const String &o
         return it->second.ID;
     }
 
-    return RegisterGroupImpl(DebugGroupID(FindFreeGroupID(), id), out_name);
+    MessageGroupHandle handle = FindFreeGroupID();
+    if (handle == InvalidMessageGroup)
+        return InvalidMessageGroup;
+
+    return RegisterGroupImpl(DebugGroupID(handle, id), out_name);
 }
 
 MessageGroupHandle DebugManager::RegisterGroup(const DebugGroupID &group_id, const String &out_name)

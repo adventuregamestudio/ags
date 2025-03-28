@@ -317,14 +317,14 @@ public:
     PBitmap                 WalkAreaMask;
     PBitmap                 WalkBehindMask;
     // Room entities
-    size_t                  HotspotCount;
+    uint32_t                HotspotCount;
     RoomHotspot             Hotspots[MAX_ROOM_HOTSPOTS];
     std::vector<RoomObjectInfo> Objects;
-    size_t                  RegionCount;
+    uint32_t                RegionCount;
     RoomRegion              Regions[MAX_ROOM_REGIONS];
-    size_t                  WalkAreaCount;
+    uint32_t                WalkAreaCount;
     WalkArea                WalkAreas[MAX_WALK_AREAS];
-    size_t                  WalkBehindCount;
+    uint32_t                WalkBehindCount;
     WalkBehind              WalkBehinds[MAX_WALK_BEHINDS];
 
     // Custom properties

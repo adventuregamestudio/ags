@@ -156,14 +156,12 @@ static void FillMetrics(TTF_Font *font, int nominal_size, FontMetrics *metrics)
     metrics->NominalHeight = nominal_size;
     metrics->RealHeight = TTF_FontHeight(font);
     metrics->CompatHeight = metrics->NominalHeight; // just set to default here
-    // FIXME: would be best to use SDL_ttf API for retrieving FT_Face's BBOX
     std::pair<int, int> vextent;
     {
-        const FT_FaceRec_ *ft_face = *(FT_FaceRec_**)font;
-        FT_Long bbox_ymax = FT_MulFix(FT_DivFix(ft_face->bbox.yMax, ft_face->units_per_EM), ft_face->size->metrics.y_ppem);
-        FT_Long bbox_ymin = FT_MulFix(FT_DivFix(ft_face->bbox.yMin, ft_face->units_per_EM), ft_face->size->metrics.y_ppem);
-        int real_face_extent_asc = (int)bbox_ymax;
-        int real_face_extent_desc = -(int)bbox_ymin;
+        int miny, maxy;
+        TTF_GetFontBBox(font, nullptr, nullptr, &miny, &maxy);
+        int real_face_extent_asc = (int)maxy;
+        int real_face_extent_desc = -(int)miny;
         int face_ascender = TTF_FontAscent(font);
         int face_descender = TTF_FontDescent(font);
         int top = face_ascender - real_face_extent_asc; // may be negative

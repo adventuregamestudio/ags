@@ -113,9 +113,11 @@ ScriptDrawingSurface* Room_GetDrawingSurfaceForBackground(int backgroundNumber)
         backgroundNumber = play.bg_frame;
     }
 
-    if ((backgroundNumber < 0) || ((size_t)backgroundNumber >= thisroom.BgFrameCount))
-        quit("!Room.GetDrawingSurfaceForBackground: invalid background number specified");
-
+    if ((backgroundNumber < 0) || (backgroundNumber >= thisroom.BgFrameCount))
+    {
+        debug_script_warn("Room.GetDrawingSurfaceForBackground: invalid background number specified: %d, valid range in this room is 0..%u", thisroom.BgFrameCount - 1);
+        return nullptr;
+    }
 
     ScriptDrawingSurface *surface = new ScriptDrawingSurface();
     surface->roomBackgroundNumber = backgroundNumber;

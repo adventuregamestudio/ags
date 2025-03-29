@@ -800,6 +800,8 @@ builtin struct Room {
 #ifdef SCRIPT_API_v362
   /// Finds the nearest position on any walkable area, close to the given coordinates. Returns null if no walkable area is found.
   import static Point* NearestWalkableArea(int x, int y);   // $AUTOCOMPLETESTATICONLY$
+  /// Gets the number of backgrounds in this room.
+  import static readonly attribute int BackgroundCount;
 #endif
 };
 

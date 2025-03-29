@@ -151,6 +151,10 @@ int Room_GetColorDepth() {
     return thisroom.BgFrames[0].Graphic->GetColorDepth();
 }
 
+int Room_GetBackgroundCount() {
+    return thisroom.BgFrameCount;
+}
+
 int Room_GetLeftEdge() {
     return thisroom.Edges.Left;
 }
@@ -1216,6 +1220,11 @@ RuntimeScriptValue Sc_Room_GetHeight(const RuntimeScriptValue *params, int32_t p
     API_SCALL_INT(Room_GetHeight);
 }
 
+RuntimeScriptValue Sc_Room_GetBackgroundCount(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Room_GetBackgroundCount);
+}
+
 // int ()
 RuntimeScriptValue Sc_Room_GetLeftEdge(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -1286,6 +1295,7 @@ void RegisterRoomAPI()
         { "Room::SetTextProperty^2",                  API_FN_PAIR(Room_SetTextProperty) },
         { "Room::ProcessClick^3",                     API_FN_PAIR(RoomProcessClick) },
         { "ProcessClick",                             API_FN_PAIR(RoomProcessClick) },
+        { "Room::get_BackgroundCount",                API_FN_PAIR(Room_GetBackgroundCount) },
         { "Room::get_BottomEdge",                     API_FN_PAIR(Room_GetBottomEdge) },
         { "Room::get_ColorDepth",                     API_FN_PAIR(Room_GetColorDepth) },
         { "Room::get_Height",                         API_FN_PAIR(Room_GetHeight) },

@@ -963,7 +963,7 @@ int drawFontAt(HDC hdc, int fontnum, int draw_atx, int draw_aty, int width, int 
   set_uformat(U_ASCII); // we won't be able to print 128-255 chars otherwise!
   for (int c = first_char; c < num_chars; ++c)
   {
-    wgtprintf(tempblock,
+    woutprintf(tempblock,
                 padding + (c % chars_per_row) * grid_size + grid_margin,
                 padding + (c / chars_per_row) * grid_size + grid_margin - scroll_y,
                 fontnum, text_color, "%c", c);

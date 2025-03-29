@@ -89,8 +89,6 @@ int get_text_lines_surf_height(int font_number, size_t numlines);
 void set_font_outline(int font_number, int outline_type,
     enum FontInfo::AutoOutlineStyle style = FontInfo::kSquared, int thickness = 1);
 bool is_font_antialiased(int font_number);
-// Outputs a single line of text on the defined position on bitmap, using defined font, color and parameters
-void wouttextxy(AGS::Common::Bitmap *ds, int xxx, int yyy, int font_number, color_t text_color, const char *texx);
 // Assigns FontInfo to the font
 void set_fontinfo(int font_number, const FontInfo &finfo);
 // Gets full information about the font
@@ -99,8 +97,6 @@ FontInfo get_fontinfo(int font_number);
 bool load_font_size(int font_number, const FontInfo &font_info);
 // Loads a font from disk, reads metrics, and disposes a font
 bool load_font_metrics(const AGS::Common::String &filename, int pixel_size, FontMetrics &metrics);
-// FIXME: review this function, used only in AGS.Native (editor)
-void wgtprintf(AGS::Common::Bitmap *ds, int xxx, int yyy, int font_number, color_t text_color, char *fmt, ...);
 // Allocates two outline stencil buffers, or returns previously creates ones;
 // these buffers are owned by the font, they should not be deleted by the caller.
 void alloc_font_outline_buffers(int font_number,
@@ -114,6 +110,11 @@ void freefont(int font_number);
 void movefont(size_t old_font_num, size_t new_font_num);
 // Free all fonts data
 void free_all_fonts();
+
+// Outputs a single line of text on the defined position on bitmap, using defined font, color and parameters
+void wouttextxy(AGS::Common::Bitmap *ds, int x, int y, int font_number, color_t text_color, const char *texx);
+// FIXME: review this function, used only in AGS.Native (editor)
+void woutprintf(AGS::Common::Bitmap *ds, int x, int y, int font_number, color_t text_color, const char *fmt, ...);
 
 // Tells if the text should be antialiased when possible
 bool ShouldAntiAliasText();

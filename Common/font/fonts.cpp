@@ -523,18 +523,6 @@ size_t split_lines(const char *todis, SplitLines &lines, int wii, int fonnt, siz
     return lines.Count();
 }
 
-void wouttextxy(Bitmap *ds, int xxx, int yyy, int font_number, color_t text_color, const char *texx)
-{
-    if (!assert_font_renderer(font_number))
-        return;
-
-    yyy += fonts[font_number].Info.YOffset;
-    if (yyy > ds->GetClip().Bottom)
-        return; // each char is clipped but this speeds it up
-
-    fonts[font_number].Renderer->RenderText(texx, font_number, (BITMAP *)ds->GetAllegroBitmap(), xxx, yyy, text_color);
-}
-
 void set_fontinfo(int font_number, const FontInfo &finfo)
 {
     if (!assert_font_number(font_number))
@@ -610,19 +598,6 @@ bool load_font_metrics(const String &filename, int pixel_size, FontMetrics &metr
     return false;
 }
 
-void wgtprintf(Bitmap *ds, int xxx, int yyy, int font_number, color_t text_color, char *fmt, ...)
-{
-    if (!assert_font_renderer(font_number))
-        return;
-
-    char tbuffer[2000];
-    va_list ap;
-    va_start(ap, fmt);
-    vsnprintf(tbuffer, sizeof(tbuffer), fmt, ap);
-    va_end(ap);
-    wouttextxy(ds, xxx, yyy, font_number, text_color, tbuffer);
-}
-
 void alloc_font_outline_buffers(int font_number,
     Bitmap **text_stencil, Bitmap **outline_stencil,
     int text_width, int text_height, int color_depth)
@@ -691,4 +666,28 @@ void free_all_fonts()
             fonts[i].Renderer->FreeMemory(static_cast<int>(i));
     }
     fonts.clear();
+}
+
+void wouttextxy(Bitmap *ds, int x, int y, int font_number, color_t text_color, const char *texx)
+{
+    if (!assert_font_renderer(font_number))
+        return;
+
+    y += fonts[font_number].Info.YOffset;
+    if (y > ds->GetClip().Bottom)
+        return; // each char is clipped but this speeds it up
+
+    fonts[font_number].Renderer->RenderText(texx, font_number, (BITMAP *)ds->GetAllegroBitmap(), x, y, text_color);
+}
+
+void woutprintf(Bitmap *ds, int x, int y, int font_number, color_t text_color, const char *fmt, ...)
+{
+    if (!assert_font_renderer(font_number))
+        return;
+
+    va_list ap;
+    va_start(ap, fmt);
+    String text = String::FromFormatV(fmt, ap);
+    va_end(ap);
+    wouttextxy(ds, x, y, font_number, text_color, text.GetCStr());
 }

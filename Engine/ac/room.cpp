@@ -190,7 +190,7 @@ bool Room_SetTextProperty(const char *property, const char *value)
 }
 
 const char* Room_GetMessages(int index) {
-    if ((index < 0) || ((size_t)index >= thisroom.MessageCount)) {
+    if ((index < 0) || ((uint32_t)index >= thisroom.MessageCount)) {
         return nullptr;
     }
     char buffer[STD_BUFFER_SIZE];
@@ -381,13 +381,13 @@ void convert_room_coordinates_to_data_res(RoomStruct *rstruc)
         }
     }
 
-    for (size_t i = 0; i < rstruc->HotspotCount; ++i)
+    for (uint32_t i = 0; i < rstruc->HotspotCount; ++i)
     {
         rstruc->Hotspots[i].WalkTo.X /= mul;
         rstruc->Hotspots[i].WalkTo.Y /= mul;
     }
 
-    for (size_t i = 0; i < rstruc->WalkBehindCount; ++i)
+    for (uint32_t i = 0; i < rstruc->WalkBehindCount; ++i)
     {
         rstruc->WalkBehinds[i].Baseline /= mul;
     }

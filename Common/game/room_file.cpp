@@ -99,7 +99,7 @@ HError ReadMainBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
         return new RoomFileError(kRoomFileErr_IncompatibleEngine, String::FromFormat("Too many walk-behinds (in room: %d, max: %d).", room->WalkBehindCount, MAX_WALK_BEHINDS));
 
     // Walk-behinds baselines
-    for (size_t i = 0; i < room->WalkBehindCount; ++i)
+    for (uint32_t i = 0; i < room->WalkBehindCount; ++i)
         room->WalkBehinds[i].Baseline = in->ReadInt16();
 
     room->HotspotCount = in->ReadInt32();
@@ -109,14 +109,14 @@ HError ReadMainBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
         return new RoomFileError(kRoomFileErr_IncompatibleEngine, String::FromFormat("Too many hotspots (in room: %d, max: %d).", room->HotspotCount, MAX_ROOM_HOTSPOTS));
 
     // Hotspots walk-to points
-    for (size_t i = 0; i < room->HotspotCount; ++i)
+    for (uint32_t i = 0; i < room->HotspotCount; ++i)
     {
         room->Hotspots[i].WalkTo.X = in->ReadInt16();
         room->Hotspots[i].WalkTo.Y = in->ReadInt16();
     }
 
     // Hotspots names and script names
-    for (size_t i = 0; i < room->HotspotCount; ++i)
+    for (uint32_t i = 0; i < room->HotspotCount; ++i)
     {
         if (data_ver >= kRoomVersion_3415)
             room->Hotspots[i].Name = StrUtil::ReadString(in);
@@ -128,7 +128,7 @@ HError ReadMainBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
 
     if (data_ver >= kRoomVersion_270)
     {
-        for (size_t i = 0; i < room->HotspotCount; ++i)
+        for (uint32_t i = 0; i < room->HotspotCount; ++i)
         {
             if (data_ver >= kRoomVersion_3415)
                 room->Hotspots[i].ScriptName = StrUtil::ReadString(in);
@@ -138,11 +138,11 @@ HError ReadMainBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
     }
 
     // TODO: remove from format later
-    size_t polypoint_areas = in->ReadInt32();
+    uint32_t polypoint_areas = in->ReadInt32();
     if (polypoint_areas > 0)
         return new RoomFileError(kRoomFileErr_IncompatibleEngine, "Legacy poly-point areas are no longer supported.");
     /* NOTE: implementation hidden in room_file_deprecated.cpp
-        for (size_t i = 0; i < polypoint_areas; ++i)
+        for (uint32_t i = 0; i < polypoint_areas; ++i)
             wallpoints[i].Read(in);
     */
 
@@ -175,7 +175,7 @@ HError ReadMainBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
 
     if (data_ver >= kRoomVersion_241 && data_ver < kRoomVersion_300a)
     {
-        for (size_t i = 0; i < room->HotspotCount; ++i)
+        for (uint32_t i = 0; i < room->HotspotCount; ++i)
             room->Hotspots[i].Interaction = Interaction::CreateFromStream(in);
         for (auto &obj : room->Objects)
             obj.Interaction = Interaction::CreateFromStream(in);
@@ -190,7 +190,7 @@ HError ReadMainBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
 
         if (data_ver < kRoomVersion_300a)
         {
-            for (size_t i = 0; i < room->RegionCount; ++i)
+            for (uint32_t i = 0; i < room->RegionCount; ++i)
                 room->Regions[i].Interaction = Interaction::CreateFromStream(in);
         }
     }
@@ -200,11 +200,11 @@ HError ReadMainBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
     if (data_ver >= kRoomVersion_300a)
     {
         room->EventHandlers = InteractionEvents::CreateFromStream_v361(in);
-        for (size_t i = 0; i < room->HotspotCount; ++i)
+        for (uint32_t i = 0; i < room->HotspotCount; ++i)
             room->Hotspots[i].EventHandlers = InteractionEvents::CreateFromStream_v361(in);
         for (auto &obj : room->Objects)
             obj.EventHandlers = InteractionEvents::CreateFromStream_v361(in);
-        for (size_t i = 0; i < room->RegionCount; ++i)
+        for (uint32_t i = 0; i < room->RegionCount; ++i)
             room->Regions[i].EventHandlers = InteractionEvents::CreateFromStream_v361(in);
     }
 
@@ -233,18 +233,18 @@ HError ReadMainBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
         return new RoomFileError(kRoomFileErr_IncompatibleEngine, String::FromFormat("Too many walkable areas (in room: %d, max: %d).", room->WalkAreaCount, MAX_WALK_AREAS));
 
     if (data_ver >= kRoomVersion_200_alpha7)
-        for (size_t i = 0; i < room->WalkAreaCount; ++i)
+        for (uint32_t i = 0; i < room->WalkAreaCount; ++i)
             room->WalkAreas[i].ScalingFar = in->ReadInt16();
     if (data_ver >= kRoomVersion_214)
-        for (size_t i = 0; i < room->WalkAreaCount; ++i)
+        for (uint32_t i = 0; i < room->WalkAreaCount; ++i)
             room->WalkAreas[i].PlayerView = in->ReadInt16();
     if (data_ver >= kRoomVersion_251)
     {
-        for (size_t i = 0; i < room->WalkAreaCount; ++i)
+        for (uint32_t i = 0; i < room->WalkAreaCount; ++i)
             room->WalkAreas[i].ScalingNear = in->ReadInt16();
-        for (size_t i = 0; i < room->WalkAreaCount; ++i)
+        for (uint32_t i = 0; i < room->WalkAreaCount; ++i)
             room->WalkAreas[i].Top = in->ReadInt16();
-        for (size_t i = 0; i < room->WalkAreaCount; ++i)
+        for (uint32_t i = 0; i < room->WalkAreaCount; ++i)
             room->WalkAreas[i].Bottom = in->ReadInt16();
     }
 
@@ -266,7 +266,7 @@ HError ReadMainBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
 
     if (data_ver >= kRoomVersion_pre114_3)
     {
-        for (size_t i = 0; i < room->MessageCount; ++i)
+        for (uint32_t i = 0; i < room->MessageCount; ++i)
         {
             room->MessageInfos[i].DisplayAs = in->ReadInt8();
             room->MessageInfos[i].Flags = in->ReadInt8();
@@ -274,7 +274,7 @@ HError ReadMainBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
     }
 
     std::vector<char> mbuf(MAX_MESSAGE_PRE261_LEN + 1);
-    for (size_t i = 0; i < room->MessageCount; ++i)
+    for (uint32_t i = 0; i < room->MessageCount; ++i)
     {
         if (data_ver < kRoomVersion_261) // Room messages are not encrypted on < 2.61
         {
@@ -312,14 +312,14 @@ HError ReadMainBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
 
     if (data_ver >= kRoomVersion_114)
     { // NOTE: this WA value was written for the second time here, for some weird reason
-        for (size_t i = 0; i < (size_t)MAX_WALK_AREAS; ++i)
+        for (uint32_t i = 0; i < (size_t)MAX_WALK_AREAS; ++i)
             room->WalkAreas[i].PlayerView = in->ReadInt16();
     }
     if (data_ver >= kRoomVersion_255b)
     {
-        for (size_t i = 0; i < room->RegionCount; ++i)
+        for (uint32_t i = 0; i < room->RegionCount; ++i)
             room->Regions[i].Light = in->ReadInt16();
-        for (size_t i = 0; i < room->RegionCount; ++i)
+        for (uint32_t i = 0; i < room->RegionCount; ++i)
             room->Regions[i].Tint = in->ReadInt32();
     }
 
@@ -429,7 +429,7 @@ HError ReadPropertiesBlock(RoomStruct *room, Stream *in, RoomFileVersion /*data_
 
     int errors = 0;
     errors += Properties::ReadValues(room->Properties, in);
-    for (size_t i = 0; i < room->HotspotCount; ++i)
+    for (uint32_t i = 0; i < room->HotspotCount; ++i)
         errors += Properties::ReadValues(room->Hotspots[i].Properties, in);
     for (auto &obj : room->Objects)
         errors += Properties::ReadValues(obj.Properties, in);
@@ -613,13 +613,13 @@ HRoomFileError UpdateRoomData(RoomStruct *room, RoomFileVersion data_ver, bool g
             }
         }
 
-        for (size_t i = 0; i < room->HotspotCount; ++i)
+        for (uint32_t i = 0; i < room->HotspotCount; ++i)
         {
             room->Hotspots[i].WalkTo.X *= mul;
             room->Hotspots[i].WalkTo.Y *= mul;
         }
 
-        for (size_t i = 0; i < room->WalkBehindCount; ++i)
+        for (uint32_t i = 0; i < room->WalkBehindCount; ++i)
         {
             room->WalkBehinds[i].Baseline *= mul;
         }
@@ -646,7 +646,7 @@ HRoomFileError UpdateRoomData(RoomStruct *room, RoomFileVersion data_ver, bool g
         // if they set a contiuously scaled area where the top
         // and bottom zoom levels are identical, set it as a normal
         // scaled area
-        for (size_t i = 0; i < room->WalkAreaCount; ++i)
+        for (uint32_t i = 0; i < room->WalkAreaCount; ++i)
         {
             if (room->WalkAreas[i].ScalingFar == room->WalkAreas[i].ScalingNear)
                 room->WalkAreas[i].ScalingNear = NOT_VECTOR_SCALED;
@@ -656,7 +656,7 @@ HRoomFileError UpdateRoomData(RoomStruct *room, RoomFileVersion data_ver, bool g
     // Convert the old format region tint saturation
     if (data_ver < kRoomVersion_3404)
     {
-        for (size_t i = 0; i < room->RegionCount; ++i)
+        for (uint32_t i = 0; i < room->RegionCount; ++i)
         {
             if ((room->Regions[i].Tint & LEGACY_TINT_IS_ENABLED) != 0)
             {
@@ -671,7 +671,7 @@ HRoomFileError UpdateRoomData(RoomStruct *room, RoomFileVersion data_ver, bool g
 
     // Older format room messages had flags appended to the message string
     // TODO: find out which data versions had these; is it safe to assume this was before kRoomVersion_pre114_3?
-    for (size_t i = 0; i < room->MessageCount; ++i)
+    for (uint32_t i = 0; i < room->MessageCount; ++i)
     {
         if (!room->Messages[i].IsEmpty() &&
             static_cast<uint8_t>(room->Messages[i].GetLast()) == ROOM_MESSAGE_FLAG_DISPLAYNEXT)
@@ -717,19 +717,19 @@ HRoomFileError ExtractScriptText(String &script, std::unique_ptr<Stream> &&in, R
 void WriteMainBlock(const RoomStruct *room, Stream *out)
 {
     out->WriteInt32(room->BackgroundBPP);
-    out->WriteInt16((int16_t)room->WalkBehindCount);
-    for (size_t i = 0; i < room->WalkBehindCount; ++i)
+    out->WriteInt16((uint16_t)room->WalkBehindCount);
+    for (uint32_t i = 0; i < room->WalkBehindCount; ++i)
         out->WriteInt16(room->WalkBehinds[i].Baseline);
 
     out->WriteInt32(room->HotspotCount);
-    for (size_t i = 0; i < room->HotspotCount; ++i)
+    for (uint32_t i = 0; i < room->HotspotCount; ++i)
     {
         out->WriteInt16(room->Hotspots[i].WalkTo.X);
         out->WriteInt16(room->Hotspots[i].WalkTo.Y);
     }
-    for (size_t i = 0; i < room->HotspotCount; ++i)
+    for (uint32_t i = 0; i < room->HotspotCount; ++i)
         Common::StrUtil::WriteString(room->Hotspots[i].Name, out);
-    for (size_t i = 0; i < room->HotspotCount; ++i)
+    for (uint32_t i = 0; i < room->HotspotCount; ++i)
         Common::StrUtil::WriteString(room->Hotspots[i].ScriptName, out);
 
     out->WriteInt32(0); // legacy poly-point areas
@@ -739,7 +739,7 @@ void WriteMainBlock(const RoomStruct *room, Stream *out)
     out->WriteInt16(room->Edges.Left);
     out->WriteInt16(room->Edges.Right);
 
-    out->WriteInt16((int16_t)room->Objects.size());
+    out->WriteInt16((uint16_t)room->Objects.size());
     for (const auto &obj : room->Objects)
     {
         WriteRoomObject(obj, out);
@@ -750,11 +750,11 @@ void WriteMainBlock(const RoomStruct *room, Stream *out)
 
     // NOTE: we keep pre-3.6.2 interaction format for now, room interactions don't need module selection
     room->EventHandlers->Write_v361(out);
-    for (size_t i = 0; i < room->HotspotCount; ++i)
+    for (uint32_t i = 0; i < room->HotspotCount; ++i)
         room->Hotspots[i].EventHandlers->Write_v361(out);
     for (const auto &obj : room->Objects)
         obj.EventHandlers->Write_v361(out);
-    for (size_t i = 0; i < room->RegionCount; ++i)
+    for (uint32_t i = 0; i < room->RegionCount; ++i)
         room->Regions[i].EventHandlers->Write_v361(out);
 
     for (const auto &obj : room->Objects)
@@ -766,15 +766,15 @@ void WriteMainBlock(const RoomStruct *room, Stream *out)
     out->WriteInt16(room->MaskResolution);
 
     out->WriteInt32(MAX_WALK_AREAS);
-    for (size_t i = 0; i < (size_t)MAX_WALK_AREAS; ++i)
+    for (uint32_t i = 0; i < (uint32_t)MAX_WALK_AREAS; ++i)
         out->WriteInt16(room->WalkAreas[i].ScalingFar);
-    for (size_t i = 0; i < (size_t)MAX_WALK_AREAS; ++i)
+    for (uint32_t i = 0; i < (uint32_t)MAX_WALK_AREAS; ++i)
         out->WriteInt16(room->WalkAreas[i].PlayerView);
-    for (size_t i = 0; i < (size_t)MAX_WALK_AREAS; ++i)
+    for (uint32_t i = 0; i < (uint32_t)MAX_WALK_AREAS; ++i)
         out->WriteInt16(room->WalkAreas[i].ScalingNear);
-    for (size_t i = 0; i < (size_t)MAX_WALK_AREAS; ++i)
+    for (uint32_t i = 0; i < (uint32_t)MAX_WALK_AREAS; ++i)
         out->WriteInt16(room->WalkAreas[i].Top);
-    for (size_t i = 0; i < (size_t)MAX_WALK_AREAS; ++i)
+    for (uint32_t i = 0; i < (uint32_t)MAX_WALK_AREAS; ++i)
         out->WriteInt16(room->WalkAreas[i].Bottom);
 
     out->WriteByteCount(0, LEGACY_ROOM_PASSWORD_LENGTH);
@@ -785,24 +785,24 @@ void WriteMainBlock(const RoomStruct *room, Stream *out)
     out->WriteInt8(room->Options.MusicVolume);
     out->WriteInt8(room->Options.Flags);
     out->WriteByteCount(0, ROOM_OPTIONS_RESERVED);
-    out->WriteInt16((int16_t)room->MessageCount);
+    out->WriteInt16((uint16_t)room->MessageCount);
     out->WriteInt32(room->GameID);
-    for (size_t i = 0; i < room->MessageCount; ++i)
+    for (uint32_t i = 0; i < room->MessageCount; ++i)
     {
         out->WriteInt8(room->MessageInfos[i].DisplayAs);
         out->WriteInt8(room->MessageInfos[i].Flags);
     }
-    for (size_t i = 0; i < room->MessageCount; ++i)
+    for (uint32_t i = 0; i < room->MessageCount; ++i)
         write_string_encrypt(out, room->Messages[i].GetCStr());
 
     out->WriteInt16(0); // legacy room animations
 
     // NOTE: this WA value was written for the second time here, for some weird reason
-    for (size_t i = 0; i < (size_t)MAX_WALK_AREAS; ++i)
+    for (uint32_t i = 0; i < (uint32_t)MAX_WALK_AREAS; ++i)
         out->WriteInt16(room->WalkAreas[i].PlayerView);
-    for (size_t i = 0; i < (size_t)MAX_ROOM_REGIONS; ++i)
+    for (uint32_t i = 0; i < (uint32_t)MAX_ROOM_REGIONS; ++i)
         out->WriteInt16(room->Regions[i].Light);
-    for (size_t i = 0; i < (size_t)MAX_ROOM_REGIONS; ++i)
+    for (uint32_t i = 0; i < (uint32_t)MAX_ROOM_REGIONS; ++i)
         out->WriteInt32(room->Regions[i].Tint);
 
     save_lzw(out, room->BgFrames[0].Graphic.get(), &room->Palette);
@@ -846,7 +846,7 @@ void WritePropertiesBlock(const RoomStruct *room, Stream *out)
 {
     out->WriteInt32(1);  // Version 1 of properties block
     Properties::WriteValues(room->Properties, out);
-    for (size_t i = 0; i < room->HotspotCount; ++i)
+    for (uint32_t i = 0; i < room->HotspotCount; ++i)
         Properties::WriteValues(room->Hotspots[i].Properties, out);
     for (const auto &obj : room->Objects)
         Properties::WriteValues(obj.Properties, out);

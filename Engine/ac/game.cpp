@@ -1640,7 +1640,7 @@ void get_message_text (int msnum, char *buffer, char giveErr) {
         replace_tokens(get_translation(game.messages[msnum-500].GetCStr()), buffer, maxlen);
         return;
     }
-    else if (msnum < 0 || (size_t)msnum >= thisroom.MessageCount) {
+    else if (msnum < 0 || (uint32_t)msnum >= thisroom.MessageCount) {
         if (giveErr)
             quit("!DisplayMessage: Invalid message number to display");
         buffer[0] = 0;

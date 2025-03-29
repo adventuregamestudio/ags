@@ -344,7 +344,7 @@ public:
 
     // Background frames
     int32_t                 BackgroundBPP; // bytes per pixel
-    size_t                  BgFrameCount;
+    uint32_t                BgFrameCount;
     RoomBgFrame             BgFrames[MAX_ROOM_BGFRAMES];
     // Speed at which background frames are changing, 0 - no auto animation
     int32_t                 BgAnimSpeed;
@@ -356,18 +356,18 @@ public:
     PBitmap                 WalkAreaMask;
     PBitmap                 WalkBehindMask;
     // Room entities
-    size_t                  HotspotCount;
+    uint32_t                HotspotCount;
     RoomHotspot             Hotspots[MAX_ROOM_HOTSPOTS];
     std::vector<RoomObjectInfo> Objects;
-    size_t                  RegionCount;
+    uint32_t                RegionCount;
     RoomRegion              Regions[MAX_ROOM_REGIONS];
-    size_t                  WalkAreaCount;
+    uint32_t                WalkAreaCount;
     WalkArea                WalkAreas[MAX_WALK_AREAS];
-    size_t                  WalkBehindCount;
+    uint32_t                WalkBehindCount;
     WalkBehind              WalkBehinds[MAX_WALK_BEHINDS];
 
     // Old numbered room messages (used with DisplayMessage, etc)
-    size_t                  MessageCount;
+    uint32_t                MessageCount;
     String                  Messages[MAX_MESSAGES];
     MessageInfo             MessageInfos[MAX_MESSAGES];
 

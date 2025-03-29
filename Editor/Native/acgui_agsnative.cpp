@@ -76,11 +76,6 @@ int get_eip_guiobj()
   return 0;
 }
 
-int get_text_width_outlined(const char *tex, int font)
-{
-  return get_text_width(tex, font);
-}
-
 namespace AGS
 {
 namespace Common

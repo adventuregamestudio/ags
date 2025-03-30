@@ -126,7 +126,7 @@ namespace AGS.Types
 		public string SourceFile
 		{
 			get { return _sourceFile; }
-			set { _sourceFile = value; }
+			set { _sourceFile = Utilities.ValidateFilePath(value); }
 		}
 
         [Description("Import the alpha channel (if one is available)")]

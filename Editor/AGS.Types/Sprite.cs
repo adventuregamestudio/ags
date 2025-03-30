@@ -22,6 +22,7 @@ namespace AGS.Types
         private int? _coloursLockedToRoom = null;
         private int _frame = 0;
         private SpriteImportTransparency _tranparentColour = SpriteImportTransparency.LeaveAsIs;
+        private int _transparentColourIndex = 0;
         private int _offsetX;
         private int _offsetY;
         private int _importWidth;
@@ -210,6 +211,14 @@ namespace AGS.Types
             set { _tranparentColour = value; }
         }
 
+        [Description("Palette index treated as a transparent colour")]
+        [Category("Import")]
+        public int TransparentColourIndex
+        {
+            get { return _transparentColourIndex; }
+            set { _transparentColourIndex = value; }
+        }
+
         [Description("Remap colours to game palette")]
         [Category("Import")]
         public bool RemapToGamePalette
@@ -296,6 +305,16 @@ namespace AGS.Types
                 {
                     _importAsTile = false;
                 }
+
+                // added in XML Version 3060209
+                try
+                {
+                    _transparentColourIndex = Convert.ToInt32(SerializeUtils.GetElementString(sourceNode, "TransparentColorIndex"));
+                }
+                catch (InvalidDataException)
+                {
+                    _transparentColourIndex = 0;
+                }
             }
         }
 
@@ -325,6 +344,7 @@ namespace AGS.Types
             writer.WriteElementString("RemapToGamePalette", _remapToGamePalette.ToString());
             writer.WriteElementString("RemapToRoomPalette", _remapToRoomPalette.ToString());
             writer.WriteElementString("ImportMethod", _tranparentColour.ToString());
+            writer.WriteElementString("TransparentColorIndex", _transparentColourIndex.ToString());
             writer.WriteElementString("ImportAlphaChannel", _importAlphaChannel.ToString());
             writer.WriteEndElement(); // end source
 

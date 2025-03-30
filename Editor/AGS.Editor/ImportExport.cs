@@ -1413,7 +1413,7 @@ namespace AGS.Editor
                 bmp.Palette = pal;
             }
 
-            Sprite newSprite = Factory.NativeProxy.CreateSpriteFromBitmap(bmp, SpriteImportTransparency.LeaveAsIs, true, false, hasAlpha);
+            Sprite newSprite = Factory.NativeProxy.CreateSpriteFromBitmap(bmp, SpriteImportTransparency.LeaveAsIs, 0, true, false, hasAlpha);
             bmp.Dispose();
             return newSprite;
         }

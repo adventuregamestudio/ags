@@ -117,6 +117,16 @@ int32_t GUIMain::FindControlAtLocal(int atx, int aty, int leeway, bool must_be_c
     return -1;
 }
 
+int GUIMain::GetControlUnderMouse() const
+{
+    if (MouseOverCtrl >= 0)
+        return MouseOverCtrl;
+    else if (MouseOverCtrl == MOVER_MOUSEDOWNLOCKED)
+        return MouseDownCtrl;
+    else
+        return -1;
+}
+
 int GUIMain::GetControlCount() const
 {
     return (int32_t)_controls.size();

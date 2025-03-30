@@ -142,6 +142,8 @@ public:
     // Optionally allows extra leeway (offset in all directions) to let the user grab tiny controls.
     // Optionally only allows clickable controls, ignoring non-clickable ones.
     int32_t FindControlAt(int atx, int aty, int leeway = 0, bool must_be_clickable = true) const;
+    // Returns the last control which was under mouse cursor, or -1 if none
+    int32_t GetControlUnderMouse() const;
     // Gets the number of the GUI child controls
     int32_t GetControlCount() const;
     // Gets control by its child's index

@@ -417,8 +417,8 @@ namespace AGS.Types
             set { _mouseWheelEnabled = value; }
         }
 
-        [DisplayName("GUI controls handle only left mouse button")]
-        [Description("GUI controls will react only to the left mouse button. Note that \"on_event\" callback will still be called for any button's up and down event.")]
+        [DisplayName("GUI common controls handle only left mouse button")]
+        [Description("GUI controls will react only to the left mouse button, with the exception of Inventory Window which has a special handling of RMB. Note that \"on_event\" callback will still be called for any button's up and down event.")]
         [Category("GUI behavior")]
         [DefaultValue(false)]
         public bool GUIHandleOnlyLeftMouseButton

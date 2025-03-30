@@ -112,8 +112,9 @@ namespace AGS.Editor
          *                  GlobalVariable may be of array type.
          * 3.6.2.2        - Button.WrapText, TextPadding.
          * 3.6.2.6        - Settings.GameFPS.
+         * 3.6.2.9        - Settings.GUIHandleOnlyLeftMouseButton
         */
-        public const int    LATEST_XML_VERSION_INDEX = 3060206;
+        public const int    LATEST_XML_VERSION_INDEX = 3060209;
         /*
          * LATEST_USER_DATA_VERSION is the last version of the user data file that used a
          * 4-point-4-number string to identify the version of AGS that saved the file.

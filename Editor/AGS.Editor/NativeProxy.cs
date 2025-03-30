@@ -136,20 +136,20 @@ namespace AGS.Editor
 			}
         }
 
-        public Sprite CreateSpriteFromBitmap(Bitmap bmp, SpriteImportTransparency transparency, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel)
+        public Sprite CreateSpriteFromBitmap(Bitmap bmp, SpriteImportTransparency transparency, int transColour, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel)
         {
             int spriteSlot = _native.GetFreeSpriteSlot();
             lock (_spriteSetLock)
             {
-                return _native.SetSpriteFromBitmap(spriteSlot, bmp, (int)transparency, remapColours, useRoomBackgroundColours, alphaChannel);
+                return _native.SetSpriteFromBitmap(spriteSlot, bmp, (int)transparency, transColour, remapColours, useRoomBackgroundColours, alphaChannel);
             }
         }
 
-        public void ReplaceSpriteWithBitmap(Sprite spr, Bitmap bmp, SpriteImportTransparency transparency, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel)
+        public void ReplaceSpriteWithBitmap(Sprite spr, Bitmap bmp, SpriteImportTransparency transparency, int transColour, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel)
         {
             lock (_spriteSetLock)
             {
-                _native.ReplaceSpriteWithBitmap(spr, bmp, (int)transparency, remapColours, useRoomBackgroundColours, alphaChannel);
+                _native.ReplaceSpriteWithBitmap(spr, bmp, (int)transparency, transColour, remapColours, useRoomBackgroundColours, alphaChannel);
             }
         }
 

@@ -89,7 +89,7 @@ namespace AGS.Editor
         {
             get
             {
-                if (radTransColourIndex0.Checked) { return SpriteImportTransparency.PaletteIndex0; };
+                if (radTransColourIndex.Checked) { return SpriteImportTransparency.PaletteIndex; };
                 if (radTransColourTopLeftPixel.Checked) { return SpriteImportTransparency.TopLeft; };
                 if (radTransColourBottomLeftPixel.Checked) { return SpriteImportTransparency.BottomLeft; };
                 if (radTransColourTopRightPixel.Checked) { return SpriteImportTransparency.TopRight; };
@@ -103,7 +103,11 @@ namespace AGS.Editor
                 switch(value)
                 {
                     case SpriteImportTransparency.PaletteIndex0:
-                        radTransColourIndex0.Checked = true;
+                        radTransColourIndex.Checked = true;
+                        udTransColorIndex.Value = 0;
+                        break;
+                    case SpriteImportTransparency.PaletteIndex:
+                        radTransColourIndex.Checked = true;
                         break;
                     case SpriteImportTransparency.TopLeft:
                         radTransColourTopLeftPixel.Checked = true;
@@ -125,6 +129,12 @@ namespace AGS.Editor
                         break;
                 }
             }
+        }
+
+        public int TransparentColourIndex
+        {
+            get { return (int)udTransColorIndex.Value; }
+            set { udTransColorIndex.Value = value; }
         }
 
         public SpriteImportWindow(string[] filenames, SpriteFolder folder)
@@ -179,6 +189,7 @@ namespace AGS.Editor
 
             // set defaults from the old sprite
             SpriteImportMethod = replace.TransparentColour;
+            TransparentColourIndex = replace.TransparentColourIndex;
             SelectionOffset = new Point(replace.OffsetX, replace.OffsetY);
             SelectionSize = new Size(replace.Width, replace.Height);
             UseAlphaChannel = replace.ImportAlphaChannel;
@@ -214,6 +225,7 @@ namespace AGS.Editor
 
             // set defaults from the old sprite
             SpriteImportMethod = replace.TransparentColour;
+            TransparentColourIndex = replace.TransparentColourIndex;
             SelectionOffset = new Point(replace.OffsetX, replace.OffsetY);
             SelectionSize = new Size(replace.Width, replace.Height);
             UseAlphaChannel = replace.ImportAlphaChannel;
@@ -282,13 +294,13 @@ namespace AGS.Editor
             previewPanel.Controls.Add(scrollWindowSizer);
 
             // update colour preview
-            try
+            if (image.Palette.Entries.Length > this.TransparentColourIndex)
             {
-                panelIndex0.BackColor = image.Palette.Entries[0];
+                panelIndex0.BackColor = image.Palette.Entries[this.TransparentColourIndex];
             }
-            catch (IndexOutOfRangeException)
+            else
             {
-                // not an indexed palette
+                panelIndex0.BackColor = Color.Transparent;
             }
 
             previewPanel.Refresh();
@@ -408,7 +420,7 @@ namespace AGS.Editor
             try
             {
                 SpriteTools.ReplaceSprite(replace, image, new SpriteImportOptions(UseAlphaChannel, RemapToGamePalette,
-                    UseBackgroundSlots, SpriteImportMethod, filename, 0), spritesheet);
+                    UseBackgroundSlots, SpriteImportMethod, TransparentColourIndex, filename, 0), spritesheet);
             }
             catch (AGSEditorException ex)
             {
@@ -438,12 +450,12 @@ namespace AGS.Editor
                 {
                     // in the interest of speed, import the existing bitmap if the file has a single frame
                     SpriteTools.ImportNewSprites(folder, image, new SpriteImportOptions(UseAlphaChannel, RemapToGamePalette,
-                        UseBackgroundSlots, SpriteImportMethod, filename, 0), spritesheet);
+                        UseBackgroundSlots, SpriteImportMethod, TransparentColourIndex, filename, 0), spritesheet);
                 }
                 else
                 {
                     SpriteTools.ImportNewSprites(folder, new SpriteImportOptions(UseAlphaChannel, RemapToGamePalette,
-                        UseBackgroundSlots, SpriteImportMethod, filename), spritesheet);
+                        UseBackgroundSlots, SpriteImportMethod, TransparentColourIndex, filename), spritesheet);
                 }
             }
             catch (AGSEditorException ex)
@@ -637,6 +649,19 @@ namespace AGS.Editor
         private void InvalidateOn_ValueChanged(object sender, EventArgs e)
         {
             previewPanel.Invalidate();
+        }
+
+        private void udTransColorIndex_ValueChanged(object sender, EventArgs e)
+        {
+            if (image != null && image.Palette != null && image.Palette.Entries.Length > this.TransparentColourIndex)
+            {
+                panelIndex0.BackColor = image.Palette.Entries[this.TransparentColourIndex];
+            }
+            else
+            {
+                panelIndex0.BackColor = Color.Transparent;
+            }
+            radTransColourIndex.Checked = true;
         }
     }
 }

@@ -1292,6 +1292,7 @@ void drawGUIAt(HDC hdc, int x, int y, int x1, int y1, int x2, int y2, int resolu
 #define SIMP_BOTRIGHT   4
 #define SIMP_LEAVEALONE 5
 #define SIMP_NONE       6
+#define SIMP_INDEX      7
 
 // Removes all transparency pixels (change them to a close non-trnasparent colour)
 void remove_transparency(AGSBitmap *toimp, const int transcol)
@@ -1337,8 +1338,8 @@ void make_color_transparent(AGSBitmap *toimp, const RGB *itspal, int importedCol
 }
 
 // Adjusts sprite's transparency using the chosen method
-void sort_out_transparency(AGSBitmap *toimp, int sprite_import_method, const RGB *itspal, int importedColourDepth,
-    int &transcol)
+void sort_out_transparency(AGSBitmap *toimp, int sprite_import_method, int trans_index,
+    const RGB *itspal, int importedColourDepth, int &transcol)
 {
     if (sprite_import_method == SIMP_LEAVEALONE)
     {
@@ -1370,6 +1371,23 @@ void sort_out_transparency(AGSBitmap *toimp, int sprite_import_method, const RGB
         break;
     case SIMP_BOTRIGHT:
         transcol = toimp->GetPixel((toimp->GetWidth()) - 1, (toimp->GetHeight()) - 1);
+        break;
+    case SIMP_INDEX:
+        assert(trans_index >= 0 && trans_index < 256);
+        trans_index = (trans_index >= 0 && trans_index < 256) ? trans_index : 0;
+        if (importedColourDepth == 8)
+        {
+            if (toimp->GetColorDepth() == 8)
+                transcol = trans_index;
+            else if (trans_index == 0)
+                transcol = toimp->GetMaskColor(); // on conversion slot 0 was replaced by a standard mask color
+            else
+                transcol = makecol_depth(toimp->GetColorDepth(), itspal[trans_index].r, itspal[trans_index].g, itspal[trans_index].b);
+        }
+        else
+        {
+            transcol = toimp->GetMaskColor();
+        }
         break;
     default:
         transcol = toimp->GetMaskColor();
@@ -2556,8 +2574,8 @@ static bool DoesBitmapHaveAlpha(System::Drawing::Bitmap ^bm)
     return false;
 }
 
-Common::Bitmap *CreateNativeBitmap(System::Drawing::Bitmap^ bmp, int spriteImportMethod, bool remapColours,
-    bool useRoomBackgroundColours, bool alphaChannel, int *out_flags)
+Common::Bitmap *CreateNativeBitmap(System::Drawing::Bitmap^ bmp, int spriteImportMethod, int transColour,
+    bool remapColours, bool useRoomBackgroundColours, bool alphaChannel, int *out_flags)
 {
     // Safety check: if requested alpha channel, test if bitmap contains one
     alphaChannel = alphaChannel && (thisgame.color_depth == 4) && DoesBitmapHaveAlpha(bmp);
@@ -2568,7 +2586,7 @@ Common::Bitmap *CreateNativeBitmap(System::Drawing::Bitmap^ bmp, int spriteImpor
         alphaChannel, (spriteImportMethod != SIMP_NONE), &importedColourDepth);
 
     int transcol;
-    sort_out_transparency(tempsprite, spriteImportMethod, imgPalBuf, importedColourDepth, transcol);
+    sort_out_transparency(tempsprite, spriteImportMethod, transColour, imgPalBuf, importedColourDepth, transcol);
     if (thisgame.color_depth == 1)
     {
         if (remapColours)
@@ -2595,11 +2613,11 @@ Common::Bitmap *CreateNativeBitmap(System::Drawing::Bitmap^ bmp, int spriteImpor
 }
 
 AGS::Types::SpriteImportResolution SetNewSpriteFromBitmap(int slot, System::Drawing::Bitmap^ bmp, int spriteImportMethod,
-    bool remapColours, bool useRoomBackgroundColours, bool alphaChannel)
+    int transColour, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel)
 {
     int flags;
-    Common::Bitmap *tempsprite = CreateNativeBitmap(bmp, spriteImportMethod, remapColours,
-        useRoomBackgroundColours, alphaChannel, &flags);
+    Common::Bitmap *tempsprite = CreateNativeBitmap(bmp, spriteImportMethod, transColour,
+        remapColours, useRoomBackgroundColours, alphaChannel, &flags);
 
 	SetNewSprite(slot, tempsprite, flags);
 

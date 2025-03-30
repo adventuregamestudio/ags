@@ -67,6 +67,7 @@ namespace AGS.Types
         private bool _turnBeforeFacing = false;
         private bool _scaleMovementSpeedWithMaskRes = false;
         private bool _mouseWheelEnabled = true;
+        private bool _guiHandleOnlyLeftMouseButton = false;
         private RoomTransitionStyle _roomTransition = RoomTransitionStyle.FadeOutAndIn;
         private bool _saveScreenshots = false;
         private SpriteCompression _compressSprites = SpriteCompression.None;
@@ -414,6 +415,16 @@ namespace AGS.Types
         {
             get { return _mouseWheelEnabled; }
             set { _mouseWheelEnabled = value; }
+        }
+
+        [DisplayName("GUI controls handle only left mouse button")]
+        [Description("GUI controls will react only to the left mouse button. Note that \"on_event\" callback will still be called for any button's up and down event.")]
+        [Category("GUI behavior")]
+        [DefaultValue(false)]
+        public bool GUIHandleOnlyLeftMouseButton
+        {
+            get { return _guiHandleOnlyLeftMouseButton; }
+            set { _guiHandleOnlyLeftMouseButton = value; }
         }
 
         [DisplayName("Use low-resolution co-ordinates in script")]

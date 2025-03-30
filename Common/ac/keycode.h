@@ -305,6 +305,7 @@ struct KeyInput
 // These correspond to MouseButton enum in script and plugin API (sans special values),
 enum eAGSMouseButton
 {
+    kMouseAny = -1,
     kMouseNone = 0,
     kMouseLeft = 1,
     kMouseRight = 2,

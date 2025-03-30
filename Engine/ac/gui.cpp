@@ -722,9 +722,20 @@ int gui_on_mouse_move(const int mx, const int my)
     return mouse_over_gui;
 }
 
+// Tells if GUI controls should react to this mouse button
+inline bool gui_should_handle_button(int mbut)
+{
+    return (game.options[OPT_GUICONTROLMOUSEBUT] == kMouseAny) ||
+        (game.options[OPT_GUICONTROLMOUSEBUT] == mbut);
+}
+
 void gui_on_mouse_hold(const int wasongui, const int wasbutdown)
 {
-    for (int i=0;i<guis[wasongui].GetControlCount();i++) {
+    if (!gui_should_handle_button(wasbutdown))
+        return;
+
+    for (int i = 0; i < guis[wasongui].GetControlCount(); ++i)
+    {
         GUIObject *guio = guis[wasongui].GetControl(i);
         if (!guio->IsActivated) continue;
         if (guis[wasongui].GetControlType(i)!=kGUISlider) continue;
@@ -737,9 +748,17 @@ void gui_on_mouse_hold(const int wasongui, const int wasbutdown)
 
 void gui_on_mouse_up(const int wasongui, const int wasbutdown, const int mx, const int my)
 {
+    if (!gui_should_handle_button(wasbutdown))
+    {
+        // Still run on_event for Mouse Up
+        run_on_event(kScriptEvent_GUIMouseUp, wasongui, wasbutdown, mx - guis[wasongui].X, my - guis[wasongui].Y);
+        return;
+    }
+
     guis[wasongui].OnMouseButtonUp();
 
-    for (int i=0;i<guis[wasongui].GetControlCount();i++) {
+    for (int i=0;i<guis[wasongui].GetControlCount();i++)
+    {
         GUIObject *guio = guis[wasongui].GetControl(i);
         if (!guio->IsActivated) continue;
         guio->IsActivated = false;
@@ -780,10 +799,14 @@ void gui_on_mouse_up(const int wasongui, const int wasbutdown, const int mx, con
 void gui_on_mouse_down(const int guin, const int mbut, const int mx, const int my)
 {
     debug_script_log("Mouse click over GUI %d", guin);
-    guis[guin].OnMouseButtonDown(mx, my);
-    // run GUI click handler if not on any control
-    if ((guis[guin].MouseDownCtrl < 0) && (!guis[guin].OnClickHandler.IsEmpty()))
-        force_event(AGSEvent_GUI(guin, -1, static_cast<eAGSMouseButton>(mbut)));
+
+    if (gui_should_handle_button(mbut))
+    {
+        guis[guin].OnMouseButtonDown(mx, my);
+        // run GUI click handler if not on any control
+        if ((guis[guin].MouseDownCtrl < 0) && (!guis[guin].OnClickHandler.IsEmpty()))
+            force_event(AGSEvent_GUI(guin, -1, static_cast<eAGSMouseButton>(mbut)));
+    }
 
     run_on_event(kScriptEvent_GUIMouseDown, guin, mbut, mx - guis[guin].X, my - guis[guin].Y);
 }

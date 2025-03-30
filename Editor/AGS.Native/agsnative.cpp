@@ -1285,75 +1285,98 @@ void drawGUIAt(HDC hdc, int x, int y, int x1, int y1, int x2, int y2, int resolu
     drawBlockScaledAt(hdc, final_gui, x, y, scale);
 }
 
-#define SIMP_INDEX0  0
-#define SIMP_TOPLEFT 1
-#define SIMP_BOTLEFT 2
-#define SIMP_TOPRIGHT 3
-#define SIMP_BOTRIGHT 4
+#define SIMP_INDEX0     0
+#define SIMP_TOPLEFT    1
+#define SIMP_BOTLEFT    2
+#define SIMP_TOPRIGHT   3
+#define SIMP_BOTRIGHT   4
 #define SIMP_LEAVEALONE 5
-#define SIMP_NONE     6
+#define SIMP_NONE       6
 
-// Adjusts sprite's transparency using the chosen method
-void sort_out_transparency(Common::Bitmap *toimp, int sprite_import_method, RGB*itspal, int importedColourDepth,
-    int &transcol)
+// Removes all transparency pixels (change them to a close non-trnasparent colour)
+void remove_transparency(AGSBitmap *toimp, const int transcol)
 {
-  if (sprite_import_method == SIMP_LEAVEALONE)
-  {
-    transcol = 0;
-    return;
-  }
-
-  set_palette_range(palette, 0, 255, 0);
-  transcol=toimp->GetMaskColor();
-  // NOTE: This takes the pixel from the corner of the overall import
-  // graphic, NOT just the image to be imported
-  if (sprite_import_method == SIMP_TOPLEFT)
-    transcol=toimp->GetPixel(0,0);
-  else if (sprite_import_method==SIMP_BOTLEFT)
-    transcol=toimp->GetPixel(0,(toimp->GetHeight())-1);
-  else if (sprite_import_method == SIMP_TOPRIGHT)
-    transcol = toimp->GetPixel((toimp->GetWidth())-1, 0);
-  else if (sprite_import_method == SIMP_BOTRIGHT)
-    transcol = toimp->GetPixel((toimp->GetWidth())-1, (toimp->GetHeight())-1);
-
-  if (sprite_import_method == SIMP_NONE)
-  {
-    // remove all transparency pixels (change them to
-    // a close non-trnasparent colour)
     int changeTransparencyTo;
     if (transcol == 0)
-      changeTransparencyTo = 16;
+        changeTransparencyTo = 16;
     else
-      changeTransparencyTo = transcol - 1;
+        changeTransparencyTo = transcol - 1;
 
-    for (int tt=0;tt<toimp->GetWidth();tt++) {
-      for (int uu=0;uu<toimp->GetHeight();uu++) {
-        if (toimp->GetPixel(tt,uu) == transcol)
-          toimp->PutPixel(tt,uu, changeTransparencyTo);
-      }
+    for (int tt = 0; tt < toimp->GetWidth(); tt++)
+    {
+        for (int uu = 0; uu < toimp->GetHeight(); uu++)
+        {
+            if (toimp->GetPixel(tt, uu) == transcol)
+                toimp->PutPixel(tt, uu, changeTransparencyTo);
+        }
     }
-  }
-  else
-  {
-	  int bitmapMaskColor = toimp->GetMaskColor();
+}
+
+void make_color_transparent(AGSBitmap *toimp, const RGB *itspal, int importedColourDepth, const int transcol)
+{
+    int bitmapMaskColor = toimp->GetMaskColor();
     int replaceWithCol = 16;
-	  if (toimp->GetColorDepth() > 8)
-	  {
-      if (importedColourDepth == 8)
-        replaceWithCol = makecol_depth(toimp->GetColorDepth(), itspal[0].r * 4, itspal[0].g * 4, itspal[0].b * 4);
-      else
-		    replaceWithCol = 0;
-	  }
-    // swap all transparent pixels with index 0 pixels
-    for (int tt=0;tt<toimp->GetWidth();tt++) {
-      for (int uu=0;uu<toimp->GetHeight();uu++) {
-        if (toimp->GetPixel(tt,uu)==transcol)
-          toimp->PutPixel(tt,uu, bitmapMaskColor);
-        else if (toimp->GetPixel(tt,uu) == bitmapMaskColor)
-          toimp->PutPixel(tt,uu, replaceWithCol);
-      }
+    if (toimp->GetColorDepth() > 8)
+    {
+        if (importedColourDepth == 8)
+            replaceWithCol = makecol_depth(toimp->GetColorDepth(), itspal[0].r, itspal[0].g, itspal[0].b);
+        else
+            replaceWithCol = 0;
     }
-  }
+    // swap all transparent pixels with index 0 pixels
+    for (int uu = 0; uu < toimp->GetHeight(); ++uu)
+    {
+        for (int tt = 0; tt < toimp->GetWidth(); ++tt)
+        {
+            if (toimp->GetPixel(tt, uu) == transcol)
+                toimp->PutPixel(tt, uu, bitmapMaskColor);
+            else if (toimp->GetPixel(tt, uu) == bitmapMaskColor)
+                toimp->PutPixel(tt, uu, replaceWithCol);
+        }
+    }
+}
+
+// Adjusts sprite's transparency using the chosen method
+void sort_out_transparency(AGSBitmap *toimp, int sprite_import_method, const RGB *itspal, int importedColourDepth,
+    int &transcol)
+{
+    if (sprite_import_method == SIMP_LEAVEALONE)
+    {
+        transcol = toimp->GetMaskColor();
+        return;
+    }
+
+    set_palette_range(palette, 0, 255, 0);
+
+    if (sprite_import_method == SIMP_NONE)
+    {
+        transcol = toimp->GetMaskColor();
+        remove_transparency(toimp, transcol);
+        return;
+    }
+
+    // NOTE: This takes the pixel from the corner of the overall import
+    // graphic, NOT just the image to be imported
+    switch (sprite_import_method)
+    {
+    case SIMP_TOPLEFT:
+        transcol = toimp->GetPixel(0, 0);
+        break;
+    case SIMP_BOTLEFT:
+        transcol = toimp->GetPixel(0, (toimp->GetHeight()) - 1);
+        break;
+    case SIMP_TOPRIGHT:
+        transcol = toimp->GetPixel((toimp->GetWidth()) - 1, 0);
+        break;
+    case SIMP_BOTRIGHT:
+        transcol = toimp->GetPixel((toimp->GetWidth()) - 1, (toimp->GetHeight()) - 1);
+        break;
+    default:
+        transcol = toimp->GetMaskColor();
+        break;
+    }
+
+    make_color_transparent(toimp, itspal, importedColourDepth, transcol);
 }
 
 // Adjusts 8-bit sprite's palette
@@ -2541,7 +2564,7 @@ Common::Bitmap *CreateNativeBitmap(System::Drawing::Bitmap^ bmp, int spriteImpor
 
     RGB imgPalBuf[256];
     int importedColourDepth;
-    Common::Bitmap *tempsprite = CreateBlockFromBitmap(bmp, imgPalBuf, nullptr, true,
+    AGSBitmap *tempsprite = CreateBlockFromBitmap(bmp, imgPalBuf, nullptr, true,
         alphaChannel, (spriteImportMethod != SIMP_NONE), &importedColourDepth);
 
     int transcol;

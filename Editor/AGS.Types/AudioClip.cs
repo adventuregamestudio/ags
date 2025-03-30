@@ -68,11 +68,10 @@ namespace AGS.Types
 
         [Description("The file from which this audio clip was imported")]
         [Editor(typeof(AudioClipSourceFileUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
-        [TypeConverter(typeof(ReadOnlyConverter))]
         public string SourceFileName
         {
             get { return _sourceFileName; }
-            set { _sourceFileName = value; }
+            set { _sourceFileName = Utilities.ValidateFilePath(value); }
         }
 
         [Description("The name by which this audio clip can be referenced in the script")]

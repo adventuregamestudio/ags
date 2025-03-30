@@ -225,7 +225,7 @@ namespace AGS.Editor
 
         private string GetTextForItem(Sprite sprite)
         {
-            return string.Format(_itemTextFormat, sprite.Number, Path.GetFileName(sprite.SourceFile));
+            return string.Format(_itemTextFormat, sprite.Number, Utilities.SafeGetFileName(sprite.SourceFile));
         }
 
         private void DisplaySpritesForFolder(SpriteFolder folder)

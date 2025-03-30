@@ -179,6 +179,21 @@ namespace AGS.Editor
             return normalizedPaths;
         }
 
+        /// <summary>
+        /// Wraps Path.GetFileName and catches any exceptions, returns empty string if there were any.
+        /// </summary>
+        public static string SafeGetFileName(string fileName)
+        {
+            try
+            {
+                return Path.GetFileName(fileName);
+            }
+            catch (Exception)
+            {
+                return string.Empty;
+            }
+        }
+
         public static string ResolveSourcePath(string sourcePath)
         {
             Uri baseUri = new Uri(Factory.AGSEditor.CurrentGame.DirectoryPath + Path.DirectorySeparatorChar);

@@ -17,6 +17,10 @@ namespace AGS.Editor
         private List<string> imageLookup;
         private int zoomLevel = 1;
         private int frames = 1;
+        // Original palette from the multi-frame image file.
+        // We need one for the reference, because each frame will be converted
+        // to a bitmap with its own, possibly shuffled, palette.
+        private Color[] originalPalette = null;
 
         // for dragging a rectangle
         private bool dragging = false;
@@ -264,11 +268,29 @@ namespace AGS.Editor
             }
         }
 
+        /// <summary>
+        /// Gets a color, either from original image file's palette,
+        /// if it's present, or a current bitmap's palette.
+        /// </summary>
+        private Color GetRefPaletteColor(int index)
+        {
+            Color[] usePalette = originalPalette ??
+                ((image != null && image.Palette != null) ? image.Palette.Entries : null);
+            if (usePalette != null && (index >= 0 && index < usePalette.Length))
+            {
+                return usePalette[index];
+            }
+            else
+            {
+                return Color.Transparent;
+            }
+        }
+
         private void PostImageLoad()
         {
             try
             {
-                frames = SpriteTools.GetFrameCountEstimateFromFile(imageLookup[cmbFilenames.SelectedIndex]);
+                SpriteTools.GetMultiFrameFileInfo(imageLookup[cmbFilenames.SelectedIndex], out frames, out originalPalette);
             }
             catch
             {
@@ -294,14 +316,7 @@ namespace AGS.Editor
             previewPanel.Controls.Add(scrollWindowSizer);
 
             // update colour preview
-            if (image.Palette.Entries.Length > this.TransparentColourIndex)
-            {
-                panelIndex0.BackColor = image.Palette.Entries[this.TransparentColourIndex];
-            }
-            else
-            {
-                panelIndex0.BackColor = Color.Transparent;
-            }
+            panelIndex0.BackColor = GetRefPaletteColor(this.TransparentColourIndex);
 
             previewPanel.Refresh();
         }
@@ -420,7 +435,7 @@ namespace AGS.Editor
             try
             {
                 SpriteTools.ReplaceSprite(replace, image, new SpriteImportOptions(UseAlphaChannel, RemapToGamePalette,
-                    UseBackgroundSlots, SpriteImportMethod, TransparentColourIndex, filename, 0), spritesheet);
+                    UseBackgroundSlots, SpriteImportMethod, TransparentColourIndex, filename, 0), spritesheet, originalPalette);
             }
             catch (AGSEditorException ex)
             {
@@ -450,7 +465,7 @@ namespace AGS.Editor
                 {
                     // in the interest of speed, import the existing bitmap if the file has a single frame
                     SpriteTools.ImportNewSprites(folder, image, new SpriteImportOptions(UseAlphaChannel, RemapToGamePalette,
-                        UseBackgroundSlots, SpriteImportMethod, TransparentColourIndex, filename, 0), spritesheet);
+                        UseBackgroundSlots, SpriteImportMethod, TransparentColourIndex, filename, 0), spritesheet, originalPalette);
                 }
                 else
                 {
@@ -653,14 +668,7 @@ namespace AGS.Editor
 
         private void udTransColorIndex_ValueChanged(object sender, EventArgs e)
         {
-            if (image != null && image.Palette != null && image.Palette.Entries.Length > this.TransparentColourIndex)
-            {
-                panelIndex0.BackColor = image.Palette.Entries[this.TransparentColourIndex];
-            }
-            else
-            {
-                panelIndex0.BackColor = Color.Transparent;
-            }
+            panelIndex0.BackColor = GetRefPaletteColor(this.TransparentColourIndex);
             radTransColourIndex.Checked = true;
         }
     }

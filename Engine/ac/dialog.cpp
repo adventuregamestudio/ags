@@ -152,6 +152,26 @@ int Dialog_GetOptionCount(ScriptDialog *sd)
   return dialog[sd->id].numoptions;
 }
 
+int Dialog_GetOptionHighlightColor()
+{
+    return play.dialog_options_highlight_color;
+}
+
+void Dialog_SetOptionHighlightColor(int color)
+{
+    play.dialog_options_highlight_color = color;
+}
+
+int Dialog_GetOptionReadColor()
+{
+    return play.read_dialog_option_colour;
+}
+
+void Dialog_SetOptionReadColor(int color)
+{
+    play.read_dialog_option_colour = color;
+}
+
 int Dialog_GetOptionsGUIX()
 {
     return play.dialog_options_gui_x;
@@ -456,6 +476,7 @@ int write_dialog_options(Bitmap *ds, bool ds_has_alpha, int dlgxp, int curyp, in
     }
 
     if (mouseison==ww) {
+      // FIXME: don't use hardcoded color 13 as a fallback; maybe don't do this fallback at all?
       if (text_color == ds->GetCompatibleColor(utextcol))
         text_color = ds->GetCompatibleColor(13); // the normal colour is the same as highlight col
       else text_color = ds->GetCompatibleColor(utextcol);
@@ -1751,6 +1772,26 @@ RuntimeScriptValue Sc_Dialog_SetOptionsPaddingY(const RuntimeScriptValue *params
     API_SCALL_VOID_PINT(Dialog_SetOptionsPaddingY);
 }
 
+RuntimeScriptValue Sc_Dialog_GetOptionHighlightColor(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Dialog_GetOptionHighlightColor);
+}
+
+RuntimeScriptValue Sc_Dialog_SetOptionHighlightColor(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(Dialog_SetOptionHighlightColor);
+}
+
+RuntimeScriptValue Sc_Dialog_GetOptionReadColor(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Dialog_GetOptionReadColor);
+}
+
+RuntimeScriptValue Sc_Dialog_SetOptionReadColor(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(Dialog_SetOptionReadColor);
+}
+
 RuntimeScriptValue Sc_Dialog_GetMaxOptionsGUIWidth(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT(Dialog_GetMaxOptionsGUIWidth);
@@ -1827,6 +1868,10 @@ void RegisterDialogAPI()
         { "Dialog::get_ExecutedOption",   API_FN_PAIR(Dialog_GetExecutedOption) },
         { "Dialog::get_AreOptionsDisplayed", API_FN_PAIR(Dialog_GetAreOptionsDisplayed) },
         { "Dialog::get_ID",               API_FN_PAIR(Dialog_GetID) },
+        { "Dialog::get_OptionHighlightColor", API_FN_PAIR(Dialog_GetOptionHighlightColor) },
+        { "Dialog::set_OptionHighlightColor", API_FN_PAIR(Dialog_SetOptionHighlightColor) },
+        { "Dialog::get_OptionReadColor",  API_FN_PAIR(Dialog_GetOptionReadColor) },
+        { "Dialog::set_OptionReadColor",  API_FN_PAIR(Dialog_SetOptionReadColor) },
         { "Dialog::get_MaxOptionsGUIWidth", API_FN_PAIR(Dialog_GetMaxOptionsGUIWidth) },
         { "Dialog::set_MaxOptionsGUIWidth", API_FN_PAIR(Dialog_SetMaxOptionsGUIWidth) },
         { "Dialog::get_MinOptionsGUIWidth", API_FN_PAIR(Dialog_GetMinOptionsGUIWidth) },

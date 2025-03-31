@@ -2269,6 +2269,10 @@ builtin managed struct Dialog {
   import static readonly attribute int ExecutedOption; // $AUTOCOMPLETESTATICONLY$
   /// Gets if the dialog options are currently displayed on screen
   import static readonly attribute bool AreOptionsDisplayed; // $AUTOCOMPLETESTATICONLY$
+  /// Gets/sets the color used to draw the active (selected) dialog option
+  import static attribute int OptionHighlightColor; // $AUTOCOMPLETESTATICONLY$
+  /// Gets/sets the color used to draw the dialog options that have already been selected once; set to -1 for no distinct color
+  import static attribute int OptionReadColor; // $AUTOCOMPLETESTATICONLY$
   /// Gets/sets on-screen X position of dialog options GUI; set to -1 if they should use default placement
   import static attribute int OptionsGUIX; // $AUTOCOMPLETESTATICONLY$
   /// Gets/sets on-screen Y position of dialog options GUI; set to -1 if they should use default placement

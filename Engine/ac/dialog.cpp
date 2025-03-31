@@ -496,19 +496,22 @@ private:
     const int dlgnum;
     const bool runGameLoopsInBackground;
 
-    int dlgxp;
-    int dlgyp;
-    int dialog_abs_x; // absolute dialog position on screen
+    // dialog options rectangle on screen
+    Rect position;
+    // initial dialog options position; used to restore pos in case of text window offsets
+    Point init_position;
+    // inner position of the options texts, relative to the gui
+    Point inner_position;
     int padding;
     int usingfont;
     int lineheight;
     int linespacing;
     int curswas;
     int bullet_wid;
-    int needheight;
-    IDriverDependantBitmap *ddb = nullptr;
-    std::unique_ptr<Bitmap> subBitmap;
+    int needheight; // height enough to accomodate dialog options texts
     std::unique_ptr<GUITextBox> parserInput;
+    IDriverDependantBitmap *ddb = nullptr;
+    std::unique_ptr<Bitmap> optionsBitmap;
 
     // display order of options
     int disporder[MAXTOPICOPTIONS];
@@ -520,26 +523,19 @@ private:
     int chose;
     bool doStop = false;
 
-    std::unique_ptr<Bitmap> tempScrn;
     int parserActivated;
 
-    int curyp;
+    int curyp; // current (latest) draw position of a option text
     bool needRedraw;
     bool wantRefresh; // FIXME: merge with needRedraw? or better names
+    bool is_textwindow;
+    bool is_normalgui;
     bool usingCustomRendering;
     bool newCustomRender; // using newer (post-3.5.0 render API)
-    int orixp;
-    int oriyp;
-    int areawid;
-    int is_textwindow;
-    int dirtyx;
-    int dirtyy;
-    int dirtywidth;
-    int dirtyheight;
+    int areawid; // width of a region within the gui where options are arranged
+    int forecol;
 
     int mouseison;
-
-    int forecol;
 };
 
 void DialogOptions::CalcOptionsHeight()
@@ -568,9 +564,8 @@ DialogOptions::~DialogOptions()
 {
     if (ddb != nullptr)
         gfxDriver->DestroyDDB(ddb);
+    optionsBitmap.reset();
     parserInput.reset();
-    subBitmap.reset();
-    tempScrn.reset();
 }
 
 void DialogOptions::Show()
@@ -600,14 +595,13 @@ void DialogOptions::Begin()
         numdisp++;
     }
 
-    dlgyp = get_fixed_pixel_size(160);
     usingfont=FONT_NORMAL;
     lineheight = get_font_height_outlined(usingfont);
     linespacing = get_font_linespacing(usingfont);
     curswas=cur_cursor;
     bullet_wid = 0;
     ddb = nullptr;
-    subBitmap = nullptr;
+    optionsBitmap = nullptr;
     parserInput = nullptr;
     said_text = 0;
 
@@ -617,9 +611,6 @@ void DialogOptions::Begin()
     // numbered options, leave space for the numbers
     if (game.options[OPT_DIALOGNUMBERED] == kDlgOptNumbering)
         bullet_wid += get_text_width_outlined("9. ", usingfont);
-
-    const Rect &ui_view = play.GetUIViewport();
-    tempScrn.reset(new Bitmap(ui_view.GetWidth(), ui_view.GetHeight(), game.GetColorDepth()));
 
     play.in_conversation++;
     set_mouse_cursor(CURS_ARROW);
@@ -632,74 +623,76 @@ void DialogOptions::Begin()
         parserInput->Font = usingfont;
     }
 
-    is_textwindow = 0;
+    is_normalgui = false;
+    is_textwindow = false;
+    position = {};
+    init_position = {};
+    inner_position = {};
     forecol = play.dialog_options_highlight_color;
 
     mouseison = -1;
-    dirtyx = 0;
-    dirtyy = 0;
-    dirtywidth = ui_view.GetWidth();
-    dirtyheight = ui_view.GetHeight();
     usingCustomRendering = false;
 
-    dlgxp = 1;
     if (get_custom_dialog_options_dimensions(dlgnum))
     {
-      usingCustomRendering = true;
-      dirtyx = data_to_game_coord(ccDialogOptionsRendering.x);
-      dirtyy = data_to_game_coord(ccDialogOptionsRendering.y);
-      dirtywidth = data_to_game_coord(ccDialogOptionsRendering.width);
-      dirtyheight = data_to_game_coord(ccDialogOptionsRendering.height);
-      dialog_abs_x = dirtyx;
+        // Custom dialog options rendering
+        usingCustomRendering = true;
+        position = RectWH(
+            data_to_game_coord(ccDialogOptionsRendering.x),
+            data_to_game_coord(ccDialogOptionsRendering.y),
+            data_to_game_coord(ccDialogOptionsRendering.width),
+            data_to_game_coord(ccDialogOptionsRendering.height));
     }
     else if (game.options[OPT_DIALOGIFACE] > 0)
     {
-      GUIMain*guib=&guis[game.options[OPT_DIALOGIFACE]];
-      if (guib->IsTextWindow()) {
-        // text-window, so do the QFG4-style speech options
-        is_textwindow = 1;
-        forecol = guib->FgColor;
-      }
-      else {
-        dlgxp = guib->X;
-        dlgyp = guib->Y;
+        // Use GUI or TextWindow GUI
+        GUIMain*guib=&guis[game.options[OPT_DIALOGIFACE]];
+        if (guib->IsTextWindow())
+        {
+            // Text-window, so do the QFG4-style speech options
+            is_textwindow = true;
+            forecol = guib->FgColor;
+        }
+        else
+        {
+            // Normal GUI
+            position = RectWH(guib->X, guib->Y, guib->Width, guib->Height);
 
-        dirtyx = dlgxp;
-        dirtyy = dlgyp;
-        dirtywidth = guib->Width;
-        dirtyheight = guib->Height;
-        dialog_abs_x = guib->X;
+            areawid = guib->Width - 5;
+            padding = TEXTWINDOW_PADDING_DEFAULT;
 
-        areawid=guib->Width - 5;
+            CalcOptionsHeight();
+
+            if (game.options[OPT_DIALOGUPWARDS])
+            {
+                // They want the options upwards from the bottom
+                // FIXME: this setting is lying: it does not reverse the order, only aligns opts to the bottom of GUI
+                position.Top = (guib->Y + guib->Height) - needheight;
+            }
+        }
+    }
+    else
+    {
+        // Default plain surface
+        const Rect &ui_view = play.GetUIViewport();
+        areawid = ui_view.GetWidth() - 5;
         padding = TEXTWINDOW_PADDING_DEFAULT;
-
         CalcOptionsHeight();
 
-        if (game.options[OPT_DIALOGUPWARDS]) {
-          // They want the options upwards from the bottom
-          dlgyp = (guib->Y + guib->Height) - needheight;
-        }
-        
-      }
+        position = RectWH(
+            1,
+            ui_view.GetHeight() - needheight,
+            ui_view.GetWidth(),
+            needheight);
     }
-    else {
-      areawid= ui_view.GetWidth()-5;
-      padding = TEXTWINDOW_PADDING_DEFAULT;
-      CalcOptionsHeight();
-      dlgyp = ui_view.GetHeight() - needheight;
 
-      dirtyx = 0;
-      dirtyy = dlgyp - 1;
-      dirtywidth = ui_view.GetWidth();
-      dirtyheight = ui_view.GetHeight() - dirtyy;
-      dialog_abs_x = 0;
-    }
     if (!is_textwindow)
-      areawid -= data_to_game_coord(play.dialog_options_pad_x) * 2;
+    {
+        areawid -= data_to_game_coord(play.dialog_options_pad_x) * 2;
+    }
 
     newCustomRender = usingCustomRendering && game.options[OPT_DIALOGOPTIONSAPI] >= 0;
-    orixp = dlgxp;
-    oriyp = dlgyp;
+    init_position = position.GetLT();
     needRedraw = false;
     wantRefresh = false;
     mouseison=-10;
@@ -711,25 +704,31 @@ void DialogOptions::Draw()
 
     if (usingCustomRendering)
     {
-      recycle_bitmap(tempScrn, game.GetColorDepth(), 
-        data_to_game_coord(ccDialogOptionsRendering.width), 
-        data_to_game_coord(ccDialogOptionsRendering.height));
+        recycle_bitmap(optionsBitmap, game.GetColorDepth(), 
+            data_to_game_coord(ccDialogOptionsRendering.width), 
+            data_to_game_coord(ccDialogOptionsRendering.height));
+    }
+    else
+    {
+        recycle_bitmap(optionsBitmap, game.GetColorDepth(),
+                       position.GetWidth(),
+                       position.GetHeight());
     }
 
-    tempScrn->ClearTransparent();
-    Bitmap *ds = tempScrn.get();
+    optionsBitmap->ClearTransparent();
+    position.MoveTo(init_position);
+    std::fill(dispyp, dispyp + MAXTOPICOPTIONS, 0);
 
-    dlgxp = orixp;
-    dlgyp = oriyp;
     const Rect &ui_view = play.GetUIViewport();
 
     bool options_surface_has_alpha = false;
 
     if (usingCustomRendering)
     {
+      // Custom dialog options rendering
       ccDialogOptionsRendering.surfaceToRenderTo = dialogOptionsRenderingSurface;
       ccDialogOptionsRendering.surfaceAccessed = false;
-      dialogOptionsRenderingSurface->linkedBitmapOnly = tempScrn.get();
+      dialogOptionsRenderingSurface->linkedBitmapOnly = optionsBitmap.get();
       dialogOptionsRenderingSurface->hasAlphaChannel = ccDialogOptionsRendering.hasAlphaChannel;
       options_surface_has_alpha = dialogOptionsRenderingSurface->hasAlphaChannel != 0;
 
@@ -745,12 +744,13 @@ void DialogOptions::Draw()
         curyp = data_to_game_coord(ccDialogOptionsRendering.parserTextboxY);
         areawid = data_to_game_coord(ccDialogOptionsRendering.parserTextboxWidth);
         if (areawid == 0)
-          areawid = tempScrn->GetWidth();
+          areawid = optionsBitmap->GetWidth();
       }
       ccDialogOptionsRendering.needRepaint = false;
     }
-    else if (is_textwindow) {
-      // text window behind the options
+    else if (is_textwindow)
+    {
+      // Text window behind the options
       areawid = data_to_game_coord(play.max_dialogoption_width);
       int biggest = 0;
       padding = guis[game.options[OPT_DIALOGIFACE]].Padding;
@@ -785,77 +785,62 @@ void DialogOptions::Draw()
       // since draw_text_window incrases the width, restore it
       areawid = savedwid;
 
-      dirtyx = xspos;
-      dirtyy = yspos;
-      dirtywidth = text_window_ds->GetWidth();
-      dirtyheight = text_window_ds->GetHeight();
-      dialog_abs_x = txoffs + xspos;
-
-      GfxUtil::DrawSpriteWithTransparency(ds, text_window_ds, xspos, yspos);
-      // TODO: here we rely on draw_text_window always assigning new bitmap to text_window_ds;
-      // should make this more explicit
-      delete text_window_ds;
-
       // Ignore the dialog_options_pad_x/y offsets when using a text window
       // because it has its own padding property
-      txoffs += xspos;
-      tyoffs += yspos;
-      dlgyp = tyoffs;
-      curyp = write_dialog_options(ds, options_surface_has_alpha, txoffs,tyoffs,numdisp,mouseison,areawid,bullet_wid,usingfont,dtop,disporder,dispyp,linespacing,forecol,padding);
+      position = RectWH(xspos, yspos, text_window_ds->GetWidth(), text_window_ds->GetHeight());
+      inner_position = Point(txoffs, tyoffs);
+      optionsBitmap.reset(text_window_ds);
+
+      curyp = write_dialog_options(optionsBitmap.get(), options_surface_has_alpha, txoffs,tyoffs,numdisp,mouseison,areawid,bullet_wid,usingfont,dtop,disporder,dispyp,linespacing,forecol,padding);
       if (parserInput)
         parserInput->X = txoffs;
     }
-    else {
-
-      if (wantRefresh) {
-        // redraw the black background so that anti-alias
-        // fonts don't re-alias themselves
-        if (game.options[OPT_DIALOGIFACE] == 0) {
+    else
+    {
+      // Normal GUI or default surface
+      Bitmap *ds = optionsBitmap.get();
+      if (wantRefresh)
+      {
+        // redraw the background so that anti-alias fonts don't re-alias themselves
+        if (game.options[OPT_DIALOGIFACE] == 0)
+        {
+          // Default surface
           color_t draw_color = ds->GetCompatibleColor(16);
-          ds->FillRect(Rect(0,dlgyp-1, ui_view.GetWidth()-1, ui_view.GetHeight()-1), draw_color);
+          //ds->FillRect(Rect(0, dlgyp-1, ui_view.GetWidth()-1, ui_view.GetHeight()-1), draw_color);
+          ds->FillRect(RectWH(position.GetSize()), draw_color);
         }
-        else {
+        else
+        {
+          // Normal GUI
           GUIMain* guib = &guis[game.options[OPT_DIALOGIFACE]];
           if (!guib->IsTextWindow())
-            draw_gui_for_dialog_options(ds, guib, dlgxp, dlgyp);
+            draw_gui_for_dialog_options(ds, guib, 0, 0/*dlgxp, dlgyp*/);
         }
       }
-
-      dirtyx = 0;
-      dirtywidth = ui_view.GetWidth();
 
       if (game.options[OPT_DIALOGIFACE] > 0) 
       {
         // the whole GUI area should be marked dirty in order
         // to ensure it gets drawn
         GUIMain* guib = &guis[game.options[OPT_DIALOGIFACE]];
-        dirtyheight = guib->Height;
-        dirtyy = dlgyp;
         options_surface_has_alpha = guib->HasAlphaChannel();
       }
       else
       {
-        dirtyy = dlgyp - 1;
-        dirtyheight = needheight + 1;
         options_surface_has_alpha = false;
       }
 
-      dlgxp += data_to_game_coord(play.dialog_options_pad_x);
-      dlgyp += data_to_game_coord(play.dialog_options_pad_y);
+      inner_position = Point(play.dialog_options_pad_x, play.dialog_options_pad_y);
 
-      // if they used a negative padding, make sure to update the dirty area
-      // FIXME: why is there an explicit invalidate_rect when we are using uniform sprite render logic?
-      dirtyx = std::min(dirtyx, dlgxp);
-      dirtyy = std::min(dirtyy, dlgyp);
-
-      curyp = dlgyp;
-      curyp = write_dialog_options(ds, options_surface_has_alpha, dlgxp,curyp,numdisp,mouseison,areawid,bullet_wid,usingfont,dtop,disporder,dispyp,linespacing,forecol,padding);
+      curyp = inner_position.Y;
+      curyp = write_dialog_options(ds, options_surface_has_alpha, inner_position.X, inner_position.Y, numdisp,mouseison,areawid,bullet_wid,usingfont,dtop,disporder,dispyp,linespacing,forecol,padding);
 
       if (parserInput)
-        parserInput->X = dlgxp;
+        parserInput->X = inner_position.X;
     }
 
-    if (parserInput) {
+    if (parserInput)
+    {
       // Set up the text box, if present
       parserInput->Y = curyp + data_to_game_coord(game.options[OPT_DIALOGGAP]);
       parserInput->SetWidth(areawid - get_fixed_pixel_size(10));
@@ -863,6 +848,7 @@ void DialogOptions::Draw()
       if (mouseison == DLG_OPTION_PARSER)
         parserInput->TextColor = forecol;
 
+      Bitmap *ds = optionsBitmap.get();
       if (game.dialog_bullet)  // the parser X will get moved in a second
       {
           draw_gui_sprite_v330(ds, game.dialog_bullet, parserInput->X, parserInput->Y, options_surface_has_alpha);
@@ -876,36 +862,12 @@ void DialogOptions::Draw()
     }
 
     wantRefresh = false;
-
-    recycle_bitmap(subBitmap,
-        gfxDriver->GetCompatibleBitmapFormat(tempScrn->GetColorDepth()), dirtywidth, dirtyheight);
-
-    if (usingCustomRendering)
-    {
-      subBitmap->Blit(tempScrn.get(), 0, 0, 0, 0, tempScrn->GetWidth(), tempScrn->GetHeight());
-      invalidate_rect(dirtyx, dirtyy, dirtyx + subBitmap->GetWidth(), dirtyy + subBitmap->GetHeight(), false);
-    }
-    else
-    {
-      subBitmap->Blit(tempScrn.get(), dirtyx, dirtyy, 0, 0, dirtywidth, dirtyheight);
-    }
-
-    if ((ddb != nullptr) && 
-      ((ddb->GetWidth() != dirtywidth) ||
-       (ddb->GetHeight() != dirtyheight)))
-    {
-      gfxDriver->DestroyDDB(ddb);
-      ddb = nullptr;
-    }
     
-    if (ddb == nullptr)
-      ddb = gfxDriver->CreateDDBFromBitmap(subBitmap.get(), options_surface_has_alpha, false);
-    else
-      gfxDriver->UpdateDDBFromBitmap(ddb, subBitmap.get(), options_surface_has_alpha);
+    ddb = recycle_ddb_bitmap(ddb, optionsBitmap.get(), options_surface_has_alpha, false);
 
     if (runGameLoopsInBackground)
     {
-        render_graphics(ddb, dirtyx, dirtyy);
+        render_graphics(ddb, position.Left, position.Top);
     }
 }
 
@@ -918,7 +880,7 @@ bool DialogOptions::Run()
     if (runGameLoopsInBackground)
     {
         play.disabled_user_interface++;
-        UpdateGameOnce(false, ddb, dirtyx, dirtyy);
+        UpdateGameOnce(false, ddb, position.Left, position.Top);
         play.disabled_user_interface--;
 
         // Stop the dialog options if requested from script
@@ -929,7 +891,7 @@ bool DialogOptions::Run()
     {
         update_audio_system_on_game_loop();
         UpdateCursorAndDrawables();
-        render_graphics(ddb, dirtyx, dirtyy);
+        render_graphics(ddb, position.Left, position.Top);
     }
 
     needRedraw = false;
@@ -958,9 +920,7 @@ bool DialogOptions::Run()
     else if (usingCustomRendering)
     {
         // Old custom rendering
-        if ((mousex >= dirtyx) && (mousey >= dirtyy) &&
-            (mousex < dirtyx + tempScrn->GetWidth()) &&
-            (mousey < dirtyy + tempScrn->GetHeight()))
+        if (position.IsInside(mousex, mousey))
         {
             // Run "dialog_options_get_active"
             getDialogOptionUnderCursorFunc.Params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
@@ -980,14 +940,17 @@ bool DialogOptions::Run()
             ccDialogOptionsRendering.activeOptionID = -1;
         }
     }
-    else if (mousex >= dialog_abs_x && mousex < (dialog_abs_x + areawid) &&
-            mousey >= dlgyp && mousey < curyp)
+    else if (Rect(position.Left + inner_position.X,
+                  position.Top  + inner_position.Y,
+                  position.Left + inner_position.X + areawid,
+                  position.Top  + curyp).IsInside(mousex, mousey))
     {
         // Default rendering: detect option under mouse
+        const int rel_mousey = mousey - position.Top;
         mouseison = numdisp-1;
         for (int i = 0; i < numdisp; ++i)
         {
-            if (mousey < dispyp[i]) { mouseison=i-1; break; }
+            if (rel_mousey < dispyp[i]) { mouseison=i-1; break; }
         }
         if ((mouseison<0) | (mouseison>=numdisp)) mouseison=-1;
     }
@@ -995,12 +958,9 @@ bool DialogOptions::Run()
     // Handle mouse over parser
     if (parserInput)
     {
-        int relativeMousey = mousey;
-        if (usingCustomRendering)
-            relativeMousey -= dirtyy;
-
-        if ((relativeMousey > parserInput->Y) &&
-            (relativeMousey < parserInput->Y + parserInput->GetHeight()))
+        const int rel_mousey = mousey - position.Top;
+        if ((rel_mousey > parserInput->Y) &&
+            (rel_mousey < parserInput->Y + parserInput->GetHeight()))
             mouseison = DLG_OPTION_PARSER;
     }
 
@@ -1253,9 +1213,8 @@ void DialogOptions::End()
   if (ddb != nullptr)
     gfxDriver->DestroyDDB(ddb);
   ddb = nullptr;
+  optionsBitmap.reset();
   parserInput.reset();
-  subBitmap.reset();
-  tempScrn.reset();
 
   set_mouse_cursor(curswas);
   // In case it's the QFG4 style dialog, remove the black screen

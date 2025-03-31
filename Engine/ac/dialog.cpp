@@ -457,55 +457,67 @@ int run_dialog_script(int dialogID, int offse, int optionIndex)
   return result;
 }
 
-int write_dialog_options(Bitmap *ds, bool ds_has_alpha, int dlgxp, int curyp, int numdisp, int mouseison, int areawid,
-    int bullet_wid, int usingfont, DialogTopic*dtop, int*disporder, short*dispyp,
-    int linespacing, int utextcol, int padding) {
-  int ww;
-
-  color_t text_color;
-  for (ww=0;ww<numdisp;ww++) {
-
-    if ((dtop->optionflags[disporder[ww]] & DFLG_HASBEENCHOSEN) &&
-        (play.read_dialog_option_colour >= 0)) {
-      // 'read' colour
-      text_color = ds->GetCompatibleColor(play.read_dialog_option_colour);
-    }
-    else {
-      // 'unread' colour
-      text_color = ds->GetCompatibleColor(playerchar->talkcolor);
-    }
-
-    if (mouseison==ww) {
-      // FIXME: don't use hardcoded color 13 as a fallback; maybe don't do this fallback at all?
-      if (text_color == ds->GetCompatibleColor(utextcol))
-        text_color = ds->GetCompatibleColor(13); // the normal colour is the same as highlight col
-      else text_color = ds->GetCompatibleColor(utextcol);
-    }
-
-    const char *draw_text = skip_voiceover_token(get_translation(dtop->optionnames[disporder[ww]]));
-    break_up_text_into_lines(draw_text, Lines, areawid-(2*padding+2+bullet_wid), usingfont);
-    dispyp[ww]=curyp;
-    if (game.dialog_bullet > 0)
+// TODO: make this a member of DialogOptions class
+// TODO: don't use global variables inside this function
+// TODO: gather parameters into struct(s)
+// TODO: limit by area height too
+static int write_dialog_options(Bitmap *ds, bool ds_has_alpha, int at_x, int at_y, int areawid,
+    int bullet_wid, int bullet_spr, int bullet_sprwid, int usingfont, int linespacing, int selected_color,
+    const DialogTopic *dtop, int numdisp, int mouseison, const int *disporder, short *dispyp)
+{
+    int curyp = at_y; // next line's Y position
+    for (int ww = 0; ww < numdisp; ++ww)
     {
-        draw_gui_sprite_v330(ds, game.dialog_bullet, dlgxp, curyp, ds_has_alpha);
-    }
-    if (game.options[OPT_DIALOGNUMBERED] == kDlgOptNumbering) {
-      char tempbfr[20];
-      int actualpicwid = 0;
-      if (game.dialog_bullet > 0)
-        actualpicwid = game.SpriteInfos[game.dialog_bullet].Width+3;
+        color_t text_color = 0;
+        if ((dtop->optionflags[disporder[ww]] & DFLG_HASBEENCHOSEN) &&
+            (play.read_dialog_option_colour >= 0))
+        {
+            // 'read' colour
+            text_color = ds->GetCompatibleColor(play.read_dialog_option_colour);
+        }
+        else
+        {
+            // 'unread' colour
+            text_color = ds->GetCompatibleColor(playerchar->talkcolor);
+        }
 
-      snprintf(tempbfr, sizeof(tempbfr), "%d.", ww + 1);
-      wouttext_outline (ds, dlgxp + actualpicwid, curyp, usingfont, text_color, tempbfr);
+        if (mouseison == ww)
+        {
+            // If the normal colour is the same as highlight col, then fallback to another
+            // FIXME: don't use hardcoded color 13 as a fallback; maybe don't do this fallback at all?
+            if (text_color == ds->GetCompatibleColor(selected_color))
+                text_color = ds->GetCompatibleColor(13);
+            else
+                text_color = ds->GetCompatibleColor(selected_color);
+        }
+
+        const char *draw_text = skip_voiceover_token(get_translation(dtop->optionnames[disporder[ww]]));
+        const int split_in_wid = areawid - bullet_wid;
+        break_up_text_into_lines(draw_text, Lines, split_in_wid, usingfont);
+
+        dispyp[ww] = curyp;
+        if (bullet_spr > 0)
+        {
+            draw_gui_sprite_v330(ds, bullet_spr, at_x, curyp, ds_has_alpha);
+        }
+        if (game.options[OPT_DIALOGNUMBERED] == kDlgOptNumbering)
+        {
+            char tempbfr[20];
+            snprintf(tempbfr, sizeof(tempbfr), "%d.", ww + 1);
+            wouttext_outline (ds, at_x + bullet_sprwid, curyp, usingfont, text_color, tempbfr);
+        }
+
+        const int multiline_off = 9; // FIXME: make this value dynamic, based on sizes etc?
+        for (size_t cc = 0; cc < Lines.Count(); ++cc)
+        {
+            wouttext_outline(ds, at_x + bullet_wid + ((cc==0) ? 0 : multiline_off), curyp, usingfont, text_color, Lines[cc].GetCStr());
+            curyp += linespacing;
+        }
+
+        if (ww < numdisp - 1)
+            curyp += data_to_game_coord(game.options[OPT_DIALOGGAP]);
     }
-    for (size_t cc=0;cc<Lines.Count();cc++) {
-      wouttext_outline(ds, dlgxp+((cc==0) ? 0 : 9)+bullet_wid, curyp, usingfont, text_color, Lines[cc].GetCStr());
-      curyp+=linespacing;
-    }
-    if (ww < numdisp-1)
-      curyp += data_to_game_coord(game.options[OPT_DIALOGGAP]);
-  }
-  return curyp;
+    return curyp;
 }
 
 void draw_gui_for_dialog_options(Bitmap *ds, GUIMain *guib, int dlgxp, int dlgyp) {
@@ -588,7 +600,8 @@ private:
     int lineheight;
     int linespacing;
     int curswas;
-    int bullet_wid;
+    int bullet_wid; // full width of bullet sprite + numbering
+    int bullet_picwid; // bullet sprite width
     int needheight; // height enough to accomodate dialog options texts
     std::unique_ptr<GUITextBox> parserInput;
     IDriverDependantBitmap *ddb = nullptr;
@@ -613,7 +626,9 @@ private:
     bool is_normalgui;
     bool usingCustomRendering;
     bool newCustomRender; // using newer (post-3.5.0 render API)
-    int areawid; // width of a region within the gui where options are arranged
+    // width of a region within the gui where options are arranged;
+    // includes internal gui padding (from both sides)
+    int areawid;
     int forecol;
 
     int mouseison;
@@ -681,17 +696,23 @@ void DialogOptions::Begin()
     linespacing = get_font_linespacing(usingfont);
     curswas=cur_cursor;
     bullet_wid = 0;
+    bullet_picwid = 0;
     ddb = nullptr;
     optionsBitmap = nullptr;
     parserInput = nullptr;
     said_text = 0;
 
     if (game.dialog_bullet > 0)
-        bullet_wid = game.SpriteInfos[game.dialog_bullet].Width+3;
+    {
+        bullet_picwid = game.SpriteInfos[game.dialog_bullet].Width + 3;
+    }
 
     // numbered options, leave space for the numbers
+    bullet_wid = bullet_picwid;
     if (game.options[OPT_DIALOGNUMBERED] == kDlgOptNumbering)
+    {
         bullet_wid += get_text_width_outlined("9. ", usingfont);
+    }
 
     play.in_conversation++;
     set_mouse_cursor(CURS_ARROW);
@@ -836,6 +857,7 @@ void DialogOptions::Draw()
       areawid = data_to_game_coord(play.max_dialogoption_width);
       int biggest = 0;
       padding = guis[game.options[OPT_DIALOGIFACE]].Padding;
+      // TODO: figure out what these +2 and +6 constants are, used along with the padding
       for (int i = 0; i < numdisp; ++i) {
         const char *draw_text = skip_voiceover_token(get_translation(dtop->optionnames[disporder[i]]));
         break_up_text_into_lines(draw_text, Lines, areawid-((2*padding+2)+bullet_wid), usingfont);
@@ -869,7 +891,13 @@ void DialogOptions::Draw()
       inner_position = Point(txoffs, tyoffs);
       optionsBitmap.reset(text_window_ds);
 
-      curyp = write_dialog_options(optionsBitmap.get(), options_surface_has_alpha, txoffs,tyoffs,numdisp,mouseison,areawid,bullet_wid,usingfont,dtop,disporder,dispyp,linespacing,forecol,padding);
+      // NOTE: presumably, txoffs and tyoffs are already offset by padding,
+      // although it's not entirely reliable, because these calculations are done inside draw_text_window.
+      const int opts_areawid = areawid - (2 * padding + 2);
+      curyp = write_dialog_options(optionsBitmap.get(), options_surface_has_alpha, txoffs, tyoffs, opts_areawid,
+                                   bullet_wid, game.dialog_bullet, bullet_picwid, 
+                                   usingfont, linespacing, forecol,
+                                   dtop, numdisp, mouseison, disporder, dispyp);
       if (parserInput)
         parserInput->X = txoffs;
     }
@@ -884,7 +912,6 @@ void DialogOptions::Draw()
         {
           // Default surface
           color_t draw_color = ds->GetCompatibleColor(16);
-          //ds->FillRect(Rect(0, dlgyp-1, ui_view.GetWidth()-1, ui_view.GetHeight()-1), draw_color);
           ds->FillRect(RectWH(position.GetSize()), draw_color);
         }
         else
@@ -892,7 +919,7 @@ void DialogOptions::Draw()
           // Normal GUI
           GUIMain* guib = &guis[game.options[OPT_DIALOGIFACE]];
           if (!guib->IsTextWindow())
-            draw_gui_for_dialog_options(ds, guib, 0, 0/*dlgxp, dlgyp*/);
+            draw_gui_for_dialog_options(ds, guib, 0, 0);
         }
       }
 
@@ -908,10 +935,17 @@ void DialogOptions::Draw()
         options_surface_has_alpha = false;
       }
 
-      inner_position = Point(play.dialog_options_pad_x, play.dialog_options_pad_y);
+      // NOTE: it's strange that we sum both custom padding and standard gui padding here;
+      // keeping this for backwards compatibility for now... (although idk if it's important)
+      // NOTE: also gui's default padding was not applied to Y pos here...
+      inner_position = Point(play.dialog_options_pad_x + padding, play.dialog_options_pad_y /* + padding*/);
 
+      const int opts_areawid = areawid - (2 * padding + 2);
       curyp = inner_position.Y;
-      curyp = write_dialog_options(ds, options_surface_has_alpha, inner_position.X, inner_position.Y, numdisp,mouseison,areawid,bullet_wid,usingfont,dtop,disporder,dispyp,linespacing,forecol,padding);
+      curyp = write_dialog_options(ds, options_surface_has_alpha, inner_position.X, inner_position.Y, opts_areawid,
+                                   bullet_wid, game.dialog_bullet, bullet_picwid,
+                                   usingfont, linespacing, forecol,
+                                   dtop, numdisp, mouseison, disporder, dispyp);
 
       if (parserInput)
         parserInput->X = inner_position.X;

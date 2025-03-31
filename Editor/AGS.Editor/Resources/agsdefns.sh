@@ -2277,6 +2277,10 @@ builtin managed struct Dialog {
   import static attribute int OptionsPaddingX; // $AUTOCOMPLETESTATICONLY$
   /// Gets/sets the vertical offset at which options are drawn on a standard GUI
   import static attribute int OptionsPaddingY; // $AUTOCOMPLETESTATICONLY$
+  /// Get/sets the maximal width of the auto-resizing GUI on which dialog options are drawn
+  import static attribute int MaxOptionsGUIWidth; // $AUTOCOMPLETESTATICONLY$
+  /// Get/sets the minimal width of the auto-resizing GUI on which dialog options are drawn
+  import static attribute int MinOptionsGUIWidth; // $AUTOCOMPLETESTATICONLY$
 #endif // SCRIPT_API_v362
 
   int reserved[2];   // $AUTOCOMPLETEIGNORE$

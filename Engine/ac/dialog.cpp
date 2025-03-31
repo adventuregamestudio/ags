@@ -192,6 +192,26 @@ void Dialog_SetOptionsPaddingY(int y)
     play.dialog_options_pad_y = y;
 }
 
+int Dialog_GetMaxOptionsGUIWidth()
+{
+    return play.max_dialogoption_width;
+}
+
+void Dialog_SetMaxOptionsGUIWidth(int width)
+{
+    play.max_dialogoption_width = width;
+}
+
+int Dialog_GetMinOptionsGUIWidth()
+{
+    return play.min_dialogoption_width;
+}
+
+void Dialog_SetMinOptionsGUIWidth(int width)
+{
+    play.min_dialogoption_width = width;
+}
+
 int Dialog_GetShowTextParser(ScriptDialog *sd)
 {
   return (dialog[sd->id].topicFlags & DTFLG_SHOWPARSER) ? 1 : 0;
@@ -804,11 +824,7 @@ void DialogOptions::Draw()
       if (biggest < areawid - ((2*padding+6)+bullet_wid))
         areawid = biggest + ((2*padding+6)+bullet_wid);
 
-      if (areawid < data_to_game_coord(play.min_dialogoption_width)) {
-        areawid = data_to_game_coord(play.min_dialogoption_width);
-        if (play.min_dialogoption_width > play.max_dialogoption_width)
-          quit("!game.min_dialogoption_width is larger than game.max_dialogoption_width");
-      }
+      areawid = std::max(areawid, data_to_game_coord(play.min_dialogoption_width));
 
       CalcOptionsHeight();
 
@@ -1735,6 +1751,26 @@ RuntimeScriptValue Sc_Dialog_SetOptionsPaddingY(const RuntimeScriptValue *params
     API_SCALL_VOID_PINT(Dialog_SetOptionsPaddingY);
 }
 
+RuntimeScriptValue Sc_Dialog_GetMaxOptionsGUIWidth(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Dialog_GetMaxOptionsGUIWidth);
+}
+
+RuntimeScriptValue Sc_Dialog_SetMaxOptionsGUIWidth(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(Dialog_SetMaxOptionsGUIWidth);
+}
+
+RuntimeScriptValue Sc_Dialog_GetMinOptionsGUIWidth(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Dialog_GetMinOptionsGUIWidth);
+}
+
+RuntimeScriptValue Sc_Dialog_SetMinOptionsGUIWidth(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(Dialog_SetMinOptionsGUIWidth);
+}
+
 // int (ScriptDialog *sd)
 RuntimeScriptValue Sc_Dialog_GetShowTextParser(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -1791,6 +1827,10 @@ void RegisterDialogAPI()
         { "Dialog::get_ExecutedOption",   API_FN_PAIR(Dialog_GetExecutedOption) },
         { "Dialog::get_AreOptionsDisplayed", API_FN_PAIR(Dialog_GetAreOptionsDisplayed) },
         { "Dialog::get_ID",               API_FN_PAIR(Dialog_GetID) },
+        { "Dialog::get_MaxOptionsGUIWidth", API_FN_PAIR(Dialog_GetMaxOptionsGUIWidth) },
+        { "Dialog::set_MaxOptionsGUIWidth", API_FN_PAIR(Dialog_SetMaxOptionsGUIWidth) },
+        { "Dialog::get_MinOptionsGUIWidth", API_FN_PAIR(Dialog_GetMinOptionsGUIWidth) },
+        { "Dialog::set_MinOptionsGUIWidth", API_FN_PAIR(Dialog_SetMinOptionsGUIWidth) },
         { "Dialog::get_OptionCount",      API_FN_PAIR(Dialog_GetOptionCount) },
         { "Dialog::get_OptionsGUIX",      API_FN_PAIR(Dialog_GetOptionsGUIX) },
         { "Dialog::set_OptionsGUIX",      API_FN_PAIR(Dialog_SetOptionsGUIX) },

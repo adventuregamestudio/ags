@@ -646,6 +646,19 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
         speech_has_voice = voice_speech_flags != 0;
         speech_voice_blocking = (voice_speech_flags & 0x02) != 0;
     }
+
+    if (svg_ver >= kGSSvgVersion_362_09)
+    {
+        dialog_options_gui_x = in->ReadInt32();
+        dialog_options_gui_y = in->ReadInt32();
+        in->ReadInt32(); // reserve up to 4 ints
+        in->ReadInt32();
+    }
+    else
+    {
+        dialog_options_gui_x = -1;
+        dialog_options_gui_y = -1;
+    }
 }
 
 void GamePlayState::WriteForSavegame(Stream *out) const
@@ -830,6 +843,12 @@ void GamePlayState::WriteForSavegame(Stream *out) const
     if (speech_voice_blocking)
         voice_speech_flags |= 0x02;
     out->WriteInt32(voice_speech_flags);
+
+    // kGSSvgVersion_362_09
+    out->WriteInt32(dialog_options_gui_x);
+    out->WriteInt32(dialog_options_gui_y);
+    out->WriteInt32(0); // reserve up to 4 ints
+    out->WriteInt32(0);
 }
 
 void GamePlayState::FreeProperties()

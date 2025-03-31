@@ -62,6 +62,7 @@ enum GameStateSvgVersion
     kGSSvgVersion_350_9     = 2,
     kGSSvgVersion_350_10    = 3,
     kGSSvgVersion_361_14    = 4,
+    kGSSvgVersion_362_09    = 3060209
 };
 
 

@@ -1614,7 +1614,7 @@ namespace AGS.Editor
             {
                 for (int i = 0; (i < NativeConstants.MAXTOPICOPTIONS) && (i < curDialog.Options.Count); ++i)
                 {
-                    WriteString(curDialog.Options[i].Text, 150, writer); // optionnames
+                    WriteString(TextProperty(curDialog.Options[i].Text), 150, writer); // optionnames
                 }
                 for (int i = curDialog.Options.Count; i < NativeConstants.MAXTOPICOPTIONS; ++i)
                 {

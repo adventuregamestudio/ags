@@ -695,7 +695,7 @@ void DialogOptions::Begin()
       dialog_abs_x = 0;
     }
     if (!is_textwindow)
-      areawid -= data_to_game_coord(play.dialog_options_x) * 2;
+      areawid -= data_to_game_coord(play.dialog_options_pad_x) * 2;
 
     newCustomRender = usingCustomRendering && game.options[OPT_DIALOGOPTIONSAPI] >= 0;
     orixp = dlgxp;
@@ -796,7 +796,8 @@ void DialogOptions::Draw()
       // should make this more explicit
       delete text_window_ds;
 
-      // Ignore the dialog_options_x/y offsets when using a text window
+      // Ignore the dialog_options_pad_x/y offsets when using a text window
+      // because it has its own padding property
       txoffs += xspos;
       tyoffs += yspos;
       dlgyp = tyoffs;
@@ -839,13 +840,13 @@ void DialogOptions::Draw()
         options_surface_has_alpha = false;
       }
 
-      dlgxp += data_to_game_coord(play.dialog_options_x);
-      dlgyp += data_to_game_coord(play.dialog_options_y);
+      dlgxp += data_to_game_coord(play.dialog_options_pad_x);
+      dlgyp += data_to_game_coord(play.dialog_options_pad_y);
 
-      // if they use a negative dialog_options_y, make sure the
-      // area gets marked as dirty
-      if (dlgyp < dirtyy)
-        dirtyy = dlgyp;
+      // if they used a negative padding, make sure to update the dirty area
+      // FIXME: why is there an explicit invalidate_rect when we are using uniform sprite render logic?
+      dirtyx = std::min(dirtyx, dlgxp);
+      dirtyy = std::min(dirtyy, dlgyp);
 
       curyp = dlgyp;
       curyp = write_dialog_options(ds, options_surface_has_alpha, dlgxp,curyp,numdisp,mouseison,areawid,bullet_wid,usingfont,dtop,disporder,dispyp,linespacing,forecol,padding);

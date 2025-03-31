@@ -140,8 +140,8 @@ struct GamePlayState
     int  score_sound = 0;
     int  takeover_data = 0;     // value passed to RunAGSGame in previous game
     int  replay_hotkey_unused = 0;  // (UNUSED!) StartRecording: not supported
-    int  dialog_options_x = 0;
-    int  dialog_options_y = 0;
+    int  dialog_options_pad_x = 0;  // dialog options x padding
+    int  dialog_options_pad_y = 0;  // dialog options y padding
     int  narrator_speech = 0;
     int  ambient_sounds_persist = 0;
     int  lipsync_speed = 0;

@@ -493,8 +493,8 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
     score_sound = in->ReadInt32();
     takeover_data = in->ReadInt32();
     replay_hotkey_unused = in->ReadInt32();
-    dialog_options_x = in->ReadInt32();
-    dialog_options_y = in->ReadInt32();
+    dialog_options_pad_x = in->ReadInt32();
+    dialog_options_pad_y = in->ReadInt32();
     narrator_speech = in->ReadInt32();
     ambient_sounds_persist = in->ReadInt32();
     lipsync_speed = in->ReadInt32();
@@ -694,8 +694,8 @@ void GamePlayState::WriteForSavegame(Stream *out) const
     out->WriteInt32(score_sound);
     out->WriteInt32(takeover_data);
     out->WriteInt32(replay_hotkey_unused);         // StartRecording: not supported
-    out->WriteInt32(dialog_options_x);
-    out->WriteInt32(dialog_options_y);
+    out->WriteInt32(dialog_options_pad_x);
+    out->WriteInt32(dialog_options_pad_y);
     out->WriteInt32(narrator_speech);
     out->WriteInt32(ambient_sounds_persist);
     out->WriteInt32(lipsync_speed);

@@ -76,8 +76,8 @@ int32_t CCScriptGame::ReadInt32(const void *address, intptr_t offset)
     case 88: return play.score_sound;
     case 89: return play.takeover_data;
     case 90: return 0; // play.replay_hotkey
-    case 91: return play.dialog_options_x;
-    case 92: return play.dialog_options_y;
+    case 91: return play.dialog_options_pad_x;
+    case 92: return play.dialog_options_pad_y;
     case 93: return play.narrator_speech;
     case 94: return play.ambient_sounds_persist;
     case 95: return play.lipsync_speed;
@@ -186,8 +186,8 @@ void CCScriptGame::WriteInt32(void *address, intptr_t offset, int32_t val)
     case 88:  play.score_sound = val; break;
     case 89:  play.takeover_data = val; break;
     case 90:  break; // play.replay_hotkey
-    case 91:  play.dialog_options_x = val; break;
-    case 92:  play.dialog_options_y = val; break;
+    case 91:  play.dialog_options_pad_x = val; break;
+    case 92:  play.dialog_options_pad_y = val; break;
     case 93:  play.narrator_speech = val; break;
     case 94:  play.ambient_sounds_persist = val; break;
     case 95:  play.lipsync_speed = val; break;

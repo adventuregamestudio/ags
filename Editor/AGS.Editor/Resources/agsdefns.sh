@@ -2269,6 +2269,14 @@ builtin managed struct Dialog {
   import static readonly attribute int ExecutedOption; // $AUTOCOMPLETESTATICONLY$
   /// Gets if the dialog options are currently displayed on screen
   import static readonly attribute bool AreOptionsDisplayed; // $AUTOCOMPLETESTATICONLY$
+  /// Gets/sets on-screen X position of dialog options GUI; set to -1 if they should use default placement
+  import static attribute int OptionsGUIX; // $AUTOCOMPLETESTATICONLY$
+  /// Gets/sets on-screen Y position of dialog options GUI; set to -1 if they should use default placement
+  import static attribute int OptionsGUIY; // $AUTOCOMPLETESTATICONLY$
+  /// Gets/sets the horizontal offset at which options are drawn on a standard GUI
+  import static attribute int OptionsPaddingX; // $AUTOCOMPLETESTATICONLY$
+  /// Gets/sets the vertical offset at which options are drawn on a standard GUI
+  import static attribute int OptionsPaddingY; // $AUTOCOMPLETESTATICONLY$
 #endif // SCRIPT_API_v362
 
   int reserved[2];   // $AUTOCOMPLETEIGNORE$

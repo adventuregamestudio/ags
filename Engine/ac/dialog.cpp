@@ -152,6 +152,46 @@ int Dialog_GetOptionCount(ScriptDialog *sd)
   return dialog[sd->id].numoptions;
 }
 
+int Dialog_GetOptionsGUIX()
+{
+    return play.dialog_options_gui_x;
+}
+
+void Dialog_SetOptionsGUIX(int x)
+{
+    play.dialog_options_gui_x = x;
+}
+
+int Dialog_GetOptionsGUIY()
+{
+    return play.dialog_options_gui_y;
+}
+
+void Dialog_SetOptionsGUIY(int y)
+{
+    play.dialog_options_gui_y = y;
+}
+
+int Dialog_GetOptionsPaddingX()
+{
+    return play.dialog_options_pad_x;
+}
+
+void Dialog_SetOptionsPaddingX(int x)
+{
+    play.dialog_options_pad_x = x;
+}
+
+int Dialog_GetOptionsPaddingY()
+{
+    return play.dialog_options_pad_y;
+}
+
+void Dialog_SetOptionsPaddingY(int y)
+{
+    play.dialog_options_pad_y = y;
+}
+
 int Dialog_GetShowTextParser(ScriptDialog *sd)
 {
   return (dialog[sd->id].topicFlags & DTFLG_SHOWPARSER) ? 1 : 0;
@@ -656,6 +696,7 @@ void DialogOptions::Begin()
         else
         {
             // Normal GUI
+            is_normalgui = true;
             position = RectWH(guib->X, guib->Y, guib->Width, guib->Height);
 
             areawid = guib->Width - 5;
@@ -862,9 +903,17 @@ void DialogOptions::Draw()
     }
 
     wantRefresh = false;
-    
-    ddb = recycle_ddb_bitmap(ddb, optionsBitmap.get(), options_surface_has_alpha, false);
 
+    // For textwindow or default surface: apply custom on-screen position
+    if (!is_normalgui && !usingCustomRendering)
+    {
+        if (play.dialog_options_gui_x >= 0)
+            position.Left = play.dialog_options_gui_x;
+        if (play.dialog_options_gui_y >= 0)
+            position.Top = play.dialog_options_gui_y;
+    }
+
+    ddb = recycle_ddb_bitmap(ddb, optionsBitmap.get(), options_surface_has_alpha, false);
     if (runGameLoopsInBackground)
     {
         render_graphics(ddb, position.Left, position.Top);
@@ -1646,6 +1695,46 @@ RuntimeScriptValue Sc_Dialog_GetOptionCount(void *self, const RuntimeScriptValue
     API_OBJCALL_INT(ScriptDialog, Dialog_GetOptionCount);
 }
 
+RuntimeScriptValue Sc_Dialog_GetOptionsGUIX(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Dialog_GetOptionsGUIX);
+}
+
+RuntimeScriptValue Sc_Dialog_SetOptionsGUIX(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(Dialog_SetOptionsGUIX);
+}
+
+RuntimeScriptValue Sc_Dialog_GetOptionsGUIY(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Dialog_GetOptionsGUIY);
+}
+
+RuntimeScriptValue Sc_Dialog_SetOptionsGUIY(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(Dialog_SetOptionsGUIY);
+}
+
+RuntimeScriptValue Sc_Dialog_GetOptionsPaddingX(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Dialog_GetOptionsPaddingX);
+}
+
+RuntimeScriptValue Sc_Dialog_SetOptionsPaddingX(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(Dialog_SetOptionsPaddingX);
+}
+
+RuntimeScriptValue Sc_Dialog_GetOptionsPaddingY(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Dialog_GetOptionsPaddingY);
+}
+
+RuntimeScriptValue Sc_Dialog_SetOptionsPaddingY(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(Dialog_SetOptionsPaddingY);
+}
+
 // int (ScriptDialog *sd)
 RuntimeScriptValue Sc_Dialog_GetShowTextParser(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -1703,6 +1792,14 @@ void RegisterDialogAPI()
         { "Dialog::get_AreOptionsDisplayed", API_FN_PAIR(Dialog_GetAreOptionsDisplayed) },
         { "Dialog::get_ID",               API_FN_PAIR(Dialog_GetID) },
         { "Dialog::get_OptionCount",      API_FN_PAIR(Dialog_GetOptionCount) },
+        { "Dialog::get_OptionsGUIX",      API_FN_PAIR(Dialog_GetOptionsGUIX) },
+        { "Dialog::set_OptionsGUIX",      API_FN_PAIR(Dialog_SetOptionsGUIX) },
+        { "Dialog::get_OptionsGUIY",      API_FN_PAIR(Dialog_GetOptionsGUIY) },
+        { "Dialog::set_OptionsGUIY",      API_FN_PAIR(Dialog_SetOptionsGUIY) },
+        { "Dialog::get_OptionsPaddingX",  API_FN_PAIR(Dialog_GetOptionsPaddingX) },
+        { "Dialog::set_OptionsPaddingX",  API_FN_PAIR(Dialog_SetOptionsPaddingX) },
+        { "Dialog::get_OptionsPaddingY",  API_FN_PAIR(Dialog_GetOptionsPaddingY) },
+        { "Dialog::set_OptionsPaddingY",  API_FN_PAIR(Dialog_SetOptionsPaddingY) },
         { "Dialog::get_ScriptName",       API_FN_PAIR(Dialog_GetScriptName) },
         { "Dialog::get_ShowTextParser",   API_FN_PAIR(Dialog_GetShowTextParser) },
         { "Dialog::DisplayOptions^1",     API_FN_PAIR(Dialog_DisplayOptions) },

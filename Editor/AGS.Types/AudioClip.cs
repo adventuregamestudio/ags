@@ -71,7 +71,8 @@ namespace AGS.Types
         public string SourceFileName
         {
             get { return _sourceFileName; }
-            set { _sourceFileName = Utilities.ValidateFilePath(value); }
+            // CHECKME: should we allow to set null here?
+            set { _sourceFileName = value != null ? Utilities.ValidateFilePath(value) : null; }
         }
 
         [Description("The name by which this audio clip can be referenced in the script")]

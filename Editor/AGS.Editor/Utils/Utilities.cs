@@ -620,7 +620,7 @@ namespace AGS.Editor
             source.UnlockBits(sourceData);
             newImage.UnlockBits(destData);
 
-            if (source.PixelFormat == PixelFormat.Format8bppIndexed)
+            if (source.IsIndexed())
             {
                 ColorPalette sourcePal = source.Palette;
                 ColorPalette destPal = newImage.Palette;

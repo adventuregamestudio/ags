@@ -112,7 +112,7 @@ namespace AGS.Editor.Utils
             oldBmp.Dispose();
 
             if ((System.IO.Path.GetExtension(fileName).ToLower() == ".gif") &&
-                (loadedBmp.PixelFormat != PixelFormat.Format8bppIndexed))
+                (!loadedBmp.IsIndexed()))
             {
                 // The .NET Bitmap class has a bug, whereby it will convert
                 // animated gifs to 32-bit when it loads them. This causes

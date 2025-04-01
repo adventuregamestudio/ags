@@ -460,6 +460,7 @@ namespace AGS.Editor
             {
                 int newWidth = Math.Max(source.Width, Factory.AGSEditor.CurrentGame.MinRoomWidth);
                 int newHeight = Math.Max(source.Height, Factory.AGSEditor.CurrentGame.MinRoomHeight);
+                // TODO: adjust ExtendCanvasSizeOf8BitBitmap to support 1-bit and 4-bit bitmaps
                 if (source.PixelFormat != System.Drawing.Imaging.PixelFormat.Format8bppIndexed)
                 {
                     Bitmap paddedBmp = new Bitmap(newWidth, newHeight, source.PixelFormat);
@@ -484,6 +485,7 @@ namespace AGS.Editor
 		/// The built-in .NET drawing routines don't work with 8-bit images, so
 		/// we have to do this manually. How rubbish. The source image is
 		/// destroyed and a new one returned to replace it.
+        /// TODO: adjust this to support 1-bit, 4-bit formats too?
 		/// </summary>
 		private Bitmap ExtendCanvasSizeOf8BitBitmap(Bitmap source, int newWidth, int newHeight)
 		{

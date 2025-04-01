@@ -6,6 +6,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Xml;
+using AGS.Editor.Utils;
 using AGS.Types;
 
 namespace AGS.Editor
@@ -129,7 +130,7 @@ namespace AGS.Editor
             else if (filename.ToLower().EndsWith(".bmp"))
             {
                 Bitmap bmp = new Bitmap(filename);
-                if (bmp.PixelFormat != PixelFormat.Format8bppIndexed)
+                if (!bmp.IsIndexed())
                 {
                     throw new AGSEditorException("Selected bitmap file is not a 256-colour bitmap. Only 8-bit images can have a palette imported.");
                 }
@@ -1400,7 +1401,7 @@ namespace AGS.Editor
             }
             bmp.UnlockBits(bmpData);
 
-            if (bmp.PixelFormat == PixelFormat.Format8bppIndexed)
+            if (bmp.IsIndexed())
             {
                 ColorPalette pal = bmp.Palette;
                 for (int i = 0; i < palette.Length; i++)

@@ -635,7 +635,7 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
         speech_voice_blocking = (voice_speech_flags & 0x02) != 0;
     }
 
-    if (svg_ver >= kGSSvgVersion_363)
+    if ((svg_ver >= kGSSvgVersion_363 && svg_ver < kGSSvgVersion_400) || (svg_ver >= kGSSvgVersion_400_17))
     {
         dialog_options_gui_x = in->ReadInt32();
         dialog_options_gui_y = in->ReadInt32();
@@ -648,6 +648,7 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
         dialog_options_gui_y = -1;
         dialog_options_textalign = kHAlignLeft;
     }
+
     if (svg_ver >= kGSSvgVersion_400_03)
     {
         face_dir_ratio = in->ReadFloat32();

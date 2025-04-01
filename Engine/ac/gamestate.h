@@ -63,7 +63,8 @@ enum GameStateSvgVersion
     kGSSvgVersion_400       = 4000000,
     kGSSvgVersion_400_03    = 4000003, // compat w kGSSvgVersion_361_14
     kGSSvgVersion_400_08    = 4000008, // palette component range 64->256
-    kGSSvgVersion_400_14    = 4000014  // 32-bit ARGB color properties
+    kGSSvgVersion_400_14    = 4000014, // 32-bit ARGB color properties
+    kGSSvgVersion_400_17    = 4000017, // compat w kGSSvgVersion_363
 };
 
 

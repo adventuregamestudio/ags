@@ -1115,8 +1115,8 @@ void DialogOptions::Draw()
 
     wantRefresh = false;
 
-    // For textwindow or default surface: apply custom on-screen position
-    if (!is_normalgui && !usingCustomRendering)
+    // Apply custom GUI position (except when it's fully custom options rendering)
+    if (!usingCustomRendering)
     {
         if (play.dialog_options_gui_x >= 0)
             position.Left = play.dialog_options_gui_x;

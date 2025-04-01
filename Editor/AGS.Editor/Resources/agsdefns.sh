@@ -539,14 +539,16 @@ enum SortDirection
   eSortAscending		= 1,
   eSortDescending		= 2
 };
+#endif // SCRIPT_API_v362
 
+#ifdef SCRIPT_API_v363
 enum DialogOptionsNumbering
 {
   eDialogOptNumbers_Disabled  = -1,
   eDialogOptNumbers_KeysOnly  = 0,
   eDialogOptNumbers_Display   = 1
 };
-#endif // SCRIPT_API_v362
+#endif // SCRIPT_API_v363
 
 enum EventType {
   eEventLeaveRoom		= 1,
@@ -2276,6 +2278,8 @@ builtin managed struct Dialog {
   import static readonly attribute int ExecutedOption; // $AUTOCOMPLETESTATICONLY$
   /// Gets if the dialog options are currently displayed on screen
   import static readonly attribute bool AreOptionsDisplayed; // $AUTOCOMPLETESTATICONLY$
+#endif // SCRIPT_API_v362
+#ifdef SCRIPT_API_v363
   /// Gets/sets the color used to draw the active (selected) dialog option
   import static attribute int OptionsHighlightColor; // $AUTOCOMPLETESTATICONLY$
   /// Gets/sets the sprite to use as a bullet point before each dialog option (0 for none)
@@ -2302,7 +2306,7 @@ builtin managed struct Dialog {
   import static attribute int OptionsReadColor; // $AUTOCOMPLETESTATICONLY$
   /// Gets/sets the horizontal alignment of each dialog option's text
   import static attribute HorizontalAlignment OptionsTextAlignment; // $AUTOCOMPLETESTATICONLY$
-#endif // SCRIPT_API_v362
+#endif // SCRIPT_API_v363
 
   int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };

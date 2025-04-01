@@ -647,7 +647,7 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
         speech_voice_blocking = (voice_speech_flags & 0x02) != 0;
     }
 
-    if (svg_ver >= kGSSvgVersion_362_09)
+    if (svg_ver >= kGSSvgVersion_363)
     {
         dialog_options_gui_x = in->ReadInt32();
         dialog_options_gui_y = in->ReadInt32();
@@ -845,7 +845,7 @@ void GamePlayState::WriteForSavegame(Stream *out) const
         voice_speech_flags |= 0x02;
     out->WriteInt32(voice_speech_flags);
 
-    // kGSSvgVersion_362_09
+    // kGSSvgVersion_363
     out->WriteInt32(dialog_options_gui_x);
     out->WriteInt32(dialog_options_gui_y);
     out->WriteInt32(dialog_options_textalign);

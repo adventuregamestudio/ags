@@ -122,6 +122,8 @@ Extended game object names, resolving hard length limits.
 Object Interactions specify script module where functions are located.
 OPT_SAVESCREENSHOTLAYER, CHF_TURNWHENFACE. Button's WrapText and padding.
 Few minor behavior changes.
+3.6.3:
+OPT_GUICONTROLMOUSEBUT
 
 */
 
@@ -176,8 +178,8 @@ enum GameDataVersion
     kGameVersion_361_14         = 3060114,
     kGameVersion_362            = 3060200,
     kGameVersion_362_03         = 3060203,
-    kGameVersion_362_09         = 3060209,
-    kGameVersion_Current        = kGameVersion_362_09
+    kGameVersion_363            = 3060300,
+    kGameVersion_Current        = kGameVersion_363
 };
 
 // Data format version of the loaded game

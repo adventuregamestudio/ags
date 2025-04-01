@@ -530,7 +530,7 @@ static int write_dialog_options(Bitmap *ds, bool ds_has_alpha, int at_x, int at_
 {
     // Left-to-right text direction flag
     const bool ltr_position = (game.options[OPT_RIGHTLEFTWRITE] == 0)
-        || (loaded_game_file_version < kGameVersion_362_09);
+        || (loaded_game_file_version < kGameVersion_363);
 
     // Configure positioning settings
     const HorAlignment text_align = play.dialog_options_textalign;
@@ -1094,7 +1094,7 @@ void DialogOptions::Draw()
 
       // Left-to-right text direction flag
       const bool ltr_position = (game.options[OPT_RIGHTLEFTWRITE] == 0)
-          || (loaded_game_file_version < kGameVersion_362_09);
+          || (loaded_game_file_version < kGameVersion_363);
 
       parserInput->SetWidth(parserInput->GetWidth() - bullet_wid);
       if (ltr_position)

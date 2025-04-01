@@ -126,7 +126,8 @@ namespace AGS.Types
 		public string SourceFile
 		{
 			get { return _sourceFile; }
-			set { _sourceFile = Utilities.ValidateFilePath(value); }
+            // CHECKME: should we allow to set null here?
+			set { _sourceFile = value != null ? Utilities.ValidateFilePath(value) : null; }
 		}
 
         [Description("Import the alpha channel (if one is available)")]

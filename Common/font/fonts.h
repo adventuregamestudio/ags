@@ -124,6 +124,7 @@ bool ShouldAntiAliasText();
 // and drawing. For that reason it is not equivalent to std::vector,
 // but keeps constructed String buffers intact for most time.
 // TODO: implement proper strings pool.
+// TODO: make the line-splitting container also save line widths (in pixels)!
 class SplitLines
 {
 public:

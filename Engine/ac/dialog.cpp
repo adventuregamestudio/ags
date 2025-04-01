@@ -172,6 +172,16 @@ void Dialog_SetOptionReadColor(int color)
     play.read_dialog_option_colour = color;
 }
 
+int Dialog_GetOptionTextAlignment()
+{
+    return play.dialog_options_textalign;
+}
+
+void Dialog_SetOptionTextAlignment(int align)
+{
+    play.dialog_options_textalign = (HorAlignment)align;
+}
+
 int Dialog_GetOptionsGUIX()
 {
     return play.dialog_options_gui_x;
@@ -465,6 +475,32 @@ static int write_dialog_options(Bitmap *ds, bool ds_has_alpha, int at_x, int at_
     int bullet_wid, int bullet_spr, int bullet_sprwid, int usingfont, int linespacing, int selected_color,
     const DialogTopic *dtop, int numdisp, int mouseison, const int *disporder, short *dispyp)
 {
+    const HorAlignment text_align = play.dialog_options_textalign;
+    const std::pair<int, int> wrap_range = std::make_pair(at_x + bullet_wid, at_x + areawid - 1);
+    // Extra offset for 2nd, 3rd etc lines of the same option, *relative* to the first line
+    // FIXME: make this value dynamic, based on sizes etc?
+    const int min_multiline_off = 9;
+    int first_line_off = 0, multiline_off = 0;
+    switch (text_align)
+    {
+    case kHAlignRight:
+        // don't offset at all when right-aligned (does not look good)
+        first_line_off = 0;
+        multiline_off = 0;
+        break;
+    case kHAlignCenter:
+        // when centering we negate wrapping range offset by half, so truly centering;
+        // next lines are still offset by either bullet_wid or min offset
+        first_line_off = -bullet_wid / 2;
+        multiline_off = -bullet_wid / 2 + std::max(0, min_multiline_off - bullet_wid);
+        break;
+    default:
+        // when left aligned, next lines are offset by either bullet_wid or min offset
+        first_line_off = 0;
+        multiline_off = std::max(0, min_multiline_off - bullet_wid);
+        break;
+    }
+
     int curyp = at_y; // next line's Y position
     for (int ww = 0; ww < numdisp; ++ww)
     {
@@ -492,25 +528,30 @@ static int write_dialog_options(Bitmap *ds, bool ds_has_alpha, int at_x, int at_
         }
 
         const char *draw_text = skip_voiceover_token(get_translation(dtop->optionnames[disporder[ww]]));
-        const int split_in_wid = areawid - bullet_wid;
-        break_up_text_into_lines(draw_text, Lines, split_in_wid, usingfont);
+        // TODO: make the line-splitting container also save line widths!
+        break_up_text_into_lines(draw_text, Lines, wrap_range.second - wrap_range.first + 1, usingfont);
+        const int first_line_wid = get_text_width_outlined(Lines[0].GetCStr(), usingfont);
+        const int first_line_at = AlignInHRange(wrap_range.first, wrap_range.second, 0, first_line_wid, (FrameAlignment)text_align)
+            + first_line_off;
 
         dispyp[ww] = curyp;
         if (bullet_spr > 0)
         {
-            draw_gui_sprite_v330(ds, bullet_spr, at_x, curyp, ds_has_alpha);
+            draw_gui_sprite_v330(ds, bullet_spr, first_line_at - bullet_wid, curyp, ds_has_alpha);
         }
         if (game.options[OPT_DIALOGNUMBERED] == kDlgOptNumbering)
         {
             char tempbfr[20];
             snprintf(tempbfr, sizeof(tempbfr), "%d.", ww + 1);
-            wouttext_outline (ds, at_x + bullet_sprwid, curyp, usingfont, text_color, tempbfr);
+            wouttext_outline(ds, first_line_at - bullet_wid + bullet_sprwid, curyp, usingfont, text_color, tempbfr);
         }
 
-        const int multiline_off = 9; // FIXME: make this value dynamic, based on sizes etc?
         for (size_t cc = 0; cc < Lines.Count(); ++cc)
         {
-            wouttext_outline(ds, at_x + bullet_wid + ((cc==0) ? 0 : multiline_off), curyp, usingfont, text_color, Lines[cc].GetCStr());
+            const int line_wid = (cc == 0) ? first_line_wid : get_text_width_outlined(Lines[cc].GetCStr(), usingfont);
+            const int line_at = AlignInHRange(wrap_range.first, wrap_range.second, 0, line_wid, (FrameAlignment)text_align)
+                + ((cc == 0) ? first_line_off : multiline_off);
+            wouttext_outline(ds, line_at, curyp, usingfont, text_color, Lines[cc].GetCStr());
             curyp += linespacing;
         }
 
@@ -761,7 +802,7 @@ void DialogOptions::Begin()
             is_normalgui = true;
             position = RectWH(guib->X, guib->Y, guib->Width, guib->Height);
 
-            areawid = guib->Width - 5;
+            areawid = guib->Width; //- 5; NOTE: removed this -5 because was not letting to align properly
             padding = TEXTWINDOW_PADDING_DEFAULT;
 
             CalcOptionsHeight();
@@ -778,7 +819,7 @@ void DialogOptions::Begin()
     {
         // Default plain surface
         const Rect &ui_view = play.GetUIViewport();
-        areawid = ui_view.GetWidth() - 5;
+        areawid = ui_view.GetWidth(); //- 5; NOTE: removed this -5 because was not letting to align properly
         padding = TEXTWINDOW_PADDING_DEFAULT;
         CalcOptionsHeight();
 
@@ -888,18 +929,18 @@ void DialogOptions::Draw()
       // Ignore the dialog_options_pad_x/y offsets when using a text window
       // because it has its own padding property
       position = RectWH(xspos, yspos, text_window_ds->GetWidth(), text_window_ds->GetHeight());
-      inner_position = Point(txoffs, tyoffs);
+      inner_position = Point(txoffs + 1, tyoffs); // x is +1 because padding was increased by 1 hardcoded pixel
       optionsBitmap.reset(text_window_ds);
 
       // NOTE: presumably, txoffs and tyoffs are already offset by padding,
       // although it's not entirely reliable, because these calculations are done inside draw_text_window.
       const int opts_areawid = areawid - (2 * padding + 2);
-      curyp = write_dialog_options(optionsBitmap.get(), options_surface_has_alpha, txoffs, tyoffs, opts_areawid,
+      curyp = write_dialog_options(optionsBitmap.get(), options_surface_has_alpha, inner_position.X, inner_position.Y, opts_areawid,
                                    bullet_wid, game.dialog_bullet, bullet_picwid, 
                                    usingfont, linespacing, forecol,
                                    dtop, numdisp, mouseison, disporder, dispyp);
       if (parserInput)
-        parserInput->X = txoffs;
+        parserInput->X = inner_position.X;
     }
     else
     {
@@ -936,9 +977,10 @@ void DialogOptions::Draw()
       }
 
       // NOTE: it's strange that we sum both custom padding and standard gui padding here;
-      // keeping this for backwards compatibility for now... (although idk if it's important)
+      // keeping this for backwards compatibility for now... (although idk if it's important);
+      // x off +1 because padding is increased by 1 hardcoded pixel;
       // NOTE: also gui's default padding was not applied to Y pos here...
-      inner_position = Point(play.dialog_options_pad_x + padding, play.dialog_options_pad_y /* + padding*/);
+      inner_position = Point(play.dialog_options_pad_x + padding + 1, play.dialog_options_pad_y /* + padding*/);
 
       const int opts_areawid = areawid - (2 * padding + 2);
       curyp = inner_position.Y;
@@ -1826,6 +1868,16 @@ RuntimeScriptValue Sc_Dialog_SetOptionReadColor(const RuntimeScriptValue *params
     API_SCALL_VOID_PINT(Dialog_SetOptionReadColor);
 }
 
+RuntimeScriptValue Sc_Dialog_GetOptionTextAlignment(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Dialog_GetOptionTextAlignment);
+}
+
+RuntimeScriptValue Sc_Dialog_SetOptionTextAlignment(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(Dialog_SetOptionTextAlignment);
+}
+
 RuntimeScriptValue Sc_Dialog_GetMaxOptionsGUIWidth(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT(Dialog_GetMaxOptionsGUIWidth);
@@ -1906,6 +1958,8 @@ void RegisterDialogAPI()
         { "Dialog::set_OptionHighlightColor", API_FN_PAIR(Dialog_SetOptionHighlightColor) },
         { "Dialog::get_OptionReadColor",  API_FN_PAIR(Dialog_GetOptionReadColor) },
         { "Dialog::set_OptionReadColor",  API_FN_PAIR(Dialog_SetOptionReadColor) },
+        { "Dialog::get_OptionTextAlignment", API_FN_PAIR(Dialog_GetOptionTextAlignment) },
+        { "Dialog::set_OptionTextAlignment", API_FN_PAIR(Dialog_SetOptionTextAlignment) },
         { "Dialog::get_MaxOptionsGUIWidth", API_FN_PAIR(Dialog_GetMaxOptionsGUIWidth) },
         { "Dialog::set_MaxOptionsGUIWidth", API_FN_PAIR(Dialog_SetMaxOptionsGUIWidth) },
         { "Dialog::get_MinOptionsGUIWidth", API_FN_PAIR(Dialog_GetMinOptionsGUIWidth) },

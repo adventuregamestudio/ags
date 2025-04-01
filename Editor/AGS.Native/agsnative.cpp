@@ -704,7 +704,7 @@ int drawFontAt(HDC hdc, int fontnum, int draw_atx, int draw_aty, int width, int 
   set_uformat(U_ASCII); // we won't be able to print 128-255 chars otherwise!
   for (int c = first_char; c < num_chars; ++c)
   {
-    wgtprintf(tempblock,
+    woutprintf(tempblock,
                 padding + (c % chars_per_row) * grid_size + grid_margin,
                 padding + (c / chars_per_row) * grid_size + grid_margin - scroll_y,
                 fontnum, text_color, "%c", c);
@@ -2495,6 +2495,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
     game->Settings->ScaleCharacterSpriteOffsets = (thisgame.options[OPT_SCALECHAROFFSETS] != 0);
     game->Settings->UseOldVoiceClipNaming = (thisgame.options[OPT_VOICECLIPNAMERULE] == 0); // inverted, 0 for old
     game->Settings->GameFPS = (thisgame.options[OPT_GAMEFPS] > 0) ? thisgame.options[OPT_GAMEFPS] : 40;
+    game->Settings->GUIHandleOnlyLeftMouseButton = thisgame.options[OPT_GUICONTROLMOUSEBUT] > 0;
 
     TextConverter^ tcv = gcnew TextConverter(game->TextEncoding);
 

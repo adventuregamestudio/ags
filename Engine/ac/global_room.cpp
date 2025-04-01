@@ -158,7 +158,11 @@ int HasBeenToRoom (int roomnum) {
 
 void SetBackgroundFrame(int frnum) {
     if ((frnum < -1) || (frnum != -1 && (size_t)frnum >= thisroom.BgFrameCount))
-        quit("!SetBackgrondFrame: invalid frame number specified");
+    {
+        debug_script_warn("SetBackgrondFrame: invalid background number specified: %d, valid range in this room is 0..%u", thisroom.BgFrameCount - 1);
+        return;
+    }
+
     if (frnum<0) {
         play.bg_frame_locked=0;
         return;

@@ -38,6 +38,7 @@
 #include "ac/string.h"
 #include "ac/dynobj/scriptdialogoptionsrendering.h"
 #include "ac/dynobj/scriptdrawingsurface.h"
+#include "ac/dynobj/cc_gui.h"
 #include "ac/system.h"
 #include "debug/debug_log.h"
 #include "font/fonts.h"
@@ -63,6 +64,8 @@ extern SpriteCache spriteset;
 extern AGSPlatformDriver *platform;
 extern int cur_mode,cur_cursor;
 extern IGraphicsDriver *gfxDriver;
+extern std::vector<ScriptGUI> scrGui;
+extern CCGUI ccDynamicGUI;
 
 std::vector<DialogTopic> dialog;
 ScriptDialogOptionsRendering ccDialogOptionsRendering;
@@ -218,6 +221,145 @@ int Dialog_GetOptionCount(ScriptDialog *sd)
   return dialog[sd->id].numoptions;
 }
 
+int Dialog_GetOptionsBulletGraphic()
+{
+    return game.dialog_bullet;
+}
+
+void Dialog_SetOptionsBulletGraphic(int sprite)
+{
+    game.dialog_bullet = sprite;
+}
+
+int Dialog_GetOptionsNumbering()
+{
+    return game.options[OPT_DIALOGNUMBERED];
+}
+
+void Dialog_SetOptionsNumbering(int style)
+{
+    game.options[OPT_DIALOGNUMBERED] = style;
+}
+
+int Dialog_GetOptionsHighlightColor()
+{
+    return play.dialog_options_highlight_color;
+}
+
+void Dialog_SetOptionsHighlightColor(int color)
+{
+    play.dialog_options_highlight_color = color;
+}
+
+int Dialog_GetOptionsReadColor()
+{
+    return play.read_dialog_option_colour;
+}
+
+void Dialog_SetOptionsReadColor(int color)
+{
+    play.read_dialog_option_colour = color;
+}
+
+int Dialog_GetOptionsTextAlignment()
+{
+    return play.dialog_options_textalign;
+}
+
+void Dialog_SetOptionsTextAlignment(int align)
+{
+    play.dialog_options_textalign = (HorAlignment)align;
+}
+
+int Dialog_GetOptionsGap()
+{
+    return game.options[OPT_DIALOGGAP];
+}
+
+void Dialog_SetOptionsGap(int gap)
+{
+    game.options[OPT_DIALOGGAP] = gap;
+}
+
+ScriptGUI *Dialog_GetOptionsGUI()
+{
+    // NOTE: historically 0 meant "no gui", so gui id 0 cannot be used here
+    if (game.options[OPT_DIALOGIFACE] <= 0 || game.options[OPT_DIALOGIFACE] >= game.numgui)
+        return nullptr;
+    return &scrGui[game.options[OPT_DIALOGIFACE]];
+}
+
+void Dialog_SetOptionsGUI(ScriptGUI *scgui)
+{
+    if (scgui->id == 0)
+    {
+        debug_script_warn("Dialog.SetOptionsGUI: cannot assign GUI with ID 0 to dialog options");
+        return;
+    }
+
+    game.options[OPT_DIALOGIFACE] = scgui->id;
+}
+
+int Dialog_GetOptionsGUIX()
+{
+    return play.dialog_options_gui_x;
+}
+
+void Dialog_SetOptionsGUIX(int x)
+{
+    play.dialog_options_gui_x = x;
+}
+
+int Dialog_GetOptionsGUIY()
+{
+    return play.dialog_options_gui_y;
+}
+
+void Dialog_SetOptionsGUIY(int y)
+{
+    play.dialog_options_gui_y = y;
+}
+
+int Dialog_GetOptionsPaddingX()
+{
+    return play.dialog_options_pad_x;
+}
+
+void Dialog_SetOptionsPaddingX(int x)
+{
+    play.dialog_options_pad_x = x;
+}
+
+int Dialog_GetOptionsPaddingY()
+{
+    return play.dialog_options_pad_y;
+}
+
+void Dialog_SetOptionsPaddingY(int y)
+{
+    play.dialog_options_pad_y = y;
+}
+
+int Dialog_GetMaxOptionsGUIWidth()
+{
+    return play.max_dialogoption_width;
+}
+
+void Dialog_SetMaxOptionsGUIWidth(int width)
+{
+    play.max_dialogoption_width = width;
+}
+
+int Dialog_GetMinOptionsGUIWidth()
+{
+    return play.min_dialogoption_width;
+}
+
+void Dialog_SetMinOptionsGUIWidth(int width)
+{
+    play.min_dialogoption_width = width;
+}
+
 int Dialog_GetShowTextParser(ScriptDialog *sd)
 {
   return (dialog[sd->id].topicFlags & DTFLG_SHOWPARSER) ? 1 : 0;
@@ -297,23 +439,6 @@ static int run_dialog_request(int parmtr)
     return -1;
 }
 
-void get_dialog_script_parameters(unsigned char* &script, unsigned short* param1, unsigned short* param2)
-{
-  script++;
-  *param1 = *script;
-  script++;
-  *param1 += *script * 256;
-  script++;
-  
-  if (param2)
-  {
-    *param2 = *script;
-    script++;
-    *param2 += *script * 256;
-    script++;
-  }
-}
-
 int run_dialog_script(int dialogID, int offse, int optionIndex)
 {
   said_speech_line = 0;
@@ -346,54 +471,133 @@ int run_dialog_script(int dialogID, int offse, int optionIndex)
   return result;
 }
 
-int write_dialog_options(Bitmap *ds, int dlgxp, int curyp, int numdisp, int mouseison, int areawid,
-    int bullet_wid, int usingfont, DialogTopic*dtop, int*disporder, short*dispyp,
-    int linespacing, int utextcol, int padding) {
-  int ww;
+// TODO: make this a member of DialogOptions class
+// TODO: don't use global variables inside this function
+// TODO: gather parameters into struct(s)
+// TODO: limit by area height too
+static int write_dialog_options(Bitmap *ds, int at_x, int at_y, int areawid,
+    int bullet_wid, int bullet_spr, int bullet_sprwid,
+    int usingfont, int linespacing, int selected_color,
+    const DialogTopic *dtop, int numdisp, int mouseison, const int *disporder, short *dispyp)
+{
+    // Left-to-right text direction flag
+    const bool ltr_position = (game.options[OPT_RIGHTLEFTWRITE] == 0)
+        || (loaded_game_file_version < kGameVersion_363);
 
-  color_t text_color;
-  for (ww=0;ww<numdisp;ww++) {
-
-    if ((dtop->optionflags[disporder[ww]] & DFLG_HASBEENCHOSEN) &&
-        (play.read_dialog_option_colour >= 0)) {
-      // 'read' colour
-      text_color = ds->GetCompatibleColor(play.read_dialog_option_colour);
-    }
-    else {
-      // 'unread' colour
-      text_color = ds->GetCompatibleColor(playerchar->talkcolor);
-    }
-
-    if (mouseison==ww) {
-      if (text_color == ds->GetCompatibleColor(utextcol))
-        text_color = GUI::GetStandardColorForBitmap(13); // the normal colour is the same as highlight col
-      else text_color = ds->GetCompatibleColor(utextcol);
-    }
-
-    const char *draw_text = skip_voiceover_token(get_translation(dtop->optionnames[disporder[ww]]));
-    break_up_text_into_lines(draw_text, Lines, areawid-(2*padding+2+bullet_wid), usingfont);
-    dispyp[ww]=curyp;
-    if (game.dialog_bullet > 0)
+    // Configure positioning settings
+    const HorAlignment text_align = play.dialog_options_textalign;
+    const std::pair<int, int> wrap_range = std::make_pair(at_x + bullet_wid, at_x + areawid - 1);
+    // Extra offset for 2nd, 3rd etc lines of the same option, *relative* to the first line
+    // FIXME: make this value dynamic, based on sizes etc?
+    const int min_multiline_off = 9;
+    int first_line_off = 0, multiline_off = 0;
+    switch (text_align)
     {
-        draw_gui_sprite(ds, game.dialog_bullet, dlgxp, curyp);
+    case kHAlignRight:
+        if (ltr_position)
+        {
+            // don't offset at all when right-aligned (does not look good)
+            first_line_off = 0;
+            multiline_off = 0;
+        }
+        else
+        {
+            // when RTL is right aligned: apply reverse offset;
+            // next lines are extra offset by either bullet_wid or min offset
+            first_line_off = -bullet_wid;
+            multiline_off = -bullet_wid - std::max(0, min_multiline_off - bullet_wid);
+        }
+        break;
+    case kHAlignCenter:
+        // when centering we negate wrapping range offset by half, so truly centering;
+        // next lines are still offset by either bullet_wid or min offset
+        first_line_off = -bullet_wid / 2;
+        multiline_off = -bullet_wid / 2 + std::max(0, min_multiline_off - bullet_wid);
+        break;
+    default:
+        if (ltr_position)
+        {
+            // when left aligned, next lines are offset by either bullet_wid or min offset
+            first_line_off = 0;
+            multiline_off = std::max(0, min_multiline_off - bullet_wid);
+        }
+        else
+        {
+            // left align for RTL is like right align for LTR, except we need to inverse bullet_wid
+            first_line_off = -bullet_wid;
+            multiline_off = -bullet_wid;
+        }
+        break;
     }
-    if (game.options[OPT_DIALOGNUMBERED] == kDlgOptNumbering) {
-      char tempbfr[20];
-      int actualpicwid = 0;
-      if (game.dialog_bullet > 0)
-        actualpicwid = game.SpriteInfos[game.dialog_bullet].Width+3;
 
-      snprintf(tempbfr, sizeof(tempbfr), "%d.", ww + 1);
-      wouttext_outline (ds, dlgxp + actualpicwid, curyp, usingfont, text_color, tempbfr);
+    int curyp = at_y; // next line's Y position
+    for (int ww = 0; ww < numdisp; ++ww)
+    {
+        color_t text_color = 0;
+        if ((dtop->optionflags[disporder[ww]] & DFLG_HASBEENCHOSEN) &&
+            (play.read_dialog_option_colour >= 0))
+        {
+            // 'read' colour
+            text_color = ds->GetCompatibleColor(play.read_dialog_option_colour);
+        }
+        else
+        {
+            // 'unread' colour
+            text_color = ds->GetCompatibleColor(playerchar->talkcolor);
+        }
+
+        if (mouseison == ww)
+        {
+            // If the normal colour is the same as highlight col, then fallback to another
+            // FIXME: don't use hardcoded color 13 as a fallback; maybe don't do this fallback at all?
+            if (text_color == ds->GetCompatibleColor(selected_color))
+                text_color = GUI::GetStandardColorForBitmap(13);
+            else
+                text_color = ds->GetCompatibleColor(selected_color);
+        }
+
+        const char *draw_text = skip_voiceover_token(get_translation(dtop->optionnames[disporder[ww]]));
+        // TODO: make the line-splitting container also save line widths!
+        break_up_text_into_lines(draw_text, Lines, wrap_range.second - wrap_range.first + 1, usingfont);
+        const int first_line_wid = get_text_width_outlined(Lines[0].GetCStr(), usingfont);
+        const int first_line_at = AlignInHRange(wrap_range.first, wrap_range.second, 0, first_line_wid, (FrameAlignment)text_align)
+            + first_line_off;
+
+        dispyp[ww] = curyp;
+        if (bullet_spr > 0)
+        {
+            if (ltr_position)
+                draw_gui_sprite(ds, bullet_spr, first_line_at - bullet_wid, curyp);
+            else
+                draw_gui_sprite(ds, bullet_spr, first_line_at + first_line_wid + (bullet_wid - bullet_sprwid), curyp);
+        }
+        if (game.options[OPT_DIALOGNUMBERED] == kDlgOptNumbering)
+        {
+            String number = String::FromFormat("%d. ", ww + 1);
+            if (ltr_position)
+            {
+                wouttext_outline(ds, first_line_at - bullet_wid + bullet_sprwid, curyp, usingfont, text_color, number.GetCStr());
+            }
+            else
+            {
+                number.ReverseUTF8();
+                wouttext_outline(ds, first_line_at + first_line_wid, curyp, usingfont, text_color, number.GetCStr());
+            }
+        }
+
+        for (size_t cc = 0; cc < Lines.Count(); ++cc)
+        {
+            const int line_wid = (cc == 0) ? first_line_wid : get_text_width_outlined(Lines[cc].GetCStr(), usingfont);
+            const int line_at = AlignInHRange(wrap_range.first, wrap_range.second, 0, line_wid, (FrameAlignment)text_align)
+                + ((cc == 0) ? first_line_off : multiline_off);
+            wouttext_outline(ds, line_at, curyp, usingfont, text_color, Lines[cc].GetCStr());
+            curyp += linespacing;
+        }
+
+        if (ww < numdisp - 1)
+            curyp += game.options[OPT_DIALOGGAP];
     }
-    for (size_t cc=0;cc<Lines.Count();cc++) {
-      wouttext_outline(ds, dlgxp+((cc==0) ? 0 : 9)+bullet_wid, curyp, usingfont, text_color, Lines[cc].GetCStr());
-      curyp+=linespacing;
-    }
-    if (ww < numdisp-1)
-      curyp += game.options[OPT_DIALOGGAP];
-  }
-  return curyp;
+    return curyp;
 }
 
 void draw_gui_for_dialog_options(Bitmap *ds, GUIMain *guib, int dlgxp, int dlgyp) {
@@ -465,19 +669,24 @@ private:
     const int dlgnum;
     const bool runGameLoopsInBackground;
 
-    int dlgxp;
-    int dlgyp;
-    int dialog_abs_x; // absolute dialog position on screen
+    // dialog options rectangle on screen
+    Rect position;
+    // initial dialog options position; used to restore pos in case of text window offsets
+    Point init_position;
+    // inner position of the options texts, relative to the gui
+    Point inner_position;
     int padding;
     int usingfont;
     int lineheight;
     int linespacing;
     int curswas;
-    int bullet_wid;
-    int needheight;
-    IDriverDependantBitmap *ddb = nullptr;
-    std::unique_ptr<Bitmap> subBitmap;
+    int bullet_wid; // full width of bullet sprite + numbering
+    int bullet_picwid; // bullet sprite width
+    int number_wid; // width of number component
+    int needheight; // height enough to accomodate dialog options texts
     std::unique_ptr<GUITextBox> parserInput;
+    IDriverDependantBitmap *ddb = nullptr;
+    std::unique_ptr<Bitmap> optionsBitmap;
 
     // display order of options
     int disporder[MAXTOPICOPTIONS];
@@ -489,26 +698,21 @@ private:
     int chose;
     bool doStop = false;
 
-    std::unique_ptr<Bitmap> tempScrn;
     int parserActivated;
 
-    int curyp;
+    int curyp; // current (latest) draw position of a option text
     bool needRedraw;
     bool wantRefresh; // FIXME: merge with needRedraw? or better names
+    bool is_textwindow;
+    bool is_normalgui;
     bool usingCustomRendering;
     bool newCustomRender; // using newer (post-3.5.0 render API)
-    int orixp;
-    int oriyp;
+    // width of a region within the gui where options are arranged;
+    // includes internal gui padding (from both sides)
     int areawid;
-    int is_textwindow;
-    int dirtyx;
-    int dirtyy;
-    int dirtywidth;
-    int dirtyheight;
+    int forecol;
 
     int mouseison;
-
-    int forecol;
 };
 
 void DialogOptions::CalcOptionsHeight()
@@ -537,9 +741,8 @@ DialogOptions::~DialogOptions()
 {
     if (ddb != nullptr)
         gfxDriver->DestroyDDB(ddb);
+    optionsBitmap.reset();
     parserInput.reset();
-    subBitmap.reset();
-    tempScrn.reset();
 }
 
 void DialogOptions::Show()
@@ -569,26 +772,30 @@ void DialogOptions::Begin()
         numdisp++;
     }
 
-    dlgyp = 160;
     usingfont=FONT_NORMAL;
     lineheight = get_font_height_outlined(usingfont);
     linespacing = get_font_linespacing(usingfont);
     curswas=cur_cursor;
     bullet_wid = 0;
+    bullet_picwid = 0;
+    number_wid = 0;
     ddb = nullptr;
-    subBitmap = nullptr;
+    optionsBitmap = nullptr;
     parserInput = nullptr;
     said_text = 0;
 
     if (game.dialog_bullet > 0)
-        bullet_wid = game.SpriteInfos[game.dialog_bullet].Width+3;
+    {
+        bullet_picwid = game.SpriteInfos[game.dialog_bullet].Width + 3;
+    }
 
     // numbered options, leave space for the numbers
+    bullet_wid = bullet_picwid;
     if (game.options[OPT_DIALOGNUMBERED] == kDlgOptNumbering)
-        bullet_wid += get_text_width_outlined("9. ", usingfont);
-
-    const Rect &ui_view = play.GetUIViewport();
-    tempScrn.reset(new Bitmap(ui_view.GetWidth(), ui_view.GetHeight(), game.GetColorDepth()));
+    {
+        number_wid = get_text_width_outlined("9. ", usingfont);
+        bullet_wid += number_wid;
+    }
 
     play.in_conversation++;
     set_mouse_cursor(CURS_ARROW);
@@ -601,74 +808,77 @@ void DialogOptions::Begin()
         parserInput->Font = usingfont;
     }
 
-    is_textwindow = 0;
+    is_normalgui = false;
+    is_textwindow = false;
+    position = {};
+    init_position = {};
+    inner_position = {};
     forecol = play.dialog_options_highlight_color;
 
     mouseison = -1;
-    dirtyx = 0;
-    dirtyy = 0;
-    dirtywidth = ui_view.GetWidth();
-    dirtyheight = ui_view.GetHeight();
     usingCustomRendering = false;
 
-    dlgxp = 1;
     if (get_custom_dialog_options_dimensions(dlgnum))
     {
-      usingCustomRendering = true;
-      dirtyx = ccDialogOptionsRendering.x;
-      dirtyy = ccDialogOptionsRendering.y;
-      dirtywidth = ccDialogOptionsRendering.width;
-      dirtyheight = ccDialogOptionsRendering.height;
-      dialog_abs_x = dirtyx;
+        // Custom dialog options rendering
+        usingCustomRendering = true;
+        position = RectWH(
+            ccDialogOptionsRendering.x,
+            ccDialogOptionsRendering.y,
+            ccDialogOptionsRendering.width,
+            ccDialogOptionsRendering.height);
     }
     else if (game.options[OPT_DIALOGIFACE] > 0)
     {
-      GUIMain*guib=&guis[game.options[OPT_DIALOGIFACE]];
-      if (guib->IsTextWindow()) {
-        // text-window, so do the QFG4-style speech options
-        is_textwindow = 1;
-        forecol = guib->FgColor;
-      }
-      else {
-        dlgxp = guib->X;
-        dlgyp = guib->Y;
+        // Use GUI or TextWindow GUI
+        GUIMain*guib=&guis[game.options[OPT_DIALOGIFACE]];
+        if (guib->IsTextWindow())
+        {
+            // Text-window, so do the QFG4-style speech options
+            is_textwindow = true;
+            forecol = guib->FgColor;
+        }
+        else
+        {
+            // Normal GUI
+            is_normalgui = true;
+            position = RectWH(guib->X, guib->Y, guib->Width, guib->Height);
 
-        dirtyx = dlgxp;
-        dirtyy = dlgyp;
-        dirtywidth = guib->Width;
-        dirtyheight = guib->Height;
-        dialog_abs_x = guib->X;
+            areawid = guib->Width; //- 5; NOTE: removed this -5 because was not letting to align properly
+            padding = TEXTWINDOW_PADDING_DEFAULT;
 
-        areawid=guib->Width - 5;
+            CalcOptionsHeight();
+
+            if (game.options[OPT_DIALOGUPWARDS])
+            {
+                // They want the options upwards from the bottom
+                // FIXME: this setting is lying: it does not reverse the order, only aligns opts to the bottom of GUI
+                position.Top = (guib->Y + guib->Height) - needheight;
+            }
+        }
+    }
+    else
+    {
+        // Default plain surface
+        const Rect &ui_view = play.GetUIViewport();
+        areawid = ui_view.GetWidth(); //- 5; NOTE: removed this -5 because was not letting to align properly
         padding = TEXTWINDOW_PADDING_DEFAULT;
-
         CalcOptionsHeight();
 
-        if (game.options[OPT_DIALOGUPWARDS]) {
-          // They want the options upwards from the bottom
-          dlgyp = (guib->Y + guib->Height) - needheight;
-        }
-        
-      }
+        position = RectWH(
+            1,
+            ui_view.GetHeight() - needheight,
+            ui_view.GetWidth(),
+            needheight);
     }
-    else {
-      areawid= ui_view.GetWidth()-5;
-      padding = TEXTWINDOW_PADDING_DEFAULT;
-      CalcOptionsHeight();
-      dlgyp = ui_view.GetHeight() - needheight;
 
-      dirtyx = 0;
-      dirtyy = dlgyp - 1;
-      dirtywidth = ui_view.GetWidth();
-      dirtyheight = ui_view.GetHeight() - dirtyy;
-      dialog_abs_x = 0;
-    }
     if (!is_textwindow)
-      areawid -= play.dialog_options_x * 2;
+    {
+        areawid -= play.dialog_options_pad_x * 2;
+    }
 
     newCustomRender = usingCustomRendering && game.options[OPT_DIALOGOPTIONSAPI] >= 0;
-    orixp = dlgxp;
-    oriyp = dlgyp;
+    init_position = position.GetLT();
     needRedraw = false;
     wantRefresh = false;
     mouseison=-10;
@@ -680,23 +890,29 @@ void DialogOptions::Draw()
 
     if (usingCustomRendering)
     {
-      recycle_bitmap(tempScrn, game.GetColorDepth(), 
-        ccDialogOptionsRendering.width, 
-        ccDialogOptionsRendering.height);
+        recycle_bitmap(optionsBitmap, game.GetColorDepth(), 
+            ccDialogOptionsRendering.width, 
+            ccDialogOptionsRendering.height);
+    }
+    else
+    {
+        recycle_bitmap(optionsBitmap, game.GetColorDepth(),
+                       position.GetWidth(),
+                       position.GetHeight());
     }
 
-    tempScrn->ClearTransparent();
-    Bitmap *ds = tempScrn.get();
+    optionsBitmap->ClearTransparent();
+    position.MoveTo(init_position);
+    std::fill(dispyp, dispyp + MAXTOPICOPTIONS, 0);
 
-    dlgxp = orixp;
-    dlgyp = oriyp;
     const Rect &ui_view = play.GetUIViewport();
 
     if (usingCustomRendering)
     {
+      // Custom dialog options rendering
       ccDialogOptionsRendering.surfaceToRenderTo = dialogOptionsRenderingSurface;
       ccDialogOptionsRendering.surfaceAccessed = false;
-      dialogOptionsRenderingSurface->linkedBitmapOnly = tempScrn.get();
+      dialogOptionsRenderingSurface->linkedBitmapOnly = optionsBitmap.get();
 
       renderDialogOptionsFunc.Params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
       run_function_on_non_blocking_thread(&renderDialogOptionsFunc);
@@ -710,33 +926,31 @@ void DialogOptions::Draw()
         curyp = ccDialogOptionsRendering.parserTextboxY;
         areawid = ccDialogOptionsRendering.parserTextboxWidth;
         if (areawid == 0)
-          areawid = tempScrn->GetWidth();
+          areawid = optionsBitmap->GetWidth();
       }
       ccDialogOptionsRendering.needRepaint = false;
     }
-    else if (is_textwindow) {
-      // text window behind the options
+    else if (is_textwindow)
+    {
+      // Text window behind the options
       areawid = play.max_dialogoption_width;
       int biggest = 0;
       padding = guis[game.options[OPT_DIALOGIFACE]].Padding;
+      // FIXME: figure out what these +2 and +6 constants are, used along with the padding
       for (int i = 0; i < numdisp; ++i) {
         const char *draw_text = skip_voiceover_token(get_translation(dtop->optionnames[disporder[i]]));
         break_up_text_into_lines(draw_text, Lines, areawid-((2*padding+2)+bullet_wid), usingfont);
         if (longestline > biggest)
           biggest = longestline;
       }
-      if (biggest < areawid - ((2*padding+6)+bullet_wid))
-        areawid = biggest + ((2*padding+6)+bullet_wid);
+      if (biggest < areawid - ((2*padding + 2/*6*/)+bullet_wid))
+        areawid = biggest + ((2*padding + 2/*6*/)+bullet_wid);
 
-      if (areawid < play.min_dialogoption_width) {
-        areawid = play.min_dialogoption_width;
-        if (play.min_dialogoption_width > play.max_dialogoption_width)
-          quit("!game.min_dialogoption_width is larger than game.max_dialogoption_width");
-      }
+      areawid = std::max(areawid, play.min_dialogoption_width);
 
       CalcOptionsHeight();
 
-      int savedwid = areawid;
+      const int savedwid = areawid;
       int txoffs=0,tyoffs=0,yspos = ui_view.GetHeight()/2-(2*padding+needheight)/2;
       int xspos = ui_view.GetWidth()/2 - areawid/2;
       // shift window to the right if QG4-style full-screen pic
@@ -746,77 +960,66 @@ void DialogOptions::Draw()
       // needs to draw the right text window, not the default
       Bitmap *text_window_ds = nullptr;
       draw_text_window(&text_window_ds, false, &txoffs,&tyoffs,&xspos,&yspos,&areawid,nullptr,needheight, game.options[OPT_DIALOGIFACE], DisplayVars());
-      // since draw_text_window incrases the width, restore it
-      areawid = savedwid;
+      // since draw_text_window incrases the width, restore the relative placement
+      areawid -= ((areawid - savedwid) / 2);
 
-      dirtyx = xspos;
-      dirtyy = yspos;
-      dirtywidth = text_window_ds->GetWidth();
-      dirtyheight = text_window_ds->GetHeight();
-      dialog_abs_x = txoffs + xspos;
+      // Ignore the dialog_options_pad_x/y offsets when using a text window
+      // because it has its own padding property
+      position = RectWH(xspos, yspos, text_window_ds->GetWidth(), text_window_ds->GetHeight());
+      inner_position = Point(txoffs + 1, tyoffs); // x is +1 because padding was increased by 1 hardcoded pixel
+      optionsBitmap.reset(text_window_ds);
 
-      GfxUtil::DrawSpriteWithTransparency(ds, text_window_ds, xspos, yspos);
-      // TODO: here we rely on draw_text_window always assigning new bitmap to text_window_ds;
-      // should make this more explicit
-      delete text_window_ds;
-
-      // Ignore the dialog_options_x/y offsets when using a text window
-      txoffs += xspos;
-      tyoffs += yspos;
-      dlgyp = tyoffs;
-      curyp = write_dialog_options(ds, txoffs,tyoffs,numdisp,mouseison,areawid,bullet_wid,usingfont,dtop,disporder,dispyp,linespacing,forecol,padding);
+      // NOTE: presumably, txoffs and tyoffs are already offset by padding,
+      // although it's not entirely reliable, because these calculations are done inside draw_text_window.
+      const int opts_areawid = areawid - (2 * padding + 2);
+      curyp = write_dialog_options(optionsBitmap.get(), inner_position.X, inner_position.Y, opts_areawid,
+                                   bullet_wid, game.dialog_bullet, bullet_picwid,
+                                   usingfont, linespacing, forecol,
+                                   dtop, numdisp, mouseison, disporder, dispyp);
       if (parserInput)
-        parserInput->X = txoffs;
+        parserInput->X = inner_position.X;
     }
-    else {
-
-      if (wantRefresh) {
-        // redraw the black background so that anti-alias
-        // fonts don't re-alias themselves
-        if (game.options[OPT_DIALOGIFACE] == 0) {
+    else
+    {
+      // Normal GUI or default surface
+      Bitmap *ds = optionsBitmap.get();
+      if (wantRefresh)
+      {
+        // redraw the background so that anti-alias fonts don't re-alias themselves
+        if (game.options[OPT_DIALOGIFACE] == 0)
+        {
+          // Default surface
           color_t draw_color = GUI::GetStandardColorForBitmap(16);
-          ds->FillRect(Rect(0,dlgyp-1, ui_view.GetWidth()-1, ui_view.GetHeight()-1), draw_color);
+          ds->FillRect(RectWH(position.GetSize()), draw_color);
         }
-        else {
+        else
+        {
+          // Normal GUI
           GUIMain* guib = &guis[game.options[OPT_DIALOGIFACE]];
           if (!guib->IsTextWindow())
-            draw_gui_for_dialog_options(ds, guib, dlgxp, dlgyp);
+            draw_gui_for_dialog_options(ds, guib, 0, 0);
         }
       }
 
-      dirtyx = 0;
-      dirtywidth = ui_view.GetWidth();
+      // NOTE: it's strange that we sum both custom padding and standard gui padding here;
+      // keeping this for backwards compatibility for now... (although idk if it's important);
+      // x off +1 because padding is increased by 1 hardcoded pixel;
+      // NOTE: also gui's default padding was not applied to Y pos here...
+      inner_position = Point(play.dialog_options_pad_x + padding + 1, play.dialog_options_pad_y /* + padding*/);
 
-      if (game.options[OPT_DIALOGIFACE] > 0) 
-      {
-        // the whole GUI area should be marked dirty in order
-        // to ensure it gets drawn
-        GUIMain* guib = &guis[game.options[OPT_DIALOGIFACE]];
-        dirtyheight = guib->Height;
-        dirtyy = dlgyp;
-      }
-      else
-      {
-        dirtyy = dlgyp - 1;
-        dirtyheight = needheight + 1;
-      }
-
-      dlgxp += play.dialog_options_x;
-      dlgyp += play.dialog_options_y;
-
-      // if they use a negative dialog_options_y, make sure the
-      // area gets marked as dirty
-      if (dlgyp < dirtyy)
-        dirtyy = dlgyp;
-
-      curyp = dlgyp;
-      curyp = write_dialog_options(ds, dlgxp,curyp,numdisp,mouseison,areawid,bullet_wid,usingfont,dtop,disporder,dispyp,linespacing,forecol,padding);
+      const int opts_areawid = areawid - (2 * padding + 2);
+      curyp = inner_position.Y;
+      curyp = write_dialog_options(ds, inner_position.X, inner_position.Y, opts_areawid,
+                                   bullet_wid, game.dialog_bullet, bullet_picwid,
+                                   usingfont, linespacing, forecol,
+                                   dtop, numdisp, mouseison, disporder, dispyp);
 
       if (parserInput)
-        parserInput->X = dlgxp;
+        parserInput->X = inner_position.X;
     }
 
-    if (parserInput) {
+    if (parserInput)
+    {
       // Set up the text box, if present
       parserInput->Y = curyp + game.options[OPT_DIALOGGAP];
       parserInput->SetWidth(areawid - 10);
@@ -824,13 +1027,22 @@ void DialogOptions::Draw()
       if (mouseison == DLG_OPTION_PARSER)
         parserInput->TextColor = forecol;
 
-      if (game.dialog_bullet)  // the parser X will get moved in a second
-      {
-          draw_gui_sprite(ds, game.dialog_bullet, parserInput->X, parserInput->Y);
-      }
+      // Left-to-right text direction flag
+      const bool ltr_position = (game.options[OPT_RIGHTLEFTWRITE] == 0)
+          || (loaded_game_file_version < kGameVersion_363);
 
       parserInput->SetWidth(parserInput->GetWidth() - bullet_wid);
-      parserInput->X += bullet_wid;
+      if (ltr_position)
+        parserInput->X += bullet_wid;
+
+      Bitmap *ds = optionsBitmap.get();
+      if (game.dialog_bullet)
+      {
+          if (ltr_position)
+            draw_gui_sprite(ds, game.dialog_bullet, parserInput->X - bullet_wid, parserInput->Y);
+          else
+            draw_gui_sprite(ds, game.dialog_bullet, parserInput->X + parserInput->GetWidth() + (bullet_wid - bullet_picwid + 1), parserInput->Y);
+      }
 
       parserInput->Draw(ds, parserInput->X, parserInput->Y);
       parserInput->IsActivated = false;
@@ -838,35 +1050,19 @@ void DialogOptions::Draw()
 
     wantRefresh = false;
 
-    recycle_bitmap(subBitmap,
-        gfxDriver->GetCompatibleBitmapFormat(tempScrn->GetColorDepth()), dirtywidth, dirtyheight);
-
-    if (usingCustomRendering)
+    // Apply custom GUI position (except when it's fully custom options rendering)
+    if (!usingCustomRendering)
     {
-      subBitmap->Blit(tempScrn.get(), 0, 0, 0, 0, tempScrn->GetWidth(), tempScrn->GetHeight());
-      invalidate_rect(dirtyx, dirtyy, dirtyx + subBitmap->GetWidth(), dirtyy + subBitmap->GetHeight(), false);
-    }
-    else
-    {
-      subBitmap->Blit(tempScrn.get(), dirtyx, dirtyy, 0, 0, dirtywidth, dirtyheight);
+        if (play.dialog_options_gui_x >= 0)
+            position.Left = play.dialog_options_gui_x;
+        if (play.dialog_options_gui_y >= 0)
+            position.Top = play.dialog_options_gui_y;
     }
 
-    if ((ddb != nullptr) && 
-      ((ddb->GetWidth() != dirtywidth) ||
-       (ddb->GetHeight() != dirtyheight)))
-    {
-      gfxDriver->DestroyDDB(ddb);
-      ddb = nullptr;
-    }
-    
-    if (ddb == nullptr)
-      ddb = gfxDriver->CreateDDBFromBitmap(subBitmap.get());
-    else
-      gfxDriver->UpdateDDBFromBitmap(ddb, subBitmap.get());
-
+    ddb = recycle_ddb_bitmap(ddb, optionsBitmap.get());
     if (runGameLoopsInBackground)
     {
-        render_graphics(ddb, dirtyx, dirtyy);
+        render_graphics(ddb, position.Left, position.Top);
     }
 }
 
@@ -879,7 +1075,7 @@ bool DialogOptions::Run()
     if (runGameLoopsInBackground)
     {
         play.disabled_user_interface++;
-        UpdateGameOnce(false, ddb, dirtyx, dirtyy);
+        UpdateGameOnce(false, ddb, position.Left, position.Top);
         play.disabled_user_interface--;
 
         // Stop the dialog options if requested from script
@@ -890,7 +1086,7 @@ bool DialogOptions::Run()
     {
         update_audio_system_on_game_loop();
         UpdateCursorAndDrawables();
-        render_graphics(ddb, dirtyx, dirtyy);
+        render_graphics(ddb, position.Left, position.Top);
     }
 
     needRedraw = false;
@@ -919,9 +1115,7 @@ bool DialogOptions::Run()
     else if (usingCustomRendering)
     {
         // Old custom rendering
-        if ((mousex >= dirtyx) && (mousey >= dirtyy) &&
-            (mousex < dirtyx + tempScrn->GetWidth()) &&
-            (mousey < dirtyy + tempScrn->GetHeight()))
+        if (position.IsInside(mousex, mousey))
         {
             // Run "dialog_options_get_active"
             getDialogOptionUnderCursorFunc.Params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
@@ -941,14 +1135,17 @@ bool DialogOptions::Run()
             ccDialogOptionsRendering.activeOptionID = -1;
         }
     }
-    else if (mousex >= dialog_abs_x && mousex < (dialog_abs_x + areawid) &&
-            mousey >= dlgyp && mousey < curyp)
+    else if (Rect(position.Left + inner_position.X,
+                  position.Top  + inner_position.Y,
+                  position.Left + inner_position.X + areawid,
+                  position.Top  + curyp).IsInside(mousex, mousey))
     {
         // Default rendering: detect option under mouse
+        const int rel_mousey = mousey - position.Top;
         mouseison = numdisp-1;
         for (int i = 0; i < numdisp; ++i)
         {
-            if (mousey < dispyp[i]) { mouseison=i-1; break; }
+            if (rel_mousey < dispyp[i]) { mouseison=i-1; break; }
         }
         if ((mouseison<0) | (mouseison>=numdisp)) mouseison=-1;
     }
@@ -956,12 +1153,9 @@ bool DialogOptions::Run()
     // Handle mouse over parser
     if (parserInput)
     {
-        int relativeMousey = mousey;
-        if (usingCustomRendering)
-            relativeMousey -= dirtyy;
-
-        if ((relativeMousey > parserInput->Y) &&
-            (relativeMousey < parserInput->Y + parserInput->GetHeight()))
+        const int rel_mousey = mousey - position.Top;
+        if ((rel_mousey > parserInput->Y) &&
+            (rel_mousey < parserInput->Y + parserInput->GetHeight()))
             mouseison = DLG_OPTION_PARSER;
     }
 
@@ -1218,9 +1412,8 @@ void DialogOptions::End()
   if (ddb != nullptr)
     gfxDriver->DestroyDDB(ddb);
   ddb = nullptr;
+  optionsBitmap.reset();
   parserInput.reset();
-  subBitmap.reset();
-  tempScrn.reset();
 
   set_mouse_cursor(curswas);
   // In case it's the QFG4 style dialog, remove the black screen
@@ -1649,6 +1842,136 @@ RuntimeScriptValue Sc_Dialog_GetOptionCount(void *self, const RuntimeScriptValue
     API_OBJCALL_INT(ScriptDialog, Dialog_GetOptionCount);
 }
 
+RuntimeScriptValue Sc_Dialog_GetOptionsGUI(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ(ScriptGUI, ccDynamicGUI, Dialog_GetOptionsGUI);
+}
+
+RuntimeScriptValue Sc_Dialog_SetOptionsGUI(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_POBJ(Dialog_SetOptionsGUI, ScriptGUI);
+}
+
+RuntimeScriptValue Sc_Dialog_GetOptionsGUIX(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Dialog_GetOptionsGUIX);
+}
+
+RuntimeScriptValue Sc_Dialog_SetOptionsGUIX(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(Dialog_SetOptionsGUIX);
+}
+
+RuntimeScriptValue Sc_Dialog_GetOptionsGUIY(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Dialog_GetOptionsGUIY);
+}
+
+RuntimeScriptValue Sc_Dialog_SetOptionsGUIY(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(Dialog_SetOptionsGUIY);
+}
+
+RuntimeScriptValue Sc_Dialog_GetOptionsPaddingX(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Dialog_GetOptionsPaddingX);
+}
+
+RuntimeScriptValue Sc_Dialog_SetOptionsPaddingX(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(Dialog_SetOptionsPaddingX);
+}
+
+RuntimeScriptValue Sc_Dialog_GetOptionsPaddingY(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Dialog_GetOptionsPaddingY);
+}
+
+RuntimeScriptValue Sc_Dialog_SetOptionsPaddingY(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(Dialog_SetOptionsPaddingY);
+}
+
+RuntimeScriptValue Sc_Dialog_GetOptionsBulletGraphic(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Dialog_GetOptionsBulletGraphic);
+}
+
+RuntimeScriptValue Sc_Dialog_SetOptionsBulletGraphic(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(Dialog_SetOptionsBulletGraphic);
+}
+
+RuntimeScriptValue Sc_Dialog_GetOptionsNumbering(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Dialog_GetOptionsNumbering);
+}
+
+RuntimeScriptValue Sc_Dialog_SetOptionsNumbering(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(Dialog_SetOptionsNumbering);
+}
+
+RuntimeScriptValue Sc_Dialog_GetOptionsHighlightColor(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Dialog_GetOptionsHighlightColor);
+}
+
+RuntimeScriptValue Sc_Dialog_SetOptionsHighlightColor(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(Dialog_SetOptionsHighlightColor);
+}
+
+RuntimeScriptValue Sc_Dialog_GetOptionsReadColor(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Dialog_GetOptionsReadColor);
+}
+
+RuntimeScriptValue Sc_Dialog_SetOptionsReadColor(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(Dialog_SetOptionsReadColor);
+}
+
+RuntimeScriptValue Sc_Dialog_GetOptionsTextAlignment(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Dialog_GetOptionsTextAlignment);
+}
+
+RuntimeScriptValue Sc_Dialog_SetOptionsTextAlignment(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(Dialog_SetOptionsTextAlignment);
+}
+
+RuntimeScriptValue Sc_Dialog_GetOptionsGap(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Dialog_GetOptionsGap);
+}
+
+RuntimeScriptValue Sc_Dialog_SetOptionsGap(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(Dialog_SetOptionsGap);
+}
+
+RuntimeScriptValue Sc_Dialog_GetMaxOptionsGUIWidth(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Dialog_GetMaxOptionsGUIWidth);
+}
+
+RuntimeScriptValue Sc_Dialog_SetMaxOptionsGUIWidth(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(Dialog_SetMaxOptionsGUIWidth);
+}
+
+RuntimeScriptValue Sc_Dialog_GetMinOptionsGUIWidth(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Dialog_GetMinOptionsGUIWidth);
+}
+
+RuntimeScriptValue Sc_Dialog_SetMinOptionsGUIWidth(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(Dialog_SetMinOptionsGUIWidth);
+}
+
 // int (ScriptDialog *sd)
 RuntimeScriptValue Sc_Dialog_GetShowTextParser(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -1726,6 +2049,32 @@ void RegisterDialogAPI()
         { "Dialog::get_AreOptionsDisplayed", API_FN_PAIR(Dialog_GetAreOptionsDisplayed) },
         { "Dialog::get_ID",               API_FN_PAIR(Dialog_GetID) },
         { "Dialog::get_OptionCount",      API_FN_PAIR(Dialog_GetOptionCount) },
+        { "Dialog::get_OptionsBulletGraphic", API_FN_PAIR(Dialog_GetOptionsBulletGraphic) },
+        { "Dialog::set_OptionsBulletGraphic", API_FN_PAIR(Dialog_SetOptionsBulletGraphic) },
+        { "Dialog::get_OptionsGap",       API_FN_PAIR(Dialog_GetOptionsGap) },
+        { "Dialog::set_OptionsGap",       API_FN_PAIR(Dialog_SetOptionsGap) },
+        { "Dialog::get_OptionsGUI",       API_FN_PAIR(Dialog_GetOptionsGUI) },
+        { "Dialog::set_OptionsGUI",       API_FN_PAIR(Dialog_SetOptionsGUI) },
+        { "Dialog::get_OptionsGUIX",      API_FN_PAIR(Dialog_GetOptionsGUIX) },
+        { "Dialog::set_OptionsGUIX",      API_FN_PAIR(Dialog_SetOptionsGUIX) },
+        { "Dialog::get_OptionsGUIY",      API_FN_PAIR(Dialog_GetOptionsGUIY) },
+        { "Dialog::set_OptionsGUIY",      API_FN_PAIR(Dialog_SetOptionsGUIY) },
+        { "Dialog::get_OptionsHighlightColor", API_FN_PAIR(Dialog_GetOptionsHighlightColor) },
+        { "Dialog::set_OptionsHighlightColor", API_FN_PAIR(Dialog_SetOptionsHighlightColor) },
+        { "Dialog::get_OptionsMaxGUIWidth", API_FN_PAIR(Dialog_GetMaxOptionsGUIWidth) },
+        { "Dialog::set_OptionsMaxGUIWidth", API_FN_PAIR(Dialog_SetMaxOptionsGUIWidth) },
+        { "Dialog::get_OptionsMinGUIWidth", API_FN_PAIR(Dialog_GetMinOptionsGUIWidth) },
+        { "Dialog::set_OptionsMinGUIWidth", API_FN_PAIR(Dialog_SetMinOptionsGUIWidth) },
+        { "Dialog::get_OptionsNumbering", API_FN_PAIR(Dialog_GetOptionsNumbering) },
+        { "Dialog::set_OptionsNumbering", API_FN_PAIR(Dialog_SetOptionsNumbering) },
+        { "Dialog::get_OptionsPaddingX",  API_FN_PAIR(Dialog_GetOptionsPaddingX) },
+        { "Dialog::set_OptionsPaddingX",  API_FN_PAIR(Dialog_SetOptionsPaddingX) },
+        { "Dialog::get_OptionsPaddingY",  API_FN_PAIR(Dialog_GetOptionsPaddingY) },
+        { "Dialog::set_OptionsPaddingY",  API_FN_PAIR(Dialog_SetOptionsPaddingY) },
+        { "Dialog::get_OptionsReadColor",  API_FN_PAIR(Dialog_GetOptionsReadColor) },
+        { "Dialog::set_OptionsReadColor",  API_FN_PAIR(Dialog_SetOptionsReadColor) },
+        { "Dialog::get_OptionsTextAlignment", API_FN_PAIR(Dialog_GetOptionsTextAlignment) },
+        { "Dialog::set_OptionsTextAlignment", API_FN_PAIR(Dialog_SetOptionsTextAlignment) },
         { "Dialog::get_ScriptName",       API_FN_PAIR(Dialog_GetScriptName) },
         { "Dialog::get_ShowTextParser",   API_FN_PAIR(Dialog_GetShowTextParser) },
         { "Dialog::DisplayOptions^1",     API_FN_PAIR(Dialog_DisplayOptions) },

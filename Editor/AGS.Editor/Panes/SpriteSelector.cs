@@ -232,7 +232,7 @@ namespace AGS.Editor
 
         private string GetTextForItem(Sprite sprite)
         {
-            return string.Format(_itemTextFormat, sprite.Number, Path.GetFileName(sprite.SourceFile));
+            return string.Format(_itemTextFormat, sprite.Number, Utilities.SafeGetFileName(sprite.SourceFile));
         }
 
         private void DisplaySpritesForFolder(SpriteFolder folder)
@@ -1005,8 +1005,7 @@ namespace AGS.Editor
             if (fileNowModified.CompareTo(fileLastModified) != 0)
             {
                 Bitmap newBmp = new Bitmap(fileName);
-                if ((newBmp.PixelFormat == PixelFormat.Format8bppIndexed) !=
-                    (bmp.PixelFormat == PixelFormat.Format8bppIndexed))
+                if (newBmp.IsIndexed() != bmp.IsIndexed())
                 {
                     Factory.GUIController.ShowMessage("The colour depth of the image has changed. You cannot change this with an in-place edit.", MessageBoxIcon.Warning);
                 }

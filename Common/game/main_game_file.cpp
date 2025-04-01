@@ -15,6 +15,7 @@
 #include "ac/audiocliptype.h"
 #include "ac/dialogtopic.h"
 #include "ac/gamesetupstruct.h"
+#include "ac/keycode.h"
 #include "ac/spritecache.h"
 #include "ac/view.h"
 #include "ac/wordsdictionary.h"
@@ -353,6 +354,10 @@ void UpgradeGame(GameSetupStruct &game, GameDataVersion data_ver)
     if (data_ver < kGameVersion_362)
     {
         game.options[OPT_SAVESCREENSHOTLAYER] = UINT32_MAX; // all possible layers
+    }
+    if (data_ver < kGameVersion_363)
+    {
+        game.options[OPT_GUICONTROLMOUSEBUT] = kMouseAny; // gui controls handle any button
     }
     // 32-bit color properties
     if (data_ver < kGameVersion_400_09)

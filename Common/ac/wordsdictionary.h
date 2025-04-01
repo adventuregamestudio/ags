@@ -11,11 +11,12 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-
 #ifndef __AC_WORDSDICTIONARY_H
 #define __AC_WORDSDICTIONARY_H
 
+#include <vector>
 #include "core/types.h"
+#include "util/string.h"
 
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
@@ -39,10 +40,19 @@ struct WordsDictionary {
 
 extern const char *passwencstring;
 
-extern void decrypt_text(char *toenc, size_t buf_sz);
-extern void read_string_decrypt(Common::Stream *in, char *buf, size_t buf_sz);
-extern void skip_string_decrypt(Common::Stream *in);
-extern void read_dictionary (WordsDictionary *dict, Common::Stream *in);
+// Decrypts text found in the given buffer, writes back to the same buffer
+void decrypt_text(char *buf, size_t buf_sz);
+// Reads an encrypted string from the stream and decrypts into the provided buffer
+void read_string_decrypt(Common::Stream *in, char *buf, size_t buf_sz);
+// Reads an encrypted string from the stream and returns as a string
+Common::String read_string_decrypt(Common::Stream *in);
+// Reads an encrypted string from the stream and returns as a string;
+// uses provided vector as a temporary decryption buffer (avoid extra allocs)
+Common::String read_string_decrypt(Common::Stream *in, std::vector<char> &dec_buf);
+// Skip an encrypted string in stream
+void skip_string_decrypt(Common::Stream *in);
+// Read full words dictionary
+void read_dictionary(WordsDictionary *dict, Common::Stream *in);
 
 extern void encrypt_text(char *toenc);
 extern void write_string_encrypt(Common::Stream *out, const char *s);

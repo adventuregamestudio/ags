@@ -823,12 +823,27 @@ int gui_on_mouse_move(const int mx, const int my)
     return mouse_over_gui;
 }
 
+// Tells if GUI common controls should react to this mouse button
+// TODO: redesign this all, pass mouse button into GUI OnMouseButtonDown instead,
+// handle the button difference there, per control.
+inline bool gui_control_should_handle_button(int mbut)
+{
+    return (game.options[OPT_GUICONTROLMOUSEBUT] == kMouseAny) ||
+        (game.options[OPT_GUICONTROLMOUSEBUT] == mbut);
+}
+
 void gui_on_mouse_hold(const int wasongui, const int wasbutdown)
 {
-    for (int i=0;i<guis[wasongui].GetControlCount();i++) {
+    for (int i = 0; i < guis[wasongui].GetControlCount(); ++i)
+    {
         GUIObject *guio = guis[wasongui].GetControl(i);
-        if (!guio->IsActivated) continue;
-        if (guis[wasongui].GetControlType(i)!=kGUISlider) continue;
+        if (!guio->IsActivated)
+            continue;
+        // We only handle "hold" event for Sliders, and only if mouse button is not restricted
+        if (guis[wasongui].GetControlType(i) != kGUISlider)
+            continue;
+        if (!gui_control_should_handle_button(wasbutdown))
+            continue;
         // GUI Slider repeatedly activates while being dragged
         guio->IsActivated = false;
         force_event(AGSEvent_GUI(wasongui, i, static_cast<eAGSMouseButton>(wasbutdown)));
@@ -841,38 +856,63 @@ void gui_on_mouse_up(const int wasongui, const int wasbutdown, const int mx, con
     GUIMain &gui = guis[wasongui];
     gui.OnMouseButtonUp();
 
-    for (int i=0;i<gui.GetControlCount();i++) {
-        GUIObject *guio = gui.GetControl(i);
-        if (!guio->IsActivated) continue;
-        guio->IsActivated = false;
-        if (!IsInterfaceEnabled()) break;
+    for (int i = 0; i < guis[wasongui].GetControlCount(); ++i)
+    {
+        GUIObject *guio = guis[wasongui].GetControl(i);
+        if (!guio->IsActivated)
+            continue;
 
-        int cttype=gui.GetControlType(i);
-        if ((cttype == kGUIButton) || (cttype == kGUISlider) || (cttype == kGUIListBox)) {
-            force_event(AGSEvent_GUI(wasongui, i, static_cast<eAGSMouseButton>(wasbutdown)));
+        guio->IsActivated = false;
+        if (!IsInterfaceEnabled())
+            break;
+
+        bool click_handled = false;
+        int cttype = guis[wasongui].GetControlType(i);
+        if ((cttype == kGUIButton) || (cttype == kGUISlider) || (cttype == kGUIListBox))
+        {
+            if (gui_control_should_handle_button(wasbutdown))
+            {
+                click_handled = true;
+                force_event(AGSEvent_GUI(wasongui, i, static_cast<eAGSMouseButton>(wasbutdown)));
+            }
         }
-        else if (cttype == kGUIInvWindow) {
+        else if (cttype == kGUIInvWindow)
+        {
+            click_handled = true;
             Point guipt = gui.GetGraphicSpace().WorldToLocal(mx, my);
             mouse_ifacebut_xoffs = guipt.X - (guio->X);
             mouse_ifacebut_yoffs = guipt.Y - (guio->Y);
-            int iit=offset_over_inv((GUIInvWindow*)guio);
-            if (iit>=0) {
+            int iit = offset_over_inv((GUIInvWindow*)guio);
+            if (iit >= 0)
+            {
                 play.used_inv_on = iit;
-                if (game.options[OPT_HANDLEINVCLICKS]) {
+                if (game.options[OPT_HANDLEINVCLICKS])
+                {
                     // Let the script handle the click
                     // LEFTINV is 5, RIGHTINV is 6
                     force_event(AGSEvent_Script(kTS_MouseClick, wasbutdown + 4, mx, my));
                 }
                 else if (wasbutdown == kMouseRight) // right-click is always Look
+                {
                     RunInventoryInteraction(iit, MODE_LOOK);
+                }
                 else if (cur_mode == MODE_HAND)
+                {
                     SetActiveInventory(iit);
+                }
                 else
-                    RunInventoryInteraction (iit, cur_mode);
+                {
+                    RunInventoryInteraction(iit, cur_mode);
+                }
             }
         }
-        else quit("clicked on unknown control type");
-        if (gui.PopupStyle==kGUIPopupMouseY)
+        else
+        {
+            quit("clicked on unknown control type");
+        }
+
+        // Built-in behavior for PopupAtY guis: hide one if interacted with any control
+        if ((guis[wasongui].PopupStyle == kGUIPopupMouseY) && click_handled)
             remove_popup_interface(wasongui);
         break;
     }
@@ -883,10 +923,25 @@ void gui_on_mouse_up(const int wasongui, const int wasbutdown, const int mx, con
 void gui_on_mouse_down(const int guin, const int mbut, const int mx, const int my)
 {
     debug_script_log("Mouse click over GUI %d", guin);
-    guis[guin].OnMouseButtonDown(mx, my);
-    // run GUI click handler if not on any control
-    if ((guis[guin].MouseDownCtrl < 0) && (!guis[guin].OnClickHandler.IsEmpty()))
-        force_event(AGSEvent_GUI(guin, -1, static_cast<eAGSMouseButton>(mbut)));
+
+    // TODO: redesign this, pass mouse button into GUI OnMouseButtonDown instead,
+    // handle the button difference there, per control.
+    int over_ctrl = guis[guin].GetControlUnderMouse();
+    if (over_ctrl >= 0)
+    {
+        // NOTE: we make exception for InvWindow control, as it has a special action for RMB
+        if (gui_control_should_handle_button(mbut) ||
+            (guis[guin].GetControlType(over_ctrl) == kGUIInvWindow))
+        {
+            guis[guin].OnMouseButtonDown(mx, my);
+        }
+    }
+    else
+    {
+        // run GUI click handler if not on any control
+        if (!guis[guin].OnClickHandler.IsEmpty())
+            force_event(AGSEvent_GUI(guin, -1, static_cast<eAGSMouseButton>(mbut)));
+    }
 
     run_on_event(kScriptEvent_GUIMouseDown, guin, mbut, mx - guis[guin].X, my - guis[guin].Y);
 }

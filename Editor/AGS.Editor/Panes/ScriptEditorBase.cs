@@ -431,32 +431,24 @@ namespace AGS.Editor
         private void scintilla_ConstructContextMenu(ContextMenuStrip menuStrip, int clickedPositionInDocument)
         {
             EventHandler onClick = new EventHandler(ContextMenuChooseOption);
-            ToolStripMenuItem menuItem;
 
             UpdateScriptDocumentContext(clickedPositionInDocument);
 
             string typeName = _goToDefinition != null ? (" of " +  _goToDefinition) : string.Empty;
             string varName = _goToDefinition != null ? _goToDefinition : string.Empty;
 
-            menuItem = new ToolStripMenuItem(_menuCmdGoToDefinition.Name + typeName, null, onClick, GO_TO_DEFINITION_COMMAND);
-            menuItem.ShortcutKeys = _menuCmdGoToDefinition.ShortcutKey;
-            menuItem.Enabled = (_goToDefinition != null);
-            menuStrip.Items.Add(menuItem);
+            menuStrip.Items.Add(ToolStripExtensions.CreateMenuItem(_menuCmdGoToDefinition.Name + typeName, null, onClick,
+                GO_TO_DEFINITION_COMMAND, _menuCmdGoToDefinition.ShortcutKey, (_goToDefinition != null)));
+            menuStrip.Items.Add(ToolStripExtensions.CreateMenuItem(_menuCmdFindAllUsages.Name + typeName, null, onClick,
+                FIND_ALL_USAGES_COMMAND, _menuCmdFindAllUsages.ShortcutKey, (_goToDefinition != null)));
 
-            menuItem = new ToolStripMenuItem(_menuCmdFindAllUsages.Name + typeName, null, onClick, FIND_ALL_USAGES_COMMAND);
-            menuItem.ShortcutKeys = _menuCmdFindAllUsages.ShortcutKey;
-            menuItem.Enabled = (_goToDefinition != null);
-            menuStrip.Items.Add(menuItem);
-
-            menuItem = new ToolStripMenuItem("Add " + varName + " to Watch Panel", null, onClick, ADD_TO_WATCH_PANE_COMMAND);
+            var menuItem = new ToolStripMenuItem("Add " + varName + " to Watch Panel", null, onClick, ADD_TO_WATCH_PANE_COMMAND);
             menuItem.ShortcutKeys = _menuCmdAddToWatchPane.ShortcutKey;
             menuItem.Enabled = (_goToDefinition != null);
             menuStrip.Items.Add(menuItem);
 
-            menuItem = new ToolStripMenuItem(_menuCmdGoToSprite.Name + (_goToSprite.HasValue ? " " + _goToSprite.ToString() : ""), null, onClick, GO_TO_SPRITE_COMMAND);
-            menuItem.ShortcutKeys = _menuCmdGoToSprite.ShortcutKey;
-            menuItem.Enabled = (_goToSprite != null);
-            menuStrip.Items.Add(menuItem);
+            menuStrip.Items.Add(ToolStripExtensions.CreateMenuItem(_menuCmdGoToSprite.Name + (_goToSprite.HasValue ? " " + _goToSprite.ToString() : ""),
+                null, onClick, GO_TO_SPRITE_COMMAND, _menuCmdGoToSprite.ShortcutKey, (_goToSprite != null)));
 
             AddCtxCommands(menuStrip);
         }

@@ -16,7 +16,7 @@ namespace AGS.Types
         private int _fontHeight;
         private int _outlineFont;
         private FontOutlineStyle _outlineStyle;
-		private string _sourceFilename = string.Empty;
+        private string _sourceFilename = string.Empty;
         private string _fontFileName = string.Empty;
         private FontFile _fontFile;
         private int _sizeMultiplier = 1;

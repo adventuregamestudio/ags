@@ -163,6 +163,21 @@ namespace AGS.Types
             return ValidateScriptName(name, Int32.MaxValue);
         }
 
+        public static string ValidateFilePath(string path)
+        {
+            path = path.Trim('\"');
+            if (!PathIsValid(path))
+            {
+                throw new InvalidDataException($"The file path contains invalid characters: {path}");
+            }
+            return path;
+        }
+
+        public static bool PathIsValid(string path)
+        {
+            return !(path.IndexOfAny(Path.GetInvalidPathChars()) >= 0);
+        }
+
         public static Size UserStringToResolution(string s)
         {
             String[] parts = s.Split('x');

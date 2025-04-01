@@ -39,6 +39,8 @@ namespace AGS.Types
         v361 = 3060100,
         [Description("3.6.2")]
         v362 = 3060200,
+        [Description("3.6.3")]
+        v363 = 3060300,
         // TODO: invent better names for 399/400 versions, for user convenience;
         // maybe hide some of the early alpha values from selection?
         [Description("3.99.x Alpha")]

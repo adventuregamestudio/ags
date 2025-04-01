@@ -59,6 +59,7 @@ enum GameStateSvgVersion
     kGSSvgVersion_350_9     = 2,
     kGSSvgVersion_350_10    = 3,
     kGSSvgVersion_361_14    = 4,
+    kGSSvgVersion_363       = 3060300,
     kGSSvgVersion_400       = 4000000,
     kGSSvgVersion_400_03    = 4000003, // compat w kGSSvgVersion_361_14
     kGSSvgVersion_400_08    = 4000008, // palette component range 64->256
@@ -132,8 +133,8 @@ struct GamePlayState
     int  game_speed_modifier = 0;
     int  takeover_data = 0;         // value passed to RunAGSGame in previous game
     int  replay_hotkey_unused = 0;  // (UNUSED!) StartRecording: not supported
-    int  dialog_options_x = 0;
-    int  dialog_options_y = 0;
+    int  dialog_options_pad_x = 0;  // dialog options x padding within the gui
+    int  dialog_options_pad_y = 0;  // dialog options y padding within the gui
     int  narrator_speech = 0;
     int  lipsync_speed = 0;
     int  close_mouth_speech_time = 0; // stop speech animation at (messagetime - close_mouth_speech_time)
@@ -244,6 +245,12 @@ struct GamePlayState
     int   text_min_display_time_ms = 0;
     int   ignore_user_input_after_text_timeout_ms = 0;
     int   default_audio_type_volumes[MAX_AUDIO_TYPES]{};
+    // GUI position for dialog options, -1 to use default pos
+    int   dialog_options_gui_x = -1;
+    // GUI position for dialog options, -1 to use default pos
+    int   dialog_options_gui_y = -1;
+    // Horizontal alignment of dialog options texts
+    HorAlignment dialog_options_textalign = kHAlignLeft;
     float face_dir_ratio = 1.f; // character face direction ratio, defines y/x relation
 
     // Dynamic custom property values for global game objects

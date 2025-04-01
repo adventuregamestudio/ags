@@ -20,5 +20,6 @@
 #define __AGS_EE_AC__GLOBALWALKBEHIND_H
 
 void SetWalkBehindBase(int wa,int bl);
+int  GetWalkBehindBase(int wa);
 
 #endif // __AGS_EE_AC__GLOBALWALKBEHIND_H

@@ -120,9 +120,11 @@ ScriptDrawingSurface* Room_GetDrawingSurfaceForBackground(int backgroundNumber)
         backgroundNumber = play.bg_frame;
     }
 
-    if ((backgroundNumber < 0) || ((size_t)backgroundNumber >= thisroom.BgFrameCount))
-        quit("!Room.GetDrawingSurfaceForBackground: invalid background number specified");
-
+    if ((backgroundNumber < 0) || (backgroundNumber >= thisroom.BgFrameCount))
+    {
+        debug_script_warn("Room.GetDrawingSurfaceForBackground: invalid background number specified: %d, valid range in this room is 0..%u", thisroom.BgFrameCount - 1);
+        return nullptr;
+    }
 
     ScriptDrawingSurface *surface = new ScriptDrawingSurface();
     surface->roomBackgroundNumber = backgroundNumber;
@@ -154,6 +156,10 @@ int Room_GetHeight() {
 
 int Room_GetColorDepth() {
     return thisroom.BgFrames[0].Graphic->GetColorDepth();
+}
+
+int Room_GetBackgroundCount() {
+    return thisroom.BgFrameCount;
 }
 
 int Room_GetLeftEdge() {
@@ -1063,6 +1069,11 @@ RuntimeScriptValue Sc_Room_GetHeight(const RuntimeScriptValue *params, int32_t p
     API_SCALL_INT(Room_GetHeight);
 }
 
+RuntimeScriptValue Sc_Room_GetBackgroundCount(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Room_GetBackgroundCount);
+}
+
 // int ()
 RuntimeScriptValue Sc_Room_GetLeftEdge(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -1170,6 +1181,7 @@ void RegisterRoomAPI()
         { "Room::SetProperty^2",                      API_FN_PAIR(Room_SetProperty) },
         { "Room::SetTextProperty^2",                  API_FN_PAIR(Room_SetTextProperty) },
         { "Room::ProcessClick^3",                     API_FN_PAIR(RoomProcessClick) },
+        { "Room::get_BackgroundCount",                API_FN_PAIR(Room_GetBackgroundCount) },
         { "Room::get_BottomEdge",                     API_FN_PAIR(Room_GetBottomEdge) },
         { "Room::get_ColorDepth",                     API_FN_PAIR(Room_GetColorDepth) },
         { "Room::get_Height",                         API_FN_PAIR(Room_GetHeight) },

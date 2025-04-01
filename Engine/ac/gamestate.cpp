@@ -484,8 +484,8 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
     in->ReadInt32(); // [DEPRECATED]
     takeover_data = in->ReadInt32();
     replay_hotkey_unused = in->ReadInt32();
-    dialog_options_x = in->ReadInt32();
-    dialog_options_y = in->ReadInt32();
+    dialog_options_pad_x = in->ReadInt32();
+    dialog_options_pad_y = in->ReadInt32();
     narrator_speech = in->ReadInt32();
     in->ReadInt32();// [DEPRECATED]
     lipsync_speed = in->ReadInt32();
@@ -634,6 +634,20 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
         speech_has_voice = voice_speech_flags != 0;
         speech_voice_blocking = (voice_speech_flags & 0x02) != 0;
     }
+
+    if (svg_ver >= kGSSvgVersion_363)
+    {
+        dialog_options_gui_x = in->ReadInt32();
+        dialog_options_gui_y = in->ReadInt32();
+        dialog_options_textalign = (HorAlignment)in->ReadInt32();
+        in->ReadInt32(); // reserve up to 4 ints
+    }
+    else
+    {
+        dialog_options_gui_x = -1;
+        dialog_options_gui_y = -1;
+        dialog_options_textalign = kHAlignLeft;
+    }
     if (svg_ver >= kGSSvgVersion_400_03)
     {
         face_dir_ratio = in->ReadFloat32();
@@ -688,8 +702,8 @@ void GamePlayState::WriteForSavegame(Stream *out) const
     out->WriteInt32(0);// [DEPRECATED]
     out->WriteInt32(takeover_data);
     out->WriteInt32(replay_hotkey_unused);         // StartRecording: not supported
-    out->WriteInt32(dialog_options_x);
-    out->WriteInt32(dialog_options_y);
+    out->WriteInt32(dialog_options_pad_x);
+    out->WriteInt32(dialog_options_pad_y);
     out->WriteInt32(narrator_speech);
     out->WriteInt32(0);// [DEPRECATED]
     out->WriteInt32(lipsync_speed);
@@ -825,7 +839,13 @@ void GamePlayState::WriteForSavegame(Stream *out) const
         voice_speech_flags |= 0x02;
     out->WriteInt32(voice_speech_flags);
 
-    // --- kGSSvgVersion_400_03
+    // kGSSvgVersion_363
+    out->WriteInt32(dialog_options_gui_x);
+    out->WriteInt32(dialog_options_gui_y);
+    out->WriteInt32(dialog_options_textalign);
+    out->WriteInt32(0); // reserve up to 4 ints
+    
+    // kGSSvgVersion_400_03
     out->WriteFloat32(face_dir_ratio);
     // reserve few more 32-bit values (for a total of 10)
     out->WriteByteCount(0, sizeof(int32_t) * 9);

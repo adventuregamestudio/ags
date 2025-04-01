@@ -114,16 +114,14 @@ void run_function_on_non_blocking_thread(NonBlockingScriptFunction* funcToRun) {
 }
 
 // Returns 0 normally, or -1 to indicate that the event has
-// become invalid and another interaction should not be run
-// (eg. a room change occured)
-    // FIXME: refactor this nonsense! check_interaction_only here is used as
-    // both function argument and return value!
-
-// Returns 0 normally, or -1 to indicate that the event has
 // become invalid and another handler should not be run
 // (eg. a room change occured)
 int run_interaction_script(const ObjectEvent &obj_evt, const InteractionEvents *nint, int evnt, int chkAny)
 {
+    assert(nint);
+    if (!nint)
+        return 0;
+
     if (evnt < 0 || static_cast<size_t>(evnt) >= nint->Events.size() ||
             !nint->Events[evnt].IsEnabled())
     {

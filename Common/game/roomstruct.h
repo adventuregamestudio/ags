@@ -84,6 +84,8 @@ enum RoomFlags
 #define MAX_WALK_BEHINDS   16
 
 #define MAX_MESSAGES       100
+// Max length of a serialized room message prior to 2.61
+#define MAX_MESSAGE_PRE261_LEN 3000
 
 
 namespace AGS
@@ -305,7 +307,7 @@ public:
 
     // Background frames
     int32_t                 BackgroundBPP; // bytes per pixel
-    size_t                  BgFrameCount;
+    uint32_t                BgFrameCount;
     RoomBgFrame             BgFrames[MAX_ROOM_BGFRAMES];
     // Speed at which background frames are changing, 0 - no auto animation
     int32_t                 BgAnimSpeed;

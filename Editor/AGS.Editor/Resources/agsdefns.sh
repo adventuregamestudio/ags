@@ -90,6 +90,7 @@
 #define OPT_VOICECLIPNAMERULE 54
 #define OPT_SAVECOMPONENTSIGNORE 55
 // OPT_GAMEFPS                56 // [HIDDEN], only read once on startup
+#define OPT_GUICONTROLMOUSEBUT 57
 #define OPT_LIPSYNCTEXT       99
 
 #define COLOR_TRANSPARENT     0
@@ -130,6 +131,8 @@ enum TransitionStyle {
 };
 
 enum MouseButton {
+  eMouseAny = -1,
+  eMouseNone = 0,
   eMouseLeft = 1,
   eMouseRight = 2,
   eMouseMiddle = 3,
@@ -524,6 +527,15 @@ enum SortDirection
 };
 #endif // SCRIPT_API_v362
 
+#ifdef SCRIPT_API_v363
+enum DialogOptionsNumbering
+{
+  eDialogOptNumbers_Disabled  = -1,
+  eDialogOptNumbers_KeysOnly  = 0,
+  eDialogOptNumbers_Display   = 1
+};
+#endif // SCRIPT_API_v363
+
 enum EventType {
   eEventLeaveRoom		= 1,
   eEventEnterRoomBeforeFadein = 2,
@@ -871,6 +883,8 @@ builtin struct Room {
 #ifdef SCRIPT_API_v362
   /// Finds the nearest position on any walkable area, close to the given coordinates. Returns null if no walkable area is found.
   import static Point* NearestWalkableArea(int x, int y);   // $AUTOCOMPLETESTATICONLY$
+  /// Gets the number of backgrounds in this room.
+  import static readonly attribute int BackgroundCount;
 #endif // SCRIPT_API_v362
 #ifdef SCRIPT_API_v400
   /// Gets the current Room's number
@@ -1381,6 +1395,10 @@ import void PlayFlic(int flcNumber, int options);
 import void PlayVideo(const string filename, VideoSkipStyle, int flags);
 /// Sets an ambient light level that affects all objects and characters in the room.
 import void SetAmbientLightLevel(int light_level);
+#ifdef SCRIPT_API_v362
+/// Gets the baseline of the specified walk-behind area.
+import int GetWalkBehindBase(int area);
+#endif // SCRIPT_API_v362
 
 #ifdef SCRIPT_COMPAT_v399
 /// Removes the specified walkable area from the room.
@@ -2001,6 +2019,34 @@ builtin managed struct Dialog {
   /// Sets a text custom property for this dialog.
   import bool SetTextProperty(const string property, const string value);
 #endif // SCRIPT_API_v400
+#ifdef SCRIPT_API_v363 fix move up
+  /// Gets/sets the color used to draw the active (selected) dialog option
+  import static attribute int OptionsHighlightColor; // $AUTOCOMPLETESTATICONLY$
+  /// Gets/sets the sprite to use as a bullet point before each dialog option (0 for none)
+  import static attribute int OptionsBulletGraphic; // $AUTOCOMPLETESTATICONLY$
+  /// Gets/sets the vertical gap between dialog options (in pixels)
+  import static attribute int OptionsGap; // $AUTOCOMPLETESTATICONLY$
+  /// Gets/sets the GUI that will be used to display dialog options; set null to use default options look
+  import static attribute GUI* OptionsGUI; // $AUTOCOMPLETESTATICONLY$
+  /// Gets/sets on-screen X position of dialog options GUI; set to -1 if it should use default placement
+  import static attribute int OptionsGUIX; // $AUTOCOMPLETESTATICONLY$
+  /// Gets/sets on-screen Y position of dialog options GUI; set to -1 if it should use default placement
+  import static attribute int OptionsGUIY; // $AUTOCOMPLETESTATICONLY$
+  /// Get/sets the maximal width of the auto-resizing GUI on which dialog options are drawn
+  import static attribute int OptionsMaxGUIWidth; // $AUTOCOMPLETESTATICONLY$
+  /// Get/sets the minimal width of the auto-resizing GUI on which dialog options are drawn
+  import static attribute int OptionsMinGUIWidth; // $AUTOCOMPLETESTATICONLY$
+  /// Gets/sets whether dialog options have numbers before them, and the numeric keys can be used to select them
+  import static attribute DialogOptionsNumbering OptionsNumbering; // $AUTOCOMPLETESTATICONLY$
+  /// Gets/sets the horizontal offset at which options are drawn on a standard GUI
+  import static attribute int OptionsPaddingX; // $AUTOCOMPLETESTATICONLY$
+  /// Gets/sets the vertical offset at which options are drawn on a standard GUI
+  import static attribute int OptionsPaddingY; // $AUTOCOMPLETESTATICONLY$
+  /// Gets/sets the color used to draw the dialog options that have already been selected once; set to -1 for no distinct color
+  import static attribute int OptionsReadColor; // $AUTOCOMPLETESTATICONLY$
+  /// Gets/sets the horizontal alignment of each dialog option's text
+  import static attribute HorizontalAlignment OptionsTextAlignment; // $AUTOCOMPLETESTATICONLY$
+#endif // SCRIPT_API_v363
 
   readonly int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };

@@ -76,8 +76,8 @@ int32_t CCScriptGame::ReadInt32(const void *address, intptr_t offset)
     case 88: return 0;// [DEPRECATED]
     case 89: return play.takeover_data;
     case 90: return 0;// [DEPRECATED]
-    case 91: return play.dialog_options_x;
-    case 92: return play.dialog_options_y;
+    case 91: return play.dialog_options_pad_x;
+    case 92: return play.dialog_options_pad_y;
     case 93: return play.narrator_speech;
     case 94: return 0;// [DEPRECATED]
     case 95: return play.lipsync_speed;
@@ -178,8 +178,8 @@ void CCScriptGame::WriteInt32(void *address, intptr_t offset, int32_t val)
     case 88:  break; // [DEPRECATED]
     case 89:  play.takeover_data = val; break;
     case 90:  break; // [DEPRECATED]
-    case 91:  play.dialog_options_x = val; break;
-    case 92:  play.dialog_options_y = val; break;
+    case 91:  play.dialog_options_pad_x = val; break;
+    case 92:  play.dialog_options_pad_y = val; break;
     case 93:  play.narrator_speech = val; break;
     case 94:  break; // [DEPRECATED]
     case 95:  play.lipsync_speed = val; break;

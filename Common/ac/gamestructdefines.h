@@ -90,7 +90,8 @@
 #define OPT_VOICECLIPNAMERULE  54 // which rule to use for a voice clip name based on character's name (old/new)
 #define OPT_SAVECOMPONENTSIGNORE 55 // ignore these savegame components (flag mask)
 #define OPT_GAMEFPS            56
-#define OPT_HIGHESTOPTION      OPT_GAMEFPS
+#define OPT_GUICONTROLMOUSEBUT 57 // which mouse button should gui controls respect (0 - any)
+#define OPT_HIGHESTOPTION      OPT_GUICONTROLMOUSEBUT
 #define OPT_LIPSYNCTEXT        99
 
 // Compatibility engine modes (hacks)
@@ -190,6 +191,7 @@ enum ScriptAPIVersion
     kScriptAPI_v36026 = 3060026,
     kScriptAPI_v361 = 3060100,
     kScriptAPI_v362 = 3060200,
+    kScriptAPI_v363 = 3060300,
     kScriptAPI_v399 = 3990000,
     kScriptAPI_v400 = 4000003,
     kScriptAPI_v400_07 = 4000007,

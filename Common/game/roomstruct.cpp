@@ -117,11 +117,11 @@ void RoomStruct::Free()
     CompiledScript.reset();
 
     EventHandlers.reset();
-    for (size_t i = 0; i < HotspotCount; ++i)
+    for (uint32_t i = 0; i < HotspotCount; ++i)
         Hotspots[i].EventHandlers.reset();
     for (auto &obj : Objects)
         obj.EventHandlers.reset();
-    for (size_t i = 0; i < RegionCount; ++i)
+    for (uint32_t i = 0; i < RegionCount; ++i)
         Regions[i].EventHandlers.reset();
 }
 

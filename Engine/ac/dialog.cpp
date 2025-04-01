@@ -472,9 +472,15 @@ int run_dialog_script(int dialogID, int offse, int optionIndex)
 // TODO: gather parameters into struct(s)
 // TODO: limit by area height too
 static int write_dialog_options(Bitmap *ds, bool ds_has_alpha, int at_x, int at_y, int areawid,
-    int bullet_wid, int bullet_spr, int bullet_sprwid, int usingfont, int linespacing, int selected_color,
+    int bullet_wid, int bullet_spr, int bullet_sprwid,
+    int usingfont, int linespacing, int selected_color,
     const DialogTopic *dtop, int numdisp, int mouseison, const int *disporder, short *dispyp)
 {
+    // Left-to-right text direction flag
+    const bool ltr_position = (game.options[OPT_RIGHTLEFTWRITE] == 0)
+        || (loaded_game_file_version < kGameVersion_362_09);
+
+    // Configure positioning settings
     const HorAlignment text_align = play.dialog_options_textalign;
     const std::pair<int, int> wrap_range = std::make_pair(at_x + bullet_wid, at_x + areawid - 1);
     // Extra offset for 2nd, 3rd etc lines of the same option, *relative* to the first line
@@ -484,9 +490,19 @@ static int write_dialog_options(Bitmap *ds, bool ds_has_alpha, int at_x, int at_
     switch (text_align)
     {
     case kHAlignRight:
-        // don't offset at all when right-aligned (does not look good)
-        first_line_off = 0;
-        multiline_off = 0;
+        if (ltr_position)
+        {
+            // don't offset at all when right-aligned (does not look good)
+            first_line_off = 0;
+            multiline_off = 0;
+        }
+        else
+        {
+            // when RTL is right aligned: apply reverse offset;
+            // next lines are extra offset by either bullet_wid or min offset
+            first_line_off = -bullet_wid;
+            multiline_off = -bullet_wid - std::max(0, min_multiline_off - bullet_wid);
+        }
         break;
     case kHAlignCenter:
         // when centering we negate wrapping range offset by half, so truly centering;
@@ -495,9 +511,18 @@ static int write_dialog_options(Bitmap *ds, bool ds_has_alpha, int at_x, int at_
         multiline_off = -bullet_wid / 2 + std::max(0, min_multiline_off - bullet_wid);
         break;
     default:
-        // when left aligned, next lines are offset by either bullet_wid or min offset
-        first_line_off = 0;
-        multiline_off = std::max(0, min_multiline_off - bullet_wid);
+        if (ltr_position)
+        {
+            // when left aligned, next lines are offset by either bullet_wid or min offset
+            first_line_off = 0;
+            multiline_off = std::max(0, min_multiline_off - bullet_wid);
+        }
+        else
+        {
+            // left align for RTL is like right align for LTR, except we need to inverse bullet_wid
+            first_line_off = -bullet_wid;
+            multiline_off = -bullet_wid;
+        }
         break;
     }
 
@@ -537,13 +562,23 @@ static int write_dialog_options(Bitmap *ds, bool ds_has_alpha, int at_x, int at_
         dispyp[ww] = curyp;
         if (bullet_spr > 0)
         {
-            draw_gui_sprite_v330(ds, bullet_spr, first_line_at - bullet_wid, curyp, ds_has_alpha);
+            if (ltr_position)
+                draw_gui_sprite_v330(ds, bullet_spr, first_line_at - bullet_wid, curyp, ds_has_alpha);
+            else
+                draw_gui_sprite_v330(ds, bullet_spr, first_line_at + first_line_wid + (bullet_wid - bullet_sprwid), curyp, ds_has_alpha);
         }
         if (game.options[OPT_DIALOGNUMBERED] == kDlgOptNumbering)
         {
-            char tempbfr[20];
-            snprintf(tempbfr, sizeof(tempbfr), "%d.", ww + 1);
-            wouttext_outline(ds, first_line_at - bullet_wid + bullet_sprwid, curyp, usingfont, text_color, tempbfr);
+            String number = String::FromFormat("%d. ", ww + 1);
+            if (ltr_position)
+            {
+                wouttext_outline(ds, first_line_at - bullet_wid + bullet_sprwid, curyp, usingfont, text_color, number.GetCStr());
+            }
+            else
+            {
+                number.ReverseUTF8();
+                wouttext_outline(ds, first_line_at + first_line_wid, curyp, usingfont, text_color, number.GetCStr());
+            }
         }
 
         for (size_t cc = 0; cc < Lines.Count(); ++cc)
@@ -643,6 +678,7 @@ private:
     int curswas;
     int bullet_wid; // full width of bullet sprite + numbering
     int bullet_picwid; // bullet sprite width
+    int number_wid; // width of number component
     int needheight; // height enough to accomodate dialog options texts
     std::unique_ptr<GUITextBox> parserInput;
     IDriverDependantBitmap *ddb = nullptr;
@@ -738,6 +774,7 @@ void DialogOptions::Begin()
     curswas=cur_cursor;
     bullet_wid = 0;
     bullet_picwid = 0;
+    number_wid = 0;
     ddb = nullptr;
     optionsBitmap = nullptr;
     parserInput = nullptr;
@@ -752,7 +789,8 @@ void DialogOptions::Begin()
     bullet_wid = bullet_picwid;
     if (game.options[OPT_DIALOGNUMBERED] == kDlgOptNumbering)
     {
-        bullet_wid += get_text_width_outlined("9. ", usingfont);
+        number_wid = get_text_width_outlined("9. ", usingfont);
+        bullet_wid += number_wid;
     }
 
     play.in_conversation++;
@@ -898,21 +936,21 @@ void DialogOptions::Draw()
       areawid = data_to_game_coord(play.max_dialogoption_width);
       int biggest = 0;
       padding = guis[game.options[OPT_DIALOGIFACE]].Padding;
-      // TODO: figure out what these +2 and +6 constants are, used along with the padding
+      // FIXME: figure out what these +2 and +6 constants are, used along with the padding
       for (int i = 0; i < numdisp; ++i) {
         const char *draw_text = skip_voiceover_token(get_translation(dtop->optionnames[disporder[i]]));
         break_up_text_into_lines(draw_text, Lines, areawid-((2*padding+2)+bullet_wid), usingfont);
         if (longestline > biggest)
           biggest = longestline;
       }
-      if (biggest < areawid - ((2*padding+6)+bullet_wid))
-        areawid = biggest + ((2*padding+6)+bullet_wid);
+      if (biggest < areawid - ((2*padding + 2/*6*/)+bullet_wid))
+        areawid = biggest + ((2*padding + 2/*6*/)+bullet_wid);
 
       areawid = std::max(areawid, data_to_game_coord(play.min_dialogoption_width));
 
       CalcOptionsHeight();
 
-      int savedwid = areawid;
+      const int savedwid = areawid;
       int txoffs=0,tyoffs=0,yspos = ui_view.GetHeight()/2-(2*padding+needheight)/2;
       int xspos = ui_view.GetWidth()/2 - areawid/2;
       // shift window to the right if QG4-style full-screen pic
@@ -923,8 +961,8 @@ void DialogOptions::Draw()
       Bitmap *text_window_ds = nullptr;
       draw_text_window(&text_window_ds, false, &txoffs,&tyoffs,&xspos,&yspos,&areawid,nullptr,needheight, game.options[OPT_DIALOGIFACE], DisplayVars());
       options_surface_has_alpha = guis[game.options[OPT_DIALOGIFACE]].HasAlphaChannel();
-      // since draw_text_window incrases the width, restore it
-      areawid = savedwid;
+      // since draw_text_window incrases the width, restore the relative placement
+      areawid -= ((areawid - savedwid) / 2);
 
       // Ignore the dialog_options_pad_x/y offsets when using a text window
       // because it has its own padding property
@@ -936,7 +974,7 @@ void DialogOptions::Draw()
       // although it's not entirely reliable, because these calculations are done inside draw_text_window.
       const int opts_areawid = areawid - (2 * padding + 2);
       curyp = write_dialog_options(optionsBitmap.get(), options_surface_has_alpha, inner_position.X, inner_position.Y, opts_areawid,
-                                   bullet_wid, game.dialog_bullet, bullet_picwid, 
+                                   bullet_wid, game.dialog_bullet, bullet_picwid,
                                    usingfont, linespacing, forecol,
                                    dtop, numdisp, mouseison, disporder, dispyp);
       if (parserInput)
@@ -1002,14 +1040,22 @@ void DialogOptions::Draw()
       if (mouseison == DLG_OPTION_PARSER)
         parserInput->TextColor = forecol;
 
-      Bitmap *ds = optionsBitmap.get();
-      if (game.dialog_bullet)  // the parser X will get moved in a second
-      {
-          draw_gui_sprite_v330(ds, game.dialog_bullet, parserInput->X, parserInput->Y, options_surface_has_alpha);
-      }
+      // Left-to-right text direction flag
+      const bool ltr_position = (game.options[OPT_RIGHTLEFTWRITE] == 0)
+          || (loaded_game_file_version < kGameVersion_362_09);
 
       parserInput->SetWidth(parserInput->GetWidth() - bullet_wid);
-      parserInput->X += bullet_wid;
+      if (ltr_position)
+        parserInput->X += bullet_wid;
+
+      Bitmap *ds = optionsBitmap.get();
+      if (game.dialog_bullet)
+      {
+          if (ltr_position)
+            draw_gui_sprite_v330(ds, game.dialog_bullet, parserInput->X - bullet_wid, parserInput->Y, options_surface_has_alpha);
+          else
+            draw_gui_sprite_v330(ds, game.dialog_bullet, parserInput->X + parserInput->GetWidth() + (bullet_wid - bullet_picwid + 1), parserInput->Y, options_surface_has_alpha);
+      }
 
       parserInput->Draw(ds, parserInput->X, parserInput->Y);
       parserInput->IsActivated = false;

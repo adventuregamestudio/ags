@@ -39,6 +39,7 @@
 #include "ac/string.h"
 #include "ac/dynobj/scriptdialogoptionsrendering.h"
 #include "ac/dynobj/scriptdrawingsurface.h"
+#include "ac/dynobj/cc_gui.h"
 #include "ac/system.h"
 #include "debug/debug_log.h"
 #include "font/fonts.h"
@@ -64,6 +65,8 @@ extern SpriteCache spriteset;
 extern AGSPlatformDriver *platform;
 extern int cur_mode,cur_cursor;
 extern IGraphicsDriver *gfxDriver;
+extern std::vector<ScriptGUI> scrGui;
+extern CCGUI ccDynamicGUI;
 
 std::vector<DialogTopic> dialog;
 ScriptDialogOptionsRendering ccDialogOptionsRendering;
@@ -152,34 +155,83 @@ int Dialog_GetOptionCount(ScriptDialog *sd)
   return dialog[sd->id].numoptions;
 }
 
-int Dialog_GetOptionHighlightColor()
+int Dialog_GetOptionsBulletGraphic()
+{
+    return game.dialog_bullet;
+}
+
+void Dialog_SetOptionsBulletGraphic(int sprite)
+{
+    game.dialog_bullet = sprite;
+}
+
+int Dialog_GetOptionsNumbering()
+{
+    return game.options[OPT_DIALOGNUMBERED];
+}
+
+void Dialog_SetOptionsNumbering(int style)
+{
+    game.options[OPT_DIALOGNUMBERED] = style;
+}
+
+int Dialog_GetOptionsHighlightColor()
 {
     return play.dialog_options_highlight_color;
 }
 
-void Dialog_SetOptionHighlightColor(int color)
+void Dialog_SetOptionsHighlightColor(int color)
 {
     play.dialog_options_highlight_color = color;
 }
 
-int Dialog_GetOptionReadColor()
+int Dialog_GetOptionsReadColor()
 {
     return play.read_dialog_option_colour;
 }
 
-void Dialog_SetOptionReadColor(int color)
+void Dialog_SetOptionsReadColor(int color)
 {
     play.read_dialog_option_colour = color;
 }
 
-int Dialog_GetOptionTextAlignment()
+int Dialog_GetOptionsTextAlignment()
 {
     return play.dialog_options_textalign;
 }
 
-void Dialog_SetOptionTextAlignment(int align)
+void Dialog_SetOptionsTextAlignment(int align)
 {
     play.dialog_options_textalign = (HorAlignment)align;
+}
+
+int Dialog_GetOptionsGap()
+{
+    return game.options[OPT_DIALOGGAP];
+}
+
+void Dialog_SetOptionsGap(int gap)
+{
+    game.options[OPT_DIALOGGAP] = gap;
+}
+
+ScriptGUI *Dialog_GetOptionsGUI()
+{
+    // NOTE: historically 0 meant "no gui", so gui id 0 cannot be used here
+    if (game.options[OPT_DIALOGIFACE] <= 0 || game.options[OPT_DIALOGIFACE] >= game.numgui)
+        return nullptr;
+    return &scrGui[game.options[OPT_DIALOGIFACE]];
+}
+
+void Dialog_SetOptionsGUI(ScriptGUI *scgui)
+{
+    if (scgui->id == 0)
+    {
+        debug_script_warn("Dialog.SetOptionsGUI: cannot assign GUI with ID 0 to dialog options");
+        return;
+    }
+
+    game.options[OPT_DIALOGIFACE] = scgui->id;
 }
 
 int Dialog_GetOptionsGUIX()
@@ -1854,6 +1906,16 @@ RuntimeScriptValue Sc_Dialog_GetOptionCount(void *self, const RuntimeScriptValue
     API_OBJCALL_INT(ScriptDialog, Dialog_GetOptionCount);
 }
 
+RuntimeScriptValue Sc_Dialog_GetOptionsGUI(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ(ScriptGUI, ccDynamicGUI, Dialog_GetOptionsGUI);
+}
+
+RuntimeScriptValue Sc_Dialog_SetOptionsGUI(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_POBJ(Dialog_SetOptionsGUI, ScriptGUI);
+}
+
 RuntimeScriptValue Sc_Dialog_GetOptionsGUIX(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT(Dialog_GetOptionsGUIX);
@@ -1894,34 +1956,64 @@ RuntimeScriptValue Sc_Dialog_SetOptionsPaddingY(const RuntimeScriptValue *params
     API_SCALL_VOID_PINT(Dialog_SetOptionsPaddingY);
 }
 
-RuntimeScriptValue Sc_Dialog_GetOptionHighlightColor(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Dialog_GetOptionsBulletGraphic(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT(Dialog_GetOptionHighlightColor);
+    API_SCALL_INT(Dialog_GetOptionsBulletGraphic);
 }
 
-RuntimeScriptValue Sc_Dialog_SetOptionHighlightColor(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Dialog_SetOptionsBulletGraphic(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT(Dialog_SetOptionHighlightColor);
+    API_SCALL_VOID_PINT(Dialog_SetOptionsBulletGraphic);
 }
 
-RuntimeScriptValue Sc_Dialog_GetOptionReadColor(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Dialog_GetOptionsNumbering(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT(Dialog_GetOptionReadColor);
+    API_SCALL_INT(Dialog_GetOptionsNumbering);
 }
 
-RuntimeScriptValue Sc_Dialog_SetOptionReadColor(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Dialog_SetOptionsNumbering(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT(Dialog_SetOptionReadColor);
+    API_SCALL_VOID_PINT(Dialog_SetOptionsNumbering);
 }
 
-RuntimeScriptValue Sc_Dialog_GetOptionTextAlignment(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Dialog_GetOptionsHighlightColor(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT(Dialog_GetOptionTextAlignment);
+    API_SCALL_INT(Dialog_GetOptionsHighlightColor);
 }
 
-RuntimeScriptValue Sc_Dialog_SetOptionTextAlignment(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Dialog_SetOptionsHighlightColor(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT(Dialog_SetOptionTextAlignment);
+    API_SCALL_VOID_PINT(Dialog_SetOptionsHighlightColor);
+}
+
+RuntimeScriptValue Sc_Dialog_GetOptionsReadColor(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Dialog_GetOptionsReadColor);
+}
+
+RuntimeScriptValue Sc_Dialog_SetOptionsReadColor(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(Dialog_SetOptionsReadColor);
+}
+
+RuntimeScriptValue Sc_Dialog_GetOptionsTextAlignment(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Dialog_GetOptionsTextAlignment);
+}
+
+RuntimeScriptValue Sc_Dialog_SetOptionsTextAlignment(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(Dialog_SetOptionsTextAlignment);
+}
+
+RuntimeScriptValue Sc_Dialog_GetOptionsGap(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Dialog_GetOptionsGap);
+}
+
+RuntimeScriptValue Sc_Dialog_SetOptionsGap(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(Dialog_SetOptionsGap);
 }
 
 RuntimeScriptValue Sc_Dialog_GetMaxOptionsGUIWidth(const RuntimeScriptValue *params, int32_t param_count)
@@ -2000,25 +2092,33 @@ void RegisterDialogAPI()
         { "Dialog::get_ExecutedOption",   API_FN_PAIR(Dialog_GetExecutedOption) },
         { "Dialog::get_AreOptionsDisplayed", API_FN_PAIR(Dialog_GetAreOptionsDisplayed) },
         { "Dialog::get_ID",               API_FN_PAIR(Dialog_GetID) },
-        { "Dialog::get_OptionHighlightColor", API_FN_PAIR(Dialog_GetOptionHighlightColor) },
-        { "Dialog::set_OptionHighlightColor", API_FN_PAIR(Dialog_SetOptionHighlightColor) },
-        { "Dialog::get_OptionReadColor",  API_FN_PAIR(Dialog_GetOptionReadColor) },
-        { "Dialog::set_OptionReadColor",  API_FN_PAIR(Dialog_SetOptionReadColor) },
-        { "Dialog::get_OptionTextAlignment", API_FN_PAIR(Dialog_GetOptionTextAlignment) },
-        { "Dialog::set_OptionTextAlignment", API_FN_PAIR(Dialog_SetOptionTextAlignment) },
-        { "Dialog::get_MaxOptionsGUIWidth", API_FN_PAIR(Dialog_GetMaxOptionsGUIWidth) },
-        { "Dialog::set_MaxOptionsGUIWidth", API_FN_PAIR(Dialog_SetMaxOptionsGUIWidth) },
-        { "Dialog::get_MinOptionsGUIWidth", API_FN_PAIR(Dialog_GetMinOptionsGUIWidth) },
-        { "Dialog::set_MinOptionsGUIWidth", API_FN_PAIR(Dialog_SetMinOptionsGUIWidth) },
         { "Dialog::get_OptionCount",      API_FN_PAIR(Dialog_GetOptionCount) },
+        { "Dialog::get_OptionsBulletGraphic", API_FN_PAIR(Dialog_GetOptionsBulletGraphic) },
+        { "Dialog::set_OptionsBulletGraphic", API_FN_PAIR(Dialog_SetOptionsBulletGraphic) },
+        { "Dialog::get_OptionsGap",       API_FN_PAIR(Dialog_GetOptionsGap) },
+        { "Dialog::set_OptionsGap",       API_FN_PAIR(Dialog_SetOptionsGap) },
+        { "Dialog::get_OptionsGUI",       API_FN_PAIR(Dialog_GetOptionsGUI) },
+        { "Dialog::set_OptionsGUI",       API_FN_PAIR(Dialog_SetOptionsGUI) },
         { "Dialog::get_OptionsGUIX",      API_FN_PAIR(Dialog_GetOptionsGUIX) },
         { "Dialog::set_OptionsGUIX",      API_FN_PAIR(Dialog_SetOptionsGUIX) },
         { "Dialog::get_OptionsGUIY",      API_FN_PAIR(Dialog_GetOptionsGUIY) },
         { "Dialog::set_OptionsGUIY",      API_FN_PAIR(Dialog_SetOptionsGUIY) },
+        { "Dialog::get_OptionsHighlightColor", API_FN_PAIR(Dialog_GetOptionsHighlightColor) },
+        { "Dialog::set_OptionsHighlightColor", API_FN_PAIR(Dialog_SetOptionsHighlightColor) },
+        { "Dialog::get_OptionsMaxGUIWidth", API_FN_PAIR(Dialog_GetMaxOptionsGUIWidth) },
+        { "Dialog::set_OptionsMaxGUIWidth", API_FN_PAIR(Dialog_SetMaxOptionsGUIWidth) },
+        { "Dialog::get_OptionsMinGUIWidth", API_FN_PAIR(Dialog_GetMinOptionsGUIWidth) },
+        { "Dialog::set_OptionsMinGUIWidth", API_FN_PAIR(Dialog_SetMinOptionsGUIWidth) },
+        { "Dialog::get_OptionsNumbering", API_FN_PAIR(Dialog_GetOptionsNumbering) },
+        { "Dialog::set_OptionsNumbering", API_FN_PAIR(Dialog_SetOptionsNumbering) },
         { "Dialog::get_OptionsPaddingX",  API_FN_PAIR(Dialog_GetOptionsPaddingX) },
         { "Dialog::set_OptionsPaddingX",  API_FN_PAIR(Dialog_SetOptionsPaddingX) },
         { "Dialog::get_OptionsPaddingY",  API_FN_PAIR(Dialog_GetOptionsPaddingY) },
         { "Dialog::set_OptionsPaddingY",  API_FN_PAIR(Dialog_SetOptionsPaddingY) },
+        { "Dialog::get_OptionsReadColor",  API_FN_PAIR(Dialog_GetOptionsReadColor) },
+        { "Dialog::set_OptionsReadColor",  API_FN_PAIR(Dialog_SetOptionsReadColor) },
+        { "Dialog::get_OptionsTextAlignment", API_FN_PAIR(Dialog_GetOptionsTextAlignment) },
+        { "Dialog::set_OptionsTextAlignment", API_FN_PAIR(Dialog_SetOptionsTextAlignment) },
         { "Dialog::get_ScriptName",       API_FN_PAIR(Dialog_GetScriptName) },
         { "Dialog::get_ShowTextParser",   API_FN_PAIR(Dialog_GetShowTextParser) },
         { "Dialog::DisplayOptions^1",     API_FN_PAIR(Dialog_DisplayOptions) },

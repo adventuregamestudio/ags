@@ -539,6 +539,13 @@ enum SortDirection
   eSortAscending		= 1,
   eSortDescending		= 2
 };
+
+enum DialogOptionsNumbering
+{
+  eDialogOptNumbers_Disabled  = -1,
+  eDialogOptNumbers_KeysOnly  = 0,
+  eDialogOptNumbers_Display   = 1
+};
 #endif // SCRIPT_API_v362
 
 enum EventType {
@@ -2270,23 +2277,31 @@ builtin managed struct Dialog {
   /// Gets if the dialog options are currently displayed on screen
   import static readonly attribute bool AreOptionsDisplayed; // $AUTOCOMPLETESTATICONLY$
   /// Gets/sets the color used to draw the active (selected) dialog option
-  import static attribute int OptionHighlightColor; // $AUTOCOMPLETESTATICONLY$
-  /// Gets/sets the color used to draw the dialog options that have already been selected once; set to -1 for no distinct color
-  import static attribute int OptionReadColor; // $AUTOCOMPLETESTATICONLY$
-  /// Gets/sets the horizontal alignment of each dialog option's text
-  import static attribute HorizontalAlignment OptionTextAlignment; // $AUTOCOMPLETESTATICONLY$
-  /// Gets/sets on-screen X position of dialog options GUI; set to -1 if they should use default placement
+  import static attribute int OptionsHighlightColor; // $AUTOCOMPLETESTATICONLY$
+  /// Gets/sets the sprite to use as a bullet point before each dialog option (0 for none)
+  import static attribute int OptionsBulletGraphic; // $AUTOCOMPLETESTATICONLY$
+  /// Gets/sets the vertical gap between dialog options (in pixels)
+  import static attribute int OptionsGap; // $AUTOCOMPLETESTATICONLY$
+  /// Gets/sets the GUI that will be used to display dialog options; set null to use default options look
+  import static attribute GUI* OptionsGUI; // $AUTOCOMPLETESTATICONLY$
+  /// Gets/sets on-screen X position of dialog options GUI; set to -1 if it should use default placement
   import static attribute int OptionsGUIX; // $AUTOCOMPLETESTATICONLY$
-  /// Gets/sets on-screen Y position of dialog options GUI; set to -1 if they should use default placement
+  /// Gets/sets on-screen Y position of dialog options GUI; set to -1 if it should use default placement
   import static attribute int OptionsGUIY; // $AUTOCOMPLETESTATICONLY$
+  /// Get/sets the maximal width of the auto-resizing GUI on which dialog options are drawn
+  import static attribute int OptionsMaxGUIWidth; // $AUTOCOMPLETESTATICONLY$
+  /// Get/sets the minimal width of the auto-resizing GUI on which dialog options are drawn
+  import static attribute int OptionsMinGUIWidth; // $AUTOCOMPLETESTATICONLY$
+  /// Gets/sets whether dialog options have numbers before them, and the numeric keys can be used to select them
+  import static attribute DialogOptionsNumbering OptionsNumbering; // $AUTOCOMPLETESTATICONLY$
   /// Gets/sets the horizontal offset at which options are drawn on a standard GUI
   import static attribute int OptionsPaddingX; // $AUTOCOMPLETESTATICONLY$
   /// Gets/sets the vertical offset at which options are drawn on a standard GUI
   import static attribute int OptionsPaddingY; // $AUTOCOMPLETESTATICONLY$
-  /// Get/sets the maximal width of the auto-resizing GUI on which dialog options are drawn
-  import static attribute int MaxOptionsGUIWidth; // $AUTOCOMPLETESTATICONLY$
-  /// Get/sets the minimal width of the auto-resizing GUI on which dialog options are drawn
-  import static attribute int MinOptionsGUIWidth; // $AUTOCOMPLETESTATICONLY$
+  /// Gets/sets the color used to draw the dialog options that have already been selected once; set to -1 for no distinct color
+  import static attribute int OptionsReadColor; // $AUTOCOMPLETESTATICONLY$
+  /// Gets/sets the horizontal alignment of each dialog option's text
+  import static attribute HorizontalAlignment OptionsTextAlignment; // $AUTOCOMPLETESTATICONLY$
 #endif // SCRIPT_API_v362
 
   int reserved[2];   // $AUTOCOMPLETEIGNORE$

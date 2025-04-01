@@ -50,6 +50,7 @@ Editor:
  - Font's "SourceFilename" and "Font Size" properties now have buttons that let import another font
    file, or reimport same font with different size respectively, instead of clicking on a button on
    the preview window.
+ - Added a readonly "ProjectFilename" property to Fonts, which displays their in-project file name.
  - Global Variables panel now allows to declare arrays.
  - Added "Controls transparency" slider to GUI edit pane.
  - Copy, paste and delete commands now apply to all the selected GUI controls in GUI editor.
@@ -94,6 +95,7 @@ Editor:
    even if that's a filler entry not used by the image.
  - Fixed exporting room backgrounds was always writing a 32-bit image rather than using actual
    background's color depth.
+ - Fixed Autocomplete failing in case of UNIX line endings in script file.
  - Fixed Autocomplete not giving correct results in case of a long chained access, i.e. something
    like "var[0].member.member".
  - Fixed Autocomplete giving wrong list of choices for wrong syntax cases like: indexed access of
@@ -101,6 +103,7 @@ Editor:
  - Fixed Button getting resized to the image's size when user cancels different sprite assignment.
  - Fixed "Color Finder" and color properties were mapping a color number to RGB values with
    accuracy mistakes, resulting in slightly different values than the engine would use.
+ - Fixed Font preview could crash the Editor with out of memory error in case of a very big font.
  - Fixed Editor refusing to open a project if one or more of the sections are missing in the file.
  - Fixed an unhandled exception occuring when rebuilding rooms if any script's header is missing.
  - Fixed a check for an imported room mask size did not correctly account for the room's
@@ -165,7 +168,9 @@ Script API:
    of save slot indexes.
  - Added Object.DestinationX and DestinationY properties, complementing ones in Character.
  - Added Overlay.SetPosition() and SetSize() functions for convenience.
+ - Added Room.BackgroundCount readonly property.
  - Added Room.NearestWalkableArea() that returns the nearest found point on a walkable area.
+ - Added GetWalkBehindBase() function, complementing SetWalkBehindBase().
  - Added Speech.SpeakingCharacter that returns currently speaking character (for blocking speech).
  - Added GetTimerPos() that returns timer's position (remaining time), in ticks.
  - Added CopySaveSlot() and MoveSaveSlot(), which moves existing save to another slot.

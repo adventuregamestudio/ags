@@ -856,9 +856,9 @@ void gui_on_mouse_up(const int wasongui, const int wasbutdown, const int mx, con
     GUIMain &gui = guis[wasongui];
     gui.OnMouseButtonUp();
 
-    for (int i = 0; i < guis[wasongui].GetControlCount(); ++i)
+    for (int i = 0; i < gui.GetControlCount(); ++i)
     {
-        GUIObject *guio = guis[wasongui].GetControl(i);
+        GUIObject *guio = gui.GetControl(i);
         if (!guio->IsActivated)
             continue;
 
@@ -867,7 +867,7 @@ void gui_on_mouse_up(const int wasongui, const int wasbutdown, const int mx, con
             break;
 
         bool click_handled = false;
-        int cttype = guis[wasongui].GetControlType(i);
+        int cttype = gui.GetControlType(i);
         if ((cttype == kGUIButton) || (cttype == kGUISlider) || (cttype == kGUIListBox))
         {
             if (gui_control_should_handle_button(wasbutdown))
@@ -912,12 +912,12 @@ void gui_on_mouse_up(const int wasongui, const int wasbutdown, const int mx, con
         }
 
         // Built-in behavior for PopupAtY guis: hide one if interacted with any control
-        if ((guis[wasongui].PopupStyle == kGUIPopupMouseY) && click_handled)
+        if ((gui.PopupStyle == kGUIPopupMouseY) && click_handled)
             remove_popup_interface(wasongui);
         break;
     }
 
-    run_on_event(kScriptEvent_GUIMouseUp, wasongui, wasbutdown, mx - guis[wasongui].X, my - guis[wasongui].Y);
+    run_on_event(kScriptEvent_GUIMouseUp, wasongui, wasbutdown, mx - gui.X, my - gui.Y);
 }
 
 void gui_on_mouse_down(const int guin, const int mbut, const int mx, const int my)

@@ -853,7 +853,7 @@ void DialogOptions::Begin()
             {
                 // They want the options upwards from the bottom
                 // FIXME: this setting is lying: it does not reverse the order, only aligns opts to the bottom of GUI
-                position.Top = (guib->Y + guib->Height) - needheight;
+                position.MoveToY((guib->Y + guib->Height) - needheight);
             }
         }
     }
@@ -1054,9 +1054,9 @@ void DialogOptions::Draw()
     if (!usingCustomRendering)
     {
         if (play.dialog_options_gui_x >= 0)
-            position.Left = play.dialog_options_gui_x;
+            position.MoveToX(play.dialog_options_gui_x);
         if (play.dialog_options_gui_y >= 0)
-            position.Top = play.dialog_options_gui_y;
+            position.MoveToY(play.dialog_options_gui_y);
     }
 
     ddb = recycle_ddb_bitmap(ddb, optionsBitmap.get());

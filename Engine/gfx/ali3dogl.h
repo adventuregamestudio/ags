@@ -207,7 +207,9 @@ private:
 struct ShaderProgram
 {
     GLuint Program = 0;
-    GLuint Arg[4] {};
+
+    GLuint A_Position = 0;
+    GLuint A_TexCoord = 0;
 
     GLuint MVPMatrix = 0;
     GLuint TextureId = 0;

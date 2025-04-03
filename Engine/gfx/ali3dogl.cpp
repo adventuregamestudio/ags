@@ -442,9 +442,8 @@ attribute vec2 a_TexCoord;
 varying vec2 v_TexCoord;
 
 void main() {
-  v_TexCoord = a_TexCoord;
-  gl_Position = uMVPMatrix * vec4(a_Position.xy, 0.0, 1.0);
-  // gl_Position = vec4(a_Position.xy, 0.0, 1.0);
+    v_TexCoord = a_TexCoord;
+    gl_Position = uMVPMatrix * vec4(a_Position.xy, 0.0, 1.0);
 }
 
 )EOS";
@@ -465,9 +464,8 @@ varying vec2 v_TexCoord;
 
 void main()
 {
-  vec4 src_col = texture2D(textID, v_TexCoord);
-  gl_FragColor = vec4(src_col.xyz, src_col.w * alpha);
-  // gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+    vec4 src_col = texture2D(textID, v_TexCoord);
+    gl_FragColor = vec4(src_col.xyz, src_col.w * alpha);
 }
 )EOS";
 
@@ -532,8 +530,6 @@ void main()
     lum = max(lum - (1.0 - tintLuminance), 0.0);
     vec3 new_col = (hsv2rgb(vec3(tintHSV[0], tintHSV[1], lum)) * tintAmount + src_col.xyz * (1.0 - tintAmount));
     gl_FragColor = vec4(new_col, src_col.w * alpha);
-
-    // gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);
 }
 )EOS";
 
@@ -570,42 +566,55 @@ void main()
        gl_FragColor = vec4(src_col.xyz + vec3(light, light, light), src_col.w * alpha);
    else
        gl_FragColor = vec4(src_col.xyz * abs(light), src_col.w * alpha);
-
-    // gl_FragColor = vec4(0.0, 0.0, 1.0, 1.0);
 }
 )EOS";
 
 
 bool CreateTransparencyShader(ShaderProgram &prg)
 {
-  if(!CreateShaderProgram(prg, "Transparency", default_vertex_shader_src, transparency_fragment_shader_src)) return false;
-  prg.MVPMatrix = glGetUniformLocation(prg.Program, "uMVPMatrix");
-  prg.TextureId = glGetUniformLocation(prg.Program, "textID");
-  prg.Alpha = glGetUniformLocation(prg.Program, "alpha");
-  return true;
+    if(!CreateShaderProgram(prg, "Transparency", default_vertex_shader_src, transparency_fragment_shader_src))
+        return false;
+    prg.A_Position = glGetAttribLocation(prg.Program, "a_Position");
+    prg.A_TexCoord = glGetAttribLocation(prg.Program, "a_TexCoord");
+    prg.MVPMatrix = glGetUniformLocation(prg.Program, "uMVPMatrix");
+    prg.TextureId = glGetUniformLocation(prg.Program, "textID");
+    prg.Alpha = glGetUniformLocation(prg.Program, "alpha");
+    glEnableVertexAttribArray(prg.A_Position);
+    glEnableVertexAttribArray(prg.A_TexCoord);
+    return true;
 }
 
 
 bool CreateTintShader(ShaderProgram &prg)
 {
-  if(!CreateShaderProgram(prg, "Tinting", default_vertex_shader_src, tint_fragment_shader_src)) return false;
-  prg.MVPMatrix = glGetUniformLocation(prg.Program, "uMVPMatrix");
-  prg.TextureId = glGetUniformLocation(prg.Program, "textID");
-  prg.TintHSV = glGetUniformLocation(prg.Program, "tintHSV");
-  prg.TintAmount = glGetUniformLocation(prg.Program, "tintAmount");
-  prg.TintLuminance = glGetUniformLocation(prg.Program, "tintLuminance");
-  prg.Alpha = glGetUniformLocation(prg.Program, "alpha");
-  return true;
+    if(!CreateShaderProgram(prg, "Tinting", default_vertex_shader_src, tint_fragment_shader_src))
+        return false;
+    prg.A_Position = glGetAttribLocation(prg.Program, "a_Position");
+    prg.A_TexCoord = glGetAttribLocation(prg.Program, "a_TexCoord");
+    prg.MVPMatrix = glGetUniformLocation(prg.Program, "uMVPMatrix");
+    prg.TextureId = glGetUniformLocation(prg.Program, "textID");
+    prg.TintHSV = glGetUniformLocation(prg.Program, "tintHSV");
+    prg.TintAmount = glGetUniformLocation(prg.Program, "tintAmount");
+    prg.TintLuminance = glGetUniformLocation(prg.Program, "tintLuminance");
+    prg.Alpha = glGetUniformLocation(prg.Program, "alpha");
+    glEnableVertexAttribArray(prg.A_Position);
+    glEnableVertexAttribArray(prg.A_TexCoord);
+    return true;
 }
 
 bool CreateLightShader(ShaderProgram &prg)
 {
-  if(!CreateShaderProgram(prg, "Lighting", default_vertex_shader_src, light_fragment_shader_src)) return false;
-  prg.MVPMatrix = glGetUniformLocation(prg.Program, "uMVPMatrix");
-  prg.TextureId = glGetUniformLocation(prg.Program, "textID");
-  prg.LightingAmount = glGetUniformLocation(prg.Program, "light");
-  prg.Alpha = glGetUniformLocation(prg.Program, "alpha");
-  return true;
+    if(!CreateShaderProgram(prg, "Lighting", default_vertex_shader_src, light_fragment_shader_src))
+        return false;
+    prg.A_Position = glGetAttribLocation(prg.Program, "a_Position");
+    prg.A_TexCoord = glGetAttribLocation(prg.Program, "a_TexCoord");
+    prg.MVPMatrix = glGetUniformLocation(prg.Program, "uMVPMatrix");
+    prg.TextureId = glGetUniformLocation(prg.Program, "textID");
+    prg.LightingAmount = glGetUniformLocation(prg.Program, "light");
+    prg.Alpha = glGetUniformLocation(prg.Program, "alpha");
+    glEnableVertexAttribArray(prg.A_Position);
+    glEnableVertexAttribArray(prg.A_TexCoord);
+    return true;
 }
 
 
@@ -1143,23 +1152,13 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
 
     if (txdata->_vertex != nullptr)
     {
-        glEnableVertexAttribArray(0);
-        GLint a_Position = glGetAttribLocation(program.Program, "a_Position");
-        glVertexAttribPointer(a_Position, 2, GL_FLOAT, GL_FALSE, sizeof(OGLCUSTOMVERTEX), &(txdata->_vertex[ti * 4].position));
-
-        glEnableVertexAttribArray(1);
-        GLint a_TexCoord = glGetAttribLocation(program.Program, "a_TexCoord");
-        glVertexAttribPointer(a_TexCoord, 2, GL_FLOAT, GL_FALSE, sizeof(OGLCUSTOMVERTEX), &(txdata->_vertex[ti * 4].tu));
+        glVertexAttribPointer(program.A_Position, 2, GL_FLOAT, GL_FALSE, sizeof(OGLCUSTOMVERTEX), &(txdata->_vertex[ti * 4].position));
+        glVertexAttribPointer(program.A_TexCoord, 2, GL_FLOAT, GL_FALSE, sizeof(OGLCUSTOMVERTEX), &(txdata->_vertex[ti * 4].tu));
     }
     else
     {
-        glEnableVertexAttribArray(0);
-        GLint a_Position = glGetAttribLocation(program.Program, "a_Position");
-        glVertexAttribPointer(a_Position, 2, GL_FLOAT, GL_FALSE, sizeof(OGLCUSTOMVERTEX), &(defaultVertices[0].position));
-
-        glEnableVertexAttribArray(1);
-        GLint a_TexCoord = glGetAttribLocation(program.Program, "a_TexCoord");
-        glVertexAttribPointer(a_TexCoord, 2, GL_FLOAT, GL_FALSE, sizeof(OGLCUSTOMVERTEX), &(defaultVertices[0].tu));
+        glVertexAttribPointer(program.A_Position, 2, GL_FLOAT, GL_FALSE, sizeof(OGLCUSTOMVERTEX), &(defaultVertices[0].position));
+        glVertexAttribPointer(program.A_TexCoord, 2, GL_FLOAT, GL_FALSE, sizeof(OGLCUSTOMVERTEX), &(defaultVertices[0].tu));
     }
 
     // Treat special render modes

@@ -823,13 +823,12 @@ int gui_on_mouse_move(const int mx, const int my)
     return mouse_over_gui;
 }
 
-// Tells if GUI common controls should react to this mouse button
+// Tells if GUI common controls should react to this mouse button.
 // TODO: redesign this all, pass mouse button into GUI OnMouseButtonDown instead,
 // handle the button difference there, per control.
 inline bool gui_control_should_handle_button(int mbut)
 {
-    return (game.options[OPT_GUICONTROLMOUSEBUT] == kMouseAny) ||
-        (game.options[OPT_GUICONTROLMOUSEBUT] == mbut);
+    return (game.options[OPT_GUICONTROLMOUSEBUT] == 0) || (mbut == kMouseLeft);
 }
 
 void gui_on_mouse_hold(const int wasongui, const int wasbutdown)

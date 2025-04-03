@@ -90,7 +90,7 @@
 #define OPT_VOICECLIPNAMERULE  54 // which rule to use for a voice clip name based on character's name (old/new)
 #define OPT_SAVECOMPONENTSIGNORE 55 // ignore these savegame components (flag mask)
 #define OPT_GAMEFPS            56
-#define OPT_GUICONTROLMOUSEBUT 57 // which mouse button should gui controls respect (0 - any)
+#define OPT_GUICONTROLMOUSEBUT 57 // whether common gui controls should react only to LMB (0 - any, 1 - LMB)
 #define OPT_HIGHESTOPTION      OPT_GUICONTROLMOUSEBUT
 #define OPT_LIPSYNCTEXT        99
 

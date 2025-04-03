@@ -355,7 +355,7 @@ void UpgradeGame(GameSetupStruct &game, GameDataVersion data_ver)
     {
         game.options[OPT_SAVESCREENSHOTLAYER] = UINT32_MAX; // all possible layers
     }
-    if (data_ver < kGameVersion_363)
+    if (data_ver < kGameVersion_363 || (data_ver >= kGameVersion_399 && data_ver < kGameVersion_400_17))
     {
         game.options[OPT_GUICONTROLMOUSEBUT] = kMouseAny; // gui controls handle any button
     }

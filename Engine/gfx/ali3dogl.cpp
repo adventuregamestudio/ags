@@ -573,7 +573,6 @@ void main()
 }
 )EOS";
 
-
 // blend hack 1: darken to simulate transparency as a replacement to glTexEnvi for blend mode workarounds
 static const auto darkenbyalpha_fragment_shader_src = R"EOS(
 #version 100
@@ -587,9 +586,8 @@ varying vec2 v_TexCoord;
 
 void main()
 {
-  vec4 src_col = texture2D(textID, v_TexCoord);
-  gl_FragColor = vec4(src_col.xyz*alpha, src_col.w * alpha);
-  // gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+    vec4 src_col = texture2D(textID, v_TexCoord);
+    gl_FragColor = vec4(src_col.xyz*alpha, src_col.w * alpha);
 }
 )EOS";
 
@@ -607,63 +605,84 @@ varying vec2 v_TexCoord;
 
 void main()
 {
-  float invalpha = 1.0 - alpha;
-  vec4 src_col = texture2D(textID, v_TexCoord);
-  gl_FragColor = vec4(src_col.xyz + invalpha - (src_col.xyz*invalpha), src_col.w);
+    float invalpha = 1.0 - alpha;
+    vec4 src_col = texture2D(textID, v_TexCoord);
+    gl_FragColor = vec4(src_col.xyz + invalpha - (src_col.xyz*invalpha), src_col.w);
 }
 )EOS";
 
 
 bool CreateTransparencyShader(ShaderProgram &prg)
 {
-  if(!CreateShaderProgram(prg, "Transparency", default_vertex_shader_src, transparency_fragment_shader_src)) return false;
-  prg.MVPMatrix = glGetUniformLocation(prg.Program, "uMVPMatrix");
-  prg.TextureId = glGetUniformLocation(prg.Program, "textID");
-  prg.Alpha = glGetUniformLocation(prg.Program, "alpha");
-  return true;
+    if(!CreateShaderProgram(prg, "Transparency", default_vertex_shader_src, transparency_fragment_shader_src))
+        return false;
+    prg.A_Position = glGetAttribLocation(prg.Program, "a_Position");
+    prg.A_TexCoord = glGetAttribLocation(prg.Program, "a_TexCoord");
+    prg.MVPMatrix = glGetUniformLocation(prg.Program, "uMVPMatrix");
+    prg.TextureId = glGetUniformLocation(prg.Program, "textID");
+    prg.Alpha = glGetUniformLocation(prg.Program, "alpha");
+    glEnableVertexAttribArray(prg.A_Position);
+    glEnableVertexAttribArray(prg.A_TexCoord);
+    return true;
 }
-
 
 bool CreateTintShader(ShaderProgram &prg)
 {
-  if(!CreateShaderProgram(prg, "Tinting", default_vertex_shader_src, tint_fragment_shader_src)) return false;
-  prg.MVPMatrix = glGetUniformLocation(prg.Program, "uMVPMatrix");
-  prg.TextureId = glGetUniformLocation(prg.Program, "textID");
-  prg.TintHSV = glGetUniformLocation(prg.Program, "tintHSV");
-  prg.TintAmount = glGetUniformLocation(prg.Program, "tintAmount");
-  prg.TintLuminance = glGetUniformLocation(prg.Program, "tintLuminance");
-  prg.Alpha = glGetUniformLocation(prg.Program, "alpha");
-  return true;
+    if(!CreateShaderProgram(prg, "Tinting", default_vertex_shader_src, tint_fragment_shader_src))
+        return false;
+    prg.A_Position = glGetAttribLocation(prg.Program, "a_Position");
+    prg.A_TexCoord = glGetAttribLocation(prg.Program, "a_TexCoord");
+    prg.MVPMatrix = glGetUniformLocation(prg.Program, "uMVPMatrix");
+    prg.TextureId = glGetUniformLocation(prg.Program, "textID");
+    prg.TintHSV = glGetUniformLocation(prg.Program, "tintHSV");
+    prg.TintAmount = glGetUniformLocation(prg.Program, "tintAmount");
+    prg.TintLuminance = glGetUniformLocation(prg.Program, "tintLuminance");
+    prg.Alpha = glGetUniformLocation(prg.Program, "alpha");
+    glEnableVertexAttribArray(prg.A_Position);
+    glEnableVertexAttribArray(prg.A_TexCoord);
+    return true;
 }
 
 bool CreateLightShader(ShaderProgram &prg)
 {
-  if(!CreateShaderProgram(prg, "Lighting", default_vertex_shader_src, light_fragment_shader_src)) return false;
-  prg.MVPMatrix = glGetUniformLocation(prg.Program, "uMVPMatrix");
-  prg.TextureId = glGetUniformLocation(prg.Program, "textID");
-  prg.LightingAmount = glGetUniformLocation(prg.Program, "light");
-  prg.Alpha = glGetUniformLocation(prg.Program, "alpha");
-  return true;
+    if(!CreateShaderProgram(prg, "Lighting", default_vertex_shader_src, light_fragment_shader_src))
+        return false;
+    prg.A_Position = glGetAttribLocation(prg.Program, "a_Position");
+    prg.A_TexCoord = glGetAttribLocation(prg.Program, "a_TexCoord");
+    prg.MVPMatrix = glGetUniformLocation(prg.Program, "uMVPMatrix");
+    prg.TextureId = glGetUniformLocation(prg.Program, "textID");
+    prg.LightingAmount = glGetUniformLocation(prg.Program, "light");
+    prg.Alpha = glGetUniformLocation(prg.Program, "alpha");
+    glEnableVertexAttribArray(prg.A_Position);
+    glEnableVertexAttribArray(prg.A_TexCoord);
+    return true;
 }
 
 bool CreateDarkenByAlphaShader(ShaderProgram& prg)
 {
     if (!CreateShaderProgram(prg, "DarkenByAlpha", default_vertex_shader_src, darkenbyalpha_fragment_shader_src)) return false;
+    prg.A_Position = glGetAttribLocation(prg.Program, "a_Position");
+    prg.A_TexCoord = glGetAttribLocation(prg.Program, "a_TexCoord");
     prg.MVPMatrix = glGetUniformLocation(prg.Program, "uMVPMatrix");
     prg.TextureId = glGetUniformLocation(prg.Program, "textID");
     prg.Alpha = glGetUniformLocation(prg.Program, "alpha");
+    glEnableVertexAttribArray(prg.A_Position);
+    glEnableVertexAttribArray(prg.A_TexCoord);
     return true;
 }
 
 bool CreateLightenByAlphaShader(ShaderProgram& prg)
 {
     if (!CreateShaderProgram(prg, "LightenByAlpha", default_vertex_shader_src, lightenbyalpha_fragment_shader_src)) return false;
+    prg.A_Position = glGetAttribLocation(prg.Program, "a_Position");
+    prg.A_TexCoord = glGetAttribLocation(prg.Program, "a_TexCoord");
     prg.MVPMatrix = glGetUniformLocation(prg.Program, "uMVPMatrix");
     prg.TextureId = glGetUniformLocation(prg.Program, "textID");
     prg.Alpha = glGetUniformLocation(prg.Program, "alpha");
+    glEnableVertexAttribArray(prg.A_Position);
+    glEnableVertexAttribArray(prg.A_TexCoord);
     return true;
 }
-
 
 
 bool CreateShaderProgram(ShaderProgram &prg, const char *name, const char *vertex_shader_src, const char *fragment_shader_src)
@@ -1237,23 +1256,13 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
 
     if (txdata->_vertex != nullptr)
     {
-        glEnableVertexAttribArray(0);
-        GLint a_Position = glGetAttribLocation(program.Program, "a_Position");
-        glVertexAttribPointer(a_Position, 2, GL_FLOAT, GL_FALSE, sizeof(OGLCUSTOMVERTEX), &(txdata->_vertex[ti * 4].position));
-
-        glEnableVertexAttribArray(1);
-        GLint a_TexCoord = glGetAttribLocation(program.Program, "a_TexCoord");
-        glVertexAttribPointer(a_TexCoord, 2, GL_FLOAT, GL_FALSE, sizeof(OGLCUSTOMVERTEX), &(txdata->_vertex[ti * 4].tu));
+        glVertexAttribPointer(program.A_Position, 2, GL_FLOAT, GL_FALSE, sizeof(OGLCUSTOMVERTEX), &(txdata->_vertex[ti * 4].position));
+        glVertexAttribPointer(program.A_TexCoord, 2, GL_FLOAT, GL_FALSE, sizeof(OGLCUSTOMVERTEX), &(txdata->_vertex[ti * 4].tu));
     }
     else
     {
-        glEnableVertexAttribArray(0);
-        GLint a_Position = glGetAttribLocation(program.Program, "a_Position");
-        glVertexAttribPointer(a_Position, 2, GL_FLOAT, GL_FALSE, sizeof(OGLCUSTOMVERTEX), &(defaultVertices[0].position));
-
-        glEnableVertexAttribArray(1);
-        GLint a_TexCoord = glGetAttribLocation(program.Program, "a_TexCoord");
-        glVertexAttribPointer(a_TexCoord, 2, GL_FLOAT, GL_FALSE, sizeof(OGLCUSTOMVERTEX), &(defaultVertices[0].tu));
+        glVertexAttribPointer(program.A_Position, 2, GL_FLOAT, GL_FALSE, sizeof(OGLCUSTOMVERTEX), &(defaultVertices[0].position));
+        glVertexAttribPointer(program.A_TexCoord, 2, GL_FLOAT, GL_FALSE, sizeof(OGLCUSTOMVERTEX), &(defaultVertices[0].tu));
     }
 
     // Treat special render modes

@@ -131,7 +131,6 @@ enum TransitionStyle {
 };
 
 enum MouseButton {
-  eMouseAny = -1,
   eMouseNone = 0,
   eMouseLeft = 1,
   eMouseRight = 2,

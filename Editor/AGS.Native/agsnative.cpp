@@ -2495,7 +2495,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
     game->Settings->ScaleCharacterSpriteOffsets = (thisgame.options[OPT_SCALECHAROFFSETS] != 0);
     game->Settings->UseOldVoiceClipNaming = (thisgame.options[OPT_VOICECLIPNAMERULE] == 0); // inverted, 0 for old
     game->Settings->GameFPS = (thisgame.options[OPT_GAMEFPS] > 0) ? thisgame.options[OPT_GAMEFPS] : 40;
-    game->Settings->GUIHandleOnlyLeftMouseButton = thisgame.options[OPT_GUICONTROLMOUSEBUT] > 0;
+    game->Settings->GUIHandleOnlyLeftMouseButton = (thisgame.options[OPT_GUICONTROLMOUSEBUT] != 0);
 
     TextConverter^ tcv = gcnew TextConverter(game->TextEncoding);
 

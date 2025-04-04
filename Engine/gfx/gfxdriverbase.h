@@ -112,26 +112,52 @@ class GraphicsDriverBase : public IGraphicsDriver
 public:
     GraphicsDriverBase();
 
+    ///////////////////////////////////////////////////////
+    // Mode initialization
+    //
+    // Gets if a graphics mode was initialized
     bool        IsModeSet() const override;
-    bool        IsNativeSizeValid() const override;
-    bool        IsRenderFrameValid() const override;
+    // Gets the currently set display mode
     DisplayMode GetDisplayMode() const override;
+    // Tells if a native image size is properly set
+    bool        IsNativeSizeValid() const override;
+    // Gets currently set native image size
     Size        GetNativeSize() const override;
+    // Tells if render frame is properly set
+    bool        IsRenderFrameValid() const override;
+    // Gets currently set render frame
     Rect        GetRenderDestination() const override;
 
+    ///////////////////////////////////////////////////////
+    // Miscelaneous setup
+    //
+    // Set the display mode initialization callback.
+    void        SetCallbackOnInit(GFXDRV_CLIENTCALLBACKINITGFX callback) override { _initGfxCallback = callback; }
+    // Set the sprite event callback.
+    void        SetCallbackOnSpriteEvt(GFXDRV_CLIENTCALLBACKEVT callback) override { _spriteEvtCallback = callback; }
+    // Toggles vertical sync mode, if renderer supports one; returns the *new state*.
     bool        SetVsync(bool enabled) override;
+    // Tells if the renderer currently has vsync enabled.
     bool        GetVsync() const override;
 
+    ///////////////////////////////////////////////////////
+    // Preparing a scene
+    //
+    // Prepares next sprite batch, a list of sprites with defined viewport and optional
+    // global model transformation.
     void        BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform, uint32_t filter_flags = 0) override;
+    // Begins a sprite batch with defined viewport and a global model transformation
+    // and a global flip setting. Optionally provides a surface which should be rendered
+    // underneath the rest of the sprites.
     void        BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform,
                     Common::GraphicFlip flip, PBitmap surface = nullptr, uint32_t filter_flags = 0) override;
+    // Begins a sprite batch which will be rendered on a target texture.
     void        BeginSpriteBatch(IDriverDependantBitmap *render_target, const Rect &viewport, const SpriteTransform &transform,
                     Common::GraphicFlip flip = Common::kFlip_None, uint32_t filter_flags = 0) override;
+    // Ends current sprite batch
     void        EndSpriteBatch() override;
+    // Clears all sprite batches, resets batch counter
     void        ClearDrawLists() override;
-
-    void        SetCallbackOnInit(GFXDRV_CLIENTCALLBACKINITGFX callback) override { _initGfxCallback = callback; }
-    void        SetCallbackOnSpriteEvt(GFXDRV_CLIENTCALLBACKEVT callback) override { _spriteEvtCallback = callback; }
 
 protected:
     // Special internal values, applied to DrawListEntry
@@ -155,6 +181,8 @@ protected:
     // Called when the new filter is set
     virtual void OnSetFilter();
 
+    void OnScalingChanged();
+
     // Try changing vsync setting; fills new current mode in vsync_res,
     // returns whether the new setting was set successfully.
     virtual bool SetVsyncImpl(bool vsync, bool &vsync_res) { return false; }
@@ -167,7 +195,6 @@ protected:
     virtual void ResetAllBatches() = 0;
 
     void BeginSpriteBatch(const SpriteBatchDesc &desc);
-    void OnScalingChanged();
 
     DisplayMode         _mode;          // display mode settings
     Rect                _srcRect;       // rendering source rect
@@ -329,19 +356,22 @@ public:
     VideoMemoryGraphicsDriver();
     ~VideoMemoryGraphicsDriver() override;
 
+    ///////////////////////////////////////////////////////
+    // Attributes
+    //
+    // Tells if this gfx driver has to redraw whole scene each time
     bool RequiresFullRedrawEachFrame() override { return true; }
+    // Tells if this gfx driver uses GPU to transform sprites
     bool HasAcceleratedTransform() override { return true; }
+    // Tells if this gfx driver draws on a virtual screen before rendering on real screen.
     // NOTE: although we do use ours, we do not let engine draw upon it;
     // only plugin handling are allowed to request our mem buffer
     // for compatibility reasons.
     bool UsesMemoryBackBuffer() override { return false; }
 
-    Bitmap *GetMemoryBackBuffer() override;
-    void SetMemoryBackBuffer(Bitmap *backBuffer) override;
-    Bitmap* GetStageBackBuffer(bool mark_dirty) override;
-    void SetStageBackBuffer(Bitmap *backBuffer) override;
-    bool GetStageMatrixes(RenderMatrixes &rm) override;
-
+    ///////////////////////////////////////////////////////
+    // Texture management
+    // 
     // Creates new DDB and copy bitmap contents over
     IDriverDependantBitmap *CreateDDBFromBitmap(const Bitmap *bitmap, int txflags = kTxFlags_None) override;
 
@@ -350,10 +380,29 @@ public:
     // Create texture and initialize its pixels from the given bitmap
     Texture *CreateTexture(const Bitmap *bmp, int txflags = kTxFlags_None) override;
 
+    ///////////////////////////////////////////////////////
+    // Preparing a scene
+    // 
     // Sets stage screen parameters for the current batch.
     void SetStageScreen(const Size &sz, int x = 0, int y = 0) override;
 
+    ///////////////////////////////////////////////////////
+    // Additional operations
+    //
+    Bitmap *GetMemoryBackBuffer() override;
+    void    SetMemoryBackBuffer(Bitmap *backBuffer) override;
+    Bitmap *GetStageBackBuffer(bool mark_dirty) override;
+    void    SetStageBackBuffer(Bitmap *backBuffer) override;
+    bool    GetStageMatrixes(RenderMatrixes &rm) override;
+
 protected:
+    // Prepares bitmap to be applied to the texture, copies pixels to the provided buffer
+    void BitmapToVideoMem(const Bitmap *bitmap, const TextureTile *tile,
+                          uint8_t *dst_ptr, const int dst_pitch, const bool usingLinearFiltering);
+    // Same but optimized for opaque source bitmaps which ignore transparent "mask color"
+    void BitmapToVideoMemOpaque(const Bitmap *bitmap, const TextureTile *tile,
+                                uint8_t *dst_ptr, const int dst_pitch);
+
     // Stage screens are raw bitmap buffers meant to be sent to plugins on demand
     // at certain drawing stages. If used at least once these buffers are then
     // rendered as additional sprites in their respected order.
@@ -378,13 +427,6 @@ protected:
     void ResetFxPool();
     // Disposes all items in the fx pool
     void DestroyFxPool();
-
-    // Prepares bitmap to be applied to the texture, copies pixels to the provided buffer
-    void BitmapToVideoMem(const Bitmap *bitmap, const TextureTile *tile,
-                            uint8_t *dst_ptr, const int dst_pitch, const bool usingLinearFiltering);
-    // Same but optimized for opaque source bitmaps which ignore transparent "mask color"
-    void BitmapToVideoMemOpaque(const Bitmap *bitmap, const TextureTile *tile,
-                            uint8_t *dst_ptr, const int dst_pitch);
 
     // Stage matrixes are used to let plugins with hardware acceleration know model matrix;
     // these matrixes are filled compatible with each given renderer

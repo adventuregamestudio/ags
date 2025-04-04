@@ -150,36 +150,88 @@ class SDLRendererGraphicsDriver : public GraphicsDriverBase
 {
 public:
     SDLRendererGraphicsDriver();
+    ~SDLRendererGraphicsDriver() override;
 
+    ///////////////////////////////////////////////////////
+    // Identification
+    //
+    // Gets graphic driver's identifier
     const char *GetDriverID() override { return "Software"; }
+    // Gets graphic driver's "friendly name"
     const char *GetDriverName() override { return "SDL 2D Software renderer"; }
 
+    ///////////////////////////////////////////////////////
+    // Attributes
+    //
+    // Tells if this gfx driver has to redraw whole scene each time
     bool RequiresFullRedrawEachFrame() override { return false; }
+    // Tells if this gfx driver uses GPU to transform sprites
     bool HasAcceleratedTransform() override { return false; }
+    // Tells if this gfx driver draws on a virtual screen before rendering on real screen.
     bool UsesMemoryBackBuffer() override { return true; }
+    // Tells if this gfx driver requires releasing render targets
+    // in case of display mode change or reset.
     bool ShouldReleaseRenderTargets() override { return false; }
 
+    ///////////////////////////////////////////////////////
+    // Mode initialization
+    //
+    // Initialize given display mode
     bool SetDisplayMode(const DisplayMode &mode) override;
+    // Updates previously set display mode, accomodating to the new screen size
     void UpdateDeviceScreen(const Size &screen_sz) override;
+    // Set the size of the native image size
     bool SetNativeResolution(const GraphicResolution &native_res) override;
+    // Set game render frame and translation
     bool SetRenderFrame(const Rect &dst_rect) override;
-    bool IsModeSupported(const DisplayMode &mode) override;
+    // Report which display's color depth option is best suited for the given native color depth
     int  GetDisplayDepthForNativeDepth(int native_color_depth) const override;
+    // Gets a list of supported fullscreen display modes
     IGfxModeList *GetSupportedModeList(int display_index, int color_depth) override;
+    // Tells if the given display mode supported
+    bool IsModeSupported(const DisplayMode &mode) override;
+    // Gets currently set scaling filter
     PGfxFilter GetGraphicsFilter() const override;
+
+    typedef std::shared_ptr<SDLRendererGfxFilter> PSDLRenderFilter;
+    void SetGraphicsFilter(PSDLRenderFilter filter);
     void UnInit();
-    // Clears the screen rectangle. The coordinates are expected in the **native game resolution**.
-    void ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse) override;
+
+    ///////////////////////////////////////////////////////
+    // Miscelaneous setup
+    //
+    // Tells if the renderer supports toggling vsync after initializing the display mode.
+    bool DoesSupportVsyncToggle() override { return (SDL_VERSION_ATLEAST(2, 0, 18)) && _capsVsync; }
+    // Enables or disables rendering mode that draws sprite list directly into
+    // the final resolution, as opposed to drawing to native-resolution buffer
+    // and scaling to final frame.
+    void RenderSpritesAtScreenResolution(bool /*enabled*/) override { }
+    // Enables or disables a smooth sprite scaling mode
+    void UseSmoothScaling(bool /*enabled*/) override { }
+    // Tells if driver supports gamma control
+    bool SupportsGammaControl() override;
+    // Sets gamma level
+    void SetGamma(int newGamma) override;
+
+    ///////////////////////////////////////////////////////
+    // Texture management
+    //
+    // Gets closest recommended bitmap format (currently - only color depth) for the given original format.
     int  GetCompatibleBitmapFormat(int color_depth) override;
     // Returns available texture memory in bytes, or 0 if this query is not supported
     uint64_t GetAvailableTextureMemory() override { return 0; /* not using textures for sprites anyway */ }
-
+    // Creates a "raw" DDB, without pixel initialization.
     IDriverDependantBitmap* CreateDDB(int width, int height, int color_depth, int txflags) override;
+    // Create DDB using preexisting texture data
     IDriverDependantBitmap *CreateDDB(std::shared_ptr<Texture> txdata, int txflags) override
         { return nullptr; /* not supported */ }
+    // Creates DDB, initializes from the given bitmap.
     IDriverDependantBitmap* CreateDDBFromBitmap(const Bitmap *bitmap, int txflags) override;
+    // Creates DDB intended to be used as a render target (allow render other DDBs on it).
     IDriverDependantBitmap* CreateRenderTargetDDB(int width, int height, int color_depth, int txflags) override;
+    // Updates DBB using the given bitmap
     void UpdateDDBFromBitmap(IDriverDependantBitmap* ddb, const Bitmap *bitmap) override;
+    // Destroy the DDB; note that this does not dispose the texture unless there's no more refs to it
     void DestroyDDB(IDriverDependantBitmap* ddb) override;
 
     // Create texture data with the given parameters
@@ -191,11 +243,20 @@ public:
     // Retrieve shared texture object from the given DDB
     std::shared_ptr<Texture> GetTexture(IDriverDependantBitmap *ddb) override { return nullptr; /* not supported */ }
 
+    ///////////////////////////////////////////////////////
+    // Preparing a scene
+    //
+    // Adds sprite to the active batch, providing it's origin position
     void DrawSprite(int x, int y, IDriverDependantBitmap* ddb) override
          { DrawSprite(x, y, x, y, ddb); }
+    // Adds sprite to the active batch, providing it's origin position and auxiliary
+    // position of the left-top image corner in the same coordinate space
     void DrawSprite(int ox, int oy, int ltx, int lty, IDriverDependantBitmap* ddb) override;
+    // Adds fade overlay fx to the active batch
     void SetScreenFade(int red, int green, int blue) override;
+    // Adds tint overlay fx to the active batch
     void SetScreenTint(int red, int green, int blue) override;
+    // Sets stage screen parameters for the current batch.
     void SetStageScreen(const Size &sz, int x = 0, int y = 0) override;
     // Redraw last draw lists, optionally filtering specific batches
     void RedrawLastFrame(uint32_t /*batch_skip_filter*/) override
@@ -204,34 +265,70 @@ public:
         // but batch skipping is currently not supported
     }
 
-    void RenderToBackBuffer() override;
+    ///////////////////////////////////////////////////////
+    // Rendering and presenting
+    // 
+    // Clears the screen rectangle. The coordinates are expected in the **native game resolution**.
+    void ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse) override;
+    // Renders draw lists and presents to screen.
     void Render() override;
+    // Renders and presents with additional final offset and flip.
     void Render(int xoff, int yoff, Common::GraphicFlip flip) override;
+    // Renders draw lists onto the provided texture.
     void Render(IDriverDependantBitmap *target) override;
+    // Renders draw lists to backbuffer, but does not call present.
+    void RenderToBackBuffer() override;
+
+    ///////////////////////////////////////////////////////
+    // Additional operations
+    //
+    // Copies contents of the game screen into the DDB
     void GetCopyOfScreenIntoDDB(IDriverDependantBitmap *target, uint32_t batch_skip_filter = 0u) override;
+    // Copies contents of the last rendered game frame into bitmap using simple blit or pixel copy.
     bool GetCopyOfScreenIntoBitmap(Bitmap *destination, const Rect *src_rect, bool at_native_res,
         GraphicResolution *want_fmt, uint32_t batch_skip_filter = 0u) override;
-    bool SupportsGammaControl() override ;
-    void SetGamma(int newGamma) override;
-    void UseSmoothScaling(bool /*enabled*/) override { }
-    bool DoesSupportVsyncToggle() override { return (SDL_VERSION_ATLEAST(2, 0, 18)) && _capsVsync; }
-    void RenderSpritesAtScreenResolution(bool /*enabled*/) override { }
+    // Returns the virtual screen. Will return NULL if renderer does not support memory backbuffer.
     Bitmap *GetMemoryBackBuffer() override;
+    // Sets custom backbuffer bitmap to render to.
     void SetMemoryBackBuffer(Bitmap *backBuffer) override;
+    // Returns memory backbuffer for the current rendering stage (or base virtual screen if called outside of render pass).
     Bitmap *GetStageBackBuffer(bool mark_dirty) override;
+    // Sets custom backbuffer bitmap to render current render stage to.
     void SetStageBackBuffer(Bitmap *backBuffer) override;
+    // Retrieves 3 transform matrixes for the current rendering stage: world (model), view and projection.
     bool GetStageMatrixes(RenderMatrixes &/*rm*/) override { return false; /* not supported */ }
-    ~SDLRendererGraphicsDriver() override;
-
-    typedef std::shared_ptr<SDLRendererGfxFilter> PSDLRenderFilter;
-
-    void SetGraphicsFilter(PSDLRenderFilter filter);
 
 protected:
     bool SetVsyncImpl(bool vsync, bool &vsync_res) override;
     size_t GetLastDrawEntryIndex() override { return _spriteList.size(); }
 
 private:
+    ///////////////////////////////////////////////////////
+    // Mode initialization: implementation
+    //
+    // Use gfx filter to create a new virtual screen
+    void CreateVirtualScreen();
+    void DestroyVirtualScreen();
+    // Unset parameters and release resources related to the display mode
+    void ReleaseDisplayMode();
+
+    ///////////////////////////////////////////////////////
+    // Preparing a scene: implementation
+    //
+    void InitSpriteBatch(size_t index, const SpriteBatchDesc &desc) override;
+    void ResetAllBatches() override;
+
+    ///////////////////////////////////////////////////////
+    // Rendering and presenting: implementation
+    //
+    // Renders single sprite batch on the precreated surface
+    size_t RenderSpriteBatch(const ALSpriteBatch &batch, size_t from, Common::Bitmap *surface, int surf_offx, int surf_offy);
+    // Copy raw screen bitmap pixels to the SDL texture
+    void BlitToTexture();
+    // Render SDL texture on screen
+    void Present(int xoff = 0, int yoff = 0, Common::GraphicFlip flip = Common::kFlip_None);
+
+
     PSDLRenderFilter _filter;
 
     bool _hasGamma = false;
@@ -265,22 +362,6 @@ private:
     ALSpriteBatches _spriteBatches;
     // List of sprites to render
     std::vector<ALDrawListEntry> _spriteList;
-
-    void InitSpriteBatch(size_t index, const SpriteBatchDesc &desc) override;
-    void ResetAllBatches() override;
-
-    // Use gfx filter to create a new virtual screen
-    void CreateVirtualScreen();
-    void DestroyVirtualScreen();
-    // Unset parameters and release resources related to the display mode
-    void ReleaseDisplayMode();
-    // Renders single sprite batch on the precreated surface
-    size_t RenderSpriteBatch(const ALSpriteBatch &batch, size_t from, Common::Bitmap *surface, int surf_offx, int surf_offy);
-
-    // Copy raw screen bitmap pixels to the SDL texture
-    void BlitToTexture();
-    // Render SDL texture on screen
-    void Present(int xoff = 0, int yoff = 0, Common::GraphicFlip flip = Common::kFlip_None);
 };
 
 

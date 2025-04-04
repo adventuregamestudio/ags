@@ -194,7 +194,7 @@ bool D3DGfxModeList::GetMode(int index, DisplayMode &mode) const
 D3DGraphicsDriver::D3DGraphicsDriver(const D3DPtr &d3d) 
 {
   direct3d = d3d;
-  set_up_default_vertices();
+  SetupDefaultVertices();
   _smoothScaling = false;
   _pixelRenderXOffset = 0;
   _pixelRenderYOffset = 0;
@@ -225,7 +225,7 @@ D3DGraphicsDriver::BackbufferState::BackbufferState(D3DSurfacePtr &&surface,
     assert(Surface != nullptr);
 }
 
-void D3DGraphicsDriver::set_up_default_vertices()
+void D3DGraphicsDriver::SetupDefaultVertices()
 {
   defaultVertices[0].position.x = 0.0f;
   defaultVertices[0].position.y = 0.0f;

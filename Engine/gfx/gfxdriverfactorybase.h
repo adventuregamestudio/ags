@@ -60,6 +60,7 @@ public:
         _driver = nullptr;
     }
 
+    // FIXME: replace with CreateFilter and make a public IGraphicsDriver.SetFilter
     PGfxFilter SetFilter(const String &id, String &filter_error) override
     {
         TGfxDriverClass *driver = EnsureDriverCreated();

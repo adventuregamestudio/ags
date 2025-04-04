@@ -198,28 +198,71 @@ typedef std::vector<D3DSpriteBatch>    D3DSpriteBatches;
 class D3DGraphicsDriver : public VideoMemoryGraphicsDriver
 {
 public:
+    D3DGraphicsDriver(const D3DPtr &d3d);
+    ~D3DGraphicsDriver() override;
+
+    ///////////////////////////////////////////////////////
+    // Identification
+    //
+    // Gets graphic driver's identifier
     const char *GetDriverID() override { return "D3D9"; }
+    // Gets graphic driver's "friendly name"
     const char *GetDriverName() override { return "Direct3D 9"; }
 
+    ///////////////////////////////////////////////////////
+    // Attributes
+    //
+    // Tells if this gfx driver requires releasing render targets
+    // in case of display mode change or reset.
     bool ShouldReleaseRenderTargets() override { return true; }
 
+    ///////////////////////////////////////////////////////
+    // Mode initialization
+    //
+    // Initialize given display mode
     bool SetDisplayMode(const DisplayMode &mode) override;
+    // Updates previously set display mode, accomodating to the new screen size
     void UpdateDeviceScreen(const Size &screen_sz) override;
+    // Set the size of the native image size
     bool SetNativeResolution(const GraphicResolution &native_res) override;
+    // Set game render frame and translation
     bool SetRenderFrame(const Rect &dst_rect) override;
+    // Report which display's color depth option is best suited for the given native color depth
     int  GetDisplayDepthForNativeDepth(int native_color_depth) const override;
+    // Gets a list of supported fullscreen display modes
     IGfxModeList *GetSupportedModeList(int display_index, int color_depth) override;
+    // Tells if the given display mode supported
     bool IsModeSupported(const DisplayMode &mode) override;
+    // Gets currently set scaling filter
     PGfxFilter GetGraphicsFilter() const override;
-    // Clears the screen rectangle. The coordinates are expected in the **native game resolution**.
-    void ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse) override;
+
+    typedef std::shared_ptr<D3DGfxFilter> PD3DFilter;
+    void SetGraphicsFilter(PD3DFilter filter);
+    void UnInit();
+
+    ///////////////////////////////////////////////////////
+    // Miscelaneous setup
+    //
+    bool DoesSupportVsyncToggle() override { return _capsVsync; }
+    void RenderSpritesAtScreenResolution(bool enabled) override { _renderAtScreenRes = enabled; };
+    void UseSmoothScaling(bool enabled) override { _smoothScaling = enabled; }
+    bool SupportsGammaControl() override;
+    void SetGamma(int newGamma) override;
+
+    ///////////////////////////////////////////////////////
+    // Texture management
+    // 
+    // Gets closest recommended bitmap format (currently - only color depth) for the given original format.
     int  GetCompatibleBitmapFormat(int color_depth) override;
     // Returns available texture memory in bytes, or 0 if this query is not supported
     uint64_t GetAvailableTextureMemory() override;
-
+    // Creates a "raw" DDB, without pixel initialization.
     IDriverDependantBitmap* CreateDDB(int width, int height, int color_depth, int txflags) override;
+    // Creates DDB intended to be used as a render target (allow render other DDBs on it).
     IDriverDependantBitmap* CreateRenderTargetDDB(int width, int height, int color_depth, int txflags) override;
+    // Updates DBB using the given bitmap.
     void UpdateDDBFromBitmap(IDriverDependantBitmap* ddb, const Bitmap *bitmap) override;
+    // Destroy the DDB; note that this does not dispose the texture unless there's no more refs to it
     void DestroyDDB(IDriverDependantBitmap* ddb) override;
 
     // Create texture data with the given parameters
@@ -229,36 +272,48 @@ public:
     // Retrieve shared texture data object from the given DDB
     std::shared_ptr<Texture> GetTexture(IDriverDependantBitmap *ddb) override;
 
+    ///////////////////////////////////////////////////////
+    // Preparing a scene
+    // 
+    // Adds sprite to the active batch, providing it's origin position
     void DrawSprite(int x, int y, IDriverDependantBitmap* ddb) override
          { DrawSprite(x, y, x, y, ddb); }
+    // Adds sprite to the active batch, providing it's origin position and auxiliary
+    // position of the left-top image corner in the same coordinate space
     void DrawSprite(int ox, int oy, int ltx, int lty, IDriverDependantBitmap* bitmap) override;
+    // Adds fade overlay fx to the active batch
     void SetScreenFade(int red, int green, int blue) override;
+    // Adds tint overlay fx to the active batch
+    // TODO: redesign this to allow various post-fx per sprite batch?
     void SetScreenTint(int red, int green, int blue) override;
     // Redraw saved draw lists, optionally filtering specific batches
     void RedrawLastFrame(uint32_t batch_skip_filter) override;
 
-    void RenderToBackBuffer() override;
+    ///////////////////////////////////////////////////////
+    // Rendering and presenting
+    // 
+    // Clears the screen rectangle. The coordinates are expected in the **native game resolution**.
+    void ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse) override;
+    // Renders draw lists and presents to screen.
     void Render() override;
+    // Renders and presents with additional final offset and flip.
     void Render(int xoff, int yoff, Common::GraphicFlip flip) override;
+    // Renders draw lists onto the provided texture.
     void Render(IDriverDependantBitmap *target) override;
-    void GetCopyOfScreenIntoDDB(IDriverDependantBitmap *target, uint32_t batch_skip_filter = 0u) override;
-    bool GetCopyOfScreenIntoBitmap(Bitmap *destination, const Rect *src_rect, bool at_native_res,
-        GraphicResolution *want_fmt, uint32_t batch_skip_filter = 0u) override;
-    bool DoesSupportVsyncToggle() override { return _capsVsync; }
-    void RenderSpritesAtScreenResolution(bool enabled) override { _renderAtScreenRes = enabled; };
-    bool SupportsGammaControl() override;
-    void SetGamma(int newGamma) override;
-    void UseSmoothScaling(bool enabled) override { _smoothScaling = enabled; }
-
-    typedef std::shared_ptr<D3DGfxFilter> PD3DFilter;
+    // Renders draw lists to backbuffer, but does not call present.
+    void RenderToBackBuffer() override;
 
     // Clears screen rect, coordinates are expected in display resolution
     void ClearScreenRect(const Rect &r, RGB *colorToUse);
-    void UnInit();
-    void SetGraphicsFilter(PD3DFilter filter);
 
-    D3DGraphicsDriver(const D3DPtr &d3d);
-    ~D3DGraphicsDriver() override;
+    ///////////////////////////////////////////////////////
+    // Additional operations
+    //
+    // Copies contents of the game screen into the DDB
+    void GetCopyOfScreenIntoDDB(IDriverDependantBitmap *target, uint32_t batch_skip_filter = 0u) override;
+    // Copies contents of the last rendered game frame into bitmap using simple blit or pixel copy.
+    bool GetCopyOfScreenIntoBitmap(Bitmap *destination, const Rect *src_rect, bool at_native_res,
+        GraphicResolution *want_fmt, uint32_t batch_skip_filter = 0u) override;
 
 protected:
     bool SetVsyncImpl(bool vsync, bool &vsync_res) override;
@@ -269,6 +324,111 @@ protected:
     size_t GetLastDrawEntryIndex() override { return _spriteList.size(); }
 
 private:
+    ///////////////////////////////////////////////////////
+    // Mode initialization: implementation
+    //
+    // Called after new mode was successfully initialized
+    void OnModeSet(const DisplayMode &mode) override;
+    bool CreateDisplayMode(const DisplayMode &mode);
+    // Called when the direct3d device is created for the first time
+    bool FirstTimeInit();
+    void InitializeD3DState();
+    void CreateVirtualScreen();
+    void SetupViewport();
+    void SetupDefaultVertices();
+    // Resets
+    void ResetDeviceIfNecessary();
+    HRESULT ResetDeviceAndRestore();
+    HRESULT ResetD3DDevice();
+    // Unset parameters and release resources related to the display mode
+    void ReleaseDisplayMode();
+
+    ///////////////////////////////////////////////////////
+    // Texture management: implementation
+    //
+    bool IsTextureFormatOk(D3DFORMAT TextureFormat, D3DFORMAT AdapterFormat);
+    void AdjustSizeToNearestSupportedByCard(int *width, int *height);
+    void UpdateTextureRegion(D3DTextureTile *tile, const Bitmap *bitmap, bool opaque);
+    // For tracked render targets, disposes only the internal texture data
+    void ReleaseRenderTargetData();
+    // For tracked render targets, recreates the internal texture data
+    void RecreateRenderTargets();
+
+    ///////////////////////////////////////////////////////
+    // Preparing a scene: implementation
+    //
+    void InitSpriteBatch(size_t index, const SpriteBatchDesc &desc) override;
+    void ResetAllBatches() override;
+    // Backup all draw lists in the temp storage
+    void BackupDrawLists();
+    // Restore draw lists from the temp storage
+    void RestoreDrawLists();
+    // Deletes draw list backups
+    void ClearDrawBackups();
+    // Mark certain sprite batches to be skipped at the next render
+    void FilterSpriteBatches(uint32_t skip_filter);
+
+    ///////////////////////////////////////////////////////
+    // Rendering and presenting: implementation
+    //
+    // TODO: find a way to merge this with Render Targets from sprite batches,
+    // have a SINGLE STACK of "render target states", where backbuffer is at the bottom
+    struct BackbufferState
+    {
+        D3DSurfacePtr Surface;
+        // FIXME: replace RendSize with explicit render coordinate offset? merge with ortho matrix?
+        Size SurfSize; // actual surface size
+        Size RendSize; // coordinate grid size (for centering sprites)
+        Rect Viewport;
+        glm::mat4 Projection;
+        PlaneScaling Scaling;
+        int Filter = 0;
+
+        BackbufferState() = default;
+        BackbufferState(const D3DSurfacePtr &surface, const Size &surf_size, const Size &rend_size,
+                        const Rect &view, const glm::mat4 &proj,
+                        const PlaneScaling &scale, int filter);
+        BackbufferState(D3DSurfacePtr &&surface, const Size &surf_size, const Size &rend_size,
+                        const Rect &view, const glm::mat4 &proj,
+                        const PlaneScaling &scale, int filter);
+        BackbufferState(const BackbufferState &state) = default;
+        BackbufferState(BackbufferState &&state) = default;
+        ~BackbufferState() = default;
+
+        BackbufferState &operator = (const BackbufferState &state) = default;
+        BackbufferState &operator = (BackbufferState &&state) = default;
+    };
+
+    void RenderAndPresent(bool clearDrawListAfterwards);
+    void RenderImpl(bool clearDrawListAfterwards);
+    void RenderToSurface(BackbufferState *state, bool clearDrawListAfterwards);
+    // Set current backbuffer state, which properties are used when refering to backbuffer
+    void SetBackbufferState(BackbufferState *state, bool clear);
+    // Sets a Direct3D viewport for the current render target.
+    void SetD3DViewport(const Rect &rc);
+    // Sets the scissor (render clip), clip rect is passed in the "native" coordinates.
+    // Optionally pass render_on_texture if the rendering is done to texture, in native coords,
+    // otherwise we assume it is set on a whole screen, scaled to the screen coords.
+    void SetScissor(const Rect &clip, bool render_on_texture = false);
+    // Configures rendering mode for the render target, depending on its properties
+    // TODO: find a good way to merge with SetRenderTarget
+    void SetRenderTarget(const D3DSpriteBatch *batch, Size &surface_sz, bool clear);
+    void RenderSpriteBatches();
+    size_t RenderSpriteBatch(const D3DSpriteBatch &batch, size_t from, const Size &rend_sz);
+    void RenderSprite(const D3DDrawListEntry *entry, const glm::mat4 &matGlobal,
+                      const SpriteColorTransform &color, const Size &rend_sz);
+    // Renders given texture onto the current render target
+    void RenderTexture(D3DBitmap *bitmap, int draw_x, int draw_y, const glm::mat4 &matGlobal,
+                       const SpriteColorTransform &color, const Size &rend_sz);
+
+    // Sets uniform blend settings, same for both RGB and alpha component
+    void SetBlendOpUniform(D3DBLENDOP blend_op, D3DBLEND src_factor, D3DBLEND dst_factor);
+    // Sets blend settings for RGB only, and keeps previously set alpha blend settings
+    void SetBlendOpRGB(D3DBLENDOP blend_op, D3DBLEND src_factor, D3DBLEND dst_factor);
+    // Sets blend settings for alpha channel
+    void SetBlendOpAlpha(D3DBLENDOP blend_op, D3DBLEND src_factor, D3DBLEND dst_factor);
+
+
     PD3DFilter _filter;
 
     D3DPtr direct3d;
@@ -290,34 +450,6 @@ private:
     float _pixelRenderXOffset;
     float _pixelRenderYOffset;
     bool _renderAtScreenRes;
-
-    // TODO: find a way to merge this with Render Targets from sprite batches,
-    // have a SINGLE STACK of "render target states", where backbuffer is at the bottom
-    struct BackbufferState
-    {
-        D3DSurfacePtr Surface;
-        // FIXME: replace RendSize with explicit render coordinate offset? merge with ortho matrix?
-        Size SurfSize; // actual surface size
-        Size RendSize; // coordinate grid size (for centering sprites)
-        Rect Viewport;
-        glm::mat4 Projection;
-        PlaneScaling Scaling;
-        int Filter = 0;
-
-        BackbufferState() = default;
-        BackbufferState(const D3DSurfacePtr &surface, const Size &surf_size, const Size &rend_size,
-            const Rect &view, const glm::mat4 &proj,
-            const PlaneScaling &scale, int filter);
-        BackbufferState(D3DSurfacePtr &&surface, const Size &surf_size, const Size &rend_size,
-            const Rect &view, const glm::mat4 &proj,
-            const PlaneScaling &scale, int filter);
-        BackbufferState(const BackbufferState &state) = default;
-        BackbufferState(BackbufferState &&state) = default;
-        ~BackbufferState() = default;
-
-        BackbufferState &operator = (const BackbufferState &state) = default;
-        BackbufferState &operator = (BackbufferState &&state) = default;
-    };
 
     BackbufferState _screenBackbuffer;
     BackbufferState _nativeBackbuffer;
@@ -350,68 +482,6 @@ private:
 
     // Saved alpha channel blend settings for the current render target
     BlendOpState _rtBlendAlpha{};
-
-    // Called after new mode was successfully initialized
-    void OnModeSet(const DisplayMode &mode) override;
-    void InitSpriteBatch(size_t index, const SpriteBatchDesc &desc) override;
-    void ResetAllBatches() override;
-    bool CreateDisplayMode(const DisplayMode &mode);
-    // Called when the direct3d device is created for the first time
-    bool FirstTimeInit();
-    void InitializeD3DState();
-    // Resets
-    void ResetDeviceIfNecessary();
-    HRESULT ResetDeviceAndRestore();
-    HRESULT ResetD3DDevice();
-    void SetupViewport();
-    // For tracked render targets, disposes only the internal texture data
-    void ReleaseRenderTargetData();
-    // For tracked render targets, recreates the internal texture data
-    void RecreateRenderTargets();
-    // Unset parameters and release resources related to the display mode
-    void ReleaseDisplayMode();
-    void set_up_default_vertices();
-    void AdjustSizeToNearestSupportedByCard(int *width, int *height);
-    void UpdateTextureRegion(D3DTextureTile *tile, const Bitmap *bitmap, bool opaque);
-    void CreateVirtualScreen();
-    bool IsTextureFormatOk(D3DFORMAT TextureFormat, D3DFORMAT AdapterFormat);
-
-    // Backup all draw lists in the temp storage
-    void BackupDrawLists();
-    // Restore draw lists from the temp storage
-    void RestoreDrawLists();
-    // Deletes draw list backups
-    void ClearDrawBackups();
-    // Mark certain sprite batches to be skipped at the next render
-    void FilterSpriteBatches(uint32_t skip_filter);
-
-    void RenderAndPresent(bool clearDrawListAfterwards);
-    void RenderImpl(bool clearDrawListAfterwards);
-    void RenderToSurface(BackbufferState *state, bool clearDrawListAfterwards);
-    // Set current backbuffer state, which properties are used when refering to backbuffer
-    void SetBackbufferState(BackbufferState *state, bool clear);
-    // Sets a Direct3D viewport for the current render target.
-    void SetD3DViewport(const Rect &rc);
-    // Sets the scissor (render clip), clip rect is passed in the "native" coordinates.
-    // Optionally pass render_on_texture if the rendering is done to texture, in native coords,
-    // otherwise we assume it is set on a whole screen, scaled to the screen coords.
-    void SetScissor(const Rect &clip, bool render_on_texture = false);
-    // Configures rendering mode for the render target, depending on its properties
-    // TODO: find a good way to merge with SetRenderTarget
-    void SetRenderTarget(const D3DSpriteBatch *batch, Size &surface_sz, bool clear);
-    void RenderSpriteBatches();
-    size_t RenderSpriteBatch(const D3DSpriteBatch &batch, size_t from, const Size &rend_sz);
-    void RenderSprite(const D3DDrawListEntry *entry, const glm::mat4 &matGlobal,
-        const SpriteColorTransform &color, const Size &rend_sz);
-    // Renders given texture onto the current render target
-    void RenderTexture(D3DBitmap *bitmap, int draw_x, int draw_y, const glm::mat4 &matGlobal,
-        const SpriteColorTransform &color, const Size &rend_sz);
-    // Sets uniform blend settings, same for both RGB and alpha component
-    void SetBlendOpUniform(D3DBLENDOP blend_op, D3DBLEND src_factor, D3DBLEND dst_factor);
-    // Sets blend settings for RGB only, and keeps previously set alpha blend settings
-    void SetBlendOpRGB(D3DBLENDOP blend_op, D3DBLEND src_factor, D3DBLEND dst_factor);
-    // Sets blend settings for alpha channel
-    void SetBlendOpAlpha(D3DBLENDOP blend_op, D3DBLEND src_factor, D3DBLEND dst_factor);
 };
 
 

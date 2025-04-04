@@ -87,6 +87,8 @@ typedef void (*GFXDRV_CLIENTCALLBACKINITGFX)(void *data);
 class IGraphicsDriver
 {
 public:
+    using String = AGS::Common::String;
+public:
     virtual ~IGraphicsDriver() = default;
 
     ///////////////////////////////////////////////////////
@@ -204,6 +206,18 @@ public:
     virtual void UpdateTexture(Texture *txdata, const Bitmap *bmp, bool opaque = false) = 0;
     // Retrieve shared texture object from the given DDB
     virtual std::shared_ptr<Texture> GetTexture(IDriverDependantBitmap *ddb) = 0;
+
+    ///////////////////////////////////////////////////////
+    // Shader management
+    //
+    // Creates shader program from the source code, registers it under given name,
+    // returns internal shader index which may be used as a reference, or UINT32_MAX on failure.
+    virtual uint32_t CreateShaderProgram(const String &name, const char *fragment_shader_src) = 0;
+    // Looks up for the shader program using a name,
+    // returns internal shader index which may be used as a reference, or UINT32_MAX on failure.
+    virtual uint32_t FindShaderProgram(const String &name) = 0;
+    // Deletes particular shader program.
+    virtual void DeleteShaderProgram(const String &name) = 0;
 
     ///////////////////////////////////////////////////////
     // Preparing a scene

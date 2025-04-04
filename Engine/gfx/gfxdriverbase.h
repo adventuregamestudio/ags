@@ -273,6 +273,8 @@ public:
     }
     Common::BlendMode GetBlendMode() const { return _blendMode; }
     void SetBlendMode(Common::BlendMode blendMode) override { _blendMode = blendMode; }
+    uint32_t GetShader() const override { return _shader; }
+    void SetShader(uint32_t shader_id) override { _shader = shader_id; }
 
     int  GetTextureFlags() const { return _txFlags; }
     const Size &GetSize() const { return _size; }
@@ -293,6 +295,7 @@ protected:
     float _rotation = 0.f; // either in degrees or radians, depending on impl
     int _alpha = 255;
     Common::BlendMode _blendMode = Common::kBlend_Normal;
+    uint32_t _shader = 0u;
     int _red = 0, _green = 0, _blue = 0;
     int _tintSaturation = 0;
     int _lightLevel = 0;

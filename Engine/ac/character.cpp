@@ -440,7 +440,7 @@ void FaceDirectionalLoop(CharacterInfo *char1, int direction, int blockingStyle)
                     start_character_turning (char1, direction, no_diagonal);
 
                     if ((blockingStyle == BLOCKING) || (blockingStyle == 1))
-                        GameLoopUntilNotMoving(&char1->walking);
+                        GameLoopUntilFlagUnset(&charextra[char1->index_id].flags, kCharf_TurningMask);
                 }
                 else
                     char1->loop = direction;

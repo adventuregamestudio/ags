@@ -102,6 +102,7 @@ unsigned int loopcounter=0;
 static unsigned int lastcounter=0;
 static size_t numEventsAtStartOfFunction; // CHECKME: research and document this
 
+// Kinds of conditions used when "waiting" for something
 #define UNTIL_ANIMEND   1
 #define UNTIL_MOVEEND   2
 #define UNTIL_CHARIS0   3
@@ -111,6 +112,7 @@ static size_t numEventsAtStartOfFunction; // CHECKME: research and document this
 #define UNTIL_SHORTIS0  7
 #define UNTIL_INTISNEG  8
 #define UNTIL_ANIMBTNEND 9
+#define UNTIL_FLAGUNSET 10
 
 static void GameTick();
 
@@ -1342,6 +1344,11 @@ static bool ShouldStayInWaitMode()
     {  // still animating?
         return FindButtonAnimation(restrict_until->GetData1(), restrict_until->GetData2()) >= 0;
     }
+    case UNTIL_FLAGUNSET:
+    {
+        const int *bitset = static_cast<const int*>(restrict_until->GetDataPtr());
+        return ((*bitset) & restrict_until->GetData1()) != 0;
+    }
     default:
         debug_script_warn("loop_until: unknown until event, aborting");
         return false;
@@ -1417,6 +1424,11 @@ void GameLoopUntilNoOverlay()
 void GameLoopUntilButAnimEnd(int guin, int objn)
 {
     GameLoopUntilEvent(UNTIL_ANIMBTNEND, nullptr, guin, objn);
+}
+
+void GameLoopUntilFlagUnset(const int *flagset, int flagbit)
+{
+    GameLoopUntilEvent(UNTIL_FLAGUNSET, flagset, flagbit);
 }
 
 

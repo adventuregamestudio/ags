@@ -71,19 +71,20 @@ int do_movelist_move(short &mslot, int &pos_x, int &pos_y)
         return 0;
 
     MoveList &cmls = *get_movelist(mslot);
-    // CHECKME: historically, we return the previous position before advancing movelist
-    pos_x = cmls.GetCurrentPos().X;
-    pos_y = cmls.GetCurrentPos().Y;
     // TODO: find out what this value means and refactor
     int need_to_fix_sprite = 0;
     const int old_stage = cmls.GetStage();
     if (cmls.Forward())
     {
+        pos_x = cmls.GetCurrentPos().X;
+        pos_y = cmls.GetCurrentPos().Y;
         if (cmls.GetStage() != old_stage)
             need_to_fix_sprite = 2; // used to request a sprite direction update
     }
     else
     {
+        pos_x = cmls.GetCurrentPos().X;
+        pos_y = cmls.GetCurrentPos().Y;
         // reset MoveList, and tell moving object to stop
         remove_movelist(mslot);
         mslot = 0; // movelist 0 means "not moving/walking"

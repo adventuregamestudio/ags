@@ -206,15 +206,7 @@ bool MoveList::OnProgressChanged()
     if (xps == target.X && yps == target.Y)
     {
         // this stage is done, go on to the next stage, or stop
-        if (NextStage())
-        {
-            return true;
-        }
-        else
-        {
-            curpos = {};
-            return false;
-        }
+        return NextStage();
     }
     else
     {

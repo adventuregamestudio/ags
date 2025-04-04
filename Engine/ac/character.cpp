@@ -956,7 +956,7 @@ void Character_SetSpeed(CharacterInfo *chaa, int xspeed, int yspeed) {
     else
         chaa->walkspeed_y = yspeed;
 
-    if (chaa->is_moving())
+    if (chaa->is_moving() && (old_speedx != xspeed || old_speedy != yspeed))
     {
         Pathfinding::RecalculateMoveSpeeds(mls[chaa->get_movelist_id()], old_speedx, old_speedy, xspeed, yspeed);
     }

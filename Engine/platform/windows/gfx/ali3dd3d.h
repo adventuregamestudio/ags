@@ -273,6 +273,18 @@ public:
     std::shared_ptr<Texture> GetTexture(IDriverDependantBitmap *ddb) override;
 
     ///////////////////////////////////////////////////////
+    // Shader management
+    //
+    // Creates shader program from the source code, registers it under given name,
+    // returns internal shader index which may be used as a reference, or UINT32_MAX on failure.
+    uint32_t CreateShaderProgram(const String &name, const char *fragment_shader_src) override;
+    // Looks up for the shader program using a name,
+    // returns internal shader index which may be used as a reference, or UINT32_MAX on failure.
+    uint32_t FindShaderProgram(const String &name) override;
+    // Deletes particular shader program.
+    void DeleteShaderProgram(const String &name) override;
+
+    ///////////////////////////////////////////////////////
     // Preparing a scene
     // 
     // Adds sprite to the active batch, providing it's origin position

@@ -106,6 +106,8 @@ public:
     virtual void SetTint(int red, int green, int blue, int tintSaturation) = 0; // 0-255
     virtual Common::BlendMode GetBlendMode() const = 0;
     virtual void SetBlendMode(Common::BlendMode blendMode) = 0;
+    virtual uint32_t GetShader() const = 0;
+    virtual void SetShader(uint32_t shader_id) = 0;
 
     // Tells if this DDB has an actual render data assigned to it.
     virtual bool IsValid() const = 0;

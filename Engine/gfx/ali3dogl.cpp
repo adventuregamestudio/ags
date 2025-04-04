@@ -118,6 +118,9 @@ OGLGraphicsDriver::OGLGraphicsDriver()
   _vmem_g_shift_32 = 8;
   _vmem_b_shift_32 = 16;
   _vmem_a_shift_32 = 24;
+
+  // Reserve shader index 0 as "no shader"
+  _shaders.push_back({});
 }
 
 void OGLGraphicsDriver::SetupDefaultVertices()
@@ -1054,18 +1057,23 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
   const int alpha = (color.Alpha * bmpToDraw->GetAlpha()) / 255;
   const int invalpha = 255 - alpha;
 
-  ShaderProgram program;
+  const ShaderProgram *program = nullptr;
 
   int tint_r, tint_g, tint_b, tint_sat, light_lev;
   bmpToDraw->GetTint(tint_r, tint_g, tint_b, tint_sat);
   light_lev = bmpToDraw->GetLightLevel();
   const bool do_tint = tint_sat > 0 && _tintShader.Program > 0;
   const bool do_light = tint_sat == 0 && light_lev > 0 && _lightShader.Program > 0;
-  if (do_tint)
+  if (bmpToDraw->GetShader() != 0u)
+  {
+    // Use custom shader
+    program = bmpToDraw->GetShader() < _shaders.size() ? &_shaders[bmpToDraw->GetShader()] : &_transparencyShader;
+    glUseProgram(program->Program);
+  }
+  else if (do_tint)
   {
     // Use tinting shader
-    program = _tintShader;
-    glUseProgram(_tintShader.Program);
+    program = &_tintShader;
 
     float rgb[3];
     float sat_trs_lum[3]; // saturation / transparency / luminance
@@ -1079,6 +1087,7 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
     else
       sat_trs_lum[2] = 1.0f;
 
+    glUseProgram(_tintShader.Program);
     glUniform3f(_tintShader.TintHSV, rgb[0], rgb[1], rgb[2]);
     glUniform1f(_tintShader.TintAmount, sat_trs_lum[0]);
     glUniform1f(_tintShader.TintLuminance, sat_trs_lum[2]);
@@ -1086,8 +1095,7 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
   else if (do_light)
   {
     // Use light shader
-    program = _lightShader;
-    glUseProgram(_lightShader.Program);
+    program = &_lightShader;
     float light_lev = 1.0f;
 
     // Light level parameter in DDB is weird, it is measured in units of
@@ -1106,6 +1114,7 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
       light_lev = ((light_lev - 256) / 2) / 255.f; // brighter, uses ADD op
     }
 
+    glUseProgram(_lightShader.Program);
     glUniform1f(_lightShader.LightingAmount, light_lev);
   }
   else
@@ -1116,8 +1125,7 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
     case kBlend_Multiply:
     case kBlend_Burn: // burn is imperfect due to blend mode, darker than normal even when trasparent
       // hack for blendmodes: fade to white to make it transparent
-      program = _lightenByAlphaShader;
-      glUseProgram(_lightenByAlphaShader.Program);
+      program = &_lightenByAlphaShader;
       break;
 
     case kBlend_Lighten:
@@ -1125,20 +1133,22 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
     case kBlend_Exclusion:
     case kBlend_Dodge:
       // hack for blendmodes: fade to black to make it transparent
-      program = _darkenbyAlphaShader;
+      program = &_darkenbyAlphaShader;
       glUseProgram(_darkenbyAlphaShader.Program);
       break;
 
     default:
       // Use default processing
-      program = _transparencyShader;
+      program = &_transparencyShader;
       glUseProgram(_transparencyShader.Program);
       break;
     }
+
+    glUseProgram(program->Program);
   }
 
-  glUniform1i(program.TextureId, 0);
-  glUniform1f(program.Alpha, alpha / 255.0f);
+  glUniform1i(program->TextureId, 0);
+  glUniform1f(program->Alpha, alpha / 255.0f);
 
   float width = bmpToDraw->GetWidthToRender();
   float height = bmpToDraw->GetHeightToRender();
@@ -1203,7 +1213,7 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
     transform = glmex::transform2d(transform, thisX, thisY, widthToScale, heightToScale,
         rotZ, pivotX, pivotY);
 
-    glUniformMatrix4fv(program.MVPMatrix, 1, GL_FALSE, glm::value_ptr(transform));
+    glUniformMatrix4fv(program->MVPMatrix, 1, GL_FALSE, glm::value_ptr(transform));
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, txdata->_tiles[ti].texture);
@@ -1226,13 +1236,13 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
 
     if (txdata->_vertex != nullptr)
     {
-        glVertexAttribPointer(program.A_Position, 2, GL_FLOAT, GL_FALSE, sizeof(OGLCUSTOMVERTEX), &(txdata->_vertex[ti * 4].position));
-        glVertexAttribPointer(program.A_TexCoord, 2, GL_FLOAT, GL_FALSE, sizeof(OGLCUSTOMVERTEX), &(txdata->_vertex[ti * 4].tu));
+        glVertexAttribPointer(program->A_Position, 2, GL_FLOAT, GL_FALSE, sizeof(OGLCUSTOMVERTEX), &(txdata->_vertex[ti * 4].position));
+        glVertexAttribPointer(program->A_TexCoord, 2, GL_FLOAT, GL_FALSE, sizeof(OGLCUSTOMVERTEX), &(txdata->_vertex[ti * 4].tu));
     }
     else
     {
-        glVertexAttribPointer(program.A_Position, 2, GL_FLOAT, GL_FALSE, sizeof(OGLCUSTOMVERTEX), &(defaultVertices[0].position));
-        glVertexAttribPointer(program.A_TexCoord, 2, GL_FLOAT, GL_FALSE, sizeof(OGLCUSTOMVERTEX), &(defaultVertices[0].tu));
+        glVertexAttribPointer(program->A_Position, 2, GL_FLOAT, GL_FALSE, sizeof(OGLCUSTOMVERTEX), &(defaultVertices[0].position));
+        glVertexAttribPointer(program->A_TexCoord, 2, GL_FLOAT, GL_FALSE, sizeof(OGLCUSTOMVERTEX), &(defaultVertices[0].tu));
     }
 
     // Treat special render modes
@@ -2114,6 +2124,41 @@ Texture *OGLGraphicsDriver::CreateTexture(int width, int height, int color_depth
   txdata->_numTiles = numTiles;
   txdata->_tiles = tiles;
   return txdata;
+}
+
+uint32_t OGLGraphicsDriver::CreateShaderProgram(const String &name, const char *fragment_shader_src)
+{
+    if (_shaderLookup.find(name) != _shaderLookup.end())
+        return UINT32_MAX; // the name is in use
+
+    ShaderProgram prg;
+    if (!CreateShaderProgram(prg, name, default_vertex_shader_src, fragment_shader_src))
+        return UINT32_MAX;
+
+    AssignBaseShaderArgs(prg);
+    _shaders.push_back(prg);
+    uint32_t shader_id = static_cast<uint32_t>(_shaders.size() - 1);
+    _shaderLookup[name] = shader_id;
+    return shader_id;
+}
+
+uint32_t OGLGraphicsDriver::FindShaderProgram(const String &name)
+{
+    auto found_it = _shaderLookup.find(name);
+    if (found_it == _shaderLookup.end())
+        return UINT32_MAX; // not found
+    return found_it->second;
+}
+
+void OGLGraphicsDriver::DeleteShaderProgram(const String &name)
+{
+    auto found_it = _shaderLookup.find(name);
+    if (found_it == _shaderLookup.end())
+        return; // not found
+    uint32_t shader_id = found_it->second;
+    DeleteShaderProgram(_shaders[shader_id]);
+    _shaders[shader_id] = {};
+    _shaderLookup.erase(name);
 }
 
 void OGLGraphicsDriver::SetScreenFade(int red, int green, int blue)

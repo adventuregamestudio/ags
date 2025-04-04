@@ -2083,6 +2083,21 @@ Texture *D3DGraphicsDriver::CreateTexture(int width, int height, int color_depth
   return txdata;
 }
 
+uint32_t D3DGraphicsDriver::CreateShaderProgram(const String &name, const char *fragment_shader_src)
+{
+    return UINT32_MAX; // TODO
+}
+
+uint32_t D3DGraphicsDriver::FindShaderProgram(const String &name)
+{
+    return UINT32_MAX; // TODO
+}
+
+void D3DGraphicsDriver::DeleteShaderProgram(const String &name)
+{
+    // TODO
+}
+
 void D3DGraphicsDriver::SetScreenFade(int red, int green, int blue)
 {
     assert(_actSpriteBatch != UINT32_MAX);

@@ -112,7 +112,8 @@ namespace AGS.Editor
          *                  GlobalVariable may be of array type.
          * 3.6.2.2        - Button.WrapText, TextPadding.
          * 3.6.2.6        - Settings.GameFPS.
-         * 3.6.3          - Settings.GUIHandleOnlyLeftMouseButton
+         * 3.6.3          - Settings.GUIHandleOnlyLeftMouseButton,
+         *                  Imported sprites can select transparent palette index.
         */
         public const int    LATEST_XML_VERSION_INDEX = 3060300;
         /*

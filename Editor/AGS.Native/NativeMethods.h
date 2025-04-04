@@ -56,8 +56,8 @@ namespace AGS
 			int  DrawFont(int hDC, int fontNum, int draw_atx, int draw_aty, int width, int height, int scroll_y);
 			void DrawBlockOfColour(int hDC, int x, int y, int width, int height, int colourNum);
 			void DrawViewLoop(int hdc, ViewLoop^ loopToDraw, int x, int y, int size, List<int>^ cursel);
-			Sprite^ SetSpriteFromBitmap(int spriteSlot, Bitmap^ bmp, int spriteImportMethod, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel);
-			void ReplaceSpriteWithBitmap(Sprite ^spr, Bitmap^ bmp, int spriteImportMethod, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel);
+			Sprite^ SetSpriteFromBitmap(int spriteSlot, Bitmap^ bmp, int spriteImportMethod, int transColour, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel);
+			void ReplaceSpriteWithBitmap(Sprite ^spr, Bitmap^ bmp, int spriteImportMethod, int transColour, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel);
             Bitmap^ GetSpriteBitmap(int spriteSlot);
             Bitmap^ GetSpriteBitmapAs32Bit(int spriteSlot, int width, int height);
 			void DeleteSprite(int spriteSlot);

@@ -109,7 +109,6 @@ OGLGraphicsDriver::OGLGraphicsDriver()
 
   _firstTimeInit = false;
   _nativeSurface = nullptr;
-  _legacyPixelShader = false;
   _canRenderToTexture = false;
   _doRenderToTexture = false;
   SetupDefaultVertices();
@@ -190,11 +189,6 @@ void OGLGraphicsDriver::SetGraphicsFilter(POGLFilter filter)
 {
   _filter = filter;
   OnSetFilter();
-}
-
-void OGLGraphicsDriver::SetTintMethod(TintMethod method)
-{
-  _legacyPixelShader = (method == TintReColourise);
 }
 
 void OGLGraphicsDriver::SetBlendOpUniform(GLenum blend_op, GLenum src_factor, GLenum dst_factor)
@@ -1097,17 +1091,8 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
 
     float rgb[3];
     float sat_trs_lum[3]; // saturation / transparency / luminance
-    if (_legacyPixelShader)
-    {
-      rgb_to_hsv(tint_r, tint_g, tint_b, &rgb[0], &rgb[1], &rgb[2]);
-      rgb[0] /= 360.0; // In HSV, Hue is 0-360
-    }
-    else
-    {
-      rgb[0] = (float)tint_r / 255.0;
-      rgb[1] = (float)tint_g / 255.0;
-      rgb[2] = (float)tint_b / 255.0;
-    }
+    rgb_to_hsv(tint_r, tint_g, tint_b, &rgb[0], &rgb[1], &rgb[2]);
+    rgb[0] /= 360.0; // In HSV, Hue is 0-360
 
     sat_trs_lum[0] = (float)tint_sat / 255.0;
 

@@ -44,12 +44,6 @@ typedef std::shared_ptr<IGfxFilter> PGfxFilter;
 using Common::Bitmap;
 using Common::PBitmap;
 
-enum TintMethod
-{
-  TintReColourise = 0,
-  TintSpecifyMaximum = 1
-};
-
 struct SpriteColorTransform
 {
     int Alpha = 255; // alpha color value (0 - 255)
@@ -108,7 +102,6 @@ public:
   // in case of display mode change or reset.
   virtual bool ShouldReleaseRenderTargets() = 0;
 
-  virtual void SetTintMethod(TintMethod method) = 0;
   // Initialize given display mode
   virtual bool SetDisplayMode(const DisplayMode &mode) = 0;
   // Updates previously set display mode, accomodating to the new screen size

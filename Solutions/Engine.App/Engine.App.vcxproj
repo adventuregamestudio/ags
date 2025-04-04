@@ -925,7 +925,6 @@
   <ItemGroup>
     <None Include="..\..\Engine\ac\route_finder_jps.inl" />
     <None Include="..\..\Engine\resource\tintshader.fxo" />
-    <None Include="..\..\Engine\resource\tintshaderLegacy.fxo" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\Engine\resource\version.rc" />

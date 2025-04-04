@@ -514,9 +514,6 @@ bool graphics_mode_create_renderer(const String &driver_id)
         return false;
 
     gfxDriver->SetCallbackOnInit(GfxDriverOnInitCallback);
-    // TODO: this is remains of the old code; find out if this is really
-    // the best time and place to set the tint method
-    gfxDriver->SetTintMethod(TintReColourise);
     return true;
 }
 

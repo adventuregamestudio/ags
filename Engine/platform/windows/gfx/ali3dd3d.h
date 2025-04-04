@@ -203,7 +203,6 @@ public:
 
     bool ShouldReleaseRenderTargets() override { return true; }
 
-    void SetTintMethod(TintMethod method) override;
     bool SetDisplayMode(const DisplayMode &mode) override;
     void UpdateDeviceScreen(const Size &screen_sz) override;
     bool SetNativeResolution(const GraphicResolution &native_res) override;
@@ -288,7 +287,6 @@ private:
     D3DPixelShaderPtr pixelShader;
     int _fullscreenDisplay = -1; // a display where exclusive fullscreen was created
     bool _smoothScaling;
-    bool _legacyPixelShader;
     float _pixelRenderXOffset;
     float _pixelRenderYOffset;
     bool _renderAtScreenRes;

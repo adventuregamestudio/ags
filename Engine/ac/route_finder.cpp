@@ -266,9 +266,9 @@ void RecalculateMoveSpeeds(MoveList &mls, int old_speed_x, int old_speed_y, int 
     {
         // First three cases where the speed is a plain factor, therefore
         // we may simply divide on old one and multiple on a new one
-        if ((old_movspeed_x == old_movspeed_y) || // diagonal move at straight 45 degrees
-            (mls.permove[i].X == 0) || // straight vertical move
-            (mls.permove[i].Y == 0))   // straight horizontal move
+        if ((old_movspeed_x == old_movspeed_y) && (new_movspeed_x == new_movspeed_y) // diagonal move at straight 45 degrees
+            || (mls.permove[i].X == 0) // straight vertical move
+            || (mls.permove[i].Y == 0)) // straight horizontal move
         {
             mls.permove[i].X = fixdiv(fixmul(mls.permove[i].X, new_movspeed_x), old_movspeed_x);
             mls.permove[i].Y = fixdiv(fixmul(mls.permove[i].Y, new_movspeed_y), old_movspeed_y);

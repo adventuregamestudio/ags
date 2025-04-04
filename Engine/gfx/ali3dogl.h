@@ -187,25 +187,6 @@ private:
     std::vector<DisplayMode> _modes;
 };
 
-// Shader program and its variable references;
-// the variables are rather specific for AGS use (sprite tinting).
-struct ShaderProgram
-{
-    GLuint Program = 0;
-
-    GLuint A_Position = 0;
-    GLuint A_TexCoord = 0;
-
-    GLuint MVPMatrix = 0;
-    GLuint TextureId = 0;
-    GLuint Alpha = 0;
-
-    GLuint TintHSV = 0;
-    GLuint TintAmount = 0;
-    GLuint TintLuminance = 0;
-    GLuint LightingAmount = 0;
-};
-
 class OGLGfxFilter;
 
 class OGLGraphicsDriver : public VideoMemoryGraphicsDriver
@@ -363,6 +344,52 @@ private:
     void UpdateTextureRegion(OGLTextureTile *tile, const Bitmap *bitmap, bool opaque);
 
     ///////////////////////////////////////////////////////
+    // Shader management: implementation
+    //
+    // Shader program and its variable references;
+    // the variables are rather specific for AGS use (sprite tinting).
+    struct ShaderProgram
+    {
+        String Name;
+
+        GLuint Program = 0u;
+        //---------------------------------------
+        // Vector shader
+        // Default vector shader attributes
+        GLuint A_Position = 0;
+        GLuint A_TexCoord = 0;
+        // Default vector shader uniforms
+        GLuint MVPMatrix = 0; // model transformation matrix
+
+        //---------------------------------------
+        // Fragment shader:
+        // Standard uniforms
+        GLuint TextureId = 0; // main texture (sprite or render target)
+        GLuint Alpha = 0;     // requested global alpha
+
+        // Specialized uniforms for built-in shaders
+        GLuint TintHSV = 0;
+        GLuint TintAmount = 0;
+        GLuint TintLuminance = 0;
+        GLuint LightingAmount = 0;
+    };
+
+    // Compiles and links shader program, using provided vertex and fragment shaders
+    bool CreateShaderProgram(ShaderProgram &prg, const String &name, const char *vertex_shader_src, const char *fragment_shader_src);
+    // Deletes a shader program
+    void DeleteShaderProgram(ShaderProgram &prg);
+    void AssignBaseShaderArgs(ShaderProgram &prg);
+    void OutputShaderError(GLuint obj_id, const String &obj_name, bool is_shader);
+
+    //
+    // Specialized shaders
+    bool CreateTransparencyShader(ShaderProgram &prg);
+    bool CreateTintShader(ShaderProgram &prg);
+    bool CreateLightShader(ShaderProgram &prg);
+    bool CreateDarkenByAlphaShader(ShaderProgram &prg);
+    bool CreateLightenByAlphaShader(ShaderProgram &prg);
+
+    ///////////////////////////////////////////////////////
     // Preparing a scene: implementation
     //
     void InitSpriteBatch(size_t index, const SpriteBatchDesc &desc) override;
@@ -442,11 +469,14 @@ private:
     bool _smoothScaling = false;
     POGLFilter _filter{};
 
+    ShaderProgram _transparencyShader;
     ShaderProgram _tintShader;
     ShaderProgram _lightShader;
-    ShaderProgram _transparencyShader;
     ShaderProgram _darkenbyAlphaShader;
     ShaderProgram _lightenByAlphaShader;
+    // Custom shaders
+    std::vector<ShaderProgram> _shaders;
+    std::unordered_map<String, uint32_t> _shaderLookup;
 
     int device_screen_physical_width;
     int device_screen_physical_height;

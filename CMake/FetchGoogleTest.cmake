@@ -11,8 +11,8 @@ else()
     FetchContent_Declare(
         googletest_content
         DOWNLOAD_EXTRACT_TIMESTAMP TRUE
-        URL https://github.com/google/googletest/archive/4ec4cd23f486bf70efcc5d2caa40f24368f752e3.tar.gz
-        URL_HASH MD5=b907483a9045a2edda15ee7d2a68aaa5
+        URL https://github.com/google/googletest/archive/52204f78f94d7512df1f0f3bea1d47437a2c3a58.tar.gz
+        URL_HASH MD5=9512a106bb006ab84e0a822ec363c6c7
     )
 endif()
 

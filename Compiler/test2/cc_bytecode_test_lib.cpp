@@ -15,6 +15,7 @@
 #include <fstream>
 #include <sstream>
 #include <algorithm>
+#include <iomanip>
 
 #include "gtest/gtest.h"
 #include "script2/cc_compiledscript.h"

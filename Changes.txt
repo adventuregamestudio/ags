@@ -1,6 +1,6 @@
 REVISION HISTORY
 ================
-VERSION 3.6.0 - Patch 13, March 2025
+VERSION 3.6.0 - Patch 13, April 2025
 
 Editor:
  - Fixed translation compiler mistreating escaped opening bracket in a text line ("\[");

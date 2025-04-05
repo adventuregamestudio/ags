@@ -90,6 +90,9 @@ namespace AGS.Editor
 
         public virtual void DefaultAction()
         {
+            if (_message == null)
+                return;
+
             // Select default item action depending on its type
             string defaultCommand = ACTION_GOTO_SCRIPT;
             if (_message is CompileWarningWithGameObject && string.IsNullOrEmpty(((CompileWarningWithGameObject)_message).FunctionName))
@@ -99,6 +102,9 @@ namespace AGS.Editor
 
         public virtual void Action(string command)
         {
+            if (_message == null)
+                return;
+
             if (command == ACTION_GOTO_SCRIPT)
             {
                 if (_message.LineNumber > 0)

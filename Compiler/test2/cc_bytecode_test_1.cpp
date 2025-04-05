@@ -2908,8 +2908,8 @@ TEST_F(Bytecode1, ArrayInit01) {
             "SATOR",
             { 'A', 'R', 'E', 'P', 'O', },
             "TENET",
-            { [4]: 'S', [3]: 'A', [2]: 'T', [1]: 'O',
-              [0]: 'R', [5]: '\xFF' & '\x0F' & '\xF0', },
+            { 4: 'S', 3: 'A', 2: 'T', 1: 'O',
+              0: 'R', 5: '\xFF' & '\x0F' & '\xF0', },
         };
         )%&/";
 
@@ -2958,9 +2958,9 @@ TEST_F(Bytecode1, ArrayInit02) {
     char const *inpl = R"%&/(
         const int two = 2;
         int matrix[3][3] = {
-            [0]:     { 1, },
-            [4 / 4]: { 0, 1, },
-            [two]:   { [2]: 1, },
+            0:     { 1, },
+            4 / 4: { 0, 1, },
+            two:   { 2: 1, },
         };
         )%&/";
 

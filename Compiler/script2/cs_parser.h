@@ -770,7 +770,10 @@ private:
     // Initial assignment to a global non-managed struct
     void ParseVardecl_InitialValAssignment_Struct(Vartype vartype, std::vector<char> &initial_val);
 
-    // Initialize a static array by specifying named entries of the form '[idx]: value'
+    // Peeks into a static array initialization and checks whether the first entry has
+    // a form of 'idx: value'.
+    bool ParseVardecl_InitialValAssignment_PeekArrayNamed();
+    // Initialize a static array by specifying named entries of the form 'idx: value'
     // Starting '{' has already been eaten
     void ParseVardecl_InitialValAssignment_Array_Named(size_t first_dim_size, Vartype el_vartype, std::vector<char> &initial_val);
 

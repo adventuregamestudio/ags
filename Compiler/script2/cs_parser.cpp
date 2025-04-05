@@ -4455,6 +4455,23 @@ void AGS::Parser::ParseVardecl_InitialValAssignment_Struct(Vartype const vartype
     initial_val.resize(_sym.GetSize(vartype));
 }
 
+bool AGS::Parser::ParseVardecl_InitialValAssignment_PeekArrayNamed()
+{
+    // Get the index 'N:'
+    EvaluationResult eres;
+    size_t const array_index_start = _src.GetCursor();
+    // Parse an integer expression making sure that no code is generated
+    // not even LINUM directives (we are outside of a function body)
+    RestorePoint rp(_scrip);
+    ParseExpression(_src, eres);
+    rp.Restore(false);
+    const bool is_named_assignment = (EvaluationResult::kLOC_SymbolTable == eres.Location
+        && _sym.IsLiteral(eres.Symbol)
+        && _src.PeekNext() == kKW_Colon);
+    _src.SetCursor(array_index_start);
+    return is_named_assignment;
+}
+
 void AGS::Parser::ParseVardecl_InitialValAssignment_Array_Named(size_t const first_dim_size, Vartype const el_vartype, std::vector<char> &initial_val)
 {
     struct init_record
@@ -4466,13 +4483,7 @@ void AGS::Parser::ParseVardecl_InitialValAssignment_Array_Named(size_t const fir
 
     while (kKW_CloseBrace != _src.PeekNext())
     {
-        // Get the index '[...]:'
-        Symbol const bracket = _src.GetNext();
-        if (kKW_OpenBracket != bracket)
-            UserError(
-                "Expected '}' or '[', found '%s' instead "
-                "(cannot mix named and unnamed array fields within the same '{...}')",
-                _sym.GetName(bracket).c_str());
+        // Get the index 'N:'
         EvaluationResult eres;
         size_t const array_index_start = _src.GetCursor();
         // Parse an integer expression making sure that no code is generated
@@ -4484,25 +4495,24 @@ void AGS::Parser::ParseVardecl_InitialValAssignment_Array_Named(size_t const fir
         {
             _src.SetCursor(array_index_start);
             UserError(
-                "Cannot evaluate the array index expression at compile time that starts with '[%s'",
+                "Cannot evaluate the array index expression at compile time that starts with '%s'",
                 _sym.GetName(_src.PeekNext()).c_str());
         }
         if (!_sym.IsLiteral(eres.Symbol))
             InternalError("Cannot retrieve literal '%s'", _sym.GetName(eres.Symbol).c_str());
         int const idx_as_int = _sym[eres.Symbol].LiteralD->Value;
         if (idx_as_int < 0)
-            UserError("Array index '[%d]' is too low (minimum is '[0]')", idx_as_int);
+            UserError("Array index '%d' is too low (minimum is '0')", idx_as_int);
         size_t const idx = static_cast<size_t>(idx_as_int);
         if (idx >= first_dim_size)
-            UserError("Array index '[%u]' is too high (maximum is '[%u]')", idx, first_dim_size - 1u);
+            UserError("Array index '%u' is too high (maximum is '%u')", idx, first_dim_size - 1u);
         if (inits.count(idx))
             UserError(
                 ReferenceMsgLoc(
-                    "The value of field '[%u]' has already been specified",
+                    "The value of field '%u' has already been specified",
                     inits[idx].Declared).c_str(),
                 idx);
         
-        Expect(kKW_CloseBracket, _src.GetNext());
         Expect(kKW_Colon, _src.GetNext());
 
         // Get the value and write a record to 'inits'
@@ -4592,7 +4602,7 @@ void AGS::Parser::ParseVardecl_InitialValAssignment_Array(Vartype const vartype,
     size_t const first_dim_size = _sym[vartype].VartypeD->Dims.at(0u);
     Vartype const el_vartype = _sym.ArrayVartypeWithoutFirstDim(vartype);
 
-    if (kKW_OpenBracket == _src.PeekNext())
+    if (ParseVardecl_InitialValAssignment_PeekArrayNamed())
         return ParseVardecl_InitialValAssignment_Array_Named(first_dim_size, el_vartype, initial_val);
     return ParseVardecl_InitialValAssignment_Array_Sequence(first_dim_size, el_vartype, initial_val);
 }

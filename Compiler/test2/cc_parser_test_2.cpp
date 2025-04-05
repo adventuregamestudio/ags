@@ -865,14 +865,14 @@ TEST_F(Compile2, ArrayInitNamedUnnamedMix01) {
     // array initialization sequence
 
     char const *inpl = R"%&/(
-        short arr[5] = { 1, [2]: 5 };
+        short arr[5] = { 1, 2: 5 };
         )%&/";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
     std::string const &err_msg = mh.GetError().Message;
 
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
-    EXPECT_NE(std::string::npos, err_msg.find("'['"));
+    EXPECT_NE(std::string::npos, err_msg.find("':'"));
 }
 
 TEST_F(Compile2, ArrayInitNamedUnnamedMix02) {
@@ -881,23 +881,22 @@ TEST_F(Compile2, ArrayInitNamedUnnamedMix02) {
     // array initialization sequence
 
     char const *inpl = R"%&/(
-        short arr[5] = { [0]: 1, 2, };
+        short arr[5] = { 0: 1, 2, };
         )%&/";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
     std::string const &err_msg = mh.GetError().Message;
 
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
-    EXPECT_NE(std::string::npos, err_msg.find("'2'"));
+    EXPECT_NE(std::string::npos, err_msg.find("':'"));
 }
 
 TEST_F(Compile2, ArrayInitNamedOutOfRange01) {
 
-    // Can't mix unnamed and named entries in
-    // array initialization sequence
+    // Element's "name" must be a valid array index
 
     char const *inpl = R"%&/(
-        short arr[5] = { [(3 - 5) / 2]: 1 };
+        short arr[5] = { (3 - 5) / 2: 1 };
         )%&/";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
@@ -909,11 +908,10 @@ TEST_F(Compile2, ArrayInitNamedOutOfRange01) {
 
 TEST_F(Compile2, ArrayInitNamedOutOfRange02) {
 
-    // Can't mix unnamed and named entries in
-    // array initialization sequence
+    // Element's "name" must be a valid array index
 
     char const *inpl = R"%&/(
-        short arr[5] = { [5]: 1 };
+        short arr[5] = { 5: 1 };
         )%&/";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
@@ -925,19 +923,18 @@ TEST_F(Compile2, ArrayInitNamedOutOfRange02) {
 
 TEST_F(Compile2, ArrayInitNamedDouble) {
 
-    // Can't mix unnamed and named entries in
-    // array initialization sequence
+    // Can't initialize same element twice
 
     char const *inpl = R"%&/(
-        short arr[5] = { [3]: 1,
-                         [3]: 2, };
+        short arr[5] = { 3: 1,
+                         3: 2, };
         )%&/";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
     std::string const &err_msg = mh.GetError().Message;
 
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
-    EXPECT_NE(std::string::npos, err_msg.find("[3]"));
+    EXPECT_NE(std::string::npos, err_msg.find("3"));
 }
 
 TEST_F(Compile2, InitManaged01)

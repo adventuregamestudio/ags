@@ -35,7 +35,7 @@ public:
     void WriteBitmap(System::Drawing::Bitmap ^image);
     // Converts bitmap according to the sprite's properties, and writes into the file
     void WriteBitmap(System::Drawing::Bitmap ^image, AGS::Types::SpriteImportTransparency transparency,
-        bool remapColours, bool useRoomBackgroundColours, bool alphaChannel);
+        int transColour, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel);
     // Writes a native bitmap into the file without any additional convertions
     void WriteNativeBitmap(NativeBitmap ^bitmap);
     // Writes a raw sprite data presented in internal spritefile format

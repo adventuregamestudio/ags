@@ -35,6 +35,15 @@ namespace AGS.Editor
             }
         }
 
+        public Color[] GetOriginalPalette()
+        {
+            var image = collection[0];
+            Color[] cols = new Color[image.ColormapSize];
+            for (int i = 0; i < image.ColormapSize; ++i)
+                cols[i] = image.GetColormap(i).ToColor();
+            return cols;
+        }
+
         public int GetFrameCount()
         {
             return collection.Count;

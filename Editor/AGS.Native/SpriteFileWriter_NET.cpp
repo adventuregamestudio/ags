@@ -23,7 +23,8 @@ using AGSStream = AGS::Common::Stream;
 
 extern AGSBitmap *CreateBlockFromBitmap(System::Drawing::Bitmap ^bmp, RGB *imgpal, int *srcPalLen,
     bool fixColourDepth, bool importAlpha, bool keepTransparency, int *originalColDepth);
-extern AGSBitmap *CreateNativeBitmap(System::Drawing::Bitmap ^bmp, int spriteImportMethod, bool remapColours,
+extern AGSBitmap *CreateNativeBitmap(System::Drawing::Bitmap ^bmp, int spriteImportMethod,
+    int transColour, bool remapColours,
     bool useRoomBackgroundColours, bool alphaChannel, int *flags);
 
 namespace AGS
@@ -57,10 +58,10 @@ void SpriteFileWriter::WriteBitmap(System::Drawing::Bitmap ^image)
 }
 
 void SpriteFileWriter::WriteBitmap(System::Drawing::Bitmap ^image, AGS::Types::SpriteImportTransparency transparency,
-    bool remapColours, bool useRoomBackgroundColours, bool alphaChannel)
+    int transColour, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel)
 {
-    std::unique_ptr<AGSBitmap> native_bmp(CreateNativeBitmap(image, (int)transparency, remapColours,
-        useRoomBackgroundColours, alphaChannel, nullptr));
+    std::unique_ptr<AGSBitmap> native_bmp(CreateNativeBitmap(image, (int)transparency, transColour,
+        remapColours, useRoomBackgroundColours, alphaChannel, nullptr));
     _nativeWriter->WriteBitmap(native_bmp.get());
 }
 

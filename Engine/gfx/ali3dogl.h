@@ -394,15 +394,15 @@ private:
     void DeleteShaderProgram(ShaderProgram &prg);
     void AssignBaseShaderArgs(ShaderProgram &prg);
     void UpdateGlobalShaderArgValues();
-    void OutputShaderError(GLuint obj_id, const String &obj_name, bool is_shader);
+    void OutputShaderLog(GLuint obj_id, const String &shader_name, const char *step_name, bool is_shader, bool as_error);
 
     //
     // Specialized shaders
-    bool CreateTransparencyShader(ShaderProgram &prg);
-    bool CreateTintShader(ShaderProgram &prg);
-    bool CreateLightShader(ShaderProgram &prg);
-    bool CreateDarkenByAlphaShader(ShaderProgram &prg);
-    bool CreateLightenByAlphaShader(ShaderProgram &prg);
+    bool CreateTransparencyShader(ShaderProgram &prg, const ShaderProgram &fallback_prg);
+    bool CreateTintShader(ShaderProgram &prg, const ShaderProgram &fallback_prg);
+    bool CreateLightShader(ShaderProgram &prg, const ShaderProgram &fallback_prg);
+    bool CreateDarkenByAlphaShader(ShaderProgram &prg, const ShaderProgram &fallback_prg);
+    bool CreateLightenByAlphaShader(ShaderProgram &prg, const ShaderProgram &fallback_prg);
 
     ///////////////////////////////////////////////////////
     // Preparing a scene: implementation

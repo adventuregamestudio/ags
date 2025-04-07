@@ -692,7 +692,7 @@ static void wouttextxy_AutoOutline(Bitmap *ds, size_t font, int32_t color, Blend
 #endif
     // Anti-aliased TTFs require to be alpha-blended, not blit,
     // or the alpha values will be plain copied and final image will be broken.
-    void(Bitmap::*pfn_drawstencil)(Bitmap *src, int dst_x, int dst_y);
+    void(Bitmap::*pfn_drawstencil)(const Bitmap *src, int dst_x, int dst_y);
     if (alpha_blend)
     { // NOTE: we must set out blender AFTER wouttextxy, or it will be overidden
         SetBlender(blend_mode, 0xFF);

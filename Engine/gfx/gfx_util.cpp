@@ -27,7 +27,7 @@ using namespace Common;
 namespace GfxUtil
 {
 
-Bitmap *ConvertBitmap(Bitmap *src, int dst_color_depth, bool keep_mask)
+Bitmap *ConvertBitmap(const Bitmap *src, int dst_color_depth, bool keep_mask)
 {
     int src_col_depth = src->GetColorDepth();
     if (src_col_depth != dst_color_depth)
@@ -39,10 +39,10 @@ Bitmap *ConvertBitmap(Bitmap *src, int dst_color_depth, bool keep_mask)
         set_color_conversion(old_conv);
         return dst;
     }
-    return src;
+    return const_cast<Bitmap*>(src);
 }
 
-void DrawSpriteBlend(Bitmap *ds, const Point &ds_at, Bitmap *sprite,
+void DrawSpriteBlend(Bitmap *ds, const Point &ds_at, const Bitmap *sprite,
                        BlendMode blend_mode, int alpha)
 {
     if (alpha <= 0)
@@ -65,7 +65,7 @@ void DrawSpriteBlend(Bitmap *ds, const Point &ds_at, Bitmap *sprite,
     }
 }
 
-void DrawSpriteWithTransparency(Bitmap *ds, Bitmap *sprite, int x, int y, int alpha)
+void DrawSpriteWithTransparency(Bitmap *ds, const Bitmap *sprite, int x, int y, int alpha)
 {
     if (alpha <= 0)
     {

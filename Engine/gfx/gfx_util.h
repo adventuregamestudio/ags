@@ -41,20 +41,20 @@ namespace GfxUtil
     // By default this keeps mask pixels intact, only converting mask color
     // value as necessary; but optionally you may request to ignore mask pixels
     // and treat them as regular color.
-    Bitmap *ConvertBitmap(Bitmap *src, int dst_color_depth, bool keep_mask = true);
+    Bitmap *ConvertBitmap(const Bitmap *src, int dst_color_depth, bool keep_mask = true);
 
     // Considers the given information about source and destination surfaces,
     // then draws a bitmap over another either using requested blending mode,
     // or fallbacks to common "magic pink" transparency mode;
     // optionally uses blending alpha (overall image transparency).
-    void DrawSpriteBlend(Bitmap *ds, const Point &ds_at, Bitmap *sprite,
+    void DrawSpriteBlend(Bitmap *ds, const Point &ds_at, const Bitmap *sprite,
         Common::BlendMode blend_mode, int alpha = 0xFF);
 
     // Draws a bitmap over another one with given alpha level (0 - 255),
     // takes account of the bitmap's mask color,
     // ignores image's alpha channel, even if there's one;
     // does a conversion if sprite and destination color depths do not match.
-    void DrawSpriteWithTransparency(Bitmap *ds, Bitmap *sprite, int x, int y, int alpha = 0xFF);
+    void DrawSpriteWithTransparency(Bitmap *ds, const Bitmap *sprite, int x, int y, int alpha = 0xFF);
 } // namespace GfxUtil
 
 } // namespace Engine

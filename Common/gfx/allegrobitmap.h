@@ -40,7 +40,7 @@ public:
     Bitmap(int width, int height, int color_depth = 0);
     Bitmap(PixelBuffer &&pxbuf);
     // Constructs a sub-bitmap, referencing parent
-    Bitmap(Bitmap *src, const Rect &rc);
+    Bitmap(const Bitmap *src, const Rect &rc);
     // Wraps Allegro BITMAP object, optionally owning it
     Bitmap(BITMAP *al_bmp, bool shared_data);
     // Copy-constructor: constructs a full Bitmap copy
@@ -67,7 +67,7 @@ public:
     // Creates a sub-bitmap of the given bitmap; the sub-bitmap is a reference to
     // particular region inside a parent.
     // WARNING: the parent bitmap MUST be kept in memory for as long as sub-bitmap exists!
-    bool    CreateSubBitmap(Bitmap *src, const Rect &rc);
+    bool    CreateSubBitmap(const Bitmap *src, const Rect &rc);
     // Resizes existing sub-bitmap within the borders of its parent
     bool    ResizeSubBitmap(int width, int height);
     // Creates a plain copy of the given bitmap, optionally converting to a different color depth;
@@ -208,29 +208,29 @@ public:
     // Blitting operations (drawing one bitmap over another)
     //=========================================================================
     // Draw other bitmap over current one
-    void    Blit(Bitmap *src, int dst_x = 0, int dst_y = 0, BitmapMaskOption mask = kBitmap_Copy);
-    void    Blit(Bitmap *src, int src_x, int src_y, int dst_x, int dst_y, int width, int height, BitmapMaskOption mask = kBitmap_Copy);
+    void    Blit(const Bitmap *src, int dst_x = 0, int dst_y = 0, BitmapMaskOption mask = kBitmap_Copy);
+    void    Blit(const Bitmap *src, int src_x, int src_y, int dst_x, int dst_y, int width, int height, BitmapMaskOption mask = kBitmap_Copy);
     // Draw other bitmap in a masked mode (kBitmap_Transparency)
-    void    MaskedBlit(Bitmap *src, int dst_x = 0, int dst_y = 0);
+    void    MaskedBlit(const Bitmap *src, int dst_x = 0, int dst_y = 0);
     // Draw other bitmap, stretching or shrinking its size to given values
-    void    StretchBlt(Bitmap *src, const Rect &dst_rc, BitmapMaskOption mask = kBitmap_Copy);
-    void    StretchBlt(Bitmap *src, const Rect &src_rc, const Rect &dst_rc, BitmapMaskOption mask = kBitmap_Copy);
+    void    StretchBlt(const Bitmap *src, const Rect &dst_rc, BitmapMaskOption mask = kBitmap_Copy);
+    void    StretchBlt(const Bitmap *src, const Rect &src_rc, const Rect &dst_rc, BitmapMaskOption mask = kBitmap_Copy);
     // Antia-aliased stretch-blit
-    void    AAStretchBlt(Bitmap *src, const Rect &dst_rc, BitmapMaskOption mask = kBitmap_Copy);
-    void    AAStretchBlt(Bitmap *src, const Rect &src_rc, const Rect &dst_rc, BitmapMaskOption mask = kBitmap_Copy);
+    void    AAStretchBlt(const Bitmap *src, const Rect &dst_rc, BitmapMaskOption mask = kBitmap_Copy);
+    void    AAStretchBlt(const Bitmap *src, const Rect &src_rc, const Rect &dst_rc, BitmapMaskOption mask = kBitmap_Copy);
     // TODO: find more general way to call these operations, probably require pointer to Blending data struct?
     // Draw bitmap using translucency preset
-    void    TransBlendBlt(Bitmap *src, int dst_x = 0, int dst_y = 0);
+    void    TransBlendBlt(const Bitmap *src, int dst_x = 0, int dst_y = 0);
     // Draw bitmap using lighting preset
-    void    LitBlendBlt(Bitmap *src, int dst_x, int dst_y, int light_amount);
+    void    LitBlendBlt(const Bitmap *src, int dst_x, int dst_y, int light_amount);
     // TODO: generic "draw transformed" function? What about mask option?
     // TODO: "flip self" function
-    void    FlipBlt(Bitmap *src, int dst_x, int dst_y, GraphicFlip flip);
+    void    FlipBlt(const Bitmap *src, int dst_x, int dst_y, GraphicFlip flip);
     // Draws rotated bitmap, using angle given in degrees.
     // Warning: does not resize destination bitmap; if it's not large enough
     // then the resulting image may end up cropped.
-    void    RotateBlt(Bitmap *src, int dst_x, int dst_y, int angle);
-    void    RotateBlt(Bitmap *src, int dst_x, int dst_y, int pivot_x, int pivot_y, int angle);
+    void    RotateBlt(const Bitmap *src, int dst_x, int dst_y, int angle);
+    void    RotateBlt(const Bitmap *src, int dst_x, int dst_y, int pivot_x, int pivot_y, int angle);
 
     //=========================================================================
     // Pixel operations

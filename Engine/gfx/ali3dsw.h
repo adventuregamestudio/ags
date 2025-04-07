@@ -42,13 +42,13 @@ namespace ALSW
 class SDLRendererGfxFilter;
 using AGS::Common::Bitmap;
 
-class ALSoftwareBitmap : public BaseDDB
+class ALSoftwareBitmap final : public BaseDDB
 {
 public:
     uint32_t GetRefID() const override { return UINT32_MAX /* not supported */; }
 
     // Tells if this DDB has an actual render data assigned to it.
-    bool IsValid() override { return _bmp != nullptr; }
+    bool IsValid() const override { return _bmp != nullptr; }
     // Attaches new texture data, sets basic render rules
     void AttachData(std::shared_ptr<Texture> txdata, bool opaque) override { /* not supported */ }
     // Detach any internal texture data from this DDB, make this an empty object
@@ -58,36 +58,41 @@ public:
     void SetRotation(float rotation) override { _rotation = rotation; }
     // Software renderer expects DDBs to have tint already applied
     void SetLightLevel(int /*lightLevel*/) override  { }
-    void SetTint(int /*red*/, int /*green*/, int /*blue*/, int /*tintSaturation*/) override { }    
-
-    Bitmap *_bmp = nullptr;
+    void SetTint(int /*red*/, int /*green*/, int /*blue*/, int /*tintSaturation*/) override { }
 
     ALSoftwareBitmap(int width, int height, int color_depth, bool opaque)
     {
-        _width = width;
-        _height = height;
+        _size = Size(width, height);
+        _scaledSize = _size;
         _colDepth = color_depth;
-        _stretchToWidth = _width;
-        _stretchToHeight = _height;
         _opaque = opaque;
-        _stretchToWidth = _width;
-        _stretchToHeight = _height;
     }
 
     ALSoftwareBitmap(Bitmap *bmp, bool opaque)
     {
         _bmp = bmp;
-        _width = bmp->GetWidth();
-        _height = bmp->GetHeight();
+        _size = bmp->GetSize();
+        _scaledSize = _size;
         _colDepth = bmp->GetColorDepth();
-        _stretchToWidth = _width;
-        _stretchToHeight = _height;
         _opaque = opaque;
-        _stretchToWidth = _width;
-        _stretchToHeight = _height;
     }
 
     ~ALSoftwareBitmap() override = default;
+
+    Bitmap *GetBitmap() const
+    {
+        return _bmp;
+    }
+
+    void SetBitmap(Bitmap *bmp)
+    {
+        _bmp = bmp;
+        _size = bmp->GetSize();
+        _colDepth = bmp->GetColorDepth();
+    }
+
+private:
+    Bitmap *_bmp = nullptr;
 };
 
 

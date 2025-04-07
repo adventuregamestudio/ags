@@ -201,50 +201,73 @@ protected:
 class BaseDDB : public IDriverDependantBitmap
 {
 public:
-    void SetOrigin(float originx, float originy) override
-    {
-        _originX = originx;
-        _originY = originy;
-    }
-
-    int GetWidth() const override { return _width; }
-    int GetHeight() const override { return _height; }
-    int GetColorDepth() const override { return _colDepth; }
+    int  GetWidth() const override { return _size.Width; }
+    int  GetHeight() const override { return _size.Height; }
+    int  GetColorDepth() const override { return _colDepth; }
+    bool IsOpaque() const override { return _opaque; }
     bool MatchesFormat(AGS::Common::Bitmap *other) const
     {
-        return _width == other->GetWidth() && _height == other->GetHeight() && _colDepth == other->GetColorDepth();
+        return _size == other->GetSize() && _colDepth == other->GetColorDepth();
     }
 
-    int  GetAlpha() const override { return _alpha; }
-    void SetAlpha(int alpha) override { _alpha = alpha; }
-    void SetFlip(Common::GraphicFlip flip) override { _flip = flip; }
+    Pointf GetOrigin() const override { return _origin; }
+    void SetOrigin(float originx, float originy) override
+    {
+        _origin = Pointf(originx, originy);
+    }
+    Size GetStretch() const override { return _scaledSize; }
+    bool GetUseResampler() const override { return false; }
     void SetStretch(int width, int height, bool /*useResampler*/) override
     {
-        _stretchToWidth = width;
-        _stretchToHeight = height;
+        _scaledSize = Size(width, height);
     }
-    int GetWidthToRender() const { return _stretchToWidth; }
-    int GetHeightToRender() const { return _stretchToHeight; }
+    Common::GraphicFlip GetFlip() const override { return _flip; }
+    void SetFlip(Common::GraphicFlip flip) override { _flip = flip; }
     // Rotation input is in degrees clockwise, but the implementation may store it in radians internally
+    float GetRotation() const override { return _rotation; }
     void SetRotation(float rotation) override { _rotation = rotation; }
+    int  GetAlpha() const override { return _alpha; }
+    void SetAlpha(int alpha) override { _alpha = alpha; }
+    int  GetLightLevel() const override { return _lightLevel; }
+    void SetLightLevel(int light_level) override { _lightLevel = light_level; }
+    void GetTint(int &red, int &green, int &blue, int &tintSaturation) const override
+    {
+        red = _red;
+        green = _green;
+        blue = _blue;
+        tintSaturation = _tintSaturation;
+    }
+    void SetTint(int red, int green, int blue, int tintSaturation) override
+    {
+        _red = red;
+        _green = green;
+        _blue = blue;
+        _tintSaturation = tintSaturation;
+    }
+    Common::BlendMode GetBlendMode() const { return _blendMode; }
     void SetBlendMode(Common::BlendMode blendMode) override { _blendMode = blendMode; }
 
-    int _width = 0, _height = 0;
-    float _originX = 0.f, _originY = 0.f;
+    const Size &GetSize() const { return _size; }
+    int  GetWidthToRender() const { return _scaledSize.Width; }
+    int  GetHeightToRender() const { return _scaledSize.Height; }
+    const Size &GetSizeToRender() const { return _scaledSize; }
+
+protected:
+    BaseDDB() = default;
+    virtual ~BaseDDB() = default;
+
+    Size _size;
     int _colDepth = 0;
     bool _opaque = false; // no mask color
+    Pointf _origin;
+    Size _scaledSize;
     Common::GraphicFlip _flip = Common::kFlip_None;
-    int _stretchToWidth = 0, _stretchToHeight = 0;
     float _rotation = 0.f; // either in degrees or radians, depending on impl
     int _alpha = 255;
     Common::BlendMode _blendMode = Common::kBlend_Normal;
     int _red = 0, _green = 0, _blue = 0;
     int _tintSaturation = 0;
     int _lightLevel = 0;
-
-protected:
-    BaseDDB() = default;
-    virtual ~BaseDDB() = default;
 };
 
 

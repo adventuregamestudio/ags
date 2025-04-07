@@ -66,41 +66,50 @@ protected:
 class IDriverDependantBitmap
 {
 public:
-  // Get an arbitrary sprite ID, returns UINT32_MAX if does not have one
-  virtual uint32_t GetRefID() const = 0;
+    // Get an arbitrary sprite ID, returns UINT32_MAX if does not have one
+    virtual uint32_t GetRefID() const = 0;
 
-  // Sprite's origin [0,1] is a relative position of texture around sprite's position;
-  // E.g. (0.0, 0.0) means the texture will be aligned to sprite's position by its
-  // left-top corner, (0.5, 0.5) means the texture will be centered around sprite's pos.
-  virtual void SetOrigin(float originx, float originy) = 0;
-  virtual void SetFlip(Common::GraphicFlip flip) = 0;
-  virtual void SetStretch(int width, int height, bool useResampler = true) = 0;
-  virtual void SetRotation(float rotation) = 0; // degrees
-  virtual int  GetAlpha() const = 0;
-  virtual void SetAlpha(int alpha) = 0;  // 0-255
-  virtual void SetLightLevel(int light_level) = 0;   // 0-255
-  virtual void SetTint(int red, int green, int blue, int tintSaturation) = 0;  // 0-255
-  virtual void SetBlendMode(Common::BlendMode blendMode) = 0;
+    virtual int GetWidth() const = 0;
+    virtual int GetHeight() const = 0;
+    virtual int GetColorDepth() const = 0;
+    virtual bool IsOpaque() const = 0;
+    virtual bool MatchesFormat(AGS::Common::Bitmap *other) const = 0;
 
-  virtual int GetWidth() const = 0;
-  virtual int GetHeight() const = 0;
-  virtual int GetColorDepth() const = 0;
-  virtual bool MatchesFormat(AGS::Common::Bitmap *other) const = 0;
+    // Sprite's origin [0,1] is a relative position of texture around sprite's position;
+    // E.g. (0.0, 0.0) means the texture will be aligned to sprite's position by its
+    // left-top corner, (0.5, 0.5) means the texture will be centered around sprite's pos.
+    virtual Pointf GetOrigin() const = 0;
+    virtual void SetOrigin(float originx, float originy) = 0;
+    virtual Size GetStretch() const = 0;
+    virtual bool GetUseResampler() const = 0;
+    virtual void SetStretch(int width, int height, bool useResampler = true) = 0;
+    virtual Common::GraphicFlip GetFlip() const = 0;
+    virtual void SetFlip(Common::GraphicFlip flip) = 0;
+    virtual float GetRotation() const = 0; // in degrees
+    virtual void SetRotation(float rotation) = 0; // in degrees
+    virtual int  GetAlpha() const = 0;
+    virtual void SetAlpha(int alpha) = 0; // 0-255
+    virtual int  GetLightLevel() const = 0; // 0-255
+    virtual void SetLightLevel(int light_level) = 0; // 0-255
+    virtual void GetTint(int &red, int &green, int &blue, int &tintSaturation) const = 0; // 0-255
+    virtual void SetTint(int red, int green, int blue, int tintSaturation) = 0; // 0-255
+    virtual Common::BlendMode GetBlendMode() const = 0;
+    virtual void SetBlendMode(Common::BlendMode blendMode) = 0;
 
-  // Tells if this DDB has an actual render data assigned to it.
-  virtual bool IsValid() = 0;
-  // Attaches new texture data, sets basic render rules
-  // FIXME: opaque should be either texture data's flag, - in which case same sprite_id
-  // will be either opaque or not opaque, - or DDB's flag, but in that case it cannot
-  // be applied to the shared texture data. Currently it's possible to share same
-  // texture data, but update it with different "opaque" values, which breaks logic.
-  virtual void AttachData(std::shared_ptr<Texture> txdata, bool opaque) = 0;
-  // Detach any internal texture data from this DDB, make this an empty object.
-  virtual void DetachData() = 0;
+    // Tells if this DDB has an actual render data assigned to it.
+    virtual bool IsValid() const = 0;
+    // Attaches new texture data, sets basic render rules
+    // FIXME: opaque should be either texture data's flag, - in which case same sprite_id
+    // will be either opaque or not opaque, - or DDB's flag, but in that case it cannot
+    // be applied to the shared texture data. Currently it's possible to share same
+    // texture data, but update it with different "opaque" values, which breaks logic.
+    virtual void AttachData(std::shared_ptr<Texture> txdata, bool opaque) = 0;
+    // Detach any internal texture data from this DDB, make this an empty object.
+    virtual void DetachData() = 0;
 
 protected:
-  IDriverDependantBitmap() = default;
-  virtual ~IDriverDependantBitmap() = default;
+    IDriverDependantBitmap() = default;
+    virtual ~IDriverDependantBitmap() = default;
 };
 
 } // namespace Engine

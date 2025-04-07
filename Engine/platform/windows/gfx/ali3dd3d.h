@@ -78,18 +78,18 @@ struct D3DTexture : Texture
     size_t GetMemSize() const override;
 };
 
-class D3DBitmap : public BaseDDB
+class D3DBitmap final : public BaseDDB
 {
 public:
     uint32_t GetRefID() const override { return _data->ID; }
     // Tells if this DDB has an actual render data assigned to it.
-    bool IsValid() override { return _data != nullptr; }
+    bool IsValid() const override { return _data != nullptr; }
     // Attaches new texture data, sets basic render rules
     void AttachData(std::shared_ptr<Texture> txdata, bool opaque) override
     {
         _data = std::static_pointer_cast<D3DTexture>(txdata);
-        _width = _stretchToWidth = _data->Res.Width;
-        _height = _stretchToHeight = _data->Res.Height;
+        _size = _data->Res;
+        _scaledSize = _size;
         _colDepth = _data->Res.ColorDepth;
         _opaque = opaque;
     }
@@ -101,17 +101,38 @@ public:
     // Releases internal texture data only, keeping the base struct
     void ReleaseTextureData();
 
+    bool GetUseResampler() const override { return _useResampler; }
+    void SetStretch(int width, int height, bool useResampler) override
+    {
+        _scaledSize = Size(width, height);
+        _useResampler = useResampler;
+    }
     // Rotation is set in degrees clockwise, stored converted to radians
     void SetRotation(float degrees) override { _rotation = -Common::Math::DegreesToRadians(degrees); }
-    void SetLightLevel(int lightLevel) override { _lightLevel = lightLevel; }
-    void SetTint(int red, int green, int blue, int tintSaturation) override
+
+    D3DBitmap(int width, int height, int colDepth, bool opaque)
     {
-        _red = red;
-        _green = green;
-        _blue = blue;
-        _tintSaturation = tintSaturation;
+        _size = Size(width, height);
+        _scaledSize = _size;
+        _colDepth = colDepth;
+        _opaque = opaque;
     }
 
+    ~D3DBitmap() override = default;
+
+    D3DTexture *GetTexture() const { return _data.get(); }
+    std::shared_ptr<D3DTexture> GetSharedTexture() const { return _data; }
+    const D3DSurfacePtr &GetRenderSurface() const { return _renderSurface; }
+    TextureHint GetTextureHint() const { return _renderHint; }
+
+    void SetTexture(std::shared_ptr<D3DTexture> &data, const D3DSurfacePtr &d3d_surface = {}, TextureHint hint = kTxHint_Normal)
+    {
+        _data = data;
+        _renderSurface = d3d_surface;
+        _renderHint = hint;
+    }
+
+private:
     // Direct3D texture data
     std::shared_ptr<D3DTexture> _data;
     // Optional surface for rendering onto a texture
@@ -119,18 +140,6 @@ public:
     // Render parameters
     TextureHint _renderHint = kTxHint_Normal;
     bool _useResampler = false;
-
-    D3DBitmap(int width, int height, int colDepth, bool opaque)
-    {
-        _width = width;
-        _height = height;
-        _colDepth = colDepth;
-        _stretchToWidth = width;
-        _stretchToHeight = height;
-        _opaque = opaque;
-    }
-
-    ~D3DBitmap() override = default;
 };
 
 class D3DGfxModeList : public IGfxModeList
@@ -178,7 +187,7 @@ struct D3DSpriteBatch : VMSpriteBatch
         : VMSpriteBatch(id, render_target, view, matrix, vp_matrix, color)
     {
         if (render_target)
-            RenderSurface = render_target->_renderSurface;
+            RenderSurface = render_target->GetRenderSurface();
     }
 };
 

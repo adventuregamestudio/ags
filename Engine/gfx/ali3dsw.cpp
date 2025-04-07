@@ -350,18 +350,15 @@ IDriverDependantBitmap* SDLRendererGraphicsDriver::CreateRenderTargetDDB(int wid
     return new ALSoftwareBitmap(width, height, color_depth, opaque);
 }
 
-void SDLRendererGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, const Bitmap *bitmap)
+void SDLRendererGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* ddb, const Bitmap *bitmap)
 {
-  ALSoftwareBitmap* alSwBmp = (ALSoftwareBitmap*)bitmapToUpdate;
-  alSwBmp->_bmp = const_cast<Bitmap*>(bitmap);
-  alSwBmp->_width = bitmap->GetWidth();
-  alSwBmp->_height = bitmap->GetHeight();
-  alSwBmp->_colDepth = bitmap->GetColorDepth();
+    ALSoftwareBitmap* alSwBmp = (ALSoftwareBitmap*)ddb;
+    alSwBmp->SetBitmap(const_cast<Bitmap*>(bitmap));
 }
 
 void SDLRendererGraphicsDriver::DestroyDDB(IDriverDependantBitmap* bitmap)
 {
-  delete (ALSoftwareBitmap*)bitmap;
+    delete (ALSoftwareBitmap*)bitmap;
 }
 
 void SDLRendererGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &desc)
@@ -636,18 +633,22 @@ size_t SDLRendererGraphicsDriver::RenderSpriteBatch(const ALSpriteBatch &batch, 
     int drawAtX = sprite.x + surf_offx;
     int drawAtY = sprite.y + surf_offy;
 
-    if (bitmap->_alpha == 0) {} // fully transparent, do nothing
-    else if ((bitmap->_opaque) && (bitmap->_bmp == surface) && (bitmap->_alpha == 255)) {}
-    else if (bitmap->_opaque && bitmap->_blendMode == 0)
+    const int alpha = bitmap->GetAlpha();
+    const bool is_opaque = bitmap->IsOpaque();
+    const Bitmap *native_bmp = bitmap->GetBitmap();
+
+    if (alpha == 0) {} // fully transparent, do nothing
+    else if ((is_opaque) && (native_bmp == surface) && (alpha == 255)) {}
+    else if (is_opaque && bitmap->GetBlendMode() == 0)
     {
-        surface->Blit(bitmap->_bmp, 0, 0, drawAtX, drawAtY, bitmap->_bmp->GetWidth(), bitmap->_bmp->GetHeight());
+        surface->Blit(native_bmp, 0, 0, drawAtX, drawAtY, native_bmp->GetWidth(), native_bmp->GetHeight());
         // TODO: we need to also support non-masked translucent blend, but...
         // Allegro 4 **does not have such function ready** :( (only masked blends, where it skips magenta pixels);
         // I am leaving this problem for the future, as coincidentally software mode does not need this atm.
     }
     else
     {
-        GfxUtil::DrawSpriteBlend(surface, Point(drawAtX, drawAtY), bitmap->_bmp, bitmap->_blendMode, bitmap->_alpha);
+        GfxUtil::DrawSpriteBlend(surface, Point(drawAtX, drawAtY), native_bmp, bitmap->GetBlendMode(), alpha);
     }
   }
   return from;
@@ -720,7 +721,7 @@ void SDLRendererGraphicsDriver::Render()
 
 void SDLRendererGraphicsDriver::Render(IDriverDependantBitmap *target)
 {
-    SetMemoryBackBuffer(((ALSoftwareBitmap*)target)->_bmp);
+    SetMemoryBackBuffer(((ALSoftwareBitmap*)target)->GetBitmap());
     RenderToBackBuffer();
     SetMemoryBackBuffer(nullptr);
 }
@@ -776,7 +777,7 @@ void SDLRendererGraphicsDriver::SetStageBackBuffer(Bitmap *backBuffer)
 
 void SDLRendererGraphicsDriver::GetCopyOfScreenIntoDDB(IDriverDependantBitmap *target, uint32_t /*batch_skip_filter*/)
 {
-    Bitmap *dst_bmp = ((ALSoftwareBitmap*)target)->_bmp;
+    Bitmap *dst_bmp = ((ALSoftwareBitmap*)target)->GetBitmap();
     dst_bmp->Blit(virtualScreen);
 }
 

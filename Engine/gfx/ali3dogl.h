@@ -77,19 +77,20 @@ struct OGLTexture : Texture
     size_t GetMemSize() const override;
 };
 
-class OGLBitmap : public BaseDDB
+class OGLBitmap final : public BaseDDB
 {
 public:
     uint32_t GetRefID() const override { return _data->ID; }
     // Tells if this DDB has an actual render data assigned to it.
-    bool IsValid() override { return _data != nullptr; }
+    bool IsValid() const override { return _data != nullptr; }
     // Attaches new texture data, sets basic render rules
     void AttachData(std::shared_ptr<Texture> txdata, bool opaque) override
     {
         _data = std::static_pointer_cast<OGLTexture>(txdata);
-        _width = _stretchToWidth = _data->Res.Width;
-        _height = _stretchToHeight = _data->Res.Height;
+        _size = _data->Res;
+        _scaledSize = _size;
         _colDepth = _data->Res.ColorDepth;
+        _opaque = opaque;
     }
     // Detach any internal texture data from this DDB, make this an empty object
     void DetachData() override
@@ -97,36 +98,45 @@ public:
         _data = nullptr;
     }
 
+    bool GetUseResampler() const override { return _useResampler; }
+    void SetStretch(int width, int height, bool useResampler) override
+    {
+        _scaledSize = Size(width, height);
+        _useResampler = useResampler;
+    }
     // Rotation is set in degrees clockwise, stored converted to radians
     void SetRotation(float degrees) override { _rotation = -Common::Math::DegreesToRadians(degrees); }
-    void SetLightLevel(int lightLevel) override { _lightLevel = lightLevel; }
-    void SetTint(int red, int green, int blue, int tintSaturation) override 
-    {
-        _red = red;
-        _green = green;
-        _blue = blue;
-        _tintSaturation = tintSaturation;
-    }
-
-    // OpenGL texture data
-    std::shared_ptr<OGLTexture> _data;
-    // Optional frame buffer object (for rendering onto a texture)
-    unsigned int _fbo {};
-    // Render parameters
-    TextureHint _renderHint = kTxHint_Normal;
-    bool _useResampler = false;
 
     OGLBitmap(int width, int height, int colDepth, bool opaque)
     {
-        _width = width;
-        _height = height;
+        _size = Size(width, height);
+        _scaledSize = _size;
         _colDepth = colDepth;
-        _stretchToWidth = width;
-        _stretchToHeight = height;
         _opaque = opaque;
     }
 
     ~OGLBitmap() override;
+
+    OGLTexture *GetTexture() const { return _data.get(); }
+    std::shared_ptr<OGLTexture> GetSharedTexture() const { return _data; }
+    GLuint GetFbo() const { return _fbo; }
+    TextureHint GetTextureHint() const { return _renderHint; }
+
+    void SetTexture(std::shared_ptr<OGLTexture> &data, GLuint fbo = 0u, TextureHint hint = kTxHint_Normal)
+    {
+        _data = data;
+        _fbo = fbo;
+        _renderHint = hint;
+    }
+
+private:
+    // OpenGL texture data
+    std::shared_ptr<OGLTexture> _data;
+    // Optional frame buffer object (for rendering onto a texture)
+    GLuint _fbo = 0u;
+    // Render parameters
+    TextureHint _renderHint = kTxHint_Normal;
+    bool _useResampler = false;
 };
 
 // OGL renderer's sprite batch
@@ -143,7 +153,7 @@ struct OGLSpriteBatch : VMSpriteBatch
     OGLSpriteBatch(uint32_t id, OGLBitmap *render_target, const Rect view,
         const glm::mat4 &matrix, const glm::mat4 &vp_matrix, const SpriteColorTransform &color)
         : VMSpriteBatch(id, render_target, view, matrix, vp_matrix, color)
-        , Fbo(render_target ? render_target->_fbo : 0u) {}
+        , Fbo(render_target ? render_target->GetFbo() : 0u) {}
 };
 
 typedef SpriteDrawListEntry<OGLBitmap> OGLDrawListEntry;

@@ -1080,6 +1080,7 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
     const SpriteColorTransform &color, const Size &rend_sz)
 {
   const int alpha = (color.Alpha * bmpToDraw->GetAlpha()) / 255;
+  const int invalpha = 255 - alpha;
 
   ShaderProgram program;
 
@@ -1282,42 +1283,42 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
     // Blend modes
     switch (bmpToDraw->GetBlendMode())
     {
-        case kBlend_Normal:
-            // blend mode is always NORMAL at this point
-            // SetBlendOpRGB(GL_FUNC_ADD, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // ALPHA
-            break;
-        case kBlend_Add: SetBlendOpRGB(GL_FUNC_ADD, GL_SRC_ALPHA, GL_ONE); break; // ADD (transparency = strength)
+    case kBlend_Normal:
+        // blend mode is always NORMAL at this point
+        // SetBlendOpRGB(GL_FUNC_ADD, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // ALPHA
+        break;
+    case kBlend_Add: SetBlendOpRGB(GL_FUNC_ADD, GL_SRC_ALPHA, GL_ONE); break; // ADD (transparency = strength)
 #ifdef GL_MIN
-        case kBlend_Darken: SetBlendOpRGB(GL_MIN, GL_ONE, GL_ONE); break; // DARKEN
+    case kBlend_Darken: SetBlendOpRGB(GL_MIN, GL_ONE, GL_ONE); break; // DARKEN
 #endif
 #ifdef GL_MAX
-        case kBlend_Lighten: SetBlendOpRGB(GL_MAX, GL_ONE, GL_ONE); break; // LIGHTEN
+    case kBlend_Lighten: SetBlendOpRGB(GL_MAX, GL_ONE, GL_ONE); break; // LIGHTEN
 #endif
-        case kBlend_Multiply: SetBlendOpRGB(GL_FUNC_ADD, GL_ZERO, GL_SRC_COLOR); break; // MULTIPLY
-        case kBlend_Screen: SetBlendOpRGB(GL_FUNC_ADD, GL_ONE, GL_ONE_MINUS_SRC_COLOR); break; // SCREEN
-        case kBlend_Subtract: SetBlendOpRGB(GL_FUNC_REVERSE_SUBTRACT, GL_SRC_ALPHA, GL_ONE); break; // SUBTRACT (transparency = strength)
-        case kBlend_Exclusion: SetBlendOpRGB(GL_FUNC_ADD, GL_ONE_MINUS_DST_COLOR, GL_ONE_MINUS_SRC_COLOR); break; // EXCLUSION
-        // APPROXIMATIONS (need pixel shaders)
-        case kBlend_Burn: SetBlendOpRGB(GL_FUNC_SUBTRACT, GL_DST_COLOR, GL_ONE_MINUS_DST_COLOR); break; // LINEAR BURN (approximation)
-        case kBlend_Dodge: SetBlendOpRGB(GL_FUNC_ADD, GL_DST_COLOR, GL_ONE); break; // fake color dodge (half strength of the real thing)
-        // IMPORTANT: please note that we are rendering onto a surface that has a premultiplied alpha,
-        // that's why Copy blend modes are somewhat different from the math you'd normally expect;
-        // i.e. we do not use GL_ONE, GL_ZERO to copy RGB, but GL_SRC_ALPHA, GL_ZERO.
-        case kBlend_Copy:
-            SetBlendOpRGBAlpha(GL_FUNC_ADD, GL_SRC_ALPHA, GL_ZERO,
-                               GL_FUNC_ADD, GL_ONE, GL_ZERO);
-            break;
-        case kBlend_CopyRGB:
-            SetBlendOpRGBAlpha(GL_FUNC_ADD, GL_DST_ALPHA, GL_ZERO,
-                               GL_FUNC_ADD, GL_ZERO, GL_ONE);
-            break;
-        case kBlend_CopyAlpha:
-            // FIXME: this does not really work whenever destination has non-opaque alpha,
-            // because destination surface colors are alpha-premultiplied!
-            SetBlendOpRGBAlpha(GL_FUNC_ADD, GL_ZERO, GL_SRC_ALPHA,
-                               GL_FUNC_ADD, GL_ONE, GL_ZERO);
-            break;
-        default: break;
+    case kBlend_Multiply: SetBlendOpRGB(GL_FUNC_ADD, GL_ZERO, GL_SRC_COLOR); break; // MULTIPLY
+    case kBlend_Screen: SetBlendOpRGB(GL_FUNC_ADD, GL_ONE, GL_ONE_MINUS_SRC_COLOR); break; // SCREEN
+    case kBlend_Subtract: SetBlendOpRGB(GL_FUNC_REVERSE_SUBTRACT, GL_SRC_ALPHA, GL_ONE); break; // SUBTRACT (transparency = strength)
+    case kBlend_Exclusion: SetBlendOpRGB(GL_FUNC_ADD, GL_ONE_MINUS_DST_COLOR, GL_ONE_MINUS_SRC_COLOR); break; // EXCLUSION
+    // APPROXIMATIONS (need pixel shaders)
+    case kBlend_Burn: SetBlendOpRGB(GL_FUNC_SUBTRACT, GL_DST_COLOR, GL_ONE_MINUS_DST_COLOR); break; // LINEAR BURN (approximation)
+    case kBlend_Dodge: SetBlendOpRGB(GL_FUNC_ADD, GL_DST_COLOR, GL_ONE); break; // fake color dodge (half strength of the real thing)
+    // IMPORTANT: please note that we are rendering onto a surface that has a premultiplied alpha,
+    // that's why Copy blend modes are somewhat different from the math you'd normally expect;
+    // i.e. we do not use GL_ONE, GL_ZERO to copy RGB, but GL_SRC_ALPHA, GL_ZERO.
+    case kBlend_Copy:
+        SetBlendOpRGBAlpha(GL_FUNC_ADD, GL_SRC_ALPHA, GL_ZERO,
+                            GL_FUNC_ADD, GL_ONE, GL_ZERO);
+        break;
+    case kBlend_CopyRGB:
+        SetBlendOpRGBAlpha(GL_FUNC_ADD, GL_DST_ALPHA, GL_ZERO,
+                            GL_FUNC_ADD, GL_ZERO, GL_ONE);
+        break;
+    case kBlend_CopyAlpha:
+        // FIXME: this does not really work whenever destination has non-opaque alpha,
+        // because destination surface colors are alpha-premultiplied!
+        SetBlendOpRGBAlpha(GL_FUNC_ADD, GL_ZERO, GL_SRC_ALPHA,
+                            GL_FUNC_ADD, GL_ONE, GL_ZERO);
+        break;
+    default: break;
     }
 
     // WORKAROUNDS - BEGIN
@@ -1327,40 +1328,40 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
 
     // allow transparency with blending modes
     // darken/lighten the base sprite so a higher transparency value makes it trasparent
-    if (bmpToDraw->_blendMode > 0)
+    switch (bmpToDraw->GetBlendMode())
     {
-        const float alpha = bmpToDraw->_alpha / 255.0;
-        const float invalpha = 1.0 - alpha;
-        switch (bmpToDraw->_blendMode)
-        {
-        case kBlend_Darken:
-        case kBlend_Multiply:
-        case kBlend_Burn: // burn is imperfect due to blend mode, darker than normal even when trasparent
-            // fade to white
+    case kBlend_Darken:
+    case kBlend_Multiply:
+    case kBlend_Burn: // burn is imperfect due to blend mode, darker than normal even when trasparent
+        // fade to white
 #if !AGS_OPENGL_ES2 // glTexEnvi and glColor4f are not available on OpenGL ES2, need to rewrite the code here
-            glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD);
-            glColor4f(invalpha, invalpha, invalpha, invalpha);
+        glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD);
+        glColor4f(invalpha / 255.f, invalpha / 255.f, invalpha / 255.f, invalpha / 255.f);
 #endif // !AGS_OPENGL_ES2
-            break;
-        case kBlend_Lighten:
-        case kBlend_Screen:
-        case kBlend_Exclusion:
-        case kBlend_Dodge:
+        break;
+    case kBlend_Lighten:
+    case kBlend_Screen:
+    case kBlend_Exclusion:
+    case kBlend_Dodge:
 #if !AGS_OPENGL_ES2
-            glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-            glColor4f(alpha, alpha, alpha, alpha);
+        glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+        glColor4f(alpha / 255.f, alpha / 255f, alpha / 255.f, alpha / 255.f);
 #endif // !AGS_OPENGL_ES2
-            break;
-        default:
-            break;
-        }
+        break;
+    default:
+        break;
     }
     */
 
-    // workaround: since the dodge is only half strength we can get a closer approx by drawing it twice
-    if (bmpToDraw->GetBlendMode() == kBlend_Dodge)
+    // workaround: extra render pass for the blend modes that cannot be achieved with one
+    switch (bmpToDraw->GetBlendMode())
     {
+    case kBlend_Dodge:
+        // since the dodge is only half strength we can get a closer approx by drawing it twice
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+        break;
+    default:
+        break;
     }
     // BLENDMODES WORKAROUNDS - END
 

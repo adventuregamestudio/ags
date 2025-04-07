@@ -1112,6 +1112,7 @@ void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw
   HRESULT hr;
 
   const int alpha = (color.Alpha * bmpToDraw->GetAlpha()) / 255;
+  const int invalpha = 255 - alpha;
   int tint_r, tint_g, tint_b, tint_sat, light_lev;
   bmpToDraw->GetTint(tint_r, tint_g, tint_b, tint_sat);
   light_lev = bmpToDraw->GetLightLevel();
@@ -1289,85 +1290,80 @@ void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw
     // Blend modes
     switch (bmpToDraw->GetBlendMode())
     {
-        case kBlend_Normal:
-            // blend mode is always NORMAL at this point
-            // SetBlendOpRGB(D3DBLENDOP_ADD, D3DBLEND_SRCALPHA, D3DBLEND_INVSRCALPHA); // ALPHA
-            break;
-        case kBlend_Add: SetBlendOpRGB(D3DBLENDOP_ADD, D3DBLEND_SRCALPHA, D3DBLEND_ONE); break; // ADD (transparency = strength)
-        case kBlend_Darken: SetBlendOpRGB(D3DBLENDOP_MIN, D3DBLEND_ONE, D3DBLEND_ONE); break; // DARKEN
-        case kBlend_Lighten: SetBlendOpRGB(D3DBLENDOP_MAX, D3DBLEND_ONE, D3DBLEND_ONE); break; // LIGHTEN
-        case kBlend_Multiply: SetBlendOpRGB(D3DBLENDOP_ADD, D3DBLEND_ZERO, D3DBLEND_SRCCOLOR); break; // MULTIPLY
-        case kBlend_Screen: SetBlendOpRGB(D3DBLENDOP_ADD, D3DBLEND_ONE, D3DBLEND_INVSRCCOLOR); break; // SCREEN
-        case kBlend_Subtract: SetBlendOpRGB(D3DBLENDOP_REVSUBTRACT, D3DBLEND_SRCALPHA, D3DBLEND_ONE); break; // SUBTRACT (transparency = strength)
-        case kBlend_Exclusion: SetBlendOpRGB(D3DBLENDOP_ADD, D3DBLEND_INVDESTCOLOR, D3DBLEND_INVSRCCOLOR); break; // EXCLUSION
-        // APPROXIMATIONS (need pixel shaders)
-        case kBlend_Burn: SetBlendOpRGB(D3DBLENDOP_SUBTRACT, D3DBLEND_DESTCOLOR, D3DBLEND_INVDESTCOLOR); break; // LINEAR BURN (approximation)
-        case kBlend_Dodge: SetBlendOpRGB(D3DBLENDOP_ADD, D3DBLEND_DESTCOLOR, D3DBLEND_ONE); break; // fake color dodge (half strength of the real thing)
-        // IMPORTANT: please note that we are rendering onto a surface that has a premultiplied alpha,
-        // that's why Copy blend modes are somewhat different from the math you'd normally expect;
-        // i.e. we do not use D3DBLEND_ONE, D3DBLEND_ZERO to copy RGB, but D3DBLEND_SRCALPHA, D3DBLEND_ZERO.
-        case kBlend_Copy:
-            SetBlendOpRGB(D3DBLENDOP_ADD, D3DBLEND_SRCALPHA, D3DBLEND_ZERO);
-            SetBlendOpAlpha(D3DBLENDOP_ADD, D3DBLEND_ONE, D3DBLEND_ZERO);
-            // Disabling alpha test seems to be required, because Direct3D
-            // skips source zero alpha completely otherwise
-            direct3ddevice->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);
-            break;
-        case kBlend_CopyRGB:
-            SetBlendOpRGB(D3DBLENDOP_ADD, D3DBLEND_DESTALPHA, D3DBLEND_ZERO);
-            SetBlendOpAlpha(D3DBLENDOP_ADD, D3DBLEND_ZERO, D3DBLEND_ONE);
-            direct3ddevice->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);
-            break;
-        case kBlend_CopyAlpha:
-            // FIXME: this does not really work whenever destination has non-opaque alpha,
-            // because destination surface colors are alpha-premultiplied!
-            SetBlendOpRGB(D3DBLENDOP_ADD, D3DBLEND_ZERO, D3DBLEND_SRCALPHA);
-            SetBlendOpAlpha(D3DBLENDOP_ADD, D3DBLEND_ONE, D3DBLEND_ZERO);
-            direct3ddevice->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);
-            break;
-        default: break;
+    case kBlend_Normal:
+        // blend mode is always NORMAL at this point
+        // SetBlendOpRGB(D3DBLENDOP_ADD, D3DBLEND_SRCALPHA, D3DBLEND_INVSRCALPHA); // ALPHA
+        break;
+    case kBlend_Add: SetBlendOpRGB(D3DBLENDOP_ADD, D3DBLEND_SRCALPHA, D3DBLEND_ONE); break; // ADD (transparency = strength)
+    case kBlend_Darken: SetBlendOpRGB(D3DBLENDOP_MIN, D3DBLEND_ONE, D3DBLEND_ONE); break; // DARKEN
+    case kBlend_Lighten: SetBlendOpRGB(D3DBLENDOP_MAX, D3DBLEND_ONE, D3DBLEND_ONE); break; // LIGHTEN
+    case kBlend_Multiply: SetBlendOpRGB(D3DBLENDOP_ADD, D3DBLEND_ZERO, D3DBLEND_SRCCOLOR); break; // MULTIPLY
+    case kBlend_Screen: SetBlendOpRGB(D3DBLENDOP_ADD, D3DBLEND_ONE, D3DBLEND_INVSRCCOLOR); break; // SCREEN
+    case kBlend_Subtract: SetBlendOpRGB(D3DBLENDOP_REVSUBTRACT, D3DBLEND_SRCALPHA, D3DBLEND_ONE); break; // SUBTRACT (transparency = strength)
+    case kBlend_Exclusion: SetBlendOpRGB(D3DBLENDOP_ADD, D3DBLEND_INVDESTCOLOR, D3DBLEND_INVSRCCOLOR); break; // EXCLUSION
+    // APPROXIMATIONS (need pixel shaders)
+    case kBlend_Burn: SetBlendOpRGB(D3DBLENDOP_SUBTRACT, D3DBLEND_DESTCOLOR, D3DBLEND_INVDESTCOLOR); break; // LINEAR BURN (approximation)
+    case kBlend_Dodge: SetBlendOpRGB(D3DBLENDOP_ADD, D3DBLEND_DESTCOLOR, D3DBLEND_ONE); break; // fake color dodge (half strength of the real thing)
+    // IMPORTANT: please note that we are rendering onto a surface that has a premultiplied alpha,
+    // that's why Copy blend modes are somewhat different from the math you'd normally expect;
+    // i.e. we do not use D3DBLEND_ONE, D3DBLEND_ZERO to copy RGB, but D3DBLEND_SRCALPHA, D3DBLEND_ZERO.
+    case kBlend_Copy:
+        SetBlendOpRGB(D3DBLENDOP_ADD, D3DBLEND_SRCALPHA, D3DBLEND_ZERO);
+        SetBlendOpAlpha(D3DBLENDOP_ADD, D3DBLEND_ONE, D3DBLEND_ZERO);
+        // Disabling alpha test seems to be required, because Direct3D
+        // skips source zero alpha completely otherwise
+        direct3ddevice->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);
+        break;
+    case kBlend_CopyRGB:
+        SetBlendOpRGB(D3DBLENDOP_ADD, D3DBLEND_DESTALPHA, D3DBLEND_ZERO);
+        SetBlendOpAlpha(D3DBLENDOP_ADD, D3DBLEND_ZERO, D3DBLEND_ONE);
+        direct3ddevice->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);
+        break;
+    case kBlend_CopyAlpha:
+        // FIXME: this does not really work whenever destination has non-opaque alpha,
+        // because destination surface colors are alpha-premultiplied!
+        SetBlendOpRGB(D3DBLENDOP_ADD, D3DBLEND_ZERO, D3DBLEND_SRCALPHA);
+        SetBlendOpAlpha(D3DBLENDOP_ADD, D3DBLEND_ONE, D3DBLEND_ZERO);
+        direct3ddevice->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);
+        break;
+    default: break;
     }
 
     // BLENDMODES WORKAROUNDS - BEGIN
 
     // allow transparency with blending modes
     // darken/lighten the base sprite so a higher transparency value makes it trasparent
-    if (bmpToDraw->GetBlendMode() > 0)
+    switch (bmpToDraw->GetBlendMode())
     {
-        const int alpha = bmpToDraw->GetAlpha(); // FIXME, use combined alpha, see beginning of this function
-        const int invalpha = 255 - alpha;
-        switch (bmpToDraw->GetBlendMode())
-        {
-        case kBlend_Darken:
-        case kBlend_Multiply:
-        case kBlend_Burn: // FIXME burn is imperfect due to blend mode, darker than normal even when trasparent
-            // fade to white
-            direct3ddevice->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_ADDSMOOTH);
-            direct3ddevice->SetRenderState(D3DRS_TEXTUREFACTOR, D3DCOLOR_RGBA(invalpha, invalpha, invalpha, invalpha));
-            break;
-        case kBlend_Lighten:
-        case kBlend_Screen:
-        case kBlend_Exclusion:
-        case kBlend_Dodge:
-            // fade to black
-            direct3ddevice->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_MODULATE);
-            direct3ddevice->SetRenderState(D3DRS_TEXTUREFACTOR, D3DCOLOR_RGBA(alpha, alpha, alpha, alpha));
-            break;
-        default:
-            break;
-        }
-        direct3ddevice->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_TEXTURE);
-        direct3ddevice->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_TFACTOR);
+    case kBlend_Darken:
+    case kBlend_Multiply:
+    case kBlend_Burn:
+        // fade to white
+        // FIXME burn is imperfect due to blend mode, darker than normal even when transparent
+        direct3ddevice->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_ADDSMOOTH);
+        direct3ddevice->SetRenderState(D3DRS_TEXTUREFACTOR, D3DCOLOR_RGBA(invalpha, invalpha, invalpha, invalpha));
+        break;
+    case kBlend_Lighten:
+    case kBlend_Screen:
+    case kBlend_Exclusion:
+    case kBlend_Dodge:
+        // fade to black
+        direct3ddevice->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_MODULATE);
+        direct3ddevice->SetRenderState(D3DRS_TEXTUREFACTOR, D3DCOLOR_RGBA(alpha, alpha, alpha, alpha));
+        break;
+    default:
+        break;
     }
 
-    // workaround: since the dodge is only half strength we can get a closer approx by drawing it twice
-    if (bmpToDraw->GetBlendMode() == kBlend_Dodge)
+    // workaround: extra render pass for the blend modes that cannot be achieved with one
+    switch (bmpToDraw->GetBlendMode())
     {
+    case kBlend_Dodge:
+        // since the dodge is only half strength we can get a closer approx by drawing it twice
         hr = direct3ddevice->DrawPrimitive(D3DPT_TRIANGLESTRIP, ti * 4, 2);
-        if (hr != D3D_OK)
-        {
-            throw Ali3DException("IDirect3DDevice9::DrawPrimitive failed");
-        }
+        break;
+    default:
+        break;
     }
     // BLENDMODES WORKAROUNDS - END
 

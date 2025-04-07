@@ -332,22 +332,22 @@ int SDLRendererGraphicsDriver::GetCompatibleBitmapFormat(int color_depth)
   return color_depth;
 }
 
-IDriverDependantBitmap* SDLRendererGraphicsDriver::CreateDDB(int width, int height, int color_depth, bool opaque)
+IDriverDependantBitmap* SDLRendererGraphicsDriver::CreateDDB(int width, int height, int color_depth, int txflags)
 {
-  return new ALSoftwareBitmap(width, height, color_depth, opaque);
+  return new ALSoftwareBitmap(width, height, color_depth, txflags);
 }
 
-IDriverDependantBitmap* SDLRendererGraphicsDriver::CreateDDBFromBitmap(const Bitmap *bitmap, bool opaque)
+IDriverDependantBitmap* SDLRendererGraphicsDriver::CreateDDBFromBitmap(const Bitmap *bitmap, int txflags)
 {
   // FIXME: find a way to avoid const_cast here;
   // note we cannot have const Bitmap in ALSoftwareBitmap, because it may be used as a render target...
-  return new ALSoftwareBitmap(const_cast<Bitmap*>(bitmap), opaque);
+  return new ALSoftwareBitmap(const_cast<Bitmap*>(bitmap), txflags);
 }
 
-IDriverDependantBitmap* SDLRendererGraphicsDriver::CreateRenderTargetDDB(int width, int height, int color_depth, bool opaque)
+IDriverDependantBitmap* SDLRendererGraphicsDriver::CreateRenderTargetDDB(int width, int height, int color_depth, int txflags)
 {
     // For software renderer there's no difference between "texture" types.
-    return new ALSoftwareBitmap(width, height, color_depth, opaque);
+    return new ALSoftwareBitmap(width, height, color_depth, txflags);
 }
 
 void SDLRendererGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* ddb, const Bitmap *bitmap)

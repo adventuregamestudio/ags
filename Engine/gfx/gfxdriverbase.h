@@ -204,7 +204,7 @@ public:
     int  GetWidth() const override { return _size.Width; }
     int  GetHeight() const override { return _size.Height; }
     int  GetColorDepth() const override { return _colDepth; }
-    bool IsOpaque() const override { return _opaque; }
+    bool IsOpaque() const override { return (_txFlags & kTxFlags_Opaque) != 0; }
     bool MatchesFormat(AGS::Common::Bitmap *other) const
     {
         return _size == other->GetSize() && _colDepth == other->GetColorDepth();
@@ -247,6 +247,7 @@ public:
     Common::BlendMode GetBlendMode() const { return _blendMode; }
     void SetBlendMode(Common::BlendMode blendMode) override { _blendMode = blendMode; }
 
+    int  GetTextureFlags() const { return _txFlags; }
     const Size &GetSize() const { return _size; }
     int  GetWidthToRender() const { return _scaledSize.Width; }
     int  GetHeightToRender() const { return _scaledSize.Height; }
@@ -258,7 +259,7 @@ protected:
 
     Size _size;
     int _colDepth = 0;
-    bool _opaque = false; // no mask color
+    int _txFlags = 0; // TextureFlags
     Pointf _origin;
     Size _scaledSize;
     Common::GraphicFlip _flip = Common::kFlip_None;
@@ -282,7 +283,7 @@ struct TextureTile
 };
 
 // Special render hints for textures
-enum TextureHint
+enum TextureRenderHint
 {
     kTxHint_Normal,
     kTxHint_PremulAlpha  // texture pixels contain premultiplied alpha
@@ -342,12 +343,12 @@ public:
     bool GetStageMatrixes(RenderMatrixes &rm) override;
 
     // Creates new DDB and copy bitmap contents over
-    IDriverDependantBitmap *CreateDDBFromBitmap(const Bitmap *bitmap, bool opaque = false) override;
+    IDriverDependantBitmap *CreateDDBFromBitmap(const Bitmap *bitmap, int txflags = kTxFlags_None) override;
 
     // Create texture data with the given parameters
-    Texture *CreateTexture(int width, int height, int color_depth, bool opaque = false, bool as_render_target = false) override = 0;
+    Texture *CreateTexture(int width, int height, int color_depth, int txflags = kTxFlags_None) override = 0;
     // Create texture and initialize its pixels from the given bitmap
-    Texture *CreateTexture(const Bitmap *bmp, bool opaque = false) override;
+    Texture *CreateTexture(const Bitmap *bmp, int txflags = kTxFlags_None) override;
 
     // Sets stage screen parameters for the current batch.
     void SetStageScreen(const Size &sz, int x = 0, int y = 0) override;

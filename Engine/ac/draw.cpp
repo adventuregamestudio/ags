@@ -302,7 +302,7 @@ public:
                 return nullptr;
         }
 
-        txdata.reset(gfxDriver->CreateTexture(bitmap, opaque));
+        txdata.reset(gfxDriver->CreateTexture(bitmap, opaque ? kTxFlags_Opaque : kTxFlags_None));
         if (!txdata)
             return nullptr;
 
@@ -590,20 +590,10 @@ Bitmap *CopyScreenIntoBitmap(int width, int height, const Rect *src_rect,
 
 void create_blank_image(int coldepth)
 {
-    // this is the first time that we try to use the graphics driver,
-    // so it's the most likey place for a crash
-    try
-    {
-        Bitmap *blank = CreateCompatBitmap(16, 16, coldepth);
-        blank->Clear();
-        blankImage = gfxDriver->CreateDDBFromBitmap(blank, true /*opaque*/);
-        blankSidebarImage = gfxDriver->CreateDDBFromBitmap(blank, true /*opaque*/);
-        delete blank;
-    }
-    catch (Ali3DException& gfxException)
-    {
-        quit(gfxException.Message.GetCStr());
-    }
+    std::unique_ptr<Bitmap> blank(CreateCompatBitmap(16, 16, coldepth));
+    blank->Clear();
+    blankImage = gfxDriver->CreateDDBFromBitmap(blank.get(), kTxFlags_Opaque);
+    blankSidebarImage = gfxDriver->CreateDDBFromBitmap(blank.get(), kTxFlags_Opaque);
 }
 
 void destroy_blank_image()
@@ -1222,6 +1212,8 @@ void draw_sprite_slot_support_alpha(Bitmap *ds, int xpos, int ypos, int src_slot
 IDriverDependantBitmap* recycle_ddb_bitmap(IDriverDependantBitmap *ddb,
     Common::Bitmap *source, bool opaque)
 {
+    const int txflags = opaque ? kTxFlags_Opaque : kTxFlags_None;
+
     assert(source);
     if (ddb && // already has an allocated DDB,
         (drawstate.SoftwareRender || // is software renderer, or...
@@ -1229,9 +1221,9 @@ IDriverDependantBitmap* recycle_ddb_bitmap(IDriverDependantBitmap *ddb,
             (ddb->MatchesFormat(source))))) // existing DDB format matches
         gfxDriver->UpdateDDBFromBitmap(ddb, source);
     else if (ddb) // if existing texture format does not match, then create a new texture
-        ddb->AttachData(std::shared_ptr<Texture>(gfxDriver->CreateTexture(source, opaque)), opaque);
+        ddb->AttachData(std::shared_ptr<Texture>(gfxDriver->CreateTexture(source, txflags)), txflags);
     else // ...else allocated new DDB
-        ddb = gfxDriver->CreateDDBFromBitmap(source, opaque);
+        ddb = gfxDriver->CreateDDBFromBitmap(source, txflags);
     return ddb;
 }
 
@@ -1258,10 +1250,11 @@ IDriverDependantBitmap* recycle_ddb_sprite(IDriverDependantBitmap *ddb, uint32_t
         return ddb;
     }
 
+    const int txflags = opaque ? kTxFlags_Opaque : kTxFlags_None;
     if (ddb)
-        ddb->AttachData(txdata, opaque);
+        ddb->AttachData(txdata, txflags);
     else
-        ddb = gfxDriver->CreateDDB(txdata, opaque);
+        ddb = gfxDriver->CreateDDB(txdata, txflags);
     return ddb;
 }
 
@@ -1271,7 +1264,7 @@ IDriverDependantBitmap* recycle_render_target(IDriverDependantBitmap *ddb, int w
         return ddb;
     if (ddb)
         gfxDriver->DestroyDDB(ddb);
-    return gfxDriver->CreateRenderTargetDDB(width, height, col_depth, opaque);
+    return gfxDriver->CreateRenderTargetDDB(width, height, col_depth, opaque ? kTxFlags_Opaque : kTxFlags_None);
 }
 
 // FIXME: make opaque a property of ObjTexture?!

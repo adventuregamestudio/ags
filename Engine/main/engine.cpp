@@ -551,7 +551,7 @@ void show_preload()
             delete tsc;
             tsc = stretched;
         }
-        IDriverDependantBitmap *ddb = gfxDriver->CreateDDBFromBitmap(tsc, true /*opaque*/);
+        IDriverDependantBitmap *ddb = gfxDriver->CreateDDBFromBitmap(tsc, kTxFlags_Opaque);
         ddb->SetStretch(view.GetWidth(), view.GetHeight());
         gfxDriver->ClearDrawLists();
         gfxDriver->BeginSpriteBatch(view, SpriteTransform());

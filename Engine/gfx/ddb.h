@@ -59,6 +59,17 @@ protected:
 };
 
 
+// TextureFlags mark special texture behavior
+enum TextureFlags
+{
+    kTxFlags_None = 0,
+    // Texture is used as a render target
+    kTxFlags_RenderTarget = 0x0001,
+    // Texture should be treated as "opaque", which affects how the input bitmap
+    // is converted to texture pixels.
+    kTxFlags_Opaque = 0x0002,
+};
+
 // The "texture sprite" object, contains Texture object ref,
 // which may be either shared or exclusive to this sprite.
 // Lets assign various effects and transformations which will be
@@ -103,7 +114,7 @@ public:
     // will be either opaque or not opaque, - or DDB's flag, but in that case it cannot
     // be applied to the shared texture data. Currently it's possible to share same
     // texture data, but update it with different "opaque" values, which breaks logic.
-    virtual void AttachData(std::shared_ptr<Texture> txdata, bool opaque) = 0;
+    virtual void AttachData(std::shared_ptr<Texture> txdata, int txflags) = 0;
     // Detach any internal texture data from this DDB, make this an empty object.
     virtual void DetachData() = 0;
 

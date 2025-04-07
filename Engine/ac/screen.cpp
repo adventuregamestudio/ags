@@ -90,7 +90,7 @@ static IDriverDependantBitmap* get_frame_for_transition_in(bool opaque)
             saved_viewport_bitmap->GetWidth(), saved_viewport_bitmap->GetHeight());
         saved_viewport_bitmap.reset(fix_frame);
     }
-    return gfxDriver->CreateDDBFromBitmap(saved_viewport_bitmap.get(), opaque);
+    return gfxDriver->CreateDDBFromBitmap(saved_viewport_bitmap.get(), opaque ? kTxFlags_Opaque : kTxFlags_None);
 }
 
 
@@ -155,7 +155,7 @@ public:
 
         std::unique_ptr<Bitmap> black_bmp(BitmapHelper::CreateBitmap(16, 16, game.GetColorDepth()));
         black_bmp->Clear(makecol(play.fade_to_red, play.fade_to_green, play.fade_to_blue));
-        _fade = gfxDriver->CreateDDBFromBitmap(black_bmp.get(), true /* opaque */);
+        _fade = gfxDriver->CreateDDBFromBitmap(black_bmp.get(), kTxFlags_Opaque);
         _fade->SetStretch(_view.GetWidth(), _view.GetHeight(), false);
 
         _alpha = 1;
@@ -355,7 +355,7 @@ public:
         black_bmp->Clear(makecol(play.fade_to_red, play.fade_to_green, play.fade_to_blue));
         for (int i = 0; i < (_fadein ? 4 : 1); i++)
         {
-            _fade[i] = gfxDriver->CreateDDBFromBitmap(black_bmp.get(), true /* opaque */);
+            _fade[i] = gfxDriver->CreateDDBFromBitmap(black_bmp.get(), kTxFlags_Opaque);
             _fade[i]->SetStretch(_view.GetWidth(), _view.GetHeight(), false);
         }
 

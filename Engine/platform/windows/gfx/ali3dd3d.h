@@ -85,13 +85,13 @@ public:
     // Tells if this DDB has an actual render data assigned to it.
     bool IsValid() const override { return _data != nullptr; }
     // Attaches new texture data, sets basic render rules
-    void AttachData(std::shared_ptr<Texture> txdata, bool opaque) override
+    void AttachData(std::shared_ptr<Texture> txdata, int txflags) override
     {
         _data = std::static_pointer_cast<D3DTexture>(txdata);
         _size = _data->Res;
         _scaledSize = _size;
         _colDepth = _data->Res.ColorDepth;
-        _opaque = opaque;
+        _txFlags = txflags;
     }
     // Detach any internal texture data from this DDB, make this an empty object
     void DetachData() override
@@ -110,12 +110,12 @@ public:
     // Rotation is set in degrees clockwise, stored converted to radians
     void SetRotation(float degrees) override { _rotation = -Common::Math::DegreesToRadians(degrees); }
 
-    D3DBitmap(int width, int height, int colDepth, bool opaque)
+    D3DBitmap(int width, int height, int colDepth, int txflags)
     {
         _size = Size(width, height);
         _scaledSize = _size;
         _colDepth = colDepth;
-        _opaque = opaque;
+        _txFlags = txflags;
     }
 
     ~D3DBitmap() override = default;
@@ -123,9 +123,9 @@ public:
     D3DTexture *GetTexture() const { return _data.get(); }
     std::shared_ptr<D3DTexture> GetSharedTexture() const { return _data; }
     const D3DSurfacePtr &GetRenderSurface() const { return _renderSurface; }
-    TextureHint GetTextureHint() const { return _renderHint; }
+    TextureRenderHint GetRenderHint() const { return _renderHint; }
 
-    void SetTexture(std::shared_ptr<D3DTexture> &data, const D3DSurfacePtr &d3d_surface = {}, TextureHint hint = kTxHint_Normal)
+    void SetTexture(std::shared_ptr<D3DTexture> &data, const D3DSurfacePtr &d3d_surface = {}, TextureRenderHint hint = kTxHint_Normal)
     {
         _data = data;
         _renderSurface = d3d_surface;
@@ -138,7 +138,7 @@ private:
     // Optional surface for rendering onto a texture
     D3DSurfacePtr _renderSurface;
     // Render parameters
-    TextureHint _renderHint = kTxHint_Normal;
+    TextureRenderHint _renderHint = kTxHint_Normal;
     bool _useResampler = false;
 };
 
@@ -218,13 +218,13 @@ public:
     // Returns available texture memory in bytes, or 0 if this query is not supported
     uint64_t GetAvailableTextureMemory() override;
 
-    IDriverDependantBitmap* CreateDDB(int width, int height, int color_depth, bool opaque) override;
-    IDriverDependantBitmap* CreateRenderTargetDDB(int width, int height, int color_depth, bool opaque) override;
+    IDriverDependantBitmap* CreateDDB(int width, int height, int color_depth, int txflags) override;
+    IDriverDependantBitmap* CreateRenderTargetDDB(int width, int height, int color_depth, int txflags) override;
     void UpdateDDBFromBitmap(IDriverDependantBitmap* ddb, const Bitmap *bitmap) override;
     void DestroyDDB(IDriverDependantBitmap* ddb) override;
 
     // Create texture data with the given parameters
-    Texture *CreateTexture(int width, int height, int color_depth, bool opaque = false, bool as_render_target = false) override;
+    Texture *CreateTexture(int width, int height, int color_depth, int txflags) override;
     // Update texture data from the given bitmap
     void UpdateTexture(Texture *txdata, const Bitmap *bitmap, bool opaque) override;
     // Retrieve shared texture data object from the given DDB
@@ -265,7 +265,7 @@ protected:
     bool SetVsyncImpl(bool vsync, bool &vsync_res) override;
 
     // Create DDB using preexisting texture
-    IDriverDependantBitmap *CreateDDB(std::shared_ptr<Texture> txdata, bool opaque) override;
+    IDriverDependantBitmap *CreateDDB(std::shared_ptr<Texture> txdata, int txflags) override;
 
     size_t GetLastDrawEntryIndex() override { return _spriteList.size(); }
 

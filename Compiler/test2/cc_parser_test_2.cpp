@@ -792,7 +792,6 @@ TEST_F(Compile2, CTEvalLogicalOps) {
     EXPECT_NE(std::string::npos, err_msg.find("'101577700 /"));
 }
 
-
 TEST_F(Compile2, ParamIsFunc) {
 
     char const *inpl = R"&/(
@@ -807,4 +806,163 @@ TEST_F(Compile2, ParamIsFunc) {
 
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("'crash'"));
+}
+
+TEST_F(Compile2, MultiDimCharArrayToString) {
+
+    // A character array with more than 1 dimension cannot be
+    // converted to 'const string'.
+
+    char const *inpl = R"%&/(
+        int test(const string s)
+        {
+            char arr[5][7];
+            return test(arr);
+        }
+        )%&/";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string const &err_msg = mh.GetError().Message;
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("convert"));
+}
+
+TEST_F(Compile2, ArrayInitLiteralOverflow) {
+
+    // Can't initialize the array because the literal
+    // including the terminal '\0' is too long
+
+    char const *inpl = R"%&/(
+        char arr[5] = "Super";
+        )%&/";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string const &err_msg = mh.GetError().Message;
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("too long"));
+}
+
+TEST_F(Compile2, ArrayInitSequenceTooLong) {
+
+    // Too many values to initialize an array of 5 elements
+
+    char const *inpl = R"%&/(
+        short arr[5] = { 1, 2, 3, 4, 5, 6 };
+        )%&/";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string const &err_msg = mh.GetError().Message;
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("at most 5"));
+}
+
+TEST_F(Compile2, ArrayInitNamedUnnamedMix01) {
+
+    // Can't mix unnamed and named entries in
+    // array initialization sequence
+
+    char const *inpl = R"%&/(
+        short arr[5] = { 1, 2: 5 };
+        )%&/";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string const &err_msg = mh.GetError().Message;
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("':'"));
+}
+
+TEST_F(Compile2, ArrayInitNamedUnnamedMix02) {
+
+    // Can't mix unnamed and named entries in
+    // array initialization sequence
+
+    char const *inpl = R"%&/(
+        short arr[5] = { 0: 1, 2, };
+        )%&/";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string const &err_msg = mh.GetError().Message;
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("':'"));
+}
+
+TEST_F(Compile2, ArrayInitNamedOutOfRange01) {
+
+    // Element's "name" must be a valid array index
+
+    char const *inpl = R"%&/(
+        short arr[5] = { (3 - 5) / 2: 1 };
+        )%&/";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string const &err_msg = mh.GetError().Message;
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("too low"));
+}
+
+TEST_F(Compile2, ArrayInitNamedOutOfRange02) {
+
+    // Element's "name" must be a valid array index
+
+    char const *inpl = R"%&/(
+        short arr[5] = { 5: 1 };
+        )%&/";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string const &err_msg = mh.GetError().Message;
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("too high"));
+}
+
+TEST_F(Compile2, ArrayInitNamedDouble) {
+
+    // Can't initialize same element twice
+
+    char const *inpl = R"%&/(
+        short arr[5] = { 3: 1,
+                         3: 2, };
+        )%&/";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string const &err_msg = mh.GetError().Message;
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("3"));
+}
+
+TEST_F(Compile2, InitManaged01)
+{
+    
+    char const *inpl = R"%&/(
+        managed struct Foo
+        {
+            int Payload;
+        } Var = new Foo;
+        )%&/";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string const &err_msg = mh.GetError().Message;
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("'null'"));
+}
+TEST_F(Compile2, InitManaged02)
+{
+    
+    char const *inpl = R"%&/(
+        int List[] = new int;
+        )%&/";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string const &err_msg = mh.GetError().Message;
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("'null'"));
 }

@@ -1652,9 +1652,9 @@ TEST_F(Compile1, FixupMismatch) {
         }                                       \n\
         ";
 
-    ccSetOption(SCOPT_LINENUMBERS, true);
+    // Note: Don't use 'ccSetOption()' in Googletests.
 
-    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    int compile_result = cc_compile(inpl, SCOPT_LINENUMBERS, scrip, mh);
     std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
@@ -2935,7 +2935,9 @@ TEST_F(Compile1, DynarrayOfArray) {
         }                               \n\
         ";
 
-    ccSetOption(SCOPT_RTTIOPS, false);
+    // Note: Don't use 'ccSetOption()' in Googletests.
+    // 'kNoOptions' is 0, so in particular, SCOPT_RTTIOPS is 0.
+
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
     std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;

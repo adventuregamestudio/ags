@@ -125,7 +125,7 @@ public:
     const D3DSurfacePtr &GetRenderSurface() const { return _renderSurface; }
     TextureRenderHint GetRenderHint() const { return _renderHint; }
 
-    void SetTexture(std::shared_ptr<D3DTexture> &data, const D3DSurfacePtr &d3d_surface = {}, TextureRenderHint hint = kTxHint_Normal)
+    void SetTexture(std::shared_ptr<D3DTexture> data, const D3DSurfacePtr &d3d_surface = {}, TextureRenderHint hint = kTxHint_Normal)
     {
         _data = data;
         _renderSurface = d3d_surface;

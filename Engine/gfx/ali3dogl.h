@@ -122,7 +122,7 @@ public:
     GLuint GetFbo() const { return _fbo; }
     TextureRenderHint GetRenderHint() const { return _renderHint; }
 
-    void SetTexture(std::shared_ptr<OGLTexture> &data, GLuint fbo = 0u, TextureRenderHint hint = kTxHint_Normal)
+    void SetTexture(std::shared_ptr<OGLTexture> data, GLuint fbo = 0u, TextureRenderHint hint = kTxHint_Normal)
     {
         _data = data;
         _fbo = fbo;

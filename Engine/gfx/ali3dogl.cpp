@@ -665,7 +665,8 @@ bool OGLGraphicsDriver::CreateShaderProgram(ShaderProgram &prg, const String &na
     if (result == GL_FALSE)
     {
         OutputShaderError(fragment_shader, String::FromFormat("%s program's fragment shader", name.GetCStr()), true);
-        glDeleteShader(fragment_shader); //not sure yet if this goes here
+        glDeleteShader(vertex_shader);
+        glDeleteShader(fragment_shader);
         return false;
     }
 
@@ -677,19 +678,19 @@ bool OGLGraphicsDriver::CreateShaderProgram(ShaderProgram &prg, const String &na
     if(result == GL_FALSE)
     {
         OutputShaderError(program, String::FromFormat("%s program", name.GetCStr()), false);
-        glDeleteProgram(program); //not sure yet if this goes here
-        glDeleteShader(fragment_shader); //not sure yet if this goes here
+        glDeleteProgram(program);
+        glDeleteShader(vertex_shader);
+        glDeleteShader(fragment_shader);
         return false;
     }
 
     glDetachShader(program, vertex_shader);
-    glDeleteShader(vertex_shader);
-
     glDetachShader(program, fragment_shader);
+    glDeleteShader(vertex_shader);
     glDeleteShader(fragment_shader);
 
     prg.Program = program;
-    Debug::Printf("OGL: %s shader program created successfully", name);
+    Debug::Printf("OGL: %s shader program created successfully", name.GetCStr());
     return true;
 }
 

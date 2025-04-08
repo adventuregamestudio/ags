@@ -2615,6 +2615,8 @@ void GfxDriverOnInitCallback(void *data)
     pl_run_plugin_init_gfx_hooks(gfxDriver->GetDriverID(), data);
 }
 
+#define RENDER_ROOMS_AS_TEXTURES (0)
+
 // Schedule room rendering: background, objects, characters
 static void construct_room_view()
 {
@@ -2637,6 +2639,7 @@ static void construct_room_view()
 
         if (drawstate.FullFrameRedraw)
         {
+#if (RENDER_ROOMS_AS_TEXTURES)
             const SpriteTransform cam_trans(-cam_rc.Left, -cam_rc.Top, 1.f, 1.f,
                 camera->GetRotation(), Point(cam_rc.GetWidth() / 2, cam_rc.GetHeight() / 2));
 
@@ -2652,6 +2655,21 @@ static void construct_room_view()
             // Now render the camera texture itself, scaling to the viewport size
             cam_data.CamRenderTarget->SetStretch(view_rc.GetWidth(), view_rc.GetHeight());
             gfxDriver->DrawSprite(view_rc.Left, view_rc.Top, cam_data.CamRenderTarget);
+#else   // !RENDER_ROOMS_AS_TEXTURES
+            const Rect view_p = view_rc;
+            const float view_sx = (float)view_rc.GetWidth() / (float)cam_rc.GetWidth();
+            const float view_sy = (float)view_rc.GetHeight() / (float)cam_rc.GetHeight();
+            const SpriteTransform view_trans(view_rc.Left, view_rc.Top, view_sx, view_sy);
+            const SpriteTransform cam_trans(-cam_rc.Left, -cam_rc.Top, 1.f, 1.f,
+                                            camera->GetRotation(), Point(cam_rc.GetWidth() / 2, cam_rc.GetHeight() / 2));
+
+            gfxDriver->BeginSpriteBatch(view_rc, view_trans, RENDER_BATCH_ROOM_LAYER);
+            gfxDriver->BeginSpriteBatch(Rect(), cam_trans);
+            gfxDriver->SetStageScreen(cam_rc.GetSize(), cam_rc.Left, cam_rc.Top);
+            put_sprite_list_on_screen(true);
+            gfxDriver->EndSpriteBatch();
+            gfxDriver->EndSpriteBatch();
+#endif // RENDER_ROOMS_AS_TEXTURES
         }
         else
         {

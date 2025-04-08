@@ -327,7 +327,8 @@ struct VMSpriteBatch
     Rect Viewport;
     // Transformation matrix, built from the batch description
     glm::mat4 Matrix;
-    // Viewport transformation matrix, necessary, as the coord origin is different
+    // Viewport transformation matrix, used to apply to child batch viewports;
+    // a separate matrix is required, as the coord origin is different from sprites
     glm::mat4 ViewportMat;
     // Batch color transformation
     SpriteColorTransform Color;

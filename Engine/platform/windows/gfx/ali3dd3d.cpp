@@ -1206,8 +1206,6 @@ void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw
       yOffs = txdata->_tiles[ti].y * yProportion;
     float thisX = draw_x + xOffs;
     float thisY = draw_y + yOffs;
-    thisX = (-(rend_sz.Width / 2.0f)) + thisX;
-    thisY = (rend_sz.Height / 2.0f) - thisY;
 
     //Setup translation and scaling matrices
     float widthToScale = width;
@@ -1223,11 +1221,16 @@ void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw
     if ((bmpToDraw->GetFlip() & kFlip_Vertical) != 0)
     {
       heightToScale = -heightToScale;
-      thisY -= height; // inverse axis
+      thisY += height;
     }
     // Apply sprite origin
     thisX -= abs(widthToScale) * bmpToDraw->GetOrigin().X;
-    thisY += abs(heightToScale) * bmpToDraw->GetOrigin().Y; // inverse axis
+    thisY -= abs(heightToScale) * bmpToDraw->GetOrigin().Y;
+    // Center inside a rendering rect
+    // FIXME: this should be a part of a projection matrix, afaik
+    thisX = (-(rend_sz.Width / 2.0f)) + thisX;
+    thisY = (rend_sz.Height / 2.0f) - thisY; // inverse axis
+
     // Setup rotation and pivot
     float rotZ = bmpToDraw->GetRotation();
     float pivotX = -(widthToScale * 0.5), pivotY = (heightToScale * 0.5);
@@ -1634,7 +1637,7 @@ void D3DGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &des
     float pivoty = _srcRect.GetHeight() / 2.f - desc.Transform.Pivot.Y;
     glm::mat4 msrt = glmex::make_transform2d(
         (float)desc.Transform.X, (float)-desc.Transform.Y,
-        desc.Transform.ScaleX, desc.Transform.ScaleY, // CHECKME: rotate args
+        desc.Transform.ScaleX, desc.Transform.ScaleY,
         -Math::DegreesToRadians(desc.Transform.Rotate), pivotx, pivoty);
     // Translate scaled node into Top-Left screen coordinates
     float scaled_offx = _srcRect.GetWidth() * ((1.f - desc.Transform.ScaleX) * 0.5f);
@@ -1660,7 +1663,7 @@ void D3DGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &des
     // because the viewport's coordinates origin is different from sprites.
     glm::mat4 mat_viewport = glmex::make_transform2d(
         (float)desc.Transform.X, (float)desc.Transform.Y,
-        desc.Transform.ScaleX, desc.Transform.ScaleY, // CHECKME: rotate args
+        desc.Transform.ScaleX, desc.Transform.ScaleY,
         -Math::DegreesToRadians(desc.Transform.Rotate), pivotx, pivoty);
     glm::mat4 vp_flip_off = glmex::translate(
         _srcRect.GetWidth() * ((1.f - flip_sx) * 0.5f),

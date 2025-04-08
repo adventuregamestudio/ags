@@ -1160,8 +1160,6 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
       yOffs = txdata->_tiles[ti].y * yProportion;
     float thisX = draw_x + xOffs;
     float thisY = draw_y + yOffs;
-    thisX = (-(rend_sz.Width / 2.0f)) + thisX;
-    thisY = (rend_sz.Height / 2.0f) - thisY;
 
     //Setup translation and scaling matrices
     float widthToScale = width;
@@ -1177,11 +1175,16 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
     if ((bmpToDraw->GetFlip() & kFlip_Vertical) != 0)
     {
       heightToScale = -heightToScale;
-      thisY -= height;
+      thisY += height;
     }
     // Apply sprite origin
     thisX -= abs(widthToScale) * bmpToDraw->GetOrigin().X;
-    thisY += abs(heightToScale) * bmpToDraw->GetOrigin().Y; // inverse axis
+    thisY -= abs(heightToScale) * bmpToDraw->GetOrigin().Y;
+    // Center inside a rendering rect
+    // FIXME: this should be a part of a projection matrix, afaik
+    thisX = (-(rend_sz.Width / 2.0f)) + thisX;
+    thisY = (rend_sz.Height / 2.0f) - thisY; // inverse axis
+
     // Setup rotation and pivot
     float rotZ = bmpToDraw->GetRotation();
     float pivotX = -(widthToScale * 0.5), pivotY = (heightToScale * 0.5);

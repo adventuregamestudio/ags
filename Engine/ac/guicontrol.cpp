@@ -258,6 +258,16 @@ bool GUIControl_SetTextProperty(GUIObject *guio, const char *property, const cha
     return set_text_property(play.guicontrolProps[ctrl_type][ctrl_id], property, value);
 }
 
+int GUIControl_GetShader(GUIObject *guio)
+{
+    return guio->GetShader();
+}
+
+void GUIControl_SetShader(GUIObject *guio, int shader_id)
+{
+    guio->SetShader(shader_id);
+}
+
 //=============================================================================
 //
 // Script API Functions
@@ -483,6 +493,16 @@ RuntimeScriptValue Sc_GUIControl_SetBlendMode(void *self, const RuntimeScriptVal
     API_OBJCALL_VOID_PINT(GUIObject, GUIControl_SetBlendMode);
 }
 
+RuntimeScriptValue Sc_GUIControl_GetShader(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(GUIObject, GUIControl_GetShader);
+}
+
+RuntimeScriptValue Sc_GUIControl_SetShader(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(GUIObject, GUIControl_SetShader);
+}
+
 RuntimeScriptValue Sc_GUIControl_GetProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT_POBJ(GUIObject, GUIControl_GetProperty, const char);
@@ -547,6 +567,9 @@ void RegisterGUIControlAPI()
         { "GUIControl::set_Transparency", API_FN_PAIR(GUIControl_SetTransparency) },
         { "GUIControl::get_BlendMode",    API_FN_PAIR(GUIControl_GetBlendMode) },
         { "GUIControl::set_BlendMode",    API_FN_PAIR(GUIControl_SetBlendMode) },
+
+        { "GUIControl::get_Shader",       API_FN_PAIR(GUIControl_GetShader) },
+        { "GUIControl::set_Shader",       API_FN_PAIR(GUIControl_SetShader) },
     };
 
     ccAddExternalFunctions(guicontrol_api);

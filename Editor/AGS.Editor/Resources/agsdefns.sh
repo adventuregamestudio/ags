@@ -1290,6 +1290,9 @@ builtin managed struct Overlay {
   readonly import attribute int  TintLuminance;
   /// Gets/sets the flip direction of this overlay.
   import attribute eFlipDirection Flip;
+
+  ///
+  import attribute int Shader;
 #endif // SCRIPT_API_v400
 };
 
@@ -1565,6 +1568,9 @@ builtin managed struct GUIControl {
 
   /// Gets/sets the blending mode of this control.
   import attribute BlendMode BlendMode;
+
+  ///
+  import attribute int Shader;
 #endif // SCRIPT_API_v400
 };
 
@@ -1820,6 +1826,9 @@ builtin managed struct GUI {
   import bool SetProperty(const string property, int value);
   /// Sets a text custom property for this GUI.
   import bool SetTextProperty(const string property, const string value);
+
+  ///
+  import attribute int Shader;
 #endif // SCRIPT_API_v400
   readonly int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };
@@ -2447,6 +2456,9 @@ builtin managed struct Object {
   import attribute bool Enabled;
   /// Gets this object's current MotionPath, or null if it's not moving.
   import attribute MotionPath* MotionPath;
+
+  ///
+  import attribute int Shader;
 #endif // SCRIPT_API_v400
   readonly int reserved[2];  // $AUTOCOMPLETEIGNORE$
 };
@@ -2714,6 +2726,9 @@ builtin managed struct Character {
   import attribute float FaceDirectionRatio;
   /// Gets this character's current MotionPath, or null if it's not moving.
   import attribute MotionPath* MotionPath;
+
+  ///
+  import attribute int Shader;
 #endif // SCRIPT_API_v400
 #ifdef SCRIPT_COMPAT_v399
   char  on;
@@ -3041,6 +3056,11 @@ builtin managed struct Viewport {
   import Point *ScreenToRoomPoint(int scrx, int scry, bool clipViewport = true);
   /// Returns the point on screen corresponding to the given room coordinates if seen through this viewport.
   import Point *RoomToScreenPoint(int roomx, int roomy, bool clipViewport = true);
+
+#ifdef SCRIPT_API_v400
+  ///
+  import attribute int Shader;
+#endif // SCRIPT_API_v400
 };
 
 builtin struct Screen {
@@ -3291,6 +3311,13 @@ builtin managed struct MotionPath {
   import readonly attribute float VelocityX;
   /// Gets the current Y magnitude of an object's velocity.
   import readonly attribute float VelocityY;
+};
+
+builtin managed struct ShaderProgram {
+  ///
+  import static ShaderProgram* CreateFromFile(const string filename);
+  ///
+  import readonly attribute int ShaderID;
 };
 #endif // SCRIPT_API_v400
 

@@ -84,6 +84,7 @@ struct ScreenOverlay
     uint8_t tint_r = 0u, tint_g = 0u, tint_b = 0u, tint_level = 0u;
     int tint_light = 0; // -100 to 100 (comply to objects and characters)
     Common::BlendMode blendMode = Common::kBlend_Normal;
+    int shader_id = 0;
     int transparency = 0;
     Common::GraphicSpace _gs;
 

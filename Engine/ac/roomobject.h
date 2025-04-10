@@ -60,6 +60,7 @@ struct RoomObject {
     int   cur_anim_volume = 100; // current animation sound volume (relative factor)
     Common::String name;
     Common::BlendMode blend_mode;
+    int   shader_id = 0;
     float rotation;
     int   movelist_handle = 0; // handle to the script movelist
 

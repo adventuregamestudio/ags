@@ -856,6 +856,16 @@ void Object_SetBlendMode(ScriptObject *objj, int blend_mode) {
     objs[objj->id].blend_mode = ValidateBlendMode("Object.BlendMode", blend_mode);
 }
 
+int Object_GetShader(ScriptObject *objj)
+{
+    return objs[objj->id].shader_id;
+}
+
+void Object_SetShader(ScriptObject *objj, int shader_id)
+{
+    objs[objj->id].shader_id = shader_id;
+}
+
 float Object_GetRotation(ScriptObject *objj) {
     return objs[objj->id].rotation;
 }
@@ -1736,6 +1746,17 @@ RuntimeScriptValue Sc_Object_SetBlendMode(void *self, const RuntimeScriptValue *
     API_OBJCALL_VOID_PINT(ScriptObject, Object_SetBlendMode);
 }
 
+RuntimeScriptValue Sc_Object_GetShader(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptObject, Object_GetShader);
+}
+
+// void (ScriptObject *objj, int blendMode)
+RuntimeScriptValue Sc_Object_SetShader(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetShader);
+}
+
 // bool (ScriptObject *objj)
 RuntimeScriptValue Sc_Object_GetUseRegionTint(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -1848,6 +1869,9 @@ void RegisterObjectAPI()
         { "Object::set_UseRegionTint",        API_FN_PAIR(Object_SetUseRegionTint) },
 
         { "Object::get_MotionPath",           API_FN_PAIR(Object_GetMotionPath) },
+
+        { "Object::get_Shader",               API_FN_PAIR(Object_GetShader) },
+        { "Object::set_Shader",               API_FN_PAIR(Object_SetShader) },
     };
 
     ccAddExternalFunctions(object_api);

@@ -62,6 +62,8 @@ extern void RegisterVideoAPI();
 extern void RegisterWalkareaAPI();
 extern void RegisterWalkbehindAPI();
 
+extern void RegisterShaderAPI();
+
 extern void RegisterStaticObjects();
 
 void setup_script_exports(ScriptAPIVersion base_api, ScriptAPIVersion compat_api)
@@ -109,6 +111,8 @@ void setup_script_exports(ScriptAPIVersion base_api, ScriptAPIVersion compat_api
     RegisterVideoAPI();
     RegisterWalkareaAPI();
     RegisterWalkbehindAPI();
+
+    RegisterShaderAPI();
 
     RegisterStaticObjects();
 }

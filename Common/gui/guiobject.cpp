@@ -165,6 +165,11 @@ void GUIObject::SetBlendMode(BlendMode blend_mode)
     }
 }
 
+void GUIObject::SetShader(int shader_id)
+{
+    _shaderID = shader_id;
+}
+
 void GUIObject::SetVisible(bool on)
 {
     if (on != ((_flags & kGUICtrl_Visible) != 0))

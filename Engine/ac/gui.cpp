@@ -415,6 +415,16 @@ void GUI_SetBlendMode(ScriptGUI *gui, int blend_mode) {
     guis[gui->id].SetBlendMode(ValidateBlendMode("GUI.BlendMode", blend_mode));
 }
 
+int GUI_GetShader(ScriptGUI *gui)
+{
+    return guis[gui->id].GetShader();
+}
+
+void GUI_SetShader(ScriptGUI *gui, int shader_id)
+{
+    guis[gui->id].SetShader(shader_id);
+}
+
 float GUI_GetRotation(ScriptGUI *gui) {
     return guis[gui->id].GetRotation();
 }
@@ -1211,6 +1221,16 @@ RuntimeScriptValue Sc_GUI_SetBlendMode(void *self, const RuntimeScriptValue *par
     API_OBJCALL_VOID_PINT(ScriptGUI, GUI_SetBlendMode);
 }
 
+RuntimeScriptValue Sc_GUI_GetShader(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptGUI, GUI_GetShader);
+}
+
+RuntimeScriptValue Sc_GUI_SetShader(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptGUI, GUI_SetShader);
+}
+
 RuntimeScriptValue Sc_GUI_GetRotation(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_FLOAT(ScriptGUI, GUI_GetRotation);
@@ -1339,6 +1359,9 @@ void RegisterGUIAPI()
         { "GUI::set_ScaleY",              API_FN_PAIR(GUI_SetScaleY) },
         { "GUI::SetScale",                API_FN_PAIR(GUI_SetScale) },
         { "GUI::SetScale",                API_FN_PAIR(GUI_SetScale) },
+
+        { "GUI::get_Shader",              API_FN_PAIR(GUI_GetShader) },
+        { "GUI::set_Shader",              API_FN_PAIR(GUI_SetShader) },
     };
 
     ccAddExternalFunctions(gui_api);

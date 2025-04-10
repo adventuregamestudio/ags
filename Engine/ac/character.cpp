@@ -1778,6 +1778,16 @@ void Character_SetBlendMode(CharacterInfo *chaa, int blend_mode) {
     charextra[chaa->index_id].blend_mode = ValidateBlendMode("Character.BlendMode", blend_mode);
 }
 
+int Character_GetShader(CharacterInfo *chaa)
+{
+    return charextra[chaa->index_id].shader_id;
+}
+
+void Character_SetShader(CharacterInfo *chaa, int shader_id)
+{
+    charextra[chaa->index_id].shader_id = shader_id;
+}
+
 float Character_GetRotation(CharacterInfo *chaa) {
     return charextra[chaa->index_id].rotation;
 }
@@ -4214,6 +4224,16 @@ RuntimeScriptValue Sc_Character_SetBlendMode(void *self, const RuntimeScriptValu
     API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetBlendMode);
 }
 
+RuntimeScriptValue Sc_Character_GetShader(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(CharacterInfo, Character_GetShader);
+}
+
+RuntimeScriptValue Sc_Character_SetShader(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetShader);
+}
+
 // bool (CharacterInfo *chaa)
 RuntimeScriptValue Sc_Character_GetUseRegionTint(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -4456,6 +4476,9 @@ void RegisterCharacterAPI(ScriptAPIVersion /*base_api*/, ScriptAPIVersion /*comp
         { "Character::get_FaceDirectionRatio",    API_FN_PAIR(Character_GetFaceDirectionRatio) },
         { "Character::set_FaceDirectionRatio",    API_FN_PAIR(Character_SetFaceDirectionRatio) },
         { "Character::get_MotionPath",            API_FN_PAIR(Character_GetMotionPath) },
+
+        { "Character::get_Shader",                API_FN_PAIR(Character_GetShader) },
+        { "Character::set_Shader",                API_FN_PAIR(Character_SetShader) },
     };
 
     ccAddExternalFunctions(character_api);

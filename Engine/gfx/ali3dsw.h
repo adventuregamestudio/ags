@@ -249,6 +249,9 @@ public:
     // Creates shader program from the source code, registers it under given name;
     // not supported in software driver, always fails.
     uint32_t CreateShaderProgram(const String &name, const char *fragment_shader_src) override { return UINT32_MAX; }
+    // Creates shader program from the compiled data, registers it under given name;
+    // not supported in software driver, always fails.
+    uint32_t CreateShaderProgram(const String &name, const std::vector<uint8_t> &compiled_data) override { return UINT32_MAX; }
     // Looks up for the shader program using a name;
     // not supported in software driver, always fails.
     uint32_t FindShaderProgram(const String &name) override { return UINT32_MAX; }

@@ -136,6 +136,11 @@ void GUIObject::SetBlendMode(BlendMode blend_mode)
     }
 }
 
+void GUIObject::SetShader(int shader_id)
+{
+    _shaderID = shader_id;
+}
+
 // TODO: replace string serialization with StrUtil::ReadString and WriteString
 // methods in the future, to keep this organized.
 void GUIObject::WriteToFile(Stream *out) const

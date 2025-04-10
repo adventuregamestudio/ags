@@ -376,6 +376,8 @@ private:
         //---------------------------------------
         // Fragment shader:
         // Standard uniforms
+        GLuint UTime = 0;     // real time
+        GLuint UFrame = 0;    // game (?) frame
         GLuint TextureId = 0; // main texture (sprite or render target)
         GLuint Alpha = 0;     // requested global alpha
 
@@ -391,6 +393,7 @@ private:
     // Deletes a shader program
     void DeleteShaderProgram(ShaderProgram &prg);
     void AssignBaseShaderArgs(ShaderProgram &prg);
+    void UpdateGlobalShaderArgValues();
     void OutputShaderError(GLuint obj_id, const String &obj_name, bool is_shader);
 
     //

@@ -52,6 +52,7 @@ public:
     int             GetHeight() const { return _height; }
     int             GetTransparency() const { return _transparency; }
     BlendMode       GetBlendMode() const { return _blendMode; }
+    int             GetShader() const { return _shaderID; }
     // Compatibility: should the control's graphic be clipped to its x,y,w,h
     virtual bool    IsContentClipped() const { return true; }
     
@@ -72,6 +73,7 @@ public:
     // Sets transparency as a percentage (0 - 100) where 100 = invisible
     void            SetTransparencyAsPercentage(int percent);
     void            SetBlendMode(BlendMode blend_mode);
+    void            SetShader(int shader_id);
 
     // Events
     // Key pressed for control; returns if handled
@@ -127,6 +129,7 @@ protected:
     int32_t  _height;
     int32_t  _transparency; // "incorrect" alpha (in legacy 255-range units)
     BlendMode _blendMode = kBlend_Normal;
+    int      _shaderID = 0;
     bool     _hasChanged;
 
     // TODO: explicit event names & handlers for every event

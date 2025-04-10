@@ -272,6 +272,9 @@ public:
     // Creates shader program from the source code, registers it under given name,
     // returns internal shader index which may be used as a reference, or UINT32_MAX on failure.
     uint32_t CreateShaderProgram(const String &name, const char *fragment_shader_src) override;
+    // Creates shader program from the compiled data, registers it under given name,
+    // returns internal shader index which may be used as a reference, or UINT32_MAX on failure.
+    uint32_t CreateShaderProgram(const String &name, const std::vector<uint8_t> &compiled_data) override;
     // Looks up for the shader program using a name,
     // returns internal shader index which may be used as a reference, or UINT32_MAX on failure.
     uint32_t FindShaderProgram(const String &name) override;
@@ -338,16 +341,18 @@ private:
     // Sets up general rendering parameters
     void InitGlParams(const DisplayMode &mode);
     void SetupDefaultVertices();
+    void CreateVirtualScreen();
+    void SetupViewport();
     // Test if rendering to texture is supported
     void TestRenderToTexture();
     // Create shader programs for sprite tinting and changing light level
     bool CreateShaders();
+    // Delete all shader programs
+    void DeleteShaders();
     // Configure native resolution render target, that is used in render-to-texture mode
     void SetupNativeTarget();
     // Unset parameters and release resources related to the display mode
     void ReleaseDisplayMode();
-    void CreateVirtualScreen();
-    void SetupViewport();
 
     ///////////////////////////////////////////////////////
     // Texture management: implementation
@@ -379,6 +384,7 @@ private:
         GLuint UTime = 0;     // real time
         GLuint UFrame = 0;    // game (?) frame
         GLuint TextureId = 0; // main texture (sprite or render target)
+        //GLuint TextureDim = 0;// main texture dimensions
         GLuint Alpha = 0;     // requested global alpha
 
         // Specialized uniforms for built-in shaders

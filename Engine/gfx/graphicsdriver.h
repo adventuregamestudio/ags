@@ -213,6 +213,9 @@ public:
     // Creates shader program from the source code, registers it under given name,
     // returns internal shader index which may be used as a reference, or UINT32_MAX on failure.
     virtual uint32_t CreateShaderProgram(const String &name, const char *fragment_shader_src) = 0;
+    // Creates shader program from the compiled data, registers it under given name,
+    // returns internal shader index which may be used as a reference, or UINT32_MAX on failure.
+    virtual uint32_t CreateShaderProgram(const String &name, const std::vector<uint8_t> &compiled_data) = 0;
     // Looks up for the shader program using a name,
     // returns internal shader index which may be used as a reference, or UINT32_MAX on failure.
     virtual uint32_t FindShaderProgram(const String &name) = 0;

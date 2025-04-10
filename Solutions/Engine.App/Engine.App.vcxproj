@@ -498,6 +498,7 @@
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptjoystick.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptoverlay.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptpathfinder.cpp" />
+    <ClCompile Include="..\..\Engine\ac\dynobj\scriptshader.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptstring.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptsystem.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scripttouchpointer.cpp" />
@@ -543,6 +544,7 @@
     <ClCompile Include="..\..\Engine\ac\properties.cpp" />
     <ClCompile Include="..\..\Engine\ac\route_finder_impl.cpp" />
     <ClCompile Include="..\..\Engine\ac\scriptcontainers.cpp" />
+    <ClCompile Include="..\..\Engine\ac\shader_script.cpp" />
     <ClCompile Include="..\..\Engine\ac\sys_events.cpp" />
     <ClCompile Include="..\..\Engine\ac\region.cpp" />
     <ClCompile Include="..\..\Engine\ac\room.cpp" />
@@ -744,6 +746,7 @@
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptpathfinder.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptrestoredsaveinfo.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptset.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\scriptshader.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptstring.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptsystem.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scripttouchpointer.h" />

@@ -774,6 +774,12 @@
     <ClCompile Include="..\..\Engine\ac\dynobj\scripttouchpointer.cpp">
       <Filter>Source Files\ac\dynobj</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Engine\ac\shader_script.cpp">
+      <Filter>Source Files\ac</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Engine\ac\dynobj\scriptshader.cpp">
+      <Filter>Source Files\ac\dynobj</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Engine\ac\asset_helper.h">
@@ -1551,6 +1557,9 @@
       <Filter>Header Files\ac\dynobj</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\dynobj\scripttouchpointer.h">
+      <Filter>Header Files\ac\dynobj</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\ac\dynobj\scriptshader.h">
       <Filter>Header Files\ac\dynobj</Filter>
     </ClInclude>
   </ItemGroup>

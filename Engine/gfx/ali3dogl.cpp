@@ -429,16 +429,16 @@ static const auto default_vertex_shader_src =  ""
 "#version 120 \n"
 #endif
 R"EOS(
-uniform mat4 uMVPMatrix;
+uniform mat4    iMVPMatrix;
 
-attribute vec2 a_Position;
-attribute vec2 a_TexCoord;
+attribute vec2  a_Position;
+attribute vec2  a_TexCoord;
 
-varying vec2 v_TexCoord;
+varying vec2    vTexCoord;
 
 void main() {
-    v_TexCoord = a_TexCoord;
-    gl_Position = uMVPMatrix * vec4(a_Position.xy, 0.0, 1.0);
+    vTexCoord = a_TexCoord;
+    gl_Position = iMVPMatrix * vec4(a_Position.xy, 0.0, 1.0);
 }
 
 )EOS";
@@ -452,15 +452,15 @@ static const auto transparency_fragment_shader_src = ""
 "#version 120 \n"
 #endif
 R"EOS(
-uniform sampler2D textID;
-uniform float alpha;
+uniform sampler2D   iTexture;
+uniform float       iAlpha;
 
-varying vec2 v_TexCoord;
+varying vec2        vTexCoord;
 
 void main()
 {
-    vec4 src_col = texture2D(textID, v_TexCoord);
-    gl_FragColor = vec4(src_col.xyz, src_col.w * alpha);
+    vec4 src_col = texture2D(iTexture, vTexCoord);
+    gl_FragColor = vec4(src_col.xyz, src_col.w * iAlpha);
 }
 )EOS";
 
@@ -484,13 +484,14 @@ static const auto tint_fragment_shader_src = ""
 "#version 120 \n"
 #endif
 R"EOS(
-uniform sampler2D textID;
-uniform vec3 tintHSV;
-uniform float tintAmount;
-uniform float tintLuminance;
-uniform float alpha;
+uniform sampler2D   iTexture;
+uniform float       iAlpha;
 
-varying vec2 v_TexCoord;
+uniform vec3        iTintHSV;
+uniform float       iTintAmount;
+uniform float       iTintLuminance;
+
+varying vec2        vTexCoord;
 
 vec3 rgb2hsv(vec3 c)
 {
@@ -519,12 +520,12 @@ float getValue(vec3 color)
 
 void main()
 {
-    vec4 src_col = texture2D(textID, v_TexCoord);
+    vec4 src_col = texture2D(iTexture, vTexCoord);
 
     float lum = getValue(src_col.xyz);
-    lum = max(lum - (1.0 - tintLuminance), 0.0);
-    vec3 new_col = (hsv2rgb(vec3(tintHSV[0], tintHSV[1], lum)) * tintAmount + src_col.xyz * (1.0 - tintAmount));
-    gl_FragColor = vec4(new_col, src_col.w * alpha);
+    lum = max(lum - (1.0 - iTintLuminance), 0.0);
+    vec3 new_col = (hsv2rgb(vec3(iTintHSV[0], iTintHSV[1], lum)) * iTintAmount + src_col.xyz * (1.0 - iTintAmount));
+    gl_FragColor = vec4(new_col, src_col.w * iAlpha);
 }
 )EOS";
 
@@ -547,20 +548,20 @@ static const auto light_fragment_shader_src = ""
 "#version 120 \n"
 #endif
 R"EOS(
-uniform sampler2D textID;
-uniform float light;
-uniform float alpha;
+uniform sampler2D   iTexture;
+uniform float       iAlpha;
+uniform float       iLight;
 
-varying vec2 v_TexCoord;
+varying vec2        vTexCoord;
 
 void main()
 {
-    vec4 src_col = texture2D(textID, v_TexCoord);
+    vec4 src_col = texture2D(iTexture, vTexCoord);
 
-   if (light >= 0.0)
-       gl_FragColor = vec4(src_col.xyz + vec3(light, light, light), src_col.w * alpha);
+   if (iLight >= 0.0)
+       gl_FragColor = vec4(src_col.xyz + vec3(iLight, iLight, iLight), src_col.w * iAlpha);
    else
-       gl_FragColor = vec4(src_col.xyz * abs(light), src_col.w * alpha);
+       gl_FragColor = vec4(src_col.xyz * abs(iLight), src_col.w * iAlpha);
 }
 )EOS";
 
@@ -570,15 +571,15 @@ static const auto darkenbyalpha_fragment_shader_src = R"EOS(
 
 precision mediump float;
 
-uniform sampler2D textID;
-uniform float alpha;
+uniform sampler2D   iTexture;
+uniform float       iAlpha;
 
-varying vec2 v_TexCoord;
+varying vec2        vTexCoord;
 
 void main()
 {
-    vec4 src_col = texture2D(textID, v_TexCoord);
-    gl_FragColor = vec4(src_col.xyz*alpha, src_col.w * alpha);
+    vec4 src_col = texture2D(iTexture, vTexCoord);
+    gl_FragColor = vec4(src_col.xyz * iAlpha, src_col.w * iAlpha);
 }
 )EOS";
 
@@ -589,15 +590,15 @@ static const auto lightenbyalpha_fragment_shader_src = R"EOS(
 
 precision mediump float;
 
-uniform sampler2D textID;
-uniform float alpha;
+uniform sampler2D   iTexture;
+uniform float       iAlpha;
 
-varying vec2 v_TexCoord;
+varying vec2        vTexCoord;
 
 void main()
 {
-    float invalpha = 1.0 - alpha;
-    vec4 src_col = texture2D(textID, v_TexCoord);
+    float invalpha = 1.0 - iAlpha;
+    vec4 src_col = texture2D(iTexture, vTexCoord);
     gl_FragColor = vec4(src_col.xyz + invalpha - (src_col.xyz*invalpha), src_col.w);
 }
 )EOS";
@@ -616,9 +617,9 @@ bool OGLGraphicsDriver::CreateTintShader(ShaderProgram &prg)
     if(!CreateShaderProgram(prg, "Tinting", default_vertex_shader_src, tint_fragment_shader_src))
         return false;
     AssignBaseShaderArgs(prg);
-    prg.TintHSV = glGetUniformLocation(prg.Program, "tintHSV");
-    prg.TintAmount = glGetUniformLocation(prg.Program, "tintAmount");
-    prg.TintLuminance = glGetUniformLocation(prg.Program, "tintLuminance");
+    prg.TintHSV = glGetUniformLocation(prg.Program, "iTintHSV");
+    prg.TintAmount = glGetUniformLocation(prg.Program, "iTintAmount");
+    prg.TintLuminance = glGetUniformLocation(prg.Program, "iTintLuminance");
     return true;
 }
 
@@ -627,7 +628,7 @@ bool OGLGraphicsDriver::CreateLightShader(ShaderProgram &prg)
     if(!CreateShaderProgram(prg, "Lighting", default_vertex_shader_src, light_fragment_shader_src))
         return false;
     AssignBaseShaderArgs(prg);
-    prg.LightingAmount = glGetUniformLocation(prg.Program, "light");
+    prg.LightingAmount = glGetUniformLocation(prg.Program, "iLight");
     return true;
 }
 
@@ -708,9 +709,9 @@ void OGLGraphicsDriver::AssignBaseShaderArgs(ShaderProgram &prg)
 {
     prg.A_Position = glGetAttribLocation(prg.Program, "a_Position");
     prg.A_TexCoord = glGetAttribLocation(prg.Program, "a_TexCoord");
-    prg.MVPMatrix = glGetUniformLocation(prg.Program, "uMVPMatrix");
-    prg.TextureId = glGetUniformLocation(prg.Program, "textID");
-    prg.Alpha = glGetUniformLocation(prg.Program, "alpha");
+    prg.MVPMatrix = glGetUniformLocation(prg.Program, "iMVPMatrix");
+    prg.TextureId = glGetUniformLocation(prg.Program, "iTexture");
+    prg.Alpha = glGetUniformLocation(prg.Program, "iAlpha");
     glEnableVertexAttribArray(prg.A_Position);
     glEnableVertexAttribArray(prg.A_TexCoord);
 }

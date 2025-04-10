@@ -118,9 +118,6 @@ OGLGraphicsDriver::OGLGraphicsDriver()
   _vmem_g_shift_32 = 8;
   _vmem_b_shift_32 = 16;
   _vmem_a_shift_32 = 24;
-
-  // Reserve shader index 0 as "no shader"
-  _shaders.push_back({});
 }
 
 void OGLGraphicsDriver::SetupDefaultVertices()
@@ -419,7 +416,25 @@ bool OGLGraphicsDriver::CreateShaders()
     shaders_created &= CreateLightShader(_lightShader, _transparencyShader);
     shaders_created &= CreateDarkenByAlphaShader(_darkenbyAlphaShader, _transparencyShader);
     shaders_created &= CreateLightenByAlphaShader(_lightenByAlphaShader, _transparencyShader);
+    // Reserve custom shader index 0 as "no shader"
+    _shaders.push_back({});
     return shaders_created;
+}
+
+void OGLGraphicsDriver::DeleteShaders()
+{
+    for (auto &prg : _shaders)
+    {
+        DeleteShaderProgram(prg);
+    }
+    _shaders.clear();
+    _shaderLookup.clear();
+
+    DeleteShaderProgram(_transparencyShader);
+    DeleteShaderProgram(_tintShader);
+    DeleteShaderProgram(_lightShader);
+    DeleteShaderProgram(_darkenbyAlphaShader);
+    DeleteShaderProgram(_lightenByAlphaShader);
 }
 
 
@@ -953,12 +968,7 @@ void OGLGraphicsDriver::UnInit()
     _nativeBackbuffer = BackbufferState();
   }
 
-  DeleteShaderProgram(_transparencyShader);
-  DeleteShaderProgram(_tintShader);
-  DeleteShaderProgram(_lightShader);
-  DeleteShaderProgram(_darkenbyAlphaShader);
-  DeleteShaderProgram(_lightenByAlphaShader);
-
+  DeleteShaders();
   DeleteWindowAndGlContext();
   sys_window_destroy();
 }
@@ -2188,6 +2198,15 @@ uint32_t OGLGraphicsDriver::CreateShaderProgram(const String &name, const char *
     uint32_t shader_id = static_cast<uint32_t>(_shaders.size() - 1);
     _shaderLookup[name] = shader_id;
     return shader_id;
+}
+
+uint32_t OGLGraphicsDriver::CreateShaderProgram(const String &name, const std::vector<uint8_t> &compiled_data)
+{
+    if (_shaderLookup.find(name) != _shaderLookup.end())
+        return UINT32_MAX; // the name is in use
+
+    // TODO: can/should we support using precompiled shaders with OpenGL?
+    return UINT32_MAX;
 }
 
 uint32_t OGLGraphicsDriver::FindShaderProgram(const String &name)

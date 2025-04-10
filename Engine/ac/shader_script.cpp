@@ -29,16 +29,41 @@ extern IGraphicsDriver *gfxDriver;
 
 ScriptShaderProgram *ShaderProgram_CreateFromFile(const char *filename)
 {
+    // FIXME: this is a temporary hack, we need to design a rule of how shader
+    // resources are selected depending on a gfx driver
+    String final_filename = filename;
+    if (gfxDriver->GetDriverID() == "D3D9" &&
+        Path::GetFileExtension(filename) == "glsl")
+        final_filename = Path::ReplaceExtension(filename, "fxo");
+
     uint32_t shader_id = 0;
-    auto stream = ResolveScriptPathAndOpen(filename, kFile_Open, kStream_Read);
+    auto stream = ResolveScriptPathAndOpen(final_filename, kFile_Open, kStream_Read);
     if (stream)
     {
-        String shader_src = String::FromStream(stream.get());
-        if (!shader_src.IsEmpty())
+        // TODO: do the extension check in graphics driver / graphics factory?
+        String ext = Path::GetFileExtension(final_filename);
+        if (ext.CompareNoCase("glsl") == 0)
         {
-            shader_id = gfxDriver->CreateShaderProgram(filename, shader_src.GetCStr());
-            if (shader_id == UINT32_MAX)
-                shader_id = 0; // assign an invalid shader
+            // Shader source
+            String shader_src = String::FromStream(stream.get());
+            if (!shader_src.IsEmpty())
+            {
+                shader_id = gfxDriver->CreateShaderProgram(final_filename, shader_src.GetCStr());
+                if (shader_id == UINT32_MAX)
+                    shader_id = 0; // assign an invalid shader
+            }
+        }
+        else if (ext.CompareNoCase("fxo") == 0)
+        {
+            // Shader compiled data
+            std::vector<uint8_t> data(stream->GetLength());
+            stream->Read(data.data(), data.size());
+            if (data.size() > 0)
+            {
+                shader_id = gfxDriver->CreateShaderProgram(filename, data);
+                if (shader_id == UINT32_MAX)
+                    shader_id = 0; // assign an invalid shader
+            }
         }
     }
 

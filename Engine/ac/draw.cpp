@@ -69,7 +69,6 @@ extern GameSetupStruct game;
 extern ScriptSystem scsystem;
 extern AGSPlatformDriver *platform;
 extern RoomStruct thisroom;
-extern unsigned int loopcounter;
 extern SpriteCache spriteset;
 extern RoomStatus*croom;
 extern int in_new_room;
@@ -1149,6 +1148,17 @@ void render_to_screen()
             System_SetVSyncInternal(new_vsync);
     }
 
+    // Set global constants for any shaders to use
+    {
+        GlobalShaderConstants constants;
+        auto now = AGS_Clock::now();
+        // TODO: perhaps count time since engine launched?
+        auto now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
+        constants.Time = static_cast<float>(now_ms) / 1000.f;
+        constants.GameFrame = get_loop_counter();
+        gfxDriver->SetGlobalShaderConstants(constants);
+    }
+
     bool succeeded = false;
     while (!succeeded && !want_exit && !abort_engine)
     {
@@ -1929,7 +1939,7 @@ void prepare_and_add_object_gfx(
     ObjTexture &actsp, bool actsp_modified,
     const Size &scale_size,
     int atx, int aty, int &usebasel, bool use_walkbehinds,
-    Pointf origin, int transparency, BlendMode blend_mode, bool hw_accel)
+    Pointf origin, int transparency, BlendMode blend_mode, int shader_id, bool hw_accel)
 {
     // Handle the walk-behinds, according to the WalkBehindMethod.
     // This potentially may edit actsp's raw bitmap if actsp_modified is set.
@@ -1970,6 +1980,7 @@ void prepare_and_add_object_gfx(
 
     actsp.Ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(transparency));
     actsp.Ddb->SetBlendMode(blend_mode);
+    actsp.Ddb->SetShader(shader_id);
 }
 
 // Prepares a actsps element for RoomObject; updates object cache.
@@ -2025,7 +2036,7 @@ void prepare_objects_for_drawing()
         prepare_and_add_object_gfx(objsav, actsp, actsp_modified,
             Size(obj.last_width, obj.last_height), imgx, imgy, usebasel,
             (obj.flags & OBJF_NOWALKBEHINDS) == 0,
-            obj.GetOrigin(), obj.transparent, obj.blend_mode, hw_accel);
+            obj.GetOrigin(), obj.transparent, obj.blend_mode, obj.shader_id, hw_accel);
         // Finally, add the texture to the draw list
         add_to_sprite_list(actsp.Ddb, obj.x, obj.y, aabb, usebasel, actsp.DrawIndex);
     }
@@ -2135,7 +2146,7 @@ void prepare_characters_for_drawing()
         prepare_and_add_object_gfx(chsav, actsp, actsp_modified,
             Size(chex.width, chex.height), imgx, imgy, usebasel,
             (chin.flags & CHF_NOWALKBEHINDS) == 0,
-            chex.GetOrigin(), chin.transparency, chex.blend_mode, hw_accel);
+            chex.GetOrigin(), chin.transparency, chex.blend_mode, chex.shader_id, hw_accel);
         // Finally, add the texture to the draw list
         // CHECKME: remind why do we have to recalculate charx/y instead of using GS?
         const int charx = chin.x + chin.pic_xoffs * chex.zoom_offs / 100;
@@ -2341,7 +2352,7 @@ void draw_fps(const Rect &viewport)
         snprintf(fps_buffer, sizeof(fps_buffer), "FPS: --.- / %s", base_buffer);
     }
     char loop_buffer[60];
-    snprintf(loop_buffer, sizeof(loop_buffer), "Loop %u", loopcounter);
+    snprintf(loop_buffer, sizeof(loop_buffer), "Loop %u", get_loop_counter());
 
     int text_off = get_font_surface_extent(font).first; // TODO: a generic function that accounts for this?
     wouttext_outline(fpsDisplay.get(), 1, 1 - text_off, font, text_color, fps_buffer);
@@ -2416,6 +2427,7 @@ static void draw_gui_controls_batch(int gui_id)
         if (!obj_ddb) continue;
         obj_ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(obj->GetTransparency()));
         obj_ddb->SetBlendMode(obj->GetBlendMode());
+        obj_ddb->SetShader(obj->GetShader());
         gfxDriver->DrawSprite(obj->X + obj_tx.Off.X, obj->Y + obj_tx.Off.Y, obj_ddb);
     }
     gfxDriver->EndSpriteBatch();
@@ -2561,6 +2573,7 @@ void draw_gui_and_overlays()
             }
             gui_ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(gui.Transparency));
             gui_ddb->SetBlendMode(gui.BlendMode);
+            gui_ddb->SetShader(gui.ShaderID);
             gui_ddb->SetOrigin(0.f, 0.f);
             gui_ddb->SetStretch(gui.Width * gui.Scale.X, gui.Height * gui.Scale.Y);
             gui_ddb->SetRotation(gui.Rotation);
@@ -2615,7 +2628,8 @@ void GfxDriverOnInitCallback(void *data)
     pl_run_plugin_init_gfx_hooks(gfxDriver->GetDriverID(), data);
 }
 
-#define RENDER_ROOMS_AS_TEXTURES (0)
+// WARNING: rendering rooms as textures currently prevents "render sprites at screen resolution"
+#define RENDER_ROOMS_AS_TEXTURES (1)
 
 // Schedule room rendering: background, objects, characters
 static void construct_room_view()
@@ -2654,6 +2668,7 @@ static void construct_room_view()
 
             // Now render the camera texture itself, scaling to the viewport size
             cam_data.CamRenderTarget->SetStretch(view_rc.GetWidth(), view_rc.GetHeight());
+            cam_data.CamRenderTarget->SetShader(viewport->GetShaderID());
             gfxDriver->DrawSprite(view_rc.Left, view_rc.Top, cam_data.CamRenderTarget);
 #else   // !RENDER_ROOMS_AS_TEXTURES
             const Rect view_p = view_rc;
@@ -2803,6 +2818,7 @@ static void construct_overlays()
         overtx.Ddb->SetRotation(over.rotation);
         overtx.Ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(over.transparency));
         overtx.Ddb->SetBlendMode(over.blendMode);
+        overtx.Ddb->SetShader(over.shader_id);
         apply_tint_or_light_ddb(overtx, over.tint_light * over.HasLightLevel(), over.tint_level, over.tint_r, over.tint_g, over.tint_b, over.tint_light);
     }
 }
@@ -2930,7 +2946,7 @@ void update_shakescreen()
     play.shake_screen_yoff = 0;
     if (play.shakesc_length > 0)
     {
-        if ((loopcounter % play.shakesc_delay) < (play.shakesc_delay / 2))
+        if ((get_loop_counter() % play.shakesc_delay) < (play.shakesc_delay / 2))
             play.shake_screen_yoff = play.shakesc_amount;
     }
 }

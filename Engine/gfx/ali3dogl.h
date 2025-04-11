@@ -267,6 +267,21 @@ public:
     std::shared_ptr<Texture> GetTexture(IDriverDependantBitmap *ddb) override;
 
     ///////////////////////////////////////////////////////
+    // Shader management
+    //
+    // Creates shader program from the source code, registers it under given name,
+    // returns internal shader index which may be used as a reference, or UINT32_MAX on failure.
+    uint32_t CreateShaderProgram(const String &name, const char *fragment_shader_src) override;
+    // Creates shader program from the compiled data, registers it under given name,
+    // returns internal shader index which may be used as a reference, or UINT32_MAX on failure.
+    uint32_t CreateShaderProgram(const String &name, const std::vector<uint8_t> &compiled_data) override;
+    // Looks up for the shader program using a name,
+    // returns internal shader index which may be used as a reference, or UINT32_MAX on failure.
+    uint32_t FindShaderProgram(const String &name) override;
+    // Deletes particular shader program.
+    void DeleteShaderProgram(const String &name) override;
+
+    ///////////////////////////////////////////////////////
     // Preparing a scene
     //
     // Adds sprite to the active batch, providing it's origin position
@@ -326,16 +341,18 @@ private:
     // Sets up general rendering parameters
     void InitGlParams(const DisplayMode &mode);
     void SetupDefaultVertices();
+    void CreateVirtualScreen();
+    void SetupViewport();
     // Test if rendering to texture is supported
     void TestRenderToTexture();
     // Create shader programs for sprite tinting and changing light level
     bool CreateShaders();
+    // Delete all shader programs
+    void DeleteShaders();
     // Configure native resolution render target, that is used in render-to-texture mode
     void SetupNativeTarget();
     // Unset parameters and release resources related to the display mode
     void ReleaseDisplayMode();
-    void CreateVirtualScreen();
-    void SetupViewport();
 
     ///////////////////////////////////////////////////////
     // Texture management: implementation
@@ -364,8 +381,11 @@ private:
         //---------------------------------------
         // Fragment shader:
         // Standard uniforms
-        GLuint TextureId = 0; // main texture (sprite or render target)
-        GLuint Alpha = 0;     // requested global alpha
+        GLuint Time = 0;        // real time
+        GLuint GameFrame = 0;   // game (?) frame
+        GLuint Texture = 0;     // texture 0 (sprite or render target)
+        GLuint TextureDim = 0;  // texture 0 dimensions
+        GLuint Alpha = 0;       // requested global alpha
 
         // Specialized uniforms for built-in shaders
         GLuint TintHSV = 0;
@@ -379,15 +399,16 @@ private:
     // Deletes a shader program
     void DeleteShaderProgram(ShaderProgram &prg);
     void AssignBaseShaderArgs(ShaderProgram &prg);
-    void OutputShaderError(GLuint obj_id, const String &obj_name, bool is_shader);
+    void UpdateGlobalShaderArgValues();
+    void OutputShaderLog(GLuint obj_id, const String &shader_name, const char *step_name, bool is_shader, bool as_error);
 
     //
     // Specialized shaders
-    bool CreateTransparencyShader(ShaderProgram &prg);
-    bool CreateTintShader(ShaderProgram &prg);
-    bool CreateLightShader(ShaderProgram &prg);
-    bool CreateDarkenByAlphaShader(ShaderProgram &prg);
-    bool CreateLightenByAlphaShader(ShaderProgram &prg);
+    bool CreateTransparencyShader(ShaderProgram &prg, const ShaderProgram &fallback_prg);
+    bool CreateTintShader(ShaderProgram &prg, const ShaderProgram &fallback_prg);
+    bool CreateLightShader(ShaderProgram &prg, const ShaderProgram &fallback_prg);
+    bool CreateDarkenByAlphaShader(ShaderProgram &prg, const ShaderProgram &fallback_prg);
+    bool CreateLightenByAlphaShader(ShaderProgram &prg, const ShaderProgram &fallback_prg);
 
     ///////////////////////////////////////////////////////
     // Preparing a scene: implementation

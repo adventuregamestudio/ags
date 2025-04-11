@@ -273,6 +273,21 @@ public:
     std::shared_ptr<Texture> GetTexture(IDriverDependantBitmap *ddb) override;
 
     ///////////////////////////////////////////////////////
+    // Shader management
+    //
+    // Creates shader program from the source code, registers it under given name,
+    // returns internal shader index which may be used as a reference, or UINT32_MAX on failure.
+    uint32_t CreateShaderProgram(const String &name, const char *fragment_shader_src) override;
+    // Creates shader program from the compiled data, registers it under given name,
+    // returns internal shader index which may be used as a reference, or UINT32_MAX on failure.
+    uint32_t CreateShaderProgram(const String &name, const std::vector<uint8_t> &compiled_data) override;
+    // Looks up for the shader program using a name,
+    // returns internal shader index which may be used as a reference, or UINT32_MAX on failure.
+    uint32_t FindShaderProgram(const String &name) override;
+    // Deletes particular shader program.
+    void DeleteShaderProgram(const String &name) override;
+
+    ///////////////////////////////////////////////////////
     // Preparing a scene
     // 
     // Adds sprite to the active batch, providing it's origin position
@@ -336,6 +351,10 @@ private:
     void CreateVirtualScreen();
     void SetupViewport();
     void SetupDefaultVertices();
+    // Create shader programs for sprite tinting and changing light level
+    bool CreateShaders();
+    // Delete all shader programs
+    void DeleteShaders();
     // Resets
     void ResetDeviceIfNecessary();
     HRESULT ResetDeviceAndRestore();
@@ -353,6 +372,42 @@ private:
     void ReleaseRenderTargetData();
     // For tracked render targets, recreates the internal texture data
     void RecreateRenderTargets();
+
+    ///////////////////////////////////////////////////////
+    // Shader management: implementation
+    //
+    // Shader program and its variable references;
+    // the variables are rather specific for AGS use (sprite tinting).
+    struct ShaderProgram
+    {
+        String Name;
+
+        D3DPixelShaderPtr ShaderPtr;
+        //---------------------------------------
+        // Fragment shader:
+        // Standard uniforms
+        UINT Time = 0u;         // real time
+        UINT GameFrame = 0u;    // game frame
+        UINT TextureDim = 0u;   // texture 0 dimensions
+        UINT Alpha = 0u;        // requested global alpha
+
+        // Specialized uniforms for built-in shaders
+        UINT TintHSV = 0u; // float4
+        UINT TintAlphaLight = 0u; // float4
+    };
+
+    // Creates shader program using provided compiled data
+    bool CreateShaderProgram(ShaderProgram &prg, const String &name, const uint8_t *data_ptr);
+    // Loads compiled shader data from resource and creates shader
+    bool CreateShaderProgramFromResource(ShaderProgram &prg, const String &name, const char *resource_name);
+    // Deletes a shader program
+    void DeleteShaderProgram(ShaderProgram &prg);
+    void AssignBaseShaderArgs(ShaderProgram &prg);
+    void UpdateGlobalShaderArgValues();
+
+    //
+    // Specialized shaders
+    bool CreateTintShader(ShaderProgram &prg, const ShaderProgram &fallback_prg);
 
     ///////////////////////////////////////////////////////
     // Preparing a scene: implementation
@@ -443,13 +498,18 @@ private:
     // Texture for rendering in native resolution
     D3DBitmap *_nativeSurface = nullptr;
     CUSTOMVERTEX defaultVertices[4];
-    String previousError;
-    D3DPixelShaderPtr pixelShader;
+    String previousError; // FIXME: find out why is this necessary, rewrite?
     int _fullscreenDisplay = -1; // a display where exclusive fullscreen was created
     bool _smoothScaling;
     float _pixelRenderXOffset;
     float _pixelRenderYOffset;
     bool _renderAtScreenRes;
+
+    ShaderProgram _dummyShader; // placeholder
+    ShaderProgram _tintShader;
+    // Custom shaders
+    std::vector<ShaderProgram> _shaders;
+    std::unordered_map<String, uint32_t> _shaderLookup;
 
     BackbufferState _screenBackbuffer;
     BackbufferState _nativeBackbuffer;

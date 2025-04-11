@@ -348,6 +348,18 @@ void Viewport_SetZOrder(ScriptViewport *scv, int zorder)
     play.InvalidateViewportZOrder();
 }
 
+int Viewport_GetShader(ScriptViewport *scv)
+{
+    if (scv->GetID() < 0) { debug_script_warn("Viewport.Shader: trying to use deleted viewport"); return 0; }
+    return play.GetRoomViewport(scv->GetID())->GetShaderID();
+}
+
+void Viewport_SetShader(ScriptViewport *scv, int shader_id)
+{
+    if (scv->GetID() < 0) { debug_script_warn("Viewport.Shader: trying to use deleted viewport"); return; }
+    play.GetRoomViewport(scv->GetID())->SetShaderID(shader_id);
+}
+
 ScriptViewport* Viewport_GetAtScreenXY(int x, int y)
 {
     PViewport view = play.GetRoomViewportAt(x, y);
@@ -460,6 +472,16 @@ RuntimeScriptValue Sc_Viewport_SetZOrder(void *self, const RuntimeScriptValue *p
     API_OBJCALL_VOID_PINT(ScriptViewport, Viewport_SetZOrder);
 }
 
+RuntimeScriptValue Sc_Viewport_GetShader(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptViewport, Viewport_GetShader);
+}
+
+RuntimeScriptValue Sc_Viewport_SetShader(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptViewport, Viewport_SetShader);
+}
+
 RuntimeScriptValue Sc_Viewport_GetAtScreenXY(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_OBJAUTO_PINT2(ScriptViewport, Viewport_GetAtScreenXY);
@@ -526,6 +548,9 @@ void RegisterViewportAPI()
         { "Viewport::SetPosition",      API_FN_PAIR(Viewport_SetPosition) },
         { "Viewport::ScreenToRoomPoint", API_FN_PAIR(Viewport_ScreenToRoomPoint) },
         { "Viewport::RoomToScreenPoint", API_FN_PAIR(Viewport_RoomToScreenPoint) },
+
+        { "Viewport::get_Shader",       API_FN_PAIR(Viewport_GetShader) },
+        { "Viewport::set_Shader",       API_FN_PAIR(Viewport_SetShader) },
     };
 
     ccAddExternalFunctions(viewport_api);

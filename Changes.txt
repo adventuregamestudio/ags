@@ -69,6 +69,7 @@ Editor:
  - Do not alter or clamp palette for 8-bit sprites imported in a 16/32-bit game.
  - Support importing indexed images which palettes contain translucent alpha as sprites with alpha.
  - Support importing indexed PNGs as room backgrounds and masks.
+ - Added "Change Room Number" context menu command for the Rooms in Project Explorer.
  - When the room background size changes, reset room edges to defaults.
  - Removed obsolete "Copy walkable area mask to regions" command from the Room editor.
  - Improved scrolling of drop-down lists in the Room's navigation bar: made scroll buttons larger,
@@ -306,7 +307,43 @@ WinSetup:
  - Fixed "Save and Run" command sometimes caused 2 engine processes, one of which terminated later.
    This did not prevent a game from running, but could result in temporary CPU and memory overload.
 
+
 ---------------------------------------------------------------------------------------------------
+
+VERSION 3.6.1 - Patch 10, April 2025
+
+Editor:
+ - Fixed a check for an imported room mask size did not correctly account for the room's
+   mask resolution setting (it worked, but mishandled some edge cases).
+ - Fixed exceptions occuring when reimporting a sprite or a audio clip from source,
+   if the source filename string was wrapped in double quotes.
+ - Fixed script variables generation could sometimes produce a non-latin character in a
+   variable name if the Editor is running on a system with non-English current locale.
+ - Fixed '\n' linebreaks not saved correctly in dialog option strings.
+ - Fixed translation compiler mistreating escaped opening bracket in a text line ("\[");
+   it must keep it as-is, because "[" char is a old-style line break in AGS.
+ - Fixed LogPanel not applying filter settings right after they were changed.
+
+Engine:
+ - Fixed a AudioChannel did not report a correct Position right after a AudioClip.PlayFrom() call.
+ - Fixed Button resizing to sprite 0 size if NormalGraphic is set to 0 (default button look).
+ - Fixed Character movement recalculation when changing move speeds while walking, and movement
+   path contains 45-degrees diagonal segments.
+ - Fixed object's look not updated after it was assigned a dynamic sprite, redrawn, sprite deleted,
+   object redrawn without a sprite (used a placeholder), and then another dynamic sprite assigned
+   with coincidentally the same number.
+ - Fixed font outline index limited to 127 (although we theoretically support higher font numbers).
+ - Fixed font outline parameters not initialized correctly if engine is built by a system that
+   treats "char" as unsigned 8-bit type.
+ - Fixed a crash which occured when script mistakenly tried to call RunInteraction() for
+   a inventory item 0.
+ - Fixed loading translation entries larger than 1024 bytes.
+ - Fixed SDL log level was defaulting to "verbose" if not read from config (should be "info").
+
+WinSetup:
+ - Fixed "Save and Run" command sometimes caused 2 engine processes, one of which terminated later.
+   This did not prevent a game from running, but could result in temporary CPU and memory overload.
+
 
 VERSION 3.6.1 - Patch 9, January 2025
 
@@ -744,7 +781,28 @@ WinSetup:
  - Added options to disable particular graphic drivers and graphic driver selection,
    and fullscreen mode selection.
 
+
 ---------------------------------------------------------------------------------------------------
+
+VERSION 3.6.0 - Patch 13, April 2025
+
+Editor:
+ - Fixed translation compiler mistreating escaped opening bracket in a text line ("\[");
+   it must keep it as-is, because "[" char is a old-style line break in AGS.
+
+Engine:
+ - Fixed loading translation entries larger than 1024 bytes.
+
+WinSetup:
+ - Fixed "Save and Run" command sometimes caused 2 engine processes, one of which terminated later.
+   This did not prevent a game from running, but could result in temporary CPU and memory overload.
+
+
+VERSION 3.6.0 - Patch 12, February 2025
+
+Engine:
+ - Fixed deleted DynamicSprite which is still assigned to a mouse cursor may cause engine's
+   sprite cache to enter a corrupt state, eventually leading to a crash.
 
 
 VERSION 3.6.0 - Patch 11, April 2024

@@ -533,6 +533,9 @@ namespace AGS.Editor
 
         public void RenameFileOnDisk(string currentName, string newName)
         {
+            if (!File.Exists(currentName))
+                return; // nothing to rename
+
             string sourcePath = Path.GetFullPath(currentName);
             string destPath = Path.GetFullPath(newName);
             File.Move(sourcePath, destPath);

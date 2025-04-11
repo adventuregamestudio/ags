@@ -13,9 +13,13 @@ namespace AGS.Editor
 	{
 		private Game _game;
 		private ImageList _imageList = new ImageList();
+        private int _startingRoomNumber;
 		private int _chosenRoomNumber;
 		private List<RoomTemplate> _templates;
 
+        /// <summary>
+        /// Sets up a NewRoomDialog with full range of options, including a template selection.
+        /// </summary>
 		internal NewRoomDialog(Game game, List<RoomTemplate> templates)
 		{
 			InitializeComponent();
@@ -39,11 +43,34 @@ namespace AGS.Editor
 			lstRoomTemplates.Items[0].Selected = true;
 			lstRoomTemplates.Items[0].Focused = true;
 			_game = game;
-			_chosenRoomNumber = -1;
+            _startingRoomNumber = -1;
+            _chosenRoomNumber = -1;
 			PickFirstAvailableRoomNumber();
 		}
 
-		internal int ChosenRoomNumber
+        /// <summary>
+        /// Sets up a NewRoomDialog without template selection, where
+        /// user may only choose a new number for the existing room.
+        /// TODO: perhaps move shared controls to a UserControl,
+        /// and create a second dialog that does not have templates.
+        /// </summary>
+        internal NewRoomDialog(Game game, int existingRoomNumber)
+        {
+            InitializeComponent();
+
+            this.Text = "Assign new Room Number";
+            labelChooseRoomType.Text = "Please choose the new room number:";
+            lstRoomTemplates.Visible = false;
+            this.Height -= lstRoomTemplates.Height;
+
+            _game = game;
+            _startingRoomNumber = existingRoomNumber;
+            _chosenRoomNumber = -1;
+            chkNonStateSaving.Checked = _startingRoomNumber > UnloadedRoom.NON_STATE_SAVING_INDEX;
+            UpdateAvailableRoomNumber();
+        }
+
+        internal int ChosenRoomNumber
 		{
 			get { return _chosenRoomNumber; }
 		}
@@ -79,27 +106,63 @@ namespace AGS.Editor
 			}
 		}
 
+        private void UpdateAvailableRoomNumber()
+        {
+            int roomNumber;
+            if (chkNonStateSaving.Checked)
+            {
+                roomNumber = _startingRoomNumber > UnloadedRoom.NON_STATE_SAVING_INDEX ?
+                    _startingRoomNumber : UnloadedRoom.NON_STATE_SAVING_INDEX;
+                udRoomNumber.Minimum = UnloadedRoom.NON_STATE_SAVING_INDEX + 1;
+                udRoomNumber.Maximum = UnloadedRoom.HIGHEST_ROOM_NUMBER_ALLOWED;
+            }
+            else
+            {
+                roomNumber = _startingRoomNumber <= UnloadedRoom.NON_STATE_SAVING_INDEX ?
+                    _startingRoomNumber : 0;
+                udRoomNumber.Minimum = 0;
+                udRoomNumber.Maximum = UnloadedRoom.NON_STATE_SAVING_INDEX;
+            }
+
+            if (roomNumber != _startingRoomNumber)
+            {
+                roomNumber = _game.FindFirstAvailableRoomNumber(roomNumber);
+                if (roomNumber > udRoomNumber.Maximum)
+                {
+                    MessageBox.Show("There are no more room numbers available for this type of room. Consider changing some of your rooms to be non state saving.", "Room limit exceeded", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+            }
+            udRoomNumber.Value = roomNumber;
+        }
+
 		private void chkNonStateSaving_CheckedChanged(object sender, EventArgs e)
 		{
-			PickFirstAvailableRoomNumber();
+            if (_startingRoomNumber >= 0)
+                UpdateAvailableRoomNumber();
+            else
+			    PickFirstAvailableRoomNumber();
 		}
 
 		private void btnOk_Click(object sender, EventArgs e)
 		{
-			if (_game.DoesRoomNumberAlreadyExist((int)udRoomNumber.Value))
+            int wantRoomNumber = (int)udRoomNumber.Value;
+			if (wantRoomNumber != _startingRoomNumber &&
+                _game.DoesRoomNumberAlreadyExist(wantRoomNumber))
 			{
-				MessageBox.Show("You already have a room number " + udRoomNumber.Value + ". Please choose another number.", "Room already exists", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+				MessageBox.Show("You already have a room number " + wantRoomNumber + ". Please choose another number.", "Room already exists", MessageBoxButtons.OK, MessageBoxIcon.Warning);
 				PickFirstAvailableRoomNumber();
 				this.DialogResult = DialogResult.None;
 				return;
 			}
-			if (lstRoomTemplates.SelectedIndices.Count != 1)
+			if (_startingRoomNumber < 0 &&
+                lstRoomTemplates.SelectedIndices.Count != 1)
 			{
 				MessageBox.Show("You must select a template.", "Select template", MessageBoxButtons.OK, MessageBoxIcon.Warning);
 				this.DialogResult = DialogResult.None;
 				return;
 			}
-			_chosenRoomNumber = (int)udRoomNumber.Value;
+			_chosenRoomNumber = wantRoomNumber;
 			_imageList.Dispose();
 			this.DialogResult = DialogResult.OK;
 			this.Close();

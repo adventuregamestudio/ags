@@ -69,7 +69,6 @@ extern GameSetupStruct game;
 extern ScriptSystem scsystem;
 extern AGSPlatformDriver *platform;
 extern RoomStruct thisroom;
-extern unsigned int loopcounter;
 extern SpriteCache spriteset;
 extern RoomStatus*croom;
 extern int in_new_room;
@@ -1147,6 +1146,17 @@ void render_to_screen()
         bool new_vsync = gfxDriver->SetVsync(scsystem.vsync > 0);
         if (new_vsync != (scsystem.vsync != 0))
             System_SetVSyncInternal(new_vsync);
+    }
+
+    // Set global constants for any shaders to use
+    {
+        GlobalShaderConstants constants;
+        auto now = AGS_Clock::now();
+        // TODO: perhaps count time since engine launched?
+        auto now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
+        constants.Time = static_cast<float>(now_ms) / 1000.f;
+        constants.GameFrame = get_loop_counter();
+        gfxDriver->SetGlobalShaderConstants(constants);
     }
 
     bool succeeded = false;
@@ -2342,7 +2352,7 @@ void draw_fps(const Rect &viewport)
         snprintf(fps_buffer, sizeof(fps_buffer), "FPS: --.- / %s", base_buffer);
     }
     char loop_buffer[60];
-    snprintf(loop_buffer, sizeof(loop_buffer), "Loop %u", loopcounter);
+    snprintf(loop_buffer, sizeof(loop_buffer), "Loop %u", get_loop_counter());
 
     int text_off = get_font_surface_extent(font).first; // TODO: a generic function that accounts for this?
     wouttext_outline(fpsDisplay.get(), 1, 1 - text_off, font, text_color, fps_buffer);
@@ -2936,7 +2946,7 @@ void update_shakescreen()
     play.shake_screen_yoff = 0;
     if (play.shakesc_length > 0)
     {
-        if ((loopcounter % play.shakesc_delay) < (play.shakesc_delay / 2))
+        if ((get_loop_counter() % play.shakesc_delay) < (play.shakesc_delay / 2))
             play.shake_screen_yoff = play.shakesc_amount;
     }
 }

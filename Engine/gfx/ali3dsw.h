@@ -174,6 +174,12 @@ public:
     bool ShouldReleaseRenderTargets() override { return false; }
 
     ///////////////////////////////////////////////////////
+    // Miscelaneous setup
+    //
+    // Sets values for global shader constants
+    void SetGlobalShaderConstants(const GlobalShaderConstants &constants) override { /* not supported */ }
+
+    ///////////////////////////////////////////////////////
     // Mode initialization
     //
     // Initialize given display mode

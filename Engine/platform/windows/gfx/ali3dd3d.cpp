@@ -903,29 +903,27 @@ void D3DGraphicsDriver::DeleteShaderProgram(ShaderProgram &prg)
 void D3DGraphicsDriver::AssignBaseShaderArgs(ShaderProgram &prg)
 {
     // FIXME: hardcode these for now, because we can't find constant location without utility lib
-    prg.UTime = 0u;
-    prg.UFrame = 1u;
-    prg.Alpha = 2u;
+    prg.Time = 0u;
+    prg.GameFrame = 1u;
+    prg.TextureDim = 2u;
+    prg.Alpha = 3u;
 }
 
 void D3DGraphicsDriver::UpdateGlobalShaderArgValues()
 {
-    static int frame = 0; // FIXME: get this game frame index from the engine
+    float vf[4]{};
     for (auto &sh : _shaders)
     {
         if (!sh.ShaderPtr)
             continue;
 
-        auto now = AGS_Clock::now();
-        auto now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
-        float vector[4]{};
         direct3ddevice->SetPixelShader(sh.ShaderPtr.get());
-        vector[0] = static_cast<float>(now_ms) / 1000.f;
-        direct3ddevice->SetPixelShaderConstantF(sh.UTime, &vector[0], 1);
-        vector[0] = frame;
-        direct3ddevice->SetPixelShaderConstantF(sh.UFrame, &vector[0], 1);
+        vf[0] = _globalShaderConst.Time;
+        direct3ddevice->SetPixelShaderConstantF(sh.Time, &vf[0], 1);
+        vf[0] = _globalShaderConst.GameFrame;
+        direct3ddevice->SetPixelShaderConstantF(sh.GameFrame, &vf[0], 1);
     }
-    frame++;
+    direct3ddevice->SetPixelShader(NULL);
 }
 
 bool D3DGraphicsDriver::SetNativeResolution(const GraphicResolution &native_res)
@@ -1185,6 +1183,20 @@ void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw
     const ShaderProgram *program = program = &_shaders[bmpToDraw->GetShader()];
     float vector[4]{};
     direct3ddevice->SetPixelShader(program->ShaderPtr.get());
+
+    // FIXME: find out why we cannot set these constants once per render start, like in OpenGL;
+    // they seem to get reset to defaults every time a shader is selected (??)
+    /**/
+    vector[0] = _globalShaderConst.Time;
+    direct3ddevice->SetPixelShaderConstantF(program->Time, &vector[0], 1);
+    vector[0] = _globalShaderConst.GameFrame;
+    direct3ddevice->SetPixelShaderConstantF(program->GameFrame, &vector[0], 1);
+    /**/
+    //
+
+    vector[0] = bmpToDraw->GetWidth();
+    vector[1] = bmpToDraw->GetHeight();
+    direct3ddevice->SetPixelShaderConstantF(program->TextureDim, &vector[0], 1);
     vector[0] = alpha / 255.0f;
     direct3ddevice->SetPixelShaderConstantF(program->Alpha, &vector[0], 1);
   }

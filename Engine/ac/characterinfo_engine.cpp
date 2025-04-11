@@ -24,6 +24,7 @@
 #include "ac/viewframe.h"
 #include "debug/debug_log.h"
 #include "game/roomstruct.h"
+#include "main/game_run.h"
 #include "main/update.h"
 #include "media/audio/audio_system.h"
 
@@ -33,7 +34,6 @@ extern std::vector<ViewStruct> views;
 extern GameSetupStruct game;
 extern int displayed_room;
 extern RoomStruct thisroom;
-extern unsigned int loopcounter;
 extern int char_speaking_anim;
 
 int CharacterInfo::get_baseline() const {
@@ -465,7 +465,7 @@ void UpdateCharacterIdle(CharacterInfo *chi, CharacterExtras *chex, int &doing_n
     else if ((doing_nothing == 0) || ((chi->flags & CHF_FIXVIEW) != 0))
       chi->idleleft = chi->idletime;
     // count idle time
-    else if ((loopcounter % GetGameSpeed()==0) || (chex->process_idle_this_time == 1)) {
+    else if ((get_loop_counter() % GetGameSpeed()==0) || (chex->process_idle_this_time == 1)) {
       chi->idleleft--;
       if (chi->idleleft == -1) {
         int useloop=chi->loop;

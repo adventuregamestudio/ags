@@ -743,9 +743,10 @@ void OGLGraphicsDriver::AssignBaseShaderArgs(ShaderProgram &prg)
     prg.A_Position = glGetAttribLocation(prg.Program, "a_Position");
     prg.A_TexCoord = glGetAttribLocation(prg.Program, "a_TexCoord");
     prg.MVPMatrix = glGetUniformLocation(prg.Program, "iMVPMatrix");
-    prg.UTime = glGetUniformLocation(prg.Program, "iTime");
-    prg.UFrame = glGetUniformLocation(prg.Program, "iFrame");
-    prg.TextureId = glGetUniformLocation(prg.Program, "iTexture");
+    prg.Time = glGetUniformLocation(prg.Program, "iTime");
+    prg.GameFrame = glGetUniformLocation(prg.Program, "iGameFrame");
+    prg.Texture = glGetUniformLocation(prg.Program, "iTexture");
+    prg.TextureDim = glGetUniformLocation(prg.Program, "iTextureDim");
     prg.Alpha = glGetUniformLocation(prg.Program, "iAlpha");
     glEnableVertexAttribArray(prg.A_Position);
     glEnableVertexAttribArray(prg.A_TexCoord);
@@ -753,20 +754,16 @@ void OGLGraphicsDriver::AssignBaseShaderArgs(ShaderProgram &prg)
 
 void OGLGraphicsDriver::UpdateGlobalShaderArgValues()
 {
-    static int frame = 0; // FIXME: get this game frame index from the engine
     for (auto &sh : _shaders)
     {
         if (sh.Program == 0u)
             continue;
 
-        auto now = AGS_Clock::now();
-        auto now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
         glUseProgram(sh.Program);
-        glUniform1f(sh.UTime, static_cast<float>(now_ms) / 1000.f);
-        glUniform1i(sh.UFrame, frame);
+        glUniform1f(sh.Time, _globalShaderConst.Time);
+        glUniform1i(sh.GameFrame, _globalShaderConst.GameFrame);
     }
     glUseProgram(0);
-    frame++;
 }
 
 void OGLGraphicsDriver::OutputShaderLog(GLuint obj_id, const String &shader_name, const char *step_name, bool is_shader, bool as_error)
@@ -1204,7 +1201,8 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
     glUseProgram(program->Program);
   }
 
-  glUniform1i(program->TextureId, 0);
+  glUniform1i(program->Texture, 0);
+  glUniform2f(program->TextureDim, bmpToDraw->GetWidth(), bmpToDraw->GetHeight());
   glUniform1f(program->Alpha, alpha / 255.0f);
 
   float width = bmpToDraw->GetWidthToRender();

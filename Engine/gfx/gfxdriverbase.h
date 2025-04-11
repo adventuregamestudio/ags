@@ -374,6 +374,12 @@ public:
     bool UsesMemoryBackBuffer() override { return false; }
 
     ///////////////////////////////////////////////////////
+    // Miscelaneous setup
+    //
+    // Sets values for global shader constants
+    void SetGlobalShaderConstants(const GlobalShaderConstants &constants) override;
+
+    ///////////////////////////////////////////////////////
     // Texture management
     // 
     // Creates new DDB and copy bitmap contents over
@@ -435,6 +441,9 @@ protected:
     // Stage matrixes are used to let plugins with hardware acceleration know model matrix;
     // these matrixes are filled compatible with each given renderer
     RenderMatrixes _stageMatrixes;
+
+    // Global shader constants; these are applied to all shaders before each render pass.
+    GlobalShaderConstants _globalShaderConst;
 
     // Color component shifts in video bitmap format (set by implementations)
     int _vmem_a_shift_32;

@@ -219,8 +219,6 @@ extern int new_room_x, new_room_y, new_room_loop;
 extern bool new_room_placeonwalkable;
 extern int displayed_room;
 extern int frames_per_second; // fixed game fps, set by script
-extern unsigned int loopcounter;
-extern void set_loop_counter(unsigned int new_counter);
 extern int game_paused;
 
 #endif // __AGS_EE_AC__GAME_H

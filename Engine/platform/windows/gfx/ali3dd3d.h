@@ -386,9 +386,10 @@ private:
         //---------------------------------------
         // Fragment shader:
         // Standard uniforms
-        UINT UTime = 0u;     // real time
-        UINT UFrame = 0u;    // game (?) frame
-        UINT Alpha = 0u;     // requested global alpha
+        UINT Time = 0u;         // real time
+        UINT GameFrame = 0u;    // game frame
+        UINT TextureDim = 0u;   // texture 0 dimensions
+        UINT Alpha = 0u;        // requested global alpha
 
         // Specialized uniforms for built-in shaders
         UINT TintHSV = 0u; // float4

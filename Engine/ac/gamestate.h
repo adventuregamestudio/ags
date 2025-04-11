@@ -212,7 +212,7 @@ struct GamePlayState
     bool  raw_modified[MAX_ROOM_BGFRAMES]{}; // tell which current room bgs were modified
     int   room_changes = 0;
     int   mouse_cursor_hidden = 0;
-    unsigned long shakesc_delay = 0;  // unsigned long to match loopcounter
+    uint32_t shakesc_delay = 0; // unsigned to match loopcounter
     int   shakesc_amount = 0;
     int   shakesc_length = 0;
     int   rtint_red = 0;

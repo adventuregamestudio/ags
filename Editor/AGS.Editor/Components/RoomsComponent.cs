@@ -26,6 +26,7 @@ namespace AGS.Editor.Components
         private const string TREE_PREFIX_ROOM_SCRIPT = "Ros";
         private const string COMMAND_LOAD_ROOM = "LoadRoom";
         private const string COMMAND_SAVE_ROOM = "SaveRoom";
+        private const string COMMAND_CHANGE_NUMBER = "ChangeRoomID";
 
         private const string ROOM_ICON_UNLOADED = "RoomIcon";
         private const string ROOM_ICON_LOADED = "RoomColourIcon";
@@ -105,6 +106,10 @@ namespace AGS.Editor.Components
 			{
 				CreateTemplateFromRoom(_rightClickedRoomNumber);
 			}
+            else if (controlID == COMMAND_CHANGE_NUMBER)
+            {
+                ChangeRoomNumber(_rightClickedRoomNumber);
+            }
 			else if (controlID == COMMAND_DELETE_ITEM)
 			{
 				if (MessageBox.Show("Are you sure you want to delete this room? It cannot be recovered.", "Confirm delete", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
@@ -202,6 +207,18 @@ namespace AGS.Editor.Components
                 }
             }
             return okToContinue;
+        }
+
+        private void ChangeRoomNumber(int roomNumber)
+        {
+            var room = FindRoomByID(roomNumber);
+            int oldNumber = room.Number;
+            int newNumber = Factory.GUIController.ShowChangeRoomNumberDialog(oldNumber);
+            if (newNumber < 0 || newNumber == oldNumber)
+                return;
+
+            RenameRoom(oldNumber, newNumber);
+            RoomListTypeConverter.RefreshRoomList();
         }
 
         protected override void DeleteResourcesUsedByItem(IRoom item)
@@ -1203,12 +1220,22 @@ namespace AGS.Editor.Components
 			{
 				_guiController.ShowMessage("Your game directory already has an existing file with the target room number.", MessageBoxIcon.Warning);
 			}
-			else if (SaveRoomAlwaysAndShowErrors(_loadedRoom, _roomSettings?.Control as RoomSettingsEditor))
+			else
 			{
-				UnloadedRoom oldRoom = FindRoomByID(currentNumber);
+                bool wasThisRoomLoaded = (_loadedRoom != null) && (_loadedRoom.Number == currentNumber);
+                if (wasThisRoomLoaded)
+                {
+                    if (!SaveRoomAlwaysAndShowErrors(_loadedRoom, _roomSettings?.Control as RoomSettingsEditor))
+                    {
+                        return;
+                    }
+
+                    CloseRoomScriptEditorIfOpen(currentNumber);
+                    UnloadCurrentRoom();
+                }
+
+                UnloadedRoom oldRoom = FindRoomByID(currentNumber);
 				UnloadedRoom tempNewRoom = new UnloadedRoom(numberRequested);
-				CloseRoomScriptEditorIfOpen(currentNumber);
-				UnloadCurrentRoom();
 
 				_agsEditor.RenameFileOnDisk(oldRoom.FileName, tempNewRoom.FileName);
                 _agsEditor.RenameFileOnDisk(oldRoom.UserFileName, tempNewRoom.UserFileName);
@@ -1216,9 +1243,12 @@ namespace AGS.Editor.Components
 
 				oldRoom.Number = numberRequested;
 
-				LoadDifferentRoom(oldRoom);
-                _roomSettings.TreeNodeID = TREE_PREFIX_ROOM_SETTINGS + numberRequested;
-				_guiController.AddOrShowPane(_roomSettings);
+                if (wasThisRoomLoaded)
+                {
+                    LoadDifferentRoom(oldRoom);
+                    _roomSettings.TreeNodeID = TREE_PREFIX_ROOM_SETTINGS + numberRequested;
+                    _guiController.AddOrShowPane(_roomSettings);
+                }
 				_agsEditor.CurrentGame.FilesAddedOrRemoved = true;
 				RePopulateTreeView(GetItemNodeID(oldRoom));
 			}
@@ -1263,7 +1293,7 @@ namespace AGS.Editor.Components
 
                 menu.Add(new MenuCommand(COMMAND_LOAD_ROOM, "Edit this room", null));
                 menu.Add(MenuCommand.Separator);
-
+                menu.Add(new MenuCommand(COMMAND_CHANGE_NUMBER, "Change room's number", null));
                 menu.Add(new MenuCommand(COMMAND_DELETE_ITEM, "Delete this room", null));                
                 menu.Add(MenuCommand.Separator);
                 menu.Add(new MenuCommand(COMMAND_CREATE_TEMPLATE, "Create template from room...", null));

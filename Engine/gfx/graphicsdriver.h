@@ -80,6 +80,13 @@ struct RenderMatrixes
     glm::mat4 Projection;
 };
 
+// Provides a way to set global shader constant values in gfx driver
+struct GlobalShaderConstants
+{
+    float Time = 0.f;
+    int GameFrame = 0;
+};
+
 typedef void (*GFXDRV_CLIENTCALLBACK)();
 typedef bool (*GFXDRV_CLIENTCALLBACKEVT)(int evt, intptr_t data);
 typedef void (*GFXDRV_CLIENTCALLBACKINITGFX)(void *data);
@@ -175,6 +182,9 @@ public:
     virtual bool SupportsGammaControl() = 0;
     // Sets gamma level
     virtual void SetGamma(int newGamma) = 0;
+    // Sets values for global shader constants;
+    // these will be applied to all shaders at the next render pass.
+    virtual void SetGlobalShaderConstants(const GlobalShaderConstants &constants) = 0;
 
     ///////////////////////////////////////////////////////
     // Texture management

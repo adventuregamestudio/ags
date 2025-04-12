@@ -228,7 +228,7 @@ struct FuncParameterDesc
     AGS::Vartype Vartype = kKW_NoSymbol;
     Symbol Name = kKW_NoSymbol;
     Symbol Default = kKW_NoSymbol;
-    size_t Declared;
+    size_t Declared = SIZE_MAX;
 };
 
 struct SymbolTable;
@@ -500,7 +500,9 @@ public:
 
     // Arrays and variables that are arrays
     // The "Array[...] of vartype" vartype
-    Vartype VartypeWithArray(std::vector<size_t> const &dims, AGS::Vartype vartype);
+    Vartype VartypeWithArray(std::vector<size_t> const &dims, Vartype vartype);
+    // The array without the first dimension 'a[3, 5]' -> 'a[5]'
+    Vartype ArrayVartypeWithoutFirstDim(Vartype vartype);
     // The "Const of vartype" vartype
     Vartype VartypeWithConst(AGS::Vartype vartype);
     // The "Dynarray of vartype" vartype
@@ -512,6 +514,8 @@ public:
 
     inline bool IsArrayVartype(Symbol s) const { return IsVTT(s, VTT::kArray); }
     size_t ArrayElementsCount(Symbol s) const;
+    size_t ArrayDimensionsCount(Symbol s) const
+        { return entries.at(s).VartypeD ? entries.at(s).VartypeD->Dims.size() : 0u; }
     inline bool IsDynarrayVartype(Symbol s) const { return IsVTT(s, VTT::kDynarray); }
     inline bool IsAnyArrayVartype(Symbol s) const { return IsArrayVartype(s) || IsDynarrayVartype(s); }
     

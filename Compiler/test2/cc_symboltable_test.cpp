@@ -14,10 +14,22 @@
 #include "gtest/gtest.h"
 #include "script2/cc_symboltable.h"
 
-TEST(SymbolTable, GetNameNonExistent)
+class SymbolTable : public ::testing::Test
 {
+public:
+    // Constant definitions etc.
+
+protected:
     AGS::SymbolTable symt;
 
+    SymbolTable()
+    {
+        // Initializations, will be done at the start of each test
+    }
+};
+
+TEST_F(SymbolTable, GetNameNonExistent)
+{
     EXPECT_STREQ("(invalid symbol)", symt.GetName(100).c_str());
     EXPECT_STREQ("(invalid symbol)", symt.GetName(200).c_str());
 
@@ -28,10 +40,8 @@ TEST(SymbolTable, GetNameNonExistent)
     EXPECT_STREQ("(invalid symbol)", symt.GetName(c_sym + 1).c_str());
 }
 
-TEST(SymbolTable, GetNameNormal)
+TEST_F(SymbolTable, GetNameNormal)
 {
-    AGS::SymbolTable symt;
-
     // Read out the name that was put in
 
     int const foo_sym = symt.Add("foo");
@@ -39,17 +49,13 @@ TEST(SymbolTable, GetNameNormal)
     EXPECT_STREQ("foo", symt.GetName(foo_sym).c_str());
 }
 
-TEST(SymbolTable, GetNamePredefined)
+TEST_F(SymbolTable, GetNamePredefined)
 {
-    AGS::SymbolTable symt;
-
     EXPECT_STREQ("return", symt.GetName(AGS::kKW_Return).c_str());
 }
 
-TEST(SymbolTable, GetVartypeName)
+TEST_F(SymbolTable, GetVartypeName)
 {
-    AGS::SymbolTable symt;
-
     AGS::Vartype const foo_vartype = symt.Add("foo");
     symt.MakeEntryVartype(foo_vartype);
     symt[foo_vartype].VartypeD->Type = AGS::VTT::kAtomic;
@@ -67,10 +73,8 @@ TEST(SymbolTable, GetVartypeName)
         symt.GetName(symt.VartypeWithArray(dims, foo_vartype)).c_str());
 }
 
-TEST(SymbolTable, VartypeWithWithout)
+TEST_F(SymbolTable, VartypeWithWithout)
 {
-    AGS::SymbolTable symt;
-
     AGS::Vartype const foo_vartype = symt.Add("foo");
     symt.MakeEntryVartype(foo_vartype);
     symt[foo_vartype].VartypeD->Type = AGS::VTT::kAtomic;
@@ -83,37 +87,29 @@ TEST(SymbolTable, VartypeWithWithout)
     EXPECT_EQ(foo_converted, symt.VartypeWithout(AGS::VTT::kDynarray, foo_converted));
 }
 
-TEST(SymbolTable, AddSymbolAlreadyExists)
+TEST_F(SymbolTable, AddSymbolAlreadyExists)
 {
-    AGS::SymbolTable symt;
-
     int const a_sym = symt.Add("a");
     ASSERT_EQ(AGS::kKW_NoSymbol, symt.Add("a"));
 }
 
-TEST(SymbolTable, AddSymbolUnique)
+TEST_F(SymbolTable, AddSymbolUnique)
 {
-    AGS::SymbolTable symt;
-
     int const a_sym = symt.Add("a");
     int const b_sym = symt.Add("b");
     ASSERT_NE(a_sym, b_sym);
 }
 
-TEST(SymbolTable, FindOrAdd)
+TEST_F(SymbolTable, FindOrAdd)
 {
-    AGS::SymbolTable symt;
-
     int const a_sym = symt.Add("a");
     int const b_sym = symt.Add("b");
     int const a2_sym = symt.FindOrAdd("a");
     EXPECT_EQ(a_sym, a2_sym);
 }
 
-TEST(SymbolTable, FindResetCaches)
+TEST_F(SymbolTable, FindResetCaches)
 {
-    AGS::SymbolTable symt;
-
     // Even after caches are reset, Find() must work
 
     EXPECT_EQ(AGS::kKW_NoSymbol, symt.Find("Llanfair­pwllgwyngyll­gogery­chwyrn­drobwll­llan­tysilio­gogo­goch"));
@@ -124,10 +120,8 @@ TEST(SymbolTable, FindResetCaches)
     // BTW those names really exist
 }
 
-TEST(SymbolTable, EntriesEnsureModifiable)
+TEST_F(SymbolTable, EntriesEnsureModifiable)
 {
-    AGS::SymbolTable symt;
-
     // ensure reading and writing to entries actually works
 
     int const a_sym = symt.Add("x");
@@ -138,10 +132,8 @@ TEST(SymbolTable, EntriesEnsureModifiable)
     EXPECT_EQ(11, symt[a_sym].Declared);
 }
 
-TEST(SymbolTable, StringStruct)
+TEST_F(SymbolTable, StringStruct)
 {
-    AGS::SymbolTable symt;
-
     // set/get a stringstruct symbol
 
     AGS::Symbol const str_set = symt.Add("String");
@@ -155,20 +147,16 @@ TEST(SymbolTable, StringStruct)
     EXPECT_TRUE(symt.IsDynpointerVartype(strptr_get));
 }
 
-TEST(SymbolTable, IsInBounds)
+TEST_F(SymbolTable, IsInBounds)
 {
-    AGS::SymbolTable symt;
-
     EXPECT_FALSE(symt.IsInBounds(-1));
     EXPECT_FALSE(symt.IsInBounds(0));
     EXPECT_FALSE(symt.IsInBounds(symt.GetLastAllocated() + 1));
     EXPECT_TRUE(symt.IsInBounds(AGS::kKW_New));
 }
 
-TEST(SymbolTable, CanBePartOfAnExpression)
+TEST_F(SymbolTable, CanBePartOfAnExpression)
 {
-    AGS::SymbolTable symt;
-
     EXPECT_FALSE(symt.CanBePartOfAnExpression(AGS::kKW_Float));     // typical vartype
     EXPECT_FALSE(symt.CanBePartOfAnExpression(AGS::kKW_Return));    // typical keyword
     EXPECT_TRUE(symt.CanBePartOfAnExpression(AGS::kKW_And));        // typical bool operator
@@ -198,10 +186,8 @@ TEST(SymbolTable, CanBePartOfAnExpression)
     EXPECT_TRUE(symt.CanBePartOfAnExpression(var_sym));
 }
 
-TEST(SymbolTable, IsPrimitiveAtomic)
+TEST_F(SymbolTable, IsPrimitiveAtomic)
 {
-    AGS::SymbolTable symt;
-
     EXPECT_TRUE(symt.IsPrimitiveVartype(AGS::kKW_Long));
     EXPECT_TRUE(symt.IsAtomicVartype(AGS::kKW_Long));
     EXPECT_FALSE(symt.IsPrimitiveVartype(AGS::kKW_Return));
@@ -217,10 +203,8 @@ TEST(SymbolTable, IsPrimitiveAtomic)
     EXPECT_FALSE(symt.IsAtomicVartype(structy_ptr_sym));
 }
 
-TEST(SymbolTable, ArrayClassic)
+TEST_F(SymbolTable, ArrayClassic)
 {
-    AGS::SymbolTable symt;
-
     AGS::Symbol const array_sym = symt.Add("HArry");
     symt.MakeEntryVartype(array_sym);
     symt[array_sym].VartypeD->BaseVartype = AGS::kKW_Int;
@@ -236,10 +220,8 @@ TEST(SymbolTable, ArrayClassic)
     EXPECT_EQ(2 * 3 * 5 * 7, symt.ArrayElementsCount(array_sym));
 }
 
-TEST(SymbolTable, OperatorPrio)
+TEST_F(SymbolTable, OperatorPrio)
 {
-    AGS::SymbolTable symt;
-
     EXPECT_EQ(symt.kNoPrio, symt.BinaryOrPostfixOpPrio(AGS::kKW_BitNeg));
     EXPECT_NE(symt.kNoPrio, symt.PrefixOpPrio(AGS::kKW_BitNeg));
 
@@ -250,10 +232,21 @@ TEST(SymbolTable, OperatorPrio)
     EXPECT_NE(symt.kNoPrio, symt.PrefixOpPrio(AGS::kKW_Minus));
 }
 
-TEST(SymbolTable, IsAnyIntegerVartype)
+TEST_F(SymbolTable, IsAnyIntegerVartype)
 {
-    AGS::SymbolTable symt;
-
     EXPECT_TRUE(symt.IsAnyIntegerVartype(AGS::kKW_Long));
     EXPECT_FALSE(symt.IsAnyIntegerVartype(AGS::kKW_Float));
+}
+
+TEST_F(SymbolTable, ArrayWithoutFirstDim)
+{
+    std::vector<size_t> const dims = { 3, 5, };
+    AGS::Vartype vartype35 = symt.VartypeWithArray(dims, AGS::kKW_Short);
+    EXPECT_STREQ("short[3, 5]", symt.GetName(vartype35).c_str());
+    AGS::Vartype vartype5 = symt.ArrayVartypeWithoutFirstDim(vartype35);
+    EXPECT_STREQ("short[5]", symt.GetName(vartype5).c_str());
+    AGS::Vartype vartype = symt.ArrayVartypeWithoutFirstDim(vartype5);
+    EXPECT_STREQ("short", symt.GetName(vartype).c_str());
+    AGS::Vartype vartype0 = symt.ArrayVartypeWithoutFirstDim(vartype);
+    EXPECT_STREQ("short", symt.GetName(vartype0).c_str());
 }

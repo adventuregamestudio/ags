@@ -22,10 +22,19 @@ constexpr const char *WRITE_PATH = "C:/TEMP/";
 
 extern void WriteOutput(const char *fname, AGS::ccCompiledScript const &scrip);
 
-extern void CompareCode(AGS::ccCompiledScript *scrip, size_t codesize, int32_t code[]);
-extern void CompareFixups(AGS::ccCompiledScript *scrip, size_t numfixups, int32_t fixups[], char fixuptypes[]);
-extern void CompareImports(AGS::ccCompiledScript *scrip, size_t numimports, std::string imports[]);
-extern void CompareExports(AGS::ccCompiledScript *scrip, size_t numexports, std::string exports[], int32_t export_addr[]);
-extern void CompareStrings(AGS::ccCompiledScript *scrip, size_t stringssize, char strings[]);
+struct CharRun
+{
+    size_t count;
+    unsigned char value;
+    CharRun(size_t c, unsigned char v) : count(c), value(v) {}
+};
+
+extern void CompareCode(AGS::ccCompiledScript *scrip, size_t code_size, int32_t code[]);
+extern void CompareFixups(AGS::ccCompiledScript *scrip, size_t fixups_size, int32_t fixups[], char fixuptypes[]);
+extern void CompareImports(AGS::ccCompiledScript *scrip, size_t non_empty_imports_count, std::string imports[]);
+extern void CompareExports(AGS::ccCompiledScript *scrip, size_t exports_size, std::string exports[], int32_t export_addr[]);
+extern void CompareStrings(AGS::ccCompiledScript *scrip, size_t strings_size, char strings[]);
+extern void CompareGlobalRuns(AGS::ccCompiledScript *scrip, struct CharRun global_runs[]);
+extern void CompareGlobalData(AGS::ccCompiledScript *scrip, size_t size, unsigned char gdata[]);
 
 #endif

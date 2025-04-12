@@ -31,7 +31,7 @@ namespace AGS.Editor.Components
             _guiController.RegisterIcon(ICON_KEY, ResourceManager.GetIcon("view.ico"));
             _guiController.RegisterIcon("ViewIcon", ResourceManager.GetIcon("view-item.ico"));
             _guiController.ProjectTree.AddTreeRoot(this, TOP_LEVEL_COMMAND_ID, "Views", ICON_KEY);
-			_guiController.ProjectTree.OnAfterLabelEdit += new ProjectTree.AfterLabelEditHandler(ProjectTree_OnAfterLabelEdit);
+			_guiController.ProjectTree.OnAfterLabelEdit += ProjectTree_OnAfterLabelEdit;
 			RefreshDataFromGame();
         }
 

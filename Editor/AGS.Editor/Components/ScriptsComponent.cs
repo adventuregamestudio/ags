@@ -73,7 +73,7 @@ namespace AGS.Editor.Components
             _guiController.OnGetScript += new GUIController.GetScriptHandler(GUIController_OnGetScript);
             _guiController.OnScriptChanged += new GUIController.ScriptChangedHandler(GUIController_OnScriptChanged);
             _guiController.OnGetScriptEditorControl += new GUIController.GetScriptEditorControlHandler(_guiController_OnGetScriptEditorControl);
-            _guiController.ProjectTree.OnAfterLabelEdit += new ProjectTree.AfterLabelEditHandler(ProjectTree_OnAfterLabelEdit);
+            _guiController.ProjectTree.OnAfterLabelEdit += ProjectTree_OnAfterLabelEdit;
 
             Factory.Events.GamePostLoad += Events_GamePostLoad;
         }

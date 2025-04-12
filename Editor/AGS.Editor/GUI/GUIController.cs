@@ -960,7 +960,7 @@ namespace AGS.Editor
                 _mainForm = new frmMain();
                 SetEditorWindowSize();
                 _treeManager = new ProjectTree(_mainForm.projectPanel.projectTree);
-                _treeManager.OnContextMenuClick += new ProjectTree.MenuClickHandler(_mainForm_OnMenuClick);
+                _treeManager.OnContextMenuClick += _mainForm_OnMenuClick;
                 _toolBarManager = new ToolBarManager(_mainForm.toolStrip);
                 _windowsMenuManager = new WindowsMenuManager(_mainForm.windowsToolStripMenuItem, 
                     _mainForm.DockPanes, _mainForm.mainContainer, _mainForm.GetLayoutManager());

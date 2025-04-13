@@ -62,6 +62,7 @@ Editor:
  - Added "Replace source paths for sprites..." context menu command in Sprite Manager. This command
    allows to batch-replace parent folder for all sprite source paths, in case you moved original
    files from one folder to another.
+ - Added "Palette index" selection for sprite's import transparency option.
  - Support importing 32-bit BMP files of extended formats (this support is formal at the moment,
    and does not guarantee that any of the extended data will be interpreted).
  - Support importing 1-bit (monochrome) and 4-bit images as sprites, room backgrounds and masks
@@ -91,6 +92,9 @@ Editor:
  - Fixed Project Explorer refreshing when user changes names or descriptions of room objects.
  - Fixed importing indexed PNG as a sprite, previously Editor would mistakenly treat the source
    image as 32-bit.
+ - Fixed importing GIFs with "palette 0 / N" transparency option would refer a palette color from
+   each individual frame's palette rather than the original GIF palette, which could lead to wrong
+   colors used as transparents.
  - Fixed importing 8-bit BMP sprites with no "Remap palette" and "Leave As Is" as a transparency
    option would still remap palette index 0 to the first found palette entry with Alpha 0,
    even if that's a filler entry not used by the image.

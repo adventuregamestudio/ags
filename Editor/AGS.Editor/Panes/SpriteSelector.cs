@@ -15,13 +15,11 @@ namespace AGS.Editor
 {
     public partial class SpriteSelector : UserControl, IObjectConfigurable
     {
-        public delegate void SelectionChangedHandler(Sprite[] newSelection);
         [Description("Occurs when the selected sprite changes")]
-        public event SelectionChangedHandler OnSelectionChanged;
+        public event Action<Sprite[]> OnSelectionChanged;
 
-        public delegate void SpriteActivatedHandler(Sprite activatedSprite);
         [Description("Occurs when a sprite is double-clicked")]
-        public event SpriteActivatedHandler OnSpriteActivated;
+        public event Action<Sprite> OnSpriteActivated;
 
         private const string GIF_FILTER = "Compuserve Graphics Interchange (*.gif)|*.gif";
 

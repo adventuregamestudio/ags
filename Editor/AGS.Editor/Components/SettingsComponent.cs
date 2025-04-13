@@ -66,8 +66,8 @@ namespace AGS.Editor.Components
                 guiComponent.GUIChangedID -= GuiComponent_GUIChangedID;
                 guiComponent.GUIChangedID += GuiComponent_GUIChangedID;
             }
-            Factory.AGSEditor.CurrentGame.GUIAddedOrRemoved -= CurrentGame_GUIRemoved;
-            Factory.AGSEditor.CurrentGame.GUIAddedOrRemoved += CurrentGame_GUIRemoved;
+            Factory.AGSEditor.CurrentGame.OnGUIAddedOrRemoved -= CurrentGame_GUIRemoved;
+            Factory.AGSEditor.CurrentGame.OnGUIAddedOrRemoved += CurrentGame_GUIRemoved;
         }
 
         private int UpdatePropertyOnGuiMove(int propertyValue, int guiOldID, int guiNewID, bool wasRemoved)

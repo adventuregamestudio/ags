@@ -17,7 +17,7 @@ namespace AGS.Types
         where TFolderItem : IToXml
         where TFolder : BaseFolderCollection<TFolderItem, TFolder>
     {
-        public event FolderChangeEventHandler<TFolderItem> OnFolderChange;
+        public event Action<object, FolderChangeEventArgs<TFolderItem>> OnFolderChange;
         public abstract TFolder CreateChildFolder(string name);
         protected abstract TFolder CreateFolder(XmlNode node);
         protected abstract TFolderItem CreateItem(XmlNode node);

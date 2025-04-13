@@ -27,31 +27,24 @@ namespace AGS.Editor
 		private const int ROOM_TEMPLATE_ID_FILE_SIGNATURE = 0x74673812;
         private const string WINDOW_CONFIG_FILENAME = "WindowConfig.json";
 
-        public delegate void PropertyObjectChangedHandler(object newPropertyObject);
-        public event PropertyObjectChangedHandler OnPropertyObjectChanged;
-        public delegate bool QueryEditorShutdownHandler();
-        public event QueryEditorShutdownHandler QueryEditorShutdown;
-        public delegate void EditorShutdownHandler();
-        public event EditorShutdownHandler OnEditorShutdown;
-        public delegate void ZoomToFileHandler(ZoomToFileEventArgs evArgs);
-        public event ZoomToFileHandler OnZoomToFile;
-        public delegate void GetScriptHandler(string fileName, ref Script script);
-        public event GetScriptHandler OnGetScript;
-        public delegate void GetScriptEditorControlHandler(GetScriptEditorControlEventArgs evArgs);
-        public event GetScriptEditorControlHandler OnGetScriptEditorControl;
-        public delegate void ScriptChangedHandler(Script script);
-        public event ScriptChangedHandler OnScriptChanged;
-        public delegate void LaunchHelpHandler(string keyword);
-        public event LaunchHelpHandler OnLaunchHelp;
+        public event Action<object> OnPropertyObjectChanged;
+        public event Func<bool> OnQueryEditorShutdown;
+        public event Action OnEditorShutdown;
+        public event Action<ZoomToFileEventArgs> OnZoomToFile;
+        public delegate void ActionRef<T1, R1>(T1 arg1, ref R1 ref1);
+        public event ActionRef<string, Script> OnGetScript;
+        public event Action<GetScriptEditorControlEventArgs> OnGetScriptEditorControl;
+        public event Action<Script> OnScriptChanged;
+        public event Action<string> OnLaunchHelp;
         public event EventHandler OnMainWindowActivated;
 
-        private delegate void UpdateStatusBarTextDelegate(string text);
-        private delegate void ParameterlessDelegate();
-        private delegate void ZoomToFileDelegate(string fileName, ZoomToFileZoomType zoomType, int lineNumber, bool isDebugExecutionPoint, bool selectWholeLine, string errorMessage, bool activateEditor);
-        private delegate void ShowCallStackDelegate(DebugCallStack callStack);
-        private delegate void ShowFindSymbolResultsDelegate(List<ScriptTokenReference> results);
-        private delegate void NotifyWatchVariablesDelegate();
-        private delegate void NotifySetAutoLocalVariables(DebugCallStack callStack);
+        private Action<string> _updateStatusBarText;
+        private Action _parameterlessDelegate;
+        private Action<string, ZoomToFileZoomType, int, bool, bool, string, bool> _zoomToFileDelegate;
+        private Action<DebugCallStack> _showCallStackDelegate;
+        private Action<List<ScriptTokenReference>> _showFindSymbolResultsDelegate;
+        private Action _notifyWatchVariablesDelegate;
+        private Action<DebugCallStack> _notifySetAutoLocalVariables;
 
         private frmMain _mainForm;
         private LogPanel _pnlEngineLog;
@@ -446,7 +439,7 @@ namespace AGS.Editor
         {
             if (_mainForm.pnlOutput.InvokeRequired)
             {
-                _mainForm.pnlOutput.Invoke(new ParameterlessDelegate(HideOutputPanel));
+                _mainForm.pnlOutput.Invoke(_parameterlessDelegate);
                 return;
             }
 
@@ -457,7 +450,7 @@ namespace AGS.Editor
         {
             if (_mainForm.pnlCallStack.InvokeRequired)
             {
-                _mainForm.pnlCallStack.Invoke(new ShowCallStackDelegate(ShowCallStack), callStack);
+                _mainForm.pnlCallStack.Invoke(_showCallStackDelegate, callStack);
                 return;
             }
 
@@ -474,7 +467,7 @@ namespace AGS.Editor
         {            
             if (_mainForm.pnlFindResults.InvokeRequired)
             {
-                _mainForm.pnlFindResults.Invoke(new ShowFindSymbolResultsDelegate(ShowFindSymbolResults), results);
+                _mainForm.pnlFindResults.Invoke(_showFindSymbolResultsDelegate, results);
                 return;
             }
 
@@ -528,7 +521,7 @@ namespace AGS.Editor
         {
             if (_mainForm.pnlWatchVariables.InvokeRequired)
             {
-                _mainForm.pnlWatchVariables.Invoke(new NotifySetAutoLocalVariables(SetAutoLocalVariables), callStack);
+                _mainForm.pnlWatchVariables.Invoke(_notifySetAutoLocalVariables, callStack);
                 return;
             }
 
@@ -539,7 +532,7 @@ namespace AGS.Editor
         {
             if (_mainForm.pnlWatchVariables.InvokeRequired)
             {
-                _mainForm.pnlWatchVariables.Invoke(new NotifyWatchVariablesDelegate(NotifyWatchVariables));
+                _mainForm.pnlWatchVariables.Invoke(_notifyWatchVariablesDelegate);
                 return;
             }
 
@@ -663,7 +656,7 @@ namespace AGS.Editor
             {
                 if (this.InvokeRequired)
                 {
-					this.Invoke(new ZoomToFileDelegate(ZoomToFile), fileName, zoomType, zoomPosition, isDebugExecutionPoint, selectWholeLine, errorMessage, activateEditor);
+					this.Invoke(_zoomToFileDelegate, fileName, zoomType, zoomPosition, isDebugExecutionPoint, selectWholeLine, errorMessage, activateEditor);
                 }
                 else
                 {
@@ -965,10 +958,10 @@ namespace AGS.Editor
                 _windowsMenuManager = new WindowsMenuManager(_mainForm.windowsToolStripMenuItem, 
                     _mainForm.DockPanes, _mainForm.mainContainer, _mainForm.GetLayoutManager());
                 _menuManager = new MainMenuManager(_mainForm.mainMenu, _windowsMenuManager);
-                _mainForm.OnEditorShutdown += new frmMain.EditorShutdownHandler(_mainForm_OnEditorShutdown);
-                _mainForm.OnPropertyChanged += new frmMain.PropertyChangedHandler(_mainForm_OnPropertyChanged);
-                _mainForm.OnPropertyObjectChanged += new frmMain.PropertyObjectChangedHandler(_mainForm_OnPropertyObjectChanged);
-                _mainForm.OnActiveDocumentChanged += new frmMain.ActiveDocumentChangedHandler(_mainForm_OnActiveDocumentChanged);
+                _mainForm.OnEditorShutdown += _mainForm_OnEditorShutdown;
+                _mainForm.OnPropertyChanged += _mainForm_OnPropertyChanged;
+                _mainForm.OnPropertyObjectChanged += _mainForm_OnPropertyObjectChanged;
+                _mainForm.OnActiveDocumentChanged += _mainForm_OnActiveDocumentChanged;
                 _mainForm.OnMainWindowActivated += new EventHandler(_mainForm_OnMainWindowActivated);
                 _menuManager.OnMenuClick += new MainMenuManager.MenuClickHandler(_mainForm_OnMenuClick);
                 AutoComplete.BackgroundCacheUpdateStatusChanged += new AutoComplete.BackgroundCacheUpdateStatusChangedHandler(AutoComplete_BackgroundCacheUpdateStatusChanged);
@@ -986,12 +979,12 @@ namespace AGS.Editor
 
                 ViewUIEditor.ViewSelectionGUI = new ViewUIEditor.ViewSelectionGUIType(ShowViewChooserFromPropertyGrid);
                 SpriteSelectUIEditor.SpriteSelectionGUI = new SpriteSelectUIEditor.SpriteSelectionGUIType(ShowSpriteChooserFromPropertyGrid);
-                CustomPropertiesUIEditor.CustomPropertiesGUI = new CustomPropertiesUIEditor.CustomPropertiesGUIType(ShowPropertiesEditorFromPropertyGrid);
-                PropertyTabInteractions.UpdateEventName = new PropertyTabInteractions.UpdateEventNameHandler(PropertyTabInteractions_UpdateEventName);
+                CustomPropertiesUIEditor.CustomPropertiesGUI = ShowPropertiesEditorFromPropertyGrid;
+                PropertyTabInteractions.UpdateEventName = PropertyTabInteractions_UpdateEventName;
                 ScriptFunctionUIEditor.OpenScriptFunction = new ScriptFunctionUIEditor.OpenScriptFunctionHandler(ScriptFunctionUIEditor_OpenScriptFunction);
                 ScriptFunctionUIEditor.CreateScriptFunction = new ScriptFunctionUIEditor.CreateScriptFunctionHandler(ScriptFunctionUIEditor_CreateScriptFunction);
                 CustomResolutionUIEditor.CustomResolutionSetGUI = new CustomResolutionUIEditor.CustomResolutionGUIType(ShowCustomResolutionChooserFromPropertyGrid);
-                ColorUIEditor.ColorGUI = new ColorUIEditor.ColorGUIType(ShowColorDialog);
+                ColorUIEditor.ColorGUI = ShowColorDialog;
                 MultiLineStringUIEditor.MultilineStringGUI = new MultiLineStringUIEditor.MultilineStringGUIType(ShowMultilineStringDialog);
                 AudioClipSourceFileUIEditor.AudioClipSourceFileGUI = new AudioClipSourceFileUIEditor.AudioClipSourceFileGUIType(ShowAudioClipSourceFileChooserFromPropertyGrid);
             }
@@ -1796,9 +1789,9 @@ namespace AGS.Editor
         /// </summary>
         public bool TestIfCanShutdownNow()
         {
-            if (QueryEditorShutdown != null)
+            if (OnQueryEditorShutdown != null)
             {
-                return QueryEditorShutdown();
+                return OnQueryEditorShutdown();
             }
             return true;
         }
@@ -1876,11 +1869,11 @@ namespace AGS.Editor
         {
             if (_mainForm.InvokeRequired)
             {
-                _mainForm.Invoke(new UpdateStatusBarTextDelegate(UpdateStatusBarText), text);
+                _mainForm.Invoke(_updateStatusBarText, text);
             }
             else
             {
-                UpdateStatusBarText(text);
+                _updateStatusBarText(text);
             }
         }
 

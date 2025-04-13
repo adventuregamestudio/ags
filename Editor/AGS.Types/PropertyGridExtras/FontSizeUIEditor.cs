@@ -6,8 +6,7 @@ namespace AGS.Types
 {
     public class FontSizeUIEditor : UITypeEditor
     {
-        public delegate int FontImportGUIType(AGS.Types.Font font);
-        public static FontImportGUIType FontSizeGUI;
+        public static Func<AGS.Types.Font, int> FontSizeGUI;
 
         public FontSizeUIEditor()
         {

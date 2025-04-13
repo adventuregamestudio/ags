@@ -7,8 +7,7 @@ namespace AGS.Types
 {
     public class ColorUIEditor : UITypeEditor
     {
-        public delegate Color? ColorGUIType(Color? color);
-        public static ColorGUIType ColorGUI;
+        public static Func<Color?, Color?> ColorGUI;
         public static GameColorDepth ColorMode = GameColorDepth.TrueColor;
 
         public override UITypeEditorEditStyle GetEditStyle(ITypeDescriptorContext context)

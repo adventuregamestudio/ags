@@ -12,7 +12,7 @@ namespace AGS.Editor
 {
     public partial class AudioEditor : EditorContentPanel
     {
-        private delegate void NoParametersDelegate();
+        private Action _noParametersDelegate;
 
         private object _selectedItem = null;
         private IAudioPreviewer _previewer = null;
@@ -157,7 +157,7 @@ namespace AGS.Editor
 
         private void _timer_Tick(object sender, EventArgs e)
         {
-            this.Invoke(new NoParametersDelegate(PollPreviewer));
+            this.Invoke(new Action(PollPreviewer));
         }
 
         protected override void OnPanelClosing(bool canCancel, ref bool cancelClose)
@@ -189,7 +189,7 @@ namespace AGS.Editor
 
         private void _previewer_PlayFinished(AudioClip clip)
         {
-            btnPlay.Invoke(new NoParametersDelegate(ResetControlsForSoundFinished));
+            btnPlay.Invoke(new Action(ResetControlsForSoundFinished));
         }
 
         private void btnPause_Click(object sender, EventArgs e)

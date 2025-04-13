@@ -10,8 +10,8 @@ namespace AGS.Editor
     {
         public const string DEFAULT_ICON_KEY = "DefaultTreeIcon";
 
-        public Action<string> OnContextMenuClick;
-        public Action<string, ProjectTreeItem> OnAfterLabelEdit;
+        public event Action<string> OnContextMenuClick;
+        public event Action<string, ProjectTreeItem> OnAfterLabelEdit;
 		public event BeforeShowContextMenuHandler BeforeShowContextMenu;
 
         private Dictionary<string, IEditorComponent> _treeNodes;

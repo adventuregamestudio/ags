@@ -19,6 +19,9 @@ Engine:
  - Fixed Button resizing to sprite 0 size if NormalGraphic is set to 0 (default button look).
  - Fixed Character movement recalculation when changing move speeds while walking, and movement
    path contains 45-degrees diagonal segments.
+ - Fixed a solid Character (serving an obstacle) can get ignored by a walking Character, if the
+   obstacle character's position appears within the walking character's own blocking zone.
+   (This seems to be a redundant condition introduced very long time ago in the engine by mistake.)
  - Fixed object's look not updated after it was assigned a dynamic sprite, redrawn, sprite deleted,
    object redrawn without a sprite (used a placeholder), and then another dynamic sprite assigned
    with coincidentally the same number.

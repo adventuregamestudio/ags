@@ -1202,7 +1202,8 @@ namespace AGS.Editor
                 bmp.Palette = pal;
             }
 
-            Sprite newSprite = Factory.NativeProxy.CreateSpriteFromBitmap(bmp, SpriteImportTransparency.LeaveAsIs, true, false, hasAlpha);
+            Sprite newSprite = Factory.NativeProxy.CreateSpriteFromBitmap(bmp, SpriteImportColorDepth.GameDefault,
+                SpriteImportTransparency.LeaveAsIs, 0 /* trans color index */, true /* remap colors */, false /* remap to background */, hasAlpha);
             bmp.Dispose();
             return newSprite;
         }

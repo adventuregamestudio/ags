@@ -57,8 +57,8 @@ namespace Native
 			// may be called with hDC = 0 to get required height without drawing anything
 			int  DrawFont(int hDC, int fontNum, int draw_atx, int draw_aty, int width, int height, int scroll_y);
 			void DrawViewLoop(int hdc, ViewLoop^ loopToDraw, int x, int y, int size, List<int>^ cursel);
-			Sprite^ SetSpriteFromBitmap(int spriteSlot, Bitmap^ bmp, int destColorDepth, int spriteImportMethod, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel);
-			void ReplaceSpriteWithBitmap(Sprite ^spr, Bitmap^ bmp, int destColorDepth, int spriteImportMethod, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel);
+			Sprite^ SetSpriteFromBitmap(int spriteSlot, Bitmap^ bmp, int destColorDepth, int spriteImportMethod, int transColour, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel);
+			void ReplaceSpriteWithBitmap(Sprite ^spr, Bitmap^ bmp, int destColorDepth, int spriteImportMethod, int transColour, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel);
             Bitmap^ GetSpriteBitmap(int spriteSlot);
             Bitmap^ GetSpriteBitmapAs32Bit(int spriteSlot, int width, int height);
 			void DeleteSprite(int spriteSlot);

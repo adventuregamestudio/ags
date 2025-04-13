@@ -136,37 +136,22 @@ namespace AGS.Editor
 			}
         }
 
-        public Sprite CreateSpriteFromBitmap(Bitmap bmp, SpriteImportColorDepth dstColorDepth, SpriteImportTransparency transparency, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel)
+        public Sprite CreateSpriteFromBitmap(Bitmap bmp, SpriteImportColorDepth dstColorDepth, SpriteImportTransparency transparency, int transColour,
+            bool remapColours, bool useRoomBackgroundColours, bool alphaChannel)
         {
             lock (_spriteSetLock)
             {
                 int spriteSlot = _native.GetFreeSpriteSlot();
-                return _native.SetSpriteFromBitmap(spriteSlot, bmp, (int)dstColorDepth, (int)transparency, remapColours, useRoomBackgroundColours, alphaChannel);
+                return _native.SetSpriteFromBitmap(spriteSlot, bmp, (int)dstColorDepth, (int)transparency, transColour, remapColours, useRoomBackgroundColours, alphaChannel);
             }
         }
 
-        public Sprite CreateSpriteFromBitmap(Bitmap bmp, SpriteImportTransparency transparency, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel)
+        public void ReplaceSpriteWithBitmap(Sprite spr, Bitmap bmp, SpriteImportColorDepth dstColorDepth,
+            SpriteImportTransparency transparency, int transColour, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel)
         {
             lock (_spriteSetLock)
             {
-                int spriteSlot = _native.GetFreeSpriteSlot();
-                return _native.SetSpriteFromBitmap(spriteSlot, bmp, 0, (int)transparency, remapColours, useRoomBackgroundColours, alphaChannel);
-            }
-        }
-
-        public void ReplaceSpriteWithBitmap(Sprite spr, Bitmap bmp, SpriteImportColorDepth dstColorDepth, SpriteImportTransparency transparency, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel)
-        {
-            lock (_spriteSetLock)
-            {
-                _native.ReplaceSpriteWithBitmap(spr, bmp, (int)dstColorDepth, (int)transparency, remapColours, useRoomBackgroundColours, alphaChannel);
-            }
-        }
-
-        public void ReplaceSpriteWithBitmap(Sprite spr, Bitmap bmp, SpriteImportTransparency transparency, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel)
-        {
-            lock (_spriteSetLock)
-            {
-                _native.ReplaceSpriteWithBitmap(spr, bmp, 0, (int)transparency, remapColours, useRoomBackgroundColours, alphaChannel);
+                _native.ReplaceSpriteWithBitmap(spr, bmp, (int)dstColorDepth, (int)transparency, transColour, remapColours, useRoomBackgroundColours, alphaChannel);
             }
         }
 

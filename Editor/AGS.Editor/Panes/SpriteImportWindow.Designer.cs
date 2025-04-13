@@ -34,6 +34,7 @@ namespace AGS.Editor
             this.chkRoomBackground = new System.Windows.Forms.CheckBox();
             this.chkRemapCols = new System.Windows.Forms.CheckBox();
             this.groupTransColour = new System.Windows.Forms.GroupBox();
+            this.udTransColorIndex = new System.Windows.Forms.NumericUpDown();
             this.panelBottomRight = new System.Windows.Forms.Panel();
             this.panelTopRight = new System.Windows.Forms.Panel();
             this.panelBottomLeft = new System.Windows.Forms.Panel();
@@ -45,7 +46,7 @@ namespace AGS.Editor
             this.radTransColourTopRightPixel = new System.Windows.Forms.RadioButton();
             this.radTransColourBottomLeftPixel = new System.Windows.Forms.RadioButton();
             this.radTransColourTopLeftPixel = new System.Windows.Forms.RadioButton();
-            this.radTransColourIndex0 = new System.Windows.Forms.RadioButton();
+            this.radTransColourIndex = new System.Windows.Forms.RadioButton();
             this.btnClose = new System.Windows.Forms.Button();
             this.btnImport = new System.Windows.Forms.Button();
             this.chkTiled = new System.Windows.Forms.CheckBox();
@@ -74,6 +75,7 @@ namespace AGS.Editor
             this.cmbImportColorDepth = new System.Windows.Forms.ComboBox();
             this.groupImportOptions.SuspendLayout();
             this.groupTransColour.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.udTransColorIndex)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.zoomSlider)).BeginInit();
             this.groupSelection.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numMaxTiles)).BeginInit();
@@ -121,6 +123,7 @@ namespace AGS.Editor
             // 
             // groupTransColour
             // 
+            this.groupTransColour.Controls.Add(this.udTransColorIndex);
             this.groupTransColour.Controls.Add(this.panelBottomRight);
             this.groupTransColour.Controls.Add(this.panelTopRight);
             this.groupTransColour.Controls.Add(this.panelBottomLeft);
@@ -132,7 +135,7 @@ namespace AGS.Editor
             this.groupTransColour.Controls.Add(this.radTransColourTopRightPixel);
             this.groupTransColour.Controls.Add(this.radTransColourBottomLeftPixel);
             this.groupTransColour.Controls.Add(this.radTransColourTopLeftPixel);
-            this.groupTransColour.Controls.Add(this.radTransColourIndex0);
+            this.groupTransColour.Controls.Add(this.radTransColourIndex);
             this.groupTransColour.Location = new System.Drawing.Point(12, 108);
             this.groupTransColour.Name = "groupTransColour";
             this.groupTransColour.Size = new System.Drawing.Size(224, 192);
@@ -140,44 +143,57 @@ namespace AGS.Editor
             this.groupTransColour.TabStop = false;
             this.groupTransColour.Text = "Transparent colour";
             // 
+            // udTransColorIndex
+            // 
+            this.udTransColorIndex.Location = new System.Drawing.Point(99, 64);
+            this.udTransColorIndex.Maximum = new decimal(new int[] {
+            255,
+            0,
+            0,
+            0});
+            this.udTransColorIndex.Name = "udTransColorIndex";
+            this.udTransColorIndex.Size = new System.Drawing.Size(48, 21);
+            this.udTransColorIndex.TabIndex = 13;
+            this.udTransColorIndex.ValueChanged += new System.EventHandler(this.udTransColorIndex_ValueChanged);
+            // 
             // panelBottomRight
             // 
             this.panelBottomRight.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panelBottomRight.Location = new System.Drawing.Point(136, 158);
+            this.panelBottomRight.Location = new System.Drawing.Point(152, 158);
             this.panelBottomRight.Name = "panelBottomRight";
-            this.panelBottomRight.Size = new System.Drawing.Size(78, 17);
+            this.panelBottomRight.Size = new System.Drawing.Size(62, 17);
             this.panelBottomRight.TabIndex = 12;
             // 
             // panelTopRight
             // 
             this.panelTopRight.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panelTopRight.Location = new System.Drawing.Point(136, 135);
+            this.panelTopRight.Location = new System.Drawing.Point(152, 135);
             this.panelTopRight.Name = "panelTopRight";
-            this.panelTopRight.Size = new System.Drawing.Size(78, 17);
+            this.panelTopRight.Size = new System.Drawing.Size(62, 17);
             this.panelTopRight.TabIndex = 11;
             // 
             // panelBottomLeft
             // 
             this.panelBottomLeft.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panelBottomLeft.Location = new System.Drawing.Point(136, 112);
+            this.panelBottomLeft.Location = new System.Drawing.Point(152, 112);
             this.panelBottomLeft.Name = "panelBottomLeft";
-            this.panelBottomLeft.Size = new System.Drawing.Size(78, 17);
+            this.panelBottomLeft.Size = new System.Drawing.Size(62, 17);
             this.panelBottomLeft.TabIndex = 10;
             // 
             // panelIndex0
             // 
             this.panelIndex0.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panelIndex0.Location = new System.Drawing.Point(136, 66);
+            this.panelIndex0.Location = new System.Drawing.Point(152, 66);
             this.panelIndex0.Name = "panelIndex0";
-            this.panelIndex0.Size = new System.Drawing.Size(78, 17);
+            this.panelIndex0.Size = new System.Drawing.Size(62, 17);
             this.panelIndex0.TabIndex = 8;
             // 
             // panelTopLeft
             // 
             this.panelTopLeft.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panelTopLeft.Location = new System.Drawing.Point(136, 89);
+            this.panelTopLeft.Location = new System.Drawing.Point(152, 89);
             this.panelTopLeft.Name = "panelTopLeft";
-            this.panelTopLeft.Size = new System.Drawing.Size(78, 17);
+            this.panelTopLeft.Size = new System.Drawing.Size(62, 17);
             this.panelTopLeft.TabIndex = 9;
             // 
             // radTransColourNone
@@ -242,15 +258,15 @@ namespace AGS.Editor
             this.radTransColourTopLeftPixel.Text = "Top-left pixel";
             this.radTransColourTopLeftPixel.UseVisualStyleBackColor = true;
             // 
-            // radTransColourIndex0
+            // radTransColourIndex
             // 
-            this.radTransColourIndex0.AutoSize = true;
-            this.radTransColourIndex0.Location = new System.Drawing.Point(5, 66);
-            this.radTransColourIndex0.Name = "radTransColourIndex0";
-            this.radTransColourIndex0.Size = new System.Drawing.Size(97, 17);
-            this.radTransColourIndex0.TabIndex = 8;
-            this.radTransColourIndex0.Text = "Palette index 0";
-            this.radTransColourIndex0.UseVisualStyleBackColor = true;
+            this.radTransColourIndex.AutoSize = true;
+            this.radTransColourIndex.Location = new System.Drawing.Point(5, 66);
+            this.radTransColourIndex.Name = "radTransColourIndex";
+            this.radTransColourIndex.Size = new System.Drawing.Size(92, 17);
+            this.radTransColourIndex.TabIndex = 8;
+            this.radTransColourIndex.Text = "Palette index:";
+            this.radTransColourIndex.UseVisualStyleBackColor = true;
             // 
             // btnClose
             // 
@@ -607,6 +623,7 @@ namespace AGS.Editor
             this.groupImportOptions.PerformLayout();
             this.groupTransColour.ResumeLayout(false);
             this.groupTransColour.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.udTransColorIndex)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.zoomSlider)).EndInit();
             this.groupSelection.ResumeLayout(false);
             this.groupSelection.PerformLayout();
@@ -642,7 +659,7 @@ namespace AGS.Editor
         private System.Windows.Forms.RadioButton radTransColourTopRightPixel;
         private System.Windows.Forms.RadioButton radTransColourBottomLeftPixel;
         private System.Windows.Forms.RadioButton radTransColourTopLeftPixel;
-        private System.Windows.Forms.RadioButton radTransColourIndex0;
+        private System.Windows.Forms.RadioButton radTransColourIndex;
         private System.Windows.Forms.Panel panelBottomRight;
         private System.Windows.Forms.Panel panelBottomLeft;
         private System.Windows.Forms.Panel panelIndex0;
@@ -666,5 +683,6 @@ namespace AGS.Editor
         private System.Windows.Forms.Button btnImportAll;
         private System.Windows.Forms.Panel panelTopRight;
         private System.Windows.Forms.ComboBox cmbImportColorDepth;
+        private System.Windows.Forms.NumericUpDown udTransColorIndex;
     }
 }

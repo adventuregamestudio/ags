@@ -114,7 +114,8 @@ namespace AGS.Editor
          *                  GlobalVariable may be of array type.
          * 3.6.2.2        - Button.WrapText, TextPadding.
          * 3.6.2.6        - Settings.GameFPS.
-         * 3.6.3          - Settings.GUIHandleOnlyLeftMouseButton
+         * 3.6.2.9        - Sprite.TransparentColorIndex (can select transparent palette index).
+         * 3.6.3          - Settings.GUIHandleOnlyLeftMouseButton.
          * 
          * 3.99.99.00     - BlendMode for various objects, Character.Transparency.
          * 3.99.99.01     - Open rooms
@@ -575,6 +576,9 @@ namespace AGS.Editor
 
         public void RenameFileOnDisk(string currentName, string newName)
         {
+            if (!File.Exists(currentName))
+                return; // nothing to rename
+
             string sourcePath = Path.GetFullPath(currentName);
             string destPath = Path.GetFullPath(newName);
             File.Move(sourcePath, destPath);

@@ -62,7 +62,8 @@ extern void drawGUI(HDC hdc, int x, int y, GUI^ gui, int resolutionFactor, float
 extern void drawSprite(HDC hdc, int x,int y, int spriteNum, bool flipImage);
 extern void drawSpriteStretch(HDC hdc, int x,int y, int width, int height, int spriteNum, bool flipImage);
 extern void drawViewLoop (HDC hdc, ViewLoop^ loopToDraw, int x, int y, int size, List<int>^ cursel);
-extern AGS::Types::SpriteImportResolution SetNewSpriteFromBitmap(int slot, Bitmap^ bmp, int destColorDepth, int spriteImportMethod, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel);
+extern void SetNewSpriteFromBitmap(int slot, Bitmap^ bmp, int destColorDepth,
+    int spriteImportMethod, int transColour, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel);
 extern Bitmap^ getSpriteAsBitmap(int spriteNum);
 extern Bitmap^ getSpriteAsBitmap32bit(int spriteNum, int width, int height);
 extern int find_free_sprite_slot();
@@ -444,33 +445,33 @@ namespace AGS
             return 0; // FIXME: not working after moved to open room format
         }
 
-		Sprite^ NativeMethods::SetSpriteFromBitmap(int spriteSlot, Bitmap^ bmp, int destColorDepth, int spriteImportMethod, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel)
-		{
-            SetNewSpriteFromBitmap(spriteSlot, bmp, destColorDepth, spriteImportMethod, remapColours, useRoomBackgroundColours, alphaChannel);
-      int colDepth = GetSpriteColorDepth(spriteSlot);
-			Sprite^ newSprite = gcnew Sprite(spriteSlot, bmp->Width, bmp->Height, colDepth, alphaChannel);
-      int roomNumber = GetCurrentlyLoadedRoomNumber();
-      if ((colDepth == 8) && (useRoomBackgroundColours) && (roomNumber >= 0))
-      {
-        newSprite->ColoursLockedToRoom = roomNumber;
-      }
-      return newSprite;
-		}
+        Sprite^ NativeMethods::SetSpriteFromBitmap(int spriteSlot, Bitmap^ bmp, int destColorDepth, int spriteImportMethod, int transColour, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel)
+        {
+            SetNewSpriteFromBitmap(spriteSlot, bmp, destColorDepth, spriteImportMethod, transColour, remapColours, useRoomBackgroundColours, alphaChannel);
+            int colDepth = GetSpriteColorDepth(spriteSlot);
+            Sprite^ newSprite = gcnew Sprite(spriteSlot, bmp->Width, bmp->Height, colDepth, alphaChannel);
+            int roomNumber = GetCurrentlyLoadedRoomNumber();
+            if ((colDepth == 8) && (useRoomBackgroundColours) && (roomNumber >= 0))
+            {
+                newSprite->ColoursLockedToRoom = roomNumber;
+            }
+            return newSprite;
+        }
 
-		void NativeMethods::ReplaceSpriteWithBitmap(Sprite ^spr, Bitmap^ bmp, int destColorDepth, int spriteImportMethod, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel)
-		{
-            SetNewSpriteFromBitmap(spr->Number, bmp, destColorDepth, spriteImportMethod, remapColours, useRoomBackgroundColours, alphaChannel);
-			spr->ColorDepth = GetSpriteColorDepth(spr->Number);
-			spr->Width = bmp->Width;
-			spr->Height = bmp->Height;
-			spr->AlphaChannel = alphaChannel;
-      spr->ColoursLockedToRoom = System::Nullable<int>();
-      int roomNumber = GetCurrentlyLoadedRoomNumber();
-      if ((spr->ColorDepth == 8) && (useRoomBackgroundColours) && (roomNumber >= 0))
-      {
-        spr->ColoursLockedToRoom = roomNumber;
-      }
-		}
+        void NativeMethods::ReplaceSpriteWithBitmap(Sprite ^spr, Bitmap^ bmp, int destColorDepth, int spriteImportMethod, int transColour, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel)
+        {
+            SetNewSpriteFromBitmap(spr->Number, bmp, destColorDepth, spriteImportMethod, transColour, remapColours, useRoomBackgroundColours, alphaChannel);
+            spr->ColorDepth = GetSpriteColorDepth(spr->Number);
+            spr->Width = bmp->Width;
+            spr->Height = bmp->Height;
+            spr->AlphaChannel = alphaChannel;
+            spr->ColoursLockedToRoom = System::Nullable<int>();
+            int roomNumber = GetCurrentlyLoadedRoomNumber();
+            if ((spr->ColorDepth == 8) && (useRoomBackgroundColours) && (roomNumber >= 0))
+            {
+                spr->ColoursLockedToRoom = roomNumber;
+            }
+        }
 
         Bitmap^ NativeMethods::GetSpriteBitmap(int spriteSlot)
         {

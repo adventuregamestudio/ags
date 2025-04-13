@@ -949,6 +949,14 @@ namespace AGS.Editor
                 oldValue, minValue, maxValue);
         }
 
+        public int ShowChangeRoomNumberDialog(int oldValue)
+        {
+            NewRoomDialog dialog = new NewRoomDialog(_agsEditor.CurrentGame, oldValue);
+            if (dialog.ShowDialog() == DialogResult.OK)
+                return dialog.ChosenRoomNumber;
+            return oldValue;
+        }
+
         public void Initialize(AGSEditor agsEditor)
         {
             if (_mainForm == null)

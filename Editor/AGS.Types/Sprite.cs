@@ -306,7 +306,7 @@ namespace AGS.Types
                     _importAsTile = false;
                 }
 
-                // added in XML Version 3060300
+                // added in XML Version 3060209
                 try
                 {
                     _transparentColourIndex = Convert.ToInt32(SerializeUtils.GetElementString(sourceNode, "TransparentColorIndex"));

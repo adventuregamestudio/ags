@@ -1,7 +1,7 @@
 REVISION HISTORY
 ================
 
-VERSION 3.6.2 - RC, February 2025
+VERSION 3.6.2 - RC, April 2025
 
 Common:
  - Event handler function are now allowed to be located in any script module.
@@ -61,6 +61,7 @@ Editor:
  - Added "Replace source paths for sprites..." context menu command in Sprite Manager. This command
    allows to batch-replace parent folder for all sprite source paths, in case you moved original
    files from one folder to another.
+ - Added "Palette index" selection for sprite's import transparency option.
  - Support importing 32-bit BMP files of extended formats (this support is formal at the moment,
    and does not guarantee that any of the extended data will be interpreted).
  - Support importing 1-bit (monochrome) and 4-bit images as sprites, room backgrounds and masks
@@ -90,6 +91,9 @@ Editor:
  - Fixed Project Explorer refreshing when user changes names or descriptions of room objects.
  - Fixed importing indexed PNG as a sprite, previously Editor would mistakenly treat the source
    image as 32-bit.
+ - Fixed importing GIFs with "palette 0 / N" transparency option would refer a palette color from
+   each individual frame's palette rather than the original GIF palette, which could lead to wrong
+   colors used as transparents.
  - Fixed importing 8-bit BMP sprites with no "Remap palette" and "Leave As Is" as a transparency
    option would still remap palette index 0 to the first found palette entry with Alpha 0,
    even if that's a filler entry not used by the image.
@@ -324,6 +328,9 @@ Engine:
  - Fixed Button resizing to sprite 0 size if NormalGraphic is set to 0 (default button look).
  - Fixed Character movement recalculation when changing move speeds while walking, and movement
    path contains 45-degrees diagonal segments.
+ - Fixed a solid Character (serving an obstacle) can get ignored by a walking Character, if the
+   obstacle character's position appears within the walking character's own blocking zone.
+   (This seems to be a redundant condition introduced very long time ago in the engine by mistake.)
  - Fixed object's look not updated after it was assigned a dynamic sprite, redrawn, sprite deleted,
    object redrawn without a sprite (used a placeholder), and then another dynamic sprite assigned
    with coincidentally the same number.

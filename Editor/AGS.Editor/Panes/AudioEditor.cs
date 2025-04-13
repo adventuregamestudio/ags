@@ -12,8 +12,6 @@ namespace AGS.Editor
 {
     public partial class AudioEditor : EditorContentPanel
     {
-        private Action _noParametersDelegate;
-
         private object _selectedItem = null;
         private IAudioPreviewer _previewer = null;
         private bool _paused = false;

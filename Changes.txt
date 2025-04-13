@@ -1,7 +1,7 @@
 REVISION HISTORY
 ================
 
-VERSION 3.6.2 - RC, February 2025
+VERSION 3.6.2 - RC, April 2025
 
 Common:
  - Event handler function are now allowed to be located in any script module.

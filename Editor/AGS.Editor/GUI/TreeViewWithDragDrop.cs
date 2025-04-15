@@ -1,5 +1,4 @@
-﻿using AGS.Types;
-using System;
+﻿using System;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -45,6 +44,12 @@ namespace AGS.Editor
             Controls.Add(_lineInBetween);
             _lineInBetween.BringToFront();
             _lineInBetween.Hide();
+        }
+
+        protected override void OnHandleCreated(EventArgs e)
+        {
+            this.EnableDoubleBuffering();
+            base.OnHandleCreated(e);
         }
 
         /// <summary>

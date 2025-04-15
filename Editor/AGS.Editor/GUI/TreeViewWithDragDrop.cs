@@ -1,5 +1,4 @@
-﻿using AGS.Types;
-using System;
+﻿using System;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -49,6 +48,11 @@ namespace AGS.Editor
             _lineInBetween.Hide();
         }
 
+        protected override void OnHandleCreated(EventArgs e)
+        {
+            this.EnableDoubleBuffering();
+            base.OnHandleCreated(e);
+        }
 
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {

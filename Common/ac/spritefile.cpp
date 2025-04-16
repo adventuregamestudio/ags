@@ -413,7 +413,7 @@ HError SpriteFile::LoadSprite(sprkey_t index, Common::Bitmap *&sprite)
     ImBufferPtr im_data(image->GetDataForWriting(), w * h * bpp, bpp);
     // (Optional) Handle storage options, reverse
     std::vector<uint8_t> indexed_buf;
-    std::array<uint32_t, 256> palette {};
+    std::array<uint32_t, 256> palette = {};
     uint32_t pal_bpp = GetPaletteBPP(hdr.SFormat);
     if (pal_bpp > 0)
     { // read palette if format assumes one

@@ -938,7 +938,7 @@ HSaveError PrescanGUI(Stream *in, int32_t cmp_ver, soff_t /*cmp_size*/, const Pr
             guictrl_refs_old[i] = guis[i].GetControlRefs();
     }
 
-    std::array<size_t, kGUIControlTypeNum> ctrl_counts_old{}, ctrl_counts_new{};
+    std::array<size_t, kGUIControlTypeNum> ctrl_counts_old = {}, ctrl_counts_new = {};
     for (const auto &refs_arr : guictrl_refs_old)
         for (const auto &ref : refs_arr)
             ctrl_counts_old[ref.first]++;

@@ -644,7 +644,7 @@ public:
 private:
     // std algorithms accept args by reference, can't be static
     const SDL_FingerID NO_INDEX_REF = NO_INDEX;
-    std::array<SDL_FingerID, MAX_FINGERS> _fingers {};
+    std::array<SDL_FingerID, MAX_FINGERS> _fingers = {};
 
     bool contains(SDL_FingerID fingerId) const
     {

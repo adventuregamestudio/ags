@@ -79,7 +79,7 @@ struct GameSetupStructBase
         bool HasWordsDict = false;
         // NOTE: Global messages are cut out, but we still have to check them
         // so long as we keep support of loading an older game data
-        std::array<int, NUM_LEGACY_GLOBALMES> HasMessages{};
+        std::array<int, NUM_LEGACY_GLOBALMES> HasMessages = {};
         // File offset at which game data extensions begin
         uint32_t ExtensionOffset = 0u;
     };

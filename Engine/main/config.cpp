@@ -89,7 +89,7 @@ FrameScaleDef parse_scaling_option(const String &option, FrameScaleDef def_value
 
 SkipSpeechStyle parse_speechskip_style(const String &option, SkipSpeechStyle def_value)
 {
-    const std::array<std::pair<const char*, SkipSpeechStyle>, 4> skip_speech_arr{
+    const std::array<std::pair<const char*, SkipSpeechStyle>, 4> skip_speech_arr {
         { { "default", kSkipSpeechNone }, { "input", kSkipSpeech_AnyInput }, { "any", kSkipSpeech_AnyInputOrTime }, { "time", kSkipSpeechTime } } };
     return StrUtil::ParseEnumOptions<SkipSpeechStyle>(option, skip_speech_arr, def_value);
 }

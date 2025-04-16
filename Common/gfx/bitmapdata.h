@@ -111,11 +111,11 @@ public:
     BitmapData(uint8_t *buf, size_t data_sz, size_t stride, int width, int height, PixelFormat fmt)
         : _format(fmt), _bitsPerPixel(PixelFormatToPixelBits(fmt)), _width(width), _height(height)
         , _cbuf(buf), _buf(buf), _dataSize(data_sz), _stride(stride)
-    { assert(_buf && _dataSize > 0u && _stride >= 0u && _bitsPerPixel > 0u && _width > 0u && _height >= 0u); }
+    { assert(_buf && _dataSize > 0u && _stride > 0u && _bitsPerPixel > 0u && _width > 0u && _height > 0u); }
     BitmapData(const uint8_t *cbuf, size_t data_sz, size_t stride, int width, int height, PixelFormat fmt)
         : _format(fmt), _bitsPerPixel(PixelFormatToPixelBits(fmt)), _width(width), _height(height)
         , _cbuf(cbuf), _buf(nullptr), _dataSize(data_sz), _stride(stride)
-    { assert(_cbuf && _dataSize > 0u && _stride >= 0u && _bitsPerPixel > 0u && _width > 0u && _height >= 0u); }
+    { assert(_cbuf && _dataSize > 0u && _stride > 0u && _bitsPerPixel > 0u && _width > 0u && _height > 0u); }
 
     // Tests if BitmapData reference a valid pixel buffer
     operator bool() const { return _cbuf != nullptr; }
@@ -146,7 +146,7 @@ public:
 protected:
     BitmapData(int width, int height, PixelFormat fmt)
         : _format(fmt), _bitsPerPixel(PixelFormatToPixelBits(fmt)), _width(width), _height(height)
-    { assert(_bitsPerPixel > 0u && _width > 0u && _height >= 0u); }
+    { assert(_bitsPerPixel > 0u && _width > 0u && _height > 0u); }
 
     PixelFormat _format = kPxFmt_Undefined;
     uint32_t _bitsPerPixel = 0u;

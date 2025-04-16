@@ -25,7 +25,7 @@ void InventoryItemInfo::ReadFromFile(Stream *in)
     cursorPic = in->ReadInt32();
     hotx = in->ReadInt32();
     hoty = in->ReadInt32();
-    in->ReadArrayOfInt32(reserved, 5);
+    in->Seek(sizeof(int32_t) * 5); // 5 reserved ints
     flags = in->ReadInt8();
     in->Seek(3); // alignment padding to int32
 }
@@ -38,7 +38,7 @@ void InventoryItemInfo::WriteToFile(Stream *out)
     out->WriteInt32(cursorPic);
     out->WriteInt32(hotx);
     out->WriteInt32(hoty);
-    out->WriteArrayOfInt32(reserved, 5);
+    out->WriteByteCount(0, sizeof(int32_t) * 5);
     out->WriteInt8(flags);
     out->WriteByteCount(0, 3); // alignment padding to int32
 }

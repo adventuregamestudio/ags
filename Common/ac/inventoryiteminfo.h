@@ -20,12 +20,12 @@
 #define IFLG_STARTWITH 1
 #define LEGACY_MAX_INVENTORY_NAME_LENGTH 25
 
-struct InventoryItemInfo {
-    AGS::Common::String name;
-    int  pic;
-    int  cursorPic, hotx, hoty;
-    int  reserved[5];
-    uint8_t flags; // IFLG_STARTWITH
+struct InventoryItemInfo
+{
+    AGS::Common::String name{};
+    int  pic = 0;
+    int  cursorPic = 0, hotx = 0, hoty = 0;
+    uint8_t flags = 0u; // IFLG_STARTWITH
 
     void ReadFromFile(AGS::Common::Stream *in);
     void WriteToFile(AGS::Common::Stream *out);

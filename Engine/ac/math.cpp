@@ -132,13 +132,15 @@ float Math_RadiansToDegrees(float value)
 
 int Math_Random(int limit)
 {
-    if (limit <= 0 || ((RAND_MAX < INT32_MAX) && (limit > static_cast<int>(RAND_MAX) + 1)))
+    // NOTE: we clamp rand max to INT16_MAX for cross-platform compatibility;
+    // perhaps replacing rand with another random number generator would solve this problem.
+    if (limit <= 0 || limit > INT16_MAX + 1)
     {
-        debug_script_warn("!Maths.Random: invalid parameter %d -- must be in range (1..%d)", limit, static_cast<int>(RAND_MAX) + 1);
+        debug_script_warn("!Maths.Random: invalid parameter %d -- must be in range (1..%d)", limit, INT16_MAX + 1);
         return 0;
     }
 
-    return rand() % (limit);
+    return rand() % (Math::Clamp<int>(limit, 0, INT16_MAX + 1));
 }
 
 float Math_RandomFloat()

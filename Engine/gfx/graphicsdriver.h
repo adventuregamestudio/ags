@@ -220,6 +220,10 @@ public:
     ///////////////////////////////////////////////////////
     // Shader management
     //
+    // Returns the expected file extension for the precompiled shader
+    virtual const char *GetShaderPrecompiledExtension() = 0;
+    // Returns the expected file extension for the shader source
+    virtual const char *GetShaderSourceExtension() = 0;
     // Creates shader program from the source code, registers it under given name,
     // returns internal shader index which may be used as a reference, or UINT32_MAX on failure.
     virtual uint32_t CreateShaderProgram(const String &name, const char *fragment_shader_src) = 0;

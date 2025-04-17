@@ -800,7 +800,7 @@ void OGLGraphicsDriver::OutputShaderLog(GLuint obj_id, const String &shader_name
     }
     else
     {
-        Debug::Printf(mt, "Shader info log was empty.");
+        Debug::Printf(mt, "Shader output log was empty.");
     }
 }
 

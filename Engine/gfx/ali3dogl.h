@@ -269,6 +269,10 @@ public:
     ///////////////////////////////////////////////////////
     // Shader management
     //
+    // Returns the expected file extension for the precompiled shader
+    const char *GetShaderPrecompiledExtension() override { return ""; }
+    // Returns the expected file extension for the shader source
+    const char *GetShaderSourceExtension() override { return "glsl"; }
     // Creates shader program from the source code, registers it under given name,
     // returns internal shader index which may be used as a reference, or UINT32_MAX on failure.
     uint32_t CreateShaderProgram(const String &name, const char *fragment_shader_src) override;

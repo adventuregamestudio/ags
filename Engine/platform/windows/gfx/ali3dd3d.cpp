@@ -887,7 +887,7 @@ bool D3DGraphicsDriver::CreateTintShader(ShaderProgram &prg, const ShaderProgram
         prg = fallback_prg;
         return false;
     }
-    AssignBaseShaderArgs(prg);
+    AssignBaseShaderArgs(prg, nullptr);
     // FIXME: hardcode these for now, because we can't find constant location without utility lib
     prg.TintHSV = 0u;
     prg.TintAlphaLight = 1u;
@@ -899,13 +899,36 @@ void D3DGraphicsDriver::DeleteShaderProgram(ShaderProgram &prg)
     prg = {};
 }
 
-void D3DGraphicsDriver::AssignBaseShaderArgs(ShaderProgram &prg)
+// TODO: write a (preferrably fully generic) wrapper class or a helper function
+// that lets read any map values and returns default value if key not present;
+// may be useful in multiple other places; move to Common/util.
+// Also it will help to let cast keys (e.g. from const char* to String)
+template <typename TKey, typename TValue, typename THash, typename TEqualTo, typename TAllocator,
+    template<class, class, class, class, class> class TMap>
+const TValue &GetValueOrDef(const TMap<TKey, TValue, THash, TEqualTo, TAllocator> &map, const TKey &key, const TValue &def_val)
 {
-    // FIXME: hardcode these for now, because we can't find constant location without utility lib
-    prg.Time = 0u;
-    prg.GameFrame = 1u;
-    prg.TextureDim = 2u;
-    prg.Alpha = 3u;
+    auto it_found = map.find(key);
+    if (it_found == map.end())
+        return def_val;
+    return it_found->second;
+}
+
+void D3DGraphicsDriver::AssignBaseShaderArgs(ShaderProgram &prg, const ShaderDefinition *def)
+{
+    if (!def || def->Constants.size() == 0)
+    {
+        // Default to hardcoded values
+        prg.Time = 0u;
+        prg.GameFrame = 1u;
+        prg.TextureDim = 2u;
+        prg.Alpha = 3u;
+        return;
+    }
+
+    prg.Time        = GetValueOrDef(def->Constants, String::Wrapper("iTime"), UINT_MAX);
+    prg.GameFrame   = GetValueOrDef(def->Constants, String::Wrapper("iGameFrame"), UINT_MAX);
+    prg.TextureDim  = GetValueOrDef(def->Constants, String::Wrapper("iTextureDim"), UINT_MAX);
+    prg.Alpha       = GetValueOrDef(def->Constants, String::Wrapper("iAlpha"), UINT_MAX);
 }
 
 void D3DGraphicsDriver::UpdateGlobalShaderArgValues()
@@ -951,9 +974,9 @@ void D3DGraphicsDriver::OutputShaderLog(ComPtr<ID3DBlob> &out_errors, const Stri
 }
 #endif
 
-uint32_t D3DGraphicsDriver::AddShaderToCollection(ShaderProgram &prg, const String &name)
+uint32_t D3DGraphicsDriver::AddShaderToCollection(ShaderProgram &prg, const String &name, const ShaderDefinition *def)
 {
-    AssignBaseShaderArgs(prg);
+    AssignBaseShaderArgs(prg, def);
     _shaders.push_back(prg);
     uint32_t shader_id = static_cast<uint32_t>(_shaders.size() - 1);
     _shaderLookup[name] = shader_id;
@@ -2214,16 +2237,21 @@ Texture *D3DGraphicsDriver::CreateTexture(int width, int height, int color_depth
   return txdata;
 }
 
-uint32_t D3DGraphicsDriver::CreateShaderProgram(const String &name, const char *fragment_shader_src)
+uint32_t D3DGraphicsDriver::CreateShaderProgram(const String &name, const char *fragment_shader_src, const ShaderDefinition *def)
 {
 #if (DIRECT3D_USE_D3DCOMPILER)
     if (_shaderLookup.find(name) != _shaderLookup.end())
         return UINT32_MAX; // the name is in use
 
+    const char *compile_target = def && !def->CompileTarget.IsEmpty() ?
+        def->CompileTarget.GetCStr() : DefaultShaderCompileTarget;
+    const char *entry_point = def && !def->EntryPoint.IsEmpty() ?
+        def->EntryPoint.GetCStr() : DefaultShaderEntryPoint;
+
     ComPtr<ID3DBlob> out_data, out_errors;
     HRESULT hr = D3DCompile(fragment_shader_src, strlen(fragment_shader_src) + 1, name.GetCStr(),
-                            nullptr /* no defines */, nullptr /* no includes */, "main" /* entrypoint */,
-                            DefaultShaderCompileTarget, DefaultShaderCompileFlags, 0 /* no effect flags */,
+                            nullptr /* no defines */, nullptr /* no includes */, entry_point,
+                            compile_target, DefaultShaderCompileFlags, 0 /* no effect flags */,
                             out_data.Acquire(), out_errors.Acquire());
 
     if (out_errors)
@@ -2235,13 +2263,13 @@ uint32_t D3DGraphicsDriver::CreateShaderProgram(const String &name, const char *
     if (!CreateShaderProgram(prg, name, static_cast<const uint8_t*>(out_data->GetBufferPointer())))
         return UINT32_MAX;
 
-    return AddShaderToCollection(prg, name);
+    return AddShaderToCollection(prg, name, def);
 #else // !DIRECT3D_USE_D3DCOMPILER
     return UINT32_MAX;
 #endif // DIRECT3D_USE_D3DCOMPILER
 }
 
-uint32_t D3DGraphicsDriver::CreateShaderProgram(const String &name, const std::vector<uint8_t> &compiled_data)
+uint32_t D3DGraphicsDriver::CreateShaderProgram(const String &name, const std::vector<uint8_t> &compiled_data, const ShaderDefinition *def)
 {
     if (_shaderLookup.find(name) != _shaderLookup.end())
         return UINT32_MAX; // the name is in use
@@ -2250,7 +2278,7 @@ uint32_t D3DGraphicsDriver::CreateShaderProgram(const String &name, const std::v
     if (!CreateShaderProgram(prg, name, compiled_data.data()))
         return UINT32_MAX;
 
-    return AddShaderToCollection(prg, name);
+    return AddShaderToCollection(prg, name, def);
 }
 
 uint32_t D3DGraphicsDriver::FindShaderProgram(const String &name)

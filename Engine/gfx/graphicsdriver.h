@@ -25,6 +25,7 @@
 #include "gfx/gfxdefines.h"
 #include "gfx/gfxmodelist.h"
 #include "util/geometry.h"
+#include "util/string_types.h"
 
 namespace AGS
 {
@@ -85,6 +86,21 @@ struct GlobalShaderConstants
 {
     float Time = 0.f;
     int GameFrame = 0;
+};
+
+// Describes a shader layout for the graphics driver.
+// Used when a driver class does not support a reflection on a compiled shader.
+struct ShaderDefinition
+{
+    // Compilation target (if applicable)
+    AGS::Common::String CompileTarget;
+    // Entry point function's name
+    AGS::Common::String EntryPoint;
+
+    // Constants table: maps constant name to the index/register
+    // in the compiled shader
+    std::unordered_map<AGS::Common::String, uint32_t>
+                        Constants;
 };
 
 typedef void (*GFXDRV_CLIENTCALLBACK)();
@@ -224,12 +240,14 @@ public:
     virtual const char *GetShaderPrecompiledExtension() = 0;
     // Returns the expected file extension for the shader source
     virtual const char *GetShaderSourceExtension() = 0;
+    // Returns the expected file extension for the shader definition file
+    virtual const char *GetShaderDefinitionExtension() = 0;
     // Creates shader program from the source code, registers it under given name,
     // returns internal shader index which may be used as a reference, or UINT32_MAX on failure.
-    virtual uint32_t CreateShaderProgram(const String &name, const char *fragment_shader_src) = 0;
+    virtual uint32_t CreateShaderProgram(const String &name, const char *fragment_shader_src, const ShaderDefinition *def = nullptr) = 0;
     // Creates shader program from the compiled data, registers it under given name,
     // returns internal shader index which may be used as a reference, or UINT32_MAX on failure.
-    virtual uint32_t CreateShaderProgram(const String &name, const std::vector<uint8_t> &compiled_data) = 0;
+    virtual uint32_t CreateShaderProgram(const String &name, const std::vector<uint8_t> &compiled_data, const ShaderDefinition *def = nullptr) = 0;
     // Looks up for the shader program using a name,
     // returns internal shader index which may be used as a reference, or UINT32_MAX on failure.
     virtual uint32_t FindShaderProgram(const String &name) = 0;

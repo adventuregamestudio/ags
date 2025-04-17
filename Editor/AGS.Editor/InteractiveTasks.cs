@@ -12,10 +12,8 @@ namespace AGS.Editor
         private const int ENGINE_EXIT_CODE_ERROR  = 93;
 
         private delegate void TestGameFinishedDelegate(int exitCode);
-        public delegate void TestGameFinishedHandler();
-        public event TestGameFinishedHandler TestGameFinished;
-        public delegate void TestGameStartingHandler();
-        public event TestGameStartingHandler TestGameStarting;
+        public event Action TestGameFinished;
+        public event Action TestGameStarting;
 
         private Control _mainGUIThread;
         private bool _currentlyTesting = false;
@@ -24,7 +22,7 @@ namespace AGS.Editor
         public InteractiveTasks(Tasks tasks)
         {
             _tasks = tasks;
-            _tasks.TestGameFinished += new Tasks.TestGameFinishedHandler(Tasks_TestGameFinished);
+            _tasks.TestGameFinished += Tasks_TestGameFinished;
         }
 
         public static void ReportTaskException(string errorMsg, Exception ex)

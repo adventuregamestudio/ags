@@ -2,7 +2,6 @@ using AGS.Types;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Text;
 using System.Windows.Forms;
 
 namespace AGS.Editor
@@ -11,10 +10,8 @@ namespace AGS.Editor
     {
         public const string DEFAULT_ICON_KEY = "DefaultTreeIcon";
 
-        public delegate void MenuClickHandler(string menuItemID);
-        public event MenuClickHandler OnContextMenuClick;
-        public delegate void AfterLabelEditHandler(string commandID, ProjectTreeItem treeItem);
-        public event AfterLabelEditHandler OnAfterLabelEdit;
+        public event Action<string> OnContextMenuClick;
+        public event Action<string, ProjectTreeItem> OnAfterLabelEdit;
 		public event BeforeShowContextMenuHandler BeforeShowContextMenu;
 
         private Dictionary<string, IEditorComponent> _treeNodes;

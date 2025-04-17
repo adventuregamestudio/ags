@@ -9,8 +9,7 @@ namespace AGS.Types
     [DefaultProperty("Name")]
     public class View : IToXml, IComparable<View>
     {
-        public delegate void ViewUpdatedHandler(View view);
-        public event ViewUpdatedHandler ViewUpdated;
+        public event Action<View> ViewUpdated;
 
         private string _name;
         private int _id;

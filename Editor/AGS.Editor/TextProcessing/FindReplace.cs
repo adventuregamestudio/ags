@@ -16,8 +16,7 @@ namespace AGS.Editor.TextProcessing
         private static bool _creatingDialog;
         private static FindReplaceDialog _dialog;
 
-        public delegate void LastSearchTextChangedHandler(string searchText);
-        public event LastSearchTextChangedHandler LastSearchTextChanged;
+        public event Action<string> LastSearchTextChanged;
 
         public FindReplace(IScript script, AGSEditor agsEditor,
             string lastSearchText, bool lastCaseSensitive)

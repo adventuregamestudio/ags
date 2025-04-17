@@ -252,6 +252,10 @@ public:
     ///////////////////////////////////////////////////////
     // Shader management
     //
+    // Returns the expected file extension for the precompiled shader
+    const char *GetShaderPrecompiledExtension() override { return ""; }
+    // Returns the expected file extension for the shader source
+    const char *GetShaderSourceExtension() override { return ""; }
     // Creates shader program from the source code, registers it under given name;
     // not supported in software driver, always fails.
     uint32_t CreateShaderProgram(const String &name, const char *fragment_shader_src) override { return UINT32_MAX; }

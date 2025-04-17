@@ -24,11 +24,21 @@
 #error This file should only be included on the Windows build
 #endif
 
+#if defined (WIN_XP_COMPAT)
+#define DIRECT3D_USE_D3DCOMPILER (0)
+#else
+#define DIRECT3D_USE_D3DCOMPILER (1)
+#endif
+
 #define NOMINMAX
 #include <memory>
 #define NOMINMAX
 #define BITMAP WINDOWS_BITMAP
 #include <d3d9.h>
+#if (DIRECT3D_USE_D3DCOMPILER)
+#include <d3dcommon.h>
+#include <d3dcompiler.h>
+#endif
 #undef BITMAP
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
@@ -275,6 +285,10 @@ public:
     ///////////////////////////////////////////////////////
     // Shader management
     //
+    // Returns the expected file extension for the precompiled shader
+    const char *GetShaderPrecompiledExtension() override { return "fxo"; }
+    // Returns the expected file extension for the shader source
+    const char *GetShaderSourceExtension() override { return "hlsl"; }
     // Creates shader program from the source code, registers it under given name,
     // returns internal shader index which may be used as a reference, or UINT32_MAX on failure.
     uint32_t CreateShaderProgram(const String &name, const char *fragment_shader_src) override;
@@ -376,6 +390,12 @@ private:
     ///////////////////////////////////////////////////////
     // Shader management: implementation
     //
+#if (DIRECT3D_USE_D3DCOMPILER)
+    // TODO: should we let configure syntax level and optimization level, entrypoint name?
+    // FIXME: move to the most modern compile target supported by Direct3D.
+    const char *DefaultShaderCompileTarget = "ps_2_0"; // "ps_4_0_level_9_3"
+    const UINT  DefaultShaderCompileFlags  = D3DCOMPILE_OPTIMIZATION_LEVEL3;
+#endif
     // Shader program and its variable references;
     // the variables are rather specific for AGS use (sprite tinting).
     struct ShaderProgram
@@ -404,6 +424,10 @@ private:
     void DeleteShaderProgram(ShaderProgram &prg);
     void AssignBaseShaderArgs(ShaderProgram &prg);
     void UpdateGlobalShaderArgValues();
+#if (DIRECT3D_USE_D3DCOMPILER)
+    void OutputShaderLog(ComPtr<ID3DBlob> &out_errors, const String &shader_name, bool as_error);
+#endif
+    uint32_t AddShaderToCollection(ShaderProgram &prg, const String &name);
 
     //
     // Specialized shaders

@@ -27,44 +27,68 @@ using namespace AGS::Engine;
 
 extern IGraphicsDriver *gfxDriver;
 
+int TryCreateShaderPrecompiled(const String &filename)
+{
+    auto stream = ResolveScriptPathAndOpen(filename, kFile_Open, kStream_Read);
+    if (!stream)
+        return 0;
+
+    std::vector<uint8_t> data(stream->GetLength());
+    stream->Read(data.data(), data.size());
+    if (data.size() == 0)
+        return 0;
+
+    uint32_t shader_id = gfxDriver->CreateShaderProgram(filename, data);
+    if (shader_id > INT32_MAX)
+        return 0; // cast to an invalid shader id
+    return static_cast<int>(shader_id);
+}
+
+int TryCreateShaderFromSource(const String &filename)
+{
+    auto stream = ResolveScriptPathAndOpen(filename, kFile_Open, kStream_Read);
+    if (!stream)
+        return 0u;
+
+    String shader_src = String::FromStream(stream.get());
+    if (shader_src.IsEmpty())
+        return 0u;
+
+    uint32_t shader_id = gfxDriver->CreateShaderProgram(filename, shader_src.GetCStr());
+    if (shader_id > INT32_MAX)
+        return 0; // cast to an invalid shader id
+    return static_cast<int>(shader_id);
+}
+
 ScriptShaderProgram *ShaderProgram_CreateFromFile(const char *filename)
 {
-    // FIXME: this is a temporary hack, we need to design a rule of how shader
-    // resources are selected depending on a gfx driver
-    String final_filename = filename;
-    if (gfxDriver->GetDriverID() == "D3D9" &&
-        Path::GetFileExtension(filename) == "glsl")
-        final_filename = Path::ReplaceExtension(filename, "fxo");
-
-    uint32_t shader_id = 0;
-    auto stream = ResolveScriptPathAndOpen(final_filename, kFile_Open, kStream_Read);
-    if (stream)
+    // Software renderer does not support shaders, so return a dummy shader program
+    if (!gfxDriver->HasAcceleratedTransform())
     {
-        // TODO: do the extension check in graphics driver / graphics factory?
-        String ext = Path::GetFileExtension(final_filename);
-        if (ext.CompareNoCase("glsl") == 0)
-        {
-            // Shader source
-            String shader_src = String::FromStream(stream.get());
-            if (!shader_src.IsEmpty())
-            {
-                shader_id = gfxDriver->CreateShaderProgram(final_filename, shader_src.GetCStr());
-                if (shader_id == UINT32_MAX)
-                    shader_id = 0; // assign an invalid shader
-            }
-        }
-        else if (ext.CompareNoCase("fxo") == 0)
-        {
-            // Shader compiled data
-            std::vector<uint8_t> data(stream->GetLength());
-            stream->Read(data.data(), data.size());
-            if (data.size() > 0)
-            {
-                shader_id = gfxDriver->CreateShaderProgram(filename, data);
-                if (shader_id == UINT32_MAX)
-                    shader_id = 0; // assign an invalid shader
-            }
-        }
+        ScriptShaderProgram *shader_prg = new ScriptShaderProgram(filename, 0);
+        ccRegisterManagedObject(shader_prg, shader_prg);
+        return shader_prg;
+    }
+
+    String precompiled_ext = gfxDriver->GetShaderPrecompiledExtension();
+    String source_ext = gfxDriver->GetShaderSourceExtension();
+
+    int shader_id = 0;
+    String file_ext = Path::GetFileExtension(filename);
+    if (file_ext == precompiled_ext)
+    {
+        shader_id = TryCreateShaderPrecompiled(filename);
+    }
+    else if (file_ext == source_ext)
+    {
+        shader_id = TryCreateShaderFromSource(filename);
+    }
+    else
+    {
+        if (!precompiled_ext.IsEmpty())
+            shader_id = TryCreateShaderPrecompiled(Path::ReplaceExtension(filename, precompiled_ext));
+        if (shader_id == 0u && !source_ext.IsEmpty())
+            shader_id = TryCreateShaderFromSource(Path::ReplaceExtension(filename, source_ext));
     }
 
     ScriptShaderProgram *shader_prg = new ScriptShaderProgram(filename, shader_id);

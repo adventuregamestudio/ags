@@ -289,12 +289,14 @@ public:
     const char *GetShaderPrecompiledExtension() override { return "fxo"; }
     // Returns the expected file extension for the shader source
     const char *GetShaderSourceExtension() override { return "hlsl"; }
+    // Returns the expected file extension for the shader definition file
+    const char *GetShaderDefinitionExtension() override { return "d3ddef"; }
     // Creates shader program from the source code, registers it under given name,
     // returns internal shader index which may be used as a reference, or UINT32_MAX on failure.
-    uint32_t CreateShaderProgram(const String &name, const char *fragment_shader_src) override;
+    uint32_t CreateShaderProgram(const String &name, const char *fragment_shader_src, const ShaderDefinition *def) override;
     // Creates shader program from the compiled data, registers it under given name,
     // returns internal shader index which may be used as a reference, or UINT32_MAX on failure.
-    uint32_t CreateShaderProgram(const String &name, const std::vector<uint8_t> &compiled_data) override;
+    uint32_t CreateShaderProgram(const String &name, const std::vector<uint8_t> &compiled_data, const ShaderDefinition *def) override;
     // Looks up for the shader program using a name,
     // returns internal shader index which may be used as a reference, or UINT32_MAX on failure.
     uint32_t FindShaderProgram(const String &name) override;
@@ -395,6 +397,7 @@ private:
     // FIXME: move to the most modern compile target supported by Direct3D.
     const char *DefaultShaderCompileTarget = "ps_2_0"; // "ps_4_0_level_9_3"
     const UINT  DefaultShaderCompileFlags  = D3DCOMPILE_OPTIMIZATION_LEVEL3;
+    const char *DefaultShaderEntryPoint    = "main";
 #endif
     // Shader program and its variable references;
     // the variables are rather specific for AGS use (sprite tinting).
@@ -422,12 +425,12 @@ private:
     bool CreateShaderProgramFromResource(ShaderProgram &prg, const String &name, const char *resource_name);
     // Deletes a shader program
     void DeleteShaderProgram(ShaderProgram &prg);
-    void AssignBaseShaderArgs(ShaderProgram &prg);
+    void AssignBaseShaderArgs(ShaderProgram &prg, const ShaderDefinition *def);
     void UpdateGlobalShaderArgValues();
 #if (DIRECT3D_USE_D3DCOMPILER)
     void OutputShaderLog(ComPtr<ID3DBlob> &out_errors, const String &shader_name, bool as_error);
 #endif
-    uint32_t AddShaderToCollection(ShaderProgram &prg, const String &name);
+    uint32_t AddShaderToCollection(ShaderProgram &prg, const String &name, const ShaderDefinition *def);
 
     //
     // Specialized shaders

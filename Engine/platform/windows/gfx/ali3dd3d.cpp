@@ -11,7 +11,6 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-
 #include "core/platform.h"
 
 #if AGS_HAS_DIRECT3D
@@ -924,6 +923,41 @@ void D3DGraphicsDriver::UpdateGlobalShaderArgValues()
         direct3ddevice->SetPixelShaderConstantF(sh.GameFrame, &vf[0], 1);
     }
     direct3ddevice->SetPixelShader(NULL);
+}
+
+#if (DIRECT3D_USE_D3DCOMPILER)
+void D3DGraphicsDriver::OutputShaderLog(ComPtr<ID3DBlob> &out_errors, const String &shader_name, bool as_error)
+{
+    assert(out_errors);
+    if (!out_errors)
+        return;
+
+    const MessageType mt = as_error ? kDbgMsg_Error : kDbgMsg_Debug;
+    if (as_error)
+        Debug::Printf(mt, "ERROR: Direct3D: shader \"%s\" %s:", shader_name.GetCStr(), "compilation");
+    else
+        Debug::Printf(mt, "Direct3D: shader \"%s\" %s:", shader_name.GetCStr(), "compilation");
+
+    if (out_errors->GetBufferSize() > 0)
+    {
+        Debug::Printf(mt, "----------------------------------------");
+        Debug::Printf(mt, "%s", static_cast<const char*>(out_errors->GetBufferPointer()));
+        Debug::Printf(mt, "----------------------------------------");
+    }
+    else
+    {
+        Debug::Printf(mt, "Shader output log was empty.");
+    }
+}
+#endif
+
+uint32_t D3DGraphicsDriver::AddShaderToCollection(ShaderProgram &prg, const String &name)
+{
+    AssignBaseShaderArgs(prg);
+    _shaders.push_back(prg);
+    uint32_t shader_id = static_cast<uint32_t>(_shaders.size() - 1);
+    _shaderLookup[name] = shader_id;
+    return shader_id;
 }
 
 bool D3DGraphicsDriver::SetNativeResolution(const GraphicResolution &native_res)
@@ -2182,11 +2216,29 @@ Texture *D3DGraphicsDriver::CreateTexture(int width, int height, int color_depth
 
 uint32_t D3DGraphicsDriver::CreateShaderProgram(const String &name, const char *fragment_shader_src)
 {
+#if (DIRECT3D_USE_D3DCOMPILER)
     if (_shaderLookup.find(name) != _shaderLookup.end())
         return UINT32_MAX; // the name is in use
 
-    // Compiling from source is not supported by Direct3D driver yet
+    ComPtr<ID3DBlob> out_data, out_errors;
+    HRESULT hr = D3DCompile(fragment_shader_src, strlen(fragment_shader_src) + 1, name.GetCStr(),
+                            nullptr /* no defines */, nullptr /* no includes */, "main" /* entrypoint */,
+                            DefaultShaderCompileTarget, DefaultShaderCompileFlags, 0 /* no effect flags */,
+                            out_data.Acquire(), out_errors.Acquire());
+
+    if (out_errors)
+        OutputShaderLog(out_errors, name, hr != D3D_OK);
+    if (hr != D3D_OK)
+        return UINT32_MAX;
+
+    ShaderProgram prg;
+    if (!CreateShaderProgram(prg, name, static_cast<const uint8_t*>(out_data->GetBufferPointer())))
+        return UINT32_MAX;
+
+    return AddShaderToCollection(prg, name);
+#else // !DIRECT3D_USE_D3DCOMPILER
     return UINT32_MAX;
+#endif // DIRECT3D_USE_D3DCOMPILER
 }
 
 uint32_t D3DGraphicsDriver::CreateShaderProgram(const String &name, const std::vector<uint8_t> &compiled_data)
@@ -2198,11 +2250,7 @@ uint32_t D3DGraphicsDriver::CreateShaderProgram(const String &name, const std::v
     if (!CreateShaderProgram(prg, name, compiled_data.data()))
         return UINT32_MAX;
 
-    AssignBaseShaderArgs(prg);
-    _shaders.push_back(prg);
-    uint32_t shader_id = static_cast<uint32_t>(_shaders.size() - 1);
-    _shaderLookup[name] = shader_id;
-    return shader_id;
+    return AddShaderToCollection(prg, name);
 }
 
 uint32_t D3DGraphicsDriver::FindShaderProgram(const String &name)

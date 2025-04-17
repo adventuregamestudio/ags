@@ -132,6 +132,8 @@ target_sources(common
     util/android_file.cpp
     util/android_file.h
     util/bbop.h
+    util/bufferedstream.cpp
+    util/bufferedstream.h
     util/cmdlineopts.cpp
     util/cmdlineopts.h
     util/compress.cpp
@@ -166,6 +168,8 @@ target_sources(common
     util/path.h
     util/resourcecache.h
     util/scaling.h
+    util/sdl2_util.h
+    util/sdl2_util.cpp
     util/smart_ptr.h
     util/stdio_compat.c
     util/stdio_compat.h
@@ -174,6 +178,8 @@ target_sources(common
     util/stream.h
     util/string.cpp
     util/string.h
+    util/string_compat.c
+    util/string_compat.h
     util/string_types.h
     util/string_utils.cpp
     util/string_utils.h
@@ -189,11 +195,6 @@ target_sources(common
     util/version.h
     util/wgt2allg.cpp
     util/wgt2allg.h
-    util/bufferedstream.cpp
-    util/bufferedstream.h
-    util/string_compat.c
-    util/string_compat.h
-    util/matrix.h
 
     platform/platform.h
     platform/types.h
@@ -203,7 +204,7 @@ target_sources(common
 target_link_libraries(common PUBLIC
         ${SDL2_LIBRARY}
         Allegro::Allegro
-        AlFont::AlFont
+        SDL_ttf::SDL_ttf
         AAStr::AAStr
         glm::glm
         stb::stb

@@ -11,7 +11,7 @@ if(NOT sdlsound_content)
   set(SDLSOUND_BUILD_SHARED off CACHE BOOL "no shared")
   set(SDLSOUND_BUILD_TEST off CACHE BOOL "no tests")
   set(SDLSOUND_BUILD_STATIC on CACHE BOOL "static")
-  set(SDLSOUND_BUILD_DOCS off CACHE BOOOL "Build documentation")
+  set(SDLSOUND_BUILD_DOCS off CACHE BOOL "Build documentation")
 
   # see why we need to manually enable here: https://github.com/icculus/SDL_sound/issues/19#issuecomment-1079263491
   set(SDLSOUND_DECODER_MIDI on CACHE BOOL "")

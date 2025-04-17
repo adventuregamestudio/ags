@@ -21,13 +21,33 @@
 #include "gfx/graphicsdriver.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
+#include "util/ini_util.h"
+#include "util/string_utils.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
 extern IGraphicsDriver *gfxDriver;
 
-int TryCreateShaderPrecompiled(const String &filename)
+void LoadShaderDefinition(const String &filename, ShaderDefinition &def)
+{
+    auto stream = ResolveScriptPathAndOpen(filename, kFile_Open, kStream_Read);
+    if (!stream)
+        return;
+
+    ConfigTree tree;
+    IniUtil::Read(std::move(stream), tree);
+    def.CompileTarget = CfgReadString(tree, "compiler", "target");
+    def.EntryPoint = CfgReadString(tree, "compiler", "entry");
+    if (tree.count("constants") > 0)
+    {
+        const auto &constant_map = tree.at("constants");
+        for (const auto &c : constant_map)
+            def.Constants[c.first] = StrUtil::StringToInt(c.second);
+    }
+}
+
+int TryCreateShaderPrecompiled(const String &filename, const String &def_filename)
 {
     auto stream = ResolveScriptPathAndOpen(filename, kFile_Open, kStream_Read);
     if (!stream)
@@ -38,13 +58,17 @@ int TryCreateShaderPrecompiled(const String &filename)
     if (data.size() == 0)
         return 0;
 
-    uint32_t shader_id = gfxDriver->CreateShaderProgram(filename, data);
+    ShaderDefinition def;
+    if (!def_filename.IsEmpty())
+        LoadShaderDefinition(def_filename, def);
+
+    uint32_t shader_id = gfxDriver->CreateShaderProgram(filename, data, &def);
     if (shader_id > INT32_MAX)
         return 0; // cast to an invalid shader id
     return static_cast<int>(shader_id);
 }
 
-int TryCreateShaderFromSource(const String &filename)
+int TryCreateShaderFromSource(const String &filename, const String &def_filename)
 {
     auto stream = ResolveScriptPathAndOpen(filename, kFile_Open, kStream_Read);
     if (!stream)
@@ -54,7 +78,11 @@ int TryCreateShaderFromSource(const String &filename)
     if (shader_src.IsEmpty())
         return 0u;
 
-    uint32_t shader_id = gfxDriver->CreateShaderProgram(filename, shader_src.GetCStr());
+    ShaderDefinition def;
+    if (!def_filename.IsEmpty())
+        LoadShaderDefinition(def_filename, def);
+
+    uint32_t shader_id = gfxDriver->CreateShaderProgram(filename, shader_src.GetCStr(), &def);
     if (shader_id > INT32_MAX)
         return 0; // cast to an invalid shader id
     return static_cast<int>(shader_id);
@@ -70,25 +98,27 @@ ScriptShaderProgram *ShaderProgram_CreateFromFile(const char *filename)
         return shader_prg;
     }
 
-    String precompiled_ext = gfxDriver->GetShaderPrecompiledExtension();
-    String source_ext = gfxDriver->GetShaderSourceExtension();
+    const String precompiled_ext = gfxDriver->GetShaderPrecompiledExtension();
+    const String source_ext = gfxDriver->GetShaderSourceExtension();
+    const String definition_ext = gfxDriver->GetShaderDefinitionExtension();
 
     int shader_id = 0;
-    String file_ext = Path::GetFileExtension(filename);
+    const String file_ext = Path::GetFileExtension(filename);
+    const String def_filename = Path::ReplaceExtension(filename, definition_ext);
     if (file_ext == precompiled_ext)
     {
-        shader_id = TryCreateShaderPrecompiled(filename);
+        shader_id = TryCreateShaderPrecompiled(filename, def_filename);
     }
     else if (file_ext == source_ext)
     {
-        shader_id = TryCreateShaderFromSource(filename);
+        shader_id = TryCreateShaderFromSource(filename, def_filename);
     }
     else
     {
         if (!precompiled_ext.IsEmpty())
-            shader_id = TryCreateShaderPrecompiled(Path::ReplaceExtension(filename, precompiled_ext));
+            shader_id = TryCreateShaderPrecompiled(Path::ReplaceExtension(filename, precompiled_ext), def_filename);
         if (shader_id == 0u && !source_ext.IsEmpty())
-            shader_id = TryCreateShaderFromSource(Path::ReplaceExtension(filename, source_ext));
+            shader_id = TryCreateShaderFromSource(Path::ReplaceExtension(filename, source_ext), def_filename);
     }
 
     ScriptShaderProgram *shader_prg = new ScriptShaderProgram(filename, shader_id);

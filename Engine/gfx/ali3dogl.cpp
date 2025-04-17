@@ -2182,7 +2182,7 @@ Texture *OGLGraphicsDriver::CreateTexture(int width, int height, int color_depth
   return txdata;
 }
 
-uint32_t OGLGraphicsDriver::CreateShaderProgram(const String &name, const char *fragment_shader_src)
+uint32_t OGLGraphicsDriver::CreateShaderProgram(const String &name, const char *fragment_shader_src, const ShaderDefinition* /*def*/)
 {
     if (_shaderLookup.find(name) != _shaderLookup.end())
         return UINT32_MAX; // the name is in use
@@ -2198,7 +2198,7 @@ uint32_t OGLGraphicsDriver::CreateShaderProgram(const String &name, const char *
     return shader_id;
 }
 
-uint32_t OGLGraphicsDriver::CreateShaderProgram(const String &name, const std::vector<uint8_t> &compiled_data)
+uint32_t OGLGraphicsDriver::CreateShaderProgram(const String &name, const std::vector<uint8_t> &compiled_data, const ShaderDefinition* /*def*/)
 {
     if (_shaderLookup.find(name) != _shaderLookup.end())
         return UINT32_MAX; // the name is in use

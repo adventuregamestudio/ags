@@ -416,8 +416,6 @@ bool OGLGraphicsDriver::CreateShaders()
     shaders_created &= CreateLightShader(_lightShader, _transparencyShader);
     shaders_created &= CreateDarkenByAlphaShader(_darkenbyAlphaShader, _transparencyShader);
     shaders_created &= CreateLightenByAlphaShader(_lightenByAlphaShader, _transparencyShader);
-    // Reserve custom shader index 0 as "no shader"
-    _shaders.push_back({});
     return shaders_created;
 }
 
@@ -1118,7 +1116,7 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
   light_lev = bmpToDraw->GetLightLevel();
   const bool do_tint = tint_sat > 0 && _tintShader.Program > 0;
   const bool do_light = tint_sat == 0 && light_lev > 0 && _lightShader.Program > 0;
-  if (bmpToDraw->GetShader() != 0u && bmpToDraw->GetShader() < _shaders.size())
+  if (bmpToDraw->GetShader() < _shaders.size())
   {
     // Use custom shader
     program = &_shaders[bmpToDraw->GetShader()];

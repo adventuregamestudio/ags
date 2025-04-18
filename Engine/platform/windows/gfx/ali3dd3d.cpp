@@ -830,8 +830,6 @@ bool D3DGraphicsDriver::CreateShaders()
 
     bool shaders_created = true;
     shaders_created &= CreateTintShader(_tintShader, _dummyShader);
-    // Reserve custom shader index 0 as "no shader"
-    _shaders.push_back({});
     return shaders_created;
 }
 
@@ -1234,7 +1232,7 @@ void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw
   light_lev = bmpToDraw->GetLightLevel();
   const bool do_tint = tint_sat > 0 && _tintShader.ShaderPtr;
 
-  if (bmpToDraw->GetShader() != 0u && bmpToDraw->GetShader() < _shaders.size())
+  if (bmpToDraw->GetShader() < _shaders.size())
   {
     // Use custom shader
     const ShaderProgram *program = program = &_shaders[bmpToDraw->GetShader()];

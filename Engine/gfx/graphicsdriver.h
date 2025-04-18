@@ -253,6 +253,17 @@ public:
     virtual uint32_t FindShaderProgram(const String &name) = 0;
     // Deletes particular shader program.
     virtual void DeleteShaderProgram(const String &name) = 0;
+    //
+    // TODO: create a separate Shader interface for handling following per-shader operations.
+    // 
+    // Looks up for the constant in a shader. Returns a valid index if such shader is registered,
+    // and constant is present in that shader, or UINT32_MAX on failure.
+    virtual uint32_t GetShaderConstant(uint32_t shader_index, const String &const_name) = 0;
+    // Sets shader constant, using constant's index (returned by GetShaderConstant)
+    virtual void SetShaderConstantF(uint32_t shader_index, uint32_t const_index, float value) = 0;
+    virtual void SetShaderConstantF2(uint32_t shader_index, uint32_t const_index, float x, float y) = 0;
+    virtual void SetShaderConstantF3(uint32_t shader_index, uint32_t const_index, float x, float y, float z) = 0;
+    virtual void SetShaderConstantF4(uint32_t shader_index, uint32_t const_index, float x, float y, float z, float w) = 0;
 
     ///////////////////////////////////////////////////////
     // Preparing a scene

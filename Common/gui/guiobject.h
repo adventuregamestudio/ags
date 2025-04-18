@@ -129,7 +129,7 @@ protected:
     int32_t  _height;
     int32_t  _transparency; // "incorrect" alpha (in legacy 255-range units)
     BlendMode _blendMode = kBlend_Normal;
-    int      _shaderID = 0;
+    int      _shaderID = -1;
     bool     _hasChanged;
 
     // TODO: explicit event names & handlers for every event

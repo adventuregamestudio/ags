@@ -3318,6 +3318,11 @@ builtin managed struct ShaderProgram {
   import static ShaderProgram* CreateFromFile(const string filename);
   ///
   import readonly attribute int ShaderID;
+  ///
+  import void SetConstantF(const string name, float value);
+  import void SetConstantF2(const string name, float x, float y);
+  import void SetConstantF3(const string name, float x, float y, float z);
+  import void SetConstantF4(const string name, float x, float y, float z, float w);
 };
 #endif // SCRIPT_API_v400
 

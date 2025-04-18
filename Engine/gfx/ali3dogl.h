@@ -286,6 +286,14 @@ public:
     uint32_t FindShaderProgram(const String &name) override;
     // Deletes particular shader program.
     void DeleteShaderProgram(const String &name) override;
+    // Looks up for the constant in a shader. Returns a valid index if such shader is registered,
+    // and constant is present in that shader, or UINT32_MAX on failure.
+    uint32_t GetShaderConstant(uint32_t shader_index, const String &const_name) override;
+    // Sets shader constant, using constant's index (returned by GetShaderConstant)
+    void SetShaderConstantF(uint32_t shader_index, uint32_t const_index, float value) override;
+    void SetShaderConstantF2(uint32_t shader_index, uint32_t const_index, float x, float y) override;
+    void SetShaderConstantF3(uint32_t shader_index, uint32_t const_index, float x, float y, float z) override;
+    void SetShaderConstantF4(uint32_t shader_index, uint32_t const_index, float x, float y, float z, float w) override;
 
     ///////////////////////////////////////////////////////
     // Preparing a scene
@@ -398,6 +406,10 @@ private:
         GLuint TintAmount = 0;
         GLuint TintLuminance = 0;
         GLuint LightingAmount = 0;
+
+        // Constants table: maps constant name to the index/register
+        // in the compiled shader
+        std::unordered_map<String, uint32_t> Constants;
     };
 
     // Compiles and links shader program, using provided vertex and fragment shaders

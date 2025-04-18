@@ -855,6 +855,7 @@ bool D3DGraphicsDriver::CreateShaderProgram(ShaderProgram &prg, const String &na
         return false;
     }
 
+    prg.Name = name;
     prg.ShaderPtr = shader_ptr;
     Debug::Printf("Direct3D: \"%s\" shader program created successfully", name.GetCStr());
     return true;
@@ -913,37 +914,49 @@ const TValue &GetValueOrDef(const TMap<TKey, TValue, THash, TEqualTo, TAllocator
 
 void D3DGraphicsDriver::AssignBaseShaderArgs(ShaderProgram &prg, const ShaderDefinition *def)
 {
-    if (!def || def->Constants.size() == 0)
+    const uint32_t reg_sz = ShaderProgram::RegisterSize;
+    if (def && !def->Constants.empty())
+    {
+        prg.Time = GetValueOrDef(def->Constants, String::Wrapper("iTime"), ShaderProgram::NullRegisterIndex);
+        prg.GameFrame = GetValueOrDef(def->Constants, String::Wrapper("iGameFrame"), ShaderProgram::NullRegisterIndex);
+        prg.TextureDim = GetValueOrDef(def->Constants, String::Wrapper("iTextureDim"), ShaderProgram::NullRegisterIndex);
+        prg.Alpha = GetValueOrDef(def->Constants, String::Wrapper("iAlpha"), ShaderProgram::NullRegisterIndex);
+    }
+    else
     {
         // Default to hardcoded values
         prg.Time = 0u;
         prg.GameFrame = 1u;
         prg.TextureDim = 2u;
         prg.Alpha = 3u;
-        return;
     }
 
-    prg.Time        = GetValueOrDef(def->Constants, String::Wrapper("iTime"), UINT_MAX);
-    prg.GameFrame   = GetValueOrDef(def->Constants, String::Wrapper("iGameFrame"), UINT_MAX);
-    prg.TextureDim  = GetValueOrDef(def->Constants, String::Wrapper("iTextureDim"), UINT_MAX);
-    prg.Alpha       = GetValueOrDef(def->Constants, String::Wrapper("iAlpha"), UINT_MAX);
+    // Setup buffer offsets for built-in vars
+    prg.TimeOff         = prg.Time * reg_sz;
+    prg.GameFrameOff    = prg.GameFrame * reg_sz;
+    prg.TextureDimOff   = prg.TextureDim * reg_sz;
+    prg.AlphaOff        = prg.Alpha * reg_sz;
+
+    // Copy constants table
+    if (def)
+    {
+        prg.Constants = def->Constants;
+        // Allocate a buffer big enough to contain all constants;
+        // cap the register amount for safety
+        for (auto &cc : prg.Constants)
+        {
+            if (cc.second > ShaderProgram::RegisterCap)
+                cc.second = ShaderProgram::NullRegisterIndex;
+        }
+    }
+
+    prg.ConstantData.resize((ShaderProgram::NullRegisterIndex + 1) * reg_sz);
 }
 
 void D3DGraphicsDriver::UpdateGlobalShaderArgValues()
 {
-    float vf[4]{};
-    for (auto &sh : _shaders)
-    {
-        if (!sh.ShaderPtr)
-            continue;
-
-        direct3ddevice->SetPixelShader(sh.ShaderPtr.get());
-        vf[0] = _globalShaderConst.Time;
-        direct3ddevice->SetPixelShaderConstantF(sh.Time, &vf[0], 1);
-        vf[0] = _globalShaderConst.GameFrame;
-        direct3ddevice->SetPixelShaderConstantF(sh.GameFrame, &vf[0], 1);
-    }
-    direct3ddevice->SetPixelShader(NULL);
+    // Direct3D shaders do not have a exclusive "memory".
+    // Their constants have to be set each time they are used.
 }
 
 #if (DIRECT3D_USE_D3DCOMPILER)
@@ -979,6 +992,51 @@ uint32_t D3DGraphicsDriver::AddShaderToCollection(ShaderProgram &prg, const Stri
     uint32_t shader_id = static_cast<uint32_t>(_shaders.size() - 1);
     _shaderLookup[name] = shader_id;
     return shader_id;
+}
+
+uint32_t D3DGraphicsDriver::GetShaderConstant(uint32_t shader_index, const String &const_name)
+{
+    if (shader_index >= _shaders.size())
+        return UINT32_MAX;
+
+    const auto &sh = _shaders[shader_index];
+    auto it_found = sh.Constants.find(const_name);
+    if (it_found == sh.Constants.end())
+        return UINT32_MAX;
+
+    return it_found->second;
+}
+
+void D3DGraphicsDriver::SetShaderConstantF(uint32_t shader_index, uint32_t const_index, float value)
+{
+    SetShaderConstantF4(shader_index, const_index, value, 0.f, 0.f, 0.f);
+}
+
+void D3DGraphicsDriver::SetShaderConstantF2(uint32_t shader_index, uint32_t const_index, float x, float y)
+{
+    SetShaderConstantF4(shader_index, const_index, x, y, 0.f, 0.f);
+}
+
+void D3DGraphicsDriver::SetShaderConstantF3(uint32_t shader_index, uint32_t const_index, float x, float y, float z)
+{
+    SetShaderConstantF4(shader_index, const_index, x, y, z, 0.f);
+}
+
+void D3DGraphicsDriver::SetShaderConstantF4(uint32_t shader_index, uint32_t const_index, float x, float y, float z, float w)
+{
+    if (shader_index >= _shaders.size())
+        return;
+
+    // Cap the constant index for safety
+    if (const_index >= ShaderProgram::RegisterCap)
+        return;
+
+    auto &sh = _shaders[shader_index];
+    const uint32_t reg_off = const_index * ShaderProgram::RegisterSize;
+    sh.ConstantData[reg_off + 0] = x;
+    sh.ConstantData[reg_off + 1] = y;
+    sh.ConstantData[reg_off + 2] = z;
+    sh.ConstantData[reg_off + 3] = w;
 }
 
 bool D3DGraphicsDriver::SetNativeResolution(const GraphicResolution &native_res)
@@ -1235,25 +1293,18 @@ void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw
   if (bmpToDraw->GetShader() < _shaders.size())
   {
     // Use custom shader
-    const ShaderProgram *program = program = &_shaders[bmpToDraw->GetShader()];
-    float vector[4]{};
+    ShaderProgram *program = program = &_shaders[bmpToDraw->GetShader()];
     direct3ddevice->SetPixelShader(program->ShaderPtr.get());
 
-    // FIXME: find out why we cannot set these constants once per render start, like in OpenGL;
-    // they seem to get reset to defaults every time a shader is selected (??)
-    /**/
-    vector[0] = _globalShaderConst.Time;
-    direct3ddevice->SetPixelShaderConstantF(program->Time, &vector[0], 1);
-    vector[0] = _globalShaderConst.GameFrame;
-    direct3ddevice->SetPixelShaderConstantF(program->GameFrame, &vector[0], 1);
-    /**/
-    //
+    float *data = program->ConstantData.data();
+    data[program->TimeOff] = _globalShaderConst.Time;
+    data[program->GameFrameOff] = static_cast<float>(_globalShaderConst.GameFrame);
+    data[program->TextureDimOff + 0] = static_cast<float>(bmpToDraw->GetWidth());
+    data[program->TextureDimOff + 1] = static_cast<float>(bmpToDraw->GetHeight());
+    data[program->AlphaOff] = alpha / 255.0f;
 
-    vector[0] = bmpToDraw->GetWidth();
-    vector[1] = bmpToDraw->GetHeight();
-    direct3ddevice->SetPixelShaderConstantF(program->TextureDim, &vector[0], 1);
-    vector[0] = alpha / 255.0f;
-    direct3ddevice->SetPixelShaderConstantF(program->Alpha, &vector[0], 1);
+    // NOTE: the custom data should already be inside ConstantData buffer
+    direct3ddevice->SetPixelShaderConstantF(0u, data, program->ConstantData.size() / ShaderProgram::RegisterSize);
   }
   else if (do_tint)
   {

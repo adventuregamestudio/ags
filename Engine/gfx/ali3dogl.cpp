@@ -725,6 +725,7 @@ bool OGLGraphicsDriver::CreateShaderProgram(ShaderProgram &prg, const String &na
     glDeleteShader(fragment_shader);
 
     prg.Program = program;
+    prg.Name = name;
     Debug::Printf("OpenGL: \"%s\" shader program created successfully", name.GetCStr());
     return true;
 }
@@ -2222,6 +2223,60 @@ void OGLGraphicsDriver::DeleteShaderProgram(const String &name)
     DeleteShaderProgram(_shaders[shader_id]);
     _shaders[shader_id] = {};
     _shaderLookup.erase(name);
+}
+
+uint32_t OGLGraphicsDriver::GetShaderConstant(uint32_t shader_index, const String &const_name)
+{
+    if (shader_index >= _shaders.size())
+        return UINT32_MAX;
+
+    auto &sh = _shaders[shader_index];
+    auto it_found = sh.Constants.find(const_name);
+    if (it_found != sh.Constants.end())
+        return it_found->second;
+
+    GLint index = glGetUniformLocation(sh.Program, const_name.GetCStr());
+    if (index < 0)
+        return UINT32_MAX;
+
+    sh.Constants[const_name] = index;
+    return index;
+}
+
+void OGLGraphicsDriver::SetShaderConstantF(uint32_t shader_index, uint32_t const_index, float value)
+{
+    if (shader_index >= _shaders.size())
+        return;
+
+    glUseProgram(_shaders[shader_index].Program);
+    glUniform1f(const_index, value);
+}
+
+void OGLGraphicsDriver::SetShaderConstantF2(uint32_t shader_index, uint32_t const_index, float x, float y)
+{
+    if (shader_index >= _shaders.size())
+        return;
+
+    glUseProgram(_shaders[shader_index].Program);
+    glUniform2f(const_index, x, y);
+}
+
+void OGLGraphicsDriver::SetShaderConstantF3(uint32_t shader_index, uint32_t const_index, float x, float y, float z)
+{
+    if (shader_index >= _shaders.size())
+        return;
+
+    glUseProgram(_shaders[shader_index].Program);
+    glUniform3f(const_index, x, y, z);
+}
+
+void OGLGraphicsDriver::SetShaderConstantF4(uint32_t shader_index, uint32_t const_index, float x, float y, float z, float w)
+{
+    if (shader_index >= _shaders.size())
+        return;
+
+    glUseProgram(_shaders[shader_index].Program);
+    glUniform4f(const_index, x, y, z, w);
 }
 
 void OGLGraphicsDriver::SetScreenFade(int red, int green, int blue)

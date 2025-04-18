@@ -302,6 +302,14 @@ public:
     uint32_t FindShaderProgram(const String &name) override;
     // Deletes particular shader program.
     void DeleteShaderProgram(const String &name) override;
+    // Looks up for the constant in a shader. Returns a valid index if such shader is registered,
+    // and constant is present in that shader, or UINT32_MAX on failure.
+    uint32_t GetShaderConstant(uint32_t shader_index, const String &const_name) override;
+    // Sets shader constant, using constant's index (returned by GetShaderConstant)
+    void SetShaderConstantF(uint32_t shader_index, uint32_t const_index, float value) override;
+    void SetShaderConstantF2(uint32_t shader_index, uint32_t const_index, float x, float y) override;
+    void SetShaderConstantF3(uint32_t shader_index, uint32_t const_index, float x, float y, float z) override;
+    void SetShaderConstantF4(uint32_t shader_index, uint32_t const_index, float x, float y, float z, float w) override;
 
     ///////////////////////////////////////////////////////
     // Preparing a scene
@@ -408,15 +416,36 @@ private:
         D3DPixelShaderPtr ShaderPtr;
         //---------------------------------------
         // Fragment shader:
-        // Standard uniforms
+        // Standard constants register number
         UINT Time = 0u;         // real time
         UINT GameFrame = 0u;    // game frame
         UINT TextureDim = 0u;   // texture 0 dimensions
         UINT Alpha = 0u;        // requested global alpha
 
-        // Specialized uniforms for built-in shaders
-        UINT TintHSV = 0u; // float4
+        // Specialized constants for built-in shaders
+        UINT TintHSV = 0u;      // float4
         UINT TintAlphaLight = 0u; // float4
+
+        // Built-in constants actual offsets in bytes (see ConstantData)
+        uint32_t TimeOff = 0u;
+        uint32_t GameFrameOff = 0u;
+        uint32_t TextureDimOff = 0u;
+        uint32_t AlphaOff = 0u;
+        // TODO: do the same for TintHSV, TintAlphaLight
+
+        // Constants table: maps constant name to the index/register
+        // in the compiled shader
+        std::unordered_map<String, uint32_t> Constants;
+
+        // A single constant register size *in floats*
+        static const uint32_t RegisterSize      = 4u;
+        // A cap of the number of constant registers that we support (0..N)
+        static const uint32_t RegisterCap       = 12u;
+        // A place in buffer where we will write non-applied values;
+        // this is just to streamline the process and don't litter the code with checks
+        static const uint32_t NullRegisterIndex = RegisterCap;
+        // Constant buffer data, applied each time a shader is used in render
+        std::vector<float> ConstantData;
     };
 
     // Creates shader program using provided compiled data

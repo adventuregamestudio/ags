@@ -21,6 +21,8 @@ struct ScriptShaderProgram final : CCBasicObject
 {
     using String = AGS::Common::String;
 public:
+    const static int InvalidShader = -1;
+
     ScriptShaderProgram(const String &name, int shader_id);
 
     const String &GetName() const { return _name; }

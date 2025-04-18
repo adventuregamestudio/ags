@@ -295,7 +295,7 @@ protected:
     float _rotation = 0.f; // either in degrees or radians, depending on impl
     int _alpha = 255;
     Common::BlendMode _blendMode = Common::kBlend_Normal;
-    uint32_t _shader = 0u;
+    uint32_t _shader = UINT32_MAX;
     int _red = 0, _green = 0, _blue = 0;
     int _tintSaturation = 0;
     int _lightLevel = 0;

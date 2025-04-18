@@ -51,12 +51,12 @@ int TryCreateShaderPrecompiled(const String &filename, const String &def_filenam
 {
     auto stream = ResolveScriptPathAndOpen(filename, kFile_Open, kStream_Read);
     if (!stream)
-        return 0;
+        return ScriptShaderProgram::InvalidShader;
 
     std::vector<uint8_t> data(stream->GetLength());
     stream->Read(data.data(), data.size());
     if (data.size() == 0)
-        return 0;
+        return ScriptShaderProgram::InvalidShader;
 
     ShaderDefinition def;
     if (!def_filename.IsEmpty())
@@ -64,7 +64,7 @@ int TryCreateShaderPrecompiled(const String &filename, const String &def_filenam
 
     uint32_t shader_id = gfxDriver->CreateShaderProgram(filename, data, &def);
     if (shader_id > INT32_MAX)
-        return 0; // cast to an invalid shader id
+        return ScriptShaderProgram::InvalidShader; // cast to an invalid shader id
     return static_cast<int>(shader_id);
 }
 
@@ -72,11 +72,11 @@ int TryCreateShaderFromSource(const String &filename, const String &def_filename
 {
     auto stream = ResolveScriptPathAndOpen(filename, kFile_Open, kStream_Read);
     if (!stream)
-        return 0u;
+        return ScriptShaderProgram::InvalidShader;
 
     String shader_src = String::FromStream(stream.get());
     if (shader_src.IsEmpty())
-        return 0u;
+        return ScriptShaderProgram::InvalidShader;
 
     ShaderDefinition def;
     if (!def_filename.IsEmpty())
@@ -84,7 +84,7 @@ int TryCreateShaderFromSource(const String &filename, const String &def_filename
 
     uint32_t shader_id = gfxDriver->CreateShaderProgram(filename, shader_src.GetCStr(), &def);
     if (shader_id > INT32_MAX)
-        return 0; // cast to an invalid shader id
+        return ScriptShaderProgram::InvalidShader; // cast to an invalid shader id
     return static_cast<int>(shader_id);
 }
 
@@ -102,7 +102,7 @@ ScriptShaderProgram *ShaderProgram_CreateFromFile(const char *filename)
     const String source_ext = gfxDriver->GetShaderSourceExtension();
     const String definition_ext = gfxDriver->GetShaderDefinitionExtension();
 
-    int shader_id = 0;
+    int shader_id = ScriptShaderProgram::InvalidShader;
     const String file_ext = Path::GetFileExtension(filename);
     const String def_filename = Path::ReplaceExtension(filename, definition_ext);
     if (file_ext == precompiled_ext)
@@ -117,7 +117,7 @@ ScriptShaderProgram *ShaderProgram_CreateFromFile(const char *filename)
     {
         if (!precompiled_ext.IsEmpty())
             shader_id = TryCreateShaderPrecompiled(Path::ReplaceExtension(filename, precompiled_ext), def_filename);
-        if (shader_id == 0u && !source_ext.IsEmpty())
+        if (shader_id < 0 && !source_ext.IsEmpty())
             shader_id = TryCreateShaderFromSource(Path::ReplaceExtension(filename, source_ext), def_filename);
     }
 

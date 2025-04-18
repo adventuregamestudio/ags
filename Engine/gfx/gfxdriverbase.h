@@ -273,6 +273,8 @@ public:
     }
     Common::BlendMode GetBlendMode() const { return _blendMode; }
     void SetBlendMode(Common::BlendMode blendMode) override { _blendMode = blendMode; }
+    uint32_t GetShader() const override { return _shader; }
+    void SetShader(uint32_t shader_id) override { _shader = shader_id; }
 
     int  GetTextureFlags() const { return _txFlags; }
     const Size &GetSize() const { return _size; }
@@ -293,6 +295,7 @@ protected:
     float _rotation = 0.f; // either in degrees or radians, depending on impl
     int _alpha = 255;
     Common::BlendMode _blendMode = Common::kBlend_Normal;
+    uint32_t _shader = UINT32_MAX;
     int _red = 0, _green = 0, _blue = 0;
     int _tintSaturation = 0;
     int _lightLevel = 0;
@@ -371,6 +374,12 @@ public:
     bool UsesMemoryBackBuffer() override { return false; }
 
     ///////////////////////////////////////////////////////
+    // Miscelaneous setup
+    //
+    // Sets values for global shader constants
+    void SetGlobalShaderConstants(const GlobalShaderConstants &constants) override;
+
+    ///////////////////////////////////////////////////////
     // Texture management
     // 
     // Creates new DDB and copy bitmap contents over
@@ -432,6 +441,9 @@ protected:
     // Stage matrixes are used to let plugins with hardware acceleration know model matrix;
     // these matrixes are filled compatible with each given renderer
     RenderMatrixes _stageMatrixes;
+
+    // Global shader constants; these are applied to all shaders before each render pass.
+    GlobalShaderConstants _globalShaderConst;
 
     // Color component shifts in video bitmap format (set by implementations)
     int _vmem_a_shift_32;

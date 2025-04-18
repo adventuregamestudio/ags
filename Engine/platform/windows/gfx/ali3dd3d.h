@@ -24,11 +24,21 @@
 #error This file should only be included on the Windows build
 #endif
 
+#if defined (WIN_XP_COMPAT)
+#define DIRECT3D_USE_D3DCOMPILER (0)
+#else
+#define DIRECT3D_USE_D3DCOMPILER (1)
+#endif
+
 #define NOMINMAX
 #include <memory>
 #define NOMINMAX
 #define BITMAP WINDOWS_BITMAP
 #include <d3d9.h>
+#if (DIRECT3D_USE_D3DCOMPILER)
+#include <d3dcommon.h>
+#include <d3dcompiler.h>
+#endif
 #undef BITMAP
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
@@ -273,6 +283,35 @@ public:
     std::shared_ptr<Texture> GetTexture(IDriverDependantBitmap *ddb) override;
 
     ///////////////////////////////////////////////////////
+    // Shader management
+    //
+    // Returns the expected file extension for the precompiled shader
+    const char *GetShaderPrecompiledExtension() override { return "fxo"; }
+    // Returns the expected file extension for the shader source
+    const char *GetShaderSourceExtension() override { return "hlsl"; }
+    // Returns the expected file extension for the shader definition file
+    const char *GetShaderDefinitionExtension() override { return "d3ddef"; }
+    // Creates shader program from the source code, registers it under given name,
+    // returns internal shader index which may be used as a reference, or UINT32_MAX on failure.
+    uint32_t CreateShaderProgram(const String &name, const char *fragment_shader_src, const ShaderDefinition *def) override;
+    // Creates shader program from the compiled data, registers it under given name,
+    // returns internal shader index which may be used as a reference, or UINT32_MAX on failure.
+    uint32_t CreateShaderProgram(const String &name, const std::vector<uint8_t> &compiled_data, const ShaderDefinition *def) override;
+    // Looks up for the shader program using a name,
+    // returns internal shader index which may be used as a reference, or UINT32_MAX on failure.
+    uint32_t FindShaderProgram(const String &name) override;
+    // Deletes particular shader program.
+    void DeleteShaderProgram(const String &name) override;
+    // Looks up for the constant in a shader. Returns a valid index if such shader is registered,
+    // and constant is present in that shader, or UINT32_MAX on failure.
+    uint32_t GetShaderConstant(uint32_t shader_index, const String &const_name) override;
+    // Sets shader constant, using constant's index (returned by GetShaderConstant)
+    void SetShaderConstantF(uint32_t shader_index, uint32_t const_index, float value) override;
+    void SetShaderConstantF2(uint32_t shader_index, uint32_t const_index, float x, float y) override;
+    void SetShaderConstantF3(uint32_t shader_index, uint32_t const_index, float x, float y, float z) override;
+    void SetShaderConstantF4(uint32_t shader_index, uint32_t const_index, float x, float y, float z, float w) override;
+
+    ///////////////////////////////////////////////////////
     // Preparing a scene
     // 
     // Adds sprite to the active batch, providing it's origin position
@@ -336,6 +375,10 @@ private:
     void CreateVirtualScreen();
     void SetupViewport();
     void SetupDefaultVertices();
+    // Create shader programs for sprite tinting and changing light level
+    bool CreateShaders();
+    // Delete all shader programs
+    void DeleteShaders();
     // Resets
     void ResetDeviceIfNecessary();
     HRESULT ResetDeviceAndRestore();
@@ -353,6 +396,74 @@ private:
     void ReleaseRenderTargetData();
     // For tracked render targets, recreates the internal texture data
     void RecreateRenderTargets();
+
+    ///////////////////////////////////////////////////////
+    // Shader management: implementation
+    //
+#if (DIRECT3D_USE_D3DCOMPILER)
+    // TODO: should we let configure syntax level and optimization level, entrypoint name?
+    // FIXME: move to the most modern compile target supported by Direct3D.
+    const char *DefaultShaderCompileTarget = "ps_2_0"; // "ps_4_0_level_9_3"
+    const UINT  DefaultShaderCompileFlags  = D3DCOMPILE_OPTIMIZATION_LEVEL3;
+    const char *DefaultShaderEntryPoint    = "main";
+#endif
+    // Shader program and its variable references;
+    // the variables are rather specific for AGS use (sprite tinting).
+    struct ShaderProgram
+    {
+        String Name;
+
+        D3DPixelShaderPtr ShaderPtr;
+        //---------------------------------------
+        // Fragment shader:
+        // Standard constants register number
+        UINT Time = 0u;         // real time
+        UINT GameFrame = 0u;    // game frame
+        UINT TextureDim = 0u;   // texture 0 dimensions
+        UINT Alpha = 0u;        // requested global alpha
+
+        // Specialized constants for built-in shaders
+        UINT TintHSV = 0u;      // float4
+        UINT TintAlphaLight = 0u; // float4
+
+        // Built-in constants actual offsets in bytes (see ConstantData)
+        uint32_t TimeOff = 0u;
+        uint32_t GameFrameOff = 0u;
+        uint32_t TextureDimOff = 0u;
+        uint32_t AlphaOff = 0u;
+        // TODO: do the same for TintHSV, TintAlphaLight
+
+        // Constants table: maps constant name to the index/register
+        // in the compiled shader
+        std::unordered_map<String, uint32_t> Constants;
+
+        // A single constant register size *in floats*
+        static const uint32_t RegisterSize      = 4u;
+        // A cap of the number of constant registers that we support (0..N)
+        static const uint32_t RegisterCap       = 12u;
+        // A place in buffer where we will write non-applied values;
+        // this is just to streamline the process and don't litter the code with checks
+        static const uint32_t NullRegisterIndex = RegisterCap;
+        // Constant buffer data, applied each time a shader is used in render
+        std::vector<float> ConstantData;
+    };
+
+    // Creates shader program using provided compiled data
+    bool CreateShaderProgram(ShaderProgram &prg, const String &name, const uint8_t *data_ptr);
+    // Loads compiled shader data from resource and creates shader
+    bool CreateShaderProgramFromResource(ShaderProgram &prg, const String &name, const char *resource_name);
+    // Deletes a shader program
+    void DeleteShaderProgram(ShaderProgram &prg);
+    void AssignBaseShaderArgs(ShaderProgram &prg, const ShaderDefinition *def);
+    void UpdateGlobalShaderArgValues();
+#if (DIRECT3D_USE_D3DCOMPILER)
+    void OutputShaderLog(ComPtr<ID3DBlob> &out_errors, const String &shader_name, bool as_error);
+#endif
+    uint32_t AddShaderToCollection(ShaderProgram &prg, const String &name, const ShaderDefinition *def);
+
+    //
+    // Specialized shaders
+    bool CreateTintShader(ShaderProgram &prg, const ShaderProgram &fallback_prg);
 
     ///////////////////////////////////////////////////////
     // Preparing a scene: implementation
@@ -443,13 +554,18 @@ private:
     // Texture for rendering in native resolution
     D3DBitmap *_nativeSurface = nullptr;
     CUSTOMVERTEX defaultVertices[4];
-    String previousError;
-    D3DPixelShaderPtr pixelShader;
+    String previousError; // FIXME: find out why is this necessary, rewrite?
     int _fullscreenDisplay = -1; // a display where exclusive fullscreen was created
     bool _smoothScaling;
     float _pixelRenderXOffset;
     float _pixelRenderYOffset;
     bool _renderAtScreenRes;
+
+    ShaderProgram _dummyShader; // placeholder
+    ShaderProgram _tintShader;
+    // Custom shaders
+    std::vector<ShaderProgram> _shaders;
+    std::unordered_map<String, uint32_t> _shaderLookup;
 
     BackbufferState _screenBackbuffer;
     BackbufferState _nativeBackbuffer;

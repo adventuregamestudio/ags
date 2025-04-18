@@ -11,7 +11,6 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-
 #include "core/platform.h"
 
 #if AGS_HAS_DIRECT3D
@@ -298,59 +297,16 @@ void D3DGraphicsDriver::ReleaseDisplayMode()
 
 bool D3DGraphicsDriver::FirstTimeInit()
 {
-  HRESULT hr;
-
   direct3ddevice->GetCreationParameters(&direct3dcreateparams);
   direct3ddevice->GetDeviceCaps(&direct3ddevicecaps);
-
-  const int requiredPSMajorVersion = 2;
-  const int requiredPSMinorVersion = 0;
-
-  if (direct3ddevicecaps.PixelShaderVersion < D3DPS_VERSION(requiredPSMajorVersion, requiredPSMinorVersion))  
-  {
-    direct3ddevice = nullptr;
-    SDL_SetError("Graphics card does not support Pixel Shader %d.%d", requiredPSMajorVersion, requiredPSMinorVersion);
-    previousError = SDL_GetError();
-    return false;
-  }
 
   _capsVsync = (direct3ddevicecaps.PresentationIntervals & D3DPRESENT_INTERVAL_ONE) != 0;
   if (!_capsVsync)
     Debug::Printf(kDbgMsg_Warn, "WARNING: Vertical sync is not supported. Setting will be kept at driver default.");
 
-  // Load the pixel shader!!
-  HMODULE exeHandle = GetModuleHandle(NULL);
-  HRSRC hRes = FindResource(exeHandle, "PIXEL_SHADER", "DATA");
-  if (hRes)
-  {
-    HGLOBAL hGlobal = LoadResource(exeHandle, hRes);
-    if (hGlobal)
-    {
-      DWORD *dataPtr = (DWORD*)LockResource(hGlobal);
-      hr = direct3ddevice->CreatePixelShader(dataPtr, pixelShader.Acquire());
-      if (hr != D3D_OK)
-      {
-        direct3ddevice = nullptr;
-        SDL_SetError("Failed to create pixel shader: 0x%08X", hr);
-        previousError = SDL_GetError();
-        return false;
-      }
-      UnlockResource(hGlobal);
-    }
-  }
-  
-  if (pixelShader == nullptr)
-  {
-    direct3ddevice = nullptr;
-    SDL_SetError("Failed to load pixel shader resource");
-    previousError = SDL_GetError();
-    return false;
-  }
-
   if (direct3ddevice->CreateVertexBuffer(4*sizeof(CUSTOMVERTEX), D3DUSAGE_WRITEONLY,
           D3DFVF_CUSTOMVERTEX, D3DPOOL_MANAGED, vertexbuffer.Acquire(), NULL) != D3D_OK) 
   {
-    direct3ddevice = nullptr;
     SDL_SetError("Failed to create vertex buffer");
     previousError = SDL_GetError();
     return false;
@@ -380,6 +336,12 @@ bool D3DGraphicsDriver::FirstTimeInit()
     }
   }
   currentgammaramp = defaultgammaramp;
+
+  if (!CreateShaders())
+  {
+    // NOTE: we don't have an obligatory transparency shader in Direct3D, so all standard shaders are optional
+    Debug::Printf(kDbgMsg_Error, "ERROR: Direct3D: one or more standard shaders failed to compile, the game may run but have unexpected visuals.");
+  }
 
   return true;
 }
@@ -854,6 +816,229 @@ void D3DGraphicsDriver::RecreateRenderTargets()
     }
 }
 
+bool D3DGraphicsDriver::CreateShaders()
+{
+    const int requiredPSMajorVersion = 2;
+    const int requiredPSMinorVersion = 0;
+
+    if (direct3ddevicecaps.PixelShaderVersion < D3DPS_VERSION(requiredPSMajorVersion, requiredPSMinorVersion))
+    {
+        SDL_SetError("Graphics card does not support Pixel Shader %d.%d", requiredPSMajorVersion, requiredPSMinorVersion);
+        previousError = SDL_GetError();
+        return false;
+    }
+
+    bool shaders_created = true;
+    shaders_created &= CreateTintShader(_tintShader, _dummyShader);
+    return shaders_created;
+}
+
+void D3DGraphicsDriver::DeleteShaders()
+{
+    for (auto &prg : _shaders)
+    {
+        DeleteShaderProgram(prg);
+    }
+    _shaders.clear();
+    _shaderLookup.clear();
+
+    DeleteShaderProgram(_tintShader);
+}
+
+bool D3DGraphicsDriver::CreateShaderProgram(ShaderProgram &prg, const String &name, const uint8_t *data_ptr)
+{
+    D3DPixelShaderPtr shader_ptr;
+    HRESULT hr = direct3ddevice->CreatePixelShader(reinterpret_cast<const DWORD*>(data_ptr), shader_ptr.Acquire());
+    if (hr != D3D_OK)
+    {
+        Debug::Printf(kDbgMsg_Error, "ERROR: Direct3D: Failed to create pixel shader: 0x%08X", hr);
+        return false;
+    }
+
+    prg.Name = name;
+    prg.ShaderPtr = shader_ptr;
+    Debug::Printf("Direct3D: \"%s\" shader program created successfully", name.GetCStr());
+    return true;
+}
+
+bool D3DGraphicsDriver::CreateShaderProgramFromResource(ShaderProgram &prg, const String &name, const char *resource_name)
+{
+    HMODULE exeHandle = GetModuleHandle(NULL);
+    HRSRC hRes = FindResource(exeHandle, resource_name, "DATA");
+    if (hRes)
+    {
+        HGLOBAL hGlobal = LoadResource(exeHandle, hRes);
+        if (hGlobal)
+        {
+            const uint8_t *data_ptr = static_cast<const uint8_t*>(LockResource(hGlobal));
+            bool result = CreateShaderProgram(prg, name, data_ptr);
+            UnlockResource(hGlobal);
+            return result;
+        }
+    }
+    return false;
+}
+
+bool D3DGraphicsDriver::CreateTintShader(ShaderProgram &prg, const ShaderProgram &fallback_prg)
+{
+    if (!CreateShaderProgramFromResource(prg, "Tinting", "TINT_PIXEL_SHADER"))
+    {
+        prg = fallback_prg;
+        return false;
+    }
+    AssignBaseShaderArgs(prg, nullptr);
+    // FIXME: hardcode these for now, because we can't find constant location without utility lib
+    prg.TintHSV = 0u;
+    prg.TintAlphaLight = 1u;
+    return true;
+}
+
+void D3DGraphicsDriver::DeleteShaderProgram(ShaderProgram &prg)
+{
+    prg = {};
+}
+
+// TODO: write a (preferrably fully generic) wrapper class or a helper function
+// that lets read any map values and returns default value if key not present;
+// may be useful in multiple other places; move to Common/util.
+// Also it will help to let cast keys (e.g. from const char* to String)
+template <typename TKey, typename TValue, typename THash, typename TEqualTo, typename TAllocator,
+    template<class, class, class, class, class> class TMap>
+const TValue &GetValueOrDef(const TMap<TKey, TValue, THash, TEqualTo, TAllocator> &map, const TKey &key, const TValue &def_val)
+{
+    auto it_found = map.find(key);
+    if (it_found == map.end())
+        return def_val;
+    return it_found->second;
+}
+
+void D3DGraphicsDriver::AssignBaseShaderArgs(ShaderProgram &prg, const ShaderDefinition *def)
+{
+    const uint32_t reg_sz = ShaderProgram::RegisterSize;
+    if (def && !def->Constants.empty())
+    {
+        prg.Time = GetValueOrDef(def->Constants, String::Wrapper("iTime"), ShaderProgram::NullRegisterIndex);
+        prg.GameFrame = GetValueOrDef(def->Constants, String::Wrapper("iGameFrame"), ShaderProgram::NullRegisterIndex);
+        prg.TextureDim = GetValueOrDef(def->Constants, String::Wrapper("iTextureDim"), ShaderProgram::NullRegisterIndex);
+        prg.Alpha = GetValueOrDef(def->Constants, String::Wrapper("iAlpha"), ShaderProgram::NullRegisterIndex);
+    }
+    else
+    {
+        // Default to hardcoded values
+        prg.Time = 0u;
+        prg.GameFrame = 1u;
+        prg.TextureDim = 2u;
+        prg.Alpha = 3u;
+    }
+
+    // Setup buffer offsets for built-in vars
+    prg.TimeOff         = prg.Time * reg_sz;
+    prg.GameFrameOff    = prg.GameFrame * reg_sz;
+    prg.TextureDimOff   = prg.TextureDim * reg_sz;
+    prg.AlphaOff        = prg.Alpha * reg_sz;
+
+    // Copy constants table
+    if (def)
+    {
+        prg.Constants = def->Constants;
+        // Allocate a buffer big enough to contain all constants;
+        // cap the register amount for safety
+        for (auto &cc : prg.Constants)
+        {
+            if (cc.second > ShaderProgram::RegisterCap)
+                cc.second = ShaderProgram::NullRegisterIndex;
+        }
+    }
+
+    prg.ConstantData.resize((ShaderProgram::NullRegisterIndex + 1) * reg_sz);
+}
+
+void D3DGraphicsDriver::UpdateGlobalShaderArgValues()
+{
+    // Direct3D shaders do not have a exclusive "memory".
+    // Their constants have to be set each time they are used.
+}
+
+#if (DIRECT3D_USE_D3DCOMPILER)
+void D3DGraphicsDriver::OutputShaderLog(ComPtr<ID3DBlob> &out_errors, const String &shader_name, bool as_error)
+{
+    assert(out_errors);
+    if (!out_errors)
+        return;
+
+    const MessageType mt = as_error ? kDbgMsg_Error : kDbgMsg_Debug;
+    if (as_error)
+        Debug::Printf(mt, "ERROR: Direct3D: shader \"%s\" %s:", shader_name.GetCStr(), "compilation");
+    else
+        Debug::Printf(mt, "Direct3D: shader \"%s\" %s:", shader_name.GetCStr(), "compilation");
+
+    if (out_errors->GetBufferSize() > 0)
+    {
+        Debug::Printf(mt, "----------------------------------------");
+        Debug::Printf(mt, "%s", static_cast<const char*>(out_errors->GetBufferPointer()));
+        Debug::Printf(mt, "----------------------------------------");
+    }
+    else
+    {
+        Debug::Printf(mt, "Shader output log was empty.");
+    }
+}
+#endif
+
+uint32_t D3DGraphicsDriver::AddShaderToCollection(ShaderProgram &prg, const String &name, const ShaderDefinition *def)
+{
+    AssignBaseShaderArgs(prg, def);
+    _shaders.push_back(prg);
+    uint32_t shader_id = static_cast<uint32_t>(_shaders.size() - 1);
+    _shaderLookup[name] = shader_id;
+    return shader_id;
+}
+
+uint32_t D3DGraphicsDriver::GetShaderConstant(uint32_t shader_index, const String &const_name)
+{
+    if (shader_index >= _shaders.size())
+        return UINT32_MAX;
+
+    const auto &sh = _shaders[shader_index];
+    auto it_found = sh.Constants.find(const_name);
+    if (it_found == sh.Constants.end())
+        return UINT32_MAX;
+
+    return it_found->second;
+}
+
+void D3DGraphicsDriver::SetShaderConstantF(uint32_t shader_index, uint32_t const_index, float value)
+{
+    SetShaderConstantF4(shader_index, const_index, value, 0.f, 0.f, 0.f);
+}
+
+void D3DGraphicsDriver::SetShaderConstantF2(uint32_t shader_index, uint32_t const_index, float x, float y)
+{
+    SetShaderConstantF4(shader_index, const_index, x, y, 0.f, 0.f);
+}
+
+void D3DGraphicsDriver::SetShaderConstantF3(uint32_t shader_index, uint32_t const_index, float x, float y, float z)
+{
+    SetShaderConstantF4(shader_index, const_index, x, y, z, 0.f);
+}
+
+void D3DGraphicsDriver::SetShaderConstantF4(uint32_t shader_index, uint32_t const_index, float x, float y, float z, float w)
+{
+    if (shader_index >= _shaders.size())
+        return;
+
+    // Cap the constant index for safety
+    if (const_index >= ShaderProgram::RegisterCap)
+        return;
+
+    auto &sh = _shaders[shader_index];
+    const uint32_t reg_off = const_index * ShaderProgram::RegisterSize;
+    sh.ConstantData[reg_off + 0] = x;
+    sh.ConstantData[reg_off + 1] = y;
+    sh.ConstantData[reg_off + 2] = z;
+    sh.ConstantData[reg_off + 3] = w;
+}
+
 bool D3DGraphicsDriver::SetNativeResolution(const GraphicResolution &native_res)
 {
   OnSetNativeRes(native_res);
@@ -899,8 +1084,7 @@ void D3DGraphicsDriver::UnInit()
   }
   _nativeBackbuffer = BackbufferState();
 
-  vertexbuffer = nullptr;
-  pixelShader = nullptr;
+  vertexbuffer = nullptr; // FIXME??
   direct3ddevice = nullptr;
 
   sys_window_destroy();
@@ -1104,10 +1288,27 @@ void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw
   int tint_r, tint_g, tint_b, tint_sat, light_lev;
   bmpToDraw->GetTint(tint_r, tint_g, tint_b, tint_sat);
   light_lev = bmpToDraw->GetLightLevel();
+  const bool do_tint = tint_sat > 0 && _tintShader.ShaderPtr;
 
-  if (tint_sat > 0)
+  if (bmpToDraw->GetShader() < _shaders.size())
   {
-    // Use custom pixel shader
+    // Use custom shader
+    ShaderProgram *program = program = &_shaders[bmpToDraw->GetShader()];
+    direct3ddevice->SetPixelShader(program->ShaderPtr.get());
+
+    float *data = program->ConstantData.data();
+    data[program->TimeOff] = _globalShaderConst.Time;
+    data[program->GameFrameOff] = static_cast<float>(_globalShaderConst.GameFrame);
+    data[program->TextureDimOff + 0] = static_cast<float>(bmpToDraw->GetWidth());
+    data[program->TextureDimOff + 1] = static_cast<float>(bmpToDraw->GetHeight());
+    data[program->AlphaOff] = alpha / 255.0f;
+
+    // NOTE: the custom data should already be inside ConstantData buffer
+    direct3ddevice->SetPixelShaderConstantF(0u, data, program->ConstantData.size() / ShaderProgram::RegisterSize);
+  }
+  else if (do_tint)
+  {
+    // Use Tinting pixel shader
     float vector[8];
     rgb_to_hsv(tint_r, tint_g, tint_b, &vector[0], &vector[1], &vector[2]);
     vector[0] /= 360.0; // In HSV, Hue is 0-360
@@ -1120,12 +1321,13 @@ void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw
     else
       vector[5] = 1.0f;
 
-    direct3ddevice->SetPixelShaderConstantF(0, &vector[0], 2);
-    direct3ddevice->SetPixelShader(pixelShader.get());
+    direct3ddevice->SetPixelShader(_tintShader.ShaderPtr.get());
+    direct3ddevice->SetPixelShaderConstantF(_tintShader.TintHSV, &vector[0], 1);
+    direct3ddevice->SetPixelShaderConstantF(_tintShader.TintAlphaLight, &vector[4], 1);
   }
   else
   {
-    // Not using custom pixel shader; set up the default one
+    // Alpha transparency OR light effect
     direct3ddevice->SetPixelShader(NULL);
     int useTintRed = 255;
     int useTintGreen = 255;
@@ -1407,6 +1609,7 @@ void D3DGraphicsDriver::RenderToSurface(BackbufferState *state, bool clearDrawLi
         throw Ali3DException("IDirect3DDevice9::BeginScene failed");
     }
 
+    UpdateGlobalShaderArgValues();
     RenderSpriteBatches();
 
     direct3ddevice->EndScene();
@@ -2081,6 +2284,69 @@ Texture *D3DGraphicsDriver::CreateTexture(int width, int height, int color_depth
 
   txdata->_tiles = std::move(tiles);
   return txdata;
+}
+
+uint32_t D3DGraphicsDriver::CreateShaderProgram(const String &name, const char *fragment_shader_src, const ShaderDefinition *def)
+{
+#if (DIRECT3D_USE_D3DCOMPILER)
+    if (_shaderLookup.find(name) != _shaderLookup.end())
+        return UINT32_MAX; // the name is in use
+
+    const char *compile_target = def && !def->CompileTarget.IsEmpty() ?
+        def->CompileTarget.GetCStr() : DefaultShaderCompileTarget;
+    const char *entry_point = def && !def->EntryPoint.IsEmpty() ?
+        def->EntryPoint.GetCStr() : DefaultShaderEntryPoint;
+
+    ComPtr<ID3DBlob> out_data, out_errors;
+    HRESULT hr = D3DCompile(fragment_shader_src, strlen(fragment_shader_src) + 1, name.GetCStr(),
+                            nullptr /* no defines */, nullptr /* no includes */, entry_point,
+                            compile_target, DefaultShaderCompileFlags, 0 /* no effect flags */,
+                            out_data.Acquire(), out_errors.Acquire());
+
+    if (out_errors)
+        OutputShaderLog(out_errors, name, hr != D3D_OK);
+    if (hr != D3D_OK)
+        return UINT32_MAX;
+
+    ShaderProgram prg;
+    if (!CreateShaderProgram(prg, name, static_cast<const uint8_t*>(out_data->GetBufferPointer())))
+        return UINT32_MAX;
+
+    return AddShaderToCollection(prg, name, def);
+#else // !DIRECT3D_USE_D3DCOMPILER
+    return UINT32_MAX;
+#endif // DIRECT3D_USE_D3DCOMPILER
+}
+
+uint32_t D3DGraphicsDriver::CreateShaderProgram(const String &name, const std::vector<uint8_t> &compiled_data, const ShaderDefinition *def)
+{
+    if (_shaderLookup.find(name) != _shaderLookup.end())
+        return UINT32_MAX; // the name is in use
+
+    ShaderProgram prg;
+    if (!CreateShaderProgram(prg, name, compiled_data.data()))
+        return UINT32_MAX;
+
+    return AddShaderToCollection(prg, name, def);
+}
+
+uint32_t D3DGraphicsDriver::FindShaderProgram(const String &name)
+{
+    auto found_it = _shaderLookup.find(name);
+    if (found_it == _shaderLookup.end())
+        return UINT32_MAX; // not found
+    return found_it->second;
+}
+
+void D3DGraphicsDriver::DeleteShaderProgram(const String &name)
+{
+    auto found_it = _shaderLookup.find(name);
+    if (found_it == _shaderLookup.end())
+        return; // not found
+    uint32_t shader_id = found_it->second;
+    DeleteShaderProgram(_shaders[shader_id]);
+    _shaders[shader_id] = {};
+    _shaderLookup.erase(name);
 }
 
 void D3DGraphicsDriver::SetScreenFade(int red, int green, int blue)

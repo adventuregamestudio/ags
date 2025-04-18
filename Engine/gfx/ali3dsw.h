@@ -174,6 +174,12 @@ public:
     bool ShouldReleaseRenderTargets() override { return false; }
 
     ///////////////////////////////////////////////////////
+    // Miscelaneous setup
+    //
+    // Sets values for global shader constants
+    void SetGlobalShaderConstants(const GlobalShaderConstants &constants) override { /* not supported */ }
+
+    ///////////////////////////////////////////////////////
     // Mode initialization
     //
     // Initialize given display mode
@@ -242,6 +248,35 @@ public:
     void UpdateTexture(Texture *txdata, const Bitmap*, bool) override { /* not supported */}
     // Retrieve shared texture object from the given DDB
     std::shared_ptr<Texture> GetTexture(IDriverDependantBitmap *ddb) override { return nullptr; /* not supported */ }
+    
+    ///////////////////////////////////////////////////////
+    // Shader management
+    //
+    // Returns the expected file extension for the precompiled shader
+    const char *GetShaderPrecompiledExtension() override { return ""; }
+    // Returns the expected file extension for the shader source
+    const char *GetShaderSourceExtension() override { return ""; }
+    // Returns the expected file extension for the shader definition file
+    const char *GetShaderDefinitionExtension() override { return ""; }
+    // Creates shader program from the source code, registers it under given name;
+    // not supported in software driver, always fails.
+    uint32_t CreateShaderProgram(const String &name, const char *fragment_shader_src, const ShaderDefinition *def) override { return UINT32_MAX; }
+    // Creates shader program from the compiled data, registers it under given name;
+    // not supported in software driver, always fails.
+    uint32_t CreateShaderProgram(const String &name, const std::vector<uint8_t> &compiled_data, const ShaderDefinition *def) override { return UINT32_MAX; }
+    // Looks up for the shader program using a name;
+    // not supported in software driver, always fails.
+    uint32_t FindShaderProgram(const String &name) override { return UINT32_MAX; }
+    // Deletes particular shader program.
+    void DeleteShaderProgram(const String &name) override { /* do nothing */ }
+    // Looks up for the constant in a shader. Returns a valid index if such shader is registered,
+    // and constant is present in that shader, or UINT32_MAX on failure.
+    uint32_t GetShaderConstant(uint32_t shader_index, const String &const_name) override { return UINT32_MAX; }
+    // Sets shader constant, using constant's index (returned by GetShaderConstant)
+    void SetShaderConstantF(uint32_t shader_index, uint32_t const_index, float value) override { /* do nothing */ }
+    void SetShaderConstantF2(uint32_t shader_index, uint32_t const_index, float x, float y) override { /* do nothing */ }
+    void SetShaderConstantF3(uint32_t shader_index, uint32_t const_index, float x, float y, float z) override { /* do nothing */ }
+    void SetShaderConstantF4(uint32_t shader_index, uint32_t const_index, float x, float y, float z, float w) override { /* do nothing */ }
 
     ///////////////////////////////////////////////////////
     // Preparing a scene

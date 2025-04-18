@@ -309,6 +309,18 @@ void Overlay_SetBlendMode(ScriptOverlay *scover, int blend_mode)
     over->blendMode = ValidateBlendMode("Overlay.BlendMode", blend_mode);
 }
 
+int Overlay_GetShader(ScriptOverlay *scover)
+{
+    auto *over = GetOverlayValidate("Overlay.Shader", scover);
+    return over->shader_id;
+}
+
+void Overlay_SetShader(ScriptOverlay *scover, int shader_id)
+{
+    auto *over = GetOverlayValidate("Overlay.Shader", scover);
+    over->shader_id = shader_id;
+}
+
 int Overlay_GetTransparency(ScriptOverlay *scover)
 {
     auto *over = GetOverlayValidate("Overlay.Transparency", scover);
@@ -847,6 +859,16 @@ RuntimeScriptValue Sc_Overlay_SetBlendMode(void *self, const RuntimeScriptValue 
     API_OBJCALL_VOID_PINT(ScriptOverlay, Overlay_SetBlendMode);
 }
 
+RuntimeScriptValue Sc_Overlay_GetShader(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptOverlay, Overlay_GetShader);
+}
+
+RuntimeScriptValue Sc_Overlay_SetShader(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptOverlay, Overlay_SetShader);
+}
+
 RuntimeScriptValue Sc_Overlay_GetFlip(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptOverlay, Overlay_GetFlip);
@@ -1029,6 +1051,9 @@ void RegisterOverlayAPI()
         { "Overlay::set_Rotation",        API_FN_PAIR(Overlay_SetRotation) },
         { "Overlay::get_Flip",            API_FN_PAIR(Overlay_GetFlip) },
         { "Overlay::set_Flip",            API_FN_PAIR(Overlay_SetFlip) },
+
+        { "Overlay::get_Shader",          API_FN_PAIR(Overlay_GetShader) },
+        { "Overlay::set_Shader",          API_FN_PAIR(Overlay_SetShader) },
     };
 
     ccAddExternalFunctions(overlay_api);

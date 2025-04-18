@@ -146,6 +146,9 @@ public:
     // Sets the viewport's z-order on screen
     void SetZOrder(int zorder);
 
+    int GetShaderID() const { return _shaderID; }
+    void SetShaderID(int shader_id) { _shaderID = shader_id; }
+
     // Calculates room-to-viewport coordinate conversion.
     void AdjustTransformation();
     // Returns linked camera
@@ -186,6 +189,7 @@ private:
     glm::mat4 _v2cTransform;
     bool _visible = true;
     int _zorder = 0;
+    int _shaderID = 0;
     // Flags that tell whether this viewport's position on screen has changed recently
     bool _hasChangedPosition = false;
     bool _hasChangedOffscreen = false;

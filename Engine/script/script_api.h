@@ -588,6 +588,26 @@ inline const char *ScriptVSprintf(std::vector<char> &buf, const char *format, va
     METHOD((CLASS*)self, (P1CLASS*)params[0].Ptr, params[1].IValue, params[2].IValue, params[3].IValue, params[4].IValue); \
     return RuntimeScriptValue((int32_t)0)
 
+#define API_OBJCALL_VOID_POBJ_PFLOAT(CLASS, METHOD, P1CLASS) \
+    ASSERT_OBJ_PARAM_COUNT(METHOD, 2); \
+    METHOD((CLASS*)self, (P1CLASS*)params[0].Ptr, params[1].FValue); \
+    return RuntimeScriptValue((int32_t)0)
+
+#define API_OBJCALL_VOID_POBJ_PFLOAT2(CLASS, METHOD, P1CLASS) \
+    ASSERT_OBJ_PARAM_COUNT(METHOD, 3); \
+    METHOD((CLASS*)self, (P1CLASS*)params[0].Ptr, params[1].FValue, params[2].FValue); \
+    return RuntimeScriptValue((int32_t)0)
+
+#define API_OBJCALL_VOID_POBJ_PFLOAT3(CLASS, METHOD, P1CLASS) \
+    ASSERT_OBJ_PARAM_COUNT(METHOD, 4); \
+    METHOD((CLASS*)self, (P1CLASS*)params[0].Ptr, params[1].FValue, params[2].FValue, params[3].FValue); \
+    return RuntimeScriptValue((int32_t)0)
+
+#define API_OBJCALL_VOID_POBJ_PFLOAT4(CLASS, METHOD, P1CLASS) \
+    ASSERT_OBJ_PARAM_COUNT(METHOD, 3); \
+    METHOD((CLASS*)self, (P1CLASS*)params[0].Ptr, params[1].FValue, params[2].FValue, params[3].FValue, params[4].FValue); \
+    return RuntimeScriptValue((int32_t)0)
+
 #define API_OBJCALL_VOID_POBJ2(CLASS, METHOD, P1CLASS, P2CLASS) \
     ASSERT_OBJ_PARAM_COUNT(METHOD, 2); \
     METHOD((CLASS*)self, (P1CLASS*)params[0].Ptr, (P2CLASS*)params[1].Ptr); \

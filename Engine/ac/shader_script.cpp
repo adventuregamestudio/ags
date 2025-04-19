@@ -47,45 +47,39 @@ void LoadShaderDefinition(const String &filename, ShaderDefinition &def)
     }
 }
 
-int TryCreateShaderPrecompiled(const String &filename, const String &def_filename)
+IGraphicShader *TryCreateShaderPrecompiled(const String &filename, const String &def_filename)
 {
     auto stream = ResolveScriptPathAndOpen(filename, kFile_Open, kStream_Read);
     if (!stream)
-        return ScriptShaderProgram::InvalidShader;
+        return nullptr;
 
     std::vector<uint8_t> data(stream->GetLength());
     stream->Read(data.data(), data.size());
     if (data.size() == 0)
-        return ScriptShaderProgram::InvalidShader;
+        return nullptr;
 
     ShaderDefinition def;
     if (!def_filename.IsEmpty())
         LoadShaderDefinition(def_filename, def);
 
-    uint32_t shader_id = gfxDriver->CreateShaderProgram(filename, data, &def);
-    if (shader_id > INT32_MAX)
-        return ScriptShaderProgram::InvalidShader; // cast to an invalid shader id
-    return static_cast<int>(shader_id);
+    return gfxDriver->CreateShaderProgram(filename, data, &def);
 }
 
-int TryCreateShaderFromSource(const String &filename, const String &def_filename)
+IGraphicShader *TryCreateShaderFromSource(const String &filename, const String &def_filename)
 {
     auto stream = ResolveScriptPathAndOpen(filename, kFile_Open, kStream_Read);
     if (!stream)
-        return ScriptShaderProgram::InvalidShader;
+        return nullptr;
 
     String shader_src = String::FromStream(stream.get());
     if (shader_src.IsEmpty())
-        return ScriptShaderProgram::InvalidShader;
+        return nullptr;
 
     ShaderDefinition def;
     if (!def_filename.IsEmpty())
         LoadShaderDefinition(def_filename, def);
 
-    uint32_t shader_id = gfxDriver->CreateShaderProgram(filename, shader_src.GetCStr(), &def);
-    if (shader_id > INT32_MAX)
-        return ScriptShaderProgram::InvalidShader; // cast to an invalid shader id
-    return static_cast<int>(shader_id);
+    return gfxDriver->CreateShaderProgram(filename, shader_src.GetCStr(), &def);
 }
 
 ScriptShaderProgram *ShaderProgram_CreateFromFile(const char *filename)
@@ -102,26 +96,26 @@ ScriptShaderProgram *ShaderProgram_CreateFromFile(const char *filename)
     const String source_ext = gfxDriver->GetShaderSourceExtension();
     const String definition_ext = gfxDriver->GetShaderDefinitionExtension();
 
-    int shader_id = ScriptShaderProgram::InvalidShader;
+    IGraphicShader *shader = nullptr;
     const String file_ext = Path::GetFileExtension(filename);
     const String def_filename = Path::ReplaceExtension(filename, definition_ext);
     if (file_ext == precompiled_ext)
     {
-        shader_id = TryCreateShaderPrecompiled(filename, def_filename);
+        shader = TryCreateShaderPrecompiled(filename, def_filename);
     }
     else if (file_ext == source_ext)
     {
-        shader_id = TryCreateShaderFromSource(filename, def_filename);
+        shader = TryCreateShaderFromSource(filename, def_filename);
     }
     else
     {
         if (!precompiled_ext.IsEmpty())
-            shader_id = TryCreateShaderPrecompiled(Path::ReplaceExtension(filename, precompiled_ext), def_filename);
-        if (shader_id < 0 && !source_ext.IsEmpty())
-            shader_id = TryCreateShaderFromSource(Path::ReplaceExtension(filename, source_ext), def_filename);
+            shader = TryCreateShaderPrecompiled(Path::ReplaceExtension(filename, precompiled_ext), def_filename);
+        if (!shader && !source_ext.IsEmpty())
+            shader = TryCreateShaderFromSource(Path::ReplaceExtension(filename, source_ext), def_filename);
     }
 
-    ScriptShaderProgram *shader_prg = new ScriptShaderProgram(filename, shader_id);
+    ScriptShaderProgram *shader_prg = new ScriptShaderProgram(filename, shader->GetID());
     ccRegisterManagedObject(shader_prg, shader_prg);
     return shader_prg;
 }
@@ -133,41 +127,45 @@ int ShaderProgram_GetShaderID(ScriptShaderProgram *shader_prg)
 
 void ShaderProgram_SetConstantF(ScriptShaderProgram *shader_prg, const char *name, float value)
 {
-    if (shader_prg->GetShaderID() != ScriptShaderProgram::InvalidShader)
+    IGraphicShader *shader = gfxDriver->GetShaderProgram(shader_prg->GetShaderID());
+    if (shader)
     {
-        uint32_t const_index = gfxDriver->GetShaderConstant(shader_prg->GetShaderID(), name);
+        uint32_t const_index = shader->GetShaderConstant(name);
         if (const_index != UINT32_MAX)
-            gfxDriver->SetShaderConstantF(shader_prg->GetShaderID(), const_index, value);
+            shader->SetShaderConstantF(const_index, value);
     }
 }
 
 void ShaderProgram_SetConstantF2(ScriptShaderProgram *shader_prg, const char *name, float x, float y)
 {
-    if (shader_prg->GetShaderID() != ScriptShaderProgram::InvalidShader)
+    IGraphicShader *shader = gfxDriver->GetShaderProgram(shader_prg->GetShaderID());
+    if (shader)
     {
-        uint32_t const_index = gfxDriver->GetShaderConstant(shader_prg->GetShaderID(), name);
+        uint32_t const_index = shader->GetShaderConstant(name);
         if (const_index != UINT32_MAX)
-            gfxDriver->SetShaderConstantF2(shader_prg->GetShaderID(), const_index, x ,y);
+            shader->SetShaderConstantF2(const_index, x, y);
     }
 }
 
 void ShaderProgram_SetConstantF3(ScriptShaderProgram *shader_prg, const char *name, float x, float y, float z)
 {
-    if (shader_prg->GetShaderID() != ScriptShaderProgram::InvalidShader)
+    IGraphicShader *shader = gfxDriver->GetShaderProgram(shader_prg->GetShaderID());
+    if (shader)
     {
-        uint32_t const_index = gfxDriver->GetShaderConstant(shader_prg->GetShaderID(), name);
+        uint32_t const_index = shader->GetShaderConstant(name);
         if (const_index != UINT32_MAX)
-            gfxDriver->SetShaderConstantF3(shader_prg->GetShaderID(), const_index, x, y, z);
+            shader->SetShaderConstantF3(const_index, x, y, z);
     }
 }
 
 void ShaderProgram_SetConstantF4(ScriptShaderProgram *shader_prg, const char *name, float x, float y, float z, float w)
 {
-    if (shader_prg->GetShaderID() != ScriptShaderProgram::InvalidShader)
+    IGraphicShader *shader = gfxDriver->GetShaderProgram(shader_prg->GetShaderID());
+    if (shader)
     {
-        uint32_t const_index = gfxDriver->GetShaderConstant(shader_prg->GetShaderID(), name);
+        uint32_t const_index = shader->GetShaderConstant(name);
         if (const_index != UINT32_MAX)
-            gfxDriver->SetShaderConstantF4(shader_prg->GetShaderID(), const_index, x, y, z, w);
+            shader->SetShaderConstantF4(const_index, x, y, z, w);
     }
 }
 

@@ -33,7 +33,7 @@ public:
 
 private:
     String _name;
-    int _shaderID = -1;
+    int _shaderID = InvalidShader;
 };
 
 #endif // __AGS_EE_DYNOBJ__SCRIPTSHADER_H

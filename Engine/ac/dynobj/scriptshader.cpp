@@ -28,6 +28,7 @@ const char *ScriptShaderProgram::GetType()
 
 int ScriptShaderProgram::Dispose(void *address, bool force)
 {
+    //FIXME: figure out when do we delete actual shaders in gfx driver
     //gfxDriver->DeleteShader ... ?
     delete this;
     return 1;

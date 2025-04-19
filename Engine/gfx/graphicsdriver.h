@@ -103,6 +103,32 @@ struct ShaderDefinition
                         Constants;
 };
 
+// IGraphicShader interface provides an access to a shader program,
+// created by the graphics driver (see IGraphicsDriver).
+class IGraphicShader
+{
+public:
+    using String = AGS::Common::String;
+public:
+    virtual ~IGraphicShader() = default;
+
+    // Gets this shader's name, which uniquely identifies this shader
+    virtual const String &GetName() const = 0;
+    // Gets this shader's numberic ID, which may be used to reference it in gfx driver
+    // TODO: remove numeric id when we store shaders outside of the gfx driver class
+    virtual uint32_t GetID() const = 0;
+
+    // Looks up for the constant in a shader. Returns a valid index if such shader is registered,
+    // and constant is present in that shader, or UINT32_MAX on failure.
+    virtual uint32_t GetShaderConstant(const String &const_name) = 0;
+    // Sets shader constant, using constant's index (returned by GetShaderConstant)
+    virtual void SetShaderConstantF(uint32_t const_index, float value) = 0;
+    virtual void SetShaderConstantF2(uint32_t const_index, float x, float y) = 0;
+    virtual void SetShaderConstantF3(uint32_t const_index, float x, float y, float z) = 0;
+    virtual void SetShaderConstantF4(uint32_t const_index, float x, float y, float z, float w) = 0;
+};
+
+
 typedef void (*GFXDRV_CLIENTCALLBACK)();
 typedef bool (*GFXDRV_CLIENTCALLBACKEVT)(int evt, intptr_t data);
 typedef void (*GFXDRV_CLIENTCALLBACKINITGFX)(void *data);
@@ -243,27 +269,18 @@ public:
     // Returns the expected file extension for the shader definition file
     virtual const char *GetShaderDefinitionExtension() = 0;
     // Creates shader program from the source code, registers it under given name,
-    // returns internal shader index which may be used as a reference, or UINT32_MAX on failure.
-    virtual uint32_t CreateShaderProgram(const String &name, const char *fragment_shader_src, const ShaderDefinition *def = nullptr) = 0;
+    // returns IGraphicShader, or null on failure.
+    virtual IGraphicShader *CreateShaderProgram(const String &name, const char *fragment_shader_src, const ShaderDefinition *def = nullptr) = 0;
     // Creates shader program from the compiled data, registers it under given name,
-    // returns internal shader index which may be used as a reference, or UINT32_MAX on failure.
-    virtual uint32_t CreateShaderProgram(const String &name, const std::vector<uint8_t> &compiled_data, const ShaderDefinition *def = nullptr) = 0;
+    // returns IGraphicShader, or null on failure.
+    virtual IGraphicShader *CreateShaderProgram(const String &name, const std::vector<uint8_t> &compiled_data, const ShaderDefinition *def = nullptr) = 0;
     // Looks up for the shader program using a name,
-    // returns internal shader index which may be used as a reference, or UINT32_MAX on failure.
-    virtual uint32_t FindShaderProgram(const String &name) = 0;
+    // returns IGraphicShader, or null on failure.
+    virtual IGraphicShader *FindShaderProgram(const String &name) = 0;
+    // Gets the shader program using its internal numeric ID; returns null if no such shader ID exists.
+    virtual IGraphicShader *GetShaderProgram(uint32_t shader_id) = 0;
     // Deletes particular shader program.
-    virtual void DeleteShaderProgram(const String &name) = 0;
-    //
-    // TODO: create a separate Shader interface for handling following per-shader operations.
-    // 
-    // Looks up for the constant in a shader. Returns a valid index if such shader is registered,
-    // and constant is present in that shader, or UINT32_MAX on failure.
-    virtual uint32_t GetShaderConstant(uint32_t shader_index, const String &const_name) = 0;
-    // Sets shader constant, using constant's index (returned by GetShaderConstant)
-    virtual void SetShaderConstantF(uint32_t shader_index, uint32_t const_index, float value) = 0;
-    virtual void SetShaderConstantF2(uint32_t shader_index, uint32_t const_index, float x, float y) = 0;
-    virtual void SetShaderConstantF3(uint32_t shader_index, uint32_t const_index, float x, float y, float z) = 0;
-    virtual void SetShaderConstantF4(uint32_t shader_index, uint32_t const_index, float x, float y, float z, float w) = 0;
+    virtual void DeleteShaderProgram(IGraphicShader *shader) = 0;
 
     ///////////////////////////////////////////////////////
     // Preparing a scene

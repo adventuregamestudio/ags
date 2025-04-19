@@ -101,6 +101,83 @@ OGLBitmap::~OGLBitmap()
         glDeleteFramebuffersEXT(1, &_fbo);
 }
 
+OGLShader::OGLShader(const String &name, uint32_t id)
+    : BaseShader(name, id)
+{
+}
+
+OGLShader::OGLShader(const String &name, uint32_t id, OGLShader::ProgramData &&data)
+    : BaseShader(name, id)
+    , _data(std::move(data))
+{
+}
+
+OGLShader::OGLShader(const String &name, uint32_t id, const OGLShader &copy_shader)
+    : BaseShader(name, id)
+    , _data(copy_shader.GetData())
+{
+}
+
+OGLShader::~OGLShader()
+{
+    if (_data.Program != 0)
+        glDeleteProgram(_data.Program);
+}
+
+uint32_t OGLShader::GetShaderConstant(const String &const_name)
+{
+    if (_data.Program == 0)
+        return UINT32_MAX;
+
+    auto it_found = _data.Constants.find(const_name);
+    if (it_found != _data.Constants.end())
+        return it_found->second;
+
+    GLint index = glGetUniformLocation(_data.Program, const_name.GetCStr());
+    if (index < 0)
+        return UINT32_MAX;
+
+    _data.Constants[const_name] = index;
+    return index;
+}
+
+void OGLShader::SetShaderConstantF(uint32_t const_index, float value)
+{
+    if (_data.Program == 0)
+        return;
+
+    glUseProgram(_data.Program);
+    glUniform1f(const_index, value);
+}
+
+void OGLShader::SetShaderConstantF2(uint32_t const_index, float x, float y)
+{
+    if (_data.Program == 0)
+        return;
+
+    glUseProgram(_data.Program);
+    glUniform2f(const_index, x, y);
+}
+
+void OGLShader::SetShaderConstantF3(uint32_t const_index, float x, float y, float z)
+{
+    if (_data.Program == 0)
+        return;
+
+    glUseProgram(_data.Program);
+    glUniform3f(const_index, x, y, z);
+}
+
+void OGLShader::SetShaderConstantF4(uint32_t const_index, float x, float y, float z, float w)
+{
+    if (_data.Program == 0)
+        return;
+
+    glUseProgram(_data.Program);
+    glUniform4f(const_index, x, y, z, w);
+}
+
+
 
 OGLGraphicsDriver::OGLGraphicsDriver()
 {
@@ -219,10 +296,10 @@ bool OGLGraphicsDriver::FirstTimeInit()
     const char *exts = (const char*)glGetString(GL_EXTENSIONS);
     _glCapsNonPowerOfTwo = strstr(exts, "GL_ARB_texture_non_power_of_two") != nullptr;
 
-    if (!CreateShaders())
+    if (!CreateStandardShaders())
     {
         // The transparency shader is the one that we must have
-        if (_transparencyShader.Program == 0)
+        if (!_transparencyShader || !_transparencyShader->IsValid())
         {
             Debug::Printf(kDbgMsg_Error, "ERROR: OpenGL: failed to compile standard shaders, graphics driver will not be usable.");
             return false;
@@ -399,7 +476,7 @@ void OGLGraphicsDriver::TestRenderToTexture()
     _doRenderToTexture = false;
 }
 
-bool OGLGraphicsDriver::CreateShaders()
+bool OGLGraphicsDriver::CreateStandardShaders()
 {
 #if AGS_OPENGL_ES2
     if (!GLAD_GL_ES_VERSION_2_0)
@@ -410,13 +487,17 @@ bool OGLGraphicsDriver::CreateShaders()
         Debug::Printf(kDbgMsg_Error, "ERROR: Shaders require a minimum of OpenGL 2.0 support.");
         return false;
     }
-    bool shaders_created = true;
-    shaders_created &= CreateTransparencyShader(_transparencyShader, ShaderProgram());
-    shaders_created &= CreateTintShader(_tintShader, _transparencyShader);
-    shaders_created &= CreateLightShader(_lightShader, _transparencyShader);
-    shaders_created &= CreateDarkenByAlphaShader(_darkenbyAlphaShader, _transparencyShader);
-    shaders_created &= CreateLightenByAlphaShader(_lightenByAlphaShader, _transparencyShader);
-    return shaders_created;
+
+    _transparencyShader = CreateTransparencyShader(nullptr);
+    _tintShader = CreateTintShader(_transparencyShader);
+    _lightShader = CreateLightShader(_transparencyShader);
+    _darkenbyAlphaShader = CreateDarkenByAlphaShader(_transparencyShader);
+    _lightenByAlphaShader = CreateLightenByAlphaShader(_transparencyShader);
+    return _transparencyShader->IsValid()
+        && _tintShader->IsValid()
+        && _lightShader->IsValid()
+        && _darkenbyAlphaShader->IsValid()
+        && _lightenByAlphaShader->IsValid();
 }
 
 void OGLGraphicsDriver::DeleteShaders()
@@ -428,11 +509,16 @@ void OGLGraphicsDriver::DeleteShaders()
     _shaders.clear();
     _shaderLookup.clear();
 
-    DeleteShaderProgram(_transparencyShader);
-    DeleteShaderProgram(_tintShader);
-    DeleteShaderProgram(_lightShader);
-    DeleteShaderProgram(_darkenbyAlphaShader);
-    DeleteShaderProgram(_lightenByAlphaShader);
+    delete _transparencyShader;
+    _transparencyShader = nullptr;
+    delete _tintShader;
+    _tintShader = nullptr;
+    delete _lightShader;
+    _lightShader = nullptr;
+    delete _darkenbyAlphaShader;
+    _darkenbyAlphaShader = nullptr;
+    delete _lightenByAlphaShader;
+    _lightenByAlphaShader = nullptr;
 }
 
 
@@ -618,66 +704,86 @@ void main()
 )EOS";
 
 
-bool OGLGraphicsDriver::CreateTransparencyShader(ShaderProgram &prg, const ShaderProgram &fallback_prg)
+OGLShader *OGLGraphicsDriver::CreateTransparencyShader(const OGLShader *fallback_shader)
 {
-    if (!CreateShaderProgram(prg, "Transparency", default_vertex_shader_src, transparency_fragment_shader_src))
+    OGLShader::ProgramData prg;
+    if (CreateShaderProgram(prg, "Transparency", default_vertex_shader_src, transparency_fragment_shader_src))
     {
-        prg = fallback_prg;
-        return false;
+        AssignBaseShaderArgs(prg);
+        return new OGLShader("Transparency", UINT32_MAX, std::move(prg));
     }
-    AssignBaseShaderArgs(prg);
-    return true;
+    else if (fallback_shader)
+    {
+        return new OGLShader("Transparency", UINT32_MAX, *fallback_shader);
+    }
+    return new OGLShader("Transparency", UINT32_MAX);
 }
 
-bool OGLGraphicsDriver::CreateTintShader(ShaderProgram &prg, const ShaderProgram &fallback_prg)
+OGLShader *OGLGraphicsDriver::CreateTintShader(const OGLShader *fallback_shader)
 {
-    if (!CreateShaderProgram(prg, "Tinting", default_vertex_shader_src, tint_fragment_shader_src))
+    OGLShader::ProgramData prg;
+    if (CreateShaderProgram(prg, "Tinting", default_vertex_shader_src, tint_fragment_shader_src))
     {
-        prg = fallback_prg;
-        return false;
+        AssignBaseShaderArgs(prg);
+        prg.TintHSV = glGetUniformLocation(prg.Program, "iTintHSV");
+        prg.TintAmount = glGetUniformLocation(prg.Program, "iTintAmount");
+        prg.TintLuminance = glGetUniformLocation(prg.Program, "iTintLuminance");
+        return new OGLShader("Tinting", UINT32_MAX, std::move(prg));
     }
-    AssignBaseShaderArgs(prg);
-    prg.TintHSV = glGetUniformLocation(prg.Program, "iTintHSV");
-    prg.TintAmount = glGetUniformLocation(prg.Program, "iTintAmount");
-    prg.TintLuminance = glGetUniformLocation(prg.Program, "iTintLuminance");
-    return true;
+    else if (fallback_shader)
+    {
+        return new OGLShader("Tinting", UINT32_MAX, *fallback_shader);
+    }
+    return new OGLShader("Tinting", UINT32_MAX);
 }
 
-bool OGLGraphicsDriver::CreateLightShader(ShaderProgram &prg, const ShaderProgram &fallback_prg)
+OGLShader *OGLGraphicsDriver::CreateLightShader(const OGLShader *fallback_shader)
 {
-    if (!CreateShaderProgram(prg, "Lighting", default_vertex_shader_src, light_fragment_shader_src))
+    OGLShader::ProgramData prg;
+    if (CreateShaderProgram(prg, "Lighting", default_vertex_shader_src, light_fragment_shader_src))
     {
-        prg = fallback_prg;
-        return false;
+        AssignBaseShaderArgs(prg);
+        prg.LightingAmount = glGetUniformLocation(prg.Program, "iLight");
+        return new OGLShader("Lighting", UINT32_MAX, std::move(prg));
     }
-    AssignBaseShaderArgs(prg);
-    prg.LightingAmount = glGetUniformLocation(prg.Program, "iLight");
-    return true;
+    else if (fallback_shader)
+    {
+        return new OGLShader("Lighting", UINT32_MAX, *fallback_shader);
+    }
+    return new OGLShader("Lighting", UINT32_MAX);
 }
 
-bool OGLGraphicsDriver::CreateDarkenByAlphaShader(ShaderProgram& prg, const ShaderProgram &fallback_prg)
+OGLShader *OGLGraphicsDriver::CreateDarkenByAlphaShader(const OGLShader *fallback_shader)
 {
-    if (!CreateShaderProgram(prg, "DarkenByAlpha", default_vertex_shader_src, darkenbyalpha_fragment_shader_src))
+    OGLShader::ProgramData prg;
+    if (CreateShaderProgram(prg, "DarkenByAlpha", default_vertex_shader_src, darkenbyalpha_fragment_shader_src))
     {
-        prg = fallback_prg;
-        return false;
+        AssignBaseShaderArgs(prg);
+        return new OGLShader("DarkenByAlpha", UINT32_MAX, std::move(prg));
     }
-    AssignBaseShaderArgs(prg);
-    return true;
+    else if (fallback_shader)
+    {
+        return new OGLShader("DarkenByAlpha", UINT32_MAX, *fallback_shader);
+    }
+    return new OGLShader("DarkenByAlpha", UINT32_MAX);
 }
 
-bool OGLGraphicsDriver::CreateLightenByAlphaShader(ShaderProgram& prg, const ShaderProgram &fallback_prg)
+OGLShader *OGLGraphicsDriver::CreateLightenByAlphaShader(const OGLShader *fallback_shader)
 {
-    if (!CreateShaderProgram(prg, "LightenByAlpha", default_vertex_shader_src, lightenbyalpha_fragment_shader_src))
+    OGLShader::ProgramData prg;
+    if (CreateShaderProgram(prg, "LightenByAlpha", default_vertex_shader_src, lightenbyalpha_fragment_shader_src))
     {
-        prg = fallback_prg;
-        return false;
+        AssignBaseShaderArgs(prg);
+        return new OGLShader("LightenByAlpha", UINT32_MAX, std::move(prg));
     }
-    AssignBaseShaderArgs(prg);
-    return true;
+    else if (fallback_shader)
+    {
+        return new OGLShader("LightenByAlpha", UINT32_MAX, *fallback_shader);
+    }
+    return new OGLShader("LightenByAlpha", UINT32_MAX);
 }
 
-bool OGLGraphicsDriver::CreateShaderProgram(ShaderProgram &prg, const String &name, const char *vertex_shader_src, const char *fragment_shader_src)
+bool OGLGraphicsDriver::CreateShaderProgram(OGLShader::ProgramData &prg, const String &name, const char *vertex_shader_src, const char *fragment_shader_src)
 {
     GLint result;
 
@@ -725,19 +831,11 @@ bool OGLGraphicsDriver::CreateShaderProgram(ShaderProgram &prg, const String &na
     glDeleteShader(fragment_shader);
 
     prg.Program = program;
-    prg.Name = name;
     Debug::Printf("OpenGL: \"%s\" shader program created successfully", name.GetCStr());
     return true;
 }
 
-void OGLGraphicsDriver::DeleteShaderProgram(ShaderProgram &prg)
-{
-    if (prg.Program != 0)
-        glDeleteProgram(prg.Program);
-    prg.Program = 0;
-}
-
-void OGLGraphicsDriver::AssignBaseShaderArgs(ShaderProgram &prg)
+void OGLGraphicsDriver::AssignBaseShaderArgs(OGLShader::ProgramData &prg)
 {
     prg.A_Position = glGetAttribLocation(prg.Program, "a_Position");
     prg.A_TexCoord = glGetAttribLocation(prg.Program, "a_TexCoord");
@@ -755,12 +853,13 @@ void OGLGraphicsDriver::UpdateGlobalShaderArgValues()
 {
     for (auto &sh : _shaders)
     {
-        if (sh.Program == 0u)
+        const auto &prg = sh->GetData();
+        if (prg.Program == 0u)
             continue;
 
-        glUseProgram(sh.Program);
-        glUniform1f(sh.Time, _globalShaderConst.Time);
-        glUniform1i(sh.GameFrame, _globalShaderConst.GameFrame);
+        glUseProgram(prg.Program);
+        glUniform1f(prg.Time, _globalShaderConst.Time);
+        glUniform1i(prg.GameFrame, _globalShaderConst.GameFrame);
     }
     glUseProgram(0);
 }
@@ -1110,23 +1209,23 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
   const int alpha = (color.Alpha * bmpToDraw->GetAlpha()) / 255;
   const int invalpha = 255 - alpha;
 
-  const ShaderProgram *program = nullptr;
+  const OGLShader::ProgramData *program = nullptr;
 
   int tint_r, tint_g, tint_b, tint_sat, light_lev;
   bmpToDraw->GetTint(tint_r, tint_g, tint_b, tint_sat);
   light_lev = bmpToDraw->GetLightLevel();
-  const bool do_tint = tint_sat > 0 && _tintShader.Program > 0;
-  const bool do_light = tint_sat == 0 && light_lev > 0 && _lightShader.Program > 0;
+  const bool do_tint = tint_sat > 0 && _tintShader->GetData().Program > 0;
+  const bool do_light = tint_sat == 0 && light_lev > 0 && _lightShader->GetData().Program > 0;
   if (bmpToDraw->GetShader() < _shaders.size())
   {
     // Use custom shader
-    program = &_shaders[bmpToDraw->GetShader()];
+    program = &_shaders[bmpToDraw->GetShader()]->GetData();
     glUseProgram(program->Program);
   }
   else if (do_tint)
   {
     // Use tinting shader
-    program = &_tintShader;
+    program = &_tintShader->GetData();
 
     float rgb[3];
     float sat_trs_lum[3]; // saturation / transparency / luminance
@@ -1140,15 +1239,15 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
     else
       sat_trs_lum[2] = 1.0f;
 
-    glUseProgram(_tintShader.Program);
-    glUniform3f(_tintShader.TintHSV, rgb[0], rgb[1], rgb[2]);
-    glUniform1f(_tintShader.TintAmount, sat_trs_lum[0]);
-    glUniform1f(_tintShader.TintLuminance, sat_trs_lum[2]);
+    glUseProgram(program->Program);
+    glUniform3f(program->TintHSV, rgb[0], rgb[1], rgb[2]);
+    glUniform1f(program->TintAmount, sat_trs_lum[0]);
+    glUniform1f(program->TintLuminance, sat_trs_lum[2]);
   }
   else if (do_light)
   {
     // Use light shader
-    program = &_lightShader;
+    program = &_lightShader->GetData();
     float light_lev = 1.0f;
 
     // Light level parameter in DDB is weird, it is measured in units of
@@ -1167,36 +1266,34 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
       light_lev = ((light_lev - 256) / 2) / 255.f; // brighter, uses ADD op
     }
 
-    glUseProgram(_lightShader.Program);
-    glUniform1f(_lightShader.LightingAmount, light_lev);
+    glUseProgram(program->Program);
+    glUniform1f(program->LightingAmount, light_lev);
   }
   else
   {
+    const OGLShader *shader;
     switch (bmpToDraw->GetBlendMode())
     {
     case kBlend_Darken:
     case kBlend_Multiply:
     case kBlend_Burn: // burn is imperfect due to blend mode, darker than normal even when trasparent
       // hack for blendmodes: fade to white to make it transparent
-      program = &_lightenByAlphaShader;
+      shader = _lightenByAlphaShader;
       break;
-
     case kBlend_Lighten:
     case kBlend_Screen:
     case kBlend_Exclusion:
     case kBlend_Dodge:
       // hack for blendmodes: fade to black to make it transparent
-      program = &_darkenbyAlphaShader;
-      glUseProgram(_darkenbyAlphaShader.Program);
+      shader = _darkenbyAlphaShader;
       break;
-
     default:
       // Use default processing
-      program = &_transparencyShader;
-      glUseProgram(_transparencyShader.Program);
+      shader = _transparencyShader;
       break;
     }
 
+    program = &shader->GetData();
     glUseProgram(program->Program);
   }
 
@@ -2181,102 +2278,58 @@ Texture *OGLGraphicsDriver::CreateTexture(int width, int height, int color_depth
   return txdata;
 }
 
-uint32_t OGLGraphicsDriver::CreateShaderProgram(const String &name, const char *fragment_shader_src, const ShaderDefinition* /*def*/)
+IGraphicShader *OGLGraphicsDriver::CreateShaderProgram(const String &name, const char *fragment_shader_src, const ShaderDefinition* /*def*/)
 {
     if (_shaderLookup.find(name) != _shaderLookup.end())
-        return UINT32_MAX; // the name is in use
+        return nullptr; // the name is in use
 
-    ShaderProgram prg;
+    OGLShader::ProgramData prg;
     if (!CreateShaderProgram(prg, name, default_vertex_shader_src, fragment_shader_src))
-        return UINT32_MAX;
+        return nullptr;
 
     AssignBaseShaderArgs(prg);
-    _shaders.push_back(prg);
-    uint32_t shader_id = static_cast<uint32_t>(_shaders.size() - 1);
+    uint32_t shader_id = static_cast<uint32_t>(_shaders.size());
+    OGLShader *shader = new OGLShader(name, shader_id, std::move(prg));
+    _shaders.push_back(shader);
     _shaderLookup[name] = shader_id;
-    return shader_id;
+    return shader;
 }
 
-uint32_t OGLGraphicsDriver::CreateShaderProgram(const String &name, const std::vector<uint8_t> &compiled_data, const ShaderDefinition* /*def*/)
+IGraphicShader *OGLGraphicsDriver::CreateShaderProgram(const String &name, const std::vector<uint8_t> &compiled_data, const ShaderDefinition* /*def*/)
 {
     if (_shaderLookup.find(name) != _shaderLookup.end())
-        return UINT32_MAX; // the name is in use
+        return nullptr; // the name is in use
 
     // TODO: can/should we support using precompiled shaders with OpenGL?
-    return UINT32_MAX;
+    return nullptr;
 }
 
-uint32_t OGLGraphicsDriver::FindShaderProgram(const String &name)
+IGraphicShader *OGLGraphicsDriver::FindShaderProgram(const String &name)
 {
     auto found_it = _shaderLookup.find(name);
     if (found_it == _shaderLookup.end())
-        return UINT32_MAX; // not found
-    return found_it->second;
+        return nullptr; // not found
+    return _shaders[found_it->second];
 }
 
-void OGLGraphicsDriver::DeleteShaderProgram(const String &name)
+IGraphicShader *OGLGraphicsDriver::GetShaderProgram(uint32_t shader_id)
 {
-    auto found_it = _shaderLookup.find(name);
-    if (found_it == _shaderLookup.end())
-        return; // not found
-    uint32_t shader_id = found_it->second;
-    DeleteShaderProgram(_shaders[shader_id]);
-    _shaders[shader_id] = {};
-    _shaderLookup.erase(name);
+    if (shader_id >= _shaders.size())
+        return nullptr;
+    return _shaders[shader_id];
 }
 
-uint32_t OGLGraphicsDriver::GetShaderConstant(uint32_t shader_index, const String &const_name)
+void OGLGraphicsDriver::DeleteShaderProgram(IGraphicShader *shader)
 {
-    if (shader_index >= _shaders.size())
-        return UINT32_MAX;
-
-    auto &sh = _shaders[shader_index];
-    auto it_found = sh.Constants.find(const_name);
-    if (it_found != sh.Constants.end())
-        return it_found->second;
-
-    GLint index = glGetUniformLocation(sh.Program, const_name.GetCStr());
-    if (index < 0)
-        return UINT32_MAX;
-
-    sh.Constants[const_name] = index;
-    return index;
-}
-
-void OGLGraphicsDriver::SetShaderConstantF(uint32_t shader_index, uint32_t const_index, float value)
-{
-    if (shader_index >= _shaders.size())
-        return;
-
-    glUseProgram(_shaders[shader_index].Program);
-    glUniform1f(const_index, value);
-}
-
-void OGLGraphicsDriver::SetShaderConstantF2(uint32_t shader_index, uint32_t const_index, float x, float y)
-{
-    if (shader_index >= _shaders.size())
-        return;
-
-    glUseProgram(_shaders[shader_index].Program);
-    glUniform2f(const_index, x, y);
-}
-
-void OGLGraphicsDriver::SetShaderConstantF3(uint32_t shader_index, uint32_t const_index, float x, float y, float z)
-{
-    if (shader_index >= _shaders.size())
-        return;
-
-    glUseProgram(_shaders[shader_index].Program);
-    glUniform3f(const_index, x, y, z);
-}
-
-void OGLGraphicsDriver::SetShaderConstantF4(uint32_t shader_index, uint32_t const_index, float x, float y, float z, float w)
-{
-    if (shader_index >= _shaders.size())
-        return;
-
-    glUseProgram(_shaders[shader_index].Program);
-    glUniform4f(const_index, x, y, z, w);
+    assert(shader->GetID() < _shaders.size());
+    if (shader->GetID() < _shaders.size())
+    {
+        auto found_it = _shaderLookup.find(shader->GetName());
+        if (found_it != _shaderLookup.end())
+            _shaderLookup.erase(found_it);
+        _shaders[shader->GetID()] = {};
+    }
+    delete (OGLShader*)shader;
 }
 
 void OGLGraphicsDriver::SetScreenFade(int red, int green, int blue)

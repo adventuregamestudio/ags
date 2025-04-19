@@ -152,6 +152,78 @@ private:
     bool _useResampler = false;
 };
 
+class D3DShader final : public BaseShader
+{
+public:
+    // Looks up for the constant in a shader. Returns a valid index if such shader is registered,
+    // and constant is present in that shader, or UINT32_MAX on failure.
+    uint32_t GetShaderConstant(const String &const_name) override;
+    // Sets shader constant, using constant's index (returned by GetShaderConstant)
+    virtual void SetShaderConstantF(uint32_t const_index, float value) override;
+    virtual void SetShaderConstantF2(uint32_t const_index, float x, float y) override;
+    virtual void SetShaderConstantF3(uint32_t const_index, float x, float y, float z) override;
+    virtual void SetShaderConstantF4(uint32_t const_index, float x, float y, float z, float w) override;
+
+    // Shader data wrapped in a struct, for easier referencing
+    struct ProgramData
+    {
+        // A single constant register size *in floats*
+        static const uint32_t RegisterSize = 4u;
+        // A cap of the number of constant registers that we support (0..N)
+        static const uint32_t RegisterCap = 12u;
+        // A place in buffer where we will write non-applied values;
+        // this is just to streamline the process and don't litter the code with checks
+        static const uint32_t NullRegisterIndex = RegisterCap;
+
+        D3DPixelShaderPtr ShaderPtr;
+
+        struct Register
+        {
+            uint32_t Index = 0u;  // register index
+            uint32_t Off = 0u; // actual memory offset
+
+            Register() = default;
+            Register(uint32_t reg_index) { *this = reg_index; }
+            Register &operator=(uint32_t reg_index)
+            {
+                Index = reg_index;
+                Off = reg_index * RegisterSize;
+                return *this;
+            }
+        };
+        //---------------------------------------
+        // Fragment shader:
+        // Standard constants register number
+        Register Time;         // real time
+        Register GameFrame;    // game frame
+        Register TextureDim;   // texture 0 dimensions
+        Register Alpha;        // requested global alpha
+
+        // Specialized constants for built-in shaders
+        Register TintHSV;      // float4
+        Register TintAlphaLight; // float4
+
+        // Constants table: maps constant name to the index/register
+        // in the compiled shader
+        std::unordered_map<String, uint32_t> Constants;
+        // Constant buffer data, applied each time a shader is used in render
+        std::vector<float> ConstantData;
+    };
+
+    D3DShader(const String &name, uint32_t id);
+    D3DShader(const String &name, uint32_t id, D3DShader::ProgramData &&data);
+    D3DShader(const String &name, uint32_t id, const D3DShader &copy_shader);
+    ~D3DShader() = default;
+
+    bool IsValid() const { return _data.ShaderPtr != nullptr; }
+    const D3DShader::ProgramData &GetData() const { return _data; }
+    float *GetConstantData() { return _data.ConstantData.data(); }
+    size_t GetConstantDataSize() { return _data.ConstantData.size(); }
+
+private:
+    ProgramData _data;
+};
+
 class D3DGfxModeList : public IGfxModeList
 {
 public:
@@ -292,24 +364,18 @@ public:
     // Returns the expected file extension for the shader definition file
     const char *GetShaderDefinitionExtension() override { return "d3ddef"; }
     // Creates shader program from the source code, registers it under given name,
-    // returns internal shader index which may be used as a reference, or UINT32_MAX on failure.
-    uint32_t CreateShaderProgram(const String &name, const char *fragment_shader_src, const ShaderDefinition *def) override;
+    // returns IGraphicShader, or null on failure.
+    IGraphicShader *CreateShaderProgram(const String &name, const char *fragment_shader_src, const ShaderDefinition *def) override;
     // Creates shader program from the compiled data, registers it under given name,
-    // returns internal shader index which may be used as a reference, or UINT32_MAX on failure.
-    uint32_t CreateShaderProgram(const String &name, const std::vector<uint8_t> &compiled_data, const ShaderDefinition *def) override;
+    // returns IGraphicShader, or null on failure.
+    IGraphicShader *CreateShaderProgram(const String &name, const std::vector<uint8_t> &compiled_data, const ShaderDefinition *def) override;
     // Looks up for the shader program using a name,
-    // returns internal shader index which may be used as a reference, or UINT32_MAX on failure.
-    uint32_t FindShaderProgram(const String &name) override;
+    // returns IGraphicShader, or null on failure.
+    IGraphicShader *FindShaderProgram(const String &name) override;
+    // Gets the shader program using its internal numeric ID; returns null if no such shader ID exists.
+    IGraphicShader *GetShaderProgram(uint32_t shader_id) override;
     // Deletes particular shader program.
-    void DeleteShaderProgram(const String &name) override;
-    // Looks up for the constant in a shader. Returns a valid index if such shader is registered,
-    // and constant is present in that shader, or UINT32_MAX on failure.
-    uint32_t GetShaderConstant(uint32_t shader_index, const String &const_name) override;
-    // Sets shader constant, using constant's index (returned by GetShaderConstant)
-    void SetShaderConstantF(uint32_t shader_index, uint32_t const_index, float value) override;
-    void SetShaderConstantF2(uint32_t shader_index, uint32_t const_index, float x, float y) override;
-    void SetShaderConstantF3(uint32_t shader_index, uint32_t const_index, float x, float y, float z) override;
-    void SetShaderConstantF4(uint32_t shader_index, uint32_t const_index, float x, float y, float z, float w) override;
+    void DeleteShaderProgram(IGraphicShader *shader) override;
 
     ///////////////////////////////////////////////////////
     // Preparing a scene
@@ -376,7 +442,7 @@ private:
     void SetupViewport();
     void SetupDefaultVertices();
     // Create shader programs for sprite tinting and changing light level
-    bool CreateShaders();
+    bool CreateStandardShaders();
     // Delete all shader programs
     void DeleteShaders();
     // Resets
@@ -407,63 +473,21 @@ private:
     const UINT  DefaultShaderCompileFlags  = D3DCOMPILE_OPTIMIZATION_LEVEL3;
     const char *DefaultShaderEntryPoint    = "main";
 #endif
-    // Shader program and its variable references;
-    // the variables are rather specific for AGS use (sprite tinting).
-    struct ShaderProgram
-    {
-        String Name;
-
-        D3DPixelShaderPtr ShaderPtr;
-        //---------------------------------------
-        // Fragment shader:
-        // Standard constants register number
-        UINT Time = 0u;         // real time
-        UINT GameFrame = 0u;    // game frame
-        UINT TextureDim = 0u;   // texture 0 dimensions
-        UINT Alpha = 0u;        // requested global alpha
-
-        // Specialized constants for built-in shaders
-        UINT TintHSV = 0u;      // float4
-        UINT TintAlphaLight = 0u; // float4
-
-        // Built-in constants actual offsets in bytes (see ConstantData)
-        uint32_t TimeOff = 0u;
-        uint32_t GameFrameOff = 0u;
-        uint32_t TextureDimOff = 0u;
-        uint32_t AlphaOff = 0u;
-        // TODO: do the same for TintHSV, TintAlphaLight
-
-        // Constants table: maps constant name to the index/register
-        // in the compiled shader
-        std::unordered_map<String, uint32_t> Constants;
-
-        // A single constant register size *in floats*
-        static const uint32_t RegisterSize      = 4u;
-        // A cap of the number of constant registers that we support (0..N)
-        static const uint32_t RegisterCap       = 12u;
-        // A place in buffer where we will write non-applied values;
-        // this is just to streamline the process and don't litter the code with checks
-        static const uint32_t NullRegisterIndex = RegisterCap;
-        // Constant buffer data, applied each time a shader is used in render
-        std::vector<float> ConstantData;
-    };
 
     // Creates shader program using provided compiled data
-    bool CreateShaderProgram(ShaderProgram &prg, const String &name, const uint8_t *data_ptr);
+    bool CreateShaderProgram(D3DShader::ProgramData &prg, const String &name, const uint8_t *data_ptr);
     // Loads compiled shader data from resource and creates shader
-    bool CreateShaderProgramFromResource(ShaderProgram &prg, const String &name, const char *resource_name);
-    // Deletes a shader program
-    void DeleteShaderProgram(ShaderProgram &prg);
-    void AssignBaseShaderArgs(ShaderProgram &prg, const ShaderDefinition *def);
+    bool CreateShaderProgramFromResource(D3DShader::ProgramData &prg, const String &name, const char *resource_name);
+    void AssignBaseShaderArgs(D3DShader::ProgramData &prg, const ShaderDefinition *def);
     void UpdateGlobalShaderArgValues();
 #if (DIRECT3D_USE_D3DCOMPILER)
     void OutputShaderLog(ComPtr<ID3DBlob> &out_errors, const String &shader_name, bool as_error);
 #endif
-    uint32_t AddShaderToCollection(ShaderProgram &prg, const String &name, const ShaderDefinition *def);
+    D3DShader *AddShaderToCollection(D3DShader::ProgramData &prg, const String &name, const ShaderDefinition *def);
 
     //
     // Specialized shaders
-    bool CreateTintShader(ShaderProgram &prg, const ShaderProgram &fallback_prg);
+    D3DShader *CreateTintShader(const D3DShader *fallback_shader);
 
     ///////////////////////////////////////////////////////
     // Preparing a scene: implementation
@@ -561,10 +585,12 @@ private:
     float _pixelRenderYOffset;
     bool _renderAtScreenRes;
 
-    ShaderProgram _dummyShader; // placeholder
-    ShaderProgram _tintShader;
+    // Built-in shaders
+    // TODO: RAII-wrapper for IGraphicShader / D3DShader pointer
+    D3DShader *_dummyShader = nullptr;
+    D3DShader *_tintShader = nullptr;
     // Custom shaders
-    std::vector<ShaderProgram> _shaders;
+    std::vector<D3DShader*> _shaders;
     std::unordered_map<String, uint32_t> _shaderLookup;
 
     BackbufferState _screenBackbuffer;

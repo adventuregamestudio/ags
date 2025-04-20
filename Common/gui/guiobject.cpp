@@ -165,9 +165,10 @@ void GUIObject::SetBlendMode(BlendMode blend_mode)
     }
 }
 
-void GUIObject::SetShader(int shader_id)
+void GUIObject::SetShader(int shader_id, int shader_handle)
 {
     _shaderID = shader_id;
+    _shaderHandle = shader_handle;
 }
 
 void GUIObject::SetVisible(bool on)

@@ -19,6 +19,8 @@
 #include "ac/dynobj/scriptcamera.h"
 #include "ac/dynobj/scriptviewport.h"
 #include "ac/dynobj/scriptuserobject.h"
+#include "ac/dynobj/scriptshader.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "ac/draw.h"
 #include "ac/gamestate.h"
 #include "debug/debug_log.h"
@@ -348,16 +350,27 @@ void Viewport_SetZOrder(ScriptViewport *scv, int zorder)
     play.InvalidateViewportZOrder();
 }
 
-int Viewport_GetShader(ScriptViewport *scv)
+ScriptShaderInstance *Viewport_GetShader(ScriptViewport *scv)
 {
     if (scv->GetID() < 0) { debug_script_warn("Viewport.Shader: trying to use deleted viewport"); return 0; }
-    return play.GetRoomViewport(scv->GetID())->GetShaderID();
+    return static_cast<ScriptShaderInstance *>(ccGetObjectAddressFromHandle(
+        play.GetRoomViewport(scv->GetID())->GetShaderHandle()));
 }
 
-void Viewport_SetShader(ScriptViewport *scv, int shader_id)
+void Viewport_SetShader(ScriptViewport *scv, ScriptShaderInstance *shader_inst)
 {
     if (scv->GetID() < 0) { debug_script_warn("Viewport.Shader: trying to use deleted viewport"); return; }
-    play.GetRoomViewport(scv->GetID())->SetShaderID(shader_id);
+    // TODO: we need some sort of a RAII wrapper around managed object reference that does all this automatically!
+    const int new_inst_ref = ccGetObjectHandleFromAddress(shader_inst);
+    auto view = play.GetRoomViewport(scv->GetID());
+    if (view->GetShaderHandle() == new_inst_ref)
+        return;
+
+    if (view->GetShaderHandle() > 0)
+        ccReleaseObjectReference(view->GetShaderHandle());
+
+    ccAddObjectReference(new_inst_ref);
+    view->SetShader(shader_inst->GetShaderInstanceID(), new_inst_ref);
 }
 
 ScriptViewport* Viewport_GetAtScreenXY(int x, int y)
@@ -474,12 +487,12 @@ RuntimeScriptValue Sc_Viewport_SetZOrder(void *self, const RuntimeScriptValue *p
 
 RuntimeScriptValue Sc_Viewport_GetShader(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptViewport, Viewport_GetShader);
+    API_OBJCALL_OBJAUTO(ScriptViewport, ScriptShaderInstance, Viewport_GetShader);
 }
 
 RuntimeScriptValue Sc_Viewport_SetShader(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(ScriptViewport, Viewport_SetShader);
+    API_OBJCALL_VOID_POBJ(ScriptViewport, Viewport_SetShader, ScriptShaderInstance);
 }
 
 RuntimeScriptValue Sc_Viewport_GetAtScreenXY(const RuntimeScriptValue *params, int32_t param_count)

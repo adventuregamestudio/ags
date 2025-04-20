@@ -30,6 +30,7 @@
 #include "ac/spritecache.h"
 #include "ac/string.h"
 #include "ac/dynobj/dynobj_manager.h"
+#include "ac/dynobj/scriptshader.h"
 #include "debug/debug_log.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
@@ -309,16 +310,25 @@ void Overlay_SetBlendMode(ScriptOverlay *scover, int blend_mode)
     over->blendMode = ValidateBlendMode("Overlay.BlendMode", blend_mode);
 }
 
-int Overlay_GetShader(ScriptOverlay *scover)
+ScriptShaderInstance *Overlay_GetShader(ScriptOverlay *scover)
 {
     auto *over = GetOverlayValidate("Overlay.Shader", scover);
-    return over->shader_id;
+    return static_cast<ScriptShaderInstance*>(ccGetObjectAddressFromHandle(over->GetShaderHandle()));
 }
 
-void Overlay_SetShader(ScriptOverlay *scover, int shader_id)
+void Overlay_SetShader(ScriptOverlay *scover, ScriptShaderInstance *shader_inst)
 {
     auto *over = GetOverlayValidate("Overlay.Shader", scover);
-    over->shader_id = shader_id;
+    // TODO: we need some sort of a RAII wrapper around managed object reference that does all this automatically!
+    const int new_inst_ref = ccGetObjectHandleFromAddress(shader_inst);
+    if (over->GetShaderHandle() == new_inst_ref)
+        return;
+
+    if (over->GetShaderHandle() > 0)
+        ccReleaseObjectReference(over->GetShaderHandle());
+
+    ccAddObjectReference(new_inst_ref);
+    over->SetShader(shader_inst->GetShaderInstanceID(), new_inst_ref);
 }
 
 int Overlay_GetTransparency(ScriptOverlay *scover)
@@ -496,6 +506,12 @@ static void invalidate_and_subref(ScreenOverlay &over)
 static void dispose_overlay(ScreenOverlay &over)
 {
     over.SetImage(nullptr);
+    // release shader reference
+    if (over.GetShaderHandle() > 0)
+    {
+        ccReleaseObjectReference(over.GetShaderHandle());
+        over.RemoveShader();
+    }
     // invalidate script object and dispose it if there are no more refs
     if (over.associatedOverlayHandle > 0)
     {
@@ -861,12 +877,12 @@ RuntimeScriptValue Sc_Overlay_SetBlendMode(void *self, const RuntimeScriptValue 
 
 RuntimeScriptValue Sc_Overlay_GetShader(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptOverlay, Overlay_GetShader);
+    API_OBJCALL_OBJAUTO(ScriptOverlay, ScriptShaderInstance, Overlay_GetShader);
 }
 
 RuntimeScriptValue Sc_Overlay_SetShader(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(ScriptOverlay, Overlay_SetShader);
+    API_OBJCALL_VOID_POBJ(ScriptOverlay, Overlay_SetShader, ScriptShaderInstance);
 }
 
 RuntimeScriptValue Sc_Overlay_GetFlip(void *self, const RuntimeScriptValue *params, int32_t param_count)

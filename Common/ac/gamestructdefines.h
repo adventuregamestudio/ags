@@ -197,7 +197,8 @@ enum ScriptAPIVersion
     kScriptAPI_v400_07 = 4000007,
     kScriptAPI_v400_14 = 4000014,
     kScriptAPI_v400_16 = 4000016,
-    kScriptAPI_Current = kScriptAPI_v400_16
+    kScriptAPI_v400_18 = 4000018,
+    kScriptAPI_Current = kScriptAPI_v400_18
 };
 
 const char *GetScriptAPIName(ScriptAPIVersion v);

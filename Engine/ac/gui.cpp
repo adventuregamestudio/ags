@@ -37,6 +37,7 @@
 #include "ac/system.h"
 #include "ac/dynobj/cc_gui.h"
 #include "ac/dynobj/cc_guicontrol.h"
+#include "ac/dynobj/scriptshader.h"
 #include "ac/dynobj/scriptobjects.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "debug/debug_log.h"
@@ -415,14 +416,24 @@ void GUI_SetBlendMode(ScriptGUI *gui, int blend_mode) {
     guis[gui->id].SetBlendMode(ValidateBlendMode("GUI.BlendMode", blend_mode));
 }
 
-int GUI_GetShader(ScriptGUI *gui)
+ScriptShaderInstance *GUI_GetShader(ScriptGUI *gui)
 {
-    return guis[gui->id].GetShader();
+    return static_cast<ScriptShaderInstance*>(ccGetObjectAddressFromHandle(guis[gui->id].GetShaderHandle()));
 }
 
-void GUI_SetShader(ScriptGUI *gui, int shader_id)
+void GUI_SetShader(ScriptGUI *gui, ScriptShaderInstance *shader_inst)
 {
-    guis[gui->id].SetShader(shader_id);
+    // TODO: we need some sort of a RAII wrapper around managed object reference that does all this automatically!
+    const int new_inst_ref = ccGetObjectHandleFromAddress(shader_inst);
+    auto &guim = guis[gui->id];
+    if (guim.GetShaderHandle() == new_inst_ref)
+        return;
+
+    if (guim.GetShaderHandle() > 0)
+        ccReleaseObjectReference(guim.GetShaderHandle());
+
+    ccAddObjectReference(new_inst_ref);
+    guim.SetShader(shader_inst->GetShaderInstanceID(), new_inst_ref);
 }
 
 float GUI_GetRotation(ScriptGUI *gui) {
@@ -1223,12 +1234,12 @@ RuntimeScriptValue Sc_GUI_SetBlendMode(void *self, const RuntimeScriptValue *par
 
 RuntimeScriptValue Sc_GUI_GetShader(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptGUI, GUI_GetShader);
+    API_OBJCALL_OBJAUTO(ScriptGUI, ScriptShaderInstance, GUI_GetShader);
 }
 
 RuntimeScriptValue Sc_GUI_SetShader(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(ScriptGUI, GUI_SetShader);
+    API_OBJCALL_VOID_POBJ(ScriptGUI, GUI_SetShader, ScriptShaderInstance);
 }
 
 RuntimeScriptValue Sc_GUI_GetRotation(void *self, const RuntimeScriptValue *params, int32_t param_count)

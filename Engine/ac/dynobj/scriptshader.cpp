@@ -11,15 +11,18 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "scriptshader.h"
+#include "ac/dynobj/scriptshader.h"
+#include "ac/dynobj/dynobj_manager.h"
 
 using namespace AGS::Common;
 
-ScriptShaderProgram::ScriptShaderProgram(const String &name, uint32_t shader_id, uint32_t shader_inst_id)
+ScriptShaderProgram::ScriptShaderProgram(const String &name, uint32_t shader_id, int default_inst_ref)
     : _name(name)
     , _shaderID(shader_id)
-    , _shaderInstanceID(shader_inst_id)
+    , _defaultInstanceRef(default_inst_ref)
 {
+    if (_defaultInstanceRef > 0)
+        ccAddObjectReference(_defaultInstanceRef);
 }
 
 const char *ScriptShaderProgram::GetType()
@@ -29,8 +32,30 @@ const char *ScriptShaderProgram::GetType()
 
 int ScriptShaderProgram::Dispose(void *address, bool force)
 {
-    //FIXME: figure out when do we delete actual shaders in gfx driver
+    if (_defaultInstanceRef > 0)
+        ccReleaseObjectReference(_defaultInstanceRef);
+
+    //FIXME: figure out when do we delete actual shaders
     //gfxDriver->DeleteShader ... ?
+    delete this;
+    return 1;
+}
+
+ScriptShaderInstance::ScriptShaderInstance(const String &name, uint32_t shader_inst_id)
+    : _name(name)
+    , _shaderInstID(shader_inst_id)
+{
+}
+
+const char *ScriptShaderInstance::GetType()
+{
+    return "ShaderInstance";
+}
+
+int ScriptShaderInstance::Dispose(void *address, bool force)
+{
+    //FIXME: figure out when do we delete actual shaders
+    //gfxDriver->DeleteShaderInstance ... ?
     delete this;
     return 1;
 }

@@ -48,6 +48,7 @@
 #include "ac/viewframe.h"
 #include "ac/walkablearea.h"
 #include "ac/dynobj/scriptmotionpath.h"
+#include "ac/dynobj/scriptshader.h"
 #include "debug/debug_log.h"
 #include "gui/guimain.h"
 #include "main/game_run.h"
@@ -1778,14 +1779,25 @@ void Character_SetBlendMode(CharacterInfo *chaa, int blend_mode) {
     charextra[chaa->index_id].blend_mode = ValidateBlendMode("Character.BlendMode", blend_mode);
 }
 
-int Character_GetShader(CharacterInfo *chaa)
+ScriptShaderInstance *Character_GetShader(CharacterInfo *chaa)
 {
-    return charextra[chaa->index_id].shader_id;
+    return static_cast<ScriptShaderInstance *>(ccGetObjectAddressFromHandle(charextra[chaa->index_id].shader_handle));
 }
 
-void Character_SetShader(CharacterInfo *chaa, int shader_id)
+void Character_SetShader(CharacterInfo *chaa, ScriptShaderInstance *shader_inst)
 {
-    charextra[chaa->index_id].shader_id = shader_id;
+    // TODO: we need some sort of a RAII wrapper around managed object reference that does all this automatically!
+    const int new_inst_ref = ccGetObjectHandleFromAddress(shader_inst);
+    auto &chex = charextra[chaa->index_id];
+    if (chex.shader_handle == new_inst_ref)
+        return;
+
+    if (chex.shader_handle > 0)
+        ccReleaseObjectReference(chex.shader_handle);
+
+    ccAddObjectReference(new_inst_ref);
+    chex.shader_id = shader_inst->GetShaderInstanceID();
+    chex.shader_handle = new_inst_ref;
 }
 
 float Character_GetRotation(CharacterInfo *chaa) {
@@ -4226,12 +4238,12 @@ RuntimeScriptValue Sc_Character_SetBlendMode(void *self, const RuntimeScriptValu
 
 RuntimeScriptValue Sc_Character_GetShader(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetShader);
+    API_OBJCALL_OBJAUTO(CharacterInfo, ScriptShaderInstance, Character_GetShader);
 }
 
 RuntimeScriptValue Sc_Character_SetShader(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetShader);
+    API_OBJCALL_VOID_POBJ(CharacterInfo, Character_SetShader, ScriptShaderInstance);
 }
 
 // bool (CharacterInfo *chaa)

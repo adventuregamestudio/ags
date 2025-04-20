@@ -115,18 +115,42 @@ ScriptShaderProgram *ShaderProgram_CreateFromFile(const char *filename)
             shader = TryCreateShaderFromSource(Path::ReplaceExtension(filename, source_ext), def_filename);
     }
 
-    IShaderInstance *default_inst = gfxDriver->CreateShaderInstance(shader);
-    ScriptShaderProgram *shader_prg = new ScriptShaderProgram(filename, shader->GetID(), default_inst->GetID());
+    ScriptShaderProgram *shader_prg;
+    if (shader)
+    {
+        IShaderInstance *def_inst = gfxDriver->CreateShaderInstance(shader);
+        ScriptShaderInstance *scshader_inst = new ScriptShaderInstance(def_inst->GetName(), def_inst->GetID());
+        int def_inst_handle = ccRegisterManagedObject(scshader_inst, scshader_inst);
+        shader_prg = new ScriptShaderProgram(filename, shader->GetID(), def_inst_handle);
+    }
+    else
+    {
+        // Register a dummy invalid shader object
+        shader_prg = new ScriptShaderProgram(filename, ScriptShaderProgram::InvalidShader, ScriptShaderProgram::InvalidShader);
+    }
+    
     ccRegisterManagedObject(shader_prg, shader_prg);
     return shader_prg;
 }
 
-int ShaderProgram_GetShaderID(ScriptShaderProgram *shader_prg)
+ScriptShaderInstance *ShaderProgram_CreateInstance(ScriptShaderProgram *shader_prg)
 {
-    return shader_prg->GetShaderInstanceID();
+    IGraphicShader *shader = gfxDriver->GetShaderProgram(shader_prg->GetShaderID());
+    if (!shader)
+        return nullptr;
+
+    IShaderInstance *inst = gfxDriver->CreateShaderInstance(shader);
+    ScriptShaderInstance *scshader_inst = new ScriptShaderInstance(inst->GetName(), inst->GetID());
+    ccRegisterManagedObject(scshader_inst, scshader_inst);
+    return scshader_inst;
 }
 
-void ShaderProgram_SetConstantF(ScriptShaderProgram *shader_prg, const char *name, float value)
+ScriptShaderInstance *ShaderProgram_GetDefault(ScriptShaderProgram *shader_prg)
+{
+    return static_cast<ScriptShaderInstance*>(ccGetObjectAddressFromHandle(shader_prg->GetDefaultInstanceRef()));
+}
+
+void ShaderInstance_SetConstantF(ScriptShaderInstance *shader_prg, const char *name, float value)
 {
     IShaderInstance *shader_inst = gfxDriver->GetShaderInstance(shader_prg->GetShaderInstanceID());
     if (shader_inst)
@@ -139,7 +163,7 @@ void ShaderProgram_SetConstantF(ScriptShaderProgram *shader_prg, const char *nam
     }
 }
 
-void ShaderProgram_SetConstantF2(ScriptShaderProgram *shader_prg, const char *name, float x, float y)
+void ShaderInstance_SetConstantF2(ScriptShaderInstance *shader_prg, const char *name, float x, float y)
 {
     IShaderInstance *shader_inst = gfxDriver->GetShaderInstance(shader_prg->GetShaderInstanceID());
     if (shader_inst)
@@ -152,7 +176,7 @@ void ShaderProgram_SetConstantF2(ScriptShaderProgram *shader_prg, const char *na
     }
 }
 
-void ShaderProgram_SetConstantF3(ScriptShaderProgram *shader_prg, const char *name, float x, float y, float z)
+void ShaderInstance_SetConstantF3(ScriptShaderInstance *shader_prg, const char *name, float x, float y, float z)
 {
     IShaderInstance *shader_inst = gfxDriver->GetShaderInstance(shader_prg->GetShaderInstanceID());
     if (shader_inst)
@@ -165,7 +189,7 @@ void ShaderProgram_SetConstantF3(ScriptShaderProgram *shader_prg, const char *na
     }
 }
 
-void ShaderProgram_SetConstantF4(ScriptShaderProgram *shader_prg, const char *name, float x, float y, float z, float w)
+void ShaderInstance_SetConstantF4(ScriptShaderInstance *shader_prg, const char *name, float x, float y, float z, float w)
 {
     IShaderInstance *shader_inst = gfxDriver->GetShaderInstance(shader_prg->GetShaderInstanceID());
     if (shader_inst)
@@ -183,40 +207,46 @@ RuntimeScriptValue Sc_ShaderProgram_CreateFromFile(const RuntimeScriptValue *par
     API_SCALL_OBJAUTO_POBJ(ScriptShaderProgram, ShaderProgram_CreateFromFile, const char);
 }
 
-RuntimeScriptValue Sc_ShaderProgram_GetShaderID(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_ShaderProgram_CreateInstance(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptShaderProgram, ShaderProgram_GetShaderID);
+    API_OBJCALL_OBJAUTO(ScriptShaderProgram, ScriptShaderInstance, ShaderProgram_CreateInstance);
 }
 
-RuntimeScriptValue Sc_ShaderProgram_SetConstantF(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_ShaderProgram_GetDefault(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_POBJ_PFLOAT(ScriptShaderProgram, ShaderProgram_SetConstantF, const char);
+    API_OBJCALL_OBJAUTO(ScriptShaderProgram, ScriptShaderInstance, ShaderProgram_GetDefault);
 }
 
-RuntimeScriptValue Sc_ShaderProgram_SetConstantF2(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_ShaderInstance_SetConstantF(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_POBJ_PFLOAT2(ScriptShaderProgram, ShaderProgram_SetConstantF2, const char);
+    API_OBJCALL_VOID_POBJ_PFLOAT(ScriptShaderInstance, ShaderInstance_SetConstantF, const char);
 }
 
-RuntimeScriptValue Sc_ShaderProgram_SetConstantF3(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_ShaderInstance_SetConstantF2(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_POBJ_PFLOAT3(ScriptShaderProgram, ShaderProgram_SetConstantF3, const char);
+    API_OBJCALL_VOID_POBJ_PFLOAT2(ScriptShaderInstance, ShaderInstance_SetConstantF2, const char);
 }
 
-RuntimeScriptValue Sc_ShaderProgram_SetConstantF4(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_ShaderInstance_SetConstantF3(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_POBJ_PFLOAT4(ScriptShaderProgram, ShaderProgram_SetConstantF4, const char);
+    API_OBJCALL_VOID_POBJ_PFLOAT3(ScriptShaderInstance, ShaderInstance_SetConstantF3, const char);
+}
+
+RuntimeScriptValue Sc_ShaderInstance_SetConstantF4(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_POBJ_PFLOAT4(ScriptShaderInstance, ShaderInstance_SetConstantF4, const char);
 }
 
 void RegisterShaderAPI()
 {
     ScFnRegister shader_api[] = {
         { "ShaderProgram::CreateFromFile", API_FN_PAIR(ShaderProgram_CreateFromFile)},
-        { "ShaderProgram::get_ShaderID",   API_FN_PAIR(ShaderProgram_GetShaderID)},
-        { "ShaderProgram::SetConstantF",   API_FN_PAIR(ShaderProgram_SetConstantF)},
-        { "ShaderProgram::SetConstantF2",  API_FN_PAIR(ShaderProgram_SetConstantF2)},
-        { "ShaderProgram::SetConstantF3",  API_FN_PAIR(ShaderProgram_SetConstantF3)},
-        { "ShaderProgram::SetConstantF4",  API_FN_PAIR(ShaderProgram_SetConstantF4)},
+        { "ShaderProgram::CreateInstance", API_FN_PAIR(ShaderProgram_CreateInstance)},
+        { "ShaderProgram::get_Default",    API_FN_PAIR(ShaderProgram_GetDefault)},
+        { "ShaderInstance::SetConstantF",  API_FN_PAIR(ShaderInstance_SetConstantF)},
+        { "ShaderInstance::SetConstantF2", API_FN_PAIR(ShaderInstance_SetConstantF2)},
+        { "ShaderInstance::SetConstantF3", API_FN_PAIR(ShaderInstance_SetConstantF3)},
+        { "ShaderInstance::SetConstantF4", API_FN_PAIR(ShaderInstance_SetConstantF4)},
     };
 
     ccAddExternalFunctions(shader_api);

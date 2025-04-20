@@ -84,7 +84,6 @@ struct ScreenOverlay
     uint8_t tint_r = 0u, tint_g = 0u, tint_b = 0u, tint_level = 0u;
     int tint_light = 0; // -100 to 100 (comply to objects and characters)
     Common::BlendMode blendMode = Common::kBlend_Normal;
-    int shader_id = -1;
     int transparency = 0;
     Common::GraphicSpace _gs;
 
@@ -136,9 +135,17 @@ struct ScreenOverlay
     void SetLightLevel(int light_level);
     // Removes tint and light level
     void RemoveTint();
+    // Gets shader id
+    int  GetShaderID() const { return _shaderID; }
+    // Gets script shader's managed handle
+    int  GetShaderHandle() const { return _shaderHandle; }
+    // Assigns a shader to overlay
+    void SetShader(int shader_id, int shader_handle);
+    // Removes a shader reference
+    void RemoveShader();
     // Tells if Overlay has graphically changed recently
     bool HasChanged() const { return _hasChanged; }
-    // Manually marks GUI as graphically changed
+    // Manually marks overlay as graphically changed
     void MarkChanged() { _hasChanged = true; }
     // Clears changed flag
     void ClearChanged() { _hasChanged = false; }
@@ -155,6 +162,8 @@ private:
     int _flags = 0; // OverlayFlags
     int _sprnum = 0; // sprite id
     Common::SpriteTransformFlags _spritetf = Common::kSprTf_None;
+    int _shaderID = -1;
+    int _shaderHandle = 0;
     bool _hasChanged = false;
 };
 

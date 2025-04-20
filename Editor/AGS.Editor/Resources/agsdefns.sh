@@ -845,6 +845,9 @@ builtin managed struct Walkbehind;
 builtin managed struct Pathfinder;
 builtin managed struct MotionPath;
 #endif // SCRIPT_API_v400
+#ifdef SCRIPT_API_v400_18
+builtin managed struct ShaderInstance;
+#endif // SCRIPT_API_v400_18
 
 builtin struct Room {
   /// Gets a custom text property associated with this room.
@@ -1290,10 +1293,11 @@ builtin managed struct Overlay {
   readonly import attribute int  TintLuminance;
   /// Gets/sets the flip direction of this overlay.
   import attribute eFlipDirection Flip;
-
-  ///
-  import attribute int Shader;
 #endif // SCRIPT_API_v400
+#ifdef SCRIPT_API_v400_18
+  /// Gets/sets the shader of this overlay.
+  import attribute ShaderInstance* Shader;
+#endif // SCRIPT_API_v400_18
 };
 
 #ifdef SCRIPT_API_v400
@@ -1557,21 +1561,22 @@ builtin managed struct GUIControl {
   import readonly attribute String ScriptName;
 #endif // SCRIPT_API_v361
 #ifdef SCRIPT_API_v400
-  /// Gets an integer custom property for this GUI.
+  /// Gets an integer custom property for this control.
   import int  GetProperty(const string property);
-  /// Gets a text custom property for this GUI.
+  /// Gets a text custom property for this control.
   import String GetTextProperty(const string property);
-  /// Sets an integer custom property for this GUI.
+  /// Sets an integer custom property for this control.
   import bool SetProperty(const string property, int value);
-  /// Sets a text custom property for this GUI.
+  /// Sets a text custom property for this control.
   import bool SetTextProperty(const string property, const string value);
 
   /// Gets/sets the blending mode of this control.
   import attribute BlendMode BlendMode;
-
-  ///
-  import attribute int Shader;
 #endif // SCRIPT_API_v400
+#ifdef SCRIPT_API_v400_18
+  /// Gets/sets the shader of this control.
+  import attribute ShaderInstance* Shader;
+#endif // SCRIPT_API_v400_18
 };
 
 builtin managed struct Label extends GUIControl {
@@ -1826,10 +1831,11 @@ builtin managed struct GUI {
   import bool SetProperty(const string property, int value);
   /// Sets a text custom property for this GUI.
   import bool SetTextProperty(const string property, const string value);
-
-  ///
-  import attribute int Shader;
 #endif // SCRIPT_API_v400
+#ifdef SCRIPT_API_v400_18
+  /// Gets/sets the shader of this GUI.
+  import attribute ShaderInstance* Shader;
+#endif // SCRIPT_API_v400_18
   readonly int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };
 
@@ -2456,10 +2462,11 @@ builtin managed struct Object {
   import attribute bool Enabled;
   /// Gets this object's current MotionPath, or null if it's not moving.
   import attribute MotionPath* MotionPath;
-
-  ///
-  import attribute int Shader;
 #endif // SCRIPT_API_v400
+#ifdef SCRIPT_API_v400_18
+  /// Gets/sets the shader of this object.
+  import attribute ShaderInstance* Shader;
+#endif // SCRIPT_API_v400_18
   readonly int reserved[2];  // $AUTOCOMPLETEIGNORE$
 };
 
@@ -2726,10 +2733,11 @@ builtin managed struct Character {
   import attribute float FaceDirectionRatio;
   /// Gets this character's current MotionPath, or null if it's not moving.
   import attribute MotionPath* MotionPath;
-
-  ///
-  import attribute int Shader;
 #endif // SCRIPT_API_v400
+#ifdef SCRIPT_API_v400_18
+  /// Gets/sets the shader of this character.
+  import attribute ShaderInstance* Shader;
+#endif // SCRIPT_API_v400_18
 #ifdef SCRIPT_COMPAT_v399
   char  on;
 #endif // SCRIPT_COMPAT_v399
@@ -3057,10 +3065,10 @@ builtin managed struct Viewport {
   /// Returns the point on screen corresponding to the given room coordinates if seen through this viewport.
   import Point *RoomToScreenPoint(int roomx, int roomy, bool clipViewport = true);
 
-#ifdef SCRIPT_API_v400
-  ///
-  import attribute int Shader;
-#endif // SCRIPT_API_v400
+#ifdef SCRIPT_API_v400_18
+  /// Gets/sets the shader of this viewport.
+  import attribute ShaderInstance* Shader;
+#endif // SCRIPT_API_v400_18
 };
 
 builtin struct Screen {
@@ -3312,19 +3320,29 @@ builtin managed struct MotionPath {
   /// Gets the current Y magnitude of an object's velocity.
   import readonly attribute float VelocityY;
 };
+#endif // SCRIPT_API_v400
 
+#ifdef SCRIPT_API_v400_18
 builtin managed struct ShaderProgram {
-  ///
-  import static ShaderProgram* CreateFromFile(const string filename);
-  ///
-  import readonly attribute int ShaderID;
-  ///
+  /// Creates a new ShaderProgram by either loading a precompiled shader, or reading source code and compiling one.
+  import static ShaderProgram* CreateFromFile(const string filename); // $AUTOCOMPLETESTATICONLY$
+  /// Creates a new shader instance of this shader program.
+  import ShaderInstance* CreateInstance();
+  /// Gets the default shader instance of this shader program.
+  import readonly attribute ShaderInstance* Default;
+};
+
+builtin managed struct ShaderInstance {
+  /// Sets a shader's constant value as 1 float
   import void SetConstantF(const string name, float value);
+  /// Sets a shader's constant value as 2 floats
   import void SetConstantF2(const string name, float x, float y);
+  /// Sets a shader's constant value as 3 floats
   import void SetConstantF3(const string name, float x, float y, float z);
+  /// Sets a shader's constant value as 4 floats
   import void SetConstantF4(const string name, float x, float y, float z, float w);
 };
-#endif // SCRIPT_API_v400
+#endif // SCRIPT_API_v400_18
 
 
 import ColorType palette[PALETTE_SIZE];

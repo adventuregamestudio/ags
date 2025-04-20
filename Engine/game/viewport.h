@@ -147,7 +147,8 @@ public:
     void SetZOrder(int zorder);
 
     int GetShaderID() const { return _shaderID; }
-    void SetShaderID(int shader_id) { _shaderID = shader_id; }
+    int GetShaderHandle() const { return _shaderHandle; }
+    void SetShader(int shader_id, int shader_handle) { _shaderID = shader_id; _shaderHandle = shader_handle; }
 
     // Calculates room-to-viewport coordinate conversion.
     void AdjustTransformation();
@@ -189,7 +190,8 @@ private:
     glm::mat4 _v2cTransform;
     bool _visible = true;
     int _zorder = 0;
-    int _shaderID = 0;
+    int _shaderID = -1;
+    int _shaderHandle = 0;
     // Flags that tell whether this viewport's position on screen has changed recently
     bool _hasChangedPosition = false;
     bool _hasChangedOffscreen = false;

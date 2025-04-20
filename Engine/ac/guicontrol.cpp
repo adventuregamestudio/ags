@@ -24,6 +24,8 @@
 #include "ac/string.h"
 #include "ac/dynobj/cc_gui.h"
 #include "ac/dynobj/cc_guicontrol.h"
+#include "ac/dynobj/scriptshader.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "debug/debug_log.h"
 #include "script/runtimescriptvalue.h"
 
@@ -258,14 +260,23 @@ bool GUIControl_SetTextProperty(GUIObject *guio, const char *property, const cha
     return set_text_property(play.guicontrolProps[ctrl_type][ctrl_id], property, value);
 }
 
-int GUIControl_GetShader(GUIObject *guio)
+ScriptShaderInstance *GUIControl_GetShader(GUIObject *guio)
 {
-    return guio->GetShader();
+    return static_cast<ScriptShaderInstance*>(ccGetObjectAddressFromHandle(guio->GetShaderHandle()));
 }
 
-void GUIControl_SetShader(GUIObject *guio, int shader_id)
+void GUIControl_SetShader(GUIObject *guio, ScriptShaderInstance *shader_inst)
 {
-    guio->SetShader(shader_id);
+    // TODO: we need some sort of a RAII wrapper around managed object reference that does all this automatically!
+    const int new_inst_ref = ccGetObjectHandleFromAddress(shader_inst);
+    if (guio->GetShaderHandle() == new_inst_ref)
+        return;
+
+    if (guio->GetShaderHandle() > 0)
+        ccReleaseObjectReference(guio->GetShaderHandle());
+
+    ccAddObjectReference(new_inst_ref);
+    guio->SetShader(shader_inst->GetShaderInstanceID(), new_inst_ref);
 }
 
 //=============================================================================
@@ -495,12 +506,12 @@ RuntimeScriptValue Sc_GUIControl_SetBlendMode(void *self, const RuntimeScriptVal
 
 RuntimeScriptValue Sc_GUIControl_GetShader(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(GUIObject, GUIControl_GetShader);
+    API_OBJCALL_OBJAUTO(GUIObject, ScriptShaderInstance, GUIControl_GetShader);
 }
 
 RuntimeScriptValue Sc_GUIControl_SetShader(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(GUIObject, GUIControl_SetShader);
+    API_OBJCALL_VOID_POBJ(GUIObject, GUIControl_SetShader, ScriptShaderInstance);
 }
 
 RuntimeScriptValue Sc_GUIControl_GetProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)

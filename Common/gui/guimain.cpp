@@ -132,9 +132,10 @@ void GUIMain::SetBlendMode(BlendMode blend_mode)
     _blendMode = blend_mode;
 }
 
-void GUIMain::SetShader(int shader_id)
+void GUIMain::SetShader(int shader_id, int shader_handle)
 {
     _shaderID = shader_id;
+    _shaderHandle = shader_handle;
 }
 
 void GUIMain::SetScale(float sx, float sy)

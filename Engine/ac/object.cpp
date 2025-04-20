@@ -35,6 +35,7 @@
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/dynobj/scriptuserobject.h"
 #include "ac/dynobj/scriptmotionpath.h"
+#include "ac/dynobj/scriptshader.h"
 #include "debug/debug_log.h"
 #include "main/game_run.h"
 #include "ac/route_finder.h"
@@ -856,14 +857,25 @@ void Object_SetBlendMode(ScriptObject *objj, int blend_mode) {
     objs[objj->id].blend_mode = ValidateBlendMode("Object.BlendMode", blend_mode);
 }
 
-int Object_GetShader(ScriptObject *objj)
+ScriptShaderInstance *Object_GetShader(ScriptObject *objj)
 {
-    return objs[objj->id].shader_id;
+    return static_cast<ScriptShaderInstance *>(ccGetObjectAddressFromHandle(objs[objj->id].shader_handle));
 }
 
-void Object_SetShader(ScriptObject *objj, int shader_id)
+void Object_SetShader(ScriptObject *objj, ScriptShaderInstance *shader_inst)
 {
-    objs[objj->id].shader_id = shader_id;
+    // TODO: we need some sort of a RAII wrapper around managed object reference that does all this automatically!
+    const int new_inst_ref = ccGetObjectHandleFromAddress(shader_inst);
+    auto &obj = objs[objj->id];
+    if (obj.shader_handle == new_inst_ref)
+        return;
+
+    if (obj.shader_handle > 0)
+        ccReleaseObjectReference(obj.shader_handle);
+
+    ccAddObjectReference(new_inst_ref);
+    obj.shader_id = shader_inst->GetShaderInstanceID();
+    obj.shader_handle = new_inst_ref;
 }
 
 float Object_GetRotation(ScriptObject *objj) {
@@ -1748,13 +1760,13 @@ RuntimeScriptValue Sc_Object_SetBlendMode(void *self, const RuntimeScriptValue *
 
 RuntimeScriptValue Sc_Object_GetShader(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptObject, Object_GetShader);
+    API_OBJCALL_OBJAUTO(ScriptObject, ScriptShaderInstance, Object_GetShader);
 }
 
 // void (ScriptObject *objj, int blendMode)
 RuntimeScriptValue Sc_Object_SetShader(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetShader);
+    API_OBJCALL_VOID_POBJ(ScriptObject, Object_SetShader, ScriptShaderInstance);
 }
 
 // bool (ScriptObject *objj)

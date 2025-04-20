@@ -126,6 +126,20 @@ void ScreenOverlay::RemoveTint()
     MarkChanged();
 }
 
+void ScreenOverlay::SetShader(int shader_id, int shader_handle)
+{
+    _shaderID = shader_id;
+    _shaderHandle = shader_handle;
+    MarkChanged();
+}
+
+void ScreenOverlay::RemoveShader()
+{
+    _shaderID = -1;
+    _shaderHandle = 0;
+    MarkChanged();
+}
+
 void ScreenOverlay::ReadFromSavegame(Stream *in, bool &has_bitmap, int32_t cmp_ver)
 {
     ResetImage();

@@ -72,7 +72,9 @@ public:
     void            SetTransparencyAsPercentage(int percent);
     BlendMode       GetBlendMode() const { return _blendMode; }
     void            SetBlendMode(BlendMode blend_mode);
-    int             GetShader() const { return _shaderID; }
+    int             GetShaderID() const { return _shaderID; }
+    int             GetShaderHandle() const { return _shaderHandle; }
+    void            SetShader(int shader_id, int shader_handle);
     int             GetZOrder() const { return _zOrder; }
     void            SetZOrder(int zorder);
     void            SetClickable(bool on);
@@ -97,7 +99,6 @@ public:
     // in *relative* coordinates, optionally clipped by the logical size
     virtual Rect    CalcGraphicRect(bool /*clipped*/) { return RectWH(0, 0, _width, _height); }
     virtual void    Draw(Bitmap *ds, int x = 0, int y = 0) { (void)ds; (void)x; (void)y; }
-    void            SetShader(int shader_id);
 
     // Events
     // Key pressed for control; returns if handled
@@ -150,6 +151,7 @@ protected:
     int      _transparency = 0; // "incorrect" alpha (in legacy 255-range units)
     BlendMode _blendMode = kBlend_Normal;
     int      _shaderID = -1;
+    int      _shaderHandle = 0; // runtime script shader handle
     bool     _hasChanged = false;
 
     // TODO: explicit event names & handlers for every event

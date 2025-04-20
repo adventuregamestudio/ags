@@ -145,11 +145,12 @@ public:
     // Looks up for the constant in a shader. Returns a valid index if such shader is registered,
     // and constant is present in that shader, or UINT32_MAX on failure.
     uint32_t GetShaderConstant(const String &const_name) override;
-    // Sets shader constant, using constant's index (returned by GetShaderConstant)
-    virtual void SetShaderConstantF(uint32_t const_index, float value) override;
-    virtual void SetShaderConstantF2(uint32_t const_index, float x, float y) override;
-    virtual void SetShaderConstantF3(uint32_t const_index, float x, float y, float z) override;
-    virtual void SetShaderConstantF4(uint32_t const_index, float x, float y, float z, float w) override;
+
+    // A cap of the number of constants that we support (0..N)
+    static const uint32_t ConstantCap = 12u;
+    // A place in buffer where we will write non-applied values;
+    // this is just to streamline the process and don't litter the code with checks
+    static const uint32_t NullConstantIndex = ConstantCap;
 
     // Shader data wrapped in a struct, for easier referencing
     struct ProgramData
@@ -193,6 +194,46 @@ public:
 
 private:
     OGLShader::ProgramData _data;
+};
+
+class OGLShaderInstance final : public BaseShaderInstance
+{
+public:
+    OGLShaderInstance(OGLShader *shader, const String &name, uint32_t id);
+    ~OGLShaderInstance() = default;
+
+    // Returns a IGraphicShader referenced by this shader instance
+    IGraphicShader *GetShader() override { return _shader; }
+
+    // Sets shader constant, using constant's index (returned by GetShaderConstant)
+    void SetShaderConstantF(uint32_t const_index, float value) override;
+    void SetShaderConstantF2(uint32_t const_index, float x, float y) override;
+    void SetShaderConstantF3(uint32_t const_index, float x, float y, float z) override;
+    void SetShaderConstantF4(uint32_t const_index, float x, float y, float z, float w) override;
+
+    struct ConstantValue
+    {
+        uint32_t Loc = 0u;  // constant location in program
+        uint32_t Size = 0u; // size of the constant, in floats
+        float Val[4] = {};
+
+        ConstantValue() = default;
+        ConstantValue(uint32_t loc, uint32_t size, float x = 0.f, float y = 0.f, float z = 0.f, float w = 0.f)
+            : Loc(loc), Size(size)
+        {
+            Val[0] = x; Val[1] = y; Val[2] = z; Val[3] = w;
+        }
+    };
+
+    const OGLShader::ProgramData &GetShaderData() const { return _shader->GetData(); }
+    const std::vector<ConstantValue> &GetConstantData() { return _constantData; }
+
+private:
+    void SetConstant(uint32_t const_index, uint32_t size, float x = 0.f, float y = 0.f, float z = 0.f, float w = 0.f);
+
+    OGLShader *_shader = nullptr;
+    // Constant buffer data, applied each time a shader is used in render
+    std::vector<ConstantValue> _constantData;
 };
 
 // OGL renderer's sprite batch
@@ -344,6 +385,15 @@ public:
     IGraphicShader *GetShaderProgram(uint32_t shader_id) override;
     // Deletes particular shader program.
     void DeleteShaderProgram(IGraphicShader *shader) override;
+    // Creates shader instance for the given shader.
+    IShaderInstance *CreateShaderInstance(IGraphicShader *shader) override;
+    // Looks up for the shader instance using a name,
+    // returns IShaderInstance, or null on failure.
+    IShaderInstance *FindShaderInstance(const String &name) override;
+    // Gets the shader program using its internal numeric ID; returns null if no such shader ID exists.
+    IShaderInstance *GetShaderInstance(uint32_t shader_inst_id) override;
+    // Deletes particular shader instance
+    void DeleteShaderInstance(IShaderInstance *shader_inst) override;
 
     ///////////////////////////////////////////////////////
     // Preparing a scene
@@ -529,8 +579,10 @@ private:
     OGLShader *_darkenbyAlphaShader = nullptr;
     OGLShader *_lightenByAlphaShader = nullptr;
     // Custom shaders
+    // TODO: move these and store outside of the gfx driver class, pass interface pointers instead of IDs
     std::vector<OGLShader*> _shaders;
     std::unordered_map<String, uint32_t> _shaderLookup;
+    std::vector<OGLShaderInstance*> _shaderInst;
 
     int device_screen_physical_width;
     int device_screen_physical_height;

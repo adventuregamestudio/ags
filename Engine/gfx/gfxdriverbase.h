@@ -319,6 +319,23 @@ protected:
 };
 
 
+class BaseShaderInstance : public IShaderInstance
+{
+public:
+    // Gets this shader's name, which uniquely identifies this shader
+    const String &GetName() const override { return _name; }
+    uint32_t GetID() const override { return _id; }
+
+protected:
+    BaseShaderInstance() = default;
+    BaseShaderInstance(const String &name, uint32_t id)
+        : _name(name), _id(id) {}
+
+    String _name;
+    uint32_t _id = UINT32_MAX;
+};
+
+
 // Generic TextureTile base
 struct TextureTile
 {

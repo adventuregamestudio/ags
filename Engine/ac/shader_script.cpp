@@ -87,7 +87,7 @@ ScriptShaderProgram *ShaderProgram_CreateFromFile(const char *filename)
     // Software renderer does not support shaders, so return a dummy shader program
     if (!gfxDriver->HasAcceleratedTransform())
     {
-        ScriptShaderProgram *shader_prg = new ScriptShaderProgram(filename, 0);
+        ScriptShaderProgram *shader_prg = new ScriptShaderProgram(filename, ScriptShaderProgram::InvalidShader, ScriptShaderProgram::InvalidShader);
         ccRegisterManagedObject(shader_prg, shader_prg);
         return shader_prg;
     }
@@ -115,57 +115,66 @@ ScriptShaderProgram *ShaderProgram_CreateFromFile(const char *filename)
             shader = TryCreateShaderFromSource(Path::ReplaceExtension(filename, source_ext), def_filename);
     }
 
-    ScriptShaderProgram *shader_prg = new ScriptShaderProgram(filename, shader->GetID());
+    IShaderInstance *default_inst = gfxDriver->CreateShaderInstance(shader);
+    ScriptShaderProgram *shader_prg = new ScriptShaderProgram(filename, shader->GetID(), default_inst->GetID());
     ccRegisterManagedObject(shader_prg, shader_prg);
     return shader_prg;
 }
 
 int ShaderProgram_GetShaderID(ScriptShaderProgram *shader_prg)
 {
-    return shader_prg->GetShaderID();
+    return shader_prg->GetShaderInstanceID();
 }
 
 void ShaderProgram_SetConstantF(ScriptShaderProgram *shader_prg, const char *name, float value)
 {
-    IGraphicShader *shader = gfxDriver->GetShaderProgram(shader_prg->GetShaderID());
-    if (shader)
+    IShaderInstance *shader_inst = gfxDriver->GetShaderInstance(shader_prg->GetShaderInstanceID());
+    if (shader_inst)
     {
-        uint32_t const_index = shader->GetShaderConstant(name);
+        uint32_t const_index = shader_inst->GetShader()->GetShaderConstant(name);
         if (const_index != UINT32_MAX)
-            shader->SetShaderConstantF(const_index, value);
+        {
+            shader_inst->SetShaderConstantF(const_index, value);
+        }
     }
 }
 
 void ShaderProgram_SetConstantF2(ScriptShaderProgram *shader_prg, const char *name, float x, float y)
 {
-    IGraphicShader *shader = gfxDriver->GetShaderProgram(shader_prg->GetShaderID());
-    if (shader)
+    IShaderInstance *shader_inst = gfxDriver->GetShaderInstance(shader_prg->GetShaderInstanceID());
+    if (shader_inst)
     {
-        uint32_t const_index = shader->GetShaderConstant(name);
+        uint32_t const_index = shader_inst->GetShader()->GetShaderConstant(name);
         if (const_index != UINT32_MAX)
-            shader->SetShaderConstantF2(const_index, x, y);
+        {
+            shader_inst->SetShaderConstantF2(const_index, x, y);
+        }
     }
 }
 
 void ShaderProgram_SetConstantF3(ScriptShaderProgram *shader_prg, const char *name, float x, float y, float z)
 {
-    IGraphicShader *shader = gfxDriver->GetShaderProgram(shader_prg->GetShaderID());
-    if (shader)
+    IShaderInstance *shader_inst = gfxDriver->GetShaderInstance(shader_prg->GetShaderInstanceID());
+    if (shader_inst)
     {
-        uint32_t const_index = shader->GetShaderConstant(name);
+        uint32_t const_index = shader_inst->GetShader()->GetShaderConstant(name);
         if (const_index != UINT32_MAX)
-            shader->SetShaderConstantF3(const_index, x, y, z);
+        {
+            shader_inst->SetShaderConstantF3(const_index, x, y, z);
+        }
     }
 }
 
 void ShaderProgram_SetConstantF4(ScriptShaderProgram *shader_prg, const char *name, float x, float y, float z, float w)
 {
-    IGraphicShader *shader = gfxDriver->GetShaderProgram(shader_prg->GetShaderID());
-    if (shader)
+    IShaderInstance *shader_inst = gfxDriver->GetShaderInstance(shader_prg->GetShaderInstanceID());
+    if (shader_inst)
     {
-        uint32_t const_index = shader->GetShaderConstant(name);
+        uint32_t const_index = shader_inst->GetShader()->GetShaderConstant(name);
         if (const_index != UINT32_MAX)
-            shader->SetShaderConstantF4(const_index, x, y, z, w);
+        {
+            shader_inst->SetShaderConstantF4(const_index, x, y, z, w);
+        }
     }
 }
 

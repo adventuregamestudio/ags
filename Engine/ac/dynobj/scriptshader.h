@@ -21,19 +21,23 @@ struct ScriptShaderProgram final : CCBasicObject
 {
     using String = AGS::Common::String;
 public:
-    const static int InvalidShader = -1;
+    const static uint32_t InvalidShader = -1;
 
-    ScriptShaderProgram(const String &name, int shader_id);
+    ScriptShaderProgram(const String &name, uint32_t shader_id, uint32_t shader_inst_id);
 
     const String &GetName() const { return _name; }
-    int GetShaderID() const { return _shaderID; }
+    // FIXME make uint32_t, when the script api is fixed to store pointer instead of id
+    uint32_t GetShaderID() const { return _shaderID; }
+    // FIXME replace with "default instance"
+    uint32_t GetShaderInstanceID() const { return _shaderInstanceID; }
 
     const char *GetType() override;
     int Dispose(void *address, bool force) override;
 
 private:
     String _name;
-    int _shaderID = InvalidShader;
+    uint32_t _shaderID = InvalidShader;
+    uint32_t _shaderInstanceID = UINT32_MAX; // FIXME: replace with "default instance"
 };
 
 #endif // __AGS_EE_DYNOBJ__SCRIPTSHADER_H

@@ -158,23 +158,18 @@ public:
     // Looks up for the constant in a shader. Returns a valid index if such shader is registered,
     // and constant is present in that shader, or UINT32_MAX on failure.
     uint32_t GetShaderConstant(const String &const_name) override;
-    // Sets shader constant, using constant's index (returned by GetShaderConstant)
-    virtual void SetShaderConstantF(uint32_t const_index, float value) override;
-    virtual void SetShaderConstantF2(uint32_t const_index, float x, float y) override;
-    virtual void SetShaderConstantF3(uint32_t const_index, float x, float y, float z) override;
-    virtual void SetShaderConstantF4(uint32_t const_index, float x, float y, float z, float w) override;
+
+    // A single constant register size *in floats*
+    static const uint32_t ConstantSize = 4u;
+    // A cap of the number of constant registers that we support (0..N)
+    static const uint32_t ConstantCap = 12u;
+    // A place in buffer where we will write non-applied values;
+    // this is just to streamline the process and don't litter the code with checks
+    static const uint32_t NullConstantIndex = ConstantCap;
 
     // Shader data wrapped in a struct, for easier referencing
     struct ProgramData
     {
-        // A single constant register size *in floats*
-        static const uint32_t RegisterSize = 4u;
-        // A cap of the number of constant registers that we support (0..N)
-        static const uint32_t RegisterCap = 12u;
-        // A place in buffer where we will write non-applied values;
-        // this is just to streamline the process and don't litter the code with checks
-        static const uint32_t NullRegisterIndex = RegisterCap;
-
         D3DPixelShaderPtr ShaderPtr;
 
         struct Register
@@ -187,7 +182,7 @@ public:
             Register &operator=(uint32_t reg_index)
             {
                 Index = reg_index;
-                Off = reg_index * RegisterSize;
+                Off = reg_index * ConstantSize;
                 return *this;
             }
         };
@@ -206,8 +201,6 @@ public:
         // Constants table: maps constant name to the index/register
         // in the compiled shader
         std::unordered_map<String, uint32_t> Constants;
-        // Constant buffer data, applied each time a shader is used in render
-        std::vector<float> ConstantData;
     };
 
     D3DShader(const String &name, uint32_t id);
@@ -217,14 +210,38 @@ public:
 
     bool IsValid() const { return _data.ShaderPtr != nullptr; }
     const D3DShader::ProgramData &GetData() const { return _data; }
-    float *GetConstantData() { return _data.ConstantData.data(); }
-    size_t GetConstantDataSize() { return _data.ConstantData.size(); }
 
 private:
     ProgramData _data;
 };
 
-class D3DGfxModeList : public IGfxModeList
+class D3DShaderInstance final : public BaseShaderInstance
+{
+public:
+    D3DShaderInstance(D3DShader *shader, const String &name, uint32_t id);
+    ~D3DShaderInstance() = default;
+
+    // Returns a IGraphicShader referenced by this shader instance
+    IGraphicShader *GetShader() override { return _shader; }
+
+    // Sets shader constant, using constant's index (returned by GetShaderConstant)
+    void SetShaderConstantF(uint32_t const_index, float value) override;
+    void SetShaderConstantF2(uint32_t const_index, float x, float y) override;
+    void SetShaderConstantF3(uint32_t const_index, float x, float y, float z) override;
+    void SetShaderConstantF4(uint32_t const_index, float x, float y, float z, float w) override;
+
+    const D3DShader::ProgramData &GetShaderData() const { return _shader->GetData(); }
+    float *GetConstantData() { return _constantData.data(); }
+    size_t GetConstantDataSize() const { return _constantData.size(); }
+
+private:
+    // FIXME: provide reference counting of shader ptr
+    D3DShader *_shader = nullptr;
+    // Constant buffer data, applied each time a shader is used in render
+    std::vector<float> _constantData;
+};
+
+class D3DGfxModeList final : public IGfxModeList
 {
 public:
     D3DGfxModeList(const D3DPtr &direct3d, int display_index, D3DFORMAT d3dformat);
@@ -376,6 +393,15 @@ public:
     IGraphicShader *GetShaderProgram(uint32_t shader_id) override;
     // Deletes particular shader program.
     void DeleteShaderProgram(IGraphicShader *shader) override;
+    // Creates shader instance for the given shader.
+    IShaderInstance *CreateShaderInstance(IGraphicShader *shader) override;
+    // Looks up for the shader instance using a name,
+    // returns IShaderInstance, or null on failure.
+    IShaderInstance *FindShaderInstance(const String &name) override;
+    // Gets the shader program using its internal numeric ID; returns null if no such shader ID exists.
+    IShaderInstance *GetShaderInstance(uint32_t shader_inst_id) override;
+    // Deletes particular shader instance
+    void DeleteShaderInstance(IShaderInstance *shader_inst) override;
 
     ///////////////////////////////////////////////////////
     // Preparing a scene
@@ -590,8 +616,10 @@ private:
     D3DShader *_dummyShader = nullptr;
     D3DShader *_tintShader = nullptr;
     // Custom shaders
+    // TODO: move these and store outside of the gfx driver class, pass interface pointers instead of IDs
     std::vector<D3DShader*> _shaders;
     std::unordered_map<String, uint32_t> _shaderLookup;
+    std::vector<D3DShaderInstance*> _shaderInst;
 
     BackbufferState _screenBackbuffer;
     BackbufferState _nativeBackbuffer;

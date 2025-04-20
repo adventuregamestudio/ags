@@ -141,40 +141,42 @@ uint32_t OGLShader::GetShaderConstant(const String &const_name)
     return index;
 }
 
-void OGLShader::SetShaderConstantF(uint32_t const_index, float value)
+OGLShaderInstance::OGLShaderInstance(OGLShader *shader, const String &name, uint32_t id)
+    : BaseShaderInstance(name, id)
+    , _shader(shader)
 {
-    if (_data.Program == 0)
-        return;
-
-    glUseProgram(_data.Program);
-    glUniform1f(const_index, value);
+    _constantData.resize(OGLShader::NullConstantIndex + 1);
 }
 
-void OGLShader::SetShaderConstantF2(uint32_t const_index, float x, float y)
+void OGLShaderInstance::SetShaderConstantF(uint32_t const_index, float value)
 {
-    if (_data.Program == 0)
-        return;
-
-    glUseProgram(_data.Program);
-    glUniform2f(const_index, x, y);
+    SetConstant(const_index, 1u, value);
 }
 
-void OGLShader::SetShaderConstantF3(uint32_t const_index, float x, float y, float z)
+void OGLShaderInstance::SetShaderConstantF2(uint32_t const_index, float x, float y)
 {
-    if (_data.Program == 0)
-        return;
-
-    glUseProgram(_data.Program);
-    glUniform3f(const_index, x, y, z);
+    SetConstant(const_index, 2u, x, y);
 }
 
-void OGLShader::SetShaderConstantF4(uint32_t const_index, float x, float y, float z, float w)
+void OGLShaderInstance::SetShaderConstantF3(uint32_t const_index, float x, float y, float z)
 {
-    if (_data.Program == 0)
+    SetConstant(const_index, 3u, x, y, z);
+}
+
+void OGLShaderInstance::SetShaderConstantF4(uint32_t const_index, float x, float y, float z, float w)
+{
+    SetConstant(const_index, 4u, x, y, z, w);
+}
+
+void OGLShaderInstance::SetConstant(uint32_t const_index, uint32_t size, float x, float y, float z, float w)
+{
+    // Cap the constant index for safety
+    if (const_index >= OGLShader::ConstantCap)
         return;
 
-    glUseProgram(_data.Program);
-    glUniform4f(const_index, x, y, z, w);
+    assert(size <= 4u);
+    size = std::min(size, 4u);
+    _constantData[const_index] = ConstantValue(const_index, size, x, y, z, w);
 }
 
 
@@ -502,6 +504,7 @@ bool OGLGraphicsDriver::CreateStandardShaders()
 
 void OGLGraphicsDriver::DeleteShaders()
 {
+    _shaderInst.clear();
     for (auto &prg : _shaders)
     {
         DeleteShaderProgram(prg);
@@ -1216,11 +1219,28 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
   light_lev = bmpToDraw->GetLightLevel();
   const bool do_tint = tint_sat > 0 && _tintShader->GetData().Program > 0;
   const bool do_light = tint_sat == 0 && light_lev > 0 && _lightShader->GetData().Program > 0;
-  if (bmpToDraw->GetShader() < _shaders.size())
+  if (bmpToDraw->GetShader() < _shaderInst.size())
   {
     // Use custom shader
-    program = &_shaders[bmpToDraw->GetShader()]->GetData();
+    OGLShaderInstance *shaderinst = _shaderInst[bmpToDraw->GetShader()];
+    program = &shaderinst->GetShaderData();
     glUseProgram(program->Program);
+
+    // Apply custom constants
+    // TODO: investigate if there's a more optimal way to do this,
+    // something similar to how Direct3D applies all constants as a buffer.
+    // See: https://www.khronos.org/opengl/wiki/Uniform_Buffer_Object
+    for (const auto &c : shaderinst->GetConstantData())
+    {
+        switch (c.Size)
+        {
+        case 1: glUniform1f(c.Loc, c.Val[0]); break;
+        case 2: glUniform2f(c.Loc, c.Val[0], c.Val[1]); break;
+        case 3: glUniform3f(c.Loc, c.Val[0], c.Val[1], c.Val[2]); break;
+        case 4: glUniform4f(c.Loc, c.Val[0], c.Val[1], c.Val[2], c.Val[3]); break;
+        default: break;
+        }
+    }
   }
   else if (do_tint)
   {
@@ -2330,6 +2350,44 @@ void OGLGraphicsDriver::DeleteShaderProgram(IGraphicShader *shader)
         _shaders[shader->GetID()] = {};
     }
     delete (OGLShader*)shader;
+}
+
+IShaderInstance *OGLGraphicsDriver::CreateShaderInstance(IGraphicShader *shader)
+{
+    uint32_t inst_id = _shaderInst.size();
+    const String inst_name = String::FromFormat("%s.%u", shader->GetName().GetCStr(), inst_id);
+    OGLShaderInstance *shaderinst = new OGLShaderInstance((OGLShader*)shader, inst_name, inst_id);
+    _shaderInst.push_back(shaderinst);
+    return shaderinst;
+}
+
+IShaderInstance *OGLGraphicsDriver::FindShaderInstance(const String &name)
+{
+    // FIXME: this is a formal lookup implementation,
+    // this method will likely be removed in the future when shaders are stored outside of gfx drivers
+    for (auto *i : _shaderInst)
+    {
+        if (i->GetName() == name)
+            return i;
+    }
+    return nullptr;
+}
+
+IShaderInstance *OGLGraphicsDriver::GetShaderInstance(uint32_t shader_inst_id)
+{
+    if (shader_inst_id >= _shaderInst.size())
+        return nullptr;
+    return _shaderInst[shader_inst_id];
+}
+
+void OGLGraphicsDriver::DeleteShaderInstance(IShaderInstance *shader_inst)
+{
+    assert(shader_inst->GetID() < _shaderInst.size());
+    if (shader_inst->GetID() < _shaderInst.size())
+    {
+        _shaderInst[shader_inst->GetID()] = {};
+    }
+    delete (OGLShaderInstance*)shader_inst;
 }
 
 void OGLGraphicsDriver::SetScreenFade(int red, int green, int blue)

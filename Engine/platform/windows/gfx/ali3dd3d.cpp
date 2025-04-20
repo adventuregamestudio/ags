@@ -188,35 +188,39 @@ uint32_t D3DShader::GetShaderConstant(const String &const_name)
     return it_found->second;
 }
 
-void D3DShader::SetShaderConstantF(uint32_t const_index, float value)
+D3DShaderInstance::D3DShaderInstance(D3DShader *shader, const String &name, uint32_t id)
+    : BaseShaderInstance(name, id)
+    , _shader(shader)
+{
+    _constantData.resize((D3DShader::NullConstantIndex + 1) * D3DShader::ConstantSize);
+}
+
+void D3DShaderInstance::SetShaderConstantF(uint32_t const_index, float value)
 {
     SetShaderConstantF4(const_index, value, 0.f, 0.f, 0.f);
 }
 
-void D3DShader::SetShaderConstantF2(uint32_t const_index, float x, float y)
+void D3DShaderInstance::SetShaderConstantF2(uint32_t const_index, float x, float y)
 {
     SetShaderConstantF4(const_index, x, y, 0.f, 0.f);
 }
 
-void D3DShader::SetShaderConstantF3(uint32_t const_index, float x, float y, float z)
+void D3DShaderInstance::SetShaderConstantF3(uint32_t const_index, float x, float y, float z)
 {
     SetShaderConstantF4(const_index, x, y, z, 0.f);
 }
 
-void D3DShader::SetShaderConstantF4(uint32_t const_index, float x, float y, float z, float w)
+void D3DShaderInstance::SetShaderConstantF4(uint32_t const_index, float x, float y, float z, float w)
 {
-    if (!_data.ShaderPtr)
-        return;
-
     // Cap the constant index for safety
-    if (const_index >= ProgramData::RegisterCap)
+    if (const_index >= D3DShader::ConstantCap)
         return;
 
-    const uint32_t reg_off = const_index * ProgramData::RegisterSize;
-    _data.ConstantData[reg_off + 0] = x;
-    _data.ConstantData[reg_off + 1] = y;
-    _data.ConstantData[reg_off + 2] = z;
-    _data.ConstantData[reg_off + 3] = w;
+    const uint32_t reg_off = const_index * D3DShader::ConstantSize;
+    _constantData[reg_off + 0] = x;
+    _constantData[reg_off + 1] = y;
+    _constantData[reg_off + 2] = z;
+    _constantData[reg_off + 3] = w;
 }
 
 D3DGfxModeList::D3DGfxModeList(const D3DPtr &direct3d, int display_index, D3DFORMAT d3dformat)
@@ -894,6 +898,7 @@ bool D3DGraphicsDriver::CreateStandardShaders()
 
 void D3DGraphicsDriver::DeleteShaders()
 {
+    _shaderInst.clear();
     for (auto &prg : _shaders)
     {
         DeleteShaderProgram(prg);
@@ -975,9 +980,9 @@ const TValue &GetValueOrDef(const TMap<TKey, TValue, THash, TEqualTo, TAllocator
 
 void D3DGraphicsDriver::AssignBaseShaderArgs(D3DShader::ProgramData &prg, const ShaderDefinition *def)
 {
-    const uint32_t reg_sz = D3DShader::ProgramData::RegisterSize;
-    const uint32_t reg_cap = D3DShader::ProgramData::RegisterCap;
-    const uint32_t null_index = D3DShader::ProgramData::NullRegisterIndex;
+    const uint32_t reg_sz = D3DShader::ConstantSize;
+    const uint32_t reg_cap = D3DShader::ConstantCap;
+    const uint32_t null_index = D3DShader::NullConstantIndex;
     if (def && !def->Constants.empty())
     {
         prg.Time = GetValueOrDef(def->Constants, String::Wrapper("iTime"), null_index);
@@ -1006,8 +1011,6 @@ void D3DGraphicsDriver::AssignBaseShaderArgs(D3DShader::ProgramData &prg, const 
                 cc.second = null_index;
         }
     }
-
-    prg.ConstantData.resize((null_index + 1) * reg_sz);
 }
 
 void D3DGraphicsDriver::UpdateGlobalShaderArgValues()
@@ -1303,15 +1306,15 @@ void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw
   light_lev = bmpToDraw->GetLightLevel();
   const bool do_tint = tint_sat > 0 && _tintShader->GetData().ShaderPtr;
 
-  if (bmpToDraw->GetShader() < _shaders.size())
+  if (bmpToDraw->GetShader() < _shaderInst.size())
   {
     // Use custom shader
-    D3DShader *shader = _shaders[bmpToDraw->GetShader()];
-    const D3DShader::ProgramData *program = &shader->GetData();
+    D3DShaderInstance *shaderinst = _shaderInst[bmpToDraw->GetShader()];
+    const D3DShader::ProgramData *program = &shaderinst->GetShaderData();
     direct3ddevice->SetPixelShader(program->ShaderPtr.get());
 
     // FIXME: figure out a better approach to getting writeable internal array's pointer?
-    float *data = shader->GetConstantData();
+    float *data = shaderinst->GetConstantData();
     data[program->Time.Off]             = _globalShaderConst.Time;
     data[program->GameFrame.Off]        = static_cast<float>(_globalShaderConst.GameFrame);
     data[program->TextureDim.Off + 0]   = static_cast<float>(bmpToDraw->GetWidth());
@@ -1319,7 +1322,7 @@ void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw
     data[program->Alpha.Off]            = alpha / 255.0f;
 
     // NOTE: the custom data should already be inside ConstantData buffer
-    direct3ddevice->SetPixelShaderConstantF(0u, data, shader->GetConstantDataSize() / D3DShader::ProgramData::RegisterSize);
+    direct3ddevice->SetPixelShaderConstantF(0u, data, shaderinst->GetConstantDataSize() / D3DShader::ConstantSize);
   }
   else if (do_tint)
   {
@@ -2372,6 +2375,44 @@ void D3DGraphicsDriver::DeleteShaderProgram(IGraphicShader *shader)
         _shaders[shader->GetID()] = {};
     }
     delete (D3DShader*)shader;
+}
+
+IShaderInstance *D3DGraphicsDriver::CreateShaderInstance(IGraphicShader *shader)
+{
+    uint32_t inst_id = _shaderInst.size();
+    const String inst_name = String::FromFormat("%s.%u", shader->GetName().GetCStr(), inst_id);
+    D3DShaderInstance *shaderinst = new D3DShaderInstance((D3DShader*)shader, inst_name, inst_id);
+    _shaderInst.push_back(shaderinst);
+    return shaderinst;
+}
+
+IShaderInstance *D3DGraphicsDriver::FindShaderInstance(const String &name)
+{
+    // FIXME: this is a formal lookup implementation,
+    // this method will likely be removed in the future when shaders are stored outside of gfx drivers
+    for (auto *i : _shaderInst)
+    {
+        if (i->GetName() == name)
+            return i;
+    }
+    return nullptr;
+}
+
+IShaderInstance *D3DGraphicsDriver::GetShaderInstance(uint32_t shader_inst_id)
+{
+    if (shader_inst_id >= _shaderInst.size())
+        return nullptr;
+    return _shaderInst[shader_inst_id];
+}
+
+void D3DGraphicsDriver::DeleteShaderInstance(IShaderInstance *shader_inst)
+{
+    assert(shader_inst->GetID() < _shaderInst.size());
+    if (shader_inst->GetID() < _shaderInst.size())
+    {
+        _shaderInst[shader_inst->GetID()] = {};
+    }
+    delete (D3DShaderInstance*)shader_inst;
 }
 
 void D3DGraphicsDriver::SetScreenFade(int red, int green, int blue)

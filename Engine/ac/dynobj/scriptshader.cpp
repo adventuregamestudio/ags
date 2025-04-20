@@ -15,9 +15,10 @@
 
 using namespace AGS::Common;
 
-ScriptShaderProgram::ScriptShaderProgram(const String &name, int shader_id)
+ScriptShaderProgram::ScriptShaderProgram(const String &name, uint32_t shader_id, uint32_t shader_inst_id)
     : _name(name)
     , _shaderID(shader_id)
+    , _shaderInstanceID(shader_inst_id)
 {
 }
 

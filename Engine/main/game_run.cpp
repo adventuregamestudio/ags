@@ -671,8 +671,8 @@ static void check_keyboard_controls()
                 // of whether it had any meaning for control
                 keywasprocessed = true;
 
-                if (guitex->IsActivated) {
-                    guitex->IsActivated = false;
+                if (guitex->IsActivated()) {
+                    guitex->SetActivated(false);
                     // FIXME: review this, are we abusing "mouse button" arg here in order to pass a different data?
                     setevent(AGSEvent_GUI(guiIndex, controlIndex, static_cast<eAGSMouseButton>(1)));
                 }

@@ -317,14 +317,14 @@ bool GUIListBox::OnMouseDown()
         SelectedItem = sel;
         MarkChanged();
     }
-    IsActivated = true;
+    _isActivated = true;
     return false;
 }
 
 void GUIListBox::OnMouseMove(int x_, int y_)
 {
-    MousePos.X = x_ - X;
-    MousePos.Y = y_ - Y;
+    MousePos.X = x_ - _x;
+    MousePos.Y = y_ - _y;
 }
 
 void GUIListBox::OnResized()

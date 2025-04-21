@@ -120,7 +120,7 @@ bool GUIButton::IsImageButton() const
 
 bool GUIButton::IsClippingImage() const
 {
-    return (Flags & kGUICtrl_Clip) != 0;
+    return (_flags & kGUICtrl_Clip) != 0;
 }
 
 Rect GUIButton::CalcGraphicRect(bool clipped)
@@ -205,12 +205,12 @@ void GUIButton::Draw(Bitmap *ds, int x, int y)
 
 void GUIButton::SetClipImage(bool on)
 {
-    if (on != ((Flags & kGUICtrl_Clip) != 0))
+    if (on != ((_flags & kGUICtrl_Clip) != 0))
         MarkChanged();
     if (on)
-        Flags |= kGUICtrl_Clip;
+        _flags |= kGUICtrl_Clip;
     else
-        Flags &= ~kGUICtrl_Clip;
+        _flags &= ~kGUICtrl_Clip;
 }
 
 void GUIButton::SetCurrentImage(int32_t image)
@@ -282,9 +282,9 @@ void GUIButton::SetText(const String &text)
 
 void GUIButton::SetWrapText(bool on)
 {
-    if (on != ((Flags & kGUICtrl_WrapText) != 0))
+    if (on != ((_flags & kGUICtrl_WrapText) != 0))
     {
-        Flags = (Flags & ~kGUICtrl_WrapText) | kGUICtrl_WrapText * on;
+        _flags = (_flags & ~kGUICtrl_WrapText) | kGUICtrl_WrapText * on;
         MarkChanged();
     }
 }
@@ -319,7 +319,7 @@ void GUIButton::OnMouseUp()
     if (IsMouseOver)
     {
         if (GUI::IsGUIEnabled(this) && IsClickable())
-            IsActivated = true;
+            _isActivated = true;
     }
 
     if (IsPushed && !IsImageButton())
@@ -536,7 +536,7 @@ void GUIButton::DrawTextButton(Bitmap *ds, int x, int y, bool draw_disabled)
 {
     color_t draw_color = ds->GetCompatibleColor(7);
     ds->FillRect(Rect(x, y, x + _width - 1, y + _height - 1), draw_color);
-    if (Flags & kGUICtrl_Default)
+    if (_flags & kGUICtrl_Default)
     {
         draw_color = ds->GetCompatibleColor(16);
         ds->DrawRect(Rect(x - 1, y - 1, x + _width, y + _height), draw_color);

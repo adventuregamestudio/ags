@@ -116,28 +116,28 @@ size_t GUI::SplitLinesForDrawing(const String &text, bool is_translated, SplitLi
 void GUIObject::MarkChanged()
 {
     _hasChanged = true;
-    if (ParentId >= 0)
-        guis[ParentId].MarkControlChanged();
+    if (_parentID >= 0)
+        guis[_parentID].MarkControlChanged();
 }
 
 void GUIObject::MarkParentChanged()
 {
-    if (ParentId >= 0)
-        guis[ParentId].MarkControlChanged();
+    if (_parentID >= 0)
+        guis[_parentID].MarkControlChanged();
 }
 
 void GUIObject::MarkPositionChanged(bool self_changed)
 {
     _hasChanged |= self_changed;
-    if (ParentId >= 0)
-        guis[ParentId].NotifyControlPosition();
+    if (_parentID >= 0)
+        guis[_parentID].NotifyControlPosition();
 }
 
 void GUIObject::MarkStateChanged(bool self_changed, bool parent_changed)
 {
     _hasChanged |= self_changed;
-    if (ParentId >= 0)
-        guis[ParentId].NotifyControlState(Id, self_changed | parent_changed);
+    if (_parentID >= 0)
+        guis[_parentID].NotifyControlState(_id, self_changed | parent_changed);
 }
 
 void GUIObject::ClearChanged()
@@ -147,7 +147,7 @@ void GUIObject::ClearChanged()
 
 int GUILabel::PrepareTextToDraw()
 {
-    const bool is_translated = (Flags & kGUICtrl_Translated) != 0;
+    const bool is_translated = (_flags & kGUICtrl_Translated) != 0;
     replace_macro_tokens(is_translated ? get_translation(Text.GetCStr()) : Text.GetCStr(), _textToDraw);
     return GUI::SplitLinesForDrawing(_textToDraw, is_translated, Lines, Font, _width);
 }
@@ -158,7 +158,7 @@ void GUITextBox::DrawTextBoxContents(Bitmap *ds, int x, int y, color_t text_colo
     bool reverse = false;
     // Text boxes input is never "translated" in regular sense,
     // but they use this flag to apply text direction
-    if ((loaded_game_file_version >= kGameVersion_361) && ((Flags & kGUICtrl_Translated) != 0))
+    if ((loaded_game_file_version >= kGameVersion_361) && ((_flags & kGUICtrl_Translated) != 0))
     {
         _textToDraw = GUI::ApplyTextDirection(Text);
         reverse = game.options[OPT_RIGHTLEFTWRITE] != 0;
@@ -181,7 +181,7 @@ void GUITextBox::DrawTextBoxContents(Bitmap *ds, int x, int y, color_t text_colo
 
 void GUIListBox::PrepareTextToDraw(const String &text)
 {
-     _textToDraw = GUI::TransformTextForDrawing(text, (Flags & kGUICtrl_Translated) != 0,
+     _textToDraw = GUI::TransformTextForDrawing(text, (_flags & kGUICtrl_Translated) != 0,
          (loaded_game_file_version >= kGameVersion_361));
 }
 
@@ -190,11 +190,11 @@ void GUIButton::PrepareTextToDraw()
     if (IsWrapText())
     {
         _textToDraw = _text;
-        GUI::SplitLinesForDrawing(_text, (Flags & kGUICtrl_Translated) != 0, Lines, Font, _width - TextPaddingHor * 2);
+        GUI::SplitLinesForDrawing(_text, (_flags & kGUICtrl_Translated) != 0, Lines, Font, _width - TextPaddingHor * 2);
     }
     else
     {
-        _textToDraw = GUI::TransformTextForDrawing(_text, (Flags & kGUICtrl_Translated) != 0,
+        _textToDraw = GUI::TransformTextForDrawing(_text, (_flags & kGUICtrl_Translated) != 0,
             (loaded_game_file_version >= kGameVersion_361));
     }
 }

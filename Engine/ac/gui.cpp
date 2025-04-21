@@ -445,11 +445,11 @@ void process_interface_click(int ifce, int btn, int mbut) {
         // if the object has a special handler script then run it;
         // otherwise, run interface_click
         if ((theObj->GetEventCount() > 0) &&
-            (!theObj->EventHandlers[0].IsEmpty()) &&
-            DoesScriptFunctionExistInModules(theObj->EventHandlers[0]))
+            (!theObj->GetEventHandler(0).IsEmpty()) &&
+            DoesScriptFunctionExistInModules(theObj->GetEventHandler(0)))
         {
             // control-specific event handler
-            const ScriptFunctionRef fn_ref(guis[ifce].GetScriptModule(), theObj->EventHandlers[0]);
+            const ScriptFunctionRef fn_ref(guis[ifce].GetScriptModule(), theObj->GetEventHandler(0));
             if (theObj->GetEventArgs(0).FindChar(',') != String::NoIndex)
             {
                 RuntimeScriptValue params[]{ RuntimeScriptValue().SetScriptObject(theObj, &ccDynamicGUIObject),
@@ -549,7 +549,7 @@ void prepare_gui_runtime(bool startup)
         for (int i = 0; i < gui.GetControlCount(); ++i)
         {
             GUIObject *guio = gui.GetControl(i);
-            guio->IsActivated = false;
+            guio->SetActivated(false);
             guio->OnResized();
         }
     }
@@ -576,8 +576,8 @@ void export_gui_controls(int ee)
     for (int ff = 0; ff < guis[ee].GetControlCount(); ff++)
     {
         GUIObject *guio = guis[ee].GetControl(ff);
-        if (!guio->Name.IsEmpty())
-            ccAddExternalScriptObject(guio->Name, guio, &ccDynamicGUIObject);
+        if (!guio->GetName().IsEmpty())
+            ccAddExternalScriptObject(guio->GetName(), guio, &ccDynamicGUIObject);
         ccRegisterManagedObject(guio, &ccDynamicGUIObject);
     }
 }
@@ -587,8 +587,8 @@ void unexport_gui_controls(int ee)
     for (int ff = 0; ff < guis[ee].GetControlCount(); ff++)
     {
         GUIObject *guio = guis[ee].GetControl(ff);
-        if (!guio->Name.IsEmpty())
-            ccRemoveExternalSymbol(guio->Name);
+        if (!guio->GetName().IsEmpty())
+            ccRemoveExternalSymbol(guio->GetName());
         if (!ccUnRegisterManagedObject(guio))
             quit("unable to unregister guicontrol object");
     }
@@ -718,7 +718,7 @@ void gui_on_mouse_hold(const int wasongui, const int wasbutdown)
     for (int i = 0; i < guis[wasongui].GetControlCount(); ++i)
     {
         GUIObject *guio = guis[wasongui].GetControl(i);
-        if (!guio->IsActivated)
+        if (!guio->IsActivated())
             continue;
         // We only handle "hold" event for Sliders, and only if mouse button is not restricted
         if (guis[wasongui].GetControlType(i) != kGUISlider)
@@ -726,7 +726,7 @@ void gui_on_mouse_hold(const int wasongui, const int wasbutdown)
         if (!gui_control_should_handle_button(wasbutdown))
             continue;
         // GUI Slider repeatedly activates while being dragged
-        guio->IsActivated = false;
+        guio->SetActivated(false);
         force_event(AGSEvent_GUI(wasongui, i, static_cast<eAGSMouseButton>(wasbutdown)));
         break;
     }
@@ -739,10 +739,10 @@ void gui_on_mouse_up(const int wasongui, const int wasbutdown, const int mx, con
     for (int i = 0; i < guis[wasongui].GetControlCount(); ++i)
     {
         GUIObject *guio = guis[wasongui].GetControl(i);
-        if (!guio->IsActivated)
+        if (!guio->IsActivated())
             continue;
 
-        guio->IsActivated = false;
+        guio->SetActivated(false);
         if (!IsInterfaceEnabled())
             break;
 
@@ -759,8 +759,8 @@ void gui_on_mouse_up(const int wasongui, const int wasbutdown, const int mx, con
         else if (cttype == kGUIInvWindow)
         {
             click_handled = true;
-            mouse_ifacebut_xoffs = mx - (guio->X) - guis[wasongui].GetX();
-            mouse_ifacebut_yoffs = my - (guio->Y) - guis[wasongui].GetY();
+            mouse_ifacebut_xoffs = mx - (guio->GetX()) - guis[wasongui].GetX();
+            mouse_ifacebut_yoffs = my - (guio->GetY()) - guis[wasongui].GetY();
             int iit = offset_over_inv((GUIInvWindow*)guio);
             if (iit >= 0)
             {

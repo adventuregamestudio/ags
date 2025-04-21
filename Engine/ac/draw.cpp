@@ -2426,7 +2426,7 @@ static void draw_gui_controls_batch(int gui_id)
         assert(obj_ddb); // Test for missing texture, might happen if not marked for update
         if (!obj_ddb) continue;
         obj_ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(obj->GetTransparency()));
-        gfxDriver->DrawSprite(obj->X + obj_tx.Off.X, obj->Y + obj_tx.Off.Y, obj_ddb);
+        gfxDriver->DrawSprite(obj->GetX() + obj_tx.Off.X, obj->GetY() + obj_tx.Off.Y, obj_ddb);
     }
     gfxDriver->EndSpriteBatch();
 }

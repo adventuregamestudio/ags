@@ -31,8 +31,8 @@ size_t CCGUIObject::CalcSerializeSize(const void* /*address*/)
 
 void CCGUIObject::Serialize(const void *address, Stream *out) {
     const GUIObject *guio = static_cast<const GUIObject*>(address);
-    out->WriteInt32(guio->ParentId);
-    out->WriteInt32(guio->Id);
+    out->WriteInt32(guio->GetParentID());
+    out->WriteInt32(guio->GetID());
 }
 
 void CCGUIObject::Unserialize(int index, Stream *in, size_t /*data_sz*/) {

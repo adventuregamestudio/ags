@@ -104,7 +104,7 @@ bool GUITextBox::OnKeyPress(const KeyInput &ki)
     switch (ki.Key)
     {
     case eAGSKeyCodeReturn:
-        IsActivated = true;
+        _isActivated = true;
         return true;
     case eAGSKeyCodeBackspace:
         Backspace(Text);

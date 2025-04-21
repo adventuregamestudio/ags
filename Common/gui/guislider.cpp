@@ -54,7 +54,7 @@ bool GUISlider::IsOverControl(int x, int y, int leeway) const
     if (GUIObject::IsOverControl(x, y, leeway))
         return true;
     // now check the handle too
-    return _cachedHandle.IsInside(Point(x - X, y - Y));
+    return _cachedHandle.IsInside(Point(x - _x, y - _y));
 }
 
 Rect GUISlider::CalcGraphicRect(bool /*clipped*/)
@@ -228,9 +228,9 @@ void GUISlider::OnMouseMove(int x, int y)
     int value;
     assert(_handleRange > 0);
     if (IsHorizontal())
-        value = (int)(((float)((x - X) - 2) * (float)(MaxValue - MinValue)) / (float)_handleRange) + MinValue;
+        value = (int)(((float)((x - _x) - 2) * (float)(MaxValue - MinValue)) / (float)_handleRange) + MinValue;
     else
-        value = (int)(((float)(((Y + _height) - y) - 2) * (float)(MaxValue - MinValue)) / (float)_handleRange) + MinValue;
+        value = (int)(((float)(((_y + _height) - y) - 2) * (float)(MaxValue - MinValue)) / (float)_handleRange) + MinValue;
 
     value = Math::Clamp(value, MinValue, MaxValue);
     if (value != Value)
@@ -238,7 +238,7 @@ void GUISlider::OnMouseMove(int x, int y)
         Value = value;
         MarkChanged();
     }
-    IsActivated = true;
+    _isActivated = true;
 }
 
 void GUISlider::OnMouseUp()

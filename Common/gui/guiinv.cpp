@@ -49,7 +49,7 @@ void GUIInvWindow::OnMouseLeave()
 void GUIInvWindow::OnMouseUp()
 {
     if (IsMouseOver)
-        IsActivated = true;
+        _isActivated = true;
 }
 
 void GUIInvWindow::OnResized()

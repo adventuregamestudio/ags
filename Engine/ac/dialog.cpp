@@ -974,7 +974,7 @@ void DialogOptions::Draw()
 
       if (parserInput)
       {
-        parserInput->X = data_to_game_coord(ccDialogOptionsRendering.parserTextboxX);
+        parserInput->SetX(data_to_game_coord(ccDialogOptionsRendering.parserTextboxX));
         curyp = data_to_game_coord(ccDialogOptionsRendering.parserTextboxY);
         areawid = data_to_game_coord(ccDialogOptionsRendering.parserTextboxWidth);
         if (areawid == 0)
@@ -1030,7 +1030,7 @@ void DialogOptions::Draw()
                                    usingfont, linespacing, forecol,
                                    dtop, numdisp, mouseison, disporder, dispyp);
       if (parserInput)
-        parserInput->X = inner_position.X;
+        parserInput->SetX(inner_position.X);
     }
     else
     {
@@ -1080,13 +1080,13 @@ void DialogOptions::Draw()
                                    dtop, numdisp, mouseison, disporder, dispyp);
 
       if (parserInput)
-        parserInput->X = inner_position.X;
+        parserInput->SetX(inner_position.X);
     }
 
     if (parserInput)
     {
       // Set up the text box, if present
-      parserInput->Y = curyp + data_to_game_coord(game.options[OPT_DIALOGGAP]);
+      parserInput->SetY(curyp + data_to_game_coord(game.options[OPT_DIALOGGAP]));
       parserInput->SetWidth(areawid - get_fixed_pixel_size(10));
       parserInput->TextColor = playerchar->talkcolor;
       if (mouseison == DLG_OPTION_PARSER)
@@ -1098,19 +1098,21 @@ void DialogOptions::Draw()
 
       parserInput->SetWidth(parserInput->GetWidth() - bullet_wid);
       if (ltr_position)
-        parserInput->X += bullet_wid;
+        parserInput->SetX(parserInput->GetX() + bullet_wid);
 
+      const int parserx = parserInput->GetX();
+      const int parsery = parserInput->GetY();
       Bitmap *ds = optionsBitmap.get();
       if (game.dialog_bullet)
       {
           if (ltr_position)
-            draw_gui_sprite_v330(ds, game.dialog_bullet, parserInput->X - bullet_wid, parserInput->Y, options_surface_has_alpha);
+            draw_gui_sprite_v330(ds, game.dialog_bullet, parserx - bullet_wid, parsery, options_surface_has_alpha);
           else
-            draw_gui_sprite_v330(ds, game.dialog_bullet, parserInput->X + parserInput->GetWidth() + (bullet_wid - bullet_picwid + 1), parserInput->Y, options_surface_has_alpha);
+            draw_gui_sprite_v330(ds, game.dialog_bullet, parserx + parserInput->GetWidth() + (bullet_wid - bullet_picwid + 1), parsery, options_surface_has_alpha);
       }
 
-      parserInput->Draw(ds, parserInput->X, parserInput->Y);
-      parserInput->IsActivated = false;
+      parserInput->Draw(ds, parserx, parsery);
+      parserInput->SetActivated(false);
     }
 
     wantRefresh = false;
@@ -1219,8 +1221,8 @@ bool DialogOptions::Run()
     if (parserInput)
     {
         const int rel_mousey = mousey - position.Top;
-        if ((rel_mousey > parserInput->Y) &&
-            (rel_mousey < parserInput->Y + parserInput->GetHeight()))
+        if ((rel_mousey > parserInput->GetY()) &&
+            (rel_mousey < parserInput->GetY() + parserInput->GetHeight()))
             mouseison = DLG_OPTION_PARSER;
     }
 
@@ -1246,7 +1248,7 @@ bool DialogOptions::Run()
     }
 
     // Handle new parser's state
-    if (parserInput && parserInput->IsActivated)
+    if (parserInput && parserInput->IsActivated())
     {
         parserActivated = 1;
     }
@@ -1265,7 +1267,7 @@ bool DialogOptions::Run()
         else
         {
             parserActivated = 0;
-            parserInput->IsActivated = 0;
+            parserInput->SetActivated(false);
         }
     }
     else if (newCustomRender)

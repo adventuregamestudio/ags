@@ -86,8 +86,8 @@ int GetInvAt(int atx, int aty) {
     int onobj = guis[ongui].FindControlAt(atx, aty);
     GUIObject *guio = guis[ongui].GetControl(onobj);
     if (guio) {
-      mouse_ifacebut_xoffs = atx - guis[ongui].GetX() - guio->X;
-      mouse_ifacebut_yoffs = aty - guis[ongui].GetY() - guio->Y;
+      mouse_ifacebut_xoffs = atx - guis[ongui].GetX() - guio->GetX();
+      mouse_ifacebut_yoffs = aty - guis[ongui].GetY() - guio->GetY();
     }
     if (guio && (guis[ongui].GetControlType(onobj) == kGUIInvWindow))
       return offset_over_inv((GUIInvWindow*)guio);

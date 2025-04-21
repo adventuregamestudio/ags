@@ -38,44 +38,66 @@ enum LegacyGUIAlignment
 class GUIObject
 {
 public:
-    GUIObject();
+    GUIObject() = default;
     virtual ~GUIObject() = default;
 
-    String          GetScriptName() const;
+    // Properties
+    const String   &GetName() const { return _name; }
+    int             GetID() const { return _id; }
+    void            SetID(int id);
+    int             GetParentID() const { return _parentID; }
+    void            SetParentID(int parent_id);
 
-    String          GetEventArgs(int event) const;
-    int             GetEventCount() const;
-    String          GetEventName(int event) const;
-    bool            IsClickable() const { return (Flags & kGUICtrl_Clickable) != 0; }
-    bool            IsDeleted() const { return (Flags & kGUICtrl_Deleted) != 0; }
-    bool            IsEnabled() const { return (Flags & kGUICtrl_Enabled) != 0; }
-    bool            IsTranslated() const { return (Flags & kGUICtrl_Translated) != 0; }
-    bool            IsVisible() const { return (Flags & kGUICtrl_Visible) != 0; }
-    bool            IsWrapText() const { return (Flags & kGUICtrl_WrapText) != 0; }
+    bool            IsClickable() const { return (_flags & kGUICtrl_Clickable) != 0; }
+    bool            IsDeleted() const { return (_flags & kGUICtrl_Deleted) != 0; }
+    bool            IsEnabled() const { return (_flags & kGUICtrl_Enabled) != 0; }
+    bool            IsTranslated() const { return (_flags & kGUICtrl_Translated) != 0; }
+    bool            IsVisible() const { return (_flags & kGUICtrl_Visible) != 0; }
+    bool            IsWrapText() const { return (_flags & kGUICtrl_WrapText) != 0; }
     // overridable routine to determine whether the mouse is over the control
     virtual bool    IsOverControl(int x, int y, int leeway) const;
-    Size            GetSize() const { return Size(_width, _height); }
+    int             GetX() const { return _x; }
+    void            SetX(int x);
+    int             GetY() const { return _y; }
+    void            SetY(int y);
+    Point           GetPosition() const { return Point(_x, _y); }
+    void            SetPosition(int x, int y);
+    void            SetPosition(const Point &pos) { SetPosition(pos.X, pos.Y); }
     int             GetWidth() const { return _width; }
+    void            SetWidth(int width);
     int             GetHeight() const { return _height; }
+    void            SetHeight(int height);
+    Size            GetSize() const { return Size(_width, _height); }
+    void            SetSize(int width, int height);
+    void            SetSize(const Size &sz) { SetSize(sz.Width, sz.Height); }
+    Rect            GetRect() const { return RectWH(_x, _y, _width, _height); }
     int             GetTransparency() const { return _transparency; }
+    void            SetTransparency(int trans);
+    int             GetZOrder() const { return _zOrder; }
+    void            SetZOrder(int zorder);
+    void            SetClickable(bool on);
+    void            SetEnabled(bool on);
+    void            SetTranslated(bool on);
+    void            SetVisible(bool on);
+    bool            IsActivated() const { return _isActivated; }
+    void            SetActivated(bool on);
+
     // Compatibility: should the control's graphic be clipped to its x,y,w,h
     virtual bool    IsContentClipped() const { return true; }
     // Tells if the object image supports alpha channel
     virtual bool    HasAlphaChannel() const { return false; }
+
+    int             GetEventCount() const { return _scEventCount; }
+    String          GetEventName(uint32_t event) const;
+    String          GetEventArgs(uint32_t event) const;
+    // Gets a script function name for the given event
+    String          GetEventHandler(uint32_t event) const;
     
     // Operations
     // Returns the (untransformed!) visual rectangle of this control,
     // in *relative* coordinates, optionally clipped by the logical size
     virtual Rect    CalcGraphicRect(bool /*clipped*/) { return RectWH(0, 0, _width, _height); }
     virtual void    Draw(Bitmap *ds, int x = 0, int y = 0) { (void)ds; (void)x; (void)y; }
-    void            SetClickable(bool on);
-    void            SetEnabled(bool on);
-    void            SetSize(int width, int height);
-    inline void     SetWidth(int width) { SetSize(width, _height); }
-    inline void     SetHeight(int height) { SetSize(_width, height); }
-    void            SetTranslated(bool on);
-    void            SetVisible(bool on);
-    void            SetTransparency(int trans);
 
     // Events
     // Key pressed for control; returns if handled
@@ -99,44 +121,41 @@ public:
     virtual void    ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_ver);
     virtual void    WriteToSavegame(Common::Stream *out) const;
 
-// TODO: these members are currently public; hide them later
-public:
     // Manually marks GUIObject as graphically changed
     // NOTE: this only matters if control's own graphic changes, but not its
     // logical (visible, clickable, etc) or visual (e.g. transparency) state.
-    void     MarkChanged();
+    void            MarkChanged();
     // Notifies parent GUI that this control has changed its visual state
-    void     MarkParentChanged();
+    void            MarkParentChanged();
     // Notifies parent GUI that this control has changed its location (pos, size)
-    void     MarkPositionChanged(bool self_changed);
+    void            MarkPositionChanged(bool self_changed);
     // Notifies parent GUI that this control's interactive state has changed
-    void     MarkStateChanged(bool self_changed, bool parent_changed);
-    bool     HasChanged() const { return _hasChanged; }
-    void     ClearChanged();
-
-    int32_t  Id;         // GUI object's identifier
-    int32_t  ParentId;   // id of parent GUI
-    String   Name;       // script name
-
-    int32_t  X;
-    int32_t  Y;
-    int32_t  ZOrder;
-    bool     IsActivated; // signals user interaction
-
-    String   EventHandlers[MAX_GUIOBJ_EVENTS]; // script function names
+    void            MarkStateChanged(bool self_changed, bool parent_changed);
+    bool            HasChanged() const { return _hasChanged; }
+    void            ClearChanged();
   
 protected:
-    uint32_t Flags;      // generic style and behavior flags
-    int32_t  _width;
-    int32_t  _height;
-    int32_t  _transparency; // "incorrect" alpha (in legacy 255-range units)
-    bool     _hasChanged;
+    int      _id = -1;      // GUI object's identifier
+    int      _parentID = -1;// id of parent GUI
+    String   _name;         // script name
+
+    int      _x = 0;
+    int      _y = 0;
+    int      _zOrder = 0;
+    bool     _isActivated = false; // signals user interaction
+
+    uint32_t _flags = kGUICtrl_DefFlags; // generic style and behavior flags
+    int      _width = 0;
+    int      _height = 0;
+    int      _transparency = 0; // "incorrect" alpha (in legacy 255-range units)
+    bool     _hasChanged = false;
 
     // TODO: explicit event names & handlers for every event
     // FIXME: these must be static!! per type
-    int32_t  _scEventCount;                    // number of supported script events
+    uint32_t _scEventCount = 0u;               // number of supported script events
     String   _scEventNames[MAX_GUIOBJ_EVENTS]; // script event names
     String   _scEventArgs[MAX_GUIOBJ_EVENTS];  // script handler params
+    String   _eventHandlers[MAX_GUIOBJ_EVENTS]; // script function names
 };
 
 // Converts legacy alignment type used in GUI Label/ListBox data (only left/right/center)

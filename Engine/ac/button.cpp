@@ -47,8 +47,8 @@ void UpdateButtonState(const AnimatingGUIButton &abtn)
 void Button_Animate(GUIButton *butt, int view, int loop, int speed, int repeat,
     int blocking, int direction, int sframe, int volume)
 {
-    int guin = butt->ParentId;
-    int objn = butt->Id;
+    int guin = butt->GetParentID();
+    int objn = butt->GetID();
 
     view--; // convert to internal 0-based view ID
     ValidateViewAnimVLF("Button.Animate", view, loop, sframe);
@@ -144,10 +144,10 @@ int Button_GetMouseOverGraphic(GUIButton *butt) {
 }
 
 void Button_SetMouseOverGraphic(GUIButton *guil, int slotn) {
-    debug_script_log("GUI %d Button %d mouseover set to slot %d", guil->ParentId, guil->Id, slotn);
+    debug_script_log("GUI %d Button %d mouseover set to slot %d", guil->GetParentID(), guil->GetID(), slotn);
     slotn = std::max(0, slotn);
     guil->SetMouseOverImage(slotn);
-    FindAndRemoveButtonAnimation(guil->ParentId, guil->Id);
+    FindAndRemoveButtonAnimation(guil->GetParentID(), guil->GetID());
 }
 
 int Button_GetNormalGraphic(GUIButton *butt) {
@@ -155,7 +155,7 @@ int Button_GetNormalGraphic(GUIButton *butt) {
 }
 
 void Button_SetNormalGraphic(GUIButton *butt, int slotn) {
-    debug_script_log("GUI %d Button %d normal set to slot %d", butt->ParentId, butt->Id, slotn);
+    debug_script_log("GUI %d Button %d normal set to slot %d", butt->GetParentID(), butt->GetID(), slotn);
     slotn = std::max(0, slotn);
     // NormalGraphic = 0 will turn the Button into a standard colored button
     if (slotn == 0)
@@ -171,7 +171,7 @@ void Button_SetNormalGraphic(GUIButton *butt, int slotn) {
         butt->SetSize(width, height);
     }
 
-    FindAndRemoveButtonAnimation(butt->ParentId, butt->Id);
+    FindAndRemoveButtonAnimation(butt->GetParentID(), butt->GetID());
 }
 
 int Button_GetPushedGraphic(GUIButton *butt) {
@@ -179,10 +179,10 @@ int Button_GetPushedGraphic(GUIButton *butt) {
 }
 
 void Button_SetPushedGraphic(GUIButton *guil, int slotn) {
-    debug_script_log("GUI %d Button %d pushed set to slot %d", guil->ParentId, guil->Id, slotn);
+    debug_script_log("GUI %d Button %d pushed set to slot %d", guil->GetParentID(), guil->GetID(), slotn);
     slotn = std::max(0, slotn);
     guil->SetPushedImage(slotn);
-    FindAndRemoveButtonAnimation(guil->ParentId, guil->Id);
+    FindAndRemoveButtonAnimation(guil->GetParentID(), guil->GetID());
 }
 
 int Button_GetTextColor(GUIButton *butt) {
@@ -262,12 +262,12 @@ void FindAndRemoveButtonAnimation(int guin, int objn)
 
 void Button_Click(GUIButton *butt, int mbut)
 {
-    process_interface_click(butt->ParentId, butt->Id, mbut);
+    process_interface_click(butt->GetParentID(), butt->GetID(), mbut);
 }
 
 bool Button_IsAnimating(GUIButton *butt)
 {
-    return FindButtonAnimation(butt->ParentId, butt->Id) >= 0;
+    return FindButtonAnimation(butt->GetParentID(), butt->GetID()) >= 0;
 }
 
 // NOTE: in correspondance to similar functions for Character & Object,
@@ -275,19 +275,19 @@ bool Button_IsAnimating(GUIButton *butt)
 // zero-based index and 0 in case of no animation.
 int Button_GetAnimView(GUIButton *butt)
 {
-    int idx = FindButtonAnimation(butt->ParentId, butt->Id);
+    int idx = FindButtonAnimation(butt->GetParentID(), butt->GetID());
     return idx >= 0 ? animbuts[idx].view + 1 : 0;
 }
 
 int Button_GetAnimLoop(GUIButton *butt)
 {
-    int idx = FindButtonAnimation(butt->ParentId, butt->Id);
+    int idx = FindButtonAnimation(butt->GetParentID(), butt->GetID());
     return idx >= 0 ? animbuts[idx].loop : 0;
 }
 
 int Button_GetAnimFrame(GUIButton *butt)
 {
-    int idx = FindButtonAnimation(butt->ParentId, butt->Id);
+    int idx = FindButtonAnimation(butt->GetParentID(), butt->GetID());
     return idx >= 0 ? animbuts[idx].frame : 0;
 }
 

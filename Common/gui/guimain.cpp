@@ -367,21 +367,24 @@ void GUIMain::DrawControls(Bitmap *ds)
             continue;
 
         if (GUI::Options.ClipControls && objToDraw->IsContentClipped())
-            ds->SetClip(RectWH(objToDraw->X, objToDraw->Y, obj_size.Width, obj_size.Height));
+            ds->SetClip(objToDraw->GetRect());
         else
             ds->ResetClip();
+
+        const int objx = objToDraw->GetX();
+        const int objy = objToDraw->GetY();
 
         // Depending on draw properties - draw directly on the gui surface, or use a buffer
         if (objToDraw->GetTransparency() == 0)
         {
-            objToDraw->Draw(ds, objToDraw->X, objToDraw->Y);
+            objToDraw->Draw(ds, objx, objy);
         }
         else
         {
             const Rect rc = objToDraw->CalcGraphicRect(GUI::Options.ClipControls && objToDraw->IsContentClipped());
             tempbmp.CreateTransparent(rc.GetWidth(), rc.GetHeight());
             objToDraw->Draw(&tempbmp, -rc.Left, -rc.Top);
-            draw_gui_sprite(ds, true, objToDraw->X + rc.Left, objToDraw->Y + rc.Top,
+            draw_gui_sprite(ds, true, objx + rc.Left, objy + rc.Top,
                 &tempbmp, objToDraw->HasAlphaChannel(), kBlendMode_Alpha,
                 GfxDef::LegacyTrans255ToAlpha255(objToDraw->GetTransparency()));
         }
@@ -393,11 +396,11 @@ void GUIMain::DrawControls(Bitmap *ds)
             if (GUI::Options.OutlineControls)
                 selectedColour = 13;
             color_t draw_color = ds->GetCompatibleColor(selectedColour);
-            DrawBlob(ds, objToDraw->X + obj_size.Width - get_fixed_pixel_size(1) - 1, objToDraw->Y, draw_color);
-            DrawBlob(ds, objToDraw->X, objToDraw->Y + obj_size.Height - get_fixed_pixel_size(1) - 1, draw_color);
-            DrawBlob(ds, objToDraw->X, objToDraw->Y, draw_color);
-            DrawBlob(ds, objToDraw->X + obj_size.Width - get_fixed_pixel_size(1) - 1,
-                    objToDraw->Y + obj_size.Height - get_fixed_pixel_size(1) - 1, draw_color);
+            DrawBlob(ds, objx + obj_size.Width - get_fixed_pixel_size(1) - 1, objy, draw_color);
+            DrawBlob(ds, objx, objy + obj_size.Height - get_fixed_pixel_size(1) - 1, draw_color);
+            DrawBlob(ds, objx, objy, draw_color);
+            DrawBlob(ds, objx + obj_size.Width - get_fixed_pixel_size(1) - 1,
+                    objy + obj_size.Height - get_fixed_pixel_size(1) - 1, draw_color);
         }
         if (GUI::Options.OutlineControls)
         {
@@ -405,13 +408,13 @@ void GUIMain::DrawControls(Bitmap *ds)
             color_t draw_color = ds->GetCompatibleColor(selectedColour);
             for (int i = 0; i < obj_size.Width; i += 2)
             {
-                ds->PutPixel(i + objToDraw->X, objToDraw->Y, draw_color);
-                ds->PutPixel(i + objToDraw->X, objToDraw->Y + obj_size.Height - 1, draw_color);
+                ds->PutPixel(i + objx, objy, draw_color);
+                ds->PutPixel(i + objx, objy + obj_size.Height - 1, draw_color);
             }
             for (int i = 0; i < obj_size.Height; i += 2)
             {
-                ds->PutPixel(objToDraw->X, i + objToDraw->Y, draw_color);
-                ds->PutPixel(objToDraw->X + obj_size.Width - 1, i + objToDraw->Y, draw_color);
+                ds->PutPixel(objx, i + objy, draw_color);
+                ds->PutPixel(objx + obj_size.Width - 1, i + objy, draw_color);
             }
         }
     }
@@ -494,8 +497,8 @@ HError GUIMain::RebuildArray(GUIRefCollection &guiobjs)
         else
             return new Error(String::FromFormat("GUIMain (%d): unknown control type %d in ref #%d", _id, thistype, i));
 
-        _controls[i]->ParentId = _id;
-        _controls[i]->Id = i;
+        _controls[i]->SetParentID(_id);
+        _controls[i]->SetID(i);
     }
 
     ResortZOrder();
@@ -504,7 +507,7 @@ HError GUIMain::RebuildArray(GUIRefCollection &guiobjs)
 
 bool GUIControlZOrder(const GUIObject *e1, const GUIObject *e2)
 {
-    return e1->ZOrder < e2->ZOrder;
+    return e1->GetZOrder() < e2->GetZOrder();
 }
 
 void GUIMain::ResortZOrder()
@@ -514,7 +517,7 @@ void GUIMain::ResortZOrder()
 
     _ctrlDrawOrder.resize(ctrl_sort.size());
     for (size_t i = 0; i < ctrl_sort.size(); ++i)
-        _ctrlDrawOrder[i] = ctrl_sort[i]->Id;
+        _ctrlDrawOrder[i] = ctrl_sort[i]->GetID();
 }
 
 void GUIMain::SetClickable(bool on)
@@ -546,7 +549,7 @@ bool GUIMain::SetControlZOrder(int index, int zorder)
         return false; // no such control
 
     zorder = Math::Clamp(zorder, 0, (int)_controls.size() - 1);
-    const int old_zorder = _controls[index]->ZOrder;
+    const int old_zorder = _controls[index]->GetZOrder();
     if (old_zorder == zorder)
         return false; // no change
 
@@ -555,16 +558,18 @@ bool GUIMain::SetControlZOrder(int index, int zorder)
     const int  right     = move_back ? old_zorder : zorder;
     for (size_t i = 0; i < _controls.size(); ++i)
     {
-        const int i_zorder = _controls[i]->ZOrder;
+        const int i_zorder = _controls[i]->GetZOrder();
         if (i_zorder == old_zorder)
-            _controls[i]->ZOrder = zorder; // the control we are moving
+        {
+            _controls[i]->SetZOrder(zorder); // the control we are moving
+        }
         else if (i_zorder >= left && i_zorder <= right)
         {
             // controls in between old and new positions shift towards free place
             if (move_back)
-                _controls[i]->ZOrder++; // move to front
+                _controls[i]->SetZOrder(i_zorder + 1); // move to front
             else
-                _controls[i]->ZOrder--; // move to back
+                _controls[i]->SetZOrder(i_zorder - 1); // move to back
         }
     }
     ResortZOrder();
@@ -1027,10 +1032,10 @@ HError RebuildGUI(std::vector<GUIMain> &guis, GUIRefCollection &guiobjs)
         for (int ctrl_index = 0; ctrl_index < gui.GetControlCount(); ++ctrl_index)
         {
             GUIObject *gui_ctrl = gui.GetControl(ctrl_index);
-            gui_ctrl->ParentId = gui.GetID();
-            gui_ctrl->Id = ctrl_index;
+            gui_ctrl->SetParentID(gui.GetID());
+            gui_ctrl->SetID(ctrl_index);
             if (bwcompat_ctrl_zorder)
-                gui_ctrl->ZOrder = ctrl_index;
+                gui_ctrl->SetZOrder(ctrl_index);
         }
         gui.ResortZOrder();
     }

@@ -411,11 +411,8 @@ static void ConvertGuiToGameRes(GameSetupStruct &game, GameDataVersion data_ver)
         for (int j = 0; j < gui->GetControlCount(); ++j)
         {
             GUIObject *guio = gui->GetControl(j);
-            guio->X *= mul;
-            guio->Y *= mul;
-            Size sz = guio->GetSize() * mul;
-            guio->SetSize(sz.Width, sz.Height);
-            guio->OnResized();
+            guio->SetPosition(guio->GetPosition() * mul);
+            guio->SetSize(guio->GetSize() * mul);
         }
     }
 }

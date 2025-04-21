@@ -217,7 +217,7 @@ int GetGUIObjectAt (int xx, int yy) {
     if (toret == nullptr)
         return -1;
 
-    return toret->Id;
+    return toret->GetID();
 }
 
 int GetGUIAt (int xx,int yy) {

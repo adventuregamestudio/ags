@@ -157,12 +157,12 @@ void ListBox_FillSaveGameSlots(GUIListBox *listbox, void *src_arr, int save_sort
 
 int ListBox_GetItemAtLocation(GUIListBox *listbox, int x, int y) {
 
-  if (!guis[listbox->ParentId].IsDisplayed())
+  if (!guis[listbox->GetParentID()].IsDisplayed())
     return -1;
 
   data_to_game_coords(&x, &y);
-  x = (x - listbox->X) - guis[listbox->ParentId].GetX();
-  y = (y - listbox->Y) - guis[listbox->ParentId].GetY();
+  x = (x - listbox->GetX()) - guis[listbox->GetParentID()].GetX();
+  y = (y - listbox->GetY()) - guis[listbox->GetParentID()].GetY();
 
   if ((x < 0) || (y < 0) || (x >= listbox->GetWidth()) || (y >= listbox->GetHeight()))
     return -1;

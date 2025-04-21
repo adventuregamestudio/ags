@@ -326,8 +326,8 @@ Editor:
 Engine:
  - Fixed a AudioChannel did not report a correct Position right after a AudioClip.PlayFrom() call.
  - Fixed Button resizing to sprite 0 size if NormalGraphic is set to 0 (default button look).
- - Fixed Character movement recalculation when changing move speeds while walking, and movement
-   path contains 45-degrees diagonal segments.
+ - Fixed that if Character's walking speed is changed while its walking, and movement path contains
+   45-degrees diagonal segments, character starts walking along a different route.
  - Fixed a solid Character (serving an obstacle) can get ignored by a walking Character, if the
    obstacle character's position appears within the walking character's own blocking zone.
    (This seems to be a redundant condition introduced very long time ago in the engine by mistake.)

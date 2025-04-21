@@ -1665,7 +1665,7 @@ void game_sprite_updated(int sprnum, bool deleted)
     // gui backgrounds
     for (auto &gui : guis)
     {
-        if (gui.BgImage == sprnum)
+        if (gui.GetBgImage() == sprnum)
         {
             gui.MarkChanged();
         }

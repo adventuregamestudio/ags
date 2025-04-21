@@ -769,7 +769,7 @@ void init_game_drawdata()
     guiobjddbref.resize(game.numgui);
     for (const auto &gui : guis)
     {
-        guiobjddbref[gui.ID] = guio_num;
+        guiobjddbref[gui.GetID()] = guio_num;
         guio_num += gui.GetControlCount();
     }
     guiobjbg.resize(guio_num);
@@ -2370,7 +2370,7 @@ static void construct_guictrl_tex(GUIMain &gui)
     if ((GUI::Context.DisabledState >= 0) && (GUI::Options.DisabledStyle == kGuiDis_Blackout))
         return; // don't draw GUI controls
 
-    int draw_index = guiobjddbref[gui.ID];
+    int draw_index = guiobjddbref[gui.GetID()];
     for (int i = 0; i < gui.GetControlCount(); ++i, ++draw_index)
     {
         GUIObject *obj = gui.GetControl(i);
@@ -2476,7 +2476,7 @@ void draw_gui_and_overlays()
                 auto &gui = guis[index];
                 if (!gui.IsDisplayed()) continue; // not on screen
                 if (!gui.HasChanged() && !gui.HasControlsChanged()) continue; // no changes: no need to update image
-                if (gui.Transparency == 255) continue; // 100% transparent
+                if (gui.GetTransparency() == 255) continue; // 100% transparent
 
                 eip_guinum = index;
                 set_our_eip(372);
@@ -2484,7 +2484,7 @@ void draw_gui_and_overlays()
                 if (gui.HasChanged() || (draw_with_controls && gui.HasControlsChanged()))
                 {
                     auto &gbg = guibg[index];
-                    recycle_bitmap(gbg.Bmp, game.GetColorDepth(), gui.Width, gui.Height, true);
+                    recycle_bitmap(gbg.Bmp, game.GetColorDepth(), gui.GetWidth(), gui.GetHeight(), true);
                     if (draw_with_controls)
                         gui.DrawWithControls(gbg.Bmp.get());
                     else
@@ -2493,10 +2493,10 @@ void draw_gui_and_overlays()
                     const bool is_alpha = gui.HasAlphaChannel();
                     if (is_alpha)
                     {
-                        if ((game.options[OPT_NEWGUIALPHA] == kGuiAlphaRender_Legacy) && (gui.BgImage > 0))
+                        if ((game.options[OPT_NEWGUIALPHA] == kGuiAlphaRender_Legacy) && (gui.GetBgImage() > 0))
                         {
                             // old-style (pre-3.0.2) GUI alpha rendering
-                            repair_alpha_channel(gbg.Bmp.get(), spriteset[gui.BgImage]);
+                            repair_alpha_channel(gbg.Bmp.get(), spriteset[gui.GetBgImage()]);
                         }
                     }
                     sync_object_texture(gbg, is_alpha);
@@ -2520,12 +2520,12 @@ void draw_gui_and_overlays()
         {
             const auto &gui = guis[index];
             if (!gui.IsDisplayed()) continue; // not on screen
-            if (gui.Transparency == 255) continue; // 100% transparent
+            if (gui.GetTransparency() == 255) continue; // 100% transparent
 
             // Don't draw GUI if "GUIs Turn Off When Disabled"
             if ((game.options[OPT_DISABLEOFF] == kGuiDis_Off) &&
                 (GUI::Context.DisabledState >= 0) &&
-                (gui.PopupStyle != kGUIPopupNoAutoRemove))
+                (gui.GetPopupStyle() != kGUIPopupNoAutoRemove))
                 continue;
 
             auto *gui_ddb = guibg[index].Ddb;
@@ -2541,8 +2541,8 @@ void draw_gui_and_overlays()
                 // and push it to the sprite list instead
                 gui_ddb = gui_render_tex[index];
             }
-            gui_ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(gui.Transparency));
-            add_to_sprite_list(gui_ddb, gui.X, gui.Y, gui.ZOrder, guibg[index].DrawIndex);
+            gui_ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(gui.GetTransparency()));
+            add_to_sprite_list(gui_ddb, gui.GetX(), gui.GetY(), gui.GetZOrder(), guibg[index].DrawIndex);
         }
     }
 

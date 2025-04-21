@@ -161,8 +161,8 @@ int ListBox_GetItemAtLocation(GUIListBox *listbox, int x, int y) {
     return -1;
 
   data_to_game_coords(&x, &y);
-  x = (x - listbox->X) - guis[listbox->ParentId].X;
-  y = (y - listbox->Y) - guis[listbox->ParentId].Y;
+  x = (x - listbox->X) - guis[listbox->ParentId].GetX();
+  y = (y - listbox->Y) - guis[listbox->ParentId].GetY();
 
   if ((x < 0) || (y < 0) || (x >= listbox->GetWidth()) || (y >= listbox->GetHeight()))
     return -1;

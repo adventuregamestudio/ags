@@ -307,7 +307,7 @@ Bitmap *create_textual_image(const char *text, const DisplayTextLooks &look, col
         {
             if ((usingGui >= 0) &&
                ((game.options[OPT_SPEECHTYPE] >= kSpeechStyle_SierraBackground) || (fix_look.AsThought)))
-                text_color = text_window_ds->GetCompatibleColor(guis[usingGui].FgColor);
+                text_color = text_window_ds->GetCompatibleColor(guis[usingGui].GetFgColor());
             else
                 text_color = text_window_ds->GetCompatibleColor(text_color);
         }
@@ -750,25 +750,27 @@ void draw_button_background(Bitmap *ds, int xx1,int yy1,int xx2,int yy2,GUIMain*
         draw_color = ds->GetCompatibleColor(16);
         ds->DrawRect(Rect(xx1,yy1,xx2,yy2), draw_color);
     }
-    else {
+    else
+    {
         if (loaded_game_file_version < kGameVersion_262)
         {
             // In pre-2.62 color 0 should be treated as "black" instead of "transparent";
             // this was an unintended effect in older versions (see 2.62 changelog fixes).
-            if (iep->BgColor == 0)
-                iep->BgColor = 16;
+            if (iep->GetBgColor() == 0)
+                iep->SetBgColor(16);
         }
 
-        if (iep->BgColor >= 0) draw_color = ds->GetCompatibleColor(iep->BgColor);
+        if (iep->GetBgColor() >= 0) draw_color = ds->GetCompatibleColor(iep->GetBgColor());
         else draw_color = ds->GetCompatibleColor(0); // black backrgnd behind picture
 
-        if (iep->BgColor > 0)
+        if (iep->GetBgColor() > 0)
             ds->FillRect(Rect(xx1,yy1,xx2,yy2), draw_color);
 
         const int leftRightWidth = game.SpriteInfos[get_but_pic(iep,4)].Width;
         const int topBottomHeight = game.SpriteInfos[get_but_pic(iep,6)].Height;
         // GUI middle space
-        if (iep->BgImage>0) {
+        if (iep->GetBgImage()>0)
+        {
             {
                 // offset the background image and clip it so that it is drawn
                 // such that the border graphics can have a transparent outside
@@ -784,10 +786,10 @@ void draw_button_background(Bitmap *ds, int xx1,int yy1,int xx2,int yy2,GUIMain*
                     bgoffsy = bgoffsyStart;
                     while (bgoffsy <= bgfinishy)
                     {
-                        draw_gui_sprite_v330(ds, iep->BgImage, bgoffsx, bgoffsy);
-                        bgoffsy += game.SpriteInfos[iep->BgImage].Height;
+                        draw_gui_sprite_v330(ds, iep->GetBgImage(), bgoffsx, bgoffsy);
+                        bgoffsy += game.SpriteInfos[iep->GetBgImage()].Height;
                     }
-                    bgoffsx += game.SpriteInfos[iep->BgImage].Width;
+                    bgoffsx += game.SpriteInfos[iep->GetBgImage()].Width;
                 }
                 // return to normal clipping rectangle
                 ds->ResetClip();
@@ -795,13 +797,15 @@ void draw_button_background(Bitmap *ds, int xx1,int yy1,int xx2,int yy2,GUIMain*
         }
         // Vertical borders
         ds->SetClip(Rect(xx1 - leftRightWidth, yy1, xx2 + 1 + leftRightWidth, yy2));
-        for (int uu=yy1;uu <= yy2;uu+= game.SpriteInfos[get_but_pic(iep,4)].Height) {
+        for (int uu=yy1;uu <= yy2;uu+= game.SpriteInfos[get_but_pic(iep,4)].Height)
+        {
             do_corner(ds, get_but_pic(iep,4),xx1,uu,-1,0);   // left side
             do_corner(ds, get_but_pic(iep,5),xx2+1,uu,0,0);  // right side
         }
         // Horizontal borders
         ds->SetClip(Rect(xx1, yy1 - topBottomHeight, xx2, yy2 + 1 + topBottomHeight));
-        for (int uu=xx1;uu <= xx2;uu+=game.SpriteInfos[get_but_pic(iep,6)].Width) {
+        for (int uu=xx1;uu <= xx2;uu+=game.SpriteInfos[get_but_pic(iep,6)].Width)
+        {
             do_corner(ds, get_but_pic(iep,6),uu,yy1,0,-1);  // top side
             do_corner(ds, get_but_pic(iep,7),uu,yy2+1,0,0); // bottom side
         }
@@ -848,7 +852,7 @@ int get_textwindow_padding(int ifnum) {
     if (ifnum < 0)
         ifnum = game.options[OPT_TWCUSTOM];
     if (ifnum > 0 && ifnum < game.numgui)
-        result = guis[ifnum].Padding;
+        result = guis[ifnum].GetPadding();
     else
         result = TEXTWINDOW_PADDING_DEFAULT;
 
@@ -894,7 +898,7 @@ void draw_text_window(Bitmap **text_window_ds, bool should_free_ds,
         int xoffs=game.SpriteInfos[tbnum].Width,yoffs= game.SpriteInfos[tbnum].Height;
         draw_button_background(ds, xoffs,yoffs,(ds->GetWidth() - xoffs) - 1,(ds->GetHeight() - yoffs) - 1,&guis[ifnum]);
         if (set_text_color)
-            *set_text_color = guis[ifnum].FgColor;
+            *set_text_color = guis[ifnum].GetFgColor();
         xins[0]=xoffs+padding;
         yins[0]=yoffs+padding;
     }

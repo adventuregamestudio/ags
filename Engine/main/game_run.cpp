@@ -366,7 +366,7 @@ static void check_mouse_state(int &was_mouse_on_iface)
     mouse_on_iface = gui_on_mouse_move(mousex, mousey);
     was_mouse_on_iface = mouse_on_iface;
 
-    if ((ifacepopped>=0) && (mousey>=guis[ifacepopped].Y+guis[ifacepopped].Height))
+    if ((ifacepopped>=0) && (mousey>=guis[ifacepopped].GetY()+guis[ifacepopped].GetHeight()))
         remove_popup_interface(ifacepopped);
 
     // check mouse clicks on GUIs
@@ -838,7 +838,7 @@ static void update_cursor_over_gui()
         // Don't touch GUI if "GUIs Turn Off When Disabled"
         if ((game.options[OPT_DISABLEOFF] == kGuiDis_Off) &&
             (GUI::Context.DisabledState >= 0) &&
-            (gui.PopupStyle != kGUIPopupNoAutoRemove))
+            (gui.GetPopupStyle() != kGUIPopupNoAutoRemove))
             continue;
         gui.Poll(mousex, mousey);
     }

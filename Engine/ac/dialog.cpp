@@ -649,12 +649,12 @@ static int write_dialog_options(Bitmap *ds, bool ds_has_alpha, int at_x, int at_
 }
 
 void draw_gui_for_dialog_options(Bitmap *ds, GUIMain *guib, int dlgxp, int dlgyp) {
-  if (guib->BgColor != 0) {
-    color_t draw_color = ds->GetCompatibleColor(guib->BgColor);
-    ds->FillRect(Rect(dlgxp, dlgyp, dlgxp + guib->Width, dlgyp + guib->Height), draw_color);
+  if (guib->GetBgColor() != 0) {
+    color_t draw_color = ds->GetCompatibleColor(guib->GetBgColor());
+    ds->FillRect(Rect(dlgxp, dlgyp, dlgxp + guib->GetWidth(), dlgyp + guib->GetHeight()), draw_color);
   }
-  if (guib->BgImage > 0)
-      GfxUtil::DrawSpriteWithTransparency(ds, spriteset[guib->BgImage], dlgxp, dlgyp);
+  if (guib->GetBgImage() > 0)
+      GfxUtil::DrawSpriteWithTransparency(ds, spriteset[guib->GetBgImage()], dlgxp, dlgyp);
 }
 
 bool get_custom_dialog_options_dimensions(int dlgnum)
@@ -884,15 +884,15 @@ void DialogOptions::Begin()
         {
             // Text-window, so do the QFG4-style speech options
             is_textwindow = true;
-            forecol = guib->FgColor;
+            forecol = guib->GetFgColor();
         }
         else
         {
             // Normal GUI
             is_normalgui = true;
-            position = RectWH(guib->X, guib->Y, guib->Width, guib->Height);
+            position = guib->GetRect();
 
-            areawid = guib->Width; //- 5; NOTE: removed this -5 because was not letting to align properly
+            areawid = guib->GetWidth(); //- 5; NOTE: removed this -5 because was not letting to align properly
             padding = TEXTWINDOW_PADDING_DEFAULT;
 
             CalcOptionsHeight();
@@ -901,7 +901,7 @@ void DialogOptions::Begin()
             {
                 // They want the options upwards from the bottom
                 // FIXME: this setting is lying: it does not reverse the order, only aligns opts to the bottom of GUI
-                position.MoveToY((guib->Y + guib->Height) - needheight);
+                position.MoveToY((guib->GetY() + guib->GetHeight()) - needheight);
             }
         }
     }
@@ -987,7 +987,7 @@ void DialogOptions::Draw()
       // Text window behind the options
       areawid = data_to_game_coord(play.max_dialogoption_width);
       int biggest = 0;
-      padding = guis[game.options[OPT_DIALOGIFACE]].Padding;
+      padding = guis[game.options[OPT_DIALOGIFACE]].GetPadding();
       // FIXME: figure out what these +2 and +6 constants are, used along with the padding
       for (int i = 0; i < numdisp; ++i) {
         const char *draw_text = skip_voiceover_token(get_translation(dtop->optionnames[disporder[i]]));

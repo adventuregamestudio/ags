@@ -180,7 +180,7 @@ ScriptGUI* GUI_AsTextWindow(ScriptGUI *tehgui)
 
 int GUI_GetPopupStyle(ScriptGUI *tehgui)
 {
-    return guis[tehgui->id].PopupStyle;
+    return guis[tehgui->id].GetPopupStyle();
 }
 
 void GUI_SetVisible(ScriptGUI *tehgui, int isvisible) {
@@ -204,24 +204,23 @@ bool GUI_GetShown(ScriptGUI *tehgui) {
 }
 
 int GUI_GetX(ScriptGUI *tehgui) {
-  return game_to_data_coord(guis[tehgui->id].X);
+    return game_to_data_coord(guis[tehgui->id].GetX());
 }
 
 void GUI_SetX(ScriptGUI *tehgui, int xx) {
-  guis[tehgui->id].X = data_to_game_coord(xx);
+    guis[tehgui->id].SetX(data_to_game_coord(xx));
 }
 
 int GUI_GetY(ScriptGUI *tehgui) {
-  return game_to_data_coord(guis[tehgui->id].Y);
+    return game_to_data_coord(guis[tehgui->id].GetY());
 }
 
 void GUI_SetY(ScriptGUI *tehgui, int yy) {
-  guis[tehgui->id].Y = data_to_game_coord(yy);
+    guis[tehgui->id].SetY(data_to_game_coord(yy));
 }
 
 void GUI_SetPosition(ScriptGUI *tehgui, int xx, int yy) {
-  GUI_SetX(tehgui, xx);
-  GUI_SetY(tehgui, yy);
+    guis[tehgui->id].SetPosition(xx, yy);
 }
 
 void GUI_SetSize(ScriptGUI *sgui, int widd, int hitt) {
@@ -231,21 +230,18 @@ void GUI_SetSize(ScriptGUI *sgui, int widd, int hitt) {
   GUIMain *tehgui = &guis[sgui->id];
   data_to_game_coords(&widd, &hitt);
 
-  if ((tehgui->Width == widd) && (tehgui->Height == hitt))
+  if ((tehgui->GetWidth() == widd) && (tehgui->GetHeight() == hitt))
     return;
   
-  tehgui->Width = widd;
-  tehgui->Height = hitt;
-
-  tehgui->MarkChanged();
+  tehgui->SetSize(widd, hitt);
 }
 
 int GUI_GetWidth(ScriptGUI *sgui) {
-  return game_to_data_coord(guis[sgui->id].Width);
+  return game_to_data_coord(guis[sgui->id].GetWidth());
 }
 
 int GUI_GetHeight(ScriptGUI *sgui) {
-  return game_to_data_coord(guis[sgui->id].Height);
+  return game_to_data_coord(guis[sgui->id].GetHeight());
 }
 
 void GUI_SetWidth(ScriptGUI *sgui, int newwid) {
@@ -257,12 +253,12 @@ void GUI_SetHeight(ScriptGUI *sgui, int newhit) {
 }
 
 void GUI_SetZOrder(ScriptGUI *tehgui, int z) {
-  guis[tehgui->id].ZOrder = z;
+  guis[tehgui->id].SetZOrder(z);
   update_gui_zorder();
 }
 
 int GUI_GetZOrder(ScriptGUI *tehgui) {
-  return guis[tehgui->id].ZOrder;
+  return guis[tehgui->id].GetZOrder();
 }
 
 void GUI_SetClickable(ScriptGUI *tehgui, int clickable) {
@@ -279,7 +275,7 @@ int GUI_GetID(ScriptGUI *tehgui) {
 
 const char *GUI_GetScriptName(ScriptGUI *tehgui)
 {
-    return CreateNewScriptString(guis[tehgui->id].Name);
+    return CreateNewScriptString(guis[tehgui->id].GetName());
 }
 
 GUIObject* GUI_GetiControls(ScriptGUI *tehgui, int idx) {
@@ -294,13 +290,13 @@ int GUI_GetControlCount(ScriptGUI *tehgui) {
 
 int GUI_GetPopupYPos(ScriptGUI *tehgui)
 {
-    return guis[tehgui->id].PopupAtMouseY;
+    return guis[tehgui->id].GetPopupAtY();
 }
 
 void GUI_SetPopupYPos(ScriptGUI *tehgui, int newpos)
 {
     if (!guis[tehgui->id].IsTextWindow())
-        guis[tehgui->id].PopupAtMouseY = newpos;
+        guis[tehgui->id].SetPopupAtY(newpos);
 }
 
 void GUI_SetTransparency(ScriptGUI *tehgui, int trans) {
@@ -311,87 +307,74 @@ void GUI_SetTransparency(ScriptGUI *tehgui, int trans) {
 }
 
 int GUI_GetTransparency(ScriptGUI *tehgui) {
-  return GfxDef::LegacyTrans255ToTrans100(guis[tehgui->id].Transparency);
+  return GfxDef::LegacyTrans255ToTrans100(guis[tehgui->id].GetTransparency());
 }
 
 void GUI_Centre(ScriptGUI *sgui) {
   GUIMain *tehgui = &guis[sgui->id];
-  tehgui->X = play.GetUIViewport().GetWidth() / 2 - tehgui->Width / 2;
-  tehgui->Y = play.GetUIViewport().GetHeight() / 2 - tehgui->Height / 2;
+  tehgui->SetX(play.GetUIViewport().GetWidth() / 2 - tehgui->GetWidth() / 2);
+  tehgui->SetY(play.GetUIViewport().GetHeight() / 2 - tehgui->GetHeight() / 2);
 }
 
-void GUI_SetBackgroundGraphic(ScriptGUI *tehgui, int slotn) {
-  if (guis[tehgui->id].BgImage != slotn) {
-    guis[tehgui->id].BgImage = slotn;
-    guis[tehgui->id].MarkChanged();
-  }
+void GUI_SetBackgroundGraphic(ScriptGUI *tehgui, int slotn)
+{
+    guis[tehgui->id].SetBgImage(slotn);
 }
 
-int GUI_GetBackgroundGraphic(ScriptGUI *tehgui) {
-  if (guis[tehgui->id].BgImage < 1)
-    return 0;
-  return guis[tehgui->id].BgImage;
+int GUI_GetBackgroundGraphic(ScriptGUI *tehgui)
+{
+    if (guis[tehgui->id].GetBgImage() < 1) // ???
+        return 0;
+    return guis[tehgui->id].GetBgImage();
 }
 
 void GUI_SetBackgroundColor(ScriptGUI *tehgui, int newcol)
 {
-    if (guis[tehgui->id].BgColor != newcol)
-    {
-        guis[tehgui->id].BgColor = newcol;
-        guis[tehgui->id].MarkChanged();
-    }
+    guis[tehgui->id].SetBgColor(newcol);
 }
 
 int GUI_GetBackgroundColor(ScriptGUI *tehgui)
 {
-    return guis[tehgui->id].BgColor;
+    return guis[tehgui->id].GetBgColor();
 }
 
 void GUI_SetBorderColor(ScriptGUI *tehgui, int newcol)
 {
     if (guis[tehgui->id].IsTextWindow())
         return;
-    if (guis[tehgui->id].FgColor != newcol)
-    {
-        guis[tehgui->id].FgColor = newcol;
-        guis[tehgui->id].MarkChanged();
-    }
+    guis[tehgui->id].SetFgColor(newcol);
 }
 
 int GUI_GetBorderColor(ScriptGUI *tehgui)
 {
     if (guis[tehgui->id].IsTextWindow())
         return 0;
-    return guis[tehgui->id].FgColor;
+    return guis[tehgui->id].GetFgColor();
 }
 
 void GUI_SetTextColor(ScriptGUI *tehgui, int newcol)
 {
     if (!guis[tehgui->id].IsTextWindow())
         return;
-    if (guis[tehgui->id].FgColor != newcol)
-    {
-        guis[tehgui->id].FgColor = newcol;
-        guis[tehgui->id].MarkChanged();
-    }
+    guis[tehgui->id].SetFgColor(newcol);
 }
 
 int GUI_GetTextColor(ScriptGUI *tehgui)
 {
     if (!guis[tehgui->id].IsTextWindow())
         return 0;
-    return guis[tehgui->id].FgColor;
+    return guis[tehgui->id].GetFgColor();
 }
 
 int GUI_GetTextPadding(ScriptGUI *tehgui)
 {
-    return guis[tehgui->id].Padding;
+    return guis[tehgui->id].GetPadding();
 }
 
 void GUI_SetTextPadding(ScriptGUI *tehgui, int newpos)
 {
     if (guis[tehgui->id].IsTextWindow())
-        guis[tehgui->id].Padding = newpos;
+        guis[tehgui->id].SetPadding(newpos);
 }
 
 ScriptGUI *GetGUIAtLocation(int xx, int yy) {
@@ -423,8 +406,8 @@ void remove_popup_interface(int ifacenum) {
     if (ifacepopped != ifacenum) return;
     ifacepopped=-1; UnPauseGame();
     guis[ifacenum].SetConceal(true);
-    if (mousey<=guis[ifacenum].PopupAtMouseY)
-        Mouse::SetPosition(Point(mousex, guis[ifacenum].PopupAtMouseY+2));
+    if (mousey<=guis[ifacenum].GetPopupAtY())
+        Mouse::SetPosition(Point(mousex, guis[ifacenum].GetPopupAtY() +2));
     if ((!IsInterfaceEnabled()) && (cur_cursor == cur_mode))
         // Only change the mouse cursor if it hasn't been specifically changed first
         set_mouse_cursor(CURS_WAIT);
@@ -439,7 +422,7 @@ void process_interface_click(int ifce, int btn, int mbut) {
         // click on GUI background
         RuntimeScriptValue params[]{ RuntimeScriptValue().SetScriptObject(&scrGui[ifce], &ccDynamicGUI),
             RuntimeScriptValue().SetInt32(mbut) };
-        QueueScriptFunction(kScTypeGame, ScriptFunctionRef(guis[ifce].ScriptModule, guis[ifce].OnClickHandler), 2, params);
+        QueueScriptFunction(kScTypeGame, ScriptFunctionRef(guis[ifce].GetScriptModule(), guis[ifce].GetOnClickHandler()), 2, params);
         return;
     }
 
@@ -466,7 +449,7 @@ void process_interface_click(int ifce, int btn, int mbut) {
             DoesScriptFunctionExistInModules(theObj->EventHandlers[0]))
         {
             // control-specific event handler
-            const ScriptFunctionRef fn_ref(guis[ifce].ScriptModule, theObj->EventHandlers[0]);
+            const ScriptFunctionRef fn_ref(guis[ifce].GetScriptModule(), theObj->EventHandlers[0]);
             if (theObj->GetEventArgs(0).FindChar(',') != String::NoIndex)
             {
                 RuntimeScriptValue params[]{ RuntimeScriptValue().SetScriptObject(theObj, &ccDynamicGUIObject),
@@ -547,8 +530,8 @@ void replace_macro_tokens(const char *text, String &fixed_text) {
 
 bool sort_gui_less(const int g1, const int g2)
 {
-    return (guis[g1].ZOrder < guis[g2].ZOrder) ||
-        ((guis[g1].ZOrder == guis[g2].ZOrder) && (g1 < g2));
+    return (guis[g1].GetZOrder() < guis[g2].GetZOrder()) ||
+        ((guis[g1].GetZOrder() == guis[g2].GetZOrder()) && (g1 < g2));
 }
 
 void update_gui_zorder()
@@ -635,9 +618,9 @@ static bool should_skip_adjust_for_gui(const GUIMain &gui)
         // not shown
         !gui.IsDisplayed() ||
         // completely offscreen
-        !IsRectInsideRect(play.GetUIViewport(), RectWH(gui.X, gui.Y, gui.Width, gui.Height)) ||
+        !IsRectInsideRect(play.GetUIViewport(), gui.GetRect()) ||
         // fully transparent (? FIXME: this only checks background, but not controls)
-        ((gui.BgColor == 0) && (gui.BgImage < 1)) || (gui.Transparency == 255);
+        ((gui.GetBgColor() == 0) && (gui.GetBgImage() < 1)) || (gui.GetTransparency() == 255);
 }
 
 int adjust_x_for_guis(int x, int y, bool assume_blocking) {
@@ -649,15 +632,15 @@ int adjust_x_for_guis(int x, int y, bool assume_blocking) {
         if (should_skip_adjust_for_gui(gui))
             continue;
         // higher, lower or to the right from the message (?)
-        if ((gui.X > x) || (gui.Y > y) || (gui.Y + gui.Height < y))
+        if ((gui.GetX() > x) || (gui.GetY() > y) || (gui.GetY() + gui.GetHeight() < y))
             continue;
         // try to deal with full-width GUIs
         const float gui_right_edge = 0.875f; // NOTE: originally was 280 pixels in 320-wide game
-        if (gui.X + gui.Width >= get_fixed_pixel_size(game.GetGameRes().Width * gui_right_edge))
+        if (gui.GetX() + gui.GetWidth() >= get_fixed_pixel_size(game.GetGameRes().Width * gui_right_edge))
             continue;
         // Fix coordinates if x is inside the gui
-        if (x < gui.X + gui.Width)
-            x = gui.X + gui.Width + 2;
+        if (x < gui.GetX() + gui.GetWidth())
+            x = gui.GetX() + gui.GetWidth() + 2;
     }
     return x;
 }
@@ -671,15 +654,15 @@ int adjust_y_for_guis(int y, bool assume_blocking) {
         if (should_skip_adjust_for_gui(gui))
             continue;
         // lower than the message
-        if (gui.Y > y)
+        if (gui.GetY() > y)
             continue;
         // try to deal with full-height GUIs down the left or right
         const float gui_bottom_edge = 0.25f; // NOTE: originally was 50 pixels in 200-height game
-        if (gui.Y + gui.Height >= get_fixed_pixel_size(game.GetGameRes().Height * gui_bottom_edge))
+        if (gui.GetY() + gui.GetHeight() >= get_fixed_pixel_size(game.GetGameRes().Height * gui_bottom_edge))
             continue;
         // Fix coordinates if y is inside the gui
-        if (y < gui.Y + gui.Height)
-            y = gui.Y + gui.Height + 2;
+        if (y < gui.GetY() + gui.GetHeight())
+            y = gui.GetY() + gui.GetHeight() + 2;
     }
     return y;
 }
@@ -704,14 +687,14 @@ int gui_on_mouse_move(const int mx, const int my)
         for (int guin : play.gui_draw_order) {
             if (guis[guin].IsInteractableAt(mx, my)) mouse_over_gui=guin;
 
-            if (guis[guin].PopupStyle!=kGUIPopupMouseY) continue;
+            if (guis[guin].GetPopupStyle()!=kGUIPopupMouseY) continue;
             if (play.complete_overlay_on > 0) break;  // interfaces disabled
             if (ifacepopped==guin) continue;
             if (!guis[guin].IsVisible()) continue;
             // Don't allow it to be popped up while skipping cutscene
             if (play.fast_forward) continue;
 
-            if (mousey < guis[guin].PopupAtMouseY) {
+            if (mousey < guis[guin].GetPopupAtY()) {
                 set_mouse_cursor(CURS_ARROW);
                 guis[guin].SetConceal(false);
                 ifacepopped=guin; PauseGame();
@@ -776,8 +759,8 @@ void gui_on_mouse_up(const int wasongui, const int wasbutdown, const int mx, con
         else if (cttype == kGUIInvWindow)
         {
             click_handled = true;
-            mouse_ifacebut_xoffs = mx - (guio->X) - guis[wasongui].X;
-            mouse_ifacebut_yoffs = my - (guio->Y) - guis[wasongui].Y;
+            mouse_ifacebut_xoffs = mx - (guio->X) - guis[wasongui].GetX();
+            mouse_ifacebut_yoffs = my - (guio->Y) - guis[wasongui].GetY();
             int iit = offset_over_inv((GUIInvWindow*)guio);
             if (iit >= 0)
             {
@@ -808,12 +791,12 @@ void gui_on_mouse_up(const int wasongui, const int wasbutdown, const int mx, con
         }
 
         // Built-in behavior for PopupAtY guis: hide one if interacted with any control
-        if ((guis[wasongui].PopupStyle == kGUIPopupMouseY) && click_handled)
+        if ((guis[wasongui].GetPopupStyle() == kGUIPopupMouseY) && click_handled)
             remove_popup_interface(wasongui);
         break;
     }
 
-    run_on_event(kScriptEvent_GUIMouseUp, wasongui, wasbutdown, mx - guis[wasongui].X, my - guis[wasongui].Y);
+    run_on_event(kScriptEvent_GUIMouseUp, wasongui, wasbutdown, mx - guis[wasongui].GetX(), my - guis[wasongui].GetY());
 }
 
 void gui_on_mouse_down(const int guin, const int mbut, const int mx, const int my)
@@ -835,11 +818,11 @@ void gui_on_mouse_down(const int guin, const int mbut, const int mx, const int m
     else
     {
         // run GUI click handler if not on any control
-        if (!guis[guin].OnClickHandler.IsEmpty())
+        if (!guis[guin].GetOnClickHandler().IsEmpty())
             force_event(AGSEvent_GUI(guin, -1, static_cast<eAGSMouseButton>(mbut)));
     }
 
-    run_on_event(kScriptEvent_GUIMouseDown, guin, mbut, mx - guis[guin].X, my - guis[guin].Y);
+    run_on_event(kScriptEvent_GUIMouseDown, guin, mbut, mx - guis[guin].GetX(), my - guis[guin].GetY());
 }
 
 //=============================================================================

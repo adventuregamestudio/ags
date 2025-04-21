@@ -38,55 +38,111 @@ namespace Common
 GuiOptions GUI::Options;
 GuiContext GUI::Context;
 
-
-GUIMain::GUIMain()
+void GUIMain::SetX(int x)
 {
-    InitDefaults();
+    _x = x;
 }
 
-void GUIMain::InitDefaults()
+void GUIMain::SetY(int y)
 {
-    ID            = 0;
-    Name.Empty();
-    _flags        = kGUIMain_DefFlags;
-    _hasChanged   = true;
-    _hasControlsChanged = true;
-    _polling      = false;
+    _y = y;
+}
 
-    X             = 0;
-    Y             = 0;
-    Width         = 0;
-    Height        = 0;
-    BgColor       = 8;
-    BgImage       = 0;
-    FgColor       = 1;
-    Padding       = TEXTWINDOW_PADDING_DEFAULT;
-    PopupStyle    = kGUIPopupNormal;
-    PopupAtMouseY = -1;
-    Transparency  = 0;
-    ZOrder        = -1;
+void GUIMain::SetWidth(int width)
+{
+    SetSize(width, _height);
+}
 
-    FocusCtrl     = 0;
-    HighlightCtrl = -1;
-    MouseOverCtrl = -1;
-    MouseDownCtrl = -1;
-    MouseWasAt.X  = -1;
-    MouseWasAt.Y  = -1;
+void GUIMain::SetHeight(int height)
+{
+    SetSize(_width, height);
+}
 
-    OnClickHandler.Empty();
+void GUIMain::SetPosition(int x, int y)
+{
+    _x = x;
+    _y = y;
+}
 
-    _controls.clear();
-    _ctrlRefs.clear();
-    _ctrlDrawOrder.clear();
+void GUIMain::SetSize(int width, int height)
+{
+    if (_width != width || _height != height)
+    {
+        _width = width;
+        _height = height;
+        MarkChanged();
+    }
+}
+
+void GUIMain::SetBgColor(int color)
+{
+    if (_bgColor != color)
+    {
+        _bgColor = color;
+        MarkChanged();
+    }
+}
+
+void GUIMain::SetFgColor(int color)
+{
+    if (_fgColor != color)
+    {
+        _fgColor = color;
+        MarkChanged();
+    }
+}
+
+void GUIMain::SetBgImage(int image)
+{
+    if (_bgImage != image)
+    {
+        _bgImage = image;
+        MarkChanged();
+    }
+}
+
+void GUIMain::SetPopupStyle(GUIPopupStyle style)
+{
+    _popupStyle = style;
+}
+
+void GUIMain::SetPopupAtY(int popup_aty)
+{
+    _popupAtMouseY = popup_aty;
+}
+
+void GUIMain::SetPadding(int padding)
+{
+    _padding = padding;
+}
+
+void GUIMain::SetTransparency(int trans)
+{
+    _transparency = trans;
+}
+
+void GUIMain::SetZOrder(int zorder)
+{
+    _zOrder = zorder;
+}
+
+void GUIMain::SetScriptModule(const String &scmodule)
+{
+    _scriptModule = scmodule;
+}
+
+void GUIMain::SetOnClickHandler(const String &handler)
+{
+    _onClickHandler = handler;
 }
 
 int GUIMain::FindControlAt(int atx, int aty, int leeway, bool must_be_clickable) const
 {
     // translate to GUI's local coordinates
-    return FindControlAtLocal(atx - X, aty - Y, leeway, must_be_clickable);
+    return FindControlAtLocal(atx - _x, aty - _y, leeway, must_be_clickable);
 }
 
-int32_t GUIMain::FindControlAtLocal(int atx, int aty, int leeway, bool must_be_clickable) const
+int GUIMain::FindControlAtLocal(int atx, int aty, int leeway, bool must_be_clickable) const
 {
     if (loaded_game_file_version <= kGameVersion_262)
     {
@@ -119,17 +175,17 @@ int32_t GUIMain::FindControlAtLocal(int atx, int aty, int leeway, bool must_be_c
 
 int GUIMain::GetControlUnderMouse() const
 {
-    if (MouseOverCtrl >= 0)
-        return MouseOverCtrl;
-    else if (MouseOverCtrl == MOVER_MOUSEDOWNLOCKED)
-        return MouseDownCtrl;
+    if (_mouseOverCtrl >= 0)
+        return _mouseOverCtrl;
+    else if (_mouseOverCtrl == MOVER_MOUSEDOWNLOCKED)
+        return _mouseDownCtrl;
     else
         return -1;
 }
 
 int GUIMain::GetControlCount() const
 {
-    return (int32_t)_controls.size();
+    return static_cast<int>(_controls.size());
 }
 
 GUIObject *GUIMain::GetControl(int index) const
@@ -146,7 +202,7 @@ GUIControlType GUIMain::GetControlType(int index) const
     return _ctrlRefs[index].first;
 }
 
-int32_t GUIMain::GetControlID(int index) const
+int GUIMain::GetControlID(int index) const
 {
     if (index < 0 || (size_t)index >= _ctrlRefs.size())
         return -1;
@@ -167,14 +223,14 @@ bool GUIMain::IsInteractableAt(int x, int y) const
 {
     if (!IsDisplayed())
         return false;
-    // The Transparency test was unintentionally added in 3.5.0 as a side effect,
+    // The _transparency test was unintentionally added in 3.5.0 as a side effect,
     // and unfortunately there are already games which require it to work.
     if ((game_compiled_version.AsNumber() == 30500) &&
-        (Transparency == 255))
+        (_transparency == 255))
         return false;
     if (!IsClickable())
         return false;
-    if ((x >= X) & (y >= Y) & (x < X + Width) & (y < Y + Height))
+    if ((x >= _x) && (y >= _y) && (x < _x + _width) && (y < _y + _height))
         return true;
     return false;
 }
@@ -192,25 +248,25 @@ void GUIMain::MarkControlChanged()
 void GUIMain::NotifyControlPosition()
 {
     // Force it to re-check for which control is under the mouse
-    MouseWasAt.X = -1;
-    MouseWasAt.Y = -1;
+    _mouseWasAt.X = -1;
+    _mouseWasAt.Y = -1;
     _hasControlsChanged = true; // for software render, and in case of shape change
 }
 
 void GUIMain::NotifyControlState(int objid, bool mark_changed)
 {
-    MouseWasAt.X = -1;
-    MouseWasAt.Y = -1;
+    _mouseWasAt.X = -1;
+    _mouseWasAt.Y = -1;
     _hasControlsChanged |= mark_changed;
     // Update cursor-over-control state, if necessary
-    const int overctrl = MouseOverCtrl;
+    const int overctrl = _mouseOverCtrl;
     if (!_polling &&
         (objid >= 0) && (objid == overctrl) && ((size_t)objid < _controls.size()) &&
         (!_controls[overctrl]->IsClickable() ||
             !_controls[overctrl]->IsVisible() ||
             !_controls[overctrl]->IsEnabled()))
     {
-        MouseOverCtrl = -1;
+        _mouseOverCtrl = -1;
         _controls[overctrl]->OnMouseLeave();
     }
 }
@@ -223,12 +279,12 @@ void GUIMain::ClearChanged()
 
 void GUIMain::ResetOverControl()
 {
-    if ((MouseOverCtrl >= 0) && ((size_t)MouseOverCtrl < _controls.size()))
-        _controls[MouseOverCtrl]->OnMouseLeave();
+    if ((_mouseOverCtrl >= 0) && ((size_t)_mouseOverCtrl < _controls.size()))
+        _controls[_mouseOverCtrl]->OnMouseLeave();
     // Force it to re-check for which control is under the mouse
-    MouseWasAt.X = -1;
-    MouseWasAt.Y = -1;
-    MouseOverCtrl = -1;
+    _mouseWasAt.X = -1;
+    _mouseWasAt.Y = -1;
+    _mouseOverCtrl = -1;
 }
 
 void GUIMain::AddControl(GUIControlType type, int id, GUIObject *control)
@@ -252,7 +308,7 @@ void GUIMain::DrawSelf(Bitmap *ds)
 {
     set_our_eip(375);
 
-    if ((Width < 1) || (Height < 1))
+    if ((_width < 1) || (_height < 1))
         return;
 
     assert(GUI::Context.Spriteset);
@@ -260,18 +316,18 @@ void GUIMain::DrawSelf(Bitmap *ds)
 
     set_our_eip(376);
     // stop border being transparent, if the whole GUI isn't
-    if ((FgColor == 0) && (BgColor != 0))
-        FgColor = 16;
+    if ((_fgColor == 0) && (_bgColor != 0))
+        _fgColor = 16;
 
-    if (BgColor != 0)
-        ds->Fill(ds->GetCompatibleColor(BgColor));
+    if (_bgColor != 0)
+        ds->Fill(ds->GetCompatibleColor(_bgColor));
 
     set_our_eip(377);
 
     color_t draw_color;
-    if (FgColor != BgColor)
+    if (_fgColor != _bgColor)
     {
-        draw_color = ds->GetCompatibleColor(FgColor);
+        draw_color = ds->GetCompatibleColor(_fgColor);
         ds->DrawRect(Rect(0, 0, ds->GetWidth() - 1, ds->GetHeight() - 1), draw_color);
         if (get_fixed_pixel_size(1) > 1)
             ds->DrawRect(Rect(1, 1, ds->GetWidth() - 2, ds->GetHeight() - 2), draw_color);
@@ -279,8 +335,8 @@ void GUIMain::DrawSelf(Bitmap *ds)
 
     set_our_eip(378);
 
-    if (BgImage > 0 && spriteset.DoesSpriteExist(BgImage))
-        draw_gui_sprite(ds, BgImage, 0, 0, false);
+    if (_bgImage > 0 && spriteset.DoesSpriteExist(_bgImage))
+        draw_gui_sprite(ds, _bgImage, 0, 0, false);
 
     set_our_eip(379);
 }
@@ -332,7 +388,7 @@ void GUIMain::DrawControls(Bitmap *ds)
 
         int selectedColour = 14;
 
-        if (HighlightCtrl == _ctrlDrawOrder[ctrl_index])
+        if (_highlightCtrl == _ctrlDrawOrder[ctrl_index])
         {
             if (GUI::Options.OutlineControls)
                 selectedColour = 13;
@@ -371,48 +427,48 @@ void GUIMain::DrawBlob(Bitmap *ds, int x, int y, color_t draw_color)
 void GUIMain::Poll(int mx, int my)
 {
     _polling = true;
-    mx -= X, my -= Y; // translate to GUI's local coordinates
-    if (mx != MouseWasAt.X || my != MouseWasAt.Y)
+    mx -= _x, my -= _y; // translate to GUI's local coordinates
+    if (mx != _mouseWasAt.X || my != _mouseWasAt.Y)
     {
         int ctrl_index = FindControlAtLocal(mx, my, 0, true);
 
-        if (MouseOverCtrl == MOVER_MOUSEDOWNLOCKED)
-            _controls[MouseDownCtrl]->OnMouseMove(mx, my);
-        else if (ctrl_index != MouseOverCtrl)
+        if (_mouseOverCtrl == MOVER_MOUSEDOWNLOCKED)
+            _controls[_mouseDownCtrl]->OnMouseMove(mx, my);
+        else if (ctrl_index != _mouseOverCtrl)
         {
-            if (MouseOverCtrl >= 0)
-                _controls[MouseOverCtrl]->OnMouseLeave();
+            if (_mouseOverCtrl >= 0)
+                _controls[_mouseOverCtrl]->OnMouseLeave();
 
             if (ctrl_index >= 0 && !GUI::IsGUIEnabled(_controls[ctrl_index]))
                 // the control is disabled - ignore it
-                MouseOverCtrl = -1;
+                _mouseOverCtrl = -1;
             else if (ctrl_index >= 0 && !_controls[ctrl_index]->IsClickable())
                 // the control is not clickable - ignore it
-                MouseOverCtrl = -1;
+                _mouseOverCtrl = -1;
             else
             {
                 // over a different control
-                MouseOverCtrl = ctrl_index;
-                if (MouseOverCtrl >= 0)
+                _mouseOverCtrl = ctrl_index;
+                if (_mouseOverCtrl >= 0)
                 {
-                    _controls[MouseOverCtrl]->OnMouseEnter();
-                    _controls[MouseOverCtrl]->OnMouseMove(mx, my);
+                    _controls[_mouseOverCtrl]->OnMouseEnter();
+                    _controls[_mouseOverCtrl]->OnMouseMove(mx, my);
                 }
             }
         } 
-        else if (MouseOverCtrl >= 0)
-            _controls[MouseOverCtrl]->OnMouseMove(mx, my);
+        else if (_mouseOverCtrl >= 0)
+            _controls[_mouseOverCtrl]->OnMouseMove(mx, my);
     }
 
-    MouseWasAt.X = mx;
-    MouseWasAt.Y = my;
+    _mouseWasAt.X = mx;
+    _mouseWasAt.Y = my;
     _polling = false;
 }
 
 HError GUIMain::RebuildArray(GUIRefCollection &guiobjs)
 {
     GUIControlType thistype;
-    int32_t thisnum;
+    int thisnum;
 
     _controls.resize(_ctrlRefs.size());
     for (size_t i = 0; i < _controls.size(); ++i)
@@ -421,7 +477,7 @@ HError GUIMain::RebuildArray(GUIRefCollection &guiobjs)
         thisnum = _ctrlRefs[i].second;
 
         if (thisnum < 0)
-            return new Error(String::FromFormat("GUIMain (%d): invalid control ID %d in ref #%d", ID, thisnum, i));
+            return new Error(String::FromFormat("GUIMain (%d): invalid control _id %d in ref #%d", _id, thisnum, i));
 
         if (thistype == kGUIButton)
             _controls[i] = &guiobjs.Buttons[thisnum];
@@ -436,9 +492,9 @@ HError GUIMain::RebuildArray(GUIRefCollection &guiobjs)
         else if (thistype == kGUIListBox)
             _controls[i] = &guiobjs.ListBoxes[thisnum];
         else
-            return new Error(String::FromFormat("GUIMain (%d): unknown control type %d in ref #%d", ID, thistype, i));
+            return new Error(String::FromFormat("GUIMain (%d): unknown control type %d in ref #%d", _id, thistype, i));
 
-        _controls[i]->ParentId = ID;
+        _controls[i]->ParentId = _id;
         _controls[i]->Id = i;
     }
 
@@ -523,7 +579,7 @@ void GUIMain::SetTextWindow(bool on)
 
 void GUIMain::SetTransparencyAsPercentage(int percent)
 {
-    Transparency = GfxDef::Trans100ToLegacyTrans255(percent);
+    _transparency = GfxDef::Trans100ToLegacyTrans255(percent);
 }
 
 void GUIMain::SetVisible(bool on)
@@ -537,35 +593,35 @@ void GUIMain::SetVisible(bool on)
 
 void GUIMain::OnMouseButtonDown(int mx, int my)
 {
-    if (MouseOverCtrl < 0)
+    if (_mouseOverCtrl < 0)
         return;
 
     // don't activate disabled buttons
-    if (!GUI::IsGUIEnabled(_controls[MouseOverCtrl]) || !_controls[MouseOverCtrl]->IsVisible() ||
-        !_controls[MouseOverCtrl]->IsClickable())
+    if (!GUI::IsGUIEnabled(_controls[_mouseOverCtrl]) || !_controls[_mouseOverCtrl]->IsVisible() ||
+        !_controls[_mouseOverCtrl]->IsClickable())
         return;
 
-    MouseDownCtrl = MouseOverCtrl;
-    if (_controls[MouseOverCtrl]->OnMouseDown())
-        MouseOverCtrl = MOVER_MOUSEDOWNLOCKED;
-    _controls[MouseDownCtrl]->OnMouseMove(mx - X, my - Y);
+    _mouseDownCtrl = _mouseOverCtrl;
+    if (_controls[_mouseOverCtrl]->OnMouseDown())
+        _mouseOverCtrl = MOVER_MOUSEDOWNLOCKED;
+    _controls[_mouseDownCtrl]->OnMouseMove(mx - _x, my - _y);
 }
 
 void GUIMain::OnMouseButtonUp()
 {
-    // FocusCtrl was locked - reset it back to normal, but On the
+    // _focusCtrl was locked - reset it back to normal, but On the
     // locked object so that a OnMouseLeave gets fired if necessary
-    if (MouseOverCtrl == MOVER_MOUSEDOWNLOCKED)
+    if (_mouseOverCtrl == MOVER_MOUSEDOWNLOCKED)
     {
-        MouseOverCtrl = MouseDownCtrl;
-        MouseWasAt.X = -1;  // force update
+        _mouseOverCtrl = _mouseDownCtrl;
+        _mouseWasAt.X = -1;  // force update
     }
 
-    if (MouseDownCtrl < 0)
+    if (_mouseDownCtrl < 0)
         return;
 
-    _controls[MouseDownCtrl]->OnMouseUp();
-    MouseDownCtrl = -1;
+    _controls[_mouseDownCtrl]->OnMouseUp();
+    _mouseDownCtrl = -1;
 }
 
 void GUIMain::ReadFromFile(Stream *in, GuiVersion gui_version)
@@ -577,41 +633,41 @@ void GUIMain::ReadFromFile(Stream *in, GuiVersion gui_version)
 
     if (gui_version < kGuiVersion_340)
     {
-        Name.ReadCount(in, GUIMAIN_LEGACY_NAME_LENGTH);
-        OnClickHandler.ReadCount(in, GUIMAIN_LEGACY_EVENTHANDLER_LENGTH);
+        _name.ReadCount(in, GUIMAIN_LEGACY_NAME_LENGTH);
+        _onClickHandler.ReadCount(in, GUIMAIN_LEGACY_EVENTHANDLER_LENGTH);
     }
     else
     {
-        Name = StrUtil::ReadString(in);
-        OnClickHandler = StrUtil::ReadString(in);
+        _name = StrUtil::ReadString(in);
+        _onClickHandler = StrUtil::ReadString(in);
     }
-    X             = in->ReadInt32();
-    Y             = in->ReadInt32();
-    Width         = in->ReadInt32();
-    Height        = in->ReadInt32();
+    _x             = in->ReadInt32();
+    _y             = in->ReadInt32();
+    _width         = in->ReadInt32();
+    _height        = in->ReadInt32();
     if (gui_version < kGuiVersion_350)
     { // NOTE: reading into actual variables only for old savegame support
-        FocusCtrl = in->ReadInt32();
+        _focusCtrl = in->ReadInt32();
     }
     const size_t ctrl_count = in->ReadInt32();
-    PopupStyle    = (GUIPopupStyle)in->ReadInt32();
-    PopupAtMouseY = in->ReadInt32();
-    BgColor       = in->ReadInt32();
-    BgImage       = in->ReadInt32();
-    FgColor       = in->ReadInt32();
+    _popupStyle    = (GUIPopupStyle)in->ReadInt32();
+    _popupAtMouseY = in->ReadInt32();
+    _bgColor       = in->ReadInt32();
+    _bgImage       = in->ReadInt32();
+    _fgColor       = in->ReadInt32();
     if (gui_version < kGuiVersion_350)
     { // NOTE: reading into actual variables only for old savegame support
-        MouseOverCtrl = in->ReadInt32();
-        MouseWasAt.X  = in->ReadInt32();
-        MouseWasAt.Y  = in->ReadInt32();
-        MouseDownCtrl = in->ReadInt32();
-        HighlightCtrl = in->ReadInt32();
+        _mouseOverCtrl = in->ReadInt32();
+        _mouseWasAt.X  = in->ReadInt32();
+        _mouseWasAt.Y  = in->ReadInt32();
+        _mouseDownCtrl = in->ReadInt32();
+        _highlightCtrl = in->ReadInt32();
     }
     _flags         = in->ReadInt32();
-    Transparency  = in->ReadInt32();
-    ZOrder        = in->ReadInt32();
-    ID            = in->ReadInt32();
-    Padding       = in->ReadInt32();
+    _transparency  = in->ReadInt32();
+    _zOrder        = in->ReadInt32();
+    _id            = in->ReadInt32();
+    _padding       = in->ReadInt32();
     if (gui_version < kGuiVersion_350)
         in->Seek(sizeof(int32_t) * GUIMAIN_LEGACY_RESERVED_INTS);
 
@@ -645,23 +701,23 @@ void GUIMain::ReadFromFile(Stream *in, GuiVersion gui_version)
 
 void GUIMain::WriteToFile(Stream *out) const
 {
-    StrUtil::WriteString(Name, out);
-    StrUtil::WriteString(OnClickHandler, out);
-    out->WriteInt32(X);
-    out->WriteInt32(Y);
-    out->WriteInt32(Width);
-    out->WriteInt32(Height);
+    StrUtil::WriteString(_name, out);
+    StrUtil::WriteString(_onClickHandler, out);
+    out->WriteInt32(_x);
+    out->WriteInt32(_y);
+    out->WriteInt32(_width);
+    out->WriteInt32(_height);
     out->WriteInt32(_ctrlRefs.size());
-    out->WriteInt32(PopupStyle);
-    out->WriteInt32(PopupAtMouseY);
-    out->WriteInt32(BgColor);
-    out->WriteInt32(BgImage);
-    out->WriteInt32(FgColor);
+    out->WriteInt32(_popupStyle);
+    out->WriteInt32(_popupAtMouseY);
+    out->WriteInt32(_bgColor);
+    out->WriteInt32(_bgImage);
+    out->WriteInt32(_fgColor);
     out->WriteInt32(_flags);
-    out->WriteInt32(Transparency);
-    out->WriteInt32(ZOrder);
-    out->WriteInt32(ID);
-    out->WriteInt32(Padding);
+    out->WriteInt32(_transparency);
+    out->WriteInt32(_zOrder);
+    out->WriteInt32(_id);
+    out->WriteInt32(_padding);
     for (const auto &ref : _ctrlRefs)
     {
         uint32_t ref_packed = ((ref.first & 0xFFFF) << 16) | (ref.second & 0xFFFF);
@@ -673,35 +729,35 @@ void GUIMain::ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_version, st
 {
     // Properties
     _flags = in->ReadInt32();
-    X = in->ReadInt32();
-    Y = in->ReadInt32();
-    Width = in->ReadInt32();
-    Height = in->ReadInt32();
-    BgImage = in->ReadInt32();
-    Transparency = in->ReadInt32();
+    _x = in->ReadInt32();
+    _y = in->ReadInt32();
+    _width = in->ReadInt32();
+    _height = in->ReadInt32();
+    _bgImage = in->ReadInt32();
+    _transparency = in->ReadInt32();
     if (svg_version < kGuiSvgVersion_350)
     {
         // reverse particular flags from older format
         _flags ^= kGUIMain_OldFmtXorMask;
         GUI::ApplyLegacyVisibility(*this, (LegacyGUIVisState)in->ReadInt32());
     }
-    ZOrder = in->ReadInt32();
+    _zOrder = in->ReadInt32();
 
     if (svg_version >= kGuiSvgVersion_350)
     {
-        BgColor = in->ReadInt32();
-        FgColor = in->ReadInt32();
-        Padding = in->ReadInt32();
-        PopupAtMouseY = in->ReadInt32();
+        _bgColor = in->ReadInt32();
+        _fgColor = in->ReadInt32();
+        _padding = in->ReadInt32();
+        _popupAtMouseY = in->ReadInt32();
     }
 
     // Dynamic values
-    FocusCtrl = in->ReadInt32();
-    HighlightCtrl = in->ReadInt32();
-    MouseOverCtrl = in->ReadInt32();
-    MouseDownCtrl = in->ReadInt32();
-    MouseWasAt.X = in->ReadInt32();
-    MouseWasAt.Y = in->ReadInt32();
+    _focusCtrl = in->ReadInt32();
+    _highlightCtrl = in->ReadInt32();
+    _mouseOverCtrl = in->ReadInt32();
+    _mouseDownCtrl = in->ReadInt32();
+    _mouseWasAt.X = in->ReadInt32();
+    _mouseWasAt.Y = in->ReadInt32();
 
     // Control refs
     if (svg_version >= kGuiSvgVersion_36200)
@@ -747,24 +803,24 @@ void GUIMain::WriteToSavegame(Common::Stream *out) const
 {
     // Properties
     out->WriteInt32(_flags);
-    out->WriteInt32(X);
-    out->WriteInt32(Y);
-    out->WriteInt32(Width);
-    out->WriteInt32(Height);
-    out->WriteInt32(BgImage);
-    out->WriteInt32(Transparency);
-    out->WriteInt32(ZOrder);
-    out->WriteInt32(BgColor);
-    out->WriteInt32(FgColor);
-    out->WriteInt32(Padding);
-    out->WriteInt32(PopupAtMouseY);
+    out->WriteInt32(_x);
+    out->WriteInt32(_y);
+    out->WriteInt32(_width);
+    out->WriteInt32(_height);
+    out->WriteInt32(_bgImage);
+    out->WriteInt32(_transparency);
+    out->WriteInt32(_zOrder);
+    out->WriteInt32(_bgColor);
+    out->WriteInt32(_fgColor);
+    out->WriteInt32(_padding);
+    out->WriteInt32(_popupAtMouseY);
     // Dynamic values
-    out->WriteInt32(FocusCtrl);
-    out->WriteInt32(HighlightCtrl);
-    out->WriteInt32(MouseOverCtrl);
-    out->WriteInt32(MouseDownCtrl);
-    out->WriteInt32(MouseWasAt.X);
-    out->WriteInt32(MouseWasAt.Y);
+    out->WriteInt32(_focusCtrl);
+    out->WriteInt32(_highlightCtrl);
+    out->WriteInt32(_mouseOverCtrl);
+    out->WriteInt32(_mouseDownCtrl);
+    out->WriteInt32(_mouseWasAt.X);
+    out->WriteInt32(_mouseWasAt.Y);
     // Control refs (for asserting controls data on restoration,
     // and also in case if we support dynamic creation of controls)
     out->WriteInt32(_ctrlRefs.size());
@@ -971,7 +1027,7 @@ HError RebuildGUI(std::vector<GUIMain> &guis, GUIRefCollection &guiobjs)
         for (int ctrl_index = 0; ctrl_index < gui.GetControlCount(); ++ctrl_index)
         {
             GUIObject *gui_ctrl = gui.GetControl(ctrl_index);
-            gui_ctrl->ParentId = gui.ID;
+            gui_ctrl->ParentId = gui.GetID();
             gui_ctrl->Id = ctrl_index;
             if (bwcompat_ctrl_zorder)
                 gui_ctrl->ZOrder = ctrl_index;
@@ -1005,45 +1061,44 @@ HError ReadGUI(std::vector<GUIMain> &guis, GUIRefCollection &guiobjs, Stream *in
     for (size_t i = 0; i < gui_count; ++i)
     {
         GUIMain &gui = guis[i];
-        gui.InitDefaults();
         gui.ReadFromFile(in, GameGuiVersion);
 
         // perform fixups
-        if (gui.Height < 2)
-            gui.Height = 2;
+        if (gui.GetHeight() < 2)
+            gui.SetHeight(2);
         if (GameGuiVersion < kGuiVersion_unkn_103)
-            gui.Name.Format("GUI%d", i);
+            gui.SetName(String::FromFormat("GUI%d", i));
         if (GameGuiVersion < kGuiVersion_260)
-            gui.ZOrder = i;
+            gui.SetZOrder(i);
         if (GameGuiVersion < kGuiVersion_270)
-            gui.OnClickHandler.Empty();
+            gui.SetOnClickHandler(String()); // CHECKME: not sure if we need to reset this here?
         if (GameGuiVersion < kGuiVersion_331)
-            gui.Padding = TEXTWINDOW_PADDING_DEFAULT;
+            gui.SetPadding(TEXTWINDOW_PADDING_DEFAULT);
         // fix names for 2.x: "GUI" -> "gGui"
         if (loaded_game_file_version <= kGameVersion_272)
-            gui.Name = GUI::FixupGUIName272(gui.Name);
+            gui.SetName(GUI::FixupGUIName272(gui.GetName()));
 
         // GUI popup style and visibility
         if (GameGuiVersion < kGuiVersion_350)
         {
             // Convert legacy normal-off style into normal one
-            if (gui.PopupStyle == kGUIPopupLegacyNormalOff)
+            if (gui.GetPopupStyle() == kGUIPopupLegacyNormalOff)
             {
-                gui.PopupStyle = kGUIPopupNormal;
+                gui.SetPopupStyle(kGUIPopupNormal);
                 gui.SetVisible(false);
             }
             // Normal GUIs and PopupMouseY GUIs should start with Visible = true
             else
             {
-                gui.SetVisible(gui.PopupStyle != kGUIPopupModal);
+                gui.SetVisible(gui.GetPopupStyle() != kGUIPopupModal);
             }
         }
 
         // PopupMouseY GUIs should be initially concealed
-        if (gui.PopupStyle == kGUIPopupMouseY)
+        if (gui.GetPopupStyle() == kGUIPopupMouseY)
             gui.SetConceal(true);
-        // Assign ID to order in array
-        gui.ID = i;
+        // Assign _id to order in array
+        gui.SetID(i);
     }
 
     // buttons
@@ -1158,7 +1213,7 @@ void WriteGUI(const std::vector<GUIMain> &guis, const GUIRefCollection &guiobjs,
 void ApplyLegacyVisibility(GUIMain &gui, LegacyGUIVisState vis)
 {
     // kGUIPopupMouseY had its own rules, which we practically reverted now
-    if (gui.PopupStyle == kGUIPopupMouseY)
+    if (gui.GetPopupStyle() == kGUIPopupMouseY)
     {
         // it was only !Visible if the legacy Visibility was LockedOff
         gui.SetVisible(vis != kGUIVisibility_LockedOff);

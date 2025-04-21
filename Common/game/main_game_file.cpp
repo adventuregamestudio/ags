@@ -834,7 +834,7 @@ static HError ReadInteractionScriptModules(Stream *in, LoadedGameEntities &ents)
     if (num_gui != ents.Game.numgui)
         return new Error(String::FromFormat("Mismatching number of GUI: read %zu expected %zu", num_gui, (size_t)ents.Game.numgui));
     for (size_t i = 0; i < (size_t)ents.Game.numgui; ++i)
-        ents.Guis[i].ScriptModule = StrUtil::ReadString(in);
+        ents.Guis[i].SetScriptModule(StrUtil::ReadString(in));
     return HError::None();
 }
 

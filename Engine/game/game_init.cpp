@@ -211,7 +211,7 @@ HError InitAndRegisterGUI(GameSetupStruct &game)
         // export all the GUI's controls
         export_gui_controls(i);
         scrGui[i].id = i;
-        ccAddExternalScriptObject(guis[i].Name, &scrGui[i], &ccDynamicGUI);
+        ccAddExternalScriptObject(guis[i].GetName(), &scrGui[i], &ccDynamicGUI);
         ccRegisterManagedObject(&scrGui[i], &ccDynamicGUI);
     }
     return HError::None();
@@ -394,25 +394,23 @@ static void ConvertGuiToGameRes(GameSetupStruct &game, GameDataVersion data_ver)
 
     for (int i = 0; i < game.numgui; ++i)
     {
-        GUIMain*cgp = &guis[i];
-        cgp->X *= mul;
-        cgp->Y *= mul;
-        if (cgp->Width < 1)
-            cgp->Width = 1;
-        if (cgp->Height < 1)
-            cgp->Height = 1;
+        GUIMain *gui = &guis[i];
+        gui->SetPosition(gui->GetPosition() * mul);
+        if (gui->GetWidth() < 1)
+            gui->SetWidth(1);
+        if (gui->GetHeight() < 1)
+            gui->SetHeight(1);
         // This is probably a way to fix GUIs meant to be covering whole screen
-        if (cgp->Width == game.GetDataRes().Width - 1)
-            cgp->Width = game.GetDataRes().Width;
+        if (gui->GetWidth() == game.GetDataRes().Width - 1)
+            gui->SetWidth(game.GetDataRes().Width);
 
-        cgp->Width *= mul;
-        cgp->Height *= mul;
+        gui->SetSize(gui->GetSize() * mul);
 
-        cgp->PopupAtMouseY *= mul;
+        gui->SetPopupAtY(gui->GetPopupAtY() * mul);
 
-        for (int j = 0; j < cgp->GetControlCount(); ++j)
+        for (int j = 0; j < gui->GetControlCount(); ++j)
         {
-            GUIObject *guio = cgp->GetControl(j);
+            GUIObject *guio = gui->GetControl(j);
             guio->X *= mul;
             guio->Y *= mul;
             Size sz = guio->GetSize() * mul;

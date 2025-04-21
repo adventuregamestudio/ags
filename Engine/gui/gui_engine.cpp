@@ -37,12 +37,12 @@ extern GameSetupStruct game;
 
 bool GUIMain::HasAlphaChannel() const
 {
-    if (this->BgImage > 0)
+    if (this->GetBgImage() > 0)
     {
         // alpha state depends on background image
-        return is_sprite_alpha(this->BgImage);
+        return is_sprite_alpha(this->GetBgImage());
     }
-    if (this->BgColor > 0)
+    if (this->GetBgColor() > 0)
     {
         // not alpha transparent if there is a background color
         return false;

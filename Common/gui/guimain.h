@@ -91,12 +91,11 @@ class GUIMain
 {
 public:
     // ControlRef describes a child control type and its index in an external list
-    typedef std::pair<GUIControlType, int32_t> ControlRef;
+    typedef std::pair<GUIControlType, int> ControlRef;
 
-    GUIMain();
+    GUIMain() = default;
 
-    void    InitDefaults();
-
+    // Properties
     // Tells if the gui background supports alpha channel
     bool    HasAlphaChannel() const;
     // Tells if GUI will react on clicking on it
@@ -120,6 +119,46 @@ public:
     // mouse cursor is at certain position on screen.
     bool    IsVisible() const { return (_flags & kGUIMain_Visible) != 0; }
 
+    int     GetID() const { return _id; }
+    void    SetID(int id) { _id = id; }
+    const String &GetName() const { return _name; }
+    void    SetName(const String &name) { _name = name; }
+    int     GetX() const { return _x; }
+    void    SetX(int x);
+    int     GetY() const { return _y; }
+    void    SetY(int y);
+    int     GetWidth() const { return _width; }
+    void    SetWidth(int width);
+    int     GetHeight() const { return _height; }
+    void    SetHeight(int height);
+    Point   GetPosition() const { return Point(_x, _y); }
+    void    SetPosition(int x, int y);
+    void    SetPosition(const Point &pos) { SetPosition(pos.X, pos.Y); }
+    Size    GetSize() const { return Size(_width, _height); }
+    void    SetSize(int width, int height);
+    void    SetSize(const Size &sz) { SetSize(sz.Width, sz.Height); }
+    Rect    GetRect() const { return RectWH(_x, _y, _width, _height); }
+    int     GetBgColor() const { return _bgColor; }
+    void    SetBgColor(int color);
+    int     GetFgColor() const { return _fgColor; }
+    void    SetFgColor(int color);
+    int     GetBgImage() const { return _bgImage; }
+    void    SetBgImage(int image);
+    GUIPopupStyle GetPopupStyle() const { return _popupStyle; }
+    void    SetPopupStyle(GUIPopupStyle style);
+    int     GetPopupAtY() const { return _popupAtMouseY; }
+    void    SetPopupAtY(int popup_aty);
+    int     GetPadding() const { return _padding; }
+    void    SetPadding(int padding);
+    int     GetTransparency() const { return _transparency; }
+    void    SetTransparency(int trans);
+    int     GetZOrder() const { return _zOrder; }
+    void    SetZOrder(int zorder);
+    const String &GetScriptModule() const { return _scriptModule; }
+    void    SetScriptModule(const String &scmodule);
+    const String &GetOnClickHandler() const { return _onClickHandler; }
+    void    SetOnClickHandler(const String &handler);
+
     // Tells if GUI has graphically changed recently
     bool    HasChanged() const { return _hasChanged; }
     bool    HasControlsChanged() const { return _hasControlsChanged; }
@@ -141,17 +180,17 @@ public:
     // Finds a control under given screen coordinates, returns control's child ID.
     // Optionally allows extra leeway (offset in all directions) to let the user grab tiny controls.
     // Optionally only allows clickable controls, ignoring non-clickable ones.
-    int32_t FindControlAt(int atx, int aty, int leeway = 0, bool must_be_clickable = true) const;
+    int     FindControlAt(int atx, int aty, int leeway = 0, bool must_be_clickable = true) const;
     // Returns the last control which was under mouse cursor, or -1 if none
-    int32_t GetControlUnderMouse() const;
+    int     GetControlUnderMouse() const;
     // Gets the number of the GUI child controls
-    int32_t GetControlCount() const;
+    int     GetControlCount() const;
     // Gets control by its child's index
     GUIObject *GetControl(int index) const;
     // Gets child control's type, looks up with child's index
     GUIControlType GetControlType(int index) const;
     // Gets child control's global ID, looks up with child's index
-    int32_t GetControlID(int index) const;
+    int     GetControlID(int index) const;
     // Gets an array of child control indexes in the z-order, from bottom to top
     const std::vector<int> &GetControlsDrawOrder() const;
     // Gets an array of child control references (control types and indexes in global control arrays)
@@ -208,42 +247,42 @@ public:
 private:
     void    DrawBlob(Bitmap *ds, int x, int y, color_t draw_color);
     // Same as FindControlAt but expects local space coordinates
-    int32_t FindControlAtLocal(int atx, int aty, int leeway, bool must_be_clickable) const;
+    int     FindControlAtLocal(int atx, int aty, int leeway, bool must_be_clickable) const;
 
-    // TODO: all members are currently public; hide them later
-public:
-    int32_t ID;             // GUI identifier
-    String  Name;           // the name of the GUI
+    static const int DefaultBgColor = 8;
+    static const int DefaultFgColor = 1;
 
-    int32_t X;
-    int32_t Y;
-    int32_t Width;
-    int32_t Height;
-    color_t BgColor;        // background color
-    int32_t BgImage;        // background sprite index
-    color_t FgColor;        // foreground color (used as border color in normal GUIs,
-                            // and text color in text windows)
-    int32_t Padding;        // padding surrounding a GUI text window
-    GUIPopupStyle PopupStyle; // GUI popup behavior
-    int32_t PopupAtMouseY;  // popup when mousey < this
-    int32_t Transparency;   // "incorrect" alpha (in legacy 255-range units)
-    int32_t ZOrder;
+    int     _id = 0;            // GUI identifier
+    String  _name;              // the name of the GUI
 
-    int32_t FocusCtrl;      // which control has the focus
-    int32_t HighlightCtrl;  // which control has the bounding selection rect
-    int32_t MouseOverCtrl;  // which control has the mouse cursor over it
-    int32_t MouseDownCtrl;  // which control has the mouse button pressed on it
-    Point   MouseWasAt;     // last mouse cursor position
+    int     _x = 0;
+    int     _y = 0;
+    int     _width = 0;
+    int     _height = 0;
+    color_t _bgColor = DefaultBgColor; // background color
+    int     _bgImage = 0;       // background sprite index
+    color_t _fgColor = DefaultFgColor; // foreground color (used as border color in normal GUIs,
+                                // and text color in text windows)
+    int     _padding = TEXTWINDOW_PADDING_DEFAULT; // padding surrounding a GUI text window
+    GUIPopupStyle _popupStyle = kGUIPopupNormal; // GUI popup behavior
+    int     _popupAtMouseY = -1; // popup when mousey < this
+    int     _transparency = 0;  // "incorrect" alpha (in legacy 255-range units)
+    int     _zOrder = 0;
 
-    String  ScriptModule;   // (optional) script module which contains callbacks
-                            // for this GUI and its controls
-    String  OnClickHandler; // script function name
+    int     _focusCtrl     = -1; // which control has the focus
+    int     _highlightCtrl = -1; // which control has the bounding selection rect
+    int     _mouseOverCtrl = -1; // which control has the mouse cursor over it
+    int     _mouseDownCtrl = -1; // which control has the mouse button pressed on it
+    Point   _mouseWasAt = { -1, -1 }; // last mouse cursor position
 
-private:
-    int32_t _flags;         // style and behavior flags
-    bool    _hasChanged;    // flag tells whether GUI has graphically changed recently
-    bool    _hasControlsChanged;
-    bool    _polling;       // inside the polling process
+    String  _scriptModule;      // (optional) script module which contains callbacks
+                                // for this GUI and its controls
+    String  _onClickHandler;    // script function name
+
+    int     _flags = kGUIMain_DefFlags; // style and behavior flags
+    bool    _hasChanged = false; // flag tells whether GUI has graphically changed recently
+    bool    _hasControlsChanged = false; // flag tells that GUI controls have changed position or image
+    bool    _polling = false;   // inside the polling process
 
     // Array of types and control indexes in global GUI object arrays;
     // maps GUI child slots to actual controls and used for rebuilding Controls array
@@ -251,7 +290,7 @@ private:
     // Array of child control references (not exclusively owned!)
     std::vector<GUIObject*> _controls;
     // Sorted array of controls in z-order.
-    std::vector<int32_t>    _ctrlDrawOrder;
+    std::vector<int>        _ctrlDrawOrder;
 };
 
 

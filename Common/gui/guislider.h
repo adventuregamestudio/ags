@@ -27,6 +27,19 @@ class GUISlider : public GUIObject
 public:
     GUISlider();
 
+    // Properties
+    int  GetMinValue() const { return _minValue; }
+    void SetMinValue(int minval);
+    int  GetMaxValue() const { return _maxValue; }
+    void SetMaxValue(int maxval);
+    int  GetValue() const { return _value; }
+    void SetValue(int value);
+    int  GetBgImage() const { return _bgImage; }
+    void SetBgImage(int image);
+    int  GetHandleImage() const { return _handleImage; }
+    void SetHandleImage(int image);
+    int  GetHandleOffset() const { return _handleOffset; }
+    void SetHandleOffset(int offset);
     // Tells if the slider is horizontal (otherwise - vertical)
     bool IsHorizontal() const;
     bool IsOverControl(int x, int y, int leeway) const override;
@@ -50,20 +63,17 @@ public:
     void ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver) override;
     void WriteToSavegame(Stream *out) const override;
 
-// TODO: these members are currently public; hide them later
-public:
-    int32_t MinValue;
-    int32_t MaxValue;
-    int32_t Value;
-    int32_t BgImage;
-    int32_t HandleImage;
-    int32_t HandleOffset;
-    bool    IsMousePressed;
-
 private:
     // Updates dynamic metrics and positions of elements
     void UpdateMetrics();
 
+    int     _minValue = 0;
+    int     _maxValue = 0;
+    int     _value = 0;
+    int     _bgImage = 0;
+    int     _handleImage = 0;
+    int     _handleOffset = 0;
+    bool    _isMousePressed = false;
     // Cached coordinates of slider bar; in relative coords
     Rect    _cachedBar;
     // Cached coordinates of slider handle; in relative coords

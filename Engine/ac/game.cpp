@@ -1681,7 +1681,7 @@ void game_sprite_updated(int sprnum, bool deleted)
     // gui sliders
     for (auto &slider : guislider)
     {
-        if ((slider.BgImage == sprnum) || (slider.HandleImage == sprnum))
+        if ((slider.GetBgImage() == sprnum) || (slider.GetHandleImage() == sprnum))
         {
             slider.MarkChanged();
         }

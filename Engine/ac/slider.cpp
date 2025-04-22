@@ -18,91 +18,60 @@ using namespace AGS::Common;
 
 void Slider_SetMax(GUISlider *guisl, int valn) {
 
-    if (valn != guisl->MaxValue) {
-        guisl->MaxValue = valn;
+    if (guisl->GetMinValue() > valn)
+        quit("!Slider.Max: minimum cannot be greater than maximum");
 
-        if (guisl->Value > guisl->MaxValue)
-            guisl->Value = guisl->MaxValue;
-        if (guisl->MinValue > guisl->MaxValue)
-            quit("!Slider.Max: minimum cannot be greater than maximum");
-
-        guisl->MarkChanged();
-    }
-
+    guisl->SetMaxValue(valn);
 }
 
 int Slider_GetMax(GUISlider *guisl) {
-    return guisl->MaxValue;
+    return guisl->GetMaxValue();
 }
 
 void Slider_SetMin(GUISlider *guisl, int valn) {
+    if (valn > guisl->GetMaxValue())
+        quit("!Slider.Min: minimum cannot be greater than maximum");
 
-    if (valn != guisl->MinValue) {
-        guisl->MinValue = valn;
-
-        if (guisl->Value < guisl->MinValue)
-            guisl->Value = guisl->MinValue;
-        if (guisl->MinValue > guisl->MaxValue)
-            quit("!Slider.Min: minimum cannot be greater than maximum");
-
-        guisl->MarkChanged();
-    }
-
+    guisl->SetMinValue(valn);
 }
 
 int Slider_GetMin(GUISlider *guisl) {
-    return guisl->MinValue;
+    return guisl->GetMinValue();
 }
 
 void Slider_SetValue(GUISlider *guisl, int valn) {
-    valn = Math::Clamp(valn, guisl->MinValue, guisl->MaxValue);
-    if (valn != guisl->Value) {
-        guisl->Value = valn;
-        guisl->MarkChanged();
-    }
+    guisl->SetValue(valn);
 }
 
 int Slider_GetValue(GUISlider *guisl) {
-    return guisl->Value;
+    return guisl->GetValue();
 }
 
 int Slider_GetBackgroundGraphic(GUISlider *guisl) {
-    return (guisl->BgImage > 0) ? guisl->BgImage : 0;
+    return (guisl->GetBgImage() > 0) ? guisl->GetBgImage() : 0;
 }
 
 void Slider_SetBackgroundGraphic(GUISlider *guisl, int newImage) 
 {
-    if (newImage != guisl->BgImage)
-    {
-        guisl->BgImage = newImage;
-        guisl->MarkChanged();
-    }
+    guisl->SetBgImage(newImage);
 }
 
 int Slider_GetHandleGraphic(GUISlider *guisl) {
-    return (guisl->HandleImage > 0) ? guisl->HandleImage : 0;
+    return (guisl->GetHandleImage() > 0) ? guisl->GetHandleImage() : 0;
 }
 
 void Slider_SetHandleGraphic(GUISlider *guisl, int newImage) 
 {
-    if (newImage != guisl->HandleImage)
-    {
-        guisl->HandleImage = newImage;
-        guisl->MarkChanged();
-    }
+    guisl->SetHandleImage(newImage);
 }
 
 int Slider_GetHandleOffset(GUISlider *guisl) {
-    return guisl->HandleOffset;
+    return guisl->GetHandleOffset();
 }
 
 void Slider_SetHandleOffset(GUISlider *guisl, int newOffset) 
 {
-    if (newOffset != guisl->HandleOffset)
-    {
-        guisl->HandleOffset = newOffset;
-        guisl->MarkChanged();
-    }
+    guisl->SetHandleOffset(newOffset);
 }
 
 //=============================================================================

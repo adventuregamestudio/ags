@@ -161,7 +161,7 @@ void MarkInventoryForUpdate(int char_id, bool is_player)
     }
     for (auto &inv : guiinv)
     {
-        if ((char_id < 0) || (inv.CharId == char_id) || (is_player && inv.CharId < 0))
+        if ((char_id < 0) || (inv.GetCharacterID() == char_id) || (is_player && inv.GetCharacterID() < 0))
         {
             inv.MarkChanged();
         }

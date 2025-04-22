@@ -29,6 +29,18 @@ namespace AGS
 namespace Common
 {
 
+void GUIInvWindow::SetTopItem(int item)
+{
+    // NOTE: unfortunately, we do not have an access to real inventory here,
+    // so cannot clamp to the upper item limit
+    item = std::max(0, item);
+    if (_topItem != item)
+    {
+        _topItem = item;
+        MarkChanged();
+    }
+}
+
 bool GUIInvWindow::HasAlphaChannel() const
 {
     // We would have to test every inventory item's graphic to tell precisely,
@@ -36,12 +48,12 @@ bool GUIInvWindow::HasAlphaChannel() const
     return game.GetColorDepth() == 32;
 }
 
-int GUIInvWindow::GetCharacterId() const
+int GUIInvWindow::GetCharacterID() const
 {
-    if (CharId < 0)
+    if (_charID < 0)
         return game.playercharacter;
 
-    return CharId;
+    return _charID;
 }
 
 void GUIInvWindow::Draw(Bitmap *ds, int x, int y)
@@ -52,34 +64,34 @@ void GUIInvWindow::Draw(Bitmap *ds, int x, int y)
 
     // backwards compatibility
     // TODO: find a way to not have this inside GUIInvWindow::Draw!
-    play.inv_numinline = ColCount;
-    play.inv_numdisp = RowCount * ColCount;
+    play.inv_numinline = _colCount;
+    play.inv_numdisp = _rowCount * _colCount;
     play.inv_numorder = charextra[game.playercharacter].invorder_count;
     // if the user changes top_inv_item, switch into backwards compat mode
     if (play.inv_top != 0)
         play.inv_backwards_compatibility = 1;
     if (play.inv_backwards_compatibility)
-        TopItem = play.inv_top;
+        _topItem = play.inv_top;
 
     // draw the items
     const int leftmost_x = x;
     int at_x = x;
     int at_y = y;
-    int lastItem = TopItem + (ColCount * RowCount);
-    if (lastItem > charextra[GetCharacterId()].invorder_count)
-        lastItem = charextra[GetCharacterId()].invorder_count;
+    int lastItem = _topItem + (_colCount * _rowCount);
+    if (lastItem > charextra[GetCharacterID()].invorder_count)
+        lastItem = charextra[GetCharacterID()].invorder_count;
 
-    for (int item = TopItem; item < lastItem; ++item)
+    for (int item = _topItem; item < lastItem; ++item)
     {
         // draw inv graphic
-        draw_gui_sprite(ds, game.invinfo[charextra[GetCharacterId()].invorder[item]].pic, at_x, at_y, true);
-        at_x += data_to_game_coord(ItemWidth);
+        draw_gui_sprite(ds, game.invinfo[charextra[GetCharacterID()].invorder[item]].pic, at_x, at_y, true);
+        at_x += data_to_game_coord(_itemWidth);
 
         // go to next row when appropriate
-        if ((item - TopItem) % ColCount == (ColCount - 1))
+        if ((item - _topItem) % _colCount == (_colCount - 1))
         {
             at_x = leftmost_x;
-            at_y += data_to_game_coord(ItemHeight);
+            at_y += data_to_game_coord(_itemHeight);
         }
     }
 

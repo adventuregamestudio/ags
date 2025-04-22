@@ -33,8 +33,6 @@ void SetInvDimensions(int ww,int hh) {
     // backwards compatibility
     for (auto &inv : guiinv)
     {
-        inv.ItemWidth = ww;
-        inv.ItemHeight = hh;
-        inv.OnResized();
+        inv.SetItemDimensions(ww, hh);
     }
 }

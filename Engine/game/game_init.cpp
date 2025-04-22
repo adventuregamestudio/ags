@@ -433,9 +433,7 @@ static void ConvertObjectsToDataRes(GameSetupStruct &game, GameDataVersion data_
 
     for (auto &inv : guiinv)
     {
-        inv.ItemWidth /= mul;
-        inv.ItemHeight /= mul;
-        inv.OnResized();
+        inv.SetItemDimensions(inv.GetItemWidth() / mul, inv.GetItemHeight() / mul);
     }
 }
 

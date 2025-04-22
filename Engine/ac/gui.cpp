@@ -126,7 +126,7 @@ void MarkForFontUpdate(int font)
     }
     for (auto &lbl : guilabels)
     {
-        if (update_all || lbl.Font == font)
+        if (update_all || lbl.GetFont() == font)
             lbl.OnResized();
     }
     for (auto &list : guilist)

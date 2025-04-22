@@ -28,11 +28,18 @@ class GUILabel : public GUIObject
 public:
     GUILabel();
 
+    // Properties
+    int  GetFont() const { return _font; }
+    void SetFont(int font);
+    int  GetTextColor() const { return _textColor; }
+    void SetTextColor(int color);
+    FrameAlignment GetTextAlignment() const { return _textAlignment; }
+    void SetTextAlignment(FrameAlignment align);
     bool HasAlphaChannel() const override;
     // Gets label's text property in original set form (with macros etc)
-    String       GetText() const;
+    const String &GetText() const { return _text; }
     // Gets which macro are contained within label's text
-    GUILabelMacro GetTextMacros() const;
+    GUILabelMacro GetTextMacros() const { return _textMacro; }
 
     // Operations
     Rect CalcGraphicRect(bool clipped) override;
@@ -45,18 +52,15 @@ public:
     void ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_ver) override;
     void WriteToSavegame(Common::Stream *out) const override;
 
-// TODO: these members are currently public; hide them later
-public:
-    String  Text;
-    int32_t Font;
-    color_t TextColor;
-    FrameAlignment TextAlignment;
-
 private:
     // Transforms the Text property to a drawn text, applies translation,
     // replaces macros, splits and wraps, etc; returns number of lines.
     int PrepareTextToDraw();
 
+    String  _text;
+    int     _font = 0;
+    color_t _textColor = 0;
+    FrameAlignment _textAlignment = kAlignTopLeft;
     // Information on macros contained within Text field
     GUILabelMacro _textMacro;
     // prepared text buffer/cache

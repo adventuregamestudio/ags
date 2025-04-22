@@ -28,26 +28,39 @@ namespace Common
 
 GUILabel::GUILabel()
 {
-    Font = 0;
-    TextColor = 0;
-    TextAlignment = kAlignTopLeft;
-
     _scEventCount = 0;
+}
+
+void GUILabel::SetFont(int font)
+{
+    if (_font != font)
+    {
+        _font = font;
+        MarkChanged();
+    }
+}
+
+void GUILabel::SetTextColor(int color)
+{
+    if (_textColor != color)
+    {
+        _textColor = color;
+        MarkChanged();
+    }
+}
+
+void GUILabel::SetTextAlignment(FrameAlignment align)
+{
+    if (_textAlignment != align)
+    {
+        _textAlignment = align;
+        MarkChanged();
+    }
 }
 
 bool GUILabel::HasAlphaChannel() const
 {
-    return is_font_antialiased(Font);
-}
-
-String GUILabel::GetText() const
-{
-    return Text;
-}
-
-GUILabelMacro GUILabel::GetTextMacros() const
-{
-    return _textMacro;
+    return is_font_antialiased(_font);
 }
 
 Rect GUILabel::CalcGraphicRect(bool clipped)
@@ -63,14 +76,14 @@ Rect GUILabel::CalcGraphicRect(bool clipped)
     if (PrepareTextToDraw() == 0)
         return rc;
     const int linespacing = // Older engine labels used (font height + 1) as linespacing for some reason
-        ((loaded_game_file_version < kGameVersion_360) && (get_font_flags(Font) & FFLG_DEFLINESPACING)) ?
-        (get_font_height(Font) + 1) :
-        get_font_linespacing(Font);
+        ((loaded_game_file_version < kGameVersion_360) && (get_font_flags(_font) & FFLG_DEFLINESPACING)) ?
+        (get_font_height(_font) + 1) :
+        get_font_linespacing(_font);
     // < 2.72 labels did not limit vertical size of text
     const bool limit_by_label_frame = loaded_game_file_version >= kGameVersion_272;
 
-    Rect text_rc = GUI::CalcTextGraphicalRect(Lines.GetVector(), Lines.Count(), Font, linespacing,
-        RectWH(0, 0, _width, _height), (FrameAlignment)TextAlignment, limit_by_label_frame);
+    Rect text_rc = GUI::CalcTextGraphicalRect(Lines.GetVector(), Lines.Count(), _font, linespacing,
+        RectWH(0, 0, _width, _height), (FrameAlignment)_textAlignment, limit_by_label_frame);
     return SumRects(rc, text_rc);
 }
 
@@ -81,24 +94,24 @@ void GUILabel::Draw(Bitmap *ds, int x, int y)
     if (PrepareTextToDraw() == 0)
         return;
 
-    color_t text_color = ds->GetCompatibleColor(TextColor);
+    color_t text_color = ds->GetCompatibleColor(_textColor);
     const int linespacing = // Older engine labels used (font height + 1) as linespacing for some reason
-        ((loaded_game_file_version < kGameVersion_360) && (get_font_flags(Font) & FFLG_DEFLINESPACING)) ?
-        (get_font_height(Font) + 1) :
-        get_font_linespacing(Font);
+        ((loaded_game_file_version < kGameVersion_360) && (get_font_flags(_font) & FFLG_DEFLINESPACING)) ?
+        (get_font_height(_font) + 1) :
+        get_font_linespacing(_font);
     // < 2.72 labels did not limit vertical size of text
     const bool limit_by_label_frame = loaded_game_file_version >= kGameVersion_272;
-    GUI::DrawTextLinesAligned(ds, Lines.GetVector(), Lines.Count(), Font, linespacing, text_color,
-        RectWH(x, y, _width, _height), (FrameAlignment)TextAlignment, limit_by_label_frame);
+    GUI::DrawTextLinesAligned(ds, Lines.GetVector(), Lines.Count(), _font, linespacing, text_color,
+        RectWH(x, y, _width, _height), (FrameAlignment)_textAlignment, limit_by_label_frame);
 }
 
 void GUILabel::SetText(const String &text)
 {
-    if (text == Text)
+    if (text == _text)
         return;
-    Text = text;
+    _text = text;
     // Check for macros within text
-    _textMacro = GUI::FindLabelMacros(Text);
+    _textMacro = GUI::FindLabelMacros(_text);
     MarkChanged();
 }
 
@@ -107,10 +120,10 @@ void GUILabel::SetText(const String &text)
 void GUILabel::WriteToFile(Stream *out) const
 {
     GUIObject::WriteToFile(out);
-    StrUtil::WriteString(Text, out);
-    out->WriteInt32(Font);
-    out->WriteInt32(TextColor);
-    out->WriteInt32(TextAlignment);
+    StrUtil::WriteString(_text, out);
+    out->WriteInt32(_font);
+    out->WriteInt32(_textColor);
+    out->WriteInt32(_textAlignment);
 }
 
 void GUILabel::ReadFromFile(Stream *in, GuiVersion gui_version)
@@ -118,42 +131,42 @@ void GUILabel::ReadFromFile(Stream *in, GuiVersion gui_version)
     GUIObject::ReadFromFile(in, gui_version);
 
     if (gui_version < kGuiVersion_272c)
-        Text.ReadCount(in, GUILABEL_TEXTLENGTH_PRE272);
+        _text.ReadCount(in, GUILABEL_TEXTLENGTH_PRE272);
     else
-        Text = StrUtil::ReadString(in);
+        _text = StrUtil::ReadString(in);
 
-    Font = in->ReadInt32();
-    TextColor = in->ReadInt32();
+    _font = in->ReadInt32();
+    _textColor = in->ReadInt32();
     if (gui_version < kGuiVersion_350)
-        TextAlignment = (FrameAlignment)ConvertLegacyGUIAlignment((LegacyGUIAlignment)in->ReadInt32());
+        _textAlignment = (FrameAlignment)ConvertLegacyGUIAlignment((LegacyGUIAlignment)in->ReadInt32());
     else
-        TextAlignment = (FrameAlignment)in->ReadInt32();
+        _textAlignment = (FrameAlignment)in->ReadInt32();
 
-    if (TextColor == 0)
-        TextColor = 16;
+    if (_textColor == 0)
+        _textColor = 16;
 
-    _textMacro = GUI::FindLabelMacros(Text);
+    _textMacro = GUI::FindLabelMacros(_text);
 }
 
 void GUILabel::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
 {
     GUIObject::ReadFromSavegame(in, svg_ver);
-    Font = in->ReadInt32();
-    TextColor = in->ReadInt32();
-    Text = StrUtil::ReadString(in);
+    _font = in->ReadInt32();
+    _textColor = in->ReadInt32();
+    _text = StrUtil::ReadString(in);
     if (svg_ver >= kGuiSvgVersion_350)
-        TextAlignment = (FrameAlignment)in->ReadInt32();
+        _textAlignment = (FrameAlignment)in->ReadInt32();
 
-    _textMacro = GUI::FindLabelMacros(Text);
+    _textMacro = GUI::FindLabelMacros(_text);
 }
 
 void GUILabel::WriteToSavegame(Stream *out) const
 {
     GUIObject::WriteToSavegame(out);
-    out->WriteInt32(Font);
-    out->WriteInt32(TextColor);
-    StrUtil::WriteString(Text, out);
-    out->WriteInt32(TextAlignment);
+    out->WriteInt32(_font);
+    out->WriteInt32(_textColor);
+    StrUtil::WriteString(_text, out);
+    out->WriteInt32(_textAlignment);
 }
 
 } // namespace Common

@@ -44,8 +44,8 @@ void Label_SetText(GUILabel *labl, const char *newtx) {
 int Label_GetTextAlignment(GUILabel *labl)
 {
     return (loaded_game_file_version >= kGameVersion_350) ?
-        labl->TextAlignment :
-        GetLegacyGUIAlignment((HorAlignment)labl->TextAlignment);
+        labl->GetTextAlignment() :
+        GetLegacyGUIAlignment((HorAlignment)labl->GetTextAlignment());
 }
 
 void Label_SetTextAlignment(GUILabel *labl, int align)
@@ -56,35 +56,24 @@ void Label_SetTextAlignment(GUILabel *labl, int align)
         (loaded_game_file_version >= kGameVersion_350) ?
         (FrameAlignment)align :
         (FrameAlignment)ConvertLegacyGUIAlignment((LegacyGUIAlignment)align);
-    if (labl->TextAlignment != use_align)
-    {
-        labl->TextAlignment = use_align;
-        labl->MarkChanged();
-    }
+    labl->SetTextAlignment(use_align);
 }
 
 int Label_GetColor(GUILabel *labl) {
-    return labl->TextColor;
+    return labl->GetTextColor();
 }
 
-void Label_SetColor(GUILabel *labl, int colr) {
-    if (labl->TextColor != colr) {
-        labl->TextColor = colr;
-        labl->MarkChanged();
-    }
+void Label_SetColor(GUILabel *labl, int color) {
+    labl->SetTextColor(color);
 }
 
 int Label_GetFont(GUILabel *labl) {
-    return labl->Font;
+    return labl->GetFont();
 }
 
 void Label_SetFont(GUILabel *guil, int fontnum) {
     fontnum = ValidateFontNumber("Label.Font", fontnum);
-
-    if (fontnum != guil->Font) {
-        guil->Font = fontnum;
-        guil->MarkChanged();
-    }
+    guil->SetFont(fontnum);
 }
 
 //=============================================================================

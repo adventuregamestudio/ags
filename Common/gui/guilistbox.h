@@ -28,25 +28,44 @@ class GUIListBox : public GUIObject
 public:
     GUIListBox();
 
+    // Properties
+    int  GetFont() const { return _font; }
+    void SetFont(int font);
+    int  GetTextColor() const { return _textColor; }
+    void SetTextColor(int color);
+    int  GetSelectedBgColor() const { return _selectedBgColor; }
+    void SetSelectedBgColor(int color);
+    int  GetSelectedTextColor() const { return _selectedTextColor; }
+    void SetSelectedTextColor(int color);
+    HorAlignment GetTextAlignment() const { return _textAlignment; }
+    void SetTextAlignment(HorAlignment align);
     bool HasAlphaChannel() const override;
     bool AreArrowsShown() const;
     bool IsBorderShown() const;
     bool IsSvgIndex() const;
     bool IsInRightMargin(int x) const;
+    uint32_t GetItemCount() const { return _items.size(); }
+    String GetItem(int index) const;
+    int  GetSavedGameIndex(int index) const;
     int  GetItemAt(int x, int y) const;
-
-    // Operations
-    int  AddItem(const String &text);
-    void Clear();
-    Rect CalcGraphicRect(bool clipped) override;
-    void Draw(Bitmap *ds, int x = 0, int y = 0) override;
-    int  InsertItem(int index, const String &text);
-    void RemoveItem(int index);
+    int  GetSelectedItem() const { return _selectedItem; }
+    void SetSelectedItem(int index);
+    int  GetTopItem() const { return _topItem; }
+    void SetTopItem(int index);
+    uint32_t GetVisibleItemCount() const { return _visibleItemCount; }
     void SetShowArrows(bool on);
     void SetShowBorder(bool on);
     void SetSvgIndex(bool on); // TODO: work around this
-    void SetFont(int font);
-    void SetItemText(int index, const String &textt);
+    void SetItemText(int index, const String &text);
+
+    // Operations
+    int AddItem(const String &text);
+    int AddItem(const String &text, int save_slot);
+    void Clear();
+    Rect CalcGraphicRect(bool clipped) override;
+    void Draw(Bitmap *ds, int x = 0, int y = 0) override;
+    int InsertItem(int index, const String &text);
+    void RemoveItem(int index);
 
     // Events
     bool OnMouseDown() override;
@@ -59,27 +78,26 @@ public:
     void ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_ver) override;
     void WriteToSavegame(Common::Stream *out) const override;
 
-// TODO: these members are currently public; hide them later
-public:
-    int32_t               Font;
-    color_t               TextColor;
-    HorAlignment          TextAlignment;
-    color_t               SelectedBgColor;
-    color_t               SelectedTextColor;
-    int32_t               RowHeight;
-    int32_t               VisibleItemCount;
-    
-    std::vector<String>   Items;
-    std::vector<int16_t>  SavedGameIndex;
-    int32_t               SelectedItem;
-    int32_t               TopItem;
-    Point                 MousePos;
-
-    // TODO: remove these later
-    int32_t               ItemCount;
-
 private:
-    int32_t               ListBoxFlags;
+    static const color_t DefaultTextColor = 0;
+    static const color_t DefaultSelectFgColor = 7;
+    static const color_t DefaultSelectBgColor = 7;
+
+    int                     _listBoxFlags = kListBox_DefFlags;
+    int                     _font = 0;
+    color_t                 _textColor = DefaultTextColor;
+    HorAlignment            _textAlignment = kHAlignLeft;
+    color_t                 _selectedBgColor = DefaultSelectBgColor;
+    color_t                 _selectedTextColor = DefaultSelectFgColor;
+    int                     _rowHeight = 0;
+    uint32_t                _visibleItemCount = 0u;
+
+    std::vector<String>     _items;
+    // CHECKME: why int16?
+    std::vector<int16_t>    _savedGameIndex;
+    int                     _selectedItem = 0;
+    int                     _topItem = 0;
+    Point                   _mousePos;
 
     // Updates dynamic metrics such as row height and others
     void UpdateMetrics();

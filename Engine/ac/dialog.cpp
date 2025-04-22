@@ -853,7 +853,7 @@ void DialogOptions::Begin()
         parserInput.reset(new GUITextBox());
         parserInput->SetHeight(lineheight + get_fixed_pixel_size(4));
         parserInput->SetShowBorder(true);
-        parserInput->Font = usingfont;
+        parserInput->SetFont(usingfont);
     }
 
     is_normalgui = false;
@@ -1088,9 +1088,9 @@ void DialogOptions::Draw()
       // Set up the text box, if present
       parserInput->SetY(curyp + data_to_game_coord(game.options[OPT_DIALOGGAP]));
       parserInput->SetWidth(areawid - get_fixed_pixel_size(10));
-      parserInput->TextColor = playerchar->talkcolor;
+      parserInput->SetTextColor(playerchar->talkcolor);
       if (mouseison == DLG_OPTION_PARSER)
-        parserInput->TextColor = forecol;
+        parserInput->SetTextColor(forecol);
 
       // Left-to-right text direction flag
       const bool ltr_position = (game.options[OPT_RIGHTLEFTWRITE] == 0)
@@ -1260,7 +1260,7 @@ bool DialogOptions::Run()
     else if (parserActivated)
     {
         // They have selected a custom parser-based option
-        if (!parserInput->Text.IsEmpty() != 0)
+        if (!parserInput->GetText().IsEmpty() != 0)
         {
             chose = DLG_OPTION_PARSER;
         }
@@ -1345,11 +1345,11 @@ bool DialogOptions::RunKey(const KeyInput &ki)
         wantRefresh = true;
         // type into the parser 
         // TODO: find out what are these key commands, and are these documented?
-        if ((agskey == eAGSKeyCodeF3) || ((agskey == eAGSKeyCodeSpace) && (parserInput->Text.GetLength() == 0)))
+        if ((agskey == eAGSKeyCodeF3) || ((agskey == eAGSKeyCodeSpace) && (parserInput->GetText().GetLength() == 0)))
         {
             // write previous contents into textbox (F3 or Space when box is empty)
             size_t last_len = ustrlen(play.lastParserEntry);
-            size_t cur_len = ustrlen(parserInput->Text.GetCStr());
+            size_t cur_len = ustrlen(parserInput->GetText().GetCStr());
             // [ikm] CHECKME: tbh I don't quite get the logic here (it was like this in original code);
             // but what we do is copying only the last part of the previous string
             if (cur_len < last_len)
@@ -1357,7 +1357,7 @@ bool DialogOptions::RunKey(const KeyInput &ki)
                 const char *entry = play.lastParserEntry;
                 // TODO: utility function for advancing N utf-8 chars
                 for (size_t i = 0; i < cur_len; ++i) ugetxc(&entry);
-                parserInput->Text.Append(entry);
+                parserInput->SetText(String::FromFormat("%s%s", parserInput->GetText().GetCStr(), entry));
             }
             needRedraw = true;
             return true; // handled
@@ -1467,8 +1467,8 @@ void DialogOptions::End()
   if (parserActivated) 
   {
     assert(parserInput);
-    snprintf(play.lastParserEntry, MAX_MAXSTRLEN, "%s", parserInput->Text.GetCStr());
-    ParseText (parserInput->Text.GetCStr());
+    snprintf(play.lastParserEntry, MAX_MAXSTRLEN, "%s", parserInput->GetText().GetCStr());
+    ParseText (parserInput->GetText().GetCStr());
     chose = CHOSE_TEXTPARSER;
   }
 

@@ -28,23 +28,46 @@ namespace Common
 
 GUITextBox::GUITextBox()
 {
-    Font = 0;
-    TextColor = 0;
-    TextBoxFlags = kTextBox_DefFlags;
-
     _scEventCount = 1;
     _scEventNames[0] = "Activate";
     _scEventArgs[0] = "GUIControl *control";
 }
 
+void GUITextBox::SetFont(int font)
+{
+    if (_font != font)
+    {
+        _font = font;
+        MarkChanged();
+    }
+}
+
+void GUITextBox::SetTextColor(int color)
+{
+    if (_textColor != color)
+    {
+        _textColor = color;
+        MarkChanged();
+    }
+}
+
+void GUITextBox::SetText(const String &text)
+{
+    if (_text != text)
+    {
+        _text = text;
+        MarkChanged();
+    }
+}
+
 bool GUITextBox::HasAlphaChannel() const
 {
-    return is_font_antialiased(Font);
+    return is_font_antialiased(_font);
 }
 
 bool GUITextBox::IsBorderShown() const
 {
-    return (TextBoxFlags & kTextBox_ShowBorder) != 0;
+    return (_textBoxFlags & kTextBox_ShowBorder) != 0;
 }
 
 Rect GUITextBox::CalcGraphicRect(bool clipped)
@@ -55,13 +78,13 @@ Rect GUITextBox::CalcGraphicRect(bool clipped)
     // TODO: need to find a way to cache text position, or there'll be some repetition
     Rect rc = RectWH(0, 0, _width, _height);
     Point text_at(1 + get_fixed_pixel_size(1), 1 + get_fixed_pixel_size(1));
-    Rect text_rc = GUI::CalcTextGraphicalRect(Text, Font, text_at);
+    Rect text_rc = GUI::CalcTextGraphicalRect(_text, _font, text_at);
     if (GUI::IsGUIEnabled(this))
     {
         // add a cursor
         Rect cur_rc = RectWH(
             text_rc.Right + 3,
-            1 + get_font_height(Font),
+            1 + get_font_height(_font),
             get_fixed_pixel_size(5),
             get_fixed_pixel_size(1) - 1);
         text_rc = SumRects(text_rc, cur_rc);
@@ -71,8 +94,8 @@ Rect GUITextBox::CalcGraphicRect(bool clipped)
 
 void GUITextBox::Draw(Bitmap *ds, int x, int y)
 {
-    color_t text_color = ds->GetCompatibleColor(TextColor);
-    color_t draw_color = ds->GetCompatibleColor(TextColor);
+    color_t text_color = ds->GetCompatibleColor(_textColor);
+    color_t draw_color = ds->GetCompatibleColor(_textColor);
     if (IsBorderShown())
     {
         ds->DrawRect(RectWH(x, y, _width, _height), draw_color);
@@ -107,7 +130,7 @@ bool GUITextBox::OnKeyPress(const KeyInput &ki)
         _isActivated = true;
         return true;
     case eAGSKeyCodeBackspace:
-        Backspace(Text);
+        Backspace(_text);
         MarkChanged();
         return true;
     default: break;
@@ -117,14 +140,14 @@ bool GUITextBox::OnKeyPress(const KeyInput &ki)
         return false; // not a textual event, don't handle
 
     if (get_uformat() == U_UTF8)
-        Text.Append(ki.Text); // proper unicode char
+        _text.Append(ki.Text); // proper unicode char
     else if (ki.UChar < 256)
-        Text.AppendChar(static_cast<uint8_t>(ki.UChar)); // ascii/ansi-range char in ascii mode
+        _text.AppendChar(static_cast<uint8_t>(ki.UChar)); // ascii/ansi-range char in ascii mode
     else
         return true; // char from an unsupported range, don't print but still report as handled
     // if the new string is too long, remove the new character
-    if (get_text_width(Text.GetCStr(), Font) > (_width - (6 + get_fixed_pixel_size(5))))
-        Backspace(Text);
+    if (get_text_width(_text.GetCStr(), _font) > (_width - (6 + get_fixed_pixel_size(5))))
+        Backspace(_text);
     MarkChanged();
     return true;
 }
@@ -132,9 +155,9 @@ bool GUITextBox::OnKeyPress(const KeyInput &ki)
 void GUITextBox::SetShowBorder(bool on)
 {
     if (on)
-        TextBoxFlags |= kTextBox_ShowBorder;
+        _textBoxFlags |= kTextBox_ShowBorder;
     else
-        TextBoxFlags &= ~kTextBox_ShowBorder;
+        _textBoxFlags &= ~kTextBox_ShowBorder;
 }
 
 // TODO: replace string serialization with StrUtil::ReadString and WriteString
@@ -142,47 +165,47 @@ void GUITextBox::SetShowBorder(bool on)
 void GUITextBox::WriteToFile(Stream *out) const
 {
     GUIObject::WriteToFile(out);
-    StrUtil::WriteString(Text, out);
-    out->WriteInt32(Font);
-    out->WriteInt32(TextColor);
-    out->WriteInt32(TextBoxFlags);
+    StrUtil::WriteString(_text, out);
+    out->WriteInt32(_font);
+    out->WriteInt32(_textColor);
+    out->WriteInt32(_textBoxFlags);
 }
 
 void GUITextBox::ReadFromFile(Stream *in, GuiVersion gui_version)
 {
     GUIObject::ReadFromFile(in, gui_version);
     if (gui_version < kGuiVersion_350)
-        Text.ReadCount(in, GUITEXTBOX_LEGACY_TEXTLEN);
+        _text.ReadCount(in, GUITEXTBOX_LEGACY_TEXTLEN);
     else
-        Text = StrUtil::ReadString(in);
-    Font = in->ReadInt32();
-    TextColor = in->ReadInt32();
-    TextBoxFlags = in->ReadInt32();
+        _text = StrUtil::ReadString(in);
+    _font = in->ReadInt32();
+    _textColor = in->ReadInt32();
+    _textBoxFlags = in->ReadInt32();
     // reverse particular flags from older format
     if (gui_version < kGuiVersion_350)
-        TextBoxFlags ^= kTextBox_OldFmtXorMask;
+        _textBoxFlags ^= kTextBox_OldFmtXorMask;
 
-    if (TextColor == 0)
-        TextColor = 16;
+    if (_textColor == 0)
+        _textColor = 16;
 }
 
 void GUITextBox::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
 {
     GUIObject::ReadFromSavegame(in, svg_ver);
-    Font = in->ReadInt32();
-    TextColor = in->ReadInt32();
-    Text = StrUtil::ReadString(in);
+    _font = in->ReadInt32();
+    _textColor = in->ReadInt32();
+    _text = StrUtil::ReadString(in);
     if (svg_ver >= kGuiSvgVersion_350)
-        TextBoxFlags = in->ReadInt32();
+        _textBoxFlags = in->ReadInt32();
 }
 
 void GUITextBox::WriteToSavegame(Stream *out) const
 {
     GUIObject::WriteToSavegame(out);
-    out->WriteInt32(Font);
-    out->WriteInt32(TextColor);
-    StrUtil::WriteString(Text, out);
-    out->WriteInt32(TextBoxFlags);
+    out->WriteInt32(_font);
+    out->WriteInt32(_textColor);
+    StrUtil::WriteString(_text, out);
+    out->WriteInt32(_textBoxFlags);
 }
 
 } // namespace Common

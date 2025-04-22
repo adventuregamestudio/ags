@@ -28,6 +28,13 @@ class GUITextBox : public GUIObject
 public:
     GUITextBox();
 
+    // Properties
+    int  GetFont() const { return _font; }
+    void SetFont(int font);
+    int  GetTextColor() const { return _textColor; }
+    void SetTextColor(int color);
+    const String &GetText() const { return _text; }
+    void SetText(const String &text);
     bool HasAlphaChannel() const override;
     bool IsBorderShown() const;
 
@@ -44,15 +51,12 @@ public:
     void WriteToFile(Stream *out) const override;
     void ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver) override;
     void WriteToSavegame(Stream *out) const override;
- 
-// TODO: these members are currently public; hide them later
-public:
-    int32_t Font;
-    String  Text;
-    color_t TextColor;
 
 private:
-    int32_t TextBoxFlags;
+    int     _font = 0;
+    String  _text;
+    color_t _textColor = 0;
+    int     _textBoxFlags = kTextBox_DefFlags;
     String  _textToDraw;
 
     void DrawTextBoxContents(Bitmap *ds, int x, int y, color_t text_color);

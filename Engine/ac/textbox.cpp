@@ -24,44 +24,33 @@ extern GameSetupStruct game;
 // ** TEXT BOX FUNCTIONS
 
 const char* TextBox_GetText_New(GUITextBox *texbox) {
-    return CreateNewScriptString(texbox->Text);
+    return CreateNewScriptString(texbox->GetText());
 }
 
 void TextBox_GetText(GUITextBox *texbox, char *buffer) {
-    snprintf(buffer, MAX_MAXSTRLEN, "%s", texbox->Text.GetCStr());
+    snprintf(buffer, MAX_MAXSTRLEN, "%s", texbox->GetText().GetCStr());
 }
 
 void TextBox_SetText(GUITextBox *texbox, const char *newtex) {
-    if (texbox->Text != newtex) {
-        texbox->Text = newtex;
-        texbox->MarkChanged();
-    }
+    texbox->SetText(newtex);
 }
 
 int TextBox_GetTextColor(GUITextBox *guit) {
-    return guit->TextColor;
+    return guit->GetTextColor();
 }
 
 void TextBox_SetTextColor(GUITextBox *guit, int colr)
 {
-    if (guit->TextColor != colr) 
-    {
-        guit->TextColor = colr;
-        guit->MarkChanged();
-    }
+    guit->SetTextColor(colr);
 }
 
 int TextBox_GetFont(GUITextBox *guit) {
-    return guit->Font;
+    return guit->GetFont();
 }
 
 void TextBox_SetFont(GUITextBox *guit, int fontnum) {
     fontnum = ValidateFontNumber("TextBox.Font", fontnum);
-
-    if (guit->Font != fontnum) {
-        guit->Font = fontnum;
-        guit->MarkChanged();
-    }
+    guit->SetFont(fontnum);
 }
 
 bool TextBox_GetShowBorder(GUITextBox *guit) {

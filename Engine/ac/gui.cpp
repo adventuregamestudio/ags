@@ -136,7 +136,7 @@ void MarkForFontUpdate(int font)
     }
     for (auto &tb : guitext)
     {
-        if (update_all || tb.Font == font)
+        if (update_all || tb.GetFont() == font)
             tb.OnResized();
     }
 }

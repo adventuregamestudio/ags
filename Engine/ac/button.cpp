@@ -110,15 +110,11 @@ void Button_SetText(GUIButton *butt, const char *newtx) {
 
 void Button_SetFont(GUIButton *butt, int newFont) {
     newFont = ValidateFontNumber("Button.Font", newFont);
-
-    if (butt->Font != newFont) {
-        butt->Font = newFont;
-        butt->MarkChanged();
-    }
+    butt->SetFont(newFont);
 }
 
 int Button_GetFont(GUIButton *butt) {
-    return butt->Font;
+    return butt->GetFont();
 }
 
 int Button_GetClipImage(GUIButton *butt) {
@@ -186,14 +182,11 @@ void Button_SetPushedGraphic(GUIButton *guil, int slotn) {
 }
 
 int Button_GetTextColor(GUIButton *butt) {
-    return butt->TextColor;
+    return butt->GetTextColor();
 }
 
 void Button_SetTextColor(GUIButton *butt, int newcol) {
-    if (butt->TextColor != newcol) {
-        butt->TextColor = newcol;
-        butt->MarkChanged();
-    }
+    butt->SetTextColor(newcol);
 }
 
 // ** start animating buttons code
@@ -293,15 +286,12 @@ int Button_GetAnimFrame(GUIButton *butt)
 
 int Button_GetTextAlignment(GUIButton *butt)
 {
-    return butt->TextAlignment;
+    return butt->GetTextAlignment();
 }
 
 void Button_SetTextAlignment(GUIButton *butt, int align)
 {
-    if (butt->TextAlignment != align) {
-        butt->TextAlignment = (FrameAlignment)align;
-        butt->MarkChanged();
-    }
+    butt->SetTextAlignment((FrameAlignment)align);
 }
 
 bool Button_GetWrapText(GUIButton *butt)
@@ -320,30 +310,22 @@ void Button_SetWrapText(GUIButton *butt, bool wrap)
 
 int Button_GetTextPaddingHorizontal(GUIButton *butt)
 {
-    return butt->TextPaddingHor;
+    return butt->GetTextPaddingHor();
 }
 
 void Button_SetTextPaddingHorizontal(GUIButton *butt, int pad)
 {
-    if (butt->TextPaddingHor != pad)
-    {
-        butt->TextPaddingHor = pad;
-        butt->MarkChanged();
-    }
+    butt->SetTextPaddingHor(pad);
 }
 
 int Button_GetTextPaddingVertical(GUIButton *butt)
 {
-    return butt->TextPaddingVer;
+    return butt->GetTextPaddingVer();
 }
 
 void Button_SetTextPaddingVertical(GUIButton *butt, int pad)
 {
-    if (butt->TextPaddingVer != pad)
-    {
-        butt->TextPaddingVer = pad;
-        butt->MarkChanged();
-    }
+    butt->SetTextPaddingVer(pad);
 }
 
 //=============================================================================

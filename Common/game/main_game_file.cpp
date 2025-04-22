@@ -954,8 +954,8 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
         for (GUIButton &but : _ents.GuiControls.Buttons)
         {
             // button padding
-            but.TextPaddingHor = in->ReadInt32();
-            but.TextPaddingVer = in->ReadInt32();
+            but.SetTextPaddingHor(in->ReadInt32());
+            but.SetTextPaddingVer(in->ReadInt32());
             in->ReadInt32(); // reserve 2 ints
             in->ReadInt32();
         }

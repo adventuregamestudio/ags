@@ -121,7 +121,7 @@ void MarkForFontUpdate(int font)
     const bool update_all = (font < 0);
     for (auto &btn : guibuts)
     {
-        if (update_all || btn.Font == font)
+        if (update_all || btn.GetFont() == font)
             btn.OnResized();
     }
     for (auto &lbl : guilabels)
@@ -430,8 +430,8 @@ void process_interface_click(int ifce, int btn, int mbut) {
     int rtype=kGUIAction_None,rdata=0;
     if (btype==kGUIButton) {
         GUIButton*gbuto=(GUIButton*)guis[ifce].GetControl(btn);
-        rtype=gbuto->ClickAction[kGUIClickLeft];
-        rdata=gbuto->ClickData[kGUIClickLeft];
+        rtype=gbuto->GetClickAction(kGUIClickLeft);
+        rdata=gbuto->GetClickData(kGUIClickLeft);
     }
     else if ((btype==kGUISlider) || (btype == kGUITextBox) || (btype == kGUIListBox))
         rtype = kGUIAction_RunScript;

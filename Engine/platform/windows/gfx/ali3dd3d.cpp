@@ -772,7 +772,7 @@ void D3DGraphicsDriver::CreateVirtualScreen()
     _nativeSurface = nullptr;
   }
   _nativeSurface = (D3DBitmap*)CreateRenderTargetDDB(
-      _srcRect.GetWidth(), _srcRect.GetHeight(), _mode.ColorDepth, true);
+      _srcRect.GetWidth(), _srcRect.GetHeight(), _mode.ColorDepth, kTxFlags_Opaque);
   glm::mat4 mat_ortho = glmex::ortho_d3d(_srcRect.GetWidth(), _srcRect.GetHeight());
   _nativeBackbuffer = BackbufferState(_nativeSurface->GetRenderSurface(),
     _srcRect.GetSize(), _srcRect.GetSize(), _srcRect, mat_ortho, PlaneScaling(), D3DTEXF_POINT);

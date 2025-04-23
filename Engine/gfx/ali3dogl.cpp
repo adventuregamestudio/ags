@@ -759,7 +759,7 @@ void OGLGraphicsDriver::SetupNativeTarget()
 
   const Size surf_size = _srcRect.GetSize();
   _nativeSurface = (OGLBitmap*)CreateRenderTargetDDB(
-      surf_size.Width, surf_size.Height, _mode.ColorDepth, true);
+      surf_size.Width, surf_size.Height, _mode.ColorDepth, kTxFlags_Opaque);
   auto projection = glm::ortho(0.0f, (float)surf_size.Width, 0.0f, (float)surf_size.Height, 0.0f, 1.0f);
   _nativeBackbuffer = BackbufferState(_nativeSurface->GetFbo(), surf_size, _srcRect.GetSize(),
       RectWH(0, 0, surf_size.Width, surf_size.Height), projection, PlaneScaling(), GL_NEAREST, GL_CLAMP);

@@ -13,6 +13,7 @@
 //=============================================================================
 #include "util/stream.h"
 #include <algorithm>
+#include <limits>
 #include <stdexcept>
 
 namespace AGS
@@ -248,7 +249,7 @@ soff_t StreamSection::Seek(soff_t offset, StreamSeek origin)
 // Stream helpers
 //-----------------------------------------------------------------------------
 
-soff_t CopyStream(Stream *in, Stream *out, soff_t length)
+soff_t CopyStream(IStreamBase *in, IStreamBase *out, soff_t length)
 {
     char buf[4096];
     soff_t wrote_num = 0;
@@ -270,6 +271,21 @@ soff_t CopyStream(Stream *in, Stream *out, soff_t length)
         }
     }
     return wrote_num;
+}
+
+soff_t CopyStream(IStreamBase *in, IStreamBase *out)
+{
+    return CopyStream(in, out, std::numeric_limits<soff_t>::max());
+}
+
+soff_t CopyStream(Stream *in, Stream *out)
+{
+    return CopyStream(in->GetStreamBase(), out->GetStreamBase());
+}
+
+soff_t CopyStream(Stream *in, Stream *out, soff_t length)
+{
+    return CopyStream(in->GetStreamBase(), out->GetStreamBase(), length);
 }
 
 } // namespace Common

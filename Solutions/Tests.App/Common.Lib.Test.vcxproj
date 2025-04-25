@@ -33,6 +33,7 @@
     <ClCompile Include="..\..\Common\test\version_test.cpp" />
     <ClCompile Include="..\..\Common\util\bufferedstream.cpp" />
     <ClCompile Include="..\..\Common\util\cmdlineopts.cpp" />
+    <ClCompile Include="..\..\Common\util\deflatestream.cpp" />
     <ClCompile Include="..\..\Common\util\file.cpp" />
     <ClCompile Include="..\..\Common\util\filestream.cpp" />
     <ClCompile Include="..\..\Common\util\inifile.cpp" />
@@ -47,17 +48,20 @@
     <ClCompile Include="..\..\Common\util\string_utils.cpp" />
     <ClCompile Include="..\..\Common\util\textstreamreader.cpp" />
     <ClCompile Include="..\..\Common\util\textstreamwriter.cpp" />
+    <ClCompile Include="..\..\Common\util\transformstream.cpp" />
     <ClCompile Include="..\..\Common\util\version.cpp" />
     <ClCompile Include="..\..\libsrc\allegro\src\allegro.c" />
     <ClCompile Include="..\..\libsrc\allegro\src\file.c" />
     <ClCompile Include="..\..\libsrc\allegro\src\libc.c" />
     <ClCompile Include="..\..\libsrc\allegro\src\unicode.c" />
     <ClCompile Include="..\..\libsrc\allegro\src\win\wfile.c" />
+    <ClCompile Include="..\..\libsrc\miniz\miniz.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Common\gfx\gfx_def.h" />
     <ClInclude Include="..\..\Common\util\bufferedstream.h" />
     <ClInclude Include="..\..\Common\util\cmdlineopts.h" />
+    <ClInclude Include="..\..\Common\util\deflatestream.h" />
     <ClInclude Include="..\..\Common\util\file.h" />
     <ClInclude Include="..\..\Common\util\filestream.h" />
     <ClInclude Include="..\..\Common\util\inifile.h" />
@@ -73,7 +77,9 @@
     <ClInclude Include="..\..\Common\util\string_utils.h" />
     <ClInclude Include="..\..\Common\util\textstreamreader.h" />
     <ClInclude Include="..\..\Common\util\textstreamwriter.h" />
+    <ClInclude Include="..\..\Common\util\transformstream.h" />
     <ClInclude Include="..\..\Common\util\version.h" />
+    <ClInclude Include="..\..\libsrc\miniz\miniz.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{212724F9-66FC-4BB6-97F5-975CA10EFFEB}</ProjectGuid>
@@ -149,7 +155,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;AGS_PLATFORM_TEST;ALLEGRO_STATICLINK;ALLEGRO_USE_CONSTRUCTOR;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libsrc\googletest;..\..\Common\libsrc\googletest\include;..\..\libsrc\allegro\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libsrc\googletest;..\..\Common\libsrc\googletest\include;..\..\libsrc\allegro\include;..\..\libsrc\miniz;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <ObjectFileName>$(IntDir)%(Filename)%(Extension).obj</ObjectFileName>
@@ -168,7 +174,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;AGS_PLATFORM_TEST;ALLEGRO_STATICLINK;ALLEGRO_USE_CONSTRUCTOR;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libsrc\googletest;..\..\Common\libsrc\googletest\include;..\..\libsrc\allegro\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libsrc\googletest;..\..\Common\libsrc\googletest\include;..\..\libsrc\allegro\include;..\..\libsrc\miniz;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <ObjectFileName>$(IntDir)%(Filename)%(Extension).obj</ObjectFileName>
@@ -187,7 +193,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;AGS_PLATFORM_TEST;ALLEGRO_STATICLINK;ALLEGRO_USE_CONSTRUCTOR;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libsrc\googletest;..\..\Common\libsrc\googletest\include;..\..\libsrc\allegro\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libsrc\googletest;..\..\Common\libsrc\googletest\include;..\..\libsrc\allegro\include;..\..\libsrc\miniz;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <ObjectFileName>$(IntDir)%(Filename)%(Extension).obj</ObjectFileName>
@@ -210,7 +216,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;AGS_PLATFORM_TEST;ALLEGRO_STATICLINK;ALLEGRO_USE_CONSTRUCTOR;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libsrc\googletest;..\..\Common\libsrc\googletest\include;..\..\libsrc\allegro\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libsrc\googletest;..\..\Common\libsrc\googletest\include;..\..\libsrc\allegro\include;..\..\libsrc\miniz;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <ObjectFileName>$(IntDir)%(Filename)%(Extension).obj</ObjectFileName>

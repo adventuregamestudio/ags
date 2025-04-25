@@ -503,7 +503,16 @@ private:
 };
 
 
-// Copies N bytes from one stream into another;
+// Copies all found contents from one stream into another using IStreamBase objects;
+// returns number of bytes actually written
+soff_t CopyStream(IStreamBase *in, IStreamBase *out);
+// Copies N bytes from one stream into another using IStreamBase objects;
+// returns number of bytes actually written
+soff_t CopyStream(IStreamBase *in, IStreamBase *out, soff_t length);
+// Copies all found contents from one stream into another using Stream objects;
+// returns number of bytes actually written
+soff_t CopyStream(Stream *in, Stream *out);
+// Copies N bytes from one stream into another using Stream objects;
 // returns number of bytes actually written
 soff_t CopyStream(Stream *in, Stream *out, soff_t length);
 

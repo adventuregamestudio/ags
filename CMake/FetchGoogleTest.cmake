@@ -17,19 +17,6 @@ else()
 endif()
 
 message("googletest building with LINUX_OLD_GCC:" ${LINUX_OLD_GCC})
-if(LINUX_OLD_GCC)
-    get_property(
-            compile_options
-            DIRECTORY
-            PROPERTY COMPILE_OPTIONS
-    )
-
-    set_property(
-            DIRECTORY
-            APPEND
-            PROPERTY COMPILE_OPTIONS -Wno-undef -Wno-missing-noreturn -Wno-inline
-    )
-endif()
 
 FetchContent_GetProperties(googletest_content)
 if(NOT googletest_content_POPULATED)
@@ -40,10 +27,9 @@ if(NOT googletest_content_POPULATED)
 endif()
 
 if(LINUX_OLD_GCC)
-    set_property(
-            DIRECTORY
-            PROPERTY COMPILE_OPTIONS ${compile_options}
-    )
-
-    unset(compile_options)
+    target_compile_options(gtest PRIVATE -Wno-undef -Wno-missing-noreturn -Wno-inline)
+    target_compile_options(gtest_main PRIVATE -Wno-undef -Wno-missing-noreturn -Wno-inline)
+    # this is because we are building an old googletest before gmock was absorbed by it
+    target_compile_options(gmock PRIVATE -Wno-undef -Wno-missing-noreturn -Wno-inline)
+    target_compile_options(gmock_main PRIVATE -Wno-undef -Wno-missing-noreturn -Wno-inline)
 endif()

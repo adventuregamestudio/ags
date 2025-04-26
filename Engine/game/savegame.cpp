@@ -191,35 +191,31 @@ HSaveError ReadDescription(Stream *in, SavegameVersion &svg_ver, SavegameDescrip
         return new SavegameError(kSvgErr_FormatVersionNotSupported,
             String::FromFormat("Required: %d, supported: %d - %d.", svg_ver, kSvgVersion_LowestSupported, kSvgVersion_Current));
 
-    // Enviroment information
+    uint32_t header_size = 0u;
+    const soff_t header_pos = in->GetPosition();
     if (svg_ver >= kSvgVersion_351)
-        in->ReadInt32(); // enviroment info size
-    if (elems & kSvgDesc_EnvInfo)
+        header_size = in->ReadInt32(); // header size
+
+    // Enviroment information
+    desc.EngineName = StrUtil::ReadString(in);
+    desc.EngineVersion.SetFromString(StrUtil::ReadString(in));
+    desc.GameGuid = StrUtil::ReadString(in);
+    desc.GameTitle = StrUtil::ReadString(in);
+    desc.MainDataFilename = StrUtil::ReadString(in);
+    if (svg_ver >= kSvgVersion_Cmp_64bit)
+        desc.MainDataVersion = (GameDataVersion)in->ReadInt32();
+    desc.ColorDepth = in->ReadInt32();
+    if (svg_ver >= kSvgVersion_351)
+        desc.LegacyID = in->ReadInt32();
+
+    // If header size field is valid, skip any remaining part
+    // (this is in case there is some data that we do not support)
+    if (svg_ver >= kSvgVersion_351)
     {
-        desc.EngineName = StrUtil::ReadString(in);
-        desc.EngineVersion.SetFromString(StrUtil::ReadString(in));
-        desc.GameGuid = StrUtil::ReadString(in);
-        desc.GameTitle = StrUtil::ReadString(in);
-        desc.MainDataFilename = StrUtil::ReadString(in);
-        if (svg_ver >= kSvgVersion_Cmp_64bit)
-            desc.MainDataVersion = (GameDataVersion)in->ReadInt32();
-        desc.ColorDepth = in->ReadInt32();
-        if (svg_ver >= kSvgVersion_351)
-            desc.LegacyID = in->ReadInt32();
+        soff_t user_desc_off = header_pos + header_size;
+        in->Seek(user_desc_off, kSeekBegin);
     }
-    else
-    {
-        StrUtil::SkipString(in); // engine name
-        StrUtil::SkipString(in); // engine version
-        StrUtil::SkipString(in); // game guid
-        StrUtil::SkipString(in); // game title
-        StrUtil::SkipString(in); // main data filename
-        if (svg_ver >= kSvgVersion_Cmp_64bit)
-            in->ReadInt32(); // game data version
-        in->ReadInt32(); // color depth
-        if (svg_ver >= kSvgVersion_351)
-            in->ReadInt32(); // game legacy id
-    }
+
     // User description
     if (elems & kSvgDesc_UserText)
         desc.UserText = StrUtil::ReadString(in);
@@ -303,7 +299,7 @@ HSaveError OpenSavegameBase(const String &filename, SavegameSource *src, Savegam
         if (elems & kSvgDesc_UserText)
             desc->UserText = temp_desc.UserText;
         if (elems & kSvgDesc_UserImage)
-            desc->UserImage.reset(temp_desc.UserImage.release());
+            desc->UserImage = std::move(temp_desc.UserImage);
     }
     return err;
 }
@@ -869,9 +865,10 @@ void WriteDescription(Stream *out, const String &user_text, const Bitmap *user_i
 {
     // Data format version
     out->WriteInt32(kSvgVersion_Current);
-    soff_t env_pos = out->GetPosition();
+    soff_t header_pos = out->GetPosition();
     out->WriteInt32(0);
     // Enviroment information
+    // FIXME: pass as argument, do not reference global game objects here!
     StrUtil::WriteString(get_engine_name(), out);
     StrUtil::WriteString(EngineVersion.LongString, out);
     StrUtil::WriteString(game.guid, out);
@@ -880,10 +877,11 @@ void WriteDescription(Stream *out, const String &user_text, const Bitmap *user_i
     out->WriteInt32(loaded_game_file_version);
     out->WriteInt32(game.GetColorDepth());
     out->WriteInt32(game.uniqueid);
-    soff_t env_end_pos = out->GetPosition();
-    out->Seek(env_pos, kSeekBegin);
-    out->WriteInt32(env_end_pos - env_pos);
-    out->Seek(env_end_pos, kSeekBegin);
+    // Write header offset field
+    soff_t header_end_pos = out->GetPosition();
+    out->Seek(header_pos, kSeekBegin);
+    out->WriteInt32(header_end_pos - header_pos);
+    out->Seek(header_end_pos, kSeekBegin);
     // User description
     StrUtil::WriteString(user_text, out);
     WriteSaveImage(out, user_image);
@@ -897,9 +895,6 @@ std::unique_ptr<Stream> StartSavegame(const String &filename, const String &user
 
     // Savegame signature
     out->Write(SavegameSource::Signature.GetCStr(), SavegameSource::Signature.GetLength());
-
-    // CHECKME: what is this plugin hook suppose to mean, and if it is called here correctly
-    pl_run_plugin_hooks(kPluginEvt_PreSaveGame, 0);
 
     // Write descrition block
     WriteDescription(out.get(), user_text, user_image);

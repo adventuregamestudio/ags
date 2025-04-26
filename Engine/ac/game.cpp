@@ -1094,6 +1094,8 @@ static std::unique_ptr<Common::Bitmap> create_savegame_screenshot()
 
 void save_game(int slotn, const String &descript, std::unique_ptr<Bitmap> &&image)
 {
+    pl_run_plugin_hooks(kPluginEvt_PreSaveGame, 0);
+
     String nametouse = get_save_game_path(slotn);
     if (!image && (game.options[OPT_SAVESCREENSHOT] != 0))
         image = create_savegame_screenshot();
@@ -1181,8 +1183,7 @@ HSaveError load_game(const String &path, int slotNumber, bool startup, bool &dat
     else if (desc.ColorDepth != game.GetColorDepth())
         return new SavegameError(kSvgErr_DifferentColorDepth, String::FromFormat("Running: %d-bit, saved in: %d-bit.", game.GetColorDepth(), desc.ColorDepth));
 
-    // saved with different game file
-    // if savegame is modern enough then test game GUIDs
+    // Match game GUIDs and test whether save was made for the different game
     if (!desc.GameGuid.IsEmpty() || desc.LegacyID != 0)
     {
         if (desc.GameGuid.Compare(game.guid) != 0 && desc.LegacyID != game.uniqueid)
@@ -1199,8 +1200,8 @@ HSaveError load_game(const String &path, int slotNumber, bool startup, bool &dat
             return new SavegameError(kSvgErr_GameGuidMismatch);
         }
     }
-    // if it's old then do the stupid old-style filename test
-    // TODO: remove filename test after deprecating old saves
+    // If it's an older save, then do the stupid old-style filename test
+    // TODO: remove filename test after deprecating old saves (pre - kSvgVersion_351)
     else if (desc.MainDataFilename.Compare(ResPaths.GamePak.Name))
     {
         String gamefile = Path::ConcatPaths(ResPaths.DataDir, desc.MainDataFilename);

@@ -48,7 +48,7 @@ typedef std::shared_ptr<Stream> PStream;
 enum SavegameVersion
 {
     kSvgVersion_Undefined = 0,
-    kSvgVersion_321       = 8,
+    kSvgVersion_321       = 8, // DEPRECATED
     kSvgVersion_Components= 9,
     kSvgVersion_Cmp_64bit = 10,
     kSvgVersion_350_final = 11,

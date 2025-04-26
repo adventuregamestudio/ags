@@ -1,3 +1,6 @@
+# find_package uses this "FindOgg.cmake" in CMAKE_MODULE_PATH of the ags project
+# It uses PkgConfig on Linux and it should probably be redone to be simpler
+
 if (TARGET Ogg::Ogg)
     return()
 endif()

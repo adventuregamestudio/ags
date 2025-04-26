@@ -1,19 +1,4 @@
-
-#-----------------------------------------------------------------------------#
-#
-# CMake setup
-#
-
-# Refer to https://gitlab.kitware.com/cmake/community/wikis/doc/cmake/Life-Cycle-Considerations
-cmake_minimum_required(VERSION 3.7.2 FATAL_ERROR)
-
-
-#-----------------------------------------------------------------------------#
-#
-# Build options
-#
-
-# Set the project name.
+cmake_minimum_required(VERSION 3.13..3.14)
 project(ALLEGRO C CXX)
 
 if(WIN32)
@@ -231,7 +216,6 @@ set(ALLEGRO_COLOR32 1)
 set(ALLEGRO_NO_ASM 1)
 
 
-
 #-----------------------------------------------------------------------------#
 #
 # Platform drivers
@@ -245,7 +229,6 @@ else()
     # non-windows platforms are use unixy/posix file handling and have no gdi
    list(APPEND PLATFORM_SOURCES ${ALLEGRO_SRC_UNIX_FILES})
 endif()
-
 
 
 #-----------------------------------------------------------------------------#
@@ -283,7 +266,6 @@ target_include_directories(allegro
    PRIVATE ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include
    PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/include ${PROJECT_SOURCE_DIR}/include
 )
-
 
 #-----------------------------------------------------------------------------#
 # vim: set sts=4 sw=4 et:

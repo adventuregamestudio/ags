@@ -63,7 +63,7 @@ RUN apt-get install \
   libxkbcommon-dev 
 
 # Build and install CMake
-ARG CMAKE_VERSION=3.24.1
+ARG CMAKE_VERSION=3.26.6
 RUN curl -fLsS "https://github.com/Kitware/CMake/releases/download/v$CMAKE_VERSION/cmake-$CMAKE_VERSION.tar.gz" | tar -f - -xvzC /tmp && \
   cd /tmp/cmake-$CMAKE_VERSION && \
   ./configure --system-curl && make -j$(getconf _NPROCESSORS_ONLN) && make install && \

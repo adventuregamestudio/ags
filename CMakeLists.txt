@@ -151,7 +151,10 @@ if(EMSCRIPTEN)
     set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/CMake/Emscripten")
 
     set(AGS_OPENGLES2 TRUE)
-    set(USE_FLAGS " -sUSE_SDL=2  -sUSE_VORBIS=1  -sUSE_OGG=1 ")
+    set(USE_FLAGS " -sUSE_SDL=2 -sUSE_OGG=1 -sUSE_VORBIS=1 ")
+    set(AGS_USE_LOCAL_OGG TRUE)
+    set(AGS_USE_LOCAL_VORBIS TRUE)
+
     set(AGS_DISABLE_THREADS TRUE)
     if(AGS_DISABLE_THREADS)
         add_compile_definitions("AGS_DISABLE_THREADS=1")
@@ -285,26 +288,22 @@ else()
     find_package(SDL2_sound REQUIRED)
 endif()
 
-if(EMSCRIPTEN)
-    # do nothing
-elseif(NOT AGS_USE_LOCAL_OGG)
-    include(FetchOgg)
-else()
+if(AGS_USE_LOCAL_OGG)
     find_package(Ogg REQUIRED)
+else()
+    include(FetchOgg)
 endif()
 
-if(EMSCRIPTEN)
-    # do nothing
-elseif (NOT AGS_USE_LOCAL_VORBIS)
-    include(FetchVorbis)
-else()
+if (AGS_USE_LOCAL_VORBIS)
     find_package(Vorbis REQUIRED)
+else()
+    include(FetchVorbis)
 endif()
 
-if (NOT AGS_USE_LOCAL_THEORA)
-    include(FetchTheora)
-else()
+if (AGS_USE_LOCAL_THEORA)
     find_package(Theora REQUIRED)
+else()
+    include(FetchTheora)
 endif()
 
 ###############################################################################

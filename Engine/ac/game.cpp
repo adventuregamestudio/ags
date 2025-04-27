@@ -1102,7 +1102,7 @@ void save_game(int slotn, const String &descript, std::unique_ptr<Bitmap> &&imag
 
     HSaveError err = SaveGame(nametouse, descript, image.get(),
              (SaveCmpSelection)(kSaveCmp_All & ~(game.options[OPT_SAVECOMPONENTSIGNORE] & kSaveCmp_ScriptIgnoreMask)),
-             false /* not compressed */);
+             usetup.CompressSaves);
     if (!err)
     {
         // FIXME: left this original Display call for the time being,

@@ -675,7 +675,7 @@ int adjust_y_for_guis(int y, bool assume_blocking) {
             continue;
         // try to deal with full-height GUIs down the left or right
         const float gui_bottom_edge = 0.25f; // NOTE: originally was 50 pixels in 200-height game
-        if (gui.Height > get_fixed_pixel_size(game.GetGameRes().Height * gui_bottom_edge))
+        if (gui.Y + gui.Height >= get_fixed_pixel_size(game.GetGameRes().Height * gui_bottom_edge))
             continue;
         // Fix coordinates if y is inside the gui
         if (y < gui.Y + gui.Height)

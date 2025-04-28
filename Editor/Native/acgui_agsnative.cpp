@@ -32,12 +32,12 @@ extern GameSetupStruct thisgame;
 
 bool AGS::Common::GUIMain::HasAlphaChannel() const
 {
-    if (this->BgImage > 0)
+    if (this->_bgImage > 0)
     {
         // alpha state depends on background image
-        return is_sprite_alpha(this->BgImage);
+        return is_sprite_alpha(this->_bgImage);
     }
-    if (this->BgColor > 0)
+    if (this->_bgColor > 0)
     {
         // not alpha transparent if there is a background color
         return false;
@@ -113,14 +113,14 @@ void GUIObject::MarkStateChanged(bool, bool)
 
 int GUILabel::PrepareTextToDraw()
 {
-    _textToDraw = Text;
-    return GUI::SplitLinesForDrawing(_textToDraw, false, Lines, Font, _width);
+    _textToDraw = _text;
+    return GUI::SplitLinesForDrawing(_textToDraw, false, Lines, _font, _width);
 }
 
 void GUITextBox::DrawTextBoxContents(Bitmap *ds, int x, int y, color_t text_color)
 {
     // print something fake so we can see what it looks like
-    wouttext_outline(ds, x + 2, y + 2, Font, text_color, "Text Box Contents");
+    wouttext_outline(ds, x + 2, y + 2, _font, text_color, "Text Box Contents");
 }
 
 void GUIListBox::PrepareTextToDraw(const String &text)
@@ -131,6 +131,11 @@ void GUIListBox::PrepareTextToDraw(const String &text)
 bool GUIInvWindow::HasAlphaChannel() const
 {
     return false; // don't do alpha in the editor
+}
+
+int  GUIInvWindow::GetCharacterID() const
+{
+    return -1;
 }
 
 void GUIInvWindow::Draw(Bitmap *ds, int x, int y)
@@ -144,7 +149,7 @@ void GUIButton::PrepareTextToDraw()
     if (IsWrapText())
     {
         _textToDraw = _text;
-        GUI::SplitLinesForDrawing(_text, false, Lines, Font, _width - TextPaddingHor * 2);
+        GUI::SplitLinesForDrawing(_text, false, Lines, _font, _width - _textPaddingHor * 2);
     }
     else
     {

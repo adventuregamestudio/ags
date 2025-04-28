@@ -170,6 +170,15 @@ int GUIButton::GetClickData(GUIClickMouseButton button) const
     return _clickData[button];
 }
 
+void GUIButton::SetClickAction(GUIClickMouseButton button, GUIClickAction action, int data)
+{
+    if (button < kGUIClickLeft || button >= kNumGUIClicks)
+        return;
+
+    _clickAction[button] = action;
+    _clickData[button] = data;
+}
+
 Rect GUIButton::CalcGraphicRect(bool clipped)
 {
     if (clipped)

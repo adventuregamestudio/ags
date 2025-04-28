@@ -96,6 +96,7 @@ public:
 
     GUIClickAction GetClickAction(GUIClickMouseButton button) const;
     int  GetClickData(GUIClickMouseButton button) const;
+    void SetClickAction(GUIClickMouseButton button, GUIClickAction action, int data);
 
     // Operations
     Rect CalcGraphicRect(bool clipped) override;

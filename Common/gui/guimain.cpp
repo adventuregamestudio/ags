@@ -596,6 +596,11 @@ void GUIMain::SetVisible(bool on)
     }
 }
 
+void GUIMain::SetHighlightControl(int control_index)
+{
+    _highlightCtrl = control_index;
+}
+
 void GUIMain::OnMouseButtonDown(int mx, int my)
 {
     if (_mouseOverCtrl < 0)

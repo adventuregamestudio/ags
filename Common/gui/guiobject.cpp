@@ -22,6 +22,11 @@ namespace AGS
 namespace Common
 {
 
+void GUIObject::SetName(const String &name)
+{
+    _name = name;
+}
+
 void GUIObject::SetID(int id)
 {
     _id = id;
@@ -51,6 +56,13 @@ String GUIObject::GetEventHandler(uint32_t event) const
     if (event < 0 || event >= _scEventCount)
         return "";
     return _eventHandlers[event];
+}
+
+void GUIObject::SetEventHandler(uint32_t event, const String &fn_name)
+{
+    if (event < 0 || event >= _scEventCount)
+        return;
+    _eventHandlers[event] = fn_name;
 }
 
 bool GUIObject::IsOverControl(int x, int y, int leeway) const

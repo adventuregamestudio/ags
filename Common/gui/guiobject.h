@@ -43,6 +43,7 @@ public:
 
     // Properties
     const String   &GetName() const { return _name; }
+    void            SetName(const String &name);
     int             GetID() const { return _id; }
     void            SetID(int id);
     int             GetParentID() const { return _parentID; }
@@ -92,6 +93,7 @@ public:
     String          GetEventArgs(uint32_t event) const;
     // Gets a script function name for the given event
     String          GetEventHandler(uint32_t event) const;
+    void            SetEventHandler(uint32_t event, const String &fn_name);
     
     // Operations
     // Returns the (untransformed!) visual rectangle of this control,

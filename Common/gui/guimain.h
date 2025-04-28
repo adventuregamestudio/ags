@@ -225,6 +225,8 @@ public:
     void    SetTransparencyAsPercentage(int percent);
     // Sets whether GUI is allowed to be displayed on screen
     void    SetVisible(bool on);
+    // Sets highlighted control index
+    void    SetHighlightControl(int control_index);
 
     // Events
     void    OnMouseButtonDown(int mx, int my);

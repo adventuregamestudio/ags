@@ -651,9 +651,9 @@ int adjust_x_for_guis(int x, int y, bool assume_blocking) {
         // higher, lower or to the right from the message (?)
         if ((gui.X > x) || (gui.Y > y) || (gui.Y + gui.Height < y))
             continue;
-        // try to deal with full-width GUIs across the top
-        // FIXME: using a harcoded width in pixels...
-        if (gui.X + gui.Width >= get_fixed_pixel_size(280))
+        // try to deal with full-width GUIs
+        const float gui_right_edge = 0.875f; // NOTE: originally was 280 pixels in 320-wide game
+        if (gui.X + gui.Width >= get_fixed_pixel_size(game.GetGameRes().Width * gui_right_edge))
             continue;
         // Fix coordinates if x is inside the gui
         if (x < gui.X + gui.Width)
@@ -674,8 +674,8 @@ int adjust_y_for_guis(int y, bool assume_blocking) {
         if (gui.Y > y)
             continue;
         // try to deal with full-height GUIs down the left or right
-        // FIXME: using a harcoded height in pixels...
-        if (gui.Height > get_fixed_pixel_size(50))
+        const float gui_bottom_edge = 0.25f; // NOTE: originally was 50 pixels in 200-height game
+        if (gui.Height > get_fixed_pixel_size(game.GetGameRes().Height * gui_bottom_edge))
             continue;
         // Fix coordinates if y is inside the gui
         if (y < gui.Y + gui.Height)

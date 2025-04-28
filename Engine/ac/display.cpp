@@ -245,8 +245,8 @@ Bitmap *create_textual_image(const char *text, const DisplayTextLooks &look, col
     else if ((look.Position & kDisplayTextPos_OvercharX) != 0)
     {
         xx -= wii / 2;
-        xx = Math::Clamp(xx, screen_padding, ui_view.GetWidth() - screen_padding - wii);
         xx = adjust_x_for_guis(xx, yy);
+        xx = Math::Clamp(xx, screen_padding, ui_view.GetWidth() - screen_padding - wii);
     }
 
     const int extraHeight = paddingDoubledScaled;

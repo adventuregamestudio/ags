@@ -1100,15 +1100,19 @@ void save_game(int slotn, const String &descript, std::unique_ptr<Bitmap> &&imag
     if (!image && (game.options[OPT_SAVESCREENSHOT] != 0))
         image = create_savegame_screenshot();
 
-    std::unique_ptr<Stream> out(StartSavegame(nametouse, descript, image.get()));
-    if (out == nullptr)
+    HSaveError err = SaveGame(nametouse, descript, image.get(),
+             (SaveCmpSelection)(kSaveCmp_All & ~(game.options[OPT_SAVECOMPONENTSIGNORE] & kSaveCmp_ScriptIgnoreMask)),
+             false /* not compressed */);
+    if (!err)
     {
+        // FIXME: left this original Display call for the time being,
+        // but this is wrong. Figure out how to use event callback for this instead:
+        // either pass error code to kScriptEvent_GameSaved, or have a separate event for errors
         Display("ERROR: Unable to open savegame file for writing!");
+        Debug::Printf(kDbgMsg_Error, "Save game failed: %s", err->FullMessage().GetCStr());
         return;
     }
 
-    // Save dynamic game data
-    SaveGameState(out.get(), (SaveCmpSelection)(kSaveCmp_All & ~(game.options[OPT_SAVECOMPONENTSIGNORE] & kSaveCmp_ScriptIgnoreMask)));
     // call "After Save" event callback
     run_on_event(kScriptEvent_GameSaved, slotn);
 }
@@ -1119,7 +1123,7 @@ int oldeip;
 bool read_savedgame_description(const String &savedgame, String &description)
 {
     SavegameDescription desc;
-    HSaveError err = OpenSavegame(savedgame, desc, kSvgDesc_UserText);
+    HSaveError err = ReadSaveDescription(savedgame, desc, kSvgDesc_UserText);
     if (!err)
     {
         Debug::Printf(kDbgMsg_Error, "Unable to read save's description.\n%s", err->FullMessage().GetCStr());
@@ -1132,7 +1136,7 @@ bool read_savedgame_description(const String &savedgame, String &description)
 std::unique_ptr<Bitmap> read_savedgame_screenshot(const String &savedgame)
 {
     SavegameDescription desc;
-    HSaveError err = OpenSavegame(savedgame, desc, kSvgDesc_UserImage);
+    HSaveError err = ReadSaveDescription(savedgame, desc, kSvgDesc_UserImage);
     if (!err)
     {
         Debug::Printf(kDbgMsg_Error, "Unable to read save's screenshot.\n%s", err->FullMessage().GetCStr());
@@ -1171,11 +1175,9 @@ HSaveError load_game(const String &path, int slotNumber, bool startup, bool &dat
     oldeip = get_our_eip();
     set_our_eip(2050);
 
-    HSaveError err;
-    SavegameSource src;
     SavegameDescription desc;
     desc.Slot = slotNumber;
-    err = OpenSavegame(path, src, desc, (SavegameDescElem)(kSvgDesc_EnvInfo | kSvgDesc_UserText));
+    HSaveError err = ReadSaveDescription(path, desc, (SavegameDescElem)(kSvgDesc_EnvInfo | kSvgDesc_UserText));
     // saved in incompatible enviroment
     if (!err)
         return err;
@@ -1218,11 +1220,10 @@ HSaveError load_game(const String &path, int slotNumber, bool startup, bool &dat
 
     // Do the actual game state restore
     SaveRestoreFeedback feedback;
-    err = RestoreGameState(src.InputStream.get(), desc,
-        RestoreGameStateOptions(src.Version,
+    err = RestoreSavegame(path,
+        RestoreGameStateOptions(
             (SaveCmpSelection)(kSaveCmp_All & ~(game.options[OPT_SAVECOMPONENTSIGNORE] & kSaveCmp_ScriptIgnoreMask)),
             startup), feedback);
-    src.InputStream.reset();
     data_overwritten = true;
 
     // Handle restoration error
@@ -1326,8 +1327,8 @@ void prescan_saves(int *dest_arr, size_t dest_count, int min_slot, int max_slot,
         }
 
         // Do the save prescan
-        err = PrescanSaveState(src.InputStream.get(), desc,
-            RestoreGameStateOptions(src.Version,
+        err = PrescanSaveState(src.InputStream.get(), src.Version, desc,
+            RestoreGameStateOptions(
                 (SaveCmpSelection)(kSaveCmp_All & ~(game.options[OPT_SAVECOMPONENTSIGNORE] & kSaveCmp_ScriptIgnoreMask)),
                 false));
 

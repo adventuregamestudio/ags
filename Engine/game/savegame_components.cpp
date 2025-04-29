@@ -49,7 +49,8 @@
 #include "plugin/plugin_engine.h"
 #include "script/cc_common.h"
 #include "script/script.h"
-#include "util/filestream.h" // TODO: needed only because plugins expect file handle
+#include "util/deflatestream.h"
+#include "util/memory_compat.h"
 #include "util/string_utils.h"
 
 using namespace Common;
@@ -1152,9 +1153,6 @@ HSaveError PrescanViews(Stream *in, int32_t /*cmp_ver*/, soff_t /*cmp_size*/, co
 
 HSaveError WriteDynamicSpritesImpl(Stream *out, int match_flags)
 {
-    const soff_t ref_pos = out->GetPosition();
-    out->WriteInt32(0); // number of dynamic sprites
-    out->WriteInt32(0); // top index
     int count = 0;
     int top_index = 1;
     for (size_t i = 1; i < spriteset.GetSpriteSlotCount(); ++i)
@@ -1163,16 +1161,20 @@ HSaveError WriteDynamicSpritesImpl(Stream *out, int match_flags)
         {
             count++;
             top_index = i;
+        }
+    }
+    out->WriteInt32(count);
+    out->WriteInt32(top_index);
+
+    for (size_t i = 1; i < spriteset.GetSpriteSlotCount(); ++i)
+    {
+        if ((game.SpriteInfos[i].Flags & match_flags) == match_flags)
+        {
             out->WriteInt32(i);
             out->WriteInt32(game.SpriteInfos[i].Flags);
             serialize_bitmap(spriteset[i], out);
         }
     }
-    const soff_t end_pos = out->GetPosition();
-    out->Seek(ref_pos, kSeekBegin);
-    out->WriteInt32(count);
-    out->WriteInt32(top_index);
-    out->Seek(end_pos, kSeekBegin);
     return HSaveError::None();
 }
 
@@ -1226,18 +1228,18 @@ HSaveError WriteOverlays(Stream *out)
     const auto &overs = get_overlays();
     // Calculate and save valid overlays only
     uint32_t valid_count = 0;
-    soff_t count_off = out->GetPosition();
-    out->WriteInt32(0);
     for (const auto &over : overs)
     {
-        if (over.type < 0)
-            continue;
-        valid_count++;
-        over.WriteToSavegame(out);
+        if (over.type >= 0)
+            valid_count++;
     }
-    out->Seek(count_off, kSeekBegin);
     out->WriteInt32(valid_count);
-    out->Seek(0, kSeekEnd);
+
+    for (const auto &over : overs)
+    {
+        if (over.type >= 0)
+            over.WriteToSavegame(out);
+    }
     return HSaveError::None();
 }
 
@@ -1893,27 +1895,55 @@ struct SvgCmpReadHelper
     }
 };
 
+enum ComponentFlags
+{
+    kSvgCmp_Deflate = 0x0001 // compress using Deflate algorithm
+};
+
 // The basic information about deserialized component, used for debugging purposes
 struct ComponentInfo
 {
-    String  Name;       // internal component's ID
-    int32_t Version;    // data format version
-    soff_t  Offset;     // offset at which an opening tag is located
-    soff_t  DataOffset; // offset at which component data begins
-    soff_t  DataSize;   // expected size of component data
+    String      Name;           // internal component's ID
+    uint32_t    TagOffset = 0;  // offset at which an opening tag is located [not serialized]
+    uint32_t    HeaderSize = 0; // component header size (meta data)
+    uint32_t    Flags = 0;      // ComponentFlags
+    int32_t     Version = -1;   // data format version
+    uint32_t    DataOffset = 0; // offset at which component data begins [not serialized]
+    uint32_t    DataSize = 0u;  // expected size of component data
+    uint32_t    UncompressedDataSize = 0u; // uncompressed data size
+    uint32_t    Checksum = 0u;  // checksum of the uncompressed data (only if compressed)
 
-    ComponentInfo() : Version(-1), Offset(0), DataOffset(0), DataSize(0) {}
+    ComponentInfo() = default;
 };
 
 HSaveError ReadComponent(Stream *in, SvgCmpReadHelper &hlp, ComponentInfo &info)
 {
     // Read component info
     info = ComponentInfo();
-    info.Offset = in->GetPosition();
+    info.TagOffset = in->GetPosition();
     if (!ReadFormatTag(in, info.Name, true))
         return new SavegameError(kSvgErr_ComponentOpeningTagFormat);
-    info.Version = in->ReadInt32();
-    info.DataSize = hlp.Version >= kSvgVersion_Cmp_64bit ? in->ReadInt64() : in->ReadInt32();
+    if (hlp.Version >= kSvgVersion_363)
+    {
+        info.HeaderSize = in->ReadInt32();
+        info.Flags = in->ReadInt32();
+        info.Version = in->ReadInt32();
+        info.DataSize = in->ReadInt32();
+        info.UncompressedDataSize = in->ReadInt32();
+        info.Checksum = in->ReadInt32();
+    }
+    else if (hlp.Version >= kSvgVersion_ComponentsEx)
+    {
+        info.Version = in->ReadInt32();
+        info.DataSize = in->ReadInt32();
+        in->ReadInt32(); // reserved
+    }
+    else
+    {
+        info.Version = in->ReadInt32();
+        info.DataSize = in->ReadInt32();
+    }
+    // Assume that component data begins right after the header
     info.DataOffset = in->GetPosition();
 
     // Find component's handler(s)
@@ -1940,9 +1970,32 @@ HSaveError ReadComponent(Stream *in, SvgCmpReadHelper &hlp, ComponentInfo &info)
     {
         if (info.Version > handler->Version || info.Version < handler->LowestVersion)
             return new SavegameError(kSvgErr_UnsupportedComponentVersion, String::FromFormat("Saved version: %d, supported: %d - %d", info.Version, handler->LowestVersion, handler->Version));
-        HSaveError err = pfn_read(in, info.Version, info.DataSize, hlp.PP, hlp.RData);
-        if (!err)
-            return err;
+
+        if ((info.Flags & kSvgCmp_Deflate) != 0)
+        {
+            auto deflate_s = std::make_unique<DeflateStream>(in->ReleaseStreamBase(), info.DataOffset, info.DataOffset + info.DataSize);
+            auto deflate_in = std::make_unique<Stream>(std::move(deflate_s));
+
+            HSaveError err = pfn_read(deflate_in.get(), info.Version, info.DataSize, hlp.PP, hlp.RData);
+            if (!err)
+                return err;
+
+            // FIXME: this is very ugly, maybe may be fixed by changing stream base storage to shared ptr?
+            deflate_s.reset(dynamic_cast<DeflateStream*>(deflate_in->ReleaseStreamBase().release()));
+            uint32_t uncomp_data_sz = deflate_s->GetProcessedInput();
+            if (uncomp_data_sz != info.UncompressedDataSize)
+                return new SavegameError(kSvgErr_ComponentUncompressedSizeMismatch, String::FromFormat("Expected: %zu, actual: %zu", info.UncompressedDataSize, uncomp_data_sz));
+            // TODO: test checksum too?
+
+            in->AttachStreamBase(deflate_s->ReleaseStreamBase());
+        }
+        else
+        {
+            HSaveError err = pfn_read(in, info.Version, info.DataSize, hlp.PP, hlp.RData);
+            if (!err)
+                return err;
+        }
+
         if (prescan)
             in->Seek(info.DataOffset + info.DataSize, kSeekBegin);
     }
@@ -1986,8 +2039,8 @@ HSaveError ReadAllImpl(Stream *in, SavegameVersion svg_version, SaveCmpSelection
         if (!err)
         {
             return new SavegameError(kSvgErr_ComponentUnserialization,
-                String::FromFormat("(#%d) %s, version %i, at offset %lld.",
-                idx, info.Name.IsEmpty() ? "unknown" : info.Name.GetCStr(), info.Version, info.Offset),
+                String::FromFormat("(#%d) %s, version %i, at offset %u.",
+                idx, info.Name.IsEmpty() ? "unknown" : info.Name.GetCStr(), info.Version, info.TagOffset),
                 err);
         }
         idx++;
@@ -2010,23 +2063,58 @@ HSaveError PrescanAll(Stream *in, SavegameVersion svg_version, SaveCmpSelection 
     return ReadAllImpl(in, svg_version, select_cmp, pp, r_data);
 }
 
-HSaveError WriteComponent(Stream *out, ComponentHandler &hdlr)
+HSaveError WriteComponent(Stream *out, ComponentHandler &hdlr, bool compress)
 {
+    uint32_t flags = kSvgCmp_Deflate * compress;
+
     WriteFormatTag(out, hdlr.Name, true);
+    soff_t header_pos = out->GetPosition();
+    out->WriteInt32(0); // header size placeholder
+    out->WriteInt32(flags); // flags
     out->WriteInt32(hdlr.Version);
-    soff_t ref_pos = out->GetPosition();
-    out->WriteInt64(0); // placeholder for the component size
-    HSaveError err = hdlr.Serialize(out);
-    soff_t end_pos = out->GetPosition();
-    out->Seek(ref_pos, kSeekBegin);
-    out->WriteInt64(end_pos - ref_pos - sizeof(int64_t)); // size of serialized component data
-    out->Seek(end_pos, kSeekBegin);
-    if (err)
-        WriteFormatTag(out, hdlr.Name, false);
-    return err;
+    soff_t data_sz_pos = out->GetPosition();
+    out->WriteInt32(0); // component size placeholder
+    out->WriteInt32(0); // uncompressed size
+    out->WriteInt32(0); // checksum
+
+    soff_t data_begin_pos = out->GetPosition();
+
+    uint32_t uncomp_data_sz = 0u;
+    if (compress)
+    {
+        auto deflate_s = std::make_unique<DeflateStream>(out->ReleaseStreamBase(), kStream_Write);
+        auto deflate_out = std::make_unique<Stream>(std::move(deflate_s));
+        HSaveError err = hdlr.Serialize(deflate_out.get());
+        if (!err)
+            return err;
+
+        // FIXME: this is very ugly, maybe may be fixed by changing stream base storage to shared ptr?
+        deflate_s.reset(dynamic_cast<DeflateStream *>(deflate_out->ReleaseStreamBase().release()));
+        deflate_s->Finalize();
+        uncomp_data_sz = deflate_s->GetProcessedInput();
+        out->AttachStreamBase(deflate_s->ReleaseStreamBase());
+    }
+    else
+    {
+        HSaveError err = hdlr.Serialize(out);
+        if (!err)
+            return err;
+    }
+
+    soff_t data_end_pos = out->GetPosition();
+
+    out->Seek(header_pos, kSeekBegin);
+    out->WriteInt32(data_begin_pos - header_pos);
+    out->Seek(data_sz_pos, kSeekBegin);
+    out->WriteInt32(data_end_pos - data_begin_pos); // size of serialized component data
+    out->WriteInt32(compress ? uncomp_data_sz : (data_end_pos - data_begin_pos)); // uncompressed size
+    out->WriteInt32(0); // checksum (?)
+    out->Seek(data_end_pos, kSeekBegin);
+    WriteFormatTag(out, hdlr.Name, false);
+    return HSaveError::None();
 }
 
-HSaveError WriteAllCommon(Stream *out, SaveCmpSelection select_cmp)
+HSaveError WriteAllCommon(Stream *out, SaveCmpSelection select_cmp, bool compress)
 {
     WriteFormatTag(out, ComponentListTag, true);
     for (int type = 0; !ComponentHandlers[type].Name.IsEmpty(); ++type)
@@ -2034,7 +2122,7 @@ HSaveError WriteAllCommon(Stream *out, SaveCmpSelection select_cmp)
         if ((ComponentHandlers[type].Selection & select_cmp) == 0)
             continue; // skip this component
 
-        HSaveError err = WriteComponent(out, ComponentHandlers[type]);
+        HSaveError err = WriteComponent(out, ComponentHandlers[type], compress);
         if (!err)
         {
             return new SavegameError(kSvgErr_ComponentSerialization,

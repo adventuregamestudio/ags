@@ -41,7 +41,7 @@ namespace SavegameComponents
     HSaveError    PrescanAll(Stream *in, SavegameVersion svg_version, SaveCmpSelection select_cmp,
         const PreservedParams &pp, RestoredData &r_data);
     // Writes a full list of common components to the stream
-    HSaveError    WriteAllCommon(Stream *out, SaveCmpSelection select_cmp);
+    HSaveError    WriteAllCommon(Stream *out, SaveCmpSelection select_cmp, bool compress);
 
     // Utility functions for reading and writing legacy interactions,
     // or their "times run" counters separately.

@@ -125,6 +125,19 @@ size_t Stream::WriteAndConvertArrayOfFloat32(const float *buffer, size_t count)
     return elem;
 }
 
+size_t Stream::ReadByteCount(size_t count)
+{
+    if (!CanRead())
+        return 0;
+    size_t size = 0;
+    for (; count > 0; --count, ++size)
+    {
+        if (ReadByte() < 0)
+            break;
+    }
+    return size;
+}
+
 size_t Stream::WriteByteCount(uint8_t b, size_t count)
 {
     if (!CanWrite())

@@ -1172,7 +1172,7 @@ HSaveError WriteDynamicSpritesImpl(Stream *out, int match_flags)
         {
             out->WriteInt32(i);
             out->WriteInt32(game.SpriteInfos[i].Flags);
-            serialize_bitmap(spriteset[i], out);
+            WriteBitmap(spriteset[i], out, false /* not compressed (expect component is compressed) */);
         }
     }
     return HSaveError::None();
@@ -1192,12 +1192,12 @@ HSaveError ReadDynamicSpritesImpl(Stream *in, int match_flags)
         int flags = in->ReadInt32();
         if ((flags & match_flags) == match_flags)
         {
-            std::unique_ptr<Bitmap> image(read_serialized_bitmap(in));
+            std::unique_ptr<Bitmap> image(ReadBitmap(in, false /* not compressed (expect component is compressed) */));
             add_dynamic_sprite(id, std::move(image), (flags & SPF_ALPHACHANNEL) != 0, flags);
         }
         else
         {
-            skip_serialized_bitmap(in);
+            SkipBitmap(in, false /* not compressed */);
         }
     }
     return err;
@@ -1258,7 +1258,7 @@ HSaveError ReadOverlays(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pres
         if (over.type < 0)
             continue; // safety abort
         if (has_bitmap)
-            r_data.OverlayImages[over.type].reset(read_serialized_bitmap(in));
+            r_data.OverlayImages[over.type].reset(ReadBitmap(in, false /* not compressed (expect component is compressed) */));
         if (overs.size() <= static_cast<uint32_t>(over.type))
             overs.resize(over.type + 1);
         overs[over.type] = std::move(over);
@@ -1278,7 +1278,7 @@ HSaveError WriteDynamicSurfaces(Stream *out)
         else
         {
             out->WriteInt8(1);
-            serialize_bitmap(dynamicallyCreatedSurfaces[i].get(), out);
+            WriteBitmap(dynamicallyCreatedSurfaces[i].get(), out, false /* not compressed (expect component is compressed) */);
         }
     }
     return HSaveError::None();
@@ -1296,7 +1296,7 @@ HSaveError ReadDynamicSurfaces(Stream *in, int32_t /*cmp_ver*/, soff_t cmp_size,
         if (in->ReadInt8() == 0)
             r_data.DynamicSurfaces[i] = nullptr;
         else
-            r_data.DynamicSurfaces[i].reset(read_serialized_bitmap(in));
+            r_data.DynamicSurfaces[i].reset(ReadBitmap(in, false /* not compressed (expect component is compressed) */));
     }
     return err;
 }
@@ -1519,11 +1519,11 @@ HSaveError WriteThisRoom(Stream *out)
     {
         out->WriteBool(play.raw_modified[i] != 0);
         if (play.raw_modified[i])
-            serialize_bitmap(thisroom.BgFrames[i].Graphic.get(), out);
+            WriteBitmap(thisroom.BgFrames[i].Graphic.get(), out, false /* not compressed (expect component is compressed) */);
     }
     out->WriteBool(raw_saved_screen != nullptr);
     if (raw_saved_screen)
-        serialize_bitmap(raw_saved_screen.get(), out);
+        WriteBitmap(raw_saved_screen.get(), out, false /* not compressed (expect component is compressed) */);
 
     // room region state
     for (int i = 0; i < MAX_ROOM_REGIONS; ++i)
@@ -1562,12 +1562,12 @@ HSaveError ReadThisRoom(Stream *in, int32_t cmp_ver, soff_t /*cmp_size*/, const 
     {
         play.raw_modified[i] = in->ReadBool();
         if (play.raw_modified[i])
-            r_data.RoomBkgScene[i].reset(read_serialized_bitmap(in));
+            r_data.RoomBkgScene[i].reset(ReadBitmap(in, false /* not compressed (expect component is compressed) */));
         else
             r_data.RoomBkgScene[i] = nullptr;
     }
     if (in->ReadBool())
-        raw_saved_screen.reset(read_serialized_bitmap(in));
+        raw_saved_screen.reset(ReadBitmap(in, false /* not compressed (expect component is compressed) */));
 
     // room region state
     for (int i = 0; i < MAX_ROOM_REGIONS; ++i)

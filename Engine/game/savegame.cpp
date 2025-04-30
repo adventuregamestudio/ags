@@ -59,6 +59,7 @@
 #include "script/script.h"
 #include "script/cc_common.h"
 #include "script/script_runtime.h"
+#include "util/compress.h"
 #include "util/file.h"
 #include "util/memory_compat.h"
 #include "util/memorystream.h"
@@ -174,17 +175,120 @@ String GetSavegameErrorText(SavegameErrorType err)
     }
 }
 
-Bitmap *RestoreSaveImage(Stream *in)
+Bitmap *ReadBitmap(Stream *in, bool compressed)
 {
-    if (in->ReadInt32())
-        return read_serialized_bitmap(in);
+    const int picwid = in->ReadInt32();
+    const int pichit = in->ReadInt32();
+    const int piccoldep = in->ReadInt32();
+    Bitmap *thispic = BitmapHelper::CreateBitmap(picwid, pichit, piccoldep);
+    if (thispic == nullptr)
+        return nullptr;
+
+    if (compressed)
+    {
+        in->ReadInt32(); // reserved
+        size_t compressed_sz = in->ReadInt32();
+        inflate_decompress(thispic->GetDataForWriting(), thispic->GetWidth() * thispic->GetHeight() * thispic->GetBPP(),
+                           thispic->GetBPP(), in, compressed_sz);
+    }
+    else
+    {
+        // TODO: move this code to BitmapHelper?
+        for (int h = 0; h < pichit; ++h)
+        {
+            switch (piccoldep)
+            {
+            case 8:
+                in->ReadArray(thispic->GetScanLineForWriting(h), picwid, 1);
+                break;
+            case 16:
+                in->ReadArrayOfInt16((int16_t *)thispic->GetScanLineForWriting(h), picwid);
+                break;
+            case 32:
+                in->ReadArrayOfInt32((int32_t *)thispic->GetScanLineForWriting(h), picwid);
+                break;
+            }
+        }
+    }
+
+    return thispic;
+}
+
+void SkipBitmap(Stream *in, bool compressed)
+{
+    int picwid = in->ReadInt32();
+    int pichit = in->ReadInt32();
+    int piccoldep = in->ReadInt32();
+
+    if (compressed)
+    {
+        in->ReadInt32(); // reserved
+        size_t compress_sz = in->ReadInt32();
+        in->Seek(compress_sz);
+    }
+    else
+    {
+        int bpp = (piccoldep + 7) / 8;
+        in->Seek(picwid * pichit * bpp);
+    }
+}
+
+void WriteBitmap(const Common::Bitmap *thispic, Stream *out, bool compressed)
+{
+    assert(thispic);
+    if (!thispic)
+        return;
+
+    out->WriteInt32(thispic->GetWidth());
+    out->WriteInt32(thispic->GetHeight());
+    out->WriteInt32(thispic->GetColorDepth());
+
+    if (compressed)
+    {
+        out->WriteInt32(0); // reserved
+        soff_t size_pos = out->GetPosition();
+        out->WriteInt32(0); // size placeholder
+        deflate_compress(thispic->GetData(), thispic->GetWidth() * thispic->GetHeight() * thispic->GetBPP(),
+                         thispic->GetBPP(), out);
+        soff_t end_pos = out->GetPosition();
+        out->Seek(size_pos, kSeekBegin);
+        out->WriteInt32(end_pos - size_pos - sizeof(int32_t));
+        out->Seek(end_pos, kSeekEnd);
+    }
+    else
+    {
+        // TODO: move this code to BitmapHelper?
+        for (int h = 0; h < thispic->GetHeight(); ++h)
+        {
+            switch (thispic->GetColorDepth())
+            {
+            case 8:
+                out->WriteArray(&thispic->GetScanLine(h)[0], thispic->GetWidth(), 1);
+                break;
+            case 16:
+                out->WriteArrayOfInt16((const int16_t *)&thispic->GetScanLine(h)[0], thispic->GetWidth());
+                break;
+            case 32:
+                out->WriteArrayOfInt32((const int32_t *)&thispic->GetScanLine(h)[0], thispic->GetWidth());
+                break;
+            }
+        }
+    }
+}
+
+Bitmap *RestoreUserImage(Stream *in)
+{
+    uint32_t flags = in->ReadInt32();
+    if ((flags & kSvgImage_Present) != 0)
+        return ReadBitmap(in, (flags & kSvgImage_Deflate) != 0);
     return nullptr;
 }
 
-void SkipSaveImage(Stream *in)
+void SkipUserImage(Stream *in)
 {
-    if (in->ReadInt32())
-        skip_serialized_bitmap(in);
+    uint32_t flags = in->ReadInt32();
+    if ((flags & kSvgImage_Present) != 0)
+        SkipBitmap(in, (flags & kSvgImage_Deflate) != 0);
 }
 
 HSaveError ReadDescription(Stream *in, SavegameVersion &svg_ver, SavegameDescription &desc, SavegameDescElem elems)
@@ -240,10 +344,11 @@ HSaveError ReadDescription(Stream *in, SavegameVersion &svg_ver, SavegameDescrip
         desc.UserText = StrUtil::ReadString(in);
     else
         StrUtil::SkipString(in);
+    //
     if (elems & kSvgDesc_UserImage)
-        desc.UserImage.reset(RestoreSaveImage(in));
+        desc.UserImage.reset(RestoreUserImage(in));
     else
-        SkipSaveImage(in);
+        SkipUserImage(in);
 
     // Assign backward-compatible file format values
     if (svg_ver < kSvgVersion_363)
@@ -908,13 +1013,14 @@ HSaveError RestoreSavegame(const String &filename, const RestoreGameStateOptions
     return err;
 }
 
-void WriteSaveImage(Stream *out, const Bitmap *screenshot)
+void WriteUserImage(Stream *out, const Bitmap *screenshot, bool compress)
 {
-    // store the screenshot at the start to make it easily accesible
-    out->WriteInt32((screenshot == nullptr) ? 0 : 1);
+    uint32_t flags = (screenshot != nullptr) * kSvgImage_Present
+        | compress * kSvgImage_Deflate;
+    out->WriteInt32(flags);
 
     if (screenshot)
-        serialize_bitmap(screenshot, out);
+        WriteBitmap(screenshot, out, compress);
 }
 
 void WriteFileFormat(Stream *out, const SavegameFileFormat &format)
@@ -955,7 +1061,7 @@ void WriteDescription(Stream *out, const String &user_text, const Bitmap *user_i
     // User description
     soff_t user_desc_pos = out->GetPosition();
     StrUtil::WriteString(user_text, out);
-    WriteSaveImage(out, user_image);
+    WriteUserImage(out, user_image, true /* always compress screenshots */);
 
     // Fill few known fields for SavegameFileFormat
     format.FileFormatOffset = fileformat_pos;
@@ -1088,6 +1194,7 @@ HSaveError SaveGame(const String &filename, const String &user_text, const Bitma
                     SaveCmpSelection select_cmp, bool compress_data)
 {
     SavegameFileFormat format;
+    format.Flags = kSvgFmt_DeflateComponents * compress_data;
     std::unique_ptr<Stream> out(StartSavegame(filename, user_text, user_image, format));
     if (!out)
         return new SavegameError(kSvgErr_FileOpenFailed, String::FromFormat("Requested filename: %s.", filename.GetCStr()));

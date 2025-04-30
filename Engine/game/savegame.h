@@ -97,6 +97,14 @@ String GetSavegameErrorText(SavegameErrorType err);
 typedef TypedCodeError<SavegameErrorType, GetSavegameErrorText> SavegameError;
 typedef ErrorHandle<SavegameError> HSaveError;
 
+enum SaveFileFormatFlags
+{
+    // Compress save components (whenever applicable);
+    // note that the save's meta-data is never compressed, only game data
+    // and user appendages, such as screenshots
+    kSvgFmt_DeflateComponents = 0x0001
+};
+
 // File content info
 struct SavegameFileFormat
 {

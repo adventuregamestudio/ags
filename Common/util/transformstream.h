@@ -25,9 +25,12 @@
 //    transform, and write transformed data into the base stream.
 // 
 // Because there's no direct correspondence between data lengths and positions,
-// TransformStream does not implement Seek() and GetLength().
+// TransformStream does not support Seek()* and GetLength().
 // When you are reading - read data out until EOS() returns positive, or Read()
 // returns 0. When you are writing - you should know when to stop yourself.
+// (*) NOTE: for compatibility with the old code transform stream does
+// support forward seeking, in which case it reads out a number of bytes.
+// This forward seeking uses *untransformed* bytes as offset units.
 // 
 // Stream position is reported: that would be position in "untransformed"
 // bytes, either put into the stream or received from the stream, depending
@@ -82,10 +85,13 @@ public:
     size_t  Write(const void *buffer, size_t size) override;
     int32_t WriteByte(uint8_t val) override;
 
-    // Seek operation is not supported for transform streams
-    soff_t  Seek(soff_t offset, StreamSeek origin) override { assert(false); return -1; }
+    // Seek operation is formally not supported for transform streams.
+    // For compatibility with the old code we still allow "forward seeking",
+    // which is implemented as reading out and discarding a number of bytes.
+    // This forward seeking uses *untransformed* bytes as offset units.
+    soff_t  Seek(soff_t offset, StreamSeek origin) override;
 
-    size_t  GetProcessedInput() const { return _inputProcessed; }
+    soff_t  GetProcessedInput() const { return _inputProcessed; }
     // Finalizes transformation in the write mode.
     // This is similar to Flush() in regular streams, and guarantees that
     // any pending transformation will be forced to complete.
@@ -136,7 +142,7 @@ private:
     size_t _outBufPos = 0u;
     TransformResult _lastResult = TransformResult::OK;
     // Total untransformed bytes processed (read or written)
-    size_t _inputProcessed = 0u;
+    soff_t _inputProcessed = 0;
 };
 
 } // namespace Common

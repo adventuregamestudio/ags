@@ -264,5 +264,31 @@ int32_t TransformStream::WriteByte(uint8_t val)
     return val;
 }
 
+soff_t TransformStream::Seek(soff_t offset, StreamSeek origin)
+{
+    // Remember that seek position is counted in *untransformed* bytes
+    soff_t want_pos = -1;
+    switch (origin)
+    {
+    case StreamSeek::kSeekCurrent:  want_pos = _inputProcessed + offset; break;
+    case StreamSeek::kSeekBegin:    want_pos = 0 + offset; break;
+    case StreamSeek::kSeekEnd:
+    default:
+        assert(false);
+        return -1;
+    }
+
+    assert(want_pos >= _inputProcessed);
+    if (want_pos < _inputProcessed)
+        return -1;
+
+    for (; want_pos > _inputProcessed; /* _inputProcessed is incremented inside ReadByte() */)
+    {
+        if (ReadByte() < 0)
+            break;
+    }
+    return _inputProcessed;
+}
+
 } // namespace Common
 } // namespace AGS

@@ -1244,7 +1244,7 @@ void prescan_saves(int *dest_arr, size_t dest_count, int min_slot, int max_slot,
         SavegameSource src;
         SavegameDescription desc;
         desc.Slot = save.Slot;
-        err = OpenSavegame(get_save_game_path(save.Slot), src, desc, (SavegameDescElem)(kSvgDesc_EnvInfo | kSvgDesc_UserText));
+        err = OpenSavegame(get_save_game_path(save.Slot), src, desc, (SavegameDescElem)(kSvgDesc_FileFormat | kSvgDesc_EnvInfo | kSvgDesc_UserText));
         if (!err)
         {
             debug_script_log("Prescan save slot %d: failed to open save: %s", save.Slot, err->FullMessage().GetCStr());

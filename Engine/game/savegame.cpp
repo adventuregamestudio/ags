@@ -1005,7 +1005,7 @@ HSaveError RestoreSavegame(const String &filename, const RestoreGameStateOptions
 {
     SavegameSource src;
     SavegameDescription desc;
-    HSaveError err = OpenSavegame(filename, src, desc, (SavegameDescElem)(kSvgDesc_EnvInfo | kSvgDesc_FileFormat));
+    HSaveError err = OpenSavegame(filename, src, desc, (SavegameDescElem)(kSvgDesc_FileFormat | kSvgDesc_EnvInfo));
     if (!err)
         return err;
 

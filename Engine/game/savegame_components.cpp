@@ -1976,9 +1976,12 @@ HSaveError ReadComponent(Stream *in, SvgCmpReadHelper &hlp, ComponentInfo &info)
             auto deflate_s = std::make_unique<DeflateStream>(in->ReleaseStreamBase(), info.DataOffset, info.DataOffset + info.DataSize);
             auto deflate_in = std::make_unique<Stream>(std::move(deflate_s));
 
-            HSaveError err = pfn_read(deflate_in.get(), info.Version, info.DataSize, hlp.PP, hlp.RData);
+            HSaveError err = pfn_read(deflate_in.get(), info.Version, info.UncompressedDataSize, hlp.PP, hlp.RData);
             if (!err)
                 return err;
+
+            if (prescan)
+                deflate_in->Seek(info.UncompressedDataSize, kSeekBegin);
 
             // FIXME: this is very ugly, maybe may be fixed by changing stream base storage to shared ptr?
             deflate_s.reset(dynamic_cast<DeflateStream*>(deflate_in->ReleaseStreamBase().release()));
@@ -1994,10 +1997,10 @@ HSaveError ReadComponent(Stream *in, SvgCmpReadHelper &hlp, ComponentInfo &info)
             HSaveError err = pfn_read(in, info.Version, info.DataSize, hlp.PP, hlp.RData);
             if (!err)
                 return err;
-        }
 
-        if (prescan)
-            in->Seek(info.DataOffset + info.DataSize, kSeekBegin);
+            if (prescan)
+                in->Seek(info.DataOffset + info.DataSize, kSeekBegin);
+        }
     }
     // Else, skip the data
     else

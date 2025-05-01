@@ -245,7 +245,7 @@ HError InitAndRegisterGUI(const GameSetupStruct &game)
         StaticGUIArray[i] = handle;
 
         // export the gui script object
-        ccAddExternalScriptObjectHandle(guis[i].Name, &StaticGUIArray[i]);
+        ccAddExternalScriptObjectHandle(guis[i].GetName(), &StaticGUIArray[i]);
     }
     // export all the GUI's controls
     export_all_gui_controls();

@@ -28,48 +28,76 @@ namespace Common
 
 GUIButton::GUIButton()
 {
-    _image = -1;
-    _mouseOverImage = -1;
-    _pushedImage = -1;
-    _imageFlags = kSprTf_None;
-    _currentImage = -1;
-    _curImageFlags = kSprTf_None;
-    Font = 0;
-    TextColor = 0;
-    TextAlignment = kAlignTopCenter;
-    TextPaddingHor = DefaultHorPadding;
-    TextPaddingVer = DefaultVerPadding;
-    ClickAction[kGUIClickLeft] = kGUIAction_RunScript;
-    ClickAction[kGUIClickRight] = kGUIAction_RunScript;
-    ClickData[kGUIClickLeft] = 0;
-    ClickData[kGUIClickRight] = 0;
-
-    IsPushed = false;
-    IsMouseOver = false;
-    _placeholder = kButtonPlace_None;
-    _unnamed = true;
+    _clickAction[kGUIClickLeft] = kGUIAction_RunScript;
+    _clickAction[kGUIClickRight] = kGUIAction_RunScript;
+    _clickData[kGUIClickLeft] = 0;
 
     _scEventCount = 1;
     _scEventNames[0] = "Click";
     _scEventArgs[0] = "GUIControl *control, MouseButton button";
 }
 
-int32_t GUIButton::GetCurrentImage() const
+void GUIButton::SetFont(int font)
+{
+    if (_font != font)
+    {
+        _font = font;
+        MarkChanged();
+    }
+}
+
+void GUIButton::SetTextColor(int color)
+{
+    if (_textColor != color)
+    {
+        _textColor = color;
+        MarkChanged();
+    }
+}
+
+void GUIButton::SetTextAlignment(FrameAlignment align)
+{
+    if (_textAlignment != align)
+    {
+        _textAlignment = align;
+        MarkChanged();
+    }
+}
+
+void GUIButton::SetTextPaddingHor(int padding)
+{
+    if (_textPaddingHor != padding)
+    {
+        _textPaddingHor = padding;
+        MarkChanged();
+    }
+}
+
+void GUIButton::SetTextPaddingVer(int padding)
+{
+    if (_textPaddingVer != padding)
+    {
+        _textPaddingVer = padding;
+        MarkChanged();
+    }
+}
+
+int GUIButton::GetCurrentImage() const
 {
     return _currentImage;
 }
 
-int32_t GUIButton::GetNormalImage() const
+int GUIButton::GetNormalImage() const
 {
     return _image;
 }
 
-int32_t GUIButton::GetMouseOverImage() const
+int GUIButton::GetMouseOverImage() const
 {
     return _mouseOverImage;
 }
 
-int32_t GUIButton::GetPushedImage() const
+int GUIButton::GetPushedImage() const
 {
     return _pushedImage;
 }
@@ -91,7 +119,32 @@ bool GUIButton::IsImageButton() const
 
 bool GUIButton::IsClippingImage() const
 {
-    return (Flags & kGUICtrl_Clip) != 0;
+    return (_flags & kGUICtrl_Clip) != 0;
+}
+
+GUIClickAction GUIButton::GetClickAction(GUIClickMouseButton button) const
+{
+    if (button < kGUIClickLeft || button >= kNumGUIClicks)
+        return kGUIAction_None;
+
+    return _clickAction[button];
+}
+
+int GUIButton::GetClickData(GUIClickMouseButton button) const
+{
+    if (button < kGUIClickLeft || button >= kNumGUIClicks)
+        return kGUIAction_None;
+
+    return _clickData[button];
+}
+
+void GUIButton::SetClickAction(GUIClickMouseButton button, GUIClickAction action, int data)
+{
+    if (button < kGUIClickLeft || button >= kNumGUIClicks)
+        return;
+
+    _clickAction[button] = action;
+    _clickData[button] = data;
 }
 
 Rect GUIButton::CalcGraphicRect(bool clipped)
@@ -135,15 +188,15 @@ Rect GUIButton::CalcGraphicRect(bool clipped)
     if (!IsImageButton() || ((_placeholder == kButtonPlace_None) && !_unnamed))
     {
         PrepareTextToDraw();
-        Rect frame = RectWH(TextPaddingHor, TextPaddingVer, _width - TextPaddingHor * 2, _height - TextPaddingVer * 2);
-        if (IsPushed && IsMouseOver)
+        Rect frame = RectWH(_textPaddingHor, _textPaddingVer, _width - _textPaddingHor * 2, _height - _textPaddingVer * 2);
+        if (_isPushed && _isMouseOver)
         {
             frame = frame.MoveBy(frame, 1, 1);
         }
 
         Rect text_rc = IsWrapText() ?
-            GUI::CalcTextGraphicalRect(Lines.GetVector(), Lines.Count(), Font, get_font_linespacing(Font), frame, TextAlignment) :
-            GUI::CalcTextGraphicalRect(_textToDraw, Font, frame, TextAlignment);
+            GUI::CalcTextGraphicalRect(Lines.GetVector(), Lines.Count(), _font, get_font_linespacing(_font), frame, _textAlignment) :
+            GUI::CalcTextGraphicalRect(_textToDraw, _font, frame, _textAlignment);
         rc = SumRects(rc, text_rc);
     }
     return rc;
@@ -155,15 +208,14 @@ void GUIButton::Draw(Bitmap *ds, int x, int y)
     // When the GUI is disabled, the user should not get the message that
     // the button is now unclickable since it had never been in the first place.
     bool const button_is_clickable =
-        ClickAction[kGUIClickLeft] != kGUIAction_None ||
-        ClickAction[kGUIClickRight] != kGUIAction_None;
+        _clickAction[kGUIClickLeft] != kGUIAction_None ||
+        _clickAction[kGUIClickRight] != kGUIAction_None;
 
     bool const draw_disabled =
         !GUI::IsGUIEnabled(this) &&
         button_is_clickable &&
         GUI::Options.DisabledStyle != kGuiDis_Unchanged &&
         GUI::Options.DisabledStyle != kGuiDis_Off;
-
 
     // TODO: should only change properties in reaction to particular events
     if (_currentImage <= 0 || draw_disabled)
@@ -180,15 +232,15 @@ void GUIButton::Draw(Bitmap *ds, int x, int y)
 
 void GUIButton::SetClipImage(bool on)
 {
-    if (on != ((Flags & kGUICtrl_Clip) != 0))
+    if (on != ((_flags & kGUICtrl_Clip) != 0))
         MarkChanged();
     if (on)
-        Flags |= kGUICtrl_Clip;
+        _flags |= kGUICtrl_Clip;
     else
-        Flags &= ~kGUICtrl_Clip;
+        _flags &= ~kGUICtrl_Clip;
 }
 
-void GUIButton::SetMouseOverImage(int32_t image)
+void GUIButton::SetMouseOverImage(int image)
 {
     if (_mouseOverImage == image)
         return;
@@ -197,7 +249,7 @@ void GUIButton::SetMouseOverImage(int32_t image)
     UpdateCurrentImage();
 }
 
-void GUIButton::SetNormalImage(int32_t image)
+void GUIButton::SetNormalImage(int image)
 {
     if (_image == image)
         return;
@@ -206,7 +258,7 @@ void GUIButton::SetNormalImage(int32_t image)
     UpdateCurrentImage();
 }
 
-void GUIButton::SetPushedImage(int32_t image)
+void GUIButton::SetPushedImage(int image)
 {
     if (_pushedImage == image)
         return;
@@ -215,7 +267,7 @@ void GUIButton::SetPushedImage(int32_t image)
     UpdateCurrentImage();
 }
 
-void GUIButton::SetImages(int32_t normal, int32_t over, int32_t pushed, SpriteTransformFlags flags)
+void GUIButton::SetImages(int normal, int over, int pushed, SpriteTransformFlags flags)
 {
     _image = normal;
     _mouseOverImage = over;
@@ -263,9 +315,9 @@ void GUIButton::SetText(const String &text)
 
 void GUIButton::SetWrapText(bool on)
 {
-    if (on != ((Flags & kGUICtrl_WrapText) != 0))
+    if (on != ((_flags & kGUICtrl_WrapText) != 0))
     {
-        Flags = (Flags & ~kGUICtrl_WrapText) | kGUICtrl_WrapText * on;
+        _flags = (_flags & ~kGUICtrl_WrapText) | kGUICtrl_WrapText * on;
         MarkChanged();
     }
 }
@@ -274,38 +326,38 @@ bool GUIButton::OnMouseDown()
 {
     if (!IsImageButton())
         MarkChanged();
-    IsPushed = true;
+    _isPushed = true;
     UpdateCurrentImage();
     return false;
 }
 
 void GUIButton::OnMouseEnter()
 {
-    if (IsPushed && !IsImageButton())
+    if (_isPushed && !IsImageButton())
         MarkChanged();
-    IsMouseOver = true;
+    _isMouseOver = true;
     UpdateCurrentImage();
 }
 
 void GUIButton::OnMouseLeave()
 {
-    if (IsPushed && !IsImageButton())
+    if (_isPushed && !IsImageButton())
         MarkChanged();
-    IsMouseOver = false;
+    _isMouseOver = false;
     UpdateCurrentImage();
 }
 
 void GUIButton::OnMouseUp()
 {
-    if (IsMouseOver)
+    if (_isMouseOver)
     {
         if (GUI::IsGUIEnabled(this) && IsClickable())
-            IsActivated = true;
+            _isActivated = true;
     }
 
-    if (IsPushed && !IsImageButton())
+    if (_isPushed && !IsImageButton())
         MarkChanged();
-    IsPushed = false;
+    _isPushed = false;
     UpdateCurrentImage();
 }
 
@@ -314,11 +366,11 @@ void GUIButton::UpdateCurrentImage()
     int new_image = _currentImage;
     SpriteTransformFlags new_flags = kSprTf_None;
 
-    if (IsPushed && (_pushedImage > 0))
+    if (_isPushed && (_pushedImage > 0))
     {
         new_image = _pushedImage;
     }
-    else if (IsMouseOver && (_mouseOverImage > 0))
+    else if (_isMouseOver && (_mouseOverImage > 0))
     {
         new_image = _mouseOverImage;
     }
@@ -338,15 +390,15 @@ void GUIButton::WriteToFile(Stream *out) const
     out->WriteInt32(_image);
     out->WriteInt32(_mouseOverImage);
     out->WriteInt32(_pushedImage);
-    out->WriteInt32(Font);
-    out->WriteInt32(TextColor);
-    out->WriteInt32(ClickAction[kGUIClickLeft]);
-    out->WriteInt32(ClickAction[kGUIClickRight]);
-    out->WriteInt32(ClickData[kGUIClickLeft]);
-    out->WriteInt32(ClickData[kGUIClickRight]);
+    out->WriteInt32(_font);
+    out->WriteInt32(_textColor);
+    out->WriteInt32(_clickAction[kGUIClickLeft]);
+    out->WriteInt32(_clickAction[kGUIClickRight]);
+    out->WriteInt32(_clickData[kGUIClickLeft]);
+    out->WriteInt32(_clickData[kGUIClickRight]);
 
     StrUtil::WriteString(_text, out);
-    out->WriteInt32(TextAlignment);
+    out->WriteInt32(_textAlignment);
 }
 
 void GUIButton::ReadFromFile(Stream *in, GuiVersion gui_version)
@@ -356,17 +408,17 @@ void GUIButton::ReadFromFile(Stream *in, GuiVersion gui_version)
     _image = in->ReadInt32();
     _mouseOverImage = in->ReadInt32();
     _pushedImage = in->ReadInt32();
-    Font = in->ReadInt32();
-    TextColor = in->ReadInt32();
-    ClickAction[kGUIClickLeft] = (GUIClickAction)in->ReadInt32();
-    ClickAction[kGUIClickRight] = (GUIClickAction)in->ReadInt32();
-    ClickData[kGUIClickLeft] = in->ReadInt32();
-    ClickData[kGUIClickRight] = in->ReadInt32();
+    _font = in->ReadInt32();
+    _textColor = in->ReadInt32();
+    _clickAction[kGUIClickLeft] = (GUIClickAction)in->ReadInt32();
+    _clickAction[kGUIClickRight] = (GUIClickAction)in->ReadInt32();
+    _clickData[kGUIClickLeft] = in->ReadInt32();
+    _clickData[kGUIClickRight] = in->ReadInt32();
     SetText(StrUtil::ReadString(in));
-    TextAlignment = (FrameAlignment)in->ReadInt32();
+    _textAlignment = (FrameAlignment)in->ReadInt32();
 
-    if (TextColor == 0)
-        TextColor = 16; // FIXME: adjust this using GetStandardColor where is safe to access GuiContext
+    if (_textColor == 0)
+        _textColor = 16; // FIXME: adjust this using GetStandardColor where is safe to access GuiContext
     _currentImage = _image;
 }
 
@@ -376,25 +428,25 @@ void GUIButton::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     _image = in->ReadInt32();
     _mouseOverImage = in->ReadInt32();
     _pushedImage = in->ReadInt32();
-    Font = in->ReadInt32();
-    TextColor = in->ReadInt32();
+    _font = in->ReadInt32();
+    _textColor = in->ReadInt32();
     SetText(StrUtil::ReadString(in));
     if (svg_ver >= kGuiSvgVersion_350)
-        TextAlignment = (FrameAlignment)in->ReadInt32();
+        _textAlignment = (FrameAlignment)in->ReadInt32();
     // CHECKME: possibly this may be avoided, and currentimage updated according
     // to the button state after load
     _currentImage = in->ReadInt32();
     if (svg_ver >= kGuiSvgVersion_36202 && (svg_ver < kGuiSvgVersion_400 || svg_ver >= kGuiSvgVersion_40010))
     {
-        TextPaddingHor = in->ReadInt32();
-        TextPaddingVer = in->ReadInt32();
+        _textPaddingHor = in->ReadInt32();
+        _textPaddingVer = in->ReadInt32();
         in->ReadInt32(); // reserve 2 ints
         in->ReadInt32();
     }
     else
     {
-        TextPaddingHor = DefaultHorPadding;
-        TextPaddingVer = DefaultVerPadding;
+        _textPaddingHor = DefaultHorPadding;
+        _textPaddingVer = DefaultVerPadding;
     }
 
     if (svg_ver >= kGuiSvgVersion_400)
@@ -407,8 +459,8 @@ void GUIButton::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     }
 
     // Update current state after reading
-    IsPushed = false;
-    IsMouseOver = false;
+    _isPushed = false;
+    _isMouseOver = false;
     _curImageFlags = _imageFlags;
     UpdateCurrentImage();
 }
@@ -419,13 +471,13 @@ void GUIButton::WriteToSavegame(Stream *out) const
     out->WriteInt32(_image);
     out->WriteInt32(_mouseOverImage);
     out->WriteInt32(_pushedImage);
-    out->WriteInt32(Font);
-    out->WriteInt32(TextColor);
+    out->WriteInt32(_font);
+    out->WriteInt32(_textColor);
     StrUtil::WriteString(GetText(), out);
-    out->WriteInt32(TextAlignment);
+    out->WriteInt32(_textAlignment);
     out->WriteInt32(_currentImage);
-    out->WriteInt32(TextPaddingHor);
-    out->WriteInt32(TextPaddingVer);
+    out->WriteInt32(_textPaddingHor);
+    out->WriteInt32(_textPaddingVer);
     out->WriteInt32(0); // reserve 2 ints
     out->WriteInt32(0);
     //since kGuiSvgVersion_3991
@@ -494,21 +546,21 @@ void GUIButton::DrawText(Bitmap *ds, int x, int y, bool draw_disabled)
     // but that will require to update all gui controls when translation is changed in game
     PrepareTextToDraw();
 
-    Rect frame = RectWH(x + TextPaddingHor, y + TextPaddingVer, _width - TextPaddingHor * 2, _height - TextPaddingVer * 2);
-    if (IsPushed && IsMouseOver)
+    Rect frame = RectWH(x + _textPaddingHor, y + _textPaddingVer, _width - _textPaddingHor * 2, _height - _textPaddingVer * 2);
+    if (_isPushed && _isMouseOver)
     {
         // move the Text a bit while pushed
         frame = frame.MoveBy(frame, 1, 1);
     }
-    color_t text_color = ds->GetCompatibleColor(TextColor);
+    color_t text_color = ds->GetCompatibleColor(_textColor);
     if (draw_disabled)
         text_color = GUI::GetStandardColorForBitmap(8);
 
     if (IsWrapText())
-        GUI::DrawTextLinesAligned(ds, Lines.GetVector(), Lines.Count(), Font, get_font_linespacing(Font), text_color,
-            frame, TextAlignment);
+        GUI::DrawTextLinesAligned(ds, Lines.GetVector(), Lines.Count(), _font, get_font_linespacing(_font), text_color,
+            frame, _textAlignment);
     else
-        GUI::DrawTextAligned(ds, _textToDraw, Font, text_color, frame, TextAlignment);
+        GUI::DrawTextAligned(ds, _textToDraw, _font, text_color, frame, _textAlignment);
 }
 
 void GUIButton::DrawTextButton(Bitmap *ds, int x, int y, bool draw_disabled)
@@ -518,14 +570,14 @@ void GUIButton::DrawTextButton(Bitmap *ds, int x, int y, bool draw_disabled)
 
     color_t draw_color = GUI::GetStandardColorForBitmap(7);
     ds->FillRect(Rect(x, y, x + _width - 1, y + _height - 1), draw_color);
-    if (Flags & kGUICtrl_Default)
+    if (_flags & kGUICtrl_Default)
     {
         draw_color = GUI::GetStandardColorForBitmap(16);
         ds->DrawRect(Rect(x - 1, y - 1, x + _width, y + _height), draw_color);
     }
 
     // TODO: use color constants instead of literal numbers
-    if (!draw_disabled && IsMouseOver && IsPushed)
+    if (!draw_disabled && _isMouseOver && _isPushed)
         draw_color = GUI::GetStandardColorForBitmap(15);
     else
         draw_color = GUI::GetStandardColorForBitmap(8);
@@ -533,7 +585,7 @@ void GUIButton::DrawTextButton(Bitmap *ds, int x, int y, bool draw_disabled)
     ds->DrawLine(Line(x, y + _height - 1, x + _width - 1, y + _height - 1), draw_color);
     ds->DrawLine(Line(x + _width - 1, y, x + _width - 1, y + _height - 1), draw_color);
 
-    if (draw_disabled || (IsMouseOver && IsPushed))
+    if (draw_disabled || (_isMouseOver && _isPushed))
         draw_color = GUI::GetStandardColorForBitmap(8);
     else
         draw_color = GUI::GetStandardColorForBitmap(15);

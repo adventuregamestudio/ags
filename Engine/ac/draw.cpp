@@ -676,7 +676,7 @@ void init_game_drawdata()
     guiobjddbref.resize(game.numgui);
     for (const auto &gui : guis)
     {
-        guiobjddbref[gui.ID] = guio_num;
+        guiobjddbref[gui.GetID()] = guio_num;
         guio_num += gui.GetControlCount();
     }
     guiobjbg.resize(guio_num);
@@ -2359,7 +2359,7 @@ static void construct_guictrl_tex(GUIMain &gui)
     if ((GUI::Context.DisabledState >= 0) && (GUI::Options.DisabledStyle == kGuiDis_Blackout))
         return; // don't draw GUI controls
 
-    int draw_index = guiobjddbref[gui.ID];
+    int draw_index = guiobjddbref[gui.GetID()];
     for (int i = 0; i < gui.GetControlCount(); ++i, ++draw_index)
     {
         GUIObject *obj = gui.GetControl(i);
@@ -2416,7 +2416,7 @@ static void draw_gui_controls_batch(int gui_id)
         if (!obj_ddb) continue;
         obj_ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(obj->GetTransparency()));
         obj_ddb->SetBlendMode(obj->GetBlendMode());
-        gfxDriver->DrawSprite(obj->X + obj_tx.Off.X, obj->Y + obj_tx.Off.Y, obj_ddb);
+        gfxDriver->DrawSprite(obj->GetX() + obj_tx.Off.X, obj->GetY() + obj_tx.Off.Y, obj_ddb);
     }
     gfxDriver->EndSpriteBatch();
 }
@@ -2462,7 +2462,7 @@ void draw_gui_and_overlays()
                 auto &gui = guis[index];
                 if (!gui.IsDisplayed()) continue; // not on screen
                 if (!gui.HasChanged() && !gui.HasControlsChanged()) continue; // no changes: no need to update image
-                if (gui.Transparency == 255) continue; // 100% transparent
+                if (gui.GetTransparency() == 255) continue; // 100% transparent
 
                 eip_guinum = index;
                 set_our_eip(372);
@@ -2472,7 +2472,7 @@ void draw_gui_and_overlays()
                 {
                     auto &gbg = guibg[index];
                     Bitmap *bmp = gbg.Bmp.release();
-                    recreate_drawobj_bitmap(bmp, gbg.Ddb, gui.Width, gui.Height, gui.Rotation);
+                    recreate_drawobj_bitmap(bmp, gbg.Ddb, gui.GetWidth(), gui.GetHeight(), gui.Rotation);
                     gbg.Bmp.reset(bmp);
                     Bitmap *guibg_final = gbg.Bmp.get();
                     Bitmap *draw_at = guibg_final;
@@ -2482,7 +2482,7 @@ void draw_gui_and_overlays()
                     if (!is_3d_render && gui.Rotation != 0.f)
                     {
                         guihelpbg[index].reset(
-                            recycle_bitmap(guihelpbg[index].release(), game.GetColorDepth(), gui.Width, gui.Height));
+                            recycle_bitmap(guihelpbg[index].release(), game.GetColorDepth(), gui.GetWidth(), gui.GetHeight()));
                         draw_at = guihelpbg[index].get();
                     }
 
@@ -2502,7 +2502,7 @@ void draw_gui_and_overlays()
                             const int dst_h = guibg_final->GetHeight();
                             // (+ width%2 fixes one pixel offset problem)
                             guibg_final->RotateBlt(draw_at, dst_w / 2 + dst_w % 2, dst_h / 2,
-                                gui.Width / 2, gui.Height / 2, gui.Rotation); // clockwise
+                                gui.GetWidth() / 2, gui.GetHeight() / 2, gui.Rotation); // clockwise
                         }
                         else
                         {
@@ -2538,12 +2538,12 @@ void draw_gui_and_overlays()
         {
             GUIMain &gui = guis[index];
             if (!gui.IsDisplayed()) continue; // not on screen
-            if (gui.Transparency == 255) continue; // 100% transparent
+            if (gui.GetTransparency() == 255) continue; // 100% transparent
 
             // Don't draw GUI if "GUIs Turn Off When Disabled"
             if ((game.options[OPT_DISABLEOFF] == kGuiDis_Off) &&
                 (GUI::Context.DisabledState >= 0) &&
-                (gui.PopupStyle != kGUIPopupNoAutoRemove))
+                (gui.GetPopupStyle() != kGUIPopupNoAutoRemove))
                 continue;
 
             auto *gui_ddb = guibg[index].Ddb;
@@ -2559,13 +2559,13 @@ void draw_gui_and_overlays()
                 // and push it to the sprite list instead
                 gui_ddb = gui_render_tex[index];
             }
-            gui_ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(gui.Transparency));
+            gui_ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(gui.GetTransparency()));
             gui_ddb->SetBlendMode(gui.BlendMode);
             gui_ddb->SetOrigin(0.f, 0.f);
-            gui_ddb->SetStretch(gui.Width * gui.Scale.X, gui.Height * gui.Scale.Y);
+            gui_ddb->SetStretch(gui.GetWidth() * gui.Scale.X, gui.GetHeight() * gui.Scale.Y);
             gui_ddb->SetRotation(gui.Rotation);
-            add_to_sprite_list(gui_ddb, gui.X, gui.Y,
-                gui.GetGraphicSpace().AABB(), gui.ZOrder, guibg[index].DrawIndex);
+            add_to_sprite_list(gui_ddb, gui.GetX(), gui.GetY(),
+                gui.GetGraphicSpace().AABB(), gui.GetZOrder(), guibg[index].DrawIndex);
         }
     }
 

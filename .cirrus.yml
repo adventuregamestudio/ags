@@ -1,5 +1,5 @@
 # Global defaults
-skip: "changesIncludeOnly('**.md', '**.txt', '.gitignore', '.gitattributes')"
+skip: "changesIncludeOnly('**.md', '.gitignore', '.gitattributes')"
 env:
   CIRRUS_CLONE_DEPTH: 1
 

@@ -91,28 +91,28 @@ size_t GUI::SplitLinesForDrawing(const String &text, bool is_translated, SplitLi
 void GUIObject::MarkChanged()
 {
     _hasChanged = true;
-    if (ParentId >= 0)
-        guis[ParentId].MarkControlChanged();
+    if (_parentID >= 0)
+        guis[_parentID].MarkControlChanged();
 }
 
 void GUIObject::MarkParentChanged()
 {
-    if (ParentId >= 0)
-        guis[ParentId].MarkControlChanged();
+    if (_parentID >= 0)
+        guis[_parentID].MarkControlChanged();
 }
 
 void GUIObject::MarkPositionChanged(bool self_changed)
 {
     _hasChanged |= self_changed;
-    if (ParentId >= 0)
-        guis[ParentId].NotifyControlPosition();
+    if (_parentID >= 0)
+        guis[_parentID].NotifyControlPosition();
 }
 
 void GUIObject::MarkStateChanged(bool self_changed, bool parent_changed)
 {
     _hasChanged |= self_changed;
-    if (ParentId >= 0)
-        guis[ParentId].NotifyControlState(Id, self_changed | parent_changed);
+    if (_parentID >= 0)
+        guis[_parentID].NotifyControlState(_id, self_changed | parent_changed);
 }
 
 void GUIObject::ClearChanged()
@@ -122,41 +122,41 @@ void GUIObject::ClearChanged()
 
 int GUILabel::PrepareTextToDraw()
 {
-    const bool is_translated = (Flags & kGUICtrl_Translated) != 0;
-    replace_macro_tokens(is_translated ? get_translation(Text.GetCStr()) : Text.GetCStr(), _textToDraw);
-    return GUI::SplitLinesForDrawing(_textToDraw, is_translated, Lines, Font, _width);
+    const bool is_translated = (_flags & kGUICtrl_Translated) != 0;
+    replace_macro_tokens(is_translated ? get_translation(_text.GetCStr()) : _text.GetCStr(), _textToDraw);
+    return GUI::SplitLinesForDrawing(_textToDraw, is_translated, Lines, _font, _width);
 }
 
 void GUITextBox::DrawTextBoxContents(Bitmap *ds, int x, int y, color_t text_color)
 {
-    _textToDraw = Text;
+    _textToDraw = _text;
     bool reverse = false;
     // Text boxes input is never "translated" in regular sense,
     // but they use this flag to apply text direction
-    if ((loaded_game_file_version >= kGameVersion_361) && ((Flags & kGUICtrl_Translated) != 0))
+    if ((loaded_game_file_version >= kGameVersion_361) && ((_flags & kGUICtrl_Translated) != 0))
     {
-        _textToDraw = GUI::ApplyTextDirection(Text);
+        _textToDraw = GUI::ApplyTextDirection(_text);
         reverse = game.options[OPT_RIGHTLEFTWRITE] != 0;
     }
 
-    Line tpos = GUI::CalcTextPositionHor(_textToDraw, Font,
+    Line tpos = GUI::CalcTextPositionHor(_textToDraw, _font,
         x + 2, x + _width - 1, y + 2,
         reverse ? kAlignTopRight : kAlignTopLeft);
-    wouttext_outline(ds, tpos.X1, tpos.Y1, Font, text_color, _textToDraw.GetCStr());
+    wouttext_outline(ds, tpos.X1, tpos.Y1, _font, text_color, _textToDraw.GetCStr());
 
     if (GUI::IsGUIEnabled(this))
     {
         // draw a cursor
         const int cursor_width = 5;
         int draw_at_x = reverse ? tpos.X1 - 3 - cursor_width : tpos.X2 + 3;
-        int draw_at_y = y + 1 + get_font_height(Font);
+        int draw_at_y = y + 1 + get_font_height(_font);
         ds->DrawRect(Rect(draw_at_x, draw_at_y, draw_at_x + cursor_width, draw_at_y), text_color);
     }
 }
 
 void GUIListBox::PrepareTextToDraw(const String &text)
 {
-     _textToDraw = GUI::TransformTextForDrawing(text, (Flags & kGUICtrl_Translated) != 0,
+     _textToDraw = GUI::TransformTextForDrawing(text, (_flags & kGUICtrl_Translated) != 0,
          (loaded_game_file_version >= kGameVersion_361));
 }
 
@@ -165,11 +165,11 @@ void GUIButton::PrepareTextToDraw()
     if (IsWrapText())
     {
         _textToDraw = _text;
-        GUI::SplitLinesForDrawing(_text, (Flags & kGUICtrl_Translated) != 0, Lines, Font, _width - TextPaddingHor * 2);
+        GUI::SplitLinesForDrawing(_text, (_flags & kGUICtrl_Translated) != 0, Lines, _font, _width - _textPaddingHor * 2);
     }
     else
     {
-        _textToDraw = GUI::TransformTextForDrawing(_text, (Flags & kGUICtrl_Translated) != 0,
+        _textToDraw = GUI::TransformTextForDrawing(_text, (_flags & kGUICtrl_Translated) != 0,
             (loaded_game_file_version >= kGameVersion_361));
     }
 }

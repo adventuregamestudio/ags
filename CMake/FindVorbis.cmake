@@ -1,3 +1,6 @@
+# find_package uses this "FindVorbis.cmake" in CMAKE_MODULE_PATH of the ags project
+# It uses PkgConfig on Linux and it should probably be redone to be simpler
+
 if (TARGET Vorbis::Vorbis)
     return()
 endif()

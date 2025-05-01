@@ -436,31 +436,31 @@ void UpgradeGUI(GameSetupStruct &game, LoadedGameEntities &ents, GameDataVersion
     {
         for (auto &gui : ents.Guis)
         {
-            gui.BgColor = RemapFromLegacyColourNumber(game, gui.BgColor, true);
-            gui.FgColor = RemapFromLegacyColourNumber(game, gui.FgColor, !gui.IsTextWindow()
-                /* right, treat border as background for normal gui */);
+            gui.SetBgColor(RemapFromLegacyColourNumber(game, gui.GetBgColor(), true));
+            gui.SetFgColor(RemapFromLegacyColourNumber(game, gui.GetFgColor(), !gui.IsTextWindow()
+                /* right, treat border as background for normal gui */));
         }
 
         for (auto &btn : ents.GuiControls.Buttons)
         {
-            btn.TextColor = RemapFromLegacyColourNumber(game, btn.TextColor);
+            btn.SetTextColor(RemapFromLegacyColourNumber(game, btn.GetTextColor()));
         }
 
         for (auto &lbl : ents.GuiControls.Labels)
         {
-            lbl.TextColor = RemapFromLegacyColourNumber(game, lbl.TextColor);
+            lbl.SetTextColor(RemapFromLegacyColourNumber(game, lbl.GetTextColor()));
         }
 
         for (auto &list : ents.GuiControls.ListBoxes)
         {
-            list.TextColor = RemapFromLegacyColourNumber(game, list.TextColor);
-            list.SelectedBgColor = RemapFromLegacyColourNumber(game, list.SelectedBgColor, true);
-            list.SelectedTextColor = RemapFromLegacyColourNumber(game, list.SelectedTextColor);
+            list.SetTextColor(RemapFromLegacyColourNumber(game, list.GetTextColor()));
+            list.SetSelectedBgColor(RemapFromLegacyColourNumber(game, list.GetSelectedBgColor(), true));
+            list.SetSelectedTextColor(RemapFromLegacyColourNumber(game, list.GetSelectedTextColor()));
         }
 
         for (auto &tbox : ents.GuiControls.TextBoxes)
         {
-            tbox.TextColor = RemapFromLegacyColourNumber(game, tbox.TextColor);
+            tbox.SetTextColor(RemapFromLegacyColourNumber(game, tbox.GetTextColor()));
         }
     }
 }
@@ -541,7 +541,7 @@ HError GameDataExtReader::ReadInteractionScriptModules(Stream *in, LoadedGameEnt
     if (num_gui != ents.Game.numgui)
         return new Error(String::FromFormat("Mismatching number of GUI: read %zu expected %zu", num_gui, (size_t)ents.Game.numgui));
     for (size_t i = 0; i < (size_t)ents.Game.numgui; ++i)
-        ents.Guis[i].ScriptModule = StrUtil::ReadString(in);
+        ents.Guis[i].SetScriptModule(StrUtil::ReadString(in));
     return HError::None();
 }
 
@@ -735,8 +735,8 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
         for (GUIButton &but : _ents.GuiControls.Buttons)
         {
             // button padding
-            but.TextPaddingHor = in->ReadInt32();
-            but.TextPaddingVer = in->ReadInt32();
+            but.SetTextPaddingHor(in->ReadInt32());
+            but.SetTextPaddingVer(in->ReadInt32());
             in->ReadInt32(); // reserve 2 ints
             in->ReadInt32();
         }

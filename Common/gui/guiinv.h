@@ -27,8 +27,19 @@ class GUIInvWindow : public GUIObject
 public:
     GUIInvWindow();
 
+    // Properties
+    int  GetItemWidth() const { return _itemWidth; }
+    int  GetItemHeight() const { return _itemHeight; }
+    void SetItemWidth(int itemw) { SetItemDimensions(itemw, _itemHeight); }
+    void SetItemHeight(int itemh) { SetItemDimensions(_itemWidth, itemh); }
+    void SetItemDimensions(int itemw, int itemh);
+    int  GetRowCount() const { return _rowCount; }
+    int  GetColCount() const { return _colCount; }
+    int  GetTopItem() const { return _topItem; }
+    void SetTopItem(int item);
     // This function has distinct implementations in Engine and Editor
-    int GetCharacterId() const;
+    int  GetCharacterID() const;
+    void SetCharacterID(int charid);
 
     // Operations
     // This function has distinct implementations in Engine and Editor
@@ -46,18 +57,19 @@ public:
     void ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_ver) override;
     void WriteToSavegame(Common::Stream *out) const override;
 
-// TODO: these members are currently public; hide them later
-public:
-    bool    IsMouseOver;
-    int32_t CharId; // whose inventory (-1 = current player)
-    int32_t ItemWidth;
-    int32_t ItemHeight;
-    int32_t ColCount;
-    int32_t RowCount;
-    int32_t TopItem;
-
 private:
     void CalculateNumCells();
+
+    static const int DefaultItemWidth = 40;
+    static const int DefaultItemHeight = 22;
+
+    bool    _isMouseOver = false;
+    int     _charID = -1; // whose inventory (-1 = current player)
+    int     _itemWidth = DefaultItemWidth;
+    int     _itemHeight = DefaultItemHeight;
+    int     _colCount = 0;
+    int     _rowCount = 0;
+    int     _topItem = 0;
 };
 
 } // namespace Common

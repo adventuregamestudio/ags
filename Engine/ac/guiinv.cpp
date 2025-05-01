@@ -29,12 +29,24 @@ namespace AGS
 namespace Common
 {
 
-int GUIInvWindow::GetCharacterId() const
+void GUIInvWindow::SetTopItem(int item)
 {
-    if (CharId < 0)
+    // NOTE: unfortunately, we do not have an access to real inventory here,
+    // so cannot clamp to the upper item limit
+    item = std::max(0, item);
+    if (_topItem != item)
+    {
+        _topItem = item;
+        MarkChanged();
+    }
+}
+
+int GUIInvWindow::GetCharacterID() const
+{
+    if (_charID < 0)
         return game.playercharacter;
 
-    return CharId;
+    return _charID;
 }
 
 void GUIInvWindow::Draw(Bitmap *ds, int x, int y)
@@ -47,21 +59,21 @@ void GUIInvWindow::Draw(Bitmap *ds, int x, int y)
     const int leftmost_x = x;
     int at_x = x;
     int at_y = y;
-    int lastItem = TopItem + (ColCount * RowCount);
-    if (lastItem > charextra[GetCharacterId()].invorder_count)
-        lastItem = charextra[GetCharacterId()].invorder_count;
+    int lastItem = _topItem + (_colCount * _rowCount);
+    if (lastItem > charextra[GetCharacterID()].invorder_count)
+        lastItem = charextra[GetCharacterID()].invorder_count;
 
-    for (int item = TopItem; item < lastItem; ++item)
+    for (int item = _topItem; item < lastItem; ++item)
     {
         // draw inv graphic
-        draw_gui_sprite(ds, game.invinfo[charextra[GetCharacterId()].invorder[item]].pic, at_x, at_y);
-        at_x += ItemWidth;
+        draw_gui_sprite(ds, game.invinfo[charextra[GetCharacterID()].invorder[item]].pic, at_x, at_y);
+        at_x += _itemWidth;
 
         // go to next row when appropriate
-        if ((item - TopItem) % ColCount == (ColCount - 1))
+        if ((item - _topItem) % _colCount == (_colCount - 1))
         {
             at_x = leftmost_x;
-            at_y += ItemHeight;
+            at_y += _itemHeight;
         }
     }
 

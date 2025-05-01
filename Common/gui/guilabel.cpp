@@ -26,21 +26,34 @@ namespace Common
 
 GUILabel::GUILabel()
 {
-    Font = 0;
-    TextColor = 0;
-    TextAlignment = kAlignTopLeft;
-
     _scEventCount = 0;
 }
 
-String GUILabel::GetText() const
+void GUILabel::SetFont(int font)
 {
-    return Text;
+    if (_font != font)
+    {
+        _font = font;
+        MarkChanged();
+    }
 }
 
-GUILabelMacro GUILabel::GetTextMacros() const
+void GUILabel::SetTextColor(int color)
 {
-    return _textMacro;
+    if (_textColor != color)
+    {
+        _textColor = color;
+        MarkChanged();
+    }
+}
+
+void GUILabel::SetTextAlignment(FrameAlignment align)
+{
+    if (_textAlignment != align)
+    {
+        _textAlignment = align;
+        MarkChanged();
+    }
 }
 
 Rect GUILabel::CalcGraphicRect(bool clipped)
@@ -55,11 +68,11 @@ Rect GUILabel::CalcGraphicRect(bool clipped)
     Rect rc = RectWH(0, 0, _width, _height);
     if (PrepareTextToDraw() == 0)
         return rc;
-    const int linespacing = get_font_linespacing(Font);
+    const int linespacing = get_font_linespacing(_font);
     const bool limit_by_label_frame = true;
 
-    Rect text_rc = GUI::CalcTextGraphicalRect(Lines.GetVector(), Lines.Count(), Font, linespacing,
-        RectWH(0, 0, _width, _height), (FrameAlignment)TextAlignment, limit_by_label_frame);
+    Rect text_rc = GUI::CalcTextGraphicalRect(Lines.GetVector(), Lines.Count(), _font, linespacing,
+        RectWH(0, 0, _width, _height), (FrameAlignment)_textAlignment, limit_by_label_frame);
     return SumRects(rc, text_rc);
 }
 
@@ -70,20 +83,20 @@ void GUILabel::Draw(Bitmap *ds, int x, int y)
     if (PrepareTextToDraw() == 0)
         return;
 
-    color_t text_color = ds->GetCompatibleColor(TextColor);
-    const int linespacing = get_font_linespacing(Font);
+    color_t text_color = ds->GetCompatibleColor(_textColor);
+    const int linespacing = get_font_linespacing(_font);
     const bool limit_by_label_frame = true;
-    GUI::DrawTextLinesAligned(ds, Lines.GetVector(), Lines.Count(), Font, linespacing, text_color,
-        RectWH(x, y, _width, _height), (FrameAlignment)TextAlignment, limit_by_label_frame);
+    GUI::DrawTextLinesAligned(ds, Lines.GetVector(), Lines.Count(), _font, linespacing, text_color,
+        RectWH(x, y, _width, _height), (FrameAlignment)_textAlignment, limit_by_label_frame);
 }
 
 void GUILabel::SetText(const String &text)
 {
-    if (text == Text)
+    if (text == _text)
         return;
-    Text = text;
+    _text = text;
     // Check for macros within text
-    _textMacro = GUI::FindLabelMacros(Text);
+    _textMacro = GUI::FindLabelMacros(_text);
     MarkChanged();
 }
 
@@ -92,46 +105,46 @@ void GUILabel::SetText(const String &text)
 void GUILabel::WriteToFile(Stream *out) const
 {
     GUIObject::WriteToFile(out);
-    StrUtil::WriteString(Text, out);
-    out->WriteInt32(Font);
-    out->WriteInt32(TextColor);
-    out->WriteInt32(TextAlignment);
+    StrUtil::WriteString(_text, out);
+    out->WriteInt32(_font);
+    out->WriteInt32(_textColor);
+    out->WriteInt32(_textAlignment);
 }
 
 void GUILabel::ReadFromFile(Stream *in, GuiVersion gui_version)
 {
     GUIObject::ReadFromFile(in, gui_version);
 
-    Text = StrUtil::ReadString(in);
-    Font = in->ReadInt32();
-    TextColor = in->ReadInt32();
-    TextAlignment = (FrameAlignment)in->ReadInt32();
+    _text = StrUtil::ReadString(in);
+    _font = in->ReadInt32();
+    _textColor = in->ReadInt32();
+    _textAlignment = (FrameAlignment)in->ReadInt32();
 
-    if (TextColor == 0)
-        TextColor = 16; // FIXME: adjust this using GetStandardColor where is safe to access GuiContext
+    if (_textColor == 0)
+        _textColor = 16; // FIXME: adjust this using GetStandardColor where is safe to access GuiContext
 
-    _textMacro = GUI::FindLabelMacros(Text);
+    _textMacro = GUI::FindLabelMacros(_text);
 }
 
 void GUILabel::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
 {
     GUIObject::ReadFromSavegame(in, svg_ver);
-    Font = in->ReadInt32();
-    TextColor = in->ReadInt32();
-    Text = StrUtil::ReadString(in);
+    _font = in->ReadInt32();
+    _textColor = in->ReadInt32();
+    _text = StrUtil::ReadString(in);
     if (svg_ver >= kGuiSvgVersion_350)
-        TextAlignment = (FrameAlignment)in->ReadInt32();
+        _textAlignment = (FrameAlignment)in->ReadInt32();
 
-    _textMacro = GUI::FindLabelMacros(Text);
+    _textMacro = GUI::FindLabelMacros(_text);
 }
 
 void GUILabel::WriteToSavegame(Stream *out) const
 {
     GUIObject::WriteToSavegame(out);
-    out->WriteInt32(Font);
-    out->WriteInt32(TextColor);
-    StrUtil::WriteString(Text, out);
-    out->WriteInt32(TextAlignment);
+    out->WriteInt32(_font);
+    out->WriteInt32(_textColor);
+    StrUtil::WriteString(_text, out);
+    out->WriteInt32(_textAlignment);
 }
 
 } // namespace Common

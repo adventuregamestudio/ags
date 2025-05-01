@@ -38,11 +38,11 @@ extern std::vector<ScriptGUI> scrGui;
 // It is used by the editor's automatic macro generation.
 int FindGUIID (const char* GUIName) {
     for (int ii = 0; ii < game.numgui; ii++) {
-        if (guis[ii].Name.IsEmpty())
+        if (guis[ii].GetName().IsEmpty())
             continue;
-        if (guis[ii].Name == GUIName)
+        if (guis[ii].GetName() == GUIName)
             return ii;
-        if ((guis[ii].Name[0u] == 'g') && (ags_stricmp(guis[ii].Name.GetCStr() + 1, GUIName) == 0))
+        if ((guis[ii].GetName()[0u] == 'g') && (ags_stricmp(guis[ii].GetName().GetCStr() + 1, GUIName) == 0))
             return ii;
     }
     quit("FindGUIID: No matching GUI found: GUI may have been deleted");
@@ -61,7 +61,7 @@ void InterfaceOn(int ifn) {
   guis[ifn].SetVisible(true);
   debug_script_log("GUI %d turned on", ifn);
   // modal interface
-  if (guis[ifn].PopupStyle==kGUIPopupModal) PauseGame();
+  if (guis[ifn].GetPopupStyle()==kGUIPopupModal) PauseGame();
   guis[ifn].Poll(mousex, mousey);
 }
 
@@ -73,7 +73,7 @@ void InterfaceOff(int ifn) {
   debug_script_log("GUI %d turned off", ifn);
   guis[ifn].SetVisible(false);
   // modal interface
-  if (guis[ifn].PopupStyle==kGUIPopupModal) UnPauseGame();
+  if (guis[ifn].GetPopupStyle()==kGUIPopupModal) UnPauseGame();
 }
 
 int GetTextWidth(const char *text, int fontnum) {

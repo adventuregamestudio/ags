@@ -24,32 +24,44 @@ namespace Common
 
 GUIInvWindow::GUIInvWindow()
 {
-    IsMouseOver = false;
-    CharId = -1;
-    ItemWidth = 40;
-    ItemHeight = 22;
-    ColCount = 0;
-    RowCount = 0;
-    TopItem = 0;
     CalculateNumCells();
 
     _scEventCount = 0;
 }
 
+void GUIInvWindow::SetItemDimensions(int itemw, int itemh)
+{
+    if (_itemWidth != itemw || _itemHeight != itemh)
+    {
+        _itemWidth = itemw;
+        _itemHeight = itemh;
+        OnResized();
+    }
+}
+
+void GUIInvWindow::SetCharacterID(int charid)
+{
+    if (_charID != charid)
+    {
+        _charID = charid;
+        MarkChanged();
+    }
+}
+
 void GUIInvWindow::OnMouseEnter()
 {
-    IsMouseOver = true;
+    _isMouseOver = true;
 }
 
 void GUIInvWindow::OnMouseLeave()
 {
-    IsMouseOver = false;
+    _isMouseOver = false;
 }
 
 void GUIInvWindow::OnMouseUp()
 {
-    if (IsMouseOver)
-        IsActivated = true;
+    if (_isMouseOver)
+        _isActivated = true;
 }
 
 void GUIInvWindow::OnResized()
@@ -61,23 +73,23 @@ void GUIInvWindow::OnResized()
 void GUIInvWindow::WriteToFile(Stream *out) const
 {
     GUIObject::WriteToFile(out);
-    out->WriteInt32(CharId);
-    out->WriteInt32(ItemWidth);
-    out->WriteInt32(ItemHeight);
+    out->WriteInt32(_charID);
+    out->WriteInt32(_itemWidth);
+    out->WriteInt32(_itemHeight);
 }
 
 void GUIInvWindow::ReadFromFile(Stream *in, GuiVersion gui_version)
 {
     GUIObject::ReadFromFile(in, gui_version);
-    CharId = in->ReadInt32();
-    ItemWidth = in->ReadInt32();
-    ItemHeight = in->ReadInt32();
+    _charID = in->ReadInt32();
+    _itemWidth = in->ReadInt32();
+    _itemHeight = in->ReadInt32();
 
     // ensure that some items are visible
-        if (ItemWidth > _width)
-            ItemWidth = _width;
-        if (ItemHeight > _height)
-            ItemHeight = _height;
+    if (_itemWidth > _width)
+        _itemWidth = _width;
+    if (_itemHeight > _height)
+        _itemHeight = _height;
 
     CalculateNumCells();
 }
@@ -85,33 +97,33 @@ void GUIInvWindow::ReadFromFile(Stream *in, GuiVersion gui_version)
 void GUIInvWindow::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
 {
     GUIObject::ReadFromSavegame(in, svg_ver);
-    ItemWidth = in->ReadInt32();
-    ItemHeight = in->ReadInt32();
-    CharId = in->ReadInt32();
-    TopItem = in->ReadInt32();
+    _itemWidth = in->ReadInt32();
+    _itemHeight = in->ReadInt32();
+    _charID = in->ReadInt32();
+    _topItem = in->ReadInt32();
     CalculateNumCells();
 }
 
 void GUIInvWindow::WriteToSavegame(Stream *out) const
 {
     GUIObject::WriteToSavegame(out);
-    out->WriteInt32(ItemWidth);
-    out->WriteInt32(ItemHeight);
-    out->WriteInt32(CharId);
-    out->WriteInt32(TopItem);
+    out->WriteInt32(_itemWidth);
+    out->WriteInt32(_itemHeight);
+    out->WriteInt32(_charID);
+    out->WriteInt32(_topItem);
 }
 
 void GUIInvWindow::CalculateNumCells()
 {
-    if (ItemWidth <= 0 || ItemHeight <= 0)
+    if (_itemWidth <= 0 || _itemHeight <= 0)
     {
-        ColCount = 0;
-        RowCount = 0;
+        _colCount = 0;
+        _rowCount = 0;
     }
     else
     {
-        ColCount = _width / ItemWidth;
-        RowCount = _height / ItemHeight;
+        _colCount = _width / _itemWidth;
+        _rowCount = _height / _itemHeight;
     }
 }
 

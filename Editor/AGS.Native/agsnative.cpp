@@ -929,11 +929,11 @@ void drawSpriteStretch(HDC hdc, int x, int y, int width, int height, int spriteN
 
 void drawGUIAt(HDC hdc, int x, int y, int x1, int y1, int x2, int y2, int resolutionFactor, float scale, int ctrl_trans)
 {
-    if ((tempgui.Width < 1) || (tempgui.Height < 1))
+    if ((tempgui.GetWidth() < 1) || (tempgui.GetHeight() < 1))
         return;
 
     // Prepare bitmaps
-    const ::Size gui_size = ::Size(tempgui.Width, tempgui.Height);
+    const ::Size gui_size = ::Size(tempgui.GetWidth(), tempgui.GetHeight());
     if (NDrawState->guiSurf32 == nullptr || (NDrawState->guiSurf32->GetSize() != gui_size))
     {
         NDrawState->guiSurf32.reset(new AGSBitmap(gui_size.Width, gui_size.Height, 32));
@@ -2237,33 +2237,33 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
   NormalGUI^ normalGui = dynamic_cast<NormalGUI^>(guiObj);
   if (normalGui)
   {
-	gui->OnClickHandler = TextHelper::ConvertASCII(normalGui->OnClick);
-	gui->X = normalGui->Left;
-	gui->Y = normalGui->Top;
-	gui->Width = normalGui->Width;
-	gui->Height = normalGui->Height;
+	gui->SetOnClickHandler(TextHelper::ConvertASCII(normalGui->OnClick));
+	gui->SetX(normalGui->Left);
+	gui->SetY(normalGui->Top);
+	gui->SetWidth(normalGui->Width);
+	gui->SetHeight(normalGui->Height);
     gui->SetClickable(normalGui->Clickable);
     gui->SetVisible(normalGui->Visible);
-    gui->PopupAtMouseY = normalGui->PopupYPos;
-    gui->PopupStyle = (Common::GUIPopupStyle)normalGui->PopupStyle;
-    gui->ZOrder = normalGui->ZOrder;
-    gui->FgColor = normalGui->BorderColor;
+    gui->SetPopupAtY(normalGui->PopupYPos);
+    gui->SetPopupStyle((Common::GUIPopupStyle)normalGui->PopupStyle);
+    gui->SetZOrder(normalGui->ZOrder);
+    gui->SetFgColor(normalGui->BorderColor);
     gui->SetTransparencyAsPercentage(normalGui->Transparency);
   }
   else
   {
     TextWindowGUI^ twGui = dynamic_cast<TextWindowGUI^>(guiObj);
-	gui->Width = twGui->EditorWidth;
-	gui->Height = twGui->EditorHeight;
+	gui->SetWidth(twGui->EditorWidth);
+	gui->SetHeight(twGui->EditorHeight);
     gui->SetTextWindow(true);
-    gui->PopupStyle = Common::kGUIPopupModal;
-	gui->Padding = twGui->Padding;
-    gui->FgColor = twGui->TextColor;
+    gui->SetPopupStyle(Common::kGUIPopupModal);
+	gui->SetPadding(twGui->Padding);
+    gui->SetFgColor(twGui->TextColor);
   }
-  gui->BgColor = guiObj->BackgroundColor;
-  gui->BgImage = guiObj->BackgroundImage;
+  gui->SetBgColor(guiObj->BackgroundColor);
+  gui->SetBgImage(guiObj->BackgroundImage);
   
-  gui->Name = TextHelper::ConvertASCII(guiObj->Name);
+  gui->SetName(TextHelper::ConvertASCII(guiObj->Name));
 
   gui->RemoveAllControls();
 
@@ -2279,21 +2279,21 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 	  if (button)
 	  {
           Common::GUIButton nbut;
-          nbut.TextColor = button->TextColor;
-          nbut.Font = button->Font;
+          nbut.SetTextColor(button->TextColor);
+          nbut.SetFont(button->Font);
           nbut.SetNormalImage(button->Image);
           nbut.SetCurrentImage(button->Image);
           nbut.SetMouseOverImage(button->MouseoverImage);
           nbut.SetPushedImage(button->PushedImage);
-          nbut.TextAlignment = (::FrameAlignment)button->TextAlignment;
-          nbut.TextPaddingHor = button->TextPaddingHorizontal;
-          nbut.TextPaddingVer = button->TextPaddingVertical;
+          nbut.SetTextAlignment((::FrameAlignment)button->TextAlignment);
+          nbut.SetTextPaddingHor(button->TextPaddingHorizontal);
+          nbut.SetTextPaddingVer(button->TextPaddingVertical);
           nbut.SetWrapText(button->WrapText);
-          nbut.ClickAction[Common::kGUIClickLeft] = (Common::GUIClickAction)button->ClickAction;
-          nbut.ClickData[Common::kGUIClickLeft] = button->NewModeNumber;
+          nbut.SetClickAction(Common::kGUIClickLeft,
+            (Common::GUIClickAction)button->ClickAction, button->NewModeNumber);
           nbut.SetClipImage(button->ClipImage);
           nbut.SetText(tcv->ConvertTextProperty(button->Text));
-          nbut.EventHandlers[0] = TextHelper::ConvertASCII(button->OnClick);
+          nbut.SetEventHandler(0, TextHelper::ConvertASCII(button->OnClick));
           guibuts.push_back(nbut);
 		  
           gui->AddControl(Common::kGUIButton, guibuts.size() - 1, &guibuts.back());
@@ -2301,9 +2301,9 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 	  else if (label)
 	  {
           Common::GUILabel nlabel;
-          nlabel.TextColor = label->TextColor;
-          nlabel.Font = label->Font;
-          nlabel.TextAlignment = (::FrameAlignment)label->TextAlignment;
+          nlabel.SetTextColor(label->TextColor);
+          nlabel.SetFont(label->Font);
+          nlabel.SetTextAlignment((::FrameAlignment)label->TextAlignment);
           Common::String text = tcv->ConvertTextProperty(label->Text);
           nlabel.SetText(text);
           guilabels.push_back(nlabel);
@@ -2313,10 +2313,10 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 	  else if (textbox)
 	  {
           Common::GUITextBox ntext;
-          ntext.TextColor = textbox->TextColor;
-          ntext.Font = textbox->Font;
+          ntext.SetTextColor(textbox->TextColor);
+          ntext.SetFont(textbox->Font);
           ntext.SetShowBorder(textbox->ShowBorder);
-          ntext.EventHandlers[0] = TextHelper::ConvertASCII(textbox->OnActivate);
+          ntext.SetEventHandler(0, TextHelper::ConvertASCII(textbox->OnActivate));
           guitext.push_back(ntext);
 
           gui->AddControl(Common::kGUITextBox, guitext.size() - 1, &guitext.back());
@@ -2324,15 +2324,15 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 	  else if (listbox)
 	  {
           Common::GUIListBox nlist;
-          nlist.TextColor = listbox->TextColor;
-          nlist.Font = listbox->Font;
-          nlist.SelectedTextColor = listbox->SelectedTextColor;
-          nlist.SelectedBgColor = listbox->SelectedBackgroundColor;
-          nlist.TextAlignment = (::HorAlignment)listbox->TextAlignment;
+          nlist.SetTextColor(listbox->TextColor);
+          nlist.SetFont(listbox->Font);
+          nlist.SetSelectedTextColor(listbox->SelectedTextColor);
+          nlist.SetSelectedBgColor(listbox->SelectedBackgroundColor);
+          nlist.SetTextAlignment((::HorAlignment)listbox->TextAlignment);
           nlist.SetTranslated(listbox->Translated);
           nlist.SetShowBorder(listbox->ShowBorder);
           nlist.SetShowArrows(listbox->ShowScrollArrows);
-          nlist.EventHandlers[0] = TextHelper::ConvertASCII(listbox->OnSelectionChanged);
+          nlist.SetEventHandler(0, TextHelper::ConvertASCII(listbox->OnSelectionChanged));
           guilist.push_back(nlist);
 
           gui->AddControl(Common::kGUIListBox, guilist.size() - 1, &guilist.back());
@@ -2340,13 +2340,13 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 	  else if (slider)
 	  {
           Common::GUISlider nslider;
-		  nslider.MinValue = slider->MinValue;
-		  nslider.MaxValue = slider->MaxValue;
-		  nslider.Value = slider->Value;
-		  nslider.HandleImage = slider->HandleImage;
-		  nslider.HandleOffset = slider->HandleOffset;
-		  nslider.BgImage = slider->BackgroundImage;
-          nslider.EventHandlers[0] = TextHelper::ConvertASCII(slider->OnChange);
+		  nslider.SetMinValue(slider->MinValue);
+		  nslider.SetMaxValue(slider->MaxValue);
+		  nslider.SetValue(slider->Value);
+		  nslider.SetHandleImage(slider->HandleImage);
+		  nslider.SetHandleOffset(slider->HandleOffset);
+		  nslider.SetBgImage(slider->BackgroundImage);
+          nslider.SetEventHandler(0, TextHelper::ConvertASCII(slider->OnChange));
           guislider.push_back(nslider);
 
           gui->AddControl(Common::kGUISlider, guislider.size() - 1, &guislider.back());
@@ -2354,9 +2354,9 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 	  else if (invwindow)
 	  {
           Common::GUIInvWindow ninv;
-          ninv.CharId = invwindow->CharacterID;
-          ninv.ItemWidth = invwindow->ItemWidth;
-          ninv.ItemHeight = invwindow->ItemHeight;
+          ninv.SetCharacterID(invwindow->CharacterID);
+          ninv.SetItemWidth(invwindow->ItemWidth);
+          ninv.SetItemHeight(invwindow->ItemHeight);
           guiinv.push_back(ninv);
 
           gui->AddControl(Common::kGUIInvWindow, guiinv.size() - 1, &guiinv.back());
@@ -2372,12 +2372,12 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 	  }
 
       Common::GUIObject *newObj = gui->GetControl(gui->GetControlCount() - 1);
-	  newObj->X = control->Left;
-	  newObj->Y = control->Top;
+	  newObj->SetX(control->Left);
+	  newObj->SetY(control->Top);
 	  newObj->SetSize(control->Width, control->Height);
-	  newObj->Id = control->ID;
-	  newObj->ZOrder = control->ZOrder;
-      newObj->Name = TextHelper::ConvertASCII(control->Name);
+	  newObj->SetID(control->ID);
+	  newObj->SetZOrder(control->ZOrder);
+      newObj->SetName(TextHelper::ConvertASCII(control->Name));
   }
 
   AGS::Common::GUIRefCollection guictrl_refs(guibuts, guiinv, guilabels, guilist, guislider, guitext);
@@ -2404,7 +2404,7 @@ void drawGUI(HDC hdc, int x, int y, GUI^ guiObj, int resolutionFactor, float sca
       lb.AddItem("Sample item");
   }
 
-  tempgui.HighlightCtrl = selectedControl;
+  tempgui.SetHighlightControl(selectedControl);
 
   drawGUIAt(hdc, x, y, -1, -1, -1, -1, resolutionFactor, scale, ctrl_trans);
 }
@@ -2765,27 +2765,27 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 		{
 			newGui = gcnew TextWindowGUI();
 			newGui->Controls->Clear();  // we'll add our own edges
-      ((TextWindowGUI^)newGui)->TextColor = guis[i].FgColor;
+      ((TextWindowGUI^)newGui)->TextColor = guis[i].GetFgColor();
 		}
 		else 
 		{
 			newGui = gcnew NormalGUI(1, 1);
             ((NormalGUI^)newGui)->Clickable = guis[i].IsClickable();
             ((NormalGUI^)newGui)->Visible = guis[i].IsVisible();
-			((NormalGUI^)newGui)->Top = guis[i].Y;
-			((NormalGUI^)newGui)->Left = guis[i].X;
-			((NormalGUI^)newGui)->Width = (guis[i].Width > 0) ? guis[i].Width : 1;
-			((NormalGUI^)newGui)->Height = (guis[i].Height > 0) ? guis[i].Height : 1;
-			((NormalGUI^)newGui)->PopupYPos = guis[i].PopupAtMouseY;
-			((NormalGUI^)newGui)->PopupStyle = (GUIPopupStyle)guis[i].PopupStyle;
-			((NormalGUI^)newGui)->ZOrder = guis[i].ZOrder;
-			((NormalGUI^)newGui)->OnClick = TextHelper::ConvertASCII(guis[i].OnClickHandler);
-      ((NormalGUI^)newGui)->BorderColor = guis[i].FgColor;
+			((NormalGUI^)newGui)->Top = guis[i].GetY();
+			((NormalGUI^)newGui)->Left = guis[i].GetX();
+			((NormalGUI^)newGui)->Width = (guis[i].GetWidth() > 0) ? guis[i].GetWidth() : 1;
+			((NormalGUI^)newGui)->Height = (guis[i].GetHeight() > 0) ? guis[i].GetHeight() : 1;
+			((NormalGUI^)newGui)->PopupYPos = guis[i].GetPopupAtY();
+			((NormalGUI^)newGui)->PopupStyle = (GUIPopupStyle)guis[i].GetPopupStyle();
+			((NormalGUI^)newGui)->ZOrder = guis[i].GetZOrder();
+			((NormalGUI^)newGui)->OnClick = TextHelper::ConvertASCII(guis[i].GetOnClickHandler());
+      ((NormalGUI^)newGui)->BorderColor = guis[i].GetFgColor();
 		}
-		newGui->BackgroundColor = guis[i].BgColor;
-		newGui->BackgroundImage = guis[i].BgImage;
+		newGui->BackgroundColor = guis[i].GetBgColor();
+		newGui->BackgroundImage = guis[i].GetBgImage();
 		newGui->ID = i;
-		newGui->Name = TextHelper::ConvertASCII(guis[i].Name);
+		newGui->Name = TextHelper::ConvertASCII(guis[i].GetName());
 
 		for (int j = 0; j < guis[i].GetControlCount(); j++)
 		{
@@ -2808,20 +2808,20 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 					AGS::Types::GUIButton^ newButton = gcnew AGS::Types::GUIButton();
 					Common::GUIButton *copyFrom = (Common::GUIButton*)curObj;
 					newControl = newButton;
-					newButton->TextColor = copyFrom->TextColor;
-					newButton->Font = copyFrom->Font;
+					newButton->TextColor = copyFrom->GetTextColor();
+					newButton->Font = copyFrom->GetFont();
 					newButton->Image = copyFrom->GetNormalImage();
 					newButton->MouseoverImage = copyFrom->GetMouseOverImage();
 					newButton->PushedImage = copyFrom->GetPushedImage();
-					newButton->TextAlignment = (AGS::Types::FrameAlignment)copyFrom->TextAlignment;
-                    newButton->TextPaddingHorizontal = copyFrom->TextPaddingHor;
-                    newButton->TextPaddingVertical = copyFrom->TextPaddingVer;
+					newButton->TextAlignment = (AGS::Types::FrameAlignment)copyFrom->GetTextAlignment();
+                    newButton->TextPaddingHorizontal = copyFrom->GetTextPaddingHor();
+                    newButton->TextPaddingVertical = copyFrom->GetTextPaddingVer();
                     newButton->WrapText = copyFrom->IsWrapText();
-                    newButton->ClickAction = (GUIClickAction)copyFrom->ClickAction[Common::kGUIClickLeft];
-					newButton->NewModeNumber = copyFrom->ClickData[Common::kGUIClickLeft];
+                    newButton->ClickAction = (GUIClickAction)copyFrom->GetClickAction(Common::kGUIClickLeft);
+					newButton->NewModeNumber = copyFrom->GetClickData(Common::kGUIClickLeft);
                     newButton->ClipImage = copyFrom->IsClippingImage();
 					newButton->Text = tcv->Convert(copyFrom->GetText());
-					newButton->OnClick = TextHelper::ConvertASCII(copyFrom->EventHandlers[0]);
+					newButton->OnClick = TextHelper::ConvertASCII(copyFrom->GetEventHandler(0));
 				}
 				break;
 				}
@@ -2830,9 +2830,9 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 				AGS::Types::GUILabel^ newLabel = gcnew AGS::Types::GUILabel();
 				Common::GUILabel *copyFrom = (Common::GUILabel*)curObj;
 				newControl = newLabel;
-				newLabel->TextColor = copyFrom->TextColor;
-				newLabel->Font = copyFrom->Font;
-				newLabel->TextAlignment = (AGS::Types::FrameAlignment)copyFrom->TextAlignment;
+				newLabel->TextColor = copyFrom->GetTextColor();
+				newLabel->Font = copyFrom->GetFont();
+				newLabel->TextAlignment = (AGS::Types::FrameAlignment)copyFrom->GetTextAlignment();
 				newLabel->Text = tcv->Convert(copyFrom->GetText());
 				break;
 				}
@@ -2841,11 +2841,11 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 				  AGS::Types::GUITextBox^ newTextbox = gcnew AGS::Types::GUITextBox();
 				  Common::GUITextBox *copyFrom = (Common::GUITextBox*)curObj;
 				  newControl = newTextbox;
-				  newTextbox->TextColor = copyFrom->TextColor;
-				  newTextbox->Font = copyFrom->Font;
+				  newTextbox->TextColor = copyFrom->GetTextColor();
+				  newTextbox->Font = copyFrom->GetFont();
                   newTextbox->ShowBorder = copyFrom->IsBorderShown();
-				  newTextbox->Text = tcv->Convert(copyFrom->Text);
-				  newTextbox->OnActivate = TextHelper::ConvertASCII(copyFrom->EventHandlers[0]);
+				  newTextbox->Text = tcv->Convert(copyFrom->GetText());
+				  newTextbox->OnActivate = TextHelper::ConvertASCII(copyFrom->GetEventHandler(0));
 				  break;
 				}
 			case Common::kGUIListBox:
@@ -2853,15 +2853,15 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 				  AGS::Types::GUIListBox^ newListbox = gcnew AGS::Types::GUIListBox();
 				  Common::GUIListBox *copyFrom = (Common::GUIListBox*)curObj;
 				  newControl = newListbox;
-				  newListbox->TextColor = copyFrom->TextColor;
-				  newListbox->Font = copyFrom->Font; 
-				  newListbox->SelectedTextColor = copyFrom->SelectedTextColor;
-				  newListbox->SelectedBackgroundColor = copyFrom->SelectedBgColor;
-				  newListbox->TextAlignment = (AGS::Types::HorizontalAlignment)copyFrom->TextAlignment;
+				  newListbox->TextColor = copyFrom->GetTextColor();
+				  newListbox->Font = copyFrom->GetFont();
+				  newListbox->SelectedTextColor = copyFrom->GetSelectedTextColor();
+				  newListbox->SelectedBackgroundColor = copyFrom->GetSelectedBgColor();
+				  newListbox->TextAlignment = (AGS::Types::HorizontalAlignment)copyFrom->GetTextAlignment();
 				  newListbox->ShowBorder = copyFrom->IsBorderShown();
 				  newListbox->ShowScrollArrows = copyFrom->AreArrowsShown();
                   newListbox->Translated = copyFrom->IsTranslated();
-				  newListbox->OnSelectionChanged = TextHelper::ConvertASCII(copyFrom->EventHandlers[0]);
+				  newListbox->OnSelectionChanged = TextHelper::ConvertASCII(copyFrom->GetEventHandler(0));
 				  break;
 				}
 			case Common::kGUISlider:
@@ -2869,13 +2869,13 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 				  AGS::Types::GUISlider^ newSlider = gcnew AGS::Types::GUISlider();
 				  Common::GUISlider *copyFrom = (Common::GUISlider*)curObj;
 				  newControl = newSlider;
-				  newSlider->MinValue = copyFrom->MinValue;
-				  newSlider->MaxValue = copyFrom->MaxValue;
-				  newSlider->Value = copyFrom->Value;
-				  newSlider->HandleImage = copyFrom->HandleImage;
-			  	  newSlider->HandleOffset = copyFrom->HandleOffset;
-				  newSlider->BackgroundImage = copyFrom->BgImage;
-				  newSlider->OnChange = TextHelper::ConvertASCII(copyFrom->EventHandlers[0]);
+				  newSlider->MinValue = copyFrom->GetMinValue();
+				  newSlider->MaxValue = copyFrom->GetMaxValue();
+				  newSlider->Value = copyFrom->GetValue();
+				  newSlider->HandleImage = copyFrom->GetHandleImage();
+			  	  newSlider->HandleOffset = copyFrom->GetHandleOffset();
+				  newSlider->BackgroundImage = copyFrom->GetBgImage();
+				  newSlider->OnChange = TextHelper::ConvertASCII(copyFrom->GetEventHandler(0));
 				  break;
 				}
 			case Common::kGUIInvWindow:
@@ -2883,9 +2883,9 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 					AGS::Types::GUIInventory^ invwindow = gcnew AGS::Types::GUIInventory();
 				    Common::GUIInvWindow *copyFrom = (Common::GUIInvWindow*)curObj;
 				    newControl = invwindow;
-					invwindow->CharacterID = copyFrom->CharId;
-					invwindow->ItemWidth = copyFrom->ItemWidth;
-					invwindow->ItemHeight = copyFrom->ItemHeight;
+					invwindow->CharacterID = copyFrom->GetCharacterID();
+					invwindow->ItemWidth = copyFrom->GetItemWidth();
+					invwindow->ItemHeight = copyFrom->GetItemHeight();
 					break;
 				}
 			default:
@@ -2894,15 +2894,15 @@ Game^ import_compiled_game_dta(const AGSString &filename)
             ::Size size = curObj->GetSize();
 			newControl->Width = (size.Width > 0) ? size.Width : 1;
 			newControl->Height = (size.Height > 0) ? size.Height : 1;
-			newControl->Left = curObj->X;
-			newControl->Top = curObj->Y;
-			newControl->ZOrder = curObj->ZOrder;
+			newControl->Left = curObj->GetX();
+			newControl->Top = curObj->GetY();
+			newControl->ZOrder = curObj->GetZOrder();
             newControl->Clickable = curObj->IsClickable();
             newControl->Enabled = curObj->IsEnabled();
             newControl->Visible = curObj->IsVisible();
             newControl->Parent = newGui;
 			newControl->ID = j;
-			newControl->Name = TextHelper::ConvertASCII(curObj->Name);
+			newControl->Name = TextHelper::ConvertASCII(curObj->GetName());
 			newGui->Controls->Add(newControl);
 		}
 		

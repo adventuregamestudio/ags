@@ -57,25 +57,41 @@ public:
 
     GUIButton();
 
-    int32_t GetCurrentImage() const;
-    int32_t GetNormalImage() const;
-    int32_t GetMouseOverImage() const;
-    int32_t GetPushedImage() const;
+    // Properties
+    int  GetFont() const { return _font; }
+    void SetFont(int font);
+    int  GetTextColor() const { return _textColor; }
+    void SetTextColor(int color);
+    FrameAlignment GetTextAlignment() const { return _textAlignment; }
+    void SetTextAlignment(FrameAlignment align);
+    int  GetTextPaddingHor() const { return _textPaddingHor; }
+    void SetTextPaddingHor(int padding);
+    int  GetTextPaddingVer() const { return _textPaddingVer; }
+    void SetTextPaddingVer(int padding);
+
+    int  GetCurrentImage() const;
+    int  GetNormalImage() const;
+    int  GetMouseOverImage() const;
+    int  GetPushedImage() const;
     GUIButtonPlaceholder GetPlaceholder() const;
     const String &GetText() const;
     bool IsImageButton() const;
     bool IsClippingImage() const;
     int32_t CurrentImage() const;
 
+    GUIClickAction GetClickAction(GUIClickMouseButton button) const;
+    int  GetClickData(GUIClickMouseButton button) const;
+    void SetClickAction(GUIClickMouseButton button, GUIClickAction action, int data);
+
     // Operations
     Rect CalcGraphicRect(bool clipped) override;
     void Draw(Bitmap *ds, int x = 0, int y = 0) override;
     void SetClipImage(bool on);
-    void SetCurrentImage(int32_t image, SpriteTransformFlags flags = kSprTf_None);
-    void SetMouseOverImage(int32_t image);
-    void SetNormalImage(int32_t image);
-    void SetPushedImage(int32_t image);
-    void SetImages(int32_t normal, int32_t over, int32_t pushed, SpriteTransformFlags flags = kSprTf_None);
+    void SetCurrentImage(int image, SpriteTransformFlags flags = kSprTf_None);
+    void SetMouseOverImage(int image);
+    void SetNormalImage(int image);
+    void SetPushedImage(int image);
+    void SetImages(int normal, int over, int pushed, SpriteTransformFlags flags = kSprTf_None);
     void SetText(const String &text);
     void SetWrapText(bool on);
 
@@ -91,21 +107,6 @@ public:
     void ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_ver) override;
     void WriteToSavegame(Common::Stream *out) const override;
 
-// TODO: these members are currently public; hide them later
-public:
-    int32_t     Font;
-    color_t     TextColor;
-    FrameAlignment TextAlignment;
-    int32_t     TextPaddingHor;
-    int32_t     TextPaddingVer;
-    // Click actions for left and right mouse buttons
-    // NOTE: only left click is currently in use
-    GUIClickAction ClickAction[kNumGUIClicks];
-    int32_t     ClickData[kNumGUIClicks];
-
-    bool        IsPushed;
-    bool        IsMouseOver;
-
 private:
     void DrawImageButton(Bitmap *ds, int x, int y, bool draw_disabled);
     void DrawText(Bitmap *ds, int x, int y, bool draw_disabled);
@@ -114,24 +115,37 @@ private:
     // Update current image depending on the button's state
     void UpdateCurrentImage();
 
-    int32_t _image;
-    int32_t _mouseOverImage;
-    int32_t _pushedImage;
+    int     _font = 0;
+    color_t _textColor = 0;
+    FrameAlignment _textAlignment = kAlignTopCenter;
     // TODO: flags for each kind of image?
-    SpriteTransformFlags _imageFlags;
+    SpriteTransformFlags _imageFlags = kSprTf_None;
+    int     _textPaddingHor = DefaultHorPadding;
+    int     _textPaddingVer = DefaultVerPadding;
+    // Click actions for left and right mouse buttons
+    // NOTE: only left click is currently in use
+    GUIClickAction _clickAction[kNumGUIClicks];
+    int     _clickData[kNumGUIClicks];
+
+    bool    _isPushed = false;
+    bool    _isMouseOver = false;
+
+    int     _image = -1;
+    int     _mouseOverImage = -1;
+    int     _pushedImage = -1;
     // Active displayed image
-    int32_t  _currentImage;
-    SpriteTransformFlags _curImageFlags;
+    int     _currentImage = -1;
+    SpriteTransformFlags _curImageFlags = kSprTf_None;
     // Text property set by user
-    String _text;
+    String  _text;
     // type of content placeholder, if any
-    GUIButtonPlaceholder _placeholder;
+    GUIButtonPlaceholder _placeholder = kButtonPlace_None;
     // A flag indicating unnamed button; this is a convenience trick:
     // buttons are created named "New Button" in the editor, and users
     // often do not clear text when they want a graphic button.
-    bool _unnamed;
+    bool    _unnamed = true;
     // Prepared text buffer/cache
-    String _textToDraw;
+    String  _textToDraw;
 };
 
 } // namespace Common

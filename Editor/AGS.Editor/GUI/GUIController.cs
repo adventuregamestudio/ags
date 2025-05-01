@@ -79,6 +79,7 @@ namespace AGS.Editor
         {
             InstalledFonts = new InstalledFontCollection().Families.ToDictionary(t => t.Name, t => t.Name);
             _menuItems = new Dictionary<string, IEditorComponent>();
+            Factory.Events.GamePostLoad += Events_GamePostLoad;
         }
 
         private static GUIController _instance;
@@ -462,7 +463,12 @@ namespace AGS.Editor
             }
 
             _mainForm.pnlCallStack.CallStack = callStack;
-            _mainForm.pnlCallStack.Show();            
+            _mainForm.pnlCallStack.Show();
+        }
+
+        public void ClearCallStack()
+        {
+            _mainForm.pnlCallStack.CallStack = null;
         }
 
         public void HideCallStack()
@@ -479,7 +485,12 @@ namespace AGS.Editor
             }
 
             _mainForm.pnlFindResults.Results = results;
-            _mainForm.pnlFindResults.Show();           
+            _mainForm.pnlFindResults.Show();
+        }
+
+        public void ClearFindSymbolResults()
+        {
+            _mainForm.pnlFindResults.Results = null;
         }
 
         public void HideFindSymbolResults()
@@ -1017,6 +1028,14 @@ namespace AGS.Editor
 		{
 			_mainForm.SetDrawingSuspended(SystemInformation.PrimaryMonitorSize.Width < 800);
 		}
+
+        private void Events_GamePostLoad(Game game)
+        {
+            ClearOutputPanel();
+            ClearCallStack();
+            ClearFindSymbolResults();
+            ClearEngineLogMessages();
+        }
 
         public void ExitApplication()
         {

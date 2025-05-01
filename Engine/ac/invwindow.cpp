@@ -52,85 +52,77 @@ extern CCInventory ccDynamicInv;
 
 void InvWindow_SetCharacterToUse(GUIInvWindow *guii, CharacterInfo *chaa) {
   if (chaa == nullptr)
-    guii->CharId = -1;
+    guii->SetCharacterID(-1);
   else
-    guii->CharId = chaa->index_id;
+    guii->SetCharacterID(chaa->index_id);
   // reset to top of list
-  guii->TopItem = 0;
-
-  guii->MarkChanged();
+  guii->SetTopItem(0);
 }
 
 CharacterInfo* InvWindow_GetCharacterToUse(GUIInvWindow *guii) {
-  if (guii->CharId < 0)
+  if (guii->GetCharacterID() < 0)
     return nullptr;
 
-  return &game.chars[guii->CharId];
+  return &game.chars[guii->GetCharacterID()];
 }
 
 void InvWindow_SetItemWidth(GUIInvWindow *guii, int newwidth) {
-  guii->ItemWidth = newwidth;
+  guii->SetItemWidth(newwidth);
   guii->OnResized();
 }
 
 int InvWindow_GetItemWidth(GUIInvWindow *guii) {
-  return guii->ItemWidth;
+  return guii->GetItemWidth();
 }
 
 void InvWindow_SetItemHeight(GUIInvWindow *guii, int newhit) {
-  guii->ItemHeight = newhit;
+  guii->SetItemHeight(newhit);
   guii->OnResized();
 }
 
 int InvWindow_GetItemHeight(GUIInvWindow *guii) {
-  return guii->ItemHeight;
+  return guii->GetItemHeight();
 }
 
 void InvWindow_SetTopItem(GUIInvWindow *guii, int topitem) {
-  if (guii->TopItem != topitem) {
-    guii->TopItem = topitem;
-    guii->MarkChanged();
+  if (guii->GetTopItem() != topitem) {
+    guii->SetTopItem(topitem);
   }
 }
 
 int InvWindow_GetTopItem(GUIInvWindow *guii) {
-  return guii->TopItem;
+  return guii->GetTopItem();
 }
 
 int InvWindow_GetItemsPerRow(GUIInvWindow *guii) {
-  return guii->ColCount;
+  return guii->GetColCount();
 }
 
 int InvWindow_GetItemCount(GUIInvWindow *guii) {
-  return charextra[guii->GetCharacterId()].invorder_count;
+  return charextra[guii->GetCharacterID()].invorder_count;
 }
 
 int InvWindow_GetRowCount(GUIInvWindow *guii) {
-  return guii->RowCount;
+  return guii->GetRowCount();
 }
 
 void InvWindow_ScrollDown(GUIInvWindow *guii) {
-  if ((charextra[guii->GetCharacterId()].invorder_count) >
-      (guii->TopItem + (guii->ColCount * guii->RowCount))) { 
-    guii->TopItem += guii->ColCount;
-    guii->MarkChanged();
+  if ((charextra[guii->GetCharacterID()].invorder_count) >
+      (guii->GetTopItem() + (guii->GetColCount() * guii->GetRowCount()))) { 
+    guii->SetTopItem(guii->GetTopItem() + guii->GetColCount());
   }
 }
 
 void InvWindow_ScrollUp(GUIInvWindow *guii) {
-  if (guii->TopItem > 0) {
-    guii->TopItem -= guii->ColCount;
-    if (guii->TopItem < 0)
-      guii->TopItem = 0;
-
-    guii->MarkChanged();
+  if (guii->GetTopItem() > 0) {
+    guii->SetTopItem(std::max(0, guii->GetTopItem() - guii->GetColCount()));
   }
 }
 
 ScriptInvItem* InvWindow_GetItemAtIndex(GUIInvWindow *guii, int index) {
-  if ((index < 0) || (index >= charextra[guii->GetCharacterId()].invorder_count))
+  if ((index < 0) || (index >= charextra[guii->GetCharacterID()].invorder_count))
     return nullptr;
-  return &scrInv[charextra[guii->GetCharacterId()].invorder[index]];
+  return &scrInv[charextra[guii->GetCharacterID()].invorder[index]];
 }
 
 //=============================================================================

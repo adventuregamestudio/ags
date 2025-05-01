@@ -85,21 +85,21 @@ const char *InventoryItem_GetScriptName(ScriptInvItem *scii)
 }
 
 int offset_over_inv(GUIInvWindow *inv) {
-    if (inv->ItemWidth <= 0 || inv->ItemHeight <= 0)
+    if (inv->GetItemWidth() <= 0 || inv->GetItemHeight() <= 0)
         return -1;
-    int mover = mouse_ifacebut_xoffs / inv->ItemWidth;
+    int mover = mouse_ifacebut_xoffs / inv->GetItemWidth();
     // if it's off the edge of the visible items, ignore
-    if (mover >= inv->ColCount)
+    if (mover >= inv->GetColCount())
         return -1;
-    mover += (mouse_ifacebut_yoffs / inv->ItemHeight) * inv->ColCount;
-    if (mover >= inv->ColCount * inv->RowCount)
-        return -1;
-
-    mover += inv->TopItem;
-    if ((mover < 0) || (mover >= charextra[inv->GetCharacterId()].invorder_count))
+    mover += (mouse_ifacebut_yoffs / inv->GetItemHeight()) * inv->GetColCount();
+    if (mover >= inv->GetColCount() * inv->GetRowCount())
         return -1;
 
-    return charextra[inv->GetCharacterId()].invorder[mover];
+    mover += inv->GetTopItem();
+    if ((mover < 0) || (mover >= charextra[inv->GetCharacterID()].invorder_count))
+        return -1;
+
+    return charextra[inv->GetCharacterID()].invorder[mover];
 }
 
 int GetInvAt(int scrx, int scry) {
@@ -110,8 +110,8 @@ int GetInvAt(int scrx, int scry) {
         GUIObject *guio = gui.GetControl(onobj);
         if (guio) {
             Point guipt = gui.GetGraphicSpace().WorldToLocal(scrx, scry);
-            mouse_ifacebut_xoffs = guipt.X - guio->X;
-            mouse_ifacebut_yoffs = guipt.Y - guio->Y;
+            mouse_ifacebut_xoffs = guipt.X - guio->GetX();
+            mouse_ifacebut_yoffs = guipt.Y - guio->GetY();
         }
         if (guio && (gui.GetControlType(onobj) == kGUIInvWindow))
             return offset_over_inv((GUIInvWindow *)guio);

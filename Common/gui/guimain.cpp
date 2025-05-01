@@ -127,6 +127,23 @@ void GUIMain::SetTransparency(int trans)
     _transparency = trans;
 }
 
+void GUIMain::SetBlendMode(BlendMode blend_mode)
+{
+    _blendMode = blend_mode;
+}
+
+void GUIMain::SetScale(float sx, float sy)
+{
+    _scale = Pointf(sx, sy);
+    UpdateGraphicSpace();
+}
+
+void GUIMain::SetRotation(float degrees)
+{
+    _rotation = Math::ClampAngle360(degrees);
+    UpdateGraphicSpace();
+}
+
 void GUIMain::SetZOrder(int zorder)
 {
     _zOrder = zorder;
@@ -417,7 +434,7 @@ void GUIMain::DrawBlob(Bitmap *ds, int x, int y, color_t draw_color)
 
 void GUIMain::UpdateGraphicSpace()
 {
-    _gs = GraphicSpace(_x, _y, _width, _height, _width * Scale.X, _height * Scale.Y, Rotation);
+    _gs = GraphicSpace(_x, _y, _width, _height, _width * _scale.X, _height * _scale.Y, _rotation);
 }
 
 void GUIMain::Poll(int mx, int my)
@@ -578,25 +595,6 @@ bool GUIMain::SetControlZOrder(int index, int zorder)
     ResortZOrder();
     NotifyControlPosition();
     return true;
-}
-
-Pointf GUIMain::GetScale() const
-{
-    return Scale;
-}
-
-void GUIMain::SetScale(float sx, float sy)
-{
-    Scale = Pointf(sx, sy);
-    MarkChanged();
-    UpdateGraphicSpace();
-}
-
-void GUIMain::SetRotation(float degrees)
-{
-    Rotation = Math::ClampAngle360(degrees);
-    MarkChanged();
-    UpdateGraphicSpace();
 }
 
 void GUIMain::SetTextWindow(bool on)
@@ -763,7 +761,7 @@ void GUIMain::ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_version, st
 
     if (svg_version >= kGuiSvgVersion_400)
     {
-        BlendMode = (Common::BlendMode)in->ReadInt32();
+        _blendMode = (BlendMode)in->ReadInt32();
 
         // Reserved for colour options
         in->ReadInt32(); // colour flags
@@ -772,20 +770,20 @@ void GUIMain::ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_version, st
         // Reserved for transform options
         in->ReadInt32(); // sprite transform flags1
         in->ReadInt32(); // sprite transform flags2
-        Scale.X = in->ReadFloat32(); // transform scale x
-        Scale.Y = in->ReadFloat32(); // transform scale y
+        _scale.X = in->ReadFloat32(); // transform scale x
+        _scale.Y = in->ReadFloat32(); // transform scale y
         in->ReadInt32(); // transform skew x
         in->ReadInt32(); // transform skew y
-        Rotation = in->ReadFloat32(); // transform rotate
+        _rotation = in->ReadFloat32(); // transform rotate
         in->ReadInt32(); // sprite pivot x
         in->ReadInt32(); // sprite pivot y
         in->ReadInt32(); // sprite anchor x
         in->ReadInt32(); // sprite anchor y
 
-        if (Scale.X == 0.f)
-            Scale.X = 1.f;
-        if (Scale.Y == 0.f)
-            Scale.Y = 1.f;
+        if (_scale.X == 0.f)
+            _scale.X = 1.f;
+        if (_scale.Y == 0.f)
+            _scale.Y = 1.f;
     }
 
     MarkChanged();
@@ -854,7 +852,7 @@ void GUIMain::WriteToSavegame(Common::Stream *out) const
         out->WriteInt32(ref_packed);
     }
     // since version 10 (kGuiSvgVersion_399)
-    out->WriteInt32(BlendMode);
+    out->WriteInt32(_blendMode);
     // Reserved for colour options
     out->WriteInt32(0); // colour flags
     out->WriteInt32(0); // tint rgb + s
@@ -862,11 +860,11 @@ void GUIMain::WriteToSavegame(Common::Stream *out) const
     // Reserved for transform options
     out->WriteInt32(0); // sprite transform flags1
     out->WriteInt32(0); // sprite transform flags2
-    out->WriteFloat32(Scale.X); // transform scale x
-    out->WriteFloat32(Scale.Y); // transform scale y
+    out->WriteFloat32(_scale.X); // transform scale x
+    out->WriteFloat32(_scale.Y); // transform scale y
     out->WriteInt32(0); // transform skew x
     out->WriteInt32(0); // transform skew y
-    out->WriteFloat32(Rotation); // transform rotate
+    out->WriteFloat32(_rotation); // transform rotate
     out->WriteInt32(0); // sprite pivot x
     out->WriteInt32(0); // sprite pivot y
     out->WriteInt32(0); // sprite anchor x

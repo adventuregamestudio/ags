@@ -2472,14 +2472,14 @@ void draw_gui_and_overlays()
                 {
                     auto &gbg = guibg[index];
                     Bitmap *bmp = gbg.Bmp.release();
-                    recreate_drawobj_bitmap(bmp, gbg.Ddb, gui.GetWidth(), gui.GetHeight(), gui.Rotation);
+                    recreate_drawobj_bitmap(bmp, gbg.Ddb, gui.GetWidth(), gui.GetHeight(), gui.GetRotation());
                     gbg.Bmp.reset(bmp);
                     Bitmap *guibg_final = gbg.Bmp.get();
                     Bitmap *draw_at = guibg_final;
                     // For software drawing, if GUI requires visual transformation,
                     // then we first draw normal GUI on a helper surface, then blit
                     // that surface to the final bitmap
-                    if (!is_3d_render && gui.Rotation != 0.f)
+                    if (!is_3d_render && gui.GetRotation() != 0.f)
                     {
                         guihelpbg[index].reset(
                             recycle_bitmap(guihelpbg[index].release(), game.GetColorDepth(), gui.GetWidth(), gui.GetHeight()));
@@ -2496,13 +2496,13 @@ void draw_gui_and_overlays()
                     if (draw_at != guibg_final)
                     {
                         guibg_final->ClearTransparent();
-                        if (gui.Rotation != 0.f)
+                        if (gui.GetRotation() != 0.f)
                         {
                             const int dst_w = guibg_final->GetWidth();
                             const int dst_h = guibg_final->GetHeight();
                             // (+ width%2 fixes one pixel offset problem)
                             guibg_final->RotateBlt(draw_at, dst_w / 2 + dst_w % 2, dst_h / 2,
-                                gui.GetWidth() / 2, gui.GetHeight() / 2, gui.Rotation); // clockwise
+                                gui.GetWidth() / 2, gui.GetHeight() / 2, gui.GetRotation()); // clockwise
                         }
                         else
                         {
@@ -2560,10 +2560,10 @@ void draw_gui_and_overlays()
                 gui_ddb = gui_render_tex[index];
             }
             gui_ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(gui.GetTransparency()));
-            gui_ddb->SetBlendMode(gui.BlendMode);
+            gui_ddb->SetBlendMode(gui.GetBlendMode());
             gui_ddb->SetOrigin(0.f, 0.f);
-            gui_ddb->SetStretch(gui.GetWidth() * gui.Scale.X, gui.GetHeight() * gui.Scale.Y);
-            gui_ddb->SetRotation(gui.Rotation);
+            gui_ddb->SetStretch(gui.GetWidth() * gui.GetScale().X, gui.GetHeight() * gui.GetScale().Y);
+            gui_ddb->SetRotation(gui.GetRotation());
             add_to_sprite_list(gui_ddb, gui.GetX(), gui.GetY(),
                 gui.GetGraphicSpace().AABB(), gui.GetZOrder(), guibg[index].DrawIndex);
         }

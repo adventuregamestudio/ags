@@ -137,6 +137,16 @@ public:
     void    SetPadding(int padding);
     int     GetTransparency() const { return _transparency; }
     void    SetTransparency(int trans);
+    // Sets GUI transparency as a percentage (0 - 100) where 100 = invisible
+    void    SetTransparencyAsPercentage(int percent);
+    BlendMode GetBlendMode() const { return _blendMode; }
+    void    SetBlendMode(BlendMode blend_mode);
+    Pointf  GetScale() const { return _scale; }
+    void    SetScale(const Pointf &scale) { SetScale(scale.X, scale.Y); }
+    void    SetScale(float sx, float sy);
+    float   GetRotation() const { return _rotation; }
+    // Sets GUI rotation, in degrees
+    void    SetRotation(float rotation);
     int     GetZOrder() const { return _zOrder; }
     void    SetZOrder(int zorder);
     const String &GetScriptModule() const { return _scriptModule; }
@@ -206,16 +216,9 @@ public:
     void    SetConceal(bool on);
     // Attempts to change control's zorder; returns if zorder changed
     bool    SetControlZOrder(int index, int zorder);
-    //
-    Pointf  GetScale() const;
-    //
-    void    SetScale(float sx, float sy);
-    // Sets GUI rotation, in degrees
-    void    SetRotation(float degrees);
     // Changes GUI style to the text window or back
     void    SetTextWindow(bool on);
-    // Sets GUI transparency as a percentage (0 - 100) where 100 = invisible
-    void    SetTransparencyAsPercentage(int percent);
+    
     // Sets whether GUI is allowed to be displayed on screen
     void    SetVisible(bool on);
     // Sets highlighted control index
@@ -238,11 +241,6 @@ public:
     void    ReadFromSavegame(Stream *in, GuiSvgVersion svg_version, std::vector<ControlRef> &ctrl_refs);
     void    WriteToSavegame(Stream *out) const;
     static void SkipSavestate(Stream *in, GuiSvgVersion svg_version, std::vector<ControlRef> *ctrl_refs);
-
-    // FIXME: move under private
-    BlendMode   BlendMode = kBlend_Normal; // render blend mode
-    Pointf      Scale = Pointf(1.f, 1.f);; // x,y scale
-    float       Rotation = 0.f;   // rotation, in degrees
 
 private:
     void    DrawBlob(Bitmap *ds, int x, int y, color_t draw_color);
@@ -271,6 +269,9 @@ private:
     GUIPopupStyle _popupStyle = kGUIPopupNormal; // GUI popup behavior
     int     _popupAtMouseY = -1; // popup when mousey < this
     int     _transparency = 0;  // "incorrect" alpha (in legacy 255-range units)
+    BlendMode _blendMode = kBlend_Normal; // render blend mode
+    Pointf  _scale = Pointf(1.f, 1.f);; // x,y scale
+    float   _rotation = 0.f;    // rotation, in degrees
     int     _zOrder = 0;
 
     int     _focusCtrl     = -1; // which control has the focus

@@ -408,15 +408,15 @@ void GUI_ProcessClick(int x, int y, int mbut)
 }
 
 int GUI_GetBlendMode(ScriptGUI *gui) {
-    return guis[gui->id].BlendMode;
+    return guis[gui->id].GetBlendMode();
 }
 
 void GUI_SetBlendMode(ScriptGUI *gui, int blend_mode) {
-    guis[gui->id].BlendMode = ValidateBlendMode("GUI.BlendMode", blend_mode);
+    guis[gui->id].SetBlendMode(ValidateBlendMode("GUI.BlendMode", blend_mode));
 }
 
 float GUI_GetRotation(ScriptGUI *gui) {
-    return guis[gui->id].Rotation;
+    return guis[gui->id].GetRotation();
 }
 
 void GUI_SetRotation(ScriptGUI *gui, float rotation) {

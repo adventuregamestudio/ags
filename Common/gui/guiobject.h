@@ -67,7 +67,11 @@ public:
     Rect            GetRect() const { return RectWH(_x, _y, _width, _height); }
     int             GetTransparency() const { return _transparency; }
     void            SetTransparency(int trans);
+    // Sets transparency as a legacy 255-unit value
+    // Sets transparency as a percentage (0 - 100) where 100 = invisible
+    void            SetTransparencyAsPercentage(int percent);
     BlendMode       GetBlendMode() const { return _blendMode; }
+    void            SetBlendMode(BlendMode blend_mode);
     int             GetZOrder() const { return _zOrder; }
     void            SetZOrder(int zorder);
     void            SetClickable(bool on);
@@ -92,10 +96,6 @@ public:
     // in *relative* coordinates, optionally clipped by the logical size
     virtual Rect    CalcGraphicRect(bool /*clipped*/) { return RectWH(0, 0, _width, _height); }
     virtual void    Draw(Bitmap *ds, int x = 0, int y = 0) { (void)ds; (void)x; (void)y; }
-    // Sets transparency as a legacy 255-unit value
-    // Sets transparency as a percentage (0 - 100) where 100 = invisible
-    void            SetTransparencyAsPercentage(int percent);
-    void            SetBlendMode(BlendMode blend_mode);
 
     // Events
     // Key pressed for control; returns if handled
@@ -146,8 +146,8 @@ protected:
     int      _width = 0;
     int      _height = 0;
     int      _transparency = 0; // "incorrect" alpha (in legacy 255-range units)
-    bool     _hasChanged = false;
     BlendMode _blendMode = kBlend_Normal;
+    bool     _hasChanged = false;
 
     // TODO: explicit event names & handlers for every event
     // FIXME: these must be static!! per type

@@ -757,7 +757,7 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
         // new gui properties
         for (size_t i = 0; i < _ents.Guis.size(); ++i)
         {
-            _ents.Guis[i].BlendMode = (BlendMode)_in->ReadInt32();
+            _ents.Guis[i].SetBlendMode((BlendMode)_in->ReadInt32());
             // Reserved for colour options
             _in->Seek(sizeof(int32_t) * 3); // flags + tint rgbs + light level
             // Reserved for transform options (see list in savegame format)

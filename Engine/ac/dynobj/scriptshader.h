@@ -17,17 +17,21 @@
 #include "ac/dynobj/cc_agsdynamicobject.h"
 #include "util/string.h"
 
-struct ScriptShaderProgram final : CCBasicObject
+class ScriptShaderInstance;
+
+class ScriptShaderProgram final : public CCBasicObject
 {
     using String = AGS::Common::String;
 public:
     const static uint32_t InvalidShader = -1;
 
-    ScriptShaderProgram(const String &name, uint32_t shader_id, int default_inst_ref);
+    ScriptShaderProgram(const String &name, uint32_t shader_id);
+    void SetDefaultShaderInstance(ScriptShaderInstance *shader_inst);
 
     const String &GetName() const { return _name; }
     uint32_t GetShaderID() const { return _shaderID; }
-    int GetDefaultInstanceRef() const { return _defaultInstanceRef; }
+    int GetDefaultInstanceHandle() const { return _defaultInstanceHandle; }
+    ScriptShaderInstance *GetDefaultInstance() const;
 
     const char *GetType() override;
     int Dispose(void *address, bool force) override;
@@ -35,19 +39,21 @@ public:
 private:
     String _name;
     uint32_t _shaderID = InvalidShader;
-    int _defaultInstanceRef = 0;
+    int _defaultInstanceHandle = 0;
+    mutable ScriptShaderInstance *_defaultInstance = nullptr;
 };
 
-struct ScriptShaderInstance final : CCBasicObject
+class ScriptShaderInstance final : public CCBasicObject
 {
     using String = AGS::Common::String;
 public:
     const static uint32_t InvalidShader = -1;
 
-    ScriptShaderInstance(const String &name, uint32_t shader_inst_id);
+    ScriptShaderInstance(ScriptShaderProgram *sc_shader, const String &name, uint32_t shader_inst_id);
 
     const String &GetName() const { return _name; }
     uint32_t GetShaderInstanceID() const { return _shaderInstID; }
+    ScriptShaderProgram *GetScriptShader() const;
 
     const char *GetType() override;
     int Dispose(void *address, bool force) override;
@@ -55,6 +61,8 @@ public:
 private:
     String _name;
     uint32_t _shaderInstID = InvalidShader;
+    int _shaderHandle = 0;
+    mutable ScriptShaderProgram *_scriptShader = nullptr;
 };
 
 #endif // __AGS_EE_DYNOBJ__SCRIPTSHADER_H

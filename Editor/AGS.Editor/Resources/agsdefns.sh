@@ -3341,6 +3341,8 @@ builtin managed struct ShaderInstance {
   import void SetConstantF3(const string name, float x, float y, float z);
   /// Sets a shader's constant value as 4 floats
   import void SetConstantF4(const string name, float x, float y, float z, float w);
+
+  import readonly attribute ShaderProgram* Shader;
 };
 #endif // SCRIPT_API_v400_18
 

@@ -2366,6 +2366,9 @@ IGraphicShader *D3DGraphicsDriver::GetShaderProgram(uint32_t shader_id)
 
 void D3DGraphicsDriver::DeleteShaderProgram(IGraphicShader *shader)
 {
+    assert(shader);
+    if (!shader)
+        return;
     assert(shader->GetID() < _shaders.size());
     if (shader->GetID() < _shaders.size())
     {
@@ -2407,6 +2410,9 @@ IShaderInstance *D3DGraphicsDriver::GetShaderInstance(uint32_t shader_inst_id)
 
 void D3DGraphicsDriver::DeleteShaderInstance(IShaderInstance *shader_inst)
 {
+    assert(shader_inst);
+    if (!shader_inst)
+        return;
     assert(shader_inst->GetID() < _shaderInst.size());
     if (shader_inst->GetID() < _shaderInst.size())
     {

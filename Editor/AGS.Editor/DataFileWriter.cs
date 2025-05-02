@@ -1473,8 +1473,6 @@ namespace AGS.Editor
                     flags |= NativeConstants.FFLG_SIZEMULTIPLIER;
                 if (game.Settings.TTFHeightDefinedBy == FontHeightDefinition.NominalHeight)
                     flags |= NativeConstants.FFLG_REPORTNOMINALHEIGHT;
-                if (font.TTFMetricsFixup == FontMetricsFixup.SetAscenderToHeight)
-                    flags |= NativeConstants.FFLG_ASCENDERFIXUP;
                 writer.Write(flags);
                 if ((flags & NativeConstants.FFLG_SIZEMULTIPLIER) == 0)
                     writer.Write(font.PointSize * font.SizeMultiplier);

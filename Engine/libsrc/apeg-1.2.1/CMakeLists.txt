@@ -39,7 +39,7 @@ target_sources(apeg
 target_compile_definitions(apeg PRIVATE DISABLE_MPEG_AUDIO)
 
 target_link_libraries(apeg PUBLIC
-        ${SDL2_LIBRARY} ${SDL2_LIBRARIES}
+        ${SDL2_LIBRARY}
         Allegro::Allegro
         ${OGG_LIBRARIES}
         ${VORBIS_LIBRARIES}

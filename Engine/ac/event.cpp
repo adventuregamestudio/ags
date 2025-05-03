@@ -140,9 +140,13 @@ void force_event(int evtyp,int ev1,int ev2,int ev3)
         setevent(evtyp, ev1, ev2, ev3);
 }
 
-void process_event(const EventHappened *evp) {
+void process_event(const EventHappened *evp)
+{
+    const int room_was = play.room_changes;
+
     RuntimeScriptValue rval_null;
-    if (evp->type==EV_TEXTSCRIPT) {
+    if (evp->type == EV_TEXTSCRIPT)
+    {
         cc_clear_error();
         RuntimeScriptValue params[2]{ evp->data2, evp->data3 };
         if (evp->data3 > -1000)
@@ -152,15 +156,18 @@ void process_event(const EventHappened *evp) {
         else
             QueueScriptFunction(kScInstGame, tsnames[evp->data1]);
     }
-    else if (evp->type==EV_NEWROOM) {
+    else if (evp->type == EV_NEWROOM)
+    {
         NewRoom(evp->data1);
     }
-    else if (evp->type==EV_RUNEVBLOCK) {
+    else if (evp->type == EV_RUNEVBLOCK)
+    {
         Interaction*evpt=nullptr;
         PInteractionScripts scriptPtr = nullptr;
         ObjectEvent obj_evt;
 
-        if (evp->data1==EVB_HOTSPOT) {
+        if (evp->data1 == EVB_HOTSPOT)
+        {
             const int hotspot_id = evp->data2;
             if (thisroom.Hotspots[hotspot_id].EventHandlers != nullptr)
                 scriptPtr = thisroom.Hotspots[hotspot_id].EventHandlers;
@@ -171,8 +178,8 @@ void process_event(const EventHappened *evp) {
                 RuntimeScriptValue().SetScriptObject(&scrHotspot[hotspot_id], &ccDynamicHotspot));
             //Debug::Printf("Running hotspot interaction for hotspot %d, event %d", evp->data2, evp->data3);
         }
-        else if (evp->data1==EVB_ROOM) {
-
+        else if (evp->data1 == EVB_ROOM)
+        {
             if (thisroom.EventHandlers != nullptr)
                 scriptPtr = thisroom.EventHandlers;
             else
@@ -180,15 +187,25 @@ void process_event(const EventHappened *evp) {
 
             obj_evt = ObjectEvent("room");
             if (evp->data3 == EVROM_BEFOREFADEIN) {
-                in_enters_screen ++;
+                in_enters_screen++;
                 run_on_event (GE_ENTER_ROOM, RuntimeScriptValue().SetInt32(displayed_room));
             } else if (evp->data3 == EVROM_AFTERFADEIN) {
                 run_on_event(GE_ENTER_ROOM_AFTERFADE, RuntimeScriptValue().SetInt32(displayed_room));
             }
             //Debug::Printf("Running room interaction, event %d", evp->data3);
         }
-        else {
+        else
+        {
             quit("process_event: RunEvBlock: unknown evb type");
+        }
+
+        // If the room was changed inside a on_event call above,
+        // then skip running further interaction scripts
+        if (room_was != play.room_changes)
+        {
+            if ((evp->data1 == EVB_ROOM) && (evp->data3 == EVROM_BEFOREFADEIN))
+                in_enters_screen--;
+            return;
         }
 
         assert(scriptPtr || evpt);
@@ -202,9 +219,10 @@ void process_event(const EventHappened *evp) {
         }
 
         if ((evp->data1 == EVB_ROOM) && (evp->data3 == EVROM_BEFOREFADEIN))
-            in_enters_screen --;
+            in_enters_screen--;
     }
-    else if (evp->type==EV_FADEIN) {
+    else if (evp->type == EV_FADEIN)
+    {
         debug_script_log("Transition-in in room %d", displayed_room);
         // if they change the transition type before the fadein, make
         // sure the screen doesn't freeze up
@@ -363,9 +381,14 @@ void process_event(const EventHappened *evp) {
             gfxDriver->DestroyDDB(ddb);
         }
     }
-    else if (evp->type==EV_IFACECLICK)
+    else if (evp->type == EV_IFACECLICK)
+    {
         process_interface_click(evp->data1, evp->data2, evp->data3);
-    else quit("process_event: unknown event to process");
+    }
+    else
+    {
+        quit("process_event: unknown event to process");
+    }
 }
 
 
@@ -393,7 +416,7 @@ void processallevents() {
     // TODO: need to redesign engine events system?
     std::vector<EventHappened> evtcopy = events;
 
-    int room_was = play.room_changes;
+    const int room_was = play.room_changes;
 
     inside_processevent++;
 

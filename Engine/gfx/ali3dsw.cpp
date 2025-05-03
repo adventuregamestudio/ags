@@ -864,6 +864,7 @@ void SDLRendererGraphicsDriver::__fade_from_range(PALETTE source, PALETTE dest, 
       sys_evt_process_pending();
       if (_pollingCallback)
           _pollingCallback();
+      WaitForNextFrame();
    }
 
    set_palette_range(dest, from, to, TRUE);

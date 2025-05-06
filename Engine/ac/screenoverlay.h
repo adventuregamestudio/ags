@@ -61,6 +61,7 @@ enum OverlaySvgVersion
     kOverSvgVersion_36108   = 4, // don't save owned sprites (use dynamic sprites)
     kOverSvgVersion_400     = 4000000, // blend mode, etc
     kOverSvgVersion_40005   = 4000005, // no magic values stored in x,y
+    kOverSvgVersion_40018   = 4000018, // shaders
 };
 
 // TODO: what if we actually register a real dynamic sprite for overlay?

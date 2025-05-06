@@ -49,9 +49,6 @@ struct ScriptCamera;
 struct ScriptOverlay;
 
 // GameState struct's runtime save format
-// This is a length limit for serialized field,
-// not actual api input argument
-#define PLAYMP3FILE_MAX_FILENAME_LEN 50
 enum GameStateSvgVersion
 {
     kGSSvgVersion_Initial   = 0,
@@ -65,6 +62,7 @@ enum GameStateSvgVersion
     kGSSvgVersion_400_08    = 4000008, // palette component range 64->256
     kGSSvgVersion_400_14    = 4000014, // 32-bit ARGB color properties
     kGSSvgVersion_400_17    = 4000017, // compat w kGSSvgVersion_363
+    kGSSvgVersion_400_18    = 4000018, // shaders
 };
 
 

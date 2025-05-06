@@ -224,6 +224,7 @@ target_sources(engine
     ac/screenoverlay.h
     ac/scriptcontainers.cpp
     ac/shader_script.cpp
+    ac/shader_script.h
     ac/slider.cpp
     ac/slider.h
     ac/speech.cpp

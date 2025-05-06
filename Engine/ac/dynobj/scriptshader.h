@@ -22,11 +22,12 @@
 
 class ScriptShaderInstance;
 
-class ScriptShaderProgram final : public CCBasicObject
+class ScriptShaderProgram final : public AGSCCDynamicObject
 {
     using String = AGS::Common::String;
 public:
     const static uint32_t NullShaderID = 0u;
+    static const char *TypeID;
 
     // Gets next free index for the script shader
     static uint32_t GetFreeIndex();
@@ -56,7 +57,12 @@ public:
     const char *GetType() override;
     int Dispose(void *address, bool force) override;
 
+    void Unserialize(int index, AGS::Common::Stream *in, size_t data_sz) override;
+
 private:
+    size_t CalcSerializeSize(const void *address) override;
+    void   Serialize(const void *address, AGS::Common::Stream *out) override;
+
     String _name;
     String _filename;
     uint32_t _id = NullShaderID;
@@ -82,11 +88,12 @@ private:
     static std::queue<uint32_t> _freeInstanceIndexes;
 };
 
-class ScriptShaderInstance final : public CCBasicObject
+class ScriptShaderInstance final : public AGSCCDynamicObject
 {
     using String = AGS::Common::String;
 public:
     const static uint32_t NullInstanceID = 0u;
+    static const char *TypeID;
 
     ScriptShaderInstance() = default;
     ScriptShaderInstance(ScriptShaderProgram *sc_shader);
@@ -113,7 +120,12 @@ public:
     const char *GetType() override;
     int Dispose(void *address, bool force) override;
 
+    void Unserialize(int index, AGS::Common::Stream *in, size_t data_sz) override;
+
 private:
+    size_t CalcSerializeSize(const void *address) override;
+    void   Serialize(const void *address, AGS::Common::Stream *out) override;
+
     String _name;
     uint32_t _id = NullInstanceID;
     int _shaderHandle = 0; // script shader handle

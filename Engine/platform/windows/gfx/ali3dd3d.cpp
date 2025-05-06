@@ -2417,6 +2417,14 @@ void D3DGraphicsDriver::SetScreenTint(int red, int green, int blue)
     _spriteList.push_back(D3DDrawListEntry(ddb, _actSpriteBatch, 0, 0));
 }
 
+void D3DGraphicsDriver::SetScreenShader(IShaderInstance *shinst)
+{
+    // TODO: expand this to not depend on whether we use a native-resolution surface or not;
+    // ideally this setup has to be done outside of gfx driver
+    if (_nativeSurface)
+        _nativeSurface->SetShader(shinst);
+}
+
 bool D3DGraphicsDriver::SetVsyncImpl(bool enabled, bool &vsync_res) 
 {
     d3dpp.PresentationInterval = enabled ? D3DPRESENT_INTERVAL_ONE : D3DPRESENT_INTERVAL_IMMEDIATE;

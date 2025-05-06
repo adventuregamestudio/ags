@@ -2435,6 +2435,13 @@ void OGLGraphicsDriver::SetScreenTint(int red, int green, int blue)
     _spriteList.push_back(OGLDrawListEntry(ddb, _actSpriteBatch, 0, 0));
 }
 
+void OGLGraphicsDriver::SetScreenShader(IShaderInstance *shinst)
+{
+    // TODO: expand this to not depend on whether we use a native-resolution surface or not;
+    // ideally this setup has to be done outside of gfx driver
+    if (_nativeSurface)
+        _nativeSurface->SetShader(shinst);
+}
 
 bool OGLGraphicsDriver::SetVsyncImpl(bool enabled, bool &vsync_res)
 {

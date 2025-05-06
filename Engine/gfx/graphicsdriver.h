@@ -348,6 +348,8 @@ public:
     // Adds tint overlay fx to the active batch
     // TODO: redesign this to allow various post-fx per sprite batch?
     virtual void SetScreenTint(int red, int green, int blue) = 0;
+    // Sets a shader to be applied to the whole screen as a post fx
+    virtual void SetScreenShader(IShaderInstance *shinst) = 0;
     // Sets stage screen parameters for the current batch.
     // Currently includes size and optional position offset;
     // the position is relative, as stage screens are using sprite batch transforms.

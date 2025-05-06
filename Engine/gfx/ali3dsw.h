@@ -329,6 +329,8 @@ public:
     void SetScreenFade(int red, int green, int blue) override;
     // Adds tint overlay fx to the active batch
     void SetScreenTint(int red, int green, int blue) override;
+    // Sets a shader to be applied to the whole screen as a post fx
+    void SetScreenShader(IShaderInstance *shinst) override { /*do nothing*/ }
     // Sets stage screen parameters for the current batch.
     void SetStageScreen(const Size &sz, int x = 0, int y = 0) override;
     // Redraw last draw lists, optionally filtering specific batches

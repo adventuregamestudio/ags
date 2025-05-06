@@ -371,6 +371,10 @@ struct GamePlayState
     // because script interpreter does this when acquiring managed pointer.
     ScriptCamera *GetScriptCamera(int index);
 
+    int GetScreenShaderID() const { return _screenShaderID; }
+    int GetScreenShaderHandle() const { return _screenShaderHandle; }
+    void SetScreenShader(int shader_id, int shader_handle);
+
     // Tells if engine should apply AA (linear) scaling to the game sprites
     bool ShouldAASprites() const { return enable_antialiasing && (disable_antialiasing == 0); }
 
@@ -441,6 +445,8 @@ private:
     // could address them and invalidate as the actual object gets destroyed.
     std::vector<int32_t> _scViewportHandles;
     std::vector<int32_t> _scCameraHandles;
+    int _screenShaderID = 0;
+    int _screenShaderHandle = 0;
 
     // Tells that the main viewport's position has changed since last game update
     bool  _mainViewportHasChanged = false;

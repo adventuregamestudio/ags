@@ -427,6 +427,8 @@ public:
     // Adds tint overlay fx to the active batch
     // TODO: redesign this to allow various post-fx per sprite batch?
     void SetScreenTint(int red, int green, int blue) override;
+    // Sets a shader to be applied to the whole screen as a post fx
+    void SetScreenShader(IShaderInstance *shinst) override;
     // Redraw saved draw lists, optionally filtering specific batches
     void RedrawLastFrame(uint32_t batch_skip_filter) override;
 

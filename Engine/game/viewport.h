@@ -65,6 +65,10 @@ public:
     float GetRotation() const;
     // Sets camera's rotation, in degrees
     void SetRotation(float degrees);
+    int GetShaderID() const { return _shaderID; }
+    int GetShaderHandle() const { return _shaderHandle; }
+    void SetShader(int shader_id, int shader_handle) { _shaderID = shader_id; _shaderHandle = shader_handle; }
+
     // Tells if camera is currently locked at custom position
     bool IsLocked() const;
     // Locks room camera at its current position
@@ -99,6 +103,8 @@ private:
     Rect _position;
     // Rotation in degrees
     float _rotation = 0.0;
+    int _shaderID = 0;
+    int _shaderHandle = 0;
     // Locked or following player automatically
     bool _locked = false;
     // Linked viewport refs, used to notify viewports of camera changes

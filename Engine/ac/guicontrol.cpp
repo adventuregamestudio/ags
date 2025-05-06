@@ -276,7 +276,7 @@ void GUIControl_SetShader(GUIObject *guio, ScriptShaderInstance *shader_inst)
         ccReleaseObjectReference(guio->GetShaderHandle());
 
     ccAddObjectReference(new_inst_ref);
-    guio->SetShader(shader_inst->GetID(), new_inst_ref);
+    guio->SetShader(shader_inst ? shader_inst->GetID() : ScriptShaderInstance::NullInstanceID, new_inst_ref);
 }
 
 //=============================================================================

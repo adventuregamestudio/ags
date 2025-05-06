@@ -20,8 +20,10 @@
 #include "ac/global_screen.h"
 #include "ac/screen.h"
 #include "ac/sys_events.h"
+#include "ac/dynobj/scriptshader.h"
 #include "ac/dynobj/scriptviewport.h"
 #include "ac/dynobj/scriptuserobject.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "debug/debug_log.h"
 #include "main/game_run.h"
 #include "script/script_runtime.h"
@@ -818,6 +820,24 @@ ScriptViewport* Screen_GetAnyViewport(int index)
     return play.GetScriptViewport(index);
 }
 
+ScriptShaderInstance *Screen_GetShader()
+{
+    return static_cast<ScriptShaderInstance*>(ccGetObjectAddressFromHandle(
+        play.GetScreenShaderHandle()));
+}
+
+void Screen_SetShader(ScriptShaderInstance *shader_inst)
+{
+    // TODO: we need some sort of a RAII wrapper around managed object reference that does all this automatically!
+    const int new_inst_ref = ccGetObjectHandleFromAddress(shader_inst);
+
+    if (play.GetScreenShaderHandle() > 0)
+        ccReleaseObjectReference(play.GetScreenShaderHandle());
+
+    ccAddObjectReference(new_inst_ref);
+    play.SetScreenShader(shader_inst->GetID(), new_inst_ref);
+}
+
 ScriptUserObject* Screen_ScreenToRoomPoint(int scrx, int scry, bool restrict)
 {
     VpPoint vpt = play.ScreenToRoom(scrx, scry, restrict);
@@ -872,6 +892,16 @@ RuntimeScriptValue Sc_Screen_GetAnyViewport(const RuntimeScriptValue *params, in
     API_SCALL_OBJAUTO_PINT(ScriptViewport, Screen_GetAnyViewport);
 }
 
+RuntimeScriptValue Sc_Screen_GetShader(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO(ScriptShaderInstance, Screen_GetShader);
+}
+
+RuntimeScriptValue Sc_Screen_SetShader(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_POBJ(Screen_SetShader, ScriptShaderInstance);
+}
+
 RuntimeScriptValue Sc_Screen_ScreenToRoomPoint2(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_OBJAUTO_PINT2(ScriptUserObject, Screen_ScreenToRoomPoint2);
@@ -897,6 +927,8 @@ void RegisterScreenAPI()
         { "Screen::get_Viewport",           API_FN_PAIR(Screen_GetViewport) },
         { "Screen::get_ViewportCount",      API_FN_PAIR(Screen_GetViewportCount) },
         { "Screen::geti_Viewports",         API_FN_PAIR(Screen_GetAnyViewport) },
+        { "Screen::get_Shader",             API_FN_PAIR(Screen_GetShader) },
+        { "Screen::set_Shader",             API_FN_PAIR(Screen_SetShader) },
         { "Screen::ScreenToRoomPoint^2",    API_FN_PAIR(Screen_ScreenToRoomPoint2) },
         { "Screen::ScreenToRoomPoint^3",    API_FN_PAIR(Screen_ScreenToRoomPoint) },
         { "Screen::RoomToScreenPoint",      API_FN_PAIR(Screen_RoomToScreenPoint) },

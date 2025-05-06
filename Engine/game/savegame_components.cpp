@@ -269,9 +269,9 @@ void WriteCameraState(const Camera &cam, Stream *out)
     out->WriteInt32(rc.GetWidth());
     out->WriteInt32(rc.GetHeight());
     // kGSSvgVersion_400_18
-    out->WriteInt32(0); // reserved for camera shader
-    out->WriteInt32(0);
-    out->WriteInt32(0);
+    out->WriteInt32(cam.GetShaderID());
+    out->WriteInt32(cam.GetShaderHandle());
+    out->WriteInt32(0); // reserved
     out->WriteInt32(0);
 }
 
@@ -344,9 +344,9 @@ void ReadCameraState(GameStateSvgVersion svg_ver, RestoredData &r_data, Stream *
     cam.Height = in->ReadInt32();
     if (svg_ver >= kGSSvgVersion_400_18)
     {
-        in->ReadInt32(); // reserved for camera shaders
-        in->ReadInt32();
-        in->ReadInt32();
+        cam.ShaderID = in->ReadInt32();
+        cam.ShaderHandle = in->ReadInt32();
+        in->ReadInt32(); // reserved
         in->ReadInt32();
     }
     r_data.Cameras.push_back(cam);

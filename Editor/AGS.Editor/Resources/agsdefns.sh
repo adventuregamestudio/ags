@@ -3022,6 +3022,10 @@ builtin managed struct Camera {
   /// Gets/sets the camera rotation in degrees.
   import attribute float Rotation;
 #endif // SCRIPT_API_v399
+#ifdef SCRIPT_API_v400_18
+  /// Gets/sets the shader of this camera.
+  import attribute ShaderInstance* Shader;
+#endif // SCRIPT_API_v400_18
 
   /// Gets/sets whether this camera will follow the player character automatically.
   import attribute bool AutoTracking;
@@ -3084,6 +3088,10 @@ builtin struct Screen {
   import static readonly attribute Viewport *Viewports[];
   /// Gets the number of viewports.
   import static readonly attribute int ViewportCount;
+#ifdef SCRIPT_API_v400_18
+  /// Gets/sets the shader applied to the whole game screen.
+  import static attribute ShaderInstance* Shader;
+#endif // SCRIPT_API_v400_18
 
 #ifdef SCRIPT_API_v36026
   /// Returns the point in room which is displayed at the given screen coordinates.

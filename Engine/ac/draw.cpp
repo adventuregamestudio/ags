@@ -411,7 +411,10 @@ bool current_background_is_dirty = false;
 // Hardware and software modes use different members of this struct
 struct RoomCameraDrawData
 {
+    // TODO: separate camera render target, have 1 per camera, not 1 per view/cam pair
     IDriverDependantBitmap *CamRenderTarget = nullptr;
+    IDriverDependantBitmap *ViewRenderTarget = nullptr;
+
     // Intermediate bitmap for the software drawing method.
     // We use this bitmap in case room camera has scaling enabled, we draw dirty room rects on it,
     // and then pass to software renderer which draws sprite on top and then either blits or stretch-blits
@@ -429,6 +432,8 @@ RoomCameraDrawData::~RoomCameraDrawData()
 {
     if (CamRenderTarget)
         gfxDriver->DestroyDDB(CamRenderTarget);
+    if (ViewRenderTarget)
+        gfxDriver->DestroyDDB(ViewRenderTarget);
 }
 
 std::vector<RoomCameraDrawData> CameraDrawData;
@@ -775,6 +780,9 @@ void release_drawobj_rendertargets()
         if (camdata.CamRenderTarget)
             gfxDriver->DestroyDDB(camdata.CamRenderTarget);
         camdata.CamRenderTarget = nullptr;
+        if (camdata.ViewRenderTarget)
+            gfxDriver->DestroyDDB(camdata.ViewRenderTarget);
+        camdata.ViewRenderTarget = nullptr;
     }
     for (auto &tex : gui_render_tex)
     {
@@ -2366,7 +2374,7 @@ void draw_preroom_background()
 // ds and roomcam_surface may be the same bitmap.
 // no_transform flag tells to copy dirty regions on roomcam_surface without any coordinate conversion
 // whatsoever.
-PBitmap draw_room_background(Viewport *view)
+static PBitmap draw_room_background(const Viewport *view)
 {
     set_our_eip(31);
 
@@ -2721,7 +2729,117 @@ void GfxDriverOnInitCallback(void *data)
 }
 
 // WARNING: rendering rooms as textures currently prevents "render sprites at screen resolution"
-#define RENDER_ROOMS_AS_TEXTURES (1)
+//#define RENDER_ROOMS_AS_TEXTURES (1)
+
+// Renders room viewport: hardware gfx driver version
+static void construct_roomview_hw(const Viewport *viewport)
+{
+    assert(viewport->GetID() < CameraDrawData.size());
+    Camera *camera = viewport->GetCamera().get();
+    const Rect &view_rc = viewport->GetRect();
+    const Rect &cam_rc = camera->GetRect();
+
+    // TODO: streamline this render switch, will need some modification in gfx drivers
+    const bool render_room_as_texture =
+        viewport->GetShaderID() > 0 || camera->GetShaderID() > 0;
+
+    if (render_room_as_texture)
+    {
+        const SpriteTransform cam_trans(-cam_rc.Left, -cam_rc.Top, 1.f, 1.f,
+                                        camera->GetRotation(), Point(cam_rc.GetWidth() / 2, cam_rc.GetHeight() / 2));
+
+        auto &cam_data = CameraDrawData[viewport->GetID()];
+        cam_data.CamRenderTarget = recycle_render_target(cam_data.CamRenderTarget,
+            cam_rc.GetWidth(), cam_rc.GetHeight(), game.GetColorDepth());
+        gfxDriver->BeginSpriteBatch(cam_data.CamRenderTarget, Rect(), cam_trans, kFlip_None, RENDER_BATCH_ROOM_LAYER);
+        gfxDriver->SetStageScreen(cam_rc.GetSize(), cam_rc.Left, cam_rc.Top);
+        // Put all the accumulated room sprites onto the viewport texture
+        put_sprite_list_on_screen(true);
+        gfxDriver->EndSpriteBatch();
+
+        IDriverDependantBitmap *final_cam_ddb = cam_data.CamRenderTarget;
+        int final_shader = viewport->GetShaderID() > 0 ? viewport->GetShaderID() : camera->GetShaderID();
+
+        // Optional camera post-fx, done if both viewport's and camera's shaders are set
+        if (viewport->GetShaderID() > 0 && camera->GetShaderID() > 0)
+        {
+            cam_data.ViewRenderTarget = recycle_render_target(cam_data.ViewRenderTarget,
+                cam_rc.GetWidth(), cam_rc.GetHeight(), game.GetColorDepth());
+            gfxDriver->BeginSpriteBatch(cam_data.ViewRenderTarget, Rect(), SpriteTransform(), kFlip_None, RENDER_BATCH_ROOM_LAYER);
+            cam_data.CamRenderTarget->SetStretch(cam_rc.GetWidth(), cam_rc.GetHeight());
+            cam_data.CamRenderTarget->SetShader(shaderInstances[camera->GetShaderID()]);
+            gfxDriver->DrawSprite(0, 0, cam_data.CamRenderTarget);
+            gfxDriver->EndSpriteBatch();
+
+            final_cam_ddb = cam_data.ViewRenderTarget;
+        }
+
+        // Now render the camera texture itself, scaling to the viewport size,
+        // and using final shader (either viewport's or camera's, depending on which shaders are set).
+        final_cam_ddb->SetStretch(view_rc.GetWidth(), view_rc.GetHeight());
+        final_cam_ddb->SetShader(shaderInstances[final_shader]);
+        gfxDriver->DrawSprite(view_rc.Left, view_rc.Top, final_cam_ddb);
+    }
+    else
+    {
+        const Rect view_p = view_rc;
+        const float view_sx = (float)view_rc.GetWidth() / (float)cam_rc.GetWidth();
+        const float view_sy = (float)view_rc.GetHeight() / (float)cam_rc.GetHeight();
+        const SpriteTransform view_trans(view_rc.Left, view_rc.Top, view_sx, view_sy);
+        const SpriteTransform cam_trans(-cam_rc.Left, -cam_rc.Top, 1.f, 1.f,
+                                        camera->GetRotation(), Point(cam_rc.GetWidth() / 2, cam_rc.GetHeight() / 2));
+
+        gfxDriver->BeginSpriteBatch(view_rc, view_trans, RENDER_BATCH_ROOM_LAYER);
+        gfxDriver->BeginSpriteBatch(Rect(), cam_trans);
+        gfxDriver->SetStageScreen(cam_rc.GetSize(), cam_rc.Left, cam_rc.Top);
+        put_sprite_list_on_screen(true);
+        gfxDriver->EndSpriteBatch();
+        gfxDriver->EndSpriteBatch();
+    }
+}
+
+// Renders room viewport: software gfx driver version
+static void construct_roomview_sw(const Viewport *viewport)
+{
+    assert(viewport->GetID() < CameraDrawData.size());
+    Camera *camera = viewport->GetCamera().get();
+    const Rect &view_rc = viewport->GetRect();
+    const Rect &cam_rc = camera->GetRect();
+
+    const Rect view_p = view_rc;
+    const float view_sx = (float)view_rc.GetWidth() / (float)cam_rc.GetWidth();
+    const float view_sy = (float)view_rc.GetHeight() / (float)cam_rc.GetHeight();
+    const SpriteTransform view_trans(view_rc.Left, view_rc.Top, view_sx, view_sy);
+    const SpriteTransform cam_trans(-cam_rc.Left, -cam_rc.Top, 1.f, 1.f,
+                                    camera->GetRotation(), Point(cam_rc.GetWidth() / 2, cam_rc.GetHeight() / 2));
+
+    // For software renderer - combine viewport and camera in one batch,
+    // due to how the room drawing is implemented currently in the software mode.
+    // TODO: review this later?
+    gfxDriver->BeginSpriteBatch(view_p, view_trans, RENDER_BATCH_ROOM_LAYER);
+
+    if (CameraDrawData[viewport->GetID()].Frame == nullptr && CameraDrawData[viewport->GetID()].IsOverlap)
+    { // room background is prepended to the sprite stack
+      // TODO: here's why we have blit whole piece of background now:
+      // if we draw directly to the virtual screen overlapping another
+      // viewport, then we'd have to also mark and repaint every our
+      // region located directly over their dirty regions. That would
+      // require to update regions up the stack, converting their
+      // coordinates (cam1 -> screen -> cam2).
+      // It's not clear whether this is worth the effort, but if it is,
+      // then we'd need to optimise view/cam data first.
+        gfxDriver->BeginSpriteBatch(Rect(), cam_trans);
+        gfxDriver->DrawSprite(0, 0, roomBackgroundBmp);
+    }
+    else
+    { // room background is drawn by dirty rects system
+        PBitmap bg_surface = draw_room_background(viewport);
+        gfxDriver->BeginSpriteBatch(Rect(), cam_trans, kFlip_None, bg_surface);
+    }
+    put_sprite_list_on_screen(true);
+    gfxDriver->EndSpriteBatch();
+    gfxDriver->EndSpriteBatch();
+}
 
 // Schedule room rendering: background, objects, characters
 static void construct_room_view()
@@ -2735,84 +2853,16 @@ static void construct_room_view()
     {
         if (!viewport->IsVisible())
             continue;
-        auto camera = viewport->GetCamera();
-        if (!camera)
+        if (!viewport->GetCamera())
             continue;
-
-        assert(viewport->GetID() < CameraDrawData.size());
-        const Rect &view_rc = viewport->GetRect();
-        const Rect &cam_rc = camera->GetRect();
 
         if (drawstate.FullFrameRedraw)
         {
-#if (RENDER_ROOMS_AS_TEXTURES)
-            const SpriteTransform cam_trans(-cam_rc.Left, -cam_rc.Top, 1.f, 1.f,
-                camera->GetRotation(), Point(cam_rc.GetWidth() / 2, cam_rc.GetHeight() / 2));
-
-            auto &cam_data = CameraDrawData[viewport->GetID()];
-            cam_data.CamRenderTarget = recycle_render_target(cam_data.CamRenderTarget,
-                cam_rc.GetWidth(), cam_rc.GetHeight(), game.GetColorDepth());
-            gfxDriver->BeginSpriteBatch(cam_data.CamRenderTarget, Rect(), cam_trans, kFlip_None, RENDER_BATCH_ROOM_LAYER);
-            gfxDriver->SetStageScreen(cam_rc.GetSize(), cam_rc.Left, cam_rc.Top);
-            // Put all the accumulated room sprites onto the viewport texture
-            put_sprite_list_on_screen(true);
-            gfxDriver->EndSpriteBatch();
-
-            // Now render the camera texture itself, scaling to the viewport size
-            cam_data.CamRenderTarget->SetStretch(view_rc.GetWidth(), view_rc.GetHeight());
-            cam_data.CamRenderTarget->SetShader(shaderInstances[viewport->GetShaderID()]);
-            gfxDriver->DrawSprite(view_rc.Left, view_rc.Top, cam_data.CamRenderTarget);
-#else   // !RENDER_ROOMS_AS_TEXTURES
-            const Rect view_p = view_rc;
-            const float view_sx = (float)view_rc.GetWidth() / (float)cam_rc.GetWidth();
-            const float view_sy = (float)view_rc.GetHeight() / (float)cam_rc.GetHeight();
-            const SpriteTransform view_trans(view_rc.Left, view_rc.Top, view_sx, view_sy);
-            const SpriteTransform cam_trans(-cam_rc.Left, -cam_rc.Top, 1.f, 1.f,
-                                            camera->GetRotation(), Point(cam_rc.GetWidth() / 2, cam_rc.GetHeight() / 2));
-
-            gfxDriver->BeginSpriteBatch(view_rc, view_trans, RENDER_BATCH_ROOM_LAYER);
-            gfxDriver->BeginSpriteBatch(Rect(), cam_trans);
-            gfxDriver->SetStageScreen(cam_rc.GetSize(), cam_rc.Left, cam_rc.Top);
-            put_sprite_list_on_screen(true);
-            gfxDriver->EndSpriteBatch();
-            gfxDriver->EndSpriteBatch();
-#endif // RENDER_ROOMS_AS_TEXTURES
+            construct_roomview_hw(viewport.get());
         }
         else
         {
-            const Rect view_p = view_rc;
-            const float view_sx = (float)view_rc.GetWidth() / (float)cam_rc.GetWidth();
-            const float view_sy = (float)view_rc.GetHeight() / (float)cam_rc.GetHeight();
-            const SpriteTransform view_trans(view_rc.Left, view_rc.Top, view_sx, view_sy);
-            const SpriteTransform cam_trans(-cam_rc.Left, -cam_rc.Top, 1.f, 1.f,
-                camera->GetRotation(), Point(cam_rc.GetWidth() / 2, cam_rc.GetHeight() / 2));
-
-            // For software renderer - combine viewport and camera in one batch,
-            // due to how the room drawing is implemented currently in the software mode.
-            // TODO: review this later?
-            gfxDriver->BeginSpriteBatch(view_p, view_trans, RENDER_BATCH_ROOM_LAYER);
-
-            if (CameraDrawData[viewport->GetID()].Frame == nullptr && CameraDrawData[viewport->GetID()].IsOverlap)
-            { // room background is prepended to the sprite stack
-              // TODO: here's why we have blit whole piece of background now:
-              // if we draw directly to the virtual screen overlapping another
-              // viewport, then we'd have to also mark and repaint every our
-              // region located directly over their dirty regions. That would
-              // require to update regions up the stack, converting their
-              // coordinates (cam1 -> screen -> cam2).
-              // It's not clear whether this is worth the effort, but if it is,
-              // then we'd need to optimise view/cam data first.
-                gfxDriver->BeginSpriteBatch(Rect(), cam_trans);
-                gfxDriver->DrawSprite(0, 0, roomBackgroundBmp);
-            }
-            else
-            { // room background is drawn by dirty rects system
-                PBitmap bg_surface = draw_room_background(viewport.get());
-                gfxDriver->BeginSpriteBatch(Rect(), cam_trans, kFlip_None, bg_surface);
-            }
-            put_sprite_list_on_screen(true);
-            gfxDriver->EndSpriteBatch();
-            gfxDriver->EndSpriteBatch();
+            construct_roomview_sw(viewport.get());
         }
     }
 
@@ -2964,6 +3014,8 @@ void construct_game_scene(bool full_redraw)
 
     // End the parent scene node
     gfxDriver->EndSpriteBatch();
+
+    gfxDriver->SetScreenShader(shaderInstances[play.GetScreenShaderID()]);
 }
 
 void construct_game_screen_overlay(bool draw_mouse)

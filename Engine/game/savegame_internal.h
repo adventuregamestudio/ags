@@ -215,7 +215,7 @@ struct RestoredData
         int Height = 0;
         int ZOrder = 0;
         int CamID = -1;
-        int ShaderID = -1;
+        int ShaderID = 0;
         int ShaderHandle = 0;
     };
     struct CameraData
@@ -226,6 +226,8 @@ struct RestoredData
         int Top = 0;
         int Width = 0;
         int Height = 0;
+        int ShaderID = 0;
+        int ShaderHandle = 0;
     };
     std::vector<ViewportData> Viewports;
     std::vector<CameraData> Cameras;

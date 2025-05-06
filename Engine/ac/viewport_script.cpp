@@ -141,6 +141,29 @@ void Camera_SetSize(ScriptCamera *scam, int width, int height)
     play.GetRoomCamera(scam->GetID())->SetSize(Size(width, height));
 }
 
+ScriptShaderInstance *Camera_GetShader(ScriptCamera *scam)
+{
+    if (scam->GetID() < 0) { debug_script_warn("Camera.Shader: trying to use deleted camera"); return 0; }
+    return static_cast<ScriptShaderInstance *>(ccGetObjectAddressFromHandle(
+        play.GetRoomCamera(scam->GetID())->GetShaderHandle()));
+}
+
+void Camera_SetShader(ScriptCamera *scam, ScriptShaderInstance *shader_inst)
+{
+    if (scam->GetID() < 0) { debug_script_warn("Camera.Shader: trying to use deleted camera"); return; }
+    // TODO: we need some sort of a RAII wrapper around managed object reference that does all this automatically!
+    const int new_inst_ref = ccGetObjectHandleFromAddress(shader_inst);
+    auto cam = play.GetRoomCamera(scam->GetID());
+    if (cam->GetShaderHandle() == new_inst_ref)
+        return;
+
+    if (cam->GetShaderHandle() > 0)
+        ccReleaseObjectReference(cam->GetShaderHandle());
+
+    ccAddObjectReference(new_inst_ref);
+    cam->SetShader(shader_inst->GetID(), new_inst_ref);
+}
+
 RuntimeScriptValue Sc_Camera_Create(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_OBJAUTO(ScriptCamera, Camera_Create);
@@ -219,6 +242,16 @@ RuntimeScriptValue Sc_Camera_SetAt(void *self, const RuntimeScriptValue *params,
 RuntimeScriptValue Sc_Camera_SetSize(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT2(ScriptCamera, Camera_SetSize);
+}
+
+RuntimeScriptValue Sc_Camera_GetShader(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJAUTO(ScriptCamera, ScriptShaderInstance, Camera_GetShader);
+}
+
+RuntimeScriptValue Sc_Camera_SetShader(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_POBJ(ScriptCamera, Camera_SetShader, ScriptShaderInstance);
 }
 
 
@@ -536,6 +569,8 @@ void RegisterViewportAPI()
         { "Camera::set_AutoTracking",   API_FN_PAIR(Camera_SetAutoTracking) },
         { "Camera::SetAt",              API_FN_PAIR(Camera_SetAt) },
         { "Camera::SetSize",            API_FN_PAIR(Camera_SetSize) },
+        { "Camera::get_Shader",         API_FN_PAIR(Camera_GetShader) },
+        { "Camera::set_Shader",         API_FN_PAIR(Camera_SetShader) },
     };
 
     ccAddExternalFunctions(camera_api);
@@ -557,13 +592,12 @@ void RegisterViewportAPI()
         { "Viewport::set_Visible",      API_FN_PAIR(Viewport_SetVisible) },
         { "Viewport::get_ZOrder",       API_FN_PAIR(Viewport_GetZOrder) },
         { "Viewport::set_ZOrder",       API_FN_PAIR(Viewport_SetZOrder) },
+        { "Viewport::get_Shader",       API_FN_PAIR(Viewport_GetShader) },
+        { "Viewport::set_Shader",       API_FN_PAIR(Viewport_SetShader) },
         { "Viewport::GetAtScreenXY",    API_FN_PAIR(Viewport_GetAtScreenXY) },
         { "Viewport::SetPosition",      API_FN_PAIR(Viewport_SetPosition) },
         { "Viewport::ScreenToRoomPoint", API_FN_PAIR(Viewport_ScreenToRoomPoint) },
         { "Viewport::RoomToScreenPoint", API_FN_PAIR(Viewport_RoomToScreenPoint) },
-
-        { "Viewport::get_Shader",       API_FN_PAIR(Viewport_GetShader) },
-        { "Viewport::set_Shader",       API_FN_PAIR(Viewport_SetShader) },
     };
 
     ccAddExternalFunctions(viewport_api);

@@ -370,7 +370,7 @@ void Viewport_SetShader(ScriptViewport *scv, ScriptShaderInstance *shader_inst)
         ccReleaseObjectReference(view->GetShaderHandle());
 
     ccAddObjectReference(new_inst_ref);
-    view->SetShader(shader_inst->GetShaderInstanceID(), new_inst_ref);
+    view->SetShader(shader_inst->GetID(), new_inst_ref);
 }
 
 ScriptViewport* Viewport_GetAtScreenXY(int x, int y)

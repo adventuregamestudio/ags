@@ -328,7 +328,7 @@ void Overlay_SetShader(ScriptOverlay *scover, ScriptShaderInstance *shader_inst)
         ccReleaseObjectReference(over->GetShaderHandle());
 
     ccAddObjectReference(new_inst_ref);
-    over->SetShader(shader_inst->GetShaderInstanceID(), new_inst_ref);
+    over->SetShader(shader_inst->GetID(), new_inst_ref);
 }
 
 int Overlay_GetTransparency(ScriptOverlay *scover)

@@ -162,7 +162,7 @@ private:
     int _flags = 0; // OverlayFlags
     int _sprnum = 0; // sprite id
     Common::SpriteTransformFlags _spritetf = Common::kSprTf_None;
-    int _shaderID = -1;
+    int _shaderID = 0;
     int _shaderHandle = 0;
     bool _hasChanged = false;
 };

@@ -17,6 +17,7 @@
 //=============================================================================
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/dynobj/scriptshader.h"
+#include "ac/draw.h"
 #include "ac/path_helper.h"
 #include "gfx/graphicsdriver.h"
 #include "script/script_api.h"
@@ -47,7 +48,7 @@ void LoadShaderDefinition(const String &filename, ShaderDefinition &def)
     }
 }
 
-IGraphicShader *TryCreateShaderPrecompiled(const String &filename, const String &def_filename)
+IGraphicShader *TryCreateShaderPrecompiled(const String &name, const String &filename, const String &def_filename)
 {
     auto stream = ResolveScriptPathAndOpen(filename, kFile_Open, kStream_Read);
     if (!stream)
@@ -62,10 +63,10 @@ IGraphicShader *TryCreateShaderPrecompiled(const String &filename, const String 
     if (!def_filename.IsEmpty())
         LoadShaderDefinition(def_filename, def);
 
-    return gfxDriver->CreateShaderProgram(filename, data, &def);
+    return gfxDriver->CreateShaderProgram(name, data, &def);
 }
 
-IGraphicShader *TryCreateShaderFromSource(const String &filename, const String &def_filename)
+IGraphicShader *TryCreateShaderFromSource(const String &name, const String &filename, const String &def_filename)
 {
     auto stream = ResolveScriptPathAndOpen(filename, kFile_Open, kStream_Read);
     if (!stream)
@@ -79,50 +80,52 @@ IGraphicShader *TryCreateShaderFromSource(const String &filename, const String &
     if (!def_filename.IsEmpty())
         LoadShaderDefinition(def_filename, def);
 
-    return gfxDriver->CreateShaderProgram(filename, shader_src.GetCStr(), &def);
+    return gfxDriver->CreateShaderProgram(name, shader_src.GetCStr(), &def);
 }
 
-ScriptShaderProgram *CreateScriptShaderProgram(const char *filename)
+IGraphicShader *CreateShaderProgram(const String &name, const String &filename)
 {
     // Software renderer does not support shaders, so return a dummy shader program
     if (!gfxDriver->HasAcceleratedTransform())
     {
-        return new ScriptShaderProgram(filename, ScriptShaderProgram::InvalidShader);
+        return nullptr;
     }
 
     const String precompiled_ext = gfxDriver->GetShaderPrecompiledExtension();
     const String source_ext = gfxDriver->GetShaderSourceExtension();
     const String definition_ext = gfxDriver->GetShaderDefinitionExtension();
 
-    IGraphicShader *shader = nullptr;
     const String file_ext = Path::GetFileExtension(filename);
     const String def_filename = Path::ReplaceExtension(filename, definition_ext);
     if (file_ext == precompiled_ext)
     {
-        shader = TryCreateShaderPrecompiled(filename, def_filename);
+        return TryCreateShaderPrecompiled(name, filename, def_filename);
     }
     else if (file_ext == source_ext)
     {
-        shader = TryCreateShaderFromSource(filename, def_filename);
+        return TryCreateShaderFromSource(name, filename, def_filename);
     }
     else
     {
+        IGraphicShader *shader = nullptr;
         if (!precompiled_ext.IsEmpty())
-            shader = TryCreateShaderPrecompiled(Path::ReplaceExtension(filename, precompiled_ext), def_filename);
+            shader = TryCreateShaderPrecompiled(name, Path::ReplaceExtension(filename, precompiled_ext), def_filename);
         if (!shader && !source_ext.IsEmpty())
-            shader = TryCreateShaderFromSource(Path::ReplaceExtension(filename, source_ext), def_filename);
-    }
-
-    if (shader)
-    {
-        return new ScriptShaderProgram(filename, shader->GetID());
-    }
-    else
-    {
-        // Create a dummy invalid shader object
-        return new ScriptShaderProgram(filename, ScriptShaderProgram::InvalidShader);
+            shader = TryCreateShaderFromSource(name, Path::ReplaceExtension(filename, source_ext), def_filename);
+        return shader;
     }
 }
+
+ScriptShaderProgram *CreateScriptShaderProgram(const char *filename)
+{
+    ScriptShaderProgram *sc_shader = new ScriptShaderProgram(filename);
+    IGraphicShader *shader = CreateShaderProgram(sc_shader->GetName(), filename);
+    ccRegisterManagedObject(sc_shader, sc_shader);
+    add_custom_shader(shader, sc_shader->GetID()); // NOTE: we allow to register a nullptr at the index
+    return sc_shader;
+}
+
+ScriptShaderInstance *ShaderProgram_CreateInstance(ScriptShaderProgram *sc_shader);
 
 ScriptShaderProgram *ShaderProgram_CreateFromFile(const char *filename)
 {
@@ -130,26 +133,25 @@ ScriptShaderProgram *ShaderProgram_CreateFromFile(const char *filename)
     if (!shader_prg)
         return nullptr;
 
-    ccRegisterManagedObject(shader_prg, shader_prg);
-
     // Create and add default shader instance
-    IShaderInstance *def_inst = gfxDriver->CreateShaderInstance(gfxDriver->GetShaderProgram(shader_prg->GetShaderID()));
-    ScriptShaderInstance *scshader_inst = new ScriptShaderInstance(shader_prg, def_inst->GetName(), def_inst->GetID());
-    int def_inst_handle = ccRegisterManagedObject(scshader_inst, scshader_inst);
-    shader_prg->SetDefaultShaderInstance(scshader_inst);
+    ScriptShaderInstance *scshader_inst = ShaderProgram_CreateInstance(shader_prg);
+    if (scshader_inst)
+        shader_prg->SetDefaultShaderInstance(scshader_inst);
     return shader_prg;
 }
 
-ScriptShaderInstance *ShaderProgram_CreateInstance(ScriptShaderProgram *shader_prg)
+ScriptShaderInstance *ShaderProgram_CreateInstance(ScriptShaderProgram *sc_shader)
 {
-    IGraphicShader *shader = gfxDriver->GetShaderProgram(shader_prg->GetShaderID());
-    if (!shader)
-        return nullptr;
+    ScriptShaderInstance *sc_shinst = new ScriptShaderInstance(sc_shader);
 
-    IShaderInstance *inst = gfxDriver->CreateShaderInstance(shader);
-    ScriptShaderInstance *scshader_inst = new ScriptShaderInstance(shader_prg, inst->GetName(), inst->GetID());
-    ccRegisterManagedObject(scshader_inst, scshader_inst);
-    return scshader_inst;
+    IShaderInstance *shinst = nullptr;
+    IGraphicShader *shader = get_custom_shader(sc_shader->GetID());
+    if (shader)
+        shinst = gfxDriver->CreateShaderInstance(shader, sc_shader->GetName());
+
+    ccRegisterManagedObject(sc_shinst, sc_shinst);
+    add_shader_instance(shinst, sc_shinst->GetID()); // NOTE: we allow to register a nullptr at the index
+    return sc_shinst;
 }
 
 ScriptShaderInstance *ShaderProgram_GetDefault(ScriptShaderProgram *shader_prg)
@@ -157,9 +159,9 @@ ScriptShaderInstance *ShaderProgram_GetDefault(ScriptShaderProgram *shader_prg)
     return static_cast<ScriptShaderInstance*>(shader_prg->GetDefaultInstance());
 }
 
-void ShaderInstance_SetConstantF(ScriptShaderInstance *shader_prg, const char *name, float value)
+void ShaderInstance_SetConstantF(ScriptShaderInstance *sc_shinst, const char *name, float value)
 {
-    IShaderInstance *shader_inst = gfxDriver->GetShaderInstance(shader_prg->GetShaderInstanceID());
+    IShaderInstance *shader_inst = get_shader_instance(sc_shinst->GetID());
     if (shader_inst)
     {
         uint32_t const_index = shader_inst->GetShader()->GetShaderConstant(name);
@@ -170,9 +172,9 @@ void ShaderInstance_SetConstantF(ScriptShaderInstance *shader_prg, const char *n
     }
 }
 
-void ShaderInstance_SetConstantF2(ScriptShaderInstance *shader_prg, const char *name, float x, float y)
+void ShaderInstance_SetConstantF2(ScriptShaderInstance *sc_shinst, const char *name, float x, float y)
 {
-    IShaderInstance *shader_inst = gfxDriver->GetShaderInstance(shader_prg->GetShaderInstanceID());
+    IShaderInstance *shader_inst = get_shader_instance(sc_shinst->GetID());
     if (shader_inst)
     {
         uint32_t const_index = shader_inst->GetShader()->GetShaderConstant(name);
@@ -183,9 +185,9 @@ void ShaderInstance_SetConstantF2(ScriptShaderInstance *shader_prg, const char *
     }
 }
 
-void ShaderInstance_SetConstantF3(ScriptShaderInstance *shader_prg, const char *name, float x, float y, float z)
+void ShaderInstance_SetConstantF3(ScriptShaderInstance *sc_shinst, const char *name, float x, float y, float z)
 {
-    IShaderInstance *shader_inst = gfxDriver->GetShaderInstance(shader_prg->GetShaderInstanceID());
+    IShaderInstance *shader_inst = get_shader_instance(sc_shinst->GetID());
     if (shader_inst)
     {
         uint32_t const_index = shader_inst->GetShader()->GetShaderConstant(name);
@@ -196,9 +198,9 @@ void ShaderInstance_SetConstantF3(ScriptShaderInstance *shader_prg, const char *
     }
 }
 
-void ShaderInstance_SetConstantF4(ScriptShaderInstance *shader_prg, const char *name, float x, float y, float z, float w)
+void ShaderInstance_SetConstantF4(ScriptShaderInstance *sc_shinst, const char *name, float x, float y, float z, float w)
 {
-    IShaderInstance *shader_inst = gfxDriver->GetShaderInstance(shader_prg->GetShaderInstanceID());
+    IShaderInstance *shader_inst = get_shader_instance(sc_shinst->GetID());
     if (shader_inst)
     {
         uint32_t const_index = shader_inst->GetShader()->GetShaderConstant(name);

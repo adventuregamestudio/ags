@@ -150,7 +150,7 @@ protected:
     int      _height = 0;
     int      _transparency = 0; // "incorrect" alpha (in legacy 255-range units)
     BlendMode _blendMode = kBlend_Normal;
-    int      _shaderID = -1;
+    int      _shaderID = 0;
     int      _shaderHandle = 0; // runtime script shader handle
     bool     _hasChanged = false;
 

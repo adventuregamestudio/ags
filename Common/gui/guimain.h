@@ -141,7 +141,7 @@ public:
     void    SetTransparencyAsPercentage(int percent);
     BlendMode GetBlendMode() const { return _blendMode; }
     void    SetBlendMode(BlendMode blend_mode);
-    int     GetShader() const { return _shaderID; }
+    int     GetShaderID() const { return _shaderID; }
     int     GetShaderHandle() const { return _shaderHandle; }
     void    SetShader(int shader_id, int shader_handle);
     Pointf  GetScale() const { return _scale; }
@@ -273,7 +273,7 @@ private:
     int     _popupAtMouseY = -1; // popup when mousey < this
     int     _transparency = 0;  // "incorrect" alpha (in legacy 255-range units)
     BlendMode _blendMode = kBlend_Normal; // render blend mode
-    int     _shaderID = -1;
+    int     _shaderID = 0;
     int     _shaderHandle = 0; // // runtime script shader handle
     Pointf  _scale = Pointf(1.f, 1.f);; // x,y scale
     float   _rotation = 0.f;    // rotation, in degrees

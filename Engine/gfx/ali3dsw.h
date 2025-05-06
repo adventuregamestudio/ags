@@ -294,21 +294,11 @@ public:
     // Creates shader program from the compiled data, registers it under given name;
     // not supported in software driver, always fails.
     IGraphicShader *CreateShaderProgram(const String &name, const std::vector<uint8_t> &compiled_data, const ShaderDefinition *def) override { return nullptr; }
-    // Looks up for the shader program using a name;
-    // not supported in software driver, always fails.
-    IGraphicShader *FindShaderProgram(const String &name) override { return nullptr; }
-    // Gets the shader program using its internal numeric ID; returns null if no such shader ID exists.
-    IGraphicShader *GetShaderProgram(uint32_t shader_id) override { return nullptr; }
     // Deletes particular shader program.
     void DeleteShaderProgram(IGraphicShader *shader) override { /* do nothing */ }
     // Creates shader instance for the given shader;
     // not supported in software driver, always fails.
-    IShaderInstance *CreateShaderInstance(IGraphicShader *shader) override { return nullptr; }
-    // Looks up for the shader instance using a name,
-    // not supported in software driver, always fails.
-    IShaderInstance *FindShaderInstance(const String &name) override { return nullptr; }
-    // Gets the shader program using its internal numeric ID; returns null if no such shader ID exists.
-    IShaderInstance *GetShaderInstance(uint32_t shader_inst_id) override { return nullptr; }
+    IShaderInstance *CreateShaderInstance(IGraphicShader *shader, const String &name) override { return nullptr; }
     // Deletes particular shader instance
     void DeleteShaderInstance(IShaderInstance *shader_inst) override { /* do nothing */ }
 

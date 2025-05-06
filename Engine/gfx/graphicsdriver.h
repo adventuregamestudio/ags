@@ -112,11 +112,9 @@ public:
 public:
     virtual ~IGraphicShader() = default;
 
-    // Gets this shader's name, which uniquely identifies this shader
+    // Gets this shader's name, this is not a unique identification,
+    // but rather a tag meant for debugging purposes.
     virtual const String &GetName() const = 0;
-    // Gets this shader's numberic ID, which may be used to reference it in gfx driver
-    // TODO: remove numeric id when we store shaders outside of the gfx driver class
-    virtual uint32_t GetID() const = 0;
 
     // Looks up for the constant in a shader. Returns a valid index if such shader is registered,
     // and constant is present in that shader, or UINT32_MAX on failure.
@@ -134,11 +132,9 @@ public:
 public:
     virtual ~IShaderInstance() = default;
 
-    // Gets this shader instance's name, which uniquely identifies it
+    // Gets this shader's name, this is not a unique identification,
+    // but rather a tag meant for debugging purposes.
     virtual const String &GetName() const = 0;
-    // Gets this shader instance's numberic ID, which may be used to reference it in gfx driver
-    // TODO: remove numeric id when we store shaders outside of the gfx driver class
-    virtual uint32_t GetID() const = 0;
     // Returns a IGraphicShader referenced by this shader instance
     virtual IGraphicShader *GetShader() = 0;
 
@@ -295,21 +291,11 @@ public:
     // Creates shader program from the compiled data, registers it under given name,
     // returns IGraphicShader, or null on failure.
     virtual IGraphicShader *CreateShaderProgram(const String &name, const std::vector<uint8_t> &compiled_data, const ShaderDefinition *def = nullptr) = 0;
-    // Looks up for the shader program using a name,
-    // returns IGraphicShader, or null on failure.
-    virtual IGraphicShader *FindShaderProgram(const String &name) = 0;
-    // Gets the shader program using its internal numeric ID; returns null if no such shader ID exists.
-    virtual IGraphicShader *GetShaderProgram(uint32_t shader_id) = 0;
     // Deletes particular shader program.
     virtual void DeleteShaderProgram(IGraphicShader *shader) = 0;
     // Creates shader instance for the given shader.
-    // TODO: move this to IGraphicShader interface, when custom shaders are stored outside of gfx driver.
-    virtual IShaderInstance *CreateShaderInstance(IGraphicShader *shader) = 0;
-    // Looks up for the shader instance using a name,
-    // returns IShaderInstance, or null on failure.
-    virtual IShaderInstance *FindShaderInstance(const String &name) = 0;
-    // Gets the shader program using its internal numeric ID; returns null if no such shader ID exists.
-    virtual IShaderInstance *GetShaderInstance(uint32_t shader_inst_id) = 0;
+    // TODO: consider moving this to IGraphicShader interface? along with DeleteShaderInstance
+    virtual IShaderInstance *CreateShaderInstance(IGraphicShader *shader, const String &name) = 0;
     // Deletes particular shader instance
     virtual void DeleteShaderInstance(IShaderInstance *shader_inst) = 0;
 

@@ -135,7 +135,7 @@ void ScreenOverlay::SetShader(int shader_id, int shader_handle)
 
 void ScreenOverlay::RemoveShader()
 {
-    _shaderID = -1;
+    _shaderID = 0;
     _shaderHandle = 0;
     MarkChanged();
 }

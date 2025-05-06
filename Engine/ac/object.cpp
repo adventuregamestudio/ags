@@ -874,7 +874,7 @@ void Object_SetShader(ScriptObject *objj, ScriptShaderInstance *shader_inst)
         ccReleaseObjectReference(obj.shader_handle);
 
     ccAddObjectReference(new_inst_ref);
-    obj.shader_id = shader_inst->GetID();
+    obj.shader_id = shader_inst ? shader_inst->GetID() : ScriptShaderInstance::NullInstanceID;
     obj.shader_handle = new_inst_ref;
 }
 

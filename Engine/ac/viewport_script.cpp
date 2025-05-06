@@ -161,7 +161,7 @@ void Camera_SetShader(ScriptCamera *scam, ScriptShaderInstance *shader_inst)
         ccReleaseObjectReference(cam->GetShaderHandle());
 
     ccAddObjectReference(new_inst_ref);
-    cam->SetShader(shader_inst->GetID(), new_inst_ref);
+    cam->SetShader(shader_inst ? shader_inst->GetID() : ScriptShaderInstance::NullInstanceID, new_inst_ref);
 }
 
 RuntimeScriptValue Sc_Camera_Create(const RuntimeScriptValue *params, int32_t param_count)
@@ -403,7 +403,7 @@ void Viewport_SetShader(ScriptViewport *scv, ScriptShaderInstance *shader_inst)
         ccReleaseObjectReference(view->GetShaderHandle());
 
     ccAddObjectReference(new_inst_ref);
-    view->SetShader(shader_inst->GetID(), new_inst_ref);
+    view->SetShader(shader_inst ? shader_inst->GetID() : ScriptShaderInstance::NullInstanceID, new_inst_ref);
 }
 
 ScriptViewport* Viewport_GetAtScreenXY(int x, int y)

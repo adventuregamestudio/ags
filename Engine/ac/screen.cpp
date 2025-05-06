@@ -835,7 +835,7 @@ void Screen_SetShader(ScriptShaderInstance *shader_inst)
         ccReleaseObjectReference(play.GetScreenShaderHandle());
 
     ccAddObjectReference(new_inst_ref);
-    play.SetScreenShader(shader_inst->GetID(), new_inst_ref);
+    play.SetScreenShader(shader_inst ? shader_inst->GetID() : ScriptShaderInstance::NullInstanceID, new_inst_ref);
 }
 
 ScriptUserObject* Screen_ScreenToRoomPoint(int scrx, int scry, bool restrict)

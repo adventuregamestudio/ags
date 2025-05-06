@@ -40,6 +40,8 @@ namespace Path
     String  GetParent(const String &path);
     // Returns filename part out of the longer path
     String  GetFilename(const String &path);
+    // Returns filename without extension
+    String  GetFilenameNoExt(const String &path);
     // Returns file's extension; file may be a fully qualified path too
     String  GetFileExtension(const String &path);
     // Returns part of the filename without extension

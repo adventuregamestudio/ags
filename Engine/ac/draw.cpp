@@ -387,6 +387,12 @@ ObjTexture debugMoveListObj;
 // Mouse cursor texture
 ObjTexture cursor_tx;
 
+// Custom Shaders collection
+// TODO: RAII wrapper around IGraphicShader and IShaderInstance,
+// should dispose using gfxDriver->DeleteShaderProgram etc.
+std::vector<IGraphicShader*> customShaders;
+std::vector<IShaderInstance*> shaderInstances;
+
 // Draw cache: keep record of all kinds of things related to the previous drawing state
 //
 // Cached character and object states, used to determine
@@ -612,6 +618,8 @@ int MakeColor(int color_index)
 
 void init_draw_method()
 {
+    dispose_draw_method(); // ensure that previous draw resources are disposed
+
     drawstate.SoftwareRender = !gfxDriver->HasAcceleratedTransform();
     drawstate.FullFrameRedraw = gfxDriver->RequiresFullRedrawEachFrame();
 
@@ -637,6 +645,10 @@ void init_draw_method()
     init_room_drawdata();
     if (gfxDriver->UsesMemoryBackBuffer())
         gfxDriver->GetMemoryBackBuffer()->Clear();
+
+    // Allocate a single shader and shader instance slot for default "null" shader
+    add_custom_shader(nullptr, 0u);
+    add_shader_instance(nullptr, 0u);
 }
 
 void dispose_draw_method()
@@ -644,6 +656,7 @@ void dispose_draw_method()
     dispose_room_drawdata();
     dispose_invalid_regions(false);
     destroy_blank_image();
+    dispose_all_custom_shaders();
 }
 
 static void alloc_fixed_drawindexes()
@@ -1040,6 +1053,93 @@ void texturecache_precache(uint32_t sprite_id)
     texturecache.GetOrLoad(sprite_id, nullptr, false);
 }
 
+void add_custom_shader(IGraphicShader *shader, uint32_t at_index)
+{
+    if (customShaders.size() <= at_index)
+    {
+        customShaders.resize(at_index + 1);
+    }
+    else if (customShaders[at_index] != nullptr)
+    {
+        delete_custom_shader(at_index);
+    }
+
+    customShaders[at_index] = shader;
+}
+
+IGraphicShader *get_custom_shader(uint32_t sh_index)
+{
+    if (sh_index >= customShaders.size())
+        return nullptr;
+    return customShaders[sh_index];
+}
+
+void delete_custom_shader(uint32_t shader_id)
+{
+    if (shader_id < customShaders.size() && customShaders[shader_id] != nullptr)
+    {
+        gfxDriver->DeleteShaderProgram(customShaders[shader_id]);
+        customShaders[shader_id] = {};
+    }
+}
+
+void add_shader_instance(Engine::IShaderInstance *shader_instance, uint32_t at_index)
+{
+    if (shaderInstances.size() <= at_index)
+    {
+        shaderInstances.resize(at_index + 1);
+    }
+    else if (shaderInstances[at_index] != nullptr)
+    {
+        delete_shader_instance(at_index);
+    }
+
+    shaderInstances[at_index] = shader_instance;
+}
+
+IShaderInstance *get_shader_instance(uint32_t shinst_index)
+{
+    if (shinst_index >= shaderInstances.size())
+        return nullptr;
+    return shaderInstances[shinst_index];
+}
+
+void delete_shader_instance(uint32_t shader_inst_id)
+{
+    if (shader_inst_id < shaderInstances.size() && shaderInstances[shader_inst_id] != nullptr)
+    {
+        gfxDriver->DeleteShaderInstance(shaderInstances[shader_inst_id]);
+        shaderInstances[shader_inst_id] = {};
+    }
+}
+
+void dispose_all_custom_shaders()
+{
+    for (auto &shinst : shaderInstances)
+    {
+        if (shinst)
+            gfxDriver->DeleteShaderInstance(shinst);
+    }
+    shaderInstances.clear();
+    for (auto &sh : customShaders)
+    {
+        if (sh)
+            gfxDriver->DeleteShaderProgram(sh);
+    }
+    customShaders.clear();
+}
+
+static void update_global_shader_constants()
+{
+    GlobalShaderConstants constants;
+    auto now = AGS_Clock::now();
+    // TODO: perhaps count time since engine launched?
+    auto now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
+    constants.Time = static_cast<float>(now_ms) / 1000.f;
+    constants.GameFrame = get_loop_counter();
+    gfxDriver->SetGlobalShaderConstants(constants);
+}
+
 Bitmap *initialize_sprite(sprkey_t index, Bitmap *image, uint32_t &sprite_flags)
 {
     return PrepareSpriteForUse(image, (sprite_flags & SPF_KEEPDEPTH) == 0);
@@ -1149,15 +1249,7 @@ void render_to_screen()
     }
 
     // Set global constants for any shaders to use
-    {
-        GlobalShaderConstants constants;
-        auto now = AGS_Clock::now();
-        // TODO: perhaps count time since engine launched?
-        auto now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
-        constants.Time = static_cast<float>(now_ms) / 1000.f;
-        constants.GameFrame = get_loop_counter();
-        gfxDriver->SetGlobalShaderConstants(constants);
-    }
+    update_global_shader_constants();
 
     bool succeeded = false;
     while (!succeeded && !want_exit && !abort_engine)
@@ -1980,7 +2072,7 @@ void prepare_and_add_object_gfx(
 
     actsp.Ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(transparency));
     actsp.Ddb->SetBlendMode(blend_mode);
-    actsp.Ddb->SetShader(shader_id);
+    actsp.Ddb->SetShader(shaderInstances[shader_id]);
 }
 
 // Prepares a actsps element for RoomObject; updates object cache.
@@ -2427,7 +2519,7 @@ static void draw_gui_controls_batch(int gui_id)
         if (!obj_ddb) continue;
         obj_ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(obj->GetTransparency()));
         obj_ddb->SetBlendMode(obj->GetBlendMode());
-        obj_ddb->SetShader(obj->GetShaderID());
+        obj_ddb->SetShader(shaderInstances[obj->GetShaderID()]);
         gfxDriver->DrawSprite(obj->GetX() + obj_tx.Off.X, obj->GetY() + obj_tx.Off.Y, obj_ddb);
     }
     gfxDriver->EndSpriteBatch();
@@ -2573,7 +2665,7 @@ void draw_gui_and_overlays()
             }
             gui_ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(gui.GetTransparency()));
             gui_ddb->SetBlendMode(gui.GetBlendMode());
-            gui_ddb->SetShader(gui.GetShader());
+            gui_ddb->SetShader(shaderInstances[gui.GetShaderID()]);
             gui_ddb->SetOrigin(0.f, 0.f);
             gui_ddb->SetStretch(gui.GetWidth() * gui.GetScale().X, gui.GetHeight() * gui.GetScale().Y);
             gui_ddb->SetRotation(gui.GetRotation());
@@ -2668,7 +2760,7 @@ static void construct_room_view()
 
             // Now render the camera texture itself, scaling to the viewport size
             cam_data.CamRenderTarget->SetStretch(view_rc.GetWidth(), view_rc.GetHeight());
-            cam_data.CamRenderTarget->SetShader(viewport->GetShaderID());
+            cam_data.CamRenderTarget->SetShader(shaderInstances[viewport->GetShaderID()]);
             gfxDriver->DrawSprite(view_rc.Left, view_rc.Top, cam_data.CamRenderTarget);
 #else   // !RENDER_ROOMS_AS_TEXTURES
             const Rect view_p = view_rc;
@@ -2818,7 +2910,7 @@ static void construct_overlays()
         overtx.Ddb->SetRotation(over.rotation);
         overtx.Ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(over.transparency));
         overtx.Ddb->SetBlendMode(over.blendMode);
-        overtx.Ddb->SetShader(over.GetShaderID());
+        overtx.Ddb->SetShader(shaderInstances[over.GetShaderID()]);
         apply_tint_or_light_ddb(overtx, over.tint_light * over.HasLightLevel(), over.tint_level, over.tint_r, over.tint_g, over.tint_b, over.tint_light);
     }
 }

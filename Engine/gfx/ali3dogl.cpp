@@ -101,19 +101,19 @@ OGLBitmap::~OGLBitmap()
         glDeleteFramebuffersEXT(1, &_fbo);
 }
 
-OGLShader::OGLShader(const String &name, uint32_t id)
-    : BaseShader(name, id)
+OGLShader::OGLShader(const String &name)
+    : BaseShader(name)
 {
 }
 
-OGLShader::OGLShader(const String &name, uint32_t id, OGLShader::ProgramData &&data)
-    : BaseShader(name, id)
+OGLShader::OGLShader(const String &name, OGLShader::ProgramData &&data)
+    : BaseShader(name)
     , _data(std::move(data))
 {
 }
 
-OGLShader::OGLShader(const String &name, uint32_t id, const OGLShader &copy_shader)
-    : BaseShader(name, id)
+OGLShader::OGLShader(const String &name, const OGLShader &copy_shader)
+    : BaseShader(name)
     , _data(copy_shader.GetData())
 {
 }
@@ -141,8 +141,8 @@ uint32_t OGLShader::GetShaderConstant(const String &const_name)
     return index;
 }
 
-OGLShaderInstance::OGLShaderInstance(OGLShader *shader, const String &name, uint32_t id)
-    : BaseShaderInstance(name, id)
+OGLShaderInstance::OGLShaderInstance(OGLShader *shader, const String &name)
+    : BaseShaderInstance(name)
     , _shader(shader)
 {
     _constantData.resize(OGLShader::NullConstantIndex + 1);
@@ -490,11 +490,11 @@ bool OGLGraphicsDriver::CreateStandardShaders()
         return false;
     }
 
-    _transparencyShader = CreateTransparencyShader(nullptr);
-    _tintShader = CreateTintShader(_transparencyShader);
-    _lightShader = CreateLightShader(_transparencyShader);
-    _darkenbyAlphaShader = CreateDarkenByAlphaShader(_transparencyShader);
-    _lightenByAlphaShader = CreateLightenByAlphaShader(_transparencyShader);
+    _transparencyShader.reset(CreateTransparencyShader(nullptr));
+    _tintShader.reset(CreateTintShader(_transparencyShader.get()));
+    _lightShader.reset(CreateLightShader(_transparencyShader.get()));
+    _darkenbyAlphaShader.reset(CreateDarkenByAlphaShader(_transparencyShader.get()));
+    _lightenByAlphaShader.reset(CreateLightenByAlphaShader(_transparencyShader.get()));
     return _transparencyShader->IsValid()
         && _tintShader->IsValid()
         && _lightShader->IsValid()
@@ -504,23 +504,10 @@ bool OGLGraphicsDriver::CreateStandardShaders()
 
 void OGLGraphicsDriver::DeleteShaders()
 {
-    _shaderInst.clear();
-    for (auto &prg : _shaders)
-    {
-        DeleteShaderProgram(prg);
-    }
-    _shaders.clear();
-    _shaderLookup.clear();
-
-    delete _transparencyShader;
     _transparencyShader = nullptr;
-    delete _tintShader;
     _tintShader = nullptr;
-    delete _lightShader;
     _lightShader = nullptr;
-    delete _darkenbyAlphaShader;
     _darkenbyAlphaShader = nullptr;
-    delete _lightenByAlphaShader;
     _lightenByAlphaShader = nullptr;
 }
 
@@ -713,13 +700,13 @@ OGLShader *OGLGraphicsDriver::CreateTransparencyShader(const OGLShader *fallback
     if (CreateShaderProgram(prg, "Transparency", default_vertex_shader_src, transparency_fragment_shader_src))
     {
         AssignBaseShaderArgs(prg);
-        return new OGLShader("Transparency", UINT32_MAX, std::move(prg));
+        return new OGLShader("Transparency", std::move(prg));
     }
     else if (fallback_shader)
     {
-        return new OGLShader("Transparency", UINT32_MAX, *fallback_shader);
+        return new OGLShader("Transparency", *fallback_shader);
     }
-    return new OGLShader("Transparency", UINT32_MAX);
+    return new OGLShader("Transparency");
 }
 
 OGLShader *OGLGraphicsDriver::CreateTintShader(const OGLShader *fallback_shader)
@@ -731,13 +718,13 @@ OGLShader *OGLGraphicsDriver::CreateTintShader(const OGLShader *fallback_shader)
         prg.TintHSV = glGetUniformLocation(prg.Program, "iTintHSV");
         prg.TintAmount = glGetUniformLocation(prg.Program, "iTintAmount");
         prg.TintLuminance = glGetUniformLocation(prg.Program, "iTintLuminance");
-        return new OGLShader("Tinting", UINT32_MAX, std::move(prg));
+        return new OGLShader("Tinting", std::move(prg));
     }
     else if (fallback_shader)
     {
-        return new OGLShader("Tinting", UINT32_MAX, *fallback_shader);
+        return new OGLShader("Tinting", *fallback_shader);
     }
-    return new OGLShader("Tinting", UINT32_MAX);
+    return new OGLShader("Tinting");
 }
 
 OGLShader *OGLGraphicsDriver::CreateLightShader(const OGLShader *fallback_shader)
@@ -747,13 +734,13 @@ OGLShader *OGLGraphicsDriver::CreateLightShader(const OGLShader *fallback_shader
     {
         AssignBaseShaderArgs(prg);
         prg.LightingAmount = glGetUniformLocation(prg.Program, "iLight");
-        return new OGLShader("Lighting", UINT32_MAX, std::move(prg));
+        return new OGLShader("Lighting", std::move(prg));
     }
     else if (fallback_shader)
     {
-        return new OGLShader("Lighting", UINT32_MAX, *fallback_shader);
+        return new OGLShader("Lighting", *fallback_shader);
     }
-    return new OGLShader("Lighting", UINT32_MAX);
+    return new OGLShader("Lighting");
 }
 
 OGLShader *OGLGraphicsDriver::CreateDarkenByAlphaShader(const OGLShader *fallback_shader)
@@ -762,13 +749,13 @@ OGLShader *OGLGraphicsDriver::CreateDarkenByAlphaShader(const OGLShader *fallbac
     if (CreateShaderProgram(prg, "DarkenByAlpha", default_vertex_shader_src, darkenbyalpha_fragment_shader_src))
     {
         AssignBaseShaderArgs(prg);
-        return new OGLShader("DarkenByAlpha", UINT32_MAX, std::move(prg));
+        return new OGLShader("DarkenByAlpha", std::move(prg));
     }
     else if (fallback_shader)
     {
-        return new OGLShader("DarkenByAlpha", UINT32_MAX, *fallback_shader);
+        return new OGLShader("DarkenByAlpha", *fallback_shader);
     }
-    return new OGLShader("DarkenByAlpha", UINT32_MAX);
+    return new OGLShader("DarkenByAlpha");
 }
 
 OGLShader *OGLGraphicsDriver::CreateLightenByAlphaShader(const OGLShader *fallback_shader)
@@ -777,13 +764,13 @@ OGLShader *OGLGraphicsDriver::CreateLightenByAlphaShader(const OGLShader *fallba
     if (CreateShaderProgram(prg, "LightenByAlpha", default_vertex_shader_src, lightenbyalpha_fragment_shader_src))
     {
         AssignBaseShaderArgs(prg);
-        return new OGLShader("LightenByAlpha", UINT32_MAX, std::move(prg));
+        return new OGLShader("LightenByAlpha", std::move(prg));
     }
     else if (fallback_shader)
     {
-        return new OGLShader("LightenByAlpha", UINT32_MAX, *fallback_shader);
+        return new OGLShader("LightenByAlpha", *fallback_shader);
     }
-    return new OGLShader("LightenByAlpha", UINT32_MAX);
+    return new OGLShader("LightenByAlpha");
 }
 
 bool OGLGraphicsDriver::CreateShaderProgram(OGLShader::ProgramData &prg, const String &name, const char *vertex_shader_src, const char *fragment_shader_src)
@@ -854,7 +841,7 @@ void OGLGraphicsDriver::AssignBaseShaderArgs(OGLShader::ProgramData &prg)
 
 void OGLGraphicsDriver::UpdateGlobalShaderArgValues()
 {
-    for (auto &sh : _shaders)
+    for (auto &sh : _customShaders)
     {
         const auto &prg = sh->GetData();
         if (prg.Program == 0u)
@@ -1219,10 +1206,10 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
   light_lev = bmpToDraw->GetLightLevel();
   const bool do_tint = tint_sat > 0 && _tintShader->GetData().Program > 0;
   const bool do_light = tint_sat == 0 && light_lev > 0 && _lightShader->GetData().Program > 0;
-  if (bmpToDraw->GetShader() < _shaderInst.size())
+  if (bmpToDraw->GetShader())
   {
     // Use custom shader
-    OGLShaderInstance *shaderinst = _shaderInst[bmpToDraw->GetShader()];
+    OGLShaderInstance *shaderinst = (OGLShaderInstance*)bmpToDraw->GetShader();
     program = &shaderinst->GetShaderData();
     glUseProgram(program->Program);
 
@@ -1298,18 +1285,18 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
     case kBlend_Multiply:
     case kBlend_Burn: // burn is imperfect due to blend mode, darker than normal even when trasparent
       // hack for blendmodes: fade to white to make it transparent
-      shader = _lightenByAlphaShader;
+      shader = _lightenByAlphaShader.get();
       break;
     case kBlend_Lighten:
     case kBlend_Screen:
     case kBlend_Exclusion:
     case kBlend_Dodge:
       // hack for blendmodes: fade to black to make it transparent
-      shader = _darkenbyAlphaShader;
+      shader = _darkenbyAlphaShader.get();
       break;
     default:
       // Use default processing
-      shader = _transparencyShader;
+      shader = _transparencyShader.get();
       break;
     }
 
@@ -2300,94 +2287,47 @@ Texture *OGLGraphicsDriver::CreateTexture(int width, int height, int color_depth
 
 IGraphicShader *OGLGraphicsDriver::CreateShaderProgram(const String &name, const char *fragment_shader_src, const ShaderDefinition* /*def*/)
 {
-    if (_shaderLookup.find(name) != _shaderLookup.end())
-        return nullptr; // the name is in use
-
     OGLShader::ProgramData prg;
     if (!CreateShaderProgram(prg, name, default_vertex_shader_src, fragment_shader_src))
         return nullptr;
 
     AssignBaseShaderArgs(prg);
-    uint32_t shader_id = static_cast<uint32_t>(_shaders.size());
-    OGLShader *shader = new OGLShader(name, shader_id, std::move(prg));
-    _shaders.push_back(shader);
-    _shaderLookup[name] = shader_id;
+
+    OGLShader *shader = new OGLShader(name, std::move(prg));
+    _customShaders.push_back(shader);
     return shader;
 }
 
 IGraphicShader *OGLGraphicsDriver::CreateShaderProgram(const String &name, const std::vector<uint8_t> &compiled_data, const ShaderDefinition* /*def*/)
 {
-    if (_shaderLookup.find(name) != _shaderLookup.end())
-        return nullptr; // the name is in use
-
     // TODO: can/should we support using precompiled shaders with OpenGL?
     return nullptr;
 }
 
-IGraphicShader *OGLGraphicsDriver::FindShaderProgram(const String &name)
-{
-    auto found_it = _shaderLookup.find(name);
-    if (found_it == _shaderLookup.end())
-        return nullptr; // not found
-    return _shaders[found_it->second];
-}
-
-IGraphicShader *OGLGraphicsDriver::GetShaderProgram(uint32_t shader_id)
-{
-    if (shader_id >= _shaders.size())
-        return nullptr;
-    return _shaders[shader_id];
-}
-
 void OGLGraphicsDriver::DeleteShaderProgram(IGraphicShader *shader)
 {
-    assert(shader->GetID() < _shaders.size());
-    if (shader->GetID() < _shaders.size())
+    assert(shader);
+    if (shader)
     {
-        auto found_it = _shaderLookup.find(shader->GetName());
-        if (found_it != _shaderLookup.end())
-            _shaderLookup.erase(found_it);
-        _shaders[shader->GetID()] = {};
+        _customShaders.erase(std::find(_customShaders.begin(), _customShaders.end(), shader));
+        delete (OGLShader*)shader;
     }
-    delete (OGLShader*)shader;
 }
 
-IShaderInstance *OGLGraphicsDriver::CreateShaderInstance(IGraphicShader *shader)
+IShaderInstance *OGLGraphicsDriver::CreateShaderInstance(IGraphicShader *shader, const String &name)
 {
-    uint32_t inst_id = _shaderInst.size();
-    const String inst_name = String::FromFormat("%s.%u", shader->GetName().GetCStr(), inst_id);
-    OGLShaderInstance *shaderinst = new OGLShaderInstance((OGLShader*)shader, inst_name, inst_id);
-    _shaderInst.push_back(shaderinst);
-    return shaderinst;
-}
-
-IShaderInstance *OGLGraphicsDriver::FindShaderInstance(const String &name)
-{
-    // FIXME: this is a formal lookup implementation,
-    // this method will likely be removed in the future when shaders are stored outside of gfx drivers
-    for (auto *i : _shaderInst)
-    {
-        if (i->GetName() == name)
-            return i;
-    }
-    return nullptr;
-}
-
-IShaderInstance *OGLGraphicsDriver::GetShaderInstance(uint32_t shader_inst_id)
-{
-    if (shader_inst_id >= _shaderInst.size())
+    assert(shader);
+    if (!shader)
         return nullptr;
-    return _shaderInst[shader_inst_id];
+
+    return new OGLShaderInstance((OGLShader*)shader, name);
 }
 
 void OGLGraphicsDriver::DeleteShaderInstance(IShaderInstance *shader_inst)
 {
-    assert(shader_inst->GetID() < _shaderInst.size());
-    if (shader_inst->GetID() < _shaderInst.size())
-    {
-        _shaderInst[shader_inst->GetID()] = {};
-    }
-    delete (OGLShaderInstance*)shader_inst;
+    assert(shader_inst);
+    if (shader_inst)
+        delete (OGLShaderInstance*)shader_inst;
 }
 
 void OGLGraphicsDriver::SetScreenFade(int red, int green, int blue)

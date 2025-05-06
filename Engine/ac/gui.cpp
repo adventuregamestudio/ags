@@ -433,7 +433,7 @@ void GUI_SetShader(ScriptGUI *gui, ScriptShaderInstance *shader_inst)
         ccReleaseObjectReference(guim.GetShaderHandle());
 
     ccAddObjectReference(new_inst_ref);
-    guim.SetShader(shader_inst->GetShaderInstanceID(), new_inst_ref);
+    guim.SetShader(shader_inst->GetID(), new_inst_ref);
 }
 
 float GUI_GetRotation(ScriptGUI *gui) {

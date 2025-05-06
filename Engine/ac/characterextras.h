@@ -72,7 +72,7 @@ struct CharacterExtras
     int   follow_dist = 0; // follow distance, in pixels
     int   follow_eagerness = 0; // follow reaction
     Common::BlendMode blend_mode = Common::kBlend_Normal;
-    int   shader_id = -1;
+    int   shader_id = 0;
     int   shader_handle = 0; // script shader handle
     float rotation = 0.f;
     // Optional character face direction ratio, 0 = ignore

@@ -273,8 +273,8 @@ public:
     }
     Common::BlendMode GetBlendMode() const { return _blendMode; }
     void SetBlendMode(Common::BlendMode blendMode) override { _blendMode = blendMode; }
-    uint32_t GetShader() const override { return _shader; }
-    void SetShader(uint32_t shader_id) override { _shader = shader_id; }
+    IShaderInstance *GetShader() const override { return _shader; }
+    void SetShader(IShaderInstance *shader_inst) override { _shader = shader_inst; }
 
     int  GetTextureFlags() const { return _txFlags; }
     const Size &GetSize() const { return _size; }
@@ -295,7 +295,7 @@ protected:
     float _rotation = 0.f; // either in degrees or radians, depending on impl
     int _alpha = 255;
     Common::BlendMode _blendMode = Common::kBlend_Normal;
-    uint32_t _shader = UINT32_MAX;
+    IShaderInstance *_shader = nullptr;
     int _red = 0, _green = 0, _blue = 0;
     int _tintSaturation = 0;
     int _lightLevel = 0;
@@ -305,34 +305,31 @@ protected:
 class BaseShader : public IGraphicShader
 {
 public:
-    // Gets this shader's name, which uniquely identifies this shader
+    // Gets this shader's name, this is not a unique identification,
+    // but rather a tag meant for debugging purposes.
     const String &GetName() const override { return _name; }
-    uint32_t GetID() const override { return _id; }
 
 protected:
     BaseShader() = default;
-    BaseShader(const String &name, uint32_t id)
-        : _name(name), _id(id) {}
+    BaseShader(const String &name) : _name(name) {}
 
+private:
     String _name;
-    uint32_t _id = UINT32_MAX;
 };
 
 
 class BaseShaderInstance : public IShaderInstance
 {
 public:
-    // Gets this shader's name, which uniquely identifies this shader
+    // Gets this shader's name, this is not a unique identification,
+    // but rather a tag meant for debugging purposes.
     const String &GetName() const override { return _name; }
-    uint32_t GetID() const override { return _id; }
 
 protected:
     BaseShaderInstance() = default;
-    BaseShaderInstance(const String &name, uint32_t id)
-        : _name(name), _id(id) {}
+    BaseShaderInstance(const String &name) : _name(name) {}
 
     String _name;
-    uint32_t _id = UINT32_MAX;
 };
 
 
@@ -411,6 +408,8 @@ public:
     // Miscelaneous setup
     //
     // Sets values for global shader constants
+    // TODO: think how this could be moved to IGraphicShader;
+    // had to leave this in gfx driver class right now, because it's more convenient to apply constants...
     void SetGlobalShaderConstants(const GlobalShaderConstants &constants) override;
 
     ///////////////////////////////////////////////////////

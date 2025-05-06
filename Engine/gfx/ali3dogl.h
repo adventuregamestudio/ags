@@ -15,22 +15,18 @@
 // OpenGL graphics factory
 //
 //=============================================================================
-
 #ifndef __AGS_EE_GFX__ALI3DOGL_H
 #define __AGS_EE_GFX__ALI3DOGL_H
 
 #include <memory>
-
 #include "glm/glm.hpp"
-
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
 #include "gfx/gfxdriverfactorybase.h"
 #include "gfx/gfxdriverbase.h"
+#include "gfx/ogl_headers.h"
 #include "util/string.h"
 #include "util/version.h"
-
-#include "ogl_headers.h"
 
 namespace AGS
 {
@@ -184,9 +180,9 @@ public:
         std::unordered_map<String, uint32_t> Constants;
     };
 
-    OGLShader(const String &name, uint32_t id);
-    OGLShader(const String &name, uint32_t id, OGLShader::ProgramData &&data);
-    OGLShader(const String &name, uint32_t id, const OGLShader &copy_shader);
+    OGLShader(const String &name);
+    OGLShader(const String &name, OGLShader::ProgramData &&data);
+    OGLShader(const String &name, const OGLShader &copy_shader);
     ~OGLShader();
 
     bool IsValid() const { return _data.Program != 0u; }
@@ -199,7 +195,7 @@ private:
 class OGLShaderInstance final : public BaseShaderInstance
 {
 public:
-    OGLShaderInstance(OGLShader *shader, const String &name, uint32_t id);
+    OGLShaderInstance(OGLShader *shader, const String &name);
     ~OGLShaderInstance() = default;
 
     // Returns a IGraphicShader referenced by this shader instance
@@ -378,20 +374,10 @@ public:
     // Creates shader program from the compiled data, registers it under given name,
     // returns IGraphicShader, or null on failure.
     IGraphicShader *CreateShaderProgram(const String &name, const std::vector<uint8_t> &compiled_data, const ShaderDefinition *def) override;
-    // Looks up for the shader program using a name,
-    // returns IGraphicShader, or null on failure.
-    IGraphicShader *FindShaderProgram(const String &name) override;
-    // Gets the shader program using its internal numeric ID; returns null if no such shader ID exists.
-    IGraphicShader *GetShaderProgram(uint32_t shader_id) override;
     // Deletes particular shader program.
     void DeleteShaderProgram(IGraphicShader *shader) override;
     // Creates shader instance for the given shader.
-    IShaderInstance *CreateShaderInstance(IGraphicShader *shader) override;
-    // Looks up for the shader instance using a name,
-    // returns IShaderInstance, or null on failure.
-    IShaderInstance *FindShaderInstance(const String &name) override;
-    // Gets the shader program using its internal numeric ID; returns null if no such shader ID exists.
-    IShaderInstance *GetShaderInstance(uint32_t shader_inst_id) override;
+    IShaderInstance *CreateShaderInstance(IGraphicShader *shader, const String &name) override;
     // Deletes particular shader instance
     void DeleteShaderInstance(IShaderInstance *shader_inst) override;
 
@@ -573,16 +559,13 @@ private:
 
     // Built-in shaders
     // TODO: RAII-wrapper for IGraphicShader / OGLShader pointer
-    OGLShader *_transparencyShader = nullptr;
-    OGLShader *_tintShader = nullptr;
-    OGLShader *_lightShader = nullptr;
-    OGLShader *_darkenbyAlphaShader = nullptr;
-    OGLShader *_lightenByAlphaShader = nullptr;
-    // Custom shaders
-    // TODO: move these and store outside of the gfx driver class, pass interface pointers instead of IDs
-    std::vector<OGLShader*> _shaders;
-    std::unordered_map<String, uint32_t> _shaderLookup;
-    std::vector<OGLShaderInstance*> _shaderInst;
+    std::unique_ptr<OGLShader> _transparencyShader;
+    std::unique_ptr<OGLShader> _tintShader;
+    std::unique_ptr<OGLShader> _lightShader;
+    std::unique_ptr<OGLShader> _darkenbyAlphaShader;
+    std::unique_ptr<OGLShader> _lightenByAlphaShader;
+    // Custom shader references: these are currently required for updating global constants
+    std::vector<OGLShader*> _customShaders;
 
     int device_screen_physical_width;
     int device_screen_physical_height;

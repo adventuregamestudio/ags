@@ -155,6 +155,13 @@ private:
 class D3DShader final : public BaseShader
 {
 public:
+    struct ProgramData;
+
+    D3DShader(const String &name);
+    D3DShader(const String &name, D3DShader::ProgramData &&data);
+    D3DShader(const String &name, const D3DShader &copy_shader);
+    ~D3DShader() = default;
+
     // Looks up for the constant in a shader. Returns a valid index if such shader is registered,
     // and constant is present in that shader, or UINT32_MAX on failure.
     uint32_t GetShaderConstant(const String &const_name) override;
@@ -203,11 +210,6 @@ public:
         std::unordered_map<String, uint32_t> Constants;
     };
 
-    D3DShader(const String &name, uint32_t id);
-    D3DShader(const String &name, uint32_t id, D3DShader::ProgramData &&data);
-    D3DShader(const String &name, uint32_t id, const D3DShader &copy_shader);
-    ~D3DShader() = default;
-
     bool IsValid() const { return _data.ShaderPtr != nullptr; }
     const D3DShader::ProgramData &GetData() const { return _data; }
 
@@ -218,7 +220,7 @@ private:
 class D3DShaderInstance final : public BaseShaderInstance
 {
 public:
-    D3DShaderInstance(D3DShader *shader, const String &name, uint32_t id);
+    D3DShaderInstance(D3DShader *shader, const String &name);
     ~D3DShaderInstance() = default;
 
     // Returns a IGraphicShader referenced by this shader instance
@@ -386,20 +388,10 @@ public:
     // Creates shader program from the compiled data, registers it under given name,
     // returns IGraphicShader, or null on failure.
     IGraphicShader *CreateShaderProgram(const String &name, const std::vector<uint8_t> &compiled_data, const ShaderDefinition *def) override;
-    // Looks up for the shader program using a name,
-    // returns IGraphicShader, or null on failure.
-    IGraphicShader *FindShaderProgram(const String &name) override;
-    // Gets the shader program using its internal numeric ID; returns null if no such shader ID exists.
-    IGraphicShader *GetShaderProgram(uint32_t shader_id) override;
     // Deletes particular shader program.
     void DeleteShaderProgram(IGraphicShader *shader) override;
     // Creates shader instance for the given shader.
-    IShaderInstance *CreateShaderInstance(IGraphicShader *shader) override;
-    // Looks up for the shader instance using a name,
-    // returns IShaderInstance, or null on failure.
-    IShaderInstance *FindShaderInstance(const String &name) override;
-    // Gets the shader program using its internal numeric ID; returns null if no such shader ID exists.
-    IShaderInstance *GetShaderInstance(uint32_t shader_inst_id) override;
+    IShaderInstance *CreateShaderInstance(IGraphicShader *shader, const String &name) override;
     // Deletes particular shader instance
     void DeleteShaderInstance(IShaderInstance *shader_inst) override;
 
@@ -509,7 +501,6 @@ private:
 #if (DIRECT3D_USE_D3DCOMPILER)
     void OutputShaderLog(ComPtr<ID3DBlob> &out_errors, const String &shader_name, bool as_error);
 #endif
-    D3DShader *AddShaderToCollection(D3DShader::ProgramData &prg, const String &name, const ShaderDefinition *def);
 
     //
     // Specialized shaders
@@ -613,13 +604,8 @@ private:
 
     // Built-in shaders
     // TODO: RAII-wrapper for IGraphicShader / D3DShader pointer
-    D3DShader *_dummyShader = nullptr;
-    D3DShader *_tintShader = nullptr;
-    // Custom shaders
-    // TODO: move these and store outside of the gfx driver class, pass interface pointers instead of IDs
-    std::vector<D3DShader*> _shaders;
-    std::unordered_map<String, uint32_t> _shaderLookup;
-    std::vector<D3DShaderInstance*> _shaderInst;
+    std::unique_ptr<D3DShader> _dummyShader;
+    std::unique_ptr<D3DShader> _tintShader;
 
     BackbufferState _screenBackbuffer;
     BackbufferState _nativeBackbuffer;

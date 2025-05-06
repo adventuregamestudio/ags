@@ -190,7 +190,7 @@ private:
     glm::mat4 _v2cTransform;
     bool _visible = true;
     int _zorder = 0;
-    int _shaderID = -1;
+    int _shaderID = 0;
     int _shaderHandle = 0;
     // Flags that tell whether this viewport's position on screen has changed recently
     bool _hasChangedPosition = false;

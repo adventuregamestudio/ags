@@ -1796,7 +1796,7 @@ void Character_SetShader(CharacterInfo *chaa, ScriptShaderInstance *shader_inst)
         ccReleaseObjectReference(chex.shader_handle);
 
     ccAddObjectReference(new_inst_ref);
-    chex.shader_id = shader_inst->GetShaderInstanceID();
+    chex.shader_id = shader_inst->GetID();
     chex.shader_handle = new_inst_ref;
 }
 

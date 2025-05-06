@@ -42,29 +42,28 @@ source_group("SIMD Files" FILES ${SIMD_SOURCE})
 source_group("SIMD Files" FILES ${SIMD_INLINE})
 source_group("SIMD Files" FILES ${SIMD_HEADER})
 
-add_library(glm INTERFACE)
-target_include_directories(glm INTERFACE ../)
+add_library(glm-header-only INTERFACE)
+add_library(glm::glm-header-only ALIAS glm-header-only)
 
-if(BUILD_STATIC_GLM)
-add_library(glm_static STATIC ${ROOT_TEXT} ${ROOT_MD} ${ROOT_NAT}
-	${ROOT_SOURCE}    ${ROOT_INLINE}    ${ROOT_HEADER}
-	${CORE_SOURCE}    ${CORE_INLINE}    ${CORE_HEADER}
-	${EXT_SOURCE}     ${EXT_INLINE}     ${EXT_HEADER}
-	${GTC_SOURCE}     ${GTC_INLINE}     ${GTC_HEADER}
-	${GTX_SOURCE}     ${GTX_INLINE}     ${GTX_HEADER}
-	${SIMD_SOURCE}    ${SIMD_INLINE}    ${SIMD_HEADER})
-	target_link_libraries(glm_static PUBLIC glm)
-	add_library(glm::glm_static ALIAS glm_static)
-endif()
+target_include_directories(glm-header-only INTERFACE
+	"$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>"
+	"$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
+)
 
-if(BUILD_SHARED_GLM)
-add_library(glm_shared SHARED ${ROOT_TEXT} ${ROOT_MD} ${ROOT_NAT}
-	${ROOT_SOURCE}    ${ROOT_INLINE}    ${ROOT_HEADER}
-	${CORE_SOURCE}    ${CORE_INLINE}    ${CORE_HEADER}
-	${EXT_SOURCE}     ${EXT_INLINE}     ${EXT_HEADER}
-	${GTC_SOURCE}     ${GTC_INLINE}     ${GTC_HEADER}
-	${GTX_SOURCE}     ${GTX_INLINE}     ${GTX_HEADER}
-	${SIMD_SOURCE}    ${SIMD_INLINE}    ${SIMD_HEADER})
-	target_link_libraries(glm_shared PUBLIC glm)
-	add_library(glm::glm_shared ALIAS glm_shared)
+if (GLM_BUILD_LIBRARY)
+	add_library(glm
+		${ROOT_TEXT}      ${ROOT_MD}        ${ROOT_NAT}
+		${ROOT_SOURCE}    ${ROOT_INLINE}    ${ROOT_HEADER}
+		${CORE_SOURCE}    ${CORE_INLINE}    ${CORE_HEADER}
+		${EXT_SOURCE}     ${EXT_INLINE}     ${EXT_HEADER}
+		${GTC_SOURCE}     ${GTC_INLINE}     ${GTC_HEADER}
+		${GTX_SOURCE}     ${GTX_INLINE}     ${GTX_HEADER}
+		${SIMD_SOURCE}    ${SIMD_INLINE}    ${SIMD_HEADER}
+	)
+	add_library(glm::glm ALIAS glm)
+	target_link_libraries(glm PUBLIC glm-header-only)
+else()
+	add_library(glm INTERFACE)
+	add_library(glm::glm ALIAS glm)
+	target_link_libraries(glm INTERFACE glm-header-only)
 endif()

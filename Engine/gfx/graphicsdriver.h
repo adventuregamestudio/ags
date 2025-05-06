@@ -116,9 +116,18 @@ public:
     // but rather a tag meant for debugging purposes.
     virtual const String &GetName() const = 0;
 
+    // Get a number of registered constants
+    virtual uint32_t GetConstantCount() = 0;
+    // Get a registered constant's name, by its sequential index
+    virtual String GetConstantName(uint32_t iter_index) = 0;
+    // Get a registered constant's location, by its sequential index;
+    // returns UINT32_MAX if no such constant exists
+    virtual uint32_t GetConstantByIndex(uint32_t iter_index) = 0;
     // Looks up for the constant in a shader. Returns a valid index if such shader is registered,
     // and constant is present in that shader, or UINT32_MAX on failure.
-    virtual uint32_t GetShaderConstant(const String &const_name) = 0;
+    virtual uint32_t GetConstantByName(const String &const_name) = 0;
+    // Reset all shader constants to zero
+    virtual void ResetConstants() = 0;
 };
 
 // IShaderInstance is a interface of a single shader configuration,
@@ -143,6 +152,11 @@ public:
     virtual void SetShaderConstantF2(uint32_t const_index, float x, float y) = 0;
     virtual void SetShaderConstantF3(uint32_t const_index, float x, float y, float z) = 0;
     virtual void SetShaderConstantF4(uint32_t const_index, float x, float y, float z, float w) = 0;
+
+    // Gets the allocated size of the constants data
+    virtual size_t GetConstantDataSize() = 0;
+    // Gets array of allocated constants data, where each constant is represented as 4 floats
+    virtual void GetConstantData(std::vector<float> &data) = 0;
 };
 
 

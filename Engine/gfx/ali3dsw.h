@@ -102,9 +102,18 @@ class SoftwareShaderStub final : public BaseShader
 public:
     SoftwareShaderStub() = default;
 
+    // Get a number of registered constants
+    uint32_t GetConstantCount() override { return 0u; }
+    // Get a registered constant's name, by its sequential index
+    String GetConstantName(uint32_t iter_index) override { return {}; }
+    // Get a registered constant's location, by its sequential index;
+    // returns UINT32_MAX if no such constant exists
+    uint32_t GetConstantByIndex(uint32_t iter_index) override { return UINT32_MAX; }
     // Looks up for the constant in a shader. Returns a valid index if such shader is registered,
     // and constant is present in that shader, or UINT32_MAX on failure.
-    uint32_t GetShaderConstant(const String &const_name) override { return UINT32_MAX; }
+    uint32_t GetConstantByName(const String &const_name) override { return UINT32_MAX; }
+    // Reset all shader constants to zero
+    void ResetConstants() override { /* do nothing */ }
 };
 
 class SoftwareShaderInstance final : public BaseShaderInstance
@@ -116,6 +125,11 @@ public:
     void SetShaderConstantF2(uint32_t const_index, float x, float y) override { /* do nothing */ }
     void SetShaderConstantF3(uint32_t const_index, float x, float y, float z) override { /* do nothing */ }
     void SetShaderConstantF4(uint32_t const_index, float x, float y, float z, float w) override { /* do nothing */ }
+
+    // Gets the allocated size of the constants data
+    size_t GetConstantDataSize() override { return 0u; }
+    // Gets array of constants data, where each constant is represented as 4 floats
+    void GetConstantData(std::vector<float> &data) override { /* do nothing */ }
 
     SoftwareShaderInstance(SoftwareShaderStub *shader)
         : _shader(shader)

@@ -138,9 +138,18 @@ private:
 class OGLShader final : public BaseShader
 {
 public:
+    // Get a number of registered constants
+    uint32_t GetConstantCount() override;
+    // Get a registered constant's name, by its sequential index
+    String GetConstantName(uint32_t iter_index) override;
+    // Get a registered constant's location, by its sequential index;
+    // returns UINT32_MAX if no such constant exists
+    uint32_t GetConstantByIndex(uint32_t iter_index) override;
     // Looks up for the constant in a shader. Returns a valid index if such shader is registered,
     // and constant is present in that shader, or UINT32_MAX on failure.
-    uint32_t GetShaderConstant(const String &const_name) override;
+    uint32_t GetConstantByName(const String &const_name) override;
+    // Reset all shader constants to zero
+    void ResetConstants() override;
 
     // A cap of the number of constants that we support (0..N)
     static const uint32_t ConstantCap = 12u;
@@ -175,9 +184,13 @@ public:
         GLuint TintLuminance = 0;
         GLuint LightingAmount = 0;
 
-        // Constants table: maps constant name to the index/register
+        // Constants table: maps constant name to the register
         // in the compiled shader
         std::unordered_map<String, uint32_t> Constants;
+        // Ordered list of constants: lets iterate over them using
+        // a sequential index. Order is by the register (location)
+        // in shader program memory.
+        std::vector<std::pair<uint32_t, String>> ConstantsOrdered;
     };
 
     OGLShader(const String &name);
@@ -207,8 +220,15 @@ public:
     void SetShaderConstantF3(uint32_t const_index, float x, float y, float z) override;
     void SetShaderConstantF4(uint32_t const_index, float x, float y, float z, float w) override;
 
+    // Gets the allocated size of the constants data
+    size_t GetConstantDataSize() override;
+    // Gets array of constants data, where each constant is represented as 4 floats
+    void GetConstantData(std::vector<float> &data) override;
+
     struct ConstantValue
     {
+        static const uint32_t AllocSize = 4 * sizeof(float);
+
         uint32_t Loc = 0u;  // constant location in program
         uint32_t Size = 0u; // size of the constant, in floats
         float Val[4] = {};

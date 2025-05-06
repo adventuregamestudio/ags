@@ -162,9 +162,18 @@ public:
     D3DShader(const String &name, const D3DShader &copy_shader);
     ~D3DShader() = default;
 
+    // Get a number of registered constants
+    uint32_t GetConstantCount() override;
+    // Get a registered constant's name, by its sequential index
+    String GetConstantName(uint32_t iter_index) override;
+    // Get a registered constant's location, by its sequential index;
+    // returns UINT32_MAX if no such constant exists
+    uint32_t GetConstantByIndex(uint32_t iter_index) override;
     // Looks up for the constant in a shader. Returns a valid index if such shader is registered,
     // and constant is present in that shader, or UINT32_MAX on failure.
-    uint32_t GetShaderConstant(const String &const_name) override;
+    uint32_t GetConstantByName(const String &const_name) override;
+    // Reset all shader constants to zero
+    void ResetConstants() override;
 
     // A single constant register size *in floats*
     static const uint32_t ConstantSize = 4u;
@@ -208,6 +217,10 @@ public:
         // Constants table: maps constant name to the index/register
         // in the compiled shader
         std::unordered_map<String, uint32_t> Constants;
+        // Ordered list of constants: lets iterate over them using
+        // a sequential index. Order is by the register (location)
+        // in shader program memory.
+        std::vector<std::pair<uint32_t, String>> ConstantsOrdered;
     };
 
     bool IsValid() const { return _data.ShaderPtr != nullptr; }
@@ -231,6 +244,11 @@ public:
     void SetShaderConstantF2(uint32_t const_index, float x, float y) override;
     void SetShaderConstantF3(uint32_t const_index, float x, float y, float z) override;
     void SetShaderConstantF4(uint32_t const_index, float x, float y, float z, float w) override;
+
+    // Gets the allocated size of the constants data
+    size_t GetConstantDataSize() override;
+    // Gets array of constants data, where each constant is represented as 4 floats
+    void GetConstantData(std::vector<float> &data) override;
 
     const D3DShader::ProgramData &GetShaderData() const { return _shader->GetData(); }
     float *GetConstantData() { return _constantData.data(); }

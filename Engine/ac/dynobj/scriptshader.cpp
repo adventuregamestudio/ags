@@ -108,6 +108,24 @@ void ScriptShaderProgram::ReleaseInstanceIndex(uint32_t shinst_id)
     _freeInstanceIndexes.push(shinst_id);
 }
 
+const String ScriptShaderProgram::GetConstantName(uint32_t index)
+{
+    for (const auto &c : _constantTable)
+        if (c.second == index)
+            return c.first;
+    return {};
+}
+
+uint32_t ScriptShaderProgram::SetConstant(const String &name)
+{
+    auto it_found = _constantTable.find(name);
+    if (it_found != _constantTable.end())
+        return it_found->second;
+
+    _constantTable[name] = _constantTable.size();
+    return _constantTable.size();
+}
+
 const char *ScriptShaderProgram::GetType()
 {
     return "ShaderProgram";
@@ -143,6 +161,26 @@ ScriptShaderProgram *ScriptShaderInstance::GetScriptShader() const
     if (!_scriptShader)
         _scriptShader = static_cast<ScriptShaderProgram*>(ccGetObjectAddressFromHandle(_shaderHandle));
     return _scriptShader;
+}
+
+void ScriptShaderInstance::SetConstantData(const String &name, float value[4], uint32_t size)
+{
+    if (!_scriptShader)
+        return;
+
+    uint32_t index = _scriptShader->SetConstant(name);
+    SetConstantData(index, value, size);
+}
+
+void ScriptShaderInstance::SetConstantData(uint32_t index, float value[4], uint32_t size)
+{
+    if (_constData.size() <= index)
+        _constData.resize(index + 1);
+    _constData[index].Size = size;
+    _constData[index].Val[0] = value[0];
+    _constData[index].Val[1] = value[1];
+    _constData[index].Val[2] = value[2];
+    _constData[index].Val[3] = value[3];
 }
 
 const char *ScriptShaderInstance::GetType()

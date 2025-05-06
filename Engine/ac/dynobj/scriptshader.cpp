@@ -16,6 +16,8 @@
 #include "ac/draw.h"
 #include "gfx/graphicsdriver.h"
 #include "util/path.h"
+#include "util/stream.h"
+#include "util/string_utils.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -23,6 +25,9 @@ using namespace AGS::Engine;
 // TODO: I do not like having IGraphicsDriver dependency in here,
 // consider another way to order shader instance deletion?
 extern IGraphicsDriver *gfxDriver;
+
+const char *ScriptShaderProgram::TypeID = "ShaderProgram";
+const char *ScriptShaderInstance::TypeID = "ShaderInstance";
 
 uint32_t ScriptShaderProgram::_nextShaderIndex = ScriptShaderProgram::NullShaderID + 1u;
 std::queue<uint32_t> ScriptShaderProgram::_freeShaderIndexes;
@@ -128,7 +133,7 @@ uint32_t ScriptShaderProgram::SetConstant(const String &name)
 
 const char *ScriptShaderProgram::GetType()
 {
-    return "ShaderProgram";
+    return TypeID;
 }
 
 int ScriptShaderProgram::Dispose(void *address, bool force)
@@ -142,6 +147,64 @@ int ScriptShaderProgram::Dispose(void *address, bool force)
     // as loaded & compiled shaders may be reused later.
     delete this;
     return 1;
+}
+
+void ScriptShaderProgram::Unserialize(int index, Stream *in, size_t data_sz)
+{
+    // Header
+    in->ReadInt32(); // header size
+    in->ReadInt32(); // version
+    in->ReadInt32(); // reserved
+    _name = StrUtil::ReadString(in);
+    _filename = StrUtil::ReadString(in);
+    _id = in->ReadInt32();
+    _defaultInstanceHandle = in->ReadInt32();
+    // Constants table
+    uint32_t const_count = in->ReadInt32();
+    for (uint32_t i = 0; i < const_count; ++i)
+    {
+        String name = StrUtil::ReadString(in);
+        uint32_t index = in->ReadInt32();
+        _constantTable[name] = index;
+    }
+
+    ccRegisterUnserializedObject(index, this, this);
+}
+
+size_t ScriptShaderProgram::CalcSerializeSize(const void *address)
+{
+    const uint32_t header_sz = _name.GetLength() + _filename.GetLength() + sizeof(uint32_t) * 2
+        + sizeof(uint32_t) * 5;
+    size_t constant_table_sz = sizeof(uint32_t);
+    for (const auto &c : _constantTable)
+    {
+        constant_table_sz +=
+            c.first.GetLength() + sizeof(uint32_t)
+            + sizeof(uint32_t);
+    }
+    return header_sz + constant_table_sz
+        + sizeof(uint32_t); // default instance handle
+}
+
+void ScriptShaderProgram::Serialize(const void *address, Stream *out)
+{
+    // Header
+    const uint32_t header_sz = _name.GetLength() + _filename.GetLength() + sizeof(uint32_t) * 2
+        + sizeof(uint32_t) * 5;
+    out->WriteInt32(header_sz); // header size
+    out->WriteInt32(0); // version
+    out->WriteInt32(0); // reserved
+    StrUtil::WriteString(_name, out);
+    StrUtil::WriteString(_filename, out);
+    out->WriteInt32(_id);
+    out->WriteInt32(_defaultInstanceHandle);
+    // Constants table
+    out->WriteInt32(_constantTable.size());
+    for (const auto &c : _constantTable)
+    {
+        StrUtil::WriteString(c.first, out); // constant name
+        out->WriteInt32(c.second); // constant location
+    }
 }
 
 ScriptShaderInstance::ScriptShaderInstance(ScriptShaderProgram *sc_shader)
@@ -185,7 +248,7 @@ void ScriptShaderInstance::SetConstantData(uint32_t index, float value[4], uint3
 
 const char *ScriptShaderInstance::GetType()
 {
-    return "ShaderInstance";
+    return TypeID;
 }
 
 int ScriptShaderInstance::Dispose(void *address, bool force)
@@ -198,4 +261,51 @@ int ScriptShaderInstance::Dispose(void *address, bool force)
     delete_shader_instance(_id);
     delete this;
     return 1;
+}
+
+void ScriptShaderInstance::Unserialize(int index, Stream *in, size_t data_sz)
+{
+    // Header
+    in->ReadInt32(); // header size
+    in->ReadInt32(); // version
+    in->ReadInt32(); // reserved
+    _id = in->ReadInt32();
+    _shaderHandle = in->ReadInt32();
+    // Constant data
+    size_t constdata_sz = in->ReadInt32();
+    _constData.resize(constdata_sz);
+    for (auto &c : _constData)
+    {
+        c.Size = in->ReadInt32();
+        in->Read(c.Val, sizeof(float) * 4);
+    }
+
+    ccRegisterUnserializedObject(index, this, this);
+}
+
+size_t ScriptShaderInstance::CalcSerializeSize(const void *address)
+{
+    const uint32_t header_sz = sizeof(uint32_t) * 5;
+    size_t constant_table_sz = sizeof(uint32_t)
+        + _constData.size() * sizeof(uint32_t) + sizeof(float) * 4;
+    return header_sz + constant_table_sz
+        + sizeof(uint32_t); // shader handle
+}
+
+void ScriptShaderInstance::Serialize(const void *address, Stream *out)
+{
+    // Header
+    const uint32_t header_sz = sizeof(uint32_t) * 5;
+    out->WriteInt32(header_sz); // header size
+    out->WriteInt32(0); // version
+    out->WriteInt32(0); // reserved
+    out->WriteInt32(_id);
+    out->WriteInt32(_shaderHandle);
+    // Constant data
+    out->WriteInt32(_constData.size());
+    for (const auto &c : _constData)
+    {
+        out->WriteInt32(c.Size);
+        out->Write(c.Val, sizeof(float) * 4);
+    }
 }

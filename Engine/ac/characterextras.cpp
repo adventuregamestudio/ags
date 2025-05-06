@@ -147,6 +147,19 @@ void CharacterExtras::ReadFromSavegame(Stream *in, CharacterSvgVersion save_ver)
         flags = 0;
         turns = 0;
     }
+
+    if (save_ver >= kCharSvgVersion_400_18)
+    {
+        shader_id = in->ReadInt32();
+        shader_handle = in->ReadInt32();
+        in->ReadInt32(); // reserved
+        in->ReadInt32();
+    }
+    else
+    {
+        shader_id = -1;
+        shader_handle = 0;
+    }
 }
 
 void CharacterExtras::WriteToSavegame(Stream *out) const
@@ -196,4 +209,9 @@ void CharacterExtras::WriteToSavegame(Stream *out) const
     out->WriteInt32(movelist_handle);
     out->WriteInt32(flags);
     out->WriteInt32(turns);
+    // -- kCharSvgVersion_400_18
+    out->WriteInt32(shader_id);
+    out->WriteInt32(shader_handle);
+    out->WriteInt32(0); // reserved
+    out->WriteInt32(0);
 }

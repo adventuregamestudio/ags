@@ -239,6 +239,7 @@ void GUIObject::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     _zOrder = in->ReadInt32();
     // Dynamic state
     _isActivated = in->ReadBool() ? 1 : 0;
+
     if (svg_ver >= kGuiSvgVersion_36023)
     {
         _transparency = in->ReadInt32();
@@ -246,6 +247,7 @@ void GUIObject::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
         in->ReadInt32();
         in->ReadInt32();
     }
+
     if (svg_ver >= kGuiSvgVersion_40016)
     {
         _blendMode = static_cast<BlendMode>(in->ReadInt32());
@@ -265,6 +267,19 @@ void GUIObject::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
         in->ReadInt32(); // sprite pivot y
         in->ReadInt32(); // sprite anchor x
         in->ReadInt32(); // sprite anchor y
+    }
+
+    if (svg_ver >= kGuiSvgVersion_40018)
+    {
+        _shaderID = in->ReadInt32();
+        _shaderHandle = in->ReadInt32();
+        in->ReadInt32(); // reserved
+        in->ReadInt32();
+    }
+    else
+    {
+        _shaderID = -1;
+        _shaderHandle = 0;
     }
 
     MarkChanged();
@@ -304,6 +319,11 @@ void GUIObject::WriteToSavegame(Stream *out) const
     out->WriteInt32(0); // sprite pivot y
     out->WriteInt32(0); // sprite anchor x
     out->WriteInt32(0); // sprite anchor y
+    // kGuiSvgVersion_40018
+    out->WriteInt32(_shaderID);
+    out->WriteInt32(_shaderHandle);
+    out->WriteInt32(0); // reserved
+    out->WriteInt32(0);
 }
 
 } // namespace Common

@@ -58,7 +58,7 @@ ScriptValueType ccGetObjectAddressAndManagerFromHandle(int32_t handle, void *&ob
 int ccAddObjectReference(int32_t handle);
 int ccReleaseObjectReference(int32_t handle);
 
-typedef void (*PfnProcessManagedObject)(int handle, IScriptObject *obj);
+typedef std::function<void(int handle, IScriptObject *obj)> PfnProcessManagedObject;
 // Iterates all managed objects identified by their Type ID, and runs a callback for each of them
 void ccTraverseManagedObjects(const AGS::Common::String &type, PfnProcessManagedObject proc);
 

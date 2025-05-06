@@ -215,6 +215,8 @@ struct RestoredData
         int Height = 0;
         int ZOrder = 0;
         int CamID = -1;
+        int ShaderID = -1;
+        int ShaderHandle = 0;
     };
     struct CameraData
     {

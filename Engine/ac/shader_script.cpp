@@ -125,6 +125,17 @@ ScriptShaderProgram *CreateScriptShaderProgram(const char *filename)
     return sc_shader;
 }
 
+bool RecreateScriptShaderProgram(ScriptShaderProgram *sc_shader)
+{
+    IGraphicShader *shader = CreateShaderProgram(sc_shader->GetName(), sc_shader->GetFilename());
+    if (shader)
+    {
+        shader->ResetConstants();
+    }
+    add_custom_shader(shader, sc_shader->GetID()); // NOTE: we allow to register a nullptr at the index
+    return shader != nullptr;
+}
+
 ScriptShaderInstance *ShaderProgram_CreateInstance(ScriptShaderProgram *sc_shader);
 
 ScriptShaderProgram *ShaderProgram_CreateFromFile(const char *filename)
@@ -152,6 +163,38 @@ ScriptShaderInstance *ShaderProgram_CreateInstance(ScriptShaderProgram *sc_shade
     ccRegisterManagedObject(sc_shinst, sc_shinst);
     add_shader_instance(shinst, sc_shinst->GetID()); // NOTE: we allow to register a nullptr at the index
     return sc_shinst;
+}
+
+bool RecreateShaderInstance(ScriptShaderInstance *sc_shinst)
+{
+    ScriptShaderProgram *sc_shader = sc_shinst->GetScriptShader();
+    IShaderInstance *shinst = nullptr;
+    if (sc_shader)
+    {
+        IGraphicShader *shader = get_custom_shader(sc_shader->GetID());
+        if (shader)
+            shinst = gfxDriver->CreateShaderInstance(shader, sc_shinst->GetName());
+    }
+    
+    add_shader_instance(shinst, sc_shinst->GetID()); // NOTE: we allow to register a nullptr at the index
+    if (!shinst)
+        return false;
+
+    // Restore constant data
+    uint32_t const_count = sc_shinst->GetConstantCount();
+    for (uint32_t i = 0; i < const_count; ++i)
+    {
+        const auto c = sc_shinst->GetConstant(i);
+        switch (c.Size)
+        {
+        case 1: shinst->SetShaderConstantF(i, c.Val[0]); break;
+        case 2: shinst->SetShaderConstantF2(i, c.Val[0], c.Val[1]); break;
+        case 3: shinst->SetShaderConstantF3(i, c.Val[0], c.Val[1], c.Val[2]); break;
+        case 4: shinst->SetShaderConstantF4(i, c.Val[0], c.Val[1], c.Val[2], c.Val[3]); break;
+        default: assert(false); break;
+        }
+    }
+    return true;
 }
 
 ScriptShaderInstance *ShaderProgram_GetDefault(ScriptShaderProgram *shader_prg)

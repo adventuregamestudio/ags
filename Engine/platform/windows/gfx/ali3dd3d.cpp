@@ -176,7 +176,31 @@ D3DShader::D3DShader(const String &name, const D3DShader &copy_shader)
 {
 }
 
-uint32_t D3DShader::GetShaderConstant(const String &const_name)
+inline bool D3DShader_ConstantOrder(const std::pair<uint32_t, String> c1, const std::pair<uint32_t, String> c2)
+{
+    return c1.first < c2.first;
+}
+
+uint32_t D3DShader::GetConstantCount()
+{
+    return _data.Constants.size();
+}
+
+String D3DShader::GetConstantName(uint32_t iter_index)
+{
+    if (iter_index >= _data.ConstantsOrdered.size())
+        return {};
+    return _data.ConstantsOrdered[iter_index].second;
+}
+
+uint32_t D3DShader::GetConstantByIndex(uint32_t iter_index)
+{
+    if (iter_index >= _data.ConstantsOrdered.size())
+        return {};
+    return _data.ConstantsOrdered[iter_index].first;
+}
+
+uint32_t D3DShader::GetConstantByName(const String &const_name)
 {
     if (!_data.ShaderPtr)
         return UINT32_MAX;
@@ -186,6 +210,12 @@ uint32_t D3DShader::GetShaderConstant(const String &const_name)
         return UINT32_MAX;
 
     return it_found->second;
+}
+
+void D3DShader::ResetConstants()
+{
+    // Don't do anything; in D3D all shaders share same constants memory,
+    // and it's overwritten whenever any shader is used in rendering
 }
 
 D3DShaderInstance::D3DShaderInstance(D3DShader *shader, const String &name)
@@ -221,6 +251,16 @@ void D3DShaderInstance::SetShaderConstantF4(uint32_t const_index, float x, float
     _constantData[reg_off + 1] = y;
     _constantData[reg_off + 2] = z;
     _constantData[reg_off + 3] = w;
+}
+
+size_t D3DShaderInstance::GetConstantDataSize()
+{
+    return _constantData.size();
+}
+
+void D3DShaderInstance::GetConstantData(std::vector<float> &data)
+{
+    data = _constantData;
 }
 
 D3DGfxModeList::D3DGfxModeList(const D3DPtr &direct3d, int display_index, D3DFORMAT d3dformat)
@@ -991,6 +1031,8 @@ void D3DGraphicsDriver::AssignBaseShaderArgs(D3DShader::ProgramData &prg, const 
     }
 
     // Copy constants table
+    prg.Constants = {};
+    prg.ConstantsOrdered = {};
     if (def)
     {
         prg.Constants = def->Constants;
@@ -1000,6 +1042,11 @@ void D3DGraphicsDriver::AssignBaseShaderArgs(D3DShader::ProgramData &prg, const 
         {
             if (cc.second > reg_cap)
                 cc.second = null_index;
+
+            auto constant = std::make_pair(cc.second, cc.first);
+            prg.ConstantsOrdered.insert(
+                std::upper_bound(prg.ConstantsOrdered.begin(), prg.ConstantsOrdered.end(), constant, D3DShader_ConstantOrder),
+                constant);
         }
     }
 }

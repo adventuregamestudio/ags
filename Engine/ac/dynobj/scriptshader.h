@@ -18,6 +18,7 @@
 #include <unordered_set>
 #include "ac/dynobj/cc_agsdynamicobject.h"
 #include "util/string.h"
+#include "util/string_types.h"
 
 class ScriptShaderInstance;
 
@@ -46,6 +47,12 @@ public:
     uint32_t GetFreeInstanceIndex();
     void ReleaseInstanceIndex(uint32_t shinst_id);
 
+    uint32_t GetConstantCount() const { return _constantTable.size(); }
+    const String GetConstantName(uint32_t index);
+    // Register a constant name, allocate data index;
+    // if such constant is already known, then returns existing index
+    uint32_t SetConstant(const String &name);
+
     const char *GetType() override;
     int Dispose(void *address, bool force) override;
 
@@ -55,6 +62,13 @@ private:
     uint32_t _id = NullShaderID;
     int _defaultInstanceHandle = 0;
     mutable ScriptShaderInstance *_defaultInstance = nullptr;
+
+    // The constants table in a driver-agnostic form: maps a constant
+    // name to the index in ScriptShaderInstance data array.
+    // Has no direct correspondence to how gfx driver stores these.
+    // ScriptShaderProgram caches these, and uses for serialization,
+    // and when resolving shader instances after restoring a save.
+    std::unordered_map<String, uint32_t> _constantTable;
 
     // The records of logical indexes and names of script shader objects.
     // TODO: don't use static members, consider put this in a global object like GamePlayState?
@@ -81,6 +95,21 @@ public:
     uint32_t GetID() const { return _id; }
     ScriptShaderProgram *GetScriptShader() const;
 
+    // Constants data array, in a generic form.
+    // Has no direct correspondence to how gfx driver stores these.
+    // ScriptShaderInstance caches these, and uses for serialization,
+    // and when resolving shader instances after restoring a save.
+    struct Constant
+    {
+        uint32_t Size = 0u; // size of the constant, in floats
+        float Val[4] = { 0.f };
+    };
+
+    uint32_t GetConstantCount() const { return _constData.size(); }
+    Constant GetConstant(uint32_t index) const { return index < _constData.size() ? _constData[index] : Constant(); }
+    void SetConstantData(const String &name, float value[4], uint32_t size);
+    void SetConstantData(uint32_t index, float value[4], uint32_t size);
+
     const char *GetType() override;
     int Dispose(void *address, bool force) override;
 
@@ -89,6 +118,7 @@ private:
     uint32_t _id = NullInstanceID;
     int _shaderHandle = 0; // script shader handle
     mutable ScriptShaderProgram *_scriptShader = nullptr;
+    std::vector<Constant> _constData;
 };
 
 #endif // __AGS_EE_DYNOBJ__SCRIPTSHADER_H

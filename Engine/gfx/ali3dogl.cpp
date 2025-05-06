@@ -124,7 +124,31 @@ OGLShader::~OGLShader()
         glDeleteProgram(_data.Program);
 }
 
-uint32_t OGLShader::GetShaderConstant(const String &const_name)
+inline bool OGLShader_ConstantOrder(const std::pair<uint32_t, String> c1, const std::pair<uint32_t, String> c2)
+{
+    return c1.first < c2.first;
+}
+
+uint32_t OGLShader::GetConstantCount()
+{
+    return _data.Constants.size();
+}
+
+String OGLShader::GetConstantName(uint32_t iter_index)
+{
+    if (iter_index >= _data.ConstantsOrdered.size())
+        return {};
+    return _data.ConstantsOrdered[iter_index].second;
+}
+
+uint32_t OGLShader::GetConstantByIndex(uint32_t iter_index)
+{
+    if (iter_index >= _data.ConstantsOrdered.size())
+        return {};
+    return _data.ConstantsOrdered[iter_index].first;
+}
+
+uint32_t OGLShader::GetConstantByName(const String &const_name)
 {
     if (_data.Program == 0)
         return UINT32_MAX;
@@ -138,7 +162,40 @@ uint32_t OGLShader::GetShaderConstant(const String &const_name)
         return UINT32_MAX;
 
     _data.Constants[const_name] = index;
+    auto constant = std::make_pair(index, const_name);
+    _data.ConstantsOrdered.insert(
+        std::upper_bound(_data.ConstantsOrdered.begin(), _data.ConstantsOrdered.end(), constant, OGLShader_ConstantOrder),
+        constant);
     return index;
+}
+
+void OGLShader::ResetConstants()
+{
+    if (_data.Program == 0u)
+        return;
+
+    GLint uni_count;
+    glGetProgramiv(_data.Program, GL_ACTIVE_UNIFORMS, &uni_count);
+    if (uni_count == 0)
+        return;
+
+    glUseProgram(_data.Program);
+    for (int i = 0; i < uni_count; ++i)
+    {
+        GLint size;
+        GLenum type;
+        glGetActiveUniform(_data.Program, i, 0, nullptr, &size, &type, nullptr);
+        // NOTE: currently we only support float1->float4 types (float vectors) as custom constants,
+        // so reset only these
+        switch (type)
+        {
+        case GL_FLOAT: glUniform1f(i, 0.f); break;
+        case GL_FLOAT_VEC2: glUniform2f(i, 0.f, 0.f); break;
+        case GL_FLOAT_VEC3: glUniform3f(i, 0.f, 0.f, 0.f);  break;
+        case GL_FLOAT_VEC4: glUniform4f(i, 0.f, 0.f, 0.f, 0.f); break;
+        default: break;
+        }
+    }
 }
 
 OGLShaderInstance::OGLShaderInstance(OGLShader *shader, const String &name)
@@ -179,6 +236,29 @@ void OGLShaderInstance::SetConstant(uint32_t const_index, uint32_t size, float x
     _constantData[const_index] = ConstantValue(const_index, size, x, y, z, w);
 }
 
+size_t OGLShaderInstance::GetConstantDataSize()
+{
+    if (_constantData.size() == 0)
+        return 0u;
+
+    uint32_t last_location = 0u;
+    for (const auto &c : _constantData)
+        last_location = std::max(c.Loc, last_location);
+    return (last_location + 1) * ConstantValue::AllocSize;
+}
+
+void OGLShaderInstance::GetConstantData(std::vector<float> &data)
+{
+    data.resize(GetConstantDataSize());
+    for (const auto &c : _constantData)
+    {
+        size_t pos = c.Loc * ConstantValue::AllocSize;
+        data[pos + 0] = c.Val[0];
+        data[pos + 1] = c.Val[1];
+        data[pos + 2] = c.Val[2];
+        data[pos + 3] = c.Val[3];
+    }
+}
 
 
 OGLGraphicsDriver::OGLGraphicsDriver()
@@ -822,6 +902,10 @@ bool OGLGraphicsDriver::CreateShaderProgram(OGLShader::ProgramData &prg, const S
 
     prg.Program = program;
     Debug::Printf("OpenGL: \"%s\" shader program created successfully", name.GetCStr());
+
+    // TODO: consider using glGetActiveUniform to retrieve a list of uniforms and default values (idk if needed?)
+    // See https://docs.gl/gl4/glGetActiveUniform
+
     return true;
 }
 

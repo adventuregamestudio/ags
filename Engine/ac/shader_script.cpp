@@ -159,56 +159,54 @@ ScriptShaderInstance *ShaderProgram_GetDefault(ScriptShaderProgram *shader_prg)
     return static_cast<ScriptShaderInstance*>(shader_prg->GetDefaultInstance());
 }
 
-void ShaderInstance_SetConstantF(ScriptShaderInstance *sc_shinst, const char *name, float value)
+void ShaderInstance_SetConstantFX(ScriptShaderInstance *sc_shinst, const char *name, uint32_t size,
+                                  float x = 0.f, float y = 0.f, float z = 0.f, float w = 0.f)
 {
+    // Cache the constant and data in the script object;
+    // do this regardless of whether such constant exists in the real shader or not.
+    const uint32_t sc_index = sc_shinst->GetScriptShader()->SetConstant(name);
+    float sc_val[4] = { x, y, z, w };
+    sc_shinst->SetConstantData(sc_index, sc_val, size);
+
+    // Now try getting the actual shader and apply the constant according
+    // to their constants table
     IShaderInstance *shader_inst = get_shader_instance(sc_shinst->GetID());
-    if (shader_inst)
+    if (!shader_inst || !shader_inst->GetShader())
+        return;
+
+    const uint32_t const_index = shader_inst->GetShader()->GetConstantByName(name);
+    if (const_index != UINT32_MAX)
     {
-        uint32_t const_index = shader_inst->GetShader()->GetShaderConstant(name);
-        if (const_index != UINT32_MAX)
+        // Pass new values to the graphics shader instance
+        switch (size)
         {
-            shader_inst->SetShaderConstantF(const_index, value);
+        case 1: shader_inst->SetShaderConstantF(const_index, x); break;
+        case 2: shader_inst->SetShaderConstantF2(const_index, x, y); break;
+        case 3: shader_inst->SetShaderConstantF3(const_index, x, y, z); break;
+        case 4: shader_inst->SetShaderConstantF4(const_index, x, y, z, w); break;
+        default: assert(false); break;
         }
     }
+}
+
+void ShaderInstance_SetConstantF(ScriptShaderInstance *sc_shinst, const char *name, float value)
+{
+    ShaderInstance_SetConstantFX(sc_shinst, name, 1, value);
 }
 
 void ShaderInstance_SetConstantF2(ScriptShaderInstance *sc_shinst, const char *name, float x, float y)
 {
-    IShaderInstance *shader_inst = get_shader_instance(sc_shinst->GetID());
-    if (shader_inst)
-    {
-        uint32_t const_index = shader_inst->GetShader()->GetShaderConstant(name);
-        if (const_index != UINT32_MAX)
-        {
-            shader_inst->SetShaderConstantF2(const_index, x, y);
-        }
-    }
+    ShaderInstance_SetConstantFX(sc_shinst, name, 2, x, y);
 }
 
 void ShaderInstance_SetConstantF3(ScriptShaderInstance *sc_shinst, const char *name, float x, float y, float z)
 {
-    IShaderInstance *shader_inst = get_shader_instance(sc_shinst->GetID());
-    if (shader_inst)
-    {
-        uint32_t const_index = shader_inst->GetShader()->GetShaderConstant(name);
-        if (const_index != UINT32_MAX)
-        {
-            shader_inst->SetShaderConstantF3(const_index, x, y, z);
-        }
-    }
+    ShaderInstance_SetConstantFX(sc_shinst, name, 3, x, y, z);
 }
 
 void ShaderInstance_SetConstantF4(ScriptShaderInstance *sc_shinst, const char *name, float x, float y, float z, float w)
 {
-    IShaderInstance *shader_inst = get_shader_instance(sc_shinst->GetID());
-    if (shader_inst)
-    {
-        uint32_t const_index = shader_inst->GetShader()->GetShaderConstant(name);
-        if (const_index != UINT32_MAX)
-        {
-            shader_inst->SetShaderConstantF4(const_index, x, y, z, w);
-        }
-    }
+    ShaderInstance_SetConstantFX(sc_shinst, name, 4, x, y, z, w);
 }
 
 ScriptShaderProgram *ShaderInstance_GetShader(ScriptShaderInstance *sc_shinst)

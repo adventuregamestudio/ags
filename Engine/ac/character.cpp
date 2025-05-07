@@ -114,7 +114,7 @@ bool is_valid_character(int char_id)
 // Checks if character is currently playing idle anim, and reset it
 static void stop_character_idling(CharacterInfo *chi)
 {
-    if (chi->idleleft < 0)
+    if (chi->is_idling())
     {
         Character_UnlockView(chi);
         chi->idleleft = chi->idletime;
@@ -1007,7 +1007,7 @@ void Character_StopMovingEx(CharacterInfo *chi, bool force_walkable_area)
         // Switch character state from walking to standing
         chi->walking = 0;
         // If the character was animating a walk, then reset their frame to standing
-        if ((chi->flags & CHF_MOVENOTWALK) == 0)
+        if (chi->is_moving_walkanim())
             chi->frame = 0;
         // Restart idle timer and mark to process right away (in case its persistent idling)
         chi->idleleft = chi->idletime;
@@ -1798,7 +1798,7 @@ void move_character_impl(CharacterInfo *chin, const std::vector<Point> *path, in
         toy = path->back().Y;
     }
 
-    if ((chin->animating) && (walk_anim))
+    if (chin->is_animating() && walk_anim)
         stop_character_anim(chin);
     // Stop idling anim
     stop_character_idling(chin);
@@ -2027,7 +2027,7 @@ int doNextCharMoveStep(CharacterInfo *chi, CharacterExtras *chex) {
 
     if (do_movelist_move(chi->walking, chi->x, chi->y) == 2) 
     {
-        if ((chi->flags & CHF_MOVENOTWALK) == 0)
+        if (chi->is_moving_walkanim())
             fix_player_sprite(&mls[chi->get_movelist_id()], chi);
     }
 
@@ -2041,7 +2041,7 @@ int doNextCharMoveStep(CharacterInfo *chi, CharacterExtras *chex) {
 
         chi->flags |= CHF_AWAITINGMOVE;
 
-        if ((chi->flags & CHF_MOVENOTWALK) == 0)
+        if (chi->is_moving_walkanim())
         {
             chi->frame = 0;
             chex->animwait = chi->walkwait;

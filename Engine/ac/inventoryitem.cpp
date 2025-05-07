@@ -127,7 +127,7 @@ ScriptInvItem *InventoryItem_GetAtScreenXY(int xx, int yy) {
 }
 
 const char* InventoryItem_GetName_New(ScriptInvItem *invitem) {
-  return CreateNewScriptString(get_translation(game.invinfo[invitem->id].name.GetCStr()));
+  return CreateNewScriptString(game.invinfo[invitem->id].name);
 }
 
 int InventoryItem_GetGraphic(ScriptInvItem *iitem) {

@@ -180,6 +180,10 @@ struct CharacterInfo
 
     inline bool is_moving()          const { return walking > 0; }
     inline bool is_moving_not_turning() const { return (walking > 0) && (walking < TURNING_AROUND); }
+    // Is moving *and* playing walking animation
+    inline bool is_moving_walkanim()  const { return (flags & CHF_MOVENOTWALK) == 0; }
+    // Is moving, but *not* playing walking animation
+    inline bool is_moving_no_anim()  const { return (flags & CHF_MOVENOTWALK) != 0; }
     inline int  get_movelist_id()    const { return walking % TURNING_AROUND; }
 
     inline bool has_explicit_light() const { return (flags & CHF_HASLIGHT) != 0; }
@@ -195,6 +199,8 @@ struct CharacterInfo
             (CHANIM_BACKWARDS * !forwards) |
             ((delay & 0xFF) << 8);
     }
+
+    inline bool is_idling()          const { return (idleleft < 0); }
 
     // Gets legacy follow distance, limited to a 8-bit unsigned value
     inline int get_follow_distance() const

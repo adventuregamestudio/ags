@@ -151,17 +151,9 @@ ScriptShaderInstance *Camera_GetShader(ScriptCamera *scam)
 void Camera_SetShader(ScriptCamera *scam, ScriptShaderInstance *shader_inst)
 {
     if (scam->GetID() < 0) { debug_script_warn("Camera.Shader: trying to use deleted camera"); return; }
-    // TODO: we need some sort of a RAII wrapper around managed object reference that does all this automatically!
-    const int new_inst_ref = ccGetObjectHandleFromAddress(shader_inst);
     auto cam = play.GetRoomCamera(scam->GetID());
-    if (cam->GetShaderHandle() == new_inst_ref)
-        return;
-
-    if (cam->GetShaderHandle() > 0)
-        ccReleaseObjectReference(cam->GetShaderHandle());
-
-    ccAddObjectReference(new_inst_ref);
-    cam->SetShader(shader_inst ? shader_inst->GetID() : ScriptShaderInstance::NullInstanceID, new_inst_ref);
+    cam->SetShader(shader_inst ? shader_inst->GetID() : ScriptShaderInstance::NullInstanceID,
+                   ccReplaceObjectHandle(cam->GetShaderHandle(), shader_inst));
 }
 
 RuntimeScriptValue Sc_Camera_Create(const RuntimeScriptValue *params, int32_t param_count)
@@ -393,17 +385,9 @@ ScriptShaderInstance *Viewport_GetShader(ScriptViewport *scv)
 void Viewport_SetShader(ScriptViewport *scv, ScriptShaderInstance *shader_inst)
 {
     if (scv->GetID() < 0) { debug_script_warn("Viewport.Shader: trying to use deleted viewport"); return; }
-    // TODO: we need some sort of a RAII wrapper around managed object reference that does all this automatically!
-    const int new_inst_ref = ccGetObjectHandleFromAddress(shader_inst);
     auto view = play.GetRoomViewport(scv->GetID());
-    if (view->GetShaderHandle() == new_inst_ref)
-        return;
-
-    if (view->GetShaderHandle() > 0)
-        ccReleaseObjectReference(view->GetShaderHandle());
-
-    ccAddObjectReference(new_inst_ref);
-    view->SetShader(shader_inst ? shader_inst->GetID() : ScriptShaderInstance::NullInstanceID, new_inst_ref);
+    view->SetShader(shader_inst ? shader_inst->GetID() : ScriptShaderInstance::NullInstanceID,
+                    ccReplaceObjectHandle(view->GetShaderHandle(), shader_inst));
 }
 
 ScriptViewport* Viewport_GetAtScreenXY(int x, int y)

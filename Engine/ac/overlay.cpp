@@ -319,16 +319,8 @@ ScriptShaderInstance *Overlay_GetShader(ScriptOverlay *scover)
 void Overlay_SetShader(ScriptOverlay *scover, ScriptShaderInstance *shader_inst)
 {
     auto *over = GetOverlayValidate("Overlay.Shader", scover);
-    // TODO: we need some sort of a RAII wrapper around managed object reference that does all this automatically!
-    const int new_inst_ref = ccGetObjectHandleFromAddress(shader_inst);
-    if (over->GetShaderHandle() == new_inst_ref)
-        return;
-
-    if (over->GetShaderHandle() > 0)
-        ccReleaseObjectReference(over->GetShaderHandle());
-
-    ccAddObjectReference(new_inst_ref);
-    over->SetShader(shader_inst ? shader_inst->GetID() : ScriptShaderInstance::NullInstanceID, new_inst_ref);
+    over->SetShader(shader_inst ? shader_inst->GetID() : ScriptShaderInstance::NullInstanceID,
+                    ccReplaceObjectHandle(over->GetShaderHandle(), shader_inst));
 }
 
 int Overlay_GetTransparency(ScriptOverlay *scover)

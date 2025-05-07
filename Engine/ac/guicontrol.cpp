@@ -267,16 +267,8 @@ ScriptShaderInstance *GUIControl_GetShader(GUIObject *guio)
 
 void GUIControl_SetShader(GUIObject *guio, ScriptShaderInstance *shader_inst)
 {
-    // TODO: we need some sort of a RAII wrapper around managed object reference that does all this automatically!
-    const int new_inst_ref = ccGetObjectHandleFromAddress(shader_inst);
-    if (guio->GetShaderHandle() == new_inst_ref)
-        return;
-
-    if (guio->GetShaderHandle() > 0)
-        ccReleaseObjectReference(guio->GetShaderHandle());
-
-    ccAddObjectReference(new_inst_ref);
-    guio->SetShader(shader_inst ? shader_inst->GetID() : ScriptShaderInstance::NullInstanceID, new_inst_ref);
+    guio->SetShader(shader_inst ? shader_inst->GetID() : ScriptShaderInstance::NullInstanceID,
+                    ccReplaceObjectHandle(guio->GetShaderHandle(), shader_inst));
 }
 
 //=============================================================================

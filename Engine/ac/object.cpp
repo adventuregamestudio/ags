@@ -864,18 +864,9 @@ ScriptShaderInstance *Object_GetShader(ScriptObject *objj)
 
 void Object_SetShader(ScriptObject *objj, ScriptShaderInstance *shader_inst)
 {
-    // TODO: we need some sort of a RAII wrapper around managed object reference that does all this automatically!
-    const int new_inst_ref = ccGetObjectHandleFromAddress(shader_inst);
     auto &obj = objs[objj->id];
-    if (obj.shader_handle == new_inst_ref)
-        return;
-
-    if (obj.shader_handle > 0)
-        ccReleaseObjectReference(obj.shader_handle);
-
-    ccAddObjectReference(new_inst_ref);
     obj.shader_id = shader_inst ? shader_inst->GetID() : ScriptShaderInstance::NullInstanceID;
-    obj.shader_handle = new_inst_ref;
+    obj.shader_handle = ccReplaceObjectHandle(obj.shader_handle, shader_inst);
 }
 
 float Object_GetRotation(ScriptObject *objj) {

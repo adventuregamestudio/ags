@@ -58,6 +58,22 @@ ScriptValueType ccGetObjectAddressAndManagerFromHandle(int32_t handle, void *&ob
 int ccAddObjectReference(int32_t handle);
 int ccReleaseObjectReference(int32_t handle);
 
+// Helper functions for assigning managed object handles.
+// TODO: implement a RAII kind of a wrapper over managed handle that uses these automatically.
+
+// Retrieves object's handle, adds reference count and returns a handle.
+int ccAssignObjectHandle(void *address);
+// Decrements handle's reference count, returns 0 (easy to use as assigment).
+int ccRemoveObjectHandle(int handle);
+// Replaces one handle with another using same rules as a smart pointer:
+// tests handles for equality, decrements old handle's reference count,
+// increments new handle's reference count. Returns new handle.
+int ccReplaceObjectHandle(int32_t old_handle, int32_t new_handle);
+// Replaces one handle with another (got from real address) using same rules as a smart pointer:
+// tests handles for equality, decrements old handle's reference count,
+// increments new handle's reference count. Returns new handle.
+int ccReplaceObjectHandle(int32_t old_handle, void *new_address);
+
 typedef std::function<void(int handle, IScriptObject *obj)> PfnProcessManagedObject;
 // Iterates all managed objects identified by their Type ID, and runs a callback for each of them
 void ccTraverseManagedObjects(const AGS::Common::String &type, PfnProcessManagedObject proc);

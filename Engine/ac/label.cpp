@@ -34,8 +34,6 @@ void Label_GetText(GUILabel *labl, char *buffer) {
 }
 
 void Label_SetText(GUILabel *labl, const char *newtx) {
-    newtx = get_translation(newtx);
-
     if (labl->GetText() != newtx) {
         labl->SetText(newtx);
     }

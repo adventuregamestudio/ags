@@ -2720,8 +2720,6 @@ void display_speech(const char *texx, int aschar, int xx, int yy, int widd, bool
     }
     said_text = 1;
 
-    // the strings are pre-translated
-    //texx = get_translation(texx);
     set_our_eip(150);
 
     int isPause = 1;

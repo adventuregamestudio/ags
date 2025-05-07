@@ -372,7 +372,7 @@ const char* Dialog_GetOptionText(ScriptDialog *sd, int option)
 
   option--; // option id is 1-based in script, and 0 is entry point
 
-  return CreateNewScriptString(get_translation(dialog[sd->id].optionnames[option]));
+  return CreateNewScriptString(dialog[sd->id].optionnames[option]);
 }
 
 int Dialog_GetID(ScriptDialog *sd) {

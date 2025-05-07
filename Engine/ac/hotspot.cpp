@@ -125,7 +125,7 @@ ScriptHotspot *Hotspot_GetAtScreenXY(int x, int y)
 const char* Hotspot_GetName_New(ScriptHotspot *hss) {
     if ((hss->id < 0) || (hss->id >= MAX_ROOM_HOTSPOTS))
         quit("!Hotspot.Name: invalid hotspot number");
-    return CreateNewScriptString(get_translation(croom->hotspot[hss->id].Name.GetCStr()));
+    return CreateNewScriptString(croom->hotspot[hss->id].Name);
 }
 
 void Hotspot_SetName(ScriptHotspot *hss, const char *newName) {

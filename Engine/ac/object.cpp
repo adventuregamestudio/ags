@@ -641,7 +641,7 @@ const char* Object_GetName_New(ScriptObject *objj) {
     if (!is_valid_object(objj->id))
         quit("!Object.Name: invalid object number");
 
-    return CreateNewScriptString(get_translation(croom->obj[objj->id].name.GetCStr()));
+    return CreateNewScriptString(croom->obj[objj->id].name);
 }
 
 void Object_SetName(ScriptObject *objj, const char *newName) {

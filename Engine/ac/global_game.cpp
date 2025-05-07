@@ -565,7 +565,7 @@ const char *GetLocationName(int x, int y)
             if (play.get_loc_name_last_time != 1000 + mover)
                 GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
             play.get_loc_name_last_time = 1000 + mover;
-            out_name = get_translation(game.invinfo[mover].name.GetCStr());
+            out_name = game.invinfo[mover].name.GetCStr();
         }
         else if ((play.get_loc_name_last_time > 1000) && (play.get_loc_name_last_time < 1000 + MAX_INV)) {
             // no longer selecting an item
@@ -599,7 +599,7 @@ const char *GetLocationName(int x, int y)
     if (loctype == LOCTYPE_CHAR)
     {
         onhs = getloctype_index;
-        out_name = get_translation(game.chars[onhs].name.GetCStr());
+        out_name = game.chars[onhs].name.GetCStr();
         if (play.get_loc_name_last_time != 2000+onhs)
             GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
         play.get_loc_name_last_time = 2000+onhs;
@@ -609,7 +609,7 @@ const char *GetLocationName(int x, int y)
     if (loctype == LOCTYPE_OBJ)
     {
         aa = getloctype_index;
-        out_name = get_translation(croom->obj[aa].name.GetCStr());
+        out_name = croom->obj[aa].name.GetCStr();
         if (play.get_loc_name_last_time != 3000+aa)
             GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
         play.get_loc_name_last_time = 3000+aa;
@@ -617,7 +617,7 @@ const char *GetLocationName(int x, int y)
     }
     onhs = getloctype_index;
     if (onhs>0)
-        out_name = get_translation(croom->hotspot[onhs].Name.GetCStr());
+        out_name = croom->hotspot[onhs].Name.GetCStr();
     if (play.get_loc_name_last_time != onhs)
         GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
     play.get_loc_name_last_time = onhs;

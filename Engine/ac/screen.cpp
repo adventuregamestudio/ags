@@ -828,14 +828,8 @@ ScriptShaderInstance *Screen_GetShader()
 
 void Screen_SetShader(ScriptShaderInstance *shader_inst)
 {
-    // TODO: we need some sort of a RAII wrapper around managed object reference that does all this automatically!
-    const int new_inst_ref = ccGetObjectHandleFromAddress(shader_inst);
-
-    if (play.GetScreenShaderHandle() > 0)
-        ccReleaseObjectReference(play.GetScreenShaderHandle());
-
-    ccAddObjectReference(new_inst_ref);
-    play.SetScreenShader(shader_inst ? shader_inst->GetID() : ScriptShaderInstance::NullInstanceID, new_inst_ref);
+    play.SetScreenShader(shader_inst ? shader_inst->GetID() : ScriptShaderInstance::NullInstanceID,
+                         ccReplaceObjectHandle(play.GetScreenShaderHandle(), shader_inst));
 }
 
 ScriptUserObject* Screen_ScreenToRoomPoint(int scrx, int scry, bool restrict)

@@ -84,14 +84,8 @@ ScriptShaderInstance *ScriptShaderProgram::GetDefaultInstance() const
 
 void ScriptShaderProgram::SetDefaultShaderInstance(ScriptShaderInstance *shader_inst)
 {
-    int new_handle = ccGetObjectHandleFromAddress(shader_inst);
-    // TODO: implement a RAII kind of a wrapper over managed handle that does this automatically
-    if (_defaultInstanceHandle > 0 && _defaultInstanceHandle != new_handle)
-        ccReleaseObjectReference(_defaultInstanceHandle);
     _defaultInstance = shader_inst;
-    _defaultInstanceHandle = new_handle;
-    if (_defaultInstanceHandle > 0)
-        ccAddObjectReference(_defaultInstanceHandle);
+    _defaultInstanceHandle = ccReplaceObjectHandle(_defaultInstanceHandle, ccGetObjectHandleFromAddress(shader_inst));
 }
 
 uint32_t ScriptShaderProgram::GetFreeInstanceIndex()
@@ -213,10 +207,7 @@ ScriptShaderInstance::ScriptShaderInstance(ScriptShaderProgram *sc_shader)
     _id = sc_shader->GetFreeInstanceIndex();
     _name = String::FromFormat("%s.%u", sc_shader->GetName().GetCStr(), _id);
 
-    // TODO: implement a RAII kind of a wrapper over managed handle that does this automatically
-    _shaderHandle = ccGetObjectHandleFromAddress(sc_shader);
-    if (_shaderHandle > 0)
-        ccAddObjectReference(_shaderHandle);
+    _shaderHandle = ccAssignObjectHandle(sc_shader);
 }
 
 ScriptShaderProgram *ScriptShaderInstance::GetScriptShader() const

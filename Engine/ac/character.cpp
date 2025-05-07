@@ -1068,7 +1068,6 @@ void Character_UnlockViewEx(CharacterInfo *chaa, int stopMoving) {
     chaa->pic_yoffs = 0;
     // restart the idle animation straight away
     charextra[chaa->index_id].process_idle_this_time = 1;
-
 }
 
 
@@ -1779,6 +1778,20 @@ void move_character_impl(CharacterInfo *chin, const std::vector<Point> *path, in
     if (!ValidateCharForMove(chin, "MoveCharacter"))
         return;
 
+    // Stop custom animation always (but idling will be stopped only if pathfinding was a success, below)
+    if (chin->is_animating() && walk_anim)
+        stop_character_anim(chin);
+
+    // If using a path, then update starting and destination parameters,
+    // and jump the character to the path's start
+    if (path)
+    {
+        chin->x = path->front().X;
+        chin->y = path->front().Y;
+        tox = path->back().X;
+        toy = path->back().Y;
+    }
+
     // If has path, then test if it's empty, or has 2 stages where start is identical to end;
     // If no path, then test if destination is identical to the current pos
     if (path && ((path->size() < 2) || (path->size() == 2) && ((*path)[0] == (*path)[1])) ||
@@ -1789,22 +1802,9 @@ void move_character_impl(CharacterInfo *chin, const std::vector<Point> *path, in
         return;
     }
 
-    if (path)
-    {
-        // Jump character to the path's start
-        chin->x = path->front().X;
-        chin->y = path->front().Y;
-        tox = path->back().X;
-        toy = path->back().Y;
-    }
-
-    if (chin->is_animating() && walk_anim)
-        stop_character_anim(chin);
-    // Stop idling anim
-    stop_character_idling(chin);
-    // stop them to make sure they're on a walkable area
-    // but save their frame first so that if they're already
-    // moving it looks smoother
+    // If character was currently walking, then save current "wait" timers
+    // and animation frame, and apply later after new walking begins,
+    // in order to make it look smoother.
     int oldframe = chin->frame;
     int waitWas = 0, animWaitWas = 0;
     float wasStepFrac = 0.f;
@@ -1854,6 +1854,10 @@ void move_character_impl(CharacterInfo *chin, const std::vector<Point> *path, in
     // If successful, then start moving
     if (path_result)
     {
+        // Stop idling state (if character was in one)
+        stop_character_idling(chin);
+
+        // Setup new walk state
         chin->walking = mslot;
         convert_move_path_to_data_resolution(mls[mslot]);
 
@@ -1881,10 +1885,11 @@ void move_character_impl(CharacterInfo *chin, const std::vector<Point> *path, in
             chin->flags |= CHF_MOVENOTWALK;
         }
     }
-    else if (walk_anim)
+    else
     {
-        // pathfinder couldn't get a route, stand them still
-        chin->frame = 0;
+        // Pathfinder couldn't get a route, stand them still
+        if (walk_anim && !chin->is_idling())
+            chin->frame = 0;
     }
 }
 

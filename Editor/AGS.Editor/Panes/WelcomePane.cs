@@ -32,6 +32,9 @@ namespace AGS.Editor
         {
             _guiContoller = guiContoller;
             InitializeComponent();
+            lnkUpgrading.Links.Add(60, 18, "Upgrading from a previous version");
+            lnkUpgrading.Links.Add(104, 23, "Upgrading to AGS 3.6.1");
+            lnkUpgrading.Links.Add(133, 23, "Upgrading to AGS 3.6.2");
         }
 
         protected override string OnGetHelpKeyword()
@@ -46,7 +49,9 @@ namespace AGS.Editor
 
         private void lnkUpgrading_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            _guiContoller.LaunchHelpForKeyword("Upgrading to AGS 3.6");
+            string keyword = e.Link.LinkData as string;
+            if (keyword != null)
+                _guiContoller.LaunchHelpForKeyword(keyword);
         }
 
         private void WelcomePane_Load(object sender, EventArgs e)
@@ -58,11 +63,6 @@ namespace AGS.Editor
 
             _currentTipIndex = new Random().Next(0, TIPS_OF_THE_DAY.Length);
             ShowTipOfTheDay(_currentTipIndex);
-        }
-
-        private void lnkUpgradingFrom302_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
-        {
-            Factory.GUIController.LaunchHelpForKeyword("Upgrading to AGS 3.2");
         }
 
         private void lnkNextTip_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)

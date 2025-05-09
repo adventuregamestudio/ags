@@ -32,9 +32,9 @@ namespace AGS.Editor.Components
             : base(guiController, agsEditor)
         {
             ScriptEditor.AttemptToEditScript += new ScriptEditor.AttemptToEditScriptHandler(ScriptEditor_AttemptToEditScript);
-            _guiController.QueryEditorShutdown += new GUIController.QueryEditorShutdownHandler(guiController_QueryEditorShutdown);
-            _guiController.InteractiveTasks.TestGameStarting += new InteractiveTasks.TestGameStartingHandler(AGSEditor_TestGameStarting);
-            _guiController.InteractiveTasks.TestGameFinished += new InteractiveTasks.TestGameFinishedHandler(AGSEditor_TestGameFinished);
+            _guiController.QueryEditorShutdown += guiController_QueryEditorShutdown;
+            _guiController.InteractiveTasks.TestGameStarting += AGSEditor_TestGameStarting;
+            _guiController.InteractiveTasks.TestGameFinished += AGSEditor_TestGameFinished;
             _guiController.RegisterIcon("BuildIcon", Resources.ResourceManager.GetIcon("build.ico"));
             _guiController.RegisterIcon("RunIcon", Resources.ResourceManager.GetIcon("run.ico"));
             _guiController.RegisterIcon("StepIcon", Resources.ResourceManager.GetIcon("step.ico"));

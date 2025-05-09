@@ -36,7 +36,6 @@ namespace AGS.Editor
 			Pens.LightGreen, Pens.Cyan, Pens.Red, Pens.Pink,
 			Pens.Yellow, Pens.White};
 
-        private GUIController.PropertyObjectChangedHandler _propertyObjectChangedDelegate;
         protected readonly Room _room;
         protected Panel _panel;
         RoomSettingsEditor _editor;
@@ -96,7 +95,6 @@ namespace AGS.Editor
             _roomController = roomController;
             _panel = displayPanel;
             _editor = editor;
-            _propertyObjectChangedDelegate = new GUIController.PropertyObjectChangedHandler(GUIController_OnPropertyObjectChanged);
             UpdateUndoButtonEnabledState();
             RoomItemRefs = new SortedDictionary<string, int>();
             DesignItems = new SortedDictionary<string, DesignTimeProperties>();
@@ -607,7 +605,7 @@ namespace AGS.Editor
                 DeselectArea();
             }
             SelectedAreaChanged(_selectedArea);
-            Factory.GUIController.OnPropertyObjectChanged += _propertyObjectChangedDelegate;
+            Factory.GUIController.OnPropertyObjectChanged += GUIController_OnPropertyObjectChanged;
 
             FilterActivated();
             _isOn = true;
@@ -622,7 +620,7 @@ namespace AGS.Editor
 
             _drawMode = _baseDrawMode;
             _mouseDown = false;
-            Factory.GUIController.OnPropertyObjectChanged -= _propertyObjectChangedDelegate;
+            Factory.GUIController.OnPropertyObjectChanged -= GUIController_OnPropertyObjectChanged;
             _editor.ContentDocument.ToolbarCommands = null;
             Factory.ToolBarManager.RefreshCurrentPane();
             _isOn = false;

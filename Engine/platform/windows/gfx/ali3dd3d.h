@@ -209,6 +209,7 @@ public:
         Register GameFrame;    // game frame
         Register TextureDim;   // texture 0 dimensions
         Register Alpha;        // requested global alpha
+        Register OutputDim;    // output dimensions
 
         // Specialized constants for built-in shaders
         Register TintHSV;      // float4
@@ -585,6 +586,8 @@ private:
     // Configures rendering mode for the render target, depending on its properties
     // TODO: find a good way to merge with SetRenderTarget
     void SetRenderTarget(const D3DSpriteBatch *batch, Size &surface_sz, bool clear);
+    // Assigns shader constants for post fx (rendering final game image)
+    void SetupPostFx(D3DBitmap *surface, const BackbufferState &bufferstate);
     void RenderSpriteBatches();
     size_t RenderSpriteBatch(const D3DSpriteBatch &batch, size_t from, const Size &rend_sz);
     void RenderSprite(const D3DDrawListEntry *entry, const glm::mat4 &matGlobal,

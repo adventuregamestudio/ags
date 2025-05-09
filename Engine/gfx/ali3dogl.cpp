@@ -919,6 +919,7 @@ void OGLGraphicsDriver::AssignBaseShaderArgs(OGLShader::ProgramData &prg)
     prg.Texture = glGetUniformLocation(prg.Program, "iTexture");
     prg.TextureDim = glGetUniformLocation(prg.Program, "iTextureDim");
     prg.Alpha = glGetUniformLocation(prg.Program, "iAlpha");
+    prg.OutputDim = glGetUniformLocation(prg.Program, "iOutputDim");
     glEnableVertexAttribArray(prg.A_Position);
     glEnableVertexAttribArray(prg.A_TexCoord);
 }
@@ -1175,6 +1176,7 @@ void OGLGraphicsDriver::GetCopyOfScreenIntoDDB(IDriverDependantBitmap *target, u
             glm::ortho(0.0f, (float)surf_sz.Width, 0.0f, (float)surf_sz.Height, 0.0f, 1.0f),
             PlaneScaling(), GL_NEAREST, GL_CLAMP);
         SetBackbufferState(&backbuffer, true);
+        SetupPostFx(_nativeSurface, backbuffer);
         RenderTexture(_nativeSurface, 0, 0, backbuffer.Projection, glmex::identity(), SpriteColorTransform(), surf_sz);
     }
 }
@@ -1614,6 +1616,7 @@ void OGLGraphicsDriver::RenderImpl(bool clearDrawListAfterwards)
     {
         // Draw native texture on a real backbuffer
         SetBackbufferState(&_screenBackbuffer, true);
+        SetupPostFx(_nativeSurface, _screenBackbuffer);
         RenderTexture(_nativeSurface, 0, 0, _screenBackbuffer.Projection, glmex::identity(), SpriteColorTransform(), _srcRect.GetSize());
         glFinish();
     }
@@ -1708,6 +1711,18 @@ void OGLGraphicsDriver::SetRenderTarget(const OGLSpriteBatch *batch, Size &surfa
         glClear(GL_COLOR_BUFFER_BIT);
         glEnable(GL_SCISSOR_TEST);
     }
+}
+
+void OGLGraphicsDriver::SetupPostFx(OGLBitmap *surface, const BackbufferState &bufferstate)
+{
+    OGLShaderInstance *shader = static_cast<OGLShaderInstance*>(surface->GetShader());
+    if (!shader)
+        return;
+
+    glUseProgram(shader->GetShaderData().Program);
+    glUniform2f(shader->GetShaderData().OutputDim,
+                bufferstate.Scaling.X.ScaleDistance(surface->GetWidthToRender()),
+                bufferstate.Scaling.Y.ScaleDistance(surface->GetHeightToRender()));
 }
 
 void OGLGraphicsDriver::RenderSpriteBatches()

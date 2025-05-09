@@ -112,22 +112,31 @@
     <value>2.0</value>
   </resheader>
   <resheader name="reader">
-    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <resheader name="writer">
-    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="lblUpgradingInfo3.Text" xml:space="preserve">
-    <value>Some of the new features in AGS 3.6 include:
-* Engine backend now uses SDL2
-* Multiplatform support extended
-* Unicode support
-* New game package options
-* Multiple speech voxes
-* New sprite compression options
-* Room Overlays and new Overlay properties
-* Room objects limit increased
-* And loads more!
-</value>
+    <value>New features in AGS 3.6.2 include:
+* Freely choose a script module for object's event handler functions
+* Custom properties displayed right in the Properties Grid
+* Better support for loading saves made in older version of your game
+* A script command for prescanning and checking a range of saves for validity
+* New Dialog events in script
+* and more...
+
+New features in AGS 3.6.1 include:
+* Log Panel in the Editor lets you read engine logs when you test the game
+* Various quality of life improvements in the editor's UI
+* "Deflate" sprite compression (achieves compression level of PNG images)
+* Performance improvements in the runtime engine
+* Interaction callbacks in script receive object and verb as arguments
+* New Room and global events in script
+* Script commands for precaching sprites and views
+* and more...</value>
+  </data>
+  <data name="lnkUpgrading.Text" xml:space="preserve">
+    <value>If you've come from an older version of AGS be sure to read "Upgrading to ..." articles in the manual. "Upgrading to AGS 3.6.1" and "Upgrading to AGS 3.6.2" pages explain the most important changes in the recent versions.</value>
   </data>
 </root>

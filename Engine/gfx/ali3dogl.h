@@ -177,6 +177,7 @@ public:
         GLuint Texture = 0;     // texture 0 (sprite or render target)
         GLuint TextureDim = 0;  // texture 0 dimensions
         GLuint Alpha = 0;       // requested global alpha
+        GLuint OutputDim = 0;   // output dimensions
 
         // Specialized uniforms for built-in shaders
         GLuint TintHSV = 0;
@@ -553,6 +554,8 @@ private:
     void SetScissor(const Rect &clip, bool render_on_texture, const Size &surface_size);
     // Configures rendering mode for the render target, depending on its properties
     void SetRenderTarget(const OGLSpriteBatch *batch, Size &surface_sz, Size &rend_sz, glm::mat4 &projection, bool clear);
+    // Assigns shader constants for post fx (rendering final game image)
+    void SetupPostFx(OGLBitmap *surface, const BackbufferState &bufferstate);
     void RenderSpriteBatches();
     size_t RenderSpriteBatch(const OGLSpriteBatch &batch, size_t from, const glm::mat4 &projection,
                              const Size &rend_sz);

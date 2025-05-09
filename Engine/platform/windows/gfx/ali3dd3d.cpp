@@ -1020,6 +1020,7 @@ void D3DGraphicsDriver::AssignBaseShaderArgs(D3DShader::ProgramData &prg, const 
         prg.GameFrame = GetValueOrDef(def->Constants, String::Wrapper("iGameFrame"), null_index);
         prg.TextureDim = GetValueOrDef(def->Constants, String::Wrapper("iTextureDim"), null_index);
         prg.Alpha = GetValueOrDef(def->Constants, String::Wrapper("iAlpha"), null_index);
+        prg.OutputDim = GetValueOrDef(def->Constants, String::Wrapper("iOutputDim"), null_index);
     }
     else
     {
@@ -1028,6 +1029,7 @@ void D3DGraphicsDriver::AssignBaseShaderArgs(D3DShader::ProgramData &prg, const 
         prg.GameFrame = 1u;
         prg.TextureDim = 2u;
         prg.Alpha = 3u;
+        prg.OutputDim = 4u;
     }
 
     // Copy constants table
@@ -1180,6 +1182,7 @@ void D3DGraphicsDriver::GetCopyOfScreenIntoDDB(IDriverDependantBitmap *target, u
             RectWH(0, 0, surf_sz.Width, surf_sz.Height), glmex::ortho_d3d(surf_sz.Width, surf_sz.Height),
             PlaneScaling(), D3DTEXF_POINT);
         SetBackbufferState(&backbuffer, true);
+        SetupPostFx(_nativeSurface, backbuffer);
         if (direct3ddevice->BeginScene() != D3D_OK)
         {
             throw Ali3DException("IDirect3DDevice9::BeginScene failed");
@@ -1633,6 +1636,7 @@ void D3DGraphicsDriver::RenderImpl(bool clearDrawListAfterwards)
     {
         // Draw native texture on a real backbuffer
         SetBackbufferState(&_screenBackbuffer, true);
+        SetupPostFx(_nativeSurface, _screenBackbuffer);
         if (direct3ddevice->BeginScene() != D3D_OK)
         {
             throw Ali3DException("IDirect3DDevice9::BeginScene failed");
@@ -1748,6 +1752,17 @@ void D3DGraphicsDriver::SetRenderTarget(const D3DSpriteBatch *batch, Size &rend_
     {
         direct3ddevice->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_RGBA(0, 0, 0, 0), 0.5f, 0);
     }
+}
+
+void D3DGraphicsDriver::SetupPostFx(D3DBitmap *surface, const BackbufferState &bufferstate)
+{
+    D3DShaderInstance *shader = static_cast<D3DShaderInstance *>(surface->GetShader());
+    if (!shader)
+        return;
+
+    shader->SetShaderConstantF2(shader->GetShaderData().OutputDim.Index,
+                bufferstate.Scaling.X.ScaleDistance(surface->GetWidthToRender()),
+                bufferstate.Scaling.Y.ScaleDistance(surface->GetHeightToRender()));
 }
 
 void D3DGraphicsDriver::RenderSpriteBatches()

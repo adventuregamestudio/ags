@@ -43,8 +43,8 @@ namespace AGS.Editor
 			this.spriteSelector1.ShowUseThisSpriteOption = false;
 			this.spriteSelector1.Size = new System.Drawing.Size(629, 386);
 			this.spriteSelector1.TabIndex = 0;
-			this.spriteSelector1.OnSelectionChanged += new AGS.Editor.SpriteSelector.SelectionChangedHandler(this.spriteSelector1_OnSelectionChanged);
-			this.spriteSelector1.OnSpriteActivated += new AGS.Editor.SpriteSelector.SpriteActivatedHandler(this.spriteSelector1_OnSpriteActivated);
+			this.spriteSelector1.OnSelectionChanged += spriteSelector1_OnSelectionChanged;
+			this.spriteSelector1.OnSpriteActivated += spriteSelector1_OnSpriteActivated;
 			// 
 			// btnOK
 			// 

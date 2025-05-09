@@ -69,11 +69,11 @@ namespace AGS.Editor.Components
 
             _guiController.ProjectTree.AddTreeRoot(this, TOP_LEVEL_COMMAND_ID, "Scripts", "ScriptsIcon");
             RePopulateTreeView(null);
-            _guiController.OnZoomToFile += new GUIController.ZoomToFileHandler(GUIController_OnZoomToFile);
-            _guiController.OnGetScript += new GUIController.GetScriptHandler(GUIController_OnGetScript);
-            _guiController.OnScriptChanged += new GUIController.ScriptChangedHandler(GUIController_OnScriptChanged);
-            _guiController.OnGetScriptEditorControl += new GUIController.GetScriptEditorControlHandler(_guiController_OnGetScriptEditorControl);
-            _guiController.ProjectTree.OnAfterLabelEdit += new ProjectTree.AfterLabelEditHandler(ProjectTree_OnAfterLabelEdit);
+            _guiController.OnZoomToFile += GUIController_OnZoomToFile;
+            _guiController.OnGetScript += GUIController_OnGetScript;
+            _guiController.OnScriptChanged += GUIController_OnScriptChanged;
+            _guiController.OnGetScriptEditorControl += _guiController_OnGetScriptEditorControl;
+            _guiController.ProjectTree.OnAfterLabelEdit += ProjectTree_OnAfterLabelEdit;
 
             Factory.Events.GamePostLoad += Events_GamePostLoad;
         }

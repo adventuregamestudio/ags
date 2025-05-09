@@ -41,7 +41,7 @@ namespace AGS.Editor.Components
         public TranslationsComponent(GUIController guiController, AGSEditor agsEditor)
             : base(guiController, agsEditor)
         {
-            _guiController.ProjectTree.OnAfterLabelEdit += new ProjectTree.AfterLabelEditHandler(ProjectTree_OnAfterLabelEdit);
+            _guiController.ProjectTree.OnAfterLabelEdit += ProjectTree_OnAfterLabelEdit;
             _agsEditor.PreCompileGame += new AGSEditor.PreCompileGameHandler(AGSEditor_PreCompileGame);
             _timer.Interval = 20;
             _timer.Tick += new EventHandler(_timer_Tick);

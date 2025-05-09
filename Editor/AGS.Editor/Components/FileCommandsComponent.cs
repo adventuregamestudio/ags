@@ -30,8 +30,8 @@ namespace AGS.Editor.Components
         public FileCommandsComponent(GUIController guiController, AGSEditor agsEditor)
             : base(guiController, agsEditor)
         {
-            _guiController.InteractiveTasks.TestGameStarting += new InteractiveTasks.TestGameStartingHandler(AGSEditor_TestGameStarting);
-            _guiController.InteractiveTasks.TestGameFinished += new InteractiveTasks.TestGameFinishedHandler(AGSEditor_TestGameFinished);
+            _guiController.InteractiveTasks.TestGameStarting += AGSEditor_TestGameStarting;
+            _guiController.InteractiveTasks.TestGameFinished += AGSEditor_TestGameFinished;
 
             _guiController.RegisterIcon("OpenIcon", Resources.ResourceManager.GetIcon("open.ico"));
             _guiController.RegisterIcon("SaveIcon", Resources.ResourceManager.GetIcon("save.ico"));

@@ -26,7 +26,7 @@ namespace AGS.Editor
         {
             InitializeComponent();
             _colourFinder = tabControl.TabPages[1];
-            Factory.GUIController.OnPropertyObjectChanged += new GUIController.PropertyObjectChangedHandler(GUIController_OnPropertyObjectChanged);
+            Factory.GUIController.OnPropertyObjectChanged += GUIController_OnPropertyObjectChanged;
             _selectedIndexes.Add(0);
             GameChanged();
         }
@@ -358,7 +358,7 @@ namespace AGS.Editor
 
         protected override void OnDispose()
         {
-            Factory.GUIController.OnPropertyObjectChanged -= new GUIController.PropertyObjectChangedHandler(GUIController_OnPropertyObjectChanged);
+            Factory.GUIController.OnPropertyObjectChanged -= GUIController_OnPropertyObjectChanged;
         }
 
 		private void btnColorDialog_Click(object sender, EventArgs e)

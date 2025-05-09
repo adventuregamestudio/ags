@@ -11,12 +11,11 @@ namespace AGS.Types
         private IList<Sprite> _sprites;
         private List<ISpriteFolder> _subFolders;
 
-        public delegate void SpritesUpdatedHandler();
         /// <summary>
         /// Fired when an external client makes changes to the sprites
         /// (root sprite folder only)
         /// </summary>
-        public event SpritesUpdatedHandler SpritesUpdated;
+        public event Action SpritesUpdated;
 
         public SpriteFolder(string name)
         {

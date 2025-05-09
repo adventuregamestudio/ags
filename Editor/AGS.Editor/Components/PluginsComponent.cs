@@ -46,8 +46,8 @@ namespace AGS.Editor.Components
             RepopulateTreeView();
 
             _agsEditor.GetScriptHeaderList += new GetScriptHeaderListHandler(AGSEditor_GetScriptHeaderList);
-            _agsEditor.Tasks.GetFilesForInclusionInTemplate += new Tasks.GetFilesForInclusionInTemplateHandler(AGSEditor_GetFilesForInclusionInTemplate);
-            _agsEditor.Tasks.NewGameFilesExtracted += new Tasks.NewGameFilesExtractedHandler(AGSEditor_NewGameFilesExtracted);
+            _agsEditor.Tasks.GetFilesForInclusionInTemplate += AGSEditor_GetFilesForInclusionInTemplate;
+            _agsEditor.Tasks.NewGameFilesExtracted += AGSEditor_NewGameFilesExtracted;
 			Factory.Events.GetAboutDialogText += new EditorEvents.GetAboutDialogTextHandler(Events_GetAboutDialogText);
         }
 

@@ -38,7 +38,7 @@ namespace AGS.Editor
             _events.LoadedUserData += new EditorEvents.LoadedUserDataHandler(_events_LoadedUserData);
             _agsEditor.PreSaveGame += new AGSEditor.PreSaveGameHandler(_agsEditor_PreSaveGame);
 
-            _guiController.OnEditorShutdown += new GUIController.EditorShutdownHandler(GUIController_OnEditorShutdown);
+            _guiController.OnEditorShutdown += GUIController_OnEditorShutdown;
             _guiController.Initialize(_agsEditor);
             _agsEditor.DoEditorInitialization();
             CreateComponents();

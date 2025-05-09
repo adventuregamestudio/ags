@@ -107,7 +107,7 @@ namespace AGS.Editor
         public GUIEditor()
         {
             InitializeComponent();
-            Factory.GUIController.OnPropertyObjectChanged += new GUIController.PropertyObjectChangedHandler(GUIController_OnPropertyObjectChanged);
+            Factory.GUIController.OnPropertyObjectChanged += GUIController_OnPropertyObjectChanged;
         }
 
 
@@ -1224,7 +1224,7 @@ namespace AGS.Editor
 
         protected override void OnDispose()
         {
-            Factory.GUIController.OnPropertyObjectChanged -= new GUIController.PropertyObjectChangedHandler(GUIController_OnPropertyObjectChanged);
+            Factory.GUIController.OnPropertyObjectChanged -= GUIController_OnPropertyObjectChanged;
         }
 
         private bool DoesThisPanelHaveFocus()

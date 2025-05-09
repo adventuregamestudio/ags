@@ -507,8 +507,8 @@ private:
     //
 #if (DIRECT3D_USE_D3DCOMPILER)
     // TODO: should we let configure syntax level and optimization level, entrypoint name?
-    // FIXME: move to the most modern compile target supported by Direct3D.
-    const char *DefaultShaderCompileTarget = "ps_2_0"; // "ps_4_0_level_9_3"
+    // TODO: move to the most modern compile target supported by Direct3D? ("ps_4_0_level_9_3")
+    const char *DefaultShaderCompileTarget = "ps_2_b"; // same as "ps_2_0", but higher capabilities
     const UINT  DefaultShaderCompileFlags  = D3DCOMPILE_OPTIMIZATION_LEVEL3;
     const char *DefaultShaderEntryPoint    = "main";
 #endif

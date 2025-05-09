@@ -273,6 +273,8 @@ public:
     }
     Common::BlendMode GetBlendMode() const { return _blendMode; }
     void SetBlendMode(Common::BlendMode blendMode) override { _blendMode = blendMode; }
+    IShaderInstance *GetShader() const override { return _shader; }
+    void SetShader(IShaderInstance *shader_inst) override { _shader = shader_inst; }
 
     int  GetTextureFlags() const { return _txFlags; }
     const Size &GetSize() const { return _size; }
@@ -293,9 +295,41 @@ protected:
     float _rotation = 0.f; // either in degrees or radians, depending on impl
     int _alpha = 255;
     Common::BlendMode _blendMode = Common::kBlend_Normal;
+    IShaderInstance *_shader = nullptr;
     int _red = 0, _green = 0, _blue = 0;
     int _tintSaturation = 0;
     int _lightLevel = 0;
+};
+
+
+class BaseShader : public IGraphicShader
+{
+public:
+    // Gets this shader's name, this is not a unique identification,
+    // but rather a tag meant for debugging purposes.
+    const String &GetName() const override { return _name; }
+
+protected:
+    BaseShader() = default;
+    BaseShader(const String &name) : _name(name) {}
+
+private:
+    String _name;
+};
+
+
+class BaseShaderInstance : public IShaderInstance
+{
+public:
+    // Gets this shader's name, this is not a unique identification,
+    // but rather a tag meant for debugging purposes.
+    const String &GetName() const override { return _name; }
+
+protected:
+    BaseShaderInstance() = default;
+    BaseShaderInstance(const String &name) : _name(name) {}
+
+    String _name;
 };
 
 
@@ -371,6 +405,14 @@ public:
     bool UsesMemoryBackBuffer() override { return false; }
 
     ///////////////////////////////////////////////////////
+    // Miscelaneous setup
+    //
+    // Sets values for global shader constants
+    // TODO: think how this could be moved to IGraphicShader;
+    // had to leave this in gfx driver class right now, because it's more convenient to apply constants...
+    void SetGlobalShaderConstants(const GlobalShaderConstants &constants) override;
+
+    ///////////////////////////////////////////////////////
     // Texture management
     // 
     // Creates new DDB and copy bitmap contents over
@@ -432,6 +474,9 @@ protected:
     // Stage matrixes are used to let plugins with hardware acceleration know model matrix;
     // these matrixes are filled compatible with each given renderer
     RenderMatrixes _stageMatrixes;
+
+    // Global shader constants; these are applied to all shaders before each render pass.
+    GlobalShaderConstants _globalShaderConst;
 
     // Color component shifts in video bitmap format (set by implementations)
     int _vmem_a_shift_32;

@@ -37,6 +37,7 @@
 #include "ac/system.h"
 #include "ac/dynobj/cc_gui.h"
 #include "ac/dynobj/cc_guicontrol.h"
+#include "ac/dynobj/scriptshader.h"
 #include "ac/dynobj/scriptobjects.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "debug/debug_log.h"
@@ -413,6 +414,18 @@ int GUI_GetBlendMode(ScriptGUI *gui) {
 
 void GUI_SetBlendMode(ScriptGUI *gui, int blend_mode) {
     guis[gui->id].SetBlendMode(ValidateBlendMode("GUI.BlendMode", blend_mode));
+}
+
+ScriptShaderInstance *GUI_GetShader(ScriptGUI *gui)
+{
+    return static_cast<ScriptShaderInstance*>(ccGetObjectAddressFromHandle(guis[gui->id].GetShaderHandle()));
+}
+
+void GUI_SetShader(ScriptGUI *gui, ScriptShaderInstance *shader_inst)
+{
+    auto &guim = guis[gui->id];
+    guim.SetShader(shader_inst ? shader_inst->GetID() : ScriptShaderInstance::NullInstanceID,
+                   ccReplaceObjectHandle(guim.GetShaderHandle(), shader_inst));
 }
 
 float GUI_GetRotation(ScriptGUI *gui) {
@@ -1211,6 +1224,16 @@ RuntimeScriptValue Sc_GUI_SetBlendMode(void *self, const RuntimeScriptValue *par
     API_OBJCALL_VOID_PINT(ScriptGUI, GUI_SetBlendMode);
 }
 
+RuntimeScriptValue Sc_GUI_GetShader(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJAUTO(ScriptGUI, ScriptShaderInstance, GUI_GetShader);
+}
+
+RuntimeScriptValue Sc_GUI_SetShader(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_POBJ(ScriptGUI, GUI_SetShader, ScriptShaderInstance);
+}
+
 RuntimeScriptValue Sc_GUI_GetRotation(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_FLOAT(ScriptGUI, GUI_GetRotation);
@@ -1339,6 +1362,9 @@ void RegisterGUIAPI()
         { "GUI::set_ScaleY",              API_FN_PAIR(GUI_SetScaleY) },
         { "GUI::SetScale",                API_FN_PAIR(GUI_SetScale) },
         { "GUI::SetScale",                API_FN_PAIR(GUI_SetScale) },
+
+        { "GUI::get_Shader",              API_FN_PAIR(GUI_GetShader) },
+        { "GUI::set_Shader",              API_FN_PAIR(GUI_SetShader) },
     };
 
     ccAddExternalFunctions(gui_api);

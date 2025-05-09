@@ -25,6 +25,7 @@
 #include "gfx/gfxdefines.h"
 #include "gfx/gfxmodelist.h"
 #include "util/geometry.h"
+#include "util/string_types.h"
 
 namespace AGS
 {
@@ -80,12 +81,93 @@ struct RenderMatrixes
     glm::mat4 Projection;
 };
 
+// Provides a way to set global shader constant values in gfx driver
+struct GlobalShaderConstants
+{
+    float Time = 0.f;
+    int GameFrame = 0;
+};
+
+// Describes a shader layout for the graphics driver.
+// Used when a driver class does not support a reflection on a compiled shader.
+struct ShaderDefinition
+{
+    // Compilation target (if applicable)
+    AGS::Common::String CompileTarget;
+    // Entry point function's name
+    AGS::Common::String EntryPoint;
+
+    // Constants table: maps constant name to the index/register
+    // in the compiled shader
+    std::unordered_map<AGS::Common::String, uint32_t>
+                        Constants;
+};
+
+// IGraphicShader interface provides an access to a shader program,
+// created by the graphics driver (see IGraphicsDriver).
+class IGraphicShader
+{
+public:
+    using String = AGS::Common::String;
+public:
+    virtual ~IGraphicShader() = default;
+
+    // Gets this shader's name, this is not a unique identification,
+    // but rather a tag meant for debugging purposes.
+    virtual const String &GetName() const = 0;
+
+    // Get a number of registered constants
+    virtual uint32_t GetConstantCount() = 0;
+    // Get a registered constant's name, by its sequential index
+    virtual String GetConstantName(uint32_t iter_index) = 0;
+    // Get a registered constant's location, by its sequential index;
+    // returns UINT32_MAX if no such constant exists
+    virtual uint32_t GetConstantByIndex(uint32_t iter_index) = 0;
+    // Looks up for the constant in a shader. Returns a valid index if such shader is registered,
+    // and constant is present in that shader, or UINT32_MAX on failure.
+    virtual uint32_t GetConstantByName(const String &const_name) = 0;
+    // Reset all shader constants to zero
+    virtual void ResetConstants() = 0;
+};
+
+// IShaderInstance is a interface of a single shader configuration,
+// which has exclusive set of constant values.
+// NOTE: if we support Materials at some point, then a material interface
+// would likely supercede IShaderInstance.
+class IShaderInstance
+{
+public:
+    using String = AGS::Common::String;
+public:
+    virtual ~IShaderInstance() = default;
+
+    // Gets this shader's name, this is not a unique identification,
+    // but rather a tag meant for debugging purposes.
+    virtual const String &GetName() const = 0;
+    // Returns a IGraphicShader referenced by this shader instance
+    virtual IGraphicShader *GetShader() = 0;
+
+    // Sets shader constant, using constant's index (returned by IGraphicShader::GetShaderConstant)
+    virtual void SetShaderConstantF(uint32_t const_index, float value) = 0;
+    virtual void SetShaderConstantF2(uint32_t const_index, float x, float y) = 0;
+    virtual void SetShaderConstantF3(uint32_t const_index, float x, float y, float z) = 0;
+    virtual void SetShaderConstantF4(uint32_t const_index, float x, float y, float z, float w) = 0;
+
+    // Gets the allocated size of the constants data
+    virtual size_t GetConstantDataSize() = 0;
+    // Gets array of allocated constants data, where each constant is represented as 4 floats
+    virtual void GetConstantData(std::vector<float> &data) = 0;
+};
+
+
 typedef void (*GFXDRV_CLIENTCALLBACK)();
 typedef bool (*GFXDRV_CLIENTCALLBACKEVT)(int evt, intptr_t data);
 typedef void (*GFXDRV_CLIENTCALLBACKINITGFX)(void *data);
 
 class IGraphicsDriver
 {
+public:
+    using String = AGS::Common::String;
 public:
     virtual ~IGraphicsDriver() = default;
 
@@ -173,6 +255,9 @@ public:
     virtual bool SupportsGammaControl() = 0;
     // Sets gamma level
     virtual void SetGamma(int newGamma) = 0;
+    // Sets values for global shader constants;
+    // these will be applied to all shaders at the next render pass.
+    virtual void SetGlobalShaderConstants(const GlobalShaderConstants &constants) = 0;
 
     ///////////////////////////////////////////////////////
     // Texture management
@@ -204,6 +289,29 @@ public:
     virtual void UpdateTexture(Texture *txdata, const Bitmap *bmp, bool opaque = false) = 0;
     // Retrieve shared texture object from the given DDB
     virtual std::shared_ptr<Texture> GetTexture(IDriverDependantBitmap *ddb) = 0;
+
+    ///////////////////////////////////////////////////////
+    // Shader management
+    //
+    // Returns the expected file extension for the precompiled shader
+    virtual const char *GetShaderPrecompiledExtension() = 0;
+    // Returns the expected file extension for the shader source
+    virtual const char *GetShaderSourceExtension() = 0;
+    // Returns the expected file extension for the shader definition file
+    virtual const char *GetShaderDefinitionExtension() = 0;
+    // Creates shader program from the source code, registers it under given name,
+    // returns IGraphicShader, or null on failure.
+    virtual IGraphicShader *CreateShaderProgram(const String &name, const char *fragment_shader_src, const ShaderDefinition *def = nullptr) = 0;
+    // Creates shader program from the compiled data, registers it under given name,
+    // returns IGraphicShader, or null on failure.
+    virtual IGraphicShader *CreateShaderProgram(const String &name, const std::vector<uint8_t> &compiled_data, const ShaderDefinition *def = nullptr) = 0;
+    // Deletes particular shader program.
+    virtual void DeleteShaderProgram(IGraphicShader *shader) = 0;
+    // Creates shader instance for the given shader.
+    // TODO: consider moving this to IGraphicShader interface? along with DeleteShaderInstance
+    virtual IShaderInstance *CreateShaderInstance(IGraphicShader *shader, const String &name) = 0;
+    // Deletes particular shader instance
+    virtual void DeleteShaderInstance(IShaderInstance *shader_inst) = 0;
 
     ///////////////////////////////////////////////////////
     // Preparing a scene
@@ -240,6 +348,8 @@ public:
     // Adds tint overlay fx to the active batch
     // TODO: redesign this to allow various post-fx per sprite batch?
     virtual void SetScreenTint(int red, int green, int blue) = 0;
+    // Sets a shader to be applied to the whole screen as a post fx
+    virtual void SetScreenShader(IShaderInstance *shinst) = 0;
     // Sets stage screen parameters for the current batch.
     // Currently includes size and optional position offset;
     // the position is relative, as stage screens are using sprite batch transforms.

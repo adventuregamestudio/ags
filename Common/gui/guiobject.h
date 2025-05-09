@@ -72,6 +72,9 @@ public:
     void            SetTransparencyAsPercentage(int percent);
     BlendMode       GetBlendMode() const { return _blendMode; }
     void            SetBlendMode(BlendMode blend_mode);
+    int             GetShaderID() const { return _shaderID; }
+    int             GetShaderHandle() const { return _shaderHandle; }
+    void            SetShader(int shader_id, int shader_handle);
     int             GetZOrder() const { return _zOrder; }
     void            SetZOrder(int zorder);
     void            SetClickable(bool on);
@@ -147,6 +150,8 @@ protected:
     int      _height = 0;
     int      _transparency = 0; // "incorrect" alpha (in legacy 255-range units)
     BlendMode _blendMode = kBlend_Normal;
+    int      _shaderID = 0;
+    int      _shaderHandle = 0; // runtime script shader handle
     bool     _hasChanged = false;
 
     // TODO: explicit event names & handlers for every event

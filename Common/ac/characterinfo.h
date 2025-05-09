@@ -110,6 +110,7 @@ enum CharacterSvgVersion
     kCharSvgVersion_400_13  = 4000013, // compat with kCharSvgVersion_36205
     kCharSvgVersion_400_14  = 4000014, // proper ARGB color properties
     kCharSvgVersion_400_16  = 4000016, // motion path exposed to script, separate runtime flags, turns
+    kCharSvgVersion_400_18  = 4000018, // shaders
 };
 
 

@@ -29,7 +29,12 @@ namespace AGS
     {
         typedef std::shared_ptr<Common::Bitmap> PBitmap;
     }
-    namespace Engine { class IDriverDependantBitmap; }
+    namespace Engine
+    {
+        class IDriverDependantBitmap;
+        class IGraphicShader;
+        class IShaderInstance;
+    }
 }
 using namespace AGS; // FIXME later
 
@@ -104,6 +109,23 @@ void update_shared_texture(uint32_t sprite_id);
 void clear_shared_texture(uint32_t sprite_id);
 // Prepares a texture for the given sprite and stores in the cache
 void texturecache_precache(uint32_t sprite_id);
+
+// Adds a custom shader to the collection at the desired index;
+// if there's any shader on that index then it will get disposed of
+void add_custom_shader(Engine::IGraphicShader *shader, uint32_t at_index);
+// Gets a custom shader by its index
+Engine::IGraphicShader *get_custom_shader(uint32_t sh_index);
+// Deletes a custom shader; this also deletes their instances
+void delete_custom_shader(uint32_t shader_id);
+// Adds a custom shader instance to the collection at the desired index;
+// if there's any shader instance on that index then it will get disposed of
+void add_shader_instance(Engine::IShaderInstance *shader_instance, uint32_t at_index);
+// Gets a shader instance by its index
+Engine::IShaderInstance *get_shader_instance(uint32_t shinst_index);
+// Deletes a custom shader instance
+void delete_shader_instance(uint32_t shader_inst_id);
+// Deletes all custom shaders and their isntances
+void dispose_all_custom_shaders();
 
 // Initializes a loaded sprite for use in the game, adjusts the sprite flags.
 // Returns a resulting bitmap, which may be a new or old bitmap; or null on failure.

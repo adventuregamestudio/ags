@@ -225,6 +225,11 @@ bool VideoMemoryGraphicsDriver::GetStageMatrixes(RenderMatrixes &rm)
     return true;
 }
 
+void VideoMemoryGraphicsDriver::SetGlobalShaderConstants(const GlobalShaderConstants &constants)
+{
+    _globalShaderConst = constants;
+}
+
 IDriverDependantBitmap *VideoMemoryGraphicsDriver::CreateDDBFromBitmap(const Bitmap *bitmap, int txflags)
 {
     IDriverDependantBitmap *ddb = CreateDDB(bitmap->GetWidth(), bitmap->GetHeight(), bitmap->GetColorDepth(), txflags);

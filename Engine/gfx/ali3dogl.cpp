@@ -101,6 +101,165 @@ OGLBitmap::~OGLBitmap()
         glDeleteFramebuffersEXT(1, &_fbo);
 }
 
+OGLShader::OGLShader(const String &name)
+    : BaseShader(name)
+{
+}
+
+OGLShader::OGLShader(const String &name, OGLShader::ProgramData &&data)
+    : BaseShader(name)
+    , _data(std::move(data))
+{
+}
+
+OGLShader::OGLShader(const String &name, const OGLShader &copy_shader)
+    : BaseShader(name)
+    , _data(copy_shader.GetData())
+{
+}
+
+OGLShader::~OGLShader()
+{
+    if (_data.Program != 0)
+        glDeleteProgram(_data.Program);
+}
+
+inline bool OGLShader_ConstantOrder(const std::pair<uint32_t, String> c1, const std::pair<uint32_t, String> c2)
+{
+    return c1.first < c2.first;
+}
+
+uint32_t OGLShader::GetConstantCount()
+{
+    return _data.Constants.size();
+}
+
+String OGLShader::GetConstantName(uint32_t iter_index)
+{
+    if (iter_index >= _data.ConstantsOrdered.size())
+        return {};
+    return _data.ConstantsOrdered[iter_index].second;
+}
+
+uint32_t OGLShader::GetConstantByIndex(uint32_t iter_index)
+{
+    if (iter_index >= _data.ConstantsOrdered.size())
+        return {};
+    return _data.ConstantsOrdered[iter_index].first;
+}
+
+uint32_t OGLShader::GetConstantByName(const String &const_name)
+{
+    if (_data.Program == 0)
+        return UINT32_MAX;
+
+    auto it_found = _data.Constants.find(const_name);
+    if (it_found != _data.Constants.end())
+        return it_found->second;
+
+    GLint index = glGetUniformLocation(_data.Program, const_name.GetCStr());
+    if (index < 0)
+        return UINT32_MAX;
+
+    _data.Constants[const_name] = index;
+    auto constant = std::make_pair(index, const_name);
+    _data.ConstantsOrdered.insert(
+        std::upper_bound(_data.ConstantsOrdered.begin(), _data.ConstantsOrdered.end(), constant, OGLShader_ConstantOrder),
+        constant);
+    return index;
+}
+
+void OGLShader::ResetConstants()
+{
+    if (_data.Program == 0u)
+        return;
+
+    GLint uni_count;
+    glGetProgramiv(_data.Program, GL_ACTIVE_UNIFORMS, &uni_count);
+    if (uni_count == 0)
+        return;
+
+    glUseProgram(_data.Program);
+    for (int i = 0; i < uni_count; ++i)
+    {
+        GLint size;
+        GLenum type;
+        glGetActiveUniform(_data.Program, i, 0, nullptr, &size, &type, nullptr);
+        // NOTE: currently we only support float1->float4 types (float vectors) as custom constants,
+        // so reset only these
+        switch (type)
+        {
+        case GL_FLOAT: glUniform1f(i, 0.f); break;
+        case GL_FLOAT_VEC2: glUniform2f(i, 0.f, 0.f); break;
+        case GL_FLOAT_VEC3: glUniform3f(i, 0.f, 0.f, 0.f);  break;
+        case GL_FLOAT_VEC4: glUniform4f(i, 0.f, 0.f, 0.f, 0.f); break;
+        default: break;
+        }
+    }
+}
+
+OGLShaderInstance::OGLShaderInstance(OGLShader *shader, const String &name)
+    : BaseShaderInstance(name)
+    , _shader(shader)
+{
+    _constantData.resize(OGLShader::NullConstantIndex + 1);
+}
+
+void OGLShaderInstance::SetShaderConstantF(uint32_t const_index, float value)
+{
+    SetConstant(const_index, 1u, value);
+}
+
+void OGLShaderInstance::SetShaderConstantF2(uint32_t const_index, float x, float y)
+{
+    SetConstant(const_index, 2u, x, y);
+}
+
+void OGLShaderInstance::SetShaderConstantF3(uint32_t const_index, float x, float y, float z)
+{
+    SetConstant(const_index, 3u, x, y, z);
+}
+
+void OGLShaderInstance::SetShaderConstantF4(uint32_t const_index, float x, float y, float z, float w)
+{
+    SetConstant(const_index, 4u, x, y, z, w);
+}
+
+void OGLShaderInstance::SetConstant(uint32_t const_index, uint32_t size, float x, float y, float z, float w)
+{
+    // Cap the constant index for safety
+    if (const_index >= OGLShader::ConstantCap)
+        return;
+
+    assert(size <= 4u);
+    size = std::min(size, 4u);
+    _constantData[const_index] = ConstantValue(const_index, size, x, y, z, w);
+}
+
+size_t OGLShaderInstance::GetConstantDataSize()
+{
+    if (_constantData.size() == 0)
+        return 0u;
+
+    uint32_t last_location = 0u;
+    for (const auto &c : _constantData)
+        last_location = std::max(c.Loc, last_location);
+    return (last_location + 1) * ConstantValue::AllocSize;
+}
+
+void OGLShaderInstance::GetConstantData(std::vector<float> &data)
+{
+    data.resize(GetConstantDataSize());
+    for (const auto &c : _constantData)
+    {
+        size_t pos = c.Loc * ConstantValue::AllocSize;
+        data[pos + 0] = c.Val[0];
+        data[pos + 1] = c.Val[1];
+        data[pos + 2] = c.Val[2];
+        data[pos + 3] = c.Val[3];
+    }
+}
+
 
 OGLGraphicsDriver::OGLGraphicsDriver()
 {
@@ -146,7 +305,7 @@ void OGLGraphicsDriver::SetupDefaultVertices()
 void OGLGraphicsDriver::UpdateDeviceScreen(const Size &/*screen_size*/)
 {
     SDL_GL_GetDrawableSize(_sdlWindow, &device_screen_physical_width, &device_screen_physical_height);
-    Debug::Printf("OGL: notified of device screen updated to %d x %d, resizing viewport", device_screen_physical_width, device_screen_physical_height);
+    Debug::Printf("OpenGL: notified of device screen updated to %d x %d, resizing viewport", device_screen_physical_width, device_screen_physical_height);
     _mode.Width = device_screen_physical_width;
     _mode.Height = device_screen_physical_height;
 }
@@ -219,9 +378,15 @@ bool OGLGraphicsDriver::FirstTimeInit()
     const char *exts = (const char*)glGetString(GL_EXTENSIONS);
     _glCapsNonPowerOfTwo = strstr(exts, "GL_ARB_texture_non_power_of_two") != nullptr;
 
-    if(!CreateShaders()) { // requires glad Load successful
-        SDL_SetError("Failed to create Shaders.");
-        return false;
+    if (!CreateStandardShaders())
+    {
+        // The transparency shader is the one that we must have
+        if (!_transparencyShader || !_transparencyShader->IsValid())
+        {
+            Debug::Printf(kDbgMsg_Error, "ERROR: OpenGL: failed to compile standard shaders, graphics driver will not be usable.");
+            return false;
+        }
+        Debug::Printf(kDbgMsg_Error, "ERROR: OpenGL: one or more standard shaders failed to compile, the game may run but have unexpected visuals.");
     }
 
     _firstTimeInit = true;
@@ -265,7 +430,7 @@ void OGLGraphicsDriver::InitGlParams(const DisplayMode &mode)
 
   _capsVsync = SDL_GL_SetSwapInterval(mode.Vsync ? 1 : 0) == 0;
   if (mode.Vsync && !_capsVsync)
-    Debug::Printf(kDbgMsg_Warn, "OGL: SetVsync (%d) failed: %s", mode.Vsync, SDL_GetError());
+    Debug::Printf(kDbgMsg_Warn, "OpenGL: SetVsync (%d) failed: %s", mode.Vsync, SDL_GetError());
 
   // View matrix is always identity in OpenGL renderer, use the workaround to fill it with GL format
   _stageMatrixes.View = glm::mat4(1.0);
@@ -393,29 +558,37 @@ void OGLGraphicsDriver::TestRenderToTexture()
     _doRenderToTexture = false;
 }
 
-
-
-
-void OutputShaderError(GLuint obj_id, const String &obj_name, bool is_shader);
-
-
-bool OGLGraphicsDriver::CreateShaders()
+bool OGLGraphicsDriver::CreateStandardShaders()
 {
 #if AGS_OPENGL_ES2
-  if (!GLAD_GL_ES_VERSION_2_0) {
+    if (!GLAD_GL_ES_VERSION_2_0)
 #else
-  if (!GLAD_GL_VERSION_2_0) {
+    if (!GLAD_GL_VERSION_2_0)
 #endif
-    Debug::Printf(kDbgMsg_Error, "ERROR: Shaders require a minimum of OpenGL 2.0 support.");
-    return false;
-  }
-  bool shaders_created = true;
-  shaders_created &= CreateTransparencyShader(_transparencyShader);
-  shaders_created &= CreateTintShader(_tintShader);
-  shaders_created &= CreateLightShader(_lightShader);
-  shaders_created &= CreateDarkenByAlphaShader(_darkenbyAlphaShader);
-  shaders_created &= CreateLightenByAlphaShader(_lightenByAlphaShader);
-  return shaders_created;
+    {
+        Debug::Printf(kDbgMsg_Error, "ERROR: Shaders require a minimum of OpenGL 2.0 support.");
+        return false;
+    }
+
+    _transparencyShader.reset(CreateTransparencyShader(nullptr));
+    _tintShader.reset(CreateTintShader(_transparencyShader.get()));
+    _lightShader.reset(CreateLightShader(_transparencyShader.get()));
+    _darkenbyAlphaShader.reset(CreateDarkenByAlphaShader(_transparencyShader.get()));
+    _lightenByAlphaShader.reset(CreateLightenByAlphaShader(_transparencyShader.get()));
+    return _transparencyShader->IsValid()
+        && _tintShader->IsValid()
+        && _lightShader->IsValid()
+        && _darkenbyAlphaShader->IsValid()
+        && _lightenByAlphaShader->IsValid();
+}
+
+void OGLGraphicsDriver::DeleteShaders()
+{
+    _transparencyShader = nullptr;
+    _tintShader = nullptr;
+    _lightShader = nullptr;
+    _darkenbyAlphaShader = nullptr;
+    _lightenByAlphaShader = nullptr;
 }
 
 
@@ -426,16 +599,16 @@ static const auto default_vertex_shader_src =  ""
 "#version 120 \n"
 #endif
 R"EOS(
-uniform mat4 uMVPMatrix;
+uniform mat4    iMVPMatrix;
 
-attribute vec2 a_Position;
-attribute vec2 a_TexCoord;
+attribute vec2  a_Position;
+attribute vec2  a_TexCoord;
 
-varying vec2 v_TexCoord;
+varying vec2    vTexCoord;
 
 void main() {
-    v_TexCoord = a_TexCoord;
-    gl_Position = uMVPMatrix * vec4(a_Position.xy, 0.0, 1.0);
+    vTexCoord = a_TexCoord;
+    gl_Position = iMVPMatrix * vec4(a_Position.xy, 0.0, 1.0);
 }
 
 )EOS";
@@ -449,15 +622,15 @@ static const auto transparency_fragment_shader_src = ""
 "#version 120 \n"
 #endif
 R"EOS(
-uniform sampler2D textID;
-uniform float alpha;
+uniform sampler2D   iTexture;
+uniform float       iAlpha;
 
-varying vec2 v_TexCoord;
+varying vec2        vTexCoord;
 
 void main()
 {
-    vec4 src_col = texture2D(textID, v_TexCoord);
-    gl_FragColor = vec4(src_col.xyz, src_col.w * alpha);
+    vec4 src_col = texture2D(iTexture, vTexCoord);
+    gl_FragColor = vec4(src_col.xyz, src_col.w * iAlpha);
 }
 )EOS";
 
@@ -481,13 +654,14 @@ static const auto tint_fragment_shader_src = ""
 "#version 120 \n"
 #endif
 R"EOS(
-uniform sampler2D textID;
-uniform vec3 tintHSV;
-uniform float tintAmount;
-uniform float tintLuminance;
-uniform float alpha;
+uniform sampler2D   iTexture;
+uniform float       iAlpha;
 
-varying vec2 v_TexCoord;
+uniform vec3        iTintHSV;
+uniform float       iTintAmount;
+uniform float       iTintLuminance;
+
+varying vec2        vTexCoord;
 
 vec3 rgb2hsv(vec3 c)
 {
@@ -516,12 +690,12 @@ float getValue(vec3 color)
 
 void main()
 {
-    vec4 src_col = texture2D(textID, v_TexCoord);
+    vec4 src_col = texture2D(iTexture, vTexCoord);
 
     float lum = getValue(src_col.xyz);
-    lum = max(lum - (1.0 - tintLuminance), 0.0);
-    vec3 new_col = (hsv2rgb(vec3(tintHSV[0], tintHSV[1], lum)) * tintAmount + src_col.xyz * (1.0 - tintAmount));
-    gl_FragColor = vec4(new_col, src_col.w * alpha);
+    lum = max(lum - (1.0 - iTintLuminance), 0.0);
+    vec3 new_col = (hsv2rgb(vec3(iTintHSV[0], iTintHSV[1], lum)) * iTintAmount + src_col.xyz * (1.0 - iTintAmount));
+    gl_FragColor = vec4(new_col, src_col.w * iAlpha);
 }
 )EOS";
 
@@ -544,20 +718,20 @@ static const auto light_fragment_shader_src = ""
 "#version 120 \n"
 #endif
 R"EOS(
-uniform sampler2D textID;
-uniform float light;
-uniform float alpha;
+uniform sampler2D   iTexture;
+uniform float       iAlpha;
+uniform float       iLight;
 
-varying vec2 v_TexCoord;
+varying vec2        vTexCoord;
 
 void main()
 {
-    vec4 src_col = texture2D(textID, v_TexCoord);
+    vec4 src_col = texture2D(iTexture, vTexCoord);
 
-   if (light >= 0.0)
-       gl_FragColor = vec4(src_col.xyz + vec3(light, light, light), src_col.w * alpha);
+   if (iLight >= 0.0)
+       gl_FragColor = vec4(src_col.xyz + vec3(iLight, iLight, iLight), src_col.w * iAlpha);
    else
-       gl_FragColor = vec4(src_col.xyz * abs(light), src_col.w * alpha);
+       gl_FragColor = vec4(src_col.xyz * abs(iLight), src_col.w * iAlpha);
 }
 )EOS";
 
@@ -567,15 +741,15 @@ static const auto darkenbyalpha_fragment_shader_src = R"EOS(
 
 precision mediump float;
 
-uniform sampler2D textID;
-uniform float alpha;
+uniform sampler2D   iTexture;
+uniform float       iAlpha;
 
-varying vec2 v_TexCoord;
+varying vec2        vTexCoord;
 
 void main()
 {
-    vec4 src_col = texture2D(textID, v_TexCoord);
-    gl_FragColor = vec4(src_col.xyz*alpha, src_col.w * alpha);
+    vec4 src_col = texture2D(iTexture, vTexCoord);
+    gl_FragColor = vec4(src_col.xyz * iAlpha, src_col.w * iAlpha);
 }
 )EOS";
 
@@ -586,65 +760,100 @@ static const auto lightenbyalpha_fragment_shader_src = R"EOS(
 
 precision mediump float;
 
-uniform sampler2D textID;
-uniform float alpha;
+uniform sampler2D   iTexture;
+uniform float       iAlpha;
 
-varying vec2 v_TexCoord;
+varying vec2        vTexCoord;
 
 void main()
 {
-    float invalpha = 1.0 - alpha;
-    vec4 src_col = texture2D(textID, v_TexCoord);
+    float invalpha = 1.0 - iAlpha;
+    vec4 src_col = texture2D(iTexture, vTexCoord);
     gl_FragColor = vec4(src_col.xyz + invalpha - (src_col.xyz*invalpha), src_col.w);
 }
 )EOS";
 
 
-bool OGLGraphicsDriver::CreateTransparencyShader(ShaderProgram &prg)
+OGLShader *OGLGraphicsDriver::CreateTransparencyShader(const OGLShader *fallback_shader)
 {
-    if(!CreateShaderProgram(prg, "Transparency", default_vertex_shader_src, transparency_fragment_shader_src))
-        return false;
-    AssignBaseShaderArgs(prg);
-    return true;
+    OGLShader::ProgramData prg;
+    if (CreateShaderProgram(prg, "Transparency", default_vertex_shader_src, transparency_fragment_shader_src))
+    {
+        AssignBaseShaderArgs(prg);
+        return new OGLShader("Transparency", std::move(prg));
+    }
+    else if (fallback_shader)
+    {
+        return new OGLShader("Transparency", *fallback_shader);
+    }
+    return new OGLShader("Transparency");
 }
 
-bool OGLGraphicsDriver::CreateTintShader(ShaderProgram &prg)
+OGLShader *OGLGraphicsDriver::CreateTintShader(const OGLShader *fallback_shader)
 {
-    if(!CreateShaderProgram(prg, "Tinting", default_vertex_shader_src, tint_fragment_shader_src))
-        return false;
-    AssignBaseShaderArgs(prg);
-    prg.TintHSV = glGetUniformLocation(prg.Program, "tintHSV");
-    prg.TintAmount = glGetUniformLocation(prg.Program, "tintAmount");
-    prg.TintLuminance = glGetUniformLocation(prg.Program, "tintLuminance");
-    return true;
+    OGLShader::ProgramData prg;
+    if (CreateShaderProgram(prg, "Tinting", default_vertex_shader_src, tint_fragment_shader_src))
+    {
+        AssignBaseShaderArgs(prg);
+        prg.TintHSV = glGetUniformLocation(prg.Program, "iTintHSV");
+        prg.TintAmount = glGetUniformLocation(prg.Program, "iTintAmount");
+        prg.TintLuminance = glGetUniformLocation(prg.Program, "iTintLuminance");
+        return new OGLShader("Tinting", std::move(prg));
+    }
+    else if (fallback_shader)
+    {
+        return new OGLShader("Tinting", *fallback_shader);
+    }
+    return new OGLShader("Tinting");
 }
 
-bool OGLGraphicsDriver::CreateLightShader(ShaderProgram &prg)
+OGLShader *OGLGraphicsDriver::CreateLightShader(const OGLShader *fallback_shader)
 {
-    if(!CreateShaderProgram(prg, "Lighting", default_vertex_shader_src, light_fragment_shader_src))
-        return false;
-    AssignBaseShaderArgs(prg);
-    prg.LightingAmount = glGetUniformLocation(prg.Program, "light");
-    return true;
+    OGLShader::ProgramData prg;
+    if (CreateShaderProgram(prg, "Lighting", default_vertex_shader_src, light_fragment_shader_src))
+    {
+        AssignBaseShaderArgs(prg);
+        prg.LightingAmount = glGetUniformLocation(prg.Program, "iLight");
+        return new OGLShader("Lighting", std::move(prg));
+    }
+    else if (fallback_shader)
+    {
+        return new OGLShader("Lighting", *fallback_shader);
+    }
+    return new OGLShader("Lighting");
 }
 
-bool OGLGraphicsDriver::CreateDarkenByAlphaShader(ShaderProgram& prg)
+OGLShader *OGLGraphicsDriver::CreateDarkenByAlphaShader(const OGLShader *fallback_shader)
 {
-    if (!CreateShaderProgram(prg, "DarkenByAlpha", default_vertex_shader_src, darkenbyalpha_fragment_shader_src))
-        return false;
-    AssignBaseShaderArgs(prg);
-    return true;
+    OGLShader::ProgramData prg;
+    if (CreateShaderProgram(prg, "DarkenByAlpha", default_vertex_shader_src, darkenbyalpha_fragment_shader_src))
+    {
+        AssignBaseShaderArgs(prg);
+        return new OGLShader("DarkenByAlpha", std::move(prg));
+    }
+    else if (fallback_shader)
+    {
+        return new OGLShader("DarkenByAlpha", *fallback_shader);
+    }
+    return new OGLShader("DarkenByAlpha");
 }
 
-bool OGLGraphicsDriver::CreateLightenByAlphaShader(ShaderProgram& prg)
+OGLShader *OGLGraphicsDriver::CreateLightenByAlphaShader(const OGLShader *fallback_shader)
 {
-    if (!CreateShaderProgram(prg, "LightenByAlpha", default_vertex_shader_src, lightenbyalpha_fragment_shader_src))
-        return false;
-    AssignBaseShaderArgs(prg);
-    return true;
+    OGLShader::ProgramData prg;
+    if (CreateShaderProgram(prg, "LightenByAlpha", default_vertex_shader_src, lightenbyalpha_fragment_shader_src))
+    {
+        AssignBaseShaderArgs(prg);
+        return new OGLShader("LightenByAlpha", std::move(prg));
+    }
+    else if (fallback_shader)
+    {
+        return new OGLShader("LightenByAlpha", *fallback_shader);
+    }
+    return new OGLShader("LightenByAlpha");
 }
 
-bool OGLGraphicsDriver::CreateShaderProgram(ShaderProgram &prg, const String &name, const char *vertex_shader_src, const char *fragment_shader_src)
+bool OGLGraphicsDriver::CreateShaderProgram(OGLShader::ProgramData &prg, const String &name, const char *vertex_shader_src, const char *fragment_shader_src)
 {
     GLint result;
 
@@ -654,7 +863,8 @@ bool OGLGraphicsDriver::CreateShaderProgram(ShaderProgram &prg, const String &na
     glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &result);
     if (result == GL_FALSE)
     {
-        OutputShaderError(vertex_shader, String::FromFormat("%s program's vertex shader", name.GetCStr()), true);
+        OutputShaderLog(vertex_shader, name, "vertex shader compilation", true, true);
+        glDeleteShader(vertex_shader);
         return false;
     }
 
@@ -664,7 +874,7 @@ bool OGLGraphicsDriver::CreateShaderProgram(ShaderProgram &prg, const String &na
     glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &result);
     if (result == GL_FALSE)
     {
-        OutputShaderError(fragment_shader, String::FromFormat("%s program's fragment shader", name.GetCStr()), true);
+        OutputShaderLog(fragment_shader, name, "fragment shader compilation", true, true);
         glDeleteShader(vertex_shader);
         glDeleteShader(fragment_shader);
         return false;
@@ -675,12 +885,13 @@ bool OGLGraphicsDriver::CreateShaderProgram(ShaderProgram &prg, const String &na
     glAttachShader(program, fragment_shader);
     glLinkProgram(program);
     glGetProgramiv(program, GL_LINK_STATUS, &result);
+    // NOTE: that linker will also repeat warnings from the vertext and fragment shaders
+    OutputShaderLog(program, name, "program linking", false , result == GL_FALSE);
     if(result == GL_FALSE)
     {
-        OutputShaderError(program, String::FromFormat("%s program", name.GetCStr()), false);
-        glDeleteProgram(program);
         glDeleteShader(vertex_shader);
         glDeleteShader(fragment_shader);
+        glDeleteProgram(program);
         return false;
     }
 
@@ -690,35 +901,55 @@ bool OGLGraphicsDriver::CreateShaderProgram(ShaderProgram &prg, const String &na
     glDeleteShader(fragment_shader);
 
     prg.Program = program;
-    Debug::Printf("OGL: %s shader program created successfully", name.GetCStr());
+    Debug::Printf("OpenGL: \"%s\" shader program created successfully", name.GetCStr());
+
+    // TODO: consider using glGetActiveUniform to retrieve a list of uniforms and default values (idk if needed?)
+    // See https://docs.gl/gl4/glGetActiveUniform
+
     return true;
 }
 
-void OGLGraphicsDriver::DeleteShaderProgram(ShaderProgram &prg)
-{
-    if (prg.Program != 0)
-        glDeleteProgram(prg.Program);
-    prg.Program = 0;
-}
-
-void OGLGraphicsDriver::AssignBaseShaderArgs(ShaderProgram &prg)
+void OGLGraphicsDriver::AssignBaseShaderArgs(OGLShader::ProgramData &prg)
 {
     prg.A_Position = glGetAttribLocation(prg.Program, "a_Position");
     prg.A_TexCoord = glGetAttribLocation(prg.Program, "a_TexCoord");
-    prg.MVPMatrix = glGetUniformLocation(prg.Program, "uMVPMatrix");
-    prg.TextureId = glGetUniformLocation(prg.Program, "textID");
-    prg.Alpha = glGetUniformLocation(prg.Program, "alpha");
+    prg.MVPMatrix = glGetUniformLocation(prg.Program, "iMVPMatrix");
+    prg.Time = glGetUniformLocation(prg.Program, "iTime");
+    prg.GameFrame = glGetUniformLocation(prg.Program, "iGameFrame");
+    prg.Texture = glGetUniformLocation(prg.Program, "iTexture");
+    prg.TextureDim = glGetUniformLocation(prg.Program, "iTextureDim");
+    prg.Alpha = glGetUniformLocation(prg.Program, "iAlpha");
+    prg.OutputDim = glGetUniformLocation(prg.Program, "iOutputDim");
     glEnableVertexAttribArray(prg.A_Position);
     glEnableVertexAttribArray(prg.A_TexCoord);
 }
 
-void OGLGraphicsDriver::OutputShaderError(GLuint obj_id, const String &obj_name, bool is_shader)
+void OGLGraphicsDriver::UpdateGlobalShaderArgValues()
+{
+    for (auto &sh : _customShaders)
+    {
+        const auto &prg = sh->GetData();
+        if (prg.Program == 0u)
+            continue;
+
+        glUseProgram(prg.Program);
+        glUniform1f(prg.Time, _globalShaderConst.Time);
+        glUniform1i(prg.GameFrame, _globalShaderConst.GameFrame);
+    }
+    glUseProgram(0);
+}
+
+void OGLGraphicsDriver::OutputShaderLog(GLuint obj_id, const String &shader_name, const char *step_name, bool is_shader, bool as_error)
 {
     GLint log_len;
     if (is_shader)
         glGetShaderiv(obj_id, GL_INFO_LOG_LENGTH, &log_len);
     else
         glGetProgramiv(obj_id, GL_INFO_LOG_LENGTH, &log_len);
+
+    // If we don't expect errors, then skip empty logs
+    if (log_len == 0 && !as_error)
+        return;
 
     std::vector<GLchar> errorLog(log_len);
     if (log_len > 0)
@@ -729,16 +960,20 @@ void OGLGraphicsDriver::OutputShaderError(GLuint obj_id, const String &obj_name,
             glGetProgramInfoLog(obj_id, log_len, &log_len, &errorLog[0]);
     }
 
-    Debug::Printf(kDbgMsg_Error, "ERROR: OpenGL: %s %s:", obj_name.GetCStr(), is_shader ? "failed to compile" : "failed to link");
+    const MessageType mt = as_error ? kDbgMsg_Error : kDbgMsg_Debug;
+    if (as_error)
+        Debug::Printf(mt, "ERROR: OpenGL: shader \"%s\" %s:", shader_name.GetCStr(), step_name);
+    else
+        Debug::Printf(mt, "OpenGL: shader \"%s\" %s:", shader_name.GetCStr(), step_name);
     if (errorLog.size() > 0)
     {
-        Debug::Printf(kDbgMsg_Error, "----------------------------------------");
-        Debug::Printf(kDbgMsg_Error, "%s", &errorLog[0]);
-        Debug::Printf(kDbgMsg_Error, "----------------------------------------");
+        Debug::Printf(mt, "----------------------------------------");
+        Debug::Printf(mt, "%s", &errorLog[0]);
+        Debug::Printf(mt, "----------------------------------------");
     }
     else
     {
-        Debug::Printf(kDbgMsg_Error, "Shader info log was empty.");
+        Debug::Printf(mt, "Shader output log was empty.");
     }
 }
 
@@ -903,12 +1138,7 @@ void OGLGraphicsDriver::UnInit()
     _nativeBackbuffer = BackbufferState();
   }
 
-  DeleteShaderProgram(_transparencyShader);
-  DeleteShaderProgram(_tintShader);
-  DeleteShaderProgram(_lightShader);
-  DeleteShaderProgram(_darkenbyAlphaShader);
-  DeleteShaderProgram(_lightenByAlphaShader);
-
+  DeleteShaders();
   DeleteWindowAndGlContext();
   sys_window_destroy();
 }
@@ -946,6 +1176,7 @@ void OGLGraphicsDriver::GetCopyOfScreenIntoDDB(IDriverDependantBitmap *target, u
             glm::ortho(0.0f, (float)surf_sz.Width, 0.0f, (float)surf_sz.Height, 0.0f, 1.0f),
             PlaneScaling(), GL_NEAREST, GL_CLAMP);
         SetBackbufferState(&backbuffer, true);
+        SetupPostFx(_nativeSurface, backbuffer);
         RenderTexture(_nativeSurface, 0, 0, backbuffer.Projection, glmex::identity(), SpriteColorTransform(), surf_sz);
     }
 }
@@ -1054,18 +1285,40 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
   const int alpha = (color.Alpha * bmpToDraw->GetAlpha()) / 255;
   const int invalpha = 255 - alpha;
 
-  ShaderProgram program;
+  const OGLShader::ProgramData *program = nullptr;
 
   int tint_r, tint_g, tint_b, tint_sat, light_lev;
   bmpToDraw->GetTint(tint_r, tint_g, tint_b, tint_sat);
   light_lev = bmpToDraw->GetLightLevel();
-  const bool do_tint = tint_sat > 0 && _tintShader.Program > 0;
-  const bool do_light = tint_sat == 0 && light_lev > 0 && _lightShader.Program > 0;
-  if (do_tint)
+  const bool do_tint = tint_sat > 0 && _tintShader->GetData().Program > 0;
+  const bool do_light = tint_sat == 0 && light_lev > 0 && _lightShader->GetData().Program > 0;
+  if (bmpToDraw->GetShader())
+  {
+    // Use custom shader
+    OGLShaderInstance *shaderinst = (OGLShaderInstance*)bmpToDraw->GetShader();
+    program = &shaderinst->GetShaderData();
+    glUseProgram(program->Program);
+
+    // Apply custom constants
+    // TODO: investigate if there's a more optimal way to do this,
+    // something similar to how Direct3D applies all constants as a buffer.
+    // See: https://www.khronos.org/opengl/wiki/Uniform_Buffer_Object
+    for (const auto &c : shaderinst->GetConstantData())
+    {
+        switch (c.Size)
+        {
+        case 1: glUniform1f(c.Loc, c.Val[0]); break;
+        case 2: glUniform2f(c.Loc, c.Val[0], c.Val[1]); break;
+        case 3: glUniform3f(c.Loc, c.Val[0], c.Val[1], c.Val[2]); break;
+        case 4: glUniform4f(c.Loc, c.Val[0], c.Val[1], c.Val[2], c.Val[3]); break;
+        default: break;
+        }
+    }
+  }
+  else if (do_tint)
   {
     // Use tinting shader
-    program = _tintShader;
-    glUseProgram(_tintShader.Program);
+    program = &_tintShader->GetData();
 
     float rgb[3];
     float sat_trs_lum[3]; // saturation / transparency / luminance
@@ -1079,15 +1332,15 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
     else
       sat_trs_lum[2] = 1.0f;
 
-    glUniform3f(_tintShader.TintHSV, rgb[0], rgb[1], rgb[2]);
-    glUniform1f(_tintShader.TintAmount, sat_trs_lum[0]);
-    glUniform1f(_tintShader.TintLuminance, sat_trs_lum[2]);
+    glUseProgram(program->Program);
+    glUniform3f(program->TintHSV, rgb[0], rgb[1], rgb[2]);
+    glUniform1f(program->TintAmount, sat_trs_lum[0]);
+    glUniform1f(program->TintLuminance, sat_trs_lum[2]);
   }
   else if (do_light)
   {
     // Use light shader
-    program = _lightShader;
-    glUseProgram(_lightShader.Program);
+    program = &_lightShader->GetData();
     float light_lev = 1.0f;
 
     // Light level parameter in DDB is weird, it is measured in units of
@@ -1106,39 +1359,40 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
       light_lev = ((light_lev - 256) / 2) / 255.f; // brighter, uses ADD op
     }
 
-    glUniform1f(_lightShader.LightingAmount, light_lev);
+    glUseProgram(program->Program);
+    glUniform1f(program->LightingAmount, light_lev);
   }
   else
   {
+    const OGLShader *shader;
     switch (bmpToDraw->GetBlendMode())
     {
     case kBlend_Darken:
     case kBlend_Multiply:
     case kBlend_Burn: // burn is imperfect due to blend mode, darker than normal even when trasparent
       // hack for blendmodes: fade to white to make it transparent
-      program = _lightenByAlphaShader;
-      glUseProgram(_lightenByAlphaShader.Program);
+      shader = _lightenByAlphaShader.get();
       break;
-
     case kBlend_Lighten:
     case kBlend_Screen:
     case kBlend_Exclusion:
     case kBlend_Dodge:
       // hack for blendmodes: fade to black to make it transparent
-      program = _darkenbyAlphaShader;
-      glUseProgram(_darkenbyAlphaShader.Program);
+      shader = _darkenbyAlphaShader.get();
       break;
-
     default:
       // Use default processing
-      program = _transparencyShader;
-      glUseProgram(_transparencyShader.Program);
+      shader = _transparencyShader.get();
       break;
     }
+
+    program = &shader->GetData();
+    glUseProgram(program->Program);
   }
 
-  glUniform1i(program.TextureId, 0);
-  glUniform1f(program.Alpha, alpha / 255.0f);
+  glUniform1i(program->Texture, 0);
+  glUniform2f(program->TextureDim, bmpToDraw->GetWidth(), bmpToDraw->GetHeight());
+  glUniform1f(program->Alpha, alpha / 255.0f);
 
   float width = bmpToDraw->GetWidthToRender();
   float height = bmpToDraw->GetHeightToRender();
@@ -1203,7 +1457,7 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
     transform = glmex::transform2d(transform, thisX, thisY, widthToScale, heightToScale,
         rotZ, pivotX, pivotY);
 
-    glUniformMatrix4fv(program.MVPMatrix, 1, GL_FALSE, glm::value_ptr(transform));
+    glUniformMatrix4fv(program->MVPMatrix, 1, GL_FALSE, glm::value_ptr(transform));
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, txdata->_tiles[ti].texture);
@@ -1226,13 +1480,13 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
 
     if (txdata->_vertex != nullptr)
     {
-        glVertexAttribPointer(program.A_Position, 2, GL_FLOAT, GL_FALSE, sizeof(OGLCUSTOMVERTEX), &(txdata->_vertex[ti * 4].position));
-        glVertexAttribPointer(program.A_TexCoord, 2, GL_FLOAT, GL_FALSE, sizeof(OGLCUSTOMVERTEX), &(txdata->_vertex[ti * 4].tu));
+        glVertexAttribPointer(program->A_Position, 2, GL_FLOAT, GL_FALSE, sizeof(OGLCUSTOMVERTEX), &(txdata->_vertex[ti * 4].position));
+        glVertexAttribPointer(program->A_TexCoord, 2, GL_FLOAT, GL_FALSE, sizeof(OGLCUSTOMVERTEX), &(txdata->_vertex[ti * 4].tu));
     }
     else
     {
-        glVertexAttribPointer(program.A_Position, 2, GL_FLOAT, GL_FALSE, sizeof(OGLCUSTOMVERTEX), &(defaultVertices[0].position));
-        glVertexAttribPointer(program.A_TexCoord, 2, GL_FLOAT, GL_FALSE, sizeof(OGLCUSTOMVERTEX), &(defaultVertices[0].tu));
+        glVertexAttribPointer(program->A_Position, 2, GL_FLOAT, GL_FALSE, sizeof(OGLCUSTOMVERTEX), &(defaultVertices[0].position));
+        glVertexAttribPointer(program->A_TexCoord, 2, GL_FLOAT, GL_FALSE, sizeof(OGLCUSTOMVERTEX), &(defaultVertices[0].tu));
     }
 
     // Treat special render modes
@@ -1362,6 +1616,7 @@ void OGLGraphicsDriver::RenderImpl(bool clearDrawListAfterwards)
     {
         // Draw native texture on a real backbuffer
         SetBackbufferState(&_screenBackbuffer, true);
+        SetupPostFx(_nativeSurface, _screenBackbuffer);
         RenderTexture(_nativeSurface, 0, 0, _screenBackbuffer.Projection, glmex::identity(), SpriteColorTransform(), _srcRect.GetSize());
         glFinish();
     }
@@ -1372,6 +1627,7 @@ void OGLGraphicsDriver::RenderToSurface(BackbufferState *state, bool clearDrawLi
     SetBackbufferState(state, true);
     // Save Projection
     _stageMatrixes.Projection = _currentBackbuffer->Projection;
+    UpdateGlobalShaderArgValues();
     RenderSpriteBatches();
     glFinish();
 
@@ -1455,6 +1711,18 @@ void OGLGraphicsDriver::SetRenderTarget(const OGLSpriteBatch *batch, Size &surfa
         glClear(GL_COLOR_BUFFER_BIT);
         glEnable(GL_SCISSOR_TEST);
     }
+}
+
+void OGLGraphicsDriver::SetupPostFx(OGLBitmap *surface, const BackbufferState &bufferstate)
+{
+    OGLShaderInstance *shader = static_cast<OGLShaderInstance*>(surface->GetShader());
+    if (!shader)
+        return;
+
+    glUseProgram(shader->GetShaderData().Program);
+    glUniform2f(shader->GetShaderData().OutputDim,
+                bufferstate.Scaling.X.ScaleDistance(surface->GetWidthToRender()),
+                bufferstate.Scaling.Y.ScaleDistance(surface->GetHeightToRender()));
 }
 
 void OGLGraphicsDriver::RenderSpriteBatches()
@@ -2116,6 +2384,51 @@ Texture *OGLGraphicsDriver::CreateTexture(int width, int height, int color_depth
   return txdata;
 }
 
+IGraphicShader *OGLGraphicsDriver::CreateShaderProgram(const String &name, const char *fragment_shader_src, const ShaderDefinition* /*def*/)
+{
+    OGLShader::ProgramData prg;
+    if (!CreateShaderProgram(prg, name, default_vertex_shader_src, fragment_shader_src))
+        return nullptr;
+
+    AssignBaseShaderArgs(prg);
+
+    OGLShader *shader = new OGLShader(name, std::move(prg));
+    _customShaders.push_back(shader);
+    return shader;
+}
+
+IGraphicShader *OGLGraphicsDriver::CreateShaderProgram(const String &name, const std::vector<uint8_t> &compiled_data, const ShaderDefinition* /*def*/)
+{
+    // TODO: can/should we support using precompiled shaders with OpenGL?
+    return nullptr;
+}
+
+void OGLGraphicsDriver::DeleteShaderProgram(IGraphicShader *shader)
+{
+    assert(shader);
+    if (shader)
+    {
+        _customShaders.erase(std::find(_customShaders.begin(), _customShaders.end(), shader));
+        delete (OGLShader*)shader;
+    }
+}
+
+IShaderInstance *OGLGraphicsDriver::CreateShaderInstance(IGraphicShader *shader, const String &name)
+{
+    assert(shader);
+    if (!shader)
+        return nullptr;
+
+    return new OGLShaderInstance((OGLShader*)shader, name);
+}
+
+void OGLGraphicsDriver::DeleteShaderInstance(IShaderInstance *shader_inst)
+{
+    assert(shader_inst);
+    if (shader_inst)
+        delete (OGLShaderInstance*)shader_inst;
+}
+
 void OGLGraphicsDriver::SetScreenFade(int red, int green, int blue)
 {
     assert(_actSpriteBatch != UINT32_MAX);
@@ -2137,12 +2450,19 @@ void OGLGraphicsDriver::SetScreenTint(int red, int green, int blue)
     _spriteList.push_back(OGLDrawListEntry(ddb, _actSpriteBatch, 0, 0));
 }
 
+void OGLGraphicsDriver::SetScreenShader(IShaderInstance *shinst)
+{
+    // TODO: expand this to not depend on whether we use a native-resolution surface or not;
+    // ideally this setup has to be done outside of gfx driver
+    if (_nativeSurface)
+        _nativeSurface->SetShader(shinst);
+}
 
 bool OGLGraphicsDriver::SetVsyncImpl(bool enabled, bool &vsync_res)
 {
     if (SDL_GL_SetSwapInterval(enabled) != 0)
     {
-        Debug::Printf(kDbgMsg_Warn, "OGL: SetVsync (%d) failed: %s", enabled, SDL_GetError());
+        Debug::Printf(kDbgMsg_Warn, "OpenGL: SetVsync (%d) failed: %s", enabled, SDL_GetError());
         return false;
     }
     vsync_res = SDL_GL_GetSwapInterval() != 0;

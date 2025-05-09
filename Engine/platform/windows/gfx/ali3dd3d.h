@@ -24,11 +24,21 @@
 #error This file should only be included on the Windows build
 #endif
 
+#if defined (WIN_XP_COMPAT)
+#define DIRECT3D_USE_D3DCOMPILER (0)
+#else
+#define DIRECT3D_USE_D3DCOMPILER (1)
+#endif
+
 #define NOMINMAX
 #include <memory>
 #define NOMINMAX
 #define BITMAP WINDOWS_BITMAP
 #include <d3d9.h>
+#if (DIRECT3D_USE_D3DCOMPILER)
+#include <d3dcommon.h>
+#include <d3dcompiler.h>
+#endif
 #undef BITMAP
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
@@ -142,7 +152,117 @@ private:
     bool _useResampler = false;
 };
 
-class D3DGfxModeList : public IGfxModeList
+class D3DShader final : public BaseShader
+{
+public:
+    struct ProgramData;
+
+    D3DShader(const String &name);
+    D3DShader(const String &name, D3DShader::ProgramData &&data);
+    D3DShader(const String &name, const D3DShader &copy_shader);
+    ~D3DShader() = default;
+
+    // Get a number of registered constants
+    uint32_t GetConstantCount() override;
+    // Get a registered constant's name, by its sequential index
+    String GetConstantName(uint32_t iter_index) override;
+    // Get a registered constant's location, by its sequential index;
+    // returns UINT32_MAX if no such constant exists
+    uint32_t GetConstantByIndex(uint32_t iter_index) override;
+    // Looks up for the constant in a shader. Returns a valid index if such shader is registered,
+    // and constant is present in that shader, or UINT32_MAX on failure.
+    uint32_t GetConstantByName(const String &const_name) override;
+    // Reset all shader constants to zero
+    void ResetConstants() override;
+
+    // A single constant register size *in floats*
+    static const uint32_t ConstantSize = 4u;
+    // A cap of the number of constant registers that we support (0..N)
+    static const uint32_t ConstantCap = 12u;
+    // A place in buffer where we will write non-applied values;
+    // this is just to streamline the process and don't litter the code with checks
+    static const uint32_t NullConstantIndex = ConstantCap;
+
+    // Shader data wrapped in a struct, for easier referencing
+    struct ProgramData
+    {
+        D3DPixelShaderPtr ShaderPtr;
+
+        struct Register
+        {
+            uint32_t Index = 0u;  // register index
+            uint32_t Off = 0u; // actual memory offset
+
+            Register() = default;
+            Register(uint32_t reg_index) { *this = reg_index; }
+            Register &operator=(uint32_t reg_index)
+            {
+                Index = reg_index;
+                Off = reg_index * ConstantSize;
+                return *this;
+            }
+        };
+        //---------------------------------------
+        // Fragment shader:
+        // Standard constants register number
+        Register Time;         // real time
+        Register GameFrame;    // game frame
+        Register TextureDim;   // texture 0 dimensions
+        Register Alpha;        // requested global alpha
+        Register OutputDim;    // output dimensions
+
+        // Specialized constants for built-in shaders
+        Register TintHSV;      // float4
+        Register TintAlphaLight; // float4
+
+        // Constants table: maps constant name to the index/register
+        // in the compiled shader
+        std::unordered_map<String, uint32_t> Constants;
+        // Ordered list of constants: lets iterate over them using
+        // a sequential index. Order is by the register (location)
+        // in shader program memory.
+        std::vector<std::pair<uint32_t, String>> ConstantsOrdered;
+    };
+
+    bool IsValid() const { return _data.ShaderPtr != nullptr; }
+    const D3DShader::ProgramData &GetData() const { return _data; }
+
+private:
+    ProgramData _data;
+};
+
+class D3DShaderInstance final : public BaseShaderInstance
+{
+public:
+    D3DShaderInstance(D3DShader *shader, const String &name);
+    ~D3DShaderInstance() = default;
+
+    // Returns a IGraphicShader referenced by this shader instance
+    IGraphicShader *GetShader() override { return _shader; }
+
+    // Sets shader constant, using constant's index (returned by GetShaderConstant)
+    void SetShaderConstantF(uint32_t const_index, float value) override;
+    void SetShaderConstantF2(uint32_t const_index, float x, float y) override;
+    void SetShaderConstantF3(uint32_t const_index, float x, float y, float z) override;
+    void SetShaderConstantF4(uint32_t const_index, float x, float y, float z, float w) override;
+
+    // Gets the allocated size of the constants data
+    size_t GetConstantDataSize() override;
+    // Gets array of constants data, where each constant is represented as 4 floats
+    void GetConstantData(std::vector<float> &data) override;
+
+    const D3DShader::ProgramData &GetShaderData() const { return _shader->GetData(); }
+    float *GetConstantData() { return _constantData.data(); }
+    size_t GetConstantDataSize() const { return _constantData.size(); }
+
+private:
+    // FIXME: provide reference counting of shader ptr
+    D3DShader *_shader = nullptr;
+    // Constant buffer data, applied each time a shader is used in render
+    std::vector<float> _constantData;
+};
+
+class D3DGfxModeList final : public IGfxModeList
 {
 public:
     D3DGfxModeList(const D3DPtr &direct3d, int display_index, D3DFORMAT d3dformat);
@@ -273,6 +393,28 @@ public:
     std::shared_ptr<Texture> GetTexture(IDriverDependantBitmap *ddb) override;
 
     ///////////////////////////////////////////////////////
+    // Shader management
+    //
+    // Returns the expected file extension for the precompiled shader
+    const char *GetShaderPrecompiledExtension() override { return "fxo"; }
+    // Returns the expected file extension for the shader source
+    const char *GetShaderSourceExtension() override { return "hlsl"; }
+    // Returns the expected file extension for the shader definition file
+    const char *GetShaderDefinitionExtension() override { return "d3ddef"; }
+    // Creates shader program from the source code, registers it under given name,
+    // returns IGraphicShader, or null on failure.
+    IGraphicShader *CreateShaderProgram(const String &name, const char *fragment_shader_src, const ShaderDefinition *def) override;
+    // Creates shader program from the compiled data, registers it under given name,
+    // returns IGraphicShader, or null on failure.
+    IGraphicShader *CreateShaderProgram(const String &name, const std::vector<uint8_t> &compiled_data, const ShaderDefinition *def) override;
+    // Deletes particular shader program.
+    void DeleteShaderProgram(IGraphicShader *shader) override;
+    // Creates shader instance for the given shader.
+    IShaderInstance *CreateShaderInstance(IGraphicShader *shader, const String &name) override;
+    // Deletes particular shader instance
+    void DeleteShaderInstance(IShaderInstance *shader_inst) override;
+
+    ///////////////////////////////////////////////////////
     // Preparing a scene
     // 
     // Adds sprite to the active batch, providing it's origin position
@@ -286,6 +428,8 @@ public:
     // Adds tint overlay fx to the active batch
     // TODO: redesign this to allow various post-fx per sprite batch?
     void SetScreenTint(int red, int green, int blue) override;
+    // Sets a shader to be applied to the whole screen as a post fx
+    void SetScreenShader(IShaderInstance *shinst) override;
     // Redraw saved draw lists, optionally filtering specific batches
     void RedrawLastFrame(uint32_t batch_skip_filter) override;
 
@@ -336,6 +480,10 @@ private:
     void CreateVirtualScreen();
     void SetupViewport();
     void SetupDefaultVertices();
+    // Create shader programs for sprite tinting and changing light level
+    bool CreateStandardShaders();
+    // Delete all shader programs
+    void DeleteShaders();
     // Resets
     void ResetDeviceIfNecessary();
     HRESULT ResetDeviceAndRestore();
@@ -353,6 +501,31 @@ private:
     void ReleaseRenderTargetData();
     // For tracked render targets, recreates the internal texture data
     void RecreateRenderTargets();
+
+    ///////////////////////////////////////////////////////
+    // Shader management: implementation
+    //
+#if (DIRECT3D_USE_D3DCOMPILER)
+    // TODO: should we let configure syntax level and optimization level, entrypoint name?
+    // TODO: move to the most modern compile target supported by Direct3D? ("ps_4_0_level_9_3")
+    const char *DefaultShaderCompileTarget = "ps_2_b"; // same as "ps_2_0", but higher capabilities
+    const UINT  DefaultShaderCompileFlags  = D3DCOMPILE_OPTIMIZATION_LEVEL3;
+    const char *DefaultShaderEntryPoint    = "main";
+#endif
+
+    // Creates shader program using provided compiled data
+    bool CreateShaderProgram(D3DShader::ProgramData &prg, const String &name, const uint8_t *data_ptr);
+    // Loads compiled shader data from resource and creates shader
+    bool CreateShaderProgramFromResource(D3DShader::ProgramData &prg, const String &name, const char *resource_name);
+    void AssignBaseShaderArgs(D3DShader::ProgramData &prg, const ShaderDefinition *def);
+    void UpdateGlobalShaderArgValues();
+#if (DIRECT3D_USE_D3DCOMPILER)
+    void OutputShaderLog(ComPtr<ID3DBlob> &out_errors, const String &shader_name, bool as_error);
+#endif
+
+    //
+    // Specialized shaders
+    D3DShader *CreateTintShader(const D3DShader *fallback_shader);
 
     ///////////////////////////////////////////////////////
     // Preparing a scene: implementation
@@ -413,6 +586,8 @@ private:
     // Configures rendering mode for the render target, depending on its properties
     // TODO: find a good way to merge with SetRenderTarget
     void SetRenderTarget(const D3DSpriteBatch *batch, Size &surface_sz, bool clear);
+    // Assigns shader constants for post fx (rendering final game image)
+    void SetupPostFx(D3DBitmap *surface, const BackbufferState &bufferstate);
     void RenderSpriteBatches();
     size_t RenderSpriteBatch(const D3DSpriteBatch &batch, size_t from, const Size &rend_sz);
     void RenderSprite(const D3DDrawListEntry *entry, const glm::mat4 &matGlobal,
@@ -443,13 +618,17 @@ private:
     // Texture for rendering in native resolution
     D3DBitmap *_nativeSurface = nullptr;
     CUSTOMVERTEX defaultVertices[4];
-    String previousError;
-    D3DPixelShaderPtr pixelShader;
+    String previousError; // FIXME: find out why is this necessary, rewrite?
     int _fullscreenDisplay = -1; // a display where exclusive fullscreen was created
     bool _smoothScaling;
     float _pixelRenderXOffset;
     float _pixelRenderYOffset;
     bool _renderAtScreenRes;
+
+    // Built-in shaders
+    // TODO: RAII-wrapper for IGraphicShader / D3DShader pointer
+    std::unique_ptr<D3DShader> _dummyShader;
+    std::unique_ptr<D3DShader> _tintShader;
 
     BackbufferState _screenBackbuffer;
     BackbufferState _nativeBackbuffer;

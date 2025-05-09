@@ -174,6 +174,12 @@ public:
     bool ShouldReleaseRenderTargets() override { return false; }
 
     ///////////////////////////////////////////////////////
+    // Miscelaneous setup
+    //
+    // Sets values for global shader constants
+    void SetGlobalShaderConstants(const GlobalShaderConstants &constants) override { /* not supported */ }
+
+    ///////////////////////////////////////////////////////
     // Mode initialization
     //
     // Initialize given display mode
@@ -242,6 +248,29 @@ public:
     void UpdateTexture(Texture *txdata, const Bitmap*, bool) override { /* not supported */}
     // Retrieve shared texture object from the given DDB
     std::shared_ptr<Texture> GetTexture(IDriverDependantBitmap *ddb) override { return nullptr; /* not supported */ }
+    
+    ///////////////////////////////////////////////////////
+    // Shader management
+    //
+    // Returns the expected file extension for the precompiled shader
+    const char *GetShaderPrecompiledExtension() override { return ""; }
+    // Returns the expected file extension for the shader source
+    const char *GetShaderSourceExtension() override { return ""; }
+    // Returns the expected file extension for the shader definition file
+    const char *GetShaderDefinitionExtension() override { return ""; }
+    // Creates shader program from the source code, registers it under given name;
+    // not supported in software driver, always fails.
+    IGraphicShader *CreateShaderProgram(const String &name, const char *fragment_shader_src, const ShaderDefinition *def) override { return nullptr; }
+    // Creates shader program from the compiled data, registers it under given name;
+    // not supported in software driver, always fails.
+    IGraphicShader *CreateShaderProgram(const String &name, const std::vector<uint8_t> &compiled_data, const ShaderDefinition *def) override { return nullptr; }
+    // Deletes particular shader program.
+    void DeleteShaderProgram(IGraphicShader *shader) override { /* do nothing */ }
+    // Creates shader instance for the given shader;
+    // not supported in software driver, always fails.
+    IShaderInstance *CreateShaderInstance(IGraphicShader *shader, const String &name) override { return nullptr; }
+    // Deletes particular shader instance
+    void DeleteShaderInstance(IShaderInstance *shader_inst) override { /* do nothing */ }
 
     ///////////////////////////////////////////////////////
     // Preparing a scene
@@ -256,6 +285,8 @@ public:
     void SetScreenFade(int red, int green, int blue) override;
     // Adds tint overlay fx to the active batch
     void SetScreenTint(int red, int green, int blue) override;
+    // Sets a shader to be applied to the whole screen as a post fx
+    void SetScreenShader(IShaderInstance *shinst) override { /*do nothing*/ }
     // Sets stage screen parameters for the current batch.
     void SetStageScreen(const Size &sz, int x = 0, int y = 0) override;
     // Redraw last draw lists, optionally filtering specific batches

@@ -15,22 +15,18 @@
 // OpenGL graphics factory
 //
 //=============================================================================
-
 #ifndef __AGS_EE_GFX__ALI3DOGL_H
 #define __AGS_EE_GFX__ALI3DOGL_H
 
 #include <memory>
-
 #include "glm/glm.hpp"
-
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
 #include "gfx/gfxdriverfactorybase.h"
 #include "gfx/gfxdriverbase.h"
+#include "gfx/ogl_headers.h"
 #include "util/string.h"
 #include "util/version.h"
-
-#include "ogl_headers.h"
 
 namespace AGS
 {
@@ -137,6 +133,124 @@ private:
     // Render parameters
     TextureRenderHint _renderHint = kTxHint_Normal;
     bool _useResampler = false;
+};
+
+class OGLShader final : public BaseShader
+{
+public:
+    // Get a number of registered constants
+    uint32_t GetConstantCount() override;
+    // Get a registered constant's name, by its sequential index
+    String GetConstantName(uint32_t iter_index) override;
+    // Get a registered constant's location, by its sequential index;
+    // returns UINT32_MAX if no such constant exists
+    uint32_t GetConstantByIndex(uint32_t iter_index) override;
+    // Looks up for the constant in a shader. Returns a valid index if such shader is registered,
+    // and constant is present in that shader, or UINT32_MAX on failure.
+    uint32_t GetConstantByName(const String &const_name) override;
+    // Reset all shader constants to zero
+    void ResetConstants() override;
+
+    // A cap of the number of constants that we support (0..N)
+    static const uint32_t ConstantCap = 12u;
+    // A place in buffer where we will write non-applied values;
+    // this is just to streamline the process and don't litter the code with checks
+    static const uint32_t NullConstantIndex = ConstantCap;
+
+    // Shader data wrapped in a struct, for easier referencing
+    struct ProgramData
+    {
+        GLuint Program = 0u;
+        //---------------------------------------
+        // Vector shader
+        // Default vector shader attributes
+        GLuint A_Position = 0;
+        GLuint A_TexCoord = 0;
+        // Default vector shader uniforms
+        GLuint MVPMatrix = 0; // model transformation matrix
+
+        //---------------------------------------
+        // Fragment shader:
+        // Standard uniforms
+        GLuint Time = 0;        // real time
+        GLuint GameFrame = 0;   // game (?) frame
+        GLuint Texture = 0;     // texture 0 (sprite or render target)
+        GLuint TextureDim = 0;  // texture 0 dimensions
+        GLuint Alpha = 0;       // requested global alpha
+        GLuint OutputDim = 0;   // output dimensions
+
+        // Specialized uniforms for built-in shaders
+        GLuint TintHSV = 0;
+        GLuint TintAmount = 0;
+        GLuint TintLuminance = 0;
+        GLuint LightingAmount = 0;
+
+        // Constants table: maps constant name to the register
+        // in the compiled shader
+        std::unordered_map<String, uint32_t> Constants;
+        // Ordered list of constants: lets iterate over them using
+        // a sequential index. Order is by the register (location)
+        // in shader program memory.
+        std::vector<std::pair<uint32_t, String>> ConstantsOrdered;
+    };
+
+    OGLShader(const String &name);
+    OGLShader(const String &name, OGLShader::ProgramData &&data);
+    OGLShader(const String &name, const OGLShader &copy_shader);
+    ~OGLShader();
+
+    bool IsValid() const { return _data.Program != 0u; }
+    const OGLShader::ProgramData &GetData() const { return _data; }
+
+private:
+    OGLShader::ProgramData _data;
+};
+
+class OGLShaderInstance final : public BaseShaderInstance
+{
+public:
+    OGLShaderInstance(OGLShader *shader, const String &name);
+    ~OGLShaderInstance() = default;
+
+    // Returns a IGraphicShader referenced by this shader instance
+    IGraphicShader *GetShader() override { return _shader; }
+
+    // Sets shader constant, using constant's index (returned by GetShaderConstant)
+    void SetShaderConstantF(uint32_t const_index, float value) override;
+    void SetShaderConstantF2(uint32_t const_index, float x, float y) override;
+    void SetShaderConstantF3(uint32_t const_index, float x, float y, float z) override;
+    void SetShaderConstantF4(uint32_t const_index, float x, float y, float z, float w) override;
+
+    // Gets the allocated size of the constants data
+    size_t GetConstantDataSize() override;
+    // Gets array of constants data, where each constant is represented as 4 floats
+    void GetConstantData(std::vector<float> &data) override;
+
+    struct ConstantValue
+    {
+        static const uint32_t AllocSize = 4 * sizeof(float);
+
+        uint32_t Loc = 0u;  // constant location in program
+        uint32_t Size = 0u; // size of the constant, in floats
+        float Val[4] = {};
+
+        ConstantValue() = default;
+        ConstantValue(uint32_t loc, uint32_t size, float x = 0.f, float y = 0.f, float z = 0.f, float w = 0.f)
+            : Loc(loc), Size(size)
+        {
+            Val[0] = x; Val[1] = y; Val[2] = z; Val[3] = w;
+        }
+    };
+
+    const OGLShader::ProgramData &GetShaderData() const { return _shader->GetData(); }
+    const std::vector<ConstantValue> &GetConstantData() { return _constantData; }
+
+private:
+    void SetConstant(uint32_t const_index, uint32_t size, float x = 0.f, float y = 0.f, float z = 0.f, float w = 0.f);
+
+    OGLShader *_shader = nullptr;
+    // Constant buffer data, applied each time a shader is used in render
+    std::vector<ConstantValue> _constantData;
 };
 
 // OGL renderer's sprite batch
@@ -267,6 +381,28 @@ public:
     std::shared_ptr<Texture> GetTexture(IDriverDependantBitmap *ddb) override;
 
     ///////////////////////////////////////////////////////
+    // Shader management
+    //
+    // Returns the expected file extension for the precompiled shader
+    const char *GetShaderPrecompiledExtension() override { return ""; }
+    // Returns the expected file extension for the shader source
+    const char *GetShaderSourceExtension() override { return "glsl"; }
+    // Returns the expected file extension for the shader definition file
+    const char *GetShaderDefinitionExtension() override { return ""; }
+    // Creates shader program from the source code, registers it under given name,
+    // returns IGraphicShader, or null on failure.
+    IGraphicShader *CreateShaderProgram(const String &name, const char *fragment_shader_src, const ShaderDefinition *def) override;
+    // Creates shader program from the compiled data, registers it under given name,
+    // returns IGraphicShader, or null on failure.
+    IGraphicShader *CreateShaderProgram(const String &name, const std::vector<uint8_t> &compiled_data, const ShaderDefinition *def) override;
+    // Deletes particular shader program.
+    void DeleteShaderProgram(IGraphicShader *shader) override;
+    // Creates shader instance for the given shader.
+    IShaderInstance *CreateShaderInstance(IGraphicShader *shader, const String &name) override;
+    // Deletes particular shader instance
+    void DeleteShaderInstance(IShaderInstance *shader_inst) override;
+
+    ///////////////////////////////////////////////////////
     // Preparing a scene
     //
     // Adds sprite to the active batch, providing it's origin position
@@ -279,6 +415,8 @@ public:
     void SetScreenFade(int red, int green, int blue) override;
     // Adds tint overlay fx to the active batch
     void SetScreenTint(int red, int green, int blue) override;
+    // Sets a shader to be applied to the whole screen as a post fx
+    void SetScreenShader(IShaderInstance *shinst) override;
     // Redraw last draw lists, optionally filtering specific batches
     void RedrawLastFrame(uint32_t batch_skip_filter) override;
 
@@ -326,16 +464,18 @@ private:
     // Sets up general rendering parameters
     void InitGlParams(const DisplayMode &mode);
     void SetupDefaultVertices();
+    void CreateVirtualScreen();
+    void SetupViewport();
     // Test if rendering to texture is supported
     void TestRenderToTexture();
     // Create shader programs for sprite tinting and changing light level
-    bool CreateShaders();
+    bool CreateStandardShaders();
+    // Delete all shader programs
+    void DeleteShaders();
     // Configure native resolution render target, that is used in render-to-texture mode
     void SetupNativeTarget();
     // Unset parameters and release resources related to the display mode
     void ReleaseDisplayMode();
-    void CreateVirtualScreen();
-    void SetupViewport();
 
     ///////////////////////////////////////////////////////
     // Texture management: implementation
@@ -346,48 +486,19 @@ private:
     ///////////////////////////////////////////////////////
     // Shader management: implementation
     //
-    // Shader program and its variable references;
-    // the variables are rather specific for AGS use (sprite tinting).
-    struct ShaderProgram
-    {
-        String Name;
-
-        GLuint Program = 0u;
-        //---------------------------------------
-        // Vector shader
-        // Default vector shader attributes
-        GLuint A_Position = 0;
-        GLuint A_TexCoord = 0;
-        // Default vector shader uniforms
-        GLuint MVPMatrix = 0; // model transformation matrix
-
-        //---------------------------------------
-        // Fragment shader:
-        // Standard uniforms
-        GLuint TextureId = 0; // main texture (sprite or render target)
-        GLuint Alpha = 0;     // requested global alpha
-
-        // Specialized uniforms for built-in shaders
-        GLuint TintHSV = 0;
-        GLuint TintAmount = 0;
-        GLuint TintLuminance = 0;
-        GLuint LightingAmount = 0;
-    };
-
     // Compiles and links shader program, using provided vertex and fragment shaders
-    bool CreateShaderProgram(ShaderProgram &prg, const String &name, const char *vertex_shader_src, const char *fragment_shader_src);
-    // Deletes a shader program
-    void DeleteShaderProgram(ShaderProgram &prg);
-    void AssignBaseShaderArgs(ShaderProgram &prg);
-    void OutputShaderError(GLuint obj_id, const String &obj_name, bool is_shader);
+    bool CreateShaderProgram(OGLShader::ProgramData &prg, const String &name, const char *vertex_shader_src, const char *fragment_shader_src);
+    void AssignBaseShaderArgs(OGLShader::ProgramData &prg);
+    void UpdateGlobalShaderArgValues();
+    void OutputShaderLog(GLuint obj_id, const String &shader_name, const char *step_name, bool is_shader, bool as_error);
 
     //
     // Specialized shaders
-    bool CreateTransparencyShader(ShaderProgram &prg);
-    bool CreateTintShader(ShaderProgram &prg);
-    bool CreateLightShader(ShaderProgram &prg);
-    bool CreateDarkenByAlphaShader(ShaderProgram &prg);
-    bool CreateLightenByAlphaShader(ShaderProgram &prg);
+    OGLShader *CreateTransparencyShader(const OGLShader *fallback_shader);
+    OGLShader *CreateTintShader(const OGLShader *fallback_shader);
+    OGLShader *CreateLightShader(const OGLShader *fallback_shader);
+    OGLShader *CreateDarkenByAlphaShader(const OGLShader *fallback_shader);
+    OGLShader *CreateLightenByAlphaShader(const OGLShader *fallback_shader);
 
     ///////////////////////////////////////////////////////
     // Preparing a scene: implementation
@@ -443,6 +554,8 @@ private:
     void SetScissor(const Rect &clip, bool render_on_texture, const Size &surface_size);
     // Configures rendering mode for the render target, depending on its properties
     void SetRenderTarget(const OGLSpriteBatch *batch, Size &surface_sz, Size &rend_sz, glm::mat4 &projection, bool clear);
+    // Assigns shader constants for post fx (rendering final game image)
+    void SetupPostFx(OGLBitmap *surface, const BackbufferState &bufferstate);
     void RenderSpriteBatches();
     size_t RenderSpriteBatch(const OGLSpriteBatch &batch, size_t from, const glm::mat4 &projection,
                              const Size &rend_sz);
@@ -469,14 +582,15 @@ private:
     bool _smoothScaling = false;
     POGLFilter _filter{};
 
-    ShaderProgram _transparencyShader;
-    ShaderProgram _tintShader;
-    ShaderProgram _lightShader;
-    ShaderProgram _darkenbyAlphaShader;
-    ShaderProgram _lightenByAlphaShader;
-    // Custom shaders
-    std::vector<ShaderProgram> _shaders;
-    std::unordered_map<String, uint32_t> _shaderLookup;
+    // Built-in shaders
+    // TODO: RAII-wrapper for IGraphicShader / OGLShader pointer
+    std::unique_ptr<OGLShader> _transparencyShader;
+    std::unique_ptr<OGLShader> _tintShader;
+    std::unique_ptr<OGLShader> _lightShader;
+    std::unique_ptr<OGLShader> _darkenbyAlphaShader;
+    std::unique_ptr<OGLShader> _lightenByAlphaShader;
+    // Custom shader references: these are currently required for updating global constants
+    std::vector<OGLShader*> _customShaders;
 
     int device_screen_physical_width;
     int device_screen_physical_height;

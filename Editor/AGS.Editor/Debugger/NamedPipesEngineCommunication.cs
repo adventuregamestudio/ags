@@ -26,7 +26,7 @@ namespace AGS.Editor
             _instanceIdentifier = System.Diagnostics.Process.GetCurrentProcess().Id.ToString();
             _readServer = new NamedPipesServer(@"\\.\pipe\AGSEditorDebuggerGameToEd" + _instanceIdentifier.ToString(), NamedPipeType.Read);
             _writeServer = new NamedPipesServer(@"\\.\pipe\AGSEditorDebuggerEdToGame" + _instanceIdentifier.ToString(), NamedPipeType.Write);
-            _readServer.MessageReceived += new NamedPipesServer.MessageReceivedHandler(_server_MessageReceived);
+            _readServer.MessageReceived += _server_MessageReceived;
             _readServer.Start();
             _writeServer.Start();
 

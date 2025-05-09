@@ -56,7 +56,7 @@ namespace AGS.Editor
                 textBox.Size = new Size(textBoxWidth, rowHeight);
                 textBox.Tag = i;
                 textBox.Text = _lipSync.CharactersPerFrame[i];
-                textBox.TextChanged += new EventHandler(textBox_TextChanged);
+                textBox.TextChanged += textBox_TextChanged;
 
                 int row = i;
                 int column = 0;

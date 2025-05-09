@@ -340,7 +340,7 @@ namespace AGS.Editor
                 if (_animationTimer == null)
                 {
                     _animationTimer = new Timer();
-                    _animationTimer.Tick += new EventHandler(_animationTimer_Tick);
+                    _animationTimer.Tick += _animationTimer_Tick;
 		            _animationTimer.Interval = MILLISECONDS_IN_SECOND / DEFUALT_FRAME_RATE;
                 }
 				UpdateDelayForThisFrame();

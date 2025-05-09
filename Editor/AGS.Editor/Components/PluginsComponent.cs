@@ -45,10 +45,10 @@ namespace AGS.Editor.Components
             _guiController.ProjectTree.AddTreeRoot(this, TOP_LEVEL_COMMAND_ID, "Plugins", "PluginIcon");
             RepopulateTreeView();
 
-            _agsEditor.GetScriptHeaderList += new GetScriptHeaderListHandler(AGSEditor_GetScriptHeaderList);
-            _agsEditor.Tasks.GetFilesForInclusionInTemplate += new Tasks.GetFilesForInclusionInTemplateHandler(AGSEditor_GetFilesForInclusionInTemplate);
-            _agsEditor.Tasks.NewGameFilesExtracted += new Tasks.NewGameFilesExtractedHandler(AGSEditor_NewGameFilesExtracted);
-			Factory.Events.GetAboutDialogText += new EditorEvents.GetAboutDialogTextHandler(Events_GetAboutDialogText);
+            _agsEditor.GetScriptHeaderList += AGSEditor_GetScriptHeaderList;
+            _agsEditor.Tasks.GetFilesForInclusionInTemplate += AGSEditor_GetFilesForInclusionInTemplate;
+            _agsEditor.Tasks.NewGameFilesExtracted += AGSEditor_NewGameFilesExtracted;
+			Factory.Events.GetAboutDialogText += Events_GetAboutDialogText;
         }
 
 		private void Events_GetAboutDialogText(GetAboutDialogTextEventArgs evArgs)

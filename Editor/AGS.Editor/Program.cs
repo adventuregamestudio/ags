@@ -39,9 +39,9 @@ namespace AGS.Editor
             {
 #endif
                 Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
-                Application.ThreadException += new System.Threading.ThreadExceptionEventHandler(Application_ThreadException);
-                AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
-                AppDomain.CurrentDomain.AssemblyResolve += new ResolveEventHandler(CurrentDomain_AssemblyResolve);
+                Application.ThreadException += Application_ThreadException;
+                AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+                AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
 
 				string filePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
 				Directory.SetCurrentDirectory(Path.GetDirectoryName(filePath));
@@ -49,17 +49,17 @@ namespace AGS.Editor
 #if BIBLE_EDITION
                 Application.Run(new SelectReligion());
                 // Need to re-add these because the end of Application.Run removes them
-                Application.ThreadException += new System.Threading.ThreadExceptionEventHandler(Application_ThreadException);
-                AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
+                Application.ThreadException += Application_ThreadException;
+                AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 #endif
 
                 SplashScreen splash = new SplashScreen();
-                splash.Load += new EventHandler(splash_Load);
+                splash.Load += splash_Load;
                 Application.Run(splash);
 
                 // Need to re-add these because the end of Application.Run removes them
-                Application.ThreadException += new System.Threading.ThreadExceptionEventHandler(Application_ThreadException);
-                AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
+                Application.ThreadException += Application_ThreadException;
+                AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 
                 _application.StartGUI(args);
 #if !DEBUG
@@ -78,7 +78,7 @@ namespace AGS.Editor
             // it has done so.
             Timer timer = new Timer();
             timer.Interval = 40;
-            timer.Tick += new EventHandler(startupTimer_Tick);
+            timer.Tick += startupTimer_Tick;
             timer.Start();
         }
 

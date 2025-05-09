@@ -19,7 +19,7 @@ namespace AGS.Editor
         {
             InitializeComponent();
             Init(dialogToEdit);
-            this.Load += new EventHandler(DialogEditor_Load);
+            this.Load += DialogEditor_Load;
         }
 
         private void Init(Dialog dialog)

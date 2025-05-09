@@ -35,8 +35,8 @@ namespace AGS.Editor.Components
         public SpeechComponent(GUIController guiController, AGSEditor agsEditor)
             : base(guiController, agsEditor)
         {
-            _agsEditor.ExtraCompilationStep += new AGSEditor.ExtraCompilationStepHandler(_agsEditor_ExtraCompilationStep);
-            _agsEditor.ExtraOutputCreationStep += new AGSEditor.ExtraOutputCreationStepHandler(_agsEditor_ExtraOutputCreationStep);
+            _agsEditor.ExtraCompilationStep += _agsEditor_ExtraCompilationStep;
+            _agsEditor.ExtraOutputCreationStep += _agsEditor_ExtraOutputCreationStep;
         }
 
         private void _agsEditor_ExtraCompilationStep(CompilationStepArgs args)

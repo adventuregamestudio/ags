@@ -54,10 +54,10 @@ namespace AGS.Editor
             sldZoomLevel.Maximum = ZOOM_MAX_VALUE / ZOOM_STEP_VALUE;
             sldZoomLevel.Value = 100 / ZOOM_STEP_VALUE;
             
-            PreviewKeyDown += new PreviewKeyDownEventHandler(GUIEditor_PreviewKeyDown);
-            MouseWheel += new MouseEventHandler(GUIEditor_MouseWheel);
-            bgPanel.MouseWheel += new MouseEventHandler(GUIEditor_MouseWheel);
-            sldZoomLevel.MouseWheel += new MouseEventHandler(GUIEditor_MouseWheel);
+            PreviewKeyDown += GUIEditor_PreviewKeyDown;
+            MouseWheel += GUIEditor_MouseWheel;
+            bgPanel.MouseWheel += GUIEditor_MouseWheel;
+            sldZoomLevel.MouseWheel += GUIEditor_MouseWheel;
             
             _drawSnapPen.DashStyle = System.Drawing.Drawing2D.DashStyle.Dot;
 
@@ -107,7 +107,7 @@ namespace AGS.Editor
         public GUIEditor()
         {
             InitializeComponent();
-            Factory.GUIController.OnPropertyObjectChanged += new GUIController.PropertyObjectChangedHandler(GUIController_OnPropertyObjectChanged);
+            Factory.GUIController.OnPropertyObjectChanged += GUIController_OnPropertyObjectChanged;
         }
 
 
@@ -1224,7 +1224,7 @@ namespace AGS.Editor
 
         protected override void OnDispose()
         {
-            Factory.GUIController.OnPropertyObjectChanged -= new GUIController.PropertyObjectChangedHandler(GUIController_OnPropertyObjectChanged);
+            Factory.GUIController.OnPropertyObjectChanged -= GUIController_OnPropertyObjectChanged;
         }
 
         private bool DoesThisPanelHaveFocus()

@@ -979,19 +979,19 @@ namespace AGS.Editor
                 _mainForm = new frmMain();
                 SetEditorWindowSize();
                 _treeManager = new ProjectTree(_mainForm.projectPanel.projectTree);
-                _treeManager.OnContextMenuClick += new ProjectTree.MenuClickHandler(_mainForm_OnMenuClick);
+                _treeManager.OnContextMenuClick += _mainForm_OnMenuClick;
                 _toolBarManager = new ToolBarManager(_mainForm.toolStrip);
                 _windowsMenuManager = new WindowsMenuManager(_mainForm.windowsToolStripMenuItem, 
                     _mainForm.DockPanes, _mainForm.mainContainer, _mainForm.GetLayoutManager());
                 _menuManager = new MainMenuManager(_mainForm.mainMenu, _windowsMenuManager);
-                _mainForm.OnEditorShutdown += new frmMain.EditorShutdownHandler(_mainForm_OnEditorShutdown);
-                _mainForm.OnPropertyChanged += new frmMain.PropertyChangedHandler(_mainForm_OnPropertyChanged);
-                _mainForm.OnPropertyObjectChanged += new frmMain.PropertyObjectChangedHandler(_mainForm_OnPropertyObjectChanged);
-                _mainForm.OnActiveDocumentChanged += new frmMain.ActiveDocumentChangedHandler(_mainForm_OnActiveDocumentChanged);
-                _mainForm.OnMainWindowActivated += new EventHandler(_mainForm_OnMainWindowActivated);
-                _menuManager.OnMenuClick += new MainMenuManager.MenuClickHandler(_mainForm_OnMenuClick);
-                AutoComplete.BackgroundCacheUpdateStatusChanged += new AutoComplete.BackgroundCacheUpdateStatusChangedHandler(AutoComplete_BackgroundCacheUpdateStatusChanged);
-				SystemEvents.DisplaySettingsChanged += new EventHandler(SystemEvents_DisplaySettingsChanging);
+                _mainForm.OnEditorShutdown += _mainForm_OnEditorShutdown;
+                _mainForm.OnPropertyChanged += _mainForm_OnPropertyChanged;
+                _mainForm.OnPropertyObjectChanged += _mainForm_OnPropertyObjectChanged;
+                _mainForm.OnActiveDocumentChanged += _mainForm_OnActiveDocumentChanged;
+                _mainForm.OnMainWindowActivated += _mainForm_OnMainWindowActivated;
+                _menuManager.OnMenuClick += _mainForm_OnMenuClick;
+                AutoComplete.BackgroundCacheUpdateStatusChanged += AutoComplete_BackgroundCacheUpdateStatusChanged;
+				SystemEvents.DisplaySettingsChanged += SystemEvents_DisplaySettingsChanging;
 
                 RegisterIcon("SpriteIcon", Resources.ResourceManager.GetIcon("iconspr.ico"));
                 RegisterIcon("BuildIcon", Resources.ResourceManager.GetIcon("menu_build_rebuild-files.ico"));
@@ -1003,16 +1003,16 @@ namespace AGS.Editor
                 _mainForm.mainMenu.ImageList = _imageList;
 				_mainForm.pnlOutput.SetImageList(_imageList);
 
-                ViewUIEditor.ViewSelectionGUI = new ViewUIEditor.ViewSelectionGUIType(ShowViewChooserFromPropertyGrid);
-                SpriteSelectUIEditor.SpriteSelectionGUI = new SpriteSelectUIEditor.SpriteSelectionGUIType(ShowSpriteChooserFromPropertyGrid);
-                CustomPropertiesUIEditor.CustomPropertiesGUI = new CustomPropertiesUIEditor.CustomPropertiesGUIType(ShowPropertiesEditorFromPropertyGrid);
-                PropertyTabInteractions.UpdateEventName = new PropertyTabInteractions.UpdateEventNameHandler(PropertyTabInteractions_UpdateEventName);
-                ScriptFunctionUIEditor.OpenScriptFunction = new ScriptFunctionUIEditor.OpenScriptFunctionHandler(ScriptFunctionUIEditor_OpenScriptFunction);
-                ScriptFunctionUIEditor.CreateScriptFunction = new ScriptFunctionUIEditor.CreateScriptFunctionHandler(ScriptFunctionUIEditor_CreateScriptFunction);
-                CustomResolutionUIEditor.CustomResolutionSetGUI = new CustomResolutionUIEditor.CustomResolutionGUIType(ShowCustomResolutionChooserFromPropertyGrid);
-                ColorUIEditor.ColorGUI = new ColorUIEditor.ColorGUIType(ShowColorDialog);
-                MultiLineStringUIEditor.MultilineStringGUI = new MultiLineStringUIEditor.MultilineStringGUIType(ShowMultilineStringDialog);
-                AudioClipSourceFileUIEditor.AudioClipSourceFileGUI = new AudioClipSourceFileUIEditor.AudioClipSourceFileGUIType(ShowAudioClipSourceFileChooserFromPropertyGrid);
+                ViewUIEditor.ViewSelectionGUI = ShowViewChooserFromPropertyGrid;
+                SpriteSelectUIEditor.SpriteSelectionGUI = ShowSpriteChooserFromPropertyGrid;
+                CustomPropertiesUIEditor.CustomPropertiesGUI = ShowPropertiesEditorFromPropertyGrid;
+                PropertyTabInteractions.UpdateEventName = PropertyTabInteractions_UpdateEventName;
+                ScriptFunctionUIEditor.OpenScriptFunction = ScriptFunctionUIEditor_OpenScriptFunction;
+                ScriptFunctionUIEditor.CreateScriptFunction = ScriptFunctionUIEditor_CreateScriptFunction;
+                CustomResolutionUIEditor.CustomResolutionSetGUI = ShowCustomResolutionChooserFromPropertyGrid;
+                ColorUIEditor.ColorGUI = ShowColorDialog;
+                MultiLineStringUIEditor.MultilineStringGUI = ShowMultilineStringDialog;
+                AudioClipSourceFileUIEditor.AudioClipSourceFileGUI = ShowAudioClipSourceFileChooserFromPropertyGrid;
             }
         }
 

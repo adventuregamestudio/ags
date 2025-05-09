@@ -185,7 +185,7 @@ namespace AGS.Editor
                 _debounceTimer = null;
             }
             _debounceTimer = new System.Timers.Timer(10);
-            _debounceTimer.Elapsed += new System.Timers.ElapsedEventHandler(elapse); // subscribing to the elapse event
+            _debounceTimer.Elapsed += elapse; // subscribing to the elapse event
             _debounceTimer.Start();
         }
 

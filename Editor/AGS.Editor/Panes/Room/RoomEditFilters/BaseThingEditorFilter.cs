@@ -19,7 +19,6 @@ namespace AGS.Editor
         protected Room _room;
         protected Panel _panel;
         protected RoomSettingsEditor _editor;
-        private GUIController.PropertyObjectChangedHandler _propertyObjectChangedDelegate;
         protected TThing _selectedObject = null;
         protected TThing _lastSelectedObject = null;
         // Object moving handling
@@ -37,7 +36,6 @@ namespace AGS.Editor
             _room = room;
             _panel = displayPanel;
             _editor = editor;
-            _propertyObjectChangedDelegate = new GUIController.PropertyObjectChangedHandler(GUIController_OnPropertyObjectChanged);
 
             RoomItemRefs = new SortedDictionary<string, TThing>();
             DesignItems = new SortedDictionary<string, DesignTimeProperties>();
@@ -121,7 +119,7 @@ namespace AGS.Editor
         public void FilterOn()
         {
             SetPropertyGridList();
-            Factory.GUIController.OnPropertyObjectChanged += _propertyObjectChangedDelegate;
+            Factory.GUIController.OnPropertyObjectChanged += GUIController_OnPropertyObjectChanged;
             _isOn = true;
             ClearMovingState();
             FilterActivated();
@@ -129,7 +127,7 @@ namespace AGS.Editor
 
         public void FilterOff()
         {
-            Factory.GUIController.OnPropertyObjectChanged -= _propertyObjectChangedDelegate;
+            Factory.GUIController.OnPropertyObjectChanged -= GUIController_OnPropertyObjectChanged;
             _isOn = false;
             ClearMovingState();
             FilterDeactivated();

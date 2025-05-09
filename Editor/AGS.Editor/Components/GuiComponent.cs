@@ -193,8 +193,8 @@ namespace AGS.Editor.Components
 			{
 				List<MenuCommand> toolbarIcons = CreateToolbarIcons();
 				GUIEditor editor = new GUIEditor(chosenGui, toolbarIcons);
-				editor.OnControlsChanged += new GUIEditor.ControlsChanged(_guiEditor_OnControlsChanged);
-				editor.OnGuiNameChanged += new GUIEditor.GuiNameChanged(_guiEditor_OnGuiNameChanged);
+				editor.OnControlsChanged += _guiEditor_OnControlsChanged;
+				editor.OnGuiNameChanged += _guiEditor_OnGuiNameChanged;
                 document = new ContentDocument(editor, chosenGui.WindowTitle,
                     this, ICON_KEY, GUIEditor.ConstructPropertyObjectList(chosenGui));
                 _documents[chosenGui] = document;

@@ -62,7 +62,7 @@ namespace AGS.Editor.Components
             _iconMappings.Add(AudioClipFileType.MIDI, "AGSAudioClipIconMidi");
             _iconMappings.Add(AudioClipFileType.MOD, "AGSAudioClipIconMod");
 
-            _agsEditor.PreCompileGame += new AGSEditor.PreCompileGameHandler(_agsEditor_PreCompileGame);
+            _agsEditor.PreCompileGame += _agsEditor_PreCompileGame;
 
             RecreateDocument();
             _guiController.RegisterIcon("AGSAudioClipsIcon", Resources.ResourceManager.GetIcon("audio.ico"));
@@ -76,7 +76,7 @@ namespace AGS.Editor.Components
             _guiController.RegisterIcon("AGSAudioSpeechIcon", Resources.ResourceManager.GetIcon("audio_speech.ico"));
             _guiController.RegisterIcon(AUDIO_CLIP_TYPE_ICON, Resources.ResourceManager.GetIcon("tree_audio_generic.ico"));
             _guiController.ProjectTree.AddTreeRoot(this, TOP_LEVEL_COMMAND_ID, "Audio", "AGSAudioClipsIcon");
-            _guiController.ProjectTree.OnAfterLabelEdit += new ProjectTree.AfterLabelEditHandler(ProjectTree_OnAfterLabelEdit);
+            _guiController.ProjectTree.OnAfterLabelEdit += ProjectTree_OnAfterLabelEdit;
             RePopulateTreeView();
         }
 

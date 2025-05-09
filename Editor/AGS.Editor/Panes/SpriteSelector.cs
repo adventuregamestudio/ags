@@ -100,7 +100,7 @@ namespace AGS.Editor
                 _spManagerIcons.Images.Add("OpenFolder", Resources.ResourceManager.GetIcon("openfldr.ico"));
             }
             folderList.ImageList = _spManagerIcons;
-            folderList.KeyDown += new System.Windows.Forms.KeyEventHandler(this.folderList_KeyDown);
+            folderList.KeyDown += folderList_KeyDown;
             folderList.ItemTryDrag += FolderList_ItemTryDrag;
             folderList.ItemDragOver += FolderList_ItemDragOver;
             folderList.ItemDragDrop += FolderList_ItemDragDrop;
@@ -366,7 +366,7 @@ namespace AGS.Editor
                         {
                             _timer = new Timer();
                             _timer.Interval = 50;
-                            _timer.Tick += new EventHandler(_timer_Tick);
+                            _timer.Tick += _timer_Tick;
                             _timer.Tag = spriteNumber;
                             _timer.Start();
                         }

@@ -20,18 +20,16 @@ namespace AGS.Editor.Components
         private const string ICON_KEY = "ViewsIcon";
         
         private Dictionary<View, ContentDocument> _documents;
-        private Game.ViewListUpdatedHandler _viewsUpdatedHandler;
         private Game _eventHookedToGame = null;
 
         public ViewsComponent(GUIController guiController, AGSEditor agsEditor)
             : base(guiController, agsEditor, "ViewEditor")
         {
             _documents = new Dictionary<View, ContentDocument>();
-            _viewsUpdatedHandler = new Game.ViewListUpdatedHandler(CurrentGame_ViewListUpdated);
             _guiController.RegisterIcon(ICON_KEY, ResourceManager.GetIcon("view.ico"));
             _guiController.RegisterIcon("ViewIcon", ResourceManager.GetIcon("view-item.ico"));
             _guiController.ProjectTree.AddTreeRoot(this, TOP_LEVEL_COMMAND_ID, "Views", ICON_KEY);
-			_guiController.ProjectTree.OnAfterLabelEdit += new ProjectTree.AfterLabelEditHandler(ProjectTree_OnAfterLabelEdit);
+			_guiController.ProjectTree.OnAfterLabelEdit += ProjectTree_OnAfterLabelEdit;
 			RefreshDataFromGame();
         }
 
@@ -234,7 +232,7 @@ namespace AGS.Editor.Components
         {
             if (_eventHookedToGame != null)
             {
-                _eventHookedToGame.ViewListUpdated -= _viewsUpdatedHandler;
+                _eventHookedToGame.ViewListUpdated -= CurrentGame_ViewListUpdated;
             }
 
             foreach (ContentDocument doc in _documents.Values)
@@ -247,7 +245,7 @@ namespace AGS.Editor.Components
             RePopulateTreeView();
 
             _eventHookedToGame = _agsEditor.CurrentGame;
-            _eventHookedToGame.ViewListUpdated += _viewsUpdatedHandler;
+            _eventHookedToGame.ViewListUpdated += CurrentGame_ViewListUpdated;
         }
 
         private void CurrentGame_ViewListUpdated()

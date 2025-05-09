@@ -45,9 +45,9 @@ namespace AGS.Editor
             _activeDocumentChanging = new TabbedDocumentManager.ActiveDocumentChangeHandler(tabbedDocumentContainer1_ActiveDocumentChanging);
             tabbedDocumentContainer1.ActiveDocumentChanged += _activeDocumentChanged;
             tabbedDocumentContainer1.ActiveDocumentChanging += _activeDocumentChanging;
-			this.Load += new EventHandler(frmMain_Load);
-            this.Activated += new EventHandler(frmMain_Activated);
-            this.Deactivate += new EventHandler(frmMain_Deactivated);
+			this.Load += frmMain_Load;
+            this.Activated += frmMain_Activated;
+            this.Deactivate += frmMain_Deactivated;
         }
 
         private List<DockContent> GetStartupPanes()

@@ -68,6 +68,7 @@ namespace AGS.Editor.BuildTargets
             Assert.That(cloneSetup.SpriteCacheSize, Is.EqualTo(originalSetup.SpriteCacheSize), "Clone should match the original (SpriteCacheSize)");
             Assert.That(cloneSetup.TextureCacheSize, Is.EqualTo(originalSetup.TextureCacheSize), "Clone should match the original (TextureCacheSize)");
             Assert.That(cloneSetup.SoundCacheSize, Is.EqualTo(originalSetup.SoundCacheSize), "Clone should match the original (SoundCacheSize)");
+            Assert.That(cloneSetup.CompressSaves, Is.EqualTo(originalSetup.CompressSaves), "Clone should match the original (CompressSaves)");
             Assert.That(cloneSetup.UseCustomSavePath, Is.EqualTo(originalSetup.UseCustomSavePath), "Clone should match the original (UseCustomSavePath)");
             Assert.That(cloneSetup.CustomSavePath, Is.EqualTo(originalSetup.CustomSavePath), "Clone should match the original (CustomSavePath)");
             Assert.That(cloneSetup.UseCustomAppDataPath, Is.EqualTo(originalSetup.UseCustomAppDataPath), "Clone should match the original");

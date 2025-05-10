@@ -49,6 +49,7 @@ namespace AGS.Editor.Components
         private const string CRASH_EDITOR_COMMAND = "CrashEditor";
 
         private const string UPDATES_URL = "https://www.adventuregamestudio.co.uk/releases/versions.xml";
+        private const int CHECK_UPDATES_TIMEOUT_MS = 30000; // 30 seconds
 
         private string _helpFileName;
         private Form _dummyHelpForm;
@@ -221,6 +222,9 @@ namespace AGS.Editor.Components
             using (System.Net.WebClient webClient = new System.Net.WebClient())
             {
                 // NOTE: the message encoding depends on the data exchange format
+                // TODO: convert this into a async operation,
+                // but a note for the future implementors: WebClient.DownloadDataAsync does the very first
+                // step *synchronously*, and may hang the thread by trying to connect!
                 byte[] data = webClient.DownloadData(UPDATES_URL);
                 return Encoding.Default.GetString(data);
             }
@@ -230,7 +234,8 @@ namespace AGS.Editor.Components
         {
             try
             {
-                string dataDownload = (string)BusyDialog.Show("Please wait while we check for updates...", new BusyDialog.ProcessingHandler(DownloadUpdateStatusThread), null);
+                string dataDownload = (string)BusyDialog.Show("Please wait while we check for updates...",
+                    new BusyDialog.ProcessingHandler(DownloadUpdateStatusThread), null, CHECK_UPDATES_TIMEOUT_MS);
 
                 XmlDocument doc = new XmlDocument();
                 doc.LoadXml(dataDownload);

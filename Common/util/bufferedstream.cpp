@@ -60,8 +60,19 @@ BufferedStream::~BufferedStream()
     Close();
 }
 
+std::unique_ptr<IStreamBase> BufferedStream::ReleaseStreamBase()
+{
+    if (_base && CanWrite())
+        FlushBuffer(_position);
+    return std::move(_base);
+}
+
 void BufferedStream::FillBufferFromPosition(soff_t position)
 {
+    assert(_base);
+    if (!_base)
+        return;
+
     _base->Seek(position, kSeekBegin);
     // remember to restrict to the end position!
     size_t fill_size = static_cast<size_t>(
@@ -74,6 +85,10 @@ void BufferedStream::FillBufferFromPosition(soff_t position)
 
 void BufferedStream::FlushBuffer(soff_t position)
 {
+    assert(_base);
+    if (!_base)
+        return;
+
     size_t sz = _buffer.size() > 0 ? _base->Write(_buffer.data(), _buffer.size()) : 0u;
     _buffer.clear(); // will start from the clean buffer next time
     _bufferPosition += sz;
@@ -101,16 +116,23 @@ soff_t BufferedStream::GetPosition() const
 
 void BufferedStream::Close()
 {
-    if (CanWrite())
-        FlushBuffer(_position);
-    _base->Close();
+    if (_base)
+    {
+        if (CanWrite())
+            FlushBuffer(_position);
+        _base->Close();
+    }
 }
 
 bool BufferedStream::Flush()
 {
-    if (CanWrite())
-        FlushBuffer(_position);
-    return _base->Flush();
+    if (_base)
+    {
+        if (CanWrite())
+            FlushBuffer(_position);
+        return _base->Flush();
+    }
+    return false;
 }
 
 size_t BufferedStream::Read(void *buffer, size_t size)
@@ -119,6 +141,10 @@ size_t BufferedStream::Read(void *buffer, size_t size)
     // then read directly into the user buffer and bail out.
     if (size >= BufferSize)
     {
+        assert(_base);
+        if (!_base)
+            return 0u;
+
         _base->Seek(_position, kSeekBegin);
         // remember to restrict to the end position!
         size_t fill_size = static_cast<size_t>(

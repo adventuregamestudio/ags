@@ -615,8 +615,10 @@
     <ClCompile Include="..\..\Common\util\string_utils.cpp" />
     <ClCompile Include="..\..\Common\util\textstreamreader.cpp" />
     <ClCompile Include="..\..\Common\util\textstreamwriter.cpp" />
+    <ClCompile Include="..\..\Common\util\transformstream.cpp" />
     <ClCompile Include="..\..\Common\util\version.cpp" />
     <ClCompile Include="..\..\Common\util\wgt2allg.cpp" />
+    <ClCompile Include="..\..\Common\util\deflatestream.cpp" />
     <ClCompile Include="..\..\libsrc\miniz\miniz.c" />
     <ClCompile Include="..\..\libsrc\allegro\src\allegro.c" />
     <ClCompile Include="..\..\libsrc\allegro\src\file.c">
@@ -782,9 +784,11 @@
     <ClInclude Include="..\..\Common\util\textstreamreader.h" />
     <ClInclude Include="..\..\Common\util\textstreamwriter.h" />
     <ClInclude Include="..\..\Common\util\textwriter.h" />
+    <ClInclude Include="..\..\Common\util\transformstream.h" />
     <ClInclude Include="..\..\Common\util\utf8.h" />
     <ClInclude Include="..\..\Common\util\version.h" />
     <ClInclude Include="..\..\Common\util\wgt2allg.h" />
+    <ClInclude Include="..\..\Common\util\deflatestream.h" />
     <ClInclude Include="..\..\libsrc\allegro\src\c\cblit.h" />
     <ClInclude Include="..\..\libsrc\allegro\src\c\cdefs15.h" />
     <ClInclude Include="..\..\libsrc\allegro\src\c\cdefs16.h" />

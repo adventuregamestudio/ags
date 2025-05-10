@@ -78,16 +78,16 @@ private:
 
 //=============================================================================
 //
-// CustomPathsPageDialog
+// GameFilesPageDialog
 //
 //=============================================================================
-class CustomPathsPageDialog : public WinSetupPageDialog
+class GameFilesPageDialog : public WinSetupPageDialog
 {
 public:
-    CustomPathsPageDialog(WinConfig &win_cfg, const ConfigTree &cfg_in)
+    GameFilesPageDialog(WinConfig &win_cfg, const ConfigTree &cfg_in)
         : WinSetupPageDialog(win_cfg, cfg_in) {}
 
-    String GetTitle() const override { return "Custom Paths"; }
+    String GetTitle() const override { return "Game Files"; }
 
     void ResetSetup(const ConfigTree &cfg_from) override;
     void SaveSetup() override;
@@ -113,6 +113,7 @@ private:
     HWND _hCustomAppDataDir = NULL;
     HWND _hCustomAppDataDirBtn = NULL;
     HWND _hCustomAppDataDirCheck = NULL;
+    HWND _hCompressSavesCheck = NULL;
 };
 
 //=============================================================================

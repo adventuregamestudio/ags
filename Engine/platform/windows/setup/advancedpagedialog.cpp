@@ -214,7 +214,7 @@ void AdvancedPageDialog::SaveSetup()
 
 //=============================================================================
 //
-// CustomPathsPageDialog
+// GameFilesPageDialog
 //
 //=============================================================================
 
@@ -233,7 +233,7 @@ static void SetupCustomDirCtrl(const String &save_dir_opt, const String &def_dir
     EnableWindow(dir_btn, has_save_dir ? TRUE : FALSE);
 }
 
-INT_PTR CustomPathsPageDialog::OnInitDialog()
+INT_PTR GameFilesPageDialog::OnInitDialog()
 {
     _hCustomSaveDir         = GetDlgItem(_hwnd, IDC_CUSTOMSAVEDIR);
     _hCustomSaveDirBtn      = GetDlgItem(_hwnd, IDC_CUSTOMSAVEDIRBTN);
@@ -241,6 +241,7 @@ INT_PTR CustomPathsPageDialog::OnInitDialog()
     _hCustomAppDataDir      = GetDlgItem(_hwnd, IDC_CUSTOMAPPDATADIR);
     _hCustomAppDataDirBtn   = GetDlgItem(_hwnd, IDC_CUSTOMAPPDATADIRBTN);
     _hCustomAppDataDirCheck = GetDlgItem(_hwnd, IDC_CUSTOMAPPDATADIRCHECK);
+    _hCompressSavesCheck    = GetDlgItem(_hwnd, IDC_COMPRESSSAVESCHECK);
 
     ResetSetup(_cfgIn);
 
@@ -248,7 +249,7 @@ INT_PTR CustomPathsPageDialog::OnInitDialog()
     return FALSE; // notify WinAPI that we set focus ourselves
 }
 
-INT_PTR CustomPathsPageDialog::OnCommand(WORD id)
+INT_PTR GameFilesPageDialog::OnCommand(WORD id)
 {
     switch (id)
     {
@@ -262,7 +263,7 @@ INT_PTR CustomPathsPageDialog::OnCommand(WORD id)
     return TRUE;
 }
 
-void CustomPathsPageDialog::OnCustomSaveDirBtn()
+void GameFilesPageDialog::OnCustomSaveDirBtn()
 {
     String save_dir = GetText(_hCustomSaveDir);
     if (BrowseForFolder(save_dir))
@@ -271,14 +272,14 @@ void CustomPathsPageDialog::OnCustomSaveDirBtn()
     }
 }
 
-void CustomPathsPageDialog::OnCustomSaveDirCheck()
+void GameFilesPageDialog::OnCustomSaveDirCheck()
 {
     bool custom_save_dir = GetCheck(_hCustomSaveDirCheck);
     EnableWindow(_hCustomSaveDir, custom_save_dir ? TRUE : FALSE);
     EnableWindow(_hCustomSaveDirBtn, custom_save_dir ? TRUE : FALSE);
 }
 
-void CustomPathsPageDialog::OnCustomAppDataDirBtn()
+void GameFilesPageDialog::OnCustomAppDataDirBtn()
 {
     String data_dir = GetText(_hCustomAppDataDir);
     if (BrowseForFolder(data_dir))
@@ -287,7 +288,7 @@ void CustomPathsPageDialog::OnCustomAppDataDirBtn()
     }
 }
 
-void CustomPathsPageDialog::OnCustomAppDataDirCheck()
+void GameFilesPageDialog::OnCustomAppDataDirCheck()
 {
     bool custom_data_dir = GetCheck(_hCustomAppDataDirCheck);
     EnableWindow(_hCustomAppDataDir, custom_data_dir ? TRUE : FALSE);
@@ -319,22 +320,24 @@ static String SaveCustomDirSetup(const String &def_dir, HWND dir_check, HWND dir
     }
 }
 
-void CustomPathsPageDialog::ResetSetup(const ConfigTree & /*cfg_from*/)
+void GameFilesPageDialog::ResetSetup(const ConfigTree & /*cfg_from*/)
 {
     // Custom save dir controls
     SetupCustomDirCtrl(_winCfg.UserSaveDir, _winCfg.DataDirectory,
         _hCustomSaveDirCheck, _hCustomSaveDir, _hCustomSaveDirBtn);
     SetupCustomDirCtrl(_winCfg.AppDataDir, _winCfg.DataDirectory,
         _hCustomAppDataDirCheck, _hCustomAppDataDir, _hCustomAppDataDirBtn);
+    SetCheck(_hCompressSavesCheck, _winCfg.CompressSaves);
 }
 
-void CustomPathsPageDialog::SaveSetup()
+void GameFilesPageDialog::SaveSetup()
 {
     if (!_isInit)
         return; // was not init, don't apply settings
 
     _winCfg.UserSaveDir = SaveCustomDirSetup(_winCfg.DataDirectory, _hCustomSaveDirCheck, _hCustomSaveDir);
     _winCfg.AppDataDir = SaveCustomDirSetup(_winCfg.DataDirectory, _hCustomAppDataDirCheck, _hCustomAppDataDir);
+    _winCfg.CompressSaves = GetCheck(_hCompressSavesCheck);
 }
 
 //=============================================================================

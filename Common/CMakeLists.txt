@@ -128,6 +128,8 @@ target_sources(common
     util/compress.h
     util/data_ext.cpp
     util/data_ext.h
+    util/deflatestream.cpp
+    util/deflatestream.h
     util/directory.cpp
     util/directory.h
     util/error.h
@@ -171,6 +173,8 @@ target_sources(common
     util/textstreamwriter.cpp
     util/textstreamwriter.h
     util/textwriter.h
+    util/transformstream.cpp
+    util/transformstream.h
     util/version.cpp
     util/version.h
     util/wgt2allg.cpp

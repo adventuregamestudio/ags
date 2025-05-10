@@ -183,6 +183,8 @@ public:
     ~Stream() = default;
 
     IStreamBase *GetStreamBase() { return _base.get(); }
+    // TODO: consider using shader ptr instead
+    void AttachStreamBase(std::unique_ptr<IStreamBase> &&base) { _base = std::move(base); }
     std::unique_ptr<IStreamBase> ReleaseStreamBase() { return std::move(_base); }
 
     //-----------------------------------------------------
@@ -434,10 +436,13 @@ public:
     #endif
     }
 
+    // Read out a number of bytes
+    size_t ReadByteCount(size_t count);
     // Fill the requested number of bytes with particular value
     size_t WriteByteCount(uint8_t b, size_t count);
 
 private:
+    // TODO: consider using shader ptr instead, in case we need to reuse IStreamBase
     std::unique_ptr<IStreamBase> _base;
 
     // Helper methods for reading/writing arrays of basic types and
@@ -503,7 +508,16 @@ private:
 };
 
 
-// Copies N bytes from one stream into another;
+// Copies all found contents from one stream into another using IStreamBase objects;
+// returns number of bytes actually written
+soff_t CopyStream(IStreamBase *in, IStreamBase *out);
+// Copies N bytes from one stream into another using IStreamBase objects;
+// returns number of bytes actually written
+soff_t CopyStream(IStreamBase *in, IStreamBase *out, soff_t length);
+// Copies all found contents from one stream into another using Stream objects;
+// returns number of bytes actually written
+soff_t CopyStream(Stream *in, Stream *out);
+// Copies N bytes from one stream into another using Stream objects;
 // returns number of bytes actually written
 soff_t CopyStream(Stream *in, Stream *out, soff_t length);
 

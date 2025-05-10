@@ -103,6 +103,15 @@
     <ClCompile Include="..\..\Common\test\utf8_test.cpp">
       <Filter>Test</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Common\util\deflatestream.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\transformstream.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\miniz\miniz.c">
+      <Filter>Libs\miniz</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Common">
@@ -119,6 +128,9 @@
     </Filter>
     <Filter Include="Libs\allegro\win">
       <UniqueIdentifier>{f310cba0-f6de-4414-a0db-89378785652e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Libs\miniz">
+      <UniqueIdentifier>{a5264d13-7acd-4608-914e-e80134f17f8f}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -178,6 +190,15 @@
     </ClInclude>
     <ClInclude Include="..\..\Common\util\path.h">
       <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\util\deflatestream.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\util\transformstream.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libsrc\miniz\miniz.h">
+      <Filter>Libs\miniz</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

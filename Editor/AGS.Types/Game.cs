@@ -28,11 +28,9 @@ namespace AGS.Types
         // We need some sort of a global interface, preferably in AGS.Types, that would
         // contain all the game changing events and Notify methods, e.g. IGameListener,
         // provided by the Editor API.
-        public delegate void GUIAddedOrRemovedHandler(GUI theGUI);
-        public delegate void GUIControlAddedOrRemovedHandler(GUI owningGUI, GUIControl control);
         public delegate void ViewListUpdatedHandler();
-        public event GUIAddedOrRemovedHandler GUIAddedOrRemoved;
-        public event GUIControlAddedOrRemovedHandler GUIControlAddedOrRemoved;
+        public event Action<GUI> OnGUIAddedOrRemoved;
+        public event Action<GUI, GUIControl> OnGUIControlAddedOrRemoved;
         /// <summary>
         /// Fired when an external client adds/removes views
         /// </summary>
@@ -411,17 +409,17 @@ namespace AGS.Types
 
         public void NotifyClientsGUIAddedOrRemoved(GUI theGUI)
         {
-            if (GUIAddedOrRemoved != null)
+            if (OnGUIAddedOrRemoved != null)
             {
-                GUIAddedOrRemoved(theGUI);
+                OnGUIAddedOrRemoved(theGUI);
             }
         }
 
         public void NotifyClientsGUIControlAddedOrRemoved(GUI owningGUI, GUIControl control)
         {
-            if (GUIControlAddedOrRemoved != null)
+            if (OnGUIControlAddedOrRemoved != null)
             {
-                GUIControlAddedOrRemoved(owningGUI, control);
+                OnGUIControlAddedOrRemoved(owningGUI, control);
             }
         }
 

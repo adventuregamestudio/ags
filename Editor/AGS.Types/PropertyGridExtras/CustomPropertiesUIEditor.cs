@@ -11,8 +11,7 @@ namespace AGS.Types
 {
     public class CustomPropertiesUIEditor : UITypeEditor
     {
-        public delegate void CustomPropertiesGUIType(CustomProperties currentProperties, object objectThatHasProperties);
-        public static CustomPropertiesGUIType CustomPropertiesGUI;
+        public static Action<CustomProperties, object> CustomPropertiesGUI;
 
         public CustomPropertiesUIEditor()
         {

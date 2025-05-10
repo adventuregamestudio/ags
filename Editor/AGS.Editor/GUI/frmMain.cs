@@ -15,14 +15,10 @@ namespace AGS.Editor
 {
     public partial class frmMain : Form
     {
-        public delegate bool EditorShutdownHandler();
-        public delegate void ActiveDocumentChangedHandler();
-        public delegate void PropertyChangedHandler(string propertyName, object oldValue);
-        public delegate void PropertyObjectChangedHandler(object newPropertyObject);
-        public event EditorShutdownHandler OnEditorShutdown;
-        public event PropertyChangedHandler OnPropertyChanged;
-        public event PropertyObjectChangedHandler OnPropertyObjectChanged;
-        public event ActiveDocumentChangedHandler OnActiveDocumentChanged;
+        public event Func<bool> OnEditorShutdown;
+        public event Action OnActiveDocumentChanged;
+        public event Action<string, object> OnPropertyChanged;
+        public event Action<object> OnPropertyObjectChanged;
         public event EventHandler OnMainWindowActivated;
 
         private TabbedDocumentManager.ActiveDocumentChangeHandler _activeDocumentChanged;

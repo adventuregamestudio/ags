@@ -10,8 +10,7 @@ namespace AGS.Types
 {
     public class PropertyTabInteractions : PropertyTab
     {
-        public delegate string UpdateEventNameHandler(string eventName);
-        public static UpdateEventNameHandler UpdateEventName;
+        public static Func<string, string> UpdateEventName;
 
         private static Bitmap _image;
 

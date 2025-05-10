@@ -54,9 +54,7 @@ namespace AGS.Types
 	        return highestViewNumber;
         }
 
-        public delegate void ViewFolderProcessing(IViewFolder folder, Game game);
-
-        public static void ForEachViewFolder(IViewFolder parentFolder, Game game, ViewFolderProcessing proc)
+        public static void ForEachViewFolder(IViewFolder parentFolder, Game game, Action<IViewFolder, Game> proc)
         {
             foreach (ViewFolder subFolder in parentFolder.SubFolders)
 	        {

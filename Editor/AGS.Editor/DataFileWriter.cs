@@ -839,7 +839,7 @@ namespace AGS.Editor
 
             public void PopulateViews(IViewFolder folder, Game game)
             {
-                FolderHelper.ForEachViewFolder(folder, game, new FolderHelper.ViewFolderProcessing(PopulateViews));
+                FolderHelper.ForEachViewFolder(folder, game, PopulateViews);
                 foreach (View view in folder.Views)
                 {
                     views[view.ID - 1] = view;

@@ -1641,6 +1641,7 @@ namespace AGS.Editor
             sections["graphics"]["sprite_cache_size"] = (setup.SpriteCacheSize * 1024).ToString();
             sections["graphics"]["texture_cache_size"] = (setup.TextureCacheSize * 1024).ToString();
             sections["sound"]["cache_size"] = (setup.SoundCacheSize * 1024).ToString();
+            sections["misc"]["compress_saves"] = setup.CompressSaves ? "1" : "0";
 
             sections["misc"]["user_data_dir"] = CustomPathForConfig(setup.UseCustomSavePath, setup.CustomSavePath);
             sections["misc"]["shared_data_dir"] = CustomPathForConfig(setup.UseCustomAppDataPath, setup.CustomAppDataPath);

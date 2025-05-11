@@ -112,10 +112,10 @@
     <value>2.0</value>
   </resheader>
   <resheader name="reader">
-    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <resheader name="writer">
-    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="lblUpgradingInfo3.Text" xml:space="preserve">
     <value>Some of the new features in AGS 4.0 include:
@@ -127,7 +127,9 @@
 * PO format translations
 * FLAC support
 * Joystick and Gamepad input
-* And loads more!
-</value>
+* And loads more!</value>
+  </data>
+  <data name="lnkUpgrading.Text" xml:space="preserve">
+    <value>If you've come from an older version of AGS be sure to read "Upgrading to ..." articles in the manual. "Upgrading to AGS 4.0" page gives insight into most important changes in current version.</value>
   </data>
 </root>

@@ -119,7 +119,7 @@ bool is_valid_character(int char_id)
 // Checks if character is currently playing idle anim, and reset it
 static void stop_character_idling(CharacterInfo *chi)
 {
-    if (chi->idleleft < 0)
+    if (chi->is_idling())
     {
         Character_UnlockView(chi);
         chi->idleleft = chi->idletime;
@@ -1048,7 +1048,7 @@ void Character_StopMovingEx(CharacterInfo *chi, bool force_walkable_area)
     remove_movelist(chi->get_movelist_id());
         chi->walking = 0;
         // If the character was animating a walk, then reset their frame to standing
-        if ((chi->flags & CHF_MOVENOTWALK) == 0)
+        if (chi->is_moving_walkanim())
             chi->frame = 0;
         // Restart idle timer and mark to process right away (in case its persistent idling)
         chi->idleleft = chi->idletime;
@@ -1927,6 +1927,20 @@ void move_character_impl(CharacterInfo *chin, const std::vector<Point> *path, in
     if (!ValidateCharForMove(chin, "MoveCharacter"))
         return;
 
+    // Stop custom animation always (but idling will be stopped only if pathfinding was a success, below)
+    if (chin->is_animating() && walk_anim)
+        stop_character_anim(chin);
+
+    // If using a path, then update starting and destination parameters,
+    // and jump the character to the path's start
+    if (path)
+    {
+        chin->x = run_params.Forward ? path->front().X : path->back().X;
+        chin->y = run_params.Forward ? path->front().Y : path->back().Y;
+        tox = run_params.Forward ? path->back().X : path->front().X;
+        toy = run_params.Forward ? path->back().Y : path->front().Y;
+    }
+
     // If has path, then test if it's empty, or has 2 stages where start is identical to end;
     // If no path, then test if destination is identical to the current pos
     if (path && ((path->size() < 2) || (path->size() == 2) && ((*path)[0] == (*path)[1])) ||
@@ -1937,22 +1951,9 @@ void move_character_impl(CharacterInfo *chin, const std::vector<Point> *path, in
         return;
     }
 
-    if (path)
-    {
-        // Jump character to the path start
-        chin->x = run_params.Forward ? path->front().X : path->back().X;
-        chin->y = run_params.Forward ? path->front().Y : path->back().Y;
-        tox = run_params.Forward ? path->back().X : path->front().X;
-        toy = run_params.Forward ? path->back().Y : path->front().Y;
-    }
-
-    if ((chin->animating) && (walk_anim))
-        stop_character_anim(chin);
-    // Stop idling anim
-    stop_character_idling(chin);
-    // stop them to make sure they're on a walkable area
-    // but save their frame first so that if they're already
-    // moving it looks smoother
+    // If character was currently walking, then save current "wait" timers
+    // and animation frame, and apply later after new walking begins,
+    // in order to make it look smoother.
     int oldframe = chin->frame;
     int waitWas = 0, animWaitWas = 0;
     float wasStepFrac = 0.f;
@@ -1995,16 +1996,18 @@ void move_character_impl(CharacterInfo *chin, const std::vector<Point> *path, in
             move_speed_x, move_speed_y, false, ignwal, run_params);
     }
 
-    // If successful, then start moving
-    if (path_result)
-    {
-        chin->walking = add_movelist(std::move(new_mlist));
-        if (chin->walking == 0)
-        {
-            chin->frame = 0;
-            return; // no free slot? bail out
-        }
+    // If path available, then add movelist
+    const int movelist = path_result ? add_movelist(std::move(new_mlist)) : 0;
+    assert(!path_result || movelist > 0);
 
+    // If successful, then start moving
+    if (movelist > 0)
+    {
+        // Stop idling state (if character was in one)
+        stop_character_idling(chin);
+
+        // Setup new walk state
+        chin->walking = movelist;
         MoveList &mlist = *get_movelist(chin->walking);
         if (wasStepFrac > 0.f)
         {
@@ -2026,10 +2029,11 @@ void move_character_impl(CharacterInfo *chin, const std::vector<Point> *path, in
             chin->flags |= CHF_MOVENOTWALK;
         }
     }
-    else if (walk_anim)
+    else
     {
-        // pathfinder couldn't get a route, stand them still
-        chin->frame = 0;
+        // Pathfinder couldn't get a route, stand them still
+        if (walk_anim && !chin->is_idling())
+            chin->frame = 0;
     }
 }
 
@@ -2182,7 +2186,7 @@ int doNextCharMoveStep(CharacterInfo *chi, CharacterExtras *chex)
 
     if (do_movelist_move(chi->walking, chi->x, chi->y) == 2) 
     {
-        if ((chi->flags & CHF_MOVENOTWALK) == 0)
+        if (chi->is_moving_walkanim())
             fix_player_sprite(chi, mlist);
     }
 
@@ -2197,7 +2201,7 @@ int doNextCharMoveStep(CharacterInfo *chi, CharacterExtras *chex)
 
         chi->flags |= CHF_AWAITINGMOVE;
 
-        if ((chi->flags & CHF_MOVENOTWALK) == 0)
+        if (chi->is_moving_walkanim())
         {
             chi->frame = 0;
             chex->animwait = chi->walkwait;

@@ -72,7 +72,7 @@ namespace AGS.Editor
             this.panelTitle.Location = new System.Drawing.Point(0, 0);
             this.panelTitle.Name = "panelTitle";
             this.panelTitle.Padding = new System.Windows.Forms.Padding(18, 8, 18, 8);
-            this.panelTitle.Size = new System.Drawing.Size(900, 69);
+            this.panelTitle.Size = new System.Drawing.Size(900, 58);
             this.panelTitle.TabIndex = 0;
             // 
             // label1
@@ -83,7 +83,7 @@ namespace AGS.Editor
             this.label1.Location = new System.Drawing.Point(18, 8);
             this.label1.Margin = new System.Windows.Forms.Padding(15, 10, 15, 10);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(485, 53);
+            this.label1.Size = new System.Drawing.Size(384, 42);
             this.label1.TabIndex = 0;
             this.label1.Text = "Adventure Game Studio";
             // 
@@ -125,11 +125,11 @@ namespace AGS.Editor
             // 
             this.lnkTutorial.AutoSize = true;
             this.lnkTutorial.LinkArea = new System.Windows.Forms.LinkArea(57, 8);
-            this.lnkTutorial.Location = new System.Drawing.Point(6, 87);
+            this.lnkTutorial.Location = new System.Drawing.Point(6, 57);
             this.lnkTutorial.MaximumSize = new System.Drawing.Size(240, 0);
             this.lnkTutorial.Name = "lnkTutorial";
             this.lnkTutorial.Padding = new System.Windows.Forms.Padding(3);
-            this.lnkTutorial.Size = new System.Drawing.Size(240, 66);
+            this.lnkTutorial.Size = new System.Drawing.Size(240, 40);
             this.lnkTutorial.TabIndex = 1;
             this.lnkTutorial.TabStop = true;
             this.lnkTutorial.Text = "If this is your first time with AGS, be sure to read the Tutorial to get you star" +
@@ -140,11 +140,11 @@ namespace AGS.Editor
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(6, 27);
+            this.label3.Location = new System.Drawing.Point(6, 23);
             this.label3.MaximumSize = new System.Drawing.Size(240, 0);
             this.label3.Name = "label3";
             this.label3.Padding = new System.Windows.Forms.Padding(3);
-            this.label3.Size = new System.Drawing.Size(216, 60);
+            this.label3.Size = new System.Drawing.Size(239, 34);
             this.label3.TabIndex = 2;
             this.label3.Text = "The tree in the top-right is the main way you\'ll be navigating around the editor." +
     "";
@@ -157,7 +157,7 @@ namespace AGS.Editor
             this.label2.MaximumSize = new System.Drawing.Size(240, 0);
             this.label2.Name = "label2";
             this.label2.Padding = new System.Windows.Forms.Padding(3);
-            this.label2.Size = new System.Drawing.Size(141, 24);
+            this.label2.Size = new System.Drawing.Size(119, 20);
             this.label2.TabIndex = 0;
             this.label2.Text = "Welcome to AGS!";
             // 
@@ -198,11 +198,11 @@ namespace AGS.Editor
             // lblUpgradingInfo3
             // 
             this.lblUpgradingInfo3.AutoSize = true;
-            this.lblUpgradingInfo3.Location = new System.Drawing.Point(6, 117);
+            this.lblUpgradingInfo3.Location = new System.Drawing.Point(6, 91);
             this.lblUpgradingInfo3.MaximumSize = new System.Drawing.Size(600, 0);
             this.lblUpgradingInfo3.Name = "lblUpgradingInfo3";
             this.lblUpgradingInfo3.Padding = new System.Windows.Forms.Padding(3);
-            this.lblUpgradingInfo3.Size = new System.Drawing.Size(311, 186);
+            this.lblUpgradingInfo3.Size = new System.Drawing.Size(438, 244);
             this.lblUpgradingInfo3.TabIndex = 3;
             this.lblUpgradingInfo3.Text = resources.GetString("lblUpgradingInfo3.Text");
             // 
@@ -213,35 +213,31 @@ namespace AGS.Editor
             this.label5.Location = new System.Drawing.Point(6, 3);
             this.label5.Name = "label5";
             this.label5.Padding = new System.Windows.Forms.Padding(3);
-            this.label5.Size = new System.Drawing.Size(191, 24);
+            this.label5.Size = new System.Drawing.Size(172, 20);
             this.label5.TabIndex = 0;
             this.label5.Text = "What\'s new in AGS 4.0?";
             // 
             // lnkUpgrading
             // 
             this.lnkUpgrading.AutoSize = true;
-            this.lnkUpgrading.LinkArea = new System.Windows.Forms.LinkArea(103, 22);
-            this.lnkUpgrading.Location = new System.Drawing.Point(6, 51);
+            this.lnkUpgrading.LinkArea = new System.Windows.Forms.LinkArea(0, 0);
+            this.lnkUpgrading.Location = new System.Drawing.Point(6, 43);
             this.lnkUpgrading.MaximumSize = new System.Drawing.Size(600, 0);
             this.lnkUpgrading.Name = "lnkUpgrading";
             this.lnkUpgrading.Padding = new System.Windows.Forms.Padding(3);
-            this.lnkUpgrading.Size = new System.Drawing.Size(600, 66);
+            this.lnkUpgrading.Size = new System.Drawing.Size(600, 48);
             this.lnkUpgrading.TabIndex = 1;
-            this.lnkUpgrading.TabStop = true;
-            this.lnkUpgrading.Text = "If you\'ve come from an older version of AGS be sure to read \"Upgrading to ...\" ar" +
-    "ticles in the manual. \"Upgrading to AGS 4.0\" page gives insight into most import" +
-    "ant changes in current version.";
-            this.lnkUpgrading.UseCompatibleTextRendering = true;
+            this.lnkUpgrading.Text = resources.GetString("lnkUpgrading.Text");
             this.lnkUpgrading.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lnkUpgrading_LinkClicked);
             // 
             // lblUpgradingInfo
             // 
             this.lblUpgradingInfo.AutoSize = true;
-            this.lblUpgradingInfo.Location = new System.Drawing.Point(6, 27);
+            this.lblUpgradingInfo.Location = new System.Drawing.Point(6, 23);
             this.lblUpgradingInfo.MaximumSize = new System.Drawing.Size(600, 0);
             this.lblUpgradingInfo.Name = "lblUpgradingInfo";
             this.lblUpgradingInfo.Padding = new System.Windows.Forms.Padding(3);
-            this.lblUpgradingInfo.Size = new System.Drawing.Size(329, 24);
+            this.lblUpgradingInfo.Size = new System.Drawing.Size(531, 20);
             this.lblUpgradingInfo.TabIndex = 2;
             this.lblUpgradingInfo.Text = "With AGS 4.0 you can make use of the new extended compiler!";
             // 
@@ -282,11 +278,11 @@ namespace AGS.Editor
             // 
             this.lnkNextTip.AutoSize = true;
             this.lnkNextTip.LinkArea = new System.Windows.Forms.LinkArea(0, 16);
-            this.lnkNextTip.Location = new System.Drawing.Point(6, 139);
+            this.lnkNextTip.Location = new System.Drawing.Point(6, 143);
             this.lnkNextTip.MaximumSize = new System.Drawing.Size(240, 0);
             this.lnkNextTip.Name = "lnkNextTip";
             this.lnkNextTip.Padding = new System.Windows.Forms.Padding(3);
-            this.lnkNextTip.Size = new System.Drawing.Size(123, 24);
+            this.lnkNextTip.Size = new System.Drawing.Size(109, 20);
             this.lnkNextTip.TabIndex = 5;
             this.lnkNextTip.TabStop = true;
             this.lnkNextTip.Text = "Show another tip";
@@ -296,11 +292,11 @@ namespace AGS.Editor
             // 
             this.lnkTipText.AutoSize = true;
             this.lnkTipText.LinkArea = new System.Windows.Forms.LinkArea(0, 16);
-            this.lnkTipText.Location = new System.Drawing.Point(6, 27);
+            this.lnkTipText.Location = new System.Drawing.Point(6, 23);
             this.lnkTipText.MaximumSize = new System.Drawing.Size(240, 0);
             this.lnkTipText.Name = "lnkTipText";
             this.lnkTipText.Padding = new System.Windows.Forms.Padding(3);
-            this.lnkTipText.Size = new System.Drawing.Size(195, 48);
+            this.lnkTipText.Size = new System.Drawing.Size(201, 25);
             this.lnkTipText.TabIndex = 6;
             this.lnkTipText.TabStop = true;
             this.lnkTipText.Text = "** TIP OF THE DAY GOES HERE**";
@@ -315,7 +311,7 @@ namespace AGS.Editor
             this.label6.MaximumSize = new System.Drawing.Size(240, 0);
             this.label6.Name = "label6";
             this.label6.Padding = new System.Windows.Forms.Padding(3);
-            this.label6.Size = new System.Drawing.Size(123, 24);
+            this.label6.Size = new System.Drawing.Size(105, 20);
             this.label6.TabIndex = 0;
             this.label6.Text = "Did you know?";
             // 
@@ -351,14 +347,14 @@ namespace AGS.Editor
             this.panelBaseAll.AutoScroll = true;
             this.panelBaseAll.Controls.Add(this.flowLayoutPanelBase);
             this.panelBaseAll.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panelBaseAll.Location = new System.Drawing.Point(0, 69);
+            this.panelBaseAll.Location = new System.Drawing.Point(0, 58);
             this.panelBaseAll.Name = "panelBaseAll";
-            this.panelBaseAll.Size = new System.Drawing.Size(900, 600);
+            this.panelBaseAll.Size = new System.Drawing.Size(900, 611);
             this.panelBaseAll.TabIndex = 6;
             // 
             // WelcomePane
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 18F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 14F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoScroll = true;
             this.BackColor = System.Drawing.Color.White;

@@ -274,6 +274,7 @@ void load_common_config(const ConfigTree &cfg, GameConfig &setup)
 
     // Various system options
     setup.LoadLatestSave = CfgReadBoolInt(cfg, "misc", "load_latest_save", setup.LoadLatestSave);
+    setup.CompressSaves = CfgReadBoolInt(cfg, "misc", "compress_saves", setup.CompressSaves);
     setup.RunInBackground = CfgReadInt(cfg, "misc", "background", 0) != 0;
     setup.ShowFps = CfgReadBoolInt(cfg, "misc", "show_fps");
     setup.ClearCacheOnRoomChange = CfgReadBoolInt(cfg, "misc", "clear_cache_on_room_change", setup.ClearCacheOnRoomChange);
@@ -333,6 +334,7 @@ void save_common_config(const GameConfig &setup, ConfigTree &cfg)
 {
     CfgWriteString(cfg, "misc", "user_data_dir", setup.UserSaveDir);
     CfgWriteString(cfg, "misc", "shared_data_dir", setup.AppDataDir);
+    CfgWriteBoolInt(cfg, "misc", "compress_saves", setup.CompressSaves);
 
     CfgWriteString(cfg, "graphics", "driver", setup.Display.DriverID);
     CfgWriteInt(cfg, "graphics", "display", (setup.Display.UseDefaultDisplay) ?

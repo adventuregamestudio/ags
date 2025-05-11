@@ -179,6 +179,10 @@ struct CharacterInfo
 
     inline bool is_moving()          const { return walking > 0; }
     inline int  get_movelist_id()    const { return walking; }
+    // Is moving *and* playing walking animation
+    inline bool is_moving_walkanim()  const { return (flags & CHF_MOVENOTWALK) == 0; }
+    // Is moving, but *not* playing walking animation
+    inline bool is_moving_no_anim()  const { return (flags & CHF_MOVENOTWALK) != 0; }
     inline bool has_explicit_light() const { return (flags & CHF_HASLIGHT) != 0; }
     inline bool has_explicit_tint()  const { return (flags & CHF_HASTINT) != 0; }
     inline bool is_animating()       const { return (animating & CHANIM_ON) != 0; }
@@ -194,6 +198,8 @@ struct CharacterInfo
             (CHANIM_BACKWARDS * !forwards) |
             ((delay & 0xFF) << 8);
     }
+
+    inline bool is_idling()          const { return (idleleft < 0); }
 
     // Gets if character follows another, while being drawn behind
     inline bool get_follow_sort_behind() const

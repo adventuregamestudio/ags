@@ -179,6 +179,15 @@ void FadeOut(int sppd) {
     sync_audio_playback();
     run_fade_out_effect(kScrTran_Fade, sppd);
     sync_audio_playback();
+
+    // Older engines did not mark the screen as "faded out" specifically for
+    // the 8-bit games, for unknown reasons. There's at least one game where
+    // this was accidentally useful, as it did not run FadeIn after FadeOut.
+    if ((loaded_game_file_version < kGameVersion_361)
+        && game.color_depth == 1)
+    {
+        play.screen_is_faded_out = 0;
+    }
 }
 
 void SetScreenTransition(int newtrans) {

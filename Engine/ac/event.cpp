@@ -147,6 +147,8 @@ void runevent_now(const AGSEvent &evt)
 
 void process_event(const AGSEvent *evp)
 {
+    const int room_was = play.room_changes;
+
     RuntimeScriptValue rval_null;
     if (evp->Type == kAGSEvent_Script)
     {
@@ -189,10 +191,13 @@ void process_event(const AGSEvent *evp)
                 obj_events = thisroom.EventHandlers.get();
 
             obj_evt = ObjectEvent(kScTypeRoom, "room");
-            if (inter.ObjEvent == kRoomEvent_BeforeFadein) {
-                in_enters_screen ++;
+            if (inter.ObjEvent == kRoomEvent_BeforeFadein)
+            {
+                in_enters_screen++;
                 run_on_event(kScriptEvent_RoomEnter, displayed_room);
-            } else if (inter.ObjEvent == kRoomEvent_AfterFadein) {
+            }
+            else if (inter.ObjEvent == kRoomEvent_AfterFadein)
+            {
                 run_on_event(kScriptEvent_RoomAfterFadein, displayed_room);
             }
             //Debug::Printf("Running room interaction, event %d", evp->data3);
@@ -204,6 +209,15 @@ void process_event(const AGSEvent *evp)
             break;
         }
 
+        // If the room was changed inside a on_event call above,
+        // then skip running further interaction scripts
+        if (room_was != play.room_changes)
+        {
+            if ((inter.IntEvType == kIntEventType_Room) && (inter.ObjEvent == kRoomEvent_BeforeFadein))
+                in_enters_screen--;
+            return;
+        }
+
         assert(obj_events);
         if (obj_events)
         {
@@ -211,7 +225,7 @@ void process_event(const AGSEvent *evp)
         }
 
         if ((inter.IntEvType == kIntEventType_Room) && (inter.ObjEvent == kRoomEvent_BeforeFadein))
-            in_enters_screen --;
+            in_enters_screen--;
     }
     else if (evp->Type == kAGSEvent_FadeIn)
     {
@@ -242,7 +256,7 @@ void processallevents() {
     // TODO: need to redesign engine events system?
     std::vector<AGSEvent> evtcopy = events;
 
-    int room_was = play.room_changes;
+    const int room_was = play.room_changes;
 
     inside_processevent++;
 

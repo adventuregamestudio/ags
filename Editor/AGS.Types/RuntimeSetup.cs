@@ -69,6 +69,7 @@ namespace AGS.Types
             SpriteCacheSize = 128;
             TextureCacheSize = 128;
             SoundCacheSize = 32;
+            CompressSaves = false;
             UseCustomSavePath = false;
             CustomSavePath = "";
             TitleText = _gameSettings.GameName + " Setup";
@@ -337,6 +338,16 @@ namespace AGS.Types
         [Category("Performance")]
         [DefaultValue(32)]
         public int SoundCacheSize
+        {
+            get;
+            set;
+        }
+
+        [DisplayName("Compress game saves")]
+        [Description("Whether the game saves will be compressed. This reduces their size on disk, but may affect save's loading times.")]
+        [Category("Performance")]
+        [DefaultValue(false)]
+        public bool CompressSaves
         {
             get;
             set;

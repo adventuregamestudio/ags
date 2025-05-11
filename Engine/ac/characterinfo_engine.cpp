@@ -242,7 +242,7 @@ void UpdateCharacterMoving(CharacterInfo *chi, CharacterExtras *chex, int &doing
         chex->process_idle_this_time = 1;
         doing_nothing=1;
         chi->walkwait=0;
-        const bool was_walk_anim = (chi->flags & CHF_MOVENOTWALK) == 0;
+        const bool was_walk_anim = chi->is_moving_walkanim();
         Character_StopMovingEx(chi, !was_move_direct);
         // CHECKME: there's possibly a flaw in game logic design here, as StopMoving also resets the frame,
         // except it does not reset animwait, nor calls CheckViewFrame()
@@ -259,7 +259,7 @@ void UpdateCharacterMoving(CharacterInfo *chi, CharacterExtras *chex, int &doing
         if (chi->flags & CHF_ANTIGLIDE)
           chi->walkwaitcounter++;
 
-        if ((chi->flags & CHF_MOVENOTWALK) == 0)
+        if (chi->is_moving_walkanim())
         {
           chi->frame++;
           ResetFrameIfAtEnd(chi); // roll back if exceeded loop
@@ -280,14 +280,13 @@ void UpdateCharacterMoving(CharacterInfo *chi, CharacterExtras *chex, int &doing
 bool UpdateCharacterAnimating(CharacterInfo *chi, CharacterExtras *chex, int &doing_nothing)
 {
 	// not moving, but animating
-    // idleleft is <0 while idle view is playing (.animating is 0)
-    if (((chi->animating != 0) || (chi->idleleft < 0)) &&
-        ((chi->walking == 0) || ((chi->flags & CHF_MOVENOTWALK) != 0)) &&
-        (chi->room == displayed_room)) 
+    if (((chi->is_animating()) || (chi->is_idling())) &&
+        (!chi->is_moving() || chi->is_moving_no_anim()) &&
+        (chi->room == displayed_room))
     {
       doing_nothing = 0;
       // idle anim doesn't count as doing something
-      if (chi->idleleft < 0)
+      if (chi->is_idling())
         doing_nothing = 1;
 
       const int view = chi->view;
@@ -338,7 +337,7 @@ bool UpdateCharacterAnimating(CharacterInfo *chi, CharacterExtras *chex, int &do
             if (!CycleViewAnim(view, chi->loop, chi->frame, chi->get_anim_forwards(), chi->get_anim_repeat())) {
                 done_anim = true; // finished animating
                 // end of idle anim
-                if (chi->idleleft < 0) {
+                if (chi->is_idling()) {
                     // constant anim, reset (need this cos animating==0)
                     if (chi->idletime == 0)
                         chi->frame = 0;
@@ -353,7 +352,7 @@ bool UpdateCharacterAnimating(CharacterInfo *chi, CharacterExtras *chex, int &do
 
         chi->wait = views[view].loops[chi->loop].frames[chi->frame].speed;
         // idle anim doesn't have speed stored cos animating==0 (TODO: investigate why?)
-        if (chi->idleleft < 0)
+        if (chi->is_idling())
           chi->wait += chi->idle_anim_speed;
         else 
           chi->wait += chi->get_anim_delay();
@@ -458,7 +457,7 @@ void UpdateCharacterIdle(CharacterInfo *chi, CharacterExtras *chex, int &doing_n
 	// no idle animation, so skip this bit
     if (chi->idleview < 1) ;
     // currently playing idle anim
-    else if (chi->idleleft < 0) ;
+    else if (chi->is_idling()) ;
     // not in the current room
     else if (chi->room != displayed_room) ;
     // they are moving or animating (or the view is locked), so 

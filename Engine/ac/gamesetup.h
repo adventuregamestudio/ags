@@ -129,6 +129,7 @@ struct GameConfig
 
     // Misc engine options
     bool    LoadLatestSave       = false; // load latest saved game on launch
+    bool    CompressSaves        = false;
     bool    ClearCacheOnRoomChange = false; // for low-end devices: clear resource caches on room change
     bool    RunInBackground      = false; // whether run on background, when game is switched out
     bool    ShowFps              = false;

@@ -22,8 +22,10 @@ namespace AGS.Editor
     {
         public delegate object ProcessingHandler(IWorkProgress progress, object parameter);
 
+        private const int TIMER_INTERVAL_MS = 100;
         private System.Windows.Forms.Timer _timer;
         private int _tickCount = 0;
+        private int _timeoutMs = 0;
         private ProcessingHandler _handler;
         private object _parameter;
         private volatile bool _threadFinished;
@@ -37,12 +39,18 @@ namespace AGS.Editor
         private static Bitmap[] _icons = null;
 
         public BusyDialog(string message, ProcessingHandler handler, object parameter)
+            : this(message, handler, parameter, 0)
+        {
+        }
+
+        public BusyDialog(string message, ProcessingHandler handler, object parameter, int timeoutMs)
         {
             InitializeComponent();
             _originalMessage = message;
             lblMessage.Text = message;
             _handler = handler;
             _parameter = parameter;
+            _timeoutMs = timeoutMs;
 
             if (_icons == null)
             {
@@ -62,8 +70,13 @@ namespace AGS.Editor
         [System.Diagnostics.DebuggerStepThrough]
         public static object Show(string message, ProcessingHandler handler, object parameter)
         {
+            return Show(message, handler, parameter, 0);
+        }
+
+        public static object Show(string message, ProcessingHandler handler, object parameter, int timeoutMs)
+        {
             object resultToReturn = null;
-            BusyDialog dialog = new BusyDialog(message, handler, parameter);
+            BusyDialog dialog = new BusyDialog(message, handler, parameter, timeoutMs);
             try
             {
                 dialog.ShowDialog();
@@ -149,7 +162,7 @@ namespace AGS.Editor
         private void BusyDialog_Load(object sender, EventArgs e)
         {
             _timer = new System.Windows.Forms.Timer();
-            _timer.Interval = 100;
+            _timer.Interval = TIMER_INTERVAL_MS;
             _timer.Tick += new EventHandler(_timer_Tick);
             _timer.Start();
             _threadFinished = false;
@@ -178,6 +191,14 @@ namespace AGS.Editor
             {
                 _timer.Enabled = false;
                 _allowClose = true;
+                this.Close();
+                return;
+            }
+            else if ((_timeoutMs > 0) && (_tickCount * (sender as System.Windows.Forms.Timer).Interval >= _timeoutMs))
+            {
+                _timer.Enabled = false;
+                _allowClose = true;
+                _exceptionThrownOnThread = new TimeoutException("The work process took unexpectedly long time and was aborted.");
                 this.Close();
                 return;
             }

@@ -60,8 +60,10 @@
 #include "script/script.h"
 #include "script/cc_common.h"
 #include "script/script_runtime.h"
+#include "util/compress.h"
 #include "util/file.h"
 #include "util/memory_compat.h"
+#include "util/memorystream.h"
 #include "util/stream.h"
 #include "util/string_utils.h"
 
@@ -163,22 +165,127 @@ String GetSavegameErrorText(SavegameErrorType err)
         return "Saved with the engine running at a different colour depth.";
     case kSvgErr_GameObjectInitFailed:
         return "Game object initialization failed after save restoration.";
+    case kSvgErr_ComponentUncompressedSizeMismatch:
+        return "Uncompressed component data size mismatch.";
     default:
         return "Unknown error.";
     }
 }
 
-Bitmap *RestoreSaveImage(Stream *in)
+Bitmap *ReadBitmap(Stream *in, bool compressed)
 {
-    if (in->ReadInt32())
-        return read_serialized_bitmap(in);
+    const int picwid = in->ReadInt32();
+    const int pichit = in->ReadInt32();
+    const int piccoldep = in->ReadInt32();
+    Bitmap *thispic = BitmapHelper::CreateBitmap(picwid, pichit, piccoldep);
+    if (thispic == nullptr)
+        return nullptr;
+
+    if (compressed)
+    {
+        in->ReadInt32(); // reserved
+        size_t compressed_sz = in->ReadInt32();
+        inflate_decompress(thispic->GetDataForWriting(), thispic->GetWidth() * thispic->GetHeight() * thispic->GetBPP(),
+                           thispic->GetBPP(), in, compressed_sz);
+    }
+    else
+    {
+        // TODO: move this code to BitmapHelper?
+        for (int h = 0; h < pichit; ++h)
+        {
+            switch (piccoldep)
+            {
+            case 8:
+                in->ReadArray(thispic->GetScanLineForWriting(h), picwid, 1);
+                break;
+            case 16:
+                in->ReadArrayOfInt16((int16_t *)thispic->GetScanLineForWriting(h), picwid);
+                break;
+            case 32:
+                in->ReadArrayOfInt32((int32_t *)thispic->GetScanLineForWriting(h), picwid);
+                break;
+            }
+        }
+    }
+
+    return thispic;
+}
+
+void SkipBitmap(Stream *in, bool compressed)
+{
+    int picwid = in->ReadInt32();
+    int pichit = in->ReadInt32();
+    int piccoldep = in->ReadInt32();
+
+    if (compressed)
+    {
+        in->ReadInt32(); // reserved
+        size_t compress_sz = in->ReadInt32();
+        in->Seek(compress_sz);
+    }
+    else
+    {
+        int bpp = (piccoldep + 7) / 8;
+        in->Seek(picwid * pichit * bpp);
+    }
+}
+
+void WriteBitmap(const Common::Bitmap *thispic, Stream *out, bool compressed)
+{
+    assert(thispic);
+    if (!thispic)
+        return;
+
+    out->WriteInt32(thispic->GetWidth());
+    out->WriteInt32(thispic->GetHeight());
+    out->WriteInt32(thispic->GetColorDepth());
+
+    if (compressed)
+    {
+        out->WriteInt32(0); // reserved
+        soff_t size_pos = out->GetPosition();
+        out->WriteInt32(0); // size placeholder
+        deflate_compress(thispic->GetData(), thispic->GetWidth() * thispic->GetHeight() * thispic->GetBPP(),
+                         thispic->GetBPP(), out);
+        soff_t end_pos = out->GetPosition();
+        out->Seek(size_pos, kSeekBegin);
+        out->WriteInt32(end_pos - size_pos - sizeof(int32_t));
+        out->Seek(end_pos, kSeekEnd);
+    }
+    else
+    {
+        // TODO: move this code to BitmapHelper?
+        for (int h = 0; h < thispic->GetHeight(); ++h)
+        {
+            switch (thispic->GetColorDepth())
+            {
+            case 8:
+                out->WriteArray(&thispic->GetScanLine(h)[0], thispic->GetWidth(), 1);
+                break;
+            case 16:
+                out->WriteArrayOfInt16((const int16_t *)&thispic->GetScanLine(h)[0], thispic->GetWidth());
+                break;
+            case 32:
+                out->WriteArrayOfInt32((const int32_t *)&thispic->GetScanLine(h)[0], thispic->GetWidth());
+                break;
+            }
+        }
+    }
+}
+
+Bitmap *RestoreUserImage(Stream *in)
+{
+    uint32_t flags = in->ReadInt32();
+    if ((flags & kSvgImage_Present) != 0)
+        return ReadBitmap(in, (flags & kSvgImage_Deflate) != 0);
     return nullptr;
 }
 
-void SkipSaveImage(Stream *in)
+void SkipUserImage(Stream *in)
 {
-    if (in->ReadInt32())
-        skip_serialized_bitmap(in);
+    uint32_t flags = in->ReadInt32();
+    if ((flags & kSvgImage_Present) != 0)
+        SkipBitmap(in, (flags & kSvgImage_Deflate) != 0);
 }
 
 HSaveError ReadDescription(Stream *in, SavegameVersion &svg_ver, SavegameDescription &desc, SavegameDescElem elems)
@@ -188,29 +295,45 @@ HSaveError ReadDescription(Stream *in, SavegameVersion &svg_ver, SavegameDescrip
         return new SavegameError(kSvgErr_FormatVersionNotSupported,
             String::FromFormat("Required: %d, supported: %d - %d.", svg_ver, kSvgVersion_LowestSupported, kSvgVersion_Current));
 
-    uint32_t header_size = 0u;
-    const soff_t header_pos = in->GetPosition();
-    if (svg_ver >= kSvgVersion_351)
-        header_size = in->ReadInt32(); // header size
+    // File format info
+    if (svg_ver >= kSvgVersion_363)
+    {
+        desc.Format.FileFormatOffset = in->GetPosition();
+        desc.Format.FileFormatSize = in->ReadInt32();
+        desc.Format.Flags = in->ReadInt32();
+        desc.Format.EnvInfoOffset = in->ReadInt32();
+        desc.Format.UserDescOffset = in->ReadInt32();
+        desc.Format.GameDataOffset = in->ReadInt32();
+    }
+
+    // If env info offset is valid, then skip right to env info
+    if (desc.Format.EnvInfoOffset > 0)
+        in->Seek(desc.Format.EnvInfoOffset, kSeekBegin);
 
     // Enviroment information
+    uint32_t env_info_size = 0u;
+    const soff_t env_info_pos = in->GetPosition();
+    if (svg_ver >= kSvgVersion_351)
+        env_info_size = in->ReadInt32(); // header size
     desc.EngineName = StrUtil::ReadString(in);
     desc.EngineVersion.SetFromString(StrUtil::ReadString(in));
     desc.GameGuid = StrUtil::ReadString(in);
     desc.GameTitle = StrUtil::ReadString(in);
     desc.MainDataFilename = StrUtil::ReadString(in);
-    if (svg_ver >= kSvgVersion_Cmp_64bit)
+    if (svg_ver >= kSvgVersion_ComponentsEx)
         desc.MainDataVersion = (GameDataVersion)in->ReadInt32();
     desc.ColorDepth = in->ReadInt32();
     if (svg_ver >= kSvgVersion_351)
         desc.LegacyID = in->ReadInt32();
 
-    // If header size field is valid, skip any remaining part
+    // If user desc offset is valid, then skip any remaining part
     // (this is in case there is some data that we do not support)
+    soff_t user_desc_pos = in->GetPosition();
     if (svg_ver >= kSvgVersion_351)
     {
-        soff_t user_desc_off = header_pos + header_size;
-        in->Seek(user_desc_off, kSeekBegin);
+        user_desc_pos = (desc.Format.UserDescOffset > 0u) ?
+            desc.Format.UserDescOffset : (env_info_pos + env_info_size);
+        in->Seek(user_desc_pos, kSeekBegin);
     }
 
     // User description
@@ -218,10 +341,27 @@ HSaveError ReadDescription(Stream *in, SavegameVersion &svg_ver, SavegameDescrip
         desc.UserText = StrUtil::ReadString(in);
     else
         StrUtil::SkipString(in);
+    //
     if (elems & kSvgDesc_UserImage)
-        desc.UserImage.reset(RestoreSaveImage(in));
+        desc.UserImage.reset(RestoreUserImage(in));
     else
-        SkipSaveImage(in);
+        SkipUserImage(in);
+
+    // Assign backward-compatible file format values
+    if (svg_ver < kSvgVersion_363)
+    {
+        desc.Format.Flags = 0u;
+        desc.Format.EnvInfoOffset = env_info_pos;
+        desc.Format.UserDescOffset = user_desc_pos;
+        desc.Format.GameDataOffset = in->GetPosition();
+    }
+
+    // Skip directly to the game state data
+    // (this is in case there is some data that we do not support)
+    if (svg_ver >= kSvgVersion_363)
+    {
+        in->Seek(desc.Format.GameDataOffset, kSeekBegin);
+    }
 
     return HSaveError::None();
 }
@@ -270,6 +410,7 @@ HSaveError OpenSavegameBase(const String &filename, SavegameSource *src, Savegam
         src->Filename = filename;
         src->Version = svg_ver;
         src->InputStream.reset(in.release()); // give the stream away to the caller
+        src->Format = temp_desc.Format;
     }
     if (desc)
     {
@@ -284,6 +425,8 @@ HSaveError OpenSavegameBase(const String &filename, SavegameSource *src, Savegam
             desc->MainDataVersion = temp_desc.MainDataVersion;
             desc->ColorDepth = temp_desc.ColorDepth;
         }
+        if (elems & kSvgDesc_FileFormat)
+            desc->Format = temp_desc.Format;
         if (elems & kSvgDesc_UserText)
             desc->UserText = temp_desc.UserText;
         if (elems & kSvgDesc_UserImage)
@@ -736,7 +879,8 @@ static SaveCmpSelection FixupCmpSelection(SaveCmpSelection select_cmp)
         kSaveCmp_ObjectSprites * ((select_cmp & kSaveCmp_DynamicSprites) == 0));
 }
 
-HSaveError RestoreGameState(Stream *in, const SavegameDescription &desc, const RestoreGameStateOptions &options, SaveRestoreFeedback &feedback)
+HSaveError RestoreGameState(Stream *in, SavegameVersion save_ver, const SavegameDescription &desc,
+                            const RestoreGameStateOptions &options, SaveRestoreFeedback &feedback)
 {
     SaveCmpSelection select_cmp = FixupCmpSelection(options.SelectedComponents);
     const bool has_validate_cb = DoesScriptFunctionExistInModules("validate_restored_save");
@@ -751,14 +895,14 @@ HSaveError RestoreGameState(Stream *in, const SavegameDescription &desc, const R
         | (kSaveRestore_AllowMismatchLess * has_validate_cb) // allow less data in saves
         );
 
-    HSaveError err = SavegameComponents::ReadAll(in, options.SaveVersion, select_cmp, pp, r_data);
+    HSaveError err = SavegameComponents::ReadAll(in, save_ver, select_cmp, pp, r_data);
     feedback = r_data.Result.Feedback;
     if (!err)
         return err;
     return DoAfterRestore(pp, r_data, select_cmp);
 }
 
-HSaveError PrescanSaveState(Stream *in, const SavegameDescription &desc,
+HSaveError PrescanSaveState(Stream *in, SavegameVersion save_ver, const SavegameDescription &desc,
     const RestoreGameStateOptions &options)
 {
     SaveCmpSelection select_cmp = FixupCmpSelection(options.SelectedComponents);
@@ -774,7 +918,7 @@ HSaveError PrescanSaveState(Stream *in, const SavegameDescription &desc,
         | (kSaveRestore_AllowMismatchLess * has_validate_cb) // allow less data in saves
         );
 
-    HSaveError err = SavegameComponents::PrescanAll(in, options.SaveVersion, select_cmp, pp, r_data);
+    HSaveError err = SavegameComponents::PrescanAll(in, save_ver, select_cmp, pp, r_data);
     if (!err)
     {
         return err;
@@ -790,22 +934,54 @@ HSaveError PrescanSaveState(Stream *in, const SavegameDescription &desc,
     return err;
 }
 
-void WriteSaveImage(Stream *out, const Bitmap *screenshot)
+HSaveError ReadSaveDescription(const String &filename, SavegameDescription &desc, SavegameDescElem elems)
 {
-    // store the screenshot at the start to make it easily accesible
-    out->WriteInt32((screenshot == nullptr) ? 0 : 1);
-
-    if (screenshot)
-        serialize_bitmap(screenshot, out);
+    return OpenSavegame(filename, desc, elems);
 }
 
-void WriteDescription(Stream *out, const String &user_text, const Bitmap *user_image)
+HSaveError RestoreSavegame(const String &filename, const RestoreGameStateOptions &options, SaveRestoreFeedback &feedback)
+{
+    SavegameSource src;
+    SavegameDescription desc;
+    HSaveError err = OpenSavegame(filename, src, desc, (SavegameDescElem)(kSvgDesc_FileFormat | kSvgDesc_EnvInfo));
+    if (!err)
+        return err;
+
+    err = RestoreGameState(src.InputStream.get(), src.Version, desc, options, feedback);
+    return err;
+}
+
+void WriteUserImage(Stream *out, const Bitmap *screenshot, bool compress)
+{
+    uint32_t flags = (screenshot != nullptr) * kSvgImage_Present
+        | compress * kSvgImage_Deflate;
+    out->WriteInt32(flags);
+
+    if (screenshot)
+        WriteBitmap(screenshot, out, compress);
+}
+
+void WriteFileFormat(Stream *out, const SavegameFileFormat &format)
+{
+    if (format.FileFormatOffset > 0)
+        out->Seek(format.FileFormatOffset, kSeekBegin);
+
+    out->WriteInt32(format.FileFormatSize);
+    out->WriteInt32(format.Flags);
+    out->WriteInt32(format.EnvInfoOffset);
+    out->WriteInt32(format.UserDescOffset);
+    out->WriteInt32(format.GameDataOffset);
+}
+
+void WriteDescription(Stream *out, const String &user_text, const Bitmap *user_image, SavegameFileFormat &format)
 {
     // Data format version
     out->WriteInt32(kSvgVersion_Current);
-    soff_t header_pos = out->GetPosition();
-    out->WriteInt32(0);
+    soff_t fileformat_pos = out->GetPosition();
+    WriteFileFormat(out, SavegameFileFormat()); // write placeholder
     // Enviroment information
+    soff_t env_info_pos = out->GetPosition();
+    out->WriteInt32(0); // size placeholder
     // FIXME: pass as argument, do not reference global game objects here!
     StrUtil::WriteString(get_engine_name(), out);
     StrUtil::WriteString(EngineVersion.LongString, out);
@@ -815,17 +991,25 @@ void WriteDescription(Stream *out, const String &user_text, const Bitmap *user_i
     out->WriteInt32(loaded_game_file_version);
     out->WriteInt32(game.GetColorDepth());
     out->WriteInt32(game.uniqueid);
-    // Write header offset field
-    soff_t header_end_pos = out->GetPosition();
-    out->Seek(header_pos, kSeekBegin);
-    out->WriteInt32(header_end_pos - header_pos);
-    out->Seek(header_end_pos, kSeekBegin);
+    // Write env info offset field
+    soff_t env_info_end_pos = out->GetPosition();
+    out->Seek(env_info_pos, kSeekBegin);
+    out->WriteInt32(env_info_end_pos - env_info_pos);
+    out->Seek(env_info_end_pos, kSeekBegin);
     // User description
+    soff_t user_desc_pos = out->GetPosition();
     StrUtil::WriteString(user_text, out);
-    WriteSaveImage(out, user_image);
+    WriteUserImage(out, user_image, true /* always compress screenshots */);
+
+    // Fill few known fields for SavegameFileFormat
+    format.FileFormatOffset = fileformat_pos;
+    format.FileFormatSize = env_info_pos - fileformat_pos;
+    format.EnvInfoOffset = env_info_pos;
+    format.UserDescOffset = user_desc_pos;
 }
 
-std::unique_ptr<Stream> StartSavegame(const String &filename, const String &user_text, const Bitmap *user_image)
+std::unique_ptr<Stream> StartSavegame(const String &filename, const String &user_text, const Bitmap *user_image,
+                                      SavegameFileFormat &format)
 {
     auto out = File::CreateFile(filename);
     if (!out)
@@ -833,9 +1017,8 @@ std::unique_ptr<Stream> StartSavegame(const String &filename, const String &user
 
     // Savegame signature
     out->Write(SavegameSource::Signature.GetCStr(), SavegameSource::Signature.GetLength());
-
-    // Write descrition block
-    WriteDescription(out.get(), user_text, user_image);
+    // Write description block
+    WriteDescription(out.get(), user_text, user_image, format);
     return out;
 }
 
@@ -849,12 +1032,12 @@ void DoBeforeSave()
     }
 }
 
-void SaveGameState(Stream *out, SaveCmpSelection select_cmp)
+void SaveGameState(Stream *out, SaveCmpSelection select_cmp, bool compress)
 {
     select_cmp = FixupCmpSelection(select_cmp);
 
     DoBeforeSave();
-    SavegameComponents::WriteAllCommon(out, select_cmp);
+    SavegameComponents::WriteAllCommon(out, select_cmp, compress);
 }
 
 void ReadPluginSaveData(Stream *in, PluginSvgVersion svg_ver, soff_t max_size)
@@ -878,9 +1061,9 @@ void ReadPluginSaveData(Stream *in, PluginSvgVersion svg_ver, soff_t max_size)
             pl_run_plugin_hook_by_name(pl_name, kPluginEvt_RestoreGame, fhandle);
             close_file_stream(fhandle, "RestoreGame");
 
-            // Seek to the end of plugin data, in case it ended up reading not in the end
+            // Read-out until the end of plugin data, in case it ended up reading not in the end
             cur_pos = data_start + data_size;
-            in->Seek(cur_pos, kSeekBegin);
+            in->ReadByteCount(cur_pos - in->GetPosition());
         }
     }
     else
@@ -899,9 +1082,6 @@ void ReadPluginSaveData(Stream *in, PluginSvgVersion svg_ver, soff_t max_size)
 
 void WritePluginSaveData(Stream *out)
 {
-    soff_t pluginnum_pos = out->GetPosition();
-    out->WriteInt32(0); // number of plugins which wrote data
-
     uint32_t num_plugins_wrote = 0;
     String pl_name;
     for (uint32_t pl_index = 0; pl_query_next_plugin_for_event(kPluginEvt_SaveGame, pl_index, pl_name); ++pl_index)
@@ -909,31 +1089,50 @@ void WritePluginSaveData(Stream *out)
         // NOTE: we don't care if they really write anything,
         // but count them so long as they subscribed to AGSE_SAVEGAME
         num_plugins_wrote++;
+    }
+    out->WriteInt32(num_plugins_wrote); // number of plugins which wrote data
 
-        // Write a header for plugin data
-        StrUtil::WriteString(pl_name, out);
-        soff_t data_size_pos = out->GetPosition();
-        out->WriteInt32(0); // data size
-
+    // IMPORTANT: we have to use an intermediate vector here for plugin data,
+    // because we need to prepend its size, but the savegame stream is
+    // restricted from Seeking, as it may be doing compression right in memory.
+    std::vector<uint8_t> plugin_data;
+    for (uint32_t pl_index = 0; pl_query_next_plugin_for_event(kPluginEvt_SaveGame, pl_index, pl_name); ++pl_index)
+    {
         // Create a stream section and write plugin data
-        soff_t data_start_pos = out->GetPosition();
+        // FIXME: implement a size limit for plugin data:
+        // * support a limit in VectorStream
+        // * define a reasonable default limit (e.g. 16-32 MB)
+        // * compare with system memory?
+        plugin_data.clear();
         auto guard_stream = std::make_unique<Stream>(
-            std::make_unique<StreamSection>(out->GetStreamBase(), out->GetPosition(), INT64_MAX));
+            std::make_unique<VectorStream>(plugin_data, kStream_Write));
         int32_t fhandle = add_file_stream(std::move(guard_stream), "SaveGame");
         pl_run_plugin_hook_by_index(pl_index, kPluginEvt_SaveGame, fhandle);
         close_file_stream(fhandle, "SaveGame");
+        guard_stream = nullptr;
 
-        // Finalize header
-        soff_t data_end_pos = out->GetPosition();
-        out->Seek(data_size_pos, kSeekBegin);
-        out->WriteInt32(data_end_pos - data_start_pos);
-        out->Seek(0, kSeekEnd);
+        // Write a header for plugin data
+        StrUtil::WriteString(pl_name, out);
+        out->WriteInt32(plugin_data.size()); // data size
+        out->Write(plugin_data.data(), plugin_data.size());
     }
+}
 
-    // Write number of plugins
-    out->Seek(pluginnum_pos, kSeekBegin);
-    out->WriteInt32(num_plugins_wrote);
-    out->Seek(0, kSeekEnd);
+HSaveError SaveGame(const String &filename, const String &user_text, const Bitmap *user_image,
+                    SaveCmpSelection select_cmp, bool compress_data)
+{
+    SavegameFileFormat format;
+    format.Flags = kSvgFmt_DeflateComponents * compress_data;
+    std::unique_ptr<Stream> out(StartSavegame(filename, user_text, user_image, format));
+    if (!out)
+        return new SavegameError(kSvgErr_FileOpenFailed, String::FromFormat("Requested filename: %s.", filename.GetCStr()));
+
+    format.GameDataOffset = out->GetPosition();
+    SaveGameState(out.get(), select_cmp, compress_data);
+
+    // Finalize the save file, write composed file format
+    WriteFileFormat(out.get(), format);
+    return HSaveError::None();
 }
 
 //=============================================================================

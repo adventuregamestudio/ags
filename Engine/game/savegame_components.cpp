@@ -1933,12 +1933,15 @@ struct ComponentInfo
 
 HSaveError ReadComponent(Stream *in, SvgCmpReadHelper &hlp, ComponentInfo &info)
 {
+    const bool has_fileformat = (hlp.Version >= kSvgVersion_363 && hlp.Version < kSvgVersion_399)
+        || (hlp.Version >= kSvgVersion_400_18);
+
     // Read component info
     info = ComponentInfo();
     info.TagOffset = in->GetPosition();
     if (!ReadFormatTag(in, info.Name, true))
         return new SavegameError(kSvgErr_ComponentOpeningTagFormat);
-    if (hlp.Version >= kSvgVersion_363)
+    if (has_fileformat)
     {
         info.HeaderSize = in->ReadInt32();
         info.Flags = in->ReadInt32();

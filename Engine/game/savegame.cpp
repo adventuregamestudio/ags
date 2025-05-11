@@ -295,8 +295,11 @@ HSaveError ReadDescription(Stream *in, SavegameVersion &svg_ver, SavegameDescrip
         return new SavegameError(kSvgErr_FormatVersionNotSupported,
             String::FromFormat("Required: %d, supported: %d - %d.", svg_ver, kSvgVersion_LowestSupported, kSvgVersion_Current));
 
+    const bool has_fileformat = (svg_ver >= kSvgVersion_363 && svg_ver < kSvgVersion_399)
+        || (svg_ver >= kSvgVersion_400_18);
+
     // File format info
-    if (svg_ver >= kSvgVersion_363)
+    if (has_fileformat)
     {
         desc.Format.FileFormatOffset = in->GetPosition();
         desc.Format.FileFormatSize = in->ReadInt32();
@@ -348,7 +351,7 @@ HSaveError ReadDescription(Stream *in, SavegameVersion &svg_ver, SavegameDescrip
         SkipUserImage(in);
 
     // Assign backward-compatible file format values
-    if (svg_ver < kSvgVersion_363)
+    if (!has_fileformat)
     {
         desc.Format.Flags = 0u;
         desc.Format.EnvInfoOffset = env_info_pos;
@@ -358,7 +361,7 @@ HSaveError ReadDescription(Stream *in, SavegameVersion &svg_ver, SavegameDescrip
 
     // Skip directly to the game state data
     // (this is in case there is some data that we do not support)
-    if (svg_ver >= kSvgVersion_363)
+    if (has_fileformat)
     {
         in->Seek(desc.Format.GameDataOffset, kSeekBegin);
     }

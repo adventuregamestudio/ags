@@ -1284,9 +1284,16 @@ namespace AGS.Editor.Components
                 }
 
                 UnloadedRoom oldRoom = FindRoomByID(currentNumber);
-				UnloadedRoom tempNewRoom = new UnloadedRoom(numberRequested);
+                UnloadedRoom tempNewRoom = new UnloadedRoom(numberRequested);
+                string oldRoomDirectory = oldRoom.Directory;
+                string newRoomDirectory = tempNewRoom.Directory;
 
-				_agsEditor.RenameFileOnDisk(oldRoom.FileName, tempNewRoom.FileName);
+                // Rename compiled room file (it's in the project root)
+                _agsEditor.RenameFileOnDisk(oldRoom.FileName, tempNewRoom.FileName);
+
+                // Create new room directory, and move standard room files there,
+                // renaming according to the new room number
+                _agsEditor.CreateDirectoryInProject(tempNewRoom.Directory);
                 _agsEditor.RenameFileOnDisk(oldRoom.UserFileName, tempNewRoom.UserFileName);
                 _agsEditor.RenameFileOnDisk(oldRoom.ScriptFileName, tempNewRoom.ScriptFileName);
                 _agsEditor.RenameFileOnDisk(oldRoom.DataFileName, tempNewRoom.DataFileName);
@@ -1305,7 +1312,9 @@ namespace AGS.Editor.Components
                         _agsEditor.RenameFileOnDisk(oldMaskFileName, tempNewRoom.GetMaskFileName(mask));
                 }
 
-				oldRoom.Number = numberRequested;
+                // Load room data, change the number (and anything else if it's required),
+                // and save updated data back
+                oldRoom.Number = numberRequested;
                 XDocument newRoomXml = XDocument.Load(tempNewRoom.DataFileName);
                 newRoomXml.Element("Room").SetElementValue("Number", numberRequested);
                 using (var writer = new XmlTextWriter(tempNewRoom.DataFileName, Types.Utilities.UTF8))
@@ -1313,6 +1322,10 @@ namespace AGS.Editor.Components
                     writer.Formatting = Formatting.Indented;
                     newRoomXml.Save(writer);
                 }
+
+                // Move any other custom files found in the old room dir, and delete the old dir
+                Utilities.SafeMoveDirectoryFiles(Path.Combine(_agsEditor.GameDirectory, oldRoomDirectory),
+                    Path.Combine(_agsEditor.GameDirectory, newRoomDirectory));
 
                 if (wasThisRoomLoaded)
                 {

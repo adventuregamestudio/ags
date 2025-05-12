@@ -555,6 +555,13 @@ namespace AGS.Editor
             return list;
         }
 
+        public void CreateDirectoryInProject(string directoryName)
+        {
+            string fullPath = Path.GetFullPath(directoryName);
+            if (!Directory.Exists(fullPath))
+                Directory.CreateDirectory(fullPath);
+        }
+
 		public void DeleteFileOnDisk(string fileName)
 		{
 			DeleteFileOnDisk(new string[] { fileName });

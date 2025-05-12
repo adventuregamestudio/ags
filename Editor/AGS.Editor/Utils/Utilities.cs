@@ -498,10 +498,10 @@ namespace AGS.Editor
         /// </summary>
         public static void SafeMoveDirectoryFiles(string srcDirectory, string dstDirectory)
         {
-            DirectoryInfo roomDir = new DirectoryInfo(srcDirectory);
-            DirectoryInfo backupDir = new DirectoryInfo(dstDirectory);
-            roomDir.CopyAll(backupDir);
-            roomDir.DeleteWithoutException(recursive: true);
+            DirectoryInfo srcInfo = new DirectoryInfo(srcDirectory);
+            DirectoryInfo dstInfo = new DirectoryInfo(dstDirectory);
+            srcInfo.CopyAll(dstInfo);
+            srcInfo.DeleteWithoutException(recursive: true);
         }
 
         /// <summary>

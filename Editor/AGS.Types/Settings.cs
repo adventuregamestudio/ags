@@ -673,7 +673,7 @@ namespace AGS.Types
             set { _inventoryCursors = value; }
         }
 
-        [DisplayName("Override built-in inventory window click handling")]
+        [DisplayName("Handle inventory window clicks in script")]
         [Description("When the mouse is clicked in an inventory window, on_mouse_click is called rather than using AGS's default processing")]
         [Category("Inventory")]
         [DefaultValue(true)]

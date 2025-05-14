@@ -1673,8 +1673,9 @@ MoveList *get_movelist(uint32_t index)
 void restore_movelists()
 {
     // Will have to readjust free ids records, as movelists may be restored in any random slots
+    // NOTE: valid movelist ids begin with 1!
     movelist_free_ids = std::queue<uint32_t>();
-    for (uint32_t i = 0; i < movelists.size(); ++i)
+    for (uint32_t i = 1; i < movelists.size(); ++i)
     {
         if (movelists[i].IsEmpty())
         {

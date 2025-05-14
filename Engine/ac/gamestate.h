@@ -375,6 +375,10 @@ struct GamePlayState
     int GetScreenShaderHandle() const { return _screenShaderHandle; }
     void SetScreenShader(int shader_id, int shader_handle);
 
+    int GetCursorShaderID() const { return _cursorShaderID; }
+    int GetCursorShaderHandle() const { return _cursorShaderHandle; }
+    void SetCursorShader(int shader_id, int shader_handle);
+
     // Tells if engine should apply AA (linear) scaling to the game sprites
     bool ShouldAASprites() const { return enable_antialiasing && (disable_antialiasing == 0); }
 
@@ -447,6 +451,8 @@ private:
     std::vector<int32_t> _scCameraHandles;
     int _screenShaderID = 0;
     int _screenShaderHandle = 0;
+    int _cursorShaderID = 0;
+    int _cursorShaderHandle = 0;
 
     // Tells that the main viewport's position has changed since last game update
     bool  _mainViewportHasChanged = false;

@@ -401,6 +401,12 @@ void GamePlayState::SetScreenShader(int shader_id, int shader_handle)
     _screenShaderHandle = shader_handle;
 }
 
+void GamePlayState::SetCursorShader(int shader_id, int shader_handle)
+{
+    _cursorShaderID = shader_id;
+    _cursorShaderHandle = shader_handle;
+}
+
 bool GamePlayState::IsIgnoringInput() const
 {
     return AGS_Clock::now() < _ignoreUserInputUntilTime;
@@ -661,14 +667,18 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
         // used since kGSSvgVersion_400_18
         _screenShaderID = in->ReadInt32();
         _screenShaderHandle = in->ReadInt32();
+        _cursorShaderID = in->ReadInt32();
+        _cursorShaderHandle = in->ReadInt32();
         // reserve few more 32-bit values (for a total of 10)
-        in->Seek(sizeof(int32_t) * 7);
+        in->Seek(sizeof(int32_t) * 5);
     }
     else
     {
         face_dir_ratio = 1.f;
         _screenShaderID = 0;
         _screenShaderHandle = 0;
+        _cursorShaderID = 0;
+        _cursorShaderHandle = 0;
     }
 }
 
@@ -865,8 +875,10 @@ void GamePlayState::WriteForSavegame(Stream *out) const
     out->WriteFloat32(face_dir_ratio);
     out->WriteInt32(_screenShaderID); // used since kGSSvgVersion_400_18
     out->WriteInt32(_screenShaderHandle);
+    out->WriteInt32(_cursorShaderID);
+    out->WriteInt32(_cursorShaderHandle);
     // reserve few more 32-bit values (for a total of 10)
-    out->WriteByteCount(0, sizeof(int32_t) * 7);
+    out->WriteByteCount(0, sizeof(int32_t) * 5);
 }
 
 void GamePlayState::FreeProperties()

@@ -3046,6 +3046,8 @@ void construct_game_screen_overlay(bool draw_mouse)
         assert(cursor_tx.Ddb); // Test for missing texture, might happen if not marked for update
         if (cursor_tx.Ddb)
         {
+            cursor_tx.Ddb->SetShader(shaderInstances[play.GetCursorShaderID()]);
+
             // Exclusive sub-batch for mouse cursor, to let filter it out (CHECKME later?)
             gfxDriver->BeginSpriteBatch(Rect(), SpriteTransform(), kFlip_None, nullptr, RENDER_BATCH_MOUSE_CURSOR);
             gfxDriver->DrawSprite(mousex - mouse_hotx, mousey - mouse_hoty, cursor_tx.Ddb);

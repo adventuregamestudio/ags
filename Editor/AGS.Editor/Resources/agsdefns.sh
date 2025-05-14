@@ -1059,6 +1059,10 @@ builtin struct Mouse {
   /// Gets/sets whether the mouse cursor will be automatically locked in the game window.
   import static attribute bool AutoLock;
 #endif // SCRIPT_API_v36026
+#ifdef SCRIPT_API_v400_18
+  /// Gets/sets the shader applied to the mouse cursor.
+  import static attribute ShaderInstance* CursorShader;
+#endif // SCRIPT_API_v400_18
   /// Gets the current mouse position.
   readonly int  x,y;
 };

@@ -17,6 +17,8 @@
 #include "ac/draw.h"
 #include "ac/dynobj/scriptmouse.h"
 #include "ac/dynobj/scriptsystem.h"
+#include "ac/dynobj/scriptshader.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
@@ -403,6 +405,18 @@ void Mouse_SetAutoLock(bool on)
     }
 }
 
+ScriptShaderInstance *Mouse_GetCursorShader()
+{
+    return static_cast<ScriptShaderInstance *>(ccGetObjectAddressFromHandle(
+        play.GetCursorShaderHandle()));
+}
+
+void Mouse_SetCursorShader(ScriptShaderInstance *shader_inst)
+{
+    play.SetCursorShader(shader_inst ? shader_inst->GetID() : ScriptShaderInstance::NullInstanceID,
+                    ccReplaceObjectHandle(play.GetCursorShaderHandle(), shader_inst));
+}
+
 //=============================================================================
 
 void update_script_mouse_coords() {
@@ -656,6 +670,15 @@ RuntimeScriptValue Sc_Mouse_SetAutoLock(const RuntimeScriptValue *params, int32_
     API_SCALL_VOID_PBOOL(Mouse_SetAutoLock);
 }
 
+RuntimeScriptValue Sc_Mouse_GetCursorShader(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO(ScriptShaderInstance, Mouse_GetCursorShader);
+}
+
+RuntimeScriptValue Sc_Mouse_SetCursorShader(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_POBJ(Mouse_SetCursorShader, ScriptShaderInstance);
+}
 
 RuntimeScriptValue Sc_Mouse_GetSpeed(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -694,6 +717,8 @@ void RegisterMouseAPI()
         { "Mouse::set_AutoLock",              API_FN_PAIR(Mouse_SetAutoLock) },
         { "Mouse::get_ControlEnabled",        Sc_Mouse_GetControlEnabled, Mouse::IsControlEnabled },
         { "Mouse::set_ControlEnabled",        Sc_Mouse_SetControlEnabled, Mouse_EnableControl },
+        { "Mouse::get_CursorShader",          API_FN_PAIR(Mouse_GetCursorShader) },
+        { "Mouse::set_CursorShader",          API_FN_PAIR(Mouse_SetCursorShader) },
         { "Mouse::get_Mode",                  API_FN_PAIR(Mouse_GetCursorMode) },
         { "Mouse::set_Mode",                  API_FN_PAIR(Mouse_SetCursorMode) },
         { "Mouse::get_Speed",                 Sc_Mouse_GetSpeed, Mouse::GetSpeed },

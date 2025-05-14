@@ -588,23 +588,30 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     set_our_eip(205);
     // setup objects
     if (forchar != nullptr) {
-        // if not restoring a game, always reset this room
+        // if not restoring a game, always reset temp room
         reset_temp_room();
     }
+
     if ((newnum>=0) & (newnum<MAX_ROOMS))
         croom = getRoomStatus(newnum);
-    else croom=&troom;
+    else
+        croom=&troom;
+
+    // Safety fixup: if the restored room state has more objects than the room itself,
+    // then resize object's array: it's better to have dummy objects than to crash somewhere
+    if (croom->numobj > thisroom.Objects.size())
+    {
+        Debug::Printf(kDbgMsg_Warn, "WARNING: the restored room state has more object states than the current room's object count (%u vs %u)", croom->numobj, (uint32_t)thisroom.Objects.size());
+        thisroom.Objects.resize(croom->numobj);
+    }
 
     // Decide what to do if we have been or not in this room before
     const bool been_here = croom->beenhere > 0;
     if (croom->beenhere > 0)
     {
-        // if we've been here before, save the Times Run information
-        // since we will overwrite the actual NewInteraction structs
-        // (cos they have pointers and this might have been loaded from
-        // a save game)
+        // Copy the legacy interaction's Times Run information (for old games)
         if (thisroom.EventHandlers == nullptr)
-        {// legacy interactions
+        {
             thisroom.Interaction->CopyTimesRun(croom->intrRoom);
             for (int cc=0;cc < MAX_ROOM_HOTSPOTS;cc++)
                 thisroom.Hotspots[cc].Interaction->CopyTimesRun(croom->intrHotspot[cc]);
@@ -702,14 +709,16 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
 
     objs = croom->obj.size() > 0 ? &croom->obj[0] : nullptr;
 
-    for (uint32_t cc = 0; cc < croom->numobj; cc++) {
+    for (uint32_t cc = 0; cc < thisroom.Objects.size(); cc++)
+    {
         // export the object's script object
         if (thisroom.Objects[cc].ScriptName.IsEmpty())
             continue;
         ccAddExternalScriptObject(thisroom.Objects[cc].ScriptName, &scrObj[cc], &ccDynamicObject);
     }
 
-    for (int cc = 0; cc < MAX_ROOM_HOTSPOTS; cc++) {
+    for (int cc = 0; cc < MAX_ROOM_HOTSPOTS; cc++)
+    {
         if (thisroom.Hotspots[cc].ScriptName.IsEmpty())
             continue;
 

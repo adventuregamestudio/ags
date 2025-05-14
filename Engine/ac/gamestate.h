@@ -449,6 +449,7 @@ private:
     // could address them and invalidate as the actual object gets destroyed.
     std::vector<int32_t> _scViewportHandles;
     std::vector<int32_t> _scCameraHandles;
+    // TODO: a RAII wrapper over managed handle, that auto releases the reference
     int _screenShaderID = 0;
     int _screenShaderHandle = 0;
     int _cursorShaderID = 0;

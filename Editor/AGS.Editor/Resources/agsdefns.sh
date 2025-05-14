@@ -908,6 +908,10 @@ builtin struct Room {
   /// Gets/sets the optional y/x ratio of character's facing directions, determining directional loop selection for each Character in the current room.
   import static attribute float FaceDirectionRatio;
 #endif // SCRIPT_API_v400
+#ifdef SCRIPT_API_v400_18
+  /// Gets/sets the current Room's background shader.
+  import static attribute ShaderInstance* BackgroundShader;
+#endif // SCRIPT_API_v400_18
 };
 
 builtin struct Parser {

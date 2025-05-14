@@ -99,6 +99,12 @@ void RoomStatus::FreeProperties()
     }
 }
 
+void RoomStatus::SetBgShader(int shader_id, int shader_handle)
+{
+    _bgShaderID = shader_id;
+    _bgShaderHandle = shader_handle;
+}
+
 void RoomStatus::ReadFromSavegame(Stream *in, RoomStatSvgVersion cmp_ver)
 {
     FreeScriptData();
@@ -164,14 +170,21 @@ void RoomStatus::ReadFromSavegame(Stream *in, RoomStatSvgVersion cmp_ver)
         in->ReadInt32();
         in->ReadInt32();
     }
+
     if (cmp_ver >= kRoomStatSvgVersion_40003)
     {
         face_dir_ratio = in->ReadFloat32();
-        // reserve few more 32-bit values (for a total of 4)
-        in->ReadInt32();
-        in->ReadInt32();
-        in->ReadInt32();
+        _bgShaderID = in->ReadInt32(); // used since kRoomStatSvgVersion_40018
+        _bgShaderHandle = in->ReadInt32();
+        in->ReadInt32(); // reserved
     }
+    else
+    {
+        face_dir_ratio = 1.f;
+        _bgShaderID = 0;
+        _bgShaderHandle = 0;
+    }
+
     if (cmp_ver >= kRoomStatSvgVersion_40008)
     {
         for (int i = 0; i < num_regions; ++i)
@@ -234,10 +247,9 @@ void RoomStatus::WriteToSavegame(Stream *out) const
 
     // -- kRoomStatSvgVersion_40003
     out->WriteFloat32(face_dir_ratio);
-    // reserve few more 32-bit values (for a total of 4)
-    out->WriteInt32(0);
-    out->WriteInt32(0);
-    out->WriteInt32(0);
+    out->WriteInt32(_bgShaderID); // used since kRoomStatSvgVersion_40018
+    out->WriteInt32(_bgShaderHandle);
+    out->WriteInt32(0); // reserved
 
     // -- kRoomStatSvgVersion_40008
     for (int i = 0; i < MAX_ROOM_REGIONS; ++i)

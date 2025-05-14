@@ -61,12 +61,14 @@ struct WalkareaState
 };
 
 // RoomStatus contains everything about a room that could change at runtime.
-struct RoomStatus
+class RoomStatus
 {
-    int   beenhere;
-    uint32_t numobj;
+public:
+    // TODO: hide these fields under get/set methods
+    int   beenhere = 0;
+    uint32_t numobj = 0;
     std::vector<RoomObject> obj;
-    uint32_t tsdatasize;
+    uint32_t tsdatasize = 0;
     std::vector<uint8_t> tsdata;
 
     HotspotState hotspot[MAX_ROOM_HOTSPOTS];
@@ -86,7 +88,7 @@ struct RoomStatus
     // We need this for cases when an old format save is restored within an upgraded game
     // (for example, game was upgraded from 3.4.0 to 3.6.0, but player tries loading 3.4.0 save),
     // because room files are only loaded once entered, so we cannot fixup all RoomStatuses at once.
-    RoomStatSvgVersion contentFormat;
+    RoomStatSvgVersion contentFormat = kRoomStatSvgVersion_Current;
 
     RoomStatus();
     ~RoomStatus();
@@ -94,8 +96,17 @@ struct RoomStatus
     void FreeScriptData();
     void FreeProperties();
 
+    int  GetBgShaderID() const { return _bgShaderID; }
+    int  GetBgShaderHandle() const { return _bgShaderHandle; }
+    void SetBgShader(int shader_id, int shader_handle);
+
     void ReadFromSavegame(Common::Stream *in, RoomStatSvgVersion cmp_ver);
     void WriteToSavegame(Common::Stream *out) const;
+
+private:
+    // TODO: a RAII wrapper over managed handle, that auto releases the reference
+    int _bgShaderID = 0;
+    int _bgShaderHandle = 0;
 };
 
 // Replaces all accesses to the roomstats array

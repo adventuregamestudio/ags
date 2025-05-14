@@ -2309,6 +2309,7 @@ void prepare_room_sprites()
                 walkbehinds_generate_sprites();
             }
         }
+        roomBackgroundBmp->SetShader(shaderInstances[croom->GetBgShaderID()]);
         add_thing_to_draw(roomBackgroundBmp, 0, 0);
     }
     current_background_is_dirty = false; // Note this is only place where this flag is checked

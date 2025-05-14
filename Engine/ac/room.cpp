@@ -11,9 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-
 #include <ctype.h> // for toupper
-
 #include "core/platform.h"
 #include "util/string_utils.h" //strlwr()
 #include "ac/common.h"
@@ -44,6 +42,7 @@
 #include "ac/walkablearea.h"
 #include "ac/walkbehind.h"
 #include "ac/dynobj/scriptobjects.h"
+#include "ac/dynobj/scriptshader.h"
 #include "ac/dynobj/scriptuserobject.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/dynobj/all_dynamicclasses.h"
@@ -159,6 +158,18 @@ int Room_GetColorDepth() {
 
 int Room_GetBackgroundCount() {
     return thisroom.BgFrameCount;
+}
+
+ScriptShaderInstance *Room_GetBackgroundShader()
+{
+    return static_cast<ScriptShaderInstance *>(ccGetObjectAddressFromHandle(
+        croom->GetBgShaderHandle()));
+}
+
+void Room_SetBackgroundShader(ScriptShaderInstance *shader_inst)
+{
+    croom->SetBgShader(shader_inst ? shader_inst->GetID() : ScriptShaderInstance::NullInstanceID,
+                         ccReplaceObjectHandle(croom->GetBgShaderHandle(), shader_inst));
 }
 
 int Room_GetLeftEdge() {
@@ -1085,6 +1096,16 @@ RuntimeScriptValue Sc_Room_GetBackgroundCount(const RuntimeScriptValue *params, 
     API_SCALL_INT(Room_GetBackgroundCount);
 }
 
+RuntimeScriptValue Sc_Room_GetBackgroundShader(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO(ScriptShaderInstance, Room_GetBackgroundShader);
+}
+
+RuntimeScriptValue Sc_Room_SetBackgroundShader(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_POBJ(Room_SetBackgroundShader, ScriptShaderInstance);
+}
+
 // int ()
 RuntimeScriptValue Sc_Room_GetLeftEdge(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -1193,6 +1214,8 @@ void RegisterRoomAPI()
         { "Room::SetTextProperty^2",                  API_FN_PAIR(Room_SetTextProperty) },
         { "Room::ProcessClick^3",                     API_FN_PAIR(RoomProcessClick) },
         { "Room::get_BackgroundCount",                API_FN_PAIR(Room_GetBackgroundCount) },
+        { "Room::get_BackgroundShader",               API_FN_PAIR(Room_GetBackgroundShader) },
+        { "Room::set_BackgroundShader",               API_FN_PAIR(Room_SetBackgroundShader) },
         { "Room::get_BottomEdge",                     API_FN_PAIR(Room_GetBottomEdge) },
         { "Room::get_ColorDepth",                     API_FN_PAIR(Room_GetColorDepth) },
         { "Room::get_Height",                         API_FN_PAIR(Room_GetHeight) },

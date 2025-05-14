@@ -117,6 +117,7 @@ void ResetRoom(int nrnum) {
 
     if (isRoomStatusValid(nrnum))
     {
+        // FIXME: why not delete RoomStatus object completely?
         RoomStatus* roomstat = getRoomStatus(nrnum);
         roomstat->FreeScriptData();
         roomstat->FreeProperties();

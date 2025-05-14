@@ -16,6 +16,7 @@
 #include "ac/common.h"
 #include "ac/game_version.h"
 #include "ac/roomstatus.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "game/customproperties.h"
 #include "game/savegame_components.h"
 #include "util/string_utils.h"
@@ -264,9 +265,11 @@ void RoomStatus::WriteToSavegame(Stream *out) const
 
 std::unique_ptr<RoomStatus> room_statuses[MAX_ROOMS];
 
-// Replaces all accesses to the roomstats array
-RoomStatus* getRoomStatus(int room)
+RoomStatus* GetRoomState(int room)
 {
+    if (room < 0 || room >= MAX_ROOMS)
+        return nullptr;
+
     if (!room_statuses[room])
     {
         // First access, allocate and initialise the status
@@ -275,19 +278,37 @@ RoomStatus* getRoomStatus(int room)
     return room_statuses[room].get();
 }
 
-// Used in places where it is only important to know whether the player
-// had previously entered the room. In this case it is not necessary
-// to initialise the status because a player can only have been in
-// a room if the status is already initialised.
-bool isRoomStatusValid(int room)
+RoomStatus *GetRoomStateIfExists(int room)
 {
-    return (room_statuses[room] != nullptr);
+    if (room < 0 || room >= MAX_ROOMS)
+        return nullptr;
+    return room_statuses[room].get();
 }
 
-void resetRoomStatuses()
+bool IsRoomStateValid(int room)
 {
-    for (int i = 0; i < MAX_ROOMS; i++)
+    return (room >= 0 && room < MAX_ROOMS) && (room_statuses[room] != nullptr);
+}
+
+void ResetRoomState(int room)
+{
+    if (room < 0 || room >= MAX_ROOMS)
+        return;
+
+    RoomStatus *roomstat = room_statuses[room].get();
+    if (roomstat)
     {
-        room_statuses[i].reset();
+        ccRemoveObjectHandle(roomstat->GetBgShaderHandle());
+        for (auto &obj : roomstat->obj)
+            ccRemoveObjectHandle(obj.shader_handle);
+        room_statuses[room].reset();
+    }
+}
+
+void ResetRoomStates()
+{
+    for (int i = 0; i < MAX_ROOMS; ++i)
+    {
+        ResetRoomState(i);
     }
 }

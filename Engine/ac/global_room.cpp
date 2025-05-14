@@ -111,18 +111,11 @@ void NewRoom(int nrnum) {
 
 void ResetRoom(int nrnum) {
     if (nrnum == displayed_room)
-        quit("!ResetRoom: cannot reset current room");
-    if ((nrnum<0) | (nrnum>=MAX_ROOMS))
-        quit("!ResetRoom: invalid room number");
+        quitprintf("!ResetRoom: cannot reset current room  %d", nrnum);
+    if ((nrnum < 0) || (nrnum >= MAX_ROOMS))
+        quitprintf("!ResetRoom: invalid room number %d", nrnum);
 
-    if (isRoomStatusValid(nrnum))
-    {
-        // FIXME: why not delete RoomStatus object completely?
-        RoomStatus* roomstat = getRoomStatus(nrnum);
-        roomstat->FreeScriptData();
-        roomstat->FreeProperties();
-        roomstat->beenhere = 0;
-    }
+    ResetRoomState(nrnum);
 
     debug_script_log("Room %d reset to original state", nrnum);
 }
@@ -130,10 +123,8 @@ void ResetRoom(int nrnum) {
 int HasPlayerBeenInRoom(int roomnum) {
     if ((roomnum < 0) || (roomnum >= MAX_ROOMS))
         return 0;
-    if (isRoomStatusValid(roomnum))
-        return getRoomStatus(roomnum)->beenhere;
-    else
-        return 0;
+    RoomStatus *roomstat = GetRoomStateIfExists(roomnum);
+    return (roomstat != nullptr) && (roomstat->beenhere != 0);
 }
 
 void CallRoomScript (int value) {
@@ -145,16 +136,6 @@ void CallRoomScript (int value) {
     play.roomscript_finished = 0;
     RuntimeScriptValue params[]{ value , RuntimeScriptValue() };
     get_executingscript()->RunAnother(kScTypeRoom, "on_call", 1, params);
-}
-
-int HasBeenToRoom (int roomnum) {
-    if ((roomnum < 0) || (roomnum >= MAX_ROOMS))
-        quit("!HasBeenToRoom: invalid room number specified");
-
-    if (isRoomStatusValid(roomnum))
-        return getRoomStatus(roomnum)->beenhere;
-    else
-        return 0;
 }
 
 void SetBackgroundFrame(int frnum) {

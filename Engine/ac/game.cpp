@@ -537,7 +537,7 @@ void unload_game()
 
     get_overlays().clear();
 
-    resetRoomStatuses();
+    ResetRoomStates();
 
     dispose_room_pathfinder();
 

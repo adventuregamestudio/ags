@@ -310,18 +310,15 @@ ScriptPathfinder* Room_GetPathFinder()
 
 //=============================================================================
 
-void save_room_data_segment ()
+void save_room_data_segment()
 {
-    croom->FreeScriptData();
-    
     const auto &globaldata = roomscript->GetGlobalData();
     croom->tsdatasize = globaldata.size();
+    croom->tsdata.resize(globaldata.size());
     if (croom->tsdatasize > 0)
     {
-        croom->tsdata.resize(croom->tsdatasize);
-        memcpy(croom->tsdata.data(),&globaldata[0],croom->tsdatasize);
+        std::copy(globaldata.begin(), globaldata.end(), croom->tsdata.begin());
     }
-
 }
 
 void unload_old_room()
@@ -569,7 +566,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     }
 
     if ((newnum>=0) & (newnum<MAX_ROOMS))
-        croom = getRoomStatus(newnum);
+        croom = GetRoomState(newnum);
     else
         croom=&troom;
 
@@ -921,15 +918,6 @@ void set_room_placeholder()
 
     reset_temp_room();
     croom = &troom;
-}
-
-int find_highest_room_entered() {
-    int qq,fndas=-1;
-    for (qq=0;qq<MAX_ROOMS;qq++) {
-        if (isRoomStatusValid(qq) && (getRoomStatus(qq)->beenhere != 0))
-            fndas = qq;
-    }
-    return fndas;
 }
 
 void first_room_initialization() {

@@ -1449,9 +1449,9 @@ HSaveError WriteRoomStates(Stream *out)
     out->WriteInt32(MAX_ROOMS);
     for (int i = 0; i < MAX_ROOMS; ++i)
     {
-        if (isRoomStatusValid(i))
+        RoomStatus *roomstat = GetRoomStateIfExists(i);
+        if (roomstat)
         {
-            RoomStatus *roomstat = getRoomStatus(i);
             if (roomstat->beenhere)
             {
                 out->WriteInt32(i);
@@ -1460,10 +1460,14 @@ HSaveError WriteRoomStates(Stream *out)
                 WriteFormatTag(out, "RoomState", false);
             }
             else
+            {
                 out->WriteInt32(-1);
+            }
         }
         else
+        {
             out->WriteInt32(-1);
+        }
     }
     return HSaveError::None();
 }
@@ -1482,7 +1486,7 @@ HSaveError ReadRoomStates(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pr
                 return err;
             if (!AssertFormatTagStrict(err, in, "RoomState", true))
                 return err;
-            RoomStatus *roomstat = getRoomStatus(id);
+            RoomStatus *roomstat = GetRoomState(id);
             roomstat->ReadFromSavegame(in, (RoomStatSvgVersion)cmp_ver);
             if (!AssertFormatTagStrict(err, in, "RoomState", false))
                 return err;

@@ -489,7 +489,7 @@ void DoBeforeRestore(PreservedParams &pp, SaveCmpSelection select_cmp)
     UnlinkAllScripts();
 
     // reset saved room states
-    resetRoomStatuses();
+    ResetRoomStates();
     // reset temp room state
     troom = RoomStatus();
     // reset (some of the?) GameState data

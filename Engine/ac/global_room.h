@@ -24,7 +24,6 @@ void NewRoom(int nrnum);// still widely used
 void ResetRoom(int nrnum);
 int  HasPlayerBeenInRoom(int roomnum);
 void CallRoomScript (int value);
-int  HasBeenToRoom (int roomnum);
 
 void SetBackgroundFrame(int frnum);
 int GetBackgroundFrame() ;

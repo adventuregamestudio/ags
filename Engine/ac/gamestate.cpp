@@ -282,6 +282,8 @@ void GamePlayState::DeleteRoomViewport(int index)
 {
     if (index < 0 || (size_t)index >= _roomViewports.size())
         return;
+
+    // Invalidate script object
     auto handle = _scViewportHandles[index];
     auto scobj = (ScriptViewport*)ccGetObjectAddressFromHandle(handle);
     if (scobj)
@@ -289,9 +291,15 @@ void GamePlayState::DeleteRoomViewport(int index)
         scobj->Invalidate();
         ccReleaseObjectReference(handle);
     }
+    // Unlink camera
     auto cam = _roomViewports[index]->GetCamera();
     if (cam)
         cam->UnlinkFromViewport(index);
+
+    // Release shader handle (if present)
+    ccRemoveObjectHandle(_roomViewports[index]->GetShaderHandle());
+
+    // Erase viewport object and adjust the cameras lists
     _roomViewports.erase(_roomViewports.begin() + index);
     _scViewportHandles.erase(_scViewportHandles.begin() + index);
     for (size_t i = index; i < _roomViewports.size(); ++i)
@@ -351,6 +359,8 @@ void GamePlayState::DeleteRoomCamera(int index)
 {
     if (index < 0 || (size_t)index >= _roomCameras.size())
         return;
+
+    // Invalidate script object
     auto handle = _scCameraHandles[index];
     auto scobj = (ScriptCamera*)ccGetObjectAddressFromHandle(handle);
     if (scobj)
@@ -358,12 +368,18 @@ void GamePlayState::DeleteRoomCamera(int index)
         scobj->Invalidate();
         ccReleaseObjectReference(handle);
     }
+    // Unlink viewport
     for (auto& viewref : _roomCameras[index]->GetLinkedViewports())
     {
         auto view = viewref.lock();
         if (view)
             view->LinkCamera(nullptr);
     }
+
+    // Release shader handle (if present)
+    ccRemoveObjectHandle(_roomCameras[index]->GetShaderHandle());
+
+    // Erase camera object and adjust the cameras lists
     _roomCameras.erase(_roomCameras.begin() + index);
     _scCameraHandles.erase(_scCameraHandles.begin() + index);
     for (size_t i = index; i < _roomCameras.size(); ++i)

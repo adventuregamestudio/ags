@@ -163,6 +163,7 @@ private:
     int _flags = 0; // OverlayFlags
     int _sprnum = 0; // sprite id
     Common::SpriteTransformFlags _spritetf = Common::kSprTf_None;
+    // TODO: a RAII wrapper over managed handle, that auto releases the reference
     int _shaderID = 0;
     int _shaderHandle = 0;
     bool _hasChanged = false;

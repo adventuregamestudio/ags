@@ -103,6 +103,7 @@ private:
     Rect _position;
     // Rotation in degrees
     float _rotation = 0.0;
+    // TODO: a RAII wrapper over managed handle, that auto releases the reference
     int _shaderID = 0;
     int _shaderHandle = 0;
     // Locked or following player automatically
@@ -196,6 +197,7 @@ private:
     glm::mat4 _v2cTransform;
     bool _visible = true;
     int _zorder = 0;
+    // TODO: a RAII wrapper over managed handle, that auto releases the reference
     int _shaderID = 0;
     int _shaderHandle = 0;
     // Flags that tell whether this viewport's position on screen has changed recently

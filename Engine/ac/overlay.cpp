@@ -499,11 +499,8 @@ static void dispose_overlay(ScreenOverlay &over)
 {
     over.SetImage(nullptr);
     // release shader reference
-    if (over.GetShaderHandle() > 0)
-    {
-        ccReleaseObjectReference(over.GetShaderHandle());
-        over.RemoveShader();
-    }
+    ccRemoveObjectHandle(over.GetShaderHandle());
+    over.RemoveShader();
     // invalidate script object and dispose it if there are no more refs
     if (over.associatedOverlayHandle > 0)
     {

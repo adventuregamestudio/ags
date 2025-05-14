@@ -550,6 +550,7 @@ endif()
 
 if (WIN32)
     target_link_libraries(engine PUBLIC shlwapi)
+    target_link_libraries(engine PUBLIC D3DCompiler.lib)
 endif()
 
 if(ANDROID)

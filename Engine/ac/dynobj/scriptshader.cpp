@@ -17,6 +17,7 @@
 #include "gfx/graphicsdriver.h"
 #include "util/path.h"
 #include "util/stream.h"
+#include "util/stl_utils.h"
 #include "util/string_utils.h"
 
 using namespace AGS::Common;
@@ -75,6 +76,15 @@ ScriptShaderProgram::ScriptShaderProgram(const String &filename)
     return usename;
 }
 
+/*static */ void ScriptShaderProgram::ResetFreeIndexes()
+{
+    _nextShaderIndex = ScriptShaderProgram::NullShaderID + 1u;
+    _freeShaderIndexes = std::queue<uint32_t>();
+    _registeredNames = {};
+    _nextInstanceIndex = ScriptShaderInstance::NullInstanceID + 1u;
+    _freeInstanceIndexes = std::queue<uint32_t>();
+}
+
 ScriptShaderInstance *ScriptShaderProgram::GetDefaultInstance() const
 {
     if (!_defaultInstance)
@@ -121,8 +131,9 @@ uint32_t ScriptShaderProgram::SetConstant(const String &name)
     if (it_found != _constantTable.end())
         return it_found->second;
 
-    _constantTable[name] = _constantTable.size();
-    return _constantTable.size();
+    uint32_t const_index = _constantTable.size();
+    _constantTable[name] = const_index;
+    return const_index;
 }
 
 const char *ScriptShaderProgram::GetType()
@@ -163,6 +174,18 @@ void ScriptShaderProgram::Unserialize(int index, Stream *in, size_t data_sz)
     }
 
     ccRegisterUnserializedObject(index, this, this);
+
+    // Adjust free indexes
+    if (_id < _nextShaderIndex)
+    {
+        StlUtil::EraseFromQueue(_freeShaderIndexes, _id);
+    }
+    else if (_id >= _nextShaderIndex)
+    {
+        _nextShaderIndex = _id + 1u;
+        for (uint32_t i = _id + 1u; i < _nextShaderIndex; ++i)
+            _freeShaderIndexes.push(i);
+    }
 }
 
 size_t ScriptShaderProgram::CalcSerializeSize(const void *address)
@@ -260,6 +283,7 @@ void ScriptShaderInstance::Unserialize(int index, Stream *in, size_t data_sz)
     in->ReadInt32(); // header size
     in->ReadInt32(); // version
     in->ReadInt32(); // reserved
+    _name = StrUtil::ReadString(in);
     _id = in->ReadInt32();
     _shaderHandle = in->ReadInt32();
     // Constant data
@@ -272,11 +296,25 @@ void ScriptShaderInstance::Unserialize(int index, Stream *in, size_t data_sz)
     }
 
     ccRegisterUnserializedObject(index, this, this);
+
+    // Adjust free indexes
+    auto &freeIndexes = ScriptShaderProgram::_freeInstanceIndexes;
+    if (_id < ScriptShaderProgram::_nextInstanceIndex)
+    {
+        StlUtil::EraseFromQueue(freeIndexes, _id);
+    }
+    else if (_id >= ScriptShaderProgram::_nextInstanceIndex)
+    {
+        ScriptShaderProgram::_nextInstanceIndex = _id + 1u;
+        for (uint32_t i = _id + 1u; i < ScriptShaderProgram::_nextInstanceIndex; ++i)
+            freeIndexes.push(i);
+    }
 }
 
 size_t ScriptShaderInstance::CalcSerializeSize(const void *address)
 {
-    const uint32_t header_sz = sizeof(uint32_t) * 5;
+    const uint32_t header_sz = _name.GetLength() + sizeof(uint32_t)
+        + sizeof(uint32_t) * 5;
     size_t constant_table_sz = sizeof(uint32_t)
         + _constData.size() * sizeof(uint32_t) + sizeof(float) * 4;
     return header_sz + constant_table_sz
@@ -286,10 +324,12 @@ size_t ScriptShaderInstance::CalcSerializeSize(const void *address)
 void ScriptShaderInstance::Serialize(const void *address, Stream *out)
 {
     // Header
-    const uint32_t header_sz = sizeof(uint32_t) * 5;
+    const uint32_t header_sz = _name.GetLength() + sizeof(uint32_t)
+        + sizeof(uint32_t) * 5;
     out->WriteInt32(header_sz); // header size
     out->WriteInt32(0); // version
     out->WriteInt32(0); // reserved
+    StrUtil::WriteString(_name, out);
     out->WriteInt32(_id);
     out->WriteInt32(_shaderHandle);
     // Constant data

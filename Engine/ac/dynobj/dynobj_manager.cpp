@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "ac/dynobj/dynobj_manager.h"
+#include "ac/dynobj/scriptshader.h"
 #include <stdlib.h>
 #include <string.h>
 #include "ac/dynobj/managedobjectpool.h"
@@ -57,6 +58,9 @@ int ccUnRegisterManagedObject(void *object) {
 // remove all registered objects
 void ccUnregisterAllObjects() {
     pool.Reset();
+
+    // Some classes need to also reset their static members atm
+    ScriptShaderProgram::ResetFreeIndexes();
 }
 
 // serialize all objects to disk

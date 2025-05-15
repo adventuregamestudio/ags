@@ -278,7 +278,7 @@ void GUIObject::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     }
     else
     {
-        _shaderID = -1;
+        _shaderID = 0;
         _shaderHandle = 0;
     }
 

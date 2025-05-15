@@ -125,7 +125,9 @@ ScriptShaderProgram *CreateScriptShaderProgram(const char *filename)
     return sc_shader;
 }
 
-bool RecreateScriptShaderProgram(ScriptShaderProgram *sc_shader)
+// Recreates a shader from existing ScriptShaderProgram object.
+// This is used to reconnect shaders after restoring a save.
+static bool RecreateScriptShaderProgram(ScriptShaderProgram *sc_shader)
 {
     IGraphicShader *shader = CreateShaderProgram(sc_shader->GetName(), sc_shader->GetFilename());
     if (shader)
@@ -158,14 +160,16 @@ ScriptShaderInstance *ShaderProgram_CreateInstance(ScriptShaderProgram *sc_shade
     IShaderInstance *shinst = nullptr;
     IGraphicShader *shader = get_custom_shader(sc_shader->GetID());
     if (shader)
-        shinst = gfxDriver->CreateShaderInstance(shader, sc_shader->GetName());
+        shinst = gfxDriver->CreateShaderInstance(shader, sc_shinst->GetName());
 
     ccRegisterManagedObject(sc_shinst, sc_shinst);
     add_shader_instance(shinst, sc_shinst->GetID()); // NOTE: we allow to register a nullptr at the index
     return sc_shinst;
 }
 
-bool RecreateShaderInstance(ScriptShaderInstance *sc_shinst)
+// Recreates a shader instance from existing ScriptShaderInstance object.
+// This is used to reconnect shaders after restoring a save.
+static bool RecreateShaderInstance(ScriptShaderInstance *sc_shinst)
 {
     ScriptShaderProgram *sc_shader = sc_shinst->GetScriptShader();
     IShaderInstance *shinst = nullptr;
@@ -181,20 +185,42 @@ bool RecreateShaderInstance(ScriptShaderInstance *sc_shinst)
         return false;
 
     // Restore constant data
-    uint32_t const_count = sc_shinst->GetConstantCount();
+    uint32_t const_count = sc_shader->GetConstantCount();
     for (uint32_t i = 0; i < const_count; ++i)
     {
+        const String name = sc_shader->GetConstantName(i);
         const auto c = sc_shinst->GetConstant(i);
+        const uint32_t const_index = shinst->GetShader()->GetConstantByName(name);
         switch (c.Size)
         {
-        case 1: shinst->SetShaderConstantF(i, c.Val[0]); break;
-        case 2: shinst->SetShaderConstantF2(i, c.Val[0], c.Val[1]); break;
-        case 3: shinst->SetShaderConstantF3(i, c.Val[0], c.Val[1], c.Val[2]); break;
-        case 4: shinst->SetShaderConstantF4(i, c.Val[0], c.Val[1], c.Val[2], c.Val[3]); break;
+        case 1: shinst->SetShaderConstantF(const_index, c.Val[0]); break;
+        case 2: shinst->SetShaderConstantF2(const_index, c.Val[0], c.Val[1]); break;
+        case 3: shinst->SetShaderConstantF3(const_index, c.Val[0], c.Val[1], c.Val[2]); break;
+        case 4: shinst->SetShaderConstantF4(const_index, c.Val[0], c.Val[1], c.Val[2], c.Val[3]); break;
         default: assert(false); break;
         }
     }
     return true;
+}
+
+// A callback that resolves a ScriptShaderProgram after restoring a save.
+// Used in a call to ccTraverseManagedObjects.
+static void ResolveShader(int handle, IScriptObject *obj)
+{
+    RecreateScriptShaderProgram(static_cast<ScriptShaderProgram *>(obj));
+}
+
+// A callback that resolves a ScriptShaderInstance after restoring a save.
+// Used in a call to ccTraverseManagedObjects.
+static void ResolveShaderInstance(int handle, IScriptObject *obj)
+{
+    RecreateShaderInstance(static_cast<ScriptShaderInstance *>(obj));
+}
+
+void RestoreShaders()
+{
+    ccTraverseManagedObjects(ScriptShaderProgram::TypeID, ResolveShader);
+    ccTraverseManagedObjects(ScriptShaderInstance::TypeID, ResolveShaderInstance);
 }
 
 ScriptShaderInstance *ShaderProgram_GetDefault(ScriptShaderProgram *shader_prg)

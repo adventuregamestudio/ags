@@ -34,6 +34,7 @@ public:
     // Generates a shader name from the filepath
     // TODO: move this elsewhere?
     static String MakeName(const String &filepath);
+    static void ResetFreeIndexes();
 
     ScriptShaderProgram() = default;
     ScriptShaderProgram(const String &filename);
@@ -86,6 +87,8 @@ private:
     // NOTE: we are using static (shared) instance indexes to let engine keep all shader indexes in a single list
     static uint32_t _nextInstanceIndex;
     static std::queue<uint32_t> _freeInstanceIndexes;
+
+    friend ScriptShaderInstance; // a dirty solution for resolving free indexes on unserialize
 };
 
 class ScriptShaderInstance final : public AGSCCDynamicObject

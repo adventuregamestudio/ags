@@ -22,13 +22,9 @@
 
 // Creates a new shader and registers a ScriptShaderProgram object
 ScriptShaderProgram *CreateScriptShaderProgram(const char *filename);
-// Recreates a shader from existing ScriptShaderProgram object.
-// This is used to reconnect shaders after restoring a save.
-bool RecreateScriptShaderProgram(ScriptShaderProgram *sc_shader);
 // Creates a new shader instance and registers a ScriptShaderInstance object
 ScriptShaderInstance *ShaderProgram_CreateInstance(ScriptShaderProgram *sc_shader);
-// Recreates a shader instance from existing ScriptShaderInstance object.
-// This is used to reconnect shaders after restoring a save.
-bool RecreateShaderInstance(ScriptShaderInstance *sc_shinst);
+// Restore shaders and shader instances after loading a save
+void RestoreShaders();
 
 #endif // __AGS_EE_AC__SHADERSCRIPT_H

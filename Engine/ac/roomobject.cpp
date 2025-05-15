@@ -222,7 +222,7 @@ void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
     }
     else
     {
-        shader_id = -1;
+        shader_id = 0;
         shader_handle = 0;
     }
 

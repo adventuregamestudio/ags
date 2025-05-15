@@ -597,26 +597,6 @@ static HSaveError RestoreAudio(const RestoredData &r_data)
     return HSaveError::None();
 }
 
-// A callback that resolves a ScriptShaderProgram after restoring a save.
-// Used in a call to ccTraverseManagedObjects.
-static void ResolveShader(int handle, IScriptObject *obj)
-{
-    RecreateScriptShaderProgram(static_cast<ScriptShaderProgram *>(obj));
-}
-
-// A callback that resolves a ScriptShaderInstance after restoring a save.
-// Used in a call to ccTraverseManagedObjects.
-static void ResolveShaderInstance(int handle, IScriptObject *obj)
-{
-    RecreateShaderInstance(static_cast<ScriptShaderInstance *>(obj));
-}
-
-static void RestoreShaders()
-{
-    ccTraverseManagedObjects(ScriptShaderProgram::TypeID, ResolveShader);
-    ccTraverseManagedObjects(ScriptShaderInstance::TypeID, ResolveShaderInstance);
-}
-
 static void RestoreViewportsAndCameras(const RestoredData &r_data)
 {
     for (size_t i = 0; i < r_data.Cameras.size(); ++i)

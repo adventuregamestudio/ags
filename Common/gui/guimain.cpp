@@ -801,7 +801,7 @@ void GUIMain::ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_version, st
     }
     else
     {
-        _shaderID = -1;
+        _shaderID = 0;
         _shaderHandle = 0;
     }
 

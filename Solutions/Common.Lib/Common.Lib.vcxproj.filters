@@ -850,5 +850,8 @@
     <ClInclude Include="..\..\Common\util\transformstream.h">
       <Filter>Header Files\util</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Common\util\stl_utils.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

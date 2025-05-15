@@ -775,6 +775,7 @@
     <ClInclude Include="..\..\Common\util\scaling.h" />
     <ClInclude Include="..\..\Common\util\smart_ptr.h" />
     <ClInclude Include="..\..\Common\util\stdio_compat.h" />
+    <ClInclude Include="..\..\Common\util\stl_utils.h" />
     <ClInclude Include="..\..\Common\util\stream.h" />
     <ClInclude Include="..\..\Common\util\string.h" />
     <ClInclude Include="..\..\Common\util\string_compat.h" />

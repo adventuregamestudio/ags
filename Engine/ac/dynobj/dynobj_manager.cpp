@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "ac/dynobj/dynobj_manager.h"
+#include "ac/dynobj/scriptshader.h"
 #include <stdlib.h>
 #include <string.h>
 #include "ac/dynobj/managedobjectpool.h"
@@ -57,6 +58,9 @@ int ccUnRegisterManagedObject(void *object) {
 // remove all registered objects
 void ccUnregisterAllObjects() {
     pool.Reset();
+
+    // Some classes need to also reset their static members atm
+    ScriptShaderProgram::ResetFreeIndexes();
 }
 
 // serialize all objects to disk
@@ -142,6 +146,38 @@ int ccReleaseObjectReference(int32_t handle) {
     }
 
     return pool.SubRefCheckDispose(handle);
+}
+
+int ccAssignObjectHandle(void *address)
+{
+    int handle = ccGetObjectHandleFromAddress(address);
+    if (handle > 0)
+        ccAddObjectReference(handle);
+    return handle;
+}
+
+int ccRemoveObjectHandle(int handle)
+{
+    if (handle > 0)
+        ccReleaseObjectReference(handle);
+    return 0;
+}
+
+int ccReplaceObjectHandle(int32_t old_handle, int32_t new_handle)
+{
+    if (old_handle == new_handle)
+        return new_handle;
+
+    if (old_handle > 0)
+        ccReleaseObjectReference(old_handle);
+    if (new_handle > 0)
+        ccAddObjectReference(new_handle);
+    return new_handle;
+}
+
+int ccReplaceObjectHandle(int32_t old_handle, void *new_address)
+{
+    return ccReplaceObjectHandle(old_handle, ccGetObjectHandleFromAddress(new_address));
 }
 
 void ccTraverseManagedObjects(const String &type, PfnProcessManagedObject callback)

@@ -161,6 +161,7 @@ target_sources(common
     util/smart_ptr.h
     util/stdio_compat.c
     util/stdio_compat.h
+    util/stl_utils.h
     util/stream.cpp
     util/stream.h
     util/string.cpp

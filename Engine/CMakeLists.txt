@@ -115,6 +115,8 @@ target_sources(engine
     ac/dynobj/scriptrestoredsaveinfo.h
     ac/dynobj/scriptset.cpp
     ac/dynobj/scriptset.h
+    ac/dynobj/scriptshader.cpp
+    ac/dynobj/scriptshader.h
     ac/dynobj/scriptstring.cpp
     ac/dynobj/scriptstring.h
     ac/dynobj/scriptsystem.cpp
@@ -221,6 +223,8 @@ target_sources(engine
     ac/screenoverlay.cpp
     ac/screenoverlay.h
     ac/scriptcontainers.cpp
+    ac/shader_script.cpp
+    ac/shader_script.h
     ac/slider.cpp
     ac/slider.h
     ac/speech.cpp
@@ -546,6 +550,7 @@ endif()
 
 if (WIN32)
     target_link_libraries(engine PUBLIC shlwapi)
+    target_link_libraries(engine PUBLIC D3DCompiler.lib)
 endif()
 
 if(ANDROID)

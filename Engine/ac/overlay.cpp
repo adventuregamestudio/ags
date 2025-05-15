@@ -30,6 +30,7 @@
 #include "ac/spritecache.h"
 #include "ac/string.h"
 #include "ac/dynobj/dynobj_manager.h"
+#include "ac/dynobj/scriptshader.h"
 #include "debug/debug_log.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
@@ -309,6 +310,19 @@ void Overlay_SetBlendMode(ScriptOverlay *scover, int blend_mode)
     over->blendMode = ValidateBlendMode("Overlay.BlendMode", blend_mode);
 }
 
+ScriptShaderInstance *Overlay_GetShader(ScriptOverlay *scover)
+{
+    auto *over = GetOverlayValidate("Overlay.Shader", scover);
+    return static_cast<ScriptShaderInstance*>(ccGetObjectAddressFromHandle(over->GetShaderHandle()));
+}
+
+void Overlay_SetShader(ScriptOverlay *scover, ScriptShaderInstance *shader_inst)
+{
+    auto *over = GetOverlayValidate("Overlay.Shader", scover);
+    over->SetShader(shader_inst ? shader_inst->GetID() : ScriptShaderInstance::NullInstanceID,
+                    ccReplaceObjectHandle(over->GetShaderHandle(), shader_inst));
+}
+
 int Overlay_GetTransparency(ScriptOverlay *scover)
 {
     auto *over = GetOverlayValidate("Overlay.Transparency", scover);
@@ -484,6 +498,9 @@ static void invalidate_and_subref(ScreenOverlay &over)
 static void dispose_overlay(ScreenOverlay &over)
 {
     over.SetImage(nullptr);
+    // release shader reference
+    ccRemoveObjectHandle(over.GetShaderHandle());
+    over.RemoveShader();
     // invalidate script object and dispose it if there are no more refs
     if (over.associatedOverlayHandle > 0)
     {
@@ -847,6 +864,16 @@ RuntimeScriptValue Sc_Overlay_SetBlendMode(void *self, const RuntimeScriptValue 
     API_OBJCALL_VOID_PINT(ScriptOverlay, Overlay_SetBlendMode);
 }
 
+RuntimeScriptValue Sc_Overlay_GetShader(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJAUTO(ScriptOverlay, ScriptShaderInstance, Overlay_GetShader);
+}
+
+RuntimeScriptValue Sc_Overlay_SetShader(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_POBJ(ScriptOverlay, Overlay_SetShader, ScriptShaderInstance);
+}
+
 RuntimeScriptValue Sc_Overlay_GetFlip(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptOverlay, Overlay_GetFlip);
@@ -1029,6 +1056,9 @@ void RegisterOverlayAPI()
         { "Overlay::set_Rotation",        API_FN_PAIR(Overlay_SetRotation) },
         { "Overlay::get_Flip",            API_FN_PAIR(Overlay_GetFlip) },
         { "Overlay::set_Flip",            API_FN_PAIR(Overlay_SetFlip) },
+
+        { "Overlay::get_Shader",          API_FN_PAIR(Overlay_GetShader) },
+        { "Overlay::set_Shader",          API_FN_PAIR(Overlay_SetShader) },
     };
 
     ccAddExternalFunctions(overlay_api);

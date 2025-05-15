@@ -132,6 +132,12 @@ void GUIMain::SetBlendMode(BlendMode blend_mode)
     _blendMode = blend_mode;
 }
 
+void GUIMain::SetShader(int shader_id, int shader_handle)
+{
+    _shaderID = shader_id;
+    _shaderHandle = shader_handle;
+}
+
 void GUIMain::SetScale(float sx, float sy)
 {
     _scale = Pointf(sx, sy);
@@ -786,6 +792,19 @@ void GUIMain::ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_version, st
             _scale.Y = 1.f;
     }
 
+    if (svg_version >= kGuiSvgVersion_40018)
+    {
+        _shaderID = in->ReadInt32();
+        _shaderHandle = in->ReadInt32();
+        in->ReadInt32(); // reserved
+        in->ReadInt32();
+    }
+    else
+    {
+        _shaderID = 0;
+        _shaderHandle = 0;
+    }
+
     MarkChanged();
     UpdateGraphicSpace();
 }
@@ -818,6 +837,10 @@ void GUIMain::SkipSavestate(Stream *in, GuiSvgVersion svg_version, std::vector<C
     if (svg_version >= kGuiSvgVersion_400)
     {
         in->Seek(15 * sizeof(int32_t));
+    }
+    if (svg_version >= kGuiSvgVersion_40018)
+    {
+        in->Seek(4 * sizeof(int32_t));
     }
 }
 
@@ -869,6 +892,11 @@ void GUIMain::WriteToSavegame(Common::Stream *out) const
     out->WriteInt32(0); // sprite pivot y
     out->WriteInt32(0); // sprite anchor x
     out->WriteInt32(0); // sprite anchor y
+    // kGuiSvgVersion_40018
+    out->WriteInt32(_shaderID);
+    out->WriteInt32(_shaderHandle);
+    out->WriteInt32(0); // reserved
+    out->WriteInt32(0);
 }
 
 

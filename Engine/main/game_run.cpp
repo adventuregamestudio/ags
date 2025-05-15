@@ -98,8 +98,8 @@ static bool ShouldStayInWaitMode();
 
 float fps = std::numeric_limits<float>::quiet_NaN();
 static auto t1 = AGS_Clock::now();  // timer for FPS // ... 't1'... how very appropriate.. :)
-unsigned int loopcounter=0;
-static unsigned int lastcounter=0;
+uint32_t loopcounter=0;
+static unsigned int lastcounter=0; // CHECME: not sure if needed, review its use
 static size_t numEventsAtStartOfFunction; // CHECKME: research and document this
 
 // Kinds of conditions used when "waiting" for something
@@ -1154,11 +1154,20 @@ float get_real_fps() {
     return fps;
 }
 
-void set_loop_counter(unsigned int new_counter) {
+void set_loop_counter(uint32_t new_counter) {
     loopcounter = new_counter;
-    t1 = AGS_Clock::now();
     lastcounter = loopcounter;
+    t1 = AGS_Clock::now();
     fps = std::numeric_limits<float>::quiet_NaN();
+}
+
+void increment_loop_counter() {
+    loopcounter++;
+    lastcounter = loopcounter;
+}
+
+uint32_t get_loop_counter() {
+    return loopcounter;
 }
 
 void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int extraX, int extraY) {
@@ -1467,6 +1476,11 @@ void SyncDrawablesState()
 void ShutGameWaitState()
 {
     restrict_until = {};
+}
+
+unsigned GetGameFrameIndex()
+{
+    return loopcounter;
 }
 
 void update_polled_stuff()

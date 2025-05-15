@@ -12,20 +12,19 @@
 //
 //=============================================================================
 //
-//
+// Shader script API.
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__GLOBALROOM_H
-#define __AGS_EE_AC__GLOBALROOM_H
+#ifndef __AGS_EE_AC__SHADERSCRIPT_H
+#define __AGS_EE_AC__SHADERSCRIPT_H
 
-void SetAmbientTint (int red, int green, int blue, int opacity, int luminance);
-void SetAmbientLightLevel(int light_level);
-void NewRoom(int nrnum);// still widely used
-void ResetRoom(int nrnum);
-int  HasPlayerBeenInRoom(int roomnum);
-void CallRoomScript (int value);
+#include "ac/dynobj/scriptshader.h"
 
-void SetBackgroundFrame(int frnum);
-int GetBackgroundFrame() ;
+// Creates a new shader and registers a ScriptShaderProgram object
+ScriptShaderProgram *CreateScriptShaderProgram(const char *filename);
+// Creates a new shader instance and registers a ScriptShaderInstance object
+ScriptShaderInstance *ShaderProgram_CreateInstance(ScriptShaderProgram *sc_shader);
+// Restore shaders and shader instances after loading a save
+void RestoreShaders();
 
-#endif // __AGS_EE_AC__GLOBALROOM_H
+#endif // __AGS_EE_AC__SHADERSCRIPT_H

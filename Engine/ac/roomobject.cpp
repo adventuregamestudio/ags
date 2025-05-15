@@ -213,6 +213,19 @@ void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
         movelist_handle = 0;
     }
 
+    if (cmp_ver >= kRoomStatSvgVersion_40018)
+    {
+        shader_id = in->ReadInt32();
+        shader_handle = in->ReadInt32();
+        in->ReadInt32(); // reserve
+        in->ReadInt32();
+    }
+    else
+    {
+        shader_id = 0;
+        shader_handle = 0;
+    }
+
     spr_width = last_width;
     spr_height = last_height;
     UpdateGraphicSpace();
@@ -270,6 +283,11 @@ void RoomObject::WriteToSavegame(Stream *out) const
     out->WriteInt32(movelist_handle);
     out->WriteInt32(0); // reserve up to 4 ints
     out->WriteInt32(0);
+    out->WriteInt32(0);
+    // kRoomStatSvgVersion_40018
+    out->WriteInt32(shader_id);
+    out->WriteInt32(shader_handle);
+    out->WriteInt32(0); // reserve
     out->WriteInt32(0);
 }
 

@@ -65,6 +65,10 @@ public:
     float GetRotation() const;
     // Sets camera's rotation, in degrees
     void SetRotation(float degrees);
+    int GetShaderID() const { return _shaderID; }
+    int GetShaderHandle() const { return _shaderHandle; }
+    void SetShader(int shader_id, int shader_handle) { _shaderID = shader_id; _shaderHandle = shader_handle; }
+
     // Tells if camera is currently locked at custom position
     bool IsLocked() const;
     // Locks room camera at its current position
@@ -99,6 +103,9 @@ private:
     Rect _position;
     // Rotation in degrees
     float _rotation = 0.0;
+    // TODO: a RAII wrapper over managed handle, that auto releases the reference
+    int _shaderID = 0;
+    int _shaderHandle = 0;
     // Locked or following player automatically
     bool _locked = false;
     // Linked viewport refs, used to notify viewports of camera changes
@@ -146,6 +153,10 @@ public:
     // Sets the viewport's z-order on screen
     void SetZOrder(int zorder);
 
+    int GetShaderID() const { return _shaderID; }
+    int GetShaderHandle() const { return _shaderHandle; }
+    void SetShader(int shader_id, int shader_handle) { _shaderID = shader_id; _shaderHandle = shader_handle; }
+
     // Calculates room-to-viewport coordinate conversion.
     void AdjustTransformation();
     // Returns linked camera
@@ -186,6 +197,9 @@ private:
     glm::mat4 _v2cTransform;
     bool _visible = true;
     int _zorder = 0;
+    // TODO: a RAII wrapper over managed handle, that auto releases the reference
+    int _shaderID = 0;
+    int _shaderHandle = 0;
     // Flags that tell whether this viewport's position on screen has changed recently
     bool _hasChangedPosition = false;
     bool _hasChangedOffscreen = false;

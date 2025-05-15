@@ -112,7 +112,7 @@ public:
     void Reset();
     void PrintStats();
 
-    typedef void (*PfnProcessObject)(int handle, IScriptObject *obj);
+    typedef std::function<void(int handle, IScriptObject *obj)> PfnProcessObject;
     void TraverseManagedObjects(const AGS::Common::String &type, PfnProcessObject proc);
 
     ManagedObjectPool();

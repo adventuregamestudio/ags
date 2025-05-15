@@ -69,7 +69,6 @@ extern GameSetupStruct game;
 extern ScriptSystem scsystem;
 extern AGSPlatformDriver *platform;
 extern RoomStruct thisroom;
-extern unsigned int loopcounter;
 extern SpriteCache spriteset;
 extern RoomStatus*croom;
 extern int in_new_room;
@@ -388,6 +387,12 @@ ObjTexture debugMoveListObj;
 // Mouse cursor texture
 ObjTexture cursor_tx;
 
+// Custom Shaders collection
+// TODO: RAII wrapper around IGraphicShader and IShaderInstance,
+// should dispose using gfxDriver->DeleteShaderProgram etc.
+std::vector<IGraphicShader*> customShaders;
+std::vector<IShaderInstance*> shaderInstances;
+
 // Draw cache: keep record of all kinds of things related to the previous drawing state
 //
 // Cached character and object states, used to determine
@@ -406,7 +411,10 @@ bool current_background_is_dirty = false;
 // Hardware and software modes use different members of this struct
 struct RoomCameraDrawData
 {
+    // TODO: separate camera render target, have 1 per camera, not 1 per view/cam pair
     IDriverDependantBitmap *CamRenderTarget = nullptr;
+    IDriverDependantBitmap *ViewRenderTarget = nullptr;
+
     // Intermediate bitmap for the software drawing method.
     // We use this bitmap in case room camera has scaling enabled, we draw dirty room rects on it,
     // and then pass to software renderer which draws sprite on top and then either blits or stretch-blits
@@ -424,6 +432,8 @@ RoomCameraDrawData::~RoomCameraDrawData()
 {
     if (CamRenderTarget)
         gfxDriver->DestroyDDB(CamRenderTarget);
+    if (ViewRenderTarget)
+        gfxDriver->DestroyDDB(ViewRenderTarget);
 }
 
 std::vector<RoomCameraDrawData> CameraDrawData;
@@ -613,6 +623,8 @@ int MakeColor(int color_index)
 
 void init_draw_method()
 {
+    dispose_draw_method(); // ensure that previous draw resources are disposed
+
     drawstate.SoftwareRender = !gfxDriver->HasAcceleratedTransform();
     drawstate.FullFrameRedraw = gfxDriver->RequiresFullRedrawEachFrame();
 
@@ -638,6 +650,10 @@ void init_draw_method()
     init_room_drawdata();
     if (gfxDriver->UsesMemoryBackBuffer())
         gfxDriver->GetMemoryBackBuffer()->Clear();
+
+    // Allocate a single shader and shader instance slot for default "null" shader
+    add_custom_shader(nullptr, 0u);
+    add_shader_instance(nullptr, 0u);
 }
 
 void dispose_draw_method()
@@ -645,6 +661,7 @@ void dispose_draw_method()
     dispose_room_drawdata();
     dispose_invalid_regions(false);
     destroy_blank_image();
+    dispose_all_custom_shaders();
 }
 
 static void alloc_fixed_drawindexes()
@@ -763,6 +780,9 @@ void release_drawobj_rendertargets()
         if (camdata.CamRenderTarget)
             gfxDriver->DestroyDDB(camdata.CamRenderTarget);
         camdata.CamRenderTarget = nullptr;
+        if (camdata.ViewRenderTarget)
+            gfxDriver->DestroyDDB(camdata.ViewRenderTarget);
+        camdata.ViewRenderTarget = nullptr;
     }
     for (auto &tex : gui_render_tex)
     {
@@ -1041,6 +1061,93 @@ void texturecache_precache(uint32_t sprite_id)
     texturecache.GetOrLoad(sprite_id, nullptr, false);
 }
 
+void add_custom_shader(IGraphicShader *shader, uint32_t at_index)
+{
+    if (customShaders.size() <= at_index)
+    {
+        customShaders.resize(at_index + 1);
+    }
+    else if (customShaders[at_index] != nullptr)
+    {
+        delete_custom_shader(at_index);
+    }
+
+    customShaders[at_index] = shader;
+}
+
+IGraphicShader *get_custom_shader(uint32_t sh_index)
+{
+    if (sh_index >= customShaders.size())
+        return nullptr;
+    return customShaders[sh_index];
+}
+
+void delete_custom_shader(uint32_t shader_id)
+{
+    if (shader_id < customShaders.size() && customShaders[shader_id] != nullptr)
+    {
+        gfxDriver->DeleteShaderProgram(customShaders[shader_id]);
+        customShaders[shader_id] = {};
+    }
+}
+
+void add_shader_instance(Engine::IShaderInstance *shader_instance, uint32_t at_index)
+{
+    if (shaderInstances.size() <= at_index)
+    {
+        shaderInstances.resize(at_index + 1);
+    }
+    else if (shaderInstances[at_index] != nullptr)
+    {
+        delete_shader_instance(at_index);
+    }
+
+    shaderInstances[at_index] = shader_instance;
+}
+
+IShaderInstance *get_shader_instance(uint32_t shinst_index)
+{
+    if (shinst_index >= shaderInstances.size())
+        return nullptr;
+    return shaderInstances[shinst_index];
+}
+
+void delete_shader_instance(uint32_t shader_inst_id)
+{
+    if (shader_inst_id < shaderInstances.size() && shaderInstances[shader_inst_id] != nullptr)
+    {
+        gfxDriver->DeleteShaderInstance(shaderInstances[shader_inst_id]);
+        shaderInstances[shader_inst_id] = {};
+    }
+}
+
+void dispose_all_custom_shaders()
+{
+    for (auto &shinst : shaderInstances)
+    {
+        if (shinst)
+            gfxDriver->DeleteShaderInstance(shinst);
+    }
+    shaderInstances.clear();
+    for (auto &sh : customShaders)
+    {
+        if (sh)
+            gfxDriver->DeleteShaderProgram(sh);
+    }
+    customShaders.clear();
+}
+
+static void update_global_shader_constants()
+{
+    GlobalShaderConstants constants;
+    auto now = AGS_Clock::now();
+    // TODO: perhaps count time since engine launched?
+    auto now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
+    constants.Time = static_cast<float>(now_ms) / 1000.f;
+    constants.GameFrame = get_loop_counter();
+    gfxDriver->SetGlobalShaderConstants(constants);
+}
+
 Bitmap *initialize_sprite(sprkey_t index, Bitmap *image, uint32_t &sprite_flags)
 {
     return PrepareSpriteForUse(image, (sprite_flags & SPF_KEEPDEPTH) == 0);
@@ -1148,6 +1255,9 @@ void render_to_screen()
         if (new_vsync != (scsystem.vsync != 0))
             System_SetVSyncInternal(new_vsync);
     }
+
+    // Set global constants for any shaders to use
+    update_global_shader_constants();
 
     bool succeeded = false;
     while (!succeeded && !want_exit && !abort_engine)
@@ -1929,7 +2039,7 @@ void prepare_and_add_object_gfx(
     ObjTexture &actsp, bool actsp_modified,
     const Size &scale_size,
     int atx, int aty, int &usebasel, bool use_walkbehinds,
-    Pointf origin, int transparency, BlendMode blend_mode, bool hw_accel)
+    Pointf origin, int transparency, BlendMode blend_mode, int shader_id, bool hw_accel)
 {
     // Handle the walk-behinds, according to the WalkBehindMethod.
     // This potentially may edit actsp's raw bitmap if actsp_modified is set.
@@ -1970,6 +2080,7 @@ void prepare_and_add_object_gfx(
 
     actsp.Ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(transparency));
     actsp.Ddb->SetBlendMode(blend_mode);
+    actsp.Ddb->SetShader(shaderInstances[shader_id]);
 }
 
 // Prepares a actsps element for RoomObject; updates object cache.
@@ -2025,7 +2136,7 @@ void prepare_objects_for_drawing()
         prepare_and_add_object_gfx(objsav, actsp, actsp_modified,
             Size(obj.last_width, obj.last_height), imgx, imgy, usebasel,
             (obj.flags & OBJF_NOWALKBEHINDS) == 0,
-            obj.GetOrigin(), obj.transparent, obj.blend_mode, hw_accel);
+            obj.GetOrigin(), obj.transparent, obj.blend_mode, obj.shader_id, hw_accel);
         // Finally, add the texture to the draw list
         add_to_sprite_list(actsp.Ddb, obj.x, obj.y, aabb, usebasel, actsp.DrawIndex);
     }
@@ -2135,7 +2246,7 @@ void prepare_characters_for_drawing()
         prepare_and_add_object_gfx(chsav, actsp, actsp_modified,
             Size(chex.width, chex.height), imgx, imgy, usebasel,
             (chin.flags & CHF_NOWALKBEHINDS) == 0,
-            chex.GetOrigin(), chin.transparency, chex.blend_mode, hw_accel);
+            chex.GetOrigin(), chin.transparency, chex.blend_mode, chex.shader_id, hw_accel);
         // Finally, add the texture to the draw list
         // CHECKME: remind why do we have to recalculate charx/y instead of using GS?
         const int charx = chin.x + chin.pic_xoffs * chex.zoom_offs / 100;
@@ -2198,6 +2309,7 @@ void prepare_room_sprites()
                 walkbehinds_generate_sprites();
             }
         }
+        roomBackgroundBmp->SetShader(shaderInstances[croom->GetBgShaderID()]);
         add_thing_to_draw(roomBackgroundBmp, 0, 0);
     }
     current_background_is_dirty = false; // Note this is only place where this flag is checked
@@ -2263,7 +2375,7 @@ void draw_preroom_background()
 // ds and roomcam_surface may be the same bitmap.
 // no_transform flag tells to copy dirty regions on roomcam_surface without any coordinate conversion
 // whatsoever.
-PBitmap draw_room_background(Viewport *view)
+static PBitmap draw_room_background(const Viewport *view)
 {
     set_our_eip(31);
 
@@ -2341,7 +2453,7 @@ void draw_fps(const Rect &viewport)
         snprintf(fps_buffer, sizeof(fps_buffer), "FPS: --.- / %s", base_buffer);
     }
     char loop_buffer[60];
-    snprintf(loop_buffer, sizeof(loop_buffer), "Loop %u", loopcounter);
+    snprintf(loop_buffer, sizeof(loop_buffer), "Loop %u", get_loop_counter());
 
     int text_off = get_font_surface_extent(font).first; // TODO: a generic function that accounts for this?
     wouttext_outline(fpsDisplay.get(), 1, 1 - text_off, font, text_color, fps_buffer);
@@ -2416,6 +2528,7 @@ static void draw_gui_controls_batch(int gui_id)
         if (!obj_ddb) continue;
         obj_ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(obj->GetTransparency()));
         obj_ddb->SetBlendMode(obj->GetBlendMode());
+        obj_ddb->SetShader(shaderInstances[obj->GetShaderID()]);
         gfxDriver->DrawSprite(obj->GetX() + obj_tx.Off.X, obj->GetY() + obj_tx.Off.Y, obj_ddb);
     }
     gfxDriver->EndSpriteBatch();
@@ -2561,6 +2674,7 @@ void draw_gui_and_overlays()
             }
             gui_ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(gui.GetTransparency()));
             gui_ddb->SetBlendMode(gui.GetBlendMode());
+            gui_ddb->SetShader(shaderInstances[gui.GetShaderID()]);
             gui_ddb->SetOrigin(0.f, 0.f);
             gui_ddb->SetStretch(gui.GetWidth() * gui.GetScale().X, gui.GetHeight() * gui.GetScale().Y);
             gui_ddb->SetRotation(gui.GetRotation());
@@ -2615,7 +2729,118 @@ void GfxDriverOnInitCallback(void *data)
     pl_run_plugin_init_gfx_hooks(gfxDriver->GetDriverID(), data);
 }
 
-#define RENDER_ROOMS_AS_TEXTURES (0)
+// WARNING: rendering rooms as textures currently prevents "render sprites at screen resolution"
+//#define RENDER_ROOMS_AS_TEXTURES (1)
+
+// Renders room viewport: hardware gfx driver version
+static void construct_roomview_hw(const Viewport *viewport)
+{
+    assert(viewport->GetID() < CameraDrawData.size());
+    Camera *camera = viewport->GetCamera().get();
+    const Rect &view_rc = viewport->GetRect();
+    const Rect &cam_rc = camera->GetRect();
+
+    // TODO: streamline this render switch, will need some modification in gfx drivers
+    const bool render_room_as_texture =
+        viewport->GetShaderID() > 0 || camera->GetShaderID() > 0;
+
+    if (render_room_as_texture)
+    {
+        const SpriteTransform cam_trans(-cam_rc.Left, -cam_rc.Top, 1.f, 1.f,
+                                        camera->GetRotation(), Point(cam_rc.GetWidth() / 2, cam_rc.GetHeight() / 2));
+
+        auto &cam_data = CameraDrawData[viewport->GetID()];
+        cam_data.CamRenderTarget = recycle_render_target(cam_data.CamRenderTarget,
+            cam_rc.GetWidth(), cam_rc.GetHeight(), game.GetColorDepth());
+        gfxDriver->BeginSpriteBatch(cam_data.CamRenderTarget, Rect(), cam_trans, kFlip_None, RENDER_BATCH_ROOM_LAYER);
+        gfxDriver->SetStageScreen(cam_rc.GetSize(), cam_rc.Left, cam_rc.Top);
+        // Put all the accumulated room sprites onto the viewport texture
+        put_sprite_list_on_screen(true);
+        gfxDriver->EndSpriteBatch();
+
+        IDriverDependantBitmap *final_cam_ddb = cam_data.CamRenderTarget;
+        int final_shader = viewport->GetShaderID() > 0 ? viewport->GetShaderID() : camera->GetShaderID();
+
+        // Optional camera post-fx, done if both viewport's and camera's shaders are set
+        if (viewport->GetShaderID() > 0 && camera->GetShaderID() > 0)
+        {
+            cam_data.ViewRenderTarget = recycle_render_target(cam_data.ViewRenderTarget,
+                cam_rc.GetWidth(), cam_rc.GetHeight(), game.GetColorDepth());
+            gfxDriver->BeginSpriteBatch(cam_data.ViewRenderTarget, Rect(), SpriteTransform(), kFlip_None, RENDER_BATCH_ROOM_LAYER);
+            cam_data.CamRenderTarget->SetStretch(cam_rc.GetWidth(), cam_rc.GetHeight());
+            cam_data.CamRenderTarget->SetShader(shaderInstances[camera->GetShaderID()]);
+            gfxDriver->DrawSprite(0, 0, cam_data.CamRenderTarget);
+            gfxDriver->EndSpriteBatch();
+
+            final_cam_ddb = cam_data.ViewRenderTarget;
+        }
+
+        // Now render the camera texture itself, scaling to the viewport size,
+        // and using final shader (either viewport's or camera's, depending on which shaders are set).
+        final_cam_ddb->SetStretch(view_rc.GetWidth(), view_rc.GetHeight());
+        final_cam_ddb->SetShader(shaderInstances[final_shader]);
+        gfxDriver->DrawSprite(view_rc.Left, view_rc.Top, final_cam_ddb);
+    }
+    else
+    {
+        const Rect view_p = view_rc;
+        const float view_sx = (float)view_rc.GetWidth() / (float)cam_rc.GetWidth();
+        const float view_sy = (float)view_rc.GetHeight() / (float)cam_rc.GetHeight();
+        const SpriteTransform view_trans(view_rc.Left, view_rc.Top, view_sx, view_sy);
+        const SpriteTransform cam_trans(-cam_rc.Left, -cam_rc.Top, 1.f, 1.f,
+                                        camera->GetRotation(), Point(cam_rc.GetWidth() / 2, cam_rc.GetHeight() / 2));
+
+        gfxDriver->BeginSpriteBatch(view_rc, view_trans, RENDER_BATCH_ROOM_LAYER);
+        gfxDriver->BeginSpriteBatch(Rect(), cam_trans);
+        gfxDriver->SetStageScreen(cam_rc.GetSize(), cam_rc.Left, cam_rc.Top);
+        put_sprite_list_on_screen(true);
+        gfxDriver->EndSpriteBatch();
+        gfxDriver->EndSpriteBatch();
+    }
+}
+
+// Renders room viewport: software gfx driver version
+static void construct_roomview_sw(const Viewport *viewport)
+{
+    assert(viewport->GetID() < CameraDrawData.size());
+    Camera *camera = viewport->GetCamera().get();
+    const Rect &view_rc = viewport->GetRect();
+    const Rect &cam_rc = camera->GetRect();
+
+    const Rect view_p = view_rc;
+    const float view_sx = (float)view_rc.GetWidth() / (float)cam_rc.GetWidth();
+    const float view_sy = (float)view_rc.GetHeight() / (float)cam_rc.GetHeight();
+    const SpriteTransform view_trans(view_rc.Left, view_rc.Top, view_sx, view_sy);
+    const SpriteTransform cam_trans(-cam_rc.Left, -cam_rc.Top, 1.f, 1.f,
+                                    camera->GetRotation(), Point(cam_rc.GetWidth() / 2, cam_rc.GetHeight() / 2));
+
+    // For software renderer - combine viewport and camera in one batch,
+    // due to how the room drawing is implemented currently in the software mode.
+    // TODO: review this later?
+    gfxDriver->BeginSpriteBatch(view_p, view_trans, RENDER_BATCH_ROOM_LAYER);
+
+    if (CameraDrawData[viewport->GetID()].Frame == nullptr && CameraDrawData[viewport->GetID()].IsOverlap)
+    { // room background is prepended to the sprite stack
+      // TODO: here's why we have blit whole piece of background now:
+      // if we draw directly to the virtual screen overlapping another
+      // viewport, then we'd have to also mark and repaint every our
+      // region located directly over their dirty regions. That would
+      // require to update regions up the stack, converting their
+      // coordinates (cam1 -> screen -> cam2).
+      // It's not clear whether this is worth the effort, but if it is,
+      // then we'd need to optimise view/cam data first.
+        gfxDriver->BeginSpriteBatch(Rect(), cam_trans);
+        gfxDriver->DrawSprite(0, 0, roomBackgroundBmp);
+    }
+    else
+    { // room background is drawn by dirty rects system
+        PBitmap bg_surface = draw_room_background(viewport);
+        gfxDriver->BeginSpriteBatch(Rect(), cam_trans, kFlip_None, bg_surface);
+    }
+    put_sprite_list_on_screen(true);
+    gfxDriver->EndSpriteBatch();
+    gfxDriver->EndSpriteBatch();
+}
 
 // Schedule room rendering: background, objects, characters
 static void construct_room_view()
@@ -2629,83 +2854,16 @@ static void construct_room_view()
     {
         if (!viewport->IsVisible())
             continue;
-        auto camera = viewport->GetCamera();
-        if (!camera)
+        if (!viewport->GetCamera())
             continue;
-
-        assert(viewport->GetID() < CameraDrawData.size());
-        const Rect &view_rc = viewport->GetRect();
-        const Rect &cam_rc = camera->GetRect();
 
         if (drawstate.FullFrameRedraw)
         {
-#if (RENDER_ROOMS_AS_TEXTURES)
-            const SpriteTransform cam_trans(-cam_rc.Left, -cam_rc.Top, 1.f, 1.f,
-                camera->GetRotation(), Point(cam_rc.GetWidth() / 2, cam_rc.GetHeight() / 2));
-
-            auto &cam_data = CameraDrawData[viewport->GetID()];
-            cam_data.CamRenderTarget = recycle_render_target(cam_data.CamRenderTarget,
-                cam_rc.GetWidth(), cam_rc.GetHeight(), game.GetColorDepth());
-            gfxDriver->BeginSpriteBatch(cam_data.CamRenderTarget, Rect(), cam_trans, kFlip_None, RENDER_BATCH_ROOM_LAYER);
-            gfxDriver->SetStageScreen(cam_rc.GetSize(), cam_rc.Left, cam_rc.Top);
-            // Put all the accumulated room sprites onto the viewport texture
-            put_sprite_list_on_screen(true);
-            gfxDriver->EndSpriteBatch();
-
-            // Now render the camera texture itself, scaling to the viewport size
-            cam_data.CamRenderTarget->SetStretch(view_rc.GetWidth(), view_rc.GetHeight());
-            gfxDriver->DrawSprite(view_rc.Left, view_rc.Top, cam_data.CamRenderTarget);
-#else   // !RENDER_ROOMS_AS_TEXTURES
-            const Rect view_p = view_rc;
-            const float view_sx = (float)view_rc.GetWidth() / (float)cam_rc.GetWidth();
-            const float view_sy = (float)view_rc.GetHeight() / (float)cam_rc.GetHeight();
-            const SpriteTransform view_trans(view_rc.Left, view_rc.Top, view_sx, view_sy);
-            const SpriteTransform cam_trans(-cam_rc.Left, -cam_rc.Top, 1.f, 1.f,
-                                            camera->GetRotation(), Point(cam_rc.GetWidth() / 2, cam_rc.GetHeight() / 2));
-
-            gfxDriver->BeginSpriteBatch(view_rc, view_trans, RENDER_BATCH_ROOM_LAYER);
-            gfxDriver->BeginSpriteBatch(Rect(), cam_trans);
-            gfxDriver->SetStageScreen(cam_rc.GetSize(), cam_rc.Left, cam_rc.Top);
-            put_sprite_list_on_screen(true);
-            gfxDriver->EndSpriteBatch();
-            gfxDriver->EndSpriteBatch();
-#endif // RENDER_ROOMS_AS_TEXTURES
+            construct_roomview_hw(viewport.get());
         }
         else
         {
-            const Rect view_p = view_rc;
-            const float view_sx = (float)view_rc.GetWidth() / (float)cam_rc.GetWidth();
-            const float view_sy = (float)view_rc.GetHeight() / (float)cam_rc.GetHeight();
-            const SpriteTransform view_trans(view_rc.Left, view_rc.Top, view_sx, view_sy);
-            const SpriteTransform cam_trans(-cam_rc.Left, -cam_rc.Top, 1.f, 1.f,
-                camera->GetRotation(), Point(cam_rc.GetWidth() / 2, cam_rc.GetHeight() / 2));
-
-            // For software renderer - combine viewport and camera in one batch,
-            // due to how the room drawing is implemented currently in the software mode.
-            // TODO: review this later?
-            gfxDriver->BeginSpriteBatch(view_p, view_trans, RENDER_BATCH_ROOM_LAYER);
-
-            if (CameraDrawData[viewport->GetID()].Frame == nullptr && CameraDrawData[viewport->GetID()].IsOverlap)
-            { // room background is prepended to the sprite stack
-              // TODO: here's why we have blit whole piece of background now:
-              // if we draw directly to the virtual screen overlapping another
-              // viewport, then we'd have to also mark and repaint every our
-              // region located directly over their dirty regions. That would
-              // require to update regions up the stack, converting their
-              // coordinates (cam1 -> screen -> cam2).
-              // It's not clear whether this is worth the effort, but if it is,
-              // then we'd need to optimise view/cam data first.
-                gfxDriver->BeginSpriteBatch(Rect(), cam_trans);
-                gfxDriver->DrawSprite(0, 0, roomBackgroundBmp);
-            }
-            else
-            { // room background is drawn by dirty rects system
-                PBitmap bg_surface = draw_room_background(viewport.get());
-                gfxDriver->BeginSpriteBatch(Rect(), cam_trans, kFlip_None, bg_surface);
-            }
-            put_sprite_list_on_screen(true);
-            gfxDriver->EndSpriteBatch();
-            gfxDriver->EndSpriteBatch();
+            construct_roomview_sw(viewport.get());
         }
     }
 
@@ -2803,6 +2961,7 @@ static void construct_overlays()
         overtx.Ddb->SetRotation(over.rotation);
         overtx.Ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(over.transparency));
         overtx.Ddb->SetBlendMode(over.blendMode);
+        overtx.Ddb->SetShader(shaderInstances[over.GetShaderID()]);
         apply_tint_or_light_ddb(overtx, over.tint_light * over.HasLightLevel(), over.tint_level, over.tint_r, over.tint_g, over.tint_b, over.tint_light);
     }
 }
@@ -2856,6 +3015,8 @@ void construct_game_scene(bool full_redraw)
 
     // End the parent scene node
     gfxDriver->EndSpriteBatch();
+
+    gfxDriver->SetScreenShader(shaderInstances[play.GetScreenShaderID()]);
 }
 
 void construct_game_screen_overlay(bool draw_mouse)
@@ -2886,6 +3047,8 @@ void construct_game_screen_overlay(bool draw_mouse)
         assert(cursor_tx.Ddb); // Test for missing texture, might happen if not marked for update
         if (cursor_tx.Ddb)
         {
+            cursor_tx.Ddb->SetShader(shaderInstances[play.GetCursorShaderID()]);
+
             // Exclusive sub-batch for mouse cursor, to let filter it out (CHECKME later?)
             gfxDriver->BeginSpriteBatch(Rect(), SpriteTransform(), kFlip_None, nullptr, RENDER_BATCH_MOUSE_CURSOR);
             gfxDriver->DrawSprite(mousex - mouse_hotx, mousey - mouse_hoty, cursor_tx.Ddb);
@@ -2930,7 +3093,7 @@ void update_shakescreen()
     play.shake_screen_yoff = 0;
     if (play.shakesc_length > 0)
     {
-        if ((loopcounter % play.shakesc_delay) < (play.shakesc_delay / 2))
+        if ((get_loop_counter() % play.shakesc_delay) < (play.shakesc_delay / 2))
             play.shake_screen_yoff = play.shakesc_amount;
     }
 }

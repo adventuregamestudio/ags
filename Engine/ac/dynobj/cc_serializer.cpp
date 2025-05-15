@@ -22,6 +22,7 @@
 #include "ac/dynobj/scriptcontainers.h"
 #include "ac/dynobj/scriptfile.h"
 #include "ac/dynobj/scriptmotionpath.h"
+#include "ac/dynobj/scriptshader.h"
 #include "ac/dynobj/scriptviewport.h"
 #include "ac/game.h"
 #include "ac/gui.h"
@@ -216,6 +217,16 @@ void AGSDeSerializer::Unserialize(int index, const char *objectType, const char 
     {
         ScriptMotionPath *sc_path = new ScriptMotionPath();
         sc_path->Unserialize(index, &mems, data_sz);
+    }
+    else if (strcmp(objectType, "ShaderProgram") == 0)
+    {
+        ScriptShaderProgram *sc_shader = new ScriptShaderProgram();
+        sc_shader->Unserialize(index, &mems, data_sz);
+    }
+    else if (strcmp(objectType, "ShaderInstance") == 0)
+    {
+        ScriptShaderInstance *sc_shinst = new ScriptShaderInstance();
+        sc_shinst->Unserialize(index, &mems, data_sz);
     }
     else
     {

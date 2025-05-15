@@ -11,9 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-
 #include <ctype.h> // for toupper
-
 #include "core/platform.h"
 #include "util/string_utils.h" //strlwr()
 #include "ac/common.h"
@@ -44,6 +42,7 @@
 #include "ac/walkablearea.h"
 #include "ac/walkbehind.h"
 #include "ac/dynobj/scriptobjects.h"
+#include "ac/dynobj/scriptshader.h"
 #include "ac/dynobj/scriptuserobject.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/dynobj/all_dynamicclasses.h"
@@ -87,7 +86,6 @@ extern int in_leaves_screen;
 extern CharacterInfo*playerchar;
 extern std::vector<CharacterExtras> charextra;
 extern int starting_room;
-extern unsigned int loopcounter;
 extern IDriverDependantBitmap* roomBackgroundBmp;
 extern IGraphicsDriver *gfxDriver;
 extern RGB palette[256];
@@ -160,6 +158,18 @@ int Room_GetColorDepth() {
 
 int Room_GetBackgroundCount() {
     return thisroom.BgFrameCount;
+}
+
+ScriptShaderInstance *Room_GetBackgroundShader()
+{
+    return static_cast<ScriptShaderInstance *>(ccGetObjectAddressFromHandle(
+        croom->GetBgShaderHandle()));
+}
+
+void Room_SetBackgroundShader(ScriptShaderInstance *shader_inst)
+{
+    croom->SetBgShader(shader_inst ? shader_inst->GetID() : ScriptShaderInstance::NullInstanceID,
+                         ccReplaceObjectHandle(croom->GetBgShaderHandle(), shader_inst));
 }
 
 int Room_GetLeftEdge() {
@@ -300,18 +310,15 @@ ScriptPathfinder* Room_GetPathFinder()
 
 //=============================================================================
 
-void save_room_data_segment ()
+void save_room_data_segment()
 {
-    croom->FreeScriptData();
-    
     const auto &globaldata = roomscript->GetGlobalData();
     croom->tsdatasize = globaldata.size();
+    croom->tsdata.resize(globaldata.size());
     if (croom->tsdatasize > 0)
     {
-        croom->tsdata.resize(croom->tsdatasize);
-        memcpy(croom->tsdata.data(),&globaldata[0],croom->tsdatasize);
+        std::copy(globaldata.begin(), globaldata.end(), croom->tsdata.begin());
     }
-
 }
 
 void unload_old_room()
@@ -559,7 +566,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     }
 
     if ((newnum>=0) & (newnum<MAX_ROOMS))
-        croom = getRoomStatus(newnum);
+        croom = GetRoomState(newnum);
     else
         croom=&troom;
 
@@ -913,15 +920,6 @@ void set_room_placeholder()
     croom = &troom;
 }
 
-int find_highest_room_entered() {
-    int qq,fndas=-1;
-    for (qq=0;qq<MAX_ROOMS;qq++) {
-        if (isRoomStatusValid(qq) && (getRoomStatus(qq)->beenhere != 0))
-            fndas = qq;
-    }
-    return fndas;
-}
-
 void first_room_initialization() {
     starting_room = displayed_room;
     playerchar->prevroom = -1;
@@ -1086,6 +1084,16 @@ RuntimeScriptValue Sc_Room_GetBackgroundCount(const RuntimeScriptValue *params, 
     API_SCALL_INT(Room_GetBackgroundCount);
 }
 
+RuntimeScriptValue Sc_Room_GetBackgroundShader(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO(ScriptShaderInstance, Room_GetBackgroundShader);
+}
+
+RuntimeScriptValue Sc_Room_SetBackgroundShader(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_POBJ(Room_SetBackgroundShader, ScriptShaderInstance);
+}
+
 // int ()
 RuntimeScriptValue Sc_Room_GetLeftEdge(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -1194,6 +1202,8 @@ void RegisterRoomAPI()
         { "Room::SetTextProperty^2",                  API_FN_PAIR(Room_SetTextProperty) },
         { "Room::ProcessClick^3",                     API_FN_PAIR(RoomProcessClick) },
         { "Room::get_BackgroundCount",                API_FN_PAIR(Room_GetBackgroundCount) },
+        { "Room::get_BackgroundShader",               API_FN_PAIR(Room_GetBackgroundShader) },
+        { "Room::set_BackgroundShader",               API_FN_PAIR(Room_SetBackgroundShader) },
         { "Room::get_BottomEdge",                     API_FN_PAIR(Room_GetBottomEdge) },
         { "Room::get_ColorDepth",                     API_FN_PAIR(Room_GetColorDepth) },
         { "Room::get_Height",                         API_FN_PAIR(Room_GetHeight) },

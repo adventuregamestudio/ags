@@ -160,6 +160,7 @@ enum GuiSvgVersion
     kGuiSvgVersion_40010    = 4000010, // compat with kGuiSvgVersion_36200-36202
     kGuiSvgVersion_40014    = 4000014, // proper ARGB color properties
     kGuiSvgVersion_40016    = 4000016, // extended graphic properties for controls
+    kGuiSvgVersion_40018    = 4000018, // shaders
 };
 
 // Style of GUI drawing in disabled state

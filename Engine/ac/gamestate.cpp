@@ -282,6 +282,8 @@ void GamePlayState::DeleteRoomViewport(int index)
 {
     if (index < 0 || (size_t)index >= _roomViewports.size())
         return;
+
+    // Invalidate script object
     auto handle = _scViewportHandles[index];
     auto scobj = (ScriptViewport*)ccGetObjectAddressFromHandle(handle);
     if (scobj)
@@ -289,9 +291,15 @@ void GamePlayState::DeleteRoomViewport(int index)
         scobj->Invalidate();
         ccReleaseObjectReference(handle);
     }
+    // Unlink camera
     auto cam = _roomViewports[index]->GetCamera();
     if (cam)
         cam->UnlinkFromViewport(index);
+
+    // Release shader handle (if present)
+    ccRemoveObjectHandle(_roomViewports[index]->GetShaderHandle());
+
+    // Erase viewport object and adjust the cameras lists
     _roomViewports.erase(_roomViewports.begin() + index);
     _scViewportHandles.erase(_scViewportHandles.begin() + index);
     for (size_t i = index; i < _roomViewports.size(); ++i)
@@ -351,6 +359,8 @@ void GamePlayState::DeleteRoomCamera(int index)
 {
     if (index < 0 || (size_t)index >= _roomCameras.size())
         return;
+
+    // Invalidate script object
     auto handle = _scCameraHandles[index];
     auto scobj = (ScriptCamera*)ccGetObjectAddressFromHandle(handle);
     if (scobj)
@@ -358,12 +368,18 @@ void GamePlayState::DeleteRoomCamera(int index)
         scobj->Invalidate();
         ccReleaseObjectReference(handle);
     }
+    // Unlink viewport
     for (auto& viewref : _roomCameras[index]->GetLinkedViewports())
     {
         auto view = viewref.lock();
         if (view)
             view->LinkCamera(nullptr);
     }
+
+    // Release shader handle (if present)
+    ccRemoveObjectHandle(_roomCameras[index]->GetShaderHandle());
+
+    // Erase camera object and adjust the cameras lists
     _roomCameras.erase(_roomCameras.begin() + index);
     _scCameraHandles.erase(_scCameraHandles.begin() + index);
     for (size_t i = index; i < _roomCameras.size(); ++i)
@@ -393,6 +409,18 @@ ScriptCamera *GamePlayState::GetScriptCamera(int index)
     if (index < 0 || (size_t)index >= _roomCameras.size())
         return nullptr;
     return (ScriptCamera*)ccGetObjectAddressFromHandle(_scCameraHandles[index]);
+}
+
+void GamePlayState::SetScreenShader(int shader_id, int shader_handle)
+{
+    _screenShaderID = shader_id;
+    _screenShaderHandle = shader_handle;
+}
+
+void GamePlayState::SetCursorShader(int shader_id, int shader_handle)
+{
+    _cursorShaderID = shader_id;
+    _cursorShaderHandle = shader_handle;
 }
 
 bool GamePlayState::IsIgnoringInput() const
@@ -652,8 +680,21 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
     if (svg_ver >= kGSSvgVersion_400_03)
     {
         face_dir_ratio = in->ReadFloat32();
+        // used since kGSSvgVersion_400_18
+        _screenShaderID = in->ReadInt32();
+        _screenShaderHandle = in->ReadInt32();
+        _cursorShaderID = in->ReadInt32();
+        _cursorShaderHandle = in->ReadInt32();
         // reserve few more 32-bit values (for a total of 10)
-        in->Seek(sizeof(int32_t) * 9);
+        in->Seek(sizeof(int32_t) * 5);
+    }
+    else
+    {
+        face_dir_ratio = 1.f;
+        _screenShaderID = 0;
+        _screenShaderHandle = 0;
+        _cursorShaderID = 0;
+        _cursorShaderHandle = 0;
     }
 }
 
@@ -845,11 +886,15 @@ void GamePlayState::WriteForSavegame(Stream *out) const
     out->WriteInt32(dialog_options_gui_y);
     out->WriteInt32(dialog_options_textalign);
     out->WriteInt32(0); // reserve up to 4 ints
-    
+
     // kGSSvgVersion_400_03
     out->WriteFloat32(face_dir_ratio);
+    out->WriteInt32(_screenShaderID); // used since kGSSvgVersion_400_18
+    out->WriteInt32(_screenShaderHandle);
+    out->WriteInt32(_cursorShaderID);
+    out->WriteInt32(_cursorShaderHandle);
     // reserve few more 32-bit values (for a total of 10)
-    out->WriteByteCount(0, sizeof(int32_t) * 9);
+    out->WriteByteCount(0, sizeof(int32_t) * 5);
 }
 
 void GamePlayState::FreeProperties()

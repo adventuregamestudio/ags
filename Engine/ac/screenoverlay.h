@@ -61,6 +61,7 @@ enum OverlaySvgVersion
     kOverSvgVersion_36108   = 4, // don't save owned sprites (use dynamic sprites)
     kOverSvgVersion_400     = 4000000, // blend mode, etc
     kOverSvgVersion_40005   = 4000005, // no magic values stored in x,y
+    kOverSvgVersion_40018   = 4000018, // shaders
 };
 
 // TODO: what if we actually register a real dynamic sprite for overlay?
@@ -135,9 +136,17 @@ struct ScreenOverlay
     void SetLightLevel(int light_level);
     // Removes tint and light level
     void RemoveTint();
+    // Gets shader id
+    int  GetShaderID() const { return _shaderID; }
+    // Gets script shader's managed handle
+    int  GetShaderHandle() const { return _shaderHandle; }
+    // Assigns a shader to overlay
+    void SetShader(int shader_id, int shader_handle);
+    // Removes a shader reference
+    void RemoveShader();
     // Tells if Overlay has graphically changed recently
     bool HasChanged() const { return _hasChanged; }
-    // Manually marks GUI as graphically changed
+    // Manually marks overlay as graphically changed
     void MarkChanged() { _hasChanged = true; }
     // Clears changed flag
     void ClearChanged() { _hasChanged = false; }
@@ -154,6 +163,9 @@ private:
     int _flags = 0; // OverlayFlags
     int _sprnum = 0; // sprite id
     Common::SpriteTransformFlags _spritetf = Common::kSprTf_None;
+    // TODO: a RAII wrapper over managed handle, that auto releases the reference
+    int _shaderID = 0;
+    int _shaderHandle = 0;
     bool _hasChanged = false;
 };
 

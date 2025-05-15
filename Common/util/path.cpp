@@ -51,6 +51,22 @@ String GetFilename(const String &path)
     return path;
 }
 
+String GetFilenameNoExt(const String &path)
+{
+    const char *cstr = path.GetCStr();
+    const char *ptr_end = cstr + path.GetLength();
+    const char *cstr_end_at = nullptr;
+    for (const char *ptr = ptr_end; ptr >= cstr; --ptr)
+    {
+        if (*ptr == '.' && !cstr_end_at)
+            cstr_end_at = ptr;
+
+        if (*ptr == '/' || *ptr == PATH_ALT_SEPARATOR)
+            return String(ptr + 1, cstr_end_at ? (cstr_end_at - ptr - 1) : SIZE_MAX);
+    }
+    return path;
+}
+
 String GetFileExtension(const String &path)
 {
     const char *cstr = path.GetCStr();

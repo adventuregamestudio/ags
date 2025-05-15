@@ -50,11 +50,19 @@ void SyncDrawablesState();
 bool IsInWaitMode();
 // Shuts down game's waiting state, if one is running right now.
 void ShutGameWaitState();
+
 // Gets current logical game FPS, this is normally a fixed number set in script;
 // in case of "maxed fps" mode this function returns real measured FPS.
 float get_game_fps();
 // Gets real fps, calculated based on the game performance.
 float get_real_fps();
+// Sets game frame index
+void set_loop_counter(uint32_t new_counter);
+// Increments game frame index once
+void increment_loop_counter();
+// Gets game frame index, counted since the game started
+uint32_t get_loop_counter();
+
 // Runs service key controls, returns false if no key was pressed or key input was claimed by the engine,
 // otherwise returns true and provides a keycode.
 bool run_service_key_controls(KeyInput &kgn);

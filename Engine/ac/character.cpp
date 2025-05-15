@@ -48,6 +48,7 @@
 #include "ac/viewframe.h"
 #include "ac/walkablearea.h"
 #include "ac/dynobj/scriptmotionpath.h"
+#include "ac/dynobj/scriptshader.h"
 #include "debug/debug_log.h"
 #include "gui/guimain.h"
 #include "main/game_run.h"
@@ -1776,6 +1777,18 @@ int Character_GetBlendMode(CharacterInfo *chaa) {
 
 void Character_SetBlendMode(CharacterInfo *chaa, int blend_mode) {
     charextra[chaa->index_id].blend_mode = ValidateBlendMode("Character.BlendMode", blend_mode);
+}
+
+ScriptShaderInstance *Character_GetShader(CharacterInfo *chaa)
+{
+    return static_cast<ScriptShaderInstance *>(ccGetObjectAddressFromHandle(charextra[chaa->index_id].shader_handle));
+}
+
+void Character_SetShader(CharacterInfo *chaa, ScriptShaderInstance *shader_inst)
+{
+    auto &chex = charextra[chaa->index_id];
+    chex.shader_id = shader_inst ? shader_inst->GetID() : ScriptShaderInstance::NullInstanceID;
+    chex.shader_handle = ccReplaceObjectHandle(chex.shader_handle, shader_inst);
 }
 
 float Character_GetRotation(CharacterInfo *chaa) {
@@ -4214,6 +4227,16 @@ RuntimeScriptValue Sc_Character_SetBlendMode(void *self, const RuntimeScriptValu
     API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetBlendMode);
 }
 
+RuntimeScriptValue Sc_Character_GetShader(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJAUTO(CharacterInfo, ScriptShaderInstance, Character_GetShader);
+}
+
+RuntimeScriptValue Sc_Character_SetShader(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_POBJ(CharacterInfo, Character_SetShader, ScriptShaderInstance);
+}
+
 // bool (CharacterInfo *chaa)
 RuntimeScriptValue Sc_Character_GetUseRegionTint(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -4456,6 +4479,9 @@ void RegisterCharacterAPI(ScriptAPIVersion /*base_api*/, ScriptAPIVersion /*comp
         { "Character::get_FaceDirectionRatio",    API_FN_PAIR(Character_GetFaceDirectionRatio) },
         { "Character::set_FaceDirectionRatio",    API_FN_PAIR(Character_SetFaceDirectionRatio) },
         { "Character::get_MotionPath",            API_FN_PAIR(Character_GetMotionPath) },
+
+        { "Character::get_Shader",                API_FN_PAIR(Character_GetShader) },
+        { "Character::set_Shader",                API_FN_PAIR(Character_SetShader) },
     };
 
     ccAddExternalFunctions(character_api);

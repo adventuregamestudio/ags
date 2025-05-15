@@ -45,6 +45,7 @@
 #include "gui/guimain.h"
 #include "gui/guislider.h"
 #include "gui/guitextbox.h"
+#include "main/game_run.h"
 #include "media/audio/audio_system.h"
 #include "plugin/plugin_engine.h"
 #include "script/cc_common.h"
@@ -267,6 +268,11 @@ void WriteCameraState(const Camera &cam, Stream *out)
     out->WriteInt32(rc.Top);
     out->WriteInt32(rc.GetWidth());
     out->WriteInt32(rc.GetHeight());
+    // kGSSvgVersion_400_18
+    out->WriteInt32(cam.GetShaderID());
+    out->WriteInt32(cam.GetShaderHandle());
+    out->WriteInt32(0); // reserved
+    out->WriteInt32(0);
 }
 
 void WriteViewportState(const Viewport &view, Stream *out)
@@ -285,6 +291,11 @@ void WriteViewportState(const Viewport &view, Stream *out)
         out->WriteInt32(cam->GetID());
     else
         out->WriteInt32(-1);
+    // kGSSvgVersion_400_18
+    out->WriteInt32(view.GetShaderID());
+    out->WriteInt32(view.GetShaderHandle());
+    out->WriteInt32(0); // reserved
+    out->WriteInt32(0);
 }
 
 HSaveError WriteGameState(Stream *out)
@@ -299,7 +310,7 @@ HSaveError WriteGameState(Stream *out)
     play.WriteForSavegame(out);
     // Other dynamic values
     out->WriteInt32(frames_per_second);
-    out->WriteInt32(loopcounter);
+    out->WriteInt32(get_loop_counter());
     out->WriteInt32(ifacepopped);
     out->WriteInt32(game_paused);
     // Mouse cursor
@@ -322,7 +333,7 @@ HSaveError WriteGameState(Stream *out)
     return HSaveError::None();
 }
 
-void ReadCameraState(RestoredData &r_data, Stream *in)
+void ReadCameraState(GameStateSvgVersion svg_ver, RestoredData &r_data, Stream *in)
 {
     RestoredData::CameraData cam;
     cam.ID = r_data.Cameras.size();
@@ -331,10 +342,17 @@ void ReadCameraState(RestoredData &r_data, Stream *in)
     cam.Top = in->ReadInt32();
     cam.Width = in->ReadInt32();
     cam.Height = in->ReadInt32();
+    if (svg_ver >= kGSSvgVersion_400_18)
+    {
+        cam.ShaderID = in->ReadInt32();
+        cam.ShaderHandle = in->ReadInt32();
+        in->ReadInt32(); // reserved
+        in->ReadInt32();
+    }
     r_data.Cameras.push_back(cam);
 }
 
-void ReadViewportState(RestoredData &r_data, Stream *in)
+void ReadViewportState(GameStateSvgVersion svg_ver, RestoredData &r_data, Stream *in)
 {
     RestoredData::ViewportData view;
     view.ID = r_data.Viewports.size();
@@ -345,6 +363,13 @@ void ReadViewportState(RestoredData &r_data, Stream *in)
     view.Height = in->ReadInt32();
     view.ZOrder = in->ReadInt32();
     view.CamID = in->ReadInt32();
+    if (svg_ver >= kGSSvgVersion_400_18)
+    {
+        view.ShaderID = in->ReadInt32();
+        view.ShaderHandle = in->ReadInt32();
+        in->ReadInt32(); // reserved
+        in->ReadInt32();
+    }
     r_data.Viewports.push_back(view);
 }
 
@@ -383,13 +408,13 @@ HSaveError ReadGameState(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pre
         for (int i = 0; i < cam_count; ++i)
         {
             play.CreateRoomCamera();
-            ReadCameraState(r_data, in);
+            ReadCameraState(svg_ver, r_data, in);
         }
         int view_count = in->ReadInt32();
         for (int i = 0; i < view_count; ++i)
         {
             play.CreateRoomViewport();
-            ReadViewportState(r_data, in);
+            ReadViewportState(svg_ver, r_data, in);
         }
     }
     return err;
@@ -1424,9 +1449,9 @@ HSaveError WriteRoomStates(Stream *out)
     out->WriteInt32(MAX_ROOMS);
     for (int i = 0; i < MAX_ROOMS; ++i)
     {
-        if (isRoomStatusValid(i))
+        RoomStatus *roomstat = GetRoomStateIfExists(i);
+        if (roomstat)
         {
-            RoomStatus *roomstat = getRoomStatus(i);
             if (roomstat->beenhere)
             {
                 out->WriteInt32(i);
@@ -1435,10 +1460,14 @@ HSaveError WriteRoomStates(Stream *out)
                 WriteFormatTag(out, "RoomState", false);
             }
             else
+            {
                 out->WriteInt32(-1);
+            }
         }
         else
+        {
             out->WriteInt32(-1);
+        }
     }
     return HSaveError::None();
 }
@@ -1457,7 +1486,7 @@ HSaveError ReadRoomStates(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pr
                 return err;
             if (!AssertFormatTagStrict(err, in, "RoomState", true))
                 return err;
-            RoomStatus *roomstat = getRoomStatus(id);
+            RoomStatus *roomstat = GetRoomState(id);
             roomstat->ReadFromSavegame(in, (RoomStatSvgVersion)cmp_ver);
             if (!AssertFormatTagStrict(err, in, "RoomState", false))
                 return err;
@@ -1706,7 +1735,7 @@ ComponentHandler ComponentHandlers[] =
     // at which a change was introduced, represented as NN,NN,NN,NN.
     {
         "Game State",
-        kGSSvgVersion_400_17,
+        kGSSvgVersion_400_18,
         kGSSvgVersion_400,
         kSaveCmp_GameState,
         WriteGameState,
@@ -1724,7 +1753,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Characters",
-        kCharSvgVersion_400_16,
+        kCharSvgVersion_400_18,
         kCharSvgVersion_400,
         kSaveCmp_Characters,
         WriteCharacters,
@@ -1742,7 +1771,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "GUI",
-        kGuiSvgVersion_40016,
+        kGuiSvgVersion_40018,
         kGuiSvgVersion_Initial,
         kSaveCmp_GUI,
         WriteGUI,
@@ -1797,7 +1826,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Overlays",
-        kOverSvgVersion_40005,
+        kOverSvgVersion_40018,
         kOverSvgVersion_Initial,
         kSaveCmp_Overlays,
         WriteOverlays,
@@ -1824,7 +1853,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Room States",
-        kRoomStatSvgVersion_40016,
+        kRoomStatSvgVersion_40018,
         kRoomStatSvgVersion_40003,
         kSaveCmp_Rooms,
         WriteRoomStates,
@@ -1833,7 +1862,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Loaded Room State",
-        kRoomStatSvgVersion_40008, // must correspond to "Room States"
+        kRoomStatSvgVersion_40018, // must correspond to "Room States"
         kRoomStatSvgVersion_40003,
         kSaveCmp_ThisRoom,
         WriteThisRoom,

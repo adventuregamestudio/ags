@@ -49,9 +49,6 @@ struct ScriptCamera;
 struct ScriptOverlay;
 
 // GameState struct's runtime save format
-// This is a length limit for serialized field,
-// not actual api input argument
-#define PLAYMP3FILE_MAX_FILENAME_LEN 50
 enum GameStateSvgVersion
 {
     kGSSvgVersion_Initial   = 0,
@@ -65,6 +62,7 @@ enum GameStateSvgVersion
     kGSSvgVersion_400_08    = 4000008, // palette component range 64->256
     kGSSvgVersion_400_14    = 4000014, // 32-bit ARGB color properties
     kGSSvgVersion_400_17    = 4000017, // compat w kGSSvgVersion_363
+    kGSSvgVersion_400_18    = 4000018, // shaders
 };
 
 
@@ -212,7 +210,7 @@ struct GamePlayState
     bool  raw_modified[MAX_ROOM_BGFRAMES]{}; // tell which current room bgs were modified
     int   room_changes = 0;
     int   mouse_cursor_hidden = 0;
-    unsigned long shakesc_delay = 0;  // unsigned long to match loopcounter
+    uint32_t shakesc_delay = 0; // unsigned to match loopcounter
     int   shakesc_amount = 0;
     int   shakesc_length = 0;
     int   rtint_red = 0;
@@ -373,6 +371,14 @@ struct GamePlayState
     // because script interpreter does this when acquiring managed pointer.
     ScriptCamera *GetScriptCamera(int index);
 
+    int GetScreenShaderID() const { return _screenShaderID; }
+    int GetScreenShaderHandle() const { return _screenShaderHandle; }
+    void SetScreenShader(int shader_id, int shader_handle);
+
+    int GetCursorShaderID() const { return _cursorShaderID; }
+    int GetCursorShaderHandle() const { return _cursorShaderHandle; }
+    void SetCursorShader(int shader_id, int shader_handle);
+
     // Tells if engine should apply AA (linear) scaling to the game sprites
     bool ShouldAASprites() const { return enable_antialiasing && (disable_antialiasing == 0); }
 
@@ -443,6 +449,11 @@ private:
     // could address them and invalidate as the actual object gets destroyed.
     std::vector<int32_t> _scViewportHandles;
     std::vector<int32_t> _scCameraHandles;
+    // TODO: a RAII wrapper over managed handle, that auto releases the reference
+    int _screenShaderID = 0;
+    int _screenShaderHandle = 0;
+    int _cursorShaderID = 0;
+    int _cursorShaderHandle = 0;
 
     // Tells that the main viewport's position has changed since last game update
     bool  _mainViewportHasChanged = false;

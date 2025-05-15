@@ -126,6 +126,20 @@ void ScreenOverlay::RemoveTint()
     MarkChanged();
 }
 
+void ScreenOverlay::SetShader(int shader_id, int shader_handle)
+{
+    _shaderID = shader_id;
+    _shaderHandle = shader_handle;
+    MarkChanged();
+}
+
+void ScreenOverlay::RemoveShader()
+{
+    _shaderID = 0;
+    _shaderHandle = 0;
+    MarkChanged();
+}
+
 void ScreenOverlay::ReadFromSavegame(Stream *in, bool &has_bitmap, int32_t cmp_ver)
 {
     ResetImage();
@@ -199,6 +213,14 @@ void ScreenOverlay::ReadFromSavegame(Stream *in, bool &has_bitmap, int32_t cmp_v
         in->ReadInt32(); // sprite anchor y
     }
 
+    if (cmp_ver > kOverSvgVersion_40018)
+    {
+        _shaderID = in->ReadInt32();
+        _shaderHandle = in->ReadInt32();
+        in->ReadInt32(); // reserved
+        in->ReadInt32();
+    }
+
     // Convert magic x,y values from the older saves
     if (cmp_ver < kOverSvgVersion_40005)
     {
@@ -251,4 +273,9 @@ void ScreenOverlay::WriteToSavegame(Stream *out) const
     out->WriteInt32(0); // sprite pivot y
     out->WriteInt32(0); // sprite anchor x
     out->WriteInt32(0); // sprite anchor y
+    // kOverSvgVersion_40018
+    out->WriteInt32(_shaderID);
+    out->WriteInt32(_shaderHandle);
+    out->WriteInt32(0); // reserved
+    out->WriteInt32(0);
 }

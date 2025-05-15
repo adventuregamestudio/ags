@@ -29,6 +29,7 @@
 #include "ac/region.h"
 #include "ac/room.h"
 #include "ac/roomstatus.h"
+#include "ac/shader_script.h"
 #include "ac/spritecache.h"
 #include "ac/string.h"
 #include "ac/system.h"
@@ -37,8 +38,9 @@
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/dynobj/cc_dynamicarray.h"
 #include "ac/dynobj/managedobjectpool.h"
-#include "ac/dynobj/scriptuserobject.h"
 #include "ac/dynobj/scriptrestoredsaveinfo.h"
+#include "ac/dynobj/scriptshader.h"
+#include "ac/dynobj/scriptuserobject.h"
 #include "debug/debugger.h"
 #include "debug/out.h"
 #include "device/mousew32.h"
@@ -487,7 +489,7 @@ void DoBeforeRestore(PreservedParams &pp, SaveCmpSelection select_cmp)
     UnlinkAllScripts();
 
     // reset saved room states
-    resetRoomStatuses();
+    ResetRoomStates();
     // reset temp room state
     troom = RoomStatus();
     // reset (some of the?) GameState data
@@ -618,6 +620,7 @@ static void RestoreViewportsAndCameras(const RestoredData &r_data)
         view->SetVisible((view_dat.Flags & kSvgViewportVisible) != 0);
         view->SetRect(RectWH(view_dat.Left, view_dat.Top, view_dat.Width, view_dat.Height));
         view->SetZOrder(view_dat.ZOrder);
+        view->SetShader(view_dat.ShaderID, view_dat.ShaderHandle);
         // Restore camera link
         int cam_index = view_dat.CamID;
         if (cam_index < 0) continue;
@@ -822,6 +825,8 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
         if (!err)
             return err;
     }
+
+    RestoreShaders();
 
     adjust_fonts_for_render_mode(game.options[OPT_ANTIALIASFONTS] != 0);
 

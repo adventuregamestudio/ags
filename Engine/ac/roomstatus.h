@@ -39,6 +39,7 @@ enum RoomStatSvgVersion
     kRoomStatSvgVersion_40003    = 4000003, // room object flags as 32-bit, facedirratio
     kRoomStatSvgVersion_40008    = 4000008, // custom properties for regions and walk-areas
     kRoomStatSvgVersion_40016    = 4000016, // room objects expose script motion path
+    kRoomStatSvgVersion_40018    = 4000018, // shaders
     kRoomStatSvgVersion_Current  = kRoomStatSvgVersion_40016
 };
 
@@ -60,12 +61,14 @@ struct WalkareaState
 };
 
 // RoomStatus contains everything about a room that could change at runtime.
-struct RoomStatus
+class RoomStatus
 {
-    int   beenhere;
-    uint32_t numobj;
+public:
+    // TODO: hide these fields under get/set methods
+    int   beenhere = 0;
+    uint32_t numobj = 0;
     std::vector<RoomObject> obj;
-    uint32_t tsdatasize;
+    uint32_t tsdatasize = 0;
     std::vector<uint8_t> tsdata;
 
     HotspotState hotspot[MAX_ROOM_HOTSPOTS];
@@ -85,25 +88,37 @@ struct RoomStatus
     // We need this for cases when an old format save is restored within an upgraded game
     // (for example, game was upgraded from 3.4.0 to 3.6.0, but player tries loading 3.4.0 save),
     // because room files are only loaded once entered, so we cannot fixup all RoomStatuses at once.
-    RoomStatSvgVersion contentFormat;
+    RoomStatSvgVersion contentFormat = kRoomStatSvgVersion_Current;
 
     RoomStatus();
     ~RoomStatus();
 
-    void FreeScriptData();
-    void FreeProperties();
+    int  GetBgShaderID() const { return _bgShaderID; }
+    int  GetBgShaderHandle() const { return _bgShaderHandle; }
+    void SetBgShader(int shader_id, int shader_handle);
 
     void ReadFromSavegame(Common::Stream *in, RoomStatSvgVersion cmp_ver);
     void WriteToSavegame(Common::Stream *out) const;
+
+private:
+    void FreeScriptData();
+    void FreeProperties();
+
+    // TODO: a RAII wrapper over managed handle, that auto releases the reference
+    int _bgShaderID = 0;
+    int _bgShaderHandle = 0;
 };
 
-// Replaces all accesses to the roomstats array
-RoomStatus* getRoomStatus(int room);
-// Used in places where it is only important to know whether the player
-// had previously entered the room. In this case it is not necessary
-// to initialise the status because a player can only have been in
-// a room if the status is already initialised.
-bool isRoomStatusValid(int room);
-void resetRoomStatuses();
+// Retrieves a given room's runtime state. *Allocates* one if it does not exist
+RoomStatus* GetRoomState(int room);
+// Retrieves a existing room's runtime state; returns null if one was not allocated
+RoomStatus *GetRoomStateIfExists(int room);
+// Checks whether the room state exists.
+bool IsRoomStateValid(int room);
+// Deletes particular room's runtime state. This will make the game forget about
+// what happened in that room, and make it start anew whenever player enters it again.
+void ResetRoomState(int room);
+// Deletes all room runtime states.
+void ResetRoomStates();
 
 #endif // __AGS_EE_AC__ROOMSTATUS_H

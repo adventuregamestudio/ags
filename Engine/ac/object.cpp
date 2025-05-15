@@ -35,6 +35,7 @@
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/dynobj/scriptuserobject.h"
 #include "ac/dynobj/scriptmotionpath.h"
+#include "ac/dynobj/scriptshader.h"
 #include "debug/debug_log.h"
 #include "main/game_run.h"
 #include "ac/route_finder.h"
@@ -854,6 +855,18 @@ int Object_GetBlendMode(ScriptObject *objj) {
 
 void Object_SetBlendMode(ScriptObject *objj, int blend_mode) {
     objs[objj->id].blend_mode = ValidateBlendMode("Object.BlendMode", blend_mode);
+}
+
+ScriptShaderInstance *Object_GetShader(ScriptObject *objj)
+{
+    return static_cast<ScriptShaderInstance *>(ccGetObjectAddressFromHandle(objs[objj->id].shader_handle));
+}
+
+void Object_SetShader(ScriptObject *objj, ScriptShaderInstance *shader_inst)
+{
+    auto &obj = objs[objj->id];
+    obj.shader_id = shader_inst ? shader_inst->GetID() : ScriptShaderInstance::NullInstanceID;
+    obj.shader_handle = ccReplaceObjectHandle(obj.shader_handle, shader_inst);
 }
 
 float Object_GetRotation(ScriptObject *objj) {
@@ -1736,6 +1749,17 @@ RuntimeScriptValue Sc_Object_SetBlendMode(void *self, const RuntimeScriptValue *
     API_OBJCALL_VOID_PINT(ScriptObject, Object_SetBlendMode);
 }
 
+RuntimeScriptValue Sc_Object_GetShader(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJAUTO(ScriptObject, ScriptShaderInstance, Object_GetShader);
+}
+
+// void (ScriptObject *objj, int blendMode)
+RuntimeScriptValue Sc_Object_SetShader(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_POBJ(ScriptObject, Object_SetShader, ScriptShaderInstance);
+}
+
 // bool (ScriptObject *objj)
 RuntimeScriptValue Sc_Object_GetUseRegionTint(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -1848,6 +1872,9 @@ void RegisterObjectAPI()
         { "Object::set_UseRegionTint",        API_FN_PAIR(Object_SetUseRegionTint) },
 
         { "Object::get_MotionPath",           API_FN_PAIR(Object_GetMotionPath) },
+
+        { "Object::get_Shader",               API_FN_PAIR(Object_GetShader) },
+        { "Object::set_Shader",               API_FN_PAIR(Object_SetShader) },
     };
 
     ccAddExternalFunctions(object_api);

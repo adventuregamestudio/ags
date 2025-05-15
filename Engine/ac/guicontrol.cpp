@@ -24,6 +24,8 @@
 #include "ac/string.h"
 #include "ac/dynobj/cc_gui.h"
 #include "ac/dynobj/cc_guicontrol.h"
+#include "ac/dynobj/scriptshader.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "debug/debug_log.h"
 #include "script/runtimescriptvalue.h"
 
@@ -258,6 +260,17 @@ bool GUIControl_SetTextProperty(GUIObject *guio, const char *property, const cha
     return set_text_property(play.guicontrolProps[ctrl_type][ctrl_id], property, value);
 }
 
+ScriptShaderInstance *GUIControl_GetShader(GUIObject *guio)
+{
+    return static_cast<ScriptShaderInstance*>(ccGetObjectAddressFromHandle(guio->GetShaderHandle()));
+}
+
+void GUIControl_SetShader(GUIObject *guio, ScriptShaderInstance *shader_inst)
+{
+    guio->SetShader(shader_inst ? shader_inst->GetID() : ScriptShaderInstance::NullInstanceID,
+                    ccReplaceObjectHandle(guio->GetShaderHandle(), shader_inst));
+}
+
 //=============================================================================
 //
 // Script API Functions
@@ -483,6 +496,16 @@ RuntimeScriptValue Sc_GUIControl_SetBlendMode(void *self, const RuntimeScriptVal
     API_OBJCALL_VOID_PINT(GUIObject, GUIControl_SetBlendMode);
 }
 
+RuntimeScriptValue Sc_GUIControl_GetShader(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJAUTO(GUIObject, ScriptShaderInstance, GUIControl_GetShader);
+}
+
+RuntimeScriptValue Sc_GUIControl_SetShader(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_POBJ(GUIObject, GUIControl_SetShader, ScriptShaderInstance);
+}
+
 RuntimeScriptValue Sc_GUIControl_GetProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT_POBJ(GUIObject, GUIControl_GetProperty, const char);
@@ -547,6 +570,9 @@ void RegisterGUIControlAPI()
         { "GUIControl::set_Transparency", API_FN_PAIR(GUIControl_SetTransparency) },
         { "GUIControl::get_BlendMode",    API_FN_PAIR(GUIControl_GetBlendMode) },
         { "GUIControl::set_BlendMode",    API_FN_PAIR(GUIControl_SetBlendMode) },
+
+        { "GUIControl::get_Shader",       API_FN_PAIR(GUIControl_GetShader) },
+        { "GUIControl::set_Shader",       API_FN_PAIR(GUIControl_SetShader) },
     };
 
     ccAddExternalFunctions(guicontrol_api);

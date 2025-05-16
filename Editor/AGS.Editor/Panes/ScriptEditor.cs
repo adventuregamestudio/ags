@@ -17,7 +17,7 @@ namespace AGS.Editor
         public delegate void AttemptToEditScriptHandler(ref bool allowEdit);
         public static event AttemptToEditScriptHandler AttemptToEditScript;
 
-        private delegate void AnonymousDelegate();
+        private Action _anonymousDelegate;
 
         // Custom Edit menu commands
         private const string TOGGLE_BREAKPOINT_COMMAND = "ToggleBreakpoint";
@@ -344,7 +344,7 @@ namespace AGS.Editor
             {
                 if (this.IsHandleCreated)
                 {
-                    this.Invoke(new AnonymousDelegate(UpdateFunctionList));
+                    this.Invoke(new Action(_anonymousDelegate));
                 }
             }
         }

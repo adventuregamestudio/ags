@@ -12,18 +12,16 @@ namespace AGS.Editor
     public partial class SpriteManager : EditorContentPanel
     {
         private Sprite[] _selectedSprites = null;
-        private SpriteFolder.SpritesUpdatedHandler _spriteUpdateHandler;
         private SpriteFolder _attachedToFolder = null;
 		private bool _pendingRefreshes = false;
 
         public SpriteManager()
         {
-            _spriteUpdateHandler = new SpriteFolder.SpritesUpdatedHandler(RootSpriteFolder_SpritesUpdated);
             InitializeComponent();
-            spriteSelector.OnSelectionChanged += new SpriteSelector.SelectionChangedHandler(spriteSelector_OnSelectionChanged);
+            spriteSelector.OnSelectionChanged += spriteSelector_OnSelectionChanged;
 
             _attachedToFolder = Factory.AGSEditor.CurrentGame.RootSpriteFolder;
-            _attachedToFolder.SpritesUpdated += _spriteUpdateHandler;
+            _attachedToFolder.SpritesUpdated += RootSpriteFolder_SpritesUpdated;
         }
 
         protected override string OnGetHelpKeyword()
@@ -129,10 +127,10 @@ namespace AGS.Editor
         {
             if (_attachedToFolder != null) 
             {
-                _attachedToFolder.SpritesUpdated -= _spriteUpdateHandler;
+                _attachedToFolder.SpritesUpdated -= RootSpriteFolder_SpritesUpdated;
             }
             _attachedToFolder = Factory.AGSEditor.CurrentGame.RootSpriteFolder;
-            _attachedToFolder.SpritesUpdated += _spriteUpdateHandler;
+            _attachedToFolder.SpritesUpdated += RootSpriteFolder_SpritesUpdated;
 
             spriteSelector.SetDataSource(_attachedToFolder);
         }

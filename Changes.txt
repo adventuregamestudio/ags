@@ -20,6 +20,7 @@ Common:
  - Removed support for '[' as a linebreak character in text.
 
 Editor:
+ - Editor requires .NET Framework 4.7 to run.
  - Open room project format: rooms are now saved as subfolders in "Rooms" folder, where each
    component has its own separate file (room data, backgrounds, masks and scripts).
  - "Fonts" node in the Project Explorer now contains separate "Font Files" and "Fonts" sublists.

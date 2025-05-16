@@ -6,8 +6,8 @@ RUN IF exist %TEMP%\nul ( echo %TEMP% ) ELSE ( mkdir %TEMP% )
 
 # .NET Framework 4.7 Developer Pack
 RUN pushd %TEMP% && \
-  curl -fLO https://download.microsoft.com/download/3/5/1/351f9afb-0505-47dc-a42e-34935707f300/NDP47-DevPack-KB3186612-ENU.exe && \
-  start /install /quiet /norestart && \
+  curl -fL https://download.microsoft.com/download/3/5/1/351f9afb-0505-47dc-a42e-34935707f300/NDP47-DevPack-KB3186612-ENU.exe -o dotnetsetup.exe && \
+  start /wait dotnetsetup.exe /install /quiet /norestart && \
   popd && \
   mkdir empty && \
   robocopy empty %TEMP% /MIR > nul & \

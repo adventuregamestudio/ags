@@ -253,6 +253,7 @@
             this.btnClose.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnClose.DialogResult = System.Windows.Forms.DialogResult.Cancel;
             this.btnClose.Location = new System.Drawing.Point(93, 354);
+            this.btnClose.Margin = new System.Windows.Forms.Padding(6);
             this.btnClose.Name = "btnClose";
             this.btnClose.Size = new System.Drawing.Size(75, 23);
             this.btnClose.TabIndex = 15;
@@ -264,6 +265,7 @@
             this.btnExport.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnExport.DialogResult = System.Windows.Forms.DialogResult.OK;
             this.btnExport.Location = new System.Drawing.Point(12, 354);
+            this.btnExport.Margin = new System.Windows.Forms.Padding(6);
             this.btnExport.Name = "btnExport";
             this.btnExport.Size = new System.Drawing.Size(75, 23);
             this.btnExport.TabIndex = 14;
@@ -308,18 +310,20 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(442, 377);
+            this.ClientSize = new System.Drawing.Size(442, 381);
             this.Controls.Add(this.groupBoxExportIf);
             this.Controls.Add(this.btnExport);
             this.Controls.Add(this.btnClose);
             this.Controls.Add(this.groupBoxSaveAs);
             this.Controls.Add(this.groupBoxExportFrom);
             this.Controls.Add(this.groupBoxSpriteProperties);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
-            this.MaximumSize = new System.Drawing.Size(4096, 416);
+            this.MaximumSize = new System.Drawing.Size(4096, 420);
             this.MinimizeBox = false;
-            this.MinimumSize = new System.Drawing.Size(450, 416);
+            this.MinimumSize = new System.Drawing.Size(450, 420);
             this.Name = "SpriteExportDialog";
+            this.ShowIcon = false;
             this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Sprite export";

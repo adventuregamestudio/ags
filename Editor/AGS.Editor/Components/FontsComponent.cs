@@ -389,11 +389,11 @@ namespace AGS.Editor.Components
             newItem.ID = id;
             newItem.Name = fontName;
             newItem.OutlineStyle = FontOutlineStyle.None;
+            newItem.PointSize = 0;
             if (sourceFontFile != null)
             {
                 AssignFontFileToFont(newItem, sourceFontFile);
             }
-            newItem.PointSize = sourceFontFile.FileFormat == FontFileFormat.WFN ? 0 : DEFAULT_IMPORTED_FONT_SIZE;
             newItem.TTFMetricsFixup = game.Settings.TTFMetricsFixup; // use defaults
             return newItem;
         }

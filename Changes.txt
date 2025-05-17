@@ -1,5 +1,22 @@
 REVISION HISTORY
 ================
+VERSION 3.6.1 - Patch 11, May 2025
+
+Editor:
+ - Clear output panels when loading a different project.
+
+Engine:
+ - Fixed engine could run scheduled previous room's event after changing to a different room.
+   This could happen, for example, if the room was changed in "on_event" with
+   eEventEnterRoomAfterFadein; in such case a previously scheduled "After Fade-in" would run
+   before proper "Before Fade-in" of the new room.
+ - Fixed in 8-bit games Fade effect did not having a frame delay (was passing instantly).
+
+Compatibility:
+ - Fixed certain old 8-bit games (like "Trilby's Notes") did not recover after the FadeOut()
+   script command.
+
+
 VERSION 3.6.1 - Patch 10, April 2025
 
 Editor:

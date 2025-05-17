@@ -1,7 +1,7 @@
 REVISION HISTORY
 ================
 
-VERSION 3.6.2 - RC, April 2025
+VERSION 3.6.2, May 2025
 
 Common:
  - Event handler function are now allowed to be located in any script module.
@@ -19,6 +19,8 @@ Editor:
  - Added "Use old-style voice clip naming rule" property in General Settings, it lets to select
    whether the game should expect old-style voice clip filenames (4-letter char name followed by
    number) or the new one (full char name, followed by a number, separated by a dot).
+ - In General Settings renamed "Override built-in inventory window click handling" option to the
+   older variant "Handle inventory window clicks in script" (because it's easier to understand).
  - GUI selection in settings is now done using drop-down lists which list all eligible GUI types
    instead of having user to type GUI number. The setting will be automatically fixed if a GUI
    is removed.
@@ -86,6 +88,7 @@ Editor:
    present in script, as warnings when compiling the game.
  - Editor will now report any script functions that *look like* event functions, but not assigned
    to corresponding events, as warnings when compiling the game.
+ - Editor will interrupt "Check for updates" process if it is taking too long with no progress.
  - Added "/maketemplate" command-line option that tells Editor to run, make template out of the
    said game, and quit.
  - Fixed Project Explorer refreshing when user changes names or descriptions of room objects.

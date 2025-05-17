@@ -114,11 +114,7 @@ Editor:
  - Fixed Font preview could crash the Editor with out of memory error in case of a very big font.
  - Fixed Editor refusing to open a project if one or more of the sections are missing in the file.
  - Fixed an unhandled exception occuring when rebuilding rooms if any script's header is missing.
- - Fixed a check for an imported room mask size did not correctly account for the room's
-   mask resolution setting (it worked, but mishandled some edge cases).
  - Fixed a "unterminated string" error in Dialogs was not pointing to the actual error location.
- - Fixed translation compiler mistreating escaped opening bracket in a text line ("\[");
-   it must keep it as-is, because "[" char is a old-style line break in AGS.
  - Fixed double warning message when trying to close the Editor while a game test is running.
  - Fixed Editor may display a "save project" confirmation when run with "/compile" command-line
    parameter.
@@ -267,20 +263,11 @@ Engine:
  - Fixed calling Dialog.Start() inside a dialog script would create a nested "dialog state",
    which could eventually lead to internal mistakes and program stack overflow. Dialog.Start()
    will now schedule a proper dialog topic switch, equivalent to "goto-dialog" command.
- - Fixed a AudioChannel did not report a correct Position right after a AudioClip.PlayFrom() call.
- - Fixed Button resizing to sprite 0 size if NormalGraphic is set to 0 (default button look).
- - Fixed object's look not updated after it was assigned a dynamic sprite, redrawn, sprite deleted,
-   object redrawn without a sprite (used a placeholder), and then another dynamic sprite assigned
-   with coincidentally the same number.
- - Fixed font outline index limited to 127 (although we theoretically support higher font numbers).
- - Fixed font outline parameters not initialized correctly if engine is built by a system that
-   treats "char" as unsigned 8-bit type.
  - Fixed displaying room masks with Debug command in legacy "upscale" mode.
  - Fixed a potential lockup that may occur when the engine is run from the editor, and is told
    to stop at a breakpoint.
  - Fixed 48khz OGG clips may have extra silence added to them in the end, causing "hickups" when
    the sound playback is looped.
- - Fixed SDL log level was defaulting to "verbose" if not read from config (should be "info").
 
 Engine Plugin API:
  - Updated few callback and function prototypes in order to make them 64-bit compatible
@@ -311,8 +298,6 @@ WinSetup:
  - Added "Accessibility" settings for skipping speech and text messages, for text reading speed.
  - In "disabled" section of config "access_skipstyle" setting lets disable all options in setup
    related to the speech and text skipping.
- - Fixed "Save and Run" command sometimes caused 2 engine processes, one of which terminated later.
-   This did not prevent a game from running, but could result in temporary CPU and memory overload.
 
 
 ---------------------------------------------------------------------------------------------------

@@ -2469,7 +2469,7 @@ builtin managed struct Object {
   /// Gets/sets whether the object will be drawn and updated during the game update.
   import attribute bool Enabled;
   /// Gets this object's current MotionPath, or null if it's not moving.
-  import attribute MotionPath* MotionPath;
+  import readonly attribute MotionPath* MotionPath;
 #endif // SCRIPT_API_v400
 #ifdef SCRIPT_API_v400_18
   /// Gets/sets the shader of this object.
@@ -2740,7 +2740,7 @@ builtin managed struct Character {
   /// Gets/sets the optional y/x ratio of character's facing directions, determining directional loop selection while Character moves and turns.
   import attribute float FaceDirectionRatio;
   /// Gets this character's current MotionPath, or null if it's not moving.
-  import attribute MotionPath* MotionPath;
+  import readonly attribute MotionPath* MotionPath;
 #endif // SCRIPT_API_v400
 #ifdef SCRIPT_API_v400_18
   /// Gets/sets the shader of this character.

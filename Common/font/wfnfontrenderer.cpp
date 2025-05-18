@@ -129,21 +129,15 @@ bool WFNFontRenderer::LoadFromDiskEx(int fontNumber, int /*fontSize*/,
 
   file_name.Format("agsfnt%d.wfn", fontNumber);
   auto ffi = _amgr->OpenAsset(file_name);
-  if (ffi == nullptr)
-  {
-    // actual font not found, try font 0 instead
-    // FIXME: this should not be done here in this font renderer implementation,
-    // but somewhere outside, when whoever calls this method
-    file_name = "agsfnt0.wfn";
-    ffi = _amgr->OpenAsset(file_name);
-    if (ffi == nullptr)
-      return false;
-  }
+  if (!ffi)
+    return false;
 
   WFNFont *font = new WFNFont();
   WFNError err = font->ReadFromFile(ffi.get());
   if (err == kWFNErr_HasBadCharacters)
+  {
     Debug::Printf(kDbgMsg_Warn, "WARNING: font '%s' has mistakes in data format, some characters may be displayed incorrectly", file_name.GetCStr());
+  }
   else if (err != kWFNErr_NoError)
   {
     delete font;

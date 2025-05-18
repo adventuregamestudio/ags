@@ -74,7 +74,7 @@ int do_movelist_move(short &mslot, int &pos_x, int &pos_y)
     // TODO: find out what this value means and refactor
     int need_to_fix_sprite = 0;
     const int old_stage = cmls.GetStage();
-    if (cmls.Forward())
+    if (cmls.GetAndForward())
     {
         pos_x = cmls.GetCurrentPos().X;
         pos_y = cmls.GetCurrentPos().Y;

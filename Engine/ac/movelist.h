@@ -107,6 +107,8 @@ public:
     void SetStageDoneSteps(float parts);
     // Set MoveList's progress within the current stage [0.0; 1.0)
     void SetStageProgress(float progress);
+    // Elaborates current step before incrementing stage progress, for do_movelist_move()
+    bool GetAndForward();
     // Increment current stage's progress, update object position;
     // if the stage is complete, then progress to the next stage;
     // returns if there's a new stage available

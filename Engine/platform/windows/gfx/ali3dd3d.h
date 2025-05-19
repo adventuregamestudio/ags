@@ -620,12 +620,10 @@ private:
     CUSTOMVERTEX defaultVertices[4];
     String previousError; // FIXME: find out why is this necessary, rewrite?
     int _fullscreenDisplay = -1; // a display where exclusive fullscreen was created
-    bool _smoothScaling = false;
-    float _pixelRenderXOffset = 0.f;
-    float _pixelRenderYOffset = 0.f;
-    float _originWidthAdjust = 0.f;
-    float _originHeightAdjust = 0.f;
-    bool _renderAtScreenRes = false;
+    bool _smoothScaling;
+    float _pixelRenderXOffset;
+    float _pixelRenderYOffset;
+    bool _renderAtScreenRes;
 
     // Built-in shaders
     // TODO: RAII-wrapper for IGraphicShader / D3DShader pointer

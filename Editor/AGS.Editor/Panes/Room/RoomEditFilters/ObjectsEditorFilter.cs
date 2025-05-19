@@ -55,7 +55,7 @@ namespace AGS.Editor
                 spriteSize.Width = state.RoomSizeToWindow(spriteSize.Width);
                 spriteSize.Height = state.RoomSizeToWindow(spriteSize.Height);
                 int xpos = state.RoomXToWindow(obj.StartX);
-                int ypos = state.RoomYToWindow(obj.StartY + 1) - spriteSize.Height;
+                int ypos = state.RoomYToWindow(obj.StartY) - spriteSize.Height;
 
                 Utilities.DrawSpriteOnGraphics(graphics, obj.Image, xpos, ypos, spriteSize.Width, spriteSize.Height);
             }
@@ -72,7 +72,7 @@ namespace AGS.Editor
             width = state.RoomSizeToWindow(width);
             height = state.RoomSizeToWindow(height);
             int xPos = state.RoomXToWindow(_selectedObject.StartX);
-            int yPos = state.RoomYToWindow(_selectedObject.StartY + 1) - height;
+            int yPos = state.RoomYToWindow(_selectedObject.StartY) - height;
             Pen pen = new Pen(Color.Goldenrod);
             pen.DashStyle = System.Drawing.Drawing2D.DashStyle.Dot;
             graphics.DrawRectangle(pen, xPos, yPos, width, height);

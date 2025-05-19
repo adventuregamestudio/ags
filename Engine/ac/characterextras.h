@@ -46,9 +46,12 @@ enum CharacterRuntimeFlags
 
 // The CharacterInfo struct size is fixed because it's exposed to script
 // and plugin API, therefore new stuff has to go here
-// TODO: now safe to merge with CharacterInfo into one class
-struct CharacterExtras
+// TODO: now safe to merge with CharacterInfo into one class;
+// but it's better to leave a separate "character data" struct, loaded from the game file,
+// and a Character class, that does all things runtime.
+class CharacterExtras
 {
+public:
     short invorder[MAX_INVORDER]{};
     short invorder_count = 0;
     int spr_width = 0; // last used sprite's size

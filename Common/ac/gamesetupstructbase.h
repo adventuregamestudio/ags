@@ -116,7 +116,8 @@ struct GameSetupStructBase
         }};
     }
 
-    // Returns a list of game options that must be preserved when restoring a save
+    // Returns a list of game options that must be preserved when restoring a save;
+    // NOTE: restricted options are always preserved, so no need to mention them here
     inline static std::array<int, 1> GetPreservedOptions()
     {
         return std::array<int, 1> {{

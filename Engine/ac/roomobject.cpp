@@ -58,12 +58,14 @@ RoomObject::RoomObject()
 }
 
 int RoomObject::get_width() const {
+    // FIXME: don't use global game object here, instead make sure last_width is always valid
     if (last_width == 0)
         return game.SpriteInfos[num].Width;
     return last_width;
 }
 
 int RoomObject::get_height() const {
+    // FIXME: don't use global game object here, instead make sure last_height is always valid
     if (last_height == 0)
         return game.SpriteInfos[num].Height;
     return last_height;

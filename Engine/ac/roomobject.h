@@ -36,7 +36,9 @@ using namespace AGS; // FIXME later
 // Animates backwards, as opposed to forwards
 #define OBJANIM_BACKWARDS 10
 
-struct RoomObject {
+class RoomObject
+{
+public:
     static const uint16_t NoView = UINT16_MAX;
 
     int   x,y;

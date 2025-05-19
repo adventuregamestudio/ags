@@ -317,10 +317,6 @@ D3DGraphicsDriver::D3DGraphicsDriver(const D3DPtr &d3d)
 {
   direct3d = d3d;
   SetupDefaultVertices();
-  _smoothScaling = false;
-  _pixelRenderXOffset = 0;
-  _pixelRenderYOffset = 0;
-  _renderAtScreenRes = false;
 
   // Shifts comply to D3DFMT_A8R8G8B8
   _vmem_a_shift_32 = 24;
@@ -1511,8 +1507,11 @@ void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw
       thisY += height;
     }
     // Apply sprite origin
-    thisX -= abs(widthToScale) * bmpToDraw->GetOrigin().X;
-    thisY -= abs(heightToScale) * bmpToDraw->GetOrigin().Y;
+    // CHECKME: applying -1 to width conflicts with _pixelRenderXOffset, it seems;
+    // (_pixelRenderXOffset * 2.f) factor was found by experiment, comparing with
+    // other renderers, using cases with middle and rightmost origin.
+    thisX -= (abs(widthToScale) - _pixelRenderXOffset * 2.f) * bmpToDraw->GetOrigin().X;
+    thisY -= (abs(heightToScale) - 1.f) * bmpToDraw->GetOrigin().Y;
     // Center inside a rendering rect
     // FIXME: this should be a part of a projection matrix, afaik
     thisX = (-(rend_sz.Width / 2.0f)) + thisX;

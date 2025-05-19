@@ -295,5 +295,5 @@ void RoomObject::WriteToSavegame(Stream *out) const
 
 void RoomObject::UpdateGraphicSpace()
 {
-    _gs = GraphicSpace(x, y - last_height, spr_width, spr_height, last_width, last_height, rotation);
+    _gs = GraphicSpace(x, y - last_height + 1, spr_width, spr_height, last_width, last_height, rotation);
 }

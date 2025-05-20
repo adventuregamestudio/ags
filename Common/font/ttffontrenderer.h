@@ -19,7 +19,7 @@
 #include "font/agsfontrenderer.h"
 #include "util/string.h"
 
-struct ALFONT_FONT;
+struct TTF_Font;
 
 class TTFFontRenderer : public IAGSFontRendererInternal {
 public:
@@ -61,11 +61,12 @@ public:
   bool MeasureFontOfPixelHeight(const AGS::Common::String &filename, int pixel_height, FontMetrics *metrics);
 
 private:
-    ALFONT_FONT *LoadTTF(const AGS::Common::String &filename, int font_size, int alfont_flags);
+    TTF_Font *LoadTTF(const AGS::Common::String &filename, int font_size);
 
     struct FontData
     {
-        ALFONT_FONT     *AlFont;
+        TTF_Font        *Font = nullptr;
+        int              SizePt = 0; // nominal font size, requested by user
         FontRenderParams Params;
     };
     std::map<int, FontData> _fontData;

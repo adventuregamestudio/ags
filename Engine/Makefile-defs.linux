@@ -3,7 +3,7 @@ USE_MIDI_PATCH = 1
 
 include Makefile-defs.freetype
 
-INCDIR = ../Engine ../Common ../Common/libinclude ../Common/libsrc/alfont-2.0.9 ../Engine/libsrc/apeg-1.2.1/ ../libsrc/mojoAL ../Plugins ../Engine/libsrc/glad/include ../libsrc/miniz ../libsrc/glm $(ALLEGRO_SRCDIR)/include
+INCDIR = ../Engine ../Common ../Common/libinclude ../libsrc/sdl_ttf ../Engine/libsrc/apeg-1.2.1/ ../libsrc/mojoAL ../Plugins ../Engine/libsrc/glad/include ../libsrc/miniz ../libsrc/glm $(ALLEGRO_SRCDIR)/include
 LIBDIR =
 
 CFLAGS := -O2 -g \
@@ -12,7 +12,7 @@ CFLAGS := -O2 -g \
     -Wno-unused-value  \
     -Werror=write-strings -Werror=format -Werror=format-security \
     -DNDEBUG \
-    -DALLEGRO_STATICLINK -DAL_LIBTYPE_STATIC \
+    -DALLEGRO_STATICLINK -DAL_LIBTYPE_STATIC -DFT2_BUILD_LIBRARY -DHAVE_UNISTD_H -DHAVE_FCNTL_H \
     -DLINUX_VERSION -DBUILTIN_PLUGINS -DHAVE_FSEEKO -DDISABLE_MPEG_AUDIO -DAGS_CASE_SENSITIVE_FILESYSTEM -DAGS_HAS_CD_AUDIO \
     -D_FILE_OFFSET_BITS=64 -DRTLD_NEXT \
     $(FT_CFLAGS) $(CFLAGS)

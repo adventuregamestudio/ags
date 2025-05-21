@@ -15,14 +15,14 @@
 #define __AC_GUISLIDER_H
 
 #include <vector>
-#include "gui/guiobject.h"
+#include "gui/guicontrol.h"
 
 namespace AGS
 {
 namespace Common
 {
 
-class GUISlider : public GUIObject
+class GUISlider : public GUIControl
 {
 public:
     GUISlider();

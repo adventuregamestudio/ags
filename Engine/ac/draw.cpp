@@ -50,7 +50,7 @@
 #include "debug/debug_log.h"
 #include "font/fonts.h"
 #include "gui/guimain.h"
-#include "gui/guiobject.h"
+#include "gui/guicontrol.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/plugin_engine.h"
 #include "ac/spritecache.h"
@@ -2474,7 +2474,7 @@ static void construct_guictrl_tex(GUIMain &gui)
     int draw_index = guiobjddbref[gui.GetID()];
     for (int i = 0; i < gui.GetControlCount(); ++i, ++draw_index)
     {
-        GUIObject *obj = gui.GetControl(i);
+        GUIControl *obj = gui.GetControl(i);
         if (!obj->IsVisible() ||
             (obj->GetSize().IsNull()) ||
             (!obj->IsEnabled() && (GUI::Options.DisabledStyle == kGuiDis_Blackout)))
@@ -2517,7 +2517,7 @@ static void draw_gui_controls_batch(int gui_id)
     const int draw_index = guiobjddbref[gui_id];
     for (const auto &obj_id : gui.GetControlsDrawOrder())
     {
-        GUIObject *obj = gui.GetControl(obj_id);
+        GUIControl *obj = gui.GetControl(obj_id);
         if (!obj->IsVisible() ||
             (obj->GetSize().IsNull()) ||
             (!obj->IsEnabled() && (GUI::Options.DisabledStyle == kGuiDis_Blackout)))

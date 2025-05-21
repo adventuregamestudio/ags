@@ -385,7 +385,7 @@ void GUIButton::UpdateCurrentImage()
 
 void GUIButton::WriteToFile(Stream *out) const
 {
-    GUIObject::WriteToFile(out);
+    GUIControl::WriteToFile(out);
 
     out->WriteInt32(_image);
     out->WriteInt32(_mouseOverImage);
@@ -403,7 +403,7 @@ void GUIButton::WriteToFile(Stream *out) const
 
 void GUIButton::ReadFromFile(Stream *in, GuiVersion gui_version)
 {
-    GUIObject::ReadFromFile(in, gui_version);
+    GUIControl::ReadFromFile(in, gui_version);
 
     _image = in->ReadInt32();
     _mouseOverImage = in->ReadInt32();
@@ -424,7 +424,7 @@ void GUIButton::ReadFromFile(Stream *in, GuiVersion gui_version)
 
 void GUIButton::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
 {
-    GUIObject::ReadFromSavegame(in, svg_ver);
+    GUIControl::ReadFromSavegame(in, svg_ver);
     _image = in->ReadInt32();
     _mouseOverImage = in->ReadInt32();
     _pushedImage = in->ReadInt32();
@@ -467,7 +467,7 @@ void GUIButton::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
 
 void GUIButton::WriteToSavegame(Stream *out) const
 {
-    GUIObject::WriteToSavegame(out);
+    GUIControl::WriteToSavegame(out);
     out->WriteInt32(_image);
     out->WriteInt32(_mouseOverImage);
     out->WriteInt32(_pushedImage);

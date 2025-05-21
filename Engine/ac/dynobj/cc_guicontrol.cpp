@@ -33,7 +33,7 @@ size_t CCGUIControl::CalcSerializeSize(const void* /*address*/)
 
 void CCGUIControl::Serialize(const void* address, Stream* out)
 {
-    const GUIObject *guio = static_cast<const GUIObject *>(address);
+    const GUIControl *guio = static_cast<const GUIControl *>(address);
     out->WriteInt32(guio->GetParentID());
     out->WriteInt32(guio->GetID());
 }

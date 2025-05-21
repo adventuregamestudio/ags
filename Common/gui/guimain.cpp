@@ -202,7 +202,7 @@ int GUIMain::GetControlCount() const
     return static_cast<int>(_controls.size());
 }
 
-GUIObject *GUIMain::GetControl(int index) const
+GUIControl *GUIMain::GetControl(int index) const
 {
     if (index < 0 || (size_t)index >= _controls.size())
         return nullptr;
@@ -302,7 +302,7 @@ void GUIMain::ResetOverControl()
     _mouseOverCtrl = -1;
 }
 
-void GUIMain::AddControl(GUIControlType type, int id, GUIObject *control)
+void GUIMain::AddControl(GUIControlType type, int id, GUIControl *control)
 {
     _ctrlRefs.emplace_back(type, id);
     _controls.push_back(control);
@@ -372,7 +372,7 @@ void GUIMain::DrawControls(Bitmap *ds)
     {
         set_eip_guiobj(_ctrlDrawOrder[ctrl_index]);
 
-        GUIObject *objToDraw = _controls[_ctrlDrawOrder[ctrl_index]];
+        GUIControl *objToDraw = _controls[_ctrlDrawOrder[ctrl_index]];
         Size obj_size = objToDraw->GetSize();
 
         if (!objToDraw->IsVisible() || (obj_size.Width <= 0 || obj_size.Height <= 0))
@@ -524,14 +524,14 @@ HError GUIMain::RebuildArray(GUIRefCollection &guiobjs)
     return HError::None();
 }
 
-bool GUIControlZOrder(const GUIObject *e1, const GUIObject *e2)
+bool GUIControlZOrder(const GUIControl *e1, const GUIControl *e2)
 {
     return e1->GetZOrder() < e2->GetZOrder();
 }
 
 void GUIMain::ResortZOrder()
 {
-    std::vector<GUIObject*> ctrl_sort = _controls;
+    std::vector<GUIControl*> ctrl_sort = _controls;
     std::sort(ctrl_sort.begin(), ctrl_sort.end(), GUIControlZOrder);
 
     _ctrlDrawOrder.resize(ctrl_sort.size());
@@ -1116,7 +1116,7 @@ HError RebuildGUI(std::vector<GUIMain> &guis, GUIRefCollection &guiobjs)
             return err;
         for (int ctrl_index = 0; ctrl_index < gui.GetControlCount(); ++ctrl_index)
         {
-            GUIObject *gui_ctrl = gui.GetControl(ctrl_index);
+            GUIControl *gui_ctrl = gui.GetControl(ctrl_index);
             gui_ctrl->SetParentID(gui.GetID());
             gui_ctrl->SetID(ctrl_index);
         }

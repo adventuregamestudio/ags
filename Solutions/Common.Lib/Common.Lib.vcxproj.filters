@@ -164,7 +164,7 @@
     <ClCompile Include="..\..\Common\gui\guimain.cpp">
       <Filter>Source Files\gui</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\gui\guiobject.cpp">
+    <ClCompile Include="..\..\Common\gui\guicontrol.cpp">
       <Filter>Source Files\gui</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Common\gui\guislider.cpp">
@@ -607,7 +607,7 @@
     <ClInclude Include="..\..\Common\gui\guimain.h">
       <Filter>Header Files\gui</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\gui\guiobject.h">
+    <ClInclude Include="..\..\Common\gui\guicontrol.h">
       <Filter>Header Files\gui</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\gui\guislider.h">

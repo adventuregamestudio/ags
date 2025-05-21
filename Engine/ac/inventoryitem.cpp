@@ -107,7 +107,7 @@ int GetInvAt(int scrx, int scry) {
     if (ongui >= 0) {
         GUIMain &gui = guis[ongui];
         int onobj = gui.FindControlAt(scrx, scry);
-        GUIObject *guio = gui.GetControl(onobj);
+        GUIControl *guio = gui.GetControl(onobj);
         if (guio) {
             Point guipt = gui.GetGraphicSpace().WorldToLocal(scrx, scry);
             mouse_ifacebut_xoffs = guipt.X - guio->GetX();

@@ -95,7 +95,7 @@ bool GUISlider::IsHorizontal() const
 bool GUISlider::IsOverControl(int x, int y, int leeway) const
 {
     // check the overall boundary
-    if (GUIObject::IsOverControl(x, y, leeway))
+    if (GUIControl::IsOverControl(x, y, leeway))
         return true;
     // now check the handle too
     return _cachedHandle.IsInside(Point(x - _x, y - _y));
@@ -298,7 +298,7 @@ void GUISlider::OnResized()
 
 void GUISlider::ReadFromFile(Stream *in, GuiVersion gui_version)
 {
-    GUIObject::ReadFromFile(in, gui_version);
+    GUIControl::ReadFromFile(in, gui_version);
     _minValue = in->ReadInt32();
     _maxValue = in->ReadInt32();
     _value = in->ReadInt32();
@@ -314,7 +314,7 @@ void GUISlider::ReadFromFile(Stream *in, GuiVersion gui_version)
 
 void GUISlider::WriteToFile(Stream *out) const
 {
-    GUIObject::WriteToFile(out);
+    GUIControl::WriteToFile(out);
     out->WriteInt32(_minValue);
     out->WriteInt32(_maxValue);
     out->WriteInt32(_value);
@@ -325,7 +325,7 @@ void GUISlider::WriteToFile(Stream *out) const
 
 void GUISlider::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
 {
-    GUIObject::ReadFromSavegame(in, svg_ver);
+    GUIControl::ReadFromSavegame(in, svg_ver);
     _bgImage = in->ReadInt32();
     _handleImage = in->ReadInt32();
     _handleOffset = in->ReadInt32();
@@ -341,7 +341,7 @@ void GUISlider::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
 
 void GUISlider::WriteToSavegame(Stream *out) const
 {
-    GUIObject::WriteToSavegame(out);
+    GUIControl::WriteToSavegame(out);
     out->WriteInt32(_bgImage);
     out->WriteInt32(_handleImage);
     out->WriteInt32(_handleOffset);

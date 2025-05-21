@@ -88,34 +88,34 @@ size_t GUI::SplitLinesForDrawing(const String &text, bool is_translated, SplitLi
     return break_up_text_into_lines(draw_text, is_translated, lines, width, font);
 }
 
-void GUIObject::MarkChanged()
+void GUIControl::MarkChanged()
 {
     _hasChanged = true;
     if (_parentID >= 0)
         guis[_parentID].MarkControlChanged();
 }
 
-void GUIObject::MarkParentChanged()
+void GUIControl::MarkParentChanged()
 {
     if (_parentID >= 0)
         guis[_parentID].MarkControlChanged();
 }
 
-void GUIObject::MarkPositionChanged(bool self_changed)
+void GUIControl::MarkPositionChanged(bool self_changed)
 {
     _hasChanged |= self_changed;
     if (_parentID >= 0)
         guis[_parentID].NotifyControlPosition();
 }
 
-void GUIObject::MarkStateChanged(bool self_changed, bool parent_changed)
+void GUIControl::MarkStateChanged(bool self_changed, bool parent_changed)
 {
     _hasChanged |= self_changed;
     if (_parentID >= 0)
         guis[_parentID].NotifyControlState(_id, self_changed | parent_changed);
 }
 
-void GUIObject::ClearChanged()
+void GUIControl::ClearChanged()
 {
     _hasChanged = false;
 }

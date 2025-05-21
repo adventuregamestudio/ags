@@ -28,11 +28,11 @@ namespace AGS
 namespace Common
 {
 
-class GUIObject
+class GUIControl
 {
 public:
-    GUIObject() = default;
-    virtual ~GUIObject() = default;
+    GUIControl() = default;
+    virtual ~GUIControl() = default;
 
     // Properties
     const String   &GetName() const { return _name; }
@@ -122,7 +122,7 @@ public:
     virtual void    ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_ver);
     virtual void    WriteToSavegame(Common::Stream *out) const;
 
-    // Manually marks GUIObject as graphically changed
+    // Manually marks GUIControl as graphically changed
     // NOTE: this only matters if control's own graphic changes, but not its
     // logical (visible, clickable, etc) or visual (e.g. transparency) state.
     void            MarkChanged();

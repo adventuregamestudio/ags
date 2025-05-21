@@ -72,7 +72,7 @@ void GUIInvWindow::OnResized()
 
 void GUIInvWindow::WriteToFile(Stream *out) const
 {
-    GUIObject::WriteToFile(out);
+    GUIControl::WriteToFile(out);
     out->WriteInt32(_charID);
     out->WriteInt32(_itemWidth);
     out->WriteInt32(_itemHeight);
@@ -80,7 +80,7 @@ void GUIInvWindow::WriteToFile(Stream *out) const
 
 void GUIInvWindow::ReadFromFile(Stream *in, GuiVersion gui_version)
 {
-    GUIObject::ReadFromFile(in, gui_version);
+    GUIControl::ReadFromFile(in, gui_version);
     _charID = in->ReadInt32();
     _itemWidth = in->ReadInt32();
     _itemHeight = in->ReadInt32();
@@ -96,7 +96,7 @@ void GUIInvWindow::ReadFromFile(Stream *in, GuiVersion gui_version)
 
 void GUIInvWindow::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
 {
-    GUIObject::ReadFromSavegame(in, svg_ver);
+    GUIControl::ReadFromSavegame(in, svg_ver);
     _itemWidth = in->ReadInt32();
     _itemHeight = in->ReadInt32();
     _charID = in->ReadInt32();
@@ -106,7 +106,7 @@ void GUIInvWindow::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
 
 void GUIInvWindow::WriteToSavegame(Stream *out) const
 {
-    GUIObject::WriteToSavegame(out);
+    GUIControl::WriteToSavegame(out);
     out->WriteInt32(_itemWidth);
     out->WriteInt32(_itemHeight);
     out->WriteInt32(_charID);

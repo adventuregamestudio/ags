@@ -15,7 +15,7 @@
 #define __AC_GUILISTBOX_H
 
 #include <vector>
-#include "gui/guiobject.h"
+#include "gui/guicontrol.h"
 #include "util/string.h"
 
 namespace AGS
@@ -23,7 +23,7 @@ namespace AGS
 namespace Common
 {
 
-class GUIListBox : public GUIObject
+class GUIListBox : public GUIControl
 {
 public:
     GUIListBox();

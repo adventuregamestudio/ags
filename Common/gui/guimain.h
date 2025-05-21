@@ -184,7 +184,7 @@ public:
     // Gets the number of the GUI child controls
     int     GetControlCount() const;
     // Gets control by its child's index
-    GUIObject *GetControl(int index) const;
+    GUIControl *GetControl(int index) const;
     // Gets child control's type, looks up with child's index
     GUIControlType GetControlType(int index) const;
     // Gets child control's global ID, looks up with child's index
@@ -196,7 +196,7 @@ public:
 
     // Child control management
     // Note that currently GUIMain does not own controls (should not delete them)
-    void    AddControl(GUIControlType type, int id, GUIObject *control);
+    void    AddControl(GUIControlType type, int id, GUIControl *control);
     void    RemoveAllControls();
 
     // Operations
@@ -299,7 +299,7 @@ private:
     // maps GUI child slots to actual controls and used for rebuilding Controls array
     std::vector<ControlRef> _ctrlRefs;
     // Array of child control references (not exclusively owned!)
-    std::vector<GUIObject*> _controls;
+    std::vector<GUIControl*> _controls;
     // Sorted array of controls in z-order.
     std::vector<int>        _ctrlDrawOrder;
 };
@@ -347,7 +347,7 @@ namespace GUI
     extern GuiContext Context;
 
     // Tells if the given control is considered enabled, taking global flag into account
-    inline bool IsGUIEnabled(GUIObject *g)
+    inline bool IsGUIEnabled(GUIControl *g)
     {
         return (GUI::Context.DisabledState == kGuiDis_Undefined) && g->IsEnabled();
     }

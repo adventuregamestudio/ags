@@ -276,7 +276,7 @@ const char *GUI_GetScriptName(ScriptGUI *tehgui)
     return CreateNewScriptString(guis[tehgui->id].GetName());
 }
 
-GUIObject* GUI_GetiControls(ScriptGUI *tehgui, int idx) {
+GUIControl* GUI_GetiControls(ScriptGUI *tehgui, int idx) {
   if ((idx < 0) || (idx >= guis[tehgui->id].GetControlCount()))
     return nullptr;
   return guis[tehgui->id].GetControl(idx);
@@ -517,7 +517,7 @@ void process_interface_click(int ifce, int btn, int mbut) {
     else if (rtype==kGUIAction_SetMode)
         set_cursor_mode(rdata);
     else if (rtype==kGUIAction_RunScript) {
-        GUIObject *theObj = guis[ifce].GetControl(btn);
+        GUIControl *theObj = guis[ifce].GetControl(btn);
         // if the object has a special handler script then run it;
         // otherwise, run interface_click
         if ((theObj->GetEventCount() > 0) &&
@@ -618,7 +618,7 @@ void prepare_gui_runtime(bool startup)
     {
         for (int i = 0; i < gui.GetControlCount(); ++i)
         {
-            GUIObject *guio = gui.GetControl(i);
+            GUIControl *guio = gui.GetControl(i);
             guio->SetActivated(false);
             guio->OnResized();
         }
@@ -660,7 +660,7 @@ void export_all_gui_controls()
         auto const &gui = guis[i];
         for (int j = 0; j < gui.GetControlCount(); j++)
         {
-            GUIObject *guio = gui.GetControl(j);
+            GUIControl *guio = gui.GetControl(j);
             IScriptObject *mgr;
             switch (gui.GetControlType(j))
             {
@@ -690,7 +690,7 @@ void unexport_gui_controls(int ee)
 {
     for (int ff = 0; ff < guis[ee].GetControlCount(); ff++)
     {
-        GUIObject *guio = guis[ee].GetControl(ff);
+        GUIControl *guio = guis[ee].GetControl(ff);
         if (!guio->GetName().IsEmpty())
             ccRemoveExternalSymbol(guio->GetName());
         if (!ccUnRegisterManagedObject(guio))
@@ -830,7 +830,7 @@ void gui_on_mouse_hold(const int wasongui, const int wasbutdown)
 {
     for (int i = 0; i < guis[wasongui].GetControlCount(); ++i)
     {
-        GUIObject *guio = guis[wasongui].GetControl(i);
+        GUIControl *guio = guis[wasongui].GetControl(i);
         if (!guio->IsActivated())
             continue;
         // We only handle "hold" event for Sliders, and only if mouse button is not restricted
@@ -852,7 +852,7 @@ void gui_on_mouse_up(const int wasongui, const int wasbutdown, const int mx, con
 
     for (int i = 0; i < gui.GetControlCount(); ++i)
     {
-        GUIObject *guio = gui.GetControl(i);
+        GUIControl *guio = gui.GetControl(i);
         if (!guio->IsActivated())
             continue;
 
@@ -1066,10 +1066,10 @@ RuntimeScriptValue Sc_GUI_GetControlCount(void *self, const RuntimeScriptValue *
     API_OBJCALL_INT(ScriptGUI, GUI_GetControlCount);
 }
 
-// GUIObject* (ScriptGUI *tehgui, int idx)
+// GUIControl* (ScriptGUI *tehgui, int idx)
 RuntimeScriptValue Sc_GUI_GetiControls(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_OBJ_PINT(ScriptGUI, GUIObject, ccDynamicGUIControl, GUI_GetiControls);
+    API_OBJCALL_OBJ_PINT(ScriptGUI, GUIControl, ccDynamicGUIControl, GUI_GetiControls);
 }
 
 // int (ScriptGUI *sgui)

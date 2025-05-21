@@ -14,7 +14,7 @@
 
 #include "ac/common.h" // quit
 #include "gui/guimain.h"
-#include "gui/guiobject.h"
+#include "gui/guicontrol.h"
 #include "util/stream.h"
 
 namespace AGS
@@ -22,55 +22,55 @@ namespace AGS
 namespace Common
 {
 
-void GUIObject::SetName(const String &name)
+void GUIControl::SetName(const String &name)
 {
     _name = name;
 }
 
-void GUIObject::SetID(int id)
+void GUIControl::SetID(int id)
 {
     _id = id;
 }
 
-void GUIObject::SetParentID(int parent_id)
+void GUIControl::SetParentID(int parent_id)
 {
     _parentID = parent_id;
 }
 
-String GUIObject::GetEventName(uint32_t event) const
+String GUIControl::GetEventName(uint32_t event) const
 {
     if (event < 0 || event >= _scEventCount)
         return "";
     return _scEventNames[event];
 }
 
-String GUIObject::GetEventArgs(uint32_t event) const
+String GUIControl::GetEventArgs(uint32_t event) const
 {
     if (event < 0 || event >= _scEventCount)
         return "";
     return _scEventArgs[event];
 }
 
-String GUIObject::GetEventHandler(uint32_t event) const
+String GUIControl::GetEventHandler(uint32_t event) const
 {
     if (event < 0 || event >= _scEventCount)
         return "";
     return _eventHandlers[event];
 }
 
-void GUIObject::SetEventHandler(uint32_t event, const String &fn_name)
+void GUIControl::SetEventHandler(uint32_t event, const String &fn_name)
 {
     if (event < 0 || event >= _scEventCount)
         return;
     _eventHandlers[event] = fn_name;
 }
 
-bool GUIObject::IsOverControl(int x, int y, int leeway) const
+bool GUIControl::IsOverControl(int x, int y, int leeway) const
 {
     return x >= _x && y >= _y && x < (_x + _width + leeway) && y < (_y + _height + leeway);
 }
 
-void GUIObject::SetClickable(bool on)
+void GUIControl::SetClickable(bool on)
 {
     if (on != ((_flags & kGUICtrl_Clickable) != 0))
     {
@@ -79,7 +79,7 @@ void GUIObject::SetClickable(bool on)
     }
 }
 
-void GUIObject::SetEnabled(bool on)
+void GUIControl::SetEnabled(bool on)
 {
     if (on != ((_flags & kGUICtrl_Enabled) != 0))
     {
@@ -88,17 +88,17 @@ void GUIObject::SetEnabled(bool on)
     }
 }
 
-void GUIObject::SetX(int x)
+void GUIControl::SetX(int x)
 {
     SetPosition(x, _y);
 }
 
-void GUIObject::SetY(int y)
+void GUIControl::SetY(int y)
 {
     SetPosition(_x, y);
 }
 
-void GUIObject::SetPosition(int x, int y)
+void GUIControl::SetPosition(int x, int y)
 {
     if (_x != x || _y != y)
     {
@@ -108,17 +108,17 @@ void GUIObject::SetPosition(int x, int y)
     }
 }
 
-void GUIObject::SetWidth(int width)
+void GUIControl::SetWidth(int width)
 {
     SetSize(width, _height);
 }
 
-void GUIObject::SetHeight(int height)
+void GUIControl::SetHeight(int height)
 {
     SetSize(_width, height);
 }
 
-void GUIObject::SetSize(int width, int height)
+void GUIControl::SetSize(int width, int height)
 {
     if (_width != width || _height != height)
     {
@@ -128,12 +128,12 @@ void GUIObject::SetSize(int width, int height)
     }
 }
 
-void GUIObject::SetZOrder(int zorder)
+void GUIControl::SetZOrder(int zorder)
 {
     _zOrder = zorder;
 }
 
-void GUIObject::SetTranslated(bool on)
+void GUIControl::SetTranslated(bool on)
 {
     if (on != ((_flags & kGUICtrl_Translated) != 0))
     {
@@ -142,7 +142,7 @@ void GUIObject::SetTranslated(bool on)
     }
 }
 
-void GUIObject::SetTransparency(int trans)
+void GUIControl::SetTransparency(int trans)
 {
     if (_transparency != trans)
     {
@@ -151,12 +151,12 @@ void GUIObject::SetTransparency(int trans)
     }
 }
 
-void GUIObject::SetTransparencyAsPercentage(int percent)
+void GUIControl::SetTransparencyAsPercentage(int percent)
 {
     SetTransparency(GfxDef::Trans100ToLegacyTrans255(percent));
 }
 
-void GUIObject::SetBlendMode(BlendMode blend_mode)
+void GUIControl::SetBlendMode(BlendMode blend_mode)
 {
     if (_blendMode != blend_mode)
     {
@@ -165,13 +165,13 @@ void GUIObject::SetBlendMode(BlendMode blend_mode)
     }
 }
 
-void GUIObject::SetShader(int shader_id, int shader_handle)
+void GUIControl::SetShader(int shader_id, int shader_handle)
 {
     _shaderID = shader_id;
     _shaderHandle = shader_handle;
 }
 
-void GUIObject::SetVisible(bool on)
+void GUIControl::SetVisible(bool on)
 {
     if (on != ((_flags & kGUICtrl_Visible) != 0))
     {
@@ -180,14 +180,14 @@ void GUIObject::SetVisible(bool on)
     }
 }
 
-void GUIObject::SetActivated(bool on)
+void GUIControl::SetActivated(bool on)
 {
     _isActivated = on;
 }
 
 // TODO: replace string serialization with StrUtil::ReadString and WriteString
 // methods in the future, to keep this organized.
-void GUIObject::WriteToFile(Stream *out) const
+void GUIControl::WriteToFile(Stream *out) const
 {
     out->WriteInt32(_flags);
     out->WriteInt32(_x);
@@ -201,7 +201,7 @@ void GUIObject::WriteToFile(Stream *out) const
         _eventHandlers[i].Write(out);
 }
 
-void GUIObject::ReadFromFile(Stream *in, GuiVersion gui_version)
+void GUIControl::ReadFromFile(Stream *in, GuiVersion gui_version)
 {
     _flags    = in->ReadInt32();
     _x        = in->ReadInt32();
@@ -228,7 +228,7 @@ void GUIObject::ReadFromFile(Stream *in, GuiVersion gui_version)
     MarkChanged();
 }
 
-void GUIObject::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
+void GUIControl::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
 {
     // Properties
     _flags = in->ReadInt32();
@@ -285,7 +285,7 @@ void GUIObject::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     MarkChanged();
 }
 
-void GUIObject::WriteToSavegame(Stream *out) const
+void GUIControl::WriteToSavegame(Stream *out) const
 {
     // Properties
     out->WriteInt32(_flags);

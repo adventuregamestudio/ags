@@ -37,6 +37,7 @@ void GUIListBox::SetFont(int font)
     {
         _font = font;
         UpdateMetrics();
+        UpdateGraphicSpace();
         MarkChanged();
     }
 }
@@ -392,6 +393,7 @@ void GUIListBox::OnMouseMove(int x_, int y_)
 void GUIListBox::OnResized()
 {
     UpdateMetrics();
+    UpdateGraphicSpace();
     MarkChanged();
 }
 

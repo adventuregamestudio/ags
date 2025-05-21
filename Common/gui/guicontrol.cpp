@@ -11,8 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-
-#include "ac/common.h" // quit
+#include "ac/common.h" // quit // FIXME: don't use quit here!!
 #include "gui/guimain.h"
 #include "gui/guicontrol.h"
 #include "util/stream.h"
@@ -21,16 +20,6 @@ namespace AGS
 {
 namespace Common
 {
-
-void GUIControl::SetName(const String &name)
-{
-    _name = name;
-}
-
-void GUIControl::SetID(int id)
-{
-    _id = id;
-}
 
 void GUIControl::SetParentID(int parent_id)
 {
@@ -88,51 +77,6 @@ void GUIControl::SetEnabled(bool on)
     }
 }
 
-void GUIControl::SetX(int x)
-{
-    SetPosition(x, _y);
-}
-
-void GUIControl::SetY(int y)
-{
-    SetPosition(_x, y);
-}
-
-void GUIControl::SetPosition(int x, int y)
-{
-    if (_x != x || _y != y)
-    {
-        _x = x;
-        _y = y;
-        MarkPositionChanged(false);
-    }
-}
-
-void GUIControl::SetWidth(int width)
-{
-    SetSize(width, _height);
-}
-
-void GUIControl::SetHeight(int height)
-{
-    SetSize(_width, height);
-}
-
-void GUIControl::SetSize(int width, int height)
-{
-    if (_width != width || _height != height)
-    {
-        _width = width;
-        _height = height;
-        OnResized();
-    }
-}
-
-void GUIControl::SetZOrder(int zorder)
-{
-    _zOrder = zorder;
-}
-
 void GUIControl::SetTranslated(bool on)
 {
     if (on != ((_flags & kGUICtrl_Translated) != 0))
@@ -140,35 +84,6 @@ void GUIControl::SetTranslated(bool on)
         _flags = (_flags & ~kGUICtrl_Translated) | kGUICtrl_Translated * on;
         MarkChanged();
     }
-}
-
-void GUIControl::SetTransparency(int trans)
-{
-    if (_transparency != trans)
-    {
-        _transparency = trans;
-        MarkParentChanged(); // for software mode
-    }
-}
-
-void GUIControl::SetTransparencyAsPercentage(int percent)
-{
-    SetTransparency(GfxDef::Trans100ToLegacyTrans255(percent));
-}
-
-void GUIControl::SetBlendMode(BlendMode blend_mode)
-{
-    if (_blendMode != blend_mode)
-    {
-        _blendMode = blend_mode;
-        MarkParentChanged(); // for software mode
-    }
-}
-
-void GUIControl::SetShader(int shader_id, int shader_handle)
-{
-    _shaderID = shader_id;
-    _shaderHandle = shader_handle;
 }
 
 void GUIControl::SetVisible(bool on)
@@ -225,6 +140,7 @@ void GUIControl::ReadFromFile(Stream *in, GuiVersion gui_version)
         _eventHandlers[i].Read(in);
     }
 
+    //UpdateGraphicSpace(); // can't do here, because sprite infos may not be loaded yet
     MarkChanged();
 }
 
@@ -282,6 +198,7 @@ void GUIControl::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
         _shaderHandle = 0;
     }
 
+    UpdateGraphicSpace();
     MarkChanged();
 }
 

@@ -312,7 +312,7 @@ void GUI_Centre(ScriptGUI *sgui) {
   GUIMain *tehgui = &guis[sgui->id];
   int x = play.GetUIViewport().GetWidth() / 2 - tehgui->GetWidth() / 2;
   int y = play.GetUIViewport().GetHeight() / 2 - tehgui->GetHeight() / 2;
-  tehgui->SetAt(x, y);
+  tehgui->SetPosition(x, y);
 }
 
 void GUI_SetBackgroundGraphic(ScriptGUI *tehgui, int slotn)

@@ -293,6 +293,7 @@ void GUISlider::OnMouseUp()
 void GUISlider::OnResized()
 {
     UpdateMetrics();
+    UpdateGraphicSpace();
     MarkPositionChanged(true);
 }
 
@@ -310,6 +311,9 @@ void GUISlider::ReadFromFile(Stream *in, GuiVersion gui_version)
     _cachedBar = Rect();
     _cachedHandle = Rect();
     _handleRange = 0;
+
+    //UpdateMetrics();
+    //UpdateGraphicSpace(); // can't do here, because sprite infos may not be loaded yet
 }
 
 void GUISlider::WriteToFile(Stream *out) const
@@ -337,6 +341,9 @@ void GUISlider::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     _cachedBar = Rect();
     _cachedHandle = Rect();
     _handleRange = 0;
+
+    UpdateMetrics();
+    UpdateGraphicSpace();
 }
 
 void GUISlider::WriteToSavegame(Stream *out) const

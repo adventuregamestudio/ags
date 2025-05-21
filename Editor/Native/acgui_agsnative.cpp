@@ -88,7 +88,7 @@ void GUIControl::MarkChanged()
     // do nothing: in Editor "guis" array is not even guaranteed to be filled!
 }
 
-void GUIControl::MarkParentChanged()
+void GUIControl::MarkVisualStateChanged()
 {
     // do nothing: in Editor "guis" array is not even guaranteed to be filled!
 }

@@ -106,6 +106,8 @@ target_sources(common
     gui/guilistbox.h
     gui/guimain.cpp
     gui/guimain.h
+    gui/guiobject.cpp
+    gui/guiobject.h
     gui/guislider.cpp
     gui/guislider.h
     gui/guitextbox.cpp

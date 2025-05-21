@@ -71,7 +71,7 @@ struct GUIRefCollection
 class Bitmap;
 
 
-class GUIMain
+class GUIMain : public GUIObject
 {
 public:
     // ControlRef describes a child control type and its index in an external list
@@ -80,8 +80,10 @@ public:
     GUIMain();
 
     // Properties
+    // Tells if GUI is enabled
+    bool    IsEnabled() const override { return true /* GUIMain is always enabled */; }
     // Tells if GUI will react on clicking on it
-    bool    IsClickable() const { return (_flags & kGUIMain_Clickable) != 0; }
+    bool    IsClickable() const override { return (_flags & kGUIMain_Clickable) != 0; }
     // Tells if GUI's visibility is overridden and it won't be displayed on
     // screen regardless of Visible property (until concealed mode is off).
     bool    IsConcealed() const { return (_flags & kGUIMain_Concealed) != 0; }
@@ -99,30 +101,17 @@ public:
     // GUI may be hidden for other reasons, including overriding behavior.
     // For example GUI with kGUIPopupMouseY style will not be shown unless
     // mouse cursor is at certain position on screen.
-    bool    IsVisible() const { return (_flags & kGUIMain_Visible) != 0; }
+    bool    IsVisible() const override { return (_flags & kGUIMain_Visible) != 0; }
+    // Sets whether GUI is enabled or disabled
+    void    SetEnabled(bool on) override { /* GUIMain is always enabled */ }
+    // Sets whether GUI should react to player clicking on it
+    void    SetClickable(bool on) override;
+    // Override GUI visibility; when in concealed mode GUI won't show up
+    // even if Visible = true
+    void    SetConceal(bool on);
+    // Sets whether GUI is allowed to be displayed on screen
+    void    SetVisible(bool on) override;
 
-    // Returns GUI's graphic space params
-    inline const GraphicSpace &GetGraphicSpace() const { return _gs; }
-
-    int     GetID() const { return _id; }
-    void    SetID(int id) { _id = id; }
-    const String &GetName() const { return _name; }
-    void    SetName(const String &name) { _name = name; }
-    int     GetX() const { return _x; }
-    void    SetX(int x);
-    int     GetY() const { return _y; }
-    void    SetY(int y);
-    int     GetWidth() const { return _width; }
-    void    SetWidth(int width);
-    int     GetHeight() const { return _height; }
-    void    SetHeight(int height);
-    Point   GetPosition() const { return Point(_x, _y); }
-    void    SetPosition(int x, int y);
-    void    SetPosition(const Point &pos) { SetPosition(pos.X, pos.Y); }
-    Size    GetSize() const { return Size(_width, _height); }
-    void    SetSize(int width, int height);
-    void    SetSize(const Size &sz) { SetSize(sz.Width, sz.Height); }
-    Rect    GetRect() const { return RectWH(_x, _y, _width, _height); }
     int     GetBgColor() const { return _bgColor; }
     void    SetBgColor(int color);
     int     GetFgColor() const { return _fgColor; }
@@ -135,39 +124,25 @@ public:
     void    SetPopupAtY(int popup_aty);
     int     GetPadding() const { return _padding; }
     void    SetPadding(int padding);
-    int     GetTransparency() const { return _transparency; }
-    void    SetTransparency(int trans);
-    // Sets GUI transparency as a percentage (0 - 100) where 100 = invisible
-    void    SetTransparencyAsPercentage(int percent);
-    BlendMode GetBlendMode() const { return _blendMode; }
-    void    SetBlendMode(BlendMode blend_mode);
-    int     GetShaderID() const { return _shaderID; }
-    int     GetShaderHandle() const { return _shaderHandle; }
-    void    SetShader(int shader_id, int shader_handle);
-    Pointf  GetScale() const { return _scale; }
-    void    SetScale(const Pointf &scale) { SetScale(scale.X, scale.Y); }
-    void    SetScale(float sx, float sy);
-    float   GetRotation() const { return _rotation; }
-    // Sets GUI rotation, in degrees
-    void    SetRotation(float rotation);
-    int     GetZOrder() const { return _zOrder; }
-    void    SetZOrder(int zorder);
+
+    // Attempts to change control's zorder; returns if zorder changed
+    bool    SetControlZOrder(int index, int zorder);
+    // Changes GUI style to the text window or back
+    void    SetTextWindow(bool on);
+    // Sets highlighted control index
+    void    SetHighlightControl(int control_index);
+
     const String &GetScriptModule() const { return _scriptModule; }
     void    SetScriptModule(const String &scmodule);
     const String &GetOnClickHandler() const { return _onClickHandler; }
     void    SetOnClickHandler(const String &handler);
 
-    // Tells if GUI has graphically changed recently
-    bool    HasChanged() const { return _hasChanged; }
+    // Tells if GUI controls have graphically changed recently
     bool    HasControlsChanged() const { return _hasControlsChanged; }
-    // Manually marks GUI as graphically changed.
-    // NOTE: this only matters if GUI's own graphic changes (content, size etc),
-    // but not its state (visible) or texture drawing mode (transparency, etc).
-    void    MarkChanged();
     // Marks GUI as having any of its controls changed its looks.
     void    MarkControlChanged();
     // Clears changed flag
-    void    ClearChanged();
+    void    ClearChanged() override;
     // Notify GUI about any of its controls changing its location.
     void    NotifyControlPosition();
     // Notify GUI about one of its controls changing its interactive state.
@@ -210,22 +185,6 @@ public:
     HError  RebuildArray(GUIRefCollection &guiobjs);
     void    ResortZOrder();
     bool    SendControlToBack(int index);
-    // Sets GUI position
-    void    SetAt(int x, int y);
-    // Sets whether GUI should react to player clicking on it
-    void    SetClickable(bool on);
-    // Override GUI visibility; when in concealed mode GUI won't show up
-    // even if Visible = true
-    void    SetConceal(bool on);
-    // Attempts to change control's zorder; returns if zorder changed
-    bool    SetControlZOrder(int index, int zorder);
-    // Changes GUI style to the text window or back
-    void    SetTextWindow(bool on);
-    
-    // Sets whether GUI is allowed to be displayed on screen
-    void    SetVisible(bool on);
-    // Sets highlighted control index
-    void    SetHighlightControl(int control_index);
 
     // Events
     void    OnMouseButtonDown(int mx, int my);
@@ -250,20 +209,9 @@ private:
     // Same as FindControlAt but expects local space coordinates
     int     FindControlAtLocal(int atx, int aty, int leeway, bool must_be_clickable) const;
 
-    // Recalculate graphic space using current object properties
-    void    UpdateGraphicSpace();
-
     static const int DefaultBgColor = 8;
     static const int DefaultFgColor = 1;
 
-
-    int     _id = 0;            // GUI identifier
-    String  _name;              // the name of the GUI
-
-    int     _x = 0;
-    int     _y = 0;
-    int     _width = 0;
-    int     _height = 0;
     color_t _bgColor = DefaultBgColor; // background color
     int     _bgImage = 0;       // background sprite index
     color_t _fgColor = DefaultFgColor; // foreground color (used as border color in normal GUIs,
@@ -271,13 +219,6 @@ private:
     int     _padding = TEXTWINDOW_PADDING_DEFAULT; // padding surrounding a GUI text window
     GUIPopupStyle _popupStyle = kGUIPopupNormal; // GUI popup behavior
     int     _popupAtMouseY = -1; // popup when mousey < this
-    int     _transparency = 0;  // "incorrect" alpha (in legacy 255-range units)
-    BlendMode _blendMode = kBlend_Normal; // render blend mode
-    int     _shaderID = 0;
-    int     _shaderHandle = 0; // // runtime script shader handle
-    Pointf  _scale = Pointf(1.f, 1.f);; // x,y scale
-    float   _rotation = 0.f;    // rotation, in degrees
-    int     _zOrder = 0;
 
     int     _focusCtrl     = -1; // which control has the focus
     int     _highlightCtrl = -1; // which control has the bounding selection rect
@@ -290,8 +231,6 @@ private:
     String  _onClickHandler;    // script function name
 
     int     _flags = kGUIMain_DefFlags; // style and behavior flags
-    bool    _hasChanged = false; // flag tells whether GUI has graphically changed recently
-    GraphicSpace _gs;
     bool    _hasControlsChanged = false; // flag tells that GUI controls have changed position or image
     bool    _polling = false;   // inside the polling process
 

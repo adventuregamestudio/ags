@@ -40,44 +40,6 @@ GuiContext GUI::Context;
 
 GUIMain::GUIMain()
 {
-    UpdateGraphicSpace();
-}
-
-void GUIMain::SetX(int x)
-{
-    _x = x;
-}
-
-void GUIMain::SetY(int y)
-{
-    _y = y;
-}
-
-void GUIMain::SetWidth(int width)
-{
-    SetSize(width, _height);
-}
-
-void GUIMain::SetHeight(int height)
-{
-    SetSize(_width, height);
-}
-
-void GUIMain::SetPosition(int x, int y)
-{
-    _x = x;
-    _y = y;
-}
-
-void GUIMain::SetSize(int width, int height)
-{
-    if (_width != width || _height != height)
-    {
-        _width = width;
-        _height = height;
-        UpdateGraphicSpace();
-        MarkChanged();
-    }
 }
 
 void GUIMain::SetBgColor(int color)
@@ -120,39 +82,6 @@ void GUIMain::SetPopupAtY(int popup_aty)
 void GUIMain::SetPadding(int padding)
 {
     _padding = padding;
-}
-
-void GUIMain::SetTransparency(int trans)
-{
-    _transparency = trans;
-}
-
-void GUIMain::SetBlendMode(BlendMode blend_mode)
-{
-    _blendMode = blend_mode;
-}
-
-void GUIMain::SetShader(int shader_id, int shader_handle)
-{
-    _shaderID = shader_id;
-    _shaderHandle = shader_handle;
-}
-
-void GUIMain::SetScale(float sx, float sy)
-{
-    _scale = Pointf(sx, sy);
-    UpdateGraphicSpace();
-}
-
-void GUIMain::SetRotation(float degrees)
-{
-    _rotation = Math::ClampAngle360(degrees);
-    UpdateGraphicSpace();
-}
-
-void GUIMain::SetZOrder(int zorder)
-{
-    _zOrder = zorder;
 }
 
 void GUIMain::SetScriptModule(const String &scmodule)
@@ -248,11 +177,6 @@ bool GUIMain::IsInteractableAt(int x, int y) const
     // transform to GUI's local coordinates
     Point pt = _gs.WorldToLocal(x, y);
     return ((pt.X >= 0) && (pt.Y >= 0) && (pt.X < _width) && (pt.Y < _height));
-}
-
-void GUIMain::MarkChanged()
-{
-    _hasChanged = true;
 }
 
 void GUIMain::MarkControlChanged()
@@ -438,11 +362,6 @@ void GUIMain::DrawBlob(Bitmap *ds, int x, int y, color_t draw_color)
     ds->FillRect(Rect(x, y, x + 1, y + 1), draw_color);
 }
 
-void GUIMain::UpdateGraphicSpace()
-{
-    _gs = GraphicSpace(_x, _y, _width, _height, _width * _scale.X, _height * _scale.Y, _rotation);
-}
-
 void GUIMain::Poll(int mx, int my)
 {
     _polling = true;
@@ -539,13 +458,6 @@ void GUIMain::ResortZOrder()
         _ctrlDrawOrder[i] = ctrl_sort[i]->GetID();
 }
 
-void GUIMain::SetAt(int x, int y)
-{
-    _x = x;
-    _y = y;
-    UpdateGraphicSpace();
-}
-
 void GUIMain::SetClickable(bool on)
 {
     if (on != ((_flags & kGUIMain_Clickable) != 0))
@@ -606,11 +518,6 @@ bool GUIMain::SetControlZOrder(int index, int zorder)
 void GUIMain::SetTextWindow(bool on)
 {
     _flags = (_flags & ~kGUIMain_TextWindow) | kGUIMain_TextWindow * on;
-}
-
-void GUIMain::SetTransparencyAsPercentage(int percent)
-{
-    _transparency = GfxDef::Trans100ToLegacyTrans255(percent);
 }
 
 void GUIMain::SetVisible(bool on)
@@ -1119,8 +1026,10 @@ HError RebuildGUI(std::vector<GUIMain> &guis, GUIRefCollection &guiobjs)
             GUIControl *gui_ctrl = gui.GetControl(ctrl_index);
             gui_ctrl->SetParentID(gui.GetID());
             gui_ctrl->SetID(ctrl_index);
+            gui_ctrl->UpdateGraphicSpace(); // CHECKME: should be a runtime-only operation
         }
         gui.ResortZOrder();
+        gui.UpdateGraphicSpace(); // CHECKME: should be a runtime-only operation
     }
     return HError::None();
 }

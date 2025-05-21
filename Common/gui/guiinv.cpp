@@ -67,6 +67,7 @@ void GUIInvWindow::OnMouseUp()
 void GUIInvWindow::OnResized()
 {
     CalculateNumCells();
+    UpdateGraphicSpace();
     MarkChanged();
 }
 

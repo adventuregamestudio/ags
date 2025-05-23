@@ -291,7 +291,7 @@ void GUIMain::DrawControls(Bitmap *ds)
     if ((GUI::Context.DisabledState != kGuiDis_Undefined) && (GUI::Options.DisabledStyle == kGuiDis_Blackout))
         return; // don't draw GUI controls
 
-    Bitmap tempbmp; // in case we need transforms
+    Bitmap tbmp, tbmp2, tbmp3; // in case we need transforms
     for (size_t ctrl_index = 0; ctrl_index < _controls.size(); ++ctrl_index)
     {
         set_eip_guiobj(_ctrlDrawOrder[ctrl_index]);
@@ -305,7 +305,7 @@ void GUIMain::DrawControls(Bitmap *ds)
             continue;
 
         if (GUI::Options.ClipControls && objToDraw->IsContentClipped())
-            ds->SetClip(objToDraw->GetRect());
+            ds->SetClip(objToDraw->GetGraphicSpace().AABB());
         else
             ds->ResetClip();
 
@@ -313,17 +313,36 @@ void GUIMain::DrawControls(Bitmap *ds)
         const int objy = objToDraw->GetY();
 
         // Depending on draw properties - draw directly on the gui surface, or use a buffer
-        if (objToDraw->GetTransparency() == 0 && objToDraw->GetBlendMode() == kBlend_Normal)
+        if (objToDraw->GetTransparency() == 0 && objToDraw->GetBlendMode() == kBlend_Normal
+            && objToDraw->GetScale() == Pointf(1.f, 1.f) && objToDraw->GetRotation() == 0.f)
         {
             objToDraw->Draw(ds, objx, objy);
         }
         else
         {
             const Rect rc = objToDraw->CalcGraphicRect(GUI::Options.ClipControls && objToDraw->IsContentClipped());
-            tempbmp.CreateTransparent(rc.GetWidth(), rc.GetHeight());
-            objToDraw->Draw(&tempbmp, -rc.Left, -rc.Top);
-            draw_gui_sprite(ds, objx + rc.Left, objy + rc.Top,
-                &tempbmp, objToDraw->GetBlendMode(),
+            tbmp.CreateTransparent(rc.GetWidth(), rc.GetHeight());
+            objToDraw->Draw(&tbmp, -rc.Left, -rc.Top);
+            Bitmap *src_bmp = &tbmp;
+            if (objToDraw->GetScale() != Pointf(1.f, 1.f))
+            {
+                const Rect scaled_rc = RectWH(0, 0, rc.GetWidth() * objToDraw->GetScale().X, rc.GetHeight() * objToDraw->GetScale().Y);
+                tbmp2.CreateTransparent(scaled_rc.GetWidth(), scaled_rc.GetHeight());
+                tbmp2.StretchBlt(src_bmp, RectWH(scaled_rc.GetSize()));
+                src_bmp = &tbmp2;
+            }
+            if (objToDraw->GetRotation() != 0.f)
+            {
+                const Size rot_sz = RotateSize(src_bmp->GetSize(), objToDraw->GetRotation());
+                tbmp3.CreateTransparent(rot_sz.Width, rot_sz.Height);
+                // (+ width%2 fixes one pixel offset problem)
+                tbmp3.RotateBlt(src_bmp, rot_sz.Width / 2 + rot_sz.Width % 2, rot_sz.Height / 2,
+                                src_bmp->GetWidth() / 2, src_bmp->GetHeight() / 2, objToDraw->GetRotation()); // clockwise
+                src_bmp = &tbmp3;
+            }
+            Point obj_at = objToDraw->GetGraphicSpace().AABB().GetLT();
+            draw_gui_sprite(ds, obj_at.X, obj_at.Y,
+                src_bmp, objToDraw->GetBlendMode(),
                 GfxDef::LegacyTrans255ToAlpha255(objToDraw->GetTransparency()));
         }
 

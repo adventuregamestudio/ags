@@ -2528,6 +2528,9 @@ static void draw_gui_controls_batch(int gui_id)
         if (!obj_ddb) continue;
         obj_ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(obj->GetTransparency()));
         obj_ddb->SetBlendMode(obj->GetBlendMode());
+        obj_ddb->SetOrigin(0.f, 0.f);
+        obj_ddb->SetStretch(obj_ddb->GetWidth() * obj->GetScale().X, obj_ddb->GetHeight() * obj->GetScale().Y);
+        obj_ddb->SetRotation(obj->GetRotation());
         obj_ddb->SetShader(shaderInstances[obj->GetShaderID()]);
         gfxDriver->DrawSprite(obj->GetX() + obj_tx.Off.X, obj->GetY() + obj_tx.Off.Y, obj_ddb);
     }

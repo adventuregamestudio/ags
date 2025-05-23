@@ -92,13 +92,13 @@ bool GUISlider::IsHorizontal() const
     return _width > _height;
 }
 
-bool GUISlider::IsOverControl(int x, int y, int leeway) const
+bool GUISlider::IsOverControlImpl(int x, int y, int leeway) const
 {
     // check the overall boundary
-    if (GUIControl::IsOverControl(x, y, leeway))
+    if (GUIControl::IsOverControlImpl(x, y, leeway))
         return true;
     // now check the handle too
-    return _cachedHandle.IsInside(Point(x - _x, y - _y));
+    return _cachedHandle.IsInside(Point(x, y));
 }
 
 Rect GUISlider::CalcGraphicRect(bool /*clipped*/)

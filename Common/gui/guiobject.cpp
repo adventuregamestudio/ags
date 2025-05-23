@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "gui/guiobject.h"
+#include "gui/guimain.h"
 
 namespace AGS
 {
@@ -148,7 +149,7 @@ void GUIObject::ClearChanged()
 
 void GUIObject::UpdateGraphicSpace()
 {
-    Rect rc = CalcGraphicRect(true);
+    Rect rc = CalcGraphicRect(GUI::Options.ClipControls);
     _gs = GraphicSpace(_x + rc.Left, _y + rc.Top, rc.GetWidth(), rc.GetHeight(), rc.GetWidth() * _scale.X, rc.GetHeight() * _scale.Y, _rotation);
 }
 

@@ -1273,7 +1273,7 @@ builtin managed struct Overlay {
 #ifdef SCRIPT_API_v399
   /// Gets/sets the blending mode of this overlay.
   import attribute BlendMode BlendMode;
-  /// Gets/sets the overlay's image rotation in degrees.
+  /// Gets/sets the overlay's rotation in degrees.
   import attribute float Rotation;
 #endif // SCRIPT_API_v399
 #ifdef SCRIPT_API_v400
@@ -1577,9 +1577,17 @@ builtin managed struct GUIControl {
   import bool SetProperty(const string property, int value);
   /// Sets a text custom property for this control.
   import bool SetTextProperty(const string property, const string value);
+  /// Sets this control's horizontal and vertical scaling
+  import void SetScale(float x, float y);
 
   /// Gets/sets the blending mode of this control.
   import attribute BlendMode BlendMode;
+  /// Gets/sets the control's rotation in degrees.
+  import attribute float Rotation;
+  /// Gets/sets this control's horizontal scaling.
+  import attribute float ScaleX;
+  /// Gets/sets this control's vertical scaling.
+  import attribute float ScaleY;
 #endif // SCRIPT_API_v400
 #ifdef SCRIPT_API_v400_18
   /// Gets/sets the shader of this control.
@@ -1817,7 +1825,7 @@ builtin managed struct GUI {
 #ifdef SCRIPT_API_v399
   /// Gets/sets the blending mode for this GUI.
   import attribute BlendMode BlendMode;
-  /// Gets/sets the GUI's image rotation in degrees.
+  /// Gets/sets the GUI's rotation in degrees.
   import attribute float Rotation;
 #endif // SCRIPT_API_v399
 #ifdef SCRIPT_API_v400

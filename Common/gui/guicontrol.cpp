@@ -56,7 +56,13 @@ void GUIControl::SetEventHandler(uint32_t event, const String &fn_name)
 
 bool GUIControl::IsOverControl(int x, int y, int leeway) const
 {
-    return x >= _x && y >= _y && x < (_x + _width + leeway) && y < (_y + _height + leeway);
+    Point at = _gs.WorldToLocal(x, y);
+    return IsOverControlImpl(at.X, at.Y, leeway);
+}
+
+bool GUIControl::IsOverControlImpl(int x, int y, int leeway) const
+{
+    return RectWH(-leeway, -leeway, _width + leeway, _height + leeway).IsInside(Point(x, y));
 }
 
 void GUIControl::SetClickable(bool on)
@@ -174,15 +180,20 @@ void GUIControl::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
         // Reserved for transform options
         in->ReadInt32(); // sprite transform flags1
         in->ReadInt32(); // sprite transform flags2
-        in->ReadInt32(); // transform scale x
-        in->ReadInt32(); // transform scale y
+        _scale.X = in->ReadInt32(); // transform scale x
+        _scale.Y = in->ReadInt32(); // transform scale y
         in->ReadInt32(); // transform skew x
         in->ReadInt32(); // transform skew y
-        in->ReadInt32(); // transform rotate
+        _rotation = in->ReadInt32(); // transform rotate
         in->ReadInt32(); // sprite pivot x
         in->ReadInt32(); // sprite pivot y
         in->ReadInt32(); // sprite anchor x
         in->ReadInt32(); // sprite anchor y
+    }
+    else
+    {
+        _rotation = 0.f;
+        _scale = Point(1.f, 1.f);
     }
 
     if (svg_ver >= kGuiSvgVersion_40018)
@@ -227,11 +238,11 @@ void GUIControl::WriteToSavegame(Stream *out) const
     // Reserved for transform options
     out->WriteInt32(0); // sprite transform flags1
     out->WriteInt32(0); // sprite transform flags2
-    out->WriteInt32(0); // transform scale x
-    out->WriteInt32(0); // transform scale y
+    out->WriteInt32(_scale.X); // transform scale x
+    out->WriteInt32(_scale.Y); // transform scale y
     out->WriteInt32(0); // transform skew x
     out->WriteInt32(0); // transform skew y
-    out->WriteInt32(0); // transform rotate
+    out->WriteInt32(_rotation); // transform rotate
     out->WriteInt32(0); // sprite pivot x
     out->WriteInt32(0); // sprite pivot y
     out->WriteInt32(0); // sprite anchor x

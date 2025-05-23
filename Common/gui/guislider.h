@@ -42,7 +42,6 @@ public:
     void SetHandleOffset(int offset);
     // Tells if the slider is horizontal (otherwise - vertical)
     bool IsHorizontal() const;
-    bool IsOverControl(int x, int y, int leeway) const override;
     // Compatibility: sliders are not clipped as of 3.6.0
     bool IsContentClipped() const override { return false; }
 
@@ -63,6 +62,9 @@ public:
     void WriteToSavegame(Stream *out) const override;
 
 private:
+    // Overridable routine to determine whether the coordinates is over the control;
+    // coordinates are guaranteed to be transformed to the control's local cs
+    bool IsOverControlImpl(int x, int y, int leeway) const override;
     // Updates dynamic metrics and positions of elements
     void UpdateMetrics();
 

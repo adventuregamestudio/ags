@@ -44,8 +44,6 @@ public:
     bool            IsTranslated() const { return (_flags & kGUICtrl_Translated) != 0; }
     bool            IsVisible() const override { return (_flags & kGUICtrl_Visible) != 0; }
     bool            IsWrapText() const { return (_flags & kGUICtrl_WrapText) != 0; }
-    // overridable routine to determine whether the mouse is over the control
-    virtual bool    IsOverControl(int x, int y, int leeway) const;
     void            SetClickable(bool on) override;
     void            SetEnabled(bool on) override;
     void            SetTranslated(bool on);
@@ -65,6 +63,8 @@ public:
     
     // Operations
     virtual void    Draw(Bitmap *ds, int x = 0, int y = 0) { (void)ds; (void)x; (void)y; }
+    // Gets whether the *local GUI coordinates* are over this control
+    bool            IsOverControl(int x, int y, int leeway) const;
 
     // Events
     // Key pressed for control; returns if handled
@@ -98,6 +98,10 @@ public:
     void            MarkStateChanged(bool self_changed, bool parent_changed);
   
 protected:
+    // Overridable routine to determine whether the coordinates is over the control;
+    // coordinates are guaranteed to be transformed to the control's local cs
+    virtual bool    IsOverControlImpl(int x, int y, int leeway) const;
+
     int      _parentID = -1;// id of parent GUI
 
     uint32_t _flags = kGUICtrl_DefFlags; // generic style and behavior flags

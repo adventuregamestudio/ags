@@ -165,6 +165,34 @@ void GUIControl_SetY(GUIControl *guio, int yy) {
   guio->SetY(yy);
 }
 
+float GUIControl_GetRotation(GUIControl *guio) {
+    return guio->GetRotation();
+}
+
+void GUIControl_SetRotation(GUIControl *guio, float rotation) {
+    guio->SetRotation(rotation);
+}
+
+float GUIControl_GetScaleX(GUIControl *guio) {
+    return guio->GetScale().X;
+}
+
+void GUIControl_SetScaleX(GUIControl *guio, float scalex) {
+    guio->SetScale(scalex, guio->GetScale().Y);
+}
+
+float GUIControl_GetScaleY(GUIControl *guio) {
+    return guio->GetScale().Y;
+}
+
+void GUIControl_SetScaleY(GUIControl *guio, float scaley) {
+    guio->SetScale(guio->GetScale().X, scaley);
+}
+
+void GUIControl_SetScale(GUIControl *guio, float scalex, float scaley) {
+    guio->SetScale(scalex, scaley);
+}
+
 int GUIControl_GetZOrder(GUIControl *guio)
 {
     return guio->GetZOrder();
@@ -466,6 +494,41 @@ RuntimeScriptValue Sc_GUIControl_SetY(void *self, const RuntimeScriptValue *para
     API_OBJCALL_VOID_PINT(GUIControl, GUIControl_SetY);
 }
 
+RuntimeScriptValue Sc_GUIControl_GetRotation(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_FLOAT(GUIControl, GUIControl_GetRotation);
+}
+
+RuntimeScriptValue Sc_GUIControl_SetRotation(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PFLOAT(GUIControl, GUIControl_SetRotation);
+}
+
+RuntimeScriptValue Sc_GUIControl_GetScaleX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_FLOAT(GUIControl, GUIControl_GetScaleX);
+}
+
+RuntimeScriptValue Sc_GUIControl_SetScaleX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PFLOAT(GUIControl, GUIControl_SetScaleX);
+}
+
+RuntimeScriptValue Sc_GUIControl_GetScaleY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_FLOAT(GUIControl, GUIControl_GetScaleY);
+}
+
+RuntimeScriptValue Sc_GUIControl_SetScaleY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PFLOAT(GUIControl, GUIControl_SetScaleY);
+}
+
+RuntimeScriptValue Sc_GUIControl_SetScale(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PFLOAT2(GUIControl, GUIControl_SetScale);
+}
+
 RuntimeScriptValue Sc_GUIControl_GetZOrder(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(GUIControl, GUIControl_GetZOrder);
@@ -564,13 +627,20 @@ void RegisterGUIControlAPI()
         { "GUIControl::set_X",            API_FN_PAIR(GUIControl_SetX) },
         { "GUIControl::get_Y",            API_FN_PAIR(GUIControl_GetY) },
         { "GUIControl::set_Y",            API_FN_PAIR(GUIControl_SetY) },
+        { "GUIControl::get_Rotation",     API_FN_PAIR(GUIControl_GetRotation) },
+        { "GUIControl::set_Rotation",     API_FN_PAIR(GUIControl_SetRotation) },
+        { "GUIControl::get_ScaleX",       API_FN_PAIR(GUIControl_GetScaleX) },
+        { "GUIControl::set_ScaleX",       API_FN_PAIR(GUIControl_SetScaleX) },
+        { "GUIControl::get_ScaleY",       API_FN_PAIR(GUIControl_GetScaleY) },
+        { "GUIControl::set_ScaleY",       API_FN_PAIR(GUIControl_SetScaleY) },
+        { "GUIControl::SetScale",         API_FN_PAIR(GUIControl_SetScale) },
+        { "GUIControl::SetScale",         API_FN_PAIR(GUIControl_SetScale) },
         { "GUIControl::get_ZOrder",       API_FN_PAIR(GUIControl_GetZOrder) },
         { "GUIControl::set_ZOrder",       API_FN_PAIR(GUIControl_SetZOrder) },
         { "GUIControl::get_Transparency", API_FN_PAIR(GUIControl_GetTransparency) },
         { "GUIControl::set_Transparency", API_FN_PAIR(GUIControl_SetTransparency) },
         { "GUIControl::get_BlendMode",    API_FN_PAIR(GUIControl_GetBlendMode) },
         { "GUIControl::set_BlendMode",    API_FN_PAIR(GUIControl_SetBlendMode) },
-
         { "GUIControl::get_Shader",       API_FN_PAIR(GUIControl_GetShader) },
         { "GUIControl::set_Shader",       API_FN_PAIR(GUIControl_SetShader) },
     };

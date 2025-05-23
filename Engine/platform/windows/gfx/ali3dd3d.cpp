@@ -223,6 +223,8 @@ D3DShaderInstance::D3DShaderInstance(D3DShader *shader, const String &name)
     , _shader(shader)
 {
     _constantData.resize((D3DShader::NullConstantIndex + 1) * D3DShader::ConstantSize);
+    _samplers.resize(D3DShader::SamplersCap);
+    _samplerPtrs.resize(D3DShader::SamplersCap);
 }
 
 void D3DShaderInstance::SetShaderConstantF(uint32_t const_index, float value)
@@ -261,6 +263,15 @@ size_t D3DShaderInstance::GetConstantDataSize()
 void D3DShaderInstance::GetConstantData(std::vector<float> &data)
 {
     data = _constantData;
+}
+
+void D3DShaderInstance::SetShaderSampler(uint32_t sampler_index, std::shared_ptr<Texture> tex)
+{
+    if (sampler_index < 1u || sampler_index > _samplers.size())
+        return;
+
+    _samplers[sampler_index] = std::dynamic_pointer_cast<D3DTexture>(tex);
+    _samplerPtrs[sampler_index] = tex ? _samplers[sampler_index]->_tiles[0].texture.get() : nullptr;
 }
 
 D3DGfxModeList::D3DGfxModeList(const D3DPtr &direct3d, int display_index, D3DFORMAT d3dformat)
@@ -1354,6 +1365,13 @@ void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw
 
     // NOTE: the custom data should already be inside ConstantData buffer
     direct3ddevice->SetPixelShaderConstantF(0u, data, shaderinst->GetConstantDataSize() / D3DShader::ConstantSize);
+
+    const auto &samplers = shaderinst->GetShaderSamplerPtrs();
+    for (uint32_t i = 1u; i < samplers.size(); ++i)
+    {
+        if (samplers[i])
+            direct3ddevice->SetTexture(i, samplers[i]);
+    }
   }
   else if (do_tint)
   {
@@ -1615,6 +1633,17 @@ void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw
   }
 }
 
+void D3DGraphicsDriver::PostRenderCleanup()
+{
+    // Reset textures in all stages which we use in shaders, etc
+    direct3ddevice->SetTexture(0u, nullptr);
+    direct3ddevice->SetTexture(1u, nullptr);
+    direct3ddevice->SetTexture(2u, nullptr);
+    direct3ddevice->SetTexture(3u, nullptr);
+
+    direct3ddevice->SetPixelShader(nullptr);
+}
+
 void D3DGraphicsDriver::RenderAndPresent(bool clearDrawListAfterwards)
 {
     RenderImpl(clearDrawListAfterwards);
@@ -1664,6 +1693,7 @@ void D3DGraphicsDriver::RenderToSurface(BackbufferState *state, bool clearDrawLi
     RenderSpriteBatches();
 
     direct3ddevice->EndScene();
+    PostRenderCleanup();
 
     if (clearDrawListAfterwards)
     {

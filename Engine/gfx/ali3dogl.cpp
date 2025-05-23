@@ -203,6 +203,8 @@ OGLShaderInstance::OGLShaderInstance(OGLShader *shader, const String &name)
     , _shader(shader)
 {
     _constantData.resize(OGLShader::NullConstantIndex + 1);
+    _samplers.resize(OGLShader::SamplersCap);
+    _samplerTexs.resize(OGLShader::SamplersCap);
 }
 
 void OGLShaderInstance::SetShaderConstantF(uint32_t const_index, float value)
@@ -258,6 +260,15 @@ void OGLShaderInstance::GetConstantData(std::vector<float> &data)
         data[pos + 2] = c.Val[2];
         data[pos + 3] = c.Val[3];
     }
+}
+
+void OGLShaderInstance::SetShaderSampler(uint32_t sampler_index, std::shared_ptr<Texture> tex)
+{
+    if (sampler_index < 1u || sampler_index > _samplers.size())
+        return;
+
+    _samplers[sampler_index] = std::dynamic_pointer_cast<OGLTexture>(tex);
+    _samplerTexs[sampler_index] = tex ? _samplers[sampler_index]->_tiles[0].texture : 0u;
 }
 
 
@@ -917,6 +928,9 @@ void OGLGraphicsDriver::AssignBaseShaderArgs(OGLShader::ProgramData &prg)
     prg.Time = glGetUniformLocation(prg.Program, "iTime");
     prg.GameFrame = glGetUniformLocation(prg.Program, "iGameFrame");
     prg.Texture = glGetUniformLocation(prg.Program, "iTexture");
+    prg.Textures[1] = glGetUniformLocation(prg.Program, "iTexture2");
+    prg.Textures[2] = glGetUniformLocation(prg.Program, "iTexture3");
+    prg.Textures[3] = glGetUniformLocation(prg.Program, "iTexture4");
     prg.TextureDim = glGetUniformLocation(prg.Program, "iTextureDim");
     prg.Alpha = glGetUniformLocation(prg.Program, "iAlpha");
     prg.OutputDim = glGetUniformLocation(prg.Program, "iOutputDim");
@@ -1314,6 +1328,17 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
         default: break;
         }
     }
+
+    const auto &samplers = shaderinst->GetShaderSamplerTexs();
+    for (uint32_t i = 1u; i < samplers.size(); ++i)
+    {
+        if (program->Textures[i] > 0)
+        {
+            glActiveTexture(GL_TEXTURE0 + i);
+            glBindTexture(GL_TEXTURE_2D, samplers[i]);
+            glUniform1i(program->Textures[i], i);
+        }
+    }
   }
   else if (do_tint)
   {
@@ -1595,6 +1620,19 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
   glUseProgram(0);
 }
 
+void OGLGraphicsDriver::PostRenderCleanup()
+{
+    // Reset textures in all stages which we use in shaders, etc
+    for (uint32_t i = 0; i < 4; ++i)
+    {
+        glActiveTexture(GL_TEXTURE0 + i);
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
+
+    glActiveTexture(0);
+    glUseProgram(0);
+}
+
 void OGLGraphicsDriver::RenderAndPresent(bool clearDrawListAfterwards)
 {
     RenderImpl(clearDrawListAfterwards);
@@ -1630,6 +1668,7 @@ void OGLGraphicsDriver::RenderToSurface(BackbufferState *state, bool clearDrawLi
     UpdateGlobalShaderArgValues();
     RenderSpriteBatches();
     glFinish();
+    PostRenderCleanup();
 
     if (clearDrawListAfterwards)
     {

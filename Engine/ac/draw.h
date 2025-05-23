@@ -31,6 +31,7 @@ namespace AGS
     }
     namespace Engine
     {
+        struct Texture;
         class IDriverDependantBitmap;
         class IGraphicShader;
         class IShaderInstance;
@@ -108,7 +109,7 @@ void update_shared_texture(uint32_t sprite_id);
 // Remove a texture from cache
 void clear_shared_texture(uint32_t sprite_id);
 // Prepares a texture for the given sprite and stores in the cache
-void texturecache_precache(uint32_t sprite_id);
+std::shared_ptr<AGS::Engine::Texture> texturecache_precache(uint32_t sprite_id);
 
 // Adds a custom shader to the collection at the desired index;
 // if there's any shader on that index then it will get disposed of

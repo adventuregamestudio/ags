@@ -3357,6 +3357,8 @@ builtin managed struct ShaderInstance {
   import void SetConstantF3(const string name, float x, float y, float z);
   /// Sets a shader's constant value as 4 floats
   import void SetConstantF4(const string name, float x, float y, float z, float w);
+  /// Sets a secondary shader's input texture, using a sprite number. Only indexes 1-3 are supported.
+  import void SetTexture(int index, int sprite);
 
   import readonly attribute ShaderProgram* Shader;
 };

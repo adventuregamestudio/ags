@@ -27,6 +27,7 @@ class ScriptShaderProgram final : public AGSCCDynamicObject
     using String = AGS::Common::String;
 public:
     const static uint32_t NullShaderID = 0u;
+    const static uint32_t SecondaryTextureCount = 4u;
     static const char *TypeID;
 
     // Gets next free index for the script shader
@@ -119,6 +120,8 @@ public:
     Constant GetConstant(uint32_t index) const { return index < _constData.size() ? _constData[index] : Constant(); }
     void SetConstantData(const String &name, float value[4], uint32_t size);
     void SetConstantData(uint32_t index, float value[4], uint32_t size);
+    void SetTexture(uint32_t index, int sprite);
+    int GetTexture(uint32_t index) const { return index < _textures.size() ? _textures[index] : 0; }
 
     const char *GetType() override;
     int Dispose(void *address, bool force) override;
@@ -134,6 +137,7 @@ private:
     int _shaderHandle = 0; // script shader handle
     mutable ScriptShaderProgram *_scriptShader = nullptr;
     std::vector<Constant> _constData;
+    std::vector<int> _textures;
 };
 
 #endif // __AGS_EE_DYNOBJ__SCRIPTSHADER_H

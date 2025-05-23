@@ -157,6 +157,9 @@ public:
     virtual size_t GetConstantDataSize() = 0;
     // Gets array of allocated constants data, where each constant is represented as 4 floats
     virtual void GetConstantData(std::vector<float> &data) = 0;
+
+    // Sets a texture as a shader sampler using a zero-based index
+    virtual void SetShaderSampler(uint32_t sampler_index, std::shared_ptr<Texture> tex) = 0;
 };
 
 

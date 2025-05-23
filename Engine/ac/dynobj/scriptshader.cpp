@@ -260,6 +260,13 @@ void ScriptShaderInstance::SetConstantData(uint32_t index, float value[4], uint3
     _constData[index].Val[3] = value[3];
 }
 
+void ScriptShaderInstance::SetTexture(uint32_t index, int sprite)
+{
+    if (_textures.size() <= index)
+        _textures.resize(index + 1);
+    _textures[index] = sprite;
+}
+
 const char *ScriptShaderInstance::GetType()
 {
     return TypeID;
@@ -294,6 +301,13 @@ void ScriptShaderInstance::Unserialize(int index, Stream *in, size_t data_sz)
         c.Size = in->ReadInt32();
         in->Read(c.Val, sizeof(float) * 4);
     }
+    // Textures
+    size_t textures_sz = in->ReadInt32();
+    _textures.resize(textures_sz);
+    for (auto &t : _textures)
+    {
+        t = in->ReadInt32();
+    }
 
     ccRegisterUnserializedObject(index, this, this);
 
@@ -315,9 +329,11 @@ size_t ScriptShaderInstance::CalcSerializeSize(const void *address)
 {
     const uint32_t header_sz = _name.GetLength() + sizeof(uint32_t)
         + sizeof(uint32_t) * 5;
-    size_t constant_table_sz = sizeof(uint32_t)
+    const size_t constant_table_sz = sizeof(uint32_t)
         + _constData.size() * sizeof(uint32_t) + sizeof(float) * 4;
-    return header_sz + constant_table_sz
+    const size_t texture_table_sz = sizeof(uint32_t)
+        + _textures.size() * sizeof(uint32_t);
+    return header_sz + constant_table_sz + texture_table_sz
         + sizeof(uint32_t); // shader handle
 }
 
@@ -338,5 +354,11 @@ void ScriptShaderInstance::Serialize(const void *address, Stream *out)
     {
         out->WriteInt32(c.Size);
         out->Write(c.Val, sizeof(float) * 4);
+    }
+    // Secondary textures (samplers)
+    out->WriteInt32(_textures.size());
+    for (const auto &t : _textures)
+    {
+        out->WriteInt32(t);
     }
 }

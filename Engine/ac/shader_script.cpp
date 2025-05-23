@@ -19,6 +19,7 @@
 #include "ac/dynobj/scriptshader.h"
 #include "ac/draw.h"
 #include "ac/path_helper.h"
+#include "debug/debug_log.h"
 #include "gfx/graphicsdriver.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
@@ -167,6 +168,10 @@ ScriptShaderInstance *ShaderProgram_CreateInstance(ScriptShaderProgram *sc_shade
     return sc_shinst;
 }
 
+static void SetShaderConstant(IShaderInstance *shader_inst, const char *name, uint32_t size,
+                              float x, float y, float z, float w);
+static void SetShaderTexture(IShaderInstance *shader_inst, uint32_t index, int sprite);
+
 // Recreates a shader instance from existing ScriptShaderInstance object.
 // This is used to reconnect shaders after restoring a save.
 static bool RecreateShaderInstance(ScriptShaderInstance *sc_shinst)
@@ -190,16 +195,14 @@ static bool RecreateShaderInstance(ScriptShaderInstance *sc_shinst)
     {
         const String name = sc_shader->GetConstantName(i);
         const auto c = sc_shinst->GetConstant(i);
-        const uint32_t const_index = shinst->GetShader()->GetConstantByName(name);
-        switch (c.Size)
-        {
-        case 1: shinst->SetShaderConstantF(const_index, c.Val[0]); break;
-        case 2: shinst->SetShaderConstantF2(const_index, c.Val[0], c.Val[1]); break;
-        case 3: shinst->SetShaderConstantF3(const_index, c.Val[0], c.Val[1], c.Val[2]); break;
-        case 4: shinst->SetShaderConstantF4(const_index, c.Val[0], c.Val[1], c.Val[2], c.Val[3]); break;
-        default: assert(false); break;
-        }
+        SetShaderConstant(shinst, name.GetCStr(), c.Size, c.Val[0], c.Val[1], c.Val[2], c.Val[3]);
     }
+    // Restore secondary textures
+    for (uint32_t i = 1; i < ScriptShaderProgram::SecondaryTextureCount; ++i)
+    {
+        SetShaderTexture(shinst, i, sc_shinst->GetTexture(i));
+    }
+
     return true;
 }
 
@@ -228,6 +231,30 @@ ScriptShaderInstance *ShaderProgram_GetDefault(ScriptShaderProgram *shader_prg)
     return static_cast<ScriptShaderInstance*>(shader_prg->GetDefaultInstance());
 }
 
+static void SetShaderConstant(IShaderInstance *shader_inst, const char *name, uint32_t size,
+                              float x, float y, float z, float w)
+{
+    const uint32_t const_index = shader_inst->GetShader()->GetConstantByName(name);
+    if (const_index != UINT32_MAX)
+    {
+        // Pass new values to the graphics shader instance
+        switch (size)
+        {
+        case 1: shader_inst->SetShaderConstantF(const_index, x); break;
+        case 2: shader_inst->SetShaderConstantF2(const_index, x, y); break;
+        case 3: shader_inst->SetShaderConstantF3(const_index, x, y, z); break;
+        case 4: shader_inst->SetShaderConstantF4(const_index, x, y, z, w); break;
+        default: assert(false); break;
+        }
+    }
+}
+
+static void SetShaderTexture(IShaderInstance *shader_inst, uint32_t index, int sprite)
+{
+    std::shared_ptr<Texture> tex = sprite > 0 ? texturecache_precache(sprite) : nullptr;
+    shader_inst->SetShaderSampler(index, tex);
+}
+
 void ShaderInstance_SetConstantFX(ScriptShaderInstance *sc_shinst, const char *name, uint32_t size,
                                   float x = 0.f, float y = 0.f, float z = 0.f, float w = 0.f)
 {
@@ -243,19 +270,7 @@ void ShaderInstance_SetConstantFX(ScriptShaderInstance *sc_shinst, const char *n
     if (!shader_inst || !shader_inst->GetShader())
         return;
 
-    const uint32_t const_index = shader_inst->GetShader()->GetConstantByName(name);
-    if (const_index != UINT32_MAX)
-    {
-        // Pass new values to the graphics shader instance
-        switch (size)
-        {
-        case 1: shader_inst->SetShaderConstantF(const_index, x); break;
-        case 2: shader_inst->SetShaderConstantF2(const_index, x, y); break;
-        case 3: shader_inst->SetShaderConstantF3(const_index, x, y, z); break;
-        case 4: shader_inst->SetShaderConstantF4(const_index, x, y, z, w); break;
-        default: assert(false); break;
-        }
-    }
+    SetShaderConstant(shader_inst, name, size, x, y, z, w);
 }
 
 void ShaderInstance_SetConstantF(ScriptShaderInstance *sc_shinst, const char *name, float value)
@@ -276,6 +291,27 @@ void ShaderInstance_SetConstantF3(ScriptShaderInstance *sc_shinst, const char *n
 void ShaderInstance_SetConstantF4(ScriptShaderInstance *sc_shinst, const char *name, float x, float y, float z, float w)
 {
     ShaderInstance_SetConstantFX(sc_shinst, name, 4, x, y, z, w);
+}
+
+void ShaderInstance_SetTexture(ScriptShaderInstance *sc_shinst, int index, int sprite)
+{
+    if (index < 1 || index >= ScriptShaderProgram::SecondaryTextureCount)
+    {
+        debug_script_warn("ShaderInstance.SetTexture: unsupported texture index %d, valid range is 1..3", index);
+        return;
+    }
+
+    // Cache the texture in the script object;
+    // do this regardless of whether such sampler is supported in the real shader or not.
+    sc_shinst->SetTexture(index, sprite);
+
+    // Now try getting the actual shader and apply the constant according
+    // to their constants table
+    IShaderInstance *shader_inst = get_shader_instance(sc_shinst->GetID());
+    if (!shader_inst || !shader_inst->GetShader())
+        return;
+
+    SetShaderTexture(shader_inst, index, sprite);
 }
 
 ScriptShaderProgram *ShaderInstance_GetShader(ScriptShaderInstance *sc_shinst)
@@ -318,6 +354,11 @@ RuntimeScriptValue Sc_ShaderInstance_SetConstantF4(void *self, const RuntimeScri
     API_OBJCALL_VOID_POBJ_PFLOAT4(ScriptShaderInstance, ShaderInstance_SetConstantF4, const char);
 }
 
+RuntimeScriptValue Sc_ShaderInstance_SetTexture(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT2(ScriptShaderInstance, ShaderInstance_SetTexture);
+}
+
 RuntimeScriptValue Sc_ShaderInstance_GetShader(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_OBJAUTO(ScriptShaderInstance, ScriptShaderProgram, ShaderInstance_GetShader);
@@ -333,6 +374,7 @@ void RegisterShaderAPI()
         { "ShaderInstance::SetConstantF2", API_FN_PAIR(ShaderInstance_SetConstantF2)},
         { "ShaderInstance::SetConstantF3", API_FN_PAIR(ShaderInstance_SetConstantF3)},
         { "ShaderInstance::SetConstantF4", API_FN_PAIR(ShaderInstance_SetConstantF4)},
+        { "ShaderInstance::SetTexture",    API_FN_PAIR(ShaderInstance_SetTexture)},
         { "ShaderInstance::get_Shader",    API_FN_PAIR(ShaderInstance_GetShader)},
     };
 

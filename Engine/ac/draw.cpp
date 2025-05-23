@@ -1056,9 +1056,9 @@ void clear_shared_texture(uint32_t sprite_id)
     texturecache.Dispose(sprite_id);
 }
 
-void texturecache_precache(uint32_t sprite_id)
+std::shared_ptr<Texture> texturecache_precache(uint32_t sprite_id)
 {
-    texturecache.GetOrLoad(sprite_id, nullptr, false);
+    return texturecache.GetOrLoad(sprite_id, nullptr, false);
 }
 
 void add_custom_shader(IGraphicShader *shader, uint32_t at_index)

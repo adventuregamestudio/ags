@@ -46,7 +46,6 @@ namespace AGS.Editor
         public event EventHandler OnMainWindowActivated;
 
         private delegate void UpdateStatusBarTextDelegate(string text);
-        private delegate void ParameterlessDelegate();
         private delegate void ZoomToFileDelegate(string fileName, ZoomToFileZoomType zoomType, int lineNumber, bool isDebugExecutionPoint, bool selectWholeLine, string errorMessage, bool activateEditor);
         private delegate void ShowCallStackDelegate(DebugCallStack callStack);
         private delegate void ShowFindSymbolResultsDelegate(List<ScriptTokenReference> results);
@@ -447,7 +446,7 @@ namespace AGS.Editor
         {
             if (_mainForm.pnlOutput.InvokeRequired)
             {
-                _mainForm.pnlOutput.Invoke(new ParameterlessDelegate(HideOutputPanel));
+                _mainForm.pnlOutput.Invoke(new Action(HideOutputPanel));
                 return;
             }
 

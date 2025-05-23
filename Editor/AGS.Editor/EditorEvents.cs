@@ -8,11 +8,9 @@ namespace AGS.Editor
 {
     internal class EditorEvents
     {
-        public delegate void ParameterlessDelegate();
-        public delegate bool BooleanDelegate();
-        public event ParameterlessDelegate GameSettingsChanged;
-        public event ParameterlessDelegate ImportedOldGame;
-        public event ParameterlessDelegate RefreshAllComponentsFromGame;
+        public event Action GameSettingsChanged;
+        public event Action ImportedOldGame;
+        public event Action RefreshAllComponentsFromGame;
         public delegate void GameLoadHandler(XmlNode rootNode);
         public event GameLoadHandler GameLoad;
         public delegate void GamePostLoadHandler(Game game);

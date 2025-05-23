@@ -1249,7 +1249,7 @@ namespace AGS.Editor
             // Save game with a new encoding
             if (Factory.GUIController.InvokeRequired)
             {
-                Factory.GUIController.Invoke(new EditorEvents.BooleanDelegate(Factory.AGSEditor.SaveGameFiles));
+                Factory.GUIController.Invoke(new Func<bool>(Factory.AGSEditor.SaveGameFiles));
             }
             else
             {

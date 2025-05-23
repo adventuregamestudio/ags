@@ -163,7 +163,7 @@ namespace AGS.Editor
         {
             _timer = new System.Windows.Forms.Timer();
             _timer.Interval = TIMER_INTERVAL_MS;
-            _timer.Tick += new EventHandler(_timer_Tick);
+            _timer.Tick += _timer_Tick;
             _timer.Start();
             _threadFinished = false;
             _exceptionThrownOnThread = null;

@@ -28,9 +28,9 @@ namespace AGS.Editor.Components
             _scriptModule = new Script(GLOBAL_VARS_SCRIPT_FILE_NAME, string.Empty, false);
             _guiController.RegisterIcon(ICON_KEY, Resources.ResourceManager.GetIcon("globalvars.ico"));
             _guiController.ProjectTree.AddTreeRoot(this, TOP_LEVEL_COMMAND_ID, "Global variables", ICON_KEY);
-            _editor.GlobalVariableChanged += new GlobalVariablesEditor.GlobalVariableChangedHandler(_editor_GlobalVariableChanged);
-            _agsEditor.GetScriptHeaderList += new GetScriptHeaderListHandler(_agsEditor_GetScriptHeaderList);
-            _agsEditor.GetScriptModuleList += new GetScriptModuleListHandler(_agsEditor_GetScriptModuleList);
+            _editor.GlobalVariableChanged += _editor_GlobalVariableChanged;
+            _agsEditor.GetScriptHeaderList += _agsEditor_GetScriptHeaderList;
+            _agsEditor.GetScriptModuleList += _agsEditor_GetScriptModuleList;
         }
 
         public void SelectGlobalVariable(string variableName)

@@ -853,7 +853,7 @@ namespace AGS.Editor
                 if (raiseEventOnExit)
                 {
                     _testGameProcess.EnableRaisingEvents = true;
-                    _testGameProcess.Exited += new EventHandler(_testGameProcess_Exited);
+                    _testGameProcess.Exited += _testGameProcess_Exited;
                 }
                 _testGameProcess.Start();
             }

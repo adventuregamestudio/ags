@@ -51,7 +51,7 @@ namespace AGS.Editor
 
             string path = Path.Combine(Directory.GetCurrentDirectory(), DIRECTORY_FOR_FILES);
             _watcher = new FileSystemWatcher(path, RECIEVE_MESSAGE_FILE);
-            _watcher.Changed += new FileSystemEventHandler(_watcher_Changed);
+            _watcher.Changed += _watcher_Changed;
             _watcher.NotifyFilter = NotifyFilters.LastWrite;
             _watcher.EnableRaisingEvents = true;
         }

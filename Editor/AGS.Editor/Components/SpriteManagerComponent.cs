@@ -22,8 +22,8 @@ namespace AGS.Editor.Components
             Init();
             _guiController.RegisterIcon(ICON_KEY, Resources.ResourceManager.GetIcon("iconspr.ico"));
             _guiController.ProjectTree.AddTreeRoot(this, TOP_LEVEL_COMMAND_ID, "Sprites", ICON_KEY);
-            Factory.Events.ShowSpriteManager += new EditorEvents.ShowSpriteManagerHandler(Events_ShowSpriteManager);
-            Factory.Events.SpritesImported += new EditorEvents.SpriteImportHandler(Events_OnSpritesImported);
+            Factory.Events.ShowSpriteManager += Events_ShowSpriteManager;
+            Factory.Events.SpritesImported += Events_OnSpritesImported;
             RefreshDataFromGame();
         }
 

@@ -509,7 +509,7 @@ namespace AGS.Editor
         {
             FindReplace findReplace = new FindReplace(_iScript, _agsEditor,
                 _lastSearchText, _lastCaseSensitive);
-            findReplace.LastSearchTextChanged += new FindReplace.LastSearchTextChangedHandler(findReplace_LastSearchTextChanged);
+            findReplace.LastSearchTextChanged += findReplace_LastSearchTextChanged;
             findReplace.ShowFindReplaceDialog(showReplace, showAll);
         }
 

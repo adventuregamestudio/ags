@@ -132,10 +132,10 @@ namespace AGS.Editor
             // TODO: choose default zoom based on the room size vs window size?
             SetZoomSliderToMultiplier(_room.Width <= 320 ? 2 : 1);
 
-            MouseWheel += new MouseEventHandler(RoomSettingsEditor_MouseWheel);
-            bufferedPanel1.MouseWheel += new MouseEventHandler(RoomSettingsEditor_MouseWheel);
-            sldZoomLevel.MouseWheel += new MouseEventHandler(RoomSettingsEditor_MouseWheel);
-            cmbBackgrounds.MouseWheel += new MouseEventHandler(RoomSettingsEditor_MouseWheel);
+            MouseWheel += RoomSettingsEditor_MouseWheel;
+            bufferedPanel1.MouseWheel += RoomSettingsEditor_MouseWheel;
+            sldZoomLevel.MouseWheel += RoomSettingsEditor_MouseWheel;
+            cmbBackgrounds.MouseWheel += RoomSettingsEditor_MouseWheel;
             bufferedPanel1.PanButtons = MouseButtons.Middle;
 
             _editorConstructed = true;

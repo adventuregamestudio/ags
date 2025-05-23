@@ -28,17 +28,17 @@ namespace AGS.Editor
             _nativeProxy = Factory.NativeProxy;
             _pluginEditorController = new AGSEditorController(_componentController, _agsEditor, _guiController);
 
-            _events.GameLoad += new EditorEvents.GameLoadHandler(_events_GameLoad);
-            _events.GamePostLoad += new EditorEvents.GamePostLoadHandler(_events_GamePostLoad);
-            _events.GameSettingsChanged += new EditorEvents.ParameterlessDelegate(_events_GameSettingsChanged);
-            _events.ImportedOldGame += new EditorEvents.ParameterlessDelegate(_events_ImportedOldGame);
-            _events.RefreshAllComponentsFromGame += new EditorEvents.ParameterlessDelegate(_events_RefreshAllComponentsFromGame);
-            _events.SavingGame += new EditorEvents.SavingGameHandler(_events_SavingGame);
-            _events.SavingUserData += new EditorEvents.SavingUserDataHandler(_events_SavingUserData);
-            _events.LoadedUserData += new EditorEvents.LoadedUserDataHandler(_events_LoadedUserData);
-            _agsEditor.PreSaveGame += new AGSEditor.PreSaveGameHandler(_agsEditor_PreSaveGame);
+            _events.GameLoad += _events_GameLoad;
+            _events.GamePostLoad += _events_GamePostLoad;
+            _events.GameSettingsChanged += _events_GameSettingsChanged;
+            _events.ImportedOldGame += _events_ImportedOldGame;
+            _events.RefreshAllComponentsFromGame += _events_RefreshAllComponentsFromGame;
+            _events.SavingGame += _events_SavingGame;
+            _events.SavingUserData += _events_SavingUserData;
+            _events.LoadedUserData += _events_LoadedUserData;
+            _agsEditor.PreSaveGame += _agsEditor_PreSaveGame;
 
-            _guiController.OnEditorShutdown += new GUIController.EditorShutdownHandler(GUIController_OnEditorShutdown);
+            _guiController.OnEditorShutdown += GUIController_OnEditorShutdown;
             _guiController.Initialize(_agsEditor);
             _agsEditor.DoEditorInitialization();
             CreateComponents();

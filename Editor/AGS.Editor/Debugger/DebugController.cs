@@ -46,7 +46,7 @@ namespace AGS.Editor
         public DebugController(IEngineCommunication communicator)
         {
             _communicator = communicator;
-            _communicator.MessageReceived += new MessageReceivedHandler(_communicator_MessageReceived);
+            _communicator.MessageReceived += _communicator_MessageReceived;
         }
 
 		public bool CanUseDebugger

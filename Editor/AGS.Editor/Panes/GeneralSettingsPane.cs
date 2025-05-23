@@ -138,7 +138,7 @@ namespace AGS.Editor
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 14F);
             this.Name = "GeneralSettingsPane";
-            this.Load += new System.EventHandler(this.GeneralSettingsPane_Load);
+            this.Load += GeneralSettingsPane_Load;
             this.ResumeLayout(false);
         }
 

@@ -94,16 +94,16 @@ namespace AGS.Editor.Components
 
 			_nativeProxy = Factory.NativeProxy;
             _guiController.ProjectTree.AddTreeRoot(this, TOP_LEVEL_COMMAND_ID, "Rooms", "RoomsIcon");
-            _guiController.OnZoomToFile += new GUIController.ZoomToFileHandler(GUIController_OnZoomToFile);
-            _guiController.OnGetScript += new GUIController.GetScriptHandler(GUIController_OnGetScript);
-            _guiController.OnScriptChanged += new GUIController.ScriptChangedHandler(GUIController_OnScriptChanged);
-            _guiController.OnGetScriptEditorControl += new GUIController.GetScriptEditorControlHandler(_guiController_OnGetScriptEditorControl);
-            _agsEditor.PreCompileGame += new AGSEditor.PreCompileGameHandler(AGSEditor_PreCompileGame);
-            _agsEditor.PreSaveGame += new AGSEditor.PreSaveGameHandler(AGSEditor_PreSaveGame);
-            _agsEditor.ProcessAllGameTexts += new AGSEditor.ProcessAllGameTextsHandler(AGSEditor_ProcessAllGameTexts);
-			_agsEditor.PreDeleteSprite += new AGSEditor.PreDeleteSpriteHandler(AGSEditor_PreDeleteSprite);
+            _guiController.OnZoomToFile += GUIController_OnZoomToFile;
+            _guiController.OnGetScript += GUIController_OnGetScript;
+            _guiController.OnScriptChanged += GUIController_OnScriptChanged;
+            _guiController.OnGetScriptEditorControl += _guiController_OnGetScriptEditorControl;
+            _agsEditor.PreCompileGame += AGSEditor_PreCompileGame;
+            _agsEditor.PreSaveGame += AGSEditor_PreSaveGame;
+            _agsEditor.ProcessAllGameTexts += AGSEditor_ProcessAllGameTexts;
+			_agsEditor.PreDeleteSprite += AGSEditor_PreDeleteSprite;
             Factory.Events.GamePostLoad += ConvertAllRoomsFromCrmToOpenFormat;
-            _modifiedChangedHandler = new Room.RoomModifiedChangedHandler(_loadedRoom_RoomModifiedChanged);
+            _modifiedChangedHandler = _loadedRoom_RoomModifiedChanged;
             RePopulateTreeView();
         }
 
@@ -886,7 +886,7 @@ namespace AGS.Editor.Components
         {
             ScriptEditor scriptEditor = new ScriptEditor(selectedRoom.Script, _agsEditor, null);
             scriptEditor.RoomNumber = selectedRoom.Number;
-            scriptEditor.IsModifiedChanged += new EventHandler(ScriptEditor_IsModifiedChanged);
+            scriptEditor.IsModifiedChanged += ScriptEditor_IsModifiedChanged;
             if (scriptEditor.DockingContainer == null)
             {
                 scriptEditor.DockingContainer = new DockingContainer(scriptEditor);
@@ -1157,8 +1157,8 @@ namespace AGS.Editor.Components
                 _roomSettings.PreferredDockData = previousDockData;
             }
             _roomSettings.SelectedPropertyGridObject = _loadedRoom;
-            editor.SaveRoom += new RoomSettingsEditor.SaveRoomHandler(RoomEditor_SaveRoom);
-            editor.AbandonChanges += new RoomSettingsEditor.AbandonChangesHandler(RoomsComponent_AbandonChanges);
+            editor.SaveRoom += RoomEditor_SaveRoom;
+            editor.AbandonChanges += RoomsComponent_AbandonChanges;
             RoomDesignData.LoadFromUserFile(_loadedRoom, editor);
             editor.RefreshLayersTree();
             // Reset the Modified flag in case initialization triggered some events

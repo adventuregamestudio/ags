@@ -14,7 +14,6 @@ namespace AGS.Editor
 
         private AGS.Types.View _editingView;
         private List<ViewLoopEditor> _loopPanes = new List<ViewLoopEditor>();
-        private AGS.Types.View.ViewUpdatedHandler _viewUpdateHandler;
 		private delegate void CorrectAutoScrollDelegate(Point p);
         private GUIController _guiController;
         private bool _processingSelection = false;
@@ -26,9 +25,8 @@ namespace AGS.Editor
         public ViewEditor(AGS.Types.View viewToEdit)
         {
             _guiController = Factory.GUIController;
-            _guiController.OnPropertyObjectChanged += new GUIController.PropertyObjectChangedHandler(GUIController_OnPropertyObjectChanged);
-            _viewUpdateHandler = new AGS.Types.View.ViewUpdatedHandler(View_ViewUpdated);
-            viewToEdit.ViewUpdated += _viewUpdateHandler;
+            _guiController.OnPropertyObjectChanged += GUIController_OnPropertyObjectChanged;
+            viewToEdit.ViewUpdated += View_ViewUpdated;
 
             InitializeComponent();
 
@@ -111,16 +109,16 @@ namespace AGS.Editor
             loopPane.ZoomLevel = sldZoomLevel.ZoomScale;
             loopPane.Top = 10 + _loopPanes.Count * loopPane.Height + editorPanel.AutoScrollPosition.Y;
             loopPane.HandleRangeSelection = false; // we will handle multi-loop selection ourselves
-            loopPane.SelectedFrameChanged += new ViewLoopEditor.SelectedFrameChangedHandler(loopPane_SelectedFrameChanged);
-			loopPane.NewFrameAdded += new ViewLoopEditor.NewFrameAddedHandler(loopPane_NewFrameAdded);
+            loopPane.SelectedFrameChanged += loopPane_SelectedFrameChanged;
+			loopPane.NewFrameAdded += loopPane_NewFrameAdded;
             loopPane.OnContextMenu += loopPane_OnContextMenu;
             if (loop.ID == _editingView.Loops.Count - 1)
             {
                 loopPane.IsLastLoop = true;
             }
-			loopPane.Enter += new EventHandler(loopPane_GotFocus);
-			//loopPane.GotFocus += new EventHandler(loopPane_GotFocus);
-			//loopPane.Leave += new EventHandler(loopPane_GotFocus);
+			loopPane.Enter += loopPane_GotFocus;
+			//loopPane.GotFocus += loopPane_GotFocus;
+			//loopPane.Leave += loopPane_GotFocus;
             editorPanel.Controls.Add(loopPane);
             editorPanel.AutoScrollPosition = new Point(0, editorPanel.VerticalScroll.Maximum);
             _loopPanes.Add(loopPane);
@@ -388,8 +386,8 @@ namespace AGS.Editor
 
         protected override void OnDispose()
         {
-            _editingView.ViewUpdated -= _viewUpdateHandler;
-            _guiController.OnPropertyObjectChanged -= new GUIController.PropertyObjectChangedHandler(GUIController_OnPropertyObjectChanged);
+            _editingView.ViewUpdated -= View_ViewUpdated;
+            _guiController.OnPropertyObjectChanged -= GUIController_OnPropertyObjectChanged;
         }
 
         private void btnNewLoop_Click(object sender, EventArgs e)

@@ -67,7 +67,7 @@ namespace AGS.Editor.Components
 
             _guiController.AddMenu(this, GUIController.HELP_MENU_ID, "&Help");
 
-            _guiController.OnLaunchHelp += new GUIController.LaunchHelpHandler(_guiController_OnLaunchHelp);
+            _guiController.OnLaunchHelp += _guiController_OnLaunchHelp;
 
             MenuCommands commands = new MenuCommands(GUIController.HELP_MENU_ID, null);
             commands.Commands.Add(new MenuCommand(LAUNCH_HELP_COMMAND, "&Dynamic Help", Keys.F1, "MenuIconDynamicHelp"));

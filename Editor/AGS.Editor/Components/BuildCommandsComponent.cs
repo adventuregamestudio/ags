@@ -31,10 +31,10 @@ namespace AGS.Editor.Components
         public BuildCommandsComponent(GUIController guiController, AGSEditor agsEditor)
             : base(guiController, agsEditor)
         {
-            ScriptEditor.AttemptToEditScript += new ScriptEditor.AttemptToEditScriptHandler(ScriptEditor_AttemptToEditScript);
-            _guiController.QueryEditorShutdown += new GUIController.QueryEditorShutdownHandler(guiController_QueryEditorShutdown);
-            _guiController.InteractiveTasks.TestGameStarting += new InteractiveTasks.TestGameStartingHandler(AGSEditor_TestGameStarting);
-            _guiController.InteractiveTasks.TestGameFinished += new InteractiveTasks.TestGameFinishedHandler(AGSEditor_TestGameFinished);
+            ScriptEditor.AttemptToEditScript += ScriptEditor_AttemptToEditScript;
+            _guiController.QueryEditorShutdown += guiController_QueryEditorShutdown;
+            _guiController.InteractiveTasks.TestGameStarting += AGSEditor_TestGameStarting;
+            _guiController.InteractiveTasks.TestGameFinished += AGSEditor_TestGameFinished;
             _guiController.RegisterIcon("BuildIcon", Resources.ResourceManager.GetIcon("build.ico"));
             _guiController.RegisterIcon("RunIcon", Resources.ResourceManager.GetIcon("run.ico"));
             _guiController.RegisterIcon("StepIcon", Resources.ResourceManager.GetIcon("step.ico"));
@@ -86,8 +86,8 @@ namespace AGS.Editor.Components
             Factory.ToolBarManager.AddGlobalItems(this, _debugToolbarCommands);
             Factory.ToolBarManager.UpdateItemEnabledStates(_debugToolbarCommands);
 
-            _agsEditor.Debugger.DebugStateChanged += new DebugController.DebugStateChangedHandler(Debugger_DebugStateChanged);
-            _agsEditor.AttemptToSaveGame += new AGSEditor.AttemptToSaveGameHandler(_agsEditor_AttemptToSaveGame);
+            _agsEditor.Debugger.DebugStateChanged += Debugger_DebugStateChanged;
+            _agsEditor.AttemptToSaveGame += _agsEditor_AttemptToSaveGame;
         }
 
         private void ScriptEditor_AttemptToEditScript(ref bool allowEdit)

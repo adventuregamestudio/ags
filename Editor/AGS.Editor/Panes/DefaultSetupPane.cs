@@ -32,7 +32,7 @@ namespace AGS.Editor
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 14F);
             this.Name = "DefaultRuntimeSetupPane";
-            this.Load += new System.EventHandler(this.DefaultRuntimeSetupPane_Load);
+            this.Load += DefaultRuntimeSetupPane_Load;
             this.ResumeLayout(false);
         }
 

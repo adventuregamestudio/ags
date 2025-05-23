@@ -11,7 +11,7 @@ namespace AGS.Types
         public BuildTargetUIEditor()
             : base()
         {
-            editor.ItemCheck += new ItemCheckEventHandler(editor_ItemCheck);
+            editor.ItemCheck += editor_ItemCheck;
         }
 
         void editor_ItemCheck(object sender, ItemCheckEventArgs e)

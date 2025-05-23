@@ -33,16 +33,16 @@ namespace AGS.Editor
             _projectTree = projectTree;
             _treeNodes = new Dictionary<string, IEditorComponent>();
 
-            _projectTree.MouseClick += new System.Windows.Forms.MouseEventHandler(this.projectTree_MouseClick);
-            _projectTree.NodeMouseDoubleClick += new System.Windows.Forms.TreeNodeMouseClickEventHandler(this.projectTree_NodeMouseDoubleClick);
-            _projectTree.DoubleClick += new System.EventHandler(this.projectTree_DoubleClick);
-            _projectTree.AfterLabelEdit += new System.Windows.Forms.NodeLabelEditEventHandler(this.projectTree_AfterLabelEdit);
-            _projectTree.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.projectTree_AfterSelect);
-            _projectTree.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.projectTree_KeyPress);
-            _projectTree.KeyDown += new System.Windows.Forms.KeyEventHandler(this.projectTree_KeyDown);
-            _projectTree.BeforeLabelEdit += new System.Windows.Forms.NodeLabelEditEventHandler(this.projectTree_BeforeLabelEdit);
-			_projectTree.BeforeExpand += new TreeViewCancelEventHandler(_projectTree_BeforeExpand);
-			_projectTree.BeforeCollapse += new TreeViewCancelEventHandler(_projectTree_BeforeCollapse);
+            _projectTree.MouseClick += projectTree_MouseClick;
+            _projectTree.NodeMouseDoubleClick += projectTree_NodeMouseDoubleClick;
+            _projectTree.DoubleClick += projectTree_DoubleClick;
+            _projectTree.AfterLabelEdit += projectTree_AfterLabelEdit;
+            _projectTree.AfterSelect += projectTree_AfterSelect;
+            _projectTree.KeyPress += projectTree_KeyPress;
+            _projectTree.KeyDown += projectTree_KeyDown;
+            _projectTree.BeforeLabelEdit += projectTree_BeforeLabelEdit;
+			_projectTree.BeforeExpand += _projectTree_BeforeExpand;
+			_projectTree.BeforeCollapse += _projectTree_BeforeCollapse;
 			_projectTree.ItemTryDrag += projectTree_ItemTryDrag;
             _projectTree.ItemDragOver += _projectTree_ItemDragOver;
             _projectTree.ItemDragDrop += _projectTree_ItemDragDrop;

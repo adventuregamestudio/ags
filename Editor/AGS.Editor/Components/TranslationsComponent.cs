@@ -41,10 +41,10 @@ namespace AGS.Editor.Components
         public TranslationsComponent(GUIController guiController, AGSEditor agsEditor)
             : base(guiController, agsEditor)
         {
-            _guiController.ProjectTree.OnAfterLabelEdit += new ProjectTree.AfterLabelEditHandler(ProjectTree_OnAfterLabelEdit);
-            _agsEditor.PreCompileGame += new AGSEditor.PreCompileGameHandler(AGSEditor_PreCompileGame);
+            _guiController.ProjectTree.OnAfterLabelEdit += ProjectTree_OnAfterLabelEdit;
+            _agsEditor.PreCompileGame += AGSEditor_PreCompileGame;
             _timer.Interval = 20;
-            _timer.Tick += new EventHandler(_timer_Tick);
+            _timer.Tick += _timer_Tick;
 
             //_documents = new Dictionary<AGS.Types.Font, ContentDocument>();
             _guiController.RegisterIcon("TranslationsIcon", Resources.ResourceManager.GetIcon("translations.ico"));

@@ -51,7 +51,7 @@ public:
 
     // Events
     bool OnMouseDown() override;
-    void OnMouseMove(int xp, int yp) override;
+    void OnMouseMove(int mx, int my) override;
     void OnMouseUp() override;
     void OnResized() override;
 

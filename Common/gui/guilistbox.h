@@ -68,7 +68,7 @@ public:
 
     // Events
     bool OnMouseDown() override;
-    void OnMouseMove(int x, int y) override;
+    void OnMouseMove(int mx, int my) override;
     void OnResized() override;
 
     // Serialization

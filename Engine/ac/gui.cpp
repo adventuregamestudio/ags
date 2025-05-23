@@ -77,7 +77,9 @@ extern CCGUITextBox ccDynamicGUITextBox;
 
 int ifacepopped=-1;  // currently displayed pop-up GUI (-1 if none)
 int mouse_on_iface=-1;   // mouse cursor is over this interface
-// cursor position relative to a focused gui control
+// cursor position relative to a focused gui control;
+// this is in *local* control's coordinates.
+// FIXME: get rid of these global variables somehow
 int mouse_ifacebut_xoffs =- 1, mouse_ifacebut_yoffs =- 1;
 
 int eip_guinum, eip_guiobj;
@@ -874,8 +876,10 @@ void gui_on_mouse_up(const int wasongui, const int wasbutdown, const int mx, con
         {
             click_handled = true;
             Point guipt = gui.GetGraphicSpace().WorldToLocal(mx, my);
-            mouse_ifacebut_xoffs = guipt.X - (guio->GetX());
-            mouse_ifacebut_yoffs = guipt.Y - (guio->GetY());
+            Point gobjpt = guio->GetGraphicSpace().WorldToLocal(guipt.X, guipt.Y);
+
+            mouse_ifacebut_xoffs = gobjpt.X;
+            mouse_ifacebut_yoffs = gobjpt.Y;
             int iit = offset_over_inv((GUIInvWindow*)guio);
             if (iit >= 0)
             {

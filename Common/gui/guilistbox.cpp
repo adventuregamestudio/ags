@@ -384,10 +384,9 @@ bool GUIListBox::OnMouseDown()
     return false;
 }
 
-void GUIListBox::OnMouseMove(int x_, int y_)
+void GUIListBox::OnMouseMove(int mx, int my)
 {
-    _mousePos.X = x_ - _x;
-    _mousePos.Y = y_ - _y;
+    _mousePos = _gs.WorldToLocal(mx, my);
 }
 
 void GUIListBox::OnResized()

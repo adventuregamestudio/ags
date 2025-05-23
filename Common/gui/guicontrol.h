@@ -76,7 +76,7 @@ public:
     // Mouse moves off control
     virtual void    OnMouseLeave() { }
     // Mouse moves over control - x,y relative to gui
-    virtual void    OnMouseMove(int /*x*/, int /*y*/) { }
+    virtual void    OnMouseMove(int /*mx*/, int /*my*/) { }
     // Mouse button up
     virtual void    OnMouseUp() { }
 

@@ -264,17 +264,19 @@ bool GUISlider::OnMouseDown()
     return true;
 }
 
-void GUISlider::OnMouseMove(int x, int y)
+void GUISlider::OnMouseMove(int mx, int my)
 {
     if (!_isMousePressed)
         return;
 
+    Point mp = _gs.WorldToLocal(mx, my);
+
     int value;
     assert(_handleRange > 0);
     if (IsHorizontal())
-        value = (int)(((float)((x - _x) - 2) * (float)(_maxValue - _minValue)) / (float)_handleRange) + _minValue;
+        value = (int)(((float)(mp.X - 2) * (float)(_maxValue - _minValue)) / (float)_handleRange) + _minValue;
     else
-        value = (int)(((float)(((_y + _height) - y) - 2) * (float)(_maxValue - _minValue)) / (float)_handleRange) + _minValue;
+        value = (int)(((float)((_height - mp.Y) - 2) * (float)(_maxValue - _minValue)) / (float)_handleRange) + _minValue;
 
     value = Math::Clamp(value, _minValue, _maxValue);
     if (value != _value)

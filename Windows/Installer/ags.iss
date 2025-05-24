@@ -208,12 +208,12 @@ const
   VCPP_REDIST_MAJOR_VERSION = 14.42;
   VCPP_REDIST_BUILD_VERSION = 34433;
 
-  // .NET Framework 4.6 or newer
+  // .NET Framework 4.7 or newer
   // in theory this is only needed for OS versions older than Windows 10
   // https://docs.microsoft.com/en-us/dotnet/framework/migration-guide/how-to-determine-which-versions-are-installed#minimum-version
-  DOT_NET_46_RELEASE_VERSION = 393295;
-  NEED_DOT_NET_ERROR_MESSAGE = 'AGS needs the Microsoft .NET Framework 4.6 or later to be installed on this computer. Press OK to visit the Microsoft website and download this, then run Setup again.';
-  DOT_NET_INSTALL_URL = 'https://dotnet.microsoft.com/download/dotnet-framework';
+  DOTNET_FRAMEWORK_RELEASE_VERSION = 460798;
+  NEED_DOTNET_ERROR_MESSAGE = 'The AGS Editor requires the .NET Framework 4.7 (or later) Runtime to be installed. Press OK to visit the .NET website and download it, then re-run this setup after installing it.';
+  DOTNET_INSTALL_URL = 'https://dotnet.microsoft.com/en-us/download/dotnet-framework/net47';
 
 function VCRedistInstalled: Boolean;
 var
@@ -234,7 +234,7 @@ begin
     HKLM,
     'Software\Microsoft\NET Framework Setup\NDP\v4\Full',
     'Release',
-    version)) AND (version >= DOT_NET_46_RELEASE_VERSION);
+    version)) AND (version >= DOTNET_FRAMEWORK_RELEASE_VERSION);
 end;
 
 function IsWindowsVersionOrNewer(Major, Minor: Integer): Boolean;
@@ -264,8 +264,8 @@ begin
   begin
     if NOT WizardSilent then
     begin
-      MsgBox(NEED_DOT_NET_ERROR_MESSAGE, mbInformation, MB_OK);
-      ShellExecAsOriginalUser('', DOT_NET_INSTALL_URL, '', '', SW_SHOW, ewNoWait, ErrorCode);
+      MsgBox(NEED_DOTNET_ERROR_MESSAGE, mbInformation, MB_OK);
+      ShellExecAsOriginalUser('', DOTNET_INSTALL_URL, '', '', SW_SHOW, ewNoWait, ErrorCode);
     end;
     Result := False;
   end

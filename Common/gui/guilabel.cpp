@@ -104,7 +104,7 @@ void GUILabel::SetText(const String &text)
 // methods in the future, to keep this organized.
 void GUILabel::WriteToFile(Stream *out) const
 {
-    GUIObject::WriteToFile(out);
+    GUIControl::WriteToFile(out);
     StrUtil::WriteString(_text, out);
     out->WriteInt32(_font);
     out->WriteInt32(_textColor);
@@ -113,7 +113,7 @@ void GUILabel::WriteToFile(Stream *out) const
 
 void GUILabel::ReadFromFile(Stream *in, GuiVersion gui_version)
 {
-    GUIObject::ReadFromFile(in, gui_version);
+    GUIControl::ReadFromFile(in, gui_version);
 
     _text = StrUtil::ReadString(in);
     _font = in->ReadInt32();
@@ -128,7 +128,7 @@ void GUILabel::ReadFromFile(Stream *in, GuiVersion gui_version)
 
 void GUILabel::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
 {
-    GUIObject::ReadFromSavegame(in, svg_ver);
+    GUIControl::ReadFromSavegame(in, svg_ver);
     _font = in->ReadInt32();
     _textColor = in->ReadInt32();
     _text = StrUtil::ReadString(in);
@@ -140,7 +140,7 @@ void GUILabel::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
 
 void GUILabel::WriteToSavegame(Stream *out) const
 {
-    GUIObject::WriteToSavegame(out);
+    GUIControl::WriteToSavegame(out);
     out->WriteInt32(_font);
     out->WriteInt32(_textColor);
     StrUtil::WriteString(_text, out);

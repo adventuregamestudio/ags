@@ -15,14 +15,14 @@
 #define __AC_GUISLIDER_H
 
 #include <vector>
-#include "gui/guiobject.h"
+#include "gui/guicontrol.h"
 
 namespace AGS
 {
 namespace Common
 {
 
-class GUISlider : public GUIObject
+class GUISlider : public GUIControl
 {
 public:
     GUISlider();
@@ -42,7 +42,6 @@ public:
     void SetHandleOffset(int offset);
     // Tells if the slider is horizontal (otherwise - vertical)
     bool IsHorizontal() const;
-    bool IsOverControl(int x, int y, int leeway) const override;
     // Compatibility: sliders are not clipped as of 3.6.0
     bool IsContentClipped() const override { return false; }
 
@@ -52,7 +51,7 @@ public:
 
     // Events
     bool OnMouseDown() override;
-    void OnMouseMove(int xp, int yp) override;
+    void OnMouseMove(int mx, int my) override;
     void OnMouseUp() override;
     void OnResized() override;
 
@@ -63,6 +62,9 @@ public:
     void WriteToSavegame(Stream *out) const override;
 
 private:
+    // Overridable routine to determine whether the coordinates is over the control;
+    // coordinates are guaranteed to be transformed to the control's local cs
+    bool IsOverControlImpl(int x, int y, int leeway) const override;
     // Updates dynamic metrics and positions of elements
     void UpdateMetrics();
 
@@ -79,6 +81,8 @@ private:
     Rect    _cachedHandle;
     // The length of the handle movement range, in pixels
     int     _handleRange;
+    // Geometric range of the handle, between minimal and maximal position
+    Rect    _handleGraphRange;
 };
 
 } // namespace Common

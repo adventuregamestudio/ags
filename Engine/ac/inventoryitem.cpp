@@ -107,11 +107,12 @@ int GetInvAt(int scrx, int scry) {
     if (ongui >= 0) {
         GUIMain &gui = guis[ongui];
         int onobj = gui.FindControlAt(scrx, scry);
-        GUIObject *guio = gui.GetControl(onobj);
+        GUIControl *guio = gui.GetControl(onobj);
         if (guio) {
             Point guipt = gui.GetGraphicSpace().WorldToLocal(scrx, scry);
-            mouse_ifacebut_xoffs = guipt.X - guio->GetX();
-            mouse_ifacebut_yoffs = guipt.Y - guio->GetY();
+            Point gobjpt = guio->GetGraphicSpace().WorldToLocal(guipt.X, guipt.Y);
+            mouse_ifacebut_xoffs = gobjpt.X;
+            mouse_ifacebut_yoffs = gobjpt.Y;
         }
         if (guio && (gui.GetControlType(onobj) == kGUIInvWindow))
             return offset_over_inv((GUIInvWindow *)guio);

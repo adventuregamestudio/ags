@@ -11,17 +11,17 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-
-#ifndef __AC_GUIOBJECT_H
-#define __AC_GUIOBJECT_H
+//
+// GUIObject is a parent class for GUI and GUI controls.
+//
+//=============================================================================
+#ifndef __AGS_CN_GUI__GUIOBJECT_H
+#define __AGS_CN_GUI__GUIOBJECT_H
 
 #include "core/types.h"
-#include "gfx/bitmap.h"
-#include "gui/guidefines.h"
+#include "gfx/gfx_def.h"
+#include "util/geometry.h"
 #include "util/string.h"
-
-struct KeyInput;
-
 
 namespace AGS
 {
@@ -31,7 +31,7 @@ namespace Common
 class GUIObject
 {
 public:
-    GUIObject() = default;
+    GUIObject();
     virtual ~GUIObject() = default;
 
     // Properties
@@ -39,17 +39,17 @@ public:
     void            SetName(const String &name);
     int             GetID() const { return _id; }
     void            SetID(int id);
-    int             GetParentID() const { return _parentID; }
-    void            SetParentID(int parent_id);
 
-    bool            IsClickable() const { return (_flags & kGUICtrl_Clickable) != 0; }
-    bool            IsDeleted() const { return (_flags & kGUICtrl_Deleted) != 0; }
-    bool            IsEnabled() const { return (_flags & kGUICtrl_Enabled) != 0; }
-    bool            IsTranslated() const { return (_flags & kGUICtrl_Translated) != 0; }
-    bool            IsVisible() const { return (_flags & kGUICtrl_Visible) != 0; }
-    bool            IsWrapText() const { return (_flags & kGUICtrl_WrapText) != 0; }
-    // overridable routine to determine whether the mouse is over the control
-    virtual bool    IsOverControl(int x, int y, int leeway) const;
+    // TODO: the GUI/GUIControl implementations used separate state flag values historically;
+    // it's possible to share these, in which case these methods can be made non-virtual and inlined,
+    // but that would require updating data formats.
+    virtual bool    IsClickable() const = 0;
+    virtual bool    IsEnabled() const = 0;
+    virtual bool    IsVisible() const = 0;
+    virtual void    SetClickable(bool on) = 0;
+    virtual void    SetEnabled(bool on) = 0;
+    virtual void    SetVisible(bool on) = 0;
+
     int             GetX() const { return _x; }
     void            SetX(int x);
     int             GetY() const { return _y; }
@@ -65,6 +65,11 @@ public:
     void            SetSize(int width, int height);
     void            SetSize(const Size &sz) { SetSize(sz.Width, sz.Height); }
     Rect            GetRect() const { return RectWH(_x, _y, _width, _height); }
+    Pointf          GetScale() const { return _scale; }
+    void            SetScale(const Pointf &scale) { SetScale(scale.X, scale.Y); }
+    void            SetScale(float sx, float sy);
+    float           GetRotation() const { return _rotation; }
+    void            SetRotation(float degrees);
     int             GetTransparency() const { return _transparency; }
     void            SetTransparency(int trans);
     // Sets transparency as a legacy 255-unit value
@@ -77,92 +82,67 @@ public:
     void            SetShader(int shader_id, int shader_handle);
     int             GetZOrder() const { return _zOrder; }
     void            SetZOrder(int zorder);
-    void            SetClickable(bool on);
-    void            SetEnabled(bool on);
-    void            SetTranslated(bool on);
-    void            SetVisible(bool on);
-    bool            IsActivated() const { return _isActivated; }
-    void            SetActivated(bool on);
 
-    // Compatibility: should the control's graphic be clipped to its x,y,w,h
-    virtual bool    IsContentClipped() const { return true; }
+    // Returns GUI object's graphic space params
+    inline const GraphicSpace &GetGraphicSpace() const { return _gs; }
 
-    int             GetEventCount() const { return _scEventCount; }
-    String          GetEventName(uint32_t event) const;
-    String          GetEventArgs(uint32_t event) const;
-    // Gets a script function name for the given event
-    String          GetEventHandler(uint32_t event) const;
-    void            SetEventHandler(uint32_t event, const String &fn_name);
-    
+    // TODO: can possible move script events and handlers config to the GUIObject interface too;
+    // this will require for GUIMain to share similar event/handler iface
+
     // Operations
     // Returns the (untransformed!) visual rectangle of this control,
     // in *relative* coordinates, optionally clipped by the logical size
     virtual Rect    CalcGraphicRect(bool /*clipped*/) { return RectWH(0, 0, _width, _height); }
-    virtual void    Draw(Bitmap *ds, int x = 0, int y = 0) { (void)ds; (void)x; (void)y; }
 
     // Events
-    // Key pressed for control; returns if handled
-    virtual bool    OnKeyPress(const KeyInput&) { return false; }
-    // Mouse button down - return 'True' to lock focus
-    virtual bool    OnMouseDown() { return false; }
-    // Mouse moves onto control
-    virtual void    OnMouseEnter() { }
-    // Mouse moves off control
-    virtual void    OnMouseLeave() { }
-    // Mouse moves over control - x,y relative to gui
-    virtual void    OnMouseMove(int /*x*/, int /*y*/) { }
-    // Mouse button up
-    virtual void    OnMouseUp() { }
-    // Control was resized
-    virtual void    OnResized() { MarkPositionChanged(true); }
+    // TODO: get OnKey/Mouse events into this parent class too
+    // 
+    // Object was resized
+    virtual void    OnResized();
 
-    // Serialization
-    virtual void    ReadFromFile(Common::Stream *in, GuiVersion gui_version);
-    virtual void    WriteToFile(Common::Stream *out) const;
-    virtual void    ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_ver);
-    virtual void    WriteToSavegame(Common::Stream *out) const;
-
-    // Manually marks GUIObject as graphically changed
-    // NOTE: this only matters if control's own graphic changes, but not its
-    // logical (visible, clickable, etc) or visual (e.g. transparency) state.
-    void            MarkChanged();
-    // Notifies parent GUI that this control has changed its visual state
-    void            MarkParentChanged();
-    // Notifies parent GUI that this control has changed its location (pos, size)
-    void            MarkPositionChanged(bool self_changed);
-    // Notifies parent GUI that this control's interactive state has changed
-    void            MarkStateChanged(bool self_changed, bool parent_changed);
+    // Tells if object has graphically changed recently
     bool            HasChanged() const { return _hasChanged; }
-    void            ClearChanged();
+    // TODO: hide these Mark* methods under protected, they should not be exposed,
+    // unless there's a clear need.
+    // 
+    // Marks object as graphically changed.
+    // NOTE: this only matters if object's own graphic changes (content, size etc),
+    // but not its state (visible) or texture drawing mode (transparency, etc).
+    virtual void    MarkChanged();
+    // Marks object has its position changed, "self_changed" flag tells
+    // if the whole object's rectangle has changed (otherwise it's just a x,y change).
+    virtual void    MarkPositionChanged(bool self_changed);
+    // Marks object has its visual state changed (transparency, blend mode, etc)
+    virtual void    MarkVisualStateChanged();
+    // Clears changed flag
+    virtual void    ClearChanged();
+
+    // Recalculate graphic space using current object properties
+    void            UpdateGraphicSpace();
   
 protected:
-    int      _id = -1;      // GUI object's identifier
-    int      _parentID = -1;// id of parent GUI
-    String   _name;         // script name
 
-    int      _x = 0;
-    int      _y = 0;
-    int      _zOrder = 0;
-    bool     _isActivated = false; // signals user interaction
+    int     _id = -1;      // GUI object's identifier
+    String  _name;         // script name
 
-    uint32_t _flags = kGUICtrl_DefFlags; // generic style and behavior flags
-    int      _width = 0;
-    int      _height = 0;
-    int      _transparency = 0; // "incorrect" alpha (in legacy 255-range units)
+    int     _x = 0;
+    int     _y = 0;
+    int     _width = 0;
+    int     _height = 0;
+    Pointf  _scale = Pointf(1.f, 1.f);; // x,y scale
+    float   _rotation = 0.f;    // rotation, in degrees
+    int     _zOrder = 0;
+    
+    int     _transparency = 0; // "incorrect" alpha (in legacy 255-range units)
     BlendMode _blendMode = kBlend_Normal;
-    int      _shaderID = 0;
-    int      _shaderHandle = 0; // runtime script shader handle
-    bool     _hasChanged = false;
+    int     _shaderID = 0;
+    int     _shaderHandle = 0; // runtime script shader handle
 
-    // TODO: explicit event names & handlers for every event
-    // FIXME: these must be static!! per type
-    uint32_t _scEventCount = 0u;               // number of supported script events
-    String   _scEventNames[MAX_GUIOBJ_EVENTS]; // script event names
-    String   _scEventArgs[MAX_GUIOBJ_EVENTS];  // script handler params
-    String   _eventHandlers[MAX_GUIOBJ_EVENTS]; // script function names
+    GraphicSpace _gs;
+    bool    _hasChanged = false;
 };
 
 } // namespace Common
 } // namespace AGS
 
-#endif // __AC_GUIOBJECT_H
+#endif // __AGS_CN_GUI__GUIOBJECT_H

@@ -15,14 +15,14 @@
 #define __AC_GUIINV_H
 
 #include <vector>
-#include "gui/guiobject.h"
+#include "gui/guicontrol.h"
 
 namespace AGS
 {
 namespace Common
 {
 
-class GUIInvWindow : public GUIObject
+class GUIInvWindow : public GUIControl
 {
 public:
     GUIInvWindow();

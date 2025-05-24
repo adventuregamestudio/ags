@@ -37,6 +37,7 @@ void GUIListBox::SetFont(int font)
     {
         _font = font;
         UpdateMetrics();
+        UpdateGraphicSpace();
         MarkChanged();
     }
 }
@@ -383,15 +384,15 @@ bool GUIListBox::OnMouseDown()
     return false;
 }
 
-void GUIListBox::OnMouseMove(int x_, int y_)
+void GUIListBox::OnMouseMove(int mx, int my)
 {
-    _mousePos.X = x_ - _x;
-    _mousePos.Y = y_ - _y;
+    _mousePos = _gs.WorldToLocal(mx, my);
 }
 
 void GUIListBox::OnResized()
 {
     UpdateMetrics();
+    UpdateGraphicSpace();
     MarkChanged();
 }
 
@@ -408,7 +409,7 @@ void GUIListBox::UpdateMetrics()
 // methods in the future, to keep this organized.
 void GUIListBox::WriteToFile(Stream *out) const
 {
-    GUIObject::WriteToFile(out);
+    GUIControl::WriteToFile(out);
     out->WriteInt32(_items.size());
     out->WriteInt32(_font);
     out->WriteInt32(_textColor);
@@ -424,7 +425,7 @@ void GUIListBox::ReadFromFile(Stream *in, GuiVersion gui_version)
 {
     Clear();
 
-    GUIObject::ReadFromFile(in, gui_version);
+    GUIControl::ReadFromFile(in, gui_version);
     const uint32_t item_count = in->ReadInt32();
     _font = in->ReadInt32();
     _textColor = in->ReadInt32();
@@ -453,7 +454,7 @@ void GUIListBox::ReadFromFile(Stream *in, GuiVersion gui_version)
 
 void GUIListBox::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
 {
-    GUIObject::ReadFromSavegame(in, svg_ver);
+    GUIControl::ReadFromSavegame(in, svg_ver);
     // Properties
     _listBoxFlags = in->ReadInt32();
     _font = in->ReadInt32();
@@ -486,7 +487,7 @@ void GUIListBox::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
 
 void GUIListBox::WriteToSavegame(Stream *out) const
 {
-    GUIObject::WriteToSavegame(out);
+    GUIControl::WriteToSavegame(out);
     // Properties
     out->WriteInt32(_listBoxFlags);
     out->WriteInt32(_font);

@@ -81,6 +81,8 @@ private:
     Rect    _cachedHandle;
     // The length of the handle movement range, in pixels
     int     _handleRange;
+    // Geometric range of the handle, between minimal and maximal position
+    Rect    _handleGraphRange;
 };
 
 } // namespace Common

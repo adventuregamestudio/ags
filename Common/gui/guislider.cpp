@@ -106,9 +106,9 @@ Rect GUISlider::CalcGraphicRect(bool /*clipped*/)
     // Sliders are never clipped as of 3.6.0
     // TODO: precalculate everything on width/height/graphic change!!
     UpdateMetrics();
-    Rect logical = RectWH(0, 0, _width, _height);
-    Rect bar = _cachedBar;
-    Rect handle = _cachedHandle;
+    const Rect logical = RectWH(0, 0, _width, _height);
+    const Rect &bar = _cachedBar;
+    const Rect &handle = _handleGraphRange;
     return Rect(
         std::min(std::min(logical.Left, bar.Left), handle.Left),
         std::min(std::min(logical.Top, bar.Top), handle.Top),
@@ -153,19 +153,27 @@ void GUISlider::UpdateMetrics()
     }
 
     // Calculate bar and handle positions
+    // FIXME: handle position should be recalculated only from knowing slider ranges and current value
     Rect bar;
     Rect handle;
     int handle_range;
+    Rect handle_gfrange;
     if (IsHorizontal()) // horizontal slider
     {
         // _value pos is a coordinate corresponding to current slider's value
         bar = RectWH(1, _height / 2 - thick_f, _width - 1, bar_thick);
         handle_range = _width - 4;
         int value_pos = (int)(((float)(_value - _minValue) * (float)handle_range) / (float)(_maxValue - _minValue));
-        handle = RectWH((bar.Left + 2) - (handle_sz.Width / 2) + 1 + value_pos - 2,
+        handle = RectWH((bar.Left + 2) - (handle_sz.Width / 2) + value_pos - 1,
             bar.Top + (bar.GetHeight() - handle_sz.Height) / 2,
             handle_sz.Width, handle_sz.Height);
         handle.MoveToY(handle.Top + _handleOffset);
+
+        handle_gfrange = Rect(
+            (bar.Left + 2) - (handle_sz.Width / 2) + 0 - 1,
+            handle.Top,
+            (bar.Left + 2) - (handle_sz.Width / 2) + handle_range - 1 + (handle_sz.Width - 1),
+            handle.Top + handle_sz.Height - 1);
     }
     // vertical slider
     else
@@ -174,14 +182,21 @@ void GUISlider::UpdateMetrics()
         handle_range = _height - 4;
         int value_pos = (int)(((float)(_maxValue - _value) * (float)handle_range) / (float)(_maxValue - _minValue));
         handle = RectWH(bar.Left + (bar.GetWidth() - handle_sz.Width) / 2,
-            (bar.Top + 2) - (handle_sz.Height / 2) + 1 + value_pos - 2,
+            (bar.Top + 2) - (handle_sz.Height / 2) + value_pos - 1,
             handle_sz.Width, handle_sz.Height);
         handle.MoveToX(handle.Left + _handleOffset);
+
+        handle_gfrange = Rect(
+            handle.Left,
+            (bar.Top + 2) - (handle_sz.Height / 2) + 0 - 1,
+            handle.Left + handle_sz.Width - 1,
+            (bar.Top + 2) - (handle_sz.Height / 2) + handle_range - 1 + (handle_sz.Height - 1));
     }
 
     _cachedBar = bar;
     _cachedHandle = handle;
     _handleRange = std::max(1, handle_range);
+    _handleGraphRange = handle_gfrange;
 }
 
 void GUISlider::Draw(Bitmap *ds, int x, int y)

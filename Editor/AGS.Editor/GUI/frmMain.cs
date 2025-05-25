@@ -298,6 +298,11 @@ namespace AGS.Editor
             // The property grid provides no RootGridItem property,
             // so we must find it manually
             GridItem rootItem = propertiesPanel.SelectedGridItem;
+            if (rootItem == null)
+            {
+                return;
+            }
+
             while (rootItem.GridItemType != GridItemType.Root)
             {
                 rootItem = rootItem.Parent;

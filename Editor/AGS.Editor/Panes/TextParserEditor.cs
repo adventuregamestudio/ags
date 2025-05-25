@@ -176,6 +176,9 @@ namespace AGS.Editor
 
         private void lvwWords_ItemActivate(object sender, EventArgs e)
         {
+            if (lvwWords.SelectedItems.Count == 0)
+                return;
+
             EditSelectedWord();
         }
 

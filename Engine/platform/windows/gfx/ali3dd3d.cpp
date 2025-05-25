@@ -224,7 +224,6 @@ D3DShaderInstance::D3DShaderInstance(D3DShader *shader, const String &name)
 {
     _constantData.resize((D3DShader::NullConstantIndex + 1) * D3DShader::ConstantSize);
     _samplers.resize(D3DShader::SamplersCap);
-    _samplerPtrs.resize(D3DShader::SamplersCap);
 }
 
 void D3DShaderInstance::SetShaderConstantF(uint32_t const_index, float value)
@@ -265,13 +264,22 @@ void D3DShaderInstance::GetConstantData(std::vector<float> &data)
     data = _constantData;
 }
 
+D3DShaderInstance::Sampler::Sampler(std::shared_ptr<D3DTexture> tex)
+{
+    Tex = tex;
+    if (tex)
+    {
+        TexPtr = tex->_tiles[0].texture.get();
+        TexSize = Size(tex->_tiles[0].width, tex->_tiles[0].height);
+    }
+}
+
 void D3DShaderInstance::SetShaderSampler(uint32_t sampler_index, std::shared_ptr<Texture> tex)
 {
     if (sampler_index < 1u || sampler_index > _samplers.size())
         return;
 
     _samplers[sampler_index] = std::dynamic_pointer_cast<D3DTexture>(tex);
-    _samplerPtrs[sampler_index] = tex ? _samplers[sampler_index]->_tiles[0].texture.get() : nullptr;
 }
 
 D3DGfxModeList::D3DGfxModeList(const D3DPtr &direct3d, int display_index, D3DFORMAT d3dformat)
@@ -1029,7 +1037,12 @@ void D3DGraphicsDriver::AssignBaseShaderArgs(D3DShader::ProgramData &prg, const 
     {
         prg.Time = GetValueOrDef(def->Constants, String::Wrapper("iTime"), null_index);
         prg.GameFrame = GetValueOrDef(def->Constants, String::Wrapper("iGameFrame"), null_index);
-        prg.TextureDim = GetValueOrDef(def->Constants, String::Wrapper("iTextureDim"), null_index);
+        prg.TextureDim[0] = GetValueOrDef(def->Constants, String::Wrapper("iTextureDim"), null_index);
+        if (prg.TextureDim[0].Index == null_index)
+            prg.TextureDim[0] = GetValueOrDef(def->Constants, String::Wrapper("iTextureDim0"), null_index);
+        prg.TextureDim[1] = GetValueOrDef(def->Constants, String::Wrapper("iTextureDim1"), null_index);
+        prg.TextureDim[2] = GetValueOrDef(def->Constants, String::Wrapper("iTextureDim2"), null_index);
+        prg.TextureDim[3] = GetValueOrDef(def->Constants, String::Wrapper("iTextureDim3"), null_index);
         prg.Alpha = GetValueOrDef(def->Constants, String::Wrapper("iAlpha"), null_index);
         prg.OutputDim = GetValueOrDef(def->Constants, String::Wrapper("iOutputDim"), null_index);
     }
@@ -1038,9 +1051,12 @@ void D3DGraphicsDriver::AssignBaseShaderArgs(D3DShader::ProgramData &prg, const 
         // Default to hardcoded values
         prg.Time = 0u;
         prg.GameFrame = 1u;
-        prg.TextureDim = 2u;
+        prg.TextureDim[0] = 2u;
         prg.Alpha = 3u;
         prg.OutputDim = 4u;
+        prg.TextureDim[1] = 5u;
+        prg.TextureDim[2] = 6u;
+        prg.TextureDim[3] = 7u;
     }
 
     // Copy constants table
@@ -1359,19 +1375,20 @@ void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw
     float *data = shaderinst->GetConstantData();
     data[program->Time.Off]             = _globalShaderConst.Time;
     data[program->GameFrame.Off]        = static_cast<float>(_globalShaderConst.GameFrame);
-    data[program->TextureDim.Off + 0]   = static_cast<float>(bmpToDraw->GetWidth());
-    data[program->TextureDim.Off + 1]   = static_cast<float>(bmpToDraw->GetHeight());
+    data[program->TextureDim[0].Off + 0] = static_cast<float>(bmpToDraw->GetWidth());
+    data[program->TextureDim[0].Off + 1] = static_cast<float>(bmpToDraw->GetHeight());
     data[program->Alpha.Off]            = alpha / 255.0f;
+
+    const auto &samplers = shaderinst->GetShaderSamplers();
+    for (uint32_t i = 1u; i < samplers.size(); ++i)
+    {
+        direct3ddevice->SetTexture(i, samplers[i].TexPtr);
+        data[program->TextureDim[i].Off + 0] = static_cast<float>(samplers[i].TexSize.Width);
+        data[program->TextureDim[i].Off + 1] = static_cast<float>(samplers[i].TexSize.Height);
+    }
 
     // NOTE: the custom data should already be inside ConstantData buffer
     direct3ddevice->SetPixelShaderConstantF(0u, data, shaderinst->GetConstantDataSize() / D3DShader::ConstantSize);
-
-    const auto &samplers = shaderinst->GetShaderSamplerPtrs();
-    for (uint32_t i = 1u; i < samplers.size(); ++i)
-    {
-        if (samplers[i])
-            direct3ddevice->SetTexture(i, samplers[i]);
-    }
   }
   else if (do_tint)
   {

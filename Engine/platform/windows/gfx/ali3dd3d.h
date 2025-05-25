@@ -210,7 +210,7 @@ public:
         // Standard constants register number
         Register Time;         // real time
         Register GameFrame;    // game frame
-        Register TextureDim;   // texture 0 dimensions
+        Register TextureDim[SamplersCap]; // texture (0..3) dimensions
         Register Alpha;        // requested global alpha
         Register OutputDim;    // output dimensions
 
@@ -261,16 +261,25 @@ public:
     // Sets a texture as a shader sampler using a zero-based index
     void SetShaderSampler(uint32_t sampler_index, std::shared_ptr<Texture> tex) override;
 
-    const std::vector<std::shared_ptr<D3DTexture>> &GetShaderSamplers() const { return _samplers; }
-    const std::vector<IDirect3DTexture9*> &GetShaderSamplerPtrs() const { return _samplerPtrs; }
+    struct Sampler
+    {
+        std::shared_ptr<D3DTexture> Tex;
+        // Cached data for quicker access without extra null checks
+        IDirect3DTexture9 *TexPtr = nullptr;
+        Size TexSize;
+
+        Sampler() = default;
+        Sampler(std::shared_ptr<D3DTexture> tex);
+    };
+
+    const std::vector<Sampler> &GetShaderSamplers() const { return _samplers; }
 
 private:
     // FIXME: provide reference counting of shader ptr
     D3DShader *_shader = nullptr;
     // Constant buffer data, applied each time a shader is used in render
     std::vector<float> _constantData;
-    std::vector<std::shared_ptr<D3DTexture>> _samplers;
-    std::vector<IDirect3DTexture9*> _samplerPtrs;
+    std::vector<Sampler> _samplers;
 };
 
 class D3DGfxModeList final : public IGfxModeList

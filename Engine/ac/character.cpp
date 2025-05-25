@@ -2707,7 +2707,9 @@ void display_speech(const char *texx, int aschar, int xx, int yy, int widd, bool
 
         set_our_eip(152);
 
-        if ((useview >= 0) && (game.options[OPT_SPEECHTYPE] > kSpeechStyle_LucasArts)) {
+        if ((game.options[OPT_SPEECHTYPE] > kSpeechStyle_LucasArts)
+            && (useview >= 0) && (views[useview].numLoops > 0))
+        {
             // Sierra-style close-up portrait
             disp_pos = kDisplayTextPos_Normal;
 

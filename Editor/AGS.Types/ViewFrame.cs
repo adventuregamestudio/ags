@@ -14,6 +14,8 @@ namespace AGS.Types
         private SpriteFlipStyle _flip = SpriteFlipStyle.None;
         private int _sound = AudioClip.FixedIndexNoValue;
         private int _speed = 0;
+        private int _xoff = 0;
+        private int _yoff = 0;
 
         public ViewFrame()
         {
@@ -48,6 +50,22 @@ namespace AGS.Types
         {
             get { return _flip; }
             set { _flip = value; }
+        }
+
+        [Description("This sprite's X offset relative to the object's position")]
+        [Category("Appearance")]
+        public int XOffset
+        {
+            get { return _xoff; }
+            set { _xoff = value; }
+        }
+
+        [Description("This sprite's Y offset relative to the object's position")]
+        [Category("Appearance")]
+        public int YOffset
+        {
+            get { return _yoff; }
+            set { _yoff = value; }
         }
 
         [Obsolete]

@@ -1059,8 +1059,13 @@ void update_object_scale(int objid)
     obj.zoom = zoom;
     obj.spr_width = game.SpriteInfos[obj.num].Width;
     obj.spr_height = game.SpriteInfos[obj.num].Height;
-    obj.last_width = scale_width;
-    obj.last_height = scale_height;
+    if (obj.cycling != 0)
+    {
+        obj.spr_xoff = views[obj.view].loops[obj.loop].frames[obj.frame].xoffs;
+        obj.spr_yoff = views[obj.view].loops[obj.loop].frames[obj.frame].yoffs;
+    }
+    obj.width = scale_width;
+    obj.height = scale_height;
     obj.UpdateGraphicSpace();
 }
 
@@ -1069,11 +1074,11 @@ void get_object_blocking_rect(int objid, int *x1, int *y1, int *width, int *y2) 
     int cwidth, fromx;
 
     if (tehobj->blocking_width < 1)
-        cwidth = tehobj->last_width - 4;
+        cwidth = tehobj->width - 4;
     else
         cwidth = tehobj->blocking_width;
 
-    fromx = tehobj->x + (tehobj->last_width / 2) - cwidth / 2;
+    fromx = tehobj->x + (tehobj->width / 2) - cwidth / 2;
     if (fromx < 0) {
         cwidth += fromx;
         fromx = 0;

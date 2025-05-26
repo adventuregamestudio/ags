@@ -2098,7 +2098,7 @@ bool construct_object_gfx(int objid, bool force_software)
     return construct_object_gfx(
         (obj.view != UINT16_MAX) ? &views[obj.view].loops[obj.loop].frames[obj.frame] : nullptr,
         sprite_id,
-        Size(obj.last_width, obj.last_height),
+        Size(obj.width, obj.height),
         obj.flags & OBJF_TINTLIGHTMASK,
         objsrc,
         objcache[objid],
@@ -2134,11 +2134,14 @@ void prepare_objects_for_drawing()
         const bool actsp_modified = !construct_object_gfx(objid, false);
         // Prepare the object texture
         prepare_and_add_object_gfx(objsav, actsp, actsp_modified,
-            Size(obj.last_width, obj.last_height), imgx, imgy, usebasel,
+            Size(obj.width, obj.height), imgx, imgy, usebasel,
             (obj.flags & OBJF_NOWALKBEHINDS) == 0,
             obj.GetOrigin(), obj.transparent, obj.blend_mode, obj.shader_id, hw_accel);
         // Finally, add the texture to the draw list
-        add_to_sprite_list(actsp.Ddb, obj.x, obj.y, aabb, usebasel, actsp.DrawIndex);
+        // CHECKME: remind why do we have to recalculate charx/y instead of using GS?
+        const int objx = obj.x + (obj.spr_xoff) * obj.zoom / 100;
+        const int objy = obj.y + (obj.spr_yoff) * obj.zoom / 100;
+        add_to_sprite_list(actsp.Ddb, objx, objy, aabb, usebasel, actsp.DrawIndex);
     }
 }
 

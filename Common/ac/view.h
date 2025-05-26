@@ -20,10 +20,12 @@
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
-struct ViewFrame {
+struct ViewFrame
+{
     int   pic = 0;
-    short xoffs = 0, yoffs = 0;
-    short speed = 0;
+    int16_t xoffs = 0;
+    int16_t yoffs = 0;
+    int16_t speed = 0;
     Common::SpriteTransformFlags flags = Common::kSprTf_None;
     int   sound = -1;  // play sound when this frame comes round
     int   reserved_for_future[2] = { 0 }; // kept only for plugin api // CLNUP: may remove in ags4?

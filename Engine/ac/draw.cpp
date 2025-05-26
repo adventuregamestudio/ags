@@ -2249,8 +2249,8 @@ void prepare_characters_for_drawing()
             chex.GetOrigin(), chin.transparency, chex.blend_mode, chex.shader_id, hw_accel);
         // Finally, add the texture to the draw list
         // CHECKME: remind why do we have to recalculate charx/y instead of using GS?
-        const int charx = chin.x + chin.pic_xoffs * chex.zoom_offs / 100;
-        const int chary = chin.y - chin.z + chin.pic_yoffs * chex.zoom_offs / 100;
+        const int charx = chin.x + (chin.pic_xoffs + chex.spr_xoff) * chex.zoom_offs / 100;
+        const int chary = chin.y + (-chin.z + chin.pic_yoffs + chex.spr_yoff) * chex.zoom_offs / 100;
         add_to_sprite_list(actsp.Ddb, charx, chary, aabb, usebasel, actsp.DrawIndex);
     }
 }

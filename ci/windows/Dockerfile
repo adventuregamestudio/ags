@@ -4,10 +4,10 @@ FROM ghcr.io/ericoporto/min-ags-dev-env:2.0.16
 # if no temp folder exists by default, create it
 RUN IF exist %TEMP%\nul ( echo %TEMP% ) ELSE ( mkdir %TEMP% )
 
-# Windows 10.0.10240 SDK (but only install the .NET 4.6 SDK)
+# .NET Framework 4.7 Developer Pack
 RUN pushd %TEMP% && \
-  curl -fLO https://download.microsoft.com/download/E/1/F/E1F1E61E-F3C6-4420-A916-FB7C47FBC89E/standalonesdk/sdksetup.exe && \
-  start /wait sdksetup /ceip off /features OptionID.NetFxSoftwareDevelopmentKit /quiet /norestart && \
+  curl -fL https://download.microsoft.com/download/3/5/1/351f9afb-0505-47dc-a42e-34935707f300/NDP47-DevPack-KB3186612-ENU.exe -o dotnetsetup.exe && \
+  start /wait dotnetsetup.exe /install /quiet /norestart && \
   popd && \
   mkdir empty && \
   robocopy empty %TEMP% /MIR > nul & \

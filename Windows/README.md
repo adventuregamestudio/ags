@@ -16,7 +16,7 @@ The following are instructions on how to build the Engine and Editor from the so
   - libtheora-1.0 or higher ([Download](https://www.xiph.org/downloads/))
   - libvorbis-1.2.0 or higher ([Download](https://www.xiph.org/downloads/))
 - Specifically for the Editor:
-  - irrKlang 1.6 (32-bit) assembly pack for .NET 4.6 ([Download](https://www.ambiera.com/irrklang/downloads.html)).
+  - irrKlang 1.6 (32-bit) assembly pack for .NET 4.7 ([Download](https://www.ambiera.com/irrklang/downloads.html)).
 - To build Windows installer:
   - Inno Setup 6.2.2 or higher ([Download](http://www.jrsoftware.org/isdl.php))
   - (optional) PowerShell ([Download](https://aka.ms/powershell-release?tag=stable))

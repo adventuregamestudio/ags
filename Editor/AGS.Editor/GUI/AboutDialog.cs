@@ -37,6 +37,7 @@ namespace AGS.Editor
             sb.AppendLine("Newtonsoft JSON.NET © 2007 James Newton-King");
             sb.AppendLine("Scintilla © 1998-2003 Neil Hodgson");
             sb.AppendLine("System: " + GetOperatingSystemName());
+            sb.AppendLine(".NET Runtime: " + Utilities.NetRuntimeVersion);
 
             // pickup extra information which might be set (i.e. loaded plug-ins)
 			GetAboutDialogTextEventArgs evArgs = new GetAboutDialogTextEventArgs(string.Empty);

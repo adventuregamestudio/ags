@@ -12,6 +12,8 @@ namespace AGS.Editor
     public partial class ViewPreview : UserControl
     {
         private AGS.Types.View _view;
+        private AGS.Types.ViewLoop _loop;
+        private AGS.Types.ViewFrame _frame;
         private string _title;
         private Timer _animationTimer;
 		private bool _dynamicUpdates = false;
@@ -21,6 +23,8 @@ namespace AGS.Editor
         private bool _autoResize = false;
         private bool _autoFrameFill = false;
         private Point _defaultFramePos;
+        private Size _maxLoopFrameSize;
+        private Point _loopFrameLeftTopOrigin;
 
         private const int MILLISECONDS_IN_SECOND = 1000;
         private const int DEFUALT_FRAME_RATE = 40;
@@ -119,6 +123,16 @@ namespace AGS.Editor
             }
         }
 
+        public AGS.Types.ViewLoop Loop
+        {
+            get { return _loop; }
+        }
+
+        public AGS.Types.ViewFrame Frame
+        {
+            get { return _frame; }
+        }
+
         public void ReleaseResources()
 		{
 			StopTimer();
@@ -178,8 +192,7 @@ namespace AGS.Editor
         {
             get
             {
-                return (_view != null) && (udLoop.Value < _view.Loops.Count) &&
-                    (udFrame.Value < _view.Loops[(int)udLoop.Value].Frames.Count);
+                return _frame != null;
             }
         }
 
@@ -225,82 +238,120 @@ namespace AGS.Editor
             }
         }
 
+        private void PrecalculateMaxLoopFrameSize()
+        {
+            _maxLoopFrameSize = Size.Empty;
+            _loopFrameLeftTopOrigin = Point.Empty;
+            if (_loop == null)
+                return;
+
+            int minLeft = 0, maxRight = 0, minTop = 0, maxBottom = 0;
+            foreach (var frame in _loop.Frames)
+            {
+                Size spriteSize = Utilities.GetSizeSpriteWillBeRenderedInGame(frame.Image);
+                minLeft = Math.Min(minLeft, frame.XOffset);
+                maxRight = Math.Max(maxRight, spriteSize.Width + frame.XOffset);
+                minTop = Math.Min(minTop, frame.YOffset);
+                maxBottom = Math.Max(maxBottom, spriteSize.Height + frame.YOffset);
+            }
+
+            _loopFrameLeftTopOrigin.X = -minLeft;
+            _loopFrameLeftTopOrigin.Y = -minTop;
+            _maxLoopFrameSize.Width = maxRight - minLeft;
+            _maxLoopFrameSize.Height = maxBottom - minTop;
+        }
+
         private void previewPanel_Paint(object sender, PaintEventArgs e)
         {
             if (!IsFrameValid)
                 return;
 
-            ViewFrame thisFrame = _view.Loops[(int)udLoop.Value].Frames[(int)udFrame.Value];
-            int spriteNum = thisFrame.Image;
+            int spriteNum = _frame.Image;
             Size spriteSize = Utilities.GetSizeSpriteWillBeRenderedInGame(spriteNum);
+            Size spriteCanvasSize = _maxLoopFrameSize;
+
             if (_autoFrameFill)
             {
-                spriteSize = MathExtra.SafeScale(spriteSize, (float)previewPanel.ClientSize.Height / spriteSize.Height);
+                spriteCanvasSize = MathExtra.SafeScale(spriteCanvasSize, (float)previewPanel.ClientSize.Height / spriteCanvasSize.Height);
             }
             else
             {
-                spriteSize = MathExtra.SafeScale(spriteSize, _zoomLevel);
+                spriteCanvasSize = MathExtra.SafeScale(spriteCanvasSize, _zoomLevel);
             }
                         
-            int x, y, targetWidth, targetHeight;
-            if (spriteSize.Width <= previewPanel.ClientSize.Width && spriteSize.Height <= previewPanel.ClientSize.Height)
+            int targetX, targetY, targetWidth, targetHeight;
+            if (spriteCanvasSize.Width <= previewPanel.ClientSize.Width && spriteCanvasSize.Height <= previewPanel.ClientSize.Height)
             {
-                x = chkCentrePivot.Checked ? previewPanel.ClientSize.Width / 2 - spriteSize.Width / 2 : 0;
-                y = previewPanel.ClientSize.Height - spriteSize.Height;
-                targetWidth = spriteSize.Width;
-                targetHeight = spriteSize.Height;                
+                targetX = chkCentrePivot.Checked ? previewPanel.ClientSize.Width / 2 - spriteCanvasSize.Width / 2 : 0;
+                targetY = previewPanel.ClientSize.Height - spriteCanvasSize.Height;
+                targetWidth = spriteCanvasSize.Width;
+                targetHeight = spriteCanvasSize.Height;
             }
             else
             {
-                x = 0;
-                y = 0;
+                targetX = 0;
+                targetY = 0;
                 targetWidth = previewPanel.ClientSize.Width;
                 targetHeight = previewPanel.ClientSize.Height;
             }
 
-            Bitmap bmp = Utilities.GetBitmapForSpriteResizedKeepingAspectRatio(new Sprite(spriteNum, spriteSize.Width, spriteSize.Height), targetWidth, targetHeight, chkCentrePivot.Checked, false, Color.Magenta);
+            Size targetSize = Utilities.ResizeKeepingAspectRatio(spriteCanvasSize, new Size(targetWidth, targetHeight));
 
-            if (thisFrame.Flip != SpriteFlipStyle.None)
+            using (Bitmap spriteBmp = Utilities.GetBitmapForSprite(new Sprite(spriteNum, spriteSize.Width, spriteSize.Height)))
             {
-                int left = x, right = x + bmp.Width, top = y, bottom = y + bmp.Height;
-                if ((thisFrame.Flip & SpriteFlipStyle.Horizontal) != 0)
-                {
-                    left = x + bmp.Width;
-                    right = x;
-                }
-                if ((thisFrame.Flip & SpriteFlipStyle.Vertical) != 0)
-                {
-                    top = y + bmp.Height;
-                    bottom = y;
-                }
+                Bitmap useBmp = spriteBmp;
+                e.Graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
 
-                Point urCorner = new Point(right, top);
-                Point ulCorner = new Point(left, top);
-                Point llCorner = new Point(left, bottom);
-                Point[] destPara = { ulCorner, urCorner, llCorner };
-                e.Graphics.DrawImage(bmp, destPara);
+                if (_maxLoopFrameSize != spriteBmp.Size)
+                {
+                    useBmp = new Bitmap(_maxLoopFrameSize.Width, _maxLoopFrameSize.Height);
+                    using (Graphics g = Graphics.FromImage(useBmp))
+                    {
+                        Utilities.DrawFlipped(g, spriteBmp,
+                            _loopFrameLeftTopOrigin.X + _frame.XOffset,
+                            _loopFrameLeftTopOrigin.Y + _frame.YOffset, _frame.Flip);
+                    }
+                    e.Graphics.DrawImage(useBmp, new Rectangle(targetX, targetY, targetSize.Width, targetSize.Height));
+                }
+                else
+                {
+                    Utilities.DrawFlipped(e.Graphics, spriteBmp,
+                            targetX, targetY, targetSize.Width, targetSize.Height, _frame.Flip);
+                }
             }
-            else
-            {
-                e.Graphics.DrawImage(bmp, x, y);
-            }
-
-            bmp.Dispose();
         }
 
         private void udLoop_ValueChanged(object sender, EventArgs e)
         {
             if (udLoop.Value < _view.Loops.Count)
             {
-                int frameCount = _view.Loops[(int)udLoop.Value].Frames.Count;
+                _loop = _view.Loops[(int)udLoop.Value];
+                int frameCount = _loop.Frames.Count;
                 udFrame.Minimum = 0;
                 udFrame.Maximum = Math.Max(0, frameCount - 1);
+                udFrame_ValueChanged(null, null);
+                PrecalculateMaxLoopFrameSize();
+            }
+            else
+            {
+                _loop = null;
+                _frame = null;
+                _maxLoopFrameSize = Size.Empty;
             }
             previewPanel.Invalidate();
         }
 
         private void udFrame_ValueChanged(object sender, EventArgs e)
         {
+            if (_loop != null && udFrame.Value < _loop.Frames.Count)
+            {
+                _frame = _loop.Frames[(int)udFrame.Value];
+            }
+            else
+            {
+                _frame = null;
+            }
+            
             previewPanel.Invalidate();
         }
 
@@ -323,13 +374,9 @@ namespace AGS.Editor
 		{
 			_thisFrameDelay = (int)udDelay.Value;
 
-			int loop = (int)udLoop.Value;
-			int frame = (int)udFrame.Value;
-			if ((loop < _view.Loops.Count) &&
-				(frame < _view.Loops[loop].Frames.Count))
+			if (_frame != null)
 			{
-				ViewFrame thisFrame = _view.Loops[loop].Frames[frame];
-				_thisFrameDelay += thisFrame.Delay;
+				_thisFrameDelay += _frame.Delay;
 			}
 		}
 

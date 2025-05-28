@@ -1674,7 +1674,7 @@ void D3DGraphicsDriver::UpdateTextureRegion(D3DTextureTile *tile, const Bitmap *
     throw Ali3DException("Unable to lock texture");
   }
 
-  bool usingLinearFiltering = _filter->NeedToColourEdgeLines();
+  bool usingLinearFiltering = _filter->NeedToColourEdgeLines() || (_smoothScaling && has_alpha);
   uint8_t *memPtr = static_cast<uint8_t*>(lockedRegion.pBits);
 
   assert(!opaque || !has_alpha); // has_alpha is meaningless with opaque

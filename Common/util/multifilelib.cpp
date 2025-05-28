@@ -24,6 +24,7 @@ namespace Common
 namespace MFLUtil
 {
     const String HeadSig = "CLIB\x1a";
+    const String HeadSigMinimal = "CLIB";
     const String TailSig = "CLIB\x1\x2\x3\x4SIGE";
 
     static const size_t SingleFilePswLen = 13;
@@ -127,7 +128,7 @@ MFLUtil::MFLError MFLUtil::ReadSigsAndVersion(Stream *in, MFLVersion *p_lib_vers
     String sig;
     // check multifile lib signature at the beginning of file
     sig.ReadCount(in, HeadSig.GetLength());
-    if (HeadSig.Compare(sig) != 0)
+    if (HeadSig.Compare(sig) != 0 && HeadSigMinimal.Compare(sig) != 0)
     {
         // signature not found, check signature at the end of file
         in->Seek(-(soff_t)TailSig.GetLength(), kSeekEnd);
@@ -147,6 +148,7 @@ MFLUtil::MFLError MFLUtil::ReadSigsAndVersion(Stream *in, MFLVersion *p_lib_vers
         soff_t abs_offset_32 = in->ReadInt32();
 
         // test for header signature again, with 64-bit and 32-bit offsets if necessary
+        sig.Empty();
         if (abs_offset > 0 &&
             static_cast<uint64_t>(abs_offset) < static_cast<uint64_t>(tail_abs_offset - HeadSig.GetLength()))
         {
@@ -155,7 +157,7 @@ MFLUtil::MFLError MFLUtil::ReadSigsAndVersion(Stream *in, MFLVersion *p_lib_vers
         }
 
         // try again with 32-bit offset
-        if (HeadSig.Compare(sig) != 0) 
+        if (HeadSig.Compare(sig) != 0 && HeadSigMinimal.Compare(sig) != 0)
         {
             abs_offset = abs_offset_32;
             if (abs_offset > 0 &&

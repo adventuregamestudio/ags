@@ -127,6 +127,7 @@ bool IsMainGameLibrary(const String &filename)
 // Tracks files with standard AGS package names:
 // - *.ags is a standart cross-platform file pattern for AGS games,
 // - ac2game.dat is a legacy file name for very old games,
+// - agsgame.dat is a legacy file name used in some non-Windows releases,
 // - *.exe is a MS Win executable; it is included to this case because
 //   users often run AGS ports with Windows versions of games.
 String FindGameData(const String &path, std::function<bool(const String&)> fn_testfile)
@@ -138,6 +139,7 @@ String FindGameData(const String &path, std::function<bool(const String&)> fn_te
         test_file = ff.Current();
         if (test_file.CompareRightNoCase(".ags") == 0 ||
             test_file.CompareNoCase("ac2game.dat") == 0 ||
+            test_file.CompareNoCase("agsgame.dat") == 0 ||
             test_file.CompareRightNoCase(".exe") == 0)
         {
             test_file = Path::ConcatPaths(path, test_file);

@@ -209,9 +209,9 @@ Bitmap *create_textual_image(const char *text, const DisplayTextLooks &look, col
     else if ((look.Position & kDisplayTextPos_OvercharY) != 0)
     {
         // Clamp text position to screen bounds, and align by the text's bottom
-        yy = Math::Clamp(yy, disp.FullTextHeight + screen_padding, ui_view.GetHeight() - screen_padding);
         yy -= disp.FullTextHeight;
         yy = adjust_y_for_guis(yy);
+        yy = Math::Clamp(yy, screen_padding, ui_view.GetHeight() - screen_padding - disp.FullTextHeight);
     }
     // NOTE: this is possibly an accidental mistake, but historically
     // this Y pos fixup is also applied for SayAt, which results in
@@ -219,9 +219,9 @@ Bitmap *create_textual_image(const char *text, const DisplayTextLooks &look, col
     // Maybe this could be fixed in some future versions...
     else if (look.Style == kDisplayTextStyle_Overchar)
     {
-        yy = std::max(yy, disp.FullTextHeight + screen_padding);
         yy -= disp.FullTextHeight;
         yy = adjust_y_for_guis(yy);
+        yy = std::max(yy, screen_padding); // lower if beyond upper screen edge
     }
 
     if (longestline < wii - paddingDoubledScaled) {

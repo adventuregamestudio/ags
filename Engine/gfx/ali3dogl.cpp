@@ -1607,7 +1607,7 @@ void OGLGraphicsDriver::UpdateTextureRegion(OGLTextureTile *tile, const Bitmap *
       tileHeight += 1 + texyoff;
   }
 
-  const bool usingLinearFiltering = _filter->UseLinearFiltering();
+  const bool usingLinearFiltering = _filter->UseLinearFiltering() || (_smoothScaling && has_alpha);
   uint8_t *origPtr = new uint8_t[sizeof(int) * tileWidth * tileHeight];
   const int pitch = tileWidth * sizeof(int);
   uint8_t *memPtr = origPtr + pitch * tiley + tilex * sizeof(int);

@@ -640,46 +640,55 @@ static bool should_skip_adjust_for_gui(const GUIMain &gui)
         ((gui.BgColor == 0) && (gui.BgImage < 1)) || (gui.Transparency == 255);
 }
 
-int adjust_x_for_guis(int x, int y, bool assume_blocking) {
+int adjust_x_for_guis(int x, int y, bool assume_blocking)
+{
     if ((game.options[OPT_DISABLEOFF] == kGuiDis_Off) &&
         ((GUI::Context.DisabledState != kGuiDis_Undefined) || assume_blocking))
         return x; // All GUI off (or will be when the message is displayed)
     // If it's covered by a GUI, move it right a bit
-    for (const auto &gui : guis) {
+    // FIXME: should not we also account for the text's width here?
+    //        and then, maybe we should also able to move it left if rightmost part of text touches GUI?
+    for (const auto &gui : guis)
+    {
         if (should_skip_adjust_for_gui(gui))
             continue;
-        // higher, lower or to the right from the message (?)
-        if ((gui.X > x) || (gui.Y > y) || (gui.Y + gui.Height < y))
+        // lower or higher than the message
+        if ((gui.Y > y) || (gui.Y + gui.Height < y))
             continue;
-        // try to deal with full-width GUIs
-        const float gui_right_edge = 0.875f; // NOTE: originally was 280 pixels in 320-wide game
-        if (gui.X + gui.Width >= get_fixed_pixel_size(game.GetGameRes().Width * gui_right_edge))
+        // to the left or to the right from the message
+        if ((gui.X > x) || (gui.X + gui.Width < x))
             continue;
-        // Fix coordinates if x is inside the gui
-        if (x < gui.X + gui.Width)
-            x = gui.X + gui.Width + 2;
+        // try to deal with very wide GUIs
+        const float gui_width_cap = 0.75f; // NOTE: originally was 280 pixels in 320-wide game
+        if (gui.Width >= game.GetGameRes().Width * gui_width_cap)
+            continue;
+        // fix coordinates if x is inside the gui
+        x = gui.X + gui.Width + 2;
     }
     return x;
 }
 
-int adjust_y_for_guis(int y, bool assume_blocking) {
+int adjust_y_for_guis(int y, bool assume_blocking)
+{
     if ((game.options[OPT_DISABLEOFF] == kGuiDis_Off) &&
         ((GUI::Context.DisabledState >= 0) || assume_blocking))
         return y; // All GUI off (or will be when the message is displayed)
     // If it's covered by a GUI, move it down a bit
-    for (const auto &gui : guis) {
+    // FIXME: should not we also account for the text's height here?
+    //        and then, maybe we should also able to move it up if lower part of text touches GUI below?
+    for (const auto &gui : guis)
+    {
         if (should_skip_adjust_for_gui(gui))
             continue;
-        // lower than the message
-        if (gui.Y > y)
+        // lower or higher than the message
+        if ((gui.Y > y) || (gui.Y + gui.Height < y))
             continue;
-        // try to deal with full-height GUIs down the left or right
-        const float gui_bottom_edge = 0.25f; // NOTE: originally was 50 pixels in 200-height game
-        if (gui.Y + gui.Height >= get_fixed_pixel_size(game.GetGameRes().Height * gui_bottom_edge))
+        // try to deal with tall GUIs; CHECKME this later
+        const float gui_height_cap = 0.25f; // NOTE: originally was 50 pixels in 200-height game
+        if (gui.Height >= game.GetGameRes().Height * gui_height_cap)
             continue;
-        // Fix coordinates if y is inside the gui
-        if (y < gui.Y + gui.Height)
-            y = gui.Y + gui.Height + 2;
+        // fix coordinates if y is inside the gui
+        y = gui.Y + gui.Height + 2;
     }
     return y;
 }

@@ -816,12 +816,16 @@ void draw_button_background(Bitmap *ds, int xx1,int yy1,int xx2,int yy2,GUIMain*
 
 // Calculate the width that the left and right border of the textwindow
 // GUI take up
-int get_textwindow_border_width (int twgui) {
+int get_textwindow_border_width(int twgui)
+{
     if (twgui < 0)
         return 0;
 
     if (!guis[twgui].IsTextWindow())
-        quit("!GUI set as text window but is not actually a text window GUI");
+    {
+        debug_script_warn("GUI %d is set as text window but is not actually a text window GUI", twgui);
+        return 0;
+    }
 
     int borwid = game.SpriteInfos[get_but_pic(&guis[twgui], 4)].Width + 
         game.SpriteInfos[get_but_pic(&guis[twgui], 5)].Width;
@@ -830,12 +834,16 @@ int get_textwindow_border_width (int twgui) {
 }
 
 // get the hegiht of the text window's top border
-int get_textwindow_top_border_height (int twgui) {
+int get_textwindow_top_border_height(int twgui)
+{
     if (twgui < 0)
         return 0;
 
     if (!guis[twgui].IsTextWindow())
-        quit("!GUI set as text window but is not actually a text window GUI");
+    {
+        debug_script_warn("GUI %d is set as text window but is not actually a text window GUI", twgui);
+        return 0;
+    }
 
     return game.SpriteInfos[get_but_pic(&guis[twgui], 6)].Height;
 }
@@ -857,27 +865,35 @@ int get_textwindow_padding(int ifnum) {
 
 void draw_text_window(Bitmap **text_window_ds, bool should_free_ds,
                       int*xins,int*yins,int*xx,int*yy,int*wii, color_t *set_text_color,
-                      int ovrheight, int ifnum, const DisplayVars &disp) {
+                      int ovrheight, int ifnum, const DisplayVars &disp)
+{
     assert(text_window_ds);
     Bitmap *ds = *text_window_ds;
     if (ifnum < 0)
         ifnum = game.options[OPT_TWCUSTOM];
 
-    if (ifnum <= 0) {
-        if (ovrheight)
-            quit("!Cannot use QFG4 style options without custom text window");
+    // Assertions
+    if (ifnum >= game.numgui)
+    {
+        debug_script_warn("Invalid GUI %d specified as text window (valid range: 1..%d)", ifnum, game.numgui);
+        ifnum = 0;
+    }
+    else if (!guis[ifnum].IsTextWindow())
+    {
+        debug_script_warn("GUI %d is set as text window but is not actually a text window GUI", ifnum);
+        ifnum = 0;
+    }
+
+    if (ifnum <= 0)
+    {
         draw_button_background(ds, 0,0,ds->GetWidth() - 1,ds->GetHeight() - 1,nullptr);
         if (set_text_color)
             *set_text_color = 16;
         xins[0]=3;
         yins[0]=3;
     }
-    else {
-        if (ifnum >= game.numgui)
-            quitprintf("!Invalid GUI %d specified as text window (total GUIs: %d)", ifnum, game.numgui);
-        if (!guis[ifnum].IsTextWindow())
-            quit("!GUI set as text window but is not actually a text window GUI");
-
+    else
+    {
         int tbnum = get_but_pic(&guis[ifnum], 0);
 
         wii[0] += get_textwindow_border_width (ifnum);

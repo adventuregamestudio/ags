@@ -156,6 +156,9 @@ public:
     // A place in buffer where we will write non-applied values;
     // this is just to streamline the process and don't litter the code with checks
     static const uint32_t NullConstantIndex = ConstantCap;
+    // A cap of the number of texture samplers that we support in shader;
+    // note that zero index is reserved for the main texture, so unused
+    static const uint32_t SamplersCap = 4u;
 
     // Shader data wrapped in a struct, for easier referencing
     struct ProgramData
@@ -174,8 +177,8 @@ public:
         // Standard uniforms
         GLuint Time = 0;        // real time
         GLuint GameFrame = 0;   // game (?) frame
-        GLuint Texture = 0;     // texture 0 (sprite or render target)
-        GLuint TextureDim = 0;  // texture 0 dimensions
+        GLuint Texture[4] = { 0 }; // texture 0..3 (sprite or render target)
+        GLuint TextureDim[4] = { 0 }; // textures 0..3 dimensions
         GLuint Alpha = 0;       // requested global alpha
         GLuint OutputDim = 0;   // output dimensions
 
@@ -226,6 +229,9 @@ public:
     // Gets array of constants data, where each constant is represented as 4 floats
     void GetConstantData(std::vector<float> &data) override;
 
+    // Sets a texture as a shader sampler using a zero-based index
+    void SetShaderSampler(uint32_t sampler_index, std::shared_ptr<Texture> tex) override;
+
     struct ConstantValue
     {
         static const uint32_t AllocSize = 4 * sizeof(float);
@@ -242,8 +248,20 @@ public:
         }
     };
 
+    struct Sampler
+    {
+        std::shared_ptr<OGLTexture> Tex;
+        // Cached data for quicker access without extra null checks
+        GLuint TexID = 0u;
+        Size   TexSize;
+
+        Sampler() = default;
+        Sampler(std::shared_ptr<OGLTexture> tex);
+    };
+
     const OGLShader::ProgramData &GetShaderData() const { return _shader->GetData(); }
     const std::vector<ConstantValue> &GetConstantData() { return _constantData; }
+    const std::vector<Sampler> &GetShaderSamplers() const { return _samplers; }
 
 private:
     void SetConstant(uint32_t const_index, uint32_t size, float x = 0.f, float y = 0.f, float z = 0.f, float w = 0.f);
@@ -251,6 +269,7 @@ private:
     OGLShader *_shader = nullptr;
     // Constant buffer data, applied each time a shader is used in render
     std::vector<ConstantValue> _constantData;
+    std::vector<Sampler> _samplers;
 };
 
 // OGL renderer's sprite batch
@@ -565,6 +584,8 @@ private:
     void RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw_y,
                        const glm::mat4 &projection, const glm::mat4 &matGlobal,
                        const SpriteColorTransform &color, const Size &rend_sz);
+    // Cleans up render state after rendering a scene
+    void PostRenderCleanup();
 
     // Sets uniform blend settings, same for both RGB and alpha component
     void SetBlendOpUniform(GLenum blend_op, GLenum src_factor, GLenum dst_factor);

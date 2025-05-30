@@ -203,6 +203,7 @@ OGLShaderInstance::OGLShaderInstance(OGLShader *shader, const String &name)
     , _shader(shader)
 {
     _constantData.resize(OGLShader::NullConstantIndex + 1);
+    _samplers.resize(OGLShader::SamplersCap);
 }
 
 void OGLShaderInstance::SetShaderConstantF(uint32_t const_index, float value)
@@ -258,6 +259,24 @@ void OGLShaderInstance::GetConstantData(std::vector<float> &data)
         data[pos + 2] = c.Val[2];
         data[pos + 3] = c.Val[3];
     }
+}
+
+OGLShaderInstance::Sampler::Sampler(std::shared_ptr<OGLTexture> tex)
+{
+    Tex = tex;
+    if (tex)
+    {
+        TexID = tex->_tiles[0].texture;
+        TexSize = Size(tex->_tiles[0].width, tex->_tiles[0].height);
+    }
+}
+
+void OGLShaderInstance::SetShaderSampler(uint32_t sampler_index, std::shared_ptr<Texture> tex)
+{
+    if (sampler_index < 1u || sampler_index > _samplers.size())
+        return;
+
+    _samplers[sampler_index] = Sampler(std::dynamic_pointer_cast<OGLTexture>(tex));
 }
 
 
@@ -916,8 +935,18 @@ void OGLGraphicsDriver::AssignBaseShaderArgs(OGLShader::ProgramData &prg)
     prg.MVPMatrix = glGetUniformLocation(prg.Program, "iMVPMatrix");
     prg.Time = glGetUniformLocation(prg.Program, "iTime");
     prg.GameFrame = glGetUniformLocation(prg.Program, "iGameFrame");
-    prg.Texture = glGetUniformLocation(prg.Program, "iTexture");
-    prg.TextureDim = glGetUniformLocation(prg.Program, "iTextureDim");
+    prg.Texture[0] = glGetUniformLocation(prg.Program, "iTexture");
+    if (prg.Texture[0] == -1)
+        prg.Texture[0] = glGetUniformLocation(prg.Program, "iTexture0");
+    prg.Texture[1] = glGetUniformLocation(prg.Program, "iTexture1");
+    prg.Texture[2] = glGetUniformLocation(prg.Program, "iTexture2");
+    prg.Texture[3] = glGetUniformLocation(prg.Program, "iTexture3");
+    prg.TextureDim[0] = glGetUniformLocation(prg.Program, "iTextureDim");
+    if (prg.TextureDim[0] == -1)
+        prg.TextureDim[0] = glGetUniformLocation(prg.Program, "iTextureDim0");
+    prg.TextureDim[1] = glGetUniformLocation(prg.Program, "iTextureDim1");
+    prg.TextureDim[2] = glGetUniformLocation(prg.Program, "iTextureDim2");
+    prg.TextureDim[3] = glGetUniformLocation(prg.Program, "iTextureDim3");
     prg.Alpha = glGetUniformLocation(prg.Program, "iAlpha");
     prg.OutputDim = glGetUniformLocation(prg.Program, "iOutputDim");
     glEnableVertexAttribArray(prg.A_Position);
@@ -1314,6 +1343,18 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
         default: break;
         }
     }
+
+    const auto &samplers = shaderinst->GetShaderSamplers();
+    for (uint32_t i = 1u; i < samplers.size(); ++i)
+    {
+        if (program->Texture[i] > 0)
+        {
+            glActiveTexture(GL_TEXTURE0 + i);
+            glBindTexture(GL_TEXTURE_2D, samplers[i].TexID);
+            glUniform1i(program->Texture[i], i);
+            glUniform2f(program->TextureDim[i], samplers[i].TexSize.Width, samplers[i].TexSize.Height);
+        }
+    }
   }
   else if (do_tint)
   {
@@ -1390,8 +1431,8 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
     glUseProgram(program->Program);
   }
 
-  glUniform1i(program->Texture, 0);
-  glUniform2f(program->TextureDim, bmpToDraw->GetWidth(), bmpToDraw->GetHeight());
+  glUniform1i(program->Texture[0], 0);
+  glUniform2f(program->TextureDim[0], bmpToDraw->GetWidth(), bmpToDraw->GetHeight());
   glUniform1f(program->Alpha, alpha / 255.0f);
 
   float width = bmpToDraw->GetWidthToRender();
@@ -1595,6 +1636,19 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
   glUseProgram(0);
 }
 
+void OGLGraphicsDriver::PostRenderCleanup()
+{
+    // Reset textures in all stages which we use in shaders, etc
+    for (uint32_t i = 0; i < 4; ++i)
+    {
+        glActiveTexture(GL_TEXTURE0 + i);
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
+
+    glActiveTexture(0);
+    glUseProgram(0);
+}
+
 void OGLGraphicsDriver::RenderAndPresent(bool clearDrawListAfterwards)
 {
     RenderImpl(clearDrawListAfterwards);
@@ -1630,6 +1684,7 @@ void OGLGraphicsDriver::RenderToSurface(BackbufferState *state, bool clearDrawLi
     UpdateGlobalShaderArgValues();
     RenderSpriteBatches();
     glFinish();
+    PostRenderCleanup();
 
     if (clearDrawListAfterwards)
     {

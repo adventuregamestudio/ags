@@ -182,6 +182,9 @@ public:
     // A place in buffer where we will write non-applied values;
     // this is just to streamline the process and don't litter the code with checks
     static const uint32_t NullConstantIndex = ConstantCap;
+    // A cap of the number of texture samplers that we support in shader;
+    // note that zero index is reserved for the main texture, so unused
+    static const uint32_t SamplersCap = 4u;
 
     // Shader data wrapped in a struct, for easier referencing
     struct ProgramData
@@ -207,7 +210,7 @@ public:
         // Standard constants register number
         Register Time;         // real time
         Register GameFrame;    // game frame
-        Register TextureDim;   // texture 0 dimensions
+        Register TextureDim[SamplersCap]; // texture (0..3) dimensions
         Register Alpha;        // requested global alpha
         Register OutputDim;    // output dimensions
 
@@ -255,11 +258,28 @@ public:
     float *GetConstantData() { return _constantData.data(); }
     size_t GetConstantDataSize() const { return _constantData.size(); }
 
+    // Sets a texture as a shader sampler using a zero-based index
+    void SetShaderSampler(uint32_t sampler_index, std::shared_ptr<Texture> tex) override;
+
+    struct Sampler
+    {
+        std::shared_ptr<D3DTexture> Tex;
+        // Cached data for quicker access without extra null checks
+        IDirect3DTexture9 *TexPtr = nullptr;
+        Size TexSize;
+
+        Sampler() = default;
+        Sampler(std::shared_ptr<D3DTexture> tex);
+    };
+
+    const std::vector<Sampler> &GetShaderSamplers() const { return _samplers; }
+
 private:
     // FIXME: provide reference counting of shader ptr
     D3DShader *_shader = nullptr;
     // Constant buffer data, applied each time a shader is used in render
     std::vector<float> _constantData;
+    std::vector<Sampler> _samplers;
 };
 
 class D3DGfxModeList final : public IGfxModeList
@@ -595,6 +615,8 @@ private:
     // Renders given texture onto the current render target
     void RenderTexture(D3DBitmap *bitmap, int draw_x, int draw_y, const glm::mat4 &matGlobal,
                        const SpriteColorTransform &color, const Size &rend_sz);
+    // Cleans up render state after rendering a scene
+    void PostRenderCleanup();
 
     // Sets uniform blend settings, same for both RGB and alpha component
     void SetBlendOpUniform(D3DBLENDOP blend_op, D3DBLEND src_factor, D3DBLEND dst_factor);

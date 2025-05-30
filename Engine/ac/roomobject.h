@@ -48,7 +48,8 @@ public:
     short tint_light;
     short zoom;           // zoom level, either manual or from the current area
     int   spr_width, spr_height; // last used sprite's size
-    short last_width, last_height;  // width/height based on a scaled sprite
+    int   spr_xoff, spr_yoff; // sprite offsets (when using a view)
+    short width, height;  // width/height based on a scaled sprite
     uint16_t num;            // sprite slot number
     short baseline;       // <=0 to use Y co-ordinate; >0 for specific baseline
     uint16_t view,loop,frame; // only used to track animation - 'num' holds the current sprite

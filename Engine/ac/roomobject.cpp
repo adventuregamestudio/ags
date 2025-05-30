@@ -40,7 +40,8 @@ RoomObject::RoomObject()
     tint_light = 0;
     zoom = 100;
     spr_width = spr_height = 0;
-    last_width = last_height = 0;
+    spr_xoff = spr_yoff = 0;
+    width = height = 0;
     num = 0;
     baseline = -1;
     view = NoView;
@@ -59,16 +60,16 @@ RoomObject::RoomObject()
 
 int RoomObject::get_width() const {
     // FIXME: don't use global game object here, instead make sure last_width is always valid
-    if (last_width == 0)
+    if (width == 0)
         return game.SpriteInfos[num].Width;
-    return last_width;
+    return width;
 }
 
 int RoomObject::get_height() const {
     // FIXME: don't use global game object here, instead make sure last_height is always valid
-    if (last_height == 0)
+    if (height == 0)
         return game.SpriteInfos[num].Height;
-    return last_height;
+    return height;
 }
 
 int RoomObject::get_baseline() const {
@@ -144,8 +145,8 @@ void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
     tint_level = in->ReadInt16();
     tint_light = in->ReadInt16();
     zoom = in->ReadInt16();
-    last_width = in->ReadInt16();
-    last_height = in->ReadInt16();
+    width = in->ReadInt16();
+    height = in->ReadInt16();
     num = in->ReadInt16();
     baseline = in->ReadInt16();
     view = in->ReadInt16();
@@ -228,8 +229,8 @@ void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
         shader_handle = 0;
     }
 
-    spr_width = last_width;
-    spr_height = last_height;
+    spr_width = width;
+    spr_height = height;
     UpdateGraphicSpace();
 }
 
@@ -244,8 +245,8 @@ void RoomObject::WriteToSavegame(Stream *out) const
     out->WriteInt16(tint_level);
     out->WriteInt16(tint_light);
     out->WriteInt16(zoom);
-    out->WriteInt16(last_width);
-    out->WriteInt16(last_height);
+    out->WriteInt16(width);
+    out->WriteInt16(height);
     out->WriteInt16(num);
     out->WriteInt16(baseline);
     out->WriteInt16(view);
@@ -295,5 +296,7 @@ void RoomObject::WriteToSavegame(Stream *out) const
 
 void RoomObject::UpdateGraphicSpace()
 {
-    _gs = GraphicSpace(x, y - last_height, spr_width, spr_height, last_width, last_height, rotation);
+    _gs = GraphicSpace(x          + (spr_xoff) * zoom / 100,
+                       y - height + (spr_xoff) * zoom / 100,
+                       spr_width, spr_height, width, height, rotation);
 }

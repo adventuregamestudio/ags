@@ -525,26 +525,51 @@ namespace AGS.Editor
             return wroteTotal;
         }
 
-        public static Bitmap GetBitmapForSpriteResizedKeepingAspectRatio(Sprite sprite, int width, int height, bool centreInNewCanvas, bool drawOutline, Color backgroundColour)
+        /// <summary>
+        /// Returns a Bitmap with the requested sprite on it,
+        /// returns a placeholder in case the sprite does not exist,
+        /// or if there was any problem retrieving one.
+        /// </summary>
+        public static Bitmap GetBitmapForSprite(Sprite sprite)
         {
-            float targetWidthHeightRatio = (float)width / (float)height;
-            float spriteWidthHeightRatio = (float)sprite.Width / (float)sprite.Height;
-            int newWidth, newHeight;
+            Bitmap bmp = Factory.NativeProxy.GetSpriteBitmapAs32Bit(sprite.Number, sprite.Width, sprite.Height);
+            if (bmp != null)
+                return bmp;
+            return SpriteTools.GetPlaceHolder();
+        }
 
+        /// <summary>
+        /// Calculates the maximal size that an item may reach within the targetSize bounds,
+        /// if scaled up while keeping aspect ratio.
+        /// </summary>
+        public static Size ResizeKeepingAspectRatio(Size itemSize, Size targetSize)
+        {
+            float targetWidthHeightRatio = (float)targetSize.Width / (float)targetSize.Height;
+            float spriteWidthHeightRatio = (float)itemSize.Width / (float)itemSize.Height;
+
+            Size finalSize = targetSize;
             if (spriteWidthHeightRatio > targetWidthHeightRatio)
             {
-                newWidth = width;
-                newHeight = (int)(((float)width / (float)sprite.Width) * (float)sprite.Height);
+                finalSize.Height = (int)(((float)targetSize.Width / (float)itemSize.Width) * (float)itemSize.Height);
             }
             else
             {
-                newHeight = height;
-                newWidth = (int)(((float)height / (float)sprite.Height) * (float)sprite.Width);
+                finalSize.Width = (int)(((float)finalSize.Height / (float)itemSize.Height) * (float)itemSize.Width);
             }
 
-            // correct size if a very wide/tall image (eg. 400x2) is shrunk
-            if (newWidth < 1) newWidth = 1;
-            if (newHeight < 1) newHeight = 1;
+            finalSize.Width = Math.Max(1, finalSize.Width);
+            finalSize.Height = Math.Max(1, finalSize.Height);
+
+            return finalSize;
+        }
+
+        // TODO: this method does too many things at once, revise this.
+        // Probably creating a new resized bitmap is not a good thing anyway,
+        // could be better to return a original bitmap, and position & size it into respective control
+        // using Graphics methods (which also may use accelerated transforms).
+        public static Bitmap GetBitmapForSpriteResizedKeepingAspectRatio(Sprite sprite, int width, int height, bool centreInNewCanvas, bool drawOutline, Color backgroundColour)
+        {
+            Size newSize = ResizeKeepingAspectRatio(new Size(sprite.Width, sprite.Height), new Size(width, height));
 
             Bitmap newBmp = new Bitmap(width, height, PixelFormat.Format32bppRgb);
 
@@ -553,7 +578,7 @@ namespace AGS.Editor
                 g.Clear(backgroundColour);
                 int x = 0, y = 0;
 
-                using (Bitmap bitmapToDraw = Factory.NativeProxy.GetSpriteBitmapAs32Bit(sprite.Number, newWidth, newHeight))
+                using (Bitmap bitmapToDraw = Factory.NativeProxy.GetSpriteBitmapAs32Bit(sprite.Number, newSize.Width, newSize.Height))
                 {
                     Bitmap bmp = bitmapToDraw ?? SpriteTools.GetPlaceHolder();
                     if (centreInNewCanvas)
@@ -567,7 +592,7 @@ namespace AGS.Editor
 
                 if (drawOutline)
                 {
-                    g.DrawRectangle(Pens.Brown, x, y, newWidth - 1, newHeight - 1);
+                    g.DrawRectangle(Pens.Brown, x, y, newSize.Width - 1, newSize.Height - 1);
                 }
             }
 
@@ -647,6 +672,35 @@ namespace AGS.Editor
                     graphics.DrawImage(sprite32bppAlpha, x, y, width, height);
                 }
             }
+        }
+
+        public static void DrawFlipped(Graphics g, Bitmap bmp, int x, int y, SpriteFlipStyle flipStyle)
+        {
+            DrawFlipped(g, bmp, x, y, bmp.Width, bmp.Height, flipStyle);
+        }
+
+        public static void DrawFlipped(Graphics g, Bitmap bmp, int x, int y, int dstWidth, int dstHeight, SpriteFlipStyle flipStyle)
+        {
+            int left = x, right = x + dstWidth, top = y, bottom = y + dstHeight;
+            if (flipStyle != SpriteFlipStyle.None)
+            {
+                if ((flipStyle & SpriteFlipStyle.Horizontal) != 0)
+                {
+                    left = x + dstWidth;
+                    right = x;
+                }
+                if ((flipStyle & SpriteFlipStyle.Vertical) != 0)
+                {
+                    top = y + dstHeight;
+                    bottom = y;
+                }
+            }
+
+            Point ulCorner = new Point(left, top);
+            Point urCorner = new Point(right, top);
+            Point llCorner = new Point(left, bottom);
+            Point[] destPara = { ulCorner, urCorner, llCorner };
+            g.DrawImage(bmp, destPara);
         }
 
         public static void CheckLabelWidthsOnForm(Control parentControl)

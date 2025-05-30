@@ -87,11 +87,11 @@ public:
     Rect CalcGraphicRect(bool clipped) override;
     void Draw(Bitmap *ds, int x = 0, int y = 0) override;
     void SetClipImage(bool on);
-    void SetCurrentImage(int image, SpriteTransformFlags flags = kSprTf_None);
+    void SetCurrentImage(int image, SpriteTransformFlags flags = kSprTf_None, int xoff = 0, int yoff = 0);
     void SetMouseOverImage(int image);
     void SetNormalImage(int image);
     void SetPushedImage(int image);
-    void SetImages(int normal, int over, int pushed, SpriteTransformFlags flags = kSprTf_None);
+    void SetImages(int normal, int over, int pushed, SpriteTransformFlags flags = kSprTf_None, int xoff = 0, int yoff = 0);
     void SetText(const String &text);
     void SetWrapText(bool on);
 
@@ -120,6 +120,8 @@ private:
     FrameAlignment _textAlignment = kAlignTopCenter;
     // TODO: flags for each kind of image?
     SpriteTransformFlags _imageFlags = kSprTf_None;
+    int     _imageXOff = 0;
+    int     _imageYOff = 0;
     int     _textPaddingHor = DefaultHorPadding;
     int     _textPaddingVer = DefaultVerPadding;
     // Click actions for left and right mouse buttons
@@ -136,6 +138,8 @@ private:
     // Active displayed image
     int     _currentImage = -1;
     SpriteTransformFlags _curImageFlags = kSprTf_None;
+    int     _curImageXOff = 0;
+    int     _curImageYOff = 0;
     // Text property set by user
     String  _text;
     // type of content placeholder, if any

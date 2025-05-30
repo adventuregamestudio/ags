@@ -267,12 +267,15 @@ void GUIButton::SetPushedImage(int image)
     UpdateCurrentImage();
 }
 
-void GUIButton::SetImages(int normal, int over, int pushed, SpriteTransformFlags flags)
+void GUIButton::SetImages(int normal, int over, int pushed,
+                          SpriteTransformFlags flags, int xoff, int yoff)
 {
     _image = normal;
     _mouseOverImage = over;
     _pushedImage = pushed;
     _imageFlags = flags;
+    _imageXOff = xoff;
+    _imageYOff = yoff;
     UpdateCurrentImage();
 }
 
@@ -281,12 +284,15 @@ int32_t GUIButton::CurrentImage() const
     return _currentImage;
 }
 
-void GUIButton::SetCurrentImage(int32_t new_image, SpriteTransformFlags flags)
+void GUIButton::SetCurrentImage(int32_t new_image, SpriteTransformFlags flags, int xoff, int yoff)
 {
     if (_currentImage == new_image && _curImageFlags == flags)
         return;
+
     _currentImage = new_image;
     _curImageFlags = flags;
+    _curImageXOff = xoff;
+    _curImageYOff = yoff;
     MarkChanged();
 }
 
@@ -365,6 +371,7 @@ void GUIButton::UpdateCurrentImage()
 {
     int new_image = _currentImage;
     SpriteTransformFlags new_flags = kSprTf_None;
+    int new_xoff = 0, new_yoff = 0;
 
     if (_isPushed && (_pushedImage > 0))
     {
@@ -378,9 +385,11 @@ void GUIButton::UpdateCurrentImage()
     {
         new_image = _image;
         new_flags = _imageFlags;
+        new_xoff = _imageXOff;
+        new_yoff = _imageYOff;
     }
 
-    SetCurrentImage(new_image, new_flags);
+    SetCurrentImage(new_image, new_flags, new_xoff, new_yoff);
 }
 
 void GUIButton::WriteToFile(Stream *out) const
@@ -498,7 +507,10 @@ void GUIButton::DrawImageButton(Bitmap *ds, int x, int y, bool draw_disabled)
         ds->SetClip(RectWH(x, y, _width, _height));
 
     if (spriteset.DoesSpriteExist(_currentImage))
-        draw_gui_sprite_flipped(ds, _currentImage, x, y, kBlend_Normal, GfxDef::GetFlipFromFlags(_curImageFlags));
+    {
+        draw_gui_sprite_flipped(ds, _currentImage, x + _curImageXOff, y + _curImageYOff,
+                                kBlend_Normal, GfxDef::GetFlipFromFlags(_curImageFlags));
+    }
 
     // Draw active inventory item
     const int gui_inv_pic = GUI::Context.InventoryPic;

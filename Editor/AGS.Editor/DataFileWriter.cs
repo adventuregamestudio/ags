@@ -869,8 +869,8 @@ namespace AGS.Editor
                         {
                             ViewFrame frame = view.Loops[i].Frames[j];
                             writer.Write(frame.Image);
-                            writer.Write((short)0); // unused x-offset
-                            writer.Write((short)0); // unused y-offset
+                            writer.Write((short)frame.XOffset);
+                            writer.Write((short)frame.YOffset);
                             writer.Write((short)frame.Delay);
                             writer.Write((short)0); // struct alignment padding
                             writer.Write((int)frame.Flip);

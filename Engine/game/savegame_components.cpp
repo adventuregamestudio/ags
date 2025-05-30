@@ -1051,6 +1051,12 @@ HSaveError PrescanMouseCursors(Stream *in, int32_t /*cmp_ver*/, soff_t /*cmp_siz
     return HSaveError::None();
 }
 
+enum ViewSvgVersion
+{
+    kViewSvgVersion_Initial = 0,
+    kViewSvgVersion_4000018 = 4000018, // view frame offsets
+};
+
 HSaveError WriteViews(Stream *out)
 {
     out->WriteInt32(game.numviews);
@@ -1062,15 +1068,21 @@ HSaveError WriteViews(Stream *out)
             out->WriteInt32(views[view].loops[loop].numFrames);
             for (int frame = 0; frame < views[view].loops[loop].numFrames; ++frame)
             {
-                out->WriteInt32(views[view].loops[loop].frames[frame].sound);
-                out->WriteInt32(views[view].loops[loop].frames[frame].pic);
+                auto &vf = views[view].loops[loop].frames[frame];
+                out->WriteInt32(vf.sound);
+                out->WriteInt32(vf.pic);
+                // ---- kViewSvgVersion_4000018
+                out->WriteInt32(vf.flags);
+                out->WriteInt16(vf.speed);
+                out->WriteInt16(vf.xoffs);
+                out->WriteInt16(vf.yoffs);
             }
         }
     }
     return HSaveError::None();
 }
 
-HSaveError ReadViews(Stream *in, int32_t /*cmp_ver*/, soff_t cmp_size, const PreservedParams& /*pp*/, RestoredData& r_data)
+HSaveError ReadViews(Stream *in, int32_t cmp_ver, soff_t /*cmp_size*/, const PreservedParams & /*pp*/, RestoredData &r_data)
 {
     HSaveError err;
     const uint32_t views_read = in->ReadInt32();
@@ -1096,8 +1108,17 @@ HSaveError ReadViews(Stream *in, int32_t /*cmp_ver*/, soff_t cmp_size, const Pre
             r_data.DataCounts.ViewFrames[view] += frames_read;
             for (uint32_t frame = 0; frame < frames_read; ++frame)
             {
-                views[view].loops[loop].frames[frame].sound = in->ReadInt32();
-                views[view].loops[loop].frames[frame].pic = in->ReadInt32();
+                auto &vf = views[view].loops[loop].frames[frame];
+                vf.sound = in->ReadInt32();
+                vf.pic = in->ReadInt32();
+
+                if (cmp_ver >= kViewSvgVersion_4000018)
+                {
+                    vf.flags = (SpriteTransformFlags)in->ReadInt32();
+                    vf.speed = in->ReadInt16();
+                    vf.xoffs = in->ReadInt16();
+                    vf.yoffs = in->ReadInt16();
+                }
             }
         }
     }
@@ -1128,7 +1149,10 @@ HSaveError PrescanViews(Stream *in, int32_t /*cmp_ver*/, soff_t /*cmp_size*/, co
                 return err;
 
             r_data.DataCounts.ViewFrames[view] += frames_read;
-            in->Seek(frames_read * sizeof(int32_t) * 2);
+            in->Seek(frames_read * (
+                  sizeof(int32_t) * 2
+                + sizeof(int32_t) + sizeof(int16_t) * 3
+                ));
         }
     }
     return HSaveError::None();
@@ -1798,8 +1822,8 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Views",
-        0,
-        0,
+        kViewSvgVersion_4000018,
+        kViewSvgVersion_Initial,
         kSaveCmp_Views,
         WriteViews,
         ReadViews,

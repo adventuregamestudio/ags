@@ -2543,7 +2543,8 @@ void update_character_scale(int charid)
         chin.frame = 0;
     }
 
-    const int pic = views[chin.view].loops[chin.loop].frames[chin.frame].pic;
+    const ViewFrame &vf = views[chin.view].loops[chin.loop].frames[chin.frame];
+    const int pic = vf.pic;
     int zoom, zoom_offs, scale_width, scale_height;
     update_object_scale(zoom, scale_width, scale_height,
         chin.x, chin.y, pic,
@@ -2554,6 +2555,8 @@ void update_character_scale(int charid)
     chex.zoom = zoom;
     chex.spr_width = game.SpriteInfos[pic].Width;
     chex.spr_height = game.SpriteInfos[pic].Height;
+    chex.spr_xoff = vf.xoffs;
+    chex.spr_yoff = vf.yoffs;
     chex.width = scale_width;
     chex.height = scale_height;
     chex.zoom_offs = zoom_offs;

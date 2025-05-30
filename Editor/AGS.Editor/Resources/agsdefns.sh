@@ -755,8 +755,8 @@ builtin managed struct Set
 builtin managed struct AudioClip;
 
 builtin managed struct ViewFrame {
-  /// Gets whether this frame is flipped.
-  readonly import attribute eFlipDirection Flipped;
+  /// Gets/sets whether this frame is flipped.
+  import attribute eFlipDirection Flipped;
   /// Gets the frame number of this frame.
   readonly import attribute int Frame;
   /// Gets/sets the sprite that is displayed by this frame.
@@ -765,10 +765,14 @@ builtin managed struct ViewFrame {
   import attribute AudioClip* LinkedAudio;
   /// Gets the loop number of this frame.
   readonly import attribute int Loop;
-  /// Gets the delay of this frame.
-  readonly import attribute int Speed;
+  /// Gets/sets the delay of this frame.
+  import attribute int Speed;
   /// Gets the view number that this frame is part of.
   readonly import attribute int View;
+  /// Gets/sets the relative x offset applied to this frame.
+  import attribute int XOffset;
+  /// Gets/sets the relative y offset applied to this frame.
+  import attribute int YOffset;
 };
 
 builtin managed struct DrawingSurface {

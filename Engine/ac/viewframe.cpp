@@ -31,51 +31,88 @@ extern std::vector<ViewStruct> views;
 extern CCAudioClip ccDynamicAudioClip;
 
 
-int ViewFrame_GetFlipped(ScriptViewFrame *svf) {
-  // We can return GraphicFlip here, because old boolean value matches horizontal flip
-  return GfxDef::GetFlipFromFlags(views[svf->view].loops[svf->loop].frames[svf->frame].flags);
+int ViewFrame_GetFlipped(ScriptViewFrame *svf)
+{
+    // We can return GraphicFlip here, because old boolean value matches horizontal flip
+    return GfxDef::GetFlipFromFlags(views[svf->view].loops[svf->loop].frames[svf->frame].flags);
 }
 
-int ViewFrame_GetGraphic(ScriptViewFrame *svf) {
-  return views[svf->view].loops[svf->loop].frames[svf->frame].pic;
+void ViewFrame_SetFlipped(ScriptViewFrame *svf, int flip)
+{
+    views[svf->view].loops[svf->loop].frames[svf->frame].flags = GfxDef::GetFlagsFromFlip((GraphicFlip)flip);
 }
 
-void ViewFrame_SetGraphic(ScriptViewFrame *svf, int newPic) {
-  views[svf->view].loops[svf->loop].frames[svf->frame].pic = newPic;
+int ViewFrame_GetGraphic(ScriptViewFrame *svf)
+{
+    return views[svf->view].loops[svf->loop].frames[svf->frame].pic;
+}
+
+void ViewFrame_SetGraphic(ScriptViewFrame *svf, int newPic)
+{
+    views[svf->view].loops[svf->loop].frames[svf->frame].pic = newPic;
 }
 
 ScriptAudioClip* ViewFrame_GetLinkedAudio(ScriptViewFrame *svf) 
 {
-  int soundIndex = views[svf->view].loops[svf->loop].frames[svf->frame].sound;
-  if (soundIndex < 0)
-    return nullptr;
+    int soundIndex = views[svf->view].loops[svf->loop].frames[svf->frame].sound;
+    if (soundIndex < 0)
+        return nullptr;
 
-  return &game.audioClips[soundIndex];
+    return &game.audioClips[soundIndex];
 }
 
 void ViewFrame_SetLinkedAudio(ScriptViewFrame *svf, ScriptAudioClip* clip) 
 {
-  int newSoundIndex = -1;
-  if (clip != nullptr)
-    newSoundIndex = clip->id;
-
-  views[svf->view].loops[svf->loop].frames[svf->frame].sound = newSoundIndex;
+    int newSoundIndex = -1;
+    if (clip != nullptr)
+        newSoundIndex = clip->id;
+    
+    views[svf->view].loops[svf->loop].frames[svf->frame].sound = newSoundIndex;
 }
 
-int ViewFrame_GetSpeed(ScriptViewFrame *svf) {
-  return views[svf->view].loops[svf->loop].frames[svf->frame].speed;
+int ViewFrame_GetSpeed(ScriptViewFrame *svf)
+{
+    return views[svf->view].loops[svf->loop].frames[svf->frame].speed;
 }
 
-int ViewFrame_GetView(ScriptViewFrame *svf) {
-  return svf->view + 1;
+void ViewFrame_SetSpeed(ScriptViewFrame *svf, int speed)
+{
+    views[svf->view].loops[svf->loop].frames[svf->frame].speed = speed;
 }
 
-int ViewFrame_GetLoop(ScriptViewFrame *svf) {
-  return svf->loop;
+int ViewFrame_GetXOffset(ScriptViewFrame *svf)
+{
+    return views[svf->view].loops[svf->loop].frames[svf->frame].xoffs;
 }
 
-int ViewFrame_GetFrame(ScriptViewFrame *svf) {
-  return svf->frame;
+void ViewFrame_SetXOffset(ScriptViewFrame *svf, int xoff)
+{
+    views[svf->view].loops[svf->loop].frames[svf->frame].xoffs = xoff;
+}
+
+int ViewFrame_GetYOffset(ScriptViewFrame *svf)
+{
+    return views[svf->view].loops[svf->loop].frames[svf->frame].xoffs;
+}
+
+void ViewFrame_SetYOffset(ScriptViewFrame *svf, int yoff)
+{
+    views[svf->view].loops[svf->loop].frames[svf->frame].yoffs = yoff;
+}
+
+int ViewFrame_GetView(ScriptViewFrame *svf)
+{
+    return svf->view + 1;
+}
+
+int ViewFrame_GetLoop(ScriptViewFrame *svf)
+{
+    return svf->loop;
+}
+
+int ViewFrame_GetFrame(ScriptViewFrame *svf)
+{
+    return svf->frame;
 }
 
 //=============================================================================
@@ -159,6 +196,11 @@ RuntimeScriptValue Sc_ViewFrame_GetFlipped(void *self, const RuntimeScriptValue 
     API_OBJCALL_INT(ScriptViewFrame, ViewFrame_GetFlipped);
 }
 
+RuntimeScriptValue Sc_ViewFrame_SetFlipped(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptViewFrame, ViewFrame_SetFlipped);
+}
+
 // int (ScriptViewFrame *svf)
 RuntimeScriptValue Sc_ViewFrame_GetFrame(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -189,15 +231,20 @@ RuntimeScriptValue Sc_ViewFrame_SetLinkedAudio(void *self, const RuntimeScriptVa
 }
 
 // int (ScriptViewFrame *svf)
-RuntimeScriptValue Sc_ViewFrame_GetLoop(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(ScriptViewFrame, ViewFrame_GetLoop);
-}
-
-// int (ScriptViewFrame *svf)
 RuntimeScriptValue Sc_ViewFrame_GetSpeed(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptViewFrame, ViewFrame_GetSpeed);
+}
+
+RuntimeScriptValue Sc_ViewFrame_SetSpeed(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptViewFrame, ViewFrame_SetSpeed);
+}
+
+// int (ScriptViewFrame *svf)
+RuntimeScriptValue Sc_ViewFrame_GetLoop(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptViewFrame, ViewFrame_GetLoop);
 }
 
 // int (ScriptViewFrame *svf)
@@ -206,11 +253,32 @@ RuntimeScriptValue Sc_ViewFrame_GetView(void *self, const RuntimeScriptValue *pa
     API_OBJCALL_INT(ScriptViewFrame, ViewFrame_GetView);
 }
 
+RuntimeScriptValue Sc_ViewFrame_GetXOffset(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptViewFrame, ViewFrame_GetXOffset);
+}
+
+RuntimeScriptValue Sc_ViewFrame_SetXOffset(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptViewFrame, ViewFrame_SetXOffset);
+}
+
+RuntimeScriptValue Sc_ViewFrame_GetYOffset(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptViewFrame, ViewFrame_GetYOffset);
+}
+
+RuntimeScriptValue Sc_ViewFrame_SetYOffset(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptViewFrame, ViewFrame_SetYOffset);
+}
+
 
 void RegisterViewFrameAPI()
 {
     ScFnRegister viewframe_api[] = {
         { "ViewFrame::get_Flipped",       API_FN_PAIR(ViewFrame_GetFlipped) },
+        { "ViewFrame::set_Flipped",       API_FN_PAIR(ViewFrame_SetFlipped) },
         { "ViewFrame::get_Frame",         API_FN_PAIR(ViewFrame_GetFrame) },
         { "ViewFrame::get_Graphic",       API_FN_PAIR(ViewFrame_GetGraphic) },
         { "ViewFrame::set_Graphic",       API_FN_PAIR(ViewFrame_SetGraphic) },
@@ -218,7 +286,12 @@ void RegisterViewFrameAPI()
         { "ViewFrame::set_LinkedAudio",   API_FN_PAIR(ViewFrame_SetLinkedAudio) },
         { "ViewFrame::get_Loop",          API_FN_PAIR(ViewFrame_GetLoop) },
         { "ViewFrame::get_Speed",         API_FN_PAIR(ViewFrame_GetSpeed) },
+        { "ViewFrame::set_Speed",         API_FN_PAIR(ViewFrame_SetSpeed) },
         { "ViewFrame::get_View",          API_FN_PAIR(ViewFrame_GetView) },
+        { "ViewFrame::get_XOffset",       API_FN_PAIR(ViewFrame_GetXOffset) },
+        { "ViewFrame::set_XOffset",       API_FN_PAIR(ViewFrame_SetXOffset) },
+        { "ViewFrame::get_YOffset",       API_FN_PAIR(ViewFrame_GetYOffset) },
+        { "ViewFrame::set_YOffset",       API_FN_PAIR(ViewFrame_SetYOffset) },
     };
 
     ccAddExternalFunctions(viewframe_api);

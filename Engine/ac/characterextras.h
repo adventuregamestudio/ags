@@ -54,9 +54,11 @@ class CharacterExtras
 public:
     short invorder[MAX_INVORDER]{};
     short invorder_count = 0;
-    int spr_width = 0; // last used sprite's size
-    int spr_height = 0;
-    short width = 0; // width/height last time drawn (includes scaling)
+    int   spr_width = 0; // current sprite size
+    int   spr_height = 0;
+    int   spr_xoff = 0; // current sprite (frame) offset
+    int   spr_yoff = 0;
+    short width = 0; // width/height (includes character scaling!)
     short height = 0;
     short zoom = 100;
     short xwas = 0; // TODO: figure out how these xwas,ywas are being used and comment them

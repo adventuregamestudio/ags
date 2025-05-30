@@ -40,10 +40,9 @@ std::vector<AnimatingGUIButton> animbuts;
 void UpdateButtonState(const AnimatingGUIButton &abtn)
 {
     // Assign view frame as normal image and reset all the rest
-    int image = views[abtn.view].loops[abtn.loop].frames[abtn.frame].pic;
-    SpriteTransformFlags flags = views[abtn.view].loops[abtn.loop].frames[abtn.frame].flags;
+    const auto &vf = views[abtn.view].loops[abtn.loop].frames[abtn.frame];
     guibuts[abtn.buttonid].SetImages(
-        views[abtn.view].loops[abtn.loop].frames[abtn.frame].pic, 0, 0, flags);
+        vf.pic, 0, 0, vf.flags, vf.xoffs, vf.yoffs);
 }
 
 void Button_Animate(GUIButton *butt, int view, int loop, int speed, int repeat,

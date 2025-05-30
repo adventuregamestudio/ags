@@ -15,7 +15,7 @@
 #define __AC_GUIBUTTON_H
 
 #include <vector>
-#include "gui/guiobject.h"
+#include "gui/guicontrol.h"
 #include "util/string.h"
 
 namespace AGS
@@ -48,7 +48,7 @@ enum GUIButtonPlaceholder
 };
 
 
-class GUIButton : public GUIObject
+class GUIButton : public GUIControl
 {
 public:
     // Default text padding

@@ -77,7 +77,9 @@ extern CCGUITextBox ccDynamicGUITextBox;
 
 int ifacepopped=-1;  // currently displayed pop-up GUI (-1 if none)
 int mouse_on_iface=-1;   // mouse cursor is over this interface
-// cursor position relative to a focused gui control
+// cursor position relative to a focused gui control;
+// this is in *local* control's coordinates.
+// FIXME: get rid of these global variables somehow
 int mouse_ifacebut_xoffs =- 1, mouse_ifacebut_yoffs =- 1;
 
 int eip_guinum, eip_guiobj;
@@ -276,7 +278,7 @@ const char *GUI_GetScriptName(ScriptGUI *tehgui)
     return CreateNewScriptString(guis[tehgui->id].GetName());
 }
 
-GUIObject* GUI_GetiControls(ScriptGUI *tehgui, int idx) {
+GUIControl* GUI_GetiControls(ScriptGUI *tehgui, int idx) {
   if ((idx < 0) || (idx >= guis[tehgui->id].GetControlCount()))
     return nullptr;
   return guis[tehgui->id].GetControl(idx);
@@ -312,7 +314,7 @@ void GUI_Centre(ScriptGUI *sgui) {
   GUIMain *tehgui = &guis[sgui->id];
   int x = play.GetUIViewport().GetWidth() / 2 - tehgui->GetWidth() / 2;
   int y = play.GetUIViewport().GetHeight() / 2 - tehgui->GetHeight() / 2;
-  tehgui->SetAt(x, y);
+  tehgui->SetPosition(x, y);
 }
 
 void GUI_SetBackgroundGraphic(ScriptGUI *tehgui, int slotn)
@@ -517,7 +519,7 @@ void process_interface_click(int ifce, int btn, int mbut) {
     else if (rtype==kGUIAction_SetMode)
         set_cursor_mode(rdata);
     else if (rtype==kGUIAction_RunScript) {
-        GUIObject *theObj = guis[ifce].GetControl(btn);
+        GUIControl *theObj = guis[ifce].GetControl(btn);
         // if the object has a special handler script then run it;
         // otherwise, run interface_click
         if ((theObj->GetEventCount() > 0) &&
@@ -618,7 +620,7 @@ void prepare_gui_runtime(bool startup)
     {
         for (int i = 0; i < gui.GetControlCount(); ++i)
         {
-            GUIObject *guio = gui.GetControl(i);
+            GUIControl *guio = gui.GetControl(i);
             guio->SetActivated(false);
             guio->OnResized();
         }
@@ -660,7 +662,7 @@ void export_all_gui_controls()
         auto const &gui = guis[i];
         for (int j = 0; j < gui.GetControlCount(); j++)
         {
-            GUIObject *guio = gui.GetControl(j);
+            GUIControl *guio = gui.GetControl(j);
             IScriptObject *mgr;
             switch (gui.GetControlType(j))
             {
@@ -690,7 +692,7 @@ void unexport_gui_controls(int ee)
 {
     for (int ff = 0; ff < guis[ee].GetControlCount(); ff++)
     {
-        GUIObject *guio = guis[ee].GetControl(ff);
+        GUIControl *guio = guis[ee].GetControl(ff);
         if (!guio->GetName().IsEmpty())
             ccRemoveExternalSymbol(guio->GetName());
         if (!ccUnRegisterManagedObject(guio))
@@ -830,7 +832,7 @@ void gui_on_mouse_hold(const int wasongui, const int wasbutdown)
 {
     for (int i = 0; i < guis[wasongui].GetControlCount(); ++i)
     {
-        GUIObject *guio = guis[wasongui].GetControl(i);
+        GUIControl *guio = guis[wasongui].GetControl(i);
         if (!guio->IsActivated())
             continue;
         // We only handle "hold" event for Sliders, and only if mouse button is not restricted
@@ -852,7 +854,7 @@ void gui_on_mouse_up(const int wasongui, const int wasbutdown, const int mx, con
 
     for (int i = 0; i < gui.GetControlCount(); ++i)
     {
-        GUIObject *guio = gui.GetControl(i);
+        GUIControl *guio = gui.GetControl(i);
         if (!guio->IsActivated())
             continue;
 
@@ -874,8 +876,10 @@ void gui_on_mouse_up(const int wasongui, const int wasbutdown, const int mx, con
         {
             click_handled = true;
             Point guipt = gui.GetGraphicSpace().WorldToLocal(mx, my);
-            mouse_ifacebut_xoffs = guipt.X - (guio->GetX());
-            mouse_ifacebut_yoffs = guipt.Y - (guio->GetY());
+            Point gobjpt = guio->GetGraphicSpace().WorldToLocal(guipt.X, guipt.Y);
+
+            mouse_ifacebut_xoffs = gobjpt.X;
+            mouse_ifacebut_yoffs = gobjpt.Y;
             int iit = offset_over_inv((GUIInvWindow*)guio);
             if (iit >= 0)
             {
@@ -1066,10 +1070,10 @@ RuntimeScriptValue Sc_GUI_GetControlCount(void *self, const RuntimeScriptValue *
     API_OBJCALL_INT(ScriptGUI, GUI_GetControlCount);
 }
 
-// GUIObject* (ScriptGUI *tehgui, int idx)
+// GUIControl* (ScriptGUI *tehgui, int idx)
 RuntimeScriptValue Sc_GUI_GetiControls(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_OBJ_PINT(ScriptGUI, GUIObject, ccDynamicGUIControl, GUI_GetiControls);
+    API_OBJCALL_OBJ_PINT(ScriptGUI, GUIControl, ccDynamicGUIControl, GUI_GetiControls);
 }
 
 // int (ScriptGUI *sgui)

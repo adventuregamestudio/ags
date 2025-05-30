@@ -50,7 +50,7 @@
 #include "debug/debug_log.h"
 #include "font/fonts.h"
 #include "gui/guimain.h"
-#include "gui/guiobject.h"
+#include "gui/guicontrol.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/plugin_engine.h"
 #include "ac/spritecache.h"
@@ -2474,7 +2474,7 @@ static void construct_guictrl_tex(GUIMain &gui)
     int draw_index = guiobjddbref[gui.GetID()];
     for (int i = 0; i < gui.GetControlCount(); ++i, ++draw_index)
     {
-        GUIObject *obj = gui.GetControl(i);
+        GUIControl *obj = gui.GetControl(i);
         if (!obj->IsVisible() ||
             (obj->GetSize().IsNull()) ||
             (!obj->IsEnabled() && (GUI::Options.DisabledStyle == kGuiDis_Blackout)))
@@ -2517,7 +2517,7 @@ static void draw_gui_controls_batch(int gui_id)
     const int draw_index = guiobjddbref[gui_id];
     for (const auto &obj_id : gui.GetControlsDrawOrder())
     {
-        GUIObject *obj = gui.GetControl(obj_id);
+        GUIControl *obj = gui.GetControl(obj_id);
         if (!obj->IsVisible() ||
             (obj->GetSize().IsNull()) ||
             (!obj->IsEnabled() && (GUI::Options.DisabledStyle == kGuiDis_Blackout)))
@@ -2528,6 +2528,9 @@ static void draw_gui_controls_batch(int gui_id)
         if (!obj_ddb) continue;
         obj_ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(obj->GetTransparency()));
         obj_ddb->SetBlendMode(obj->GetBlendMode());
+        obj_ddb->SetOrigin(0.f, 0.f);
+        obj_ddb->SetStretch(obj_ddb->GetWidth() * obj->GetScale().X, obj_ddb->GetHeight() * obj->GetScale().Y);
+        obj_ddb->SetRotation(obj->GetRotation());
         obj_ddb->SetShader(shaderInstances[obj->GetShaderID()]);
         gfxDriver->DrawSprite(obj->GetX() + obj_tx.Off.X, obj->GetY() + obj_tx.Off.Y, obj_ddb);
     }

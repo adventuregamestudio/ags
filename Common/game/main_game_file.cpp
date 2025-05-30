@@ -515,7 +515,7 @@ protected:
     HError ReadCustomProperties(Stream *in, const char *obj_type, size_t expect_obj_count, std::vector<StringIMap> &obj_values);
     HError ReadInteractionScriptModules(Stream *in, LoadedGameEntities &ents);
     HError ReadExtGUIControlGraphicProperties(Stream *in, LoadedGameEntities &ents);
-    void   ReadGUIControlExtGraphics(Stream *in, GUIObject &obj);
+    void   ReadGUIControlExtGraphics(Stream *in, GUIControl &obj);
 
     LoadedGameEntities &_ents;
     GameDataVersion _dataVer {};
@@ -561,7 +561,7 @@ HError GameDataExtReader::ReadCustomProperties(Stream *in, const char *obj_type,
     return HError::None();
 }
 
-void GameDataExtReader::ReadGUIControlExtGraphics(Stream *in, GUIObject &obj)
+void GameDataExtReader::ReadGUIControlExtGraphics(Stream *in, GUIControl &obj)
 {
     obj.SetTransparencyAsPercentage(in->ReadInt32());
     obj.SetBlendMode(static_cast<BlendMode>(in->ReadInt32()));

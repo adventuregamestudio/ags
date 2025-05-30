@@ -95,6 +95,8 @@ target_sources(common
     gfx/image_file.h
     gui/guibutton.cpp
     gui/guibutton.h
+    gui/guicontrol.cpp
+    gui/guicontrol.h
     gui/guidefines.h
     gui/guiinv.cpp
     gui/guiinv.h

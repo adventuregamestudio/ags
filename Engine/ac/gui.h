@@ -37,7 +37,7 @@ int		GUI_GetZOrder(ScriptGUI *tehgui);
 void	GUI_SetClickable(ScriptGUI *tehgui, int clickable);
 int		GUI_GetClickable(ScriptGUI *tehgui);
 int		GUI_GetID(ScriptGUI *tehgui);
-AGS::Common::GUIObject* GUI_GetiControls(ScriptGUI *tehgui, int idx);
+AGS::Common::GUIControl* GUI_GetiControls(ScriptGUI *tehgui, int idx);
 int		GUI_GetControlCount(ScriptGUI *tehgui);
 void    GUI_SetPopupYPos(ScriptGUI *tehgui, int newpos);
 int     GUI_GetPopupYPos(ScriptGUI *tehgui);

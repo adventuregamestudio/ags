@@ -83,22 +83,22 @@ size_t GUI::SplitLinesForDrawing(const String &text, bool /*apply_direction*/, S
     return split_lines(text.GetCStr(), lines, width, font, max_lines);
 }
 
-void GUIObject::MarkChanged()
+void GUIControl::MarkChanged()
 {
     // do nothing: in Editor "guis" array is not even guaranteed to be filled!
 }
 
-void GUIObject::MarkParentChanged()
+void GUIControl::MarkVisualStateChanged()
 {
     // do nothing: in Editor "guis" array is not even guaranteed to be filled!
 }
 
-void GUIObject::MarkPositionChanged(bool)
+void GUIControl::MarkPositionChanged(bool)
 {
     // do nothing: in Editor "guis" array is not even guaranteed to be filled!
 }
 
-void GUIObject::MarkStateChanged(bool, bool)
+void GUIControl::MarkStateChanged(bool, bool)
 {
     // do nothing: in Editor "guis" array is not even guaranteed to be filled!
 }

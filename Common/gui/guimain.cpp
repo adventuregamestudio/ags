@@ -40,44 +40,6 @@ GuiContext GUI::Context;
 
 GUIMain::GUIMain()
 {
-    UpdateGraphicSpace();
-}
-
-void GUIMain::SetX(int x)
-{
-    _x = x;
-}
-
-void GUIMain::SetY(int y)
-{
-    _y = y;
-}
-
-void GUIMain::SetWidth(int width)
-{
-    SetSize(width, _height);
-}
-
-void GUIMain::SetHeight(int height)
-{
-    SetSize(_width, height);
-}
-
-void GUIMain::SetPosition(int x, int y)
-{
-    _x = x;
-    _y = y;
-}
-
-void GUIMain::SetSize(int width, int height)
-{
-    if (_width != width || _height != height)
-    {
-        _width = width;
-        _height = height;
-        UpdateGraphicSpace();
-        MarkChanged();
-    }
 }
 
 void GUIMain::SetBgColor(int color)
@@ -120,39 +82,6 @@ void GUIMain::SetPopupAtY(int popup_aty)
 void GUIMain::SetPadding(int padding)
 {
     _padding = padding;
-}
-
-void GUIMain::SetTransparency(int trans)
-{
-    _transparency = trans;
-}
-
-void GUIMain::SetBlendMode(BlendMode blend_mode)
-{
-    _blendMode = blend_mode;
-}
-
-void GUIMain::SetShader(int shader_id, int shader_handle)
-{
-    _shaderID = shader_id;
-    _shaderHandle = shader_handle;
-}
-
-void GUIMain::SetScale(float sx, float sy)
-{
-    _scale = Pointf(sx, sy);
-    UpdateGraphicSpace();
-}
-
-void GUIMain::SetRotation(float degrees)
-{
-    _rotation = Math::ClampAngle360(degrees);
-    UpdateGraphicSpace();
-}
-
-void GUIMain::SetZOrder(int zorder)
-{
-    _zOrder = zorder;
 }
 
 void GUIMain::SetScriptModule(const String &scmodule)
@@ -202,7 +131,7 @@ int GUIMain::GetControlCount() const
     return static_cast<int>(_controls.size());
 }
 
-GUIObject *GUIMain::GetControl(int index) const
+GUIControl *GUIMain::GetControl(int index) const
 {
     if (index < 0 || (size_t)index >= _controls.size())
         return nullptr;
@@ -248,11 +177,6 @@ bool GUIMain::IsInteractableAt(int x, int y) const
     // transform to GUI's local coordinates
     Point pt = _gs.WorldToLocal(x, y);
     return ((pt.X >= 0) && (pt.Y >= 0) && (pt.X < _width) && (pt.Y < _height));
-}
-
-void GUIMain::MarkChanged()
-{
-    _hasChanged = true;
 }
 
 void GUIMain::MarkControlChanged()
@@ -302,7 +226,7 @@ void GUIMain::ResetOverControl()
     _mouseOverCtrl = -1;
 }
 
-void GUIMain::AddControl(GUIControlType type, int id, GUIObject *control)
+void GUIMain::AddControl(GUIControlType type, int id, GUIControl *control)
 {
     _ctrlRefs.emplace_back(type, id);
     _controls.push_back(control);
@@ -367,12 +291,12 @@ void GUIMain::DrawControls(Bitmap *ds)
     if ((GUI::Context.DisabledState != kGuiDis_Undefined) && (GUI::Options.DisabledStyle == kGuiDis_Blackout))
         return; // don't draw GUI controls
 
-    Bitmap tempbmp; // in case we need transforms
+    Bitmap tbmp, tbmp2, tbmp3; // in case we need transforms
     for (size_t ctrl_index = 0; ctrl_index < _controls.size(); ++ctrl_index)
     {
         set_eip_guiobj(_ctrlDrawOrder[ctrl_index]);
 
-        GUIObject *objToDraw = _controls[_ctrlDrawOrder[ctrl_index]];
+        GUIControl *objToDraw = _controls[_ctrlDrawOrder[ctrl_index]];
         Size obj_size = objToDraw->GetSize();
 
         if (!objToDraw->IsVisible() || (obj_size.Width <= 0 || obj_size.Height <= 0))
@@ -381,7 +305,7 @@ void GUIMain::DrawControls(Bitmap *ds)
             continue;
 
         if (GUI::Options.ClipControls && objToDraw->IsContentClipped())
-            ds->SetClip(objToDraw->GetRect());
+            ds->SetClip(objToDraw->GetGraphicSpace().AABB());
         else
             ds->ResetClip();
 
@@ -389,17 +313,36 @@ void GUIMain::DrawControls(Bitmap *ds)
         const int objy = objToDraw->GetY();
 
         // Depending on draw properties - draw directly on the gui surface, or use a buffer
-        if (objToDraw->GetTransparency() == 0 && objToDraw->GetBlendMode() == kBlend_Normal)
+        if (objToDraw->GetTransparency() == 0 && objToDraw->GetBlendMode() == kBlend_Normal
+            && objToDraw->GetScale() == Pointf(1.f, 1.f) && objToDraw->GetRotation() == 0.f)
         {
             objToDraw->Draw(ds, objx, objy);
         }
         else
         {
             const Rect rc = objToDraw->CalcGraphicRect(GUI::Options.ClipControls && objToDraw->IsContentClipped());
-            tempbmp.CreateTransparent(rc.GetWidth(), rc.GetHeight());
-            objToDraw->Draw(&tempbmp, -rc.Left, -rc.Top);
-            draw_gui_sprite(ds, objx + rc.Left, objy + rc.Top,
-                &tempbmp, objToDraw->GetBlendMode(),
+            tbmp.CreateTransparent(rc.GetWidth(), rc.GetHeight());
+            objToDraw->Draw(&tbmp, -rc.Left, -rc.Top);
+            Bitmap *src_bmp = &tbmp;
+            if (objToDraw->GetScale() != Pointf(1.f, 1.f))
+            {
+                const Rect scaled_rc = RectWH(0, 0, rc.GetWidth() * objToDraw->GetScale().X, rc.GetHeight() * objToDraw->GetScale().Y);
+                tbmp2.CreateTransparent(scaled_rc.GetWidth(), scaled_rc.GetHeight());
+                tbmp2.StretchBlt(src_bmp, RectWH(scaled_rc.GetSize()));
+                src_bmp = &tbmp2;
+            }
+            if (objToDraw->GetRotation() != 0.f)
+            {
+                const Size rot_sz = RotateSize(src_bmp->GetSize(), objToDraw->GetRotation());
+                tbmp3.CreateTransparent(rot_sz.Width, rot_sz.Height);
+                // (+ width%2 fixes one pixel offset problem)
+                tbmp3.RotateBlt(src_bmp, rot_sz.Width / 2 + rot_sz.Width % 2, rot_sz.Height / 2,
+                                src_bmp->GetWidth() / 2, src_bmp->GetHeight() / 2, objToDraw->GetRotation()); // clockwise
+                src_bmp = &tbmp3;
+            }
+            Point obj_at = objToDraw->GetGraphicSpace().AABB().GetLT();
+            draw_gui_sprite(ds, obj_at.X, obj_at.Y,
+                src_bmp, objToDraw->GetBlendMode(),
                 GfxDef::LegacyTrans255ToAlpha255(objToDraw->GetTransparency()));
         }
 
@@ -436,11 +379,6 @@ void GUIMain::DrawControls(Bitmap *ds)
 void GUIMain::DrawBlob(Bitmap *ds, int x, int y, color_t draw_color)
 {
     ds->FillRect(Rect(x, y, x + 1, y + 1), draw_color);
-}
-
-void GUIMain::UpdateGraphicSpace()
-{
-    _gs = GraphicSpace(_x, _y, _width, _height, _width * _scale.X, _height * _scale.Y, _rotation);
 }
 
 void GUIMain::Poll(int mx, int my)
@@ -524,26 +462,19 @@ HError GUIMain::RebuildArray(GUIRefCollection &guiobjs)
     return HError::None();
 }
 
-bool GUIControlZOrder(const GUIObject *e1, const GUIObject *e2)
+bool GUIControlZOrder(const GUIControl *e1, const GUIControl *e2)
 {
     return e1->GetZOrder() < e2->GetZOrder();
 }
 
 void GUIMain::ResortZOrder()
 {
-    std::vector<GUIObject*> ctrl_sort = _controls;
+    std::vector<GUIControl*> ctrl_sort = _controls;
     std::sort(ctrl_sort.begin(), ctrl_sort.end(), GUIControlZOrder);
 
     _ctrlDrawOrder.resize(ctrl_sort.size());
     for (size_t i = 0; i < ctrl_sort.size(); ++i)
         _ctrlDrawOrder[i] = ctrl_sort[i]->GetID();
-}
-
-void GUIMain::SetAt(int x, int y)
-{
-    _x = x;
-    _y = y;
-    UpdateGraphicSpace();
 }
 
 void GUIMain::SetClickable(bool on)
@@ -606,11 +537,6 @@ bool GUIMain::SetControlZOrder(int index, int zorder)
 void GUIMain::SetTextWindow(bool on)
 {
     _flags = (_flags & ~kGUIMain_TextWindow) | kGUIMain_TextWindow * on;
-}
-
-void GUIMain::SetTransparencyAsPercentage(int percent)
-{
-    _transparency = GfxDef::Trans100ToLegacyTrans255(percent);
 }
 
 void GUIMain::SetVisible(bool on)
@@ -1116,11 +1042,13 @@ HError RebuildGUI(std::vector<GUIMain> &guis, GUIRefCollection &guiobjs)
             return err;
         for (int ctrl_index = 0; ctrl_index < gui.GetControlCount(); ++ctrl_index)
         {
-            GUIObject *gui_ctrl = gui.GetControl(ctrl_index);
+            GUIControl *gui_ctrl = gui.GetControl(ctrl_index);
             gui_ctrl->SetParentID(gui.GetID());
             gui_ctrl->SetID(ctrl_index);
+            gui_ctrl->UpdateGraphicSpace(); // CHECKME: should be a runtime-only operation
         }
         gui.ResortZOrder();
+        gui.UpdateGraphicSpace(); // CHECKME: should be a runtime-only operation
     }
     return HError::None();
 }

@@ -164,7 +164,7 @@
     <ClCompile Include="..\..\Common\gui\guimain.cpp">
       <Filter>Source Files\gui</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\gui\guiobject.cpp">
+    <ClCompile Include="..\..\Common\gui\guicontrol.cpp">
       <Filter>Source Files\gui</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Common\gui\guislider.cpp">
@@ -527,6 +527,9 @@
     <ClCompile Include="..\..\Common\util\transformstream.cpp">
       <Filter>Source Files\util</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Common\gui\guiobject.cpp">
+      <Filter>Source Files\gui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Common\ac\audiocliptype.h">
@@ -607,7 +610,7 @@
     <ClInclude Include="..\..\Common\gui\guimain.h">
       <Filter>Header Files\gui</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\gui\guiobject.h">
+    <ClInclude Include="..\..\Common\gui\guicontrol.h">
       <Filter>Header Files\gui</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\gui\guislider.h">
@@ -852,6 +855,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Common\util\stl_utils.h">
       <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\gui\guiobject.h">
+      <Filter>Header Files\gui</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

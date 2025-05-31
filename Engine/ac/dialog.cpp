@@ -736,6 +736,8 @@ private:
     IDriverDependantBitmap *ddb = nullptr;
     std::unique_ptr<Bitmap> optionsBitmap;
 
+    // List of displayed options and their precalculated states;
+    // NOTE: this is only used in standard options render, not custom render
     // display order of options
     int disporder[MAXTOPICOPTIONS];
     // display Y coordinate of options
@@ -810,13 +812,18 @@ void DialogOptions::Begin()
 {
     doStop = false;
     chose = -1;
-    // First of all, decide if options should be displayed at all
-    numdisp=0;
+    // First of all, decide which options should be displayed this turn
+    numdisp = 0;
     for (int i = 0; i < dtop->numoptions; ++i)
     {
-        if ((dtop->optionflags[i] & DFLG_ON)==0) continue;
-        disporder[numdisp]=i;
-        numdisp++;
+        if ((dtop->optionflags[i] & DFLG_ON)==0)
+            continue; // option is off
+
+        if (strlen(dtop->optionnames[i]) == 0)
+            continue; // do not add an empty option name into the display list
+
+        // Add this option into the display list
+        disporder[numdisp++] = i;
     }
 
     usingfont=FONT_NORMAL;
@@ -1157,8 +1164,13 @@ bool DialogOptions::Run()
 
     needRedraw = false;
 
-    if (numdisp == 0)
-        return false; // safety assert
+    // If there are no displayed options, and we are using standard options render,
+    // then bail out as emergency, because otherwise player will be stuck forever.
+    if ((numdisp == 0) && !usingCustomRendering)
+    {
+        debug_script_warn("WARNING: No dialog options to display, abort dialog");
+        return false;
+    }
 
     // For >= 3.4.0 custom options rendering: run "dialog_options_repexec"
     if (newCustomRender)

@@ -45,13 +45,6 @@ bool font_supports_extended_characters(int font_number);
 const char *get_font_name(int font_number);
 // Get a collection of FFLG_* flags corresponding to this font
 int get_font_flags(int font_number);
-// TODO: with changes to WFN font renderer that implemented safe rendering of
-// strings containing invalid chars (since 3.3.1) this function is not
-// important, except for (maybe) few particular cases.
-// Furthermore, its use complicated things, because AGS could modify some texts
-// at random times (usually - drawing routines).
-// Need to check whether it is safe to completely remove it.
-void ensure_text_valid_for_font(char *text, int font_number);
 // Get font's scaling multiplier
 int get_font_scaling_mul(int font_number);
 // Calculate actual width of a line of text

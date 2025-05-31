@@ -1477,22 +1477,28 @@ int Character_GetMoving(CharacterInfo *chaa) {
     return 0;
 }
 
-int Character_GetDestinationX(CharacterInfo *chaa) {
-    if (chaa->walking) {
-        MoveList *cmls = &mls[chaa->get_movelist_id()];
-        return cmls->pos.back().X;
+int Character_GetDestinationX(CharacterInfo *chaa)
+{
+    if (chaa->get_movelist_id() > 0)
+    {
+        return mls[chaa->get_movelist_id()].GetLastPos().X;
     }
     else
+    {
         return chaa->x;
+    }
 }
 
-int Character_GetDestinationY(CharacterInfo *chaa) {
-    if (chaa->walking) {
-        MoveList *cmls = &mls[chaa->get_movelist_id()];
-        return cmls->pos.back().Y;
+int Character_GetDestinationY(CharacterInfo *chaa)
+{
+    if (chaa->get_movelist_id() > 0)
+    {
+        return mls[chaa->get_movelist_id()].GetLastPos().Y;
     }
     else
+    {
         return chaa->y;
+    }
 }
 
 const char* Character_GetName(CharacterInfo *chaa) {

@@ -178,13 +178,7 @@ Bitmap *create_textual_image(const char *text, const DisplayTextLooks &look, col
     // Just in case screen size does is not neatly divisible by 320x200
     const int paddingDoubledScaled = get_fixed_pixel_size(padding * 2);
 
-    // NOTE: we do not process the text using prepare_text_for_drawing() here,
-    // as it is assumed to be done prior to passing into this function
-    // Make message copy, because ensure_text_valid_for_font() may modify it
-    char todis[STD_BUFFER_SIZE];
-    snprintf(todis, STD_BUFFER_SIZE - 1, "%s", text);
-    ensure_text_valid_for_font(todis, usingfont);
-    break_up_text_into_lines(todis, Lines, wii - 2 * padding, usingfont);
+    break_up_text_into_lines(text, Lines, wii - 2 * padding, usingfont);
     DisplayVars disp(
         get_font_linespacing(usingfont),
         get_text_lines_surf_height(usingfont, Lines.Count()));
@@ -266,7 +260,7 @@ Bitmap *create_textual_image(const char *text, const DisplayTextLooks &look, col
     adjustedYY = yy;
 
     // if it's an empty speech line, don't draw anything
-    if ((strlen(todis) < 1) || (strcmp(todis, "  ") == 0) || (wii == 0))
+    if ((strlen(text) < 1) || (strcmp(text, "  ") == 0) || (wii == 0))
         return text_window_ds;
 
     if (look.Style != kDisplayTextStyle_MessageBox)

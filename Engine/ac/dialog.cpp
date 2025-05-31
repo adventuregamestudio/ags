@@ -815,7 +815,6 @@ void DialogOptions::Begin()
     for (int i = 0; i < dtop->numoptions; ++i)
     {
         if ((dtop->optionflags[i] & DFLG_ON)==0) continue;
-        ensure_text_valid_for_font(dtop->optionnames[i], usingfont);
         disporder[numdisp]=i;
         numdisp++;
     }

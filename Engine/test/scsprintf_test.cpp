@@ -18,8 +18,12 @@
 
 using namespace AGS::Common;
 
-GameDataVersion loaded_game_file_version;
 void cc_error(const char *, ...)
+{
+    // do nothing
+}
+
+void debug_script_warn(const char *msg, ...)
 {
     // do nothing
 }
@@ -53,6 +57,7 @@ TEST(ScSprintf, ScSprintf) {
             params, 3);
     ASSERT_TRUE(strcmp(ScSfBuffer, "testing ScriptSprintf:\nThis is int:        123\nThis is float: 0.4560\nThis is string: 'string literal'\nThis placeholder will be ignored: %d") == 0);
     ASSERT_EQ(result, 138);
+
     // Literal percent sign
     result = ScriptSprintf(ScSfBuffer, STD_BUFFER_SIZE, "%d%%", params, 3);
     ASSERT_TRUE(strcmp(ScSfBuffer, "123%") == 0);
@@ -84,6 +89,7 @@ TEST(ScSprintf, ScSprintf) {
     result = ScriptSprintf(ScSfBuffer, 11, "12345678%d", params, 3);
     ASSERT_TRUE(strcmp(ScSfBuffer, "1234567812") == 0);
     ASSERT_EQ(result, 11);
+
     // Not enough buffer space and not enough params
     result = ScriptSprintf(ScSfBuffer, 10, "12345678%d", params, 0);
     ASSERT_TRUE(strcmp(ScSfBuffer, "12345678%") == 0);
@@ -92,13 +98,17 @@ TEST(ScSprintf, ScSprintf) {
     ASSERT_TRUE(strcmp(ScSfBuffer, "12345678%d") == 0);
     ASSERT_EQ(result, 10);
 
-    // Test null string pointer in backward-compatibility mode
-    loaded_game_file_version = kGameVersion_312;
+    // Test null string pointer
     params[0].SetStringLiteral(NULL);
     result = ScriptSprintf(ScSfBuffer, 10, "A%sB", params, 1);
     ASSERT_TRUE(strcmp(ScSfBuffer, "A(null)B") == 0);
     ASSERT_EQ(result, 8);
-    loaded_game_file_version = kGameVersion_Undefined;
+
+    // Test invalid argument type
+    params[0].SetInt32(1);
+    result = ScriptSprintf(ScSfBuffer, 14, "A%sB", params, 1);
+    ASSERT_TRUE(strcmp(ScSfBuffer, "A(undefined)B") == 0);
+    ASSERT_EQ(result, 13);
 
     //
     // Called-from-plugin variant
@@ -112,6 +122,7 @@ TEST(ScSprintf, ScSprintf) {
             argi, argf, argcc);
     ASSERT_TRUE(strcmp(ScSfBuffer, "testing ScriptVSprintf:\nThis is int:        123\nThis is float: 0.4560\nThis is string: 'string literal'\n") == 0);
     ASSERT_EQ(result, 103);
+
     // Literal percent sign
     result = ScriptVSprintf__(ScSfBuffer, STD_BUFFER_SIZE, "%d%%", argi);
     ASSERT_TRUE(strcmp(ScSfBuffer, "123%") == 0);
@@ -139,10 +150,8 @@ TEST(ScSprintf, ScSprintf) {
     ASSERT_TRUE(strcmp(ScSfBuffer, "1234567812") == 0);
     ASSERT_EQ(result, 11);
 
-    // Test null string pointer in backward-compatibility mode
-    loaded_game_file_version = kGameVersion_312;
+    // Test null string pointer
     result = ScriptVSprintf__(ScSfBuffer, 10, "A%sB", NULL);
     ASSERT_TRUE(strcmp(ScSfBuffer, "A(null)B") == 0);
     ASSERT_EQ(result, 8);
-    loaded_game_file_version = kGameVersion_Undefined;
 }

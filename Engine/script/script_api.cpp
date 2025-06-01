@@ -15,6 +15,7 @@
 #include <string.h>
 #include <allegro.h>
 #include "ac/game_version.h"
+#include "debug/debug_log.h"
 #include "script/cc_common.h"
 #include "script/runtimescriptvalue.h"
 #include "script/script_api.h"
@@ -61,6 +62,67 @@ inline const char *GetArgPtr(const RuntimeScriptValue *sc_args, va_list *varg_pt
         return reinterpret_cast<const char*>(sc_args[arg_idx].GetPtrWithOffset());
 }
 
+static bool AssertFormat(FormatParseResult fmt_type, ScriptValueType value_type)
+{
+    switch (fmt_type)
+    {
+    case kFormatParseArgInteger:
+        switch (value_type)
+        {
+        case kScValInteger:
+        case kScValPluginArg:
+            return true; // acceptable
+        default:
+            return false;
+        }
+    case kFormatParseArgFloat:
+        switch (value_type)
+        {
+        case kScValFloat:
+        case kScValPluginArg:
+            return true; // acceptable
+        default:
+            return false;
+        }
+    case kFormatParseArgCharacter:
+        switch (value_type)
+        {
+        case kScValInteger:
+        case kScValPluginArg:
+            return true; // acceptable
+        default:
+            return false;
+        }
+    case kFormatParseArgString:
+        switch (value_type)
+        {
+        case kScValPluginArg:    // for const char* returned from plugin
+        case kScValPluginArgPtr: // for const char* returned from plugin
+        case kScValData:         // could be a old-style string
+        case kScValStringLiteral:// for const char* from script
+        case kScValScriptObject: // for String type; TODO: can we narrow this down without damaging performance?
+        case kScValPluginObject: // for String type; TODO: can we narrow this down without damaging performance?
+            return true; // acceptable
+        default:
+            return false;
+        }
+    case kFormatParseArgPointer:
+        switch (value_type)
+        {
+        case kScValPluginArg:    // may contain a pointer
+        case kScValPluginArgPtr:
+        case kScValData:
+        case kScValStringLiteral:
+        case kScValScriptObject:
+        case kScValPluginObject:
+            return true; // acceptable
+        default:
+            return false;
+        }
+    default:
+        return false;
+    }
+}
 
 // TODO: this implementation can be further optimised by either not calling
 // snprintf but formatting values ourselves, or by using some library method
@@ -75,6 +137,11 @@ size_t ScriptSprintf(char *buffer, size_t buf_length, const char *format,
     {
         return 0u;
     }
+
+    // Only print warnings if we are doing a printing pass (avoid duplicate warnings when counting buf length);
+    // only do type checks if we have script args (possible to assert).
+    const bool print_warnings = buffer != nullptr;
+    const bool warn_bad_type = print_warnings && (sc_args != nullptr);
 
     // Prepare pointers to the read/write positions and buffer ends
     char       *out_ptr    = buffer;
@@ -201,13 +268,19 @@ size_t ScriptSprintf(char *buffer, size_t buf_length, const char *format,
             switch (fmt_done)
             {
             case kFormatParseArgInteger:
+                if (warn_bad_type && !AssertFormat(kFormatParseArgInteger, sc_args[arg_idx].Type))
+                    debug_script_warn("WARNING: String format: place %d expects an integer, but a non-integer value is passed.\n\tFormat string:\n\t\"%s\"", arg_idx + 1, format);
                 snprintf_res = snprintf(out_ptr, avail_outbuf, placebuf, GetArgInt(sc_args, varg_ptr, arg_idx));
                 break;
             case kFormatParseArgFloat:
+                if (warn_bad_type && !AssertFormat(kFormatParseArgFloat, sc_args[arg_idx].Type))
+                    debug_script_warn("WARNING: String format: place %d expects a float, but a non-float value is passed.\n\tFormat string:\n\t\"%s\"", arg_idx + 1, format);
                 snprintf_res = snprintf(out_ptr, avail_outbuf, placebuf, GetArgFloat(sc_args, varg_ptr, arg_idx));
                 break;
             case kFormatParseArgCharacter:
             {
+                if (warn_bad_type && !AssertFormat(kFormatParseArgCharacter, sc_args[arg_idx].Type))
+                    debug_script_warn("WARNING: String format: place %d expects a character or an integer, but a different value type is passed.\n\tFormat string:\n\t\"%s\"", arg_idx + 1, format);
                 int chr = GetArgInt(sc_args, varg_ptr, arg_idx);
                 char cbuf[5]{};
                 usetc(cbuf, chr);
@@ -217,29 +290,33 @@ size_t ScriptSprintf(char *buffer, size_t buf_length, const char *format,
             case kFormatParseArgString:
             {
                 const char *p = GetArgPtr(sc_args, varg_ptr, arg_idx);
-                // Do extra checks for %s placeholder
                 if (!p)
                 {
-                    if (loaded_game_file_version < kGameVersion_320)
-                    {
-                        // explicitly put "(null)" into the placeholder
-                        p = "(null)";
-                    }
-                    else
-                    {
-                        cc_error("!ScriptSprintf: formatting argument %d is expected to be a string, but it is a null pointer", arg_idx + 1);
-                        return 0u;
-                    }
+                    if (print_warnings)
+                        debug_script_warn("WARNING: String format: place %d expects a string, but a null pointer is passed.\n\tFormat string:\n\t\"%s\"", arg_idx + 1, format);
+                    p = "(null)"; // explicitly put "(null)" into the placeholder
                 }
                 else if (p == buffer)
                 {
                     cc_error("!ScriptSprintf: formatting argument %d is a pointer to output buffer", arg_idx + 1);
                     return 0u;
                 }
+                else if (sc_args)
+                {
+                    // Try to validate the argument type (NOTE: not 100% secure)
+                    if (!AssertFormat(kFormatParseArgString, sc_args[arg_idx].Type))
+                    {
+                        if (warn_bad_type)
+                            debug_script_warn("WARNING: String format: place %d expects a string, but a different value type is passed.\n\tFormat string:\n\t\"%s\"", arg_idx + 1, format);
+                        p = "(undefined)";
+                    }
+                }
                 snprintf_res = snprintf(out_ptr, avail_outbuf, placebuf, p);
                 break;
             }
             case kFormatParseArgPointer:
+                if (warn_bad_type && !AssertFormat(kFormatParseArgPointer, sc_args[arg_idx].Type))
+                    debug_script_warn("WARNING: String format: place %d expects a pointer, but a different value type is passed.\n\tFormat string:\n\t\"%s\"", arg_idx + 1, format);
                 snprintf_res = snprintf(out_ptr, avail_outbuf, placebuf, GetArgPtr(sc_args, varg_ptr, arg_idx));
                 break;
             default:
@@ -257,6 +334,15 @@ size_t ScriptSprintf(char *buffer, size_t buf_length, const char *format,
         }
         else
         {
+            if (sc_args && (arg_idx >= sc_argc))
+            {
+                debug_script_warn("WARNING: String format: missing argument %d.\n\tFormat string:\n\t\"%s\"", arg_idx + 1, format);
+            }
+            else
+            {
+                debug_script_warn("WARNING: String format: invalid specifier at %d.\n\tFormat string:\n\t\"%s\"", arg_idx + 1, format);
+            }
+
             // If not a supported format, or there are no available parameters,
             // then just copy stored placeholder buffer as-is
             ptrdiff_t copy_len = std::min<ptrdiff_t>(placebuf_ptr - placebuf, placebuf_size - 1);

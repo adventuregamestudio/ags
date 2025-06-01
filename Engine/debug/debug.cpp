@@ -376,20 +376,13 @@ static void debug_script_print_impl(const String &msg, MessageType mt)
 {
     String script_ref;
     ccInstance *curinst = ccInstance::GetCurrentInstance();
-    if (curinst != nullptr) {
-        String scriptname;
-        if (curinst->GetScript() == gamescript)
-            scriptname = "G ";
-        else if (curinst->GetScript() == thisroom.CompiledScript)
-            scriptname = "R ";
-        else if (curinst->GetScript() == dialogScriptsScript)
-            scriptname = "D ";
-        else
-            scriptname = "? ";
-        script_ref.Format("[%s%d]", scriptname.GetCStr(), currentline);
+    if (curinst != nullptr)
+    {
+        String scriptname = curinst->GetScript()->GetSectionName(curinst->GetPC());
+        script_ref.Format("[%s:%d] ", scriptname.GetCStr(), currentline);
     }
 
-    Debug::Printf(kDbgGroup_Game, mt, "(room:%d)%s %s", displayed_room, script_ref.GetCStr(), msg.GetCStr());
+    Debug::Printf(kDbgGroup_Game, mt, "(room:%d) %s%s", displayed_room, script_ref.GetCStr(), msg.GetCStr());
 }
 
 void debug_script_print(MessageType mt, const char *msg, ...)

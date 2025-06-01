@@ -2122,7 +2122,7 @@ bool FindNearestWalkableAreaForCharacter(const Point &src, Point &dst, bool forc
         limits.Top = std::max(limits.Top, 14);
     }
 
-    if (!Pathfinding::FindNearestWalkablePoint(thisroom.WalkAreaMask.get(), src, dst, limits, 0, 1))
+    if (!Pathfinding::FindNearestWalkablePoint(thisroom.WalkAreaMask.get(), at_pt, dst, limits, 0, 1))
         return false;
     dst = Point(mask_to_room_coord(dst.X), mask_to_room_coord(dst.Y));
     return true;

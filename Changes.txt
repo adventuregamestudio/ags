@@ -1,6 +1,36 @@
 REVISION HISTORY
 ================
 
+VERSION 3.6.2 - Patch 1, June 2025
+
+Editor:
+ - On failed new font import do not replace the font with font 0 in preview, as that's confuses
+   users and hides import errors.
+ - Fixed an unhandled exception which occured on Text Parser panel when user pressed Enter while
+   no item is selected.
+
+Engine:
+ - Try to detect incorrect argument types in string formatting functions such as String.Format,
+   in attempt to avoid crashes when a '%s' format is used (this is still not 100% secure though).
+ - Do not quit with error if a wrong GUI type is assigned as a "TextWindow GUI", display default
+   message box instead and log a warning.
+ - Fixed a crash occuring when reading Character.DestinationX/Y properties while the character
+   is turning on spot after a call to FaceDirection.
+ - Fixed a crash occuring when SpeechView is assigned a view that has no loops.
+ - Fixed Lucas-Arts speech positioning mistake occuring, for example, when there's a big
+   transparent GUI covering whole screen.
+ - Fixed dialog options with no text, they were displayed and could be selected by player,
+   which should not be happening.
+ - Fixed Character.PlaceOnWalkableArea() and Room.NearestWalkableArea() returning wrong results
+   if Room's mask resolution is not 1:1.
+ - Fixed Direct3D and OpenGL renderers displaying sprites with occasional "magenta" pixels when
+   "Smooth scaled sprites" setting is enabled but graphic filter is set to "Nearest-neighbour".
+
+Compatibility:
+ - Support detecting and loading game data from Linux game ports where it's called "agsgame.dat",
+   and is created using an older version of the third-party "agspack" utility.
+
+
 VERSION 3.6.2, May 2025
 
 Common:

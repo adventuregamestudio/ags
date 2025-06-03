@@ -49,8 +49,11 @@ int get_font_flags(int font_number);
 int get_font_scaling_mul(int font_number);
 // Calculate actual width of a line of text
 int get_text_width(const char *texx, int font_number);
-// Get the maximal width of the given font, with corresponding outlining
+// Get the maximal width of the line of text, with corresponding outlining
 int get_text_width_outlined(const char *text, int font_number);
+// Get the maximal height of the line of text;
+// note that this won't be a nominal font's height, but the max of each met glyph's graphical height.
+int get_text_height(const char *text, int font_number);
 // Get font's height; this value is used for logical arrangement of UI elements;
 // note that this is a "formal" font height, that may have different value
 // depending on compatibility mode (used when running old games);

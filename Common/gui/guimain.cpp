@@ -792,13 +792,24 @@ Line CalcFontGraphicalVExtent(int font)
     return Line(0, top, 0, bottom);
 }
 
+// When aligning the text on GUI we use one of the methods of finding its height,
+// depending on the loaded game version, for backwards compatibility.
+// < 3.6.0: use text height measurement provided by the font renderer;
+// 3.6.0.0 -> 3.6.0.21: font's height;
+// 3.6.0.21 onwards: full outlined font's height.
+inline int GetTextHeightForAlign(const String &text, int font, FrameAlignment align)
+{
+    if (loaded_game_file_version < kGameVersion_360)
+        return get_text_height(text.GetCStr(), font) + ((align & kMAlignVCenter) ? 1 : 0);
+    else if (loaded_game_file_version < kGameVersion_360_21)
+        return get_font_height(font) + ((align & kMAlignVCenter) ? 1 : 0);
+    else
+        return get_font_height_outlined(font);
+}
+
 Point CalcTextPosition(const String &text, int font, const Rect &frame, FrameAlignment align, Rect *gr_rect)
 {
-    // When aligning we use the formal font's height, which in practice may not be
-    // its real graphical height (this is because of historical AGS's font behavior)
-    int use_height = (loaded_game_file_version < kGameVersion_360_21) ?
-        get_font_height(font) + ((align & kMAlignVCenter) ? 1 : 0) :
-        get_font_height_outlined(font);
+    const int use_height = GetTextHeightForAlign(text, font, align);
     Rect rc = AlignInRect(frame, RectWH(0, 0, get_text_width_outlined(text.GetCStr(), font), use_height), align);
     if (gr_rect)
     {

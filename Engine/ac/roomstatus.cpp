@@ -116,14 +116,14 @@ void RoomStatus::ReadFromSavegame_v321(Stream *in, GameDataVersion data_ver)
 
     if (data_ver >= kGameVersion_340_4)
     {
-        Properties::ReadValues(roomProps, in);
+        Properties::ReadValues(roomProps, in, true /* aligned */);
         for (int i = 0; i < MAX_ROOM_HOTSPOTS; ++i)
         {
-            Properties::ReadValues(hsProps[i], in);
+            Properties::ReadValues(hsProps[i], in, true /* aligned */);
         }
         for (auto &props : objProps)
         {
-            Properties::ReadValues(props, in);
+            Properties::ReadValues(props, in, true /* aligned */);
         }
     }
 }

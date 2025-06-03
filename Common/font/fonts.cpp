@@ -285,6 +285,13 @@ int get_text_width_outlined(const char *text, int font_number)
     return std::max(self_width, outline_width);
 }
 
+int get_text_height(const char *text, int font_number)
+{
+    if (!assert_font_number(font_number))
+        return 0;
+    return fonts[font_number].Renderer->GetTextHeight(text, font_number);
+}
+
 int get_font_outline(int font_number)
 {
     if (!assert_font_number(font_number))

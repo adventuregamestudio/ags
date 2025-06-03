@@ -254,9 +254,9 @@ int get_font_scaling_mul(size_t fontNumber)
 
 int get_text_width(const char *texx, size_t fontNumber)
 {
-  if (fontNumber >= fonts.size() || !fonts[fontNumber].Renderer)
-    return 0;
-  return fonts[fontNumber].Renderer->GetTextWidth(texx, fontNumber);
+    if (fontNumber >= fonts.size() || !fonts[fontNumber].Renderer)
+        return 0;
+    return fonts[fontNumber].Renderer->GetTextWidth(texx, fontNumber);
 }
 
 int get_text_width_outlined(const char *text, size_t font_number)
@@ -274,6 +274,13 @@ int get_text_width_outlined(const char *text, size_t font_number)
     }
     int outline_width = fonts[outline].Renderer->GetTextWidth(text, outline);
     return std::max(self_width, outline_width);
+}
+
+int get_text_height(const char *text, size_t font_number)
+{
+    if (font_number >= fonts.size() || !fonts[font_number].Renderer)
+        return 0;
+    return fonts[font_number].Renderer->GetTextHeight(text, font_number);
 }
 
 int get_font_outline(size_t font_number)

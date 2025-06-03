@@ -1867,7 +1867,8 @@ void move_character_impl(CharacterInfo *chin, const std::vector<Point> *path, in
         chin->walking = mslot;
         convert_move_path_to_data_resolution(mls[mslot]);
 
-        if (wasStepFrac > 0.f)
+        // NOTE: unfortunately, some old game scripts might break because of smooth walk transition
+        if (wasStepFrac > 0.f && (loaded_game_file_version >= kGameVersion_361))
         {
             mls[mslot].SetPixelUnitFraction(wasStepFrac);
         }

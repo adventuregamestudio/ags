@@ -1773,7 +1773,8 @@ void walk_character(int chac,int tox,int toy,int ignwal, bool autoWalkAnims) {
         mls[mslot].direct = ignwal;
         convert_move_path_to_room_resolution(&mls[mslot]);
 
-        if (wasStepFrac > 0.f)
+        // NOTE: unfortunately, some old game scripts might break because of smooth walk transition
+        if (wasStepFrac > 0.f && (loaded_game_file_version >= kGameVersion_361))
         {
             mls[mslot].SetPixelUnitFraction(wasStepFrac);
         }

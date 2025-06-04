@@ -102,6 +102,26 @@ int GUIButton::GetPushedImage() const
     return _pushedImage;
 }
 
+SpriteTransformFlags GUIButton::GetImageFlags() const
+{
+    return _imageFlags;
+}
+
+GraphicFlip GUIButton::GetImageFlip() const
+{
+    return GfxDef::GetFlipFromFlags(_imageFlags);
+}
+
+SpriteTransformFlags GUIButton::GetCurrentImageFlags() const
+{
+    return _curImageFlags;
+}
+
+GraphicFlip GUIButton::GetCurrentImageFlip() const
+{
+    return GfxDef::GetFlipFromFlags(_curImageFlags);
+}
+
 GUIButtonPlaceholder GUIButton::GetPlaceholder() const
 {
     return _placeholder;
@@ -279,6 +299,17 @@ void GUIButton::SetImages(int normal, int over, int pushed,
     UpdateCurrentImage();
 }
 
+void GUIButton::SetImageFlags(SpriteTransformFlags flags)
+{
+    _imageFlags = flags;
+    UpdateCurrentImage();
+}
+
+void GUIButton::SetImageFlip(GraphicFlip flip)
+{
+    SetImageFlags((SpriteTransformFlags)((_imageFlags & ~kSprTf_FlipXY) | GfxDef::GetFlagsFromFlip(flip)));
+}
+
 void GUIButton::SetCurrentImage(int32_t new_image, SpriteTransformFlags flags, int xoff, int yoff)
 {
     if (_currentImage == new_image && _curImageFlags == flags)
@@ -365,7 +396,7 @@ void GUIButton::OnMouseUp()
 void GUIButton::UpdateCurrentImage()
 {
     int new_image = _currentImage;
-    SpriteTransformFlags new_flags = kSprTf_None;
+    SpriteTransformFlags new_flags = _imageFlags;
     int new_xoff = 0, new_yoff = 0;
 
     if (_isPushed && (_pushedImage > 0))
@@ -379,7 +410,6 @@ void GUIButton::UpdateCurrentImage()
     else
     {
         new_image = _image;
-        new_flags = _imageFlags;
         new_xoff = _imageXOff;
         new_yoff = _imageYOff;
     }

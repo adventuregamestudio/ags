@@ -73,6 +73,10 @@ public:
     int  GetNormalImage() const;
     int  GetMouseOverImage() const;
     int  GetPushedImage() const;
+    SpriteTransformFlags GetImageFlags() const;
+    GraphicFlip GetImageFlip() const;
+    SpriteTransformFlags GetCurrentImageFlags() const;
+    GraphicFlip GetCurrentImageFlip() const;
     GUIButtonPlaceholder GetPlaceholder() const;
     const String &GetText() const;
     bool IsImageButton() const;
@@ -91,6 +95,8 @@ public:
     void SetNormalImage(int image);
     void SetPushedImage(int image);
     void SetImages(int normal, int over, int pushed, SpriteTransformFlags flags = kSprTf_None, int xoff = 0, int yoff = 0);
+    void SetImageFlags(SpriteTransformFlags flags);
+    void SetImageFlip(GraphicFlip flip);
     void SetText(const String &text);
     void SetWrapText(bool on);
 

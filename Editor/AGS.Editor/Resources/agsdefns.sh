@@ -1655,6 +1655,10 @@ builtin managed struct Button extends GUIControl {
   /// Gets/sets amount of padding, restricting the text from top and bottom
   import attribute int TextPaddingVertical;
 #endif // SCRIPT_API_v362
+#ifdef SCRIPT_API_v400
+  /// Gets/sets the flip direction of the button's graphic
+  import attribute eFlipDirection GraphicFlip;
+#endif // SCRIPT_API_v400
 };
 
 builtin managed struct Slider extends GUIControl {

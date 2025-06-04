@@ -88,7 +88,7 @@ void AGSDeSerializer::Unserialize(int index, const char *objectType, const char 
         ScriptUserObject *suo = new ScriptUserObject();
         suo->Unserialize(index, &mems, data_sz);
     }
-    else if (strcmp(objectType, "GUIControl") == 0 || // old historical name
+    else if (strcmp(objectType, "GUIObject") == 0 || // old historical name
              strcmp(objectType, "GUIControl") == 0) {
         UnserializeGUIControl(index, &mems, data_sz);
     }

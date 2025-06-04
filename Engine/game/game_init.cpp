@@ -520,11 +520,11 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     //
     if (!ents.GlobalScript)
         return new GameInitError(kGameInitErr_NoGlobalScript);
-    gamescript = std::move(RuntimeScript::Create(ents.GlobalScript.get(), "G"));
-    dialogScriptsScript= std::move(RuntimeScript::Create(ents.DialogScript.get(), "D"));
+    gamescript = std::move(RuntimeScript::Create(ents.GlobalScript.get()));
+    dialogScriptsScript= std::move(RuntimeScript::Create(ents.DialogScript.get()));
     numScriptModules = ents.ScriptModules.size();
     for (size_t i = 0; i < ents.ScriptModules.size(); ++i)
-        scriptModules.push_back(std::shared_ptr<RuntimeScript>(RuntimeScript::Create(ents.ScriptModules[i].get(), "M")));
+        scriptModules.push_back(std::shared_ptr<RuntimeScript>(RuntimeScript::Create(ents.ScriptModules[i].get())));
     AllocScriptModules();
     if (!LinkGlobalScripts())
         return new GameInitError(kGameInitErr_ScriptLinkFailed, cc_get_error().ErrorString);

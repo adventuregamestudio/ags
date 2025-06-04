@@ -954,7 +954,7 @@ void check_new_room() {
 void compile_room_script() {
     cc_clear_error();
 
-    roomscript = RuntimeScript::Create(thisroom.CompiledScript.get(), "R");
+    roomscript = RuntimeScript::Create(thisroom.CompiledScript.get());
     if ((cc_has_error()) || (roomscript==nullptr)) {
         quitprintf("Unable to create local script:\n%s", cc_get_error().ErrorString.GetCStr());
     }

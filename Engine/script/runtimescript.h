@@ -99,7 +99,7 @@ public:
     ~RuntimeScript();
 
     // Create new RuntimeScript instance from the given loaded script data
-    static std::unique_ptr<RuntimeScript> Create(const ccScript *script, const String &tag);
+    static std::unique_ptr<RuntimeScript> Create(const ccScript *script);
     // Gets RuntimeScript by its linking ID
     // FIXME: move this to another class that contains all linked scripts
     static RuntimeScript *GetLinkedScript(int linkid);
@@ -127,9 +127,6 @@ public:
 
     // Get this script's name
     const String &GetScriptName() const;
-    // Get an optional tag
-    // TODO: this is for debugging purposes, review later
-    const String &GetTag() const { return _tag; }
     // Returns the index that this script is assigned on linking stage
     int32_t       GetLinkIndex() const { return _linkIndex; }
     // Get a readonly access to the script's bytecode
@@ -181,7 +178,7 @@ public:
         GetGlobalVariableLookup() const { return _globalVarLookup; }
 
 private:
-    bool    Create(const ccScript *script);
+    bool    CreateImpl(const ccScript *script);
 
     bool    CreateGlobalVars();
     bool    AddGlobalVar(const ScriptVariable &glvar);
@@ -199,7 +196,6 @@ private:
 
     // This script's name
     String                  _scriptname;
-    String                  _tag;
     int32_t                 _linkIndex = -1;
     // Script's global data (for global variables)
     std::vector<uint8_t>    _globaldata;

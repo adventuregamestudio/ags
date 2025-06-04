@@ -155,17 +155,16 @@ RuntimeScript::RuntimeScript()
 
 RuntimeScript::RuntimeScript(const String &tag)
     : _exportLookup('$', true /* allow to match symbols with more appendages */)
-    , _tag(tag)
 {
 }
 
-/* static */ std::unique_ptr<RuntimeScript> RuntimeScript::Create(const ccScript *script, const String &tag)
+/* static */ std::unique_ptr<RuntimeScript> RuntimeScript::Create(const ccScript *script)
 {
     if (!script)
         return nullptr;
 
-    auto run_script = std::make_unique<RuntimeScript>(tag);
-    if (!run_script->Create(script))
+    auto run_script = std::make_unique<RuntimeScript>();
+    if (!run_script->CreateImpl(script))
         return nullptr;
 
     // Find a linking slot for the new script
@@ -286,7 +285,7 @@ void RuntimeScript::CopyGlobalData(const std::vector<uint8_t> &data)
     std::copy(data.begin(), data.begin() + copy_sz, _globaldata.begin());
 }
 
-bool RuntimeScript::Create(const ccScript *script)
+bool RuntimeScript::CreateImpl(const ccScript *script)
 {
     // Copy loaded script data over
     _scriptname = script->scriptname;

@@ -175,13 +175,7 @@ Bitmap *create_textual_image(const char *text, const DisplayTextLooks &look, col
     const int paddingScaled = padding;
     const int paddingDoubledScaled = padding * 2; // Just in case screen size does is not neatly divisible by 320x200
 
-    // NOTE: we do not process the text using prepare_text_for_drawing() here,
-    // as it is assumed to be done prior to passing into this function
-    // Make message copy, because ensure_text_valid_for_font() may modify it
-    char todis[STD_BUFFER_SIZE];
-    snprintf(todis, STD_BUFFER_SIZE - 1, "%s", text);
-    ensure_text_valid_for_font(todis, usingfont);
-    break_up_text_into_lines(todis, Lines, wii - 2 * padding, usingfont);
+    break_up_text_into_lines(text, Lines, wii - 2 * padding, usingfont);
     DisplayVars disp(
         get_font_linespacing(usingfont),
         get_text_lines_surf_height(usingfont, Lines.Count()));
@@ -205,9 +199,9 @@ Bitmap *create_textual_image(const char *text, const DisplayTextLooks &look, col
     else if ((look.Position & kDisplayTextPos_OvercharY) != 0)
     {
         // Clamp text position to screen bounds, and align by the text's bottom
-        yy = Math::Clamp(yy, disp.FullTextHeight + screen_padding, ui_view.GetHeight() - screen_padding);
         yy -= disp.FullTextHeight;
         yy = adjust_y_for_guis(yy);
+        yy = Math::Clamp(yy, screen_padding, ui_view.GetHeight() - screen_padding - disp.FullTextHeight);
     }
     // NOTE: this is possibly an accidental mistake, but historically
     // this Y pos fixup is also applied for SayAt, which results in
@@ -215,9 +209,9 @@ Bitmap *create_textual_image(const char *text, const DisplayTextLooks &look, col
     // Maybe this could be fixed in some future versions...
     else if (look.Style == kDisplayTextStyle_Overchar)
     {
-        yy = std::max(yy, disp.FullTextHeight + screen_padding);
         yy -= disp.FullTextHeight;
         yy = adjust_y_for_guis(yy);
+        yy = std::max(yy, screen_padding); // lower if beyond upper screen edge
     }
 
     if (longestline < wii - paddingDoubledScaled) {
@@ -261,7 +255,7 @@ Bitmap *create_textual_image(const char *text, const DisplayTextLooks &look, col
     adjustedYY = yy;
 
     // if it's an empty speech line, don't draw anything
-    if ((strlen(todis) < 1) || (strcmp(todis, "  ") == 0) || (wii == 0))
+    if ((strlen(text) < 1) || (strcmp(text, "  ") == 0) || (wii == 0))
         return text_window_ds;
 
     if (look.Style != kDisplayTextStyle_MessageBox)
@@ -863,12 +857,16 @@ void draw_button_background(Bitmap *ds, int xx1,int yy1,int xx2,int yy2,GUIMain*
 
 // Calculate the width that the left and right border of the textwindow
 // GUI take up
-int get_textwindow_border_width (int twgui) {
+int get_textwindow_border_width(int twgui)
+{
     if (twgui < 0)
         return 0;
 
     if (!guis[twgui].IsTextWindow())
-        quit("!GUI set as text window but is not actually a text window GUI");
+    {
+        debug_script_warn("GUI %d is set as text window but is not actually a text window GUI", twgui);
+        return 0;
+    }
 
     int borwid = game.SpriteInfos[get_but_pic(&guis[twgui], 4)].Width + 
         game.SpriteInfos[get_but_pic(&guis[twgui], 5)].Width;
@@ -877,12 +875,16 @@ int get_textwindow_border_width (int twgui) {
 }
 
 // get the hegiht of the text window's top border
-int get_textwindow_top_border_height (int twgui) {
+int get_textwindow_top_border_height(int twgui)
+{
     if (twgui < 0)
         return 0;
 
     if (!guis[twgui].IsTextWindow())
-        quit("!GUI set as text window but is not actually a text window GUI");
+    {
+        debug_script_warn("GUI %d is set as text window but is not actually a text window GUI", twgui);
+        return 0;
+    }
 
     return game.SpriteInfos[get_but_pic(&guis[twgui], 6)].Height;
 }
@@ -904,27 +906,35 @@ int get_textwindow_padding(int ifnum) {
 
 void draw_text_window(Bitmap **text_window_ds, bool should_free_ds,
                       int*xins,int*yins,int*xx,int*yy,int*wii, color_t *set_text_color,
-                      int ovrheight, int ifnum, const DisplayVars &disp) {
+                      int ovrheight, int ifnum, const DisplayVars &disp)
+{
     assert(text_window_ds);
     Bitmap *ds = *text_window_ds;
     if (ifnum < 0)
         ifnum = game.options[OPT_TWCUSTOM];
 
-    if (ifnum <= 0) {
-        if (ovrheight)
-            quit("!Cannot use QFG4 style options without custom text window");
+    // Assertions
+    if (ifnum >= game.numgui)
+    {
+        debug_script_warn("Invalid GUI %d specified as text window (valid range: 1..%d)", ifnum, game.numgui);
+        ifnum = 0;
+    }
+    else if (!guis[ifnum].IsTextWindow())
+    {
+        debug_script_warn("GUI %d is set as text window but is not actually a text window GUI", ifnum);
+        ifnum = 0;
+    }
+
+    if (ifnum <= 0)
+    {
         draw_button_background(ds, 0,0,ds->GetWidth() - 1,ds->GetHeight() - 1,nullptr);
         if (set_text_color)
             *set_text_color = GUI::GetStandardColor(16);
         xins[0]=3;
         yins[0]=3;
     }
-    else {
-        if (ifnum >= game.numgui)
-            quitprintf("!Invalid GUI %d specified as text window (total GUIs: %d)", ifnum, game.numgui);
-        if (!guis[ifnum].IsTextWindow())
-            quit("!GUI set as text window but is not actually a text window GUI");
-
+    else
+    {
         int tbnum = get_but_pic(&guis[ifnum], 0);
 
         wii[0] += get_textwindow_border_width (ifnum);

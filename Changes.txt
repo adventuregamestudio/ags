@@ -240,7 +240,37 @@ Engine:
 
 ===================================================================================================
 
-VERSION 3.6.2 - RC, April 2025
+VERSION 3.6.2 - Patch 1, June 2025
+
+Editor:
+ - On failed new font import do not replace the font with font 0 in preview, as that's confuses
+   users and hides import errors.
+ - Fixed an unhandled exception which occured on Text Parser panel when user pressed Enter while
+   no item is selected.
+
+Engine:
+ - Try to detect incorrect argument types in string formatting functions such as String.Format,
+   in attempt to avoid crashes when a '%s' format is used (this is still not 100% secure though).
+ - Do not quit with error if a wrong GUI type is assigned as a "TextWindow GUI", display default
+   message box instead and log a warning.
+ - Fixed a crash occuring when reading Character.DestinationX/Y properties while the character
+   is turning on spot after a call to FaceDirection.
+ - Fixed a crash occuring when SpeechView is assigned a view that has no loops.
+ - Fixed Lucas-Arts speech positioning mistake occuring, for example, when there's a big
+   transparent GUI covering whole screen.
+ - Fixed dialog options with no text, they were displayed and could be selected by player,
+   which should not be happening.
+ - Fixed Character.PlaceOnWalkableArea() and Room.NearestWalkableArea() returning wrong results
+   if Room's mask resolution is not 1:1.
+ - Fixed Direct3D and OpenGL renderers displaying sprites with occasional "magenta" pixels when
+   "Smooth scaled sprites" setting is enabled but graphic filter is set to "Nearest-neighbour".
+
+Compatibility:
+ - Support detecting and loading game data from Linux game ports where it's called "agsgame.dat",
+   and is created using an older version of the third-party "agspack" utility.
+
+
+VERSION 3.6.2, May 2025
 
 Common:
  - Event handler function are now allowed to be located in any script module.
@@ -258,6 +288,8 @@ Editor:
  - Added "Use old-style voice clip naming rule" property in General Settings, it lets to select
    whether the game should expect old-style voice clip filenames (4-letter char name followed by
    number) or the new one (full char name, followed by a number, separated by a dot).
+ - In General Settings renamed "Override built-in inventory window click handling" option to the
+   older variant "Handle inventory window clicks in script" (because it's easier to understand).
  - GUI selection in settings is now done using drop-down lists which list all eligible GUI types
    instead of having user to type GUI number. The setting will be automatically fixed if a GUI
    is removed.
@@ -325,6 +357,7 @@ Editor:
    present in script, as warnings when compiling the game.
  - Editor will now report any script functions that *look like* event functions, but not assigned
    to corresponding events, as warnings when compiling the game.
+ - Editor will interrupt "Check for updates" process if it is taking too long with no progress.
  - Added "/maketemplate" command-line option that tells Editor to run, make template out of the
    said game, and quit.
  - Fixed Project Explorer refreshing when user changes names or descriptions of room objects.
@@ -347,11 +380,7 @@ Editor:
    accuracy mistakes, resulting in slightly different values than the engine would use.
  - Fixed Editor refusing to open a project if one or more of the sections are missing in the file.
  - Fixed an unhandled exception occuring when rebuilding rooms if any script's header is missing.
- - Fixed a check for an imported room mask size did not correctly account for the room's
-   mask resolution setting (it worked, but mishandled some edge cases).
  - Fixed a "unterminated string" error in Dialogs was not pointing to the actual error location.
- - Fixed translation compiler mistreating escaped opening bracket in a text line ("\[");
-   it must keep it as-is, because "[" char is a old-style line break in AGS.
  - Fixed double warning message when trying to close the Editor while a game test is running.
  - Fixed Editor may display a "save project" confirmation when run with "/compile" command-line
    parameter.
@@ -498,20 +527,11 @@ Engine:
  - Fixed calling Dialog.Start() inside a dialog script would create a nested "dialog state",
    which could eventually lead to internal mistakes and program stack overflow. Dialog.Start()
    will now schedule a proper dialog topic switch, equivalent to "goto-dialog" command.
- - Fixed a AudioChannel did not report a correct Position right after a AudioClip.PlayFrom() call.
- - Fixed Button resizing to sprite 0 size if NormalGraphic is set to 0 (default button look).
- - Fixed object's look not updated after it was assigned a dynamic sprite, redrawn, sprite deleted,
-   object redrawn without a sprite (used a placeholder), and then another dynamic sprite assigned
-   with coincidentally the same number.
- - Fixed font outline index limited to 127 (although we theoretically support higher font numbers).
- - Fixed font outline parameters not initialized correctly if engine is built by a system that
-   treats "char" as unsigned 8-bit type.
  - Fixed displaying room masks with Debug command in legacy "upscale" mode.
  - Fixed a potential lockup that may occur when the engine is run from the editor, and is told
    to stop at a breakpoint.
  - Fixed 48khz OGG clips may have extra silence added to them in the end, causing "hickups" when
    the sound playback is looped.
- - Fixed SDL log level was defaulting to "verbose" if not read from config (should be "info").
 
 Engine Plugin API:
  - Updated few callback and function prototypes in order to make them 64-bit compatible
@@ -542,11 +562,26 @@ WinSetup:
  - Added "Accessibility" settings for skipping speech and text messages, for text reading speed.
  - In "disabled" section of config "access_skipstyle" setting lets disable all options in setup
    related to the speech and text skipping.
- - Fixed "Save and Run" command sometimes caused 2 engine processes, one of which terminated later.
-   This did not prevent a game from running, but could result in temporary CPU and memory overload.
 
 
 ---------------------------------------------------------------------------------------------------
+
+VERSION 3.6.1 - Patch 11, May 2025
+
+Editor:
+ - Clear output panels when loading a different project.
+
+Engine:
+ - Fixed engine could run scheduled previous room's event after changing to a different room.
+   This could happen, for example, if the room was changed in "on_event" with
+   eEventEnterRoomAfterFadein; in such case a previously scheduled "After Fade-in" would run
+   before proper "Before Fade-in" of the new room.
+ - Fixed in 8-bit games Fade effect did not having a frame delay (was passing instantly).
+
+Compatibility:
+ - Fixed certain old 8-bit games (like "Trilby's Notes") did not recover after the FadeOut()
+   script command.
+
 
 VERSION 3.6.1 - Patch 10, April 2025
 

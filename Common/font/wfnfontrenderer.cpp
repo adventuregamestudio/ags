@@ -147,7 +147,9 @@ bool WFNFontRenderer::LoadFromDiskEx(int fontNumber, int /*fontSize*/,
   WFNFont *font = new WFNFont();
   WFNError err = font->ReadFromFile(ffi.get());
   if (err == kWFNErr_HasBadCharacters)
+  {
     Debug::Printf(kDbgMsg_Warn, "WARNING: font '%s' has mistakes in data format, some characters may be displayed incorrectly", filename.GetCStr());
+  }
   else if (err != kWFNErr_NoError)
   {
     delete font;

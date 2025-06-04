@@ -628,6 +628,9 @@ void init_draw_method()
     drawstate.SoftwareRender = !gfxDriver->HasAcceleratedTransform();
     drawstate.FullFrameRedraw = gfxDriver->RequiresFullRedrawEachFrame();
 
+    // Must init this as early as possible, as this affects bitmap->texture conv
+    gfxDriver->UseSmoothScaling(play.ShouldAASprites());
+
     if (drawstate.SoftwareRender)
     {
         drawstate.WalkBehindMethod = DrawOverCharSprite;
@@ -2979,7 +2982,6 @@ void construct_game_scene(bool full_redraw)
     // React to changes to viewports and cameras (possibly from script) just before the render
     play.UpdateViewports();
 
-    gfxDriver->UseSmoothScaling(play.ShouldAASprites());
     gfxDriver->RenderSpritesAtScreenResolution(usetup.RenderAtScreenRes);
 
     pl_run_plugin_hooks(kPluginEvt_PreRender, 0);

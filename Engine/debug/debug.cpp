@@ -376,12 +376,13 @@ void shutdown_debug()
 static void debug_script_print_impl(const String &msg, MessageType mt)
 {
     String script_ref;
-    if (scriptExecutor && scriptExecutor->GetRunningScript()) {
-        String scriptname = scriptExecutor->GetRunningScript()->GetTag();
-        script_ref.Format("[%s %d]", scriptname.GetCStr(), currentline);
+    if (scriptExecutor && scriptExecutor->GetRunningScript())
+    {
+        String scriptname = scriptExecutor->GetRunningScript()->GetSectionName(scriptExecutor->GetPC());
+        script_ref.Format("[%s:%d] ", scriptname.GetCStr(), currentline);
     }
 
-    Debug::Printf(kDbgGroup_Game, mt, "(room:%d)%s %s", displayed_room, script_ref.GetCStr(), msg.GetCStr());
+    Debug::Printf(kDbgGroup_Game, mt, "(room:%d) %s%s", displayed_room, script_ref.GetCStr(), msg.GetCStr());
 }
 
 void debug_script_print(MessageType mt, const char *msg, ...)

@@ -1553,22 +1553,30 @@ int Character_GetMoving(CharacterInfo *chaa) {
     return 0;
 }
 
-int Character_GetDestinationX(CharacterInfo *chaa) {
-    if (chaa->walking) {
+int Character_GetDestinationX(CharacterInfo *chaa)
+{
+    if (chaa->get_movelist_id() > 0)
+    {
         MoveList *cmls = get_movelist(chaa->get_movelist_id());
         return cmls->GetLastPos().X;
     }
     else
+    {
         return chaa->x;
+    }
 }
 
-int Character_GetDestinationY(CharacterInfo *chaa) {
-    if (chaa->walking) {
+int Character_GetDestinationY(CharacterInfo *chaa)
+{
+    if (chaa->get_movelist_id() > 0)
+    {
         MoveList *cmls = get_movelist(chaa->get_movelist_id());
         return cmls->GetLastPos().Y;
     }
     else
+    {
         return chaa->y;
+    }
 }
 
 const char* Character_GetName(CharacterInfo *chaa) {
@@ -2022,7 +2030,8 @@ void move_character_impl(CharacterInfo *chin, const std::vector<Point> *path, in
         // Setup new walk state
         chin->walking = movelist;
         MoveList &mlist = *get_movelist(chin->walking);
-        if (wasStepFrac > 0.f)
+        // NOTE: unfortunately, some old game scripts might break because of smooth walk transition
+        if (wasStepFrac > 0.f && (loaded_game_file_version >= kGameVersion_361))
         {
             mlist.SetPixelUnitFraction(wasStepFrac);
         }
@@ -2281,7 +2290,7 @@ bool FindNearestWalkableAreaForCharacter(const Point &src, Point &dst)
         limits.Top = std::max(limits.Top, 14);
     }
 
-    if (!Pathfinding::FindNearestWalkablePoint(thisroom.WalkAreaMask.get(), src, dst, limits, 0, 1))
+    if (!Pathfinding::FindNearestWalkablePoint(thisroom.WalkAreaMask.get(), at_pt, dst, limits, 0, 1))
         return false;
     dst = Point(mask_to_room_coord(dst.X), mask_to_room_coord(dst.Y));
     return true;
@@ -2879,7 +2888,9 @@ void display_speech(const char *texx, int aschar, int xx, int yy, int widd, bool
 
         set_our_eip(152);
 
-        if ((useview >= 0) && (game.options[OPT_SPEECHTYPE] > kSpeechStyle_LucasArts)) {
+        if ((game.options[OPT_SPEECHTYPE] > kSpeechStyle_LucasArts)
+            && (useview >= 0) && (views[useview].numLoops > 0))
+        {
             // Sierra-style close-up portrait
             disp_pos = kDisplayTextPos_Normal;
 

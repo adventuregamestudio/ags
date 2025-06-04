@@ -259,13 +259,6 @@ int get_font_flags(int font_number)
     return fonts[font_number].Info.Flags;
 }
 
-void ensure_text_valid_for_font(char *text, int font_number)
-{
-    if (!assert_font_renderer(font_number))
-        return;
-    fonts[font_number].Renderer->EnsureTextValidForFont(text, font_number);
-}
-
 int get_font_scaling_mul(int font_number)
 {
     if (!assert_font_number(font_number))
@@ -295,6 +288,13 @@ int get_text_width_outlined(const char *text, int font_number)
     }
     int outline_width = fonts[outline].Renderer->GetTextWidth(text, outline);
     return std::max(self_width, outline_width);
+}
+
+int get_text_height(const char *text, int font_number)
+{
+    if (!assert_font_number(font_number))
+        return 0;
+    return fonts[font_number].Renderer->GetTextHeight(text, font_number);
 }
 
 int get_font_outline(int font_number)

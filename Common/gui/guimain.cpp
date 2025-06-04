@@ -873,9 +873,7 @@ Line CalcFontGraphicalVExtent(int font)
 
 Point CalcTextPosition(const String &text, int font, const Rect &frame, FrameAlignment align, Rect *gr_rect)
 {
-    // When aligning we use the formal font's height, which in practice may not be
-    // its real graphical height (this is because of historical AGS's font behavior)
-    int use_height = get_font_height_outlined(font);
+    const int use_height = get_font_height_outlined(font);
     Rect rc = AlignInRect(frame, RectWH(0, 0, get_text_width_outlined(text.GetCStr(), font), use_height), align);
     if (gr_rect)
     {

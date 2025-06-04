@@ -279,11 +279,6 @@ void GUIButton::SetImages(int normal, int over, int pushed,
     UpdateCurrentImage();
 }
 
-int32_t GUIButton::CurrentImage() const
-{
-    return _currentImage;
-}
-
 void GUIButton::SetCurrentImage(int32_t new_image, SpriteTransformFlags flags, int xoff, int yoff)
 {
     if (_currentImage == new_image && _curImageFlags == flags)

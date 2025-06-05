@@ -100,7 +100,10 @@ void VideoPlayer::SetTargetFrame(const Size &target_sz)
 void VideoPlayer::Stop()
 {
     if (IsPlaybackReady(_playState)) // keep any error state
+    {
+        Debug::Printf("VideoPlayer: Stop");
         _playState = PlayStateStopped;
+    }
 
     // Shutdown openal source
     _audioOut.reset();
@@ -111,6 +114,9 @@ void VideoPlayer::Stop()
     _hicolBuf = nullptr;
     _videoFramePool = std::stack<std::unique_ptr<Bitmap>>();
     _videoFrameQueue = std::deque<std::unique_ptr<Bitmap>>();
+
+    PrintStats(true);
+    _statsReady = false;
 }
 
 void VideoPlayer::Play()
@@ -121,12 +127,21 @@ void VideoPlayer::Play()
     switch (_playState)
     {
     case PlayStatePaused:
+        Debug::Printf("VideoPlayer: Resume");
         ResumeImpl();
         /* fallthrough */
     case PlayStateInitial:
+        Debug::Printf("VideoPlayer: Play");
         if (_audioOut)
             _audioOut->Play();
+        _stats.LastPlayTs = Clock::now();
+        if (_playState == PlayStateInitial)
+        {
+            _stats.LastWorkTs = _stats.LastPlayTs;
+            _statsPrintTs = _stats.LastWorkTs;
+        }
         _playState = PlayStatePlaying;
+        _statsReady = true;
         break;
     default:
         break; // TODO: support rewind/replay from stop/finished state?
@@ -138,6 +153,7 @@ void VideoPlayer::Pause()
     if (_playState != PlayStatePlaying)
         return;
 
+    Debug::Printf("VideoPlayer: Pause");
     if (_audioOut)
         _audioOut->Pause();
     _playState = PlayStatePaused;
@@ -146,6 +162,7 @@ void VideoPlayer::Pause()
 
 float VideoPlayer::Seek(float pos_ms)
 {
+    Debug::Printf("VideoPlayer: Seek (%.2f)", pos_ms);
     if ((pos_ms == 0.f) && Rewind())
     {
         return 0.f;
@@ -155,6 +172,7 @@ float VideoPlayer::Seek(float pos_ms)
 
 uint32_t VideoPlayer::SeekFrame(uint32_t frame)
 {
+    Debug::Printf("VideoPlayer: Seek Frame (%u)", frame);
     if ((frame == 0) && Rewind())
     {
         return 0u;
@@ -250,6 +268,14 @@ bool VideoPlayer::Poll()
     if (!IsPlaybackReady(_playState))
         return false;
 
+    const bool res = PollImpl();
+    // Update stats after polling once
+    UpdateStats();
+    return res;
+}
+
+bool VideoPlayer::PollImpl()
+{
     // Buffer always when ready, even if we are paused
     if (HasVideo())
         BufferVideo();
@@ -259,7 +285,7 @@ bool VideoPlayer::Poll()
     if (_playState != PlayStatePlaying)
         return false;
 
-    UpdateTime();
+    UpdatePlayTime();
 
     bool res_video = HasVideo() && ProcessVideo();
     bool res_audio = HasAudio() && ProcessAudio();
@@ -334,6 +360,8 @@ void VideoPlayer::BufferVideo()
         _videoFramePool.pop();
     }
 
+    const auto input_start = Clock::now();
+
     // Try to retrieve one video frame from decoder
     const bool must_conv = (_targetSize != _frameSize || _targetDepth != _frameDepth
         || ((_flags & kVideo_AccumFrame) != 0));
@@ -343,6 +371,8 @@ void VideoPlayer::BufferVideo()
         _videoFramePool.push(std::move(target_frame));
         return;
     }
+
+    const auto decoded_frame_sz = usebuf->GetDataSize();
 
     // Convert frame if necessary
     if (must_conv)
@@ -360,6 +390,18 @@ void VideoPlayer::BufferVideo()
             target_frame->StretchBlt(usebuf, RectWH(_targetSize));
     }
 
+    const auto input_dur_ms = ToMilliseconds(Clock::now() - input_start);
+
+    // Stats
+    _stats.VideoIn.Frames++;
+    _stats.VideoIn.TotalDataSz += target_frame->GetDataSize();
+    _stats.VideoIn.TotalDurMs += _frameTime;
+    _stats.VideoIn.TotalTime += input_dur_ms;
+    _stats.VideoIn.RawDecodedDataSz = decoded_frame_sz;
+    _stats.VideoIn.RawDecodedConvDataSz = target_frame->GetDataSize();
+    _stats.VideoIn.AvgTimePerFrame = _stats.VideoIn.TotalTime / _stats.VideoIn.Frames;
+    _stats.VideoIn.MaxTimePerFrame = std::max(_stats.VideoIn.MaxTimePerFrame, static_cast<uint32_t>(input_dur_ms));
+
     // Push final frame to the queue
     _videoFrameQueue.push_back(std::move(target_frame));
 }
@@ -369,10 +411,41 @@ void VideoPlayer::BufferAudio()
     if (_audioFrame)
         return; // still got one queued
 
+    const auto input_start = Clock::now();
+
     _audioFrame = NextAudioFrame();
+
+    const auto input_dur_ms = ToMilliseconds(Clock::now() - input_start);
+
+    // Stats
+    if (_audioFrame)
+    {
+        _stats.AudioIn.Frames++;
+        _stats.AudioIn.TotalDataSz += _audioFrame.Size;
+        _stats.AudioIn.TotalDurMs += _audioFrame.DurMs;
+        _stats.AudioIn.TotalTime += input_dur_ms;
+        _stats.AudioIn.AvgTimePerFrame = _stats.AudioIn.TotalTime / _stats.AudioIn.Frames;
+        _stats.AudioIn.MaxTimePerFrame = std::max(_stats.AudioIn.MaxTimePerFrame, static_cast<uint32_t>(input_dur_ms));
+    }
 }
 
-void VideoPlayer::UpdateTime()
+void VideoPlayer::UpdateStats()
+{
+    const auto now = Clock::now();
+    _stats.WorkTime += (now - _stats.LastWorkTs);
+    _stats.LastWorkTs = now;
+    if (_playState == PlayStatePlaying)
+    {
+        _stats.PlayTime += (now - _stats.LastPlayTs);
+        _stats.LastPlayTs = now;
+    }
+    _stats.MaxBufferedVideo = std::max(_stats.MaxBufferedVideo, _videoFrameQueue.size());
+
+    if (PrintStatsEachMs > 0u)
+        PrintStats(false);
+}
+
+void VideoPlayer::UpdatePlayTime()
 {
     auto now = Clock::now();
     if (_resetStartTime)
@@ -397,6 +470,11 @@ std::unique_ptr<Bitmap> VideoPlayer::NextFrameFromQueue()
     auto frame = std::move(_videoFrameQueue.front());
     _videoFrameQueue.pop_front();
     _framesPlayed++;
+
+    // Stats
+    _stats.VideoOut.Frames++;
+    _stats.VideoOut.TotalDataSz += frame->GetDataSize();
+    _stats.VideoOut.TotalDurMs += _frameTime;
     return frame;
 }
 
@@ -412,6 +490,7 @@ bool VideoPlayer::ProcessVideo()
             assert(frame);
             _videoFramePool.push(std::move(frame));
             //Debug::Printf("DROPPED LATE FRAME, queue size: %d", _videoFrameQueue.size());
+            _stats.VideoOut.Dropped++;
         }
     }
     // We are good so long as there's a ready frame in queue
@@ -426,10 +505,89 @@ bool VideoPlayer::ProcessAudio()
     assert(_audioOut);
     if (_audioOut->PutData(_audioFrame) > 0u)
     {
+        // Stats
+        _stats.AudioOut.Frames++;
+        _stats.AudioOut.TotalDataSz += _audioFrame.Size;
+        _stats.AudioOut.TotalDurMs += _audioFrame.DurMs;
+
         _audioFrame = SoundBuffer(); // clear received buffer
     }
     _audioOut->Poll();
     return true;
+}
+
+void VideoPlayer::PrintStats(bool close)
+{
+    if (!_statsReady)
+        return;
+
+    auto now = Clock::now();
+    if (!close && (ToMilliseconds(now - _statsPrintTs) < PrintStatsEachMs))
+        return;
+
+    _statsPrintTs = now;
+    Debug::Printf("VideoPlayer stats: \"%s\""
+                  "\n\ttotal time working: %lld ms"
+                  "\n\ttotal time playing: %lld ms"
+                  "\n\tplayback position: %.2f ms"
+                  "\n\tvideo input frames: %u"
+                  "\n\t            total size: %llu bytes"
+                  "\n\t            total duration: %.2f ms"
+                  "\n\t            frames dropped: %u"
+                  "\n\tvideo frame size (raw, decoded): %u bytes"
+                  "\n\tvideo frame size (raw, final): %u bytes"
+                  "\n\tmax time per input video frame: %u ms"
+                  "\n\tavg time per input video frame: %u ms"
+                  "\n\ttotal time on input video frames: %llu ms"
+                  "\n\tmax buffered video frames: %u / %u"
+                  "\n\tvideo output frames: %u"
+                  "\n\t            total size: %llu bytes"
+                  "\n\t            total duration: %.2f ms"
+                  "\n\t            frames dropped: %u"
+                  "\n\taudio input frames: %u"
+                  "\n\t            total size: %llu bytes"
+                  "\n\t            total duration: %.2f ms"
+                  "\n\t            frames dropped: %u"
+                  "\n\taverage audio frame size: %u bytes"
+                  "\n\tmax time per input audio frame: %u ms"
+                  "\n\tavg time per input audio frame: %u ms"
+                  "\n\ttotal time on input audio frames: %llu ms"
+                  "\n\taudio output frames: %u"
+                  "\n\t            total size: %llu bytes"
+                  "\n\t            total duration: %.2f ms"
+                  "\n\t            frames dropped: %u",
+                  _name.GetCStr(),
+                  ToMilliseconds(_stats.WorkTime),
+                  ToMilliseconds(_stats.PlayTime),
+                  _posMs,
+                  _stats.VideoIn.Frames,
+                  _stats.VideoIn.TotalDataSz,
+                  _stats.VideoIn.TotalDurMs,
+                  _stats.VideoIn.Dropped,
+                  _stats.VideoIn.RawDecodedDataSz,
+                  _stats.VideoIn.RawDecodedConvDataSz,
+                  _stats.VideoIn.MaxTimePerFrame,
+                  _stats.VideoIn.AvgTimePerFrame,
+                  _stats.VideoIn.TotalTime,
+                  _stats.MaxBufferedVideo,
+                  _videoQueueMax,
+                  _stats.VideoOut.Frames,
+                  _stats.VideoOut.TotalDataSz,
+                  _stats.VideoOut.TotalDurMs,
+                  _stats.VideoOut.Dropped,
+                  _stats.AudioIn.Frames,
+                  _stats.AudioIn.TotalDataSz,
+                  _stats.AudioIn.TotalDurMs,
+                  _stats.AudioIn.Dropped,
+                  static_cast<uint32_t>(_stats.AudioIn.TotalDataSz / _stats.AudioIn.Frames),
+                  _stats.AudioIn.MaxTimePerFrame,
+                  _stats.AudioIn.AvgTimePerFrame,
+                  _stats.AudioIn.TotalTime,
+                  _stats.AudioOut.Frames,
+                  _stats.AudioOut.TotalDataSz,
+                  _stats.AudioOut.TotalDurMs,
+                  _stats.AudioOut.Dropped
+                  );
 }
 
 } // namespace Engine

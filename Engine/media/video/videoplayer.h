@@ -121,7 +121,7 @@ public:
     // TODO: redo this part later, by introducing some kind of a RAII lock wrapper.
     void ReleaseFrame(std::unique_ptr<Common::Bitmap> frame);
 
-    // Updates the video playback, renders next frame
+    // Updates the video playback, prepares next video & audio frames for the render
     bool Poll();
 
 protected:
@@ -163,8 +163,10 @@ private:
     void BufferVideo();
     // Read and queue audio frames
     void BufferAudio();
+    // Update statistic records
+    void UpdateStats();
     // Update playback timing
-    void UpdateTime();
+    void UpdatePlayTime();
     // Retrieve first available frame from queue,
     // advance output frame counter
     std::unique_ptr<Common::Bitmap> NextFrameFromQueue();
@@ -174,6 +176,10 @@ private:
     // Process buffered audio frame(s);
     // returns if should continue working
     bool ProcessAudio();
+    // Updates the video playback, prepares next video & audio frames for the render
+    bool PollImpl();
+    // Prints accumulated statistics into the log
+    void PrintStats(bool close);
 
     // Parameters
     String _name;
@@ -185,6 +191,7 @@ private:
     float _targetFrameTime = 0.f; // frame duration in ms for "target fps"
     uint32_t _videoQueueMax = 5u;
     uint32_t _audioQueueMax = 0u; // we don't have a real queue atm
+
     // Playback state
     PlaybackState _playState = PlayStateInitial;
     // Playback position, depends on how much data did we played
@@ -214,6 +221,38 @@ private:
     // Buffered frame queue
     std::stack<std::unique_ptr<Common::Bitmap>> _videoFramePool;
     std::deque<std::unique_ptr<Common::Bitmap>> _videoFrameQueue;
+
+    // Statistics
+    struct Statistics
+    {
+        struct ProcStat
+        {
+            uint32_t Frames = 0u; // number of frames processed
+            uint64_t TotalDataSz = 0u; // amount of data in frames in bytes
+            float    TotalDurMs = 0.f;  // amount of media data in milliseconds
+            uint32_t Dropped = 0u; // number of discarded frames
+
+            uint32_t RawDecodedDataSz = 0u; // size of the raw frame (decoded)
+            uint32_t RawDecodedConvDataSz = 0u; // size of the raw frame (decoded + converted)
+            uint32_t MaxTimePerFrame = 0u; // max time spent on a frame
+            uint32_t AvgTimePerFrame = 0u; // average time spent on a frame
+            uint64_t TotalTime = 0u; // total time spent on input frames
+        };
+
+        Clock::time_point LastWorkTs = {}; // last time when the work time was updated
+        Clock::time_point LastPlayTs = {}; // last time when the play time was updated
+        Clock::duration WorkTime = {}; // real time this player was working (all time, including delays between frames)
+        Clock::duration PlayTime = {}; // real time this player was in a playback state (not paused)
+        ProcStat VideoIn; // amount of video data received on input
+        ProcStat VideoOut; // amount of video data passed on output (to render)
+        ProcStat AudioIn; // amount of audio data received on input
+        ProcStat AudioOut; // amount of audio data passed on output (to render)
+        uint32_t MaxBufferedVideo = 0u;
+    } _stats;
+
+    static const uint32_t PrintStatsEachMs = 0u;
+    bool _statsReady = false;
+    Clock::time_point _statsPrintTs = {};
 };
 
 } // namespace Engine

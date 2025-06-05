@@ -141,7 +141,7 @@ void VideoPlayer::Pause()
     if (_audioOut)
         _audioOut->Pause();
     _playState = PlayStatePaused;
-    _pauseTs = AGS_Clock::now();
+    _pauseTs = Clock::now();
 }
 
 float VideoPlayer::Seek(float pos_ms)
@@ -195,12 +195,12 @@ std::unique_ptr<Bitmap> VideoPlayer::NextFrame()
 void VideoPlayer::SetSpeed(float speed)
 {
     // Update our virtual "start time" to keep the proper frame timing
-    AGS_Clock::time_point now{};
-    AGS_Clock::duration play_dur{};
+    Clock::time_point now{};
+    Clock::duration play_dur{};
     switch (_playState)
     {
     case PlaybackState::PlayStatePlaying:
-        now = AGS_Clock::now();
+        now = Clock::now();
         play_dur = now - _startTs;
         break;
     case PlaybackState::PlayStatePaused:
@@ -218,8 +218,8 @@ void VideoPlayer::SetSpeed(float speed)
     // Adjust our virtual timestamps by the difference between
     // previous play duration, and new duration calculated from the new speed.
     float ft_rel = _targetFrameTime / old_frametime;
-    AGS_Clock::duration virtual_play_dur =
-        AGS_Clock::duration((int64_t)(play_dur.count() * ft_rel));
+    Clock::duration virtual_play_dur =
+        Clock::duration((int64_t)(play_dur.count() * ft_rel));
     _startTs = now - virtual_play_dur;
 
     // Adjust the audio speed separately
@@ -298,9 +298,9 @@ bool VideoPlayer::Rewind()
     // everything is played, but after everything is buffered!
     // See how this is implemented in the AudioPlayer!
     _resetStartTime = true;
-    _startTs = AGS_Clock::now();
+    _startTs = Clock::now();
     _pauseTs = _startTs;
-    _playbackDuration = AGS_Clock::duration();
+    _playbackDuration = Clock::duration();
     _wantFrameIndex = 0u;
     _posMs = 0.f;
     _framesPlayed = 0;
@@ -310,7 +310,7 @@ bool VideoPlayer::Rewind()
 void VideoPlayer::ResumeImpl()
 {
     // Update our virtual "start time" to keep the proper frame timing
-    auto pause_dur = AGS_Clock::now() - _pauseTs;
+    auto pause_dur = Clock::now() - _pauseTs;
     _startTs += pause_dur;
 
     // TODO: Separate case of resuming after NextFrame,
@@ -374,18 +374,17 @@ void VideoPlayer::BufferAudio()
 
 void VideoPlayer::UpdateTime()
 {
-    auto now = AGS_Clock::now();
+    auto now = Clock::now();
     if (_resetStartTime)
     {
         _startTs = now;
         _resetStartTime = false;
     }
-    _pollTs = AGS_Clock::now();
+    _pollTs = now;
     _playbackDuration = _pollTs - _startTs;
-    _wantFrameIndex = std::chrono::duration_cast<std::chrono::milliseconds>(_playbackDuration).count()
-        / _targetFrameTime;
+    _wantFrameIndex = ToMilliseconds(_playbackDuration) / _targetFrameTime;
     /*Debug::Printf("VIDEO TIME: playdur %lld, target frame time %.2f, want frame = %u, played frame = %u",
-        std::chrono::duration_cast<std::chrono::milliseconds>(_playbackDuration).count(),
+        ToMilliseconds(_playbackDuration),
         _targetFrameTime,
         _wantFrameIndex,
         _framesPlayed);/**/

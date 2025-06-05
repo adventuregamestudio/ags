@@ -22,12 +22,12 @@
 #include <memory>
 #include <unordered_map>
 
-#include "ac/timer.h"
 #include "script/cc_script.h"  // ccScript
 #include "script/cc_internal.h"  // bytecode constants
 #include "script/runtimescriptvalue.h"
 #include "script/systemimports.h"
 #include "util/string.h"
+#include "util/time_util.h"
 
 using namespace AGS;
 
@@ -300,7 +300,7 @@ private:
     // after which the interpreter will abort
     static unsigned _maxWhileLoops;
     // Last time the script was noted of being "alive"
-    AGS_FastClock::time_point _lastAliveTs;
+    AGS::Engine::FastClock::time_point _lastAliveTs;
 };
 
 #endif // __CC_INSTANCE_H

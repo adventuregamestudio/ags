@@ -1166,8 +1166,8 @@ void engine_init_editor_debugging(const ConfigTree &cfg)
     if (!init_editor_debugging(cfg))
         return;
 
-    auto waitUntil = AGS_Clock::now() + std::chrono::milliseconds(500);
-    while (waitUntil > AGS_Clock::now())
+    auto waitUntil = Clock::now() + std::chrono::milliseconds(500);
+    while (waitUntil > Clock::now())
     {
         // pick up any breakpoints in game_start
         check_for_messages_from_debugger();

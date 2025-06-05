@@ -635,7 +635,7 @@ struct TouchState
     // Max delay between finger actions which will still count as double tap
     const std::chrono::milliseconds quick_tap_delay = std::chrono::milliseconds(300);
     // The last tapping action timestamp
-    AGS_Clock::time_point last_tap_ts = AGS_Clock::now();
+    Clock::time_point last_tap_ts = Clock::now();
     // The last tap's finger index
     int last_tap_finger = 0;
     // Same finger consecutive taps counter
@@ -725,7 +725,7 @@ static void send_mouse_motion_event(int x, int y, int xrel, int yrel)
 // Handles double tap detection (multiple touch downs and ups)
 static void detect_double_tap(const SDL_TouchFingerEvent &event, bool down)
 {
-    auto tap_ts = AGS_Clock::now();
+    auto tap_ts = Clock::now();
     if ((touch.last_tap_finger == event.fingerId) &&
         (tap_ts < (touch.last_tap_ts + touch.quick_tap_delay)))
     {

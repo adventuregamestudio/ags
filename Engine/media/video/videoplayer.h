@@ -40,6 +40,7 @@
 #include "media/audio/openalsource.h"
 #include "util/error.h"
 #include "util/stream.h"
+#include "util/time_util.h"
 
 namespace AGS
 {
@@ -194,10 +195,10 @@ private:
     // note that these are "virtual time", and are adjusted whenever playback
     // is paused and resumed, or playback speed changes.
     bool _resetStartTime = false;
-    AGS_Clock::time_point _startTs; // time when the data was first prepared for the output
-    AGS_Clock::time_point _pollTs; // timestamp of the last Poll in autoplay mode
-    AGS_Clock::duration _playbackDuration; // full playback time
-    AGS_Clock::time_point _pauseTs; // time when the playback was paused
+    Clock::time_point _startTs; // time when the data was first prepared for the output
+    Clock::time_point _pollTs; // timestamp of the last Poll in autoplay mode
+    Clock::duration _playbackDuration; // full playback time
+    Clock::time_point _pauseTs; // time when the playback was paused
     uint32_t _wantFrameIndex = 0u; // expected video frame at this time
     // Audio
     // Audio queue (single frame for now, because output buffers too)

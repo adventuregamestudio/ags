@@ -138,7 +138,7 @@ protected:
     // Retrieves next audio frame, implementation-specific
     // TODO: change return type to a proper allocated buffer
     // when we support a proper audio queue here.
-    virtual SoundBuffer NextAudioFrame() { return SoundBuffer(); };
+    virtual bool NextAudioFrame(SoundBuffer &abuf) { return false; };
 
     // Audio internals
     int _audioChannels = 0;
@@ -148,7 +148,7 @@ protected:
     // Video internals
     // Native video frame's format
     int _frameDepth = 0; // bits per pixel
-    Size _frameSize{};
+    Size _frameSize = {};
     float _frameRate = 0.f;
     float _frameTime = 0.f;
     uint32_t _frameCount = 0; // total number of frames in video (if available)
@@ -189,8 +189,8 @@ private:
     int _targetDepth = 0;
     float _targetFPS = 0.f;
     float _targetFrameTime = 0.f; // frame duration in ms for "target fps"
-    uint32_t _videoQueueMax = 5u;
-    uint32_t _audioQueueMax = 0u; // we don't have a real queue atm
+    uint32_t _queueMax = 5u; // measured in video frame times!
+    float _queueTimeMax = 0.f;
 
     // Playback state
     PlaybackState _playState = PlayStateInitial;
@@ -198,6 +198,8 @@ private:
     float _posMs = 0.f;
     // Frames counter, increments with playback, resets on rewind or seek
     uint32_t _framesPlayed = 0u;
+    // Audio duration counter, increments with playback, resets on rewind or seek
+    float _audioPlayed = 0.f;
     // Stage timestamps, used to calculate the next frame timing;
     // note that these are "virtual time", and are adjusted whenever playback
     // is paused and resumed, or playback speed changes.
@@ -208,8 +210,10 @@ private:
     Clock::time_point _pauseTs; // time when the playback was paused
     uint32_t _wantFrameIndex = 0u; // expected video frame at this time
     // Audio
-    // Audio queue (single frame for now, because output buffers too)
-    SoundBuffer _audioFrame{};
+    // Buffered audio queue
+    std::stack<std::unique_ptr<SoundBuffer>> _audioFramePool;
+    std::deque<std::unique_ptr<SoundBuffer>> _audioFrameQueue;
+    float _audioQueueDurMs = 0.f; // accumulated duration of audio queue
     // Audio output object
     std::unique_ptr<OpenAlSource> _audioOut;
     // Video
@@ -247,7 +251,14 @@ private:
         ProcStat VideoOut; // amount of video data passed on output (to render)
         ProcStat AudioIn; // amount of audio data received on input
         ProcStat AudioOut; // amount of audio data passed on output (to render)
-        uint32_t MaxBufferedVideo = 0u;
+        uint32_t MaxBufferedVideo = 0u; // number of frames
+        float MaxBufferedAudioMs = 0.f; // duration
+        uint32_t BufferedVideoAccum = 0u;
+        float BufferedAudioAcum = 0.f;
+        int32_t VideoTimingDiffAccum = 0;
+        std::pair<int32_t, int32_t> VideoTimingDiffs;
+        float AudioTimingDiffAccum = 0.f;
+        std::pair<float, float> AudioTimingDiffs;
     } _stats;
 
     static const uint32_t PrintStatsEachMs = 0u;

@@ -42,7 +42,7 @@ private:
     // Retrieves next video frame, implementation-specific
     bool NextVideoFrame(Common::Bitmap *dst) override;
     // Retrieves next audio frame, implementation-specific
-    SoundBuffer NextAudioFrame() override;
+    bool NextAudioFrame(SoundBuffer &abuf) override;
 
     Common::HError OpenAPEGStream(Stream *data_stream, const String &name, int flags, int target_depth);
 

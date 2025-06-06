@@ -43,6 +43,12 @@ inline int64_t ToMilliseconds(TDur dur)
     return std::chrono::duration_cast<std::chrono::milliseconds>(dur).count();
 }
 
+template <typename TDur>
+inline float ToMillisecondsF(TDur dur)
+{
+    return std::chrono::duration_cast<std::chrono::microseconds>(dur).count() * 0.001;
+}
+
 template <typename TClock>
 class TStopwatch final
 {

@@ -63,6 +63,7 @@ HError VideoPlayer::Open(std::unique_ptr<Common::Stream> data_stream,
 
     // TODO: actually support dynamic FPS, need to adjust audio speed
     _targetFrameTime = 1000.f / _targetFPS;
+    _queueTimeMax = _queueMax * _targetFrameTime;
     _resetStartTime = true;
     return HError::None();
 }
@@ -205,7 +206,7 @@ std::unique_ptr<Bitmap> VideoPlayer::NextFrame()
         }
     }
     float video_pos = HasVideo() ? _framesPlayed * _frameTime : 0.f;
-    float audio_pos = HasAudio() ? _audioOut->GetPositionMs() : 0.f;
+    float audio_pos = HasAudio() ? _audioPlayed : 0.f;
     _posMs = std::max(video_pos, audio_pos);
     return frame;
 }
@@ -292,7 +293,7 @@ bool VideoPlayer::PollImpl()
 
     // TODO: get frame timestamps if available from decoder?
     float video_pos = HasVideo() ? _framesPlayed * _frameTime : 0.f;
-    float audio_pos = HasAudio() ? _audioOut->GetPositionMs() : 0.f;
+    float audio_pos = HasAudio() ? _audioPlayed : 0.f;
     _posMs = std::max(video_pos, audio_pos);
 
     // Stop if nothing is left to process, or if there was error
@@ -330,6 +331,7 @@ bool VideoPlayer::Rewind()
     _wantFrameIndex = 0u;
     _posMs = 0.f;
     _framesPlayed = 0;
+    _audioPlayed = 0.f;
     return true;
 }
 
@@ -345,8 +347,8 @@ void VideoPlayer::ResumeImpl()
 
 void VideoPlayer::BufferVideo()
 {
-    if (_videoFrameQueue.size() >= _videoQueueMax)
-        return;
+    if (_videoFrameQueue.size() >= _queueMax)
+        return; // queue limit reached
 
     // Get one frame from the pool, if present, otherwise allocate a new one
     std::unique_ptr<Bitmap> target_frame;
@@ -367,7 +369,8 @@ void VideoPlayer::BufferVideo()
         || ((_flags & kVideo_AccumFrame) != 0));
     Bitmap *usebuf = must_conv ? _vframeBuf.get() : target_frame.get();
     if (!NextVideoFrame(usebuf))
-    { // failed to get frame, so move prepared target frame into the pool for now
+    {
+        // failed to get frame, so move prepared target frame into the pool for now
         _videoFramePool.push(std::move(target_frame));
         return;
     }
@@ -393,6 +396,7 @@ void VideoPlayer::BufferVideo()
     const auto input_dur_ms = ToMilliseconds(Clock::now() - input_start);
 
     // Stats
+    assert(target_frame);
     _stats.VideoIn.Frames++;
     _stats.VideoIn.TotalDataSz += target_frame->GetDataSize();
     _stats.VideoIn.TotalDurMs += _frameTime;
@@ -401,6 +405,9 @@ void VideoPlayer::BufferVideo()
     _stats.VideoIn.RawDecodedConvDataSz = target_frame->GetDataSize();
     _stats.VideoIn.AvgTimePerFrame = _stats.VideoIn.TotalTime / _stats.VideoIn.Frames;
     _stats.VideoIn.MaxTimePerFrame = std::max(_stats.VideoIn.MaxTimePerFrame, static_cast<uint32_t>(input_dur_ms));
+    _stats.MaxBufferedVideo = std::max(_stats.MaxBufferedVideo, _videoFrameQueue.size());
+    // TODO: maybe record this every 10 - 100 frames?
+    _stats.BufferedVideoAccum += _videoFrameQueue.size();
 
     // Push final frame to the queue
     _videoFrameQueue.push_back(std::move(target_frame));
@@ -408,25 +415,47 @@ void VideoPlayer::BufferVideo()
 
 void VideoPlayer::BufferAudio()
 {
-    if (_audioFrame)
-        return; // still got one queued
+    if (_audioQueueDurMs >= _queueMax * _targetFrameTime)
+        return; // queue limit reached
+
+    // Get one frame from the pool, if present, otherwise allocate a new one
+    std::unique_ptr<SoundBuffer> aframe;
+    if (_audioFramePool.empty())
+    {
+        aframe.reset(new SoundBuffer());
+    }
+    else
+    {
+        aframe = std::move(_audioFramePool.top());
+        _audioFramePool.pop();
+    }
 
     const auto input_start = Clock::now();
 
-    _audioFrame = NextAudioFrame();
+    if (!NextAudioFrame(*aframe))
+    {
+        // failed to get frame, so move prepared frame into the pool for now
+        _audioFramePool.push(std::move(aframe));
+        return;
+    }
 
     const auto input_dur_ms = ToMilliseconds(Clock::now() - input_start);
 
     // Stats
-    if (_audioFrame)
-    {
-        _stats.AudioIn.Frames++;
-        _stats.AudioIn.TotalDataSz += _audioFrame.Size;
-        _stats.AudioIn.TotalDurMs += _audioFrame.DurMs;
-        _stats.AudioIn.TotalTime += input_dur_ms;
-        _stats.AudioIn.AvgTimePerFrame = _stats.AudioIn.TotalTime / _stats.AudioIn.Frames;
-        _stats.AudioIn.MaxTimePerFrame = std::max(_stats.AudioIn.MaxTimePerFrame, static_cast<uint32_t>(input_dur_ms));
-    }
+    assert(aframe);
+    _stats.AudioIn.Frames++;
+    _stats.AudioIn.TotalDataSz += aframe->Size();
+    _stats.AudioIn.TotalDurMs += aframe->DurationMs();
+    _stats.AudioIn.TotalTime += input_dur_ms;
+    _stats.AudioIn.AvgTimePerFrame = _stats.AudioIn.TotalTime / _stats.AudioIn.Frames;
+    _stats.AudioIn.MaxTimePerFrame = std::max(_stats.AudioIn.MaxTimePerFrame, static_cast<uint32_t>(input_dur_ms));
+    _stats.MaxBufferedAudioMs = std::max(_stats.MaxBufferedAudioMs, _audioQueueDurMs);
+    // TODO: maybe record this every 10 - 100 frames?
+    _stats.BufferedAudioAcum += _audioQueueDurMs;
+
+    // Push final frame to the queue
+    _audioQueueDurMs += aframe->DurationMs();
+    _audioFrameQueue.push_back(std::move(aframe));
 }
 
 void VideoPlayer::UpdateStats()
@@ -439,7 +468,6 @@ void VideoPlayer::UpdateStats()
         _stats.PlayTime += (now - _stats.LastPlayTs);
         _stats.LastPlayTs = now;
     }
-    _stats.MaxBufferedVideo = std::max(_stats.MaxBufferedVideo, _videoFrameQueue.size());
 
     if (PrintStatsEachMs > 0u)
         PrintStats(false);
@@ -447,7 +475,7 @@ void VideoPlayer::UpdateStats()
 
 void VideoPlayer::UpdatePlayTime()
 {
-    auto now = Clock::now();
+    const auto now = Clock::now();
     if (_resetStartTime)
     {
         _startTs = now;
@@ -456,11 +484,26 @@ void VideoPlayer::UpdatePlayTime()
     _pollTs = now;
     _playbackDuration = _pollTs - _startTs;
     _wantFrameIndex = ToMilliseconds(_playbackDuration) / _targetFrameTime;
-    /*Debug::Printf("VIDEO TIME: playdur %lld, target frame time %.2f, want frame = %u, played frame = %u",
-        ToMilliseconds(_playbackDuration),
+
+    if (_audioOut)
+    {
+        _audioPlayed = _audioOut->GetPositionMs();
+    }
+
+    /**//*
+    const float play_dur = ToMillisecondsF(_playbackDuration);
+    const float audio_pos = _audioPlayed;
+    Debug::Printf("VIDEO TIME: playdur %.2f, target frame time %.2f, want frame = %u, played frame = %u, audio pos = %.2f (%+.2f), video buf = %u, audio buf = %.2f",
+        play_dur,
         _targetFrameTime,
         _wantFrameIndex,
-        _framesPlayed);/**/
+        _framesPlayed,
+        audio_pos,
+        audio_pos - play_dur,
+        _videoFrameQueue.size(),
+        _audioQueueDurMs
+    );
+    /**/
 }
 
 std::unique_ptr<Bitmap> VideoPlayer::NextFrameFromQueue()
@@ -475,6 +518,11 @@ std::unique_ptr<Bitmap> VideoPlayer::NextFrameFromQueue()
     _stats.VideoOut.Frames++;
     _stats.VideoOut.TotalDataSz += frame->GetDataSize();
     _stats.VideoOut.TotalDurMs += _frameTime;
+    const int32_t video_diff = (_framesPlayed - 1) - _wantFrameIndex;
+    _stats.VideoTimingDiffAccum += video_diff;
+    _stats.VideoTimingDiffs.first = std::min<int32_t>(_stats.VideoTimingDiffs.first, video_diff);
+    _stats.VideoTimingDiffs.second = std::max<int32_t>(_stats.VideoTimingDiffs.second, video_diff);
+
     return frame;
 }
 
@@ -499,19 +547,48 @@ bool VideoPlayer::ProcessVideo()
 
 bool VideoPlayer::ProcessAudio()
 {
-    if (!_audioFrame)
-        return false;
-
     assert(_audioOut);
-    if (_audioOut->PutData(_audioFrame) > 0u)
+    // If we have no audio in queue, then exit, but result depends on whether
+    // there's still something being buffered by the audio output
+    if (_audioFrameQueue.empty())
     {
-        // Stats
-        _stats.AudioOut.Frames++;
-        _stats.AudioOut.TotalDataSz += _audioFrame.Size;
-        _stats.AudioOut.TotalDurMs += _audioFrame.DurMs;
-
-        _audioFrame = SoundBuffer(); // clear received buffer
+        _audioOut->Poll();
+        return !_audioOut->IsEmpty();
     }
+
+    // Push as many frames as audio output can take at once
+    do
+    {
+        auto aframe = std::move(_audioFrameQueue.front());
+        _audioFrameQueue.pop_front();
+        assert(aframe);
+
+        if (_audioOut->PutData(*aframe) > 0u)
+        {
+            // Stats
+            _stats.AudioOut.Frames++;
+            _stats.AudioOut.TotalDataSz += aframe->Size();
+            _stats.AudioOut.TotalDurMs += aframe->DurationMs();
+            const float play_dur = ToMillisecondsF(_playbackDuration);
+            const float audio_pos = _audioPlayed;
+            const float audio_diff = audio_pos - play_dur;
+            _stats.AudioTimingDiffAccum += audio_diff;
+            _stats.AudioTimingDiffs.first = std::min<float>(_stats.AudioTimingDiffs.first, audio_diff);
+            _stats.AudioTimingDiffs.second = std::max<float>(_stats.AudioTimingDiffs.second, audio_diff);
+
+            // Push used frame back to the pool
+            _audioQueueDurMs -= aframe->DurationMs();
+            assert(_audioQueueDurMs >= 0.f);
+            _audioFramePool.push(std::move(aframe));
+        }
+        else
+        {
+            // Cannot play more right now, put back to the queue (in front!)
+            _audioFrameQueue.push_front(std::move(aframe));
+            break;
+        }
+    } while (!_audioFrameQueue.empty());
+
     _audioOut->Poll();
     return true;
 }
@@ -527,6 +604,8 @@ void VideoPlayer::PrintStats(bool close)
 
     _statsPrintTs = now;
     Debug::Printf("VideoPlayer stats: \"%s\""
+                  "\n\tresolution: %dx%d, fps: %.2f, frametime: %.2f"
+                  "\n\taudio: %d Hz, chans: %d"
                   "\n\ttotal time working: %lld ms"
                   "\n\ttotal time playing: %lld ms"
                   "\n\tplayback position: %.2f ms"
@@ -540,23 +619,32 @@ void VideoPlayer::PrintStats(bool close)
                   "\n\tavg time per input video frame: %u ms"
                   "\n\ttotal time on input video frames: %llu ms"
                   "\n\tmax buffered video frames: %u / %u"
+                  "\n\tavg buffered video frames: %u"
                   "\n\tvideo output frames: %u"
                   "\n\t            total size: %llu bytes"
                   "\n\t            total duration: %.2f ms"
                   "\n\t            frames dropped: %u"
+                  "\n\tmost video timing diff: %+d, %+d"
+                  "\n\tavg video timing diff: %+d"
                   "\n\taudio input frames: %u"
                   "\n\t            total size: %llu bytes"
                   "\n\t            total duration: %.2f ms"
                   "\n\t            frames dropped: %u"
-                  "\n\taverage audio frame size: %u bytes"
+                  "\n\taverage audio frame: %u bytes, %.2f ms"
                   "\n\tmax time per input audio frame: %u ms"
                   "\n\tavg time per input audio frame: %u ms"
                   "\n\ttotal time on input audio frames: %llu ms"
+                  "\n\tmax buffered audio duration: %.2f / %.2f ms"
+                  "\n\tavg buffered audio duration: %.2f"
                   "\n\taudio output frames: %u"
                   "\n\t            total size: %llu bytes"
                   "\n\t            total duration: %.2f ms"
-                  "\n\t            frames dropped: %u",
+                  "\n\t            frames dropped: %u"
+                  "\n\tmost audio timing diff: %+.2f, %+.2f"
+                  "\n\tavg audio timing diff: %+.2f",
                   _name.GetCStr(),
+                  _frameSize.Width, _frameSize.Height, _frameRate, _frameTime,
+                  _audioFreq, _audioChannels,
                   ToMilliseconds(_stats.WorkTime),
                   ToMilliseconds(_stats.PlayTime),
                   _posMs,
@@ -570,23 +658,34 @@ void VideoPlayer::PrintStats(bool close)
                   _stats.VideoIn.AvgTimePerFrame,
                   _stats.VideoIn.TotalTime,
                   _stats.MaxBufferedVideo,
-                  _videoQueueMax,
+                  _queueMax,
+                  _stats.BufferedVideoAccum / _stats.VideoIn.Frames,
                   _stats.VideoOut.Frames,
                   _stats.VideoOut.TotalDataSz,
                   _stats.VideoOut.TotalDurMs,
                   _stats.VideoOut.Dropped,
+                  _stats.VideoTimingDiffs.first,
+                  _stats.VideoTimingDiffs.second,
+                  _stats.VideoTimingDiffAccum / static_cast<int32_t>(_stats.VideoOut.Frames), // FIXME: calc w/o cast
                   _stats.AudioIn.Frames,
                   _stats.AudioIn.TotalDataSz,
                   _stats.AudioIn.TotalDurMs,
                   _stats.AudioIn.Dropped,
                   static_cast<uint32_t>(_stats.AudioIn.TotalDataSz / _stats.AudioIn.Frames),
+                  _stats.AudioIn.TotalDurMs / _stats.AudioIn.Frames,
                   _stats.AudioIn.MaxTimePerFrame,
                   _stats.AudioIn.AvgTimePerFrame,
                   _stats.AudioIn.TotalTime,
+                  _stats.MaxBufferedAudioMs,
+                  _queueTimeMax,
+                  _stats.BufferedAudioAcum / _stats.AudioIn.Frames,
                   _stats.AudioOut.Frames,
                   _stats.AudioOut.TotalDataSz,
                   _stats.AudioOut.TotalDurMs,
-                  _stats.AudioOut.Dropped
+                  _stats.AudioOut.Dropped,
+                  _stats.AudioTimingDiffs.first,
+                  _stats.AudioTimingDiffs.second,
+                  _stats.AudioTimingDiffAccum / _stats.AudioOut.Frames
                   );
 }
 

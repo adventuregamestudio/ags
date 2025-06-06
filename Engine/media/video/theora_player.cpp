@@ -185,12 +185,12 @@ bool TheoraPlayer::NextVideoFrame(Bitmap *dst)
     return true;
 }
 
-SoundBuffer TheoraPlayer::NextAudioFrame()
+bool TheoraPlayer::NextAudioFrame(SoundBuffer &abuf)
 {
     assert(_apegStream);
     assert((_apegStream->flags & APEG_HAS_AUDIO) != 0);
     if ((_apegStream->flags & APEG_HAS_AUDIO) == 0)
-        return SoundBuffer();
+        return SoundBufferPtr();
 
     // reset some data
     _apegStream->audio.flushed = FALSE;
@@ -199,8 +199,10 @@ SoundBuffer TheoraPlayer::NextAudioFrame()
     int count = 0;
     int ret = apeg_get_audio_frame(_apegStream, &buf, &count);
     if (ret == APEG_ERROR || ret == APEG_EOF)
-        return SoundBuffer();
-    return SoundBuffer(buf, count, -1.f, SoundHelper::MillisecondsFromBytes(count, _audioFormat, _audioChannels, _audioFreq));
+        return false;
+
+    abuf.AssignData(buf, count, -1.f, SoundHelper::MillisecondsFromBytes(count, _audioFormat, _audioChannels, _audioFreq));
+    return true;
 }
 
 } // namespace Engine

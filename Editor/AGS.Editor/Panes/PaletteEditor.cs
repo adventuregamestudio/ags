@@ -21,6 +21,7 @@ namespace AGS.Editor
         private bool _noUpdates = false;
         private List<int> _selectedIndexes = new List<int>();
         private TabPage _colourFinder;
+        private Color _currentColor = Color.Black;
 
         public PaletteEditor()
         {
@@ -29,6 +30,7 @@ namespace AGS.Editor
             Factory.GUIController.OnPropertyObjectChanged += GUIController_OnPropertyObjectChanged;
             _selectedIndexes.Add(0);
             GameChanged();
+            UpdateNumberFromScrollBars();
         }
 
         protected override void OnPropertyChanged(string propertyName, object oldValue)
@@ -93,8 +95,11 @@ namespace AGS.Editor
             if (!_noUpdates)
             {
                 int newVal = 0;
-                Int32.TryParse(txtColourNumber.Text, out newVal);
-                if ((newVal < 0) || (newVal > int.MaxValue))
+                try
+                {
+                    newVal = Convert.ToInt32(txtColourNumber.Text, 16);
+                }
+                catch (Exception)
                 {
                     newVal = 0;
                 }
@@ -103,7 +108,8 @@ namespace AGS.Editor
                 trackBarRed.Value = newColor.R;
                 trackBarGreen.Value = newColor.G;
                 trackBarBlue.Value = newColor.B;
-				ColourSlidersUpdated();
+                _currentColor = newColor;
+                ColourSlidersUpdated();
             }
         }
 
@@ -120,18 +126,15 @@ namespace AGS.Editor
             _noUpdates = true;
             var newColor = Color.FromArgb(trackBarRed.Value, trackBarGreen.Value, trackBarBlue.Value);
             int newValue = ColorMapper.ColorToAgsColourNumberDirect(newColor);
-            txtColourNumber.Text = newValue.ToString();
+            txtColourNumber.Text = newValue.ToString("X8");
+            _currentColor = newColor;
             _noUpdates = false;
             blockOfColour.Invalidate();
         }
 
         private void blockOfColour_Paint(object sender, PaintEventArgs e)
         {
-            int colourVal = 0;
-            Int32.TryParse(txtColourNumber.Text, out colourVal);
-
-            Color color = Factory.AGSEditor.ColorMapper.MapAgsColourNumberToRgbColor(colourVal);
-            using (Brush brush = new SolidBrush(color))
+            using (Brush brush = new SolidBrush(_currentColor))
             {
                 e.Graphics.FillRectangle(brush, 0, 0, blockOfColour.Width, blockOfColour.Height);
             }

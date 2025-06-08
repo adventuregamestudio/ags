@@ -69,6 +69,17 @@ namespace AGS.Types
 
         private Color ColorFromString(string value)
         {
+            // First try reading a hexadecimal number
+            try
+            {
+                int argb = Convert.ToInt32(value, 16);
+                return Color.FromArgb(argb);
+            }
+            catch (Exception)
+            {
+            }
+
+            // If failed, then try to parse as color components
             var rgb = value.Split(';');
             switch (rgb.Length)
             {

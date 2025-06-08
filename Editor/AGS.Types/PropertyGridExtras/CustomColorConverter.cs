@@ -69,13 +69,32 @@ namespace AGS.Types
 
         private Color ColorFromString(string value)
         {
-            var rgb = value.Split(';');
-            switch (rgb.Length)
+            if (string.IsNullOrEmpty(value))
+                return Color.FromArgb(0); // return transparent color on failure
+
+            // First check explicit notations
+            if (value.StartsWith("#"))
             {
-                case 3: return Color.FromArgb(int.Parse(rgb[0]), int.Parse(rgb[1]), int.Parse(rgb[2]));
-                case 4: return Color.FromArgb(int.Parse(rgb[3]), int.Parse(rgb[0]), int.Parse(rgb[1]), int.Parse(rgb[2]));
-                default: return Color.FromArgb(0); // return transparent color on failure
+                return Utilities.ColorFromHTMLHex(value);
             }
+            else if (value.StartsWith("0x"))
+            {
+                return Utilities.ColorFromARGBHex(value);
+            }
+
+            // If there's no explicit notation prefix, then try to parse as a HTML hex (expect failure!)
+            Color color = Utilities.ColorFromHTMLHex(value);
+            if (!color.IsEmpty)
+                return color;
+
+            // If it's not hex of any kind, then try to parse as color components
+            // separated either by comma or semicolon
+            color = AGS.Types.Utilities.ColorFromSeparatedRGBA(value, ',');
+            if (color.IsEmpty)
+                color = AGS.Types.Utilities.ColorFromSeparatedRGBA(value, ';');
+            if (!color.IsEmpty)
+                return color;
+            return Color.FromArgb(0); // return transparent color on failure
         }
 
         private string ColorToString(Color color)

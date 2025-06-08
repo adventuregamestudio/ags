@@ -314,7 +314,7 @@ namespace AGS.Types
                 }
                 else
                 {
-                    return Color.FromArgb(value);
+                    return Color.FromArgb((value >> 16) & 0xFF, (value >> 8) & 0xFF, (value) & 0xFF);
                 }
             }
             catch

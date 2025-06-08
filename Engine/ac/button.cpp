@@ -134,6 +134,16 @@ int Button_GetGraphic(GUIButton *butt) {
     return butt->GetCurrentImage();
 }
 
+int Button_GetGraphicFlip(GUIButton *butt)
+{
+    return butt->GetImageFlip();
+}
+
+void Button_SetGraphicFlip(GUIButton *butt, int flip)
+{
+    butt->SetImageFlip((GraphicFlip)flip);
+}
+
 int Button_GetMouseOverGraphic(GUIButton *butt) {
     return butt->GetMouseOverImage();
 }
@@ -402,6 +412,16 @@ RuntimeScriptValue Sc_Button_GetGraphic(void *self, const RuntimeScriptValue *pa
     API_OBJCALL_INT(GUIButton, Button_GetGraphic);
 }
 
+RuntimeScriptValue Sc_Button_GetGraphicFlip(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(GUIButton, Button_GetGraphicFlip);
+}
+
+RuntimeScriptValue Sc_Button_SetGraphicFlip(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(GUIButton, Button_SetGraphicFlip);
+}
+
 // int | GUIButton *butt
 RuntimeScriptValue Sc_Button_GetMouseOverGraphic(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -539,6 +559,8 @@ void RegisterButtonAPI()
         { "Button::set_Font",             API_FN_PAIR(Button_SetFont) },
         { "Button::get_Frame",            API_FN_PAIR(Button_GetAnimFrame) },
         { "Button::get_Graphic",          API_FN_PAIR(Button_GetGraphic) },
+        { "Button::get_GraphicFlip",      API_FN_PAIR(Button_GetGraphicFlip) },
+        { "Button::set_GraphicFlip",      API_FN_PAIR(Button_SetGraphicFlip) },
         { "Button::get_Loop",             API_FN_PAIR(Button_GetAnimLoop) },
         { "Button::get_MouseOverGraphic", API_FN_PAIR(Button_GetMouseOverGraphic) },
         { "Button::set_MouseOverGraphic", API_FN_PAIR(Button_SetMouseOverGraphic) },

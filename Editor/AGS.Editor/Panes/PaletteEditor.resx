@@ -117,4 +117,11 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="label1.Text" xml:space="preserve">
+    <value>You can use the controls below to find the AGS Colour Number for a particular colour. AGS Colour is displayed as a hexadecimal number and may be used to assign color value directly in script.
+Web color input field may be used to paste a color in HTML format which presents colors using #RRGGBBAA notation.
+Comma separated representation suits inserting arguments into the Game.GetColorFromRGB function.
+
+</value>
+  </data>
 </root>

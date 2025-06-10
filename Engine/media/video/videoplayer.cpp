@@ -256,6 +256,20 @@ std::unique_ptr<Common::Bitmap> VideoPlayer::GetReadyFrame()
 {
     if (_framesPlayed > _wantFrameIndex)
         return nullptr;
+
+    /**//*
+    // FIXME: this is for testing audio desync with video -- remove later
+    static int skip_video_instance = 0;
+    static int skip_video_counter = 0;
+    if (skip_video_instance % 10 == 0)
+    {
+        if (++skip_video_counter < 33)
+            return nullptr;
+        skip_video_counter = 0;
+    }
+    skip_video_instance++;
+    //*/
+
     return NextFrameFromQueue();
 }
 
@@ -287,6 +301,9 @@ bool VideoPlayer::PollImpl()
         return false;
 
     UpdatePlayTime();
+
+    if (HasVideo() && HasAudio() && ((_flags & kVideo_SyncAudioVideo) != 0))
+        SyncVideoAudio();
 
     bool res_video = HasVideo() && ProcessVideo();
     bool res_audio = HasAudio() && ProcessAudio();
@@ -483,8 +500,7 @@ void VideoPlayer::UpdatePlayTime()
     }
     _pollTs = now;
     _playbackDuration = _pollTs - _startTs;
-    _wantFrameIndex = ToMilliseconds(_playbackDuration) / _targetFrameTime;
-
+    _wantFrameIndex = static_cast<uint32_t>(ToMillisecondsF(_playbackDuration) / _targetFrameTime);
     if (_audioOut)
     {
         _audioPlayed = _audioOut->GetPositionMs();
@@ -506,10 +522,48 @@ void VideoPlayer::UpdatePlayTime()
     /**/
 }
 
+void VideoPlayer::SyncVideoAudio()
+{
+    if (_videoFrameQueue.empty())
+        return; // can happen e.g. if the video stream ended earlier than audio
+
+    // Check if video and audio playback differ for more than a allowed limit
+    const float av_diff = _framesPlayed * _targetFrameTime - _audioPlayed;
+    const float leeway = _targetFrameTime * 2;
+    if (std::fabs(av_diff) > leeway)
+    {
+        // If video and audio differentiate in more than a suggested "leeway",
+        // then adjust the virtual "start time":
+        // if it is advanced, then the current video frame will halt for a while,
+        // if it is rewinded, then some of the video frames may be dropped.
+        const float adjust_playdur_ms = -std::trunc(av_diff / _targetFrameTime) * _targetFrameTime;
+        // Clamp the play duration adjustment to the already played number of frames,
+        // because we do not want to cause an impression that playback was "rewinded".
+        // FIXME: revisit the use of framesPlayed variable, it's currently misleading being +1 larger than last frame index
+        const Clock::duration min_playdur = std::min(_playbackDuration, // - compare vs playbackdur in case of rounding mistakes
+                Clock::duration(std::chrono::microseconds(static_cast<int64_t>(
+            /*(_framesPlayed > 0u ? _framesPlayed - 1 : 0u)*/_framesPlayed * _targetFrameTime * 1000.f))));
+        const Clock::duration adjusted_playdur = _playbackDuration + std::chrono::microseconds(static_cast<int64_t>(adjust_playdur_ms * 1000.f));
+        const Clock::duration new_playdur = std::max(min_playdur, adjusted_playdur);
+        const auto new_playdur_diff = ToMillisecondsF(new_playdur - _playbackDuration);
+        // Recalculate start time and dependent variables
+        _startTs = _pollTs - new_playdur;
+        _playbackDuration = new_playdur;
+        _wantFrameIndex = static_cast<uint32_t>(ToMillisecondsF(_playbackDuration) / _targetFrameTime);
+
+        // Stats
+        _stats.SyncMaxFw = std::max(_stats.SyncMaxFw, new_playdur_diff);
+        _stats.SyncMaxBw = std::min(_stats.SyncMaxBw, new_playdur_diff);
+        Debug::Printf("VideoPlayer: sync at frame %u: v-a diff: %+.2f ms, leeway: %.2f ms, adjust play dur by %+.2f ms, want frame now = %u",
+                    _framesPlayed, av_diff, leeway, new_playdur_diff, _wantFrameIndex);
+    }
+}
+
 std::unique_ptr<Bitmap> VideoPlayer::NextFrameFromQueue()
 {
     if (_videoFrameQueue.empty())
         return nullptr;
+
     auto frame = std::move(_videoFrameQueue.front());
     _videoFrameQueue.pop_front();
     _framesPlayed++;
@@ -532,7 +586,7 @@ bool VideoPlayer::ProcessVideo()
     if ((_flags & kVideo_DropFrames) != 0)
     {
         while ((_videoFrameQueue.size() > 1) &&
-            (_framesPlayed /*+ 1*/ < _wantFrameIndex))
+            (_framesPlayed < _wantFrameIndex))
         {
             auto frame = NextFrameFromQueue();
             assert(frame);
@@ -555,6 +609,19 @@ bool VideoPlayer::ProcessAudio()
         _audioOut->Poll();
         return !_audioOut->IsEmpty();
     }
+
+    /**//*
+    // FIXME: this is for testing audio desync with video -- remove later
+    static int skip_audio_instance = 0;
+    static int skip_audio_counter = 0;
+    if (skip_audio_instance % 100 == 0)
+    {
+        if (++skip_audio_counter < 66)
+            return true;
+        skip_audio_counter = 0;
+    }
+    skip_audio_instance++;
+    //*/
 
     // Push as many frames as audio output can take at once
     do
@@ -641,7 +708,10 @@ void VideoPlayer::PrintStats(bool close)
                   "\n\t            total duration: %.2f ms"
                   "\n\t            frames dropped: %u"
                   "\n\tmost audio timing diff: %+.2f, %+.2f"
-                  "\n\tavg audio timing diff: %+.2f",
+                  "\n\tavg audio timing diff: %+.2f"
+                  "\n\taudio-video sync:"
+                  "\n\t            max adjust forward: %+.2f"
+                  "\n\t            max adjust backward: %+.2f",
                   _name.GetCStr(),
                   _frameSize.Width, _frameSize.Height, _frameRate, _frameTime,
                   _audioFreq, _audioChannels,
@@ -685,7 +755,8 @@ void VideoPlayer::PrintStats(bool close)
                   _stats.AudioOut.Dropped,
                   _stats.AudioTimingDiffs.first,
                   _stats.AudioTimingDiffs.second,
-                  _stats.AudioTimingDiffAccum / _stats.AudioOut.Frames
+                  _stats.AudioTimingDiffAccum / _stats.AudioOut.Frames,
+                  _stats.SyncMaxFw, _stats.SyncMaxBw
                   );
 }
 

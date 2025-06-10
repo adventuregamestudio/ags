@@ -55,9 +55,14 @@ enum VideoFlags
     kVideo_LegacyFrameSize= 0x0008,
     // Allow to drop late video frames in autoplay mode
     kVideo_DropFrames     = 0x0010,
+    // Try sync audio and video in case any of these have advanced
+    // or fell back too much (this may halt or fastforward video
+    // frames, but audio is never touched, as gaps in audio are
+    // far more noticeable to human perception compared to video.
+    kVideo_SyncAudioVideo = 0x0020,
     // Must accumulate decoded frames, when format's frames
     // do not have a full image, but diff from the previous frame
-    kVideo_AccumFrame     = 0x0020,
+    kVideo_AccumFrame     = 0x0040,
 };
 
 // Parent video player class, provides basic playback logic,
@@ -167,6 +172,8 @@ private:
     void UpdateStats();
     // Update playback timing
     void UpdatePlayTime();
+    // Tries to synchronize video and audio outputs
+    void SyncVideoAudio();
     // Retrieve first available frame from queue,
     // advance output frame counter
     std::unique_ptr<Common::Bitmap> NextFrameFromQueue();
@@ -204,7 +211,12 @@ private:
     // note that these are "virtual time", and are adjusted whenever playback
     // is paused and resumed, or playback speed changes.
     bool _resetStartTime = false;
-    Clock::time_point _startTs; // time when the data was first prepared for the output
+    // The start timestamp is a checkpoint from which the optimal playback position
+    // is calculated. But it's a "virtual" time, not a real time (it may or not
+    // match the real time). It's reset when the video is paused and resumed, and
+    // also may be adjusted when the playback speed changes or for synchronization
+    // purposes.
+    Clock::time_point _startTs;
     Clock::time_point _pollTs; // timestamp of the last Poll in autoplay mode
     Clock::duration _playbackDuration; // full playback time
     Clock::time_point _pauseTs; // time when the playback was paused
@@ -259,6 +271,8 @@ private:
         std::pair<int32_t, int32_t> VideoTimingDiffs;
         float AudioTimingDiffAccum = 0.f;
         std::pair<float, float> AudioTimingDiffs;
+        float SyncMaxFw = 0.f;
+        float SyncMaxBw = 0.f;
     } _stats;
 
     static const uint32_t PrintStatsEachMs = 0u;

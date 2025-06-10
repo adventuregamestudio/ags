@@ -371,5 +371,42 @@ namespace AGS.Types
         {
             return (color.B << 8) | (color.G << 16) | (color.R << 24) | (color.A);
         }
+
+        /// <summary>
+        /// Paints a block of color (rectangular shape) over a checkered background (meant for demonstrating alpha value).
+        /// </summary>
+        public static void PaintColorBlock(Color color, Graphics g, Rectangle rect)
+        {
+            if (color.A == 255)
+            {
+                // If alpha is max, then simply paint an opaque block of color
+                using (SolidBrush brush = new SolidBrush(color))
+                {
+                    g.FillRectangle(brush, rect);
+                }
+            }
+            else
+            {
+                // Paint the checkered background
+                using (SolidBrush brush1 = new SolidBrush(Color.White))
+                using (SolidBrush brush2 = new SolidBrush(Color.DarkGray))
+                {
+                    g.FillRectangle(brush1, rect.Left, rect.Top, rect.Width / 2, rect.Height / 2);
+                    g.FillRectangle(brush1, rect.Left + rect.Width / 2, rect.Top + rect.Height / 2, rect.Width / 2, rect.Height / 2);
+                    g.FillRectangle(brush2, rect.Left + rect.Width / 2, rect.Top, rect.Width / 2, rect.Height / 2);
+                    g.FillRectangle(brush2, rect.Left, rect.Top + rect.Height / 2, rect.Width / 2, rect.Height / 2);
+                }
+
+                // Make half translucent, half opaque color block
+                using (SolidBrush brush = new SolidBrush(color))
+                {
+                    g.FillRectangle(brush, new Rectangle(rect.X, rect.Y, rect.Width / 2, rect.Height));
+                }
+                using (SolidBrush brush = new SolidBrush(Color.FromArgb(255, color.R, color.G, color.B)))
+                {
+                    g.FillRectangle(brush, new Rectangle(rect.X + rect.Width / 2, rect.Y, rect.Width / 2, rect.Height));
+                }
+            }
+        }
     }
 }

@@ -158,10 +158,7 @@ namespace AGS.Editor
 
         private void blockOfColour_Paint(object sender, PaintEventArgs e)
         {
-            using (Brush brush = new SolidBrush(_currentColor))
-            {
-                e.Graphics.FillRectangle(brush, 0, 0, blockOfColour.Width, blockOfColour.Height);
-            }
+            AGS.Types.Utilities.PaintColorBlock(_currentColor, e.Graphics, e.ClipRectangle);
         }
 
         private void palettePanel_Paint(object sender, PaintEventArgs e)

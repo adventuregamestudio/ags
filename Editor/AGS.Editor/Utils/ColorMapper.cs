@@ -192,6 +192,27 @@ namespace AGS.Editor
         }
 
         /// <summary>
+        /// Generates a legacy (AGS 3.*) color number from a Color.
+        /// </summary>
+        public static int MapRgbColorToLegacyColourNumber(Color rgbColor, PaletteEntry[] palette, GameColorDepth gameColorDepth)
+        {
+            int green = rgbColor.G;
+
+            if (rgbColor.R == 0 && rgbColor.G == 0 && rgbColor.B > 0)
+            {
+                // make sure the colour number doesn't end up being a special EGA colour
+                green = 4;
+            }
+            else if (gameColorDepth == GameColorDepth.Palette)
+            {
+                return FindNearestColourInGamePalette(rgbColor, palette);
+            }
+
+            // Generate a 16-bit R5G6R5 color number
+            return (rgbColor.B >> 3) + ((rgbColor.G >> 2) << 5) + ((rgbColor.R >> 3) << 11);
+        }
+
+        /// <summary>
         /// Makes a opaque colour number value from a number which presumably may not have an alpha component.
         /// </summary>
         public static int MakeOpaque(int colorNumber, GameColorDepth gameColorDepth)

@@ -121,6 +121,7 @@
     <value>You can use the controls below to find the AGS Colour Number for a particular colour. AGS Colour is displayed as a hexadecimal number and may be used to assign color value directly in script.
 Web color input field may be used to paste a color in HTML format which presents colors using #RRGGBBAA notation.
 Comma separated representation suits inserting arguments into the Game.GetColorFromRGB function.
+Legacy (AGS 3.*) Colour Number may be used to paste colors from old scripts when porting games to AGS 4.
 
 </value>
   </data>

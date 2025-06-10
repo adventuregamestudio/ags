@@ -101,6 +101,20 @@ namespace AGS.Editor
             }
         }
 
+        private void txtLegacyColourNumber_TextChanged(object sender, EventArgs e)
+        {
+            if (!_noUpdates)
+            {
+                int oldValue = 0;
+                int.TryParse(txtLegacyColourNumber.Text, out oldValue);
+                int newValue = ColorMapper.RemapFromLegacyColourNumber(oldValue,
+                    Factory.AGSEditor.CurrentGame.Palette,
+                    Factory.AGSEditor.CurrentGame.Settings.ColorDepth, false);
+                _currentColor = Color.FromArgb(newValue);
+                UpdateColor(txtLegacyColourNumber);
+            }
+        }
+
         private void UpdateColor(TextBox ignoreText = null)
         {
             _noUpdates = true;
@@ -129,6 +143,13 @@ namespace AGS.Editor
                 {
                     txtCommaSeparated.Text = $"{_currentColor.R}, {_currentColor.G}, {_currentColor.B}, {_currentColor.A}";
                 }
+            }
+            if (ignoreText != txtLegacyColourNumber)
+            {
+                txtLegacyColourNumber.Text =
+                    ColorMapper.MapRgbColorToLegacyColourNumber(_currentColor,
+                    Factory.AGSEditor.CurrentGame.Palette,
+                    Factory.AGSEditor.CurrentGame.Settings.ColorDepth).ToString();
             }
 
             blockOfColour.Invalidate();
@@ -410,7 +431,6 @@ namespace AGS.Editor
                     a.Graphics.DrawString(tab.Text, tab.Font, new SolidBrush(t.GetColor("palette/draw-item/foreground")), a.Bounds.X, a.Bounds.Y + 5);
                 };
             }
-
         }
 
         private void PaletteEditor_Load(object sender, EventArgs e)

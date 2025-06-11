@@ -274,5 +274,139 @@ namespace AGS.Types
             input.Close();
             return true;
         }
+
+        /// <summary>
+        /// Converts a string in 0xAARRGGBB notation into a Color.
+        /// Returns Color.Empty on any exception.
+        /// </summary>
+        public static Color ColorFromARGBHex(string hexString)
+        {
+            try
+            {
+                if (hexString.StartsWith("0x") || hexString.StartsWith("0X"))
+                    hexString = hexString.Substring(2);
+
+                return Color.FromArgb(Convert.ToInt32(hexString, 16));
+            }
+            catch
+            {
+                return Color.Empty;
+            }
+        }
+
+        /// <summary>
+        /// Converts a string in HTML #RRGGBBAA notation into a Color.
+        /// NOTE: this method is required because converting using standard .NET
+        /// utilities treat higher byte as a alpha instead.
+        /// Returns Color.Empty on any exception.
+        /// </summary>
+        public static Color ColorFromHTMLHex(string hexString)
+        {
+            try
+            {
+                if (hexString.StartsWith("#"))
+                    hexString = hexString.Substring(1);
+
+                int value = Convert.ToInt32(hexString, 16);
+                if (hexString.Length == 8)
+                {
+                    return Color.FromArgb(value & 0xFF, (value >> 24) & 0xFF, (value >> 16) & 0xFF, (value >> 8) & 0xFF);
+                }
+                else
+                {
+                    return Color.FromArgb((value >> 16) & 0xFF, (value >> 8) & 0xFF, (value) & 0xFF);
+                }
+            }
+            catch
+            {
+                return Color.Empty;
+            }
+        }
+
+        /// <summary>
+        /// Parses the input string as a separated RGBA values.
+        /// Returns resulting Color, or Color.Empty on failure.
+        /// </summary>
+        public static Color ColorFromSeparatedRGBA(string text, char separator)
+        {
+            try
+            {
+                if (text.IndexOf(separator) >= 0)
+                {
+                    var rgba = text.Split(separator);
+                    switch (rgba.Length)
+                    {
+                        case 3: return Color.FromArgb(int.Parse(rgba[0]), int.Parse(rgba[1]), int.Parse(rgba[2]));
+                        case 4: return Color.FromArgb(int.Parse(rgba[3]), int.Parse(rgba[0]), int.Parse(rgba[1]), int.Parse(rgba[2]));
+                        default: return Color.Empty;
+                    }
+                }
+            }
+            catch
+            {
+            }
+            return Color.Empty;
+        }
+
+        /// <summary>
+        /// Converts a Color into a 32-bit integer value representing color in RGB format.
+        /// </summary>
+        public static int ColorToRGBInt32(Color color)
+        {
+            return (color.B) | (color.G << 8) | (color.R << 16);
+        }
+
+        /// <summary>
+        /// Converts a Color into a 32-bit integer value representing color in ARGB format.
+        /// </summary>
+        public static int ColorToARGBInt32(Color color)
+        {
+            return (color.B) | (color.G << 8) | (color.R << 16) | (color.A << 24);
+        }
+
+        /// <summary>
+        /// Converts a Color into a 32-bit integer value representing color in RGBA format.
+        /// </summary>
+        public static int ColorToRGBAInt32(Color color)
+        {
+            return (color.B << 8) | (color.G << 16) | (color.R << 24) | (color.A);
+        }
+
+        /// <summary>
+        /// Paints a block of color (rectangular shape) over a checkered background (meant for demonstrating alpha value).
+        /// </summary>
+        public static void PaintColorBlock(Color color, Graphics g, Rectangle rect)
+        {
+            if (color.A == 255)
+            {
+                // If alpha is max, then simply paint an opaque block of color
+                using (SolidBrush brush = new SolidBrush(color))
+                {
+                    g.FillRectangle(brush, rect);
+                }
+            }
+            else
+            {
+                // Paint the checkered background
+                using (SolidBrush brush1 = new SolidBrush(Color.White))
+                using (SolidBrush brush2 = new SolidBrush(Color.DarkGray))
+                {
+                    g.FillRectangle(brush1, rect.Left, rect.Top, rect.Width / 2, rect.Height / 2);
+                    g.FillRectangle(brush1, rect.Left + rect.Width / 2, rect.Top + rect.Height / 2, rect.Width / 2, rect.Height / 2);
+                    g.FillRectangle(brush2, rect.Left + rect.Width / 2, rect.Top, rect.Width / 2, rect.Height / 2);
+                    g.FillRectangle(brush2, rect.Left, rect.Top + rect.Height / 2, rect.Width / 2, rect.Height / 2);
+                }
+
+                // Make half translucent, half opaque color block
+                using (SolidBrush brush = new SolidBrush(color))
+                {
+                    g.FillRectangle(brush, new Rectangle(rect.X, rect.Y, rect.Width / 2, rect.Height));
+                }
+                using (SolidBrush brush = new SolidBrush(Color.FromArgb(255, color.R, color.G, color.B)))
+                {
+                    g.FillRectangle(brush, new Rectangle(rect.X + rect.Width / 2, rect.Y, rect.Width / 2, rect.Height));
+                }
+            }
+        }
     }
 }

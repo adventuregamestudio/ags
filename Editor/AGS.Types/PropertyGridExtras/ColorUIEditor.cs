@@ -59,27 +59,7 @@ namespace AGS.Types
         public override void PaintValue(PaintValueEventArgs e)
         {
             Color color = ColorFromPropertyValue(e.Context, e.Value);
-            if (color.A > 0)
-            {
-                // Fixup alpha value for display
-                // TODO: possibly paint using alpha component when we actually support it here
-                color = Color.FromArgb(0xFF, color.R, color.G, color.B);
-                using (SolidBrush brush = new SolidBrush(color))
-                {
-                    e.Graphics.FillRectangle(brush, e.Bounds);
-                }
-            }
-            else
-            {
-                using (SolidBrush brush1 = new SolidBrush(Color.White))
-                using (SolidBrush brush2 = new SolidBrush(Color.DarkGray))
-                {
-                    e.Graphics.FillRectangle(brush1, e.Bounds.Left, e.Bounds.Top, e.Bounds.Width / 2, e.Bounds.Height / 2);
-                    e.Graphics.FillRectangle(brush1, e.Bounds.Left + e.Bounds.Width / 2, e.Bounds.Top + e.Bounds.Height / 2, e.Bounds.Width / 2, e.Bounds.Height / 2);
-                    e.Graphics.FillRectangle(brush2, e.Bounds.Left + e.Bounds.Width / 2, e.Bounds.Top, e.Bounds.Width / 2, e.Bounds.Height / 2);
-                    e.Graphics.FillRectangle(brush2, e.Bounds.Left, e.Bounds.Top + e.Bounds.Height / 2, e.Bounds.Width / 2, e.Bounds.Height / 2);
-                }
-            }
+            Utilities.PaintColorBlock(color, e.Graphics, e.Bounds);
         }
     }
 }

@@ -28,36 +28,36 @@ namespace AGS.Editor
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(PaletteEditor));
             this.tabControl = new System.Windows.Forms.TabControl();
             this.palettePage = new System.Windows.Forms.TabPage();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.label6 = new System.Windows.Forms.Label();
-            this.palettePanel = new AGS.Editor.BufferedPanel();
             this.lblPaletteIntro = new System.Windows.Forms.Label();
             this.colourFinderPage = new System.Windows.Forms.TabPage();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.btnColorDialog = new System.Windows.Forms.Button();
-            this.blockOfColour = new AGS.Editor.BufferedPanel();
-            this.lblBlueVal = new System.Windows.Forms.Label();
-            this.lblGreenVal = new System.Windows.Forms.Label();
-            this.lblRedVal = new System.Windows.Forms.Label();
+            this.panel1 = new System.Windows.Forms.Panel();
+            this.label1 = new System.Windows.Forms.Label();
+            this.panel2 = new System.Windows.Forms.Panel();
+            this.txtLegacyColourNumber = new System.Windows.Forms.TextBox();
+            this.label7 = new System.Windows.Forms.Label();
             this.label5 = new System.Windows.Forms.Label();
-            this.trackBarBlue = new System.Windows.Forms.TrackBar();
+            this.txtCommaSeparated = new System.Windows.Forms.TextBox();
             this.label4 = new System.Windows.Forms.Label();
-            this.trackBarGreen = new System.Windows.Forms.TrackBar();
+            this.txtWebColor = new System.Windows.Forms.TextBox();
             this.label3 = new System.Windows.Forms.Label();
-            this.trackBarRed = new System.Windows.Forms.TrackBar();
+            this.btnColorDialog = new System.Windows.Forms.Button();
             this.txtColourNumber = new System.Windows.Forms.TextBox();
             this.label2 = new System.Windows.Forms.Label();
-            this.label1 = new System.Windows.Forms.Label();
+            this.palettePanel = new AGS.Editor.BufferedPanel();
+            this.blockOfColour = new AGS.Editor.BufferedPanel();
             this.tabControl.SuspendLayout();
             this.palettePage.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.colourFinderPage.SuspendLayout();
             this.groupBox1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.trackBarBlue)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.trackBarGreen)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.trackBarRed)).BeginInit();
+            this.panel1.SuspendLayout();
+            this.panel2.SuspendLayout();
             this.SuspendLayout();
             // 
             // tabControl
@@ -104,22 +104,13 @@ namespace AGS.Editor
             this.label6.Text = "Click in the grid below to select a colour. Control-click to select additional co" +
     "lours; Shift-click to select a range.  Right click to import/export.";
             // 
-            // palettePanel
-            // 
-            this.palettePanel.Location = new System.Drawing.Point(19, 85);
-            this.palettePanel.Name = "palettePanel";
-            this.palettePanel.Size = new System.Drawing.Size(364, 320);
-            this.palettePanel.TabIndex = 1;
-			this.palettePanel.MouseDown += new System.Windows.Forms.MouseEventHandler(this.palettePanel_MouseDown);
-            this.palettePanel.Paint += new System.Windows.Forms.PaintEventHandler(this.palettePanel_Paint);
-            // 
             // lblPaletteIntro
             // 
             this.lblPaletteIntro.AutoSize = true;
             this.lblPaletteIntro.Location = new System.Drawing.Point(16, 17);
             this.lblPaletteIntro.MaximumSize = new System.Drawing.Size(400, 0);
             this.lblPaletteIntro.Name = "lblPaletteIntro";
-			this.lblPaletteIntro.Size = new System.Drawing.Size(394, 26);
+            this.lblPaletteIntro.Size = new System.Drawing.Size(395, 26);
             this.lblPaletteIntro.TabIndex = 0;
             this.lblPaletteIntro.Text = "This palette information will only be used for drawing any 8-bit graphics that yo" +
     "u may have imported.";
@@ -137,164 +128,161 @@ namespace AGS.Editor
             // 
             // groupBox1
             // 
-            this.groupBox1.Controls.Add(this.btnColorDialog);
-            this.groupBox1.Controls.Add(this.blockOfColour);
-            this.groupBox1.Controls.Add(this.lblBlueVal);
-            this.groupBox1.Controls.Add(this.lblGreenVal);
-            this.groupBox1.Controls.Add(this.lblRedVal);
-            this.groupBox1.Controls.Add(this.label5);
-            this.groupBox1.Controls.Add(this.trackBarBlue);
-            this.groupBox1.Controls.Add(this.label4);
-            this.groupBox1.Controls.Add(this.trackBarGreen);
-            this.groupBox1.Controls.Add(this.label3);
-            this.groupBox1.Controls.Add(this.trackBarRed);
-            this.groupBox1.Controls.Add(this.txtColourNumber);
-            this.groupBox1.Controls.Add(this.label2);
-            this.groupBox1.Controls.Add(this.label1);
+            this.groupBox1.Controls.Add(this.panel2);
+            this.groupBox1.Controls.Add(this.panel1);
             this.groupBox1.Location = new System.Drawing.Point(6, 6);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(395, 337);
+            this.groupBox1.Size = new System.Drawing.Size(435, 411);
             this.groupBox1.TabIndex = 1;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Colour Finder";
             // 
-            // btnColorDialog
+            // panel1
             // 
-            this.btnColorDialog.Location = new System.Drawing.Point(201, 74);
-            this.btnColorDialog.Name = "btnColorDialog";
-            this.btnColorDialog.Size = new System.Drawing.Size(96, 21);
-            this.btnColorDialog.TabIndex = 14;
-            this.btnColorDialog.Text = "Find Colour...";
-            this.btnColorDialog.UseVisualStyleBackColor = true;
-            this.btnColorDialog.Click += new System.EventHandler(this.btnColorDialog_Click);
+            this.panel1.Controls.Add(this.label1);
+            this.panel1.Location = new System.Drawing.Point(6, 20);
+            this.panel1.Name = "panel1";
+            this.panel1.Size = new System.Drawing.Size(420, 145);
+            this.panel1.TabIndex = 22;
             // 
-            // blockOfColour
+            // label1
             // 
-            this.blockOfColour.Location = new System.Drawing.Point(23, 242);
-            this.blockOfColour.Name = "blockOfColour";
-            this.blockOfColour.Size = new System.Drawing.Size(245, 47);
-            this.blockOfColour.TabIndex = 12;
-            this.blockOfColour.Paint += new System.Windows.Forms.PaintEventHandler(this.blockOfColour_Paint);
+            this.label1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.label1.Location = new System.Drawing.Point(0, 0);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(420, 145);
+            this.label1.TabIndex = 1;
+            this.label1.Text = resources.GetString("label1.Text");
             // 
-            // lblBlueVal
+            // panel2
             // 
-            this.lblBlueVal.AutoSize = true;
-            this.lblBlueVal.Location = new System.Drawing.Point(278, 192);
-            this.lblBlueVal.Name = "lblBlueVal";
-            this.lblBlueVal.Size = new System.Drawing.Size(13, 13);
-            this.lblBlueVal.TabIndex = 11;
-            this.lblBlueVal.Text = "0";
+            this.panel2.Controls.Add(this.txtLegacyColourNumber);
+            this.panel2.Controls.Add(this.label7);
+            this.panel2.Controls.Add(this.label5);
+            this.panel2.Controls.Add(this.txtCommaSeparated);
+            this.panel2.Controls.Add(this.label4);
+            this.panel2.Controls.Add(this.txtWebColor);
+            this.panel2.Controls.Add(this.label3);
+            this.panel2.Controls.Add(this.btnColorDialog);
+            this.panel2.Controls.Add(this.blockOfColour);
+            this.panel2.Controls.Add(this.txtColourNumber);
+            this.panel2.Controls.Add(this.label2);
+            this.panel2.Location = new System.Drawing.Point(6, 168);
+            this.panel2.Name = "panel2";
+            this.panel2.Size = new System.Drawing.Size(420, 237);
+            this.panel2.TabIndex = 23;
             // 
-            // lblGreenVal
+            // txtLegacyColourNumber
             // 
-            this.lblGreenVal.AutoSize = true;
-            this.lblGreenVal.Location = new System.Drawing.Point(278, 153);
-            this.lblGreenVal.Name = "lblGreenVal";
-            this.lblGreenVal.Size = new System.Drawing.Size(13, 13);
-            this.lblGreenVal.TabIndex = 10;
-            this.lblGreenVal.Text = "0";
+            this.txtLegacyColourNumber.Location = new System.Drawing.Point(207, 90);
+            this.txtLegacyColourNumber.MaxLength = 0;
+            this.txtLegacyColourNumber.Name = "txtLegacyColourNumber";
+            this.txtLegacyColourNumber.Size = new System.Drawing.Size(99, 21);
+            this.txtLegacyColourNumber.TabIndex = 32;
+            this.txtLegacyColourNumber.Text = "0";
+            this.txtLegacyColourNumber.TextChanged += new System.EventHandler(this.txtLegacyColourNumber_TextChanged);
             // 
-            // lblRedVal
+            // label7
             // 
-            this.lblRedVal.AutoSize = true;
-            this.lblRedVal.Location = new System.Drawing.Point(278, 115);
-            this.lblRedVal.Name = "lblRedVal";
-            this.lblRedVal.Size = new System.Drawing.Size(13, 13);
-            this.lblRedVal.TabIndex = 9;
-            this.lblRedVal.Text = "0";
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(10, 94);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(168, 13);
+            this.label7.TabIndex = 31;
+            this.label7.Text = "Legacy (AGS 3.*) Colour number:\r\n";
             // 
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(18, 192);
+            this.label5.Location = new System.Drawing.Point(188, 40);
             this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(31, 13);
-            this.label5.TabIndex = 8;
-            this.label5.Text = "Blue:";
+            this.label5.Size = new System.Drawing.Size(15, 13);
+            this.label5.TabIndex = 30;
+            this.label5.Text = "#";
             // 
-            // trackBarBlue
+            // txtCommaSeparated
             // 
-            this.trackBarBlue.LargeChange = 40;
-            this.trackBarBlue.Location = new System.Drawing.Point(61, 188);
-            this.trackBarBlue.Maximum = 255;
-            this.trackBarBlue.Name = "trackBarBlue";
-            this.trackBarBlue.Size = new System.Drawing.Size(208, 42);
-            this.trackBarBlue.SmallChange = 8;
-            this.trackBarBlue.TabIndex = 7;
-            this.trackBarBlue.TickFrequency = 16;
-            this.trackBarBlue.Scroll += new System.EventHandler(this.trackBarBlue_Scroll);
+            this.txtCommaSeparated.Location = new System.Drawing.Point(207, 63);
+            this.txtCommaSeparated.MaxLength = 0;
+            this.txtCommaSeparated.Name = "txtCommaSeparated";
+            this.txtCommaSeparated.Size = new System.Drawing.Size(99, 21);
+            this.txtCommaSeparated.TabIndex = 29;
+            this.txtCommaSeparated.Text = "0";
+            this.txtCommaSeparated.TextChanged += new System.EventHandler(this.txtCommaSeparated_TextChanged);
             // 
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(18, 153);
+            this.label4.Location = new System.Drawing.Point(10, 67);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(40, 13);
-            this.label4.TabIndex = 6;
-            this.label4.Text = "Green:";
+            this.label4.Size = new System.Drawing.Size(157, 13);
+            this.label4.TabIndex = 28;
+            this.label4.Text = "Comma separated (R, G, B, A):";
             // 
-            // trackBarGreen
+            // txtWebColor
             // 
-            this.trackBarGreen.LargeChange = 40;
-            this.trackBarGreen.Location = new System.Drawing.Point(61, 149);
-            this.trackBarGreen.Maximum = 255;
-            this.trackBarGreen.Name = "trackBarGreen";
-            this.trackBarGreen.Size = new System.Drawing.Size(208, 42);
-            this.trackBarGreen.SmallChange = 8;
-            this.trackBarGreen.TabIndex = 5;
-            this.trackBarGreen.TickFrequency = 16;
-            this.trackBarGreen.Scroll += new System.EventHandler(this.trackBarGreen_Scroll);
+            this.txtWebColor.Location = new System.Drawing.Point(207, 36);
+            this.txtWebColor.MaxLength = 8;
+            this.txtWebColor.Name = "txtWebColor";
+            this.txtWebColor.Size = new System.Drawing.Size(99, 21);
+            this.txtWebColor.TabIndex = 27;
+            this.txtWebColor.Text = "0";
+            this.txtWebColor.TextChanged += new System.EventHandler(this.txtWebColor_TextChanged);
             // 
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(18, 115);
+            this.label3.Location = new System.Drawing.Point(10, 40);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(30, 13);
-            this.label3.TabIndex = 4;
-            this.label3.Text = "Red:";
+            this.label3.Size = new System.Drawing.Size(124, 13);
+            this.label3.TabIndex = 26;
+            this.label3.Text = "Web color (RRGGBBAA):";
             // 
-            // trackBarRed
+            // btnColorDialog
             // 
-            this.trackBarRed.LargeChange = 40;
-            this.trackBarRed.Location = new System.Drawing.Point(61, 111);
-            this.trackBarRed.Maximum = 255;
-            this.trackBarRed.Name = "trackBarRed";
-            this.trackBarRed.Size = new System.Drawing.Size(208, 42);
-            this.trackBarRed.SmallChange = 8;
-            this.trackBarRed.TabIndex = 3;
-            this.trackBarRed.TickFrequency = 16;
-            this.trackBarRed.Scroll += new System.EventHandler(this.trackBarRed_Scroll);
+            this.btnColorDialog.Location = new System.Drawing.Point(312, 10);
+            this.btnColorDialog.Name = "btnColorDialog";
+            this.btnColorDialog.Size = new System.Drawing.Size(96, 21);
+            this.btnColorDialog.TabIndex = 25;
+            this.btnColorDialog.Text = "Find Colour...";
+            this.btnColorDialog.UseVisualStyleBackColor = true;
+            this.btnColorDialog.Click += new System.EventHandler(this.btnColorDialog_Click);
             // 
             // txtColourNumber
             // 
-            this.txtColourNumber.Location = new System.Drawing.Point(110, 74);
+            this.txtColourNumber.Location = new System.Drawing.Point(207, 10);
             this.txtColourNumber.MaxLength = 10;
             this.txtColourNumber.Name = "txtColourNumber";
-            this.txtColourNumber.Size = new System.Drawing.Size(85, 21);
-            this.txtColourNumber.TabIndex = 2;
+            this.txtColourNumber.Size = new System.Drawing.Size(99, 21);
+            this.txtColourNumber.TabIndex = 23;
             this.txtColourNumber.Text = "0";
             this.txtColourNumber.TextChanged += new System.EventHandler(this.txtColourNumber_TextChanged);
             // 
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(16, 77);
+            this.label2.Location = new System.Drawing.Point(10, 14);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(81, 13);
-            this.label2.TabIndex = 1;
-            this.label2.Text = "Colour number:";
+            this.label2.Size = new System.Drawing.Size(158, 13);
+            this.label2.TabIndex = 22;
+            this.label2.Text = "Colour number (0xAARRGGBB):";
             // 
-            // label1
+            // palettePanel
             // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(16, 26);
-            this.label1.MaximumSize = new System.Drawing.Size(350, 0);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(335, 26);
-            this.label1.TabIndex = 0;
-            this.label1.Text = "You can use the controls below to find the AGS Colour Number for a particular col" +
-    "our.";
+            this.palettePanel.Location = new System.Drawing.Point(19, 85);
+            this.palettePanel.Name = "palettePanel";
+            this.palettePanel.Size = new System.Drawing.Size(364, 320);
+            this.palettePanel.TabIndex = 1;
+            this.palettePanel.Paint += new System.Windows.Forms.PaintEventHandler(this.palettePanel_Paint);
+            this.palettePanel.MouseDown += new System.Windows.Forms.MouseEventHandler(this.palettePanel_MouseDown);
+            // 
+            // blockOfColour
+            // 
+            this.blockOfColour.Location = new System.Drawing.Point(13, 131);
+            this.blockOfColour.Name = "blockOfColour";
+            this.blockOfColour.Size = new System.Drawing.Size(395, 47);
+            this.blockOfColour.TabIndex = 24;
+            this.blockOfColour.Paint += new System.Windows.Forms.PaintEventHandler(this.blockOfColour_Paint);
             // 
             // PaletteEditor
             // 
@@ -311,10 +299,9 @@ namespace AGS.Editor
             this.groupBox2.PerformLayout();
             this.colourFinderPage.ResumeLayout(false);
             this.groupBox1.ResumeLayout(false);
-            this.groupBox1.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.trackBarBlue)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.trackBarGreen)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.trackBarRed)).EndInit();
+            this.panel1.ResumeLayout(false);
+            this.panel2.ResumeLayout(false);
+            this.panel2.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -327,21 +314,21 @@ namespace AGS.Editor
         private System.Windows.Forms.Label lblPaletteIntro;
         private System.Windows.Forms.TabPage colourFinderPage;
         private System.Windows.Forms.GroupBox groupBox1;
-        private BufferedPanel blockOfColour;
-        private System.Windows.Forms.Label lblBlueVal;
-        private System.Windows.Forms.Label lblGreenVal;
-        private System.Windows.Forms.Label lblRedVal;
-        private System.Windows.Forms.Label label5;
-        private System.Windows.Forms.TrackBar trackBarBlue;
-        private System.Windows.Forms.Label label4;
-        private System.Windows.Forms.TrackBar trackBarGreen;
-        private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.TrackBar trackBarRed;
-        private System.Windows.Forms.TextBox txtColourNumber;
-        private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.Label label1;
         private BufferedPanel palettePanel;
         private System.Windows.Forms.Label label6;
-		private System.Windows.Forms.Button btnColorDialog;
+        private System.Windows.Forms.Panel panel2;
+        private System.Windows.Forms.TextBox txtLegacyColourNumber;
+        private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.TextBox txtCommaSeparated;
+        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.TextBox txtWebColor;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Button btnColorDialog;
+        private BufferedPanel blockOfColour;
+        private System.Windows.Forms.TextBox txtColourNumber;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Panel panel1;
+        private System.Windows.Forms.Label label1;
     }
 }

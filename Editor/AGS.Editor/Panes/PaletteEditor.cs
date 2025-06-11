@@ -21,6 +21,7 @@ namespace AGS.Editor
         private bool _noUpdates = false;
         private List<int> _selectedIndexes = new List<int>();
         private TabPage _colourFinder;
+        private Color _currentColor = Color.Black;
 
         public PaletteEditor()
         {
@@ -29,6 +30,7 @@ namespace AGS.Editor
             Factory.GUIController.OnPropertyObjectChanged += GUIController_OnPropertyObjectChanged;
             _selectedIndexes.Add(0);
             GameChanged();
+            UpdateColor();
         }
 
         protected override void OnPropertyChanged(string propertyName, object oldValue)
@@ -70,71 +72,93 @@ namespace AGS.Editor
             UpdatePropertyGrid();
         }
 
-        private void trackBarRed_Scroll(object sender, EventArgs e)
-        {
-            ColourSlidersUpdated();
-            UpdateNumberFromScrollBars();
-        }
-
-        private void trackBarGreen_Scroll(object sender, EventArgs e)
-        {
-            ColourSlidersUpdated();
-            UpdateNumberFromScrollBars();
-        }
-
-        private void trackBarBlue_Scroll(object sender, EventArgs e)
-        {
-            ColourSlidersUpdated();
-            UpdateNumberFromScrollBars();
-        }
-
         private void txtColourNumber_TextChanged(object sender, EventArgs e)
         {
             if (!_noUpdates)
             {
-                int newVal = 0;
-                Int32.TryParse(txtColourNumber.Text, out newVal);
-                if ((newVal < 0) || (newVal > int.MaxValue))
-                {
-                    newVal = 0;
-                }
-
-                Color newColor = ColorMapper.AgsColourNumberToColorDirect(newVal);
-                trackBarRed.Value = newColor.R;
-                trackBarGreen.Value = newColor.G;
-                trackBarBlue.Value = newColor.B;
-				ColourSlidersUpdated();
+                _currentColor = AGS.Types.Utilities.ColorFromARGBHex(txtColourNumber.Text);
+                UpdateColor(txtColourNumber);
             }
         }
 
-        private void ColourSlidersUpdated()
+        private void txtWebColor_TextChanged(object sender, EventArgs e)
         {
-            lblRedVal.Text = trackBarRed.Value.ToString();
-            lblGreenVal.Text = trackBarGreen.Value.ToString();
-            lblBlueVal.Text = trackBarBlue.Value.ToString();
-            blockOfColour.Invalidate();
+            if (!_noUpdates)
+            {
+                _currentColor = AGS.Types.Utilities.ColorFromHTMLHex(txtWebColor.Text);
+                UpdateColor(txtWebColor);
+            }
         }
 
-        private void UpdateNumberFromScrollBars()
+        private void txtCommaSeparated_TextChanged(object sender, EventArgs e)
+        {
+            if (!_noUpdates)
+            {
+                _currentColor = AGS.Types.Utilities.ColorFromSeparatedRGBA(txtCommaSeparated.Text, ',');
+                if (_currentColor.IsEmpty)
+                    _currentColor = AGS.Types.Utilities.ColorFromSeparatedRGBA(txtCommaSeparated.Text, ';');
+                UpdateColor(txtCommaSeparated);
+            }
+        }
+
+        private void txtLegacyColourNumber_TextChanged(object sender, EventArgs e)
+        {
+            if (!_noUpdates)
+            {
+                int oldValue = 0;
+                int.TryParse(txtLegacyColourNumber.Text, out oldValue);
+                int newValue = ColorMapper.RemapFromLegacyColourNumber(oldValue,
+                    Factory.AGSEditor.CurrentGame.Palette,
+                    Factory.AGSEditor.CurrentGame.Settings.ColorDepth, false);
+                _currentColor = Color.FromArgb(newValue);
+                UpdateColor(txtLegacyColourNumber);
+            }
+        }
+
+        private void UpdateColor(TextBox ignoreText = null)
         {
             _noUpdates = true;
-            var newColor = Color.FromArgb(trackBarRed.Value, trackBarGreen.Value, trackBarBlue.Value);
-            int newValue = ColorMapper.ColorToAgsColourNumberDirect(newColor);
-            txtColourNumber.Text = newValue.ToString();
-            _noUpdates = false;
+            if (ignoreText != txtColourNumber)
+            {
+                txtColourNumber.Text = $"0x{AGS.Types.Utilities.ColorToARGBInt32(_currentColor).ToString("X8")}";
+            }
+            if (ignoreText != txtWebColor)
+            {
+                if (_currentColor.A == 255)
+                {
+                    txtWebColor.Text = AGS.Types.Utilities.ColorToRGBInt32(_currentColor).ToString("X6");
+                }
+                else
+                {
+                    txtWebColor.Text = AGS.Types.Utilities.ColorToRGBAInt32(_currentColor).ToString("X8");
+                }
+            }
+            if (ignoreText != txtCommaSeparated)
+            {
+                if (_currentColor.A == 255)
+                {
+                    txtCommaSeparated.Text = $"{_currentColor.R}, {_currentColor.G}, {_currentColor.B}";
+                }
+                else
+                {
+                    txtCommaSeparated.Text = $"{_currentColor.R}, {_currentColor.G}, {_currentColor.B}, {_currentColor.A}";
+                }
+            }
+            if (ignoreText != txtLegacyColourNumber)
+            {
+                txtLegacyColourNumber.Text =
+                    ColorMapper.MapRgbColorToLegacyColourNumber(_currentColor,
+                    Factory.AGSEditor.CurrentGame.Palette,
+                    Factory.AGSEditor.CurrentGame.Settings.ColorDepth).ToString();
+            }
+
             blockOfColour.Invalidate();
+            _noUpdates = false;
         }
 
         private void blockOfColour_Paint(object sender, PaintEventArgs e)
         {
-            int colourVal = 0;
-            Int32.TryParse(txtColourNumber.Text, out colourVal);
-
-            Color color = Factory.AGSEditor.ColorMapper.MapAgsColourNumberToRgbColor(colourVal);
-            using (Brush brush = new SolidBrush(color))
-            {
-                e.Graphics.FillRectangle(brush, 0, 0, blockOfColour.Width, blockOfColour.Height);
-            }
+            AGS.Types.Utilities.PaintColorBlock(_currentColor, e.Graphics, e.ClipRectangle);
         }
 
         private void palettePanel_Paint(object sender, PaintEventArgs e)
@@ -361,22 +385,19 @@ namespace AGS.Editor
             Factory.GUIController.OnPropertyObjectChanged -= GUIController_OnPropertyObjectChanged;
         }
 
-		private void btnColorDialog_Click(object sender, EventArgs e)
-		{
-			ColorDialog dialog = new ColorDialog();
-			dialog.Color = Color.FromArgb(trackBarRed.Value, trackBarGreen.Value, trackBarBlue.Value);
-			dialog.AnyColor = true;
-			dialog.FullOpen = true;
-			if (dialog.ShowDialog() == DialogResult.OK)
-			{
-				trackBarRed.Value = dialog.Color.R;
-				trackBarGreen.Value = dialog.Color.G;
-				trackBarBlue.Value = dialog.Color.B;
-				ColourSlidersUpdated();
-				UpdateNumberFromScrollBars();
-			}
-			dialog.Dispose();
-		}
+        private void btnColorDialog_Click(object sender, EventArgs e)
+        {
+            ColorDialog dialog = new ColorDialog();
+            dialog.Color = _currentColor;
+            dialog.AnyColor = true;
+            dialog.FullOpen = true;
+            if (dialog.ShowDialog() == DialogResult.OK)
+            {
+                _currentColor = dialog.Color;
+                UpdateColor();
+            }
+            dialog.Dispose();
+        }
 
         private void LoadColorTheme(ColorTheme t)
         {
@@ -407,7 +428,6 @@ namespace AGS.Editor
                     a.Graphics.DrawString(tab.Text, tab.Font, new SolidBrush(t.GetColor("palette/draw-item/foreground")), a.Bounds.X, a.Bounds.Y + 5);
                 };
             }
-
         }
 
         private void PaletteEditor_Load(object sender, EventArgs e)

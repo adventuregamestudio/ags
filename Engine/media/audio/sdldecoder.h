@@ -134,6 +134,11 @@ struct SoundBuffer final : SoundBufferPtr
         _rec = AudioFrameRecord(sz, ts, dur_ms);
     }
 
+    void SetTimestamp(float ts)
+    {
+        _rec.Timestamp = ts;
+    }
+
 private:
     std::vector<uint8_t> _buf;
 };

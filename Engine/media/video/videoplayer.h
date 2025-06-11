@@ -106,7 +106,6 @@ public:
     const Size &GetTargetSize() const { return _targetSize; }
     // Get suggested video framerate (frames per second)
     float GetFramerate() const { return _frameRate; }
-    uint32_t GetFrameIndex() const { return _framesPlayed; /* CHECKME! */ }
     // Tells if video playback is looping
     bool IsLooping() const { return (_flags & kVideo_Loop) != 0; }
     // Get current playback state
@@ -115,6 +114,8 @@ public:
     float GetDurationMs() const { return _durationMs; }
     // Gets playback position, in ms
     float GetPositionMs() const { return _posMs; }
+    // Gets current video frame index
+    uint32_t GetFrameIndex() const { return _frameIndex; }
 
     void  SetSpeed(float speed);
     void  SetVolume(float volume);
@@ -160,6 +161,26 @@ protected:
     float _durationMs = 0.f;
 
 private:
+    struct VideoFrame
+    {
+        VideoFrame() = default;
+        VideoFrame(std::unique_ptr<Common::Bitmap> &&bmp, float ts = -1.f)
+            : _bmp(std::move(bmp)), _ts(ts) {}
+
+        const Common::Bitmap *Bitmap() const { return _bmp.get(); }
+        float Timestamp() const { return _ts; }
+        void SetTimestamp(float ts) { _ts = ts; }
+
+        std::unique_ptr<Common::Bitmap> Retrieve()
+        {
+            return std::move(_bmp);
+        }
+
+    private:
+        std::unique_ptr<Common::Bitmap> _bmp;
+        float _ts = -1.f; // negative means undefined
+    };
+
     // Rewind the stream to start and reset playback pos
     bool Rewind();
     // Resume after pause
@@ -176,7 +197,7 @@ private:
     void SyncVideoAudio();
     // Retrieve first available frame from queue,
     // advance output frame counter
-    std::unique_ptr<Common::Bitmap> NextFrameFromQueue();
+    std::unique_ptr<VideoFrame> NextFrameFromQueue();
     // Process buffered video frame(s);
     // returns if should continue working
     bool ProcessVideo();
@@ -201,16 +222,18 @@ private:
 
     // Playback state
     PlaybackState _playState = PlayStateInitial;
-    // Playback position, depends on how much data did we played
+    // Actual playback position; depends on both video and audio playback counters
     float _posMs = 0.f;
-    // Frames counter, increments with playback, resets on rewind or seek
-    uint32_t _framesPlayed = 0u;
-    // Audio duration counter, increments with playback, resets on rewind or seek
-    float _audioPlayed = 0.f;
+    // Video playback position (using 1 frame precision), increments with playback, resets on rewind or seek
+    float _videoPosMs = 0.f;
+    // Current video frame index (sequential since the video beginning);
+    // UINT32_MAX means undefined frame
+    uint32_t _frameIndex = UINT32_MAX;
+    // Audio playback position, increments with playback, resets on rewind or seek
+    float _audioPosMs = 0.f;
     // Stage timestamps, used to calculate the next frame timing;
     // note that these are "virtual time", and are adjusted whenever playback
     // is paused and resumed, or playback speed changes.
-    bool _resetStartTime = false;
     // The start timestamp is a checkpoint from which the optimal playback position
     // is calculated. But it's a "virtual" time, not a real time (it may or not
     // match the real time). It's reset when the video is paused and resumed, and
@@ -218,11 +241,16 @@ private:
     // purposes.
     Clock::time_point _startTs;
     Clock::time_point _pollTs; // timestamp of the last Poll in autoplay mode
-    Clock::duration _playbackDuration; // full playback time
+    bool _resetStartTime = false; // an instruction to reset start ts on the next poll
     Clock::time_point _pauseTs; // time when the playback was paused
-    uint32_t _wantFrameIndex = 0u; // expected video frame at this time
+    uint32_t _inputFrameCount = 0u; // how many frames received on input
+    float _inputAudioDurMs = 0.f; // how much audio received on input
+    //float _nextVideoTs = 0.f; // expected next video timestamp for output
+    //float _nextAudioTs = 0.f; // expected next audio timestamp for output
+    Clock::duration _playbackDuration; // playback time passed since start timestamp
+    float _playbackDurationMs = 0.f;
     // Audio
-    // Buffered audio queue
+    // Buffered audio queue and pool
     std::stack<std::unique_ptr<SoundBuffer>> _audioFramePool;
     std::deque<std::unique_ptr<SoundBuffer>> _audioFrameQueue;
     float _audioQueueDurMs = 0.f; // accumulated duration of audio queue
@@ -234,9 +262,9 @@ private:
     std::unique_ptr<Common::Bitmap> _vframeBuf;
     // Helper buffer for copying 8-bit frames to the final frame
     std::unique_ptr<Common::Bitmap> _hicolBuf;
-    // Buffered frame queue
+    // Buffered frame queue and pool
     std::stack<std::unique_ptr<Common::Bitmap>> _videoFramePool;
-    std::deque<std::unique_ptr<Common::Bitmap>> _videoFrameQueue;
+    std::deque<std::unique_ptr<VideoFrame>> _videoFrameQueue;
 
     // Statistics
     struct Statistics
@@ -267,10 +295,13 @@ private:
         float MaxBufferedAudioMs = 0.f; // duration
         uint32_t BufferedVideoAccum = 0u;
         float BufferedAudioAcum = 0.f;
-        int32_t VideoTimingDiffAccum = 0;
-        std::pair<int32_t, int32_t> VideoTimingDiffs;
+        float VideoTimingDiffAccum = 0.f;
+        std::pair<float, float> VideoTimingDiffs;
         float AudioTimingDiffAccum = 0.f;
         std::pair<float, float> AudioTimingDiffs;
+        uint32_t LastSyncRecordFrame = UINT32_MAX; // which video frame we recorded avg sync times
+        std::pair<float, float> SyncTimingDiffs;
+        float SyncTimingDiffAccum = 0.f;
         float SyncMaxFw = 0.f;
         float SyncMaxBw = 0.f;
     } _stats;

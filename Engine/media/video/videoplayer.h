@@ -140,7 +140,7 @@ protected:
     // Rewind to the start
     virtual bool RewindImpl() { return false; }
     // Retrieves next video frame, implementation-specific
-    virtual bool NextVideoFrame(Common::Bitmap *dst) { return false; };
+    virtual bool NextVideoFrame(Common::Bitmap *dst, float &ts) { return false; };
     // Retrieves next audio frame, implementation-specific
     // TODO: change return type to a proper allocated buffer
     // when we support a proper audio queue here.

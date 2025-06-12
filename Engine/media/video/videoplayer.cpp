@@ -398,7 +398,8 @@ void VideoPlayer::BufferVideo()
     const bool must_conv = (_targetSize != _frameSize || _targetDepth != _frameDepth
         || ((_flags & kVideo_AccumFrame) != 0));
     Bitmap *usebuf = must_conv ? _vframeBuf.get() : target_frame.get();
-    if (!NextVideoFrame(usebuf))
+    float frame_ts = -1.f;
+    if (!NextVideoFrame(usebuf, frame_ts))
     {
         // failed to get frame, so move prepared target frame into the pool for now
         _videoFramePool.push(std::move(target_frame));
@@ -406,9 +407,12 @@ void VideoPlayer::BufferVideo()
     }
 
     const auto decoded_frame_sz = usebuf->GetDataSize();
-    // TODO: support getting timestamp from decoder
-    const float frame_ts = _inputFrameCount * _targetFrameTime;
+    const float expect_frame_ts = _inputFrameCount * _targetFrameTime;
+    // Convert frame_ts to our playback speed
+    frame_ts = frame_ts * _targetFrameTime / _frameTime;
     _inputFrameCount++;
+
+    //Debug::Printf("INPUT VIDEO FRAME: expect ts = %.2f, given ts = %.2f, diff = %.2f", expect_frame_ts, frame_ts, expect_frame_ts - frame_ts);
 
     // Convert frame if necessary
     if (must_conv)

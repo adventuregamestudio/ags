@@ -38,7 +38,7 @@ private:
         const String &name, int &flags, int target_depth) override;
     void CloseImpl() override;
     // Retrieves next video frame, implementation-specific
-    bool NextVideoFrame(Common::Bitmap *dst) override;
+    bool NextVideoFrame(Common::Bitmap *dst, float &ts) override;
 
     PACKFILE *_pf = nullptr;
     RGB _oldpal[256]{};

@@ -128,7 +128,9 @@ HError TheoraPlayer::OpenAPEGStream(Stream *data_stream, const Common::String &n
     _audioFreq = _apegStream->audio.freq;
     _audioFormat = AUDIO_S16SYS;
     apeg_set_error(_apegStream, NULL);
+    _videoFramesDecodedTotal = 0u;
     _videoFramesDecoded = 0u;
+    _nextFrameTs = 0.f;
 
     const char *pixelfmt_str[] = { "APEG_420", "APEG_422", "APEG_444" };
     Debug::Printf("TheoraPlayer: opened video \"%s\": %dx%d fmt: %s, fps: %.4f"
@@ -148,8 +150,8 @@ void TheoraPlayer::CloseImpl()
     {
         apeg_close_stream(_apegStream);
         _apegStream = nullptr;
-        Debug::Printf("TheoraPlayer: closed, total video frames decoded: %" PRIu64 "", _videoFramesDecoded);
-        _videoFramesDecoded = 0u;
+        Debug::Printf("TheoraPlayer: closed, total video frames decoded: %" PRIu64 "", _videoFramesDecodedTotal);
+        _videoFramesDecodedTotal = 0u;
     }
 }
 
@@ -159,11 +161,16 @@ bool TheoraPlayer::RewindImpl()
     {
         OpenAPEGStream(_dataStream.get(), GetName(), _usedFlags, _usedDepth);
     }
+    // reset video position record
+    _videoFramesDecoded = 0u;
+    _nextFrameTs = 0.f;
     return _apegStream != nullptr;
 }
 
-bool TheoraPlayer::NextVideoFrame(Bitmap *dst)
+bool TheoraPlayer::NextVideoFrame(Bitmap *dst, float &ts)
 {
+    ts = -1.f; // reset in case of error
+
     assert(_apegStream);
     assert((_apegStream->flags & APEG_HAS_VIDEO) != 0);
     if ((_apegStream->flags & APEG_HAS_VIDEO) == 0)
@@ -180,8 +187,11 @@ bool TheoraPlayer::NextVideoFrame(Bitmap *dst)
         return false; // NOTE: apeg_display_video_frame returns EOF when picture is NULL
 
     _videoFramesDecoded++;
+    _videoFramesDecodedTotal++;
     // TODO: find a way to optimize Theora decoder by providing our own src bitmap directly
     dst->Blit(_theoraSrcFrame.get());
+    ts = _nextFrameTs;
+    _nextFrameTs = _apegStream->pos * 1000.f; // to milliseconds (FIXME: should we keep ours in seconds?)
     return true;
 }
 

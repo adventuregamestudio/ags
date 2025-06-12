@@ -1,10 +1,5 @@
 using AGS.Types;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Text;
 using System.Windows.Forms;
 
 namespace AGS.Editor
@@ -17,6 +12,7 @@ namespace AGS.Editor
         public ViewChooser(int currentView)
         {
             InitializeComponent();
+            this.viewTree.EnableDoubleBuffering();
             _startingView = currentView;
         }
 

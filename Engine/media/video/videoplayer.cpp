@@ -448,7 +448,7 @@ void VideoPlayer::BufferVideo()
     _stats.VideoIn.RawDecodedConvDataSz = target_frame->GetDataSize();
     _stats.VideoIn.AvgTimePerFrame = _stats.VideoIn.TotalTime / _stats.VideoIn.Frames;
     _stats.VideoIn.MaxTimePerFrame = std::max(_stats.VideoIn.MaxTimePerFrame, static_cast<uint32_t>(input_dur_ms));
-    _stats.MaxBufferedVideo = std::max(_stats.MaxBufferedVideo, _videoFrameQueue.size());
+    _stats.MaxBufferedVideo = std::max<uint32_t>(_stats.MaxBufferedVideo, _videoFrameQueue.size());
     // TODO: maybe record this every 10 - 100 frames?
     _stats.BufferedVideoAccum += _videoFrameQueue.size();
 

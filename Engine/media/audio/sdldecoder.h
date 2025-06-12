@@ -70,7 +70,7 @@ public:
     SoundBufferPtr(const void *data, size_t sz, float ts = -1.f, float dur_ms = 0.f)
         : _data(data), _rec(sz, ts, dur_ms) {}
     SoundBufferPtr(const SoundBufferPtr &buf) = default;
-    SoundBufferPtr(SoundBufferPtr &&buf)
+    SoundBufferPtr(SoundBufferPtr &&buf) noexcept
         : _data(buf._data), _rec(buf._rec) { buf = SoundBufferPtr(); }
     SoundBufferPtr &operator=(const SoundBufferPtr &buf) = default;
     operator bool() const { return _data && Size() > 0; }
@@ -104,10 +104,11 @@ struct SoundBuffer final : SoundBufferPtr
         _rec = AudioFrameRecord(sz, ts, dur_ms);
     }
     SoundBuffer(const SoundBuffer &buf)
+        : SoundBufferPtr()
     {
         *this = buf;
     }
-    SoundBuffer(SoundBuffer &&buf)
+    SoundBuffer(SoundBuffer &&buf) noexcept
     {
         _buf = std::move(buf._buf);
         _data = _buf.data();

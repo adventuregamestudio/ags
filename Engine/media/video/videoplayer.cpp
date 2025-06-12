@@ -16,6 +16,9 @@
 #include "debug/out.h"
 #include "util/memory_compat.h"
 
+#define VIDEO_DEBUG_VERBOSE     (0)
+#define VIDEO_TEST_DESYNC       (0)
+
 namespace AGS
 {
 namespace Engine
@@ -258,8 +261,10 @@ void VideoPlayer::SetVolume(float volume)
 
 std::unique_ptr<Common::Bitmap> VideoPlayer::GetReadyFrame()
 {
-    //Debug::Printf("VIDEO READY FRAME: playdur = %.2f, queue: %u, head frame timestamp: %.2f",
-    //              _playbackDurationMs, _videoFrameQueue.size(), _videoFrameQueue.empty() ? -1.f : _videoFrameQueue.front()->Timestamp());
+#if (VIDEO_DEBUG_VERBOSE)
+    Debug::Printf("VIDEO READY FRAME: playdur = %.2f, queue: %u, head frame timestamp: %.2f",
+                  _playbackDurationMs, _videoFrameQueue.size(), _videoFrameQueue.empty() ? -1.f : _videoFrameQueue.front()->Timestamp());
+#endif
 
     if (_videoFrameQueue.empty())
         return nullptr; // no frames available
@@ -267,7 +272,7 @@ std::unique_ptr<Common::Bitmap> VideoPlayer::GetReadyFrame()
     if (_videoFrameQueue.front()->Timestamp() > _playbackDurationMs)
         return nullptr; // not the time yet
 
-    /**//*
+#if (VIDEO_TEST_DESYNC)
     // FIXME: this is for testing audio desync with video -- remove later
     static int skip_video_instance = 0;
     static int skip_video_counter = 0;
@@ -278,7 +283,7 @@ std::unique_ptr<Common::Bitmap> VideoPlayer::GetReadyFrame()
         skip_video_counter = 0;
     }
     skip_video_instance++;
-    //*/
+#endif // VIDEO_TEST_DESYNC
 
     auto frame = NextFrameFromQueue();
     return frame ? frame->Retrieve() : nullptr;
@@ -407,12 +412,13 @@ void VideoPlayer::BufferVideo()
     }
 
     const auto decoded_frame_sz = usebuf->GetDataSize();
-    const float expect_frame_ts = _inputFrameCount * _targetFrameTime;
     // Convert frame_ts to our playback speed
     frame_ts = frame_ts * _targetFrameTime / _frameTime;
+#if (VIDEO_DEBUG_VERBOSE)
+    const float expect_frame_ts = _inputFrameCount * _targetFrameTime;
+    Debug::Printf("INPUT VIDEO FRAME: expect ts = %.2f, given ts = %.2f, diff = %.2f", expect_frame_ts, frame_ts, expect_frame_ts - frame_ts);
+#endif
     _inputFrameCount++;
-
-    //Debug::Printf("INPUT VIDEO FRAME: expect ts = %.2f, given ts = %.2f, diff = %.2f", expect_frame_ts, frame_ts, expect_frame_ts - frame_ts);
 
     // Convert frame if necessary
     if (must_conv)
@@ -526,7 +532,7 @@ void VideoPlayer::UpdatePlayTime()
         _audioPosMs = _audioOut->GetPositionMs();
     }
 
-    /**//*
+#if (VIDEO_TEST_DESYNC)
     Debug::Printf("VIDEO TIME: playdur %.2f ms, target frametime %.2f ms, video_pos = %.2f ms (%+.2f), audio pos = %.2f ms (%+.2f), video buf = %u, audio buf = %.2f ms",
         _playbackDurationMs,
         _targetFrameTime,
@@ -537,7 +543,7 @@ void VideoPlayer::UpdatePlayTime()
         _videoFrameQueue.size(),
         _audioQueueDurMs
     );
-    /**/
+#endif // VIDEO_TEST_DESYNC
 }
 
 void VideoPlayer::SyncVideoAudio()
@@ -570,8 +576,10 @@ void VideoPlayer::SyncVideoAudio()
         // Stats
         _stats.SyncMaxFw = std::max(_stats.SyncMaxFw, new_playdur_diff);
         _stats.SyncMaxBw = std::min(_stats.SyncMaxBw, new_playdur_diff);
-        //Debug::Printf("VideoPlayer: sync at frame %u: v-a diff: %+.2f ms, leeway: %.2f ms, adjust play dur by %+.2f ms, video playdur now: %.2f (expect frame: %u)",
-        //    _frameIndex == UINT32_MAX ? 0u : _frameIndex, av_diff, leeway, new_playdur_diff, _playbackDurationMs, static_cast<uint32_t>(_playbackDurationMs / _targetFrameTime));
+#if (VIDEO_DEBUG_VERBOSE)
+        Debug::Printf("VideoPlayer: sync at frame %u: v-a diff: %+.2f ms, leeway: %.2f ms, adjust play dur by %+.2f ms, video playdur now: %.2f (expect frame: %u)",
+            _frameIndex == UINT32_MAX ? 0u : _frameIndex, av_diff, leeway, new_playdur_diff, _playbackDurationMs, static_cast<uint32_t>(_playbackDurationMs / _targetFrameTime));
+#endif
     }
 
     // Stats
@@ -619,8 +627,10 @@ bool VideoPlayer::ProcessVideo()
         {
             auto frame = NextFrameFromQueue();
             assert(frame);
-            //Debug::Printf("DROPPED LATE FRAME, ts: %.2f, drop time: %.2f, queue size now: %u",
-            //              frame->Timestamp(), drop_time, _videoFrameQueue.size());
+#if (VIDEO_DEBUG_VERBOSE)
+            Debug::Printf("DROPPED LATE FRAME, ts: %.2f, drop time: %.2f, queue size now: %u",
+                          frame->Timestamp(), drop_time, _videoFrameQueue.size());
+#endif
             _videoFramePool.push(std::move(frame->Retrieve()));
             _stats.VideoOut.Dropped++;
         }
@@ -640,7 +650,7 @@ bool VideoPlayer::ProcessAudio()
         return !_audioOut->IsEmpty();
     }
 
-    /**//*
+#if (VIDEO_TEST_DESYNC)
     // FIXME: this is for testing audio desync with video -- remove later
     static int skip_audio_instance = 0;
     static int skip_audio_counter = 0;
@@ -651,7 +661,7 @@ bool VideoPlayer::ProcessAudio()
         skip_audio_counter = 0;
     }
     skip_audio_instance++;
-    //*/
+#endif // VIDEO_TEST_DESYNC
 
     // Push as many frames as audio output can take at once
     do

@@ -398,22 +398,16 @@ error:
 }
 
 
-/* Decodes Theora video into the internal YUV image buffer */
-unsigned char **altheora_get_frame(APEG_LAYER *layer)
+/* Reads Theora frame */
+static int altheora_read_frame_packet(APEG_LAYER *layer)
 {
 	ALOGG_INFO *info = layer->ogg_info;
-	int crop_offset, i;
-	yuv_buffer yuv;
 
 	do {
 		/* theora is one in, one out... */
 		if(ogg_stream_packetout(&info->ostream[0], &info->opkt) > 0)
 		{
-			theora_decode_packetin(&info->tstate, &info->opkt);
-			if(info->tstate.granulepos >= 0)
-				layer->stream.pos = theora_granule_time(&info->tstate,
-				                                        info->tstate.granulepos);
-			break;
+			return 1;
 		}
 
 		do {
@@ -428,10 +422,28 @@ unsigned char **altheora_get_frame(APEG_LAYER *layer)
 			else
 			{
 				if(!buffer_data(layer, info))
-					return NULL;
+					return 0;
 			}
 		} while(1);
 	} while(1);
+
+	return 0;
+}
+
+/* Decodes Theora video into the internal YUV image buffer */
+unsigned char **altheora_get_frame(APEG_LAYER *layer)
+{
+	ALOGG_INFO *info = layer->ogg_info;
+	int crop_offset, i;
+	yuv_buffer yuv;
+
+	if (altheora_read_frame_packet(layer) == 0)
+		return NULL;
+
+	theora_decode_packetin(&info->tstate, &info->opkt);
+	if (info->tstate.granulepos >= 0)
+		layer->stream.pos = theora_granule_time(&info->tstate,
+												info->tstate.granulepos);
 
 	theora_decode_YUVout(&info->tstate, &yuv);
 
@@ -470,6 +482,12 @@ unsigned char **altheora_get_frame(APEG_LAYER *layer)
 	}
 
 	return layer->forward_frame;
+}
+
+/* Reads out one OGG video packet and drops it */
+void altheora_skip_frame(APEG_LAYER *layer)
+{
+	altheora_read_frame_packet(layer);
 }
 
 /* Decodes Vorbis audio into the internal PCM sound buffer */

@@ -481,7 +481,7 @@ private:
     // Tells that room viewports need z-order resort
     bool  _roomViewportZOrderChanged = false;
 
-    AGS_Clock::time_point _ignoreUserInputUntilTime{};
+    AGS::Engine::Clock::time_point _ignoreUserInputUntilTime{};
 };
 
 // Converts legacy alignment type used in script API

@@ -98,11 +98,6 @@ HError TheoraPlayer::OpenAPEGStream(Stream *data_stream, const Common::String &n
         return new Error(String::FromFormat("Failed to run theora video '%s': invalid frame dimensions (%d x %d)", name.GetCStr(), video_w, video_h));
     }
 
-    const char *pixelfmt_str[] = { "APEG_420", "APEG_422", "APEG_444" };
-    Debug::Printf("TheoraPlayer: opened video: %dx%d fmt: %s, fps: %.4f", apeg_stream->w, apeg_stream->h,
-        (apeg_stream->pixel_format >= APEG_STREAM::APEG_420 && apeg_stream->pixel_format <= APEG_STREAM::APEG_444) ? pixelfmt_str[apeg_stream->pixel_format] : "unknown",
-        static_cast<float>(apeg_stream->frame_rate));
-
     _apegStream = apeg_stream;
     _usedFlags = flags;
     _usedDepth = target_depth;
@@ -133,7 +128,19 @@ HError TheoraPlayer::OpenAPEGStream(Stream *data_stream, const Common::String &n
     _audioFreq = _apegStream->audio.freq;
     _audioFormat = AUDIO_S16SYS;
     apeg_set_error(_apegStream, NULL);
+    _videoFramesDecodedTotal = 0u;
     _videoFramesDecoded = 0u;
+    _nextFrameTs = 0.f;
+
+    const char *pixelfmt_str[] = { "APEG_420", "APEG_422", "APEG_444" };
+    Debug::Printf("TheoraPlayer: opened video \"%s\": %dx%d fmt: %s, fps: %.4f"
+                  "\n\taudio: %d Hz, chans: %d",
+                  name.GetCStr(),
+                  apeg_stream->w, apeg_stream->h,
+                  (apeg_stream->pixel_format >= APEG_STREAM::APEG_420 && apeg_stream->pixel_format <= APEG_STREAM::APEG_444) ? pixelfmt_str[apeg_stream->pixel_format] : "unknown",
+                  static_cast<float>(apeg_stream->frame_rate),
+                  _audioFreq, _audioChannels);
+
     return HError::None();
 }
 
@@ -143,8 +150,8 @@ void TheoraPlayer::CloseImpl()
     {
         apeg_close_stream(_apegStream);
         _apegStream = nullptr;
-        Debug::Printf("TheoraPlayer: closed, total video frames decoded: %" PRIu64 "", _videoFramesDecoded);
-        _videoFramesDecoded = 0u;
+        Debug::Printf("TheoraPlayer: closed, total video frames decoded: %" PRIu64 "", _videoFramesDecodedTotal);
+        _videoFramesDecodedTotal = 0u;
     }
 }
 
@@ -154,11 +161,16 @@ bool TheoraPlayer::RewindImpl()
     {
         OpenAPEGStream(_dataStream.get(), GetName(), _usedFlags, _usedDepth);
     }
+    // reset video position record
+    _videoFramesDecoded = 0u;
+    _nextFrameTs = 0.f;
     return _apegStream != nullptr;
 }
 
-bool TheoraPlayer::NextVideoFrame(Bitmap *dst)
+bool TheoraPlayer::NextVideoFrame(Bitmap *dst, float &ts)
 {
+    ts = -1.f; // reset in case of error
+
     assert(_apegStream);
     assert((_apegStream->flags & APEG_HAS_VIDEO) != 0);
     if ((_apegStream->flags & APEG_HAS_VIDEO) == 0)
@@ -175,17 +187,22 @@ bool TheoraPlayer::NextVideoFrame(Bitmap *dst)
         return false; // NOTE: apeg_display_video_frame returns EOF when picture is NULL
 
     _videoFramesDecoded++;
-    // TODO: find a way to optimize Theora decoder by providing our own src bitmap directly
+    _videoFramesDecodedTotal++;
+    // TODO: investigate if it's possible to optimize this by providing our own src bitmap directly;
+    // but in theory the frame image may be composed of multiple frames which contain partial image,
+    // in which case we probably cannot do this...
     dst->Blit(_theoraSrcFrame.get());
+    ts = _nextFrameTs;
+    _nextFrameTs = _apegStream->pos * 1000.f; // to milliseconds (FIXME: should we keep ours in seconds?)
     return true;
 }
 
-SoundBuffer TheoraPlayer::NextAudioFrame()
+bool TheoraPlayer::NextAudioFrame(SoundBuffer &abuf)
 {
     assert(_apegStream);
     assert((_apegStream->flags & APEG_HAS_AUDIO) != 0);
     if ((_apegStream->flags & APEG_HAS_AUDIO) == 0)
-        return SoundBuffer();
+        return SoundBufferPtr();
 
     // reset some data
     _apegStream->audio.flushed = FALSE;
@@ -194,8 +211,43 @@ SoundBuffer TheoraPlayer::NextAudioFrame()
     int count = 0;
     int ret = apeg_get_audio_frame(_apegStream, &buf, &count);
     if (ret == APEG_ERROR || ret == APEG_EOF)
-        return SoundBuffer();
-    return SoundBuffer(buf, count);
+        return false;
+
+    abuf.AssignData(buf, count, -1.f, SoundHelper::MillisecondsFromBytes(count, _audioFormat, _audioChannels, _audioFreq));
+    return true;
+}
+
+float TheoraPlayer::PeekVideoFrame()
+{
+    assert(_apegStream);
+    assert((_apegStream->flags & APEG_HAS_VIDEO) != 0);
+    if ((_apegStream->flags & APEG_HAS_VIDEO) == 0)
+        return -1.f;
+
+    if (apeg_eof(_apegStream))
+        return -1.f;
+
+    return _nextFrameTs;
+}
+
+void TheoraPlayer::DropVideoFrame()
+{
+    assert(_apegStream);
+    assert((_apegStream->flags & APEG_HAS_VIDEO) != 0);
+    if ((_apegStream->flags & APEG_HAS_VIDEO) == 0)
+        return;
+
+    if (apeg_eof(_apegStream))
+        return;
+
+    // Skip video frame
+    int ret = apeg_skip_video_frame(_apegStream);
+    if (ret == APEG_ERROR)
+        return;
+
+    _videoFramesDecoded++;
+    _videoFramesDecodedTotal++;
+    _nextFrameTs = _apegStream->pos * 1000.f; // to milliseconds (FIXME: should we keep ours in seconds?)
 }
 
 } // namespace Engine

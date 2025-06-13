@@ -12,28 +12,13 @@
 //
 //=============================================================================
 //
-//
+// Game update timer control.
 //
 //=============================================================================
 #ifndef __AGS_EE_AC__TIMER_H
 #define __AGS_EE_AC__TIMER_H
 
-#include <type_traits>
-#include <chrono>
-
-// use high resolution clock only if we know it is monotonic/steady.
-// refer to https://stackoverflow.com/a/38253266/84262
-using AGS_Clock = std::conditional<
-        std::chrono::high_resolution_clock::is_steady,
-        std::chrono::high_resolution_clock, std::chrono::steady_clock
-      >::type;
-using AGS_FastClock = std::chrono::system_clock;
-
-template <typename TDur>
-inline int64_t ToMilliseconds(TDur dur)
-{
-    return std::chrono::duration_cast<std::chrono::milliseconds>(dur).count();
-}
+#include "util/time_util.h"
 
 // Sleeps for time remaining until the next game frame, updates next frame timestamp
 extern void WaitForNextFrame();

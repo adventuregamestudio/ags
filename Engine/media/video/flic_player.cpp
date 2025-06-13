@@ -79,8 +79,10 @@ void FlicPlayer::CloseImpl()
     set_palette_range(_oldpal, 0, 255, 0);
 }
 
-bool FlicPlayer::NextVideoFrame(Bitmap *dst)
+bool FlicPlayer::NextVideoFrame(Bitmap *dst, float &ts)
 {
+    ts = -1.f; // reset in case of error
+
     // actual FLI playback state, base on original Allegro 4's do_play_fli
 
     /* get next frame */
@@ -97,9 +99,23 @@ bool FlicPlayer::NextVideoFrame(Bitmap *dst)
             fli_bitmap->w, 1 + fli_bmp_dirty_to - fli_bmp_dirty_from);
     }
 
+    ts = _videoFramesDecoded * _frameTime;
     _videoFramesDecoded++;
     reset_fli_variables();
     return true;
+}
+
+float FlicPlayer::PeekVideoFrame()
+{
+    if (fli_frame < fli_frame_count)
+        return _videoFramesDecoded * _frameTime;
+    return -1.f;
+}
+
+// Drop next video frame from stream.
+void FlicPlayer::DropVideoFrame()
+{
+    skip_fli_frame(IsLooping() ? 1 : 0);
 }
 
 } // namespace Engine

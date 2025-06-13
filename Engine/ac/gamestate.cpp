@@ -406,18 +406,18 @@ ScriptCamera *GamePlayState::GetScriptCamera(int index)
 
 bool GamePlayState::IsIgnoringInput() const
 {
-    return AGS_Clock::now() < _ignoreUserInputUntilTime;
+    return Clock::now() < _ignoreUserInputUntilTime;
 }
 
 void GamePlayState::SetIgnoreInput(int timeout_ms)
 {
-    if (AGS_Clock::now() + std::chrono::milliseconds(timeout_ms) > _ignoreUserInputUntilTime)
-        _ignoreUserInputUntilTime = AGS_Clock::now() + std::chrono::milliseconds(timeout_ms);
+    if (Clock::now() + std::chrono::milliseconds(timeout_ms) > _ignoreUserInputUntilTime)
+        _ignoreUserInputUntilTime = Clock::now() + std::chrono::milliseconds(timeout_ms);
 }
 
 void GamePlayState::ClearIgnoreInput()
 {
-    _ignoreUserInputUntilTime = AGS_Clock::now();
+    _ignoreUserInputUntilTime = Clock::now();
 }
 
 void GamePlayState::SetWaitSkipResult(int how, int data)

@@ -116,6 +116,8 @@ void apeg_set_error(APEG_STREAM *stream, const char *text);
 int apeg_get_audio_frame(APEG_STREAM *stream, unsigned char **pbuf, int *count);
 int apeg_get_video_frame(APEG_STREAM *stream);
 int apeg_display_video_frame(APEG_STREAM *stream);
+int apeg_skip_video_frame(APEG_STREAM *stream);
+int apeg_eof(APEG_STREAM *stream);
 
 extern PALETTE apeg_palette;
 

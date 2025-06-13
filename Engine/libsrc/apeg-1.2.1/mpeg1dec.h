@@ -98,6 +98,7 @@ void apeg_display_frame(struct APEG_LAYER*, unsigned char**);
 /* ogg.c */
 int alvorbis_update(struct APEG_LAYER*);
 unsigned char **altheora_get_frame(struct APEG_LAYER*);
+void altheora_skip_frame(struct APEG_LAYER*);
 int alogg_open(struct APEG_LAYER*);
 int alogg_reopen(struct APEG_LAYER*);
 void alogg_cleanup(struct APEG_LAYER*);

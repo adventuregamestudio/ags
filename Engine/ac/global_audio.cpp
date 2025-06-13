@@ -11,7 +11,6 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-
 #include <stdio.h>
 #include "ac/common.h"
 #include "ac/game.h"
@@ -27,10 +26,11 @@
 #include "main/engine.h"
 #include "media/audio/audio_core.h"
 #include "media/audio/audio_system.h"
-#include "ac/timer.h"
 #include "util/string_compat.h"
+#include "util/time_util.h"
 
 using namespace AGS::Common;
+using namespace AGS::Engine;
 
 extern GameSetupStruct game;
 extern RoomStruct thisroom;
@@ -548,7 +548,7 @@ static void stop_voice_clip_impl()
     play.music_master_volume = play.music_vol_was;
     // update the music in a bit (fixes two speeches follow each other
     // and music going up-then-down)
-    schedule_music_update_at(AGS_Clock::now() + std::chrono::milliseconds(500));
+    schedule_music_update_at(Clock::now() + std::chrono::milliseconds(500));
     stop_and_destroy_channel(SCHAN_SPEECH);
 }
 

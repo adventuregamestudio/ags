@@ -928,11 +928,11 @@ int Game_InBlockingWait()
 
 void Game_PrecacheSprite(int sprnum)
 {
-    const auto tp_start = AGS_FastClock::now();
+    const auto tp_start = FastClock::now();
     spriteset.PrecacheSprite(sprnum);
-    const auto tp_filedone = AGS_FastClock::now();
+    const auto tp_filedone = FastClock::now();
     texturecache_precache(sprnum);
-    const auto tp_texturedone = AGS_FastClock::now();
+    const auto tp_texturedone = FastClock::now();
 
     const auto dur1 = ToMilliseconds(tp_filedone - tp_start);
     const auto dur2 = ToMilliseconds(tp_texturedone - tp_filedone);
@@ -1641,18 +1641,18 @@ void precache_view(int view, int first_loop, int last_loop, bool with_sounds)
         for (int j = 0; j < views[view].loops[i].numFrames; ++j, ++total_frames)
         {
             const auto &frame = views[view].loops[i].frames[j];
-            const auto tp_detail1 = AGS_FastClock::now();
+            const auto tp_detail1 = FastClock::now();
             spriteset.PrecacheSprite(frame.pic);
-            const auto tp_detail2 = AGS_FastClock::now();
+            const auto tp_detail2 = FastClock::now();
             texturecache_precache(frame.pic);
-            const auto tp_detail3 = AGS_FastClock::now();
+            const auto tp_detail3 = FastClock::now();
 
             if (with_sounds && frame.audioclip >= 0)
             {
                 ScriptAudioClip *clip = &game.audioClips[frame.audioclip];
                 auto assetpath = get_audio_clip_assetpath(clip->bundlingType, clip->fileName);
                 soundcache_precache(assetpath);
-                dur_sound_load += ToMilliseconds(AGS_FastClock::now() - tp_detail3);
+                dur_sound_load += ToMilliseconds(FastClock::now() - tp_detail3);
                 total_sounds++;
             }
             dur_sp_load += ToMilliseconds(tp_detail2 - tp_detail1);

@@ -1649,6 +1649,9 @@
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptrestoredsaveinfo.h">
       <Filter>Header Files\ac\dynobj</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Engine\util\time_util.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\..\Engine\resource\game-1.ico">

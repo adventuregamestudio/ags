@@ -47,15 +47,15 @@ void AudioPlayer::Poll()
         return;
 
     // Read data from Decoder and pass into the Al Source
-    if (!_bufferPending.Data && !_decoder->EOS())
+    if (!_bufferPending.Data() && !_decoder->EOS())
     { // if no buffer saved, and still something to decode, then read a buffer
         _bufferPending = _decoder->GetData();
-        assert(_bufferPending.Data || (_bufferPending.Size == 0));
+        assert(_bufferPending.Data() || (_bufferPending.Size() == 0));
     }
-    if (_bufferPending.Data && (_bufferPending.Size > 0))
+    if (_bufferPending.Data() && (_bufferPending.Size() > 0))
     { // if having a buffer already, then try to put into source
         if (_source->PutData(_bufferPending) > 0)
-            _bufferPending = SoundBuffer(); // clear buffer on success
+            _bufferPending = SoundBufferPtr(); // clear buffer on success
     }
     _source->Poll();
     // If both finished decoding and playing, we done here.
@@ -111,7 +111,7 @@ void AudioPlayer::Stop()
     case PlayStatePaused:
         _playState = PlayStateStopped;
         _source->Stop();
-        _bufferPending = SoundBuffer(); // clear
+        _bufferPending = SoundBufferPtr(); // clear
         break;
     default:
         break;
@@ -131,7 +131,7 @@ void AudioPlayer::Seek(float pos_ms)
     case PlayStateStopped:
         {
             _source->Stop();
-            _bufferPending = SoundBuffer(); // clear
+            _bufferPending = SoundBufferPtr(); // clear
             float new_pos = _decoder->Seek(pos_ms);
             _source->SetPlaybackPosMs(new_pos);
         }

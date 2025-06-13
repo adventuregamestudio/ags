@@ -44,7 +44,7 @@ public:
     // FIXME: rework this! -- a quick hack to let external user know the future player state on init stage
     PlaybackState GetPlayStateNormal() const { return _playState == PlayStateInitial ? _onLoadPlayState : _playState; }
     // Gets frequency (sample rate)
-    float GetFrequency() const { return _decoder->GetFreq(); }
+    float GetFrequency() const { return static_cast<float>(_decoder->GetFreq()); }
     // Gets duration, in ms
     float GetDurationMs() const { return _decoder->GetDurationMs(); }
     // Gets playback position, in ms
@@ -79,7 +79,7 @@ private:
     PlaybackState _playState = PlayStateInitial;
     PlaybackState _onLoadPlayState = PlayStatePaused;
     float _onLoadPositionMs = 0.0f;
-    SoundBuffer _bufferPending{};
+    SoundBufferPtr _bufferPending{};
 };
 
 } // namespace Engine

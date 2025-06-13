@@ -761,13 +761,13 @@ std::unique_ptr<SoundClip> cachedQueuedMusic;
 // Music update is scheduled when the voice speech stops;
 // we do a small delay before reverting any volume adjustments
 static bool music_update_scheduled = false;
-static auto music_update_at = AGS_Clock::now();
+static auto music_update_at = Clock::now();
 
 void cancel_scheduled_music_update() {
     music_update_scheduled = false;
 }
 
-void schedule_music_update_at(AGS_Clock::time_point at) {
+void schedule_music_update_at(Clock::time_point at) {
     music_update_scheduled = true;
     music_update_at = at;
 }
@@ -779,7 +779,7 @@ void postpone_scheduled_music_update_by(std::chrono::milliseconds duration) {
 
 void process_scheduled_music_update() {
     if (!music_update_scheduled) { return; }
-    if (music_update_at > AGS_Clock::now()) { return; }
+    if (music_update_at > Clock::now()) { return; }
     cancel_scheduled_music_update();
     update_music_volume();
     apply_volume_drop_modifier(false);

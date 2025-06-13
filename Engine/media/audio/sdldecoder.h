@@ -48,23 +48,100 @@ struct SoundSampleDeleterFunctor
 
 using SoundSampleUniquePtr = std::unique_ptr<Sound_Sample, SoundSampleDeleterFunctor>;
 
-// A thin *non-owning* wrapper over a array containing constant sound data;
-// meant mostly to group and pass the buffer and associated parameters.
-struct SoundBuffer
+// AudioFrameRecord describes parameters of a single audio chunk
+struct AudioFrameRecord
 {
-    const void *Data = nullptr;
     size_t Size = 0u;
-    float Ts = -1.f; // timestamp; negative means undefined
-    float DurMs = 0.f; // buffer duration, in ms
+    float Timestamp = -1.f; // negative means undefined
+    float DurationMs = 0.f;
 
+    AudioFrameRecord() = default;
+    AudioFrameRecord(size_t sz, float ts, float dur_ms)
+        : Size(sz), Timestamp(ts), DurationMs(dur_ms) {}
+};
+
+// A thin *non-owning* wrapper over a array containing constant sound data;
+// meant to group and pass the buffer pointer and associated parameters.
+// TODO: add full audio format
+struct SoundBufferPtr
+{
+public:
+    SoundBufferPtr() = default;
+    SoundBufferPtr(const void *data, size_t sz, float ts = -1.f, float dur_ms = 0.f)
+        : _data(data), _rec(sz, ts, dur_ms) {}
+    SoundBufferPtr(const SoundBufferPtr &buf) = default;
+    SoundBufferPtr(SoundBufferPtr &&buf) noexcept
+        : _data(buf._data), _rec(buf._rec) { buf = SoundBufferPtr(); }
+    SoundBufferPtr &operator=(const SoundBufferPtr &buf) = default;
+    operator bool() const { return _data && Size() > 0; }
+
+    const void *Data() const { return _data; }
+    const AudioFrameRecord &GetFrameRecord() const { return _rec; }
+    size_t  Size() const { return _rec.Size; }
+    float   Timestamp() const { return _rec.Timestamp; }
+    float   DurationMs() const { return _rec.DurationMs; }
+
+protected:
+    const void *_data = nullptr;
+    AudioFrameRecord _rec;
+};
+
+// A sound buffer, holding audio data and associated parameters
+struct SoundBuffer final : SoundBufferPtr
+{
     SoundBuffer() = default;
+    SoundBuffer(size_t sz, float ts = -1.f, float dur_ms = 0.f)
+    {
+        _buf.resize(sz);
+        _data = _buf.data();
+        _rec = AudioFrameRecord(sz, ts, dur_ms);
+    }
     SoundBuffer(const void *data, size_t sz, float ts = -1.f, float dur_ms = 0.f)
-        : Data(data), Size(sz), Ts(ts), DurMs(dur_ms) {}
-    SoundBuffer(const SoundBuffer &buf) = default;
-    SoundBuffer(SoundBuffer &&buf)
-        : Data(buf.Data), Size(buf.Size), Ts(buf.Ts), DurMs(buf.DurMs) { buf = SoundBuffer(); }
-    SoundBuffer &operator=(const SoundBuffer &buf) = default;
-    operator bool() const { return Data && Size > 0; }
+    {
+        _buf.resize(sz);
+        _data = _buf.data();
+        memcpy(_buf.data(), data, sz);
+        _rec = AudioFrameRecord(sz, ts, dur_ms);
+    }
+    SoundBuffer(const SoundBuffer &buf)
+        : SoundBufferPtr()
+    {
+        *this = buf;
+    }
+    SoundBuffer(SoundBuffer &&buf) noexcept
+    {
+        _buf = std::move(buf._buf);
+        _data = _buf.data();
+        _rec = std::move(buf._rec);
+        buf = SoundBuffer();
+    }
+
+    SoundBuffer &operator=(const SoundBuffer &buf)
+    {
+        _buf = buf._buf;
+        _data = _buf.data();
+        _rec = buf._rec;
+        return *this;
+    }
+
+    void AssignData(const void *data, size_t sz, float ts = -1.f, float dur_ms = 0.f)
+    {
+        if (_buf.size() != sz)
+        {
+            _buf.resize(sz);
+            _data = _buf.data();
+        }
+        memcpy(_buf.data(), data, sz);
+        _rec = AudioFrameRecord(sz, ts, dur_ms);
+    }
+
+    void SetTimestamp(float ts)
+    {
+        _rec.Timestamp = ts;
+    }
+
+private:
+    std::vector<uint8_t> _buf;
 };
 
 // RAII wrapper over SDL resampling filter;
@@ -132,7 +209,7 @@ public:
     // Seeks to the given read position; returns the new position
     float Seek(float pos_ms);
     // Returns the next chunk of data; may return empty buffer in EOS or error
-    SoundBuffer GetData();
+    SoundBufferPtr GetData();
 
 private:
     SDL_RWops *_rwops = nullptr;

@@ -140,10 +140,10 @@ float SDLDecoder::Seek(float pos_ms)
     return pos_ms; // new pos on success
 }
 
-SoundBuffer SDLDecoder::GetData()
+SoundBufferPtr SDLDecoder::GetData()
 {
     if (!_sample || _EOS)
-        return SoundBuffer();
+        return SoundBufferPtr();
     float old_pos = _posMs;
     size_t sz = 0;
     do
@@ -158,7 +158,7 @@ SoundBuffer SDLDecoder::GetData()
         {
             _EOS = true;
             if ((_sample->flags & SOUND_SAMPLEFLAG_ERROR) != 0)
-                return SoundBuffer();
+                return SoundBufferPtr();
             // if repeat, then seek to start.
             else if (_repeat) {
                 _EOS = Sound_Rewind(_sample.get()) == 0;
@@ -167,7 +167,7 @@ SoundBuffer SDLDecoder::GetData()
             }
         }
     } while (!_EOS && (sz == 0));
-    return SoundBuffer(_sample->buffer, sz, old_pos,
+    return SoundBufferPtr(_sample->buffer, sz, old_pos,
         SoundHelper::MillisecondsFromBytes(sz, _sample->desired.format, _sample->desired.channels, _sample->desired.rate));
 }
 

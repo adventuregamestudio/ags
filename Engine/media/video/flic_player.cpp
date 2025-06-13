@@ -105,6 +105,19 @@ bool FlicPlayer::NextVideoFrame(Bitmap *dst, float &ts)
     return true;
 }
 
+float FlicPlayer::PeekVideoFrame()
+{
+    if (fli_frame < fli_frame_count)
+        return _videoFramesDecoded * _frameTime;
+    return -1.f;
+}
+
+// Drop next video frame from stream.
+void FlicPlayer::DropVideoFrame()
+{
+    skip_fli_frame(IsLooping() ? 1 : 0);
+}
+
 } // namespace Engine
 } // namespace AGS
 

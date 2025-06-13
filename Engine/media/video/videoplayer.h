@@ -55,14 +55,18 @@ enum VideoFlags
     kVideo_LegacyFrameSize= 0x0008,
     // Allow to drop late video frames in autoplay mode
     kVideo_DropFrames     = 0x0010,
+    // Allow to drop frames in decoder, right after the encoded packet
+    // was read. This saves even more time, but may result in graphical
+    // "artifacts", because the video frames may contain partial image.
+    kVideo_DropFramesUndecoded = 0x0020,
     // Try sync audio and video in case any of these have advanced
     // or fell back too much (this may halt or fastforward video
     // frames, but audio is never touched, as gaps in audio are
     // far more noticeable to human perception compared to video.
-    kVideo_SyncAudioVideo = 0x0020,
+    kVideo_SyncAudioVideo = 0x0040,
     // Must accumulate decoded frames, when format's frames
     // do not have a full image, but diff from the previous frame
-    kVideo_AccumFrame     = 0x0040,
+    kVideo_AccumFrame     = 0x0080,
 };
 
 // Parent video player class, provides basic playback logic,
@@ -131,6 +135,9 @@ public:
     bool Poll();
 
 protected:
+    // TODO: separate decoding implementations into VideoDecoder class,
+    // similar to how there's SDLDecoder and AudioPlayer.
+    // 
     // Opens the video, implementation-specific; allows to modify flags
     virtual Common::HError OpenImpl(std::unique_ptr<Common::Stream> /*data_stream*/,
         const String &/*name*/, int& /*flags*/, int /*target_depth*/)
@@ -145,6 +152,18 @@ protected:
     // TODO: change return type to a proper allocated buffer
     // when we support a proper audio queue here.
     virtual bool NextAudioFrame(SoundBuffer &abuf) { return false; };
+    // Checks the next video frame in stream and returns its timestamp;
+    // returns -1 if no more frames are available.
+    // The implementation is required to do as less job as possible,
+    // but is allowed to store any preloaded data in a temporary buffer,
+    // and use later when NextVideoFrame is called.
+    // TODO: replace this with a proper Decoder API, separating reading
+    // packets and decoding them into raw pixel buffers.
+    virtual float PeekVideoFrame() { return -1.f; }
+    // Drop next video frame from stream.
+    // This should drop any preread (peeked) frame first, and any found
+    // in the video stream if no preread data was stored at this moment.
+    virtual void DropVideoFrame() {};
 
     // Audio internals
     int _audioChannels = 0;

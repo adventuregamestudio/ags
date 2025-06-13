@@ -43,6 +43,10 @@ private:
     bool NextVideoFrame(Common::Bitmap *dst, float &ts) override;
     // Retrieves next audio frame, implementation-specific
     bool NextAudioFrame(SoundBuffer &abuf) override;
+    // Checks the next video frame in stream and returns its timestamp.
+    float PeekVideoFrame() override;
+    // Drop next video frame from stream.
+    void DropVideoFrame() override;
 
     Common::HError OpenAPEGStream(Stream *data_stream, const String &name, int flags, int target_depth);
 

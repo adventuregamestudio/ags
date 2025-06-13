@@ -385,6 +385,24 @@ void VideoPlayer::BufferVideo()
     if (_videoFrameQueue.size() >= _queueMax)
         return; // queue limit reached
 
+    // Optionally drop late frames, but have at least 1 for display
+    if (((_flags & kVideo_DropFrames) != 0) && ((_flags & kVideo_DropFramesUndecoded) != 0)
+        && _videoFrameQueue.size() > 0)
+    {
+        const float drop_time = _playbackDurationMs - _targetFrameTime;
+        float frame_ts = PeekVideoFrame();
+
+        if ((frame_ts >= 0.f && frame_ts < drop_time))
+        {
+            DropVideoFrame();
+#if (VIDEO_DEBUG_VERBOSE)
+            Debug::Printf("DROPPED LATE FRAME (UNDECODED), ts: %.2f, drop time: %.2f, queue size now: %u",
+                          frame_ts, drop_time, _videoFrameQueue.size());
+#endif
+            _stats.VideoOut.Dropped++;
+        }
+    }
+
     // Get one frame from the pool, if present, otherwise allocate a new one
     std::unique_ptr<Bitmap> target_frame;
     if (_videoFramePool.empty())

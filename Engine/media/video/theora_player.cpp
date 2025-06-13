@@ -188,7 +188,9 @@ bool TheoraPlayer::NextVideoFrame(Bitmap *dst, float &ts)
 
     _videoFramesDecoded++;
     _videoFramesDecodedTotal++;
-    // TODO: find a way to optimize Theora decoder by providing our own src bitmap directly
+    // TODO: investigate if it's possible to optimize this by providing our own src bitmap directly;
+    // but in theory the frame image may be composed of multiple frames which contain partial image,
+    // in which case we probably cannot do this...
     dst->Blit(_theoraSrcFrame.get());
     ts = _nextFrameTs;
     _nextFrameTs = _apegStream->pos * 1000.f; // to milliseconds (FIXME: should we keep ours in seconds?)
@@ -213,6 +215,39 @@ bool TheoraPlayer::NextAudioFrame(SoundBuffer &abuf)
 
     abuf.AssignData(buf, count, -1.f, SoundHelper::MillisecondsFromBytes(count, _audioFormat, _audioChannels, _audioFreq));
     return true;
+}
+
+float TheoraPlayer::PeekVideoFrame()
+{
+    assert(_apegStream);
+    assert((_apegStream->flags & APEG_HAS_VIDEO) != 0);
+    if ((_apegStream->flags & APEG_HAS_VIDEO) == 0)
+        return -1.f;
+
+    if (apeg_eof(_apegStream))
+        return -1.f;
+
+    return _nextFrameTs;
+}
+
+void TheoraPlayer::DropVideoFrame()
+{
+    assert(_apegStream);
+    assert((_apegStream->flags & APEG_HAS_VIDEO) != 0);
+    if ((_apegStream->flags & APEG_HAS_VIDEO) == 0)
+        return;
+
+    if (apeg_eof(_apegStream))
+        return;
+
+    // Skip video frame
+    int ret = apeg_skip_video_frame(_apegStream);
+    if (ret == APEG_ERROR)
+        return;
+
+    _videoFramesDecoded++;
+    _videoFramesDecodedTotal++;
+    _nextFrameTs = _apegStream->pos * 1000.f; // to milliseconds (FIXME: should we keep ours in seconds?)
 }
 
 } // namespace Engine

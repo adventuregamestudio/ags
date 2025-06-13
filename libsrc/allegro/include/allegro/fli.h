@@ -38,6 +38,7 @@ AL_FUNC(int, open_fli_pf, (PACKFILE *pf));
 AL_FUNC(int, open_memory_fli, (void *fli_data));
 AL_FUNC(void, close_fli, (void));
 AL_FUNC(int, next_fli_frame, (int loop));
+AL_FUNC(int, skip_fli_frame, (int loop));
 AL_FUNC(void, reset_fli_variables, (void));
 
 AL_VAR(struct BITMAP *, fli_bitmap);   /* current frame of the FLI */

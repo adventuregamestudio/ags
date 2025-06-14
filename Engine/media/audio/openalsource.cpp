@@ -152,13 +152,13 @@ float OpenAlSource::GetPositionMs() const
     return _predictTs;
 }
 
-size_t OpenAlSource::PutData(const SoundBuffer &data)
+size_t OpenAlSource::PutData(const SoundBufferPtr &data)
 {
     Unqueue();
     // If queue is full, bail out
     if (_queued >= MaxQueue) { return 0u; }
     // Input buffer is empty?
-    if (!data.Data || (data.Size == 0)) { return 0u; }
+    if (!data.Data() || (data.Size() == 0)) { return 0u; }
     // Check for free buffers, generate more if necessary
     if (g_oalint.freeBuffers.empty())
     {
@@ -172,30 +172,30 @@ size_t OpenAlSource::PutData(const SoundBuffer &data)
     ALuint buf_id = *(std::prev(g_oalint.freeBuffers.end()));
     g_oalint.freeBuffers.pop_back();
 
-    SoundBuffer input_buf = data;
+    SoundBufferPtr input_buf = data;
     // use provided timestamp, or calc our own
-    const float use_ts = data.Ts >= 0.f ? data.Ts : _predictTs;
+    const float use_ts = data.Timestamp() >= 0.f ? data.Timestamp() : _predictTs;
     const float dur_ms = 
-        SoundHelper::MillisecondsFromBytes(data.Size, _inputFmt.format, _inputFmt.channels, _inputFmt.rate);
+        SoundHelper::MillisecondsFromBytes(data.Size(), _inputFmt.format, _inputFmt.channels, _inputFmt.rate);
     if (_resampler.HasConversion())
     {
         size_t conv_sz;
-        const void *conv = _resampler.Convert(data.Data, data.Size, conv_sz);
+        const void *conv = _resampler.Convert(data.Data(), data.Size(), conv_sz);
         if (conv)
         {
-            input_buf = SoundBuffer(conv, conv_sz);
+            input_buf = SoundBufferPtr(conv, conv_sz);
         }
     }
     // Fill the buffer and queue into AL; note that the al's buffer is auto-resizing
-    alBufferData(buf_id, _alFormat, input_buf.Data, input_buf.Size, _recvFmt.rate);
+    alBufferData(buf_id, _alFormat, input_buf.Data(), input_buf.Size(), _recvFmt.rate);
     dump_al_errors();
     alSourceQueueBuffers(_source, 1, &buf_id);
     dump_al_errors();
     _queued++;
-    _predictTs = data.Ts >= 0.f ? (data.Ts + dur_ms) : (_predictTs + dur_ms);
+    _predictTs = data.Timestamp() >= 0.f ? (data.Timestamp() + dur_ms) : (_predictTs + dur_ms);
     // Push buffer record
     _bufferRecords.push_back(BufferRecord(use_ts, dur_ms, _speed));
-    return data.Size;
+    return data.Size();
 }
 
 void OpenAlSource::Unqueue()

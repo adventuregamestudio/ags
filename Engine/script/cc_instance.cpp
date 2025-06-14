@@ -35,9 +35,11 @@
 #include "util/file.h"
 #include "util/memory.h"
 #include "util/string_utils.h" // linux strnicmp definition
+#include "util/time_util.h"
 
 using namespace AGS::Common;
 using namespace AGS::Common::Memory;
+using namespace AGS::Engine;
 
 
 enum ScriptOpArgIsReg
@@ -589,7 +591,7 @@ ccInstError ccInstance::Run(int32_t curpc)
     unsigned loopCheckIterations = 0u; // loop iterations accumulated only if check is enabled
 
     const auto timeout = std::chrono::milliseconds(_timeoutCheckMs);
-    _lastAliveTs = AGS_FastClock::now();
+    _lastAliveTs = FastClock::now();
 
     /* Main bytecode execution loop */
     //=====================================================================
@@ -1040,12 +1042,12 @@ ccInstError ccInstance::Run(int32_t curpc)
                 }
                 else if ((loopIterations & 0x3FF) == 0 && // test each 1024 loops (arbitrary)
                     (std::chrono::duration_cast<std::chrono::milliseconds>(
-                        AGS_FastClock::now() - _lastAliveTs) > timeout))
+                        FastClock::now() - _lastAliveTs) > timeout))
                 { // minimal timeout occured
                     // NOTE: removed timeout_abort check for now: was working *logically* wrong;
                     // at least let user to manipulate the game window
                     sys_evt_process_pending();
-                    _lastAliveTs = AGS_FastClock::now();
+                    _lastAliveTs = FastClock::now();
                 }
             }
             break;
@@ -1731,7 +1733,7 @@ bool ccInstance::IsBeingRun() const
 void ccInstance::NotifyAlive()
 {
     _flags |= INSTF_RUNNING;
-    _lastAliveTs = AGS_FastClock::now();
+    _lastAliveTs = FastClock::now();
 }
 
 bool ccInstance::_Create(PScript scri, const ccInstance *joined)

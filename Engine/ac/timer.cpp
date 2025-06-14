@@ -23,6 +23,8 @@
 #include "SDL.h"
 #endif
 
+using namespace AGS::Engine;
+
 extern volatile bool game_update_suspend;
 extern volatile bool want_exit, abort_engine;
 
@@ -34,8 +36,8 @@ auto tick_duration = std::chrono::microseconds(1000000LL/40);
 auto framerate = 0;
 auto framerate_maxed = false;
 
-auto last_tick_time = AGS_Clock::now();
-auto next_frame_timestamp = AGS_Clock::now();
+auto last_tick_time = Clock::now();
+auto next_frame_timestamp = Clock::now();
 
 }
 
@@ -73,7 +75,7 @@ void WaitForNextFrame()
     audio_core_entry_poll();
 #endif
 
-    const auto now = AGS_Clock::now();
+    const auto now = Clock::now();
     const auto frameDuration = GetFrameDuration();
 
     // early exit if we're trying to maximise framerate
@@ -98,7 +100,7 @@ void WaitForNextFrame()
     if (frame_time_remaining > std::chrono::milliseconds::zero()) {
 #if AGS_PLATFORM_OS_EMSCRIPTEN
         // pass the time as negative in Emscripten Platform Driver
-        platform->Delay(-std::chrono::duration_cast<std::chrono::milliseconds>(frame_time_remaining).count());
+        platform->Delay(-ToMilliseconds(frame_time_remaining));
 #else
         std::this_thread::sleep_for(frame_time_remaining);
 #endif
@@ -116,6 +118,6 @@ void WaitForNextFrame()
 
 void skipMissedTicks()
 {
-    last_tick_time = AGS_Clock::now();
-    next_frame_timestamp = AGS_Clock::now();
+    last_tick_time = Clock::now();
+    next_frame_timestamp = Clock::now();
 }

@@ -21,7 +21,7 @@
 #include "ac/dynobj/scriptaudiochannel.h"
 #include "media/audio/ambientsound.h"
 #include "media/audio/soundclip.h"
-#include "ac/timer.h"
+#include "util/time_util.h"
 
 class AudioChans
 {
@@ -113,7 +113,7 @@ std::unique_ptr<SoundClip> load_music_from_disk(int mnum, bool doRepeat);
 void        newmusic(int mnum);
 
 extern void cancel_scheduled_music_update();
-extern void schedule_music_update_at(AGS_Clock::time_point);
+extern void schedule_music_update_at(AGS::Engine::Clock::time_point);
 extern void postpone_scheduled_music_update_by(std::chrono::milliseconds);
 
 // crossFading is >0 (channel number of new track), or -1 (old

@@ -94,7 +94,8 @@ void PlayVideo(const char* name, int skip, int scr_flags)
     -- since 3.6.0:
     20: play both game audio and video's own audio
     */
-    int video_flags = kVideo_EnableVideo | kVideo_DropFrames;
+    // TODO: some of these may be a part of config (e.g. kVideo_DropFramesUndecoded)
+    int video_flags = kVideo_EnableVideo | kVideo_DropFrames | kVideo_DropFramesUndecoded | kVideo_SyncAudioVideo;
     int state_flags = 0;
     // video size
     switch (scr_flags % 10)

@@ -40,9 +40,13 @@ private:
     void CloseImpl() override;
     bool RewindImpl() override;
     // Retrieves next video frame, implementation-specific
-    bool NextVideoFrame(Common::Bitmap *dst) override;
+    bool NextVideoFrame(Common::Bitmap *dst, float &ts) override;
     // Retrieves next audio frame, implementation-specific
-    SoundBuffer NextAudioFrame() override;
+    bool NextAudioFrame(SoundBuffer &abuf) override;
+    // Checks the next video frame in stream and returns its timestamp.
+    float PeekVideoFrame() override;
+    // Drop next video frame from stream.
+    void DropVideoFrame() override;
 
     Common::HError OpenAPEGStream(Stream *data_stream, const String &name, int flags, int target_depth);
 
@@ -54,7 +58,10 @@ private:
     std::unique_ptr<Common::Bitmap> _theoraFullFrame;
     // Wrapper over portion of theora frame which we want to use
     std::unique_ptr<Common::Bitmap> _theoraSrcFrame;
-    uint64_t _videoFramesDecoded = 0u; // how many frames loaded and decoded
+    uint64_t _videoFramesDecodedTotal = 0u; // how many frames loaded and decoded total (includes rewinds!)
+    uint64_t _videoFramesDecoded = 0u; // sequential count of video frames since the video beginning
+    float _nextFrameTs = 0.f; // next frame presentation time
+                              // this is based on previous frame's end pos granule in Ogg stream
 };
 
 } // namespace Engine

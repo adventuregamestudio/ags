@@ -707,7 +707,7 @@ static int _fli_parse_chunk(FLI_CHUNK *chunk, unsigned char *p, uint32_t frame_s
 /* read_frame:
  *  Advances to the next frame in the FLI.
  */
-static void read_frame(void)
+static void read_frame(int decode)
 {
    unsigned char *p;
    FLI_CHUNK chunk;
@@ -748,6 +748,13 @@ static void read_frame(void)
 
    /* bytes left in this frame */
    frame_size = frame_header.size - sizeof_FLI_FRAME;
+
+   /* if no decoding requested, then skip the frame data */
+   if (decode == 0) {
+      fli_skip(frame_size);
+      fli_frame++;
+      return;
+   }
 
    /* return if there is no data in the frame */
    if (frame_size == 0) {
@@ -955,13 +962,13 @@ void close_fli(void)
 
 
 
-/* next_fli_frame:
+/* next_fli_frame_internal:
  *  Advances to the next frame of the FLI, leaving the changes in the 
  *  fli_bitmap and fli_palette. If loop is non-zero, it will cycle if 
  *  it reaches the end of the animation. Returns one of the FLI status 
  *  constants.
  */
-int next_fli_frame(int loop)
+static int next_fli_frame_internal(int loop, int decode)
 {
    /* looping is not supported if fli is read from custom packfile, 
     * because it cannot be rewinded.
@@ -984,10 +991,23 @@ int next_fli_frame(int loop)
       }
    }
 
-   /* read the next frame */
-   read_frame();
-
+   /* read the next frame, either decode or skip */
+   read_frame(decode);
    return fli_status;
+}
+
+
+
+int next_fli_frame(int loop)
+{
+   return next_fli_frame_internal(loop, 1);
+}
+
+
+
+int skip_fli_frame(int loop)
+{
+   return next_fli_frame_internal(loop, 0);
 }
 
 

@@ -164,6 +164,10 @@ void BlockingVideoPlayer::Begin()
         _dstRect = dest;
     }
 
+    // Poll player once in order to buffer at least one video frame
+    player->Poll();
+
+    // Start the playback
     player->Play();
     _playbackState = player->GetPlayState();
 }
@@ -255,7 +259,7 @@ bool BlockingVideoPlayer::Run()
 
 void BlockingVideoPlayer::Draw()
 {
-    if (_videoDDB)
+    if (_videoDDB && _videoDDB->IsValid())
     {
         gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform());
         gfxDriver->DrawSprite(_dstRect.Left, _dstRect.Top, _videoDDB);

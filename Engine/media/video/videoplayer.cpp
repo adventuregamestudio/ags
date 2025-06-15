@@ -729,98 +729,108 @@ void VideoPlayer::PrintStats(bool close)
 
     _statsPrintTs = now;
     Debug::Printf("VideoPlayer stats: \"%s\""
-                  "\n\tresolution: %dx%d, fps: %.2f, frametime: %.2f ms"
-                  "\n\taudio: %d Hz, chans: %d"
-                  "\n\ttotal time working: %lld ms"
-                  "\n\ttotal time playing: %lld ms"
-                  "\n\tplayback position: %.2f ms"
-                  "\n\tvideo input frames: %u"
-                  "\n\t            total size: %llu bytes"
-                  "\n\t            total duration: %.2f ms"
-                  "\n\t            frames dropped: %u"
-                  "\n\tvideo frame size (raw, decoded): %u bytes"
-                  "\n\tvideo frame size (raw, final): %u bytes"
-                  "\n\tmax time per input video frame: %u ms"
-                  "\n\tavg time per input video frame: %u ms"
-                  "\n\ttotal time on input video frames: %llu ms"
-                  "\n\tmax buffered video frames: %u / %u"
-                  "\n\tavg buffered video frames: %u"
-                  "\n\tvideo output frames: %u"
-                  "\n\t            total size: %llu bytes"
-                  "\n\t            total duration: %.2f ms"
-                  "\n\t            frames dropped: %u"
-                  "\n\tmost video timing diff: %+.2f, %+.2f ms"
-                  "\n\tavg video timing diff: %+.2f ms"
-                  "\n\taudio input frames: %u"
-                  "\n\t            total size: %llu bytes"
-                  "\n\t            total duration: %.2f ms"
-                  "\n\t            frames dropped: %u"
-                  "\n\taverage audio frame: %u bytes, %.2f ms"
-                  "\n\tmax time per input audio frame: %u ms"
-                  "\n\tavg time per input audio frame: %u ms"
-                  "\n\ttotal time on input audio frames: %llu ms"
-                  "\n\tmax buffered audio duration: %.2f / %.2f ms"
-                  "\n\tavg buffered audio duration: %.2f ms"
-                  "\n\taudio output frames: %u"
-                  "\n\t            total size: %llu bytes"
-                  "\n\t            total duration: %.2f ms"
-                  "\n\t            frames dropped: %u"
-                  "\n\tmost audio timing diff: %+.2f, %+.2f"
-                  "\n\tavg audio timing diff: %+.2f ms"
-                  "\n\tvideo-audio sync:"
-                  "\n\t            most desync towards audio: %+.2f ms"
-                  "\n\t            most desync towards video: %+.2f ms"
-                  "\n\t            avg desync: %+.2f ms"
-                  "\n\t            max adjust forward: %+.2f ms"
-                  "\n\t            max adjust backward: %+.2f ms",
-                  _name.GetCStr(),
-                  _frameSize.Width, _frameSize.Height, _frameRate, _frameTime,
-                  _audioFreq, _audioChannels,
-                  ToMilliseconds(_stats.WorkTime),
-                  ToMilliseconds(_stats.PlayTime),
-                  _posMs,
-                  _stats.VideoIn.Frames,
-                  _stats.VideoIn.TotalDataSz,
-                  _stats.VideoIn.TotalDurMs,
-                  _stats.VideoIn.Dropped,
-                  _stats.VideoIn.RawDecodedDataSz,
-                  _stats.VideoIn.RawDecodedConvDataSz,
-                  _stats.VideoIn.MaxTimePerFrame,
-                  _stats.VideoIn.AvgTimePerFrame,
-                  _stats.VideoIn.TotalTime,
-                  _stats.MaxBufferedVideo,
-                  _queueMax,
-                  _stats.BufferedVideoAccum / _stats.VideoIn.Frames,
-                  _stats.VideoOut.Frames,
-                  _stats.VideoOut.TotalDataSz,
-                  _stats.VideoOut.TotalDurMs,
-                  _stats.VideoOut.Dropped,
-                  _stats.VideoTimingDiffs.first,
-                  _stats.VideoTimingDiffs.second,
-                  _stats.VideoTimingDiffAccum / _stats.VideoOut.Frames,
-                  _stats.AudioIn.Frames,
-                  _stats.AudioIn.TotalDataSz,
-                  _stats.AudioIn.TotalDurMs,
-                  _stats.AudioIn.Dropped,
-                  static_cast<uint32_t>(_stats.AudioIn.TotalDataSz / _stats.AudioIn.Frames),
-                  _stats.AudioIn.TotalDurMs / _stats.AudioIn.Frames,
-                  _stats.AudioIn.MaxTimePerFrame,
-                  _stats.AudioIn.AvgTimePerFrame,
-                  _stats.AudioIn.TotalTime,
-                  _stats.MaxBufferedAudioMs,
-                  _queueTimeMax,
-                  _stats.BufferedAudioAcum / _stats.AudioIn.Frames,
-                  _stats.AudioOut.Frames,
-                  _stats.AudioOut.TotalDataSz,
-                  _stats.AudioOut.TotalDurMs,
-                  _stats.AudioOut.Dropped,
-                  _stats.AudioTimingDiffs.first,
-                  _stats.AudioTimingDiffs.second,
-                  _stats.AudioTimingDiffAccum / _stats.AudioOut.Frames,
-                  _stats.SyncTimingDiffs.first, _stats.SyncTimingDiffs.second,
-                  _stats.SyncTimingDiffAccum / _stats.VideoIn.Frames,
-                  _stats.SyncMaxFw, _stats.SyncMaxBw
-                  );
+        "\n\tresolution: %dx%d, fps: %.2f, frametime: %.2f ms"
+        "\n\taudio: %d Hz, chans: %d"
+        "\n\ttotal time working: %lld ms"
+        "\n\ttotal time playing: %lld ms"
+        "\n\tplayback position: %.2f ms",
+        _name.GetCStr(),
+        _frameSize.Width, _frameSize.Height, _frameRate, _frameTime,
+        _audioFreq, _audioChannels,
+        ToMilliseconds(_stats.WorkTime),
+        ToMilliseconds(_stats.PlayTime),
+        _posMs
+    );
+    if (HasVideo())
+    {
+        Debug::Printf(""
+              "\tvideo input frames: %u"
+            "\n\t            total size: %llu bytes"
+            "\n\t            total duration: %.2f ms"
+            "\n\t            frames dropped: %u"
+            "\n\tvideo frame size (raw, decoded): %u bytes"
+            "\n\tvideo frame size (raw, final): %u bytes"
+            "\n\tmax time per input video frame: %u ms"
+            "\n\tavg time per input video frame: %u ms"
+            "\n\ttotal time on input video frames: %llu ms"
+            "\n\tmax buffered video frames: %u / %u"
+            "\n\tavg buffered video frames: %u"
+            "\n\tvideo output frames: %u"
+            "\n\t            total size: %llu bytes"
+            "\n\t            total duration: %.2f ms"
+            "\n\t            frames dropped: %u"
+            "\n\tmost video timing diff: %+.2f, %+.2f ms"
+            "\n\tavg video timing diff: %+.2f ms",
+            _stats.VideoIn.Frames,
+            _stats.VideoIn.TotalDataSz,
+            _stats.VideoIn.TotalDurMs,
+            _stats.VideoIn.Dropped,
+            _stats.VideoIn.RawDecodedDataSz,
+            _stats.VideoIn.RawDecodedConvDataSz,
+            _stats.VideoIn.MaxTimePerFrame,
+            _stats.VideoIn.AvgTimePerFrame,
+            _stats.VideoIn.TotalTime,
+            _stats.MaxBufferedVideo,
+            _queueMax,
+            _stats.BufferedVideoAccum / _stats.VideoIn.Frames,
+            _stats.VideoOut.Frames,
+            _stats.VideoOut.TotalDataSz,
+            _stats.VideoOut.TotalDurMs,
+            _stats.VideoOut.Dropped,
+            _stats.VideoTimingDiffs.first,
+            _stats.VideoTimingDiffs.second,
+            _stats.VideoTimingDiffAccum / _stats.VideoOut.Frames
+        );
+    }
+    if (HasAudio())
+    {
+        Debug::Printf(""
+              "\taudio input frames: %u"
+            "\n\t            total size: %llu bytes"
+            "\n\t            total duration: %.2f ms"
+            "\n\t            frames dropped: %u"
+            "\n\taverage audio frame: %u bytes, %.2f ms"
+            "\n\tmax time per input audio frame: %u ms"
+            "\n\tavg time per input audio frame: %u ms"
+            "\n\ttotal time on input audio frames: %llu ms"
+            "\n\tmax buffered audio duration: %.2f / %.2f ms"
+            "\n\tavg buffered audio duration: %.2f ms"
+            "\n\taudio output frames: %u"
+            "\n\t            total size: %llu bytes"
+            "\n\t            total duration: %.2f ms"
+            "\n\t            frames dropped: %u"
+            "\n\tmost audio timing diff: %+.2f, %+.2f"
+            "\n\tavg audio timing diff: %+.2f ms"
+            "\n\tvideo-audio sync:"
+            "\n\t            most desync towards audio: %+.2f ms"
+            "\n\t            most desync towards video: %+.2f ms"
+            "\n\t            avg desync: %+.2f ms"
+            "\n\t            max adjust forward: %+.2f ms"
+            "\n\t            max adjust backward: %+.2f ms",
+            _stats.AudioIn.Frames,
+            _stats.AudioIn.TotalDataSz,
+            _stats.AudioIn.TotalDurMs,
+            _stats.AudioIn.Dropped,
+            static_cast<uint32_t>(_stats.AudioIn.TotalDataSz / _stats.AudioIn.Frames),
+            _stats.AudioIn.TotalDurMs / _stats.AudioIn.Frames,
+            _stats.AudioIn.MaxTimePerFrame,
+            _stats.AudioIn.AvgTimePerFrame,
+            _stats.AudioIn.TotalTime,
+            _stats.MaxBufferedAudioMs,
+            _queueTimeMax,
+            _stats.BufferedAudioAcum / _stats.AudioIn.Frames,
+            _stats.AudioOut.Frames,
+            _stats.AudioOut.TotalDataSz,
+            _stats.AudioOut.TotalDurMs,
+            _stats.AudioOut.Dropped,
+            _stats.AudioTimingDiffs.first,
+            _stats.AudioTimingDiffs.second,
+            _stats.AudioTimingDiffAccum / _stats.AudioOut.Frames,
+            _stats.SyncTimingDiffs.first, _stats.SyncTimingDiffs.second,
+            _stats.SyncTimingDiffAccum / _stats.VideoIn.Frames,
+            _stats.SyncMaxFw, _stats.SyncMaxBw
+        );
+    }
 }
 
 } // namespace Engine

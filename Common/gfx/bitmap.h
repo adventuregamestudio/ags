@@ -88,7 +88,7 @@ namespace BitmapHelper
 	Bitmap *LoadFromFile(const char *filename);
     inline Bitmap *LoadFromFile(const String &filename) { return LoadFromFile(filename.GetCStr()); }
     // Write a bitmap into a file; supported formats currently are: BMP, PCX.
-    bool SaveToFile(Bitmap* bmp, const char *filename, const RGB *pal = nullptr);
+    bool SaveToFile(const Bitmap* bmp, const char *filename, const RGB *pal = nullptr);
     // Reads a bitmap from the stream, possibly with palette
     Bitmap *LoadBitmap(Stream *in, const String& ext, RGB *pal = nullptr);
     // Write a bitmap to the stream, optionally along with the palette
@@ -96,7 +96,7 @@ namespace BitmapHelper
 
     // Stretches bitmap to the requested size. The new bitmap will have same
     // colour depth. Returns original bitmap if no changes are necessary. 
-    Bitmap *AdjustBitmapSize(Bitmap *src, int width, int height);
+    Bitmap *AdjustBitmapSize(const Bitmap *src, int width, int height);
     // Makes the given bitmap opaque (full alpha), while keeping pixel RGB unchanged.
     void    MakeOpaque(Bitmap *bmp);
     // Makes the given bitmap opaque (full alpha), while keeping pixel RGB unchanged.

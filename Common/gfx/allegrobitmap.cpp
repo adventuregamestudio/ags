@@ -242,7 +242,7 @@ Rect Bitmap::GetClip() const
 // Blitting operations (drawing one bitmap over another)
 //=============================================================================
 
-void Bitmap::Blit(Bitmap *src, int dst_x, int dst_y, BitmapMaskOption mask)
+void Bitmap::Blit(const Bitmap *src, int dst_x, int dst_y, BitmapMaskOption mask)
 {	
 	BITMAP *al_src_bmp = src->_alBitmap;
 	// WARNING: For some evil reason Allegro expects dest and src bitmaps in different order for blit and draw_sprite
@@ -256,7 +256,7 @@ void Bitmap::Blit(Bitmap *src, int dst_x, int dst_y, BitmapMaskOption mask)
 	}
 }
 
-void Bitmap::Blit(Bitmap *src, int src_x, int src_y, int dst_x, int dst_y, int width, int height, BitmapMaskOption mask)
+void Bitmap::Blit(const Bitmap *src, int src_x, int src_y, int dst_x, int dst_y, int width, int height, BitmapMaskOption mask)
 {
 	BITMAP *al_src_bmp = src->_alBitmap;
 	if (mask == kBitmap_Transparency)
@@ -269,12 +269,12 @@ void Bitmap::Blit(Bitmap *src, int src_x, int src_y, int dst_x, int dst_y, int w
 	}
 }
 
-void Bitmap::MaskedBlit(Bitmap *src, int dst_x, int dst_y)
+void Bitmap::MaskedBlit(const Bitmap *src, int dst_x, int dst_y)
 {
     draw_sprite(_alBitmap, src->_alBitmap, dst_x, dst_y);
 }
 
-void Bitmap::StretchBlt(Bitmap *src, const Rect &dst_rc, BitmapMaskOption mask)
+void Bitmap::StretchBlt(const Bitmap *src, const Rect &dst_rc, BitmapMaskOption mask)
 {
 	BITMAP *al_src_bmp = src->_alBitmap;
 	// WARNING: For some evil reason Allegro expects dest and src bitmaps in different order for blit and draw_sprite
@@ -291,7 +291,7 @@ void Bitmap::StretchBlt(Bitmap *src, const Rect &dst_rc, BitmapMaskOption mask)
 	}
 }
 
-void Bitmap::StretchBlt(Bitmap *src, const Rect &src_rc, const Rect &dst_rc, BitmapMaskOption mask)
+void Bitmap::StretchBlt(const Bitmap *src, const Rect &src_rc, const Rect &dst_rc, BitmapMaskOption mask)
 {
 	BITMAP *al_src_bmp = src->_alBitmap;
 	if (mask == kBitmap_Transparency)
@@ -308,7 +308,7 @@ void Bitmap::StretchBlt(Bitmap *src, const Rect &src_rc, const Rect &dst_rc, Bit
 	}
 }
 
-void Bitmap::AAStretchBlt(Bitmap *src, const Rect &dst_rc, BitmapMaskOption mask)
+void Bitmap::AAStretchBlt(const Bitmap *src, const Rect &dst_rc, BitmapMaskOption mask)
 {
 	BITMAP *al_src_bmp = src->_alBitmap;
 	// WARNING: For some evil reason Allegro expects dest and src bitmaps in different order for blit and draw_sprite
@@ -325,7 +325,7 @@ void Bitmap::AAStretchBlt(Bitmap *src, const Rect &dst_rc, BitmapMaskOption mask
 	}
 }
 
-void Bitmap::AAStretchBlt(Bitmap *src, const Rect &src_rc, const Rect &dst_rc, BitmapMaskOption mask)
+void Bitmap::AAStretchBlt(const Bitmap *src, const Rect &src_rc, const Rect &dst_rc, BitmapMaskOption mask)
 {
 	BITMAP *al_src_bmp = src->_alBitmap;
 	if (mask == kBitmap_Transparency)
@@ -343,19 +343,19 @@ void Bitmap::AAStretchBlt(Bitmap *src, const Rect &src_rc, const Rect &dst_rc, B
 	}
 }
 
-void Bitmap::TransBlendBlt(Bitmap *src, int dst_x, int dst_y)
+void Bitmap::TransBlendBlt(const Bitmap *src, int dst_x, int dst_y)
 {
 	BITMAP *al_src_bmp = src->_alBitmap;
 	draw_trans_sprite(_alBitmap, al_src_bmp, dst_x, dst_y);
 }
 
-void Bitmap::LitBlendBlt(Bitmap *src, int dst_x, int dst_y, int light_amount)
+void Bitmap::LitBlendBlt(const Bitmap *src, int dst_x, int dst_y, int light_amount)
 {
 	BITMAP *al_src_bmp = src->_alBitmap;
 	draw_lit_sprite(_alBitmap, al_src_bmp, dst_x, dst_y, light_amount);
 }
 
-void Bitmap::FlipBlt(Bitmap *src, int dst_x, int dst_y, GraphicFlip flip)
+void Bitmap::FlipBlt(const Bitmap *src, int dst_x, int dst_y, GraphicFlip flip)
 {	
 	BITMAP *al_src_bmp = src->_alBitmap;
 	switch (flip)
@@ -375,7 +375,7 @@ void Bitmap::FlipBlt(Bitmap *src, int dst_x, int dst_y, GraphicFlip flip)
 	}
 }
 
-void Bitmap::RotateBlt(Bitmap *src, int dst_x, int dst_y, fixed_t angle)
+void Bitmap::RotateBlt(const Bitmap *src, int dst_x, int dst_y, fixed_t angle)
 {
     // convert to allegro angle
     fixed_t al_angle = itofix((angle * 256) / 360);
@@ -383,7 +383,7 @@ void Bitmap::RotateBlt(Bitmap *src, int dst_x, int dst_y, fixed_t angle)
     rotate_sprite(_alBitmap, al_src_bmp, dst_x, dst_y, al_angle);
 }
 
-void Bitmap::RotateBlt(Bitmap *src, int dst_x, int dst_y, int pivot_x, int pivot_y, fixed_t angle)
+void Bitmap::RotateBlt(const Bitmap *src, int dst_x, int dst_y, int pivot_x, int pivot_y, fixed_t angle)
 {
     // convert to allegro angle
     fixed_t al_angle = itofix((angle * 256) / 360);

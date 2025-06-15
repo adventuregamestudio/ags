@@ -1,5 +1,5 @@
 # Global defaults
-skip: "changesIncludeOnly('**.md', '**.txt', '.gitignore', '.gitattributes') && !changesInclude('CMakeLists.txt') && !changesInclude('**/CMakeLists.txt')"
+skip: "($CIRRUS_TAG == '') && changesIncludeOnly('**.md', '**.txt', '.gitignore', '.gitattributes') && !changesInclude('CMakeLists.txt') && !changesInclude('**/CMakeLists.txt')"
 env:
   CIRRUS_CLONE_DEPTH: 1
 

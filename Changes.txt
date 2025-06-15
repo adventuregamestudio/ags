@@ -45,6 +45,8 @@ Editor:
  - Added FaceDirectionRatio property to General Settings, Room and Walkable Areas.
  - Added readonly Length property for AudioClips, for the reference.
  - Added "Source FontFile" property to Fonts, this property lets assign a Font File to the Font.
+ - Redesigned Color Finder panel, now it lets to specify alpha color component, and convert
+   between several different color representations.
  - Implemented "Watch Variables" panel which lets to watch values of the selected script variables
    while running the game. This feature is working only if game is built in Debug mode.
    The panel has an option to automatically enlist local variables (relative to current position
@@ -141,6 +143,7 @@ Script API:
    WalkableArea. This includes functions: GetProperty(), GetTextProperty(), SetProperty() and
    SetTextProperty().
  - Added BlendMode enum.
+ - Added Button.GraphicFlip property.
  - Added Character.BlendMode, GUI.BlendMode, GUIControl.BlendMode, Object.BlendMode,
    Overlay.BlendMode.
  - Added Character.Enabled and Visible properties, added Object.Enabled property,

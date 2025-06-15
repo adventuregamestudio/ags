@@ -172,10 +172,15 @@ void BlockingVideoPlayer::Begin()
         set_game_speed(video_fps);
     }
 
+    // Poll player once in order to buffer at least one video frame
+    _player->Poll();
+
+    // Start the playback
     _player->Play();
     _playbackState = _player->GetPlayState();
 
 #if !defined(AGS_DISABLE_THREADS)
+    // Start the video polling thread
     _videoThread = std::thread(BlockingVideoPlayer::PollVideo, this);
 #endif
 }
@@ -279,7 +284,7 @@ bool BlockingVideoPlayer::Run()
 
 void BlockingVideoPlayer::Draw()
 {
-    if (_videoDDB)
+    if (_videoDDB && _videoDDB->IsValid())
     {
         gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform());
         gfxDriver->DrawSprite(_dstRect.Left, _dstRect.Top, _videoDDB);

@@ -73,9 +73,10 @@ private:
     static void PollVideo(BlockingVideoPlayer *self);
 #endif
     void StopVideo();
+    void PrintStats();
 
     std::unique_ptr<VideoPlayer> _player;
-    const String _assetName; // for diagnostics
+    String _assetName; // for diagnostics
     int _videoFlags = 0;
     int _stateFlags = 0;
     IDriverDependantBitmap *_videoDDB = nullptr;
@@ -89,6 +90,22 @@ private:
     // For saving and restoring game sounds
     int _wasMusPlaying = -1;
     int _wasAmbient[MAX_GAME_CHANNELS]{0};
+
+    // Statistics
+    struct Statistics
+    {
+        struct ProcStat
+        {
+            float MaxTime = 0.f;
+            float AvgTime = 0.f;
+            uint64_t TotalTime = 0u;
+            uint64_t Count = 0u;
+        };
+
+        ProcStat PrepareFrame; // time spent on preparing a frame for display
+        ProcStat DisplayFrame; // time spent on rendering a frame
+    } _stats;
+    bool _statsReady = false;
 };
 
 BlockingVideoPlayer::BlockingVideoPlayer(std::unique_ptr<VideoPlayer> player,
@@ -98,6 +115,8 @@ BlockingVideoPlayer::BlockingVideoPlayer(std::unique_ptr<VideoPlayer> player,
     , _stateFlags(state_flags)
     , _skip(skip)
 {
+    if (_player)
+        _assetName = _player->GetName();
 }
 
 BlockingVideoPlayer::~BlockingVideoPlayer()
@@ -178,6 +197,7 @@ void BlockingVideoPlayer::Begin()
     // Start the playback
     _player->Play();
     _playbackState = _player->GetPlayState();
+    _statsReady = true;
 
 #if !defined(AGS_DISABLE_THREADS)
     // Start the video polling thread
@@ -258,20 +278,30 @@ bool BlockingVideoPlayer::Run()
     {
         std::lock_guard<std::mutex> lk(_videoMutex);
         _playbackState = _player->GetPlayState();
-        frame = _player->GetReadyFrame();
+        if ((_videoFlags & kVideo_EnableVideo) != 0)
+            frame = _player->GetReadyFrame();
     }
 
     if ((_videoFlags & kVideo_EnableVideo) != 0)
     {
         if (frame)
         {
+            const auto start_tp = Clock::now();
             gfxDriver->UpdateDDBFromBitmap(_videoDDB, frame.get(), false);
             _videoDDB->SetStretch(_dstRect.GetWidth(), _dstRect.GetHeight(), false);
+            const auto end_tp = Clock::now();
 
             {
                 std::lock_guard<std::mutex> lk(_videoMutex);
                 _player->ReleaseFrame(std::move(frame));
             }
+
+            // Stats
+            const float dur_ms = ToMillisecondsF(end_tp - start_tp);
+            _stats.PrepareFrame.Count++;
+            _stats.PrepareFrame.TotalTime += static_cast<uint64_t>(dur_ms);
+            _stats.PrepareFrame.MaxTime = std::max(_stats.PrepareFrame.MaxTime, dur_ms);
+            _stats.PrepareFrame.AvgTime = static_cast<double>(_stats.PrepareFrame.TotalTime) / _stats.PrepareFrame.Count;
         }
     }
 
@@ -284,6 +314,7 @@ bool BlockingVideoPlayer::Run()
 
 void BlockingVideoPlayer::Draw()
 {
+    const auto start_tp = Clock::now();
     if (_videoDDB && _videoDDB->IsValid())
     {
         gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform());
@@ -291,6 +322,14 @@ void BlockingVideoPlayer::Draw()
         gfxDriver->EndSpriteBatch();
     }
     render_to_screen();
+
+    // Stats
+    const auto end_tp = Clock::now();
+    const float dur_ms = ToMillisecondsF(end_tp - start_tp);
+    _stats.DisplayFrame.Count++;
+    _stats.DisplayFrame.TotalTime += static_cast<uint64_t>(dur_ms);
+    _stats.DisplayFrame.MaxTime = std::max(_stats.DisplayFrame.MaxTime, dur_ms);
+    _stats.DisplayFrame.AvgTime = static_cast<double>(_stats.DisplayFrame.TotalTime) / _stats.DisplayFrame.Count;
 }
 
 void BlockingVideoPlayer::StopVideo()
@@ -309,6 +348,35 @@ void BlockingVideoPlayer::StopVideo()
     if (_videoDDB)
         gfxDriver->DestroyDDB(_videoDDB);
     _videoDDB = nullptr;
+
+    PrintStats();
+    _statsReady = false;
+}
+
+void BlockingVideoPlayer::PrintStats()
+{
+    if (!_statsReady)
+        return;
+
+    Debug::Printf("BlockingVideoPlayer stats: \"%s\""
+                  "\n\ttotal frames on input: %llu"
+                  "\n\tmax time per preparing a video frame: %.2f ms"
+                  "\n\tavg time per preparing a video frame: %.2f ms"
+                  "\n\ttotal time on preparing video frames: %llu ms"
+                  "\n\ttotal render passes (depends on game fps): %llu"
+                  "\n\tmax time per render: %.2f ms"
+                  "\n\tavg time per render: %.2f ms"
+                  "\n\ttotal time on render: %llu ms",
+                  _assetName.GetCStr(),
+                  _stats.PrepareFrame.Count,
+                  _stats.PrepareFrame.MaxTime,
+                  _stats.PrepareFrame.AvgTime,
+                  _stats.PrepareFrame.TotalTime,
+                  _stats.DisplayFrame.Count,
+                  _stats.DisplayFrame.MaxTime,
+                  _stats.DisplayFrame.AvgTime,
+                  _stats.DisplayFrame.TotalTime
+    );
 }
 
 #if !defined(AGS_DISABLE_THREADS)

@@ -454,18 +454,18 @@ void VideoPlayer::BufferVideo()
             target_frame->StretchBlt(usebuf, RectWH(_targetSize));
     }
 
-    const auto input_dur_ms = ToMilliseconds(Clock::now() - input_start);
+    const auto input_dur_ms = ToMillisecondsF(Clock::now() - input_start);
 
     // Stats
     assert(target_frame);
     _stats.VideoIn.Frames++;
     _stats.VideoIn.TotalDataSz += target_frame->GetDataSize();
     _stats.VideoIn.TotalDurMs += _frameTime;
-    _stats.VideoIn.TotalTime += input_dur_ms;
+    _stats.VideoIn.TotalTime += static_cast<uint64_t>(input_dur_ms);
     _stats.VideoIn.RawDecodedDataSz = decoded_frame_sz;
     _stats.VideoIn.RawDecodedConvDataSz = target_frame->GetDataSize();
-    _stats.VideoIn.AvgTimePerFrame = _stats.VideoIn.TotalTime / _stats.VideoIn.Frames;
-    _stats.VideoIn.MaxTimePerFrame = std::max(_stats.VideoIn.MaxTimePerFrame, static_cast<uint32_t>(input_dur_ms));
+    _stats.VideoIn.AvgTimePerFrame = static_cast<double>(_stats.VideoIn.TotalTime) / _stats.VideoIn.Frames;
+    _stats.VideoIn.MaxTimePerFrame = std::max(_stats.VideoIn.MaxTimePerFrame, input_dur_ms);
     _stats.MaxBufferedVideo = std::max<uint32_t>(_stats.MaxBufferedVideo, _videoFrameQueue.size());
     // TODO: maybe record this every 10 - 100 frames?
     _stats.BufferedVideoAccum += _videoFrameQueue.size();
@@ -500,16 +500,16 @@ void VideoPlayer::BufferAudio()
         return;
     }
 
-    const auto input_dur_ms = ToMilliseconds(Clock::now() - input_start);
+    const auto input_dur_ms = ToMillisecondsF(Clock::now() - input_start);
 
     // Stats
     assert(aframe);
     _stats.AudioIn.Frames++;
     _stats.AudioIn.TotalDataSz += aframe->Size();
     _stats.AudioIn.TotalDurMs += aframe->DurationMs();
-    _stats.AudioIn.TotalTime += input_dur_ms;
-    _stats.AudioIn.AvgTimePerFrame = _stats.AudioIn.TotalTime / _stats.AudioIn.Frames;
-    _stats.AudioIn.MaxTimePerFrame = std::max(_stats.AudioIn.MaxTimePerFrame, static_cast<uint32_t>(input_dur_ms));
+    _stats.AudioIn.TotalTime += static_cast<uint64_t>(input_dur_ms);
+    _stats.AudioIn.AvgTimePerFrame = static_cast<double>(_stats.AudioIn.TotalTime) / _stats.AudioIn.Frames;
+    _stats.AudioIn.MaxTimePerFrame = std::max(_stats.AudioIn.MaxTimePerFrame, input_dur_ms);
     _stats.MaxBufferedAudioMs = std::max(_stats.MaxBufferedAudioMs, _audioQueueDurMs);
     // TODO: maybe record this every 10 - 100 frames?
     _stats.BufferedAudioAcum += _audioQueueDurMs;
@@ -750,8 +750,8 @@ void VideoPlayer::PrintStats(bool close)
             "\n\t            frames dropped: %u"
             "\n\tvideo frame size (raw, decoded): %u bytes"
             "\n\tvideo frame size (raw, final): %u bytes"
-            "\n\tmax time per input video frame: %u ms"
-            "\n\tavg time per input video frame: %u ms"
+            "\n\tmax time per input video frame: %.2f ms"
+            "\n\tavg time per input video frame: %.2f ms"
             "\n\ttotal time on input video frames: %llu ms"
             "\n\tmax buffered video frames: %u / %u"
             "\n\tavg buffered video frames: %u"
@@ -790,8 +790,8 @@ void VideoPlayer::PrintStats(bool close)
             "\n\t            total duration: %.2f ms"
             "\n\t            frames dropped: %u"
             "\n\taverage audio frame: %u bytes, %.2f ms"
-            "\n\tmax time per input audio frame: %u ms"
-            "\n\tavg time per input audio frame: %u ms"
+            "\n\tmax time per input audio frame: %.2f ms"
+            "\n\tavg time per input audio frame: %.2f ms"
             "\n\ttotal time on input audio frames: %llu ms"
             "\n\tmax buffered audio duration: %.2f / %.2f ms"
             "\n\tavg buffered audio duration: %.2f ms"

@@ -297,9 +297,9 @@ private:
 
             uint32_t RawDecodedDataSz = 0u; // size of the raw frame (decoded)
             uint32_t RawDecodedConvDataSz = 0u; // size of the raw frame (decoded + converted)
-            uint32_t MaxTimePerFrame = 0u; // max time spent on a frame
-            uint32_t AvgTimePerFrame = 0u; // average time spent on a frame
-            uint64_t TotalTime = 0u; // total time spent on input frames
+            float    MaxTimePerFrame = 0.f; // max time spent on a frame (ms)
+            float    AvgTimePerFrame = 0.f; // average time spent on a frame (ms)
+            uint64_t TotalTime = 0u; // total time spent on input frames (ms)
         };
 
         Clock::time_point LastWorkTs = {}; // last time when the work time was updated

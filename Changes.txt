@@ -35,7 +35,9 @@ Editor:
    using it; but you may still enter RGBA value by hand.
  - In General Settings added "Script Compiler" option that lets to choose between old and new
    script compilers for your game (see "Scripting" section below for the new compiler's details).
- - In General Settings added "GUI common controls handle only left mouse button" option.
+ - In General Settings added "GUI common controls handle only left mouse button" option that lets prevent
+   RMB from activating gui controls, except those that have separate actions for left and right
+   mouse buttons.
  - Added Custom Properties for: Audio Clips, Dialogs, GUI, GUI Controls, Regions, Walkable Areas.
  - Added Enabled and Visible properties to Characters, Enabled property to Room Objects.
  - Added BlendMode property for Characters, GUI and Room Objects.
@@ -45,6 +47,7 @@ Editor:
  - Added FaceDirectionRatio property to General Settings, Room and Walkable Areas.
  - Added readonly Length property for AudioClips, for the reference.
  - Added "Source FontFile" property to Fonts, this property lets assign a Font File to the Font.
+ - Added XOffset and YOffset properties for the View Frames.
  - Redesigned Color Finder panel, now it lets to specify alpha color component, and convert
    between several different color representations.
  - Implemented "Watch Variables" panel which lets to watch values of the selected script variables
@@ -129,6 +132,7 @@ Script API:
    This means that you *must* specify alpha value when assigning a color number directly,
    otherwise the game will treat the color as fully transparent.
  - Added Joystick struct, meant to handle joystics and gamepads in script.
+ - Added ShaderProgram and ShaderInstance structs, meant for the custom shaders support.
  - Added Touch and TouchPointer structs, meant to handle touch controls in script.
  - Added VideoPlayer struct, which provides means of playing non-blocking videos rendered onto
    a sprite that may be displayed on any game object.
@@ -146,11 +150,13 @@ Script API:
  - Added Button.GraphicFlip property.
  - Added Character.BlendMode, GUI.BlendMode, GUIControl.BlendMode, Object.BlendMode,
    Overlay.BlendMode.
+ - Added Character.Shader, GUI.Shader, GUIControl.Shader, Object.Shader, Overlay.Shader,
+   Camera.Shader, Viewport.Shader, Mouse.CursorShader, Screen.Shader.
  - Added Character.Enabled and Visible properties, added Object.Enabled property,
    Character.on is deprecated.
  - Added Character.UseRegionTint and Object.UseRegionTint, deprecated Character.IgnoreLighting.
- - Added Camera.Rotation, Character.GraphicRotation, GUI.Rotation, Object.GraphicRotation,
-   Overlay.Rotation.
+ - Added Camera.Rotation, Character.GraphicRotation, GUI.Rotation, GUIControl.Rotation,
+   Object.GraphicRotation, Overlay.Rotation.
  - Added Game.GetColorFromRGBA() function that creates a color number for red, green, blue and
    alpha combination.
  - Added Game.FaceDirectionRatio, Room.FaceDirectionRatio, WalkableArea.FaceDirectionRatio
@@ -179,6 +185,7 @@ Script API:
  - Added Game.SpriteColorDepth[] readonly indexed property.
  - Added GUI.ScaleX and ScaleY properties, GUI.SetScale() function.
  - Added GUI.GUIToScreenPoint() and GUI.ScreenToGUIPoint() functions.
+ - Added GUIControl.ScaleX and ScaleY properties, GUI.SetScale() function.
  - Added Math.Random(), Math.RandomFloat() and Math.Round() functions.
  - Added eRoundTowardsZero and eRoundAwayFromZero rounding styles for use in FloatToInt() and
    Math.Round() functions.
@@ -191,7 +198,9 @@ Script API:
    room's walkable areas.
  - Added StringSplitOptions enum, String.Join(), String.Split() and String.Trim() functions.
  - Expanded String.IndexOf() with new parameters: "StringCompareStyle", "index" and "count".
- - ViewFrame.Flipped property now returns eFlipDirection instead of bool.
+ - ViewFrame.Flipped property is now settable and returns eFlipDirection instead of bool.
+ - ViewFrame.Speed property is now settable.
+ - Added ViewFrame.XOffset and YOffset properties.
  - Added optional width, height and layer parameters to SaveScreenShot().
    SaveScreenShot() now supports location tokens in file path.
  - Added new game-wide option OPT_GUICONTROLMOUSEBUT that defines whether common GUI controls
@@ -215,9 +224,18 @@ Engine:
    half-transparent. This refers to almost anything that may have a color: texts,
    GUI backgrounds, DrawingSurface's DrawingColor, and so forth. The exceptions are things
    that only make sense with opaque color: Tint settings, and screen Fade effects.
+ - Support custom shaders, initialized through script API. Shaders are loaded and compiled from
+   GLSL (for OpenGL) or HLSL (for Direct3D) shader scripts, and may be attached to game objects,
+   camera, or the whole game view. Shaders may have user-defined constants, and have up to 3
+   secondary textures on input.
+ - Support compressing game saves using Deflate algorithm. Added config option "compress_saves"
+   in "misc" section, disabled by default.
+ - Always compress a screenshot in game save using Deflate algorithm.
  - Implemented more accurate Character movement. The movement direction is now more precise
    and diagonal movement speed no longer may exceed MovementSpeed setting.
  - Camera will not follow a disabled player character.
+ - Consistent GUI translation: the values of textual properties will never be automatically
+   translated on assignment or reading them, only the text displayed on screen will be translated.
  - Animated buttons now display flipped frames correctly.
  - AudioChannel.Position and PositionMs no longer return a very large value while skipping
    cutscene.

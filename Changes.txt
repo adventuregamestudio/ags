@@ -4,9 +4,9 @@ REVISION HISTORY
 VERSION 3.6.3 - in dev, future minor 3.6.* update
 
 Editor:
- - In General Settings added "GUI controls handle only left mouse button" option that lets prevent
-   RMB from activating gui controls, except those that have separate actions for left and right
-   mouse buttons.
+ - In General Settings added "GUI common controls handle only left mouse button" option that lets
+   prevent RMB from activating gui controls, except those that have separate actions for left and
+   right mouse buttons.
 
 Script API:
  - Added new game-wide option OPT_GUICONTROLMOUSEBUT that defines whether common GUI controls
@@ -25,6 +25,9 @@ Engine:
  - Always compress a screenshot in game save using Deflate algorithm.
  - Standard Dialog options now support Right-to-left text mode.
  - Improved video playback's synchronization between video and audio streams.
+
+WinSetup:
+ - Renamed "Custom Paths" tab to "Game Files", added "Compress saves" option.
 
 
 ---------------------------------------------------------------------------------------------------

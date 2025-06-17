@@ -35,9 +35,9 @@ Editor:
    using it; but you may still enter RGBA value by hand.
  - In General Settings added "Script Compiler" option that lets to choose between old and new
    script compilers for your game (see "Scripting" section below for the new compiler's details).
- - In General Settings added "GUI common controls handle only left mouse button" option that lets prevent
-   RMB from activating gui controls, except those that have separate actions for left and right
-   mouse buttons.
+ - In General Settings added "GUI common controls handle only left mouse button" option that lets
+   prevent RMB from activating gui controls, except those that have separate actions for left and
+   right mouse buttons.
  - Added Custom Properties for: Audio Clips, Dialogs, GUI, GUI Controls, Regions, Walkable Areas.
  - Added Enabled and Visible properties to Characters, Enabled property to Room Objects.
  - Added BlendMode property for Characters, GUI and Room Objects.
@@ -185,7 +185,7 @@ Script API:
  - Added Game.SpriteColorDepth[] readonly indexed property.
  - Added GUI.ScaleX and ScaleY properties, GUI.SetScale() function.
  - Added GUI.GUIToScreenPoint() and GUI.ScreenToGUIPoint() functions.
- - Added GUIControl.ScaleX and ScaleY properties, GUI.SetScale() function.
+ - Added GUIControl.ScaleX and ScaleY properties, GUIControl.SetScale() function.
  - Added Math.Random(), Math.RandomFloat() and Math.Round() functions.
  - Added eRoundTowardsZero and eRoundAwayFromZero rounding styles for use in FloatToInt() and
    Math.Round() functions.
@@ -257,6 +257,9 @@ Engine:
    (RTTI stands for "runtime type information", and is used for handling of certain advanced
    script features, such as nested managed structs.)
  - Fixed SDL log level defaulting to "verbose" instead of "info".
+
+WinSetup:
+ - Renamed "Custom Paths" tab to "Game Files", added "Compress saves" option.
 
 
 ===================================================================================================

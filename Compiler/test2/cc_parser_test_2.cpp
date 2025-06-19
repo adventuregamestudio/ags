@@ -953,6 +953,7 @@ TEST_F(Compile2, InitManaged01)
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("'null'"));
 }
+
 TEST_F(Compile2, InitManaged02)
 {
     
@@ -965,4 +966,140 @@ TEST_F(Compile2, InitManaged02)
 
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("'null'"));
+}
+
+TEST_F(Compile2, FormatFunction01)
+{
+    // Only one function parameter can be marked with '__format'.
+
+    char const *inpl = R"%&/(
+        import void foo(
+            int dummy1,
+            __format const string f,
+            __format string ff, ...);
+        )%&/";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string const &err_msg = mh.GetError().Message;
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("#3"));
+    EXPECT_NE(std::string::npos, err_msg.find("'__format'"));
+}
+
+TEST_F(Compile2, FormatFunction02)
+{
+    // '__format' parameter must be (const) 'string' or 'String'
+
+    char const *inpl = R"%&/(
+        import void foo(
+            __format int flups,
+            const string f,
+            string dummy2, ...);
+        )%&/";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string const &err_msg = mh.GetError().Message;
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("#1"));
+    EXPECT_NE(std::string::npos, err_msg.find("'__format'"));
+    EXPECT_NE(std::string::npos, err_msg.find("'int'"));
+}
+
+TEST_F(Compile2, FormatFunction03)
+{
+    // Parameter #4 should be a string, but the
+    // compiler will not check a variable as format string
+
+    std::string inpl = kAgsHeaderBool;
+    inpl += kAgsHeaderString;
+    inpl += R"%&/(
+        import void foo(
+            int dummy1,
+            __format const string f,
+            string dummy, ...);
+
+        int game_start()
+        {
+            String fmt = "Give me a %s";
+            foo(15, fmt, fmt, 17, 49);
+        }
+        )%&/";
+
+    int compile_result = cc_compile(inpl.c_str(), kNoOptions, scrip, mh);
+    std::string const &err_msg = mh.GetError().Message;
+
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+}
+
+TEST_F(Compile2, FormatFunction04)
+{
+    // Parameter #4 should be an int
+
+    char const *inpl = R"%&/(
+        import void foo(
+            int dummy1,
+            __format const string f,
+            string dummy, ...);
+
+        int game_start()
+        {
+            foo(15, "Give me a %15d %% ", "dummy", "oops");
+        }
+        )%&/";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string const &err_msg = mh.GetError().Message;
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("#4"));
+    EXPECT_NE(std::string::npos, err_msg.find("'%15d'"));
+}
+
+TEST_F(Compile2, FormatFunction05)
+{
+    // Too many variadic arguments for the format string
+
+    char const *inpl = R"%&/(
+        import void foo(
+            int dummy1,
+            __format const string f,
+            string dummy, ...);
+
+        int game_start()
+        {
+            foo(15, "%% I'm %s %%", "Thick", "Rick", "oops");
+        }
+        )%&/";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string const &err_msg = mh.GetError().Message;
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("variadic arg"));
+}
+
+TEST_F(Compile2, FormatFunction06)
+{
+    // Too few variadic arguments for the format string,
+    // format string ends on '%'
+
+    char const *inpl = R"%&/(
+        import void foo(
+            int dummy1,
+            __format const string f,
+            string dummy, ...);
+
+        int game_start()
+        {
+            foo(15, "I'm %s %", "Thick");
+        }
+        )%&/";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string const &err_msg = mh.GetError().Message;
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("variadic arg"));
 }

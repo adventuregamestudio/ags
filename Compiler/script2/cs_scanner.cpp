@@ -626,7 +626,9 @@ void AGS::Scanner::ReadInStringLit(std::string &symstring, std::string &valstrin
             lineno_before_skip = _lineno;
             Get(); // Eat leading '"'
             char tbuffer[kNewSectionLitPrefixSize + 1u];
-            _inputStream.get(tbuffer, kNewSectionLitPrefixSize + 1u, 0);
+            // Shut up a stupid warning for arg #2, brought about by the standard requiring
+            // a ‘size’ that can be negative in theory, but not actually so in the current circumstances
+            _inputStream.get(tbuffer, static_cast<std::streamsize>(kNewSectionLitPrefixSize + 1u), 0);
             _eofReached |= _inputStream.eof();
             _failed |= _inputStream.fail();
             // Undo the reading

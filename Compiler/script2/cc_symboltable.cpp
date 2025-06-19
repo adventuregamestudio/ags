@@ -11,9 +11,8 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <algorithm>
+#include <string>
 
 #include "cc_symboltable.h"
 #include "script/cc_internal.h"
@@ -335,6 +334,7 @@ AGS::SymbolTable::SymbolTable()
     AddKeyword(kKW_Extends, "extends");
     AddKeyword(kKW_FallThrough, "fallthrough");
     AddKeyword(kKW_For, "for");
+    AddKeyword(kKW_Format, "__format");
     AddKeyword(kKW_If, "if");
     AddKeyword(kKW_ImportStd, "import");
     AddKeyword(kKW_ImportTry, "_tryimport");
@@ -383,7 +383,16 @@ AGS::SymbolTable::SymbolTable()
         entries[float_zero_sym].LiteralD->Value = 0;
         entries[float_zero_sym].LiteralD->Vartype = kKW_Float;
     }
-    _lastAllocated = VartypeWithConst(kKW_String);
+    VartypeWithConst(kKW_String);
+
+    // Wbenever the size of 'entries' is extended in this
+    // function (e.g., in order to accomodate for another
+    // keyword), this affects about two dozen googletests
+    // that need to be updated and re-checked. To mitigate
+    // this, extend 'entries' in blocks of ten.
+    size_t const blocksize = 10u;
+    entries.resize(((entries.size() + blocksize - 1u) / blocksize) * blocksize);
+    _lastAllocated = entries.size() - 1u;
 }
 
 bool AGS::SymbolTable::IsVTT(Symbol s, VartypeType vtt) const

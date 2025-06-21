@@ -402,7 +402,7 @@ windows_packaging_task:
   get_manual_script: >
     mkdir Windows\Installer\Source\Docs &&
     cd Windows\Installer\Source\Docs &&
-    curl -fLOJ https://github.com/adventuregamestudio/ags-manual/releases/latest/download/ags-help.chm
+    curl -fLJ https://github.com/adventuregamestudio/ags-manual/releases/latest/download/ags4-help.chm -o ags-help.chm
   get_templates_script: >
     mkdir Windows\Installer\Source\Templates &&
     curl -fLSs https://github.com/%TEMPLATES_REPOSITORY%/tarball/ags4 |

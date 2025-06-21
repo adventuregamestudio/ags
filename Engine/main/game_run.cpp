@@ -96,8 +96,8 @@ static bool ShouldStayInWaitMode();
 
 float fps = std::numeric_limits<float>::quiet_NaN();
 static auto t1 = Clock::now();  // timer for FPS // ... 't1'... how very appropriate.. :)
-unsigned int loopcounter=0;
-static unsigned int lastcounter=0;
+uint32_t loopcounter = 0u;
+static uint32_t lastcounter = 0u; // CHECKME: not sure if needed, review its use
 static size_t numEventsAtStartOfFunction; // CHECKME: research and document this
 
 #define UNTIL_ANIMEND   1
@@ -982,11 +982,20 @@ float get_real_fps() {
     return fps;
 }
 
-void set_loop_counter(unsigned int new_counter) {
+void set_loop_counter(uint32_t new_counter) {
     loopcounter = new_counter;
-    t1 = Clock::now();
     lastcounter = loopcounter;
+    t1 = Clock::now();
     fps = std::numeric_limits<float>::quiet_NaN();
+}
+
+void increment_loop_counter() {
+    loopcounter++;
+    lastcounter = loopcounter;
+}
+
+uint32_t get_loop_counter() {
+    return loopcounter;
 }
 
 void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int extraX, int extraY) {

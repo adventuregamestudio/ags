@@ -70,7 +70,6 @@ extern GameSetupStruct game;
 extern ScriptSystem scsystem;
 extern AGSPlatformDriver *platform;
 extern RoomStruct thisroom;
-extern unsigned int loopcounter;
 extern SpriteCache spriteset;
 extern RoomStatus*croom;
 extern int in_new_room;
@@ -2353,6 +2352,7 @@ void draw_fps(const Rect &viewport)
     // Don't display fps if we don't have enough information (because loop count was just reset)
     float fps = get_real_fps();
     float time = 0.f;
+    const uint32_t loopcounter = get_loop_counter();
     if (!std::isnan(fps))
     {
         snprintf(fps_buffer, sizeof(fps_buffer), "FPS: %2.1f / %s", fps, base_buffer);
@@ -2884,7 +2884,7 @@ void update_shakescreen()
     play.shake_screen_yoff = 0;
     if (play.shakesc_length > 0)
     {
-        if ((loopcounter % play.shakesc_delay) < (play.shakesc_delay / 2))
+        if ((get_loop_counter() % play.shakesc_delay) < (play.shakesc_delay / 2))
             play.shake_screen_yoff = play.shakesc_amount;
     }
 }

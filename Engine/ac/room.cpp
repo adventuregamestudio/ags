@@ -90,7 +90,6 @@ extern int in_leaves_screen;
 extern CharacterInfo*playerchar;
 extern std::vector<CharacterExtras> charextra;
 extern int starting_room;
-extern unsigned int loopcounter;
 extern IDriverDependantBitmap* roomBackgroundBmp;
 extern IGraphicsDriver *gfxDriver;
 extern RGB palette[256];

@@ -922,7 +922,7 @@ void update_audio_system_on_game_loop ()
         }
     }
 
-    if (loopcounter % 5 == 0) // TODO: investigate why we do this each 5 frames?
+    if (get_loop_counter() % 5 == 0) // TODO: investigate why we do this each 5 frames?
     {
         update_ambient_sound_vol();
         update_directional_sound_vol();

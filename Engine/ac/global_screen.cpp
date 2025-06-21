@@ -36,7 +36,6 @@ extern RoomStruct thisroom;
 extern IGraphicsDriver *gfxDriver;
 extern AGSPlatformDriver *platform;
 extern RGB palette[256];
-extern unsigned int loopcounter;
 
 void FlipScreen(int amount) {
     if ((amount<0) | (amount>3)) quit("!FlipScreen: invalid argument (0-3)");
@@ -102,14 +101,14 @@ public:
         // TODO: split implementations into two state classes?
         if (gfxDriver->RequiresFullRedrawEachFrame())
         {
-            loopcounter++;
+            increment_loop_counter();
             render_graphics();
             update_polled_stuff();
             WaitForNextFrame();
         }
         else
         {
-            loopcounter++;
+            increment_loop_counter();
             update_shakescreen();
             render_to_screen();
             update_polled_stuff();

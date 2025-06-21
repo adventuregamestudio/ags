@@ -45,6 +45,7 @@
 #include "gui/guimain.h"
 #include "gui/guislider.h"
 #include "gui/guitextbox.h"
+#include "main/game_run.h"
 #include "media/audio/audio_system.h"
 #include "plugin/plugin_engine.h"
 #include "script/cc_common.h"
@@ -307,7 +308,7 @@ HSaveError WriteGameState(Stream *out)
     play.WriteForSavegame(out);
     // Other dynamic values
     out->WriteInt32(frames_per_second);
-    out->WriteInt32(loopcounter);
+    out->WriteInt32(get_loop_counter());
     out->WriteInt32(ifacepopped);
     out->WriteInt32(game_paused);
     // Mouse cursor

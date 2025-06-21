@@ -67,7 +67,7 @@ Regarding commit title, we suggest to start it with a name of a program you are 
   * "CMake" - changes to CMake scripts
   * "Readme", etc - changes to doc files (readme, changelog, and so forth)
 
-If your commit fixes or reverts changes made by an older commit, please mention that commit in description by pasting its hash (this lets us find it quickly).
+If your commit fixes or reverts changes made by a particular older commit, and you know which one, please mention that in description by pasting the older commit's hash (this helps to know which versions of the program have been affected by a bug).
 
 ## Further Information
 

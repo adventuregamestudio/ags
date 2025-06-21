@@ -206,7 +206,7 @@ void AGSPlatformDriver::Shutdown()
 
 
 void AGSPlatformDriver::Delay(int millis) {
-  auto now = AGS_Clock::now();
+  auto now = Clock::now();
   auto delayUntil = now + std::chrono::milliseconds(millis);
 
   for (;;) {
@@ -214,12 +214,12 @@ void AGSPlatformDriver::Delay(int millis) {
 
     auto duration = std::min<std::chrono::nanoseconds>(delayUntil - now, MaximumDelayBetweenPolling);
     std::this_thread::sleep_for(duration);
-    now = AGS_Clock::now(); // update now
+    now = Clock::now(); // update now
 
     if (now >= delayUntil) { break; }
 
     // don't allow it to check for debug messages, since this Delay()
     // call might be from within a debugger polling loop
-    now = AGS_Clock::now(); // update now
+    now = Clock::now(); // update now
   }
 }

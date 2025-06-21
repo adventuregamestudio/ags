@@ -121,11 +121,11 @@ Bitmap *LoadFromFile(const char *filename, int dst_color_depth)
     return BitmapHelper::LoadBitmap(in.get(), Path::GetFileExtension(filename), dst_color_depth, nullptr);
 }
 
-Bitmap *AdjustBitmapSize(Bitmap *src, int width, int height)
+Bitmap *AdjustBitmapSize(const Bitmap *src, int width, int height)
 {
     int oldw = src->GetWidth(), oldh = src->GetHeight();
     if ((oldw == width) && (oldh == height))
-        return src;
+        return const_cast<Bitmap*>(src);
     Bitmap *bmp = BitmapHelper::CreateBitmap(width, height, src->GetColorDepth());
     bmp->StretchBlt(src, RectWH(0, 0, oldw, oldh), RectWH(0, 0, width, height));
     return bmp;
@@ -336,7 +336,7 @@ bool SaveBitmap(const Bitmap *bmp, const RGB* pal, Stream *out, const String& ex
     return ImageFile::SaveImage(bmp->GetBitmapData(), pal, out, ext);
 }
 
-bool SaveToFile(Bitmap* bmp, const char *filename, const RGB *pal)
+bool SaveToFile(const Bitmap* bmp, const char *filename, const RGB *pal)
 {
     std::unique_ptr<Stream> out (
             File::OpenFile(filename, FileOpenMode::kFile_CreateAlways, StreamMode::kStream_Write));

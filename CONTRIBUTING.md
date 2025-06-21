@@ -41,6 +41,34 @@ Please note that while the `master` branch may contain changes to game data form
 
 There may be other temporary development branches meant for preparing and testing large changes, but these are situational.
 
+## Commits
+
+What is said here is a recommendation, by following which you make the maintenance and development of this project easier.
+
+Make separate commits with changes to different programs. For example: changes to the Editor as one commit, and changes to the Engine as another commit.
+
+Don't mix different kind of changes: separate bug fixes, implementing new functionality, performance optimization, and code refactor in separate commits. When making bug fixes make separate commits for each separate bug fix (unless multiple bugs are tied to each other). Such separation lets us to cherry pick changes from one branch to another when necessary, and makes it much easier to understand the history of changes (which comes useful when fixing regressions as well). There's no precise measurement here, but if you feel that a single commit becomes too big, consider spliting it into multiple ones, for example - one commit per subtask of a larger task.
+
+But the important rule is: a program that you modify must build at every commit you make.
+(Sometimes a code is shared between different programs, in which case, while working on one program, you may ignore if other programs break, so long as you fix them later.)
+
+*Commit description* is to be divided into the commit title and details. Commit title is the first line of description, and should give a clear and simple note about your change. We recommend keeping the title at *72 characters max*, as that's a traditional limit used by Git itself and most Git frontends when displaying a history of commits (if it's longer, then it's going to be truncated with "..." appended in the end). After you wrote this title, make two linebreaks and then write the full description as you see fit. The latter is optional, do this if you think that the changes deserve further explanation. It may be of any length.
+
+Regarding commit title, we suggest to start it with a name of a program you are modifying, for example: "Engine: ", "Editor: " and so forth. Historically we used following prefixes, but we do not limit to these:
+  * "Editor:"
+  * "Engine:"
+  * "Script API:" - collective changes implementing new game script command
+  * "Compiler:" - changes to the game script compiler
+  * "Tool:" (or name of the particular command line tool)
+  * "Plugin:" (or name of the particular engine plugin)
+  * (Name of a third party library) - changes to the library code which we have embedded in project
+  * "ci: " - changes to continuous intergration scripts
+  * "Makefile" - changes to Makefiles
+  * "CMake" - changes to CMake scripts
+  * "Readme", etc - changes to doc files (readme, changelog, and so forth)
+
+If your commit fixes or reverts changes made by a particular older commit, and you know which one, please mention that in description by pasting the older commit's hash (this helps to know which versions of the program have been affected by a bug).
+
 ## Further Information
 
 Please be aware that big parts of the engine are still written in a old and often "dirty" code, and it may not be easy to understand ties between different program parts. Because there's a low number of active developers involved in this project our plans or design ideas are not always well documented, unfortunately. If you're in doubt - please discuss your ideas with us first.

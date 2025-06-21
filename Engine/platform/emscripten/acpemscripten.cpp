@@ -26,14 +26,15 @@
 #include "main/graphics_mode.h"
 #include "main/engine.h"
 #include "ac/system.h"
-#include "ac/timer.h"
 #include "gfx/graphicsdriver.h"
 #include "platform/base/agsplatformdriver.h"
 #include "util/filestream.h"
+#include "util/time_util.h"
 
 using namespace AGS::Common;
+using namespace AGS::Engine;
 
-extern AGS::Engine::IGraphicsDriver *gfxDriver;
+extern IGraphicsDriver *gfxDriver;
 
 FSLocation CommonDataDirectory;
 FSLocation UserDataDirectory;
@@ -173,7 +174,7 @@ void AGSEmscripten::Delay(int millis)
         SDL_Delay(millis);
     }
 
-    auto now = AGS_Clock::now();
+    auto now = Clock::now();
     auto delayUntil = now + std::chrono::milliseconds(millis);
 
     for (;;) {
@@ -181,13 +182,13 @@ void AGSEmscripten::Delay(int millis)
 
         auto duration = std::min<std::chrono::nanoseconds>(delayUntil - now, MaximumDelayBetweenPolling);
         SDL_Delay(std::chrono::duration_cast<std::chrono::milliseconds>(duration).count());
-        now = AGS_Clock::now(); // update now
+        now = Clock::now(); // update now
 
         if (now >= delayUntil) { break; }
 
         // don't allow it to check for debug messages, since this Delay()
         // call might be from within a debugger polling loop
-        now = AGS_Clock::now(); // update now
+        now = Clock::now(); // update now
     }
 }
 

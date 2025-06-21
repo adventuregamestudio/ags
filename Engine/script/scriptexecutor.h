@@ -264,7 +264,7 @@ private:
     // after which the interpreter will abort
     unsigned _maxWhileLoops = 0u;
     // Last time the script was noted of being "alive"
-    AGS_FastClock::time_point _lastAliveTs;
+    FastClock::time_point _lastAliveTs;
 };
 
 } // namespace Engine

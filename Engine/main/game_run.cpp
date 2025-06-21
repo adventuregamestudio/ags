@@ -97,7 +97,7 @@ extern char check_dynamic_sprites_at_exit;
 static bool ShouldStayInWaitMode();
 
 float fps = std::numeric_limits<float>::quiet_NaN();
-static auto t1 = AGS_Clock::now();  // timer for FPS // ... 't1'... how very appropriate.. :)
+static auto t1 = Clock::now();  // timer for FPS // ... 't1'... how very appropriate.. :)
 uint32_t loopcounter=0;
 static unsigned int lastcounter=0; // CHECME: not sure if needed, review its use
 static size_t numEventsAtStartOfFunction; // CHECKME: research and document this
@@ -1130,7 +1130,7 @@ static void game_loop_update_loop_counter()
 
 static void game_loop_update_fps()
 {
-    auto t2 = AGS_Clock::now();
+    auto t2 = Clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
     auto frames = loopcounter - lastcounter;
 
@@ -1157,7 +1157,7 @@ float get_real_fps() {
 void set_loop_counter(uint32_t new_counter) {
     loopcounter = new_counter;
     lastcounter = loopcounter;
-    t1 = AGS_Clock::now();
+    t1 = Clock::now();
     fps = std::numeric_limits<float>::quiet_NaN();
 }
 

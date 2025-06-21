@@ -264,6 +264,37 @@ WinSetup:
 
 ===================================================================================================
 
+VERSION 3.6.3 - in dev, future minor 3.6.* update
+
+Editor:
+ - In General Settings added "GUI common controls handle only left mouse button" option that lets
+   prevent RMB from activating gui controls, except those that have separate actions for left and
+   right mouse buttons.
+
+Script API:
+ - Added new game-wide option OPT_GUICONTROLMOUSEBUT that defines whether common GUI controls
+   are affected by the right mouse button or not (InventoryWindows are excluded from this, because
+   they have their own special handling for RMB).
+ - Added DialogOptionsNumbering enum, to use when setting dialog options numbering mode.
+ - Added multiple new properties to Dialog type: OptionsBulletGraphic, OptionsGap, OptionsGUI,
+   OptionsGUIX, OptionsGUIY, OptionsHighlightColor, OptionsMaxGUIWidth, OptionsMinGUIWidth,
+   OptionsNumbering, OptionsPaddingX, OptionsPaddingY, OptionsReadColor, OptionTextAlignment.
+   Most of these are replacing previously existing old-style variables in "game" struct and
+   OPT_* options. OptionsGUIX/Y and OptionTextAlignment are completely new features.
+
+Engine:
+ - Support compressing game saves using Deflate algorithm. Added config option "compress_saves"
+   in "misc" section, disabled by default.
+ - Always compress a screenshot in game save using Deflate algorithm.
+ - Standard Dialog options now support Right-to-left text mode.
+ - Improved video playback's synchronization between video and audio streams.
+
+WinSetup:
+ - Renamed "Custom Paths" tab to "Game Files", added "Compress saves" option.
+
+
+---------------------------------------------------------------------------------------------------
+
 VERSION 3.6.2 - Patch 1, June 2025
 
 Editor:

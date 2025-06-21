@@ -40,7 +40,7 @@ SoundClip::SoundClip(int slot, AudioFileType snd_type, bool loop)
 
     const auto player = audio_core_get_player(slot);
     lengthMs = (int)std::round(player->GetDurationMs());
-    freq = player->GetFrequency();
+    freq = static_cast<int>(player->GetFrequency());
 }
 
 SoundClip::~SoundClip()

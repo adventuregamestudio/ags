@@ -628,3 +628,29 @@ int apeg_display_video_frame(APEG_STREAM *stream)
 	layer->picture = NULL;
 	return ret;
 }
+
+int apeg_skip_video_frame(APEG_STREAM *stream)
+{
+    int ret = APEG_OK;
+	APEG_LAYER *layer = (APEG_LAYER*)stream;
+	if ((ret = setjmp(layer->jmp_buffer)) != 0)
+		return ret;
+	if ((layer->stream.flags & APEG_MPG_VIDEO))
+	{
+		// FIXME!!
+	}
+	else
+	{
+		altheora_skip_frame(layer);
+	}
+
+	if (pack_feof(layer->pf))
+		ret = APEG_EOF;
+	return ret;
+}
+
+int apeg_eof(APEG_STREAM *stream)
+{
+    APEG_LAYER *layer = (APEG_LAYER *)stream;
+    return pack_feof(layer->pf);
+}

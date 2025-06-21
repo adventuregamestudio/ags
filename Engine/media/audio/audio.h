@@ -20,7 +20,7 @@
 #include "ac/dynobj/scriptaudioclip.h"
 #include "ac/dynobj/scriptobjects.h"
 #include "media/audio/soundclip.h"
-#include "ac/timer.h"
+#include "util/time_util.h"
 
 class AudioChans
 {
@@ -84,7 +84,7 @@ void        sync_audio_playback();
 void        update_audio_system_on_game_loop ();
 
 extern void cancel_scheduled_music_update();
-extern void schedule_music_update_at(AGS_Clock::time_point);
+extern void schedule_music_update_at(AGS::Engine::Clock::time_point);
 extern void postpone_scheduled_music_update_by(std::chrono::milliseconds);
 
 #endif // __AGS_EE_MEDIA__AUDIO_H__

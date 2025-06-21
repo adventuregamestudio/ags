@@ -73,9 +73,10 @@ public:
 
 private:
     void StopVideo();
+    void PrintStats();
 
     int _playerID = 0;
-    const String _assetName; // for diagnostics
+    String _assetName; // for diagnostics
     int _videoFlags = 0;
     int _stateFlags = 0;
     IDriverDependantBitmap *_videoDDB = nullptr;
@@ -83,6 +84,22 @@ private:
     float _oldFps = 0.f;
     VideoSkipType _skip = VideoSkipNone;
     PlaybackState _playbackState = PlayStateInvalid;
+
+    // Statistics
+    struct Statistics
+    {
+        struct ProcStat
+        {
+            float MaxTime = 0.f;
+            float AvgTime = 0.f;
+            uint64_t TotalTime = 0u;
+            uint64_t Count = 0u;
+        };
+
+        ProcStat PrepareFrame; // time spent on preparing a frame for display
+        ProcStat DisplayFrame; // time spent on rendering a frame
+    } _stats;
+    bool _statsReady = false;
 };
 
 BlockingVideoPlayer::BlockingVideoPlayer(int player_id,
@@ -92,6 +109,10 @@ BlockingVideoPlayer::BlockingVideoPlayer(int player_id,
     , _stateFlags(state_flags)
     , _skip(skip)
 {
+    assert(_playerID >= 0);
+    auto player = video_core_get_player(_playerID);
+    if (player)
+        _assetName = player->GetName();
 }
 
 BlockingVideoPlayer::~BlockingVideoPlayer()
@@ -170,6 +191,7 @@ void BlockingVideoPlayer::Begin()
     // Start the playback
     player->Play();
     _playbackState = player->GetPlayState();
+    _statsReady = true;
 }
 
 void BlockingVideoPlayer::End()
@@ -228,25 +250,35 @@ bool BlockingVideoPlayer::Run()
     if (video_check_user_input(_skip))
         return false;
 
+    // Update/render next frame
     std::unique_ptr<Bitmap> frame;
     {
         auto player = video_core_get_player(_playerID);
-        // update/render next frame
         _playbackState = player->GetPlayState();
-        frame = player->GetReadyFrame();
+        if ((_videoFlags & kVideo_EnableVideo) != 0)
+            frame = player->GetReadyFrame();
     }
 
     if ((_videoFlags & kVideo_EnableVideo) != 0)
     {
         if (frame)
         {
+            const auto start_tp = Clock::now();
             gfxDriver->UpdateDDBFromBitmap(_videoDDB, frame.get());
             _videoDDB->SetStretch(_dstRect.GetWidth(), _dstRect.GetHeight(), false);
+            const auto end_tp = Clock::now();
 
             {
                 auto player = video_core_get_player(_playerID);
                 player->ReleaseFrame(std::move(frame));
             }
+
+            // Stats
+            const float dur_ms = ToMillisecondsF(end_tp - start_tp);
+            _stats.PrepareFrame.Count++;
+            _stats.PrepareFrame.TotalTime += static_cast<uint64_t>(dur_ms);
+            _stats.PrepareFrame.MaxTime = std::max(_stats.PrepareFrame.MaxTime, dur_ms);
+            _stats.PrepareFrame.AvgTime = static_cast<double>(_stats.PrepareFrame.TotalTime) / _stats.PrepareFrame.Count;
         }
     }
 
@@ -259,6 +291,7 @@ bool BlockingVideoPlayer::Run()
 
 void BlockingVideoPlayer::Draw()
 {
+    const auto start_tp = Clock::now();
     if (_videoDDB && _videoDDB->IsValid())
     {
         gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform());
@@ -266,6 +299,14 @@ void BlockingVideoPlayer::Draw()
         gfxDriver->EndSpriteBatch();
     }
     render_to_screen();
+
+    // Stats
+    const auto end_tp = Clock::now();
+    const float dur_ms = ToMillisecondsF(end_tp - start_tp);
+    _stats.DisplayFrame.Count++;
+    _stats.DisplayFrame.TotalTime += static_cast<uint64_t>(dur_ms);
+    _stats.DisplayFrame.MaxTime = std::max(_stats.DisplayFrame.MaxTime, dur_ms);
+    _stats.DisplayFrame.AvgTime = static_cast<double>(_stats.DisplayFrame.TotalTime) / _stats.DisplayFrame.Count;
 }
 
 void BlockingVideoPlayer::StopVideo()
@@ -280,6 +321,35 @@ void BlockingVideoPlayer::StopVideo()
     if (_videoDDB)
         gfxDriver->DestroyDDB(_videoDDB);
     _videoDDB = nullptr;
+
+    PrintStats();
+    _statsReady = false;
+}
+
+void BlockingVideoPlayer::PrintStats()
+{
+    if (!_statsReady)
+        return;
+
+    Debug::Printf("BlockingVideoPlayer stats: \"%s\""
+                  "\n\ttotal frames on input: %llu"
+                  "\n\tmax time per preparing a video frame: %.2f ms"
+                  "\n\tavg time per preparing a video frame: %.2f ms"
+                  "\n\ttotal time on preparing video frames: %llu ms"
+                  "\n\ttotal render passes (depends on game fps): %llu"
+                  "\n\tmax time per render: %.2f ms"
+                  "\n\tavg time per render: %.2f ms"
+                  "\n\ttotal time on render: %llu ms",
+                  _assetName.GetCStr(),
+                  _stats.PrepareFrame.Count,
+                  _stats.PrepareFrame.MaxTime,
+                  _stats.PrepareFrame.AvgTime,
+                  _stats.PrepareFrame.TotalTime,
+                  _stats.DisplayFrame.Count,
+                  _stats.DisplayFrame.MaxTime,
+                  _stats.DisplayFrame.AvgTime,
+                  _stats.DisplayFrame.TotalTime
+    );
 }
 
 std::unique_ptr<BlockingVideoPlayer> gl_Video;

@@ -375,7 +375,7 @@ void ScriptExecutor::SetExecTimeout(unsigned sys_poll_ms, unsigned abort_ms, uns
 void ScriptExecutor::NotifyAlive()
 {
     _flags |= kScExecState_Alive;
-    _lastAliveTs = AGS_FastClock::now();
+    _lastAliveTs = FastClock::now();
 }
 
 //-----------------------------------------------------------------------------
@@ -691,7 +691,7 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
 #endif
 
     const auto timeout = std::chrono::milliseconds(_timeoutCheckMs);
-    _lastAliveTs = AGS_FastClock::now();
+    _lastAliveTs = FastClock::now();
 
     /* Main bytecode execution loop */
     //=====================================================================
@@ -1142,12 +1142,12 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
                 }
                 else if ((loopIterations & 0x3FF) == 0 && // test each 1024 loops (arbitrary)
                     (std::chrono::duration_cast<std::chrono::milliseconds>(
-                        AGS_FastClock::now() - _lastAliveTs) > timeout))
+                        FastClock::now() - _lastAliveTs) > timeout))
                 { // minimal timeout occured
                     // NOTE: removed timeout_abort check for now: was working *logically* wrong;
                     // at least let user to manipulate the game window
                     sys_evt_process_pending();
-                    _lastAliveTs = AGS_FastClock::now();
+                    _lastAliveTs = FastClock::now();
                 }
             }
             break;

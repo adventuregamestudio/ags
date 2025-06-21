@@ -1143,7 +1143,7 @@ void dispose_all_custom_shaders()
 static void update_global_shader_constants()
 {
     GlobalShaderConstants constants;
-    auto now = AGS_Clock::now();
+    auto now = Clock::now();
     // TODO: perhaps count time since engine launched?
     auto now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
     constants.Time = static_cast<float>(now_ms) / 1000.f;
@@ -2444,22 +2444,31 @@ void draw_fps(const Rect &viewport)
     fpsDisplay->ClearTransparent();
     const color_t text_color = GUI::GetStandardColorForBitmap(14);
     char base_buffer[20];
-    if (!isTimerFpsMaxed()) {
+    if (!isTimerFpsMaxed())
+    {
         snprintf(base_buffer, sizeof(base_buffer), "%d", frames_per_second);
-    } else {
+    }
+    else
+    {
         snprintf(base_buffer, sizeof(base_buffer), "unlimited");
     }
 
     char fps_buffer[60];
     // Don't display fps if we don't have enough information (because loop count was just reset)
     float fps = get_real_fps();
-    if (!std::isnan(fps)) {
+    float time = 0.f;
+    const uint32_t loopcounter = get_loop_counter();
+    if (!std::isnan(fps))
+    {
         snprintf(fps_buffer, sizeof(fps_buffer), "FPS: %2.1f / %s", fps, base_buffer);
-    } else {
+        time = loopcounter / fps;
+    }
+    else
+    {
         snprintf(fps_buffer, sizeof(fps_buffer), "FPS: --.- / %s", base_buffer);
     }
-    char loop_buffer[60];
-    snprintf(loop_buffer, sizeof(loop_buffer), "Loop %u", get_loop_counter());
+    char loop_buffer[128];
+    snprintf(loop_buffer, sizeof(loop_buffer), "Loop %u Time %.2f", loopcounter, time);
 
     int text_off = get_font_surface_extent(font).first; // TODO: a generic function that accounts for this?
     wouttext_outline(fpsDisplay.get(), 1, 1 - text_off, font, text_color, fps_buffer);

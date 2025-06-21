@@ -38,7 +38,11 @@ private:
         const String &name, int &flags, int target_depth) override;
     void CloseImpl() override;
     // Retrieves next video frame, implementation-specific
-    bool NextVideoFrame(Common::Bitmap *dst) override;
+    bool NextVideoFrame(Common::Bitmap *dst, float &ts) override;
+    // Checks the next video frame in stream and returns its timestamp.
+    float PeekVideoFrame() override;
+    // Drop next video frame from stream.
+    void DropVideoFrame() override;
 
     PACKFILE *_pf = nullptr;
     RGB _oldpal[256]{};

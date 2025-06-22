@@ -23,12 +23,13 @@ namespace AGS
 namespace Common
 {
 
+// GraphicFlip tells how to flip (mirror) a sprite
 enum GraphicFlip
 {
-    kFlip_None,
-    kFlip_Horizontal, // this means - mirror over horizontal middle line
-    kFlip_Vertical,   // this means - mirror over vertical middle line
-    kFlip_Both        // mirror over diagonal (horizontal and vertical)
+    kFlip_None          = 0x0,
+    kFlip_Horizontal    = 0x1, // this means - mirror over horizontal middle line
+    kFlip_Vertical      = 0x2, // this means - mirror over vertical middle line
+    kFlip_Both          = (kFlip_Horizontal | kFlip_Vertical) // mirror over diagonal
 };
 
 enum BlendMode

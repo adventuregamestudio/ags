@@ -84,7 +84,7 @@ public:
 
     int  GetAlpha() const override { return _alpha; }
     void SetAlpha(int alpha) override { _alpha = alpha; }
-    void SetFlippedLeftRight(bool isFlipped) override { _flipped = isFlipped; }
+    void SetFlip(Common::GraphicFlip flip) override { _flip = flip; }
     void SetStretch(int width, int height, bool useResampler = true) override
     {
         _stretchToWidth = width;
@@ -123,7 +123,7 @@ public:
     TextureHint _renderHint = kTxHint_Normal;
 
     // Drawing parameters
-    bool _flipped;
+    Common::GraphicFlip _flip;
     int _stretchToWidth, _stretchToHeight;
     bool _useResampler;
     int _red, _green, _blue;
@@ -136,7 +136,7 @@ public:
         _width = width;
         _height = height;
         _colDepth = colDepth;
-        _flipped = false;
+        _flip = Common::kFlip_None;
         _hasAlpha = false;
         _stretchToWidth = _width;
         _stretchToHeight = _height;

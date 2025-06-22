@@ -1970,7 +1970,7 @@ void prepare_and_add_object_gfx(
     if (hw_accel)
     {
         actsp.Ddb->SetStretch(scale_size.Width, scale_size.Height);
-        actsp.Ddb->SetFlippedLeftRight(objsav.mirrored);
+        actsp.Ddb->SetFlip(objsav.mirrored ? kFlip_Horizontal : kFlip_None);
         actsp.Ddb->SetTint(objsav.tintr, objsav.tintg, objsav.tintb, (objsav.tintamnt * 256) / 100);
 
         if (objsav.tintamnt > 0)

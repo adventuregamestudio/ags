@@ -1166,21 +1166,22 @@ void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw
   {
     width = txdata->_tiles[ti].width * xProportion;
     height = txdata->_tiles[ti].height * yProportion;
-    float xOffs;
-    float yOffs = txdata->_tiles[ti].y * yProportion;
-    if (bmpToDraw->_flipped)
+    float xOffs, yOffs;
+    if ((bmpToDraw->_flip & kFlip_Horizontal) != 0)
       xOffs = (bmpToDraw->_width - (txdata->_tiles[ti].x + txdata->_tiles[ti].width)) * xProportion;
     else
       xOffs = txdata->_tiles[ti].x * xProportion;
+    if ((bmpToDraw->_flip & kFlip_Vertical) != 0)
+      yOffs = (bmpToDraw->_height - (txdata->_tiles[ti].y + txdata->_tiles[ti].height)) * yProportion;
+    else
+      yOffs = txdata->_tiles[ti].y * yProportion;
     float thisX = draw_x + xOffs;
     float thisY = draw_y + yOffs;
-    thisX = (-(rend_sz.Width / 2.0f)) + thisX;
-    thisY = (rend_sz.Height / 2.0f) - thisY;
 
-    //Setup translation and scaling matrices
+    // Setup translation and scaling matrices
     float widthToScale = width;
     float heightToScale = height;
-    if (bmpToDraw->_flipped)
+    if ((bmpToDraw->_flip & kFlip_Horizontal) != 0)
     {
       // The usual transform changes 0..1 into 0..width
       // So first negate it (which changes 0..w into -w..0)
@@ -1188,6 +1189,15 @@ void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw
       // and now shift it over to make it 0..w again
       thisX += width;
     }
+    if ((bmpToDraw->_flip & kFlip_Vertical) != 0)
+    {
+      heightToScale = -heightToScale;
+      thisY += height;
+    }
+    // Center inside a rendering rect
+    // FIXME: this should be a part of a projection matrix, afaik
+    thisX = (-(rend_sz.Width / 2.0f)) + thisX;
+    thisY = (rend_sz.Height / 2.0f) - thisY; // inverse axis
 
     // Self sprite transform (first scale, then rotate and then translate, reversed)
     glm::mat4 transform = glmex::make_transform2d(

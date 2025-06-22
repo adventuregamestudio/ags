@@ -48,7 +48,7 @@ public:
 
     int  GetAlpha() const override { return _alpha; }
     void SetAlpha(int alpha) override { _alpha = alpha; }
-    void SetFlippedLeftRight(bool isFlipped) override { _flipped = isFlipped; }
+    void SetFlip(Common::GraphicFlip flip) override { _flip = flip; }
     void SetStretch(int width, int height, bool /*useResampler*/) override 
     {
         _stretchToWidth = width;
@@ -67,7 +67,7 @@ public:
     void DetachData() override { _bmp = nullptr; }
 
     Bitmap *_bmp = nullptr;
-    bool _flipped = false;
+    Common::GraphicFlip _flip = Common::kFlip_None;
     int _stretchToWidth = 0, _stretchToHeight = 0;
     int _alpha = 255;
 

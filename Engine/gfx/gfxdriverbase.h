@@ -201,22 +201,63 @@ protected:
 class BaseDDB : public IDriverDependantBitmap
 {
 public:
-    int GetWidth() const override { return _width; }
-    int GetHeight() const override { return _height; }
-    int GetColorDepth() const override { return _colDepth; }
-    bool MatchesFormat(AGS::Common::Bitmap *other) const
+    int  GetWidth() const override { return _size.Width; }
+    int  GetHeight() const override { return _size.Height; }
+    int  GetColorDepth() const override { return _colDepth; }
+    bool IsOpaque() const override { return _opaque; }
+    bool HasAlpha() const override { return _hasAlpha; }
+    void SetHasAlpha(bool has_alpha) override { _hasAlpha = has_alpha; }
+    bool MatchesFormat(const AGS::Common::Bitmap *other) const
     {
-        return _width == other->GetWidth() && _height == other->GetHeight() && _colDepth == other->GetColorDepth();
+        return _size == other->GetSize() && _colDepth == other->GetColorDepth();
     }
 
-    int _width = 0, _height = 0;
-    int _colDepth = 0;
-    bool _hasAlpha = false; // has meaningful alpha channel
-    bool _opaque = false; // no mask color
+    Size GetStretch() const override { return _scaledSize; }
+    bool GetUseResampler() const override { return false; }
+    void SetStretch(int width, int height, bool /*useResampler*/) override
+    {
+        _scaledSize = Size(width, height);
+    }
+    Common::GraphicFlip GetFlip() const override { return _flip; }
+    void SetFlip(Common::GraphicFlip flip) override { _flip = flip; }
+    int  GetAlpha() const override { return _alpha; }
+    void SetAlpha(int alpha) override { _alpha = alpha; }
+    int  GetLightLevel() const override { return _lightLevel; }
+    void SetLightLevel(int light_level) override { _lightLevel = light_level; }
+    void GetTint(int &red, int &green, int &blue, int &tintSaturation) const override
+    {
+        red = _red;
+        green = _green;
+        blue = _blue;
+        tintSaturation = _tintSaturation;
+    }
+    void SetTint(int red, int green, int blue, int tintSaturation) override
+    {
+        _red = red;
+        _green = green;
+        _blue = blue;
+        _tintSaturation = tintSaturation;
+    }
+
+    const Size &GetSize() const { return _size; }
+    int  GetWidthToRender() const { return _scaledSize.Width; }
+    int  GetHeightToRender() const { return _scaledSize.Height; }
+    const Size &GetSizeToRender() const { return _scaledSize; }
 
 protected:
     BaseDDB() = default;
     virtual ~BaseDDB() = default;
+
+    Size _size;
+    int _colDepth = 0;
+    bool _hasAlpha = false; // has meaningful alpha channel
+    bool _opaque = false;
+    Size _scaledSize;
+    Common::GraphicFlip _flip = Common::kFlip_None;
+    int _alpha = 255;
+    int _red = 0, _green = 0, _blue = 0;
+    int _tintSaturation = 0;
+    int _lightLevel = 0;
 };
 
 

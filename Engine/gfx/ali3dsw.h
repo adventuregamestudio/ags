@@ -46,54 +46,53 @@ class ALSoftwareBitmap : public BaseDDB
 public:
     uint32_t GetRefID() const override { return UINT32_MAX /* not supported */; }
 
-    int  GetAlpha() const override { return _alpha; }
-    void SetAlpha(int alpha) override { _alpha = alpha; }
-    void SetFlip(Common::GraphicFlip flip) override { _flip = flip; }
-    void SetStretch(int width, int height, bool /*useResampler*/) override 
-    {
-        _stretchToWidth = width;
-        _stretchToHeight = height;
-    }
-    int GetWidthToRender() { return _stretchToWidth; }
-    int GetHeightToRender() { return _stretchToHeight; }
-    void SetLightLevel(int /*lightLevel*/) override  { }
-    void SetTint(int /*red*/, int /*green*/, int /*blue*/, int /*tintSaturation*/) override { }
-
     // Tells if this DDB has an actual render data assigned to it.
-    bool IsValid() override { return _bmp != nullptr; }
+    bool IsValid() const override { return _bmp != nullptr; }
     // Attaches new texture data, sets basic render rules
     void AttachData(std::shared_ptr<Texture> txdata, bool opaque) override { /* not supported */ }
     // Detach any internal texture data from this DDB, make this an empty object
     void DetachData() override { _bmp = nullptr; }
 
-    Bitmap *_bmp = nullptr;
-    Common::GraphicFlip _flip = Common::kFlip_None;
-    int _stretchToWidth = 0, _stretchToHeight = 0;
-    int _alpha = 255;
+    // Software renderer expects DDBs to have tint already applied
+    void SetLightLevel(int /*lightLevel*/) override { }
+    void SetTint(int /*red*/, int /*green*/, int /*blue*/, int /*tintSaturation*/) override { }
 
     ALSoftwareBitmap(int width, int height, int color_depth, bool opaque)
     {
-        _width = width;
-        _height = height;
+        _size = Size(width, height);
+        _scaledSize = _size;
         _colDepth = color_depth;
         _opaque = opaque;
-        _stretchToWidth = _width;
-        _stretchToHeight = _height;
     }
 
     ALSoftwareBitmap(Bitmap *bmp, bool has_alpha, bool opaque)
     {
         _bmp = bmp;
-        _width = bmp->GetWidth();
-        _height = bmp->GetHeight();
+        _size = bmp->GetSize();
+        _scaledSize = _size;
         _colDepth = bmp->GetColorDepth();
         _opaque = opaque;
         _hasAlpha = has_alpha;
-        _stretchToWidth = _width;
-        _stretchToHeight = _height;
     }
 
     ~ALSoftwareBitmap() override = default;
+
+    Bitmap *GetBitmap() const
+    {
+        return _bmp;
+    }
+
+    void SetBitmap(Bitmap *bmp, bool has_alpha)
+    {
+        _bmp = bmp;
+        _size = bmp->GetSize();
+        _colDepth = bmp->GetColorDepth();
+        _hasAlpha = has_alpha;
+    }
+
+private:
+    // TODO: should have shared ptr here, but will require a lot of changes in the engine
+    Bitmap *_bmp = nullptr;
 };
 
 

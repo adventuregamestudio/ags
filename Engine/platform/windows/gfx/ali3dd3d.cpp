@@ -767,7 +767,7 @@ void D3DGraphicsDriver::CreateVirtualScreen()
   _nativeSurface = (D3DBitmap*)CreateRenderTargetDDB(
       _srcRect.GetWidth(), _srcRect.GetHeight(), _mode.ColorDepth, true);
   glm::mat4 mat_ortho = glmex::ortho_d3d(_srcRect.GetWidth(), _srcRect.GetHeight());
-  _nativeBackbuffer = BackbufferState(_nativeSurface->_renderSurface,
+  _nativeBackbuffer = BackbufferState(_nativeSurface->GetRenderSurface(),
     _srcRect.GetSize(), _srcRect.GetSize(), _srcRect, mat_ortho, PlaneScaling(), D3DTEXF_POINT);
 
   // Preset initial stage screen for plugin raw drawing
@@ -819,11 +819,14 @@ void D3DGraphicsDriver::RecreateRenderTargets()
     for (auto &ddb : _renderTargets)
     {
         ddb->ReleaseTextureData();
+        auto txdata = std::shared_ptr<D3DTexture>(
+            reinterpret_cast<D3DTexture*>(CreateTexture(ddb->GetWidth(), ddb->GetHeight(), ddb->GetColorDepth(), ddb->IsOpaque(), true)));
         // FIXME: this ugly accessing internal texture members
-        ddb->_data.reset(reinterpret_cast<D3DTexture*>(CreateTexture(ddb->_width, ddb->_height, ddb->_colDepth, ddb->_opaque, true)));
-        auto &tex = ddb->_data->_tiles[0].texture;
-        HRESULT hr = tex->GetSurfaceLevel(0, ddb->_renderSurface.Acquire());
+        auto &tex = txdata->_tiles[0].texture;
+        D3DSurfacePtr surf;
+        HRESULT hr = tex->GetSurfaceLevel(0, surf.Acquire());
         assert(hr == D3D_OK);
+        ddb->SetTexture(txdata, surf);
     }
     // Reappoint RT surfaces in existing batches
     for (auto &batch : _spriteBatches)
@@ -831,7 +834,7 @@ void D3DGraphicsDriver::RecreateRenderTargets()
         if (batch.RenderTarget)
         {
             assert(!batch.RenderSurface);
-            batch.RenderSurface = ((D3DBitmap*)batch.RenderTarget)->_renderSurface;
+            batch.RenderSurface = ((D3DBitmap*)batch.RenderTarget)->GetRenderSurface();
         }
     }
     for (auto &batch : _backupBatches)
@@ -839,7 +842,7 @@ void D3DGraphicsDriver::RecreateRenderTargets()
         if (batch.RenderTarget)
         {
             assert(!batch.RenderSurface);
-            batch.RenderSurface = ((D3DBitmap*)batch.RenderTarget)->_renderSurface;
+            batch.RenderSurface = ((D3DBitmap*)batch.RenderTarget)->GetRenderSurface();
         }
     }
 }
@@ -937,8 +940,8 @@ void D3DGraphicsDriver::GetCopyOfScreenIntoDDB(IDriverDependantBitmap *target, u
     {
         // If we normally render in native res, then simply render backbuffer contents
         D3DBitmap *bitmap = (D3DBitmap*)target;
-        Size surf_sz(bitmap->_width, bitmap->_height);
-        BackbufferState backbuffer = BackbufferState(bitmap->_renderSurface, surf_sz, surf_sz,
+        Size surf_sz = bitmap->GetSize();
+        BackbufferState backbuffer = BackbufferState(bitmap->GetRenderSurface(), surf_sz, surf_sz,
             RectWH(0, 0, surf_sz.Width, surf_sz.Height), glmex::ortho_d3d(surf_sz.Width, surf_sz.Height),
             PlaneScaling(), D3DTEXF_POINT);
         SetBackbufferState(&backbuffer, true);
@@ -998,7 +1001,7 @@ bool D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination,
       {
         throw Ali3DException("CreateOffscreenPlainSurface failed");
       }
-      if (direct3ddevice->GetRenderTargetData(_nativeSurface->_renderSurface.get(), surface.get()) != D3D_OK)
+      if (direct3ddevice->GetRenderTargetData(_nativeSurface->GetRenderSurface().get(), surface.get()) != D3D_OK)
       {
         throw Ali3DException("GetRenderTargetData failed");
       }
@@ -1047,8 +1050,8 @@ void D3DGraphicsDriver::Render(IDriverDependantBitmap *target)
 {
     ResetDeviceIfNecessary();
     D3DBitmap *bitmap = (D3DBitmap*)target;
-    Size surf_sz(bitmap->_width, bitmap->_height);
-    BackbufferState backbuffer = BackbufferState(bitmap->_renderSurface, surf_sz, surf_sz,
+    Size surf_sz = bitmap->GetSize();
+    BackbufferState backbuffer = BackbufferState(bitmap->GetRenderSurface(), surf_sz, surf_sz,
         RectWH(0, 0, surf_sz.Width, surf_sz.Height), glmex::ortho_d3d(surf_sz.Width, surf_sz.Height),
         PlaneScaling(), D3DTEXF_POINT);
     RenderToSurface(&backbuffer, true);
@@ -1065,29 +1068,32 @@ void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw
 {
   HRESULT hr;
 
-  const int alpha = (color.Alpha * bmpToDraw->_alpha) / 255;
+  const int alpha = (color.Alpha * bmpToDraw->GetAlpha()) / 255;
+  int tint_r, tint_g, tint_b, tint_sat, light_lev;
+  bmpToDraw->GetTint(tint_r, tint_g, tint_b, tint_sat);
+  light_lev = bmpToDraw->GetLightLevel();
 
-  if (bmpToDraw->_tintSaturation > 0)
+  if (tint_sat > 0)
   {
     // Use custom pixel shader
     float vector[8];
     if (_legacyPixelShader)
     {
-      rgb_to_hsv(bmpToDraw->_red, bmpToDraw->_green, bmpToDraw->_blue, &vector[0], &vector[1], &vector[2]);
+      rgb_to_hsv(tint_r, tint_g, tint_b, &vector[0], &vector[1], &vector[2]);
       vector[0] /= 360.0; // In HSV, Hue is 0-360
     }
     else
     {
-      vector[0] = (float)bmpToDraw->_red / 256.0;
-      vector[1] = (float)bmpToDraw->_green / 256.0;
-      vector[2] = (float)bmpToDraw->_blue / 256.0;
+      vector[0] = (float)tint_r / 256.0;
+      vector[1] = (float)tint_g / 256.0;
+      vector[2] = (float)tint_b / 256.0;
     }
 
-    vector[3] = (float)bmpToDraw->_tintSaturation / 256.0;
+    vector[3] = (float)tint_sat / 256.0;
     vector[4] = (float)alpha / 256.0;
 
-    if (bmpToDraw->_lightLevel > 0)
-      vector[5] = (float)bmpToDraw->_lightLevel / 256.0;
+    if (light_lev > 0)
+      vector[5] = (float)light_lev / 256.0;
     else
       vector[5] = 1.0f;
 
@@ -1103,22 +1109,22 @@ void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw
     int useTintBlue = 255;
     int textureColorOp = D3DTOP_MODULATE;
 
-    if ((bmpToDraw->_lightLevel > 0) && (bmpToDraw->_lightLevel < 256))
+    if ((light_lev > 0) && (light_lev < 256))
     {
       // darkening the sprite... this stupid calculation is for
       // consistency with the allegro software-mode code that does
       // a trans blend with a (8,8,8) sprite
-      useTintRed = (bmpToDraw->_lightLevel * 192) / 256 + 64;
+      useTintRed = (light_lev * 192) / 256 + 64;
       useTintGreen = useTintRed;
       useTintBlue = useTintRed;
     }
-    else if (bmpToDraw->_lightLevel > 256)
+    else if (light_lev > 256)
     {
       // ideally we would use a multi-stage operation here
       // because we need to do TEXTURE + (TEXTURE x LIGHT)
       // but is it worth having to set the device to 2-stage?
       textureColorOp = D3DTOP_ADD;
-      useTintRed = (bmpToDraw->_lightLevel - 256) / 2;
+      useTintRed = (light_lev - 256) / 2;
       useTintGreen = useTintRed;
       useTintBlue = useTintRed;
     }
@@ -1143,7 +1149,7 @@ void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw
     }
   }
 
-  const auto *txdata = bmpToDraw->_data.get();
+  const auto *txdata = bmpToDraw->GetTexture();
   if (txdata->_vertex == nullptr)
   {
     hr = direct3ddevice->SetStreamSource(0, vertexbuffer.get(), 0, sizeof(CUSTOMVERTEX));
@@ -1159,20 +1165,20 @@ void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw
 
   float width = bmpToDraw->GetWidthToRender();
   float height = bmpToDraw->GetHeightToRender();
-  float xProportion = width / (float)bmpToDraw->_width;
-  float yProportion = height / (float)bmpToDraw->_height;
+  float xProportion = width / (float)bmpToDraw->GetWidth();
+  float yProportion = height / (float)bmpToDraw->GetHeight();
 
   for (size_t ti = 0; ti < txdata->_tiles.size(); ++ti)
   {
     width = txdata->_tiles[ti].width * xProportion;
     height = txdata->_tiles[ti].height * yProportion;
     float xOffs, yOffs;
-    if ((bmpToDraw->_flip & kFlip_Horizontal) != 0)
-      xOffs = (bmpToDraw->_width - (txdata->_tiles[ti].x + txdata->_tiles[ti].width)) * xProportion;
+    if ((bmpToDraw->GetFlip() & kFlip_Horizontal) != 0)
+      xOffs = (bmpToDraw->GetWidth() - (txdata->_tiles[ti].x + txdata->_tiles[ti].width)) * xProportion;
     else
       xOffs = txdata->_tiles[ti].x * xProportion;
-    if ((bmpToDraw->_flip & kFlip_Vertical) != 0)
-      yOffs = (bmpToDraw->_height - (txdata->_tiles[ti].y + txdata->_tiles[ti].height)) * yProportion;
+    if ((bmpToDraw->GetFlip() & kFlip_Vertical) != 0)
+      yOffs = (bmpToDraw->GetHeight() - (txdata->_tiles[ti].y + txdata->_tiles[ti].height)) * yProportion;
     else
       yOffs = txdata->_tiles[ti].y * yProportion;
     float thisX = draw_x + xOffs;
@@ -1181,7 +1187,7 @@ void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw
     // Setup translation and scaling matrices
     float widthToScale = width;
     float heightToScale = height;
-    if ((bmpToDraw->_flip & kFlip_Horizontal) != 0)
+    if ((bmpToDraw->GetFlip() & kFlip_Horizontal) != 0)
     {
       // The usual transform changes 0..1 into 0..width
       // So first negate it (which changes 0..w into -w..0)
@@ -1189,7 +1195,7 @@ void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw
       // and now shift it over to make it 0..w again
       thisX += width;
     }
-    if ((bmpToDraw->_flip & kFlip_Vertical) != 0)
+    if ((bmpToDraw->GetFlip() & kFlip_Vertical) != 0)
     {
       heightToScale = -heightToScale;
       thisY += height;
@@ -1205,9 +1211,8 @@ void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw
     // Global batch transform
     transform = matGlobal * transform;
 
-    if ((_smoothScaling) && bmpToDraw->_useResampler && (bmpToDraw->_stretchToHeight > 0) &&
-        ((bmpToDraw->_stretchToHeight != bmpToDraw->_height) ||
-         (bmpToDraw->_stretchToWidth != bmpToDraw->_width)))
+    if ((_smoothScaling) && bmpToDraw->GetUseResampler()
+        && bmpToDraw->GetSizeToRender() != bmpToDraw->GetSize())
     {
       direct3ddevice->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
       direct3ddevice->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
@@ -1222,7 +1227,7 @@ void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw
     direct3ddevice->SetTexture(0, txdata->_tiles[ti].texture.get());
 
     // Treat special render modes
-    switch (bmpToDraw->_renderHint)
+    switch (bmpToDraw->GetRenderHint())
     {
     case kTxHint_PremulAlpha:
         direct3ddevice->SetRenderState(D3DRS_BLENDFACTOR, D3DCOLOR_RGBA(alpha, alpha, alpha, 255));
@@ -1648,7 +1653,7 @@ void D3DGraphicsDriver::DestroyDDB(IDriverDependantBitmap* ddb)
 {
     // Remove from render targets
     // FIXME: this ugly accessing internal texture members
-    if (((D3DBitmap*)ddb)->_data->RenderTarget)
+    if (((D3DBitmap*)ddb)->GetTexture()->RenderTarget)
     {
         auto it = std::find(_renderTargets.begin(), _renderTargets.end(), ddb);
         assert(it != _renderTargets.end());
@@ -1700,8 +1705,8 @@ void D3DGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap *ddb, const B
 {
   // FIXME: what to do if texture is shared??
   D3DBitmap *target = (D3DBitmap*)ddb;
-  UpdateTexture(target->_data.get(), bitmap, has_alpha, target->_opaque);
-  target->_hasAlpha = has_alpha;
+  UpdateTexture(target->GetTexture(), bitmap, has_alpha, target->IsOpaque());
+  target->SetHasAlpha(has_alpha);
 }
 
 void D3DGraphicsDriver::UpdateTexture(Texture *txdata, const Bitmap *bitmap, bool has_alpha, bool opaque)
@@ -1785,7 +1790,8 @@ IDriverDependantBitmap* D3DGraphicsDriver::CreateDDB(int width, int height, int 
     if (color_depth != GetCompatibleBitmapFormat(color_depth))
         throw Ali3DException("CreateDDB: bitmap colour depth not supported");
     D3DBitmap *ddb = new D3DBitmap(width, height, color_depth, opaque);
-    ddb->_data.reset(reinterpret_cast<D3DTexture*>(CreateTexture(width, height, color_depth, opaque)));
+    ddb->SetTexture(std::shared_ptr<D3DTexture>(
+        reinterpret_cast<D3DTexture*>(CreateTexture(width, height, color_depth, opaque))));
     return ddb;
 }
 
@@ -1793,7 +1799,7 @@ IDriverDependantBitmap *D3DGraphicsDriver::CreateDDB(std::shared_ptr<Texture> tx
 {
     auto *ddb = reinterpret_cast<D3DBitmap*>(CreateDDB(txdata->Res.Width, txdata->Res.Height, txdata->Res.ColorDepth, opaque));
     if (ddb)
-        ddb->_data = std::static_pointer_cast<D3DTexture>(txdata);
+        ddb->SetTexture(std::static_pointer_cast<D3DTexture>(txdata));
     return ddb;
 }
 
@@ -1801,20 +1807,23 @@ IDriverDependantBitmap* D3DGraphicsDriver::CreateRenderTargetDDB(int width, int 
 {
     if (color_depth != GetCompatibleBitmapFormat(color_depth))
         throw Ali3DException("CreateDDB: bitmap colour depth not supported");
+
     D3DBitmap *ddb = new D3DBitmap(width, height, color_depth, opaque);
+    auto txdata = std::shared_ptr<D3DTexture>(
+        reinterpret_cast<D3DTexture*>(CreateTexture(width, height, color_depth, opaque, true)));
     // FIXME: this ugly accessing internal texture members
-    ddb->_data.reset(reinterpret_cast<D3DTexture*>(CreateTexture(width, height, color_depth, opaque, true)));
-    auto &tex = ddb->_data->_tiles[0].texture;
-    HRESULT hr = tex->GetSurfaceLevel(0, ddb->_renderSurface.Acquire());
+    auto &tex = txdata->_tiles[0].texture;
+    D3DSurfacePtr surf;
+    HRESULT hr = tex->GetSurfaceLevel(0, surf.Acquire());
     assert(hr == D3D_OK);
-    ddb->_renderHint = kTxHint_PremulAlpha;
+    ddb->SetTexture(txdata, surf, kTxHint_PremulAlpha);
     _renderTargets.push_back(ddb);
     return ddb;
 }
 
 std::shared_ptr<Texture> D3DGraphicsDriver::GetTexture(IDriverDependantBitmap *ddb)
 {
-    return std::static_pointer_cast<Texture>((reinterpret_cast<D3DBitmap*>(ddb))->_data);
+    return std::static_pointer_cast<Texture>((reinterpret_cast<D3DBitmap*>(ddb))->GetSharedTexture());
 }
 
 Texture *D3DGraphicsDriver::CreateTexture(int width, int height, int color_depth, bool opaque, bool as_render_target)

@@ -723,7 +723,7 @@ void OGLGraphicsDriver::SetupNativeTarget()
   _nativeSurface = (OGLBitmap*)CreateRenderTargetDDB(
       surf_size.Width, surf_size.Height, _mode.ColorDepth, true);
   auto projection = glm::ortho(0.0f, (float)surf_size.Width, 0.0f, (float)surf_size.Height, 0.0f, 1.0f);
-  _nativeBackbuffer = BackbufferState(_nativeSurface->_fbo, surf_size, _srcRect.GetSize(),
+  _nativeBackbuffer = BackbufferState(_nativeSurface->GetFbo(), surf_size, _srcRect.GetSize(),
       RectWH(0, 0, surf_size.Width, surf_size.Height), projection, PlaneScaling(), GL_NEAREST, GL_CLAMP);
 }
 
@@ -900,8 +900,8 @@ void OGLGraphicsDriver::GetCopyOfScreenIntoDDB(IDriverDependantBitmap *target, u
     {
         // If we normally render in native res, then simply render backbuffer contents
         OGLBitmap *bitmap = (OGLBitmap*)target;
-        Size surf_sz(bitmap->_width, bitmap->_height);
-        BackbufferState backbuffer = BackbufferState(bitmap->_fbo, surf_sz, surf_sz,
+        Size surf_sz = bitmap->GetSize();
+        BackbufferState backbuffer = BackbufferState(bitmap->GetFbo(), surf_sz, surf_sz,
             RectWH(0, 0, surf_sz.Width, surf_sz.Height), 
             glm::ortho(0.0f, (float)surf_sz.Width, 0.0f, (float)surf_sz.Height, 0.0f, 1.0f),
             PlaneScaling(), GL_NEAREST, GL_CLAMP);
@@ -942,7 +942,7 @@ bool OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination,
 
   if (at_native_res)
   {
-    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, _nativeSurface->_fbo);
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, _nativeSurface->GetFbo());
   }
   else
   {
@@ -992,8 +992,8 @@ void OGLGraphicsDriver::RenderToBackBuffer()
 void OGLGraphicsDriver::Render(IDriverDependantBitmap *target)
 {
     OGLBitmap *bitmap = (OGLBitmap*)target;
-    Size surf_sz(bitmap->_width, bitmap->_height);
-    BackbufferState backbuffer = BackbufferState(bitmap->_fbo, surf_sz, surf_sz,
+    Size surf_sz = bitmap->GetSize();
+    BackbufferState backbuffer = BackbufferState(bitmap->GetFbo(), surf_sz, surf_sz,
         RectWH(0, 0, surf_sz.Width, surf_sz.Height),
         glm::ortho(0.0f, (float)surf_sz.Width, 0.0f, (float)surf_sz.Height, 0.0f, 1.0f),
         PlaneScaling(), GL_NEAREST, GL_CLAMP);
@@ -1011,12 +1011,15 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
     const glm::mat4 &projection, const glm::mat4 &matGlobal,
     const SpriteColorTransform &color, const Size &rend_sz)
 {
-  const int alpha = (color.Alpha * bmpToDraw->_alpha) / 255;
+  const int alpha = (color.Alpha * bmpToDraw->GetAlpha()) / 255;
 
   ShaderProgram program;
 
-  const bool do_tint = bmpToDraw->_tintSaturation > 0 && _tintShader.Program > 0;
-  const bool do_light = bmpToDraw->_tintSaturation == 0 && bmpToDraw->_lightLevel > 0 && _lightShader.Program > 0;
+  int tint_r, tint_g, tint_b, tint_sat, light_lev;
+  bmpToDraw->GetTint(tint_r, tint_g, tint_b, tint_sat);
+  light_lev = bmpToDraw->GetLightLevel();
+  const bool do_tint = tint_sat > 0 && _tintShader.Program > 0;
+  const bool do_light = tint_sat == 0 && light_lev > 0 && _lightShader.Program > 0;
   if (do_tint)
   {
     // Use tinting shader
@@ -1027,20 +1030,20 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
     float sat_trs_lum[3]; // saturation / transparency / luminance
     if (_legacyPixelShader)
     {
-      rgb_to_hsv(bmpToDraw->_red, bmpToDraw->_green, bmpToDraw->_blue, &rgb[0], &rgb[1], &rgb[2]);
+      rgb_to_hsv(tint_r, tint_g, tint_b, &rgb[0], &rgb[1], &rgb[2]);
       rgb[0] /= 360.0; // In HSV, Hue is 0-360
     }
     else
     {
-      rgb[0] = (float)bmpToDraw->_red / 255.0;
-      rgb[1] = (float)bmpToDraw->_green / 255.0;
-      rgb[2] = (float)bmpToDraw->_blue / 255.0;
+      rgb[0] = (float)tint_r / 255.0;
+      rgb[1] = (float)tint_g / 255.0;
+      rgb[2] = (float)tint_b / 255.0;
     }
 
-    sat_trs_lum[0] = (float)bmpToDraw->_tintSaturation / 255.0;
+    sat_trs_lum[0] = (float)tint_sat / 255.0;
 
-    if (bmpToDraw->_lightLevel > 0)
-      sat_trs_lum[2] = (float)bmpToDraw->_lightLevel / 255.0;
+    if (light_lev > 0)
+      sat_trs_lum[2] = (float)light_lev / 255.0;
     else
       sat_trs_lum[2] = 1.0f;
 
@@ -1059,16 +1062,16 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
     // 1/255 (although effectively 1/250, see draw.cpp), but contains two
     // ranges: 1-255 is darker range and 256-511 is brighter range.
     // (light level of 0 means "default color")
-    if ((bmpToDraw->_lightLevel > 0) && (bmpToDraw->_lightLevel < 256))
+    if ((light_lev > 0) && (light_lev < 256))
     {
       // darkening the sprite... this stupid calculation is for
       // consistency with the allegro software-mode code that does
       // a trans blend with a (8,8,8) sprite
-      light_lev = -((bmpToDraw->_lightLevel * 192) / 256 + 64) / 255.f; // darker, uses MODULATE op
+      light_lev = -((light_lev * 192) / 256 + 64) / 255.f; // darker, uses MODULATE op
     }
-    else if (bmpToDraw->_lightLevel > 256)
+    else if (light_lev > 256)
     {
-      light_lev = ((bmpToDraw->_lightLevel - 256) / 2) / 255.f; // brighter, uses ADD op
+      light_lev = ((light_lev - 256) / 2) / 255.f; // brighter, uses ADD op
     }
 
     glUniform1f(_lightShader.LightingAmount, light_lev);
@@ -1085,21 +1088,21 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
 
   float width = bmpToDraw->GetWidthToRender();
   float height = bmpToDraw->GetHeightToRender();
-  float xProportion = width / (float)bmpToDraw->_width;
-  float yProportion = height / (float)bmpToDraw->_height;
+  float xProportion = width / (float)bmpToDraw->GetWidth();
+  float yProportion = height / (float)bmpToDraw->GetHeight();
 
-  const auto *txdata = bmpToDraw->_data.get();
+  const auto *txdata = bmpToDraw->GetTexture();
   for (size_t ti = 0; ti < txdata->_numTiles; ++ti)
   {
     width = txdata->_tiles[ti].width * xProportion;
     height = txdata->_tiles[ti].height * yProportion;
     float xOffs, yOffs;
-    if ((bmpToDraw->_flip & kFlip_Horizontal) != 0)
-      xOffs = (bmpToDraw->_width - (txdata->_tiles[ti].x + txdata->_tiles[ti].width)) * xProportion;
+    if ((bmpToDraw->GetFlip() & kFlip_Horizontal) != 0)
+      xOffs = (bmpToDraw->GetWidth() - (txdata->_tiles[ti].x + txdata->_tiles[ti].width)) * xProportion;
     else
       xOffs = txdata->_tiles[ti].x * xProportion;
-    if ((bmpToDraw->_flip & kFlip_Vertical) != 0)
-      yOffs = (bmpToDraw->_height - (txdata->_tiles[ti].y + txdata->_tiles[ti].height)) * yProportion;
+    if ((bmpToDraw->GetFlip() & kFlip_Vertical) != 0)
+      yOffs = (bmpToDraw->GetHeight() - (txdata->_tiles[ti].y + txdata->_tiles[ti].height)) * yProportion;
     else
       yOffs = txdata->_tiles[ti].y * yProportion;
     float thisX = draw_x + xOffs;
@@ -1108,7 +1111,7 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
     // Setup translation and scaling matrices
     float widthToScale = width;
     float heightToScale = height;
-    if ((bmpToDraw->_flip & kFlip_Horizontal) != 0)
+    if ((bmpToDraw->GetFlip() & kFlip_Horizontal) != 0)
     {
       // The usual transform changes 0..1 into 0..width
       // So first negate it (which changes 0..w into -w..0)
@@ -1116,7 +1119,7 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
       // and now shift it over to make it 0..w again
       thisX += width;
     }
-    if ((bmpToDraw->_flip & kFlip_Vertical) != 0)
+    if ((bmpToDraw->GetFlip() & kFlip_Vertical) != 0)
     {
       heightToScale = -heightToScale;
       thisY += height;
@@ -1143,9 +1146,8 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, txdata->_tiles[ti].texture);
 
-    if ((_smoothScaling) && bmpToDraw->_useResampler && (bmpToDraw->_stretchToHeight > 0) &&
-        ((bmpToDraw->_stretchToHeight != bmpToDraw->_height) ||
-         (bmpToDraw->_stretchToWidth != bmpToDraw->_width)))
+    if ((_smoothScaling) && bmpToDraw->GetUseResampler()
+        && (bmpToDraw->GetSizeToRender() != bmpToDraw->GetSize()))
     {
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -1172,7 +1174,7 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
     }
 
     // Treat special render modes
-    switch (bmpToDraw->_renderHint)
+    switch (bmpToDraw->GetRenderHint())
     {
     case kTxHint_PremulAlpha:
         glBlendColor(alpha / 255.0f, alpha / 255.0f, alpha / 255.0f, 1.0);
@@ -1574,7 +1576,7 @@ void OGLGraphicsDriver::DestroyDDB(IDriverDependantBitmap* ddb)
 {
     // Remove from render targets
     // FIXME: this ugly accessing internal texture members
-    if (((OGLBitmap*)ddb)->_data->RenderTarget)
+    if (((OGLBitmap*)ddb)->GetTexture()->RenderTarget)
     {
         // Remove deleted DDB from batches backup
         for (auto &backup_rt : _backupBatches)
@@ -1686,8 +1688,8 @@ void OGLGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* ddb, const B
 {
   // FIXME: what to do if texture is shared??
   OGLBitmap *target = (OGLBitmap*)ddb;
-  UpdateTexture(target->_data.get(), bitmap, has_alpha, target->_opaque);
-  target->_hasAlpha = has_alpha;
+  UpdateTexture(target->GetTexture(), bitmap, has_alpha, target->IsOpaque());
+  target->SetHasAlpha(has_alpha);
 }
 
 void OGLGraphicsDriver::UpdateTexture(Texture *txdata, const Bitmap *bitmap, bool has_alpha, bool opaque)
@@ -1771,7 +1773,8 @@ IDriverDependantBitmap* OGLGraphicsDriver::CreateDDB(int width, int height, int 
     if (color_depth != GetCompatibleBitmapFormat(color_depth))
         throw Ali3DException("CreateDDB: bitmap colour depth not supported");
     OGLBitmap *ddb = new OGLBitmap(width, height, color_depth, opaque);
-    ddb->_data.reset(reinterpret_cast<OGLTexture*>(CreateTexture(width, height, color_depth, opaque)));
+    ddb->SetTexture(std::shared_ptr<OGLTexture>
+        (reinterpret_cast<OGLTexture*>(CreateTexture(width, height, color_depth, opaque))));
     return ddb;
 }
 
@@ -1779,7 +1782,7 @@ IDriverDependantBitmap *OGLGraphicsDriver::CreateDDB(std::shared_ptr<Texture> tx
 {
     auto *ddb = reinterpret_cast<OGLBitmap*>(CreateDDB(txdata->Res.Width, txdata->Res.Height, txdata->Res.ColorDepth, opaque));
     if (ddb)
-        ddb->_data = std::static_pointer_cast<OGLTexture>(txdata);
+        ddb->SetTexture(std::static_pointer_cast<OGLTexture>(txdata));
     return ddb;
 }
 
@@ -1787,27 +1790,30 @@ IDriverDependantBitmap* OGLGraphicsDriver::CreateRenderTargetDDB(int width, int 
 {
     if (color_depth != GetCompatibleBitmapFormat(color_depth))
         throw Ali3DException("CreateDDB: bitmap colour depth not supported");
-    OGLBitmap *ddb = new OGLBitmap(width, height, color_depth, opaque);
-    ddb->_data.reset(reinterpret_cast<OGLTexture*>(CreateTexture(width, height, color_depth, opaque, true)));
-    glGenFramebuffersEXT(1, &ddb->_fbo);
-    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, ddb->_fbo);
+
+    auto txdata = std::shared_ptr<OGLTexture>(
+        reinterpret_cast<OGLTexture*>(CreateTexture(width, height, color_depth, opaque, true)));
+    GLuint fbo = 0u;
+    glGenFramebuffersEXT(1, &fbo);
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fbo);
     // FIXME: this ugly accessing internal texture members
-    unsigned int tex = ddb->_data->_tiles[0].texture;
+    unsigned int tex = txdata->_tiles[0].texture;
     glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, tex, 0);
     GLenum status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
     if (status != GL_FRAMEBUFFER_COMPLETE_EXT)
     {
-        delete ddb;
         throw Ali3DException(String::FromFormat("CreateRenderTargetDDB: failed to create a framebuffer: %x", status));
     }
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, _screenFramebuffer);
-    ddb->_renderHint = kTxHint_PremulAlpha;
+
+    OGLBitmap *ddb = new OGLBitmap(width, height, color_depth, opaque);
+    ddb->SetTexture(txdata, fbo, kTxHint_PremulAlpha);
     return ddb;
 }
 
 std::shared_ptr<Texture> OGLGraphicsDriver::GetTexture(IDriverDependantBitmap *ddb)
 {
-    return std::static_pointer_cast<Texture>((reinterpret_cast<OGLBitmap*>(ddb))->_data);
+    return std::static_pointer_cast<Texture>((reinterpret_cast<OGLBitmap*>(ddb))->GetSharedTexture());
 }
 
 Texture *OGLGraphicsDriver::CreateTexture(int width, int height, int color_depth, bool /*opaque*/, bool as_render_target)

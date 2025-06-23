@@ -338,9 +338,9 @@ IDriverDependantBitmap* SDLRendererGraphicsDriver::CreateRenderTargetDDB(int wid
     return new ALSoftwareBitmap(width, height, color_depth, txflags);
 }
 
-void SDLRendererGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, const Bitmap *bitmap, bool has_alpha)
+void SDLRendererGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap *ddb, const Bitmap *bitmap, bool has_alpha)
 {
-    ALSoftwareBitmap *alSwBmp = (ALSoftwareBitmap*)bitmapToUpdate;
+    ALSoftwareBitmap *alSwBmp = (ALSoftwareBitmap*)ddb;
     alSwBmp->SetBitmap(const_cast<Bitmap *>(bitmap), has_alpha);
 }
 

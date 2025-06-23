@@ -81,8 +81,8 @@ void D3DBitmap::ReleaseTextureData()
 }
 
 
-static D3DFORMAT color_depth_to_d3d_format(int color_depth, bool wantAlpha);
-static int d3d_format_to_color_depth(D3DFORMAT format, bool secondary);
+static D3DFORMAT ColorDepthToD3DFormat(int color_depth, bool wantAlpha);
+static int D3DFormatToColorDepth(D3DFORMAT format, bool secondary);
 
 D3DGfxModeList::D3DGfxModeList(const D3DPtr &direct3d, int display_index, D3DFORMAT d3dformat)
     : _direct3d(direct3d)
@@ -103,7 +103,7 @@ bool D3DGfxModeList::GetMode(int index, DisplayMode &mode) const
             mode.DisplayIndex = _displayIndex;
             mode.Width = d3d_mode.Width;
             mode.Height = d3d_mode.Height;
-            mode.ColorDepth = d3d_format_to_color_depth(d3d_mode.Format, false);
+            mode.ColorDepth = D3DFormatToColorDepth(d3d_mode.Format, false);
             mode.RefreshRate = d3d_mode.RefreshRate;
             return true;
         }
@@ -118,7 +118,7 @@ bool D3DGfxModeList::GetMode(int index, DisplayMode &mode) const
 D3DGraphicsDriver::D3DGraphicsDriver(const D3DPtr &d3d) 
 {
   direct3d = d3d;
-  set_up_default_vertices();
+  SetupDefaultVertices();
   _smoothScaling = false;
   _pixelRenderXOffset = 0;
   _pixelRenderYOffset = 0;
@@ -149,7 +149,7 @@ D3DGraphicsDriver::BackbufferState::BackbufferState(D3DSurfacePtr &&surface,
     assert(Surface != nullptr);
 }
 
-void D3DGraphicsDriver::set_up_default_vertices()
+void D3DGraphicsDriver::SetupDefaultVertices()
 {
   defaultVertices[0].position.x = 0.0f;
   defaultVertices[0].position.y = 0.0f;
@@ -308,12 +308,10 @@ bool D3DGraphicsDriver::FirstTimeInit()
   return true;
 }
 
-/* color_depth_to_d3d_format:
- *  Convert a colour depth into the appropriate D3D tag
- */
-static D3DFORMAT color_depth_to_d3d_format(int color_depth, bool wantAlpha)
+// Convert a colour depth into the corresponding D3D pixel format
+static D3DFORMAT ColorDepthToD3DFormat(int color_depth, bool want_alpha)
 {
-  if (wantAlpha)
+  if (want_alpha)
   {
     switch (color_depth)
     {
@@ -346,13 +344,10 @@ static D3DFORMAT color_depth_to_d3d_format(int color_depth, bool wantAlpha)
   return D3DFMT_UNKNOWN;
 }
 
-/* d3d_format_to_color_depth:
- *  Convert a D3D tag to colour depth
- *
- * TODO: this is currently an inversion of color_depth_to_d3d_format;
- * check later if more formats should be handled
- */
-static int d3d_format_to_color_depth(D3DFORMAT format, bool secondary)
+// Convert a D3D pixel format to colour depth (bits per pixel).
+// TODO: this is currently an inversion of ColorDepthToD3DFormat;
+// check later if more formats should be handled.
+static int D3DFormatToColorDepth(D3DFORMAT format, bool secondary)
 {
   switch (format)
   {
@@ -386,7 +381,7 @@ bool D3DGraphicsDriver::IsModeSupported(const DisplayMode &mode)
     return true;
   }
 
-  D3DFORMAT pixelFormat = color_depth_to_d3d_format(mode.ColorDepth, false);
+  D3DFORMAT pixelFormat = ColorDepthToD3DFormat(mode.ColorDepth, false);
   D3DDISPLAYMODE d3d_mode;
 
   const UINT use_adapter = SDL_Direct3D9GetAdapterIndex(mode.DisplayIndex);
@@ -501,7 +496,7 @@ bool D3DGraphicsDriver::CreateDisplayMode(const DisplayMode &mode)
   memset( &d3dpp, 0, sizeof(d3dpp) );
   d3dpp.BackBufferWidth = mode.Width;
   d3dpp.BackBufferHeight = mode.Height;
-  d3dpp.BackBufferFormat = color_depth_to_d3d_format(mode.ColorDepth, false);
+  d3dpp.BackBufferFormat = ColorDepthToD3DFormat(mode.ColorDepth, false);
   d3dpp.BackBufferCount = 1;
   d3dpp.MultiSampleType = D3DMULTISAMPLE_NONE;
   // THIS MUST BE SWAPEFFECT_COPY FOR PlayVideo TO WORK
@@ -565,7 +560,13 @@ bool D3DGraphicsDriver::CreateDisplayMode(const DisplayMode &mode)
   return true;
 }
 
-void D3DGraphicsDriver::SetBlendOp(D3DBLENDOP blend_op, D3DBLEND src_factor, D3DBLEND dst_factor)
+void D3DGraphicsDriver::SetBlendOpUniform(D3DBLENDOP blend_op, D3DBLEND src_factor, D3DBLEND dst_factor)
+{
+    SetBlendOpRGB(blend_op, src_factor, dst_factor);
+    SetBlendOpAlpha(blend_op, src_factor, dst_factor);
+}
+
+void D3DGraphicsDriver::SetBlendOpRGB(D3DBLENDOP blend_op, D3DBLEND src_factor, D3DBLEND dst_factor)
 {
     direct3ddevice->SetRenderState(D3DRS_BLENDOP, blend_op);
     direct3ddevice->SetRenderState(D3DRS_SRCBLEND, src_factor);
@@ -590,7 +591,7 @@ void D3DGraphicsDriver::InitializeD3DState()
   direct3ddevice->SetRenderState(D3DRS_ZENABLE, FALSE);
 
   direct3ddevice->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
-  SetBlendOp(D3DBLENDOP_ADD, D3DBLEND_SRCALPHA, D3DBLEND_INVSRCALPHA);
+  SetBlendOpUniform(D3DBLENDOP_ADD, D3DBLEND_SRCALPHA, D3DBLEND_INVSRCALPHA);
 
   direct3ddevice->SetRenderState(D3DRS_ALPHATESTENABLE, TRUE);
   direct3ddevice->SetRenderState(D3DRS_ALPHAFUNC, D3DCMP_GREATER); 
@@ -860,7 +861,7 @@ int D3DGraphicsDriver::GetDisplayDepthForNativeDepth(int /*native_color_depth*/)
 
 IGfxModeList *D3DGraphicsDriver::GetSupportedModeList(int display_index, int color_depth)
 {
-    return new D3DGfxModeList(direct3d, display_index, color_depth_to_d3d_format(color_depth, false));
+    return new D3DGfxModeList(direct3d, display_index, ColorDepthToD3DFormat(color_depth, false));
 }
 
 PGfxFilter D3DGraphicsDriver::GetGraphicsFilter() const
@@ -982,7 +983,7 @@ bool D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination,
       if (direct3ddevice->CreateOffscreenPlainSurface(
         _srcRect.GetWidth(),
         _srcRect.GetHeight(),
-        color_depth_to_d3d_format(_mode.ColorDepth, false),
+        ColorDepthToD3DFormat(_mode.ColorDepth, false),
         D3DPOOL_SYSTEMMEM,
         surface.Acquire(),
         NULL) != D3D_OK)
@@ -1210,7 +1211,7 @@ void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw
     {
     case kTxHint_PremulAlpha:
         direct3ddevice->SetRenderState(D3DRS_BLENDFACTOR, D3DCOLOR_RGBA(alpha, alpha, alpha, 255));
-        SetBlendOp(D3DBLENDOP_ADD, D3DBLEND_BLENDFACTOR, D3DBLEND_INVSRCALPHA);
+        SetBlendOpRGB(D3DBLENDOP_ADD, D3DBLEND_BLENDFACTOR, D3DBLEND_INVSRCALPHA);
         break;
     default:
         break;
@@ -1223,7 +1224,8 @@ void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw
     }
 
     // Restore default blending mode
-    SetBlendOp(D3DBLENDOP_ADD, D3DBLEND_SRCALPHA, D3DBLEND_INVSRCALPHA);
+    // FIXME: set everything prior to a texture drawing instead?
+    SetBlendOpRGB(D3DBLENDOP_ADD, D3DBLEND_SRCALPHA, D3DBLEND_INVSRCALPHA);
   }
 }
 
@@ -1675,7 +1677,7 @@ void D3DGraphicsDriver::UpdateTextureRegion(D3DTextureTile *tile, const Bitmap *
   if (opaque)
     BitmapToVideoMemOpaque(bitmap, tile, memPtr, lockedRegion.Pitch);
   else
-    BitmapToVideoMem(bitmap, has_alpha, tile, memPtr, lockedRegion.Pitch, usingLinearFiltering);
+    BitmapToVideoMem(bitmap, tile, memPtr, lockedRegion.Pitch, has_alpha, usingLinearFiltering);
 
   texture->UnlockRect(0);
 }
@@ -1922,7 +1924,7 @@ Texture *D3DGraphicsDriver::CreateTexture(int width, int height, int color_depth
 
       // NOTE: pay attention that the texture format depends on the **display mode**'s color format,
       // rather than source bitmap's color depth!
-      D3DFORMAT texture_fmt = color_depth_to_d3d_format(_mode.ColorDepth, (txflags & kTxFlags_Opaque) == 0);
+      D3DFORMAT texture_fmt = ColorDepthToD3DFormat(_mode.ColorDepth, (txflags & kTxFlags_Opaque) == 0);
       HRESULT hr = direct3ddevice->CreateTexture(thisAllocatedWidth, thisAllocatedHeight, 1,
                                       texture_use, texture_fmt,
                                       texture_pool, thisTile->texture.Acquire(), NULL);

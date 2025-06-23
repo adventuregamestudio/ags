@@ -541,13 +541,13 @@ VideoMemoryGraphicsDriver::BitmapToVideoMemLinearImpl(
     }
 }
 
-void VideoMemoryGraphicsDriver::BitmapToVideoMem(const Bitmap *bitmap, const bool has_alpha, const TextureTile *tile,
-    uint8_t *dst_ptr, const int dst_pitch, const bool usingLinearFiltering)
+void VideoMemoryGraphicsDriver::BitmapToVideoMem(const Bitmap *bitmap, const TextureTile *tile,
+    uint8_t *dst_ptr, const int dst_pitch, const bool has_alpha, const bool linear_filter)
 {
     switch (bitmap->GetColorDepth())
     {
         case 8:
-            if (usingLinearFiltering) {
+            if (linear_filter) {
                 BitmapToVideoMemLinearImpl<uint8_t, false>(bitmap, tile, dst_ptr, dst_pitch);
             } else {
                 BitmapToVideoMemImpl<uint8_t, false>(bitmap, tile, dst_ptr, dst_pitch);
@@ -555,14 +555,14 @@ void VideoMemoryGraphicsDriver::BitmapToVideoMem(const Bitmap *bitmap, const boo
 
             break;
         case 16:
-            if (usingLinearFiltering) {
+            if (linear_filter) {
                 BitmapToVideoMemLinearImpl<uint16_t, false>(bitmap, tile, dst_ptr, dst_pitch);
             } else {
                 BitmapToVideoMemImpl<uint16_t, false>(bitmap, tile, dst_ptr, dst_pitch);
             }
             break;
         case 32:
-            if (usingLinearFiltering) {
+            if (linear_filter) {
                 if (has_alpha) {
                     BitmapToVideoMemLinearImpl<uint32_t, true>(bitmap, tile, dst_ptr, dst_pitch);
                 } else {

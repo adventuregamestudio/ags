@@ -1618,7 +1618,7 @@ void OGLGraphicsDriver::UpdateTextureRegion(OGLTextureTile *tile, const Bitmap *
   if (opaque)
     BitmapToVideoMemOpaque(bitmap, &fixedTile, memPtr, pitch);
   else
-    BitmapToVideoMem(bitmap, has_alpha, &fixedTile, memPtr, pitch, usingLinearFiltering);
+    BitmapToVideoMem(bitmap, &fixedTile, memPtr, pitch, has_alpha, usingLinearFiltering);
 
   // Mimic the behaviour of GL_CLAMP_TO_EDGE for the tile edges
   // NOTE: on some platforms GL_CLAMP_TO_EDGE does not work with the version of OpenGL we're using.
@@ -1669,7 +1669,7 @@ void OGLGraphicsDriver::UpdateTextureRegion(OGLTextureTile *tile, const Bitmap *
   delete []origPtr;
 }
 
-void OGLGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* ddb, const Bitmap *bitmap, bool has_alpha)
+void OGLGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap *ddb, const Bitmap *bitmap, bool has_alpha)
 {
   // FIXME: what to do if texture is shared??
   OGLBitmap *target = (OGLBitmap*)ddb;

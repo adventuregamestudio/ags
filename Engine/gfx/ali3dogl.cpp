@@ -394,11 +394,8 @@ void OGLGraphicsDriver::TestRenderToTexture()
 }
 
 
-bool CreateTransparencyShader(ShaderProgram &prg);
-bool CreateTintShader(ShaderProgram &prg);
-bool CreateLightShader(ShaderProgram &prg);
-bool CreateShaderProgram(ShaderProgram &prg, const char *name, const char *vertex_shader_src, const char *fragment_shader_src);
-void DeleteShaderProgram(ShaderProgram &prg);
+
+
 void OutputShaderError(GLuint obj_id, const String &obj_name, bool is_shader);
 
 
@@ -418,7 +415,6 @@ bool OGLGraphicsDriver::CreateShaders()
   shaders_created &= CreateLightShader(_lightShader);
   return shaders_created;
 }
-
 
 
 static const auto default_vertex_shader_src =  ""
@@ -564,138 +560,131 @@ void main()
 )EOS";
 
 
-bool CreateTransparencyShader(ShaderProgram &prg)
+bool OGLGraphicsDriver::CreateTransparencyShader(ShaderProgram &prg)
 {
     if(!CreateShaderProgram(prg, "Transparency", default_vertex_shader_src, transparency_fragment_shader_src))
         return false;
-    prg.A_Position = glGetAttribLocation(prg.Program, "a_Position");
-    prg.A_TexCoord = glGetAttribLocation(prg.Program, "a_TexCoord");
-    prg.MVPMatrix = glGetUniformLocation(prg.Program, "uMVPMatrix");
-    prg.TextureId = glGetUniformLocation(prg.Program, "textID");
-    prg.Alpha = glGetUniformLocation(prg.Program, "alpha");
-    glEnableVertexAttribArray(prg.A_Position);
-    glEnableVertexAttribArray(prg.A_TexCoord);
+    AssignBaseShaderArgs(prg);
     return true;
 }
 
-
-bool CreateTintShader(ShaderProgram &prg)
+bool OGLGraphicsDriver::CreateTintShader(ShaderProgram &prg)
 {
     if(!CreateShaderProgram(prg, "Tinting", default_vertex_shader_src, tint_fragment_shader_src))
         return false;
-    prg.A_Position = glGetAttribLocation(prg.Program, "a_Position");
-    prg.A_TexCoord = glGetAttribLocation(prg.Program, "a_TexCoord");
-    prg.MVPMatrix = glGetUniformLocation(prg.Program, "uMVPMatrix");
-    prg.TextureId = glGetUniformLocation(prg.Program, "textID");
+    AssignBaseShaderArgs(prg);
     prg.TintHSV = glGetUniformLocation(prg.Program, "tintHSV");
     prg.TintAmount = glGetUniformLocation(prg.Program, "tintAmount");
     prg.TintLuminance = glGetUniformLocation(prg.Program, "tintLuminance");
-    prg.Alpha = glGetUniformLocation(prg.Program, "alpha");
-    glEnableVertexAttribArray(prg.A_Position);
-    glEnableVertexAttribArray(prg.A_TexCoord);
     return true;
 }
 
-bool CreateLightShader(ShaderProgram &prg)
+bool OGLGraphicsDriver::CreateLightShader(ShaderProgram &prg)
 {
     if(!CreateShaderProgram(prg, "Lighting", default_vertex_shader_src, light_fragment_shader_src))
         return false;
+    AssignBaseShaderArgs(prg);
+    prg.LightingAmount = glGetUniformLocation(prg.Program, "light");
+    return true;
+}
+
+
+bool OGLGraphicsDriver::CreateShaderProgram(ShaderProgram &prg, const String &name, const char *vertex_shader_src, const char *fragment_shader_src)
+{
+    GLint result;
+
+    GLint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertex_shader, 1, &vertex_shader_src, nullptr);
+    glCompileShader(vertex_shader);
+    glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &result);
+    if (result == GL_FALSE)
+    {
+        OutputShaderError(vertex_shader, String::FromFormat("%s program's vertex shader", name.GetCStr()), true);
+        return false;
+    }
+
+    GLint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragment_shader, 1, &fragment_shader_src, nullptr);
+    glCompileShader(fragment_shader);
+    glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &result);
+    if (result == GL_FALSE)
+    {
+        OutputShaderError(fragment_shader, String::FromFormat("%s program's fragment shader", name.GetCStr()), true);
+        glDeleteShader(vertex_shader);
+        glDeleteShader(fragment_shader);
+        return false;
+    }
+
+    GLuint program = glCreateProgram();
+    glAttachShader(program, vertex_shader);
+    glAttachShader(program, fragment_shader);
+    glLinkProgram(program);
+    glGetProgramiv(program, GL_LINK_STATUS, &result);
+    if(result == GL_FALSE)
+    {
+        OutputShaderError(program, String::FromFormat("%s program", name.GetCStr()), false);
+        glDeleteProgram(program);
+        glDeleteShader(vertex_shader);
+        glDeleteShader(fragment_shader);
+        return false;
+    }
+
+    glDetachShader(program, vertex_shader);
+    glDetachShader(program, fragment_shader);
+    glDeleteShader(vertex_shader);
+    glDeleteShader(fragment_shader);
+
+    prg.Program = program;
+    Debug::Printf("OGL: %s shader program created successfully", name.GetCStr());
+    return true;
+}
+
+void OGLGraphicsDriver::DeleteShaderProgram(ShaderProgram &prg)
+{
+    if (prg.Program != 0)
+        glDeleteProgram(prg.Program);
+    prg.Program = 0;
+}
+
+void OGLGraphicsDriver::AssignBaseShaderArgs(ShaderProgram &prg)
+{
     prg.A_Position = glGetAttribLocation(prg.Program, "a_Position");
     prg.A_TexCoord = glGetAttribLocation(prg.Program, "a_TexCoord");
     prg.MVPMatrix = glGetUniformLocation(prg.Program, "uMVPMatrix");
     prg.TextureId = glGetUniformLocation(prg.Program, "textID");
-    prg.LightingAmount = glGetUniformLocation(prg.Program, "light");
     prg.Alpha = glGetUniformLocation(prg.Program, "alpha");
     glEnableVertexAttribArray(prg.A_Position);
     glEnableVertexAttribArray(prg.A_TexCoord);
-    return true;
 }
 
-
-
-bool CreateShaderProgram(ShaderProgram &prg, const char *name, const char *vertex_shader_src, const char *fragment_shader_src)
+void OGLGraphicsDriver::OutputShaderError(GLuint obj_id, const String &obj_name, bool is_shader)
 {
-  GLint result;
-
-  GLint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-  glShaderSource(vertex_shader, 1, &vertex_shader_src, nullptr);
-  glCompileShader(vertex_shader);
-  glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &result);
-  if (result == GL_FALSE)
-  {
-    OutputShaderError(vertex_shader, String::FromFormat("%s program's vertex shader", name), true);
-    return false;
-  }
-
-  GLint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-  glShaderSource(fragment_shader, 1, &fragment_shader_src, nullptr);
-  glCompileShader(fragment_shader);
-  glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &result);
-  if (result == GL_FALSE)
-  {
-    OutputShaderError(fragment_shader, String::FromFormat("%s program's fragment shader", name), true);
-    glDeleteShader(fragment_shader); //not sure yet if this goes here
-    return false;
-  }
-
-  GLuint program = glCreateProgram();
-  glAttachShader(program, vertex_shader);
-  glAttachShader(program, fragment_shader);
-  glLinkProgram(program);
-  glGetProgramiv(program, GL_LINK_STATUS, &result);
-  if(result == GL_FALSE)
-  {
-    OutputShaderError(program, String::FromFormat("%s program", name), false);
-    glDeleteProgram(program); //not sure yet if this goes here
-    glDeleteShader(fragment_shader); //not sure yet if this goes here
-    return false;
-  }
-
-  glDetachShader(program, vertex_shader);
-  glDeleteShader(vertex_shader);
-
-  glDetachShader(program, fragment_shader);
-  glDeleteShader(fragment_shader);
-
-  prg.Program = program;
-  Debug::Printf("OGL: %s shader program created successfully", name);
-  return true;
-}
-
-void DeleteShaderProgram(ShaderProgram &prg)
-{
-  if (prg.Program)
-    glDeleteProgram(prg.Program);
-  prg.Program = 0;
-}
-
-void OutputShaderError(GLuint obj_id, const String &obj_name, bool is_shader)
-{
-  GLint log_len;
-  if (is_shader)
-    glGetShaderiv(obj_id, GL_INFO_LOG_LENGTH, &log_len);
-  else
-    glGetProgramiv(obj_id, GL_INFO_LOG_LENGTH, &log_len);
-  std::vector<GLchar> errorLog(log_len);
-  if (log_len > 0)
-  {
+    GLint log_len;
     if (is_shader)
-      glGetShaderInfoLog(obj_id, log_len, &log_len, &errorLog[0]);
+        glGetShaderiv(obj_id, GL_INFO_LOG_LENGTH, &log_len);
     else
-      glGetProgramInfoLog(obj_id, log_len, &log_len, &errorLog[0]);
-  }
+        glGetProgramiv(obj_id, GL_INFO_LOG_LENGTH, &log_len);
 
-  Debug::Printf(kDbgMsg_Error, "ERROR: OpenGL: %s %s:", obj_name.GetCStr(), is_shader ? "failed to compile" : "failed to link");
-  if (errorLog.size() > 0)
-  {
-    Debug::Printf(kDbgMsg_Error, "----------------------------------------");
-    Debug::Printf(kDbgMsg_Error, "%s", &errorLog[0]);
-    Debug::Printf(kDbgMsg_Error, "----------------------------------------");
-  }
-  else
-  {
-    Debug::Printf(kDbgMsg_Error, "Shader info log was empty.");
-  }
+    std::vector<GLchar> errorLog(log_len);
+    if (log_len > 0)
+    {
+        if (is_shader)
+            glGetShaderInfoLog(obj_id, log_len, &log_len, &errorLog[0]);
+        else
+            glGetProgramInfoLog(obj_id, log_len, &log_len, &errorLog[0]);
+    }
+
+    Debug::Printf(kDbgMsg_Error, "ERROR: OpenGL: %s %s:", obj_name.GetCStr(), is_shader ? "failed to compile" : "failed to link");
+    if (errorLog.size() > 0)
+    {
+        Debug::Printf(kDbgMsg_Error, "----------------------------------------");
+        Debug::Printf(kDbgMsg_Error, "%s", &errorLog[0]);
+        Debug::Printf(kDbgMsg_Error, "----------------------------------------");
+    }
+    else
+    {
+        Debug::Printf(kDbgMsg_Error, "Shader info log was empty.");
+    }
 }
 
 void OGLGraphicsDriver::SetupNativeTarget()

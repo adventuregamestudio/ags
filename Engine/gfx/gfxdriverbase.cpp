@@ -225,19 +225,19 @@ bool VideoMemoryGraphicsDriver::GetStageMatrixes(RenderMatrixes &rm)
     return true;
 }
 
-IDriverDependantBitmap *VideoMemoryGraphicsDriver::CreateDDBFromBitmap(const Bitmap *bitmap, bool has_alpha, bool opaque)
+IDriverDependantBitmap *VideoMemoryGraphicsDriver::CreateDDBFromBitmap(const Bitmap *bitmap, int txflags)
 {
-    IDriverDependantBitmap *ddb = CreateDDB(bitmap->GetWidth(), bitmap->GetHeight(), bitmap->GetColorDepth(), opaque);
+    IDriverDependantBitmap *ddb = CreateDDB(bitmap->GetWidth(), bitmap->GetHeight(), bitmap->GetColorDepth(), txflags);
     if (ddb)
-        UpdateDDBFromBitmap(ddb, bitmap, has_alpha);
+        UpdateDDBFromBitmap(ddb, bitmap, (txflags & kTxFlags_HasAlpha) != 0);
     return ddb;
 }
 
-Texture *VideoMemoryGraphicsDriver::CreateTexture(const Bitmap *bmp, bool has_alpha, bool opaque)
+Texture *VideoMemoryGraphicsDriver::CreateTexture(const Bitmap *bmp, int txflags)
 {
-    Texture *txdata = CreateTexture(bmp->GetWidth(), bmp->GetHeight(), bmp->GetColorDepth(), opaque);
+    Texture *txdata = CreateTexture(bmp->GetWidth(), bmp->GetHeight(), bmp->GetColorDepth(), txflags);
     if (txdata)
-        UpdateTexture(txdata, bmp, has_alpha, opaque);
+        UpdateTexture(txdata, bmp, (txflags & kTxFlags_HasAlpha) != 0);
     return txdata;
 }
 
@@ -271,7 +271,7 @@ Bitmap *VideoMemoryGraphicsDriver::GetStageScreenRaw(size_t index)
     if (!scr.Raw && !sz.IsNull())
     {
         scr.Raw.reset(new Bitmap(sz.Width, sz.Height, _mode.ColorDepth));
-        scr.DDB = CreateDDB(sz.Width, sz.Height, _mode.ColorDepth, false);
+        scr.DDB = CreateDDB(sz.Width, sz.Height, _mode.ColorDepth);
     }
     return scr.Raw.get();
 }
@@ -326,12 +326,12 @@ IDriverDependantBitmap *VideoMemoryGraphicsDriver::MakeFx(int r, int g, int b)
     if (fx.DDB == nullptr)
     {
         fx.Raw.reset(new Bitmap(16, 16, _mode.ColorDepth));
-        fx.DDB = CreateDDBFromBitmap(fx.Raw.get(), false, true);
+        fx.DDB = CreateDDBFromBitmap(fx.Raw.get(), kTxFlags_Opaque);
     }
     if (r != fx.Red || g != fx.Green || b != fx.Blue)
     {
         fx.Raw->Clear(makecol_depth(fx.Raw->GetColorDepth(), r, g, b));
-        this->UpdateDDBFromBitmap(fx.DDB, fx.Raw.get(), false);
+        this->UpdateDDBFromBitmap(fx.DDB, fx.Raw.get(), false /* no alpha */);
         fx.Red = r;
         fx.Green = g;
         fx.Blue = b;

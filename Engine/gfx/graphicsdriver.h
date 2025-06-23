@@ -82,7 +82,6 @@ struct RenderMatrixes
     glm::mat4 Projection;
 };
 
-
 typedef void (*GFXDRV_CLIENTCALLBACK)();
 typedef bool (*GFXDRV_CLIENTCALLBACKEVT)(int evt, intptr_t data);
 typedef void (*GFXDRV_CLIENTCALLBACKINITGFX)(void *data);
@@ -140,13 +139,13 @@ public:
   virtual uint64_t GetAvailableTextureMemory() = 0;
 
   // Creates a "raw" DDB, without pixel initialization.
-  virtual IDriverDependantBitmap *CreateDDB(int width, int height, int color_depth, bool opaque = false) = 0;
+  virtual IDriverDependantBitmap *CreateDDB(int width, int height, int color_depth, int txflags = kTxFlags_None) = 0;
   // Create DDB using preexisting texture data
-  virtual IDriverDependantBitmap *CreateDDB(std::shared_ptr<Texture> txdata, bool opaque = false) = 0;
+  virtual IDriverDependantBitmap *CreateDDB(std::shared_ptr<Texture> txdata, int txflags = kTxFlags_None) = 0;
   // Creates DDB, initializes from the given bitmap.
-  virtual IDriverDependantBitmap* CreateDDBFromBitmap(const Bitmap *bitmap, bool has_alpha, bool opaque = false) = 0;
+  virtual IDriverDependantBitmap* CreateDDBFromBitmap(const Bitmap *bitmap, int txflags = kTxFlags_None) = 0;
   // Creates DDB intended to be used as a render target (allow render other DDBs on it).
-  virtual IDriverDependantBitmap* CreateRenderTargetDDB(int width, int height, int color_depth, bool opaque = false) = 0;
+  virtual IDriverDependantBitmap* CreateRenderTargetDDB(int width, int height, int color_depth, int txflags = kTxFlags_RenderTarget) = 0;
   // Updates DBB using the given bitmap; if bitmap has a different resolution,
   // then creates a new texture data and attaches to DDB
   virtual void UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, const Bitmap *bitmap, bool has_alpha) = 0;
@@ -154,9 +153,9 @@ public:
   virtual void DestroyDDB(IDriverDependantBitmap* bitmap) = 0;
 
   // Create texture data with the given parameters
-  virtual Texture *CreateTexture(int width, int height, int color_depth, bool opaque = false, bool as_render_target = false) = 0;
+  virtual Texture *CreateTexture(int width, int height, int color_depth, int txflags = kTxFlags_None) = 0;
   // Create texture and initialize its pixels from the given bitmap
-  virtual Texture *CreateTexture(const Bitmap *bmp, bool has_alpha = true, bool opaque = false) = 0;
+  virtual Texture *CreateTexture(const Bitmap *bmp, int txflags = kTxFlags_None) = 0;
   // Update texture data from the given bitmap
   virtual void UpdateTexture(Texture *txdata, const Bitmap *bmp, bool has_alpha, bool opaque = false) = 0;
   // Retrieve shared texture object from the given DDB

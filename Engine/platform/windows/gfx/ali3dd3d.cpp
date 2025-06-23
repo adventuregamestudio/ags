@@ -765,7 +765,7 @@ void D3DGraphicsDriver::CreateVirtualScreen()
     _nativeSurface = nullptr;
   }
   _nativeSurface = (D3DBitmap*)CreateRenderTargetDDB(
-      _srcRect.GetWidth(), _srcRect.GetHeight(), _mode.ColorDepth, true);
+      _srcRect.GetWidth(), _srcRect.GetHeight(), _mode.ColorDepth, kTxFlags_Opaque);
   glm::mat4 mat_ortho = glmex::ortho_d3d(_srcRect.GetWidth(), _srcRect.GetHeight());
   _nativeBackbuffer = BackbufferState(_nativeSurface->GetRenderSurface(),
     _srcRect.GetSize(), _srcRect.GetSize(), _srcRect, mat_ortho, PlaneScaling(), D3DTEXF_POINT);
@@ -820,7 +820,7 @@ void D3DGraphicsDriver::RecreateRenderTargets()
     {
         ddb->ReleaseTextureData();
         auto txdata = std::shared_ptr<D3DTexture>(
-            reinterpret_cast<D3DTexture*>(CreateTexture(ddb->GetWidth(), ddb->GetHeight(), ddb->GetColorDepth(), ddb->IsOpaque(), true)));
+            reinterpret_cast<D3DTexture*>(CreateTexture(ddb->GetWidth(), ddb->GetHeight(), ddb->GetColorDepth(), ddb->GetTextureFlags())));
         // FIXME: this ugly accessing internal texture members
         auto &tex = txdata->_tiles[0].texture;
         D3DSurfacePtr surf;
@@ -1785,37 +1785,38 @@ bool D3DGraphicsDriver::IsTextureFormatOk( D3DFORMAT TextureFormat, D3DFORMAT Ad
     return SUCCEEDED( hr );
 }
 
-IDriverDependantBitmap* D3DGraphicsDriver::CreateDDB(int width, int height, int color_depth, bool opaque)
+IDriverDependantBitmap* D3DGraphicsDriver::CreateDDB(int width, int height, int color_depth, int txflags)
 {
     if (color_depth != GetCompatibleBitmapFormat(color_depth))
         throw Ali3DException("CreateDDB: bitmap colour depth not supported");
-    D3DBitmap *ddb = new D3DBitmap(width, height, color_depth, opaque);
+    D3DBitmap *ddb = new D3DBitmap(width, height, color_depth, txflags);
     ddb->SetTexture(std::shared_ptr<D3DTexture>(
-        reinterpret_cast<D3DTexture*>(CreateTexture(width, height, color_depth, opaque))));
+        reinterpret_cast<D3DTexture*>(CreateTexture(width, height, color_depth, txflags))));
     return ddb;
 }
 
-IDriverDependantBitmap *D3DGraphicsDriver::CreateDDB(std::shared_ptr<Texture> txdata, bool opaque)
+IDriverDependantBitmap *D3DGraphicsDriver::CreateDDB(std::shared_ptr<Texture> txdata, int txflags)
 {
-    auto *ddb = reinterpret_cast<D3DBitmap*>(CreateDDB(txdata->Res.Width, txdata->Res.Height, txdata->Res.ColorDepth, opaque));
+    auto *ddb = reinterpret_cast<D3DBitmap*>(CreateDDB(txdata->Res.Width, txdata->Res.Height, txdata->Res.ColorDepth, txflags));
     if (ddb)
         ddb->SetTexture(std::static_pointer_cast<D3DTexture>(txdata));
     return ddb;
 }
 
-IDriverDependantBitmap* D3DGraphicsDriver::CreateRenderTargetDDB(int width, int height, int color_depth, bool opaque)
+IDriverDependantBitmap* D3DGraphicsDriver::CreateRenderTargetDDB(int width, int height, int color_depth, int txflags)
 {
     if (color_depth != GetCompatibleBitmapFormat(color_depth))
         throw Ali3DException("CreateDDB: bitmap colour depth not supported");
 
-    D3DBitmap *ddb = new D3DBitmap(width, height, color_depth, opaque);
+    txflags |= kTxFlags_RenderTarget;
     auto txdata = std::shared_ptr<D3DTexture>(
-        reinterpret_cast<D3DTexture*>(CreateTexture(width, height, color_depth, opaque, true)));
+        reinterpret_cast<D3DTexture*>(CreateTexture(width, height, color_depth, txflags)));
     // FIXME: this ugly accessing internal texture members
     auto &tex = txdata->_tiles[0].texture;
     D3DSurfacePtr surf;
     HRESULT hr = tex->GetSurfaceLevel(0, surf.Acquire());
     assert(hr == D3D_OK);
+    D3DBitmap *ddb = new D3DBitmap(width, height, color_depth, txflags);
     ddb->SetTexture(txdata, surf, kTxHint_PremulAlpha);
     _renderTargets.push_back(ddb);
     return ddb;
@@ -1826,7 +1827,7 @@ std::shared_ptr<Texture> D3DGraphicsDriver::GetTexture(IDriverDependantBitmap *d
     return std::static_pointer_cast<Texture>((reinterpret_cast<D3DBitmap*>(ddb))->GetSharedTexture());
 }
 
-Texture *D3DGraphicsDriver::CreateTexture(int width, int height, int color_depth, bool opaque, bool as_render_target)
+Texture *D3DGraphicsDriver::CreateTexture(int width, int height, int color_depth, int txflags)
 {
   assert(width > 0);
   assert(height > 0);
@@ -1836,6 +1837,7 @@ Texture *D3DGraphicsDriver::CreateTexture(int width, int height, int color_depth
 
   // Render targets must have D3DUSAGE_RENDERTARGET flag and be
   // created in a D3DPOOL_DEFAULT
+  const bool as_render_target = (txflags & kTxFlags_RenderTarget) != 0;
   const int texture_use = as_render_target ? D3DUSAGE_RENDERTARGET : 0;
   const D3DPOOL texture_pool = as_render_target ? D3DPOOL_DEFAULT : D3DPOOL_MANAGED;
 
@@ -1941,7 +1943,7 @@ Texture *D3DGraphicsDriver::CreateTexture(int width, int height, int color_depth
 
       // NOTE: pay attention that the texture format depends on the **display mode**'s color format,
       // rather than source bitmap's color depth!
-      D3DFORMAT texture_fmt = color_depth_to_d3d_format(_mode.ColorDepth, !opaque);
+      D3DFORMAT texture_fmt = color_depth_to_d3d_format(_mode.ColorDepth, (txflags & kTxFlags_Opaque) == 0);
       HRESULT hr = direct3ddevice->CreateTexture(thisAllocatedWidth, thisAllocatedHeight, 1,
                                       texture_use, texture_fmt,
                                       texture_pool, thisTile->texture.Acquire(), NULL);

@@ -162,11 +162,11 @@ void BlockingVideoPlayer::Begin()
         const int dst_depth = _player->GetTargetDepth();
         if (!software_draw || ((_stateFlags & kVideoState_Stretch) == 0))
         {
-            _videoDDB = gfxDriver->CreateDDB(frame_sz.Width, frame_sz.Height, dst_depth, true);
+            _videoDDB = gfxDriver->CreateDDB(frame_sz.Width, frame_sz.Height, dst_depth, kTxFlags_Opaque);
         }
         else
         {
-            _videoDDB = gfxDriver->CreateDDB(dest.GetWidth(), dest.GetHeight(), dst_depth, true);
+            _videoDDB = gfxDriver->CreateDDB(dest.GetWidth(), dest.GetHeight(), dst_depth, kTxFlags_Opaque);
         }
         _dstRect = dest;
     }

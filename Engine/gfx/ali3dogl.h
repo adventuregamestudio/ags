@@ -84,13 +84,13 @@ public:
     // Tells if this DDB has an actual render data assigned to it.
     bool IsValid() const override { return _data != nullptr; }
     // Attaches new texture data, sets basic render rules
-    void AttachData(std::shared_ptr<Texture> txdata, bool opaque) override
+    void AttachData(std::shared_ptr<Texture> txdata, int txflags) override
     {
         _data = std::static_pointer_cast<OGLTexture>(txdata);
         _size = _data->Res;
         _scaledSize = _size;
         _colDepth = _data->Res.ColorDepth;
-        _opaque = opaque;
+        _txFlags = txflags;
     }
     // Detach any internal texture data from this DDB, make this an empty object
     void DetachData() override
@@ -105,12 +105,12 @@ public:
         _useResampler = useResampler;
     }
 
-    OGLBitmap(int width, int height, int colDepth, bool opaque)
+    OGLBitmap(int width, int height, int colDepth, int txflags)
     {
         _size = Size(width, height);
         _scaledSize = _size;
         _colDepth = colDepth;
-        _opaque = opaque;
+        _txFlags = txflags;
     }
 
     ~OGLBitmap() override;
@@ -118,9 +118,9 @@ public:
     OGLTexture *GetTexture() const { return _data.get(); }
     std::shared_ptr<OGLTexture> GetSharedTexture() const { return _data; }
     GLuint GetFbo() const { return _fbo; }
-    TextureHint GetRenderHint() const { return _renderHint; }
+    TextureRenderHint GetRenderHint() const { return _renderHint; }
 
-    void SetTexture(std::shared_ptr<OGLTexture> data, GLuint fbo = 0u, TextureHint hint = kTxHint_Normal)
+    void SetTexture(std::shared_ptr<OGLTexture> data, GLuint fbo = 0u, TextureRenderHint hint = kTxHint_Normal)
     {
         _data = data;
         _fbo = fbo;
@@ -133,7 +133,7 @@ private:
     // Optional frame buffer object (for rendering onto a texture)
     GLuint _fbo = 0u;
     // Render parameters
-    TextureHint _renderHint = kTxHint_Normal;
+    TextureRenderHint _renderHint = kTxHint_Normal;
     bool _useResampler = false;
 };
 
@@ -230,13 +230,13 @@ public:
     // Returns available texture memory in bytes, or 0 if this query is not supported
     uint64_t GetAvailableTextureMemory() override;
 
-    IDriverDependantBitmap* CreateDDB(int width, int height, int color_depth, bool opaque) override;
-    IDriverDependantBitmap* CreateRenderTargetDDB(int width, int height, int color_depth, bool opaque) override;
+    IDriverDependantBitmap* CreateDDB(int width, int height, int color_depth, int txflags) override;
+    IDriverDependantBitmap* CreateRenderTargetDDB(int width, int height, int color_depth, int txflags) override;
     void UpdateDDBFromBitmap(IDriverDependantBitmap* ddb, const Bitmap *bitmap, bool has_alpha) override;
     void DestroyDDB(IDriverDependantBitmap* ddb) override;
     
     // Create texture data with the given parameters
-    Texture *CreateTexture(int width, int height, int color_depth, bool opaque, bool as_render_target = false) override;
+    Texture *CreateTexture(int width, int height, int color_depth, int txflags) override;
     // Update texture data from the given bitmap
     void UpdateTexture(Texture *txdata, const Bitmap *bitmap, bool has_alpha, bool opaque) override;
     // Retrieve shared texture data object from the given DDB
@@ -272,7 +272,7 @@ protected:
     bool SetVsyncImpl(bool vsync, bool &vsync_res) override;
 
     // Create DDB using preexisting texture data
-    IDriverDependantBitmap *CreateDDB(std::shared_ptr<Texture> txdata, bool opaque) override;
+    IDriverDependantBitmap *CreateDDB(std::shared_ptr<Texture> txdata, int txflags) override;
 
     size_t GetLastDrawEntryIndex() override { return _spriteList.size(); }
 

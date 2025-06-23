@@ -298,7 +298,9 @@ public:
                 return nullptr;
         }
 
-        txdata.reset(gfxDriver->CreateTexture(bitmap, has_alpha, opaque));
+        txdata.reset(gfxDriver->CreateTexture(bitmap,
+              kTxFlags_Opaque * opaque
+            | kTxFlags_HasAlpha * has_alpha));
         if (!txdata)
             return nullptr;
 
@@ -673,20 +675,10 @@ void defgame_to_finalgame_coords(int &x, int &y)
 // Create blank (black) images used to repaint borders around game frame
 void create_blank_image(int coldepth)
 {
-    // this is the first time that we try to use the graphics driver,
-    // so it's the most likey place for a crash
-    try
-    {
-        Bitmap *blank = CreateCompatBitmap(16, 16, coldepth);
-        blank->Clear();
-        blankImage = gfxDriver->CreateDDBFromBitmap(blank, false, true);
-        blankSidebarImage = gfxDriver->CreateDDBFromBitmap(blank, false, true);
-        delete blank;
-    }
-    catch (Ali3DException& gfxException)
-    {
-        quit(gfxException.Message.GetCStr());
-    }
+    std::unique_ptr<Bitmap> blank(CreateCompatBitmap(16, 16, coldepth));
+    blank->Clear();
+    blankImage = gfxDriver->CreateDDBFromBitmap(blank.get(), kTxFlags_Opaque);
+    blankSidebarImage = gfxDriver->CreateDDBFromBitmap(blank.get(), kTxFlags_Opaque);
 }
 
 void destroy_blank_image()
@@ -1109,7 +1101,7 @@ void update_shared_texture(uint32_t sprite_id)
         res.Height == game.SpriteInfos[sprite_id].Height)
     {
         gfxDriver->UpdateTexture(txdata.get(), spriteset[sprite_id],
-            (game.SpriteInfos[sprite_id].Flags & SPF_ALPHACHANNEL) != 0, false);
+            (game.SpriteInfos[sprite_id].Flags & SPF_ALPHACHANNEL) != 0);
     }
     else
     {
@@ -1310,6 +1302,9 @@ void draw_sprite_slot_support_alpha(Bitmap *ds, bool ds_has_alpha, int xpos, int
 IDriverDependantBitmap* recycle_ddb_bitmap(IDriverDependantBitmap *ddb,
     Common::Bitmap *source, bool has_alpha, bool opaque)
 {
+    const int txflags = opaque * kTxFlags_Opaque
+                      | has_alpha * kTxFlags_HasAlpha;
+
     assert(source);
     if (ddb && // already has an allocated DDB,
         (drawstate.SoftwareRender || // is software renderer, or...
@@ -1317,9 +1312,9 @@ IDriverDependantBitmap* recycle_ddb_bitmap(IDriverDependantBitmap *ddb,
             (ddb->MatchesFormat(source))))) // existing DDB format matches
         gfxDriver->UpdateDDBFromBitmap(ddb, source, has_alpha);
     else if (ddb) // if existing texture format does not match, then create a new texture
-        ddb->AttachData(std::shared_ptr<Texture>(gfxDriver->CreateTexture(source, has_alpha, opaque)), opaque);
+        ddb->AttachData(std::shared_ptr<Texture>(gfxDriver->CreateTexture(source, txflags)), txflags);
     else // ...else allocated new DDB
-        ddb = gfxDriver->CreateDDBFromBitmap(source, has_alpha, opaque);
+        ddb = gfxDriver->CreateDDBFromBitmap(source, txflags);
     return ddb;
 }
 
@@ -1346,10 +1341,12 @@ IDriverDependantBitmap* recycle_ddb_sprite(IDriverDependantBitmap *ddb, uint32_t
         return ddb;
     }
 
+    const int txflags = kTxFlags_Opaque * opaque
+                      | kTxFlags_HasAlpha * has_alpha;
     if (ddb)
-        ddb->AttachData(txdata, opaque);
+        ddb->AttachData(txdata, txflags);
     else
-        ddb = gfxDriver->CreateDDB(txdata, opaque);
+        ddb = gfxDriver->CreateDDB(txdata, txflags);
     return ddb;
 }
 
@@ -1359,7 +1356,7 @@ IDriverDependantBitmap* recycle_render_target(IDriverDependantBitmap *ddb, int w
         return ddb;
     if (ddb)
         gfxDriver->DestroyDDB(ddb);
-    return gfxDriver->CreateRenderTargetDDB(width, height, col_depth, opaque);
+    return gfxDriver->CreateRenderTargetDDB(width, height, col_depth, opaque ? kTxFlags_Opaque : kTxFlags_None);
 }
 
 // FIXME: make has_alpha and opaque properties of ObjTexture?!

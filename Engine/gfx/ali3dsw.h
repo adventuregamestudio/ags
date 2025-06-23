@@ -49,7 +49,7 @@ public:
     // Tells if this DDB has an actual render data assigned to it.
     bool IsValid() const override { return _bmp != nullptr; }
     // Attaches new texture data, sets basic render rules
-    void AttachData(std::shared_ptr<Texture> txdata, bool opaque) override { /* not supported */ }
+    void AttachData(std::shared_ptr<Texture> txdata, int txflags) override { /* not supported */ }
     // Detach any internal texture data from this DDB, make this an empty object
     void DetachData() override { _bmp = nullptr; }
 
@@ -57,22 +57,21 @@ public:
     void SetLightLevel(int /*lightLevel*/) override { }
     void SetTint(int /*red*/, int /*green*/, int /*blue*/, int /*tintSaturation*/) override { }
 
-    ALSoftwareBitmap(int width, int height, int color_depth, bool opaque)
+    ALSoftwareBitmap(int width, int height, int color_depth, int txflags)
     {
         _size = Size(width, height);
         _scaledSize = _size;
         _colDepth = color_depth;
-        _opaque = opaque;
+        _txFlags = txflags;
     }
 
-    ALSoftwareBitmap(Bitmap *bmp, bool has_alpha, bool opaque)
+    ALSoftwareBitmap(Bitmap *bmp, int txflags)
     {
         _bmp = bmp;
         _size = bmp->GetSize();
         _scaledSize = _size;
         _colDepth = bmp->GetColorDepth();
-        _opaque = opaque;
-        _hasAlpha = has_alpha;
+        _txFlags = txflags;
     }
 
     ~ALSoftwareBitmap() override = default;
@@ -87,7 +86,7 @@ public:
         _bmp = bmp;
         _size = bmp->GetSize();
         _colDepth = bmp->GetColorDepth();
-        _hasAlpha = has_alpha;
+        SetHasAlpha(has_alpha);
     }
 
 private:
@@ -173,18 +172,18 @@ public:
     // Returns available texture memory in bytes, or 0 if this query is not supported
     uint64_t GetAvailableTextureMemory() override { return 0; /* not using textures for sprites anyway */ }
 
-    IDriverDependantBitmap* CreateDDB(int width, int height, int color_depth, bool opaque) override;
-    IDriverDependantBitmap *CreateDDB(std::shared_ptr<Texture> txdata, bool opaque) override
+    IDriverDependantBitmap* CreateDDB(int width, int height, int color_depth, int txflags) override;
+    IDriverDependantBitmap *CreateDDB(std::shared_ptr<Texture> txdata, int txflags) override
         { return nullptr; /* not supported */ }
-    IDriverDependantBitmap* CreateDDBFromBitmap(const Bitmap *bitmap, bool has_alpha, bool opaque) override;
-    IDriverDependantBitmap* CreateRenderTargetDDB(int width, int height, int color_depth, bool opaque) override;
+    IDriverDependantBitmap* CreateDDBFromBitmap(const Bitmap *bitmap, int txflags) override;
+    IDriverDependantBitmap* CreateRenderTargetDDB(int width, int height, int color_depth, int txflags) override;
     void UpdateDDBFromBitmap(IDriverDependantBitmap* ddb, const Bitmap *bitmap, bool has_alpha) override;
     void DestroyDDB(IDriverDependantBitmap* ddb) override;
 
     // Create texture data with the given parameters
-    Texture *CreateTexture(int, int, int, bool, bool) override { return nullptr; /* not supported */}
+    Texture *CreateTexture(int, int, int, int) override { return nullptr; /* not supported */}
     // Create texture and initialize its pixels from the given bitmap; optionally assigns a ID
-    Texture *CreateTexture(const Bitmap*, bool, bool) override { return nullptr; /* not supported */ }
+    Texture *CreateTexture(const Bitmap*, int) override { return nullptr; /* not supported */ }
     // Update texture data from the given bitmap
     void UpdateTexture(Texture *txdata, const Bitmap*, bool, bool) override { /* not supported */}
     // Retrieve shared texture object from the given DDB

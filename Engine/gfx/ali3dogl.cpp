@@ -721,7 +721,7 @@ void OGLGraphicsDriver::SetupNativeTarget()
 
   const Size surf_size = _srcRect.GetSize();
   _nativeSurface = (OGLBitmap*)CreateRenderTargetDDB(
-      surf_size.Width, surf_size.Height, _mode.ColorDepth, true);
+      surf_size.Width, surf_size.Height, _mode.ColorDepth, kTxFlags_Opaque);
   auto projection = glm::ortho(0.0f, (float)surf_size.Width, 0.0f, (float)surf_size.Height, 0.0f, 1.0f);
   _nativeBackbuffer = BackbufferState(_nativeSurface->GetFbo(), surf_size, _srcRect.GetSize(),
       RectWH(0, 0, surf_size.Width, surf_size.Height), projection, PlaneScaling(), GL_NEAREST, GL_CLAMP);
@@ -1768,31 +1768,32 @@ void OGLGraphicsDriver::AdjustSizeToNearestSupportedByCard(int *width, int *heig
     *height = allocatedHeight;
 }
 
-IDriverDependantBitmap* OGLGraphicsDriver::CreateDDB(int width, int height, int color_depth, bool opaque)
+IDriverDependantBitmap* OGLGraphicsDriver::CreateDDB(int width, int height, int color_depth, int txflags)
 {
     if (color_depth != GetCompatibleBitmapFormat(color_depth))
         throw Ali3DException("CreateDDB: bitmap colour depth not supported");
-    OGLBitmap *ddb = new OGLBitmap(width, height, color_depth, opaque);
+    OGLBitmap *ddb = new OGLBitmap(width, height, color_depth, txflags);
     ddb->SetTexture(std::shared_ptr<OGLTexture>
-        (reinterpret_cast<OGLTexture*>(CreateTexture(width, height, color_depth, opaque))));
+        (reinterpret_cast<OGLTexture*>(CreateTexture(width, height, color_depth, txflags))));
     return ddb;
 }
 
-IDriverDependantBitmap *OGLGraphicsDriver::CreateDDB(std::shared_ptr<Texture> txdata, bool opaque)
+IDriverDependantBitmap *OGLGraphicsDriver::CreateDDB(std::shared_ptr<Texture> txdata, int txflags)
 {
-    auto *ddb = reinterpret_cast<OGLBitmap*>(CreateDDB(txdata->Res.Width, txdata->Res.Height, txdata->Res.ColorDepth, opaque));
+    auto *ddb = reinterpret_cast<OGLBitmap*>(CreateDDB(txdata->Res.Width, txdata->Res.Height, txdata->Res.ColorDepth, txflags));
     if (ddb)
         ddb->SetTexture(std::static_pointer_cast<OGLTexture>(txdata));
     return ddb;
 }
 
-IDriverDependantBitmap* OGLGraphicsDriver::CreateRenderTargetDDB(int width, int height, int color_depth, bool opaque)
+IDriverDependantBitmap* OGLGraphicsDriver::CreateRenderTargetDDB(int width, int height, int color_depth, int txflags)
 {
     if (color_depth != GetCompatibleBitmapFormat(color_depth))
         throw Ali3DException("CreateDDB: bitmap colour depth not supported");
 
+    txflags |= kTxFlags_RenderTarget;
     auto txdata = std::shared_ptr<OGLTexture>(
-        reinterpret_cast<OGLTexture*>(CreateTexture(width, height, color_depth, opaque, true)));
+        reinterpret_cast<OGLTexture*>(CreateTexture(width, height, color_depth, txflags)));
     GLuint fbo = 0u;
     glGenFramebuffersEXT(1, &fbo);
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fbo);
@@ -1806,7 +1807,7 @@ IDriverDependantBitmap* OGLGraphicsDriver::CreateRenderTargetDDB(int width, int 
     }
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, _screenFramebuffer);
 
-    OGLBitmap *ddb = new OGLBitmap(width, height, color_depth, opaque);
+    OGLBitmap *ddb = new OGLBitmap(width, height, color_depth, txflags);
     ddb->SetTexture(txdata, fbo, kTxHint_PremulAlpha);
     return ddb;
 }
@@ -1816,13 +1817,14 @@ std::shared_ptr<Texture> OGLGraphicsDriver::GetTexture(IDriverDependantBitmap *d
     return std::static_pointer_cast<Texture>((reinterpret_cast<OGLBitmap*>(ddb))->GetSharedTexture());
 }
 
-Texture *OGLGraphicsDriver::CreateTexture(int width, int height, int color_depth, bool /*opaque*/, bool as_render_target)
+Texture *OGLGraphicsDriver::CreateTexture(int width, int height, int color_depth, int txflags)
 {
   assert(width > 0);
   assert(height > 0);
   int allocatedWidth = width;
   int allocatedHeight = height;
   AdjustSizeToNearestSupportedByCard(&allocatedWidth, &allocatedHeight);
+  const bool as_render_target = (txflags & kTxFlags_RenderTarget) != 0;
 
   // Calculate how many textures will be necessary to
   // store this image

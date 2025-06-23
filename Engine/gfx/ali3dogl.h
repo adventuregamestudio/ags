@@ -206,7 +206,7 @@ struct ShaderProgram
 
 class OGLGfxFilter;
 
-class OGLGraphicsDriver : public VideoMemoryGraphicsDriver
+class OGLGraphicsDriver : public GPUGraphicsDriver
 {
 public:
     OGLGraphicsDriver();

@@ -336,14 +336,14 @@ struct VMSpriteBatch
 };
 
 
-// VideoMemoryGraphicsDriver - is the parent class for the graphic drivers
+// GPUGraphicsDriver - is the parent class for the graphic drivers
 // which drawing method is based on passing the sprite stack into GPU,
 // rather than blitting to flat screen bitmap.
-class VideoMemoryGraphicsDriver : public GraphicsDriverBase
+class GPUGraphicsDriver : public GraphicsDriverBase
 {
 public:
-    VideoMemoryGraphicsDriver();
-    ~VideoMemoryGraphicsDriver() override;
+    GPUGraphicsDriver();
+    ~GPUGraphicsDriver() override;
 
     ///////////////////////////////////////////////////////
     // Attributes

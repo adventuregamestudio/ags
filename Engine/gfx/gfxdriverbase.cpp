@@ -182,7 +182,7 @@ void GraphicsDriverBase::OnSetFilter()
 }
 
 
-VideoMemoryGraphicsDriver::VideoMemoryGraphicsDriver()
+GPUGraphicsDriver::GPUGraphicsDriver()
     : _stageScreenDirty(false)
     , _fxIndex(0)
 {
@@ -193,21 +193,21 @@ VideoMemoryGraphicsDriver::VideoMemoryGraphicsDriver()
     _vmem_b_shift_32 = 0;
 }
 
-VideoMemoryGraphicsDriver::~VideoMemoryGraphicsDriver()
+GPUGraphicsDriver::~GPUGraphicsDriver()
 {
     DestroyAllStageScreens();
 }
 
-Bitmap *VideoMemoryGraphicsDriver::GetMemoryBackBuffer()
+Bitmap *GPUGraphicsDriver::GetMemoryBackBuffer()
 {
     return nullptr;
 }
 
-void VideoMemoryGraphicsDriver::SetMemoryBackBuffer(Bitmap* /*backBuffer*/)
+void GPUGraphicsDriver::SetMemoryBackBuffer(Bitmap* /*backBuffer*/)
 { // do nothing, video-memory drivers don't use main back buffer, only stage bitmaps they pass to plugins
 }
 
-Bitmap *VideoMemoryGraphicsDriver::GetStageBackBuffer(bool mark_dirty)
+Bitmap *GPUGraphicsDriver::GetStageBackBuffer(bool mark_dirty)
 {
     if (_rendSpriteBatch == UINT32_MAX)
         return nullptr;
@@ -215,17 +215,17 @@ Bitmap *VideoMemoryGraphicsDriver::GetStageBackBuffer(bool mark_dirty)
     return GetStageScreenRaw(_rendSpriteBatch);
 }
 
-void VideoMemoryGraphicsDriver::SetStageBackBuffer(Bitmap *backBuffer)
+void GPUGraphicsDriver::SetStageBackBuffer(Bitmap *backBuffer)
 { // do nothing, video-memory drivers don't support this
 }
 
-bool VideoMemoryGraphicsDriver::GetStageMatrixes(RenderMatrixes &rm)
+bool GPUGraphicsDriver::GetStageMatrixes(RenderMatrixes &rm)
 {
     rm = _stageMatrixes;
     return true;
 }
 
-IDriverDependantBitmap *VideoMemoryGraphicsDriver::CreateDDBFromBitmap(const Bitmap *bitmap, int txflags)
+IDriverDependantBitmap *GPUGraphicsDriver::CreateDDBFromBitmap(const Bitmap *bitmap, int txflags)
 {
     IDriverDependantBitmap *ddb = CreateDDB(bitmap->GetWidth(), bitmap->GetHeight(), bitmap->GetColorDepth(), txflags);
     if (ddb)
@@ -233,7 +233,7 @@ IDriverDependantBitmap *VideoMemoryGraphicsDriver::CreateDDBFromBitmap(const Bit
     return ddb;
 }
 
-Texture *VideoMemoryGraphicsDriver::CreateTexture(const Bitmap *bmp, int txflags)
+Texture *GPUGraphicsDriver::CreateTexture(const Bitmap *bmp, int txflags)
 {
     Texture *txdata = CreateTexture(bmp->GetWidth(), bmp->GetHeight(), bmp->GetColorDepth(), txflags);
     if (txdata)
@@ -241,19 +241,19 @@ Texture *VideoMemoryGraphicsDriver::CreateTexture(const Bitmap *bmp, int txflags
     return txdata;
 }
 
-void VideoMemoryGraphicsDriver::SetStageScreen(const Size &sz, int x, int y)
+void GPUGraphicsDriver::SetStageScreen(const Size &sz, int x, int y)
 {
     SetStageScreen(_actSpriteBatch, sz, x, y);
 }
 
-void VideoMemoryGraphicsDriver::SetStageScreen(size_t index, const Size &sz, int x, int y)
+void GPUGraphicsDriver::SetStageScreen(size_t index, const Size &sz, int x, int y)
 {
     if (_stageScreens.size() <= index)
         _stageScreens.resize(index + 1);
     _stageScreens[index].Position = RectWH(x, y, sz.Width, sz.Height);
 }
 
-Bitmap *VideoMemoryGraphicsDriver::GetStageScreenRaw(size_t index)
+Bitmap *GPUGraphicsDriver::GetStageScreenRaw(size_t index)
 {
     assert(index < _stageScreens.size());
     if (_stageScreens.size() <= index)
@@ -276,7 +276,7 @@ Bitmap *VideoMemoryGraphicsDriver::GetStageScreenRaw(size_t index)
     return scr.Raw.get();
 }
 
-IDriverDependantBitmap *VideoMemoryGraphicsDriver::UpdateStageScreenDDB(size_t index,
+IDriverDependantBitmap *GPUGraphicsDriver::UpdateStageScreenDDB(size_t index,
     int &x, int &y)
 {
     assert((index < _stageScreens.size()) && _stageScreens[index].DDB);
@@ -291,7 +291,7 @@ IDriverDependantBitmap *VideoMemoryGraphicsDriver::UpdateStageScreenDDB(size_t i
     return scr.DDB;
 }
 
-void VideoMemoryGraphicsDriver::DestroyAllStageScreens()
+void GPUGraphicsDriver::DestroyAllStageScreens()
 {
     for (size_t i = 0; i < _stageScreens.size(); ++i)
     {
@@ -301,7 +301,7 @@ void VideoMemoryGraphicsDriver::DestroyAllStageScreens()
     _stageScreens.clear();
 }
 
-IDriverDependantBitmap *VideoMemoryGraphicsDriver::DoSpriteEvtCallback(int evt, intptr_t data,
+IDriverDependantBitmap *GPUGraphicsDriver::DoSpriteEvtCallback(int evt, intptr_t data,
     int &x, int &y)
 {
     if (!_spriteEvtCallback)
@@ -319,7 +319,7 @@ IDriverDependantBitmap *VideoMemoryGraphicsDriver::DoSpriteEvtCallback(int evt, 
     return nullptr;
 }
 
-IDriverDependantBitmap *VideoMemoryGraphicsDriver::MakeFx(int r, int g, int b)
+IDriverDependantBitmap *GPUGraphicsDriver::MakeFx(int r, int g, int b)
 {
     if (_fxIndex == _fxPool.size()) _fxPool.push_back(ScreenFx());
     ScreenFx &fx = _fxPool[_fxIndex];
@@ -340,12 +340,12 @@ IDriverDependantBitmap *VideoMemoryGraphicsDriver::MakeFx(int r, int g, int b)
     return fx.DDB;
 }
 
-void VideoMemoryGraphicsDriver::ResetFxPool()
+void GPUGraphicsDriver::ResetFxPool()
 {
     _fxIndex = 0;
 }
 
-void VideoMemoryGraphicsDriver::DestroyFxPool()
+void GPUGraphicsDriver::DestroyFxPool()
 {
     for (auto &fx : _fxPool)
     {
@@ -400,7 +400,7 @@ template <typename T> void get_pixel_if_not_transparent(const T *pixel, T *red, 
 // Template helper function which converts bitmap to a video memory buffer,
 // applies transparency and optionally copyies the source alpha channel (if available).
 template <typename T, bool HasAlpha> void
-VideoMemoryGraphicsDriver::BitmapToVideoMemImpl(
+GPUGraphicsDriver::BitmapToVideoMemImpl(
         const Bitmap *bitmap, const TextureTile *tile,
         uint8_t *dst_ptr, const int dst_pitch)
 {
@@ -442,7 +442,7 @@ VideoMemoryGraphicsDriver::BitmapToVideoMemImpl(
 // Template helper function which converts bitmap to a video memory buffer,
 // assuming that the destination is always opaque (alpha channel is filled with 0xFF)
 template <typename T> void
-VideoMemoryGraphicsDriver::BitmapToVideoMemOpaqueImpl(
+GPUGraphicsDriver::BitmapToVideoMemOpaqueImpl(
         const Bitmap *bitmap, const TextureTile *tile,
         uint8_t *dst_ptr, const int dst_pitch)
 {
@@ -472,7 +472,7 @@ VideoMemoryGraphicsDriver::BitmapToVideoMemOpaqueImpl(
 // with a semi-transparent pixels fix for "Linear" graphics filter which prevents
 // colored outline (usually either of black or "magic pink" color).
 template <typename T, bool HasAlpha> void
-VideoMemoryGraphicsDriver::BitmapToVideoMemLinearImpl(
+GPUGraphicsDriver::BitmapToVideoMemLinearImpl(
     const Bitmap *bitmap, const TextureTile *tile,
     uint8_t *dst_ptr, const int dst_pitch)
 {
@@ -541,7 +541,7 @@ VideoMemoryGraphicsDriver::BitmapToVideoMemLinearImpl(
     }
 }
 
-void VideoMemoryGraphicsDriver::BitmapToVideoMem(const Bitmap *bitmap, const TextureTile *tile,
+void GPUGraphicsDriver::BitmapToVideoMem(const Bitmap *bitmap, const TextureTile *tile,
     uint8_t *dst_ptr, const int dst_pitch, const bool has_alpha, const bool linear_filter)
 {
     switch (bitmap->GetColorDepth())
@@ -581,7 +581,7 @@ void VideoMemoryGraphicsDriver::BitmapToVideoMem(const Bitmap *bitmap, const Tex
     }
 }
 
-void VideoMemoryGraphicsDriver::BitmapToVideoMemOpaque(const Bitmap *bitmap, const TextureTile *tile,
+void GPUGraphicsDriver::BitmapToVideoMemOpaque(const Bitmap *bitmap, const TextureTile *tile,
     uint8_t *dst_ptr, const int dst_pitch)
 {
     switch (bitmap->GetColorDepth())

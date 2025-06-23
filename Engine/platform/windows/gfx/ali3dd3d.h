@@ -191,7 +191,7 @@ typedef SpriteDrawListEntry<D3DBitmap> D3DDrawListEntry;
 typedef std::vector<D3DSpriteBatch>    D3DSpriteBatches;
 
 
-class D3DGraphicsDriver : public VideoMemoryGraphicsDriver
+class D3DGraphicsDriver : public GPUGraphicsDriver
 {
 public:
     D3DGraphicsDriver(const D3DPtr &d3d);

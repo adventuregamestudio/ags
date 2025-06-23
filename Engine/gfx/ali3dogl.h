@@ -214,7 +214,6 @@ public:
 
     bool ShouldReleaseRenderTargets() override { return false; }
 
-    void SetTintMethod(TintMethod method) override;
     bool SetDisplayMode(const DisplayMode &mode) override;
     void UpdateDeviceScreen(const Size &screen_size) override;
     bool SetNativeResolution(const GraphicResolution &native_res) override;
@@ -284,7 +283,6 @@ private:
     SDL_GLContext _sdlGlContext = nullptr;
     OGLCUSTOMVERTEX defaultVertices[4];
     bool _smoothScaling;
-    bool _legacyPixelShader;
 
     ShaderProgram _tintShader;
     ShaderProgram _lightShader;

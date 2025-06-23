@@ -156,7 +156,6 @@ public:
     bool UsesMemoryBackBuffer() override { return true; }
     bool ShouldReleaseRenderTargets() override { return false; }
 
-    void SetTintMethod(TintMethod method) override;
     bool SetDisplayMode(const DisplayMode &mode) override;
     void UpdateDeviceScreen(const Size &screen_sz) override;
     bool SetNativeResolution(const GraphicResolution &native_res) override;

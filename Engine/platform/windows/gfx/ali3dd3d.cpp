@@ -118,7 +118,6 @@ bool D3DGfxModeList::GetMode(int index, DisplayMode &mode) const
 D3DGraphicsDriver::D3DGraphicsDriver(const D3DPtr &d3d) 
 {
   direct3d = d3d;
-  _legacyPixelShader = false;
   set_up_default_vertices();
   _smoothScaling = false;
   _pixelRenderXOffset = 0;
@@ -228,14 +227,8 @@ bool D3DGraphicsDriver::FirstTimeInit()
   direct3ddevice->GetCreationParameters(&direct3dcreateparams);
   direct3ddevice->GetDeviceCaps(&direct3ddevicecaps);
 
-  // the PixelShader.fx uses ps_1_4
-  // the PixelShaderLegacy.fx needs ps_2_0
-  int requiredPSMajorVersion = 1;
-  int requiredPSMinorVersion = 4;
-  if (_legacyPixelShader) {
-    requiredPSMajorVersion = 2;
-    requiredPSMinorVersion = 0;
-  }
+  const int requiredPSMajorVersion = 2;
+  const int requiredPSMinorVersion = 0;
 
   if (direct3ddevicecaps.PixelShaderVersion < D3DPS_VERSION(requiredPSMajorVersion, requiredPSMinorVersion))  
   {
@@ -251,7 +244,7 @@ bool D3DGraphicsDriver::FirstTimeInit()
 
   // Load the pixel shader!!
   HMODULE exeHandle = GetModuleHandle(NULL);
-  HRSRC hRes = FindResource(exeHandle, (_legacyPixelShader) ? "PIXEL_SHADER_LEGACY" : "PIXEL_SHADER", "DATA");
+  HRSRC hRes = FindResource(exeHandle, "PIXEL_SHADER", "DATA");
   if (hRes)
   {
     HGLOBAL hGlobal = LoadResource(exeHandle, hRes);
@@ -699,11 +692,6 @@ void D3DGraphicsDriver::SetGraphicsFilter(PD3DFilter filter)
   OnSetFilter();
 }
 
-void D3DGraphicsDriver::SetTintMethod(TintMethod method) 
-{
-  _legacyPixelShader = (method == TintReColourise);
-}
-
 bool D3DGraphicsDriver::SetDisplayMode(const DisplayMode &mode)
 {
   ReleaseDisplayMode();
@@ -1077,17 +1065,8 @@ void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw
   {
     // Use custom pixel shader
     float vector[8];
-    if (_legacyPixelShader)
-    {
-      rgb_to_hsv(tint_r, tint_g, tint_b, &vector[0], &vector[1], &vector[2]);
-      vector[0] /= 360.0; // In HSV, Hue is 0-360
-    }
-    else
-    {
-      vector[0] = (float)tint_r / 256.0;
-      vector[1] = (float)tint_g / 256.0;
-      vector[2] = (float)tint_b / 256.0;
-    }
+    rgb_to_hsv(tint_r, tint_g, tint_b, &vector[0], &vector[1], &vector[2]);
+    vector[0] /= 360.0; // In HSV, Hue is 0-360
 
     vector[3] = (float)tint_sat / 256.0;
     vector[4] = (float)alpha / 256.0;

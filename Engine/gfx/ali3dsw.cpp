@@ -110,11 +110,6 @@ void SDLRendererGraphicsDriver::SetGraphicsFilter(PSDLRenderFilter filter)
   // SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");  // make the scaled rendering look smoother.
 }
 
-void SDLRendererGraphicsDriver::SetTintMethod(TintMethod /*method*/) 
-{
-  // TODO: support new D3D-style tint method
-}
-
 bool SDLRendererGraphicsDriver::SetDisplayMode(const DisplayMode &mode)
 {
   ReleaseDisplayMode();

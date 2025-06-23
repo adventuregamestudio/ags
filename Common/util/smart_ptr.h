@@ -18,6 +18,8 @@
 #ifndef __AGS_CN_UTIL__SMARTPTR_H
 #define __AGS_CN_UTIL__SMARTPTR_H
 
+#include <cstddef>
+
 //-----------------------------------------------------------------------------
 // ComPtr is the RAII wrapper over a IUnknown* and deriatives
 // (or any interface that has a compatible syntax), which ensures a call to

@@ -406,7 +406,7 @@ namespace Preprocessor {
         while (line.GetLength() > 0)
         {
             size_t i = 0;
-            while ((i < line.GetLength()) && (!std::isalnum(line[i])))
+            while ((i < line.GetLength()) && (!IsScriptWordChar(line[i])))
             {
                 if ((line[i] == '"') || (line[i] == '\''))
                 {

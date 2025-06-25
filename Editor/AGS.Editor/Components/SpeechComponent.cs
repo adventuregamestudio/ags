@@ -136,10 +136,10 @@ namespace AGS.Editor.Components
 
             if (_agsEditor.CurrentGame.Settings.UseOldVoiceClipNaming)
             {
-                var regNewStyle = new Regex(@"\w+\.\d+\.\w+");
+                var regNewStyle = new Regex(@"^\w+\.\d+\.\w+");
                 foreach (string clipFile in audioClipList)
                 {
-                    if (regNewStyle.IsMatch(clipFile))
+                    if (regNewStyle.IsMatch(Path.GetFileName(clipFile)))
                     {
                         messages.Add(new CompileWarning($"Speech file \"{clipFile}\" matches the new voice clip naming rule, but the game is set to use the old rule (see General Settings)."));
                     }
@@ -147,10 +147,10 @@ namespace AGS.Editor.Components
             }
             else
             {
-                var regOldStyle = new Regex(@"\w{1,4}\d+\.\w+");
+                var regOldStyle = new Regex(@"^\w{1,4}\d+\.\w+");
                 foreach (string clipFile in audioClipList)
                 {
-                    if (regOldStyle.IsMatch(clipFile))
+                    if (regOldStyle.IsMatch(Path.GetFileName(clipFile)))
                     {
                         messages.Add(new CompileWarning($"Speech file \"{clipFile}\" matches the old voice clip naming rule, but the game is set to use the new rule (see General Settings)."));
                     }

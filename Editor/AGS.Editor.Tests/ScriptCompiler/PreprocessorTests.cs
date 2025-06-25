@@ -90,16 +90,22 @@ int k;
 #define MACRO2 MACRO3
 #define MACRO3 9
 #define TEST1 5
+#define __MACRO_START_WITH_UNDERSCORE ""IT WORKS""
+#define MACRO_ENDS_WITH_UNDERSCORE__ ""IT WORKS ALSO""
 Display(""a: % d"", TEST1);
 Display(""b: TEST1"");
 Display(""d: %d"", MACRO3);
 Display(""e: %d"", MACRO2);
 #define MACRO4 MACRO3
 Display(""f: %d"", MACRO4);
+Display(__MACRO_START_WITH_UNDERSCORE);
+Display(MACRO_ENDS_WITH_UNDERSCORE__);
 ";
             string res = preprocessor.Preprocess(script, "ScriptDefine");
             Assert.That(preprocessor.Results.Count == 0);
             string script_res = $@"""__NEWSCRIPTSTART_ScriptDefine""
+
+
 
 
 
@@ -110,6 +116,8 @@ Display(""d: %d"", 9);
 Display(""e: %d"", 9);
 
 Display(""f: %d"", 9);
+Display(""IT WORKS"");
+Display(""IT WORKS ALSO"");
 ";
 
             AssertStringEqual(res, script_res);

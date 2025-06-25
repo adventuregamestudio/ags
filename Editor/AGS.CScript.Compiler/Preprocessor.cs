@@ -111,7 +111,7 @@ namespace AGS.CScript.Compiler
 			while (line.Length > 0)
 			{
 				int i = 0;
-				while ((i < line.Length) && (!Char.IsLetterOrDigit(line[i])))
+				while ((i < line.Length) && (!line[i].IsScriptWordChar()))
 				{
                     if ((line[i] == '"') || (line[i] == '\''))
                     {

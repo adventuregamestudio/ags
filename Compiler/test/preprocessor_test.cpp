@@ -111,12 +111,16 @@ TEST(Preprocess, Define) {
 #define MACRO2 MACRO3
 #define MACRO3 9
 #define TEST1 5
+#define __MACRO_START_WITH_UNDERSCORE "IT WORKS"
+#define MACRO_ENDS_WITH_UNDERSCORE__ "IT WORKS ALSO"
 Display("a: %d", TEST1);
 Display("b: TEST1");
 Display("d: %d", MACRO3);
 Display("e: %d", MACRO2);
 #define MACRO4 MACRO3
 Display("f: %d", MACRO4);
+Display(__MACRO_START_WITH_UNDERSCORE);
+Display(MACRO_ENDS_WITH_UNDERSCORE__);
 )EOS";
 
     clear_error();
@@ -125,19 +129,23 @@ Display("f: %d", MACRO4);
     EXPECT_STREQ(last_seen_cc_error(), "");
 
     std::vector<AGSString> lines = SplitLines(res);
-    ASSERT_EQ(lines.size(), 12);
+    ASSERT_EQ(lines.size(), 16);
     ASSERT_STREQ(lines[0].GetCStr(), "\"__NEWSCRIPTSTART_ScriptDefine\"");
     ASSERT_STREQ(lines[1].GetCStr(), "");
     ASSERT_STREQ(lines[2].GetCStr(), "");
     ASSERT_STREQ(lines[3].GetCStr(), "");
     ASSERT_STREQ(lines[4].GetCStr(), "");
-    ASSERT_STREQ(lines[5].GetCStr(), "Display(\"a: %d\", 5);");
-    ASSERT_STREQ(lines[6].GetCStr(), "Display(\"b: TEST1\");");
-    ASSERT_STREQ(lines[7].GetCStr(), "Display(\"d: %d\", 9);");
-    ASSERT_STREQ(lines[8].GetCStr(), "Display(\"e: %d\", 9);");
-    ASSERT_STREQ(lines[9].GetCStr(), "");
-    ASSERT_STREQ(lines[10].GetCStr(), "Display(\"f: %d\", 9);");
+    ASSERT_STREQ(lines[5].GetCStr(), "");
+    ASSERT_STREQ(lines[6].GetCStr(), "");
+    ASSERT_STREQ(lines[7].GetCStr(), "Display(\"a: %d\", 5);");
+    ASSERT_STREQ(lines[8].GetCStr(), "Display(\"b: TEST1\");");
+    ASSERT_STREQ(lines[9].GetCStr(), "Display(\"d: %d\", 9);");
+    ASSERT_STREQ(lines[10].GetCStr(), "Display(\"e: %d\", 9);");
     ASSERT_STREQ(lines[11].GetCStr(), "");
+    ASSERT_STREQ(lines[12].GetCStr(), "Display(\"f: %d\", 9);");
+    ASSERT_STREQ(lines[13].GetCStr(), "Display(\"IT WORKS\");");
+    ASSERT_STREQ(lines[14].GetCStr(), "Display(\"IT WORKS ALSO\");");
+    ASSERT_STREQ(lines[15].GetCStr(), "");
 }
 
 

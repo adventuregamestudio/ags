@@ -249,6 +249,16 @@ enum VideoSkipStyle
   eVideoSkipAnyKeyOrMouse = 3
 };
 
+#ifdef SCRIPT_API_v363
+enum VideoPlayStyle
+{
+  eVideoPlayDefault = 0,
+  eVideoPlayStretchToScreen = 1,
+  eVideoPlayNoAudio = 10,
+  eVideoPlayAudioAndDontMuteGame = 20
+};
+#endif // SCRIPT_API_v363
+
 enum eKeyCode
 {
   eKeyNone  = 0,
@@ -1409,8 +1419,13 @@ import void DisableGroundLevelAreas(int disableTints);
 import void EnableGroundLevelAreas();
 /// Plays a FLI/FLC animation.
 import void PlayFlic(int flcNumber, int options);
+#ifdef SCRIPT_API_v363
+/// Plays a video file of any supported format.
+import void PlayVideo(const string filename, VideoSkipStyle, VideoPlayStyle style);
+#else // !SCRIPT_API_v363
 /// Plays a video file of any supported format.
 import void PlayVideo(const string filename, VideoSkipStyle, int flags);
+#endif // !SCRIPT_API_v363
 /// Sets an ambient light level that affects all objects and characters in the room.
 import void SetAmbientLightLevel(int light_level);
 #ifdef SCRIPT_API_v362

@@ -2650,6 +2650,8 @@ namespace AGS.Editor.Components
                     File.Move(oldUserFileName, room.UserFileName);
             }
 
+            nativeRoom.Dispose();
+
             report?.Invoke();
         }
 

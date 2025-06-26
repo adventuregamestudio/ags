@@ -128,6 +128,7 @@ public:
     int GetFrame() const { return _frameIndex; }
     int GetFrameCount() const { return _frameCount; }
     float GetFrameRate() const { return _frameRate; }
+    Size GetFrameSize() const { return _frameRes; }
     float GetDurationMs() const { return _durMs; }
     float GetPositionMs() const { return _posMs; }
     bool GetLooping() const { return _looping; }
@@ -172,6 +173,7 @@ private:
     const int _videoID;
     const int _spriteID;
     int       _scriptHandle = -1;
+    Size      _frameRes;
     float     _frameRate = 0.f;
     float     _durMs = 0.f;
     uint32_t  _frameCount = 0;

@@ -3252,8 +3252,12 @@ builtin managed struct VideoPlayer {
   import readonly attribute int Frame;
   /// Gets total number of frames in this video.
   import readonly attribute int FrameCount;
+  /// Gets this video's frame resolution height
+  import readonly attribute float FrameHeight;
   /// Gets this video's framerate (number of frames per second).
   import readonly attribute float FrameRate;
+  /// Gets this video's frame resolution width
+  import readonly attribute float FrameWidth;
   /// Gets the number of sprite this video renders to.
   import readonly attribute int Graphic;
   /// The length of the currently playing video, in milliseconds.

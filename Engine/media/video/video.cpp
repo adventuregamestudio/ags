@@ -470,6 +470,7 @@ VideoControl::VideoControl(int video_id, int sprite_id)
     , _spriteID(sprite_id)
 {
     auto player = video_core_get_player(video_id);
+    _frameRes = player->GetFrameSize();
     _frameRate = player->GetFramerate();
     _durMs = player->GetDurationMs();
     _frameCount = _durMs * 1000.0 / _frameRate;

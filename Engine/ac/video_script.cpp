@@ -114,12 +114,28 @@ int VideoPlayer_GetFrameCount(ScriptVideoPlayer *sc_video)
     return video_ctrl->GetFrameCount();
 }
 
+int VideoPlayer_GetFrameHeight(ScriptVideoPlayer *sc_video)
+{
+    if (sc_video->GetID() < 0)
+        return 0;
+    VideoControl *video_ctrl = get_video_control(sc_video->GetID());
+    return video_ctrl->GetFrameSize().Height;
+}
+
 float VideoPlayer_GetFrameRate(ScriptVideoPlayer *sc_video)
 {
     if (sc_video->GetID() < 0)
         return 0.f;
     VideoControl *video_ctrl = get_video_control(sc_video->GetID());
     return video_ctrl->GetFrameRate();
+}
+
+int VideoPlayer_GetFrameWidth(ScriptVideoPlayer *sc_video)
+{
+    if (sc_video->GetID() < 0)
+        return 0;
+    VideoControl *video_ctrl = get_video_control(sc_video->GetID());
+    return video_ctrl->GetFrameSize().Width;
 }
 
 int VideoPlayer_GetGraphic(ScriptVideoPlayer *sc_video)
@@ -249,9 +265,19 @@ RuntimeScriptValue Sc_VideoPlayer_GetFrameCount(void *self, const RuntimeScriptV
     API_OBJCALL_INT(ScriptVideoPlayer, VideoPlayer_GetFrameCount);
 }
 
+RuntimeScriptValue Sc_VideoPlayer_GetFrameHeight(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptVideoPlayer, VideoPlayer_GetFrameHeight);
+}
+
 RuntimeScriptValue Sc_VideoPlayer_GetFrameRate(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_FLOAT(ScriptVideoPlayer, VideoPlayer_GetFrameRate);
+}
+
+RuntimeScriptValue Sc_VideoPlayer_GetFrameWidth(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptVideoPlayer, VideoPlayer_GetFrameWidth);
 }
 
 RuntimeScriptValue Sc_VideoPlayer_GetGraphic(void *self, const RuntimeScriptValue *params, int32_t param_count)
@@ -319,7 +345,9 @@ void RegisterVideoAPI()
 
         { "VideoPlayer::get_Frame",     API_FN_PAIR(VideoPlayer_GetFrame) },
         { "VideoPlayer::get_FrameCount", API_FN_PAIR(VideoPlayer_GetFrameCount) },
+        { "VideoPlayer::get_FrameHeight", API_FN_PAIR(VideoPlayer_GetFrameHeight) },
         { "VideoPlayer::get_FrameRate", API_FN_PAIR(VideoPlayer_GetFrameRate) },
+        { "VideoPlayer::get_FrameWidth", API_FN_PAIR(VideoPlayer_GetFrameWidth) },
         { "VideoPlayer::get_Graphic",   API_FN_PAIR(VideoPlayer_GetGraphic) },
         { "VideoPlayer::get_LengthMs",  API_FN_PAIR(VideoPlayer_GetLengthMs) },
         { "VideoPlayer::get_Looping",   API_FN_PAIR(VideoPlayer_GetLooping) },

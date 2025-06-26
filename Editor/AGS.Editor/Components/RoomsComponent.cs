@@ -2703,21 +2703,23 @@ namespace AGS.Editor.Components
                 Factory.NativeProxy.ApplyPalette(_roomPalette); // sync native palette
             }
 
-            var nativeRoom = new Native.NativeRoom(_loadedRoom);
-            for (int i = 0; i < _loadedRoom.BackgroundCount; i++)
+            using (var nativeRoom = new Native.NativeRoom(_loadedRoom))
             {
-                nativeRoom.SetBackground(i, _backgroundCache[i].Image);
+                for (int i = 0; i < _loadedRoom.BackgroundCount; i++)
+                {
+                    nativeRoom.SetBackground(i, _backgroundCache[i].Image);
+                }
+
+                foreach (RoomAreaMaskType mask in Enum.GetValues(typeof(RoomAreaMaskType)))
+                {
+                    if (mask == RoomAreaMaskType.None)
+                        continue;
+
+                    nativeRoom.SetAreaMask(mask, _maskCache[mask].Image);
+                }
+
+                nativeRoom.SaveToFile(_loadedRoom.FileName);
             }
-
-            foreach (RoomAreaMaskType mask in Enum.GetValues(typeof(RoomAreaMaskType)))
-            {
-                if (mask == RoomAreaMaskType.None)
-                    continue;
-
-                nativeRoom.SetAreaMask(mask, _maskCache[mask].Image);
-            }
-
-            nativeRoom.SaveToFile(_loadedRoom.FileName);
         }
         #endregion
     }

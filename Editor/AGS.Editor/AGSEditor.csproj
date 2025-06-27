@@ -786,9 +786,6 @@
     <EmbeddedResource Include="GUI\PropertiesPanel.resx">
       <DependentUpon>PropertiesPanel.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="GUI\SelectReligion.resx">
-      <DependentUpon>SelectReligion.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="GUI\CustomResolutionDialog.resx">
       <DependentUpon>CustomResolutionDialog.cs</DependentUpon>
     </EmbeddedResource>
@@ -1143,12 +1140,6 @@
     </Compile>
     <Compile Include="GUI\PreferencesEditor.Designer.cs">
       <DependentUpon>PreferencesEditor.cs</DependentUpon>
-    </Compile>
-    <Compile Include="GUI\SelectReligion.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="GUI\SelectReligion.Designer.cs">
-      <DependentUpon>SelectReligion.cs</DependentUpon>
     </Compile>
     <Compile Include="InteractiveTasks.cs" />
     <Compile Include="Audio\MidiPlayer.cs" />

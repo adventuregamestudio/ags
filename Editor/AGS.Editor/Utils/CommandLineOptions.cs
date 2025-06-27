@@ -8,11 +8,16 @@ using System.Windows.Forms;
 
 namespace AGS.Editor
 {
-	class CommandLineOptions
+    /// <summary>
+    /// CommandLineOptions parses command-line arguments and gathers a list of options.
+    /// It only provides the options, it's up to the application to decide how to interpret them.
+    /// </summary>
+	public class CommandLineOptions
 	{
-		private bool _compileAndExit;
-		private bool _templateSaveAndExit;
-		private string _projectPath;
+		private bool _compileAndExit = false;
+		private bool _templateSaveAndExit = false;
+		private string _projectPath = string.Empty;
+        private List<string> _unknownArgs = new List<string>();
 
 		private void Parse(string[] args)
 		{
@@ -24,35 +29,33 @@ namespace AGS.Editor
 				if (arg.ToLower() == "/compile")
 				{
 					_compileAndExit = true;
-					StdConsoleWriter.Enable();
 				}
 				else if (arg.ToLower() == "/maketemplate")
 				{
 					_templateSaveAndExit = true;
-					StdConsoleWriter.Enable();
 				}
 				else if (arg.StartsWith("/") || arg.StartsWith("-"))
 				{
-					Factory.GUIController.ShowMessage("Invalid command line argument " + arg, MessageBoxIcon.Warning);
+                    _unknownArgs.Add(arg);
 				}
 				else
 				{
-					if (!File.Exists(arg))
-					{
-						_templateSaveAndExit = false;
-						_compileAndExit = false;
-						Factory.GUIController.ShowMessage("Unable to load the game '" + arg + "' because it does not exist", MessageBoxIcon.Warning);
-					}
-					else
-					{
-						_projectPath = arg;
-					}
-				}
+                    _projectPath = arg;
+                }
 			}
-			if (string.IsNullOrEmpty(_projectPath)) _compileAndExit = false;
 		}
 
-		public CommandLineOptions(string[] args)
+        /// <summary>
+        /// Constructs a set of options with default values.
+        /// </summary>
+        public CommandLineOptions()
+        {
+        }
+
+        /// <summary>
+        /// Constructs a set of options assigned from the command line args
+        /// </summary>
+        public CommandLineOptions(string[] args)
 		{
 			Parse(args);
 		}
@@ -71,5 +74,19 @@ namespace AGS.Editor
 		{
 			get { return _projectPath; }
 		}
+
+        /// <summary>
+        /// Tells if the application is requested to perform a single operation
+        /// in an autonomous mode and exit.
+        /// </summary>
+        public bool AutoOperationRequested
+        {
+            get { return CompileAndExit || TemplateSaveAndExit; }
+        }
+
+        public List<string> UnknownArgs
+        {
+            get { return _unknownArgs; }
+        }
 	}
 }

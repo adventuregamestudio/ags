@@ -43,15 +43,8 @@ namespace AGS.Editor
                 AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
                 AppDomain.CurrentDomain.AssemblyResolve += new ResolveEventHandler(CurrentDomain_AssemblyResolve);
 
-				string filePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
-				Directory.SetCurrentDirectory(Path.GetDirectoryName(filePath));
-
-#if BIBLE_EDITION
-                Application.Run(new SelectReligion());
-                // Need to re-add these because the end of Application.Run removes them
-                Application.ThreadException += new System.Threading.ThreadExceptionEventHandler(Application_ThreadException);
-                AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
-#endif
+                string filePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+                Directory.SetCurrentDirectory(Path.GetDirectoryName(filePath));
 
                 SplashScreen splash = new SplashScreen();
                 splash.Load += new EventHandler(splash_Load);

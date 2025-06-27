@@ -50,6 +50,13 @@ namespace AGS.Editor
                 splash.Load += new EventHandler(splash_Load);
                 Application.Run(splash);
 
+                // If Application Controller failed to init, then bail out early
+                if (_application == null)
+                {
+                    Program.SetExitCode(1);
+                    return;
+                }
+
                 // Need to re-add these because the end of Application.Run removes them
                 Application.ThreadException += new System.Threading.ThreadExceptionEventHandler(Application_ThreadException);
                 AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
@@ -141,7 +148,13 @@ namespace AGS.Editor
                         sehException.ErrorCode, error);
                 }
                 MessageBox.Show("An unexpected error occurred trying to start up the AGS Editor. Please consult the details below and post the error to the AGS Technical Forum.\n\n" + error, "Error", MessageBoxButtons.OK, MessageBoxIcon.Stop);
-			}
+
+                // Close the Splash Screen if it was open while the exception occured
+                if (Application.OpenForms.Count > 0)
+                {
+                    Application.OpenForms[0].Close();
+                }
+            }
 		}
 
     }

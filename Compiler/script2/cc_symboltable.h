@@ -199,6 +199,7 @@ enum Predefined : Symbol
     kKW_Extends,        // "extends"
     kKW_FallThrough,    // "fallthrough"
     kKW_For,            // "for"
+    kKW_Format,         // "__format
     kKW_If,             // "if"
     kKW_ImportStd,      // "import"
     kKW_ImportTry,      // "_tryimport"
@@ -228,6 +229,7 @@ struct FuncParameterDesc
     AGS::Vartype Vartype = kKW_NoSymbol;
     Symbol Name = kKW_NoSymbol;
     Symbol Default = kKW_NoSymbol;
+    bool IsFormatParam = false;
     size_t Declared = SIZE_MAX;
 };
 
@@ -305,6 +307,7 @@ struct SymbolTableEntry : public SymbolTableConstant
         CodeLoc Offset = 0;
         bool IsConstructor = false;
         bool IsVariadic = false;
+        bool IsFormat = false;
         bool NoLoopCheck = false;
     } *FunctionD = nullptr;
 

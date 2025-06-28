@@ -1046,9 +1046,28 @@ void AGS::Parser::ParseVarname0(bool const accept_member_access, Symbol &structn
 
 void AGS::Parser::ParseFuncdecl_Parameters_Param(Symbol const name_of_func, bool const body_follows, bool const read_only, size_t const param_idx)
 {
+    size_t const declared = _src.GetCursor();
+
+    bool const is_format_param = (kKW_Format == _src.PeekNext());
+    if (is_format_param)
+    {
+        SkipNextSymbol(_src, kKW_Format);
+        if (_sym[name_of_func].FunctionD->IsFormat)
+            UserError(
+                "Parameter #%u: Can only declare at most one parameter per function as '%s'",
+                param_idx,
+                _sym.GetName(kKW_Format).c_str());
+        _sym[name_of_func].FunctionD->IsFormat = true;
+    }
+
     Vartype param_vartype = ParseVartype(_src);
 
-    size_t const declared = _src.GetCursor();
+    if (is_format_param && !_sym.IsAnyStringVartype(param_vartype))
+        UserError(
+            "Expected a string type for the '%s' parameter #%u, found '%s' instead",
+            _sym.GetName(kKW_Format).c_str(),
+            param_idx,
+            _sym.GetName(param_vartype).c_str());
 
     if (kKW_Void == param_vartype)
         UserError("Parameter #%u: Cannot use the type 'void' in a parameter list", param_idx);
@@ -1096,6 +1115,7 @@ void AGS::Parser::ParseFuncdecl_Parameters_Param(Symbol const name_of_func, bool
     fpd.Name = param_name;
     fpd.Default = param_default;
     fpd.Declared = declared;
+    fpd.IsFormatParam = is_format_param;
     parameters.push_back(fpd);
 
     if (PP::kMain != _pp || !body_follows)
@@ -1153,7 +1173,14 @@ void AGS::Parser::ParseFuncdecl_Parameters(Symbol name_of_func, bool body_follow
         Symbol const punctuation = _src.GetNext();
         Expect(SymbolList{ kKW_Comma, kKW_CloseParenthesis }, punctuation);
         if (kKW_CloseParenthesis == punctuation)
+        {
+            if (_sym[name_of_func].FunctionD->IsFormat)
+                UserError(
+                    "Function '%s' has a '%s' parameter and thus must be variadic",
+                    _sym.GetName(name_of_func).c_str(),
+                    _sym.GetName(kKW_Format).c_str());
             return;
+        }
         continue;
     } // while
 
@@ -2876,7 +2903,7 @@ void AGS::Parser::AccessData_GenerateDynarrayLengthAttrib(EvaluationResult &eres
 }
 
                                                         
-void AGS::Parser::AccessData_FunctionCall_Arguments_Named(Symbol const name_of_func, std::vector<FuncParameterDesc> const &param_desc, bool const is_variadic, SrcList &arg_srcs, std::vector<SrcList> &arg_exprs)
+void AGS::Parser::AccessData_FunctionCall_Arguments_Named(Symbol const name_of_func, std::vector<FuncParameterDesc> const &param_desc, SrcList &arg_srcs, std::vector<SrcList> &arg_exprs)
 {
     if (_sym[name_of_func].FunctionD->ParamNamingInconsistency.Exists)
     {
@@ -2954,7 +2981,7 @@ void AGS::Parser::AccessData_FunctionCall_Arguments_Named(Symbol const name_of_f
     }
 }
 
-void AGS::Parser::AccessData_FunctionCall_Arguments_Sequence(Symbol const name_of_func, std::vector<FuncParameterDesc> const &param_desc, bool const is_variadic, SrcList &arg_list, std::vector<SrcList> &arg_exprs)
+void AGS::Parser::AccessData_FunctionCall_Arguments_Sequence(Symbol const name_of_func, std::vector<FuncParameterDesc> const &param_desc, SrcList &arg_list, std::vector<SrcList> &arg_exprs)
 {
     // [0u] is unused (reserved for the return value)
     arg_exprs.push_back(SrcList{ arg_list, 0u, 0u });
@@ -2994,38 +3021,137 @@ void AGS::Parser::AccessData_FunctionCall_Arguments_Sequence(Symbol const name_o
     }
 }
 
-void AGS::Parser::AccessData_FunctionCall_Arguments_Push(Symbol name_of_func, bool const func_is_import, size_t args_count, std::vector<SrcList> arg_exprs, bool use_named_args, std::vector<AGS::FuncParameterDesc> const &param_descs)
+void AGS::Parser::AccessData_FunctionCall_AnalyseFormatString(std::vector<FuncParameterDesc> const &param_descs, std::vector<SrcList> &arg_exprs, bool &check_vartypes_by_format, std::vector<std::string> &format_strings)
+{
+    check_vartypes_by_format = false;
+
+    // Find the index of the format parameter
+    auto it = std::find_if(
+        param_descs.begin(), param_descs.end(),
+        [](FuncParameterDesc const &fpd) -> bool { return fpd.IsFormatParam; });
+    if (it == param_descs.end())
+        InternalError("Cannot find the format string");
+    size_t param_idx = it - param_descs.begin();
+
+    // Find the corresponding argument and make sure that it's a string literal
+    auto &arg_expr = arg_exprs[param_idx];
+    if (arg_expr.Length() != 1)
+        return;
+    Symbol format_sym = arg_expr[0u];
+    if (!_sym.IsLiteral(format_sym) ||
+        !_sym.IsAnyStringVartype(_sym[format_sym].LiteralD->Vartype))
+        return; // Can only check literals
+
+    check_vartypes_by_format = true;
+
+    // Get the actual characters of the format string
+    auto format_cstr = &(_scrip.strings[_sym[format_sym].LiteralD->Value]);
+    std::string format{ format_cstr };
+
+    // Extract the specifiers
+    for (size_t format_idx1 = 0; format_idx1 < format.length(); format_idx1++)
+    {
+        if (format[format_idx1] != '%')
+            continue;
+
+        if (format_idx1 + 1u < format.length() && format[format_idx1 + 1u] == '%')
+        {   
+            format_idx1++; // Skip "%%"
+            continue;
+        }
+
+        // Letters that define a format  to be printed
+        static std::string const format_letters = "AEFGXacdefgiosux";
+        // Modifiers that can be in beween '%' and the respective format letter
+        static std::string const modifiers = "hjLltz";
+        // Symbols that can be in beween '%' and the respective format letter
+        static std::string const legal_symbols = " +-.#*";
+
+        // Extract the format specifications
+        for (size_t format_idx2 = format_idx1 + 1u; format_idx2 < format.length(); format_idx2++)
+        {
+            char const ch = format[format_idx2];
+            if ('0' <= ch && ch <= '9')
+                continue;
+            if (std::string::npos != legal_symbols.find(ch))
+                continue;
+            if (std::string::npos != modifiers.find(ch))
+                continue;
+
+            auto const spec = format.substr(format_idx1, format_idx2 - format_idx1 + 1u);
+            if (std::string::npos != format_letters.find(ch))
+            {
+                format_strings.push_back(spec);
+                format_idx1 = format_idx2;
+                break;
+            }
+
+            UserError(
+                "Argument #%u: Cannot process '%s' in the format string literal",
+                param_idx,
+                spec.c_str());
+        }
+    }
+}
+
+// Note, we _must_ pass 'args_size' to this function, we can't deduce that from 'arg_exprs',
+// or else things will get awry when the last parameter has a default and an argument is not supplied for it.
+void AGS::Parser::AccessData_FunctionCall_Arguments_Push(Symbol name_of_func, bool func_is_import, size_t args_size,
+    std::vector<SrcList> arg_exprs, bool use_named_args, std::vector<AGS::FuncParameterDesc> const &param_descs,
+    bool check_format, std::vector<std::string> const formats)
 {
     auto const no_desc = FuncParameterDesc{};
+    size_t const first_variadic_idx = param_descs.size();
+    size_t const variadic_args_count = args_size - param_descs.size();
+
+    // Check the type specification of the format if applicable
+    if (check_format && (formats.size() > args_size - first_variadic_idx))
+        UserError(
+            "Call to function '%s': "
+            "The format string provides specifications for %u variadic argument(s) "
+            " but only %u variadic argument(s) are passed",
+            _sym.GetName(name_of_func).c_str(),
+            formats.size(),
+            variadic_args_count);
+    if (check_format && (formats.size() < args_size - first_variadic_idx))
+        UserError(
+            "Call to function '%s': "
+            "%u variadic argument(s) are passed, but "
+            " the format string provides specifications for only %u variadic argument(s)",
+            _sym.GetName(name_of_func).c_str(),
+            variadic_args_count,
+            formats.size());
 
     // Push the arguments
     // In reverse order because the engine expects them this way
-    for (size_t idx = args_count; idx >= 1u; --idx)
+    for (size_t idx = args_size - 1u; idx >= 1u; --idx)
     {
         // For error messages
         std::string ctfp = "Call to function '<func>', <name>: ";
         string_replace(ctfp, "<func>", _sym.GetName(name_of_func));
-        std::string name = "";
+        std::string argument_name = "";
         if (use_named_args &&
             idx < param_descs.size() &&
             !_sym[name_of_func].FunctionD->ParamNamingInconsistency.Exists)
         {
-            name = "parameter '<param>'";
-            string_replace(name, "<param>", _sym.GetName(param_descs[idx].Name));
-            if (name == "parameter ''")
-                name = "";
+            argument_name = "parameter '<param>'";
+            string_replace(argument_name, "<param>", _sym.GetName(param_descs[idx].Name));
+            if (argument_name == "parameter ''")
+                argument_name = "";
         }
 
-        if ("" == name)
+        if ("" == argument_name)
         {
-            name = "argument #<arg>";
-            string_replace(name, "<arg>", std::to_string(idx));
+            argument_name = "argument #<arg>";
+            string_replace(argument_name, "<arg>", std::to_string(idx));
         }
 
-        string_replace(ctfp, "<name>", name);
+        string_replace(ctfp, "<name>", argument_name);
 
         FuncParameterDesc const &param_desc =
             (idx < param_descs.size()) ? param_descs[idx] : no_desc;
+
+        Symbol arg_vartype = kKW_NoSymbol;
 
         if (idx < arg_exprs.size() && arg_exprs[idx].Length() > 0u) // Argument passed
         {
@@ -3034,6 +3160,7 @@ void AGS::Parser::AccessData_FunctionCall_Arguments_Push(Symbol name_of_func, bo
             EvaluationResult eres;
             ParseExpression_Term(arg_expr, eres, true, true);
             EvaluationResultToAx(eres);
+            arg_vartype = eres.Vartype;
             if (idx < param_descs.size())
             {
                 if (IsVartypeMismatch_Oneway(eres.Vartype, param_desc.Vartype))
@@ -3050,6 +3177,7 @@ void AGS::Parser::AccessData_FunctionCall_Arguments_Push(Symbol name_of_func, bo
                     // Must make sure that NULL isn't passed at runtime
                     WriteCmd(SCMD_CHECKNULLREG, SREG_AX);
             }
+
         }
         else // No argument or empty argument passed
         {
@@ -3058,14 +3186,77 @@ void AGS::Parser::AccessData_FunctionCall_Arguments_Push(Symbol name_of_func, bo
             if (kKW_NoSymbol == deflt)
                 UserError(
                     ReferenceMsgLoc(
-                        (ctfp +
-                            "Argument isn't passed and parameter doesn't have a default").c_str(),
+                        (ctfp + "Argument isn't passed and parameter doesn't have a default").c_str(),
                         param_desc.Declared).c_str());
 
             if (!_sym.IsLiteral(deflt))
                 InternalError("Parameter default symbol isn't literal");
+            arg_vartype = _sym[deflt].LiteralD->Vartype;
             CodeCell value = _sym[deflt].LiteralD->Value;
             WriteCmd(SCMD_LITTOREG, SREG_AX, value);
+        }
+
+        if (check_format && idx >= param_descs.size())
+        {
+            size_t const format_idx = idx - first_variadic_idx;
+            auto &format = formats[format_idx];
+            int const fletter = format.back();
+            switch (fletter)
+            {
+            default:
+                InternalError("Cannot process the format letter '%c'", fletter);
+
+            // characters
+            case 'c':
+            // (signed) integers
+            case 'd':
+            case 'i':
+            // unsigned integers (currently treat them like integers)
+            case 'o':
+            case 'u':
+            case 'X':
+            case 'x':
+                if (!_sym.IsAnyIntegerVartype(arg_vartype))
+                    UserError(
+                        (ctfp + "Argument has type '%s' and doesn't match the format specifier '%s' for integer types").c_str(),
+                        _sym.GetName(arg_vartype).c_str(),
+                        format.c_str());
+                break;
+
+            case 'A':
+            case 'a':
+            case 'E':
+            case 'e':
+            case 'F':
+            case 'f':
+            case 'G':
+            case 'g':
+                if (kKW_Float != arg_vartype)
+                    UserError(
+                        (ctfp + "Argument has type '%s' and doesn't match the format specifier '%s' for type 'float'").c_str(),
+                        _sym.GetName(arg_vartype).c_str(),
+                        format.c_str());
+                break;
+
+            case 'p':
+                if (!_sym.IsDynVartype(arg_vartype))
+                    UserError(
+                        (ctfp + "Argument has type '%s' and doesn't match the format specifier '%s' for dynamic types").c_str(),
+                        _sym.GetName(arg_vartype).c_str(),
+                        format.c_str());
+                break;
+
+            case 's':
+                // Also let through one-dimensional classic arrays of 'char'
+                if (!_sym.IsAnyStringVartype(arg_vartype) &&
+                    !(  _sym[arg_vartype].VartypeD->Type == VTT::kArray &&
+                        _sym[arg_vartype].VartypeD->Dims.size() == 1u &&
+                        _sym[arg_vartype].VartypeD->BaseVartype == kKW_Char))
+                    UserError(
+                        (ctfp + "Argument has type '%s' and doesn't match the format specifier '%s' for string types").c_str(),
+                        _sym.GetName(arg_vartype).c_str(),
+                        format.c_str());
+            }
         }
 
         if (func_is_import)
@@ -3075,7 +3266,7 @@ void AGS::Parser::AccessData_FunctionCall_Arguments_Push(Symbol name_of_func, bo
     }
 }
 
-void AGS::Parser::AccessData_FunctionCall_Arguments(Symbol const name_of_func, bool const func_is_import, std::vector<FuncParameterDesc> const &param_descs, bool const is_variadic, SrcList &arguments, size_t &args_count)
+void AGS::Parser::AccessData_FunctionCall_Arguments(Symbol const name_of_func, bool const func_is_import, std::vector<FuncParameterDesc> const &param_descs, bool const is_variadic, SrcList &arguments, size_t &args_size)
 {
     // Parse the arguments into expressions that match 'param_descs'
     std::vector<SrcList> arg_exprs = {};
@@ -3085,20 +3276,25 @@ void AGS::Parser::AccessData_FunctionCall_Arguments(Symbol const name_of_func, b
         _sym.IsIdentifier(arguments[1u]) &&
         kKW_Colon == arguments[2u];
     if (use_named_args)
-        AccessData_FunctionCall_Arguments_Named(name_of_func, param_descs, is_variadic, arguments, arg_exprs);
+        AccessData_FunctionCall_Arguments_Named(name_of_func, param_descs, arguments, arg_exprs);
     else
-        AccessData_FunctionCall_Arguments_Sequence(name_of_func, param_descs, is_variadic, arguments, arg_exprs);
+        AccessData_FunctionCall_Arguments_Sequence(name_of_func, param_descs, arguments, arg_exprs);
 
-    args_count = std::max(param_descs.size(), arg_exprs.size()) - 1u; // '- 1u' due to the unused '[0u]'
-    if (args_count > param_descs.size() - 1u && !is_variadic)
+    args_size = std::max(param_descs.size(), arg_exprs.size()); 
+    if (args_size > param_descs.size() && !is_variadic)
         UserError(
             ReferenceMsgSym(
                 "Call to function '%s': Expected at most %u arguments, found more",
                 name_of_func).c_str(),
             _sym.GetName(name_of_func).c_str(),
-            param_descs.size() - 1u);
+            param_descs.size() - 1u); // '-1u' because 'param_descs[0]' is the return parameter
 
-    AccessData_FunctionCall_Arguments_Push(name_of_func, func_is_import, args_count, arg_exprs, use_named_args, param_descs);
+    bool check_vartypes_by_format = false;
+    std::vector<std::string> format_strings = {};
+    if (_sym[name_of_func].FunctionD->IsFormat)
+        AccessData_FunctionCall_AnalyseFormatString(param_descs, arg_exprs, check_vartypes_by_format, format_strings);
+    AccessData_FunctionCall_Arguments_Push(name_of_func, func_is_import, args_size, arg_exprs, use_named_args, param_descs,
+        check_vartypes_by_format, format_strings);
     
     // Move cursor to the end of the arguments, they have been used up
     arguments.SetCursor(arguments.Length());
@@ -3147,14 +3343,17 @@ void AGS::Parser::AccessData_FunctionCall(Symbol name_of_func, SrcList &expressi
         mar_pushed = true;
     }
 
-    size_t args_count;
+    size_t args_size;
     AccessData_FunctionCall_Arguments(
         name_of_func,
         func_is_import,
         _sym[name_of_func].FunctionD->Parameters,
         _sym.IsVariadicFunc(name_of_func),
         arguments,
-        args_count);
+        args_size);
+
+    // Get the 'net' number of arguments, without the return parameter in '[0]'
+    size_t const args_count = args_size - 1u; 
     
       if (called_func_uses_this)
       {

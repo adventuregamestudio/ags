@@ -555,13 +555,20 @@ private:
     // and add it to the symbol table
     void AccessData_GenerateDynarrayLengthAttrib(EvaluationResult &eres);
 
-    void AccessData_FunctionCall_Arguments_Named(Symbol name_of_func, std::vector<FuncParameterDesc> const &param_desc, bool is_variadic, SrcList &arguments, std::vector<SrcList> &arg_exprs);
-    void AccessData_FunctionCall_Arguments_Sequence(Symbol name_of_func, std::vector<FuncParameterDesc> const &param_desc, bool is_variadic, SrcList &arguments, std::vector<SrcList> &arg_exprs);
+    void AccessData_FunctionCall_Arguments_Named(Symbol name_of_func, std::vector<FuncParameterDesc> const &param_desc, SrcList &arguments, std::vector<SrcList> &arg_exprs);
+    void AccessData_FunctionCall_Arguments_Sequence(Symbol name_of_func, std::vector<FuncParameterDesc> const &param_desc, SrcList &arguments, std::vector<SrcList> &arg_exprs);
 
-    void AccessData_FunctionCall_Arguments_Push(Symbol name_of_func, bool func_is_import, size_t args_count, std::vector<SrcList> arg_exprs, bool named_args, std::vector<AGS::FuncParameterDesc> const &param_descs);
+    // Find the format string of the function; find its formats and write them to 'format_strings'
+    void AccessData_FunctionCall_AnalyseFormatString(std::vector<FuncParameterDesc> const &param_descs, std::vector<SrcList> &arg_exprs, bool &check_vartypes_by_format, std::vector<std::string> &format_strings);
+
+    // Push the arguments onto the stack, including the default ones.
+    // Note, 'args_size' counts the return parameter in '[0]'. (This return parameter is NOT pushed.)
+    void AccessData_FunctionCall_Arguments_Push(Symbol name_of_func, bool func_is_import, size_t args_size, std::vector<SrcList> arg_exprs, bool use_named_args,
+        std::vector<AGS::FuncParameterDesc> const &param_descs, bool check_format, std::vector<std::string> const formats);
 
     // Parse the arguments 'args_list' of a function call
-    void AccessData_FunctionCall_Arguments(Symbol name_of_func, bool func_is_import, std::vector<FuncParameterDesc> const &param_descs, bool is_variadic, SrcList &arguments, size_t &args_count);
+    // Note, 'args_size' counts the return parameter in [0]
+    void AccessData_FunctionCall_Arguments(Symbol name_of_func, bool func_is_import, std::vector<FuncParameterDesc> const &param_descs, bool is_variadic, SrcList &arguments, size_t &args_size);
 
     // Process a function call. 
     void AccessData_FunctionCall(Symbol name_of_func, SrcList &arguments, EvaluationResult &eres);

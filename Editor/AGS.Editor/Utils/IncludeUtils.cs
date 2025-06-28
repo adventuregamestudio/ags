@@ -165,7 +165,7 @@ namespace AGS.Editor
                 if (option.HasFlag(MatchOption.CaseInsensitive))
                     parseLine = parseLine.ToLowerInvariant();
                 parseLine = NormalizePathSeparatorsInPattern(parseLine);
-                string regexString = PatternToRegexString(parseLine);
+                string regexString = PatternToRegexString(parseLine, option);
 
                 Pattern p = new Pattern(type, new Regex(regexString, RegexOptions.None), parseLine, regexString);
                 patterns.Add(p);
@@ -193,9 +193,17 @@ namespace AGS.Editor
         /// Converts a include/exclude pattern string into the regex string,
         /// which may be used to construct a Regex object.
         /// </summary>
-        private static string PatternToRegexString(string pattern)
+        private static string PatternToRegexString(string pattern, MatchOption option)
         {
+            if (string.IsNullOrEmpty(pattern))
+                return string.Empty;
+
             StringBuilder result = new StringBuilder();
+            // The pattern must match the path section either at the beginning or right after the path separator
+            if (!pattern.StartsWith("/"))
+            {
+                result.Append("(^|/)");
+            }
 
             int i = 0;
             int n = pattern.Length;
@@ -271,6 +279,12 @@ namespace AGS.Editor
                         result.Append(c);
                     }
                 }
+            }
+
+            // The pattern must match the path section either at the end or right before the path separator
+            if (!pattern.EndsWith("/"))
+            {
+                result.Append("($|/)");
             }
             return result.ToString();
         }

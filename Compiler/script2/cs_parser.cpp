@@ -1046,7 +1046,6 @@ void AGS::Parser::ParseVarname0(bool const accept_member_access, Symbol &structn
 
 void AGS::Parser::ParseFuncdecl_Parameters_Param(Symbol const name_of_func, bool const body_follows, bool const read_only, size_t const param_idx)
 {
-    auto &parameters = _sym[name_of_func].FunctionD->Parameters;
     size_t const declared = _src.GetCursor();
 
     bool const is_format_param = (kKW_Format == _src.PeekNext());
@@ -1100,6 +1099,8 @@ void AGS::Parser::ParseFuncdecl_Parameters_Param(Symbol const name_of_func, bool
     ParseDynArrayMarkersIfPresent(_src, param_vartype);
     Symbol const param_default =
         ParseFuncdecl_Parameters_ParamDefaultValue(param_vartype, param_idx);
+
+    auto &parameters = _sym[name_of_func].FunctionD->Parameters;
 
     if (!body_follows &&
         kKW_NoSymbol == param_default &&

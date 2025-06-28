@@ -1103,3 +1103,22 @@ TEST_F(Compile2, FormatFunction06)
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("variadic arg"));
 }
+
+TEST_F(Compile2, FormatFunction07)
+{
+    // Modifiers and new format specifiers
+
+    char const *inpl = R"%&/(
+        import void foo(__format const string f, ...);
+
+        int game_start()
+        {
+            foo("%u %3i %X %.3e", 3, 99, 0xaf, 3.14);
+        }
+        )%&/";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string const &err_msg = mh.GetError().Message;
+
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+}

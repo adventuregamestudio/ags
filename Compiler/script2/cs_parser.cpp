@@ -3071,15 +3071,12 @@ void AGS::Parser::AccessData_FunctionCall_AnalyseFormatString(std::vector<FuncPa
         for (size_t format_idx2 = format_idx1 + 1u; format_idx2 < format.length(); format_idx2++)
         {
             char const ch = format[format_idx2];
-            if (!('a' <= ch && ch <= 'z') && !('A' <= ch && ch <= 'Z'))
-            {
-                if ('0' <= ch && ch <= '9')
-                    continue;
-                if (std::string::npos != legal_symbols.find(ch))
-                    continue;
-                if (std::string::npos != modifiers.find(ch))
-                    continue;
-            }
+            if ('0' <= ch && ch <= '9')
+                continue;
+            if (std::string::npos != legal_symbols.find(ch))
+                continue;
+            if (std::string::npos != modifiers.find(ch))
+                continue;
 
             auto const spec = format.substr(format_idx1, format_idx2 - format_idx1 + 1u);
             if (std::string::npos != format_letters.find(ch))

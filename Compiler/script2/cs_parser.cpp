@@ -3049,7 +3049,6 @@ void AGS::Parser::AccessData_FunctionCall_AnalyseFormatString(std::vector<FuncPa
     std::string format{ format_cstr };
 
     // Extract the specifiers
-    static std::string const format_letters = "cdfs";
     for (size_t format_idx1 = 0; format_idx1 < format.length(); format_idx1++)
     {
         if (format[format_idx1] != '%')
@@ -3061,22 +3060,39 @@ void AGS::Parser::AccessData_FunctionCall_AnalyseFormatString(std::vector<FuncPa
             continue;
         }
 
-        // Find the index of the format letter that is eventually following the '%'
+        // Letters that define a format  to be printed
+        static std::string const format_letters = "AEFGXacdefgiosux";
+        // Modifiers that can be in beween '%' and the respective format letter
+        static std::string const modifiers = "hjLltz";
+        // Symbols that can be in beween '%' and the respective format letter
+        static std::string const legal_symbols = " +-.#*";
+
+        // Extract the format specifications
         for (size_t format_idx2 = format_idx1 + 1u; format_idx2 < format.length(); format_idx2++)
         {
             char const ch = format[format_idx2];
-            if (('a' <= ch && ch <= 'z') || ('A' <= ch && ch <= 'Z'))
+            if (!('a' <= ch && ch <= 'z') && !('A' <= ch && ch <= 'Z'))
             {
-                auto const spec = format.substr(format_idx1, format_idx2 - format_idx1 + 1u);
-                if (std::string::npos == format_letters.find(ch))
-                    UserError(
-                        "Argument #%u: Cannot process '%s' in the format string literal",
-                        param_idx,
-                        spec.c_str());
+                if ('0' <= ch && ch <= '9')
+                    continue;
+                if (std::string::npos != legal_symbols.find(ch))
+                    continue;
+                if (std::string::npos != modifiers.find(ch))
+                    continue;
+            }
+
+            auto const spec = format.substr(format_idx1, format_idx2 - format_idx1 + 1u);
+            if (std::string::npos != format_letters.find(ch))
+            {
                 format_strings.push_back(spec);
                 format_idx1 = format_idx2;
                 break;
             }
+
+            UserError(
+                "Argument #%u: Cannot process '%s' in the format string literal",
+                param_idx,
+                spec.c_str());
         }
     }
 }
@@ -3191,10 +3207,18 @@ void AGS::Parser::AccessData_FunctionCall_Arguments_Push(Symbol name_of_func, bo
             switch (fletter)
             {
             default:
-                InternalError("Cannot process format letter '%c'", fletter);
+                InternalError("Cannot process the format letter '%c'", fletter);
 
+            // characters
             case 'c':
+            // (signed) integers
             case 'd':
+            case 'i':
+            // unsigned integers (currently treat them like integers)
+            case 'o':
+            case 'u':
+            case 'X':
+            case 'x':
                 if (!_sym.IsAnyIntegerVartype(arg_vartype))
                     UserError(
                         (ctfp + "Argument has type '%s' and doesn't match the format specifier '%s' for integer types").c_str(),
@@ -3202,10 +3226,25 @@ void AGS::Parser::AccessData_FunctionCall_Arguments_Push(Symbol name_of_func, bo
                         format.c_str());
                 break;
 
+            case 'A':
+            case 'a':
+            case 'E':
+            case 'e':
+            case 'F':
             case 'f':
+            case 'G':
+            case 'g':
                 if (kKW_Float != arg_vartype)
                     UserError(
                         (ctfp + "Argument has type '%s' and doesn't match the format specifier '%s' for type 'float'").c_str(),
+                        _sym.GetName(arg_vartype).c_str(),
+                        format.c_str());
+                break;
+
+            case 'p':
+                if (!_sym.IsDynVartype(arg_vartype))
+                    UserError(
+                        (ctfp + "Argument has type '%s' and doesn't match the format specifier '%s' for dynamic types").c_str(),
                         _sym.GetName(arg_vartype).c_str(),
                         format.c_str());
                 break;

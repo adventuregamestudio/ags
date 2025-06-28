@@ -11,6 +11,18 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+/// The "Include Utils" deal with the include/exclude list, containing patterns
+/// in the .gitignore format, which may instruct to either include or
+/// exclude particular file path.
+/// The code is based on the Python's fnmatch, and a gist demonstrating
+/// its port to C++, see:
+/// https://github.com/python/cpython/blob/main/Lib/fnmatch.py
+/// https://gist.github.com/alco/1869512
+/// NOTE: the level of support for .gitignore format is not clear,
+/// maybe not all of the possible edge cases are handled here.
+/// For the reference, .gitignore specs:
+/// https://git-scm.com/docs/gitignore
+//=============================================================================
 #include "data/include_utils.h"
 #include "util/file.h"
 #include "util/path.h"
@@ -45,6 +57,12 @@ static String translate_to_regex_string(const String &pattern)
     int i = 0;
     int n = (int)pattern.GetLength();
     String result;
+
+    // The pattern must match the path section either at the beginning or right after the path separator
+    if (!pattern.StartsWith("/"))
+    {
+        result.Append("(^|/)");
+    }
 
     while (i < n) {
         char c = pattern[i];
@@ -103,6 +121,13 @@ static String translate_to_regex_string(const String &pattern)
             }
         }
     }
+
+    // The pattern must match the path section either at the end or right before the path separator
+    if (!pattern.EndsWith("/"))
+    {
+        result.Append("($|/)");
+    }
+
     return result;
 }
 
@@ -162,13 +187,11 @@ std::vector<String> match_files(const std::vector<String>& files, const std::vec
         String normalized_file_path = file.LowerUTF8(); // for case insensitivity
         normalized_file_path = normalize_separators_in_string(normalized_file_path);
 
-
         for (const auto& pattern : patterns) {
-            if (std::regex_match(normalized_file_path.GetCStr(), pattern.Regex)) {
+            if (std::regex_search(normalized_file_path.GetCStr(), pattern.Regex)) {
                 if (pattern.Type == eInclude) {
                     include = true;
-                }
-                if (pattern.Type == eExclude) {
+                } else if (pattern.Type == eExclude) {
                     include = false;
                 }
             }
@@ -224,6 +247,4 @@ HError IncludeFiles(const std::vector<String> &input_files, std::vector<String> 
 }
 
 } // namespace DataUtil
-
-
 } // namespace AGS

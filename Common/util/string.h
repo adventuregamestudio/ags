@@ -165,8 +165,8 @@ public:
     inline bool Equals(const char *cstr) const { return Compare(cstr) == 0; }
     inline bool StartsWith(const String &str) const { return CompareLeft(str) == 0; }
     inline bool StartsWith(const char *cstr) const { return CompareLeft(cstr) == 0; }
-    inline bool EndsWidth(const String &str) const { return CompareRight(str) == 0; }
-    inline bool EndsWidth(const char *cstr) const { return CompareRight(cstr) == 0; }
+    inline bool EndsWith(const String &str) const { return CompareRight(str) == 0; }
+    inline bool EndsWith(const char *cstr) const { return CompareRight(cstr) == 0; }
 
     // These functions search for character or substring inside this string
     // and return the index of the (first) character, or NoIndex if nothing found.

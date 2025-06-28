@@ -167,8 +167,20 @@ namespace AGS.Editor
                 parseLine = NormalizePathSeparatorsInPattern(parseLine);
                 string regexString = PatternToRegexString(parseLine, option);
 
-                Pattern p = new Pattern(type, new Regex(regexString, RegexOptions.None), parseLine, regexString);
-                patterns.Add(p);
+                Regex rx = null;
+                try
+                {
+                    rx = new Regex(regexString, RegexOptions.None);
+                }
+                catch (Exception)
+                {
+                }
+
+                if (rx != null)
+                {
+                    Pattern p = new Pattern(type, rx, parseLine, regexString);
+                    patterns.Add(p);
+                }
             }
             return patterns;
         }
@@ -268,7 +280,7 @@ namespace AGS.Editor
                 }
                 else
                 {
-                    if (char.IsLetterOrDigit(c))
+                    if (char.IsLetterOrDigit(c) || c == '_')
                     {
                         result.Append(c);
                     }

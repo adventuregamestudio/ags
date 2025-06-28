@@ -14,6 +14,13 @@
 #module ags
 
 #define function int  // $AUTOCOMPLETEIGNORE$
+
+// Placeholder for the '__format' keyword which is only supported
+// by the advanced script compiler.
+#ifndef SCRIPT_EXT_FORMATCHECK
+#define __format
+#endif
+
 // CursorMode isn't actually defined yet, but int will do
 #define CursorMode int
 #define FontType int
@@ -658,7 +665,7 @@ enum StringSplitOptions {
 
 internalstring autoptr builtin managed struct String {
   /// Creates a formatted string using the supplied parameters.
-  import static String Format(const string format, ...);    // $AUTOCOMPLETESTATICONLY$
+  import static String Format(__format const string format, ...);    // $AUTOCOMPLETESTATICONLY$
   /// Checks whether the supplied string is null or empty.
   import static bool IsNullOrEmpty(String stringToCheck);  // $AUTOCOMPLETESTATICONLY$
 #ifdef SCRIPT_API_v400
@@ -815,10 +822,10 @@ builtin managed struct DrawingSurface {
   /// Draws a filled rectangle to the surface.
   import void DrawRectangle(int x1, int y1, int x2, int y2);
   /// Draws the specified text to the surface.
-  import void DrawString(int x, int y, FontType, const string text, ...);
+  import void DrawString(int x, int y, FontType, __format const string text, ...);
 #ifdef SCRIPT_API_v361
   /// Draws the text to the surface, wrapping it at the specified width.
-  import void DrawStringWrapped(int x, int y, int width, FontType, HorizontalAlignment, const string text, ...);
+  import void DrawStringWrapped(int x, int y, int width, FontType, HorizontalAlignment, __format const string text, ...);
 #else // !SCRIPT_API_v361
   /// Draws the text to the surface, wrapping it at the specified width.
   import void DrawStringWrapped(int x, int y, int width, FontType, HorizontalAlignment, const string text);
@@ -941,24 +948,24 @@ builtin struct Parser {
 
 // standard functions
 /// Displays the text in a standard text window.
-import void Display(const string message, ...);
+import void Display(__format const string message, ...);
 /// Displays the text in a standard text window at the specified location.
-import void DisplayAt(int x, int y, int width, const string message, ...);
+import void DisplayAt(int x, int y, int width, __format const string message, ...);
 #ifdef SCRIPT_API_v361
 /// Displays the text in a standard text window at the specified y-coordinate.
-import void DisplayAtY (int y, const string message, ...);
+import void DisplayAtY (int y, __format const string message, ...);
 #else // !SCRIPT_API_v361
 /// Displays the text in a standard text window at the specified y-coordinate.
 import void DisplayAtY (int y, const string message);
 #endif // !SCRIPT_API_v361
 /// Displays a message in a text window with a title, used for speech in SCI0 games.
-import void DisplayTopBar(int y, int textColor, int backColor, const string title, const string text, ...);
+import void DisplayTopBar(int y, int textColor, int backColor, const string title, __format const string text, ...);
 /// Resets the room state back to how it was initially set up in the editor.
 import void ResetRoom(int roomNumber);
 /// Checks whether the player has been in the specified room yet.
 import int  HasPlayerBeenInRoom(int roomNumber);
 /// Exits the game with an error message.
-import void AbortGame(const string message, ...);
+import void AbortGame(__format const string message, ...);
 /// Quits the game, optionally showing a confirmation dialog.
 import void QuitGame(int promptUser);
 /// Changes the current game speed.
@@ -1245,9 +1252,9 @@ builtin managed struct Overlay {
   import static Overlay* CreateGraphical(int x, int y, int slot);  // $AUTOCOMPLETESTATICONLY$
 #endif // !SCRIPT_API_v360
   /// Creates an overlay that displays some text.
-  import static Overlay* CreateTextual(int x, int y, int width, FontType, int colour, const string text, ...);  // $AUTOCOMPLETESTATICONLY$
+  import static Overlay* CreateTextual(int x, int y, int width, FontType, int colour, __format const string text, ...);  // $AUTOCOMPLETESTATICONLY$
   /// Changes the text on the overlay.
-  import void SetText(int width, FontType, int colour, const string text, ...);
+  import void SetText(int width, FontType, int colour, __format const string text, ...);
   /// Removes the overlay from the screen.
   import void Remove();
   /// Checks whether this overlay is currently valid.
@@ -1260,7 +1267,7 @@ builtin managed struct Overlay {
   /// Creates an overlay that displays a sprite inside the room.
   import static Overlay* CreateRoomGraphical(int x, int y, int slot, bool clone = false);  // $AUTOCOMPLETESTATICONLY$
   /// Creates an overlay that displays some text inside the room.
-  import static Overlay* CreateRoomTextual(int x, int y, int width, FontType, int colour, const string text, ...);  // $AUTOCOMPLETESTATICONLY$
+  import static Overlay* CreateRoomTextual(int x, int y, int width, FontType, int colour, __format const string text, ...);  // $AUTOCOMPLETESTATICONLY$
   /// Gets whether this overlay is located inside the room, as opposed to the screen layer.
   import readonly attribute bool InRoom;
   /// Gets/sets the width of this overlay. Resizing overlay will scale its image.
@@ -2355,7 +2362,7 @@ builtin struct System {
 #endif // SCRIPT_API_v351
 #ifdef SCRIPT_API_v360
   /// Prints message
-  import static void Log(LogLevel level, const string format, ...);    // $AUTOCOMPLETESTATICONLY$
+  import static void Log(LogLevel level, __format const string format, ...);    // $AUTOCOMPLETESTATICONLY$
 #endif // SCRIPT_API_v360
 #ifdef SCRIPT_API_v362
   /// Gets a runtime engine value represented as integer by the given identifier; is meant for diagnostic purposes only
@@ -2577,12 +2584,12 @@ builtin managed struct Character {
   /// Runs one of the character's interaction events.
   import void RunInteraction(CursorMode);
   /// Says the specified text using the character's speech settings.
-  import void Say(const string message, ...);
+  import void Say(__format const string message, ...);
 #ifdef SCRIPT_API_v361
   /// Says the specified text at the specified position on the screen using the character's speech settings.
-  import void SayAt(int x, int y, int width, const string message, ...);
+  import void SayAt(int x, int y, int width, __format const string message, ...);
   /// Displays the text as lucasarts-style speech but does not block the game.
-  import Overlay* SayBackground(const string message, ...);
+  import Overlay* SayBackground(__format const string message, ...);
 #else // !SCRIPT_API_v361
   /// Says the specified text at the specified position on the screen using the character's speech settings.
   import void SayAt(int x, int y, int width, const string message);
@@ -2598,7 +2605,7 @@ builtin managed struct Character {
   /// Stops the character from moving.
   import void StopMoving();
   /// The specified text is displayed in a thought-bubble GUI.
-  import void Think(const string message, ...);
+  import void Think(__format const string message, ...);
   /// Tints the character to the specified colour. RGB values must be in 0-255 range, saturation and luminance in 0-100 range.
   import void     Tint(int red, int green, int blue, int saturation, int luminance);
   /// Unlocks the view after an animation has finished.

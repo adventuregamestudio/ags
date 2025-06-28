@@ -36,6 +36,8 @@ void ccGetExtensions2(std::vector<std::string> &exts)
     exts.push_back("NESTEDPOINTERS");
     // DynamicArray.Length pseudo-property
     exts.push_back("DYNARRAY_LENGTH");
+    // Compile-time check of the string formatting
+    exts.push_back("FORMATCHECK");
 }
 
 // Convert VartypeFlags to RTTI::TypeFlags

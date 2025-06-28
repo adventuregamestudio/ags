@@ -18,6 +18,8 @@
 #ifndef __AGS_CN_UTIL__SMARTPTR_H
 #define __AGS_CN_UTIL__SMARTPTR_H
 
+#include <cstddef>
+
 //-----------------------------------------------------------------------------
 // ComPtr is the RAII wrapper over a IUnknown* and deriatives
 // (or any interface that has a compatible syntax), which ensures a call to
@@ -43,7 +45,7 @@ public:
     // Implicitly init with nullptr
     ComPtr() = default;
     // Explicitly init with nullptr
-    explicit ComPtr(nullptr_t)
+    explicit ComPtr(std::nullptr_t)
     {
         _obj = nullptr;
     }
@@ -118,7 +120,7 @@ public:
     operator bool() const { return _obj != nullptr; }
     IGuardFace *operator ->() const { return static_cast<IGuardFace*>(_obj); }
 
-    MyType &operator =(nullptr_t)
+    MyType &operator =(std::nullptr_t)
     {
         ReleaseImpl();
         return *this;
@@ -167,9 +169,9 @@ private:
 
 // Various comparison operators for ComPtr<T>
 template <typename T>
-bool operator ==(const ComPtr<T> &iptr, nullptr_t) { return iptr.get() == nullptr; }
+bool operator ==(const ComPtr<T> &iptr, std::nullptr_t) { return iptr.get() == nullptr; }
 template <typename T>
-bool operator !=(const ComPtr<T> &iptr, nullptr_t) { return iptr.get() != nullptr; }
+bool operator !=(const ComPtr<T> &iptr, std::nullptr_t) { return iptr.get() != nullptr; }
 template <typename T1, typename T2>
 bool operator ==(const ComPtr<T1> &iptr1, const ComPtr<T2> &iptr2) { return iptr1.get() == iptr2.get(); }
 template <typename T1, typename T2>

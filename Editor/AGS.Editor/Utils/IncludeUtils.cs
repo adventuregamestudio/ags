@@ -66,7 +66,7 @@ namespace AGS.Editor
         public static Pattern[] CreatePatternList(Stream stream, MatchOption option = MatchOption.None)
         {
             var lines = ReadPatternLines(stream);
-            return ParsePatterns(lines, option).ToArray();
+            return ParsePatterns(lines, option);
         }
 
         /// <summary>
@@ -75,7 +75,15 @@ namespace AGS.Editor
         public static Pattern[] CreatePatternList(string str, MatchOption option = MatchOption.None)
         {
             var lines = ReadPatternLines(str);
-            return ParsePatterns(lines, option).ToArray();
+            return ParsePatterns(lines, option);
+        }
+
+        /// <summary>
+        /// Creates a list of Patterns by parsing an array of strings, where each element is a pattern.
+        /// </summary>
+        public static Pattern[] CreatePatternList(string[] patternStrings, MatchOption option = MatchOption.None)
+        {
+            return ParsePatterns(patternStrings, option);
         }
 
         /// <summary>
@@ -119,32 +127,32 @@ namespace AGS.Editor
             return matches.ToArray();
         }
 
-        private static List<string> ReadPatternLines(Stream stream)
+        private static string[] ReadPatternLines(Stream stream)
         {
             using (TextReader textReader = new StreamReader(stream))
                 return ReadPatternLines(textReader);
         }
 
-        private static List<string> ReadPatternLines(string str)
+        private static string[] ReadPatternLines(string str)
         {
             using (TextReader textReader = new StringReader(str))
                 return ReadPatternLines(textReader);
         }
 
-        private static List<string> ReadPatternLines(TextReader textReader)
+        private static string[] ReadPatternLines(TextReader textReader)
         {
             List<string> lines = new List<string>();
             for (string line = textReader.ReadLine(); line != null; line = textReader.ReadLine())
             {
                 lines.Add(line);
             }
-            return lines;
+            return lines.ToArray();
         }
 
         /// <summary>
         /// Parses the given list of lines and creates a list of Patterns.
         /// </summary>
-        private static List<Pattern> ParsePatterns(List<string> lines, MatchOption option)
+        private static Pattern[] ParsePatterns(string[] lines, MatchOption option)
         {
             List<Pattern> patterns = new List<Pattern>();
             foreach (string line in lines)
@@ -182,7 +190,7 @@ namespace AGS.Editor
                     patterns.Add(p);
                 }
             }
-            return patterns;
+            return patterns.ToArray();
         }
 
         /// <summary>

@@ -47,6 +47,7 @@ namespace AGS.Editor
         public const string GAME_FILE_NAME = "Game.agf";
 		public const string BACKUP_EXTENSION = "bak";
         public const string OLD_GAME_FILE_NAME = "ac2game.dta";
+        public const string TEMPLATE_INCLUDE_FILE = "template.files";
         public const string TEMPLATES_DIRECTORY_NAME = "Templates";
         public const string AGS_REGISTRY_KEY = @"SOFTWARE\Adventure Game Studio\AGS Editor";
         public const string SPRITE_FILE_NAME = "acsprset.spr";

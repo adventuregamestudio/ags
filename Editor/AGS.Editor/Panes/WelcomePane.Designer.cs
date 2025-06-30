@@ -170,7 +170,7 @@ namespace AGS.Editor
             this.pnlRight.Margin = new System.Windows.Forms.Padding(10);
             this.pnlRight.MinimumSize = new System.Drawing.Size(443, 362);
             this.pnlRight.Name = "pnlRight";
-            this.pnlRight.Size = new System.Drawing.Size(612, 362);
+            this.pnlRight.Size = new System.Drawing.Size(608, 362);
             this.pnlRight.TabIndex = 2;
             // 
             // tableRight
@@ -192,7 +192,7 @@ namespace AGS.Editor
             this.tableRight.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.tableRight.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.tableRight.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.tableRight.Size = new System.Drawing.Size(612, 362);
+            this.tableRight.Size = new System.Drawing.Size(608, 362);
             this.tableRight.TabIndex = 6;
             // 
             // lblUpgradingInfo3
@@ -202,7 +202,7 @@ namespace AGS.Editor
             this.lblUpgradingInfo3.MaximumSize = new System.Drawing.Size(600, 0);
             this.lblUpgradingInfo3.Name = "lblUpgradingInfo3";
             this.lblUpgradingInfo3.Padding = new System.Windows.Forms.Padding(3);
-            this.lblUpgradingInfo3.Size = new System.Drawing.Size(438, 244);
+            this.lblUpgradingInfo3.Size = new System.Drawing.Size(275, 146);
             this.lblUpgradingInfo3.TabIndex = 3;
             this.lblUpgradingInfo3.Text = resources.GetString("lblUpgradingInfo3.Text");
             // 
@@ -213,7 +213,7 @@ namespace AGS.Editor
             this.label5.Location = new System.Drawing.Point(6, 3);
             this.label5.Name = "label5";
             this.label5.Padding = new System.Windows.Forms.Padding(3);
-            this.label5.Size = new System.Drawing.Size(172, 20);
+            this.label5.Size = new System.Drawing.Size(160, 20);
             this.label5.TabIndex = 0;
             this.label5.Text = "What\'s new in AGS 4.0?";
             // 
@@ -225,7 +225,7 @@ namespace AGS.Editor
             this.lnkUpgrading.MaximumSize = new System.Drawing.Size(600, 0);
             this.lnkUpgrading.Name = "lnkUpgrading";
             this.lnkUpgrading.Padding = new System.Windows.Forms.Padding(3);
-            this.lnkUpgrading.Size = new System.Drawing.Size(600, 48);
+            this.lnkUpgrading.Size = new System.Drawing.Size(596, 48);
             this.lnkUpgrading.TabIndex = 1;
             this.lnkUpgrading.Text = resources.GetString("lnkUpgrading.Text");
             this.lnkUpgrading.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lnkUpgrading_LinkClicked);
@@ -237,7 +237,7 @@ namespace AGS.Editor
             this.lblUpgradingInfo.MaximumSize = new System.Drawing.Size(600, 0);
             this.lblUpgradingInfo.Name = "lblUpgradingInfo";
             this.lblUpgradingInfo.Padding = new System.Windows.Forms.Padding(3);
-            this.lblUpgradingInfo.Size = new System.Drawing.Size(531, 20);
+            this.lblUpgradingInfo.Size = new System.Drawing.Size(367, 20);
             this.lblUpgradingInfo.TabIndex = 2;
             this.lblUpgradingInfo.Text = "With AGS 4.0 you can make use of the new extended compiler!";
             // 

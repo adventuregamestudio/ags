@@ -32,6 +32,8 @@ namespace AGS.Editor
         {
             _guiContoller = guiContoller;
             InitializeComponent();
+            lnkUpgrading.Links.Add(65, 23, "What's new in AGS 4.0");
+            lnkUpgrading.Links.Add(212, 22, "Upgrading to AGS 4.0");
         }
 
         protected override string OnGetHelpKeyword()

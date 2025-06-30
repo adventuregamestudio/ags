@@ -130,6 +130,6 @@
 * And loads more!</value>
   </data>
   <data name="lnkUpgrading.Text" xml:space="preserve">
-    <value>If you've come from an older version of AGS be sure to read "Upgrading to ..." articles in the manual. "Upgrading to AGS 4.0" page gives insight into most important changes in current version.</value>
+    <value>If you've come from an older version of AGS, be sure to read the "What's New In AGS 4.0" page, which describes the main changes in the current version. If you are upgrading a project from a previous version, the "Upgrading To AGS 4.0" page gives you a walkthrough.</value>
   </data>
 </root>

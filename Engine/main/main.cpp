@@ -115,7 +115,7 @@ void main_print_help() {
 #if AGS_PLATFORM_OS_WINDOWS
            "  --console-attach             Write output to the parent process's console\n"
 #endif
-           "  --display <number>           1-based index of system display to start the game on.\n"
+           "  --display <number>           1-based index of system display to start on.\n"
            "  --fps                        Display fps counter\n"
            "  --fullscreen                 Force display mode to fullscreen\n"
            "  --gfxdriver <id>             Request graphics driver. Available options:\n"
@@ -124,8 +124,9 @@ void main_print_help() {
 #else
            "                                 ogl, software\n"
 #endif
+          //--------------------------------------------------------------------------------|
            "  --gfxfilter FILTER [SCALING]\n"
-           "                               Request graphics filter. Available options:\n"           
+           "                               Request graphics filter. Available options:\n"
            "                                 stdscale, linear\n"
            "                               (support may differ between graphic drivers);\n"
            "                               Scaling is specified as:\n"

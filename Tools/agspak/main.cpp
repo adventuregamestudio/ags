@@ -1,147 +1,152 @@
-//-----------------------------------------------------------------------//
+//=============================================================================
+//
+// Adventure Game Studio (AGS)
+//
+// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// The full list of copyright holders can be found in the Copyright.txt
+// file, which is part of this source code distribution.
+//
+// The AGS source code is provided under the Artistic License 2.0.
+// A copy of this license can be found in the file License.txt and at
+// https://opensource.org/license/artistic-2-0/
+//
+//=============================================================================
+// 
+// AGS package file pack/unpack utility.
+// 
 // TODO:
 // * append cmdline option (create new file / append to existing)
-// * option for full recursive subdirs?
-// * option for explicit file list
-//-----------------------------------------------------------------------//
-#include <algorithm>
-#include <stdio.h>
-#include "data/mfl_utils.h"
+// * proper unified error codes for the AGS tools?
+// 
+//=============================================================================
+#include "commands.h"
 #include "data/include_utils.h"
 #include "util/cmdlineopts.h"
-#include "util/file.h"
-#include "util/multifilelib.h"
-#include "util/path.h"
-#include "util/stdio_compat.h"
-#include "util/string_compat.h"
 #include "util/string_utils.h"
 
 using namespace AGS::Common;
-using namespace AGS::Common::CmdLineOpts;
 using namespace AGS::DataUtil;
 
-const char *HELP_STRING = "Usage: agspak <input-dir> <output-pak> [OPTIONS]\n"
-"Options:\n"
-"  -f, --pattern-file <F> set the name F of the file with the include patterns\n"
-"  -p <MB>                split game assets between partitions of this size max\n"
-"  -r                     recursive mode: include all subdirectories too\n"
-"  -v, --verbose          prints packaged files";
+const char *BIN_STRING = "agspak v0.3.0 - AGS game packaging tool\n"
+    "Copyright (c) 2025 AGS Team and contributors\n";
 
-int main(int argc, char *argv[])
+const char *HELP_STRING = "Usage:\n"
+   //--------------------------------------------------------------------------------|
+    "  agspak <COMMAND> <PAK-FILE> [<WORK-DIR>] [<FILES>] [OPTIONS]\n"
+    "      executes an operation regarding the chosen package file, a working\n"
+    "      directory, and an optional files list. Depending on a command either the\n"
+    "      pack or the directory is an input or an output.\n"
+    "      File list should be a comma-separated list of file names, which may\n"
+    "      contain simple wildcard patterns. If no file list is provided, then all\n"
+    "      the files found in the respective input location (dir or pack) will be\n"
+    "      selected for the operation.\n"
+    "      Options may adjust the operation further.\n"
+    "\n"
+    "Commands:\n"
+    "  -c, --create           create a pack file, gathering the files from the\n"
+    "                         input directory.\n"
+    "  -e, --export           export (extract) files from the existing pack file\n"
+    "                         into the output directory.\n"
+    "\n"
+    "Command options:\n"
+    "  -f, --pattern-file <file>\n"
+    "                         use pattern file with the include/exclude patterns\n"
+    "  -p, --partition <MB>   when creating a pack file, split asset files between\n"
+    "                         partitions of this size max. Input files are not split,\n"
+    "                         so files larger than this amount will occupy a single\n"
+    "                         partition\n"
+    "  -r, --recursive        when creating a pack file, include all subdirectories\n"
+    "                         of a working directory too\n"
+    "\n"
+    "Other options:\n"
+    "  -v, --verbose          print operation details"
+    ;
+
+
+int DoCommand(const CmdLineOpts::ParseResult &cmdargs)
 {
-    printf("agspak v0.2.0 - AGS game packaging tool\n"\
-        "Copyright (c) 2024 AGS Team and contributors\n");
-    ParseResult parseResult = Parse(argc,argv,{"-p", "-f", "--pattern-file"});
-    if (parseResult.HelpRequested)
+    // Parse the command
+    char command = 0;
+    for (const auto &opt : cmdargs.Opt)
     {
-        printf("%s\n", HELP_STRING);
-        return 0; // display help and bail out
-    }
-    if (parseResult.PosArgs.size() < 2)
-    {
-        printf("Error: not enough arguments\n");
-        printf("%s\n", HELP_STRING);
-        return -1;
+        if (opt == "-c" || opt == "--create")
+        {
+            command = 'c'; // create
+            break;
+        }
+        if (opt == "-e" || opt == "--export")
+        {
+            command = 'e'; // export
+            break;
+        }
     }
 
+    // Fixed pos options
+    const String pak_file = cmdargs.PosArgs.size() > 0 ? cmdargs.PosArgs[0] : String();
+    const String work_dir = cmdargs.PosArgs.size() > 1 ? cmdargs.PosArgs[1] : String();
+    const String file_list = cmdargs.PosArgs.size() > 2 ? cmdargs.PosArgs[2] : String();
+    // Common options
     // a include pattern file that should be inside the input-dir
     // TO-DO: support nested include pattern files in input-dir
     bool has_include_pattern_file = false;
     String include_pattern_file_name;
 
-    bool verbose = parseResult.Opt.count("-v") || parseResult.Opt.count("--verbose");
-    bool do_subdirs = parseResult.Opt.count("-r");
-    size_t part_size = 0;
-    for (const auto &opt_with_value : parseResult.OptWithValue)
+    // TODO: easier way to:
+    //  - get either short or long named option;
+    //  - get option's value without the search loop in the code
+    size_t part_size_mb = 0;
+    for (const auto &opt_with_value : cmdargs.OptWithValue)
     {
-        if (opt_with_value.first == "-p")
-        {
-            part_size = StrUtil::StringToInt(opt_with_value.second);
-        }
-        else if (opt_with_value.first == "-f" || opt_with_value.first == "--pattern-file")
+        if (opt_with_value.first == "-f" || opt_with_value.first == "--pattern-file")
         {
             has_include_pattern_file = true;
             include_pattern_file_name = opt_with_value.second;
         }
-    }
-
-    const String &src = parseResult.PosArgs[0];
-    const String &dst = parseResult.PosArgs[1];
-    printf("Input directory: %s\n", src.GetCStr());
-    printf("Output pack file: %s\n", dst.GetCStr());
-    if (has_include_pattern_file)
-        printf("Pattern file name: %s\n", include_pattern_file_name.GetCStr());
-
-    if (!ags_directory_exists(src.GetCStr()))
-    {
-        printf("Error: not a valid input directory.\n");
-        return -1;
-    }
-
-    //-----------------------------------------------------------------------//
-    // Gather list of files and set up library info
-    //-----------------------------------------------------------------------//
-    const String &asset_dir = src;
-    const String &lib_basefile = dst;
-
-    std::vector<String> files;
-    HError err = MakeListOfFiles(files, asset_dir, do_subdirs);
-    if (!err)
-    {
-        printf("Error: failed to gather list of files:\n");
-        printf("%s\n", err->FullMessage().GetCStr());
-        return -1;
-    }
-
-    if (has_include_pattern_file)
-    {
-        std::vector<String> output_files;
-        err = IncludeFiles(files, output_files, asset_dir, include_pattern_file_name, verbose);
-        if (!err)
+        else if (opt_with_value.first == "-p" || opt_with_value.first == "--partition")
         {
-            printf("Error: failed to processes %s file:\n", include_pattern_file_name.GetCStr());
-            printf("%s\n", err->FullMessage().GetCStr());
-            return -1;
+            part_size_mb = StrUtil::StringToInt(opt_with_value.second);
         }
-
-        files = std::move(output_files);
     }
+    const bool do_subdirs = cmdargs.Opt.count("-r") || cmdargs.Opt.count("--recursive");
+    const bool verbose = cmdargs.Opt.count("-v") || cmdargs.Opt.count("--verbose");
 
-    std::vector<AssetInfo> assets;
-    err = MakeAssetListFromFileList(files, assets, asset_dir);
-    if (!err)
+    // Run supported commands
+    switch (command)
     {
-        printf("Error: failed to prepare list of assets:\n");
-        printf("%s\n", err->FullMessage().GetCStr());
+    case 'c': // create
+        {
+            if (cmdargs.PosArgs.size() < 2)
+                break; // not enough args
+            // TODO: use file_list
+            return AGSPak::Command_Create(work_dir, pak_file, include_pattern_file_name, do_subdirs, part_size_mb, verbose);
+        }
+    case 'e': // export
+        {
+            if (cmdargs.PosArgs.size() < 2)
+                break; // not enough args
+            return AGSPak::Command_Export(pak_file, work_dir);
+        }
+    default:
+        printf("Error: no valid command is specified\n");
+        printf("%s\n", HELP_STRING);
         return -1;
     }
-    if (assets.size() == 0)
+
+    printf("Error: not enough arguments\n");
+    printf("%s\n", HELP_STRING);
+    return -1;
+}
+
+int main(int argc, char *argv[])
+{
+    printf("%s\n", BIN_STRING);
+
+    CmdLineOpts::ParseResult cmdargs = CmdLineOpts::Parse(argc, argv, {"-p", "-f", "--pattern-file"});
+    if (cmdargs.HelpRequested)
     {
-        printf("No valid assets found in the provided directory.\nDone.\n");
-        return 0;
+        printf("%s\n", HELP_STRING);
+        return 0; // display help and bail out
     }
 
-    AssetLibInfo lib;
-    soff_t part_size_b = part_size * 1024 * 1024; // MB to bytes
-    err = MakeAssetLib(lib, lib_basefile, assets, part_size_b);
-    if (!err)
-    {
-        printf("Error: failed to configure asset library:\n");
-        printf("%s\n", err->FullMessage().GetCStr());
-        return -1;
-    }
-
-    //-----------------------------------------------------------------------//
-    // Write pack file
-    //-----------------------------------------------------------------------//
-    String lib_dir = Path::GetParent(lib_basefile);
-    err = WriteLibrary(lib, asset_dir, lib_dir, MFLUtil::kMFLVersion_MultiV30, verbose);
-    if (!err)
-    {
-        printf("Error: failed to write pack file:\n");
-        printf("%s\n", err->FullMessage().GetCStr());
-        return -1;
-    }
-    printf("Pack file(s) written successfully.\nDone.\n");
-    return 0;
+    return DoCommand(cmdargs);
 }

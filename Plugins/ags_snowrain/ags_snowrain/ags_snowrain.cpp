@@ -850,6 +850,10 @@ void AGS_EngineInitGfx(const char *driverID, void *data)
 {
 }
 
+int AGS_PluginV2()
+{
+  return 1;
+}
 
 
 #if (AGS_PLATFORM_OS_WINDOWS) && !defined(BUILTIN_PLUGINS)

@@ -2383,6 +2383,11 @@ intptr_t AGS_EngineOnEvent(int event, intptr_t data) {
 int AGS_EngineDebugHook(const char *scriptName, int lineNum, int reserved) { return 0; }
 void AGS_EngineInitGfx(const char *driverID, void *data) {}
 
+int AGS_PluginV2()
+{
+    return 1;
+}
+
 // *** END RUN TIME ****
 
 #if defined(BUILTIN_PLUGINS)

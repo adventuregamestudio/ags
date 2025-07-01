@@ -50,6 +50,7 @@ const char *HELP_STRING = "Usage:\n"
     "                         input directory.\n"
     "  -e, --export           export (extract) files from the existing pack file\n"
     "                         into the output directory.\n"
+    "  -l, --list             print pack file's contents.\n"
     "\n"
     "Command options:\n"
     "  -f, --pattern-file <file>\n"
@@ -94,6 +95,11 @@ int DoCommand(const CmdLineOpts::ParseResult &cmdargs)
         if (opt == "-e" || opt == "--export")
         {
             command = 'e'; // export
+            break;
+        }
+        if (opt == "-l" || opt == "--list")
+        {
+            command = 'l'; // list
             break;
         }
     }
@@ -143,6 +149,12 @@ int DoCommand(const CmdLineOpts::ParseResult &cmdargs)
             if (cmdargs.PosArgs.size() < 2)
                 break; // not enough args
             return AGSPak::Command_Export(pak_file, work_dir, pattern_list);
+        }
+    case 'l': // list
+        {
+            if (cmdargs.PosArgs.size() < 1)
+                break; // not enough args
+            return AGSPak::Command_List(pak_file);
         }
     default:
         printf("Error: no valid command is specified\n");

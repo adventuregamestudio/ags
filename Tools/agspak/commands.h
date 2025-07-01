@@ -14,15 +14,17 @@
 #ifndef __AGS_TOOL_AGSPAK__COMMANDS_H
 #define __AGS_TOOL_AGSPAK__COMMANDS_H
 
+#include <regex>
 #include "util/string.h"
 
 namespace AGSPak
 {
     using String = AGS::Common::String;
 
-    int Command_Create(const String &src_dir, const String &dst_pak, const String &pattern_file,
+    int Command_Create(const String &src_dir, const String &dst_pak, const std::vector<std::regex> &pattern_list,
+                     const String &pattern_file,
                      bool do_subdirs, size_t part_size_mb, bool verbose);
-    int Command_Export(const String &src_pak, const String &dst_dir);
+    int Command_Export(const String &src_pak, const String &dst_dir, const std::vector<std::regex> &pattern_list);
 }
 
 #endif // __AGS_TOOL_AGSPAK__COMMANDS_H

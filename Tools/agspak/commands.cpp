@@ -24,7 +24,29 @@ using namespace AGS::DataUtil;
 namespace AGSPak
 {
 
-int Command_Create(const String &src_dir, const String &dst_pak, const String &pattern_file, bool do_subdirs, size_t part_size_mb, bool verbose)
+// Filters the list of valid file paths using a list of regex patterns;
+// returns the filtered result.
+static std::vector<String> FilterFileList(const std::vector<String> &files, const std::vector<std::regex> &patterns)
+{
+    std::vector<String> filtered_files;
+    for (const auto &full_filepath : files)
+    {
+        String fn_only = Path::GetFilename(full_filepath);
+        for (const auto &p : patterns)
+        {
+            if (std::regex_match(fn_only.GetCStr(), p))
+            {
+                filtered_files.push_back(full_filepath);
+                break;
+            }
+        }
+    }
+    return filtered_files;
+}
+
+
+int Command_Create(const String &src_dir, const String &dst_pak, const std::vector<std::regex> &pattern_list,
+                   const String &pattern_file, bool do_subdirs, size_t part_size_mb, bool verbose)
 {
     printf("Input directory: %s\n", src_dir.GetCStr());
     printf("Output pack file: %s\n", dst_pak.GetCStr());
@@ -53,6 +75,13 @@ int Command_Create(const String &src_dir, const String &dst_pak, const String &p
         return -1;
     }
 
+    // Apply the explicit file list, if provided
+    if (!pattern_list.empty())
+    {
+        files = std::move(FilterFileList(files, pattern_list));
+    }
+
+    // Apply the include/exclude pattern file as a filter
     if (has_pattern_file)
     {
         std::vector<String> output_files;
@@ -106,7 +135,7 @@ int Command_Create(const String &src_dir, const String &dst_pak, const String &p
     return 0;
 }
 
-int Command_Export(const String &src_pak, const String &dst_dir)
+int Command_Export(const String &src_pak, const String &dst_dir, const std::vector<std::regex> &pattern_list)
 {
     printf("Input pack file: %s\n", src_pak.GetCStr());
     printf("Output directory: %s\n", dst_dir.GetCStr());
@@ -151,7 +180,11 @@ int Command_Export(const String &src_pak, const String &dst_dir)
     // file we just opened, because it may be different from the name
     // saved in lib; e.g. if the lib was attached to *.exe.
     lib.LibFileNames[0] = lib_basefile;
-    HError err = UnpackLibrary(lib, lib_dir, dst_dir);
+    HError err;
+    if (pattern_list.empty())
+        err = ExportFromLibrary(lib, lib_dir, dst_dir);
+    else
+        err = ExportFromLibrary(lib, lib_dir, dst_dir, &pattern_list);
     if (!err)
     {
         printf("Failed unpacking the library\n%s", err->FullMessage().GetCStr());

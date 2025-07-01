@@ -17,8 +17,11 @@
 // TODO:
 // * append cmdline option (create new file / append to existing)
 // * proper unified error codes for the AGS tools?
+// * clarify the use of "verbose" option, and make it consistent
+//   throughout the operations.
 // 
 //=============================================================================
+#include <regex>
 #include "commands.h"
 #include "data/include_utils.h"
 #include "util/cmdlineopts.h"
@@ -63,6 +66,20 @@ const char *HELP_STRING = "Usage:\n"
     ;
 
 
+// Parses a comma-separated list of filenames, which may contain wildcards,
+// and creates a list of regexes for each of them.
+static std::vector<std::regex> FileListString2FilePatterns(const String &file_list)
+{
+    std::vector<std::regex> patterns;
+    std::vector<String> file_names = file_list.Split(',');
+    for (auto &fn : file_names)
+    {
+        fn.Trim();
+        patterns.push_back(std::regex(StrUtil::WildcardToRegex(fn).GetCStr(), std::regex_constants::icase));
+    }
+    return patterns;
+}
+
 int DoCommand(const CmdLineOpts::ParseResult &cmdargs)
 {
     // Parse the command
@@ -84,12 +101,11 @@ int DoCommand(const CmdLineOpts::ParseResult &cmdargs)
     // Fixed pos options
     const String pak_file = cmdargs.PosArgs.size() > 0 ? cmdargs.PosArgs[0] : String();
     const String work_dir = cmdargs.PosArgs.size() > 1 ? cmdargs.PosArgs[1] : String();
-    const String file_list = cmdargs.PosArgs.size() > 2 ? cmdargs.PosArgs[2] : String();
+    const String file_list_str = cmdargs.PosArgs.size() > 2 ? cmdargs.PosArgs[2] : String();
     // Common options
     // a include pattern file that should be inside the input-dir
     // TO-DO: support nested include pattern files in input-dir
-    bool has_include_pattern_file = false;
-    String include_pattern_file_name;
+    String pattern_file;
 
     // TODO: easier way to:
     //  - get either short or long named option;
@@ -99,8 +115,7 @@ int DoCommand(const CmdLineOpts::ParseResult &cmdargs)
     {
         if (opt_with_value.first == "-f" || opt_with_value.first == "--pattern-file")
         {
-            has_include_pattern_file = true;
-            include_pattern_file_name = opt_with_value.second;
+            pattern_file = opt_with_value.second;
         }
         else if (opt_with_value.first == "-p" || opt_with_value.first == "--partition")
         {
@@ -110,6 +125,10 @@ int DoCommand(const CmdLineOpts::ParseResult &cmdargs)
     const bool do_subdirs = cmdargs.Opt.count("-r") || cmdargs.Opt.count("--recursive");
     const bool verbose = cmdargs.Opt.count("-v") || cmdargs.Opt.count("--verbose");
 
+    std::vector<std::regex> pattern_list;
+    if (!file_list_str.IsEmpty())
+        pattern_list = FileListString2FilePatterns(file_list_str);
+
     // Run supported commands
     switch (command)
     {
@@ -117,14 +136,13 @@ int DoCommand(const CmdLineOpts::ParseResult &cmdargs)
         {
             if (cmdargs.PosArgs.size() < 2)
                 break; // not enough args
-            // TODO: use file_list
-            return AGSPak::Command_Create(work_dir, pak_file, include_pattern_file_name, do_subdirs, part_size_mb, verbose);
+            return AGSPak::Command_Create(work_dir, pak_file, pattern_list, pattern_file, do_subdirs, part_size_mb, verbose);
         }
     case 'e': // export
         {
             if (cmdargs.PosArgs.size() < 2)
                 break; // not enough args
-            return AGSPak::Command_Export(pak_file, work_dir);
+            return AGSPak::Command_Export(pak_file, work_dir, pattern_list);
         }
     default:
         printf("Error: no valid command is specified\n");

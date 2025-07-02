@@ -233,17 +233,26 @@ std::vector<String> read_file(const String &filename, bool verbose)
     return lines;
 }
 
-HError IncludeFiles(const std::vector<String> &input_files, std::vector<String> &output_files,
-    const String &parent, const String &include_pattern_file, bool verbose)
+HError MatchPatternPaths(const std::vector<String> &input_files, std::vector<String> &output_matches,
+    const std::vector<String> &patterns_description)
 {
-    String ignore_filename = Path::ConcatPaths(parent, include_pattern_file);
-    std::vector<String> patterns_description = read_file(ignore_filename, verbose);
-    std::vector<Pattern> patterns = description_to_patterns(patterns_description);
-    std::vector<String> matches = match_files(input_files, patterns);
-
-    output_files.insert(output_files.end(), matches.begin(), matches.end());
+    const std::vector<Pattern> patterns = description_to_patterns(patterns_description);
+    const std::vector<String> matches = match_files(input_files, patterns);
+    output_matches.insert(output_matches.end(), matches.begin(), matches.end());
 
     return HError::None();
+}
+
+HError IncludeFiles(const std::vector<String> &input_files, std::vector<String> &output_files,
+    const String &parent, const String &include_pattern_file, const bool verbose)
+{
+    const String ignore_filename = Path::ConcatPaths(parent, include_pattern_file);
+    std::vector<String> patterns_description = read_file(ignore_filename, verbose);
+    std::vector<String> matches{};
+    HError err = MatchPatternPaths(input_files, matches, patterns_description);
+    output_files.insert(output_files.end(), matches.begin(), matches.end());
+
+    return err;
 }
 
 } // namespace DataUtil

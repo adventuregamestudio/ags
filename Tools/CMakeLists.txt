@@ -127,3 +127,23 @@ add_dependencies(Tools ${TOOLS_TARGETS})
 if (AGS_DESKTOP)
     install(TARGETS ${TOOLS_TARGETS} RUNTIME DESTINATION bin)
 endif ()
+
+if(AGS_TESTS)
+   add_executable(tools_test
+      test/include_utils_test.cpp
+   )
+   set_target_properties(tools_test PROPERTIES
+      CXX_STANDARD 11
+      CXX_EXTENSIONS NO
+      C_STANDARD 11
+      C_EXTENSIONS NO
+      INTERPROCEDURAL_OPTIMIZATION FALSE
+   )
+   target_link_libraries(tools_test
+      libtools
+      gtest_main
+   )
+
+   include(GoogleTest)
+   gtest_add_tests(TARGET tools_test)
+endif()

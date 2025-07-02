@@ -938,7 +938,7 @@ void Character_SetSpeed(CharacterInfo *chaa, int xspeed, int yspeed) {
 
     if ((xspeed == 0) || (yspeed == 0))
         quit("!SetCharacterSpeedEx: invalid speed value");
-    if (chaa->is_moving() && (loaded_game_file_version < kGameVersion_361))
+    if (chaa->is_moving_onpath() && (loaded_game_file_version < kGameVersion_361))
     {
         debug_script_warn("Character_SetSpeed: cannot change speed while walking");
         return;
@@ -956,7 +956,7 @@ void Character_SetSpeed(CharacterInfo *chaa, int xspeed, int yspeed) {
     else
         chaa->walkspeed_y = yspeed;
 
-    if (chaa->is_moving() && (old_speedx != xspeed || old_speedy != yspeed))
+    if (chaa->is_moving_onpath() && (old_speedx != xspeed || old_speedy != yspeed))
     {
         Pathfinding::RecalculateMoveSpeeds(mls[chaa->get_movelist_id()], old_speedx, old_speedy, xspeed, yspeed);
     }
@@ -964,7 +964,7 @@ void Character_SetSpeed(CharacterInfo *chaa, int xspeed, int yspeed) {
 
 void Character_StopMoving(CharacterInfo *chi)
 {
-    Character_StopMovingEx(chi, chi->is_moving() && !mls[chi->get_movelist_id()].IsStageDirect());
+    Character_StopMovingEx(chi, chi->is_moving_onpath() && !mls[chi->get_movelist_id()].IsStageDirect());
 }
 
 void Character_StopMovingEx(CharacterInfo *chi, bool force_walkable_area)
@@ -2074,7 +2074,7 @@ int doNextCharMoveStep(CharacterInfo *chi, CharacterExtras *chex) {
 
 bool is_char_walking_ndirect(CharacterInfo *chi)
 {
-    return chi->is_moving_not_turning() &&
+    return chi->is_moving_onpath() &&
         !mls[chi->get_movelist_id()].IsStageDirect();
 }
 

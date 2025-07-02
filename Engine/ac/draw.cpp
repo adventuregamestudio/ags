@@ -2936,7 +2936,7 @@ void update_room_debug()
             recycle_bitmap(debugMoveListObj.Bmp, game.GetColorDepth(),
                 thisroom.WalkAreaMask->GetWidth(), thisroom.WalkAreaMask->GetHeight(), true);
 
-        if (game.chars[debugMoveListChar].is_moving())
+        if (game.chars[debugMoveListChar].is_moving_onpath())
         {
             int mlsnum = game.chars[debugMoveListChar].get_movelist_id();
             const MoveList &cmls = mls[mlsnum];

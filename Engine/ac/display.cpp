@@ -426,8 +426,10 @@ ScreenOverlay *display_main(int xx, int yy, int wii, const char *text,
     if ((look.Style == kDisplayTextStyle_PlainText || look.Style == kDisplayTextStyle_Overchar)
         && (disp_type < kDisplayText_NormalOverlay))
     {
-        // update the all_buttons_disabled variable in advance
-        // of the adjust_x/y_for_guis calls
+        // Update the GUI disabled state in advance of the adjust_x/y_for_guis calls;
+        // this is done to avoid display box moved away from GUIs that will be hidden
+        // FIXME: this is a misleading hack, find a way to do this without tweaking
+        // play.disabled_user_interface.
         play.disabled_user_interface++;
         update_gui_disabled_status();
         play.disabled_user_interface--;

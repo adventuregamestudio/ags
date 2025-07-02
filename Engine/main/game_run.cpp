@@ -136,26 +136,18 @@ public:
     void Begin() override
     {
         assert(_disabledFor == FOR_EXITLOOP);
-        play.disabled_user_interface++;
-        // If GUI looks change when disabled, then mark all of them for redraw
-        GUIE::MarkAllGUIForUpdate(GUI::Options.DisabledStyle != kGuiDis_Unchanged, true);
-
         // Only change the mouse cursor if it hasn't been specifically changed first
         // (or if it's speech, always change it)
-        if (((cur_cursor == cur_mode) || (_untilType == UNTIL_NOOVERLAY)) &&
-            (cur_mode != CURS_WAIT))
-        {
-            set_mouse_cursor(CURS_WAIT);
-        }
+        bool should_update_cursor =
+            ((cur_cursor == cur_mode) || (_untilType == UNTIL_NOOVERLAY)) &&
+            (cur_mode != CURS_WAIT);
+        DisableInterfaceEx(should_update_cursor);
     }
     // End the state, release all resources
     void End() override
     {
         set_our_eip(77);
-        set_default_cursor();
-        // If GUI looks change when disabled, then mark all of them for redraw
-        GUIE::MarkAllGUIForUpdate(GUI::Options.DisabledStyle != kGuiDis_Unchanged, true);
-        play.disabled_user_interface--;
+        EnableInterfaceEx(true /* update cursor */);
 
         switch (_disabledFor)
         {

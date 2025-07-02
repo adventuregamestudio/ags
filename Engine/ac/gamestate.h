@@ -64,6 +64,26 @@ enum GameStateSvgVersion
     kGSSvgVersion_361_14    = 4,
 };
 
+// SavedLocationType defines the type of location which
+// was last hovered by the mouse cursor.
+// This value is used as a index base for the respective kind of entity.
+// See GamePlayState::get_loc_name_last_time and get_loc_name_save_cursor
+enum SavedLocationType
+{
+    // not over a room
+    kSavedLocType_Undefined = -1,
+    // over a empty place in a room
+    kSavedLocType_NoHotspot = 0,
+    // hotspot base index
+    kSavedLocType_Hotspot   = 0,
+    // inv item base index
+    kSavedLocType_InvItem   = 1000,
+    // character base index
+    kSavedLocType_Character = 2000,
+    // room object base index
+    kSavedLocType_Object    = 3000,
+};
+
 
 // A GameState is a parent class for the game states.
 class GameState
@@ -250,8 +270,8 @@ struct GamePlayState
     bool  rtint_enabled = false;
     int   end_cutscene_music = 0;
     int   skip_until_char_stops = 0;
-    int   get_loc_name_last_time = 0;
-    int   get_loc_name_save_cursor = 0;
+    int   get_loc_name_last_time = kSavedLocType_Undefined;
+    int   get_loc_name_save_cursor = kSavedLocType_Undefined;
     int   restore_cursor_mode_to = 0;
     int   restore_cursor_image_to = 0;
     short music_queue_size = 0;

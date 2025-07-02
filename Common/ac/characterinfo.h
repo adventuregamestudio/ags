@@ -178,13 +178,22 @@ struct CharacterInfo
         walk_speed_y = ((walkspeed_y == UNIFORM_WALK_SPEED) ? walkspeed : walkspeed_y);
     }
 
-    inline bool is_moving()          const { return walking > 0; }
-    inline bool is_moving_not_turning() const { return (walking > 0) && (walking < TURNING_AROUND); }
+    // Gets current character's movelist id
+    inline int  get_movelist_id()    const { return walking % TURNING_AROUND; }
+    // Tells if the character is performing a move, that is - either moving along
+    // a path or turning around; the latter may be either turning to face something,
+    // or turning between move path segments.
+    inline bool is_moving() const { return walking > 0; }
+    // Tells if the character has a valid move order, meaning it's actually
+    // moving along the path (and not e.g. turning on spot to face something).
+    inline bool is_moving_onpath() const { return get_movelist_id() > 0; }
     // Is moving *and* playing walking animation
-    inline bool is_moving_walkanim()  const { return (flags & CHF_MOVENOTWALK) == 0; }
+    // FIXME: would be proper to also test is_moving_onpath() in is_moving_walkanim()
+    // and in is_moving_no_anim(), but it breaks animation logic;
+    // some further adjustments would be required in the engine code.
+    inline bool is_moving_walkanim() const { return (flags & CHF_MOVENOTWALK) == 0; }
     // Is moving, but *not* playing walking animation
     inline bool is_moving_no_anim()  const { return (flags & CHF_MOVENOTWALK) != 0; }
-    inline int  get_movelist_id()    const { return walking % TURNING_AROUND; }
 
     inline bool has_explicit_light() const { return (flags & CHF_HASLIGHT) != 0; }
     inline bool has_explicit_tint()  const { return (flags & CHF_HASTINT) != 0; }

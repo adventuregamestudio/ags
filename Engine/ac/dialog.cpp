@@ -1147,9 +1147,11 @@ bool DialogOptions::Run()
     // Optionally run full game update, otherwise only minimal auto & overlay update
     if (runGameLoopsInBackground)
     {
-        play.disabled_user_interface++;
+        // CHECKME: why do we disable user interface here, but not when doing
+        // render_graphics() in another branch below?
+        DisableInterfaceEx(false /* don't change cursor */);
         UpdateGameOnce(false, ddb, position.Left, position.Top);
-        play.disabled_user_interface--;
+        EnableInterfaceEx(false /* don't change cursor */);
 
         // Stop the dialog options if requested from script
         if (doStop)

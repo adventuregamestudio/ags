@@ -36,6 +36,8 @@ int  GetFontLineSpacing(int fontnum);
 void SetGUIBackgroundPic (int guin, int slotn);
 void DisableInterface();
 void EnableInterface();
+void DisableInterfaceEx(bool update_cursor);
+void EnableInterfaceEx(bool update_cursor);
 // Returns 1 if user interface is enabled, 0 if disabled
 int  IsInterfaceEnabled();
 // pass trans=0 for fully solid, trans=100 for fully transparent

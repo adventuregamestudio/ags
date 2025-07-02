@@ -1113,7 +1113,7 @@ static void UpdateMouseOverLocation()
         (mouse_on_iface < 0) && (ifacepopped < 0)) {
             // we have saved the cursor, but the mouse location has changed
             // and it's time to restore it
-            play.get_loc_name_save_cursor = -1;
+            play.get_loc_name_save_cursor = kSavedLocType_Undefined;
             set_cursor_mode(play.restore_cursor_mode_to);
 
             if (cur_mode == play.restore_cursor_mode_to)

@@ -734,8 +734,8 @@ void engine_init_game_settings()
     play.silent_midi = 0;
     play.current_music_repeating = 0;
     play.skip_until_char_stops = -1;
-    play.get_loc_name_last_time = -1;
-    play.get_loc_name_save_cursor = -1;
+    play.get_loc_name_last_time = kSavedLocType_Undefined;
+    play.get_loc_name_save_cursor = kSavedLocType_Undefined;
     play.restore_cursor_mode_to = -1;
     play.restore_cursor_image_to = -1;
     play.ground_level_areas_disabled = 0;

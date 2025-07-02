@@ -183,6 +183,11 @@ static void font_post_init(int font_number)
     {
         static_cast<TTFFontRenderer*>(font.RendererInt)->SetCharacterSpacing(font_number, font.Info.CharacterSpacing);
     }
+    // Apply character spacing if it's a WFN font
+    else if (font.RendererInt == wfnRenderer.get())
+    {
+        static_cast<WFNFontRenderer*>(font.RendererInt)->SetCharacterSpacing(font_number, font.Info.CharacterSpacing);
+    }
 }
 
 static void font_replace_renderer(int font_number,

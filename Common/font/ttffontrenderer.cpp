@@ -181,6 +181,14 @@ void TTFFontRenderer::AdjustFontForAntiAlias(int fontNumber, bool /*aa_mode*/)
   }
 }
 
+void TTFFontRenderer::SetCharacterSpacing(int fontNumber, int spacing)
+{
+    if (_fontData.find(fontNumber) != _fontData.end())
+    {
+        alfont_set_char_extra_spacing(_fontData[fontNumber].AlFont, spacing);
+    }
+}
+
 void TTFFontRenderer::FreeMemory(int fontNumber)
 {
   alfont_destroy_font(_fontData[fontNumber].AlFont);

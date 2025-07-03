@@ -152,9 +152,8 @@ String normalize_separators_in_string(const String &path)
     return result;
 }
 
-std::vector<Pattern> description_to_patterns(const std::vector<String> &description)
+HError description_to_patterns(const std::vector<String> &description, std::vector<Pattern> &patterns)
 {
-    std::vector<Pattern> patterns;
     for (String line : description)
     {
         line.Trim();
@@ -174,12 +173,25 @@ std::vector<Pattern> description_to_patterns(const std::vector<String> &descript
         String shell_regex_txt = normalize_separators_in_text(line); // for unix paths
 
         String regex_txt = translate_to_regex_string(shell_regex_txt);
+
         p.TextualOriginalPattern = shell_regex_txt;
         p.TextualTranslatedPattern = regex_txt;
-        p.Regex = regex_txt.GetCStr();
+
+        // catch exceptions, since they may happen from user input in the pattern file
+        try
+        {
+            p.Regex = regex_txt.GetCStr();
+        }
+        catch (const std::exception& ex)
+        {
+            return new Error(String::FromFormat(
+            "include_utils: failed at translating pattern at line '%s', error: '%s'.", line.GetCStr(), ex.what()
+            ));
+        }
+
         patterns.emplace_back(p);
     }
-    return patterns;
+    return HError::None();
 }
 
 std::vector<String> match_files(const std::vector<String>& files, const std::vector<Pattern> &patterns)
@@ -243,11 +255,12 @@ std::vector<String> read_file(const String &filename, bool verbose)
 HError MatchPatternPaths(const std::vector<String> &input_files, std::vector<String> &output_matches,
     const std::vector<String> &patterns_description)
 {
-    const std::vector<Pattern> patterns = description_to_patterns(patterns_description);
+    std::vector<Pattern> patterns {};
+    HError err = description_to_patterns(patterns_description, patterns);
     const std::vector<String> matches = match_files(input_files, patterns);
     output_matches.insert(output_matches.end(), matches.begin(), matches.end());
 
-    return HError::None();
+    return err;
 }
 
 HError IncludeFiles(const std::vector<String> &input_files, std::vector<String> &output_files,

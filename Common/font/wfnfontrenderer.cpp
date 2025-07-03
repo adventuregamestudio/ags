@@ -77,7 +77,7 @@ void WFNFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *desti
 
   const WFNFont* font = _fontData[fontNumber].Font;
   const FontRenderParams &params = _fontData[fontNumber].Params;
-  const int charSpacing = _fontData[fontNumber].CharacterSpacing;
+  const int charSpacing = _fontData[fontNumber].CharacterSpacing * params.SizeMultiplier;
   Bitmap ds(destination, true);
 
   // NOTE: allegro's putpixel ignores clipping (optimization),
@@ -86,12 +86,7 @@ void WFNFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *desti
   bool first_char = true;
   for (int code = ugetxc(&text); code; code = ugetxc(&text))
   {
-    if (!first_char)
-    {
-      x += charSpacing * params.SizeMultiplier;
-    }
-    x += RenderChar(&ds, x, y, clip, font->GetChar(code), params.SizeMultiplier, colour);
-    first_char = false;
+    x += charSpacing + RenderChar(&ds, x, y, clip, font->GetChar(code), params.SizeMultiplier, colour);
   }
 
   set_our_eip(oldeip);

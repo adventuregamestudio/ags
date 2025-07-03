@@ -384,7 +384,7 @@ namespace AGS.Editor
             {
                 if (makeFileNameAssumptions)
                 {
-                    ourlib.DataFilenames.Add(baseFileName + "." + 
+                    ourlib.DataFilenames.Add(baseFileName + "." +
                         (i == 0 ? "ags" : i.ToString("D3")));
                 }
                 else
@@ -1503,7 +1503,6 @@ namespace AGS.Editor
 
                 writer.Write(game.Fonts[i].VerticalOffset);
                 writer.Write(game.Fonts[i].LineSpacing);
-                writer.Write(game.Fonts[i].CharacterSpacing);
             }
             int topmostSprite;
             byte[] spriteFlags = new byte[NativeConstants.MAX_STATIC_SPRITES];
@@ -1818,6 +1817,7 @@ namespace AGS.Editor
             WriteExtension("v361_objnames", WriteExt_361ObjNames, writer, gameEnts, errors);
             WriteExtension("v362_interevent2", WriteExt_362InteractionEvents, writer, gameEnts, errors);
             WriteExtension("v362_guictrls", WriteExt_362GUIControls, writer, gameEnts, errors);
+            WriteExtension("v363_charspacing", WriteExt_363CharSpacing, writer, gameEnts, errors);
 
             // End of extensions list
             writer.Write((byte)0xff);
@@ -1943,6 +1943,14 @@ namespace AGS.Editor
             }
         }
 
+        private static void WriteExt_363CharSpacing(BinaryWriter writer, WriteExtEntities ents, CompileMessages errors)
+        {
+            foreach (var font in ents.Game.Fonts)
+            {
+                writer.Write(font.CharacterSpacing);
+            }
+        }
+
         /// <summary>
         /// Helper struct for gathering objects that may be useful when writing extensions.
         /// </summary>
@@ -1962,6 +1970,11 @@ namespace AGS.Editor
 
         private static void WriteExtension(string ext_id, WriteExtensionProc proc, BinaryWriter writer, WriteExtEntities ents, CompileMessages errors)
         {
+            if (ext_id == null)
+                throw new ArgumentNullException(nameof(ext_id));
+            if (ext_id.Length > 16)
+                throw new ArgumentException($"Data file extension ID cannot be longer than 16 characters: {ext_id}");
+            
             // The block meta format:
             //    - 1 byte - an old-style unsigned numeric ID, for compatibility with room file format:
             //               where 0 would indicate following string ID,

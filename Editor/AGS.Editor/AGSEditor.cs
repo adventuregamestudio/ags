@@ -114,7 +114,7 @@ namespace AGS.Editor
          * 3.6.2.2        - Button.WrapText, TextPadding.
          * 3.6.2.6        - Settings.GameFPS.
          * 3.6.2.9        - Sprite.TransparentColorIndex (can select transparent palette index).
-         * 3.6.3          - Settings.GUIHandleOnlyLeftMouseButton.
+         * 3.6.3          - Settings.GUIHandleOnlyLeftMouseButton, Font.CharacterSpacing.
         */
         public const int    LATEST_XML_VERSION_INDEX = 3060300;
         /*

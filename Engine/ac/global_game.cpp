@@ -751,19 +751,18 @@ static const char *GetLocationNameAndIndex(int x, int y, int &loc_index)
         }
     }
 
+    const int loctype = GetLocationType(x, y); // GetLocationType takes screen coords
     // Find out if we're inside the room viewport
     const VpPoint vpt = play.ScreenToRoomDivDown(x, y);
-    x = vpt.first.X;
-    y = vpt.first.Y;
+    const Point room_pt = vpt.first;
     const int view_index = vpt.second;
-    if ((view_index < 0) || (x < 0) || (y < 0) || (x >= thisroom.Width) || (y >= thisroom.Height))
+    if ((view_index < 0) || (!RectWH(0, 0, thisroom.Width, thisroom.Height).IsInside(room_pt)))
     {
         loc_index = kSavedLocType_Undefined;
         return "";
     }
 
     // Get if we're above any interactable location
-    const int loctype = GetLocationType(x, y); // GetLocationType takes screen coords
     const int onhs = getloctype_index; // FIXME: stop using global variable
     if (loctype == 0)
     {

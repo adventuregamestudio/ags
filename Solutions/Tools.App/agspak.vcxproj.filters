@@ -66,5 +66,19 @@
     <ClCompile Include="..\..\Tools\data\include_utils.cpp">
       <Filter>data</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Tools\agspak\commands.cpp">
+      <Filter>agspak</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Tools\data\include_utils.h">
+      <Filter>data</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Tools\data\mfl_utils.h">
+      <Filter>data</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Tools\agspak\commands.h">
+      <Filter>agspak</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -33,9 +33,15 @@
     <ClCompile Include="..\..\Common\util\string.cpp" />
     <ClCompile Include="..\..\Common\util\string_compat.c" />
     <ClCompile Include="..\..\Common\util\string_utils.cpp" />
+    <ClCompile Include="..\..\Tools\agspak\commands.cpp" />
     <ClCompile Include="..\..\Tools\agspak\main.cpp" />
     <ClCompile Include="..\..\Tools\data\include_utils.cpp" />
     <ClCompile Include="..\..\Tools\data\mfl_utils.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Tools\agspak\commands.h" />
+    <ClInclude Include="..\..\Tools\data\include_utils.h" />
+    <ClInclude Include="..\..\Tools\data\mfl_utils.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{45BBD8B0-1FBB-4997-94D9-830461D56781}</ProjectGuid>

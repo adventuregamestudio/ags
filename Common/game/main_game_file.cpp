@@ -962,6 +962,13 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
             in->ReadInt32();
         }
     }
+    else if (ext_id.CompareNoCase("v363_charspacing") == 0)
+    {
+        for (FontInfo &finfo : _ents.Game.fonts)
+        {
+            finfo.CharacterSpacing = in->ReadInt32();
+        }
+    }
     else
     {
         return new MainGameFileError(kMGFErr_ExtUnknown, String::FromFormat("Type: %s", ext_id.GetCStr()));

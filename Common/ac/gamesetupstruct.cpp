@@ -100,8 +100,6 @@ void GameSetupStruct::read_font_infos(Common::Stream *in, GameDataVersion data_v
             fonts[i].Outline = in->ReadInt32();
             fonts[i].YOffset = in->ReadInt32();
             fonts[i].LineSpacing = std::max(0, in->ReadInt32());
-            // Character spacing added in a future version, use 0 for older games
-            fonts[i].CharacterSpacing = (data_ver >= kGameVersion_Current) ? in->ReadInt32() : 0;
             AdjustFontInfoUsingFlags(fonts[i], flags);
         }
     }

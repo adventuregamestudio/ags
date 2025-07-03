@@ -451,9 +451,11 @@ bool IsRectInsideRect(const Rect &place, const Rect &item);
 // Calculates a distance between two axis-aligned rectangles, returns 0 if they intersect
 float DistanceBetween(const Rect &r1, const Rect &r2);
 
-// Align an item of certain width in the given horizontal frame; returns item's X position
+// Align an item of certain width in the given horizontal frame, where frame is defined
+// by *inclusive* coordinates on a x-axis; returns item's X position
 int AlignInHRange(int frame_x1, int frame_x2, int item_offx, int item_width, FrameAlignment align);
-// Align an item of certain height in the given vertical frame; returns item's Y position
+// Align an item of certain height in the given vertical frame, where frame is defined
+// by *inclusive* coordinates on a y-axis; returns item's Y position
 int AlignInVRange(int frame_y1, int frame_y2, int item_offy, int item_height, FrameAlignment align);
 // Align an item in the given frame, returns item's position as rectangle
 Rect AlignInRect(const Rect &frame, const Rect &item, FrameAlignment align);

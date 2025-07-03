@@ -52,6 +52,13 @@ struct Pattern
     String TextualOriginalPattern; // for debug purposes
 };
 
+static bool is_regex_syntax_character(const int c)
+{
+    // see https://tc39.es/ecma262/#prod-SyntaxCharacter
+    return (c == '^') || (c == '$') || (c =='\\') || (c == '.') || (c == '*') || (c == '+') || (c == '?') ||
+        (c == '(') || (c == ')') || (c == '[') || (c == ']') || (c == '{') || (c == '}') || (c == '|');
+}
+
 static String translate_to_regex_string(const String &pattern)
 {
     int i = 0;
@@ -113,7 +120,7 @@ static String translate_to_regex_string(const String &pattern)
             }
         } else {
             // I thought this may cause issue with utf-8 but the python approach is to escape all characters
-            if (isalnum(c)) {
+            if (!is_regex_syntax_character(c)) {
                 result.AppendChar(c);
             } else {
                 result.Append("\\");

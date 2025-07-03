@@ -124,7 +124,7 @@ OPT_SAVESCREENSHOTLAYER, CHF_TURNWHENFACE. Button's WrapText and padding.
 Few minor behavior changes.
 3.6.3:
 OPT_GUICONTROLMOUSEBUT
-
+Font.CharacterSpacing
 */
 
 enum GameDataVersion

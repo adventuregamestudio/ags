@@ -114,7 +114,7 @@ static int RenderChar(Bitmap *ds, const int at_x, const int at_y, Rect clip,
 
 bool WFNFontRenderer::LoadFromDisk(int fontNumber, int fontSize)
 {
-  return LoadFromDiskEx(fontNumber, fontSize, nullptr, nullptr, nullptr);
+  return LoadFromDiskEx(fontNumber, fontSize, String(), nullptr, nullptr, nullptr);
 }
 
 bool WFNFontRenderer::IsBitmapFont()
@@ -122,13 +122,12 @@ bool WFNFontRenderer::IsBitmapFont()
     return true;
 }
 
-bool WFNFontRenderer::LoadFromDiskEx(int fontNumber, int /*fontSize*/,
+bool WFNFontRenderer::LoadFromDiskEx(int fontNumber, int /*fontSize*/, const String &filename,
     String *src_filename, const FontRenderParams *params, FontMetrics *metrics)
 {
-  String file_name;
-
-  file_name.Format("agsfnt%d.wfn", fontNumber);
-  auto ffi = _amgr->OpenAsset(file_name);
+  String use_filename = !filename.IsEmpty() ? filename :
+    String::FromFormat("agsfnt%d.wfn", fontNumber);
+  auto ffi = _amgr->OpenAsset(use_filename);
   if (!ffi)
     return false;
 
@@ -136,7 +135,7 @@ bool WFNFontRenderer::LoadFromDiskEx(int fontNumber, int /*fontSize*/,
   WFNError err = font->ReadFromFile(ffi.get());
   if (err == kWFNErr_HasBadCharacters)
   {
-    Debug::Printf(kDbgMsg_Warn, "WARNING: font '%s' has mistakes in data format, some characters may be displayed incorrectly", file_name.GetCStr());
+    Debug::Printf(kDbgMsg_Warn, "WARNING: font '%s' has mistakes in data format, some characters may be displayed incorrectly", use_filename.GetCStr());
   }
   else if (err != kWFNErr_NoError)
   {
@@ -146,7 +145,7 @@ bool WFNFontRenderer::LoadFromDiskEx(int fontNumber, int /*fontSize*/,
   _fontData[fontNumber].Font = font;
   _fontData[fontNumber].Params = params ? *params : FontRenderParams();
   if (src_filename)
-    *src_filename = file_name;
+    *src_filename = use_filename;
   if (metrics)
     *metrics = FontMetrics();
   return true;

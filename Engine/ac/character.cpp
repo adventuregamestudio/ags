@@ -2603,9 +2603,14 @@ void display_speech(const char *texx, int aschar, int xx, int yy, int widd, bool
     DisplayTextStyle disp_style = kDisplayTextStyle_Overchar;
     // If the character is in this room, then default to aligning the speech
     // to the character position; but if it's not then center the speech on screen
-    DisplayTextPosition disp_pos = auto_position ?
-        get_textpos_from_scriptcoords(xx, yy, (speakingChar->room == displayed_room)) :
-        kDisplayTextPos_Normal;
+    // NOTE: clamping the freely positioned speech (see SayAt) to the screen width
+    // is a historical behavior. It's not known why but it was not clamped to height;
+    // this has to be kept in mind if backwards compatibility matters.
+    DisplayTextPosition disp_pos = (DisplayTextPosition)
+        ((auto_position ?
+            get_textpos_from_scriptcoords(xx, yy, (speakingChar->room == displayed_room)) :
+            kDisplayTextPos_Normal)
+        | kDisplayTextPos_ClampToScreenWidth);
     const color_t text_color = speakingChar->talkcolor;
 
     DisplayTextShrink allow_shrink = kDisplayTextShrink_None;

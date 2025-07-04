@@ -42,6 +42,7 @@ enum DisplayTextStyle
                                     // this style have special adjustments
 };
 
+// DisplayTextPosition flags define screen text positioning behavior
 enum DisplayTextPosition
 {
     // display text using explicit position
@@ -57,7 +58,11 @@ enum DisplayTextPosition
     // display text aligned to a character along y
     kDisplayTextPos_OvercharY       = 0x0008,
     // display text aligned to a character along x & y
-    kDisplayTextPos_Overchar        = (kDisplayTextPos_OvercharX | kDisplayTextPos_OvercharY)
+    kDisplayTextPos_Overchar        = (kDisplayTextPos_OvercharX | kDisplayTextPos_OvercharY),
+    // clamp text horizontal placement to the game screen
+    kDisplayTextPos_ClampToScreenWidth  = 0x0010,
+    // clamp text vertical placement to the game screen
+    kDisplayTextPos_ClampToScreenHeight = 0x0020,
 };
 
 // Whether displayed text is allowed to be shrinked

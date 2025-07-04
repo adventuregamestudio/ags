@@ -111,7 +111,14 @@ set_target_properties(trac PROPERTIES
         )
 target_link_libraries(trac PUBLIC libtools)
 
-list(APPEND TOOLS_TARGETS agf2dlgasc agfexport agspak crm2ash crmpak trac)
+list(APPEND TOOLS_TARGETS
+        agf2dlgasc
+        agfexport
+        agspak
+        crm2ash
+        crmpak
+        trac
+        )
 
 # Bundle-like target to build all tools
 add_custom_target(Tools)

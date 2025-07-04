@@ -148,6 +148,38 @@ TEST(IncludeUtils, MatchAnySectionOfThePath)
     ASSERT_TRUE(contains(matches, "dir/name/file5.dat"));
 }
 
+TEST(IncludeUtils, SpacesInPathsAndPatterns)
+{
+    const std::vector<String> files = {
+        "file with space.txt",
+        "another file.txt",
+        "some dir/file.txt",
+        "some dir/file with space.txt",
+        "excluded file.txt",
+        "some other/file.txt"
+    };
+
+    const std::vector<String> patterns = {
+        "* with space.txt",
+        "some dir/*",
+        "*.txt",
+        "!excluded file.txt",
+        "!some dir/file *"
+    };
+
+    std::vector<String> matches{};
+
+    DataUtil::MatchPatternPaths(files, matches, patterns);
+
+    ASSERT_EQ(matches.size(), 4);
+    ASSERT_TRUE(contains(matches, "file with space.txt"));
+    ASSERT_TRUE(contains(matches, "another file.txt"));
+    ASSERT_TRUE(contains(matches, "some dir/file.txt"));
+    ASSERT_TRUE(contains(matches, "some other/file.txt"));
+    ASSERT_FALSE(contains(matches, "excluded file.txt"));
+    ASSERT_FALSE(contains(matches, "some dir/file with space.txt"));
+}
+
 TEST(IncludeUtils, ExampleTemplate)
 {
     const std::vector<String> files = {

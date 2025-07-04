@@ -30,6 +30,11 @@ using AGS::Common::String;
 HError IncludeFiles(const std::vector<String> &input_files, std::vector<String> &output_files,
     const String &parent, const String &include_pattern_file, bool verbose);
 
+// Pass a list of files that is filtered by array of include-like patterns
+// All operations are done without file reading (so it's easier to test)
+HError MatchPatternPaths(const std::vector<String> &input_files, std::vector<String> &output_matches,
+    const std::vector<String> &patterns_description);
+
 } // namespace DataUtil
 } // namespace AGS
 

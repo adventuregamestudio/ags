@@ -484,12 +484,12 @@ ags_windows_tests_task:
     "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/Tools/VsDevCmd.bat" &&
     cd Solutions &&
     msbuild Compiler.Lib.sln /m /property:MultiProcessorCompilation=true /p:PlatformToolset=v142 /p:Configuration=Release /p:Platform=Win32 /maxcpucount /nologo
-  run_legacy_compiler_tests_script: Solutions\.test\Release\Compiler.Lib.Test.exe
-  build_new_compiler_test_runner_script: >
+  run_legacy_compiler_tests_x86_script: Solutions\.test\Release\Compiler.Lib.Test.exe
+  build_new_compiler_test_runner_x86_script: >
     "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/Tools/VsDevCmd.bat" &&
     cd Solutions &&
     msbuild Compiler2.Lib.sln /p:PlatformToolset=v142 /p:Configuration=Release /p:Platform="Win32" /maxcpucount /nologo
-  run_new_compiler_tests_script: Solutions\.test\Release\Compiler2.Lib.Test.exe
+  run_new_compiler_tests_x86_script: Solutions\.test\Release\Compiler2.Lib.Test.exe
   build_ags_test_runner_x86_script: >
     "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/Tools/VsDevCmd.bat" &&
     cd Solutions &&
@@ -504,6 +504,11 @@ ags_windows_tests_task:
     cd Solutions &&
     msbuild Compiler.Lib.sln /m /property:MultiProcessorCompilation=true /p:PlatformToolset=v142 /p:Configuration=Release /p:Platform=x64 /maxcpucount /nologo
   run_legacy_compiler_tests_x64_script: Solutions\.test\Release\Compiler.Lib.Test.exe
+  build_new_compiler_test_runner_x64_script: >
+    "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/Tools/VsDevCmd.bat" &&
+    cd Solutions &&
+    msbuild Compiler2.Lib.sln /p:PlatformToolset=v142 /p:Configuration=Release /p:Platform=x64 /maxcpucount /nologo
+  run_new_compiler_tests_x64_script: Solutions\.test\Release\Compiler2.Lib.Test.exe
   build_ags_test_runner_x64_script: >
     "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/Tools/VsDevCmd.bat" &&
     cd Solutions &&

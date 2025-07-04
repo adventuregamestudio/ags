@@ -77,7 +77,7 @@ void TTFFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *desti
 
 bool TTFFontRenderer::LoadFromDisk(int fontNumber, int fontSize)
 {
-  return LoadFromDiskEx(fontNumber, fontSize, nullptr, nullptr, nullptr);
+  return LoadFromDiskEx(fontNumber, fontSize, String(), nullptr, nullptr, nullptr);
 }
 
 bool TTFFontRenderer::IsBitmapFont()
@@ -135,10 +135,11 @@ ALFONT_FONT *TTFFontRenderer::LoadTTF(const AGS::Common::String &filename, int f
     return LoadTTFFromMem(buf.data(), lenof, font_size, alfont_flags);
 }
 
-bool TTFFontRenderer::LoadFromDiskEx(int fontNumber, int fontSize, String *src_filename,
-    const FontRenderParams *params, FontMetrics *metrics)
+bool TTFFontRenderer::LoadFromDiskEx(int fontNumber, int fontSize, const String &filename,
+    String *src_filename, const FontRenderParams *params, FontMetrics *metrics)
 {
-    String filename = String::FromFormat("agsfnt%d.ttf", fontNumber);
+    String use_filename = !filename.IsEmpty() ? filename :
+        String::FromFormat("agsfnt%d.ttf", fontNumber);
     if (fontSize <= 0)
         fontSize = 8; // compatibility fix
     assert(params);
@@ -146,7 +147,7 @@ bool TTFFontRenderer::LoadFromDiskEx(int fontNumber, int fontSize, String *src_f
     if (f_params.SizeMultiplier > 1)
         fontSize *= f_params.SizeMultiplier;
 
-    ALFONT_FONT *alfptr = LoadTTF(filename, fontSize,
+    ALFONT_FONT *alfptr = LoadTTF(use_filename, fontSize,
         GetAlfontFlags(f_params.LoadMode));
     if (!alfptr)
         return false;
@@ -154,7 +155,7 @@ bool TTFFontRenderer::LoadFromDiskEx(int fontNumber, int fontSize, String *src_f
     _fontData[fontNumber].AlFont = alfptr;
     _fontData[fontNumber].Params = f_params;
     if (src_filename)
-        *src_filename = filename;
+        *src_filename = use_filename;
     if (metrics)
         FillMetrics(alfptr, metrics);
     return true;

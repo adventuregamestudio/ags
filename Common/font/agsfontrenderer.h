@@ -101,11 +101,14 @@ struct FontMetrics
 class IAGSFontRendererInternal : public IAGSFontRenderer2
 {
 public:
+    using String = AGS::Common::String;
+
     // Tells if this is a bitmap font (otherwise it's a vector font)
     virtual bool IsBitmapFont() = 0;
-    // Load font, applying extended font rendering parameters
-    virtual bool LoadFromDiskEx(int fontNumber, int fontSize, AGS::Common::String *src_filename,
-        const FontRenderParams *params, FontMetrics *metrics) = 0;
+    // Load font, optionally using an explicit filename, and applying extended
+    // rendering parameters. Fills src_filename with a filename that was used.
+    virtual bool LoadFromDiskEx(int fontNumber, int fontSize, const String &filename,
+        String *src_filename, const FontRenderParams *params, FontMetrics *metrics) = 0;
     // Fill FontMetrics struct; note that it may be left cleared if this is not supported
     virtual void GetFontMetrics(int fontNumber, FontMetrics *metrics) = 0;
     // Perform any necessary adjustments when the AA mode is toggled

@@ -3215,6 +3215,25 @@ builtin struct Game {
 #endif // SCRIPT_API_v362
 };
 
+#ifdef SCRIPT_API_v363
+builtin struct GameInfo {
+  /// Gets the game's title
+  import static readonly attribute String Title;
+  /// Gets the game's description
+  import static readonly attribute String Description;
+  /// Gets the game's developer's name
+  import static readonly attribute String DeveloperName;
+  /// Gets the game's developer's URL string
+  import static readonly attribute String DeveloperURL;
+  /// Gets the game's genre description
+  import static readonly attribute String Genre;
+  /// Gets the game's release date as a DateTime instance
+  import static readonly attribute DateTime* ReleaseDate;
+  /// Gets the game's release version, represented as "X.Y.Z.W" string
+  import static readonly attribute String Version;
+};
+#endif
+
 builtin struct GameState {
   int  score;
   int  used_mode;

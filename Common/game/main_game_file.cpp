@@ -962,6 +962,11 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
             in->ReadInt32();
         }
     }
+    else if (ext_id.CompareNoCase("v363_gameinfo") == 0)
+    {
+        // Read a dictionary of strings
+        StrUtil::ReadStringMap(_ents.Game.GameInfo, in);
+    }
     else
     {
         return new MainGameFileError(kMGFErr_ExtUnknown, String::FromFormat("Type: %s", ext_id.GetCStr()));

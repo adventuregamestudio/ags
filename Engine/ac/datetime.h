@@ -21,6 +21,8 @@
 #include "ac/dynobj/scriptdatetime.h"
 
 ScriptDateTime* DateTime_Now();
+ScriptDateTime *DateTime_CreateFromDate(int year, int month, int day, int hour, int minute, int second);
+ScriptDateTime *DateTime_CreateFromRawTime(int raw_time);
 int             DateTime_GetYear(ScriptDateTime *sdt);
 int             DateTime_GetMonth(ScriptDateTime *sdt);
 int             DateTime_GetDayOfMonth(ScriptDateTime *sdt);

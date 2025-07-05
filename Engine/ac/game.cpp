@@ -1673,6 +1673,61 @@ void precache_view(int view, int first_loop, int last_loop, bool with_sounds)
 
 //=============================================================================
 //
+// GameInfo API
+//
+//=============================================================================
+
+const char *GameInfo_GetTitle()
+{
+    return CreateNewScriptString(game.GameInfo["title"]);
+}
+
+const char *GameInfo_GetDescription()
+{
+    return CreateNewScriptString(game.GameInfo["description"]);
+}
+
+const char *GameInfo_GetDeveloperName()
+{
+    return CreateNewScriptString(game.GameInfo["dev_name"]);
+}
+
+const char *GameInfo_GetDeveloperURL()
+{
+    return CreateNewScriptString(game.GameInfo["dev_url"]);
+}
+
+const char *GameInfo_GetGenre()
+{
+    return CreateNewScriptString(game.GameInfo["genre"]);
+}
+
+ScriptDateTime *GameInfo_GetReleaseDate()
+{
+    String release_date = game.GameInfo["release_date"];
+    if (release_date.IsEmpty())
+        return nullptr; // not available
+    std::vector<String> parts = release_date.Split('.');
+    if (parts.size() == 0 || parts.size() > 3)
+        return nullptr; // malformed date
+    int year = 0, month = 0, day = 0;
+    year = StrUtil::StringToInt(parts[parts.size() - 1], -1);
+    if (parts.size() > 1)
+        month = StrUtil::StringToInt(parts[parts.size() - 2], -1);
+    if (parts.size() > 2)
+        day = StrUtil::StringToInt(parts[parts.size() - 3], -1);
+    if (year < 0 || month < 0 || day < 0)
+        return nullptr; // malformed date
+    return DateTime_CreateFromDate(year, month, day, 0, 0, 0);
+}
+
+const char *GameInfo_GetVersion()
+{
+    return CreateNewScriptString(game.GameInfo["version"]);
+}
+
+//=============================================================================
+//
 // Script API Functions
 //
 //=============================================================================
@@ -2047,6 +2102,42 @@ RuntimeScriptValue Sc_Game_ScanSaveSlots(const RuntimeScriptValue *params, int32
     API_SCALL_VOID_POBJ_PINT5(Game_ScanSaveSlots, void);
 }
 
+RuntimeScriptValue Sc_GameInfo_GetTitle(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ(const char, myScriptStringImpl, GameInfo_GetTitle);
+}
+
+RuntimeScriptValue Sc_GameInfo_GetDescription(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ(const char, myScriptStringImpl, GameInfo_GetDescription);
+}
+
+RuntimeScriptValue Sc_GameInfo_GetDeveloperName(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ(const char, myScriptStringImpl, GameInfo_GetDeveloperName);
+}
+
+RuntimeScriptValue Sc_GameInfo_GetDeveloperURL(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ(const char, myScriptStringImpl, GameInfo_GetDeveloperURL);
+}
+
+RuntimeScriptValue Sc_GameInfo_GetGenre(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ(const char, myScriptStringImpl, GameInfo_GetGenre);
+}
+
+RuntimeScriptValue Sc_GameInfo_GetReleaseDate(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO(ScriptDateTime, GameInfo_GetReleaseDate);
+}
+
+RuntimeScriptValue Sc_GameInfo_GetVersion(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ(const char, myScriptStringImpl, GameInfo_GetVersion);
+}
+
+
 void RegisterGameAPI()
 {
     ScFnRegister game_api[] = {
@@ -2077,6 +2168,12 @@ void RegisterGameAPI()
         { "Game::PrecacheView",                           API_FN_PAIR(Game_PrecacheView) },
         { "Game::GetSaveSlots^4",                         API_FN_PAIR(Game_GetSaveSlots) },
         { "Game::ScanSaveSlots^6",                        API_FN_PAIR(Game_ScanSaveSlots) },
+        { "Game::get_AudioClipCount",                     API_FN_PAIR(Game_GetAudioClipCount) },
+        { "Game::geti_AudioClips",                        API_FN_PAIR(Game_GetAudioClip) },
+        { "Game::get_BlockingWaitSkipped",                API_FN_PAIR(Game_BlockingWaitSkipped) },
+        { "Game::get_Camera",                             API_FN_PAIR(Game_GetCamera) },
+        { "Game::get_CameraCount",                        API_FN_PAIR(Game_GetCameraCount) },
+        { "Game::geti_Cameras",                           API_FN_PAIR(Game_GetAnyCamera) },
         { "Game::get_CharacterCount",                     API_FN_PAIR(Game_GetCharacterCount) },
         { "Game::get_DialogCount",                        API_FN_PAIR(Game_GetDialogCount) },
         { "Game::get_FileName",                           API_FN_PAIR(Game_GetFileName) },
@@ -2087,6 +2184,7 @@ void RegisterGameAPI()
         { "Game::get_GUICount",                           API_FN_PAIR(Game_GetGUICount) },
         { "Game::get_IgnoreUserInputAfterTextTimeoutMs",  API_FN_PAIR(Game_GetIgnoreUserInputAfterTextTimeoutMs) },
         { "Game::set_IgnoreUserInputAfterTextTimeoutMs",  API_FN_PAIR(Game_SetIgnoreUserInputAfterTextTimeoutMs) },
+        { "Game::get_InBlockingWait",                     API_FN_PAIR(Game_InBlockingWait) },
         { "Game::get_InSkippableCutscene",                API_FN_PAIR(Game_GetInSkippableCutscene) },
         { "Game::get_InventoryItemCount",                 API_FN_PAIR(Game_GetInventoryItemCount) },
         { "Game::get_MinimumTextDisplayTimeMs",           API_FN_PAIR(Game_GetMinimumTextDisplayTimeMs) },
@@ -2099,6 +2197,7 @@ void RegisterGameAPI()
         { "Game::get_SkippingCutscene",                   API_FN_PAIR(Game_GetSkippingCutscene) },
         { "Game::get_SpeechFont",                         API_FN_PAIR(Game_GetSpeechFont) },
         { "Game::set_SpeechFont",                         API_FN_PAIR(SetSpeechFont) },
+        { "Game::get_SpeechVoxFilename",                  API_FN_PAIR(Game_GetSpeechVoxFilename) },
         { "Game::geti_SpriteWidth",                       API_FN_PAIR(Game_GetSpriteWidth) },
         { "Game::geti_SpriteHeight",                      API_FN_PAIR(Game_GetSpriteHeight) },
         { "Game::get_TextReadingSpeed",                   API_FN_PAIR(Game_GetTextReadingSpeed) },
@@ -2106,14 +2205,14 @@ void RegisterGameAPI()
         { "Game::get_TranslationFilename",                API_FN_PAIR(Game_GetTranslationFilename) },
         { "Game::get_UseNativeCoordinates",               API_FN_PAIR(Game_GetUseNativeCoordinates) },
         { "Game::get_ViewCount",                          API_FN_PAIR(Game_GetViewCount) },
-        { "Game::get_AudioClipCount",                     API_FN_PAIR(Game_GetAudioClipCount) },
-        { "Game::geti_AudioClips",                        API_FN_PAIR(Game_GetAudioClip) },
-        { "Game::get_BlockingWaitSkipped",                API_FN_PAIR(Game_BlockingWaitSkipped) },
-        { "Game::get_InBlockingWait",                     API_FN_PAIR(Game_InBlockingWait) },
-        { "Game::get_SpeechVoxFilename",                  API_FN_PAIR(Game_GetSpeechVoxFilename) },
-        { "Game::get_Camera",                             API_FN_PAIR(Game_GetCamera) },
-        { "Game::get_CameraCount",                        API_FN_PAIR(Game_GetCameraCount) },
-        { "Game::geti_Cameras",                           API_FN_PAIR(Game_GetAnyCamera) },
+
+        { "GameInfo::get_Title",                          API_FN_PAIR(GameInfo_GetTitle) },
+        { "GameInfo::get_Description",                    API_FN_PAIR(GameInfo_GetDescription) },
+        { "GameInfo::get_DeveloperName",                  API_FN_PAIR(GameInfo_GetDeveloperName) },
+        { "GameInfo::get_DeveloperURL",                   API_FN_PAIR(GameInfo_GetDeveloperURL) },
+        { "GameInfo::get_Genre",                          API_FN_PAIR(GameInfo_GetGenre) },
+        { "GameInfo::get_ReleaseDate",                    API_FN_PAIR(GameInfo_GetReleaseDate) },
+        { "GameInfo::get_Version",                        API_FN_PAIR(GameInfo_GetVersion) },
     };
 
     ccAddExternalFunctions(game_api);

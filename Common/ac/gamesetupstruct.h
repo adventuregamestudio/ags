@@ -83,6 +83,9 @@ struct GameSetupStruct : public GameSetupStructBase
     int               numGameChannels = 0;
     // backward-compatible channel limit that may be exported to script and reserved by audiotypes
     int               numCompatGameChannels = 0;
+
+    // A dictionary of semi-arbitrary game info properties: title, developer's name, etc
+    AGS::Common::StringMap GameInfo;
     
     // TODO: I converted original array of sprite infos to vector here, because
     // statistically in most games sprites go in long continious sequences with minimal

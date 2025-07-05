@@ -442,6 +442,12 @@ void SDLRendererGraphicsDriver::DrawSprite(int x, int y, IDriverDependantBitmap*
     _spriteList.push_back(ALDrawListEntry((ALSoftwareBitmap*)bitmap, _actSpriteBatch, x, y));
 }
 
+void SDLRendererGraphicsDriver::AddRenderEvent(int evt, int param)
+{
+    assert(_actSpriteBatch != UINT32_MAX);
+    _spriteList.push_back(ALDrawListEntry(nullptr, _actSpriteBatch, evt, param));
+}
+
 void SDLRendererGraphicsDriver::SetScreenFade(int /*red*/, int /*green*/, int /*blue*/)
 {
     // TODO: was not necessary atm

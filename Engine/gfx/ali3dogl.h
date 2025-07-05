@@ -269,6 +269,8 @@ public:
     //
     // Adds sprite to the active batch, providing its left-top corner position
     void DrawSprite(int x, int y, IDriverDependantBitmap *ddb) override;
+    // Adds a render event, which runs a callback with the given parameters, to the active batch
+    void AddRenderEvent(int evt, int param) override;
     // Adds fade overlay fx to the active batch
     void SetScreenFade(int red, int green, int blue) override;
     // Adds tint overlay fx to the active batch

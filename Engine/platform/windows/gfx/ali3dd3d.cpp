@@ -1630,6 +1630,12 @@ void D3DGraphicsDriver::DrawSprite(int x, int y, IDriverDependantBitmap* ddb)
     _spriteList.push_back(D3DDrawListEntry((D3DBitmap*)ddb, _actSpriteBatch, x, y));
 }
 
+void D3DGraphicsDriver::AddRenderEvent(int evt, int param)
+{
+    assert(_actSpriteBatch != UINT32_MAX);
+    _spriteList.push_back(D3DDrawListEntry(nullptr, _actSpriteBatch, evt, param));
+}
+
 void D3DGraphicsDriver::DestroyDDB(IDriverDependantBitmap* ddb)
 {
     // Remove from render targets

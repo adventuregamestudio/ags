@@ -34,11 +34,21 @@ typedef std::map<String, StringOrderMap> ConfigTree;
 
 //
 // Helper functions for parsing values in a ConfigTree
+// 
+// TODO: redesign the min/max methods: currently they return def_value
+// in case a value goes outside of range, meaning they are suitable for
+// the "enumeration" reading, but not to reading a normal numeric value.
+// See to use ParseEnum instead for these cases, and make min/max methods
+// *clamp* the input value to a range.
 bool    CfgReadItem(const ConfigTree &cfg, const String &sectn, const String &item, String &value);
 int     CfgReadInt(const ConfigTree &cfg, const String &sectn, const String &item, int def = 0);
 int     CfgReadInt(const ConfigTree &cfg, const String &sectn, const String &item, int min, int max, int def = 0);
 inline bool CfgReadBoolInt(const ConfigTree &cfg, const String &sectn, const String &item, bool def = false)
             { return CfgReadInt(cfg, sectn, item, 0, 1, def) != 0; }
+int64_t CfgReadInt64(const ConfigTree &cfg, const String &sectn, const String &item, int64_t def = 0);
+int64_t CfgReadInt64(const ConfigTree &cfg, const String &sectn, const String &item, int64_t min, int64_t max, int64_t def = 0);
+uint64_t CfgReadUInt64(const ConfigTree &cfg, const String &sectn, const String &item, uint64_t def = 0);
+uint64_t CfgReadUInt64(const ConfigTree &cfg, const String &sectn, const String &item, uint64_t min, uint64_t max, uint64_t def = 0);
 float   CfgReadFloat(const ConfigTree &cfg, const String &sectn, const String &item, float def = 0.f);
 float   CfgReadFloat(const ConfigTree &cfg, const String &sectn, const String &item, float min, float max, float def = 0.f);
 String  CfgReadString(const ConfigTree &cfg, const String &sectn, const String &item, const String &def = "");
@@ -52,9 +62,10 @@ String  CfgFindKey(const ConfigTree &cfg, const String &sectn, const String &ite
 
 //
 // Helper functions for writing values into a ConfigTree
-void    CfgWriteInt(ConfigTree &cfg, const String &sectn, const String &item, int value);
+void    CfgWriteInt(ConfigTree &cfg, const String &sectn, const String &item, int64_t value);
+void    CfgWriteUInt(ConfigTree &cfg, const String &sectn, const String &item, uint64_t value);
 inline void CfgWriteBoolInt(ConfigTree &cfg, const String &sectn, const String &item, bool value)
-            { CfgWriteInt(cfg, sectn, item, static_cast<int>(value)); }
+            { CfgWriteInt(cfg, sectn, item, static_cast<int64_t>(value)); }
 void    CfgWriteFloat(ConfigTree &cfg, const String &sectn, const String &item, float value);
 void    CfgWriteFloat(ConfigTree &cfg, const String &sectn, const String &item, float value, unsigned precision);
 void    CfgWriteString(ConfigTree &cfg, const String &sectn, const String &item, const String &value);

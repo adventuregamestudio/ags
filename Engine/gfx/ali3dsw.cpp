@@ -320,6 +320,11 @@ int SDLRendererGraphicsDriver::GetCompatibleBitmapFormat(int color_depth)
   return color_depth;
 }
 
+IDriverDependantBitmap *SDLRendererGraphicsDriver::CreateDDB()
+{
+    return new ALSoftwareBitmap();
+}
+
 IDriverDependantBitmap* SDLRendererGraphicsDriver::CreateDDB(int width, int height, int color_depth, int txflags)
 {
   return new ALSoftwareBitmap(width, height, color_depth, txflags);
@@ -436,10 +441,12 @@ void SDLRendererGraphicsDriver::ResetAllBatches()
     _spriteList.clear();
 }
 
-void SDLRendererGraphicsDriver::DrawSprite(int x, int y, IDriverDependantBitmap* bitmap)
+void SDLRendererGraphicsDriver::DrawSprite(int x, int y, IDriverDependantBitmap* ddb)
 {
+    assert(ddb && ddb->IsValid());
     assert(_actSpriteBatch != UINT32_MAX);
-    _spriteList.push_back(ALDrawListEntry((ALSoftwareBitmap*)bitmap, _actSpriteBatch, x, y));
+    if (ddb && ddb->IsValid())
+        _spriteList.push_back(ALDrawListEntry((ALSoftwareBitmap*)ddb, _actSpriteBatch, x, y));
 }
 
 void SDLRendererGraphicsDriver::AddRenderEvent(int evt, int param)

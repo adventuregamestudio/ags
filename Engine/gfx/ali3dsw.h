@@ -57,6 +57,8 @@ public:
     void SetLightLevel(int /*lightLevel*/) override { }
     void SetTint(int /*red*/, int /*green*/, int /*blue*/, int /*tintSaturation*/) override { }
 
+    ALSoftwareBitmap() = default;
+
     ALSoftwareBitmap(int width, int height, int color_depth, int txflags)
     {
         _size = Size(width, height);
@@ -218,7 +220,9 @@ public:
     // Returns available texture memory in bytes, or 0 if this query is not supported
     uint64_t GetAvailableTextureMemory() override { return 0; /* not using textures for sprites anyway */ }
     // Creates a "raw" DDB, without pixel initialization.
-    IDriverDependantBitmap* CreateDDB(int width, int height, int color_depth, int txflags) override;
+    IDriverDependantBitmap *CreateDDB() override;
+    // Creates a DDB with a clear texture of certain resolution
+    IDriverDependantBitmap *CreateDDB(int width, int height, int color_depth, int txflags) override;
     // Create DDB using preexisting texture data
     IDriverDependantBitmap *CreateDDB(std::shared_ptr<Texture> txdata, int txflags) override
         { return nullptr; /* not supported */ }

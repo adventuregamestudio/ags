@@ -80,12 +80,13 @@ struct OGLTexture : Texture
 class OGLBitmap final : public BaseDDB
 {
 public:
-    uint32_t GetRefID() const override { return _data->ID; }
+    uint32_t GetRefID() const override { return _data ? _data->ID : UINT32_MAX; }
     // Tells if this DDB has an actual render data assigned to it.
     bool IsValid() const override { return _data != nullptr; }
     // Attaches new texture data, sets basic render rules
     void AttachData(std::shared_ptr<Texture> txdata, int txflags) override
     {
+        assert(txdata);
         _data = std::static_pointer_cast<OGLTexture>(txdata);
         _size = _data->Res;
         _scaledSize = _size;
@@ -104,6 +105,8 @@ public:
         _scaledSize = Size(width, height);
         _useResampler = useResampler;
     }
+
+    OGLBitmap() = default;
 
     OGLBitmap(int width, int height, int colDepth, int txflags)
     {
@@ -249,9 +252,11 @@ public:
     // Returns available texture memory in bytes, or 0 if this query is not supported
     uint64_t GetAvailableTextureMemory() override;
     // Creates a "raw" DDB, without pixel initialization.
-    IDriverDependantBitmap* CreateDDB(int width, int height, int color_depth, int txflags) override;
+    IDriverDependantBitmap *CreateDDB() override;
+    // Creates a DDB with a clear texture of certain resolution
+    IDriverDependantBitmap *CreateDDB(int width, int height, int color_depth, int txflags) override;
     // Creates DDB intended to be used as a render target (allow render other DDBs on it).
-    IDriverDependantBitmap* CreateRenderTargetDDB(int width, int height, int color_depth, int txflags) override;
+    IDriverDependantBitmap *CreateRenderTargetDDB(int width, int height, int color_depth, int txflags) override;
     // Updates DBB using the given bitmap.
     void UpdateDDBFromBitmap(IDriverDependantBitmap *ddb, const Bitmap *bitmap, bool has_alpha) override;
     // Destroy the DDB; note that this does not dispose the texture unless there's no more refs to it

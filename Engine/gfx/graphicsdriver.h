@@ -178,14 +178,16 @@ public:
     virtual int  GetCompatibleBitmapFormat(int color_depth) = 0;
     // Returns available texture memory in bytes, or 0 if this query is not supported
     virtual uint64_t GetAvailableTextureMemory() = 0;
-    // Creates a "raw" DDB, without pixel initialization.
+    // Creates a uninitialized DDB, which may have a texture data attached later
+    virtual IDriverDependantBitmap *CreateDDB() = 0;
+    // Creates a DDB with a clear texture of certain resolution
     virtual IDriverDependantBitmap *CreateDDB(int width, int height, int color_depth, int txflags = kTxFlags_None) = 0;
     // Create DDB using preexisting texture data
     virtual IDriverDependantBitmap *CreateDDB(std::shared_ptr<Texture> txdata, int txflags = kTxFlags_None) = 0;
     // Creates DDB, initializes from the given bitmap.
-    virtual IDriverDependantBitmap* CreateDDBFromBitmap(const Bitmap *bitmap, int txflags = kTxFlags_None) = 0;
+    virtual IDriverDependantBitmap *CreateDDBFromBitmap(const Bitmap *bitmap, int txflags = kTxFlags_None) = 0;
     // Creates DDB intended to be used as a render target (allow render other DDBs on it).
-    virtual IDriverDependantBitmap* CreateRenderTargetDDB(int width, int height, int color_depth, int txflags = kTxFlags_RenderTarget) = 0;
+    virtual IDriverDependantBitmap *CreateRenderTargetDDB(int width, int height, int color_depth, int txflags = kTxFlags_RenderTarget) = 0;
     // Updates DBB using the given bitmap; if bitmap has a different resolution,
     // then creates a new texture data and attaches to DDB
     virtual void UpdateDDBFromBitmap(IDriverDependantBitmap *ddb, const Bitmap *bitmap, bool has_alpha) = 0;

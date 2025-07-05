@@ -59,6 +59,7 @@ int GetCurSel(HWND hwnd);
 void SetCurSel(HWND hwnd, int cur_sel);
 typedef bool (*PfnCompareCBItemData)(DWORD_PTR data1, DWORD_PTR data2);
 int SetCurSelToItemData(HWND hwnd, DWORD_PTR data, PfnCompareCBItemData pfn_cmp = NULL, int def_sel = -1);
+int SetCurSelToNearestItemData(HWND hwnd, DWORD_PTR data);
 int SetCurSelToItemDataStr(HWND hwnd, LPCSTR text, int def_sel = -1);
 DWORD_PTR GetCurItemData(HWND hwnd, DWORD_PTR def_value = 0);
 void ResetContent(HWND hwnd);

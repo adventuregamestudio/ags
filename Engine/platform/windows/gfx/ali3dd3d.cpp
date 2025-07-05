@@ -1630,8 +1630,10 @@ void D3DGraphicsDriver::RedrawLastFrame(uint32_t skip_filter)
 
 void D3DGraphicsDriver::DrawSprite(int x, int y, IDriverDependantBitmap* ddb)
 {
+    assert(ddb && ddb->IsValid());
     assert(_actSpriteBatch != UINT32_MAX);
-    _spriteList.push_back(D3DDrawListEntry((D3DBitmap*)ddb, _actSpriteBatch, x, y));
+    if (ddb && ddb->IsValid())
+        _spriteList.push_back(D3DDrawListEntry((D3DBitmap*)ddb, _actSpriteBatch, x, y));
 }
 
 void D3DGraphicsDriver::AddRenderEvent(int evt, int param)
@@ -1774,6 +1776,11 @@ bool D3DGraphicsDriver::IsTextureFormatOk( D3DFORMAT TextureFormat, D3DFORMAT Ad
                                           TextureFormat);
     
     return SUCCEEDED( hr );
+}
+
+IDriverDependantBitmap *D3DGraphicsDriver::CreateDDB()
+{
+    return new D3DBitmap();
 }
 
 IDriverDependantBitmap* D3DGraphicsDriver::CreateDDB(int width, int height, int color_depth, bool opaque)

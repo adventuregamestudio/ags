@@ -1335,15 +1335,18 @@ IDriverDependantBitmap* recycle_ddb_sprite(IDriverDependantBitmap *ddb, uint32_t
         return recycle_ddb_bitmap(ddb, source, has_alpha, opaque);
     }
 
-    if (ddb && ddb->GetRefID() == sprite_id)
+    if (ddb && ddb->IsValid() && ddb->GetRefID() == sprite_id)
         return ddb; // texture in sync
 
     auto txdata = texturecache.GetOrLoad(sprite_id, source, has_alpha, opaque);
     if (!txdata)
     {
-        // On failure - invalidate ddb (we don't want to draw old pixels)
+        // On failure - invalidate ddb (we don't want to draw old pixels);
+        // or create a dummy one in case it did not exist
         if (ddb)
             ddb->DetachData();
+        else
+            ddb = gfxDriver->CreateDDB();
         return ddb;
     }
 
@@ -1968,6 +1971,7 @@ void prepare_and_add_object_gfx(
 
     // Now when we have a ready texture, assign texture properties
     // (transform, effects, and so forth)
+    assert(actsp.Ddb);
     if (hw_accel)
     {
         actsp.Ddb->SetStretch(scale_size.Width, scale_size.Height);
@@ -2563,6 +2567,8 @@ void put_sprite_list_on_screen(bool in_room)
         assert(t.DDB || (t.RenderStage >= 0));
         if (t.DDB)
         {
+            if (!t.DDB->IsValid())
+                continue; // skip empty DDBs
             if (t.DDB->GetAlpha() == 0)
                 continue; // skip completely invisible things
             // mark the image's region as dirty

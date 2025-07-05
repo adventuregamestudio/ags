@@ -71,6 +71,8 @@ public:
     int _stretchToWidth = 0, _stretchToHeight = 0;
     int _alpha = 255;
 
+    ALSoftwareBitmap() = default;
+
     ALSoftwareBitmap(int width, int height, int color_depth, bool opaque)
     {
         _width = width;
@@ -174,6 +176,7 @@ public:
     // Returns available texture memory in bytes, or 0 if this query is not supported
     uint64_t GetAvailableTextureMemory() override { return 0; /* not using textures for sprites anyway */ }
 
+    IDriverDependantBitmap *CreateDDB() override;
     IDriverDependantBitmap* CreateDDB(int width, int height, int color_depth, bool opaque) override;
     IDriverDependantBitmap *CreateDDB(std::shared_ptr<Texture> txdata, bool opaque) override
         { return nullptr; /* not supported */ }

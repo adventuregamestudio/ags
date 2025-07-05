@@ -80,7 +80,7 @@ struct OGLTexture : Texture
 class OGLBitmap : public BaseDDB
 {
 public:
-    uint32_t GetRefID() const override { return _data->ID; }
+    uint32_t GetRefID() const override { return _data ? _data->ID : UINT32_MAX; }
 
     int  GetAlpha() const override { return _alpha; }
     void SetAlpha(int alpha) override { _alpha = alpha; }
@@ -105,6 +105,7 @@ public:
     // Attaches new texture data, sets basic render rules
     void AttachData(std::shared_ptr<Texture> txdata, bool opaque) override
     {
+        assert(_data);
         _data = std::static_pointer_cast<OGLTexture>(txdata);
         _width = _stretchToWidth = _data->Res.Width;
         _height = _stretchToHeight = _data->Res.Height;
@@ -123,13 +124,15 @@ public:
     TextureHint _renderHint = kTxHint_Normal;
 
     // Drawing parameters
-    bool _flipped;
-    int _stretchToWidth, _stretchToHeight;
-    bool _useResampler;
-    int _red, _green, _blue;
-    int _tintSaturation;
-    int _lightLevel;
-    int _alpha;
+    bool _flipped = false;
+    int _stretchToWidth = 0, _stretchToHeight = 0;
+    bool _useResampler = false;
+    int _red = 0, _green = 0, _blue = 0;
+    int _tintSaturation = 0;
+    int _lightLevel = 0;
+    int _alpha = 255;
+
+    OGLBitmap() = default;
 
     OGLBitmap(int width, int height, int colDepth, bool opaque)
     {
@@ -245,6 +248,7 @@ public:
     // Returns available texture memory in bytes, or 0 if this query is not supported
     uint64_t GetAvailableTextureMemory() override;
 
+    IDriverDependantBitmap *CreateDDB() override;
     IDriverDependantBitmap* CreateDDB(int width, int height, int color_depth, bool opaque) override;
     IDriverDependantBitmap* CreateRenderTargetDDB(int width, int height, int color_depth, bool opaque) override;
     void UpdateDDBFromBitmap(IDriverDependantBitmap* ddb, const Bitmap *bitmap, bool has_alpha) override;

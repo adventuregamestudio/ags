@@ -139,7 +139,9 @@ public:
   // Returns available texture memory in bytes, or 0 if this query is not supported
   virtual uint64_t GetAvailableTextureMemory() = 0;
 
-  // Creates a "raw" DDB, without pixel initialization.
+  // Creates a uninitialized DDB, which may have a texture data attached later
+  virtual IDriverDependantBitmap *CreateDDB() = 0;
+  // Creates a DDB with a clear texture of certain resolution
   virtual IDriverDependantBitmap *CreateDDB(int width, int height, int color_depth, bool opaque = false) = 0;
   // Create DDB using preexisting texture data
   virtual IDriverDependantBitmap *CreateDDB(std::shared_ptr<Texture> txdata, bool opaque = false) = 0;

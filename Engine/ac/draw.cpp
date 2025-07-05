@@ -1211,7 +1211,7 @@ void render_to_screen()
     {
         gfxDriver->BeginSpriteBatch(play.GetMainViewport(),
             play.GetGlobalTransform(drawstate.FullFrameRedraw), (GraphicFlip)play.screen_flipped);
-        gfxDriver->DrawSprite(kPluginEvt_FinalScreenDraw, 0, nullptr);
+        gfxDriver->AddRenderEvent(kPluginEvt_FinalScreenDraw, 0);
         gfxDriver->EndSpriteBatch();
     }
     // Stage: engine overlay
@@ -2445,7 +2445,7 @@ void draw_gui_and_overlays()
            (game.options[OPT_NEWGUIALPHA] == kGuiAlphaRender_Proper);
 
     if(pl_any_want_hook(kPluginEvt_PreGUIDraw))
-        gfxDriver->DrawSprite(kPluginEvt_PreGUIDraw, 0, nullptr); // render stage
+        gfxDriver->AddRenderEvent(kPluginEvt_PreGUIDraw, 0); // render stage
 
     clear_sprite_list();
 
@@ -2573,7 +2573,7 @@ void put_sprite_list_on_screen(bool in_room)
         else if (t.RenderStage >= 0)
         {
             // meta entry to run the plugin hook
-            gfxDriver->DrawSprite(t.RenderStage, 0, nullptr);
+            gfxDriver->AddRenderEvent(t.RenderStage, 0);
         }
     }
 
@@ -2811,7 +2811,7 @@ void construct_game_screen_overlay(bool draw_mouse)
             (GraphicFlip)play.screen_flipped);
     if (pl_any_want_hook(kPluginEvt_PostScreenDraw))
     {
-        gfxDriver->DrawSprite(kPluginEvt_PostScreenDraw, 0, nullptr);
+        gfxDriver->AddRenderEvent(kPluginEvt_PostScreenDraw, 0);
     }
 
     // Mouse cursor

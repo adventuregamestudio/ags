@@ -1561,6 +1561,12 @@ void OGLGraphicsDriver::DrawSprite(int x, int y, IDriverDependantBitmap* ddb)
     _spriteList.push_back(OGLDrawListEntry((OGLBitmap*)ddb, _actSpriteBatch, x, y));
 }
 
+void OGLGraphicsDriver::AddRenderEvent(int evt, int param)
+{
+    assert(_actSpriteBatch != UINT32_MAX);
+    _spriteList.push_back(OGLDrawListEntry(nullptr, _actSpriteBatch, evt, param));
+}
+
 void OGLGraphicsDriver::DestroyDDB(IDriverDependantBitmap* ddb)
 {
     // Remove from render targets

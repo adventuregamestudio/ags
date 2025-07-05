@@ -186,6 +186,8 @@ public:
   virtual void EndSpriteBatch() = 0;
   // Adds sprite to the active batch
   virtual void DrawSprite(int x, int y, IDriverDependantBitmap* bitmap) = 0;
+  // Adds a render event, which runs a callback with the given parameters, to the active batch
+  virtual void AddRenderEvent(int evt, int param) = 0;
   // Adds fade overlay fx to the active batch
   virtual void SetScreenFade(int red, int green, int blue) = 0;
   // Adds tint overlay fx to the active batch

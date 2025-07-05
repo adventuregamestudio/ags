@@ -245,6 +245,7 @@ public:
     std::shared_ptr<Texture> GetTexture(IDriverDependantBitmap *ddb) override;
 
     void DrawSprite(int x, int y, IDriverDependantBitmap* ddb) override;
+    void AddRenderEvent(int evt, int param) override;
     void SetScreenFade(int red, int green, int blue) override;
     void SetScreenTint(int red, int green, int blue) override;
     // Redraw saved draw lists, optionally filtering specific batches

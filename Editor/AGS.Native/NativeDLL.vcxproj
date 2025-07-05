@@ -169,7 +169,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..;..\..\Common;..\..\Common\libinclude;..\..\Compiler;..\Native;..\scintilla\include;..\scintilla\lexers;..\scintilla\lexlib;..\scintilla\src;..\..\Windows\include;..\..\libsrc\allegro\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..;..\..\Common;..\..\Common\libinclude;..\..\libsrc\glm;..\..\Compiler;..\Native;..\scintilla\include;..\scintilla\lexers;..\scintilla\lexlib;..\scintilla\src;..\..\Windows\include;..\..\libsrc\allegro\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;_USRDLL;ALLEGRO_STATICLINK;_CRT_SECURE_NO_DEPRECATE;_MERGE_PROXYSTUB;STATIC_BUILD;SCI_LEXER;_BIND_TO_CURRENT_VCLIBS_VERSION=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
@@ -188,7 +188,7 @@
     </ResourceCompile>
     <Link>
       <RegisterOutput>false</RegisterOutput>
-      <AdditionalDependencies>Common_md_d.lib;Compiler_md_d.lib;winmm.lib;imm32.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Common_md_d.lib;Compiler_md_d.lib;Compiler2_md_d.lib;winmm.lib;imm32.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>LIBCMTD.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <ModuleDefinitionFile>exports.def</ModuleDefinitionFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -271,7 +271,7 @@ copy "$(TargetPath)" "$(SolutionDir)..\Editor\References\x64"</Command>
     </Midl>
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
-      <AdditionalIncludeDirectories>..\..;..\..\Common;..\..\Common\libinclude;..\..\Compiler;..\Native;..\scintilla\include;..\scintilla\lexers;..\scintilla\lexlib;..\scintilla\src;..\..\Windows\include;..\..\libsrc\allegro\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..;..\..\Common;..\..\Common\libinclude;..\..\libsrc\glm;..\..\Compiler;..\Native;..\scintilla\include;..\scintilla\lexers;..\scintilla\lexlib;..\scintilla\src;..\..\Windows\include;..\..\libsrc\allegro\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;_USRDLL;ALLEGRO_STATICLINK;_MERGE_PROXYSTUB;STATIC_BUILD;SCI_LEXER;_BIND_TO_CURRENT_VCLIBS_VERSION=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <PrecompiledHeader>
@@ -289,7 +289,7 @@ copy "$(TargetPath)" "$(SolutionDir)..\Editor\References\x64"</Command>
     </ResourceCompile>
     <Link>
       <RegisterOutput>false</RegisterOutput>
-      <AdditionalDependencies>Common_md.lib;Compiler_md.lib;winmm.lib;imm32.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Common_md.lib;Compiler_md.lib;Compiler2_md.lib;winmm.lib;imm32.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>LIBCMT.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <ModuleDefinitionFile>exports.def</ModuleDefinitionFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>

@@ -105,7 +105,7 @@ public:
     // Attaches new texture data, sets basic render rules
     void AttachData(std::shared_ptr<Texture> txdata, bool opaque) override
     {
-        assert(_data);
+        assert(txdata);
         _data = std::static_pointer_cast<OGLTexture>(txdata);
         _width = _stretchToWidth = _data->Res.Width;
         _height = _stretchToHeight = _data->Res.Height;

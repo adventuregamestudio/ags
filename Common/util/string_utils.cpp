@@ -58,6 +58,24 @@ StrUtil::ConversionError StrUtil::StringToInt(const String &s, int &val, int def
     return StrUtil::kNoError;
 }
 
+int64_t StrUtil::StringToInt64(const String &s, int64_t def_val)
+{
+    if (s.IsEmpty())
+        return def_val;
+    char *stop_ptr;
+    int64_t val = strtoll(s.GetCStr(), &stop_ptr, 0);
+    return (stop_ptr == s.GetCStr() + s.GetLength()) ? val : def_val;
+}
+
+uint64_t StrUtil::StringToUInt64(const String &s, uint64_t def_val)
+{
+    if (s.IsEmpty())
+        return def_val;
+    char *stop_ptr;
+    uint64_t val = strtoull(s.GetCStr(), &stop_ptr, 0);
+    return (stop_ptr == s.GetCStr() + s.GetLength()) ? val : def_val;
+}
+
 float StrUtil::StringToFloat(const String &s, float def_val)
 {
     if (s.IsEmpty())

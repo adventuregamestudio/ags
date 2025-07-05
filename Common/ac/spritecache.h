@@ -70,6 +70,9 @@ public:
 
     typedef std::function<Size(const Size &size, const uint32_t sprite_flags)> PfnAdjustSpriteSize;
     typedef std::function<Bitmap*(sprkey_t index, Bitmap *image, uint32_t &sprite_flags)> PfnInitSprite;
+    // FIXME: redo this to let pass the Bitmap itself, not sprite's index,
+    // as using a sprite index requires accessing a SpriteCache, which we may not want;
+    // see LoadSpriteNoCache for example.
     typedef std::function<void(sprkey_t index)> PfnPostInitSprite;
     typedef std::function<void(Bitmap *image)> PfnPrewriteSprite;
 

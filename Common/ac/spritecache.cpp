@@ -373,6 +373,8 @@ Bitmap *SpriteCache::LoadSprite(sprkey_t index, bool lock)
     // Let the external user to react to the new sprite;
     // note that this callback is allowed to modify the sprite's pixels,
     // but not its size or flags.
+    // FIXME: redo this to let pass the Bitmap itself, not sprite's index,
+    // as using a sprite index requires accessing a SpriteCache, which we may not want
     _callbacks.PostInitSprite(index);
     return image;
 }

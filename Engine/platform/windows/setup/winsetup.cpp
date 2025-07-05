@@ -178,9 +178,16 @@ void WinConfig::Load(const ConfigTree &cfg, const Size &desktop_res)
     if (MouseSpeed <= 0.f)
         MouseSpeed = 1.f;
 
-    SpriteCacheSize = CfgReadInt(cfg, "graphics", "sprite_cache_size", SpriteCacheSize);
-    TextureCacheSize = CfgReadInt(cfg, "graphics", "texture_cache_size", TextureCacheSize);
-    SoundCacheSize = CfgReadInt(cfg, "sound", "cache_size", SoundCacheSize);
+    SpriteCacheSize = std::min<uint64_t>(
+        CfgReadUInt64(cfg, "graphics", "sprite_cache_size", SpriteCacheSize),
+        SIZE_MAX / 1024);
+    TextureCacheSize = std::min<uint64_t>(
+        CfgReadUInt64(cfg, "graphics", "texture_cache_size", TextureCacheSize),
+        SIZE_MAX / 1024);
+    SoundCacheSize = std::min<uint64_t>(
+        CfgReadUInt64(cfg, "sound", "cache_size", SoundCacheSize),
+        SIZE_MAX / 1024);
+
     Language = CfgReadString(cfg, "language", "translation", Language);
     DefaultLanguageName = CfgReadString(cfg, "language", "default_translation_name", DefaultLanguageName);
 
@@ -211,9 +218,9 @@ void WinConfig::Save(ConfigTree &cfg, const Size &desktop_res) const
     CfgWriteInt(cfg, "mouse", "auto_lock", MouseAutoLock ? 1 : 0);
     CfgWriteFloat(cfg, "mouse", "speed", MouseSpeed, 1);
 
-    CfgWriteInt(cfg, "graphics", "sprite_cache_size", SpriteCacheSize);
-    CfgWriteInt(cfg, "graphics", "texture_cache_size", TextureCacheSize);
-    CfgWriteInt(cfg, "sound", "cache_size", SoundCacheSize);
+    CfgWriteUInt(cfg, "graphics", "sprite_cache_size", SpriteCacheSize);
+    CfgWriteUInt(cfg, "graphics", "texture_cache_size", TextureCacheSize);
+    CfgWriteUInt(cfg, "sound", "cache_size", SoundCacheSize);
     CfgWriteString(cfg, "language", "translation", Language);
 }
 

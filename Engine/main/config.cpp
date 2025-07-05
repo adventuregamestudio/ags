@@ -357,10 +357,19 @@ void apply_config(const ConfigTree &cfg)
 
         // Resource caches and options
         usetup.clear_cache_on_room_change = CfgReadBoolInt(cfg, "misc", "clear_cache_on_room_change", usetup.clear_cache_on_room_change);
-        usetup.SpriteCacheSize = CfgReadInt(cfg, "graphics", "sprite_cache_size", usetup.SpriteCacheSize);
-        usetup.TextureCacheSize = CfgReadInt(cfg, "graphics", "texture_cache_size", usetup.TextureCacheSize);
-        usetup.SoundCacheSize = CfgReadInt(cfg, "sound", "cache_size", usetup.SoundCacheSize);
-        usetup.SoundLoadAtOnceSize = CfgReadInt(cfg, "sound", "stream_threshold", usetup.SoundLoadAtOnceSize);
+        // Clamp the values to the max supported for this platform
+        usetup.SpriteCacheSize = std::min<uint64_t>(
+            CfgReadUInt64(cfg, "graphics", "sprite_cache_size", usetup.SpriteCacheSize),
+            SIZE_MAX / 1024);
+        usetup.TextureCacheSize = std::min<uint64_t>(
+            CfgReadUInt64(cfg, "graphics", "texture_cache_size", usetup.TextureCacheSize),
+            SIZE_MAX / 1024);
+        usetup.SoundCacheSize = std::min<uint64_t>(
+            CfgReadUInt64(cfg, "sound", "cache_size", usetup.SoundCacheSize),
+            SIZE_MAX / 1024);
+        usetup.SoundLoadAtOnceSize = std::min<uint64_t>(
+            CfgReadUInt64(cfg, "sound", "stream_threshold", usetup.SoundLoadAtOnceSize),
+            SIZE_MAX / 1024);
 
         // Mouse options
         usetup.mouse_auto_lock = CfgReadBoolInt(cfg, "mouse", "auto_lock");

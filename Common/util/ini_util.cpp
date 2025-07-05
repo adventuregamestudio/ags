@@ -60,6 +60,38 @@ int CfgReadInt(const ConfigTree &cfg, const String &sectn, const String &item, i
     return val;
 }
 
+int64_t CfgReadInt64(const ConfigTree &cfg, const String &sectn, const String &item, int64_t def)
+{
+    String str;
+    if (!CfgReadItem(cfg, sectn, item, str))
+        return def;
+    return StrUtil::StringToInt64(str, def);
+}
+
+int64_t CfgReadInt64(const ConfigTree &cfg, const String &sectn, const String &item, int64_t min, int64_t max, int64_t def)
+{
+    int64_t val = CfgReadInt64(cfg, sectn, item, def);
+    if ((val < min) || (val > max))
+        return def;
+    return val;
+}
+
+uint64_t CfgReadUInt64(const ConfigTree &cfg, const String &sectn, const String &item, uint64_t def)
+{
+    String str;
+    if (!CfgReadItem(cfg, sectn, item, str))
+        return def;
+    return StrUtil::StringToInt64(str, def);
+}
+
+uint64_t CfgReadUInt64(const ConfigTree &cfg, const String &sectn, const String &item, uint64_t min, uint64_t max, uint64_t def)
+{
+    uint64_t val = CfgReadUInt64(cfg, sectn, item, def);
+    if ((val < min) || (val > max))
+        return def;
+    return val;
+}
+
 float CfgReadFloat(const ConfigTree &cfg, const String &sectn, const String &item, float def)
 {
     String str;
@@ -117,9 +149,14 @@ String CfgFindKey(const ConfigTree &cfg, const String &sectn, const String &item
 // ConfigWriter
 //-----------------------------------------------------------------------------
 
-void CfgWriteInt(ConfigTree &cfg, const String &sectn, const String &item, int value)
+void CfgWriteInt(ConfigTree &cfg, const String &sectn, const String &item, int64_t value)
 {
-    cfg[sectn][item].Format("%d", value);
+    cfg[sectn][item].Format("%lld", value);
+}
+
+void CfgWriteUInt(ConfigTree &cfg, const String &sectn, const String &item, uint64_t value)
+{
+    cfg[sectn][item].Format("%llu", value);
 }
 
 void CfgWriteFloat(ConfigTree &cfg, const String &sectn, const String &item, float value)

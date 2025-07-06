@@ -119,11 +119,11 @@ static String translate_to_regex_string(const String &pattern)
                 result.Append("]");
             }
         } else {
-            // I thought this may cause issue with utf-8 but the python approach is to escape all characters
-            if (!is_regex_syntax_character(c)) {
+            // Escape a regex syntax character if necessary, otherwise print one verbatim
+            if (is_regex_syntax_character(c)) {
+                result.Append("\\");
                 result.AppendChar(c);
             } else {
-                result.Append("\\");
                 result.AppendChar(c);
             }
         }

@@ -209,6 +209,13 @@ namespace AGS.Editor
             return pattern.Replace("\\\\", "/"); // convert to UNIX paths
         }
 
+        private static bool IsRegexSyntaxCharacter(char c)
+        {
+            // see https://tc39.es/ecma262/#prod-SyntaxCharacter
+            return (c == '^') || (c == '$') || (c == '\\') || (c == '.') || (c == '*') || (c == '+') || (c == '?') ||
+                (c == '(') || (c == ')') || (c == '[') || (c == ']') || (c == '{') || (c == '}') || (c == '|');
+        }
+
         /// <summary>
         /// Converts a include/exclude pattern string into the regex string,
         /// which may be used to construct a Regex object.
@@ -288,14 +295,14 @@ namespace AGS.Editor
                 }
                 else
                 {
-                    if (char.IsLetterOrDigit(c) || c == '_')
+                    // Escape a regex syntax character if necessary, otherwise print one verbatim
+                    if (IsRegexSyntaxCharacter(c))
                     {
+                        result.Append("\\");
                         result.Append(c);
                     }
                     else
                     {
-                        // The python approach is to escape all characters that are not alphanumeric
-                        result.Append("\\");
                         result.Append(c);
                     }
                 }

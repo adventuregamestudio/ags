@@ -45,7 +45,7 @@ folder/*
             // NOTE: IncludeUtils encloses the pattern into (^|/)...($|/) pair
             Assert.That(patterns[0].RegexPattern, Is.EqualTo("(^|/).*\\.asc($|/)"));
             Assert.That(patterns[1].RegexPattern, Is.EqualTo("(^|/)ignoreme\\.asc($|/)"));
-            Assert.That(patterns[2].RegexPattern, Is.EqualTo("(^|/)folder\\/.*($|/)"));
+            Assert.That(patterns[2].RegexPattern, Is.EqualTo("(^|/)folder/.*($|/)"));
         }
 
         [Test]

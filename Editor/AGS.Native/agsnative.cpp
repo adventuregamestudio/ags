@@ -1992,7 +1992,7 @@ void SetNativeRoomBackground(RoomStruct &room, int backgroundNumber, SysBitmap ^
         memcpy(room.BgFrames[backgroundNumber].Palette, bgpal, sizeof(bgpal));
     }
 
-    room.BgFrameCount = std::max(room.BgFrameCount, (size_t)backgroundNumber + 1);
+    room.BgFrameCount = std::max<size_t>(room.BgFrameCount, (size_t)backgroundNumber + 1);
     room.BgFrames[backgroundNumber].Graphic.reset(newbg);
 }
 

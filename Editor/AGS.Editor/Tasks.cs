@@ -628,7 +628,7 @@ namespace AGS.Editor
             }
 
             System.Version editorVersion = new System.Version(AGS.Types.Version.AGS_EDITOR_VERSION);
-            System.Version projectVersion = game.SavedXmlEditorVersion != null ? Types.Utilities.TryParseVersion(game.SavedXmlEditorVersion) : null;
+            System.Version projectVersion = game.SavedXmlEditorVersion;
             if (projectVersion == null || projectVersion < editorVersion)
                 game.SetScriptAPIForOldProject();
 #pragma warning restore 0612, 0618

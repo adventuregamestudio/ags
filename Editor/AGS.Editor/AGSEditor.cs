@@ -55,21 +55,18 @@ namespace AGS.Editor
         public const string SPRITE_FILE_NAME = "acsprset.spr";
         public const string SPRITE_INDEX_FILE_NAME = "sprindex.dat";
 
-        /* 
-         * LATEST_XML_VERSION is the last version of the Editor that used 4-point-4-number string
-         * to identify the version of AGS that saved game project.
-         * DO NOT MODIFY THIS CONSTANT UNLESS YOU REALLY WANT TO CHANGE THE IDENTIFICATION METHOD.
-        */
-        public const string LATEST_XML_VERSION = "3.0.3.2";
-
         /*
-         * LATEST_XML_VERSION_INDEX is the current project XML version.
+         * LATEST_XML_VERSION is the X.Y.Z.W string which defines current project format.
          * DO increase this number for every new public release that introduces a new
          * property in the main project's XML, otherwise people who are trying to open
          * newer projects in older Editors will get confusing error messages, instead
          * of clear "wrong version of AGS" message.
-        */
-        /*
+         * 
+         * The project version history follows.
+         * NOTE: a large range of versions used VERSION_INDEX as an identifier,
+         * rather than a version string.
+         * 
+         * XML_VERSION_INDEX versions (3.0.3.2 -> 4.0.0.19 inclusive)
          *  6: 3.2.1
          *  7: 3.2.2
          *  8: 3.3.1.1163 - Settings.LastBuildConfiguration;
@@ -94,7 +91,7 @@ namespace AGS.Editor
          * 26:            - Fixed sound references in game properties.
          * 27: 3.5.1      - Settings.AttachDataToExe
          * --------------------------------------------------------------------
-         * Since 3.6.0 define format value as AGS version represented as NN,NN,NN,NN:
+         * Since 3.6.0 the format value as is represented as NN,NN,NN,NN:
          * e.g. 3.6.0     is 03,06,00,00 (3060000),
          *      4.12.3.25 is 04,12,03,25 (4120325), and so on
          * --------------------------------------------------------------------
@@ -135,9 +132,33 @@ namespace AGS.Editor
          * 4.00.00.14     - Obligatory alpha component in 32-bit color.
          * 4.00.00.16     - GUIControl.BlendMode and Transparency.
          * 4.00.00.18     - ViewFrame offsets.
+         * 
+         * XML_VERSION versions:
+         * 4.00.00.20     - start using version string again.
          *
         */
-        public const int    LATEST_XML_VERSION_INDEX = 4000018;
+        public const string LATEST_XML_VERSION = "4.0.0.20";
+
+        /*
+         * FIRST_XML_VERSION is the very first version of the Editor using XML project file.
+        */
+        public const string FIRST_XML_VERSION = "2.80.1";
+        /*
+         * FIRST_XML_VERSION_USING_INDEX is the old version of the Editor that froze the version string
+         * and started using XML_VERSION_INDEX instead.
+        */
+        public const string FIRST_XML_VERSION_USING_INDEX = "3.0.3.2";
+        /*
+         * FIRST_XML_VERSION_WITHOUT_INDEX is the version of the Editor
+         * that stopped using version index.
+        */
+        public const string FIRST_XML_VERSION_WITHOUT_INDEX = "4.0.0.20";
+        /*
+         * LAST_XML_VERSION_INDEX is the last value of the version index used within the AGS projects.
+         * ***!! This value should NO LONGER be updated, use LATEST_XML_VERSION instead !!***
+        */
+        public const int    LAST_XML_VERSION_INDEX = 4000019;
+
         /// <summary>
         /// XML version index on the release of AGS 4.0.0, this constant be used to determine
         /// if upgrade of Rooms/Sprites/etc. to new format have been performed.
@@ -145,21 +166,45 @@ namespace AGS.Editor
         public const int    AGS_4_0_0_XML_VERSION_INDEX_OPEN_ROOMS = 3999901;
         public const int    AGS_4_0_0_XML_VERSION_INDEX_PO_TRANSLATIONS = 3999907;
         public const int    AGS_4_0_0_XML_VERSION_INDEX_FONT_SOURCES = 4000010;
+
         /*
-         * LATEST_USER_DATA_VERSION is the last version of the user data file that used a
-         * 4-point-4-number string to identify the version of AGS that saved the file.
-         * DO NOT MODIFY THIS CONSTANT UNLESS YOU REALLY WANT TO CHANGE THE IDENTIFICATION METHOD.
-        */
-        private const string LATEST_USER_DATA_VERSION = "3.0.2.1";
-        /*
+         * LATEST_XML_VERSION is the X.Y.Z.W string which defines project's user data format.
+         * 
+         * The project version history follows.
+         * NOTE: a certain range of versions used VERSION_INDEX as an identifier,
+         * rather than a version string.
+         * 
+         * USER_DATA_VERSION_INDEX versions (3.0.2.1 -> 4.0.0.18 inclusive)
          * 1: 3.0.2.1
          * 2: 3.4.0.1    - WorkspaceState section
          * 3: 3.5.0.11
          * 4: 3.5.1 (?)
+         * 
+         * USER_DATA_VERSION versions:
+         * 4.00.00.20   - start using version string again.
+         * 
         */
-        public const int LATEST_USER_DATA_XML_VERSION_INDEX = 4;
-        public const string AUDIO_VOX_FILE_NAME = "audio.vox";
+        public const string LATEST_USER_DATA_VERSION = "4.0.0.20";
 
+        /*
+         * FIRST_USER_DATA_VERSION_USING_INDEX is the old version of the Editor
+         * that froze the version string and started using XML_VERSION_INDEX instead.
+        */
+        public const string FIRST_USER_DATA_VERSION_USING_INDEX = "3.0.2.1";
+        /*
+         * FIRST_USER_DATA_VERSION_WITHOUT_INDEX is the version of the Editor
+         * that stopped using version index.
+        */
+        public const string FIRST_USER_DATA_VERSION_WITHOUT_INDEX = "4.0.0.20";
+        /*
+         * LAST_USER_DATA_VERSION_INDEX is the last value of the version index used within
+         * the AGS project's workspace file.
+         * ***!! This value should NO LONGER be updated, use LATEST_USER_DATA_VERSION instead !!***
+        */
+        public const int LAST_USER_DATA_VERSION_INDEX = 4;
+
+
+        public const string AUDIO_VOX_FILE_NAME = "audio.vox";
         private const string USER_DATA_FILE_NAME = GAME_FILE_NAME + USER_DATA_FILE_SUFFIX;
         private const string USER_DATA_FILE_SUFFIX = ".user";
         private const string LOCK_FILE_NAME = "_OpenInEditor.lock";
@@ -663,31 +708,54 @@ namespace AGS.Editor
                 {
                     throw new AGSEditorException("Invalid user data file. This is not a valid AGS user data file.");
                 }
-                string fileVersion = doc.DocumentElement.Attributes[XML_ATTRIBUTE_VERSION].InnerXml;
-                if (fileVersion != LATEST_USER_DATA_VERSION)
-                {
-                    throw new AGSEditorException("User data file is from a newer version of AGS or an unsupported beta version. Please check the AGS website for a newer version of the editor.");
-                }
+
                 string userDataSavedWithEditorVersion = null;
                 XmlAttribute editorVersionNode = doc.DocumentElement.Attributes[XML_ATTRIBUTE_EDITOR_VERSION];
                 if (editorVersionNode != null)
                 {
                     userDataSavedWithEditorVersion = editorVersionNode.InnerText;
                 }
+
+                string fileVersion = doc.DocumentElement.Attributes[XML_ATTRIBUTE_VERSION].InnerXml;
+                System.Version primaryVersion;
+                if (!System.Version.TryParse(fileVersion, out primaryVersion))
+                {
+                    throw new AGSEditorException("User data file has an invalid version identifier.");
+                }
+
+                // Numeric version indexes have been used in a long range of Editors between 3.0 and 4.0;
+                // we optionally check it too if it's present.
                 int? versionIndex = null;
                 XmlAttribute versionIndexNode = doc.DocumentElement.Attributes[XML_ATTRIBUTE_VERSION_INDEX];
                 if (versionIndexNode != null)
                 {
-                    // From 3.0.2.1 we switched to a simple integer version, it's easier to
-                    // compare than using the 4-point version
                     versionIndex = Convert.ToInt32(versionIndexNode.InnerText);
-                    if ((versionIndex < 1) || (versionIndex > LATEST_USER_DATA_XML_VERSION_INDEX))
+                }
+
+                if (primaryVersion > new System.Version(LATEST_USER_DATA_VERSION))
+                {
+                    throw new AGSEditorException("This game's user data file is from " +
+                            ((userDataSavedWithEditorVersion == null) ? "a newer version" : ("version " + userDataSavedWithEditorVersion))
+                            + " of AGS or an unsupported beta version. Please check the AGS website for a newer version of the editor.");
+                }
+                else if (primaryVersion >= new System.Version(FIRST_USER_DATA_VERSION_USING_INDEX)
+                    && primaryVersion < new System.Version(FIRST_USER_DATA_VERSION_WITHOUT_INDEX)
+                    && versionIndex != null)
+                {
+                    if ((versionIndex < 1) || (versionIndex > LAST_USER_DATA_VERSION_INDEX))
                     {
                         throw new AGSEditorException("This game's user data file is from " +
                             ((userDataSavedWithEditorVersion == null) ? "a newer version" : ("version " + userDataSavedWithEditorVersion))
                             + " of AGS or an unsupported beta version. Please check the AGS website for a newer version of the editor.");
                     }
                 }
+                else if (primaryVersion < new System.Version(FIRST_USER_DATA_VERSION_USING_INDEX))
+                {
+                    throw new AGSEditorException("Game data file is from " +
+                            ((userDataSavedWithEditorVersion == null) ? "a too old version" : ("version " + userDataSavedWithEditorVersion))
+                            + " of AGS or an unsupported beta version. It cannot be loaded.");
+                }
+
                 docNode = doc.DocumentElement;
             }
             catch (Exception ex)
@@ -741,16 +809,6 @@ namespace AGS.Editor
             {
                 throw new AGSEditorException("Invalid game data file. This is not a valid AGS game.");
             }
-            string fileVersion = doc.DocumentElement.Attributes[XML_ATTRIBUTE_VERSION].InnerXml;
-            if ((fileVersion != LATEST_XML_VERSION) &&
-                (fileVersion != "3.0.1.1") &&
-                (fileVersion != "3.0.2.1") &&
-                (fileVersion != "3.0.2.2") &&
-                (fileVersion != "3.0.3.1") && 
-				(fileVersion != "2.80.1"))
-            {
-                throw new AGSEditorException("Game data file is from a newer version of AGS or an unsupported beta version. Please check the AGS website for a newer version of the editor.");
-            }
 
             string gameSavedWithEditorVersion = null;
             XmlAttribute editorVersionNode = doc.DocumentElement.Attributes[XML_ATTRIBUTE_EDITOR_VERSION];
@@ -759,32 +817,60 @@ namespace AGS.Editor
                 gameSavedWithEditorVersion = editorVersionNode.InnerText;
             }
 
+            string fileVersion = doc.DocumentElement.Attributes[XML_ATTRIBUTE_VERSION].InnerXml;
+            System.Version primaryVersion;
+            if (!System.Version.TryParse(fileVersion, out primaryVersion))
+            {
+                throw new AGSEditorException("Game data file has an invalid version identifier.");
+            }
+
+            // Numeric version indexes have been used in a long range of Editors between 3.0 and 4.0;
+            // we optionally check it too if it's present.
             int? versionIndex = null;
             XmlAttribute versionIndexNode = doc.DocumentElement.Attributes[XML_ATTRIBUTE_VERSION_INDEX];
-            if ((versionIndexNode == null) && (fileVersion == LATEST_XML_VERSION))
+            if (versionIndexNode != null)
             {
-                throw new AGSEditorException("Invalid format game data file");
-            }
-            else if (versionIndexNode != null)
-            {
-                // From 3.0.3 we switch to a simple integer version, it's easier to
-                // compare than using the 4-point version
                 versionIndex = Convert.ToInt32(versionIndexNode.InnerText);
-                if (versionIndex == 5)
-                {
-                    throw new AGSEditorException("This game is from an unsupported beta version of AGS and cannot be loaded.");
-                }
-                if ((versionIndex < 1) || (versionIndex > LATEST_XML_VERSION_INDEX))
+            }
+
+            if (primaryVersion > new System.Version(LATEST_XML_VERSION))
+            {
+                throw new AGSEditorException("Game data file is from " +
+                        ((gameSavedWithEditorVersion == null) ? "a newer version" : ("version " + gameSavedWithEditorVersion))
+                        + " of AGS or an unsupported beta version. Please check the AGS website for a newer version of the editor.");
+            }
+            else if (primaryVersion >= new System.Version(FIRST_XML_VERSION_USING_INDEX)
+                && primaryVersion < new System.Version(FIRST_XML_VERSION_WITHOUT_INDEX)
+                && versionIndex != null)
+            {
+                if ((versionIndex < 1) || (versionIndex > LAST_XML_VERSION_INDEX))
                 {
                     throw new AGSEditorException("Game data file is from " +
                         ((gameSavedWithEditorVersion == null) ? "a newer version" : ("version " + gameSavedWithEditorVersion))
                         + " of AGS or an unsupported beta version. Please check the AGS website for a newer version of the editor.");
                 }
             }
+            else if (primaryVersion < new System.Version(FIRST_XML_VERSION))
+            {
+                throw new AGSEditorException("Game data file is from " +
+                        ((gameSavedWithEditorVersion == null) ? "a too old version" : ("version " + gameSavedWithEditorVersion))
+                        + " of AGS or an unsupported beta version. It cannot be loaded.");
+            }
 
+            if (versionIndex == null)
+            {
+                // Assign version index by converting a version to a XXYYZZWW encoded integer,
+                // this is in case we still use this somewhere in code (or if Editor plugins use it)
+                versionIndex =
+                    Math.Min(primaryVersion.Major, 99) * 1000000
+                  + Math.Min(primaryVersion.Minor, 99) * 10000
+                  + Math.Min(primaryVersion.Build, 99) * 100
+                  + Math.Min(primaryVersion.Revision, 99);
+            }
+
+            _game.SavedXmlVersion = primaryVersion;
             _game.SavedXmlVersionIndex = versionIndex;
-			_game.SavedXmlVersion = fileVersion;
-            _game.SavedXmlEditorVersion = gameSavedWithEditorVersion;
+            _game.SavedXmlEditorVersion = new System.Version(gameSavedWithEditorVersion);
             try
             { // Try to retrieve the xml encoding declaration, to be used as a fallback for older projects
                 XmlDeclaration dec = doc.FirstChild as XmlDeclaration;
@@ -1674,7 +1760,6 @@ namespace AGS.Editor
             writer.WriteComment("DO NOT EDIT THIS FILE. It is automatically generated by the AGS Editor, changing it manually could break your game");
             writer.WriteStartElement(XML_USER_DATA_ROOT_NODE_NAME);
             writer.WriteAttributeString(XML_ATTRIBUTE_VERSION, LATEST_USER_DATA_VERSION);
-            writer.WriteAttributeString(XML_ATTRIBUTE_VERSION_INDEX, LATEST_USER_DATA_XML_VERSION_INDEX.ToString());
             writer.WriteAttributeString(XML_ATTRIBUTE_EDITOR_VERSION, AGS.Types.Version.AGS_EDITOR_VERSION);
 
             Factory.Events.OnSavingUserData(writer);
@@ -1712,11 +1797,10 @@ namespace AGS.Editor
             writer.WriteComment("DO NOT EDIT THIS FILE. It is automatically generated by the AGS Editor, changing it manually could break your game");
             writer.WriteStartElement(XML_ROOT_NODE_NAME);
             writer.WriteAttributeString(XML_ATTRIBUTE_VERSION, LATEST_XML_VERSION);
-            writer.WriteAttributeString(XML_ATTRIBUTE_VERSION_INDEX, LATEST_XML_VERSION_INDEX.ToString());
             writer.WriteAttributeString(XML_ATTRIBUTE_EDITOR_VERSION, AGS.Types.Version.AGS_EDITOR_VERSION);
 
-			_game.SavedXmlVersion = LATEST_XML_VERSION;
-            _game.SavedXmlVersionIndex = LATEST_XML_VERSION_INDEX;
+			_game.SavedXmlVersion = new System.Version(LATEST_XML_VERSION);
+            _game.SavedXmlVersionIndex = 0; // Not using a version index anymore
             _game.SavedXmlEncodingCodePage = _game.TextEncoding.CodePage;
             _game.ToXml(writer);
 

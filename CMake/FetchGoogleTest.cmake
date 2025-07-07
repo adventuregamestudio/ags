@@ -20,8 +20,8 @@ if(NOT googletest_content_POPULATED)
     else()
         FetchContent_Populate(googletest_content
                 DOWNLOAD_EXTRACT_TIMESTAMP TRUE
-                URL https://github.com/google/googletest/archive/52204f78f94d7512df1f0f3bea1d47437a2c3a58.tar.gz
-                URL_HASH MD5=9512a106bb006ab84e0a822ec363c6c7
+                URL https://github.com/google/googletest/archive/3983f67e32fb3e9294487b9d4f9586efa6e5d088.tar.gz
+                URL_HASH MD5=95e3fff4ba49235043f0b6b4304137d5
         )
     endif()
     # For Windows: Prevent overriding the parent project's compiler/linker settings

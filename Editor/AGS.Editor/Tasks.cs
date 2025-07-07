@@ -170,7 +170,7 @@ namespace AGS.Editor
                 return false;
 
             game.DirectoryPath = gameDirectory;
-            SetDefaultValuesForNewFeatures(game);
+            UpgradeFeatures(game);
             Utilities.EnsureStandardSubFoldersExist();
 
             InitSpritesAfterGameLoad(game, errors);
@@ -336,7 +336,7 @@ namespace AGS.Editor
             ExportSprites(Factory.AGSEditor.CurrentGame.RootSpriteFolder, options);
         }
 
-        private void SetDefaultValuesForNewFeatures(Game game)
+        private void UpgradeFeatures(Game game)
         {
 #pragma warning disable 0612, 0618
             // TODO: this may be noticably if upgrading lots of items. Display some kind of

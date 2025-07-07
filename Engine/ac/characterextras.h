@@ -70,7 +70,7 @@ public:
     short tint_light = 0;
     char  process_idle_this_time = 0;
     char  slow_move_counter = 0;
-    short animwait = 0;
+    short animwait = 0; // number of frames to wait before advancing a animation
     int   anim_volume = 100; // default animation volume (relative factor)
     int   cur_anim_volume = 100; // current animation sound volume (relative factor)
     int   following = -1; // whom do we follow (character id)

@@ -1972,27 +1972,25 @@ void move_character_impl(CharacterInfo *chin, const std::vector<Point> *path, in
         return;
     }
 
+    // By default wait 1 frame before starting to move, to let animation advance once
+    int walk_wait_init = 1;
+    int anim_wait_init = 0;
+    float step_frac_init = 0.f;
+    int oldframe = chin->frame;
     // If character was currently walking, then save current "wait" timers
     // and animation frame, and apply later after new walking begins,
     // in order to make it look smoother.
-    int oldframe = chin->frame;
-    int waitWas = 0, animWaitWas = 0;
-    float wasStepFrac = 0.f;
-    // if they are currently walking, save the current Wait
     if (chin->walking)
     {
-        waitWas = chin->walkwait;
-        animWaitWas = charextra[chac].animwait;
+        walk_wait_init = chin->walkwait;
+        anim_wait_init = charextra[chac].animwait;
         const auto &movelist = *get_movelist(chin->get_movelist_id());
-        // We set (fraction + 1), because movelist is always +1 ahead of current character pos;
         if (movelist.GetStageProgress() > 0.f)
-            wasStepFrac = movelist.GetPixelUnitFraction() + movelist.GetStepLength();
+            step_frac_init = movelist.GetPixelUnitFraction();
     }
 
     Character_StopMoving(chin);
     chin->frame = oldframe;
-    // use toxPassedIn cached variable so the hi-res co-ordinates
-    // are still displayed as such
     debug_script_log("%s: Start move to %d,%d", chin->scrname.GetCStr(), tox, toy);
 
     int move_speed_x, move_speed_y;
@@ -2031,19 +2029,19 @@ void move_character_impl(CharacterInfo *chin, const std::vector<Point> *path, in
         chin->walking = movelist;
         MoveList &mlist = *get_movelist(chin->walking);
         // NOTE: unfortunately, some old game scripts might break because of smooth walk transition
-        if (wasStepFrac > 0.f && (loaded_game_file_version >= kGameVersion_361))
+        if (step_frac_init > 0.f && (loaded_game_file_version >= kGameVersion_361))
         {
-            mlist.SetPixelUnitFraction(wasStepFrac);
+            mlist.SetPixelUnitFraction(step_frac_init);
         }
 
-        // cancel any pending waits on current animations
+        // Cancel any pending waits on current animations
         // or if they were already moving, keep the current wait - 
         // this prevents a glitch if MoveCharacter is called when they
         // are already moving
         if (walk_anim)
         {
-            chin->walkwait = waitWas;
-            charextra[chac].animwait = animWaitWas;
+            chin->walkwait = walk_wait_init;
+            charextra[chac].animwait = anim_wait_init;
             fix_player_sprite(chin, mlist);
         }
         else
@@ -2378,6 +2376,7 @@ int wantMoveNow (CharacterInfo *chi, CharacterExtras *chex) {
 
     // the % checks don't work when the counter is negative, so once
     // it wraps round, correct it
+    // FIXME: can this be solved by making walkwaitcounter unsigned instead??
     while (chi->walkwaitcounter < 0) {
         chi->walkwaitcounter += 12000;
     }

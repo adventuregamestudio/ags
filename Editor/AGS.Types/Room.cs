@@ -25,13 +25,23 @@ namespace AGS.Types
         public const string EVENT_SUFFIX_ROOM_LOAD = "Load";
 
         public const string PROPERTY_NAME_MASKRESOLUTION = "MaskResolution";
-        public const string LATEST_XML_VERSION = "1";
+        /*
+         * Room version history:
+         * 
+         * 1            - New XML room format introduced
+         * 4.00.00.20   - Updated to a X.Y.Z.W version format.
+        */
+        public const string LATEST_XML_VERSION = "4.00.00.20";
+
+        private const string FIRST_XML_VERSION = "3.99.99.01";
 
         private static InteractionSchema _interactionSchema;
 
         public delegate void RoomModifiedChangedHandler(bool isModified);
         public event RoomModifiedChangedHandler RoomModifiedChanged;
 
+        // The version this room was loaded from
+        private System.Version _savedXmlVersion = null;
         private int _leftEdgeX;
         private int _rightEdgeX;
         private int _topEdgeY;
@@ -112,12 +122,19 @@ namespace AGS.Types
 
         public Room(XmlNode node) : base(node)
         {
-            _interactions.FromXml(node);
-            _objects.AddRange(GetXmlChildren(node, "/Room/Objects", MAX_OBJECTS).Select((xml, i) => new RoomObject(this, xml) { ID = i }));
-            _hotspots.AddRange(GetXmlChildren(node, "/Room/Hotspots", MAX_HOTSPOTS).Select((xml, i) => new RoomHotspot(this, xml) { ID = i }));
-            _walkableAreas.AddRange(GetXmlChildren(node, "/Room/WalkableAreas", MAX_WALKABLE_AREAS).Select((xml, i) => new RoomWalkableArea(this, xml) { ID = i }));
-            _walkBehinds.AddRange(GetXmlChildren(node, "/Room/WalkBehinds", MAX_WALK_BEHINDS).Select((xml, i) => new RoomWalkBehind(xml) { ID = i }));
-            _regions.AddRange(GetXmlChildren(node, "/Room/Regions", MAX_REGIONS).Select((xml, i) => new RoomRegion(this, xml) { ID = i }));
+            LoadFromXml(node);
+        }
+
+        /// <summary>
+        /// The version of the room file that was loaded from disk.
+        /// This is null if the room has not yet been saved.
+        /// </summary>
+        [AGSNoSerialize]
+        [Browsable(false)]
+        public System.Version SavedXmlVersion
+        {
+            get { return _savedXmlVersion; }
+            set { _savedXmlVersion = value; }
         }
 
         [AGSNoSerialize]
@@ -409,7 +426,7 @@ namespace AGS.Types
 			this.Modified = true;
 		}
 		
-	public bool IsScriptNameAlreadyUsed(string tryName, object ignoreObject)
+    public bool IsScriptNameAlreadyUsed(string tryName, object ignoreObject)
         {
             foreach (RoomHotspot hotspot in Hotspots)
             {
@@ -445,6 +462,42 @@ namespace AGS.Types
         private static IEnumerable<XmlNode> GetXmlChildren(XmlNode node, string xpath, int maxLimit)
         {
             return node.SelectSingleNode(xpath).ChildNodes.Cast<XmlNode>().Take(maxLimit);
+        }
+
+        /// <summary>
+        /// Loads Room contents from XML.
+        /// Room's own properties (top level) are loaded automatically using DeserializeFromXML
+        /// (see UnloadedRoom's constructor).
+        /// </summary>
+        private void LoadFromXml(XmlNode node)
+        {
+            var versionAttr = node.Attributes.GetNamedItem("Version");
+            System.Version fileVersion = null;
+            if (versionAttr != null)
+            {
+                // Try parsing as a decimal first, that was used in the very first version
+                int versionIndex = 0;
+                if (int.TryParse(versionAttr.InnerText, out versionIndex))
+                {
+                    fileVersion = new System.Version(FIRST_XML_VERSION);
+                }
+                else
+                {
+                    if (!System.Version.TryParse(versionAttr.InnerText, out fileVersion))
+                    {
+                        throw new AGSEditorException($"Room data file has an invalid version identifier.");
+                    }
+                }
+            }
+
+            _interactions.FromXml(node);
+            _objects.AddRange(GetXmlChildren(node, "/Room/Objects", MAX_OBJECTS).Select((xml, i) => new RoomObject(this, xml) { ID = i }));
+            _hotspots.AddRange(GetXmlChildren(node, "/Room/Hotspots", MAX_HOTSPOTS).Select((xml, i) => new RoomHotspot(this, xml) { ID = i }));
+            _walkableAreas.AddRange(GetXmlChildren(node, "/Room/WalkableAreas", MAX_WALKABLE_AREAS).Select((xml, i) => new RoomWalkableArea(this, xml) { ID = i }));
+            _walkBehinds.AddRange(GetXmlChildren(node, "/Room/WalkBehinds", MAX_WALK_BEHINDS).Select((xml, i) => new RoomWalkBehind(xml) { ID = i }));
+            _regions.AddRange(GetXmlChildren(node, "/Room/Regions", MAX_REGIONS).Select((xml, i) => new RoomRegion(this, xml) { ID = i }));
+
+            _savedXmlVersion = fileVersion;
         }
     }
 }

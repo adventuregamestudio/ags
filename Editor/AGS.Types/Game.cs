@@ -68,9 +68,9 @@ namespace AGS.Types
         private string _directoryPath;
 		private bool _roomsAddedOrRemoved = false;
 		private SortedDictionary<int, object> _deletedViewIDs;
-		private string _savedXmlVersion = null;
+		private System.Version _savedXmlVersion = null;
         private int? _savedXmlVersionIndex = null;
-        private string _savedXmlEditorVersion = null;
+        private System.Version _savedXmlEditorVersion = null;
         private int? _savedXmlEncodingCP = null;
 
         public Game()
@@ -338,24 +338,14 @@ namespace AGS.Types
             get { return _sprites; }
         }
 
-		/// <summary>
-		/// The version of the Game.agf file that was loaded from disk.
-		/// This is null if the game has not yet been saved.
-		/// </summary>
-		public string SavedXmlVersion
-		{
-			get { return _savedXmlVersion; }
-			set { _savedXmlVersion = value; }
-		}
-
         /// <summary>
-        /// The editor version read from the Game.agf file that was loaded from disk.
-        /// This is null if the game has not yet been saved or is an older version.
+        /// The version of the Game.agf file that was loaded from disk.
+        /// This is null if the game has not yet been saved.
         /// </summary>
-        public string SavedXmlEditorVersion
+        public System.Version SavedXmlVersion
         {
-            get { return _savedXmlEditorVersion; }
-            set { _savedXmlEditorVersion = value; }
+            get { return _savedXmlVersion; }
+            set { _savedXmlVersion = value; }
         }
 
         /// <summary>
@@ -366,6 +356,16 @@ namespace AGS.Types
         {
             get { return _savedXmlVersionIndex; }
             set { _savedXmlVersionIndex = value; }
+        }
+
+        /// <summary>
+        /// The editor version read from the Game.agf file that was loaded from disk.
+        /// This is null if the game has not yet been saved or is an older version.
+        /// </summary>
+        public System.Version SavedXmlEditorVersion
+        {
+            get { return _savedXmlEditorVersion; }
+            set { _savedXmlEditorVersion = value; }
         }
 
         /// <summary>
@@ -1088,7 +1088,7 @@ namespace AGS.Types
             System.Version firstCompatibleVersion = new System.Version("3.4.0");
             System.Version firstVersionWithHighestConst = new System.Version("3.4.1");
             // Try to find corresponding ScriptAPI for older version game project that did not have such setting
-            System.Version projectVersion = _savedXmlEditorVersion != null ? Utilities.TryParseVersion(_savedXmlEditorVersion) : null;
+            System.Version projectVersion = _savedXmlEditorVersion;
 
             if (projectVersion == null)
             {

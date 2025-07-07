@@ -102,7 +102,7 @@ namespace AGS.Editor.Components
             _agsEditor.PreSaveGame += AGSEditor_PreSaveGame;
             _agsEditor.ProcessAllGameTexts += AGSEditor_ProcessAllGameTexts;
 			_agsEditor.PreDeleteSprite += AGSEditor_PreDeleteSprite;
-            Factory.Events.GamePostLoad += ConvertAllRoomsFromCrmToOpenFormat;
+            Factory.Events.GamePostLoad += Events_GamePostLoad;
             _modifiedChangedHandler = _loadedRoom_RoomModifiedChanged;
             RePopulateTreeView();
         }
@@ -1031,29 +1031,35 @@ namespace AGS.Editor.Components
             _loadedRoom = new Room(LoadData(newRoom)) { Script = newRoom.Script };
             SyncInteractionScriptModules(_loadedRoom); // in case it was broken
             CopyGamePalette();
+
+            UpdateLoadedRoomToTheCurrentVersion(errors);
+
+            // Post-load setup
             LoadImageCache();
             _fileWatchers.Clear();
             _fileWatchers.AddRange(LoadFileWatchers());
-
-            // TODO: group these in some UpdateRoomToNewVersion method
-            _loadedRoom.Modified |= ImportExport.CreateInteractionScripts(_loadedRoom, errors);
-            _loadedRoom.Modified |= HandleObsoleteSettings(_loadedRoom, errors);
-			if (_loadedRoom.Script.Modified)
-			{
-				if (_roomScriptEditors.ContainsKey(_loadedRoom.Number))
-				{
-					((ScriptEditor)_roomScriptEditors[_loadedRoom.Number].Control).ScriptModifiedExternally();
-				}
-			}
             return _loadedRoom;
         }
 
-        private bool HandleObsoleteSettings(Room room, CompileMessages errors)
+        private void UpdateLoadedRoomToTheCurrentVersion(CompileMessages errors)
+        {
+            _loadedRoom.Modified |= ImportExport.CreateInteractionScripts(_loadedRoom, errors);
+            _loadedRoom.Modified |= UpgradeFeatures(_loadedRoom, errors);
+            if (_loadedRoom.Script.Modified)
+            {
+                if (_roomScriptEditors.ContainsKey(_loadedRoom.Number))
+                {
+                    ((ScriptEditor)_roomScriptEditors[_loadedRoom.Number].Control).ScriptModifiedExternally();
+                }
+            }
+        }
+
+        private bool UpgradeFeatures(Room room, CompileMessages errors)
         {
 #pragma warning disable 0612
-            bool scriptModified = false;
+            bool modified = false;
             // Add operations here as necessary
-            return scriptModified;
+            return modified;
 #pragma warning restore 0612
         }
 
@@ -1654,7 +1660,13 @@ namespace AGS.Editor.Components
             }
         }
 
-		private bool CheckOutAllRoomsAndScripts()
+        private void Events_GamePostLoad(Game game)
+        {
+            ConvertAllRoomsFromCrmToOpenFormat(game);
+            UpgradeAllRoomsIfNecessary(game);
+        }
+
+        private bool CheckOutAllRoomsAndScripts()
 		{
 			List<string> roomFileNamesToRebuild = new List<string>();
             foreach (UnloadedRoom unloadedRoom in _agsEditor.CurrentGame.RootRoomFolder.AllItemsFlat)
@@ -2548,6 +2560,66 @@ namespace AGS.Editor.Components
             }
         }
 
+        #region Upgrade Rooms to a new version
+
+        /// <summary>
+        /// Checks the loaded game's version and does the room upgrade process if it's necessary.
+        /// </summary>
+        private async void UpgradeAllRoomsIfNecessary(Game game)
+        {
+            bool shouldUpgrade = false;
+
+            // Test the game version here and decide if upgrade is needed
+
+            if (!shouldUpgrade)
+                return;
+
+            // Do the upgrade process
+            IList<IRoom> rooms = _agsEditor.CurrentGame.Rooms;
+            object progressLock = new object();
+            string progressText = "Upgrading rooms.";
+            CompileMessages errors = new CompileMessages();
+            using (Progress progressForm = new Progress(rooms.Count, progressText))
+            {
+                progressForm.Show();
+                int progress = 0;
+                Action progressReporter = () =>
+                {
+                    lock (progressLock) { progress++; }
+                    progressForm.SetProgress(progress, $"{progressText} {progress} of {rooms.Count} rooms upgraded.");
+                };
+
+                var roomsUpgradingTasks = rooms
+                    .Cast<UnloadedRoom>()
+                    .SelectMany(r => UpgradeRoomToNewVersion(r, errors, progressReporter))
+                    .ToArray();
+                await Task.WhenAll(roomsUpgradingTasks);
+            }
+        }
+
+        /// <summary>
+        /// Converts a single room from .crm to open format.
+        /// </summary>
+        /// <param name="room">The room to convert to open format</param>
+        /// <returns>A collection of tasks that converts the room async.</returns>
+        private IEnumerable<Task> UpgradeRoomToNewVersion(UnloadedRoom unloadedRoom, CompileMessages errors,
+            Action report = null)
+        {
+            // Load room data into memory
+            Room room = new Room(LoadData(unloadedRoom));
+
+            // Do upgrade
+            SyncInteractionScriptModules(room); // in case it was broken
+            UpgradeFeatures(room, errors);
+
+            // Save the room data back
+            yield return SaveXmlAsync(room.ToXmlDocument(), room.DataFileName);
+
+            report?.Invoke();
+        }
+
+        #endregion // Upgrade Rooms to a new version
+
         #region Upgrade Crm Format To Open Format
         /// <summary>
         /// Upgrades the room format from .crm to open format with text files and images directly accessible from disk
@@ -2724,6 +2796,6 @@ namespace AGS.Editor.Components
                 nativeRoom.SaveToFile(_loadedRoom.FileName);
             }
         }
-        #endregion
+        #endregion // Upgrade Crm Format To Open Format
     }
 }

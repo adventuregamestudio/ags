@@ -643,7 +643,7 @@ namespace AGS.Editor
             }
             catch (Exception ex)
             {
-                Factory.GUIController.ShowMessage("Unable to read the user preferences file. You may lose some of your Preferences settings and may not be able to access Source Control." + Environment.NewLine + Environment.NewLine + "The error was: " + ex.Message, MessageBoxIcon.Warning);
+                Factory.GUIController.ShowMessage("Unable to read the user preferences file for this project. You may lose some of your Preferences settings." + Environment.NewLine + Environment.NewLine + "The error was: " + ex.Message, MessageBoxIcon.Warning);
             }
 
             Factory.Events.OnLoadedUserData(docNode);

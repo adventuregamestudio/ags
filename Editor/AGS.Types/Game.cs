@@ -71,6 +71,7 @@ namespace AGS.Types
 		private System.Version _savedXmlVersion = null;
         private int? _savedXmlVersionIndex = null;
         private System.Version _savedXmlEditorVersion = null;
+        private System.Version _savedRoomXmlVersion = null;
         private int? _savedXmlEncodingCP = null;
 
         public Game()
@@ -359,6 +360,18 @@ namespace AGS.Types
         }
 
         /// <summary>
+        /// The version of the room data file which corresponds to the loaded project.
+        /// This value may be used to compare with the latest room data version to
+        /// learn if the project needs to do a global room upgrade, for example.
+        /// This is null if the game has not yet been saved.
+        /// </summary>
+        public System.Version SavedRoomXmlVersion
+        {
+            get { return _savedRoomXmlVersion; }
+            set { _savedRoomXmlVersion = value; }
+        }
+
+        /// <summary>
         /// The editor version read from the Game.agf file that was loaded from disk.
         /// This is null if the game has not yet been saved or is an older version.
         /// </summary>
@@ -636,6 +649,7 @@ namespace AGS.Types
             writer.WriteEndElement();
 
             writer.WriteStartElement("Rooms");
+            writer.WriteAttributeString("Version", Room.LATEST_XML_VERSION);
             _rooms.ToXml(writer);
             writer.WriteEndElement();
 
@@ -758,6 +772,18 @@ namespace AGS.Types
             foreach (XmlNode pluginNode in SerializeUtils.GetChildNodesOrEmpty(node, "Plugins"))
             {
                 _plugins.Add(new Plugin(pluginNode));
+            }
+
+            // Try reading an expected room data version for this game project
+            _savedRoomXmlVersion = null;
+            var roomNode = node.SelectSingleNode("Rooms");
+            if (roomNode != null)
+            {
+                var roomVersionAttr = roomNode.Attributes["Version"];
+                if (roomVersionAttr != null)
+                {
+                    System.Version.TryParse(roomVersionAttr.InnerText, out _savedRoomXmlVersion);
+                }
             }
 
             _rooms = new UnloadedRoomFolders(SerializeUtils.GetFirstChildOrNull(node, "Rooms"), node);

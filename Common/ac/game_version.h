@@ -126,7 +126,7 @@ Few minor behavior changes.
 Incremented for safety fallback purposes, few very old text alignment mistakes fixed in the engine.
 3.6.3:
 OPT_GUICONTROLMOUSEBUT
-
+Font.CharacterSpacing
 */
 
 enum GameDataVersion

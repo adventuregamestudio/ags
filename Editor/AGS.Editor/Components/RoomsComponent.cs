@@ -1058,7 +1058,19 @@ namespace AGS.Editor.Components
         {
 #pragma warning disable 0612
             bool modified = false;
-            // Add operations here as necessary
+
+            if (room.SavedXmlVersion < new System.Version("4.0.0.19"))
+            {
+                // This version fixed a historical 1-pixel mistake in character and object display,
+                // because of which objects appeared 1-pixel higher than their Y property demanded.
+                // They will now be drawn 1 pixel lower...
+                // For that reason update all the room objects to be placed 1 pixel higher.
+                foreach (RoomObject obj in room.Objects)
+                {
+                    obj.StartY--;
+                }
+            }
+
             return modified;
 #pragma warning restore 0612
         }

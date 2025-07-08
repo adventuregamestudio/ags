@@ -107,11 +107,6 @@ public:
     void SetStageDoneSteps(float parts);
     // Set MoveList's progress within the current stage [0.0; 1.0)
     void SetStageProgress(float progress);
-    // Elaborates current step before incrementing stage progress, for do_movelist_move()
-    // FIXME: this method is a part of a hotfix, but it should not exist, because it brings
-    // MoveList object to an inconsistent state. Devise a better solution, keep any necessary
-    // fixups outside of the MoveList instead.
-    bool GetAndForward();
     // Increment current stage's progress, update object position;
     // if the stage is complete, then progress to the next stage;
     // returns if there's a new stage available

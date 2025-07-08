@@ -142,7 +142,8 @@ struct CharacterInfo
     int16_t walkspeed_y = 0;
     int16_t pic_yoffs   = 0; // this is fixed in screen coordinates
     int     z           = 0; // z-location, for flying etc
-    int     walkwait    = 0;
+    int     walkwait    = 0; // number of frames to wait before advancing a move;
+                             // also used as a turning counter
     int16_t speech_anim_speed = 0;
     int16_t idle_anim_speed = 0;
     int16_t blocking_width = 0;

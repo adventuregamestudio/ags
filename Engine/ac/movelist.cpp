@@ -84,14 +84,6 @@ void MoveList::SetStageProgress(float progress)
     curpos = CalcCurrentPos();
 }
 
-// for do_movelist_move, that needs to elbaorate the current step before moving to the next
-bool MoveList::GetAndForward()
-{
-    bool progressChanged = OnProgressChanged();
-    onpart += 1.f;
-    return progressChanged;
-}
-
 bool MoveList::Forward()
 {
     onpart += 1.f;

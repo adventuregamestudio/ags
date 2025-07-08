@@ -2583,10 +2583,9 @@ namespace AGS.Editor.Components
         /// </summary>
         private bool IsRoomUpgradeNecessary(Game game)
         {
-            // Test the game version here and decide if upgrade is needed,
-            //   example:
-            // return game.SavedXmlVersion < new System.Version(AGSEditor.FIRST_XML_VERSION_WITHOUT_INDEX);
-            return false;
+            // Test the game version here and decide if upgrade is needed
+            return (game.SavedRoomXmlVersion == null)
+                || (game.SavedRoomXmlVersion < new System.Version(Room.LATEST_XML_VERSION));
         }
 
         /// <summary>

@@ -1827,8 +1827,6 @@ void move_character_impl(CharacterInfo *chin, const std::vector<Point> *path, in
 
     StopMoving(chac);
     chin->frame = oldframe;
-    // use toxPassedIn cached variable so the hi-res co-ordinates
-    // are still displayed as such
     debug_script_log("%s: Start move to %d,%d", chin->scrname, tox, toy);
 
     int move_speed_x, move_speed_y;

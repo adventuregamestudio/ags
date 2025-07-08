@@ -1662,8 +1662,24 @@ namespace AGS.Editor.Components
 
         private void Events_GamePostLoad(Game game)
         {
+            // TODO: there's a problem: since we convert the rooms after the project is loaded,
+            // we bring the project to the new state, however the project file is not saved.
+            // If user does not save the project and exit, the project will remain inconsistent,
+            // and Editor will try to convert the rooms again next time it's opened
+            // (although they have already been converted).
+            // See issue https://github.com/adventuregamestudio/ags/issues/1596
             ConvertAllRoomsFromCrmToOpenFormat(game);
-            UpgradeAllRoomsIfNecessary(game);
+
+            // For the same reason we do not upgrade the room data right away,
+            // but check if they need to be upgraded (e.g. because of a new project version),
+            // and mark the project as requiring a full rebuild. This is a workaround, which
+            // will trigger all rooms recompilation, forcing them to load and upgrade
+            // whenever user compiles the game.
+            if (IsRoomUpgradeNecessary(game))
+            {
+                game.WorkspaceState.RequiresRebuild = true;
+            }
+            //UpgradeAllRoomsIfNecessary(game);
         }
 
         private bool CheckOutAllRoomsAndScripts()
@@ -2563,15 +2579,22 @@ namespace AGS.Editor.Components
         #region Upgrade Rooms to a new version
 
         /// <summary>
+        /// Checks the loaded game's version and tells whether all rooms has to be upgraded.
+        /// </summary>
+        private bool IsRoomUpgradeNecessary(Game game)
+        {
+            // Test the game version here and decide if upgrade is needed,
+            //   example:
+            // return game.SavedXmlVersion < new System.Version(AGSEditor.FIRST_XML_VERSION_WITHOUT_INDEX);
+            return false;
+        }
+
+        /// <summary>
         /// Checks the loaded game's version and does the room upgrade process if it's necessary.
         /// </summary>
         private async void UpgradeAllRoomsIfNecessary(Game game)
         {
-            bool shouldUpgrade = false;
-
-            // Test the game version here and decide if upgrade is needed
-
-            if (!shouldUpgrade)
+            if (!IsRoomUpgradeNecessary(game))
                 return;
 
             // Do the upgrade process

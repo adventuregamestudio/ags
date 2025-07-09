@@ -24,6 +24,7 @@
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 #include "util/ini_util.h"
+#include "util/memorystream.h"
 #include "util/string_utils.h"
 
 using namespace AGS::Common;
@@ -31,12 +32,8 @@ using namespace AGS::Engine;
 
 extern IGraphicsDriver *gfxDriver;
 
-void LoadShaderDefinition(const String &filename, ShaderDefinition &def)
+void LoadShaderDefinition(std::unique_ptr<Stream> &&stream, ShaderDefinition &def)
 {
-    auto stream = ResolveScriptPathAndOpen(filename, kFile_Open, kStream_Read);
-    if (!stream)
-        return;
-
     ConfigTree tree;
     IniUtil::Read(std::move(stream), tree);
     def.CompileTarget = CfgReadString(tree, "compiler", "target");
@@ -47,6 +44,25 @@ void LoadShaderDefinition(const String &filename, ShaderDefinition &def)
         for (const auto &c : constant_map)
             def.Constants[c.first] = StrUtil::StringToInt(c.second);
     }
+}
+
+void LoadShaderDefinitionFromFile(const String &filename, ShaderDefinition &def)
+{
+    auto stream = ResolveScriptPathAndOpen(filename, kFile_Open, kStream_Read);
+    if (!stream)
+        return;
+
+    LoadShaderDefinition(std::move(stream), def);
+}
+
+void LoadShaderDefinitionFromString(const String &def_scr, ShaderDefinition &def)
+{
+    if (def_scr.IsEmpty())
+        return;
+
+    auto stream = std::make_unique<Stream>(
+        std::make_unique<MemoryStream>(reinterpret_cast<const uint8_t *>(def_scr.GetCStr()), def_scr.GetLength()));
+    LoadShaderDefinition(std::move(stream), def);
 }
 
 IGraphicShader *TryCreateShaderPrecompiled(const String &name, const String &filename, const String &def_filename)
@@ -62,12 +78,12 @@ IGraphicShader *TryCreateShaderPrecompiled(const String &name, const String &fil
 
     ShaderDefinition def;
     if (!def_filename.IsEmpty())
-        LoadShaderDefinition(def_filename, def);
+        LoadShaderDefinitionFromFile(def_filename, def);
 
     return gfxDriver->CreateShaderProgram(name, data, &def);
 }
 
-IGraphicShader *TryCreateShaderFromSource(const String &name, const String &filename, const String &def_filename)
+IGraphicShader *TryCreateShaderFromSourceFile(const String &name, const String &filename, const String &def_filename)
 {
     auto stream = ResolveScriptPathAndOpen(filename, kFile_Open, kStream_Read);
     if (!stream)
@@ -79,14 +95,26 @@ IGraphicShader *TryCreateShaderFromSource(const String &name, const String &file
 
     ShaderDefinition def;
     if (!def_filename.IsEmpty())
-        LoadShaderDefinition(def_filename, def);
+        LoadShaderDefinitionFromFile(def_filename, def);
 
     return gfxDriver->CreateShaderProgram(name, shader_src.GetCStr(), &def);
 }
 
-IGraphicShader *CreateShaderProgram(const String &name, const String &filename)
+IGraphicShader *TryCreateShaderFromSourceString(const String &name, const String &shader_src, const String &shader_def)
 {
-    // Software renderer does not support shaders, so return a dummy shader program
+    if (shader_src.IsEmpty())
+        return nullptr;
+
+    ShaderDefinition def;
+    if (!shader_def.IsEmpty())
+        LoadShaderDefinitionFromString(shader_def, def);
+
+    return gfxDriver->CreateShaderProgram(name, shader_src.GetCStr(), &def);
+}
+
+IGraphicShader *CreateShaderProgramFromFile(const String &name, const String &filename)
+{
+    // Software renderer does not support shaders, so bail out
     if (!gfxDriver->HasAcceleratedTransform())
     {
         return nullptr;
@@ -104,7 +132,7 @@ IGraphicShader *CreateShaderProgram(const String &name, const String &filename)
     }
     else if (file_ext == source_ext)
     {
-        return TryCreateShaderFromSource(name, filename, def_filename);
+        return TryCreateShaderFromSourceFile(name, filename, def_filename);
     }
     else
     {
@@ -112,17 +140,45 @@ IGraphicShader *CreateShaderProgram(const String &name, const String &filename)
         if (!precompiled_ext.IsEmpty())
             shader = TryCreateShaderPrecompiled(name, Path::ReplaceExtension(filename, precompiled_ext), def_filename);
         if (!shader && !source_ext.IsEmpty())
-            shader = TryCreateShaderFromSource(name, Path::ReplaceExtension(filename, source_ext), def_filename);
+            shader = TryCreateShaderFromSourceFile(name, Path::ReplaceExtension(filename, source_ext), def_filename);
         return shader;
     }
 }
 
-ScriptShaderProgram *CreateScriptShaderProgram(const char *filename)
+IGraphicShader *CreateShaderProgramFromString(const String &name, const String &shader_src, const String &shader_def)
 {
-    ScriptShaderProgram *sc_shader = new ScriptShaderProgram(filename);
-    IGraphicShader *shader = CreateShaderProgram(sc_shader->GetName(), filename);
+    // Software renderer does not support shaders, so bail out
+    if (!gfxDriver->HasAcceleratedTransform())
+    {
+        return nullptr;
+    }
+
+    return TryCreateShaderFromSourceString(name, shader_src, shader_def);
+}
+
+ScriptShaderProgram *CreateScriptShaderProgramFromFile(const char *filename)
+{
+    ScriptShaderProgram *sc_shader = ScriptShaderProgram::CreateFileBased(filename);
+    IGraphicShader *shader = CreateShaderProgramFromFile(sc_shader->GetName(), filename);
     ccRegisterManagedObject(sc_shader, sc_shader);
     add_custom_shader(shader, sc_shader->GetID()); // NOTE: we allow to register a nullptr at the index
+    return sc_shader;
+}
+
+ScriptShaderProgram *CreateScriptShaderProgramFromString(const char *name, const char *shader_src, const char *shader_def)
+{
+    ScriptShaderProgram *sc_shader = ScriptShaderProgram::CreateScriptBased(name, shader_src, shader_def);
+    IGraphicShader *shader = CreateShaderProgramFromString(sc_shader->GetName(), shader_src, shader_def);
+    ccRegisterManagedObject(sc_shader, sc_shader);
+    add_custom_shader(shader, sc_shader->GetID()); // NOTE: we allow to register a nullptr at the index
+    return sc_shader;
+}
+
+ScriptShaderProgram *CreateScriptShaderProgramStub(const char *name)
+{
+    ScriptShaderProgram *sc_shader = ScriptShaderProgram::CreateScriptBased(name, "", "");
+    ccRegisterManagedObject(sc_shader, sc_shader);
+    add_custom_shader(nullptr, sc_shader->GetID()); // NOTE: we allow to register a nullptr at the index
     return sc_shader;
 }
 
@@ -130,7 +186,16 @@ ScriptShaderProgram *CreateScriptShaderProgram(const char *filename)
 // This is used to reconnect shaders after restoring a save.
 static bool RecreateScriptShaderProgram(ScriptShaderProgram *sc_shader)
 {
-    IGraphicShader *shader = CreateShaderProgram(sc_shader->GetName(), sc_shader->GetFilename());
+    IGraphicShader *shader = nullptr;
+    if (!sc_shader->GetFilename().IsEmpty())
+    {
+        shader = CreateShaderProgramFromFile(sc_shader->GetName(), sc_shader->GetFilename());
+    }
+    else if (!sc_shader->GetShaderScript().IsEmpty())
+    {
+        shader = CreateShaderProgramFromString(sc_shader->GetName(), sc_shader->GetShaderScript(), sc_shader->GetDefinitionScript());
+    }
+
     if (shader)
     {
         shader->ResetConstants();
@@ -143,7 +208,33 @@ ScriptShaderInstance *ShaderProgram_CreateInstance(ScriptShaderProgram *sc_shade
 
 ScriptShaderProgram *ShaderProgram_CreateFromFile(const char *filename)
 {
-    ScriptShaderProgram *shader_prg = CreateScriptShaderProgram(filename);
+    ScriptShaderProgram *shader_prg = CreateScriptShaderProgramFromFile(filename);
+    if (!shader_prg)
+        return nullptr;
+
+    // Create and add default shader instance
+    ScriptShaderInstance *scshader_inst = ShaderProgram_CreateInstance(shader_prg);
+    if (scshader_inst)
+        shader_prg->SetDefaultShaderInstance(scshader_inst);
+    return shader_prg;
+}
+
+ScriptShaderProgram *ShaderProgram_CreateFromString(const char *name, const char *shader_scr, const char *shader_def)
+{
+    ScriptShaderProgram *shader_prg = CreateScriptShaderProgramFromString(name, shader_scr, shader_def);
+    if (!shader_prg)
+        return nullptr;
+
+    // Create and add default shader instance
+    ScriptShaderInstance *scshader_inst = ShaderProgram_CreateInstance(shader_prg);
+    if (scshader_inst)
+        shader_prg->SetDefaultShaderInstance(scshader_inst);
+    return shader_prg;
+}
+
+ScriptShaderProgram *ShaderProgram_CreateShaderStub(const char *name)
+{
+    ScriptShaderProgram *shader_prg = CreateScriptShaderProgramStub(name);
     if (!shader_prg)
         return nullptr;
 
@@ -324,6 +415,16 @@ RuntimeScriptValue Sc_ShaderProgram_CreateFromFile(const RuntimeScriptValue *par
     API_SCALL_OBJAUTO_POBJ(ScriptShaderProgram, ShaderProgram_CreateFromFile, const char);
 }
 
+RuntimeScriptValue Sc_ShaderProgram_CreateFromString(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO_POBJ3(ScriptShaderProgram, ShaderProgram_CreateFromString, const char, const char, const char);
+}
+
+RuntimeScriptValue Sc_ShaderProgram_CreateShaderStub(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO_POBJ(ScriptShaderProgram, ShaderProgram_CreateShaderStub, const char);
+}
+
 RuntimeScriptValue Sc_ShaderProgram_CreateInstance(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_OBJAUTO(ScriptShaderProgram, ScriptShaderInstance, ShaderProgram_CreateInstance);
@@ -368,6 +469,8 @@ void RegisterShaderAPI()
 {
     ScFnRegister shader_api[] = {
         { "ShaderProgram::CreateFromFile", API_FN_PAIR(ShaderProgram_CreateFromFile)},
+        { "ShaderProgram::CreateFromString", API_FN_PAIR(ShaderProgram_CreateFromString)},
+        { "ShaderProgram::CreateShaderStub", API_FN_PAIR(ShaderProgram_CreateShaderStub)},
         { "ShaderProgram::CreateInstance", API_FN_PAIR(ShaderProgram_CreateInstance)},
         { "ShaderProgram::get_Default",    API_FN_PAIR(ShaderProgram_GetDefault)},
         { "ShaderInstance::SetConstantF",  API_FN_PAIR(ShaderInstance_SetConstantF)},

@@ -20,8 +20,11 @@
 
 #include "ac/dynobj/scriptshader.h"
 
-// Creates a new shader and registers a ScriptShaderProgram object
-ScriptShaderProgram *CreateScriptShaderProgram(const char *filename);
+// Creates a new shader by reading either a precompiled shader object,
+// or reading and compiling a script; registers a ScriptShaderProgram object
+ScriptShaderProgram *CreateScriptShaderProgramFromFile(const char *filename);
+// Creates a new shader by compiling a script; registers a ScriptShaderProgram object
+ScriptShaderProgram *CreateScriptShaderProgramFromScript(const char *shader_scr);
 // Creates a new shader instance and registers a ScriptShaderInstance object
 ScriptShaderInstance *ShaderProgram_CreateInstance(ScriptShaderProgram *sc_shader);
 // Restore shaders and shader instances after loading a save

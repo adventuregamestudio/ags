@@ -20,6 +20,15 @@
 
 #include "ac/dynobj/scriptobjects.h"
 
+// ShaderLanguageType defines the type of the shader language used by
+// the active graphics renderer. This corresponds to the enum in script API.
+enum ShaderLanguageType
+{
+    kShaderLang_NotSupported = 0,
+    kShaderLang_GLSL = 1,
+    kShaderLang_HLSL = 2
+};
+
 int     System_GetColorDepth();
 int     System_GetOS();
 const char *System_GetVersion();

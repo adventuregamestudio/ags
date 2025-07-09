@@ -663,6 +663,15 @@ enum StringSplitOptions {
 };
 #endif // SCRIPT_API_v400
 
+#ifdef SCRIPT_API_v400_18
+enum ShaderLanguageType {
+    eShaderNotSupported = 0,
+    eShaderGLSL = 1,
+    eShaderHLSL = 2
+};
+#endif // SCRIPT_API_v400_18
+
+
 internalstring autoptr builtin managed struct String {
   /// Creates a formatted string using the supplied parameters.
   import static String Format(__format const string format, ...);    // $AUTOCOMPLETESTATICONLY$
@@ -2372,6 +2381,10 @@ builtin struct System {
   /// Gets/sets whether the engine displays the FPS counter
   import static attribute bool DisplayFPS; // $AUTOCOMPLETESTATICONLY$
 #endif // SCRIPT_API_v362
+#ifdef SCRIPT_API_v400_18
+  /// Gets a shader language type supported by the active graphics driver
+  import static readonly attribute ShaderLanguageType ShaderLanguage;
+#endif // SCRIPT_API_v400_18
 };
 
 builtin managed struct Object {
@@ -3384,6 +3397,10 @@ builtin managed struct MotionPath {
 builtin managed struct ShaderProgram {
   /// Creates a new ShaderProgram by either loading a precompiled shader, or reading source code and compiling one.
   import static ShaderProgram* CreateFromFile(const string filename); // $AUTOCOMPLETESTATICONLY$
+  /// Creates a new ShaderProgram by compiling a shader from the given script, using an optional shader definition config in INI format
+  import static ShaderProgram* CreateFromString(const string name, const string shaderScript, const string shaderDef); // $AUTOCOMPLETESTATICONLY$
+  // Creates a new "stub" ShaderProgram that does nothing
+  import static ShaderProgram* CreateShaderStub(const string name); // $AUTOCOMPLETESTATICONLY$
   /// Creates a new shader instance of this shader program.
   import ShaderInstance* CreateInstance();
   /// Gets the default shader instance of this shader program.

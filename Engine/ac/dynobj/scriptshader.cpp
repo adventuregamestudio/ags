@@ -36,11 +36,24 @@ std::unordered_set<String> ScriptShaderProgram::_registeredNames;
 uint32_t ScriptShaderProgram::_nextInstanceIndex = ScriptShaderInstance::NullInstanceID + 1u;
 std::queue<uint32_t> ScriptShaderProgram::_freeInstanceIndexes;
 
-ScriptShaderProgram::ScriptShaderProgram(const String &filename)
-    : _filename(filename)
+
+/*static*/ ScriptShaderProgram *ScriptShaderProgram::CreateFileBased(const String &filename)
 {
-    _name = MakeName(filename);
-    _id = GetFreeIndex();
+    ScriptShaderProgram *scsh = new ScriptShaderProgram();
+    scsh->_filename = filename;
+    scsh->_name = MakeName(filename);
+    scsh->_id = GetFreeIndex();
+    return scsh;
+}
+
+/*static*/ ScriptShaderProgram *ScriptShaderProgram::CreateScriptBased(const String &name, const String &script, const String &def_script)
+{
+    ScriptShaderProgram *scsh = new ScriptShaderProgram();
+    scsh->_name = MakeName(name);
+    scsh->_script = script;
+    scsh->_defScript = def_script;
+    scsh->_id = GetFreeIndex();
+    return scsh;
 }
 
 /*static */ uint32_t ScriptShaderProgram::GetFreeIndex()
@@ -156,14 +169,22 @@ int ScriptShaderProgram::Dispose(void *address, bool force)
 
 void ScriptShaderProgram::Unserialize(int index, Stream *in, size_t data_sz)
 {
+    // Versions:
+    // 0 - initial
+    // 1 - added script and definition script for shaders created from a string
     // Header
     in->ReadInt32(); // header size
-    in->ReadInt32(); // version
+    int version = in->ReadInt32(); // version
     in->ReadInt32(); // reserved
     _name = StrUtil::ReadString(in);
     _filename = StrUtil::ReadString(in);
     _id = in->ReadInt32();
     _defaultInstanceHandle = in->ReadInt32();
+    if (version > 0)
+    {
+        _script = StrUtil::ReadString(in);
+        _defScript = StrUtil::ReadString(in);
+    }
     // Constants table
     uint32_t const_count = in->ReadInt32();
     for (uint32_t i = 0; i < const_count; ++i)
@@ -188,10 +209,18 @@ void ScriptShaderProgram::Unserialize(int index, Stream *in, size_t data_sz)
     }
 }
 
+size_t ScriptShaderProgram::CalcHeaderSize()
+{
+    return
+        // strings and their int32 length fields
+        _name.GetLength() + _filename.GetLength() + _script.GetLength() + _defScript.GetLength() + sizeof(uint32_t) * 4
+        // rest of the header fields
+        + sizeof(uint32_t) * 5;
+}
+
 size_t ScriptShaderProgram::CalcSerializeSize(const void *address)
 {
-    const uint32_t header_sz = _name.GetLength() + _filename.GetLength() + sizeof(uint32_t) * 2
-        + sizeof(uint32_t) * 5;
+    const uint32_t header_sz = CalcHeaderSize();
     size_t constant_table_sz = sizeof(uint32_t);
     for (const auto &c : _constantTable)
     {
@@ -206,15 +235,16 @@ size_t ScriptShaderProgram::CalcSerializeSize(const void *address)
 void ScriptShaderProgram::Serialize(const void *address, Stream *out)
 {
     // Header
-    const uint32_t header_sz = _name.GetLength() + _filename.GetLength() + sizeof(uint32_t) * 2
-        + sizeof(uint32_t) * 5;
+    const uint32_t header_sz = CalcHeaderSize();
     out->WriteInt32(header_sz); // header size
-    out->WriteInt32(0); // version
+    out->WriteInt32(1); // version
     out->WriteInt32(0); // reserved
     StrUtil::WriteString(_name, out);
     StrUtil::WriteString(_filename, out);
     out->WriteInt32(_id);
     out->WriteInt32(_defaultInstanceHandle);
+    StrUtil::WriteString(_script, out);
+    StrUtil::WriteString(_defScript, out);
     // Constants table
     out->WriteInt32(_constantTable.size());
     for (const auto &c : _constantTable)

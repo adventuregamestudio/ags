@@ -267,10 +267,19 @@ void load_common_config(const ConfigTree &cfg, GameConfig &setup)
     setup.AppDataDir = CfgReadString(cfg, "misc", "shared_data_dir");
 
     // Resource caches and options
-    setup.SpriteCacheSize = CfgReadInt(cfg, "graphics", "sprite_cache_size", setup.SpriteCacheSize);
-    setup.TextureCacheSize = CfgReadInt(cfg, "graphics", "texture_cache_size", setup.TextureCacheSize);
-    setup.SoundCacheSize = CfgReadInt(cfg, "sound", "cache_size", setup.SoundCacheSize);
-    setup.SoundLoadAtOnceSize = CfgReadInt(cfg, "sound", "stream_threshold", setup.SoundLoadAtOnceSize);
+    // Clamp the values to the max supported for this platform
+    setup.SpriteCacheSize = std::min<uint64_t>(
+        CfgReadUInt64(cfg, "graphics", "sprite_cache_size", setup.SpriteCacheSize),
+        SIZE_MAX / 1024);
+    setup.TextureCacheSize = std::min<uint64_t>(
+        CfgReadUInt64(cfg, "graphics", "texture_cache_size", setup.TextureCacheSize),
+        SIZE_MAX / 1024);
+    setup.SoundCacheSize = std::min<uint64_t>(
+        CfgReadUInt64(cfg, "sound", "cache_size", setup.SoundCacheSize),
+        SIZE_MAX / 1024);
+    setup.SoundLoadAtOnceSize = std::min<uint64_t>(
+        CfgReadUInt64(cfg, "sound", "stream_threshold", setup.SoundLoadAtOnceSize),
+        SIZE_MAX / 1024);
 
     // Various system options
     setup.LoadLatestSave = CfgReadBoolInt(cfg, "misc", "load_latest_save", setup.LoadLatestSave);
@@ -357,9 +366,9 @@ void save_common_config(const GameConfig &setup, ConfigTree &cfg)
     CfgWriteInt(cfg, "mouse", "auto_lock", setup.MouseAutoLock ? 1 : 0);
     CfgWriteFloat(cfg, "mouse", "speed", setup.MouseSpeed, 1);
 
-    CfgWriteInt(cfg, "graphics", "sprite_cache_size", setup.SpriteCacheSize);
-    CfgWriteInt(cfg, "graphics", "texture_cache_size", setup.TextureCacheSize);
-    CfgWriteInt(cfg, "sound", "cache_size", setup.SoundCacheSize);
+    CfgWriteUInt(cfg, "graphics", "sprite_cache_size", setup.SpriteCacheSize);
+    CfgWriteUInt(cfg, "graphics", "texture_cache_size", setup.TextureCacheSize);
+    CfgWriteUInt(cfg, "sound", "cache_size", setup.SoundCacheSize);
     CfgWriteString(cfg, "language", "translation", setup.Translation);
 
     CfgWriteString(cfg, "access", "speechskip", make_speechskip_option(setup.Access.SpeechSkipStyle));

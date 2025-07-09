@@ -18,9 +18,16 @@ namespace AGS.Editor
         private NativeProxy _nativeProxy;
         private EditorEvents _events;
         private AGSEditorController _pluginEditorController;
+        private string[] _commandLineArgs;
+        CommandLineOptions _commandOptions = new CommandLineOptions();
 
-        public ApplicationController()
+        public ApplicationController(string[] commandLineArguments)
         {
+            // Parse and initialize command line options.
+            // This must be done prior to any other components, as we must init
+            // few things related to the message handling.
+            InitializeCommandLineOptions(commandLineArguments);
+
             _events = Factory.Events;
             _agsEditor = Factory.AGSEditor;
             _guiController = Factory.GUIController;
@@ -42,6 +49,32 @@ namespace AGS.Editor
             _guiController.Initialize(_agsEditor);
             _agsEditor.DoEditorInitialization();
             CreateComponents();
+        }
+
+        private void InitializeCommandLineOptions(string[] commandLineArguments)
+        {
+            _commandLineArgs = commandLineArguments;
+            _commandOptions = new CommandLineOptions(_commandLineArgs);
+
+            // In case of autonomous operation request: switch to console logging mode;
+            // in this mode GUIController will not display modal message dialogs.
+            if (_commandOptions.AutoOperationRequested)
+            {
+                StdConsoleWriter.Enable();
+            }
+
+            // Report any invalid command options
+            if (_commandOptions.UnknownArgs.Count > 0)
+            {
+                StringBuilder sb = new StringBuilder();
+                foreach (var opt in _commandOptions.UnknownArgs)
+                {
+                    sb.Append($"    {opt}");
+                    sb.Append(Environment.NewLine);
+                }
+
+                ShowMessage($"Invalid command line arguments:{Environment.NewLine}{sb.ToString()}", "Adventure Game Studio", MessageBoxIcon.Warning);
+            }
         }
 
         private void _events_LoadedUserData(XmlNode rootNode)
@@ -151,10 +184,25 @@ namespace AGS.Editor
             _componentController.AddSuppressedComponent(ComponentIDs.SourceControl);
         }
 
-        public void StartGUI(string[] commandLineArguments)
+        /// <summary>
+        /// Displays a message either using a message box, or prints one to the console,
+        /// if one is enabled.
+        /// </summary>
+        public static void ShowMessage(string message, string title, MessageBoxIcon icon)
+        {
+            if (StdConsoleWriter.IsEnabled)
+            {
+                StdConsoleWriter.WriteLine(message);
+                return;
+            }
+
+            MessageBox.Show(message, title, MessageBoxButtons.OK, icon);
+        }
+
+        public void StartGUI()
         {
             _agsEditor.ApplicationStarted = true;
-            _guiController.StartGUI(commandLineArguments);
+            _guiController.StartGUI(_commandOptions);
         }
 
         private Bitmap CaptureScreenshot()

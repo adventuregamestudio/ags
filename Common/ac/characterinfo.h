@@ -153,7 +153,7 @@ struct CharacterInfo
     int16_t walkwaitcounter = 0;
     uint16_t loop       = 0;
     uint16_t frame      = 0;
-    int16_t walking     = 0; // stores movelist index, optionally +TURNING_AROUND
+    int16_t walking     = 0; // stores movelist index
     int16_t animating   = 0; // stores CHANIM_* flags in lower byte and delay in upper byte
     int16_t walkspeed   = 0;
     int16_t animspeed   = 0;
@@ -179,10 +179,16 @@ struct CharacterInfo
         walk_speed_y = ((walkspeed_y == UNIFORM_WALK_SPEED) ? walkspeed : walkspeed_y);
     }
 
-    inline bool is_moving()          const { return walking > 0; }
+    // Gets current character's movelist id
     inline int  get_movelist_id()    const { return walking; }
+    // Tells if the character is performing a move, that is - either moving along
+    // a path or turning between move path segments.
+    inline bool is_moving()          const { return walking > 0; }
     // Is moving *and* playing walking animation
-    inline bool is_moving_walkanim()  const { return (flags & CHF_MOVENOTWALK) == 0; }
+    // FIXME: would be proper to also test is_moving() in is_moving_walkanim()
+    // and in is_moving_no_anim(), but it breaks animation logic;
+    // some further adjustments would be required in the engine code.
+    inline bool is_moving_walkanim() const { return (flags & CHF_MOVENOTWALK) == 0; }
     // Is moving, but *not* playing walking animation
     inline bool is_moving_no_anim()  const { return (flags & CHF_MOVENOTWALK) != 0; }
     inline bool has_explicit_light() const { return (flags & CHF_HASLIGHT) != 0; }

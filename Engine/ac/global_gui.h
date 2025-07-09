@@ -27,6 +27,8 @@ int  GetFontHeight(int fontnum);
 int  GetFontLineSpacing(int fontnum);
 void DisableInterface();
 void EnableInterface();
+void DisableInterfaceEx(bool update_cursor);
+void EnableInterfaceEx(bool update_cursor);
 // Returns 1 if user interface is enabled, 0 if disabled
 int  IsInterfaceEnabled();
 void SetTextWindowGUI (int guinum);

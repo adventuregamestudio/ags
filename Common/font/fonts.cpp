@@ -43,6 +43,9 @@ struct Font
     IAGSFontRenderer2  *Renderer2 = nullptr;
     // Internal interface (only for built-in renderers)
     IAGSFontRendererInternal *RendererInt = nullptr;
+    // A file this font's data was loaded from
+    String              Filename;
+    // Font's general properties
     FontInfo            Info;
     // Values received from the renderer and saved for the reference
     FontMetrics         Metrics;
@@ -498,8 +501,20 @@ FontInfo get_fontinfo(int font_number)
     return fonts[font_number].Info;
 }
 
-// Loads a font from disk
+String get_font_file(int font_number)
+{
+    if (!assert_font_number(font_number))
+        return String();
+
+    return fonts[font_number].Filename;
+}
+
 bool load_font_size(int font_number, const FontInfo &font_info)
+{
+    return load_font_size(font_number, String(), font_info);
+}
+
+bool load_font_size(int font_number, const String &filename, const FontInfo &font_info)
 {
     if (font_number < 0)
         return false;
@@ -544,6 +559,7 @@ bool load_font_size(int font_number, const FontInfo &font_info)
         return false;
     }
 
+    font.Filename = filename;
     font.Info = font_info;
     font.Metrics = metrics;
     font_post_init(font_number);

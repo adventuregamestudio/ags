@@ -60,6 +60,8 @@ public:
     void SetLightLevel(int /*lightLevel*/) override  { }
     void SetTint(int /*red*/, int /*green*/, int /*blue*/, int /*tintSaturation*/) override { }
 
+    ALSoftwareBitmap() = default;
+
     ALSoftwareBitmap(int width, int height, int color_depth, int txflags)
     {
         _size = Size(width, height);
@@ -227,6 +229,8 @@ public:
     // Returns available texture memory in bytes, or 0 if this query is not supported
     uint64_t GetAvailableTextureMemory() override { return 0; /* not using textures for sprites anyway */ }
     // Creates a "raw" DDB, without pixel initialization.
+    IDriverDependantBitmap *CreateDDB() override;
+    // Creates a "raw" DDB, without pixel initialization.
     IDriverDependantBitmap* CreateDDB(int width, int height, int color_depth, int txflags) override;
     // Create DDB using preexisting texture data
     IDriverDependantBitmap *CreateDDB(std::shared_ptr<Texture> txdata, int txflags) override
@@ -281,6 +285,8 @@ public:
     // Adds sprite to the active batch, providing it's origin position and auxiliary
     // position of the left-top image corner in the same coordinate space
     void DrawSprite(int ox, int oy, int ltx, int lty, IDriverDependantBitmap* ddb) override;
+    // Adds a render event, which runs a callback with the given parameters, to the active batch
+    void AddRenderEvent(int evt, int param) override;
     // Adds fade overlay fx to the active batch
     void SetScreenFade(int red, int green, int blue) override;
     // Adds tint overlay fx to the active batch

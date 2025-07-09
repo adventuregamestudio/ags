@@ -124,8 +124,10 @@ OPT_SAVESCREENSHOTLAYER, CHF_TURNWHENFACE. Button's WrapText and padding.
 Few minor behavior changes.
 3.6.2.3:
 Script module names are written in the game data.
+3.6.2.12:
+Incremented for safety fallback purposes, few very old text alignment mistakes fixed in the engine.
 3.6.3:
-OPT_GUICONTROLMOUSEBUT
+OPT_GUICONTROLMOUSEBUT, game info properties
 
 3.9.9 :
 BlendModes
@@ -156,6 +158,7 @@ enum GameDataVersion
     kGameVersion_361_14         = 3060114,
     kGameVersion_362            = 3060200,
     kGameVersion_362_03         = 3060203,
+    kGameVersion_362_12         = 3060212,
     kGameVersion_363            = 3060300,
     kGameVersion_399            = 3999999,
     kGameVersion_400            = 4000000,

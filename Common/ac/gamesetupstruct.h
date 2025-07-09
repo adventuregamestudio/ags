@@ -83,7 +83,10 @@ struct GameSetupStruct : public GameSetupStructBase
     // Extended global game properties
     // Character face direction ratio (y/x)
     float             faceDirectionRatio = 1.f;
-    
+
+    // A dictionary of semi-arbitrary game info properties: title, developer's name, etc
+    AGS::Common::StringMap GameInfo;
+        
     // TODO: I converted original array of sprite infos to vector here, because
     // statistically in most games sprites go in long continious sequences with minimal
     // gaps, and standard hash-map will have relatively big memory overhead compared.

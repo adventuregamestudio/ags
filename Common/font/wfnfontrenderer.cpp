@@ -137,8 +137,8 @@ bool WFNFontRenderer::IsBitmapFont()
     return true;
 }
 
-bool WFNFontRenderer::LoadFromDiskEx(int fontNumber, int /*fontSize*/,
-    const String &filename, const FontRenderParams *params, FontMetrics *metrics)
+bool WFNFontRenderer::LoadFromDiskEx(int fontNumber, int /*fontSize*/, const String &filename,
+    const FontRenderParams *params, FontMetrics *metrics)
 {
   auto ffi = _amgr->OpenAsset(filename);
   if (!ffi)

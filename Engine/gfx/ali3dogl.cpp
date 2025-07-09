@@ -2051,6 +2051,12 @@ void OGLGraphicsDriver::DrawSprite(int ox, int oy, int /*ltx*/, int /*lty*/, IDr
     _spriteList.push_back(OGLDrawListEntry((OGLBitmap*)ddb, _actSpriteBatch, ox, oy));
 }
 
+void OGLGraphicsDriver::AddRenderEvent(int evt, int param)
+{
+    assert(_actSpriteBatch != UINT32_MAX);
+    _spriteList.push_back(OGLDrawListEntry(nullptr, _actSpriteBatch, evt, param));
+}
+
 void OGLGraphicsDriver::DestroyDDB(IDriverDependantBitmap* ddb)
 {
     // Remove from render targets
@@ -2241,6 +2247,11 @@ void OGLGraphicsDriver::AdjustSizeToNearestSupportedByCard(int *width, int *heig
 
     *width = allocatedWidth;
     *height = allocatedHeight;
+}
+
+IDriverDependantBitmap *OGLGraphicsDriver::CreateDDB()
+{
+    return new OGLBitmap();
 }
 
 IDriverDependantBitmap* OGLGraphicsDriver::CreateDDB(int width, int height, int color_depth, int txflags)

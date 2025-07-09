@@ -301,7 +301,8 @@ public:
                 return nullptr;
         }
 
-        txdata.reset(gfxDriver->CreateTexture(bitmap, opaque ? kTxFlags_Opaque : kTxFlags_None));
+        txdata.reset(gfxDriver->CreateTexture(bitmap,
+              kTxFlags_Opaque * opaque));
         if (!txdata)
             return nullptr;
 
@@ -1241,7 +1242,7 @@ void render_to_screen()
     {
         gfxDriver->BeginSpriteBatch(play.GetMainViewport(),
             play.GetGlobalTransform(drawstate.FullFrameRedraw), (GraphicFlip)play.screen_flipped);
-        gfxDriver->DrawSprite(kPluginEvt_FinalScreenDraw, 0, nullptr);
+        gfxDriver->AddRenderEvent(kPluginEvt_FinalScreenDraw, 0);
         gfxDriver->EndSpriteBatch();
     }
     // Stage: engine overlay
@@ -1325,7 +1326,7 @@ void draw_sprite_slot_support_alpha(Bitmap *ds, int xpos, int ypos, int src_slot
 IDriverDependantBitmap* recycle_ddb_bitmap(IDriverDependantBitmap *ddb,
     Common::Bitmap *source, bool opaque)
 {
-    const int txflags = opaque ? kTxFlags_Opaque : kTxFlags_None;
+    const int txflags = opaque * kTxFlags_Opaque;
 
     assert(source);
     if (ddb && // already has an allocated DDB,
@@ -1351,19 +1352,22 @@ IDriverDependantBitmap* recycle_ddb_sprite(IDriverDependantBitmap *ddb, uint32_t
         return recycle_ddb_bitmap(ddb, source, opaque);
     }
 
-    if (ddb && ddb->GetRefID() == sprite_id)
+    if (ddb && ddb->IsValid() && ddb->GetRefID() == sprite_id)
         return ddb; // texture in sync
 
     auto txdata = texturecache.GetOrLoad(sprite_id, source, opaque);
     if (!txdata)
     {
-        // On failure - invalidate ddb (we don't want to draw old pixels)
+        // On failure - invalidate ddb (we don't want to draw old pixels);
+        // or create a dummy one in case it did not exist
         if (ddb)
             ddb->DetachData();
+        else
+            ddb = gfxDriver->CreateDDB();
         return ddb;
     }
 
-    const int txflags = opaque ? kTxFlags_Opaque : kTxFlags_None;
+    const int txflags = kTxFlags_Opaque * opaque;
     if (ddb)
         ddb->AttachData(txdata, txflags);
     else
@@ -2072,6 +2076,7 @@ void prepare_and_add_object_gfx(
 
     // Now when we have a ready texture, assign texture properties
     // (transform, effects, and so forth)
+    assert(actsp.Ddb);
     actsp.Ddb->SetOrigin(origin.X, origin.Y);
     if (hw_accel)
     {
@@ -2556,7 +2561,7 @@ static void draw_gui_controls_batch(int gui_id)
 void draw_gui_and_overlays()
 {
     if(pl_any_want_hook(kPluginEvt_PreGUIDraw))
-        gfxDriver->DrawSprite(kPluginEvt_PreGUIDraw, 0, nullptr); // render stage
+        gfxDriver->AddRenderEvent(kPluginEvt_PreGUIDraw, 0); // render stage
 
     clear_sprite_list();
 
@@ -2715,6 +2720,8 @@ void put_sprite_list_on_screen(bool in_room)
         assert(t.DDB || (t.RenderStage >= 0));
         if (t.DDB)
         {
+            if (!t.DDB->IsValid())
+                continue; // skip empty DDBs
             if (t.DDB->GetAlpha() == 0)
                 continue; // skip completely invisible things
             // mark the image's region as dirty
@@ -2725,7 +2732,7 @@ void put_sprite_list_on_screen(bool in_room)
         else if (t.RenderStage >= 0)
         {
             // meta entry to run the plugin hook
-            gfxDriver->DrawSprite(t.RenderStage, 0, nullptr);
+            gfxDriver->AddRenderEvent(t.RenderStage, 0);
         }
     }
 
@@ -3043,7 +3050,7 @@ void construct_game_screen_overlay(bool draw_mouse)
             (GraphicFlip)play.screen_flipped);
     if (pl_any_want_hook(kPluginEvt_PostScreenDraw))
     {
-        gfxDriver->DrawSprite(kPluginEvt_PostScreenDraw, 0, nullptr);
+        gfxDriver->AddRenderEvent(kPluginEvt_PostScreenDraw, 0);
     }
 
     // Mouse cursor

@@ -41,6 +41,29 @@ namespace AGS.Editor
             }
         }
 
+        private void ConstructFileListUsingIncludeFile(List<string> filesToInclude, string fileDir, string includeFile)
+        {
+            using (Stream s = File.OpenRead(includeFile))
+            {
+                var patterns = 
+                    IncludeUtils.CreatePatternList(s, IncludeUtils.MatchOption.CaseInsensitive);
+                if (patterns.Length == 0)
+                    return;
+
+                string[] files = Utilities.GetDirectoryFileList(fileDir, "*.*", SearchOption.AllDirectories);
+                if (files.Length == 0)
+                    return;
+
+                for (int i = 0; i < files.Length; ++i)
+                {
+                    files[i] = files[i].Substring(fileDir.Length + 1);
+                }
+
+                files = IncludeUtils.FilterItemList(files, patterns, IncludeUtils.MatchOption.CaseInsensitive);
+                filesToInclude.AddRange(files);
+            }
+        }
+
         private void ConstructBasicFileListForTemplate(List<string> filesToInclude, List<string> filesToDeleteAfterwards)
         {
             Utilities.AddAllMatchingFiles(filesToInclude, "*.ico");
@@ -80,6 +103,8 @@ namespace AGS.Editor
 
                 GetFilesForInclusionInTemplate(extraFiles);
 
+                // FIXME: remind why do we have to copy these files into the current directory?!
+                // there has to be a way to avoid doing this!
                 foreach (string fullFileName in extraFiles)
                 {
                     string baseFileName = Path.GetFileName(fullFileName);
@@ -91,7 +116,6 @@ namespace AGS.Editor
                     filesToInclude.Add(baseFileName);
                 }
             }
-
         }
 
         public void CreateTemplateFromCurrentGame(string templateFileName)
@@ -99,7 +123,15 @@ namespace AGS.Editor
             List<string> files = new List<string>();
             List<string> filesToDeleteAfterwards = new List<string>();
 
-            ConstructBasicFileListForTemplate(files, filesToDeleteAfterwards);
+            string templateIncludeFile = Path.Combine(Factory.AGSEditor.CurrentGame.DirectoryPath, AGSEditor.TEMPLATE_INCLUDE_FILE);
+            if (File.Exists(templateIncludeFile))
+            {
+                ConstructFileListUsingIncludeFile(files, Factory.AGSEditor.CurrentGame.DirectoryPath, templateIncludeFile);
+            }
+            else
+            {
+                ConstructBasicFileListForTemplate(files, filesToDeleteAfterwards);
+            }
 
             Utilities.TryDeleteFile(templateFileName);
 

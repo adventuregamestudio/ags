@@ -551,77 +551,86 @@ int GetLocationType(int xxx,int yyy) {
     return __GetLocationType(xxx, yyy, 0);
 }
 
-const char *GetLocationName(int x, int y)
+// Finds out what is located under the cursor;
+// returns location's name and "location index" using respective SavedLocationType index base.
+static const char *GetLocationNameAndIndex(int x, int y, int &loc_index)
 {
     if (displayed_room < 0)
-        return ""; // no room loaded yet
-
-    const char *out_name = "";
-    if (GetGUIAt(x, y) >= 0)
     {
-        int mover = GetInvAt(x, y);
-        if (mover > 0)
-        {
-            if (play.get_loc_name_last_time != 1000 + mover)
-                GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
-            play.get_loc_name_last_time = 1000 + mover;
-            out_name = game.invinfo[mover].name.GetCStr();
-        }
-        else if ((play.get_loc_name_last_time > 1000) && (play.get_loc_name_last_time < 1000 + MAX_INV)) {
-            // no longer selecting an item
-            GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
-            play.get_loc_name_last_time = -1;
-        }
-        return out_name;
+        loc_index = kSavedLocType_Undefined;
+        return ""; // no room loaded yet
     }
 
-    int loctype = GetLocationType(x, y); // GetLocationType takes screen coords
-    VpPoint vpt = play.ScreenToRoom(x, y);
-    if (vpt.second < 0)
-        return "";
-    x = vpt.first.X;
-    y = vpt.first.Y;
-    if ((x >= thisroom.Width) || (x < 0) || (y < 0) || (y >= thisroom.Height))
-        return "";
+    if (GetGUIAt(x, y) >= 0)
+    {
+        // On GUI, test if we're above an inventory item
+        int invitem = GetInvAt(x, y);
+        if (invitem > 0)
+        {
+            loc_index = kSavedLocType_InvItem + invitem;
+            return game.invinfo[invitem].name.GetCStr();
+        }
+        else
+        {
+            loc_index = kSavedLocType_Undefined;
+            return "";
+        }
+    }
 
-    int onhs,aa;
+    const int loctype = GetLocationType(x, y); // GetLocationType takes screen coords
+    // Find out if we're inside the room viewport
+    const VpPoint vpt = play.ScreenToRoom(x, y);
+    const Point room_pt = vpt.first;
+    const int view_index = vpt.second;
+    if ((view_index < 0) || (!RectWH(0, 0, thisroom.Width, thisroom.Height).IsInside(room_pt)))
+    {
+        loc_index = kSavedLocType_Undefined;
+        return "";
+    }
+
+    // Get if we're above any interactable location
+    const int onhs = getloctype_index; // FIXME: stop using global variable
     if (loctype == 0)
     {
-        if (play.get_loc_name_last_time != 0)
-        {
-            play.get_loc_name_last_time = 0;
-            GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
-        }
+        loc_index = kSavedLocType_NoHotspot;
         return "";
     }
 
     // on character
     if (loctype == LOCTYPE_CHAR)
     {
-        onhs = getloctype_index;
-        out_name = game.chars[onhs].name.GetCStr();
-        if (play.get_loc_name_last_time != 2000+onhs)
-            GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
-        play.get_loc_name_last_time = 2000+onhs;
-        return out_name;
+        loc_index = kSavedLocType_Character + onhs;
+        return game.chars[onhs].name.GetCStr();
     }
     // on object
     if (loctype == LOCTYPE_OBJ)
     {
-        aa = getloctype_index;
-        out_name = croom->obj[aa].name.GetCStr();
-        if (play.get_loc_name_last_time != 3000+aa)
-            GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
-        play.get_loc_name_last_time = 3000+aa;
-        return out_name;
+        loc_index = kSavedLocType_Object + onhs;
+        return croom->obj[onhs].name.GetCStr();
     }
-    onhs = getloctype_index;
-    if (onhs>0)
-        out_name = croom->hotspot[onhs].Name.GetCStr();
-    if (play.get_loc_name_last_time != onhs)
+    // on hotspot
+    if (onhs > 0)
+    {
+        loc_index = kSavedLocType_Hotspot + onhs;
+        return croom->hotspot[onhs].Name.GetCStr();
+    }
+    return "";
+}
+
+const char *GetLocationName(int x, int y)
+{
+    int loc_index;
+    const char *loc_name = GetLocationNameAndIndex(x, y, loc_index);
+
+    // If it's a new location, different from the last time we checked,
+    // then update "@OVERHOTSPOT@" label(s), and save the last index
+    if (play.get_loc_name_last_time != loc_index)
+    {
         GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
-    play.get_loc_name_last_time = onhs;
-    return out_name;
+        play.get_loc_name_last_time = loc_index;
+    }
+
+    return loc_name;
 }
 
 // GetLocationNameInBuf assumes a string buffer of MAX_MAXSTRLEN

@@ -28,7 +28,33 @@ namespace DataUtil
 // TODO: might replace "printf" with the logging functions,
 // but then we'd also need to make sure they are initialized in tools
 
-HError UnpackLibrary(const AssetLibInfo &lib, const String &lib_dir, const String &dst_dir)
+static void ExportAsset(Stream *lib_in, const AssetInfo &asset, const String &dst_dir)
+{
+    String dst_f = Path::ConcatPaths(dst_dir, asset.FileName);
+    String sub_dir = Path::GetParent(asset.FileName);
+    if (!sub_dir.IsEmpty() && sub_dir != "." &&
+        !Directory::CreateAllDirectories(dst_dir, sub_dir))
+    {
+        printf("Error: unable to create a subdirectory: %s\n", sub_dir.GetCStr());
+        return;
+    }
+    std::unique_ptr<Stream> out(File::CreateFile(dst_f));
+    if (!out)
+    {
+        printf("Error: unable to open a file for writing: %s\n", asset.FileName.GetCStr());
+        return;
+    }
+    lib_in->Seek(asset.Offset, kSeekBegin);
+    soff_t wrote = CopyStream(lib_in, out.get(), asset.Size);
+    if (wrote == asset.Size)
+        printf("+ %s\n", asset.FileName.GetCStr());
+    else
+        printf("Error: file was not written correctly: %s\n Expected: %jd, wrote: %jd bytes\n",
+               asset.FileName.GetCStr(), static_cast<intmax_t>(asset.Size), static_cast<intmax_t>(wrote));
+}
+
+HError ExportFromLibrary(const AssetLibInfo &lib, const String &lib_dir, const String &dst_dir,
+                     const std::vector<std::regex> *asset_patterns)
 {
     for (size_t i = 0; i < lib.LibFileNames.size(); ++i)
     {
@@ -43,28 +69,24 @@ HError UnpackLibrary(const AssetLibInfo &lib, const String &lib_dir, const Strin
         printf("Extracting %s:\n", lib_f.GetCStr());
         for (const auto &asset : lib.AssetInfos)
         {
-            if (asset.LibUid != i) continue;
-            String dst_f = Path::ConcatPaths(dst_dir, asset.FileName);
-            String sub_dir = Path::GetParent(asset.FileName);
-            if (!sub_dir.IsEmpty() && sub_dir != "." &&
-                !Directory::CreateAllDirectories(dst_dir, sub_dir))
-            {
-                printf("Error: unable to create a subdirectory: %s\n", sub_dir.GetCStr());
+            if (asset.LibUid != i)
                 continue;
-            }
-            std::unique_ptr<Stream> out(File::CreateFile(dst_f));
-            if (!out)
+
+            if (asset_patterns)
             {
-                printf("Error: unable to open a file for writing: %s\n", asset.FileName.GetCStr());
-                continue;
+                for (const auto &pattern : *asset_patterns)
+                {
+                    if (std::regex_match(asset.FileName.GetCStr(), pattern))
+                    {
+                        ExportAsset(lib_in.get(), asset, dst_dir);
+                        break;
+                    }
+                }
             }
-            lib_in->Seek(asset.Offset, kSeekBegin);
-            soff_t wrote = CopyStream(lib_in.get(), out.get(), asset.Size);
-            if (wrote == asset.Size)
-                printf("+ %s\n", asset.FileName.GetCStr());
             else
-                printf("Error: file was not written correctly: %s\n Expected: %jd, wrote: %jd bytes\n",
-                    asset.FileName.GetCStr(), static_cast<intmax_t>(asset.Size), static_cast<intmax_t>(wrote));
+            {
+                ExportAsset(lib_in.get(), asset, dst_dir);
+            }
         }
     }
     return HError::None();

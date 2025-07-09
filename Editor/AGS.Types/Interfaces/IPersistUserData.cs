@@ -4,8 +4,7 @@ using System.Xml;
 namespace AGS.Types
 {
     /// <summary>
-    /// Interface to persist user-specific data to/from disk. This data
-    /// will not be checked into source control.
+    /// Interface to persist user-specific data to/from disk.
     /// </summary>
     public interface IPersistUserData
     {

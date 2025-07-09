@@ -496,6 +496,7 @@ ags_windows_tests_task:
     msbuild Tests.sln /m /property:MultiProcessorCompilation=true /p:PlatformToolset=v142 /p:Configuration=Release /p:Platform=Win32 /maxcpucount /nologo
   run_common_tests_x86_script: Solutions\.test\Release\Common.Lib.Test.exe
   run_engine_tests_x86_script: Solutions\.test\Release\Engine.App.Test.exe
+  run_tools_tests_x86_script: Solutions\.test\Release\Tools.Test.exe
   cleanup_script: >
     cd Solutions/ &&
     rd /s /q .test 
@@ -515,6 +516,7 @@ ags_windows_tests_task:
     msbuild Tests.sln /m /property:MultiProcessorCompilation=true /p:PlatformToolset=v142 /p:Configuration=Release /p:Platform=x64 /maxcpucount /nologo
   run_common_tests_x64_script: Solutions\.test\Release\Common.Lib.Test.exe
   run_engine_tests_x64_script: Solutions\.test\Release\Engine.App.Test.exe
+  run_tools_tests_x64_script: Solutions\.test\Release\Tools.Test.exe
 
 make_release_task:
   depends_on:

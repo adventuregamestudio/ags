@@ -187,8 +187,10 @@ public:
     // Update the state during a game tick
     bool RunImpl() override
     {
-        _alpha += _speed;
-        return _alpha < 255;
+        if (_alpha >= 255)
+            return false;
+        _alpha = std::min(_alpha + _speed, 255);
+        return true;
     }
 
 private:
@@ -295,15 +297,19 @@ public:
     {
         if (game.color_depth > 1)
         {
-            _alpha += _speed;
-            return _alpha < 256;
+            if (_alpha >= 255)
+                return false;
+            _alpha = std::min(_alpha + _speed, 255);
+            return true;
         }
         else
         {
-            _alpha += _speed;
+            if (_alpha >= 64)
+                return false;
+            _alpha = std::min(_alpha + _speed, 64);
             fade_interpolate(*_srcPal, *_destPal, _dynamicPal, _alpha, _rangeFrom, _rangeTo);
             set_palette_range(_dynamicPal, _rangeFrom, _rangeTo, TRUE);
-            return _alpha < 64;
+            return true;
         }
     }
 
@@ -403,9 +409,11 @@ public:
     // Update the state during a game tick
     bool RunImpl() override
     {
-        _boxWidth += _speed;
-        _boxHeight += _yspeed;
-        return _boxWidth <= _view.GetWidth();
+        if (_boxWidth >= _view.GetWidth())
+            return false;
+        _boxWidth = std::min(_boxWidth + _speed, _view.GetWidth());
+        _boxHeight = std::min(_boxHeight + _yspeed, _view.GetHeight());
+        return true;
     }
 
 private:
@@ -477,11 +485,17 @@ public:
     // Update the state during a game tick
     bool RunImpl() override
     {
-        _boxWidth += _speed;
-        _boxHeight += _yspeed;
-        return _fadein ?
-            _boxWidth <= _bmpBuff->GetWidth() :
-            _boxWidth <= _view.GetWidth();
+        const int target_width = _fadein ?
+            _bmpBuff->GetWidth() :
+            _view.GetWidth();
+        const int target_height = _fadein ?
+            _bmpBuff->GetHeight() :
+            _view.GetHeight();
+        if (_boxWidth >= target_width)
+            return false;
+        _boxWidth = std::min(_boxWidth + _speed, target_width);
+        _boxHeight = std::min(_boxHeight + _yspeed, target_height);
+        return true;
     }
 
 private:
@@ -542,8 +556,10 @@ public:
     // Update the state during a game tick
     bool RunImpl() override
     {
-        _alpha -= 16;
-        return _alpha > 0;
+        if (_alpha <= 0)
+            return false;
+        _alpha = std::max(_alpha - 16, 0);
+        return true;
     }
 
 private:
@@ -589,6 +605,9 @@ public:
     // Update the state during a game tick
     bool RunImpl() override
     {
+        if (_step >= 16)
+            return false;
+
         // merge the palette while dithering
         if (game.color_depth == 1) 
         {
@@ -606,7 +625,8 @@ public:
         }
         gfxDriver->UpdateDDBFromBitmap(_shot_ddb, saved_viewport_bitmap.get());
 
-        return ++_step < 16;
+        _step = std::min(_step + 1, 16);
+        return true;
     }
 
 private:

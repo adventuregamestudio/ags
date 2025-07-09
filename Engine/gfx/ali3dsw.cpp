@@ -327,6 +327,11 @@ int SDLRendererGraphicsDriver::GetCompatibleBitmapFormat(int color_depth)
   return color_depth;
 }
 
+IDriverDependantBitmap *SDLRendererGraphicsDriver::CreateDDB()
+{
+    return new ALSoftwareBitmap();
+}
+
 IDriverDependantBitmap* SDLRendererGraphicsDriver::CreateDDB(int width, int height, int color_depth, int txflags)
 {
   return new ALSoftwareBitmap(width, height, color_depth, txflags);
@@ -455,6 +460,12 @@ void SDLRendererGraphicsDriver::DrawSprite(int /*ox*/, int /*oy*/, int ltx, int 
 { // Note we are only interested in left-top coords for software renderer
     assert(_actSpriteBatch != UINT32_MAX);
     _spriteList.push_back(ALDrawListEntry((ALSoftwareBitmap*)bitmap, _actSpriteBatch, ltx, lty));
+}
+
+void SDLRendererGraphicsDriver::AddRenderEvent(int evt, int param)
+{
+    assert(_actSpriteBatch != UINT32_MAX);
+    _spriteList.push_back(ALDrawListEntry(nullptr, _actSpriteBatch, evt, param));
 }
 
 void SDLRendererGraphicsDriver::SetScreenFade(int /*red*/, int /*green*/, int /*blue*/)

@@ -43,6 +43,7 @@ TOOL_OBJS = \
 	../../Tools/data/mfl_utils.cpp
 
 OBJS := main.cpp \
+	commands.cpp \
 	$(COMMON_OBJS) \
 	$(TOOL_OBJS)
 OBJS := $(OBJS:.cpp=.o)

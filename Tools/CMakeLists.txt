@@ -77,20 +77,15 @@ set_target_properties(agfexport PROPERTIES
 target_link_libraries(agfexport PUBLIC libtools)
 
 #----- agspak -------------------------------------------------
-add_executable(agspak agspak/main.cpp)
+add_executable(agspak agspak/main.cpp
+        agspak/commands.h
+        agspak/commands.cpp
+        )
 set_target_properties(agspak PROPERTIES
         CXX_STANDARD 11
         CXX_EXTENSIONS NO
         )
 target_link_libraries(agspak PUBLIC libtools)
-
-#----- agsunpak -----------------------------------------------
-add_executable(agsunpak agsunpak/main.cpp)
-set_target_properties(agsunpak PROPERTIES
-        CXX_STANDARD 11
-        CXX_EXTENSIONS NO
-        )
-target_link_libraries(agsunpak PUBLIC libtools)
 
 #----- crm2ash ------------------------------------------------
 add_executable(crm2ash crm2ash/main.cpp)
@@ -116,7 +111,14 @@ set_target_properties(trac PROPERTIES
         )
 target_link_libraries(trac PUBLIC libtools)
 
-list(APPEND TOOLS_TARGETS agf2dlgasc agfexport agspak agsunpak crm2ash crmpak trac)
+list(APPEND TOOLS_TARGETS
+        agf2dlgasc
+        agfexport
+        agspak
+        crm2ash
+        crmpak
+        trac
+        )
 
 # Bundle-like target to build all tools
 add_custom_target(Tools)
@@ -125,3 +127,23 @@ add_dependencies(Tools ${TOOLS_TARGETS})
 if (AGS_DESKTOP)
     install(TARGETS ${TOOLS_TARGETS} RUNTIME DESTINATION bin)
 endif ()
+
+if(AGS_TESTS)
+   add_executable(tools_test
+      test/include_utils_test.cpp
+   )
+   set_target_properties(tools_test PROPERTIES
+      CXX_STANDARD 11
+      CXX_EXTENSIONS NO
+      C_STANDARD 11
+      C_EXTENSIONS NO
+      INTERPROCEDURAL_OPTIMIZATION FALSE
+   )
+   target_link_libraries(tools_test
+      libtools
+      gtest_main
+   )
+
+   include(GoogleTest)
+   gtest_add_tests(TARGET tools_test)
+endif()

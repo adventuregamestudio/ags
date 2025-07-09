@@ -190,31 +190,40 @@ Bitmap *create_textual_image(const char *text, const DisplayTextLooks &look, col
     }
 
     const Rect &ui_view = play.GetUIViewport();
-    // centre text in middle of screen
+    // Center the text in the middle of the screen
     if ((look.Position & kDisplayTextPos_ScreenCenterY) != 0)
     {
         yy = ui_view.GetHeight() / 2 - disp.FullTextHeight / 2 - padding;
     }
-    // LA-style speech, so it wants to be above the character's head
+    // If ordered to place around the character, then align by the text's bottom and clamp to screen
     else if ((look.Position & kDisplayTextPos_OvercharY) != 0)
     {
-        // Clamp text position to screen bounds, and align by the text's bottom
         yy -= disp.FullTextHeight;
         yy = adjust_y_for_guis(yy);
         yy = Math::Clamp(yy, screen_padding, ui_view.GetHeight() - screen_padding - disp.FullTextHeight);
     }
-    // NOTE: this is possibly an accidental mistake, but historically
-    // this Y pos fixup is also applied for SayAt, which results in
-    // text's origin being a left-bottom rather than left-top.
-    // Maybe this could be fixed in some future versions...
-    else if (look.Style == kDisplayTextStyle_Overchar)
+    else
     {
-        yy -= disp.FullTextHeight;
-        yy = adjust_y_for_guis(yy);
-        yy = std::max(yy, screen_padding); // lower if beyond upper screen edge
+        // NOTE: this is possibly an accidental mistake, but historically
+        // this Y pos fixup is also applied for SayAt, which results in
+        // text's origin being a left-bottom rather than left-top.
+        // Maybe this could be fixed in some future versions...
+        if (look.Style == kDisplayTextStyle_Overchar)
+        {
+            yy -= disp.FullTextHeight;
+            yy = adjust_y_for_guis(yy);
+            yy = std::max(yy, screen_padding); // lower if beyond upper screen edge
+        }
+
+        // If ordered to clamp to the screen, then do so
+        if ((look.Position & kDisplayTextPos_ClampToScreenHeight) != 0)
+        {
+            yy = Math::Clamp(yy, screen_padding, ui_view.GetHeight() - screen_padding - disp.FullTextHeight);
+        }
     }
 
-    if (longestline < wii - paddingDoubledScaled) {
+    if (longestline < wii - paddingDoubledScaled)
+    {
         // shrink the width of the dialog box to fit the text
         int oldWid = wii;
         // If it's not speech, or a shrink is allowed, then shrink it
@@ -227,14 +236,20 @@ Bitmap *create_textual_image(const char *text, const DisplayTextLooks &look, col
     }
 
     if ((look.Position & kDisplayTextPos_ScreenCenterX) != 0)
+    // Center the text in the middle of the screen
     {
         xx = ui_view.GetWidth() / 2 - wii / 2;
     }
-    // If ordered to center around the x pos, then do so, and clamp to the screen bounds
+    // If ordered to place around the character, then center-align, and clamp to the screen
     else if ((look.Position & kDisplayTextPos_OvercharX) != 0)
     {
         xx -= wii / 2;
         xx = adjust_x_for_guis(xx, yy);
+        xx = Math::Clamp(xx, screen_padding, ui_view.GetWidth() - screen_padding - wii);
+    }
+    // Finally, if only ordered to clamp to the screen, then do so
+    else if ((look.Position & kDisplayTextPos_ClampToScreenWidth) != 0)
+    {
         xx = Math::Clamp(xx, screen_padding, ui_view.GetWidth() - screen_padding - wii);
     }
 
@@ -440,8 +455,10 @@ ScreenOverlay *display_main(int xx, int yy, int wii, const char *text,
     if ((look.Style == kDisplayTextStyle_PlainText || look.Style == kDisplayTextStyle_Overchar)
         && (disp_type < kDisplayText_NormalOverlay))
     {
-        // update the all_buttons_disabled variable in advance
-        // of the adjust_x/y_for_guis calls
+        // Update the GUI disabled state in advance of the adjust_x/y_for_guis calls;
+        // this is done to avoid display box moved away from GUIs that will be hidden
+        // FIXME: this is a misleading hack, find a way to do this without tweaking
+        // play.disabled_user_interface.
         play.disabled_user_interface++;
         update_gui_disabled_status();
         play.disabled_user_interface--;

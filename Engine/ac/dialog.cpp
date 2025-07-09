@@ -1070,7 +1070,9 @@ void DialogOptions::Draw()
     ddb = recycle_ddb_bitmap(ddb, optionsBitmap.get());
     if (runGameLoopsInBackground)
     {
+        DisableInterfaceEx(false /* don't change cursor */);
         render_graphics(ddb, position.Left, position.Top);
+        EnableInterfaceEx(false /* don't change cursor */);
     }
 }
 
@@ -1079,16 +1081,13 @@ bool DialogOptions::Run()
     // Run() can be called in a loop, so keep events going.
     sys_evt_process_pending();
 
+    // Disable interface prior to updating & rendering the game in background;
+    // not that this also disables "overhotspot" labels
+    DisableInterfaceEx(false /* don't change cursor */);
     // Optionally run full game update, otherwise only minimal auto & overlay update
     if (runGameLoopsInBackground)
     {
-        play.disabled_user_interface++;
         UpdateGameOnce(false, ddb, position.Left, position.Top);
-        play.disabled_user_interface--;
-
-        // Stop the dialog options if requested from script
-        if (doStop)
-            return false;
     }
     else
     {
@@ -1096,6 +1095,11 @@ bool DialogOptions::Run()
         UpdateCursorAndDrawables();
         render_graphics(ddb, position.Left, position.Top);
     }
+    EnableInterfaceEx(false /* don't change cursor */);
+
+    // Stop the dialog options if wsa requested from script
+    if (doStop)
+        return false;
 
     needRedraw = false;
 

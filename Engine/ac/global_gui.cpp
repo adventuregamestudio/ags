@@ -105,24 +105,53 @@ int GetFontLineSpacing(int fontnum)
   return get_font_linespacing(fontnum);
 }
 
-void DisableInterface() {
-  // If GUI looks change when disabled, then mark all of them for redraw
-  bool redraw_gui = (play.disabled_user_interface == 0) && // only if was enabled before
-      (GUI::Options.DisabledStyle != kGuiDis_Unchanged);
-  GUIE::MarkAllGUIForUpdate(redraw_gui, true);
-  play.disabled_user_interface++;
-  set_mouse_cursor(CURS_WAIT);
+void DisableInterfaceEx(bool update_cursor)
+{
+    play.disabled_user_interface++;
+    if (play.disabled_user_interface == 1) // if just switched to disabled
+    {
+        // If GUI looks change when disabled, then mark all of them for redraw
+        GUIE::MarkAllGUIForUpdate(GUI::Options.DisabledStyle != kGuiDis_Unchanged, true);
+        // Also mark "overhotspot" labels for update, as their text gets reset
+        // to empty string when the interface is disabled
+        GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
+    }
+    // We update cursor even if interface was already disabled prior,
+    // because disabled status may had been toggled by internal game logic too
+    if (update_cursor)
+    {
+        set_mouse_cursor(CURS_WAIT);
+    }
 }
 
-void EnableInterface() {
-  play.disabled_user_interface--;
-  if (play.disabled_user_interface<1) {
-    play.disabled_user_interface=0;
-    set_default_cursor();
-    // If GUI looks change when disabled, then mark all of them for redraw
-    GUIE::MarkAllGUIForUpdate(GUI::Options.DisabledStyle != kGuiDis_Unchanged, true);
-  }
+void DisableInterface()
+{
+    DisableInterfaceEx(true);
 }
+
+void EnableInterfaceEx(bool update_cursor)
+{
+    play.disabled_user_interface--;
+    if (play.disabled_user_interface < 1) // if just switched to enabled
+    {
+        play.disabled_user_interface = 0; // clamp to 0
+        // If GUI looks change when disabled, then mark all of them for redraw
+        GUIE::MarkAllGUIForUpdate(GUI::Options.DisabledStyle != kGuiDis_Unchanged, true);
+        // Also mark "overhotspot" labels for update, as their text gets reset
+        // to empty string when the interface is disabled
+        GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
+        if (update_cursor)
+        {
+            set_default_cursor();
+        }
+    }
+}
+
+void EnableInterface()
+{
+    EnableInterfaceEx(true);
+}
+
 // Returns 1 if user interface is enabled, 0 if disabled
 int IsInterfaceEnabled() {
   return (play.disabled_user_interface > 0) ? 0 : 1;

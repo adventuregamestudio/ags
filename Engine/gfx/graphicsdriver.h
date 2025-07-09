@@ -270,6 +270,8 @@ public:
     virtual int  GetCompatibleBitmapFormat(int color_depth) = 0;
     // Returns available texture memory in bytes, or 0 if this query is not supported
     virtual uint64_t GetAvailableTextureMemory() = 0;
+    // Creates a uninitialized DDB, which may have a texture data attached later
+    virtual IDriverDependantBitmap *CreateDDB() = 0;
     // Creates a "raw" DDB, without pixel initialization.
     virtual IDriverDependantBitmap *CreateDDB(int width, int height, int color_depth, int txflags = kTxFlags_None) = 0;
     // Create DDB using preexisting texture data
@@ -346,6 +348,8 @@ public:
     // Adds sprite to the active batch, providing it's origin position and auxiliary
     // position of the left-top image corner in the same coordinate space
     virtual void DrawSprite(int ox, int oy, int ltx, int lty, IDriverDependantBitmap* bitmap) = 0;
+    // Adds a render event, which runs a callback with the given parameters, to the active batch
+    virtual void AddRenderEvent(int evt, int param) = 0;
     // Adds fade overlay fx to the active batch
     virtual void SetScreenFade(int red, int green, int blue) = 0;
     // Adds tint overlay fx to the active batch

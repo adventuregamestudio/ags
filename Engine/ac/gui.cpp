@@ -548,7 +548,7 @@ void process_interface_click(int ifce, int btn, int mbut) {
     }
 }
 
-
+// FIXME: rewrite this awful code, use ready GUILabelMacro (?)
 void replace_macro_tokens(const char *text, String &fixed_text) {
     const char*curptr=&text[0];
     char tmpm[3];

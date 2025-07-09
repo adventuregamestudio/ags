@@ -87,10 +87,14 @@ void set_font_outline(int font_number, int outline_type,
 bool is_font_antialiased(int font_number);
 // Assigns FontInfo to the font
 void set_fontinfo(int font_number, const FontInfo &finfo);
-// Gets full information about the font
+// Gets the general font properties
 FontInfo get_fontinfo(int font_number);
+// Gets the file used to load this font
+AGS::Common::String get_font_file(int font_number);
 // Loads a font from disk
 bool load_font_size(int font_number, const FontInfo &font_info);
+// Loads a font from disk using an explicit filename
+bool load_font_size(int font_number, const AGS::Common::String &filename, const FontInfo &font_info);
 // Loads a font from disk, reads metrics, and disposes a font
 bool load_font_metrics(const AGS::Common::String &filename, int pixel_size, FontMetrics &metrics);
 // Allocates two outline stencil buffers, or returns previously creates ones;

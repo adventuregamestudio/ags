@@ -1799,6 +1799,7 @@ namespace AGS.Editor
             WriteExtension("v361_objnames", WriteExt_361ObjNames, writer, gameEnts, errors);
             WriteExtension("v362_interevent2", WriteExt_362InteractionEvents, writer, gameEnts, errors);
             WriteExtension("v362_guictrls", WriteExt_362GUIControls, writer, gameEnts, errors);
+            WriteExtension("v363_gameinfo", WriteExt_363GameInfo, writer, gameEnts, errors);
             WriteExtension("ext_ags399", WriteExt_Ags399, writer, gameEnts, errors);
             WriteExtension("v400_gameopts", WriteExt_400GameOpts, writer, gameEnts, errors);
             WriteExtension("v400_customprops", WriteExt_400CustomProps, writer, gameEnts, errors);
@@ -2099,6 +2100,25 @@ namespace AGS.Editor
             }
         }
 
+        private static void WriteExt_363GameInfo(BinaryWriter writer, WriteExtEntities ents, CompileMessages errors)
+        {
+            var gameinfo = new Dictionary<string, string>();
+            gameinfo.Add("title", ents.Game.Settings.GameName);
+            gameinfo.Add("description", ents.Game.Settings.Description);
+            gameinfo.Add("dev_name", ents.Game.Settings.DeveloperName);
+            gameinfo.Add("dev_url", ents.Game.Settings.DeveloperURL);
+            gameinfo.Add("genre", ents.Game.Settings.Genre);
+            gameinfo.Add("release_date", ents.Game.Settings.ReleaseDate.ToString("dd.MM.yyyy"));
+            gameinfo.Add("version", ents.Game.Settings.Version);
+
+            writer.Write(gameinfo.Count);
+            foreach (var item in gameinfo)
+            {
+                FilePutString(item.Key, writer);
+                FilePutString(item.Value, writer);
+            }
+        }
+
         /// <summary>
         /// Helper struct for gathering objects that may be useful when writing extensions.
         /// </summary>
@@ -2118,6 +2138,11 @@ namespace AGS.Editor
 
         private static void WriteExtension(string ext_id, WriteExtensionProc proc, BinaryWriter writer, WriteExtEntities ents, CompileMessages errors)
         {
+            if (string.IsNullOrWhiteSpace(ext_id))
+                throw new ArgumentException("Invalid data file extension ID");
+            if (ext_id.Length > 16)
+                throw new ArgumentException($"Data file extension ID cannot be longer than 16 characters: {ext_id}");
+
             // The block meta format:
             //    - 1 byte - an old-style unsigned numeric ID, for compatibility with room file format:
             //               where 0 would indicate following string ID,

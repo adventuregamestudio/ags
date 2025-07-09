@@ -165,7 +165,7 @@ void GUISlider::UpdateMetrics()
         handle_range = _width - 4;
         int value_pos = (int)(((float)(_value - _minValue) * (float)handle_range) / (float)(_maxValue - _minValue));
         handle = RectWH((bar.Left + 2) - (handle_sz.Width / 2) + value_pos - 1,
-            bar.Top + (bar.GetHeight() - handle_sz.Height) / 2,
+            bar.Top + (bar.GetHeight() - 1 - handle_sz.Height) / 2 + 1,
             handle_sz.Width, handle_sz.Height);
         handle.MoveToY(handle.Top + _handleOffset);
 
@@ -181,7 +181,7 @@ void GUISlider::UpdateMetrics()
         bar = RectWH(_width / 2 - thick_f, 1, bar_thick, _height - 1);
         handle_range = _height - 4;
         int value_pos = (int)(((float)(_maxValue - _value) * (float)handle_range) / (float)(_maxValue - _minValue));
-        handle = RectWH(bar.Left + (bar.GetWidth() - handle_sz.Width) / 2,
+        handle = RectWH(bar.Left + (bar.GetWidth() - 1 - handle_sz.Width) / 2 + 1,
             (bar.Top + 2) - (handle_sz.Height / 2) + value_pos - 1,
             handle_sz.Width, handle_sz.Height);
         handle.MoveToX(handle.Left + _handleOffset);

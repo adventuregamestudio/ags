@@ -103,6 +103,8 @@ public:
     // Rotation is set in degrees clockwise, stored converted to radians
     void SetRotation(float degrees) override { _rotation = -Common::Math::DegreesToRadians(degrees); }
 
+    OGLBitmap() = default;
+
     OGLBitmap(int width, int height, int colDepth, int txflags)
     {
         _size = Size(width, height);
@@ -384,6 +386,8 @@ public:
     // Returns available texture memory in bytes, or 0 if this query is not supported
     uint64_t GetAvailableTextureMemory() override;
     // Creates a "raw" DDB, without pixel initialization.
+    IDriverDependantBitmap *CreateDDB() override;
+    // Creates a "raw" DDB, without pixel initialization.
     IDriverDependantBitmap* CreateDDB(int width, int height, int color_depth, int txflags) override;
     // Creates DDB intended to be used as a render target (allow render other DDBs on it).
     IDriverDependantBitmap* CreateRenderTargetDDB(int width, int height, int color_depth, int txflags) override;
@@ -430,6 +434,8 @@ public:
     // Adds sprite to the active batch, providing it's origin position and auxiliary
     // position of the left-top image corner in the same coordinate space
     void DrawSprite(int ox, int oy, int ltx, int lty, IDriverDependantBitmap* ddb) override;
+    // Adds a render event, which runs a callback with the given parameters, to the active batch
+    void AddRenderEvent(int evt, int param) override;
     // Adds fade overlay fx to the active batch
     void SetScreenFade(int red, int green, int blue) override;
     // Adds tint overlay fx to the active batch

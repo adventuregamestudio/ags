@@ -148,20 +148,24 @@ int Button_GetMouseOverGraphic(GUIButton *butt) {
     return butt->GetMouseOverImage();
 }
 
-void Button_SetMouseOverGraphic(GUIButton *guil, int slotn) {
-    debug_script_log("GUI %d Button %d mouseover set to slot %d", guil->GetParentID(), guil->GetID(), slotn);
+void Button_SetMouseOverGraphic(GUIButton *butt, int slotn)
+{
     slotn = std::max(0, slotn);
-    guil->SetMouseOverImage(slotn);
-    FindAndRemoveButtonAnimation(guil->GetParentID(), guil->GetID());
+    if (butt->GetMouseOverImage() != slotn)
+        debug_script_log("GUI %d Button %d mouseover set to slot %d", butt->GetParentID(), butt->GetID(), slotn);
+    butt->SetMouseOverImage(slotn);
+    FindAndRemoveButtonAnimation(butt->GetParentID(), butt->GetID());
 }
 
 int Button_GetNormalGraphic(GUIButton *butt) {
     return butt->GetNormalImage();
 }
 
-void Button_SetNormalGraphic(GUIButton *butt, int slotn) {
-    debug_script_log("GUI %d Button %d normal set to slot %d", butt->GetParentID(), butt->GetID(), slotn);
+void Button_SetNormalGraphic(GUIButton *butt, int slotn)
+{
     slotn = std::max(0, slotn);
+    if (butt->GetNormalImage() != slotn)
+        debug_script_log("GUI %d Button %d normal set to slot %d", butt->GetParentID(), butt->GetID(), slotn);
     // NormalGraphic = 0 will turn the Button into a standard colored button
     if (slotn == 0)
     {
@@ -183,11 +187,13 @@ int Button_GetPushedGraphic(GUIButton *butt) {
     return butt->GetPushedImage();
 }
 
-void Button_SetPushedGraphic(GUIButton *guil, int slotn) {
-    debug_script_log("GUI %d Button %d pushed set to slot %d", guil->GetParentID(), guil->GetID(), slotn);
+void Button_SetPushedGraphic(GUIButton *butt, int slotn)
+{
     slotn = std::max(0, slotn);
-    guil->SetPushedImage(slotn);
-    FindAndRemoveButtonAnimation(guil->GetParentID(), guil->GetID());
+    if (butt->GetPushedImage() != slotn)
+        debug_script_log("GUI %d Button %d pushed set to slot %d", butt->GetParentID(), butt->GetID(), slotn);
+    butt->SetPushedImage(slotn);
+    FindAndRemoveButtonAnimation(butt->GetParentID(), butt->GetID());
 }
 
 int Button_GetTextColor(GUIButton *butt) {

@@ -340,7 +340,16 @@ void LoadFonts(GameSetupStruct &game, GameDataVersion data_ver)
     {
         if (!game.fonts[i].Filename.IsEmpty())
         {
-            load_font_size(i, game.fonts[i]);
+            if (!load_font_size(i, game.fonts[i]))
+            {
+                Debug::Printf(kDbgMsg_Error, "ERROR: Unable to load font %d, file does not exist or no renderer could load a matching file.");
+                // Replace this font using the font 0's file to let display the text at least
+                bool result = false;
+                if (i != 0 && is_font_loaded(0))
+                    result = load_font_size(i, get_font_file(0), game.fonts[i]);
+                if (!result)
+                    continue;
+            }
         }
         else
         {

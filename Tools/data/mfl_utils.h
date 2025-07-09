@@ -14,6 +14,7 @@
 #ifndef __AGS_TOOL_DATA__MFLUTIL_H
 #define __AGS_TOOL_DATA__MFLUTIL_H
 
+#include <regex>
 #include "core/asset.h"
 #include "util/error.h"
 #include "util/multifilelib.h"
@@ -29,12 +30,15 @@ namespace DataUtil
     using AGS::Common::Stream;
     using AGS::Common::String;
 
-    // Unpacks the library by reading its parts and writing assets into files.
-    // lib_dir - tells the directory where the library parts are located;
-    // The output files will be written into dst_dir directory;
-    // if the asset name contains directories, they will be created as sub-
+    // Exports assets from the library by reading its parts and writing assets into files.
+    // lib_dir - tells the directory where the library parts are located.
+    // The output files will be written into dst_dir directory.
+    // asset_patterns is an optional list of regex patterns used to filter assets;
+    // passing null would export all available assets.
+    // If the asset name contains directories, they will be created as sub-
     // directories inside dst_dir.
-    HError UnpackLibrary(const AssetLibInfo &lib, const String &lib_dir, const String &dst_dir);
+    HError ExportFromLibrary(const AssetLibInfo &lib, const String &lib_dir, const String &dst_dir,
+                         const std::vector<std::regex> *asset_patterns = nullptr);
     // Gather a list of files from a given directory as a vector of strings
     HError MakeListOfFiles(std::vector<String> &files, const String &asset_dir, bool do_subdirs);
     // Prepare list of assets from a list of filenames
@@ -55,6 +59,14 @@ namespace DataUtil
     HError WriteLibrary(AssetLibInfo &lib, const String &asset_dir, const String &dst_dir,
                         Common::MFLUtil::MFLVersion lib_version,
                         bool verbose);
+
+    // A custom comparator used to search for AssetInfos by a name
+    struct AssetInfoComparator
+    {
+        const String Name;
+        AssetInfoComparator(const String &name) : Name(name) {}
+        bool operator() (const AssetInfo &info) const { return info.FileName.CompareNoCase(Name) == 0; }
+    };
 
 } // namespace DataUtil
 } // namespace AGS

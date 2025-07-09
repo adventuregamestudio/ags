@@ -2081,6 +2081,12 @@ void D3DGraphicsDriver::DrawSprite(int ox, int oy, int /*ltx*/, int /*lty*/, IDr
     _spriteList.push_back(D3DDrawListEntry((D3DBitmap*)ddb, _actSpriteBatch, ox, oy));
 }
 
+void D3DGraphicsDriver::AddRenderEvent(int evt, int param)
+{
+    assert(_actSpriteBatch != UINT32_MAX);
+    _spriteList.push_back(D3DDrawListEntry(nullptr, _actSpriteBatch, evt, param));
+}
+
 void D3DGraphicsDriver::DestroyDDB(IDriverDependantBitmap* ddb)
 {
     // Remove from render targets
@@ -2213,6 +2219,11 @@ bool D3DGraphicsDriver::IsTextureFormatOk( D3DFORMAT TextureFormat, D3DFORMAT Ad
                                           TextureFormat);
     
     return SUCCEEDED( hr );
+}
+
+IDriverDependantBitmap *D3DGraphicsDriver::CreateDDB()
+{
+    return new D3DBitmap();
 }
 
 IDriverDependantBitmap* D3DGraphicsDriver::CreateDDB(int width, int height, int color_depth, int txflags)

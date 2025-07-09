@@ -987,9 +987,9 @@ import const string GetTranslation (const string originalText);
 /// Checks if a translation is currently in use.
 import int  IsTranslationAvailable ();
 /// Displays the default built-in Restore Game dialog.
-import void RestoreGameDialog(int min_slot = 1, int max_slot = 100);
+import void RestoreGameDialog(int min_slot = 0, int max_slot = 99);
 /// Displays the default built-in Save Game dialog.
-import void SaveGameDialog(int min_slot = 1, int max_slot = 100);
+import void SaveGameDialog(int min_slot = 0, int max_slot = 99);
 /// Restarts the game from the restart point.
 import void RestartGame();
 /// Saves the current game position to the specified slot.
@@ -1743,7 +1743,7 @@ builtin managed struct ListBox extends GUIControl {
 	/// Fills the list box with all the filenames that match the specified file mask.
 	import void FillDirList(const string fileMask, FileSortStyle fileSortStyle = eFileSort_Name, SortDirection sortDirection = eSortAscending);
 	/// Fills the list box with the current user's saved games in the given range of slots. Returns true if all slots in range are occupied.
-	import bool FillSaveGameList(int min_slot = 1, int max_slot = 100, SaveGameSortStyle saveSortStyle = eSaveGameSort_Time, SortDirection sortDirection = eSortDescending);
+	import bool FillSaveGameList(int min_slot = 0, int max_slot = 99, SaveGameSortStyle saveSortStyle = eSaveGameSort_Time, SortDirection sortDirection = eSortDescending);
 	/// Fills the list box with the current user's saved games using the array of slot indexes.
 	import void FillSaveGameSlots(int save_slots[], SaveGameSortStyle saveSortStyle = eSaveGameSort_None, SortDirection sortDirection = eSortNoDirection);
 #else // !SCRIPT_API_v362
@@ -2923,6 +2923,25 @@ builtin struct Game {
   readonly import static attribute String RoomNames[];
 #endif // SCRIPT_API_v400
 };
+
+#ifdef SCRIPT_API_v363
+builtin struct GameInfo {
+  /// Gets the game's title
+  import static readonly attribute String Title;
+  /// Gets the game's description
+  import static readonly attribute String Description;
+  /// Gets the game's developer's name
+  import static readonly attribute String DeveloperName;
+  /// Gets the game's developer's URL string
+  import static readonly attribute String DeveloperURL;
+  /// Gets the game's genre description
+  import static readonly attribute String Genre;
+  /// Gets the game's release date as a DateTime instance
+  import static readonly attribute DateTime* ReleaseDate;
+  /// Gets the game's release version, represented as "X.Y.Z.W" string
+  import static readonly attribute String Version;
+};
+#endif
 
 builtin struct GameState {
   readonly int  unused__1; // $AUTOCOMPLETEIGNORE$

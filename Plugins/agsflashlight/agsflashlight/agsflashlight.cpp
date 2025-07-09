@@ -747,11 +747,6 @@ int GetFlashlightMask()
   return 0;
 }
 
-int AGS_PluginV2()
-{
-  return 1;
-}
-
 void AGS_EngineStartup(IAGSEngine *lpEngine)
 {
   engine = lpEngine;
@@ -852,6 +847,10 @@ void AGS_EngineInitGfx(const char *driverID, void *data)
 {
 }
 
+int AGS_PluginV2()
+{
+  return 1;
+}
 
 
 #if (AGS_PLATFORM_OS_WINDOWS) && !defined(BUILTIN_PLUGINS)

@@ -162,10 +162,10 @@ void AdvancedPageDialog::ResetSetup(const ConfigTree & /*cfg_from*/)
     int slider_pos = (int)(_winCfg.MouseSpeed * 10.f + .5f);
     SetSliderPos(_hMouseSpeed, slider_pos);
     UpdateMouseSpeedText();
-    
-    SetCurSelToItemData(_hSpriteCacheList, _winCfg.SpriteCacheSize / 1024, NULL, 3);
-    SetCurSelToItemData(_hTextureCacheList, _winCfg.TextureCacheSize / 1024, NULL, 4);
-    SetCurSelToItemData(_hSoundCacheList, _winCfg.SoundCacheSize / 1024, NULL, 2);
+
+    SetCurSelToNearestItemData(_hSpriteCacheList, _winCfg.SpriteCacheSize / 1024);
+    SetCurSelToNearestItemData(_hTextureCacheList, _winCfg.TextureCacheSize / 1024);
+    SetCurSelToNearestItemData(_hSoundCacheList, _winCfg.SoundCacheSize / 1024);
 
     if (_winCfg.AudioEnabled)
     {

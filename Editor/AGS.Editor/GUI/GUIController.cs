@@ -67,8 +67,8 @@ namespace AGS.Editor
 		private bool _batchProcessShutdown = false;
 		private int _lastSelectedSprite = 0;
 		private string _lastImportDirectory = null;
-		private string[] _commandLineArgs;
-		private bool _messageLoopStarted = false;
+        CommandLineOptions _commandOptions = new CommandLineOptions();
+        private bool _messageLoopStarted = false;
         private int _systemDpi = 0;
 
         // Custom color table for the ColorDialog
@@ -166,7 +166,7 @@ namespace AGS.Editor
 
         public void ShowMessage(string message, MessageBoxIcon icon)
         {
-            if(StdConsoleWriter.IsEnabled)
+            if (StdConsoleWriter.IsEnabled)
             {
                 StdConsoleWriter.WriteLine(message);
                 return;
@@ -1103,39 +1103,58 @@ namespace AGS.Editor
             }
             if (error) Program.SetExitCode(1);
             this.ExitApplication();
-
         }
 
+        // TODO: ShowWelcomeScreen has a return value but it's never checked;
+        // figure out if it needs one and what it's meaning is
         public bool ShowWelcomeScreen()
         {
-            if (System.Environment.OSVersion.Platform != PlatformID.Win32NT)
-			{
-				this.ShowMessage("You are running AGS on a computer with Windows 98 or Windows ME. AGS is no longer supported on these operating systems. You are STRONGLY ADVISED to run the AGS Editor on Windows 2000, XP or higher.", MessageBoxIcon.Warning);
-			}
-
-            CommandLineOptions options = new CommandLineOptions(_commandLineArgs);
-
             if (AGS.Types.Version.IS_BETA_VERSION)
             {
                 Factory.GUIController.ShowMessage("This is a BETA version of AGS. BE VERY CAREFUL and MAKE SURE YOU BACKUP YOUR GAME before loading it in this editor.", MessageBoxIcon.Warning);
             }
 
-            bool showWelcomeScreen = false;
+            bool projectExists = !string.IsNullOrEmpty(_commandOptions.ProjectPath);
+            if (string.IsNullOrEmpty(_commandOptions.ProjectPath))
+            {
+                if (_commandOptions.AutoOperationRequested)
+                {
+                    Factory.GUIController.ShowMessage("Unable to perform a requested operation, no project path was provided", MessageBoxIcon.Warning);
+                }
+            }
+            else if (!File.Exists(_commandOptions.ProjectPath))
+            {
+                Factory.GUIController.ShowMessage($"Unable to load the game '{_commandOptions.ProjectPath}' because it does not exist", MessageBoxIcon.Warning);
+                projectExists = false;
+            }
 
-            if (options.CompileAndExit)
+            bool showWelcomeScreen = false;
+            if (projectExists)
             {
-                CompileAndExit(options.ProjectPath);
-            }
-            else if (options.TemplateSaveAndExit)
-            {
-                SaveAsTemplateAndExit(options.ProjectPath);
-            }
-            else if (!string.IsNullOrEmpty(options.ProjectPath))
-            {
-                _interactiveTasks.LoadGameFromDisk(options.ProjectPath);
+                if (_commandOptions.CompileAndExit)
+                {
+                    CompileAndExit(_commandOptions.ProjectPath);
+                }
+                else if (_commandOptions.TemplateSaveAndExit)
+                {
+                    SaveAsTemplateAndExit(_commandOptions.ProjectPath);
+                }
+                else if (!string.IsNullOrEmpty(_commandOptions.ProjectPath))
+                {
+                    _interactiveTasks.LoadGameFromDisk(_commandOptions.ProjectPath);
+                }
             }
             else
             {
+                // If we were asked to perform certain action over a project,
+                // but the project cannot be loaded, then exit right away.
+                if (_commandOptions.AutoOperationRequested)
+                {
+                    _exitFromWelcomeScreen = true;
+                    Application.Exit();
+                    return false;
+                }
+
                 showWelcomeScreen = true;
             }
 
@@ -1692,10 +1711,10 @@ namespace AGS.Editor
             return chosenView.ID;
         }
 
-        public void StartGUI(string[] commandLineArguments)
+        public void StartGUI(CommandLineOptions options)
         {
-			_commandLineArgs = commandLineArguments;
-			_messageLoopStarted = true;
+            _commandOptions = options;
+            _messageLoopStarted = true;
             Application.Run(_mainForm);
         }
 

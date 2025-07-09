@@ -1139,3 +1139,23 @@ TEST_F(Compile2, NullAsConstOldstringArgument) {
 
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
+
+TEST_F(Compile2, NullAsStringArgument) {
+
+    // Must be able to assign 'null' to a String parameter
+
+    std::string inpl = R"%&/(
+        int func(__format String s, ...)
+        {
+            func(null);
+            func("%s", null);
+        }
+        )%&/";
+
+    inpl = kAgsHeaderBool + (kAgsHeaderString + inpl);
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string const &err_msg = mh.GetError().Message;
+
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+}

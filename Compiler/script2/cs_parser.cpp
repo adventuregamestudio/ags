@@ -3248,8 +3248,10 @@ void AGS::Parser::AccessData_FunctionCall_Arguments_Push(Symbol name_of_func, bo
                 break;
 
             case 's':
+                // Also let through 'null'
                 // Also let through one-dimensional classic arrays of 'char'
-                if (!_sym.IsAnyStringVartype(arg_vartype) &&
+                if (arg_vartype != kKW_Null &&
+                    !_sym.IsAnyStringVartype(arg_vartype) &&
                     !(  _sym[arg_vartype].VartypeD->Type == VTT::kArray &&
                         _sym[arg_vartype].VartypeD->Dims.size() == 1u &&
                         _sym[arg_vartype].VartypeD->BaseVartype == kKW_Char))

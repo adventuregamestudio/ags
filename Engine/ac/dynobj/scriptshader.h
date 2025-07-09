@@ -38,10 +38,14 @@ public:
     static void ResetFreeIndexes();
 
     ScriptShaderProgram() = default;
-    ScriptShaderProgram(const String &filename);
+
+    static ScriptShaderProgram *CreateFileBased(const String &filename);
+    static ScriptShaderProgram *CreateScriptBased(const String &name, const String &script, const String &def_script);
 
     const String &GetName() const { return _name; }
     const String &GetFilename() const { return _filename; }
+    const String &GetShaderScript() const { return _script; }
+    const String &GetDefinitionScript() const { return _defScript; }
     uint32_t GetID() const { return _id; }
     int GetDefaultInstanceHandle() const { return _defaultInstanceHandle; }
     ScriptShaderInstance *GetDefaultInstance() const;
@@ -62,11 +66,16 @@ public:
     void Unserialize(int index, AGS::Common::Stream *in, size_t data_sz) override;
 
 private:
+    size_t CalcHeaderSize();
     size_t CalcSerializeSize(const void *address) override;
     void   Serialize(const void *address, AGS::Common::Stream *out) override;
 
     String _name;
     String _filename;
+    // Script is saved for shaders created from the script string
+    String _script;
+    // Definition script is saved for shaders created from the script string
+    String _defScript;
     uint32_t _id = NullShaderID;
     int _defaultInstanceHandle = 0;
     mutable ScriptShaderInstance *_defaultInstance = nullptr;

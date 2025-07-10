@@ -21,10 +21,10 @@
     <ClCompile Include="..\..\Compiler\test2\cc_symboltable_test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\libsrc\googletest\src\gtest-all.cc">
+    <ClCompile Include="..\..\Common\libsrc\googletest\googletest\src\gtest-all.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\libsrc\googletest\src\gtest_main.cc">
+    <ClCompile Include="..\..\Common\libsrc\googletest\googletest\src\gtest_main.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Common\util\stream.cpp">

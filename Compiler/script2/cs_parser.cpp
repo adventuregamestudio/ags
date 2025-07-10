@@ -1729,9 +1729,10 @@ bool AGS::Parser::IsVartypeMismatch_Oneway(Vartype vartype_is, Vartype vartype_w
         return false;
 
 
-    // Can convert 'null' to dynpointer or dynarray
+    // Can convert 'null' to dynpointer or dynarray or 'const string'
     if (kKW_Null == vartype_is)
         return
+            _sym.VartypeWithout(VTT::kConst, vartype_wants_to_be) != kKW_String &&
             !_sym.IsDynpointerVartype(vartype_wants_to_be) &&
             !_sym.IsDynarrayVartype(vartype_wants_to_be);
 

@@ -1122,3 +1122,20 @@ TEST_F(Compile2, FormatFunction07)
 
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
+
+TEST_F(Compile2, NullAsConstOldstringArgument) {
+
+    // Must be able to assign 'null' to a "const string" parameter
+
+    char const *inpl = R"%&/(
+        int func(const string s)
+        {
+            func(null);
+        }
+        )%&/";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string const &err_msg = mh.GetError().Message;
+
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+}

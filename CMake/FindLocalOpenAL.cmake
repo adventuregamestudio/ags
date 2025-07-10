@@ -1,6 +1,6 @@
 # Grab system openAL or use embedded mojoAL
 
-if(WIN32 OR LINUX OR MACOS OR FREEBSD)
+if(WIN32 OR MACOS OR FREEBSD)
     set(AGS_USE_MOJO_AL TRUE)
 endif()
 

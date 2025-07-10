@@ -1,6 +1,51 @@
 REVISION HISTORY
 ================
 
+VERSION 3.6.2 - Patch 2, July 2025
+
+Editor:
+ - When making a game template Editor will now use an optional "template.files" file, if one is
+   found in the project folder. This file should contain include/exclude filepath patterns,
+   and lets include subfolders into the template too.
+ - Fixed Editor application freezing at the Splash screen if any exception occured when
+   starting up. Now it should close itself properly.
+ - Fixed "Export sprites" dialog visual style and being cut on Windows 11.
+ - Fixed script preprocessor not recognizing macros which begin with a underscore.
+ - Fixed wrongly issued warnings about voice-over filenames not matching selected naming style.
+
+Script API:
+ - Fixed default values for save slots range in FillSaveGameList(), RestoreGameDialog() and
+   SaveGameDialog(), they did not match historical behavior of these functions. The default
+   slots range is now 0-99.
+
+Engine:
+ - Fixed game refusing to load if a font file is not found, use font 0 as a fallback instead.
+   (This restores a historical behavior, but now it works for any font, not only WFNs.)
+ - Fixed characters being forcedly moved to a walkable area after a call to FaceLocation()
+   or a similar function.
+ - Fixed a single black frame displayed before the video when PlayVideo() is called.
+ - Fixed "fade-out" transition could sometimes not play to the end.
+ - Fixed @OVERHOTSPOT@ labels not redrawing after blocking action ends if the cursor remains
+   over the same hotspot where it was before the action.
+ - Fixed game interface could become enabled for a single game frame each time right before the
+   Dialog options are displayed. This could cause e.g. a "normal" cursor or @OVERHOTSPOT@ text to
+   appear for the split second.
+ - Fixed gui texts aligned to Bottom or Right had a position mistake in 1 pixel.
+ - Fixed slightly broken slider's handle position for thin sliders with very small handle sprites.
+ - Fixed SayAt() not being clamped at the screen width (as it was historically).
+ - Fixed sprite cache or texture cache not initializing properly if their size in config is
+   assigned to a too large number. The cache sizes will be now correctly limited to the max
+   possible size available to the current engine build (32-bit or 64-bit).
+
+Compatibility:
+ - Corrected a fix for the misaligned text centering on buttons in pre-3.6.0 games (the previous
+   fix introduced in 3.6.2 Patch 1 happened to be breaking some other cases).
+
+WinSetup:
+ - If any of the cache sizes in config is set to a value not present in the option lists,
+   the list will be assigned to the nearest matching value, instead of resetting to default.
+
+
 VERSION 3.6.2 - Patch 1, June 2025
 
 Editor:

@@ -97,6 +97,8 @@ namespace BitmapHelper
     // Stretches bitmap to the requested size. The new bitmap will have same
     // colour depth. Returns original bitmap if no changes are necessary. 
     Bitmap *AdjustBitmapSize(const Bitmap *src, int width, int height);
+    // Runs over a bitmap and replaces all instances of one color value with another
+    void    ReplaceColor(Bitmap *bmp, int color1, int color2);
     // Makes the given bitmap opaque (full alpha), while keeping pixel RGB unchanged.
     void    MakeOpaque(Bitmap *bmp);
     // Makes the given bitmap opaque (full alpha), while keeping pixel RGB unchanged.

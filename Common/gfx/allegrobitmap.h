@@ -28,6 +28,8 @@
 #include "gfx/bitmapdata.h"
 #include "util/string.h"
 
+struct SDL_Surface;
+
 namespace AGS
 {
 namespace Common
@@ -43,6 +45,8 @@ public:
     Bitmap(const Bitmap *src, const Rect &rc);
     // Wraps Allegro BITMAP object, optionally owning it
     Bitmap(BITMAP *al_bmp, bool shared_data);
+    // Wraps SDL_Surface object, optionally owning it
+    Bitmap(SDL_Surface *sdl_bmp, bool shared_data);
     // Copy-constructor: constructs a full Bitmap copy
     Bitmap(const Bitmap &bmp);
     // Move-constructor: moves pixel data from another bitmap
@@ -80,6 +84,8 @@ public:
     // WARNING: this is meant strictly as a workaround in case third-party lib
     // have deleted our owned BITMAP object.
     void    ForgetAllegroBitmap();
+    // Wraps a SDL_Surface object, optionally owns it (will delete on disposal)
+    bool    WrapSDLSurface(SDL_Surface *sdl_bmp, bool shared_data);
     // Deallocate bitmap
     void	Destroy();
 
@@ -154,7 +160,7 @@ public:
     // Gets scanline length in bytes (is the same for any scanline)
 	inline int  GetLineLength() const
     {
-        return GetWidth() * GetBPP();
+        return _pitch;
     }
 
 	// Gets a pointer to underlying graphic data
@@ -279,8 +285,10 @@ public:
 
 private:
     std::unique_ptr<uint8_t[]> _pixelData;
+    SDL_Surface *_sdlBitmap = nullptr;
     BITMAP *_alBitmap = nullptr;
     bool    _isDataOwner = false;
+    int     _pitch = 0; // cached pitch (scanline length)
 };
 
 

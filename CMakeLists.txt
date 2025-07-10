@@ -281,7 +281,7 @@ if(NOT AGS_USE_LOCAL_SDL2 AND NOT EMSCRIPTEN)
     include(FetchSDL2)
 else()
     find_package(SDL2 REQUIRED)
-    include_directories("${SDL2_INCLUDE_DIRS}")
+    include_directories(${SDL2_INCLUDE_DIRS})
 endif()
 
 if(NOT AGS_USE_LOCAL_SDL2_SOUND)
@@ -320,17 +320,20 @@ add_subdirectory(libsrc/miniz                   EXCLUDE_FROM_ALL)
 
 add_subdirectory(Common/libsrc/aastr-0.1.1      EXCLUDE_FROM_ALL)
 
-add_subdirectory(Common/libsrc/freetype-2.1.3   EXCLUDE_FROM_ALL)
-set(FREETYPE_LIBRARIES FreeType::FreeType)
+add_subdirectory(libsrc/freetype                EXCLUDE_FROM_ALL)
+# FIXME later:
+# add FreeType::FreeType alias?
+set(FREETYPE_LIBRARIES freetype)
+set(FREETYPE_INCLUDE_DIRS "libsrc/freetype/include")
+add_subdirectory(libsrc/sdl_ttf                 EXCLUDE_FROM_ALL)
 
-add_subdirectory(Common/libsrc/alfont-2.0.9     EXCLUDE_FROM_ALL)
 add_subdirectory(Common)
 
 add_subdirectory(Engine/libsrc/apeg-1.2.1       EXCLUDE_FROM_ALL)
 if(AGS_OPENGLES2)
-    add_subdirectory(Engine/libsrc/glad-gles2       EXCLUDE_FROM_ALL)
+    add_subdirectory(Engine/libsrc/glad-gles2   EXCLUDE_FROM_ALL)
 else()
-    add_subdirectory(Engine/libsrc/glad             EXCLUDE_FROM_ALL)
+    add_subdirectory(Engine/libsrc/glad         EXCLUDE_FROM_ALL)
 endif()
 
 if(AGS_BUILD_COMPILER)

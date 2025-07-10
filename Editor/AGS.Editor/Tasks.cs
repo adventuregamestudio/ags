@@ -170,7 +170,7 @@ namespace AGS.Editor
                 return false;
 
             game.DirectoryPath = gameDirectory;
-            SetDefaultValuesForNewFeatures(game);
+            UpgradeFeatures(game);
             Utilities.EnsureStandardSubFoldersExist();
 
             InitSpritesAfterGameLoad(game, errors);
@@ -336,7 +336,7 @@ namespace AGS.Editor
             ExportSprites(Factory.AGSEditor.CurrentGame.RootSpriteFolder, options);
         }
 
-        private void SetDefaultValuesForNewFeatures(Game game)
+        private void UpgradeFeatures(Game game)
         {
 #pragma warning disable 0612, 0618
             // TODO: this may be noticably if upgrading lots of items. Display some kind of
@@ -628,7 +628,7 @@ namespace AGS.Editor
             }
 
             System.Version editorVersion = new System.Version(AGS.Types.Version.AGS_EDITOR_VERSION);
-            System.Version projectVersion = game.SavedXmlEditorVersion != null ? Types.Utilities.TryParseVersion(game.SavedXmlEditorVersion) : null;
+            System.Version projectVersion = game.SavedXmlEditorVersion;
             if (projectVersion == null || projectVersion < editorVersion)
                 game.SetScriptAPIForOldProject();
 #pragma warning restore 0612, 0618

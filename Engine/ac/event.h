@@ -221,6 +221,7 @@ void ClaimEvent();
 extern bool in_enters_screen;
 extern bool done_as_error;
 extern int in_leaves_screen;
+extern bool in_room_transition;
 
 extern std::vector<AGSEvent> events;
 

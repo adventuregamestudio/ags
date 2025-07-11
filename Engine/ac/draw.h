@@ -132,7 +132,7 @@ void render_graphics(Engine::IDriverDependantBitmap *extraBitmap = nullptr, int 
 // Construct game scene, scheduling drawing list for the renderer
 void construct_game_scene(bool full_redraw = false);
 // Construct final game screen elements; updates and draws mouse cursor
-void construct_game_screen_overlay(bool draw_mouse = true);
+void construct_game_screen_overlay(bool draw_cursor = true);
 // Construct engine overlay with debugging tools (fps, console)
 void construct_engine_overlay();
 // Clears black game borders in legacy letterbox mode

@@ -59,6 +59,8 @@ bool in_enters_screen = false; // while running "before fade-in" script event
 bool done_as_error = false;    // used to report a mistake in "enter room" event
 int in_leaves_screen = -1; // while running "before fade-out" script event, stores a next room number
                            // CHECKME: in_leaves_screen seems to be not used for anything?
+bool in_room_transition = false; // between previous "before fade-out" and next "after fade-in";
+    // used to define a period during which the cursor and "@overhotspot@" labels should be hidden
 
 std::vector<AGSEvent> events;
 
@@ -207,8 +209,15 @@ void process_event(const AGSEvent *evp)
                 in_enters_screen = true;
                 run_on_event(kScriptEvent_RoomEnter, displayed_room);
             }
+            else if (inter.ObjEvent == kRoomEvent_FirstEnter)
+            {
+                in_room_transition = false;
+                GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
+            }
             else if (inter.ObjEvent == kRoomEvent_AfterFadein)
             {
+                in_room_transition = false;
+                GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
                 run_on_event(kScriptEvent_RoomAfterFadein, displayed_room);
             }
             //Debug::Printf("Running room interaction, event %d", evp->data3);

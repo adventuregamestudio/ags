@@ -286,6 +286,14 @@ void unload_old_room()
     if (displayed_room < 0)
         return;
 
+    // Set "in_room_transition" right prior to the transition effect,
+    // this will prevent a cursor and @overhotspot@ texts from displaying.
+    // The flag will be unset right prior to "after fade-in" event, if it's a
+    // normal room change, or immediately on room load if it's a save game
+    // getting restored.
+    in_room_transition = true;
+    GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
+
     current_fade_out_effect();
 
     // room unloaded callback

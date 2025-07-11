@@ -524,8 +524,8 @@ void replace_macro_tokens(const char *text, String &fixed_text) {
             else if (ags_stricmp(macroname,"gamename")==0)
                 snprintf(tempo, sizeof(tempo), "%s", play.game_name.GetCStr());
             else if (ags_stricmp(macroname,"overhotspot")==0) {
-                // While game is in Wait mode, no overhotspot text
-                if (!IsInterfaceEnabled())
+                // While game is in Wait mode, or in room transition: no overhotspot text
+                if (!IsInterfaceEnabled() || in_room_transition)
                     tempo[0] = 0;
                 else
                     GetLocationNameInBuf(game_to_data_coord(mousex), game_to_data_coord(mousey), tempo);

@@ -919,10 +919,18 @@ static void game_loop_update_events()
     {
         // if in a new room, and the room wasn't just changed again in update_events,
         // then queue the Enters Screen scripts run these next time round, when it's faded in
-        if (new_room_was == kEnterRoom_FirstTime) // first time enters screen
+        switch (new_room_was)
+        {
+        case kEnterRoom_FirstTime: // first time enters screen
             setevent(AGSEvent_Interaction(kIntEventType_Room, 0, kRoomEvent_FirstEnter));
-        if (new_room_was != kEnterRoom_RestoredSave) // enters screen after fadein
+            /* fall-through */
+        case kEnterRoom_Normal: // enters screen after fadein
             setevent(AGSEvent_Interaction(kIntEventType_Room, 0, kRoomEvent_AfterFadein));
+            break;
+        case kEnterRoom_RestoredSave:
+            in_room_transition = false; // room transition ends here
+            break;
+        }
     }
 }
 

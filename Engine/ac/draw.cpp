@@ -74,6 +74,7 @@ extern unsigned int loopcounter;
 extern SpriteCache spriteset;
 extern RoomStatus*croom;
 extern EnterNewRoomState in_new_room;
+extern bool in_room_transition;
 extern RoomObject*objs;
 extern std::vector<ViewStruct> views;
 extern int displayed_room;
@@ -2810,7 +2811,7 @@ void construct_game_scene(bool full_redraw)
     gfxDriver->EndSpriteBatch();
 }
 
-void construct_game_screen_overlay(bool draw_mouse)
+void construct_game_screen_overlay(bool draw_cursor)
 {
     gfxDriver->BeginSpriteBatch(play.GetMainViewport(),
             play.GetGlobalTransform(drawstate.FullFrameRedraw),
@@ -2821,7 +2822,7 @@ void construct_game_screen_overlay(bool draw_mouse)
     }
 
     // Mouse cursor
-    if ((play.screen_is_faded_out == 0) && draw_mouse && !play.mouse_cursor_hidden)
+    if ((play.screen_is_faded_out == 0) && draw_cursor && !play.mouse_cursor_hidden)
     {
         if (cursor_gstate.HasChanged() || cursor_tx.IsChangeNotified() ||
             // Test if must recache the unloaded sprite in software mode
@@ -2987,7 +2988,7 @@ void render_graphics(IDriverDependantBitmap *extraBitmap, int extraX, int extraY
         gfxDriver->DrawSprite(extraX, extraY, extraBitmap);
         gfxDriver->EndSpriteBatch();
     }
-    construct_game_screen_overlay(true);
+    construct_game_screen_overlay(!in_room_transition);
     render_to_screen();
 
     if (!play.screen_is_faded_out) {

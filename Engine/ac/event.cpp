@@ -212,10 +212,12 @@ void process_event(const AGSEvent *evp)
             else if (inter.ObjEvent == kRoomEvent_FirstEnter)
             {
                 in_room_transition = false;
+                GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
             }
             else if (inter.ObjEvent == kRoomEvent_AfterFadein)
             {
                 in_room_transition = false;
+                GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
                 run_on_event(kScriptEvent_RoomAfterFadein, displayed_room);
             }
             //Debug::Printf("Running room interaction, event %d", evp->data3);

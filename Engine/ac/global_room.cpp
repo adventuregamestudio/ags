@@ -35,7 +35,7 @@ extern GameSetupStruct game;
 extern RoomStatus *croom;
 extern CharacterInfo*playerchar;
 extern int displayed_room;
-extern int in_enters_screen;
+extern bool in_enters_screen;
 extern int in_leaves_screen;
 extern int in_inv_screen, inv_screen_newroom;
 extern int gs_to_newroom;

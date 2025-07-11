@@ -53,8 +53,12 @@ extern CCHotspot ccDynamicHotspot;
 // FIXME: refactor further to get rid of this extern, maybe move part of the code to screen.cpp?
 extern std::unique_ptr<Bitmap> saved_viewport_bitmap;
 
-int in_enters_screen=0,done_es_error = 0;
-int in_leaves_screen = -1;
+// FIXME: change these from global variables into e.g. GamePlayState members
+// TODO: replace these with "current transition state" enum?
+bool in_enters_screen = false; // while running "before fade-in" script event
+bool done_as_error = false;    // used to report a mistake in "enter room" event
+int in_leaves_screen = -1; // while running "before fade-out" script event, stores a next room number
+                           // CHECKME: in_leaves_screen seems to be not used for anything?
 
 std::vector<AGSEvent> events;
 
@@ -200,7 +204,7 @@ void process_event(const AGSEvent *evp)
             obj_evt = ObjectEvent(kScTypeRoom, "room");
             if (inter.ObjEvent == kRoomEvent_BeforeFadein)
             {
-                in_enters_screen++;
+                in_enters_screen = true;
                 run_on_event(kScriptEvent_RoomEnter, displayed_room);
             }
             else if (inter.ObjEvent == kRoomEvent_AfterFadein)
@@ -221,7 +225,7 @@ void process_event(const AGSEvent *evp)
         if (room_was != play.room_changes)
         {
             if ((inter.IntEvType == kIntEventType_Room) && (inter.ObjEvent == kRoomEvent_BeforeFadein))
-                in_enters_screen--;
+                in_enters_screen = false;
             return;
         }
 
@@ -236,7 +240,7 @@ void process_event(const AGSEvent *evp)
         }
 
         if ((inter.IntEvType == kIntEventType_Room) && (inter.ObjEvent == kRoomEvent_BeforeFadein))
-            in_enters_screen--;
+            in_enters_screen = false;
     }
     else if (evp->Type == kAGSEvent_FadeIn)
     {

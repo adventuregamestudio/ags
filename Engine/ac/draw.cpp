@@ -72,7 +72,7 @@ extern AGSPlatformDriver *platform;
 extern RoomStruct thisroom;
 extern SpriteCache spriteset;
 extern RoomStatus*croom;
-extern int in_new_room;
+extern EnterNewRoomState in_new_room;
 extern RoomObject*objs;
 extern std::vector<ViewStruct> views;
 extern int displayed_room;

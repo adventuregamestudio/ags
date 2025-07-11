@@ -21,6 +21,7 @@
 #include "ac/display.h"
 #include "ac/draw.h"
 #include "ac/event.h"
+#include "ac/game.h"
 #include "ac/gamestate.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/global_character.h"
@@ -37,16 +38,16 @@
 #include "ac/parser.h"
 #include "ac/sys_events.h"
 #include "ac/string.h"
+#include "ac/spritecache.h"
+#include "ac/system.h"
 #include "ac/dynobj/scriptdialogoptionsrendering.h"
 #include "ac/dynobj/scriptdrawingsurface.h"
-#include "ac/system.h"
 #include "debug/debug_log.h"
 #include "font/fonts.h"
 #include "script/cc_instance.h"
 #include "main/game_run.h"
 #include "platform/base/agsplatformdriver.h"
 #include "script/script.h"
-#include "ac/spritecache.h"
 #include "gfx/ddb.h"
 #include "gfx/gfx_util.h"
 #include "gfx/graphicsdriver.h"
@@ -58,7 +59,7 @@ class DialogExec;
 class DialogOptions;
 
 extern GameSetupStruct game;
-extern int in_new_room;
+extern EnterNewRoomState in_new_room;
 extern CharacterInfo*playerchar;
 extern SpriteCache spriteset;
 extern AGSPlatformDriver *platform;
@@ -325,8 +326,8 @@ int run_dialog_script(int dialogID, int offse, int optionIndex)
         case DCMD_NEWROOM:
           get_dialog_script_parameters(script, &param1, nullptr);
           NewRoom(param1);
-          if (in_new_room <= 0)
-              in_new_room = 1; // set only in case NewRoom was scheduled
+          if (in_new_room == kEnterRoom_None)
+              in_new_room = kEnterRoom_Normal; // set only in case NewRoom was scheduled
           result = RUN_DIALOG_STOP_DIALOG;
           script_running = false;
           break;

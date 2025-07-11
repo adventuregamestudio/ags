@@ -407,7 +407,7 @@ void FaceDirectionalLoop(CharacterInfo *char1, int direction, int blockingStyle)
     if (direction != char1->loop)
     {
         if ((game.options[OPT_CHARTURNWHENFACE] != 0) && ((char1->flags & CHF_TURNWHENFACE) != 0) &&
-            (in_enters_screen == 0))
+            (!in_enters_screen))
         {
             const int no_diagonal = useDiagonal (char1);
             const int highestLoopForTurning = no_diagonal != 1 ? kDirLoop_Last : kDirLoop_LastOrthogonal;

@@ -219,7 +219,17 @@ void precache_view(int view, int first_loop = 0, int last_loop = INT32_MAX, bool
 // Global AssetManager instance.
 extern std::unique_ptr<AGS::Common::AssetManager> AssetMgr;
 
-extern int in_new_room;
+// An internal state id, telling how the new room was entered.
+// This defines which events to run after room was loaded.
+enum EnterNewRoomState
+{
+    kEnterRoom_None = 0,
+    kEnterRoom_Normal = 1, // changed to room and finished fade-in
+    kEnterRoom_FirstTime = 2, // same as normal, but this is first time this room is visited
+    kEnterRoom_RestoredSave = 3, // loaded a room after restoring a save
+};
+
+extern EnterNewRoomState in_new_room;
 extern int new_room_pos;
 extern int new_room_x, new_room_y, new_room_loop;
 extern bool new_room_placeonwalkable;

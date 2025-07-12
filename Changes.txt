@@ -25,6 +25,9 @@ Engine:
    or a similar function.
  - Fixed a single black frame displayed before the video when PlayVideo() is called.
  - Fixed "fade-out" transition could sometimes not play to the end.
+ - Fixed mouse cursor and @OVERHOTSPOT@ labels displayed for 1 frame between fade-in and 
+   "After fade-in" event, which could cause them flickering unexpectedly if "After fade-in"
+   script contains blocking cutscene.
  - Fixed @OVERHOTSPOT@ labels not redrawing after blocking action ends if the cursor remains
    over the same hotspot where it was before the action.
  - Fixed game interface could become enabled for a single game frame each time right before the

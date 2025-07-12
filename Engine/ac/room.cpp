@@ -293,6 +293,7 @@ void unload_old_room()
     // normal room change, or immediately on room load if it's a save game
     // getting restored.
     in_room_transition = true;
+    GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
 
     current_fade_out_effect();
 

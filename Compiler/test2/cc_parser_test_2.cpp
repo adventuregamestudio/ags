@@ -1123,6 +1123,29 @@ TEST_F(Compile2, FormatFunction07)
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
+
+TEST_F(Compile2, FormatFunction08)
+{
+    // Modifiers and new format specifiers
+
+    char const *inpl = R"%&/(
+        import void foo(__format const string f, ...);
+        managed struct str { int Payload; };
+
+        int game_start()
+        {
+            str *s = new str;
+            str s_array[] = new str[10];
+            foo("%p %p", s_array, s);
+        }
+        )%&/";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string const &err_msg = mh.GetError().Message;
+
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+}
+
 TEST_F(Compile2, NullAsConstOldstringArgument) {
 
     // Must be able to assign 'null' to a "const string" parameter

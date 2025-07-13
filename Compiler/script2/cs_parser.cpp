@@ -3062,7 +3062,7 @@ void AGS::Parser::AccessData_FunctionCall_AnalyseFormatString(std::vector<FuncPa
         }
 
         // Letters that define a format  to be printed
-        static std::string const format_letters = "AEFGXacdefgiosux";
+        static std::string const format_letters = "AEFGXacdefgiopsux";
         // Modifiers that can be in beween '%' and the respective format letter
         static std::string const modifiers = "hjLltz";
         // Symbols that can be in beween '%' and the respective format letter

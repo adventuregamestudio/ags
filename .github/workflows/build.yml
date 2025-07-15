@@ -36,6 +36,7 @@ jobs:
           ${{ matrix.platform.msys-env }}-python-pip
           ${{ matrix.platform.msys-env }}-pkg-config
           ${{ matrix.platform.msys-env }}-clang-tools-extra
+          unzip
 
     - name: Set up Tappy
       run: pip install tap.py
@@ -63,11 +64,29 @@ jobs:
           ${{github.workspace}}/build/ags
           ${{github.workspace}}/build/ags.exe
 
-    - name: Run game auto-test
+    - name: Download auto-test
       working-directory: ${{github.workspace}}/build/${{matrix.platform.bindir}}
       run: |
-        curl -sLo auto-test.ags https://github.com/adventuregamestudio/ags-test-games/releases/latest/download/ags4-auto-test.ags
-        ${{matrix.platform.runbin}} --no-message-box --log-stdout=script:info,main:info --user-data-dir . auto-test.ags
+        curl -sLo auto-test.zip https://github.com/adventuregamestudio/ags-test-games/releases/latest/download/ags4-auto-test.zip
+
+    - name: Unzip auto-test
+      if: matrix.platform.shell == 'cmd'
+      working-directory: ${{github.workspace}}/build/${{matrix.platform.bindir}}
+      run: |
+        tar -f auto-test.zip -xvzC .
+        del auto-test.
+
+    - name: Unzip auto-test
+      if: matrix.platform.shell != 'cmd'
+      working-directory: ${{github.workspace}}/build/${{matrix.platform.bindir}}
+      run: |
+        unzip auto-test.zip
+        rm auto-test.zip
+
+    - name: Run auto-test
+      working-directory: ${{github.workspace}}/build/${{matrix.platform.bindir}}
+      run: |
+        ${{matrix.platform.runbin}} --no-message-box --log-stdout=script:info,main:info --user-data-dir . ags4-auto-test.ags
 
     - name: Check auto-test  # we are using tap.py so that the pipeline fails if a test fails
       working-directory: ${{github.workspace}}/build/${{matrix.platform.bindir}}

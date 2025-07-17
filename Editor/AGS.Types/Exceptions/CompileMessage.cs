@@ -46,14 +46,21 @@ namespace AGS.Types
         {
             get
             {
+                string fullMessage;
                 if(_lineNumber == 0 && string.IsNullOrEmpty(_scriptName))
                 {
-                    return Message;
+                    fullMessage = Message;
                 }
                 else
                 {
-                    return Message + " at line " + _lineNumber.ToString() + " in " + _scriptName + ".";
+                    fullMessage = Message + " at line " + _lineNumber.ToString() + " in " + _scriptName + ".";
                 }
+
+                for (Exception innerException = InnerException; innerException != null; innerException = innerException.InnerException)
+                {
+                    fullMessage += $"{Environment.NewLine}{Environment.NewLine}{innerException.Message}";
+                }
+                return fullMessage;
             }
         }
     }

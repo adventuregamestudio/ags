@@ -509,7 +509,7 @@ namespace AGS.Editor.Components
                 Task.WaitAll(ConvertRoomFromCrmToOpenFormat(newRoom, errors, null).ToArray());
                 if (errors.HasErrors)
                 {
-                    _guiController.ShowMessage("There was an error importing the room. The error was: " + errors.FirstError.AsString, MessageBoxIcon.Warning);
+                    _guiController.ShowMessage($"There was an error importing the room. The error was:{Environment.NewLine}{errors.FirstError.AsString}", MessageBoxIcon.Warning);
                     _agsEditor.DeleteFileOnDisk(newFiles.ToArray());
                     return;
                 }

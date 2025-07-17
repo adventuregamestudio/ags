@@ -1356,14 +1356,7 @@ namespace AGS.Editor
                 if (property.GetCustomAttributes(typeof(AGSDefaultEventPropertyAttribute), true).Length > 0)
                 {
                     string eventHandler = (string)property.GetValue(objectToCheck, null);
-					if (eventHandler.Length > 0)
-					{
-						Factory.GUIController.ZoomToFile(_gui.ScriptModule, eventHandler);
-					}
-					else 
-					{
-						CreateScriptFunctionForGUIItem(eventHandler, objectToCheck, property);
-					}
+                    CreateScriptFunctionForGUIItem(eventHandler, objectToCheck, property);
                     break;
                 }
             }

@@ -31,7 +31,8 @@ namespace AGS.Editor.Components
         public BuildCommandsComponent(GUIController guiController, AGSEditor agsEditor)
             : base(guiController, agsEditor)
         {
-            ScriptEditor.AttemptToEditScript += new ScriptEditor.AttemptToEditScriptHandler(ScriptEditor_AttemptToEditScript);
+            GUIController.AttemptToEditScript += AnyEditor_AttemptToEditScript;
+            ScriptEditor.AttemptToEditScript += AnyEditor_AttemptToEditScript;
             _guiController.QueryEditorShutdown += new GUIController.QueryEditorShutdownHandler(guiController_QueryEditorShutdown);
             _guiController.InteractiveTasks.TestGameStarting += new InteractiveTasks.TestGameStartingHandler(AGSEditor_TestGameStarting);
             _guiController.InteractiveTasks.TestGameFinished += new InteractiveTasks.TestGameFinishedHandler(AGSEditor_TestGameFinished);
@@ -90,7 +91,7 @@ namespace AGS.Editor.Components
             _agsEditor.AttemptToSaveGame += new AGSEditor.AttemptToSaveGameHandler(_agsEditor_AttemptToSaveGame);
         }
 
-        private void ScriptEditor_AttemptToEditScript(ref bool allowEdit)
+        private void AnyEditor_AttemptToEditScript(ref bool allowEdit)
         {
             if (_testGameInProgress)
             {

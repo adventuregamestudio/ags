@@ -14,7 +14,7 @@ namespace AGS.Types
     {
         public delegate void OpenScriptFunctionHandler(OpenScriptFunctionArgs args);
         public static OpenScriptFunctionHandler OpenScriptFunction;
-        public delegate void CreateScriptFunctionHandler(CreateScriptFunctionArgs args);
+        public delegate bool CreateScriptFunctionHandler(CreateScriptFunctionArgs args);
         public static CreateScriptFunctionHandler CreateScriptFunction;
 
         public ScriptFunctionUIEditor()
@@ -95,8 +95,18 @@ namespace AGS.Types
                     return stringValue;
                 }
 
-                stringValue = itemName + "_" + functionSuffix;
-                CreateScriptFunction?.Invoke(new CreateScriptFunctionArgs(scriptModule, stringValue, parametersAttribute.Parameters));
+                if (CreateScriptFunction != null)
+                {
+                    string newStringValue = itemName + "_" + functionSuffix;
+                    if (CreateScriptFunction.Invoke(new CreateScriptFunctionArgs(scriptModule, newStringValue, parametersAttribute.Parameters)))
+                    {
+                        stringValue = newStringValue;
+                    }
+                    else
+                    {
+                        return stringValue;
+                    }
+                }
             }
 
             OpenScriptFunction?.Invoke(new OpenScriptFunctionArgs(scriptModule, stringValue, parametersAttribute.Parameters, true));

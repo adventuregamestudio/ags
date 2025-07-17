@@ -3240,7 +3240,9 @@ void AGS::Parser::AccessData_FunctionCall_Arguments_Push(Symbol name_of_func, bo
                 break;
 
             case 'p':
-                if (!_sym.IsDynVartype(arg_vartype))
+                // Also let through 'null'
+                if (arg_vartype != kKW_Null &&
+                    !_sym.IsDynVartype(arg_vartype))
                     UserError(
                         (ctfp + "Argument has type '%s' and doesn't match the format specifier '%s' for dynamic types").c_str(),
                         _sym.GetName(arg_vartype).c_str(),

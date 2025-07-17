@@ -1729,9 +1729,10 @@ bool AGS::Parser::IsVartypeMismatch_Oneway(Vartype vartype_is, Vartype vartype_w
         return false;
 
 
-    // Can convert 'null' to dynpointer or dynarray
+    // Can convert 'null' to dynpointer or dynarray or 'const string'
     if (kKW_Null == vartype_is)
         return
+            _sym.VartypeWithout(VTT::kConst, vartype_wants_to_be) != kKW_String &&
             !_sym.IsDynpointerVartype(vartype_wants_to_be) &&
             !_sym.IsDynarrayVartype(vartype_wants_to_be);
 
@@ -3061,7 +3062,7 @@ void AGS::Parser::AccessData_FunctionCall_AnalyseFormatString(std::vector<FuncPa
         }
 
         // Letters that define a format  to be printed
-        static std::string const format_letters = "AEFGXacdefgiosux";
+        static std::string const format_letters = "AEFGXacdefgiopsux";
         // Modifiers that can be in beween '%' and the respective format letter
         static std::string const modifiers = "hjLltz";
         // Symbols that can be in beween '%' and the respective format letter
@@ -3247,8 +3248,10 @@ void AGS::Parser::AccessData_FunctionCall_Arguments_Push(Symbol name_of_func, bo
                 break;
 
             case 's':
+                // Also let through 'null'
                 // Also let through one-dimensional classic arrays of 'char'
-                if (!_sym.IsAnyStringVartype(arg_vartype) &&
+                if (arg_vartype != kKW_Null &&
+                    !_sym.IsAnyStringVartype(arg_vartype) &&
                     !(  _sym[arg_vartype].VartypeD->Type == VTT::kArray &&
                         _sym[arg_vartype].VartypeD->Dims.size() == 1u &&
                         _sym[arg_vartype].VartypeD->BaseVartype == kKW_Char))

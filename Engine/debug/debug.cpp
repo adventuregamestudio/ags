@@ -463,7 +463,7 @@ bool init_editor_debugging(const ConfigTree &cfg)
 
         // Wait for the editor to send the initial breakpoints
         // and then its READY message
-        while (check_for_messages_from_debugger() != 2)
+        while (check_for_messages_from_debugger() != kDbgResponse_Ready)
         {
             platform->Delay(10);
         }
@@ -479,14 +479,14 @@ bool init_editor_debugging(const ConfigTree &cfg)
     return false;
 }
 
-int check_for_messages_from_debugger()
+DebuggerResponse check_for_messages_from_debugger()
 {
     if (editor_debugger->IsMessageAvailable())
     {
         char *msg = editor_debugger->GetNextMessage();
         if (msg == nullptr)
         {
-            return 0;
+            return kDbgResponse_Empty;
         }
 
         if (strncmp(msg, "<Engine Command=\"", 17) != 0) 
@@ -494,10 +494,11 @@ int check_for_messages_from_debugger()
             Debug::Printf(kDbgMsg_Warn, "Debugger: faulty message received:");
             Debug::Printf(kDbgMsg_Warn, "Debugger: %s", msg);
             free(msg);
-            return 0;
+            return kDbgResponse_Empty;
         }
 
         const char *msgPtr = &msg[17];
+        DebuggerResponse response = kDbgResponse_Ok;
 
         if (strncmp(msgPtr, "START", 5) == 0)
         {
@@ -509,8 +510,7 @@ int check_for_messages_from_debugger()
         }
         else if (strncmp(msgPtr, "READY", 5) == 0)
         {
-            free(msg);
-            return 2;
+            response = kDbgResponse_Ready;
         }
         else if ((strncmp(msgPtr, "SETBREAK", 8) == 0) ||
             (strncmp(msgPtr, "DELBREAK", 8) == 0))
@@ -554,12 +554,14 @@ int check_for_messages_from_debugger()
         {
             Debug::Printf("Debugger: resume engine");
             game_paused_in_debugger = 0;
+            response = kDbgResponse_Resume;
         }
         else if (strncmp(msgPtr, "STEP", 4) == 0) 
         {
             Debug::Printf("Debugger: step script");
             game_paused_in_debugger = 0;
             break_on_next_script_step = 1;
+            response = kDbgResponse_Step;
         }
         else if (strncmp(msgPtr, "EXIT", 4) == 0) 
         {
@@ -567,13 +569,14 @@ int check_for_messages_from_debugger()
             want_exit = true;
             abort_engine = true;
             check_dynamic_sprites_at_exit = 0;
+            response = kDbgResponse_Exit;
         }
 
         free(msg);
-        return 1;
+        return response;
     }
 
-    return 0;
+    return kDbgResponse_Empty;
 }
 
 
@@ -590,7 +593,9 @@ bool send_exception_to_debugger(const char *qmsg)
     if (!send_state_to_debugger("ERROR", qmsg))
         return false;
 
-    while ((check_for_messages_from_debugger() == 0) && (!want_exit))
+    for (DebuggerResponse resp = check_for_messages_from_debugger();
+         resp != kDbgResponse_Resume && resp != kDbgResponse_Exit && (!want_exit);
+         resp = check_for_messages_from_debugger())
     {
         platform->Delay(10);
     }

@@ -26,7 +26,17 @@ extern char editor_debugger_instance_token[100];
 extern IAGSEditorDebugger *editor_debugger;
 extern int break_on_next_script_step;
 
-int check_for_messages_from_debugger();
+enum DebuggerResponse
+{
+    kDbgResponse_Empty,     // no message, or failed to parse
+    kDbgResponse_Ok,        // successfully handled a message
+    kDbgResponse_Ready,     // received "READY" message
+    kDbgResponse_Resume,    // received "RESUME" message
+    kDbgResponse_Step,      // received "STEP" message
+    kDbgResponse_Exit,      // received "EXIT" message
+};
+
+DebuggerResponse check_for_messages_from_debugger();
 bool send_state_to_debugger(const char *msg);
 bool send_exception_to_debugger(const char *qmsg);
 bool get_script_position(ScriptPosition &script_pos);

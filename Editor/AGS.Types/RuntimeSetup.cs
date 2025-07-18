@@ -382,6 +382,7 @@ namespace AGS.Types
         [Description("Define your own location for saved games and individual player files created by game script. Leave empty to use game's directory. This option accepts only relative paths, and your players will be able to change it to their liking.")]
         [Category("Enviroment")]
         [DefaultValue("")]
+        [EditorAttribute(typeof(MultiLineStringUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         public string CustomSavePath
         {
             get
@@ -409,6 +410,7 @@ namespace AGS.Types
         [Description("Define your own location for shared data files created by game script. Leave empty to use game's directory. This option accepts only relative paths.")]
         [Category("Enviroment")]
         [DefaultValue("")]
+        [EditorAttribute(typeof(MultiLineStringUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         public string CustomAppDataPath
         {
             get
@@ -425,6 +427,7 @@ namespace AGS.Types
         [Description("Text shown at the title bar of the setup program.")]
         [Category("(Setup appearance)")]
         [DefaultValue("")]
+        [EditorAttribute(typeof(MultiLineStringUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         public string TitleText
         {
             get;

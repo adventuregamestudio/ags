@@ -29,17 +29,20 @@ namespace AGS.Editor
         private void InitializeComponent()
         {
             this.schemaList = new System.Windows.Forms.ListView();
-            this.columnHeader1 = new System.Windows.Forms.ColumnHeader();
-            this.columnHeader2 = new System.Windows.Forms.ColumnHeader();
-            this.columnHeader3 = new System.Windows.Forms.ColumnHeader();
-            this.columnHeader4 = new System.Windows.Forms.ColumnHeader();
+            this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeader2 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeader3 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeader4 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeader5 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.btnOK = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
-            this.columnHeader5 = new System.Windows.Forms.ColumnHeader();
             this.SuspendLayout();
             // 
             // schemaList
             // 
+            this.schemaList.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.schemaList.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.columnHeader1,
             this.columnHeader2,
@@ -47,6 +50,7 @@ namespace AGS.Editor
             this.columnHeader4,
             this.columnHeader5});
             this.schemaList.FullRowSelect = true;
+            this.schemaList.HideSelection = false;
             this.schemaList.Location = new System.Drawing.Point(8, 25);
             this.schemaList.MultiSelect = false;
             this.schemaList.Name = "schemaList";
@@ -76,8 +80,13 @@ namespace AGS.Editor
             this.columnHeader4.Text = "Default value";
             this.columnHeader4.Width = 100;
             // 
+            // columnHeader5
+            // 
+            this.columnHeader5.Text = "Applies to";
+            // 
             // btnOK
             // 
+            this.btnOK.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnOK.DialogResult = System.Windows.Forms.DialogResult.Cancel;
             this.btnOK.Location = new System.Drawing.Point(12, 274);
             this.btnOK.Name = "btnOK";
@@ -96,10 +105,6 @@ namespace AGS.Editor
             this.label1.TabIndex = 2;
             this.label1.Text = "Right-click below to add or edit properties";
             // 
-            // columnHeader5
-            // 
-            this.columnHeader5.Text = "Applies to";
-            // 
             // CustomPropertySchemaEditor
             // 
             this.AcceptButton = this.btnOK;
@@ -111,12 +116,15 @@ namespace AGS.Editor
             this.Controls.Add(this.btnOK);
             this.Controls.Add(this.schemaList);
             this.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
+            this.MinimumSize = new System.Drawing.Size(570, 342);
             this.Name = "CustomPropertySchemaEditor";
+            this.ShowIcon = false;
+            this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Edit property schema";
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.CustomPropertySchemaEditor_FormClosed);
             this.Load += new System.EventHandler(this.CustomPropertySchemaEditor_Load);
             this.ResumeLayout(false);
             this.PerformLayout();

@@ -40,8 +40,23 @@ namespace AGS.Editor
 
         private void CustomPropertiesEditor_FormClosed(object sender, FormClosedEventArgs e)
         {
-            // refresh property grid, a property may have been added, changed or removed
-            Factory.GUIController.RefreshPropertyGrid();
+            if (!DesignMode)
+            {
+                // refresh property grid, a property may have been added, changed or removed
+                Factory.GUIController.RefreshPropertyGrid();
+
+                var config = GUIController.Instance.WindowConfig;
+                ConfigUtils.WriteFormPosition(config, "CustomPropertiesEditor", this);
+            }
+        }
+
+        private void CustomPropertiesEditor_Load(object sender, EventArgs e)
+        {
+            if (!DesignMode)
+            {
+                var config = GUIController.Instance.WindowConfig;
+                ConfigUtils.ReadFormPosition(config, "CustomPropertiesEditor", this);
+            }
         }
     }
 }

@@ -36,6 +36,9 @@ namespace AGS.Editor
             // 
             // propertyGrid
             // 
+            this.propertyGrid.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.propertyGrid.Location = new System.Drawing.Point(7, 26);
             this.propertyGrid.Name = "propertyGrid";
             this.propertyGrid.PropertySort = System.Windows.Forms.PropertySort.Alphabetical;
@@ -45,6 +48,7 @@ namespace AGS.Editor
             // 
             // btnOK
             // 
+            this.btnOK.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnOK.DialogResult = System.Windows.Forms.DialogResult.Cancel;
             this.btnOK.Location = new System.Drawing.Point(7, 306);
             this.btnOK.Name = "btnOK";
@@ -56,6 +60,7 @@ namespace AGS.Editor
             // 
             // btnEditSchema
             // 
+            this.btnEditSchema.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.btnEditSchema.Location = new System.Drawing.Point(383, 307);
             this.btnEditSchema.Name = "btnEditSchema";
             this.btnEditSchema.Size = new System.Drawing.Size(124, 28);
@@ -85,13 +90,16 @@ namespace AGS.Editor
             this.Controls.Add(this.btnOK);
             this.Controls.Add(this.propertyGrid);
             this.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
+            this.MinimumSize = new System.Drawing.Size(527, 372);
             this.Name = "CustomPropertiesEditor";
+            this.ShowIcon = false;
+            this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Edit custom properties";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.CustomPropertiesEditor_FormClosed);
+            this.Load += new System.EventHandler(this.CustomPropertiesEditor_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 

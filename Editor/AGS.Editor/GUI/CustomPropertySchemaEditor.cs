@@ -40,7 +40,22 @@ namespace AGS.Editor
 
         private void CustomPropertySchemaEditor_Load(object sender, EventArgs e)
         {
+            if (!DesignMode)
+            {
+                var config = GUIController.Instance.WindowConfig;
+                ConfigUtils.ReadFormPosition(config, "CustomPropertySchemaEditor", this);
+            }
+
             RepopulateListView();
+        }
+
+        private void CustomPropertySchemaEditor_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            if (!DesignMode)
+            {
+                var config = GUIController.Instance.WindowConfig;
+                ConfigUtils.WriteFormPosition(config, "CustomPropertySchemaEditor", this);
+            }
         }
 
         private void schemaList_MouseUp(object sender, MouseEventArgs e)

@@ -39,12 +39,12 @@ namespace AGS.Editor
             this.btnOK = new System.Windows.Forms.Button();
             this.btnCancel = new System.Windows.Forms.Button();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.chkCharacters = new System.Windows.Forms.CheckBox();
-            this.chkObjects = new System.Windows.Forms.CheckBox();
+            this.chkRooms = new System.Windows.Forms.CheckBox();
+            this.label5 = new System.Windows.Forms.Label();
             this.chkInventory = new System.Windows.Forms.CheckBox();
             this.chkHotspots = new System.Windows.Forms.CheckBox();
-            this.label5 = new System.Windows.Forms.Label();
-            this.chkRooms = new System.Windows.Forms.CheckBox();
+            this.chkObjects = new System.Windows.Forms.CheckBox();
+            this.chkCharacters = new System.Windows.Forms.CheckBox();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -93,6 +93,8 @@ namespace AGS.Editor
             // 
             // txtDescription
             // 
+            this.txtDescription.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.txtDescription.Location = new System.Drawing.Point(96, 45);
             this.txtDescription.Name = "txtDescription";
             this.txtDescription.Size = new System.Drawing.Size(380, 21);
@@ -100,6 +102,8 @@ namespace AGS.Editor
             // 
             // txtDefaultValue
             // 
+            this.txtDefaultValue.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.txtDefaultValue.Location = new System.Drawing.Point(96, 99);
             this.txtDefaultValue.Name = "txtDefaultValue";
             this.txtDefaultValue.Size = new System.Drawing.Size(380, 21);
@@ -120,7 +124,8 @@ namespace AGS.Editor
             // 
             // btnOK
             // 
-            this.btnOK.Location = new System.Drawing.Point(15, 211);
+            this.btnOK.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.btnOK.Location = new System.Drawing.Point(15, 209);
             this.btnOK.Name = "btnOK";
             this.btnOK.Size = new System.Drawing.Size(92, 26);
             this.btnOK.TabIndex = 8;
@@ -130,8 +135,9 @@ namespace AGS.Editor
             // 
             // btnCancel
             // 
+            this.btnCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnCancel.Location = new System.Drawing.Point(129, 211);
+            this.btnCancel.Location = new System.Drawing.Point(129, 209);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(92, 26);
             this.btnCancel.TabIndex = 9;
@@ -141,6 +147,9 @@ namespace AGS.Editor
             // 
             // groupBox1
             // 
+            this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.groupBox1.Controls.Add(this.chkRooms);
             this.groupBox1.Controls.Add(this.label5);
             this.groupBox1.Controls.Add(this.chkInventory);
@@ -149,30 +158,29 @@ namespace AGS.Editor
             this.groupBox1.Controls.Add(this.chkCharacters);
             this.groupBox1.Location = new System.Drawing.Point(15, 129);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(461, 66);
+            this.groupBox1.Size = new System.Drawing.Size(459, 64);
             this.groupBox1.TabIndex = 11;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Applies To";
             // 
-            // chkCharacters
+            // chkRooms
             // 
-            this.chkCharacters.AutoSize = true;
-            this.chkCharacters.Location = new System.Drawing.Point(13, 41);
-            this.chkCharacters.Name = "chkCharacters";
-            this.chkCharacters.Size = new System.Drawing.Size(79, 17);
-            this.chkCharacters.TabIndex = 11;
-            this.chkCharacters.Text = "Characters";
-            this.chkCharacters.UseVisualStyleBackColor = true;
+            this.chkRooms.AutoSize = true;
+            this.chkRooms.Location = new System.Drawing.Point(392, 41);
+            this.chkRooms.Name = "chkRooms";
+            this.chkRooms.Size = new System.Drawing.Size(58, 17);
+            this.chkRooms.TabIndex = 16;
+            this.chkRooms.Text = "Rooms";
+            this.chkRooms.UseVisualStyleBackColor = true;
             // 
-            // chkObjects
+            // label5
             // 
-            this.chkObjects.AutoSize = true;
-            this.chkObjects.Location = new System.Drawing.Point(313, 41);
-            this.chkObjects.Name = "chkObjects";
-            this.chkObjects.Size = new System.Drawing.Size(63, 17);
-            this.chkObjects.TabIndex = 12;
-            this.chkObjects.Text = "Objects";
-            this.chkObjects.UseVisualStyleBackColor = true;
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(10, 19);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(294, 13);
+            this.label5.TabIndex = 15;
+            this.label5.Text = "Which types of thing do you want this property to apply to?";
             // 
             // chkInventory
             // 
@@ -194,24 +202,25 @@ namespace AGS.Editor
             this.chkHotspots.Text = "Hotspots";
             this.chkHotspots.UseVisualStyleBackColor = true;
             // 
-            // label5
+            // chkObjects
             // 
-            this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(10, 19);
-            this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(294, 13);
-            this.label5.TabIndex = 15;
-            this.label5.Text = "Which types of thing do you want this property to apply to?";
+            this.chkObjects.AutoSize = true;
+            this.chkObjects.Location = new System.Drawing.Point(313, 41);
+            this.chkObjects.Name = "chkObjects";
+            this.chkObjects.Size = new System.Drawing.Size(63, 17);
+            this.chkObjects.TabIndex = 12;
+            this.chkObjects.Text = "Objects";
+            this.chkObjects.UseVisualStyleBackColor = true;
             // 
-            // chkRooms
+            // chkCharacters
             // 
-            this.chkRooms.AutoSize = true;
-            this.chkRooms.Location = new System.Drawing.Point(392, 41);
-            this.chkRooms.Name = "chkRooms";
-            this.chkRooms.Size = new System.Drawing.Size(58, 17);
-            this.chkRooms.TabIndex = 16;
-            this.chkRooms.Text = "Rooms";
-            this.chkRooms.UseVisualStyleBackColor = true;
+            this.chkCharacters.AutoSize = true;
+            this.chkCharacters.Location = new System.Drawing.Point(13, 41);
+            this.chkCharacters.Name = "chkCharacters";
+            this.chkCharacters.Size = new System.Drawing.Size(79, 17);
+            this.chkCharacters.TabIndex = 11;
+            this.chkCharacters.Text = "Characters";
+            this.chkCharacters.UseVisualStyleBackColor = true;
             // 
             // CustomPropertySchemaItemEditor
             // 
@@ -219,7 +228,7 @@ namespace AGS.Editor
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.CancelButton = this.btnCancel;
-            this.ClientSize = new System.Drawing.Size(490, 249);
+            this.ClientSize = new System.Drawing.Size(488, 247);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.btnCancel);
             this.Controls.Add(this.btnOK);
@@ -232,10 +241,13 @@ namespace AGS.Editor
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
+            this.MaximumSize = new System.Drawing.Size(65536, 279);
             this.MinimizeBox = false;
+            this.MinimumSize = new System.Drawing.Size(496, 279);
             this.Name = "CustomPropertySchemaItemEditor";
+            this.ShowIcon = false;
+            this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Property settings";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.CustomPropertySchemaItemEditor_FormClosed);

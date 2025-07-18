@@ -52,7 +52,7 @@ void ccCompiledScript::pop_reg(int regg) {
 int ccCompiledScript::add_global(int size, const char*vall) {
     size_t old_size = globaldata.size();
     globaldata.resize(old_size + size);
-    if (vall)
+    if (vall && size > 0)
         memcpy(&globaldata[old_size], vall, size);
     return old_size;
 }

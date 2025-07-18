@@ -56,6 +56,7 @@ namespace AGS.Types
         [DisplayName(PROPERTY_NAME_DESCRIPTION)]
         [Description("The room's description")]
         [Category("Design")]
+        [EditorAttribute(typeof(MultiLineStringUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         public string Description
         {
             get { return _description; }

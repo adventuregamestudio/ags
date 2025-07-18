@@ -205,6 +205,7 @@ namespace AGS.Types
         [Description("The game's name (for display in the title bar)")]
         [Category("(Basic properties)")]
         [DefaultValue("")]
+        [EditorAttribute(typeof(MultiLineStringUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         public string GameName
         {
             get { return _gameName; }
@@ -461,6 +462,7 @@ namespace AGS.Types
         [Description("A comma-separated list of folders; their contents will be added to the game resources")]
         [Category("Compiler")]
         [DefaultValue("")]
+        [EditorAttribute(typeof(MultiLineStringUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         public string CustomDataDir
         {
             get { return _customDataDir; }
@@ -1087,6 +1089,7 @@ namespace AGS.Types
 		[Description("The game's description")]
 		[Category("(Information)")]
         [DefaultValue("")]
+        [EditorAttribute(typeof(MultiLineStringUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         public string Description
 		{
 			get { return _description; }
@@ -1106,6 +1109,7 @@ namespace AGS.Types
 		[Description("The game's genre")]
         [Category("(Information)")]
         [DefaultValue("")]
+        [EditorAttribute(typeof(MultiLineStringUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         public string Genre
 		{
 			get { return _genre; }
@@ -1138,6 +1142,7 @@ namespace AGS.Types
 		[Description("The name of the game developer (you!). On Windows assigned to the game exe properties.")]
         [Category("(Basic properties)")]
         [DefaultValue("")]
+        [EditorAttribute(typeof(MultiLineStringUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         public string DeveloperName
 		{
 			get { return _developerName; }

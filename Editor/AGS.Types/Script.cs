@@ -88,6 +88,7 @@ namespace AGS.Types
 
         [Category("Module information")]
         [Description("Friendly name of this script")]
+        [EditorAttribute(typeof(MultiLineStringUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         public string Name
         {
             get { return _name; }
@@ -96,6 +97,7 @@ namespace AGS.Types
 
         [Category("Module information")]
         [Description("Description of what this script does")]
+        [EditorAttribute(typeof(MultiLineStringUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         public string Description
         {
             get { return _description; }
@@ -104,6 +106,7 @@ namespace AGS.Types
 
         [Category("Module information")]
         [Description("Who wrote this script?")]
+        [EditorAttribute(typeof(MultiLineStringUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         public string Author
         {
             get { return _author; }

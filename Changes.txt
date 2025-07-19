@@ -35,6 +35,10 @@ WinSetup:
 VERSION 3.6.2 - Patch 2, July 2025
  
 Editor:
+ - The multiline Text edit window can now be called for all the "free text" properties in the game,
+   by pressing the "..." button.
+ - "Edit Custom Properties" and "Edit property schema" dialogs are now resizable, and remember
+   their size and position.
  - When making a game template Editor will now use an optional "template.files" file, if one is
    found in the project folder. This file should contain include/exclude filepath patterns,
    and lets include subfolders into the template too.
@@ -42,8 +46,20 @@ Editor:
    starting up. Now it should close itself properly.
  - Fixed "Export sprites" dialog visual style and being cut on Windows 11.
  - Fixed script preprocessor not recognizing macros which begin with a underscore.
+ - Fixed that error reports occuring when opening a room had only their first line displayed
+   in a message box, instead of a full error message.
  - Fixed wrongly issued warnings about voice-over filenames not matching selected naming style.
- 
+ - Fixed that during a test game run new function names may still be auto-inserted into the
+   object's event property when user clicks on "..." button (or double clicks the gui control),
+   while actual functions won't be added to script, as the script is forbidden from being modified
+   during game test.
+ - Fixed that if there was already a function name inserted into a gui control's event property,
+   but actual function not present in script, the function is not created when user double clicks
+   the gui control.
+
+Compiler:
+ - Fixed error occuring when processing a global variable which type is an empty struct.
+
 Script API:
  - Fixed default values for save slots range in FillSaveGameList(), RestoreGameDialog() and
    SaveGameDialog(), they did not match historical behavior of these functions. The default
@@ -67,6 +83,7 @@ Engine:
  - Fixed gui texts aligned to Bottom or Right had a position mistake in 1 pixel.
  - Fixed slightly broken slider's handle position for thin sliders with very small handle sprites.
  - Fixed SayAt() not being clamped at the screen width (as it was historically).
+ - Fixed AudioClip.IsAvailable not working correctly.
  - Fixed sprite cache or texture cache not initializing properly if their size in config is
    assigned to a too large number. The cache sizes will be now correctly limited to the max
    possible size available to the current engine build (32-bit or 64-bit).

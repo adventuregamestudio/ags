@@ -70,6 +70,8 @@ Compiler:
  - The new extended script compiler is available. Almost all of the new Scripting features are
    only supported when using the new script compiler.
  - Optimization to the bytecode generation: same scripts may now work faster at runtime.
+ - Compiler checks arguments of text formatting functions where possible, and reports mismatching
+   args during compilation.
 
 Scripting:
  - Managed structs may have constructors. Constructor is a member function which name is
@@ -203,6 +205,7 @@ Script API:
  - Added ViewFrame.XOffset and YOffset properties.
  - Added optional width, height and layer parameters to SaveScreenShot().
    SaveScreenShot() now supports location tokens in file path.
+ - Added VideoPlayStyle enum, PlayVideo() now uses VideoPlayStyle as "flags" argument.
  - Added new game-wide option OPT_GUICONTROLMOUSEBUT that defines whether common GUI controls
    are affected by the right mouse button or not (InventoryWindows are excluded from this, because
    they have their own special handling for RMB).
@@ -252,6 +255,7 @@ Engine:
  - GetTextHeight() no longer reduces "width" parameter by -1. This was an ancient mistake in
    the engine kept for many years for backwards compatibility.
  - Both blocking and non-blocking videos are buffered and played on a separate thread.
+ - Improved video playback's synchronization between video and audio streams.
  - Added FLAC support for music, speech and sound effects.
  - Added "--print-rtti" command line option which prints script RTTI table to the log.
    (RTTI stands for "runtime type information", and is used for handling of certain advanced
@@ -263,37 +267,6 @@ WinSetup:
 
 
 ===================================================================================================
-
-VERSION 3.6.3 - in dev, future minor 3.6.* update
-
-Editor:
- - In General Settings added "GUI common controls handle only left mouse button" option that lets
-   prevent RMB from activating gui controls, except those that have separate actions for left and
-   right mouse buttons.
-
-Script API:
- - Added new game-wide option OPT_GUICONTROLMOUSEBUT that defines whether common GUI controls
-   are affected by the right mouse button or not (InventoryWindows are excluded from this, because
-   they have their own special handling for RMB).
- - Added DialogOptionsNumbering enum, to use when setting dialog options numbering mode.
- - Added multiple new properties to Dialog type: OptionsBulletGraphic, OptionsGap, OptionsGUI,
-   OptionsGUIX, OptionsGUIY, OptionsHighlightColor, OptionsMaxGUIWidth, OptionsMinGUIWidth,
-   OptionsNumbering, OptionsPaddingX, OptionsPaddingY, OptionsReadColor, OptionTextAlignment.
-   Most of these are replacing previously existing old-style variables in "game" struct and
-   OPT_* options. OptionsGUIX/Y and OptionTextAlignment are completely new features.
-
-Engine:
- - Support compressing game saves using Deflate algorithm. Added config option "compress_saves"
-   in "misc" section, disabled by default.
- - Always compress a screenshot in game save using Deflate algorithm.
- - Standard Dialog options now support Right-to-left text mode.
- - Improved video playback's synchronization between video and audio streams.
-
-WinSetup:
- - Renamed "Custom Paths" tab to "Game Files", added "Compress saves" option.
-
-
----------------------------------------------------------------------------------------------------
 
 VERSION 3.6.2 - Patch 2, July 2025
  

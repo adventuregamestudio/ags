@@ -50,6 +50,7 @@ namespace AGS.Editor
             this.columnHeader4,
             this.columnHeader5});
             this.schemaList.FullRowSelect = true;
+            this.schemaList.HideSelection = false;
             this.schemaList.Location = new System.Drawing.Point(8, 25);
             this.schemaList.MultiSelect = false;
             this.schemaList.Name = "schemaList";
@@ -116,12 +117,15 @@ namespace AGS.Editor
             this.Controls.Add(this.btnOK);
             this.Controls.Add(this.schemaList);
             this.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
+            this.MinimumSize = new System.Drawing.Size(570, 342);
             this.Name = "CustomPropertySchemaEditor";
+            this.ShowIcon = false;
+            this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Edit property schema";
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.CustomPropertySchemaEditor_FormClosed);
             this.Load += new System.EventHandler(this.CustomPropertySchemaEditor_Load);
             this.ResumeLayout(false);
             this.PerformLayout();

@@ -77,11 +77,11 @@ extern RoomStatus troom;    // used for non-saveable rooms, eg. intro
 extern int displayed_room;
 extern RoomObject*objs;
 extern AGSPlatformDriver *platform;
-extern int done_es_error;
+extern bool done_as_error;
 extern Bitmap *walkareabackup, *walkable_areas_temp;
 extern ScriptObject scrObj[MAX_ROOM_OBJECTS];
 extern SpriteCache spriteset;
-extern int in_new_room, new_room_was;  // 1 in new room, 2 first time in new room, 3 loading saved game
+extern EnterNewRoomState in_new_room, new_room_was;
 extern int in_leaves_screen;
 extern CharacterInfo*playerchar;
 extern std::vector<CharacterExtras> charextra;
@@ -327,6 +327,14 @@ void unload_old_room()
     if (displayed_room < 0)
         return;
 
+    // Set "in_room_transition" right prior to the transition effect,
+    // this will prevent a cursor and @overhotspot@ texts from displaying.
+    // The flag will be unset right prior to "after fade-in" event, if it's a
+    // normal room change, or immediately on room load if it's a save game
+    // getting restored.
+    in_room_transition = true;
+    GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
+
     current_fade_out_effect();
 
     // room unloaded callback
@@ -465,7 +473,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     debug_script_log("Loading room %d", newnum);
 
     String room_filename;
-    done_es_error = 0;
+    done_as_error = false;
     play.room_changes ++;
     // TODO: find out why do we need to temporarily lower color depth to 8-bit.
     // Or do we? There's a serious usability problem in this: if any bitmap is
@@ -539,7 +547,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     Mouse_SetBounds(0, 0, 0, 0);
 
     set_our_eip(203);
-    in_new_room=1;
+    in_new_room = kEnterRoom_Normal;
 
     set_color_depth(game.GetColorDepth());
 
@@ -630,7 +638,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         }
 
         croom->beenhere=1;
-        in_new_room=2;
+        in_new_room = kEnterRoom_FirstTime;
     }
     // Reset contentFormat hint to avoid doing fixups later
     croom->contentFormat = kRoomStatSvgVersion_Current;
@@ -942,8 +950,8 @@ void check_new_room() {
     if ((in_new_room>0) & (in_new_room!=3)) {
         AGSEvent evh(AGSEvent_Interaction(kIntEventType_Room, 0, kRoomEvent_BeforeFadein, game.playercharacter));
         // make sure that any script calls don't re-call enters screen
-        int newroom_was = in_new_room;
-        in_new_room = 0;
+        EnterNewRoomState newroom_was = in_new_room;
+        in_new_room = kEnterRoom_None;
         play.disabled_user_interface ++;
         process_event(&evh);
         play.disabled_user_interface --;

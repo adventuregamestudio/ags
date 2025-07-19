@@ -102,8 +102,8 @@ enum HotspotEventSubtype
 // AGS Script events are events reported by a "on_event" callback.
 enum AGSScriptEventType
 {
-    kScriptEvent_RoomLeave      = 1, // before fade-in
-    kScriptEvent_RoomEnter      = 2, // before fade-out, right after loaded
+    kScriptEvent_RoomLeave      = 1, // before fade-out
+    kScriptEvent_RoomEnter      = 2, // before fade-in, right after loaded
     // kScriptEvent_PlayerDies  = 3, // ancient obsolete event
     kScriptEvent_Score          = 4, // score points added
     kScriptEvent_GUIMouseDown   = 5, // mouse button down over gui
@@ -218,8 +218,10 @@ void processallevents();
 // end event list functions
 void ClaimEvent();
 
-extern int in_enters_screen,done_es_error;
+extern bool in_enters_screen;
+extern bool done_as_error;
 extern int in_leaves_screen;
+extern bool in_room_transition;
 
 extern std::vector<AGSEvent> events;
 

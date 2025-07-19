@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Text;
 using System.Xml;
 
@@ -37,6 +38,7 @@ namespace AGS.Types
             set { _type = value; }
         }
 
+        [EditorAttribute(typeof(MultiLineStringUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         public string DefaultValue
         {
             get { return _defaultValue; }

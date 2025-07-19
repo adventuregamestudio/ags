@@ -75,13 +75,15 @@ extern int mouse_on_iface;   // mouse cursor is over this interface
 extern int ifacepopped;
 extern volatile bool want_exit, abort_engine;
 extern int proper_exit;
-extern int displayed_room, starting_room, in_new_room, new_room_was;
+extern int displayed_room, starting_room;
+extern EnterNewRoomState in_new_room, new_room_was;
 extern ScriptSystem scsystem;
 extern GameSetupStruct game;
 extern RoomStruct thisroom;
 extern int game_paused;
 extern int getloctype_index;
-extern int in_enters_screen,done_es_error;
+extern bool in_enters_screen;
+extern bool done_as_error;
 extern int in_leaves_screen;
 extern int inside_script;
 extern int no_blocking_functions;
@@ -204,11 +206,11 @@ static void ProperExit()
 
 static void game_loop_check_problems_at_start()
 {
-    if ((in_enters_screen != 0) & (displayed_room == starting_room))
+    if ((in_enters_screen) & (displayed_room == starting_room))
         quit("!A text script run in the Player Enters Screen event caused the screen to be updated. If you need to use Wait(), do so in After Fadein");
-    if ((in_enters_screen != 0) && (done_es_error == 0)) {
+    if ((in_enters_screen) && (!done_as_error)) {
         debug_script_warn("Wait() was used in Player Enters Screen - use Enters Screen After Fadein instead");
-        done_es_error = 1;
+        done_as_error = true;
     }
     if (no_blocking_functions)
         quit("!A blocking function was called from within a non-blocking event such as " REP_EXEC_ALWAYS_NAME);
@@ -872,7 +874,7 @@ static void check_controls()
 static void check_room_edges(size_t numevents_was)
 {
     if ((IsInterfaceEnabled()) && (IsGamePaused() == 0) &&
-        (in_new_room == 0) && (new_room_was == 0)) {
+        (in_new_room == kEnterRoom_None) && (new_room_was == kEnterRoom_None)) {
             // Only allow walking off edges if not in wait mode, and
             // if not in Player Enters Screen (allow walking in from off-screen)
             int edgesActivated[4] = {0, 0, 0, 0};
@@ -1081,18 +1083,26 @@ static void update_drawable_object_states(bool do_cursor, int mwasatx, int mwasa
 static void game_loop_update_events()
 {
     new_room_was = in_new_room;
-    if (in_new_room>0)
+    if (in_new_room != kEnterRoom_None)
         setevent({ kAGSEvent_FadeIn });
-    in_new_room=0;
+    in_new_room = kEnterRoom_None;
     processallevents();
-    if ((new_room_was > 0) && (in_new_room == 0)) {
+    if ((new_room_was != kEnterRoom_None) && (in_new_room == kEnterRoom_None))
+    {
         // if in a new room, and the room wasn't just changed again in update_events,
-        // then queue the Enters Screen scripts
-        // run these next time round, when it's faded in
-        if (new_room_was==2)  // first time enters screen
+        // then queue the Enters Screen scripts run these next time round, when it's faded in
+        switch (new_room_was)
+        {
+        case kEnterRoom_FirstTime: // first time enters screen
             setevent(AGSEvent_Interaction(kIntEventType_Room, 0, kRoomEvent_FirstEnter));
-        if (new_room_was!=3)   // enters screen after fadein
+            /* fall-through */
+        case kEnterRoom_Normal: // enters screen after fadein
             setevent(AGSEvent_Interaction(kIntEventType_Room, 0, kRoomEvent_AfterFadein));
+            break;
+        case kEnterRoom_RestoredSave:
+            in_room_transition = false; // room transition ends here
+            break;
+        }
     }
 }
 

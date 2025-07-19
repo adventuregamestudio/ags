@@ -108,6 +108,7 @@ namespace AGS.Types
 
         [Description("Description of the item")]
         [Category("Appearance")]
+        [EditorAttribute(typeof(MultiLineStringUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         public string Description
         {
             get { return _description; }

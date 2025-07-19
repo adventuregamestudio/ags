@@ -86,6 +86,7 @@ namespace AGS.Types
 
         [Description("The full name of the character")]
         [Category("Design")]
+        [EditorAttribute(typeof(MultiLineStringUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         public string RealName
         {
             get { return _fullName; }

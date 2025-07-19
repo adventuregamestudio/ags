@@ -39,6 +39,7 @@ namespace AGS.Editor
             this.btnOK = new System.Windows.Forms.Button();
             this.btnCancel = new System.Windows.Forms.Button();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.chkGUIControls = new System.Windows.Forms.CheckBox();
             this.chkWalkareas = new System.Windows.Forms.CheckBox();
             this.chkRegions = new System.Windows.Forms.CheckBox();
             this.chkAudioClips = new System.Windows.Forms.CheckBox();
@@ -50,7 +51,6 @@ namespace AGS.Editor
             this.chkHotspots = new System.Windows.Forms.CheckBox();
             this.chkObjects = new System.Windows.Forms.CheckBox();
             this.chkCharacters = new System.Windows.Forms.CheckBox();
-            this.chkGUIControls = new System.Windows.Forms.CheckBox();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -175,6 +175,16 @@ namespace AGS.Editor
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Applies To";
             // 
+            // chkGUIControls
+            // 
+            this.chkGUIControls.AutoSize = true;
+            this.chkGUIControls.Location = new System.Drawing.Point(253, 41);
+            this.chkGUIControls.Name = "chkGUIControls";
+            this.chkGUIControls.Size = new System.Drawing.Size(87, 17);
+            this.chkGUIControls.TabIndex = 22;
+            this.chkGUIControls.Text = "GUI Controls";
+            this.chkGUIControls.UseVisualStyleBackColor = true;
+            // 
             // chkWalkareas
             // 
             this.chkWalkareas.AutoSize = true;
@@ -284,16 +294,6 @@ namespace AGS.Editor
             this.chkCharacters.Text = "Characters";
             this.chkCharacters.UseVisualStyleBackColor = true;
             // 
-            // chkGUIControls
-            // 
-            this.chkGUIControls.AutoSize = true;
-            this.chkGUIControls.Location = new System.Drawing.Point(253, 41);
-            this.chkGUIControls.Name = "chkGUIControls";
-            this.chkGUIControls.Size = new System.Drawing.Size(87, 17);
-            this.chkGUIControls.TabIndex = 22;
-            this.chkGUIControls.Text = "GUI Controls";
-            this.chkGUIControls.UseVisualStyleBackColor = true;
-            // 
             // CustomPropertySchemaItemEditor
             // 
             this.AcceptButton = this.btnOK;
@@ -313,10 +313,11 @@ namespace AGS.Editor
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "CustomPropertySchemaItemEditor";
+            this.ShowIcon = false;
+            this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Property settings";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.CustomPropertySchemaItemEditor_FormClosed);

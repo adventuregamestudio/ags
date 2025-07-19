@@ -65,7 +65,7 @@ static std::unique_ptr<Bitmap> game_frame_to_bmp(bool for_fadein)
     {
         gfxDriver->ClearDrawLists();
         construct_game_scene(true);
-        construct_game_screen_overlay(false);
+        construct_game_screen_overlay(false /* no cursor */);
         gfxDriver->RenderToBackBuffer();
     }
     return std::unique_ptr<Bitmap>(
@@ -245,7 +245,7 @@ public:
             // Prepare game frame to the backbuffer once, but don't present yet
             gfxDriver->ClearDrawLists();
             construct_game_scene(true);
-            construct_game_screen_overlay(false);
+            construct_game_screen_overlay(false /* no cursor */);
             gfxDriver->RenderToBackBuffer();
 
             Fade256Init(_fadeCol.r, _fadeCol.g, _fadeCol.b);
@@ -543,7 +543,7 @@ public:
         // do the crossfade
         _shot_ddb->SetAlpha(_alpha);
         construct_game_scene(true);
-        construct_game_screen_overlay(false);
+        construct_game_screen_overlay(false /* no cursor */);
         // draw old screen on top while alpha > 16
         if (_alpha > 16)
         {
@@ -596,7 +596,7 @@ public:
     void Draw() override
     {
         construct_game_scene(true);
-        construct_game_screen_overlay(false);
+        construct_game_screen_overlay(false /* no cursor */);
         gfxDriver->BeginSpriteBatch(_view, _sprTrans);
         gfxDriver->DrawSprite(0, 0, _shot_ddb);
         gfxDriver->EndSpriteBatch();

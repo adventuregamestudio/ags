@@ -37,6 +37,8 @@ namespace AGS.Editor
         public event ZoomToFileHandler OnZoomToFile;
         public delegate void GetScriptHandler(string fileName, ref Script script);
         public event GetScriptHandler OnGetScript;
+        public delegate void AttemptToEditScriptHandler(ref bool allowEdit);
+        public static event AttemptToEditScriptHandler AttemptToEditScript;
         public delegate void GetScriptEditorControlHandler(GetScriptEditorControlEventArgs evArgs);
         public event GetScriptEditorControlHandler OnGetScriptEditorControl;
         public delegate void ScriptChangedHandler(Script script);
@@ -1548,22 +1550,30 @@ namespace AGS.Editor
             prefsEditor.Dispose();
         }
 
-        private void ScriptFunctionUIEditor_CreateScriptFunction(CreateScriptFunctionArgs args)
+        private bool ScriptFunctionUIEditor_CreateScriptFunction(CreateScriptFunctionArgs args)
         {
-            if (OnGetScript != null)
+            if (OnGetScript == null)
+                return false;
+
+            Script script = null;
+            OnGetScript(args.ScriptName, ref script);
+            if (script == null)
+                return false;
+
+            bool allowEdit = true;
+            AttemptToEditScript?.Invoke(ref allowEdit);
+            if (!allowEdit)
+                return false;
+
+            if (_agsEditor.AttemptToGetWriteAccess(script.FileName))
             {
-                Script script = null;
-                OnGetScript(args.ScriptName, ref script);
-                if (script != null)
-                {
-                    if (_agsEditor.AttemptToGetWriteAccess(script.FileName))
-                    {
-                        script.Text = ScriptGeneration.InsertFunction(script.Text, args.FunctionName, args.FunctionParameters);
-                        if (script.Modified)
-                            OnScriptChanged?.Invoke(script);
-                    }
-                }
+                script.Text = ScriptGeneration.InsertFunction(script.Text, args.FunctionName, args.FunctionParameters);
+                if (script.Modified)
+                    OnScriptChanged?.Invoke(script);
+                return true;
             }
+
+            return false;
         }
 
         private void ScriptFunctionUIEditor_OpenScriptFunction(OpenScriptFunctionArgs args)

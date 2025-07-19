@@ -10,7 +10,13 @@ namespace AGS.Types
         private CustomPropertySchemaItem _schemaItem;
 
         public CustomPropertyDescriptor(CustomPropertySchemaItem schemaItem, CustomProperties properties)
-            : base(schemaItem.Name, new Attribute[] { new DescriptionAttribute(schemaItem.Description), new DefaultValueAttribute(schemaItem.GetTypedDefaultValue()) })
+            : base(schemaItem.Name, new Attribute[] {
+                new DescriptionAttribute(schemaItem.Description),
+                new DefaultValueAttribute(schemaItem.GetTypedDefaultValue()),
+                schemaItem.Type == CustomPropertyType.Text ?
+                    new EditorAttribute(typeof(MultiLineStringUIEditor), typeof(System.Drawing.Design.UITypeEditor)) :
+                    new EditorAttribute()
+                    })
         {
             _properties = properties;
             _schemaItem = schemaItem;

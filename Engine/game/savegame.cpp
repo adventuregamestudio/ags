@@ -801,7 +801,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
             }
         }
 
-        in_new_room=3;  // don't run "enters screen" events
+        in_new_room = kEnterRoom_RestoredSave;  // don't run "enters screen" events
         // now that room has loaded, copy saved light levels in
         for (size_t i = 0; i < MAX_ROOM_REGIONS; ++i)
         {

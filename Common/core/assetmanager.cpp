@@ -175,7 +175,8 @@ bool AssetManager::DoesAssetExist(const String &asset_name, const String &filter
         }
         else
         {
-            return lib->Lookup.count(asset_name) > 0;
+            if (lib->Lookup.count(asset_name) > 0)
+                return true;
         }
     }
     return false;

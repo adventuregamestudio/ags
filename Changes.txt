@@ -145,6 +145,8 @@ Script API:
    serving as a navigation mask.
  - Added MotionPath struct, which lets to read existing game object's motion plan, or create your
    own and use it as a reference when moving a custom object.
+ - Added GameInfo struct that contains meta-information about the game, such as developer's name,
+   developer's URL, version, and so forth.
  - Added Custom Properties interface to types: AudioClip, Dialog, GUI, GUIControl, Region,
    WalkableArea. This includes functions: GetProperty(), GetTextProperty(), SetProperty() and
    SetTextProperty().
@@ -254,7 +256,6 @@ Engine:
    now return a null pointer if no room viewport is found under given coordinates.
  - GetTextHeight() no longer reduces "width" parameter by -1. This was an ancient mistake in
    the engine kept for many years for backwards compatibility.
- - Both blocking and non-blocking videos are buffered and played on a separate thread.
  - Improved video playback's synchronization between video and audio streams.
  - Added FLAC support for music, speech and sound effects.
  - Added "--print-rtti" command line option which prints script RTTI table to the log.

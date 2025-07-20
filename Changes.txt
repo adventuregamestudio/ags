@@ -12,12 +12,15 @@ Script API:
  - Added new game-wide option OPT_GUICONTROLMOUSEBUT that defines whether common GUI controls
    are affected by the right mouse button or not (InventoryWindows are excluded from this, because
    they have their own special handling for RMB).
+ - Added GameInfo struct that contains meta-information about the game, such as developer's name,
+   developer's URL, version, and so forth.
  - Added DialogOptionsNumbering enum, to use when setting dialog options numbering mode.
  - Added multiple new properties to Dialog type: OptionsBulletGraphic, OptionsGap, OptionsGUI,
    OptionsGUIX, OptionsGUIY, OptionsHighlightColor, OptionsMaxGUIWidth, OptionsMinGUIWidth,
    OptionsNumbering, OptionsPaddingX, OptionsPaddingY, OptionsReadColor, OptionTextAlignment.
    Most of these are replacing previously existing old-style variables in "game" struct and
    OPT_* options. OptionsGUIX/Y and OptionTextAlignment are completely new features.
+ - Added VideoPlayStyle enum, PlayVideo() now uses VideoPlayStyle as "flags" argument.
 
 Engine:
  - Support compressing game saves using Deflate algorithm. Added config option "compress_saves"

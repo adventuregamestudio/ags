@@ -321,10 +321,6 @@ add_subdirectory(libsrc/miniz                   EXCLUDE_FROM_ALL)
 add_subdirectory(Common/libsrc/aastr-0.1.1      EXCLUDE_FROM_ALL)
 
 add_subdirectory(libsrc/freetype                EXCLUDE_FROM_ALL)
-# FIXME later:
-# add FreeType::FreeType alias?
-set(FREETYPE_LIBRARIES freetype)
-set(FREETYPE_INCLUDE_DIRS "libsrc/freetype/include")
 add_subdirectory(libsrc/sdl_ttf                 EXCLUDE_FROM_ALL)
 
 add_subdirectory(Common)

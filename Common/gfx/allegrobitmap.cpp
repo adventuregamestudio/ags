@@ -11,11 +11,11 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-
 #include <memory>
 #include <stdexcept>
 #include <string.h> // memcpy
 #include <aastr.h>
+#include <SDL.h>
 #include "gfx/allegrobitmap.h"
 #include "util/filestream.h"
 #include "debug/assert.h"
@@ -43,6 +43,11 @@ Bitmap::Bitmap(const Bitmap *src, const Rect &rc)
 Bitmap::Bitmap(BITMAP *al_bmp, bool shared_data)
 {
     WrapAllegroBitmap(al_bmp, shared_data);
+}
+
+Bitmap::Bitmap(SDL_Surface *sdl_bmp, bool shared_data)
+{
+    WrapSDLSurface(sdl_bmp, shared_data);
 }
 
 Bitmap::Bitmap(const Bitmap &bmp)
@@ -91,6 +96,7 @@ bool Bitmap::Create(int width, int height, int color_depth)
     _pixelData = std::move(data);
     _alBitmap = bitmap;
     _isDataOwner = true;
+    _pitch = GetWidth() * GetBPP();
     return true;
 }
 
@@ -131,6 +137,7 @@ bool Bitmap::Create(PixelBuffer &&pxbuf)
     _pixelData = std::move(data);
     _alBitmap = bitmap;
     _isDataOwner = true;
+    _pitch = GetWidth() * GetBPP();
     return true;
 }
 
@@ -142,6 +149,7 @@ bool Bitmap::CreateSubBitmap(const Bitmap *src, const Rect &rc)
     Destroy();
     _alBitmap = create_sub_bitmap(src->_alBitmap, rc.Left, rc.Top, rc.GetWidth(), rc.GetHeight());
     _isDataOwner = true;
+    _pitch = GetWidth() * GetBPP();
     return _alBitmap != nullptr;
 }
 
@@ -153,6 +161,7 @@ bool Bitmap::ResizeSubBitmap(int width, int height)
     // might require amending allegro bitmap struct
     _alBitmap->w = _alBitmap->cr = width;
     _alBitmap->h = _alBitmap->cb = height;
+    _pitch = GetWidth() * GetBPP();
     return true;
 }
 
@@ -184,6 +193,7 @@ bool Bitmap::WrapAllegroBitmap(BITMAP *al_bmp, bool shared_data)
     Destroy();
     _alBitmap = al_bmp;
     _isDataOwner = !shared_data;
+    _pitch = GetWidth() * GetBPP();
     return _alBitmap != nullptr;
 }
 
@@ -192,17 +202,40 @@ void Bitmap::ForgetAllegroBitmap()
     _alBitmap = nullptr;
     _isDataOwner = false;
     _pixelData = {};
+    _pitch = 0;
+}
+
+bool Bitmap::WrapSDLSurface(SDL_Surface *sdl_bmp, bool shared_data)
+{
+    Destroy();
+
+    _alBitmap = create_bitmap_userdata(sdl_bmp->format->BitsPerPixel,
+        sdl_bmp->w, sdl_bmp->h, sdl_bmp->pixels, sdl_bmp->h * sdl_bmp->pitch, sdl_bmp->pitch, nullptr);
+    if (!_alBitmap)
+        return false;
+
+    _sdlBitmap = sdl_bmp;
+    _isDataOwner = !shared_data;
+    _pitch = _sdlBitmap->pitch;
+    return true;
 }
 
 void Bitmap::Destroy()
 {
-    if (_isDataOwner && _alBitmap)
+    if (_alBitmap && (_isDataOwner || _sdlBitmap))
     {
         destroy_bitmap(_alBitmap);
     }
+    if (_sdlBitmap && _isDataOwner)
+    {
+        SDL_FreeSurface(_sdlBitmap);
+    }
+
     _alBitmap = nullptr;
+    _sdlBitmap = nullptr;
     _isDataOwner = false;
     _pixelData = {};
+    _pitch = 0;
 }
 
 bool Bitmap::SaveToFile(const char *filename, const RGB *palette)

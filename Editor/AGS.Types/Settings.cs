@@ -919,12 +919,8 @@ namespace AGS.Types
             set { _ttfHeightDefinedBy = value; }
         }
 
-        [DisplayName("TTF fonts adjustment defaults")]
-        [Description("Automatic adjustment of the true-type font metrics; primarily for backward compatibility." +
-            "\nThis option will be used as a default value for each new imported font, but you may also customize it in the Font's properties.")]
-        [Category("Text output")]
-        [DefaultValue(FontMetricsFixup.None)]
-        [TypeConverter(typeof(EnumTypeConverter))]
+        [Obsolete]
+        [Browsable(false)]
         public FontMetricsFixup TTFMetricsFixup
         {
             get { return _ttfMetricsFixup; }

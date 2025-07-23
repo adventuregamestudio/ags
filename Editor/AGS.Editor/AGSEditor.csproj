@@ -178,6 +178,7 @@
     <Compile Include="Entities\TreeItemTryDragEventArgs.cs" />
     <Compile Include="Entities\UpgradeGame\UpgradeGameCommonTask.cs" />
     <Compile Include="Entities\UpgradeGame\UpgradeGameEventArgs.cs" />
+    <Compile Include="Entities\UpgradeGame\UpgradeGameFontsToFontFilesTask.cs" />
     <Compile Include="Entities\UpgradeGame\IUpgradeGameTask.cs" />
     <Compile Include="Entities\UpgradeGame\UpgradeGameRoomsOpenFormatTask.cs" />
     <Compile Include="Enums\TargetDropZone.cs" />

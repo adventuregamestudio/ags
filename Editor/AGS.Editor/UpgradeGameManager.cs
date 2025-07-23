@@ -54,8 +54,7 @@ namespace AGS.Editor
             // If need a project backup task, always insert one at the beginning of the list
             if (needBackup)
             {
-                // TODO: add backup task here
-                //tasks.Insert(0, ...);
+                tasks.Insert(0, new UpgradeGameIntroAndBackupTask());
             }
 
             return tasks.ToArray();

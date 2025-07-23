@@ -179,6 +179,7 @@
     <Compile Include="Entities\UpgradeGame\UpgradeGameCommonTask.cs" />
     <Compile Include="Entities\UpgradeGame\UpgradeGameEventArgs.cs" />
     <Compile Include="Entities\UpgradeGame\UpgradeGameFontsToFontFilesTask.cs" />
+    <Compile Include="Entities\UpgradeGame\UpgradeGameIntroAndBackupTask.cs" />
     <Compile Include="Entities\UpgradeGame\IUpgradeGameTask.cs" />
     <Compile Include="Entities\UpgradeGame\UpgradeGameRoomsOpenFormatTask.cs" />
     <Compile Include="Enums\TargetDropZone.cs" />
@@ -261,6 +262,12 @@
     </Compile>
     <Compile Include="GUI\UpgradeGameWizard\UpdateGameGenericInfoPage.cs">
       <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="GUI\UpgradeGameWizard\UpgradeGameIntroPage.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="GUI\UpgradeGameWizard\UpgradeGameIntroPage.Designer.cs">
+      <DependentUpon>UpgradeGameIntroPage.cs</DependentUpon>
     </Compile>
     <Compile Include="GUI\UpgradeGameWizard\UpgradeGameWizardPage.cs">
       <SubType>UserControl</SubType>
@@ -537,6 +544,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="GUI\UpgradeGameWizard\UpdateGameGenericInfoPage.resx">
       <DependentUpon>UpdateGameGenericInfoPage.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\UpgradeGameWizard\UpgradeGameIntroPage.resx">
+      <DependentUpon>UpgradeGameIntroPage.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="GUI\WatchVariablesPanel.resx">
       <DependentUpon>WatchVariablesPanel.cs</DependentUpon>

@@ -343,6 +343,9 @@ void CustomPathsPageDialog::SaveSetup()
 //
 //=============================================================================
 
+const int AccessibilityPageDialog::TextReadSpeedMin;
+const int AccessibilityPageDialog::TextReadSpeedMax;
+
 bool AccessibilityPageDialog::ShouldDisplayPage(const ConfigTree &cfg_in)
 {
     // Test if at least one accessibility groups was not disabled in default config

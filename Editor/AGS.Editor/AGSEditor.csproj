@@ -176,6 +176,8 @@
     <Compile Include="Entities\ScriptModuleDef.cs" />
     <Compile Include="Entities\GenericMessagesArgs.cs" />
     <Compile Include="Entities\TreeItemTryDragEventArgs.cs" />
+    <Compile Include="Entities\UpgradeGame\UpgradeGameEventArgs.cs" />
+    <Compile Include="Entities\UpgradeGame\IUpgradeGameTask.cs" />
     <Compile Include="Enums\TargetDropZone.cs" />
     <Compile Include="Enums\AdjustMaskOptions.cs" />
     <Compile Include="GUI\AdjustMasksDialog.cs">
@@ -253,6 +255,9 @@
     </Compile>
     <Compile Include="GUI\StartNewGameTemplatesPage.Designer.cs">
       <DependentUpon>StartNewGameTemplatesPage.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\UpgradeGameWizard\UpgradeGameWizardPage.cs">
+      <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="GUI\WatchVariablesPanel.cs">
       <SubType>Form</SubType>
@@ -476,6 +481,7 @@
     <Compile Include="GUI\ProjectTree.cs" />
     <Compile Include="GUI\ProjectTreeItem.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="UpgradeGameManager.cs" />
     <Compile Include="Utils\AndroidUtilities.cs" />
     <Compile Include="Utils\ArgumentBuilder.cs" />
     <Compile Include="Utils\CommandLineOptions.cs" />

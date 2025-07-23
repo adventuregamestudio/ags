@@ -162,6 +162,13 @@ namespace AGS.Editor
 
             game.DirectoryPath = gameDirectory;
             UpgradeFeatures(game);
+
+            // Run game upgrade process if necessary
+            UpgradeGameManager.UpgradeGameResult result;
+            if (!UpgradeGameManager.UpgradeWithWizard(game, errors, out result))
+                return false;
+            needToSave = result.ForceSaveProject;
+
             Utilities.EnsureStandardSubFoldersExist();
 
             InitSpritesAfterGameLoad(game, errors);

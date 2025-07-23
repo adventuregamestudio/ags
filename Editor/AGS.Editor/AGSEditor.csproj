@@ -179,6 +179,7 @@
     <Compile Include="Entities\UpgradeGame\UpgradeGameCommonTask.cs" />
     <Compile Include="Entities\UpgradeGame\UpgradeGameEventArgs.cs" />
     <Compile Include="Entities\UpgradeGame\IUpgradeGameTask.cs" />
+    <Compile Include="Entities\UpgradeGame\UpgradeGameRoomsOpenFormatTask.cs" />
     <Compile Include="Enums\TargetDropZone.cs" />
     <Compile Include="Enums\AdjustMaskOptions.cs" />
     <Compile Include="GUI\AdjustMasksDialog.cs">
@@ -256,6 +257,9 @@
     </Compile>
     <Compile Include="GUI\StartNewGameTemplatesPage.Designer.cs">
       <DependentUpon>StartNewGameTemplatesPage.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\UpgradeGameWizard\UpdateGameGenericInfoPage.cs">
+      <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="GUI\UpgradeGameWizard\UpgradeGameWizardPage.cs">
       <SubType>UserControl</SubType>
@@ -529,6 +533,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="GUI\StartNewGameTemplatesPage.resx">
       <DependentUpon>StartNewGameTemplatesPage.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\UpgradeGameWizard\UpdateGameGenericInfoPage.resx">
+      <DependentUpon>UpdateGameGenericInfoPage.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="GUI\WatchVariablesPanel.resx">
       <DependentUpon>WatchVariablesPanel.cs</DependentUpon>

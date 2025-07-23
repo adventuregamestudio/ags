@@ -8,9 +8,6 @@ using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using System.Xml;
 using AGS.Types;
-using WeifenLuo.WinFormsUI.Docking;
-using System.Threading;
-using System.Linq;
 using System.Drawing.Imaging;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -102,6 +99,7 @@ namespace AGS.Editor.Components
             _agsEditor.PreSaveGame += AGSEditor_PreSaveGame;
             _agsEditor.ProcessAllGameTexts += AGSEditor_ProcessAllGameTexts;
 			_agsEditor.PreDeleteSprite += AGSEditor_PreDeleteSprite;
+            Factory.Events.GamePrepareUpgrade += Events_GamePrepareUpgrade;
             Factory.Events.GamePostLoad += Events_GamePostLoad;
             _modifiedChangedHandler = _loadedRoom_RoomModifiedChanged;
             RePopulateTreeView();
@@ -1660,16 +1658,13 @@ namespace AGS.Editor.Components
             }
         }
 
+        private void Events_GamePrepareUpgrade(UpgradeGameEventArgs args)
+        {
+            args.Tasks.Add(new UpgradeGameRoomsOpenFormatTask(ConvertAllRoomsFromCrmToOpenFormat));
+        }
+
         private void Events_GamePostLoad(Game game)
         {
-            // TODO: there's a problem: since we convert the rooms after the project is loaded,
-            // we bring the project to the new state, however the project file is not saved.
-            // If user does not save the project and exit, the project will remain inconsistent,
-            // and Editor will try to convert the rooms again next time it's opened
-            // (although they have already been converted).
-            // See issue https://github.com/adventuregamestudio/ags/issues/1596
-            ConvertAllRoomsFromCrmToOpenFormat(game);
-
             // For the same reason we do not upgrade the room data right away,
             // but check if they need to be upgraded (e.g. because of a new project version),
             // and mark the project as requiring a full rebuild. This is a workaround, which
@@ -2653,7 +2648,7 @@ namespace AGS.Editor.Components
         /// worthwhile to refactor this hindrance if we're getting a standalone room CLI tool in the future that can
         /// do the same job.
         /// </remarks>
-        private async void ConvertAllRoomsFromCrmToOpenFormat(Game game)
+        private async void ConvertAllRoomsFromCrmToOpenFormat(Game game, IWorkProgress progress, CompileMessages errors)
         {
             if ((_agsEditor.CurrentGame.SavedXmlVersion >= new System.Version(AGSEditor.FIRST_XML_VERSION_WITHOUT_INDEX)) ||
                 _agsEditor.CurrentGame.SavedXmlVersionIndex >= AGSEditor.AGS_4_0_0_XML_VERSION_INDEX_OPEN_ROOMS)
@@ -2671,15 +2666,18 @@ namespace AGS.Editor.Components
             // Now upgrade
             object progressLock = new object();
             string progressText = "Converting rooms from .crm to open format.";
-            CompileMessages errors = new CompileMessages();
-            using (Progress progressForm = new Progress(rooms.Count, progressText))
             {
-                progressForm.Show();
-                int progress = 0;
+                // FIXME: we need sub-task support in the IWorkProgress interface, and respective implementation!
+                progress.Total = rooms.Count;
+                int progressCounter = 0;
                 Action progressReporter = () =>
                 {
-                    lock (progressLock) { progress++; }
-                    progressForm.SetProgress(progress, $"{progressText} {progress} of {rooms.Count} rooms converted.");
+                    lock (progressLock)
+                    {
+                        progressCounter++;
+                        progress.Current = progressCounter;
+                        progress.Message = $"{progressText} {progressCounter} of {rooms.Count} rooms converted.";
+                    }
                 };
 
                 var roomsConvertingTasks = rooms
@@ -2687,12 +2685,6 @@ namespace AGS.Editor.Components
                     .SelectMany(r => ConvertRoomFromCrmToOpenFormat(r, errors, progressReporter))
                     .ToArray();
                 await Task.WhenAll(roomsConvertingTasks);
-            }
-
-            _guiController.ShowOutputPanel(errors);
-            if (errors.HasErrors)
-            {
-                Factory.GUIController.ShowMessage("There were errors or warnings when converting the rooms to the new format. Please consult the output window for details.", MessageBoxIcon.Warning);
             }
         }
 

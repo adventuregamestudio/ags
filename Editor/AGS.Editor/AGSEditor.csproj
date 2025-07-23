@@ -851,10 +851,6 @@
       <SubType>Designer</SubType>
       <DependentUpon>FindReplaceDialog.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="GUI\ImportGameWizardPage.resx">
-      <SubType>Designer</SubType>
-      <DependentUpon>ImportGameWizardPage.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="GUI\WelcomeScreen.resx">
       <SubType>Designer</SubType>
       <DependentUpon>WelcomeScreen.cs</DependentUpon>
@@ -1237,12 +1233,6 @@
       <DependentUpon>FindReplaceDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="GUI\GUIAddType.cs" />
-    <Compile Include="GUI\ImportGameWizardPage.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="GUI\ImportGameWizardPage.Designer.cs">
-      <DependentUpon>ImportGameWizardPage.cs</DependentUpon>
-    </Compile>
     <Compile Include="GUI\WelcomeScreen.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -1267,7 +1257,6 @@
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="TextProcessing\IGameTextProcessor.cs" />
-    <Compile Include="Utils\OldGameImporter.cs" />
     <Compile Include="Panes\Room\RoomEditFilters\AreaDrawMode.cs" />
     <Compile Include="Panes\Room\RoomEditFilters\BaseAreasEditorFilter.cs" />
     <Compile Include="Panes\Room\RoomEditFilters\EdgesEditorFilter.cs" />

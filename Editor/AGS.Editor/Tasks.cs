@@ -154,17 +154,8 @@ namespace AGS.Editor
             Factory.NativeProxy.NewWorkingDirSet(gameDirectory);
             Game game = null;
 
-            // Load or import the game itself
-            if (gameToLoad.ToLower().EndsWith(".dta"))
-            {
-                game = new OldGameImporter().ImportGameFromAGS272(gameToLoad, interactive);
-                needToSave = true;
-            }
-            else
-            {
-                Factory.AGSEditor.LoadGameFile(gameToLoad);
-                game = Factory.AGSEditor.CurrentGame;
-            }
+            Factory.AGSEditor.LoadGameFile(gameToLoad);
+            game = Factory.AGSEditor.CurrentGame;
 
             if (game == null)
                 return false;

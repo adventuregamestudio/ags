@@ -25,6 +25,7 @@ namespace AGS.Editor
             IUpgradeGameTask[] commonTasks = new IUpgradeGameTask[]
             {
                 // add common updates here
+                new UpgradeGameCommonTask()
             };
 
             List<IUpgradeGameTask> tasks = new List<IUpgradeGameTask>(commonTasks);

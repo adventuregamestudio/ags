@@ -176,6 +176,7 @@
     <Compile Include="Entities\ScriptModuleDef.cs" />
     <Compile Include="Entities\GenericMessagesArgs.cs" />
     <Compile Include="Entities\TreeItemTryDragEventArgs.cs" />
+    <Compile Include="Entities\UpgradeGame\UpgradeGameCommonTask.cs" />
     <Compile Include="Entities\UpgradeGame\UpgradeGameEventArgs.cs" />
     <Compile Include="Entities\UpgradeGame\IUpgradeGameTask.cs" />
     <Compile Include="Enums\TargetDropZone.cs" />

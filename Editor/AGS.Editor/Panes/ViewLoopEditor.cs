@@ -11,6 +11,10 @@ namespace AGS.Editor
     {
         private const int FRAME_DISPLAY_SIZE_96DPI = 50;
         private int FRAME_DISPLAY_SIZE;
+        private const string MENU_ITEM_COPY_FRAME = "CopyFrame";
+        private const string MENU_ITEM_CUT_FRAME = "CutFrame";
+        private const string MENU_ITEM_PASTE_FRAME_BEFORE = "PasteFrameBefore";
+        private const string MENU_ITEM_PASTE_FRAME_AFTER = "PasteFrameAfter";
         private const string MENU_ITEM_DELETE_FRAME = "DeleteFrame";
 		private const string MENU_ITEM_FLIP_FRAME = "FlipFrame";
         private const string MENU_ITEM_INSERT_BEFORE = "InsertBefore";
@@ -86,7 +90,7 @@ namespace AGS.Editor
         /// <summary>
         /// Get/set whether this ViewLoopEditor will handle frame range selection.
         /// If not, then it will only send range selection events, but does not modify
-        /// its own SelectedFranes list.
+        /// its own SelectedFrames list.
         /// </summary>
         public bool HandleRangeSelection
         {
@@ -215,28 +219,43 @@ namespace AGS.Editor
 
 		private void InsertNewFrame(int afterIndex)
         {
+            InsertNewFrames(afterIndex, new ViewFrame[] { new ViewFrame() }, areBlankFrames: true);
+        }
+
+        private void InsertNewFrames(int afterIndex, ViewFrame[] newFrames, bool areBlankFrames)
+        {
             if (afterIndex < 0) afterIndex = -1;
             if (afterIndex >= _loop.Frames.Count) afterIndex = _loop.Frames.Count - 1;
 
+            // Shift later frames IDs
             foreach (ViewFrame frame in _loop.Frames)
             {
                 if (frame.ID > afterIndex)
                 {
-                    frame.ID++;
+                    frame.ID += newFrames.Length;
                 }
             }
-            ViewFrame newFrame = new ViewFrame();
-            newFrame.ID = afterIndex + 1;
-            _loop.Frames.Insert(afterIndex + 1, newFrame);
+
+            // Insert new frames, assigning new IDs
+            for (int i = 0; i < newFrames.Length; ++i)
+            {
+                ViewFrame frame = newFrames[i];
+                frame.ID = afterIndex + 1 + i;
+                _loop.Frames.Insert(afterIndex + 1 + i, frame);
+            }
 
             UpdateControlWidth();
 
-			if (NewFrameAdded != null)
-			{
-				NewFrameAdded(_loop, newFrame.ID);
-			}
+            // If these are blank frames, then run callback, which may assign new sprites onto them
+            if (areBlankFrames && NewFrameAdded != null)
+            {
+                for (int i = afterIndex + 1; i < afterIndex + 1 + newFrames.Length; ++i)
+                {
+                    NewFrameAdded(_loop, i);
+                }
+            }
 
-			ChangeSelectedFrame(newFrame.ID);
+            SetSelectedFrames(afterIndex + 1, afterIndex + newFrames.Length);
         }
 
         private void btnNewFrame_Click(object sender, EventArgs e)
@@ -290,6 +309,22 @@ namespace AGS.Editor
 
             this.Invalidate();
             OnSelectedFrameChanged(newSelection, action);
+        }
+
+        private void SetSelectedFrames(int first, int last)
+        {
+            first = MathExtra.Clamp(first, 0, _loop.Frames.Count - 1);
+            last = MathExtra.Clamp(first, 0, _loop.Frames.Count - 1);
+            first = Math.Min(first, last);
+            last = Math.Max(first, last);
+
+            _selectedFrames.Clear();
+            for (int i = first; i <= last; ++i)
+                _selectedFrames.Add(i);
+            _lastSingleSelection = 0;
+
+            this.Invalidate();
+            OnSelectedFrameChanged(last, (last - first > 1) ? MultiSelectAction.AddRange : MultiSelectAction.Set);
         }
 
         private void ViewLoopEditor_MouseUp(object sender, MouseEventArgs e)
@@ -357,6 +392,16 @@ namespace AGS.Editor
 
             if (selectedFrame >= 0)
             {
+                menu.Items.Add(ToolStripExtensions.CreateMenuItem("Copy frame(s)", null, OnCopyFrames, MENU_ITEM_COPY_FRAME, Keys.Control | Keys.C));
+                menu.Items.Add(ToolStripExtensions.CreateMenuItem("Cut frame(s)", null, OnCutFrames, MENU_ITEM_CUT_FRAME, Keys.Control | Keys.X));
+            }
+            if ((selectedFrame >= 0) && (_clipboard.CopiedFrames != null))
+            {
+                menu.Items.Add(new ToolStripMenuItem("Paste frame(s) before", null, OnPasteFramesBefore, MENU_ITEM_PASTE_FRAME_BEFORE));
+                menu.Items.Add(ToolStripExtensions.CreateMenuItem("Paste frame(s) after", null, OnPasteFramesAfter, MENU_ITEM_PASTE_FRAME_AFTER, Keys.Control | Keys.V));
+            }
+            if (selectedFrame >= 0)
+            {
                 // NOTE: 'F' does not work as a menu item shortkey for some reason, so we handle it in OnKeyPressed
                 menu.Items.Add(new ToolStripMenuItem("&Flip selected frame(s)", null, onClick, MENU_ITEM_FLIP_FRAME));
                 menu.Items.Add(ToolStripExtensions.CreateMenuItem("Delete selected frame(s)", null, onClick, MENU_ITEM_DELETE_FRAME, Keys.Delete));
@@ -370,12 +415,10 @@ namespace AGS.Editor
             }
             menu.Items.Add(new ToolStripMenuItem("Cut loop", null, onCutLoopClicked, MENU_ITEM_CUT_LOOP));
             menu.Items.Add(new ToolStripMenuItem("Copy loop", null, onCopyLoopClicked, MENU_ITEM_COPY_LOOP));
-            menu.Items.Add(new ToolStripMenuItem("Paste over this loop", null, onPasteLoopClicked, MENU_ITEM_PASTE_OVER_LOOP));
-            menu.Items.Add(new ToolStripMenuItem("Paste over this loop flipped", null, onPasteFlippedClicked, MENU_ITEM_PASTE_OVER_LOOP_FLIPPED));
-            if (_clipboard.CopiedLoop == null)
+            if (_clipboard.CopiedLoop != null || _clipboard.CopiedFrames != null)
             {
-                menu.Items[menu.Items.Count - 1].Enabled = false;
-                menu.Items[menu.Items.Count - 2].Enabled = false;
+                menu.Items.Add(new ToolStripMenuItem("Paste over this loop", null, onPasteLoopClicked, MENU_ITEM_PASTE_OVER_LOOP));
+                menu.Items.Add(new ToolStripMenuItem("Paste over this loop flipped", null, onPasteFlippedClicked, MENU_ITEM_PASTE_OVER_LOOP_FLIPPED));
             }
             menu.Items.Add(new ToolStripMenuItem("Flip all frames in loop", null, onFlipAllClicked, MENU_ITEM_FLIP_ALL));
             menu.Items.Add(new ToolStripMenuItem("Add all sprites from folder...", null, onQuickImportFromFolderClicked, MENU_ITEM_QUICK_IMPORT));
@@ -408,6 +451,32 @@ namespace AGS.Editor
             }
         }
 
+        private void OnCopyFrames(object sender, EventArgs e)
+        {
+            List<ViewFrame> frames = new List<ViewFrame>();
+            foreach (var i in _selectedFrames)
+                frames.Add(_loop.Frames[i].Clone());
+            _clipboard.CopiedFrames = frames.ToArray();
+        }
+
+        private void OnCutFrames(object sender, EventArgs e)
+        {
+            OnCopyFrames(sender, e);
+            DeleteSelectedFrames();
+        }
+
+        private void OnPasteFramesBefore(object sender, EventArgs e)
+        {
+            int selectedFrame = _selectedFrames.Count > 0 ? _selectedFrames[0] : 0;
+            InsertNewFrames(selectedFrame - 1, _clipboard.CopiedFrames.Select(f => f.Clone()).ToArray(), areBlankFrames: false);
+        }
+
+        private void OnPasteFramesAfter(object sender, EventArgs e)
+        {
+            int selectedFrame = _selectedFrames.Count > 0 ? _selectedFrames[_selectedFrames.Count - 1] : -1;
+            InsertNewFrames(selectedFrame, _clipboard.CopiedFrames.Select(f => f.Clone()).ToArray(), areBlankFrames: false);
+        }
+
         private void copyLoop()
         {
             _clipboard.CopiedLoop = _loop.Clone();
@@ -435,7 +504,15 @@ namespace AGS.Editor
 
         private void pasteLoop(bool flipped)
         {
-            _clipboard.CopiedLoop.Clone(_loop, flipped);
+            if (_clipboard.CopiedLoop != null)
+            {
+                _clipboard.CopiedLoop.Clone(_loop, flipped);
+            }
+            else
+            {
+                _loop.Frames.Clear();
+                _loop.Frames.AddRange(_clipboard.CopiedFrames.Select(f => f.Clone(flipped)));
+            }
             UpdateControlWidth();
             this.Invalidate();
         }

@@ -17,5 +17,10 @@ namespace AGS.Editor
         /// A copied loop, can be pasted into the ViewLoopEditor.
         /// </summary>
         public ViewLoop CopiedLoop { get; set; }
+
+        /// <summary>
+        /// A copied set of frames, can be pasted into the ViewLoopEditor.
+        /// </summary>
+        public ViewFrame[] CopiedFrames { get; set; }
     }
 }

@@ -449,18 +449,18 @@ namespace AGS.Editor
                 }
                 menu.Items.Add(new ToolStripSeparator());
             }
-            menu.Items.Add(new ToolStripMenuItem("Cut loop", null, onCutLoopClicked, MENU_ITEM_CUT_LOOP));
-            menu.Items.Add(new ToolStripMenuItem("Copy loop", null, onCopyLoopClicked, MENU_ITEM_COPY_LOOP));
+            menu.Items.Add(new ToolStripMenuItem("Cut loop", null, OnCutLoopClicked, MENU_ITEM_CUT_LOOP));
+            menu.Items.Add(new ToolStripMenuItem("Copy loop", null, OnCopyLoopClicked, MENU_ITEM_COPY_LOOP));
             if (_clipboard.CopiedLoop != null || _clipboard.CopiedFrames != null)
             {
-                menu.Items.Add(new ToolStripMenuItem("Paste over this loop", null, onPasteLoopClicked, MENU_ITEM_PASTE_OVER_LOOP));
-                menu.Items.Add(new ToolStripMenuItem("Paste over this loop flipped", null, onPasteFlippedClicked, MENU_ITEM_PASTE_OVER_LOOP_FLIPPED));
+                menu.Items.Add(new ToolStripMenuItem("Paste over this loop", null, OnPasteLoopClicked, MENU_ITEM_PASTE_OVER_LOOP));
+                menu.Items.Add(new ToolStripMenuItem("Paste over this loop flipped", null, OnPasteFlippedClicked, MENU_ITEM_PASTE_OVER_LOOP_FLIPPED));
                 menu.Items.Add(new ToolStripMenuItem("Paste over this loop reversed", null, OnPasteReversedClicked, MENU_ITEM_PASTE_OVER_LOOP_REVERSED));
             }
-            menu.Items.Add(new ToolStripMenuItem("Flip all frames in loop", null, onFlipAllClicked, MENU_ITEM_FLIP_ALL));
+            menu.Items.Add(new ToolStripMenuItem("Flip all frames in loop", null, OnFlipAllClicked, MENU_ITEM_FLIP_ALL));
             menu.Items.Add(new ToolStripMenuItem("Reverse all frames in loop", null, OnReverseAllClicked, MENU_ITEM_REVERSE_ALL));
-            menu.Items.Add(new ToolStripMenuItem("Add all sprites from folder...", null, onQuickImportFromFolderClicked, MENU_ITEM_QUICK_IMPORT));
-            menu.Items.Add(new ToolStripMenuItem("Replace with all sprites from folder...", null, onQuickImportReplaceFromFolderClicked, MENU_ITEM_QUICK_IMPORT_REPLACE));
+            menu.Items.Add(new ToolStripMenuItem("Add all sprites from folder...", null, OnQuickImportFromFolderClicked, MENU_ITEM_QUICK_IMPORT));
+            menu.Items.Add(new ToolStripMenuItem("Replace with all sprites from folder...", null, OnQuickImportReplaceFromFolderClicked, MENU_ITEM_QUICK_IMPORT_REPLACE));
 
             menu.Show(this, menuPosition);
         }
@@ -520,19 +520,19 @@ namespace AGS.Editor
             ReverseSelectedFrames();
         }
 
-        private void copyLoop()
+        private void CopyLoop()
         {
             _clipboard.CopiedLoop = _loop.Clone();
         }
 
-        private void onCopyLoopClicked(object sender, EventArgs e)
+        private void OnCopyLoopClicked(object sender, EventArgs e)
         {
-            copyLoop();
+            CopyLoop();
         }
 
-        private void onCutLoopClicked(object sender, EventArgs e)
+        private void OnCutLoopClicked(object sender, EventArgs e)
         {
-            copyLoop();
+            CopyLoop();
             if (_loop.Frames.Count > 0)
             {
                 _selectedFrames.Clear();
@@ -545,7 +545,7 @@ namespace AGS.Editor
             }
         }
 
-        private void pasteLoop(bool flipped)
+        private void PasteLoop(bool flipped)
         {
             if (_clipboard.CopiedLoop != null)
             {
@@ -560,23 +560,23 @@ namespace AGS.Editor
             this.Invalidate();
         }
 
-        private void onPasteLoopClicked(object sender, EventArgs e)
+        private void OnPasteLoopClicked(object sender, EventArgs e)
         {
-            pasteLoop(false);
+            PasteLoop(false);
         }
 
-        private void onPasteFlippedClicked(object sender, EventArgs e)
+        private void OnPasteFlippedClicked(object sender, EventArgs e)
         {
-            pasteLoop(true);
+            PasteLoop(true);
         }
 
         private void OnPasteReversedClicked(object sender, EventArgs e)
         {
-            pasteLoop(false);
+            PasteLoop(false);
             ReverseAllFrames();
         }
 
-        private void onFlipAllClicked(object sender, EventArgs e)
+        private void OnFlipAllClicked(object sender, EventArgs e)
         {            
             _loop.Frames.ForEach(c => c.Flipped = !c.Flipped);
             this.Invalidate();
@@ -614,12 +614,12 @@ namespace AGS.Editor
             }
         }
 
-        private void onQuickImportFromFolderClicked(object sender, EventArgs e)
+        private void OnQuickImportFromFolderClicked(object sender, EventArgs e)
         {
             QuickImportFromFolder(false);
         }
 
-        private void onQuickImportReplaceFromFolderClicked(object sender, EventArgs e)
+        private void OnQuickImportReplaceFromFolderClicked(object sender, EventArgs e)
         {
             QuickImportFromFolder(true);
         }

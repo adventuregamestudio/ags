@@ -43,6 +43,7 @@ namespace AGS.Editor.Components
             _guiController.RegisterIcon(ICON_KEY, Resources.ResourceManager.GetIcon("font.ico"));
             _guiController.RegisterIcon("FontIcon", Resources.ResourceManager.GetIcon("font-item.ico"));
             _guiController.ProjectTree.AddTreeRoot(this, TOP_LEVEL_COMMAND_ID, "Fonts", ICON_KEY);
+            Factory.Events.GamePrepareUpgrade += Events_GamePrepareUpgrade;
             Factory.Events.GamePostLoad += PostGameLoadInit;
             FontSizeUIEditor.FontSizeGUI = FontImportSize;
             RePopulateTreeView();
@@ -500,13 +501,13 @@ namespace AGS.Editor.Components
             return sizeValue;
         }
 
+        private void Events_GamePrepareUpgrade(UpgradeGameEventArgs args)
+        {
+            args.Tasks.Add(new UpgradeGameFontsToFontFilesTask(ConvertAllFontsToFontAndFilePairs));
+        }
+
         private void PostGameLoadInit(Game game)
         {
-            if (_agsEditor.CurrentGame.SavedXmlVersionIndex < AGSEditor.AGS_4_0_0_XML_VERSION_INDEX_FONT_SOURCES)
-            {
-                ConvertAllFontsToFontAndFilePairs(game);
-            }
-
             AddDefaultFontsIfMissing(game);
 
             // Update deserialized FontFiles, setup non-serialized properties, sync with assets on disk etc
@@ -548,8 +549,11 @@ namespace AGS.Editor.Components
             }
         }
 
-        private void ConvertAllFontsToFontAndFilePairs(Game game)
+        private void ConvertAllFontsToFontAndFilePairs(Game game, IWorkProgress progress, CompileMessages errors)
         {
+            if (_agsEditor.CurrentGame.SavedXmlVersionIndex >= AGSEditor.AGS_4_0_0_XML_VERSION_INDEX_FONT_SOURCES)
+                return; // already converted
+
             // If the fonts directory we want to write to already exists then backup
             if (Directory.Exists(FONT_FILES_DIRECTORY))
             {

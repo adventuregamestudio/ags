@@ -1186,16 +1186,8 @@ namespace AGS.Editor
                     string gameToLoad = Path.Combine(gamePath, AGSEditor.GAME_FILE_NAME);
                     if (!File.Exists(gameToLoad))
                     {
-                        gameToLoad = gameToLoad.Replace(AGSEditor.GAME_FILE_NAME, AGSEditor.OLD_GAME_FILE_NAME);
-                        if (!File.Exists(gameToLoad))
-                        {
-                            Factory.GUIController.ShowMessage("Unable to find a valid game file in " + gamePath, MessageBoxIcon.Warning);
-                            showWelcomeScreen = true;
-                        }
-                        else if (!_interactiveTasks.LoadGameFromDisk(gameToLoad))
-                        {
-                            showWelcomeScreen = true;
-                        }
+                        Factory.GUIController.ShowMessage("Unable to find a valid game file in " + gamePath, MessageBoxIcon.Warning);
+                        showWelcomeScreen = true;
                     }
                     else if (!_interactiveTasks.LoadGameFromDisk(gameToLoad))
                     {
@@ -1268,10 +1260,6 @@ namespace AGS.Editor
                 string templateFileName = Path.Combine(_agsEditor.EditorDirectory, createFromTemplate.FileName);
                 _agsEditor.Tasks.CreateNewGameFromTemplate(templateFileName, newGamePath);
                 string newGameFileName = Path.Combine(newGamePath, AGSEditor.GAME_FILE_NAME);
-                if (!File.Exists(newGameFileName))
-                {
-                    newGameFileName = Path.Combine(newGamePath, AGSEditor.OLD_GAME_FILE_NAME);
-                }
                 if (_agsEditor.Tasks.LoadGameFromDisk(newGameFileName, false))
                 {
                     _agsEditor.CurrentGame.Settings.GameFileName = newFileName;

@@ -17,13 +17,16 @@ namespace AGS.Editor
         private const string MENU_ITEM_PASTE_FRAME_AFTER = "PasteFrameAfter";
         private const string MENU_ITEM_DELETE_FRAME = "DeleteFrame";
 		private const string MENU_ITEM_FLIP_FRAME = "FlipFrame";
+        private const string MENU_ITEM_REVERSE_FRAMES = "ReverseFrames";
         private const string MENU_ITEM_INSERT_BEFORE = "InsertBefore";
         private const string MENU_ITEM_INSERT_AFTER = "InsertAfter";
         private const string MENU_ITEM_CUT_LOOP = "CutLoop";
         private const string MENU_ITEM_COPY_LOOP = "CopyLoop";
         private const string MENU_ITEM_PASTE_OVER_LOOP = "PasteLoop";
         private const string MENU_ITEM_PASTE_OVER_LOOP_FLIPPED = "PasteLoopFlipped";
+        private const string MENU_ITEM_PASTE_OVER_LOOP_REVERSED = "PasteLoopReversed";
         private const string MENU_ITEM_FLIP_ALL = "FlipAll";
+        private const string MENU_ITEM_REVERSE_ALL = "ReverseAll";
         private const string MENU_ITEM_QUICK_IMPORT = "QuickImport";
         private const string MENU_ITEM_QUICK_IMPORT_REPLACE = "QuickImportReplace";
         private Icon _audioIcon = Resources.ResourceManager.GetIcon("audio_indicator.ico");
@@ -137,6 +140,35 @@ namespace AGS.Editor
 				ViewFrame frame = _loop.Frames[sel];
 				frame.Flipped = !frame.Flipped;
 			}
+            this.Invalidate();
+        }
+
+        public void ReverseSelectedFrames()
+        {
+            _selectedFrames.Sort();
+            ViewFrame swap = new ViewFrame();
+            for (int fw = 0, bw = _selectedFrames.Count - 1; fw < _selectedFrames.Count / 2; ++fw, --bw)
+            {
+                ViewFrame f1 = _loop.Frames[_selectedFrames[fw]];
+                ViewFrame f2 = _loop.Frames[_selectedFrames[bw]];
+                f1.CopyTo(swap);
+                f2.CopyTo(f1);
+                swap.CopyTo(f2);
+            }
+            this.Invalidate();
+        }
+
+        private void ReverseAllFrames()
+        {
+            ViewFrame swap = new ViewFrame();
+            for (int fw = 0, bw = _loop.Frames.Count - 1; fw < _loop.Frames.Count / 2; ++fw, --bw)
+            {
+                ViewFrame f1 = _loop.Frames[fw];
+                ViewFrame f2 = _loop.Frames[bw];
+                f1.CopyTo(swap);
+                f2.CopyTo(f1);
+                swap.CopyTo(f2);
+            }
             this.Invalidate();
         }
 
@@ -402,8 +434,12 @@ namespace AGS.Editor
             }
             if (selectedFrame >= 0)
             {
-                // NOTE: 'F' does not work as a menu item shortkey for some reason, so we handle it in OnKeyPressed
+                // NOTE: simple keys like 'F' or 'R' does not work as a menu item shortkey for some reason, so we handle it in OnKeyPressed
                 menu.Items.Add(new ToolStripMenuItem("&Flip selected frame(s)", null, onClick, MENU_ITEM_FLIP_FRAME));
+                if (_selectedFrames.Count > 1)
+                {
+                    menu.Items.Add(new ToolStripMenuItem("&Reverse selected frame(s)", null, OnReverseFrames, MENU_ITEM_REVERSE_FRAMES));
+                }
                 menu.Items.Add(ToolStripExtensions.CreateMenuItem("Delete selected frame(s)", null, onClick, MENU_ITEM_DELETE_FRAME, Keys.Delete));
                 if (_selectedFrames.Count == 1)
                 {
@@ -419,8 +455,10 @@ namespace AGS.Editor
             {
                 menu.Items.Add(new ToolStripMenuItem("Paste over this loop", null, onPasteLoopClicked, MENU_ITEM_PASTE_OVER_LOOP));
                 menu.Items.Add(new ToolStripMenuItem("Paste over this loop flipped", null, onPasteFlippedClicked, MENU_ITEM_PASTE_OVER_LOOP_FLIPPED));
+                menu.Items.Add(new ToolStripMenuItem("Paste over this loop reversed", null, OnPasteReversedClicked, MENU_ITEM_PASTE_OVER_LOOP_REVERSED));
             }
             menu.Items.Add(new ToolStripMenuItem("Flip all frames in loop", null, onFlipAllClicked, MENU_ITEM_FLIP_ALL));
+            menu.Items.Add(new ToolStripMenuItem("Reverse all frames in loop", null, OnReverseAllClicked, MENU_ITEM_REVERSE_ALL));
             menu.Items.Add(new ToolStripMenuItem("Add all sprites from folder...", null, onQuickImportFromFolderClicked, MENU_ITEM_QUICK_IMPORT));
             menu.Items.Add(new ToolStripMenuItem("Replace with all sprites from folder...", null, onQuickImportReplaceFromFolderClicked, MENU_ITEM_QUICK_IMPORT_REPLACE));
 
@@ -477,6 +515,11 @@ namespace AGS.Editor
             InsertNewFrames(selectedFrame, _clipboard.CopiedFrames.Select(f => f.Clone()).ToArray(), areBlankFrames: false);
         }
 
+        private void OnReverseFrames(object sender, EventArgs e)
+        {
+            ReverseSelectedFrames();
+        }
+
         private void copyLoop()
         {
             _clipboard.CopiedLoop = _loop.Clone();
@@ -527,10 +570,21 @@ namespace AGS.Editor
             pasteLoop(true);
         }
 
+        private void OnPasteReversedClicked(object sender, EventArgs e)
+        {
+            pasteLoop(false);
+            ReverseAllFrames();
+        }
+
         private void onFlipAllClicked(object sender, EventArgs e)
         {            
             _loop.Frames.ForEach(c => c.Flipped = !c.Flipped);
             this.Invalidate();
+        }
+
+        private void OnReverseAllClicked(object sender, EventArgs e)
+        {
+            ReverseAllFrames();
         }
 
         private void QuickImportFromFolder(bool clear_loop_frames)

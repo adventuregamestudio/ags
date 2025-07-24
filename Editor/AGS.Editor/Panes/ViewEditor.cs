@@ -301,7 +301,7 @@ namespace AGS.Editor
                 EventHandler onClick = new EventHandler(ContextMenuEventHandler);
                 menu.Items.Add(ToolStripExtensions.CreateMenuItem("Copy frame(s)", null, OnCopyFrames, MENU_ITEM_COPY_FRAME, Keys.Control | Keys.C));
                 menu.Items.Add(ToolStripExtensions.CreateMenuItem("Cut frame(s)", null, OnCutFrames, MENU_ITEM_CUT_FRAME, Keys.Control | Keys.X));
-                // NOTE: 'F' does not work as a menu item shortkey for some reason, so we handle it in OnKeyPressed
+                // NOTE: Simple keys like 'F' or 'R' does not work as a menu item shortkey for some reason, so we handle it in OnKeyPressed
                 menu.Items.Add(new ToolStripMenuItem("&Flip selected frame(s)", null, onClick, MENU_ITEM_FLIP_FRAMES));
                 menu.Items.Add(ToolStripExtensions.CreateMenuItem("Delete selected frame(s)", null, onClick, MENU_ITEM_DELETE_FRAMES, Keys.Delete));
             }
@@ -363,6 +363,14 @@ namespace AGS.Editor
             foreach (ViewLoopEditor loopPane in _loopPanes)
             {
                 loopPane.FlipSelectedFrames();
+            }
+        }
+
+        private void ReverseSelectedFrames()
+        {
+            foreach (ViewLoopEditor loopPane in _loopPanes)
+            {
+                loopPane.ReverseSelectedFrames();
             }
         }
 
@@ -457,6 +465,10 @@ namespace AGS.Editor
 			{
                 FlipSelectedFrames();
 			}
+            else if (keyData == Keys.R)
+            {
+                ReverseSelectedFrames();
+            }
         }
 
 		private void UpdateWhetherPreviewIsShown()

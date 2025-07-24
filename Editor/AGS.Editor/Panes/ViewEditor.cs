@@ -23,6 +23,9 @@ namespace AGS.Editor
         private int _lastSelectedLoop = -1;
         private int _lastSelectedFrame = -1;
 
+        // A clipboard shared among all the view editors and view loop editors
+        private static ViewEditClipboard _clipboard = new ViewEditClipboard();
+
         public ViewEditor(AGS.Types.View viewToEdit)
         {
             _guiController = Factory.GUIController;
@@ -106,7 +109,7 @@ namespace AGS.Editor
 
         private ViewLoopEditor AddNewLoopPane(ViewLoop loop)
         {
-            ViewLoopEditor loopPane = new ViewLoopEditor(loop, _guiController);
+            ViewLoopEditor loopPane = new ViewLoopEditor(loop, _guiController, _clipboard);
             loopPane.Left = 10 + editorPanel.AutoScrollPosition.X;
             loopPane.ZoomLevel = sldZoomLevel.ZoomScale;
             loopPane.Top = 10 + _loopPanes.Count * loopPane.Height + editorPanel.AutoScrollPosition.Y;
@@ -294,10 +297,9 @@ namespace AGS.Editor
             {
                 var menu = e.Menu;
                 EventHandler onClick = new EventHandler(ContextMenuEventHandler);
+                // NOTE: 'F' does not work as a menu item shortkey for some reason, so we handle it in OnKeyPressed
                 menu.Items.Add(new ToolStripMenuItem("&Flip selected frame(s)", null, onClick, MENU_ITEM_FLIP_FRAMES));
-                ToolStripMenuItem deleteOption = new ToolStripMenuItem("Delete selected frame(s)", null, onClick, MENU_ITEM_DELETE_FRAMES);
-                deleteOption.ShortcutKeys = Keys.Delete;
-                menu.Items.Add(deleteOption);
+                menu.Items.Add(ToolStripExtensions.CreateMenuItem("Delete selected frame(s)", null, onClick, MENU_ITEM_DELETE_FRAMES, Keys.Delete));
             }
         }
 

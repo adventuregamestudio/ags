@@ -29,13 +29,12 @@ namespace AGS.Editor
         public delegate void SelectedFrameChangedHandler(ViewLoop loop, int newSelectedFrame, MultiSelectAction action);
         public event SelectedFrameChangedHandler SelectedFrameChanged;
 
-		public delegate void NewFrameAddedHandler(ViewLoop loop, int newFrameIndex);
-		public event NewFrameAddedHandler NewFrameAdded;
+        public delegate void NewFrameAddedHandler(ViewLoop loop, int newFrameIndex);
+        public event NewFrameAddedHandler NewFrameAdded;
 
         public event EventHandler<ViewLoopContextMenuArgs> OnContextMenu;
 
-        private static int _LastSelectedSprite = 0;
-        private static ViewLoop _copiedLoop;
+        private ViewEditClipboard _clipboard;
 
         private float _zoomLevel = 1.0f;
         private ViewLoop _loop;
@@ -47,10 +46,11 @@ namespace AGS.Editor
         private int _framelessWidth;
         private GUIController _guiController;
 
-        public ViewLoopEditor(ViewLoop loopToEdit, GUIController guiController)
+        public ViewLoopEditor(ViewLoop loopToEdit, GUIController guiController, ViewEditClipboard clipboard)
         {
             InitializeComponent();
             _guiController = guiController;
+            _clipboard = clipboard;
             _loop = loopToEdit;
             lblLoopTitle.Text = "Loop " + _loop.ID + " (" + _loop.DirectionDescription + ")";
             chkRunNextLoop.DataBindings.Add("Checked", _loop, "RunNextLoop", false, DataSourceUpdateMode.OnPropertyChanged);
@@ -357,10 +357,9 @@ namespace AGS.Editor
 
             if (selectedFrame >= 0)
             {
+                // NOTE: 'F' does not work as a menu item shortkey for some reason, so we handle it in OnKeyPressed
                 menu.Items.Add(new ToolStripMenuItem("&Flip selected frame(s)", null, onClick, MENU_ITEM_FLIP_FRAME));
-                ToolStripMenuItem deleteOption = new ToolStripMenuItem("Delete selected frame(s)", null, onClick, MENU_ITEM_DELETE_FRAME);
-                deleteOption.ShortcutKeys = Keys.Delete;
-                menu.Items.Add(deleteOption);
+                menu.Items.Add(ToolStripExtensions.CreateMenuItem("Delete selected frame(s)", null, onClick, MENU_ITEM_DELETE_FRAME, Keys.Delete));
                 if (_selectedFrames.Count == 1)
                 {
                     menu.Items.Add(new ToolStripSeparator());
@@ -373,7 +372,7 @@ namespace AGS.Editor
             menu.Items.Add(new ToolStripMenuItem("Copy loop", null, onCopyLoopClicked, MENU_ITEM_COPY_LOOP));
             menu.Items.Add(new ToolStripMenuItem("Paste over this loop", null, onPasteLoopClicked, MENU_ITEM_PASTE_OVER_LOOP));
             menu.Items.Add(new ToolStripMenuItem("Paste over this loop flipped", null, onPasteFlippedClicked, MENU_ITEM_PASTE_OVER_LOOP_FLIPPED));
-            if (_copiedLoop == null)
+            if (_clipboard.CopiedLoop == null)
             {
                 menu.Items[menu.Items.Count - 1].Enabled = false;
                 menu.Items[menu.Items.Count - 2].Enabled = false;
@@ -397,21 +396,21 @@ namespace AGS.Editor
 				}
 				if (initialSprite == 0)
 				{
-					initialSprite = _LastSelectedSprite;
+					initialSprite = _clipboard.LastSelectedSprite;
 				}
 
                 Sprite chosen = SpriteChooser.ShowSpriteChooser(initialSprite);
                 if (chosen != null)
                 {
                     _loop.Frames[clickedFrame].Image = chosen.Number;
-					_LastSelectedSprite = chosen.Number;
+                    _clipboard.LastSelectedSprite = chosen.Number;
                 }
             }
         }
 
         private void copyLoop()
         {
-            _copiedLoop = _loop.Clone();            
+            _clipboard.CopiedLoop = _loop.Clone();
         }
 
         private void onCopyLoopClicked(object sender, EventArgs e)
@@ -436,10 +435,7 @@ namespace AGS.Editor
 
         private void pasteLoop(bool flipped)
         {
-            //int loopId = _loop.ID;
-            //_loop = _copiedLoop.Clone(flipped);
-            //_loop.ID = loopId;
-            _copiedLoop.Clone(_loop, flipped);            
+            _clipboard.CopiedLoop.Clone(_loop, flipped);
             UpdateControlWidth();
             this.Invalidate();
         }
@@ -462,7 +458,7 @@ namespace AGS.Editor
 
         private void QuickImportFromFolder(bool clear_loop_frames)
         {
-            Sprite chosen = SpriteChooser.ShowSpriteChooser(_LastSelectedSprite, "Select the first sprite to be imported from the folder");
+            Sprite chosen = SpriteChooser.ShowSpriteChooser(_clipboard.LastSelectedSprite, "Select the first sprite to be imported from the folder");
             if (chosen != null)
             {
                 SpriteFolder parent = Factory.AGSEditor.CurrentGame.RootSpriteFolder.FindFolderThatContainsSprite(chosen.Number);

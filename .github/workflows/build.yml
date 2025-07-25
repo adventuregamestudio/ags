@@ -17,10 +17,12 @@ jobs:
       fail-fast: false
       matrix:
         platform:
-        - { name: Windows-mingw64, os: windows-latest, artifact: 'ags-mingw64', shell: 'msys2 {0}', runbin: "./ags",      bindir: "",       msystem: mingw64, msys-env: mingw-w64-x86_64 }
-        - { name: Windows,         os: windows-latest, artifact: 'ags-windows', shell: cmd,         runbin: ".\\ags.exe", bindir: "Release" }
-        - { name: Ubuntu,          os: ubuntu-latest,  artifact: 'ags-linux',   shell: sh,          runbin: "./ags",      bindir: ""        }
-        - { name: macOS,           os: macos-latest,   artifact: 'ags-macos',   shell: sh,          runbin: "./ags",      bindir: ""        }
+        - { name: Windows-mingw-x86_64, os: windows-latest,   artifact: 'ags-mingw-x86_64', shell: 'msys2 {0}', runbin: "./ags",      bindir: "",       msystem: mingw64, msys-env: mingw-w64-x86_64 }
+        - { name: Windows-mingw-arm64,  os: windows-11-arm,   artifact: 'ags-mingw-arm64',  shell: 'msys2 {0}', runbin: "./ags",      bindir: "",       msystem: clangarm64, msys-env: mingw-w64-clang-aarch64 }
+        - { name: Windows,              os: windows-latest,   artifact: 'ags-windows',      shell: cmd,         runbin: ".\\ags.exe", bindir: "Release" }
+        - { name: Ubuntu-x86_64,        os: ubuntu-latest,    artifact: 'ags-linux-x86_64', shell: sh,          runbin: "./ags",      bindir: ""        }
+        - { name: Ubuntu-Arm64,         os: ubuntu-22.04-arm, artifact: 'ags-linux-Arm64',  shell: sh,          runbin: "./ags",      bindir: ""        }
+        - { name: macOS,                os: macos-latest,     artifact: 'ags-macos',        shell: sh,          runbin: "./ags",      bindir: ""        }
 
     steps:
     - name: Set up MSYS2

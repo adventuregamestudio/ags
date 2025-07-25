@@ -346,6 +346,9 @@ void GameFilesPageDialog::SaveSetup()
 //
 //=============================================================================
 
+const int AccessibilityPageDialog::TextReadSpeedMin;
+const int AccessibilityPageDialog::TextReadSpeedMax;
+
 INT_PTR AccessibilityPageDialog::OnInitDialog()
 {
     _hEnableAccess          = GetDlgItem(_hwnd, IDC_ACCESSENABLECHECK);

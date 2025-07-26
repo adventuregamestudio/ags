@@ -95,5 +95,15 @@ namespace AGS.Types
             };
         }
 
+        /// <summary>
+        /// Copies properties to another ViewFrame, *except* for an ID
+        /// </summary>
+        public void CopyTo(ViewFrame other)
+        {
+            other.Image = Image;
+            other.Flipped = Flipped;
+            other.Delay = Delay;
+            other.Sound = Sound;
+        }
     }
 }

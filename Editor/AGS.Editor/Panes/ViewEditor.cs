@@ -9,6 +9,8 @@ namespace AGS.Editor
 {
     public partial class ViewEditor : EditorContentPanel
     {
+        private const string MENU_ITEM_COPY_FRAME = "CopyFrame";
+        private const string MENU_ITEM_CUT_FRAME = "CutFrame";
         private const string MENU_ITEM_DELETE_FRAMES = "DeleteFrames";
         private const string MENU_ITEM_FLIP_FRAMES = "FlipFrames";
 
@@ -22,6 +24,9 @@ namespace AGS.Editor
         private List<ViewFrame> _selectedFrames = new List<ViewFrame>();
         private int _lastSelectedLoop = -1;
         private int _lastSelectedFrame = -1;
+
+        // A clipboard shared among all the view editors and view loop editors
+        private static ViewEditClipboard _clipboard = new ViewEditClipboard();
 
         public ViewEditor(AGS.Types.View viewToEdit)
         {
@@ -106,7 +111,7 @@ namespace AGS.Editor
 
         private ViewLoopEditor AddNewLoopPane(ViewLoop loop)
         {
-            ViewLoopEditor loopPane = new ViewLoopEditor(loop, _guiController);
+            ViewLoopEditor loopPane = new ViewLoopEditor(loop, _guiController, _clipboard);
             loopPane.Left = 10 + editorPanel.AutoScrollPosition.X;
             loopPane.ZoomLevel = sldZoomLevel.ZoomScale;
             loopPane.Top = 10 + _loopPanes.Count * loopPane.Height + editorPanel.AutoScrollPosition.Y;
@@ -294,11 +299,23 @@ namespace AGS.Editor
             {
                 var menu = e.Menu;
                 EventHandler onClick = new EventHandler(ContextMenuEventHandler);
+                menu.Items.Add(ToolStripExtensions.CreateMenuItem("Copy frame(s)", null, OnCopyFrames, MENU_ITEM_COPY_FRAME, Keys.Control | Keys.C));
+                menu.Items.Add(ToolStripExtensions.CreateMenuItem("Cut frame(s)", null, OnCutFrames, MENU_ITEM_CUT_FRAME, Keys.Control | Keys.X));
+                // NOTE: Simple keys like 'F' or 'R' does not work as a menu item shortkey for some reason, so we handle it in OnKeyPressed
                 menu.Items.Add(new ToolStripMenuItem("&Flip selected frame(s)", null, onClick, MENU_ITEM_FLIP_FRAMES));
-                ToolStripMenuItem deleteOption = new ToolStripMenuItem("Delete selected frame(s)", null, onClick, MENU_ITEM_DELETE_FRAMES);
-                deleteOption.ShortcutKeys = Keys.Delete;
-                menu.Items.Add(deleteOption);
+                menu.Items.Add(ToolStripExtensions.CreateMenuItem("Delete selected frame(s)", null, onClick, MENU_ITEM_DELETE_FRAMES, Keys.Delete));
             }
+        }
+
+        private void OnCopyFrames(object sender, EventArgs e)
+        {
+            _clipboard.CopiedFrames = _selectedFrames.Select(f => f.Clone()).ToArray();
+        }
+
+        private void OnCutFrames(object sender, EventArgs e)
+        {
+            _clipboard.CopiedFrames = _selectedFrames.Select(f => f.Clone()).ToArray();
+            DeleteSelectedFrames();
         }
 
         private void ContextMenuEventHandler(object sender, EventArgs e)
@@ -346,6 +363,14 @@ namespace AGS.Editor
             foreach (ViewLoopEditor loopPane in _loopPanes)
             {
                 loopPane.FlipSelectedFrames();
+            }
+        }
+
+        private void ReverseSelectedFrames()
+        {
+            foreach (ViewLoopEditor loopPane in _loopPanes)
+            {
+                loopPane.ReverseSelectedFrames();
             }
         }
 
@@ -440,6 +465,10 @@ namespace AGS.Editor
 			{
                 FlipSelectedFrames();
 			}
+            else if (keyData == Keys.R)
+            {
+                ReverseSelectedFrames();
+            }
         }
 
 		private void UpdateWhetherPreviewIsShown()

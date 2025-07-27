@@ -70,9 +70,9 @@ public:
     short tint_light = 0;
     char  process_idle_this_time = 0;
     char  slow_move_counter = 0;
-    short animwait = 0; // number of frames to wait before advancing a animation
+    ViewAnimateParams anim;
+    short animwait = 0; // current ticks counter, before advancing a animation
     int   anim_volume = 100; // default animation volume (relative factor)
-    int   cur_anim_volume = 100; // current animation sound volume (relative factor)
     int   following = -1; // whom do we follow (character id)
     int   follow_dist = 0; // follow distance, in pixels
     int   follow_eagerness = 0; // follow reaction
@@ -97,6 +97,13 @@ public:
     bool IsTurningCounterClockwise() const { return IsTurning() && (flags & kCharf_TurningCCW) != 0; }
     void SetTurning(bool on, bool ccw, int turn_steps);
     void DecrementTurning();
+
+    bool IsAnimating() const { return anim.IsValid(); }
+    bool IsAnimatingRepeatedly() const { return anim.IsRepeating(); }
+    int  GetAnimDelay() const { return anim.Delay; }
+    const ViewAnimateParams &GetAnimParams() const { return anim; }
+    void SetAnimating(AnimFlowStyle flow, AnimFlowDirection dir, int delay, int anim_volume = 100);
+    void ResetAnimating();
 
     // Get visual Y position, which is calculated as Y - Z (scaled)
     int GetEffectiveY(CharacterInfo *chi) const; 

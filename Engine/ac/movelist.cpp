@@ -44,7 +44,7 @@ void MoveList::SetPixelUnitFraction(float frac)
 void MoveList::Complete()
 {
     doneflag = 1;
-    from = run_params.Forward ? pos[GetNumStages() - 1] : pos[0];
+    from = run_params.IsForward() ? pos[GetNumStages() - 1] : pos[0];
     curpos = from;
 }
 
@@ -52,12 +52,12 @@ void MoveList::ResetToBegin()
 {
     // For backwards direction: set stage to the one before last,
     // because it's the stage which contains move speeds between these two
-    ResetToStage(run_params.Forward ? 0 : GetNumStages() - 2, 0.f);
+    ResetToStage(run_params.IsForward() ? 0 : GetNumStages() - 2, 0.f);
 }
 
 void MoveList::ResetToEnd()
 {
-    const int to_stage = run_params.Forward ? GetNumStages() - 2 : 0;
+    const int to_stage = run_params.IsForward() ? GetNumStages() - 2 : 0;
     // We need to calculate what is the part just prior to ending the stage
     ResetToStage(to_stage, 1.f);
 }
@@ -68,7 +68,7 @@ void MoveList::ResetToStage(int stage, float progress)
     // because it's the stage which contains move speeds between these two
     onstage = Math::Clamp<int>(stage, 0, GetNumStages() - 2);
     onpart = CalcPartsFromProgress(onstage, Math::Clamp(progress, 0.f, 1.f));
-    from = run_params.Forward ? pos[onstage] : pos[onstage + 1];
+    from = run_params.IsForward() ? pos[onstage] : pos[onstage + 1];
     curpos = CalcCurrentPos();
 }
 
@@ -105,7 +105,7 @@ bool MoveList::Backward()
 
 bool MoveList::NextStage()
 {
-    run_params.Forward ? onstage++ : onstage--;
+    run_params.IsForward() ? onstage++ : onstage--;
     if (((onstage < 0) || (onstage >= GetNumStages() - 1))
         && OnPathCompleted())
     {
@@ -116,7 +116,7 @@ bool MoveList::NextStage()
     {
         onpart = 0.f;
         doneflag = 0;
-        from = run_params.Forward ? pos[onstage] : pos[onstage + 1];
+        from = run_params.IsForward() ? pos[onstage] : pos[onstage + 1];
         curpos = from;
         return true;
     }
@@ -124,7 +124,7 @@ bool MoveList::NextStage()
 
 bool MoveList::RevertStage()
 {
-    run_params.Forward ? onstage-- : onstage++;
+    run_params.IsForward() ? onstage-- : onstage++;
     if ((onstage < 0) || (onstage >= GetNumStages() - 1))
     {
         OnPathRevertedBack();
@@ -133,7 +133,7 @@ bool MoveList::RevertStage()
     else
     {
         onpart = CalcStagePartsNum(onstage);
-        from = run_params.Forward ? pos[onstage] : pos[onstage + 1];
+        from = run_params.IsForward() ? pos[onstage] : pos[onstage + 1];
         // FIXME: use round to nearest here?
         curpos = CalcCurrentPos();
         return true;
@@ -147,7 +147,7 @@ float MoveList::GetStageProgress() const
 
 Pointf MoveList::CalcCurrentPos() const
 {
-    const float move_dir_factor = run_params.Forward ? 1.f : -1.f;
+    const float move_dir_factor = run_params.IsForward() ? 1.f : -1.f;
     const float xpermove = permove[onstage].X * move_dir_factor;
     const float ypermove = permove[onstage].Y * move_dir_factor;
     return Pointf(
@@ -166,8 +166,8 @@ float MoveList::CalcPartsFromProgress(uint32_t stage, float progress) const
     if (stage < 0 || stage >= GetNumStages() - 1)
         return 0.f;
 
-    const int tar_pos_stage = run_params.Forward ? (stage + 1) : (stage);
-    const float move_dir_factor = run_params.Forward ? 1.f : -1.f;
+    const int tar_pos_stage = run_params.IsForward() ? (stage + 1) : (stage);
+    const float move_dir_factor = run_params.IsForward() ? 1.f : -1.f;
     const Point target = pos[tar_pos_stage];
 
     progress = Math::Clamp(progress, 0.f, 1.f);
@@ -179,8 +179,8 @@ float MoveList::CalcPartsFromProgress(uint32_t stage, float progress) const
 bool MoveList::OnProgressChanged()
 {
     const int cur_stage = onstage;
-    const int tar_pos_stage = run_params.Forward ? (onstage + 1) : (onstage);
-    const float move_dir_factor = run_params.Forward ? 1.f : -1.f;
+    const int tar_pos_stage = run_params.IsForward() ? (onstage + 1) : (onstage);
+    const float move_dir_factor = run_params.IsForward() ? 1.f : -1.f;
     const float xpermove = permove[cur_stage].X * move_dir_factor;
     const float ypermove = permove[cur_stage].Y * move_dir_factor;
     const Point target = pos[tar_pos_stage];
@@ -217,7 +217,7 @@ bool MoveList::OnProgressChanged()
 
 bool MoveList::OnPathCompleted()
 {
-    if (run_params.Repeat == ANIM_ONCE)
+    if (run_params.Flow == kAnimFlow_Once)
         return true;
 
     ResetToBegin();
@@ -226,7 +226,7 @@ bool MoveList::OnPathCompleted()
 
 void MoveList::OnPathRevertedBack()
 {
-    if (run_params.Repeat == ANIM_ONCE)
+    if (run_params.Flow == kAnimFlow_Once)
     {
         ResetToBegin();
     }
@@ -287,13 +287,19 @@ HSaveError MoveList::ReadFromSavegame(Stream *in, int32_t cmp_ver)
 
     if (cmp_ver >= kMoveSvgVersion_40006)
     {
-        run_params.Repeat = in->ReadInt8();
-        run_params.Forward = in->ReadInt8() == 0; // inverse, fw == 0
+        AnimFlowStyle run_flow = static_cast<AnimFlowStyle>(in->ReadInt8());
+        AnimFlowDirection run_dir = static_cast<AnimFlowDirection>(in->ReadInt8());
         in->ReadInt8();
         in->ReadInt8();
         in->ReadInt32(); // reserve up to 4 * int32 total
         in->ReadInt32(); // potential: from,to (waypoint range)
         in->ReadInt32();
+
+        run_params = RunPathParams(run_flow, run_dir);
+    }
+    else
+    {
+        run_params = RunPathParams(kAnimFlow_Once, kAnimDirForward);
     }
 
     curpos = CalcCurrentPos();
@@ -337,8 +343,8 @@ void MoveList::WriteToSavegame(Stream *out) const
     }
 
     // kMoveSvgVersion_40006
-    out->WriteInt8(run_params.Repeat);
-    out->WriteInt8(!run_params.Forward); // inverse, fw == 0
+    out->WriteInt8(run_params.Flow);
+    out->WriteInt8(!run_params.IsForward()); // inverse, fw == 0
     out->WriteInt8(0);
     out->WriteInt8(0);
     out->WriteInt32(0); // reserve up to 4 * int32 total

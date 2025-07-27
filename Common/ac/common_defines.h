@@ -48,14 +48,10 @@
 #define OBJF_ENABLED        0x0100
 #define OBJF_VISIBLE        0x0200
 
-// Animation flow mode
-// NOTE: had to move to common_defines, because used by CharacterInfo
-// Animates once and stops at the *last* frame
-#define ANIM_ONCE              0
-// Animates infinitely until stopped by command
-#define ANIM_REPEAT            1
-// Animates once and stops, resetting to the very first frame
-#define ANIM_ONCERESET         2
+// Legacy animation flow constants, required only for unserializing old saves
+#define LEGACY_ANIM_ONCE        0
+#define LEGACY_ANIM_REPEAT      1
+#define LEGACY_ANIM_ONCERESET   2
 
 // An identifier of a "null font", a pseudo font used when you don't want a text to be drawn
 #define FONT_NULL (-1)

@@ -115,6 +115,7 @@ static size_t numEventsAtStartOfFunction; // CHECKME: research and document this
 #define UNTIL_INTISNEG  8
 #define UNTIL_ANIMBTNEND 9
 #define UNTIL_FLAGUNSET 10
+#define UNTIL_VIEWANIM  11
 
 static void GameTick();
 
@@ -537,12 +538,12 @@ bool run_service_key_controls(KeyInput &out_key)
         for (uint32_t ff = 0; ff<croom->numobj; ff++) {
             if (ff >= 8) break; // FIXME: measure graphical size instead?
             buffer.AppendFmt(
-                "\nObject %d: (%d,%d) size (%d x %d) on:%d moving:%s animating:%d slot:%d trnsp:%d clkble:%d",
+                "\nObject %d: (%d,%d) size (%d x %d) on:%d moving:%s animating:%s slot:%d trnsp:%d clkble:%d",
                 ff, objs[ff].x, objs[ff].y,
                 (spriteset.DoesSpriteExist(objs[ff].num) ? game.SpriteInfos[objs[ff].num].Width : 0),
                 (spriteset.DoesSpriteExist(objs[ff].num) ? game.SpriteInfos[objs[ff].num].Height : 0),
                 objs[ff].is_enabled(),
-                (objs[ff].moving > 0) ? "yes" : "no", objs[ff].cycling,
+                objs[ff].is_moving() ? "yes" : "no", objs[ff].is_animating() ? "yes" : "no",
                 objs[ff].num, objs[ff].transparent,
                 ((objs[ff].flags & OBJF_NOINTERACT) != 0) ? 0 : 1);
         }
@@ -558,11 +559,11 @@ bool run_service_key_controls(KeyInput &out_key)
             }
             chd = ff;
             buffer.AppendFmt(
-                "%s (view/loop/frm:%d,%d,%d  x/y/z:%d,%d,%d  idleview:%d,time:%d,left:%d walk:%d anim:%d follow:%d flags:%X wait:%d zoom:%d)\n",
+                "%s (view/loop/frm:%d,%d,%d  x/y/z:%d,%d,%d  idleview:%d,time:%d,left:%d walk:%s anim:%s follow:%d flags:%X wait:%d zoom:%d)\n",
                 game.chars[chd].scrname.GetCStr(), game.chars[chd].view + 1, game.chars[chd].loop, game.chars[chd].frame,
                 game.chars[chd].x, game.chars[chd].y, game.chars[chd].z,
                 game.chars[chd].idleview, game.chars[chd].idletime, game.chars[chd].idleleft,
-                game.chars[chd].walking, game.chars[chd].animating, charextra[chd].following,
+                game.chars[chd].is_moving() ? "yes" : "no", charextra[chd].IsAnimating() ? "yes" : "no", charextra[chd].following,
                 game.chars[chd].flags, game.chars[chd].wait, charextra[chd].zoom);
         }
         DisplayMB(buffer.GetCStr());
@@ -1360,6 +1361,11 @@ static bool ShouldStayInWaitMode()
         const int *bitset = static_cast<const int*>(restrict_until->GetDataPtr());
         return ((*bitset) & restrict_until->GetData1()) != 0;
     }
+    case UNTIL_VIEWANIM:
+    {
+        const ViewAnimateParams *anim = static_cast<const ViewAnimateParams*>(restrict_until->GetDataPtr());
+        return anim->IsValid();
+    }
     default:
         debug_script_warn("loop_until: unknown until event, aborting");
         return false;
@@ -1440,6 +1446,11 @@ void GameLoopUntilButAnimEnd(int guin, int objn)
 void GameLoopUntilFlagUnset(const int *flagset, int flagbit)
 {
     GameLoopUntilEvent(UNTIL_FLAGUNSET, flagset, flagbit);
+}
+
+void GameLoopUntilViewAnimEnd(const ViewAnimateParams *anim)
+{
+    GameLoopUntilEvent(UNTIL_VIEWANIM, anim);
 }
 
 

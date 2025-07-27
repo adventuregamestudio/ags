@@ -283,10 +283,10 @@ void SetObjectGraphic(int obn, int slott) {
             debug_script_warn("Warning: object's (id %d) sprite %d is outside of internal range (%d), reset to 0", obn, slott, UINT16_MAX);
         debug_script_log("Object %d graphic changed to slot %d", obn, slott);
     }
-    objs[obn].cycling = 0;
     objs[obn].frame = 0;
     objs[obn].loop = 0;
     objs[obn].view = RoomObject::NoView;
+    objs[obn].anim = ViewAnimateParams(); // reset anim
 }
 
 bool SetObjectFrameSimple(int obn, int viw, int lop, int fra) {
@@ -321,7 +321,7 @@ bool SetObjectFrameSimple(int obn, int viw, int lop, int fra) {
     obj.view = static_cast<uint16_t>(viw);
     obj.loop = static_cast<uint16_t>(lop);
     obj.frame = static_cast<uint16_t>(fra);
-    obj.cycling = 0; // reset anim
+    obj.anim = ViewAnimateParams(); // reset anim
     int pic = views[viw].loops[lop].frames[fra].pic;
     obj.num = Math::InRangeOrDef<uint16_t>(pic, 0);
     if (pic > UINT16_MAX)
@@ -411,22 +411,19 @@ void AnimateObjectImpl(int obn, int loopn, int spdd, int rept, int direction, in
     debug_script_log("Obj %d start anim view %d loop %d, speed %d, repeat %d, frame %d",
                      obn, obj.view + 1, loopn, spdd, rept, sframe);
 
-    obj.set_animating(rept, direction == 0, spdd);
+    obj.set_animating(static_cast<AnimFlowStyle>(rept), static_cast<AnimFlowDirection>(direction), spdd, Math::Clamp(volume, 0, 100));
     obj.loop = (uint16_t)loopn;
-    obj.frame = (uint16_t)SetFirstAnimFrame(obj.view, loopn, sframe, direction);
+    obj.frame = (uint16_t)SetFirstAnimFrame(obj.view, loopn, sframe, static_cast<AnimFlowDirection>(direction));
     obj.wait = spdd + views[obj.view].loops[loopn].frames[obj.frame].speed;
     int pic = views[obj.view].loops[loopn].frames[obj.frame].pic;
     obj.num = Math::InRangeOrDef<uint16_t>(pic, 0);
     if (pic > UINT16_MAX)
         debug_script_warn("Warning: object's (id %d) sprite %d is outside of internal range (%d), reset to 0", obn, pic, UINT16_MAX);
 
-    obj.cur_anim_volume = Math::Clamp(volume, 0, 100);
-
-
     objs[obn].CheckViewFrame();
 
     if (blocking)
-        GameLoopUntilValueIsZero(&obj.cycling);
+        GameLoopUntilViewAnimEnd(&obj.anim);
 }
 
 void Object_Animate(ScriptObject *objj, int loop, int delay, int repeat,
@@ -446,8 +443,9 @@ void Object_StopAnimating(ScriptObject *objj) {
     if (!is_valid_object(objj->id))
         quit("!Object.StopAnimating: invalid object number");
 
-    if (objs[objj->id].cycling) {
-        objs[objj->id].cycling = 0;
+    if (objs[objj->id].is_animating())
+    {
+        objs[objj->id].anim = ViewAnimateParams();
         objs[objj->id].wait = 0;
     }
 }
@@ -544,7 +542,7 @@ int Object_GetY(ScriptObject *objj) {
 
 int IsObjectAnimating(int objj) {
     if (!is_valid_object(objj)) quit("!IsObjectAnimating: invalid object number");
-    return (objs[objj].cycling != 0) ? 1 : 0;
+    return objs[objj].is_animating() ? 1 : 0;
 }
 
 int Object_GetAnimating(ScriptObject *objj) {
@@ -698,7 +696,7 @@ void move_object(int objj, const std::vector<Point> *path, int tox, int toy, int
 
 void Object_DoMove(ScriptObject *objj, const char *api_name, void *path_arr, int x, int y, bool use_path,
     int speed, int blocking, int ignwal,
-    int repeat = ANIM_ONCE, int direction = FORWARDS)
+    int repeat = kAnimFlow_Once, int direction = FORWARDS)
 {
     ValidateMoveParams(api_name, blocking, ignwal);
     ValidateAnimParams(api_name, repeat, direction);
@@ -711,7 +709,7 @@ void Object_DoMove(ScriptObject *objj, const char *api_name, void *path_arr, int
             debug_script_warn("%s: path is null, or failed to resolve array of points", api_name);
             return;
         }
-        move_object(objj->id, &path, 0, 0, speed, ignwal != 0, RunPathParams(repeat, direction == 0));
+        move_object(objj->id, &path, 0, 0, speed, ignwal != 0, RunPathParams(static_cast<AnimFlowStyle>(repeat), static_cast<AnimFlowDirection>(direction)));
     }
     else
     {
@@ -1059,7 +1057,7 @@ void update_object_scale(int objid)
     obj.zoom = zoom;
     obj.spr_width = game.SpriteInfos[obj.num].Width;
     obj.spr_height = game.SpriteInfos[obj.num].Height;
-    if (obj.cycling != 0)
+    if (obj.is_animating())
     {
         obj.spr_xoff = views[obj.view].loops[obj.loop].frames[obj.frame].xoffs;
         obj.spr_yoff = views[obj.view].loops[obj.loop].frames[obj.frame].yoffs;
@@ -1165,10 +1163,10 @@ void ValidateAnimParams(const char *apiname, int &repeat, int &direction)
     else if (direction == BACKWARDS)
         direction = 1;
 
-    if ((repeat < ANIM_ONCE) || (repeat > ANIM_ONCERESET))
+    if ((repeat < kAnimFlow_First) || (repeat > kAnimFlow_Last))
     {
         debug_script_warn("%s: invalid 'repeat' value %d, will treat as REPEAT (1).", apiname, repeat);
-        repeat = ANIM_REPEAT;
+        repeat = kAnimFlow_Repeat;
     }
     if ((direction < 0) || (direction > 1))
     {
@@ -1209,12 +1207,12 @@ void ValidateViewAnimVLF(const char *apiname, int view, int loop, int &sframe)
     sframe = std::max(0, std::min(sframe, views[view].loops[loop].numFrames - 1));
 }
 
-int SetFirstAnimFrame(int view, int loop, int sframe, int direction)
+int SetFirstAnimFrame(int view, int loop, int sframe, AnimFlowDirection dir)
 {
     if (views[view].loops[loop].numFrames <= 1)
         return 0;
     // reverse animation starts at the *previous frame*
-    if (direction != 0)
+    if (dir == kAnimDirBackward)
     {
         sframe--;
         if (sframe < 0)
@@ -1224,18 +1222,20 @@ int SetFirstAnimFrame(int view, int loop, int sframe, int direction)
 }
 
 // General view animation algorithm: find next loop and frame, depending on anim settings
-bool CycleViewAnim(int view, uint16_t &o_loop, uint16_t &o_frame, bool forwards, int repeat)
+bool CycleViewAnim(int view, uint16_t &o_loop, uint16_t &o_frame, const AnimFlowParams &anim_params)
 {
     // Allow multi-loop repeat: idk why, but original engine behavior
     // was to only check this for forward animation, not backward
-    const bool multi_loop_repeat = !forwards || (play.no_multiloop_repeat == 0);
+    const bool multi_loop_repeat = (play.no_multiloop_repeat == 0);
 
     ViewStruct *aview = &views[view];
     uint16_t loop = o_loop;
     uint16_t frame = o_frame;
+    const bool forward = anim_params.IsForward();
+    const AnimFlowStyle flow = anim_params.Flow;
     bool done = false;
     
-    if (forwards)
+    if (forward)
     {
         if (frame + 1 >= aview->loops[loop].numFrames)
         { // Reached the last frame in the loop, find out what to do next
@@ -1249,7 +1249,7 @@ bool CycleViewAnim(int view, uint16_t &o_loop, uint16_t &o_frame, bool forwards,
             {
                 // If either ANIM_REPEAT or ANIM_ONCERESET:
                 // reset to the beginning of a multiloop animation
-                if (repeat != ANIM_ONCE)
+                if (flow != kAnimFlow_Once)
                 {
                     frame = 0;
                     if (multi_loop_repeat)
@@ -1261,7 +1261,7 @@ bool CycleViewAnim(int view, uint16_t &o_loop, uint16_t &o_frame, bool forwards,
                     frame = aview->loops[loop].numFrames - 1;
                 }
 
-                if (repeat != ANIM_REPEAT) // either ANIM_ONCE or ANIM_ONCERESET
+                if (flow != kAnimFlow_Repeat) // either ANIM_ONCE or ANIM_ONCERESET
                     done = true; // finished animation
             }
         }
@@ -1282,7 +1282,7 @@ bool CycleViewAnim(int view, uint16_t &o_loop, uint16_t &o_frame, bool forwards,
             {
                 // If either ANIM_REPEAT or ANIM_ONCERESET:
                 // reset to the beginning of a multiloop animation
-                if (repeat != ANIM_ONCE)
+                if (flow != kAnimFlow_Once)
                 {
                     if (multi_loop_repeat)
                         while (aview->loops[loop].RunNextLoop())
@@ -1294,7 +1294,7 @@ bool CycleViewAnim(int view, uint16_t &o_loop, uint16_t &o_frame, bool forwards,
                     frame = 0;
                 }
 
-                if (repeat != ANIM_REPEAT) // either ANIM_ONCE or ANIM_ONCERESET
+                if (flow != kAnimFlow_Repeat) // either ANIM_ONCE or ANIM_ONCERESET
                     done = true; // finished animation
             }
         }

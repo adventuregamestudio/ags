@@ -54,6 +54,8 @@ void Button_Animate(GUIButton *butt, int view, int loop, int speed, int repeat,
     view--; // convert to internal 0-based view ID
     ValidateViewAnimVLF("Button.Animate", view, loop, sframe);
     ValidateViewAnimParams("Button.Animate", blocking, repeat, direction);
+    // For now clamp to supported flow modes
+    repeat = (repeat == kAnimFlow_Repeat) ? kAnimFlow_Repeat : kAnimFlow_Once;
 
     volume = Math::Clamp(volume, 0, 100);
 
@@ -67,13 +69,9 @@ void Button_Animate(GUIButton *butt, int view, int loop, int speed, int repeat,
     abtn.buttonid = but_id;
     abtn.view = view;
     abtn.loop = loop;
-    abtn.speed = speed;
-    abtn.repeat = (repeat != 0) ? ANIM_REPEAT : ANIM_ONCE; // for now, clamp to supported modes
-    abtn.blocking = blocking;
-    abtn.direction = direction;
-    abtn.frame = SetFirstAnimFrame(view, loop, sframe, direction);
-    abtn.wait = abtn.speed + views[abtn.view].loops[abtn.loop].frames[abtn.frame].speed;
-    abtn.volume = volume;
+    abtn.anim = ViewAnimateParams(static_cast<AnimFlowStyle>(repeat), static_cast<AnimFlowDirection>(direction), speed, volume);
+    abtn.frame = SetFirstAnimFrame(view, loop, sframe, static_cast<AnimFlowDirection>(direction));
+    abtn.wait = abtn.anim.Delay + views[abtn.view].loops[abtn.loop].frames[abtn.frame].speed;
     animbuts.push_back(abtn);
     // launch into the first frame, and play the first frame's sound
     UpdateButtonState(abtn);
@@ -230,10 +228,10 @@ bool UpdateAnimatingButton(int bu)
         abtn.wait--;
         return true;
     }
-    if (!CycleViewAnim(abtn.view, abtn.loop, abtn.frame, !abtn.direction, abtn.repeat))
+    if (!CycleViewAnim(abtn.view, abtn.loop, abtn.frame, abtn.anim))
         return false;
-    CheckViewFrame(abtn.view, abtn.loop, abtn.frame, abtn.volume);
-    abtn.wait = abtn.speed + views[abtn.view].loops[abtn.loop].frames[abtn.frame].speed;
+    CheckViewFrame(abtn.view, abtn.loop, abtn.frame, abtn.anim.AudioVolume);
+    abtn.wait = abtn.anim.Delay + views[abtn.view].loops[abtn.loop].frames[abtn.frame].speed;
     UpdateButtonState(abtn);
     return true;
 }

@@ -152,21 +152,87 @@ enum ScriptFileSortStyle
     kScFileSort_Time = 2, // by last write time
 };
 
-// Defines animation parameters; where "animation" may be any continuous action.
-// TODO: move to a more common header, should be shared among everything that animates.
-struct AnimateParams
+// Animation flow mode
+// NOTE: the constant values correspond to the script's RepeatStyle
+enum AnimFlowStyle
 {
-    // TODO: replace ints and bools with enums
-    int Repeat = ANIM_ONCE; // repeat mode
-    bool Forward = true;
+    // For non-initialized animation object
+    kAnimFlow_None = -1,
+    // Animates once and stops at the *last* frame
+    kAnimFlow_Once = 0,
+    // Animates infinitely, wrapping from the last frame to the first frame
+    kAnimFlow_Repeat = 1,
+    // Animates once and stops, resetting to the very first frame
+    kAnimFlow_OnceReset = 2,
 
-    AnimateParams() = default;
-    AnimateParams(int repeat, bool forward)
-        : Repeat(repeat), Forward(forward) {}
+    kAnimFlow_First = kAnimFlow_Once,
+    kAnimFlow_Last = kAnimFlow_OnceReset
+};
+
+// Animation direction (current direction)
+enum AnimFlowDirection
+{
+    kAnimDirForward = 0,
+    kAnimDirBackward = 1
+};
+
+// Defines basic animation parameters; where "animation" may be any continuous action.
+struct AnimFlowParams
+{
+    AnimFlowStyle Flow = kAnimFlow_None;
+    AnimFlowDirection Direction = kAnimDirForward;
+
+    AnimFlowParams() = default;
+    AnimFlowParams(AnimFlowStyle flow, AnimFlowDirection dir)
+        : Flow(flow), Direction(dir) {}
+
+    inline bool IsValid() const { return Flow != kAnimFlow_None; }
+    inline bool IsRepeating() const
+    {
+        switch (Flow)
+        {
+        case kAnimFlow_Repeat: return true;
+        default: return false;
+        }
+    }
+    inline bool IsForward() const { return Direction == kAnimDirForward; }
 };
 
 // RunPathParams is an alias used for clarity of purpose
-typedef AnimateParams RunPathParams;
+typedef AnimFlowParams RunPathParams;
+
+// View animation parameters;
+// define how the individual view-frame animation should be running
+//
+// TODO: I suggest remaking this into a parent class for objects that
+// do view animations, e.g. a ViewBasedObject class, and inherit runtime
+// Character, RoomObject and AnimatedButton from this. The only thing
+// that prevented from doing this is that CharacterInfo in Common contains
+// view/loop/frame fields, and it would require a bigger code adjustment
+// in order to move these into a runtime character class (like CharacterExtras at the time).
+// When we have a base class, SetFirstAnimFrame() and CycleViewAnim()
+// functions naturally become its methods (probably renamed).
+struct ViewAnimateParams : public AnimFlowParams
+{
+    // General frame delay for this animation
+    int Delay = 0;
+    // Volume of the frame-linked sounds (relative factor)
+    int AudioVolume = 100;
+
+    ViewAnimateParams() = default;
+    ViewAnimateParams(AnimFlowStyle flow, AnimFlowDirection dir, int delay, int avolume)
+        : AnimFlowParams(flow, dir)
+        , Delay(delay)
+        , AudioVolume(avolume)
+    {
+    }
+    ViewAnimateParams(const AnimFlowParams &flow_params, int delay, int avolume)
+        : AnimFlowParams(flow_params)
+        , Delay(delay)
+        , AudioVolume(avolume)
+    {
+    }
+};
 
 // Script API SaveGameSortStyle
 enum ScriptSaveGameSortStyle

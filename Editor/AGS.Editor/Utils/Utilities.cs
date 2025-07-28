@@ -711,21 +711,28 @@ namespace AGS.Editor
 
                 if (child is Label)
                 {
-                    if (child.Right > parentControl.ClientRectangle.Right)
-                    {
-                        //System.Diagnostics.Trace.WriteLine("Control: " + child.ToString() + " X: " + child.Left + "  ParentRight: " + parentControl.ClientRectangle.Right);
-                        //System.Diagnostics.Trace.WriteLine("MaxSize was: " + child.MaximumSize.ToString() + "; size was: " + child.Size.ToString());
-                        if (child.MaximumSize.Width > 0)
-                        {
-                            child.MaximumSize = new Size(parentControl.ClientRectangle.Right - child.Left - 10, 0);
-                        }
-                        else
-                        {
-                            child.Size = new Size(parentControl.ClientRectangle.Right - child.Left - 10, child.Height);
-                        }
-                        //System.Diagnostics.Trace.WriteLine("MaxSize now: " + child.MaximumSize.ToString() + "; size now: " + child.Size.ToString());
-                    }
+                    CheckControlWidthOnForm(child);
                 }
+            }
+        }
+
+        public static void CheckControlWidthOnForm(Control control, int padding = 10)
+        {
+            Control parentControl = control.Parent;
+            padding = Math.Max(padding, parentControl.Padding.Right);
+            if (control.Right > parentControl.ClientRectangle.Right)
+            {
+                //System.Diagnostics.Trace.WriteLine("Control: " + child.ToString() + " X: " + child.Left + "  ParentRight: " + parentControl.ClientRectangle.Right);
+                //System.Diagnostics.Trace.WriteLine("MaxSize was: " + child.MaximumSize.ToString() + "; size was: " + child.Size.ToString());
+                if (control.MaximumSize.Width > 0)
+                {
+                    control.MaximumSize = new Size(parentControl.ClientRectangle.Right - control.Left - padding, 0);
+                }
+                else
+                {
+                    control.Size = new Size(parentControl.ClientRectangle.Right - control.Left - padding, control.Height);
+                }
+                //System.Diagnostics.Trace.WriteLine("MaxSize now: " + child.MaximumSize.ToString() + "; size now: " + child.Size.ToString());
             }
         }
 

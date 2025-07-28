@@ -33,6 +33,8 @@ namespace AGS.Editor
             this.richDescription = new System.Windows.Forms.RichTextBox();
             this.lblBackupLocation = new System.Windows.Forms.Label();
             this.chkBackup = new System.Windows.Forms.CheckBox();
+            this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
+            this.tableLayoutPanel1.SuspendLayout();
             this.SuspendLayout();
             // 
             // richDescription
@@ -40,7 +42,7 @@ namespace AGS.Editor
             this.richDescription.BackColor = System.Drawing.SystemColors.Control;
             this.richDescription.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.richDescription.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.richDescription.Location = new System.Drawing.Point(16, 16);
+            this.richDescription.Location = new System.Drawing.Point(3, 3);
             this.richDescription.Name = "richDescription";
             this.richDescription.ReadOnly = true;
             this.richDescription.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.None;
@@ -51,7 +53,7 @@ namespace AGS.Editor
             // lblBackupLocation
             // 
             this.lblBackupLocation.AutoSize = true;
-            this.lblBackupLocation.Location = new System.Drawing.Point(14, 244);
+            this.lblBackupLocation.Location = new System.Drawing.Point(3, 223);
             this.lblBackupLocation.Name = "lblBackupLocation";
             this.lblBackupLocation.Size = new System.Drawing.Size(35, 13);
             this.lblBackupLocation.TabIndex = 5;
@@ -62,7 +64,7 @@ namespace AGS.Editor
             this.chkBackup.AutoSize = true;
             this.chkBackup.Checked = true;
             this.chkBackup.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkBackup.Location = new System.Drawing.Point(16, 217);
+            this.chkBackup.Location = new System.Drawing.Point(3, 203);
             this.chkBackup.Name = "chkBackup";
             this.chkBackup.Size = new System.Drawing.Size(208, 17);
             this.chkBackup.TabIndex = 4;
@@ -70,19 +72,36 @@ namespace AGS.Editor
             this.chkBackup.UseVisualStyleBackColor = true;
             this.chkBackup.CheckedChanged += new System.EventHandler(this.chkBackup_CheckedChanged);
             // 
+            // tableLayoutPanel1
+            // 
+            this.tableLayoutPanel1.ColumnCount = 1;
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.tableLayoutPanel1.Controls.Add(this.richDescription, 0, 0);
+            this.tableLayoutPanel1.Controls.Add(this.lblBackupLocation, 0, 3);
+            this.tableLayoutPanel1.Controls.Add(this.chkBackup, 0, 2);
+            this.tableLayoutPanel1.Location = new System.Drawing.Point(16, 16);
+            this.tableLayoutPanel1.Name = "tableLayoutPanel1";
+            this.tableLayoutPanel1.RowCount = 4;
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 10F));
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(572, 340);
+            this.tableLayoutPanel1.TabIndex = 6;
+            // 
             // UpgradeGameIntroPage
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.Controls.Add(this.lblBackupLocation);
-            this.Controls.Add(this.chkBackup);
-            this.Controls.Add(this.richDescription);
+            this.Controls.Add(this.tableLayoutPanel1);
+            this.MinimumSize = new System.Drawing.Size(640, 320);
             this.Name = "UpgradeGameIntroPage";
             this.Padding = new System.Windows.Forms.Padding(13);
-            this.Size = new System.Drawing.Size(1398, 628);
+            this.Size = new System.Drawing.Size(1358, 790);
             this.Load += new System.EventHandler(this.UpgradeGameIntroPage_Load);
+            this.tableLayoutPanel1.ResumeLayout(false);
+            this.tableLayoutPanel1.PerformLayout();
             this.ResumeLayout(false);
-            this.PerformLayout();
 
         }
 
@@ -91,5 +110,6 @@ namespace AGS.Editor
         private System.Windows.Forms.RichTextBox richDescription;
         private System.Windows.Forms.Label lblBackupLocation;
         private System.Windows.Forms.CheckBox chkBackup;
+        private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
     }
 }

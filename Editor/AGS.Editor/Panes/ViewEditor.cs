@@ -307,15 +307,34 @@ namespace AGS.Editor
             }
         }
 
-        private void OnCopyFrames(object sender, EventArgs e)
+        private void CopySelectedFrames()
         {
             _clipboard.CopiedFrames = _selectedFrames.Select(f => f.Clone()).ToArray();
         }
 
-        private void OnCutFrames(object sender, EventArgs e)
+        private void CutSelectedFrames()
         {
             _clipboard.CopiedFrames = _selectedFrames.Select(f => f.Clone()).ToArray();
             DeleteSelectedFrames();
+        }
+
+        private void PasteFramesIntoSelectedLoop()
+        {
+            if (_lastSelectedLoop < 0 || _lastSelectedFrame < 0)
+                return; // none selected yet
+
+            ViewLoopEditor lastPane = _loopPanes[_lastSelectedLoop];
+            lastPane.PasteFrames(after: true);
+        }
+
+        private void OnCopyFrames(object sender, EventArgs e)
+        {
+            CopySelectedFrames();
+        }
+
+        private void OnCutFrames(object sender, EventArgs e)
+        {
+            CutSelectedFrames();
         }
 
         private void ContextMenuEventHandler(object sender, EventArgs e)
@@ -468,6 +487,18 @@ namespace AGS.Editor
             else if (keyData == Keys.R)
             {
                 ReverseSelectedFrames();
+            }
+            else if (keyData == (Keys.Control | Keys.C))
+            {
+                CopySelectedFrames();
+            }
+            else if (keyData == (Keys.Control | Keys.X))
+            {
+                CutSelectedFrames();
+            }
+            else if (keyData == (Keys.Control | Keys.V))
+            {
+                PasteFramesIntoSelectedLoop();
             }
         }
 

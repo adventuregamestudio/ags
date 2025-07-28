@@ -489,7 +489,7 @@ namespace AGS.Editor
             }
         }
 
-        private void OnCopyFrames(object sender, EventArgs e)
+        public void CopyFrames()
         {
             List<ViewFrame> frames = new List<ViewFrame>();
             foreach (var i in _selectedFrames)
@@ -497,22 +497,44 @@ namespace AGS.Editor
             _clipboard.CopiedFrames = frames.ToArray();
         }
 
+        public void CutFrames()
+        {
+            CopyFrames();
+            DeleteSelectedFrames();
+        }
+
+        public void PasteFrames(bool after)
+        {
+            if (after)
+            {
+                int selectedFrame = _selectedFrames.Count > 0 ? _selectedFrames[_selectedFrames.Count - 1] : -1;
+                InsertNewFrames(selectedFrame, _clipboard.CopiedFrames.Select(f => f.Clone()).ToArray(), areBlankFrames: false);
+            }
+            else
+            {
+                int selectedFrame = _selectedFrames.Count > 0 ? _selectedFrames[0] : 0;
+                InsertNewFrames(selectedFrame - 1, _clipboard.CopiedFrames.Select(f => f.Clone()).ToArray(), areBlankFrames: false);
+            }
+        }
+
+        private void OnCopyFrames(object sender, EventArgs e)
+        {
+            CopyFrames();
+        }
+
         private void OnCutFrames(object sender, EventArgs e)
         {
-            OnCopyFrames(sender, e);
-            DeleteSelectedFrames();
+            CutFrames();
         }
 
         private void OnPasteFramesBefore(object sender, EventArgs e)
         {
-            int selectedFrame = _selectedFrames.Count > 0 ? _selectedFrames[0] : 0;
-            InsertNewFrames(selectedFrame - 1, _clipboard.CopiedFrames.Select(f => f.Clone()).ToArray(), areBlankFrames: false);
+            PasteFrames(after: false);
         }
 
         private void OnPasteFramesAfter(object sender, EventArgs e)
         {
-            int selectedFrame = _selectedFrames.Count > 0 ? _selectedFrames[_selectedFrames.Count - 1] : -1;
-            InsertNewFrames(selectedFrame, _clipboard.CopiedFrames.Select(f => f.Clone()).ToArray(), areBlankFrames: false);
+            PasteFrames(after: true);
         }
 
         private void OnReverseFrames(object sender, EventArgs e)

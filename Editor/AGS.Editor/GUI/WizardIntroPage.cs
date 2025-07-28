@@ -27,7 +27,6 @@ namespace AGS.Editor
 
             lblTitle.Text = "Welcome to the " + wizardName + " Wizard";
             lblIntroText.Text = introText;
-            Utilities.CheckLabelWidthsOnForm(this);
         }
     }
 }

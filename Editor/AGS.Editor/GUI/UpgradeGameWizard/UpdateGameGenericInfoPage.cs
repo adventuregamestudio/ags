@@ -36,9 +36,10 @@ namespace AGS.Editor
             // UpdateGameGenericInfoPage
             // 
             this.Controls.Add(this.richDescription);
+            this.MinimumSize = new System.Drawing.Size(640, 320);
             this.Name = "UpdateGameGenericInfoPage";
             this.Padding = new System.Windows.Forms.Padding(13);
-            this.Size = new System.Drawing.Size(1398, 628);
+            this.Size = new System.Drawing.Size(1358, 790);
             this.ResumeLayout(false);
 
         }

@@ -30,7 +30,7 @@ namespace AGS.Editor
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(UpgradeGameIntroPage));
-            this.richDescription = new System.Windows.Forms.RichTextBox();
+            this.richDescription = new AGS.Controls.ReadOnlyRichTextBox();
             this.lblBackupLocation = new System.Windows.Forms.Label();
             this.chkBackup = new System.Windows.Forms.CheckBox();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
@@ -41,10 +41,10 @@ namespace AGS.Editor
             // 
             this.richDescription.BackColor = System.Drawing.SystemColors.Control;
             this.richDescription.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.richDescription.Cursor = System.Windows.Forms.Cursors.Default;
             this.richDescription.ImeMode = System.Windows.Forms.ImeMode.NoControl;
             this.richDescription.Location = new System.Drawing.Point(3, 3);
             this.richDescription.Name = "richDescription";
-            this.richDescription.ReadOnly = true;
             this.richDescription.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.None;
             this.richDescription.Size = new System.Drawing.Size(515, 184);
             this.richDescription.TabIndex = 0;
@@ -97,8 +97,9 @@ namespace AGS.Editor
             this.MinimumSize = new System.Drawing.Size(640, 320);
             this.Name = "UpgradeGameIntroPage";
             this.Padding = new System.Windows.Forms.Padding(13);
-            this.Size = new System.Drawing.Size(1358, 790);
+            this.Size = new System.Drawing.Size(1358, 677);
             this.Load += new System.EventHandler(this.UpgradeGameIntroPage_Load);
+            this.VisibleChanged += new System.EventHandler(this.UpgradeGameIntroPage_VisibleChanged);
             this.tableLayoutPanel1.ResumeLayout(false);
             this.tableLayoutPanel1.PerformLayout();
             this.ResumeLayout(false);
@@ -107,7 +108,7 @@ namespace AGS.Editor
 
         #endregion
 
-        private System.Windows.Forms.RichTextBox richDescription;
+        private AGS.Controls.ReadOnlyRichTextBox richDescription;
         private System.Windows.Forms.Label lblBackupLocation;
         private System.Windows.Forms.CheckBox chkBackup;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;

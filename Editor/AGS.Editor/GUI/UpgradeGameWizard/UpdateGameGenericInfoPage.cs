@@ -5,7 +5,7 @@ namespace AGS.Editor
 {
     public class UpdateGameGenericInfoPage : UpgradeGameWizardPage
     {
-        private System.Windows.Forms.RichTextBox richDescription;
+        private AGS.Controls.ReadOnlyRichTextBox richDescription;
 
         public UpdateGameGenericInfoPage(Game game, IUpgradeGameTask task)
             : base(game, task)
@@ -17,17 +17,17 @@ namespace AGS.Editor
 
         private void InitializeComponent()
         {
-            this.richDescription = new System.Windows.Forms.RichTextBox();
+            this.richDescription = new AGS.Controls.ReadOnlyRichTextBox();
             this.SuspendLayout();
             // 
             // richDescription
             // 
             this.richDescription.BackColor = System.Drawing.SystemColors.Control;
             this.richDescription.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.richDescription.Cursor = System.Windows.Forms.Cursors.Default;
             this.richDescription.ImeMode = System.Windows.Forms.ImeMode.NoControl;
             this.richDescription.Location = new System.Drawing.Point(16, 16);
             this.richDescription.Name = "richDescription";
-            this.richDescription.ReadOnly = true;
             this.richDescription.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.None;
             this.richDescription.Size = new System.Drawing.Size(516, 262);
             this.richDescription.TabIndex = 1;
@@ -39,7 +39,7 @@ namespace AGS.Editor
             this.MinimumSize = new System.Drawing.Size(640, 320);
             this.Name = "UpdateGameGenericInfoPage";
             this.Padding = new System.Windows.Forms.Padding(13);
-            this.Size = new System.Drawing.Size(1358, 790);
+            this.Size = new System.Drawing.Size(1358, 677);
             this.ResumeLayout(false);
 
         }

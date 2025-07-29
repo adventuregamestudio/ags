@@ -32,7 +32,7 @@ struct ViewFrame
     ViewFrame() = default;
 
     void ReadFromFile(Common::Stream *in);
-    void WriteToFile(Common::Stream *out);
+    void WriteToFile(Common::Stream *out) const;
 };
 
 #define LOOPFLAG_RUNNEXTLOOP 1
@@ -49,10 +49,11 @@ struct ViewLoopNew
     ViewLoopNew();
     void Initialize(int frameCount);
     void Dispose();
-    bool RunNextLoop();
-    void WriteToFile(Common::Stream *out);
+    // Tells if this loop has a "Run next loop after this" flag
+    bool RunNextLoop() const;
+    void WriteToFile(Common::Stream *out) const;
     void ReadFromFile(Common::Stream *in);
-    void WriteFrames(Common::Stream *out);
+    void WriteFrames(Common::Stream *out) const;
     void ReadFrames(Common::Stream *in);
 };
 
@@ -64,7 +65,7 @@ struct ViewStruct
     ViewStruct();
     void Initialize(int loopCount);
     void Dispose();
-    void WriteToFile(Common::Stream *out);
+    void WriteToFile(Common::Stream *out) const;
     void ReadFromFile(Common::Stream *in);
 };
 

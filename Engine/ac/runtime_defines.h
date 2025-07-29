@@ -186,11 +186,14 @@ enum AnimFlowDirection
 struct AnimFlowParams
 {
     AnimFlowStyle Flow = kAnimFlow_None;
+    AnimFlowDirection InitialDirection = kAnimDirForward;
     AnimFlowDirection Direction = kAnimDirForward;
 
     AnimFlowParams() = default;
     AnimFlowParams(AnimFlowStyle flow, AnimFlowDirection dir)
-        : Flow(flow), Direction(dir) {}
+        : Flow(flow), InitialDirection(dir), Direction(dir) {}
+    AnimFlowParams(AnimFlowStyle flow, AnimFlowDirection init_dir, AnimFlowDirection cur_dir)
+        : Flow(flow), InitialDirection(init_dir), Direction(cur_dir) {}
 
     inline bool IsValid() const { return Flow != kAnimFlow_None; }
     inline bool IsRepeating() const
@@ -228,6 +231,12 @@ struct ViewAnimateParams : public AnimFlowParams
     ViewAnimateParams() = default;
     ViewAnimateParams(AnimFlowStyle flow, AnimFlowDirection dir, int delay, int avolume)
         : AnimFlowParams(flow, dir)
+        , Delay(delay)
+        , AudioVolume(avolume)
+    {
+    }
+    ViewAnimateParams(AnimFlowStyle flow, AnimFlowDirection init_dir, AnimFlowDirection cur_dir, int delay, int avolume)
+        : AnimFlowParams(flow, init_dir, cur_dir)
         , Delay(delay)
         , AudioVolume(avolume)
     {

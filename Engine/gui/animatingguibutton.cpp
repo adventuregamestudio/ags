@@ -25,34 +25,49 @@ void AnimatingGUIButton::ReadFromSavegame(Stream *in, int cmp_ver)
     view = in->ReadInt16();
     loop = in->ReadInt16();
     frame = in->ReadInt16();
-    int anim_delay = in->ReadInt16();
-    int anim_flow = kAnimFlow_None;
-    int anim_dir = kAnimDirForward;
+
+    int anim_delay = 0;
+    AnimFlowStyle anim_flow = kAnimFlow_None;
+    AnimFlowDirection anim_dir_initial = kAnimDirForward;
+    AnimFlowDirection anim_dir_current = kAnimDirForward;
     int anim_volume = 0;
+
     if (cmp_ver < kGuiSvgVersion_40020)
     {
+        // Older saves, pre 4.0.0.20
+        anim_delay = in->ReadInt16();
         uint16_t anim_flags = in->ReadInt16(); // was repeat (0,1)
-        if (cmp_ver < kGuiSvgVersion_36020) anim_flags &= 0x1; // restrict to repeat only
+        wait = in->ReadInt16();
+        if (cmp_ver >= kGuiSvgVersion_36025)
+        {
+            anim_volume = in->ReadInt8();
+            in->ReadInt8(); // reserved to fill int32
+            in->ReadInt8();
+            in->ReadInt8();
+        }
+
+        if (cmp_ver < kGuiSvgVersion_36020)
+            anim_flags &= 0x1; // restrict to repeat only
         anim_flow = (anim_flags & 0x1) ? kAnimFlow_Repeat : kAnimFlow_Once;
-        anim_dir = static_cast<AnimFlowDirection>((anim_flags >> 2) & 0x1);
+        anim_dir_initial = static_cast<AnimFlowDirection>((anim_flags >> 2) & 0x1);
+        anim_dir_current = anim_dir_initial;
     }
     else
     {
+        // Newer saves, since 4.0.0.20
         anim_flow = static_cast<AnimFlowStyle>(in->ReadInt8());
-        anim_dir = static_cast<AnimFlowDirection>(in->ReadInt8());
-    }
-    
-    wait = in->ReadInt16();
-
-    if (cmp_ver >= kGuiSvgVersion_36025)
-    {
+        anim_dir_initial = static_cast<AnimFlowDirection>(in->ReadInt8());
+        anim_dir_current = static_cast<AnimFlowDirection>(in->ReadInt8());
+        in->ReadInt8(); // reserved to fill int32
+        anim_delay = in->ReadInt16();
+        wait = in->ReadInt16();
         anim_volume = in->ReadInt8();
         in->ReadInt8(); // reserved to fill int32
         in->ReadInt8();
         in->ReadInt8();
     }
 
-    anim = ViewAnimateParams(static_cast<AnimFlowStyle>(anim_flow), static_cast<AnimFlowDirection>(anim_dir), anim_delay, anim_volume);
+    anim = ViewAnimateParams(anim_flow, anim_dir_initial, anim_dir_current, anim_delay, anim_volume);
 }
 
 void AnimatingGUIButton::WriteToSavegame(Stream *out)
@@ -63,9 +78,11 @@ void AnimatingGUIButton::WriteToSavegame(Stream *out)
     out->WriteInt16(view);
     out->WriteInt16(loop);
     out->WriteInt16(frame);
-    out->WriteInt16(anim.Delay);
     out->WriteInt8(anim.Flow);
+    out->WriteInt8(anim.InitialDirection);
     out->WriteInt8(anim.Direction);
+    out->WriteInt8(0); // reserved to fill int32
+    out->WriteInt16(anim.Delay);
     out->WriteInt16(wait);
     out->WriteInt8(static_cast<uint8_t>(anim.AudioVolume));
     out->WriteInt8(0); // reserved to fill int32

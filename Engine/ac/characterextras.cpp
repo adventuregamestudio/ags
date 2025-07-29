@@ -160,7 +160,8 @@ void CharacterExtras::ReadFromSavegame(Stream *in, CharacterSvgVersion save_ver)
     }
 
     AnimFlowStyle anim_flow = kAnimFlow_None;
-    AnimFlowDirection anim_dir = kAnimDirForward;
+    AnimFlowDirection anim_dir_initial = kAnimDirForward;
+    AnimFlowDirection anim_dir_current = kAnimDirForward;
     int anim_delay = 0;
     if (save_ver >= kCharSvgVersion_400_18)
     {
@@ -168,9 +169,11 @@ void CharacterExtras::ReadFromSavegame(Stream *in, CharacterSvgVersion save_ver)
         shader_handle = in->ReadInt32();
         // new anim fields are valid since kCharSvgVersion_400_20
         anim_flow = static_cast<AnimFlowStyle>(in->ReadInt8());
-        anim_dir = static_cast<AnimFlowDirection>(in->ReadInt8());
+        anim_dir_initial = static_cast<AnimFlowDirection>(in->ReadInt8());
+        anim_dir_current = static_cast<AnimFlowDirection>(in->ReadInt8());
+        in->ReadInt8(); // reserved to fill int32
         anim_delay = in->ReadInt16();
-        in->ReadInt32(); // reserved
+        in->ReadInt16(); // reserved to fill int32
     }
     else
     {
@@ -180,7 +183,7 @@ void CharacterExtras::ReadFromSavegame(Stream *in, CharacterSvgVersion save_ver)
 
     // NOTE: the legacy animating fields from old save fmt are applied externally,
     // because they are loaded into deprecated CharacterInfo fields
-    anim = ViewAnimateParams(anim_flow, anim_dir, anim_delay, cur_anim_volume);
+    anim = ViewAnimateParams(anim_flow, anim_dir_initial, anim_dir_current, anim_delay, cur_anim_volume);
 }
 
 void CharacterExtras::WriteToSavegame(Stream *out) const
@@ -233,6 +236,11 @@ void CharacterExtras::WriteToSavegame(Stream *out) const
     // -- kCharSvgVersion_400_18
     out->WriteInt32(shader_id);
     out->WriteInt32(shader_handle);
-    out->WriteInt32(0); // reserved
-    out->WriteInt32(0);
+    // new anim fields are valid since kCharSvgVersion_400_20
+    out->WriteInt8(anim.Flow);
+    out->WriteInt8(anim.InitialDirection);
+    out->WriteInt8(anim.Direction);
+    out->WriteInt8(0); // reserved to fill int32
+    out->WriteInt16(anim.Delay);
+    out->WriteInt16(0); // reserved to fill int32
 }

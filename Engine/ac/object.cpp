@@ -1322,10 +1322,15 @@ bool CycleViewAnim(int view, uint16_t &o_loop, uint16_t &o_frame, AnimFlowParams
             is_done = true;
             break;
         case kAnimFlow_OnceAndBack:
+            // Test if we've already back, in which case stop
+            if (anim_params.Direction != anim_params.InitialDirection)
+            {
+                is_done = true;
+                break;
+            }
             // Backtrack one frame back (if possible)
             CycleNextFrame(aview, loop, frame, !forward);
-            // Switch to Once, change direction and *continue*
-            anim_params.Flow = kAnimFlow_Once;
+            // Change direction and *continue*
             anim_params.Direction = forward ? kAnimDirBackward : kAnimDirForward;
             break;
         case kAnimFlow_Repeat:

@@ -220,16 +220,19 @@ void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
     }
 
     AnimFlowStyle anim_flow = kAnimFlow_None;
-    AnimFlowDirection anim_dir = kAnimDirForward;
+    AnimFlowDirection anim_dir_initial = kAnimDirForward;
+    AnimFlowDirection anim_dir_current = kAnimDirForward;
     if (cmp_ver >= kRoomStatSvgVersion_40018)
     {
         shader_id = in->ReadInt32();
         shader_handle = in->ReadInt32();
         // new anim fields are valid since kRoomStatSvgVersion_40020
         anim_flow = static_cast<AnimFlowStyle>(in->ReadInt8());
-        anim_dir = static_cast<AnimFlowDirection>(in->ReadInt8());
+        anim_dir_initial = static_cast<AnimFlowDirection>(in->ReadInt8());
+        anim_dir_current = static_cast<AnimFlowDirection>(in->ReadInt8());
+        in->ReadInt8(); // reserved to fill int32
         anim_delay = in->ReadInt16();
-        in->ReadInt32(); // reserved
+        in->ReadInt16(); // reserved to fill int32
     }
     else
     {
@@ -247,11 +250,11 @@ void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
         case LEGACY_OBJANIM_ONCERESET: anim_flow = kAnimFlow_OnceReset; break;
         default: anim_flow = kAnimFlow_None; break;
         }
-        anim_dir = legacy_animating < 10 ? kAnimDirForward : kAnimDirBackward;
-        anim = ViewAnimateParams(anim_flow, anim_dir, anim_delay, cur_anim_volume);
+        anim_dir_initial = legacy_animating < 10 ? kAnimDirForward : kAnimDirBackward;
+        anim_dir_current = anim_dir_initial;
     }
 
-    anim = ViewAnimateParams(anim_flow, anim_dir, anim_delay, cur_anim_volume);
+    anim = ViewAnimateParams(anim_flow, anim_dir_initial, anim_dir_current, anim_delay, cur_anim_volume);
     spr_width = width;
     spr_height = height;
     UpdateGraphicSpace();
@@ -313,8 +316,13 @@ void RoomObject::WriteToSavegame(Stream *out) const
     // kRoomStatSvgVersion_40018
     out->WriteInt32(shader_id);
     out->WriteInt32(shader_handle);
-    out->WriteInt32(0); // reserve
-    out->WriteInt32(0);
+    // new anim fields are valid since kCharSvgVersion_400_20
+    out->WriteInt8(anim.Flow);
+    out->WriteInt8(anim.InitialDirection);
+    out->WriteInt8(anim.Direction);
+    out->WriteInt8(0); // reserved to fill int32
+    out->WriteInt16(anim.Delay);
+    out->WriteInt16(0); // reserved to fill int32
 }
 
 void RoomObject::UpdateGraphicSpace()

@@ -161,7 +161,10 @@ enum RoundDirection {
 
 enum RepeatStyle {
   eOnce = 0,
-  eRepeat = 1
+  eRepeat = 1,
+  eOnceReset = 2,
+  eOnceAndBack = 3,
+  eRepeatAlternate = 4
 };
 
 #ifdef SCRIPT_API_v350

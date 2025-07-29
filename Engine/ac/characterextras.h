@@ -101,7 +101,9 @@ public:
     bool IsAnimating() const { return anim.IsValid(); }
     bool IsAnimatingRepeatedly() const { return anim.IsRepeating(); }
     int  GetAnimDelay() const { return anim.Delay; }
-    const ViewAnimateParams &GetAnimParams() const { return anim; }
+    // NOTE: has to return non-const for CycleViewAnim :/
+    // this may be solved by having a base class that handles animation, e.g. ViewBasedObject
+    ViewAnimateParams &GetAnimParams() { return anim; }
     void SetAnimating(AnimFlowStyle flow, AnimFlowDirection dir, int delay, int anim_volume = 100);
     void ResetAnimating();
 

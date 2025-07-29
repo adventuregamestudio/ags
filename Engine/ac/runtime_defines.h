@@ -164,9 +164,15 @@ enum AnimFlowStyle
     kAnimFlow_Repeat = 1,
     // Animates once and stops, resetting to the very first frame
     kAnimFlow_OnceReset = 2,
+    // Animates once in the starting direction, and another in reverse,
+    // stops at the first frame after returning back
+    kAnimFlow_OnceAndBack = 3,
+    // Animates infinitely, changing direction each time when reaching
+    // either last or first frame.
+    kAnimFlow_RepeatAlternate = 4,
 
     kAnimFlow_First = kAnimFlow_Once,
-    kAnimFlow_Last = kAnimFlow_OnceReset
+    kAnimFlow_Last = kAnimFlow_RepeatAlternate
 };
 
 // Animation direction (current direction)

@@ -1145,8 +1145,6 @@ static void Character_DoMove(CharacterInfo *chaa, const char *api_name,
 
     ValidateMoveParams(api_name, blocking, ignwal);
     ValidateAnimParams(api_name, repeat, direction);
-    // For now clamp to supported flow modes
-    repeat = (repeat == kAnimFlow_Repeat) ? kAnimFlow_Repeat : kAnimFlow_Once;
 
     if (use_path)
     {

@@ -54,8 +54,6 @@ void Button_Animate(GUIButton *butt, int view, int loop, int speed, int repeat,
     view--; // convert to internal 0-based view ID
     ValidateViewAnimVLF("Button.Animate", view, loop, sframe);
     ValidateViewAnimParams("Button.Animate", blocking, repeat, direction);
-    // For now clamp to supported flow modes
-    repeat = (repeat == kAnimFlow_Repeat) ? kAnimFlow_Repeat : kAnimFlow_Once;
 
     volume = Math::Clamp(volume, 0, 100);
 

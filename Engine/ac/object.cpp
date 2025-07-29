@@ -1165,13 +1165,13 @@ void ValidateAnimParams(const char *apiname, int &repeat, int &direction)
 
     if ((repeat < kAnimFlow_First) || (repeat > kAnimFlow_Last))
     {
-        debug_script_warn("%s: invalid 'repeat' value %d, will treat as REPEAT (1).", apiname, repeat);
-        repeat = kAnimFlow_Repeat;
+        debug_script_warn("%s: invalid 'repeat' value %d, will treat as ONCE (0).", apiname, repeat);
+        repeat = kAnimFlow_Once;
     }
     if ((direction < 0) || (direction > 1))
     {
-        debug_script_warn("%s: invalid 'direction' value %d, will treat as BACKWARDS (1)", apiname, direction);
-        direction = 1;
+        debug_script_warn("%s: invalid 'direction' value %d, will treat as FORWARDS (0)", apiname, direction);
+        direction = kAnimDirForward;
     }
 }
 
@@ -1222,7 +1222,7 @@ int SetFirstAnimFrame(int view, int loop, int sframe, AnimFlowDirection dir)
 }
 
 // General view animation algorithm: find next loop and frame, depending on anim settings
-bool CycleViewAnim(int view, uint16_t &o_loop, uint16_t &o_frame, const AnimFlowParams &anim_params)
+bool CycleViewAnim(int view, uint16_t &o_loop, uint16_t &o_frame, AnimFlowParams &anim_params)
 {
     // Allow multi-loop repeat: idk why, but original engine behavior
     // was to only check this for forward animation, not backward
@@ -1233,12 +1233,16 @@ bool CycleViewAnim(int view, uint16_t &o_loop, uint16_t &o_frame, const AnimFlow
     uint16_t frame = o_frame;
     const bool forward = anim_params.IsForward();
     const AnimFlowStyle flow = anim_params.Flow;
-    bool done = false;
-    
+    bool test_done = false;
+
+    // Test next frame (fw or bw), if we see that it is past the frame range,
+    // then decide to either stop anim or repeat, depending on flow style
     if (forward)
     {
         if (frame + 1 >= aview->loops[loop].numFrames)
-        { // Reached the last frame in the loop, find out what to do next
+        {
+            // Reached the last frame in the loop, find out what to do next
+            // First check if this is a multi-loop animation, which has more loops to go
             if (aview->loops[loop].RunNextLoop())
             {
                 // go to next loop
@@ -1247,31 +1251,51 @@ bool CycleViewAnim(int view, uint16_t &o_loop, uint16_t &o_frame, const AnimFlow
             }
             else
             {
-                // If either ANIM_REPEAT or ANIM_ONCERESET:
-                // reset to the beginning of a multiloop animation
-                if (flow != kAnimFlow_Once)
+                // Got to the end of a sequence
+                if ((flow == kAnimFlow_OnceReset) || (flow == kAnimFlow_Repeat))
                 {
-                    frame = 0;
+                    // If either OnceReset or Repeat, then reset to the beginning of a multiloop animation
                     if (multi_loop_repeat)
+                    {
                         while ((loop > 0) && (aview->loops[loop - 1].RunNextLoop()))
                             loop--;
+                    }
+                    frame = 0;
+                }
+                else if ((flow == kAnimFlow_OnceAndBack) || (flow == kAnimFlow_RepeatAlternate))
+                {
+                    // Backtrack one frame back
+                    if (multi_loop_repeat && (aview->loops[loop].numFrames == 1)
+                        && (loop > 0) && (aview->loops[loop - 1].RunNextLoop()))
+                    {
+                        loop--;
+                        frame = std::max(0, aview->loops[loop].numFrames - 1);
+                    }
+                    else
+                    {
+                        frame = std::max(0, aview->loops[loop].numFrames - 2);
+                    }
                 }
                 else
-                { // if ANIM_ONCE, stop at the last frame
+                {
+                    // Else, remain at the last frame
                     frame = aview->loops[loop].numFrames - 1;
                 }
 
-                if (flow != kAnimFlow_Repeat) // either ANIM_ONCE or ANIM_ONCERESET
-                    done = true; // finished animation
+                test_done = true;
             }
         }
         else
+        {
             frame++;
+        }
     }
     else // backwards
     {
         if (frame == 0)
-        { // Reached the first frame in the loop, find out what to do next
+        {
+            // Reached the first frame in the loop, find out what to do next
+            // First check if this is a multi-loop animation, which has more loops to go
             if ((loop > 0) && aview->loops[loop - 1].RunNextLoop())
             {
                 // go to next loop
@@ -1280,32 +1304,73 @@ bool CycleViewAnim(int view, uint16_t &o_loop, uint16_t &o_frame, const AnimFlow
             }
             else
             {
-                // If either ANIM_REPEAT or ANIM_ONCERESET:
-                // reset to the beginning of a multiloop animation
-                if (flow != kAnimFlow_Once)
+                // Got to the beginning of a sequence
+                if ((flow == kAnimFlow_OnceReset) || (flow == kAnimFlow_Repeat))
                 {
+                    // If either OnceReset or Repeat, then reset to the beginning of a multiloop animation
                     if (multi_loop_repeat)
+                    {
                         while (aview->loops[loop].RunNextLoop())
                             loop++;
+                    }
                     frame = aview->loops[loop].numFrames - 1;
                 }
+                else if ((flow == kAnimFlow_OnceAndBack) || (flow == kAnimFlow_RepeatAlternate))
+                {
+                    // Backtrack one frame back (forward direction)
+                    if (multi_loop_repeat && (aview->loops[loop].numFrames == 1)
+                        && aview->loops[loop].RunNextLoop())
+                    {
+                        loop++;
+                        frame = 0;
+                    }
+                    else
+                    {
+                        frame = std::min(1, aview->loops[loop].numFrames - 1);
+                    }
+                }
                 else
-                { // if ANIM_ONCE, stop at the first frame
+                {
+                    // Else, remain at the last frame
                     frame = 0;
                 }
 
-                if (flow != kAnimFlow_Repeat) // either ANIM_ONCE or ANIM_ONCERESET
-                    done = true; // finished animation
+                test_done = true;
             }
         }
         else
+        {
             frame--;
+        }
+    }
+
+    bool is_done = false;
+    if (test_done)
+    {
+        // Either repeat or stop now
+        switch (flow)
+        {
+        case kAnimFlow_OnceAndBack:
+            // Switch to Once and change direction
+            anim_params.Flow = kAnimFlow_Once;
+            anim_params.Direction = forward ? kAnimDirBackward : kAnimDirForward;
+            break; // not done
+        case kAnimFlow_RepeatAlternate:
+            // Change direction and continue
+            anim_params.Direction = forward ? kAnimDirBackward : kAnimDirForward;
+            break; // not done
+        case kAnimFlow_Repeat:
+            break; // not done
+        default:
+            is_done = true;
+            break;
+        }
     }
 
     // Update object values
     o_loop = loop;
     o_frame = frame;
-    return !done; // have we finished animating?
+    return !is_done; // have we finished animating?
 }
 
 void ValidateMoveParams(const char *apiname, int &blocking, int &ignwal)

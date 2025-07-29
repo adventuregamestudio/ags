@@ -123,8 +123,9 @@ void    ValidateViewAnimVLF(const char *apiname, int view, int loop, int &sframe
 int     SetFirstAnimFrame(int view, int loop, int sframe, AnimFlowDirection dir);
 // General view animation algorithm: find next loop and frame, depending on anim settings;
 // loop and frame values are passed by reference and will be updated;
+// AnimationFlowParams may be modified if direction changes, according to flow style;
 // returns whether the animation should continue.
-bool    CycleViewAnim(int view, uint16_t &loop, uint16_t &frame, const AnimFlowParams &anim_params);
+bool    CycleViewAnim(int view, uint16_t &loop, uint16_t &frame, AnimFlowParams &anim_params);
 
 // Tests if the standard move/walk parameters are in valid range, if not then clamps them and
 // reports a script warning.

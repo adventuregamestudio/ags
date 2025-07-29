@@ -1159,16 +1159,16 @@ BlendMode ValidateBlendMode(const char *apiname, int blend_mode)
 void ValidateAnimParams(const char *apiname, int &repeat, int &direction)
 {
     if (direction == FORWARDS)
-        direction = 0;
+        direction = kAnimDirForward;
     else if (direction == BACKWARDS)
-        direction = 1;
+        direction = kAnimDirBackward;
 
     if ((repeat < kAnimFlow_First) || (repeat > kAnimFlow_Last))
     {
         debug_script_warn("%s: invalid 'repeat' value %d, will treat as ONCE (0).", apiname, repeat);
         repeat = kAnimFlow_Once;
     }
-    if ((direction < 0) || (direction > 1))
+    if ((direction < kAnimDirForward) || (direction > kAnimDirBackward))
     {
         debug_script_warn("%s: invalid 'direction' value %d, will treat as FORWARDS (0)", apiname, direction);
         direction = kAnimDirForward;

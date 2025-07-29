@@ -143,8 +143,6 @@ ScriptMotionPath *MotionPath_Create(void *path_arr, float speedx, float speedy, 
     }
 
     ValidateAnimParams("MotionPath.Create", repeat, direction);
-    // For now clamp to supported flow modes
-    repeat = (repeat == kAnimFlow_Repeat) ? kAnimFlow_Repeat : kAnimFlow_Once;
 
     MoveList mlist;
     Pathfinding::CalculateMoveList(mlist, path, speedx, speedy, 0u,
@@ -179,8 +177,6 @@ ScriptMotionPath *MotionPath_Create2(void *path_arr, void *speedx_arr, void *spe
     }
 
     ValidateAnimParams("MotionPath.Create", repeat, direction);
-    // For now clamp to supported flow modes
-    repeat = (repeat == kAnimFlow_Repeat) ? kAnimFlow_Repeat : kAnimFlow_Once;
 
     std::vector<Pointf> speeds;
     for (size_t i = 0; i < speedxs.size() && i < speedys.size(); ++i)

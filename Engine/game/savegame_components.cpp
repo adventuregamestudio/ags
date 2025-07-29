@@ -1895,7 +1895,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Move Lists",
-        kMoveSvgVersion_40016,
+        kMoveSvgVersion_40020,
         kMoveSvgVersion_400,
         (SaveCmpSelection)(kSaveCmp_Characters | kSaveCmp_ThisRoom), // must go along with characters and room objects
         WriteMoveLists,

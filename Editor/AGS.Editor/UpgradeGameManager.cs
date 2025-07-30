@@ -88,14 +88,11 @@ namespace AGS.Editor
         {
             ExecuteTasksData execData = (ExecuteTasksData)execDataObject;
             int current = 0;
+            int total = execData.UpgradeTasks.Length;
 
             foreach (IUpgradeGameTask task in execData.UpgradeTasks)
             {
-                // FIXME: tasks might change the message and counter, so reset the total here too
-                // We need to support sub-tasks in IWorkProgress interface and respective implementation!
-                progress.Total = execData.UpgradeTasks.Length;
-                progress.Current = current;
-                progress.Message = task.Title;
+                progress.SetProgress(total, current, task.Title, autoFormatProgress: true);
 
                 CompileMessages errors = new CompileMessages();
                 bool notifiedUserOfError = false;

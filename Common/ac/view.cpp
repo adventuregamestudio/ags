@@ -30,7 +30,7 @@ void ViewFrame::ReadFromFile(Stream *in)
     in->ReadInt32(); // reserved 1
 }
 
-void ViewFrame::WriteToFile(Stream *out)
+void ViewFrame::WriteToFile(Stream *out) const
 {
     out->WriteInt32(pic);
     out->WriteInt16(xoffs);
@@ -49,7 +49,7 @@ ViewLoopNew::ViewLoopNew()
 {
 }
 
-bool ViewLoopNew::RunNextLoop() 
+bool ViewLoopNew::RunNextLoop() const
 {
     return (flags & LOOPFLAG_RUNNEXTLOOP);
 }
@@ -68,14 +68,14 @@ void ViewLoopNew::Dispose()
     numFrames = 0;
 }
 
-void ViewLoopNew::WriteToFile(Stream *out)
+void ViewLoopNew::WriteToFile(Stream *out) const
 {
     out->WriteInt16(static_cast<uint16_t>(numFrames));
     out->WriteInt32(flags);
     WriteFrames(out);
 }
 
-void ViewLoopNew::WriteFrames(Stream *out)
+void ViewLoopNew::WriteFrames(Stream *out) const
 {
     for (int i = 0; i < numFrames; ++i)
     {
@@ -115,7 +115,7 @@ void ViewStruct::Dispose()
     numLoops = 0;
 }
 
-void ViewStruct::WriteToFile(Stream *out)
+void ViewStruct::WriteToFile(Stream *out) const
 {
     out->WriteInt16(static_cast<uint16_t>(numLoops));
     for (int i = 0; i < numLoops; i++)

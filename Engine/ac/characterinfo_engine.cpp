@@ -282,7 +282,7 @@ void UpdateCharacterMoving(CharacterInfo *chi, CharacterExtras *chex, int &doing
 bool UpdateCharacterAnimating(CharacterInfo *chi, CharacterExtras *chex, int &doing_nothing)
 {
 	// not moving, but animating
-    if (((chi->is_animating()) || (chi->is_idling())) &&
+    if (((chex->IsAnimating()) || (chi->is_idling())) &&
         (!chi->is_moving() || chi->is_moving_no_anim()) &&
         (chi->room == displayed_room))
     {
@@ -336,7 +336,7 @@ bool UpdateCharacterAnimating(CharacterInfo *chi, CharacterExtras *chex, int &do
             done_anim = true;
             chi->frame = 0;
         } else {
-            if (!CycleViewAnim(view, chi->loop, chi->frame, chi->get_anim_forwards(), chi->get_anim_repeat())) {
+            if (!CycleViewAnim(view, chi->loop, chi->frame, chex->GetAnimParams())) {
                 done_anim = true; // finished animating
                 // end of idle anim
                 if (chi->is_idling()) {
@@ -357,7 +357,7 @@ bool UpdateCharacterAnimating(CharacterInfo *chi, CharacterExtras *chex, int &do
         if (chi->is_idling())
           chi->wait += chi->idle_anim_speed;
         else 
-          chi->wait += chi->get_anim_delay();
+          chi->wait += chex->GetAnimDelay();
 
         if (chi->frame != oldframe)
           chex->CheckViewFrame(chi);
@@ -496,7 +496,7 @@ void UpdateCharacterIdle(CharacterInfo *chi, CharacterExtras *chex, int &doing_n
         animate_character(chi, useloop, chi->idle_anim_speed, (chi->idletime == 0) ? 1 : 0 /* repeat */);
 
         // don't set Animating while the idle anim plays (TODO: investigate why?)
-        chi->animating = 0;
+        chex->anim = ViewAnimateParams();
       }
     }  // end do idle animation
 }

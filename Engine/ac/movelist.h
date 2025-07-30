@@ -38,6 +38,7 @@ enum MoveListSvgVersion
     kMoveSvgVersion_400     = 4000000, // fixed->floats, positions are int32
     kMoveSvgVersion_40006   = 4000006, // extra running params (repeat, dir)
     kMoveSvgVersion_40016   = 4000016, // sync with kMoveSvgVersion_36208
+    kMoveSvgVersion_40020   = 4000020, // expanded animation flow params
 };
 
 class MoveList
@@ -138,7 +139,8 @@ private:
     // Handle stage progress change, possibly moves to the next stage;
     // returns if there's a new stage available
     bool OnProgressChanged();
-    // Handle end of path, either stop or reset to beginning, as per RunPathParams
+    // Handle end of path, either stop or reset to beginning, as per RunPathParams;
+    // returns whether to stop movement ('true') or continue ('false')
     bool OnPathCompleted();
     // Handle reverting past the beginning of path, accounting to RunPathParams
     void OnPathRevertedBack();

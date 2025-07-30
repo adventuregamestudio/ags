@@ -59,7 +59,7 @@ void CharacterInfo::ReadBaseFields(Stream *in)
     loop = in->ReadInt16();
     frame = in->ReadInt16();
     walking = in->ReadInt16();
-    animating = in->ReadInt16();
+    in->ReadInt16(); // legacy animating
     walkspeed = in->ReadInt16();
     animspeed = in->ReadInt16();
     in->ReadArrayOfInt16(inv, MAX_INV);
@@ -106,7 +106,7 @@ void CharacterInfo::WriteBaseFields(Stream *out) const
     out->WriteInt16(loop);
     out->WriteInt16(frame);
     out->WriteInt16(walking);
-    out->WriteInt16(animating);
+    out->WriteInt16(0); // legacy animating
     out->WriteInt16(walkspeed);
     out->WriteInt16(animspeed);
     out->WriteArrayOfInt16(inv, MAX_INV);

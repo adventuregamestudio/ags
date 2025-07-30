@@ -40,7 +40,8 @@ enum RoomStatSvgVersion
     kRoomStatSvgVersion_40008    = 4000008, // custom properties for regions and walk-areas
     kRoomStatSvgVersion_40016    = 4000016, // room objects expose script motion path
     kRoomStatSvgVersion_40018    = 4000018, // shaders
-    kRoomStatSvgVersion_Current  = kRoomStatSvgVersion_40016
+    kRoomStatSvgVersion_40020    = 4000020, // expanded and bit more consistent anim params serialization
+    kRoomStatSvgVersion_Current  = kRoomStatSvgVersion_40020
 };
 
 struct HotspotState

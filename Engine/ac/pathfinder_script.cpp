@@ -143,8 +143,10 @@ ScriptMotionPath *MotionPath_Create(void *path_arr, float speedx, float speedy, 
     }
 
     ValidateAnimParams("MotionPath.Create", repeat, direction);
+
     MoveList mlist;
-    Pathfinding::CalculateMoveList(mlist, path, speedx, speedy, 0u, RunPathParams(repeat, direction == 0));
+    Pathfinding::CalculateMoveList(mlist, path, speedx, speedy, 0u,
+        RunPathParams(static_cast<AnimFlowStyle>(repeat), static_cast<AnimFlowDirection>(direction)));
     return static_cast<ScriptMotionPath*>(
         ScriptMotionPath::Create(add_movelist(std::move(mlist))).Obj);
 }
@@ -175,11 +177,13 @@ ScriptMotionPath *MotionPath_Create2(void *path_arr, void *speedx_arr, void *spe
     }
 
     ValidateAnimParams("MotionPath.Create", repeat, direction);
+
     std::vector<Pointf> speeds;
     for (size_t i = 0; i < speedxs.size() && i < speedys.size(); ++i)
         speeds.emplace_back(speedxs[i], speedys[i]);
     MoveList mlist;
-    Pathfinding::CalculateMoveList(mlist, path, speeds, 0u, RunPathParams(repeat, direction == 0));
+    Pathfinding::CalculateMoveList(mlist, path, speeds, 0u,
+        RunPathParams(static_cast<AnimFlowStyle>(repeat), static_cast<AnimFlowDirection>(direction)));
     return static_cast<ScriptMotionPath *>(
         ScriptMotionPath::Create(add_movelist(std::move(mlist))).Obj);
 }
@@ -262,7 +266,7 @@ int MotionPath_GetDirection(ScriptMotionPath *mpath)
 {
     if (!ValidateMoveList("MotionPath.Direction", mpath))
         return 0;
-    return mpath->GetMoveList()->GetRunParams().Forward ?
+    return mpath->GetMoveList()->GetRunParams().IsForward() ?
         FORWARDS : BACKWARDS;
 }
 
@@ -270,7 +274,7 @@ int MotionPath_GetRepeatStyle(ScriptMotionPath *mpath)
 {
     if (!ValidateMoveList("MotionPath.RepeatStyle", mpath))
         return 0;
-    return mpath->GetMoveList()->GetRunParams().Repeat;
+    return mpath->GetMoveList()->GetRunParams().Flow;
 }
 
 int MotionPath_GetWalkWhere(ScriptMotionPath *mpath)

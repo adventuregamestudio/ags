@@ -225,7 +225,7 @@ void Character_Animate(CharacterInfo *chaa, int loop, int delay, int repeat,
     animate_character(chaa, loop, delay, repeat, direction, sframe, volume);
 
     if (blocking != 0)
-        GameLoopUntilValueIsZero(&chaa->animating);
+        GameLoopUntilViewAnimEnd(&charextra[chaa->index_id].anim);
 }
 
 void Character_Animate5(CharacterInfo *chaa, int loop, int delay, int repeat, int blocking, int direction) {
@@ -546,7 +546,7 @@ void Character_FollowCharacter(CharacterInfo *chaa, CharacterInfo *tofollow, int
 
     chex->SetFollowing(chaa, tofollow ? tofollow->index_id : -1, distaway, eagerness, (eagerness == 1));
 
-    if (chaa->animating & CHANIM_REPEAT)
+    if (chex->IsAnimatingRepeatedly())
         debug_script_warn("Warning: FollowCharacter called but the sheep is currently animating looped. It may never start to follow.");
 }
 
@@ -883,6 +883,8 @@ void Character_SetIdleView(CharacterInfo *chaa, int iview, int itime) {
     if (iview == 1) 
         quit("!SetCharacterIdle: view 1 cannot be used as an idle view, sorry.");
 
+    CharacterExtras *chex = &charextra[chaa->index_id];
+
     // if an idle anim is currently playing, release it
     stop_character_idling(chaa);
 
@@ -894,7 +896,7 @@ void Character_SetIdleView(CharacterInfo *chaa, int iview, int itime) {
     chaa->idleleft = itime;
 
     // if not currently animating, reset the wait counter
-    if ((chaa->animating == 0) && (chaa->walking == 0))
+    if ((!chex->IsAnimating()) && (!chaa->is_moving()))
         chaa->wait = 0;
 
     if (iview >= 1) {
@@ -1136,7 +1138,7 @@ bool ValidateCharForMove(CharacterInfo *chaa, const char *api_name)
 // Character_DoMove converts and validates script parameters, and calls corresponding internal character move function
 static void Character_DoMove(CharacterInfo *chaa, const char *api_name,
     void *path_arr, int x, int y, bool use_path, bool walk_straight,
-    int blocking, int ignwal, bool walk_anim, int repeat = ANIM_ONCE, int direction = FORWARDS)
+    int blocking, int ignwal, bool walk_anim, int repeat = kAnimFlow_Once, int direction = FORWARDS)
 {
     if (!ValidateCharForMove(chaa, api_name))
         return;
@@ -1153,7 +1155,8 @@ static void Character_DoMove(CharacterInfo *chaa, const char *api_name,
             Character_StopMoving(chaa);
             return;
         }
-        move_character(chaa, path, walk_anim, RunPathParams(repeat, direction == 0));
+        move_character(chaa, path, walk_anim,
+            RunPathParams(static_cast<AnimFlowStyle>(repeat), static_cast<AnimFlowDirection>(direction)));
     }
     else if (walk_straight)
     {
@@ -1307,9 +1310,7 @@ void Character_SetActiveInventory(CharacterInfo *chaa, ScriptInvItem* iit) {
 }
 
 int Character_GetAnimating(CharacterInfo *chaa) {
-    if (chaa->animating)
-        return 1;
-    return 0;
+    return charextra[chaa->index_id].IsAnimating() ? 1 : 0;
 }
 
 int Character_GetAnimationSpeed(CharacterInfo *chaa) {
@@ -1949,17 +1950,18 @@ void move_character_impl(CharacterInfo *chin, const std::vector<Point> *path, in
         return;
 
     // Stop custom animation always (but idling will be stopped only if pathfinding was a success, below)
-    if (chin->is_animating() && walk_anim)
+    CharacterExtras *chex = &charextra[chin->index_id];
+    if (chex->IsAnimating() && walk_anim)
         stop_character_anim(chin);
 
     // If using a path, then update starting and destination parameters,
     // and jump the character to the path's start
     if (path)
     {
-        chin->x = run_params.Forward ? path->front().X : path->back().X;
-        chin->y = run_params.Forward ? path->front().Y : path->back().Y;
-        tox = run_params.Forward ? path->back().X : path->front().X;
-        toy = run_params.Forward ? path->back().Y : path->front().Y;
+        chin->x = run_params.IsForward() ? path->front().X : path->back().X;
+        chin->y = run_params.IsForward() ? path->front().Y : path->back().Y;
+        tox = run_params.IsForward() ? path->back().X : path->front().X;
+        toy = run_params.IsForward() ? path->back().Y : path->front().Y;
     }
 
     // If has path, then test if it's empty, or has 2 stages where start is identical to end;
@@ -2144,7 +2146,7 @@ void fix_player_sprite(CharacterInfo *chinf, const MoveList &cmls) {
     if ((xpmove == 0.f) && (ypmove == 0.f))
         return;
 
-    const int useloop = GetDirectionalLoop(chinf, xpmove, ypmove, cmls.GetRunParams().Forward);
+    const int useloop = GetDirectionalLoop(chinf, xpmove, ypmove, cmls.GetRunParams().IsForward());
 
     if ((game.options[OPT_CHARTURNWHENWALK] == 0) || ((chinf->flags & CHF_NOTURNWHENWALK) != 0)) {
         chinf->loop = useloop;
@@ -2469,20 +2471,18 @@ void animate_character(CharacterInfo *chap, int loopn, int sppd, int rept,
 
     Character_StopMoving(chap);
 
-    chap->set_animating(rept != 0, direction == 0, sppd);
-    chap->loop=loopn;
-    chap->frame = SetFirstAnimFrame(chap->view, loopn, sframe, direction);
+    CharacterExtras *chex = &charextra[chap->index_id];
+    chex->SetAnimating(static_cast<AnimFlowStyle>(rept), static_cast<AnimFlowDirection>(direction), sppd, Math::Clamp(volume, 0, 100));
+    chap->loop = loopn;
+    chap->frame = SetFirstAnimFrame(chap->view, loopn, sframe, static_cast<AnimFlowDirection>(direction));
     chap->wait = sppd + views[chap->view].loops[loopn].frames[chap->frame].speed;
-    charextra[chap->index_id].cur_anim_volume = Math::Clamp(volume, 0, 100);
 
     charextra[chap->index_id].CheckViewFrame(chap);
 }
 
 void stop_character_anim(CharacterInfo *chap)
-{ // TODO: may expand with resetting more properties,
-  // but have to be careful to not break logic somewhere
-    chap->animating = 0;
-    charextra[chap->index_id].cur_anim_volume = 100;
+{
+    charextra[chap->index_id].ResetAnimating();
 }
 
 Bitmap *GetCharacterImage(int charid, bool *is_original)
@@ -3119,8 +3119,9 @@ void display_speech(const char *texx, int aschar, int xx, int yy, int widd, bool
             oldview = speakingChar->view;
             oldloop = speakingChar->loop;
 
-            speakingChar->set_animating(!is_thought, // only repeat if speech, not thought
-                true, // always forwards
+            charextra[speakingChar->index_id].SetAnimating(
+                is_thought ? kAnimFlow_Once : kAnimFlow_Repeat, // only repeat if speech, not thought
+                kAnimDirForward, // always forwards
                 Character_GetSpeechAnimationDelay(speakingChar));
 
             speakingChar->view = useview;

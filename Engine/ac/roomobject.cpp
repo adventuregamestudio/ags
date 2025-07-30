@@ -48,8 +48,6 @@ RoomObject::RoomObject()
     loop = frame = 0;
     wait = 0;
     moving = -1;
-    cycling = 0;
-    overall_speed = 0;
     flags = 0;
     blocking_width = blocking_height = 0;
     blend_mode = kBlend_Normal;
@@ -86,12 +84,14 @@ void RoomObject::UpdateCyclingView(int ref_id)
       if (moving == 0)
         OnStopMoving();
     }
-    if (cycling==0) return;
+    if (!is_animating()) return;
     if (view == RoomObject::NoView) return;
     if (wait>0) { wait--; return; }
 
-    if (!CycleViewAnim(view, loop, frame, get_anim_forwards(), get_anim_repeat()))
-        cycling = 0; // finished animating
+    if (!CycleViewAnim(view, loop, frame, anim))
+    {
+        anim = ViewAnimateParams();
+    }
 
     ViewFrame*vfptr=&views[view].loops[loop].frames[frame];
     if (vfptr->pic > UINT16_MAX)
@@ -99,10 +99,10 @@ void RoomObject::UpdateCyclingView(int ref_id)
             ref_id, vfptr->pic, UINT16_MAX);
     num = Math::InRangeOrDef<uint16_t>(vfptr->pic, 0);
 
-    if (cycling == 0)
+    if (!is_animating())
       return;
 
-    wait=vfptr->speed+overall_speed;
+    wait = anim.Delay + vfptr->speed;
     CheckViewFrame();
 }
 
@@ -126,7 +126,7 @@ void RoomObject::OnStopMoving()
 int RoomObject::GetFrameSoundVolume() const
 {
     // NOTE: room objects don't have "scale volume" flag at the moment
-    return ::CalcFrameSoundVolume(anim_volume, cur_anim_volume);
+    return ::CalcFrameSoundVolume(anim_volume, anim.AudioVolume);
 }
 
 void RoomObject::CheckViewFrame()
@@ -154,8 +154,8 @@ void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
     frame = in->ReadInt16();
     wait = in->ReadInt16();
     moving = in->ReadInt16();
-    cycling = in->ReadInt8();
-    overall_speed = in->ReadInt8();
+    int legacy_animating = in->ReadInt8(); // legacy animating
+    int anim_delay = in->ReadInt8(); // legacy anim delay (8-bit)
     if (cmp_ver >= kRoomStatSvgVersion_40003)
     {
         flags = in->ReadInt32();
@@ -174,13 +174,16 @@ void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
     {
         name = StrUtil::ReadString(in);
     }
+    int cur_anim_volume = 100;
     if (cmp_ver >= kRoomStatSvgVersion_36025)
-    { // anim vols order inverted compared to character, by mistake :(
+    {
+        // anim vols order inverted compared to character, by mistake :(
         cur_anim_volume = static_cast<uint8_t>(in->ReadInt8());
         anim_volume = static_cast<uint8_t>(in->ReadInt8());
         in->ReadInt8(); // reserved to fill int32
         in->ReadInt8();
     }
+
     if (cmp_ver >= kRoomStatSvgVersion_400)
     {
         blend_mode = (BlendMode)in->ReadInt32();
@@ -216,12 +219,20 @@ void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
         movelist_handle = 0;
     }
 
+    AnimFlowStyle anim_flow = kAnimFlow_None;
+    AnimFlowDirection anim_dir_initial = kAnimDirForward;
+    AnimFlowDirection anim_dir_current = kAnimDirForward;
     if (cmp_ver >= kRoomStatSvgVersion_40018)
     {
         shader_id = in->ReadInt32();
         shader_handle = in->ReadInt32();
-        in->ReadInt32(); // reserve
-        in->ReadInt32();
+        // new anim fields are valid since kRoomStatSvgVersion_40020
+        anim_flow = static_cast<AnimFlowStyle>(in->ReadInt8());
+        anim_dir_initial = static_cast<AnimFlowDirection>(in->ReadInt8());
+        anim_dir_current = static_cast<AnimFlowDirection>(in->ReadInt8());
+        in->ReadInt8(); // reserved to fill int32
+        anim_delay = in->ReadInt16();
+        in->ReadInt16(); // reserved to fill int32
     }
     else
     {
@@ -229,6 +240,21 @@ void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
         shader_handle = 0;
     }
 
+    // Apply animation params either from old or new save
+    if (cmp_ver < kRoomStatSvgVersion_40020)
+    {
+        switch (legacy_animating % 10)
+        {
+        case LEGACY_OBJANIM_ONCE: anim_flow = kAnimFlow_Once; break;
+        case LEGACY_OBJANIM_REPEAT: anim_flow = kAnimFlow_Repeat; break;
+        case LEGACY_OBJANIM_ONCERESET: anim_flow = kAnimFlow_OnceAndReset; break;
+        default: anim_flow = kAnimFlow_None; break;
+        }
+        anim_dir_initial = legacy_animating < 10 ? kAnimDirForward : kAnimDirBackward;
+        anim_dir_current = anim_dir_initial;
+    }
+
+    anim = ViewAnimateParams(anim_flow, anim_dir_initial, anim_dir_current, anim_delay, cur_anim_volume);
     spr_width = width;
     spr_height = height;
     UpdateGraphicSpace();
@@ -254,15 +280,15 @@ void RoomObject::WriteToSavegame(Stream *out) const
     out->WriteInt16(frame);
     out->WriteInt16(wait);
     out->WriteInt16(moving);
-    out->WriteInt8(cycling);
-    out->WriteInt8(overall_speed);
+    out->WriteInt8(0); // legacy animating (8-bit field)
+    out->WriteInt8(anim.Delay);
     out->WriteInt32(flags);
     out->WriteInt16(blocking_width);
     out->WriteInt16(blocking_height);
-    // since version 1
+    // kRoomStatSvgVersion_36016
     StrUtil::WriteString(name, out);
-    // since version 2
-    out->WriteInt8(static_cast<uint8_t>(cur_anim_volume));
+    // kRoomStatSvgVersion_36025
+    out->WriteInt8(static_cast<uint8_t>(anim.AudioVolume));
     out->WriteInt8(static_cast<uint8_t>(anim_volume));
     out->WriteInt8(0); // reserved to fill int32
     out->WriteInt8(0);
@@ -290,8 +316,13 @@ void RoomObject::WriteToSavegame(Stream *out) const
     // kRoomStatSvgVersion_40018
     out->WriteInt32(shader_id);
     out->WriteInt32(shader_handle);
-    out->WriteInt32(0); // reserve
-    out->WriteInt32(0);
+    // new anim fields are valid since kCharSvgVersion_400_20
+    out->WriteInt8(anim.Flow);
+    out->WriteInt8(anim.InitialDirection);
+    out->WriteInt8(anim.Direction);
+    out->WriteInt8(0); // reserved to fill int32
+    out->WriteInt16(anim.Delay);
+    out->WriteInt16(0); // reserved to fill int32
 }
 
 void RoomObject::UpdateGraphicSpace()

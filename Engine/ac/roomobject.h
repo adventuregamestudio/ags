@@ -20,21 +20,19 @@
 
 #include "core/types.h"
 #include "ac/common_defines.h"
+#include "ac/runtime_defines.h"
 #include "gfx/gfx_def.h"
 #include "util/string.h"
 
 namespace AGS { namespace Common { class Stream; }}
 using namespace AGS; // FIXME later
 
-// RoomObject's internal values, packed in RoomObject::cycling
-// Animates once and stops at the *last* frame
-#define OBJANIM_ONCE      (ANIM_ONCE + 1)
-// Animates infinitely until stopped by command
-#define OBJANIM_REPEAT    (ANIM_REPEAT + 1)
-// Animates once and stops, resetting to the very first frame
-#define OBJANIM_ONCERESET (ANIM_ONCERESET + 1)
-// Animates backwards, as opposed to forwards
-#define OBJANIM_BACKWARDS 10
+// RoomObject's legacy animation constants
+#define LEGACY_OBJANIM_ONCE      (LEGACY_ANIM_ONCE + 1)
+#define LEGACY_OBJANIM_REPEAT    (LEGACY_ANIM_REPEAT + 1)
+#define LEGACY_OBJANIM_ONCERESET (LEGACY_ANIM_ONCERESET + 1)
+#define LEGACY_OBJANIM_BACKWARDS 10
+
 
 class RoomObject
 {
@@ -54,13 +52,11 @@ public:
     short baseline;       // <=0 to use Y co-ordinate; >0 for specific baseline
     uint16_t view,loop,frame; // only used to track animation - 'num' holds the current sprite
     short wait,moving;
-    char  cycling;        // stores OBJANIM_* flags and values
-    char  overall_speed;  // animation delay
-    int   flags;
+    ViewAnimateParams anim;
+    int   flags; // OBJF_* flags
     // Down to here is a part of the plugin API
     short blocking_width, blocking_height;
     int   anim_volume = 100; // default animation volume (relative factor)
-    int   cur_anim_volume = 100; // current animation sound volume (relative factor)
     Common::String name;
     Common::BlendMode blend_mode;
     int   shader_id = 0;
@@ -83,20 +79,16 @@ public:
     inline bool is_displayed() const { return is_enabled() && is_visible(); }
     inline bool has_explicit_light() const { return (flags & OBJF_HASLIGHT) != 0; }
     inline bool has_explicit_tint()  const { return (flags & OBJF_HASTINT) != 0; }
-    inline bool is_animating()       const { return (cycling > 0); }
-    // repeat may be ANIM_ONCE, ANIM_REPEAT, ANIM_ONCERESET;
-    // get_anim_repeat() converts from OBJANIM_* to ANIM_* values
-    inline int  get_anim_repeat()    const { return (cycling % OBJANIM_BACKWARDS) - 1; }
-    inline bool get_anim_forwards()  const { return (cycling < OBJANIM_BACKWARDS); }
-    inline int  get_anim_delay()     const { return overall_speed; }
+    inline bool is_moving()          const { return moving > 0; }
+    inline bool is_animating()       const { return anim.IsValid(); }
+    inline int  get_anim_repeat()    const { return anim.IsRepeating(); }
+    inline bool get_anim_forwards()  const { return anim.IsForward(); }
+    inline int  get_anim_delay()     const { return anim.Delay; }
     inline void set_enabled(bool on) { flags = (flags & ~OBJF_ENABLED) | (OBJF_ENABLED * on); }
     inline void set_visible(bool on) { flags = (flags & ~OBJF_VISIBLE) | (OBJF_VISIBLE * on); }
-    // repeat may be ANIM_ONCE, ANIM_REPEAT, ANIM_ONCERESET 
-    inline void set_animating(int repeat, bool forwards, int delay)
+    inline void set_animating(AnimFlowStyle repeat, AnimFlowDirection dir, int delay, int anim_volume = 100)
     {
-        // convert "repeat" to 1-based OBJANIM_* flag
-        cycling = (repeat + 1) + (!forwards * OBJANIM_BACKWARDS);
-        overall_speed = delay;
+        anim = ViewAnimateParams(repeat, dir, delay, anim_volume);
     }
 
     inline Pointf GetOrigin() const { return Pointf(0.f, 1.f); /* left-bottom */ }

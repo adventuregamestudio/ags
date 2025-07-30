@@ -66,11 +66,11 @@ using namespace AGS; // FIXME later
 // Length of deprecated character name field, in bytes
 #define LEGACY_MAX_CHAR_NAME_LEN 40
 
-// Character's internal flags, packed in CharacterInfo::animating
-#define CHANIM_MASK         0xFF
-#define CHANIM_ON           0x01
-#define CHANIM_REPEAT       0x02
-#define CHANIM_BACKWARDS    0x04
+// Legacy Character's animation flags, packed in a byte
+#define LEGACY_CHANIM_MASK         0xFF
+#define LEGACY_CHANIM_ON           0x01
+#define LEGACY_CHANIM_REPEAT       0x02
+#define LEGACY_CHANIM_BACKWARDS    0x04
 
 // These deprecated values were **added** to CharacterInfo's MoveList index;
 // TURNING_AROUND was added times the character must turn,
@@ -111,6 +111,7 @@ enum CharacterSvgVersion
     kCharSvgVersion_400_14  = 4000014, // proper ARGB color properties
     kCharSvgVersion_400_16  = 4000016, // motion path exposed to script, separate runtime flags, turns
     kCharSvgVersion_400_18  = 4000018, // shaders
+    kCharSvgVersion_400_20  = 4000020, // expanded and bit more consistent anim params serialization
 };
 
 
@@ -154,7 +155,6 @@ struct CharacterInfo
     uint16_t loop       = 0;
     uint16_t frame      = 0;
     int16_t walking     = 0; // stores movelist index
-    int16_t animating   = 0; // stores CHANIM_* flags in lower byte and delay in upper byte
     int16_t walkspeed   = 0;
     int16_t animspeed   = 0;
     int16_t inv[MAX_INV] = { 0 }; // quantities of each inventory item in game
@@ -193,19 +193,8 @@ struct CharacterInfo
     inline bool is_moving_no_anim()  const { return (flags & CHF_MOVENOTWALK) != 0; }
     inline bool has_explicit_light() const { return (flags & CHF_HASLIGHT) != 0; }
     inline bool has_explicit_tint()  const { return (flags & CHF_HASTINT) != 0; }
-    inline bool is_animating()       const { return (animating & CHANIM_ON) != 0; }
-    inline int  get_anim_repeat()    const { return (animating & CHANIM_REPEAT) ? ANIM_REPEAT : ANIM_ONCE; }
-    inline bool get_anim_forwards()  const { return (animating & CHANIM_BACKWARDS) == 0; }
-    inline int  get_anim_delay()     const { return (animating >> 8) & 0xFF; }
     inline void set_enabled(bool on) { flags = (flags & ~CHF_ENABLED) | (CHF_ENABLED * on); }
     inline void set_visible(bool on) { flags = (flags & ~CHF_VISIBLE) | (CHF_VISIBLE * on); }
-    inline void set_animating(bool repeat, bool forwards, int delay)
-    {
-        animating = CHANIM_ON |
-            (CHANIM_REPEAT * repeat) |
-            (CHANIM_BACKWARDS * !forwards) |
-            ((delay & 0xFF) << 8);
-    }
 
     inline bool is_idling()          const { return (idleleft < 0); }
 

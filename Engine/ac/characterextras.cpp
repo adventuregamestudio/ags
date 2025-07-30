@@ -45,6 +45,16 @@ void CharacterExtras::DecrementTurning()
     }
 }
 
+void CharacterExtras::SetAnimating(AnimFlowStyle flow, AnimFlowDirection dir, int delay, int anim_volume)
+{
+    anim = ViewAnimateParams(flow, dir, delay, anim_volume);
+}
+
+void CharacterExtras::ResetAnimating()
+{
+    anim = ViewAnimateParams();
+}
+
 int CharacterExtras::GetEffectiveY(CharacterInfo *chi) const
 {
     return chi->y - (chi->z * zoom_offs) / 100;
@@ -53,7 +63,7 @@ int CharacterExtras::GetEffectiveY(CharacterInfo *chi) const
 int CharacterExtras::GetFrameSoundVolume(CharacterInfo *chi) const
 {
     return ::CalcFrameSoundVolume(
-        anim_volume, cur_anim_volume,
+        anim_volume, anim.AudioVolume,
         (chi->flags & CHF_SCALEVOLUME) ? zoom : 100);
 }
 
@@ -97,6 +107,7 @@ void CharacterExtras::ReadFromSavegame(Stream *in, CharacterSvgVersion save_ver)
     process_idle_this_time = in->ReadInt8();
     slow_move_counter = in->ReadInt8();
     animwait = in->ReadInt16();
+    int cur_anim_volume = 100;
     if (save_ver >= kCharSvgVersion_36025)
     {
         anim_volume = static_cast<uint8_t>(in->ReadInt8());
@@ -148,18 +159,31 @@ void CharacterExtras::ReadFromSavegame(Stream *in, CharacterSvgVersion save_ver)
         turns = 0;
     }
 
+    AnimFlowStyle anim_flow = kAnimFlow_None;
+    AnimFlowDirection anim_dir_initial = kAnimDirForward;
+    AnimFlowDirection anim_dir_current = kAnimDirForward;
+    int anim_delay = 0;
     if (save_ver >= kCharSvgVersion_400_18)
     {
         shader_id = in->ReadInt32();
         shader_handle = in->ReadInt32();
-        in->ReadInt32(); // reserved
-        in->ReadInt32();
+        // new anim fields are valid since kCharSvgVersion_400_20
+        anim_flow = static_cast<AnimFlowStyle>(in->ReadInt8());
+        anim_dir_initial = static_cast<AnimFlowDirection>(in->ReadInt8());
+        anim_dir_current = static_cast<AnimFlowDirection>(in->ReadInt8());
+        in->ReadInt8(); // reserved to fill int32
+        anim_delay = in->ReadInt16();
+        in->ReadInt16(); // reserved to fill int32
     }
     else
     {
         shader_id = 0;
         shader_handle = 0;
     }
+
+    // NOTE: the legacy animating fields from old save fmt are applied externally,
+    // because they are loaded into deprecated CharacterInfo fields
+    anim = ViewAnimateParams(anim_flow, anim_dir_initial, anim_dir_current, anim_delay, cur_anim_volume);
 }
 
 void CharacterExtras::WriteToSavegame(Stream *out) const
@@ -181,7 +205,7 @@ void CharacterExtras::WriteToSavegame(Stream *out) const
     out->WriteInt16(animwait);
     // kCharSvgVersion_36025
     out->WriteInt8(static_cast<uint8_t>(anim_volume));
-    out->WriteInt8(static_cast<uint8_t>(cur_anim_volume));
+    out->WriteInt8(static_cast<uint8_t>(anim.AudioVolume));
     out->WriteInt8(0); // reserved to fill int32
     out->WriteInt8(0);
     // kCharSvgVersion_36205
@@ -212,6 +236,11 @@ void CharacterExtras::WriteToSavegame(Stream *out) const
     // -- kCharSvgVersion_400_18
     out->WriteInt32(shader_id);
     out->WriteInt32(shader_handle);
-    out->WriteInt32(0); // reserved
-    out->WriteInt32(0);
+    // new anim fields are valid since kCharSvgVersion_400_20
+    out->WriteInt8(anim.Flow);
+    out->WriteInt8(anim.InitialDirection);
+    out->WriteInt8(anim.Direction);
+    out->WriteInt8(0); // reserved to fill int32
+    out->WriteInt16(anim.Delay);
+    out->WriteInt16(0); // reserved to fill int32
 }

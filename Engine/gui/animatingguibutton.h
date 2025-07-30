@@ -31,9 +31,8 @@ struct AnimatingGUIButton
     short buttonid = -1, ongui = -1, onguibut = -1;
     // current animation status
     uint16_t view = 0, loop = 0, frame = 0;
-    short speed = 0, repeat = 0, blocking = 0, direction = 0, wait = 0;
-    // relative volume of the frame sounds
-    int volume = -1;
+    ViewAnimateParams anim;
+    short wait = 0;
 
     void ReadFromSavegame(Common::Stream *in, int cmp_ver);
     void WriteToSavegame(Common::Stream *out);

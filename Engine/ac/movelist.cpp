@@ -271,19 +271,7 @@ HSaveError MoveList::ReadFromSavegame(Stream *in, int32_t cmp_ver)
         permove[i].Y = in->ReadFloat32();
     }
 
-    if (cmp_ver >= kMoveSvgVersion_40006)
-    {
-        run_params.Repeat = in->ReadInt8();
-        run_params.Forward = in->ReadInt8() == 0; // inverse, fw == 0
-        in->ReadInt8();
-        in->ReadInt8();
-        in->ReadInt32(); // reserve up to 4 * int32 total
-        in->ReadInt32(); // potential: from,to (waypoint range)
-        in->ReadInt32();
-    }
-
-    curpos = CalcCurrentPos();
-
+    // Stage flags
     if ((cmp_ver >= kMoveSvgVersion_36208 && cmp_ver < kMoveSvgVersion_400) ||
         cmp_ver >= kMoveSvgVersion_40016)
     {
@@ -297,6 +285,18 @@ HSaveError MoveList::ReadFromSavegame(Stream *in, int32_t cmp_ver)
         std::fill(stageflags.begin(), stageflags.end(), old_direct_flag);
     }
 
+    if (cmp_ver >= kMoveSvgVersion_40006)
+    {
+        run_params.Repeat = in->ReadInt8();
+        run_params.Forward = in->ReadInt8() == 0; // inverse, fw == 0
+        in->ReadInt8();
+        in->ReadInt8();
+        in->ReadInt32(); // reserve up to 4 * int32 total
+        in->ReadInt32(); // potential: from,to (waypoint range)
+        in->ReadInt32();
+    }
+
+    curpos = CalcCurrentPos();
     return HSaveError::None();
 }
 
@@ -329,7 +329,8 @@ void MoveList::WriteToSavegame(Stream *out) const
     {
         out->WriteFloat32(permove[i].Y);
     }
-    // kMoveSvgVersion_36208
+
+    // kMoveSvgVersion_36208 || kMoveSvgVersion_40016
     for (uint32_t i = 0; i < numstage; ++i)
     {
         out->WriteInt8(stageflags[i]);

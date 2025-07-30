@@ -2667,16 +2667,15 @@ namespace AGS.Editor.Components
             object progressLock = new object();
             string progressText = "Converting rooms from .crm to open format.";
             {
-                // FIXME: we need sub-task support in the IWorkProgress interface, and respective implementation!
-                progress.Total = rooms.Count;
+                progress.SetProgress(rooms.Count, 0, progressText, autoFormatProgress: false);
                 int progressCounter = 0;
                 Action progressReporter = () =>
                 {
                     lock (progressLock)
                     {
                         progressCounter++;
-                        progress.Current = progressCounter;
-                        progress.Message = $"{progressText} {progressCounter} of {rooms.Count} rooms converted.";
+                        progress.SetProgress(progressCounter,
+                            $"{progressText} {progressCounter} of {rooms.Count} rooms converted.");
                     }
                 };
 

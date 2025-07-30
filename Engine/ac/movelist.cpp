@@ -49,7 +49,7 @@ void MoveList::Complete()
     case kAnimFlow_OnceAndBack:
         from = run_params.IsForward() ? pos[GetNumStages() - 1] : pos[0];
         break;
-    case kAnimFlow_OnceReset:
+    case kAnimFlow_OnceAndReset:
         from = run_params.IsForward() ? pos[0] : pos[GetNumStages() - 1];
         break;
     }
@@ -229,7 +229,7 @@ bool MoveList::OnPathCompleted()
 {
     switch (run_params.Flow)
     {
-    case kAnimFlow_OnceReset:
+    case kAnimFlow_OnceAndReset:
         // Reset to begin and stop
         ResetToBegin();
         return true;
@@ -261,7 +261,7 @@ void MoveList::OnPathRevertedBack()
     switch (run_params.Flow)
     {
     case kAnimFlow_Once:
-    case kAnimFlow_OnceReset:
+    case kAnimFlow_OnceAndReset:
         ResetToBegin();
         break;
     case kAnimFlow_OnceAndBack:

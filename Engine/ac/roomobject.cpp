@@ -247,7 +247,7 @@ void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
         {
         case LEGACY_OBJANIM_ONCE: anim_flow = kAnimFlow_Once; break;
         case LEGACY_OBJANIM_REPEAT: anim_flow = kAnimFlow_Repeat; break;
-        case LEGACY_OBJANIM_ONCERESET: anim_flow = kAnimFlow_OnceReset; break;
+        case LEGACY_OBJANIM_ONCERESET: anim_flow = kAnimFlow_OnceAndReset; break;
         default: anim_flow = kAnimFlow_None; break;
         }
         anim_dir_initial = legacy_animating < 10 ? kAnimDirForward : kAnimDirBackward;

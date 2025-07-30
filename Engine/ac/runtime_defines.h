@@ -163,7 +163,7 @@ enum AnimFlowStyle
     // Animates infinitely, wrapping from the last frame to the first frame
     kAnimFlow_Repeat = 1,
     // Animates once and stops, resetting to the very first frame
-    kAnimFlow_OnceReset = 2,
+    kAnimFlow_OnceAndReset = 2,
     // Animates once in the starting direction, and another in reverse,
     // stops at the first frame after returning back
     kAnimFlow_OnceAndBack = 3,

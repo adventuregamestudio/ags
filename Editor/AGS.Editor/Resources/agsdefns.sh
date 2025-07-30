@@ -162,7 +162,7 @@ enum RoundDirection {
 enum RepeatStyle {
   eOnce = 0,
   eRepeat = 1,
-  eOnceReset = 2,
+  eOnceAndReset = 2,
   eOnceAndBack = 3,
   eRepeatAlternate = 4
 };

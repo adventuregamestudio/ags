@@ -1316,7 +1316,7 @@ bool CycleViewAnim(int view, uint16_t &o_loop, uint16_t &o_frame, AnimFlowParams
         // Decide whether to continue (and how) or stop, depending on the animation flow
         switch (flow)
         {
-        case kAnimFlow_OnceReset:
+        case kAnimFlow_OnceAndReset:
             // Reset to begin and stop
             CycleResetToBegin(aview, loop, frame, forward, multi_loop_repeat);
             is_done = true;

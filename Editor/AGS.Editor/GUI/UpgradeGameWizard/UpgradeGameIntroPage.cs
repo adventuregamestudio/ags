@@ -53,13 +53,15 @@ Note that this wizard will only backup standard game files that may in theory be
         {
             _backupPath = Path.Combine(Game.DirectoryPath,
                 Utilities.MakeUniqueDirectory(Game.DirectoryPath, "Backup"));
-            lblBackupLocation.Text = "Backup files will be placed in directory:" + Environment.NewLine + _backupPath;
+            tbBackupPath.Text = _backupPath;
             FormatIntroText();
         }
 
         private void chkBackup_CheckedChanged(object sender, EventArgs e)
         {
             lblBackupLocation.Enabled = chkBackup.Checked;
+            tbBackupPath.Enabled = chkBackup.Checked;
+            btnBrowse.Enabled = chkBackup.Checked;
         }
 
         private void UpgradeGameIntroPage_VisibleChanged(object sender, EventArgs e)
@@ -68,6 +70,13 @@ Note that this wizard will only backup standard game files that may in theory be
             {
                 FormatIntroText();
             }
+        }
+
+        private void btnBrowse_Click(object sender, EventArgs e)
+        {
+            _backupPath = GUIController.Instance.ShowSelectFolderOrDefaultDialog("Please select the folder that you wish to place backup files in",
+                Directory.Exists(_backupPath) ? _backupPath : Game.DirectoryPath, true);
+            tbBackupPath.Text = _backupPath;
         }
     }
 }

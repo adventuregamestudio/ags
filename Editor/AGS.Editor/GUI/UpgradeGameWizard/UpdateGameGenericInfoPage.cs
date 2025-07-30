@@ -15,6 +15,11 @@ namespace AGS.Editor
             richDescription.Text = task.Description;
         }
 
+        public override string TitleText
+        {
+            get { return Task.Title; }
+        }
+
         private void InitializeComponent()
         {
             this.richDescription = new AGS.Controls.ReadOnlyRichTextBox();

@@ -415,14 +415,17 @@ namespace AGS.Editor
 
         public void ReportGameLoad(CompileMessages errors)
         {
-            if (errors.Count == 1)
+            Factory.GUIController.ShowOutputPanel(errors);
+            if (errors.HasErrorsOrWarnings)
             {
-                Factory.GUIController.ShowMessage(errors[0].Message, MessageBoxIcon.Warning);
-            }
-            else if (errors.Count > 1)
-            {
-                Factory.GUIController.ShowOutputPanel(errors);
-                Factory.GUIController.ShowMessage("Game was loaded, but there were errors or warnings.", MessageBoxIcon.Warning);
+                if (errors.Count == 1)
+                {
+                    Factory.GUIController.ShowMessage(errors[0].Message, MessageBoxIcon.Warning);
+                }
+                else
+                {
+                    Factory.GUIController.ShowMessage("Game was loaded, but there were errors or warnings.", MessageBoxIcon.Warning);
+                }
             }
         }
 
@@ -1287,7 +1290,7 @@ namespace AGS.Editor
 					Factory.GUIController.ShowMessage("There were compilation errors. See the output window for details.", MessageBoxIcon.Warning);
 				}
 			}
-			else if (errors.Count > 0)
+			else if (errors.HasErrorsOrWarnings)
 			{
 				if (_applicationSettings.MessageBoxOnCompile != MessageBoxOnCompile.Never && _applicationSettings.MessageBoxOnCompile != MessageBoxOnCompile.OnlyErrors)
                 {

@@ -120,6 +120,8 @@ namespace AGS.Editor
                 }
                 File.Copy(file, destinationFile);
             }
+
+            errors.Add(new CompileInformation($"Original game files are backed up in {BackupPath}"));
         }
     }
 }

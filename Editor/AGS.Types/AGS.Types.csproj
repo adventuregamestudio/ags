@@ -183,6 +183,7 @@
     <Compile Include="Enums\TextParserWordType.cs" />
     <Compile Include="Exceptions\CannotDeleteFileException.cs" />
     <Compile Include="Exceptions\CompileError.cs" />
+    <Compile Include="Exceptions\CompileInformation.cs" />
     <Compile Include="Exceptions\CompileMessage.cs" />
     <Compile Include="Exceptions\CompileMessages.cs" />
     <Compile Include="Exceptions\CompileWarning.cs" />

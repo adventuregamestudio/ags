@@ -564,6 +564,7 @@ namespace AGS.Editor.Components
             Directory.CreateDirectory(FONT_FILES_DIRECTORY);
 
 #pragma warning disable 0612, 0618
+            int fontCount = game.Fonts.Count;
             foreach (AGS.Types.Font font in game.Fonts)
             {
                 FontFile ff;
@@ -591,6 +592,8 @@ namespace AGS.Editor.Components
                 AssignFontFileToFont(font, ff);
             }
 #pragma warning restore 0612, 0618
+
+            errors.Add(new CompileInformation($"Converted {fontCount} fonts into font file / font pairs"));
         }
     }
 }
